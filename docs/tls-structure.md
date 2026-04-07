@@ -31,36 +31,54 @@ Canonical tier IDs:
 Goal: generate certs for one PS-ID and its four app instances.
 
 Required domains (reverse-engineered from required logical layout):
-- Public HTTPS server domain:
-  - One shared CA chain (`ALL`) for all four app instances.
-  - One server chain each for `sqlite-1`, `sqlite-2`, `postgresql-1`, `postgresql-2`.
-- Public HTTPS client domain:
-  - Per-instance CA chain for `sqlite-1` and `sqlite-2` (each has its own root + issuing CA).
-  - One shared CA chain (`postgresql-ALL`) for `postgresql-1` and `postgresql-2`.
-  - Per-instance × 4 named client chains: `browser-realm-file`, `browser-realm-db`, `service-realm-file`, `service-realm-db`.
-  - Total: 3 CA chains + 16 client leaf chains (4 clients × 4 realm types).
-- Private HTTPS mTLS domain:
-  - Per-instance CA chain for all four instances (each has its own root + issuing CA).
-  - One combined mTLS leaf chain per instance (`-ALL`) serving as both server and client cert.
-  - Private admin channel requires mutual TLS; both roles use the same leaf cert.
-- PostgreSQL private server domain:
-  - One shared CA chain (`ALL`) for both leader and follower DB instances.
-  - One server chain for the leader; one server chain for the follower.
-- PostgreSQL private client domain:
-  - Separate CA chain per connection direction: one for `leader-private-client`, one for `follower-private-client`.
-  - Two client chains per direction: `postgresql-1` and `postgresql-2` (the app instances that talk to the DB).
-  - Total: 2 CA chains + 4 client leaf chains (2 directions × 2 app instances).
+
+**Mutual:**
+- Private HTTPS Mutual:
+  - Per-instance CA chain (root + issuing) for each of the 4 app instances.
+  - One combined mTLS leaf cert per instance (`-ALL`), used as both the server cert and the client cert on the private admin channel.
+  - Total: 4 CA chains + 4 combined leaf certs.
+
+**Servers:**
+- Public HTTPS Server:
+  - One globally shared CA chain (`ALL-app-public-server`, root + issuing) for all app instances in this deployment.
+  - One server leaf cert per app instance (4 total: `sqlite-1`, `sqlite-2`, `postgresql-1`, `postgresql-2`), issued by that shared CA.
+- Private PostgreSQL Leader+Follower Server:
+  - One globally shared CA chain (`ALL-db-postgres-private-server`, root + issuing) for both the leader and follower DB instances.
+  - One server leaf cert for the leader DB instance.
+  - One server leaf cert for the follower DB instance.
+
+**Clients:**
+- Public HTTPS Client:
+  - Per-instance CA chain (root + issuing) for `sqlite-1` and `sqlite-2`.
+  - One shared CA chain (root + issuing) for `postgresql-1` and `postgresql-2` (`postgresql-ALL`).
+  - 4 realm leaf client certs per instance: `browser-realm-file`, `browser-realm-db`, `service-realm-file`, `service-realm-db`.
+  - Total: 3 CA chains + 16 client leaf certs (4 instances × 4 realms).
+- Private PostgreSQL Leader+Follower Client:
+  - Leader client domain: shared CA chain (root + issuing) covering all clients connecting to the leader (`ALL-db-postgresql-leader-private-client`).
+  - Follower replication cert: one client leaf cert for the follower connecting to the leader (`ALL-db-postgresql-leader-private-client-follower`), issued by the leader client CA.
+  - Follower client domain: shared CA root only (`ALL-db-postgresql-follower-private-client`); issuing CA is colocated with the leader replication cert subtree (see below).
+  - Leader replication cert: issuing CA + one client leaf cert for the leader connecting to the follower (`ALL-db-postgresql-follower-private-client-leader`), issued by the follower client CA root.
+- Private PostgreSQL Leader App Client:
+  - Per-PS-ID section (`{ps-id}-app-postgresql-ALL-leader-private-client`).
+  - One client leaf cert for `postgresql-1` → leader, issued by the leader client CA.
+  - One client leaf cert for `postgresql-2` → leader, issued by the leader client CA.
+- Private PostgreSQL Follower App Client:
+  - Per-PS-ID section (`{ps-id}-app-postgresql-ALL-follower-private-client`).
+  - One client leaf cert for `postgresql-1` → follower, issued by the follower client CA.
+  - One client leaf cert for `postgresql-2` → follower, issued by the follower client CA.
 
 Required logical layout:
 
 ```text
 /certs/
   tls-config.yml
+  ALL-app-public-server/
+    ALL-app-public-server-ca-root/ALL-app-public-server-ca-root-crt.pem
+    ALL-app-public-server-ca-root/ALL-app-public-server-ca-root-key.pem
+    ALL-app-public-server-ca-issuing/ALL-app-public-server-ca-issuing-crt.pem
+    ALL-app-public-server-ca-issuing/ALL-app-public-server-ca-issuing-key.pem
+
   {ps-id}-app-public-server/
-    {ps-id}-app-ALL-public-server-ca-root/{ps-id}-app-ALL-public-server-ca-root-crt.pem
-    {ps-id}-app-ALL-public-server-ca-root/{ps-id}-app-ALL-public-server-ca-root-key.pem
-    {ps-id}-app-ALL-public-server-ca-issuing/{ps-id}-app-ALL-public-server-ca-issuing-crt.pem
-    {ps-id}-app-ALL-public-server-ca-issuing/{ps-id}-app-ALL-public-server-ca-issuing-key.pem
     {ps-id}-app-sqlite-1-public-server/{ps-id}-app-sqlite-1-public-server-crt.pem
     {ps-id}-app-sqlite-1-public-server/{ps-id}-app-sqlite-1-public-server-key.pem
     {ps-id}-app-sqlite-2-public-server/{ps-id}-app-sqlite-2-public-server-crt.pem
@@ -69,6 +87,7 @@ Required logical layout:
     {ps-id}-app-postgresql-1-public-server/{ps-id}-app-postgresql-1-public-server-key.pem
     {ps-id}-app-postgresql-2-public-server/{ps-id}-app-postgresql-2-public-server-crt.pem
     {ps-id}-app-postgresql-2-public-server/{ps-id}-app-postgresql-2-public-server-key.pem
+
   {ps-id}-app-public-client/
     {ps-id}-app-sqlite-1-public-client-ca-root/{ps-id}-app-sqlite-1-public-client-ca-root-crt.pem
     {ps-id}-app-sqlite-1-public-client-ca-root/{ps-id}-app-sqlite-1-public-client-ca-root-key.pem
@@ -106,6 +125,7 @@ Required logical layout:
     {ps-id}-app-postgresql-ALL-public-client-service-realm-file/{ps-id}-app-postgresql-ALL-public-client-service-realm-file-key.pem
     {ps-id}-app-postgresql-ALL-public-client-service-realm-db/{ps-id}-app-postgresql-ALL-public-client-service-realm-db-crt.pem
     {ps-id}-app-postgresql-ALL-public-client-service-realm-db/{ps-id}-app-postgresql-ALL-public-client-service-realm-db-key.pem
+
   {ps-id}-app-private-mutual/
     {ps-id}-app-sqlite-1-private-mutual-ca-root/{ps-id}-app-sqlite-1-private-mutual-ca-root-crt.pem
     {ps-id}-app-sqlite-1-private-mutual-ca-root/{ps-id}-app-sqlite-1-private-mutual-ca-root-key.pem
@@ -131,39 +151,324 @@ Required logical layout:
     {ps-id}-app-postgresql-2-private-mutual-ca-issuing/{ps-id}-app-postgresql-2-private-mutual-ca-issuing-key.pem
     {ps-id}-app-postgresql-2-private-mutual-ALL/{ps-id}-app-postgresql-2-private-mutual-ALL-crt.pem
     {ps-id}-app-postgresql-2-private-mutual-ALL/{ps-id}-app-postgresql-2-private-mutual-ALL-key.pem
-  {ps-id}-db-postgres-private-server/
-    {ps-id}-db-postgresql-ALL-private-server-ca-root/{ps-id}-db-postgresql-ALL-private-server-ca-root-crt.pem
-    {ps-id}-db-postgresql-ALL-private-server-ca-root/{ps-id}-db-postgresql-ALL-private-server-ca-root-key.pem
-    {ps-id}-db-postgresql-ALL-private-server-ca-issuing/{ps-id}-db-postgresql-ALL-private-server-ca-issuing-crt.pem
-    {ps-id}-db-postgresql-ALL-private-server-ca-issuing/{ps-id}-db-postgresql-ALL-private-server-ca-issuing-key.pem
-    {ps-id}-db-postgresql-leader-private-server/{ps-id}-db-postgresql-leader-private-server-crt.pem
-    {ps-id}-db-postgresql-leader-private-server/{ps-id}-db-postgresql-leader-private-server-key.pem
-    {ps-id}-db-postgresql-follower-private-server/{ps-id}-db-postgresql-follower-private-server-crt.pem
-    {ps-id}-db-postgresql-follower-private-server/{ps-id}-db-postgresql-follower-private-server-key.pem
-  {ps-id}-db-postgres-private-client/
-    {ps-id}-db-postgresql-leader-private-client-ca-root/{ps-id}-db-postgresql-leader-private-client-ca-root-crt.pem
-    {ps-id}-db-postgresql-leader-private-client-ca-root/{ps-id}-db-postgresql-leader-private-client-ca-root-key.pem
-    {ps-id}-db-postgresql-leader-private-client-ca-issuing/{ps-id}-db-postgresql-leader-private-client-ca-issuing-crt.pem
-    {ps-id}-db-postgresql-leader-private-client-ca-issuing/{ps-id}-db-postgresql-leader-private-client-ca-issuing-key.pem
-    {ps-id}-db-postgresql-leader-private-client-postgresql-1/{ps-id}-db-postgresql-leader-private-client-postgresql-1-crt.pem
-    {ps-id}-db-postgresql-leader-private-client-postgresql-1/{ps-id}-db-postgresql-leader-private-client-postgresql-1-key.pem
-    {ps-id}-db-postgresql-leader-private-client-postgresql-2/{ps-id}-db-postgresql-leader-private-client-postgresql-2-crt.pem
-    {ps-id}-db-postgresql-leader-private-client-postgresql-2/{ps-id}-db-postgresql-leader-private-client-postgresql-2-key.pem
-    {ps-id}-db-postgresql-follower-private-client-ca-root/{ps-id}-db-postgresql-follower-private-client-ca-root-crt.pem
-    {ps-id}-db-postgresql-follower-private-client-ca-root/{ps-id}-db-postgresql-follower-private-client-ca-root-key.pem
-    {ps-id}-db-postgresql-follower-private-client-ca-issuing/{ps-id}-db-postgresql-follower-private-client-ca-issuing-crt.pem
-    {ps-id}-db-postgresql-follower-private-client-ca-issuing/{ps-id}-db-postgresql-follower-private-client-ca-issuing-key.pem
-    {ps-id}-db-postgresql-follower-private-client-postgresql-1/{ps-id}-db-postgresql-follower-private-client-postgresql-1-crt.pem
-    {ps-id}-db-postgresql-follower-private-client-postgresql-1/{ps-id}-db-postgresql-follower-private-client-postgresql-1-key.pem
-    {ps-id}-db-postgresql-follower-private-client-postgresql-2/{ps-id}-db-postgresql-follower-private-client-postgresql-2-crt.pem
-    {ps-id}-db-postgresql-follower-private-client-postgresql-2/{ps-id}-db-postgresql-follower-private-client-postgresql-2-key.pem
+
+  ALL-db-postgres-private-server/
+    ALL-db-postgresql-private-server-ca-root/ALL-db-postgresql-private-server-ca-root-crt.pem
+    ALL-db-postgresql-private-server-ca-root/ALL-db-postgresql-private-server-ca-root-key.pem
+    ALL-db-postgresql-private-server-ca-issuing/ALL-db-postgresql-private-server-ca-issuing-crt.pem
+    ALL-db-postgresql-private-server-ca-issuing/ALL-db-postgresql-private-server-ca-issuing-key.pem
+    ALL-db-postgresql-leader-private-server/ALL-db-postgresql-leader-private-server-crt.pem
+    ALL-db-postgresql-leader-private-server/ALL-db-postgresql-leader-private-server-key.pem
+    ALL-db-postgresql-follower-private-server/ALL-db-postgresql-follower-private-server-crt.pem
+    ALL-db-postgresql-follower-private-server/ALL-db-postgresql-follower-private-server-key.pem
+
+  ALL-db-postgresql-leader-private-client/
+    ALL-db-postgresql-leader-private-client-ca-root/ALL-db-postgresql-leader-private-client-ca-root-crt.pem
+    ALL-db-postgresql-leader-private-client-ca-root/ALL-db-postgresql-leader-private-client-ca-root-key.pem
+    ALL-db-postgresql-leader-private-client-ca-issuing/ALL-db-postgresql-leader-private-client-ca-issuing-crt.pem
+    ALL-db-postgresql-leader-private-client-ca-issuing/ALL-db-postgresql-leader-private-client-ca-issuing-key.pem
+  ALL-db-postgresql-leader-private-client-follower/
+    ALL-db-postgresql-leader-private-client-follower/ALL-db-postgresql-leader-private-client-follower-crt.pem
+    ALL-db-postgresql-leader-private-client-follower/ALL-db-postgresql-leader-private-client-follower-key.pem
+  {ps-id}-app-postgresql-ALL-leader-private-client/
+    {ps-id}-app-postgresql-1-leader-private-client/{ps-id}-app-postgresql-1-leader-private-client-crt.pem
+    {ps-id}-app-postgresql-1-leader-private-client/{ps-id}-app-postgresql-1-leader-private-client-key.pem
+    {ps-id}-app-postgresql-2-leader-private-client/{ps-id}-app-postgresql-2-leader-private-client-crt.pem
+    {ps-id}-app-postgresql-2-leader-private-client/{ps-id}-app-postgresql-2-leader-private-client-key.pem
+
+  ALL-db-postgresql-follower-private-client/
+    ALL-db-postgresql-follower-private-client-ca-root/ALL-db-postgresql-follower-private-client-ca-root-crt.pem
+    ALL-db-postgresql-follower-private-client-ca-root/ALL-db-postgresql-follower-private-client-ca-root-key.pem
+  ALL-db-postgresql-follower-private-client-leader/
+    ALL-db-postgresql-follower-private-client-leader-ca-issuing/ALL-db-postgresql-follower-private-client-leader-ca-issuing-crt.pem
+    ALL-db-postgresql-follower-private-client-leader-ca-issuing/ALL-db-postgresql-follower-private-client-leader-ca-issuing-key.pem
+    ALL-db-postgresql-follower-private-client-leader/ALL-db-postgresql-follower-private-client-leader-crt.pem
+    ALL-db-postgresql-follower-private-client-leader/ALL-db-postgresql-follower-private-client-leader-key.pem
+  {ps-id}-app-postgresql-ALL-follower-private-client/
+    {ps-id}-app-postgresql-1-follower-private-client/{ps-id}-app-postgresql-1-follower-private-client-crt.pem
+    {ps-id}-app-postgresql-1-follower-private-client/{ps-id}-app-postgresql-1-follower-private-client-key.pem
+    {ps-id}-app-postgresql-2-follower-private-client/{ps-id}-app-postgresql-2-follower-private-client-crt.pem
+    {ps-id}-app-postgresql-2-follower-private-client/{ps-id}-app-postgresql-2-follower-private-client-key.pem
 ```
 
 ## PRODUCT Level
 
 Goal: generate certs for all PS-IDs in one product and override PS-ID-local material.
 
-Required domains (extrapolated from PS-ID level, scoped to product):
+Required domains (extrapolated from PS-ID level, scoped to all PS-IDs in the product):
+
+**Mutual:**
+- Private HTTPS Mutual:
+  - Same as PS-ID level, applied to every PS-ID in the product.
+  - Per-instance CA chain (root + issuing) + combined leaf cert per instance, for all instances across all PS-IDs.
+
+**Servers:**
+- Public HTTPS Server:
+  - One globally shared CA chain (`ALL-app-public-server`, root + issuing) for all app instances across the product.
+  - One server leaf cert per app instance per PS-ID (4 instances × N PS-IDs).
+- Private PostgreSQL Leader+Follower Server:
+  - One globally shared CA chain (`ALL-db-postgres-private-server`, root + issuing) for the product-shared DB leader and follower.
+  - One server leaf cert for the leader; one server leaf cert for the follower.
+
+**Clients:**
+- Public HTTPS Client:
+  - Same as PS-ID level, for all PS-IDs in the product.
+- Private PostgreSQL Leader+Follower Client:
+  - Same as PS-ID level (shared CA + replication certs, generated once for the product scope).
+- Private PostgreSQL Leader App Client:
+  - Per-PS-ID sections for all PS-IDs in the product.
+  - One client leaf cert for `postgresql-1` → leader and `postgresql-2` → leader per PS-ID.
+- Private PostgreSQL Follower App Client:
+  - Per-PS-ID sections for all PS-IDs in the product.
+  - One client leaf cert for `postgresql-1` → follower and `postgresql-2` → follower per PS-ID.
+
+Required logical layout (same directory names as PS-ID level; `ALL-` sections appear once, per-`{ps-id}` sections repeat N times):
+
+```text
+/certs/
+  tls-config.yml
+  ALL-app-public-server/
+    ALL-app-public-server-ca-root/ALL-app-public-server-ca-root-crt.pem
+    ALL-app-public-server-ca-root/ALL-app-public-server-ca-root-key.pem
+    ALL-app-public-server-ca-issuing/ALL-app-public-server-ca-issuing-crt.pem
+    ALL-app-public-server-ca-issuing/ALL-app-public-server-ca-issuing-key.pem
+
+  {ps-id}-app-public-server/                                          (×N PS-IDs in product)
+    {ps-id}-app-sqlite-1-public-server/...
+    {ps-id}-app-sqlite-2-public-server/...
+    {ps-id}-app-postgresql-1-public-server/...
+    {ps-id}-app-postgresql-2-public-server/...
+
+  {ps-id}-app-public-client/                                          (×N PS-IDs in product)
+    {ps-id}-app-sqlite-1-public-client-ca-root/...
+    {ps-id}-app-sqlite-1-public-client-ca-issuing/...
+    {ps-id}-app-sqlite-1-public-client-{realm}/...                    (×4 realms)
+    {ps-id}-app-sqlite-2-public-client-ca-root/...
+    {ps-id}-app-sqlite-2-public-client-ca-issuing/...
+    {ps-id}-app-sqlite-2-public-client-{realm}/...                    (×4 realms)
+    {ps-id}-app-postgresql-ALL-public-client-ca-root/...
+    {ps-id}-app-postgresql-ALL-public-client-ca-issuing/...
+    {ps-id}-app-postgresql-ALL-public-client-{realm}/...              (×4 realms)
+
+  {ps-id}-app-private-mutual/                                         (×N PS-IDs in product)
+    {ps-id}-app-sqlite-1-private-mutual-ca-root/...
+    {ps-id}-app-sqlite-1-private-mutual-ca-issuing/...
+    {ps-id}-app-sqlite-1-private-mutual-ALL/...
+    {ps-id}-app-sqlite-2-private-mutual-ca-root/...
+    {ps-id}-app-sqlite-2-private-mutual-ca-issuing/...
+    {ps-id}-app-sqlite-2-private-mutual-ALL/...
+    {ps-id}-app-postgresql-1-private-mutual-ca-root/...
+    {ps-id}-app-postgresql-1-private-mutual-ca-issuing/...
+    {ps-id}-app-postgresql-1-private-mutual-ALL/...
+    {ps-id}-app-postgresql-2-private-mutual-ca-root/...
+    {ps-id}-app-postgresql-2-private-mutual-ca-issuing/...
+    {ps-id}-app-postgresql-2-private-mutual-ALL/...
+
+  ALL-db-postgres-private-server/
+    ALL-db-postgresql-private-server-ca-root/ALL-db-postgresql-private-server-ca-root-crt.pem
+    ALL-db-postgresql-private-server-ca-root/ALL-db-postgresql-private-server-ca-root-key.pem
+    ALL-db-postgresql-private-server-ca-issuing/ALL-db-postgresql-private-server-ca-issuing-crt.pem
+    ALL-db-postgresql-private-server-ca-issuing/ALL-db-postgresql-private-server-ca-issuing-key.pem
+    ALL-db-postgresql-leader-private-server/ALL-db-postgresql-leader-private-server-crt.pem
+    ALL-db-postgresql-leader-private-server/ALL-db-postgresql-leader-private-server-key.pem
+    ALL-db-postgresql-follower-private-server/ALL-db-postgresql-follower-private-server-crt.pem
+    ALL-db-postgresql-follower-private-server/ALL-db-postgresql-follower-private-server-key.pem
+
+  ALL-db-postgresql-leader-private-client/
+    ALL-db-postgresql-leader-private-client-ca-root/ALL-db-postgresql-leader-private-client-ca-root-crt.pem
+    ALL-db-postgresql-leader-private-client-ca-root/ALL-db-postgresql-leader-private-client-ca-root-key.pem
+    ALL-db-postgresql-leader-private-client-ca-issuing/ALL-db-postgresql-leader-private-client-ca-issuing-crt.pem
+    ALL-db-postgresql-leader-private-client-ca-issuing/ALL-db-postgresql-leader-private-client-ca-issuing-key.pem
+  ALL-db-postgresql-leader-private-client-follower/
+    ALL-db-postgresql-leader-private-client-follower/ALL-db-postgresql-leader-private-client-follower-crt.pem
+    ALL-db-postgresql-leader-private-client-follower/ALL-db-postgresql-leader-private-client-follower-key.pem
+  {ps-id}-app-postgresql-ALL-leader-private-client/                   (×N PS-IDs in product)
+    {ps-id}-app-postgresql-1-leader-private-client/...
+    {ps-id}-app-postgresql-2-leader-private-client/...
+
+  ALL-db-postgresql-follower-private-client/
+    ALL-db-postgresql-follower-private-client-ca-root/ALL-db-postgresql-follower-private-client-ca-root-crt.pem
+    ALL-db-postgresql-follower-private-client-ca-root/ALL-db-postgresql-follower-private-client-ca-root-key.pem
+  ALL-db-postgresql-follower-private-client-leader/
+    ALL-db-postgresql-follower-private-client-leader-ca-issuing/ALL-db-postgresql-follower-private-client-leader-ca-issuing-crt.pem
+    ALL-db-postgresql-follower-private-client-leader-ca-issuing/ALL-db-postgresql-follower-private-client-leader-ca-issuing-key.pem
+    ALL-db-postgresql-follower-private-client-leader/ALL-db-postgresql-follower-private-client-leader-crt.pem
+    ALL-db-postgresql-follower-private-client-leader/ALL-db-postgresql-follower-private-client-leader-key.pem
+  {ps-id}-app-postgresql-ALL-follower-private-client/                 (×N PS-IDs in product)
+    {ps-id}-app-postgresql-1-follower-private-client/...
+    {ps-id}-app-postgresql-2-follower-private-client/...
+```
+
+## SUITE Level
+
+Goal: generate certs for all 10 PS-IDs across the full suite, all shared DB infrastructure, and all shared telemetry infrastructure.
+
+Required domains (extrapolated from PS-ID level, scoped to all 10 PS-IDs, plus OTel and Grafana):
+
+**Mutual:**
+- Private HTTPS Mutual:
+  - Same as PS-ID level, applied to all 10 PS-IDs.
+  - Per-instance CA chain (root + issuing) + combined leaf cert per instance across all 40 instances.
+
+**Servers:**
+- Public HTTPS Server:
+  - One globally shared CA chain (`ALL-app-public-server`, root + issuing) for all app instances across all 10 PS-IDs.
+  - One server leaf cert per app instance per PS-ID (4 instances × 10 PS-IDs = 40 total).
+- Private PostgreSQL Leader+Follower Server:
+  - One globally shared CA chain (`ALL-db-postgres-private-server`, root + issuing) for the suite-shared DB leader and follower.
+  - One server leaf cert for the leader; one server leaf cert for the follower.
+- Private OTel Collector Contrib Server:
+  - One globally shared CA chain (`ALL-telemetry-otel-private-server`, root + issuing) for the OTel collector receiver.
+  - One server leaf cert for the OTel collector receiver endpoint (gRPC :4317, HTTP :4318).
+- Private Grafana LGTM Server:
+  - One globally shared CA chain (`ALL-telemetry-grafana-private-server`, root + issuing) for Grafana LGTM.
+  - One server leaf cert for Grafana LGTM (OTLP ingest :14317/:14318, UI :3000).
+
+**Clients:**
+- Public HTTPS Client:
+  - Same as PS-ID level, applied to all 10 PS-IDs.
+- Private PostgreSQL Leader+Follower Client:
+  - Same as PS-ID level (generated once for the suite scope).
+- Private PostgreSQL Leader App Client:
+  - Per-PS-ID sections for all 10 PS-IDs.
+  - One client leaf cert for `postgresql-1` → leader and `postgresql-2` → leader per PS-ID.
+- Private PostgreSQL Follower App Client:
+  - Per-PS-ID sections for all 10 PS-IDs.
+  - One client leaf cert for `postgresql-1` → follower and `postgresql-2` → follower per PS-ID.
+- Private OTel Collector Contrib Client:
+  - One globally shared CA chain (`ALL-telemetry-otel-private-client`, root + issuing) for all app-instance OTLP clients.
+  - Per-PS-ID sections: one client leaf cert for each of the 4 app instances per PS-ID, issued by the OTel client CA.
+  - Total: 1 CA chain + 40 client leaf certs (10 PS-IDs × 4 instances).
+- Private Grafana LGTM Client:
+  - One globally shared CA chain (`ALL-telemetry-grafana-private-client`, root + issuing) for the OTel collector's client cert toward Grafana.
+  - One client leaf cert for the OTel Collector connecting to Grafana LGTM (`ALL-telemetry-otel-grafana-private-client`), issued by the Grafana client CA.
+
+Required logical layout (same directory names as PS-ID level for all 10 PS-IDs, plus telemetry sections):
+
+```text
+/certs/
+  tls-config.yml
+  ALL-app-public-server/
+    ALL-app-public-server-ca-root/ALL-app-public-server-ca-root-crt.pem
+    ALL-app-public-server-ca-root/ALL-app-public-server-ca-root-key.pem
+    ALL-app-public-server-ca-issuing/ALL-app-public-server-ca-issuing-crt.pem
+    ALL-app-public-server-ca-issuing/ALL-app-public-server-ca-issuing-key.pem
+
+  {ps-id}-app-public-server/                                          (×10 PS-IDs)
+    {ps-id}-app-sqlite-1-public-server/...
+    {ps-id}-app-sqlite-2-public-server/...
+    {ps-id}-app-postgresql-1-public-server/...
+    {ps-id}-app-postgresql-2-public-server/...
+
+  {ps-id}-app-public-client/                                          (×10 PS-IDs)
+    {ps-id}-app-sqlite-1-public-client-ca-root/...
+    {ps-id}-app-sqlite-1-public-client-ca-issuing/...
+    {ps-id}-app-sqlite-1-public-client-{realm}/...                    (×4 realms)
+    {ps-id}-app-sqlite-2-public-client-ca-root/...
+    {ps-id}-app-sqlite-2-public-client-ca-issuing/...
+    {ps-id}-app-sqlite-2-public-client-{realm}/...                    (×4 realms)
+    {ps-id}-app-postgresql-ALL-public-client-ca-root/...
+    {ps-id}-app-postgresql-ALL-public-client-ca-issuing/...
+    {ps-id}-app-postgresql-ALL-public-client-{realm}/...              (×4 realms)
+
+  {ps-id}-app-private-mutual/                                         (×10 PS-IDs)
+    {ps-id}-app-sqlite-1-private-mutual-ca-root/...
+    {ps-id}-app-sqlite-1-private-mutual-ca-issuing/...
+    {ps-id}-app-sqlite-1-private-mutual-ALL/...
+    {ps-id}-app-sqlite-2-private-mutual-ca-root/...
+    {ps-id}-app-sqlite-2-private-mutual-ca-issuing/...
+    {ps-id}-app-sqlite-2-private-mutual-ALL/...
+    {ps-id}-app-postgresql-1-private-mutual-ca-root/...
+    {ps-id}-app-postgresql-1-private-mutual-ca-issuing/...
+    {ps-id}-app-postgresql-1-private-mutual-ALL/...
+    {ps-id}-app-postgresql-2-private-mutual-ca-root/...
+    {ps-id}-app-postgresql-2-private-mutual-ca-issuing/...
+    {ps-id}-app-postgresql-2-private-mutual-ALL/...
+
+  ALL-db-postgres-private-server/
+    ALL-db-postgresql-private-server-ca-root/ALL-db-postgresql-private-server-ca-root-crt.pem
+    ALL-db-postgresql-private-server-ca-root/ALL-db-postgresql-private-server-ca-root-key.pem
+    ALL-db-postgresql-private-server-ca-issuing/ALL-db-postgresql-private-server-ca-issuing-crt.pem
+    ALL-db-postgresql-private-server-ca-issuing/ALL-db-postgresql-private-server-ca-issuing-key.pem
+    ALL-db-postgresql-leader-private-server/ALL-db-postgresql-leader-private-server-crt.pem
+    ALL-db-postgresql-leader-private-server/ALL-db-postgresql-leader-private-server-key.pem
+    ALL-db-postgresql-follower-private-server/ALL-db-postgresql-follower-private-server-crt.pem
+    ALL-db-postgresql-follower-private-server/ALL-db-postgresql-follower-private-server-key.pem
+
+  ALL-telemetry-otel-private-server/
+    ALL-telemetry-otel-private-server-ca-root/ALL-telemetry-otel-private-server-ca-root-crt.pem
+    ALL-telemetry-otel-private-server-ca-root/ALL-telemetry-otel-private-server-ca-root-key.pem
+    ALL-telemetry-otel-private-server-ca-issuing/ALL-telemetry-otel-private-server-ca-issuing-crt.pem
+    ALL-telemetry-otel-private-server-ca-issuing/ALL-telemetry-otel-private-server-ca-issuing-key.pem
+    ALL-telemetry-otel-receiver-private-server/ALL-telemetry-otel-receiver-private-server-crt.pem
+    ALL-telemetry-otel-receiver-private-server/ALL-telemetry-otel-receiver-private-server-key.pem
+
+  ALL-telemetry-grafana-private-server/
+    ALL-telemetry-grafana-private-server-ca-root/ALL-telemetry-grafana-private-server-ca-root-crt.pem
+    ALL-telemetry-grafana-private-server-ca-root/ALL-telemetry-grafana-private-server-ca-root-key.pem
+    ALL-telemetry-grafana-private-server-ca-issuing/ALL-telemetry-grafana-private-server-ca-issuing-crt.pem
+    ALL-telemetry-grafana-private-server-ca-issuing/ALL-telemetry-grafana-private-server-ca-issuing-key.pem
+    ALL-telemetry-grafana-lgtm-private-server/ALL-telemetry-grafana-lgtm-private-server-crt.pem
+    ALL-telemetry-grafana-lgtm-private-server/ALL-telemetry-grafana-lgtm-private-server-key.pem
+
+  ALL-db-postgresql-leader-private-client/
+    ALL-db-postgresql-leader-private-client-ca-root/ALL-db-postgresql-leader-private-client-ca-root-crt.pem
+    ALL-db-postgresql-leader-private-client-ca-root/ALL-db-postgresql-leader-private-client-ca-root-key.pem
+    ALL-db-postgresql-leader-private-client-ca-issuing/ALL-db-postgresql-leader-private-client-ca-issuing-crt.pem
+    ALL-db-postgresql-leader-private-client-ca-issuing/ALL-db-postgresql-leader-private-client-ca-issuing-key.pem
+  ALL-db-postgresql-leader-private-client-follower/
+    ALL-db-postgresql-leader-private-client-follower/ALL-db-postgresql-leader-private-client-follower-crt.pem
+    ALL-db-postgresql-leader-private-client-follower/ALL-db-postgresql-leader-private-client-follower-key.pem
+  {ps-id}-app-postgresql-ALL-leader-private-client/                   (×10 PS-IDs)
+    {ps-id}-app-postgresql-1-leader-private-client/...
+    {ps-id}-app-postgresql-2-leader-private-client/...
+
+  ALL-db-postgresql-follower-private-client/
+    ALL-db-postgresql-follower-private-client-ca-root/ALL-db-postgresql-follower-private-client-ca-root-crt.pem
+    ALL-db-postgresql-follower-private-client-ca-root/ALL-db-postgresql-follower-private-client-ca-root-key.pem
+  ALL-db-postgresql-follower-private-client-leader/
+    ALL-db-postgresql-follower-private-client-leader-ca-issuing/ALL-db-postgresql-follower-private-client-leader-ca-issuing-crt.pem
+    ALL-db-postgresql-follower-private-client-leader-ca-issuing/ALL-db-postgresql-follower-private-client-leader-ca-issuing-key.pem
+    ALL-db-postgresql-follower-private-client-leader/ALL-db-postgresql-follower-private-client-leader-crt.pem
+    ALL-db-postgresql-follower-private-client-leader/ALL-db-postgresql-follower-private-client-leader-key.pem
+  {ps-id}-app-postgresql-ALL-follower-private-client/                 (×10 PS-IDs)
+    {ps-id}-app-postgresql-1-follower-private-client/...
+    {ps-id}-app-postgresql-2-follower-private-client/...
+
+  ALL-telemetry-otel-private-client/
+    ALL-telemetry-otel-private-client-ca-root/ALL-telemetry-otel-private-client-ca-root-crt.pem
+    ALL-telemetry-otel-private-client-ca-root/ALL-telemetry-otel-private-client-ca-root-key.pem
+    ALL-telemetry-otel-private-client-ca-issuing/ALL-telemetry-otel-private-client-ca-issuing-crt.pem
+    ALL-telemetry-otel-private-client-ca-issuing/ALL-telemetry-otel-private-client-ca-issuing-key.pem
+  {ps-id}-app-ALL-otel-private-client/                                (×10 PS-IDs)
+    {ps-id}-app-sqlite-1-otel-private-client/{ps-id}-app-sqlite-1-otel-private-client-crt.pem
+    {ps-id}-app-sqlite-1-otel-private-client/{ps-id}-app-sqlite-1-otel-private-client-key.pem
+    {ps-id}-app-sqlite-2-otel-private-client/{ps-id}-app-sqlite-2-otel-private-client-crt.pem
+    {ps-id}-app-sqlite-2-otel-private-client/{ps-id}-app-sqlite-2-otel-private-client-key.pem
+    {ps-id}-app-postgresql-1-otel-private-client/{ps-id}-app-postgresql-1-otel-private-client-crt.pem
+    {ps-id}-app-postgresql-1-otel-private-client/{ps-id}-app-postgresql-1-otel-private-client-key.pem
+    {ps-id}-app-postgresql-2-otel-private-client/{ps-id}-app-postgresql-2-otel-private-client-crt.pem
+    {ps-id}-app-postgresql-2-otel-private-client/{ps-id}-app-postgresql-2-otel-private-client-key.pem
+
+  ALL-telemetry-grafana-private-client/
+    ALL-telemetry-grafana-private-client-ca-root/ALL-telemetry-grafana-private-client-ca-root-crt.pem
+    ALL-telemetry-grafana-private-client-ca-root/ALL-telemetry-grafana-private-client-ca-root-key.pem
+    ALL-telemetry-grafana-private-client-ca-issuing/ALL-telemetry-grafana-private-client-ca-issuing-crt.pem
+    ALL-telemetry-grafana-private-client-ca-issuing/ALL-telemetry-grafana-private-client-ca-issuing-key.pem
+  ALL-telemetry-otel-grafana-private-client/
+    ALL-telemetry-otel-grafana-private-client/ALL-telemetry-otel-grafana-private-client-crt.pem
+    ALL-telemetry-otel-grafana-private-client/ALL-telemetry-otel-grafana-private-client-key.pem
+```
+
+## Policy Alignment
+
+- Private HTTPS (admin channel): mutual TLS required; both server and client roles use the same combined leaf cert per instance.
+- Public HTTPS server: TLS required; client certificate authentication preferred but not required for compatibility.
+- Public HTTPS client: client certificates issued per realm type per app instance.
+- PostgreSQL connections: TLS required; mTLS required for all app-instance-to-DB and replication connections.
+- OTel collector OTLP receiver: TLS required; mTLS preferred for all app-instance connections.
+- Grafana LGTM: TLS required; mTLS required for the OTel collector upstream connection.
+
 - Public HTTPS server domain:
   - One shared CA chain (`ALL`) for all app instances across all PS-IDs in the product.
   - One server chain each for `sqlite-1`, `sqlite-2`, `postgresql-1`, `postgresql-2` per PS-ID in the product.
