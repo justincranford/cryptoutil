@@ -5,58 +5,38 @@ package tls_test
 
 import (
 	"bytes"
-	"encoding/pem"
+	"context"
+	ecdsa "crypto/ecdsa"
+	"crypto/elliptic"
+	crand "crypto/rand"
+	"crypto/x509"
+	"fmt"
+	"math/big"
+	"net"
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 
 	cryptoutilAppsFrameworkTls "cryptoutil/internal/apps/framework/tls"
+	cryptoutilSharedCryptoCertificate "cryptoutil/internal/shared/crypto/certificate"
+	cryptoutilSharedCryptoKeygen "cryptoutil/internal/shared/crypto/keygen"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 )
 
-func TestInit_HappyPath(t *testing.T) {
-	t.Parallel()
-
-	outputDir := t.TempDir()
-
-	var stdout, stderr bytes.Buffer
-
-	code := cryptoutilAppsFrameworkTls.Init([]string{"--output-dir=" + outputDir}, nil, &stdout, &stderr)
-	require.Equal(t, 0, code, "expected exit 0; stderr=%s", stderr.String())
-	require.Contains(t, stdout.String(), "certificates written")
-	require.Empty(t, stderr.String())
-
-	rootCAPath := filepath.Join(outputDir, cryptoutilSharedMagic.PKIInitRootCACertFile)
-	rootCABytes, err := os.ReadFile(rootCAPath)
-
-	require.NoError(t, err, "root-ca.pem should be written")
-
-	block, _ := pem.Decode(rootCABytes)
-
-	require.NotNil(t, block, "root-ca.pem should contain valid PEM")
-	require.Equal(t, cryptoutilSharedMagic.StringPEMTypeCertificate, block.Type)
-
-	tlsConfigPath := filepath.Join(outputDir, cryptoutilSharedMagic.PKIInitTLSConfigFile)
-	tlsConfigBytes, err := os.ReadFile(tlsConfigPath)
-
-	require.NoError(t, err, "tls-config.yml should be written")
-	require.Contains(t, string(tlsConfigBytes), "tls-public-mode: static")
-	require.Contains(t, string(tlsConfigBytes), "tls-private-mode: static")
-	require.Contains(t, string(tlsConfigBytes), "tls-static-cert-pem:")
-	require.Contains(t, string(tlsConfigBytes), "tls-static-key-pem:")
-}
-
-func TestInit_HelpFlag(t *testing.T) {
+func TestInit_WrongArgCount(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
 		name string
-		arg  string
+		args []string
 	}{
-		{name: "help long", arg: cryptoutilSharedMagic.CLIHelpFlag},
-		{name: "help short", arg: "-h"},
+		{name: "zero args", args: []string{}},
+		{name: "one arg", args: []string{cryptoutilSharedMagic.DefaultOTLPServiceDefault}},
+		{name: "three args", args: []string{cryptoutilSharedMagic.DefaultOTLPServiceDefault, "/certs", "extra"}},
 	}
 
 	for _, tc := range tests {
@@ -65,210 +45,311 @@ func TestInit_HelpFlag(t *testing.T) {
 
 			var stdout, stderr bytes.Buffer
 
-			code := cryptoutilAppsFrameworkTls.Init([]string{tc.arg}, nil, &stdout, &stderr)
-			require.Equal(t, 0, code)
-			require.Contains(t, stdout.String(), "output-dir")
-			require.Empty(t, stderr.String())
+			code := cryptoutilAppsFrameworkTls.Init(tc.args, nil, &stdout, &stderr)
+			require.Equal(t, 1, code)
+			require.Contains(t, stderr.String(), "usage:")
+			require.Empty(t, stdout.String())
 		})
 	}
 }
 
-func TestInit_DefaultOutputDir(t *testing.T) {
-	t.Parallel()
+// Sequential: mutates newTelemetryServiceFn and newGeneratorFn package-level state.
+func TestInit_SeamInjection(t *testing.T) {
+	t.Run("invalid tier ID", func(t *testing.T) {
+		restore := setStubSeams(t, nil, nil, nil, nil, nil)
+		defer restore()
 
-	// Verify the default output dir constant value is set.
-	require.NotEmpty(t, cryptoutilSharedMagic.PKIInitDefaultOutputDir)
-}
+		var stdout, stderr bytes.Buffer
 
-func TestInit_InvalidOutputDir(t *testing.T) {
-	t.Parallel()
+		code := cryptoutilAppsFrameworkTls.Init([]string{"nonexistent-tier", t.TempDir()}, nil, &stdout, &stderr)
+		require.Equal(t, 1, code)
+		require.Contains(t, stderr.String(), "unknown tier ID")
+		require.Empty(t, stdout.String())
+	})
 
-	var stdout, stderr bytes.Buffer
-	// Use a file path as a directory - this will fail MkdirAll on any OS.
-	// Create a file and use it as an output directory.
-	tmpFile, err := os.CreateTemp(t.TempDir(), "not-a-dir")
+	t.Run("telemetry failure", func(t *testing.T) {
+		restoreTelemetry := cryptoutilAppsFrameworkTls.ExportedSetNewTelemetryServiceFn(
+			func(_ context.Context) (*cryptoutilSharedTelemetry.TelemetryService, error) {
+				return nil, fmt.Errorf("injected telemetry error")
+			},
+		)
+		defer restoreTelemetry()
 
-	require.NoError(t, err)
-	require.NoError(t, tmpFile.Close())
+		var stdout, stderr bytes.Buffer
 
-	code := cryptoutilAppsFrameworkTls.Init([]string{"--output-dir=" + filepath.Join(tmpFile.Name(), "subdir")}, nil, &stdout, &stderr)
-	require.Equal(t, 1, code)
-	require.Contains(t, stderr.String(), "failed to create output directory")
-}
+		code := cryptoutilAppsFrameworkTls.Init([]string{cryptoutilSharedMagic.DefaultOTLPServiceDefault, t.TempDir()}, nil, &stdout, &stderr)
+		require.Equal(t, 1, code)
+		require.Contains(t, stderr.String(), "injected telemetry error")
+		require.Empty(t, stdout.String())
+	})
 
-func TestInit_ExtraFlagsIgnored(t *testing.T) {
-	t.Parallel()
+	t.Run("generator creation failure", func(t *testing.T) {
+		restoreTelemetry := cryptoutilAppsFrameworkTls.ExportedSetNewTelemetryServiceFn(
+			func(_ context.Context) (*cryptoutilSharedTelemetry.TelemetryService, error) {
+				return &cryptoutilSharedTelemetry.TelemetryService{}, nil
+			},
+		)
+		defer restoreTelemetry()
 
-	outputDir := t.TempDir()
+		restoreGen := cryptoutilAppsFrameworkTls.ExportedSetNewGeneratorFn(
+			func(_ context.Context, _ *cryptoutilSharedTelemetry.TelemetryService) (*cryptoutilAppsFrameworkTls.Generator, error) {
+				return nil, fmt.Errorf("injected generator error")
+			},
+		)
+		defer restoreGen()
 
-	var stdout, stderr bytes.Buffer
+		var stdout, stderr bytes.Buffer
 
-	code := cryptoutilAppsFrameworkTls.Init([]string{"--output-dir=" + outputDir, "--domain=example.com", "--ip=192.168.1.1"}, nil, &stdout, &stderr)
-	require.Equal(t, 0, code, "stderr=%s", stderr.String())
-	require.Contains(t, stdout.String(), "certificates written")
-}
+		code := cryptoutilAppsFrameworkTls.Init([]string{cryptoutilSharedMagic.DefaultOTLPServiceDefault, t.TempDir()}, nil, &stdout, &stderr)
+		require.Equal(t, 1, code)
+		require.Contains(t, stderr.String(), "injected generator error")
+		require.Empty(t, stdout.String())
+	})
 
-func TestExtractRootCACert_MultipleCerts(t *testing.T) {
-	t.Parallel()
+	t.Run("generation failure mkdir", func(t *testing.T) {
+		restore := setStubSeams(t,
+			func(_ string, _ os.FileMode) error { return fmt.Errorf("injected mkdir error") },
+			stubWriteFile, stubCreateCA, stubCreateLeaf, stubGetKeyPair,
+		)
+		defer restore()
 
-	// Build a multi-cert PEM chain: cert1 + cert2 (cert2 = root CA).
-	cert1PEM := buildDummyCertPEM(t, "cert1")
-	cert2PEM := buildDummyCertPEM(t, "cert2")
-	chain := append(cert1PEM, cert2PEM...)
+		var stdout, stderr bytes.Buffer
 
-	// Use a real run to indirectly test extractRootCACert via output.
-	outputDir := t.TempDir()
+		code := cryptoutilAppsFrameworkTls.Init([]string{cryptoutilSharedMagic.OTLPServiceSMKMS, t.TempDir()}, nil, &stdout, &stderr)
+		require.Equal(t, 1, code)
+		require.Contains(t, stderr.String(), "pki-init:")
+		require.Empty(t, stdout.String())
+	})
 
-	var stdout, stderr bytes.Buffer
+	t.Run("non-empty target dir", func(t *testing.T) {
+		restore := setStubSeams(t, stubMkdirAll, stubWriteFile, stubCreateCA, stubCreateLeaf, stubGetKeyPair)
+		defer restore()
 
-	code := cryptoutilAppsFrameworkTls.Init([]string{"--output-dir=" + outputDir}, nil, &stdout, &stderr)
-	require.Equal(t, 0, code, "stderr=%s", stderr.String())
+		outputDir := t.TempDir()
+		require.NoError(t, os.WriteFile(filepath.Join(outputDir, "existing-file.txt"), []byte("data"), cryptoutilSharedMagic.PKIInitCertFileMode))
 
-	rootCAPath := filepath.Join(outputDir, cryptoutilSharedMagic.PKIInitRootCACertFile)
-	rootCABytes, err := os.ReadFile(rootCAPath)
+		var stdout, stderr bytes.Buffer
 
-	require.NoError(t, err)
+		code := cryptoutilAppsFrameworkTls.Init([]string{cryptoutilSharedMagic.OTLPServiceSMKMS, outputDir}, nil, &stdout, &stderr)
+		require.Equal(t, 1, code)
+		require.Contains(t, stderr.String(), "not empty")
+		require.Empty(t, stdout.String())
+	})
 
-	// Root CA should be a single PEM block (not the full chain).
-	blocks := countPEMBlocks(rootCABytes)
+	t.Run("happy path suite", func(t *testing.T) {
+		restore := setStubSeams(t, stubMkdirAll, stubWriteFile, stubCreateCA, stubCreateLeaf, stubGetKeyPair)
+		defer restore()
 
-	require.Equal(t, 1, blocks, "root-ca.pem should contain exactly 1 PEM block (the root CA)")
+		var stdout, stderr bytes.Buffer
 
-	_ = chain // suppress unused var
-}
+		code := cryptoutilAppsFrameworkTls.Init([]string{cryptoutilSharedMagic.DefaultOTLPServiceDefault, t.TempDir()}, nil, &stdout, &stderr)
+		require.Equal(t, 0, code, "stderr=%s", stderr.String())
+		require.Contains(t, stdout.String(), "certificates written")
+		require.Contains(t, stdout.String(), cryptoutilSharedMagic.DefaultOTLPServiceDefault)
+		require.Empty(t, stderr.String())
+	})
 
-func TestInit_WriteRootCAError(t *testing.T) {
-	t.Parallel()
+	t.Run("happy path product sm", func(t *testing.T) {
+		restore := setStubSeams(t, stubMkdirAll, stubWriteFile, stubCreateCA, stubCreateLeaf, stubGetKeyPair)
+		defer restore()
 
-	outputDir := t.TempDir()
+		var stdout, stderr bytes.Buffer
 
-	// Pre-create root-ca.pem as a directory so WriteFile will fail.
-	require.NoError(t, os.Mkdir(filepath.Join(outputDir, cryptoutilSharedMagic.PKIInitRootCACertFile), cryptoutilSharedMagic.DirPermissions))
+		code := cryptoutilAppsFrameworkTls.Init([]string{cryptoutilSharedMagic.SMProductName, t.TempDir()}, nil, &stdout, &stderr)
+		require.Equal(t, 0, code, "stderr=%s", stderr.String())
+		require.Contains(t, stdout.String(), "certificates written")
+		require.Empty(t, stderr.String())
+	})
 
-	var stdout, stderr bytes.Buffer
+	t.Run("happy path product jose", func(t *testing.T) {
+		restore := setStubSeams(t, stubMkdirAll, stubWriteFile, stubCreateCA, stubCreateLeaf, stubGetKeyPair)
+		defer restore()
 
-	code := cryptoutilAppsFrameworkTls.Init([]string{"--output-dir=" + outputDir}, nil, &stdout, &stderr)
-	require.Equal(t, 1, code)
-	require.Contains(t, stderr.String(), "failed to write root CA cert")
-}
+		var stdout, stderr bytes.Buffer
 
-func TestInit_WriteTLSConfigError(t *testing.T) {
-	t.Parallel()
+		code := cryptoutilAppsFrameworkTls.Init([]string{cryptoutilSharedMagic.JoseProductName, t.TempDir()}, nil, &stdout, &stderr)
+		require.Equal(t, 0, code, "stderr=%s", stderr.String())
+		require.Contains(t, stdout.String(), "certificates written")
+		require.Empty(t, stderr.String())
+	})
 
-	outputDir := t.TempDir()
+	t.Run("happy path service sm-kms", func(t *testing.T) {
+		restore := setStubSeams(t, stubMkdirAll, stubWriteFile, stubCreateCA, stubCreateLeaf, stubGetKeyPair)
+		defer restore()
 
-	// Pre-create tls-config.yml as a directory so WriteFile will fail.
-	require.NoError(t, os.Mkdir(filepath.Join(outputDir, cryptoutilSharedMagic.PKIInitTLSConfigFile), cryptoutilSharedMagic.DirPermissions))
+		var stdout, stderr bytes.Buffer
 
-	var stdout, stderr bytes.Buffer
+		code := cryptoutilAppsFrameworkTls.Init([]string{cryptoutilSharedMagic.OTLPServiceSMKMS, t.TempDir()}, nil, &stdout, &stderr)
+		require.Equal(t, 0, code, "stderr=%s", stderr.String())
+		require.Contains(t, stdout.String(), "certificates written")
+		require.Empty(t, stderr.String())
+	})
 
-	code := cryptoutilAppsFrameworkTls.Init([]string{"--output-dir=" + outputDir}, nil, &stdout, &stderr)
-	require.Equal(t, 1, code)
-	require.Contains(t, stderr.String(), "failed to write TLS config")
-}
+	t.Run("happy path service jose-ja", func(t *testing.T) {
+		restore := setStubSeams(t, stubMkdirAll, stubWriteFile, stubCreateCA, stubCreateLeaf, stubGetKeyPair)
+		defer restore()
 
-func TestExtractRootCACert_EmptyInput(t *testing.T) {
-	t.Parallel()
+		var stdout, stderr bytes.Buffer
 
-	// nil input: lastBlock stays nil, returns original nil input.
-	result := cryptoutilAppsFrameworkTls.ExportedExtractRootCACert(nil)
-
-	require.Nil(t, result)
-
-	// Empty bytes: same nil-lastBlock path, returns original empty slice.
-	empty := []byte{}
-	result2 := cryptoutilAppsFrameworkTls.ExportedExtractRootCACert(empty)
-
-	require.Equal(t, empty, result2)
-}
-
-// buildDummyCertPEM creates a minimal valid PEM certificate block for testing.
-func buildDummyCertPEM(t *testing.T, _ string) []byte {
-	t.Helper()
-
-	return pem.EncodeToMemory(&pem.Block{
-		Type:  cryptoutilSharedMagic.StringPEMTypeCertificate,
-		Bytes: []byte("dummy"),
+		code := cryptoutilAppsFrameworkTls.Init([]string{cryptoutilSharedMagic.OTLPServiceJoseJA, t.TempDir()}, nil, &stdout, &stderr)
+		require.Equal(t, 0, code, "stderr=%s", stderr.String())
+		require.Contains(t, stdout.String(), "certificates written")
+		require.Empty(t, stderr.String())
 	})
 }
 
-// countPEMBlocks counts the number of PEM blocks in the given data.
-func countPEMBlocks(data []byte) int {
-	count := 0
-	rest := data
+// Sequential: mutates newTelemetryServiceFn and newGeneratorFn package-level state.
+func TestInitForSuite_HappyPath(t *testing.T) {
+	restore := setStubSeams(t, stubMkdirAll, stubWriteFile, stubCreateCA, stubCreateLeaf, stubGetKeyPair)
+	defer restore()
 
-	for {
-		var block *pem.Block
+	var stdout, stderr bytes.Buffer
 
-		block, rest = pem.Decode(rest)
-		if block == nil {
-			break
-		}
+	code := cryptoutilAppsFrameworkTls.InitForSuite(cryptoutilSharedMagic.DefaultOTLPServiceDefault, []string{cryptoutilSharedMagic.DefaultOTLPServiceDefault, t.TempDir()}, &stdout, &stderr)
+	require.Equal(t, 0, code, "stderr=%s", stderr.String())
+	require.Contains(t, stdout.String(), "certificates written")
+}
 
-		count++
+// Sequential: mutates newTelemetryServiceFn and newGeneratorFn package-level state.
+func TestInitForProduct_HappyPath(t *testing.T) {
+	restore := setStubSeams(t, stubMkdirAll, stubWriteFile, stubCreateCA, stubCreateLeaf, stubGetKeyPair)
+	defer restore()
+
+	var stdout, stderr bytes.Buffer
+
+	code := cryptoutilAppsFrameworkTls.InitForProduct(cryptoutilSharedMagic.JoseProductName, []string{cryptoutilSharedMagic.JoseProductName, t.TempDir()}, &stdout, &stderr)
+	require.Equal(t, 0, code, "stderr=%s", stderr.String())
+	require.Contains(t, stdout.String(), "certificates written")
+}
+
+// Sequential: mutates newTelemetryServiceFn and newGeneratorFn package-level state.
+func TestInitForService_HappyPath(t *testing.T) {
+	restore := setStubSeams(t, stubMkdirAll, stubWriteFile, stubCreateCA, stubCreateLeaf, stubGetKeyPair)
+	defer restore()
+
+	var stdout, stderr bytes.Buffer
+
+	code := cryptoutilAppsFrameworkTls.InitForService(cryptoutilSharedMagic.OTLPServiceSMKMS, []string{cryptoutilSharedMagic.OTLPServiceSMKMS, t.TempDir()}, &stdout, &stderr)
+	require.Equal(t, 0, code, "stderr=%s", stderr.String())
+	require.Contains(t, stdout.String(), "certificates written")
+}
+
+// setStubSeams configures both telemetry and generator seams with the given functions.
+// Returns a restore function that restores both original seams.
+func setStubSeams(
+	t *testing.T,
+	mkdirAllFn func(string, os.FileMode) error,
+	writeFileFn func(string, []byte, os.FileMode) error,
+	createCAFn func(*cryptoutilSharedCryptoCertificate.Subject, any, string, *cryptoutilSharedCryptoKeygen.KeyPair, time.Duration, int) (*cryptoutilSharedCryptoCertificate.Subject, error),
+	createLeafFn func(*cryptoutilSharedCryptoCertificate.Subject, *cryptoutilSharedCryptoKeygen.KeyPair, string, time.Duration, []string, []net.IP, []string, x509.KeyUsage, []x509.ExtKeyUsage) (*cryptoutilSharedCryptoCertificate.Subject, error),
+	getKeyPairFn func() *cryptoutilSharedCryptoKeygen.KeyPair,
+) func() {
+	t.Helper()
+
+	restoreTelemetry := cryptoutilAppsFrameworkTls.ExportedSetNewTelemetryServiceFn(
+		func(_ context.Context) (*cryptoutilSharedTelemetry.TelemetryService, error) {
+			return &cryptoutilSharedTelemetry.TelemetryService{}, nil
+		},
+	)
+
+	restoreGen := cryptoutilAppsFrameworkTls.ExportedSetNewGeneratorFn(
+		func(_ context.Context, _ *cryptoutilSharedTelemetry.TelemetryService) (*cryptoutilAppsFrameworkTls.Generator, error) {
+			return cryptoutilAppsFrameworkTls.ExportedNewTestGenerator(mkdirAllFn, writeFileFn, createCAFn, createLeafFn, getKeyPairFn), nil
+		},
+	)
+
+	return func() {
+		restoreGen()
+		restoreTelemetry()
+	}
+}
+
+// stubMkdirAll is a no-op mkdir for testing.
+func stubMkdirAll(_ string, _ os.FileMode) error { return nil }
+
+// stubWriteFile is a no-op file write for testing.
+func stubWriteFile(_ string, _ []byte, _ os.FileMode) error { return nil }
+
+// stubGetKeyPair returns a test ECDSA P-256 key pair (fast, not production P-384).
+func stubGetKeyPair() *cryptoutilSharedCryptoKeygen.KeyPair {
+	key, err := ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
+	if err != nil {
+		panic(fmt.Sprintf("stub key gen failed: %v", err))
 	}
 
-	return count
+	return &cryptoutilSharedCryptoKeygen.KeyPair{Private: key, Public: &key.PublicKey}
 }
 
-func TestInitForSuite_HappyPath(t *testing.T) {
-	t.Parallel()
+// stubCreateCA returns a minimal self-signed CA Subject for testing.
+func stubCreateCA(
+	_ *cryptoutilSharedCryptoCertificate.Subject,
+	_ any,
+	name string,
+	kp *cryptoutilSharedCryptoKeygen.KeyPair,
+	_ time.Duration,
+	_ int,
+) (*cryptoutilSharedCryptoCertificate.Subject, error) {
+	template := &x509.Certificate{
+		SerialNumber:          big.NewInt(1),
+		IsCA:                  true,
+		BasicConstraintsValid: true,
+	}
 
-	outputDir := t.TempDir()
+	certDER, err := x509.CreateCertificate(crand.Reader, template, template, kp.Public, kp.Private)
+	if err != nil {
+		return nil, fmt.Errorf("stub CA cert: %w", err)
+	}
 
-	var stdout, stderr bytes.Buffer
+	cert, err := x509.ParseCertificate(certDER)
+	if err != nil {
+		return nil, fmt.Errorf("stub CA parse: %w", err)
+	}
 
-	code := cryptoutilAppsFrameworkTls.InitForSuite(cryptoutilSharedMagic.DefaultOTLPServiceDefault, []string{"--output-dir=" + outputDir}, &stdout, &stderr)
-	require.Equal(t, 0, code, "expected exit 0; stderr=%s", stderr.String())
-	require.Contains(t, stdout.String(), "certificates written")
-	require.Empty(t, stderr.String())
+	return &cryptoutilSharedCryptoCertificate.Subject{
+		SubjectName: name,
+		IsCA:        true,
+		KeyMaterial: cryptoutilSharedCryptoCertificate.KeyMaterial{
+			CertificateChain: []*x509.Certificate{cert},
+			PublicKey:        kp.Public,
+			PrivateKey:       kp.Private,
+		},
+	}, nil
 }
 
-func TestInitForProduct_HappyPath(t *testing.T) {
-	t.Parallel()
+// stubCreateLeaf returns a minimal leaf Subject for testing.
+func stubCreateLeaf(
+	issuer *cryptoutilSharedCryptoCertificate.Subject,
+	kp *cryptoutilSharedCryptoKeygen.KeyPair,
+	name string,
+	_ time.Duration,
+	_ []string,
+	_ []net.IP,
+	_ []string,
+	_ x509.KeyUsage,
+	_ []x509.ExtKeyUsage,
+) (*cryptoutilSharedCryptoCertificate.Subject, error) {
+	issuerCert := issuer.KeyMaterial.CertificateChain[0]
 
-	outputDir := t.TempDir()
+	template := &x509.Certificate{
+		SerialNumber: big.NewInt(2),
+	}
 
-	var stdout, stderr bytes.Buffer
+	certDER, err := x509.CreateCertificate(crand.Reader, template, issuerCert, kp.Public, issuer.KeyMaterial.PrivateKey)
+	if err != nil {
+		return nil, fmt.Errorf("stub leaf cert: %w", err)
+	}
 
-	code := cryptoutilAppsFrameworkTls.InitForProduct(cryptoutilSharedMagic.JoseProductName, []string{"--output-dir=" + outputDir}, &stdout, &stderr)
-	require.Equal(t, 0, code, "expected exit 0; stderr=%s", stderr.String())
-	require.Contains(t, stdout.String(), "certificates written")
-	require.Empty(t, stderr.String())
-}
+	cert, err := x509.ParseCertificate(certDER)
+	if err != nil {
+		return nil, fmt.Errorf("stub leaf parse: %w", err)
+	}
 
-func TestInitForService_HappyPath(t *testing.T) {
-	t.Parallel()
-
-	outputDir := t.TempDir()
-
-	var stdout, stderr bytes.Buffer
-
-	code := cryptoutilAppsFrameworkTls.InitForService(cryptoutilSharedMagic.OTLPServiceSMKMS, []string{"--output-dir=" + outputDir}, &stdout, &stderr)
-	require.Equal(t, 0, code, "expected exit 0; stderr=%s", stderr.String())
-	require.Contains(t, stdout.String(), "certificates written")
-	require.Empty(t, stderr.String())
-}
-
-func TestInit_BadFlag(t *testing.T) {
-	t.Parallel()
-
-	var stdout, stderr bytes.Buffer
-
-	code := cryptoutilAppsFrameworkTls.Init([]string{"--unknown-flag=value"}, nil, &stdout, &stderr)
-	require.Equal(t, 1, code)
-	require.Empty(t, stdout.String())
-	require.Contains(t, stderr.String(), "unknown flag")
-}
-
-func TestInit_InvalidSigningAlgorithm(t *testing.T) {
-	t.Parallel()
-
-	outputDir := t.TempDir()
-
-	var stdout, stderr bytes.Buffer
-
-	code := cryptoutilAppsFrameworkTls.Init([]string{"--output-dir=" + outputDir, "--signing-algorithm=MD5-INVALID"}, nil, &stdout, &stderr)
-	require.Equal(t, 1, code)
-	require.Contains(t, stderr.String(), "invalid --signing-algorithm")
+	return &cryptoutilSharedCryptoCertificate.Subject{
+		SubjectName: name,
+		KeyMaterial: cryptoutilSharedCryptoCertificate.KeyMaterial{
+			CertificateChain: []*x509.Certificate{cert, issuerCert},
+			PublicKey:        kp.Public,
+			PrivateKey:       kp.Private,
+		},
+	}, nil
 }
