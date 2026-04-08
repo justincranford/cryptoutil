@@ -9,10 +9,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"math/rand/v2"
 
 	cryptoutilAppsJoseJaModel "cryptoutil/internal/apps/jose-ja/server/model"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedUtilRandom "cryptoutil/internal/shared/util/random"
 
 	googleUuid "github.com/google/uuid"
 	"gorm.io/gorm"
@@ -97,8 +97,12 @@ func (r *gormAuditConfigRepository) ShouldAudit(ctx context.Context, tenantID go
 	if err != nil {
 		// If record not found, default to auditing with fallback sampling rate.
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			//nolint:gosec // Not cryptographic - only for sampling decision.
-			return rand.Float64() < cryptoutilSharedMagic.JoseJAAuditFallbackSamplingRate, nil
+			should, err := cryptoutilSharedUtilRandom.SamplingBool(cryptoutilSharedMagic.JoseJAAuditFallbackSamplingRate)
+			if err != nil {
+				return false, fmt.Errorf("failed to compute fallback sampling: %w", err)
+			}
+
+			return should, nil
 		}
 		// For other errors, return the error.
 		return false, fmt.Errorf("failed to check audit config: %w", err)
@@ -108,8 +112,12 @@ func (r *gormAuditConfigRepository) ShouldAudit(ctx context.Context, tenantID go
 		return false, nil
 	}
 
-	//nolint:gosec // Not cryptographic - only for sampling decision.
-	return rand.Float64() < config.SamplingRate, nil
+	should, err := cryptoutilSharedUtilRandom.SamplingBool(config.SamplingRate)
+	if err != nil {
+		return false, fmt.Errorf("failed to compute sampling: %w", err)
+	}
+
+	return should, nil
 }
 
 // AuditLogRepository defines the interface for audit log persistence.
