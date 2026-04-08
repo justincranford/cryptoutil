@@ -56,10 +56,10 @@ linters:
       - vendor
     rules:
       # Exclude nilnil from pool.go (intentional "nothing to report" pattern).
-      - path: "internal/common/pool/pool\\.go$"
+      - path: "internal/shared/pool/pool\\.go$"
         linters: [nilnil]
       # Exclude nilnil from datetime.go (intentional "not found" pattern).
-      - path: "internal/common/util/datetime/datetime\\.go$"
+      - path: "internal/shared/util/datetime/datetime\\.go$"
         linters: [nilnil]
       # Exclude nilnil from test files (mock implementations).
       - path: "_test\\.go$"
@@ -68,77 +68,55 @@ linters:
       - path: "_test\\.go$"
         linters: [wrapcheck]
       # Exclude nilnil from step_up_auth.go (intentional pattern).
-      - path: "internal/identity/idp/userauth/step_up_auth\\.go$"
+      - path: "internal/apps/identity-idp/userauth/step_up_auth\\.go$"
         linters: [nilnil]
       # Exclude nilnil from oam_orm_mapper.go (intentional pattern).
-      - path: "internal/kms/businesslogic/oam_orm_mapper\\.go$"
+      - path: "internal/apps/sm-kms/server/businesslogic/oam_orm_mapper\\.go$"
         linters: [nilnil]
       # Exclude nilnil from nullable_uuid.go (sql.Scanner pattern).
-      - path: "internal/identity/domain/nullable_uuid\\.go$"
+      - path: "internal/apps/identity/domain/nullable_uuid\\.go$"
         linters: [nilnil]
       # Exclude nilnil from secret_rotation_service.go (intentional pattern).
-      - path: "internal/identity/rotation/secret_rotation_service\\.go$"
+      - path: "internal/apps/identity/rotation/secret_rotation_service\\.go$"
         linters: [nilnil]
       # Exclude nilnil from realm_service.go (intentional "no realms found" pattern).
       - path: "internal/apps/framework/service/server/service/realm_service\\.go$"
         linters: [nilnil]
       # Exclude nilerr from jwk_util.go (intentional type-check pattern).
-      - path: "internal/jose/jwk_util\\.go$"
-        linters: [nilerr]
-      # Exclude nilerr from secret.go (intentional pattern).
-      - path: "internal/crypto/secret\\.go$"
-        linters: [nilerr]
-      # Exclude nilerr from issuer service (intentional pattern).
-      - path: "internal/identity/issuer/service\\.go$"
+      - path: "internal/shared/crypto/jose/jwk_util\\.go$"
         linters: [nilerr]
       # Exclude nilerr from validate_naming.go (error captured in result.Errors; callers check result.Valid).
-      - path: "internal/cmd/cicd_lint/lint_deployments/validate_naming\\.go$"
+      - path: "internal/apps/tools/cicd_lint/lint_deployments/validate_naming\\.go$"
         linters: [nilerr]
       # Exclude nilerr from validate_kebab_case.go (error captured in result.Errors; callers check result.Valid).
-      - path: "internal/cmd/cicd_lint/lint_deployments/validate_kebab_case\\.go$"
+      - path: "internal/apps/tools/cicd_lint/lint_deployments/validate_kebab_case\\.go$"
         linters: [nilerr]
       # Exclude nilerr from validate_template_pattern.go (error captured in result.Errors; callers check result.Valid).
-      - path: "internal/cmd/cicd_lint/lint_deployments/validate_template_pattern\\.go$"
+      - path: "internal/apps/tools/cicd_lint/lint_deployments/validate_template_pattern\\.go$"
         linters: [nilerr]
       # Exclude nilerr from validate_ports.go (error captured in result.Errors; callers check result.Valid).
-      - path: "internal/cmd/cicd_lint/lint_deployments/validate_ports\\.go$"
+      - path: "internal/apps/tools/cicd_lint/lint_deployments/validate_ports\\.go$"
         linters: [nilerr]
       # Exclude nilerr from validate_telemetry.go (error captured in result.Errors; callers check result.Valid).
-      - path: "internal/cmd/cicd_lint/lint_deployments/validate_telemetry\\.go$"
+      - path: "internal/apps/tools/cicd_lint/lint_deployments/validate_telemetry\\.go$"
         linters: [nilerr]
       # Exclude nilerr from validate_admin.go (error captured in result.Errors; callers check result.Valid).
-      - path: "internal/cmd/cicd_lint/lint_deployments/validate_admin\\.go$"
+      - path: "internal/apps/tools/cicd_lint/lint_deployments/validate_admin\\.go$"
         linters: [nilerr]
       # Exclude nilerr from validate_secrets.go (error captured in result.Errors; callers check result.Valid).
-      - path: "internal/cmd/cicd_lint/lint_deployments/validate_secrets\\.go$"
+      - path: "internal/apps/tools/cicd_lint/lint_deployments/validate_secrets\\.go$"
         linters: [nilerr]
       # Exclude nilerr from validate_all.go (WalkDir callback returns nil on error to continue walking).
-      - path: "internal/cmd/cicd_lint/lint_deployments/validate_all\\.go$"
+      - path: "internal/apps/tools/cicd_lint/lint_deployments/validate_all\\.go$"
         linters: [nilerr]
-      # Exclude wrapcheck from jose server handlers (Fiber HTTP response helpers).
-      - path: "internal/jose/server/handlers\\.go$"
-        linters: [wrapcheck]
-      # Exclude wrapcheck from jose handler adapter (Fiber HTTP response helpers).
-      - path: "internal/jose/server/handler_adapter\\.go$"
-        linters: [wrapcheck]
-      # Exclude wrapcheck from jose audit config handlers (Fiber HTTP response helpers).
-      - path: "internal/jose/server/audit_config_handlers\\.go$"
-        linters: [wrapcheck]
-      # Exclude wrapcheck from jose server builder (template app Start/Shutdown delegation).
-      - path: "internal/jose/server/server_builder\\.go$"
-        linters: [wrapcheck]
-      # Exclude wrapcheck from sm-im session manager wrapper (internal package).
-      - path: "internal/apps/sm/im/server/businesslogic/session_manager_service\\.go$"
-        linters: [wrapcheck]
+
       # Exclude wrapcheck from template session manager barrier wrappers (internal package delegation).
       - path: "internal/apps/framework/service/server/businesslogic/session_manager\\.go$"
         linters: [wrapcheck]
       # Exclude wrapcheck from template registration handlers (Fiber HTTP response helpers).
       - path: "internal/apps/framework/service/server/apis/registration_handlers\\.go$"
         linters: [wrapcheck]
-      # Exclude wrapcheck from identity-rs public server (Fiber HTTP response helpers).
-      - path: "internal/apps/identity/rs/server/public_server\\.go$"
-        linters: [wrapcheck]
+
       # Exclude revive package-comments from doc.go (false positive with block comments).
       - path: "internal/shared/crypto/digests/doc\\.go$"
         linters: [revive]
