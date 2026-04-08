@@ -47,21 +47,16 @@ func TestGenerateString(t *testing.T) {
 func TestGenerateString_Uniqueness(t *testing.T) {
 	t.Parallel()
 
-	const (
-		length     = 32
-		iterations = 100
-	)
+	seen := make(map[string]bool, cryptoutilSharedMagic.DefaultAPIListLimit)
 
-	seen := make(map[string]bool, iterations)
-
-	for i := 0; i < iterations; i++ {
-		result, err := GenerateString(length)
+	for i := 0; i < cryptoutilSharedMagic.DefaultAPIListLimit; i++ {
+		result, err := GenerateString(cryptoutilSharedMagic.PBKDF2KeyLength)
 		testify.NoError(t, err, "GenerateString should not return error")
 		testify.NotContains(t, seen, result, "Generated strings should be unique")
 		seen[result] = true
 	}
 
-	testify.Len(t, seen, iterations, "Should have generated unique strings")
+	testify.Len(t, seen, cryptoutilSharedMagic.DefaultAPIListLimit, "Should have generated unique strings")
 }
 
 // TestGenerateBytes tests byte generation with various lengths.
@@ -95,15 +90,10 @@ func TestGenerateBytes(t *testing.T) {
 func TestGenerateBytes_Uniqueness(t *testing.T) {
 	t.Parallel()
 
-	const (
-		lengthBytes = 32
-		iterations  = 100
-	)
+	seen := make(map[string]bool, cryptoutilSharedMagic.DefaultAPIListLimit)
 
-	seen := make(map[string]bool, iterations)
-
-	for i := 0; i < iterations; i++ {
-		result, err := GenerateBytes(lengthBytes)
+	for i := 0; i < cryptoutilSharedMagic.DefaultAPIListLimit; i++ {
+		result, err := GenerateBytes(cryptoutilSharedMagic.PBKDF2KeyLength)
 		testify.NoError(t, err, "GenerateBytes should not return error")
 
 		key := string(result)
@@ -111,7 +101,7 @@ func TestGenerateBytes_Uniqueness(t *testing.T) {
 		seen[key] = true
 	}
 
-	testify.Len(t, seen, iterations, "Should have generated unique byte slices")
+	testify.Len(t, seen, cryptoutilSharedMagic.DefaultAPIListLimit, "Should have generated unique byte slices")
 }
 
 // TestConcatBytes tests byte slice concatenation.
@@ -230,11 +220,9 @@ func TestGenerateUUIDv7_HappyPath(t *testing.T) {
 func TestGenerateUUIDv7_Uniqueness(t *testing.T) {
 	t.Parallel()
 
-	const iterations = 100
+	seen := make(map[string]bool, cryptoutilSharedMagic.DefaultAPIListLimit)
 
-	seen := make(map[string]bool, iterations)
-
-	for i := 0; i < iterations; i++ {
+	for i := 0; i < cryptoutilSharedMagic.DefaultAPIListLimit; i++ {
 		uuid, err := GenerateUUIDv7()
 		testify.NoError(t, err, "GenerateUUIDv7 should not return error")
 
@@ -243,5 +231,5 @@ func TestGenerateUUIDv7_Uniqueness(t *testing.T) {
 		seen[key] = true
 	}
 
-	testify.Len(t, seen, iterations, "Should have generated unique UUIDs")
+	testify.Len(t, seen, cryptoutilSharedMagic.DefaultAPIListLimit, "Should have generated unique UUIDs")
 }

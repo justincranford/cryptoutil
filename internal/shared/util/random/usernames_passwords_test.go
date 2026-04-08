@@ -43,25 +43,25 @@ var (
 	usernameTests = []UsernameTest{
 		{
 			name:       "minimum username length 3",
-			length:     usernameMinLength,
-			wantLength: usernameMinLength,
+			length:     cryptoutilSharedMagic.IMMinUsernameLength,
+			wantLength: cryptoutilSharedMagic.IMMinUsernameLength,
 		},
 		{
-			name:       "maximum username length 64",
-			length:     usernameMaxLength,
-			wantLength: usernameMaxLength,
+			name:       "maximum username length 50",
+			length:     cryptoutilSharedMagic.IMMaxUsernameLength,
+			wantLength: cryptoutilSharedMagic.IMMaxUsernameLength,
 		},
 	}
 	passwordTests = []PasswordTest{
 		{
 			name:       "minimum password length 8",
-			length:     passwordMinLength,
-			wantLength: passwordMinLength,
+			length:     cryptoutilSharedMagic.IMMinPasswordLength,
+			wantLength: cryptoutilSharedMagic.IMMinPasswordLength,
 		},
 		{
-			name:       "maximum password length 64",
-			length:     passwordMaxLength,
-			wantLength: passwordMaxLength,
+			name:       "maximum password length 128",
+			length:     cryptoutilSharedMagic.MaxPasswordLength,
+			wantLength: cryptoutilSharedMagic.MaxPasswordLength,
 		},
 	}
 	domainTests = []DomainTest{
@@ -79,15 +79,15 @@ var (
 	emailAddressTests = []EmailAddressTest{
 		{
 			name:           "minimum email address length 8",
-			usernameLength: usernameMinLength,
+			usernameLength: cryptoutilSharedMagic.IMMinUsernameLength,
 			domainLength:   domainMinLength,
-			wantLength:     usernameMinLength + 1 + domainMinLength,
+			wantLength:     cryptoutilSharedMagic.IMMinUsernameLength + 1 + domainMinLength,
 		},
 		{
-			name:           "maximum email address length 320",
-			usernameLength: usernameMaxLength,
+			name:           "maximum email address length 306",
+			usernameLength: cryptoutilSharedMagic.IMMaxUsernameLength,
 			domainLength:   cryptoutilSharedMagic.EmailDomainMaxLength,
-			wantLength:     usernameMaxLength + 1 + cryptoutilSharedMagic.EmailDomainMaxLength,
+			wantLength:     cryptoutilSharedMagic.IMMaxUsernameLength + 1 + cryptoutilSharedMagic.EmailDomainMaxLength,
 		},
 	}
 )

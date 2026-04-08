@@ -13,27 +13,24 @@ import (
 )
 
 const (
-	usernamePrefix    = "u"
-	usernameSuffix    = ""
-	passwordPrefix    = "p"
-	passwordSuffix    = ""
-	domainPrefix      = "d"
-	domainSuffix      = ".com"
-	usernameMinLength = 3
-	usernameMaxLength = 64
-	passwordMinLength = 8
-	passwordMaxLength = 64
-	domainMinLength   = 5
+	usernamePrefix = "u"
+	usernameSuffix = ""
+	passwordPrefix = "p"
+	passwordSuffix = ""
+	domainPrefix   = "d"
+	domainSuffix   = ".com"
 )
+
+const domainMinLength = len(domainPrefix) + len(domainSuffix)
 
 // GenerateUsername generates a random username of the specified length for testing.
 func GenerateUsername(t *testing.T, length int) *string {
-	return generateValue(t, usernamePrefix, usernameSuffix, length, usernameMinLength, usernameMaxLength)
+	return generateValue(t, usernamePrefix, usernameSuffix, length, cryptoutilSharedMagic.IMMinUsernameLength, cryptoutilSharedMagic.IMMaxUsernameLength)
 }
 
 // GeneratePassword generates a random password of the specified length for testing.
 func GeneratePassword(t *testing.T, length int) *string {
-	return generateValue(t, passwordPrefix, passwordSuffix, length, passwordMinLength, passwordMaxLength)
+	return generateValue(t, passwordPrefix, passwordSuffix, length, cryptoutilSharedMagic.IMMinPasswordLength, cryptoutilSharedMagic.MaxPasswordLength)
 }
 
 // GenerateDomain generates a random domain of the specified length for testing.

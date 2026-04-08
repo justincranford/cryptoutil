@@ -8,7 +8,9 @@ import (
 	"crypto/tls"
 	"fmt"
 	"io"
+	"net"
 	http "net/http"
+	"strconv"
 	"sync"
 	"testing"
 	"time"
@@ -111,7 +113,7 @@ func TestPublicHTTPServer_TableDriven_HappyPath(t *testing.T) {
 						DisableKeepAlives: true,
 					},
 				}
-				url := fmt.Sprintf("https://%s:%d/service/api/v1/health", cryptoutilSharedMagic.IPv4Loopback, port)
+				url := "https://" + net.JoinHostPort(cryptoutilSharedMagic.IPv4Loopback, strconv.Itoa(port)) + cryptoutilSharedMagic.IME2EHealthEndpoint
 				req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
 				require.NoError(t, err)
 				resp, err := client.Do(req)
@@ -169,7 +171,7 @@ func TestPublicHTTPServer_TableDriven_HappyPath(t *testing.T) {
 						DisableKeepAlives: true,
 					},
 				}
-				url := fmt.Sprintf("https://%s:%d/browser/api/v1/health", cryptoutilSharedMagic.IPv4Loopback, port)
+				url := "https://" + net.JoinHostPort(cryptoutilSharedMagic.IPv4Loopback, strconv.Itoa(port)) + "/browser/api/v1/health"
 				req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
 				require.NoError(t, err)
 				resp, err := client.Do(req)
