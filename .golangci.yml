@@ -32,17 +32,19 @@ linters:
     - mnd
     - wsl_v5
     - nlreturn
-    # - goheader  # Temporarily disabled - causing file corruption with v2
+    # - goheader  # Disabled: file corruption bug in golangci-lint v2; monitor v2.8+ for fix.
     - depguard
     - exhaustive
     - nilnil
     - nilerr
     - makezero
+    - prealloc
+    - godox
+    - forcetypeassert
+    - nosprintfhostport
   disable:
     - dupl
     - gocyclo
-    - godox
-    - prealloc
 
   exclusions:
     paths:
@@ -178,6 +180,38 @@ linters:
           deny:
             - pkg: github.com/pkg/errors
               desc: "Use Go 1.13+ error wrapping instead"
+        cgo-sqlite:
+          deny:
+            - pkg: github.com/mattn/go-sqlite3
+              desc: "CGO-required SQLite driver; use modernc.org/sqlite (CGO-free)"
+            - pkg: github.com/golang-migrate/migrate/v4/database/sqlite3
+              desc: "CGO-required SQLite migrate driver; use modernc.org/sqlite (CGO-free)"
+        fips-crypto:
+          deny:
+            - pkg: golang.org/x/crypto/argon2
+              desc: "Not FIPS 140-3 approved; use PBKDF2 or HKDF"
+            - pkg: golang.org/x/crypto/scrypt
+              desc: "Not FIPS 140-3 approved; use PBKDF2 or HKDF"
+            - pkg: crypto/des
+              desc: "DES/3DES not FIPS 140-3 approved; use AES"
+            - pkg: crypto/md5
+              desc: "MD5 not FIPS 140-3 approved; use SHA-256 or SHA-512"
+            - pkg: crypto/rc4
+              desc: "RC4 not FIPS 140-3 approved; use AES"
+        fips-rand:
+          files:
+            - "!**/*_test.go"
+          deny:
+            - pkg: math/rand
+              desc: "Not cryptographically secure; use crypto/rand"
+        fips-bcrypt:
+          files:
+            - "!**/*_test.go"
+            - "!**/internal/shared/crypto/password/**"
+          deny:
+            - pkg: golang.org/x/crypto/bcrypt
+              desc: "Not FIPS 140-3 approved; use PBKDF2 or HKDF (exception: password pkg legacy-only)"
+
     importas:
       no-unaliased: true
       alias:
