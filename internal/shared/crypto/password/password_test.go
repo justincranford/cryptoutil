@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"golang.org/x/crypto/bcrypt"
 )
 
 func TestHashPassword(t *testing.T) {
@@ -53,47 +52,6 @@ func TestVerifyPassword_PBKDF2(t *testing.T) {
 			t.Parallel()
 
 			match, needsUpgrade, err := VerifyPassword(tt.password, hash)
-			require.NoError(t, err)
-			require.Equal(t, tt.expectMatch, match)
-			require.Equal(t, tt.expectUpgrade, needsUpgrade)
-		})
-	}
-}
-
-func TestVerifyPassword_Bcrypt_Legacy(t *testing.T) {
-	t.Parallel()
-
-	const testPassword = "LegacyPassword123!"
-
-	// Generate legacy bcrypt hash (simulating existing database record).
-	bcryptHash, err := bcrypt.GenerateFromPassword([]byte(testPassword), bcrypt.DefaultCost)
-	require.NoError(t, err)
-
-	tests := []struct {
-		name          string
-		password      string
-		expectMatch   bool
-		expectUpgrade bool
-	}{
-		{
-			name:          "correct legacy password",
-			password:      testPassword,
-			expectMatch:   true,
-			expectUpgrade: true, // bcrypt always needs upgrade
-		},
-		{
-			name:          "incorrect legacy password",
-			password:      "WrongPassword",
-			expectMatch:   false,
-			expectUpgrade: true, // bcrypt always needs upgrade
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-
-			match, needsUpgrade, err := VerifyPassword(tt.password, string(bcryptHash))
 			require.NoError(t, err)
 			require.Equal(t, tt.expectMatch, match)
 			require.Equal(t, tt.expectUpgrade, needsUpgrade)
@@ -150,12 +108,12 @@ func TestDetectHashType(t *testing.T) {
 		{
 			name:         "bcrypt 2a",
 			hash:         "$2a$12$abcdefghijklmnopqrstuv",
-			expectedType: "bcrypt",
+			expectedType: "unknown",
 		},
 		{
 			name:         "bcrypt 2b",
 			hash:         "$2b$12$abcdefghijklmnopqrstuv",
-			expectedType: "bcrypt",
+			expectedType: "unknown",
 		},
 		{
 			name:         "pbkdf2",
@@ -179,36 +137,27 @@ func TestDetectHashType(t *testing.T) {
 	}
 }
 
-func TestMigrationWorkflow(t *testing.T) {
+func TestVerifyPassword_BcryptAndUnknownRejected(t *testing.T) {
 	t.Parallel()
 
-	const userPassword = "UserPassword123!"
-
-	// Step 1: User has legacy bcrypt password.
-	bcryptHash, err := bcrypt.GenerateFromPassword([]byte(userPassword), bcrypt.DefaultCost)
-	require.NoError(t, err)
-
-	// Step 2: User logs in - verify with bcrypt (legacy).
-	match, needsUpgrade, err := VerifyPassword(userPassword, string(bcryptHash))
-	require.NoError(t, err)
-	require.True(t, match, "legacy password should match")
-	require.True(t, needsUpgrade, "bcrypt should always need upgrade")
-
-	// Step 3: Upgrade to PBKDF2 (opportunistic migration).
-	var newHash string
-	if needsUpgrade {
-		newHash, err = HashPassword(userPassword)
-		require.NoError(t, err)
+	// Verify that legacy bcrypt hashes and unknown formats are rejected.
+	tests := []struct {
+		name string
+		hash string
+	}{
+		{name: "bcrypt 2a prefix", hash: "$2a$12$abcdefghijklmnopqrstuv"},
+		{name: "bcrypt 2b prefix", hash: "$2b$12$abcdefghijklmnopqrstuv"},
+		{name: "plain text", hash: "not-a-real-hash"},
 	}
 
-	// Step 4: Verify with new PBKDF2 hash.
-	match, needsUpgrade, err = VerifyPassword(userPassword, newHash)
-	require.NoError(t, err)
-	require.True(t, match, "upgraded password should match")
-	require.False(t, needsUpgrade, "PBKDF2 should not need upgrade")
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 
-	// Step 5: Wrong password should still fail.
-	match, _, err = VerifyPassword("WrongPassword", newHash)
-	require.NoError(t, err)
-	require.False(t, match, "wrong password should not match")
+			match, needsUpgrade, err := VerifyPassword("anypassword", tt.hash)
+			require.Error(t, err)
+			require.False(t, match)
+			require.False(t, needsUpgrade)
+		})
+	}
 }

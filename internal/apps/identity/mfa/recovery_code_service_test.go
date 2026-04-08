@@ -10,7 +10,6 @@ import (
 
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
-	"golang.org/x/crypto/bcrypt"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	_ "modernc.org/sqlite" // CGO-free SQLite driver.
@@ -19,6 +18,7 @@ import (
 	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
 	cryptoutilIdentityMfa "cryptoutil/internal/apps/identity/mfa"
 	cryptoutilIdentityORM "cryptoutil/internal/apps/identity/repository/orm"
+	cryptoutilSharedCryptoPassword "cryptoutil/internal/shared/crypto/password"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
@@ -161,15 +161,15 @@ func TestRecoveryCodeService_Verify_Expired(t *testing.T) {
 
 	userID := googleUuid.New()
 
-	// Create expired code manually.
+	// Create expired code manually using PBKDF2 hash (FIPS-compliant).
 	plaintext := "TEST-CODE-XXXX-XXXX"
-	hash, err := bcrypt.GenerateFromPassword([]byte(plaintext), bcrypt.DefaultCost)
+	hash, err := cryptoutilSharedCryptoPassword.HashPassword(plaintext)
 	require.NoError(t, err)
 
 	expiredCode := &cryptoutilIdentityDomain.RecoveryCode{
 		ID:        googleUuid.New(),
 		UserID:    userID,
-		CodeHash:  string(hash),
+		CodeHash:  hash,
 		Used:      false,
 		UsedAt:    nil,
 		CreatedAt: time.Now().UTC().Add(-cryptoutilSharedMagic.DefaultRecoveryCodeLifetime - 1*time.Hour),

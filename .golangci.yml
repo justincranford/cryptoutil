@@ -199,18 +199,13 @@ linters:
             - pkg: crypto/rc4
               desc: "RC4 not FIPS 140-3 approved; use AES"
         fips-rand:
-          files:
-            - "!**/*_test.go"
           deny:
             - pkg: math/rand
               desc: "Not cryptographically secure; use crypto/rand"
         fips-bcrypt:
-          files:
-            - "!**/*_test.go"
-            - "!**/internal/shared/crypto/password/**"
           deny:
             - pkg: golang.org/x/crypto/bcrypt
-              desc: "Not FIPS 140-3 approved; use PBKDF2 or HKDF (exception: password pkg legacy-only)"
+              desc: "Not FIPS 140-3 approved; use PBKDF2 or HKDF"
 
     importas:
       no-unaliased: true

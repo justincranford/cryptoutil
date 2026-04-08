@@ -219,7 +219,7 @@ func main() {
 	require.Contains(t, err.Error(), "banned-imports")
 }
 
-func TestCheck_TestFileExcluded(t *testing.T) {
+func TestCheck_TestFileBanned(t *testing.T) {
 	t.Parallel()
 
 	tmpDir := t.TempDir()
@@ -240,7 +240,8 @@ func TestSomething(t *testing.T) {
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	err = Check(logger, map[string][]string{"go": {testFile}})
 
-	require.NoError(t, err, "test files should be excluded from banned import checks")
+	require.Error(t, err, "test files should fail banned import checks")
+	require.Contains(t, err.Error(), "banned-imports")
 }
 
 func TestCheck_MultipleBannedImports(t *testing.T) {
@@ -279,5 +280,5 @@ func TestCheckFile_NonexistentFile(t *testing.T) {
 	_, err := checkFile("/nonexistent/path/file.go")
 
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "failed to open file")
+	require.Contains(t, err.Error(), "failed to parse file")
 }

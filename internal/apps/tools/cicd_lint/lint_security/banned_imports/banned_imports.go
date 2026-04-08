@@ -4,11 +4,11 @@
 package banned_imports
 
 import (
-	"bufio"
 	"fmt"
+	"go/parser"
+	"go/token"
 	"os"
 	"regexp"
-	"strings"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/tools/cicd_lint/common"
 )
@@ -44,16 +44,6 @@ func Check(logger *cryptoutilCmdCicdCommon.Logger, filesByExtension map[string][
 	var violations []string
 
 	for _, filePath := range filtered {
-		// Skip test files — test code may legitimately test banned patterns.
-		if strings.HasSuffix(filePath, "_test.go") {
-			continue
-		}
-
-		// Skip password package — uses bcrypt for legacy hash verification only.
-		if strings.Contains(filePath, "internal/shared/crypto/password") {
-			continue
-		}
-
 		fileViolations, err := checkFile(filePath)
 		if err != nil {
 			return fmt.Errorf("failed to check %s: %w", filePath, err)
@@ -77,51 +67,27 @@ func Check(logger *cryptoutilCmdCicdCommon.Logger, filesByExtension map[string][
 	return nil
 }
 
-// checkFile scans a single Go file for banned imports.
+// checkFile scans a single Go file for banned imports using the Go AST parser.
+// This correctly ignores import paths that appear inside string literals or comments.
 func checkFile(filePath string) ([]string, error) {
-	file, err := os.Open(filePath)
-	if err != nil {
-		return nil, fmt.Errorf("failed to open file: %w", err)
-	}
+	fset := token.NewFileSet()
 
-	defer func() { _ = file.Close() }()
+	f, err := parser.ParseFile(fset, filePath, nil, parser.ImportsOnly)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse file: %w", err)
+	}
 
 	var violations []string
 
-	scanner := bufio.NewScanner(file)
-	lineNum := 0
-	inImportBlock := false
+	for _, importSpec := range f.Imports {
+		importPath := importSpec.Path.Value // quoted string, e.g. `"golang.org/x/crypto/bcrypt"`
+		lineNum := fset.Position(importSpec.Path.Pos()).Line
 
-	for scanner.Scan() {
-		lineNum++
-
-		line := scanner.Text()
-		trimmed := strings.TrimSpace(line)
-
-		// Track import block boundaries.
-		switch {
-		case trimmed == "import (":
-			inImportBlock = true
-
-			continue
-		case inImportBlock && trimmed == ")":
-			inImportBlock = false
-
-			continue
-		}
-
-		// Check single-line imports and import block lines.
-		if inImportBlock || strings.HasPrefix(trimmed, "import ") {
-			for _, banned := range bannedImportPatterns {
-				if banned.pattern.MatchString(trimmed) {
-					violations = append(violations, fmt.Sprintf("%s:%d: %s", filePath, lineNum, banned.reason))
-				}
+		for _, banned := range bannedImportPatterns {
+			if banned.pattern.MatchString(importPath) {
+				violations = append(violations, fmt.Sprintf("%s:%d: %s", filePath, lineNum, banned.reason))
 			}
 		}
-	}
-
-	if err := scanner.Err(); err != nil {
-		return nil, fmt.Errorf("scanner error: %w", err)
 	}
 
 	return violations, nil

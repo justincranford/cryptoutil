@@ -20,15 +20,14 @@ func TestHashPassword_Error(t *testing.T) {
 	require.ErrorIs(t, err, injectedErr)
 }
 
-func TestVerifyPassword_BcryptInvalidHash(t *testing.T) {
+func TestVerifyPassword_BcryptPrefixUnknown(t *testing.T) {
 	t.Parallel()
 
-	// "$2a$" prefix makes DetectHashType return "bcrypt", but the hash is too short
-	// so bcrypt.CompareHashAndPassword returns ErrHashTooShort (not ErrMismatchedHashAndPassword).
+	// "$2a$" was once a bcrypt prefix; now DetectHashType returns "unknown" for it.
 	_, _, err := VerifyPassword("password", "$2a$")
 
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "legacy hash verification failed")
+	require.Contains(t, err.Error(), "unknown hash type")
 }
 
 func TestVerifyPassword_PBKDF2VerifyError(t *testing.T) {

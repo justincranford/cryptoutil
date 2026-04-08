@@ -10,10 +10,10 @@ import (
 
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
-	"golang.org/x/crypto/bcrypt"
 
 	cryptoutilIdentityIdpUserauth "cryptoutil/internal/apps/identity-idp/userauth"
 	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
+	cryptoutilSharedCryptoPassword "cryptoutil/internal/shared/crypto/password"
 )
 
 func TestUsernamePasswordAuthenticator_VerifyAuth(t *testing.T) {
@@ -37,12 +37,12 @@ func TestUsernamePasswordAuthenticator_VerifyAuth(t *testing.T) {
 
 	auth := cryptoutilIdentityIdpUserauth.NewUsernamePasswordAuthenticator(credStore, challengeStore, userStore, nil, false)
 
-	// Hash password with bcrypt directly (production code uses bcrypt in VerifyAuth).
+	// Hash password with PBKDF2 (FIPS-compliant).
 	password := "SecurePassword123!"
-	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	require.NoError(t, err, "bcrypt.GenerateFromPassword should succeed")
+	hash, err := cryptoutilSharedCryptoPassword.HashPassword(password)
+	require.NoError(t, err, "HashPassword should succeed")
 
-	err = credStore.StoreCredential(ctx, userID.String(), hash)
+	err = credStore.StoreCredential(ctx, userID.String(), []byte(hash))
 	require.NoError(t, err, "StoreCredential should succeed")
 
 	// Initiate auth.
@@ -77,11 +77,11 @@ func TestUsernamePasswordAuthenticator_VerifyAuthWrongPassword(t *testing.T) {
 
 	auth := cryptoutilIdentityIdpUserauth.NewUsernamePasswordAuthenticator(credStore, challengeStore, userStore, nil, false)
 
-	// Hash password with bcrypt directly.
-	hash, err := bcrypt.GenerateFromPassword([]byte(testCorrectPassword), bcrypt.DefaultCost)
-	require.NoError(t, err, "bcrypt.GenerateFromPassword should succeed")
+	// Hash password with PBKDF2 (FIPS-compliant).
+	hash, err := cryptoutilSharedCryptoPassword.HashPassword(testCorrectPassword)
+	require.NoError(t, err, "HashPassword should succeed")
 
-	err = credStore.StoreCredential(ctx, userID.String(), hash)
+	err = credStore.StoreCredential(ctx, userID.String(), []byte(hash))
 	require.NoError(t, err, "StoreCredential should succeed")
 
 	// Initiate auth.
@@ -135,7 +135,6 @@ func TestUsernamePasswordAuthenticator_VerifyAuthEmptyPassword(t *testing.T) {
 }
 
 // TestUsernamePasswordAuthenticator_UpdatePassword tests UpdatePassword.
-// NOTE: Uses bcrypt directly since production code uses bcrypt in verification.
 func TestUsernamePasswordAuthenticator_UpdatePassword(t *testing.T) {
 	t.Parallel()
 
@@ -149,12 +148,12 @@ func TestUsernamePasswordAuthenticator_UpdatePassword(t *testing.T) {
 
 	auth := cryptoutilIdentityIdpUserauth.NewUsernamePasswordAuthenticator(credStore, challengeStore, userStore, nil, false)
 
-	// Hash and store initial password using bcrypt.
+	// Hash and store initial password using PBKDF2 (FIPS-compliant).
 	oldPassword := testOldPassword
-	hash, err := bcrypt.GenerateFromPassword([]byte(oldPassword), bcrypt.DefaultCost)
-	require.NoError(t, err, "bcrypt.GenerateFromPassword should succeed")
+	hash, err := cryptoutilSharedCryptoPassword.HashPassword(oldPassword)
+	require.NoError(t, err, "HashPassword should succeed")
 
-	err = credStore.StoreCredential(ctx, userID.String(), hash)
+	err = credStore.StoreCredential(ctx, userID.String(), []byte(hash))
 	require.NoError(t, err, "StoreCredential should succeed")
 
 	// Update password.
@@ -177,11 +176,11 @@ func TestUsernamePasswordAuthenticator_UpdatePasswordWrongOld(t *testing.T) {
 
 	auth := cryptoutilIdentityIdpUserauth.NewUsernamePasswordAuthenticator(credStore, challengeStore, userStore, nil, false)
 
-	// Hash and store initial password using bcrypt.
-	hash, err := bcrypt.GenerateFromPassword([]byte("CorrectOldPassword123!"), bcrypt.DefaultCost)
-	require.NoError(t, err, "bcrypt.GenerateFromPassword should succeed")
+	// Hash and store initial password using PBKDF2 (FIPS-compliant).
+	hash, err := cryptoutilSharedCryptoPassword.HashPassword("CorrectOldPassword123!")
+	require.NoError(t, err, "HashPassword should succeed")
 
-	err = credStore.StoreCredential(ctx, userID.String(), hash)
+	err = credStore.StoreCredential(ctx, userID.String(), []byte(hash))
 	require.NoError(t, err, "StoreCredential should succeed")
 
 	// Try to update password with wrong old password.
@@ -204,12 +203,12 @@ func TestUsernamePasswordAuthenticator_UpdatePasswordInvalidNew(t *testing.T) {
 
 	auth := cryptoutilIdentityIdpUserauth.NewUsernamePasswordAuthenticator(credStore, challengeStore, userStore, nil, false)
 
-	// Hash and store initial password using bcrypt.
+	// Hash and store initial password using PBKDF2 (FIPS-compliant).
 	oldPassword := testOldPassword
-	hash, err := bcrypt.GenerateFromPassword([]byte(oldPassword), bcrypt.DefaultCost)
-	require.NoError(t, err, "bcrypt.GenerateFromPassword should succeed")
+	hash, err := cryptoutilSharedCryptoPassword.HashPassword(oldPassword)
+	require.NoError(t, err, "HashPassword should succeed")
 
-	err = credStore.StoreCredential(ctx, userID.String(), hash)
+	err = credStore.StoreCredential(ctx, userID.String(), []byte(hash))
 	require.NoError(t, err, "StoreCredential should succeed")
 
 	// Try to update password with too short new password.
