@@ -45,7 +45,7 @@ func TestInit_WrongArgCount(t *testing.T) {
 
 			var stdout, stderr bytes.Buffer
 
-			code := cryptoutilAppsFrameworkTls.Init(tc.args, nil, &stdout, &stderr)
+			code := cryptoutilAppsFrameworkTls.ExportedInitRun(tc.args, nil, &stdout, &stderr, nil, nil)
 			require.Equal(t, 1, code)
 			require.Contains(t, stderr.String(), "usage:")
 			require.Empty(t, stdout.String())
@@ -53,96 +53,96 @@ func TestInit_WrongArgCount(t *testing.T) {
 	}
 }
 
-// Sequential: mutates newTelemetryServiceFn and newGeneratorFn package-level state.
 func TestInit_SeamInjection(t *testing.T) {
+	t.Parallel()
+
 	t.Run("invalid tier ID", func(t *testing.T) {
-		restore := setStubSeams(t, nil, nil, nil, nil, nil)
-		defer restore()
+		t.Parallel()
+
+		telemetryFn, generatorFn := buildStubSeams(t, nil, nil, nil, nil, nil)
 
 		var stdout, stderr bytes.Buffer
 
-		code := cryptoutilAppsFrameworkTls.Init([]string{"nonexistent-tier", t.TempDir()}, nil, &stdout, &stderr)
+		code := cryptoutilAppsFrameworkTls.ExportedInitRun([]string{"nonexistent-tier", t.TempDir()}, nil, &stdout, &stderr, telemetryFn, generatorFn)
 		require.Equal(t, 1, code)
 		require.Contains(t, stderr.String(), "unknown tier ID")
 		require.Empty(t, stdout.String())
 	})
 
 	t.Run("telemetry failure", func(t *testing.T) {
-		restoreTelemetry := cryptoutilAppsFrameworkTls.ExportedSetNewTelemetryServiceFn(
-			func(_ context.Context) (*cryptoutilSharedTelemetry.TelemetryService, error) {
-				return nil, fmt.Errorf("injected telemetry error")
-			},
-		)
-		defer restoreTelemetry()
+		t.Parallel()
+
+		telemetryFn := func(_ context.Context) (*cryptoutilSharedTelemetry.TelemetryService, error) {
+			return nil, fmt.Errorf("injected telemetry error")
+		}
 
 		var stdout, stderr bytes.Buffer
 
-		code := cryptoutilAppsFrameworkTls.Init([]string{cryptoutilSharedMagic.DefaultOTLPServiceDefault, t.TempDir()}, nil, &stdout, &stderr)
+		code := cryptoutilAppsFrameworkTls.ExportedInitRun([]string{cryptoutilSharedMagic.DefaultOTLPServiceDefault, t.TempDir()}, nil, &stdout, &stderr, telemetryFn, nil)
 		require.Equal(t, 1, code)
 		require.Contains(t, stderr.String(), "injected telemetry error")
 		require.Empty(t, stdout.String())
 	})
 
 	t.Run("generator creation failure", func(t *testing.T) {
-		restoreTelemetry := cryptoutilAppsFrameworkTls.ExportedSetNewTelemetryServiceFn(
-			func(_ context.Context) (*cryptoutilSharedTelemetry.TelemetryService, error) {
-				return &cryptoutilSharedTelemetry.TelemetryService{}, nil
-			},
-		)
-		defer restoreTelemetry()
+		t.Parallel()
 
-		restoreGen := cryptoutilAppsFrameworkTls.ExportedSetNewGeneratorFn(
-			func(_ context.Context, _ *cryptoutilSharedTelemetry.TelemetryService) (*cryptoutilAppsFrameworkTls.Generator, error) {
-				return nil, fmt.Errorf("injected generator error")
-			},
-		)
-		defer restoreGen()
+		telemetryFn := func(_ context.Context) (*cryptoutilSharedTelemetry.TelemetryService, error) {
+			return &cryptoutilSharedTelemetry.TelemetryService{}, nil
+		}
+
+		generatorFn := func(_ context.Context, _ *cryptoutilSharedTelemetry.TelemetryService) (*cryptoutilAppsFrameworkTls.Generator, error) {
+			return nil, fmt.Errorf("injected generator error")
+		}
 
 		var stdout, stderr bytes.Buffer
 
-		code := cryptoutilAppsFrameworkTls.Init([]string{cryptoutilSharedMagic.DefaultOTLPServiceDefault, t.TempDir()}, nil, &stdout, &stderr)
+		code := cryptoutilAppsFrameworkTls.ExportedInitRun([]string{cryptoutilSharedMagic.DefaultOTLPServiceDefault, t.TempDir()}, nil, &stdout, &stderr, telemetryFn, generatorFn)
 		require.Equal(t, 1, code)
 		require.Contains(t, stderr.String(), "injected generator error")
 		require.Empty(t, stdout.String())
 	})
 
 	t.Run("generation failure mkdir", func(t *testing.T) {
-		restore := setStubSeams(t,
+		t.Parallel()
+
+		telemetryFn, generatorFn := buildStubSeams(t,
 			func(_ string, _ os.FileMode) error { return fmt.Errorf("injected mkdir error") },
 			stubWriteFile, stubCreateCA, stubCreateLeaf, stubGetKeyPair,
 		)
-		defer restore()
 
 		var stdout, stderr bytes.Buffer
 
-		code := cryptoutilAppsFrameworkTls.Init([]string{cryptoutilSharedMagic.OTLPServiceSMKMS, t.TempDir()}, nil, &stdout, &stderr)
+		code := cryptoutilAppsFrameworkTls.ExportedInitRun([]string{cryptoutilSharedMagic.OTLPServiceSMKMS, t.TempDir()}, nil, &stdout, &stderr, telemetryFn, generatorFn)
 		require.Equal(t, 1, code)
 		require.Contains(t, stderr.String(), "pki-init:")
 		require.Empty(t, stdout.String())
 	})
 
 	t.Run("non-empty target dir", func(t *testing.T) {
-		restore := setStubSeams(t, stubMkdirAll, stubWriteFile, stubCreateCA, stubCreateLeaf, stubGetKeyPair)
-		defer restore()
+		t.Parallel()
+
+		telemetryFn, generatorFn := buildStubSeams(t, stubMkdirAll, stubWriteFile, stubCreateCA, stubCreateLeaf, stubGetKeyPair)
 
 		outputDir := t.TempDir()
 		require.NoError(t, os.WriteFile(filepath.Join(outputDir, "existing-file.txt"), []byte("data"), cryptoutilSharedMagic.PKIInitCertFileMode))
 
 		var stdout, stderr bytes.Buffer
 
-		code := cryptoutilAppsFrameworkTls.Init([]string{cryptoutilSharedMagic.OTLPServiceSMKMS, outputDir}, nil, &stdout, &stderr)
+		code := cryptoutilAppsFrameworkTls.ExportedInitRun([]string{cryptoutilSharedMagic.OTLPServiceSMKMS, outputDir}, nil, &stdout, &stderr, telemetryFn, generatorFn)
 		require.Equal(t, 1, code)
 		require.Contains(t, stderr.String(), "not empty")
 		require.Empty(t, stdout.String())
 	})
 
 	t.Run("happy path suite", func(t *testing.T) {
-		restore := setStubSeams(t, stubMkdirAll, stubWriteFile, stubCreateCA, stubCreateLeaf, stubGetKeyPair)
-		defer restore()
+		t.Parallel()
+
+		telemetryFn, generatorFn := buildStubSeams(t, stubMkdirAll, stubWriteFile, stubCreateCA, stubCreateLeaf, stubGetKeyPair)
 
 		var stdout, stderr bytes.Buffer
 
-		code := cryptoutilAppsFrameworkTls.Init([]string{cryptoutilSharedMagic.DefaultOTLPServiceDefault, t.TempDir()}, nil, &stdout, &stderr)
+		code := cryptoutilAppsFrameworkTls.ExportedInitRun([]string{cryptoutilSharedMagic.DefaultOTLPServiceDefault, t.TempDir()}, nil, &stdout, &stderr, telemetryFn, generatorFn)
 		require.Equal(t, 0, code, "stderr=%s", stderr.String())
 		require.Contains(t, stdout.String(), "certificates written")
 		require.Contains(t, stdout.String(), cryptoutilSharedMagic.DefaultOTLPServiceDefault)
@@ -150,118 +150,114 @@ func TestInit_SeamInjection(t *testing.T) {
 	})
 
 	t.Run("happy path product sm", func(t *testing.T) {
-		restore := setStubSeams(t, stubMkdirAll, stubWriteFile, stubCreateCA, stubCreateLeaf, stubGetKeyPair)
-		defer restore()
+		t.Parallel()
+
+		telemetryFn, generatorFn := buildStubSeams(t, stubMkdirAll, stubWriteFile, stubCreateCA, stubCreateLeaf, stubGetKeyPair)
 
 		var stdout, stderr bytes.Buffer
 
-		code := cryptoutilAppsFrameworkTls.Init([]string{cryptoutilSharedMagic.SMProductName, t.TempDir()}, nil, &stdout, &stderr)
+		code := cryptoutilAppsFrameworkTls.ExportedInitRun([]string{cryptoutilSharedMagic.SMProductName, t.TempDir()}, nil, &stdout, &stderr, telemetryFn, generatorFn)
 		require.Equal(t, 0, code, "stderr=%s", stderr.String())
 		require.Contains(t, stdout.String(), "certificates written")
 		require.Empty(t, stderr.String())
 	})
 
 	t.Run("happy path product jose", func(t *testing.T) {
-		restore := setStubSeams(t, stubMkdirAll, stubWriteFile, stubCreateCA, stubCreateLeaf, stubGetKeyPair)
-		defer restore()
+		t.Parallel()
+
+		telemetryFn, generatorFn := buildStubSeams(t, stubMkdirAll, stubWriteFile, stubCreateCA, stubCreateLeaf, stubGetKeyPair)
 
 		var stdout, stderr bytes.Buffer
 
-		code := cryptoutilAppsFrameworkTls.Init([]string{cryptoutilSharedMagic.JoseProductName, t.TempDir()}, nil, &stdout, &stderr)
+		code := cryptoutilAppsFrameworkTls.ExportedInitRun([]string{cryptoutilSharedMagic.JoseProductName, t.TempDir()}, nil, &stdout, &stderr, telemetryFn, generatorFn)
 		require.Equal(t, 0, code, "stderr=%s", stderr.String())
 		require.Contains(t, stdout.String(), "certificates written")
 		require.Empty(t, stderr.String())
 	})
 
 	t.Run("happy path service sm-kms", func(t *testing.T) {
-		restore := setStubSeams(t, stubMkdirAll, stubWriteFile, stubCreateCA, stubCreateLeaf, stubGetKeyPair)
-		defer restore()
+		t.Parallel()
+
+		telemetryFn, generatorFn := buildStubSeams(t, stubMkdirAll, stubWriteFile, stubCreateCA, stubCreateLeaf, stubGetKeyPair)
 
 		var stdout, stderr bytes.Buffer
 
-		code := cryptoutilAppsFrameworkTls.Init([]string{cryptoutilSharedMagic.OTLPServiceSMKMS, t.TempDir()}, nil, &stdout, &stderr)
+		code := cryptoutilAppsFrameworkTls.ExportedInitRun([]string{cryptoutilSharedMagic.OTLPServiceSMKMS, t.TempDir()}, nil, &stdout, &stderr, telemetryFn, generatorFn)
 		require.Equal(t, 0, code, "stderr=%s", stderr.String())
 		require.Contains(t, stdout.String(), "certificates written")
 		require.Empty(t, stderr.String())
 	})
 
 	t.Run("happy path service jose-ja", func(t *testing.T) {
-		restore := setStubSeams(t, stubMkdirAll, stubWriteFile, stubCreateCA, stubCreateLeaf, stubGetKeyPair)
-		defer restore()
+		t.Parallel()
+
+		telemetryFn, generatorFn := buildStubSeams(t, stubMkdirAll, stubWriteFile, stubCreateCA, stubCreateLeaf, stubGetKeyPair)
 
 		var stdout, stderr bytes.Buffer
 
-		code := cryptoutilAppsFrameworkTls.Init([]string{cryptoutilSharedMagic.OTLPServiceJoseJA, t.TempDir()}, nil, &stdout, &stderr)
+		code := cryptoutilAppsFrameworkTls.ExportedInitRun([]string{cryptoutilSharedMagic.OTLPServiceJoseJA, t.TempDir()}, nil, &stdout, &stderr, telemetryFn, generatorFn)
 		require.Equal(t, 0, code, "stderr=%s", stderr.String())
 		require.Contains(t, stdout.String(), "certificates written")
 		require.Empty(t, stderr.String())
 	})
 }
 
-// Sequential: mutates newTelemetryServiceFn and newGeneratorFn package-level state.
 func TestInitForSuite_HappyPath(t *testing.T) {
-	restore := setStubSeams(t, stubMkdirAll, stubWriteFile, stubCreateCA, stubCreateLeaf, stubGetKeyPair)
-	defer restore()
+	t.Parallel()
+
+	telemetryFn, generatorFn := buildStubSeams(t, stubMkdirAll, stubWriteFile, stubCreateCA, stubCreateLeaf, stubGetKeyPair)
 
 	var stdout, stderr bytes.Buffer
 
-	code := cryptoutilAppsFrameworkTls.InitForSuite(cryptoutilSharedMagic.DefaultOTLPServiceDefault, []string{cryptoutilSharedMagic.DefaultOTLPServiceDefault, t.TempDir()}, &stdout, &stderr)
+	code := cryptoutilAppsFrameworkTls.ExportedInitRun([]string{cryptoutilSharedMagic.DefaultOTLPServiceDefault, t.TempDir()}, nil, &stdout, &stderr, telemetryFn, generatorFn)
 	require.Equal(t, 0, code, "stderr=%s", stderr.String())
 	require.Contains(t, stdout.String(), "certificates written")
 }
 
-// Sequential: mutates newTelemetryServiceFn and newGeneratorFn package-level state.
 func TestInitForProduct_HappyPath(t *testing.T) {
-	restore := setStubSeams(t, stubMkdirAll, stubWriteFile, stubCreateCA, stubCreateLeaf, stubGetKeyPair)
-	defer restore()
+	t.Parallel()
+
+	telemetryFn, generatorFn := buildStubSeams(t, stubMkdirAll, stubWriteFile, stubCreateCA, stubCreateLeaf, stubGetKeyPair)
 
 	var stdout, stderr bytes.Buffer
 
-	code := cryptoutilAppsFrameworkTls.InitForProduct(cryptoutilSharedMagic.JoseProductName, []string{cryptoutilSharedMagic.JoseProductName, t.TempDir()}, &stdout, &stderr)
+	code := cryptoutilAppsFrameworkTls.ExportedInitRun([]string{cryptoutilSharedMagic.JoseProductName, t.TempDir()}, nil, &stdout, &stderr, telemetryFn, generatorFn)
 	require.Equal(t, 0, code, "stderr=%s", stderr.String())
 	require.Contains(t, stdout.String(), "certificates written")
 }
 
-// Sequential: mutates newTelemetryServiceFn and newGeneratorFn package-level state.
 func TestInitForService_HappyPath(t *testing.T) {
-	restore := setStubSeams(t, stubMkdirAll, stubWriteFile, stubCreateCA, stubCreateLeaf, stubGetKeyPair)
-	defer restore()
+	t.Parallel()
+
+	telemetryFn, generatorFn := buildStubSeams(t, stubMkdirAll, stubWriteFile, stubCreateCA, stubCreateLeaf, stubGetKeyPair)
 
 	var stdout, stderr bytes.Buffer
 
-	code := cryptoutilAppsFrameworkTls.InitForService(cryptoutilSharedMagic.OTLPServiceSMKMS, []string{cryptoutilSharedMagic.OTLPServiceSMKMS, t.TempDir()}, &stdout, &stderr)
+	code := cryptoutilAppsFrameworkTls.ExportedInitRun([]string{cryptoutilSharedMagic.OTLPServiceSMKMS, t.TempDir()}, nil, &stdout, &stderr, telemetryFn, generatorFn)
 	require.Equal(t, 0, code, "stderr=%s", stderr.String())
 	require.Contains(t, stdout.String(), "certificates written")
 }
 
-// setStubSeams configures both telemetry and generator seams with the given functions.
-// Returns a restore function that restores both original seams.
-func setStubSeams(
+// buildStubSeams builds telemetry and generator seam functions with the given injectable functions.
+func buildStubSeams(
 	t *testing.T,
 	mkdirAllFn func(string, os.FileMode) error,
 	writeFileFn func(string, []byte, os.FileMode) error,
 	createCAFn func(*cryptoutilSharedCryptoCertificate.Subject, any, string, *cryptoutilSharedCryptoKeygen.KeyPair, time.Duration, int) (*cryptoutilSharedCryptoCertificate.Subject, error),
 	createLeafFn func(*cryptoutilSharedCryptoCertificate.Subject, *cryptoutilSharedCryptoKeygen.KeyPair, string, time.Duration, []string, []net.IP, []string, x509.KeyUsage, []x509.ExtKeyUsage) (*cryptoutilSharedCryptoCertificate.Subject, error),
 	getKeyPairFn func() *cryptoutilSharedCryptoKeygen.KeyPair,
-) func() {
+) (cryptoutilAppsFrameworkTls.TelemetryFnType, cryptoutilAppsFrameworkTls.GeneratorFnType) {
 	t.Helper()
 
-	restoreTelemetry := cryptoutilAppsFrameworkTls.ExportedSetNewTelemetryServiceFn(
-		func(_ context.Context) (*cryptoutilSharedTelemetry.TelemetryService, error) {
-			return &cryptoutilSharedTelemetry.TelemetryService{}, nil
-		},
-	)
-
-	restoreGen := cryptoutilAppsFrameworkTls.ExportedSetNewGeneratorFn(
-		func(_ context.Context, _ *cryptoutilSharedTelemetry.TelemetryService) (*cryptoutilAppsFrameworkTls.Generator, error) {
-			return cryptoutilAppsFrameworkTls.ExportedNewTestGenerator(mkdirAllFn, writeFileFn, createCAFn, createLeafFn, getKeyPairFn), nil
-		},
-	)
-
-	return func() {
-		restoreGen()
-		restoreTelemetry()
+	telemetryFn := func(_ context.Context) (*cryptoutilSharedTelemetry.TelemetryService, error) {
+		return &cryptoutilSharedTelemetry.TelemetryService{}, nil
 	}
+
+	generatorFn := func(_ context.Context, _ *cryptoutilSharedTelemetry.TelemetryService) (*cryptoutilAppsFrameworkTls.Generator, error) {
+		return cryptoutilAppsFrameworkTls.ExportedNewTestGenerator(mkdirAllFn, writeFileFn, createCAFn, createLeafFn, getKeyPairFn), nil
+	}
+
+	return telemetryFn, generatorFn
 }
 
 // stubMkdirAll is a no-op mkdir for testing.

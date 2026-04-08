@@ -20,33 +20,38 @@ import (
 // Init executes the pki-init CLI command.
 // It expects exactly 2 positional args: tierID and targetDir.
 func Init(args []string, _ io.Reader, stdout io.Writer, stderr io.Writer) int {
-	return initRun(args, stdout, stderr, newTelemetryServiceFn, newGeneratorFn)
+	return initRun(args, stdout, stderr, productionNewTelemetryService, productionNewGenerator)
 }
 
 // InitForSuite executes the init subcommand for a named suite.
 func InitForSuite(_ string, args []string, stdout, stderr io.Writer) int {
-	return initRun(args, stdout, stderr, newTelemetryServiceFn, newGeneratorFn)
+	return initRun(args, stdout, stderr, productionNewTelemetryService, productionNewGenerator)
 }
 
 // InitForProduct executes the init subcommand for a named product.
 func InitForProduct(_ string, args []string, stdout, stderr io.Writer) int {
-	return initRun(args, stdout, stderr, newTelemetryServiceFn, newGeneratorFn)
+	return initRun(args, stdout, stderr, productionNewTelemetryService, productionNewGenerator)
 }
 
 // InitForService executes the init subcommand for a named PS-ID service.
 func InitForService(_ string, args []string, stdout, stderr io.Writer) int {
-	return initRun(args, stdout, stderr, newTelemetryServiceFn, newGeneratorFn)
+	return initRun(args, stdout, stderr, productionNewTelemetryService, productionNewGenerator)
 }
 
-// newTelemetryServiceFn is a seam for creating telemetry services (injectable for testing).
-var newTelemetryServiceFn = func(ctx context.Context) (*cryptoutilSharedTelemetry.TelemetryService, error) {
-	return cryptoutilSharedTelemetry.NewTelemetryService(ctx, &cryptoutilSharedTelemetry.TelemetrySettings{
+// productionNewTelemetryService creates the real telemetry service for production use.
+func productionNewTelemetryService(ctx context.Context) (*cryptoutilSharedTelemetry.TelemetryService, error) {
+	ts, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, &cryptoutilSharedTelemetry.TelemetrySettings{
 		OTLPService: cryptoutilSharedMagic.PSIDPKIInit,
 	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to create telemetry service: %w", err)
+	}
+
+	return ts, nil
 }
 
-// newGeneratorFn is a seam for creating generators (injectable for testing).
-var newGeneratorFn = func(ctx context.Context, ts *cryptoutilSharedTelemetry.TelemetryService) (*Generator, error) {
+// productionNewGenerator creates the real generator for production use.
+func productionNewGenerator(ctx context.Context, ts *cryptoutilSharedTelemetry.TelemetryService) (*Generator, error) {
 	return NewGenerator(ctx, ts)
 }
 

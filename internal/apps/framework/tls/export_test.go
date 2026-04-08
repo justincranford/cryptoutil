@@ -6,6 +6,7 @@ package tls
 import (
 	"context"
 	"crypto/x509"
+	"io"
 	"net"
 	"os"
 	"time"
@@ -15,20 +16,15 @@ import (
 	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 )
 
-// ExportedNewTelemetryServiceFn provides access to the newTelemetryServiceFn seam for testing.
-func ExportedSetNewTelemetryServiceFn(fn func(context.Context) (*cryptoutilSharedTelemetry.TelemetryService, error)) func() {
-	original := newTelemetryServiceFn
-	newTelemetryServiceFn = fn
+// TelemetryFnType is the seam type for telemetry service creation.
+type TelemetryFnType = func(context.Context) (*cryptoutilSharedTelemetry.TelemetryService, error)
 
-	return func() { newTelemetryServiceFn = original }
-}
+// GeneratorFnType is the seam type for generator creation.
+type GeneratorFnType = func(context.Context, *cryptoutilSharedTelemetry.TelemetryService) (*Generator, error)
 
-// ExportedSetNewGeneratorFn provides access to the newGeneratorFn seam for testing.
-func ExportedSetNewGeneratorFn(fn func(context.Context, *cryptoutilSharedTelemetry.TelemetryService) (*Generator, error)) func() {
-	original := newGeneratorFn
-	newGeneratorFn = fn
-
-	return func() { newGeneratorFn = original }
+// ExportedInitRun calls unexported initRun with the given seam functions, enabling parallel tests.
+func ExportedInitRun(args []string, _ io.Reader, stdout, stderr io.Writer, telemetryFn TelemetryFnType, generatorFn GeneratorFnType) int {
+	return initRun(args, stdout, stderr, telemetryFn, generatorFn)
 }
 
 // ExportedNewTestGenerator creates a Generator with injectable seams for testing.
