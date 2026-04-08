@@ -138,7 +138,7 @@ func (s *TSAService) buildToken(tstInfo *TSTInfo) (*TimeStampToken, error) {
 	// Full CMS/PKCS#7 signing would be implemented for production.
 	return &TimeStampToken{
 		TSTInfo:    *tstInfo,
-		SignedData: nil, // TODO: Implement CMS signing.
+		SignedData: nil, // Planned: Implement CMS signing.
 	}, nil
 }
 

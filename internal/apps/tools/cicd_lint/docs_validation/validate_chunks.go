@@ -75,7 +75,7 @@ func extractPropagateBlocks(content string) []PropagateBlock {
 
 	var current *PropagateBlock
 
-	var contentLines []string
+	contentLines := make([]string, 0, len(lines))
 
 	var pendingTargets []string
 

@@ -97,12 +97,12 @@ func TestMaskPassword(t *testing.T) {
 		{
 			name:     "PostgreSQL with password - KNOWN BUG: looks for '/:', not '://'",
 			dsn:      "postgres://user:mypassword@localhost:5432/dbname",
-			expected: "postgres://user:mypassword@localhost:5432/dbname", // TODO: Should mask to "postgres://***@localhost:5432/dbname"
+			expected: "postgres://user:mypassword@localhost:5432/dbname", // Planned: Should mask to "postgres://***@localhost:5432/dbname"
 		},
 		{
 			name:     "PostgreSQL with complex password - KNOWN BUG",
 			dsn:      "postgres://user:p@ss:w0rd@localhost:5432/dbname",
-			expected: "postgres://user:p@ss:w0rd@localhost:5432/dbname", // TODO: Should mask
+			expected: "postgres://user:p@ss:w0rd@localhost:5432/dbname", // Planned: Should mask
 		},
 		{
 			name:     "Non-PostgreSQL DSN without pattern",

@@ -116,11 +116,13 @@ func TestJWTMiddleware_ValidToken_Success(t *testing.T) {
 
 	var capturedUserID googleUuid.UUID
 
+	var capturedOK bool
+
 	app := fiber.New()
 	app.Use(JWTMiddleware(testJWTSecret))
 	app.Get("/protected", func(c *fiber.Ctx) error {
 		// Capture the user ID from context.
-		capturedUserID = c.Locals(ContextKeyUserID).(googleUuid.UUID) //nolint:errcheck // Test assertion
+		capturedUserID, capturedOK = c.Locals(ContextKeyUserID).(googleUuid.UUID)
 
 		return c.SendString("success")
 	})
@@ -131,6 +133,7 @@ func TestJWTMiddleware_ValidToken_Success(t *testing.T) {
 	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 	require.Equal(t, fiber.StatusOK, resp.StatusCode)
+	require.True(t, capturedOK, "expected googleUuid.UUID in Locals")
 	require.Equal(t, userID, capturedUserID)
 
 	err = resp.Body.Close()

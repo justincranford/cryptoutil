@@ -34,7 +34,12 @@ func (m *MockElasticJWKRepository) Get(ctx context.Context, tenantID googleUuid.
 		return nil, args.Error(1) //nolint:wrapcheck // Mock returns test-controlled error
 	}
 
-	return args.Get(0).(*cryptoutilAppsJoseJaModel.ElasticJWK), args.Error(1) //nolint:errcheck,wrapcheck // Mock type assertion and error controlled by test
+	result, ok := args.Get(0).(*cryptoutilAppsJoseJaModel.ElasticJWK)
+	if !ok {
+		panic("MockElasticJWKRepository.Get: expected *cryptoutilAppsJoseJaModel.ElasticJWK")
+	}
+
+	return result, args.Error(1) //nolint:wrapcheck // Mock returns test-controlled error
 }
 
 func (m *MockElasticJWKRepository) GetByID(ctx context.Context, id googleUuid.UUID) (*cryptoutilAppsJoseJaModel.ElasticJWK, error) {
@@ -43,16 +48,36 @@ func (m *MockElasticJWKRepository) GetByID(ctx context.Context, id googleUuid.UU
 		return nil, args.Error(1) //nolint:wrapcheck // Mock returns test-controlled error
 	}
 
-	return args.Get(0).(*cryptoutilAppsJoseJaModel.ElasticJWK), args.Error(1) //nolint:errcheck,wrapcheck // Mock type assertion and error controlled by test
+	result, ok := args.Get(0).(*cryptoutilAppsJoseJaModel.ElasticJWK)
+	if !ok {
+		panic("MockElasticJWKRepository.GetByID: expected *cryptoutilAppsJoseJaModel.ElasticJWK")
+	}
+
+	return result, args.Error(1) //nolint:wrapcheck // Mock returns test-controlled error
 }
 
 func (m *MockElasticJWKRepository) List(ctx context.Context, tenantID googleUuid.UUID, offset, limit int) ([]*cryptoutilAppsJoseJaModel.ElasticJWK, int64, error) {
 	args := m.Called(ctx, tenantID, offset, limit)
 	if args.Get(0) == nil {
-		return nil, args.Get(1).(int64), args.Error(2) //nolint:errcheck,wrapcheck // Mock type assertion and error controlled by test
+		count, ok := args.Get(1).(int64)
+		if !ok {
+			panic("MockElasticJWKRepository.List: expected int64 for count")
+		}
+
+		return nil, count, args.Error(2) //nolint:wrapcheck // Mock returns test-controlled error
 	}
 
-	return args.Get(0).([]*cryptoutilAppsJoseJaModel.ElasticJWK), args.Get(1).(int64), args.Error(2) //nolint:errcheck,wrapcheck // Mock type assertion and error controlled by test
+	results, ok := args.Get(0).([]*cryptoutilAppsJoseJaModel.ElasticJWK)
+	if !ok {
+		panic("MockElasticJWKRepository.List: expected []*cryptoutilAppsJoseJaModel.ElasticJWK")
+	}
+
+	count, ok := args.Get(1).(int64)
+	if !ok {
+		panic("MockElasticJWKRepository.List: expected int64 for count")
+	}
+
+	return results, count, args.Error(2) //nolint:wrapcheck // Mock returns test-controlled error
 }
 
 func (m *MockElasticJWKRepository) Update(ctx context.Context, jwk *cryptoutilAppsJoseJaModel.ElasticJWK) error {
@@ -96,7 +121,12 @@ func (m *MockMaterialJWKRepository) GetByMaterialKID(ctx context.Context, materi
 		return nil, args.Error(1) //nolint:wrapcheck // Mock returns test-controlled error
 	}
 
-	return args.Get(0).(*cryptoutilAppsJoseJaModel.MaterialJWK), args.Error(1) //nolint:errcheck,wrapcheck // Mock type assertion and error controlled by test
+	result, ok := args.Get(0).(*cryptoutilAppsJoseJaModel.MaterialJWK)
+	if !ok {
+		panic("MockMaterialJWKRepository.GetByMaterialKID: expected *cryptoutilAppsJoseJaModel.MaterialJWK")
+	}
+
+	return result, args.Error(1) //nolint:wrapcheck // Mock returns test-controlled error
 }
 
 func (m *MockMaterialJWKRepository) GetByID(ctx context.Context, id googleUuid.UUID) (*cryptoutilAppsJoseJaModel.MaterialJWK, error) {
@@ -105,7 +135,12 @@ func (m *MockMaterialJWKRepository) GetByID(ctx context.Context, id googleUuid.U
 		return nil, args.Error(1) //nolint:wrapcheck // Mock returns test-controlled error
 	}
 
-	return args.Get(0).(*cryptoutilAppsJoseJaModel.MaterialJWK), args.Error(1) //nolint:errcheck,wrapcheck // Mock type assertion and error controlled by test
+	result, ok := args.Get(0).(*cryptoutilAppsJoseJaModel.MaterialJWK)
+	if !ok {
+		panic("MockMaterialJWKRepository.GetByID: expected *cryptoutilAppsJoseJaModel.MaterialJWK")
+	}
+
+	return result, args.Error(1) //nolint:wrapcheck // Mock returns test-controlled error
 }
 
 func (m *MockMaterialJWKRepository) GetActiveMaterial(ctx context.Context, elasticJWKID googleUuid.UUID) (*cryptoutilAppsJoseJaModel.MaterialJWK, error) {
@@ -114,16 +149,36 @@ func (m *MockMaterialJWKRepository) GetActiveMaterial(ctx context.Context, elast
 		return nil, args.Error(1) //nolint:wrapcheck // Mock returns test-controlled error
 	}
 
-	return args.Get(0).(*cryptoutilAppsJoseJaModel.MaterialJWK), args.Error(1) //nolint:errcheck,wrapcheck // Mock type assertion and error controlled by test
+	result, ok := args.Get(0).(*cryptoutilAppsJoseJaModel.MaterialJWK)
+	if !ok {
+		panic("MockMaterialJWKRepository.GetActiveMaterial: expected *cryptoutilAppsJoseJaModel.MaterialJWK")
+	}
+
+	return result, args.Error(1) //nolint:wrapcheck // Mock returns test-controlled error
 }
 
 func (m *MockMaterialJWKRepository) ListByElasticJWK(ctx context.Context, elasticJWKID googleUuid.UUID, offset, limit int) ([]*cryptoutilAppsJoseJaModel.MaterialJWK, int64, error) {
 	args := m.Called(ctx, elasticJWKID, offset, limit)
 	if args.Get(0) == nil {
-		return nil, args.Get(1).(int64), args.Error(2) //nolint:errcheck,wrapcheck // Mock type assertion and error controlled by test
+		count, ok := args.Get(1).(int64)
+		if !ok {
+			panic("MockMaterialJWKRepository.ListByElasticJWK: expected int64 for count")
+		}
+
+		return nil, count, args.Error(2) //nolint:wrapcheck // Mock returns test-controlled error
 	}
 
-	return args.Get(0).([]*cryptoutilAppsJoseJaModel.MaterialJWK), args.Get(1).(int64), args.Error(2) //nolint:errcheck,wrapcheck // Mock type assertion and error controlled by test
+	results, ok := args.Get(0).([]*cryptoutilAppsJoseJaModel.MaterialJWK)
+	if !ok {
+		panic("MockMaterialJWKRepository.ListByElasticJWK: expected []*cryptoutilAppsJoseJaModel.MaterialJWK")
+	}
+
+	count, ok := args.Get(1).(int64)
+	if !ok {
+		panic("MockMaterialJWKRepository.ListByElasticJWK: expected int64 for count")
+	}
+
+	return results, count, args.Error(2) //nolint:wrapcheck // Mock returns test-controlled error
 }
 
 func (m *MockMaterialJWKRepository) RotateMaterial(ctx context.Context, elasticJWKID googleUuid.UUID, newMaterial *cryptoutilAppsJoseJaModel.MaterialJWK) error {
@@ -147,7 +202,12 @@ func (m *MockMaterialJWKRepository) Delete(ctx context.Context, id googleUuid.UU
 func (m *MockMaterialJWKRepository) CountMaterials(ctx context.Context, elasticJWKID googleUuid.UUID) (int64, error) {
 	args := m.Called(ctx, elasticJWKID)
 
-	return args.Get(0).(int64), args.Error(1) //nolint:errcheck,wrapcheck // Mock type assertion and error controlled by test
+	count, ok := args.Get(0).(int64)
+	if !ok {
+		panic("MockMaterialJWKRepository.CountMaterials: expected int64")
+	}
+
+	return count, args.Error(1) //nolint:wrapcheck // Mock returns test-controlled error
 }
 
 // MockAuditConfigRepository is a mock implementation of AuditConfigRepository.
@@ -161,7 +221,12 @@ func (m *MockAuditConfigRepository) Get(ctx context.Context, tenantID googleUuid
 		return nil, args.Error(1) //nolint:wrapcheck // Mock returns test-controlled error
 	}
 
-	return args.Get(0).(*cryptoutilAppsJoseJaModel.AuditConfig), args.Error(1) //nolint:errcheck,wrapcheck // Mock type assertion and error controlled by test
+	result, ok := args.Get(0).(*cryptoutilAppsJoseJaModel.AuditConfig)
+	if !ok {
+		panic("MockAuditConfigRepository.Get: expected *cryptoutilAppsJoseJaModel.AuditConfig")
+	}
+
+	return result, args.Error(1) //nolint:wrapcheck // Mock returns test-controlled error
 }
 
 func (m *MockAuditConfigRepository) GetAllForTenant(ctx context.Context, tenantID googleUuid.UUID) ([]*cryptoutilAppsJoseJaModel.AuditConfig, error) {
@@ -170,7 +235,12 @@ func (m *MockAuditConfigRepository) GetAllForTenant(ctx context.Context, tenantI
 		return nil, args.Error(1) //nolint:wrapcheck // Mock returns test-controlled error
 	}
 
-	return args.Get(0).([]*cryptoutilAppsJoseJaModel.AuditConfig), args.Error(1) //nolint:errcheck,wrapcheck // Mock type assertion and error controlled by test
+	results, ok := args.Get(0).([]*cryptoutilAppsJoseJaModel.AuditConfig)
+	if !ok {
+		panic("MockAuditConfigRepository.GetAllForTenant: expected []*cryptoutilAppsJoseJaModel.AuditConfig")
+	}
+
+	return results, args.Error(1) //nolint:wrapcheck // Mock returns test-controlled error
 }
 
 func (m *MockAuditConfigRepository) Upsert(ctx context.Context, config *cryptoutilAppsJoseJaModel.AuditConfig) error {
@@ -205,28 +275,73 @@ func (m *MockAuditLogRepository) Create(ctx context.Context, entry *cryptoutilAp
 func (m *MockAuditLogRepository) List(ctx context.Context, tenantID googleUuid.UUID, offset, limit int) ([]*cryptoutilAppsJoseJaModel.AuditLogEntry, int64, error) {
 	args := m.Called(ctx, tenantID, offset, limit)
 	if args.Get(0) == nil {
-		return nil, args.Get(1).(int64), args.Error(2) //nolint:errcheck,wrapcheck // Mock type assertion and error controlled by test
+		count, ok := args.Get(1).(int64)
+		if !ok {
+			panic("MockAuditLogRepository.List: expected int64 for count")
+		}
+
+		return nil, count, args.Error(2) //nolint:wrapcheck // Mock returns test-controlled error
 	}
 
-	return args.Get(0).([]*cryptoutilAppsJoseJaModel.AuditLogEntry), args.Get(1).(int64), args.Error(2) //nolint:errcheck,wrapcheck // Mock type assertion and error controlled by test
+	results, ok := args.Get(0).([]*cryptoutilAppsJoseJaModel.AuditLogEntry)
+	if !ok {
+		panic("MockAuditLogRepository.List: expected []*cryptoutilAppsJoseJaModel.AuditLogEntry")
+	}
+
+	count, ok := args.Get(1).(int64)
+	if !ok {
+		panic("MockAuditLogRepository.List: expected int64 for count")
+	}
+
+	return results, count, args.Error(2) //nolint:wrapcheck // Mock returns test-controlled error
 }
 
 func (m *MockAuditLogRepository) ListByElasticJWK(ctx context.Context, elasticJWKID googleUuid.UUID, offset, limit int) ([]*cryptoutilAppsJoseJaModel.AuditLogEntry, int64, error) {
 	args := m.Called(ctx, elasticJWKID, offset, limit)
 	if args.Get(0) == nil {
-		return nil, args.Get(1).(int64), args.Error(2) //nolint:errcheck,wrapcheck // Mock type assertion and error controlled by test
+		count, ok := args.Get(1).(int64)
+		if !ok {
+			panic("MockAuditLogRepository.ListByElasticJWK: expected int64 for count")
+		}
+
+		return nil, count, args.Error(2) //nolint:wrapcheck // Mock returns test-controlled error
 	}
 
-	return args.Get(0).([]*cryptoutilAppsJoseJaModel.AuditLogEntry), args.Get(1).(int64), args.Error(2) //nolint:errcheck,wrapcheck // Mock type assertion and error controlled by test
+	results, ok := args.Get(0).([]*cryptoutilAppsJoseJaModel.AuditLogEntry)
+	if !ok {
+		panic("MockAuditLogRepository.ListByElasticJWK: expected []*cryptoutilAppsJoseJaModel.AuditLogEntry")
+	}
+
+	count, ok := args.Get(1).(int64)
+	if !ok {
+		panic("MockAuditLogRepository.ListByElasticJWK: expected int64 for count")
+	}
+
+	return results, count, args.Error(2) //nolint:wrapcheck // Mock returns test-controlled error
 }
 
 func (m *MockAuditLogRepository) ListByOperation(ctx context.Context, tenantID googleUuid.UUID, operation string, offset, limit int) ([]*cryptoutilAppsJoseJaModel.AuditLogEntry, int64, error) {
 	args := m.Called(ctx, tenantID, operation, offset, limit)
 	if args.Get(0) == nil {
-		return nil, args.Get(1).(int64), args.Error(2) //nolint:errcheck,wrapcheck // Mock type assertion and error controlled by test
+		count, ok := args.Get(1).(int64)
+		if !ok {
+			panic("MockAuditLogRepository.ListByOperation: expected int64 for count")
+		}
+
+		return nil, count, args.Error(2) //nolint:wrapcheck // Mock returns test-controlled error
 	}
 
-	return args.Get(0).([]*cryptoutilAppsJoseJaModel.AuditLogEntry), args.Get(1).(int64), args.Error(2) //nolint:errcheck,wrapcheck // Mock type assertion and error controlled by test
+	results, ok := args.Get(0).([]*cryptoutilAppsJoseJaModel.AuditLogEntry)
+	if !ok {
+		panic("MockAuditLogRepository.ListByOperation: expected []*cryptoutilAppsJoseJaModel.AuditLogEntry")
+	}
+
+	count, ok := args.Get(1).(int64)
+	if !ok {
+		panic("MockAuditLogRepository.ListByOperation: expected int64 for count")
+	}
+
+	return results, count, args.Error(2) //nolint:wrapcheck // Mock returns test-controlled error
 }
 
 func (m *MockAuditLogRepository) GetByRequestID(ctx context.Context, requestID string) (*cryptoutilAppsJoseJaModel.AuditLogEntry, error) {
@@ -235,13 +350,23 @@ func (m *MockAuditLogRepository) GetByRequestID(ctx context.Context, requestID s
 		return nil, args.Error(1) //nolint:wrapcheck // Mock returns test-controlled error
 	}
 
-	return args.Get(0).(*cryptoutilAppsJoseJaModel.AuditLogEntry), args.Error(1) //nolint:errcheck,wrapcheck // Mock type assertion and error controlled by test
+	result, ok := args.Get(0).(*cryptoutilAppsJoseJaModel.AuditLogEntry)
+	if !ok {
+		panic("MockAuditLogRepository.GetByRequestID: expected *cryptoutilAppsJoseJaModel.AuditLogEntry")
+	}
+
+	return result, args.Error(1) //nolint:wrapcheck // Mock returns test-controlled error
 }
 
 func (m *MockAuditLogRepository) DeleteOlderThan(ctx context.Context, tenantID googleUuid.UUID, days int) (int64, error) {
 	args := m.Called(ctx, tenantID, days)
 
-	return args.Get(0).(int64), args.Error(1) //nolint:errcheck,wrapcheck // Mock type assertion and error controlled by test
+	count, ok := args.Get(0).(int64)
+	if !ok {
+		panic("MockAuditLogRepository.DeleteOlderThan: expected int64")
+	}
+
+	return count, args.Error(1) //nolint:wrapcheck // Mock returns test-controlled error
 }
 
 // Test constants to satisfy goconst linter.

@@ -8,9 +8,10 @@ import (
 	"context"
 	"crypto/tls"
 	json "encoding/json"
-	"fmt"
 	"io"
+	"net"
 	http "net/http"
+	"strconv"
 	"sync"
 	"testing"
 	"time"
@@ -173,7 +174,7 @@ func TestAdminServer_Readyz_NotReady(t *testing.T) {
 	reqCtx, reqCancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second)
 	defer reqCancel()
 
-	url := fmt.Sprintf("https://%s:%d/admin/api/v1/readyz", cryptoutilSharedMagic.IPv4Loopback, port)
+	url := "https://" + net.JoinHostPort(cryptoutilSharedMagic.IPv4Loopback, strconv.Itoa(port)) + "/admin/api/v1/readyz"
 	req, err := http.NewRequestWithContext(reqCtx, http.MethodGet, url, nil)
 	require.NoError(t, err)
 
@@ -253,7 +254,7 @@ func TestAdminServer_HealthChecks_DuringShutdown(t *testing.T) {
 	reqCtx1, reqCancel1 := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second)
 	defer reqCancel1()
 
-	url := fmt.Sprintf("https://%s:%d/admin/api/v1/readyz", cryptoutilSharedMagic.IPv4Loopback, port)
+	url := "https://" + net.JoinHostPort(cryptoutilSharedMagic.IPv4Loopback, strconv.Itoa(port)) + "/admin/api/v1/readyz"
 	req1, err := http.NewRequestWithContext(reqCtx1, http.MethodGet, url, nil)
 	require.NoError(t, err)
 
@@ -279,7 +280,7 @@ func TestAdminServer_HealthChecks_DuringShutdown(t *testing.T) {
 	reqCtx2, reqCancel2 := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second)
 	defer reqCancel2()
 
-	livezURL := fmt.Sprintf("https://%s:%d/admin/api/v1/livez", cryptoutilSharedMagic.IPv4Loopback, port)
+	livezURL := "https://" + net.JoinHostPort(cryptoutilSharedMagic.IPv4Loopback, strconv.Itoa(port)) + "/admin/api/v1/livez"
 	req2, err := http.NewRequestWithContext(reqCtx2, http.MethodGet, livezURL, nil)
 	require.NoError(t, err)
 
@@ -369,7 +370,7 @@ func TestAdminServer_Livez_Alive(t *testing.T) {
 	reqCtx, reqCancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second)
 	defer reqCancel()
 
-	url := fmt.Sprintf("https://%s:%d/admin/api/v1/livez", cryptoutilSharedMagic.IPv4Loopback, port)
+	url := "https://" + net.JoinHostPort(cryptoutilSharedMagic.IPv4Loopback, strconv.Itoa(port)) + "/admin/api/v1/livez"
 
 	req, err := http.NewRequestWithContext(reqCtx, http.MethodGet, url, nil)
 	require.NoError(t, err)
@@ -451,7 +452,7 @@ func TestAdminServer_Readyz_Ready(t *testing.T) {
 	reqCtx, reqCancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second)
 	defer reqCancel()
 
-	url := fmt.Sprintf("https://%s:%d/admin/api/v1/readyz", cryptoutilSharedMagic.IPv4Loopback, port)
+	url := "https://" + net.JoinHostPort(cryptoutilSharedMagic.IPv4Loopback, strconv.Itoa(port)) + "/admin/api/v1/readyz"
 
 	req, err := http.NewRequestWithContext(reqCtx, http.MethodGet, url, nil)
 	require.NoError(t, err)

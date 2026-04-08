@@ -273,12 +273,12 @@ func runSecretsValidation(deployments []deploymentEntry, result *AllValidationRe
 
 // discoverDeploymentDirs finds and classifies all deployment subdirectories.
 func discoverDeploymentDirs(deploymentsDir string) []deploymentEntry {
-	var deployments []deploymentEntry
-
 	entries, err := os.ReadDir(deploymentsDir)
 	if err != nil {
-		return deployments
+		return nil
 	}
+
+	deployments := make([]deploymentEntry, 0, len(entries))
 
 	for _, entry := range entries {
 		if !entry.IsDir() {

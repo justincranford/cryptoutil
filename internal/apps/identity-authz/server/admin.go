@@ -17,6 +17,7 @@ import (
 	"fmt"
 	"math/big"
 	"net"
+	"strconv"
 	"sync"
 	"time"
 
@@ -173,9 +174,7 @@ func (s *AdminServer) Start(ctx context.Context) error {
 	}
 
 	// Create TLS listener on admin bind address and port.
-	bindAddr := fmt.Sprintf("%s:%d",
-		s.config.AuthZ.AdminBindAddress,
-		s.config.AuthZ.AdminPort)
+	bindAddr := net.JoinHostPort(s.config.AuthZ.AdminBindAddress, strconv.Itoa(s.config.AuthZ.AdminPort))
 
 	s.listener, err = tls.Listen("tcp", bindAddr, tlsConfig)
 	if err != nil {

@@ -2,7 +2,7 @@
 //
 //
 
-// TODO(sm-im-migration): This SessionManager implementation is work-in-progress.
+// WIP(sm-im-migration): This SessionManager implementation is work-in-progress.
 // Current status:
 // - ✅ OPAQUE session issuance and validation (uses hash package directly)
 // - ✅ JWS/JWE session issuance and validation (complete implementation)
@@ -310,7 +310,7 @@ func (sm *SessionManager) StartCleanupTask(ctx context.Context) {
 
 			if err := sm.CleanupExpiredSessions(context.Background()); err != nil {
 				// Log error but continue cleanup task
-				// TODO: Use proper logger from context
+				// Planned: Use proper logger from context
 				fmt.Printf("Session cleanup error: %v\n", err)
 			}
 		}

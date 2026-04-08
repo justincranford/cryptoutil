@@ -65,7 +65,7 @@ func collectOTLPEntries(configDir string, result *TelemetryValidationResult) []o
 		return nil
 	}
 
-	var entries []otlpConfigEntry
+	entries := make([]otlpConfigEntry, 0, len(dirEntries))
 
 	for _, entry := range dirEntries {
 		if entry.IsDir() || !isYAMLFile(entry.Name()) {

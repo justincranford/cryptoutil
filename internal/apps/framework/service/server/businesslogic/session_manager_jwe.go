@@ -2,7 +2,7 @@
 //
 //
 
-// TODO(sm-im-migration): This SessionManager implementation is work-in-progress.
+// WIP(sm-im-migration): This SessionManager implementation is work-in-progress.
 // Current status:
 // - ✅ OPAQUE session issuance and validation (uses hash package directly)
 // - ✅ JWS/JWE session issuance and validation (complete implementation)

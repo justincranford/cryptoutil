@@ -7,9 +7,10 @@ package listener_test
 import (
 	"context"
 	"crypto/tls"
-	"fmt"
 	"io"
+	"net"
 	http "net/http"
+	"strconv"
 	"sync"
 	"testing"
 	"time"
@@ -81,7 +82,7 @@ func TestAdminServer_Livez_DuringHTTPShutdown(t *testing.T) {
 	}()
 
 	// POST to /admin/api/v1/shutdown - sets s.shutdown=true, Fiber still running.
-	shutdownURL := fmt.Sprintf("https://%s:%d/admin/api/v1/shutdown", cryptoutilSharedMagic.IPv4Loopback, port)
+	shutdownURL := "https://" + net.JoinHostPort(cryptoutilSharedMagic.IPv4Loopback, strconv.Itoa(port)) + "/admin/api/v1/shutdown"
 	shutdownReq, err := http.NewRequestWithContext(context.Background(), http.MethodPost, shutdownURL, nil)
 	require.NoError(t, err)
 
@@ -92,7 +93,7 @@ func TestAdminServer_Livez_DuringHTTPShutdown(t *testing.T) {
 	_ = shutdownResp.Body.Close()
 
 	// Immediately call livez - s.shutdown=true, Fiber still accepting (< 100ms).
-	livezURL := fmt.Sprintf("https://%s:%d/admin/api/v1/livez", cryptoutilSharedMagic.IPv4Loopback, port)
+	livezURL := "https://" + net.JoinHostPort(cryptoutilSharedMagic.IPv4Loopback, strconv.Itoa(port)) + "/admin/api/v1/livez"
 	livezReq, err := http.NewRequestWithContext(context.Background(), http.MethodGet, livezURL, nil)
 	require.NoError(t, err)
 
@@ -120,7 +121,7 @@ func TestAdminServer_Readyz_DuringHTTPShutdown(t *testing.T) {
 	server.SetReady(true)
 
 	// POST to /admin/api/v1/shutdown - sets s.shutdown=true, Fiber still running.
-	shutdownURL := fmt.Sprintf("https://%s:%d/admin/api/v1/shutdown", cryptoutilSharedMagic.IPv4Loopback, port)
+	shutdownURL := "https://" + net.JoinHostPort(cryptoutilSharedMagic.IPv4Loopback, strconv.Itoa(port)) + "/admin/api/v1/shutdown"
 	shutdownReq, err := http.NewRequestWithContext(context.Background(), http.MethodPost, shutdownURL, nil)
 	require.NoError(t, err)
 
@@ -131,7 +132,7 @@ func TestAdminServer_Readyz_DuringHTTPShutdown(t *testing.T) {
 	_ = shutdownResp.Body.Close()
 
 	// Immediately call readyz - s.shutdown=true, Fiber still accepting (< 100ms).
-	readyzURL := fmt.Sprintf("https://%s:%d/admin/api/v1/readyz", cryptoutilSharedMagic.IPv4Loopback, port)
+	readyzURL := "https://" + net.JoinHostPort(cryptoutilSharedMagic.IPv4Loopback, strconv.Itoa(port)) + "/admin/api/v1/readyz"
 	readyzReq, err := http.NewRequestWithContext(context.Background(), http.MethodGet, readyzURL, nil)
 	require.NoError(t, err)
 

@@ -9,6 +9,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"net"
 	"testing"
 
 	googleUuid "github.com/google/uuid"
@@ -214,7 +215,7 @@ func RequireNewPostgresTestContainer(ctx context.Context, t *testing.T, models .
 
 // FormatDSN formats a DSN string for PostgreSQL connections (exported for test use).
 func FormatDSN(host, port, user, pass, dbName string) string {
-	return fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", user, pass, host, port, dbName)
+	return fmt.Sprintf("postgres://%s:%s@%s/%s?sslmode=disable", user, pass, net.JoinHostPort(host, port), dbName)
 }
 
 // safeNewPostgresTestContainer wraps NewPostgresTestContainer to recover from panics

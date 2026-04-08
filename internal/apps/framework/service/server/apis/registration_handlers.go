@@ -175,7 +175,7 @@ func (h *RegistrationHandlers) HandleListJoinRequests(c *fiber.Ctx) error {
 		})
 	}
 
-	// TODO: Verify user has admin role
+	// Planned: Verify user has admin role
 
 	requests, err := h.registrationService.ListJoinRequests(c.Context(), tenantID)
 	if err != nil {

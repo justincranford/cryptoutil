@@ -8,6 +8,7 @@ import (
 	"crypto/x509"
 	"fmt"
 	"net"
+	"strconv"
 	"sync"
 
 	fiber "github.com/gofiber/fiber/v2"
@@ -126,7 +127,7 @@ func (s *PublicServerBase) Start(ctx context.Context) error {
 
 	listenConfig := &net.ListenConfig{}
 
-	listener, err := listenConfig.Listen(serverCtx, "tcp", fmt.Sprintf("%s:%d", s.bindAddress, s.port))
+	listener, err := listenConfig.Listen(serverCtx, "tcp", net.JoinHostPort(s.bindAddress, strconv.Itoa(s.port)))
 	if err != nil {
 		return fmt.Errorf("failed to create listener: %w", err)
 	}

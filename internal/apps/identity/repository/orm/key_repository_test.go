@@ -123,7 +123,7 @@ func TestKeyRepository_FindByID(t *testing.T) {
 	}
 }
 
-// TODO: Add TestKeyRepository_FindByUsage tests - requires fixing active field query logic.
+// Planned: Add TestKeyRepository_FindByUsage tests - requires fixing active field query logic.
 
 func TestKeyRepository_Update(t *testing.T) {
 	t.Parallel()

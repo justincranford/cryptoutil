@@ -24,7 +24,7 @@ func CleanupArtifacts(cfg *CleanupConfig) error {
 
 	cutoff := time.Now().UTC().AddDate(0, 0, -cfg.MaxAgeDays)
 
-	var toDelete []artifact
+	toDelete := make([]artifact, 0, len(artifacts))
 
 	var totalSizeToFree int64
 

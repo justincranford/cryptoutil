@@ -10,7 +10,9 @@ import (
 	json "encoding/json"
 	"fmt"
 	"io"
+	"net"
 	http "net/http"
+	"strconv"
 	"sync"
 	"testing"
 	"time"
@@ -165,7 +167,7 @@ func TestPublicHTTPServer_ServiceHealth_Healthy(t *testing.T) {
 		Timeout: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Second,
 	}
 
-	baseURL := fmt.Sprintf("https://%s:%d", cryptoutilSharedMagic.IPv4Loopback, server.ActualPort())
+	baseURL := "https://" + net.JoinHostPort(cryptoutilSharedMagic.IPv4Loopback, strconv.Itoa(server.ActualPort()))
 	url := fmt.Sprintf("%s/service/api/v1/health", baseURL)
 
 	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, url, nil)
@@ -231,7 +233,7 @@ func TestPublicHTTPServer_BrowserHealth_Healthy(t *testing.T) {
 		Timeout: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Second,
 	}
 
-	baseURL := fmt.Sprintf("https://%s:%d", cryptoutilSharedMagic.IPv4Loopback, server.ActualPort())
+	baseURL := "https://" + net.JoinHostPort(cryptoutilSharedMagic.IPv4Loopback, strconv.Itoa(server.ActualPort()))
 	url := fmt.Sprintf("%s/browser/api/v1/health", baseURL)
 
 	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, url, nil)

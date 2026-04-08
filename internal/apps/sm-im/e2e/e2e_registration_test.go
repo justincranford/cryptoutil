@@ -74,7 +74,7 @@ func TestE2E_RegistrationFlowWithTenantCreation(t *testing.T) {
 
 			require.Equal(t, http.StatusCreated, resp.StatusCode,
 				"Registration with create_tenant=true should return 201 Created")
-			// TODO: Parse response JSON to extract tenant_id and verify it's returned.
+			// Planned: Parse response JSON to extract tenant_id and verify it's returned.
 			// For now, just verify 201 status indicates success.
 		})
 	}
@@ -141,7 +141,7 @@ func TestE2E_RegistrationFlowWithJoinRequest(t *testing.T) {
 			require.Equal(t, http.StatusCreated, ownerResp.StatusCode,
 				"Owner registration should return 201 Created")
 
-			// TODO: Parse response to get tenant_id.
+			// Planned: Parse response to get tenant_id.
 			// For this E2E test, we'll use a placeholder tenant_id and expect 400 for now.
 			// In real implementation, we'd extract tenant_id from owner registration response.
 

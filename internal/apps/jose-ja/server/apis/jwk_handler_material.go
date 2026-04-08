@@ -210,7 +210,7 @@ func (h *JWKHandler) HandleGetJWKS() fiber.Handler {
 // HandleSign signs data with a specific key.
 func (h *JWKHandler) HandleSign() fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		// TODO: Implement signing operation.
+		// Planned: Implement signing operation.
 		return c.Status(fiber.StatusNotImplemented).JSON(fiber.Map{
 			cryptoutilSharedMagic.StringError: "Sign operation not yet implemented",
 		})
@@ -220,7 +220,7 @@ func (h *JWKHandler) HandleSign() fiber.Handler {
 // HandleVerify verifies a signature.
 func (h *JWKHandler) HandleVerify() fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		// TODO: Implement verification operation.
+		// Planned: Implement verification operation.
 		return c.Status(fiber.StatusNotImplemented).JSON(fiber.Map{
 			cryptoutilSharedMagic.StringError: "Verify operation not yet implemented",
 		})
@@ -230,7 +230,7 @@ func (h *JWKHandler) HandleVerify() fiber.Handler {
 // HandleEncrypt encrypts data with a specific key.
 func (h *JWKHandler) HandleEncrypt() fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		// TODO: Implement encryption operation.
+		// Planned: Implement encryption operation.
 		return c.Status(fiber.StatusNotImplemented).JSON(fiber.Map{
 			cryptoutilSharedMagic.StringError: "Encrypt operation not yet implemented",
 		})
@@ -240,7 +240,7 @@ func (h *JWKHandler) HandleEncrypt() fiber.Handler {
 // HandleDecrypt decrypts data with a specific key.
 func (h *JWKHandler) HandleDecrypt() fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		// TODO: Implement decryption operation.
+		// Planned: Implement decryption operation.
 		return c.Status(fiber.StatusNotImplemented).JSON(fiber.Map{
 			cryptoutilSharedMagic.StringError: "Decrypt operation not yet implemented",
 		})

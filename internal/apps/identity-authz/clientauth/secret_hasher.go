@@ -112,7 +112,7 @@ func (a *SecretBasedAuthenticator) AuthenticateBasic(ctx context.Context, client
 
 		if valid {
 			// Log which version was used for audit purposes.
-			_ = version // TODO: Add audit logging for secret version usage
+			_ = version // Planned: Add audit logging for secret version usage
 
 			return client, nil
 		}

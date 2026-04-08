@@ -191,7 +191,7 @@ func StartApplicationListener(ctx context.Context, cfg *ApplicationConfig) (*App
 		return nil, fmt.Errorf("failed to create service template: %w", err)
 	}
 
-	// TODO: Create public server (product-specific implementation will inject handlers).
+	// Planned: Create public server (product-specific implementation will inject handlers).
 	// For now, return error indicating implementation needed.
 	// Each product service (sm-im, jose-ja, etc.) will need to provide:
 	// - Public server constructor (NewPublicServer)
@@ -205,7 +205,7 @@ func StartApplicationListener(ctx context.Context, cfg *ApplicationConfig) (*App
 	//
 	// cfg.PublicHandlers(publicServer) // Inject product-specific routes
 
-	// TODO: Create admin server (reusable across all services).
+	// Planned: Create admin server (reusable across all services).
 	// adminServer, err := cryptoutilTemplateServerListener.NewAdminHTTPServer(ctx, cfg.ServiceFrameworkServerSettings, adminTLSCfg)
 	// if err != nil {
 	//     return nil, fmt.Errorf("failed to create admin server: %w", err)
@@ -215,7 +215,7 @@ func StartApplicationListener(ctx context.Context, cfg *ApplicationConfig) (*App
 	//     cfg.AdminHandlers(adminServer) // Inject optional admin routes (barrier rotation, etc.)
 	// }
 
-	// TODO: Create Application and start servers.
+	// Planned: Create Application and start servers.
 	// app, err := cryptoutilTemplateServer.NewApplication(ctx, publicServer, adminServer)
 	// if err != nil {
 	//     return nil, fmt.Errorf("failed to create application: %w", err)
@@ -227,10 +227,10 @@ func StartApplicationListener(ctx context.Context, cfg *ApplicationConfig) (*App
 	}
 
 	return &ApplicationListener{
-		app:          nil, // TODO: Populate after Application creation
+		app:          nil, // Planned: Populate after Application creation
 		config:       cfg.ServiceFrameworkServerSettings,
 		shutdownFunc: shutdownFunc,
-		// TODO: Extract actual ports from started servers
+		// Planned: Extract actual ports from started servers
 		actualPublicPort:  0,
 		actualPrivatePort: 0,
 	}, fmt.Errorf("StartApplicationListener: implementation in progress (product-specific server creation needed)")

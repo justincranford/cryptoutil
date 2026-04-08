@@ -6,7 +6,9 @@ package email
 import (
 	"context"
 	"fmt"
+	"net"
 	"net/smtp"
+	"strconv"
 	"strings"
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
@@ -45,7 +47,7 @@ func (s *SMTPEmailService) SendEmail(_ context.Context, to, subject, body string
 	message := fmt.Sprintf("From: %s\r\nTo: %s\r\nSubject: %s\r\n\r\n%s",
 		s.config.From, to, subject, body)
 
-	addr := fmt.Sprintf("%s:%d", s.config.Host, s.config.Port)
+	addr := net.JoinHostPort(s.config.Host, strconv.Itoa(s.config.Port))
 	recipients := []string{to}
 
 	if err := smtp.SendMail(addr, auth, s.config.From, recipients, []byte(message)); err != nil {

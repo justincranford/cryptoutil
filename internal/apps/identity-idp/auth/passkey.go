@@ -46,10 +46,10 @@ func (p *PasskeyProfile) Authenticate(_ context.Context, credentials map[string]
 		return nil, fmt.Errorf("%w: missing assertion", cryptoutilIdentityAppErr.ErrInvalidCredentials)
 	}
 
-	// TODO: Validate WebAuthn assertion using library (e.g., go-webauthn/webauthn).
-	// TODO: Fetch user by credential ID.
-	// TODO: Verify signature and challenge.
-	// TODO: Return user object if validation succeeds.
+	// Planned: Validate WebAuthn assertion using library (e.g., go-webauthn/webauthn).
+	// Planned: Fetch user by credential ID.
+	// Planned: Verify signature and challenge.
+	// Planned: Return user object if validation succeeds.
 
 	_ = credentialID
 	_ = assertion

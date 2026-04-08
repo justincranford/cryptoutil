@@ -133,9 +133,10 @@ func TestFindViolationsInDir_AllRegisteredPSIDs(t *testing.T) {
 
 	tmpDir := t.TempDir()
 
-	var psIDs []string
+	allPS := lintFitnessRegistry.AllProductServices()
+	psIDs := make([]string, 0, len(allPS))
 
-	for _, ps := range lintFitnessRegistry.AllProductServices() {
+	for _, ps := range allPS {
 		psIDs = append(psIDs, ps.PSID)
 	}
 

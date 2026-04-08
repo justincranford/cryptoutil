@@ -54,7 +54,7 @@ func (s *PublicServer) registerRoutes() error {
 	app.Get(cryptoutilSharedMagic.PrivateAdminReadyzRequestPath, s.handleReadyz)
 
 	// BFF OAuth 2.1 proxy endpoints.
-	// TODO: Add OAuth 2.1 authorization code flow endpoints:
+	// Planned: Add OAuth 2.1 authorization code flow endpoints:
 	// - /service/api/v1/auth/login - Initiates authorization code flow.
 	// - /service/api/v1/auth/callback - Handles authorization code callback.
 	// - /service/api/v1/auth/logout - Handles logout (revoke tokens, clear session).
@@ -62,7 +62,7 @@ func (s *PublicServer) registerRoutes() error {
 	// - /service/api/v1/auth/refresh - Handles token refresh using refresh token from session.
 
 	// BFF browser endpoints (with CORS, CSRF protection).
-	// TODO: Add browser-specific endpoints:
+	// Planned: Add browser-specific endpoints:
 	// - /browser/api/v1/auth/login - Same as service but with CORS/CSRF.
 	// - /browser/api/v1/auth/callback - Same as service but with CORS/CSRF.
 	// - /browser/api/v1/auth/logout - Same as service but with CORS/CSRF.

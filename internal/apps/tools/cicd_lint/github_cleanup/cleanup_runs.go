@@ -51,7 +51,7 @@ func CleanupRuns(cfg *CleanupConfig) error {
 	}
 
 	// Determine which runs to delete.
-	var toDelete []workflowRun
+	toDelete := make([]workflowRun, 0, len(runs))
 
 	successKept := make(map[string]int)
 

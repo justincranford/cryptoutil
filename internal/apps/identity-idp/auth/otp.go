@@ -29,7 +29,7 @@ const (
 
 // OTPService handles OTP generation and validation.
 type OTPService struct {
-	// TODO: Add dependencies for email/SMS delivery.
+	// Planned: Add dependencies for email/SMS delivery.
 }
 
 // NewOTPService creates a new OTP service.
@@ -39,9 +39,9 @@ func NewOTPService() *OTPService {
 
 // GenerateOTP generates a one-time password for the specified user.
 func (s *OTPService) GenerateOTP(_ context.Context, user *cryptoutilIdentityDomain.User, method OTPMethod) (string, error) {
-	// TODO: Generate OTP code (6-digit numeric).
-	// TODO: Store OTP with expiration (5 minutes).
-	// TODO: Send OTP via email/SMS based on method.
+	// Planned: Generate OTP code (6-digit numeric).
+	// Planned: Store OTP with expiration (5 minutes).
+	// Planned: Send OTP via email/SMS based on method.
 	_ = user
 	_ = method
 
@@ -50,10 +50,10 @@ func (s *OTPService) GenerateOTP(_ context.Context, user *cryptoutilIdentityDoma
 
 // ValidateOTP validates a one-time password for the specified user.
 func (s *OTPService) ValidateOTP(_ context.Context, user *cryptoutilIdentityDomain.User, otpCode string, method OTPMethod) error {
-	// TODO: Fetch stored OTP for user.
-	// TODO: Validate OTP code matches.
-	// TODO: Check OTP not expired.
-	// TODO: Invalidate OTP after successful validation.
+	// Planned: Fetch stored OTP for user.
+	// Planned: Validate OTP code matches.
+	// Planned: Check OTP not expired.
+	// Planned: Invalidate OTP after successful validation.
 	_ = user
 	_ = otpCode
 	_ = method

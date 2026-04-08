@@ -12,7 +12,9 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"net"
 	"os"
+	"strconv"
 	"testing"
 
 	googleUuid "github.com/google/uuid"
@@ -192,8 +194,8 @@ func _testMainAfter(m *testing.M) {
 	defer _testListener.Shutdown()
 
 	// Extract URLs for tests (automatic port allocation).
-	_baseURL = fmt.Sprintf("https://%s:%d", cryptoutilSharedMagic.IPv4Loopback, _testListener.ActualPublicPort())
-	_adminURL = fmt.Sprintf("https://%s:%d", cryptoutilSharedMagic.IPv4Loopback, _testListener.ActualPrivatePort())
+	_baseURL = "https://" + net.JoinHostPort(cryptoutilSharedMagic.IPv4Loopback, strconv.Itoa(int(_testListener.ActualPublicPort())))
+	_adminURL = "https://" + net.JoinHostPort(cryptoutilSharedMagic.IPv4Loopback, strconv.Itoa(int(_testListener.ActualPrivatePort())))
 
 	os.Exit(m.Run())
 }

@@ -6,6 +6,8 @@ package e2e_helpers
 
 import (
 	"fmt"
+	"net"
+	"strconv"
 	"time"
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
@@ -89,8 +91,8 @@ func MustStartAndWaitForDualPorts(server DualPortServer, startFn func() error) {
 // DualPortBaseURLs returns the public and admin base URLs for a DualPortServer.
 // Uses the standard format: https://127.0.0.1:<port>.
 func DualPortBaseURLs(server DualPortServer) (publicURL, adminURL string) {
-	publicURL = fmt.Sprintf("https://%s:%d", cryptoutilSharedMagic.IPv4Loopback, server.PublicPort())
-	adminURL = fmt.Sprintf("https://%s:%d", cryptoutilSharedMagic.IPv4Loopback, server.AdminPort())
+	publicURL = "https://" + net.JoinHostPort(cryptoutilSharedMagic.IPv4Loopback, strconv.Itoa(server.PublicPort()))
+	adminURL = "https://" + net.JoinHostPort(cryptoutilSharedMagic.IPv4Loopback, strconv.Itoa(server.AdminPort()))
 
 	return publicURL, adminURL
 }

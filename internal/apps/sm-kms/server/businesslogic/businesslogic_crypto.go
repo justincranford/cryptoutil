@@ -422,7 +422,7 @@ func (s *BusinessLogicService) RevokeMaterialKey(ctx context.Context, elasticKey
 
 // DeleteMaterialKey deletes a MaterialKey within an ElasticKey.
 func (s *BusinessLogicService) DeleteMaterialKey(ctx context.Context, elasticKeyID, materialKeyID *googleUuid.UUID) error {
-	// TODO: Implement material key deletion. For now, return not implemented error.
+	// Planned: Implement material key deletion. For now, return not implemented error.
 	summary := "delete material key not implemented"
 
 	return cryptoutilSharedApperr.NewHTTP500InternalServerError(&summary, nil)

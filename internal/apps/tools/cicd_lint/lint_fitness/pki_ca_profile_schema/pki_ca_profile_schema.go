@@ -212,9 +212,10 @@ func checkProfileFile(path string, readFileFn func(string) ([]byte, error)) ([]s
 
 	base := filepath.Base(path)
 
-	var violations []string
-
 	errs := validateProfile(pf, base)
+
+	violations := make([]string, 0, len(errs))
+
 	for _, e := range errs {
 		violations = append(violations, fmt.Sprintf("  %s: %s", base, e))
 	}

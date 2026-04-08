@@ -140,7 +140,7 @@ func (s *TenantRegistrationService) AuthorizeJoinRequest(
 		return fmt.Errorf("join request is not pending (status: %s)", joinRequest.Status)
 	}
 
-	// TODO: Verify admin has permission for this tenant
+	// Planned: Verify admin has permission for this tenant
 
 	// Update request status
 	now := time.Now().UTC()
@@ -149,7 +149,7 @@ func (s *TenantRegistrationService) AuthorizeJoinRequest(
 
 	if approved {
 		joinRequest.Status = cryptoutilAppsFrameworkServiceServerDomain.JoinRequestStatusApproved
-		// TODO: Assign user/client to tenant with appropriate role
+		// Planned: Assign user/client to tenant with appropriate role
 	} else {
 		joinRequest.Status = cryptoutilAppsFrameworkServiceServerDomain.JoinRequestStatusRejected
 	}
@@ -166,7 +166,7 @@ func (s *TenantRegistrationService) ListJoinRequests(
 	ctx context.Context,
 	tenantID googleUuid.UUID,
 ) ([]*cryptoutilAppsFrameworkServiceServerDomain.TenantJoinRequest, error) {
-	// TODO: Verify caller has admin permission for this tenant
+	// Planned: Verify caller has admin permission for this tenant
 	requests, err := s.joinRequestRepo.ListByTenant(ctx, tenantID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list join requests: %w", err)

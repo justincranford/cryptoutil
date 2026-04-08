@@ -12,6 +12,7 @@ import (
 	"crypto/x509"
 	"fmt"
 	"net"
+	"strconv"
 	"sync"
 	"time"
 
@@ -209,7 +210,7 @@ func (s *AdminServer) Start(ctx context.Context) error {
 	}
 
 	// Bind to address and port from ServiceFrameworkServerSettings.
-	addr := fmt.Sprintf("%s:%d", s.settings.BindPrivateAddress, s.settings.BindPrivatePort)
+	addr := net.JoinHostPort(s.settings.BindPrivateAddress, strconv.Itoa(int(s.settings.BindPrivatePort)))
 
 	// Create listener.
 	listener, err := s.listenFn(ctx, "tcp", addr)

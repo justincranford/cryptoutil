@@ -51,7 +51,7 @@ func CheckMagicDuplicatesInDir(logger *cryptoutilCmdCicdCommon.Logger, magicDir 
 		consts []lintGoCommon.MagicConstant
 	}
 
-	var groups []dupGroup
+	groups := make([]dupGroup, 0, len(inv.ByValue))
 
 	for value, consts := range inv.ByValue {
 		if len(consts) < 2 {
@@ -167,7 +167,7 @@ func CheckCrossFileDuplicatesInDir(logger *cryptoutilCmdCicdCommon.Logger, magic
 		consts []crossFileConstant
 	}
 
-	var groups []crossDupGroup
+	groups := make([]crossDupGroup, 0, len(byValue))
 
 	for value, consts := range byValue {
 		if countDistinctFiles(consts) < 2 {

@@ -166,7 +166,7 @@ func checkInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string, readFile
 		return fmt.Errorf("fitness-registry-completeness: %w", err)
 	}
 
-	var violations []string
+	violations := make([]string, 0, len(orphaned)+len(missing))
 
 	for _, dir := range orphaned {
 		violations = append(violations, fmt.Sprintf("  ORPHANED (in filesystem but not in registry): %s", dir))

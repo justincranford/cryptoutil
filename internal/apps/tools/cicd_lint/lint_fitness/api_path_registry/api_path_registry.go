@@ -173,10 +173,8 @@ func parseSpecPaths(filePath string, readFileFn func(string) ([]byte, error)) (m
 
 // comparePaths compares registry-declared paths with spec paths and returns any violations.
 func comparePaths(psID string, registryPaths, specPaths map[string]struct{}) []string {
-	var violations []string
-
 	// Missing from spec: declared in registry but absent from spec.
-	var missingFromSpec []string
+	missingFromSpec := make([]string, 0, len(registryPaths))
 
 	for p := range registryPaths {
 		if _, ok := specPaths[p]; !ok {
@@ -185,7 +183,7 @@ func comparePaths(psID string, registryPaths, specPaths map[string]struct{}) []s
 	}
 
 	// Undeclared in registry: present in spec but absent from registry.
-	var undeclaredInRegistry []string
+	undeclaredInRegistry := make([]string, 0, len(specPaths))
 
 	for p := range specPaths {
 		if _, ok := registryPaths[p]; !ok {
@@ -195,6 +193,8 @@ func comparePaths(psID string, registryPaths, specPaths map[string]struct{}) []s
 
 	sort.Strings(missingFromSpec)
 	sort.Strings(undeclaredInRegistry)
+
+	violations := make([]string, 0, len(missingFromSpec)+len(undeclaredInRegistry))
 
 	for _, p := range missingFromSpec {
 		violations = append(violations, fmt.Sprintf("%s: path %q declared in registry but missing from OpenAPI spec", psID, p))

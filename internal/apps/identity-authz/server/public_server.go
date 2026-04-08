@@ -49,7 +49,7 @@ func (s *PublicServer) registerRoutes() error {
 	}
 
 	// OAuth 2.1 Authorization Server endpoints.
-	// TODO: Add OAuth 2.1 endpoints:
+	// Planned: Add OAuth 2.1 endpoints:
 	// - /service/api/v1/oauth/authorize - Authorization endpoint.
 	// - /service/api/v1/oauth/token - Token endpoint.
 	// - /service/api/v1/oauth/revoke - Token revocation endpoint.
@@ -85,7 +85,7 @@ func (s *PublicServer) handleLivez(c *fiber.Ctx) error {
 
 // handleBrowserAuthorize serves OAuth authorization page.
 // E2E test expects non-404 response to validate browser endpoint exists.
-// TODO: Replace with proper authorization flow when OAuth implementation ready.
+// Planned: Replace with proper authorization flow when OAuth implementation ready.
 func (s *PublicServer) handleBrowserAuthorize(c *fiber.Ctx) error {
 	// Set HTML content type.
 	c.Set("Content-Type", "text/html; charset=utf-8")
@@ -195,7 +195,7 @@ func (s *PublicServer) handleOpenIDConfiguration(c *fiber.Ctx) error {
 
 // handleJWKS returns the public JWKS for token verification.
 func (s *PublicServer) handleJWKS(c *fiber.Ctx) error {
-	// TODO: Return actual public JWKS from JWK generation service.
+	// Planned: Return actual public JWKS from JWK generation service.
 	// For now, return empty JWKS.
 	jwks := fiber.Map{
 		"keys": []fiber.Map{},

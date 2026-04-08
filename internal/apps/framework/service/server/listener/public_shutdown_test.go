@@ -10,7 +10,9 @@ import (
 	json "encoding/json"
 	"fmt"
 	"io"
+	"net"
 	http "net/http"
+	"strconv"
 	"sync"
 	"testing"
 	"time"
@@ -68,7 +70,7 @@ func TestPublicHTTPServer_ServiceHealth_DuringShutdown(t *testing.T) {
 	require.NoError(t, err)
 
 	// Make request during/after shutdown - should return 503.
-	baseURL := fmt.Sprintf("https://%s:%d", cryptoutilSharedMagic.IPv4Loopback, server.ActualPort())
+	baseURL := "https://" + net.JoinHostPort(cryptoutilSharedMagic.IPv4Loopback, strconv.Itoa(server.ActualPort()))
 	url := fmt.Sprintf("%s/service/api/v1/health", baseURL)
 
 	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, url, nil)
@@ -143,7 +145,7 @@ func TestPublicHTTPServer_BrowserHealth_DuringShutdown(t *testing.T) {
 	require.NoError(t, err)
 
 	// Make request during/after shutdown - should return 503.
-	baseURL := fmt.Sprintf("https://%s:%d", cryptoutilSharedMagic.IPv4Loopback, server.ActualPort())
+	baseURL := "https://" + net.JoinHostPort(cryptoutilSharedMagic.IPv4Loopback, strconv.Itoa(server.ActualPort()))
 	url := fmt.Sprintf("%s/browser/api/v1/health", baseURL)
 
 	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, url, nil)
@@ -227,7 +229,7 @@ func TestPublicHTTPServer_PublicBaseURL(t *testing.T) {
 
 	// Test PublicBaseURL returns correct format.
 	baseURL := server.PublicBaseURL()
-	expectedURL := fmt.Sprintf("https://%s:%d", cryptoutilSharedMagic.IPv4Loopback, port)
+	expectedURL := "https://" + net.JoinHostPort(cryptoutilSharedMagic.IPv4Loopback, strconv.Itoa(port))
 	require.Equal(t, expectedURL, baseURL)
 
 	// Shutdown server.

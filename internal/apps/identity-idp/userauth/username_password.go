@@ -34,7 +34,7 @@ type PasswordCredentialStore interface {
 }
 
 // UserStore defines a minimal interface for user authentication.
-// TODO: Replace with proper UserRepository from domain package when available.
+// Planned: Replace with proper UserRepository from domain package when available.
 type UserStore interface {
 	// GetByID retrieves a user by ID.
 	GetByID(ctx context.Context, userID string) (*cryptoutilIdentityDomain.User, error)

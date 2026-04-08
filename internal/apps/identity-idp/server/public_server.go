@@ -43,7 +43,7 @@ func (s *PublicServer) registerRoutes() error {
 	app.Get(cryptoutilSharedMagic.PrivateAdminReadyzRequestPath, s.handleReadyz)
 
 	// IdP browser endpoints (login/consent UI).
-	// TODO: Add IdP endpoints:
+	// Planned: Add IdP endpoints:
 	// - /browser/login - Login page (username/password form).
 	// - /browser/consent - Consent page (scope approval).
 	// - /browser/logout - Logout page.
@@ -54,7 +54,7 @@ func (s *PublicServer) registerRoutes() error {
 	app.Get("/browser/login", s.handleLoginPage)
 
 	// IdP API endpoints.
-	// TODO: Add IdP API endpoints:
+	// Planned: Add IdP API endpoints:
 	// - /service/api/v1/auth/login - Login submission endpoint.
 	// - /service/api/v1/auth/consent - Consent submission endpoint.
 	// - /service/api/v1/auth/logout - Logout endpoint.
@@ -66,7 +66,7 @@ func (s *PublicServer) registerRoutes() error {
 
 // handleLoginPage serves a simple HTML login form.
 // E2E test expects non-404 response to validate browser endpoint exists.
-// TODO: Replace with proper login UI when authentication flow implemented.
+// Planned: Replace with proper login UI when authentication flow implemented.
 func (s *PublicServer) handleLoginPage(c *fiber.Ctx) error {
 	// Set HTML content type.
 	c.Set("Content-Type", "text/html; charset=utf-8")

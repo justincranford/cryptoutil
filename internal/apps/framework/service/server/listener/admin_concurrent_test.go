@@ -10,7 +10,9 @@ import (
 	json "encoding/json"
 	"fmt"
 	"io"
+	"net"
 	http "net/http"
+	"strconv"
 	"sync"
 	"testing"
 	"time"
@@ -78,7 +80,7 @@ func TestAdminServer_ConcurrentRequests(t *testing.T) {
 		if port > 0 {
 			healthCtx, healthCancel := context.WithTimeout(context.Background(), 2*time.Second)
 
-			healthURL := fmt.Sprintf("https://%s:%d/admin/api/v1/livez", cryptoutilSharedMagic.IPv4Loopback, port)
+			healthURL := "https://" + net.JoinHostPort(cryptoutilSharedMagic.IPv4Loopback, strconv.Itoa(port)) + "/admin/api/v1/livez"
 
 			healthReq, _ := http.NewRequestWithContext(healthCtx, http.MethodGet, healthURL, nil)
 
@@ -127,7 +129,7 @@ func TestAdminServer_ConcurrentRequests(t *testing.T) {
 			reqCtx, reqCancel := context.WithTimeout(context.Background(), 2*time.Second)
 			defer reqCancel()
 
-			url := fmt.Sprintf("https://%s:%d/admin/api/v1/livez", cryptoutilSharedMagic.IPv4Loopback, port)
+			url := "https://" + net.JoinHostPort(cryptoutilSharedMagic.IPv4Loopback, strconv.Itoa(port)) + "/admin/api/v1/livez"
 
 			req, reqErr := http.NewRequestWithContext(reqCtx, http.MethodGet, url, nil)
 			if reqErr != nil {
@@ -224,7 +226,7 @@ func TestAdminServer_TimeoutsConfigured(t *testing.T) {
 	}
 
 	// Make request to verify timeouts are working.
-	baseURL := fmt.Sprintf("https://%s:%d", cryptoutilSharedMagic.IPv4Loopback, port)
+	baseURL := "https://" + net.JoinHostPort(cryptoutilSharedMagic.IPv4Loopback, strconv.Itoa(port))
 	url := fmt.Sprintf("%s/admin/api/v1/readyz", baseURL)
 
 	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, url, nil)
@@ -295,7 +297,7 @@ func TestAdminServer_AdminBaseURL(t *testing.T) {
 
 	// Test AdminBaseURL returns correct format.
 	baseURL := server.AdminBaseURL()
-	expectedURL := fmt.Sprintf("https://%s:%d", cryptoutilSharedMagic.IPv4Loopback, port)
+	expectedURL := "https://" + net.JoinHostPort(cryptoutilSharedMagic.IPv4Loopback, strconv.Itoa(port))
 	require.Equal(t, expectedURL, baseURL)
 
 	// Shutdown server.

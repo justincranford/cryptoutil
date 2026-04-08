@@ -11,7 +11,9 @@ import (
 	json "encoding/json"
 	"fmt"
 	"io"
+	"net"
 	http "net/http"
+	"strconv"
 	"testing"
 	"time"
 
@@ -192,7 +194,7 @@ func TestAdminEndpointLivez(t *testing.T) {
 	// Wait for server to start and get port (polling avoids race condition).
 	port := waitForAdminPort(t, server, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second)
 
-	baseURL := fmt.Sprintf("https://%s:%d", cryptoutilSharedMagic.IPv4Loopback, port)
+	baseURL := "https://" + net.JoinHostPort(cryptoutilSharedMagic.IPv4Loopback, strconv.Itoa(port))
 
 	t.Run("LivezReturnsAlive", func(t *testing.T) {
 		statusCode, body := doAdminGet(t, baseURL+"/admin/api/v1/livez", server.TLSRootCAPool())
@@ -251,7 +253,7 @@ func TestAdminEndpointReadyz(t *testing.T) {
 	// Wait for server to start and get port (polling avoids race condition).
 	port := waitForAdminPort(t, server, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second)
 
-	baseURL := fmt.Sprintf("https://%s:%d", cryptoutilSharedMagic.IPv4Loopback, port)
+	baseURL := "https://" + net.JoinHostPort(cryptoutilSharedMagic.IPv4Loopback, strconv.Itoa(port))
 
 	t.Run("ReadyzBeforeReady", func(t *testing.T) {
 		// Server starts not ready by default.
@@ -319,7 +321,7 @@ func TestAdminEndpointShutdown(t *testing.T) {
 	// Wait for server to start and get port (polling avoids race condition).
 	port := waitForAdminPort(t, server, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second)
 
-	baseURL := fmt.Sprintf("https://%s:%d", cryptoutilSharedMagic.IPv4Loopback, port)
+	baseURL := "https://" + net.JoinHostPort(cryptoutilSharedMagic.IPv4Loopback, strconv.Itoa(port))
 
 	t.Run("ShutdownViaEndpoint", func(t *testing.T) {
 		// Call shutdown endpoint.

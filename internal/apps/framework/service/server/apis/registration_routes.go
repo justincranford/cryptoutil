@@ -63,7 +63,7 @@ func RegisterJoinRequestManagementRoutes(
 
 	// Create admin authentication middleware.
 	// Validates session token and ensures user is authenticated.
-	// TODO: Add role-based authorization when role management system implemented.
+	// Planned: Add role-based authorization when role management system implemented.
 	// For now, this only validates authentication (not admin role).
 	adminAuthMiddleware := cryptoutilAppsFrameworkServiceServerMiddleware.BrowserSessionMiddleware(sessionValidator)
 

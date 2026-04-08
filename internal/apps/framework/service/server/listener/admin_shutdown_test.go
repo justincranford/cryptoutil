@@ -8,9 +8,10 @@ import (
 	"context"
 	"crypto/tls"
 	json "encoding/json"
-	"fmt"
 	"io"
+	"net"
 	http "net/http"
+	"strconv"
 	"sync"
 	"testing"
 	"time"
@@ -65,7 +66,7 @@ func TestAdminServer_Shutdown_Endpoint(t *testing.T) {
 	reqCtx, reqCancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second)
 	defer reqCancel()
 
-	url := fmt.Sprintf("https://%s:%d/admin/api/v1/shutdown", cryptoutilSharedMagic.IPv4Loopback, port)
+	url := "https://" + net.JoinHostPort(cryptoutilSharedMagic.IPv4Loopback, strconv.Itoa(port)) + "/admin/api/v1/shutdown"
 
 	req, err := http.NewRequestWithContext(reqCtx, http.MethodPost, url, nil)
 	require.NoError(t, err)

@@ -101,7 +101,10 @@ func TestGenerateTLSMaterialMixed_ECPrivateKey(t *testing.T) {
 	})
 
 	// Marshal EC key as SEC1 (EC PRIVATE KEY format).
-	caKeyBytes, marshalErr := x509.MarshalECPrivateKey(caKeyPair.Private.(*ecdsa.PrivateKey)) //nolint:errcheck // Error checked via require.NoError on next line.
+	caECKey, ok := caKeyPair.Private.(*ecdsa.PrivateKey)
+	require.True(t, ok, "expected *ecdsa.PrivateKey")
+
+	caKeyBytes, marshalErr := x509.MarshalECPrivateKey(caECKey)
 	require.NoError(t, marshalErr)
 
 	caKeyPEM := pem.EncodeToMemory(&pem.Block{

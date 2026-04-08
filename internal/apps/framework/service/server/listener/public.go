@@ -9,6 +9,7 @@ import (
 	"crypto/tls"
 	"fmt"
 	"net"
+	"strconv"
 	"sync"
 	"time"
 
@@ -185,7 +186,7 @@ func (s *PublicHTTPServer) Start(ctx context.Context) error {
 	}
 
 	// Create TCP listener using address and port from ServiceFrameworkServerSettings.
-	listener, err := s.listenFn(ctx, "tcp", fmt.Sprintf("%s:%d", s.settings.BindPublicAddress, s.settings.BindPublicPort))
+	listener, err := s.listenFn(ctx, "tcp", net.JoinHostPort(s.settings.BindPublicAddress, strconv.Itoa(int(s.settings.BindPublicPort))))
 	if err != nil {
 		return fmt.Errorf("failed to create listener: %w", err)
 	}

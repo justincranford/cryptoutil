@@ -128,7 +128,7 @@ func CheckSkillCommandDrift(rootDir string, readFileFn func(string) ([]byte, err
 		return nil, fmt.Errorf("cannot read %s: %w", cryptoutilSharedMagic.CICDGithubSkillsDir, err)
 	}
 
-	var skillNames []string
+	skillNames := make([]string, 0, len(skillEntries))
 
 	for _, entry := range skillEntries {
 		if !entry.IsDir() {

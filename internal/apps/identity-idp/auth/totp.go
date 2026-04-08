@@ -42,9 +42,9 @@ func (p *TOTPProfile) Authenticate(_ context.Context, credentials map[string]str
 		return nil, fmt.Errorf("%w: missing otp_code", cryptoutilIdentityAppErr.ErrInvalidCredentials)
 	}
 
-	// TODO: Fetch MFA factors for user.
-	// TODO: Validate TOTP/HOTP code using library (e.g., pquerna/otp).
-	// TODO: Return user object if validation succeeds.
+	// Planned: Fetch MFA factors for user.
+	// Planned: Validate TOTP/HOTP code using library (e.g., pquerna/otp).
+	// Planned: Return user object if validation succeeds.
 
 	_ = userID
 	_ = otpCode

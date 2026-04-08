@@ -128,7 +128,7 @@ func checkSidecarHealthWithRetry(ctx context.Context, settings *TelemetrySetting
 	maxRetries := cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries
 	retryDelay := cryptoutilSharedMagic.DefaultSidecarHealthCheckRetryDelay
 
-	var intermediateErrs []error
+	intermediateErrs := make([]error, 0, maxRetries+1)
 
 	for attempt := range maxRetries + 1 {
 		if attempt > 0 {

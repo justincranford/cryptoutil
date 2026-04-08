@@ -73,7 +73,7 @@ type RootKey struct {
 	KEKUUID   googleUuid.UUID `gorm:"type:text"`                              // KEK UUID (nil for root keys)
 	CreatedAt int64           `gorm:"autoCreateTime:milli" json:"created_at"` // Unix epoch milliseconds
 	UpdatedAt int64           `gorm:"autoUpdateTime:milli" json:"updated_at"` // Unix epoch milliseconds
-	// TODO: Add RotatedAt *int64 after fixing migration 0004 discovery issue
+	// Planned: Add RotatedAt *int64 after fixing migration 0004 discovery issue
 }
 
 // TableName specifies the database table name for barrier root keys.
@@ -89,7 +89,7 @@ type IntermediateKey struct {
 	KEKUUID   googleUuid.UUID `gorm:"type:text;not null"`                     // Parent root key UUID
 	CreatedAt int64           `gorm:"autoCreateTime:milli" json:"created_at"` // Unix epoch milliseconds
 	UpdatedAt int64           `gorm:"autoUpdateTime:milli" json:"updated_at"` // Unix epoch milliseconds
-	// TODO: Add RotatedAt *int64 after fixing migration 0004 discovery issue
+	// Planned: Add RotatedAt *int64 after fixing migration 0004 discovery issue
 }
 
 // TableName specifies the database table name for barrier intermediate keys.
@@ -105,7 +105,7 @@ type ContentKey struct {
 	KEKUUID   googleUuid.UUID `gorm:"type:text;not null"`                     // Parent intermediate key UUID
 	CreatedAt int64           `gorm:"autoCreateTime:milli" json:"created_at"` // Unix epoch milliseconds
 	UpdatedAt int64           `gorm:"autoUpdateTime:milli" json:"updated_at"` // Unix epoch milliseconds
-	// TODO: Add RotatedAt *int64 after fixing migration 0004 discovery issue
+	// Planned: Add RotatedAt *int64 after fixing migration 0004 discovery issue
 }
 
 // TableName specifies the database table name for barrier content keys.

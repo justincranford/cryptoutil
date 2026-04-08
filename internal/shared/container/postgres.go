@@ -7,6 +7,7 @@ package container
 import (
 	"context"
 	"fmt"
+	"net"
 	"strings"
 
 	googleUuid "github.com/google/uuid"
@@ -47,7 +48,7 @@ func StartPostgres(ctx context.Context, telemetryService *cryptoutilSharedTeleme
 		return "", nil, fmt.Errorf("failed to get postgres container host and mapped port: %w", err)
 	}
 
-	databaseURL := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", dbUsername, dbPassword, containerHost, containerMappedPort, dbName)
+	databaseURL := fmt.Sprintf("postgres://%s:%s@%s/%s?sslmode=disable", dbUsername, dbPassword, net.JoinHostPort(containerHost, containerMappedPort), dbName)
 
 	return databaseURL, terminateContainer, nil
 }

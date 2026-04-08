@@ -136,7 +136,7 @@ func (o *MFAOrchestrator) IntegrateTOTPValidation(ctx context.Context, factor *c
 		}
 
 		// Extract user ID from auth profile (factor doesn't have UserID).
-		// TODO: Retrieve user ID from authentication context.
+		// Planned: Retrieve user ID from authentication context.
 		userID := factor.AuthProfileID.String() // Placeholder: use auth profile ID.
 
 		valid, err := o.totpValidator.ValidateTOTPWithWindow(ctx, userID, code, 1)

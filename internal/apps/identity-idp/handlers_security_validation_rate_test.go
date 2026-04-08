@@ -214,7 +214,7 @@ func TestSecurityValidation_RateLimiting(t *testing.T) {
 
 	// Without rate limiting, all attempts should fail with 401 Unauthorized.
 	require.Equal(t, maxAttempts, failedAttempts, "All failed attempts should return 401 without rate limiting")
-	// TODO: When rate limiting is implemented, update this test to expect:
+	// Planned: When rate limiting is implemented, update this test to expect:
 	// - HTTP 429 Too Many Requests after threshold exceeded
 	// - Retry-After header present
 	// - Subsequent attempts blocked until lockout expires

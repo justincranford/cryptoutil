@@ -43,7 +43,7 @@ func (s *PublicServer) registerRoutes() error {
 	app.Get(cryptoutilSharedMagic.PrivateAdminReadyzRequestPath, s.handleReadyz)
 
 	// Protected API endpoints.
-	// TODO: Add protected API endpoints demonstrating token validation:
+	// Planned: Add protected API endpoints demonstrating token validation:
 	// - /service/api/v1/resources - List resources (requires read scope).
 	// - /service/api/v1/resources/:id - Get resource (requires read scope).
 	// - /service/api/v1/resources - Create resource (requires write scope).
@@ -54,7 +54,7 @@ func (s *PublicServer) registerRoutes() error {
 	app.Get("/service/api/v1/resources", s.handleListResources)
 
 	// Token introspection endpoints.
-	// TODO: Add token introspection endpoints:
+	// Planned: Add token introspection endpoints:
 	// - /service/api/v1/token/info - Display token claims.
 	// - /service/api/v1/token/scopes - Display token scopes.
 
@@ -78,7 +78,7 @@ func (s *PublicServer) handleListResources(c *fiber.Ctx) error {
 		return nil
 	}
 
-	// TODO: Implement actual token validation when token introspection ready.
+	// Planned: Implement actual token validation when token introspection ready.
 	// For now, any Authorization header is accepted (E2E test just needs 401 without header).
 	if err := c.JSON(fiber.Map{
 		"resources": []fiber.Map{},

@@ -112,12 +112,12 @@ func productFromPSID(psid string) string {
 // Directories starting with _ (archived) are excluded.
 // The tools, skeleton, framework, and cryptoutil directories are excluded.
 func collectServices(appsDir string) ([]serviceRef, error) {
-	var services []serviceRef
-
 	entries, err := os.ReadDir(appsDir)
 	if err != nil {
 		return nil, fmt.Errorf("read apps dir: %w", err)
 	}
+
+	services := make([]serviceRef, 0, len(entries))
 
 	for _, entry := range entries {
 		if !entry.IsDir() {

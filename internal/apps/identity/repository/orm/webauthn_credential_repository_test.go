@@ -52,7 +52,10 @@ func TestNewWebAuthnCredentialRepository(t *testing.T) {
 			)
 
 			if tc.db != nil {
-				repo, err = NewWebAuthnCredentialRepository(tc.db.(*testDB).db) //nolint:errcheck // Error checked conditionally below based on test case expectations
+				tdb, ok := tc.db.(*testDB)
+				require.True(t, ok, "expected *testDB")
+
+				repo, err = NewWebAuthnCredentialRepository(tdb.db) //nolint:errcheck // Error checked conditionally below based on test case expectations
 			} else {
 				repo, err = NewWebAuthnCredentialRepository(nil) //nolint:errcheck // Error checked conditionally below based on test case expectations
 			}

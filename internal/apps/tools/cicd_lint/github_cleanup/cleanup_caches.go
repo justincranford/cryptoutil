@@ -24,7 +24,7 @@ func CleanupCaches(cfg *CleanupConfig) error {
 
 	cutoff := time.Now().UTC().AddDate(0, 0, -cfg.MaxAgeDays)
 
-	var toDelete []cache
+	toDelete := make([]cache, 0, len(caches))
 
 	var totalSizeToFree int64
 

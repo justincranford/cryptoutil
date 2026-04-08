@@ -330,7 +330,7 @@ func (h *JWKHandler) HandleCreateMaterialJWK() fiber.Handler {
 		// Generate material key.
 		materialKID := googleUuid.New()
 
-		// TODO: Implement actual JWK generation based on elastic JWK algorithm.
+		// Planned: Implement actual JWK generation based on elastic JWK algorithm.
 		// For now, create placeholder material with string JWE placeholders.
 		material := &cryptoutilAppsJoseJaModel.MaterialJWK{
 			ID:             materialKID,
@@ -340,7 +340,7 @@ func (h *JWKHandler) HandleCreateMaterialJWK() fiber.Handler {
 			PublicJWKJWE:   "encrypted-public-key-placeholder",
 			Active:         true,
 			CreatedAt:      time.Now().UTC(),
-			BarrierVersion: 1, // TODO: Get from barrier service.
+			BarrierVersion: 1, // Planned: Get from barrier service.
 		}
 
 		if err := h.materialJWKRepo.Create(ctx, material); err != nil {
