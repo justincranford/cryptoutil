@@ -213,7 +213,7 @@ func GenerateServerCertFromCA(caCertPEM, caKeyPEM []byte, dns []string, ips []st
 	}
 
 	// Compose PEM chain: server cert first, then issuer certs.
-	pemChain, err := encodeCertChainPEM(serverSubject.KeyMaterial.CertificateChain)
+	pemChain, err := cryptoutilSharedCryptoAsn1.PEMEncodeCertChain(serverSubject.KeyMaterial.CertificateChain)
 	if err != nil {
 		return nil, fmt.Errorf("failed to PEM-encode certificate chain: %w", err)
 	}
@@ -309,7 +309,7 @@ func GenerateAutoTLSGeneratedSettings(dns []string, ips []string, validityDays i
 	}
 
 	// Compose PEM chain from server certificate chain.
-	pemChain, err := encodeCertChainPEM(serverSubject.KeyMaterial.CertificateChain)
+	pemChain, err := cryptoutilSharedCryptoAsn1.PEMEncodeCertChain(serverSubject.KeyMaterial.CertificateChain)
 	if err != nil {
 		return nil, fmt.Errorf("failed to PEM-encode certificate chain: %w", err)
 	}
@@ -360,20 +360,4 @@ func GenerateTestCA() (caCertPEM []byte, caKeyPEM []byte, err error) {
 	}
 
 	return caCertPEM, caKeyPEM, nil
-}
-
-// encodeCertChainPEM creates concatenated PEM from a certificate chain using shared ASN.1 utilities.
-func encodeCertChainPEM(certs []*x509.Certificate) ([]byte, error) {
-	var pemChain []byte
-
-	for _, cert := range certs {
-		pemBytes, err := cryptoutilSharedCryptoAsn1.PEMEncode(cert)
-		if err != nil {
-			return nil, fmt.Errorf("failed to PEM-encode certificate: %w", err)
-		}
-
-		pemChain = append(pemChain, pemBytes...)
-	}
-
-	return pemChain, nil
 }

@@ -130,7 +130,7 @@ func (g *Generator) writeIssuerCert(parentDir, name string, ca *cryptoutilShared
 		return fmt.Errorf("failed to create directory %s: %w", dir, err)
 	}
 
-	certPEM, err := encodeCertChainPEM(ca)
+	certPEM, err := cryptoutilSharedCryptoAsn1.PEMEncodeCertChain(ca.KeyMaterial.CertificateChain)
 	if err != nil {
 		return fmt.Errorf("failed to PEM-encode issuer cert chain %s: %w", name, err)
 	}
@@ -150,7 +150,7 @@ func (g *Generator) writeCertAndKey(dir, baseName string, subject *cryptoutilSha
 		return fmt.Errorf("failed to create directory %s: %w", dir, err)
 	}
 
-	certPEM, err := encodeCertChainPEM(subject)
+	certPEM, err := cryptoutilSharedCryptoAsn1.PEMEncodeCertChain(subject.KeyMaterial.CertificateChain)
 	if err != nil {
 		return fmt.Errorf("failed to PEM-encode cert chain for %s: %w", baseName, err)
 	}

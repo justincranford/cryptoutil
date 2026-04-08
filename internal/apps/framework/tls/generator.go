@@ -277,9 +277,9 @@ func (g *Generator) generateSharedDomains(targetDir string, validity time.Durati
 }
 
 func (g *Generator) generatePSIDDomains(targetDir, psID string, sd *sharedDomains, validity time.Duration) error {
-	instances := AppInstances(psID)
-	domains := PKIDomains(psID)
-	realms := ClientRealms()
+	instances := PKIInitAppInstances(psID)
+	domains := PKIInitDomains(psID)
+	realms := PKIInitClientRealms()
 
 	// --- {PS-ID}-app-public-server/ (4 server leaves, issued by shared public server CA) ---
 	publicServerDir := filepath.Join(targetDir, psID+"-app-public-server")

@@ -22,54 +22,26 @@ const (
 	TierService
 )
 
-// suiteID is the canonical suite identifier.
-const suiteID = cryptoutilSharedMagic.DefaultOTLPServiceDefault
-
-// productToPSIDs maps product IDs to their constituent PS-IDs.
-var productToPSIDs = map[string][]string{
-	cryptoutilSharedMagic.SMProductName:       {cryptoutilSharedMagic.OTLPServiceSMKMS, cryptoutilSharedMagic.OTLPServiceSMIM},
-	cryptoutilSharedMagic.JoseProductName:     {cryptoutilSharedMagic.OTLPServiceJoseJA},
-	cryptoutilSharedMagic.PKIProductName:      {cryptoutilSharedMagic.OTLPServicePKICA},
-	cryptoutilSharedMagic.IdentityProductName: {cryptoutilSharedMagic.OTLPServiceIdentityAuthz, cryptoutilSharedMagic.OTLPServiceIdentityIDP, cryptoutilSharedMagic.OTLPServiceIdentityRS, cryptoutilSharedMagic.OTLPServiceIdentityRP, cryptoutilSharedMagic.OTLPServiceIdentitySPA},
-	cryptoutilSharedMagic.SkeletonProductName: {cryptoutilSharedMagic.OTLPServiceSkeletonTemplate},
-}
-
-// allPSIDs is the ordered list of all 10 PS-IDs in the suite.
-var allPSIDs = []string{
-	cryptoutilSharedMagic.OTLPServiceSMKMS, cryptoutilSharedMagic.OTLPServiceSMIM, cryptoutilSharedMagic.OTLPServiceJoseJA, cryptoutilSharedMagic.OTLPServicePKICA,
-	cryptoutilSharedMagic.OTLPServiceIdentityAuthz, cryptoutilSharedMagic.OTLPServiceIdentityIDP, cryptoutilSharedMagic.OTLPServiceIdentityRS, cryptoutilSharedMagic.OTLPServiceIdentityRP, cryptoutilSharedMagic.OTLPServiceIdentitySPA,
-	cryptoutilSharedMagic.OTLPServiceSkeletonTemplate,
-}
-
-// psIDSet is a lookup set of valid PS-IDs for quick validation.
-var psIDSet = func() map[string]bool {
-	m := make(map[string]bool, len(allPSIDs))
-	for _, id := range allPSIDs {
-		m[id] = true
-	}
-
-	return m
-}()
-
 // ResolveTier determines the tier type and PS-IDs for a canonical tier ID.
 func ResolveTier(tierID string) (TierType, []string, error) {
 	return resolveTierInternal(tierID)
 }
 
 func resolveTierInternal(tierID string) (TierType, []string, error) {
-	if tierID == suiteID {
-		return TierSuite, allPSIDs, nil
-	} else if psIDs, ok := productToPSIDs[tierID]; ok {
-		return TierProduct, psIDs, nil
-	} else if psIDSet[tierID] {
+	switch {
+	case tierID == cryptoutilSharedMagic.DefaultOTLPServiceDefault:
+		return TierSuite, cryptoutilSharedMagic.AllPSIDs, nil
+	case cryptoutilSharedMagic.ProductToPSIDs[tierID] != nil:
+		return TierProduct, cryptoutilSharedMagic.ProductToPSIDs[tierID], nil
+	case cryptoutilSharedMagic.PSIDSet[tierID]:
 		return TierService, []string{tierID}, nil
+	default:
+		return 0, nil, fmt.Errorf("unknown tier ID %q: must be %q, a product (sm, jose, pki, identity, skeleton), or a PS-ID", tierID, cryptoutilSharedMagic.DefaultOTLPServiceDefault)
 	}
-
-	return 0, nil, fmt.Errorf("unknown tier ID %q: must be %q, a product (sm, jose, pki, identity, skeleton), or a PS-ID", tierID, suiteID)
 }
 
-// AppInstances returns the 4 canonical app instance suffixes for a PS-ID.
-func AppInstances(psID string) []string {
+// PKIInitAppInstances returns the 4 canonical app instance suffixes for a PS-ID.
+func PKIInitAppInstances(psID string) []string {
 	return []string{
 		psID + "-app-sqlite-1",
 		psID + "-app-sqlite-2",
@@ -78,9 +50,9 @@ func AppInstances(psID string) []string {
 	}
 }
 
-// PKIDomains returns the 3 PKI domain identifiers for a PS-ID.
+// PKIInitDomains returns the 3 PKI domain identifiers for a PS-ID.
 // sqlite-1 and sqlite-2 each get their own domain; postgresql-1 and postgresql-2 share one.
-func PKIDomains(psID string) []string {
+func PKIInitDomains(psID string) []string {
 	return []string{
 		psID + "-app-sqlite-1",
 		psID + "-app-sqlite-2",
@@ -88,8 +60,8 @@ func PKIDomains(psID string) []string {
 	}
 }
 
-// ClientRealms returns the 4 client realm names per PKI domain.
-func ClientRealms() []string {
+// PKIInitClientRealms returns the 4 client realm names per PKI domain.
+func PKIInitClientRealms() []string {
 	return []string{
 		"browser-realm-file",
 		"browser-realm-db",

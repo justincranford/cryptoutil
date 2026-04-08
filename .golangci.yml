@@ -157,7 +157,15 @@ linters:
       check-blank: false
     gosec:
       confidence: medium
-      excludes: [G204, G301, G302, G304]
+      excludes:
+        # G204: Subprocess launched with variable - required for CLI tooling.
+        - G204
+        # G301: Directory created with permissive mode - intentional for cert/config dirs.
+        - G301
+        # G302: File created with permissive mode - intentional for cert files.
+        - G302
+        # G304: File path provided as taint input - required for config/cert file reading.
+        - G304
     gocyclo:
       min-complexity: 15
     goconst:

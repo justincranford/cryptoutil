@@ -251,3 +251,20 @@ func DERWrite(key any, filename string) error {
 
 	return nil
 }
+
+// PEMEncodeCertChain encodes a certificate chain as concatenated PEM blocks.
+// Certificates are encoded in the order provided (typically leaf first, root last).
+func PEMEncodeCertChain(certs []*x509.Certificate) ([]byte, error) {
+	var out []byte
+
+	for i, cert := range certs {
+		pemBytes, err := PEMEncode(cert)
+		if err != nil {
+			return nil, fmt.Errorf("failed to PEM-encode certificate %d: %w", i, err)
+		}
+
+		out = append(out, pemBytes...)
+	}
+
+	return out, nil
+}
