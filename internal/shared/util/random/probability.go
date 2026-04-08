@@ -80,3 +80,21 @@ func normalizedRandomFloat32(t *testing.T) float32 {
 
 	return float32(randomUint32) / float32(math.MaxUint32)
 }
+
+// SamplingBool returns true with probability rate in [0.0, 1.0) using crypto/rand.
+// Suitable for production probabilistic decisions such as audit sampling.
+// Returns an error if random byte generation fails.
+func SamplingBool(rate float64) (bool, error) {
+	var b [bytesPerUint32]byte
+
+	if _, err := crand.Read(b[:]); err != nil {
+		return false, fmt.Errorf("failed to generate sampling random: %w", err)
+	}
+
+	randomUint32 := uint32(0)
+	for i, v := range b {
+		randomUint32 |= uint32(v) << (i * bitsPerByte)
+	}
+
+	return float64(randomUint32)/float64(math.MaxUint32) < rate, nil
+}
