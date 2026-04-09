@@ -15,21 +15,297 @@ import (
 	_ "modernc.org/sqlite" // CGO-free SQLite driver.
 )
 
-func TestJWTService_CreateEncryptedJWTDatabaseError(t *testing.T) {
+const (
+	corruptBase64Padding     = "===invalid==="
+	corruptBase64Exclamation = "not-valid-base64!!!"
+)
+
+func TestJWTService_DatabaseErrors(t *testing.T) {
 	t.Parallel()
 
-	elasticRepo, materialRepo, _, _ := newClosedServiceDeps(t)
+	tests := []struct {
+		name string
+		call func(JWTService, context.Context) error
+	}{
+		{name: "CreateJWT", call: func(svc JWTService, ctx context.Context) error {
+			_, err := svc.CreateJWT(ctx, googleUuid.New(), googleUuid.New(), &JWTClaims{Issuer: "test"})
 
-	ctx := context.Background()
-	svc := NewJWTService(elasticRepo, materialRepo, testBarrierService)
+			return err
+		}},
+		{name: "CreateEncryptedJWT", call: func(svc JWTService, ctx context.Context) error {
+			_, err := svc.CreateEncryptedJWT(ctx, googleUuid.New(), googleUuid.New(), googleUuid.New(), &JWTClaims{Issuer: "test"})
 
-	claims := &JWTClaims{Issuer: "test-issuer"}
-	_, err := svc.CreateEncryptedJWT(ctx, googleUuid.New(), googleUuid.New(), googleUuid.New(), claims)
-	require.Error(t, err)
-	require.True(t,
-		strings.Contains(err.Error(), "failed to") ||
-			strings.Contains(err.Error(), "not found"),
-		"Expected database or not-found error, got: %v", err)
+			return err
+		}},
+		{name: "ValidateJWT", call: func(svc JWTService, ctx context.Context) error {
+			_, err := svc.ValidateJWT(ctx, googleUuid.New(), googleUuid.New(), "eyJhbGciOiJSUzI1NiJ9.eyJpc3MiOiJ0ZXN0In0.test")
+
+			return err
+		}},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			elasticRepo, materialRepo, _, _ := newClosedServiceDeps(t)
+			svc := NewJWTService(elasticRepo, materialRepo, testBarrierService)
+
+			err := tc.call(svc, context.Background())
+			require.Error(t, err)
+			require.True(t,
+				strings.Contains(err.Error(), "failed to") ||
+					strings.Contains(err.Error(), "not found") ||
+					strings.Contains(err.Error(), "parse"),
+				"Expected database, not-found, or parse error, got: %v", err)
+		})
+	}
+}
+
+func TestJWTService_CreateJWT_PrivateKeyCorruption(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name      string
+		corruptFn func(t *testing.T, ctx context.Context) string
+		wantErr   string
+	}{
+		{name: "barrier decrypt failure", corruptFn: func(_ *testing.T, _ context.Context) string {
+			return base64.StdEncoding.EncodeToString([]byte("not-barrier"))
+		}, wantErr: "failed to decrypt private JWK"},
+		{name: "base64 decode failure padding", corruptFn: func(_ *testing.T, _ context.Context) string {
+			return corruptBase64Padding
+		}, wantErr: "failed to decode private JWK JWE"},
+		{name: "corrupted private JWK parse", corruptFn: func(t *testing.T, ctx context.Context) string {
+			t.Helper()
+
+			encrypted, err := testBarrierService.EncryptContentWithContext(ctx, []byte("not-valid-json"))
+			require.NoError(t, err)
+
+			return base64.StdEncoding.EncodeToString(encrypted)
+		}, wantErr: "failed to parse private JWK"},
+		{name: "base64 decode failure exclamation", corruptFn: func(_ *testing.T, _ context.Context) string {
+			return corruptBase64Exclamation
+		}, wantErr: "failed to decode private JWK JWE"},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctx := context.Background()
+			elasticSvc := NewElasticJWKService(testElasticRepo, testMaterialRepo, testJWKGenService, testBarrierService)
+			jwtSvc := NewJWTService(testElasticRepo, testMaterialRepo, testBarrierService)
+			tenantID := googleUuid.New()
+
+			elasticJWK, material, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaModel.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
+			require.NoError(t, err)
+
+			err = testDB.Model(&cryptoutilAppsJoseJaModel.MaterialJWK{}).Where("id = ?", material.ID).Update("private_jwk_jwe", tc.corruptFn(t, ctx)).Error
+			require.NoError(t, err)
+
+			expiry := time.Now().UTC().Add(time.Hour)
+			_, err = jwtSvc.CreateJWT(ctx, tenantID, elasticJWK.ID, &JWTClaims{Subject: "test", ExpiresAt: &expiry})
+			require.Error(t, err)
+			require.Contains(t, err.Error(), tc.wantErr)
+		})
+	}
+}
+
+func TestJWTService_ValidateJWT_PublicKeyCorruption(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name      string
+		corruptFn func(t *testing.T, ctx context.Context) string
+		wantErr   string
+	}{
+		{name: "barrier decrypt failure", corruptFn: func(_ *testing.T, _ context.Context) string {
+			return base64.StdEncoding.EncodeToString([]byte("not-barrier"))
+		}, wantErr: "failed to decrypt public JWK"},
+		{name: "base64 decode failure padding", corruptFn: func(_ *testing.T, _ context.Context) string {
+			return corruptBase64Padding
+		}, wantErr: "failed to decode public JWK JWE"},
+		{name: "corrupted public JWK parse", corruptFn: func(t *testing.T, ctx context.Context) string {
+			t.Helper()
+
+			encrypted, err := testBarrierService.EncryptContentWithContext(ctx, []byte("not-valid-json"))
+			require.NoError(t, err)
+
+			return base64.StdEncoding.EncodeToString(encrypted)
+		}, wantErr: "failed to parse public JWK"},
+		{name: "base64 decode failure exclamation", corruptFn: func(_ *testing.T, _ context.Context) string {
+			return corruptBase64Exclamation
+		}, wantErr: "failed to decode public JWK JWE"},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctx := context.Background()
+			elasticSvc := NewElasticJWKService(testElasticRepo, testMaterialRepo, testJWKGenService, testBarrierService)
+			jwtSvc := NewJWTService(testElasticRepo, testMaterialRepo, testBarrierService)
+			tenantID := googleUuid.New()
+
+			elasticJWK, material, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaModel.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
+			require.NoError(t, err)
+
+			expiry := time.Now().UTC().Add(time.Hour)
+			token, err := jwtSvc.CreateJWT(ctx, tenantID, elasticJWK.ID, &JWTClaims{Subject: "test", ExpiresAt: &expiry})
+			require.NoError(t, err)
+
+			err = testDB.Model(&cryptoutilAppsJoseJaModel.MaterialJWK{}).Where("id = ?", material.ID).Update("public_jwk_jwe", tc.corruptFn(t, ctx)).Error
+			require.NoError(t, err)
+
+			_, err = jwtSvc.ValidateJWT(ctx, tenantID, elasticJWK.ID, token)
+			require.Error(t, err)
+			require.Contains(t, err.Error(), tc.wantErr)
+		})
+	}
+}
+
+func TestJWTService_CreateEncryptedJWT_KeyValidation(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		setup   func(t *testing.T, ctx context.Context, svc ElasticJWKService) (googleUuid.UUID, googleUuid.UUID, googleUuid.UUID)
+		wantErr string
+	}{
+		{name: "encryption key wrong tenant", setup: func(t *testing.T, ctx context.Context, svc ElasticJWKService) (googleUuid.UUID, googleUuid.UUID, googleUuid.UUID) {
+			t.Helper()
+
+			tenantID, otherTenantID := googleUuid.New(), googleUuid.New()
+
+			sigKey, _, err := svc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm, cryptoutilAppsJoseJaModel.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
+			require.NoError(t, err)
+
+			encKey, _, err := svc.CreateElasticJWK(ctx, otherTenantID, cryptoutilSharedMagic.JoseKeyTypeRSA2048, cryptoutilAppsJoseJaModel.KeyUseEnc, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
+			require.NoError(t, err)
+
+			return tenantID, sigKey.ID, encKey.ID
+		}, wantErr: "encryption key not found"},
+		{name: "encryption key wrong use", setup: func(t *testing.T, ctx context.Context, svc ElasticJWKService) (googleUuid.UUID, googleUuid.UUID, googleUuid.UUID) {
+			t.Helper()
+
+			tenantID := googleUuid.New()
+
+			sigKey, _, err := svc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm, cryptoutilAppsJoseJaModel.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
+			require.NoError(t, err)
+
+			otherSigKey, _, err := svc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm, cryptoutilAppsJoseJaModel.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
+			require.NoError(t, err)
+
+			return tenantID, sigKey.ID, otherSigKey.ID
+		}, wantErr: "not configured for encryption"},
+		{name: "unsupported encryption algorithm", setup: func(t *testing.T, ctx context.Context, svc ElasticJWKService) (googleUuid.UUID, googleUuid.UUID, googleUuid.UUID) {
+			t.Helper()
+
+			tenantID := googleUuid.New()
+
+			sigKey, _, err := svc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaModel.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
+			require.NoError(t, err)
+
+			encKey, _, err := svc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgEdDSA, cryptoutilAppsJoseJaModel.KeyUseEnc, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
+			require.NoError(t, err)
+
+			return tenantID, sigKey.ID, encKey.ID
+		}, wantErr: "unsupported algorithm for JWE"},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctx := context.Background()
+			elasticSvc := NewElasticJWKService(testElasticRepo, testMaterialRepo, testJWKGenService, testBarrierService)
+			jwtSvc := NewJWTService(testElasticRepo, testMaterialRepo, testBarrierService)
+			tenantID, sigKeyID, encKeyID := tc.setup(t, ctx, elasticSvc)
+
+			expiry := time.Now().UTC().Add(time.Hour)
+			_, err := jwtSvc.CreateEncryptedJWT(ctx, tenantID, sigKeyID, encKeyID, &JWTClaims{Subject: "test-user", ExpiresAt: &expiry})
+			require.Error(t, err)
+			require.Contains(t, err.Error(), tc.wantErr)
+		})
+	}
+}
+
+func TestJWTService_CreateJWT_KeyValidation(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		setup   func(t *testing.T, ctx context.Context) (googleUuid.UUID, googleUuid.UUID)
+		wantErr string
+	}{
+		{name: "algorithm key mismatch", setup: func(t *testing.T, ctx context.Context) (googleUuid.UUID, googleUuid.UUID) {
+			t.Helper()
+
+			elasticSvc := NewElasticJWKService(testElasticRepo, testMaterialRepo, testJWKGenService, testBarrierService)
+			tenantID := googleUuid.New()
+
+			elasticJWK, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgES256, cryptoutilAppsJoseJaModel.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
+			require.NoError(t, err)
+
+			err = testDB.Model(&cryptoutilAppsJoseJaModel.ElasticJWK{}).Where("id = ?", elasticJWK.ID).Update("alg", cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm).Error
+			require.NoError(t, err)
+
+			return tenantID, elasticJWK.ID
+		}, wantErr: "failed to create signer"},
+		{name: "no active material", setup: func(t *testing.T, ctx context.Context) (googleUuid.UUID, googleUuid.UUID) {
+			t.Helper()
+
+			elasticSvc := NewElasticJWKService(testElasticRepo, testMaterialRepo, testJWKGenService, testBarrierService)
+			rotationSvc := NewMaterialRotationService(testElasticRepo, testMaterialRepo, testJWKGenService, testBarrierService)
+			tenantID := googleUuid.New()
+
+			elasticJWK, material, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaModel.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
+			require.NoError(t, err)
+
+			err = rotationSvc.RetireMaterial(ctx, tenantID, elasticJWK.ID, material.ID)
+			require.NoError(t, err)
+
+			return tenantID, elasticJWK.ID
+		}, wantErr: "failed to get active material"},
+		{name: "unsupported algorithm", setup: func(t *testing.T, ctx context.Context) (googleUuid.UUID, googleUuid.UUID) {
+			t.Helper()
+
+			elasticSvc := NewElasticJWKService(testElasticRepo, testMaterialRepo, testJWKGenService, testBarrierService)
+			tenantID := googleUuid.New()
+
+			elasticJWK, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseKeyTypeOct128, cryptoutilAppsJoseJaModel.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
+			require.NoError(t, err)
+
+			return tenantID, elasticJWK.ID
+		}, wantErr: "failed to create signer"},
+		{name: "wrong key use", setup: func(t *testing.T, ctx context.Context) (googleUuid.UUID, googleUuid.UUID) {
+			t.Helper()
+
+			elasticSvc := NewElasticJWKService(testElasticRepo, testMaterialRepo, testJWKGenService, testBarrierService)
+			tenantID := googleUuid.New()
+
+			encKey, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseKeyTypeRSA2048, cryptoutilAppsJoseJaModel.KeyUseEnc, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
+			require.NoError(t, err)
+
+			return tenantID, encKey.ID
+		}, wantErr: "not configured for signing"},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctx := context.Background()
+			jwtSvc := NewJWTService(testElasticRepo, testMaterialRepo, testBarrierService)
+			tenantID, elasticJWKID := tc.setup(t, ctx)
+
+			expiry := time.Now().UTC().Add(time.Hour)
+			_, err := jwtSvc.CreateJWT(ctx, tenantID, elasticJWKID, &JWTClaims{Subject: "test", ExpiresAt: &expiry})
+			require.Error(t, err)
+			require.Contains(t, err.Error(), tc.wantErr)
+		})
+	}
 }
 
 func TestJWTService_CreateEncryptedJWT_CorruptedPublicJWKParse(t *testing.T) {
@@ -39,468 +315,74 @@ func TestJWTService_CreateEncryptedJWT_CorruptedPublicJWKParse(t *testing.T) {
 	elasticSvc := NewElasticJWKService(testElasticRepo, testMaterialRepo, testJWKGenService, testBarrierService)
 	jwtSvc := NewJWTService(testElasticRepo, testMaterialRepo, testBarrierService)
 	tenantID := googleUuid.New()
+
 	sigJWK, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaModel.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 	require.NoError(t, err)
+
 	encJWK, encMaterial, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseKeyTypeRSA2048, cryptoutilAppsJoseJaModel.KeyUseEnc, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 	require.NoError(t, err)
 
-	invalidJSON := []byte("not-valid-json")
-	encryptedInvalid, err := testBarrierService.EncryptContentWithContext(ctx, invalidJSON)
+	encrypted, err := testBarrierService.EncryptContentWithContext(ctx, []byte("not-valid-json"))
 	require.NoError(t, err)
 
-	corruptedJWE := base64.StdEncoding.EncodeToString(encryptedInvalid)
-	err = testDB.Model(&cryptoutilAppsJoseJaModel.MaterialJWK{}).Where("id = ?", encMaterial.ID).Update("public_jwk_jwe", corruptedJWE).Error
+	err = testDB.Model(&cryptoutilAppsJoseJaModel.MaterialJWK{}).Where("id = ?", encMaterial.ID).Update("public_jwk_jwe", base64.StdEncoding.EncodeToString(encrypted)).Error
 	require.NoError(t, err)
 
 	expiry := time.Now().UTC().Add(time.Hour)
-	claims := &JWTClaims{Subject: "test", ExpiresAt: &expiry}
-	_, err = jwtSvc.CreateEncryptedJWT(ctx, tenantID, sigJWK.ID, encJWK.ID, claims)
+	_, err = jwtSvc.CreateEncryptedJWT(ctx, tenantID, sigJWK.ID, encJWK.ID, &JWTClaims{Subject: "test", ExpiresAt: &expiry})
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to parse public JWK")
 }
 
-func TestJWTService_CreateEncryptedJWT_EncryptionKeyWrongTenant(t *testing.T) {
+func TestJWTService_ValidateJWT_ValidationErrors(t *testing.T) {
 	t.Parallel()
 
-	ctx := context.Background()
+	tests := []struct {
+		name    string
+		setup   func(t *testing.T, ctx context.Context, elasticSvc ElasticJWKService, jwtSvc JWTService) (googleUuid.UUID, googleUuid.UUID, string)
+		wantErr string
+	}{
+		{name: "material KID not belong to elastic JWK", setup: func(t *testing.T, ctx context.Context, elasticSvc ElasticJWKService, jwtSvc JWTService) (googleUuid.UUID, googleUuid.UUID, string) {
+			t.Helper()
 
-	elasticSvc := NewElasticJWKService(testElasticRepo, testMaterialRepo, testJWKGenService, testBarrierService)
-	jwtSvc := NewJWTService(testElasticRepo, testMaterialRepo, testBarrierService)
-	tenantID := googleUuid.New()
-	otherTenantID := googleUuid.New()
+			tenantID := googleUuid.New()
 
-	// Create signing key for tenant1.
-	signingKey, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm, cryptoutilAppsJoseJaModel.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
-	require.NoError(t, err)
+			sigKey1, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm, cryptoutilAppsJoseJaModel.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
+			require.NoError(t, err)
 
-	// Create encryption key for tenant2.
-	encryptionKey, _, err := elasticSvc.CreateElasticJWK(ctx, otherTenantID, cryptoutilSharedMagic.JoseKeyTypeRSA2048, cryptoutilAppsJoseJaModel.KeyUseEnc, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
-	require.NoError(t, err)
+			sigKey2, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm, cryptoutilAppsJoseJaModel.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
+			require.NoError(t, err)
 
-	// Try to create encrypted JWT using tenant1's signing key but tenant2's encryption key.
-	claims := &JWTClaims{
-		Subject:   "test-user",
-		ExpiresAt: timePtr(time.Now().UTC().Add(time.Hour)),
+			expiry := time.Now().UTC().Add(time.Hour)
+			token, err := jwtSvc.CreateJWT(ctx, tenantID, sigKey1.ID, &JWTClaims{Subject: "test-user", ExpiresAt: &expiry})
+			require.NoError(t, err)
+
+			return tenantID, sigKey2.ID, token
+		}, wantErr: "does not belong to this elastic JWK"},
+		{name: "invalid token no headers", setup: func(t *testing.T, ctx context.Context, elasticSvc ElasticJWKService, _ JWTService) (googleUuid.UUID, googleUuid.UUID, string) {
+			t.Helper()
+
+			tenantID := googleUuid.New()
+
+			sigKey, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm, cryptoutilAppsJoseJaModel.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
+			require.NoError(t, err)
+
+			return tenantID, sigKey.ID, "invalid.token.structure"
+		}, wantErr: "failed to parse JWT"},
 	}
-	_, err = jwtSvc.CreateEncryptedJWT(ctx, tenantID, signingKey.ID, encryptionKey.ID, claims)
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "encryption key not found")
-}
 
-func TestJWTService_CreateEncryptedJWT_EncryptionKeyWrongUse(t *testing.T) {
-	t.Parallel()
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-	ctx := context.Background()
+			ctx := context.Background()
+			elasticSvc := NewElasticJWKService(testElasticRepo, testMaterialRepo, testJWKGenService, testBarrierService)
+			jwtSvc := NewJWTService(testElasticRepo, testMaterialRepo, testBarrierService)
+			tenantID, elasticJWKID, token := tc.setup(t, ctx, elasticSvc, jwtSvc)
 
-	elasticSvc := NewElasticJWKService(testElasticRepo, testMaterialRepo, testJWKGenService, testBarrierService)
-	jwtSvc := NewJWTService(testElasticRepo, testMaterialRepo, testBarrierService)
-	tenantID := googleUuid.New()
-
-	// Create signing key.
-	signingKey, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm, cryptoutilAppsJoseJaModel.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
-	require.NoError(t, err)
-
-	// Create another signing key (not encryption).
-	anotherSigningKey, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm, cryptoutilAppsJoseJaModel.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
-	require.NoError(t, err)
-
-	// Try to create encrypted JWT using signing key for encryption.
-	claims := &JWTClaims{
-		Subject:   "test-user",
-		ExpiresAt: timePtr(time.Now().UTC().Add(time.Hour)),
+			_, err := jwtSvc.ValidateJWT(ctx, tenantID, elasticJWKID, token)
+			require.Error(t, err)
+			require.Contains(t, err.Error(), tc.wantErr)
+		})
 	}
-	_, err = jwtSvc.CreateEncryptedJWT(ctx, tenantID, signingKey.ID, anotherSigningKey.ID, claims)
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "not configured for encryption")
-}
-
-func TestJWTService_CreateEncryptedJWT_UnsupportedEncryptionAlgorithm(t *testing.T) {
-	t.Parallel()
-
-	ctx := context.Background()
-	elasticSvc := NewElasticJWKService(testElasticRepo, testMaterialRepo, testJWKGenService, testBarrierService)
-	jwtSvc := NewJWTService(testElasticRepo, testMaterialRepo, testBarrierService)
-	tenantID := googleUuid.New()
-	sigJWK, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaModel.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
-	require.NoError(t, err)
-	encJWK, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgEdDSA, cryptoutilAppsJoseJaModel.KeyUseEnc, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
-	require.NoError(t, err)
-
-	expiry := time.Now().UTC().Add(time.Hour)
-	claims := &JWTClaims{Subject: "test", ExpiresAt: &expiry}
-	_, err = jwtSvc.CreateEncryptedJWT(ctx, tenantID, sigJWK.ID, encJWK.ID, claims)
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "unsupported algorithm for JWE")
-}
-
-func TestJWTService_CreateJWTDatabaseError(t *testing.T) {
-	t.Parallel()
-
-	elasticRepo, materialRepo, _, _ := newClosedServiceDeps(t)
-
-	ctx := context.Background()
-	svc := NewJWTService(elasticRepo, materialRepo, testBarrierService)
-
-	claims := &JWTClaims{Issuer: "test-issuer"}
-	_, err := svc.CreateJWT(ctx, googleUuid.New(), googleUuid.New(), claims)
-	require.Error(t, err)
-	require.True(t,
-		strings.Contains(err.Error(), "failed to") ||
-			strings.Contains(err.Error(), "not found"),
-		"Expected database or not-found error, got: %v", err)
-}
-
-func TestJWTService_CreateJWT_AlgorithmKeyMismatch(t *testing.T) {
-	t.Parallel()
-
-	ctx := context.Background()
-	elasticSvc := NewElasticJWKService(testElasticRepo, testMaterialRepo, testJWKGenService, testBarrierService)
-	jwtSvc := NewJWTService(testElasticRepo, testMaterialRepo, testBarrierService)
-	tenantID := googleUuid.New()
-	// Create EC key then tamper algorithm to RSA.
-	elasticJWK, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgES256, cryptoutilAppsJoseJaModel.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
-	require.NoError(t, err)
-	err = testDB.Model(&cryptoutilAppsJoseJaModel.ElasticJWK{}).Where("id = ?", elasticJWK.ID).Update("alg", cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm).Error
-	require.NoError(t, err)
-
-	expiry := time.Now().UTC().Add(time.Hour)
-	claims := &JWTClaims{Subject: "test", ExpiresAt: &expiry}
-	_, err = jwtSvc.CreateJWT(ctx, tenantID, elasticJWK.ID, claims)
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "failed to create signer")
-}
-
-func TestJWTService_CreateJWT_BarrierDecryptFailure(t *testing.T) {
-	t.Parallel()
-
-	ctx := context.Background()
-	elasticSvc := NewElasticJWKService(testElasticRepo, testMaterialRepo, testJWKGenService, testBarrierService)
-	jwtSvc := NewJWTService(testElasticRepo, testMaterialRepo, testBarrierService)
-	tenantID := googleUuid.New()
-	elasticJWK, material, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaModel.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
-	require.NoError(t, err)
-
-	corruptedBase64 := base64.StdEncoding.EncodeToString([]byte("not-barrier"))
-	err = testDB.Model(&cryptoutilAppsJoseJaModel.MaterialJWK{}).Where("id = ?", material.ID).Update("private_jwk_jwe", corruptedBase64).Error
-	require.NoError(t, err)
-
-	expiry := time.Now().UTC().Add(time.Hour)
-	claims := &JWTClaims{Subject: "test", ExpiresAt: &expiry}
-	_, err = jwtSvc.CreateJWT(ctx, tenantID, elasticJWK.ID, claims)
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "failed to decrypt private JWK")
-}
-
-func TestJWTService_CreateJWT_Base64DecodeFailure(t *testing.T) {
-	t.Parallel()
-
-	ctx := context.Background()
-	elasticSvc := NewElasticJWKService(testElasticRepo, testMaterialRepo, testJWKGenService, testBarrierService)
-	jwtSvc := NewJWTService(testElasticRepo, testMaterialRepo, testBarrierService)
-	tenantID := googleUuid.New()
-	elasticJWK, material, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaModel.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
-	require.NoError(t, err)
-	err = testDB.Model(&cryptoutilAppsJoseJaModel.MaterialJWK{}).Where("id = ?", material.ID).Update("private_jwk_jwe", "===invalid===").Error
-	require.NoError(t, err)
-
-	expiry := time.Now().UTC().Add(time.Hour)
-	claims := &JWTClaims{Subject: "test", ExpiresAt: &expiry}
-	_, err = jwtSvc.CreateJWT(ctx, tenantID, elasticJWK.ID, claims)
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "failed to decode private JWK JWE")
-}
-
-func TestJWTService_CreateJWT_CorruptedPrivateJWKParse(t *testing.T) {
-	t.Parallel()
-
-	ctx := context.Background()
-	elasticSvc := NewElasticJWKService(testElasticRepo, testMaterialRepo, testJWKGenService, testBarrierService)
-	jwtSvc := NewJWTService(testElasticRepo, testMaterialRepo, testBarrierService)
-	tenantID := googleUuid.New()
-	elasticJWK, material, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaModel.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
-	require.NoError(t, err)
-
-	invalidJSON := []byte("not-valid-json")
-	encryptedInvalid, err := testBarrierService.EncryptContentWithContext(ctx, invalidJSON)
-	require.NoError(t, err)
-
-	corruptedJWE := base64.StdEncoding.EncodeToString(encryptedInvalid)
-	err = testDB.Model(&cryptoutilAppsJoseJaModel.MaterialJWK{}).Where("id = ?", material.ID).Update("private_jwk_jwe", corruptedJWE).Error
-	require.NoError(t, err)
-
-	expiry := time.Now().UTC().Add(time.Hour)
-	claims := &JWTClaims{Subject: "test", ExpiresAt: &expiry}
-	_, err = jwtSvc.CreateJWT(ctx, tenantID, elasticJWK.ID, claims)
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "failed to parse private JWK")
-}
-
-func TestJWTService_CreateJWT_CorruptedPrivateKeyDB(t *testing.T) {
-	t.Parallel()
-
-	ctx := context.Background()
-
-	// Create elastic JWK with material using real services.
-	elasticSvc := NewElasticJWKService(testElasticRepo, testMaterialRepo, testJWKGenService, testBarrierService)
-	jwtSvc := NewJWTService(testElasticRepo, testMaterialRepo, testBarrierService)
-	tenantID := googleUuid.New()
-
-	elasticJWK, material, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm, cryptoutilAppsJoseJaModel.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
-	require.NoError(t, err)
-	require.NotNil(t, elasticJWK)
-	require.NotNil(t, material)
-
-	// Corrupt the material's PrivateJWKJWE.
-	err = testDB.Model(&cryptoutilAppsJoseJaModel.MaterialJWK{}).
-		Where("id = ?", material.ID).
-		Update("private_jwk_jwe", "not-valid-base64!!!").Error
-	require.NoError(t, err)
-
-	// Try to create JWT - should fail on base64 decode.
-	claims := &JWTClaims{
-		Subject:  "test-subject",
-		Issuer:   "test-issuer",
-		Audience: []string{"test-audience"},
-	}
-	_, err = jwtSvc.CreateJWT(ctx, tenantID, elasticJWK.ID, claims)
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "failed to decode private JWK JWE")
-}
-
-func TestJWTService_CreateJWT_NoActiveMaterial(t *testing.T) {
-	t.Parallel()
-
-	ctx := context.Background()
-	elasticSvc := NewElasticJWKService(testElasticRepo, testMaterialRepo, testJWKGenService, testBarrierService)
-	rotationSvc := NewMaterialRotationService(testElasticRepo, testMaterialRepo, testJWKGenService, testBarrierService)
-	jwtSvc := NewJWTService(testElasticRepo, testMaterialRepo, testBarrierService)
-	tenantID := googleUuid.New()
-	elasticJWK, material, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaModel.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
-	require.NoError(t, err)
-	err = rotationSvc.RetireMaterial(ctx, tenantID, elasticJWK.ID, material.ID)
-	require.NoError(t, err)
-
-	expiry := time.Now().UTC().Add(time.Hour)
-	claims := &JWTClaims{Subject: "test", ExpiresAt: &expiry}
-	_, err = jwtSvc.CreateJWT(ctx, tenantID, elasticJWK.ID, claims)
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "failed to get active material")
-}
-
-func TestJWTService_CreateJWT_UnsupportedAlgorithm(t *testing.T) {
-	t.Parallel()
-
-	ctx := context.Background()
-	elasticSvc := NewElasticJWKService(testElasticRepo, testMaterialRepo, testJWKGenService, testBarrierService)
-	jwtSvc := NewJWTService(testElasticRepo, testMaterialRepo, testBarrierService)
-	tenantID := googleUuid.New()
-	elasticJWK, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseKeyTypeOct128, cryptoutilAppsJoseJaModel.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
-	require.NoError(t, err)
-
-	expiry := time.Now().UTC().Add(time.Hour)
-	claims := &JWTClaims{Subject: "test", ExpiresAt: &expiry}
-	_, err = jwtSvc.CreateJWT(ctx, tenantID, elasticJWK.ID, claims)
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "failed to create signer")
-}
-
-func TestJWTService_CreateJWT_WrongKeyUse(t *testing.T) {
-	t.Parallel()
-
-	ctx := context.Background()
-
-	elasticSvc := NewElasticJWKService(testElasticRepo, testMaterialRepo, testJWKGenService, testBarrierService)
-	jwtSvc := NewJWTService(testElasticRepo, testMaterialRepo, testBarrierService)
-	tenantID := googleUuid.New()
-
-	// Create encryption key (not signing).
-	encryptionKey, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseKeyTypeRSA2048, cryptoutilAppsJoseJaModel.KeyUseEnc, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
-	require.NoError(t, err)
-
-	// Try to create JWT with encryption key - should fail.
-	claims := &JWTClaims{
-		Subject:   "test-user",
-		ExpiresAt: timePtr(time.Now().UTC().Add(time.Hour)),
-	}
-	_, err = jwtSvc.CreateJWT(ctx, tenantID, encryptionKey.ID, claims)
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "not configured for signing")
-}
-
-func TestJWTService_ValidateJWTDatabaseError(t *testing.T) {
-	t.Parallel()
-
-	elasticRepo, materialRepo, _, _ := newClosedServiceDeps(t)
-
-	ctx := context.Background()
-	svc := NewJWTService(elasticRepo, materialRepo, testBarrierService)
-
-	_, err := svc.ValidateJWT(ctx, googleUuid.New(), googleUuid.New(), "eyJhbGciOiJSUzI1NiJ9.eyJpc3MiOiJ0ZXN0In0.test")
-	require.Error(t, err)
-	// Could fail on parse, get elastic JWK, or validate.
-	require.True(t,
-		strings.Contains(err.Error(), "failed to") ||
-			strings.Contains(err.Error(), "not found") ||
-			strings.Contains(err.Error(), "parse"),
-		"Expected database, not-found, or parse error, got: %v", err)
-}
-
-func TestJWTService_ValidateJWT_BarrierDecryptFailure(t *testing.T) {
-	t.Parallel()
-
-	ctx := context.Background()
-	elasticSvc := NewElasticJWKService(testElasticRepo, testMaterialRepo, testJWKGenService, testBarrierService)
-	jwtSvc := NewJWTService(testElasticRepo, testMaterialRepo, testBarrierService)
-	tenantID := googleUuid.New()
-	elasticJWK, material, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaModel.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
-	require.NoError(t, err)
-
-	expiry := time.Now().UTC().Add(time.Hour)
-	claims := &JWTClaims{Subject: "test", ExpiresAt: &expiry}
-	token, err := jwtSvc.CreateJWT(ctx, tenantID, elasticJWK.ID, claims)
-	require.NoError(t, err)
-
-	corruptedBase64 := base64.StdEncoding.EncodeToString([]byte("not-barrier"))
-	err = testDB.Model(&cryptoutilAppsJoseJaModel.MaterialJWK{}).Where("id = ?", material.ID).Update("public_jwk_jwe", corruptedBase64).Error
-	require.NoError(t, err)
-	_, err = jwtSvc.ValidateJWT(ctx, tenantID, elasticJWK.ID, token)
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "failed to decrypt public JWK")
-}
-
-func TestJWTService_ValidateJWT_Base64DecodeFailure(t *testing.T) {
-	t.Parallel()
-
-	ctx := context.Background()
-	elasticSvc := NewElasticJWKService(testElasticRepo, testMaterialRepo, testJWKGenService, testBarrierService)
-	jwtSvc := NewJWTService(testElasticRepo, testMaterialRepo, testBarrierService)
-	tenantID := googleUuid.New()
-	elasticJWK, material, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaModel.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
-	require.NoError(t, err)
-
-	expiry := time.Now().UTC().Add(time.Hour)
-	claims := &JWTClaims{Subject: "test", ExpiresAt: &expiry}
-	token, err := jwtSvc.CreateJWT(ctx, tenantID, elasticJWK.ID, claims)
-	require.NoError(t, err)
-	err = testDB.Model(&cryptoutilAppsJoseJaModel.MaterialJWK{}).Where("id = ?", material.ID).Update("public_jwk_jwe", "===invalid===").Error
-	require.NoError(t, err)
-	_, err = jwtSvc.ValidateJWT(ctx, tenantID, elasticJWK.ID, token)
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "failed to decode public JWK JWE")
-}
-
-func TestJWTService_ValidateJWT_CorruptedPublicJWKParse(t *testing.T) {
-	t.Parallel()
-
-	ctx := context.Background()
-	elasticSvc := NewElasticJWKService(testElasticRepo, testMaterialRepo, testJWKGenService, testBarrierService)
-	jwtSvc := NewJWTService(testElasticRepo, testMaterialRepo, testBarrierService)
-	tenantID := googleUuid.New()
-	elasticJWK, material, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaModel.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
-	require.NoError(t, err)
-
-	expiry := time.Now().UTC().Add(time.Hour)
-	claims := &JWTClaims{Subject: "test", ExpiresAt: &expiry}
-	token, err := jwtSvc.CreateJWT(ctx, tenantID, elasticJWK.ID, claims)
-	require.NoError(t, err)
-
-	invalidJSON := []byte("not-valid-json")
-	encryptedInvalid, err := testBarrierService.EncryptContentWithContext(ctx, invalidJSON)
-	require.NoError(t, err)
-
-	corruptedJWE := base64.StdEncoding.EncodeToString(encryptedInvalid)
-	err = testDB.Model(&cryptoutilAppsJoseJaModel.MaterialJWK{}).Where("id = ?", material.ID).Update("public_jwk_jwe", corruptedJWE).Error
-	require.NoError(t, err)
-	_, err = jwtSvc.ValidateJWT(ctx, tenantID, elasticJWK.ID, token)
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "failed to parse public JWK")
-}
-
-func TestJWTService_ValidateJWT_CorruptedPublicKeyDB(t *testing.T) {
-	t.Parallel()
-
-	ctx := context.Background()
-
-	// Create elastic JWK with material using real services.
-	elasticSvc := NewElasticJWKService(testElasticRepo, testMaterialRepo, testJWKGenService, testBarrierService)
-	jwtSvc := NewJWTService(testElasticRepo, testMaterialRepo, testBarrierService)
-	tenantID := googleUuid.New()
-
-	elasticJWK, material, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm, cryptoutilAppsJoseJaModel.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
-	require.NoError(t, err)
-	require.NotNil(t, elasticJWK)
-	require.NotNil(t, material)
-
-	// Create a valid JWT first.
-	claims := &JWTClaims{
-		Subject:  "test-subject",
-		Issuer:   "test-issuer",
-		Audience: []string{"test-audience"},
-	}
-	token, err := jwtSvc.CreateJWT(ctx, tenantID, elasticJWK.ID, claims)
-	require.NoError(t, err)
-	require.NotEmpty(t, token)
-
-	// Corrupt the material's PublicJWKJWE.
-	err = testDB.Model(&cryptoutilAppsJoseJaModel.MaterialJWK{}).
-		Where("id = ?", material.ID).
-		Update("public_jwk_jwe", "not-valid-base64!!!").Error
-	require.NoError(t, err)
-
-	// Try to validate - should fail on base64 decode.
-	_, err = jwtSvc.ValidateJWT(ctx, tenantID, elasticJWK.ID, token)
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "failed to decode public JWK JWE")
-}
-
-func TestJWTService_ValidateJWT_MaterialKIDNotBelongToElasticJWK(t *testing.T) {
-	t.Parallel()
-
-	ctx := context.Background()
-
-	elasticSvc := NewElasticJWKService(testElasticRepo, testMaterialRepo, testJWKGenService, testBarrierService)
-	jwtSvc := NewJWTService(testElasticRepo, testMaterialRepo, testBarrierService)
-	tenantID := googleUuid.New()
-
-	// Create two signing keys.
-	signingKey1, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm, cryptoutilAppsJoseJaModel.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
-	require.NoError(t, err)
-
-	signingKey2, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm, cryptoutilAppsJoseJaModel.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
-	require.NoError(t, err)
-
-	// Create JWT with signing key 1.
-	claims := &JWTClaims{
-		Subject:   "test-user",
-		ExpiresAt: timePtr(time.Now().UTC().Add(time.Hour)),
-	}
-	token, err := jwtSvc.CreateJWT(ctx, tenantID, signingKey1.ID, claims)
-	require.NoError(t, err)
-
-	// Try to validate with signing key 2 - should fail because KID doesn't belong.
-	_, err = jwtSvc.ValidateJWT(ctx, tenantID, signingKey2.ID, token)
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "does not belong to this elastic JWK")
-}
-
-func TestJWTService_ValidateJWT_NoHeaders(t *testing.T) {
-	t.Parallel()
-
-	ctx := context.Background()
-
-	elasticSvc := NewElasticJWKService(testElasticRepo, testMaterialRepo, testJWKGenService, testBarrierService)
-	jwtSvc := NewJWTService(testElasticRepo, testMaterialRepo, testBarrierService)
-	tenantID := googleUuid.New()
-
-	// Create signing key.
-	signingKey, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm, cryptoutilAppsJoseJaModel.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
-	require.NoError(t, err)
-
-	// Create a malformed token (not a valid JWT structure).
-	invalidToken := "invalid.token.structure"
-
-	// Try to validate - should fail parsing.
-	_, err = jwtSvc.ValidateJWT(ctx, tenantID, signingKey.ID, invalidToken)
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "failed to parse JWT")
 }
