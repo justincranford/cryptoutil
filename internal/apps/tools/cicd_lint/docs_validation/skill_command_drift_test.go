@@ -39,441 +39,355 @@ func makeSkillPair(t *testing.T, rootDir, skillName string) {
 	require.NoError(t, os.WriteFile(filepath.Join(claudeSkillDir, cryptoutilSharedMagic.CICDSkillFileName), []byte(claudeContent), cryptoutilSharedMagic.FilePermissionsDefault))
 }
 
-func TestCheckSkillCommandDrift_AllPairs(t *testing.T) {
-	t.Parallel()
+// writeSkillFile creates a single skill file in the given directory.
+func writeSkillFile(t *testing.T, dir, content string) {
+	t.Helper()
 
-	rootDir := t.TempDir()
-
-	makeSkillPair(t, rootDir, "test-table-driven")
-	makeSkillPair(t, rootDir, "coverage-analysis")
-	makeSkillPair(t, rootDir, "fips-audit")
-
-	result, err := CheckSkillCommandDrift(rootDir, rootedReadFile(rootDir))
-
-	require.NoError(t, err)
-	require.Empty(t, result.Violations)
-	require.Equal(t, 3, result.Checked)
+	require.NoError(t, os.MkdirAll(dir, 0o700))
+	require.NoError(t, os.WriteFile(filepath.Join(dir, cryptoutilSharedMagic.CICDSkillFileName), []byte(content), cryptoutilSharedMagic.FilePermissionsDefault))
 }
 
-func TestCheckSkillCommandDrift_MissingClaudeSkillFile(t *testing.T) {
+func TestCheckSkillCommandDrift(t *testing.T) {
 	t.Parallel()
 
-	rootDir := t.TempDir()
+	ghSkills := func(root, name string) string {
+		return filepath.Join(root, cryptoutilSharedMagic.CICDExcludeDirGithubInstructions, "skills", name)
+	}
 
-	// Copilot skill exists but no Claude skill.
-	copilotSkillDir := filepath.Join(rootDir, cryptoutilSharedMagic.CICDExcludeDirGithubInstructions, "skills", "orphan-skill")
-	claudeSkillsDir := filepath.Join(rootDir, ".claude", "skills")
+	clSkills := func(root, name string) string {
+		return filepath.Join(root, ".claude", "skills", name)
+	}
 
-	require.NoError(t, os.MkdirAll(copilotSkillDir, 0o700))
-	require.NoError(t, os.MkdirAll(claudeSkillsDir, 0o700))
-	require.NoError(t, os.WriteFile(filepath.Join(copilotSkillDir, cryptoutilSharedMagic.CICDSkillFileName), []byte("---\nname: orphan-skill\ndescription: \"Test.\"\n---\n\n## Key Rules\n\n- Rule.\n"), cryptoutilSharedMagic.FilePermissionsDefault))
+	const (
+		validSkill         = "---\nname: %s\ndescription: \"Test.\"\n---\n\n## Key Rules\n\n- Rule.\n"
+		validSkillWithHint = "---\nname: %s\ndescription: \"%s\"\nargument-hint: \"%s\"\n---\n\n## Key Rules\n\n- Rule one.\n"
+	)
 
-	result, err := CheckSkillCommandDrift(rootDir, rootedReadFile(rootDir))
+	tests := []struct {
+		name             string
+		setup            func(t *testing.T, root string)
+		wantErr          string
+		wantChecked      int
+		checkChecked     bool
+		wantFields       []string
+		wantDetailSubstr []string
+	}{
+		{
+			name: "all pairs matched",
+			setup: func(t *testing.T, root string) {
+				t.Helper()
+				makeSkillPair(t, root, "test-table-driven")
+				makeSkillPair(t, root, "coverage-analysis")
+				makeSkillPair(t, root, "fips-audit")
+			},
+			checkChecked: true,
+			wantChecked:  3,
+		},
+		{
+			name: "missing claude skill file",
+			setup: func(t *testing.T, root string) {
+				t.Helper()
+				writeSkillFile(t, ghSkills(root, "orphan-skill"), fmt.Sprintf(validSkill, "orphan-skill"))
+				require.NoError(t, os.MkdirAll(clSkills(root, ""), 0o700))
+			},
+			wantFields:       []string{"missing"},
+			wantDetailSubstr: []string{"orphan-skill", ".claude/skills/orphan-skill/SKILL.md"},
+		},
+		{
+			name: "body mismatch",
+			setup: func(t *testing.T, root string) {
+				t.Helper()
+				writeSkillFile(t, ghSkills(root, "test-fuzz"),
+					"---\nname: test-fuzz\ndescription: \"Fuzz skill.\"\nargument-hint: \"[arg]\"\n---\n\n## Purpose\n\nCopilot body.\n\n## Key Rules\n\n- Rule one.\n")
+				writeSkillFile(t, clSkills(root, "test-fuzz"),
+					"---\nname: test-fuzz\ndescription: \"Fuzz skill.\"\nargument-hint: \"[arg]\"\n---\n\n## Purpose\n\nDifferent Claude body.\n\n## Key Rules\n\n- Rule one.\n")
+			},
+			wantFields:       []string{"body-mismatch"},
+			wantDetailSubstr: []string{".claude/skills/test-fuzz/SKILL.md"},
+		},
+		{
+			name: "orphan claude skill",
+			setup: func(t *testing.T, root string) {
+				t.Helper()
+				require.NoError(t, os.MkdirAll(ghSkills(root, ""), 0o700))
+				writeSkillFile(t, clSkills(root, "orphan-skill"), "# Orphan claude skill\n")
+			},
+			wantFields:       []string{"orphan"},
+			wantDetailSubstr: []string{".claude/skills/orphan-skill/SKILL.md", ".github/skills/orphan-skill/SKILL.md"},
+		},
+		{
+			name: "missing SKILL.md in copilot dir",
+			setup: func(t *testing.T, root string) {
+				t.Helper()
+				require.NoError(t, os.MkdirAll(ghSkills(root, "no-skill-file"), 0o700))
+				require.NoError(t, os.MkdirAll(clSkills(root, ""), 0o700))
+			},
+			wantFields: []string{"missing-skill-file"},
+		},
+		{
+			name: "empty dirs no violations",
+			setup: func(t *testing.T, root string) {
+				t.Helper()
+				require.NoError(t, os.MkdirAll(ghSkills(root, ""), 0o700))
+				require.NoError(t, os.MkdirAll(clSkills(root, ""), 0o700))
+			},
+			checkChecked: true,
+			wantChecked:  0,
+		},
+		{
+			name: "skills dir missing error",
+			setup: func(t *testing.T, _ string) {
+				t.Helper()
+			},
+			wantErr: "cannot read .github/skills",
+		},
+		{
+			name: "claude skills dir missing error",
+			setup: func(t *testing.T, root string) {
+				t.Helper()
+				writeSkillFile(t, ghSkills(root, "some-skill"), fmt.Sprintf(validSkill, "some-skill"))
+			},
+			wantErr: "cannot read .claude/skills",
+		},
+		{
+			name: "ignores files in copilot skills root",
+			setup: func(t *testing.T, root string) {
+				t.Helper()
 
-	require.NoError(t, err)
-	require.Len(t, result.Violations, 1)
-	require.Equal(t, "missing", result.Violations[0].Field)
-	require.Contains(t, result.Violations[0].Detail, "orphan-skill")
-	require.Contains(t, result.Violations[0].Detail, ".claude/skills/orphan-skill/SKILL.md")
+				skillsBase := ghSkills(root, "")
+				require.NoError(t, os.MkdirAll(skillsBase, 0o700))
+				require.NoError(t, os.MkdirAll(clSkills(root, ""), 0o700))
+				require.NoError(t, os.WriteFile(filepath.Join(skillsBase, "README.md"), []byte("# README\n"), cryptoutilSharedMagic.FilePermissionsDefault))
+			},
+			checkChecked: true,
+			wantChecked:  0,
+		},
+		{
+			name: "ignores files in claude skills root",
+			setup: func(t *testing.T, root string) {
+				t.Helper()
+				makeSkillPair(t, root, "my-skill")
+				require.NoError(t, os.WriteFile(filepath.Join(clSkills(root, ""), "notes.txt"), []byte("ignored\n"), cryptoutilSharedMagic.FilePermissionsDefault))
+			},
+		},
+		{
+			name: "missing frontmatter in claude skill",
+			setup: func(t *testing.T, root string) {
+				t.Helper()
+				writeSkillFile(t, ghSkills(root, "no-fm"),
+					fmt.Sprintf(validSkillWithHint, "no-fm", "A skill.", "[arg]"))
+				writeSkillFile(t, clSkills(root, "no-fm"),
+					"# No frontmatter skill\n\n## Key Rules\n\n- Rule one.\n")
+			},
+			wantFields:       []string{"missing-frontmatter"},
+			wantDetailSubstr: []string{".claude/skills/no-fm/SKILL.md"},
+		},
+		{
+			name: "description mismatch",
+			setup: func(t *testing.T, root string) {
+				t.Helper()
+				writeSkillFile(t, ghSkills(root, "desc-mismatch"), fmt.Sprintf(validSkillWithHint, "desc-mismatch", "Original description.", "[arg]"))
+				writeSkillFile(t, clSkills(root, "desc-mismatch"), fmt.Sprintf(validSkillWithHint, "desc-mismatch", "Different description.", "[arg]"))
+			},
+			wantFields: []string{"description-mismatch"},
+		},
+		{
+			name: "argument hint mismatch",
+			setup: func(t *testing.T, root string) {
+				t.Helper()
+				writeSkillFile(t, ghSkills(root, "hint-mismatch"), fmt.Sprintf(validSkillWithHint, "hint-mismatch", "A skill.", "[correct-arg]"))
+				writeSkillFile(t, clSkills(root, "hint-mismatch"), fmt.Sprintf(validSkillWithHint, "hint-mismatch", "A skill.", "[wrong-arg]"))
+			},
+			wantFields: []string{"argument-hint-mismatch"},
+		},
+		{
+			name: "copilot skill missing key rules",
+			setup: func(t *testing.T, root string) {
+				t.Helper()
+
+				noKR := "---\nname: no-kr-skill\ndescription: \"A skill.\"\nargument-hint: \"[arg]\"\n---\n\n## Purpose\n\nNo Key Rules here.\n"
+				writeSkillFile(t, ghSkills(root, "no-kr-skill"), noKR)
+				writeSkillFile(t, clSkills(root, "no-kr-skill"), noKR)
+			},
+			wantFields: []string{"missing-key-rules"},
+		},
+		{
+			name: "claude skill missing key rules",
+			setup: func(t *testing.T, root string) {
+				t.Helper()
+				writeSkillFile(t, ghSkills(root, "no-kr-claude"),
+					fmt.Sprintf(validSkillWithHint, "no-kr-claude", "A skill.", "[arg]"))
+				writeSkillFile(t, clSkills(root, "no-kr-claude"),
+					"---\nname: no-kr-claude\ndescription: \"A skill.\"\nargument-hint: \"[arg]\"\n---\n\n## Purpose\n\nNo Key Rules here.\n")
+			},
+			wantFields: []string{"missing-key-rules"},
+		},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			rootDir := t.TempDir()
+			tc.setup(t, rootDir)
+
+			result, err := CheckSkillCommandDrift(rootDir, rootedReadFile(rootDir))
+			if tc.wantErr != "" {
+				require.ErrorContains(t, err, tc.wantErr)
+
+				return
+			}
+
+			require.NoError(t, err)
+
+			if tc.checkChecked {
+				require.Equal(t, tc.wantChecked, result.Checked)
+			}
+
+			fields := make(map[string]bool)
+			for _, v := range result.Violations {
+				fields[v.Field] = true
+			}
+
+			for _, f := range tc.wantFields {
+				require.True(t, fields[f], "expected violation field %q", f)
+			}
+
+			if len(tc.wantFields) == 0 && tc.wantErr == "" {
+				require.Empty(t, result.Violations)
+			}
+
+			for _, substr := range tc.wantDetailSubstr {
+				found := false
+
+				for _, v := range result.Violations {
+					if strings.Contains(v.Detail, substr) {
+						found = true
+
+						break
+					}
+				}
+
+				require.True(t, found, "expected detail containing %q", substr)
+			}
+		})
+	}
 }
 
-func TestCheckSkillCommandDrift_BodyMismatch(t *testing.T) {
+func TestFormatSkillCommandDriftResults(t *testing.T) {
 	t.Parallel()
 
-	rootDir := t.TempDir()
+	tests := []struct {
+		name            string
+		result          *SkillCommandDriftResult
+		wantContains    []string
+		wantNotContains []string
+	}{
+		{
+			name:            "clean report",
+			result:          &SkillCommandDriftResult{Checked: 14},
+			wantContains:    []string{"Checked 14 Copilot skill / Claude Code skill pairs", "All skill pairs are in sync"},
+			wantNotContains: []string{"violation"},
+		},
+		{
+			name: "report with violations",
+			result: &SkillCommandDriftResult{
+				Checked: cryptoutilSharedMagic.DefaultEmailOTPLength,
+				Violations: []SkillCommandDriftViolation{
+					{SkillFile: ".github/skills/foo/SKILL.md", ClaudeSkillFile: ".claude/skills/foo/SKILL.md", Field: "body-mismatch", Detail: "Claude Code skill body does not match Copilot skill"},
+					{SkillFile: ".github/skills/bar/SKILL.md", ClaudeSkillFile: ".claude/skills/bar/SKILL.md", Field: "missing", Detail: "Claude Code skill file not found"},
+				},
+			},
+			wantContains: []string{
+				fmt.Sprintf("Checked %d Copilot skill / Claude Code skill pairs", cryptoutilSharedMagic.DefaultEmailOTPLength),
+				"2 violation(s) found", "field=body-mismatch", "field=missing",
+				".github/skills/foo/SKILL.md", ".claude/skills/bar/SKILL.md",
+			},
+		},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-	copilotSkillDir := filepath.Join(rootDir, cryptoutilSharedMagic.CICDExcludeDirGithubInstructions, "skills", "test-fuzz")
-	claudeSkillDir := filepath.Join(rootDir, ".claude", "skills", "test-fuzz")
+			report := formatSkillCommandDriftResults(tc.result)
 
-	require.NoError(t, os.MkdirAll(copilotSkillDir, 0o700))
-	require.NoError(t, os.MkdirAll(claudeSkillDir, 0o700))
+			for _, s := range tc.wantContains {
+				require.Contains(t, report, s)
+			}
 
-	// Copilot skill with one body.
-	copilotContent := "---\nname: test-fuzz\ndescription: \"Fuzz skill.\"\nargument-hint: \"[arg]\"\n---\n\n## Purpose\n\nCopilot body.\n\n## Key Rules\n\n- Rule one.\n"
-	require.NoError(t, os.WriteFile(filepath.Join(copilotSkillDir, cryptoutilSharedMagic.CICDSkillFileName), []byte(copilotContent), cryptoutilSharedMagic.FilePermissionsDefault))
-
-	// Claude skill with different body.
-	claudeContent := "---\nname: test-fuzz\ndescription: \"Fuzz skill.\"\nargument-hint: \"[arg]\"\n---\n\n## Purpose\n\nDifferent Claude body.\n\n## Key Rules\n\n- Rule one.\n"
-	require.NoError(t, os.WriteFile(filepath.Join(claudeSkillDir, cryptoutilSharedMagic.CICDSkillFileName), []byte(claudeContent), cryptoutilSharedMagic.FilePermissionsDefault))
-
-	result, err := CheckSkillCommandDrift(rootDir, rootedReadFile(rootDir))
-
-	require.NoError(t, err)
-	require.Len(t, result.Violations, 1)
-	require.Equal(t, "body-mismatch", result.Violations[0].Field)
-	require.Contains(t, result.Violations[0].Detail, ".claude/skills/test-fuzz/SKILL.md")
+			for _, s := range tc.wantNotContains {
+				require.NotContains(t, report, s)
+			}
+		})
+	}
 }
 
-func TestCheckSkillCommandDrift_OrphanClaudeSkill(t *testing.T) {
-	t.Parallel()
-
-	rootDir := t.TempDir()
-
-	// Claude skill exists but no matching Copilot skill dir.
-	claudeSkillDir := filepath.Join(rootDir, ".claude", "skills", "orphan-skill")
-	copilotSkillsDir := filepath.Join(rootDir, cryptoutilSharedMagic.CICDExcludeDirGithubInstructions, "skills")
-
-	require.NoError(t, os.MkdirAll(claudeSkillDir, 0o700))
-	require.NoError(t, os.MkdirAll(copilotSkillsDir, 0o700))
-	require.NoError(t, os.WriteFile(filepath.Join(claudeSkillDir, cryptoutilSharedMagic.CICDSkillFileName), []byte("# Orphan claude skill\n"), cryptoutilSharedMagic.FilePermissionsDefault))
-
-	result, err := CheckSkillCommandDrift(rootDir, rootedReadFile(rootDir))
-
-	require.NoError(t, err)
-	require.Len(t, result.Violations, 1)
-	require.Equal(t, "orphan", result.Violations[0].Field)
-	require.Contains(t, result.Violations[0].Detail, ".claude/skills/orphan-skill/SKILL.md")
-	require.Contains(t, result.Violations[0].Detail, ".github/skills/orphan-skill/SKILL.md")
-}
-
-func TestCheckSkillCommandDrift_MissingSKILLmd(t *testing.T) {
-	t.Parallel()
-
-	rootDir := t.TempDir()
-
-	// Copilot skill directory exists but SKILL.md is missing.
-	copilotSkillDir := filepath.Join(rootDir, cryptoutilSharedMagic.CICDExcludeDirGithubInstructions, "skills", "no-skill-file")
-	claudeSkillsDir := filepath.Join(rootDir, ".claude", "skills")
-
-	require.NoError(t, os.MkdirAll(copilotSkillDir, 0o700))
-	require.NoError(t, os.MkdirAll(claudeSkillsDir, 0o700))
-
-	result, err := CheckSkillCommandDrift(rootDir, rootedReadFile(rootDir))
-
-	require.NoError(t, err)
-	require.Len(t, result.Violations, 1)
-	require.Equal(t, "missing-skill-file", result.Violations[0].Field)
-}
-
-func TestCheckSkillCommandDrift_EmptyDirs(t *testing.T) {
-	t.Parallel()
-
-	rootDir := t.TempDir()
-
-	require.NoError(t, os.MkdirAll(filepath.Join(rootDir, cryptoutilSharedMagic.CICDExcludeDirGithubInstructions, "skills"), 0o700))
-	require.NoError(t, os.MkdirAll(filepath.Join(rootDir, ".claude", "skills"), 0o700))
-
-	result, err := CheckSkillCommandDrift(rootDir, rootedReadFile(rootDir))
-
-	require.NoError(t, err)
-	require.Empty(t, result.Violations)
-	require.Equal(t, 0, result.Checked)
-}
-
-func TestCheckSkillCommandDrift_SkillsDirMissing(t *testing.T) {
-	t.Parallel()
-
-	rootDir := t.TempDir()
-
-	_, err := CheckSkillCommandDrift(rootDir, rootedReadFile(rootDir))
-
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "cannot read .github/skills")
-}
-
-func TestCheckSkillCommandDrift_CommandsDirMissing(t *testing.T) {
-	t.Parallel()
-
-	rootDir := t.TempDir()
-
-	// Only create Copilot skills dir and a skill; no Claude skills dir.
-	copilotSkillDir := filepath.Join(rootDir, cryptoutilSharedMagic.CICDExcludeDirGithubInstructions, "skills", "some-skill")
-	require.NoError(t, os.MkdirAll(copilotSkillDir, 0o700))
-	require.NoError(t, os.WriteFile(filepath.Join(copilotSkillDir, cryptoutilSharedMagic.CICDSkillFileName), []byte("---\nname: some-skill\ndescription: \"Test.\"\n---\n\n## Key Rules\n\n- Rule.\n"), cryptoutilSharedMagic.FilePermissionsDefault))
-
-	_, err := CheckSkillCommandDrift(rootDir, rootedReadFile(rootDir))
-
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "cannot read .claude/skills")
-}
-
-func TestCheckSkillCommandDrift_SkillsIgnoreFiles(t *testing.T) {
-	t.Parallel()
-
-	rootDir := t.TempDir()
-
-	// README.md should be ignored (not a skill directory).
-	skillsBaseDir := filepath.Join(rootDir, cryptoutilSharedMagic.CICDExcludeDirGithubInstructions, "skills")
-	claudeSkillsDir := filepath.Join(rootDir, ".claude", "skills")
-
-	require.NoError(t, os.MkdirAll(skillsBaseDir, 0o700))
-	require.NoError(t, os.MkdirAll(claudeSkillsDir, 0o700))
-
-	// File in .github/skills/ root (not a subdirectory) — should be ignored.
-	require.NoError(t, os.WriteFile(filepath.Join(skillsBaseDir, "README.md"), []byte("# README\n"), cryptoutilSharedMagic.FilePermissionsDefault))
-
-	result, err := CheckSkillCommandDrift(rootDir, rootedReadFile(rootDir))
-
-	require.NoError(t, err)
-	require.Empty(t, result.Violations, "files in .github/skills/ root must be ignored (only subdirs are skills)")
-	require.Equal(t, 0, result.Checked)
-}
-
-func TestCheckSkillCommandDrift_ClaudeSkillsIgnoreFiles(t *testing.T) {
-	t.Parallel()
-
-	rootDir := t.TempDir()
-
-	makeSkillPair(t, rootDir, "my-skill")
-
-	// Non-directory entry in .claude/skills/ root — should be ignored in reverse scan.
-	claudeSkillsDir := filepath.Join(rootDir, ".claude", "skills")
-	require.NoError(t, os.WriteFile(filepath.Join(claudeSkillsDir, "notes.txt"), []byte("ignored\n"), cryptoutilSharedMagic.FilePermissionsDefault))
-
-	result, err := CheckSkillCommandDrift(rootDir, rootedReadFile(rootDir))
-
-	require.NoError(t, err)
-	require.Empty(t, result.Violations)
-}
-
-func TestFormatSkillCommandDriftResults_Clean(t *testing.T) {
-	t.Parallel()
-
-	result := &SkillCommandDriftResult{Checked: 14}
-	report := formatSkillCommandDriftResults(result)
-
-	require.Contains(t, report, "Checked 14 Copilot skill / Claude Code skill pairs")
-	require.Contains(t, report, "All skill pairs are in sync")
-	require.NotContains(t, report, "violation")
-}
-
-func TestFormatSkillCommandDriftResults_WithViolations(t *testing.T) {
+func TestFormatSkillCommandDriftResults_ViolationOrdering(t *testing.T) {
 	t.Parallel()
 
 	result := &SkillCommandDriftResult{
 		Checked: cryptoutilSharedMagic.DefaultEmailOTPLength,
 		Violations: []SkillCommandDriftViolation{
-			{
-				SkillFile:       ".github/skills/foo/SKILL.md",
-				ClaudeSkillFile: ".claude/skills/foo/SKILL.md",
-				Field:           "body-mismatch",
-				Detail:          "Claude Code skill body does not match Copilot skill",
-			},
-			{
-				SkillFile:       ".github/skills/bar/SKILL.md",
-				ClaudeSkillFile: ".claude/skills/bar/SKILL.md",
-				Field:           "missing",
-				Detail:          "Claude Code skill file not found",
-			},
+			{SkillFile: ".github/skills/foo/SKILL.md", ClaudeSkillFile: ".claude/skills/foo/SKILL.md", Field: "body-mismatch", Detail: "mismatch"},
+			{SkillFile: ".github/skills/bar/SKILL.md", ClaudeSkillFile: ".claude/skills/bar/SKILL.md", Field: "missing", Detail: "not found"},
 		},
 	}
 
 	report := formatSkillCommandDriftResults(result)
-
-	require.Contains(t, report, fmt.Sprintf("Checked %d Copilot skill / Claude Code skill pairs", cryptoutilSharedMagic.DefaultEmailOTPLength))
-	require.Contains(t, report, "2 violation(s) found")
-	require.Contains(t, report, "field=body-mismatch")
-	require.Contains(t, report, "field=missing")
-	require.Contains(t, report, ".github/skills/foo/SKILL.md")
-	require.Contains(t, report, ".claude/skills/bar/SKILL.md")
-
 	require.True(t, strings.Index(report, "[1]") < strings.Index(report, "[2]"))
 }
 
-func TestSkillCommandDriftCommand_NoDirs(t *testing.T) {
+func TestSkillCommandDriftCommand(t *testing.T) {
 	t.Parallel()
 
-	tmpDir := t.TempDir()
+	tests := []struct {
+		name            string
+		setup           func(t *testing.T, root string)
+		wantExitCode    int
+		wantStdout      []string
+		wantStderrEmpty bool
+	}{
+		{
+			name: "all clean",
+			setup: func(t *testing.T, root string) {
+				t.Helper()
+				makeSkillPair(t, root, "my-skill")
+			},
+			wantExitCode:    0,
+			wantStdout:      []string{"All skill pairs are in sync"},
+			wantStderrEmpty: true,
+		},
+		{
+			name: "with violation",
+			setup: func(t *testing.T, root string) {
+				t.Helper()
 
-	readFile := rootedReadFile(tmpDir)
-	readFileErr := func(path string) ([]byte, error) {
-		return readFile(path)
+				copilotDir := filepath.Join(root, cryptoutilSharedMagic.CICDExcludeDirGithubInstructions, "skills", "broken")
+				writeSkillFile(t, copilotDir, "---\nname: broken\ndescription: \"Test.\"\n---\n\n## Key Rules\n\n- Rule.\n")
+				require.NoError(t, os.MkdirAll(filepath.Join(root, ".claude", "skills"), 0o700))
+			},
+			wantExitCode: 1,
+			wantStdout:   []string{"violation(s) found"},
+		},
 	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-	// Directly call CheckSkillCommandDrift with a temp root that has no skills dir.
-	_, err := CheckSkillCommandDrift(tmpDir, readFileErr)
+			tmpDir := t.TempDir()
+			tc.setup(t, tmpDir)
 
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "cannot read .github/skills")
-}
+			var stdout, stderr bytes.Buffer
 
-func TestSkillCommandDriftCommand_AllClean(t *testing.T) {
-	t.Parallel()
+			exitCode := skillCommandDriftCommand(&stdout, &stderr, func() (string, error) { return tmpDir, nil })
+			require.Equal(t, tc.wantExitCode, exitCode)
 
-	tmpDir := t.TempDir()
+			for _, s := range tc.wantStdout {
+				require.Contains(t, stdout.String(), s)
+			}
 
-	makeSkillPair(t, tmpDir, "my-skill")
-
-	var stdout, stderr bytes.Buffer
-
-	exitCode := skillCommandDriftCommand(&stdout, &stderr, func() (string, error) { return tmpDir, nil })
-
-	require.Equal(t, 0, exitCode)
-	require.Contains(t, stdout.String(), "All skill pairs are in sync")
-	require.Empty(t, stderr.String())
-}
-
-func TestSkillCommandDriftCommand_WithViolation(t *testing.T) {
-	t.Parallel()
-
-	tmpDir := t.TempDir()
-
-	// Missing Claude skill.
-	copilotSkillDir := filepath.Join(tmpDir, cryptoutilSharedMagic.CICDExcludeDirGithubInstructions, "skills", "broken")
-	claudeSkillsDir := filepath.Join(tmpDir, ".claude", "skills")
-
-	require.NoError(t, os.MkdirAll(copilotSkillDir, 0o700))
-	require.NoError(t, os.MkdirAll(claudeSkillsDir, 0o700))
-	require.NoError(t, os.WriteFile(filepath.Join(copilotSkillDir, cryptoutilSharedMagic.CICDSkillFileName), []byte("---\nname: broken\ndescription: \"Test.\"\n---\n\n## Key Rules\n\n- Rule.\n"), cryptoutilSharedMagic.FilePermissionsDefault))
-
-	var stdout, stderr bytes.Buffer
-
-	exitCode := skillCommandDriftCommand(&stdout, &stderr, func() (string, error) { return tmpDir, nil })
-
-	require.Equal(t, 1, exitCode)
-	require.Contains(t, stdout.String(), "violation(s) found")
-	require.Contains(t, stderr.String(), "skill-command-drift:")
-}
-
-func TestCheckSkillCommandDrift_MissingFrontmatter(t *testing.T) {
-	t.Parallel()
-
-	rootDir := t.TempDir()
-
-	copilotSkillDir := filepath.Join(rootDir, cryptoutilSharedMagic.CICDExcludeDirGithubInstructions, "skills", "no-fm")
-	claudeSkillDir := filepath.Join(rootDir, ".claude", "skills", "no-fm")
-
-	require.NoError(t, os.MkdirAll(copilotSkillDir, 0o700))
-	require.NoError(t, os.MkdirAll(claudeSkillDir, 0o700))
-
-	copilotContent := "---\nname: no-fm\ndescription: \"A skill.\"\nargument-hint: \"[arg]\"\n---\n\n## Key Rules\n\n- Rule one.\n"
-	// Claude skill has no frontmatter block.
-	claudeContent := "# No frontmatter skill\n\n## Key Rules\n\n- Rule one.\n"
-
-	require.NoError(t, os.WriteFile(filepath.Join(copilotSkillDir, cryptoutilSharedMagic.CICDSkillFileName), []byte(copilotContent), cryptoutilSharedMagic.FilePermissionsDefault))
-	require.NoError(t, os.WriteFile(filepath.Join(claudeSkillDir, cryptoutilSharedMagic.CICDSkillFileName), []byte(claudeContent), cryptoutilSharedMagic.FilePermissionsDefault))
-
-	result, err := CheckSkillCommandDrift(rootDir, rootedReadFile(rootDir))
-
-	require.NoError(t, err)
-
-	fmViolation := false
-
-	for _, v := range result.Violations {
-		if v.Field == "missing-frontmatter" {
-			fmViolation = true
-
-			require.Contains(t, v.Detail, ".claude/skills/no-fm/SKILL.md")
-		}
+			if tc.wantStderrEmpty {
+				require.Empty(t, stderr.String())
+			}
+		})
 	}
-
-	require.True(t, fmViolation, "expected missing-frontmatter violation")
-}
-
-func TestCheckSkillCommandDrift_DescriptionMismatch(t *testing.T) {
-	t.Parallel()
-
-	rootDir := t.TempDir()
-
-	copilotSkillDir := filepath.Join(rootDir, cryptoutilSharedMagic.CICDExcludeDirGithubInstructions, "skills", "desc-mismatch")
-	claudeSkillDir := filepath.Join(rootDir, ".claude", "skills", "desc-mismatch")
-
-	require.NoError(t, os.MkdirAll(copilotSkillDir, 0o700))
-	require.NoError(t, os.MkdirAll(claudeSkillDir, 0o700))
-
-	copilotContent := "---\nname: desc-mismatch\ndescription: \"Original description.\"\nargument-hint: \"[arg]\"\n---\n\n## Key Rules\n\n- Rule one.\n"
-	claudeContent := "---\nname: desc-mismatch\ndescription: \"Different description.\"\nargument-hint: \"[arg]\"\n---\n\n## Key Rules\n\n- Rule one.\n"
-
-	require.NoError(t, os.WriteFile(filepath.Join(copilotSkillDir, cryptoutilSharedMagic.CICDSkillFileName), []byte(copilotContent), cryptoutilSharedMagic.FilePermissionsDefault))
-	require.NoError(t, os.WriteFile(filepath.Join(claudeSkillDir, cryptoutilSharedMagic.CICDSkillFileName), []byte(claudeContent), cryptoutilSharedMagic.FilePermissionsDefault))
-
-	result, err := CheckSkillCommandDrift(rootDir, rootedReadFile(rootDir))
-
-	require.NoError(t, err)
-
-	fields := make(map[string]bool)
-	for _, v := range result.Violations {
-		fields[v.Field] = true
-	}
-
-	require.True(t, fields["description-mismatch"], "expected description-mismatch violation")
-	require.NotEmpty(t, result.Violations[0].Detail)
-}
-
-func TestCheckSkillCommandDrift_ArgumentHintMismatch(t *testing.T) {
-	t.Parallel()
-
-	rootDir := t.TempDir()
-
-	copilotSkillDir := filepath.Join(rootDir, cryptoutilSharedMagic.CICDExcludeDirGithubInstructions, "skills", "hint-mismatch")
-	claudeSkillDir := filepath.Join(rootDir, ".claude", "skills", "hint-mismatch")
-
-	require.NoError(t, os.MkdirAll(copilotSkillDir, 0o700))
-	require.NoError(t, os.MkdirAll(claudeSkillDir, 0o700))
-
-	copilotContent := "---\nname: hint-mismatch\ndescription: \"A skill.\"\nargument-hint: \"[correct-arg]\"\n---\n\n## Key Rules\n\n- Rule one.\n"
-	claudeContent := "---\nname: hint-mismatch\ndescription: \"A skill.\"\nargument-hint: \"[wrong-arg]\"\n---\n\n## Key Rules\n\n- Rule one.\n"
-
-	require.NoError(t, os.WriteFile(filepath.Join(copilotSkillDir, cryptoutilSharedMagic.CICDSkillFileName), []byte(copilotContent), cryptoutilSharedMagic.FilePermissionsDefault))
-	require.NoError(t, os.WriteFile(filepath.Join(claudeSkillDir, cryptoutilSharedMagic.CICDSkillFileName), []byte(claudeContent), cryptoutilSharedMagic.FilePermissionsDefault))
-
-	result, err := CheckSkillCommandDrift(rootDir, rootedReadFile(rootDir))
-
-	require.NoError(t, err)
-
-	fields := make(map[string]bool)
-	for _, v := range result.Violations {
-		fields[v.Field] = true
-	}
-
-	require.True(t, fields["argument-hint-mismatch"], "expected argument-hint-mismatch violation")
-}
-
-func TestCheckSkillCommandDrift_SkillMissingKeyRules(t *testing.T) {
-	t.Parallel()
-
-	rootDir := t.TempDir()
-
-	copilotSkillDir := filepath.Join(rootDir, cryptoutilSharedMagic.CICDExcludeDirGithubInstructions, "skills", "no-kr-skill")
-	claudeSkillDir := filepath.Join(rootDir, ".claude", "skills", "no-kr-skill")
-
-	require.NoError(t, os.MkdirAll(copilotSkillDir, 0o700))
-	require.NoError(t, os.MkdirAll(claudeSkillDir, 0o700))
-
-	// Copilot skill is missing ## Key Rules.
-	noKeyRulesContent := "---\nname: no-kr-skill\ndescription: \"A skill.\"\nargument-hint: \"[arg]\"\n---\n\n## Purpose\n\nNo Key Rules here.\n"
-
-	require.NoError(t, os.WriteFile(filepath.Join(copilotSkillDir, cryptoutilSharedMagic.CICDSkillFileName), []byte(noKeyRulesContent), cryptoutilSharedMagic.FilePermissionsDefault))
-	require.NoError(t, os.WriteFile(filepath.Join(claudeSkillDir, cryptoutilSharedMagic.CICDSkillFileName), []byte(noKeyRulesContent), cryptoutilSharedMagic.FilePermissionsDefault))
-
-	result, err := CheckSkillCommandDrift(rootDir, rootedReadFile(rootDir))
-
-	require.NoError(t, err)
-
-	fields := make(map[string]bool)
-	for _, v := range result.Violations {
-		fields[v.Field] = true
-	}
-
-	require.True(t, fields["missing-key-rules"], "expected missing-key-rules violation for skill")
-}
-
-func TestCheckSkillCommandDrift_ClaudeSkillMissingKeyRules(t *testing.T) {
-	t.Parallel()
-
-	rootDir := t.TempDir()
-
-	copilotSkillDir := filepath.Join(rootDir, cryptoutilSharedMagic.CICDExcludeDirGithubInstructions, "skills", "no-kr-claude")
-	claudeSkillDir := filepath.Join(rootDir, ".claude", "skills", "no-kr-claude")
-
-	require.NoError(t, os.MkdirAll(copilotSkillDir, 0o700))
-	require.NoError(t, os.MkdirAll(claudeSkillDir, 0o700))
-
-	copilotContent := "---\nname: no-kr-claude\ndescription: \"A skill.\"\nargument-hint: \"[arg]\"\n---\n\n## Key Rules\n\n- Rule one.\n"
-	// Claude skill is missing ## Key Rules.
-	claudeContent := "---\nname: no-kr-claude\ndescription: \"A skill.\"\nargument-hint: \"[arg]\"\n---\n\n## Purpose\n\nNo Key Rules here.\n"
-
-	require.NoError(t, os.WriteFile(filepath.Join(copilotSkillDir, cryptoutilSharedMagic.CICDSkillFileName), []byte(copilotContent), cryptoutilSharedMagic.FilePermissionsDefault))
-	require.NoError(t, os.WriteFile(filepath.Join(claudeSkillDir, cryptoutilSharedMagic.CICDSkillFileName), []byte(claudeContent), cryptoutilSharedMagic.FilePermissionsDefault))
-
-	result, err := CheckSkillCommandDrift(rootDir, rootedReadFile(rootDir))
-
-	require.NoError(t, err)
-
-	fields := make(map[string]bool)
-	for _, v := range result.Violations {
-		fields[v.Field] = true
-	}
-
-	require.True(t, fields["missing-key-rules"], "expected missing-key-rules violation for Claude skill")
 }
