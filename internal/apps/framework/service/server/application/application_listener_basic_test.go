@@ -46,28 +46,28 @@ func TestStartBasic_Success(t *testing.T) {
 	require.Equal(t, settings, basic.Settings)
 }
 
-// TestStartBasic_NilContext tests error when context is nil.
-func TestStartBasic_NilContext(t *testing.T) {
+func TestStartBasic_NilValidation(t *testing.T) {
 	t.Parallel()
 
-	settings := &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{}
+	tests := []struct {
+		name     string
+		ctx      context.Context
+		settings *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings
+		wantErr  string
+	}{
+		{name: "nil context", ctx: nil, settings: &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{}, wantErr: "ctx cannot be nil"},
+		{name: "nil settings", ctx: context.Background(), settings: nil, wantErr: "settings cannot be nil"},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-	basic, err := StartBasic(nil, settings) //nolint:staticcheck // Testing nil context error handling
-	require.Error(t, err)
-	require.Nil(t, basic)
-	require.Contains(t, err.Error(), "ctx cannot be nil")
-}
-
-// TestStartBasic_NilSettings tests error when settings is nil.
-func TestStartBasic_NilSettings(t *testing.T) {
-	t.Parallel()
-
-	ctx := context.Background()
-
-	basic, err := StartBasic(ctx, nil)
-	require.Error(t, err)
-	require.Nil(t, basic)
-	require.Contains(t, err.Error(), "settings cannot be nil")
+			basic, err := StartBasic(tc.ctx, tc.settings) //nolint:staticcheck // Testing nil context error handling.
+			require.Error(t, err)
+			require.Nil(t, basic)
+			require.Contains(t, err.Error(), tc.wantErr)
+		})
+	}
 }
 
 // TestBasicShutdown tests graceful shutdown of basic infrastructure.
@@ -292,143 +292,84 @@ func TestStartListener(t *testing.T) {
 	defer func() { _ = listener.Shutdown(context.Background()) }()
 }
 
-// TestStartListener_NilContext tests validation of nil context.
-func TestStartListener_NilContext(t *testing.T) {
+func TestStartListener_NilValidation(t *testing.T) {
 	t.Parallel()
 
-	settings := &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{
+	defaultSettings := &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{
 		DevMode:     true,
 		DatabaseURL: cryptoutilSharedMagic.SQLiteInMemoryDSN,
 	}
 
-	config := &ListenerConfig{
-		Settings:     settings,
-		PublicServer: &mockPublicServer{},
-		AdminServer:  &mockAdminServer{},
+	tests := []struct {
+		name    string
+		ctx     context.Context
+		config  *ListenerConfig
+		wantErr string
+	}{
+		{
+			name:    "nil context",
+			ctx:     nil,
+			config:  &ListenerConfig{Settings: defaultSettings, PublicServer: &mockPublicServer{}, AdminServer: &mockAdminServer{}},
+			wantErr: "ctx cannot be nil",
+		},
+		{
+			name:    "nil config",
+			ctx:     context.Background(),
+			config:  nil,
+			wantErr: "config cannot be nil",
+		},
+		{
+			name:    "nil settings",
+			ctx:     context.Background(),
+			config:  &ListenerConfig{Settings: nil, PublicServer: &mockPublicServer{}, AdminServer: &mockAdminServer{}},
+			wantErr: "settings cannot be nil",
+		},
+		{
+			name:    "nil public server",
+			ctx:     context.Background(),
+			config:  &ListenerConfig{Settings: defaultSettings, PublicServer: nil, AdminServer: &mockAdminServer{}},
+			wantErr: "publicServer cannot be nil",
+		},
+		{
+			name:    "nil admin server",
+			ctx:     context.Background(),
+			config:  &ListenerConfig{Settings: defaultSettings, PublicServer: &mockPublicServer{}, AdminServer: nil},
+			wantErr: "adminServer cannot be nil",
+		},
 	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-	listener, err := StartListener(nil, config) //nolint:staticcheck // Testing nil context.
-	require.Error(t, err)
-	require.Nil(t, listener)
-	require.Contains(t, err.Error(), "ctx cannot be nil")
+			listener, err := StartListener(tc.ctx, tc.config) //nolint:staticcheck // Testing nil context error handling.
+			require.Error(t, err)
+			require.Nil(t, listener)
+			require.Contains(t, err.Error(), tc.wantErr)
+		})
+	}
 }
 
-// TestStartListener_NilConfig tests validation of nil config.
-func TestStartListener_NilConfig(t *testing.T) {
+func TestListener_PortAccessors(t *testing.T) {
 	t.Parallel()
 
-	ctx := context.Background()
-
-	listener, err := StartListener(ctx, nil)
-	require.Error(t, err)
-	require.Nil(t, listener)
-	require.Contains(t, err.Error(), "config cannot be nil")
-}
-
-// TestStartListener_NilSettings tests validation of nil settings.
-func TestStartListener_NilSettings(t *testing.T) {
-	t.Parallel()
-
-	ctx := context.Background()
-
-	config := &ListenerConfig{
-		Settings:     nil,
-		PublicServer: &mockPublicServer{},
-		AdminServer:  &mockAdminServer{},
+	tests := []struct {
+		name     string
+		listener *Listener
+		accessor func(*Listener) int
+		want     int
+	}{
+		{name: "public port", listener: &Listener{PublicServer: &mockPublicServer{port: 12345}}, accessor: (*Listener).PublicPort, want: 12345},
+		{name: "public port nil server", listener: &Listener{PublicServer: nil}, accessor: (*Listener).PublicPort, want: 0},
+		{name: "admin port", listener: &Listener{AdminServer: &mockAdminServer{port: 54321}}, accessor: (*Listener).AdminPort, want: 54321},
+		{name: "admin port nil server", listener: &Listener{AdminServer: nil}, accessor: (*Listener).AdminPort, want: 0},
 	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-	listener, err := StartListener(ctx, config)
-	require.Error(t, err)
-	require.Nil(t, listener)
-	require.Contains(t, err.Error(), "settings cannot be nil")
-}
-
-// TestStartListener_NilPublicServer tests validation of nil public server.
-func TestStartListener_NilPublicServer(t *testing.T) {
-	t.Parallel()
-
-	ctx := context.Background()
-	settings := &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{
-		DevMode:     true,
-		DatabaseURL: cryptoutilSharedMagic.SQLiteInMemoryDSN,
+			require.Equal(t, tc.want, tc.accessor(tc.listener))
+		})
 	}
-
-	config := &ListenerConfig{
-		Settings:     settings,
-		PublicServer: nil,
-		AdminServer:  &mockAdminServer{},
-	}
-
-	listener, err := StartListener(ctx, config)
-	require.Error(t, err)
-	require.Nil(t, listener)
-	require.Contains(t, err.Error(), "publicServer cannot be nil")
-}
-
-// TestStartListener_NilAdminServer tests validation of nil admin server.
-func TestStartListener_NilAdminServer(t *testing.T) {
-	t.Parallel()
-
-	ctx := context.Background()
-	settings := &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{
-		DevMode:     true,
-		DatabaseURL: cryptoutilSharedMagic.SQLiteInMemoryDSN,
-	}
-
-	config := &ListenerConfig{
-		Settings:     settings,
-		PublicServer: &mockPublicServer{},
-		AdminServer:  nil,
-	}
-
-	listener, err := StartListener(ctx, config)
-	require.Error(t, err)
-	require.Nil(t, listener)
-	require.Contains(t, err.Error(), "adminServer cannot be nil")
-}
-
-// TestListener_PublicPort tests PublicPort accessor.
-func TestListener_PublicPort(t *testing.T) {
-	t.Parallel()
-
-	listener := &Listener{
-		PublicServer: &mockPublicServer{port: 12345},
-	}
-
-	require.Equal(t, 12345, listener.PublicPort())
-}
-
-// TestListener_PublicPort_NilServer tests PublicPort with nil server.
-func TestListener_PublicPort_NilServer(t *testing.T) {
-	t.Parallel()
-
-	listener := &Listener{
-		PublicServer: nil,
-	}
-
-	require.Equal(t, 0, listener.PublicPort())
-}
-
-// TestListener_AdminPort tests AdminPort accessor.
-func TestListener_AdminPort(t *testing.T) {
-	t.Parallel()
-
-	listener := &Listener{
-		AdminServer: &mockAdminServer{port: 54321},
-	}
-
-	require.Equal(t, 54321, listener.AdminPort())
-}
-
-// TestListener_AdminPort_NilServer tests AdminPort with nil server.
-func TestListener_AdminPort_NilServer(t *testing.T) {
-	t.Parallel()
-
-	listener := &Listener{
-		AdminServer: nil,
-	}
-
-	require.Equal(t, 0, listener.AdminPort())
 }
 
 // TestListener_Shutdown tests graceful shutdown of Listener.
