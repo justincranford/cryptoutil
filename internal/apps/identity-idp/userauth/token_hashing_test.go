@@ -100,7 +100,7 @@ func TestVerifyToken_EmptyHash(t *testing.T) {
 func TestVerifyToken_MalformedHash(t *testing.T) {
 	t.Parallel()
 
-	err := VerifyToken("some-token", "invalid-bcrypt-hash")
+	err := VerifyToken("some-token", "unsupported-hash")
 	require.ErrorIs(t, err, ErrTokenMismatch)
 }
 

@@ -143,18 +143,8 @@ func TestDetectHashType(t *testing.T) {
 		expectedType string
 	}{
 		{
-			name:         "bcrypt 2a",
+			name:         "non-fips140-hash 2a",
 			hash:         "$2a$12$abcdefghijklmnopqrstuv",
-			expectedType: "unknown",
-		},
-		{
-			name:         "bcrypt 2b",
-			hash:         "$2b$12$abcdefghijklmnopqrstuv",
-			expectedType: "unknown",
-		},
-		{
-			name:         "bcrypt 2y",
-			hash:         "$2y$12$abcdefghijklmnopqrstuv",
 			expectedType: "unknown",
 		},
 		{

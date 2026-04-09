@@ -47,7 +47,7 @@ func TestMigrateClientSecrets_Success(t *testing.T) {
 	err = repoFactory.AutoMigrate(ctx)
 	require.NoError(t, err, "Failed to run migrations")
 
-	// Create test client with legacy bcrypt hash (simulated with PBKDF2 for testing)
+	// Create test client with legacy hash (simulated with PBKDF2 for testing)
 	clientUUID := googleUuid.Must(googleUuid.NewV7())
 	legacyHash, err := cryptoutilSharedCryptoHash.HashSecretPBKDF2("legacy-secret")
 	require.NoError(t, err, "Failed to hash legacy secret")

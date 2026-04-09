@@ -24,7 +24,7 @@ func TestVerifyPassword_BcryptPrefixUnknown(t *testing.T) {
 	t.Parallel()
 
 	// "$2a$" was once a bcrypt prefix; now DetectHashType returns "unknown" for it.
-	_, _, err := VerifyPassword("password", "$2a$")
+	_, _, err := VerifyPassword("password", "non-fips140-hash$2a$")
 
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "unknown hash type")

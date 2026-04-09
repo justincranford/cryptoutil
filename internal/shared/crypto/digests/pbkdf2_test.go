@@ -196,10 +196,6 @@ func TestVerifySecret(t *testing.T) {
 	}
 }
 
-// TestVerifySecret_LegacyBcrypt removed - bcrypt is BANNED (NOT FIPS 140-3 approved).
-// Legacy password migration should use PBKDF2 with lower parameter sets (V3=2017 with 1000 iterations),
-// not banned cryptographic algorithms like bcrypt.
-
 func TestHashSecretPBKDF2_Uniqueness(t *testing.T) {
 	t.Parallel()
 

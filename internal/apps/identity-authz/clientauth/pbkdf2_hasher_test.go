@@ -191,7 +191,7 @@ func TestPBKDF2Hasher_CompareSecret(t *testing.T) {
 		{
 			name: "malformed hash (wrong prefix)",
 			// cspell:disable-next-line
-			hash:      "bcrypt$10$abcdef$ghijkl",
+			hash:      "unsupported$10$abcdef$ghijkl",
 			secret:    password,
 			wantMatch: false,
 			wantError: true,

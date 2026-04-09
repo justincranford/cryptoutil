@@ -192,6 +192,8 @@ linters:
               desc: "Not FIPS 140-3 approved; use PBKDF2 or HKDF"
             - pkg: golang.org/x/crypto/scrypt
               desc: "Not FIPS 140-3 approved; use PBKDF2 or HKDF"
+            - pkg: golang.org/x/crypto/bcrypt
+              desc: "Not FIPS 140-3 approved; use PBKDF2 or HKDF"
             - pkg: crypto/des
               desc: "DES/3DES not FIPS 140-3 approved; use AES"
             - pkg: crypto/md5
@@ -202,10 +204,6 @@ linters:
           deny:
             - pkg: math/rand
               desc: "Not cryptographically secure; use crypto/rand"
-        fips-bcrypt:
-          deny:
-            - pkg: golang.org/x/crypto/bcrypt
-              desc: "Not FIPS 140-3 approved; use PBKDF2 or HKDF"
 
     importas:
       no-unaliased: true
