@@ -74,166 +74,128 @@ func newTestLogger(t *testing.T) *cryptoutilCmdCicdCommon.Logger {
 }
 
 // -----------------------------------------------------------------------
-// CheckInDir â€” happy paths
+// CheckInDir - happy paths
 // -----------------------------------------------------------------------
 
-func TestCheckInDir_HappyPath_NoProfiles(t *testing.T) {
+func TestCheckInDir_HappyPaths(t *testing.T) {
 	t.Parallel()
 
-	rootDir := buildProfileRoot(t)
-	logger := newTestLogger(t)
-
-	err := CheckInDir(logger, rootDir, os.ReadFile, filepath.WalkDir)
-
-	require.NoError(t, err)
-}
-
-func TestCheckInDir_HappyPath_ValidProfile(t *testing.T) {
-	t.Parallel()
-
-	rootDir := buildProfileRoot(t)
-	writeProfileYAML(t, rootDir, "tls-server.yaml", minValidProfile("tls-server"))
-	logger := newTestLogger(t)
-
-	err := CheckInDir(logger, rootDir, os.ReadFile, filepath.WalkDir)
-
-	require.NoError(t, err)
-}
-
-func TestCheckInDir_HappyPath_Ed25519NullCurve(t *testing.T) {
-	t.Parallel()
-
-	rootDir := buildProfileRoot(t)
-	writeProfileYAML(t, rootDir, "ssh-host.yaml", `profile:
+	tests := []struct {
+		name  string
+		setup func(t *testing.T, rootDir string)
+	}{
+		{
+			name:  "no profiles",
+			setup: func(_ *testing.T, _ string) {},
+		},
+		{
+			name: "valid RSA profile",
+			setup: func(t *testing.T, rootDir string) {
+				t.Helper()
+				writeProfileYAML(t, rootDir, "tls-server.yaml", minValidProfile("tls-server"))
+			},
+		},
+		{
+			name: "Ed25519 null curve",
+			setup: func(t *testing.T, rootDir string) {
+				t.Helper()
+				writeProfileYAML(t, rootDir, "ssh-host.yaml", `profile:
   name: "ssh-host"
   description: "SSH Host Certificate"
-  validity:
-    max_days: 365
-    min_days: 1
-    default_days: 90
+  validity: {max_days: 365, min_days: 1, default_days: 90}
   key:
     allowed_algorithms:
       - algorithm: "Ed25519"
     default_algorithm: "Ed25519"
     default_curve_or_size: null
-  key_usage:
-    - "digitalSignature"
-  extended_key_usage:
-    required: []
-    optional: []
+  key_usage: ["digitalSignature"]
+  extended_key_usage: {required: [], optional: []}
 `)
-	logger := newTestLogger(t)
-
-	err := CheckInDir(logger, rootDir, os.ReadFile, filepath.WalkDir)
-
-	require.NoError(t, err)
-}
-
-func TestCheckInDir_HappyPath_MinOneDayShortLived(t *testing.T) {
-	t.Parallel()
-
-	rootDir := buildProfileRoot(t)
-	writeProfileYAML(t, rootDir, "k8s-workload.yaml", `profile:
+			},
+		},
+		{
+			name: "min one day short lived",
+			setup: func(t *testing.T, rootDir string) {
+				t.Helper()
+				writeProfileYAML(t, rootDir, "k8s-workload.yaml", `profile:
   name: "k8s-workload"
   description: "Short-lived Kubernetes Workload Certificate"
-  validity:
-    max_days: 1
-    min_days: 1
-    default_days: 1
+  validity: {max_days: 1, min_days: 1, default_days: 1}
   key:
     allowed_algorithms:
       - algorithm: "ECDSA"
-        allowed_curves:
-          - "P-256"
+        allowed_curves: ["P-256"]
     default_algorithm: "ECDSA"
     default_curve_or_size: "P-256"
-  key_usage:
-    - "digitalSignature"
-  extended_key_usage:
-    required: []
-    optional: []
+  key_usage: ["digitalSignature"]
+  extended_key_usage: {required: [], optional: []}
 `)
-	logger := newTestLogger(t)
+			},
+		},
+		{
+			name: "non-YAML file skipped",
+			setup: func(t *testing.T, rootDir string) {
+				t.Helper()
 
-	err := CheckInDir(logger, rootDir, os.ReadFile, filepath.WalkDir)
+				profilesDir := filepath.Join(rootDir, filepath.FromSlash(cryptoutilSharedMagic.CICDPKICAProfilesDir))
+				require.NoError(t, os.WriteFile(filepath.Join(profilesDir, "profile-schema.json"), []byte("{}"), cryptoutilSharedMagic.FilePermissionsDefault))
+			},
+		},
+	}
 
-	require.NoError(t, err)
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			rootDir := buildProfileRoot(t)
+			tc.setup(t, rootDir)
+			logger := newTestLogger(t)
+
+			err := CheckInDir(logger, rootDir, os.ReadFile, filepath.WalkDir)
+
+			require.NoError(t, err)
+		})
+	}
 }
 
-func TestCheckInDir_ZeroMinDaysIsError(t *testing.T) {
+// -----------------------------------------------------------------------
+// CheckInDir - violations
+// -----------------------------------------------------------------------
+
+func TestCheckInDir_Violations(t *testing.T) {
 	t.Parallel()
 
-	rootDir := buildProfileRoot(t)
-	writeProfileYAML(t, rootDir, "zero-min.yaml", `profile:
-  name: "zero-min"
-  description: "Invalid zero min_days"
-  validity:
-    max_days: 30
-    min_days: 0
-    default_days: 1
+	rsaBase := `profile:
+  name: "test"
+  description: "Test"
+  validity: {max_days: 365, min_days: 1, default_days: 90}
   key:
     allowed_algorithms:
-      - algorithm: "ECDSA"
-        allowed_curves:
-          - "P-256"
-    default_algorithm: "ECDSA"
-    default_curve_or_size: "P-256"
-  key_usage:
-    - "digitalSignature"
-  extended_key_usage:
-    required: []
-    optional: []
-`)
-	logger := newTestLogger(t)
+      - algorithm: "RSA"
+    default_algorithm: "RSA"
+    default_curve_or_size: 2048
+  key_usage: ["digitalSignature"]
+  extended_key_usage: {required: [], optional: []}`
 
-	err := CheckInDir(logger, rootDir, os.ReadFile, filepath.WalkDir)
-
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "min_days must be >= 1")
-}
-
-func TestCheckInDir_NonYAMLFileSkipped(t *testing.T) {
-	t.Parallel()
-
-	rootDir := buildProfileRoot(t)
-	profilesDir := filepath.Join(rootDir, filepath.FromSlash(cryptoutilSharedMagic.CICDPKICAProfilesDir))
-	// Write a JSON schema file â€” it should be skipped (not .yaml extension)
-	require.NoError(t, os.WriteFile(filepath.Join(profilesDir, "profile-schema.json"), []byte("{}"), cryptoutilSharedMagic.FilePermissionsDefault))
-	logger := newTestLogger(t)
-
-	err := CheckInDir(logger, rootDir, os.ReadFile, filepath.WalkDir)
-
-	require.NoError(t, err)
-}
-
-// -----------------------------------------------------------------------
-// CheckInDir â€” violations
-// -----------------------------------------------------------------------
-
-func TestCheckInDir_MissingProfileField(t *testing.T) {
-	t.Parallel()
-
-	rootDir := buildProfileRoot(t)
-	writeProfileYAML(t, rootDir, "bad.yaml", "validity:\n  max_days: 365\n") // no 'profile:' key
-	logger := newTestLogger(t)
-
-	err := CheckInDir(logger, rootDir, os.ReadFile, filepath.WalkDir)
-
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "violation")
-}
-
-func TestCheckInDir_EmptyProfileName(t *testing.T) {
-	t.Parallel()
-
-	rootDir := buildProfileRoot(t)
-	writeProfileYAML(t, rootDir, "nameless.yaml", `profile:
+	tests := []struct {
+		name    string
+		file    string
+		yaml    string
+		wantErr string
+	}{
+		{
+			name:    "missing profile field",
+			file:    "bad.yaml",
+			yaml:    "validity:\n  max_days: 365\n",
+			wantErr: "violation",
+		},
+		{
+			name: "empty profile name",
+			file: "nameless.yaml",
+			yaml: `profile:
   name: ""
   description: "Test"
-  validity:
-    max_days: 365
-    min_days: 1
-    default_days: 90
+  validity: {max_days: 365, min_days: 1, default_days: 90}
   key:
     allowed_algorithms:
       - algorithm: "RSA"
@@ -241,326 +203,183 @@ func TestCheckInDir_EmptyProfileName(t *testing.T) {
         max_size: 4096
     default_algorithm: "RSA"
     default_curve_or_size: 2048
-  key_usage:
-    - "digitalSignature"
-  extended_key_usage:
-    required: []
-    optional: []
-`)
-	logger := newTestLogger(t)
-
-	err := CheckInDir(logger, rootDir, os.ReadFile, filepath.WalkDir)
-
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "profile.name")
-}
-
-func TestCheckInDir_InvalidMaxDays(t *testing.T) {
-	t.Parallel()
-
-	rootDir := buildProfileRoot(t)
-	writeProfileYAML(t, rootDir, "bad-validity.yaml", `profile:
+  key_usage: ["digitalSignature"]
+  extended_key_usage: {required: [], optional: []}`,
+			wantErr: "profile.name",
+		},
+		{
+			name: "invalid max days less than min days",
+			file: "bad-validity.yaml",
+			yaml: `profile:
   name: "test"
   description: "Test"
-  validity:
-    max_days: 5
-    min_days: 10
-    default_days: 7
+  validity: {max_days: 5, min_days: 10, default_days: 7}
   key:
     allowed_algorithms:
       - algorithm: "RSA"
     default_algorithm: "RSA"
     default_curve_or_size: 2048
-  key_usage:
-    - "digitalSignature"
-  extended_key_usage:
-    required: []
-    optional: []
-`)
-	logger := newTestLogger(t)
-
-	err := CheckInDir(logger, rootDir, os.ReadFile, filepath.WalkDir)
-
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "max_days")
-}
-
-func TestCheckInDir_DefaultDaysOutOfRange(t *testing.T) {
-	t.Parallel()
-
-	rootDir := buildProfileRoot(t)
-	writeProfileYAML(t, rootDir, "bad-default.yaml", `profile:
+  key_usage: ["digitalSignature"]
+  extended_key_usage: {required: [], optional: []}`,
+			wantErr: "max_days",
+		},
+		{
+			name: "default days out of range",
+			file: "bad-default.yaml",
+			yaml: `profile:
   name: "test"
   description: "Test"
-  validity:
-    max_days: 365
-    min_days: 1
-    default_days: 500
+  validity: {max_days: 365, min_days: 1, default_days: 500}
   key:
     allowed_algorithms:
       - algorithm: "RSA"
     default_algorithm: "RSA"
     default_curve_or_size: 2048
-  key_usage:
-    - "digitalSignature"
-  extended_key_usage:
-    required: []
-    optional: []
-`)
-	logger := newTestLogger(t)
-
-	err := CheckInDir(logger, rootDir, os.ReadFile, filepath.WalkDir)
-
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "default_days")
-}
-
-func TestCheckInDir_MaxDaysExceedsCap(t *testing.T) {
-	t.Parallel()
-
-	rootDir := buildProfileRoot(t)
-	writeProfileYAML(t, rootDir, "too-long.yaml", `profile:
+  key_usage: ["digitalSignature"]
+  extended_key_usage: {required: [], optional: []}`,
+			wantErr: "default_days",
+		},
+		{
+			name: "max days exceeds cap",
+			file: "too-long.yaml",
+			yaml: `profile:
   name: "too-long"
   description: "Test"
-  validity:
-    max_days: 99999
-    min_days: 1
-    default_days: 90
+  validity: {max_days: 99999, min_days: 1, default_days: 90}
   key:
     allowed_algorithms:
       - algorithm: "RSA"
     default_algorithm: "RSA"
     default_curve_or_size: 2048
-  key_usage:
-    - "digitalSignature"
-  extended_key_usage:
-    required: []
-    optional: []
-`)
-	logger := newTestLogger(t)
-
-	err := CheckInDir(logger, rootDir, os.ReadFile, filepath.WalkDir)
-
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "absolute cap")
-}
-
-func TestCheckInDir_EmptyAllowedAlgorithms(t *testing.T) {
-	t.Parallel()
-
-	rootDir := buildProfileRoot(t)
-	writeProfileYAML(t, rootDir, "no-alg.yaml", `profile:
+  key_usage: ["digitalSignature"]
+  extended_key_usage: {required: [], optional: []}`,
+			wantErr: "absolute cap",
+		},
+		{
+			name: "empty allowed algorithms",
+			file: "no-alg.yaml",
+			yaml: `profile:
   name: "test"
   description: "Test"
-  validity:
-    max_days: 365
-    min_days: 1
-    default_days: 90
+  validity: {max_days: 365, min_days: 1, default_days: 90}
   key:
     allowed_algorithms: []
     default_algorithm: "RSA"
     default_curve_or_size: 2048
-  key_usage:
-    - "digitalSignature"
-  extended_key_usage:
-    required: []
-    optional: []
-`)
-	logger := newTestLogger(t)
-
-	err := CheckInDir(logger, rootDir, os.ReadFile, filepath.WalkDir)
-
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "at least one")
-}
-
-func TestCheckInDir_UnknownAlgorithm(t *testing.T) {
-	t.Parallel()
-
-	rootDir := buildProfileRoot(t)
-	writeProfileYAML(t, rootDir, "bad-alg.yaml", `profile:
+  key_usage: ["digitalSignature"]
+  extended_key_usage: {required: [], optional: []}`,
+			wantErr: "at least one",
+		},
+		{
+			name: "unknown algorithm",
+			file: "bad-alg.yaml",
+			yaml: `profile:
   name: "test"
   description: "Test"
-  validity:
-    max_days: 365
-    min_days: 1
-    default_days: 90
+  validity: {max_days: 365, min_days: 1, default_days: 90}
   key:
     allowed_algorithms:
       - algorithm: "DSA"
     default_algorithm: "DSA"
     default_curve_or_size: 1024
-  key_usage:
-    - "digitalSignature"
-  extended_key_usage:
-    required: []
-    optional: []
-`)
-	logger := newTestLogger(t)
-
-	err := CheckInDir(logger, rootDir, os.ReadFile, filepath.WalkDir)
-
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "known algorithm")
-}
-
-func TestCheckInDir_EmptyKeyUsage(t *testing.T) {
-	t.Parallel()
-
-	rootDir := buildProfileRoot(t)
-	writeProfileYAML(t, rootDir, "no-ku.yaml", `profile:
+  key_usage: ["digitalSignature"]
+  extended_key_usage: {required: [], optional: []}`,
+			wantErr: "known algorithm",
+		},
+		{
+			name: "empty key usage",
+			file: "no-ku.yaml",
+			yaml: `profile:
   name: "test"
   description: "Test"
-  validity:
-    max_days: 365
-    min_days: 1
-    default_days: 90
+  validity: {max_days: 365, min_days: 1, default_days: 90}
   key:
     allowed_algorithms:
       - algorithm: "RSA"
     default_algorithm: "RSA"
     default_curve_or_size: 2048
   key_usage: []
-  extended_key_usage:
-    required: []
-    optional: []
-`)
-	logger := newTestLogger(t)
-
-	err := CheckInDir(logger, rootDir, os.ReadFile, filepath.WalkDir)
-
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "key_usage")
-}
-
-func TestCheckInDir_UnknownKeyUsage(t *testing.T) {
-	t.Parallel()
-
-	rootDir := buildProfileRoot(t)
-	writeProfileYAML(t, rootDir, "unknown-ku.yaml", `profile:
+  extended_key_usage: {required: [], optional: []}`,
+			wantErr: "key_usage",
+		},
+		{
+			name: "unknown key usage",
+			file: "unknown-ku.yaml",
+			yaml: `profile:
   name: "test"
   description: "Test"
-  validity:
-    max_days: 365
-    min_days: 1
-    default_days: 90
+  validity: {max_days: 365, min_days: 1, default_days: 90}
   key:
     allowed_algorithms:
       - algorithm: "RSA"
     default_algorithm: "RSA"
     default_curve_or_size: 2048
-  key_usage:
-    - "superPower"
-  extended_key_usage:
-    required: []
-    optional: []
-`)
-	logger := newTestLogger(t)
-
-	err := CheckInDir(logger, rootDir, os.ReadFile, filepath.WalkDir)
-
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "unknown value")
-}
-
-func TestCheckInDir_MissingExtendedKeyUsage(t *testing.T) {
-	t.Parallel()
-
-	rootDir := buildProfileRoot(t)
-	writeProfileYAML(t, rootDir, "no-eku.yaml", `profile:
+  key_usage: ["superPower"]
+  extended_key_usage: {required: [], optional: []}`,
+			wantErr: "unknown value",
+		},
+		{
+			name: "missing extended key usage",
+			file: "no-eku.yaml",
+			yaml: `profile:
   name: "test"
   description: "Test"
-  validity:
-    max_days: 365
-    min_days: 1
-    default_days: 90
+  validity: {max_days: 365, min_days: 1, default_days: 90}
   key:
     allowed_algorithms:
       - algorithm: "RSA"
     default_algorithm: "RSA"
     default_curve_or_size: 2048
-  key_usage:
-    - "digitalSignature"
-`)
-	logger := newTestLogger(t)
-
-	err := CheckInDir(logger, rootDir, os.ReadFile, filepath.WalkDir)
-
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "extended_key_usage")
-}
-
-func TestCheckInDir_SANNegativeMaxEntries(t *testing.T) {
-	t.Parallel()
-
-	rootDir := buildProfileRoot(t)
-	writeProfileYAML(t, rootDir, "bad-san.yaml", `profile:
-  name: "test"
-  description: "Test"
-  validity:
-    max_days: 365
-    min_days: 1
-    default_days: 90
-  key:
-    allowed_algorithms:
-      - algorithm: "RSA"
-    default_algorithm: "RSA"
-    default_curve_or_size: 2048
-  key_usage:
-    - "digitalSignature"
-  extended_key_usage:
-    required: []
-    optional: []
+  key_usage: ["digitalSignature"]`,
+			wantErr: "extended_key_usage",
+		},
+		{
+			name: "SAN negative max entries",
+			file: "bad-san.yaml",
+			yaml: rsaBase + `
   san:
     allow_dns_names: true
     allow_ip_addresses: false
     allow_email_addresses: false
     allow_uris: false
     require_at_least_one: true
-    max_entries: -1
-`)
-	logger := newTestLogger(t)
-
-	err := CheckInDir(logger, rootDir, os.ReadFile, filepath.WalkDir)
-
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "max_entries")
-}
-
-func TestCheckInDir_SANMissingRequiredFields(t *testing.T) {
-	t.Parallel()
-
-	rootDir := buildProfileRoot(t)
-	writeProfileYAML(t, rootDir, "partial-san.yaml", `profile:
-  name: "test"
-  description: "Test"
-  validity:
-    max_days: 365
-    min_days: 1
-    default_days: 90
-  key:
-    allowed_algorithms:
-      - algorithm: "RSA"
-    default_algorithm: "RSA"
-    default_curve_or_size: 2048
-  key_usage:
-    - "digitalSignature"
-  extended_key_usage:
-    required: []
-    optional: []
+    max_entries: -1`,
+			wantErr: "max_entries",
+		},
+		{
+			name: "SAN missing required fields",
+			file: "partial-san.yaml",
+			yaml: rsaBase + `
   san:
-    allow_dns_names: true
-`)
-	logger := newTestLogger(t)
+    allow_dns_names: true`,
+			wantErr: "san.",
+		},
+		{
+			name:    "invalid YAML skips with error",
+			file:    "bad-syntax.yaml",
+			yaml:    "!!! not: valid: yaml: [unparseable",
+			wantErr: "failed to parse",
+		},
+	}
 
-	err := CheckInDir(logger, rootDir, os.ReadFile, filepath.WalkDir)
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "san.")
+			rootDir := buildProfileRoot(t)
+			writeProfileYAML(t, rootDir, tc.file, tc.yaml)
+			logger := newTestLogger(t)
+
+			err := CheckInDir(logger, rootDir, os.ReadFile, filepath.WalkDir)
+
+			require.Error(t, err)
+			require.Contains(t, err.Error(), tc.wantErr)
+		})
+	}
 }
 
 // -----------------------------------------------------------------------
-// CheckInDir â€” seam injection tests
+// CheckInDir - seam injection tests
 // -----------------------------------------------------------------------
 
 func TestCheckInDir_WalkError(t *testing.T) {
@@ -593,385 +412,33 @@ func TestCheckInDir_ReadFileError(t *testing.T) {
 	require.Contains(t, err.Error(), "injected read error")
 }
 
-func TestCheckInDir_InvalidYAMLSkipsWithError(t *testing.T) {
+// -----------------------------------------------------------------------
+// CheckInDir - zero min_days with ECDSA+P-256
+// -----------------------------------------------------------------------
+
+func TestCheckInDir_ZeroMinDaysIsError(t *testing.T) {
 	t.Parallel()
 
 	rootDir := buildProfileRoot(t)
-	writeProfileYAML(t, rootDir, "bad-syntax.yaml", "!!! not: valid: yaml: [unparseable")
+	writeProfileYAML(t, rootDir, "zero-min.yaml", `profile:
+  name: "zero-min"
+  description: "Invalid zero min_days"
+  validity: {max_days: 30, min_days: 0, default_days: 1}
+  key:
+    allowed_algorithms:
+      - algorithm: "ECDSA"
+        allowed_curves: ["P-256"]
+    default_algorithm: "ECDSA"
+    default_curve_or_size: "P-256"
+  key_usage: ["digitalSignature"]
+  extended_key_usage: {required: [], optional: []}
+`)
 	logger := newTestLogger(t)
 
 	err := CheckInDir(logger, rootDir, os.ReadFile, filepath.WalkDir)
 
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "failed to parse")
+	require.Contains(t, err.Error(), "min_days must be >= 1")
 }
 
-// -----------------------------------------------------------------------
-// Check â€” project root seam tests
-// -----------------------------------------------------------------------
-
-func TestCheck_ProjectRootNotFound(t *testing.T) {
-	original := findPKIProfileRootFn
-
-	findPKIProfileRootFn = func() (string, error) {
-		return "", errors.New("injected root error")
-	}
-
-	t.Cleanup(func() { findPKIProfileRootFn = original })
-
-	logger := newTestLogger(t)
-
-	err := Check(logger)
-
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "injected root error")
-}
-
-func TestCheck_HappyPath(t *testing.T) {
-	original := findPKIProfileRootFn
-
-	findPKIProfileRootFn = func() (string, error) {
-		return buildProfileRoot(t), nil
-	}
-
-	t.Cleanup(func() { findPKIProfileRootFn = original })
-
-	logger := newTestLogger(t)
-
-	err := Check(logger)
-
-	require.NoError(t, err)
-}
-
-// -----------------------------------------------------------------------
-// findPKIProfileProjectRoot seam tests
-// -----------------------------------------------------------------------
-
-func TestFindProjectRoot_GetwdError(t *testing.T) {
-	t.Parallel()
-
-	_, err := findPKIProfileProjectRoot(func() (string, error) {
-		return "", errors.New("injected getwd error")
-	})
-
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "failed to get working directory")
-}
-
-func TestFindProjectRoot_GoModNotFound(t *testing.T) {
-	t.Parallel()
-
-	tmpDir := t.TempDir()
-
-	_, err := findPKIProfileProjectRoot(func() (string, error) {
-		return tmpDir, nil
-	})
-
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "go.mod not found")
-}
-
-func TestFindProjectRoot_HappyPath(t *testing.T) {
-	t.Parallel()
-
-	// Real cwd is within the cryptoutil project so go.mod WILL be found.
-	dir, err := findPKIProfileProjectRoot(os.Getwd)
-
-	require.NoError(t, err)
-	require.DirExists(t, dir)
-	require.FileExists(t, filepath.Join(dir, "go.mod"))
-}
-
-// -----------------------------------------------------------------------
-// validateProfile â€” direct unit tests
-// -----------------------------------------------------------------------
-
-func TestValidateProfile_MissingProfileField(t *testing.T) {
-	t.Parallel()
-
-	errs := validateProfile(ProfileFile{}, "test.yaml")
-
-	require.Len(t, errs, 1)
-	require.Contains(t, errs[0], "missing required top-level field 'profile'")
-}
-
-func TestValidateProfile_MissingDescription(t *testing.T) {
-	t.Parallel()
-
-	pf := ProfileFile{
-		Profile: &ProfileSpec{
-			Name:        "test",
-			Description: "  ", // whitespace only
-			Validity:    &ValiditySpec{MaxDays: cryptoutilSharedMagic.DefaultCertificateMaxAgeDays, MinDays: 1, DefaultDays: cryptoutilSharedMagic.StrictCertificateMaxAgeDays},
-			Key: &KeySpec{
-				AllowedAlgorithms:  []AlgorithmEntry{{Algorithm: cryptoutilSharedMagic.KeyTypeRSA}},
-				DefaultAlgorithm:   cryptoutilSharedMagic.KeyTypeRSA,
-				DefaultCurveOrSize: cryptoutilSharedMagic.RSAKeySize2048,
-			},
-			KeyUsage:         []string{"digitalSignature"},
-			ExtendedKeyUsage: &ExtendedKeyUsage{Required: []string{}, Optional: []string{}},
-		},
-	}
-
-	errs := validateProfile(pf, "test.yaml")
-
-	require.Len(t, errs, 1)
-	require.Contains(t, errs[0], "profile.description")
-}
-
-func TestValidateProfile_MissingValidity(t *testing.T) {
-	t.Parallel()
-
-	pf := ProfileFile{
-		Profile: &ProfileSpec{
-			Name:        "test",
-			Description: "desc",
-			Key: &KeySpec{
-				AllowedAlgorithms:  []AlgorithmEntry{{Algorithm: cryptoutilSharedMagic.KeyTypeRSA}},
-				DefaultAlgorithm:   cryptoutilSharedMagic.KeyTypeRSA,
-				DefaultCurveOrSize: cryptoutilSharedMagic.RSAKeySize2048,
-			},
-			KeyUsage:         []string{"digitalSignature"},
-			ExtendedKeyUsage: &ExtendedKeyUsage{},
-		},
-	}
-
-	errs := validateProfile(pf, "test.yaml")
-
-	require.NotEmpty(t, errs)
-	require.Contains(t, errs[0], "profile.validity is required")
-}
-
-func TestValidateProfile_MissingKey(t *testing.T) {
-	t.Parallel()
-
-	pf := ProfileFile{
-		Profile: &ProfileSpec{
-			Name:             "test",
-			Description:      "desc",
-			Validity:         &ValiditySpec{MaxDays: cryptoutilSharedMagic.DefaultCertificateMaxAgeDays, MinDays: 1, DefaultDays: cryptoutilSharedMagic.StrictCertificateMaxAgeDays},
-			KeyUsage:         []string{"digitalSignature"},
-			ExtendedKeyUsage: &ExtendedKeyUsage{},
-		},
-	}
-
-	errs := validateProfile(pf, "test.yaml")
-
-	require.NotEmpty(t, errs)
-	require.Contains(t, errs[0], "profile.key is required")
-}
-
-func TestValidateProfile_AlgorithmMissingName(t *testing.T) {
-	t.Parallel()
-
-	pf := ProfileFile{
-		Profile: &ProfileSpec{
-			Name:             "test",
-			Description:      "desc",
-			Validity:         &ValiditySpec{MaxDays: cryptoutilSharedMagic.DefaultCertificateMaxAgeDays, MinDays: 1, DefaultDays: cryptoutilSharedMagic.StrictCertificateMaxAgeDays},
-			Key:              &KeySpec{AllowedAlgorithms: []AlgorithmEntry{{Algorithm: ""}}, DefaultAlgorithm: cryptoutilSharedMagic.KeyTypeRSA, DefaultCurveOrSize: cryptoutilSharedMagic.RSAKeySize2048},
-			KeyUsage:         []string{"digitalSignature"},
-			ExtendedKeyUsage: &ExtendedKeyUsage{},
-		},
-	}
-
-	errs := validateProfile(pf, "test.yaml")
-
-	require.NotEmpty(t, errs)
-
-	hasAlgErr := false
-
-	for _, e := range errs {
-		if contains(e, "algorithm") {
-			hasAlgErr = true
-		}
-	}
-
-	require.True(t, hasAlgErr)
-}
-
-func TestValidateProfile_UnknownDefaultAlgorithm(t *testing.T) {
-	t.Parallel()
-
-	pf := ProfileFile{
-		Profile: &ProfileSpec{
-			Name:             "test",
-			Description:      "desc",
-			Validity:         &ValiditySpec{MaxDays: cryptoutilSharedMagic.DefaultCertificateMaxAgeDays, MinDays: 1, DefaultDays: cryptoutilSharedMagic.StrictCertificateMaxAgeDays},
-			Key:              &KeySpec{AllowedAlgorithms: []AlgorithmEntry{{Algorithm: cryptoutilSharedMagic.KeyTypeRSA}}, DefaultAlgorithm: "QuantumAlgo", DefaultCurveOrSize: cryptoutilSharedMagic.RSAKeySize2048},
-			KeyUsage:         []string{"digitalSignature"},
-			ExtendedKeyUsage: &ExtendedKeyUsage{},
-		},
-	}
-
-	errs := validateProfile(pf, "test.yaml")
-
-	require.NotEmpty(t, errs)
-
-	hasErr := false
-
-	for _, e := range errs {
-		if contains(e, "known algorithm") {
-			hasErr = true
-		}
-	}
-
-	require.True(t, hasErr)
-}
-
-func TestValidateProfile_NilDefaultCurveOrSizeForRSA(t *testing.T) {
-	t.Parallel()
-
-	pf := ProfileFile{
-		Profile: &ProfileSpec{
-			Name:             "test",
-			Description:      "desc",
-			Validity:         &ValiditySpec{MaxDays: cryptoutilSharedMagic.DefaultCertificateMaxAgeDays, MinDays: 1, DefaultDays: cryptoutilSharedMagic.StrictCertificateMaxAgeDays},
-			Key:              &KeySpec{AllowedAlgorithms: []AlgorithmEntry{{Algorithm: cryptoutilSharedMagic.KeyTypeRSA}}, DefaultAlgorithm: cryptoutilSharedMagic.KeyTypeRSA, DefaultCurveOrSize: nil},
-			KeyUsage:         []string{"digitalSignature"},
-			ExtendedKeyUsage: &ExtendedKeyUsage{},
-		},
-	}
-
-	errs := validateProfile(pf, "test.yaml")
-
-	hasErr := false
-
-	for _, e := range errs {
-		if contains(e, "default_curve_or_size") {
-			hasErr = true
-		}
-	}
-
-	require.True(t, hasErr)
-}
-
-func TestValidateProfile_NilDefaultCurveOrSizeForEd25519_Allowed(t *testing.T) {
-	t.Parallel()
-
-	pf := ProfileFile{
-		Profile: &ProfileSpec{
-			Name:             "test",
-			Description:      "desc",
-			Validity:         &ValiditySpec{MaxDays: cryptoutilSharedMagic.DefaultCertificateMaxAgeDays, MinDays: 1, DefaultDays: cryptoutilSharedMagic.StrictCertificateMaxAgeDays},
-			Key:              &KeySpec{AllowedAlgorithms: []AlgorithmEntry{{Algorithm: cryptoutilSharedMagic.EdCurveEd25519}}, DefaultAlgorithm: cryptoutilSharedMagic.EdCurveEd25519, DefaultCurveOrSize: nil},
-			KeyUsage:         []string{"digitalSignature"},
-			ExtendedKeyUsage: &ExtendedKeyUsage{},
-		},
-	}
-
-	errs := validateProfile(pf, "test.yaml")
-
-	for _, e := range errs {
-		require.NotContains(t, e, "default_curve_or_size")
-	}
-}
-
-// -----------------------------------------------------------------------
-// Boundary tests â€” kill CONDITIONALS_BOUNDARY / CONDITIONALS_NEGATION mutations
-// -----------------------------------------------------------------------
-
-func TestValidateValidity_MinDaysOneIsValid(t *testing.T) {
-	t.Parallel()
-
-	errs := validateValidity(&ValiditySpec{MinDays: 1, MaxDays: 1, DefaultDays: 1}, "boundary.yaml")
-
-	require.Empty(t, errs, "min_days == 1 should be valid")
-}
-
-func TestValidateValidity_MinDaysZeroIsError(t *testing.T) {
-	t.Parallel()
-
-	errs := validateValidity(&ValiditySpec{MinDays: 0, MaxDays: cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days, DefaultDays: 1}, "boundary.yaml")
-
-	require.NotEmpty(t, errs, "min_days == 0 must be an error")
-	require.Contains(t, errs[0], "min_days must be >= 1")
-}
-
-func TestValidateValidity_MinDaysNegativeIsError(t *testing.T) {
-	t.Parallel()
-
-	errs := validateValidity(&ValiditySpec{MinDays: -1, MaxDays: cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days, DefaultDays: 1}, "boundary.yaml")
-
-	require.NotEmpty(t, errs, "min_days == -1 must be an error")
-	require.Contains(t, errs[0], "min_days must be >= 1")
-}
-
-func TestValidateValidity_MaxDaysEqualMinDays(t *testing.T) {
-	t.Parallel()
-
-	days := cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days
-
-	errs := validateValidity(&ValiditySpec{MinDays: days, MaxDays: days, DefaultDays: days}, "boundary.yaml")
-
-	require.Empty(t, errs, "max_days == min_days should be valid")
-}
-
-func TestValidateValidity_MaxDaysExactlyCap(t *testing.T) {
-	t.Parallel()
-
-	errs := validateValidity(&ValiditySpec{MinDays: 1, MaxDays: maxValidityDaysAbsoluteCap, DefaultDays: cryptoutilSharedMagic.StrictCertificateMaxAgeDays}, "cap.yaml")
-
-	require.Empty(t, errs, "max_days == absolute cap should be valid")
-}
-
-func TestValidateValidity_DefaultDaysEqualMinDays(t *testing.T) {
-	t.Parallel()
-
-	days30 := cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days
-	days365 := cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year
-
-	errs := validateValidity(&ValiditySpec{MinDays: days30, MaxDays: days365, DefaultDays: days30}, "boundary.yaml")
-
-	require.Empty(t, errs, "default_days == min_days should be valid")
-}
-
-func TestValidateValidity_DefaultDaysEqualMaxDays(t *testing.T) {
-	t.Parallel()
-
-	days365 := cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year
-
-	errs := validateValidity(&ValiditySpec{MinDays: 1, MaxDays: days365, DefaultDays: days365}, "boundary.yaml")
-
-	require.Empty(t, errs, "default_days == max_days should be valid")
-}
-
-func TestValidateSAN_AllFieldsPopulated(t *testing.T) {
-	t.Parallel()
-
-	boolTrue := true
-	boolFalse := false
-	zeroEntries := 0
-
-	san := &SANSpec{
-		AllowDNSNames:       &boolTrue,
-		AllowIPAddresses:    &boolFalse,
-		AllowEmailAddresses: &boolFalse,
-		AllowURIs:           &boolFalse,
-		RequireAtLeastOne:   &boolTrue,
-		MaxEntries:          &zeroEntries,
-	}
-
-	errs := validateSAN(san)
-
-	require.Empty(t, errs, "SAN with all fields set (including max_entries=0) should be valid")
-}
-
-// -----------------------------------------------------------------------
-// Helpers
-// -----------------------------------------------------------------------
-
-// contains is a nil-safe substring check for test assertions.
-func contains(s, substr string) bool {
-	return len(s) >= len(substr) && (s == substr || stringContains(s, substr))
-}
-
-func stringContains(s, sub string) bool {
-	for i := 0; i+len(sub) <= len(s); i++ {
-		if s[i:i+len(sub)] == sub {
-			return true
-		}
-	}
-
-	return false
-}
+// Copyright (c) 2025 Justin Cranford
