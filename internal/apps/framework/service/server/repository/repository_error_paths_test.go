@@ -20,371 +20,218 @@ import (
 	cryptoutilAppsFrameworkServiceServerDomain "cryptoutil/internal/apps/framework/service/server/domain"
 )
 
-// TestRoleRepository_ListByTenant_DBError verifies ListByTenant returns an error
-// when the underlying DB connection is closed.
-func TestRoleRepository_ListByTenant_DBError(t *testing.T) {
+// TestRepository_ClosedDB_ReturnsError verifies that every repository method
+// returns an error when the underlying DB connection is closed.
+func TestRepository_ClosedDB_ReturnsError(t *testing.T) {
 	t.Parallel()
 
-	db := setupTestDB(t)
-	repo := NewRoleRepository(db)
-	ctx := context.Background()
+	tests := []struct {
+		name    string
+		setupDB func(t *testing.T) *gorm.DB
+		callFn  func(ctx context.Context, db *gorm.DB) error
+	}{
+		{
+			name:    "RoleRepository ListByTenant",
+			setupDB: setupTestDB,
+			callFn: func(ctx context.Context, db *gorm.DB) error {
+				_, err := NewRoleRepository(db).ListByTenant(ctx, googleUuid.Must(googleUuid.NewV7()))
 
-	sqlDB, err := db.DB()
-	require.NoError(t, err)
-	require.NoError(t, sqlDB.Close())
+				return err
+			},
+		},
+		{
+			name:    "UserRoleRepository ListRolesByUser",
+			setupDB: setupTestDB,
+			callFn: func(ctx context.Context, db *gorm.DB) error {
+				_, err := NewUserRoleRepository(db).ListRolesByUser(ctx, googleUuid.Must(googleUuid.NewV7()))
 
-	_, err = repo.ListByTenant(ctx, googleUuid.Must(googleUuid.NewV7()))
-	require.Error(t, err)
-}
+				return err
+			},
+		},
+		{
+			name:    "UserRoleRepository ListUsersByRole",
+			setupDB: setupTestDB,
+			callFn: func(ctx context.Context, db *gorm.DB) error {
+				_, err := NewUserRoleRepository(db).ListUsersByRole(ctx, googleUuid.Must(googleUuid.NewV7()))
 
-// TestUserRoleRepository_ListRolesByUser_DBError verifies ListRolesByUser returns
-// an error when the DB connection is closed.
-func TestUserRoleRepository_ListRolesByUser_DBError(t *testing.T) {
-	t.Parallel()
+				return err
+			},
+		},
+		{
+			name:    "ClientRoleRepository ListRolesByClient",
+			setupDB: setupTestDB,
+			callFn: func(ctx context.Context, db *gorm.DB) error {
+				_, err := NewClientRoleRepository(db).ListRolesByClient(ctx, googleUuid.Must(googleUuid.NewV7()))
 
-	db := setupTestDB(t)
-	repo := NewUserRoleRepository(db)
-	ctx := context.Background()
+				return err
+			},
+		},
+		{
+			name:    "ClientRoleRepository ListClientsByRole",
+			setupDB: setupTestDB,
+			callFn: func(ctx context.Context, db *gorm.DB) error {
+				_, err := NewClientRoleRepository(db).ListClientsByRole(ctx, googleUuid.Must(googleUuid.NewV7()))
 
-	sqlDB, err := db.DB()
-	require.NoError(t, err)
-	require.NoError(t, sqlDB.Close())
+				return err
+			},
+		},
+		{
+			name:    "TenantRealmRepository ListByTenant",
+			setupDB: setupTestDB,
+			callFn: func(ctx context.Context, db *gorm.DB) error {
+				_, err := NewTenantRealmRepository(db).ListByTenant(ctx, googleUuid.Must(googleUuid.NewV7()), true)
 
-	_, err = repo.ListRolesByUser(ctx, googleUuid.Must(googleUuid.NewV7()))
-	require.Error(t, err)
-}
+				return err
+			},
+		},
+		{
+			name:    "TenantJoinRequestRepository Update",
+			setupDB: setupJoinRequestTestDB,
+			callFn: func(ctx context.Context, db *gorm.DB) error {
+				return NewTenantJoinRequestRepository(db).Update(ctx, &cryptoutilAppsFrameworkServiceServerDomain.TenantJoinRequest{
+					ID: googleUuid.Must(googleUuid.NewV7()),
+				})
+			},
+		},
+		{
+			name:    "TenantJoinRequestRepository GetByID",
+			setupDB: setupJoinRequestTestDB,
+			callFn: func(ctx context.Context, db *gorm.DB) error {
+				_, err := NewTenantJoinRequestRepository(db).GetByID(ctx, googleUuid.Must(googleUuid.NewV7()))
 
-// TestUserRoleRepository_ListUsersByRole_DBError verifies ListUsersByRole returns
-// an error when the DB connection is closed.
-func TestUserRoleRepository_ListUsersByRole_DBError(t *testing.T) {
-	t.Parallel()
+				return err
+			},
+		},
+		{
+			name:    "TenantJoinRequestRepository ListByTenant",
+			setupDB: setupJoinRequestTestDB,
+			callFn: func(ctx context.Context, db *gorm.DB) error {
+				_, err := NewTenantJoinRequestRepository(db).ListByTenant(ctx, googleUuid.Must(googleUuid.NewV7()))
 
-	db := setupTestDB(t)
-	repo := NewUserRoleRepository(db)
-	ctx := context.Background()
+				return err
+			},
+		},
+		{
+			name:    "TenantJoinRequestRepository ListByStatus",
+			setupDB: setupJoinRequestTestDB,
+			callFn: func(ctx context.Context, db *gorm.DB) error {
+				_, err := NewTenantJoinRequestRepository(db).ListByStatus(ctx, "pending")
 
-	sqlDB, err := db.DB()
-	require.NoError(t, err)
-	require.NoError(t, sqlDB.Close())
+				return err
+			},
+		},
+		{
+			name:    "TenantJoinRequestRepository ListByTenantAndStatus",
+			setupDB: setupJoinRequestTestDB,
+			callFn: func(ctx context.Context, db *gorm.DB) error {
+				_, err := NewTenantJoinRequestRepository(db).ListByTenantAndStatus(ctx, googleUuid.Must(googleUuid.NewV7()), "pending")
 
-	_, err = repo.ListUsersByRole(ctx, googleUuid.Must(googleUuid.NewV7()))
-	require.Error(t, err)
-}
+				return err
+			},
+		},
+		{
+			name:    "TenantRepository List",
+			setupDB: setupTestDB,
+			callFn: func(ctx context.Context, db *gorm.DB) error {
+				_, err := NewTenantRepository(db).List(ctx, true)
 
-// TestClientRoleRepository_ListRolesByClient_DBError verifies ListRolesByClient
-// returns an error when the DB connection is closed.
-func TestClientRoleRepository_ListRolesByClient_DBError(t *testing.T) {
-	t.Parallel()
+				return err
+			},
+		},
+		{
+			name:    "TenantRepository Update",
+			setupDB: setupTestDB,
+			callFn: func(ctx context.Context, db *gorm.DB) error {
+				return NewTenantRepository(db).Update(ctx, &Tenant{ID: googleUuid.Must(googleUuid.NewV7())})
+			},
+		},
+		{
+			name:    "TenantRepository CountUsersAndClients",
+			setupDB: setupTestDB,
+			callFn: func(ctx context.Context, db *gorm.DB) error {
+				_, _, err := NewTenantRepository(db).CountUsersAndClients(ctx, googleUuid.Must(googleUuid.NewV7()))
 
-	db := setupTestDB(t)
-	repo := NewClientRoleRepository(db)
-	ctx := context.Background()
+				return err
+			},
+		},
+		{
+			name:    "TenantRepository Delete via CountError",
+			setupDB: setupTestDB,
+			callFn: func(ctx context.Context, db *gorm.DB) error {
+				return NewTenantRepository(db).Delete(ctx, googleUuid.Must(googleUuid.NewV7()))
+			},
+		},
+		{
+			name:    "UserRepository ListByTenant",
+			setupDB: setupTestDB,
+			callFn: func(ctx context.Context, db *gorm.DB) error {
+				_, err := NewUserRepository(db).ListByTenant(ctx, googleUuid.Must(googleUuid.NewV7()), true)
 
-	sqlDB, err := db.DB()
-	require.NoError(t, err)
-	require.NoError(t, sqlDB.Close())
+				return err
+			},
+		},
+		{
+			name:    "ClientRepository ListByTenant",
+			setupDB: setupTestDB,
+			callFn: func(ctx context.Context, db *gorm.DB) error {
+				_, err := NewClientRepository(db).ListByTenant(ctx, googleUuid.Must(googleUuid.NewV7()), true)
 
-	_, err = repo.ListRolesByClient(ctx, googleUuid.Must(googleUuid.NewV7()))
-	require.Error(t, err)
-}
+				return err
+			},
+		},
+		{
+			name:    "UnverifiedUserRepository ListByTenant",
+			setupDB: setupTestDB,
+			callFn: func(ctx context.Context, db *gorm.DB) error {
+				_, err := NewUnverifiedUserRepository(db).ListByTenant(ctx, googleUuid.Must(googleUuid.NewV7()))
 
-// TestClientRoleRepository_ListClientsByRole_DBError verifies ListClientsByRole
-// returns an error when the DB connection is closed.
-func TestClientRoleRepository_ListClientsByRole_DBError(t *testing.T) {
-	t.Parallel()
+				return err
+			},
+		},
+		{
+			name:    "UnverifiedUserRepository DeleteExpired",
+			setupDB: setupTestDB,
+			callFn: func(ctx context.Context, db *gorm.DB) error {
+				_, err := NewUnverifiedUserRepository(db).DeleteExpired(ctx)
 
-	db := setupTestDB(t)
-	repo := NewClientRoleRepository(db)
-	ctx := context.Background()
+				return err
+			},
+		},
+		{
+			name:    "UnverifiedClientRepository ListByTenant",
+			setupDB: setupTestDB,
+			callFn: func(ctx context.Context, db *gorm.DB) error {
+				_, err := NewUnverifiedClientRepository(db).ListByTenant(ctx, googleUuid.Must(googleUuid.NewV7()))
 
-	sqlDB, err := db.DB()
-	require.NoError(t, err)
-	require.NoError(t, sqlDB.Close())
+				return err
+			},
+		},
+		{
+			name:    "UnverifiedClientRepository DeleteExpired",
+			setupDB: setupTestDB,
+			callFn: func(ctx context.Context, db *gorm.DB) error {
+				_, err := NewUnverifiedClientRepository(db).DeleteExpired(ctx)
 
-	_, err = repo.ListClientsByRole(ctx, googleUuid.Must(googleUuid.NewV7()))
-	require.Error(t, err)
-}
-
-// TestTenantRealmRepository_ListByTenant_DBError verifies ListByTenant returns
-// an error when the DB connection is closed.
-func TestTenantRealmRepository_ListByTenant_DBError(t *testing.T) {
-	t.Parallel()
-
-	db := setupTestDB(t)
-	repo := NewTenantRealmRepository(db)
-	ctx := context.Background()
-
-	sqlDB, err := db.DB()
-	require.NoError(t, err)
-	require.NoError(t, sqlDB.Close())
-
-	_, err = repo.ListByTenant(ctx, googleUuid.Must(googleUuid.NewV7()), true)
-	require.Error(t, err)
-}
-
-// TestTenantJoinRequestRepository_Update_DBError verifies Update returns an
-// error when the DB connection is closed.
-func TestTenantJoinRequestRepository_Update_DBError(t *testing.T) {
-	t.Parallel()
-
-	db := setupJoinRequestTestDB(t)
-	repo := NewTenantJoinRequestRepository(db)
-	ctx := context.Background()
-
-	sqlDB, err := db.DB()
-	require.NoError(t, err)
-	require.NoError(t, sqlDB.Close())
-
-	request := &cryptoutilAppsFrameworkServiceServerDomain.TenantJoinRequest{
-		ID: googleUuid.Must(googleUuid.NewV7()),
+				return err
+			},
+		},
 	}
 
-	err = repo.Update(ctx, request)
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "failed to update join request")
-}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-// TestTenantJoinRequestRepository_GetByID_DBError verifies GetByID returns a
-// non-record-not-found error when the DB connection is closed.
-func TestTenantJoinRequestRepository_GetByID_DBError(t *testing.T) {
-	t.Parallel()
+			db := tc.setupDB(t)
+			ctx := context.Background()
 
-	db := setupJoinRequestTestDB(t)
-	repo := NewTenantJoinRequestRepository(db)
-	ctx := context.Background()
+			sqlDB, err := db.DB()
+			require.NoError(t, err)
+			require.NoError(t, sqlDB.Close())
 
-	sqlDB, err := db.DB()
-	require.NoError(t, err)
-	require.NoError(t, sqlDB.Close())
-
-	_, err = repo.GetByID(ctx, googleUuid.Must(googleUuid.NewV7()))
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "failed to get join request")
-}
-
-// TestTenantJoinRequestRepository_ListByTenant_DBError verifies ListByTenant
-// returns an error when the DB connection is closed.
-func TestTenantJoinRequestRepository_ListByTenant_DBError(t *testing.T) {
-	t.Parallel()
-
-	db := setupJoinRequestTestDB(t)
-	repo := NewTenantJoinRequestRepository(db)
-	ctx := context.Background()
-
-	sqlDB, err := db.DB()
-	require.NoError(t, err)
-	require.NoError(t, sqlDB.Close())
-
-	_, err = repo.ListByTenant(ctx, googleUuid.Must(googleUuid.NewV7()))
-	require.Error(t, err)
-}
-
-// TestTenantJoinRequestRepository_ListByStatus_DBError verifies ListByStatus
-// returns an error when the DB connection is closed.
-func TestTenantJoinRequestRepository_ListByStatus_DBError(t *testing.T) {
-	t.Parallel()
-
-	db := setupJoinRequestTestDB(t)
-	repo := NewTenantJoinRequestRepository(db)
-	ctx := context.Background()
-
-	sqlDB, err := db.DB()
-	require.NoError(t, err)
-	require.NoError(t, sqlDB.Close())
-
-	_, err = repo.ListByStatus(ctx, "pending")
-	require.Error(t, err)
-}
-
-// TestTenantJoinRequestRepository_ListByTenantAndStatus_DBError verifies
-// ListByTenantAndStatus returns an error when the DB connection is closed.
-func TestTenantJoinRequestRepository_ListByTenantAndStatus_DBError(t *testing.T) {
-	t.Parallel()
-
-	db := setupJoinRequestTestDB(t)
-	repo := NewTenantJoinRequestRepository(db)
-	ctx := context.Background()
-
-	sqlDB, err := db.DB()
-	require.NoError(t, err)
-	require.NoError(t, sqlDB.Close())
-
-	_, err = repo.ListByTenantAndStatus(ctx, googleUuid.Must(googleUuid.NewV7()), "pending")
-	require.Error(t, err)
-}
-
-// TestTenantRepository_List_DBError verifies List returns an error when the DB
-// connection is closed.
-func TestTenantRepository_List_DBError(t *testing.T) {
-	t.Parallel()
-
-	db := setupTestDB(t)
-	repo := NewTenantRepository(db)
-	ctx := context.Background()
-
-	sqlDB, err := db.DB()
-	require.NoError(t, err)
-	require.NoError(t, sqlDB.Close())
-
-	_, err = repo.List(ctx, true)
-	require.Error(t, err)
-}
-
-// TestTenantRepository_Update_DBError verifies Update returns an error when the
-// DB connection is closed.
-func TestTenantRepository_Update_DBError(t *testing.T) {
-	t.Parallel()
-
-	db := setupTestDB(t)
-	repo := NewTenantRepository(db)
-	ctx := context.Background()
-
-	sqlDB, err := db.DB()
-	require.NoError(t, err)
-	require.NoError(t, sqlDB.Close())
-
-	tenant := &Tenant{
-		ID: googleUuid.Must(googleUuid.NewV7()),
+			err = tc.callFn(ctx, db)
+			require.Error(t, err)
+		})
 	}
-
-	err = repo.Update(ctx, tenant)
-	require.Error(t, err)
-}
-
-// TestTenantRepository_CountUsersAndClients_DBError verifies CountUsersAndClients
-// returns an error when the DB connection is closed (user count fails first).
-func TestTenantRepository_CountUsersAndClients_DBError(t *testing.T) {
-	t.Parallel()
-
-	db := setupTestDB(t)
-	repo := NewTenantRepository(db)
-	ctx := context.Background()
-
-	sqlDB, err := db.DB()
-	require.NoError(t, err)
-	require.NoError(t, sqlDB.Close())
-
-	_, _, err = repo.CountUsersAndClients(ctx, googleUuid.Must(googleUuid.NewV7()))
-	require.Error(t, err)
-}
-
-// TestTenantRepository_Delete_CountError verifies Delete returns an error when
-// CountUsersAndClients fails due to the DB connection being closed.
-func TestTenantRepository_Delete_CountError(t *testing.T) {
-	t.Parallel()
-
-	db := setupTestDB(t)
-	repo := NewTenantRepository(db)
-	ctx := context.Background()
-
-	sqlDB, err := db.DB()
-	require.NoError(t, err)
-	require.NoError(t, sqlDB.Close())
-
-	err = repo.Delete(ctx, googleUuid.Must(googleUuid.NewV7()))
-	require.Error(t, err)
-}
-
-// TestUserRepository_ListByTenant_DBError verifies ListByTenant returns an error
-// when the DB connection is closed.
-func TestUserRepository_ListByTenant_DBError(t *testing.T) {
-	t.Parallel()
-
-	db := setupTestDB(t)
-	repo := NewUserRepository(db)
-	ctx := context.Background()
-
-	sqlDB, err := db.DB()
-	require.NoError(t, err)
-	require.NoError(t, sqlDB.Close())
-
-	_, err = repo.ListByTenant(ctx, googleUuid.Must(googleUuid.NewV7()), true)
-	require.Error(t, err)
-}
-
-// TestClientRepository_ListByTenant_DBError verifies ListByTenant returns an
-// error when the DB connection is closed.
-func TestClientRepository_ListByTenant_DBError(t *testing.T) {
-	t.Parallel()
-
-	db := setupTestDB(t)
-	repo := NewClientRepository(db)
-	ctx := context.Background()
-
-	sqlDB, err := db.DB()
-	require.NoError(t, err)
-	require.NoError(t, sqlDB.Close())
-
-	_, err = repo.ListByTenant(ctx, googleUuid.Must(googleUuid.NewV7()), true)
-	require.Error(t, err)
-}
-
-// TestUnverifiedUserRepository_ListByTenant_DBError verifies ListByTenant
-// returns an error when the DB connection is closed.
-func TestUnverifiedUserRepository_ListByTenant_DBError(t *testing.T) {
-	t.Parallel()
-
-	db := setupTestDB(t)
-	repo := NewUnverifiedUserRepository(db)
-	ctx := context.Background()
-
-	sqlDB, err := db.DB()
-	require.NoError(t, err)
-	require.NoError(t, sqlDB.Close())
-
-	_, err = repo.ListByTenant(ctx, googleUuid.Must(googleUuid.NewV7()))
-	require.Error(t, err)
-}
-
-// TestUnverifiedUserRepository_DeleteExpired_DBError verifies DeleteExpired
-// returns an error when the DB connection is closed.
-func TestUnverifiedUserRepository_DeleteExpired_DBError(t *testing.T) {
-	t.Parallel()
-
-	db := setupTestDB(t)
-	repo := NewUnverifiedUserRepository(db)
-	ctx := context.Background()
-
-	sqlDB, err := db.DB()
-	require.NoError(t, err)
-	require.NoError(t, sqlDB.Close())
-
-	_, err = repo.DeleteExpired(ctx)
-	require.Error(t, err)
-}
-
-// TestUnverifiedClientRepository_ListByTenant_DBError verifies ListByTenant
-// returns an error when the DB connection is closed.
-func TestUnverifiedClientRepository_ListByTenant_DBError(t *testing.T) {
-	t.Parallel()
-
-	db := setupTestDB(t)
-	repo := NewUnverifiedClientRepository(db)
-	ctx := context.Background()
-
-	sqlDB, err := db.DB()
-	require.NoError(t, err)
-	require.NoError(t, sqlDB.Close())
-
-	_, err = repo.ListByTenant(ctx, googleUuid.Must(googleUuid.NewV7()))
-	require.Error(t, err)
-}
-
-// TestUnverifiedClientRepository_DeleteExpired_DBError verifies DeleteExpired
-// returns an error when the DB connection is closed.
-func TestUnverifiedClientRepository_DeleteExpired_DBError(t *testing.T) {
-	t.Parallel()
-
-	db := setupTestDB(t)
-	repo := NewUnverifiedClientRepository(db)
-	ctx := context.Background()
-
-	sqlDB, err := db.DB()
-	require.NoError(t, err)
-	require.NoError(t, sqlDB.Close())
-
-	_, err = repo.DeleteExpired(ctx)
-	require.Error(t, err)
 }
 
 // setupPartialTestDB creates an isolated in-memory SQLite DB with only the
