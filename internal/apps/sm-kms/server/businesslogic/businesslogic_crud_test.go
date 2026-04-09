@@ -200,20 +200,24 @@ func seedMaterialKey(t *testing.T, stack *testStack, ekID googleUuid.UUID) googl
 
 func TestGetElasticKeyByID(t *testing.T) {
 	t.Parallel()
-	stack := setupTestStack(t)
-	ekID := seedElasticKey(t, stack, "get-by-id", cryptoutilOpenapiModel.A256GCMDir, cryptoutilKmsServer.Active)
-	ek, err := stack.service.GetElasticKeyByElasticKeyID(stack.ctx, &ekID)
-	testify.NoError(t, err)
-	testify.NotNil(t, ek)
-	testify.Equal(t, "get-by-id", *ek.Name)
-}
 
-func TestGetElasticKeyByID_NotFound(t *testing.T) {
-	t.Parallel()
-	stack := setupTestStack(t)
-	missingID := googleUuid.New()
-	_, err := stack.service.GetElasticKeyByElasticKeyID(stack.ctx, &missingID)
-	testify.Error(t, err)
+	t.Run("found", func(t *testing.T) {
+		t.Parallel()
+		stack := setupTestStack(t)
+		ekID := seedElasticKey(t, stack, "get-by-id", cryptoutilOpenapiModel.A256GCMDir, cryptoutilKmsServer.Active)
+		ek, err := stack.service.GetElasticKeyByElasticKeyID(stack.ctx, &ekID)
+		testify.NoError(t, err)
+		testify.NotNil(t, ek)
+		testify.Equal(t, "get-by-id", *ek.Name)
+	})
+
+	t.Run("not found", func(t *testing.T) {
+		t.Parallel()
+		stack := setupTestStack(t)
+		missingID := googleUuid.New()
+		_, err := stack.service.GetElasticKeyByElasticKeyID(stack.ctx, &missingID)
+		testify.Error(t, err)
+	})
 }
 
 func TestGetElasticKeys(t *testing.T) {
@@ -249,143 +253,134 @@ func TestGetMaterialKeys(t *testing.T) {
 
 func TestGetMaterialKeyByIDs(t *testing.T) {
 	t.Parallel()
-	stack := setupTestStack(t)
-	ekID := seedElasticKey(t, stack, "mat-by-ids", cryptoutilOpenapiModel.A256GCMDir, cryptoutilKmsServer.Active)
-	mkID := seedMaterialKey(t, stack, ekID)
-	mk, err := stack.service.GetMaterialKeyByElasticKeyAndMaterialKeyID(stack.ctx, &ekID, &mkID)
-	testify.NoError(t, err)
-	testify.NotNil(t, mk)
-}
 
-func TestGetMaterialKeyByIDs_NotFound(t *testing.T) {
-	t.Parallel()
-	stack := setupTestStack(t)
-	ekID := seedElasticKey(t, stack, "mat-nf", cryptoutilOpenapiModel.A256GCMDir, cryptoutilKmsServer.Active)
-	missingMK := googleUuid.New()
-	_, err := stack.service.GetMaterialKeyByElasticKeyAndMaterialKeyID(stack.ctx, &ekID, &missingMK)
-	testify.Error(t, err)
+	t.Run("found", func(t *testing.T) {
+		t.Parallel()
+		stack := setupTestStack(t)
+		ekID := seedElasticKey(t, stack, "mat-by-ids", cryptoutilOpenapiModel.A256GCMDir, cryptoutilKmsServer.Active)
+		mkID := seedMaterialKey(t, stack, ekID)
+		mk, err := stack.service.GetMaterialKeyByElasticKeyAndMaterialKeyID(stack.ctx, &ekID, &mkID)
+		testify.NoError(t, err)
+		testify.NotNil(t, mk)
+	})
+
+	t.Run("not found", func(t *testing.T) {
+		t.Parallel()
+		stack := setupTestStack(t)
+		ekID := seedElasticKey(t, stack, "mat-nf", cryptoutilOpenapiModel.A256GCMDir, cryptoutilKmsServer.Active)
+		missingMK := googleUuid.New()
+		_, err := stack.service.GetMaterialKeyByElasticKeyAndMaterialKeyID(stack.ctx, &ekID, &missingMK)
+		testify.Error(t, err)
+	})
 }
 
 func TestUpdateElasticKey(t *testing.T) {
 	t.Parallel()
-	stack := setupTestStack(t)
-	ekID := seedElasticKey(t, stack, "update-me", cryptoutilOpenapiModel.A256GCMDir, cryptoutilKmsServer.Active)
-	newDesc := "updated-desc"
-	updated, err := stack.service.UpdateElasticKey(stack.ctx, &ekID, &cryptoutilKmsServer.ElasticKeyUpdate{
-		Name:        "updated-name",
-		Description: &newDesc,
+
+	t.Run("success", func(t *testing.T) {
+		t.Parallel()
+		stack := setupTestStack(t)
+		ekID := seedElasticKey(t, stack, "update-me", cryptoutilOpenapiModel.A256GCMDir, cryptoutilKmsServer.Active)
+		newDesc := "updated-desc"
+		updated, err := stack.service.UpdateElasticKey(stack.ctx, &ekID, &cryptoutilKmsServer.ElasticKeyUpdate{
+			Name:        "updated-name",
+			Description: &newDesc,
+		})
+		testify.NoError(t, err)
+		testify.Equal(t, "updated-name", *updated.Name)
 	})
-	testify.NoError(t, err)
-	testify.Equal(t, "updated-name", *updated.Name)
-}
 
-func TestUpdateElasticKey_NotFound(t *testing.T) {
-	t.Parallel()
-	stack := setupTestStack(t)
-	missingID := googleUuid.New()
-	newDesc := "desc"
-	_, err := stack.service.UpdateElasticKey(stack.ctx, &missingID, &cryptoutilKmsServer.ElasticKeyUpdate{
-		Name:        "x",
-		Description: &newDesc,
+	t.Run("not found", func(t *testing.T) {
+		t.Parallel()
+		stack := setupTestStack(t)
+		missingID := googleUuid.New()
+		newDesc := "desc"
+		_, err := stack.service.UpdateElasticKey(stack.ctx, &missingID, &cryptoutilKmsServer.ElasticKeyUpdate{
+			Name:        "x",
+			Description: &newDesc,
+		})
+		testify.Error(t, err)
 	})
-	testify.Error(t, err)
 }
 
-func TestDeleteElasticKey_Active(t *testing.T) {
+func TestDeleteElasticKey(t *testing.T) {
 	t.Parallel()
-	stack := setupTestStack(t)
-	ekID := seedElasticKey(t, stack, "del-active", cryptoutilOpenapiModel.A256GCMDir, cryptoutilKmsServer.Active)
-	err := stack.service.DeleteElasticKey(stack.ctx, &ekID)
-	testify.NoError(t, err)
-}
 
-func TestDeleteElasticKey_Disabled(t *testing.T) {
-	t.Parallel()
-	stack := setupTestStack(t)
-	ekID := seedElasticKey(t, stack, "del-disabled", cryptoutilOpenapiModel.A256GCMDir,
-		cryptoutilKmsServer.ElasticKeyStatus(cryptoutilOpenapiModel.Disabled))
-	err := stack.service.DeleteElasticKey(stack.ctx, &ekID)
-	testify.NoError(t, err)
-}
+	tests := []struct {
+		name    string
+		status  cryptoutilKmsServer.ElasticKeyStatus
+		wantErr string
+	}{
+		{name: "active", status: cryptoutilKmsServer.Active},
+		{name: "status disabled", status: cryptoutilKmsServer.ElasticKeyStatus(cryptoutilOpenapiModel.Disabled)},
+		{name: "import failed", status: cryptoutilKmsServer.ElasticKeyStatus(cryptoutilOpenapiModel.ImportFailed)},
+		{name: "pending import", status: cryptoutilKmsServer.ElasticKeyStatus(cryptoutilOpenapiModel.PendingImport)},
+		{name: "generate failed", status: cryptoutilKmsServer.ElasticKeyStatus(cryptoutilOpenapiModel.GenerateFailed)},
+		{name: "invalid status creating", status: cryptoutilKmsServer.ElasticKeyStatus(cryptoutilOpenapiModel.Creating), wantErr: "cannot delete ElasticKey in status"},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			stack := setupTestStack(t)
+			ekID := seedElasticKey(t, stack, "del-"+tc.name, cryptoutilOpenapiModel.A256GCMDir, tc.status)
 
-func TestDeleteElasticKey_ImportFailed(t *testing.T) {
-	t.Parallel()
-	stack := setupTestStack(t)
-	ekID := seedElasticKey(t, stack, "del-impfail", cryptoutilOpenapiModel.A256GCMDir,
-		cryptoutilKmsServer.ElasticKeyStatus(cryptoutilOpenapiModel.ImportFailed))
-	err := stack.service.DeleteElasticKey(stack.ctx, &ekID)
-	testify.NoError(t, err)
-}
+			err := stack.service.DeleteElasticKey(stack.ctx, &ekID)
+			if tc.wantErr != "" {
+				testify.Error(t, err)
+				testify.Contains(t, err.Error(), tc.wantErr)
 
-func TestDeleteElasticKey_PendingImport(t *testing.T) {
-	t.Parallel()
-	stack := setupTestStack(t)
-	ekID := seedElasticKey(t, stack, "del-pendimp", cryptoutilOpenapiModel.A256GCMDir,
-		cryptoutilKmsServer.ElasticKeyStatus(cryptoutilOpenapiModel.PendingImport))
-	err := stack.service.DeleteElasticKey(stack.ctx, &ekID)
-	testify.NoError(t, err)
-}
+				return
+			}
 
-func TestDeleteElasticKey_GenerateFailed(t *testing.T) {
-	t.Parallel()
-	stack := setupTestStack(t)
-	ekID := seedElasticKey(t, stack, "del-genfail", cryptoutilOpenapiModel.A256GCMDir,
-		cryptoutilKmsServer.ElasticKeyStatus(cryptoutilOpenapiModel.GenerateFailed))
-	err := stack.service.DeleteElasticKey(stack.ctx, &ekID)
-	testify.NoError(t, err)
-}
+			testify.NoError(t, err)
+		})
+	}
 
-func TestDeleteElasticKey_InvalidStatus(t *testing.T) {
-	t.Parallel()
-	stack := setupTestStack(t)
-	ekID := seedElasticKey(t, stack, "del-creating", cryptoutilOpenapiModel.A256GCMDir,
-		cryptoutilKmsServer.ElasticKeyStatus(cryptoutilOpenapiModel.Creating))
-	err := stack.service.DeleteElasticKey(stack.ctx, &ekID)
-	testify.Error(t, err)
-	testify.Contains(t, err.Error(), "cannot delete ElasticKey in status")
-}
-
-func TestDeleteElasticKey_NotFound(t *testing.T) {
-	t.Parallel()
-	stack := setupTestStack(t)
-	missingID := googleUuid.New()
-	err := stack.service.DeleteElasticKey(stack.ctx, &missingID)
-	testify.Error(t, err)
+	t.Run("not found", func(t *testing.T) {
+		t.Parallel()
+		stack := setupTestStack(t)
+		missingID := googleUuid.New()
+		err := stack.service.DeleteElasticKey(stack.ctx, &missingID)
+		testify.Error(t, err)
+	})
 }
 
 func TestRevokeMaterialKey(t *testing.T) {
 	t.Parallel()
-	stack := setupTestStack(t)
-	ekID := seedElasticKey(t, stack, "revoke-mk", cryptoutilOpenapiModel.A256GCMDir, cryptoutilKmsServer.Active)
-	mkID := seedMaterialKey(t, stack, ekID)
-	err := stack.service.RevokeMaterialKey(stack.ctx, &ekID, &mkID)
-	testify.NoError(t, err)
-}
 
-func TestRevokeMaterialKey_AlreadyRevoked(t *testing.T) {
-	t.Parallel()
-	stack := setupTestStack(t)
-	ekID := seedElasticKey(t, stack, "revoke-dup", cryptoutilOpenapiModel.A256GCMDir, cryptoutilKmsServer.Active)
-	mkID := seedMaterialKey(t, stack, ekID)
-	err := stack.service.RevokeMaterialKey(stack.ctx, &ekID, &mkID)
-	testify.NoError(t, err)
-	err = stack.service.RevokeMaterialKey(stack.ctx, &ekID, &mkID)
-	testify.Error(t, err)
-	testify.Contains(t, err.Error(), "already revoked")
-}
+	t.Run("success", func(t *testing.T) {
+		t.Parallel()
+		stack := setupTestStack(t)
+		ekID := seedElasticKey(t, stack, "revoke-mk", cryptoutilOpenapiModel.A256GCMDir, cryptoutilKmsServer.Active)
+		mkID := seedMaterialKey(t, stack, ekID)
+		err := stack.service.RevokeMaterialKey(stack.ctx, &ekID, &mkID)
+		testify.NoError(t, err)
+	})
 
-func TestRevokeMaterialKey_NotFound(t *testing.T) {
-	t.Parallel()
-	stack := setupTestStack(t)
-	ekID := googleUuid.New()
-	mkID := googleUuid.New()
-	err := stack.service.RevokeMaterialKey(stack.ctx, &ekID, &mkID)
-	testify.Error(t, err)
+	t.Run("already revoked", func(t *testing.T) {
+		t.Parallel()
+		stack := setupTestStack(t)
+		ekID := seedElasticKey(t, stack, "revoke-dup", cryptoutilOpenapiModel.A256GCMDir, cryptoutilKmsServer.Active)
+		mkID := seedMaterialKey(t, stack, ekID)
+		err := stack.service.RevokeMaterialKey(stack.ctx, &ekID, &mkID)
+		testify.NoError(t, err)
+		err = stack.service.RevokeMaterialKey(stack.ctx, &ekID, &mkID)
+		testify.Error(t, err)
+		testify.Contains(t, err.Error(), "already revoked")
+	})
+
+	t.Run("not found", func(t *testing.T) {
+		t.Parallel()
+		stack := setupTestStack(t)
+		ekID := googleUuid.New()
+		mkID := googleUuid.New()
+		err := stack.service.RevokeMaterialKey(stack.ctx, &ekID, &mkID)
+		testify.Error(t, err)
+	})
 }
 
 func TestDeleteMaterialKey_NotImplemented(t *testing.T) {
 	t.Parallel()
-
 	stack := setupTestStack(t)
 	ekID := googleUuid.New()
 	mkID := googleUuid.New()
