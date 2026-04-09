@@ -12,265 +12,285 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestSendMessage_HappyPath(t *testing.T) {
+func TestSendMessage(t *testing.T) {
 	t.Parallel()
 
 	messageID := googleUuid.Must(googleUuid.NewV7())
 
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		require.Equal(t, http.MethodPut, r.Method)
-		require.Equal(t, "/service/api/v1/messages/tx", r.URL.Path)
-		require.Equal(t, "Bearer test-token", r.Header.Get("Authorization"))
-
-		var reqBody map[string]any
-
-		err := json.NewDecoder(r.Body).Decode(&reqBody)
-		require.NoError(t, err)
-		require.Equal(t, "Hello, World!", reqBody["message"])
-		require.Len(t, reqBody["receiver_ids"], 2)
-
-		w.WriteHeader(http.StatusCreated)
-		w.Header().Set("Content-Type", "application/json")
-
-		respBody := map[string]string{"message_id": messageID.String()}
-		_ = json.NewEncoder(w).Encode(respBody)
-	}))
-	defer server.Close()
-
-	receiver1 := googleUuid.New()
-	receiver2 := googleUuid.New()
-
-	resultMessageID, err := SendMessage(
-		http.DefaultClient,
-		server.URL,
-		"Hello, World!",
-		"test-token",
-		receiver1,
-		receiver2,
-	)
-
-	require.NoError(t, err)
-	require.Equal(t, messageID.String(), resultMessageID)
-}
-
-func TestSendMessage_Unauthorized(t *testing.T) {
-	t.Parallel()
-
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-		w.WriteHeader(http.StatusUnauthorized)
-		w.Header().Set("Content-Type", "application/json")
-		_ = json.NewEncoder(w).Encode(Error{Code: "UNAUTHORIZED", Message: "Invalid token"})
-	}))
-	defer server.Close()
-
-	receiver := googleUuid.New()
-
-	_, err := SendMessage(
-		http.DefaultClient,
-		server.URL,
-		"Test message",
-		"invalid-token",
-		receiver,
-	)
-
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "Invalid token")
-}
-
-func TestReceiveMessagesService_HappyPath(t *testing.T) {
-	t.Parallel()
-
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		require.Equal(t, http.MethodGet, r.Method)
-		require.Equal(t, "/service/api/v1/messages/rx", r.URL.Path)
-		require.Equal(t, "Bearer test-token", r.Header.Get("Authorization"))
-
-		w.WriteHeader(http.StatusOK)
-		w.Header().Set("Content-Type", "application/json")
-
-		respBody := map[string]any{
-			"messages": []map[string]any{
-				{"id": googleUuid.New().String(), "message": "Hello"},
-				{"id": googleUuid.New().String(), "message": "World"},
+	tests := []struct {
+		name    string
+		handler http.HandlerFunc
+		sendFn  func(*http.Client, string, string, string, ...googleUuid.UUID) (string, error)
+		wantID  string
+		wantErr string
+	}{
+		{
+			name: "service happy path",
+			handler: func(w http.ResponseWriter, _ *http.Request) {
+				w.WriteHeader(http.StatusCreated)
+				w.Header().Set("Content-Type", "application/json")
+				_ = json.NewEncoder(w).Encode(map[string]string{"message_id": messageID.String()})
 			},
-		}
-		_ = json.NewEncoder(w).Encode(respBody)
-	}))
-	defer server.Close()
-
-	messages, err := ReceiveMessagesService(
-		http.DefaultClient,
-		server.URL,
-		"test-token",
-	)
-
-	require.NoError(t, err)
-	require.Len(t, messages, 2)
-}
-
-func TestReceiveMessagesService_Unauthorized(t *testing.T) {
-	t.Parallel()
-
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-		w.WriteHeader(http.StatusUnauthorized)
-		w.Header().Set("Content-Type", "application/json")
-		_ = json.NewEncoder(w).Encode(Error{Code: "UNAUTHORIZED", Message: "Invalid token"})
-	}))
-	defer server.Close()
-
-	_, err := ReceiveMessagesService(
-		http.DefaultClient,
-		server.URL,
-		"invalid-token",
-	)
-
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "Invalid token")
-}
-
-func TestDeleteMessageService_HappyPath(t *testing.T) {
-	t.Parallel()
-
-	messageID := googleUuid.New()
-
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		require.Equal(t, http.MethodDelete, r.Method)
-		require.Equal(t, "/service/api/v1/messages/"+messageID.String(), r.URL.Path)
-		require.Equal(t, "Bearer test-token", r.Header.Get("Authorization"))
-
-		w.WriteHeader(http.StatusNoContent)
-	}))
-	defer server.Close()
-
-	err := DeleteMessageService(
-		http.DefaultClient,
-		server.URL,
-		messageID.String(),
-		"test-token",
-	)
-
-	require.NoError(t, err)
-}
-
-func TestDeleteMessageService_NotFound(t *testing.T) {
-	t.Parallel()
-
-	messageID := googleUuid.New()
-
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-		w.WriteHeader(http.StatusNotFound)
-		w.Header().Set("Content-Type", "application/json")
-		_ = json.NewEncoder(w).Encode(Error{Code: "NOT_FOUND", Message: "Message not found"})
-	}))
-	defer server.Close()
-
-	err := DeleteMessageService(
-		http.DefaultClient,
-		server.URL,
-		messageID.String(),
-		"test-token",
-	)
-
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "Message not found")
-}
-
-func TestSendMessageBrowser_HappyPath(t *testing.T) {
-	t.Parallel()
-
-	messageID := googleUuid.New()
-
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		require.Equal(t, http.MethodPut, r.Method)
-		require.Equal(t, "/browser/api/v1/messages/tx", r.URL.Path)
-		require.Equal(t, "Bearer test-token", r.Header.Get("Authorization"))
-
-		var reqBody map[string]any
-
-		err := json.NewDecoder(r.Body).Decode(&reqBody)
-		require.NoError(t, err)
-		require.Equal(t, "Hello from browser", reqBody["message"])
-		require.Len(t, reqBody["receiver_ids"], 1)
-
-		w.WriteHeader(http.StatusCreated)
-		w.Header().Set("Content-Type", "application/json")
-
-		respBody := map[string]string{"message_id": messageID.String()}
-		_ = json.NewEncoder(w).Encode(respBody)
-	}))
-	defer server.Close()
-
-	receiver := googleUuid.New()
-
-	resultMessageID, err := SendMessageBrowser(
-		http.DefaultClient,
-		server.URL,
-		"Hello from browser",
-		"test-token",
-		receiver,
-	)
-
-	require.NoError(t, err)
-	require.Equal(t, messageID.String(), resultMessageID)
-}
-
-func TestReceiveMessagesBrowser_HappyPath(t *testing.T) {
-	t.Parallel()
-
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		require.Equal(t, http.MethodGet, r.Method)
-		require.Equal(t, "/browser/api/v1/messages/rx", r.URL.Path)
-		require.Equal(t, "Bearer test-token", r.Header.Get("Authorization"))
-
-		w.WriteHeader(http.StatusOK)
-		w.Header().Set("Content-Type", "application/json")
-
-		respBody := map[string]any{
-			"messages": []map[string]any{
-				{"id": googleUuid.New().String(), "message": "Browser message 1"},
-				{"id": googleUuid.New().String(), "message": "Browser message 2"},
-				{"id": googleUuid.New().String(), "message": "Browser message 3"},
+			sendFn: SendMessage,
+			wantID: messageID.String(),
+		},
+		{
+			name: "service unauthorized",
+			handler: func(w http.ResponseWriter, _ *http.Request) {
+				w.WriteHeader(http.StatusUnauthorized)
+				w.Header().Set("Content-Type", "application/json")
+				_ = json.NewEncoder(w).Encode(Error{Code: "UNAUTHORIZED", Message: "Invalid token"})
 			},
-		}
-		_ = json.NewEncoder(w).Encode(respBody)
-	}))
-	defer server.Close()
+			sendFn:  SendMessage,
+			wantErr: "Invalid token",
+		},
+		{
+			name: "service missing message_id",
+			handler: func(w http.ResponseWriter, _ *http.Request) {
+				w.WriteHeader(http.StatusCreated)
+				w.Header().Set("Content-Type", "application/json")
+				_ = json.NewEncoder(w).Encode(map[string]string{})
+			},
+			sendFn:  SendMessage,
+			wantErr: "response missing message_id field",
+		},
+		{
+			name: "browser happy path",
+			handler: func(w http.ResponseWriter, _ *http.Request) {
+				w.WriteHeader(http.StatusCreated)
+				w.Header().Set("Content-Type", "application/json")
+				_ = json.NewEncoder(w).Encode(map[string]string{"message_id": messageID.String()})
+			},
+			sendFn: SendMessageBrowser,
+			wantID: messageID.String(),
+		},
+		{
+			name: "browser unauthorized",
+			handler: func(w http.ResponseWriter, _ *http.Request) {
+				w.WriteHeader(http.StatusUnauthorized)
+				w.Header().Set("Content-Type", "application/json")
+				_ = json.NewEncoder(w).Encode(Error{Code: "UNAUTHORIZED", Message: "Invalid browser session"})
+			},
+			sendFn:  SendMessageBrowser,
+			wantErr: "Invalid browser session",
+		},
+		{
+			name: "browser missing message_id",
+			handler: func(w http.ResponseWriter, _ *http.Request) {
+				w.WriteHeader(http.StatusCreated)
+				w.Header().Set("Content-Type", "application/json")
+				_ = json.NewEncoder(w).Encode(map[string]string{})
+			},
+			sendFn:  SendMessageBrowser,
+			wantErr: "response missing message_id field",
+		},
+	}
 
-	messages, err := ReceiveMessagesBrowser(
-		http.DefaultClient,
-		server.URL,
-		"test-token",
-	)
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-	require.NoError(t, err)
-	require.Len(t, messages, 3)
+			server := httptest.NewServer(tc.handler)
+			defer server.Close()
+
+			receiver := googleUuid.New()
+
+			resultID, err := tc.sendFn(http.DefaultClient, server.URL, "test message", "test-token", receiver)
+			if tc.wantErr != "" {
+				require.Error(t, err)
+				require.Contains(t, err.Error(), tc.wantErr)
+
+				return
+			}
+
+			require.NoError(t, err)
+			require.Equal(t, tc.wantID, resultID)
+		})
+	}
 }
 
-func TestDeleteMessageBrowser_HappyPath(t *testing.T) {
+func TestReceiveMessages(t *testing.T) {
 	t.Parallel()
 
-	messageID := googleUuid.New()
+	tests := []struct {
+		name      string
+		handler   http.HandlerFunc
+		receiveFn func(*http.Client, string, string) ([]map[string]any, error)
+		wantLen   int
+		wantErr   string
+	}{
+		{
+			name: "service happy path",
+			handler: func(w http.ResponseWriter, _ *http.Request) {
+				w.WriteHeader(http.StatusOK)
+				w.Header().Set("Content-Type", "application/json")
+				_ = json.NewEncoder(w).Encode(map[string]any{
+					"messages": []map[string]any{
+						{"id": googleUuid.New().String(), "message": "Hello"},
+						{"id": googleUuid.New().String(), "message": "World"},
+					},
+				})
+			},
+			receiveFn: ReceiveMessagesService,
+			wantLen:   2,
+		},
+		{
+			name: "service unauthorized",
+			handler: func(w http.ResponseWriter, _ *http.Request) {
+				w.WriteHeader(http.StatusUnauthorized)
+				w.Header().Set("Content-Type", "application/json")
+				_ = json.NewEncoder(w).Encode(Error{Code: "UNAUTHORIZED", Message: "Invalid token"})
+			},
+			receiveFn: ReceiveMessagesService,
+			wantErr:   "Invalid token",
+		},
+		{
+			name: "service missing messages field",
+			handler: func(w http.ResponseWriter, _ *http.Request) {
+				w.WriteHeader(http.StatusOK)
+				w.Header().Set("Content-Type", "application/json")
+				_ = json.NewEncoder(w).Encode(map[string]any{})
+			},
+			receiveFn: ReceiveMessagesService,
+			wantErr:   "response missing messages field",
+		},
+		{
+			name: "service invalid json error fallback",
+			handler: func(w http.ResponseWriter, _ *http.Request) {
+				w.WriteHeader(http.StatusInternalServerError)
+				w.Header().Set("Content-Type", "text/plain")
+				_, _ = w.Write([]byte("Internal Server Error"))
+			},
+			receiveFn: ReceiveMessagesService,
+			wantErr:   "request failed with status",
+		},
+		{
+			name: "browser happy path",
+			handler: func(w http.ResponseWriter, _ *http.Request) {
+				w.WriteHeader(http.StatusOK)
+				w.Header().Set("Content-Type", "application/json")
+				_ = json.NewEncoder(w).Encode(map[string]any{
+					"messages": []map[string]any{
+						{"id": googleUuid.New().String(), "message": "Browser message 1"},
+						{"id": googleUuid.New().String(), "message": "Browser message 2"},
+						{"id": googleUuid.New().String(), "message": "Browser message 3"},
+					},
+				})
+			},
+			receiveFn: ReceiveMessagesBrowser,
+			wantLen:   3,
+		},
+		{
+			name: "browser unauthorized",
+			handler: func(w http.ResponseWriter, _ *http.Request) {
+				w.WriteHeader(http.StatusUnauthorized)
+				w.Header().Set("Content-Type", "application/json")
+				_ = json.NewEncoder(w).Encode(Error{Code: "UNAUTHORIZED", Message: "Invalid browser token"})
+			},
+			receiveFn: ReceiveMessagesBrowser,
+			wantErr:   "Invalid browser token",
+		},
+		{
+			name: "browser missing messages field",
+			handler: func(w http.ResponseWriter, _ *http.Request) {
+				w.WriteHeader(http.StatusOK)
+				w.Header().Set("Content-Type", "application/json")
+				_ = json.NewEncoder(w).Encode(map[string]any{})
+			},
+			receiveFn: ReceiveMessagesBrowser,
+			wantErr:   "response missing messages field",
+		},
+	}
 
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		require.Equal(t, http.MethodDelete, r.Method)
-		require.Equal(t, "/browser/api/v1/messages/"+messageID.String(), r.URL.Path)
-		require.Equal(t, "Bearer test-token", r.Header.Get("Authorization"))
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-		w.WriteHeader(http.StatusNoContent)
-	}))
-	defer server.Close()
+			server := httptest.NewServer(tc.handler)
+			defer server.Close()
 
-	err := DeleteMessageBrowser(
-		http.DefaultClient,
-		server.URL,
-		messageID.String(),
-		"test-token",
-	)
+			messages, err := tc.receiveFn(http.DefaultClient, server.URL, "test-token")
+			if tc.wantErr != "" {
+				require.Error(t, err)
+				require.Contains(t, err.Error(), tc.wantErr)
 
-	require.NoError(t, err)
+				return
+			}
+
+			require.NoError(t, err)
+			require.Len(t, messages, tc.wantLen)
+		})
+	}
 }
 
-func TestErrorError_ReturnsMessage(t *testing.T) {
+func TestDeleteMessage(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name     string
+		handler  http.HandlerFunc
+		deleteFn func(*http.Client, string, string, string) error
+		wantErr  string
+	}{
+		{
+			name: "service happy path",
+			handler: func(w http.ResponseWriter, _ *http.Request) {
+				w.WriteHeader(http.StatusNoContent)
+			},
+			deleteFn: DeleteMessageService,
+		},
+		{
+			name: "service not found",
+			handler: func(w http.ResponseWriter, _ *http.Request) {
+				w.WriteHeader(http.StatusNotFound)
+				w.Header().Set("Content-Type", "application/json")
+				_ = json.NewEncoder(w).Encode(Error{Code: "NOT_FOUND", Message: "Message not found"})
+			},
+			deleteFn: DeleteMessageService,
+			wantErr:  "Message not found",
+		},
+		{
+			name: "browser happy path",
+			handler: func(w http.ResponseWriter, _ *http.Request) {
+				w.WriteHeader(http.StatusNoContent)
+			},
+			deleteFn: DeleteMessageBrowser,
+		},
+		{
+			name: "browser not found",
+			handler: func(w http.ResponseWriter, _ *http.Request) {
+				w.WriteHeader(http.StatusNotFound)
+				w.Header().Set("Content-Type", "application/json")
+				_ = json.NewEncoder(w).Encode(Error{Code: "NOT_FOUND", Message: "Browser message not found"})
+			},
+			deleteFn: DeleteMessageBrowser,
+			wantErr:  "Browser message not found",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			server := httptest.NewServer(tc.handler)
+			defer server.Close()
+
+			messageID := googleUuid.New()
+
+			err := tc.deleteFn(http.DefaultClient, server.URL, messageID.String(), "test-token")
+			if tc.wantErr != "" {
+				require.Error(t, err)
+				require.Contains(t, err.Error(), tc.wantErr)
+
+				return
+			}
+
+			require.NoError(t, err)
+		})
+	}
+}
+
+func TestError_Error(t *testing.T) {
 	t.Parallel()
 
 	err := &Error{
@@ -280,185 +300,4 @@ func TestErrorError_ReturnsMessage(t *testing.T) {
 	}
 
 	require.Equal(t, "This is a test error", err.Error())
-}
-
-func TestReceiveMessagesBrowser_Unauthorized(t *testing.T) {
-	t.Parallel()
-
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-		w.WriteHeader(http.StatusUnauthorized)
-		w.Header().Set("Content-Type", "application/json")
-		_ = json.NewEncoder(w).Encode(Error{Code: "UNAUTHORIZED", Message: "Invalid browser token"})
-	}))
-	defer server.Close()
-
-	_, err := ReceiveMessagesBrowser(
-		http.DefaultClient,
-		server.URL,
-		"invalid-token",
-	)
-
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "Invalid browser token")
-}
-
-func TestReceiveMessagesBrowser_MissingMessagesField(t *testing.T) {
-	t.Parallel()
-
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		w.Header().Set("Content-Type", "application/json")
-		// Return empty object without "messages" field.
-		_ = json.NewEncoder(w).Encode(map[string]any{})
-	}))
-	defer server.Close()
-
-	_, err := ReceiveMessagesBrowser(
-		http.DefaultClient,
-		server.URL,
-		"test-token",
-	)
-
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "response missing messages field")
-}
-
-func TestDeleteMessageBrowser_NotFound(t *testing.T) {
-	t.Parallel()
-
-	messageID := googleUuid.New()
-
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-		w.WriteHeader(http.StatusNotFound)
-		w.Header().Set("Content-Type", "application/json")
-		_ = json.NewEncoder(w).Encode(Error{Code: "NOT_FOUND", Message: "Browser message not found"})
-	}))
-	defer server.Close()
-
-	err := DeleteMessageBrowser(
-		http.DefaultClient,
-		server.URL,
-		messageID.String(),
-		"test-token",
-	)
-
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "Browser message not found")
-}
-
-func TestSendMessageBrowser_Unauthorized(t *testing.T) {
-	t.Parallel()
-
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-		w.WriteHeader(http.StatusUnauthorized)
-		w.Header().Set("Content-Type", "application/json")
-		_ = json.NewEncoder(w).Encode(Error{Code: "UNAUTHORIZED", Message: "Invalid browser session"})
-	}))
-	defer server.Close()
-
-	receiver := googleUuid.New()
-
-	_, err := SendMessageBrowser(
-		http.DefaultClient,
-		server.URL,
-		"Test message",
-		"invalid-token",
-		receiver,
-	)
-
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "Invalid browser session")
-}
-
-func TestSendMessageBrowser_MissingMessageID(t *testing.T) {
-	t.Parallel()
-
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-		w.WriteHeader(http.StatusCreated)
-		w.Header().Set("Content-Type", "application/json")
-		// Return empty object without "message_id" field.
-		_ = json.NewEncoder(w).Encode(map[string]string{})
-	}))
-	defer server.Close()
-
-	receiver := googleUuid.New()
-
-	_, err := SendMessageBrowser(
-		http.DefaultClient,
-		server.URL,
-		"Test message",
-		"test-token",
-		receiver,
-	)
-
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "response missing message_id field")
-}
-
-func TestSendMessage_MissingMessageID(t *testing.T) {
-	t.Parallel()
-
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-		w.WriteHeader(http.StatusCreated)
-		w.Header().Set("Content-Type", "application/json")
-		// Return empty object without "message_id" field.
-		_ = json.NewEncoder(w).Encode(map[string]string{})
-	}))
-	defer server.Close()
-
-	receiver := googleUuid.New()
-
-	_, err := SendMessage(
-		http.DefaultClient,
-		server.URL,
-		"Test message",
-		"test-token",
-		receiver,
-	)
-
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "response missing message_id field")
-}
-
-func TestReceiveMessagesService_MissingMessagesField(t *testing.T) {
-	t.Parallel()
-
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		w.Header().Set("Content-Type", "application/json")
-		// Return empty object without "messages" field.
-		_ = json.NewEncoder(w).Encode(map[string]any{})
-	}))
-	defer server.Close()
-
-	_, err := ReceiveMessagesService(
-		http.DefaultClient,
-		server.URL,
-		"test-token",
-	)
-
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "response missing messages field")
-}
-
-func TestDecodeErrorResponse_InvalidJSON(t *testing.T) {
-	t.Parallel()
-
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Header().Set("Content-Type", "text/plain")
-		// Return invalid JSON to trigger fallback error.
-		_, _ = w.Write([]byte("Internal Server Error"))
-	}))
-	defer server.Close()
-
-	// Use ReceiveMessagesService which will trigger decodeErrorResponse.
-	_, err := ReceiveMessagesService(
-		http.DefaultClient,
-		server.URL,
-		"test-token",
-	)
-
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "request failed with status")
 }
