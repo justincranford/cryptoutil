@@ -8,7 +8,6 @@ import (
 	"database/sql"
 	"os"
 	"testing"
-	"time"
 
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 	"gorm.io/driver/sqlite"
@@ -168,8 +167,4 @@ func closedDBMaterialRepo(t *testing.T) cryptoutilAppsJoseJaRepository.MaterialJ
 	})
 
 	return cryptoutilAppsJoseJaRepository.NewMaterialJWKRepository(closedDB)
-}
-
-func timePtr(t time.Time) *time.Time {
-	return &t
 }
