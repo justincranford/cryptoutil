@@ -14,385 +14,261 @@ import (
 	_ "modernc.org/sqlite" // CGO-free SQLite driver.
 )
 
-func TestGetJWKSForElasticKey_BarrierDecryptSkip(t *testing.T) {
+func TestJWKSService_DatabaseError(t *testing.T) {
 	t.Parallel()
 
-	ctx := context.Background()
-	elasticSvc := NewElasticJWKService(testElasticRepo, testMaterialRepo, testJWKGenService, testBarrierService)
-	jwksSvc := NewJWKSService(testElasticRepo, testMaterialRepo, testBarrierService)
-	tenantID := googleUuid.New()
-	elasticJWK, material, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaModel.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
-	require.NoError(t, err)
+	tests := []struct {
+		name    string
+		invoke  func(t *testing.T, ctx context.Context) error
+		wantErr string
+	}{
+		{name: "GetJWKS closed DB", invoke: func(t *testing.T, ctx context.Context) error {
+			t.Helper()
 
-	corruptedBase64 := base64.StdEncoding.EncodeToString([]byte("not-barrier"))
-	err = testDB.Model(&cryptoutilAppsJoseJaModel.MaterialJWK{}).Where("id = ?", material.ID).Update("public_jwk_jwe", corruptedBase64).Error
-	require.NoError(t, err)
-	jwks, err := jwksSvc.GetJWKSForElasticKey(ctx, tenantID, elasticJWK.ID)
-	require.NoError(t, err)
-	require.Empty(t, jwks.Keys)
+			elasticRepo, materialRepo, _, _ := newClosedServiceDeps(t)
+			svc := NewJWKSService(elasticRepo, materialRepo, testBarrierService)
+
+			_, err := svc.GetJWKS(ctx, googleUuid.New())
+
+			return err
+		}},
+		{name: "GetJWKSForElasticKey closed DB", invoke: func(t *testing.T, ctx context.Context) error {
+			t.Helper()
+
+			elasticRepo, materialRepo, _, _ := newClosedServiceDeps(t)
+			svc := NewJWKSService(elasticRepo, materialRepo, testBarrierService)
+
+			_, err := svc.GetJWKSForElasticKey(ctx, googleUuid.New(), googleUuid.New())
+
+			return err
+		}},
+		{name: "GetJWKSForElasticKey list materials closed DB", invoke: func(t *testing.T, ctx context.Context) error {
+			t.Helper()
+
+			elasticSvc := NewElasticJWKService(testElasticRepo, testMaterialRepo, testJWKGenService, testBarrierService)
+			tenantID := googleUuid.New()
+
+			elasticJWK, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaModel.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
+			require.NoError(t, err)
+
+			brokenMaterialRepo := closedDBMaterialRepo(t)
+			jwksSvc := NewJWKSService(testElasticRepo, brokenMaterialRepo, testBarrierService)
+
+			_, err = jwksSvc.GetJWKSForElasticKey(ctx, tenantID, elasticJWK.ID)
+
+			return err
+		}, wantErr: "failed to list materials"},
+		{name: "GetPublicJWK closed DB", invoke: func(t *testing.T, ctx context.Context) error {
+			t.Helper()
+
+			elasticRepo, materialRepo, _, _ := newClosedServiceDeps(t)
+			svc := NewJWKSService(elasticRepo, materialRepo, testBarrierService)
+
+			_, err := svc.GetPublicJWK(ctx, googleUuid.New(), "test-kid")
+
+			return err
+		}},
+		{name: "GetPublicJWK elastic JWK deleted", invoke: func(t *testing.T, ctx context.Context) error {
+			t.Helper()
+
+			elasticSvc := NewElasticJWKService(testElasticRepo, testMaterialRepo, testJWKGenService, testBarrierService)
+			jwksSvc := NewJWKSService(testElasticRepo, testMaterialRepo, testBarrierService)
+			tenantID := googleUuid.New()
+
+			elasticJWK, material, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaModel.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
+			require.NoError(t, err)
+
+			err = testDB.Delete(&cryptoutilAppsJoseJaModel.ElasticJWK{}, "id = ?", elasticJWK.ID).Error
+			require.NoError(t, err)
+
+			_, err = jwksSvc.GetPublicJWK(ctx, tenantID, material.MaterialKID)
+
+			return err
+		}, wantErr: "failed to get elastic JWK"},
+		{name: "GetPublicJWK wrong KID", invoke: func(t *testing.T, ctx context.Context) error {
+			t.Helper()
+
+			jwksSvc := NewJWKSService(testElasticRepo, testMaterialRepo, testBarrierService)
+
+			_, err := jwksSvc.GetPublicJWK(ctx, googleUuid.New(), "nonexistent-kid")
+
+			return err
+		}, wantErr: "failed to get material"},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			err := tc.invoke(t, context.Background())
+			require.Error(t, err)
+
+			if tc.wantErr != "" {
+				require.Contains(t, err.Error(), tc.wantErr)
+			} else {
+				require.True(t,
+					strings.Contains(err.Error(), "failed to") ||
+						strings.Contains(err.Error(), "not found"),
+					"Expected database or not-found error, got: %v", err)
+			}
+		})
+	}
 }
 
-func TestGetJWKSForElasticKey_Base64DecodeSkip(t *testing.T) {
+func TestJWKSService_GetJWKSForElasticKey_GracefulDegradation(t *testing.T) {
 	t.Parallel()
 
-	ctx := context.Background()
-	elasticSvc := NewElasticJWKService(testElasticRepo, testMaterialRepo, testJWKGenService, testBarrierService)
-	jwksSvc := NewJWKSService(testElasticRepo, testMaterialRepo, testBarrierService)
-	tenantID := googleUuid.New()
-	elasticJWK, material, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaModel.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
-	require.NoError(t, err)
-	err = testDB.Model(&cryptoutilAppsJoseJaModel.MaterialJWK{}).Where("id = ?", material.ID).Update("public_jwk_jwe", "===invalid===").Error
-	require.NoError(t, err)
-	jwks, err := jwksSvc.GetJWKSForElasticKey(ctx, tenantID, elasticJWK.ID)
-	require.NoError(t, err)
-	require.Empty(t, jwks.Keys)
+	tests := []struct {
+		name  string
+		setup func(t *testing.T, ctx context.Context, tenantID googleUuid.UUID, elasticID, materialID googleUuid.UUID)
+	}{
+		{name: "barrier decrypt skip", setup: func(t *testing.T, ctx context.Context, _, _, materialID googleUuid.UUID) {
+			t.Helper()
+			corruptPublicJWK(t, ctx, materialID, base64.StdEncoding.EncodeToString([]byte("not-barrier")))
+		}},
+		{name: "base64 decode skip", setup: func(t *testing.T, ctx context.Context, _, _, materialID googleUuid.UUID) {
+			t.Helper()
+			corruptPublicJWK(t, ctx, materialID, corruptBase64Padding)
+		}},
+		{name: "corrupted public JWK parse", setup: func(t *testing.T, ctx context.Context, _, _, materialID googleUuid.UUID) {
+			t.Helper()
+			corruptPublicJWK(t, ctx, materialID, barrierEncryptedInvalidJSON(t, ctx))
+		}},
+		{name: "inactive materials", setup: func(t *testing.T, ctx context.Context, tenantID googleUuid.UUID, elasticID, materialID googleUuid.UUID) {
+			t.Helper()
+
+			rotationSvc := NewMaterialRotationService(testElasticRepo, testMaterialRepo, testJWKGenService, testBarrierService)
+			err := rotationSvc.RetireMaterial(ctx, tenantID, elasticID, materialID)
+			require.NoError(t, err)
+		}},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctx := context.Background()
+			elasticSvc := NewElasticJWKService(testElasticRepo, testMaterialRepo, testJWKGenService, testBarrierService)
+			jwksSvc := NewJWKSService(testElasticRepo, testMaterialRepo, testBarrierService)
+			tenantID := googleUuid.New()
+
+			elasticJWK, material, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaModel.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
+			require.NoError(t, err)
+
+			tc.setup(t, ctx, tenantID, elasticJWK.ID, material.ID)
+
+			jwks, err := jwksSvc.GetJWKSForElasticKey(ctx, tenantID, elasticJWK.ID)
+			require.NoError(t, err)
+			require.Empty(t, jwks.Keys)
+		})
+	}
 }
 
-func TestGetJWKSForElasticKey_ListMaterialsDBError(t *testing.T) {
+func TestJWKSService_GetJWKS_GracefulDegradation(t *testing.T) {
 	t.Parallel()
 
-	ctx := context.Background()
+	tests := []struct {
+		name  string
+		setup func(t *testing.T, ctx context.Context, tenantID googleUuid.UUID, elasticID, materialID googleUuid.UUID) googleUuid.UUID
+	}{
+		{name: "barrier decrypt failure", setup: func(t *testing.T, ctx context.Context, tenantID googleUuid.UUID, _, materialID googleUuid.UUID) googleUuid.UUID {
+			t.Helper()
+			corruptPublicJWK(t, ctx, materialID, base64.StdEncoding.EncodeToString([]byte("not-barrier")))
 
-	// Create elastic JWK in the working shared DB.
-	elasticSvc := NewElasticJWKService(testElasticRepo, testMaterialRepo, testJWKGenService, testBarrierService)
-	tenantID := googleUuid.New()
+			return tenantID
+		}},
+		{name: "base64 decode failure", setup: func(t *testing.T, ctx context.Context, tenantID googleUuid.UUID, _, materialID googleUuid.UUID) googleUuid.UUID {
+			t.Helper()
+			corruptPublicJWK(t, ctx, materialID, corruptBase64Padding)
 
-	elasticJWK, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaModel.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
-	require.NoError(t, err)
+			return tenantID
+		}},
+		{name: "corrupted base64 mixed", setup: func(t *testing.T, ctx context.Context, tenantID googleUuid.UUID, _, materialID googleUuid.UUID) googleUuid.UUID {
+			t.Helper()
+			corruptPublicJWK(t, ctx, materialID, corruptBase64Exclamation)
 
-	// Create JWKS service with working elastic repo but closed-DB material repo.
-	brokenMaterialRepo := closedDBMaterialRepo(t)
-	jwksSvc := NewJWKSService(testElasticRepo, brokenMaterialRepo, testBarrierService)
+			return tenantID
+		}},
+		{name: "corrupted public JWK parse", setup: func(t *testing.T, ctx context.Context, tenantID googleUuid.UUID, _, materialID googleUuid.UUID) googleUuid.UUID {
+			t.Helper()
+			corruptPublicJWK(t, ctx, materialID, barrierEncryptedInvalidJSON(t, ctx))
 
-	_, err = jwksSvc.GetJWKSForElasticKey(ctx, tenantID, elasticJWK.ID)
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "failed to list materials")
+			return tenantID
+		}},
+		{name: "no active material", setup: func(t *testing.T, ctx context.Context, tenantID googleUuid.UUID, elasticID, materialID googleUuid.UUID) googleUuid.UUID {
+			t.Helper()
+
+			rotationSvc := NewMaterialRotationService(testElasticRepo, testMaterialRepo, testJWKGenService, testBarrierService)
+			err := rotationSvc.RetireMaterial(ctx, tenantID, elasticID, materialID)
+			require.NoError(t, err)
+
+			return tenantID
+		}},
+		{name: "empty for wrong tenant", setup: func(_ *testing.T, _ context.Context, _ googleUuid.UUID, _, _ googleUuid.UUID) googleUuid.UUID {
+			return googleUuid.New()
+		}},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctx := context.Background()
+			elasticSvc := NewElasticJWKService(testElasticRepo, testMaterialRepo, testJWKGenService, testBarrierService)
+			jwksSvc := NewJWKSService(testElasticRepo, testMaterialRepo, testBarrierService)
+			tenantID := googleUuid.New()
+
+			elasticJWK, material, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaModel.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
+			require.NoError(t, err)
+
+			queryTenantID := tc.setup(t, ctx, tenantID, elasticJWK.ID, material.ID)
+
+			jwks, err := jwksSvc.GetJWKS(ctx, queryTenantID)
+			require.NoError(t, err)
+			require.Empty(t, jwks.Keys)
+		})
+	}
 }
 
-func TestGetJWKS_BarrierDecryptFailure(t *testing.T) {
+func TestJWKSService_GetPublicJWK_CorruptedMaterial(t *testing.T) {
 	t.Parallel()
 
-	ctx := context.Background()
-	elasticSvc := NewElasticJWKService(testElasticRepo, testMaterialRepo, testJWKGenService, testBarrierService)
-	jwksSvc := NewJWKSService(testElasticRepo, testMaterialRepo, testBarrierService)
-	tenantID := googleUuid.New()
-	_, material, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaModel.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
-	require.NoError(t, err)
+	tests := []struct {
+		name         string
+		corruptValue func(t *testing.T, ctx context.Context) string
+		wantErr      string
+	}{
+		{name: "base64 decode failure equals", corruptValue: func(_ *testing.T, _ context.Context) string {
+			return corruptBase64Padding
+		}, wantErr: "failed to decode public JWK JWE"},
+		{name: "base64 decode failure exclamation", corruptValue: func(_ *testing.T, _ context.Context) string {
+			return corruptBase64Exclamation
+		}, wantErr: "failed to decode public JWK JWE"},
+		{name: "barrier decrypt failure", corruptValue: func(_ *testing.T, _ context.Context) string {
+			return base64.StdEncoding.EncodeToString([]byte("not-barrier"))
+		}, wantErr: "failed to decrypt public JWK"},
+		{name: "corrupted public JWK parse", corruptValue: func(t *testing.T, ctx context.Context) string {
+			t.Helper()
 
-	corruptedBase64 := base64.StdEncoding.EncodeToString([]byte("not-barrier"))
-	err = testDB.Model(&cryptoutilAppsJoseJaModel.MaterialJWK{}).Where("id = ?", material.ID).Update("public_jwk_jwe", corruptedBase64).Error
-	require.NoError(t, err)
-	jwks, err := jwksSvc.GetJWKS(ctx, tenantID)
-	require.NoError(t, err)
-	require.Empty(t, jwks.Keys)
-}
+			return barrierEncryptedInvalidJSON(t, ctx)
+		}, wantErr: "failed to parse public JWK"},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-func TestGetJWKS_Base64DecodeFailure(t *testing.T) {
-	t.Parallel()
+			ctx := context.Background()
+			elasticSvc := NewElasticJWKService(testElasticRepo, testMaterialRepo, testJWKGenService, testBarrierService)
+			jwksSvc := NewJWKSService(testElasticRepo, testMaterialRepo, testBarrierService)
+			tenantID := googleUuid.New()
 
-	ctx := context.Background()
-	elasticSvc := NewElasticJWKService(testElasticRepo, testMaterialRepo, testJWKGenService, testBarrierService)
-	jwksSvc := NewJWKSService(testElasticRepo, testMaterialRepo, testBarrierService)
-	tenantID := googleUuid.New()
-	_, material, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaModel.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
-	require.NoError(t, err)
-	err = testDB.Model(&cryptoutilAppsJoseJaModel.MaterialJWK{}).Where("id = ?", material.ID).Update("public_jwk_jwe", "===invalid===").Error
-	require.NoError(t, err)
-	jwks, err := jwksSvc.GetJWKS(ctx, tenantID)
-	require.NoError(t, err)
-	require.Empty(t, jwks.Keys)
-}
+			_, material, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaModel.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
+			require.NoError(t, err)
 
-func TestGetJWKS_NoActiveMaterial(t *testing.T) {
-	t.Parallel()
+			corruptPublicJWK(t, ctx, material.ID, tc.corruptValue(t, ctx))
 
-	ctx := context.Background()
-	elasticSvc := NewElasticJWKService(testElasticRepo, testMaterialRepo, testJWKGenService, testBarrierService)
-	rotationSvc := NewMaterialRotationService(testElasticRepo, testMaterialRepo, testJWKGenService, testBarrierService)
-	jwksSvc := NewJWKSService(testElasticRepo, testMaterialRepo, testBarrierService)
-	tenantID := googleUuid.New()
-	elasticJWK, material, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaModel.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
-	require.NoError(t, err)
-	err = rotationSvc.RetireMaterial(ctx, tenantID, elasticJWK.ID, material.ID)
-	require.NoError(t, err)
-	jwks, err := jwksSvc.GetJWKS(ctx, tenantID)
-	require.NoError(t, err)
-	require.Empty(t, jwks.Keys)
-}
-
-func TestJWKSService_GetJWKSDatabaseError(t *testing.T) {
-	t.Parallel()
-
-	elasticRepo, materialRepo, _, _ := newClosedServiceDeps(t)
-
-	ctx := context.Background()
-	svc := NewJWKSService(elasticRepo, materialRepo, testBarrierService)
-
-	_, err := svc.GetJWKS(ctx, googleUuid.New())
-	require.Error(t, err)
-	require.True(t,
-		strings.Contains(err.Error(), "failed to") ||
-			strings.Contains(err.Error(), "not found"),
-		"Expected database or not-found error, got: %v", err)
-}
-
-func TestJWKSService_GetJWKSForElasticKeyDatabaseError(t *testing.T) {
-	t.Parallel()
-
-	elasticRepo, materialRepo, _, _ := newClosedServiceDeps(t)
-
-	ctx := context.Background()
-	svc := NewJWKSService(elasticRepo, materialRepo, testBarrierService)
-
-	_, err := svc.GetJWKSForElasticKey(ctx, googleUuid.New(), googleUuid.New())
-	require.Error(t, err)
-	require.True(t,
-		strings.Contains(err.Error(), "failed to") ||
-			strings.Contains(err.Error(), "not found"),
-		"Expected database or not-found error, got: %v", err)
-}
-
-func TestJWKSService_GetJWKSForElasticKey_CorruptedPublicJWK(t *testing.T) {
-	t.Parallel()
-
-	ctx := context.Background()
-	elasticSvc := NewElasticJWKService(testElasticRepo, testMaterialRepo, testJWKGenService, testBarrierService)
-	jwksSvc := NewJWKSService(testElasticRepo, testMaterialRepo, testBarrierService)
-	tenantID := googleUuid.New()
-	elasticJWK, material, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaModel.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
-	require.NoError(t, err)
-
-	invalidJSON := []byte("not-valid-json")
-	encryptedInvalid, err := testBarrierService.EncryptContentWithContext(ctx, invalidJSON)
-	require.NoError(t, err)
-
-	corruptedJWE := base64.StdEncoding.EncodeToString(encryptedInvalid)
-	err = testDB.Model(&cryptoutilAppsJoseJaModel.MaterialJWK{}).Where("id = ?", material.ID).Update("public_jwk_jwe", corruptedJWE).Error
-	require.NoError(t, err)
-	jwks, err := jwksSvc.GetJWKSForElasticKey(ctx, tenantID, elasticJWK.ID)
-	require.NoError(t, err)
-	require.Empty(t, jwks.Keys)
-}
-
-func TestJWKSService_GetJWKSForElasticKey_InactiveMaterials(t *testing.T) {
-	t.Parallel()
-
-	ctx := context.Background()
-	elasticSvc := NewElasticJWKService(testElasticRepo, testMaterialRepo, testJWKGenService, testBarrierService)
-	rotationSvc := NewMaterialRotationService(testElasticRepo, testMaterialRepo, testJWKGenService, testBarrierService)
-	jwksSvc := NewJWKSService(testElasticRepo, testMaterialRepo, testBarrierService)
-	tenantID := googleUuid.New()
-	elasticJWK, material, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaModel.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
-	require.NoError(t, err)
-	err = rotationSvc.RetireMaterial(ctx, tenantID, elasticJWK.ID, material.ID)
-	require.NoError(t, err)
-	jwks, err := jwksSvc.GetJWKSForElasticKey(ctx, tenantID, elasticJWK.ID)
-	require.NoError(t, err)
-	require.Empty(t, jwks.Keys)
-}
-
-func TestJWKSService_GetJWKS_CorruptedBase64(t *testing.T) {
-	t.Parallel()
-
-	ctx := context.Background()
-
-	// Create elastic JWK with material using real services.
-	elasticSvc := NewElasticJWKService(testElasticRepo, testMaterialRepo, testJWKGenService, testBarrierService)
-	tenantID := googleUuid.New()
-
-	elasticJWK, material, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm, cryptoutilAppsJoseJaModel.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
-	require.NoError(t, err)
-	require.NotNil(t, elasticJWK)
-	require.NotNil(t, material)
-
-	// Corrupt the material's PublicJWKJWE.
-	err = testDB.Model(&cryptoutilAppsJoseJaModel.MaterialJWK{}).
-		Where("id = ?", material.ID).
-		Update("public_jwk_jwe", "not-valid-base64!!!").Error
-	require.NoError(t, err)
-
-	// GetJWKS skips corrupted materials and returns empty JWKS (graceful degradation).
-	jwksSvc := NewJWKSService(testElasticRepo, testMaterialRepo, testBarrierService)
-	jwks, err := jwksSvc.GetJWKS(ctx, tenantID)
-	require.NoError(t, err)
-	// The corrupted material is skipped, resulting in empty keys.
-	require.Empty(t, jwks.Keys)
-}
-
-func TestJWKSService_GetJWKS_CorruptedPublicJWKParse(t *testing.T) {
-	t.Parallel()
-
-	ctx := context.Background()
-	elasticSvc := NewElasticJWKService(testElasticRepo, testMaterialRepo, testJWKGenService, testBarrierService)
-	jwksSvc := NewJWKSService(testElasticRepo, testMaterialRepo, testBarrierService)
-	tenantID := googleUuid.New()
-	_, material, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaModel.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
-	require.NoError(t, err)
-
-	invalidJSON := []byte("not-valid-json")
-	encryptedInvalid, err := testBarrierService.EncryptContentWithContext(ctx, invalidJSON)
-	require.NoError(t, err)
-
-	corruptedJWE := base64.StdEncoding.EncodeToString(encryptedInvalid)
-	err = testDB.Model(&cryptoutilAppsJoseJaModel.MaterialJWK{}).Where("id = ?", material.ID).Update("public_jwk_jwe", corruptedJWE).Error
-	require.NoError(t, err)
-	jwks, err := jwksSvc.GetJWKS(ctx, tenantID)
-	require.NoError(t, err)
-	require.Empty(t, jwks.Keys)
-}
-
-func TestJWKSService_GetJWKS_EmptyForWrongTenant(t *testing.T) {
-	t.Parallel()
-
-	ctx := context.Background()
-
-	elasticSvc := NewElasticJWKService(testElasticRepo, testMaterialRepo, testJWKGenService, testBarrierService)
-	jwksSvc := NewJWKSService(testElasticRepo, testMaterialRepo, testBarrierService)
-	tenantID := googleUuid.New()
-	otherTenantID := googleUuid.New()
-
-	// Create signing key for one tenant.
-	_, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm, cryptoutilAppsJoseJaModel.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
-	require.NoError(t, err)
-
-	// Get JWKS with different tenant - should return empty (not an error).
-	jwks, err := jwksSvc.GetJWKS(ctx, otherTenantID)
-	require.NoError(t, err)
-	require.Empty(t, jwks.Keys)
-}
-
-func TestJWKSService_GetPublicJWKDatabaseError(t *testing.T) {
-	t.Parallel()
-
-	elasticRepo, materialRepo, _, _ := newClosedServiceDeps(t)
-
-	ctx := context.Background()
-	svc := NewJWKSService(elasticRepo, materialRepo, testBarrierService)
-
-	_, err := svc.GetPublicJWK(ctx, googleUuid.New(), "test-kid")
-	require.Error(t, err)
-	require.True(t,
-		strings.Contains(err.Error(), "failed to") ||
-			strings.Contains(err.Error(), "not found"),
-		"Expected database or not-found error, got: %v", err)
-}
-
-func TestJWKSService_GetPublicJWK_Base64DecodeFailure(t *testing.T) {
-	t.Parallel()
-
-	ctx := context.Background()
-	elasticSvc := NewElasticJWKService(testElasticRepo, testMaterialRepo, testJWKGenService, testBarrierService)
-	jwksSvc := NewJWKSService(testElasticRepo, testMaterialRepo, testBarrierService)
-	tenantID := googleUuid.New()
-	_, material, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaModel.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
-	require.NoError(t, err)
-	err = testDB.Model(&cryptoutilAppsJoseJaModel.MaterialJWK{}).Where("id = ?", material.ID).Update("public_jwk_jwe", "===invalid===").Error
-	require.NoError(t, err)
-	_, err = jwksSvc.GetPublicJWK(ctx, tenantID, material.MaterialKID)
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "failed to decode public JWK JWE")
-}
-
-func TestJWKSService_GetPublicJWK_CorruptedBarrierDecrypt(t *testing.T) {
-	t.Parallel()
-
-	ctx := context.Background()
-	elasticSvc := NewElasticJWKService(testElasticRepo, testMaterialRepo, testJWKGenService, testBarrierService)
-	jwksSvc := NewJWKSService(testElasticRepo, testMaterialRepo, testBarrierService)
-	tenantID := googleUuid.New()
-	_, material, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaModel.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
-	require.NoError(t, err)
-
-	corruptedBase64 := base64.StdEncoding.EncodeToString([]byte("not-barrier"))
-	err = testDB.Model(&cryptoutilAppsJoseJaModel.MaterialJWK{}).Where("id = ?", material.ID).Update("public_jwk_jwe", corruptedBase64).Error
-	require.NoError(t, err)
-	_, err = jwksSvc.GetPublicJWK(ctx, tenantID, material.MaterialKID)
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "failed to decrypt public JWK")
-}
-
-func TestJWKSService_GetPublicJWK_CorruptedBase64(t *testing.T) {
-	t.Parallel()
-
-	ctx := context.Background()
-
-	// Create elastic JWK with material using real services.
-	elasticSvc := NewElasticJWKService(testElasticRepo, testMaterialRepo, testJWKGenService, testBarrierService)
-	tenantID := googleUuid.New()
-
-	elasticJWK, material, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm, cryptoutilAppsJoseJaModel.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
-	require.NoError(t, err)
-	require.NotNil(t, elasticJWK)
-	require.NotNil(t, material)
-
-	// Corrupt the material's PublicJWKJWE.
-	err = testDB.Model(&cryptoutilAppsJoseJaModel.MaterialJWK{}).
-		Where("id = ?", material.ID).
-		Update("public_jwk_jwe", "not-valid-base64!!!").Error
-	require.NoError(t, err)
-
-	// Try to get public JWK - should fail on base64 decode.
-	// GetPublicJWK signature: (ctx, tenantID, kid).
-	jwksSvc := NewJWKSService(testElasticRepo, testMaterialRepo, testBarrierService)
-	_, err = jwksSvc.GetPublicJWK(ctx, tenantID, material.MaterialKID)
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "failed to decode public JWK JWE")
-}
-
-func TestJWKSService_GetPublicJWK_CorruptedPublicJWKParse(t *testing.T) {
-	t.Parallel()
-
-	ctx := context.Background()
-	elasticSvc := NewElasticJWKService(testElasticRepo, testMaterialRepo, testJWKGenService, testBarrierService)
-	jwksSvc := NewJWKSService(testElasticRepo, testMaterialRepo, testBarrierService)
-	tenantID := googleUuid.New()
-	_, material, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaModel.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
-	require.NoError(t, err)
-
-	invalidJSON := []byte("not-valid-json")
-	encryptedInvalid, err := testBarrierService.EncryptContentWithContext(ctx, invalidJSON)
-	require.NoError(t, err)
-
-	corruptedJWE := base64.StdEncoding.EncodeToString(encryptedInvalid)
-	err = testDB.Model(&cryptoutilAppsJoseJaModel.MaterialJWK{}).Where("id = ?", material.ID).Update("public_jwk_jwe", corruptedJWE).Error
-	require.NoError(t, err)
-	_, err = jwksSvc.GetPublicJWK(ctx, tenantID, material.MaterialKID)
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "failed to parse public JWK")
-}
-
-func TestJWKSService_GetPublicJWK_ElasticJWKDeleted(t *testing.T) {
-	t.Parallel()
-
-	ctx := context.Background()
-	elasticSvc := NewElasticJWKService(testElasticRepo, testMaterialRepo, testJWKGenService, testBarrierService)
-	jwksSvc := NewJWKSService(testElasticRepo, testMaterialRepo, testBarrierService)
-	tenantID := googleUuid.New()
-
-	elasticJWK, material, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaModel.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
-	require.NoError(t, err)
-
-	// Delete elastic JWK record directly (bypass service which also deletes materials).
-	err = testDB.Delete(&cryptoutilAppsJoseJaModel.ElasticJWK{}, "id = ?", elasticJWK.ID).Error
-	require.NoError(t, err)
-
-	_, err = jwksSvc.GetPublicJWK(ctx, tenantID, material.MaterialKID)
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "failed to get elastic JWK")
-}
-
-func TestJWKSService_GetPublicJWK_WrongKID(t *testing.T) {
-	t.Parallel()
-
-	ctx := context.Background()
-
-	jwksSvc := NewJWKSService(testElasticRepo, testMaterialRepo, testBarrierService)
-	tenantID := googleUuid.New()
-
-	// Try to get public JWK with non-existent KID.
-	_, err := jwksSvc.GetPublicJWK(ctx, tenantID, "nonexistent-kid")
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "failed to get material")
+			_, err = jwksSvc.GetPublicJWK(ctx, tenantID, material.MaterialKID)
+			require.Error(t, err)
+			require.Contains(t, err.Error(), tc.wantErr)
+		})
+	}
 }
 
 func TestVerify_ListMaterialsDBError(t *testing.T) {
@@ -400,7 +276,6 @@ func TestVerify_ListMaterialsDBError(t *testing.T) {
 
 	ctx := context.Background()
 
-	// Create elastic JWK in the working shared DB and sign something.
 	elasticSvc := NewElasticJWKService(testElasticRepo, testMaterialRepo, testJWKGenService, testBarrierService)
 	jwsSvc := NewJWSService(testElasticRepo, testMaterialRepo, testBarrierService)
 	tenantID := googleUuid.New()
@@ -408,11 +283,9 @@ func TestVerify_ListMaterialsDBError(t *testing.T) {
 	elasticJWK, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaModel.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 	require.NoError(t, err)
 
-	// Sign something to get a valid JWS token.
 	jws, err := jwsSvc.Sign(ctx, tenantID, elasticJWK.ID, []byte("test payload"))
 	require.NoError(t, err)
 
-	// Create JWS service with working elastic repo but closed-DB material repo.
 	brokenMaterialRepo := closedDBMaterialRepo(t)
 	brokenJWSSvc := NewJWSService(testElasticRepo, brokenMaterialRepo, testBarrierService)
 
