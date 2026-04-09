@@ -159,194 +159,147 @@ func newMockPGSchemaManager(t *testing.T, d *mockPGDriver) *SchemaManager {
 // Tests for unsupported database type (default switch cases).
 // ----------------------------------------------------------------------------
 
-func TestCreateSchema_UnsupportedType(t *testing.T) {
+func TestSchemaManager_UnsupportedType(t *testing.T) {
 	t.Parallel()
 
-	sm := &SchemaManager{dbType: "unsupported"}
-	err := sm.CreateSchema(context.Background(), "tenant-id")
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "unsupported database type")
-}
+	tests := []struct {
+		name    string
+		op      func(sm *SchemaManager) error
+		wantErr string
+	}{
+		{name: "CreateSchema unsupported", op: func(sm *SchemaManager) error { return sm.CreateSchema(context.Background(), "tenant-id") }, wantErr: "unsupported database type"},
+		{name: "DropSchema unsupported", op: func(sm *SchemaManager) error { return sm.DropSchema(context.Background(), "tenant-id") }, wantErr: "unsupported database type"},
+		{name: "SchemaExists unsupported", op: func(sm *SchemaManager) error {
+			_, err := sm.SchemaExists(context.Background(), "tenant-id")
 
-func TestDropSchema_UnsupportedType(t *testing.T) {
-	t.Parallel()
+			return err
+		}, wantErr: "unsupported database type"},
+		{name: "ListSchemas unsupported", op: func(sm *SchemaManager) error {
+			_, err := sm.ListSchemas(context.Background())
 
-	sm := &SchemaManager{dbType: "unsupported"}
-	err := sm.DropSchema(context.Background(), "tenant-id")
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "unsupported database type")
-}
+			return err
+		}, wantErr: "unsupported database type"},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-func TestSchemaExists_UnsupportedType(t *testing.T) {
-	t.Parallel()
-
-	sm := &SchemaManager{dbType: "unsupported"}
-	_, err := sm.SchemaExists(context.Background(), "tenant-id")
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "unsupported database type")
-}
-
-func TestListSchemas_UnsupportedType(t *testing.T) {
-	t.Parallel()
-
-	sm := &SchemaManager{dbType: "unsupported"}
-	_, err := sm.ListSchemas(context.Background())
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "unsupported database type")
+			sm := &SchemaManager{dbType: "unsupported"}
+			err := tc.op(sm)
+			require.ErrorContains(t, err, tc.wantErr)
+		})
+	}
 }
 
 // ----------------------------------------------------------------------------
-// Tests for PostgreSQL operations via mock driver.
+// Tests for PostgreSQL Create/Drop operations via mock driver.
 // ----------------------------------------------------------------------------
 
-// TestCreatePostgresSchema_Success tests successful schema creation.
-func TestCreatePostgresSchema_Success(t *testing.T) {
+func TestPostgresSchema_CreateDrop(t *testing.T) {
 	t.Parallel()
 
-	d := &mockPGDriver{}
-	sm := newMockPGSchemaManager(t, d)
-
-	err := sm.CreateSchema(context.Background(), "test-tenant-id")
-	require.NoError(t, err)
-}
-
-// TestCreatePostgresSchema_Error tests error path in schema creation.
-func TestCreatePostgresSchema_Error(t *testing.T) {
-	t.Parallel()
-
-	d := &mockPGDriver{failExec: true}
-	sm := newMockPGSchemaManager(t, d)
-
-	err := sm.CreateSchema(context.Background(), "test-tenant-id")
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "failed to create PostgreSQL schema")
-}
-
-// TestDropPostgresSchema_Success tests successful schema drop.
-func TestDropPostgresSchema_Success(t *testing.T) {
-	t.Parallel()
-
-	d := &mockPGDriver{}
-	sm := newMockPGSchemaManager(t, d)
-
-	err := sm.DropSchema(context.Background(), "test-tenant-id")
-	require.NoError(t, err)
-}
-
-// TestDropPostgresSchema_Error tests error path in schema drop.
-func TestDropPostgresSchema_Error(t *testing.T) {
-	t.Parallel()
-
-	d := &mockPGDriver{failExec: true}
-	sm := newMockPGSchemaManager(t, d)
-
-	err := sm.DropSchema(context.Background(), "test-tenant-id")
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "failed to drop PostgreSQL schema")
-}
-
-// TestPostgresSchemaExists_ExistsTrue tests schema existence returning true.
-func TestPostgresSchemaExists_ExistsTrue(t *testing.T) {
-	t.Parallel()
-
-	d := &mockPGDriver{columns: []string{"exists"}, rowsData: [][]driver.Value{{true}}}
-	sm := newMockPGSchemaManager(t, d)
-
-	exists, err := sm.SchemaExists(context.Background(), "test-tenant-id")
-	require.NoError(t, err)
-	require.True(t, exists)
-}
-
-// TestPostgresSchemaExists_ExistsFalse tests schema existence returning false.
-func TestPostgresSchemaExists_ExistsFalse(t *testing.T) {
-	t.Parallel()
-
-	d := &mockPGDriver{columns: []string{"exists"}, rowsData: [][]driver.Value{{false}}}
-	sm := newMockPGSchemaManager(t, d)
-
-	exists, err := sm.SchemaExists(context.Background(), "test-tenant-id")
-	require.NoError(t, err)
-	require.False(t, exists)
-}
-
-// TestPostgresSchemaExists_Error tests error path in schema existence check.
-func TestPostgresSchemaExists_Error(t *testing.T) {
-	t.Parallel()
-
-	d := &mockPGDriver{failExec: true}
-	sm := newMockPGSchemaManager(t, d)
-
-	_, err := sm.SchemaExists(context.Background(), "test-tenant-id")
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "failed to check PostgreSQL schema existence")
-}
-
-// TestListPostgresSchemas_Success tests listing schemas with results.
-func TestListPostgresSchemas_Success(t *testing.T) {
-	t.Parallel()
-
-	d := &mockPGDriver{
-		columns: []string{"schema_name"},
-		rowsData: [][]driver.Value{
-			{"tenant_abc"},
-			{"tenant_def"},
-		},
+	tests := []struct {
+		name     string
+		failExec bool
+		op       func(sm *SchemaManager) error
+		wantErr  string
+	}{
+		{name: "create success", failExec: false, op: func(sm *SchemaManager) error { return sm.CreateSchema(context.Background(), "test-tenant-id") }},
+		{name: "create error", failExec: true, op: func(sm *SchemaManager) error { return sm.CreateSchema(context.Background(), "test-tenant-id") }, wantErr: "failed to create PostgreSQL schema"},
+		{name: "drop success", failExec: false, op: func(sm *SchemaManager) error { return sm.DropSchema(context.Background(), "test-tenant-id") }},
+		{name: "drop error", failExec: true, op: func(sm *SchemaManager) error { return sm.DropSchema(context.Background(), "test-tenant-id") }, wantErr: "failed to drop PostgreSQL schema"},
 	}
-	sm := newMockPGSchemaManager(t, d)
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-	schemas, err := sm.ListSchemas(context.Background())
-	require.NoError(t, err)
-	require.Len(t, schemas, 2)
-	require.Contains(t, schemas, "tenant_abc")
-}
+			d := &mockPGDriver{failExec: tc.failExec}
+			sm := newMockPGSchemaManager(t, d)
+			err := tc.op(sm)
 
-// TestListPostgresSchemas_Error tests error path when listing schemas fails.
-func TestListPostgresSchemas_Error(t *testing.T) {
-	t.Parallel()
-
-	d := &mockPGDriver{failExec: true}
-	sm := newMockPGSchemaManager(t, d)
-
-	_, err := sm.ListSchemas(context.Background())
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "failed to list PostgreSQL schemas")
-}
-
-// TestListPostgresSchemas_ScanError tests error path when rows.Scan fails.
-func TestListPostgresSchemas_ScanError(t *testing.T) {
-	t.Parallel()
-
-	d := &mockPGDriver{
-		failScan: true,
-		columns:  []string{"schema_name"},
-		rowsData: [][]driver.Value{
-			{"tenant_bad"},
-		},
+			if tc.wantErr != "" {
+				require.ErrorContains(t, err, tc.wantErr)
+			} else {
+				require.NoError(t, err)
+			}
+		})
 	}
-	sm := newMockPGSchemaManager(t, d)
-
-	_, err := sm.ListSchemas(context.Background())
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "failed to scan schema name")
 }
 
-// TestListPostgresSchemas_IterError tests error path when rows.Err() returns an error.
-func TestListPostgresSchemas_IterError(t *testing.T) {
+// ----------------------------------------------------------------------------
+// Tests for PostgreSQL SchemaExists via mock driver.
+// ----------------------------------------------------------------------------
+
+func TestPostgresSchemaExists(t *testing.T) {
 	t.Parallel()
 
-	d := &mockPGDriver{
-		failIter: true,
-		columns:  []string{"schema_name"},
-		rowsData: [][]driver.Value{
-			{"tenant_ok"},
-			{"tenant_fail"},
-		},
+	tests := []struct {
+		name    string
+		driver  *mockPGDriver
+		want    bool
+		wantErr string
+	}{
+		{name: "exists true", driver: &mockPGDriver{columns: []string{"exists"}, rowsData: [][]driver.Value{{true}}}, want: true},
+		{name: "exists false", driver: &mockPGDriver{columns: []string{"exists"}, rowsData: [][]driver.Value{{false}}}, want: false},
+		{name: "query error", driver: &mockPGDriver{failExec: true}, wantErr: "failed to check PostgreSQL schema existence"},
 	}
-	sm := newMockPGSchemaManager(t, d)
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-	_, err := sm.ListSchemas(context.Background())
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "error iterating schema rows")
+			sm := newMockPGSchemaManager(t, tc.driver)
+			exists, err := sm.SchemaExists(context.Background(), "test-tenant-id")
+
+			if tc.wantErr != "" {
+				require.ErrorContains(t, err, tc.wantErr)
+			} else {
+				require.NoError(t, err)
+				require.Equal(t, tc.want, exists)
+			}
+		})
+	}
+}
+
+// ----------------------------------------------------------------------------
+// Tests for PostgreSQL ListSchemas via mock driver.
+// ----------------------------------------------------------------------------
+
+func TestPostgresListSchemas(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name      string
+		driver    *mockPGDriver
+		wantLen   int
+		wantEntry string
+		wantErr   string
+	}{
+		{
+			name:      "success",
+			driver:    &mockPGDriver{columns: []string{"schema_name"}, rowsData: [][]driver.Value{{"tenant_abc"}, {"tenant_def"}}},
+			wantLen:   2,
+			wantEntry: "tenant_abc",
+		},
+		{name: "query error", driver: &mockPGDriver{failExec: true}, wantErr: "failed to list PostgreSQL schemas"},
+		{name: "scan error", driver: &mockPGDriver{failScan: true, columns: []string{"schema_name"}, rowsData: [][]driver.Value{{"tenant_bad"}}}, wantErr: "failed to scan schema name"},
+		{name: "iteration error", driver: &mockPGDriver{failIter: true, columns: []string{"schema_name"}, rowsData: [][]driver.Value{{"tenant_ok"}, {"tenant_fail"}}}, wantErr: "error iterating schema rows"},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			sm := newMockPGSchemaManager(t, tc.driver)
+			schemas, err := sm.ListSchemas(context.Background())
+
+			if tc.wantErr != "" {
+				require.ErrorContains(t, err, tc.wantErr)
+			} else {
+				require.NoError(t, err)
+				require.Len(t, schemas, tc.wantLen)
+				require.Contains(t, schemas, tc.wantEntry)
+			}
+		})
+	}
 }
 
 // ----------------------------------------------------------------------------
@@ -399,37 +352,38 @@ func newClosedSQLiteSchemaManager(t *testing.T) *SchemaManager {
 	}
 }
 
-func TestCreateSQLiteSchema_Error(t *testing.T) {
+func TestClosedSQLiteSchema_Errors(t *testing.T) {
 	t.Parallel()
 
-	sm := newClosedSQLiteSchemaManager(t)
-	err := sm.CreateSchema(context.Background(), "error-tenant")
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "failed to attach SQLite database")
-}
+	tests := []struct {
+		name    string
+		op      func(sm *SchemaManager) error
+		wantErr string
+	}{
+		{name: "create error", op: func(sm *SchemaManager) error { return sm.CreateSchema(context.Background(), "error-tenant") }, wantErr: "failed to attach SQLite database"},
+		{name: "drop error", op: func(sm *SchemaManager) error { return sm.DropSchema(context.Background(), "error-tenant") }, wantErr: "failed to detach SQLite database"},
+		{name: "list query error", op: func(sm *SchemaManager) error {
+			_, err := sm.ListSchemas(context.Background())
 
-func TestDropSQLiteSchema_Error(t *testing.T) {
-	t.Parallel()
+			return err
+		}, wantErr: "failed to list SQLite schemas"},
+		{name: "exists scan error", op: func(sm *SchemaManager) error {
+			_, err := sm.SchemaExists(context.Background(), "error-tenant")
 
-	sm := newClosedSQLiteSchemaManager(t)
-	err := sm.DropSchema(context.Background(), "error-tenant")
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "failed to detach SQLite database")
-}
+			return err
+		}},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-func TestListSQLiteSchemas_QueryError(t *testing.T) {
-	t.Parallel()
+			sm := newClosedSQLiteSchemaManager(t)
+			err := tc.op(sm)
+			require.Error(t, err)
 
-	sm := newClosedSQLiteSchemaManager(t)
-	_, err := sm.ListSchemas(context.Background())
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "failed to list SQLite schemas")
-}
-
-func TestSQLiteSchemaExists_ScanError(t *testing.T) {
-	t.Parallel()
-
-	sm := newClosedSQLiteSchemaManager(t)
-	_, err := sm.SchemaExists(context.Background(), "error-tenant")
-	require.Error(t, err)
+			if tc.wantErr != "" {
+				require.ErrorContains(t, err, tc.wantErr)
+			}
+		})
+	}
 }
