@@ -3212,6 +3212,34 @@ Seam variables (see §10.2.4) are a common cause of sequential tests.
 
 **Naming**: Use descriptive semantic names (`*_error_paths_test.go`, `*_factory_test.go`, `*_db_errors_test.go`) that describe WHAT is being tested, not WHY the test was written. NEVER use `*_coverage_test.go` or `*_gaps_test.go` — these describe motivation (hitting coverage) rather than domain. Use `*_test_util_test.go` to test test-utility functions.
 
+**BANNED filename patterns** (nonsense names):
+
+| Pattern | Why Banned |
+|---------|-----------|
+| `*_coverage_test.go` | Describes coverage intent, not test content |
+| `*_coverage2_test.go` | Sequential coverage file with no semantic meaning |
+| `*_comprehensive_test.go` | Vague scope indicator |
+| `*_gaps_test.go` | Describes coverage gaps, not test behavior |
+| `*_coverage_gaps_test.go` | Compound nonsense |
+| `*_highcov_test.go` | Coverage metric in filename |
+| `*_extra_test.go` | Vague overflow file |
+| `*_additional_test.go` | Vague overflow file |
+| `*_edge_cases_test.go` | Use specific boundary description instead |
+
+**CORRECT naming** describes WHAT is tested:
+
+```
+# WRONG (nonsense)                    # CORRECT (semantic)
+handler_coverage_test.go              handler_keygen_test.go
+handler_comprehensive_test.go         handler_mapping_test.go
+security_coverage2_test.go            security_csr_validation_test.go
+jwk_handler_extra_test.go             jwk_handler_lifecycle_test.go
+pool_coverage_test.go                 pool_concurrency_test.go
+der_pem_coverage_test.go              der_pem_error_paths_test.go
+```
+
+**Exception**: Package test files where filename matches the package directory name (e.g., `propagation_coverage/propagation_coverage_test.go`) are acceptable because the package name itself is the semantic identifier.
+
 ### 10.3 Integration Testing Strategy
 
 #### 10.3.1 TestMain Pattern

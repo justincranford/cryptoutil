@@ -19,6 +19,9 @@ import (
 func CheckFiles(logger *cryptoutilCmdCicdCommon.Logger, testFiles []string) error {
 	logger.Log("Enforcing Go test patterns...")
 
+	// Check all test files for banned filename patterns first.
+	bannedNameIssues := checkBannedFilenames(testFiles)
+
 	// Filter out cicd test files to prevent self-modification.
 	filteredTestFiles := make([]string, 0, len(testFiles))
 
@@ -34,7 +37,6 @@ func CheckFiles(logger *cryptoutilCmdCicdCommon.Logger, testFiles []string) erro
 			strings.HasSuffix(path, "cicd_run_integration_test.go") ||
 			strings.Contains(path, "lint_gotest") ||
 			strings.Contains(path, "lint_fitness") ||
-			strings.HasSuffix(path, "_edge_cases_test.go") ||
 			strings.HasSuffix(path, "testmain_test.go") ||
 			strings.HasSuffix(path, "e2e_test.go") ||
 			strings.HasSuffix(path, "sessions_test.go") ||
@@ -75,6 +77,16 @@ func CheckFiles(logger *cryptoutilCmdCicdCommon.Logger, testFiles []string) erro
 		fmt.Fprintln(os.Stderr, "Please fix the issues above to follow established test patterns.")
 
 		return fmt.Errorf("found %d test pattern violations across %d files", totalIssues, len(filteredTestFiles))
+	}
+
+	if len(bannedNameIssues) > 0 {
+		for _, issue := range bannedNameIssues {
+			fmt.Fprintf(os.Stderr, "  - %s\n", issue)
+		}
+
+		logger.Log(fmt.Sprintf("Found %d banned test filename violations", len(bannedNameIssues)))
+
+		return fmt.Errorf("found %d banned test filename violations", len(bannedNameIssues))
 	}
 
 	fmt.Fprintln(os.Stderr, "\n✅ All test files follow established patterns")
@@ -127,6 +139,47 @@ func CheckTestFile(filePath string) []string {
 
 	if hasTestifyUsage && !hasTestifyImport {
 		issues = append(issues, "Test file uses testify assertions but doesn't import testify")
+	}
+
+	return issues
+}
+
+// bannedTestFilenameSuffixes lists nonsense test filename suffixes that describe
+// coverage intent rather than test content.
+var bannedTestFilenameSuffixes = []string{
+	"_coverage_test.go",
+	"_coverage2_test.go",
+	"_comprehensive_test.go",
+	"_gaps_test.go",
+	"_coverage_gaps_test.go",
+	"_highcov_test.go",
+	"_extra_test.go",
+	"_additional_test.go",
+	"_edge_cases_test.go",
+}
+
+// checkBannedFilenames checks for test files with nonsense filenames.
+// Files where the filename matches the package directory name are exempt.
+func checkBannedFilenames(testFiles []string) []string {
+	var issues []string
+
+	for _, filePath := range testFiles {
+		fileName := filepath.Base(filePath)
+		dirName := filepath.Base(filepath.Dir(filePath))
+
+		// Exempt: filename matches package directory name (e.g., propagation_coverage/propagation_coverage_test.go).
+		fileBase := strings.TrimSuffix(fileName, "_test.go")
+		if fileBase == dirName {
+			continue
+		}
+
+		for _, suffix := range bannedTestFilenameSuffixes {
+			if strings.HasSuffix(fileName, suffix) {
+				issues = append(issues, fmt.Sprintf("Banned test filename pattern %q: %s (rename to describe test content, not coverage intent)", suffix, filePath))
+
+				break
+			}
+		}
 	}
 
 	return issues

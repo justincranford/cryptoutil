@@ -263,6 +263,58 @@ func TestCheckTestFile_FatalfViolation(t *testing.T) {
 	require.NotEmpty(t, issues, "t.Fatalf() should be flagged")
 }
 
+func TestCheckBannedFilenames_DetectsBannedSuffixes(t *testing.T) {
+	t.Parallel()
+
+	bannedFiles := []string{
+		filepath.Join("pkg", "handler_coverage_test.go"),
+		filepath.Join("pkg", "handler_coverage2_test.go"),
+		filepath.Join("pkg", "handler_comprehensive_test.go"),
+		filepath.Join("pkg", "handler_gaps_test.go"),
+		filepath.Join("pkg", "handler_coverage_gaps_test.go"),
+		filepath.Join("pkg", "handler_highcov_test.go"),
+		filepath.Join("pkg", "handler_extra_test.go"),
+		filepath.Join("pkg", "handler_additional_test.go"),
+		filepath.Join("pkg", "handler_edge_cases_test.go"),
+	}
+
+	issues := checkBannedFilenames(bannedFiles)
+	require.Len(t, issues, len(bannedFiles), "Each banned file should produce one issue")
+
+	for _, issue := range issues {
+		require.Contains(t, issue, "Banned test filename pattern")
+	}
+}
+
+func TestCheckBannedFilenames_AllowsSemanticNames(t *testing.T) {
+	t.Parallel()
+
+	validFiles := []string{
+		filepath.Join("pkg", "handler_keygen_test.go"),
+		filepath.Join("pkg", "handler_mapping_test.go"),
+		filepath.Join("pkg", "pool_concurrency_test.go"),
+		filepath.Join("pkg", "der_pem_error_paths_test.go"),
+		filepath.Join("pkg", "security_csr_validation_test.go"),
+	}
+
+	issues := checkBannedFilenames(validFiles)
+	require.Empty(t, issues, "Semantic test filenames should not be flagged")
+}
+
+func TestCheckBannedFilenames_ExemptsPackageMatchingFilenames(t *testing.T) {
+	t.Parallel()
+
+	// File where name matches package directory (e.g., propagation_coverage/propagation_coverage_test.go).
+	exemptFiles := []string{
+		filepath.Join("propagation_coverage", "propagation_coverage_test.go"),
+		filepath.Join("validate_coverage", "validate_coverage_test.go"),
+		filepath.Join("cicd_coverage", "cicd_coverage_test.go"),
+	}
+
+	issues := checkBannedFilenames(exemptFiles)
+	require.Empty(t, issues, "Files matching package directory name should be exempt")
+}
+
 func findProjectRoot() (string, error) {
 	dir, err := os.Getwd()
 	if err != nil {
