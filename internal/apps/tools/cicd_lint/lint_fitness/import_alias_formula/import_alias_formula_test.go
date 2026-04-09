@@ -15,10 +15,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// -----------------------------------------------------------------------
-// Test helpers
-// -----------------------------------------------------------------------
-
 // buildAliasRoot creates a temp root dir containing a minimal alias_map.yaml.
 func buildAliasRoot(t *testing.T) string {
 	t.Helper()
@@ -27,39 +23,39 @@ func buildAliasRoot(t *testing.T) string {
 	yamlDir := filepath.Dir(filepath.Join(rootDir, filepath.FromSlash(cryptoutilSharedMagic.CICDImportAliasMapFile)))
 	require.NoError(t, os.MkdirAll(yamlDir, 0o700))
 
-	yamlContent := `external_aliases:
-  - import_path: "encoding/json"
-    alias: encodingJson
-internal_aliases:
-  - import_path: "example.com/myproject/mypackage"
-    alias: myprojectMypackage
-`
+	yamlContent := "external_aliases:\n  - import_path: \"encoding/json\"\n    alias: encodingJson\ninternal_aliases:\n  - import_path: \"example.com/myproject/mypackage\"\n    alias: myprojectMypackage\n"
 	destPath := filepath.Join(rootDir, filepath.FromSlash(cryptoutilSharedMagic.CICDImportAliasMapFile))
 	require.NoError(t, os.WriteFile(destPath, []byte(yamlContent), cryptoutilSharedMagic.FilePermissionsDefault))
 
 	return rootDir
 }
 
-// writeGoFile writes a .go source file in dir/pkg/.
-func writeGoFile(t *testing.T, dir, name, content string) string {
+// buildEmptyAliasRoot creates a temp root dir containing an empty alias_map.yaml.
+func buildEmptyAliasRoot(t *testing.T) string {
+	t.Helper()
+
+	rootDir := t.TempDir()
+	yamlDir := filepath.Dir(filepath.Join(rootDir, filepath.FromSlash(cryptoutilSharedMagic.CICDImportAliasMapFile)))
+	require.NoError(t, os.MkdirAll(yamlDir, 0o700))
+
+	destPath := filepath.Join(rootDir, filepath.FromSlash(cryptoutilSharedMagic.CICDImportAliasMapFile))
+	require.NoError(t, os.WriteFile(destPath, []byte("external_aliases: []\ninternal_aliases: []\n"), cryptoutilSharedMagic.FilePermissionsDefault))
+
+	return rootDir
+}
+
+// writeGoFile writes a .go source file in dir.
+func writeGoFile(t *testing.T, dir, name, content string) {
 	t.Helper()
 
 	require.NoError(t, os.MkdirAll(dir, 0o700))
-	path := filepath.Join(dir, name)
-	require.NoError(t, os.WriteFile(path, []byte(content), cryptoutilSharedMagic.FilePermissionsDefault))
-
-	return path
+	require.NoError(t, os.WriteFile(filepath.Join(dir, name), []byte(content), cryptoutilSharedMagic.FilePermissionsDefault))
 }
-
-// -----------------------------------------------------------------------
-// LoadAliasMap
-// -----------------------------------------------------------------------
 
 func TestLoadAliasMap_HappyPath(t *testing.T) {
 	t.Parallel()
 
 	rootDir := buildAliasRoot(t)
-
 	m, err := LoadAliasMap(rootDir, os.ReadFile)
 
 	require.NoError(t, err)
@@ -70,14 +66,29 @@ func TestLoadAliasMap_HappyPath(t *testing.T) {
 	require.Len(t, m.InternalAliases, 1)
 }
 
-func TestLoadAliasMap_FileNotFound(t *testing.T) {
+func TestLoadAliasMap_Errors(t *testing.T) {
 	t.Parallel()
 
-	m, err := LoadAliasMap(t.TempDir(), os.ReadFile)
+	tests := []struct {
+		name       string
+		rootDir    string
+		readFileFn func(string) ([]byte, error)
+		wantErr    string
+	}{
+		{name: "file not found", rootDir: t.TempDir(), readFileFn: os.ReadFile, wantErr: "failed to read"},
+		{name: "read file error", rootDir: "dummy", readFileFn: func(_ string) ([]byte, error) { return nil, errors.New("read error") }, wantErr: "failed to read"},
+	}
 
-	require.Error(t, err)
-	require.Nil(t, m)
-	require.Contains(t, err.Error(), "failed to read")
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			m, err := LoadAliasMap(tc.rootDir, tc.readFileFn)
+			require.Error(t, err)
+			require.Nil(t, m)
+			require.Contains(t, err.Error(), tc.wantErr)
+		})
+	}
 }
 
 func TestLoadAliasMap_InvalidYAML(t *testing.T) {
@@ -91,243 +102,164 @@ func TestLoadAliasMap_InvalidYAML(t *testing.T) {
 	require.NoError(t, os.WriteFile(destPath, []byte("!!! not: valid: yaml: ["), cryptoutilSharedMagic.FilePermissionsDefault))
 
 	m, err := LoadAliasMap(rootDir, os.ReadFile)
-
 	require.Error(t, err)
 	require.Nil(t, m)
 	require.Contains(t, err.Error(), "failed to parse")
 }
 
-func TestLoadAliasMap_ReadFileError(t *testing.T) {
+func TestAllEntries(t *testing.T) {
 	t.Parallel()
 
-	m, err := LoadAliasMap("dummy", func(_ string) ([]byte, error) { return nil, errors.New("read error") })
-
-	require.Error(t, err)
-	require.Nil(t, m)
-	require.Contains(t, err.Error(), "failed to read")
-}
-
-// -----------------------------------------------------------------------
-// AllEntries
-// -----------------------------------------------------------------------
-
-func TestAllEntries_CombinesLists(t *testing.T) {
-	t.Parallel()
-
-	m := &AliasMap{
-		ExternalAliases: []AliasEntry{{ImportPath: "a", Alias: "aa"}},
-		InternalAliases: []AliasEntry{{ImportPath: "b", Alias: "bb"}, {ImportPath: "c", Alias: "cc"}},
+	tests := []struct {
+		name     string
+		aliasMap *AliasMap
+		wantLen  int
+	}{
+		{
+			name: "combines lists",
+			aliasMap: &AliasMap{
+				ExternalAliases: []AliasEntry{{ImportPath: "a", Alias: "aa"}},
+				InternalAliases: []AliasEntry{{ImportPath: "b", Alias: "bb"}, {ImportPath: "c", Alias: "cc"}},
+			},
+			wantLen: 3,
+		},
+		{name: "empty map", aliasMap: &AliasMap{}, wantLen: 0},
 	}
 
-	entries := AllEntries(m)
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-	require.Len(t, entries, 3)
+			require.Len(t, AllEntries(tc.aliasMap), tc.wantLen)
+		})
+	}
 }
-
-func TestAllEntries_EmptyMap(t *testing.T) {
-	t.Parallel()
-
-	entries := AllEntries(&AliasMap{})
-
-	require.Empty(t, entries)
-}
-
-// -----------------------------------------------------------------------
-// CheckInDir — happy path
-// -----------------------------------------------------------------------
 
 func TestCheckInDir_HappyPath_NoViolations(t *testing.T) {
 	t.Parallel()
 
 	rootDir := buildAliasRoot(t)
-	pkgDir := filepath.Join(rootDir, "mypkg")
-	writeGoFile(t, pkgDir, "correct.go", `package mypkg
-
-import (
-	encodingJson "encoding/json"
-	"fmt"
-)
-
-var _ = encodingJson.Marshal
-var _ = fmt.Println
-`)
+	writeGoFile(t, filepath.Join(rootDir, "mypkg"), "correct.go", "package mypkg\n\nimport (\n\tencodingJson \"encoding/json\"\n\t\"fmt\"\n)\n\nvar _ = encodingJson.Marshal\nvar _ = fmt.Println\n")
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-
-	err := CheckInDir(logger, rootDir, os.ReadFile, filepath.WalkDir)
-
-	require.NoError(t, err)
+	require.NoError(t, CheckInDir(logger, rootDir, os.ReadFile, filepath.WalkDir))
 }
 
-func TestCheckInDir_ViolationWrongAlias(t *testing.T) {
+func TestCheckInDir_FileHandling(t *testing.T) {
 	t.Parallel()
 
-	rootDir := buildAliasRoot(t)
-	pkgDir := filepath.Join(rootDir, "mypkg")
-	writeGoFile(t, pkgDir, "wrong.go", `package mypkg
+	tests := []struct {
+		name    string
+		setup   func(t *testing.T) string
+		wantErr string
+	}{
+		{
+			name: "violation wrong alias",
+			setup: func(t *testing.T) string {
+				t.Helper()
+				rootDir := buildAliasRoot(t)
+				writeGoFile(t, filepath.Join(rootDir, "mypkg"), "wrong.go", "package mypkg\n\nimport (\n\tjson \"encoding/json\"\n)\n\nvar _ = json.Marshal\n")
 
-import (
-	json "encoding/json"
-)
+				return rootDir
+			},
+			wantErr: "violation(s)",
+		},
+		{
+			name: "violation no alias",
+			setup: func(t *testing.T) string {
+				t.Helper()
+				rootDir := buildAliasRoot(t)
+				writeGoFile(t, filepath.Join(rootDir, "mypkg"), "noalias.go", "package mypkg\n\nimport (\n\t\"encoding/json\"\n)\n\nvar _ = json.Marshal\n")
 
-var _ = json.Marshal
-`)
+				return rootDir
+			},
+			wantErr: "violation(s)",
+		},
+		{
+			name: "blank import allowed",
+			setup: func(t *testing.T) string {
+				t.Helper()
+				rootDir := buildAliasRoot(t)
+				writeGoFile(t, filepath.Join(rootDir, "mypkg"), "blank.go", "package mypkg\n\nimport (\n\t_ \"encoding/json\"\n)\n")
 
-	logger := cryptoutilCmdCicdCommon.NewLogger("test")
+				return rootDir
+			},
+		},
+		{
+			name: "dot import allowed",
+			setup: func(t *testing.T) string {
+				t.Helper()
+				rootDir := buildAliasRoot(t)
+				writeGoFile(t, filepath.Join(rootDir, "mypkg"), "dot.go", "package mypkg\n\nimport (\n\t. \"encoding/json\"\n)\n\nvar _ = Marshal\n")
 
-	err := CheckInDir(logger, rootDir, os.ReadFile, filepath.WalkDir)
+				return rootDir
+			},
+		},
+		{
+			name: "unparsable file skipped",
+			setup: func(t *testing.T) string {
+				t.Helper()
+				rootDir := buildAliasRoot(t)
+				writeGoFile(t, filepath.Join(rootDir, "mypkg"), "broken.go", "this is not valid go source code !!!")
 
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "violation(s)")
-}
+				return rootDir
+			},
+		},
+		{
+			name: "generated file skipped",
+			setup: func(t *testing.T) string {
+				t.Helper()
+				rootDir := buildAliasRoot(t)
+				writeGoFile(t, filepath.Join(rootDir, "mypkg"), "generated.go", "// Code generated by some-tool/v2; DO NOT EDIT.\npackage mypkg\n\nimport (\n\t\"encoding/json\"\n)\n\nvar _ = json.Marshal\n")
 
-func TestCheckInDir_ViolationNoAlias(t *testing.T) {
-	t.Parallel()
+				return rootDir
+			},
+		},
+		{
+			name: "empty alias map skips",
+			setup: func(t *testing.T) string {
+				t.Helper()
 
-	rootDir := buildAliasRoot(t)
-	pkgDir := filepath.Join(rootDir, "mypkg")
-	writeGoFile(t, pkgDir, "noalias.go", `package mypkg
+				return buildEmptyAliasRoot(t)
+			},
+		},
+		{
+			name: "excluded vendor dir",
+			setup: func(t *testing.T) string {
+				t.Helper()
+				rootDir := buildAliasRoot(t)
+				writeGoFile(t, filepath.Join(rootDir, cryptoutilSharedMagic.CICDExcludeDirVendor, "somepkg"), "violation.go", "package somepkg\n\nimport (\n\t\"encoding/json\"\n)\n\nvar _ = json.Marshal\n")
 
-import (
-	"encoding/json"
-)
+				return rootDir
+			},
+		},
+	}
 
-var _ = json.Marshal
-`)
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-	logger := cryptoutilCmdCicdCommon.NewLogger("test")
+			rootDir := tc.setup(t)
+			logger := cryptoutilCmdCicdCommon.NewLogger("test")
+			err := CheckInDir(logger, rootDir, os.ReadFile, filepath.WalkDir)
 
-	err := CheckInDir(logger, rootDir, os.ReadFile, filepath.WalkDir)
+			if tc.wantErr != "" {
+				require.Error(t, err)
+				require.Contains(t, err.Error(), tc.wantErr)
 
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "violation(s)")
-}
+				return
+			}
 
-func TestCheckInDir_BlankImportAllowed(t *testing.T) {
-	t.Parallel()
-
-	rootDir := buildAliasRoot(t)
-	pkgDir := filepath.Join(rootDir, "mypkg")
-	writeGoFile(t, pkgDir, "blank.go", `package mypkg
-
-import (
-	_ "encoding/json"
-)
-`)
-
-	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-
-	err := CheckInDir(logger, rootDir, os.ReadFile, filepath.WalkDir)
-
-	require.NoError(t, err)
-}
-
-func TestCheckInDir_DotImportAllowed(t *testing.T) {
-	t.Parallel()
-
-	rootDir := buildAliasRoot(t)
-	pkgDir := filepath.Join(rootDir, "mypkg")
-	// Dot imports expose all exported identifiers; project convention allows them
-	// without requiring an explicit alias from the alias map.
-	writeGoFile(t, pkgDir, "dot.go", `package mypkg
-
-import (
-	. "encoding/json"
-)
-
-var _ = Marshal
-`)
-
-	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-
-	err := CheckInDir(logger, rootDir, os.ReadFile, filepath.WalkDir)
-
-	require.NoError(t, err)
-}
-
-func TestCheckInDir_UnparsableFileSkipped(t *testing.T) {
-	t.Parallel()
-
-	rootDir := buildAliasRoot(t)
-	pkgDir := filepath.Join(rootDir, "mypkg")
-	// This file has a syntax error — the AST parser will fail and skip it.
-	writeGoFile(t, pkgDir, "broken.go", `this is not valid go source code !!!`)
-
-	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-
-	err := CheckInDir(logger, rootDir, os.ReadFile, filepath.WalkDir)
-
-	require.NoError(t, err)
-}
-
-func TestCheckInDir_GeneratedFileSkipped(t *testing.T) {
-	t.Parallel()
-
-	rootDir := buildAliasRoot(t)
-	pkgDir := filepath.Join(rootDir, "mypkg")
-	// Generated file uses wrong alias; should be skipped entirely.
-	writeGoFile(t, pkgDir, "generated.go", `// Code generated by some-tool/v2; DO NOT EDIT.
-package mypkg
-
-import (
-	"encoding/json"
-)
-
-var _ = json.Marshal
-`)
-
-	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-
-	err := CheckInDir(logger, rootDir, os.ReadFile, filepath.WalkDir)
-
-	require.NoError(t, err)
-}
-
-func TestCheckInDir_EmptyAliasMap_Skips(t *testing.T) {
-	t.Parallel()
-
-	rootDir := t.TempDir()
-	yamlDir := filepath.Dir(filepath.Join(rootDir, filepath.FromSlash(cryptoutilSharedMagic.CICDImportAliasMapFile)))
-	require.NoError(t, os.MkdirAll(yamlDir, 0o700))
-
-	destPath := filepath.Join(rootDir, filepath.FromSlash(cryptoutilSharedMagic.CICDImportAliasMapFile))
-	require.NoError(t, os.WriteFile(destPath, []byte("external_aliases: []\ninternal_aliases: []\n"), cryptoutilSharedMagic.FilePermissionsDefault))
-
-	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-
-	err := CheckInDir(logger, rootDir, os.ReadFile, filepath.WalkDir)
-
-	require.NoError(t, err)
-}
-
-func TestCheckInDir_ExcludedVendorDir(t *testing.T) {
-	t.Parallel()
-
-	rootDir := buildAliasRoot(t)
-	// Put a violating file inside vendor/ — it should be skipped.
-	vendorPkgDir := filepath.Join(rootDir, cryptoutilSharedMagic.CICDExcludeDirVendor, "somepkg")
-	writeGoFile(t, vendorPkgDir, "violation.go", `package somepkg
-
-import (
-	"encoding/json"
-)
-
-var _ = json.Marshal
-`)
-
-	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-
-	err := CheckInDir(logger, rootDir, os.ReadFile, filepath.WalkDir)
-
-	require.NoError(t, err)
+			require.NoError(t, err)
+		})
+	}
 }
 
 func TestCheckInDir_LoadAliasMapError(t *testing.T) {
-	// File not found → LoadAliasMap fails.
+	t.Parallel()
+
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-
 	err := CheckInDir(logger, t.TempDir(), os.ReadFile, filepath.WalkDir)
-
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to read")
 }
@@ -339,10 +271,8 @@ func TestCheckInDir_WalkCallbackError(t *testing.T) {
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 
 	err := CheckInDir(logger, rootDir, os.ReadFile, func(_ string, fn fs.WalkDirFunc) error {
-		// Simulate a walk-callback error.
 		return fn("somepath", nil, errors.New("permission denied"))
 	})
-
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to walk")
 }
@@ -350,60 +280,40 @@ func TestCheckInDir_WalkCallbackError(t *testing.T) {
 func TestCheckInDir_CheckFileReadError(t *testing.T) {
 	t.Parallel()
 
-	// Set up a rootDir with a valid alias map and one .go file.
 	rootDir := buildAliasRoot(t)
-	pkgDir := filepath.Join(rootDir, "mypkg")
-	writeGoFile(t, pkgDir, "ok.go", `package mypkg
-`)
+	writeGoFile(t, filepath.Join(rootDir, "mypkg"), "ok.go", "package mypkg\n")
 
-	// First call (read alias map) should succeed with the real function;
-	// subsequent calls (for .go files) should fail.
 	callCount := 0
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 
 	err := CheckInDir(logger, rootDir, func(path string) ([]byte, error) {
 		callCount++
-		// Allow the first read (alias map YAML) to succeed.
 		if callCount == 1 {
 			return os.ReadFile(path)
 		}
 
 		return nil, errors.New("disk error")
 	}, filepath.WalkDir)
-
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "disk error")
 }
 
-// -----------------------------------------------------------------------
-// Check (top-level, uses project root via seam)
-// -----------------------------------------------------------------------
-
+// Sequential: mutates findImportAliasProjectRootFn package-level state.
 func TestCheck_ProjectRootNotFound(t *testing.T) {
 	orig := findImportAliasProjectRootFn
-	findImportAliasProjectRootFn = func() (string, error) {
-		return "", errors.New("go.mod not found")
-	}
+	findImportAliasProjectRootFn = func() (string, error) { return "", errors.New("go.mod not found") }
 
 	defer func() { findImportAliasProjectRootFn = orig }()
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-
 	err := Check(logger)
-
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "go.mod not found")
 }
 
+// Sequential: mutates findImportAliasProjectRootFn package-level state.
 func TestCheck_HappyPath(t *testing.T) {
-	// Use a temp dir as the "project root"; alias map returns no required aliases,
-	// so CheckInDir will succeed without walking any Go files.
-	rootDir := t.TempDir()
-	yamlDir := filepath.Dir(filepath.Join(rootDir, filepath.FromSlash(cryptoutilSharedMagic.CICDImportAliasMapFile)))
-	require.NoError(t, os.MkdirAll(yamlDir, 0o700))
-
-	destPath := filepath.Join(rootDir, filepath.FromSlash(cryptoutilSharedMagic.CICDImportAliasMapFile))
-	require.NoError(t, os.WriteFile(destPath, []byte("external_aliases: []\ninternal_aliases: []\n"), cryptoutilSharedMagic.FilePermissionsDefault))
+	rootDir := buildEmptyAliasRoot(t)
 
 	orig := findImportAliasProjectRootFn
 	findImportAliasProjectRootFn = func() (string, error) { return rootDir, nil }
@@ -411,42 +321,36 @@ func TestCheck_HappyPath(t *testing.T) {
 	defer func() { findImportAliasProjectRootFn = orig }()
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-
-	err := Check(logger)
-
-	require.NoError(t, err)
+	require.NoError(t, Check(logger))
 }
 
-// -----------------------------------------------------------------------
-// findImportAliasProjectRoot (indirectly via seam)
-// -----------------------------------------------------------------------
-
-func TestFindProjectRoot_GetwdError(t *testing.T) {
+func TestFindProjectRoot_Errors(t *testing.T) {
 	t.Parallel()
 
-	_, err := findImportAliasProjectRoot(func() (string, error) { return "", errors.New("getwd failed") })
+	tests := []struct {
+		name    string
+		getwdFn func() (string, error)
+		wantErr string
+	}{
+		{name: "getwd error", getwdFn: func() (string, error) { return "", errors.New("getwd failed") }, wantErr: "failed to get working directory"},
+		{name: "go.mod not found", getwdFn: func() (string, error) { return t.TempDir(), nil }, wantErr: "go.mod not found"},
+	}
 
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "failed to get working directory")
-}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-func TestFindProjectRoot_GoModNotFound(t *testing.T) {
-	t.Parallel()
-
-	tmpDir := t.TempDir()
-	// Point to a temp dir that has no go.mod ancestor.
-	_, err := findImportAliasProjectRoot(func() (string, error) { return tmpDir, nil })
-
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "go.mod not found")
+			_, err := findImportAliasProjectRoot(tc.getwdFn)
+			require.Error(t, err)
+			require.Contains(t, err.Error(), tc.wantErr)
+		})
+	}
 }
 
 func TestFindProjectRoot_HappyPath(t *testing.T) {
 	t.Parallel()
 
-	// Real cwd is inside the project which has a go.mod — should succeed.
 	root, err := findImportAliasProjectRoot(os.Getwd)
-
 	require.NoError(t, err)
 	require.NotEmpty(t, root)
 
@@ -454,88 +358,78 @@ func TestFindProjectRoot_HappyPath(t *testing.T) {
 	require.NoError(t, statErr, "returned root should contain go.mod")
 }
 
-// -----------------------------------------------------------------------
-// isGeneratedGoFile
-// -----------------------------------------------------------------------
-
-func TestIsGeneratedGoFile_True(t *testing.T) {
+func TestIsGeneratedGoFile(t *testing.T) {
 	t.Parallel()
 
-	dir := t.TempDir()
-	path := filepath.Join(dir, "gen.go")
-	require.NoError(t, os.WriteFile(path, []byte("// Code generated by mytool; DO NOT EDIT.\npackage x\n"), cryptoutilSharedMagic.CacheFilePermissions))
+	tests := []struct {
+		name    string
+		setup   func(t *testing.T) string
+		wantGen bool
+	}{
+		{
+			name: "generated marker present",
+			setup: func(t *testing.T) string {
+				t.Helper()
+				p := filepath.Join(t.TempDir(), "gen.go")
+				require.NoError(t, os.WriteFile(p, []byte("// Code generated by mytool; DO NOT EDIT.\npackage x\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
-	require.True(t, isGeneratedGoFile(path, os.ReadFile))
+				return p
+			},
+			wantGen: true,
+		},
+		{
+			name: "no generated marker",
+			setup: func(t *testing.T) string {
+				t.Helper()
+				p := filepath.Join(t.TempDir(), "normal.go")
+				require.NoError(t, os.WriteFile(p, []byte("// Copyright (c) 2025\npackage x\n"), cryptoutilSharedMagic.CacheFilePermissions))
+
+				return p
+			},
+			wantGen: false,
+		},
+		{name: "read error returns false", setup: func(_ *testing.T) string { return "/nonexistent/path/gen.go" }, wantGen: false},
+		{
+			name: "large file with marker in first 512 bytes",
+			setup: func(t *testing.T) string {
+				t.Helper()
+				p := filepath.Join(t.TempDir(), "big_gen.go")
+				header := "// Code generated by mytool; DO NOT EDIT.\npackage x\n"
+				require.NoError(t, os.WriteFile(p, append([]byte(header), make([]byte, 600)...), cryptoutilSharedMagic.CacheFilePermissions))
+
+				return p
+			},
+			wantGen: true,
+		},
+		{
+			name: "large file without marker",
+			setup: func(t *testing.T) string {
+				t.Helper()
+				p := filepath.Join(t.TempDir(), "big_normal.go")
+				header := "// Copyright (c) 2025 example\npackage x\n"
+				require.NoError(t, os.WriteFile(p, append([]byte(header), make([]byte, 600)...), cryptoutilSharedMagic.CacheFilePermissions))
+
+				return p
+			},
+			wantGen: false,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			require.Equal(t, tc.wantGen, isGeneratedGoFile(tc.setup(t), os.ReadFile))
+		})
+	}
 }
-
-func TestIsGeneratedGoFile_False(t *testing.T) {
-	t.Parallel()
-
-	dir := t.TempDir()
-	path := filepath.Join(dir, "normal.go")
-	require.NoError(t, os.WriteFile(path, []byte("// Copyright (c) 2025\npackage x\n"), cryptoutilSharedMagic.CacheFilePermissions))
-
-	require.False(t, isGeneratedGoFile(path, os.ReadFile))
-}
-
-func TestIsGeneratedGoFile_ReadError(t *testing.T) {
-	t.Parallel()
-
-	// isGeneratedGoFile returns false on read error.
-	require.False(t, isGeneratedGoFile("/nonexistent/path/gen.go", os.ReadFile))
-}
-
-func TestIsGeneratedGoFile_LargeFile_MarkerInFirst512Bytes(t *testing.T) {
-	t.Parallel()
-
-	// File larger than 512 bytes with "Code generated" in the first 512 bytes.
-	dir := t.TempDir()
-	path := filepath.Join(dir, "big_gen.go")
-	header := "// Code generated by mytool; DO NOT EDIT.\npackage x\n"
-	padding := make([]byte, 600) // more than codeGeneratedCheckBytes
-	require.NoError(t, os.WriteFile(path, append([]byte(header), padding...), cryptoutilSharedMagic.CacheFilePermissions))
-
-	require.True(t, isGeneratedGoFile(path, os.ReadFile))
-}
-
-func TestIsGeneratedGoFile_LargeFile_NoMarker(t *testing.T) {
-	t.Parallel()
-
-	// File larger than 512 bytes with NO "Code generated" marker.
-	dir := t.TempDir()
-	path := filepath.Join(dir, "big_normal.go")
-	header := "// Copyright (c) 2025 example\npackage x\n"
-	padding := make([]byte, 600)
-	require.NoError(t, os.WriteFile(path, append([]byte(header), padding...), cryptoutilSharedMagic.CacheFilePermissions))
-
-	require.False(t, isGeneratedGoFile(path, os.ReadFile))
-}
-
-// -----------------------------------------------------------------------
-// Raw string literal — no false positives from AST parser
-// -----------------------------------------------------------------------
 
 func TestCheckInDir_RawStringLiteralNoFalsePositive(t *testing.T) {
 	t.Parallel()
 
 	rootDir := buildAliasRoot(t)
-	pkgDir := filepath.Join(rootDir, "mypkg")
-	// The file contains a raw string with "encoding/json" inside a backtick block.
-	// The AST parser should NOT report a violation for content inside raw strings.
-	writeGoFile(t, pkgDir, "rawstr.go", `package mypkg
-
-func example() string {
-	return `+"`"+`
-import (
-	"encoding/json"
-)
-`+"`"+`
-}
-`)
+	writeGoFile(t, filepath.Join(rootDir, "mypkg"), "rawstr.go", "package mypkg\n\nfunc example() string {\n\treturn `\nimport (\n\t\"encoding/json\"\n)\n`\n}\n")
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-
-	err := CheckInDir(logger, rootDir, os.ReadFile, filepath.WalkDir)
-
-	require.NoError(t, err)
+	require.NoError(t, CheckInDir(logger, rootDir, os.ReadFile, filepath.WalkDir))
 }
