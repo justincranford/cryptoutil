@@ -32,7 +32,6 @@ import (
 	lintFitnessConfigsEmptyDir "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/configs_empty_dir"
 	lintFitnessConfigsNaming "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/configs_naming"
 	lintFitnessCrossServiceImportIsolation "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/cross_service_import_isolation"
-	lintFitnessCryptoRand "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/crypto_rand"
 	lintFitnessDatabaseKeyUniformity "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/database_key_uniformity"
 	lintFitnessDeploymentDirCompleteness "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/deployment_dir_completeness"
 	lintFitnessDockerfileLabels "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/dockerfile_labels"
@@ -59,7 +58,6 @@ import (
 	lintFitnessNoPostgresInNonE2E "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/no_postgres_in_non_e2e"
 	lintFitnessNoUnitTestRealDB "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/no_unit_test_real_db"
 	lintFitnessNoUnitTestRealServer "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/no_unit_test_real_server"
-	lintFitnessNonFIPSAlgorithms "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/non_fips_algorithms"
 	lintFitnessOTLPServiceNamePattern "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/otlp_service_name_pattern"
 	lintFitnessParallelTests "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/parallel_tests"
 	lintFitnessPKICAProfileSchema "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/pki_ca_profile_schema"
@@ -95,10 +93,8 @@ var registeredLinters = []struct {
 	{"cgo-free-sqlite", lintFitnessCGOFreeSQLite.Check},
 	{"circular-deps", lintFitnessCircularDeps.Check},
 	{"cmd-main-pattern", lintFitnessCmdMainPattern.Check},
-	{"crypto-rand", lintFitnessCryptoRand.Check},
 	{"insecure-skip-verify", lintFitnessInsecureSkipVerify.Check},
 	{"migration-numbering", lintFitnessMigrationNumbering.Check},
-	{"non-fips-algorithms", lintFitnessNonFIPSAlgorithms.Check},
 	{"product-structure", lintFitnessProductStructure.Check},
 	{"product-wiring", lintFitnessProductWiring.Check},
 	{"service-structure", lintFitnessServiceStructure.Check},

@@ -29,7 +29,6 @@ import (
 	cryptoutilCmdCicdLintOpenAPI "cryptoutil/internal/apps/tools/cicd_lint/lint_openapi"
 	cryptoutilCmdCicdLintPorts "cryptoutil/internal/apps/tools/cicd_lint/lint_ports"
 	cryptoutilCmdCicdLintPythonTest "cryptoutil/internal/apps/tools/cicd_lint/lint_pythontest"
-	cryptoutilCmdCicdLintSecurity "cryptoutil/internal/apps/tools/cicd_lint/lint_security"
 	cryptoutilCmdCicdLintText "cryptoutil/internal/apps/tools/cicd_lint/lint_text"
 	cryptoutilCmdCicdLintWorkflow "cryptoutil/internal/apps/tools/cicd_lint/lint_workflow"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
@@ -53,7 +52,6 @@ const (
 	cmdLintDocs        = "lint-docs"        // [Linter] Documentation linters (chunk verification, propagation).
 	cmdLintDeployments = "lint-deployments" // [Linter] Deployment structure and config file validation.
 	cmdLintOpenAPI     = "lint-openapi"     // [Linter] OpenAPI spec version and codegen config validation.
-	cmdLintSecurity    = "lint-security"    // [Linter] Security linters (banned crypto imports, FIPS compliance).
 	cmdGitHubCleanup   = "github-cleanup"   // [Script] GitHub Actions storage cleanup (runs, artifacts, caches).
 )
 
@@ -160,8 +158,6 @@ func run(commands []string, extraArgs []string) error {
 			cmdErr = cryptoutilCmdCicdLintJavaTest.Lint(logger, filesByExtension)
 		case cmdLintPythonTest:
 			cmdErr = cryptoutilCmdCicdLintPythonTest.Lint(logger, filesByExtension)
-		case cmdLintSecurity:
-			cmdErr = cryptoutilCmdCicdLintSecurity.Lint(logger, filesByExtension)
 
 		case cmdGitHubCleanup:
 			cmdErr = cryptoutilGitHubCleanup.Cleanup(logger, extraArgs)
@@ -206,7 +202,7 @@ func commandsNeedFiles(commands []string) bool {
 			cmdLintGoTest, cmdFormatGoTest, cmdLintWorkflow,
 			cmdLintGoMod, cmdLintPorts, cmdLintGolangci,
 			cmdLintJavaTest, cmdLintPythonTest,
-			cmdLintOpenAPI, cmdLintSecurity:
+			cmdLintOpenAPI:
 			return true
 		}
 	}

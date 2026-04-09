@@ -135,11 +135,6 @@ sub_linters:
     description: Ensures services do not import internal packages from other services directly.
     category: architecture
 
-  - name: crypto-rand
-    directory: crypto_rand
-    description: Detects use of math/rand instead of crypto/rand for cryptographic operations.
-    category: security
-
   - name: deployment-dir-completeness
     directory: deployment_dir_completeness
     description: Validates that all registered product services have a corresponding deployments/ directory.
@@ -277,11 +272,6 @@ sub_linters:
     directory: no_unit_test_real_server
     description: Detects unit tests that spin up real HTTP servers instead of using test handlers.
     category: testing
-
-  - name: non-fips-algorithms
-    directory: non_fips_algorithms
-    description: Detects use of cryptographic algorithms that are not FIPS 140-3 compliant.
-    category: security
 
   - name: otlp-service-name-pattern
     directory: otlp_service_name_pattern

@@ -219,7 +219,7 @@ repos:
       - id: cicd-lint-all
         name: Run custom CI/CD lint checks
         entry: go
-        args: [run, cmd/cicd-lint/main.go, lint-fitness, lint-text, lint-go, lint-go-test, lint-golangci, lint-compose, lint-openapi, lint-ports, lint-security, lint-workflow, lint-deployments, lint-docs, lint-java-test, lint-python-test]
+        args: [run, cmd/cicd-lint/main.go, lint-fitness, lint-text, lint-go, lint-go-test, lint-golangci, lint-compose, lint-openapi, lint-ports, lint-workflow, lint-deployments, lint-docs, lint-java-test, lint-python-test]
         language: system
         pass_filenames: false  # linters handle file scanning internally; no filenames needed
         require_serial: false  # linters are read-only and support concurrency

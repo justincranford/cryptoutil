@@ -332,7 +332,6 @@ const (
 		lint-openapi        - [Linter]    Validate OpenAPI spec versions and codegen config initialisms
 		lint-ports          - [Linter]    Enforce standardized port assignments (no legacy ports)
 		lint-python-test    - [Linter]    Enforce Python/pytest test standards (pytest style, parameterize)
-		lint-security       - [Linter]    Detect banned crypto imports (FIPS 140-3 compliance)
 		lint-text           - [Linter]    Enforce UTF-8 encoding without BOM for text files
 		lint-workflow       - [Linter]    Validate GitHub Actions workflow naming and versions`
 )
@@ -354,7 +353,6 @@ var ValidCommands = map[string]bool{
 	"lint-openapi":     true,
 	"lint-ports":       true,
 	"lint-python-test": true,
-	"lint-security":    true,
 	"lint-text":        true,
 	"lint-workflow":    true,
 }
@@ -390,7 +388,6 @@ var (
 		"lint-openapi":     `internal[/\\]apps[/\\]tools[/\\]cicd_lint[/\\]lint_openapi[/\\].*\.go$`,
 		"lint-ports":       `internal[/\\]apps[/\\]tools[/\\]cicd_lint[/\\]lint_ports[/\\].*\.go$`,
 		"lint-python-test": `internal[/\\]apps[/\\]tools[/\\]cicd_lint[/\\]lint_pythontest[/\\].*\.go$`,
-		"lint-security":    `internal[/\\]apps[/\\]tools[/\\]cicd_lint[/\\]lint_security[/\\].*\.go$`,
 		"lint-text":        `internal[/\\]apps[/\\]tools[/\\]cicd_lint[/\\]lint_text[/\\].*\.go$`,
 		"lint-workflow":    `internal[/\\]apps[/\\]tools[/\\]cicd_lint[/\\]lint_workflow[/\\].*\.go$`,
 	}

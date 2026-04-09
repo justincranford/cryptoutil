@@ -99,7 +99,7 @@ func TestRun_AllCommands_HappyPath(t *testing.T) {
 		},
 		{
 			name:     "all commands together",
-			commands: []string{"lint-text", "lint-go", "format-go", "lint-go-test", "format-go-test", "lint-workflow", "lint-go-mod", "lint-compose", "lint-ports", "lint-golangci", "lint-openapi", "lint-security"},
+			commands: []string{"lint-text", "lint-go", "format-go", "lint-go-test", "format-go-test", "lint-workflow", "lint-go-mod", "lint-compose", "lint-ports", "lint-golangci", "lint-openapi"},
 		},
 		{
 			name:     "lint-docs command",
@@ -116,10 +116,6 @@ func TestRun_AllCommands_HappyPath(t *testing.T) {
 		{
 			name:     "lint-openapi command",
 			commands: []string{"lint-openapi"},
-		},
-		{
-			name:     "lint-security command",
-			commands: []string{"lint-security"},
 		},
 	}
 

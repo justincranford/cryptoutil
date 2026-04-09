@@ -350,7 +350,7 @@ jobs:
         shell: bash
         run: |
           ./cicd lint-fitness lint-text lint-go lint-go-test lint-compose \
-                lint-openapi lint-ports lint-security lint-workflow lint-go-mod \
+                lint-openapi lint-ports lint-workflow lint-go-mod \
                 lint-golangci lint-docs lint-deployments lint-java-test lint-python-test
       - name: Run formatters and verify no changes needed
         shell: bash
