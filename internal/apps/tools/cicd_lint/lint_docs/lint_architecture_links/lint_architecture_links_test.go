@@ -214,133 +214,101 @@ func TestCheckWithFS_BrokenAnchor(t *testing.T) {
 	require.Contains(t, err.Error(), "1 broken ENG-HANDBOOK.md anchor(s) found")
 }
 
-func TestCheckWithFS_GetwdError(t *testing.T) {
+func TestCheckWithFS_ErrorPaths(t *testing.T) {
 	t.Parallel()
 
-	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-
-	getwdFn := func() (string, error) { return "", fmt.Errorf("getwd failed") }
-
-	walkFn := func(_ string, _ fs.WalkDirFunc) error {
-		return fmt.Errorf("should not be called")
-	}
-
-	readFileFn := func(_ string) ([]byte, error) {
-		return nil, fmt.Errorf("should not be called")
-	}
-
-	err := checkWithFS(logger, getwdFn, walkFn, readFileFn)
-
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "failed to get working directory")
-}
-
-func TestCheckWithFS_ReadArchError(t *testing.T) {
-	t.Parallel()
-
-	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	root := findTestProjectRoot(t)
 
-	getwdFn := func() (string, error) { return root, nil }
+	tests := []struct {
+		name            string
+		getwdFn         func() (string, error)
+		walkFn          func(string, fs.WalkDirFunc) error
+		readFileFn      func(string) ([]byte, error)
+		wantErrContains string
+	}{
+		{
+			name:    "getwd error",
+			getwdFn: func() (string, error) { return "", fmt.Errorf("getwd failed") },
+			walkFn:  func(_ string, _ fs.WalkDirFunc) error { return fmt.Errorf("should not be called") },
+			readFileFn: func(_ string) ([]byte, error) {
+				return nil, fmt.Errorf("should not be called")
+			},
+			wantErrContains: "failed to get working directory",
+		},
+		{
+			name:    "read arch error",
+			getwdFn: func() (string, error) { return root, nil },
+			walkFn:  func(_ string, _ fs.WalkDirFunc) error { return fmt.Errorf("should not be called") },
+			readFileFn: func(_ string) ([]byte, error) {
+				return nil, fmt.Errorf("disk read error")
+			},
+			wantErrContains: "failed to read ENG-HANDBOOK.md",
+		},
+		{
+			name:    "walk error",
+			getwdFn: func() (string, error) { return root, nil },
+			walkFn:  func(_ string, _ fs.WalkDirFunc) error { return fmt.Errorf("permission denied") },
+			readFileFn: func() func(string) ([]byte, error) {
+				callCount := 0
 
-	walkFn := func(_ string, _ fs.WalkDirFunc) error {
-		return fmt.Errorf("should not be called")
+				return func(_ string) ([]byte, error) {
+					callCount++
+					if callCount == 1 {
+						return []byte(testArchContentSimple), nil
+					}
+
+					return nil, fmt.Errorf("should not be called for walk targets")
+				}
+			}(),
+			wantErrContains: "failed to walk",
+		},
+		{
+			name:    "read target file error",
+			getwdFn: func() (string, error) { return root, nil },
+			walkFn: func(absDir string, fn fs.WalkDirFunc) error {
+				name := testInstructionFileName
+
+				return fn(filepath.Join(absDir, name), &fakeDirEntry{name: name, isDir: false}, nil)
+			},
+			readFileFn: func() func(string) ([]byte, error) {
+				callCount := 0
+
+				return func(_ string) ([]byte, error) {
+					callCount++
+					if callCount == 1 {
+						return []byte(testArchContentSimple), nil
+					}
+
+					return nil, fmt.Errorf("disk read error")
+				}
+			}(),
+			wantErrContains: "failed to read",
+		},
+		{
+			name:    "walk entry error",
+			getwdFn: func() (string, error) { return root, nil },
+			walkFn: func(absDir string, fn fs.WalkDirFunc) error {
+				return fn(filepath.Join(absDir, "bad.md"), &fakeDirEntry{name: "bad.md", isDir: false}, fmt.Errorf("stat error"))
+			},
+			readFileFn: func(_ string) ([]byte, error) {
+				return []byte(testArchContentSimple), nil
+			},
+			wantErrContains: "failed to access",
+		},
 	}
 
-	readFileFn := func(_ string) ([]byte, error) {
-		return nil, fmt.Errorf("disk read error")
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			logger := cryptoutilCmdCicdCommon.NewLogger("test")
+
+			err := checkWithFS(logger, tc.getwdFn, tc.walkFn, tc.readFileFn)
+
+			require.Error(t, err)
+			require.Contains(t, err.Error(), tc.wantErrContains)
+		})
 	}
-
-	err := checkWithFS(logger, getwdFn, walkFn, readFileFn)
-
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "failed to read ENG-HANDBOOK.md")
-}
-
-func TestCheckWithFS_WalkError(t *testing.T) {
-	t.Parallel()
-
-	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	root := findTestProjectRoot(t)
-
-	getwdFn := func() (string, error) { return root, nil }
-
-	archContent := testArchContentSimple
-	callCount := 0
-
-	readFileFn := func(name string) ([]byte, error) {
-		callCount++
-		if callCount == 1 {
-			return []byte(archContent), nil
-		}
-
-		return nil, fmt.Errorf("should not be called for walk targets")
-	}
-
-	walkFn := func(_ string, _ fs.WalkDirFunc) error {
-		return fmt.Errorf("permission denied")
-	}
-
-	err := checkWithFS(logger, getwdFn, walkFn, readFileFn)
-
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "failed to walk")
-}
-
-func TestCheckWithFS_ReadTargetFileError(t *testing.T) {
-	t.Parallel()
-
-	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	root := findTestProjectRoot(t)
-
-	getwdFn := func() (string, error) { return root, nil }
-
-	archContent := testArchContentSimple
-	callCount := 0
-
-	readFileFn := func(_ string) ([]byte, error) {
-		callCount++
-		if callCount == 1 {
-			return []byte(archContent), nil
-		}
-
-		return nil, fmt.Errorf("disk read error")
-	}
-
-	walkFn := func(absDir string, fn fs.WalkDirFunc) error {
-		name := testInstructionFileName
-
-		return fn(filepath.Join(absDir, name), &fakeDirEntry{name: name, isDir: false}, nil)
-	}
-
-	err := checkWithFS(logger, getwdFn, walkFn, readFileFn)
-
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "failed to read")
-}
-
-func TestCheckWithFS_WalkEntryError(t *testing.T) {
-	t.Parallel()
-
-	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	root := findTestProjectRoot(t)
-
-	getwdFn := func() (string, error) { return root, nil }
-
-	archContent := testArchContentSimple
-
-	readFileFn := func(_ string) ([]byte, error) {
-		return []byte(archContent), nil
-	}
-
-	walkFn := func(absDir string, fn fs.WalkDirFunc) error {
-		return fn(filepath.Join(absDir, "bad.md"), &fakeDirEntry{name: "bad.md", isDir: false}, fmt.Errorf("stat error"))
-	}
-
-	err := checkWithFS(logger, getwdFn, walkFn, readFileFn)
-
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "failed to access")
 }
 
 func TestCheckWithFS_SkipsNonMdFiles(t *testing.T) {

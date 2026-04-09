@@ -92,205 +92,112 @@ func TestLoadSuffixRules_InvalidYAML(t *testing.T) {
 }
 
 // -----------------------------------------------------------------------
-// CheckFiles — suffix rules
+// CheckFiles — suffix and content rules
 // -----------------------------------------------------------------------
 
-func TestCheckFiles_BenchFileHasBenchmark(t *testing.T) {
+func TestCheckFiles_SuffixAndContentRules(t *testing.T) {
 	t.Parallel()
+
+	tests := []struct {
+		name        string
+		filename    string
+		content     string
+		wantErr     bool
+		errContains string
+	}{
+		{
+			name:     "bench file has benchmark",
+			filename: "foo_bench_test.go",
+			content:  "package mypkg\nimport \"testing\"\nfunc BenchmarkFoo(b *testing.B) {}\n",
+		},
+		{
+			name:        "bench file missing benchmark",
+			filename:    "foo_bench_test.go",
+			content:     "package mypkg\nimport \"testing\"\nfunc TestFoo(t *testing.T) {}\n",
+			wantErr:     true,
+			errContains: "violation(s)",
+		},
+		{
+			name:        "bench file forbidden fuzz",
+			filename:    "foo_bench_test.go",
+			content:     "package mypkg\nimport \"testing\"\nfunc BenchmarkFoo(b *testing.B) {}\nfunc FuzzFoo(f *testing.F) {}\n",
+			wantErr:     true,
+			errContains: "violation(s)",
+		},
+		{
+			name:     "fuzz file has fuzz",
+			filename: "foo_fuzz_test.go",
+			content:  "package mypkg\nimport \"testing\"\nfunc FuzzFoo(f *testing.F) {}\n",
+		},
+		{
+			name:        "fuzz file missing fuzz",
+			filename:    "foo_fuzz_test.go",
+			content:     "package mypkg\nimport \"testing\"\nfunc TestFoo(t *testing.T) {}\n",
+			wantErr:     true,
+			errContains: "violation(s)",
+		},
+		{
+			name:     "property file has build tag",
+			filename: "foo_property_test.go",
+			content:  "//go:build !fuzz\npackage mypkg\nimport \"testing\"\nfunc TestFooProp(t *testing.T) {}\n",
+		},
+		{
+			name:        "property file missing build tag",
+			filename:    "foo_property_test.go",
+			content:     "package mypkg\nimport \"testing\"\nfunc TestFooProp(t *testing.T) {}\n",
+			wantErr:     true,
+			errContains: "violation(s)",
+		},
+		{
+			name:     "integration file no fuzz",
+			filename: "foo_integration_test.go",
+			content:  "package mypkg\nimport \"testing\"\nfunc TestFoo(t *testing.T) {}\n",
+		},
+		{
+			name:        "integration file forbidden fuzz",
+			filename:    "foo_integration_test.go",
+			content:     "package mypkg\nimport \"testing\"\nfunc FuzzFoo(f *testing.F) {}\n",
+			wantErr:     true,
+			errContains: "violation(s)",
+		},
+		{
+			name:        "fuzz in wrong file suffix",
+			filename:    "foo_test.go",
+			content:     "package mypkg\nimport \"testing\"\nfunc FuzzFoo(f *testing.F) {}\n",
+			wantErr:     true,
+			errContains: "violation(s)",
+		},
+		{
+			name:        "benchmark in wrong file suffix",
+			filename:    "foo_test.go",
+			content:     "package mypkg\nimport \"testing\"\nfunc BenchmarkFoo(b *testing.B) {}\n",
+			wantErr:     true,
+			errContains: "violation(s)",
+		},
+	}
 
 	rootDir := buildSuffixRoot(t)
 	rules, err := LoadSuffixRules(rootDir, os.ReadFile)
 	require.NoError(t, err)
 
-	pkgDir := filepath.Join(t.TempDir(), "mypkg")
-	f := writeTestFile(t, pkgDir, "foo_bench_test.go",
-		"package mypkg\nimport \"testing\"\nfunc BenchmarkFoo(b *testing.B) {}\n")
-	logger := cryptoutilCmdCicdCommon.NewLogger("test")
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-	err = CheckFiles(logger, []string{f}, rules, os.ReadFile)
+			pkgDir := filepath.Join(t.TempDir(), "mypkg")
+			f := writeTestFile(t, pkgDir, tc.filename, tc.content)
+			logger := cryptoutilCmdCicdCommon.NewLogger("test")
 
-	require.NoError(t, err)
-}
+			checkErr := CheckFiles(logger, []string{f}, rules, os.ReadFile)
 
-func TestCheckFiles_BenchFileMissingBenchmark(t *testing.T) {
-	t.Parallel()
-
-	rootDir := buildSuffixRoot(t)
-	rules, err := LoadSuffixRules(rootDir, os.ReadFile)
-	require.NoError(t, err)
-
-	pkgDir := filepath.Join(t.TempDir(), "mypkg")
-	f := writeTestFile(t, pkgDir, "foo_bench_test.go",
-		"package mypkg\nimport \"testing\"\nfunc TestFoo(t *testing.T) {}\n")
-	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-
-	err = CheckFiles(logger, []string{f}, rules, os.ReadFile)
-
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "violation(s)")
-}
-
-func TestCheckFiles_BenchFileForbiddenFuzz(t *testing.T) {
-	t.Parallel()
-
-	rootDir := buildSuffixRoot(t)
-	rules, err := LoadSuffixRules(rootDir, os.ReadFile)
-	require.NoError(t, err)
-
-	pkgDir := filepath.Join(t.TempDir(), "mypkg")
-	f := writeTestFile(t, pkgDir, "foo_bench_test.go",
-		"package mypkg\nimport \"testing\"\nfunc BenchmarkFoo(b *testing.B) {}\nfunc FuzzFoo(f *testing.F) {}\n")
-	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-
-	err = CheckFiles(logger, []string{f}, rules, os.ReadFile)
-
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "violation(s)")
-}
-
-func TestCheckFiles_FuzzFileHasFuzz(t *testing.T) {
-	t.Parallel()
-
-	rootDir := buildSuffixRoot(t)
-	rules, err := LoadSuffixRules(rootDir, os.ReadFile)
-	require.NoError(t, err)
-
-	pkgDir := filepath.Join(t.TempDir(), "mypkg")
-	f := writeTestFile(t, pkgDir, "foo_fuzz_test.go",
-		"package mypkg\nimport \"testing\"\nfunc FuzzFoo(f *testing.F) {}\n")
-	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-
-	err = CheckFiles(logger, []string{f}, rules, os.ReadFile)
-
-	require.NoError(t, err)
-}
-
-func TestCheckFiles_FuzzFileMissingFuzz(t *testing.T) {
-	t.Parallel()
-
-	rootDir := buildSuffixRoot(t)
-	rules, err := LoadSuffixRules(rootDir, os.ReadFile)
-	require.NoError(t, err)
-
-	pkgDir := filepath.Join(t.TempDir(), "mypkg")
-	f := writeTestFile(t, pkgDir, "foo_fuzz_test.go",
-		"package mypkg\nimport \"testing\"\nfunc TestFoo(t *testing.T) {}\n")
-	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-
-	err = CheckFiles(logger, []string{f}, rules, os.ReadFile)
-
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "violation(s)")
-}
-
-func TestCheckFiles_PropertyFileHasBuildTag(t *testing.T) {
-	t.Parallel()
-
-	rootDir := buildSuffixRoot(t)
-	rules, err := LoadSuffixRules(rootDir, os.ReadFile)
-	require.NoError(t, err)
-
-	pkgDir := filepath.Join(t.TempDir(), "mypkg")
-	f := writeTestFile(t, pkgDir, "foo_property_test.go",
-		"//go:build !fuzz\npackage mypkg\nimport \"testing\"\nfunc TestFooProp(t *testing.T) {}\n")
-	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-
-	err = CheckFiles(logger, []string{f}, rules, os.ReadFile)
-
-	require.NoError(t, err)
-}
-
-func TestCheckFiles_PropertyFileMissingBuildTag(t *testing.T) {
-	t.Parallel()
-
-	rootDir := buildSuffixRoot(t)
-	rules, err := LoadSuffixRules(rootDir, os.ReadFile)
-	require.NoError(t, err)
-
-	pkgDir := filepath.Join(t.TempDir(), "mypkg")
-	f := writeTestFile(t, pkgDir, "foo_property_test.go",
-		"package mypkg\nimport \"testing\"\nfunc TestFooProp(t *testing.T) {}\n")
-	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-
-	err = CheckFiles(logger, []string{f}, rules, os.ReadFile)
-
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "violation(s)")
-}
-
-func TestCheckFiles_IntegrationFileNoFuzz(t *testing.T) {
-	t.Parallel()
-
-	rootDir := buildSuffixRoot(t)
-	rules, err := LoadSuffixRules(rootDir, os.ReadFile)
-	require.NoError(t, err)
-
-	pkgDir := filepath.Join(t.TempDir(), "mypkg")
-	f := writeTestFile(t, pkgDir, "foo_integration_test.go",
-		"package mypkg\nimport \"testing\"\nfunc TestFoo(t *testing.T) {}\n")
-	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-
-	err = CheckFiles(logger, []string{f}, rules, os.ReadFile)
-
-	require.NoError(t, err)
-}
-
-func TestCheckFiles_IntegrationFileForbiddenFuzz(t *testing.T) {
-	t.Parallel()
-
-	rootDir := buildSuffixRoot(t)
-	rules, err := LoadSuffixRules(rootDir, os.ReadFile)
-	require.NoError(t, err)
-
-	pkgDir := filepath.Join(t.TempDir(), "mypkg")
-	f := writeTestFile(t, pkgDir, "foo_integration_test.go",
-		"package mypkg\nimport \"testing\"\nfunc FuzzFoo(f *testing.F) {}\n")
-	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-
-	err = CheckFiles(logger, []string{f}, rules, os.ReadFile)
-
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "violation(s)")
-}
-
-// -----------------------------------------------------------------------
-// CheckFiles — content rules
-// -----------------------------------------------------------------------
-
-func TestCheckFiles_ContentRule_FuzzInWrongFile(t *testing.T) {
-	t.Parallel()
-
-	rootDir := buildSuffixRoot(t)
-	rules, err := LoadSuffixRules(rootDir, os.ReadFile)
-	require.NoError(t, err)
-
-	pkgDir := filepath.Join(t.TempDir(), "mypkg")
-	f := writeTestFile(t, pkgDir, "foo_test.go",
-		"package mypkg\nimport \"testing\"\nfunc FuzzFoo(f *testing.F) {}\n")
-	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-
-	err = CheckFiles(logger, []string{f}, rules, os.ReadFile)
-
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "violation(s)")
-}
-
-func TestCheckFiles_ContentRule_BenchmarkInWrongFile(t *testing.T) {
-	t.Parallel()
-
-	rootDir := buildSuffixRoot(t)
-	rules, err := LoadSuffixRules(rootDir, os.ReadFile)
-	require.NoError(t, err)
-
-	pkgDir := filepath.Join(t.TempDir(), "mypkg")
-	f := writeTestFile(t, pkgDir, "foo_test.go",
-		"package mypkg\nimport \"testing\"\nfunc BenchmarkFoo(b *testing.B) {}\n")
-	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-
-	err = CheckFiles(logger, []string{f}, rules, os.ReadFile)
-
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "violation(s)")
+			if tc.wantErr {
+				require.Error(t, checkErr)
+				require.Contains(t, checkErr.Error(), tc.errContains)
+			} else {
+				require.NoError(t, checkErr)
+			}
+		})
+	}
 }
 
 func TestCheckFiles_EmptyFileList(t *testing.T) {
@@ -327,61 +234,57 @@ func TestCheckFiles_ReadFileError(t *testing.T) {
 	require.Contains(t, err.Error(), "simulated read error")
 }
 
-func TestCheckFiles_InvalidContentPatternInRules(t *testing.T) {
+func TestCheckFiles_InvalidRegexPatterns(t *testing.T) {
 	t.Parallel()
 
-	rules := &SuffixRules{
-		ContentRules: []ContentRule{
-			{ContentPattern: "[invalid-regex", RequiredSuffix: "_test.go"},
+	tests := []struct {
+		name        string
+		rules       *SuffixRules
+		errContains string
+	}{
+		{
+			name: "invalid content pattern in content rules",
+			rules: &SuffixRules{
+				ContentRules: []ContentRule{
+					{ContentPattern: "[invalid-regex", RequiredSuffix: "_test.go"},
+				},
+			},
+			errContains: "invalid content_pattern",
+		},
+		{
+			name: "invalid required pattern in suffix rule",
+			rules: &SuffixRules{
+				SuffixRules: []SuffixRule{
+					{Suffix: "_test.go", RequiredContentPatterns: []string{"[bad-regex"}},
+				},
+			},
+			errContains: "invalid required_content_pattern",
+		},
+		{
+			name: "invalid forbidden pattern in suffix rule",
+			rules: &SuffixRules{
+				SuffixRules: []SuffixRule{
+					{Suffix: "_test.go", ForbiddenContentPatterns: []string{"[bad-regex"}},
+				},
+			},
+			errContains: "invalid forbidden_content_pattern",
 		},
 	}
 
-	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	pkgDir := filepath.Join(t.TempDir(), "mypkg")
-	f := writeTestFile(t, pkgDir, "foo_test.go", "package mypkg\n")
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-	err := CheckFiles(logger, []string{f}, rules, os.ReadFile)
+			logger := cryptoutilCmdCicdCommon.NewLogger("test")
+			pkgDir := filepath.Join(t.TempDir(), "mypkg")
+			f := writeTestFile(t, pkgDir, "foo_test.go", "package mypkg\n")
 
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "invalid content_pattern")
-}
+			checkErr := CheckFiles(logger, []string{f}, tc.rules, os.ReadFile)
 
-func TestCheckFiles_InvalidRequiredPatternInRule(t *testing.T) {
-	t.Parallel()
-
-	rules := &SuffixRules{
-		SuffixRules: []SuffixRule{
-			{Suffix: "_test.go", RequiredContentPatterns: []string{"[bad-regex"}},
-		},
+			require.Error(t, checkErr)
+			require.Contains(t, checkErr.Error(), tc.errContains)
+		})
 	}
-
-	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	pkgDir := filepath.Join(t.TempDir(), "mypkg")
-	f := writeTestFile(t, pkgDir, "foo_test.go", "package mypkg\n")
-
-	err := CheckFiles(logger, []string{f}, rules, os.ReadFile)
-
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "invalid required_content_pattern")
-}
-
-func TestCheckFiles_InvalidForbiddenPatternInRule(t *testing.T) {
-	t.Parallel()
-
-	rules := &SuffixRules{
-		SuffixRules: []SuffixRule{
-			{Suffix: "_test.go", ForbiddenContentPatterns: []string{"[bad-regex"}},
-		},
-	}
-
-	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	pkgDir := filepath.Join(t.TempDir(), "mypkg")
-	f := writeTestFile(t, pkgDir, "foo_test.go", "package mypkg\n")
-
-	err := CheckFiles(logger, []string{f}, rules, os.ReadFile)
-
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "invalid forbidden_content_pattern")
 }
 
 // -----------------------------------------------------------------------
@@ -483,39 +386,48 @@ func TestCheck_ProjectRootError(t *testing.T) {
 	require.Contains(t, err.Error(), "simulated root error")
 }
 
-func TestFindTestFileSuffixProjectRoot_GetwdError(t *testing.T) {
+func TestFindTestFileSuffixProjectRoot_Errors(t *testing.T) {
 	t.Parallel()
 
-	stubGetwdFn := func() (string, error) {
-		return "", fmt.Errorf("simulated getwd error")
+	tests := []struct {
+		name        string
+		getwdFn     func() (string, error)
+		errContains string
+	}{
+		{
+			name: "getwd error",
+			getwdFn: func() (string, error) {
+				return "", fmt.Errorf("simulated getwd error")
+			},
+			errContains: "simulated getwd error",
+		},
+		{
+			name: "go.mod not found",
+			getwdFn: func() (string, error) {
+				root := filepath.VolumeName(t.TempDir())
+				if root == "" {
+					root = "/"
+				} else {
+					root += "\\"
+				}
+
+				return root, nil
+			},
+			errContains: "go.mod not found",
+		},
 	}
 
-	result, err := findTestFileSuffixProjectRoot(stubGetwdFn)
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-	require.Error(t, err)
-	require.Empty(t, result)
-	require.Contains(t, err.Error(), "simulated getwd error")
-}
+			result, err := findTestFileSuffixProjectRoot(tc.getwdFn)
 
-func TestFindTestFileSuffixProjectRoot_GoModNotFound(t *testing.T) {
-	t.Parallel()
-
-	stubGetwdFn := func() (string, error) {
-		root := filepath.VolumeName(t.TempDir())
-		if root == "" {
-			root = "/"
-		} else {
-			root += "\\"
-		}
-
-		return root, nil
+			require.Error(t, err)
+			require.Empty(t, result)
+			require.Contains(t, err.Error(), tc.errContains)
+		})
 	}
-
-	result, err := findTestFileSuffixProjectRoot(stubGetwdFn)
-
-	require.Error(t, err)
-	require.Empty(t, result)
-	require.Contains(t, err.Error(), "go.mod not found")
 }
 
 // -----------------------------------------------------------------------
