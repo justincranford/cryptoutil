@@ -17,408 +17,352 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestCheckGoModForCGO_ValidFile(t *testing.T) {
+var nonexistentGoMod = "/nonexistent/path/go.mod"
+
+func TestCheckGoModForCGO(t *testing.T) {
 	t.Parallel()
 
-	// Create temp go.mod file without banned modules.
-	tmpDir := t.TempDir()
-	goModFile := filepath.Join(tmpDir, "go.mod")
+	tests := []struct {
+		name           string
+		content        string
+		wantErr        string
+		wantLen        int
+		wantContains   []string
+		useNonexistent bool
+	}{
+		{
+			name: "valid file",
+			content: "module example.com/myproject\n\ngo 1.21\n\nrequire (\n" +
+				"\tmodernc.org/sqlite v1.29.0\n" +
+				"\tgithub.com/golang-migrate/migrate/v4 v4.17.0\n)\n",
+			wantLen: 0,
+		},
+		{
+			name: "banned modules",
+			content: "module example.com/myproject\n\ngo 1.21\n\nrequire (\n" +
+				"\tgithub.com/mattn/go-sqlite3 v1.14.19\n" +
+				"\tgithub.com/golang-migrate/migrate/v4/database/sqlite3 v4.17.0\n)\n",
+			wantLen:      2,
+			wantContains: []string{"go-sqlite3", "database/sqlite3"},
+		},
+		{
+			name: "indirect module skipped",
+			content: "module example.com/myproject\n\ngo 1.21\n\nrequire (\n" +
+				"\tgithub.com/mattn/go-sqlite3 v1.14.19 // indirect\n)\n",
+			wantLen: 0,
+		},
+		{
+			name:           "file not found",
+			useNonexistent: true,
+			wantErr:        "failed to open go.mod",
+		},
+		{
+			name:    "scanner error",
+			content: "module test\n// " + strings.Repeat("x", 70000) + "\n",
+			wantErr: "error reading go.mod",
+		},
+	}
 
-	content := `module example.com/myproject
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-go 1.21
+			var goModFile string
+			if tc.useNonexistent {
+				goModFile = "/nonexistent/path/go.mod"
+			} else {
+				tmpDir := t.TempDir()
+				goModFile = filepath.Join(tmpDir, "go.mod")
+				require.NoError(t, os.WriteFile(goModFile, []byte(tc.content), cryptoutilSharedMagic.CacheFilePermissions))
+			}
 
-require (
-	modernc.org/sqlite v1.29.0
-	github.com/golang-migrate/migrate/v4 v4.17.0
-)
-`
+			violations, err := CheckGoModForCGO(goModFile)
 
-	err := os.WriteFile(goModFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions)
-	require.NoError(t, err)
+			switch {
+			case tc.wantErr != "":
+				require.Error(t, err)
+				require.Contains(t, err.Error(), tc.wantErr)
+			default:
+				require.NoError(t, err)
+				require.Len(t, violations, tc.wantLen)
 
-	violations, err := CheckGoModForCGO(goModFile)
-	require.NoError(t, err)
-	require.Empty(t, violations, "Valid go.mod should have no violations")
+				joined := strings.Join(violations, "\n")
+				for _, want := range tc.wantContains {
+					require.Contains(t, joined, want)
+				}
+			}
+		})
+	}
 }
 
-func TestCheckGoModForCGO_BannedModule(t *testing.T) {
+func TestCheckRequiredCGOModule(t *testing.T) {
 	t.Parallel()
 
-	// Create temp go.mod file with banned module (direct dependency).
-	tmpDir := t.TempDir()
-	goModFile := filepath.Join(tmpDir, "go.mod")
+	tests := []struct {
+		name           string
+		content        string
+		wantFound      bool
+		wantErr        string
+		useNonexistent bool
+	}{
+		{
+			name: "found",
+			content: "module example.com/myproject\n\ngo 1.21\n\nrequire (\n" +
+				"\tmodernc.org/sqlite v1.29.0\n)\n",
+			wantFound: true,
+		},
+		{
+			name: "not found",
+			content: "module example.com/myproject\n\ngo 1.21\n\nrequire (\n" +
+				"\tgithub.com/some/other/module v1.0.0\n)\n",
+			wantFound: false,
+		},
+		{
+			name:           "file not found",
+			useNonexistent: true,
+			wantErr:        "failed to open go.mod",
+		},
+		{
+			name:    "scanner error",
+			content: "module test\n// " + strings.Repeat("x", 70000) + "\n",
+			wantErr: "error reading go.mod",
+		},
+	}
 
-	content := `module example.com/myproject
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-go 1.21
+			var goModFile string
+			if tc.useNonexistent {
+				goModFile = nonexistentGoMod
+			} else {
+				tmpDir := t.TempDir()
+				goModFile = filepath.Join(tmpDir, "go.mod")
+				require.NoError(t, os.WriteFile(goModFile, []byte(tc.content), cryptoutilSharedMagic.CacheFilePermissions))
+			}
 
-require (
-	github.com/mattn/go-sqlite3 v1.14.19
-	github.com/golang-migrate/migrate/v4/database/sqlite3 v4.17.0
-)
-`
+			found, err := CheckRequiredCGOModule(goModFile)
 
-	err := os.WriteFile(goModFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions)
-	require.NoError(t, err)
-
-	violations, err := CheckGoModForCGO(goModFile)
-	require.NoError(t, err)
-	require.Len(t, violations, 2, "Should detect 2 banned modules")
-	require.Contains(t, strings.Join(violations, "\n"), "go-sqlite3", "Should detect banned CGO sqlite")
-	require.Contains(t, strings.Join(violations, "\n"), "database/sqlite3", "Should detect banned CGO migrate")
+			switch {
+			case tc.wantErr != "":
+				require.Error(t, err)
+				require.Contains(t, err.Error(), tc.wantErr)
+			default:
+				require.NoError(t, err)
+				require.Equal(t, tc.wantFound, found)
+			}
+		})
+	}
 }
 
-func TestCheckGoModForCGO_IndirectModule(t *testing.T) {
+func TestCheckGoFileForCGO(t *testing.T) {
 	t.Parallel()
 
-	// Create temp go.mod file with banned module as indirect.
-	tmpDir := t.TempDir()
-	goModFile := filepath.Join(tmpDir, "go.mod")
+	tests := []struct {
+		name           string
+		filename       string
+		subdir         string
+		content        string
+		wantEmpty      bool
+		wantContains   string
+		wantErr        string
+		useNonexistent bool
+	}{
+		{
+			name:     "clean file",
+			filename: "clean.go",
+			content: "package main\n\nimport (\n" +
+				"\t\"modernc.org/sqlite\"\n" +
+				"\t\"github.com/golang-migrate/migrate/v4/database/sqlite\"\n)\n\n" +
+				"func main() {\n\t// Using CGO-free sqlite\n}\n",
+			wantEmpty: true,
+		},
+		{
+			name:     "banned import",
+			filename: "banned.go",
+			content: "package main\n\nimport (\n" +
+				"\t_ \"github.com/mattn/go-sqlite3\"\n)\n\n" +
+				"func main() {\n}\n",
+			wantContains: "banned CGO import detected",
+		},
+		{
+			name:     "banned migrate import",
+			filename: "banned_migrate.go",
+			content: "package main\n\nimport (\n" +
+				"\t_ \"github.com/golang-migrate/migrate/v4/database/sqlite3\"\n)\n\n" +
+				"func main() {\n}\n",
+			wantContains: "banned CGO migrate import detected",
+		},
+		{
+			name:      "lint_go directory skipped",
+			filename:  "lint_go.go",
+			subdir:    "lint_go",
+			content:   "package main\n\nimport (\n\t_ \"github.com/mattn/go-sqlite3\"\n)\n",
+			wantEmpty: true,
+		},
+		{
+			name:           "file not found",
+			useNonexistent: true,
+			wantErr:        "failed to open",
+		},
+	}
 
-	content := `module example.com/myproject
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-go 1.21
+			var filePath string
+			if tc.useNonexistent {
+				filePath = "/nonexistent/path/file.go"
+			} else {
+				tmpDir := t.TempDir()
 
-require (
-	github.com/mattn/go-sqlite3 v1.14.19 // indirect
-)
-`
+				dir := tmpDir
+				if tc.subdir != "" {
+					dir = filepath.Join(tmpDir, tc.subdir)
+					require.NoError(t, os.MkdirAll(dir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+				}
 
-	err := os.WriteFile(goModFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions)
-	require.NoError(t, err)
+				filePath = filepath.Join(dir, tc.filename)
+				require.NoError(t, os.WriteFile(filePath, []byte(tc.content), cryptoutilSharedMagic.CacheFilePermissions))
+			}
 
-	violations, err := CheckGoModForCGO(goModFile)
-	require.NoError(t, err)
-	require.Empty(t, violations, "Indirect dependencies should not be flagged")
+			violations, err := CheckGoFileForCGO(filePath)
+
+			switch {
+			case tc.wantErr != "":
+				require.Error(t, err)
+				require.Nil(t, violations)
+				require.Contains(t, err.Error(), tc.wantErr)
+			case tc.wantEmpty:
+				require.NoError(t, err)
+				require.Empty(t, violations)
+			default:
+				require.NoError(t, err)
+				require.NotEmpty(t, violations)
+				require.Contains(t, strings.Join(violations, "\n"), tc.wantContains)
+			}
+		})
+	}
 }
 
-func TestCheckGoModForCGO_FileNotFound(t *testing.T) {
-	t.Parallel()
+// Sequential: redirects os.Stderr (global process state, cannot run in parallel).
+func TestPrintCGOViolations(t *testing.T) {
+	tests := []struct {
+		name             string
+		goModViolations  []string
+		importViolations []string
+		hasRequired      bool
+		wantContains     []string
+		wantNotContains  []string
+	}{
+		{
+			name:             "all types",
+			goModViolations:  []string{"go.mod:5: banned CGO module"},
+			importViolations: []string{"file.go:10: banned CGO import"},
+			hasRequired:      false,
+			wantContains:     []string{"CGO validation failed", "go.mod violations", "Import violations", "Required module missing"},
+		},
+		{
+			name:            "go.mod only",
+			goModViolations: []string{"go.mod:5: banned module"},
+			hasRequired:     true,
+			wantContains:    []string{"go.mod violations"},
+			wantNotContains: []string{"Import violations", "Required module missing"},
+		},
+		{
+			name:             "import only",
+			importViolations: []string{"file.go:10: banned import"},
+			hasRequired:      true,
+			wantContains:     []string{"Import violations"},
+			wantNotContains:  []string{"go.mod violations", "Required module missing"},
+		},
+	}
 
-	violations, err := CheckGoModForCGO("/nonexistent/path/go.mod")
-	require.Error(t, err)
-	require.Nil(t, violations)
-	require.Contains(t, err.Error(), "failed to open go.mod")
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			oldStderr := os.Stderr
+			r, w, _ := os.Pipe()
+			os.Stderr = w
+
+			PrintCGOViolations(tc.goModViolations, tc.importViolations, tc.hasRequired)
+
+			_ = w.Close()
+			os.Stderr = oldStderr
+
+			output, _ := io.ReadAll(r)
+			outputStr := string(output)
+
+			for _, want := range tc.wantContains {
+				require.Contains(t, outputStr, want)
+			}
+
+			for _, notWant := range tc.wantNotContains {
+				require.NotContains(t, outputStr, notWant)
+			}
+		})
+	}
 }
 
-func TestCheckRequiredCGOModule_Found(t *testing.T) {
-	t.Parallel()
+// Sequential: uses os.Chdir (global process state, cannot run in parallel).
+func TestCheck(t *testing.T) {
+	tests := []struct {
+		name       string
+		setupFiles map[string]string
+		wantErr    string
+	}{
+		{
+			name: "with required module",
+			setupFiles: map[string]string{
+				"go.mod":  "module testmod\n\ngo 1.21\n\nrequire (\n\tmodernc.org/sqlite v1.30.0\n)\n",
+				"main.go": testMainContent,
+			},
+		},
+		{
+			name: "missing required module",
+			setupFiles: map[string]string{
+				"go.mod":  "module testmod\n\ngo 1.21\n",
+				"main.go": testMainContent,
+			},
+			wantErr: "CGO validation failed",
+		},
+		{
+			name:    "no go.mod",
+			wantErr: "failed to check go.mod",
+		},
+	}
 
-	// Create temp go.mod file with required module.
-	tmpDir := t.TempDir()
-	goModFile := filepath.Join(tmpDir, "go.mod")
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			origDir, err := os.Getwd()
+			require.NoError(t, err)
 
-	content := `module example.com/myproject
+			defer func() { require.NoError(t, os.Chdir(origDir)) }()
 
-go 1.21
+			tmpDir := t.TempDir()
+			require.NoError(t, os.Chdir(tmpDir))
 
-require (
-	modernc.org/sqlite v1.29.0
-)
-`
+			for name, content := range tc.setupFiles {
+				require.NoError(t, os.WriteFile(name, []byte(content), cryptoutilSharedMagic.CacheFilePermissions))
+			}
 
-	err := os.WriteFile(goModFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions)
-	require.NoError(t, err)
+			logger := cryptoutilCmdCicdCommon.NewLogger("test")
+			err = Check(logger)
 
-	found, err := CheckRequiredCGOModule(goModFile)
-	require.NoError(t, err)
-	require.True(t, found, "Required module should be found")
+			switch {
+			case tc.wantErr != "":
+				require.Error(t, err)
+				require.Contains(t, err.Error(), tc.wantErr)
+			default:
+				require.NoError(t, err)
+			}
+		})
+	}
 }
 
-func TestCheckRequiredCGOModule_NotFound(t *testing.T) {
-	t.Parallel()
-
-	// Create temp go.mod file without required module.
-	tmpDir := t.TempDir()
-	goModFile := filepath.Join(tmpDir, "go.mod")
-
-	content := `module example.com/myproject
-
-go 1.21
-
-require (
-	github.com/some/other/module v1.0.0
-)
-`
-
-	err := os.WriteFile(goModFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions)
-	require.NoError(t, err)
-
-	found, err := CheckRequiredCGOModule(goModFile)
-	require.NoError(t, err)
-	require.False(t, found, "Required module should not be found")
-}
-
-func TestCheckRequiredCGOModule_FileNotFound(t *testing.T) {
-	t.Parallel()
-
-	found, err := CheckRequiredCGOModule("/nonexistent/path/go.mod")
-	require.Error(t, err)
-	require.False(t, found)
-	require.Contains(t, err.Error(), "failed to open go.mod")
-}
-
-func TestCheckGoFileForCGO_Clean(t *testing.T) {
-	t.Parallel()
-
-	// Create temp file without banned imports.
-	tmpDir := t.TempDir()
-	cleanFile := filepath.Join(tmpDir, "clean.go")
-
-	content := `package main
-
-import (
-	"modernc.org/sqlite"
-	"github.com/golang-migrate/migrate/v4/database/sqlite"
-)
-
-func main() {
-	// Using CGO-free sqlite
-}
-`
-
-	err := os.WriteFile(cleanFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions)
-	require.NoError(t, err)
-
-	violations, err := CheckGoFileForCGO(cleanFile)
-	require.NoError(t, err)
-	require.Empty(t, violations, "Clean file should have no violations")
-}
-
-func TestCheckGoFileForCGO_BannedImport(t *testing.T) {
-	t.Parallel()
-
-	// Create temp file with banned import.
-	tmpDir := t.TempDir()
-	bannedFile := filepath.Join(tmpDir, "banned.go")
-
-	content := `package main
-
-import (
-	_ "github.com/mattn/go-sqlite3"
-)
-
-func main() {
-}
-`
-
-	err := os.WriteFile(bannedFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions)
-	require.NoError(t, err)
-
-	violations, err := CheckGoFileForCGO(bannedFile)
-	require.NoError(t, err)
-	require.NotEmpty(t, violations, "Banned import should be detected")
-	require.Contains(t, strings.Join(violations, "\n"), "banned CGO import detected")
-}
-
-func TestCheckGoFileForCGO_BannedMigrateImport(t *testing.T) {
-	t.Parallel()
-
-	// Create temp file with banned migrate import.
-	tmpDir := t.TempDir()
-	bannedFile := filepath.Join(tmpDir, "banned_migrate.go")
-
-	content := `package main
-
-import (
-	_ "github.com/golang-migrate/migrate/v4/database/sqlite3"
-)
-
-func main() {
-}
-`
-
-	err := os.WriteFile(bannedFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions)
-	require.NoError(t, err)
-
-	violations, err := CheckGoFileForCGO(bannedFile)
-	require.NoError(t, err)
-	require.NotEmpty(t, violations, "Banned migrate import should be detected")
-	require.Contains(t, strings.Join(violations, "\n"), "banned CGO migrate import detected")
-}
-
-func TestCheckGoFileForCGO_LintGoSkipped(t *testing.T) {
-	t.Parallel()
-
-	// Create temp file in a lint_go directory (should be skipped).
-	tmpDir := t.TempDir()
-	lintGoDir := filepath.Join(tmpDir, "lint_go")
-	require.NoError(t, os.MkdirAll(lintGoDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
-
-	skippedFile := filepath.Join(lintGoDir, "lint_go.go")
-
-	// Even with banned imports, should be skipped.
-	content := `package main
-
-import (
-	_ "github.com/mattn/go-sqlite3"
-)
-`
-
-	err := os.WriteFile(skippedFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions)
-	require.NoError(t, err)
-
-	violations, err := CheckGoFileForCGO(skippedFile)
-	require.NoError(t, err)
-	require.Empty(t, violations, "lint_go files should be skipped")
-}
-
-func TestCheckGoFileForCGO_FileNotFound(t *testing.T) {
-	t.Parallel()
-
-	violations, err := CheckGoFileForCGO("/nonexistent/path/file.go")
-	require.Error(t, err)
-	require.Nil(t, violations)
-	require.Contains(t, err.Error(), "failed to open")
-}
-
-func TestPrintCGOViolations_AllTypes(t *testing.T) {
-	// NOTE: Cannot use t.Parallel() - test redirects os.Stderr which is global.
-
-	// Capture stderr to verify output.
-	oldStderr := os.Stderr
-	r, w, _ := os.Pipe()
-	os.Stderr = w
-
-	goModViolations := []string{"go.mod:5: banned CGO module"}
-	importViolations := []string{"file.go:10: banned CGO import"}
-	hasRequired := false
-
-	PrintCGOViolations(goModViolations, importViolations, hasRequired)
-
-	_ = w.Close()
-	os.Stderr = oldStderr
-
-	output, _ := io.ReadAll(r)
-
-	require.Contains(t, string(output), "CGO validation failed")
-	require.Contains(t, string(output), "go.mod violations")
-	require.Contains(t, string(output), "Import violations")
-	require.Contains(t, string(output), "Required module missing")
-}
-
-func TestPrintCGOViolations_GoModOnly(t *testing.T) {
-	// NOTE: Cannot use t.Parallel() - test redirects os.Stderr which is global.
-	oldStderr := os.Stderr
-	r, w, _ := os.Pipe()
-	os.Stderr = w
-
-	PrintCGOViolations([]string{"go.mod:5: banned module"}, nil, true)
-
-	_ = w.Close()
-	os.Stderr = oldStderr
-
-	output, _ := io.ReadAll(r)
-
-	require.Contains(t, string(output), "go.mod violations")
-	require.NotContains(t, string(output), "Import violations")
-	require.NotContains(t, string(output), "Required module missing")
-}
-
-func TestPrintCGOViolations_ImportOnly(t *testing.T) {
-	// NOTE: Cannot use t.Parallel() - test redirects os.Stderr which is global.
-	oldStderr := os.Stderr
-	r, w, _ := os.Pipe()
-	os.Stderr = w
-
-	PrintCGOViolations(nil, []string{"file.go:10: banned import"}, true)
-
-	_ = w.Close()
-	os.Stderr = oldStderr
-
-	output, _ := io.ReadAll(r)
-
-	require.NotContains(t, string(output), "go.mod violations")
-	require.Contains(t, string(output), "Import violations")
-	require.NotContains(t, string(output), "Required module missing")
-}
-
-func TestCheckCGOFreeSQLite_WithTempDir(t *testing.T) {
-	// NOTE: Cannot use t.Parallel() - test changes working directory.
-
-	// Save current directory.
-	origDir, err := os.Getwd()
-	require.NoError(t, err)
-
-	defer func() {
-		require.NoError(t, os.Chdir(origDir))
-	}()
-
-	// Create temp directory.
-	tempDir := t.TempDir()
-	require.NoError(t, os.Chdir(tempDir))
-
-	// Build required module string dynamically.
-	var required strings.Builder
-	required.WriteString("modernc.org/")
-	required.WriteString(cryptoutilSharedMagic.TestDatabaseSQLite)
-
-	// Create go.mod with required CGO-free module.
-	goModContent := "module testmod\n\ngo 1.21\n\nrequire (\n\t" + required.String() + " v1.30.0\n)\n"
-	require.NoError(t, os.WriteFile("go.mod", []byte(goModContent), cryptoutilSharedMagic.CacheFilePermissions))
-
-	// Create clean Go file.
-	require.NoError(t, os.WriteFile("main.go", []byte(testMainContent), cryptoutilSharedMagic.CacheFilePermissions))
-
-	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-
-	// Test - should pass with required module present.
-	err = Check(logger)
-	require.NoError(t, err)
-}
-
-func TestCheckCGOFreeSQLite_MissingRequired(t *testing.T) {
-	// NOTE: Cannot use t.Parallel() - test changes working directory.
-
-	// Save current directory.
-	origDir, err := os.Getwd()
-	require.NoError(t, err)
-
-	defer func() {
-		require.NoError(t, os.Chdir(origDir))
-	}()
-
-	// Create temp directory.
-	tempDir := t.TempDir()
-	require.NoError(t, os.Chdir(tempDir))
-
-	// Create go.mod WITHOUT required CGO-free module.
-	goModContent := "module testmod\n\ngo 1.21\n"
-	require.NoError(t, os.WriteFile("go.mod", []byte(goModContent), cryptoutilSharedMagic.CacheFilePermissions))
-
-	// Create clean Go file.
-	require.NoError(t, os.WriteFile("main.go", []byte(testMainContent), cryptoutilSharedMagic.CacheFilePermissions))
-
-	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-
-	// Test - should fail because required module is missing.
-	err = Check(logger)
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "CGO validation failed")
-}
-
-func TestCheck_NoGoMod(t *testing.T) {
-	// NOTE: Cannot use t.Parallel() - test changes working directory.
-	origDir, err := os.Getwd()
-	require.NoError(t, err)
-
-	defer func() { require.NoError(t, os.Chdir(origDir)) }()
-
-	tmpDir := t.TempDir()
-	require.NoError(t, os.Chdir(tmpDir))
-
-	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-
-	// Without go.mod in the current directory, CheckGoModForCGO("go.mod") fails.
-	// This covers the "failed to check go.mod" error branch in Check().
-	err = Check(logger)
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "failed to check go.mod")
-}
-
+// Sequential: uses os.Chdir (global process state, cannot run in parallel).
 func TestCheck_WalkError(t *testing.T) {
-	// NOTE: Cannot use t.Parallel() - test changes working directory.
 	if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
 		t.Skip("os.Chmod does not enforce POSIX permissions on Windows")
 	}
@@ -435,9 +379,7 @@ func TestCheck_WalkError(t *testing.T) {
 	goModContent := "module testmod\n\ngo 1.21\n\nrequire (\n\tmodernc.org/sqlite v1.30.0\n)\n"
 	require.NoError(t, os.WriteFile("go.mod", []byte(goModContent), cryptoutilSharedMagic.CacheFilePermissions))
 
-	// Create chmod 0000 subdir - filepath.Walk callback receives OS error when
-	// Walk tries to ReadDir the locked directory, covering the walk callback
-	// error path (lines 121-123) and the Check() error path (lines 38-40).
+	// Create chmod 0000 subdir to trigger walk error.
 	require.NoError(t, os.MkdirAll("locked", 0o700))
 	require.NoError(t, os.Chmod("locked", 0o000))
 
@@ -447,36 +389,6 @@ func TestCheck_WalkError(t *testing.T) {
 	err = Check(logger)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to check Go files")
-}
-
-func TestCheckGoModForCGO_ScannerError(t *testing.T) {
-	t.Parallel()
-
-	tempDir := t.TempDir()
-
-	// Create a go.mod file with a line longer than bufio.MaxScanTokenSize (64KB) to trigger scanner.Err().
-	longLine := "// " + strings.Repeat("x", 70000) + "\n"
-	goModFile := filepath.Join(tempDir, "go.mod")
-	require.NoError(t, os.WriteFile(goModFile, []byte("module test\n"+longLine), cryptoutilSharedMagic.CacheFilePermissions))
-
-	_, err := CheckGoModForCGO(goModFile)
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "error reading go.mod")
-}
-
-func TestCheckRequiredCGOModule_ScannerError(t *testing.T) {
-	t.Parallel()
-
-	tempDir := t.TempDir()
-
-	// Create a go.mod file with a line longer than bufio.MaxScanTokenSize (64KB) to trigger scanner.Err().
-	longLine := "// " + strings.Repeat("x", 70000) + "\n"
-	goModFile := filepath.Join(tempDir, "go.mod")
-	require.NoError(t, os.WriteFile(goModFile, []byte("module test\n"+longLine), cryptoutilSharedMagic.CacheFilePermissions))
-
-	_, err := CheckRequiredCGOModule(goModFile)
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "error reading go.mod")
 }
 
 func findProjectRoot() (string, error) {
