@@ -2935,6 +2935,14 @@ The majority pattern (`os.IsNotExist(err) → return nil`) silently hides compli
 - Migration comment headers: `-- {DisplayName} database schema` / `-- {DisplayName} database schema rollback`
 - Config overlay files: `{PS-ID}-app-common.yml`, `{PS-ID}-app-sqlite-1.yml`, `{PS-ID}-app-sqlite-2.yml`, `{PS-ID}-app-postgresql-1.yml`, `{PS-ID}-app-postgresql-2.yml`
 
+#### 9.11.5 Fitness Linter Best Practices
+
+**Timing**: Fitness linters MUST be updated BEFORE or DURING structural changes, not after. Otherwise the new structure cannot pass validation, creating a chicken-and-egg problem.
+
+**Discoverability**: ALWAYS check for existing fitness linters before creating new ones. Search the `lint_fitness/` directory first. Superset linters eliminate the need for subset linters — avoid creating a narrow-scope linter when a broader one already covers the invariant.
+
+**Regression guards**: When a structural element is permanently removed (e.g., a deprecated directory, an old naming convention), flip the fitness linter from "must exist" to "must NOT exist" to catch accidental re-introduction. This converts the fitness linter from an existence check to a regression guard.
+
 ---
 
 ## 10. Testing Architecture
@@ -3500,6 +3508,8 @@ adminPool  := cryptoutilTestutil.PrivateRootCAPool()  // admin server CA
 - Docker secrets for credentials
 - TLS-enabled HTTP client for secure testing
 - Health check polling before test execution
+
+**MANDATORY: Runtime E2E for Deployment Refactors**: `docker compose config` and lint validation alone cannot catch runtime startup failures (entrypoint binaries, init job collisions, runtime script assumptions). ALL deployment-level refactors MUST include a runtime E2E pass that actually starts containers and validates health endpoints.
 
 **E2E Test Scope**: MUST test BOTH `/service/**` and `/browser/**` paths, verify middleware (IP allowlist, CSRF, CORS), cross-service integration
 
@@ -4400,6 +4410,12 @@ Unit/integration tests use Auto TLS (no secrets needed). See [Section 6.11](#611
 
 **Healthcheck-Secrets Service**: All compose templates include a `healthcheck-secrets` service (Alpine) that validates all 14 secrets exist at `/run/secrets/` on startup. Fails fast on missing secrets to prevent runtime errors. See any `compose.yml` in `deployments/` for the canonical implementation.
 
+##### Secret File Path Resolution in Recursive Includes
+
+**Docker Compose secret file paths resolve relative to the INCLUDED file's directory**, not the including file's directory. This means PRODUCT/SUITE tiers can safely redefine the same secret name with their own `secrets/` directory path — Docker Compose resolves each `file:` path relative to the compose file that declares it.
+
+**Implication**: Each tier's `secrets:` block in its `compose.yml` points to `./secrets/filename.secret`, and Docker resolves this relative to that tier's `deployments/{tier}/` directory. No path gymnastics needed.
+
 ##### Cross-Reference Documentation
 
 - Security architecture: [02-05.security.instructions.md](../.github/instructions/02-05.security.instructions.md#secret-management---mandatory)
@@ -4447,6 +4463,7 @@ Docker Compose `include` merges services from different compose files into a sin
 - `depends_on` references work across included files within the same project.
 - Secret names MUST be globally unique within a compose project unless pointing to the same file.
 - Infrastructure services (telemetry, postgres) included by multiple service files appear once in the merged configuration.
+- **Automatic deduplication**: Docker Compose deduplicates shared infrastructure automatically when the same file is included via multiple paths. No special handling needed — if `shared-postgres/compose.yml` is included transitively by both `sm-kms` and `sm-im`, it appears exactly once in the merged project.
 
 ##### Deployment Composition Patterns
 
@@ -4598,6 +4615,8 @@ Builder services (`builder-{scope}`) are scoped to each tier:
 | SUITE | `builder-cryptoutil` | `deployments/cryptoutil/Dockerfile` | Build suite binary |
 
 Docker layer caching ensures a shared image is built only once even when multiple services reference the same base image.
+
+**MANDATORY: Per-PS-ID Image Tags**: PRODUCT/SUITE override layers MUST use per-PS-ID image tags (e.g., `cryptoutil-sm-kms:dev`) when includes introduce multiple builders. Shared image tags across heterogeneous PS-ID binaries are unsafe in recursive include topologies — a later build stage can silently overwrite an earlier PS-ID's image.
 
 ##### Override-Only Services and Linter Exemption
 
