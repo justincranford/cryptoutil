@@ -4,6 +4,7 @@ package network
 
 import (
 	"context"
+	"crypto/x509"
 	http "net/http"
 	"net/http/httptest"
 	"os"
@@ -95,242 +96,137 @@ func TestMain(m *testing.M) {
 	os.Exit(exitCode)
 }
 
-func TestHTTPResponse_GET(t *testing.T) {
+func TestHTTPResponse_HappyPaths(t *testing.T) {
 	t.Parallel()
 
-	ctx := context.Background()
-
-	statusCode, headers, body, err := HTTPResponse(ctx, http.MethodGet, testHTTPServer.URL, time.Second, true, nil, false)
-	require.NoError(t, err)
-	require.Equal(t, http.StatusOK, statusCode)
-	require.NotNil(t, headers)
-	require.Equal(t, []byte("OK"), body)
-}
-
-func TestHTTPResponse_POST(t *testing.T) {
-	t.Parallel()
-
-	ctx := context.Background()
-
-	statusCode, headers, body, err := HTTPResponse(ctx, http.MethodPost, testHTTPServer.URL, time.Second, true, nil, false)
-	require.NoError(t, err)
-	require.Equal(t, http.StatusCreated, statusCode)
-	require.NotNil(t, headers)
-	require.Equal(t, []byte("Created"), body)
-}
-
-func TestHTTPResponse_NoFollowRedirects(t *testing.T) {
-	t.Parallel()
-
-	ctx := context.Background()
-
-	// Without following redirects, should get 302.
-	statusCode, _, _, err := HTTPResponse(ctx, http.MethodGet, testRedirectServer.URL, time.Second, false, nil, false)
-	require.NoError(t, err)
-	require.Equal(t, http.StatusFound, statusCode)
-}
-
-func TestHTTPResponse_FollowRedirects(t *testing.T) {
-	t.Parallel()
-
-	ctx := context.Background()
-
-	// With following redirects, should get 200.
-	statusCode, _, body, err := HTTPResponse(ctx, http.MethodGet, testRedirectServer.URL, time.Second, true, nil, false)
-	require.NoError(t, err)
-	require.Equal(t, http.StatusOK, statusCode)
-	require.Equal(t, []byte("Final"), body)
-}
-
-func TestHTTPResponse_Timeout(t *testing.T) {
-	t.Parallel()
-
-	ctx := context.Background()
-
-	// Use very short timeout (server sleeps 500ms, timeout is 50ms).
-	_, _, _, err := HTTPResponse(ctx, http.MethodGet, testSlowServer.URL, cryptoutilSharedMagic.IMMaxUsernameLength*time.Millisecond, true, nil, false)
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "context deadline exceeded")
-}
-
-func TestHTTPResponse_InvalidURL(t *testing.T) {
-	t.Parallel()
-
-	ctx := context.Background()
-
-	_, _, _, err := HTTPResponse(ctx, http.MethodGet, "not-a-valid-url", time.Second, true, nil, false)
-	require.Error(t, err)
-}
-
-func TestHTTPResponse_InvalidMethod(t *testing.T) {
-	t.Parallel()
-
-	ctx := context.Background()
-
-	// Use an invalid HTTP method with null byte to trigger NewRequestWithContext error.
-	// Per RFC 7230, method names are tokens and cannot contain control characters.
-	invalidMethod := "GET\x00INVALID"
-
-	_, _, _, err := HTTPResponse(ctx, invalidMethod, "http://example.com", time.Second, true, nil, false)
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "failed to create")
-}
-
-func TestHTTPResponse_ConnectionRefused(t *testing.T) {
-	t.Parallel()
-
-	ctx := context.Background()
-
-	// Try to connect to a port that is not listening.
-	_, _, _, err := HTTPResponse(ctx, http.MethodGet, "http://127.0.0.1:1", time.Second, true, nil, false)
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "failed to make GET request")
-}
-
-func TestHTTPGetLivez(t *testing.T) {
-	t.Parallel()
-
-	ctx := context.Background()
-
-	statusCode, headers, body, err := HTTPGetLivez(ctx, testHTTPServer.URL, "", time.Second, nil, true)
-	require.NoError(t, err)
-	require.Equal(t, http.StatusOK, statusCode)
-	require.NotNil(t, headers)
-	require.Equal(t, []byte("OK"), body)
-}
-
-func TestHTTPGetLivez_Error(t *testing.T) {
-	t.Parallel()
-
-	ctx := context.Background()
-
-	// Invalid URL should trigger HTTPResponse error, which HTTPGetLivez wraps.
-	_, _, _, err := HTTPGetLivez(ctx, "http://127.0.0.1:1", "", cryptoutilSharedMagic.JoseJAMaxMaterials*time.Millisecond, nil, false)
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "failed to get")
-}
-
-func TestHTTPGetReadyz(t *testing.T) {
-	t.Parallel()
-
-	ctx := context.Background()
-
-	statusCode, headers, body, err := HTTPGetReadyz(ctx, testHTTPServer.URL, "", time.Second, nil, true)
-	require.NoError(t, err)
-	require.Equal(t, http.StatusOK, statusCode)
-	require.NotNil(t, headers)
-	require.Equal(t, []byte("OK"), body)
-}
-
-func TestHTTPGetReadyz_Error(t *testing.T) {
-	t.Parallel()
-
-	ctx := context.Background()
-
-	// Invalid URL should trigger HTTPResponse error, which HTTPGetReadyz wraps.
-	_, _, _, err := HTTPGetReadyz(ctx, "http://127.0.0.1:1", "", cryptoutilSharedMagic.JoseJAMaxMaterials*time.Millisecond, nil, false)
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "failed to get")
-}
-
-func TestHTTPPostShutdown(t *testing.T) {
-	t.Parallel()
-
-	ctx := context.Background()
-
-	statusCode, headers, body, err := HTTPPostShutdown(ctx, testHTTPServer.URL, "", time.Second, nil, true)
-	require.NoError(t, err)
-	require.Equal(t, http.StatusOK, statusCode)
-	require.NotNil(t, headers)
-	require.Equal(t, []byte("Shutting down"), body)
-}
-
-func TestHTTPPostShutdown_Error(t *testing.T) {
-	t.Parallel()
-
-	ctx := context.Background()
-
-	// Invalid URL should trigger HTTPResponse error, which HTTPPostShutdown wraps.
-	_, _, _, err := HTTPPostShutdown(ctx, "http://127.0.0.1:1", "", cryptoutilSharedMagic.JoseJAMaxMaterials*time.Millisecond, nil, false)
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "failed to post")
-}
-
-func TestHTTPResponse_HTTPS_InsecureSkipVerify(t *testing.T) {
-	t.Parallel()
-
-	ctx := context.Background()
-
-	// Use insecureSkipVerify to bypass TLS certificate verification.
-	statusCode, _, body, err := HTTPResponse(ctx, http.MethodGet, testHTTPSServer.URL, time.Second, true, nil, true)
-	require.NoError(t, err)
-	require.Equal(t, http.StatusOK, statusCode)
-	require.Equal(t, []byte("HTTPS OK"), body)
-}
-
-func TestHTTPResponse_HTTPS_WithRootCA(t *testing.T) {
-	t.Parallel()
-
-	ctx := context.Background()
-
-	// Create a cert pool with the server's certificate.
+	// Pre-extract rootCAs from testHTTPSServer for the WithRootCA case.
 	transport, ok := testHTTPSServer.Client().Transport.(*http.Transport)
 	require.True(t, ok, "expected *http.Transport")
 
-	rootCAs := transport.TLSClientConfig.RootCAs
+	httpsRootCAs := transport.TLSClientConfig.RootCAs
 
-	statusCode, _, body, err := HTTPResponse(ctx, http.MethodGet, testHTTPSServer.URL, time.Second, true, rootCAs, false)
-	require.NoError(t, err)
-	require.Equal(t, http.StatusOK, statusCode)
-	require.Equal(t, []byte("HTTPS OK"), body)
+	tests := []struct {
+		name               string
+		method             string
+		url                string
+		timeout            time.Duration
+		followRedirects    bool
+		rootCAs            *x509.CertPool
+		insecureSkipVerify bool
+		wantStatus         int
+		wantBody           []byte
+	}{
+		{name: "GET", method: http.MethodGet, url: testHTTPServer.URL, timeout: time.Second, followRedirects: true, wantStatus: http.StatusOK, wantBody: []byte("OK")},
+		{name: "POST", method: http.MethodPost, url: testHTTPServer.URL, timeout: time.Second, followRedirects: true, wantStatus: http.StatusCreated, wantBody: []byte("Created")},
+		{name: "no follow redirects", method: http.MethodGet, url: testRedirectServer.URL, timeout: time.Second, wantStatus: http.StatusFound},
+		{name: "follow redirects", method: http.MethodGet, url: testRedirectServer.URL, timeout: time.Second, followRedirects: true, wantStatus: http.StatusOK, wantBody: []byte("Final")},
+		{name: "HTTPS insecure skip verify", method: http.MethodGet, url: testHTTPSServer.URL, timeout: time.Second, followRedirects: true, insecureSkipVerify: true, wantStatus: http.StatusOK, wantBody: []byte("HTTPS OK")},
+		{name: "HTTPS with root CA", method: http.MethodGet, url: testHTTPSServer.URL, timeout: time.Second, followRedirects: true, rootCAs: httpsRootCAs, wantStatus: http.StatusOK, wantBody: []byte("HTTPS OK")},
+		{name: "HTTPS system defaults", method: http.MethodGet, url: "https://dns.google", timeout: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Second, followRedirects: true, wantStatus: http.StatusOK},
+		{name: "no timeout", method: http.MethodGet, url: testHTTPServer.URL, timeout: 0, followRedirects: true, wantStatus: http.StatusOK, wantBody: []byte("OK")},
+		{name: "body close exercises defer", method: http.MethodGet, url: testHTTPServer.URL, timeout: time.Second, followRedirects: true, wantStatus: http.StatusOK, wantBody: []byte("OK")},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctx := context.Background()
+
+			statusCode, headers, body, err := HTTPResponse(ctx, tc.method, tc.url, tc.timeout, tc.followRedirects, tc.rootCAs, tc.insecureSkipVerify)
+			require.NoError(t, err)
+			require.Equal(t, tc.wantStatus, statusCode)
+			require.NotNil(t, headers)
+
+			if tc.wantBody != nil {
+				require.Equal(t, tc.wantBody, body)
+			}
+		})
+	}
 }
 
-func TestHTTPResponse_HTTPS_SystemDefaults(t *testing.T) {
+func TestHTTPResponse_ErrorPaths(t *testing.T) {
 	t.Parallel()
 
-	// Test the system defaults path (rootCAsPool == nil && !insecureSkipVerify).
-	// Use a real HTTPS endpoint (Google DNS) to test system CA verification.
-	ctx := context.Background()
+	tests := []struct {
+		name         string
+		method       string
+		url          string
+		timeout      time.Duration
+		wantContains string
+	}{
+		{name: "timeout", method: http.MethodGet, url: testSlowServer.URL, timeout: cryptoutilSharedMagic.IMMaxUsernameLength * time.Millisecond, wantContains: "context deadline exceeded"},
+		{name: "invalid URL", method: http.MethodGet, url: "not-a-valid-url", timeout: time.Second},
+		{name: "invalid method", method: "GET\x00INVALID", url: "http://example.com", timeout: time.Second, wantContains: "failed to create"},
+		{name: "connection refused", method: http.MethodGet, url: "http://127.0.0.1:1", timeout: time.Second, wantContains: "failed to make GET request"},
+		{name: "read body error", method: http.MethodGet, url: testSlowServer.URL, timeout: time.Nanosecond},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-	// This tests the "rootCAsPool == nil && !insecureSkipVerify" path.
-	statusCode, _, _, err := HTTPResponse(ctx, http.MethodGet, "https://dns.google", cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second, true, nil, false)
-	require.NoError(t, err)
-	require.Equal(t, http.StatusOK, statusCode)
+			ctx := context.Background()
+
+			_, _, _, err := HTTPResponse(ctx, tc.method, tc.url, tc.timeout, true, nil, false)
+			require.Error(t, err)
+
+			if tc.wantContains != "" {
+				require.Contains(t, err.Error(), tc.wantContains)
+			}
+		})
+	}
 }
 
-func TestHTTPResponse_NoTimeout(t *testing.T) {
+type healthEndpointFn func(ctx context.Context, baseURL, adminContextPath string, timeout time.Duration, rootCAsPool *x509.CertPool, insecureSkipVerify bool) (int, http.Header, []byte, error)
+
+func TestHealthEndpoints_HappyPaths(t *testing.T) {
 	t.Parallel()
 
-	ctx := context.Background()
+	tests := []struct {
+		name       string
+		fn         healthEndpointFn
+		wantStatus int
+		wantBody   []byte
+	}{
+		{name: "livez", fn: HTTPGetLivez, wantStatus: http.StatusOK, wantBody: []byte("OK")},
+		{name: "readyz", fn: HTTPGetReadyz, wantStatus: http.StatusOK, wantBody: []byte("OK")},
+		{name: "shutdown", fn: HTTPPostShutdown, wantStatus: http.StatusOK, wantBody: []byte("Shutting down")},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-	// Test with 0 timeout (no timeout).
-	statusCode, _, body, err := HTTPResponse(ctx, http.MethodGet, testHTTPServer.URL, 0, true, nil, false)
-	require.NoError(t, err)
-	require.Equal(t, http.StatusOK, statusCode)
-	require.Equal(t, []byte("OK"), body)
+			ctx := context.Background()
+
+			statusCode, headers, body, err := tc.fn(ctx, testHTTPServer.URL, "", time.Second, nil, true)
+			require.NoError(t, err)
+			require.Equal(t, tc.wantStatus, statusCode)
+			require.NotNil(t, headers)
+			require.Equal(t, tc.wantBody, body)
+		})
+	}
 }
 
-func TestHTTPResponse_BodyCloseError(t *testing.T) {
+func TestHealthEndpoints_ErrorPaths(t *testing.T) {
 	t.Parallel()
 
-	ctx := context.Background()
+	tests := []struct {
+		name         string
+		fn           healthEndpointFn
+		wantContains string
+	}{
+		{name: "livez", fn: HTTPGetLivez, wantContains: "failed to get"},
+		{name: "readyz", fn: HTTPGetReadyz, wantContains: "failed to get"},
+		{name: "shutdown", fn: HTTPPostShutdown, wantContains: "failed to post"},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-	// This will exercise the defer function's Close() call.
-	// The close error path (fmt.Printf) is hard to test directly since
-	// httptest doesn't fail on Close(), but this ensures the defer executes.
-	statusCode, _, body, err := HTTPResponse(ctx, http.MethodGet, testHTTPServer.URL, time.Second, true, nil, false)
-	require.NoError(t, err)
-	require.Equal(t, http.StatusOK, statusCode)
-	require.Equal(t, []byte("OK"), body)
-}
+			ctx := context.Background()
 
-func TestHTTPResponse_ReadBodyError(t *testing.T) {
-	t.Parallel()
-
-	ctx := context.Background()
-
-	// Use a very short timeout to trigger context cancellation during body read.
-	// Note: testSlowServer sleeps 500ms, so 1ns timeout will cancel during read.
-	_, _, _, err := HTTPResponse(ctx, http.MethodGet, testSlowServer.URL, 1*time.Nanosecond, true, nil, false)
-	require.Error(t, err)
+			_, _, _, err := tc.fn(ctx, "http://127.0.0.1:1", "", cryptoutilSharedMagic.JoseJAMaxMaterials*time.Millisecond, nil, false)
+			require.Error(t, err)
+			require.Contains(t, err.Error(), tc.wantContains)
+		})
+	}
 }
