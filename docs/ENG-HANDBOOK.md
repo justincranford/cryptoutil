@@ -181,7 +181,7 @@ This document is structured to serve multiple audiences:
 - **Service framework & builder**: Shared HTTPS, TLS, database, barrier, session, and realm subsystems — eliminates 48,000+ lines of boilerplate per service (see [Section 5.1](#51-service-framework-pattern))
 - **Architecture fitness functions**: Programmatic invariant enforcement via 58+ fitness sub-linters (parallel-tests, file-size, test-patterns, entity-registry-completeness, and more — see [Section 9.11](#911-architecture-fitness-functions))
 - **Documentation propagation system**: `@source`/`@propagate` markers keep instruction files, agent files, and `ENG-HANDBOOK.md` byte-for-byte in sync; drift detected by `lint-docs` (see [Section 13.4](#134-documentation-propagation-strategy))
-- **Developer inner-loop tooling**: `cicd-lint` with 13 linters, 2 formatters, and 1 operational script enforces project invariants locally before every commit (see [Section 9.10](#910-cicd-command-architecture))
+- **Developer inner-loop tooling**: `cicd-lint` with 14 linters, 2 formatters, and 1 operational script enforces project invariants locally before every commit (see [Section 9.10](#910-cicd-command-architecture))
 - **Autonomous execution protocol**: Beast-mode agents and pre-commit quality gates enforce continuous-work, evidence-based completion, and end-of-turn commit discipline (see [Section 14.11](#1411-claude-code-autonomous-execution))
 
 ### 1.3 Core Principles
@@ -2659,7 +2659,7 @@ cmd/cicd-lint/main.go                          # Layer 1: Thin main(), os.Exit(C
 | **Formatters** | `format-<target>` | `format_<target>/` | `Format(logger, ...)` | `registeredFormatters` |
 | **Scripts** | `<action>-<target>` | `<action>_<target>/` | Script-specific | `registeredCleaners` etc. |
 
-**Linter commands** (13): `lint-text`, `lint-go`, `lint-go-test`, `lint-go-mod`, `lint-golangci`, `lint-compose`, `lint-ports`, `lint-workflow`, `lint-deployments`, `lint-docs`, `lint-fitness`, `lint-java-test`, `lint-python-test`
+**Linter commands** (14): `lint-text`, `lint-go`, `lint-go-test`, `lint-go-mod`, `lint-golangci`, `lint-compose`, `lint-ports`, `lint-workflow`, `lint-deployments`, `lint-docs`, `lint-fitness`, `lint-openapi`, `lint-java-test`, `lint-python-test`
 **Formatter commands** (2): `format-go`, `format-go-test`
 **Script commands** (1): `github-cleanup`
 <!-- @/propagate -->
@@ -2752,6 +2752,10 @@ internal/apps/tools/cicd_lint/
 ├── lint_fitness/                                      # lint-fitness command
 │   ├── lint_fitness.go                             # Lint() + registeredLinters (68 sub-linters)
 │   └── ... (68 sub-linters, see Section 9.11)
+├── lint_openapi/                                      # lint-openapi command
+│   ├── lint_openapi.go                             # Lint() + registeredLinters
+│   ├── codegen_config/                             # Sub-linter: oapi-codegen config validation
+│   └── openapi_version/                            # Sub-linter: OpenAPI spec version validation
 ├── lint_javatest/                                     # lint-java-test command
 │   └── lint_javatest.go                            # Lint() + CheckInsecureRandom()
 ├── lint_pythontest/                                   # lint-python-test command
