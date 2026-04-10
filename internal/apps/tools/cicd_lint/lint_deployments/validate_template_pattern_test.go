@@ -44,176 +44,225 @@ func createValidTemplateDir(t *testing.T) string {
 	return dir
 }
 
-func TestValidateTemplatePattern_ValidTemplate(t *testing.T) {
+func TestValidateTemplatePattern_ValidCases(t *testing.T) {
 	t.Parallel()
 
-	dir := createValidTemplateDir(t)
-	result, err := ValidateTemplatePattern(dir)
-	require.NoError(t, err)
-	require.NotNil(t, result)
-	require.True(t, result.Valid)
-	require.Empty(t, result.Errors)
+	tests := []struct {
+		name    string
+		setupFn func(t *testing.T) string
+	}{
+		{
+			name: "valid template",
+			setupFn: func(t *testing.T) string {
+				t.Helper()
+
+				return createValidTemplateDir(t)
+			},
+		},
+		{
+			name: "non-YAML config ignored",
+			setupFn: func(t *testing.T) string {
+				t.Helper()
+
+				dir := createValidTemplateDir(t)
+				require.NoError(t, os.WriteFile(filepath.Join(dir, "config", "README.md"), []byte("# readme\n"), cryptoutilSharedMagic.CacheFilePermissions))
+
+				return dir
+			},
+		},
+		{
+			name: "config subdir ignored",
+			setupFn: func(t *testing.T) string {
+				t.Helper()
+
+				dir := createValidTemplateDir(t)
+				require.NoError(t, os.MkdirAll(filepath.Join(dir, "config", "subdir"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+
+				return dir
+			},
+		},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			result, err := ValidateTemplatePattern(tc.setupFn(t))
+			require.NoError(t, err)
+			require.NotNil(t, result)
+			require.True(t, result.Valid)
+			require.Empty(t, result.Errors)
+		})
+	}
 }
 
-func TestValidateTemplatePattern_PathNotFound(t *testing.T) {
+func TestValidateTemplatePattern_Violations(t *testing.T) {
 	t.Parallel()
 
-	result, err := ValidateTemplatePattern(filepath.Join(t.TempDir(), "nonexistent"))
-	require.NoError(t, err)
-	require.NotNil(t, result)
-	require.False(t, result.Valid)
-	require.True(t, containsSubstring(result.Errors, "does not exist"))
-}
+	tests := []struct {
+		name         string
+		setupFn      func(t *testing.T) string
+		wantContains []string
+	}{
+		{
+			name: "path not found",
+			setupFn: func(t *testing.T) string {
+				t.Helper()
 
-func TestValidateTemplatePattern_PathIsFile(t *testing.T) {
-	t.Parallel()
+				return filepath.Join(t.TempDir(), "nonexistent")
+			},
+			wantContains: []string{"does not exist"},
+		},
+		{
+			name: "path is file",
+			setupFn: func(t *testing.T) string {
+				t.Helper()
 
-	f := filepath.Join(t.TempDir(), "file.txt")
-	require.NoError(t, os.WriteFile(f, []byte("data"), cryptoutilSharedMagic.CacheFilePermissions))
+				f := filepath.Join(t.TempDir(), "file.txt")
+				require.NoError(t, os.WriteFile(f, []byte("data"), cryptoutilSharedMagic.CacheFilePermissions))
 
-	result, err := ValidateTemplatePattern(f)
-	require.NoError(t, err)
-	require.NotNil(t, result)
-	require.False(t, result.Valid)
-	require.True(t, containsSubstring(result.Errors, "not a directory"))
-}
+				return f
+			},
+			wantContains: []string{"not a directory"},
+		},
+		{
+			name: "missing compose files",
+			setupFn: func(t *testing.T) string {
+				t.Helper()
 
-func TestValidateTemplatePattern_MissingComposeFiles(t *testing.T) {
-	t.Parallel()
+				dir := createValidTemplateDir(t)
+				require.NoError(t, os.Remove(filepath.Join(dir, "compose.yml")))
+				require.NoError(t, os.Remove(filepath.Join(dir, "compose-cryptoutil-PRODUCT-SERVICE.yml")))
 
-	dir := createValidTemplateDir(t)
-	require.NoError(t, os.Remove(filepath.Join(dir, "compose.yml")))
-	require.NoError(t, os.Remove(filepath.Join(dir, "compose-cryptoutil-PRODUCT-SERVICE.yml")))
+				return dir
+			},
+			wantContains: []string{"compose.yml", "compose-cryptoutil-PRODUCT-SERVICE.yml"},
+		},
+		{
+			name: "missing config dir",
+			setupFn: func(t *testing.T) string {
+				t.Helper()
 
-	result, err := ValidateTemplatePattern(dir)
-	require.NoError(t, err)
-	require.NotNil(t, result)
-	require.False(t, result.Valid)
-	require.True(t, containsSubstring(result.Errors, "compose.yml"))
-	require.True(t, containsSubstring(result.Errors, "compose-cryptoutil-PRODUCT-SERVICE.yml"))
-}
+				dir := createValidTemplateDir(t)
+				require.NoError(t, os.RemoveAll(filepath.Join(dir, "config")))
 
-func TestValidateTemplatePattern_MissingConfigDir(t *testing.T) {
-	t.Parallel()
+				return dir
+			},
+			wantContains: []string{"config/ directory"},
+		},
+		{
+			name: "missing config file",
+			setupFn: func(t *testing.T) string {
+				t.Helper()
 
-	dir := createValidTemplateDir(t)
-	require.NoError(t, os.RemoveAll(filepath.Join(dir, "config")))
+				dir := createValidTemplateDir(t)
+				require.NoError(t, os.Remove(filepath.Join(dir, "config", "template-app-common.yml")))
 
-	result, err := ValidateTemplatePattern(dir)
-	require.NoError(t, err)
-	require.NotNil(t, result)
-	require.False(t, result.Valid)
-	require.True(t, containsSubstring(result.Errors, "config/ directory"))
-}
+				return dir
+			},
+			wantContains: []string{"template-app-common.yml"},
+		},
+		{
+			name: "missing secrets dir",
+			setupFn: func(t *testing.T) string {
+				t.Helper()
 
-func TestValidateTemplatePattern_MissingConfigFile(t *testing.T) {
-	t.Parallel()
+				dir := createValidTemplateDir(t)
+				require.NoError(t, os.RemoveAll(filepath.Join(dir, "secrets")))
 
-	dir := createValidTemplateDir(t)
-	require.NoError(t, os.Remove(filepath.Join(dir, "config", "template-app-common.yml")))
+				return dir
+			},
+			wantContains: []string{"secrets/ directory"},
+		},
+		{
+			name: "missing secret file",
+			setupFn: func(t *testing.T) string {
+				t.Helper()
 
-	result, err := ValidateTemplatePattern(dir)
-	require.NoError(t, err)
-	require.NotNil(t, result)
-	require.False(t, result.Valid)
-	require.True(t, containsSubstring(result.Errors, "template-app-common.yml"))
-}
+				dir := createValidTemplateDir(t)
+				require.NoError(t, os.Remove(filepath.Join(dir, "secrets", "unseal_3of5.secret")))
 
-func TestValidateTemplatePattern_MissingSecretsDir(t *testing.T) {
-	t.Parallel()
+				return dir
+			},
+			wantContains: []string{"unseal_3of5.secret"},
+		},
+		{
+			name: "missing service placeholder",
+			setupFn: func(t *testing.T) string {
+				t.Helper()
 
-	dir := createValidTemplateDir(t)
-	require.NoError(t, os.RemoveAll(filepath.Join(dir, "secrets")))
+				dir := createValidTemplateDir(t)
+				content := "name: my-service\nservices:\n  PRODUCT-SERVICE-sqlite:\n    ports:\n      - \"8080:8080\"\n"
+				require.NoError(t, os.WriteFile(filepath.Join(dir, "compose-cryptoutil-PRODUCT-SERVICE.yml"), []byte(content), cryptoutilSharedMagic.CacheFilePermissions))
 
-	result, err := ValidateTemplatePattern(dir)
-	require.NoError(t, err)
-	require.NotNil(t, result)
-	require.False(t, result.Valid)
-	require.True(t, containsSubstring(result.Errors, "secrets/ directory"))
-}
+				return dir
+			},
+			wantContains: []string{"XXXX"},
+		},
+		{
+			name: "missing product placeholder",
+			setupFn: func(t *testing.T) string {
+				t.Helper()
 
-func TestValidateTemplatePattern_MissingSecretFile(t *testing.T) {
-	t.Parallel()
+				dir := createValidTemplateDir(t)
+				content := "name: my-app\nservices:\n  my-sqlite:\n    ports:\n      - \"18000:8080\"\n"
+				require.NoError(t, os.WriteFile(filepath.Join(dir, "compose-cryptoutil-PRODUCT.yml"), []byte(content), cryptoutilSharedMagic.CacheFilePermissions))
 
-	dir := createValidTemplateDir(t)
-	require.NoError(t, os.Remove(filepath.Join(dir, "secrets", "unseal_3of5.secret")))
+				return dir
+			},
+			wantContains: []string{"PRODUCT"},
+		},
+		{
+			name: "missing product compose for placeholders",
+			setupFn: func(t *testing.T) string {
+				t.Helper()
 
-	result, err := ValidateTemplatePattern(dir)
-	require.NoError(t, err)
-	require.NotNil(t, result)
-	require.False(t, result.Valid)
-	require.True(t, containsSubstring(result.Errors, "unseal_3of5.secret"))
-}
+				dir := createValidTemplateDir(t)
+				require.NoError(t, os.Remove(filepath.Join(dir, "compose-cryptoutil-PRODUCT.yml")))
 
-func TestValidateTemplatePattern_MissingServicePlaceholder(t *testing.T) {
-	t.Parallel()
+				return dir
+			},
+			wantContains: []string{"compose-cryptoutil-PRODUCT.yml"},
+		},
+		{
+			name: "missing service compose for placeholders",
+			setupFn: func(t *testing.T) string {
+				t.Helper()
 
-	dir := createValidTemplateDir(t)
-	// Overwrite service compose template without XXXX placeholder.
-	content := "name: my-service\nservices:\n  PRODUCT-SERVICE-sqlite:\n    ports:\n      - \"8080:8080\"\n"
-	require.NoError(t, os.WriteFile(filepath.Join(dir, "compose-cryptoutil-PRODUCT-SERVICE.yml"), []byte(content), cryptoutilSharedMagic.CacheFilePermissions))
+				dir := createValidTemplateDir(t)
+				require.NoError(t, os.Remove(filepath.Join(dir, "compose-cryptoutil-PRODUCT-SERVICE.yml")))
 
-	result, err := ValidateTemplatePattern(dir)
-	require.NoError(t, err)
-	require.NotNil(t, result)
-	require.False(t, result.Valid)
-	require.True(t, containsSubstring(result.Errors, "XXXX"))
-}
+				return dir
+			},
+			wantContains: []string{"compose-cryptoutil-PRODUCT-SERVICE.yml"},
+		},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-func TestValidateTemplatePattern_MissingProductPlaceholder(t *testing.T) {
-	t.Parallel()
+			result, err := ValidateTemplatePattern(tc.setupFn(t))
+			require.NoError(t, err)
+			require.NotNil(t, result)
+			require.False(t, result.Valid)
 
-	dir := createValidTemplateDir(t)
-	// Overwrite product compose template without PRODUCT placeholder.
-	content := "name: my-app\nservices:\n  my-sqlite:\n    ports:\n      - \"18000:8080\"\n"
-	require.NoError(t, os.WriteFile(filepath.Join(dir, "compose-cryptoutil-PRODUCT.yml"), []byte(content), cryptoutilSharedMagic.CacheFilePermissions))
-
-	result, err := ValidateTemplatePattern(dir)
-	require.NoError(t, err)
-	require.NotNil(t, result)
-	require.False(t, result.Valid)
-	require.True(t, containsSubstring(result.Errors, "PRODUCT"))
+			for _, want := range tc.wantContains {
+				require.True(t, containsSubstring(result.Errors, want))
+			}
+		})
+	}
 }
 
 func TestValidateTemplatePattern_ConfigNonStandardNaming(t *testing.T) {
 	t.Parallel()
 
 	dir := createValidTemplateDir(t)
-	// Add a config file that doesn't follow template-app-*.yml naming.
 	require.NoError(t, os.WriteFile(filepath.Join(dir, "config", "custom-config.yml"), []byte("# custom\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
 	result, err := ValidateTemplatePattern(dir)
 	require.NoError(t, err)
 	require.NotNil(t, result)
-	require.True(t, result.Valid) // Warnings don't affect validity.
+	require.True(t, result.Valid)
 	require.True(t, containsSubstring(result.Warnings, "custom-config.yml"))
-}
-
-func TestValidateTemplatePattern_NonYAMLConfigIgnored(t *testing.T) {
-	t.Parallel()
-
-	dir := createValidTemplateDir(t)
-	// Add a non-YAML file in config - should be ignored.
-	require.NoError(t, os.WriteFile(filepath.Join(dir, "config", "README.md"), []byte("# readme\n"), cryptoutilSharedMagic.CacheFilePermissions))
-
-	result, err := ValidateTemplatePattern(dir)
-	require.NoError(t, err)
-	require.NotNil(t, result)
-	require.True(t, result.Valid)
-	require.Empty(t, result.Warnings)
-}
-
-func TestValidateTemplatePattern_ConfigSubdirIgnored(t *testing.T) {
-	t.Parallel()
-
-	dir := createValidTemplateDir(t)
-	// Add a subdirectory inside config - should be ignored.
-	require.NoError(t, os.MkdirAll(filepath.Join(dir, "config", "subdir"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
-
-	result, err := ValidateTemplatePattern(dir)
-	require.NoError(t, err)
-	require.NotNil(t, result)
-	require.True(t, result.Valid)
 }
 
 func TestFormatTemplatePatternResult(t *testing.T) {
@@ -255,7 +304,6 @@ func TestFormatTemplatePatternResult(t *testing.T) {
 func TestValidateTemplatePattern_RealTemplate(t *testing.T) {
 	t.Parallel()
 
-	// Validate the actual template directory in the repository.
 	templatePath := filepath.Join(".", "..", "..", "..", "..", "deployments", cryptoutilSharedMagic.SkeletonTemplateServiceName)
 
 	info, err := os.Stat(templatePath)
@@ -267,33 +315,4 @@ func TestValidateTemplatePattern_RealTemplate(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, result)
 	require.True(t, result.Valid, "Real template should pass validation. Errors: %v", result.Errors)
-}
-
-func TestValidateTemplatePattern_MissingProductComposeForPlaceholders(t *testing.T) {
-	t.Parallel()
-
-	dir := createValidTemplateDir(t)
-	// Remove only the product compose file to hit the ReadFile error path.
-	require.NoError(t, os.Remove(filepath.Join(dir, "compose-cryptoutil-PRODUCT.yml")))
-
-	result, err := ValidateTemplatePattern(dir)
-	require.NoError(t, err)
-	require.NotNil(t, result)
-	// Missing file reported by validateRequiredTemplateFiles, placeholder check skipped.
-	require.False(t, result.Valid)
-	require.True(t, containsSubstring(result.Errors, "compose-cryptoutil-PRODUCT.yml"))
-}
-
-func TestValidateTemplatePattern_MissingServiceComposeForPlaceholders(t *testing.T) {
-	t.Parallel()
-
-	dir := createValidTemplateDir(t)
-	// Remove only the service compose file.
-	require.NoError(t, os.Remove(filepath.Join(dir, "compose-cryptoutil-PRODUCT-SERVICE.yml")))
-
-	result, err := ValidateTemplatePattern(dir)
-	require.NoError(t, err)
-	require.NotNil(t, result)
-	require.False(t, result.Valid)
-	require.True(t, containsSubstring(result.Errors, "compose-cryptoutil-PRODUCT-SERVICE.yml"))
 }
