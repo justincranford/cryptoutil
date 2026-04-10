@@ -52,10 +52,10 @@ func minimalRegistryYAML() string {
     directory: cgo_free_sqlite
     description: Ensures CGO-free SQLite.
     category: architecture
-  - name: crypto-rand
-    directory: crypto_rand
-    description: Detects math/rand vs crypto/rand.
-    category: security
+  - name: file-size-limits
+    directory: file_size_limits
+    description: Enforces file size limits.
+    category: architecture
 `
 }
 
@@ -119,7 +119,7 @@ func TestLoadFitnessRegistry_EmptyRegistry(t *testing.T) {
 func TestCheckRegistryCompleteness_AllMatch(t *testing.T) {
 	t.Parallel()
 
-	rootDir := buildRegistryRoot(t, minimalRegistryYAML(), []string{"cgo_free_sqlite", "crypto_rand"})
+	rootDir := buildRegistryRoot(t, minimalRegistryYAML(), []string{"cgo_free_sqlite", "file_size_limits"})
 
 	orphaned, missing, err := CheckRegistryCompleteness(rootDir, os.ReadFile, os.ReadDir)
 
@@ -132,7 +132,7 @@ func TestCheckRegistryCompleteness_OrphanedDir(t *testing.T) {
 	t.Parallel()
 
 	// Filesystem has extra_linter but it's not in the YAML.
-	rootDir := buildRegistryRoot(t, minimalRegistryYAML(), []string{"cgo_free_sqlite", "crypto_rand", "extra_linter"})
+	rootDir := buildRegistryRoot(t, minimalRegistryYAML(), []string{"cgo_free_sqlite", "file_size_limits", "extra_linter"})
 
 	orphaned, missing, err := CheckRegistryCompleteness(rootDir, os.ReadFile, os.ReadDir)
 
@@ -144,21 +144,21 @@ func TestCheckRegistryCompleteness_OrphanedDir(t *testing.T) {
 func TestCheckRegistryCompleteness_MissingDir(t *testing.T) {
 	t.Parallel()
 
-	// YAML has crypto_rand but filesystem only has cgo_free_sqlite.
+	// YAML has file_size_limits but filesystem only has cgo_free_sqlite.
 	rootDir := buildRegistryRoot(t, minimalRegistryYAML(), []string{"cgo_free_sqlite"})
 
 	orphaned, missing, err := CheckRegistryCompleteness(rootDir, os.ReadFile, os.ReadDir)
 
 	require.NoError(t, err)
 	require.Empty(t, orphaned)
-	require.Equal(t, []string{"crypto_rand"}, missing)
+	require.Equal(t, []string{"file_size_limits"}, missing)
 }
 
 func TestCheckRegistryCompleteness_SkipsRegistryDir(t *testing.T) {
 	t.Parallel()
 
 	// Filesystem has a "registry" directory which should be excluded.
-	rootDir := buildRegistryRoot(t, minimalRegistryYAML(), []string{"cgo_free_sqlite", "crypto_rand", "registry"})
+	rootDir := buildRegistryRoot(t, minimalRegistryYAML(), []string{"cgo_free_sqlite", "file_size_limits", "registry"})
 
 	orphaned, missing, err := CheckRegistryCompleteness(rootDir, os.ReadFile, os.ReadDir)
 
@@ -171,7 +171,7 @@ func TestCheckRegistryCompleteness_SkipsNonDirectories(t *testing.T) {
 	t.Parallel()
 
 	// A regular file in the fitness dir should not be treated as a sub-linter.
-	rootDir := buildRegistryRoot(t, minimalRegistryYAML(), []string{"cgo_free_sqlite", "crypto_rand"})
+	rootDir := buildRegistryRoot(t, minimalRegistryYAML(), []string{"cgo_free_sqlite", "file_size_limits"})
 
 	// Create a file (not a directory) in the fitness dir to verify non-dirs are ignored.
 	fitnessDir := filepath.Join(rootDir, filepath.FromSlash(cryptoutilSharedMagic.CICDLintFitnessDir))
@@ -216,14 +216,14 @@ func TestCheckRegistryCompleteness_ReadDirError(t *testing.T) {
 func TestCheckRegistryCompleteness_BothOrphanedAndMissing(t *testing.T) {
 	t.Parallel()
 
-	// YAML has crypto_rand (missing from FS) + FS has extra_unknown (not in YAML).
+	// YAML has file_size_limits (missing from FS) + FS has extra_unknown (not in YAML).
 	rootDir := buildRegistryRoot(t, minimalRegistryYAML(), []string{"cgo_free_sqlite", "extra_unknown"})
 
 	orphaned, missing, err := CheckRegistryCompleteness(rootDir, os.ReadFile, os.ReadDir)
 
 	require.NoError(t, err)
 	require.Equal(t, []string{"extra_unknown"}, orphaned)
-	require.Equal(t, []string{"crypto_rand"}, missing)
+	require.Equal(t, []string{"file_size_limits"}, missing)
 }
 
 func TestCheckRegistryCompleteness_SortedResults(t *testing.T) {
@@ -256,7 +256,7 @@ func TestCheckRegistryCompleteness_SortedResults(t *testing.T) {
 func TestCheckInDir_AllMatch(t *testing.T) {
 	t.Parallel()
 
-	rootDir := buildRegistryRoot(t, minimalRegistryYAML(), []string{"cgo_free_sqlite", "crypto_rand"})
+	rootDir := buildRegistryRoot(t, minimalRegistryYAML(), []string{"cgo_free_sqlite", "file_size_limits"})
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 
 	err := CheckInDir(logger, rootDir)
@@ -267,7 +267,7 @@ func TestCheckInDir_AllMatch(t *testing.T) {
 func TestCheckInDir_Orphaned(t *testing.T) {
 	t.Parallel()
 
-	rootDir := buildRegistryRoot(t, minimalRegistryYAML(), []string{"cgo_free_sqlite", "crypto_rand", "orphan_dir"})
+	rootDir := buildRegistryRoot(t, minimalRegistryYAML(), []string{"cgo_free_sqlite", "file_size_limits", "orphan_dir"})
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 
 	err := CheckInDir(logger, rootDir)
@@ -287,7 +287,7 @@ func TestCheckInDir_Missing(t *testing.T) {
 
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "MISSING")
-	require.Contains(t, err.Error(), "crypto_rand")
+	require.Contains(t, err.Error(), "file_size_limits")
 }
 
 func TestCheckInDir_ManifestError(t *testing.T) {

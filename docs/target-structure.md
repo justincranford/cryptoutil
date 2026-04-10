@@ -902,7 +902,7 @@ lint_fitness/
 ├── configs_naming/                        # Flat configs/{PS-ID}/ naming pattern
 ├── config_overlay_freshness/              # Config overlay template freshness (v7 NEW)
 ├── cross_service_import_isolation/        # Service import isolation enforcement
-├── crypto_rand/                           # crypto/rand enforcement (never math/rand)
+├── (removed: crypto_rand/ — now enforced by golangci-lint fips-rand deny rule)
 ├── deployment_dir_completeness/           # Deployment directory completeness
 ├── dockerfile_labels/                     # Dockerfile OCI label validation
 ├── domain_layer_isolation/                # Domain layer isolation enforcement
