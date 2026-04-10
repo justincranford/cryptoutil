@@ -434,21 +434,6 @@ func TestSessionManager_GenerateSessionJWK(t *testing.T) {
 	require.Contains(t, err.Error(), "unsupported session algorithm")
 }
 
-// TestSessionManager_GenerateJWSKey tests JWS key generation.
-func TestSessionManager_GenerateJWSKey(t *testing.T) {
-	t.Parallel()
-	sm := setupSessionManager(t, cryptoutilSharedMagic.SessionAlgorithmOPAQUE, cryptoutilSharedMagic.SessionAlgorithmOPAQUE)
-
-	privateKey, err := sm.generateJWSKey(cryptoutilSharedMagic.SessionJWSAlgorithmRS256)
-	require.NoError(t, err)
-	require.NotNil(t, privateKey)
-
-	// Test unsupported algorithm
-	_, err = sm.generateJWSKey("invalid-algorithm")
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "unsupported JWS algorithm")
-}
-
 // TestSessionManager_GenerateJWSKey_AllAlgorithms tests JWS key generation for all supported algorithms.
 func TestSessionManager_GenerateJWSKey_AllAlgorithms(t *testing.T) {
 	t.Parallel()
@@ -458,19 +443,28 @@ func TestSessionManager_GenerateJWSKey_AllAlgorithms(t *testing.T) {
 	tests := []struct {
 		name      string
 		algorithm string
+		wantErr   string
 	}{
-		{cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm, cryptoutilSharedMagic.SessionJWSAlgorithmRS256},
-		{cryptoutilSharedMagic.JoseAlgRS384, cryptoutilSharedMagic.SessionJWSAlgorithmRS384},
-		{cryptoutilSharedMagic.JoseAlgRS512, cryptoutilSharedMagic.SessionJWSAlgorithmRS512},
-		{cryptoutilSharedMagic.JoseAlgES256, cryptoutilSharedMagic.SessionJWSAlgorithmES256},
-		{cryptoutilSharedMagic.JoseAlgES384, cryptoutilSharedMagic.SessionJWSAlgorithmES384},
-		{cryptoutilSharedMagic.JoseAlgES512, cryptoutilSharedMagic.SessionJWSAlgorithmES512},
-		{cryptoutilSharedMagic.JoseAlgEdDSA, cryptoutilSharedMagic.SessionJWSAlgorithmEdDSA},
+		{cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm, cryptoutilSharedMagic.SessionJWSAlgorithmRS256, ""},
+		{cryptoutilSharedMagic.JoseAlgRS384, cryptoutilSharedMagic.SessionJWSAlgorithmRS384, ""},
+		{cryptoutilSharedMagic.JoseAlgRS512, cryptoutilSharedMagic.SessionJWSAlgorithmRS512, ""},
+		{cryptoutilSharedMagic.JoseAlgES256, cryptoutilSharedMagic.SessionJWSAlgorithmES256, ""},
+		{cryptoutilSharedMagic.JoseAlgES384, cryptoutilSharedMagic.SessionJWSAlgorithmES384, ""},
+		{cryptoutilSharedMagic.JoseAlgES512, cryptoutilSharedMagic.SessionJWSAlgorithmES512, ""},
+		{cryptoutilSharedMagic.JoseAlgEdDSA, cryptoutilSharedMagic.SessionJWSAlgorithmEdDSA, ""},
+		{"unsupported algorithm", "invalid-algorithm", "unsupported JWS algorithm"},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			privateKey, err := sm.generateJWSKey(tt.algorithm)
+			if tt.wantErr != "" {
+				require.ErrorContains(t, err, tt.wantErr)
+
+				return
+			}
 			require.NoError(t, err, "generateJWSKey should succeed for %s", tt.algorithm)
 			require.NotNil(t, privateKey, "privateKey should not be nil for %s", tt.algorithm)
 		})
@@ -493,11 +487,11 @@ func TestSessionManager_GenerateJWEKey_AllAlgorithms(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			privateKey, err := sm.generateJWEKey(tt.algorithm)
 			require.NoError(t, err, "generateJWEKey should succeed for %s", tt.algorithm)
 			require.NotNil(t, privateKey, "privateKey should not be nil for %s", tt.algorithm)
 		})
 	}
 }
-
-// TestSessionManager_GenerateJWEKey tests JWE key generation.

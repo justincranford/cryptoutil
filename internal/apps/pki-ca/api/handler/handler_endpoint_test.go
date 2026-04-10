@@ -425,31 +425,27 @@ func TestOcspErrorResponse(t *testing.T) {
 	require.NoError(t, resp.Body.Close())
 }
 
-func TestLookupCertificateBySerialNilSerial(t *testing.T) {
+func TestLookupCertificateBySerial(t *testing.T) {
 	t.Parallel()
 
-	mockStorage := cryptoutilCAStorage.NewMemoryStore()
-	handler := &Handler{
-		storage: mockStorage,
+	handler := &Handler{storage: cryptoutilCAStorage.NewMemoryStore()}
+
+	tests := []struct {
+		name   string
+		serial *big.Int
+	}{
+		{name: "nil_serial", serial: nil},
+		{name: "not_found", serial: big.NewInt(12345)},
 	}
 
-	// Test with nil serial number.
-	result := handler.lookupCertificateBySerial(context.Background(), nil)
-	require.Nil(t, result)
-}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-func TestLookupCertificateBySerialNotFound(t *testing.T) {
-	t.Parallel()
-
-	mockStorage := cryptoutilCAStorage.NewMemoryStore()
-	handler := &Handler{
-		storage: mockStorage,
+			result := handler.lookupCertificateBySerial(context.Background(), tc.serial)
+			require.Nil(t, result)
+		})
 	}
-
-	// Test with serial number that doesn't exist.
-	serial := big.NewInt(12345)
-	result := handler.lookupCertificateBySerial(context.Background(), serial)
-	require.Nil(t, result)
 }
 
 func TestHandlerSetServices(t *testing.T) {
@@ -460,16 +456,10 @@ func TestHandlerSetServices(t *testing.T) {
 		storage: mockStorage,
 	}
 
-	// Test SetTSAService.
 	handler.SetTSAService(nil)
-
-	// Test SetOCSPService.
 	handler.SetOCSPService(nil)
-
-	// Test SetCRLService.
 	handler.SetCRLService(nil)
 
-	// Verify services can be set (no panic).
 	require.NotNil(t, handler)
 }
 
