@@ -23,172 +23,280 @@ func createDeploymentWithCompose(t *testing.T, composeContent string) string {
 	return dir
 }
 
-func TestValidatePorts_ServiceLevelValid(t *testing.T) {
+func TestValidatePorts_ValidCases(t *testing.T) {
 	t.Parallel()
 
-	compose := "services:\n  my-service:\n    ports:\n      - \"8700:8080\"\n      - \"8701:8080\"\n"
-	dir := createDeploymentWithCompose(t, compose)
+	tests := []struct {
+		name    string
+		setupFn func(t *testing.T) string
+		psID    string
+		level   string
+	}{
+		{
+			name: "service level valid",
+			setupFn: func(t *testing.T) string {
+				t.Helper()
 
-	result, err := ValidatePorts(dir, cryptoutilSharedMagic.OTLPServiceSMIM, DeploymentTypeProductService)
-	require.NoError(t, err)
-	require.NotNil(t, result)
-	require.True(t, result.Valid)
-	require.Empty(t, result.Errors)
+				return createDeploymentWithCompose(t, "services:\n  my-service:\n    ports:\n      - \"8700:8080\"\n      - \"8701:8080\"\n")
+			},
+			psID:  cryptoutilSharedMagic.OTLPServiceSMIM,
+			level: DeploymentTypeProductService,
+		},
+		{
+			name: "product level valid",
+			setupFn: func(t *testing.T) string {
+				t.Helper()
+
+				return createDeploymentWithCompose(t, "services:\n  sm-im-sqlite:\n    ports:\n      - \"18700:8080\"\n  sm-im-pg-1:\n    ports:\n      - \"18701:8080\"\n")
+			},
+			psID:  "sm",
+			level: DeploymentTypeProduct,
+		},
+		{
+			name: "suite level valid",
+			setupFn: func(t *testing.T) string {
+				t.Helper()
+
+				return createDeploymentWithCompose(t, "services:\n  sm-kms-sqlite:\n    ports:\n      - \"28000:8080\"\n")
+			},
+			psID:  cryptoutilSharedMagic.DefaultOTLPServiceDefault,
+			level: DeploymentTypeSuite,
+		},
+		{
+			name: "infrastructure ports skipped",
+			setupFn: func(t *testing.T) string {
+				t.Helper()
+
+				return createDeploymentWithCompose(t, "services:\n  postgres:\n    ports:\n      - \"5432:5432\"\n  grafana:\n    ports:\n      - \"3000:3000\"\n  otel:\n    ports:\n      - \"4317:4317\"\n      - \"4318:4318\"\n      - \"14317:4317\"\n      - \"14318:4318\"\n      - \"13133:13133\"\n")
+			},
+			psID:  cryptoutilSharedMagic.OTLPServiceSMIM,
+			level: DeploymentTypeProductService,
+		},
+		{
+			name: "config port valid",
+			setupFn: func(t *testing.T) string {
+				t.Helper()
+
+				dir := createDeploymentWithCompose(t, testComposeServicePort)
+				configDir := filepath.Join(dir, "config")
+				require.NoError(t, os.MkdirAll(configDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+				require.NoError(t, os.WriteFile(filepath.Join(configDir, "config-sqlite.yml"),
+					[]byte("bind-public-port: 8700\n"), cryptoutilSharedMagic.CacheFilePermissions))
+
+				return dir
+			},
+			psID:  cryptoutilSharedMagic.OTLPServiceSMIM,
+			level: DeploymentTypeProductService,
+		},
+		{
+			name: "no compose file",
+			setupFn: func(t *testing.T) string {
+				t.Helper()
+
+				return t.TempDir()
+			},
+			psID:  cryptoutilSharedMagic.OTLPServiceSMIM,
+			level: DeploymentTypeProductService,
+		},
+		{
+			name: "non-numeric port skipped",
+			setupFn: func(t *testing.T) string {
+				t.Helper()
+
+				return createDeploymentWithCompose(t, "services:\n  my-service:\n    ports:\n      - \"abc:8080\"\n      - \"8700:8080\"\n")
+			},
+			psID:  cryptoutilSharedMagic.OTLPServiceSMIM,
+			level: DeploymentTypeProductService,
+		},
+		{
+			name: "container-only port skipped",
+			setupFn: func(t *testing.T) string {
+				t.Helper()
+
+				return createDeploymentWithCompose(t, "services:\n  my-service:\n    ports:\n      - \"8080\"\n      - \"8700:8080\"\n")
+			},
+			psID:  cryptoutilSharedMagic.OTLPServiceSMIM,
+			level: DeploymentTypeProductService,
+		},
+		{
+			name: "config dir non-YAML skipped",
+			setupFn: func(t *testing.T) string {
+				t.Helper()
+
+				dir := createDeploymentWithCompose(t, testComposeServicePort)
+				configDir := filepath.Join(dir, "config")
+				require.NoError(t, os.MkdirAll(configDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+				require.NoError(t, os.WriteFile(filepath.Join(configDir, "README.md"),
+					[]byte("# readme\n"), cryptoutilSharedMagic.CacheFilePermissions))
+
+				return dir
+			},
+			psID:  cryptoutilSharedMagic.OTLPServiceSMIM,
+			level: DeploymentTypeProductService,
+		},
+		{
+			name: "config invalid YAML skipped",
+			setupFn: func(t *testing.T) string {
+				t.Helper()
+
+				dir := createDeploymentWithCompose(t, testComposeServicePort)
+				configDir := filepath.Join(dir, "config")
+				require.NoError(t, os.MkdirAll(configDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+				require.NoError(t, os.WriteFile(filepath.Join(configDir, "broken.yml"),
+					[]byte("invalid: [yaml: {broken"), cryptoutilSharedMagic.CacheFilePermissions))
+
+				return dir
+			},
+			psID:  cryptoutilSharedMagic.OTLPServiceSMIM,
+			level: DeploymentTypeProductService,
+		},
+		{
+			name: "config non-int port skipped",
+			setupFn: func(t *testing.T) string {
+				t.Helper()
+
+				dir := createDeploymentWithCompose(t, testComposeServicePort)
+				configDir := filepath.Join(dir, "config")
+				require.NoError(t, os.MkdirAll(configDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+				require.NoError(t, os.WriteFile(filepath.Join(configDir, "config.yml"),
+					[]byte("bind-public-port: \"not-a-number\"\n"), cryptoutilSharedMagic.CacheFilePermissions))
+
+				return dir
+			},
+			psID:  cryptoutilSharedMagic.OTLPServiceSMIM,
+			level: DeploymentTypeProductService,
+		},
+		{
+			name: "config dir with subdirectory",
+			setupFn: func(t *testing.T) string {
+				t.Helper()
+
+				dir := createDeploymentWithCompose(t, testComposeServicePort)
+				configDir := filepath.Join(dir, "config")
+				require.NoError(t, os.MkdirAll(filepath.Join(configDir, "subdir"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+				require.NoError(t, os.WriteFile(filepath.Join(configDir, "valid.yml"),
+					[]byte("bind-public-port: 8700\n"), cryptoutilSharedMagic.CacheFilePermissions))
+
+				return dir
+			},
+			psID:  cryptoutilSharedMagic.OTLPServiceSMIM,
+			level: DeploymentTypeProductService,
+		},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			result, err := ValidatePorts(tc.setupFn(t), tc.psID, tc.level)
+			require.NoError(t, err)
+			require.NotNil(t, result)
+			require.True(t, result.Valid)
+			require.Empty(t, result.Errors)
+		})
+	}
 }
 
-func TestValidatePorts_ServiceLevelOutOfRange(t *testing.T) {
+func TestValidatePorts_Violations(t *testing.T) {
 	t.Parallel()
 
-	compose := "services:\n  my-service:\n    ports:\n      - \"18700:8080\"\n"
-	dir := createDeploymentWithCompose(t, compose)
+	tests := []struct {
+		name         string
+		setupFn      func(t *testing.T) string
+		psID         string
+		level        string
+		wantContains []string
+	}{
+		{
+			name: "service level out of range",
+			setupFn: func(t *testing.T) string {
+				t.Helper()
 
-	result, err := ValidatePorts(dir, cryptoutilSharedMagic.OTLPServiceSMIM, DeploymentTypeProductService)
-	require.NoError(t, err)
-	require.NotNil(t, result)
-	require.False(t, result.Valid)
-	require.True(t, containsSubstring(result.Errors, "[ValidatePorts]"))
-	require.True(t, containsSubstring(result.Errors, "outside PRODUCT-SERVICE range"))
-	require.True(t, containsSubstring(result.Errors, "ENG-HANDBOOK.md Section 3.4"))
-}
+				return createDeploymentWithCompose(t, "services:\n  my-service:\n    ports:\n      - \"18700:8080\"\n")
+			},
+			psID:         cryptoutilSharedMagic.OTLPServiceSMIM,
+			level:        DeploymentTypeProductService,
+			wantContains: []string{"[ValidatePorts]", "outside PRODUCT-SERVICE range", "ENG-HANDBOOK.md Section 3.4"},
+		},
+		{
+			name: "product level out of range",
+			setupFn: func(t *testing.T) string {
+				t.Helper()
 
-func TestValidatePorts_ProductLevelValid(t *testing.T) {
-	t.Parallel()
+				return createDeploymentWithCompose(t, testComposeServicePort)
+			},
+			psID:         "sm",
+			level:        DeploymentTypeProduct,
+			wantContains: []string{"[ValidatePorts]", "outside PRODUCT range", "ENG-HANDBOOK.md Section 3.4"},
+		},
+		{
+			name: "suite level out of range",
+			setupFn: func(t *testing.T) string {
+				t.Helper()
 
-	compose := "services:\n  sm-im-sqlite:\n    ports:\n      - \"18700:8080\"\n  sm-im-pg-1:\n    ports:\n      - \"18701:8080\"\n"
-	dir := createDeploymentWithCompose(t, compose)
+				return createDeploymentWithCompose(t, "services:\n  sm-kms-sqlite:\n    ports:\n      - \"8000:8080\"\n")
+			},
+			psID:         cryptoutilSharedMagic.DefaultOTLPServiceDefault,
+			level:        DeploymentTypeSuite,
+			wantContains: []string{"[ValidatePorts]", "outside SUITE range", "ENG-HANDBOOK.md Section 3.4"},
+		},
+		{
+			name: "path not found",
+			setupFn: func(t *testing.T) string {
+				t.Helper()
 
-	result, err := ValidatePorts(dir, "sm", DeploymentTypeProduct)
-	require.NoError(t, err)
-	require.NotNil(t, result)
-	require.True(t, result.Valid)
-}
+				return filepath.Join(t.TempDir(), "nonexistent")
+			},
+			psID:         "x",
+			level:        DeploymentTypeProductService,
+			wantContains: []string{"[ValidatePorts]", "does not exist"},
+		},
+		{
+			name: "path is file",
+			setupFn: func(t *testing.T) string {
+				t.Helper()
 
-func TestValidatePorts_ProductLevelOutOfRange(t *testing.T) {
-	t.Parallel()
+				f := filepath.Join(t.TempDir(), "file.txt")
+				require.NoError(t, os.WriteFile(f, []byte("data"), cryptoutilSharedMagic.CacheFilePermissions))
 
-	compose := testComposeServicePort
-	dir := createDeploymentWithCompose(t, compose)
+				return f
+			},
+			psID:         "x",
+			level:        DeploymentTypeProductService,
+			wantContains: []string{"[ValidatePorts]", "not a directory"},
+		},
+		{
+			name: "config port out of range",
+			setupFn: func(t *testing.T) string {
+				t.Helper()
 
-	result, err := ValidatePorts(dir, "sm", DeploymentTypeProduct)
-	require.NoError(t, err)
-	require.NotNil(t, result)
-	require.False(t, result.Valid)
-	require.True(t, containsSubstring(result.Errors, "[ValidatePorts]"))
-	require.True(t, containsSubstring(result.Errors, "outside PRODUCT range"))
-	require.True(t, containsSubstring(result.Errors, "ENG-HANDBOOK.md Section 3.4"))
-}
+				dir := createDeploymentWithCompose(t, testComposeServicePort)
+				configDir := filepath.Join(dir, "config")
+				require.NoError(t, os.MkdirAll(configDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+				require.NoError(t, os.WriteFile(filepath.Join(configDir, "config-sqlite.yml"),
+					[]byte("bind-public-port: 18700\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
-func TestValidatePorts_SuiteLevelValid(t *testing.T) {
-	t.Parallel()
+				return dir
+			},
+			psID:         cryptoutilSharedMagic.OTLPServiceSMIM,
+			level:        DeploymentTypeProductService,
+			wantContains: []string{"[ValidatePorts]", "bind-public-port", "ENG-HANDBOOK.md Section 3.4"},
+		},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-	compose := "services:\n  sm-kms-sqlite:\n    ports:\n      - \"28000:8080\"\n"
-	dir := createDeploymentWithCompose(t, compose)
+			result, err := ValidatePorts(tc.setupFn(t), tc.psID, tc.level)
+			require.NoError(t, err)
+			require.NotNil(t, result)
+			require.False(t, result.Valid)
 
-	result, err := ValidatePorts(dir, cryptoutilSharedMagic.DefaultOTLPServiceDefault, DeploymentTypeSuite)
-	require.NoError(t, err)
-	require.NotNil(t, result)
-	require.True(t, result.Valid)
-}
-
-func TestValidatePorts_SuiteLevelOutOfRange(t *testing.T) {
-	t.Parallel()
-
-	compose := "services:\n  sm-kms-sqlite:\n    ports:\n      - \"8000:8080\"\n"
-	dir := createDeploymentWithCompose(t, compose)
-
-	result, err := ValidatePorts(dir, cryptoutilSharedMagic.DefaultOTLPServiceDefault, DeploymentTypeSuite)
-	require.NoError(t, err)
-	require.NotNil(t, result)
-	require.False(t, result.Valid)
-	require.True(t, containsSubstring(result.Errors, "[ValidatePorts]"))
-	require.True(t, containsSubstring(result.Errors, "outside SUITE range"))
-	require.True(t, containsSubstring(result.Errors, "ENG-HANDBOOK.md Section 3.4"))
-}
-
-func TestValidatePorts_InfrastructurePortsSkipped(t *testing.T) {
-	t.Parallel()
-
-	compose := "services:\n  postgres:\n    ports:\n      - \"5432:5432\"\n  grafana:\n    ports:\n      - \"3000:3000\"\n  otel:\n    ports:\n      - \"4317:4317\"\n      - \"4318:4318\"\n      - \"14317:4317\"\n      - \"14318:4318\"\n      - \"13133:13133\"\n"
-	dir := createDeploymentWithCompose(t, compose)
-
-	result, err := ValidatePorts(dir, cryptoutilSharedMagic.OTLPServiceSMIM, DeploymentTypeProductService)
-	require.NoError(t, err)
-	require.NotNil(t, result)
-	require.True(t, result.Valid)
-}
-
-func TestValidatePorts_ConfigPortValidation(t *testing.T) {
-	t.Parallel()
-
-	compose := testComposeServicePort
-	dir := createDeploymentWithCompose(t, compose)
-
-	// Add config directory with a config file.
-	configDir := filepath.Join(dir, "config")
-	require.NoError(t, os.MkdirAll(configDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
-	require.NoError(t, os.WriteFile(filepath.Join(configDir, "config-sqlite.yml"),
-		[]byte("bind-public-port: 8700\n"), cryptoutilSharedMagic.CacheFilePermissions))
-
-	result, err := ValidatePorts(dir, cryptoutilSharedMagic.OTLPServiceSMIM, DeploymentTypeProductService)
-	require.NoError(t, err)
-	require.NotNil(t, result)
-	require.True(t, result.Valid)
-}
-
-func TestValidatePorts_ConfigPortOutOfRange(t *testing.T) {
-	t.Parallel()
-
-	compose := testComposeServicePort
-	dir := createDeploymentWithCompose(t, compose)
-
-	configDir := filepath.Join(dir, "config")
-	require.NoError(t, os.MkdirAll(configDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
-	require.NoError(t, os.WriteFile(filepath.Join(configDir, "config-sqlite.yml"),
-		[]byte("bind-public-port: 18700\n"), cryptoutilSharedMagic.CacheFilePermissions))
-
-	result, err := ValidatePorts(dir, cryptoutilSharedMagic.OTLPServiceSMIM, DeploymentTypeProductService)
-	require.NoError(t, err)
-	require.NotNil(t, result)
-	require.False(t, result.Valid)
-	require.True(t, containsSubstring(result.Errors, "[ValidatePorts]"))
-	require.True(t, containsSubstring(result.Errors, "bind-public-port"))
-	require.True(t, containsSubstring(result.Errors, "ENG-HANDBOOK.md Section 3.4"))
-}
-
-func TestValidatePorts_PathNotFound(t *testing.T) {
-	t.Parallel()
-
-	result, err := ValidatePorts(filepath.Join(t.TempDir(), "nonexistent"), "x", DeploymentTypeProductService)
-	require.NoError(t, err)
-	require.NotNil(t, result)
-	require.False(t, result.Valid)
-	require.True(t, containsSubstring(result.Errors, "[ValidatePorts]"))
-	require.True(t, containsSubstring(result.Errors, "does not exist"))
-}
-
-func TestValidatePorts_PathIsFile(t *testing.T) {
-	t.Parallel()
-
-	f := filepath.Join(t.TempDir(), "file.txt")
-	require.NoError(t, os.WriteFile(f, []byte("data"), cryptoutilSharedMagic.CacheFilePermissions))
-
-	result, err := ValidatePorts(f, "x", DeploymentTypeProductService)
-	require.NoError(t, err)
-	require.NotNil(t, result)
-	require.False(t, result.Valid)
-	require.True(t, containsSubstring(result.Errors, "[ValidatePorts]"))
-	require.True(t, containsSubstring(result.Errors, "not a directory"))
-}
-
-func TestValidatePorts_NoComposeFile(t *testing.T) {
-	t.Parallel()
-
-	dir := t.TempDir()
-	result, err := ValidatePorts(dir, cryptoutilSharedMagic.OTLPServiceSMIM, DeploymentTypeProductService)
-	require.NoError(t, err)
-	require.NotNil(t, result)
-	// No compose.yml -> no port validation errors (compose existence checked by other validators).
-	require.True(t, result.Valid)
+			for _, want := range tc.wantContains {
+				require.True(t, containsSubstring(result.Errors, want),
+					"expected errors to contain %q, got %v", want, result.Errors)
+			}
+		})
+	}
 }
 
 func TestValidatePorts_InvalidComposeYAML(t *testing.T) {
@@ -203,81 +311,6 @@ func TestValidatePorts_InvalidComposeYAML(t *testing.T) {
 	require.True(t, containsSubstring(result.Warnings, "Cannot parse"))
 }
 
-func TestValidatePorts_NonNumericPortSkipped(t *testing.T) {
-	t.Parallel()
-
-	compose := "services:\n  my-service:\n    ports:\n      - \"abc:8080\"\n      - \"8700:8080\"\n"
-	dir := createDeploymentWithCompose(t, compose)
-
-	result, err := ValidatePorts(dir, cryptoutilSharedMagic.OTLPServiceSMIM, DeploymentTypeProductService)
-	require.NoError(t, err)
-	require.NotNil(t, result)
-	require.True(t, result.Valid)
-}
-
-func TestValidatePorts_ContainerOnlyPortSkipped(t *testing.T) {
-	t.Parallel()
-
-	compose := "services:\n  my-service:\n    ports:\n      - \"8080\"\n      - \"8700:8080\"\n"
-	dir := createDeploymentWithCompose(t, compose)
-
-	result, err := ValidatePorts(dir, cryptoutilSharedMagic.OTLPServiceSMIM, DeploymentTypeProductService)
-	require.NoError(t, err)
-	require.NotNil(t, result)
-	require.True(t, result.Valid)
-}
-
-func TestValidatePorts_ConfigDirWithNonYAML(t *testing.T) {
-	t.Parallel()
-
-	compose := testComposeServicePort
-	dir := createDeploymentWithCompose(t, compose)
-
-	configDir := filepath.Join(dir, "config")
-	require.NoError(t, os.MkdirAll(configDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
-	require.NoError(t, os.WriteFile(filepath.Join(configDir, "README.md"),
-		[]byte("# readme\n"), cryptoutilSharedMagic.CacheFilePermissions))
-
-	result, err := ValidatePorts(dir, cryptoutilSharedMagic.OTLPServiceSMIM, DeploymentTypeProductService)
-	require.NoError(t, err)
-	require.NotNil(t, result)
-	require.True(t, result.Valid)
-}
-
-func TestValidatePorts_ConfigInvalidYAML(t *testing.T) {
-	t.Parallel()
-
-	compose := testComposeServicePort
-	dir := createDeploymentWithCompose(t, compose)
-
-	configDir := filepath.Join(dir, "config")
-	require.NoError(t, os.MkdirAll(configDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
-	require.NoError(t, os.WriteFile(filepath.Join(configDir, "broken.yml"),
-		[]byte("invalid: [yaml: {broken"), cryptoutilSharedMagic.CacheFilePermissions))
-
-	result, err := ValidatePorts(dir, cryptoutilSharedMagic.OTLPServiceSMIM, DeploymentTypeProductService)
-	require.NoError(t, err)
-	require.NotNil(t, result)
-	require.True(t, result.Valid)
-}
-
-func TestValidatePorts_ConfigNonIntPort(t *testing.T) {
-	t.Parallel()
-
-	compose := testComposeServicePort
-	dir := createDeploymentWithCompose(t, compose)
-
-	configDir := filepath.Join(dir, "config")
-	require.NoError(t, os.MkdirAll(configDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
-	require.NoError(t, os.WriteFile(filepath.Join(configDir, "config.yml"),
-		[]byte("bind-public-port: \"not-a-number\"\n"), cryptoutilSharedMagic.CacheFilePermissions))
-
-	result, err := ValidatePorts(dir, cryptoutilSharedMagic.OTLPServiceSMIM, DeploymentTypeProductService)
-	require.NoError(t, err)
-	require.NotNil(t, result)
-	require.True(t, result.Valid) // String not parseable, skip validation.
-}
-
 func TestValidatePorts_ConfigUnreadableFile(t *testing.T) {
 	t.Parallel()
 
@@ -285,44 +318,24 @@ func TestValidatePorts_ConfigUnreadableFile(t *testing.T) {
 		t.Skip("os.Chmod 0o000 does not restrict access on Windows NTFS")
 	}
 
-	compose := testComposeServicePort
-	dir := createDeploymentWithCompose(t, compose)
+	dir := createDeploymentWithCompose(t, testComposeServicePort)
 
 	configDir := filepath.Join(dir, "config")
 	require.NoError(t, os.MkdirAll(configDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
-
-	// Create a symlink to a non-existent target so ReadFile fails.
 	require.NoError(t, os.Symlink("/nonexistent/file.yml", filepath.Join(configDir, "broken.yml")))
 
 	result, err := ValidatePorts(dir, cryptoutilSharedMagic.OTLPServiceSMIM, DeploymentTypeProductService)
 	require.NoError(t, err)
 	require.NotNil(t, result)
-	require.True(t, result.Valid) // Unreadable files are silently skipped.
-}
-
-func TestValidatePorts_ConfigDirWithSubdirectory(t *testing.T) {
-	t.Parallel()
-
-	compose := testComposeServicePort
-	dir := createDeploymentWithCompose(t, compose)
-
-	configDir := filepath.Join(dir, "config")
-	require.NoError(t, os.MkdirAll(filepath.Join(configDir, "subdir"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
-	require.NoError(t, os.WriteFile(filepath.Join(configDir, "valid.yml"),
-		[]byte("bind-public-port: 8700\n"), cryptoutilSharedMagic.CacheFilePermissions))
-
-	result, err := ValidatePorts(dir, cryptoutilSharedMagic.OTLPServiceSMIM, DeploymentTypeProductService)
-	require.NoError(t, err)
-	require.NotNil(t, result)
-	require.True(t, result.Valid) // Subdirectory skipped, valid port accepted.
+	require.True(t, result.Valid)
 }
 
 func TestValidateConfigPortRanges_UnreadableDir(t *testing.T) {
 	t.Parallel()
 
 	result := &PortValidationResult{Valid: true}
-	validateConfigPortRanges("/nonexistent/path", cryptoutilSharedMagic.OTLPServiceSMIM, DeploymentTypeProductService, result)
-	require.True(t, result.Valid) // ReadDir error is silently handled.
+	validateConfigPortRanges(filepath.Join(t.TempDir(), "nonexistent"), cryptoutilSharedMagic.OTLPServiceSMIM, DeploymentTypeProductService, result)
+	require.True(t, result.Valid)
 }
 
 func TestGetPortRange(t *testing.T) {
