@@ -111,3 +111,75 @@
 2. **§13.4.7 propagation tracking table may be stale** —
     The table lists 38 chunks but doesn't track completeness or last validation date. May have
     drifted from `required-propagations.yaml`.
+
+---
+
+## golangci-lint Configuration (.golangci.yml)
+
+1. **Stale `importas` aliases reference old package paths** —
+    ~15 alias entries point to `cryptoutil/internal/cmd/cicd_lint/*` (old structure).
+    Current structure is `cryptoutil/internal/apps/tools/cicd_lint/*`. These dead aliases
+    are harmless but add maintenance noise. Remove or update them.
+
+2. **`testpackage.skip-regexp: '.*_test\.go$'` disables testpackage entirely** —
+    The skip regex matches ALL test files, making the `testpackage` linter a no-op.
+    Either configure it properly or remove from the enabled list.
+
+3. **`goheader` disabled due to corruption bug in golangci-lint v2** —
+    Comment says "monitor v2.8+ for fix." After upgrading past v2.7.2, re-evaluate
+    enabling `goheader` for copyright header enforcement.
+
+4. **Growing `nilerr` exclusion list for lint_deployments validators** —
+    8 validators each get a dedicated nilerr exclusion. Consider refactoring the
+    validation result pattern to avoid returning nil error alongside captured errors,
+    or add a single directory-level exclusion for `lint_deployments/`.
+
+---
+
+## cicd-lint Linters/Formatters
+
+1. **Fitness sub-linter count: actual 70 vs ENG-HANDBOOK "18+"** —
+    The "18+" claim in §1.2 (lines 182, 214) is severely outdated. Update to "70+"
+    or use a dynamic reference ("see §9.11.1 for current catalog").
+
+2. **lint-fitness-registry.yaml may be stale** —
+    If the registry YAML tracks sub-linter names, verify it matches the current 70
+    directories under `internal/apps/tools/cicd_lint/lint_fitness/`.
+
+---
+
+## Copilot/Claude Instructions
+
+1. **Instructions are comprehensive** — All 18 instruction files cover the documented
+    domains with appropriate cross-references. No missing topic areas identified.
+
+2. **03-05.linting.instructions.md mentions "wsl -> wsl_v5 config key"** — This is
+    accurate for golangci-lint v2. No update needed.
+
+3. **Potential gap: no instruction file for documentation standards** — The propagation
+    system is documented in copilot-instructions.md and 06-02.agent-format.instructions.md,
+    but there's no dedicated instruction for documentation writing standards (Markdown style,
+    section structuring, cross-reference conventions). Low priority.
+
+---
+
+## Copilot/Claude Agents
+
+1. **4 agents with dual canonical pairs** — All synchronized, no drift detected.
+    Agent catalog in CLAUDE.md matches `.claude/agents/` directory contents.
+
+2. **No agent for documentation-focused work** — beast-mode and implementation-*
+    agents target code changes. A documentation-focused agent could enforce
+    propagation rules and cross-reference consistency. Low priority.
+
+---
+
+## Copilot/Claude Skills
+
+1. **15 skills with dual canonical pairs** — All synchronized, no drift detected.
+    Skill catalog in CLAUDE.md matches `.claude/skills/` directory contents.
+
+2. **No skill for deployment validation** — cicd-lint lint-deployments has 8
+    validators, but there's no `/deployment-validate` skill to guide users through
+    deployment changes. The existing `/new-service` skill covers creation but not
+    modification of existing deployments. Low priority.
