@@ -4675,6 +4675,18 @@ Detection heuristic: `svc.Image == "" && svc.Build == nil && len(svc.Ports) > 0`
 | `deployments/identity/compose.yml` | ~300 | 155 | **48%** |
 | Total PRODUCT composes | ~1,100 | 430 | **61%** |
 
+### 12.4 Environment Strategy
+
+**Development**: SQLite in-memory, port 0, auto-generated TLS, disabled telemetry
+**Testing**: test-containers (PostgreSQL), dynamic ports, ephemeral instances
+**Production**: PostgreSQL (cloud), static ports, full telemetry, TLS required
+
+### 12.5 Release Management
+
+**Versioning**: Semantic versioning (major.minor.patch)
+**Release Process**: Tag creation, CHANGELOG generation, artifact publishing
+**Rollback Strategy**: Previous version stable, blue-green deployment
+
 ## 13. Deployment Tooling & Validation
 
 ### 13.1 Deployment Structure Validation
@@ -5261,18 +5273,6 @@ command: ["server", "--bind-public-port=8080", "--config=/certs/tls-config.yml",
 - Each service builds its own binary (not the suite binary) for minimal image size
 
 **Cross-References**: CICD command architecture in [Section 9.10](#910-cicd-command-architecture). Build pipeline in [Section 12.2](#122-build-pipeline).
-
-### 12.4 Environment Strategy
-
-**Development**: SQLite in-memory, port 0, auto-generated TLS, disabled telemetry
-**Testing**: test-containers (PostgreSQL), dynamic ports, ephemeral instances
-**Production**: PostgreSQL (cloud), static ports, full telemetry, TLS required
-
-### 12.5 Release Management
-
-**Versioning**: Semantic versioning (major.minor.patch)
-**Release Process**: Tag creation, CHANGELOG generation, artifact publishing
-**Rollback Strategy**: Previous version stable, blue-green deployment
 
 ---
 
