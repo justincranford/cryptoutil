@@ -77,100 +77,105 @@ func TestLoadFitnessRegistry_HappyPath(t *testing.T) {
 	require.Equal(t, "architecture", reg.SubLinters[0].Category)
 }
 
-func TestLoadFitnessRegistry_FileNotFound(t *testing.T) {
+func TestLoadFitnessRegistry_ErrorPaths(t *testing.T) {
 	t.Parallel()
 
-	rootDir := t.TempDir()
+	tests := []struct {
+		name    string
+		yaml    string
+		useRaw  bool
+		wantErr string
+		wantNil bool
+	}{
+		{name: "file not found", useRaw: true, wantErr: "failed to read", wantNil: true},
+		{name: "invalid YAML", yaml: "!!! not valid: yaml: [", wantErr: "failed to parse", wantNil: true},
+		{name: "empty registry", yaml: "sub_linters: []\n"},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-	reg, err := LoadFitnessRegistry(rootDir, os.ReadFile)
+			var rootDir string
+			if tc.useRaw {
+				rootDir = t.TempDir()
+			} else {
+				rootDir = buildRegistryRoot(t, tc.yaml, nil)
+			}
 
-	require.Error(t, err)
-	require.Nil(t, reg)
-	require.Contains(t, err.Error(), "failed to read")
-}
+			reg, err := LoadFitnessRegistry(rootDir, os.ReadFile)
 
-func TestLoadFitnessRegistry_InvalidYAML(t *testing.T) {
-	t.Parallel()
-
-	rootDir := buildRegistryRoot(t, "!!! not valid: yaml: [", nil)
-
-	reg, err := LoadFitnessRegistry(rootDir, os.ReadFile)
-
-	require.Error(t, err)
-	require.Nil(t, reg)
-	require.Contains(t, err.Error(), "failed to parse")
-}
-
-func TestLoadFitnessRegistry_EmptyRegistry(t *testing.T) {
-	t.Parallel()
-
-	rootDir := buildRegistryRoot(t, "sub_linters: []\n", nil)
-
-	reg, err := LoadFitnessRegistry(rootDir, os.ReadFile)
-
-	require.NoError(t, err)
-	require.Empty(t, reg.SubLinters)
+			switch {
+			case tc.wantErr != "":
+				require.Error(t, err)
+				require.Nil(t, reg)
+				require.Contains(t, err.Error(), tc.wantErr)
+			case tc.wantNil:
+				require.NoError(t, err)
+				require.Nil(t, reg)
+			default:
+				require.NoError(t, err)
+				require.Empty(t, reg.SubLinters)
+			}
+		})
+	}
 }
 
 // -----------------------------------------------------------------------
 // CheckRegistryCompleteness
 // -----------------------------------------------------------------------
 
-func TestCheckRegistryCompleteness_AllMatch(t *testing.T) {
+func TestCheckRegistryCompleteness_SubdirVariants(t *testing.T) {
 	t.Parallel()
 
-	rootDir := buildRegistryRoot(t, minimalRegistryYAML(), []string{"cgo_free_sqlite", "file_size_limits"})
+	tests := []struct {
+		name         string
+		subdirs      []string
+		wantOrphaned []string
+		wantMissing  []string
+	}{
+		{
+			name:    "all match",
+			subdirs: []string{"cgo_free_sqlite", "file_size_limits"},
+		},
+		{
+			name:         "orphaned dir",
+			subdirs:      []string{"cgo_free_sqlite", "file_size_limits", "extra_linter"},
+			wantOrphaned: []string{"extra_linter"},
+		},
+		{
+			name:        "missing dir",
+			subdirs:     []string{"cgo_free_sqlite"},
+			wantMissing: []string{"file_size_limits"},
+		},
+		{
+			name:    "skips registry dir",
+			subdirs: []string{"cgo_free_sqlite", "file_size_limits", "registry"},
+		},
+		{
+			name:         "both orphaned and missing",
+			subdirs:      []string{"cgo_free_sqlite", "extra_unknown"},
+			wantOrphaned: []string{"extra_unknown"},
+			wantMissing:  []string{"file_size_limits"},
+		},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-	orphaned, missing, err := CheckRegistryCompleteness(rootDir, os.ReadFile, os.ReadDir)
+			rootDir := buildRegistryRoot(t, minimalRegistryYAML(), tc.subdirs)
 
-	require.NoError(t, err)
-	require.Empty(t, orphaned)
-	require.Empty(t, missing)
-}
+			orphaned, missing, err := CheckRegistryCompleteness(rootDir, os.ReadFile, os.ReadDir)
 
-func TestCheckRegistryCompleteness_OrphanedDir(t *testing.T) {
-	t.Parallel()
-
-	// Filesystem has extra_linter but it's not in the YAML.
-	rootDir := buildRegistryRoot(t, minimalRegistryYAML(), []string{"cgo_free_sqlite", "file_size_limits", "extra_linter"})
-
-	orphaned, missing, err := CheckRegistryCompleteness(rootDir, os.ReadFile, os.ReadDir)
-
-	require.NoError(t, err)
-	require.Equal(t, []string{"extra_linter"}, orphaned)
-	require.Empty(t, missing)
-}
-
-func TestCheckRegistryCompleteness_MissingDir(t *testing.T) {
-	t.Parallel()
-
-	// YAML has file_size_limits but filesystem only has cgo_free_sqlite.
-	rootDir := buildRegistryRoot(t, minimalRegistryYAML(), []string{"cgo_free_sqlite"})
-
-	orphaned, missing, err := CheckRegistryCompleteness(rootDir, os.ReadFile, os.ReadDir)
-
-	require.NoError(t, err)
-	require.Empty(t, orphaned)
-	require.Equal(t, []string{"file_size_limits"}, missing)
-}
-
-func TestCheckRegistryCompleteness_SkipsRegistryDir(t *testing.T) {
-	t.Parallel()
-
-	// Filesystem has a "registry" directory which should be excluded.
-	rootDir := buildRegistryRoot(t, minimalRegistryYAML(), []string{"cgo_free_sqlite", "file_size_limits", "registry"})
-
-	orphaned, missing, err := CheckRegistryCompleteness(rootDir, os.ReadFile, os.ReadDir)
-
-	require.NoError(t, err)
-	require.Empty(t, orphaned, "registry directory should be excluded from filesystem scan")
-	require.Empty(t, missing)
+			require.NoError(t, err)
+			require.Equal(t, tc.wantOrphaned, orphaned)
+			require.Equal(t, tc.wantMissing, missing)
+		})
+	}
 }
 
 func TestCheckRegistryCompleteness_SkipsNonDirectories(t *testing.T) {
 	t.Parallel()
 
-	// A regular file in the fitness dir should not be treated as a sub-linter.
 	rootDir := buildRegistryRoot(t, minimalRegistryYAML(), []string{"cgo_free_sqlite", "file_size_limits"})
 
 	// Create a file (not a directory) in the fitness dir to verify non-dirs are ignored.
@@ -187,7 +192,7 @@ func TestCheckRegistryCompleteness_SkipsNonDirectories(t *testing.T) {
 func TestCheckRegistryCompleteness_ManifestLoadError(t *testing.T) {
 	t.Parallel()
 
-	rootDir := t.TempDir() // no YAML file
+	rootDir := t.TempDir() // no YAML file.
 
 	orphaned, missing, err := CheckRegistryCompleteness(rootDir, os.ReadFile, os.ReadDir)
 
@@ -213,19 +218,6 @@ func TestCheckRegistryCompleteness_ReadDirError(t *testing.T) {
 	require.Contains(t, err.Error(), "simulated ReadDir error")
 }
 
-func TestCheckRegistryCompleteness_BothOrphanedAndMissing(t *testing.T) {
-	t.Parallel()
-
-	// YAML has file_size_limits (missing from FS) + FS has extra_unknown (not in YAML).
-	rootDir := buildRegistryRoot(t, minimalRegistryYAML(), []string{"cgo_free_sqlite", "extra_unknown"})
-
-	orphaned, missing, err := CheckRegistryCompleteness(rootDir, os.ReadFile, os.ReadDir)
-
-	require.NoError(t, err)
-	require.Equal(t, []string{"extra_unknown"}, orphaned)
-	require.Equal(t, []string{"file_size_limits"}, missing)
-}
-
 func TestCheckRegistryCompleteness_SortedResults(t *testing.T) {
 	t.Parallel()
 
@@ -239,7 +231,6 @@ func TestCheckRegistryCompleteness_SortedResults(t *testing.T) {
     description: First linter.
     category: architecture
 `
-	// Filesystem has two extra dirs and none from YAML.
 	rootDir := buildRegistryRoot(t, yaml, []string{"zzz_extra", "aaa_extra"})
 
 	orphaned, missing, err := CheckRegistryCompleteness(rootDir, os.ReadFile, os.ReadDir)
@@ -253,47 +244,42 @@ func TestCheckRegistryCompleteness_SortedResults(t *testing.T) {
 // CheckInDir
 // -----------------------------------------------------------------------
 
-func TestCheckInDir_AllMatch(t *testing.T) {
+func TestCheckInDir_SubdirVariants(t *testing.T) {
 	t.Parallel()
 
-	rootDir := buildRegistryRoot(t, minimalRegistryYAML(), []string{"cgo_free_sqlite", "file_size_limits"})
-	logger := cryptoutilCmdCicdCommon.NewLogger("test")
+	tests := []struct {
+		name       string
+		subdirs    []string
+		wantErr    bool
+		wantSubstr string
+	}{
+		{name: "all match", subdirs: []string{"cgo_free_sqlite", "file_size_limits"}},
+		{name: "orphaned", subdirs: []string{"cgo_free_sqlite", "file_size_limits", "orphan_dir"}, wantErr: true, wantSubstr: "ORPHANED"},
+		{name: "missing", subdirs: []string{"cgo_free_sqlite"}, wantErr: true, wantSubstr: "MISSING"},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-	err := CheckInDir(logger, rootDir)
+			rootDir := buildRegistryRoot(t, minimalRegistryYAML(), tc.subdirs)
+			logger := cryptoutilCmdCicdCommon.NewLogger("test")
 
-	require.NoError(t, err)
-}
+			err := CheckInDir(logger, rootDir)
 
-func TestCheckInDir_Orphaned(t *testing.T) {
-	t.Parallel()
-
-	rootDir := buildRegistryRoot(t, minimalRegistryYAML(), []string{"cgo_free_sqlite", "file_size_limits", "orphan_dir"})
-	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-
-	err := CheckInDir(logger, rootDir)
-
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "ORPHANED")
-	require.Contains(t, err.Error(), "orphan_dir")
-}
-
-func TestCheckInDir_Missing(t *testing.T) {
-	t.Parallel()
-
-	rootDir := buildRegistryRoot(t, minimalRegistryYAML(), []string{"cgo_free_sqlite"})
-	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-
-	err := CheckInDir(logger, rootDir)
-
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "MISSING")
-	require.Contains(t, err.Error(), "file_size_limits")
+			if tc.wantErr {
+				require.Error(t, err)
+				require.Contains(t, err.Error(), tc.wantSubstr)
+			} else {
+				require.NoError(t, err)
+			}
+		})
+	}
 }
 
 func TestCheckInDir_ManifestError(t *testing.T) {
 	t.Parallel()
 
-	rootDir := t.TempDir() // no manifest
+	rootDir := t.TempDir() // no manifest.
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 
 	err := CheckInDir(logger, rootDir)
@@ -345,40 +331,43 @@ func TestCheck_ProjectRootError(t *testing.T) {
 	require.Contains(t, err.Error(), "simulated root error")
 }
 
-func TestFindFitnessProjectRoot_GetwdError(t *testing.T) {
+func TestFindFitnessProjectRoot_ErrorPaths(t *testing.T) {
 	t.Parallel()
 
-	stubGetwdFn := func() (string, error) {
-		return "", fmt.Errorf("simulated getwd error")
+	tests := []struct {
+		name    string
+		getwdFn func() (string, error)
+		wantErr string
+	}{
+		{
+			name:    "getwd error",
+			getwdFn: func() (string, error) { return "", fmt.Errorf("simulated getwd error") },
+			wantErr: "simulated getwd error",
+		},
+		{
+			name: "go.mod not found",
+			getwdFn: func() (string, error) {
+				root := filepath.VolumeName(os.TempDir())
+				if root == "" {
+					root = "/"
+				} else {
+					root += "\\"
+				}
+
+				return root, nil
+			},
+			wantErr: "go.mod not found",
+		},
 	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-	result, err := findFitnessProjectRoot(stubGetwdFn)
+			result, err := findFitnessProjectRoot(tc.getwdFn)
 
-	require.Error(t, err)
-	require.Empty(t, result)
-	require.Contains(t, err.Error(), "simulated getwd error")
-}
-
-func TestFindFitnessProjectRoot_GoModNotFound(t *testing.T) {
-	t.Parallel()
-
-	// Use the filesystem root; it will never have go.mod.
-	stubGetwdFn := func() (string, error) {
-		// Return a path that has no go.mod in itself or any parent.
-		// On Windows this is e.g. C:\ on Unix it is /
-		root := filepath.VolumeName(t.TempDir())
-		if root == "" {
-			root = "/"
-		} else {
-			root += "\\"
-		}
-
-		return root, nil
+			require.Error(t, err)
+			require.Empty(t, result)
+			require.Contains(t, err.Error(), tc.wantErr)
+		})
 	}
-
-	result, err := findFitnessProjectRoot(stubGetwdFn)
-
-	require.Error(t, err)
-	require.Empty(t, result)
-	require.Contains(t, err.Error(), "go.mod not found")
 }
