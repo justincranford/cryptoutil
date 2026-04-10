@@ -12,200 +12,263 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestValidateAdmin_ValidDeployment(t *testing.T) {
+func TestValidateAdmin_ValidCases(t *testing.T) {
 	t.Parallel()
 
-	dir := createAdminTestDeployment(t,
-		"services:\n  my-app:\n    ports:\n      - \"8700:8080\"\n",
-		map[string]string{
-			"bind-private-address": cryptoutilSharedMagic.IPv4Loopback,
-			"bind-private-port":    "9090",
+	tests := []struct {
+		name    string
+		setupFn func(t *testing.T) string
+	}{
+		{
+			name: "valid deployment",
+			setupFn: func(t *testing.T) string {
+				t.Helper()
+
+				return createAdminTestDeployment(t,
+					"services:\n  my-app:\n    ports:\n      - \"8700:8080\"\n",
+					map[string]string{
+						"bind-private-address": cryptoutilSharedMagic.IPv4Loopback,
+						"bind-private-port":    "9090",
+					})
+			},
+		},
+		{
+			name: "admin port not exposed safe",
+			setupFn: func(t *testing.T) string {
+				t.Helper()
+
+				return createAdminTestDeployment(t,
+					"services:\n  my-app:\n    ports:\n      - \"8080:8080\"\n      - \"8081:8080\"\n", nil)
+			},
+		},
+		{
+			name: "no compose file",
+			setupFn: func(t *testing.T) string {
+				t.Helper()
+
+				return t.TempDir()
+			},
+		},
+		{
+			name: "no config dir",
+			setupFn: func(t *testing.T) string {
+				t.Helper()
+
+				dir := t.TempDir()
+				require.NoError(t, os.WriteFile(filepath.Join(dir, "compose.yml"),
+					[]byte("services:\n  app:\n    ports:\n      - \"8080:8080\"\n"), cryptoutilSharedMagic.CacheFilePermissions))
+
+				return dir
+			},
+		},
+		{
+			name: "invalid compose YAML",
+			setupFn: func(t *testing.T) string {
+				t.Helper()
+
+				dir := t.TempDir()
+				require.NoError(t, os.WriteFile(filepath.Join(dir, "compose.yml"),
+					[]byte("{{invalid yaml"), cryptoutilSharedMagic.CacheFilePermissions))
+
+				return dir
+			},
+		},
+		{
+			name: "invalid config YAML",
+			setupFn: func(t *testing.T) string {
+				t.Helper()
+
+				dir := t.TempDir()
+				configDir := filepath.Join(dir, "config")
+				require.NoError(t, os.MkdirAll(configDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+				require.NoError(t, os.WriteFile(filepath.Join(configDir, "config.yml"),
+					[]byte("{{invalid"), cryptoutilSharedMagic.CacheFilePermissions))
+
+				return dir
+			},
+		},
+		{
+			name: "config non-int port",
+			setupFn: func(t *testing.T) string {
+				t.Helper()
+
+				return createAdminTestDeployment(t, "", map[string]string{
+					"bind-private-port": "\"not-a-number\"",
+				})
+			},
+		},
+		{
+			name: "config non-string address",
+			setupFn: func(t *testing.T) string {
+				t.Helper()
+
+				dir := t.TempDir()
+				configDir := filepath.Join(dir, "config")
+				require.NoError(t, os.MkdirAll(configDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+				require.NoError(t, os.WriteFile(filepath.Join(configDir, "config.yml"),
+					[]byte("bind-private-address: 12345\n"), cryptoutilSharedMagic.CacheFilePermissions))
+
+				return dir
+			},
+		},
+		{
+			name: "config subdirectory skipped",
+			setupFn: func(t *testing.T) string {
+				t.Helper()
+
+				dir := t.TempDir()
+				configDir := filepath.Join(dir, "config")
+				require.NoError(t, os.MkdirAll(filepath.Join(configDir, "subdir"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+
+				return dir
+			},
+		},
+		{
+			name: "config non-YAML skipped",
+			setupFn: func(t *testing.T) string {
+				t.Helper()
+
+				dir := t.TempDir()
+				configDir := filepath.Join(dir, "config")
+				require.NoError(t, os.MkdirAll(configDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+				require.NoError(t, os.WriteFile(filepath.Join(configDir, "readme.txt"),
+					[]byte("not yaml"), cryptoutilSharedMagic.CacheFilePermissions))
+
+				return dir
+			},
+		},
+		{
+			name: "compose container-only port",
+			setupFn: func(t *testing.T) string {
+				t.Helper()
+
+				return createAdminTestDeployment(t,
+					"services:\n  my-app:\n    ports:\n      - \"8080\"\n", nil)
+			},
+		},
+		{
+			name: "compose non-numeric port",
+			setupFn: func(t *testing.T) string {
+				t.Helper()
+
+				return createAdminTestDeployment(t,
+					"services:\n  my-app:\n    ports:\n      - \"abc:8080\"\n", nil)
+			},
+		},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			dir := tc.setupFn(t)
+
+			result, err := ValidateAdmin(dir)
+			require.NoError(t, err)
+			assert.True(t, result.Valid)
+			assert.Empty(t, result.Errors)
 		})
-
-	result, err := ValidateAdmin(dir)
-	require.NoError(t, err)
-	assert.True(t, result.Valid)
-	assert.Empty(t, result.Errors)
+	}
 }
 
-func TestValidateAdmin_PathNotFound(t *testing.T) {
+func TestValidateAdmin_Violations(t *testing.T) {
 	t.Parallel()
 
-	result, err := ValidateAdmin("/nonexistent/path")
-	require.NoError(t, err)
-	assert.False(t, result.Valid)
-	assert.Contains(t, result.Errors[0], "[ValidateAdmin]")
-	assert.Contains(t, result.Errors[0], "not found")
+	tests := []struct {
+		name         string
+		setupFn      func(t *testing.T) string
+		wantContains []string
+	}{
+		{
+			name: "path not found",
+			setupFn: func(t *testing.T) string {
+				t.Helper()
+
+				return "/nonexistent/path"
+			},
+			wantContains: []string{"[ValidateAdmin]", "not found"},
+		},
+		{
+			name: "path is file",
+			setupFn: func(t *testing.T) string {
+				t.Helper()
+
+				f := filepath.Join(t.TempDir(), "file")
+				require.NoError(t, os.WriteFile(f, []byte("x"), cryptoutilSharedMagic.CacheFilePermissions))
+
+				return f
+			},
+			wantContains: []string{"[ValidateAdmin]", "not a directory"},
+		},
+		{
+			name: "admin port exposed",
+			setupFn: func(t *testing.T) string {
+				t.Helper()
+
+				return createAdminTestDeployment(t,
+					"services:\n  my-app:\n    ports:\n      - \"9090:9090\"\n", nil)
+			},
+			wantContains: []string{"[ValidateAdmin]", "SECURITY VIOLATION", "9090", "ENG-HANDBOOK.md Section 5.3"},
+		},
+		{
+			name: "wrong admin port",
+			setupFn: func(t *testing.T) string {
+				t.Helper()
+
+				return createAdminTestDeployment(t, "", map[string]string{
+					"bind-private-port": "8443",
+				})
+			},
+			wantContains: []string{"[ValidateAdmin]", "bind-private-port is 8443", "ENG-HANDBOOK.md Section 5.3"},
+		},
+		{
+			name: "wrong admin address",
+			setupFn: func(t *testing.T) string {
+				t.Helper()
+
+				return createAdminTestDeployment(t, "", map[string]string{
+					"bind-private-address": cryptoutilSharedMagic.IPv4AnyAddress,
+				})
+			},
+			wantContains: []string{"[ValidateAdmin]", "bind-private-address", cryptoutilSharedMagic.IPv4AnyAddress, "ENG-HANDBOOK.md Section 5.3"},
+		},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			dir := tc.setupFn(t)
+
+			result, err := ValidateAdmin(dir)
+			require.NoError(t, err)
+			assert.False(t, result.Valid)
+
+			for _, want := range tc.wantContains {
+				assert.Contains(t, result.Errors[0], want)
+			}
+		})
+	}
 }
 
-func TestValidateAdmin_PathIsFile(t *testing.T) {
+func TestValidateAdmin_InternalEdgeCases(t *testing.T) {
 	t.Parallel()
 
-	f := filepath.Join(t.TempDir(), "file")
-	require.NoError(t, os.WriteFile(f, []byte("x"), cryptoutilSharedMagic.CacheFilePermissions))
+	tests := []struct {
+		name string
+		fn   func(string, *AdminValidationResult)
+		path string
+	}{
+		{name: "unreadable config dir", fn: validateAdminConfigSettings, path: "/nonexistent/dir"},
+		{name: "unreadable compose file", fn: validateAdminNotExposed, path: "/nonexistent/compose.yml"},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-	result, err := ValidateAdmin(f)
-	require.NoError(t, err)
-	assert.False(t, result.Valid)
-	assert.Contains(t, result.Errors[0], "[ValidateAdmin]")
-	assert.Contains(t, result.Errors[0], "not a directory")
-}
-
-func TestValidateAdmin_AdminPortExposed(t *testing.T) {
-	t.Parallel()
-
-	compose := "services:\n  my-app:\n    ports:\n      - \"9090:9090\"\n"
-	dir := createAdminTestDeployment(t, compose, nil)
-
-	result, err := ValidateAdmin(dir)
-	require.NoError(t, err)
-	assert.False(t, result.Valid)
-	assert.Contains(t, result.Errors[0], "[ValidateAdmin]")
-	assert.Contains(t, result.Errors[0], "SECURITY VIOLATION")
-	assert.Contains(t, result.Errors[0], "9090")
-	assert.Contains(t, result.Errors[0], "ENG-HANDBOOK.md Section 5.3")
-}
-
-func TestValidateAdmin_AdminPortNotExposedSafe(t *testing.T) {
-	t.Parallel()
-
-	compose := "services:\n  my-app:\n    ports:\n      - \"8080:8080\"\n      - \"8081:8080\"\n"
-	dir := createAdminTestDeployment(t, compose, nil)
-
-	result, err := ValidateAdmin(dir)
-	require.NoError(t, err)
-	assert.True(t, result.Valid)
-}
-
-func TestValidateAdmin_WrongAdminPort(t *testing.T) {
-	t.Parallel()
-
-	dir := createAdminTestDeployment(t, "", map[string]string{
-		"bind-private-port": "8443",
-	})
-
-	result, err := ValidateAdmin(dir)
-	require.NoError(t, err)
-	assert.False(t, result.Valid)
-	assert.Contains(t, result.Errors[0], "[ValidateAdmin]")
-	assert.Contains(t, result.Errors[0], "bind-private-port is 8443")
-	assert.Contains(t, result.Errors[0], "ENG-HANDBOOK.md Section 5.3")
-}
-
-func TestValidateAdmin_WrongAdminAddress(t *testing.T) {
-	t.Parallel()
-
-	dir := createAdminTestDeployment(t, "", map[string]string{
-		"bind-private-address": cryptoutilSharedMagic.IPv4AnyAddress,
-	})
-
-	result, err := ValidateAdmin(dir)
-	require.NoError(t, err)
-	assert.False(t, result.Valid)
-	assert.Contains(t, result.Errors[0], "[ValidateAdmin]")
-	assert.Contains(t, result.Errors[0], "bind-private-address")
-	assert.Contains(t, result.Errors[0], cryptoutilSharedMagic.IPv4AnyAddress)
-	assert.Contains(t, result.Errors[0], "ENG-HANDBOOK.md Section 5.3")
-}
-
-func TestValidateAdmin_NoComposeFile(t *testing.T) {
-	t.Parallel()
-
-	dir := t.TempDir()
-
-	result, err := ValidateAdmin(dir)
-	require.NoError(t, err)
-	assert.True(t, result.Valid)
-}
-
-func TestValidateAdmin_NoConfigDir(t *testing.T) {
-	t.Parallel()
-
-	dir := t.TempDir()
-	require.NoError(t, os.WriteFile(filepath.Join(dir, "compose.yml"),
-		[]byte("services:\n  app:\n    ports:\n      - \"8080:8080\"\n"), cryptoutilSharedMagic.CacheFilePermissions))
-
-	result, err := ValidateAdmin(dir)
-	require.NoError(t, err)
-	assert.True(t, result.Valid)
-}
-
-func TestValidateAdmin_InvalidComposeYAML(t *testing.T) {
-	t.Parallel()
-
-	dir := t.TempDir()
-	require.NoError(t, os.WriteFile(filepath.Join(dir, "compose.yml"),
-		[]byte("{{invalid yaml"), cryptoutilSharedMagic.CacheFilePermissions))
-
-	result, err := ValidateAdmin(dir)
-	require.NoError(t, err)
-	assert.True(t, result.Valid) // Invalid YAML silently skipped.
-}
-
-func TestValidateAdmin_InvalidConfigYAML(t *testing.T) {
-	t.Parallel()
-
-	dir := t.TempDir()
-	configDir := filepath.Join(dir, "config")
-	require.NoError(t, os.MkdirAll(configDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
-	require.NoError(t, os.WriteFile(filepath.Join(configDir, "config.yml"),
-		[]byte("{{invalid"), cryptoutilSharedMagic.CacheFilePermissions))
-
-	result, err := ValidateAdmin(dir)
-	require.NoError(t, err)
-	assert.True(t, result.Valid)
-}
-
-func TestValidateAdmin_ConfigNonIntPort(t *testing.T) {
-	t.Parallel()
-
-	dir := createAdminTestDeployment(t, "", map[string]string{
-		"bind-private-port": "\"not-a-number\"",
-	})
-
-	result, err := ValidateAdmin(dir)
-	require.NoError(t, err)
-	assert.True(t, result.Valid) // Non-integer port silently skipped.
-}
-
-func TestValidateAdmin_ConfigNonStringAddress(t *testing.T) {
-	t.Parallel()
-
-	dir := t.TempDir()
-	configDir := filepath.Join(dir, "config")
-	require.NoError(t, os.MkdirAll(configDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
-	require.NoError(t, os.WriteFile(filepath.Join(configDir, "config.yml"),
-		[]byte("bind-private-address: 12345\n"), cryptoutilSharedMagic.CacheFilePermissions))
-
-	result, err := ValidateAdmin(dir)
-	require.NoError(t, err)
-	assert.True(t, result.Valid) // Non-string address silently skipped.
-}
-
-func TestValidateAdmin_ConfigSubdirectorySkipped(t *testing.T) {
-	t.Parallel()
-
-	dir := t.TempDir()
-	configDir := filepath.Join(dir, "config")
-	require.NoError(t, os.MkdirAll(filepath.Join(configDir, "subdir"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
-
-	result, err := ValidateAdmin(dir)
-	require.NoError(t, err)
-	assert.True(t, result.Valid)
-}
-
-func TestValidateAdmin_ConfigNonYAMLSkipped(t *testing.T) {
-	t.Parallel()
-
-	dir := t.TempDir()
-	configDir := filepath.Join(dir, "config")
-	require.NoError(t, os.MkdirAll(configDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
-	require.NoError(t, os.WriteFile(filepath.Join(configDir, "readme.txt"),
-		[]byte("not yaml"), cryptoutilSharedMagic.CacheFilePermissions))
-
-	result, err := ValidateAdmin(dir)
-	require.NoError(t, err)
-	assert.True(t, result.Valid)
+			result := &AdminValidationResult{Valid: true}
+			tc.fn(tc.path, result)
+			assert.True(t, result.Valid)
+		})
+	}
 }
 
 func TestValidateAdmin_ConfigUnreadableFile(t *testing.T) {
@@ -224,44 +287,6 @@ func TestValidateAdmin_ConfigUnreadableFile(t *testing.T) {
 	result, err := ValidateAdmin(dir)
 	require.NoError(t, err)
 	assert.True(t, result.Valid)
-}
-
-func TestValidateAdmin_UnreadableConfigDir(t *testing.T) {
-	t.Parallel()
-
-	result := &AdminValidationResult{Valid: true}
-	validateAdminConfigSettings("/nonexistent/dir", result)
-	assert.True(t, result.Valid) // ReadDir error silently handled.
-}
-
-func TestValidateAdmin_UnreadableComposeFile(t *testing.T) {
-	t.Parallel()
-
-	result := &AdminValidationResult{Valid: true}
-	validateAdminNotExposed("/nonexistent/compose.yml", result)
-	assert.True(t, result.Valid) // ReadFile error silently handled.
-}
-
-func TestValidateAdmin_ComposeContainerOnlyPort(t *testing.T) {
-	t.Parallel()
-
-	compose := "services:\n  my-app:\n    ports:\n      - \"8080\"\n"
-	dir := createAdminTestDeployment(t, compose, nil)
-
-	result, err := ValidateAdmin(dir)
-	require.NoError(t, err)
-	assert.True(t, result.Valid) // Container-only port has no host mapping.
-}
-
-func TestValidateAdmin_ComposeNonNumericPort(t *testing.T) {
-	t.Parallel()
-
-	compose := "services:\n  my-app:\n    ports:\n      - \"abc:8080\"\n"
-	dir := createAdminTestDeployment(t, compose, nil)
-
-	result, err := ValidateAdmin(dir)
-	require.NoError(t, err)
-	assert.True(t, result.Valid) // Non-numeric ports silently skipped.
 }
 
 func TestValidateAdmin_RealSmIM(t *testing.T) {
