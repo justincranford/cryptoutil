@@ -465,6 +465,7 @@ func TestSessionManager_GenerateJWSKey_AllAlgorithms(t *testing.T) {
 
 				return
 			}
+
 			require.NoError(t, err, "generateJWSKey should succeed for %s", tt.algorithm)
 			require.NotNil(t, privateKey, "privateKey should not be nil for %s", tt.algorithm)
 		})
