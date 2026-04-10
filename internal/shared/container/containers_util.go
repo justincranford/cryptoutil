@@ -13,7 +13,6 @@ import (
 
 	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 
-	"github.com/docker/go-connections/nat"
 	"github.com/testcontainers/testcontainers-go"
 )
 
@@ -54,7 +53,7 @@ func GetContainerHostAndMappedPort(ctx context.Context, telemetryService *crypto
 		return "", "", fmt.Errorf("failed to get container host: %w", err)
 	}
 
-	mappedPort, err := container.MappedPort(ctx, nat.Port(port))
+	mappedPort, err := container.MappedPort(ctx, port)
 	if err != nil {
 		telemetryService.Slogger.Error("failed to get container mapped port", cryptoutilSharedMagic.StringError, err)
 

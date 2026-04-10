@@ -194,6 +194,17 @@ func (pool *ValueGenPool[T]) Get() T {
 		pool.cfg.telemetryService.Slogger.Debug("getting", "pool", pool.cfg.poolName, "duration", time.Since(startTime).Seconds())
 	}
 
+	// Non-blocking check: if the pool is already canceled, return zero immediately.
+	// This prevents the blocking select below from non-deterministically returning a
+	// pre-generated channel value when both Done and generateChannel are ready.
+	select {
+	case <-pool.stopGeneratingCtx.Done():
+		var zero T
+
+		return zero
+	default:
+	}
+
 	select {
 	case <-pool.stopGeneratingCtx.Done(): // someone called Cancel()
 		if pool.cfg.verbose {

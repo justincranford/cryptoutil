@@ -12,7 +12,7 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 
-	"github.com/docker/go-connections/nat"
+	mobynetwork "github.com/moby/moby/api/types/network"
 	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go"
 )
@@ -23,14 +23,14 @@ import (
 type mockContainer struct {
 	testcontainers.Container
 	hostFn       func(ctx context.Context) (string, error)
-	mappedPortFn func(ctx context.Context, port nat.Port) (nat.Port, error)
+	mappedPortFn func(ctx context.Context, port string) (mobynetwork.Port, error)
 }
 
 func (m *mockContainer) Host(ctx context.Context) (string, error) {
 	return m.hostFn(ctx)
 }
 
-func (m *mockContainer) MappedPort(ctx context.Context, port nat.Port) (nat.Port, error) {
+func (m *mockContainer) MappedPort(ctx context.Context, port string) (mobynetwork.Port, error) {
 	return m.mappedPortFn(ctx, port)
 }
 
@@ -57,7 +57,7 @@ func TestGetContainerHostAndMappedPort(t *testing.T) {
 	tests := []struct {
 		name       string
 		hostFn     func(ctx context.Context) (string, error)
-		mappedFn   func(ctx context.Context, port nat.Port) (nat.Port, error)
+		mappedFn   func(ctx context.Context, port string) (mobynetwork.Port, error)
 		wantHost   string
 		wantPort   string
 		wantErrMsg string
@@ -67,8 +67,8 @@ func TestGetContainerHostAndMappedPort(t *testing.T) {
 			hostFn: func(_ context.Context) (string, error) {
 				return cryptoutilSharedMagic.IPv4Loopback, nil
 			},
-			mappedFn: func(_ context.Context, _ nat.Port) (nat.Port, error) {
-				return nat.Port("54321/tcp"), nil
+			mappedFn: func(_ context.Context, _ string) (mobynetwork.Port, error) {
+				return mobynetwork.MustParsePort("54321/tcp"), nil
 			},
 			wantHost: cryptoutilSharedMagic.IPv4Loopback,
 			wantPort: "54321",
@@ -78,8 +78,8 @@ func TestGetContainerHostAndMappedPort(t *testing.T) {
 			hostFn: func(_ context.Context) (string, error) {
 				return "", fmt.Errorf("host lookup failed")
 			},
-			mappedFn: func(_ context.Context, _ nat.Port) (nat.Port, error) {
-				return "", nil
+			mappedFn: func(_ context.Context, _ string) (mobynetwork.Port, error) {
+				return mobynetwork.Port{}, nil
 			},
 			wantErrMsg: "failed to get container host",
 		},
@@ -88,8 +88,8 @@ func TestGetContainerHostAndMappedPort(t *testing.T) {
 			hostFn: func(_ context.Context) (string, error) {
 				return cryptoutilSharedMagic.IPv4Loopback, nil
 			},
-			mappedFn: func(_ context.Context, _ nat.Port) (nat.Port, error) {
-				return "", fmt.Errorf("port mapping not found")
+			mappedFn: func(_ context.Context, _ string) (mobynetwork.Port, error) {
+				return mobynetwork.Port{}, fmt.Errorf("port mapping not found")
 			},
 			wantErrMsg: "failed to get container mapped port",
 		},
