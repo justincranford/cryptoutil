@@ -28,116 +28,212 @@ func writeFile(t *testing.T, path, content string) {
 	require.NoError(t, os.WriteFile(path, []byte(content), cryptoutilSharedMagic.CacheFilePermissions))
 }
 
-func TestCheckInDir_NoViolations(t *testing.T) {
+func TestCheckInDir_NoErrors(t *testing.T) {
 	t.Parallel()
 
-	dir := t.TempDir()
-	writeFile(t, filepath.Join(dir, "clean.go"), `package mypackage
+	tests := []struct {
+		name    string
+		setupFn func(t *testing.T) string
+	}{
+		{
+			name: "clean code no violations",
+			setupFn: func(t *testing.T) string {
+				t.Helper()
+				dir := t.TempDir()
+				writeFile(t, filepath.Join(dir, "clean.go"), "package mypackage\n\nimport \"fmt\"\n\nvar localVar = \"hello\"\nvar number = 42\nvar computed = fmt.Sprintf(\"%d\", number)\n")
 
-import "fmt"
+				return dir
+			},
+		},
+		{
+			name: "skips test files",
+			setupFn: func(t *testing.T) string {
+				t.Helper()
+				dir := t.TempDir()
+				writeFile(t, filepath.Join(dir, "seams_test.go"), "package mypackage_test\n\nimport \"path/filepath\"\n\nvar walkFn = filepath.Walk\n")
 
-var localVar = "hello"
-var number = 42
-var computed = fmt.Sprintf("%d", number)
-`)
+				return dir
+			},
+		},
+		{
+			name: "skips export_test.go",
+			setupFn: func(t *testing.T) string {
+				t.Helper()
+				dir := t.TempDir()
+				writeFile(t, filepath.Join(dir, "export_test.go"), "package mypackage\n\nimport \"path/filepath\"\n\nvar ExportedWalkFn = filepath.Walk\n")
 
-	logger := newLogger(t)
-	err := lintGoFunctionVarRedeclaration.CheckInDir(logger, dir, filepath.Walk)
+				return dir
+			},
+		},
+		{
+			name: "skips call expressions",
+			setupFn: func(t *testing.T) string {
+				t.Helper()
+				dir := t.TempDir()
+				writeFile(t, filepath.Join(dir, "constructor.go"), "package mypackage\n\nimport \"sync\"\n\nvar mu = sync.NewMutex()\nvar once = sync.Once{}\n")
 
-	require.NoError(t, err)
+				return dir
+			},
+		},
+		{
+			name: "skips typed vars",
+			setupFn: func(t *testing.T) string {
+				t.Helper()
+				dir := t.TempDir()
+				writeFile(t, filepath.Join(dir, "typed.go"), "package p\n\nimport \"sync\"\n\nvar mu sync.Mutex\n")
+
+				return dir
+			},
+		},
+		{
+			name: "skips non-go files",
+			setupFn: func(t *testing.T) string {
+				t.Helper()
+				dir := t.TempDir()
+				writeFile(t, filepath.Join(dir, "data.txt"), "var walkFn = filepath.Walk")
+				writeFile(t, filepath.Join(dir, "Makefile"), "var walkFn = filepath.Walk")
+
+				return dir
+			},
+		},
+		{
+			name: "skips vendor dir",
+			setupFn: func(t *testing.T) string {
+				t.Helper()
+				dir := t.TempDir()
+				vendorDir := filepath.Join(dir, cryptoutilSharedMagic.CICDExcludeDirVendor, "somepkg")
+				require.NoError(t, os.MkdirAll(vendorDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupReadExecute))
+				writeFile(t, filepath.Join(vendorDir, "seam.go"), "package somepkg\n\nimport \"path/filepath\"\n\nvar walkFn = filepath.Walk\n")
+
+				return dir
+			},
+		},
+		{
+			name: "skips dot dirs",
+			setupFn: func(t *testing.T) string {
+				t.Helper()
+				dir := t.TempDir()
+				hidden := filepath.Join(dir, ".hidden", "pkg")
+				require.NoError(t, os.MkdirAll(hidden, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupReadExecute))
+				writeFile(t, filepath.Join(hidden, "seam.go"), "package pkg\n\nimport \"path/filepath\"\n\nvar walkFn = filepath.Walk\n")
+
+				return dir
+			},
+		},
+		{
+			name: "skips underscore dirs",
+			setupFn: func(t *testing.T) string {
+				t.Helper()
+				dir := t.TempDir()
+				underscore := filepath.Join(dir, "_internal", "pkg")
+				require.NoError(t, os.MkdirAll(underscore, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupReadExecute))
+				writeFile(t, filepath.Join(underscore, "seam.go"), "package pkg\n\nimport \"path/filepath\"\n\nvar walkFn = filepath.Walk\n")
+
+				return dir
+			},
+		},
+		{
+			name: "parse error silently skipped",
+			setupFn: func(t *testing.T) string {
+				t.Helper()
+				dir := t.TempDir()
+				writeFile(t, filepath.Join(dir, "broken.go"), "package p THIS IS NOT VALID GO {{{")
+
+				return dir
+			},
+		},
+		{
+			name: "nested selector not flagged",
+			setupFn: func(t *testing.T) string {
+				t.Helper()
+				dir := t.TempDir()
+				writeFile(t, filepath.Join(dir, "nested.go"), "package p\n\nimport \"net/http\"\n\nvar tlsConn = http.DefaultClient.Transport\n")
+
+				return dir
+			},
+		},
+		{
+			name: "skips non-Fn named vars",
+			setupFn: func(t *testing.T) string {
+				t.Helper()
+				dir := t.TempDir()
+				writeFile(t, filepath.Join(dir, "defaults.go"), "package p\n\nimport \"path/filepath\"\n\nvar defaultBase = filepath.Separator\nvar configPath = filepath.Join\n")
+
+				return dir
+			},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			dir := tc.setupFn(t)
+			logger := newLogger(t)
+
+			err := lintGoFunctionVarRedeclaration.CheckInDir(logger, dir, filepath.Walk)
+
+			require.NoError(t, err)
+		})
+	}
 }
 
-func TestCheckInDir_DetectsViolation(t *testing.T) {
+func TestCheckInDir_Violations(t *testing.T) {
 	t.Parallel()
 
-	dir := t.TempDir()
-	writeFile(t, filepath.Join(dir, "seam.go"), `package mypackage
+	tests := []struct {
+		name           string
+		setupFn        func(t *testing.T) string
+		wantViolations string
+	}{
+		{
+			name: "two violations in single file",
+			setupFn: func(t *testing.T) string {
+				t.Helper()
+				dir := t.TempDir()
+				writeFile(t, filepath.Join(dir, "seam.go"), "package mypackage\n\nimport \"path/filepath\"\n\nvar walkFn = filepath.Walk\nvar absFn = filepath.Abs\n")
 
-import "path/filepath"
+				return dir
+			},
+			wantViolations: "2 violation(s)",
+		},
+		{
+			name: "multiple files multiple violations",
+			setupFn: func(t *testing.T) string {
+				t.Helper()
+				dir := t.TempDir()
+				writeFile(t, filepath.Join(dir, "a.go"), "package p\n\nimport \"path/filepath\"\n\nvar absFn = filepath.Abs\n")
+				writeFile(t, filepath.Join(dir, "b.go"), "package p\n\nimport \"path/filepath\"\n\nvar walkFn = filepath.Walk\nvar joinFn = filepath.Join\n")
 
-var walkFn = filepath.Walk
-var absFn = filepath.Abs
-`)
+				return dir
+			},
+			wantViolations: "3 violation(s)",
+		},
+		{
+			name: "var group mixed values",
+			setupFn: func(t *testing.T) string {
+				t.Helper()
+				dir := t.TempDir()
+				writeFile(t, filepath.Join(dir, "mixed.go"), "package p\n\nimport \"path/filepath\"\n\nvar (\n\twalkFn    = filepath.Walk\n\tlocalName = \"hello\"\n)\n")
 
-	logger := newLogger(t)
-	err := lintGoFunctionVarRedeclaration.CheckInDir(logger, dir, filepath.Walk)
+				return dir
+			},
+			wantViolations: "1 violation(s)",
+		},
+	}
 
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "function-var-redeclaration")
-	require.Contains(t, err.Error(), "2 violation(s)")
-}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			dir := tc.setupFn(t)
+			logger := newLogger(t)
 
-func TestCheckInDir_SkipsTestFiles(t *testing.T) {
-	t.Parallel()
+			err := lintGoFunctionVarRedeclaration.CheckInDir(logger, dir, filepath.Walk)
 
-	dir := t.TempDir()
-	// _test.go files are allowed to have seam vars.
-	writeFile(t, filepath.Join(dir, "seams_test.go"), `package mypackage_test
-
-import "path/filepath"
-
-var walkFn = filepath.Walk
-`)
-
-	logger := newLogger(t)
-	err := lintGoFunctionVarRedeclaration.CheckInDir(logger, dir, filepath.Walk)
-
-	require.NoError(t, err)
-}
-
-func TestCheckInDir_SkipsExportTestGo(t *testing.T) {
-	t.Parallel()
-
-	dir := t.TempDir()
-	// export_test.go is a seam exposure file — allowed to reference unexported names.
-	writeFile(t, filepath.Join(dir, "export_test.go"), `package mypackage
-
-import "path/filepath"
-
-var ExportedWalkFn = filepath.Walk
-`)
-
-	logger := newLogger(t)
-	err := lintGoFunctionVarRedeclaration.CheckInDir(logger, dir, filepath.Walk)
-
-	require.NoError(t, err)
-}
-
-func TestCheckInDir_SkipsCallExpressions(t *testing.T) {
-	t.Parallel()
-
-	dir := t.TempDir()
-	// pkg.Func() is a call expression — not a seam var.
-	writeFile(t, filepath.Join(dir, "constructor.go"), `package mypackage
-
-import "sync"
-
-var mu = sync.NewMutex()
-var once = sync.Once{}
-`)
-
-	logger := newLogger(t)
-	err := lintGoFunctionVarRedeclaration.CheckInDir(logger, dir, filepath.Walk)
-
-	require.NoError(t, err)
-}
-
-func TestCheckInDir_SkipsTypedVars(t *testing.T) {
-	t.Parallel()
-
-	dir := t.TempDir()
-	// Typed var with no initialiser — not a seam var.
-	writeFile(t, filepath.Join(dir, "typed.go"), `package mypackage
-
-import "sync"
-
-var mu sync.Mutex
-`)
-
-	logger := newLogger(t)
-	err := lintGoFunctionVarRedeclaration.CheckInDir(logger, dir, filepath.Walk)
-
-	require.NoError(t, err)
+			require.Error(t, err)
+			require.Contains(t, err.Error(), "function-var-redeclaration")
+			require.Contains(t, err.Error(), tc.wantViolations)
+		})
+	}
 }
 
 func TestCheckInDir_WalkError(t *testing.T) {
@@ -154,77 +250,6 @@ func TestCheckInDir_WalkError(t *testing.T) {
 	require.Contains(t, err.Error(), "directory walk failed")
 }
 
-func TestCheckInDir_SkipsNonGoFiles(t *testing.T) {
-	t.Parallel()
-
-	dir := t.TempDir()
-	// Non-.go files should not cause violations.
-	writeFile(t, filepath.Join(dir, "data.txt"), `var walkFn = filepath.Walk`)
-	writeFile(t, filepath.Join(dir, "Makefile"), `var walkFn = filepath.Walk`)
-
-	logger := newLogger(t)
-	err := lintGoFunctionVarRedeclaration.CheckInDir(logger, dir, filepath.Walk)
-
-	require.NoError(t, err)
-}
-
-func TestCheckInDir_SkipsVendorDir(t *testing.T) {
-	t.Parallel()
-
-	dir := t.TempDir()
-	vendorDir := filepath.Join(dir, cryptoutilSharedMagic.CICDExcludeDirVendor, "somepkg")
-	require.NoError(t, os.MkdirAll(vendorDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupReadExecute))
-	writeFile(t, filepath.Join(vendorDir, "seam.go"), `package somepkg
-
-import "path/filepath"
-
-var walkFn = filepath.Walk
-`)
-
-	logger := newLogger(t)
-	err := lintGoFunctionVarRedeclaration.CheckInDir(logger, dir, filepath.Walk)
-
-	require.NoError(t, err)
-}
-
-func TestCheckInDir_SkipsDotDirs(t *testing.T) {
-	t.Parallel()
-
-	dir := t.TempDir()
-	hidden := filepath.Join(dir, ".hidden", "pkg")
-	require.NoError(t, os.MkdirAll(hidden, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupReadExecute))
-	writeFile(t, filepath.Join(hidden, "seam.go"), `package pkg
-
-import "path/filepath"
-
-var walkFn = filepath.Walk
-`)
-
-	logger := newLogger(t)
-	err := lintGoFunctionVarRedeclaration.CheckInDir(logger, dir, filepath.Walk)
-
-	require.NoError(t, err)
-}
-
-func TestCheckInDir_SkipsUnderscoreDirs(t *testing.T) {
-	t.Parallel()
-
-	dir := t.TempDir()
-	underscore := filepath.Join(dir, "_internal", "pkg")
-	require.NoError(t, os.MkdirAll(underscore, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupReadExecute))
-	writeFile(t, filepath.Join(underscore, "seam.go"), `package pkg
-
-import "path/filepath"
-
-var walkFn = filepath.Walk
-`)
-
-	logger := newLogger(t)
-	err := lintGoFunctionVarRedeclaration.CheckInDir(logger, dir, filepath.Walk)
-
-	require.NoError(t, err)
-}
-
 func TestCheck_NoViolationsOnCurrentCodebase(t *testing.T) {
 	t.Parallel()
 
@@ -232,106 +257,6 @@ func TestCheck_NoViolationsOnCurrentCodebase(t *testing.T) {
 	// must have zero function-var redeclarations in production code.
 	logger := newLogger(t)
 	err := lintGoFunctionVarRedeclaration.Check(logger)
-
-	require.NoError(t, err)
-}
-
-func TestCheckInDir_MultipleFilesMultipleViolations(t *testing.T) {
-	t.Parallel()
-
-	dir := t.TempDir()
-	writeFile(t, filepath.Join(dir, "a.go"), `package p
-
-import "path/filepath"
-
-var absFn = filepath.Abs
-`)
-	writeFile(t, filepath.Join(dir, "b.go"), `package p
-
-import "path/filepath"
-
-var walkFn = filepath.Walk
-var joinFn = filepath.Join
-`)
-
-	logger := newLogger(t)
-	err := lintGoFunctionVarRedeclaration.CheckInDir(logger, dir, filepath.Walk)
-
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "3 violation(s)")
-}
-
-func TestCheckInDir_VarGroupMixedValues(t *testing.T) {
-	t.Parallel()
-
-	dir := t.TempDir()
-	// var block: one is selector-expr (violation), one is basic lit (clean).
-	writeFile(t, filepath.Join(dir, "mixed.go"), `package p
-
-import "path/filepath"
-
-var (
-	walkFn    = filepath.Walk
-	localName = "hello"
-)
-`)
-
-	logger := newLogger(t)
-	err := lintGoFunctionVarRedeclaration.CheckInDir(logger, dir, filepath.Walk)
-
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "1 violation(s)")
-}
-
-func TestCheckInDir_ParseError(t *testing.T) {
-	t.Parallel()
-
-	dir := t.TempDir()
-	// Invalid Go syntax — parser returns error; checkFile silently returns nil.
-	writeFile(t, filepath.Join(dir, "broken.go"), `package p THIS IS NOT VALID GO {{{`)
-
-	logger := newLogger(t)
-	// A parse error causes checkFile to return nil (silent skip), so no violations.
-	err := lintGoFunctionVarRedeclaration.CheckInDir(logger, dir, filepath.Walk)
-
-	require.NoError(t, err)
-}
-
-func TestCheckInDir_NestedSelector(t *testing.T) {
-	t.Parallel()
-
-	dir := t.TempDir()
-	// var fn = pkg.sub.Method — sel.X is a SelectorExpr not an Ident; must NOT be flagged.
-	writeFile(t, filepath.Join(dir, "nested.go"), `package p
-
-import "net/http"
-
-var tlsConn = http.DefaultClient.Transport
-`)
-
-	logger := newLogger(t)
-	err := lintGoFunctionVarRedeclaration.CheckInDir(logger, dir, filepath.Walk)
-
-	require.NoError(t, err)
-}
-
-func TestCheckInDir_SkipsNonFnNamedVars(t *testing.T) {
-	t.Parallel()
-
-	dir := t.TempDir()
-	// var defaultCertPEM = magic.SomeConst — selector expr but name does NOT end in "Fn".
-	// This is a legitimate pattern for default values from the magic package.
-	writeFile(t, filepath.Join(dir, "defaults.go"), `package p
-
-import "path/filepath"
-
-var defaultBase = filepath.Separator
-var configPath = filepath.Join
-`)
-
-	logger := newLogger(t)
-	// configPath references filepath.Join but name doesn't end in "Fn" — not flagged.
-	err := lintGoFunctionVarRedeclaration.CheckInDir(logger, dir, filepath.Walk)
 
 	require.NoError(t, err)
 }
