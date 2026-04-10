@@ -179,7 +179,7 @@ This document is structured to serve multiple audiences:
 
 - **Agent orchestration**: Copilot agents, Claude Code agents, dual canonical format, handoff flows, lint-agent-drift enforcement (see [Section 2.1](#21-agent-orchestration-strategy))
 - **Service framework & builder**: Shared HTTPS, TLS, database, barrier, session, and realm subsystems — eliminates 48,000+ lines of boilerplate per service (see [Section 5.1](#51-service-framework-pattern))
-- **Architecture fitness functions**: Programmatic invariant enforcement via 18+ fitness sub-linters (parallel-tests, file-size, test-patterns, entity-registry-completeness, and more — see [Section 9.11](#911-architecture-fitness-functions))
+- **Architecture fitness functions**: Programmatic invariant enforcement via 58+ fitness sub-linters (parallel-tests, file-size, test-patterns, entity-registry-completeness, and more — see [Section 9.11](#911-architecture-fitness-functions))
 - **Documentation propagation system**: `@source`/`@propagate` markers keep instruction files, agent files, and `ENG-HANDBOOK.md` byte-for-byte in sync; drift detected by `lint-docs` (see [Section 13.4](#134-documentation-propagation-strategy))
 - **Developer inner-loop tooling**: `cicd-lint` with 13 linters, 2 formatters, and 1 operational script enforces project invariants locally before every commit (see [Section 9.10](#910-cicd-command-architecture))
 - **Autonomous execution protocol**: Beast-mode agents and pre-commit quality gates enforce continuous-work, evidence-based completion, and end-of-turn commit discipline (see [Section 14.11](#1411-claude-code-autonomous-execution))
@@ -1468,6 +1468,8 @@ type ObservabilityConfig = cryptoutilAppsFrameworkServiceConfig.ObservabilityCon
 
 Service-specific types (e.g., `identity.TokenConfig`, `identity.SecurityConfig`) remain in their own packages.
 
+**Cross-References**: Config file naming conventions in [Section 13.1.5](#1315-config-file-naming-strategy).
+
 ##### Rate Limiter (`internal/apps/framework/service/ratelimit/`)
 
 The `RateLimiter` type provides per-key token-bucket rate limiting with configurable windows. Used by services to throttle operations like email OTP sending.
@@ -1488,7 +1490,7 @@ if err := rateLimiter.Allow(userID.String()); err != nil {
 
 - Purpose: Business APIs, browser UIs, external client access
 - Default Binding: 127.0.0.1 (dev/test), 0.0.0.0 (containers)
-- Default Port: Service-specific ranges (8080-8089 KMS, 8100-8149 Identity, etc.)
+- Default Port: Container port 8080 (see [Section 3.4](#34-port-assignments--networking) for host port ranges per service)
 - Request Paths: `/service/**` (headless clients) and `/browser/**` (browser clients)
 
 #### 5.3.2 Private HTTPS Endpoint (Admin Server)
@@ -1900,7 +1902,7 @@ Non-Deterministic Example: {n2}nonce:aad#{R5}HKDF-HMAC-SHA256:abc123...:def456..
 
 **Trade-offs**: Length threshold catches most real secrets (UUIDs, tokens, hashes) while allowing short developer passwords (`admin`, `dev123`). Infrastructure deployments (Grafana, OTLP collector) are excluded since they intentionally use inline dev credentials.
 
-**Cross-References**: Implementation in [validate_secrets.go](/internal/apps/tools/cicd_lint/lint_deployments/validate_secrets.go). Deployment secrets management in [Section 12.6](#133-secrets-management-in-deployments).
+**Cross-References**: Implementation in [validate_secrets.go](/internal/apps/tools/cicd_lint/lint_deployments/validate_secrets.go). Deployment secrets management in [Section 13.3](#133-secrets-management-in-deployments).
 
 ---
 
@@ -2237,10 +2239,16 @@ All `openapi-gen_config*.yaml` files MUST include the full base initialisms list
 
 #### 8.5.2 Rate Limiting
 
-- Public APIs: 100 req/min per IP (burst: 20)
-- Admin APIs: 10 req/min per IP (burst: 5)
-- Login endpoints: 5 req/min per IP (burst: 2)
-- Token bucket algorithm
+**Two rate limiting layers**:
+
+1. **Path-Level Rate Limiting** (per-IP, per-second):
+   - Browser APIs (`/browser/**`): 100 req/sec per IP
+   - Service APIs (`/service/**`): 25 req/sec per IP
+   - Configurable via `--browser-rate-limit` and `--service-rate-limit` CLI flags
+
+2. **Registration Rate Limiting** (token bucket, per-IP, per-minute):
+   - Registration endpoints: 10 req/min per IP (burst: 5)
+   - Service-specific overrides (e.g., IM: login 5/min, messages 10/min)
 
 #### 8.5.3 Content Type
 
@@ -2956,13 +2964,13 @@ The majority pattern (`os.IsNotExist(err) → return nil`) silently hides compli
 |------|----------|---------|-------------|
 | Unit | SQLite in-memory | `testdb.NewInMemorySQLiteDB(t)` | NEVER |
 | Integration | SQLite in-memory via TestMain | ONE shared instance per package | NEVER |
-| E2E | Docker Compose PostgreSQL | 3 app instances (2 PostgreSQL + 1 SQLite) | YES (only here) |
+| E2E | Docker Compose PostgreSQL | 4 app instances (2 PostgreSQL + 2 SQLite) | YES (only here) |
 
 **Key Rules**:
 - NEVER use PostgreSQL in unit or integration tests — PostgreSQL tested ONLY in E2E.
 - NEVER create DB per-test in integration tests (use TestMain shared instance).
 - NEVER start real servers in unit tests (use Fiber app.Test()).
-- E2E tests use Docker Compose with 3 service instances: 2 sharing a PostgreSQL container, 1 using in-memory SQLite, validating cross-database compatibility.
+- E2E tests use Docker Compose with 4 service instances: 2 sharing a PostgreSQL container, 2 using in-memory SQLite, validating cross-database compatibility.
 <!-- @/propagate -->
 
 **Coverage Requirements**:
@@ -4183,7 +4191,7 @@ All Dockerfiles follow identical multi-stage structure. Parameterized fields dif
 | `HEALTHCHECK` | `wget --no-check-certificate -qO- https://127.0.0.1:8080/browser/api/v1/health` | Same, product port | Same, suite port |
 | `ENTRYPOINT` | `["/app/{SUITE}", "{PS-ID}", "start"]` | `["/app/{SUITE}", "{PRODUCT}", "start"]` | `["/app/{SUITE}"]` |
 
-**Current state**: 10 service-level + 1 suite-level Dockerfiles exist. 0 product-level Dockerfiles exist (v6 CREATE).
+**Current state**: 10 service-level + 1 suite-level Dockerfiles exist. 0 product-level Dockerfiles exist (TODO: create when product-level deployment is implemented).
 
 #### 12.2.2 Build Optimization
 
@@ -4296,6 +4304,8 @@ healthcheck-otel-collector:
 See [Section 4.4.6](#446-deployments) for the complete secret file listing at each tier.
 
 ##### Secret Value Format By Tier
+
+> **Canonical reference**: The complete secret file listing with filenames and purpose descriptions is in [Section 4.4.6](#446-deployments). This table provides a quick value-format reference.
 
 | Secret | Service Value | Product Value | Suite Value |
 |--------|---------------|---------------|-------------|
@@ -4424,7 +4434,7 @@ Unit/integration tests use Auto TLS (no secrets needed). See [Section 6.11](#611
 
 ##### Docker Compose `include` Semantics
 
-Docker Compose `include` merges services from different compose files into a single project with shared networking. Key behaviors (validated with Docker Compose v2.40+):
+Docker Compose `include` merges services from different compose files into a single project with shared networking. Key behaviors (validated with Docker Compose v5+):
 
 | Scenario | Result |
 |----------|--------|
@@ -4448,7 +4458,7 @@ All tiers follow the same Docker Compose pattern with `include` + shared `hash-p
 | **PRODUCT** | Service composes (`../identity-authz/`, etc.) | `{PRODUCT}-` | SSO within product |
 | **SERVICE** | None (direct service definition) | `{PS-ID}-` | Maximum isolation |
 
-**Port Offset Strategy** (prevents conflicts when running multiple tiers simultaneously):
+**Port Offset Strategy** (see [Section 3.4.1](#341-port-design-principles) for complete port allocation, variant formulas, and benefits):
 
 | Level | Offset | Example (sm-kms base 8080/9090) |
 |-------|--------|----------------------------------|
@@ -4505,7 +4515,7 @@ All tiers use the identical filename `hash-pepper-v3.secret` — the tier is sel
 
 **Purpose**: Document the PRODUCT and SUITE compose file pattern that uses Docker Compose `include:` with `!override` YAML tag for port replacement. Implemented in framework-v8.
 
-**Minimum Docker Compose version**: v2.24+ (required for `include:` deduplication).
+**Minimum Docker Compose version**: v5+ (required for `include:` deduplication).
 
 ##### How to Read a PRODUCT/SUITE Compose File
 
@@ -4928,7 +4938,7 @@ configs/
 
 **Dual configs/ vs deployments/config/ Relationship**: The `configs/` directory holds **standalone development configs** for direct `go run` usage. The `deployments/{PS-ID}/config/` directories hold **Docker Compose deployment configs** (`{PS-ID}-app-{variant}.yml`) with 5 required variant files (common, sqlite-1, sqlite-2, postgresql-1, postgresql-2). Both follow the same flat kebab-case schema for service framework configs.
 
-**Cross-References**: Schema validation rules in [validate_schema.go](/internal/apps/tools/cicd_lint/lint_deployments/validate_schema.go). Config naming in [Section 12.4.5](#1245-config-file-naming-strategy).
+**Cross-References**: Schema validation rules in [validate_schema.go](/internal/apps/tools/cicd_lint/lint_deployments/validate_schema.go). Config naming in [Section 13.1.5](#1315-config-file-naming-strategy).
 
 ### 13.3 Secrets Management in Deployments
 
@@ -5153,7 +5163,7 @@ All validators run to completion (never short-circuit) and aggregate errors for 
 
 **Exit Code**: `validate-all` returns exit code 0 if all validators pass, exit code 1 if any validator fails. CI/CD workflows use this to block merges on validation failures.
 
-#### 12.3.5 Canonical Docker Compose Service Command Pattern
+#### 12.3.6 Canonical Docker Compose Service Command Pattern
 
 **MANDATORY**: All 10 PS-ID Docker Compose app services (all 4 variants each) MUST use the following canonical command array structure. This pattern is enforced by the `compose-entrypoint-uniformity` fitness linter.
 
@@ -5198,6 +5208,8 @@ command: ["server", "--bind-public-port=8080", "--config=/certs/tls-config.yml",
 - TLS config always present (dual HTTPS servers require certificates)
 - `-u` flag always last, always present (explicit database URL)
 - Each service builds its own binary (not the suite binary) for minimal image size
+
+**Cross-References**: CICD command architecture in [Section 9.10](#910-cicd-command-architecture). Build pipeline in [Section 12.2](#122-build-pipeline).
 
 ### 12.4 Environment Strategy
 
@@ -5595,6 +5607,8 @@ Key settings:
 
 All autonomous execution modes enforce the same quality gates as Section 11.2 and the same commit discipline as Section 14.2. Beast-mode and implementation-execution agents are held to identical standards as interactive chat — the difference is only in interruption behavior, not in quality requirements.
 
+**Cross-References**: Agent orchestration strategy in [Section 2.1](#21-agent-orchestration-strategy). Agent/skill catalog in [Appendix B.5](#b5-agentskill-catalog).
+
 ---
 
 ## 15. Operational Excellence
@@ -5677,14 +5691,15 @@ All autonomous execution modes enforce the same quality gates as Section 11.2 an
 - Java: 21 LTS (Gatling load tests)
 - Maven: 3.9+
 - pre-commit: 2.20.0+
-- Docker: 24+
-- Docker Compose: v2+
+- Docker: 27+
+- Docker Compose: v5+
 <!-- @/propagate -->
 
 **Languages**: Go 1.26.1 (services), Python 3.14+ (utilities), Node v24.11.1+ (CLI tools)
 **Databases**: PostgreSQL 18, SQLite (modernc.org/sqlite, CGO-free)
 **Frameworks**: Fiber (HTTP), GORM (ORM), oapi-codegen (OpenAPI)
-**Observability**: OpenTelemetry, Grafana LGTM (Loki, Tempo, Prometheus)
+**Container Base**: Alpine 3.19 (all Dockerfiles)
+**Observability**: OpenTelemetry (otel-collector-contrib:latest), Grafana LGTM (grafana/otel-lgtm:latest)
 **Security**: FIPS 140-3 approved algorithms, Docker/Kubernetes secrets
 **Testing**: testify, gremlins (mutation), Nuclei/ZAP (DAST), Gatling (load)
 

@@ -25,8 +25,8 @@ This guide covers setting up a complete development environment for the cryptout
 | Tool | Version | Purpose | Required For |
 |------|---------|---------|--------------|
 | **Go** | 1.26.1+ | Primary language | All development |
-| **Docker** | 24+ | Containerization | PostgreSQL, E2E tests, deployments |
-| **Docker Compose** | v2.24+ | Container orchestration | Multi-service deployments, recursive includes |
+| **Docker** | 27+ | Containerization | PostgreSQL, E2E tests, deployments |
+| **Docker Compose** | v5+ | Container orchestration | Multi-service deployments, recursive includes |
 | **Python** | 3.14+ | Pre-commit hooks, utilities | Code quality automation |
 | **Node.js** | 24.11.1+ LTS | Spell checking, markdown linting | Pre-commit hooks |
 | **Java** | 21 LTS | Gatling load tests | Performance testing (optional) |
