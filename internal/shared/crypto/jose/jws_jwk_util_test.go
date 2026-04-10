@@ -51,7 +51,7 @@ func TestCreateJWSJWKFromKey_HMAC(t *testing.T) {
 			require.NotEmpty(t, nonPublicBytes)
 			require.Empty(t, publicBytes)
 
-			// Verify headers
+			// Verify headers.
 			keyID, ok := nonPublicJWK.KeyID()
 			require.True(t, ok)
 			require.Equal(t, kid.String(), keyID)
@@ -107,7 +107,7 @@ func TestCreateJWSJWKFromKey_RSA(t *testing.T) {
 			require.NotEmpty(t, nonPublicBytes)
 			require.NotEmpty(t, publicBytes)
 
-			// Verify headers
+			// Verify headers.
 			keyID, ok := nonPublicJWK.KeyID()
 			require.True(t, ok)
 			require.Equal(t, kid.String(), keyID)
@@ -160,7 +160,7 @@ func TestCreateJWSJWKFromKey_ECDSA(t *testing.T) {
 			require.NotEmpty(t, nonPublicBytes)
 			require.NotEmpty(t, publicBytes)
 
-			// Verify headers
+			// Verify headers.
 			keyID, ok := nonPublicJWK.KeyID()
 			require.True(t, ok)
 			require.Equal(t, kid.String(), keyID)
@@ -201,7 +201,7 @@ func TestCreateJWSJWKFromKey_EdDSA(t *testing.T) {
 	require.NotEmpty(t, nonPublicBytes)
 	require.NotEmpty(t, publicBytes)
 
-	// Verify headers
+	// Verify headers.
 	keyID, ok := nonPublicJWK.KeyID()
 	require.True(t, ok)
 	require.Equal(t, kid.String(), keyID)
@@ -217,65 +217,64 @@ func TestCreateJWSJWKFromKey_EdDSA(t *testing.T) {
 	require.Equal(t, joseJwk.ForSignature.String(), usage)
 }
 
-// TestCreateJWSJWKFromKey_UnsupportedKeyType tests error for unsupported key types.
-func TestCreateJWSJWKFromKey_UnsupportedKeyType(t *testing.T) {
+func TestCreateJWSJWKFromKey_ValidationErrors(t *testing.T) {
 	t.Parallel()
 
-	// Test with KeyPair containing unsupported key type (int instead of crypto key)
-	kid := googleUuid.New()
-	alg := joseJwa.RS256()
+	tests := []struct {
+		name    string
+		setupFn func(t *testing.T) (*googleUuid.UUID, *joseJwa.SignatureAlgorithm, cryptoutilSharedCryptoKeygen.Key)
+		wantErr string
+	}{
+		{
+			name: "unsupported key type",
+			setupFn: func(t *testing.T) (*googleUuid.UUID, *joseJwa.SignatureAlgorithm, cryptoutilSharedCryptoKeygen.Key) {
+				t.Helper()
 
-	// KeyPair with invalid Private field type will hit default case in switch
-	invalidKeyPair := &cryptoutilSharedCryptoKeygen.KeyPair{
-		Private: 12345, // Invalid type - not *rsa.PrivateKey, *ecdsa.PrivateKey, or ed25519.PrivateKey
-		Public:  nil,
+				kid := googleUuid.New()
+				alg := joseJwa.RS256()
+
+				return &kid, &alg, &cryptoutilSharedCryptoKeygen.KeyPair{Private: 12345, Public: nil}
+			},
+			wantErr: "invalid key type",
+		},
+		{
+			name: "empty secret key",
+			setupFn: func(t *testing.T) (*googleUuid.UUID, *joseJwa.SignatureAlgorithm, cryptoutilSharedCryptoKeygen.Key) {
+				t.Helper()
+
+				kid := googleUuid.Must(googleUuid.NewV7())
+				alg := joseJwa.HS256()
+
+				return &kid, &alg, cryptoutilSharedCryptoKeygen.SecretKey("")
+			},
+			wantErr: "invalid JWS JWK headers",
+		},
+		{
+			name: "nil private key in pair",
+			setupFn: func(t *testing.T) (*googleUuid.UUID, *joseJwa.SignatureAlgorithm, cryptoutilSharedCryptoKeygen.Key) {
+				t.Helper()
+
+				kid := googleUuid.Must(googleUuid.NewV7())
+				alg := joseJwa.ES256()
+
+				return &kid, &alg, &cryptoutilSharedCryptoKeygen.KeyPair{Private: nil, Public: nil}
+			},
+			wantErr: "invalid JWS JWK headers",
+		},
 	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 
-	_, _, _, _, _, err := CreateJWSJWKFromKey(&kid, &alg, invalidKeyPair)
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "invalid key type")
+			kid, alg, key := tt.setupFn(t)
+			_, _, _, _, _, err := CreateJWSJWKFromKey(kid, alg, key)
+			require.Error(t, err)
+			require.Contains(t, err.Error(), tt.wantErr)
+		})
+	}
 }
 
-// TestCreateJWSJWKFromKey_NilKid tests error for nil KID.
-func TestCreateJWSJWKFromKey_NilKid(t *testing.T) {
-	t.Parallel()
-
-	alg := joseJwa.RS256()
-	privateKey, err := rsa.GenerateKey(crand.Reader, cryptoutilSharedMagic.DefaultMetricsBatchSize)
-	require.NoError(t, err)
-
-	keyPair := &cryptoutilSharedCryptoKeygen.KeyPair{
-		Private: privateKey,
-		Public:  &privateKey.PublicKey,
-	}
-
-	_, _, _, _, _, err = CreateJWSJWKFromKey(nil, &alg, keyPair)
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "invalid JWS JWK headers")
-}
-
-// TestCreateJWSJWKFromKey_NilAlg tests error for nil algorithm.
-func TestCreateJWSJWKFromKey_NilAlg(t *testing.T) {
-	t.Parallel()
-
-	kid := googleUuid.New()
-
-	// Use simple KeyPair with valid key type to test nil alg validation
-	privateKey, err := rsa.GenerateKey(crand.Reader, cryptoutilSharedMagic.DefaultMetricsBatchSize)
-	require.NoError(t, err)
-
-	keyPair := &cryptoutilSharedCryptoKeygen.KeyPair{
-		Private: privateKey,
-		Public:  &privateKey.PublicKey,
-	}
-
-	// Should error on nil alg validation before key type checks
-	_, _, _, _, _, err = CreateJWSJWKFromKey(&kid, nil, keyPair)
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "invalid JWS JWK headers")
-}
-
-func TestCreateJWSJWKFromKey_SetKidError(t *testing.T) {
+func TestCreateJWSJWKFromKey_SetKidSuccess(t *testing.T) {
 	t.Parallel()
 
 	kid := googleUuid.New()
@@ -287,36 +286,21 @@ func TestCreateJWSJWKFromKey_SetKidError(t *testing.T) {
 	require.NoError(t, err)
 }
 
-// TestCreateJWSJWKFromKey_NilKey tests error for nil key.
-func TestCreateJWSJWKFromKey_NilKey(t *testing.T) {
-	t.Parallel()
-
-	kid := googleUuid.New()
-	alg := joseJwa.RS256()
-
-	_, _, _, _, _, err := CreateJWSJWKFromKey(&kid, &alg, nil)
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "invalid JWS JWK headers")
-}
-
 func TestCreateJWSJWKFromKey_PublicKeyExtraction(t *testing.T) {
 	t.Parallel()
 
-	// Generate RSA key pair.
 	keyPair, err := cryptoutilSharedCryptoKeygen.GenerateRSAKeyPair(cryptoutilSharedMagic.DefaultMetricsBatchSize)
 	require.NoError(t, err)
 
 	kid := googleUuid.New()
 	alg := joseJwa.RS256()
 
-	// Create JWK from key pair.
 	_, nonPublicJWK, publicJWK, _, clearPublicBytes, err := CreateJWSJWKFromKey(&kid, &alg, keyPair)
 	require.NoError(t, err)
 	require.NotNil(t, nonPublicJWK)
 	require.NotNil(t, publicJWK)
 	require.NotEmpty(t, clearPublicBytes)
 
-	// Verify public key extracted successfully.
 	var kidFromPublic string
 
 	require.NoError(t, publicJWK.Get(joseJwk.KeyIDKey, &kidFromPublic))
@@ -326,7 +310,6 @@ func TestCreateJWSJWKFromKey_PublicKeyExtraction(t *testing.T) {
 func TestCreateJWSJWKFromKey_HMACNoPublicKey(t *testing.T) {
 	t.Parallel()
 
-	// HMAC has no public key, so publicJWK should be nil and clearPublicBytes empty.
 	kid := googleUuid.New()
 	alg := joseJwa.HS256()
 	key := make(cryptoutilSharedCryptoKeygen.SecretKey, cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes)
@@ -335,38 +318,7 @@ func TestCreateJWSJWKFromKey_HMACNoPublicKey(t *testing.T) {
 	_, nonPublicJWK, publicJWK, nonPublicBytes, publicBytes, err := CreateJWSJWKFromKey(&kid, &alg, key)
 	require.NoError(t, err)
 	require.NotNil(t, nonPublicJWK)
-	require.Nil(t, publicJWK) // HMAC should have no public key
+	require.Nil(t, publicJWK)
 	require.Empty(t, publicBytes)
 	require.NotEmpty(t, nonPublicBytes)
-}
-
-// TestCreateJWSJWKFromKey_ImportSecretKeyError tests validation error for empty HMAC key.
-func TestCreateJWSJWKFromKey_ImportSecretKeyError(t *testing.T) {
-	t.Parallel()
-
-	kid := googleUuid.Must(googleUuid.NewV7())
-	alg := joseJwa.HS256()
-	// Empty SecretKey fails validation before import
-	emptyKey := cryptoutilSharedCryptoKeygen.SecretKey("")
-
-	_, _, _, _, _, err := CreateJWSJWKFromKey(&kid, &alg, emptyKey)
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "invalid JWS JWK headers")
-}
-
-// TestCreateJWSJWKFromKey_ImportKeyPairError tests validation error for nil KeyPair.
-func TestCreateJWSJWKFromKey_ImportKeyPairError(t *testing.T) {
-	t.Parallel()
-
-	kid := googleUuid.Must(googleUuid.NewV7())
-	alg := joseJwa.ES256()
-	// KeyPair with nil Private fails validation before import
-	invalidKeyPair := &cryptoutilSharedCryptoKeygen.KeyPair{
-		Private: nil,
-		Public:  nil,
-	}
-
-	_, _, _, _, _, err := CreateJWSJWKFromKey(&kid, &alg, invalidKeyPair)
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "invalid JWS JWK headers")
 }
