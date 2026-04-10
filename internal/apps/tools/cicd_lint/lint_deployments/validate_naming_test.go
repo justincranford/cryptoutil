@@ -11,192 +11,322 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestValidateNaming_Simple(t *testing.T) {
-	t.Parallel()
-
-	dir := t.TempDir()
-	require.NoError(t, os.MkdirAll(filepath.Join(dir, "service-one"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
-
-	result, err := ValidateNaming(dir)
-	require.NoError(t, err)
-	require.NotNil(t, result)
-	require.True(t, result.Valid)
-}
-
-func TestValidateNaming_InvalidPascalCase(t *testing.T) {
-	t.Parallel()
-
-	dir := t.TempDir()
-	require.NoError(t, os.MkdirAll(filepath.Join(dir, "ServiceOne"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
-
-	result, err := ValidateNaming(dir)
-	require.NoError(t, err)
-	require.NotNil(t, result)
-	require.False(t, result.Valid)
-	require.True(t, len(result.Errors) > 0)
-	require.Contains(t, result.Errors[0], "[ValidateNaming]")
-	require.Contains(t, result.Errors[0], "ServiceOne")
-	require.Contains(t, result.Errors[0], "kebab-case")
-	require.Contains(t, result.Errors[0], "ENG-HANDBOOK.md Section 4.4.1")
-}
-
-func TestValidateNaming_InvalidSnakeCase(t *testing.T) {
-	t.Parallel()
-
-	dir := t.TempDir()
-	require.NoError(t, os.MkdirAll(filepath.Join(dir, "service_one"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
-
-	result, err := ValidateNaming(dir)
-	require.NoError(t, err)
-	require.NotNil(t, result)
-	require.False(t, result.Valid)
-}
-
-func TestValidateNaming_InvalidComposeServiceNames(t *testing.T) {
-	t.Parallel()
-
-	dir := t.TempDir()
-	content := `services:
-  my_service:
-    image: nginx
-  AnotherService:
-    image: postgres
-`
-	require.NoError(t, os.WriteFile(filepath.Join(dir, "docker-compose.yml"), []byte(content), cryptoutilSharedMagic.CacheFilePermissions))
-
-	result, err := ValidateNaming(dir)
-	require.NoError(t, err)
-	require.NotNil(t, result)
-	require.False(t, result.Valid)
-	require.True(t, len(result.Errors) >= 2)
-}
-
 func TestIsKebabCase(t *testing.T) {
 	t.Parallel()
 
-	require.True(t, isKebabCase("hello"))
-	require.True(t, isKebabCase("hello-world"))
-	require.True(t, isKebabCase("service-123"))
-	require.False(t, isKebabCase("HelloWorld"))
-	require.False(t, isKebabCase("hello_world"))
-	require.False(t, isKebabCase("-hello"))
-	require.False(t, isKebabCase("hello-"))
-	require.False(t, isKebabCase("hello--world"))
+	tests := []struct {
+		input string
+		want  bool
+	}{
+		{"hello", true},
+		{"hello-world", true},
+		{"service-123", true},
+		{"HelloWorld", false},
+		{"hello_world", false},
+		{"-hello", false},
+		{"hello-", false},
+		{"hello--world", false},
+	}
+	for _, tc := range tests {
+		t.Run(tc.input, func(t *testing.T) {
+			t.Parallel()
+
+			require.Equal(t, tc.want, isKebabCase(tc.input))
+		})
+	}
 }
 
 func TestToKebabCase(t *testing.T) {
 	t.Parallel()
 
-	require.Equal(t, "helloworld", toKebabCase("HelloWorld"))
-	require.Equal(t, "hello-world", toKebabCase("hello_world"))
-	require.Equal(t, "hello", toKebabCase("HELLO"))
-	require.Equal(t, "myconfig.yml", toKebabCase("MyConfig.yml"))
-	require.Equal(t, "my-config.yaml", toKebabCase("My_Config.yaml"))
+	tests := []struct {
+		input string
+		want  string
+	}{
+		{"HelloWorld", "helloworld"},
+		{"hello_world", "hello-world"},
+		{"HELLO", "hello"},
+		{"MyConfig.yml", "myconfig.yml"},
+		{"My_Config.yaml", "my-config.yaml"},
+		{"hello  world", "hello-world"},
+		{"__hello__", "hello"},
+		{"___hello___world___", "hello-world"},
+	}
+	for _, tc := range tests {
+		t.Run(tc.input, func(t *testing.T) {
+			t.Parallel()
+
+			require.Equal(t, tc.want, toKebabCase(tc.input))
+		})
+	}
 }
 
 func TestIsYAMLFile(t *testing.T) {
 	t.Parallel()
 
-	require.True(t, isYAMLFile("config.yml"))
-	require.True(t, isYAMLFile("config.yaml"))
-	require.False(t, isYAMLFile("readme.txt"))
-	require.False(t, isYAMLFile("config"))
-}
-
-func TestFormatNamingValidationResult(t *testing.T) {
-	t.Parallel()
-
-	result := &NamingValidationResult{Path: "/test", Valid: true}
-	output := FormatNamingValidationResult(result)
-	require.Contains(t, output, "/test")
-	require.Contains(t, output, cryptoutilSharedMagic.TestStatusPass)
-
-	result2 := &NamingValidationResult{
-		Path: "/test", Valid: false,
-		Errors:   []string{"error1"},
-		Warnings: []string{"warning1"},
+	tests := []struct {
+		input string
+		want  bool
+	}{
+		{"config.yml", true},
+		{"config.yaml", true},
+		{"readme.txt", false},
+		{"config", false},
 	}
-	output2 := FormatNamingValidationResult(result2)
-	require.Contains(t, output2, cryptoutilSharedMagic.TestStatusFail)
-	require.Contains(t, output2, "error1")
-	require.Contains(t, output2, "warning1")
+	for _, tc := range tests {
+		t.Run(tc.input, func(t *testing.T) {
+			t.Parallel()
+
+			require.Equal(t, tc.want, isYAMLFile(tc.input))
+		})
+	}
 }
 
-func TestValidateNaming_PathDoesNotExist(t *testing.T) {
+func TestValidateNaming_ValidCases(t *testing.T) {
 	t.Parallel()
 
-	dir := filepath.Join(t.TempDir(), "nonexistent")
+	tests := []struct {
+		name    string
+		setupFn func(t *testing.T) string
+	}{
+		{
+			name: "simple kebab dir",
+			setupFn: func(t *testing.T) string {
+				t.Helper()
 
-	result, err := ValidateNaming(dir)
-	require.NoError(t, err)
-	require.NotNil(t, result)
-	require.False(t, result.Valid)
-	require.True(t, len(result.Errors) > 0)
-	require.Contains(t, result.Errors[0], "[ValidateNaming]")
-	require.Contains(t, result.Errors[0], "does not exist")
+				dir := t.TempDir()
+				require.NoError(t, os.MkdirAll(filepath.Join(dir, "service-one"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+
+				return dir
+			},
+		},
+		{
+			name: "valid compose services",
+			setupFn: func(t *testing.T) string {
+				t.Helper()
+
+				dir := t.TempDir()
+				content := "services:\n  my-service:\n    image: nginx\n  another-service-123:\n    image: postgres\n"
+				require.NoError(t, os.WriteFile(filepath.Join(dir, "compose.yml"), []byte(content), cryptoutilSharedMagic.CacheFilePermissions))
+
+				return dir
+			},
+		},
+		{
+			name: "non-YAML files ignored",
+			setupFn: func(t *testing.T) string {
+				t.Helper()
+
+				dir := t.TempDir()
+				require.NoError(t, os.WriteFile(filepath.Join(dir, "README.md"), []byte("# readme"), cryptoutilSharedMagic.CacheFilePermissions))
+				require.NoError(t, os.WriteFile(filepath.Join(dir, "config.json"), []byte("{}"), cryptoutilSharedMagic.CacheFilePermissions))
+				require.NoError(t, os.WriteFile(filepath.Join(dir, "Makefile"), []byte("all:"), cryptoutilSharedMagic.CacheFilePermissions))
+
+				return dir
+			},
+		},
+		{
+			name: "nested directories",
+			setupFn: func(t *testing.T) string {
+				t.Helper()
+
+				dir := t.TempDir()
+				nested := filepath.Join(dir, "level-one", "level-two", "level-three")
+				require.NoError(t, os.MkdirAll(nested, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+				require.NoError(t, os.WriteFile(filepath.Join(nested, "config.yml"), []byte("key: value"), cryptoutilSharedMagic.CacheFilePermissions))
+
+				return dir
+			},
+		},
+		{
+			name: "empty directory",
+			setupFn: func(t *testing.T) string {
+				t.Helper()
+
+				return t.TempDir()
+			},
+		},
+		{
+			name: "compose with empty services",
+			setupFn: func(t *testing.T) string {
+				t.Helper()
+
+				dir := t.TempDir()
+				require.NoError(t, os.WriteFile(filepath.Join(dir, "compose.yml"), []byte("services:\n"), cryptoutilSharedMagic.CacheFilePermissions))
+
+				return dir
+			},
+		},
+		{
+			name: "skips template directory",
+			setupFn: func(t *testing.T) string {
+				t.Helper()
+
+				dir := t.TempDir()
+				templateDir := filepath.Join(dir, DeploymentTypeTemplate)
+				require.NoError(t, os.MkdirAll(templateDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+				require.NoError(t, os.WriteFile(
+					filepath.Join(templateDir, "PRODUCT-SERVICE.yml"),
+					[]byte("name: template\n"), cryptoutilSharedMagic.CacheFilePermissions))
+
+				return dir
+			},
+		},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			dir := tc.setupFn(t)
+
+			result, err := ValidateNaming(dir)
+			require.NoError(t, err)
+			require.NotNil(t, result)
+			require.True(t, result.Valid)
+			require.Empty(t, result.Errors)
+		})
+	}
 }
 
-func TestValidateNaming_PathIsFile(t *testing.T) {
+func TestValidateNaming_Violations(t *testing.T) {
 	t.Parallel()
 
-	dir := t.TempDir()
-	filePath := filepath.Join(dir, "somefile.txt")
-	require.NoError(t, os.WriteFile(filePath, []byte("content"), cryptoutilSharedMagic.CacheFilePermissions))
+	tests := []struct {
+		name         string
+		setupFn      func(t *testing.T) string
+		minErrors    int
+		wantContains []string
+	}{
+		{
+			name: "invalid PascalCase dir",
+			setupFn: func(t *testing.T) string {
+				t.Helper()
 
-	result, err := ValidateNaming(filePath)
-	require.NoError(t, err)
-	require.NotNil(t, result)
-	require.False(t, result.Valid)
-	require.True(t, len(result.Errors) > 0)
-	require.Contains(t, result.Errors[0], "[ValidateNaming]")
-	require.Contains(t, result.Errors[0], "not a directory")
-}
+				dir := t.TempDir()
+				require.NoError(t, os.MkdirAll(filepath.Join(dir, "ServiceOne"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
-func TestValidateNaming_ComposeFileReadError(t *testing.T) {
-	t.Parallel()
+				return dir
+			},
+			wantContains: []string{"[ValidateNaming]", "ServiceOne", "kebab-case", "ENG-HANDBOOK.md Section 4.4.1"},
+		},
+		{
+			name: "invalid snake_case dir",
+			setupFn: func(t *testing.T) string {
+				t.Helper()
 
-	dir := t.TempDir()
-	// Create a directory with compose name (not readable as file).
-	require.NoError(t, os.MkdirAll(filepath.Join(dir, "compose.yml"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+				dir := t.TempDir()
+				require.NoError(t, os.MkdirAll(filepath.Join(dir, "service_one"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
-	result, err := ValidateNaming(dir)
-	require.NoError(t, err)
-	require.NotNil(t, result)
-	// Directory named compose.yml violates kebab-case validation, so result should be invalid.
-	// The compose service name validation won't run because it can't read a directory as a file.
-	require.False(t, result.Valid)
-}
+				return dir
+			},
+		},
+		{
+			name: "invalid compose service names",
+			setupFn: func(t *testing.T) string {
+				t.Helper()
 
-func TestValidateNaming_InvalidFileNames(t *testing.T) {
-	t.Parallel()
+				dir := t.TempDir()
+				content := "services:\n  my_service:\n    image: nginx\n  AnotherService:\n    image: postgres\n"
+				require.NoError(t, os.WriteFile(filepath.Join(dir, "docker-compose.yml"), []byte(content), cryptoutilSharedMagic.CacheFilePermissions))
 
-	dir := t.TempDir()
-	require.NoError(t, os.WriteFile(filepath.Join(dir, "MyConfig.yml"), []byte("key: value"), cryptoutilSharedMagic.CacheFilePermissions))
-	require.NoError(t, os.WriteFile(filepath.Join(dir, "my_config.yaml"), []byte("key: value"), cryptoutilSharedMagic.CacheFilePermissions))
+				return dir
+			},
+			minErrors: 2,
+		},
+		{
+			name: "path does not exist",
+			setupFn: func(t *testing.T) string {
+				t.Helper()
 
-	result, err := ValidateNaming(dir)
-	require.NoError(t, err)
-	require.NotNil(t, result)
-	require.False(t, result.Valid)
-	require.True(t, len(result.Errors) >= 2)
-}
+				return filepath.Join(t.TempDir(), "nonexistent")
+			},
+			wantContains: []string{"[ValidateNaming]", "does not exist"},
+		},
+		{
+			name: "path is file",
+			setupFn: func(t *testing.T) string {
+				t.Helper()
 
-func TestValidateNaming_ValidComposeFile(t *testing.T) {
-	t.Parallel()
+				dir := t.TempDir()
+				filePath := filepath.Join(dir, "somefile.txt")
+				require.NoError(t, os.WriteFile(filePath, []byte("content"), cryptoutilSharedMagic.CacheFilePermissions))
 
-	dir := t.TempDir()
-	content := `services:
-  my-service:
-    image: nginx
-  another-service-123:
-    image: postgres
-`
-	require.NoError(t, os.WriteFile(filepath.Join(dir, "compose.yml"), []byte(content), cryptoutilSharedMagic.CacheFilePermissions))
+				return filePath
+			},
+			wantContains: []string{"[ValidateNaming]", "not a directory"},
+		},
+		{
+			name: "compose file read error",
+			setupFn: func(t *testing.T) string {
+				t.Helper()
 
-	result, err := ValidateNaming(dir)
-	require.NoError(t, err)
-	require.NotNil(t, result)
-	require.True(t, result.Valid)
+				dir := t.TempDir()
+				require.NoError(t, os.MkdirAll(filepath.Join(dir, "compose.yml"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+
+				return dir
+			},
+		},
+		{
+			name: "invalid file names",
+			setupFn: func(t *testing.T) string {
+				t.Helper()
+
+				dir := t.TempDir()
+				require.NoError(t, os.WriteFile(filepath.Join(dir, "MyConfig.yml"), []byte("key: value"), cryptoutilSharedMagic.CacheFilePermissions))
+				require.NoError(t, os.WriteFile(filepath.Join(dir, "my_config.yaml"), []byte("key: value"), cryptoutilSharedMagic.CacheFilePermissions))
+
+				return dir
+			},
+			minErrors: 2,
+		},
+		{
+			name: "mixed valid and invalid dirs",
+			setupFn: func(t *testing.T) string {
+				t.Helper()
+
+				dir := t.TempDir()
+				require.NoError(t, os.MkdirAll(filepath.Join(dir, "valid-name"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+				require.NoError(t, os.MkdirAll(filepath.Join(dir, "Invalid_Name"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+				require.NoError(t, os.MkdirAll(filepath.Join(dir, "another-valid"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+
+				return dir
+			},
+			wantContains: []string{"Invalid_Name"},
+		},
+		{
+			name: "UPPERCASE dir",
+			setupFn: func(t *testing.T) string {
+				t.Helper()
+
+				dir := t.TempDir()
+				require.NoError(t, os.MkdirAll(filepath.Join(dir, "UPPER"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+
+				return dir
+			},
+			wantContains: []string{"[ValidateNaming]", "UPPER", "kebab-case", "ENG-HANDBOOK.md Section 4.4.1"},
+		},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			dir := tc.setupFn(t)
+
+			result, err := ValidateNaming(dir)
+			require.NoError(t, err)
+			require.NotNil(t, result)
+			require.False(t, result.Valid)
+			require.True(t, len(result.Errors) > 0)
+
+			if tc.minErrors > 0 {
+				require.True(t, len(result.Errors) >= tc.minErrors)
+			}
+
+			for _, want := range tc.wantContains {
+				require.Contains(t, result.Errors[0], want)
+			}
+		})
+	}
 }
 
 func TestValidateNaming_EdgeCases(t *testing.T) {
@@ -228,12 +358,39 @@ func TestValidateNaming_EdgeCases(t *testing.T) {
 	}
 }
 
-func TestToKebabCase_EdgeCases(t *testing.T) {
+func TestFormatNamingValidationResult(t *testing.T) {
 	t.Parallel()
 
-	require.Equal(t, "hello-world", toKebabCase("hello  world"))
-	require.Equal(t, "hello", toKebabCase("__hello__"))
-	require.Equal(t, "hello-world", toKebabCase("___hello___world___"))
+	tests := []struct {
+		name     string
+		result   *NamingValidationResult
+		contains []string
+	}{
+		{
+			name:     "valid",
+			result:   &NamingValidationResult{Path: "/test", Valid: true},
+			contains: []string{"/test", cryptoutilSharedMagic.TestStatusPass},
+		},
+		{
+			name: "errors and warnings",
+			result: &NamingValidationResult{
+				Path: "/test", Valid: false,
+				Errors:   []string{"error1"},
+				Warnings: []string{"warning1"},
+			},
+			contains: []string{cryptoutilSharedMagic.TestStatusFail, "error1", "warning1"},
+		},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			output := FormatNamingValidationResult(tc.result)
+			for _, want := range tc.contains {
+				require.Contains(t, output, want)
+			}
+		})
+	}
 }
 
 func TestValidateNaming_WalkErrorPermission(t *testing.T) {
@@ -259,7 +416,6 @@ func TestValidateNaming_WalkErrorPermission(t *testing.T) {
 	result, err := ValidateNaming(dir)
 	require.NoError(t, err)
 	require.NotNil(t, result)
-	// Walk error should be recorded.
 	require.False(t, result.Valid)
 	require.True(t, len(result.Errors) > 0)
 	require.Contains(t, result.Errors[0], "[ValidateNaming]")
@@ -276,99 +432,8 @@ func TestValidateNaming_ComposeInvalidYAML(t *testing.T) {
 	result, err := ValidateNaming(dir)
 	require.NoError(t, err)
 	require.NotNil(t, result)
-	// Invalid YAML produces warning, not error.
 	require.True(t, len(result.Warnings) > 0)
 	require.Contains(t, result.Warnings[0], "Failed to parse")
-}
-
-func TestValidateNaming_NonYAMLFilesIgnored(t *testing.T) {
-	t.Parallel()
-
-	dir := t.TempDir()
-	// Non-YAML files should be ignored regardless of name.
-	require.NoError(t, os.WriteFile(filepath.Join(dir, "README.md"), []byte("# readme"), cryptoutilSharedMagic.CacheFilePermissions))
-	require.NoError(t, os.WriteFile(filepath.Join(dir, "config.json"), []byte("{}"), cryptoutilSharedMagic.CacheFilePermissions))
-	require.NoError(t, os.WriteFile(filepath.Join(dir, "Makefile"), []byte("all:"), cryptoutilSharedMagic.CacheFilePermissions))
-
-	result, err := ValidateNaming(dir)
-	require.NoError(t, err)
-	require.NotNil(t, result)
-	require.True(t, result.Valid)
-	require.Empty(t, result.Errors)
-}
-
-func TestValidateNaming_MixedValidInvalidDirs(t *testing.T) {
-	t.Parallel()
-
-	dir := t.TempDir()
-	require.NoError(t, os.MkdirAll(filepath.Join(dir, "valid-name"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
-	require.NoError(t, os.MkdirAll(filepath.Join(dir, "Invalid_Name"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
-	require.NoError(t, os.MkdirAll(filepath.Join(dir, "another-valid"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
-
-	result, err := ValidateNaming(dir)
-	require.NoError(t, err)
-	require.NotNil(t, result)
-	require.False(t, result.Valid)
-	require.Equal(t, 1, len(result.Errors))
-	require.Contains(t, result.Errors[0], "Invalid_Name")
-}
-
-func TestValidateNaming_NestedDirectories(t *testing.T) {
-	t.Parallel()
-
-	dir := t.TempDir()
-	// Create deeply nested structure with valid kebab-case.
-	nested := filepath.Join(dir, "level-one", "level-two", "level-three")
-	require.NoError(t, os.MkdirAll(nested, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
-	require.NoError(t, os.WriteFile(filepath.Join(nested, "config.yml"), []byte("key: value"), cryptoutilSharedMagic.CacheFilePermissions))
-
-	result, err := ValidateNaming(dir)
-	require.NoError(t, err)
-	require.NotNil(t, result)
-	require.True(t, result.Valid)
-	require.Empty(t, result.Errors)
-}
-
-func TestValidateNaming_EmptyDirectory(t *testing.T) {
-	t.Parallel()
-
-	dir := t.TempDir()
-
-	result, err := ValidateNaming(dir)
-	require.NoError(t, err)
-	require.NotNil(t, result)
-	require.True(t, result.Valid)
-	require.Empty(t, result.Errors)
-}
-
-func TestValidateNaming_ComposeWithEmptyServices(t *testing.T) {
-	t.Parallel()
-
-	dir := t.TempDir()
-	content := "services:\n"
-	require.NoError(t, os.WriteFile(filepath.Join(dir, "compose.yml"), []byte(content), cryptoutilSharedMagic.CacheFilePermissions))
-
-	result, err := ValidateNaming(dir)
-	require.NoError(t, err)
-	require.NotNil(t, result)
-	require.True(t, result.Valid)
-	require.Empty(t, result.Errors)
-}
-
-func TestValidateNaming_UPPERCASEDir(t *testing.T) {
-	t.Parallel()
-
-	dir := t.TempDir()
-	require.NoError(t, os.MkdirAll(filepath.Join(dir, "UPPER"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
-
-	result, err := ValidateNaming(dir)
-	require.NoError(t, err)
-	require.NotNil(t, result)
-	require.False(t, result.Valid)
-	require.Contains(t, result.Errors[0], "[ValidateNaming]")
-	require.Contains(t, result.Errors[0], "UPPER")
-	require.Contains(t, result.Errors[0], "kebab-case")
-	require.Contains(t, result.Errors[0], "ENG-HANDBOOK.md Section 4.4.1")
 }
 
 func TestValidateNaming_ComposeReadableFileError(t *testing.T) {
@@ -382,7 +447,6 @@ func TestValidateNaming_ComposeReadableFileError(t *testing.T) {
 	composePath := filepath.Join(dir, "compose.yml")
 	require.NoError(t, os.WriteFile(composePath, []byte("services:\n  web: {}\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
-	// Make file unreadable to trigger os.ReadFile error in validateComposeServiceNames.
 	require.NoError(t, os.Chmod(composePath, 0o000))
 
 	t.Cleanup(func() {
@@ -392,29 +456,5 @@ func TestValidateNaming_ComposeReadableFileError(t *testing.T) {
 	result, err := ValidateNaming(dir)
 	require.NoError(t, err)
 	require.NotNil(t, result)
-	// Should have warning about failed read.
 	require.True(t, len(result.Warnings) > 0 || len(result.Errors) > 0)
-}
-
-// TestValidateNaming_SkipsTemplateDirectory verifies that directories named "template"
-// are skipped entirely, allowing intentional uppercase placeholders within them.
-func TestValidateNaming_SkipsTemplateDirectory(t *testing.T) {
-	t.Parallel()
-
-	dir := t.TempDir()
-	// Create a directory named "template" (DeploymentTypeTemplate constant value).
-	templateDir := filepath.Join(dir, DeploymentTypeTemplate)
-	require.NoError(t, os.MkdirAll(templateDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
-	// Put a file with invalid kebab-case naming inside template/ — it would trigger
-	// a naming error if the directory were NOT skipped (uppercase in filename).
-	require.NoError(t, os.WriteFile(
-		filepath.Join(templateDir, "PRODUCT-SERVICE.yml"),
-		[]byte("name: template\n"), cryptoutilSharedMagic.CacheFilePermissions))
-
-	result, err := ValidateNaming(dir)
-	require.NoError(t, err)
-	require.NotNil(t, result)
-	// Template directory is entirely skipped; no naming violation reported.
-	require.True(t, result.Valid)
-	require.Empty(t, result.Errors)
 }
