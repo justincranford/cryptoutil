@@ -4105,6 +4105,38 @@ Here are local convenience commands to run the workflows locally for Development
 - Disabled linters with justification
 - Version-specific syntax (wsl → wsl_v5 in v2)
 
+##### testpackage Configuration
+
+**Status**: Enabled but effectively disabled via `skip-regexp: '.*_test\.go$'` (matches ALL test files). This is equivalent to removing testpackage from the enabled list. The reason: many packages use internal (white-box) test packages, and migrating to external test packages (`package foo_test`) would require significant refactoring.
+
+**Action**: Either remove testpackage from enabled linters (honest configuration) or narrow the skip-regexp to specific directories that legitimately need internal package testing. Track in framework-v9.
+
+##### goheader Configuration
+
+**Status**: Disabled due to a file corruption bug in golangci-lint v2 (replaces file contents instead of reporting violations). Comment: "monitor v2.8+ for fix."
+
+**Template**: `Copyright (c) {{ YEAR }} Justin Cranford`
+
+**Action**: Re-enable when golangci-lint v2.8+ is released and the bug is confirmed fixed. Test on a branch before enabling globally.
+
+##### nilerr Exclusion Analysis
+
+**9 exclusions total** — all justified:
+
+| File | Reason |
+|------|--------|
+| `validate_naming.go` | Validator aggregation pattern: error captured in `result.Errors`, not returned |
+| `validate_kebab_case.go` | Same: error aggregation, callers check `result.Valid` |
+| `validate_template_pattern.go` | Same: error aggregation |
+| `validate_ports.go` | Same: error aggregation |
+| `validate_telemetry.go` | Same: error aggregation |
+| `validate_admin.go` | Same: error aggregation |
+| `validate_secrets.go` | Same: error aggregation |
+| `validate_all.go` | `WalkDir` callback returns nil on error to continue walking |
+| `jwk_util.go` | Intentional type-check: `err != nil` means wrong key type, returns nil to signal "not this type" |
+
+The 7 `validate_*.go` exclusions are inherent to the [Validator Error Aggregation Pattern](#135-validator-error-aggregation-pattern). These validators accumulate errors in `result.Errors` rather than returning them, which nilerr correctly flags as "err is not nil but function returns nil." The exclusions are architectural, not workarounds.
+
 #### 11.3.2 Linter Exclusion Patterns
 
 - Path-based exclusions (api/*, test-output/*, vendor/)
