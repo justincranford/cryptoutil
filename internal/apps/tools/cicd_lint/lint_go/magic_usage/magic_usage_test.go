@@ -33,203 +33,221 @@ func setupMagicUsageDirs(t *testing.T) (magicDir, rootDir string) {
 	return magicDir, rootDir
 }
 
-func TestCheckMagicUsageInDir_NoViolations(t *testing.T) {
+func TestCheckMagicUsageInDir_NoErrors(t *testing.T) {
 	t.Parallel()
 
-	magicDir, rootDir := setupMagicUsageDirs(t)
+	tests := []struct {
+		name    string
+		setupFn func(t *testing.T) (string, string)
+	}{
+		{
+			name: "no violations",
+			setupFn: func(t *testing.T) (string, string) {
+				t.Helper()
+				magicDir, rootDir := setupMagicUsageDirs(t)
+				writeMagicFile(t, magicDir, "magic.go", "package magic\n\nconst ProtocolHTTPS = \"https\"\n")
+				require.NoError(t, os.WriteFile(filepath.Join(rootDir, "handler.go"), []byte("package app\n\nimport \"fmt\"\n\nfunc greet() { fmt.Println(\"hello\") }\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
-	// Magic package defines "https".
-	writeMagicFile(t, magicDir, "magic.go", `package magic
+				return magicDir, rootDir
+			},
+		},
+		{
+			name: "trivial string not flagged",
+			setupFn: func(t *testing.T) (string, string) {
+				t.Helper()
+				magicDir, rootDir := setupMagicUsageDirs(t)
+				writeMagicFile(t, magicDir, "magic.go", "package magic\n\nconst EmptyString = \"\"\nconst Dot = \".\"\n")
+				require.NoError(t, os.WriteFile(filepath.Join(rootDir, "app.go"), []byte("package app\n\nfunc f() string { return \".\" }\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
-const ProtocolHTTPS = "https"
-`)
+				return magicDir, rootDir
+			},
+		},
+		{
+			name: "trivial int not flagged",
+			setupFn: func(t *testing.T) (string, string) {
+				t.Helper()
+				magicDir, rootDir := setupMagicUsageDirs(t)
+				writeMagicFile(t, magicDir, "magic.go", "package magic\n\nconst Zero = 0\nconst One  = 1\n")
+				require.NoError(t, os.WriteFile(filepath.Join(rootDir, "app.go"), []byte("package app\n\nfunc count() int { return 0 }\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
-	// Application code uses the constant name (no literal).
-	err := os.WriteFile(filepath.Join(rootDir, "handler.go"), []byte(`package app
+				return magicDir, rootDir
+			},
+		},
+		{
+			name: "test const only matches test file",
+			setupFn: func(t *testing.T) (string, string) {
+				t.Helper()
+				magicDir, rootDir := setupMagicUsageDirs(t)
+				writeMagicFile(t, magicDir, "magic_testing.go", "package magic\n\nconst TestRateLimit = 500\n")
+				require.NoError(t, os.WriteFile(filepath.Join(rootDir, "server.go"), []byte("package app\n\nconst localLimit = 500\n"), cryptoutilSharedMagic.CacheFilePermissions))
+				require.NoError(t, os.WriteFile(filepath.Join(rootDir, "server_test.go"), []byte("package app\n\nconst wantLimit = 500\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
-import "fmt"
+				return magicDir, rootDir
+			},
+		},
+		{
+			name: "empty magic package",
+			setupFn: func(t *testing.T) (string, string) {
+				t.Helper()
+				magicDir, rootDir := setupMagicUsageDirs(t)
+				writeMagicFile(t, magicDir, "magic.go", "package magic\n")
+				require.NoError(t, os.WriteFile(filepath.Join(rootDir, "app.go"), []byte("package app\n\nconst x = \"hello\"\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
-func greet() { fmt.Println("hello") }
-`), cryptoutilSharedMagic.CacheFilePermissions)
-	require.NoError(t, err)
+				return magicDir, rootDir
+			},
+		},
+		{
+			name: "generated file skipped",
+			setupFn: func(t *testing.T) (string, string) {
+				t.Helper()
+				magicDir, rootDir := setupMagicUsageDirs(t)
+				writeMagicFile(t, magicDir, "magic.go", "package magic\n\nconst ProtocolHTTPS = \"https\"\n")
+				require.NoError(t, os.WriteFile(filepath.Join(rootDir, "openapi.gen.go"), []byte("package app\n\nfunc genFunc() string { return \"https\" }\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
-	logger := cryptoutilCmdCicdCommon.NewLogger("magic-usage-test")
-	err = CheckMagicUsageInDir(logger, magicDir, rootDir, filepath.Abs, filepath.Walk)
-	require.NoError(t, err)
+				return magicDir, rootDir
+			},
+		},
+		{
+			name: "magic dir inside root",
+			setupFn: func(t *testing.T) (string, string) {
+				t.Helper()
+				rootDir := t.TempDir()
+				magicDir := filepath.Join(rootDir, "magic")
+				require.NoError(t, os.MkdirAll(magicDir, 0o700))
+				writeMagicFile(t, magicDir, "magic.go", "package magic\n\nconst Timeout = 30\n")
+				require.NoError(t, os.WriteFile(filepath.Join(rootDir, "app.go"), []byte("package app\n\nfunc f() {}\n"), cryptoutilSharedMagic.CacheFilePermissions))
+
+				return magicDir, rootDir
+			},
+		},
+		{
+			name: "vendor dir skipped",
+			setupFn: func(t *testing.T) (string, string) {
+				t.Helper()
+				magicDir, rootDir := setupMagicUsageDirs(t)
+				writeMagicFile(t, magicDir, "magic.go", "package magic\n\nconst Timeout = 30\n")
+
+				vendorDir := filepath.Join(rootDir, cryptoutilSharedMagic.CICDExcludeDirVendor, "somepkg")
+				require.NoError(t, os.MkdirAll(vendorDir, 0o700))
+				require.NoError(t, os.WriteFile(filepath.Join(vendorDir, "pkg.go"), []byte("package somepkg\n\nconst x = 30\n"), cryptoutilSharedMagic.CacheFilePermissions))
+
+				return magicDir, rootDir
+			},
+		},
+		{
+			name: "unparseable go file skipped",
+			setupFn: func(t *testing.T) (string, string) {
+				t.Helper()
+				magicDir, rootDir := setupMagicUsageDirs(t)
+				writeMagicFile(t, magicDir, "magic.go", "package magic\n\nconst Timeout = 30\n")
+				require.NoError(t, os.WriteFile(filepath.Join(rootDir, "broken.go"), []byte("package INVALID {{{"), cryptoutilSharedMagic.CacheFilePermissions))
+
+				return magicDir, rootDir
+			},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			magicDir, rootDir := tc.setupFn(t)
+			logger := cryptoutilCmdCicdCommon.NewLogger("magic-usage-test")
+
+			err := CheckMagicUsageInDir(logger, magicDir, rootDir, filepath.Abs, filepath.Walk)
+
+			require.NoError(t, err)
+		})
+	}
 }
 
-func TestCheckMagicUsageInDir_LiteralViolation(t *testing.T) {
+func TestCheckMagicUsageInDir_Violations(t *testing.T) {
 	t.Parallel()
 
-	magicDir, rootDir := setupMagicUsageDirs(t)
+	tests := []struct {
+		name        string
+		setupFn     func(t *testing.T) (string, string)
+		wantContain string
+	}{
+		{
+			name: "literal violation",
+			setupFn: func(t *testing.T) (string, string) {
+				t.Helper()
+				magicDir, rootDir := setupMagicUsageDirs(t)
+				writeMagicFile(t, magicDir, "magic.go", "package magic\n\nconst ProtocolHTTPS = \"https\"\n")
+				require.NoError(t, os.WriteFile(filepath.Join(rootDir, "client.go"), []byte("package app\n\nfunc scheme() string { return \"https\" }\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
-	writeMagicFile(t, magicDir, "magic.go", `package magic
+				return magicDir, rootDir
+			},
+			wantContain: "literal-use",
+		},
+		{
+			name: "const redefine",
+			setupFn: func(t *testing.T) (string, string) {
+				t.Helper()
+				magicDir, rootDir := setupMagicUsageDirs(t)
+				writeMagicFile(t, magicDir, "magic.go", "package magic\n\nconst ProtocolHTTPS = \"https\"\n")
+				require.NoError(t, os.WriteFile(filepath.Join(rootDir, "localconst.go"), []byte("package app\n\nconst localHTTPS = \"https\"\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
-const ProtocolHTTPS = "https"
-`)
+				return magicDir, rootDir
+			},
+			wantContain: "const-redefine-string",
+		},
+	}
 
-	// Application code uses the raw "https" literal.
-	err := os.WriteFile(filepath.Join(rootDir, "client.go"), []byte(`package app
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			magicDir, rootDir := tc.setupFn(t)
+			logger := cryptoutilCmdCicdCommon.NewLogger("magic-usage-test")
 
-func scheme() string { return "https" }
-`), cryptoutilSharedMagic.CacheFilePermissions)
-	require.NoError(t, err)
+			err := CheckMagicUsageInDir(logger, magicDir, rootDir, filepath.Abs, filepath.Walk)
 
-	logger := cryptoutilCmdCicdCommon.NewLogger("magic-usage-test")
-	err = CheckMagicUsageInDir(logger, magicDir, rootDir, filepath.Abs, filepath.Walk)
-	// literal-use violations are blocking: inline literals must reference magic.XXX.
-	require.Error(t, err)
-	require.ErrorContains(t, err, "literal-use")
+			require.Error(t, err)
+			require.ErrorContains(t, err, tc.wantContain)
+		})
+	}
 }
 
-func TestCheckMagicUsageInDir_ConstRedefine(t *testing.T) {
+func TestCheckMagicUsageInDir_PathErrors(t *testing.T) {
 	t.Parallel()
 
-	magicDir, rootDir := setupMagicUsageDirs(t)
+	tests := []struct {
+		name        string
+		setupFn     func(t *testing.T) (string, string)
+		wantContain string
+	}{
+		{
+			name: "invalid magic dir",
+			setupFn: func(_ *testing.T) (string, string) {
+				return "/nonexistent/magic", "."
+			},
+			wantContain: "failed to parse magic package",
+		},
+		{
+			name: "nonexistent root dir",
+			setupFn: func(t *testing.T) (string, string) {
+				t.Helper()
+				magicDir := t.TempDir()
+				writeMagicFile(t, magicDir, "magic.go", "package magic\n\nconst Timeout = 30\n")
 
-	writeMagicFile(t, magicDir, "magic.go", `package magic
+				return magicDir, "/nonexistent/root/dir"
+			},
+			wantContain: "walk errors",
+		},
+	}
 
-const ProtocolHTTPS = "https"
-`)
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			magicDir, rootDir := tc.setupFn(t)
+			logger := cryptoutilCmdCicdCommon.NewLogger("magic-usage-test")
 
-	// Code redefines the same value as a local constant.
-	err := os.WriteFile(filepath.Join(rootDir, "localconst.go"), []byte(`package app
+			err := CheckMagicUsageInDir(logger, magicDir, rootDir, filepath.Abs, filepath.Walk)
 
-const localHTTPS = "https"
-`), cryptoutilSharedMagic.CacheFilePermissions)
-	require.NoError(t, err)
-
-	logger := cryptoutilCmdCicdCommon.NewLogger("magic-usage-test")
-	err = CheckMagicUsageInDir(logger, magicDir, rootDir, filepath.Abs, filepath.Walk)
-	// const-redefine-string violations are blocking: redeclaring a magic STRING constant is always wrong.
-	require.Error(t, err)
-	require.ErrorContains(t, err, "const-redefine-string")
-}
-
-func TestCheckMagicUsageInDir_TrivialStringNotFlagged(t *testing.T) {
-	t.Parallel()
-
-	magicDir, rootDir := setupMagicUsageDirs(t)
-
-	// Short strings (< magicMinStringLen) are trivial and should not be flagged.
-	writeMagicFile(t, magicDir, "magic.go", `package magic
-
-const EmptyString = ""
-const Dot = "."
-`)
-
-	err := os.WriteFile(filepath.Join(rootDir, "app.go"), []byte(`package app
-
-func f() string { return "." }
-`), cryptoutilSharedMagic.CacheFilePermissions)
-	require.NoError(t, err)
-
-	logger := cryptoutilCmdCicdCommon.NewLogger("magic-usage-test")
-	err = CheckMagicUsageInDir(logger, magicDir, rootDir, filepath.Abs, filepath.Walk)
-	require.NoError(t, err)
-}
-
-func TestCheckMagicUsageInDir_TrivialIntNotFlagged(t *testing.T) {
-	t.Parallel()
-
-	magicDir, rootDir := setupMagicUsageDirs(t)
-
-	writeMagicFile(t, magicDir, "magic.go", `package magic
-
-const Zero = 0
-const One  = 1
-`)
-
-	err := os.WriteFile(filepath.Join(rootDir, "app.go"), []byte(`package app
-
-func count() int { return 0 }
-`), cryptoutilSharedMagic.CacheFilePermissions)
-	require.NoError(t, err)
-
-	logger := cryptoutilCmdCicdCommon.NewLogger("magic-usage-test")
-	err = CheckMagicUsageInDir(logger, magicDir, rootDir, filepath.Abs, filepath.Walk)
-	require.NoError(t, err)
-}
-
-func TestCheckMagicUsageInDir_TestConstOnlyMatchesTestFile(t *testing.T) {
-	t.Parallel()
-
-	magicDir, rootDir := setupMagicUsageDirs(t)
-
-	// TestXxx constant in magic_testing.go — should NOT flag production files.
-	writeMagicFile(t, magicDir, "magic_testing.go", `package magic
-
-const TestRateLimit = 500
-`)
-
-	// Production file happens to use literal 500.
-	err := os.WriteFile(filepath.Join(rootDir, "server.go"), []byte(`package app
-
-const localLimit = 500
-`), cryptoutilSharedMagic.CacheFilePermissions)
-	require.NoError(t, err)
-
-	// Test file uses literal 500 — SHOULD be flagged.
-	err = os.WriteFile(filepath.Join(rootDir, "server_test.go"), []byte(`package app
-
-const wantLimit = 500
-`), cryptoutilSharedMagic.CacheFilePermissions)
-	require.NoError(t, err)
-
-	logger := cryptoutilCmdCicdCommon.NewLogger("magic-usage-test")
-	err = CheckMagicUsageInDir(logger, magicDir, rootDir, filepath.Abs, filepath.Walk)
-	// Numeric const-redefine is informational (too many false positives with small ints).
-	// Test-only constants are skipped in production files — no violation from server.go.
-	// Test file server_test.go uses integer 500; numeric const-redefine never blocks.
-	require.NoError(t, err)
-}
-
-func TestCheckMagicUsageInDir_EmptyMagicPackage(t *testing.T) {
-	t.Parallel()
-
-	magicDir, rootDir := setupMagicUsageDirs(t)
-	writeMagicFile(t, magicDir, "magic.go", `package magic
-`)
-
-	err := os.WriteFile(filepath.Join(rootDir, "app.go"), []byte(`package app
-
-const x = "hello"
-`), cryptoutilSharedMagic.CacheFilePermissions)
-	require.NoError(t, err)
-
-	logger := cryptoutilCmdCicdCommon.NewLogger("magic-usage-test")
-	err = CheckMagicUsageInDir(logger, magicDir, rootDir, filepath.Abs, filepath.Walk)
-	require.NoError(t, err)
-}
-
-func TestCheckMagicUsageInDir_InvalidMagicDir(t *testing.T) {
-	t.Parallel()
-
-	logger := cryptoutilCmdCicdCommon.NewLogger("magic-usage-test")
-	err := CheckMagicUsageInDir(logger, "/nonexistent/magic", ".", filepath.Abs, filepath.Walk)
-	require.Error(t, err)
-}
-
-func TestCheckMagicUsageInDir_GeneratedFileSkipped(t *testing.T) {
-	t.Parallel()
-
-	magicDir, rootDir := setupMagicUsageDirs(t)
-
-	writeMagicFile(t, magicDir, "magic.go", `package magic
-
-const ProtocolHTTPS = "https"
-`)
-
-	// Generated file — should be completely skipped.
-	err := os.WriteFile(filepath.Join(rootDir, "openapi.gen.go"), []byte(`package app
-
-func genFunc() string { return "https" }
-`), cryptoutilSharedMagic.CacheFilePermissions)
-	require.NoError(t, err)
-
-	logger := cryptoutilCmdCicdCommon.NewLogger("magic-usage-test")
-	err = CheckMagicUsageInDir(logger, magicDir, rootDir, filepath.Abs, filepath.Walk)
-	require.NoError(t, err)
+			require.Error(t, err)
+			require.Contains(t, err.Error(), tc.wantContain)
+		})
+	}
 }
 
 func TestCheck_UsesMagicDefaultDir(t *testing.T) {
@@ -245,41 +263,6 @@ func TestCheck_UsesMagicDefaultDir(t *testing.T) {
 	require.Contains(t, err.Error(), "failed to parse magic package")
 }
 
-func TestCheckMagicUsageInDir_MagicDirInsideRoot(t *testing.T) {
-	t.Parallel()
-	// Non-parallel: uses controlled directory structure.
-	rootDir := t.TempDir()
-
-	// Place magicDir INSIDE rootDir so the Walk visits and skips it.
-	magicDir := filepath.Join(rootDir, "magic")
-	require.NoError(t, os.MkdirAll(magicDir, 0o700))
-	writeMagicFile(t, magicDir, "magic.go", "package magic\n\nconst Timeout = 30\n")
-
-	// Regular go file outside the magic dir (uses no literal from magic constants).
-	require.NoError(t, os.WriteFile(filepath.Join(rootDir, "app.go"), []byte("package app\n\nfunc f() {}\n"), cryptoutilSharedMagic.CacheFilePermissions))
-
-	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	err := CheckMagicUsageInDir(logger, magicDir, rootDir, filepath.Abs, filepath.Walk)
-	// Should succeed - the magicDir is skipped by filepath.SkipDir.
-	require.NoError(t, err)
-}
-
-func TestCheckMagicUsageInDir_VendorDirSkipped(t *testing.T) {
-	t.Parallel()
-
-	magicDir, rootDir := setupMagicUsageDirs(t)
-	writeMagicFile(t, magicDir, "magic.go", "package magic\n\nconst Timeout = 30\n")
-
-	// Create vendor subdirectory - MagicShouldSkipPath returns true for "vendor".
-	vendorDir := filepath.Join(rootDir, cryptoutilSharedMagic.CICDExcludeDirVendor, "somepkg")
-	require.NoError(t, os.MkdirAll(vendorDir, 0o700))
-	require.NoError(t, os.WriteFile(filepath.Join(vendorDir, "pkg.go"), []byte("package somepkg\n\nconst x = 30\n"), cryptoutilSharedMagic.CacheFilePermissions))
-
-	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	err := CheckMagicUsageInDir(logger, magicDir, rootDir, filepath.Abs, filepath.Walk)
-	require.NoError(t, err)
-}
-
 func TestCheckMagicUsageInDir_WalkError(t *testing.T) {
 	t.Parallel()
 
@@ -287,7 +270,6 @@ func TestCheckMagicUsageInDir_WalkError(t *testing.T) {
 		t.Skip("os.Chmod 0o000 does not restrict access on Windows NTFS")
 	}
 
-	// Non-parallel: modifies directory permissions.
 	magicDir, rootDir := setupMagicUsageDirs(t)
 	writeMagicFile(t, magicDir, "magic.go", "package magic\n\nconst Timeout = 30\n")
 
@@ -299,36 +281,7 @@ func TestCheckMagicUsageInDir_WalkError(t *testing.T) {
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	err := CheckMagicUsageInDir(logger, magicDir, rootDir, filepath.Abs, filepath.Walk)
-	// Walk errors are accumulated and returned as an error.
 	require.Error(t, err, "Walk errors should be returned")
-	require.Contains(t, err.Error(), "walk errors")
-}
-
-func TestCheckMagicUsageInDir_UnparseableGoFile(t *testing.T) {
-	t.Parallel()
-
-	magicDir, rootDir := setupMagicUsageDirs(t)
-	writeMagicFile(t, magicDir, "magic.go", "package magic\n\nconst Timeout = 30\n")
-
-	// Create a .go file with syntax errors - scanMagicFile returns nil silently.
-	require.NoError(t, os.WriteFile(filepath.Join(rootDir, "broken.go"), []byte("package INVALID {{{"), cryptoutilSharedMagic.CacheFilePermissions))
-
-	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	err := CheckMagicUsageInDir(logger, magicDir, rootDir, filepath.Abs, filepath.Walk)
-	// The unparseable file is silently skipped.
-	require.NoError(t, err)
-}
-
-func TestCheckMagicUsageInDir_WalkErrNonExistentRoot(t *testing.T) {
-	t.Parallel()
-
-	// Create a valid magic dir with constants, but use a nonexistent root dir.
-	magicDir := t.TempDir()
-	writeMagicFile(t, magicDir, "magic.go", "package magic\n\nconst Timeout = 30\n")
-
-	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	err := CheckMagicUsageInDir(logger, magicDir, "/nonexistent/root/dir", filepath.Abs, filepath.Walk)
-	require.Error(t, err)
 	require.Contains(t, err.Error(), "walk errors")
 }
 
