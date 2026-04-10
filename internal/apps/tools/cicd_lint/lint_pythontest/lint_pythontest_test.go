@@ -14,198 +14,161 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
-func TestLint_NoFiles(t *testing.T) {
+func TestLint_HappyPaths(t *testing.T) {
 	t.Parallel()
 
-	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	err := cryptoutilLintPythonTest.Lint(logger, map[string][]string{})
+	tests := []struct {
+		name    string
+		setupFn func(t *testing.T) map[string][]string
+	}{
+		{
+			name:    "no files",
+			setupFn: func(_ *testing.T) map[string][]string { return map[string][]string{} },
+		},
+		{
+			name: "no python files",
+			setupFn: func(_ *testing.T) map[string][]string {
+				return map[string][]string{"go": {"main.go"}, "yml": {"config.yml"}}
+			},
+		},
+		{
+			name: "no python test files",
+			setupFn: func(t *testing.T) map[string][]string {
+				t.Helper()
+				utilFile := filepath.Join(t.TempDir(), "utils.py")
+				content := "class HelperUtil(unittest.TestCase):\n    def test_something(self):\n        self.assertEqual(1, 1)\n"
+				require.NoError(t, os.WriteFile(utilFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions))
 
-	require.NoError(t, err, "Lint should succeed with no files")
-}
+				return map[string][]string{"py": {utilFile}}
+			},
+		},
+		{
+			name: "valid pytest file",
+			setupFn: func(t *testing.T) map[string][]string {
+				t.Helper()
+				testFile := filepath.Join(t.TempDir(), "test_calculator.py")
+				content := "import pytest\n\n@pytest.mark.parametrize(\"x,expected\", [(1, 1), (2, 4)])\ndef test_square(x, expected):\n    assert x * x == expected\n"
+				require.NoError(t, os.WriteFile(testFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions))
 
-func TestLint_NoPythonFiles(t *testing.T) {
-	t.Parallel()
+				return map[string][]string{"py": {testFile}}
+			},
+		},
+		{
+			name: "mixed extensions with valid test files",
+			setupFn: func(t *testing.T) map[string][]string {
+				t.Helper()
+				tmpDir := t.TempDir()
+				testFile1 := filepath.Join(tmpDir, "test_foo.py")
+				testFile2 := filepath.Join(tmpDir, "bar_test.py")
+				nonTestFile := filepath.Join(tmpDir, "helper.py")
 
-	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	filesByExtension := map[string][]string{
-		"go":  {"main.go"},
-		"yml": {"config.yml"},
+				for _, f := range []string{testFile1, testFile2, nonTestFile} {
+					require.NoError(t, os.WriteFile(f, []byte("# placeholder"), cryptoutilSharedMagic.CacheFilePermissions))
+				}
+
+				return map[string][]string{"py": {testFile1, testFile2, nonTestFile}}
+			},
+		},
 	}
 
-	err := cryptoutilLintPythonTest.Lint(logger, filesByExtension)
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-	require.NoError(t, err, "Lint should succeed with no Python files")
+			logger := cryptoutilCmdCicdCommon.NewLogger("test")
+			filesByExtension := tc.setupFn(t)
+
+			err := cryptoutilLintPythonTest.Lint(logger, filesByExtension)
+
+			require.NoError(t, err)
+		})
+	}
 }
 
-func TestLint_NoPythonTestFiles(t *testing.T) {
+func TestLint_UnittestViolations(t *testing.T) {
 	t.Parallel()
 
-	tmpDir := t.TempDir()
-	utilFile := filepath.Join(tmpDir, "utils.py")
-	content := `class HelperUtil(unittest.TestCase):
-    def test_something(self):
-        self.assertEqual(1, 1)
-`
-	err := os.WriteFile(utilFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions)
-	require.NoError(t, err)
-
-	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	filesByExtension := map[string][]string{
-		"py": {utilFile},
+	tests := []struct {
+		name     string
+		filename string
+		content  string
+	}{
+		{
+			name:     "unittest TestCase in test_ prefix file",
+			filename: "test_legacy.py",
+			content:  "import unittest\n\nclass LegacyTest(unittest.TestCase):\n    def test_something(self):\n        pass\n",
+		},
+		{
+			name:     "unittest TestCase in _test suffix file",
+			filename: "calculator_test.py",
+			content:  "from unittest import TestCase\n\nclass CalculatorTest(TestCase):\n    def test_add(self):\n        self.assertEqual(1 + 1, 2)\n",
+		},
+		{
+			name:     "self assert method usage",
+			filename: "test_asserts.py",
+			content:  "def test_value():\n    self.assertEqual(1, 1)\n    self.assertTrue(True)\n",
+		},
 	}
 
-	err = cryptoutilLintPythonTest.Lint(logger, filesByExtension)
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			testFile := filepath.Join(t.TempDir(), tc.filename)
+			require.NoError(t, os.WriteFile(testFile, []byte(tc.content), cryptoutilSharedMagic.CacheFilePermissions))
 
-	require.NoError(t, err, "Lint should skip non-test Python files (not test_*.py or *_test.py)")
+			logger := cryptoutilCmdCicdCommon.NewLogger("test")
+			filesByExtension := map[string][]string{"py": {testFile}}
+
+			err := cryptoutilLintPythonTest.Lint(logger, filesByExtension)
+
+			require.Error(t, err)
+			require.ErrorContains(t, err, "unittest antipattern violations")
+		})
+	}
 }
 
-func TestLint_ValidPytestFile(t *testing.T) {
+func TestCheckUnittestAntipattern_Variants(t *testing.T) {
 	t.Parallel()
 
-	tmpDir := t.TempDir()
-	testFile := filepath.Join(tmpDir, "test_calculator.py")
-	content := `import pytest
+	tests := []struct {
+		name     string
+		setupFn  func(t *testing.T) string
+		minCount int
+		contains string
+	}{
+		{
+			name:     "file not found",
+			setupFn:  func(_ *testing.T) string { return "/nonexistent/path/test_file.py" },
+			minCount: 1,
+			contains: "Error reading file",
+		},
+		{
+			name: "multiple violations",
+			setupFn: func(t *testing.T) string {
+				t.Helper()
+				testFile := filepath.Join(t.TempDir(), "test_multi.py")
+				content := "import unittest\n\nclass MultiTest(unittest.TestCase):\n    def test_a(self):\n        self.assertEqual(1, 1)\n    def test_b(self):\n        self.assertTrue(True)\n"
+				require.NoError(t, os.WriteFile(testFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions))
 
-@pytest.mark.parametrize("x,expected", [(1, 1), (2, 4)])
-def test_square(x, expected):
-    assert x * x == expected
-`
-	err := os.WriteFile(testFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions)
-	require.NoError(t, err)
-
-	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	filesByExtension := map[string][]string{
-		"py": {testFile},
+				return testFile
+			},
+			minCount: 3,
+			contains: "",
+		},
 	}
 
-	err = cryptoutilLintPythonTest.Lint(logger, filesByExtension)
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			filePath := tc.setupFn(t)
 
-	require.NoError(t, err, "Lint should succeed for pytest-style test files")
-}
+			issues := cryptoutilLintPythonTest.CheckUnittestAntipattern(filePath)
 
-func TestLint_UnittestTestCase_PrefixFile(t *testing.T) {
-	t.Parallel()
+			require.GreaterOrEqual(t, len(issues), tc.minCount)
 
-	tmpDir := t.TempDir()
-	testFile := filepath.Join(tmpDir, "test_legacy.py")
-	content := `import unittest
-
-class LegacyTest(unittest.TestCase):
-    def test_something(self):
-        pass
-`
-	err := os.WriteFile(testFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions)
-	require.NoError(t, err)
-
-	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	filesByExtension := map[string][]string{
-		"py": {testFile},
+			if tc.contains != "" {
+				require.Contains(t, issues[0], tc.contains)
+			}
+		})
 	}
-
-	err = cryptoutilLintPythonTest.Lint(logger, filesByExtension)
-
-	require.Error(t, err, "Lint should fail for unittest.TestCase usage")
-	require.ErrorContains(t, err, "unittest antipattern violations")
-}
-
-func TestLint_UnittestTestCase_SuffixFile(t *testing.T) {
-	t.Parallel()
-
-	tmpDir := t.TempDir()
-	testFile := filepath.Join(tmpDir, "calculator_test.py")
-	content := `from unittest import TestCase
-
-class CalculatorTest(TestCase):
-    def test_add(self):
-        self.assertEqual(1 + 1, 2)
-`
-	err := os.WriteFile(testFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions)
-	require.NoError(t, err)
-
-	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	filesByExtension := map[string][]string{
-		"py": {testFile},
-	}
-
-	err = cryptoutilLintPythonTest.Lint(logger, filesByExtension)
-
-	require.Error(t, err, "Lint should fail for unittest.TestCase usage in *_test.py file")
-	require.ErrorContains(t, err, "unittest antipattern violations")
-}
-
-func TestLint_SelfAssertMethod(t *testing.T) {
-	t.Parallel()
-
-	tmpDir := t.TempDir()
-	testFile := filepath.Join(tmpDir, "test_asserts.py")
-	content := `def test_value():
-    self.assertEqual(1, 1)
-    self.assertTrue(True)
-`
-	err := os.WriteFile(testFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions)
-	require.NoError(t, err)
-
-	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	filesByExtension := map[string][]string{
-		"py": {testFile},
-	}
-
-	err = cryptoutilLintPythonTest.Lint(logger, filesByExtension)
-
-	require.Error(t, err, "Lint should fail for self.assert* usage in test files")
-	require.ErrorContains(t, err, "unittest antipattern violations")
-}
-
-func TestCheckUnittestAntipattern_FileNotFound(t *testing.T) {
-	t.Parallel()
-
-	issues := cryptoutilLintPythonTest.CheckUnittestAntipattern("/nonexistent/path/test_file.py")
-
-	require.Len(t, issues, 1)
-	require.Contains(t, issues[0], "Error reading file")
-}
-
-func TestCheckUnittestAntipattern_MultipleViolations(t *testing.T) {
-	t.Parallel()
-
-	tmpDir := t.TempDir()
-	testFile := filepath.Join(tmpDir, "test_multi.py")
-	content := `import unittest
-
-class MultiTest(unittest.TestCase):
-    def test_a(self):
-        self.assertEqual(1, 1)
-    def test_b(self):
-        self.assertTrue(True)
-`
-	err := os.WriteFile(testFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions)
-	require.NoError(t, err)
-
-	issues := cryptoutilLintPythonTest.CheckUnittestAntipattern(testFile)
-
-	require.GreaterOrEqual(t, len(issues), 3, "Should detect TestCase and multiple self.assert* calls")
-}
-
-func TestFilterPythonTestFiles_MixedExtensions(t *testing.T) {
-	t.Parallel()
-
-	tmpDir := t.TempDir()
-
-	testFile1 := filepath.Join(tmpDir, "test_foo.py")
-	testFile2 := filepath.Join(tmpDir, "bar_test.py")
-	nonTestFile := filepath.Join(tmpDir, "helper.py")
-
-	for _, f := range []string{testFile1, testFile2, nonTestFile} {
-		err := os.WriteFile(f, []byte("# placeholder"), cryptoutilSharedMagic.CacheFilePermissions)
-		require.NoError(t, err)
-	}
-
-	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	filesByExtension := map[string][]string{
-		"py": {testFile1, testFile2, nonTestFile},
-	}
-
-	err := cryptoutilLintPythonTest.Lint(logger, filesByExtension)
-
-	require.NoError(t, err, "Valid test files with no violations should pass")
 }
