@@ -11,21 +11,108 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestValidateKebabCase_ValidServiceName(t *testing.T) {
+func TestValidateKebabCase_ValidCases(t *testing.T) {
 	t.Parallel()
 
-	dir := t.TempDir()
-	content := `service:
-  name: "sm-im"
-  version: "1.0.0"
-`
-	require.NoError(t, os.WriteFile(filepath.Join(dir, "config.yml"), []byte(content), cryptoutilSharedMagic.CacheFilePermissions))
+	tests := []struct {
+		name    string
+		setupFn func(t *testing.T) string
+	}{
+		{
+			name: "valid service name",
+			setupFn: func(t *testing.T) string {
+				t.Helper()
 
-	result, err := ValidateKebabCase(dir)
-	require.NoError(t, err)
-	require.NotNil(t, result)
-	require.True(t, result.Valid)
-	require.Empty(t, result.Errors)
+				dir := t.TempDir()
+				require.NoError(t, os.WriteFile(filepath.Join(dir, "config.yml"),
+					[]byte("service:\n  name: \"sm-im\"\n  version: \"1.0.0\"\n"), cryptoutilSharedMagic.CacheFilePermissions))
+
+				return dir
+			},
+		},
+		{
+			name: "missing service name field",
+			setupFn: func(t *testing.T) string {
+				t.Helper()
+
+				dir := t.TempDir()
+				require.NoError(t, os.WriteFile(filepath.Join(dir, "config.yml"),
+					[]byte("observability:\n  enabled: true\n"), cryptoutilSharedMagic.CacheFilePermissions))
+
+				return dir
+			},
+		},
+		{
+			name: "non-YAML files ignored",
+			setupFn: func(t *testing.T) string {
+				t.Helper()
+
+				dir := t.TempDir()
+				require.NoError(t, os.WriteFile(filepath.Join(dir, "README.md"), []byte("# readme"), cryptoutilSharedMagic.CacheFilePermissions))
+				require.NoError(t, os.WriteFile(filepath.Join(dir, "data.json"), []byte("{}"), cryptoutilSharedMagic.CacheFilePermissions))
+
+				return dir
+			},
+		},
+		{
+			name: "compose files skipped",
+			setupFn: func(t *testing.T) string {
+				t.Helper()
+
+				dir := t.TempDir()
+				content := []byte("services:\n  Invalid_Name:\n    image: nginx\n")
+				require.NoError(t, os.WriteFile(filepath.Join(dir, "compose.yml"), content, cryptoutilSharedMagic.CacheFilePermissions))
+				require.NoError(t, os.WriteFile(filepath.Join(dir, "docker-compose.yml"), content, cryptoutilSharedMagic.CacheFilePermissions))
+
+				return dir
+			},
+		},
+		{
+			name: "nested directories",
+			setupFn: func(t *testing.T) string {
+				t.Helper()
+
+				dir := t.TempDir()
+				nested := filepath.Join(dir, cryptoutilSharedMagic.ClaimSub, "deep")
+				require.NoError(t, os.MkdirAll(nested, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+				require.NoError(t, os.WriteFile(filepath.Join(nested, "config.yml"),
+					[]byte("service:\n  name: \"my-nested-service\"\n"), cryptoutilSharedMagic.CacheFilePermissions))
+
+				return dir
+			},
+		},
+		{
+			name: "empty directory",
+			setupFn: func(t *testing.T) string {
+				t.Helper()
+
+				return t.TempDir()
+			},
+		},
+		{
+			name: "service name not string",
+			setupFn: func(t *testing.T) string {
+				t.Helper()
+
+				dir := t.TempDir()
+				require.NoError(t, os.WriteFile(filepath.Join(dir, "config.yml"),
+					[]byte("service:\n  name: 123\n"), cryptoutilSharedMagic.CacheFilePermissions))
+
+				return dir
+			},
+		},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			result, err := ValidateKebabCase(tc.setupFn(t))
+			require.NoError(t, err)
+			require.NotNil(t, result)
+			require.True(t, result.Valid)
+			require.Empty(t, result.Errors)
+		})
+	}
 }
 
 func TestValidateKebabCase_InvalidServiceName(t *testing.T) {
@@ -64,72 +151,48 @@ func TestValidateKebabCase_InvalidServiceName(t *testing.T) {
 	}
 }
 
-func TestValidateKebabCase_PathDoesNotExist(t *testing.T) {
+func TestValidateKebabCase_Violations(t *testing.T) {
 	t.Parallel()
 
-	result, err := ValidateKebabCase(filepath.Join(t.TempDir(), "nonexistent"))
-	require.NoError(t, err)
-	require.NotNil(t, result)
-	require.False(t, result.Valid)
-	require.Contains(t, result.Errors[0], "[ValidateKebabCase]")
-	require.Contains(t, result.Errors[0], "does not exist")
-}
+	tests := []struct {
+		name         string
+		setupFn      func(t *testing.T) string
+		wantContains string
+	}{
+		{
+			name: "path does not exist",
+			setupFn: func(t *testing.T) string {
+				t.Helper()
 
-func TestValidateKebabCase_PathIsFile(t *testing.T) {
-	t.Parallel()
+				return filepath.Join(t.TempDir(), "nonexistent")
+			},
+			wantContains: "does not exist",
+		},
+		{
+			name: "path is file",
+			setupFn: func(t *testing.T) string {
+				t.Helper()
 
-	dir := t.TempDir()
-	filePath := filepath.Join(dir, "file.txt")
-	require.NoError(t, os.WriteFile(filePath, []byte("content"), cryptoutilSharedMagic.CacheFilePermissions))
+				f := filepath.Join(t.TempDir(), "file.txt")
+				require.NoError(t, os.WriteFile(f, []byte("content"), cryptoutilSharedMagic.CacheFilePermissions))
 
-	result, err := ValidateKebabCase(filePath)
-	require.NoError(t, err)
-	require.NotNil(t, result)
-	require.False(t, result.Valid)
-	require.Contains(t, result.Errors[0], "[ValidateKebabCase]")
-	require.Contains(t, result.Errors[0], "not a directory")
-}
+				return f
+			},
+			wantContains: "not a directory",
+		},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-func TestValidateKebabCase_MissingServiceNameField(t *testing.T) {
-	t.Parallel()
-
-	dir := t.TempDir()
-	content := "observability:\n  enabled: true\n"
-	require.NoError(t, os.WriteFile(filepath.Join(dir, "config.yml"), []byte(content), cryptoutilSharedMagic.CacheFilePermissions))
-
-	result, err := ValidateKebabCase(dir)
-	require.NoError(t, err)
-	require.NotNil(t, result)
-	require.True(t, result.Valid, "Missing field should not fail validation")
-	require.Empty(t, result.Errors)
-}
-
-func TestValidateKebabCase_NonYAMLFilesIgnored(t *testing.T) {
-	t.Parallel()
-
-	dir := t.TempDir()
-	require.NoError(t, os.WriteFile(filepath.Join(dir, "README.md"), []byte("# readme"), cryptoutilSharedMagic.CacheFilePermissions))
-	require.NoError(t, os.WriteFile(filepath.Join(dir, "data.json"), []byte("{}"), cryptoutilSharedMagic.CacheFilePermissions))
-
-	result, err := ValidateKebabCase(dir)
-	require.NoError(t, err)
-	require.NotNil(t, result)
-	require.True(t, result.Valid)
-}
-
-func TestValidateKebabCase_ComposeFilesSkipped(t *testing.T) {
-	t.Parallel()
-
-	dir := t.TempDir()
-	// Compose files have service names validated by ValidateNaming, not ValidateKebabCase.
-	content := "services:\n  Invalid_Name:\n    image: nginx\n"
-	require.NoError(t, os.WriteFile(filepath.Join(dir, "compose.yml"), []byte(content), cryptoutilSharedMagic.CacheFilePermissions))
-	require.NoError(t, os.WriteFile(filepath.Join(dir, "docker-compose.yml"), []byte(content), cryptoutilSharedMagic.CacheFilePermissions))
-
-	result, err := ValidateKebabCase(dir)
-	require.NoError(t, err)
-	require.NotNil(t, result)
-	require.True(t, result.Valid, "Compose files should be skipped by ValidateKebabCase")
+			result, err := ValidateKebabCase(tc.setupFn(t))
+			require.NoError(t, err)
+			require.NotNil(t, result)
+			require.False(t, result.Valid)
+			require.Contains(t, result.Errors[0], "[ValidateKebabCase]")
+			require.Contains(t, result.Errors[0], tc.wantContains)
+		})
+	}
 }
 
 func TestValidateKebabCase_InvalidYAML(t *testing.T) {
@@ -168,31 +231,6 @@ func TestValidateKebabCase_UnreadableFile(t *testing.T) {
 	require.Contains(t, result.Warnings[0], "Failed to read")
 }
 
-func TestValidateKebabCase_NestedDirectories(t *testing.T) {
-	t.Parallel()
-
-	dir := t.TempDir()
-	nested := filepath.Join(dir, cryptoutilSharedMagic.ClaimSub, "deep")
-	require.NoError(t, os.MkdirAll(nested, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
-
-	content := "service:\n  name: \"my-nested-service\"\n"
-	require.NoError(t, os.WriteFile(filepath.Join(nested, "config.yml"), []byte(content), cryptoutilSharedMagic.CacheFilePermissions))
-
-	result, err := ValidateKebabCase(dir)
-	require.NoError(t, err)
-	require.NotNil(t, result)
-	require.True(t, result.Valid)
-}
-
-func TestValidateKebabCase_EmptyDirectory(t *testing.T) {
-	t.Parallel()
-
-	result, err := ValidateKebabCase(t.TempDir())
-	require.NoError(t, err)
-	require.NotNil(t, result)
-	require.True(t, result.Valid)
-}
-
 func TestValidateKebabCase_WalkError(t *testing.T) {
 	t.Parallel()
 
@@ -215,20 +253,6 @@ func TestValidateKebabCase_WalkError(t *testing.T) {
 	require.NotNil(t, result)
 	require.True(t, len(result.Warnings) > 0)
 	require.Contains(t, result.Warnings[0], "error accessing")
-}
-
-func TestValidateKebabCase_ServiceNameNotString(t *testing.T) {
-	t.Parallel()
-
-	dir := t.TempDir()
-	content := "service:\n  name: 123\n"
-	require.NoError(t, os.WriteFile(filepath.Join(dir, "config.yml"), []byte(content), cryptoutilSharedMagic.CacheFilePermissions))
-
-	result, err := ValidateKebabCase(dir)
-	require.NoError(t, err)
-	require.NotNil(t, result)
-	// Integer value should be silently skipped (not a string).
-	require.True(t, result.Valid)
 }
 
 func TestGetNestedField(t *testing.T) {
