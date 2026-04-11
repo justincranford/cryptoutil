@@ -1,6 +1,6 @@
 # Tasks — Framework v9: Quality & Consistency
 
-**Status**: 5 of 27 tasks complete (19%)
+**Status**: 6 of 27 tasks complete (22%)
 **Created**: 2026-04-08
 **Updated**: 2026-04-10
 
@@ -67,13 +67,13 @@
 
 ## Phase 4: Test Quality (Items 7, 8, 9, 10)
 
-### Task 4.1: Implement jose-ja P2.4 skipped tests
+### Task 4.1: Implement jose-ja P2.4 skipped tests ✅
 
-- [ ] Implement FK constraint tests in `material_jwk_repository_error_test.go`
-- [ ] Implement FK constraint tests in `elastic_jwk_repository_error_test.go`
-- [ ] Implement mocked database tests for error scenarios
-- [ ] Implement cascade deletion tests
-- [ ] Remove all `t.Skip("TODO P2.4: ...")` calls
+- [x] Implement FK constraint tests in `material_jwk_repository_error_test.go`
+- [x] Implement FK constraint tests in `elastic_jwk_repository_error_test.go`
+- [x] Implement mocked database tests for error scenarios
+- [x] Implement cascade deletion tests
+- [x] Remove all `t.Skip("TODO P2.4: ...")` calls
 
 ### Task 4.2: Resolve Phase W migration TODOs
 

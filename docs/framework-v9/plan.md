@@ -85,20 +85,14 @@ test packages. If migration scope is too large, choose option A.
 **Action**: When golangci-lint v2.8+ is released, test goheader on a branch. If the bug is
 fixed, re-enable it. Template: `Copyright (c) {{ YEAR }} Justin Cranford`.
 
-### 7. TODO P2.4 Tests in jose-ja Repository [MEDIUM]
+### ~~7. TODO P2.4 Tests in jose-ja Repository~~ ✅ COMPLETED
 
 **Source**: TODO audit
 
-**Current state**: 12 skipped test cases in `jose-ja/server/repository/` with `t.Skip("TODO
-P2.4: ...")`. These cover FK constraint tests, mocked database tests, transaction rollback
-scenarios, and cascade deletion tests.
-
-**Files affected**:
-- `material_jwk_repository_error_test.go` (6 skipped tests)
-- `elastic_jwk_repository_error_test.go` (6 skipped tests)
-
-**Action**: Implement the skipped tests. Prioritize FK constraint and cascade deletion tests
-(require schema migration changes). Mocked database tests are lower priority.
+**Resolution**: Implemented 13 skipped tests across 3 repository error test files.
+All `t.Skip("TODO P2.4: ...")` calls removed. Tests use closedDB for error paths,
+testDB for constraint violations, concurrent goroutines for race testing, and GORM
+transactions for rollback verification. SQLite FK non-enforcement documented in tests.
 
 ### 8. Phase W Migration Handling in Framework [MEDIUM]
 
