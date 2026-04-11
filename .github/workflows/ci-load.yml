@@ -116,8 +116,8 @@ jobs:
       uses: ./.github/actions/docker-images-pull
       with:
         images: |
-          postgres:18
-          alpine:3.19
+          postgres:latest
+          alpine:latest
           golang:1.26.1
           otel/opentelemetry-collector-contrib:latest
           grafana/otel-lgtm:latest

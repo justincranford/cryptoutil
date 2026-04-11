@@ -85,7 +85,7 @@ jobs:
       with:
         images: |
           golang:1.26.1
-          postgres:18
+          postgres:latest
           alpine:latest
           otel/opentelemetry-collector-contrib:latest
           grafana/otel-lgtm:latest
