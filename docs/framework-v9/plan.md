@@ -1,8 +1,8 @@
 # Plan — Framework v9: Quality & Consistency
 
-**Status**: In Progress (items 1, 4 completed; items 3, 13 removed)
+**Status**: In Progress (items 1, 4, 7, 14 completed; items 3, 13 removed; items 15-22 added)
 **Created**: 2026-04-08
-**Updated**: 2026-04-10
+**Updated**: 2026-04-11
 
 ---
 
@@ -165,3 +165,125 @@ uses built-in PS-ID livez CLI (not wget/curl).
 **Completed**: Added `ctx context.Context` parameter to `Migrate()` function. Callers
 (`AutoMigrate`) now pass startup context through instead of using `context.TODO()`.
 Also replaced `context.TODO()` with `context.Background()` in identity test files.
+
+### 15. Dockerfile Template Enforcement [CRITICAL]
+
+**Source**: Deep research — Dockerfile consistency audit (deployment-templates.md)
+
+**Current state**: 3 fundamentally different Dockerfile patterns exist across 10 PS-IDs:
+- **Pattern A** (sm-kms, identity-authz/idp/rp/rs): 4-stage, WORKDIR /app/run, curl installed,
+  GOMODCACHE/GOCACHE env vars, USER commented out, individual LABEL lines
+- **Pattern B** (jose-ja, pki-ca, skeleton-template): 3-stage (no runtime-deps), adduser-based,
+  compact LABEL, CMD with config path
+- **Pattern C** (sm-im): 2-stage (no validation), user 1000:1000, no BuildKit caches, no static link check
+
+**Target state**: ONE canonical 4-stage template (validation → builder → runtime-deps → final)
+as defined in `docs/deployment-templates.md` Section B. All 10 PS-ID Dockerfiles MUST match
+this template exactly (parameterized by PS-ID, DISPLAY_NAME).
+
+**Action**: Rewrite all 10 PS-ID Dockerfiles to match the canonical template. Fix:
+- skeleton-template: Remove all jose-ja copy-paste artifacts (header, username, paths)
+- identity-spa: Fix COPY bug (copies /app/cryptoutil instead of /app/identity-spa)
+- sm-im: Add validation stage, BuildKit caches, static link check, fix user to 65532
+- Pattern A services: Remove curl, uncomment USER, remove GOMODCACHE/GOCACHE, fix WORKDIR
+- All: Use compact LABEL block, no CMD, ENTRYPOINT with tini
+
+**Risk**: Binary name changes (CMD removal) require compose.yml command verification.
+
+### 16. Dockerfile Enforcement Linters [HIGH]
+
+**Source**: cicd-lint gap analysis
+
+**Current state**: Only 2 Dockerfile-specific fitness linters exist (`dockerfile-healthcheck`,
+`dockerfile-labels`). The massive divergence in Section 15 was undetectable.
+
+**Action**: Implement 8 new fitness linters as specified in `docs/deployment-templates.md`
+Section N.1: `dockerfile_structure`, `dockerfile_binary_name`, `dockerfile_user`,
+`dockerfile_entrypoint`, `dockerfile_no_cmd`, `dockerfile_no_curl`, `dockerfile_workdir`,
+`dockerfile_no_goenv`.
+
+### 17. Config Key Naming Migration (snake_case → kebab-case) [HIGH]
+
+**Source**: NOTE — This supersedes and expands Item 2.
+
+**Current state**: 7 of 10 PS-IDs use snake_case config keys. 3 use kebab-case (correct).
+This affects `configs/{PS-ID}/{PS-ID}.yml` AND `deployments/{PS-ID}/config/*.yml`.
+
+**Action**: Migrate all snake_case configs to kebab-case. Items affected:
+- Standalone configs: sm-kms, sm-im (completely different schema from framework services)
+- Deployment configs: sm-kms (common has mixed keys including `security: csrf_enabled`),
+  sm-im (minimal - just bind + credentials)
+- Go config parsers: Verify framework parser handles kebab-case (it does), verify
+  sm-kms/sm-im custom parsers are updated
+- Identity service standalone configs: identity-authz, identity-idp, identity-rp,
+  identity-rs, identity-spa
+- Identity deployment configs: all 5 services
+
+**Risk**: Config key changes break running services. Coordinate config files + parsers + tests.
+
+### 18. Deployment Config Overlay Standardization [MEDIUM]
+
+**Source**: Deep research — config overlay structure audit
+
+**Current state**: Deployment config overlays vary wildly:
+- sm-kms: Common has TLS, unseal, credentials, CORS, CSRF. Instance files minimal.
+- sm-im: Common has only bind + credentials. Instance files have bind + otlp only.
+- jose-ja: Common has OTel, security-headers, rate-limiting, credentials. Instance files
+  DUPLICATE common settings (security-headers, rate-limiting).
+- skeleton-template: Copy-paste of jose-ja (says "JOSE Common Configuration" in header).
+
+**Target state**: All deployment config overlays follow the template in
+`docs/deployment-templates.md` Section D. Common file has shared settings (bind, TLS,
+unseal, credentials, allowed-ips, CSRF). Instance files have ONLY instance-specific
+settings (cors-origins, otlp-service, otlp-hostname, database-url for SQLite).
+
+**Action**: Rewrite all deployment config overlays to match template.
+
+### 19. Standalone Config Standardization [MEDIUM]
+
+**Source**: Deep research — standalone config structure audit
+
+**Current state**: Standalone configs have different schemas:
+- sm-kms/sm-im: Deeply nested (service/database/server/admin/tls/features/rate_limit/cors),
+  all snake_case, extensive inline documentation
+- jose-ja: Flat kebab-case (bind-public-address, tls-enabled, cors-origins, otlp-*, etc.)
+- skeleton-template: Copy-paste of jose-ja (header says "JOSE Authority Server",
+  otlp-service says "skeleton-template-ja")
+
+**Target state**: All standalone configs follow the template in `docs/deployment-templates.md`
+Section E. Flat kebab-case keys matching the framework config parser.
+
+**Action**: Rewrite standalone configs. sm-kms and sm-im require schema migration from deep
+nested to flat kebab-case.
+
+### 20. Suite Dockerfile Fix [LOW]
+
+**Source**: Deep research — Dockerfile audit
+
+**Current state**: cryptoutil suite Dockerfile does not install/copy tini. ENTRYPOINT is bare
+`["/app/cryptoutil"]` without tini wrapper.
+
+**Action**: Add tini to runtime-deps stage. Update ENTRYPOINT to
+`["/sbin/tini", "--", "/app/cryptoutil"]`.
+
+### 21. Config Enforcement Linters [MEDIUM]
+
+**Source**: cicd-lint gap analysis
+
+**Current state**: No linter validates config YAML key naming or config content structure.
+The `validate_schema.go` in lint-deployments validates hardcoded schema but doesn't
+check all the structural rules in deployment-templates.md.
+
+**Action**: Implement 4 new fitness linters as specified in `docs/deployment-templates.md`
+Section N.1: `config_key_naming`, `config_header_identity`, `config_instance_minimal`,
+`config_common_complete`.
+
+### 22. Deployment Templates Documentation [LOW]
+
+**Source**: Planning — companion documentation
+
+**Completed**: Created `docs/deployment-templates.md` as companion to
+`docs/target-structure.md` (directory layout) and `docs/tls-structure.md` (TLS certs).
+Defines canonical file content templates for all Dockerfiles, compose.yml files,
+config files, and secrets at PS-ID, PRODUCT, and SUITE levels. Includes 20 Dockerfile
+rules, 18 compose rules, 12 config rules, and comprehensive inconsistency inventory.
