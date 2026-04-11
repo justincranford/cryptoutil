@@ -1,31 +1,31 @@
-# Secrets Manager Key Management Service Configuration
-# This file provides the default configuration for the SM-KMS server.
-# Override with environment-specific configs in deployments/sm-kms/config/
+# Secrets Manager Key Management Configuration
+# Local development config for sm-kms.
+# Override with deployment configs in deployments/sm-kms/config/
 
-# Server binding
+# Server binding (local development).
 bind-public-address: "127.0.0.1"
 bind-public-port: 8000
 bind-admin-address: "127.0.0.1"
 bind-admin-port: 9090
 
-# TLS configuration for HTTPS
+# TLS (auto-generated for local dev).
 tls-enabled: true
-tls-cert-file: "" # Set in deployment config
-tls-key-file: "" # Set in deployment config
+tls-cert-file: ""
+tls-key-file: ""
 
-# CORS configuration - HTTPS origins only
+# CORS (local development ports).
 cors-origins:
   - "https://localhost:8000"
   - "https://127.0.0.1:8000"
 
-# OTLP telemetry
+# Telemetry (disabled for local dev).
 otlp-enabled: false
 otlp-endpoint: ""
 otlp-service: "sm-kms"
 otlp-hostname: "localhost"
 
-# Logging
+# Logging.
 log-level: "INFO"
 
-# Database (in-memory SQLite by default)
+# Database (in-memory SQLite by default).
 database-url: "sqlite://file::memory:?cache=shared"

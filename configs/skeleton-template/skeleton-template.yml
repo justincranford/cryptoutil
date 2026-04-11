@@ -1,42 +1,30 @@
-# JOSE Authority Server Configuration
-# This file provides the default configuration for the JOSE Authority Server.
-# Override with environment-specific configs in deployments/skeleton-template/config/
+# Skeleton Template Configuration
+# Local development config for skeleton-template.
+# Override with deployment configs in deployments/skeleton-template/config/
 
-# Server binding
+# Server binding (local development).
 bind-public-address: "127.0.0.1"
 bind-public-port: 8900
 bind-admin-address: "127.0.0.1"
-bind-admin-port: 9092
+bind-admin-port: 9090
 
-# TLS configuration for HTTPS
+# TLS (auto-generated for local dev).
 tls-enabled: true
-tls-cert-file: "" # Set in deployment config
-tls-key-file: "" # Set in deployment config
+tls-cert-file: ""
+tls-key-file: ""
 
-# CORS configuration - HTTPS origins only
+# CORS (local development ports).
 cors-origins:
   - "https://localhost:8900"
   - "https://127.0.0.1:8900"
 
-# OTLP telemetry
+# Telemetry (disabled for local dev).
 otlp-enabled: false
 otlp-endpoint: ""
-otlp-service: "skeleton-template-ja"
+otlp-service: "skeleton-template"
 otlp-hostname: "localhost"
 
-# Logging
+# Logging.
 log-level: "INFO"
-
-# Key storage (in-memory by default)
-key-storage:
-  type: "memory"
-  # For file-based: path: "/var/lib/skeleton-template/keys"
-  # For database: dsn: "file:skeleton-template.db?cache=shared&mode=rwc"
-
-# API key authentication (disabled by default)
-api-key-auth:
-  enabled: false
-  # keys:
-  #   - name: "admin"
-  #     key: "generate-secure-key-here"
-  #     scopes: ["read", "write", "delete"]
+#     key: "generate-secure-key-here"
+#     scopes: ["read", "write", "delete"]

@@ -1,33 +1,33 @@
 # Identity Resource Server Configuration
-# This file provides the default configuration for the Identity RS server.
-# Override with environment-specific configs in deployments/identity-rs/config/
+# Local development config for identity-rs.
+# Override with deployment configs in deployments/identity-rs/config/
 
-# Server binding
+# Server binding (local development).
 bind-public-address: "127.0.0.1"
 bind-public-port: 8600
 bind-admin-address: "127.0.0.1"
 bind-admin-port: 9090
 
-# TLS configuration for HTTPS
+# TLS (auto-generated for local dev).
 tls-enabled: true
-tls-cert-file: "" # Set in deployment config
-tls-key-file: "" # Set in deployment config
+tls-cert-file: ""
+tls-key-file: ""
 
-# CORS configuration - HTTPS origins only
+# CORS (local development ports).
 cors-origins:
   - "https://localhost:8600"
   - "https://127.0.0.1:8600"
 
-# OTLP telemetry
+# Telemetry (disabled for local dev).
 otlp-enabled: false
 otlp-endpoint: ""
 otlp-service: "identity-rs"
 otlp-hostname: "localhost"
 
-# Logging
+# Logging.
 log-level: "INFO"
 
-# Database (in-memory SQLite by default)
+# Database (in-memory SQLite by default).
 database-url: "sqlite://file::memory:?cache=shared"
 
 # Resource Server settings

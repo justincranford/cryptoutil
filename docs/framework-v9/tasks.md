@@ -1,6 +1,6 @@
 # Tasks — Framework v9: Quality & Consistency
 
-**Status**: 29 of 37 tasks complete (78%)
+**Status**: 30 of 37 tasks complete (81%)
 **Created**: 2026-04-08
 **Updated**: 2026-04-18
 
@@ -235,12 +235,13 @@ Affected: jose-ja, pki-ca
 - [x] Align all instance configs to minimal template (only cors-origins, otlp, database-url)
 - [x] Remove 3 legacy domain config files (identity-rp/rs/spa-domain.yml) — unreferenced, wrong ports, snake_case
 
-### Task 7.6: Standardize standalone configs (Item 19)
+### Task 7.6: Standardize standalone configs (Item 19) ✅
 
-- [ ] Fix skeleton-template standalone config: header says "JOSE", otlp says "skeleton-template-ja"
-- [ ] Migrate sm-kms from deep nested schema to flat kebab-case
-- [ ] Migrate sm-im from deep nested schema to flat kebab-case
-- [ ] Align all standalone configs to template in deployment-templates.md Section E
+- [x] Fix skeleton-template standalone config: header says "JOSE", otlp says "skeleton-template-ja", admin port 9092→9090
+- [x] Fix jose-ja standalone config: header says "JOSE Authority Server", admin port 9092→9090, wrong override path
+- [x] Fix pki-ca standalone config: header says "CA Server", public port 8091→8300, admin port 9091→9090, CORS ports 8091→8300
+- [x] Align all 10 standalone configs to canonical template in deployment-templates.md Section E
+- [x] Remove legacy domain-specific blocks from skeleton-template (key-storage, api-key-auth) and jose-ja (key-storage, api-key-auth)
 
 ### Task 7.7: Run deployment validators
 

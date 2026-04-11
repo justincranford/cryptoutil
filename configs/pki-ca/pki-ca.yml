@@ -1,36 +1,36 @@
-# CA Server Configuration
-# This file provides the default configuration for the Certificate Authority Server.
-# Override with environment-specific configs in deployments/pki-ca/config/
+# PKI Certificate Authority Configuration
+# Local development config for pki-ca.
+# Override with deployment configs in deployments/pki-ca/config/
 
-# Server binding
+# Server binding (local development).
 bind-public-address: "127.0.0.1"
-bind-public-port: 8091
+bind-public-port: 8300
 bind-admin-address: "127.0.0.1"
-bind-admin-port: 9091
+bind-admin-port: 9090
 
-# TLS configuration for HTTPS
+# TLS (auto-generated for local dev).
 tls-enabled: true
-tls-cert-file: "" # Set in deployment config
-tls-key-file: "" # Set in deployment config
+tls-cert-file: ""
+tls-key-file: ""
 
-# CORS configuration - HTTPS origins only
+# CORS (local development ports).
 cors-origins:
-  - "https://localhost:8091"
-  - "https://127.0.0.1:8091"
+  - "https://localhost:8300"
+  - "https://127.0.0.1:8300"
 
-# OTLP telemetry
+# Telemetry (disabled for local dev).
 otlp-enabled: false
 otlp-endpoint: ""
 otlp-service: "pki-ca"
 otlp-hostname: "localhost"
 
-# Logging
+# Logging.
 log-level: "INFO"
 
-# Development mode - creates self-signed CA on startup
+# Development mode - creates self-signed CA on startup.
 dev: false
 
-# CA configuration (loaded from separate file or inline)
+# CA configuration.
 ca:
   name: "cryptoutil-ca"
   description: "Cryptoutil Certificate Authority"
