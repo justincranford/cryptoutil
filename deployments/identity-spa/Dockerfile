@@ -1,9 +1,12 @@
 #############################################################################################
-# Identity SPA RP Dockerfile
-# Use BuildKit syntax to enable cache mounts (fast rebuilds)
-# To build with cache mounts set DOCKER_BUILDKIT=1
-# Example: DOCKER_BUILDKIT=1 docker build -t cryptoutil-identity-spa-rp -f deployments/identity/Dockerfile.spa .
+# identity-spa Dockerfile — Identity Single Page App
 #
+# Build: DOCKER_BUILDKIT=1 docker build \
+#          --build-arg APP_VERSION=<ver> \
+#          --build-arg VCS_REF=$(git rev-parse HEAD) \
+#          --build-arg BUILD_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ") \
+#          -t cryptoutil-identity-spa:<tag> \
+#          -f deployments/identity-spa/Dockerfile .
 #############################################################################################
 ARG APP_VERSION=UNSET
 ARG VCS_REF=UNSET
@@ -12,21 +15,26 @@ ARG BUILD_DATE=UNSET
 ARG GO_VERSION=1.26.1
 # hadolint ignore=DL3007
 ARG ALPINE_VERSION=latest
+# Design intent is to NEVER set CGO_ENABLED=1
 ARG CGO_ENABLED=0
 ARG GOOS=linux
 ARG GOARCH=amd64
-# Build flags for production container: static linking with debug symbols retained.
 ARG LDFLAGS="-s -extldflags '-static'"
 #############################################################################################
+# Non-root container user/group IDs. Default 65532:65532 is the well-known nonroot UID/GID
+# convention. Running as non-root limits blast radius of container escapes.
+ARG CONTAINER_UID=65532
+ARG CONTAINER_GID=65532
+#############################################################################################
 
-# Validate required build arguments
+#############################################################################################
+# Stage 1: Validate build arguments
 #############################################################################################
 FROM alpine:${ALPINE_VERSION} AS validation
 ARG APP_VERSION=UNSET
 ARG VCS_REF=UNSET
 ARG BUILD_DATE=UNSET
 
-# Check all mandatory parameters and collect errors.
 RUN set -e; \
     errors=""; \
     if [ "$APP_VERSION" = "UNSET" ]; then \
@@ -40,22 +48,20 @@ RUN set -e; \
     fi; \
     if [ -n "$errors" ]; then \
         printf "%b" "$errors" >&2; \
-        echo "Usage: DOCKER_BUILDKIT=1 docker build --build-arg APP_VERSION=<version> --build-arg VCS_REF=\$(git rev-parse HEAD) --build-arg BUILD_DATE=\$(date -u +\"%Y-%m-%dT%H:%M:%SZ\") -t cryptoutil-identity-spa-rp -f deployments/identity/Dockerfile.spa ." >&2; \
         exit 1; \
     fi
 
-# Write build parameters to file for runtime inspection.
 RUN mkdir -p /app && \
     echo "APP_VERSION=${APP_VERSION}" > /app/.build-params && \
     echo "VCS_REF=${VCS_REF}" >> /app/.build-params && \
-    echo "BUILD_DATE=${BUILD_DATE}" >> /app/.build-params && \
-    cat /app/.build-params
+    echo "BUILD_DATE=${BUILD_DATE}" >> /app/.build-params
 
+#############################################################################################
+# Stage 2: Build Go binary
 #############################################################################################
 FROM golang:${GO_VERSION} AS builder
 WORKDIR /src
 
-# Redeclare build args for use in this stage.
 ARG APP_VERSION
 ARG VCS_REF
 ARG BUILD_DATE
@@ -65,100 +71,78 @@ ARG GOOS
 ARG GOARCH
 ARG LDFLAGS
 
-# Copy dependency manifests first to leverage layer caching.
 COPY go.mod go.sum ./
-
-# Download modules using BuildKit cache mounts when available.
 RUN --mount=type=cache,target=/go/pkg/mod \
     --mount=type=cache,target=/root/.cache/go-build \
     go mod download
 
-# Copy the remainder of the source.
 COPY . .
 
-# Build the static, trimmed binary. Uses BuildKit cache mounts for faster incremental builds.
 RUN --mount=type=cache,target=/go/pkg/mod \
     --mount=type=cache,target=/root/.cache/go-build \
     CGO_ENABLED=${CGO_ENABLED} GOOS=${GOOS} GOARCH=${GOARCH} \
-    go build -a -tags netgo -trimpath -ldflags="${LDFLAGS}" -o /app/identity-spa ./cmd/identity-spa
+    go build -a -tags netgo -trimpath -ldflags="${LDFLAGS}" \
+    -o /app/identity-spa ./cmd/identity-spa
 
-# Validate that the binary is statically linked.
+# Validate static linking
 SHELL ["/bin/bash", "-c"]
 RUN if ldd /app/identity-spa 2>/dev/null; then \
-        echo "âœ— Binary is dynamically linked - failing build"; \
-        ldd /app/identity-spa; \
+        echo "Binary is dynamically linked - failing build"; \
         exit 1; \
-    else \
-        echo "✓ Binary is statically linked"; \
     fi
 
-# Create /app directory with proper ownership for the application user.
-RUN mkdir -p /app && chmod 555 /app && chown -R 65532:65532 /app
-
-# Create runtime directory for application data (certificates, etc.) with proper ownership.
-RUN mkdir -p /app/run && chmod 775 /app/run && chown -R 65532:65532 /app/run
-
-# Create cache directory for any caching needs with proper ownership.
-RUN mkdir -p /app/cache && chmod 775 /app/cache && chown -R 65532:65532 /app/cache
+ARG CONTAINER_UID
+ARG CONTAINER_GID
+RUN mkdir -p /app && chmod 555 /app && chown -R ${CONTAINER_UID}:${CONTAINER_GID} /app
 
 #############################################################################################
+# Stage 3: Runtime dependencies
+#############################################################################################
+# hadolint ignore=DL3006
 FROM alpine:${ALPINE_VERSION} AS runtime-deps
-WORKDIR /root/ssl
-# hadolint ignore=DL3018 # Intentionally unpinned for automatic security updates.
-RUN --mount=type=cache,target=/var/cache/apk \
-    apk --no-cache add ca-certificates tzdata tini && \
+# hadolint ignore=DL3018
+RUN apk --no-cache add ca-certificates tzdata tini && \
     update-ca-certificates
 
 #############################################################################################
-FROM alpine:${ALPINE_VERSION} AS runtime
-ARG APP_VERSION
-ARG VCS_REF
-ARG BUILD_DATE
+# Stage 4: Final image
+#############################################################################################
+# hadolint ignore=DL3006
+FROM alpine:${ALPINE_VERSION} AS final
 
-# Copy apk installed dependencies from runtime-deps.
+# Copy runtime dependencies
 COPY --from=runtime-deps /sbin/tini /sbin/tini
 COPY --from=runtime-deps /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 
-# Create application user with UID 65532 (non-root).
-RUN addgroup -g 65532 -S appgroup && \
-    adduser -u 65532 -S appuser -G appgroup -h /app -s /sbin/nologin
-
-# Copy build parameters for runtime inspection.
+# Copy application binary and build metadata
+COPY --from=builder /app /app
 COPY --from=validation /app/.build-params /app/.build-params
 
-# Copy the compiled binary from the builder stage.
-COPY --from=builder /app/cryptoutil /app/cryptoutil
+# Create non-root user
+ARG CONTAINER_UID
+ARG CONTAINER_GID
+RUN addgroup -g ${CONTAINER_GID} -S appgroup && \
+    adduser -u ${CONTAINER_UID} -S appuser -G appgroup -h /app -s /sbin/nologin
 
-# Ensure binary has execute permissions and correct ownership.
-RUN chmod 555 /app/cryptoutil && \
-    chown 65532:65532 /app/cryptoutil
-
-# Switch to non-root user.
-USER 65532:65532
-
-# Set working directory.
 WORKDIR /app
 
-# Expose public port only (admin 9090 binds 127.0.0.1, never exposed).
+# OCI image labels
+ARG APP_VERSION
+ARG VCS_REF
+ARG BUILD_DATE
+LABEL org.opencontainers.image.title="cryptoutil-identity-spa" \
+    org.opencontainers.image.description="Identity Single Page App" \
+    org.opencontainers.image.source="https://github.com/justincranford/cryptoutil" \
+    org.opencontainers.image.authors="Justin Cranford" \
+    org.opencontainers.image.version="${APP_VERSION}" \
+    org.opencontainers.image.revision="${VCS_REF}" \
+    org.opencontainers.image.created="${BUILD_DATE}"
+
 EXPOSE 8080
 
-# Healthcheck using built-in CLI livez subcommand (no wget dependency).
 HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
     CMD /app/identity-spa livez || exit 1
 
-# Use tini for proper signal handling and zombie process reaping.
 ENTRYPOINT ["/sbin/tini", "--", "/app/identity-spa"]
 
-# Switch to non-root user for security.
-# USER 65532:65532
-
-#############################################################################################
-# Labels for container metadata.
-#############################################################################################
-LABEL org.opencontainers.image.title="cryptoutil-identity-spa" \
-    org.opencontainers.image.description="SPA Relying Party for cryptoutil Identity services" \
-    org.opencontainers.image.version="${APP_VERSION}" \
-    org.opencontainers.image.created="${BUILD_DATE}" \
-    org.opencontainers.image.source="https://github.com/justincranford/cryptoutil" \
-    org.opencontainers.image.revision="${VCS_REF}" \
-    org.opencontainers.image.licenses="MIT"
+USER ${CONTAINER_UID}:${CONTAINER_GID}
