@@ -1,8 +1,10 @@
-# CRITICAL: This file contains COMMON settings used by ALL identity-rp services in compose.yml
-# ALL identity-rp instances MUST use this file for shared configuration.
+# identity-rp-app-common.yml
+# Common settings shared by ALL identity-rp instances in compose.yml
 
-# Binding address - 0.0.0.0 allows connections from any NIC within the container
 bind-public-address: "0.0.0.0"
+
+tls-cert-file: /run/secrets/tls-cert.pem
+tls-key-file: /run/secrets/tls-key.pem
 
 unseal-mode: "3-of-5"
 
@@ -13,7 +15,11 @@ unseal-files:
   - /run/secrets/unseal-4of5.secret
   - /run/secrets/unseal-5of5.secret
 
-# Allow all IPs for development/testing
+browser-username-file: /run/secrets/browser-username.secret
+browser-password-file: /run/secrets/browser-password.secret
+service-username-file: /run/secrets/service-username.secret
+service-password-file: /run/secrets/service-password.secret
+
 allowed-ips:
   - "127.0.0.1"
   - "::1"
@@ -22,5 +28,4 @@ allowed-cidrs:
   - "0.0.0.0/0"
   - "::/0"
 
-# Disable CSRF for API testing
 csrf-token-single-use-token: false

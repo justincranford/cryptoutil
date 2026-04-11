@@ -1,31 +1,10 @@
-# JOSE E2E Configuration - PostgreSQL Instance 2
+# skeleton-template PostgreSQL Instance 2 Configuration
+# Settings UNIQUE to the 'skeleton-template-app-postgresql-2' compose service.
 
-# Server binding - 0.0.0.0 to accept connections from Docker network.
-bind-public-address: "0.0.0.0"
-bind-public-port: 8080
+cors-origins:
+  - "https://localhost:8903"
+  - "https://127.0.0.1:8903"
+  - "https://[::1]:8903"
 
-# OTLP telemetry - connects to otel-collector sidecar.
-otlp-enabled: true
-otlp-endpoint: "opentelemetry-collector-contrib:4317"
-otlp-service: "skeleton-template-postgresql-2"
-otlp-hostname: "skeleton-template-postgresql-2"
-
-# Security headers.
-security-headers:
-  hsts: true
-  hsts-max-age: 31536000
-  hsts-include-subdomains: true
-  hsts-preload: true
-  content-security-policy: "default-src 'self'; frame-ancestors 'none'"
-  x-frame-options: "DENY"
-  x-content-type-options: "nosniff"
-
-# Rate limiting.
-rate-limiting:
-  enabled: true
-  requests-per-second: 100
-  burst: 200
-
-# IP allowlist - allow all for E2E.
-ip-allowlist:
-  enabled: false
+otlp-service: skeleton-template-postgresql-2
+otlp-hostname: skeleton-template-postgresql-2

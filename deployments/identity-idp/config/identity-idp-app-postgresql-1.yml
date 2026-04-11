@@ -1,10 +1,10 @@
-# CRITICAL: ALL settings in this file MUST BE UNIQUE and CORRESPOND TO the 'identity-idp-app-postgresql-1' service name in compose.yml
+# identity-idp PostgreSQL Instance 1 Configuration
+# Settings UNIQUE to the 'identity-idp-app-postgresql-1' compose service.
 
-# CORS configuration - HTTPS origins only
 cors-origins:
-  - "https://localhost:18301"
-  - "https://127.0.0.1:18301"
-  - "https://[::1]:18301"
+  - "https://localhost:8502"
+  - "https://127.0.0.1:8502"
+  - "https://[::1]:8502"
 
 otlp-service: identity-idp-postgresql-1
 otlp-hostname: identity-idp-postgresql-1

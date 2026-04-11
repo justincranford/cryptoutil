@@ -1,33 +1,12 @@
-# Skeleton Template E2E Test Configuration - SQLite In-Memory Instance 2
-# Configuration for skeleton-template service in E2E testing environment.
+# skeleton-template SQLite Instance 2 Configuration
+# Settings UNIQUE to the 'skeleton-template-app-sqlite-2' compose service.
 
-# Server binding - 0.0.0.0 to accept connections from test containers.
-bind-public-address: "0.0.0.0"
-bind-public-port: 8080
-bind-admin-address: "0.0.0.0"
-bind-admin-port: 9090
-
-# TLS configuration - self-signed for E2E.
-tls-enabled: true
-tls-cert-file: ""
-tls-key-file: ""
-
-# CORS configuration - allow localhost and container access.
 cors-origins:
-  - "https://localhost:8900"
-  - "https://127.0.0.1:8900"
-  - "https://skeleton-template:8080"
+  - "https://localhost:8901"
+  - "https://127.0.0.1:8901"
+  - "https://[::1]:8901"
 
-# Database - SQLite in-memory URL for containerized testing.
+otlp-service: skeleton-template-sqlite-2
+otlp-hostname: skeleton-template-sqlite-2
+
 database-url: "sqlite://file::memory:?cache=shared"
-
-# Key storage - in-memory for E2E tests.
-key-storage:
-  type: "memory"
-
-# API authentication disabled for E2E.
-api-key-auth:
-  enabled: false
-
-# Logging.
-log-level: "DEBUG"

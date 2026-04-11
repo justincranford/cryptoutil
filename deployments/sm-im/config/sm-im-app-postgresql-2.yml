@@ -1,4 +1,10 @@
-bind-public-address: "0.0.0.0"
-bind-public-port: 8080
+# sm-im PostgreSQL Instance 2 Configuration
+# Settings UNIQUE to the 'sm-im-app-postgresql-2' compose service.
+
+cors-origins:
+  - "https://localhost:8103"
+  - "https://127.0.0.1:8103"
+  - "https://[::1]:8103"
 
 otlp-service: sm-im-postgresql-2
+otlp-hostname: sm-im-postgresql-2

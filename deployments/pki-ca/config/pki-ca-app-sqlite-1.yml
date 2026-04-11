@@ -1,23 +1,12 @@
-# CA SQLite Instance 1 Configuration
-# Used by: pki-ca-app-sqlite-1 service in compose.yml
-#
-# This file contains instance-specific settings.
-# Common settings are in pki-ca-app-common.yml.
+# pki-ca SQLite Instance 1 Configuration
+# Settings UNIQUE to the 'pki-ca-app-sqlite-1' compose service.
 
-# Service name for telemetry
-service-name: "pki-ca-sqlite-1"
-
-# Public API port
-bind-public-port: 8080
-
-# Database backend (SQLite in-memory for dev/ci)
-database-url: "sqlite://file::memory:?cache=shared"
-
-# CORS origins (specific to this instance)
 cors-origins:
-  - "https://localhost:8100"
-  - "https://127.0.0.1:8100"
+  - "https://localhost:8300"
+  - "https://127.0.0.1:8300"
+  - "https://[::1]:8300"
 
-# OTLP telemetry service name (unique per instance)
-otlp-service-name: "pki-ca-sqlite-1"
-otlp-hostname: "pki-ca-sqlite-1"
+otlp-service: pki-ca-sqlite-1
+otlp-hostname: pki-ca-sqlite-1
+
+database-url: "sqlite://file::memory:?cache=shared"

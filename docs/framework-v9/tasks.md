@@ -1,6 +1,6 @@
 # Tasks — Framework v9: Quality & Consistency
 
-**Status**: 24 of 37 tasks complete (65%)
+**Status**: 29 of 37 tasks complete (78%)
 **Created**: 2026-04-08
 **Updated**: 2026-04-18
 
@@ -185,46 +185,55 @@ Affected: jose-ja, pki-ca
 
 ## Phase 7: Config Standardization (Items 17, 18, 19)
 
-### Task 7.1: Audit config parsers for snake_case (Item 17)
+### Task 7.1: Audit config parsers for snake_case (Item 17) ✅
 
-- [ ] Audit sm-kms config parser: identify all snake_case struct tags
-- [ ] Audit sm-im config parser: identify all snake_case struct tags
-- [ ] Audit identity-authz config parser: identify all snake_case struct tags
-- [ ] Audit identity-idp config parser: identify all snake_case struct tags
-- [ ] Audit identity-rp config parser: identify struct tags
-- [ ] Audit identity-rs config parser: identify struct tags
-- [ ] Audit identity-spa config parser: identify struct tags
-- [ ] Determine if framework config parser handles kebab-case (verify mapstructure tags)
+- [x] Audit sm-kms config parser: identify all snake_case struct tags
+- [x] Audit sm-im config parser: identify all snake_case struct tags
+- [x] Audit identity-authz config parser: identify all snake_case struct tags
+- [x] Audit identity-idp config parser: identify all snake_case struct tags
+- [x] Audit identity-rp config parser: identify struct tags
+- [x] Audit identity-rs config parser: identify struct tags
+- [x] Audit identity-spa config parser: identify struct tags
+- [x] Determine if framework config parser handles kebab-case (verify mapstructure tags)
 
-### Task 7.2: Migrate sm-kms configs to kebab-case (Item 17)
+**Completed in Phase 2** (Task 2.1). ALL services use framework parser with kebab-case flags. No Go code changes needed.
 
-- [ ] Update `configs/sm-kms/sm-kms.yml` — all keys to kebab-case
-- [ ] Update `deployments/sm-kms/config/sm-kms-app-common.yml` — all keys to kebab-case
-- [ ] Update `deployments/sm-kms/config/sm-kms-app-sqlite-1.yml` through sqlite-2, pg-1, pg-2
-- [ ] Update Go config struct tags in `internal/apps/sm-kms/`
-- [ ] Run tests: `go test ./internal/apps/sm-kms/...`
+### Task 7.2: Migrate sm-kms configs to kebab-case (Item 17) ✅
 
-### Task 7.3: Migrate sm-im configs to kebab-case (Item 17)
+- [x] Update `configs/sm-kms/sm-kms.yml` — all keys to kebab-case
+- [x] Update `deployments/sm-kms/config/sm-kms-app-common.yml` — all keys to kebab-case
+- [x] Update `deployments/sm-kms/config/sm-kms-app-sqlite-1.yml` through sqlite-2, pg-1, pg-2
+- [x] Update Go config struct tags in `internal/apps/sm-kms/`
+- [x] Run tests: `go test ./internal/apps/sm-kms/...`
 
-- [ ] Update `configs/sm-im/sm-im.yml` — all keys to kebab-case
-- [ ] Update `deployments/sm-im/config/` overlay files — all keys to kebab-case
-- [ ] Update Go config struct tags in `internal/apps/sm-im/`
-- [ ] Run tests: `go test ./internal/apps/sm-im/...`
+**Completed in Phase 2** (Task 2.2). Standalone rewritten; overlays already kebab-case; no Go changes needed.
 
-### Task 7.4: Migrate identity service configs to kebab-case (Item 17)
+### Task 7.3: Migrate sm-im configs to kebab-case (Item 17) ✅
 
-- [ ] Update standalone configs for all 5 identity services
-- [ ] Update deployment overlay configs for all 5 identity services
-- [ ] Update Go config struct tags in `internal/apps/identity-*/`
-- [ ] Run tests for all 5 identity services
+- [x] Update `configs/sm-im/sm-im.yml` — all keys to kebab-case
+- [x] Update `deployments/sm-im/config/` overlay files — all keys to kebab-case
+- [x] Update Go config struct tags in `internal/apps/sm-im/`
+- [x] Run tests: `go test ./internal/apps/sm-im/...`
 
-### Task 7.5: Standardize deployment config overlays (Item 18)
+**Completed in Phase 2** (Task 2.3). Standalone rewritten; overlays already kebab-case; no Go changes needed.
 
-- [ ] Fix skeleton-template common config: header says "JOSE", otlp-service says "jose-e2e"
-- [ ] Remove duplicated settings from jose-ja instance files (security-headers, rate-limiting)
-- [ ] Add missing settings to sm-im common config (TLS, unseal, allowed-ips, CSRF)
-- [ ] Align all common configs to template in deployment-templates.md Section D
-- [ ] Align all instance configs to minimal template (only cors-origins, otlp, database-url)
+### Task 7.4: Migrate identity service configs to kebab-case (Item 17) ✅
+
+- [x] Update standalone configs for all 5 identity services
+- [x] Update deployment overlay configs for all 5 identity services
+- [x] Update Go config struct tags in `internal/apps/identity-*/`
+- [x] Run tests for all 5 identity services
+
+**Completed in Phase 2** (Task 2.4). All identity configs rewritten; no Go changes needed.
+
+### Task 7.5: Standardize deployment config overlays (Item 18) ✅
+
+- [x] Fix skeleton-template common config: header says "JOSE", otlp-service says "jose-e2e"
+- [x] Remove duplicated settings from jose-ja instance files (security-headers, rate-limiting)
+- [x] Add missing settings to sm-im common config (TLS, unseal, allowed-ips, CSRF)
+- [x] Align all common configs to template in deployment-templates.md Section D
+- [x] Align all instance configs to minimal template (only cors-origins, otlp, database-url)
+- [x] Remove 3 legacy domain config files (identity-rp/rs/spa-domain.yml) — unreferenced, wrong ports, snake_case
 
 ### Task 7.6: Standardize standalone configs (Item 19)
 

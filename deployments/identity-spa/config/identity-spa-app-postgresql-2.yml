@@ -1,10 +1,10 @@
-# CRITICAL: ALL settings in this file MUST BE UNIQUE and CORRESPOND TO the 'identity-spa-app-postgresql-2' service name in compose.yml
+# identity-spa-app-postgresql-2.yml
+# Instance-specific settings for identity-spa-app-postgresql-2 in compose.yml
 
-# CORS configuration - HTTPS origins only
 cors-origins:
-  - "https://localhost:18602"
-  - "https://127.0.0.1:18602"
-  - "https://[::1]:18602"
+  - "https://localhost:8803"
+  - "https://127.0.0.1:8803"
+  - "https://[::1]:8803"
 
 otlp-service: identity-spa-postgresql-2
 otlp-hostname: identity-spa-postgresql-2

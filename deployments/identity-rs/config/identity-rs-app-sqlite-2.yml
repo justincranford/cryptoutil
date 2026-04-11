@@ -1,17 +1,12 @@
-# CRITICAL: ALL settings in this file MUST BE UNIQUE and CORRESPOND TO the 'identity-rs-app-sqlite-2' service name in compose.yml
-# Changing any values here will break cryptographic interoperability and service identification
+# identity-rs SQLite Instance 2 Configuration
+# Settings UNIQUE to the 'identity-rs-app-sqlite-2' compose service.
 
-# CORS configuration - HTTPS origins only
 cors-origins:
-  - "https://localhost:18400"
-  - "https://127.0.0.1:18400"
-  - "https://[::1]:18400"
+  - "https://localhost:8601"
+  - "https://127.0.0.1:8601"
+  - "https://[::1]:8601"
 
 otlp-service: identity-rs-sqlite-2
 otlp-hostname: identity-rs-sqlite-2
 
-# SQLite in-memory database for containerized testing.
-# Using explicit sqlite:// URL instead of dev: true allows containerized environments
-# to use bind-public-address: 0.0.0.0 (required for container networking).
-# The dev: true flag triggers validation that rejects 0.0.0.0 (intended for Windows dev).
 database-url: "sqlite://file::memory:?cache=shared"

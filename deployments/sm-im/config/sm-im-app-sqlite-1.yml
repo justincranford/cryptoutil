@@ -1,7 +1,12 @@
-bind-public-address: "0.0.0.0"
-bind-public-port: 8080
+# sm-im SQLite Instance 1 Configuration
+# Settings UNIQUE to the 'sm-im-app-sqlite-1' compose service.
 
-# Database - SQLite in-memory URL for containerized testing.
-database-url: "sqlite://file::memory:?cache=shared"
+cors-origins:
+  - "https://localhost:8100"
+  - "https://127.0.0.1:8100"
+  - "https://[::1]:8100"
 
 otlp-service: sm-im-sqlite-1
+otlp-hostname: sm-im-sqlite-1
+
+database-url: "sqlite://file::memory:?cache=shared"

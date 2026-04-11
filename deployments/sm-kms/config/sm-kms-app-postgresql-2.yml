@@ -1,7 +1,6 @@
-# CRITICAL: ALL settings in this file MUST BE UNIQUE and CORRESPOND TO the 'sm-kms-postgresql-2' service name in compose.yml
-# Changing any values here will break cryptographic interoperability and service identification
+# sm-kms PostgreSQL Instance 2 Configuration
+# Settings UNIQUE to the 'sm-kms-app-postgresql-2' compose service.
 
-# CORS configuration - HTTPS origins only (from default config)
 cors-origins:
   - "https://localhost:8003"
   - "https://127.0.0.1:8003"
