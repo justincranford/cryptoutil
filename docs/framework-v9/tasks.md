@@ -1,6 +1,6 @@
 # Tasks — Framework v9: Quality & Consistency
 
-**Status**: 4 of 27 tasks complete (15%)
+**Status**: 5 of 27 tasks complete (19%)
 **Created**: 2026-04-08
 **Updated**: 2026-04-10
 
@@ -108,7 +108,8 @@
 - [ ] Add `@propagate`/`@source` blocks for selected sections
 - [ ] Run `lint-docs` to verify
 
-### Task 5.3: Replace context.TODO() in migrations
+### Task 5.3: Replace context.TODO() in migrations ✅
 
-- [ ] Pass startup context through to migration functions
-- [ ] Remove `context.TODO()` from `identity/repository/migrations.go`
+- [x] Pass startup context through to migration functions
+- [x] Remove `context.TODO()` from `identity/repository/migrations.go`
+- [x] Replace `context.TODO()` with `context.Background()` in identity test files

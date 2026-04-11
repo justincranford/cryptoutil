@@ -1,6 +1,6 @@
 # Plan — Framework v9: Quality & Consistency
 
-**Status**: Not Started
+**Status**: In Progress (items 1, 4 completed; items 3, 13 removed)
 **Created**: 2026-04-08
 **Updated**: 2026-04-10
 
@@ -165,13 +165,10 @@ instruction files) and add `@propagate`/`@source` blocks for them.
 Instead, a `dockerfile-healthcheck` fitness linter was added to validate HEALTHCHECK
 uses built-in PS-ID livez CLI (not wget/curl).
 
-### 14. context.TODO() Usage in Production Code [LOW]
+### 14. context.TODO() Usage in Production Code ✅ [LOW]
 
 **Source**: TODO audit — `identity/repository/migrations.go:48`
 
-**Current state**: `context.TODO()` used during migration runs at startup. This is a known
-Go pattern for code paths where context isn't yet available, but it should be replaced with
-a real context from the startup sequence.
-
-**Action**: Pass the startup context through to migration functions instead of using
-`context.TODO()`.
+**Completed**: Added `ctx context.Context` parameter to `Migrate()` function. Callers
+(`AutoMigrate`) now pass startup context through instead of using `context.TODO()`.
+Also replaced `context.TODO()` with `context.Background()` in identity test files.
