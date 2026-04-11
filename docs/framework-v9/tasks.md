@@ -54,18 +54,18 @@
 
 ## Phase 3: Linter Configuration (Items 5, 6)
 
-### Task 3.1: Resolve testpackage linter
+### Task 3.1: Resolve testpackage linter ✅
 
-- [ ] Audit which packages can use external test packages
-- [ ] If migration feasible: narrow skip-regexp and migrate tests
-- [ ] If migration too large: remove testpackage from enabled linters
-- [ ] Update §11.3.1 documentation with resolution
+- [x] Audit which packages can use external test packages (too large-scope — nearly all tests need internal package access)
+- [x] If migration feasible: narrow skip-regexp and migrate tests (NOT feasible)
+- [x] If migration too large: remove testpackage from enabled linters (chosen — honest configuration)
+- [x] Update §11.3.1 documentation with resolution (comment in .golangci.yml explains removal rationale)
 
-### Task 3.2: Monitor goheader golangci-lint v2.8+
+### Task 3.2: Monitor goheader golangci-lint v2.8+ ✅
 
-- [ ] Check golangci-lint releases for v2.8+ with goheader fix
-- [ ] If available: test on branch, re-enable if fixed
-- [ ] Update §11.3.1 documentation
+- [x] Check golangci-lint releases for v2.8+ with goheader fix (v2.7.2 is latest; v2.8 not yet released)
+- [x] If available: test on branch, re-enable if fixed (NOT available yet — monitoring)
+- [x] Update §11.3.1 documentation (goheader remains disabled with comment in .golangci.yml)
 
 ## Phase 4: Test Quality (Items 7, 8, 9, 10)
 

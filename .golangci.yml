@@ -25,7 +25,8 @@ linters:
     - noctx
     - wrapcheck
     - errorlint
-    - testpackage
+    # testpackage: Removed. skip-regexp matched all test files, making it a no-op.
+    # Migration to external test packages is too large-scope; honest to remove.
     - gomodguard
     - gomoddirectives
     - bodyclose
@@ -169,8 +170,6 @@ linters:
     thelper:
       test:
         begin: true
-    testpackage:
-      skip-regexp: '.*_test\.go$'
     goheader:
       template: |-
         Copyright (c) {{ YEAR }} Justin Cranford
