@@ -296,7 +296,7 @@ func TestCheckComposeFileSecrets_EnvironmentSectionExit(t *testing.T) {
 	// This triggers the inEnvironmentSection = false branch when seeing networks:.
 	content := `services:
   myapp:
-    image: alpine:3.19
+    image: alpine:latest
     environment:
       - POSTGRES_PASSWORD_FILE=/run/secrets/pg_pass.secret
 networks:
@@ -319,7 +319,7 @@ func TestCheckComposeFileSecrets_EnvironmentSectionExitNonKeyLine(t *testing.T) 
 	// Environment section followed by a continuation line that is not a key, comment, or list.
 	content := `services:
   myapp:
-    image: alpine:3.19
+    image: alpine:latest
     environment:
       - SAFE_VAR=safe
     NOTAKEY

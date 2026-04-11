@@ -328,7 +328,7 @@ func setupTempDir(t *testing.T, files map[string]string) string {
 func dockerfileWithLabelsAndEntrypoint(title, description string, entrypoint []string) string {
 	var sb strings.Builder
 
-	sb.WriteString("FROM alpine:3.19\n")
+	sb.WriteString("FROM alpine:latest\n")
 	sb.WriteString("LABEL org.opencontainers.image.title=\"" + title + "\"\n")
 	sb.WriteString("LABEL org.opencontainers.image.description=\"" + description + "\"\n")
 
@@ -350,7 +350,7 @@ func dockerfileWithLabelsAndEntrypoint(title, description string, entrypoint []s
 }
 
 func dockerfileWithLabels(title, description string) string {
-	return "FROM alpine:3.19\n" +
+	return "FROM alpine:latest\n" +
 		"LABEL org.opencontainers.image.title=\"" + title + "\"\n" +
 		"LABEL org.opencontainers.image.description=\"" + description + "\"\n"
 }
@@ -358,7 +358,7 @@ func dockerfileWithLabels(title, description string) string {
 func multiLineLabelDockerfileWithEntrypoint(title, description string, entrypoint []string) string {
 	var sb strings.Builder
 
-	sb.WriteString("FROM alpine:3.19\n")
+	sb.WriteString("FROM alpine:latest\n")
 	sb.WriteString("LABEL org.opencontainers.image.title=\"" + title + "\" \\\n")
 	sb.WriteString("      org.opencontainers.image.description=\"" + description + "\"\n")
 
@@ -380,17 +380,17 @@ func multiLineLabelDockerfileWithEntrypoint(title, description string, entrypoin
 }
 
 func dockerfileWithOnlyTitle(title string) string {
-	return "FROM alpine:3.19\n" +
+	return "FROM alpine:latest\n" +
 		"LABEL org.opencontainers.image.title=\"" + title + "\"\n"
 }
 
 func dockerfileWithOnlyDescription(description string) string {
-	return "FROM alpine:3.19\n" +
+	return "FROM alpine:latest\n" +
 		"LABEL org.opencontainers.image.description=\"" + description + "\"\n"
 }
 
 func dockerfileNoLabels() string {
-	return "FROM alpine:3.19\nRUN echo hello\n"
+	return "FROM alpine:latest\nRUN echo hello\n"
 }
 
 func TestCheck_ReturnsError_WhenNoDeployments(t *testing.T) {
