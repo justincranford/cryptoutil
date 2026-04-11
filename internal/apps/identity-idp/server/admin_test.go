@@ -128,7 +128,7 @@ func TestAdminServerLifecycle(t *testing.T) {
 		require.NoError(t, err)
 
 		// Shutdown with nil context should default to Background.
-		require.NoError(t, server.Shutdown(context.TODO()))
+		require.NoError(t, server.Shutdown(context.Background()))
 	})
 }
 

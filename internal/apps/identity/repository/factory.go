@@ -223,7 +223,7 @@ func NewRepositoryFactoryForTesting(userRepo UserRepository, clientRepo ClientRe
 }
 
 // AutoMigrate runs database migrations using golang-migrate with embedded SQL files.
-func (f *RepositoryFactory) AutoMigrate(_ context.Context) error {
+func (f *RepositoryFactory) AutoMigrate(ctx context.Context) error {
 	// Get underlying *sql.DB from GORM DB instance.
 	sqlDB, err := f.db.DB()
 	if err != nil {
@@ -234,7 +234,7 @@ func (f *RepositoryFactory) AutoMigrate(_ context.Context) error {
 	}
 
 	// Apply migrations using golang-migrate with database type.
-	if err := Migrate(sqlDB, f.dbType); err != nil {
+	if err := Migrate(ctx, sqlDB, f.dbType); err != nil {
 		return cryptoutilIdentityAppErr.WrapError(
 			cryptoutilIdentityAppErr.ErrDatabaseQuery,
 			fmt.Errorf("database migration failed: %w", err),

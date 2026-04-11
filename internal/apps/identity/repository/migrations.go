@@ -41,11 +41,9 @@ func ResetMigrationStateForTesting() {
 
 // Migrate applies SQL migrations from embedded files.
 // Thread-safe for concurrent test execution via mutex protection.
-func Migrate(db *sql.DB, dbType string) error {
+func Migrate(ctx context.Context, db *sql.DB, dbType string) error {
 	migrationMutex.Lock()
 	defer migrationMutex.Unlock()
-
-	ctx := context.TODO() // Migration runs during startup, no request context available
 
 	// For in-memory databases, skip the cache entirely and always run migrations.
 	// This handles parallel tests where each test should have its own database.
