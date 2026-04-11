@@ -1,5 +1,5 @@
 #############################################################################################
-# sm-kms Dockerfile — Secrets Manager Key Management Service
+# sm-kms Dockerfile — Secrets Manager Key Management
 #
 # Build: DOCKER_BUILDKIT=1 docker build \
 #          --build-arg APP_VERSION=<ver> \
@@ -131,7 +131,7 @@ ARG APP_VERSION
 ARG VCS_REF
 ARG BUILD_DATE
 LABEL org.opencontainers.image.title="cryptoutil-sm-kms" \
-    org.opencontainers.image.description="Secrets Manager Key Management Service" \
+    org.opencontainers.image.description="Secrets Manager Key Management" \
     org.opencontainers.image.source="https://github.com/justincranford/cryptoutil" \
     org.opencontainers.image.authors="Justin Cranford" \
     org.opencontainers.image.version="${APP_VERSION}" \

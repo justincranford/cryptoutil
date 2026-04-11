@@ -98,12 +98,12 @@ production).
 
 | PS-ID | PRODUCT | SERVICE | SERVICE_APP_PORT_BASE | SERVICE_PG_HOST_PORT | PRODUCT_DISPLAY_NAME | SERVICE_DISPLAY_NAME | PRODUCT_APP_PORT_OFFSET | SUITE_APP_PORT_OFFSET |
 |-------|---------|---------|---------------------|--------------------|--------------------|--------------------|-----------------------|---------------------|
-| `sm-kms` | `sm` | `kms` | `8000` | `54320` | Secrets Manager | Key Management Service | `18000` | `28000` |
+| `sm-kms` | `sm` | `kms` | `8000` | `54320` | Secrets Manager | Key Management | `18000` | `28000` |
 | `sm-im` | `sm` | `im` | `8100` | `54321` | Secrets Manager | Instant Messenger | `18100` | `28100` |
 | `jose-ja` | `jose` | `ja` | `8200` | `54322` | JOSE | JWK Authority | `18200` | `28200` |
 | `pki-ca` | `pki` | `ca` | `8300` | `54323` | PKI | Certificate Authority | `18300` | `28300` |
 | `identity-authz` | `identity` | `authz` | `8400` | `54324` | Identity | Authorization Server | `18400` | `28400` |
-| `identity-idp` | `identity` | `idp` | `8500` | `54325` | Identity | Identity Provider | `18500` | `28500` |
+| `identity-idp` | `identity` | `idp` | `8500` | `54325` | Identity | Provider | `18500` | `28500` |
 | `identity-rs` | `identity` | `rs` | `8600` | `54326` | Identity | Resource Server | `18600` | `28600` |
 | `identity-rp` | `identity` | `rp` | `8700` | `54327` | Identity | Relying Party | `18700` | `28700` |
 | `identity-spa` | `identity` | `spa` | `8800` | `54328` | Identity | Single Page App | `18800` | `28800` |
