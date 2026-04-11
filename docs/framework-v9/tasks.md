@@ -1,6 +1,6 @@
 # Tasks — Framework v9: Quality & Consistency
 
-**Status**: 30 of 37 tasks complete (81%)
+**Status**: 31 of 37 tasks complete (84%)
 **Created**: 2026-04-08
 **Updated**: 2026-04-18
 
@@ -243,11 +243,11 @@ Affected: jose-ja, pki-ca
 - [x] Align all 10 standalone configs to canonical template in deployment-templates.md Section E
 - [x] Remove legacy domain-specific blocks from skeleton-template (key-storage, api-key-auth) and jose-ja (key-storage, api-key-auth)
 
-### Task 7.7: Run deployment validators
+### Task 7.7: Run deployment validators ✅
 
-- [ ] Run `go run ./cmd/cicd-lint lint-deployments` — all validators pass
-- [ ] Run `go build ./...` — no compile errors from config struct changes
-- [ ] Run `go test ./...` — all tests pass with new config keys
+- [x] Run `go run ./cmd/cicd-lint lint-deployments` — all validators pass (54/54 pass)
+- [x] Run `go build ./...` — no compile errors from config struct changes
+- [x] Run `go test ./...` — all tests pass with new config keys
 
 ## Phase 8: Enforcement Linters (Items 16, 21)
 
