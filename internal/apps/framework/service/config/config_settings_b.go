@@ -98,7 +98,7 @@ var (
 		Name:        "database-url",
 		Shorthand:   "u",
 		Value:       cryptoutilSharedMagic.DefaultDatabaseURL,
-		Usage:       "database URL; start a container with:\ndocker run -d --name postgres -p 5432:5432 -e POSTGRES_USER=USR -e POSTGRES_PASSWORD=PWD -e POSTGRES_DB=DB postgres:18\n", // pragma: allowlist secret
+		Usage:       "database URL; start a container with:\ndocker run -d --name postgres -p 5432:5432 -e POSTGRES_USER=USR -e POSTGRES_PASSWORD=PWD -e POSTGRES_DB=DB postgres:latest\n", // pragma: allowlist secret
 		Description: "Database URL",
 		Redacted:    true,
 	})

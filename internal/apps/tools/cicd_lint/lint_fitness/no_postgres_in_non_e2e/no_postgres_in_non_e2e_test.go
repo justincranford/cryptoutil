@@ -23,13 +23,13 @@ var (
 
 var (
 	postgresModuleRunViolationPrefix = "package repo_test\n\nfunc TestFoo(t *testing.T) {\n\tcontainer, err := postgres"
-	postgresModuleRunViolationSuffix = "Module.Run(ctx, \"postgres:18-alpine\")\n\t_ = container\n\t_ = err\n}\n"
+	postgresModuleRunViolationSuffix = "Module.Run(ctx, \"postgres:latest\")\n\t_ = container\n\t_ = err\n}\n"
 	postgresModuleRunViolation       = postgresModuleRunViolationPrefix + postgresModuleRunViolationSuffix
 )
 
 var (
 	postgresDirectRunViolationPrefix = "package repo_test\n\nfunc TestFoo(t *testing.T) {\n\tcontainer, err := postgres"
-	postgresDirectRunViolationSuffix = ".Run(ctx, \"postgres:18-alpine\")\n\t_ = container\n\t_ = err\n}\n"
+	postgresDirectRunViolationSuffix = ".Run(ctx, \"postgres:latest\")\n\t_ = container\n\t_ = err\n}\n"
 	postgresDirectRunViolation       = postgresDirectRunViolationPrefix + postgresDirectRunViolationSuffix
 )
 

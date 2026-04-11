@@ -129,7 +129,7 @@ secrets:
 			name: "hardcoded credentials",
 			content: `services:
   mydb:
-    image: postgres:18
+    image: postgres:latest
     environment:
       POSTGRES_PASSWORD: mysecretpassword
     healthcheck:
@@ -142,7 +142,7 @@ secrets:
 			name: "credentials via file reference safe",
 			content: `services:
   mydb:
-    image: postgres:18
+    image: postgres:latest
     environment:
       POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password.secret
     healthcheck:
@@ -154,7 +154,7 @@ secrets:
 			name: "credentials via variable reference safe",
 			content: `services:
   mydb:
-    image: postgres:18
+    image: postgres:latest
     environment:
       POSTGRES_PASSWORD: ${DB_PASS}
     healthcheck:
@@ -166,7 +166,7 @@ secrets:
 			name: "credentials via run secrets path safe",
 			content: `services:
   mydb:
-    image: postgres:18
+    image: postgres:latest
     environment:
       POSTGRES_PASSWORD: /run/secrets/postgres-password.secret
     healthcheck:
@@ -239,7 +239,7 @@ secrets:
 			name: "environment list format credentials",
 			content: `services:
   mydb:
-    image: postgres:18
+    image: postgres:latest
     environment:
       - POSTGRES_PASSWORD=hardcoded123
     healthcheck:

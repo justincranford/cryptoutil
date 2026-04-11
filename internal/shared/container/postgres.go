@@ -26,7 +26,7 @@ import (
 // StartPostgres starts a PostgreSQL test container and returns the DSN connection string.
 func StartPostgres(ctx context.Context, telemetryService *cryptoutilSharedTelemetry.TelemetryService, dbName, dbUsername, dbPassword string) (string, func(), error) {
 	postgresContainerRequest := testcontainers.ContainerRequest{
-		Image:        "postgres:18",
+		Image:        "postgres:latest",
 		ExposedPorts: []string{"5432/tcp"},
 		Env:          map[string]string{"POSTGRES_DB": dbName, "POSTGRES_USER": dbUsername, "POSTGRES_PASSWORD": dbPassword},
 		// WaitingFor:   wait.ForListeningPort("5432/tcp").WithStartupTimeout(postgresContainerStartupTimeout),
@@ -67,7 +67,7 @@ func SetupSharedPostgresContainer(ctx context.Context) (*postgres.PostgresContai
 
 	// Start PostgreSQL test-container ONCE for all integration tests.
 	container, err := postgres.Run(ctx,
-		"postgres:18-alpine",
+		"postgres:latest",
 		postgres.WithDatabase(fmt.Sprintf("test_%s", googleUuid.NewString())),
 		postgres.WithUsername(fmt.Sprintf("user_%s", googleUuid.NewString())),
 		postgres.WithPassword(dbPassword),

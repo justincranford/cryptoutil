@@ -32,7 +32,7 @@ var cleanUnitTestContent = "package repo_test\n\nfunc TestFoo(t *testing.T) {\n\
 
 var commentedOutViolationContent = "package repo_test\n\nfunc TestFoo(t *testing.T) {\n\t// postgres.RunContainer(ctx) -- do not use\n}\n"
 
-var testMainExemptContent = "package repo_test\n\nimport \"os\"\n\nfunc TestMain(m *testing.M) {\n\tcontainer, err := postgresModule.Run(ctx, \"postgres:18-alpine\")\n\t_ = container\n\t_ = err\n\tos.Exit(m.Run())\n}\n"
+var testMainExemptContent = "package repo_test\n\nimport \"os\"\n\nfunc TestMain(m *testing.M) {\n\tcontainer, err := postgresModule.Run(ctx, \"postgres:latest\")\n\t_ = container\n\t_ = err\n\tos.Exit(m.Run())\n}\n"
 
 func TestCheckFile_Violations(t *testing.T) {
 	t.Parallel()

@@ -44,7 +44,7 @@ func TestMain(m *testing.M) {
 		userName := fmt.Sprintf("user_%s", googleUuid.Must(googleUuid.NewV7()))
 
 		container, err := postgresModule.Run(ctx,
-			"postgres:18-alpine",
+			"postgres:latest",
 			postgresModule.WithDatabase(dbName),
 			postgresModule.WithUsername(userName),
 			postgresModule.WithPassword("testpassword"),

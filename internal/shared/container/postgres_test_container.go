@@ -19,7 +19,7 @@ func NewPostgresTestContainer(ctx context.Context) (*postgres.PostgresContainer,
 	password := fmt.Sprintf("pass_%s", googleUuid.NewString())
 
 	container, err := postgres.Run(ctx,
-		"postgres:18-alpine",
+		"postgres:latest",
 		postgres.WithDatabase(dbName),
 		postgres.WithUsername(username),
 		postgres.WithPassword(password),

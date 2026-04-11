@@ -46,7 +46,7 @@ func TestIntegrationFullPipeline(t *testing.T) {
     secrets:
       - test_secret.secret
   test-svc-postgres:
-    image: postgres:18
+    image: postgres:latest
     healthcheck:
       test: ["CMD", "pg_isready"]
       interval: 10s
