@@ -18,22 +18,13 @@ include architecture is fully operational at all 3 deployment tiers (SERVICE, PR
 
 ## Items
 
-### 1. Dockerfile EXPOSE Port Standardization [HIGH]
+### 1. Dockerfile EXPOSE Port Standardization ✅ [HIGH]
 
 **Source**: Deep research — deployment consistency audit
 
-**Current state**: 10 of 11 Dockerfiles use incorrect `EXPOSE` statements. Per §5.3 (Dual
-HTTPS Endpoint Pattern) and §3.4 (Port Design), ALL services must internally expose 8080
-(public) and 9090 (admin). The compose files handle host port mapping.
-
-**Affected services**: sm-im, jose-ja, skeleton-template, pki-ca, identity-authz,
-identity-idp, identity-rp, identity-rs, identity-spa, sm-kms. Only the cryptoutil
-Dockerfile already uses the correct `EXPOSE 8080 9090`. Each affected Dockerfile uses
-non-standard public/admin port values (host-level ports, wrong admin ports, or missing
-the second port entirely).
-
-**Action**: Standardize all Dockerfiles to `EXPOSE 8080 9090`. Verify that compose port
-mappings handle the host-side port differentiation.
+**Completed**: All 11 Dockerfiles standardized to `EXPOSE 8080` only. Admin port 9090 is
+bound to 127.0.0.1 and is never exposed externally per §5.3 (Dual HTTPS Endpoint Pattern).
+Compose port mappings handle host-side port differentiation.
 
 ### 2. Config File YAML Key Naming Inconsistency [HIGH]
 
@@ -53,31 +44,21 @@ parser already support kebab-case. Services using custom/older parsers need migr
 **Risk**: Config key changes require coordinating config files, Go parsers, deployment
 overlay configs, and any documentation referencing config keys.
 
-### 3. Unpinned Docker Image Versions [MEDIUM]
+### ~~3. Unpinned Docker Image Versions~~ REMOVED
+
+**Removed**: Policy reversed — open-source container images (Alpine, PostgreSQL, OTel
+Collector, Grafana LGTM) now use `:latest` tags for automatic security patches. All
+Dockerfiles use `ARG ALPINE_VERSION=latest` with hadolint DL3007 ignore. All compose
+files and CI workflows updated to `postgres:latest`.
+
+### 4. Dockerfile Healthcheck Standardization ✅ [LOW]
 
 **Source**: Deep research — deployment consistency audit
 
-**Current state**: 13 occurrences of `:latest` tags in compose files:
-- `alpine:latest` in 11 healthcheck-secrets services
-- `otel/opentelemetry-collector-contrib:latest` in shared-telemetry
-- `grafana/otel-lgtm:latest` in shared-telemetry
-
-**Action**: Pin all images to specific versions:
-- `alpine:latest` → `alpine:3.19`
-- Pin OTel collector and Grafana LGTM to current stable versions
-- Add a fitness linter to detect unpinned image versions in compose files
-
-### 4. Dockerfile Healthcheck Standardization [LOW]
-
-**Source**: Deep research — deployment consistency audit
-
-**Current state**: `--start-period` varies across Dockerfiles (5s, 10s, 30s). sm-kms uses a
-custom healthcheck command (`/app/sm-kms server ready --dev`) while others use `wget` against
-the admin livez endpoint.
-
-**Action**: Standardize all healthchecks to:
-- `--start-period=30s` (sufficient for TLS cert generation)
-- `wget --no-check-certificate -q -O /dev/null https://127.0.0.1:9090/admin/api/v1/livez`
+**Completed**: All 11 Dockerfiles standardized to use built-in PS-ID livez CLI instead of
+wget. Timing: `--start-period=30s`, `--interval=10s`, `--timeout=30s`. Pattern:
+`CMD /app/{PS-ID} livez || exit 1`. Added `dockerfile-healthcheck` fitness linter
+(30 test cases) to enforce this pattern. Removed wget from sm-im's apk install.
 
 ### 5. testpackage Linter: Resolve Enabled-But-Disabled State [MEDIUM]
 
@@ -178,15 +159,11 @@ would capture the most-referenced sections.
 **Action**: Identify the 10 most-referenced orphaned sections (by cross-reference count in
 instruction files) and add `@propagate`/`@source` blocks for them.
 
-### 13. Fitness Linter for Unpinned Docker Image Tags [LOW]
+### ~~13. Fitness Linter for Unpinned Docker Image Tags~~ REMOVED
 
-**Source**: Identified during item 3 research
-
-**Current state**: No automated check for `:latest` tags or missing version pins in compose
-files. The secrets validator catches inline credentials but not unpinned images.
-
-**Action**: Add a fitness sub-linter to `lint_fitness` that scans compose files for unpinned
-image tags (`:latest`, no tag at all). Exclude local build images (`image: cryptoutil:local`).
+**Removed**: Policy reversed — open-source images now intentionally use `:latest` tags.
+Instead, a `dockerfile-healthcheck` fitness linter was added to validate HEALTHCHECK
+uses built-in PS-ID livez CLI (not wget/curl).
 
 ### 14. context.TODO() Usage in Production Code [LOW]
 

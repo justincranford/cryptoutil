@@ -1,39 +1,24 @@
 # Tasks — Framework v9: Quality & Consistency
 
-**Status**: 0 of 31 tasks complete (0%)
+**Status**: 4 of 27 tasks complete (15%)
 **Created**: 2026-04-08
 **Updated**: 2026-04-10
 
 ---
 
-## Phase 1: Dockerfile & Deployment Fixes (Items 1, 3, 4)
+## Phase 1: Dockerfile & Deployment Fixes (Items 1, 4)
 
-### Task 1.1: Standardize EXPOSE in all Dockerfiles
+### Task 1.1: Standardize EXPOSE in all Dockerfiles ✅
 
-- [ ] Update `deployments/sm-im/Dockerfile` EXPOSE to `8080 9090`
-- [ ] Update `deployments/sm-kms/Dockerfile` EXPOSE to `8080 9090`
-- [ ] Update `deployments/jose-ja/Dockerfile` EXPOSE to `8080 9090`
-- [ ] Update `deployments/pki-ca/Dockerfile` EXPOSE to `8080 9090`
-- [ ] Update `deployments/skeleton-template/Dockerfile` EXPOSE to `8080 9090`
-- [ ] Update `deployments/identity-authz/Dockerfile` EXPOSE to `8080 9090`
-- [ ] Update `deployments/identity-idp/Dockerfile` EXPOSE to `8080 9090`
-- [ ] Update `deployments/identity-rp/Dockerfile` EXPOSE to `8080 9090`
-- [ ] Update `deployments/identity-rs/Dockerfile` EXPOSE to `8080 9090`
-- [ ] Update `deployments/identity-spa/Dockerfile` EXPOSE to `8080 9090`
+- [x] Update all 11 Dockerfiles to `EXPOSE 8080` only (admin 9090 is 127.0.0.1-only, never exposed)
 
-### Task 1.2: Pin Docker image versions in compose files
+### Task 1.2: Standardize Dockerfile healthchecks ✅
 
-- [ ] Replace `alpine:latest` with `alpine:3.19` in all 11 healthcheck-secrets services
-- [ ] Pin `otel/opentelemetry-collector-contrib` to specific version in shared-telemetry
-- [ ] Pin `grafana/otel-lgtm` to specific version in shared-telemetry
+- [x] Replace wget-based healthchecks with built-in PS-ID livez CLI
+- [x] Set `--start-period=30s`, `--interval=10s`, `--timeout=30s` in all Dockerfiles
+- [x] Add dockerfile-healthcheck fitness linter to enforce PS-ID livez pattern
 
-### Task 1.3: Standardize Dockerfile healthchecks
-
-- [ ] Set `--start-period=30s` in all Dockerfiles
-- [ ] Replace sm-kms custom healthcheck with standard `wget` pattern
-- [ ] Verify all healthchecks use `https://127.0.0.1:9090/admin/api/v1/livez`
-
-### Task 1.4: Run E2E validation
+### Task 1.3: Run E2E validation
 
 - [ ] Run `go run ./cmd/cicd-lint lint-deployments` — all validators pass
 - [ ] Build all Docker images and verify startup with `docker compose up`
@@ -65,7 +50,7 @@
 - [ ] Update Go parser code in `internal/apps/identity-*/`
 - [ ] Verify all identity services start and tests pass
 
-## Phase 3: Linter Configuration (Items 5, 6, 13)
+## Phase 3: Linter Configuration (Items 5, 6)
 
 ### Task 3.1: Resolve testpackage linter
 
@@ -79,14 +64,6 @@
 - [ ] Check golangci-lint releases for v2.8+ with goheader fix
 - [ ] If available: test on branch, re-enable if fixed
 - [ ] Update §11.3.1 documentation
-
-### Task 3.3: Add unpinned image tag fitness linter
-
-- [ ] Implement sub-linter in `lint_fitness/` that scans compose files
-- [ ] Detect `:latest` tags and missing version pins
-- [ ] Exclude `image: cryptoutil:local` (local build)
-- [ ] Add tests with >=98% coverage
-- [ ] Update §9.11 fitness linter catalog
 
 ## Phase 4: Test Quality (Items 7, 8, 9, 10)
 
