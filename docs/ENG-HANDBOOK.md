@@ -2439,22 +2439,23 @@ WORKDIR /src
 # Build logic...
 
 # Validator stage (secrets validation MANDATORY)
-FROM alpine:3.19 AS validator
+FROM alpine:latest AS validator
 WORKDIR /validation
 RUN echo "🔍 Validating Docker secrets..."
 # Validation logic...
 
 # Runtime stage
-FROM alpine:3.19 AS runtime
+FROM alpine:latest AS runtime
 WORKDIR /app
 COPY --from=validator /app/cryptoutil /app/cryptoutil
 ```
 
 **Container Best Practices**:
 
-- Base image: Alpine Linux (minimal attack surface)
+- Base image: Alpine Linux latest (unpinned for automatic security patches; hadolint DL3007 ignored)
 - Runtime user: Non-root (security)
-- Health checks: Integrated liveness/readiness
+- EXPOSE: 8080 only (admin 9090 binds 127.0.0.1 inside container, NEVER exposed)
+- Health checks: Built-in PS-ID `livez` CLI subcommand (no wget/curl dependency)
 - Secret validation: MANDATORY validator stage
 - Network isolation: Admin endpoints localhost-only
 
@@ -3599,7 +3600,7 @@ healthcheck-secrets:
 
 ##### Use Case 2: Service-Only Healthchecks
 
-**Pattern**: Services with native HEALTHCHECK instructions in their container image or Dockerfile
+**Pattern**: Services with native HEALTHCHECK instructions in their Dockerfile using the built-in PS-ID `livez` CLI subcommand
 
 **Examples**: `cryptoutil-sqlite`, `cryptoutil-postgres-1`, `postgres`, `grafana-otel-lgtm`
 
@@ -3612,17 +3613,10 @@ services := []e2e.ServiceAndJob{
 err := composeManager.WaitForServicesHealthy(ctx, services)
 ```
 
-**Docker Compose Pattern**:
-```yaml
-cryptoutil-sqlite:
-  image: cryptoutil:latest
-  healthcheck:
-    test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null",
-           "https://127.0.0.1:8080/admin/api/v1/livez"]
-    interval: 10s
-    timeout: 5s
-    retries: 3
-    start_period: 20s
+**Dockerfile HEALTHCHECK Pattern** (canonical — uses built-in CLI, no wget/curl dependency):
+```dockerfile
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+    CMD /app/<ps-id> livez || exit 1
 ```
 
 ##### Use Case 3: Service with Healthcheck Job
@@ -4233,8 +4227,8 @@ All Dockerfiles follow identical multi-stage structure. Parameterized fields dif
 |-------|---------------------|----------------------|-------------------------|
 | `image.title` LABEL | `{SUITE}-{PS-ID}` | `{SUITE}-{PRODUCT}` | `{SUITE}` |
 | Binary built | `./cmd/{SUITE}` (always suite binary) | `./cmd/{SUITE}` | `./cmd/{SUITE}` |
-| `EXPOSE` | 8080 (container public) | Service-range (e.g., 18000) | Suite-range (e.g., 28000) |
-| `HEALTHCHECK` | `wget --no-check-certificate -qO- https://127.0.0.1:8080/browser/api/v1/health` | Same, product port | Same, suite port |
+| `EXPOSE` | 8080 (public only; admin 9090 binds 127.0.0.1, never exposed) | Service-range (e.g., 18000) | Suite-range (e.g., 28000) |
+| `HEALTHCHECK` | `CMD /app/{PS-ID} livez \|\| exit 1` | Same, product binary | Same, suite binary |
 | `ENTRYPOINT` | `["/app/{SUITE}", "{PS-ID}", "start"]` | `["/app/{SUITE}", "{PRODUCT}", "start"]` | `["/app/{SUITE}"]` |
 
 **Current state**: 10 service-level + 1 suite-level Dockerfiles exist. 0 product-level Dockerfiles exist (TODO: create when product-level deployment is implemented).
@@ -4265,7 +4259,7 @@ All Dockerfiles follow identical multi-stage structure. Parameterized fields dif
 - Use `docker compose` (NOT `docker-compose`)
 - ALWAYS relative paths in compose.yml (NEVER absolute)
 - ALWAYS `127.0.0.1` in containers (NOT `localhost` - Alpine resolves to IPv6)
-- Use `wget` for healthchecks (available in Alpine)
+- Dockerfile HEALTHCHECK: Use built-in PS-ID `livez` CLI (NEVER wget/curl)
 - Healthcheck fields use hyphens: `start-period` (NOT `start_period`)
 <!-- @/propagate -->
 
@@ -5753,7 +5747,7 @@ All autonomous execution modes enforce the same quality gates as Section 11.2 an
 **Languages**: Go 1.26.1 (services), Python 3.14+ (utilities), Node v24.11.1+ (CLI tools)
 **Databases**: PostgreSQL 18, SQLite (modernc.org/sqlite, CGO-free)
 **Frameworks**: Fiber (HTTP), GORM (ORM), oapi-codegen (OpenAPI)
-**Container Base**: Alpine 3.19 (all Dockerfiles)
+**Container Base**: Alpine Linux latest (all Dockerfiles, unpinned for security patches)
 **Observability**: OpenTelemetry (otel-collector-contrib:latest), Grafana LGTM (grafana/otel-lgtm:latest)
 **Security**: FIPS 140-3 approved algorithms, Docker/Kubernetes secrets
 **Testing**: testify, gremlins (mutation), Nuclei/ZAP (DAST), Gatling (load)
