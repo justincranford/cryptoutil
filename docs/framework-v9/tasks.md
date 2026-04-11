@@ -40,17 +40,17 @@
 - [x] Update Go parser code in `internal/apps/sm-kms/` (no changes needed — already uses framework parser with kebab-case)
 - [x] Verify service starts and tests pass (build clean, lint-deployments 54/54 pass)
 
-### Task 2.3: Migrate configs/sm-im/ to kebab-case
+### Task 2.3: Migrate configs/sm-im/ to kebab-case ✅
 
-- [ ] Update configs, deployment overlays, and Go parser code
-- [ ] Verify service starts and tests pass
+- [x] Update configs, deployment overlays, and Go parser code (rewritten standalone from nested snake_case to flat kebab-case; deployment overlays already kebab-case; no Go changes needed)
+- [x] Verify service starts and tests pass
 
-### Task 2.4: Migrate identity service configs to kebab-case
+### Task 2.4: Migrate identity service configs to kebab-case ✅
 
-- [ ] Update configs for identity-authz, identity-idp, identity-rp, identity-rs, identity-spa
-- [ ] Update deployment overlays for all 5 identity services
-- [ ] Update Go parser code in `internal/apps/identity-*/`
-- [ ] Verify all identity services start and tests pass
+- [x] Update configs for identity-authz, identity-idp, identity-rp, identity-rs, identity-spa (all rewritten to flat kebab-case)
+- [x] Update deployment overlays for all 5 identity services (already kebab-case, no changes needed)
+- [x] Update Go parser code in `internal/apps/identity-*/` (no changes needed — already uses framework parser with kebab-case flags)
+- [x] Verify all identity services start and tests pass (build clean, lint-deployments 54/54 pass)
 
 ## Phase 3: Linter Configuration (Items 5, 6)
 
