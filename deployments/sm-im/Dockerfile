@@ -6,7 +6,8 @@
 
 # Build arguments
 ARG GO_VERSION=1.26.1
-ARG ALPINE_VERSION=3.19
+# hadolint ignore=DL3007
+ARG ALPINE_VERSION=latest
 
 # Stage 1: Builder - Compile the Go application
 FROM golang:${GO_VERSION}-alpine AS builder
@@ -55,7 +56,6 @@ WORKDIR /app
 # hadolint ignore=DL3018
 RUN apk add --no-cache \
         ca-certificates \
-        wget \
     tzdata \
     tini && \
     addgroup -S smim -g 1000 && \
@@ -67,12 +67,12 @@ COPY --from=builder --chown=smim:smim /build/sm-im /app/sm-im
 # Switch to non-root user
 USER smim:smim
 
-# Expose ports
-EXPOSE 8888 9090
+# Expose public port only (admin 9090 binds 127.0.0.1, never exposed).
+EXPOSE 8080
 
-# Health check (admin server livez endpoint)
-HEALTHCHECK --interval=10s --timeout=5s --start-period=30s --retries=3 \
-    CMD wget --no-check-certificate --quiet --tries=1 --spider https://127.0.0.1:9090/admin/api/v1/livez || exit 1
+# Healthcheck using built-in CLI livez subcommand (no wget dependency).
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+    CMD /app/sm-im livez || exit 1
 
 # Run the application
 ENTRYPOINT ["/sbin/tini", "--", "/app/sm-im"]

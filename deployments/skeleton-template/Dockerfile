@@ -10,7 +10,8 @@ ARG VCS_REF=UNSET
 ARG BUILD_DATE=UNSET
 #############################################################################################
 ARG GO_VERSION=1.26.1
-ARG ALPINE_VERSION=3.19
+# hadolint ignore=DL3007
+ARG ALPINE_VERSION=latest
 ARG CGO_ENABLED=0
 ARG GOOS=linux
 ARG GOARCH=amd64
@@ -114,7 +115,7 @@ LABEL org.opencontainers.image.title="cryptoutil-skeleton-template" \
     org.opencontainers.image.source="https://github.com/justincranford/cryptoutil" \
     org.opencontainers.image.licenses="MIT"
 
-# Install ca-certificates for TLS and busybox for wget (healthchecks).
+# Install ca-certificates for TLS and tini for signal handling.
 # Create non-root user for security.
 # hadolint ignore=DL3018
 RUN apk --no-cache add ca-certificates tini && \
@@ -133,12 +134,12 @@ RUN mkdir -p /etc/jose /run/secrets && \
 WORKDIR /app
 USER jose
 
-# Expose ports.
-EXPOSE 8060 9092
+# Expose public port only (admin 9090 binds 127.0.0.1, never exposed).
+EXPOSE 8080
 
-# Healthcheck using wget (available in Alpine).
-HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
-    CMD wget --no-check-certificate -q -O /dev/null https://127.0.0.1:9090/admin/api/v1/livez || exit 1
+# Healthcheck using built-in CLI livez subcommand (no wget dependency).
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+    CMD /app/skeleton-template livez || exit 1
 
 ENTRYPOINT ["/sbin/tini", "--", "/app/skeleton-template"]
 CMD ["server", "--config=/etc/jose/jose.yml"]

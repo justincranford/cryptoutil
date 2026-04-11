@@ -9,7 +9,8 @@ ARG VCS_REF=UNSET
 ARG BUILD_DATE=UNSET
 #############################################################################################
 ARG GO_VERSION=1.26.1
-ARG ALPINE_VERSION=3.19
+# hadolint ignore=DL3007
+ARG ALPINE_VERSION=latest
 ARG CGO_ENABLED=0
 ARG GOOS=linux
 ARG GOARCH=amd64
@@ -153,12 +154,12 @@ LABEL org.opencontainers.image.version="${APP_VERSION}"
 LABEL org.opencontainers.image.revision="${VCS_REF}"
 LABEL org.opencontainers.image.created="${BUILD_DATE}"
 
-# Use non-privileged ports
+# Expose public port only (admin 9090 binds 127.0.0.1, never exposed).
 EXPOSE 8080
 
-# Healthcheck available with Alpine base image
+# Healthcheck using built-in CLI livez subcommand (no wget dependency).
 HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
-    CMD /app/sm-kms server ready --dev || exit 1
+    CMD /app/sm-kms livez || exit 1
 
 # For Kubernetes: Use liveness/readiness probes like:
 #   livenessProbe:

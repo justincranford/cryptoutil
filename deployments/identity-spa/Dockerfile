@@ -10,7 +10,8 @@ ARG VCS_REF=UNSET
 ARG BUILD_DATE=UNSET
 #############################################################################################
 ARG GO_VERSION=1.26.1
-ARG ALPINE_VERSION=3.19
+# hadolint ignore=DL3007
+ARG ALPINE_VERSION=latest
 ARG CGO_ENABLED=0
 ARG GOOS=linux
 ARG GOARCH=amd64
@@ -138,12 +139,12 @@ USER 65532:65532
 # Set working directory.
 WORKDIR /app
 
-# Expose ports (18400 for SPA, 9090 for admin/health).
-EXPOSE 18400 9090
+# Expose public port only (admin 9090 binds 127.0.0.1, never exposed).
+EXPOSE 8080
 
-# Health check for the SPA service.
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD wget --no-check-certificate -q -O /dev/null https://127.0.0.1:9090/admin/api/v1/livez || exit 1
+# Healthcheck using built-in CLI livez subcommand (no wget dependency).
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+    CMD /app/identity-spa livez || exit 1
 
 # Use tini for proper signal handling and zombie process reaping.
 ENTRYPOINT ["/sbin/tini", "--", "/app/identity-spa"]

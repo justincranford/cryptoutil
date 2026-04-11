@@ -140,6 +140,13 @@ sub_linters:
     description: Validates that all registered product services have a corresponding deployments/ directory.
     category: config
 
+  - name: dockerfile-healthcheck
+    directory: dockerfile_healthcheck
+    description: >-
+      Validates that all Dockerfiles use built-in PS-ID CLI livez subcommand for
+      HEALTHCHECK instead of third-party tools like wget or curl.
+    category: config
+
   - name: dockerfile-labels
     directory: dockerfile_labels
     description: Ensures all Dockerfiles include required OCI image labels (maintainer, version, etc.).

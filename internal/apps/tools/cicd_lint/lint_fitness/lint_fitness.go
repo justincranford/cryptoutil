@@ -34,6 +34,7 @@ import (
 	lintFitnessCrossServiceImportIsolation "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/cross_service_import_isolation"
 	lintFitnessDatabaseKeyUniformity "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/database_key_uniformity"
 	lintFitnessDeploymentDirCompleteness "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/deployment_dir_completeness"
+	lintFitnessDockerfileHealthcheck "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/dockerfile_healthcheck"
 	lintFitnessDockerfileLabels "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/dockerfile_labels"
 	lintFitnessDomainLayerIsolation "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/domain_layer_isolation"
 	lintFitnessEntityRegistryCompleteness "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/entity_registry_completeness"
@@ -162,6 +163,7 @@ var registeredLinters = []struct {
 	{"configs-naming", lintFitnessConfigsNaming.Check},                    // New fitness checks (added in Phase 4 of framework-v7).
 	{"config-overlay-freshness", lintFitnessConfigOverlayFreshness.Check}, // New fitness checks (added in Phase 8 of framework-v6).
 	{"database-key-uniformity", lintFitnessDatabaseKeyUniformity.Check},
+	{"dockerfile-healthcheck", lintFitnessDockerfileHealthcheck.Check},
 	{"dockerfile-labels", lintFitnessDockerfileLabels.Check},
 	{"secret-content", lintFitnessSecretContent.Check},
 	{"secret-naming", lintFitnessSecretNaming.Check},

@@ -72,10 +72,10 @@
 #     - path: ../shared-postgres/compose.yml
 #
 services:
-  # PostgreSQL 18 Leader (OLTP - Read/Write)
-  # Hosts 30 logical databases (10 services Ã— 3 deployment types)
+  # PostgreSQL Leader (OLTP - Read/Write)
+  # Hosts 30 logical databases (10 services × 3 deployment types)
   postgres-leader:
-    image: postgres:18
+    image: postgres:latest
     container_name: cryptoutil-postgres-leader
     hostname: postgres-leader
     environment:
@@ -126,11 +126,11 @@ services:
           memory: 1G
           cpus: '1.0'
 
-  # PostgreSQL 18 Follower (OLAP - Read-Only Analytics)
+  # PostgreSQL Follower (OLAP - Read-Only Analytics)
   # Logical replication from leader with grouped schemas for analytics
 
   postgres-follower:
-    image: postgres:18
+    image: postgres:latest
     container_name: cryptoutil-postgres-follower
     hostname: postgres-follower
     environment:
