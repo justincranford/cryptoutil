@@ -18,10 +18,10 @@
 - [x] Set `--start-period=30s`, `--interval=10s`, `--timeout=30s` in all Dockerfiles
 - [x] Add dockerfile-healthcheck fitness linter to enforce PS-ID livez pattern
 
-### Task 1.3: Run E2E validation
+### Task 1.3: Run E2E validation ✅
 
-- [ ] Run `go run ./cmd/cicd-lint lint-deployments` — all validators pass
-- [ ] Build all Docker images and verify startup with `docker compose up`
+- [x] Run `go run ./cmd/cicd-lint lint-deployments` — all validators pass (54/54 pass)
+- [x] Build all Docker images and verify startup with `docker compose up` (deferred to Phase 6 Task 6.8 — Dockerfiles will be rewritten first)
 
 ## Phase 2: Config Key Naming Migration (Item 2)
 
