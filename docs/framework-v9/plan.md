@@ -139,19 +139,18 @@ scenarios. Missing: 5 product-level and 1 suite-level load test scenarios.
 **Action**: Extend `test/load/src/` with product-level and suite-level simulation classes.
 Update `pom.xml` with new simulation entry points.
 
-### 12. ENG-HANDBOOK Orphaned Section Coverage [LOW]
+### ~~12. ENG-HANDBOOK Orphaned Section Coverage~~ ✅ [LOW]
 
 **Source**: lint-docs validate-propagation output
 
 **Current state**: 76 of 442 sections (##/### level) are "orphaned" — not referenced by any
 `@propagate`/`@source` block. Combined ##/### coverage is 46%.
 
-**Note**: This is informational — orphaned sections are warnings, not errors. Many stubs and
-appendix sections intentionally have no propagation targets. Increasing coverage to ~60%
-would capture the most-referenced sections.
-
-**Action**: Identify the 10 most-referenced orphaned sections (by cross-reference count in
-instruction files) and add `@propagate`/`@source` blocks for them.
+**Analysis**: All 76 orphaned sections have zero cross-references from any instruction file.
+These sections are truly unreferenced — they consist of appendix/reference tables (A1-A3,
+B1-B8, C1-C4), structural metadata sections, and parent-level headings whose child subsections
+are already propagated. No actionable candidates exist for adding new @propagate/@source blocks.
+Instruction files already cover all substantive content via existing propagation targets.
 
 ### ~~13. Fitness Linter for Unpinned Docker Image Tags~~ REMOVED
 
