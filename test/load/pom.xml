@@ -322,6 +322,13 @@
         <groupId>io.gatling</groupId>
         <artifactId>gatling-maven-plugin</artifactId>
         <configuration>
+          <!-- Simulation classes (auto-discovered from classpath):
+               Service-level:  cryptoutil.ServiceApiSimulation, cryptoutil.BrowserApiSimulation
+               Product-level:  cryptoutil.SmProductSimulation, cryptoutil.JoseProductSimulation,
+                               cryptoutil.PkiProductSimulation, cryptoutil.IdentityProductSimulation,
+                               cryptoutil.SkeletonProductSimulation
+               Suite-level:    cryptoutil.CryptoutilSuiteSimulation
+               Select via: -Dgatling.simulationClass=cryptoutil.SmProductSimulation -->
           <!-- Enterprise Cloud (https://cloud.gatling.io/) configuration reference: https://docs.gatling.io/reference/integrations/build-tools/maven-plugin/#running-your-simulations-on-gatling-enterprise-cloud -->
         </configuration>
       </plugin>

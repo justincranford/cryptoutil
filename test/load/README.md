@@ -246,10 +246,32 @@ mvnw.cmd gatling:test
 ```
 src/test/java/
 ├── cryptoutil/
-│   ├── ServiceApiSimulation.java    # Service API performance tests (/service/api/v1/*)
-│   ├── BrowserApiSimulation.java    # Browser API performance tests (/browser/api/v1/*)
-│   └── AdminApiSimulation.java      # Admin API health check tests (port 9090)
+│   ├── CryptoutiApi.java                # Shared API helper methods (create key, encrypt, decrypt, etc.)
+│   ├── GatlingHttpUtil.java             # HTTP protocol configuration helpers
+│   ├── ServiceApiSimulation.java        # Service API tests: sm-kms crypto operations
+│   ├── BrowserApiSimulation.java        # Browser API tests: OAuth 2.1 PKCE, certificate requests
+│   ├── SmProductSimulation.java         # SM product: sm-kms + sm-im combined
+│   ├── JoseProductSimulation.java       # JOSE product: jose-ja JWK lifecycle
+│   ├── PkiProductSimulation.java        # PKI product: pki-ca certificate lifecycle
+│   ├── IdentityProductSimulation.java   # Identity product: all 5 identity services
+│   ├── SkeletonProductSimulation.java   # Skeleton product: skeleton-template health
+│   └── CryptoutilSuiteSimulation.java   # Suite: all 10 services simultaneously
 ```
+
+## Simulation Catalog
+
+| Level | Simulation Class | Services Tested | Default Ports |
+|-------|-----------------|-----------------|---------------|
+| Service | `ServiceApiSimulation` | sm-kms | 8080 |
+| Service | `BrowserApiSimulation` | identity-authz | 8180 |
+| Product | `SmProductSimulation` | sm-kms, sm-im | 8000, 8100 |
+| Product | `JoseProductSimulation` | jose-ja | 8200 |
+| Product | `PkiProductSimulation` | pki-ca | 8300 |
+| Product | `IdentityProductSimulation` | identity-authz/idp/rs/rp/spa | 8400-8800 |
+| Product | `SkeletonProductSimulation` | skeleton-template | 8900 |
+| Suite | `CryptoutilSuiteSimulation` | All 10 services | 8000-8900 |
+
+All simulations support `profile` (quick/standard/stress), `virtualclients`, and `durationSeconds` system properties.
 
 ## Creating Custom Simulations
 

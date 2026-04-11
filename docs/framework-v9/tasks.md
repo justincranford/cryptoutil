@@ -1,6 +1,6 @@
 # Tasks — Framework v9: Quality & Consistency
 
-**Status**: 8 of 37 tasks complete (22%)
+**Status**: 10 of 37 tasks complete (27%)
 **Created**: 2026-04-08
 **Updated**: 2026-04-12
 
@@ -90,19 +90,19 @@
 - [x] Add tests for rate limiting behavior (test verifies first N attempts return 401, subsequent return 429)
 - [x] Remove deferred TODO from `handlers_security_validation_rate_test.go` (replaced with actual rate limiting assertions)
 
-### Task 4.4: Refactor oversized test files
+### Task 4.4: Refactor oversized test files ✅
 
-- [ ] Split `validate_chunks_test.go` (544 lines) into <=500 line files
-- [ ] Split `jose_seam_injection_test.go` (509 lines) into <=500 line files
-- [ ] Split `issuer_operations_test.go` (501 lines) into <=500 line files
+- [x] Split `validate_chunks_test.go` (544→299 lines) — extracted to `validate_chunks_extraction_test.go` (195 lines)
+- [x] Split `jose_seam_injection_test.go` (509→329 lines) — extracted to `jose_seam_injection_keygen_test.go` (105 lines)
+- [x] Split `issuer_operations_test.go` (501→243 lines) — extracted to `issuer_validation_test.go` (178 lines)
 
 ## Phase 5: Low-Priority Improvements (Items 11, 12, 14)
 
-### Task 5.1: Extend Gatling load tests
+### Task 5.1: Extend Gatling load tests ✅
 
-- [ ] Add product-level simulation classes (5 products)
-- [ ] Add suite-level simulation class
-- [ ] Update `pom.xml` with new entry points
+- [x] Add product-level simulation classes (5 products): SmProductSimulation, JoseProductSimulation, PkiProductSimulation, IdentityProductSimulation, SkeletonProductSimulation
+- [x] Add suite-level simulation class: CryptoutilSuiteSimulation (all 10 services)
+- [x] Update `pom.xml` with new entry points documentation and `README.md` with simulation catalog
 
 ### Task 5.2: Increase ENG-HANDBOOK propagation coverage ✅
 
