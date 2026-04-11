@@ -25,18 +25,20 @@
 
 ## Phase 2: Config Key Naming Migration (Item 2)
 
-### Task 2.1: Audit config parsers
+### Task 2.1: Audit config parsers ✅
 
-- [ ] Identify Go code that parses snake_case config keys for each affected service
-- [ ] Determine if services use framework config parser or custom parsers
-- [ ] Document required code changes per service
+- [x] Identify Go code that parses snake_case config keys for each affected service
+- [x] Determine if services use framework config parser or custom parsers
+- [x] Document required code changes per service
 
-### Task 2.2: Migrate configs/sm-kms/ to kebab-case
+**Audit findings**: ALL services (sm-kms, sm-im, identity-authz, identity-idp, identity-rp, identity-rs, identity-spa) use the framework config parser via `ParseWithFlagSet()` with kebab-case flag names. The standalone config YAML files use nested snake_case schemas that are NOT parsed by the framework — they need rewriting to flat kebab-case. No Go code changes needed. Deployment config overlays are already mostly kebab-case (sm-kms has one nested `security: csrf_enabled` block to fix).
 
-- [ ] Update `configs/sm-kms/sm-kms.yml` keys to kebab-case
-- [ ] Update `deployments/sm-kms/config/` overlay files to kebab-case
-- [ ] Update Go parser code in `internal/apps/sm-kms/`
-- [ ] Verify service starts and tests pass
+### Task 2.2: Migrate configs/sm-kms/ to kebab-case ✅
+
+- [x] Update `configs/sm-kms/sm-kms.yml` keys to kebab-case (rewritten from nested snake_case to flat kebab-case)
+- [x] Update `deployments/sm-kms/config/` overlay files to kebab-case (removed nested `security: csrf_enabled` block)
+- [x] Update Go parser code in `internal/apps/sm-kms/` (no changes needed — already uses framework parser with kebab-case)
+- [x] Verify service starts and tests pass (build clean, lint-deployments 54/54 pass)
 
 ### Task 2.3: Migrate configs/sm-im/ to kebab-case
 
