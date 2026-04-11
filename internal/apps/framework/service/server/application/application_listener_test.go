@@ -24,7 +24,9 @@ import (
 const testPostgresDSN = "postgres://user:pass@localhost:5432/testdb?sslmode=disable"
 
 // TestStartCoreWithServices_FullIntegration tests the complete service initialization path.
-// IMPORTANT: StartCoreWithServices doesn't run migrations (Phase W TODO), so we test the components separately.
+// Design: StartCoreWithServices is a low-level API that does not run migrations.
+// Migration execution is the responsibility of ServerBuilder.Build() (Phase W.2).
+// This test exercises StartCore + manual migration + InitializeServicesOnCore separately.
 // Sequential: uses shared SQLite in-memory database.
 func TestStartCoreWithServices_FullIntegration(t *testing.T) {
 	// NOT parallel - shares SQLite in-memory database with other tests.
@@ -56,7 +58,8 @@ func TestStartCoreWithServices_FullIntegration(t *testing.T) {
 	require.NotNil(t, core)
 	defer core.Shutdown()
 
-	// Run migrations (StartCoreWithServices Phase W TODO: should handle this internally).
+	// Run migrations manually (StartCoreWithServices intentionally does not run migrations;
+	// migration execution is handled by ServerBuilder.Build() at a higher level).
 	err = core.DB.AutoMigrate(
 		&cryptoutilAppsFrameworkServiceServerBarrier.RootKey{},
 		&cryptoutilAppsFrameworkServiceServerBarrier.IntermediateKey{},

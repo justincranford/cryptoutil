@@ -68,6 +68,18 @@ func (s *Service) handleLoginSubmit(c *fiber.Ctx) error {
 
 	ctx := c.Context()
 
+	// Check IP-level rate limit before processing login (two-layer rate limiting per §8.5.2).
+	if s.ipRateLimiter != nil {
+		if err := s.ipRateLimiter.CheckLimit(ctx, c.IP()); err != nil {
+			c.Set(fiber.HeaderRetryAfter, fmt.Sprintf("%d", int(s.config.Security.RateLimitWindow.Seconds())))
+
+			return c.Status(fiber.StatusTooManyRequests).JSON(fiber.Map{
+				cryptoutilSharedMagic.StringError: "rate_limit_exceeded",
+				"error_description":               "Too many login attempts, please try again later",
+			})
+		}
+	}
+
 	// Parse request_id.
 	requestID, err := googleUuid.Parse(requestIDStr)
 	if err != nil {
@@ -111,6 +123,11 @@ func (s *Service) handleLoginSubmit(c *fiber.Ctx) error {
 		"password": password,
 	})
 	if err != nil {
+		// Record failed attempt for IP rate limiting.
+		if s.ipRateLimiter != nil {
+			_ = s.ipRateLimiter.RecordAttempt(ctx, c.IP())
+		}
+
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorAccessDenied,
 			"error_description":               "Invalid username or password",

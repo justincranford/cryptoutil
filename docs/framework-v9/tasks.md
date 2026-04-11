@@ -1,6 +1,6 @@
 # Tasks — Framework v9: Quality & Consistency
 
-**Status**: 7 of 37 tasks complete (19%)
+**Status**: 8 of 37 tasks complete (22%)
 **Created**: 2026-04-08
 **Updated**: 2026-04-12
 
@@ -77,18 +77,18 @@
 - [x] Implement cascade deletion tests
 - [x] Remove all `t.Skip("TODO P2.4: ...")` calls
 
-### Task 4.2: Resolve Phase W migration TODOs
+### Task 4.2: Resolve Phase W migration TODOs ✅
 
-- [ ] Evaluate `StartCoreWithServices` migration handling
-- [ ] Implement migration handling in startup OR document design decision
-- [ ] Remove TODO comments from `application_listener_test.go`
+- [x] Evaluate `StartCoreWithServices` migration handling (design decision: intentionally does NOT run migrations; ServerBuilder.Build() handles them at Phase W.2)
+- [x] Implement migration handling in startup OR document design decision (design decision documented in application_listener_test.go lines 27-28 and 61-62)
+- [x] Remove TODO comments from `application_listener_test.go` (no TODOs remain — only design documentation comments)
 
-### Task 4.3: Integrate rate limiter in identity-idp
+### Task 4.3: Integrate rate limiter in identity-idp ✅
 
-- [ ] Wire framework `RateLimiter` into identity-idp handler chain
-- [ ] Configure per §8.5.2 two-layer rate limiting
-- [ ] Add tests for rate limiting behavior
-- [ ] Remove deferred TODO from `handlers_security_validation_rate_test.go`
+- [x] Wire framework `RateLimiter` into identity-idp handler chain (added ipRateLimiter field to Service, initialized from SecurityConfig in Start())
+- [x] Configure per §8.5.2 two-layer rate limiting (CheckLimit before auth, RecordAttempt after failed auth, 429 with Retry-After header)
+- [x] Add tests for rate limiting behavior (test verifies first N attempts return 401, subsequent return 429)
+- [x] Remove deferred TODO from `handlers_security_validation_rate_test.go` (replaced with actual rate limiting assertions)
 
 ### Task 4.4: Refactor oversized test files
 

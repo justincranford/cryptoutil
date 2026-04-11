@@ -11,9 +11,12 @@ import (
 	"html/template"
 
 	cryptoutilIdentityAuth "cryptoutil/internal/apps/identity-idp/auth"
+	cryptoutilIdentityUserAuth "cryptoutil/internal/apps/identity-idp/userauth"
 	cryptoutilIdentityConfig "cryptoutil/internal/apps/identity/config"
 	cryptoutilIdentityIssuer "cryptoutil/internal/apps/identity/issuer"
 	cryptoutilIdentityRepository "cryptoutil/internal/apps/identity/repository"
+
+	"go.opentelemetry.io/otel/metric/noop"
 )
 
 // Embed HTML templates at compile time.
@@ -23,11 +26,12 @@ var templatesFS embed.FS
 
 // Service provides OIDC identity provider functionality.
 type Service struct {
-	config       *cryptoutilIdentityConfig.Config
-	repoFactory  *cryptoutilIdentityRepository.RepositoryFactory
-	tokenSvc     *cryptoutilIdentityIssuer.TokenService
-	authProfiles *cryptoutilIdentityAuth.ProfileRegistry
-	templates    *template.Template
+	config        *cryptoutilIdentityConfig.Config
+	repoFactory   *cryptoutilIdentityRepository.RepositoryFactory
+	tokenSvc      *cryptoutilIdentityIssuer.TokenService
+	authProfiles  *cryptoutilIdentityAuth.ProfileRegistry
+	templates     *template.Template
+	ipRateLimiter *cryptoutilIdentityUserAuth.PerIPRateLimiter
 }
 
 // NewService creates a new identity provider service.
@@ -50,8 +54,30 @@ func NewService(
 
 // Start starts the identity provider service.
 func (s *Service) Start(_ context.Context) error {
-	// Initialize authentication profiles
+	// Initialize authentication profiles.
 	s.initializeAuthProfiles()
+
+	// Initialize IP rate limiter if enabled in config.
+	if s.config.Security != nil && s.config.Security.RateLimitEnabled {
+		meterProvider := noop.NewMeterProvider()
+
+		store, err := cryptoutilIdentityUserAuth.NewDatabaseRateLimitStore(meterProvider)
+		if err != nil {
+			return fmt.Errorf("failed to create rate limit store: %w", err)
+		}
+
+		ipLimiter, err := cryptoutilIdentityUserAuth.NewPerIPRateLimiter(
+			store,
+			s.config.Security.RateLimitWindow,
+			s.config.Security.RateLimitRequests,
+			meterProvider,
+		)
+		if err != nil {
+			return fmt.Errorf("failed to create IP rate limiter: %w", err)
+		}
+
+		s.ipRateLimiter = ipLimiter
+	}
 
 	return nil
 }

@@ -80,7 +80,9 @@ func TestSecurityValidation_RateLimiting(t *testing.T) {
 	authProfileRepo := repoFactory.AuthProfileRepository()
 	require.NoError(t, authProfileRepo.Create(ctx, defaultAuthProfile), "Failed to create default auth profile")
 
-	// Create test config.
+	// Create test config with rate limiting enabled.
+	rateLimitMaxAttempts := cryptoutilSharedMagic.IMDefaultLoginRateLimit
+	rateLimitWindow := 1 * time.Hour
 	config := &cryptoutilIdentityConfig.Config{
 		Database: dbConfig,
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{
@@ -93,6 +95,11 @@ func TestSecurityValidation_RateLimiting(t *testing.T) {
 		},
 		IDP: &cryptoutilIdentityConfig.ServerConfig{
 			TLSEnabled: true,
+		},
+		Security: &cryptoutilIdentityConfig.SecurityConfig{
+			RateLimitEnabled:  true,
+			RateLimitRequests: rateLimitMaxAttempts,
+			RateLimitWindow:   rateLimitWindow,
 		},
 	}
 
@@ -174,22 +181,13 @@ func TestSecurityValidation_RateLimiting(t *testing.T) {
 	authzReqRepo := repoFactory.AuthorizationRequestRepository()
 	require.NoError(t, authzReqRepo.Create(ctx, authzReq), "Failed to create authorization request")
 
-	// Note: Rate limiting implementation is deferred (MEDIUM priority TODO).
-	// This test documents expected behavior for when rate limiting is implemented.
-	//
-	// Expected implementation:
-	// 1. Track failed login attempts per username/IP in cache or database
-	// 2. Implement exponential backoff or fixed threshold (e.g., 5 attempts per 15 minutes)
-	// 3. Return HTTP 429 Too Many Requests after threshold exceeded
-	// 4. Include Retry-After header indicating lockout duration
-	//
-	// For now, verify that multiple failed attempts are handled correctly (without rate limiting).
+	// Verify rate limiting behavior: first N attempts return 401, then 429 after threshold.
+	totalAttempts := rateLimitMaxAttempts + 3 // Exceed the limit by 3 attempts.
 
-	const maxAttempts = 10
+	unauthorizedCount := 0
+	rateLimitedCount := 0
 
-	failedAttempts := 0
-
-	for i := 0; i < maxAttempts; i++ {
+	for i := 0; i < totalAttempts; i++ {
 		formData := url.Values{}
 		formData.Set("username", testUsername)
 		formData.Set("password", "WrongPassword123!") // Incorrect password
@@ -207,15 +205,19 @@ func TestSecurityValidation_RateLimiting(t *testing.T) {
 
 		defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test code cleanup
 
-		if resp.StatusCode == http.StatusUnauthorized {
-			failedAttempts++
+		switch resp.StatusCode {
+		case http.StatusUnauthorized:
+			unauthorizedCount++
+		case http.StatusTooManyRequests:
+			rateLimitedCount++
+			// Verify Retry-After header is present.
+			retryAfter := resp.Header.Get(fiber.HeaderRetryAfter)
+			require.NotEmpty(t, retryAfter, "Retry-After header should be set when rate limited")
 		}
 	}
 
-	// Without rate limiting, all attempts should fail with 401 Unauthorized.
-	require.Equal(t, maxAttempts, failedAttempts, "All failed attempts should return 401 without rate limiting")
-	// Planned: When rate limiting is implemented, update this test to expect:
-	// - HTTP 429 Too Many Requests after threshold exceeded
-	// - Retry-After header present
-	// - Subsequent attempts blocked until lockout expires
+	// First rateLimitMaxAttempts should return 401 (failed auth recorded, but not yet exceeded).
+	require.Equal(t, rateLimitMaxAttempts, unauthorizedCount, "Expected %d unauthorized responses before rate limit kicks in", rateLimitMaxAttempts)
+	// Subsequent attempts should return 429 (rate limit exceeded).
+	require.Equal(t, totalAttempts-rateLimitMaxAttempts, rateLimitedCount, "Expected %d rate-limited responses after threshold", totalAttempts-rateLimitMaxAttempts)
 }
