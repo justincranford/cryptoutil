@@ -1,6 +1,6 @@
 # Plan — Framework v9: Quality & Consistency
 
-**Status**: In Progress (items 1, 4, 7, 14 completed; items 3, 13 removed; items 15-22 added)
+**Status**: In Progress (items 1, 4, 7, 14, 22 completed; items 3, 13 removed; items 15-23 added)
 **Created**: 2026-04-08
 **Updated**: 2026-04-11
 
@@ -278,12 +278,44 @@ check all the structural rules in deployment-templates.md.
 Section N.1: `config_key_naming`, `config_header_identity`, `config_instance_minimal`,
 `config_common_complete`.
 
-### 22. Deployment Templates Documentation [LOW]
+### 22. Deployment Templates Documentation ✅ [LOW]
 
 **Source**: Planning — companion documentation
 
 **Completed**: Created `docs/deployment-templates.md` as companion to
 `docs/target-structure.md` (directory layout) and `docs/tls-structure.md` (TLS certs).
 Defines canonical file content templates for all Dockerfiles, compose.yml files,
-config files, and secrets at PS-ID, PRODUCT, and SUITE levels. Includes 20 Dockerfile
-rules, 18 compose rules, 12 config rules, and comprehensive inconsistency inventory.
+config files, and secrets at PS-ID, PRODUCT, and SUITE levels. Includes 24 Dockerfile
+rules, 20 compose rules, 12 config rules, template-comparison linter architecture,
+canonical template file catalog, and comprehensive inconsistency inventory.
+
+### 23. Canonical Template Architecture (api/cryptosuite-registry/templates/) [HIGH]
+
+**Source**: Architecture decision — template enforcement strategy
+
+**Decision**: All canonical deployment templates are stored as parameterized template
+files in `api/cryptosuite-registry/templates/`. This makes the templates
+machine-readable and linter-consumable.
+
+**Template files**:
+- `Dockerfile.tmpl` — PS-ID Dockerfile (×10)
+- `compose.yml.tmpl` — PS-ID compose (×10)
+- `config-common.yml.tmpl` — Deployment common config (×10)
+- `config-sqlite.yml.tmpl` — Deployment SQLite instance config (×20)
+- `config-postgresql.yml.tmpl` — Deployment PostgreSQL instance config (×20)
+- `standalone-config.yml.tmpl` — Standalone dev config (×10)
+- `product-compose.yml.tmpl` — Product compose (×5)
+- `suite-compose.yml.tmpl` — Suite compose (×1)
+- `suite-Dockerfile.tmpl` — Suite Dockerfile (×1)
+
+**Enforcement**: Linters instantiate templates in-memory by substituting registry
+values, then compare byte-for-byte against actual files on disk. Any deviation is
+a BLOCKING linting error with unified diff output.
+
+**Relationship to existing docs**:
+- `deployment-templates.md` describes the templates and their rules (human docs)
+- `templates/` directory IS the templates (machine source of truth)
+- `registry.yaml` provides the parameter values for instantiation
+
+**Action**: Create the `api/cryptosuite-registry/templates/` directory and all 9
+template files. Implement template-comparison linters in `cicd-lint lint-fitness`.

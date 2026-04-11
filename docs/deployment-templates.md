@@ -6,8 +6,13 @@
 While `target-structure.md` specifies **what files exist**, this document specifies **what goes inside each file**.
 While `tls-structure.md` specifies **what certificates exist**, this document specifies **how services reference them**.
 
-**Enforcement**: `cicd-lint lint-fitness` and `cicd-lint lint-deployments` validators MUST enforce these templates.
-Any deviation from these templates is a blocking error.
+**Canonical Templates**: Parameterized template files live in `api/cryptosuite-registry/templates/`.
+Linters instantiate templates in-memory (substituting registry values) and compare byte-for-byte
+against the actual files on disk. This document describes the templates; the templates themselves
+are the single source of truth for enforcement.
+
+**Enforcement**: `cicd-lint lint-fitness` and `cicd-lint lint-deployments` validators MUST enforce
+these templates. Any deviation from the canonical templates is a blocking error.
 
 ---
 
@@ -38,41 +43,71 @@ All templates use parameterized placeholders. Values for each PS-ID are defined 
 ### A.1 Entity Parameters
 
 | Parameter | Description | Example (sm-kms) | Example (jose-ja) |
-|-----------|-------------|-------------------|--------------------|
+|-----------|-------------|-------------------|----------------------------|
+| `{SUITE}` | Suite name (always `cryptoutil`) | `cryptoutil` | `cryptoutil` |
 | `{PS-ID}` | Product-Service identifier (kebab-case) | `sm-kms` | `jose-ja` |
 | `{PS_ID}` | Underscore variant (PostgreSQL naming) | `sm_kms` | `jose_ja` |
 | `{PRODUCT}` | Product name (kebab-case) | `sm` | `jose` |
 | `{SERVICE}` | Service name within product | `kms` | `ja` |
-| `{DISPLAY_NAME}` | Human-readable name | `Secrets Manager Key Management Service` | `JOSE JWK Authority` |
-| `{SUITE}` | Suite name (always `cryptoutil`) | `cryptoutil` | `cryptoutil` |
+| `{PRODUCT_DISPLAY_NAME}` | Human-readable product name | `Secrets Manager` | `JOSE` |
+| `{SERVICE_DISPLAY_NAME}` | Human-readable service name | `Key Management Service` | `JWK Authority` |
+| `{GITHUB_REPOSITORY_URL}` | Source repository URL | `https://github.com/justincranford/cryptoutil` | (same) |
+| `{AUTHORS}` | Image authors | `Justin Cranford` | (same) |
 
 ### A.2 Port Parameters
 
 | Parameter | Description | Formula | Example (sm-kms) | Example (jose-ja) |
 |-----------|-------------|---------|-------------------|--------------------|
-| `{PORT_BASE}` | SERVICE-tier port block start | Per registry | `8000` | `8200` |
-| `{PORT_SQLITE_1}` | SQLite instance 1 host port | `{PORT_BASE} + 0` | `8000` | `8200` |
-| `{PORT_SQLITE_2}` | SQLite instance 2 host port | `{PORT_BASE} + 1` | `8001` | `8201` |
-| `{PORT_PG_1}` | PostgreSQL instance 1 host port | `{PORT_BASE} + 2` | `8002` | `8202` |
-| `{PORT_PG_2}` | PostgreSQL instance 2 host port | `{PORT_BASE} + 3` | `8003` | `8203` |
-| `{PG_HOST_PORT}` | PostgreSQL container host port | Per registry | `54320` | `54322` |
-| `{PRODUCT_OFFSET}` | PRODUCT tier formula | `{PORT_BASE} + 10000` | `18000` | `18200` |
-| `{SUITE_OFFSET}` | SUITE tier formula | `{PORT_BASE} + 20000` | `28000` | `28200` |
+| `{SERVICE_APP_PORT_BASE}` | SERVICE-tier port block start | Per registry | `8000` | `8200` |
+| `{SERVICE_APP_PORT_SQLITE_1}` | SQLite instance 1 host port | `{SERVICE_APP_PORT_BASE} + 0` | `8000` | `8200` |
+| `{SERVICE_APP_PORT_SQLITE_2}` | SQLite instance 2 host port | `{SERVICE_APP_PORT_BASE} + 1` | `8001` | `8201` |
+| `{SERVICE_APP_PORT_PG_1}` | PostgreSQL instance 1 host port | `{SERVICE_APP_PORT_BASE} + 2` | `8002` | `8202` |
+| `{SERVICE_APP_PORT_PG_2}` | PostgreSQL instance 2 host port | `{SERVICE_APP_PORT_BASE} + 3` | `8003` | `8203` |
+| `{SERVICE_PG_HOST_PORT}` | PostgreSQL container host port | Per registry | `54320` | `54322` |
+| `{PRODUCT_APP_PORT_OFFSET}` | PRODUCT tier formula | `{SERVICE_APP_PORT_BASE} + 10000` | `18000` | `18200` |
+| `{SUITE_APP_PORT_OFFSET}` | SUITE tier formula | `{SERVICE_APP_PORT_BASE} + 20000` | `28000` | `28200` |
 
-### A.3 Complete PS-ID Parameter Matrix
+### A.3 Build & Container Parameters
 
-| PS-ID | Product | PORT_BASE | PG_HOST_PORT | DISPLAY_NAME |
-|-------|---------|-----------|--------------|--------------|
-| `sm-kms` | `sm` | `8000` | `54320` | Secrets Manager Key Management Service |
-| `sm-im` | `sm` | `8100` | `54321` | Secrets Manager Instant Messenger |
-| `jose-ja` | `jose` | `8200` | `54322` | JOSE JWK Authority |
-| `pki-ca` | `pki` | `8300` | `54323` | PKI Certificate Authority |
-| `identity-authz` | `identity` | `8400` | `54324` | Identity Authorization Server |
-| `identity-idp` | `identity` | `8500` | `54325` | Identity Provider |
-| `identity-rs` | `identity` | `8600` | `54326` | Identity Resource Server |
-| `identity-rp` | `identity` | `8700` | `54327` | Identity Relying Party |
-| `identity-spa` | `identity` | `8800` | `54328` | Identity Single Page App |
-| `skeleton-template` | `skeleton` | `8900` | `54329` | Skeleton Template |
+| Parameter | Description | Default Value |
+|-----------|-------------|---------------|
+| `{GO_VERSION}` | Go compiler version | `1.26.1` |
+| `{ALPINE_VERSION}` | Alpine base image tag | `latest` |
+| `{CGO_ENABLED}` | CGO linkage (MUST be `0`) | `0` |
+| `{CONTAINER_UID}` | Non-root user ID for final container stage | `65532` |
+| `{CONTAINER_GID}` | Non-root group ID for final container stage | `65532` |
+| `{IMAGE_TAG}` | Docker image tag | `local` |
+| `{HEALTHCHECK_INTERVAL}` | HEALTHCHECK `--interval` | `30s` |
+| `{HEALTHCHECK_TIMEOUT}` | HEALTHCHECK `--timeout` | `10s` |
+| `{HEALTHCHECK_START_PERIOD}` | HEALTHCHECK `--start-period` | `30s` |
+| `{HEALTHCHECK_RETRIES}` | HEALTHCHECK `--retries` | `3` |
+
+**UID/GID Security Rationale**: Running containers as a non-root user (UID 65532, GID 65532)
+is a defense-in-depth measure that limits the blast radius of container escapes. If a
+vulnerability allows code execution inside the container, the attacker inherits a
+non-privileged UID that cannot modify system files, install packages, bind to privileged
+ports, or access host resources via shared namespaces. UID 65532 is a well-known convention
+for non-root container users (commonly named `nonroot` or `nobody`). Declaring UID and GID
+as build ARGs serves two purposes: (1) de-duplicates the literal values across the
+Dockerfile (used in `addgroup`, `adduser`, `chown`, and `USER` directives), and (2) allows
+override during local debugging builds (e.g., `--build-arg CONTAINER_UID=0 --build-arg
+CONTAINER_GID=0` to temporarily run as root for strace/debugging — NEVER in CI/CD or
+production).
+
+### A.4 Complete PS-ID Parameter Matrix
+
+| PS-ID | PRODUCT | SERVICE | SERVICE_APP_PORT_BASE | SERVICE_PG_HOST_PORT | PRODUCT_DISPLAY_NAME | SERVICE_DISPLAY_NAME | PRODUCT_APP_PORT_OFFSET | SUITE_APP_PORT_OFFSET |
+|-------|---------|---------|---------------------|--------------------|--------------------|--------------------|-----------------------|---------------------|
+| `sm-kms` | `sm` | `kms` | `8000` | `54320` | Secrets Manager | Key Management Service | `18000` | `28000` |
+| `sm-im` | `sm` | `im` | `8100` | `54321` | Secrets Manager | Instant Messenger | `18100` | `28100` |
+| `jose-ja` | `jose` | `ja` | `8200` | `54322` | JOSE | JWK Authority | `18200` | `28200` |
+| `pki-ca` | `pki` | `ca` | `8300` | `54323` | PKI | Certificate Authority | `18300` | `28300` |
+| `identity-authz` | `identity` | `authz` | `8400` | `54324` | Identity | Authorization Server | `18400` | `28400` |
+| `identity-idp` | `identity` | `idp` | `8500` | `54325` | Identity | Identity Provider | `18500` | `28500` |
+| `identity-rs` | `identity` | `rs` | `8600` | `54326` | Identity | Resource Server | `18600` | `28600` |
+| `identity-rp` | `identity` | `rp` | `8700` | `54327` | Identity | Relying Party | `18700` | `28700` |
+| `identity-spa` | `identity` | `spa` | `8800` | `54328` | Identity | Single Page App | `18800` | `28800` |
+| `skeleton-template` | `skeleton` | `template` | `8900` | `54329` | Skeleton | Template | `18900` | `28900` |
 
 ---
 
@@ -84,26 +119,36 @@ All templates use parameterized placeholders. Values for each PS-ID are defined 
 
 ```dockerfile
 #############################################################################################
-# {PS-ID} Dockerfile — {DISPLAY_NAME}
+# {PS-ID} Dockerfile — {PRODUCT_DISPLAY_NAME} {SERVICE_DISPLAY_NAME}
 #
 # Build: DOCKER_BUILDKIT=1 docker build \
 #          --build-arg APP_VERSION=<ver> \
 #          --build-arg VCS_REF=$(git rev-parse HEAD) \
 #          --build-arg BUILD_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ") \
-#          -t cryptoutil-{PS-ID}:dev \
+#          -t {SUITE}-{PS-ID}:{IMAGE_TAG} \
 #          -f deployments/{PS-ID}/Dockerfile .
 #############################################################################################
 ARG APP_VERSION=UNSET
 ARG VCS_REF=UNSET
 ARG BUILD_DATE=UNSET
 #############################################################################################
-ARG GO_VERSION=1.26.1
+ARG GO_VERSION={GO_VERSION}
 # hadolint ignore=DL3007
-ARG ALPINE_VERSION=latest
-ARG CGO_ENABLED=0
+ARG ALPINE_VERSION={ALPINE_VERSION}
+# Design intent is to NEVER set CGO_ENABLED=1
+ARG CGO_ENABLED={CGO_ENABLED}
 ARG GOOS=linux
 ARG GOARCH=amd64
 ARG LDFLAGS="-s -extldflags '-static'"
+#############################################################################################
+# Non-root container user/group IDs. Default 65532:65532 is the well-known nonroot UID/GID
+# convention. Running as non-root limits blast radius of container escapes: an attacker
+# inheriting this UID cannot modify system files, install packages, bind privileged ports,
+# or access host resources via shared namespaces. Override with --build-arg for local
+# debugging only (e.g., CONTAINER_UID=0 CONTAINER_GID=0 for strace) — NEVER in CI/CD or
+# production.
+ARG CONTAINER_UID={CONTAINER_UID}
+ARG CONTAINER_GID={CONTAINER_GID}
 #############################################################################################
 
 #############################################################################################
@@ -170,7 +215,9 @@ RUN if ldd /app/{PS-ID} 2>/dev/null; then \
         exit 1; \
     fi
 
-RUN mkdir -p /app && chmod 555 /app && chown -R 65532:65532 /app
+ARG CONTAINER_UID
+ARG CONTAINER_GID
+RUN mkdir -p /app && chmod 555 /app && chown -R ${CONTAINER_UID}:${CONTAINER_GID} /app
 
 #############################################################################################
 # Stage 3: Runtime dependencies
@@ -196,8 +243,10 @@ COPY --from=builder /app /app
 COPY --from=validation /app/.build-params /app/.build-params
 
 # Create non-root user
-RUN addgroup -g 65532 -S appgroup && \
-    adduser -u 65532 -S appuser -G appgroup -h /app -s /sbin/nologin
+ARG CONTAINER_UID
+ARG CONTAINER_GID
+RUN addgroup -g ${CONTAINER_GID} -S appgroup && \
+    adduser -u ${CONTAINER_UID} -S appuser -G appgroup -h /app -s /sbin/nologin
 
 WORKDIR /app
 
@@ -205,22 +254,22 @@ WORKDIR /app
 ARG APP_VERSION
 ARG VCS_REF
 ARG BUILD_DATE
-LABEL org.opencontainers.image.title="cryptoutil-{PS-ID}" \
-      org.opencontainers.image.description="{DISPLAY_NAME}" \
-      org.opencontainers.image.source="https://github.com/justincranford/cryptoutil" \
-      org.opencontainers.image.authors="Justin Cranford" \
+LABEL org.opencontainers.image.title="{SUITE}-{PS-ID}" \
+      org.opencontainers.image.description="{PRODUCT_DISPLAY_NAME} {SERVICE_DISPLAY_NAME}" \
+      org.opencontainers.image.source="{GITHUB_REPOSITORY_URL}" \
+      org.opencontainers.image.authors="{AUTHORS}" \
       org.opencontainers.image.version="${APP_VERSION}" \
       org.opencontainers.image.revision="${VCS_REF}" \
       org.opencontainers.image.created="${BUILD_DATE}"
 
 EXPOSE 8080
 
-HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+HEALTHCHECK --interval={HEALTHCHECK_INTERVAL} --timeout={HEALTHCHECK_TIMEOUT} --start-period={HEALTHCHECK_START_PERIOD} --retries={HEALTHCHECK_RETRIES} \
     CMD /app/{PS-ID} livez || exit 1
 
 ENTRYPOINT ["/sbin/tini", "--", "/app/{PS-ID}"]
 
-USER 65532:65532
+USER ${CONTAINER_UID}:${CONTAINER_GID}
 ```
 
 ### B.2 Template Rules (Enforceable)
@@ -228,40 +277,44 @@ USER 65532:65532
 | Rule ID | Rule | Rationale |
 |---------|------|-----------|
 | DF-01 | MUST have exactly 4 named stages: `validation`, `builder`, `runtime-deps`, `final` | Structural consistency |
-| DF-02 | MUST use `ARG GO_VERSION=1.26.1` | Version consistency |
-| DF-03 | MUST use `ARG ALPINE_VERSION=latest` with `# hadolint ignore=DL3007` | Security patch policy |
-| DF-04 | MUST use `ARG CGO_ENABLED=0` | CGO ban |
+| DF-02 | MUST use `ARG GO_VERSION={GO_VERSION}` | Version consistency |
+| DF-03 | MUST use `ARG ALPINE_VERSION={ALPINE_VERSION}` with `# hadolint ignore=DL3007` | Security patch policy |
+| DF-04 | MUST use `ARG CGO_ENABLED={CGO_ENABLED}` | CGO ban |
 | DF-05 | Builder MUST use BuildKit cache mounts for `/go/pkg/mod` and `/root/.cache/go-build` | Build performance |
 | DF-06 | MUST build `./cmd/{PS-ID}` and output to `/app/{PS-ID}` | Binary naming |
 | DF-07 | MUST validate static linking with `ldd` check | Portability |
 | DF-08 | Runtime-deps MUST install `ca-certificates`, `tzdata`, `tini` only (NO curl, NO wget) | Minimal attack surface |
 | DF-09 | Final stage MUST NOT install any packages via `apk` | Minimal attack surface |
-| DF-10 | MUST create user with UID:GID `65532:65532` | Security (nonroot) |
+| DF-10 | MUST use `ARG CONTAINER_UID={CONTAINER_UID}` and `ARG CONTAINER_GID={CONTAINER_GID}` for user creation | Security (nonroot, parameterized) |
 | DF-11 | MUST use `WORKDIR /app` (NOT `/app/run`) | Uniformity |
 | DF-12 | MUST use compact multi-line `LABEL` block (NOT individual LABEL lines) | Style consistency |
-| DF-13 | `LABEL org.opencontainers.image.title` MUST equal `cryptoutil-{PS-ID}` | Naming convention |
+| DF-13 | `LABEL org.opencontainers.image.title` MUST equal `{SUITE}-{PS-ID}` | Naming convention |
 | DF-14 | MUST have `EXPOSE 8080` only (NO 9090) | Admin is 127.0.0.1-only |
-| DF-15 | HEALTHCHECK MUST use `/app/{PS-ID} livez \|\| exit 1` | Built-in CLI |
-| DF-16 | ENTRYPOINT MUST be `["/sbin/tini", "--", "/app/{PS-ID}"]` | Signal handling |
-| DF-17 | MUST end with `USER 65532:65532` (NOT commented out) | Security |
-| DF-18 | MUST NOT set `GOMODCACHE` or `GOCACHE` env vars | Unnecessary in runtime |
-| DF-19 | MUST NOT have `CMD` instruction (compose overrides command) | Compose controls |
-| DF-20 | Header comment MUST reference `{PS-ID}` and `{DISPLAY_NAME}` correctly | No copy-paste errors |
+| DF-15 | HEALTHCHECK MUST use parameterized timing: `--interval={HEALTHCHECK_INTERVAL} --timeout={HEALTHCHECK_TIMEOUT} --start-period={HEALTHCHECK_START_PERIOD} --retries={HEALTHCHECK_RETRIES}` | Configurable health probes |
+| DF-16 | HEALTHCHECK command MUST use `/app/{PS-ID} livez \|\| exit 1` | Built-in CLI |
+| DF-17 | ENTRYPOINT MUST be `["/sbin/tini", "--", "/app/{PS-ID}"]` | Signal handling |
+| DF-18 | MUST end with `USER ${CONTAINER_UID}:${CONTAINER_GID}` (NOT commented out) | Security |
+| DF-19 | MUST NOT set `GOMODCACHE` or `GOCACHE` env vars | Unnecessary in runtime |
+| DF-20 | MUST NOT have `CMD` instruction (compose overrides command) | Compose controls |
+| DF-21 | Header comment MUST reference `{SUITE}-{PS-ID}:{IMAGE_TAG}` and `{PRODUCT_DISPLAY_NAME} {SERVICE_DISPLAY_NAME}` | No copy-paste errors |
+| DF-22 | `LABEL org.opencontainers.image.source` MUST equal `{GITHUB_REPOSITORY_URL}` | Repository link |
+| DF-23 | `LABEL org.opencontainers.image.authors` MUST equal `{AUTHORS}` | Author attribution |
+| DF-24 | `LABEL org.opencontainers.image.description` MUST equal `{PRODUCT_DISPLAY_NAME} {SERVICE_DISPLAY_NAME}` | Human-readable description |
 
 ### B.3 Template Variables Per PS-ID
 
 | PS-ID | Binary Path | HEALTHCHECK Path | ENTRYPOINT | LABEL title |
 |-------|-------------|------------------|------------|-------------|
-| `sm-kms` | `/app/sm-kms` | `/app/sm-kms livez` | `["/sbin/tini", "--", "/app/sm-kms"]` | `cryptoutil-sm-kms` |
-| `sm-im` | `/app/sm-im` | `/app/sm-im livez` | `["/sbin/tini", "--", "/app/sm-im"]` | `cryptoutil-sm-im` |
-| `jose-ja` | `/app/jose-ja` | `/app/jose-ja livez` | `["/sbin/tini", "--", "/app/jose-ja"]` | `cryptoutil-jose-ja` |
-| `pki-ca` | `/app/pki-ca` | `/app/pki-ca livez` | `["/sbin/tini", "--", "/app/pki-ca"]` | `cryptoutil-pki-ca` |
-| `identity-authz` | `/app/identity-authz` | `/app/identity-authz livez` | `["/sbin/tini", "--", "/app/identity-authz"]` | `cryptoutil-identity-authz` |
-| `identity-idp` | `/app/identity-idp` | `/app/identity-idp livez` | `["/sbin/tini", "--", "/app/identity-idp"]` | `cryptoutil-identity-idp` |
-| `identity-rs` | `/app/identity-rs` | `/app/identity-rs livez` | `["/sbin/tini", "--", "/app/identity-rs"]` | `cryptoutil-identity-rs` |
-| `identity-rp` | `/app/identity-rp` | `/app/identity-rp livez` | `["/sbin/tini", "--", "/app/identity-rp"]` | `cryptoutil-identity-rp` |
-| `identity-spa` | `/app/identity-spa` | `/app/identity-spa livez` | `["/sbin/tini", "--", "/app/identity-spa"]` | `cryptoutil-identity-spa` |
-| `skeleton-template` | `/app/skeleton-template` | `/app/skeleton-template livez` | `["/sbin/tini", "--", "/app/skeleton-template"]` | `cryptoutil-skeleton-template` |
+| `sm-kms` | `/app/sm-kms` | `/app/sm-kms livez` | `["/sbin/tini", "--", "/app/sm-kms"]` | `{SUITE}-sm-kms` |
+| `sm-im` | `/app/sm-im` | `/app/sm-im livez` | `["/sbin/tini", "--", "/app/sm-im"]` | `{SUITE}-sm-im` |
+| `jose-ja` | `/app/jose-ja` | `/app/jose-ja livez` | `["/sbin/tini", "--", "/app/jose-ja"]` | `{SUITE}-jose-ja` |
+| `pki-ca` | `/app/pki-ca` | `/app/pki-ca livez` | `["/sbin/tini", "--", "/app/pki-ca"]` | `{SUITE}-pki-ca` |
+| `identity-authz` | `/app/identity-authz` | `/app/identity-authz livez` | `["/sbin/tini", "--", "/app/identity-authz"]` | `{SUITE}-identity-authz` |
+| `identity-idp` | `/app/identity-idp` | `/app/identity-idp livez` | `["/sbin/tini", "--", "/app/identity-idp"]` | `{SUITE}-identity-idp` |
+| `identity-rs` | `/app/identity-rs` | `/app/identity-rs livez` | `["/sbin/tini", "--", "/app/identity-rs"]` | `{SUITE}-identity-rs` |
+| `identity-rp` | `/app/identity-rp` | `/app/identity-rp livez` | `["/sbin/tini", "--", "/app/identity-rp"]` | `{SUITE}-identity-rp` |
+| `identity-spa` | `/app/identity-spa` | `/app/identity-spa livez` | `["/sbin/tini", "--", "/app/identity-spa"]` | `{SUITE}-identity-spa` |
+| `skeleton-template` | `/app/skeleton-template` | `/app/skeleton-template livez` | `["/sbin/tini", "--", "/app/skeleton-template"]` | `{SUITE}-skeleton-template` |
 
 ---
 
@@ -276,14 +329,14 @@ USER 65532:65532
 #
 # {PS-ID} Docker Compose Configuration
 #
-# SERVICE-level deployment for {DISPLAY_NAME}.
+# SERVICE-level deployment for {PRODUCT_DISPLAY_NAME} {SERVICE_DISPLAY_NAME}.
 # Supports 4 instances: 2 SQLite + 2 PostgreSQL.
 #
-# Port allocation (SERVICE level: {PORT_BASE}-{PORT_BASE+3}):
-#   - {PS-ID}-app-sqlite-1:      {PORT_SQLITE_1}
-#   - {PS-ID}-app-sqlite-2:      {PORT_SQLITE_2}
-#   - {PS-ID}-app-postgresql-1:  {PORT_PG_1}
-#   - {PS-ID}-app-postgresql-2:  {PORT_PG_2}
+# Port allocation (SERVICE level: {SERVICE_APP_PORT_BASE}-{SERVICE_APP_PORT_BASE+3}):
+#   - {PS-ID}-app-sqlite-1:      {SERVICE_APP_PORT_SQLITE_1}
+#   - {PS-ID}-app-sqlite-2:      {SERVICE_APP_PORT_SQLITE_2}
+#   - {PS-ID}-app-postgresql-1:  {SERVICE_APP_PORT_PG_1}
+#   - {PS-ID}-app-postgresql-2:  {SERVICE_APP_PORT_PG_2}
 #
 # Dual Role: Standalone deployable AND include target for PRODUCT/SUITE compose files.
 # Usage:
@@ -293,8 +346,9 @@ USER 65532:65532
 #   docker compose -f compose.yml down -v
 #
 # Health Checks:
-#   - Public: https://localhost:{PORT_SQLITE_1}/browser/api/v1/health
+#   - Public: https://localhost:{SERVICE_APP_PORT_SQLITE_1}/browser/api/v1/health
 #   - Admin:  https://127.0.0.1:9090/admin/api/v1/livez (container-internal only)
+#   - Admin:  https://127.0.0.1:9090/admin/api/v1/ready (container-internal only)
 #
 include:
   - path: ../shared-telemetry/compose.yml
@@ -319,18 +373,40 @@ services:
       - browser-password.secret
       - service-username.secret
       - service-password.secret
-    command: ["sh", "-c", "ls -l /run/secrets/*.secret"]
+    command:
+      - sh
+      - -c
+      - |
+        set -e
+        for f in \
+          /run/secrets/unseal-1of5.secret \
+          /run/secrets/unseal-2of5.secret \
+          /run/secrets/unseal-3of5.secret \
+          /run/secrets/unseal-4of5.secret \
+          /run/secrets/unseal-5of5.secret \
+          /run/secrets/hash-pepper-v3.secret \
+          /run/secrets/postgres-url.secret \
+          /run/secrets/postgres-username.secret \
+          /run/secrets/postgres-password.secret \
+          /run/secrets/postgres-database.secret \
+          /run/secrets/browser-username.secret \
+          /run/secrets/browser-password.secret \
+          /run/secrets/service-username.secret \
+          /run/secrets/service-password.secret; do
+          test -s "$$f" || { echo "MISSING OR EMPTY: $$f"; exit 1; }
+        done
+        echo "All 14 secrets validated successfully"
     networks:
       - {PS-ID}-network
 
   # Build image from source.
   builder-{PS-ID}:
-    image: cryptoutil-{PS-ID}:dev
+    image: {SUITE}-{PS-ID}:{IMAGE_TAG}
     build:
       context: ../..
       dockerfile: deployments/{PS-ID}/Dockerfile
       args:
-        APP_VERSION: "dev"
+        APP_VERSION: "{IMAGE_TAG}"
         VCS_REF: "local"
         BUILD_DATE: "2026-01-01T00:00:00Z"
     entrypoint: ["sh", "-c"]
@@ -341,7 +417,7 @@ services:
 
   # PKI init: bootstrap TLS certificates.
   pki-init:
-    image: cryptoutil-{PS-ID}:dev
+    image: {SUITE}-{PS-ID}:{IMAGE_TAG}
     command: ["init", "--output-dir=/certs"]
     volumes:
       - ./certs/:/certs/:rw
@@ -353,7 +429,7 @@ services:
 
   # App: SQLite instance 1.
   {PS-ID}-app-sqlite-1:
-    image: cryptoutil-{PS-ID}:dev
+    image: {SUITE}-{PS-ID}:{IMAGE_TAG}
     command: >-
       server
       --bind-public-port=8080
@@ -364,7 +440,7 @@ services:
       -u sqlite://file::memory:?cache=shared
     working_dir: /tmp
     ports:
-      - "{PORT_SQLITE_1}:8080"
+      - "{SERVICE_APP_PORT_SQLITE_1}:8080"
     volumes:
       - ./config/{PS-ID}-app-sqlite-1.yml:/app/config/{PS-ID}-app-sqlite-1.yml:ro
       - ./config/{PS-ID}-app-common.yml:/app/config/{PS-ID}-app-common.yml:ro
@@ -376,6 +452,11 @@ services:
       - unseal-3of5.secret
       - unseal-4of5.secret
       - unseal-5of5.secret
+      - hash-pepper-v3.secret
+      - browser-username.secret
+      - browser-password.secret
+      - service-username.secret
+      - service-password.secret
     depends_on:
       healthcheck-secrets:
         condition: service_completed_successfully
@@ -388,11 +469,11 @@ services:
       healthcheck-opentelemetry-collector-contrib:
         condition: service_completed_successfully
     healthcheck:
-      test: ["CMD", "wget", "--ca-certificate=/certs/root-ca.pem", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/api/v1/livez"]
-      start_period: 60s
-      interval: 5s
-      timeout: 5s
-      retries: 10
+      test: ["CMD", "/app/{PS-ID}", "livez"]
+      start-period: {HEALTHCHECK_START_PERIOD}
+      interval: {HEALTHCHECK_INTERVAL}
+      timeout: {HEALTHCHECK_TIMEOUT}
+      retries: {HEALTHCHECK_RETRIES}
     networks:
       - {PS-ID}-network
       - telemetry-network
@@ -406,23 +487,24 @@ services:
   # App: SQLite instance 2.
   {PS-ID}-app-sqlite-2:
     # ... identical to sqlite-1 except:
-    #   port: {PORT_SQLITE_2}:8080
+    #   port: {SERVICE_APP_PORT_SQLITE_2}:8080
     #   config: {PS-ID}-app-sqlite-2.yml
 
   # App: PostgreSQL instance 1.
   {PS-ID}-app-postgresql-1:
     # ... identical to sqlite-1 except:
-    #   port: {PORT_PG_1}:8080
+    #   port: {SERVICE_APP_PORT_PG_1}:8080
     #   config: {PS-ID}-app-postgresql-1.yml
     #   command: -u file:///run/secrets/postgres-url.secret (instead of sqlite URL)
-    #   additional secret: postgres-url.secret
+    #   additional secrets: postgres-url.secret, postgres-username.secret,
+    #                       postgres-password.secret, postgres-database.secret
     #   additional depends_on: postgres-leader (condition: service_healthy)
     #   additional network: postgres-network
 
   # App: PostgreSQL instance 2.
   {PS-ID}-app-postgresql-2:
     # ... identical to postgresql-1 except:
-    #   port: {PORT_PG_2}:8080
+    #   port: {SERVICE_APP_PORT_PG_2}:8080
     #   config: {PS-ID}-app-postgresql-2.yml
     #   additional depends_on: {PS-ID}-app-postgresql-1 (condition: service_healthy)
 
@@ -467,8 +549,8 @@ secrets:
 |---------|------|-----------|
 | CO-01 | Header MUST include `$schema` reference and PS-ID description | Documentation |
 | CO-02 | MUST include `../shared-telemetry/compose.yml` and `../shared-postgres/compose.yml` | Required infrastructure |
-| CO-03 | MUST have `healthcheck-secrets` service listing all 14 secrets | Secret validation |
-| CO-04 | MUST have `builder-{PS-ID}` service with build context `../..` | Image building |
+| CO-03 | MUST have `healthcheck-secrets` service listing all 14 secrets with validation (`test -s` per file, exit 1 on failure) | Secret validation |
+| CO-04 | MUST have `builder-{PS-ID}` service with `image: {SUITE}-{PS-ID}:{IMAGE_TAG}` and build context `../..` | Image building |
 | CO-05 | MUST have `pki-init` service with `["init", "--output-dir=/certs"]` | TLS bootstrap |
 | CO-06 | MUST have exactly 4 app instances: sqlite-1, sqlite-2, postgresql-1, postgresql-2 | Cross-DB testing |
 | CO-07 | App service names MUST follow `{PS-ID}-app-{variant}` pattern | Naming convention |
@@ -476,13 +558,15 @@ secrets:
 | CO-09 | Host ports MUST follow port formula: sqlite-1=+0, sqlite-2=+1, pg-1=+2, pg-2=+3 | Port consistency |
 | CO-10 | Command MUST include: `server`, `--bind-public-port=8080`, `--config=...` args | Startup parameters |
 | CO-11 | Config volume mount order: instance-specific, common, otel | Priority ordering |
-| CO-12 | Healthcheck MUST use wget with `--ca-certificate=/certs/root-ca.pem` to admin livez | TLS-aware healthcheck |
+| CO-12 | Healthcheck MUST use `["CMD", "/app/{PS-ID}", "livez"]` (built-in CLI, NOT wget) | Built-in healthcheck |
 | CO-13 | Resource limits: 256M limit, 128M reservation | Resource control |
 | CO-14 | Networks: `{PS-ID}-network` + `telemetry-network`; PostgreSQL instances add `postgres-network` | Network isolation |
 | CO-15 | `working_dir: /tmp` on all app services | Writable temp dir |
 | CO-16 | All 14 secrets MUST be declared in `secrets:` section with `file: ./secrets/` relative paths | Docker secrets |
-| CO-17 | SQLite instances do NOT mount `postgres-url.secret` | Minimal secrets |
+| CO-17 | SQLite instances MUST mount 10 secrets (5 unseal + hash-pepper + 2 browser + 2 service); PostgreSQL instances add 4 postgres secrets (14 total) | Minimal secrets per variant |
 | CO-18 | PostgreSQL instance 2 MUST depend on instance 1 `service_healthy` | Schema init ordering |
+| CO-19 | Healthcheck timing MUST use parameterized values: `start-period: {HEALTHCHECK_START_PERIOD}`, `interval: {HEALTHCHECK_INTERVAL}`, `timeout: {HEALTHCHECK_TIMEOUT}`, `retries: {HEALTHCHECK_RETRIES}` | Configurable health probes |
+| CO-20 | All `image:` references MUST use `{SUITE}-{PS-ID}:{IMAGE_TAG}` (NOT hardcoded suite name or tag) | Parameterized naming |
 
 ---
 
@@ -538,9 +622,9 @@ csrf-token-single-use-token: false
 # Settings UNIQUE to the '{PS-ID}-app-sqlite-1' compose service.
 
 cors-origins:
-  - "https://localhost:{PORT_SQLITE_1}"
-  - "https://127.0.0.1:{PORT_SQLITE_1}"
-  - "https://[::1]:{PORT_SQLITE_1}"
+  - "https://localhost:{SERVICE_APP_PORT_SQLITE_1}"
+  - "https://127.0.0.1:{SERVICE_APP_PORT_SQLITE_1}"
+  - "https://[::1]:{SERVICE_APP_PORT_SQLITE_1}"
 
 otlp-service: {PS-ID}-sqlite-1
 otlp-hostname: {PS-ID}-sqlite-1
@@ -555,9 +639,9 @@ database-url: "sqlite://file::memory:?cache=shared"
 # Settings UNIQUE to the '{PS-ID}-app-sqlite-2' compose service.
 
 cors-origins:
-  - "https://localhost:{PORT_SQLITE_2}"
-  - "https://127.0.0.1:{PORT_SQLITE_2}"
-  - "https://[::1]:{PORT_SQLITE_2}"
+  - "https://localhost:{SERVICE_APP_PORT_SQLITE_2}"
+  - "https://127.0.0.1:{SERVICE_APP_PORT_SQLITE_2}"
+  - "https://[::1]:{SERVICE_APP_PORT_SQLITE_2}"
 
 otlp-service: {PS-ID}-sqlite-2
 otlp-hostname: {PS-ID}-sqlite-2
@@ -572,9 +656,9 @@ database-url: "sqlite://file::memory:?cache=shared"
 # Settings UNIQUE to the '{PS-ID}-app-postgresql-1' compose service.
 
 cors-origins:
-  - "https://localhost:{PORT_PG_1}"
-  - "https://127.0.0.1:{PORT_PG_1}"
-  - "https://[::1]:{PORT_PG_1}"
+  - "https://localhost:{SERVICE_APP_PORT_PG_1}"
+  - "https://127.0.0.1:{SERVICE_APP_PORT_PG_1}"
+  - "https://[::1]:{SERVICE_APP_PORT_PG_1}"
 
 otlp-service: {PS-ID}-postgresql-1
 otlp-hostname: {PS-ID}-postgresql-1
@@ -587,9 +671,9 @@ otlp-hostname: {PS-ID}-postgresql-1
 # Settings UNIQUE to the '{PS-ID}-app-postgresql-2' compose service.
 
 cors-origins:
-  - "https://localhost:{PORT_PG_2}"
-  - "https://127.0.0.1:{PORT_PG_2}"
-  - "https://[::1]:{PORT_PG_2}"
+  - "https://localhost:{SERVICE_APP_PORT_PG_2}"
+  - "https://127.0.0.1:{SERVICE_APP_PORT_PG_2}"
+  - "https://[::1]:{SERVICE_APP_PORT_PG_2}"
 
 otlp-service: {PS-ID}-postgresql-2
 otlp-hostname: {PS-ID}-postgresql-2
@@ -619,13 +703,13 @@ otlp-hostname: {PS-ID}-postgresql-2
 Each PS-ID has a standalone config at `configs/{PS-ID}/{PS-ID}.yml` for local development.
 
 ```yaml
-# {DISPLAY_NAME} Configuration
+# {PRODUCT_DISPLAY_NAME} {SERVICE_DISPLAY_NAME} Configuration
 # Local development config for {PS-ID}.
 # Override with deployment configs in deployments/{PS-ID}/config/
 
 # Server binding (local development).
 bind-public-address: "127.0.0.1"
-bind-public-port: {PORT_BASE}
+bind-public-port: {SERVICE_APP_PORT_BASE}
 bind-admin-address: "127.0.0.1"
 bind-admin-port: 9090
 
@@ -636,8 +720,8 @@ tls-key-file: ""
 
 # CORS (local development ports).
 cors-origins:
-  - "https://localhost:{PORT_BASE}"
-  - "https://127.0.0.1:{PORT_BASE}"
+  - "https://localhost:{SERVICE_APP_PORT_BASE}"
+  - "https://127.0.0.1:{SERVICE_APP_PORT_BASE}"
 
 # Telemetry (disabled for local dev).
 otlp-enabled: false
@@ -655,10 +739,10 @@ log-level: "INFO"
 |---------|------|-----------|
 | SC-01 | ALL keys MUST be kebab-case | ENG-HANDBOOK §13.2 |
 | SC-02 | `bind-public-address` MUST be `127.0.0.1` (NOT `0.0.0.0`) | Windows firewall prevention |
-| SC-03 | `bind-public-port` MUST equal `{PORT_BASE}` from registry | Port consistency |
+| SC-03 | `bind-public-port` MUST equal `{SERVICE_APP_PORT_BASE}` from registry | Port consistency |
 | SC-04 | `bind-admin-port` MUST be `9090` | Admin port standardization |
 | SC-05 | `otlp-service` MUST equal `{PS-ID}` | Telemetry naming |
-| SC-06 | Header comment MUST reference `{PS-ID}` correctly | No copy-paste errors |
+| SC-06 | Header comment MUST reference `{PRODUCT_DISPLAY_NAME} {SERVICE_DISPLAY_NAME}` and `{PS-ID}` correctly | No copy-paste errors |
 
 ---
 
@@ -698,8 +782,8 @@ log-level: "INFO"
 # Recursive includes: {PS-ID-1} and {PS-ID-2} (which include shared-postgres and shared-telemetry).
 #
 # Port allocation (PRODUCT level: SERVICE + 10000):
-#   {PS-ID-1} (SERVICE {PORT_BASE_1}-{PORT_BASE_1+3}):
-#   - {PS-ID-1}-app-sqlite-1:      {PORT_BASE_1 + 10000}
+#   {PS-ID-1} (SERVICE {SERVICE_APP_PORT_BASE_1}-{SERVICE_APP_PORT_BASE_1+3}):
+#   - {PS-ID-1}-app-sqlite-1:      {SERVICE_APP_PORT_BASE_1 + 10000}
 #   ...
 #
 include:
@@ -709,7 +793,7 @@ include:
 services:
   # PRODUCT-level PKI init (overrides PS-ID cert material).
   pki-init:
-    image: cryptoutil-{PS-ID-1}:dev
+    image: {SUITE}-{PS-ID}:{IMAGE_TAG}
     command: ["init", "--output-dir=/certs", "--domain={PRODUCT}"]
     volumes:
       - ./certs/:/certs/:rw
@@ -719,9 +803,9 @@ services:
 
   # Port overrides: SERVICE ports + 10000
   {PS-ID-1}-app-sqlite-1:
-    image: cryptoutil-{PS-ID-1}:dev
+    image: {SUITE}-{PS-ID-1}:{IMAGE_TAG}
     ports: !override
-      - "{PORT_BASE_1 + 10000}:8080"
+      - "{SERVICE_APP_PORT_BASE_1 + 10000}:8080"
   # ... repeat for all 4 instances of each PS-ID ...
 
 secrets:
@@ -760,7 +844,7 @@ become needed. This is deferred until the suite binary migration decision is fin
 ```yaml
 # $schema: https://raw.githubusercontent.com/compose-spec/compose-spec/master/schema/compose-spec.json
 #
-# CRYPTOUTIL SUITE Deployment (SUITE-Level)
+# {SUITE} SUITE Deployment (SUITE-Level)
 #
 # Purpose: Complete suite deployment with ALL 10 services across 5 products.
 # Port formula: SUITE_PORT = SERVICE_BASE + 20000
@@ -775,8 +859,8 @@ include:
 services:
   # SUITE-level PKI init.
   pki-init:
-    image: cryptoutil-sm-kms:dev
-    command: ["init", "--output-dir=/certs", "--domain=cryptoutil"]
+    image: {SUITE}-sm-kms:{IMAGE_TAG}
+    command: ["init", "--output-dir=/certs", "--domain={SUITE}"]
     volumes:
       - ./certs/:/certs/:rw
     depends_on:
@@ -786,6 +870,8 @@ services:
   # Port overrides: SERVICE + 20000 (compact inline syntax).
   sm-kms-app-sqlite-1: {ports: !override ["28000:8080"]}
   sm-kms-app-sqlite-2: {ports: !override ["28001:8080"]}
+  sm-kms-app-postgres-1: {ports: !override ["28002:8080"]}
+  sm-kms-app-postgres-2: {ports: !override ["28003:8080"]}
   # ... repeat for all 40 app instances (10 PS-IDs × 4 instances) ...
 
 secrets:
@@ -808,21 +894,22 @@ secrets:
 
 ## J. Suite Dockerfile Template
 
-The suite Dockerfile builds the `cryptoutil` binary that can run any service via subcommands.
+The suite Dockerfile builds the `{SUITE}` binary that can run any service via subcommands.
 
 ```dockerfile
 #############################################################################################
-# cryptoutil Suite Dockerfile — Full Suite Binary
+# {SUITE} Suite Dockerfile — Full Suite Binary
 #
 # Follows the same 4-stage pattern as PS-ID Dockerfiles.
-# Binary: ./cmd/cryptoutil → /app/cryptoutil
+# Binary: ./cmd/{SUITE} → /app/{SUITE}
 #############################################################################################
 # [Same 4-stage pattern as Section B, substituting:]
-#   - {PS-ID} → cryptoutil
-#   - ./cmd/{PS-ID} → ./cmd/cryptoutil
-#   - LABEL title → cryptoutil
-#   - HEALTHCHECK → /app/cryptoutil livez || exit 1
-#   - ENTRYPOINT → ["/sbin/tini", "--", "/app/cryptoutil"]
+#   - {PS-ID} → {SUITE}
+#   - ./cmd/{PS-ID} → ./cmd/{SUITE}
+#   - LABEL title → {SUITE}
+#   - LABEL description → {SUITE} Suite
+#   - HEALTHCHECK → /app/{SUITE} livez || exit 1
+#   - ENTRYPOINT → ["/sbin/tini", "--", "/app/{SUITE}"]
 ```
 
 ---
@@ -926,46 +1013,129 @@ Most compose files are consistent. Known issues:
 
 ## N. Enforcement Requirements
 
-### N.1 New cicd-lint Fitness Linters Needed
+### N.1 Template-Comparison Linters (PRIMARY Enforcement Strategy)
+
+**Architecture Decision**: All canonical templates are stored as parameterized template files in
+`api/cryptosuite-registry/templates/`. Linters instantiate templates in-memory by substituting
+registry values from `api/cryptosuite-registry/registry.yaml`, then compare the result
+byte-for-byte against the actual file on disk. Any deviation is a linting error.
+
+| Linter Name | Template File | Target Files | Comparison |
+|-------------|---------------|--------------|------------|
+| `template_dockerfile` | `templates/Dockerfile.tmpl` | `deployments/{PS-ID}/Dockerfile` (×10) | Full byte-for-byte |
+| `template_compose` | `templates/compose.yml.tmpl` | `deployments/{PS-ID}/compose.yml` (×10) | Full byte-for-byte |
+| `template_config_common` | `templates/config-common.yml.tmpl` | `deployments/{PS-ID}/config/{PS-ID}-app-common.yml` (×10) | Full byte-for-byte |
+| `template_config_sqlite` | `templates/config-sqlite.yml.tmpl` | `deployments/{PS-ID}/config/{PS-ID}-app-sqlite-{1,2}.yml` (×20) | Full byte-for-byte |
+| `template_config_pg` | `templates/config-postgresql.yml.tmpl` | `deployments/{PS-ID}/config/{PS-ID}-app-postgresql-{1,2}.yml` (×20) | Full byte-for-byte |
+| `template_standalone_config` | `templates/standalone-config.yml.tmpl` | `configs/{PS-ID}/{PS-ID}.yml` (×10) | Full byte-for-byte |
+| `template_secrets` | N/A (validation-only) | `deployments/{PS-ID}/secrets/*.secret` (×140) | File count + naming pattern |
+
+**Instantiation Process**:
+1. Load `registry.yaml` → iterate `product-services`
+2. For each PS-ID, compute all parameters from Section A (A.1-A.4)
+3. Load template file, substitute `{PARAMETER}` placeholders with computed values
+4. Read corresponding actual file from disk
+5. Compare byte-for-byte — any difference is a BLOCKING error with unified diff output
+
+**Benefits over rule-based linters**:
+- Single source of truth: template file IS the specification (no drift between docs and linter)
+- Complete coverage: checks EVERY byte, not just specific patterns
+- Easy maintenance: update template file → all 10 PS-IDs automatically validated
+- Clear error messages: unified diff shows exactly what differs
+
+### N.2 Rule-Based Fitness Linters (SUPPLEMENTARY)
+
+Rule-based linters remain useful for cross-cutting concerns not captured in templates:
 
 | Linter Name | Scope | Purpose |
 |-------------|-------|---------|
-| `dockerfile_structure` | `deployments/*/Dockerfile` | Enforce 4-stage pattern (validation, builder, runtime-deps, final) |
-| `dockerfile_binary_name` | `deployments/*/Dockerfile` | Verify `go build -o /app/{PS-ID} ./cmd/{PS-ID}` |
-| `dockerfile_user` | `deployments/*/Dockerfile` | Verify `USER 65532:65532` not commented out |
-| `dockerfile_entrypoint` | `deployments/*/Dockerfile` | Verify `ENTRYPOINT ["/sbin/tini", "--", "/app/{PS-ID}"]` |
-| `dockerfile_no_cmd` | `deployments/*/Dockerfile` | Verify no `CMD` instruction (compose controls) |
-| `dockerfile_no_curl` | `deployments/*/Dockerfile` | Verify final stage has no `apk add curl` |
-| `dockerfile_workdir` | `deployments/*/Dockerfile` | Verify `WORKDIR /app` (not `/app/run`) |
-| `dockerfile_no_goenv` | `deployments/*/Dockerfile` | Verify no `GOMODCACHE`/`GOCACHE` env vars |
 | `config_key_naming` | `configs/**/*.yml`, `deployments/*/config/*.yml` | Enforce all YAML keys are kebab-case |
 | `config_header_identity` | `configs/**/*.yml`, `deployments/*/config/*.yml` | Verify header comments reference correct PS-ID |
 | `config_instance_minimal` | `deployments/*/config/*-{variant}.yml` | Verify instance configs only contain cors-origins, otlp-service, otlp-hostname, database-url |
 | `config_common_complete` | `deployments/*/config/*-common.yml` | Verify common configs contain all required shared keys |
 
-### N.2 Existing Linter Enhancements
+**Note**: Dockerfile-specific rule linters (`dockerfile_structure`, `dockerfile_binary_name`, etc.) are
+superseded by `template_dockerfile` (N.1). They MAY be retained as fast-fail checks but the
+template-comparison linter is the authoritative enforcement mechanism.
+
+### N.3 Existing Linter Enhancements
 
 | Linter | Enhancement |
 |--------|-------------|
-| `dockerfile_labels` | Add rule: compact multi-line LABEL (not individual lines) |
-| `dockerfile_healthcheck` | Already enforced — no changes needed |
 | `compose_service_names` | Add rule: exactly 4 app instances per PS-ID |
 | `standalone_config_presence` | Add rule: validate key naming is kebab-case |
 
-### N.3 Enforcement Priority
+### N.4 Enforcement Priority
 
 1. **P0 (BLOCKING)**: Fix identity-spa COPY bug (runtime failure)
 2. **P0 (BLOCKING)**: Fix skeleton-template Dockerfile (copy-paste from jose-ja)
-3. **P1 (HIGH)**: Standardize all 10 Dockerfiles to canonical template
-4. **P1 (HIGH)**: Enable `USER 65532:65532` in all Dockerfiles (currently commented out in 5)
-5. **P2 (MEDIUM)**: Migrate snake_case configs to kebab-case (7 services)
-6. **P2 (MEDIUM)**: Standardize deployment config overlay structure
-7. **P3 (LOW)**: Implement enforcement linters
-8. **P3 (LOW)**: Fix suite Dockerfile (add tini)
+3. **P1 (HIGH)**: Create canonical template files in `api/cryptosuite-registry/templates/`
+4. **P1 (HIGH)**: Standardize all 10 Dockerfiles to canonical template
+5. **P1 (HIGH)**: Enable `USER ${CONTAINER_UID}:${CONTAINER_GID}` in all Dockerfiles (currently commented out in 5)
+6. **P1 (HIGH)**: Implement template-comparison linters (N.1)
+7. **P2 (MEDIUM)**: Migrate snake_case configs to kebab-case (7 services)
+8. **P2 (MEDIUM)**: Standardize deployment config overlay structure
+9. **P3 (LOW)**: Fix suite Dockerfile (add tini)
 
 ---
 
-## O. Cross-References
+## O. Canonical Template Architecture
+
+### O.1 Overview
+
+**Architecture Decision**: All canonical templates live as parameterized files in
+`api/cryptosuite-registry/templates/`. This document (deployment-templates.md)
+describes the templates and their rules; the `templates/` directory IS the
+machine-readable, linter-consumable source of truth.
+
+### O.2 Template File Catalog
+
+| Template File | Purpose | Instantiation Count |
+|---------------|---------|---------------------|
+| `Dockerfile.tmpl` | PS-ID Dockerfile (Section B) | ×10 (one per PS-ID) |
+| `compose.yml.tmpl` | PS-ID compose (Section C) | ×10 |
+| `config-common.yml.tmpl` | Deployment common config (Section D.1) | ×10 |
+| `config-sqlite.yml.tmpl` | Deployment SQLite instance config (Section D.2-D.3) | ×20 (2 per PS-ID) |
+| `config-postgresql.yml.tmpl` | Deployment PostgreSQL instance config (Section D.4-D.5) | ×20 (2 per PS-ID) |
+| `standalone-config.yml.tmpl` | Standalone dev config (Section E) | ×10 |
+| `product-compose.yml.tmpl` | Product compose (Section G) | ×5 (one per product) |
+| `suite-compose.yml.tmpl` | Suite compose (Section I) | ×1 |
+| `suite-Dockerfile.tmpl` | Suite Dockerfile (Section J) | ×1 |
+
+### O.3 Template Syntax
+
+Templates use `{PARAMETER_NAME}` placeholders (curly braces, ALL CAPS with underscores).
+Parameters are resolved from `registry.yaml` and the parameter tables in Section A.
+
+```
+# Example template line:
+LABEL org.opencontainers.image.title="{SUITE}-{PS-ID}" \
+      org.opencontainers.image.source="{GITHUB_REPOSITORY_URL}" \
+      org.opencontainers.image.authors="{AUTHORS}" \
+      org.opencontainers.image.description="{PRODUCT_DISPLAY_NAME} {SERVICE_DISPLAY_NAME}"
+
+# After instantiation for jose-ja:
+LABEL org.opencontainers.image.title="cryptoutil-jose-ja" \
+      org.opencontainers.image.source="https://github.com/user/cryptoutil" \
+      org.opencontainers.image.authors="Project Authors" \
+      org.opencontainers.image.description="JOSE JWK Authority"
+```
+
+### O.4 Relationship Between Documents
+
+```
+registry.yaml          → PS-ID definitions, port assignments, product groupings
+  ↓
+templates/*.tmpl       → Parameterized canonical content (machine source of truth)
+  ↓
+deployment-templates.md → Human-readable documentation of templates and rules
+  ↓
+Linters (template_*)   → Instantiate templates, compare to disk, report deviations
+```
+
+---
+
+## P. Cross-References
 
 | Topic | Reference |
 |-------|-----------|
@@ -978,3 +1148,4 @@ Most compose files are consistent. Known issues:
 | Docker Compose rules | [04-01.deployment.instructions.md](../.github/instructions/04-01.deployment.instructions.md) |
 | Secret naming conventions | [target-structure.md §L](target-structure.md#l-secret-file-naming-convention) |
 | Entity registry | [registry.yaml](../api/cryptosuite-registry/registry.yaml) |
+| Canonical templates | [api/cryptosuite-registry/templates/](../api/cryptosuite-registry/templates/) |

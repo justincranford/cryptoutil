@@ -1,8 +1,8 @@
 # Tasks — Framework v9: Quality & Consistency
 
-**Status**: 7 of 47 tasks complete (15%)
+**Status**: 7 of 37 tasks complete (19%)
 **Created**: 2026-04-08
-**Updated**: 2026-04-11
+**Updated**: 2026-04-12
 
 ---
 
@@ -121,7 +121,7 @@
 ### Task 6.1: Define golden Dockerfile template
 
 - [ ] Verify canonical 4-stage template in `docs/deployment-templates.md` Section B is complete
-- [ ] Confirm all 20 enforceable rules are documented with rationale
+- [ ] Confirm all 24 enforceable rules are documented with rationale
 - [ ] Cross-reference with `docs/target-structure.md` Section E (Dockerfile requirements)
 
 ### Task 6.2: Fix skeleton-template Dockerfile (Item 15 — P0)
@@ -152,12 +152,13 @@ Affected: sm-kms, identity-authz, identity-idp, identity-rp, identity-rs
 
 - [ ] Remove curl installation from final stage
 - [ ] Remove GOMODCACHE/GOCACHE environment variables
-- [ ] Uncomment USER 65532:65532 directive
+- [ ] Uncomment USER directive, use `${CONTAINER_UID}:${CONTAINER_GID}` pattern
 - [ ] Change WORKDIR from `/app/run` to `/app`
-- [ ] Use compact LABEL block (not individual lines)
+- [ ] Use compact LABEL block (not individual lines) with parameterized values
 - [ ] Remove CMD (ENTRYPOINT with tini is sufficient)
 - [ ] Verify ENTRYPOINT format: `["/sbin/tini", "--", "/app/{PS-ID}"]`
 - [ ] Verify `EXPOSE 8080` only (no 9090)
+- [ ] Add CONTAINER_UID/CONTAINER_GID build ARGs
 
 ### Task 6.6: Rewrite Pattern B Dockerfiles (Item 15 — P1)
 
@@ -237,32 +238,25 @@ Affected: jose-ja, pki-ca
 
 ## Phase 8: Enforcement Linters (Items 16, 21)
 
-### Task 8.1: Implement Dockerfile structure linter (Item 16)
+### Task 8.1: Implement template-comparison linters (Item 23 — PRIMARY)
 
-- [ ] Create `internal/apps/tools/cicd_lint/lint_fitness/dockerfile_structure/`
-- [ ] Validate 4-stage pattern: validation → builder → runtime-deps → final
-- [ ] Validate no CMD instruction (ENTRYPOINT only)
-- [ ] Validate ENTRYPOINT format with tini
-- [ ] Validate USER 65532:65532 (not commented out)
-- [ ] Add tests with ≥98% coverage
+- [ ] Create `api/cryptosuite-registry/templates/` directory
+- [ ] Create `Dockerfile.tmpl` from deployment-templates.md Section B template
+- [ ] Create `compose.yml.tmpl` from deployment-templates.md Section C template
+- [ ] Create `config-common.yml.tmpl` from deployment-templates.md Section D.1 template
+- [ ] Create `config-sqlite.yml.tmpl` from deployment-templates.md Section D.2 template
+- [ ] Create `config-postgresql.yml.tmpl` from deployment-templates.md Section D.4 template
+- [ ] Create `standalone-config.yml.tmpl` from deployment-templates.md Section E template
+- [ ] Create template instantiation engine (load registry.yaml + templates, substitute params)
+- [ ] Create `template_dockerfile` fitness linter: instantiate + compare ×10
+- [ ] Create `template_compose` fitness linter: instantiate + compare ×10
+- [ ] Create `template_config_common` fitness linter: instantiate + compare ×10
+- [ ] Create `template_config_sqlite` fitness linter: instantiate + compare ×20
+- [ ] Create `template_config_pg` fitness linter: instantiate + compare ×20
+- [ ] Create `template_standalone_config` fitness linter: instantiate + compare ×10
+- [ ] Add tests for template engine and all linters with ≥98% coverage
 
-### Task 8.2: Implement Dockerfile binary name linter (Item 16)
-
-- [ ] Create `internal/apps/tools/cicd_lint/lint_fitness/dockerfile_binary_name/`
-- [ ] Validate binary path matches PS-ID: `/app/{PS-ID}`
-- [ ] Validate builder builds `./cmd/{PS-ID}`
-- [ ] Validate COPY from builder uses correct binary path
-- [ ] Add tests with ≥98% coverage
-
-### Task 8.3: Implement remaining Dockerfile linters (Item 16)
-
-- [ ] `dockerfile_user` — validate USER 65532:65532 uncommented
-- [ ] `dockerfile_no_curl` — validate no curl/wget in final stage
-- [ ] `dockerfile_workdir` — validate WORKDIR /app (not /app/run)
-- [ ] `dockerfile_no_goenv` — validate no GOMODCACHE/GOCACHE in final
-- [ ] Add tests for each linter with ≥98% coverage
-
-### Task 8.4: Implement config enforcement linters (Item 21)
+### Task 8.2: Implement supplementary rule-based linters (Items 16, 21)
 
 - [ ] `config_key_naming` — validate all YAML keys are kebab-case
 - [ ] `config_header_identity` — validate config file headers match PS-ID (not copy-paste)
@@ -270,7 +264,7 @@ Affected: jose-ja, pki-ca
 - [ ] `config_common_complete` — validate common configs have all required shared keys
 - [ ] Add tests for each linter with ≥98% coverage
 
-### Task 8.5: Register all new linters
+### Task 8.3: Register all new linters
 
 - [ ] Add all new linters to fitness linter registry
 - [ ] Run `go run ./cmd/cicd-lint lint-fitness` — all pass on current codebase
