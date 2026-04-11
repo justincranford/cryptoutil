@@ -6,6 +6,7 @@ package repository
 import (
 	"context"
 	"strings"
+	"sync"
 	"testing"
 
 	cryptoutilAppsJoseJaModel "cryptoutil/internal/apps/jose-ja/server/model"
@@ -23,27 +24,163 @@ const testMaterialKID = "test-kid"
 func TestMaterialJWKRepository_CreateForeignKeyViolation(t *testing.T) {
 	t.Parallel()
 
-	// This test would require database foreign key constraints.
-	// Current schema may not enforce FK constraints in SQLite test mode.
-	t.Skip("TODO P2.4: Add FK constraint tests when schema migrations include foreign keys")
+	ctx := context.Background()
+	repo := NewMaterialJWKRepository(testDB)
+
+	// Create material with non-existent ElasticJWKID.
+	// SQLite without PRAGMA foreign_keys=ON does not enforce FK constraints.
+	materialID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
+	nonExistentElasticID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
+
+	material := &cryptoutilAppsJoseJaModel.MaterialJWK{
+		ID:            *materialID,
+		ElasticJWKID:  *nonExistentElasticID,
+		MaterialKID:   googleUuid.NewString(),
+		PrivateJWKJWE: "encrypted-private",
+		PublicJWKJWE:  "encrypted-public",
+		Active:        true,
+	}
+
+	// SQLite without FK enforcement allows creation (FK ignored).
+	// PostgreSQL would reject this with FK violation error.
+	err := repo.Create(ctx, material)
+	require.NoError(t, err)
 }
 
 // TestMaterialJWKRepository_RotateMaterialTransactionRollback tests transaction failure handling.
 func TestMaterialJWKRepository_RotateMaterialTransactionRollback(t *testing.T) {
 	t.Parallel()
 
-	// This test would verify transaction rollback on error.
-	// Requires mocked database to trigger mid-transaction failure.
-	t.Skip("TODO P2.4: Add mocked database tests for transaction rollback scenarios")
+	ctx := context.Background()
+	materialRepo := NewMaterialJWKRepository(testDB)
+	elasticRepo := NewElasticJWKRepository(testDB)
+
+	// Create elastic JWK.
+	elasticID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
+	tenantID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
+
+	elastic := &cryptoutilAppsJoseJaModel.ElasticJWK{
+		ID:           *elasticID,
+		TenantID:     *tenantID,
+		KID:          googleUuid.NewString(),
+		KeyType:      cryptoutilAppsJoseJaModel.KeyTypeRSA,
+		Algorithm:    cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
+		Use:          cryptoutilSharedMagic.JoseKeyUseSig,
+		MaxMaterials: cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
+	}
+	err := elasticRepo.Create(ctx, elastic)
+	require.NoError(t, err)
+
+	// Create active material.
+	firstMaterialID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
+	materialKID := googleUuid.NewString()
+
+	firstMaterial := &cryptoutilAppsJoseJaModel.MaterialJWK{
+		ID:            *firstMaterialID,
+		ElasticJWKID:  *elasticID,
+		MaterialKID:   materialKID,
+		PrivateJWKJWE: "encrypted-private-1",
+		PublicJWKJWE:  "encrypted-public-1",
+		Active:        true,
+	}
+	err = materialRepo.Create(ctx, firstMaterial)
+	require.NoError(t, err)
+
+	// Attempt rotation with duplicate MaterialKID (causes transaction rollback).
+	secondMaterialID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
+	duplicateMaterial := &cryptoutilAppsJoseJaModel.MaterialJWK{
+		ID:            *secondMaterialID,
+		ElasticJWKID:  *elasticID,
+		MaterialKID:   materialKID,
+		PrivateJWKJWE: "encrypted-private-2",
+		PublicJWKJWE:  "encrypted-public-2",
+		Active:        true,
+	}
+
+	err = materialRepo.RotateMaterial(ctx, *elasticID, duplicateMaterial)
+	require.Error(t, err)
+
+	// Verify first material remains active (transaction rolled back).
+	active, getErr := materialRepo.GetActiveMaterial(ctx, *elasticID)
+	require.NoError(t, getErr)
+	require.Equal(t, *firstMaterialID, active.ID)
+	require.True(t, active.Active)
 }
 
 // TestMaterialJWKRepository_RotateMaterialConcurrentModification tests concurrent rotation.
 func TestMaterialJWKRepository_RotateMaterialConcurrentModification(t *testing.T) {
 	t.Parallel()
 
-	// This test would verify atomic rotation under concurrent access.
-	// Requires concurrent goroutines and synchronization.
-	t.Skip("TODO P2.4: Add concurrency tests for RotateMaterial with goroutines")
+	ctx := context.Background()
+	materialRepo := NewMaterialJWKRepository(testDB)
+	elasticRepo := NewElasticJWKRepository(testDB)
+
+	// Create elastic JWK.
+	elasticID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
+	tenantID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
+
+	elastic := &cryptoutilAppsJoseJaModel.ElasticJWK{
+		ID:           *elasticID,
+		TenantID:     *tenantID,
+		KID:          googleUuid.NewString(),
+		KeyType:      cryptoutilAppsJoseJaModel.KeyTypeRSA,
+		Algorithm:    cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
+		Use:          cryptoutilSharedMagic.JoseKeyUseSig,
+		MaxMaterials: cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
+	}
+	err := elasticRepo.Create(ctx, elastic)
+	require.NoError(t, err)
+
+	// Create initial active material.
+	firstMaterialID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
+	firstMaterial := &cryptoutilAppsJoseJaModel.MaterialJWK{
+		ID:            *firstMaterialID,
+		ElasticJWKID:  *elasticID,
+		MaterialKID:   googleUuid.NewString(),
+		PrivateJWKJWE: "encrypted-private",
+		PublicJWKJWE:  "encrypted-public",
+		Active:        true,
+	}
+	err = materialRepo.Create(ctx, firstMaterial)
+	require.NoError(t, err)
+
+	// Concurrent rotations.
+	var wg sync.WaitGroup
+
+	rotationErrors := make([]error, cryptoutilSharedMagic.SysInfoConcurrentOpCount)
+
+	for i := range cryptoutilSharedMagic.SysInfoConcurrentOpCount {
+		wg.Add(1)
+
+		go func(idx int) {
+			defer wg.Done()
+
+			newMaterialID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
+			newMaterial := &cryptoutilAppsJoseJaModel.MaterialJWK{
+				ID:            *newMaterialID,
+				ElasticJWKID:  *elasticID,
+				MaterialKID:   googleUuid.NewString(),
+				PrivateJWKJWE: "encrypted-private-" + googleUuid.NewString(),
+				PublicJWKJWE:  "encrypted-public-" + googleUuid.NewString(),
+				Active:        true,
+			}
+
+			rotationErrors[idx] = materialRepo.RotateMaterial(ctx, *elasticID, newMaterial)
+		}(i)
+	}
+
+	wg.Wait()
+
+	// At least one rotation should succeed under concurrent access.
+	var successCount int
+
+	for _, rotateErr := range rotationErrors {
+		if rotateErr == nil {
+			successCount++
+		}
+	}
+
+	require.GreaterOrEqual(t, successCount, 1, "at least one concurrent rotation should succeed")
 }
 
 // TestMaterialJWKRepository_RetireMaterialNonExistent tests retiring non-existent material.
@@ -67,18 +204,60 @@ func TestMaterialJWKRepository_RetireMaterialNonExistent(t *testing.T) {
 func TestMaterialJWKRepository_CountMaterialsError(t *testing.T) {
 	t.Parallel()
 
-	// Testing GORM Count() error paths requires mocked database.
-	t.Skip("TODO P2.4: Add mocked database tests for Count error scenarios")
+	closedDB := newClosedDB(t)
+
+	ctx := context.Background()
+	repo := NewMaterialJWKRepository(closedDB)
+
+	_, err := repo.CountMaterials(ctx, googleUuid.New())
+	require.Error(t, err)
+	require.True(t, strings.Contains(err.Error(), "failed to count material JWKs"))
 }
 
 // TestMaterialJWKRepository_GetActiveMaterialMultipleActive tests behavior with multiple active materials.
 func TestMaterialJWKRepository_GetActiveMaterialMultipleActive(t *testing.T) {
 	t.Parallel()
 
-	// This test would verify behavior when database constraint fails.
-	// Should only have one active material per ElasticJWK.
-	// Requires database UNIQUE constraint on (elastic_jwk_id, active) WHERE active=true.
-	t.Skip("TODO P2.4: Add unique constraint tests for active materials")
+	ctx := context.Background()
+	elasticRepo := NewElasticJWKRepository(testDB)
+	materialRepo := NewMaterialJWKRepository(testDB)
+
+	// Create elastic JWK.
+	elasticID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
+	tenantID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
+
+	elastic := &cryptoutilAppsJoseJaModel.ElasticJWK{
+		ID:           *elasticID,
+		TenantID:     *tenantID,
+		KID:          googleUuid.NewString(),
+		KeyType:      cryptoutilAppsJoseJaModel.KeyTypeRSA,
+		Algorithm:    cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
+		Use:          cryptoutilSharedMagic.JoseKeyUseSig,
+		MaxMaterials: cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
+	}
+	err := elasticRepo.Create(ctx, elastic)
+	require.NoError(t, err)
+
+	// Create two active materials for the same elastic JWK.
+	for range cryptoutilSharedMagic.ScalingPairParts {
+		materialID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
+		material := &cryptoutilAppsJoseJaModel.MaterialJWK{
+			ID:            *materialID,
+			ElasticJWKID:  *elasticID,
+			MaterialKID:   googleUuid.NewString(),
+			PrivateJWKJWE: "encrypted-private-" + googleUuid.NewString(),
+			PublicJWKJWE:  "encrypted-public-" + googleUuid.NewString(),
+			Active:        true,
+		}
+		err = materialRepo.Create(ctx, material)
+		require.NoError(t, err)
+	}
+
+	// GetActiveMaterial uses First(), which returns one record.
+	// With multiple active materials, it returns the first match.
+	found, err := materialRepo.GetActiveMaterial(ctx, *elasticID)
+	require.NoError(t, err)
+	require.True(t, found.Active)
 }
 
 // TestMaterialJWKRepository_ListPaginationEdgeCases tests pagination boundary conditions.
@@ -154,8 +333,63 @@ func TestMaterialJWKRepository_ContextCancellation(t *testing.T) {
 func TestMaterialJWKRepository_DeleteCascadeToAuditLogs(t *testing.T) {
 	t.Parallel()
 
-	// This test would verify cascade deletion to audit logs if configured.
-	t.Skip("TODO P2.4: Add cascade deletion tests when audit log FK constraints implemented")
+	ctx := context.Background()
+	elasticRepo := NewElasticJWKRepository(testDB)
+	materialRepo := NewMaterialJWKRepository(testDB)
+	auditRepo := NewAuditLogRepository(testDB)
+
+	// Create elastic JWK.
+	elasticID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
+	tenantID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
+
+	elastic := &cryptoutilAppsJoseJaModel.ElasticJWK{
+		ID:           *elasticID,
+		TenantID:     *tenantID,
+		KID:          googleUuid.NewString(),
+		KeyType:      cryptoutilAppsJoseJaModel.KeyTypeRSA,
+		Algorithm:    cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
+		Use:          cryptoutilSharedMagic.JoseKeyUseSig,
+		MaxMaterials: cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
+	}
+	err := elasticRepo.Create(ctx, elastic)
+	require.NoError(t, err)
+
+	// Create material referencing elastic.
+	materialID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
+	material := &cryptoutilAppsJoseJaModel.MaterialJWK{
+		ID:            *materialID,
+		ElasticJWKID:  *elasticID,
+		MaterialKID:   googleUuid.NewString(),
+		PrivateJWKJWE: "encrypted-private",
+		PublicJWKJWE:  "encrypted-public",
+		Active:        true,
+	}
+	err = materialRepo.Create(ctx, material)
+	require.NoError(t, err)
+
+	// Create audit log referencing the elastic JWK.
+	auditID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
+	requestID := googleUuid.NewString()
+
+	auditEntry := &cryptoutilAppsJoseJaModel.AuditLogEntry{
+		ID:           *auditID,
+		TenantID:     *tenantID,
+		ElasticJWKID: elasticID,
+		Operation:    cryptoutilAppsJoseJaModel.OperationSign,
+		Success:      true,
+		RequestID:    requestID,
+	}
+	err = auditRepo.Create(ctx, auditEntry)
+	require.NoError(t, err)
+
+	// Delete material.
+	err = materialRepo.Delete(ctx, *materialID)
+	require.NoError(t, err)
+
+	// Verify audit log still exists (no CASCADE DELETE without FK enforcement).
+	found, err := auditRepo.GetByRequestID(ctx, requestID)
+	require.NoError(t, err)
+	require.Equal(t, requestID, found.RequestID)
 }
 
 // TestMaterialJWKRepository_NilContextHandling tests nil context handling.

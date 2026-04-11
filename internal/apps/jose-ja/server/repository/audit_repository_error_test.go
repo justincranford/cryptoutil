@@ -76,8 +76,26 @@ func TestAuditConfigRepository_ShouldAuditDefaultBehavior(t *testing.T) {
 func TestAuditLogRepository_CreateWithInvalidElasticJWKID(t *testing.T) {
 	t.Parallel()
 
-	// This test would require FK constraints in schema.
-	t.Skip("TODO P2.4: Add FK constraint tests when schema includes foreign keys")
+	ctx := context.Background()
+	repo := NewAuditLogRepository(testDB)
+
+	auditID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
+	tenantID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
+	nonExistentElasticID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
+
+	entry := &cryptoutilAppsJoseJaModel.AuditLogEntry{
+		ID:           *auditID,
+		TenantID:     *tenantID,
+		ElasticJWKID: nonExistentElasticID,
+		Operation:    cryptoutilAppsJoseJaModel.OperationSign,
+		Success:      true,
+		RequestID:    googleUuid.NewString(),
+	}
+
+	// SQLite without FK enforcement allows creation (FK ignored).
+	// PostgreSQL would reject this with FK violation error.
+	err := repo.Create(ctx, entry)
+	require.NoError(t, err)
 }
 
 // TestAuditLogRepository_ListPaginationBoundary tests pagination edge cases.

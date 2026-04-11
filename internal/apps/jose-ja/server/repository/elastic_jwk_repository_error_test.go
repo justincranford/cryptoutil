@@ -22,29 +22,118 @@ import (
 func TestElasticJWKRepository_CreateDuplicateError(t *testing.T) {
 	t.Parallel()
 
-	// This test would require triggering database constraint violations.
-	// Since we use UUIDv7 with high uniqueness, duplicates are extremely rare.
-	// Consider testing with mocked database layer for comprehensive error coverage.
-	t.Skip("TODO P2.4: Add mocked database tests for duplicate key scenarios")
+	ctx := context.Background()
+	repo := NewElasticJWKRepository(testDB)
+
+	id1, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
+	id2, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
+	tenantID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
+	kid := googleUuid.NewString()
+
+	jwk1 := &cryptoutilAppsJoseJaModel.ElasticJWK{
+		ID:           *id1,
+		TenantID:     *tenantID,
+		KID:          kid,
+		KeyType:      cryptoutilAppsJoseJaModel.KeyTypeRSA,
+		Algorithm:    cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
+		Use:          cryptoutilSharedMagic.JoseKeyUseSig,
+		MaxMaterials: cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
+	}
+
+	err := repo.Create(ctx, jwk1)
+	require.NoError(t, err)
+
+	// Second create with same KID triggers UNIQUE constraint violation.
+	jwk2 := &cryptoutilAppsJoseJaModel.ElasticJWK{
+		ID:           *id2,
+		TenantID:     *tenantID,
+		KID:          kid,
+		KeyType:      cryptoutilAppsJoseJaModel.KeyTypeRSA,
+		Algorithm:    cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
+		Use:          cryptoutilSharedMagic.JoseKeyUseSig,
+		MaxMaterials: cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
+	}
+
+	err = repo.Create(ctx, jwk2)
+	require.Error(t, err)
+	require.True(t, strings.Contains(err.Error(), "failed to create elastic JWK"))
 }
 
 // TestElasticJWKRepository_UpdateNonExistent tests updating a non-existent record.
 func TestElasticJWKRepository_UpdateNonExistent(t *testing.T) {
 	t.Parallel()
 
-	// Attempt to update non-existent JWK.
-	// GORM Save() creates if not exists, so this won't error.
-	// To test true update-only behavior, would need Update() instead of Save().
-	t.Skip("TODO P2.4: Modify Update() to use Updates() with WHERE clause for true update semantics")
+	ctx := context.Background()
+	repo := NewElasticJWKRepository(testDB)
+
+	id, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
+	tenantID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
+
+	// GORM Save() performs upsert: creates if record does not exist.
+	jwk := &cryptoutilAppsJoseJaModel.ElasticJWK{
+		ID:           *id,
+		TenantID:     *tenantID,
+		KID:          googleUuid.NewString(),
+		KeyType:      cryptoutilAppsJoseJaModel.KeyTypeRSA,
+		Algorithm:    cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
+		Use:          cryptoutilSharedMagic.JoseKeyUseSig,
+		MaxMaterials: cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
+	}
+
+	err := repo.Update(ctx, jwk)
+	require.NoError(t, err)
+
+	// Verify Save() created the record (upsert behavior).
+	found, err := repo.GetByID(ctx, *id)
+	require.NoError(t, err)
+	require.Equal(t, jwk.KID, found.KID)
 }
 
 // TestElasticJWKRepository_DeleteCascadeCheck tests cascade deletion behavior.
 func TestElasticJWKRepository_DeleteCascadeCheck(t *testing.T) {
 	t.Parallel()
 
-	// This test would check if deleting Elastic JWK cascades to Material JWKs.
-	// Requires database foreign key constraints and cascade settings.
-	t.Skip("TODO P2.4: Add foreign key cascade tests when schema migrations include CASCADE DELETE")
+	ctx := context.Background()
+	elasticRepo := NewElasticJWKRepository(testDB)
+	materialRepo := NewMaterialJWKRepository(testDB)
+
+	// Create elastic JWK.
+	elasticID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
+	tenantID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
+
+	elastic := &cryptoutilAppsJoseJaModel.ElasticJWK{
+		ID:           *elasticID,
+		TenantID:     *tenantID,
+		KID:          googleUuid.NewString(),
+		KeyType:      cryptoutilAppsJoseJaModel.KeyTypeRSA,
+		Algorithm:    cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
+		Use:          cryptoutilSharedMagic.JoseKeyUseSig,
+		MaxMaterials: cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
+	}
+	err := elasticRepo.Create(ctx, elastic)
+	require.NoError(t, err)
+
+	// Create material referencing elastic.
+	materialID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
+	material := &cryptoutilAppsJoseJaModel.MaterialJWK{
+		ID:            *materialID,
+		ElasticJWKID:  *elasticID,
+		MaterialKID:   googleUuid.NewString(),
+		PrivateJWKJWE: "encrypted-private",
+		PublicJWKJWE:  "encrypted-public",
+		Active:        true,
+	}
+	err = materialRepo.Create(ctx, material)
+	require.NoError(t, err)
+
+	// Delete elastic JWK.
+	err = elasticRepo.Delete(ctx, *elasticID)
+	require.NoError(t, err)
+
+	// Verify material still exists (no CASCADE DELETE in SQLite without FK enforcement).
+	found, err := materialRepo.GetByID(ctx, *materialID)
+	require.NoError(t, err)
+	require.Equal(t, material.MaterialKID, found.MaterialKID)
 }
 
 // TestElasticJWKRepository_IncrementMaterialCountNonExistent tests incrementing count for non-existent record.
@@ -128,27 +217,74 @@ func TestElasticJWKRepository_ListPaginationBoundary(t *testing.T) {
 func TestElasticJWKRepository_GetTransactionContext(t *testing.T) {
 	t.Parallel()
 
-	// This test would verify repository methods work within GORM transactions.
-	// Requires transaction utilities from service layer.
-	t.Skip("TODO P2.4: Add transaction context tests when service layer implements transactions")
+	ctx := context.Background()
+
+	// Verify repository operations work within a GORM transaction.
+	txErr := testDB.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		repo := NewElasticJWKRepository(tx)
+
+		id, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
+		tenantID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
+
+		jwk := &cryptoutilAppsJoseJaModel.ElasticJWK{
+			ID:           *id,
+			TenantID:     *tenantID,
+			KID:          googleUuid.NewString(),
+			KeyType:      cryptoutilAppsJoseJaModel.KeyTypeRSA,
+			Algorithm:    cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
+			Use:          cryptoutilSharedMagic.JoseKeyUseSig,
+			MaxMaterials: cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
+		}
+
+		createErr := repo.Create(ctx, jwk)
+		require.NoError(t, createErr)
+
+		// Verify readable within same transaction.
+		found, getErr := repo.GetByID(ctx, *id)
+		require.NoError(t, getErr)
+		require.Equal(t, jwk.KID, found.KID)
+
+		return nil
+	})
+
+	require.NoError(t, txErr)
 }
 
 // TestElasticJWKRepository_CountError tests Count query error handling.
 func TestElasticJWKRepository_CountError(t *testing.T) {
 	t.Parallel()
 
-	// Testing GORM Count() error paths requires mocked database.
-	// Real database rarely errors on Count unless connection issues.
-	t.Skip("TODO P2.4: Add mocked database tests for Count error scenarios")
+	closedDB := newClosedDB(t)
+
+	ctx := context.Background()
+	repo := NewElasticJWKRepository(closedDB)
+
+	// List calls Count internally — closed DB triggers count error path.
+	_, _, err := repo.List(ctx, googleUuid.New(), 0, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
+	require.Error(t, err)
+	require.True(t,
+		strings.Contains(err.Error(), "failed to count elastic JWKs") ||
+			strings.Contains(err.Error(), "failed to list elastic JWKs"),
+		"Expected count or list error, got: %v", err)
 }
 
 // TestElasticJWKRepository_DatabaseConnectionError tests handling of database connection failures.
 func TestElasticJWKRepository_DatabaseConnectionError(t *testing.T) {
 	t.Parallel()
 
-	// Test repository behavior when database connection is lost.
-	// Requires mocked database or connection pool manipulation.
-	t.Skip("TODO P2.4: Add mocked database tests for connection error scenarios")
+	closedDB := newClosedDB(t)
+
+	ctx := context.Background()
+	repo := NewElasticJWKRepository(closedDB)
+
+	// Verify multiple repository methods error on closed database connection.
+	_, err := repo.Get(ctx, googleUuid.New(), "test-kid")
+	require.Error(t, err)
+	require.True(t, strings.Contains(err.Error(), "failed to get elastic JWK"))
+
+	_, err = repo.GetByID(ctx, googleUuid.New())
+	require.Error(t, err)
+	require.True(t, strings.Contains(err.Error(), "failed to get elastic JWK by ID"))
 }
 
 // TestElasticJWKRepository_ContextCancellation tests context cancellation during operations.
