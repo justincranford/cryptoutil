@@ -4695,6 +4695,8 @@ Detection heuristic: `svc.Image == "" && svc.Build == nil && len(svc.Ports) > 0`
 
 **Implementation**: [internal/apps/tools/cicd_lint/lint_deployments](/internal/apps/tools/cicd_lint/lint_deployments/) package with comprehensive table-driven tests.
 
+**Cross-References**: Template enforcement and drift detection in [Section 13.6](#136-template-enforcement--drift-detection). Canonical templates in [deployment-templates.md](/docs/deployment-templates.md).
+
 #### 13.1.1 Deployment Types
 
 **SUITE** (e.g., cryptoutil - all 10 services):
@@ -5271,6 +5273,32 @@ command: ["server", "--bind-public-port=8080", "--config=/certs/tls-config.yml",
 - Each service builds its own binary (not the suite binary) for minimal image size
 
 **Cross-References**: CICD command architecture in [Section 9.10](#910-cicd-command-architecture). Build pipeline in [Section 12.2](#122-build-pipeline).
+
+### 13.6 Template Enforcement & Drift Detection
+
+**Purpose**: Automated enforcement of canonical deployment artifact templates. All 10 PS-ID services MUST produce identical artifacts (after placeholder substitution) from shared templates. This prevents the 3-pattern divergence problem where copy-paste errors lead to silently different deployment configurations across services.
+
+**Canonical Templates**: Stored in [deployment-templates.md](/docs/deployment-templates.md) and embedded as `__KEY__` placeholder templates in `lint_fitness/template_drift/templates/`. Six template types:
+
+| Template | Scope | Comparison Mode |
+|----------|-------|----------------|
+| Dockerfile | 10 PS-ID Dockerfiles | Exact match |
+| compose.yml | 10 PS-ID compose files | Superset-ordered (allows extra volume lines) |
+| config-common.yml | 10 deployment common overlays | Exact match |
+| config-sqlite.yml | 20 deployment SQLite overlays | Exact match |
+| config-postgresql.yml | 20 deployment PostgreSQL overlays | Exact match |
+| standalone-config.yml | 10 standalone configs | Prefix match (allows domain-specific additions) |
+
+**Placeholder Substitution**: Templates use `__KEY__` format (double underscore delimiters) to avoid conflicts with Dockerfile `${VAR}` syntax. Registry provides per-PS-ID values: `__PS_ID__`, `__PUBLIC_PORT__`, `__PRODUCT_DISPLAY_NAME__`, `__SERVICE_DISPLAY_NAME__`, etc.
+
+**Supplementary Rule-Based Linters**: Defense-in-depth alongside template drift detection:
+
+- `config-key-naming`: Validates all deployment YAML keys use kebab-case (standalone configs excluded — domain-specific keys like pki-ca's `common_name` are legitimate)
+- `config-header-identity`: Validates config file headers reference the correct PS-ID (checks lines 1-2 for both deployment and standalone configs)
+- `config-instance-minimal`: Validates instance config overlays contain only allowed keys (`cors-origins`, `otlp-service`, `otlp-hostname`, `database-url`)
+- `config-common-complete`: Validates common config overlays contain all 12 required shared keys
+
+**Cross-References**: Template specifications in [deployment-templates.md](/docs/deployment-templates.md). Fitness linter infrastructure in [Section 11.2](#112-quality-gates). Registry in [lint_fitness/registry](/internal/apps/tools/cicd_lint/lint_fitness/registry/).
 
 ---
 
