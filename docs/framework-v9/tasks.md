@@ -1,6 +1,6 @@
 # Tasks — Framework v9: Quality & Consistency
 
-**Status**: 34 of 37 tasks complete (92%)
+**Status**: 35 of 37 tasks complete (95%)
 **Created**: 2026-04-08
 **Updated**: 2026-04-18
 
@@ -289,18 +289,18 @@ Affected: jose-ja, pki-ca
 
 ## Phase 9: Knowledge Propagation
 
-### Task 9.1: Update ENG-HANDBOOK.md
+### Task 9.1: Update ENG-HANDBOOK.md ✅
 
-- [ ] Add deployment template patterns to Section 12 or 13
-- [ ] Cross-reference deployment-templates.md from Section 13.1
-- [ ] Document the 3-pattern divergence lesson and template enforcement rationale
-- [ ] Run `go run ./cmd/cicd-lint lint-docs` — all checks pass
+- [x] Add deployment template patterns to Section 12 or 13
+- [x] Cross-reference deployment-templates.md from Section 13.1
+- [x] Document the 3-pattern divergence lesson and template enforcement rationale
+- [x] Run `go run ./cmd/cicd-lint lint-docs` — all checks pass
 
-### Task 9.2: Update instruction files
+### Task 9.2: Update instruction files ✅
 
-- [ ] Update `04-01.deployment.instructions.md` with Dockerfile template rules
-- [ ] Add reference to `docs/deployment-templates.md` in deployment instructions
-- [ ] Run `go run ./cmd/cicd-lint lint-docs validate-propagation` — passes
+- [x] Update `04-01.deployment.instructions.md` with Dockerfile template rules
+- [x] Add reference to `docs/deployment-templates.md` in deployment instructions
+- [x] Run `go run ./cmd/cicd-lint lint-docs validate-propagation` — passes
 
 ### Task 9.3: Review and close
 
