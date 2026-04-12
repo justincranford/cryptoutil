@@ -55,8 +55,8 @@ Delete the obsolete `template_drift/templates/` directory.
 - **Acceptance Criteria**:
   - [ ] `api/cryptosuite-registry/templates/deployments/__PS_ID__/` exists
   - [ ] `api/cryptosuite-registry/templates/deployments/__PS_ID__/config/` exists
-  - [ ] `api/cryptosuite-registry/templates/deployments/sm/` through `skeleton/` exist (5 dirs)
-  - [ ] `api/cryptosuite-registry/templates/deployments/cryptoutil/` exists
+  - [ ] `api/cryptosuite-registry/templates/deployments/__PRODUCT__/` exists (single product template dir)
+  - [ ] `api/cryptosuite-registry/templates/deployments/__SUITE__/` exists (single suite template dir)
   - [ ] `api/cryptosuite-registry/templates/configs/__PS_ID__/` exists
   - [ ] NO `.go` files anywhere in `api/cryptosuite-registry/`
 
@@ -95,41 +95,55 @@ Delete the obsolete `template_drift/templates/` directory.
   - `api/cryptosuite-registry/templates/deployments/__PS_ID__/config/config-postgresql-2.yml` (CREATE)
   - `api/cryptosuite-registry/templates/configs/__PS_ID__/__PS_ID__.yml` (CREATE)
 
-### Task 1.4: Create product compose template files (5 files)
+### Task 1.4: Create product compose template file (1 file, `__PRODUCT__` in path)
+
+- **Status**: ❌
+- **Estimated**: 1h
+- **Dependencies**: Task 1.2
+- **Description**: Create ONE parameterized template file at
+  `api/cryptosuite-registry/templates/deployments/__PRODUCT__/compose.yml`.
+  The directory name `__PRODUCT__` is the expansion placeholder; the linter expands it × 5
+  (sm, jose, pki, identity, skeleton) using per-product params from registry.yaml.
+
+  The template content uses:
+  - `__PRODUCT__` — substituted with product name (sm, jose, etc.)
+  - `__SUITE__` — substituted with suite name
+  - `__IMAGE_TAG__` — substituted with image tag
+  - `__PRODUCT_INCLUDE_LIST__` — multi-line YAML include entries generated from registry.yaml
+    (each product's PS-IDs produce include lines like `- path: ../sm-kms/compose.yml`)
+
+  **Phase 1 implementation must**: read all 5 actual product compose files, verify they share
+  a common structure, then write the single template. If any product compose file has
+  non-parameterizable differences beyond the include list, add product-level metadata to
+  registry.yaml to capture that variation.
+- **Acceptance Criteria**:  
+  - [ ] Exactly ONE template file: `templates/deployments/__PRODUCT__/compose.yml`
+  - [ ] Template uses `__PRODUCT__`, `__SUITE__`, `__IMAGE_TAG__`, `__PRODUCT_INCLUDE_LIST__`
+  - [ ] No literal product names (`sm`, `jose`, `pki`, `identity`, `skeleton`) in the path
+  - [ ] `go build ./...` succeeds
+- **Files**:
+  - `api/cryptosuite-registry/templates/deployments/__PRODUCT__/compose.yml` (CREATE)
+
+### Task 1.5: Create suite template files (2 files, `__SUITE__` in path)
 
 - **Status**: ❌
 - **Estimated**: 0.5h
 - **Dependencies**: Task 1.2
-- **Description**: Create one template file per product by reading the actual product compose file
-  and replacing suite binary name with `__SUITE__` and image tag with `__IMAGE_TAG__`.
-  Product-specific PS-ID names, port numbers, and service lists are STATIC in these templates.
-- **Acceptance Criteria**:
-  - [ ] `templates/deployments/sm/compose.yml` through `skeleton/compose.yml` created (5 files)
-  - [ ] Each template uses `__SUITE__` and `__IMAGE_TAG__` placeholders
-  - [ ] Manually verifying: substituting `__SUITE__`=`cryptoutil`, `__IMAGE_TAG__`=`dev` produces content identical to actual file
-- **Files**:
-  - `api/cryptosuite-registry/templates/deployments/sm/compose.yml` (CREATE)
-  - `api/cryptosuite-registry/templates/deployments/jose/compose.yml` (CREATE)
-  - `api/cryptosuite-registry/templates/deployments/pki/compose.yml` (CREATE)
-  - `api/cryptosuite-registry/templates/deployments/identity/compose.yml` (CREATE)
-  - `api/cryptosuite-registry/templates/deployments/skeleton/compose.yml` (CREATE)
+- **Description**: Create suite-level template files in `templates/deployments/__SUITE__/`.
+  The directory name `__SUITE__` is the expansion placeholder; the linter expands it × 1
+  (currently `cryptoutil`). Parameterized even though there is only one suite value today,
+  because the suite name may change in the future.
 
-### Task 1.5: Create suite template files (2 files)
-
-- **Status**: ❌
-- **Estimated**: 0.5h
-- **Dependencies**: Task 1.2
-- **Description**: Create suite-level template files in `templates/deployments/cryptoutil/`.
-  These are compared directly against `deployments/cryptoutil/{Dockerfile,compose.yml}`.
-  The suite Dockerfile is stored as a complete standalone template — not derived from
-  the `__PS_ID__` template at runtime.
+  Template content uses `__SUITE__` throughout (not the hard-coded literal `cryptoutil`).
+  These are compared against `deployments/cryptoutil/{Dockerfile,compose.yml}` (after expansion).
 - **Acceptance Criteria**:
-  - [ ] `templates/deployments/cryptoutil/Dockerfile` reflects actual suite Dockerfile with params
-  - [ ] `templates/deployments/cryptoutil/compose.yml` reflects actual suite compose with params
-  - [ ] Manually verifying: substituting suite params produces content identical to actual files
+  - [ ] `templates/deployments/__SUITE__/Dockerfile` created with `__SUITE__` and suite-level params
+  - [ ] `templates/deployments/__SUITE__/compose.yml` created with `__SUITE__` and suite-level params
+  - [ ] Literal `cryptoutil` does NOT appear in either template file content (use `__SUITE__`)
+  - [ ] Manually verifying: substituting `__SUITE__`=`cryptoutil` produces content identical to actual files
 - **Files**:
-  - `api/cryptosuite-registry/templates/deployments/cryptoutil/Dockerfile` (CREATE)
-  - `api/cryptosuite-registry/templates/deployments/cryptoutil/compose.yml` (CREATE)
+  - `api/cryptosuite-registry/templates/deployments/__SUITE__/Dockerfile` (CREATE)
+  - `api/cryptosuite-registry/templates/deployments/__SUITE__/compose.yml` (CREATE)
 
 ### Task 1.6: Delete the obsolete `template_drift/templates/` directory
 
@@ -162,12 +176,17 @@ and `./configs/` directories. Replace all per-file `Check*` functions with a sin
      `{projectRoot}/api/cryptosuite-registry/templates/` using `os.WalkDir`, returns map
      of template-relative path → raw file content (e.g., `"deployments/__PS_ID__/Dockerfile"` → content)
 
-  2. `BuildExpectedFS(templates map[string]string, psIDs []string) (map[string]string, error)` —
-     for each template path in the map:
-     - If path contains `__PS_ID__`: iterate over all psIDs, substitute `__PS_ID__` in path AND
-       call `buildParams(psID)` for full content substitution; add to expected FS
-     - Otherwise (static path): substitute generic params (`__SUITE__`, `__IMAGE_TAG__`,
-       `__BUILD_DATE__`, etc.); add directly to expected FS as resolved relative path
+  2. `BuildExpectedFS(templates map[string]string, registry *Registry) (map[string]string, error)` —
+     for each template path in the map, detect the expansion key:
+     - `__PS_ID__` in path: iterate over all 10 PS-IDs from registry; substitute `__PS_ID__` in
+       BOTH the path AND call `buildParams(psID)` for full content substitution
+     - `__PRODUCT__` in path: iterate over all 5 products from registry; substitute `__PRODUCT__`
+       in path AND call `buildProductParams(product)` for content (includes `__PRODUCT_INCLUDE_LIST__`
+       computed from registry PS-IDs for that product)
+     - `__SUITE__` in path: iterate over suite name(s) from registry (currently just `cryptoutil`);
+       substitute `__SUITE__` in path AND call `buildSuiteParams()` for content
+     - `__INFRA_TOOL__` in path: iterate over infra tools from registry; substitute accordingly
+     - No expansion key: substitute generic params in content; use template-relative path directly
 
   3. `CompareExpectedFS(expected map[string]string, projectRoot string) error` — for each entry
      in expected FS: resolve `{projectRoot}/{resolvedPath}`, read actual file, compare after
@@ -179,12 +198,18 @@ and `./configs/` directories. Replace all per-file `Check*` functions with a sin
   5. KEEP: `buildParams(psID string) map[string]string`, `normalizeCommentAlignment`,
      `normalizeLineEndings`
 
-  6. ADD: `buildSuiteParams() map[string]string` for suite/product static template substitution
+  6. ADD: `buildProductParams(product string, registry *Registry) map[string]string` —
+     builds product-level substitution map including `__PRODUCT_INCLUDE_LIST__`
+     (multi-line include entries for each of that product's PS-IDs)
+
+  7. ADD: `buildSuiteParams(registry *Registry) map[string]string` —
+     builds suite-level substitution map (`__SUITE__`, display names, etc.)
 - **Acceptance Criteria**:
   - [ ] `template_drift.go` has NO `//go:embed` directive, NO `embed.FS`, NO `embed` import
-  - [ ] `LoadTemplatesDir` correctly discovers all 15 template files
-  - [ ] `BuildExpectedFS` correctly expands 8 `__PS_ID__` templates × 10 PS-IDs = 80 files
-  - [ ] `BuildExpectedFS` handles static product/suite paths without PS-ID expansion
+  - [ ] `LoadTemplatesDir` correctly discovers all 12 template files
+  - [ ] `BuildExpectedFS` correctly expands `__PS_ID__` templates × 10: 80 deployment files + 10 config files
+  - [ ] `BuildExpectedFS` correctly expands `__PRODUCT__` template × 5 product compose files
+  - [ ] `BuildExpectedFS` correctly expands `__SUITE__` templates × 1 (Dockerfile + compose.yml)
   - [ ] `CompareExpectedFS` returns aggregated error with description for each mismatch
   - [ ] `go build ./...` succeeds
 - **Files**:

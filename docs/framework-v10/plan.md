@@ -101,9 +101,12 @@ templates/deployments/cryptoutil/compose.yml    → deployments/cryptoutil/compo
 
 1. Walk all files under `api/cryptosuite-registry/templates/`
 2. For each template file, inspect its path for expansion keys:
-   - Path contains `__PS_ID__`: expand once per PS-ID (10 expansions from registry.yaml)
-   - Path contains `__PRODUCT__`: expand once per product (5 expansions) — if needed
-   - No expansion key in path: compare directly (product/suite static files)
+   - Path contains `__PS_ID__`: expand × 10 (one per PS-ID from registry.yaml)
+   - Path contains `__PRODUCT__`: expand × 5 (sm, jose, pki, identity, skeleton); uses per-product
+     params derived from registry.yaml (e.g. `__PRODUCT_INCLUDE_LIST__` built from each product's PS-IDs)
+   - Path contains `__SUITE__`: expand × 1 (currently `cryptoutil`); parameterized for future renames
+   - Path contains `__INFRA_TOOL__`: expand for each infrastructure tool (shared-postgres, shared-telemetry, …)
+   - No expansion key in path: compare directly
 3. For each expansion: substitute ALL `__KEY__` params in both the resolved path and file content
 4. Collect all (resolvedPath → expectedContent) pairs → in-memory expected filesystem
 5. Recursively compare in-memory FS against actual `./configs/` and `./deployments/` on disk:
@@ -123,26 +126,24 @@ api/cryptosuite-registry/templates/
         config-sqlite-2.yml             ← __PS_ID__ + __SERVICE_APP_PORT_SQLITE_2__
         config-postgresql-1.yml         ← __PS_ID__ + __SERVICE_APP_PORT_PG_1__
         config-postgresql-2.yml         ← __PS_ID__ + __SERVICE_APP_PORT_PG_2__
-    sm/                                 ← product-specific (no path expansion)
-      compose.yml                       ← __SUITE__ + __IMAGE_TAG__ in content
-    jose/
+    __PRODUCT__/                        ← expands × 5 (sm, jose, pki, identity, skeleton)
+      compose.yml                       ← uses __PRODUCT__ + per-product params from registry
+                                          (e.g. __PRODUCT_INCLUDE_LIST__ for each product's PS-ID includes)
+    __SUITE__/                          ← expands × 1 (cryptoutil); parameterized for future renames
+      Dockerfile                        ← 4-stage build pattern; uses __SUITE__ + suite-level display params
+      compose.yml                       ← uses __SUITE__ + all product/PS-ID references
+    __INFRA_TOOL__/                     ← expands for each infra tool (shared-postgres, shared-telemetry, …)
       compose.yml
-    pki/
-      compose.yml
-    identity/
-      compose.yml
-    skeleton/
-      compose.yml
-    cryptoutil/                         ← suite-level (no path expansion)
-      Dockerfile                        ← same 4-stage pattern as __PS_ID__ Dockerfile
-      compose.yml                       ← __SUITE__ + all product references
   configs/
     __PS_ID__/                          ← expands for each of 10 PS-IDs
       __PS_ID__.yml                     ← both dirname and filename are parameterized
 ```
 
-**Template file count**: 15 physical files in the directory.
-**Expected file count after expansion**: 80 PS-ID files + 5 product files + 2 suite files = 87.
+**Template file count**: 12 physical files (8 under `deployments/__PS_ID__/config/ + Dockerfile + compose.yml`,
+1 under `deployments/__PRODUCT__/`, 2 under `deployments/__SUITE__/`, 1 under `configs/__PS_ID__/`).
+Infra-tool templates added as needed during implementation.
+**Expected file count after expansion**: 80 PS-ID deployment files + 10 PS-ID config files +
+5 product compose files + 2 suite files = 97+ (plus infra-tool expansions).
 
 ### Existing Code That Changes
 
@@ -151,7 +152,9 @@ api/cryptosuite-registry/templates/
 - REMOVE: `instantiate(templateName, params)` (replaced by runtime reader)
 - REMOVE: per-file check wrappers (`CheckDockerfile`, `CheckCompose`, etc.)
 - ADD: `LoadTemplatesDir(root string) (map[string]string, error)` — `os.WalkDir` from project root
-- ADD: `BuildExpectedFS(templates, allPSIDs, params) (map[string]string, error)` — expands paths+content
+- ADD: `BuildExpectedFS(templates map[string]string, registry *Registry) (map[string]string, error)` —
+  for each template path: detect expansion key (`__PS_ID__`, `__PRODUCT__`, `__SUITE__`, `__INFRA_TOOL__`),
+  iterate all values from registry, substitute in both path and content using per-value param sets
 - ADD: `CompareExpectedFS(expectedFS map[string]string, projectRoot string) error` — recursive diff
 - KEEP: `buildParams(psID)`, `normalizeCommentAlignment`, `normalizeLineEndings`
 
@@ -210,17 +213,20 @@ files. These are PLAIN FILES — not `.go`, not embedded. Structure mirrors `./d
 **1B — PS-ID standalone config** (1 file, expands to 10):
 - `configs/__PS_ID__/__PS_ID__.yml` — based on `standalone-config.yml.tmpl`
 
-**1C — Product compose files** (5 files, no path expansion):
-- `deployments/sm/compose.yml` — based on actual `deployments/sm/compose.yml` with `__SUITE__`/`__IMAGE_TAG__`
-- `deployments/jose/compose.yml`, `deployments/pki/compose.yml`, `deployments/identity/compose.yml`, `deployments/skeleton/compose.yml`
+**1C — Product compose file** (1 physical file, expands × 5):
+- `deployments/__PRODUCT__/compose.yml` — template content uses `__PRODUCT__`, `__SUITE__`, `__IMAGE_TAG__`,
+  and `__PRODUCT_INCLUDE_LIST__` (multi-line include entries generated from registry per product).
+  Phase 1 must verify whether actual product compose files are structurally uniform enough for one template;
+  if not, product-specific sidecars in registry.yaml define the varying content.
 
-**1D — Suite files** (2 files, no path expansion):
-- `deployments/cryptoutil/Dockerfile` — same 4-stage pattern, `__PS_ID__`=cryptoutil, `__SERVICE_DISPLAY_NAME__`=Suite
-- `deployments/cryptoutil/compose.yml` — based on actual suite compose
+**1D — Suite files** (2 files, `__SUITE__` in path, expands × 1):
+- `deployments/__SUITE__/Dockerfile` — 4-stage build pattern with `__SUITE__` params
+- `deployments/__SUITE__/compose.yml` — based on actual suite compose with `__SUITE__` params
 
-- **Success**: 15 files exist under `api/cryptosuite-registry/templates/`; manually verify a sample
-  expansion (e.g., sm-kms Dockerfile) matches actual `deployments/sm-kms/Dockerfile` with params
-  filled in. No `.go` files in `api/cryptosuite-registry/`.
+- **Success**: 12+ files exist under `api/cryptosuite-registry/templates/` with `__PLACEHOLDER__` in ALL
+  paths that vary by PS-ID, product, suite, or infra tool. Manually verify a sample expansion
+  (e.g., sm-kms Dockerfile) matches actual `deployments/sm-kms/Dockerfile` with params filled in.
+  No `.go` files in `api/cryptosuite-registry/`.
 
 **Post-Mortem**: After quality gates pass, update lessons.md.
 
@@ -234,14 +240,17 @@ in-memory FS comparison approach. Remove the `//go:embed` implementation entirel
 - Remove all `Check*` per-file check functions from `checks.go`
 - Add `LoadTemplatesDir(projectRoot string) (map[string]string, error)` — `os.WalkDir` over
   `api/cryptosuite-registry/templates/`, returns map of template relative path → raw content
-- Add `BuildExpectedFS(templates map[string]string, psIDs []string, buildParamsFn func(string) map[string]string) (map[string]string, error)` — for each template:
-  - If path contains `__PS_ID__`: loop psIDs, substitute in both path and content
-  - Otherwise: substitute generic params (`__SUITE__`, `__IMAGE_TAG__`, `__BUILD_DATE__`) in content, use path as-is
+- Add `BuildExpectedFS(templates map[string]string, registry *Registry) (map[string]string, error)` — for each template path detect expansion key and iterate all values:
+  - `__PS_ID__` in path: loop all 10 PS-IDs from registry; substitute in path + content via `buildParams(psID)`
+  - `__PRODUCT__` in path: loop all 5 products from registry; substitute in path + content via `buildProductParams(product, registry)` which includes `__PRODUCT_INCLUDE_LIST__`
+  - `__SUITE__` in path: loop suite name(s) from registry (currently 1: `cryptoutil`); substitute via `buildSuiteParams(registry)`
+  - `__INFRA_TOOL__` in path: loop infra tools from registry; substitute accordingly
   - Returns fully expanded map of (file relative path from project root) → (expected content)
 - Add `CompareExpectedFS(expected map[string]string, projectRoot string) error` — for each expected
   file, read actual file, compare; collect all diffs; return aggregated error
-- KEEP: `buildParams(psID string) map[string]string`, `buildSuiteParams() map[string]string` (new for suite),
-  `normalizeCommentAlignment`, `normalizeLineEndings`
+- KEEP: `buildParams(psID string) map[string]string`, `normalizeCommentAlignment`, `normalizeLineEndings`
+- ADD: `buildProductParams(product string, registry *Registry) map[string]string` — product-level params including `__PRODUCT_INCLUDE_LIST__`
+- ADD: `buildSuiteParams(registry *Registry) map[string]string` — suite-level params
 
 **2B — Single comprehensive linter** (`checks.go`):
 - Replace all individual `Check*` functions with ONE: `CheckTemplateCompliance(logger *Logger) error`
@@ -335,44 +344,50 @@ and editable without any build-system knowledge.
 **Impact**: `template_drift.go` uses `os.WalkDir`/`os.ReadFile` instead of `embed.FS.ReadFile`.
 No new Go imports or packages. Tests use temp directories with sample template files.
 
-### Decision 2: Per-Product Static Template Files (Not `__PRODUCT__` in Path)
+### Decision 2: `__PRODUCT__` in Path — Single Template File with Per-Product Params
 
 **Options**:
-- A: Single `deployments/__PRODUCT__/compose.yml` expanded for each product ✗
-- B: Per-product files with static paths (`deployments/sm/compose.yml` etc.) ✓ **SELECTED**
-- C: Generate expected product compose content from registry.yaml (no template files)
+- A: Per-product files with static literal paths (`deployments/sm/compose.yml` etc.) ✗ NOT parameterized
+- B: Single `deployments/__PRODUCT__/compose.yml` with per-product params from registry ✓ **SELECTED**
+- C: Generate expected product compose content entirely from registry.yaml (no template file)
 - D: Skip product/suite template linting
 - E:
 
-**Decision**: Option B — one template file per product with a static path.
+**Decision**: Option B — single `deployments/__PRODUCT__/compose.yml` template with `__PRODUCT__`
+in the directory path, expanded × 5 using per-product param sets derived from registry.yaml.
 
-**Rationale**: Product compose files list the specific PS-IDs that belong to each product (sm has
-sm-kms + sm-im; identity has 5 PS-IDs). This content is product-specific and cannot be
-expressed with a single `__PRODUCT__` substitution. Per-product templates (`deployments/sm/compose.yml`
-with `__SUITE__` and `__IMAGE_TAG__` substitution in content) are simple, directly readable, and
-explicitly encode the correct service composition per product.
+**Rationale**: ALL variable directory names MUST use `__PLACEHOLDER__` syntax — including product
+names. Hardcoding `sm`, `jose`, etc. in template paths defeats the parameterization requirement.
+Product compose files differ in their service include lists, but this variation is capturable via
+a `__PRODUCT_INCLUDE_LIST__` param computed from registry.yaml (each product's PS-IDs generate
+multi-line include entries). Phase 1 implementation must verify structural uniformity and define
+product-specific params; if product compose files have additional non-parameterizable differences,
+add those values to registry.yaml as product-level metadata.
 
-**Impact**: 5 product compose template files in `api/cryptosuite-registry/templates/deployments/`.
+**Impact**: 1 product compose template file at `templates/deployments/__PRODUCT__/compose.yml`.
+Registry must supply per-product params during expansion.
 
-### Decision 3: Suite Files Use Same Pattern as PS-ID Level (With Suite Params)
+### Decision 3: Suite Files Use `__SUITE__` in Path (Parameterized, Not Literal)
 
 **Options**:
-- A: Suite Dockerfile as completely separate non-parameterized file
-- B: Suite Dockerfile is a copy of `__PS_ID__/Dockerfile` with `cryptoutil` baked in ✓ **SELECTED**
-- C: Suite Dockerfile derived at runtime from PS-ID template with `__PS_ID__`=cryptoutil
+- A: Suite template files at static literal path `deployments/cryptoutil/...` ✗ NOT parameterized
+- B: Suite template files at `deployments/__SUITE__/...`; expanded × 1 (currently `cryptoutil`) ✓ **SELECTED**
+- C: Suite Dockerfile derived at runtime from PS-ID template with `__PS_ID__`=`__SUITE__`
 - D: No suite Dockerfile template (manual validation only)
 - E:
 
-**Decision**: Option B — `deployments/cryptoutil/Dockerfile` template file has `__PS_ID__`
-replaced with `cryptoutil` (and suite-appropriate display params) BUT is stored as a standalone
-template file (not a runtime derivation from the PS-ID template).
+**Decision**: Option B — suite template files stored at `deployments/__SUITE__/Dockerfile` and
+`deployments/__SUITE__/compose.yml`. The path contains `__SUITE__` and expands to
+`deployments/cryptoutil/...` using the suite name from registry. Template content uses `__SUITE__`
+and other suite-level params throughout.
 
-**Rationale**: The suite Dockerfile follows the same 4-stage build pattern. Storing it as a
-separate, complete, human-readable file (with `cryptoutil` explicit, not a placeholder) avoids
-confusing the per-PS-ID expansion loop. It compares directly against `deployments/cryptoutil/Dockerfile`.
+**Rationale**: ALL variable directory names MUST use `__PLACEHOLDER__` syntax. Even though there
+is currently only one suite (`cryptoutil`), hardcoding it violates the parameterization requirement
+and makes future renames (if any) require template edits. `__SUITE__` in the path costs nothing
+and ensures model consistency with PS-ID and product template paths.
 
-**Impact**: `deployments/cryptoutil/Dockerfile` and `deployments/cryptoutil/compose.yml` in templates
-directory are compared directly (like product files), not through the `__PS_ID__` expansion loop.
+**Impact**: Suite template directory is `deployments/__SUITE__/` (2 files). BuildExpectedFS expands
+`__SUITE__` using the suite name from registry (currently `cryptoutil`).
 
 ---
 
@@ -399,7 +414,7 @@ directory are compared directly (like product files), not through the `__PS_ID__
 
 **Coverage Targets**:
 - ✅ `template_drift` package: ≥98% line coverage
-- ✅ `api/cryptosuite-registry` Go package: 0% acceptable (embedded FS, no executable logic)
+- ✅ `api/cryptosuite-registry/`: plain non-Go directory (no coverage applicable)
 
 **Mutation Testing** (Phase 4):
 - ✅ `template_drift` package: ≥98% mutation efficacy (infrastructure tool)
