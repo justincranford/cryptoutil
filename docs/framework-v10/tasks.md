@@ -1,6 +1,6 @@
-# Tasks — Framework v10: Canonical Template Relocation
+# Tasks — Framework v10: Canonical Template Registry
 
-**Status**: 0 of 30 tasks complete (0%)
+**Status**: 0 of 22 tasks complete (0%)
 **Created**: 2026-04-12
 **Last Updated**: 2026-04-12
 
@@ -25,363 +25,363 @@
 
 ---
 
-## Phase 1: Relocate Templates to Canonical Location
+## Phase 1: Create Canonical Template Directory
 
-**Phase Objective**: Move the 6 existing template files from `internal/.../template_drift/templates/`
-to the canonical `api/cryptosuite-registry/templates/`. Create the Go package that exports
-`TemplatesFS embed.FS`. Update `template_drift.go` to use the imported FS instead of its own embed.
+**Phase Objective**: Populate `api/cryptosuite-registry/templates/` with all 15 parameterized
+template files. These are plain configuration files — NOT Go code. They mirror the structure of
+`./deployments/` and `./configs/` with `__KEY__` placeholders in both directory paths and content.
+Delete the obsolete `template_drift/templates/` directory.
 
-### Task 1.1: Create Go package at `api/cryptosuite-registry/`
+### Task 1.1: Read and understand all existing template content
 
 - **Status**: ❌
 - **Estimated**: 0.5h
 - **Dependencies**: None
-- **Description**: Create `api/cryptosuite-registry/templates.go` with `package cryptosuiteregistry`
-  and an exported `TemplatesFS embed.FS` using `//go:embed templates/*`.
+- **Description**: Before creating any template files, read all 6 existing `.tmpl` files in
+  `internal/.../template_drift/templates/` to understand exact content and placeholder usage.
+  Also read the actual product/suite compose files to understand product template content.
 - **Acceptance Criteria**:
-  - [ ] `api/cryptosuite-registry/templates.go` created with correct package declaration
-  - [ ] `//go:embed templates/*` directive and `var TemplatesFS embed.FS` exported
-  - [ ] `api/cryptosuite-registry/templates/` directory exists (initially empty — files moved in Task 1.2)
-  - [ ] `go build ./api/...` succeeds (even with empty templates dir the embed will fail until files added)
-- **Files**:
-  - `api/cryptosuite-registry/templates.go` (CREATE)
-  - `api/cryptosuite-registry/templates/` (CREATE directory)
+  - [ ] All 6 `.tmpl` files read and understood
+  - [ ] Actual `deployments/{sm,jose,pki,identity,skeleton}/compose.yml` files read
+  - [ ] Actual `deployments/cryptoutil/Dockerfile` and `compose.yml` read
+  - [ ] Param usage per template type noted
 
-### Task 1.2: Move template files to canonical location
+### Task 1.2: Create `api/cryptosuite-registry/templates/` directory tree
 
 - **Status**: ❌
-- **Estimated**: 0.5h
+- **Estimated**: 0.25h
 - **Dependencies**: Task 1.1
-- **Description**: Copy all 6 template files from `internal/.../template_drift/templates/` to
-  `api/cryptosuite-registry/templates/`. Verify content is identical.
+- **Description**: Create the directory structure. No `.go` files. No Go package. Plain directories only.
 - **Acceptance Criteria**:
-  - [ ] `api/cryptosuite-registry/templates/Dockerfile.tmpl` exists (identical content)
-  - [ ] `api/cryptosuite-registry/templates/compose.yml.tmpl` exists (identical content)
-  - [ ] `api/cryptosuite-registry/templates/config-common.yml.tmpl` exists (identical content)
-  - [ ] `api/cryptosuite-registry/templates/config-sqlite.yml.tmpl` exists (identical content)
-  - [ ] `api/cryptosuite-registry/templates/config-postgresql.yml.tmpl` exists (identical content)
-  - [ ] `api/cryptosuite-registry/templates/standalone-config.yml.tmpl` exists (identical content)
-  - [ ] `go build ./api/...` succeeds (embed resolves all 6 files)
-- **Files**:
-  - `api/cryptosuite-registry/templates/` (POPULATE with 6 files)
+  - [ ] `api/cryptosuite-registry/templates/deployments/__PS_ID__/` exists
+  - [ ] `api/cryptosuite-registry/templates/deployments/__PS_ID__/config/` exists
+  - [ ] `api/cryptosuite-registry/templates/deployments/sm/` through `skeleton/` exist (5 dirs)
+  - [ ] `api/cryptosuite-registry/templates/deployments/cryptoutil/` exists
+  - [ ] `api/cryptosuite-registry/templates/configs/__PS_ID__/` exists
+  - [ ] NO `.go` files anywhere in `api/cryptosuite-registry/`
 
-### Task 1.3: Update `template_drift.go` to use external FS
+### Task 1.3: Create PS-ID level template files (8 files)
+
+- **Status**: ❌
+- **Estimated**: 1h
+- **Dependencies**: Task 1.2
+- **Description**: Convert existing `.tmpl` files into parameterized template files.
+  The content is identical to current `.tmpl` content but placed in parameterized subdirectory
+  paths using `__PS_ID__` (no `.tmpl` extension). `config-sqlite.yml.tmpl` becomes TWO files
+  (config-sqlite-1.yml and config-sqlite-2.yml); same for config-postgresql.
+
+  Files to create in `api/cryptosuite-registry/templates/deployments/__PS_ID__/`:
+  - `Dockerfile` (from `Dockerfile.tmpl`)
+  - `compose.yml` (from `compose.yml.tmpl`)
+  - `config/config-common.yml` (from `config-common.yml.tmpl`)
+  - `config/config-sqlite-1.yml` (from `config-sqlite.yml.tmpl`, instance-1 port param)
+  - `config/config-sqlite-2.yml` (from `config-sqlite.yml.tmpl`, instance-2 port param)
+  - `config/config-postgresql-1.yml` (from `config-postgresql.yml.tmpl`, instance-1 port param)
+  - `config/config-postgresql-2.yml` (from `config-postgresql.yml.tmpl`, instance-2 port param)
+
+  File to create in `api/cryptosuite-registry/templates/configs/__PS_ID__/`:
+  - `__PS_ID__.yml` (from `standalone-config.yml.tmpl`)
+- **Acceptance Criteria**:
+  - [ ] 7 files in `templates/deployments/__PS_ID__/` (Dockerfile + compose + 5 configs)
+  - [ ] 1 file in `templates/configs/__PS_ID__/` (`__PS_ID__.yml`)
+  - [ ] Content matches existing `.tmpl` files; instance-1 vs instance-2 files differ only in port param name
+- **Files**:
+  - `api/cryptosuite-registry/templates/deployments/__PS_ID__/Dockerfile` (CREATE)
+  - `api/cryptosuite-registry/templates/deployments/__PS_ID__/compose.yml` (CREATE)
+  - `api/cryptosuite-registry/templates/deployments/__PS_ID__/config/config-common.yml` (CREATE)
+  - `api/cryptosuite-registry/templates/deployments/__PS_ID__/config/config-sqlite-1.yml` (CREATE)
+  - `api/cryptosuite-registry/templates/deployments/__PS_ID__/config/config-sqlite-2.yml` (CREATE)
+  - `api/cryptosuite-registry/templates/deployments/__PS_ID__/config/config-postgresql-1.yml` (CREATE)
+  - `api/cryptosuite-registry/templates/deployments/__PS_ID__/config/config-postgresql-2.yml` (CREATE)
+  - `api/cryptosuite-registry/templates/configs/__PS_ID__/__PS_ID__.yml` (CREATE)
+
+### Task 1.4: Create product compose template files (5 files)
 
 - **Status**: ❌
 - **Estimated**: 0.5h
 - **Dependencies**: Task 1.2
-- **Description**: Remove the `//go:embed templates/*` directive and `var templatesFS embed.FS` from
-  `template_drift.go`. Import `cryptoutilRegistryTemplates "cryptoutil/api/cryptosuite-registry"`.
-  Replace all `templatesFS.ReadFile(...)` calls with `cryptoutilRegistryTemplates.TemplatesFS.ReadFile(...)`.
+- **Description**: Create one template file per product by reading the actual product compose file
+  and replacing suite binary name with `__SUITE__` and image tag with `__IMAGE_TAG__`.
+  Product-specific PS-ID names, port numbers, and service lists are STATIC in these templates.
 - **Acceptance Criteria**:
-  - [ ] `template_drift.go` no longer has `//go:embed templates/*`
-  - [ ] `template_drift.go` no longer has `var templatesFS embed.FS`
-  - [ ] Import `cryptoutilRegistryTemplates "cryptoutil/api/cryptosuite-registry"` added
-  - [ ] All `templatesFS.ReadFile(...)` calls updated to use `cryptoutilRegistryTemplates.TemplatesFS.ReadFile(...)`
-  - [ ] `go build ./...` succeeds
+  - [ ] `templates/deployments/sm/compose.yml` through `skeleton/compose.yml` created (5 files)
+  - [ ] Each template uses `__SUITE__` and `__IMAGE_TAG__` placeholders
+  - [ ] Manually verifying: substituting `__SUITE__`=`cryptoutil`, `__IMAGE_TAG__`=`dev` produces content identical to actual file
 - **Files**:
-  - `internal/apps/tools/cicd_lint/lint_fitness/template_drift/template_drift.go` (MODIFY)
+  - `api/cryptosuite-registry/templates/deployments/sm/compose.yml` (CREATE)
+  - `api/cryptosuite-registry/templates/deployments/jose/compose.yml` (CREATE)
+  - `api/cryptosuite-registry/templates/deployments/pki/compose.yml` (CREATE)
+  - `api/cryptosuite-registry/templates/deployments/identity/compose.yml` (CREATE)
+  - `api/cryptosuite-registry/templates/deployments/skeleton/compose.yml` (CREATE)
 
-### Task 1.4: Delete old templates directory
-
-- **Status**: ❌
-- **Estimated**: 0.25h
-- **Dependencies**: Task 1.3
-- **Description**: Delete `internal/apps/tools/cicd_lint/lint_fitness/template_drift/templates/` directory.
-  This directory is obsolete — templates now live in `api/cryptosuite-registry/templates/`.
-- **Acceptance Criteria**:
-  - [ ] `internal/.../template_drift/templates/` directory does NOT exist
-  - [ ] `go build ./...` succeeds (no dangling embed directive)
-  - [ ] `go test ./internal/apps/tools/cicd_lint/lint_fitness/template_drift/...` passes
-- **Files**:
-  - `internal/apps/tools/cicd_lint/lint_fitness/template_drift/templates/` (DELETE)
-
-### Task 1.5: Verify tests still pass
-
-- **Status**: ❌
-- **Estimated**: 0.5h
-- **Dependencies**: Task 1.4
-- **Description**: Run full test suite for template_drift package. The seam injection tests should
-  still work because they use `instantiateFn` injection (not `templatesFS` directly).
-- **Acceptance Criteria**:
-  - [ ] `go test ./internal/apps/tools/cicd_lint/lint_fitness/template_drift/...` passes
-  - [ ] Coverage still ≥98% for `template_drift` package
-  - [ ] `go test ./...` (full suite) passes with zero failures
-  - [ ] `go run ./cmd/cicd-lint lint-fitness` passes (template linters still validate actual files)
-- **Evidence**:
-  - `test-output/framework-v10/phase1/test-results.txt`
-  - `test-output/framework-v10/phase1/coverage-template-drift.out`
-
-## Phase 2: Add Missing Templates and Linters
-
-**Phase Objective**: Create the 7 missing template files in `api/cryptosuite-registry/templates/`
-(5 per-product compose + 1 suite compose; suite Dockerfile reuses `Dockerfile.tmpl` per Decision 3).
-Implement new linters for product/suite validation.
-
-### Task 2.1: Create product compose templates (5 files)
-
-- **Status**: ❌
-- **Estimated**: 1h
-- **Dependencies**: Task 1.2 (templates directory exists)
-- **Description**: Create one template per product compose file. Each template is based on the
-  actual `deployments/{PRODUCT}/compose.yml` content, with `cryptoutil` → `__SUITE__` and
-  `dev` image tag → `__IMAGE_TAG__` substituted as placeholders.
-
-  Products and their source files:
-  - `sm`: `deployments/sm/compose.yml` → `product-sm-compose.yml.tmpl`
-  - `jose`: `deployments/jose/compose.yml` → `product-jose-compose.yml.tmpl`
-  - `pki`: `deployments/pki/compose.yml` → `product-pki-compose.yml.tmpl`
-  - `identity`: `deployments/identity/compose.yml` → `product-identity-compose.yml.tmpl`
-  - `skeleton`: `deployments/skeleton/compose.yml` → `product-skeleton-compose.yml.tmpl`
-
-  Parameterization: Replace `cryptoutil` with `__SUITE__`, replace image tag `dev` with `__IMAGE_TAG__`.
-  Everything else (PS-ID names, port numbers, includes, service lists) is product-specific and static.
-- **Acceptance Criteria**:
-  - [ ] All 5 product compose templates created in `api/cryptosuite-registry/templates/`
-  - [ ] Each template uses `__SUITE__` and `__IMAGE_TAG__` as placeholders
-  - [ ] `go build ./api/...` succeeds (embed resolves all 12 files)
-- **Files**:
-  - `api/cryptosuite-registry/templates/product-sm-compose.yml.tmpl` (CREATE)
-  - `api/cryptosuite-registry/templates/product-jose-compose.yml.tmpl` (CREATE)
-  - `api/cryptosuite-registry/templates/product-pki-compose.yml.tmpl` (CREATE)
-  - `api/cryptosuite-registry/templates/product-identity-compose.yml.tmpl` (CREATE)
-  - `api/cryptosuite-registry/templates/product-skeleton-compose.yml.tmpl` (CREATE)
-
-### Task 2.2: Create suite compose template
+### Task 1.5: Create suite template files (2 files)
 
 - **Status**: ❌
 - **Estimated**: 0.5h
 - **Dependencies**: Task 1.2
-- **Description**: Create `suite-compose.yml.tmpl` based on `deployments/cryptoutil/compose.yml`.
-  Parameterize `__SUITE__` (for binary names), `__IMAGE_TAG__` (for image tags), `__BUILD_DATE__`.
+- **Description**: Create suite-level template files in `templates/deployments/cryptoutil/`.
+  These are compared directly against `deployments/cryptoutil/{Dockerfile,compose.yml}`.
+  The suite Dockerfile is stored as a complete standalone template — not derived from
+  the `__PS_ID__` template at runtime.
 - **Acceptance Criteria**:
-  - [ ] `api/cryptosuite-registry/templates/suite-compose.yml.tmpl` created
-  - [ ] Template uses `__SUITE__` and `__IMAGE_TAG__` placeholders
-  - [ ] `go build ./api/...` succeeds
+  - [ ] `templates/deployments/cryptoutil/Dockerfile` reflects actual suite Dockerfile with params
+  - [ ] `templates/deployments/cryptoutil/compose.yml` reflects actual suite compose with params
+  - [ ] Manually verifying: substituting suite params produces content identical to actual files
 - **Files**:
-  - `api/cryptosuite-registry/templates/suite-compose.yml.tmpl` (CREATE)
+  - `api/cryptosuite-registry/templates/deployments/cryptoutil/Dockerfile` (CREATE)
+  - `api/cryptosuite-registry/templates/deployments/cryptoutil/compose.yml` (CREATE)
 
-### Task 2.3: Implement `CheckProductCompose` linter
-
-- **Status**: ❌
-- **Estimated**: 1h
-- **Dependencies**: Task 2.1, Task 1.3
-- **Description**: Add `CheckProductCompose(logger)` in `template_drift/checks.go`. Iterates the 5
-  products, loads `product-{PRODUCT}-compose.yml.tmpl`, substitutes `__SUITE__`/`__IMAGE_TAG__`/
-  `__BUILD_DATE__`, compares against `deployments/{PRODUCT}/compose.yml`.
-
-  Uses `compareExact` for most products; `compareSupersetOrdered` for `identity` (or exact if
-  files actually match).
-- **Acceptance Criteria**:
-  - [ ] `CheckProductCompose` function added to `checks.go`
-  - [ ] Iterates over all 5 products
-  - [ ] Correct comparison mode per product
-  - [ ] Returns descriptive diff errors if any product compose file differs
-  - [ ] `go build ./...` succeeds
-- **Files**:
-  - `internal/apps/tools/cicd_lint/lint_fitness/template_drift/checks.go` (MODIFY)
-
-### Task 2.4: Implement `CheckSuiteCompose` and `CheckSuiteDockerfile` linters
-
-- **Status**: ❌
-- **Estimated**: 1h
-- **Dependencies**: Task 2.2, Task 1.3
-- **Description**:
-  - `CheckSuiteCompose(logger)`: loads `suite-compose.yml.tmpl`, substitutes suite params,
-    compares against `deployments/cryptoutil/compose.yml` (use `compareExact` or superset as needed).
-  - `CheckSuiteDockerfile(logger)`: reuses `Dockerfile.tmpl` with suite-specific params
-    (`__PS_ID__` = `cryptoutil`, `__PRODUCT_DISPLAY_NAME__` = `Cryptoutil`,
-    `__SERVICE_DISPLAY_NAME__` = `Suite`), compares against `deployments/cryptoutil/Dockerfile`.
-
-  Suite params map includes:
-  - `__SUITE__` = `cryptoutil`
-  - `__IMAGE_TAG__` = `dev`
-  - `__BUILD_DATE__` = `2026-02-17T00:00:00Z`
-  - `__PS_ID__` = `cryptoutil`
-  - `__PS_ID_UPPER__` = `CRYPTOUTIL`
-  - `__PRODUCT_DISPLAY_NAME__` = `Cryptoutil`
-  - `__SERVICE_DISPLAY_NAME__` = `Suite`
-  - All standard build/container params
-- **Acceptance Criteria**:
-  - [ ] `CheckSuiteCompose` added to `checks.go`
-  - [ ] `CheckSuiteDockerfile` added to `checks.go`
-  - [ ] Neither function requires a new template file (reuse existing)
-  - [ ] `go build ./...` succeeds
-- **Files**:
-  - `internal/apps/tools/cicd_lint/lint_fitness/template_drift/checks.go` (MODIFY)
-
-### Task 2.5: Register new linters in registry
+### Task 1.6: Delete the obsolete `template_drift/templates/` directory
 
 - **Status**: ❌
 - **Estimated**: 0.25h
-- **Dependencies**: Task 2.3, Task 2.4
-- **Description**: Add all 3 new linters to `lint-fitness-registry.yaml` and ensure they are
-  wired into `lint_fitness.go` dispatch table.
+- **Dependencies**: Tasks 1.3, 1.4, 1.5 (all canonical templates exist first)
+- **Description**: Remove the 6 old `.tmpl` files from `internal/.../template_drift/templates/`.
+  Their content is superseded by the canonical files in `api/cryptosuite-registry/templates/`.
 - **Acceptance Criteria**:
-  - [ ] `template-product-compose` linter registered in `lint-fitness-registry.yaml`
-  - [ ] `template-suite-compose` linter registered
-  - [ ] `template-suite-dockerfile` linter registered
-  - [ ] `go run ./cmd/cicd-lint lint-fitness` includes all 3 new checks
+  - [ ] `internal/apps/tools/cicd_lint/lint_fitness/template_drift/templates/` does NOT exist
+  - [ ] `go build ./...` succeeds (no dangling references to removed directory)
+
+---
+
+## Phase 2: Rewrite Template Linter
+
+**Phase Objective**: Rewrite `template_drift.go` to read templates from disk at runtime using
+`os.WalkDir`, build an in-memory expected filesystem, and compare against actual `./deployments/`
+and `./configs/` directories. Replace all per-file `Check*` functions with a single
+`CheckTemplateCompliance` linter.
+
+### Task 2.1: Rewrite core engine in `template_drift.go`
+
+- **Status**: ❌
+- **Estimated**: 2h
+- **Dependencies**: Phase 1 complete
+- **Description**: Rewrite `template_drift.go` to implement the new in-memory FS approach:
+
+  1. `LoadTemplatesDir(projectRoot string) (map[string]string, error)` — walks
+     `{projectRoot}/api/cryptosuite-registry/templates/` using `os.WalkDir`, returns map
+     of template-relative path → raw file content (e.g., `"deployments/__PS_ID__/Dockerfile"` → content)
+
+  2. `BuildExpectedFS(templates map[string]string, psIDs []string) (map[string]string, error)` —
+     for each template path in the map:
+     - If path contains `__PS_ID__`: iterate over all psIDs, substitute `__PS_ID__` in path AND
+       call `buildParams(psID)` for full content substitution; add to expected FS
+     - Otherwise (static path): substitute generic params (`__SUITE__`, `__IMAGE_TAG__`,
+       `__BUILD_DATE__`, etc.); add directly to expected FS as resolved relative path
+
+  3. `CompareExpectedFS(expected map[string]string, projectRoot string) error` — for each entry
+     in expected FS: resolve `{projectRoot}/{resolvedPath}`, read actual file, compare after
+     normalization; collect all diffs; return aggregated error listing all mismatches
+
+  4. REMOVE: `//go:embed templates/*`, `var templatesFS embed.FS`, `instantiate()` function,
+     all individual `Check*` per-file wrappers
+
+  5. KEEP: `buildParams(psID string) map[string]string`, `normalizeCommentAlignment`,
+     `normalizeLineEndings`
+
+  6. ADD: `buildSuiteParams() map[string]string` for suite/product static template substitution
+- **Acceptance Criteria**:
+  - [ ] `template_drift.go` has NO `//go:embed` directive, NO `embed.FS`, NO `embed` import
+  - [ ] `LoadTemplatesDir` correctly discovers all 15 template files
+  - [ ] `BuildExpectedFS` correctly expands 8 `__PS_ID__` templates × 10 PS-IDs = 80 files
+  - [ ] `BuildExpectedFS` handles static product/suite paths without PS-ID expansion
+  - [ ] `CompareExpectedFS` returns aggregated error with description for each mismatch
+  - [ ] `go build ./...` succeeds
+- **Files**:
+  - `internal/apps/tools/cicd_lint/lint_fitness/template_drift/template_drift.go` (REWRITE)
+
+### Task 2.2: Implement `CheckTemplateCompliance` single linter in `checks.go`
+
+- **Status**: ❌
+- **Estimated**: 0.5h
+- **Dependencies**: Task 2.1
+- **Description**: Rewrite `checks.go` to remove all per-file `Check*` functions and add a single
+  `CheckTemplateCompliance(logger *Logger) error`. Use seam injection for testing:
+
+  ```
+  type templateComplianceFn func(projectRoot string) (map[string]string, error)
+  func CheckTemplateCompliance(logger *Logger) error {
+      return checkTemplateComplianceInDir(logger, ".", defaultComplianceFn)
+  }
+  func checkTemplateComplianceInDir(logger *Logger, projectRoot string, fn templateComplianceFn) error {
+      ...
+  }
+  ```
+
+  `defaultComplianceFn` calls `LoadTemplatesDir → BuildExpectedFS → CompareExpectedFS`.
+- **Acceptance Criteria**:
+  - [ ] All old `Check*` functions removed from `checks.go`
+  - [ ] `CheckTemplateCompliance` added
+  - [ ] `checkTemplateComplianceInDir` is the seam-injectable private function
+  - [ ] `go build ./...` succeeds
+- **Files**:
+  - `internal/apps/tools/cicd_lint/lint_fitness/template_drift/checks.go` (REWRITE)
+
+### Task 2.3: Update `lint-fitness-registry.yaml` and dispatch
+
+- **Status**: ❌
+- **Estimated**: 0.25h
+- **Dependencies**: Task 2.2
+- **Description**: Replace all per-file template linter entries with a single `template-compliance`
+  entry. Update dispatch in `lint_fitness.go` to wire `CheckTemplateCompliance`.
+- **Acceptance Criteria**:
+  - [ ] All old per-file entries removed (`template-dockerfile`, `template-compose`, etc.)
+  - [ ] Single `template-compliance` entry added, wired to `CheckTemplateCompliance`
+  - [ ] `go run ./cmd/cicd-lint lint-fitness` runs without unknown command errors
 - **Files**:
   - `internal/apps/tools/cicd_lint/lint_fitness/lint-fitness-registry.yaml` (MODIFY)
-  - `internal/apps/tools/cicd_lint/lint_fitness/lint_fitness.go` (MODIFY — add dispatch entries)
+  - `internal/apps/tools/cicd_lint/lint_fitness/lint_fitness.go` (MODIFY)
 
-### Task 2.6: Write tests for new linters (≥98% coverage)
+### Task 2.4: Write tests (≥98% coverage, seam injection pattern)
 
 - **Status**: ❌
-- **Estimated**: 1.5h
-- **Dependencies**: Task 2.3, Task 2.4
-- **Description**: Add test cases for `CheckProductCompose`, `CheckSuiteCompose`,
-  `CheckSuiteDockerfile` in the appropriate test files. Use seam injection pattern
-  (`instantiateFn`) to test error paths without real file I/O.
+- **Estimated**: 2h
+- **Dependencies**: Task 2.2
+- **Description**: Write comprehensive tests using `t.TempDir()` for file system test isolation.
+  All tests must call `t.Parallel()`. Use table-driven pattern for multi-variant cases.
 
-  Test cases needed per linter:
-  - Happy path: actual file matches template (no errors returned)
-  - Template load error: inject failing instantiateFn returns error
-  - File not found: provide non-existent path
-  - Drift detected: inject instantiateFn returning modified content, verify diff in error
+  Test cases needed:
+  - `TestLoadTemplatesDir_Happy`: temp dir with a few template files → correct map returned
+  - `TestLoadTemplatesDir_NonExistentRoot`: error returned for missing directory
+  - `TestBuildExpectedFS_PSIDExpansion`: 1 template with `__PS_ID__` path → N expansions
+  - `TestBuildExpectedFS_StaticPath`: 1 static template → 1 entry without expansion
+  - `TestBuildExpectedFS_ContentSubstitution`: verify `__PS_ID__` substituted in content too
+  - `TestCompareExpectedFS_AllMatch`: expected FS matches temp dir → nil error
+  - `TestCompareExpectedFS_ContentMismatch`: one file has wrong content → error with diff description
+  - `TestCompareExpectedFS_MissingFile`: expected file does not exist → error
+  - `TestCheckTemplateComplianceInDir_Success`: inject fn returning valid expected FS → passes
+  - `TestCheckTemplateComplianceInDir_ComplianceError`: inject fn returning mismatch → error
+  - `TestCheckTemplateComplianceInDir_LoadError`: inject fn returning error → propagated
 - **Acceptance Criteria**:
-  - [ ] Tests cover all happy paths and error paths for each new linter
-  - [ ] `go test -coverprofile=coverage.out ./internal/apps/tools/cicd_lint/lint_fitness/template_drift/...` ≥98%
-  - [ ] `t.Parallel()` on all test functions and subtests
-  - [ ] No hardcoded UUIDs
+  - [ ] All test functions have `t.Parallel()` at top
+  - [ ] Table-driven for multi-variant tests
+  - [ ] `go test ./internal/apps/tools/cicd_lint/lint_fitness/template_drift/...` → 100% pass
+  - [ ] Coverage ≥98% for `template_drift` package
 - **Files**:
-  - `internal/apps/tools/cicd_lint/lint_fitness/template_drift/checks_error_test.go` (MODIFY)
-  - or `template_drift_test.go` (MODIFY as appropriate)
+  - `internal/apps/tools/cicd_lint/lint_fitness/template_drift/template_drift_test.go` (MODIFY/ADD)
 
-### Task 2.7: Fix actual product/suite files if needed
+### Task 2.5: Fix actual deployment/config files if templates reveal drift
 
 - **Status**: ❌
 - **Estimated**: 0.5h
-- **Dependencies**: Task 2.5, Task 2.6
+- **Dependencies**: Task 2.3
 - **Description**: Run `go run ./cmd/cicd-lint lint-fitness` to detect any drift between the new
-  templates and the actual product/suite compose files. If drift exists, fix the actual files
-  (not the templates — templates ARE the spec). Fix the suite Dockerfile if it differs.
+  templates and the actual `./deployments/` and `./configs/` files. Templates ARE the canonical
+  spec — if a file on disk differs from the template-expanded expected content, fix the file on
+  disk (not the template).
 - **Acceptance Criteria**:
-  - [ ] `go run ./cmd/cicd-lint lint-fitness` passes (zero template violations)
-  - [ ] Any product/suite compose file differences resolved
-  - [ ] `go test ./...` passes after any file fixes
+  - [ ] `go run ./cmd/cicd-lint lint-fitness` passes with zero template-compliance violations
 - **Evidence**:
   - `test-output/framework-v10/phase2/lint-fitness-output.txt`
 
+---
+
 ## Phase 3: Update Documentation
 
-**Phase Objective**: Make `deployment-templates.md` and `target-structure.md` point to the canonical
-template files instead of duplicating template content inside the documentation. The template files
-ARE the source of truth; docs describe them.
+**Phase Objective**: Ensure docs accurately describe the new parameterized template architecture.
+Template files are the source of truth; docs describe them.
 
 ### Task 3.1: Update `deployment-templates.md` template content sections
 
 - **Status**: ❌
 - **Estimated**: 1h
-- **Dependencies**: Phase 2 complete (all template files exist)
-- **Description**: For Sections B.1, C.1, D.1-D.5, E, G.1, I, J: replace the embedded
-  template content (```` ```dockerfile ``` ``` / ```` ```yaml``` ```` blocks) with a short
-  reference to the canonical template file. Keep all rule tables, parameter tables, and rationale.
-
-  Replacement format for each template section:
-  ```
-  ### X.1 Canonical Template
-
-  Canonical template: [`api/cryptosuite-registry/templates/FILENAME.tmpl`](../api/cryptosuite-registry/templates/FILENAME.tmpl)
-
-  The template uses `__KEY__` placeholder syntax. See [Section A](#a-parameterization-table) for all parameters.
-  Linter `template-LINTERNAME` instantiates this template for each PS-ID and compares byte-for-byte
-  against the actual file on disk.
-  ```
-
-  Retain the `### X.2 Template Rules` tables and all other non-template-content sections.
+- **Dependencies**: Phase 1 complete
+- **Description**: For Sections B.1, C.1, D.1-5, E, G.1, I, J: replace embedded template code
+  blocks with a reference to the canonical file in `api/cryptosuite-registry/templates/{path}`.
+  Keep all rule tables, parameter tables, and rationale text.
 - **Acceptance Criteria**:
-  - [ ] No embedded template content (code blocks) remain in Sections B.1, C.1, D.1-D.5, E.1, G.1, I, J
-  - [ ] Each section references `api/cryptosuite-registry/templates/FILENAME.tmpl`
-  - [ ] All rule tables intact
+  - [ ] No embedded template code blocks remain in those sections
+  - [ ] Each section references its canonical template file path
+  - [ ] All rule tables and rationale text intact
   - [ ] `go run ./cmd/cicd-lint lint-docs` passes
 - **Files**:
   - `docs/deployment-templates.md` (MODIFY)
 
-### Task 3.2: Update `target-structure.md` for `api/cryptosuite-registry/templates/`
+### Task 3.2: Update Section O.2 template catalog
 
 - **Status**: ❌
-- **Estimated**: 0.5h
+- **Estimated**: 0.25h
 - **Dependencies**: Task 3.1
-- **Description**: Add `api/cryptosuite-registry/` section to `target-structure.md` listing the
-  Go package file and all 12 template files in the `templates/` subdirectory.
+- **Description**: Update the template file catalog in Section O.2 to list all 15 canonical
+  template files with their parameterized paths, expansion behavior (PS-ID × 10, product × 5,
+  suite × 1), and the actual files they validate.
 - **Acceptance Criteria**:
-  - [ ] `target-structure.md` lists `api/cryptosuite-registry/templates.go`
-  - [ ] All 12 template files listed under `api/cryptosuite-registry/templates/`
+  - [ ] Section O.2 correctly lists all 15 template files
+  - [ ] Expansion behavior documented for each file type
+  - [ ] `go run ./cmd/cicd-lint lint-docs` passes
+- **Files**:
+  - `docs/deployment-templates.md` (MODIFY)
+
+### Task 3.3: Update `target-structure.md`
+
+- **Status**: ❌
+- **Estimated**: 0.25h
+- **Dependencies**: Task 3.2
+- **Description**: Add `api/cryptosuite-registry/templates/` tree to `target-structure.md`
+  listing all 15 template files and the full directory structure.
+- **Acceptance Criteria**:
+  - [ ] `target-structure.md` shows `api/cryptosuite-registry/templates/` with full subtree
   - [ ] `go run ./cmd/cicd-lint lint-docs` passes
 - **Files**:
   - `docs/target-structure.md` (MODIFY)
 
-### Task 3.3: Update Section O.2 of `deployment-templates.md` (template catalog)
-
-- **Status**: ❌
-- **Estimated**: 0.25h
-- **Dependencies**: Task 3.1
-- **Description**: Update the template file catalog in Section O.2 to reflect the complete 12-file list
-  (6 original PS-ID templates + 5 product templates + 1 suite compose). Note Decision 3 (no separate
-  suite-Dockerfile.tmpl needed — `Dockerfile.tmpl` reused with suite params).
-- **Acceptance Criteria**:
-  - [ ] Section O.2 catalog lists all 12 template files and their purpose
-  - [ ] Decision 3 (suite Dockerfile reuses Dockerfile.tmpl) noted in Section J
-  - [ ] `go run ./cmd/cicd-lint lint-docs` passes
-- **Files**:
-  - `docs/deployment-templates.md` (MODIFY)
-
-### Task 3.4: Update v9 plan to note v10 correction
+### Task 3.4: Annotate v9 plan and tasks with correction note
 
 - **Status**: ❌
 - **Estimated**: 0.25h
 - **Dependencies**: None
-- **Description**: Add a brief note to v9 `plan.md` Item 23 and Task 8.1 indicating the implementation
-  error (templates stored in wrong location) and that v10 corrects this.
+- **Description**: Add a `⚠️ v9 IMPLEMENTATION ERROR` note to v9 Task 8.1 and v9 plan Item 23
+  indicating templates were placed at wrong location; v10 corrects this.
 - **Acceptance Criteria**:
-  - [ ] v9 `plan.md` Item 23 has a note: "⚠️ v9 IMPLEMENTATION ERROR: templates placed in `template_drift/templates/` instead of `api/cryptosuite-registry/templates/`. Corrected by v10."
-  - [ ] v9 `tasks.md` Task 8.1 has the same correction note
+  - [ ] `docs/framework-v9/plan.md` Item 23 has correction note
+  - [ ] `docs/framework-v9/tasks.md` Task 8.1 has correction note
 - **Files**:
   - `docs/framework-v9/plan.md` (MODIFY)
   - `docs/framework-v9/tasks.md` (MODIFY)
+
+---
 
 ## Phase 4: Quality Gates
 
 **Phase Objective**: Full validation that all quality gates pass end-to-end.
 
-### Task 4.1: Full build validation
+### Task 4.1: Full build and lint validation
 
 - **Status**: ❌
-- **Estimated**: 0.25h
-- **Dependencies**: All Phase 1-3 tasks
-- **Description**: Run all build variants.
+- **Estimated**: 0.5h
+- **Dependencies**: All Phase 1–3 tasks
 - **Acceptance Criteria**:
-  - [ ] `go build ./...` — clean (no errors)
-  - [ ] `go build -tags e2e,integration ./...` — clean
-- **Evidence**: `test-output/framework-v10/phase4/build.txt`
+  - [ ] `go build ./...` clean
+  - [ ] `go build -tags e2e,integration ./...` clean
+  - [ ] `golangci-lint run` zero warnings/errors
+  - [ ] `golangci-lint run --build-tags e2e,integration` zero warnings/errors
+- **Evidence**: `test-output/framework-v10/phase4/build-lint.txt`
 
-### Task 4.2: Full linting validation
-
-- **Status**: ❌
-- **Estimated**: 0.25h
-- **Dependencies**: Task 4.1
-- **Acceptance Criteria**:
-  - [ ] `golangci-lint run` — zero warnings/errors
-  - [ ] `golangci-lint run --build-tags e2e,integration` — zero warnings/errors
-  - [ ] `go run ./cmd/cicd-lint lint-fitness` — all linters pass
-  - [ ] `go run ./cmd/cicd-lint lint-deployments` — all validators pass
-  - [ ] `go run ./cmd/cicd-lint lint-docs` — all checks pass
-- **Evidence**: `test-output/framework-v10/phase4/lint.txt`
-
-### Task 4.3: Full test suite
+### Task 4.2: Full test suite and coverage
 
 - **Status**: ❌
 - **Estimated**: 0.5h
 - **Dependencies**: Task 4.1
 - **Acceptance Criteria**:
-  - [ ] `go test ./...` — 100% pass, zero skips
-  - [ ] Coverage ≥98%: `go test -coverprofile=... ./internal/apps/tools/cicd_lint/lint_fitness/template_drift/...`
-  - [ ] `go test -race -count=2 ./internal/apps/tools/...` — race-detector clean
+  - [ ] `go test ./...` 100% pass, zero skips
+  - [ ] `go test -race -count=2 ./internal/apps/tools/...` race-free
+  - [ ] ≥98% coverage for `template_drift` package
 - **Evidence**:
   - `test-output/framework-v10/phase4/test-results.txt`
   - `test-output/framework-v10/phase4/coverage-template-drift.out`
+
+### Task 4.3: cicd-lint end-to-end validation
+
+- **Status**: ❌
+- **Estimated**: 0.25h
+- **Dependencies**: Task 4.1
+- **Acceptance Criteria**:
+  - [ ] `go run ./cmd/cicd-lint lint-fitness` passes (template-compliance green)
+  - [ ] `go run ./cmd/cicd-lint lint-deployments` passes
+  - [ ] `go run ./cmd/cicd-lint lint-docs` passes
+- **Evidence**: `test-output/framework-v10/phase4/cicd-lint-output.txt`
+
+---
 
 ## Phase 5: Knowledge Propagation
 
@@ -391,30 +391,28 @@ ARE the source of truth; docs describe them.
 
 - **Status**: ❌
 - **Estimated**: 0.5h
-- **Dependencies**: All Phase 1-4 tasks
-- **Description**: Update sections that reference the canonical template location and linter catalog.
+- **Dependencies**: All Phase 1–4 tasks
 - **Acceptance Criteria**:
-  - [ ] Section 9.11.1 (fitness linter catalog) updated with new product/suite template linters
-  - [ ] Section 13.6 (template enforcement) references `api/cryptosuite-registry/templates/`
-  - [ ] `go run ./cmd/cicd-lint lint-docs` passes
+  - [ ] Section 9.11.1 fitness linter catalog: old per-file entries removed, `template-compliance` added
+  - [ ] Section 13.6 describes parameterized template directory structure and `os.WalkDir` approach
+  - [ ] `go run ./cmd/cicd-lint lint-docs validate-propagation` passes
 
-### Task 5.2: Update instruction files
+### Task 5.2: Update instruction files if new patterns discovered
 
 - **Status**: ❌
 - **Estimated**: 0.25h
 - **Dependencies**: Task 5.1
-- **Description**: Review `04-01.deployment.instructions.md` for any references to wrong template location.
 - **Acceptance Criteria**:
-  - [ ] `04-01.deployment.instructions.md` references correct template location
+  - [ ] Any new patterns documented in relevant instruction files
   - [ ] `go run ./cmd/cicd-lint lint-docs validate-propagation` passes
 
-### Task 5.3: Final commit and clean worktree
+### Task 5.3: Final clean commit
 
 - **Status**: ❌
 - **Estimated**: 0.25h
 - **Dependencies**: Task 5.2
 - **Acceptance Criteria**:
-  - [ ] All changes committed with conventional commit messages
+  - [ ] All changes committed with conventional commit messages (one commit per semantic group)
   - [ ] `git status --porcelain` returns empty
   - [ ] Final `go run ./cmd/cicd-lint lint-fitness` passes
 
@@ -422,30 +420,40 @@ ARE the source of truth; docs describe them.
 
 ## Cross-Cutting Tasks
 
+### Code Quality (enforced per task)
+
+- [ ] No new `//nolint:` directives without GitHub issue reference
+- [ ] All magic constants in `internal/shared/magic/` (no new magic literals in Go code)
+- [ ] `gofumpt -w .` before committing any Go file
+- [ ] No `.go` files added to `api/cryptosuite-registry/` (CRITICAL — it MUST NOT be a Go package)
+
 ### Testing (enforced per task)
 
 - [ ] `t.Parallel()` on all new tests and subtests
-- [ ] Seam injection pattern for all new linter tests
-- [ ] Table-driven tests for multi-case scenarios
+- [ ] Seam injection pattern for all new linter functions
+- [ ] Table-driven for multi-variant tests
+- [ ] `t.TempDir()` for file system test isolation
 - [ ] ≥98% line coverage for `template_drift` package
-
-### Code Quality (enforced per task)
-
-- [ ] No new `//nolint:` directives
-- [ ] Import alias `cryptoutilRegistryTemplates` for new package import
-- [ ] All constants in `internal/shared/magic/` (no new magic literals in Go code)
-- [ ] `gofumpt -w .` before committing
 
 ---
 
-## Notes / Deferred Work
+## Notes
 
-None — all issues must be resolved in v10. No deferral permitted.
+**Critical constraint**: `api/cryptosuite-registry/` MUST NOT contain any `.go` files.
+The templates are plain configuration files, not Go source code. Any `.go` file discovered
+there during implementation is an error and must be removed immediately.
+
+**Expansion rules**:
+- `__PS_ID__` in path → expand for all 10 PS-IDs from `registry.yaml`
+- No `__KEY__` in path → compare directly (product/suite files; substitute content params only)
+- `__PRODUCT__` in path: not used in v10 (per-product templates have static paths)
+
+**Total template files**: 15 physical files → 87 expected files after full expansion
+(8 PS-ID templates × 10 PS-IDs = 80 expanded, + 5 product compose + 2 suite files = 87)
 
 ---
 
 ## Evidence Archive
 
-- `test-output/framework-v10/phase1/` — Phase 1 test results and coverage
-- `test-output/framework-v10/phase2/` — Phase 2 lint-fitness output
-- `test-output/framework-v10/phase4/` — Full quality gate evidence
+- `test-output/framework-v10/phase2/` — lint-fitness output after Phase 2
+- `test-output/framework-v10/phase4/` — full quality gate evidence
