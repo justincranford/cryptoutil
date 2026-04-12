@@ -11,6 +11,15 @@ directory paths AND file contents. `cicd-lint` reads these files at runtime, loo
 PS-ID/product/suite combinations, generates an in-memory expected filesystem, and recursively
 compares it against the actual `./configs/` and `./deployments/` directories on disk.
 
+**PREREQUISITE — Answer `quizme-v1.md` before starting Phase 1**: Deep analysis of `./configs/`
+and `./deployments/` found 10 scope and design questions that block implementation. Five categories
+of files are NOT covered by the current plan and require explicit scope decisions: product compose
+structural non-uniformity (Q1-Q3), standalone config domain extensions (Q4), suite-level config
+schema (Q5), pki-ca certificate profiles (Q6), identity-authz policies (Q7), shared-postgres
+template scope (Q8), shared-telemetry template scope (Q9), and registry.yaml `infra_tools` section
+(Q10). Phase 1 Task 1.4 (product compose template) and Phase 2 Task 2.1 (engine design) are
+directly blocked by these answers. See [`docs/framework-v10/quizme-v1.md`](quizme-v1.md).
+
 ---
 
 ## Quality Mandate - MANDATORY

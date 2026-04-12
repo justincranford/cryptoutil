@@ -116,7 +116,7 @@ Delete the obsolete `template_drift/templates/` directory.
   a common structure, then write the single template. If any product compose file has
   non-parameterizable differences beyond the include list, add product-level metadata to
   registry.yaml to capture that variation.
-- **Acceptance Criteria**:  
+- **Acceptance Criteria**:
   - [ ] Exactly ONE template file: `templates/deployments/__PRODUCT__/compose.yml`
   - [ ] Template uses `__PRODUCT__`, `__SUITE__`, `__IMAGE_TAG__`, `__PRODUCT_INCLUDE_LIST__`
   - [ ] No literal product names (`sm`, `jose`, `pki`, `identity`, `skeleton`) in the path
