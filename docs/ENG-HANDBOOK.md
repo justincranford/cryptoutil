@@ -989,7 +989,7 @@ PostgreSQL uses a **single shared leader/follower pair** (`deployments/shared-po
 - **Developer access**: `docker exec postgres-leader psql` (container-internal, no host port needed).
 - **Per-PS-ID isolation**: Each service connects with a unique username, password, and logical database name.
 - **Replication**: Follower replicates all logical databases from leader via init scripts.
-- **Init scripts**: `init-leader-databases.sql`, `init-follower-databases.sql`, `setup-logical-replication.sh` create 30 logical databases (10 PS-IDs x 3 tiers).
+- **Init scripts**: `init-leader-databases.sql`, `init-follower-databases.sql`, `setup-logical-replication.sh`; create 30 logical databases in the leader (10 PS-IDs x 3 tiers) with corresponding 30 x 2 separate users (DDL vs DML), create 30 logical schemas in a single database in the follower (10 PS-IDs x 3 tiers) with 30 x 2 separate users (DDL vs DML).
 
 | Component | Container Address | Container Port | Host Port |
 |-----------|-------------------|----------------|-----------|

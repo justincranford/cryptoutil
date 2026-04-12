@@ -1,8 +1,8 @@
 # Tasks — Framework v10: Canonical Template Registry
 
-**Status**: 0 of 28 tasks complete (0%)
+**Status**: 0 of 30 tasks complete (0%)
 **Created**: 2026-04-12
-**Last Updated**: 2026-04-12
+**Last Updated**: 2026-04-13
 
 ---
 
@@ -27,11 +27,13 @@
 
 ## Phase 1: Create Canonical Template Directory
 
-**Phase Objective**: Populate `api/cryptosuite-registry/templates/` with all 14 parameterized
-template files. These are plain configuration files — NOT Go code. They mirror the structure of
-`./deployments/` and `./configs/` with `__KEY__` placeholders in both directory paths and content.
-Also fix actual deployment files to match quizme-v1 decisions (pki-init at all levels, postgres
-secrets uniformity, image removal from sm product).
+**Phase Objective**: Populate `api/cryptosuite-registry/templates/` with all parameterized
+template files (~60 files). These are plain configuration files — NOT Go code. They mirror the
+structure of `./deployments/` and `./configs/` with `__KEY__` placeholders in both directory paths
+and content. Includes secrets directory templates (Decision 14), shared-postgres templates
+(Decision 10), and framework/domain config split (Decision 7).
+Also fix actual deployment files to match quizme-v1/v2 decisions (pki-init at all levels,
+postgres secrets uniformity, image removal, standalone config split).
 Delete the obsolete `template_drift/templates/` directory.
 
 ### Task 1.1: Read and understand all existing template content
@@ -57,12 +59,17 @@ Delete the obsolete `template_drift/templates/` directory.
 - **Acceptance Criteria**:
   - [ ] `api/cryptosuite-registry/templates/deployments/__PS_ID__/` exists
   - [ ] `api/cryptosuite-registry/templates/deployments/__PS_ID__/config/` exists
+  - [ ] `api/cryptosuite-registry/templates/deployments/__PS_ID__/secrets/` exists
   - [ ] `api/cryptosuite-registry/templates/deployments/__PRODUCT__/` exists (single product template dir)
+  - [ ] `api/cryptosuite-registry/templates/deployments/__PRODUCT__/secrets/` exists
   - [ ] `api/cryptosuite-registry/templates/deployments/__SUITE__/` exists (single suite template dir)
+  - [ ] `api/cryptosuite-registry/templates/deployments/__SUITE__/secrets/` exists
+  - [ ] `api/cryptosuite-registry/templates/deployments/shared-postgres/` exists (static path)
+  - [ ] `api/cryptosuite-registry/templates/deployments/shared-postgres/secrets/` exists
   - [ ] `api/cryptosuite-registry/templates/configs/__PS_ID__/` exists
   - [ ] NO `.go` files anywhere in `api/cryptosuite-registry/`
 
-### Task 1.3: Create PS-ID level template files (8 files)
+### Task 1.3: Create PS-ID level template files (8 deployment + 1 config)
 
 - **Status**: ❌
 - **Estimated**: 1.5h
@@ -86,13 +93,16 @@ Delete the obsolete `template_drift/templates/` directory.
   - `config/__PS_ID__-app-postgresql-2.yml` (from `config-postgresql.yml.tmpl`, instance-2 port param)
 
   File to create in `api/cryptosuite-registry/templates/configs/__PS_ID__/`:
-  - `__PS_ID__.yml` (from `standalone-config.yml.tmpl`; template covers shared prefix only;
-    domain extensions are PS-ID-specific extra files — see quizme-v2 Q1)
+  - `__PS_ID__-framework.yml` — framework settings only (Decision 7/13: framework/domain split).
+    Contains: `bind-*`, `tls-*`, `cors-*`, `otlp-*`, `log-level`, `database-url`,
+    session algorithms, `enable-dynamic-registration`.
+    Domain config (`__PS_ID__-domain.yml`) is per-PS-ID and NOT templated.
 - **Acceptance Criteria**:
   - [ ] 7 files in `templates/deployments/__PS_ID__/` (Dockerfile + compose + 5 configs)
   - [ ] Config filenames use `__PS_ID__` prefix: `__PS_ID__-app-common.yml` etc.
   - [ ] compose.yml includes `pki-init` service with `--domain=__PS_ID__`
-  - [ ] 1 file in `templates/configs/__PS_ID__/` (`__PS_ID__.yml`)
+  - [ ] 1 file in `templates/configs/__PS_ID__/` (`__PS_ID__-framework.yml`)
+  - [ ] Framework config template has all framework settings, NO domain settings
   - [ ] Content matches existing `.tmpl` files; instance-1 vs instance-2 files differ only in port param
 - **Files**:
   - `api/cryptosuite-registry/templates/deployments/__PS_ID__/Dockerfile` (CREATE)
@@ -102,7 +112,7 @@ Delete the obsolete `template_drift/templates/` directory.
   - `api/cryptosuite-registry/templates/deployments/__PS_ID__/config/__PS_ID__-app-sqlite-2.yml` (CREATE)
   - `api/cryptosuite-registry/templates/deployments/__PS_ID__/config/__PS_ID__-app-postgresql-1.yml` (CREATE)
   - `api/cryptosuite-registry/templates/deployments/__PS_ID__/config/__PS_ID__-app-postgresql-2.yml` (CREATE)
-  - `api/cryptosuite-registry/templates/configs/__PS_ID__/__PS_ID__.yml` (CREATE)
+  - `api/cryptosuite-registry/templates/configs/__PS_ID__/__PS_ID__-framework.yml` (CREATE)
 
 ### Task 1.4: Create product compose template file (1 file, `__PRODUCT__` in path)
 
@@ -132,8 +142,9 @@ Delete the obsolete `template_drift/templates/` directory.
     `postgres-database.secret`. Currently jose/pki/identity/skeleton only reference
     `postgres-url.secret`.
 
-  **⚠️ BLOCKED on quizme-v2 Q7**: pki-init image reference and builder dependency at product
-  level needs clarification before template content can be finalized.
+  **⚠️ pki-init code mismatch**: Go implementation expects 2 positional args (`<tier-id> <target-dir>`)
+  but compose passes `["init", "--output-dir=/certs"]`. Template must use the CORRECTED arg format
+  (see quizme-v3 for resolution of pki-init code fix scope).
 - **Acceptance Criteria**:
   - [ ] Exactly ONE template file: `templates/deployments/__PRODUCT__/compose.yml`
   - [ ] Template uses `__PRODUCT__`, `__SUITE__`, `__IMAGE_TAG__`, `__PRODUCT_INCLUDE_LIST__`
@@ -232,15 +243,182 @@ Delete the obsolete `template_drift/templates/` directory.
 
   **⚠️ NOTE**: This task modifies actual deployment files, not templates. Template files define
   what actual files SHOULD look like; this task brings actual files into compliance.
-  **⚠️ BLOCKED on quizme-v2 Q7**: pki-init image/builder parameterization at product level.
+
+  **Decision 7 — standalone config split** (quizme-v2 Q1):
+  - Split all 10 `configs/<ps-id>/<ps-id>.yml` into `<ps-id>-framework.yml` + `<ps-id>-domain.yml`
+  - Framework file gets: `bind-*`, `tls-*`, `cors-*`, `otlp-*`, `log-level`, `database-url`,
+    session algorithms, `enable-dynamic-registration`
+  - Domain file gets: everything else (PS-ID-specific business logic settings)
+
+  **Decision 14 — secrets file uniformity** (quizme-v2 Q7):
+  - All PS-ID secrets directories must match template structure from Decision 14
+  - Update any stale `postgres-url.secret` values referencing removed per-PS-ID postgres hostnames
+    (point to `shared-postgres-leader:5432` instead)
 - **Acceptance Criteria**:
   - [ ] All 5 product compose files have `pki-init` with `--domain=<product>`
   - [ ] All 10 PS-ID compose files have `pki-init` with `--domain=<ps-id>`
   - [ ] SM product compose has NO `image:` on service overrides
   - [ ] All 5 product compose files reference all 4 postgres secrets
+  - [ ] All 10 standalone configs split into framework + domain files
+  - [ ] All secrets directories conform to Decision 14 template
+  - [ ] Stale postgres-url.secret values updated
   - [ ] `docker compose -f deployments/<ps-id>/compose.yml config` succeeds for all 10 PS-IDs
 - **Evidence**:
   - `test-output/framework-v10/phase1/deployment-fixes.log`
+
+### Task 1.9: Create PS-ID secrets directory templates
+
+- **Status**: ❌
+- **Estimated**: 1h
+- **Dependencies**: Task 1.2
+- **Description**: Create parameterized secrets template files in
+  `api/cryptosuite-registry/templates/deployments/__PS_ID__/secrets/`.
+  Content follows Decision 14 (quizme-v2 Q7): 14 `.secret` files with `__PS_ID__`-prefixed
+  values and `BASE64_CHAR43` placeholder for secret content.
+
+  Files to create (14 files):
+  - `unseal-1of5.secret` through `unseal-5of5.secret` (5 files)
+  - `hash-pepper-v3.secret`
+  - `postgres-url.secret`, `postgres-username.secret`, `postgres-password.secret`,
+    `postgres-database.secret` (4 files)
+  - `browser-session-secret.secret`, `browser-csrf-secret.secret`
+  - `service-session-secret.secret`
+  - `issuing-ca-key.secret`
+
+  Each file's value uses format: `__PS_ID__-<purpose>-<detail>-BASE64_CHAR43`
+  (e.g., `__PS_ID__-unseal-key-1-of-5-BASE64_CHAR43`).
+  `postgres-url.secret` value: `postgres://__PS_ID___database_user:BASE64_CHAR43@shared-postgres-leader:5432/__PS_ID___database?sslmode=disable`
+- **Acceptance Criteria**:
+  - [ ] 14 `.secret` files created in `templates/deployments/__PS_ID__/secrets/`
+  - [ ] All files use `__PS_ID__` prefix in content values
+  - [ ] All secret content uses `BASE64_CHAR43` placeholder (no real secrets)
+  - [ ] `postgres-url.secret` references `shared-postgres-leader:5432` (not per-PS-ID postgres)
+- **Files**:
+  - `api/cryptosuite-registry/templates/deployments/__PS_ID__/secrets/*.secret` (14 files CREATE)
+
+### Task 1.10: Create product and suite secrets directory templates
+
+- **Status**: ❌
+- **Estimated**: 0.5h
+- **Dependencies**: Task 1.9
+- **Description**: Create secrets templates for product-level and suite-level deployments.
+
+  Product level (`templates/deployments/__PRODUCT__/secrets/`):
+  - Same 14-file structure as PS-ID but with `__PRODUCT__`-prefixed values
+  - Only unseal, hash-pepper, and postgres secrets are real; browser/service/issuing-ca use
+    `.secret.never` marker extension (product level doesn't serve requests directly)
+
+  Suite level (`templates/deployments/__SUITE__/secrets/`):
+  - Same pattern with `__SUITE__`-prefixed values and `.secret.never` markers
+- **Acceptance Criteria**:
+  - [ ] Product secrets template directory created with correct files
+  - [ ] Suite secrets template directory created with correct files
+  - [ ] `.secret.never` marker files used for browser/service/issuing-ca at product/suite level
+  - [ ] `__PRODUCT__` and `__SUITE__` placeholders in content values
+- **Files**:
+  - `api/cryptosuite-registry/templates/deployments/__PRODUCT__/secrets/*` (CREATE)
+  - `api/cryptosuite-registry/templates/deployments/__SUITE__/secrets/*` (CREATE)
+
+### Task 1.11: Create shared-postgres template files
+
+- **Status**: ❌
+- **Estimated**: 1h
+- **Dependencies**: Task 1.2
+- **Description**: Create template files for the shared-postgres infrastructure service
+  (Decision 10, quizme-v2 Q3). These use `__SUITE__` substitution in content.
+
+  Files to create in `api/cryptosuite-registry/templates/deployments/shared-postgres/`:
+  - `compose.yml` — leader + follower PostgreSQL, 30 databases (3 tiers × 10 PS-IDs)
+  - `init-databases.sql` — CREATE DATABASE statements for all 30 databases
+  - `init-users.sql` — CREATE USER/ROLE statements
+  - `setup-logical-replication.sh` — replication config for all 10 PS-IDs (not just pki-ca)
+
+  **⚠️ CRITICAL: ENG-HANDBOOK shared-postgres documentation has gaps**:
+  - DDL/DML user separation documented but NOT implemented (single `cryptoutil_admin` user)
+  - `postgresql.conf` referenced but doesn't exist
+  - `setup-logical-replication.sh` only covers pki-ca (1/10 PS-IDs)
+  - Follower creates 16 DBs, not 30 schemas
+  See quizme-v3 for scope decision on fixing these gaps.
+- **Acceptance Criteria**:
+  - [ ] 4 template files created in `templates/deployments/shared-postgres/`
+  - [ ] `init-databases.sql` covers all 30 databases (3 × 10)
+  - [ ] `setup-logical-replication.sh` covers all 10 PS-IDs (not just pki-ca)
+  - [ ] Content uses `__SUITE__` substitution where appropriate
+- **Files**:
+  - `api/cryptosuite-registry/templates/deployments/shared-postgres/compose.yml` (CREATE)
+  - `api/cryptosuite-registry/templates/deployments/shared-postgres/init-databases.sql` (CREATE)
+  - `api/cryptosuite-registry/templates/deployments/shared-postgres/init-users.sql` (CREATE)
+  - `api/cryptosuite-registry/templates/deployments/shared-postgres/setup-logical-replication.sh` (CREATE)
+
+### Task 1.12: Create shared-postgres secrets templates
+
+- **Status**: ❌
+- **Estimated**: 0.25h
+- **Dependencies**: Task 1.11
+- **Description**: Create secrets templates for shared-postgres in
+  `api/cryptosuite-registry/templates/deployments/shared-postgres/secrets/`.
+  Includes postgres admin credentials and replication credentials.
+- **Acceptance Criteria**:
+  - [ ] Secrets template files created for shared-postgres
+  - [ ] Uses `BASE64_CHAR43` placeholder for secret content
+  - [ ] Admin and replication credentials included
+- **Files**:
+  - `api/cryptosuite-registry/templates/deployments/shared-postgres/secrets/*` (CREATE)
+
+### Task 1.13: Split all 10 actual standalone configs into framework/domain
+
+- **Status**: ❌
+- **Estimated**: 1h
+- **Dependencies**: Task 1.3 (template defines framework settings)
+- **Description**: Split each of the 10 actual `configs/<ps-id>/<ps-id>.yml` files into
+  `<ps-id>-framework.yml` + `<ps-id>-domain.yml` per Decision 7 (quizme-v2 Q1).
+
+  Framework settings (same across all PS-IDs, templatable):
+  `bind-*`, `tls-*`, `cors-*`, `otlp-*`, `log-level`, `database-url`,
+  session algorithms, `enable-dynamic-registration`
+
+  Domain settings (PS-ID-specific, NOT templated):
+  Everything else — `issuer`, `token-lifetime`, `ca:` block (pki-ca), `storage:` (pki-ca),
+  `authz-server-url` (identity-rp), `static-files-path` (identity-spa), etc.
+
+  **⚠️ Edge cases** (see quizme-v3 Q4):
+  - pki-ca: `storage.type` — framework or domain? Used for DB backend selection.
+  - identity-rp: `authz-server-url`, `client-id`, `redirect-uri` — framework or domain?
+  - identity-spa: `static-files-path` — framework or domain?
+- **Acceptance Criteria**:
+  - [ ] All 10 PS-IDs have `<ps-id>-framework.yml` + `<ps-id>-domain.yml`
+  - [ ] Original `<ps-id>.yml` removed (breaking change, acceptable per Decision 7)
+  - [ ] Framework files contain ONLY framework settings
+  - [ ] Domain files contain ONLY domain settings
+  - [ ] `go build ./...` succeeds (config loading must support new file names)
+- **Files**:
+  - `configs/<ps-id>/<ps-id>-framework.yml` × 10 (CREATE)
+  - `configs/<ps-id>/<ps-id>-domain.yml` × 10 (CREATE)
+  - `configs/<ps-id>/<ps-id>.yml` × 10 (DELETE)
+
+### Task 1.14: Add shared_services and infra_tools to registry.yaml
+
+- **Status**: ❌
+- **Estimated**: 0.5h
+- **Dependencies**: None
+- **Description**: Add `shared_services` and `infra_tools` sections to
+  `api/cryptosuite-registry/registry.yaml` per Decision 12 (quizme-v2 Q4).
+
+  `shared_services`:
+  - `shared-postgres` with leader/follower ports, database count, replication config
+
+  `infra_tools`:
+  - `shared-telemetry` with collector ports (4317/4318), Grafana port (3000)
+
+  These entries model all parts of the repository, even if not all are PS-IDs.
+  The linter uses these for template expansion of static-path templates.
+- **Acceptance Criteria**:
+  - [ ] `shared_services` section added with `shared-postgres` entry
+  - [ ] `infra_tools` section added with `shared-telemetry` entry
+  - [ ] Existing PS-ID entries unchanged
+  - [ ] YAML is valid: `python -c "import yaml; yaml.safe_load(open('api/cryptosuite-registry/registry.yaml'))"`
+- **Files**:
+  - `api/cryptosuite-registry/registry.yaml` (MODIFY)
 
 ---
 
@@ -292,7 +470,7 @@ and `./configs/` directories. Replace all per-file `Check*` functions with a sin
      builds suite-level substitution map (`__SUITE__`, display names, etc.)
 - **Acceptance Criteria**:
   - [ ] `template_drift.go` has NO `//go:embed` directive, NO `embed.FS`, NO `embed` import
-  - [ ] `LoadTemplatesDir` correctly discovers all 14 template files
+  - [ ] `LoadTemplatesDir` correctly discovers all ~60 template files
   - [ ] `BuildExpectedFS` correctly expands `__PS_ID__` templates × 10: 80 deployment files + 10 config files
   - [ ] `BuildExpectedFS` correctly expands `__PRODUCT__` template × 5 product compose files
   - [ ] `BuildExpectedFS` correctly expands `__SUITE__` templates × 1 (Dockerfile + compose.yml)
@@ -364,6 +542,10 @@ and `./configs/` directories. Replace all per-file `Check*` functions with a sin
   - `TestCheckTemplateComplianceInDir_Success`: inject fn returning valid expected FS → passes
   - `TestCheckTemplateComplianceInDir_ComplianceError`: inject fn returning mismatch → error
   - `TestCheckTemplateComplianceInDir_LoadError`: inject fn returning error → propagated
+  - `TestBuildExpectedFS_SecretsExpansion`: secrets template with `BASE64_CHAR43` →
+    verify `BASE64_CHAR43` is NOT substituted (it's a length-check placeholder, not a value)
+  - `TestCompareExpectedFS_SecretsPlaceholder`: verify `BASE64_CHAR43` placeholder comparison
+    uses length-based matching, not exact byte comparison
 - **Acceptance Criteria**:
   - [ ] All test functions have `t.Parallel()` at top
   - [ ] Table-driven for multi-variant tests
@@ -385,6 +567,31 @@ and `./configs/` directories. Replace all per-file `Check*` functions with a sin
   - [ ] `go run ./cmd/cicd-lint lint-fitness` passes with zero template-compliance violations
 - **Evidence**:
   - `test-output/framework-v10/phase2/lint-fitness-output.txt`
+
+### Task 2.6: Create secrets-compliance sublinter
+
+- **Status**: ❌
+- **Estimated**: 1h
+- **Dependencies**: Task 1.9 (secrets templates exist)
+- **Description**: Create a new lint-fitness sublinter that validates secrets directories
+  match the template structure from Decision 14. The linter checks:
+
+  1. All 14 expected `.secret` files exist in each PS-ID secrets directory
+  2. Secret values use correct PS-ID prefix format
+  3. `BASE64_CHAR43` placeholder positions contain values ≥43 characters (length check only)
+  4. No extra unexpected `.secret` files
+  5. Product/suite levels use `.secret.never` markers where required
+
+  Uses seam injection pattern for testability.
+- **Acceptance Criteria**:
+  - [ ] `secrets-compliance` linter registered in `lint-fitness-registry.yaml`
+  - [ ] Catches missing secrets files, wrong prefixes, too-short secrets
+  - [ ] Allows extra non-.secret files (e.g., README)
+  - [ ] ≥98% test coverage
+  - [ ] `go build ./...` succeeds
+- **Files**:
+  - `internal/apps/tools/cicd_lint/lint_fitness/secrets_compliance/secrets_compliance.go` (CREATE)
+  - `internal/apps/tools/cicd_lint/lint_fitness/secrets_compliance/secrets_compliance_test.go` (CREATE)
 
 ---
 
@@ -414,11 +621,12 @@ Template files are the source of truth; docs describe them.
 - **Status**: ❌
 - **Estimated**: 0.25h
 - **Dependencies**: Task 3.1
-- **Description**: Update the template file catalog in Section O.2 to list all 14 canonical
+- **Description**: Update the template file catalog in Section O.2 to list all canonical
   template files with their parameterized paths, expansion behavior (PS-ID × 10, product × 5,
-  suite × 1, shared-telemetry static), and the actual files they validate.
+  suite × 1, shared-telemetry static, shared-postgres static, secrets), and the actual files
+  they validate.
 - **Acceptance Criteria**:
-  - [ ] Section O.2 correctly lists all 14 template files
+  - [ ] Section O.2 correctly lists all template files grouped by category
   - [ ] Expansion behavior documented for each file type
   - [ ] `go run ./cmd/cicd-lint lint-docs` passes
 - **Files**:
@@ -430,7 +638,7 @@ Template files are the source of truth; docs describe them.
 - **Estimated**: 0.25h
 - **Dependencies**: Task 3.2
 - **Description**: Add `api/cryptosuite-registry/templates/` tree to `target-structure.md`
-  listing all 14 template files and the full directory structure.
+  listing all template files and the full directory structure including secrets subdirectories.
 - **Acceptance Criteria**:
   - [ ] `target-structure.md` shows `api/cryptosuite-registry/templates/` with full subtree
   - [ ] `go run ./cmd/cicd-lint lint-docs` passes
@@ -564,9 +772,13 @@ there during implementation is an error and must be removed immediately.
 **Config file naming**: Actual deployment config files use PS-ID prefix: `sm-kms-app-common.yml`.
 Template files use `__PS_ID__-app-common.yml` with the prefix parameterized.
 
-**Total template files**: 14 physical files → 99 expected files after full expansion
-(8 PS-ID deployment templates × 10 PS-IDs = 80, + 1 PS-ID config template × 10 = 10,
-- 1 product compose × 5 = 5, + 2 suite files × 1 = 2, + 2 shared-telemetry static = 2)
+**Total template files**: ~60 physical files → ~329 expected files after full expansion
+(7 PS-ID deployment templates × 10 = 70, + 14 PS-ID secrets × 10 = 140, + 1 PS-ID config × 10 = 10,
+- 1 product compose × 5 = 5, + product secrets × 5, + 2 suite files × 1 = 2, + suite secrets × 1,
+- 2 shared-telemetry static = 2, + 4 shared-postgres static = 4, + shared-postgres secrets)
+
+**Note**: Exact file count depends on product/suite secrets template structure (`.secret` vs
+`.secret.never` marker files). See quizme-v3 Q7 for scope assessment.
 
 ---
 
