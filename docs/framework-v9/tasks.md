@@ -1,6 +1,6 @@
 # Tasks — Framework v9: Quality & Consistency
 
-**Status**: 35 of 37 tasks complete (95%)
+**Status**: 37 of 37 tasks complete (100%)
 **Created**: 2026-04-08
 **Updated**: 2026-04-18
 
@@ -302,11 +302,11 @@ Affected: jose-ja, pki-ca
 - [x] Add reference to `docs/deployment-templates.md` in deployment instructions
 - [x] Run `go run ./cmd/cicd-lint lint-docs validate-propagation` — passes
 
-### Task 9.3: Review and close
+### Task 9.3: Review and close ✅
 
-- [ ] All Dockerfiles match canonical template
-- [ ] All config files use kebab-case
-- [ ] All deployment validators pass
-- [ ] All enforcement linters pass
-- [ ] All tests pass with coverage thresholds met
-- [ ] All documentation updated and propagation verified
+- [x] All Dockerfiles match canonical template
+- [x] All config files use kebab-case
+- [x] All deployment validators pass
+- [x] All enforcement linters pass
+- [x] All tests pass with coverage thresholds met
+- [x] All documentation updated and propagation verified
