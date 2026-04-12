@@ -1,10 +1,10 @@
-# JOSE JWK Authority Configuration
-# Local development config for jose-ja.
-# Override with deployment configs in deployments/jose-ja/config/
+# __PRODUCT_DISPLAY_NAME__ __SERVICE_DISPLAY_NAME__ Configuration
+# Local development config for __PS_ID__.
+# Override with deployment configs in deployments/__PS_ID__/config/
 
 # Server binding (local development).
 bind-public-address: "127.0.0.1"
-bind-public-port: 8200
+bind-public-port: __SERVICE_APP_PORT_BASE__
 bind-admin-address: "127.0.0.1"
 bind-admin-port: 9090
 
@@ -15,13 +15,13 @@ tls-key-file: ""
 
 # CORS (local development ports).
 cors-origins:
-  - "https://localhost:8200"
-  - "https://127.0.0.1:8200"
+  - "https://localhost:__SERVICE_APP_PORT_BASE__"
+  - "https://127.0.0.1:__SERVICE_APP_PORT_BASE__"
 
 # Telemetry (disabled for local dev).
 otlp-enabled: false
 otlp-endpoint: ""
-otlp-service: "jose-ja"
+otlp-service: "__PS_ID__"
 otlp-hostname: "localhost"
 
 # Logging.

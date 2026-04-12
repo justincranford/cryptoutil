@@ -350,6 +350,13 @@ sub_linters:
     description: Validates that skeleton template files are consistent across all service instances.
     category: architecture
 
+  - name: template-drift
+    directory: template_drift
+    description: >-
+      Verifies all PS-ID deployment artifacts (Dockerfiles, compose files, config overlays,
+      standalone configs) match their canonical templates after placeholder substitution.
+    category: architecture
+
   - name: test-patterns
     directory: test_patterns
     description: Validates that test files follow required patterns (TestMain, table-driven, etc.).

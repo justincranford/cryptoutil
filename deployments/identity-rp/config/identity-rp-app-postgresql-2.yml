@@ -1,5 +1,5 @@
-# identity-rp-app-postgresql-2.yml
-# Instance-specific settings for identity-rp-app-postgresql-2 in compose.yml
+# identity-rp PostgreSQL Instance 2 Configuration
+# Settings UNIQUE to the 'identity-rp-app-postgresql-2' compose service.
 
 cors-origins:
   - "https://localhost:8703"

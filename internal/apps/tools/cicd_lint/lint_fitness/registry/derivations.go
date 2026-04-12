@@ -233,3 +233,48 @@ func DockerfileEntrypoint(psID string) []string {
 
 	return nil
 }
+
+// ProductDisplayName returns the human-readable display name of the product
+// that the given PS-ID belongs to (e.g., "sm-kms" → "Secrets Manager").
+// Returns empty string if the PS-ID is not found.
+func ProductDisplayName(psID string) string {
+	for _, ps := range allProductServices {
+		if ps.PSID == psID {
+			for _, p := range allProducts {
+				if p.ID == ps.Product {
+					return p.DisplayName
+				}
+			}
+		}
+	}
+
+	return ""
+}
+
+// ServiceDisplayName returns the human-readable display name of the service
+// component for the given PS-ID (e.g., "sm-kms" → "Key Management").
+// Returns empty string if the PS-ID is not found.
+func ServiceDisplayName(psID string) string {
+	for _, ps := range allProductServices {
+		if ps.PSID == psID {
+			return ps.DisplayName
+		}
+	}
+
+	return ""
+}
+
+// PortRangeEnd returns the upper bound of the port range for the given PS-ID.
+// The range is [BasePort, BasePort+99] for SERVICE tier.
+// Returns 0 if the PS-ID is not found.
+func PortRangeEnd(psID string) int {
+	const portRangeSize = 99
+
+	for _, ps := range allRegistryFile.ProductServices {
+		if ps.PSID == psID {
+			return ps.BasePort + portRangeSize
+		}
+	}
+
+	return 0
+}

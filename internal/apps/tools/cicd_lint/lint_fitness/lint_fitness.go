@@ -75,6 +75,7 @@ import (
 	lintFitnessStandaloneConfigPresence "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/standalone_config_presence"
 	lintFitnessSubcommandCompleteness "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/subcommand_completeness"
 	lintFitnessTemplateConsistency "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/template_consistency"
+	lintFitnessTemplateDrift "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/template_drift"
 	lintFitnessTestFileSuffixStructure "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/test_file_suffix_structure"
 	lintFitnessTestPatterns "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/test_patterns"
 	lintFitnessTLSMinimumVersion "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/tls_minimum_version"
@@ -178,6 +179,13 @@ var registeredLinters = []struct {
 	{"magic-constant-location", lintFitnessMagicConstantLocation.Check},
 	{"root-junk-detection", lintFitnessRootJunkDetection.Check},
 	{"template-consistency", lintFitnessTemplateConsistency.Check},
+	// New fitness checks (added in Phase 8 of framework-v9): template drift detection.
+	{"template-dockerfile", lintFitnessTemplateDrift.CheckDockerfile},
+	{"template-compose", lintFitnessTemplateDrift.CheckCompose},
+	{"template-config-common", lintFitnessTemplateDrift.CheckConfigCommon},
+	{"template-config-sqlite", lintFitnessTemplateDrift.CheckConfigSQLite},
+	{"template-config-postgresql", lintFitnessTemplateDrift.CheckConfigPostgreSQL},
+	{"template-standalone-config", lintFitnessTemplateDrift.CheckStandaloneConfig},
 }
 
 // Lint runs all registered architecture fitness linters.
@@ -196,6 +204,10 @@ func Lint(logger *cryptoutilCmdCicdCommon.Logger) error {
 	}
 
 	if len(errors) > 0 {
+		for _, e := range errors {
+			logger.Log(fmt.Sprintf("FAILED: %s", e))
+		}
+
 		logger.Log(fmt.Sprintf("lint-fitness completed with %d errors", len(errors)))
 
 		return fmt.Errorf("lint-fitness failed with %d errors", len(errors))

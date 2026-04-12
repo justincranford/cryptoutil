@@ -26,5 +26,3 @@ otlp-hostname: "localhost"
 
 # Logging.
 log-level: "INFO"
-#     key: "generate-secure-key-here"
-#     scopes: ["read", "write", "delete"]

@@ -1,5 +1,5 @@
-# identity-rp-app-sqlite-2.yml
-# Instance-specific settings for identity-rp-app-sqlite-2 in compose.yml
+# identity-rp SQLite Instance 2 Configuration
+# Settings UNIQUE to the 'identity-rp-app-sqlite-2' compose service.
 
 cors-origins:
   - "https://localhost:8701"

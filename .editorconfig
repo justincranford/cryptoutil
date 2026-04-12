@@ -87,10 +87,15 @@ indent_size = 2
 [Makefile]
 indent_style = tab
 
-# Dockerfile
+# Dockerfile (includes Dockerfile.tmpl via wildcard)
 [Dockerfile*]
 indent_style = space
 indent_size = 4
+
+# YAML template files for deployment drift detection (match YAML 2-space convention)
+[*.yml.tmpl]
+indent_style = space
+indent_size = 2
 
 # Configuration files with no trailing whitespace enforcement
 [*.{key,crt,pem}]

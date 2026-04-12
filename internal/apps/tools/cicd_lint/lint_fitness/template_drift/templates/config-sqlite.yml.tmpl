@@ -1,0 +1,12 @@
+# __PS_ID__ SQLite Instance __INSTANCE_NUM__ Configuration
+# Settings UNIQUE to the '__PS_ID__-app-sqlite-__INSTANCE_NUM__' compose service.
+
+cors-origins:
+  - "https://localhost:__SERVICE_APP_PORT__"
+  - "https://127.0.0.1:__SERVICE_APP_PORT__"
+  - "https://[::1]:__SERVICE_APP_PORT__"
+
+otlp-service: __PS_ID__-sqlite-__INSTANCE_NUM__
+otlp-hostname: __PS_ID__-sqlite-__INSTANCE_NUM__
+
+database-url: "sqlite://file::memory:?cache=shared"

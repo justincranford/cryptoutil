@@ -317,6 +317,7 @@ repos:
     hooks:
       - id: hadolint-docker
         files: 'Dockerfile.*|Dockerfile$'
+        exclude: '\.tmpl$'
         require_serial: false
 
   # Semgrep static analysis with project-local rules (no cloud, no telemetry). See .semgrep/rules/.
