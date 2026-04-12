@@ -11,14 +11,11 @@ directory paths AND file contents. `cicd-lint` reads these files at runtime, loo
 PS-ID/product/suite combinations, generates an in-memory expected filesystem, and recursively
 compares it against the actual `./configs/` and `./deployments/` directories on disk.
 
-**PREREQUISITE — Answer `quizme-v1.md` before starting Phase 1**: Deep analysis of `./configs/`
-and `./deployments/` found 10 scope and design questions that block implementation. Five categories
-of files are NOT covered by the current plan and require explicit scope decisions: product compose
-structural non-uniformity (Q1-Q3), standalone config domain extensions (Q4), suite-level config
-schema (Q5), pki-ca certificate profiles (Q6), identity-authz policies (Q7), shared-postgres
-template scope (Q8), shared-telemetry template scope (Q9), and registry.yaml `infra_tools` section
-(Q10). Phase 1 Task 1.4 (product compose template) and Phase 2 Task 2.1 (engine design) are
-directly blocked by these answers. See [`docs/framework-v10/quizme-v1.md`](quizme-v1.md).
+**PREREQUISITE — quizme-v1 MERGED, quizme-v2 PENDING**: quizme-v1 (10 questions) was answered
+and merged. 8 decisions applied (Q1-Q7, Q9). 2 questions unanswered (Q8: shared-postgres scope,
+Q10: registry categorization) — carried forward to quizme-v2. Deep analysis also revealed 6
+additional ambiguities requiring user decisions before Phase 1 can begin. See
+[`docs/framework-v10/quizme-v2.md`](quizme-v2.md).
 
 ---
 
@@ -94,16 +91,25 @@ templates/deployments/__PS_ID__/compose.yml     → deployments/sm-kms/compose.y
 templates/configs/__PS_ID__/__PS_ID__.yml        → configs/sm-kms/sm-kms.yml (×10)
 ```
 
-**Example — Product level (static path, content parameterized)**:
+**Example — Product level (`__PRODUCT__` in path, content parameterized)**:
 ```
-templates/deployments/sm/compose.yml            → deployments/sm/compose.yml (compare directly)
-templates/deployments/identity/compose.yml      → deployments/identity/compose.yml
+templates/deployments/__PRODUCT__/compose.yml   → deployments/sm/compose.yml (×5)
+                                                → deployments/jose/compose.yml
+                                                → deployments/pki/compose.yml
+                                                → deployments/identity/compose.yml
+                                                → deployments/skeleton/compose.yml
 ```
 
-**Example — Suite level (static path)**:
+**Example — Suite level (`__SUITE__` in path)**:
 ```
-templates/deployments/cryptoutil/Dockerfile     → deployments/cryptoutil/Dockerfile
-templates/deployments/cryptoutil/compose.yml    → deployments/cryptoutil/compose.yml
+templates/deployments/__SUITE__/Dockerfile      → deployments/cryptoutil/Dockerfile (×1)
+templates/deployments/__SUITE__/compose.yml     → deployments/cryptoutil/compose.yml (×1)
+```
+
+**Example — Shared telemetry (static path, content parameterized)**:
+```
+templates/deployments/shared-telemetry/compose.yml                    → deployments/shared-telemetry/compose.yml
+templates/deployments/shared-telemetry/otel/otel-collector-config.yaml → deployments/shared-telemetry/otel/otel-collector-config.yaml
 ```
 
 ### How cicd-lint Processes Templates
@@ -114,11 +120,12 @@ templates/deployments/cryptoutil/compose.yml    → deployments/cryptoutil/compo
    - Path contains `__PRODUCT__`: expand × 5 (sm, jose, pki, identity, skeleton); uses per-product
      params derived from registry.yaml (e.g. `__PRODUCT_INCLUDE_LIST__` built from each product's PS-IDs)
    - Path contains `__SUITE__`: expand × 1 (currently `cryptoutil`); parameterized for future renames
-   - Path contains `__INFRA_TOOL__`: expand for each infrastructure tool (shared-postgres, shared-telemetry, …)
-   - No expansion key in path: compare directly
-3. For each expansion: substitute ALL `__KEY__` params in both the resolved path and file content
-4. Collect all (resolvedPath → expectedContent) pairs → in-memory expected filesystem
-5. Recursively compare in-memory FS against actual `./configs/` and `./deployments/` on disk:
+- Path contains `__INFRA_TOOL__`: expand for each infrastructure tool (currently unused — shared-telemetry is static)
+- No expansion key in path: substitute generic params in content; use template-relative path directly
+     (e.g. `deployments/shared-telemetry/compose.yml` is compared as-is with `__SUITE__` content substitution)
+1. For each expansion: substitute ALL `__KEY__` params in both the resolved path and file content
+2. Collect all (resolvedPath → expectedContent) pairs → in-memory expected filesystem
+3. Recursively compare in-memory FS against actual `./configs/` and `./deployments/` on disk:
    every expected file must exist at exactly the resolved relative path with identical content
 
 ### Complete Template Directory Structure
@@ -128,31 +135,40 @@ api/cryptosuite-registry/templates/
   deployments/
     __PS_ID__/                          ← expands for each of 10 PS-IDs
       Dockerfile                        ← __PS_ID__ + build/label/healthcheck params
-      compose.yml                       ← __PS_ID__ + port params
+      compose.yml                       ← __PS_ID__ + port params; pki-init with --domain=__PS_ID__
       config/
-        config-common.yml               ← __PS_ID__ + shared config params
-        config-sqlite-1.yml             ← __PS_ID__ + __SERVICE_APP_PORT_SQLITE_1__
-        config-sqlite-2.yml             ← __PS_ID__ + __SERVICE_APP_PORT_SQLITE_2__
-        config-postgresql-1.yml         ← __PS_ID__ + __SERVICE_APP_PORT_PG_1__
-        config-postgresql-2.yml         ← __PS_ID__ + __SERVICE_APP_PORT_PG_2__
+        __PS_ID__-app-common.yml        ← __PS_ID__ + shared config params (PS-ID prefix naming)
+        __PS_ID__-app-sqlite-1.yml      ← __PS_ID__ + __SERVICE_APP_PORT_SQLITE_1__
+        __PS_ID__-app-sqlite-2.yml      ← __PS_ID__ + __SERVICE_APP_PORT_SQLITE_2__
+        __PS_ID__-app-postgresql-1.yml   ← __PS_ID__ + __SERVICE_APP_PORT_PG_1__
+        __PS_ID__-app-postgresql-2.yml   ← __PS_ID__ + __SERVICE_APP_PORT_PG_2__
     __PRODUCT__/                        ← expands × 5 (sm, jose, pki, identity, skeleton)
-      compose.yml                       ← uses __PRODUCT__ + per-product params from registry
-                                          (e.g. __PRODUCT_INCLUDE_LIST__ for each product's PS-ID includes)
+      compose.yml                       ← __PRODUCT__ + per-product params; pki-init with --domain=__PRODUCT__;
+                                          all 4 postgres secrets; NO image: on service overrides
     __SUITE__/                          ← expands × 1 (cryptoutil); parameterized for future renames
       Dockerfile                        ← 4-stage build pattern; uses __SUITE__ + suite-level display params
-      compose.yml                       ← uses __SUITE__ + all product/PS-ID references
-    __INFRA_TOOL__/                     ← expands for each infra tool (shared-postgres, shared-telemetry, …)
-      compose.yml
+      compose.yml                       ← __SUITE__ + all product/PS-ID references; pki-init with --domain=__SUITE__;
+                                          all 4 postgres secrets
+    shared-telemetry/                   ← static path (Decision 11: compose + otel are templated)
+      compose.yml                       ← __SUITE__ substitution for telemetry service names
+      otel/
+        otel-collector-config.yaml      ← __SUITE__ substitution for OTLP endpoints
   configs/
     __PS_ID__/                          ← expands for each of 10 PS-IDs
       __PS_ID__.yml                     ← both dirname and filename are parameterized
+                                          (template covers shared prefix only; domain extensions
+                                          are PS-ID-specific extra files — see Decision 7/quizme-v2)
 ```
 
-**Template file count**: 12 physical files (8 under `deployments/__PS_ID__/config/ + Dockerfile + compose.yml`,
-1 under `deployments/__PRODUCT__/`, 2 under `deployments/__SUITE__/`, 1 under `configs/__PS_ID__/`).
-Infra-tool templates added as needed during implementation.
+**Template file count**: 14 physical files:
+- 8 under `deployments/__PS_ID__/` (Dockerfile + compose.yml + 5 config files)
+- 1 under `deployments/__PRODUCT__/` (compose.yml)
+- 2 under `deployments/__SUITE__/` (Dockerfile + compose.yml)
+- 2 under `deployments/shared-telemetry/` (compose.yml + otel-collector-config.yaml)
+- 1 under `configs/__PS_ID__/` (**PS_ID**.yml)
+
 **Expected file count after expansion**: 80 PS-ID deployment files + 10 PS-ID config files +
-5 product compose files + 2 suite files = 97+ (plus infra-tool expansions).
+5 product compose files + 2 suite files + 2 shared-telemetry files = 99.
 
 ### Existing Code That Changes
 
@@ -195,7 +211,7 @@ full substitution map for a given PS-ID. Product/suite files use a subset of par
 - **Related files (deleted)**:
   - `internal/apps/tools/cicd_lint/lint_fitness/template_drift/templates/` — wrong location, deleted
 - **Related files (created)**:
-  - `api/cryptosuite-registry/templates/` — 15 parameterized template files (see Structure above)
+  - `api/cryptosuite-registry/templates/` — 14 parameterized template files (see Structure above)
 - **Documentation**:
   - `docs/deployment-templates.md` — update to reference canonical template files
   - `docs/target-structure.md` — add `api/cryptosuite-registry/templates/` listing
@@ -204,38 +220,58 @@ full substitution map for a given PS-ID. Product/suite files use a subset of par
 
 ## Phases
 
-### Phase 1: Create Canonical Template Directory (3h) [Status: ☐ TODO]
+### Phase 1: Create Canonical Template Directory (4h) [Status: ☐ TODO]
 
-**Objective**: Create `api/cryptosuite-registry/templates/` with all 15 parameterized template
+**Objective**: Create `api/cryptosuite-registry/templates/` with all 14 parameterized template
 files. These are PLAIN FILES — not `.go`, not embedded. Structure mirrors `./deployments/` and
-`./configs/` with `__KEY__` in both paths and content.
+`./configs/` with `__KEY__` in both paths and content. Also fix actual deployment files to
+match decisions from quizme-v1 (pki-init at all levels, postgres secrets, image removal).
 
-**1A — PS-ID level templates** (7 files, each expands to 10):
+**1A — PS-ID level templates** (8 files, each expands × 10):
 - `deployments/__PS_ID__/Dockerfile` — based on current `Dockerfile.tmpl` content (same params)
-- `deployments/__PS_ID__/compose.yml` — based on current `compose.yml.tmpl` content
-- `deployments/__PS_ID__/config/config-common.yml` — from `config-common.yml.tmpl`
-- `deployments/__PS_ID__/config/config-sqlite-1.yml` — from `config-sqlite.yml.tmpl` + instance-1 params
-- `deployments/__PS_ID__/config/config-sqlite-2.yml` — from `config-sqlite.yml.tmpl` + instance-2 params
-- `deployments/__PS_ID__/config/config-postgresql-1.yml` — from `config-postgresql.yml.tmpl` + instance-1
-- `deployments/__PS_ID__/config/config-postgresql-2.yml` — from `config-postgresql.yml.tmpl` + instance-2
+- `deployments/__PS_ID__/compose.yml` — based on current `compose.yml.tmpl` content;
+  MUST include `pki-init` service with `--domain=__PS_ID__` (Decision 4)
+- `deployments/__PS_ID__/config/__PS_ID__-app-common.yml` — from `config-common.yml.tmpl`;
+  filename uses PS-ID prefix (matches actual naming: `sm-kms-app-common.yml`)
+- `deployments/__PS_ID__/config/__PS_ID__-app-sqlite-1.yml` — from `config-sqlite.yml.tmpl` + instance-1
+- `deployments/__PS_ID__/config/__PS_ID__-app-sqlite-2.yml` — from `config-sqlite.yml.tmpl` + instance-2
+- `deployments/__PS_ID__/config/__PS_ID__-app-postgresql-1.yml` — from `config-postgresql.yml.tmpl` + instance-1
+- `deployments/__PS_ID__/config/__PS_ID__-app-postgresql-2.yml` — from `config-postgresql.yml.tmpl` + instance-2
 
-**1B — PS-ID standalone config** (1 file, expands to 10):
+**1B — PS-ID standalone config** (1 file, expands × 10):
 - `configs/__PS_ID__/__PS_ID__.yml` — based on `standalone-config.yml.tmpl`
+  (template covers shared prefix only; domain-specific extensions are per-PS-ID
+  extra content — see Decision 7 / quizme-v2 Q1)
 
 **1C — Product compose file** (1 physical file, expands × 5):
-- `deployments/__PRODUCT__/compose.yml` — template content uses `__PRODUCT__`, `__SUITE__`, `__IMAGE_TAG__`,
-  and `__PRODUCT_INCLUDE_LIST__` (multi-line include entries generated from registry per product).
-  Phase 1 must verify whether actual product compose files are structurally uniform enough for one template;
-  if not, product-specific sidecars in registry.yaml define the varying content.
+- `deployments/__PRODUCT__/compose.yml` — template content uses `__PRODUCT__`, `__SUITE__`,
+  `__IMAGE_TAG__`, and `__PRODUCT_INCLUDE_LIST__`. Template MUST include:
+  - `pki-init` service with `--domain=__PRODUCT__` (Decision 4)
+  - All 4 postgres secrets: url, username, password, database (Decision 6)
+  - NO `image:` on service overrides — PS-ID level is single source (Decision 5)
 
 **1D — Suite files** (2 files, `__SUITE__` in path, expands × 1):
 - `deployments/__SUITE__/Dockerfile` — 4-stage build pattern with `__SUITE__` params
-- `deployments/__SUITE__/compose.yml` — based on actual suite compose with `__SUITE__` params
+- `deployments/__SUITE__/compose.yml` — suite compose with `__SUITE__` params; MUST include:
+  - `pki-init` with `--domain=__SUITE__` (Decision 4)
+  - All 4 postgres secrets (Decision 6)
 
-- **Success**: 12+ files exist under `api/cryptosuite-registry/templates/` with `__PLACEHOLDER__` in ALL
-  paths that vary by PS-ID, product, suite, or infra tool. Manually verify a sample expansion
-  (e.g., sm-kms Dockerfile) matches actual `deployments/sm-kms/Dockerfile` with params filled in.
-  No `.go` files in `api/cryptosuite-registry/`.
+**1E — shared-telemetry templates** (2 files, static path):
+- `deployments/shared-telemetry/compose.yml` — with `__SUITE__` substitution (Decision 11)
+- `deployments/shared-telemetry/otel/otel-collector-config.yaml` — with `__SUITE__` substitution
+  (Grafana dashboards and alerts are NOT templated — too complex/fragile)
+
+**1F — Fix actual deployment files** (bring actual files into compliance with decisions):
+- Add `pki-init` with `--domain=<product>` to jose, pki, identity, skeleton product compose files
+- Add `--domain=<ps-id>` to all 10 PS-ID compose `pki-init` commands
+- Add `postgres-username.secret`, `postgres-password.secret`, `postgres-database.secret`
+  to jose, pki, identity, skeleton product compose secrets sections
+- Remove `image:` from sm product compose service overrides
+
+- **Success**: 14 files exist under `api/cryptosuite-registry/templates/` with `__PLACEHOLDER__`
+  in ALL paths that vary by PS-ID, product, or suite. Manually verify a sample expansion
+  (e.g., sm-kms compose.yml) matches actual `deployments/sm-kms/compose.yml` with params filled in.
+  No `.go` files in `api/cryptosuite-registry/`. All actual deployment files match decisions.
 
 **Post-Mortem**: After quality gates pass, update lessons.md.
 
@@ -283,7 +319,8 @@ in-memory FS comparison approach. Remove the `//go:embed` implementation entirel
 - `__PS_ID__` expansion: verify 10 expansions from 1 template file
 - `LoadTemplatesDir` error paths: non-existent root, unreadable file
 
-- **Success**: `go run ./cmd/cicd-lint lint-fitness` passes; ≥98% coverage; per-file checks deleted.
+- **Success**: `go run ./cmd/cicd-lint lint-fitness` passes; ≥98% coverage; per-file checks deleted;
+  `LoadTemplatesDir` discovers all 14 template files.
 
 **Post-Mortem**: After quality gates pass, update lessons.md.
 
@@ -339,7 +376,6 @@ in-memory FS comparison approach. Remove the `//go:embed` implementation entirel
 - B: Create Go package at `api/cryptosuite-registry/` exporting `embed.FS` (still wrong — Go code in api/)
 - C: Use `os.WalkDir` at runtime to read templates from `api/cryptosuite-registry/templates/` ✓ **SELECTED**
 - D: Hard-code expected content in Go test cases (no template files at all)
-- E:
 
 **Decision**: Option C — cicd-lint reads template files from disk at runtime using `os.WalkDir`.
 
@@ -358,45 +394,165 @@ No new Go imports or packages. Tests use temp directories with sample template f
 **Options**:
 - A: Per-product files with static literal paths (`deployments/sm/compose.yml` etc.) ✗ NOT parameterized
 - B: Single `deployments/__PRODUCT__/compose.yml` with per-product params from registry ✓ **SELECTED**
-- C: Generate expected product compose content entirely from registry.yaml (no template file)
-- D: Skip product/suite template linting
-- E:
 
 **Decision**: Option B — single `deployments/__PRODUCT__/compose.yml` template with `__PRODUCT__`
 in the directory path, expanded × 5 using per-product param sets derived from registry.yaml.
 
-**Rationale**: ALL variable directory names MUST use `__PLACEHOLDER__` syntax — including product
-names. Hardcoding `sm`, `jose`, etc. in template paths defeats the parameterization requirement.
-Product compose files differ in their service include lists, but this variation is capturable via
-a `__PRODUCT_INCLUDE_LIST__` param computed from registry.yaml (each product's PS-IDs generate
-multi-line include entries). Phase 1 implementation must verify structural uniformity and define
-product-specific params; if product compose files have additional non-parameterizable differences,
-add those values to registry.yaml as product-level metadata.
+**Rationale**: ALL variable directory names MUST use `__PLACEHOLDER__` syntax.
 
 **Impact**: 1 product compose template file at `templates/deployments/__PRODUCT__/compose.yml`.
-Registry must supply per-product params during expansion.
 
 ### Decision 3: Suite Files Use `__SUITE__` in Path (Parameterized, Not Literal)
 
 **Options**:
 - A: Suite template files at static literal path `deployments/cryptoutil/...` ✗ NOT parameterized
 - B: Suite template files at `deployments/__SUITE__/...`; expanded × 1 (currently `cryptoutil`) ✓ **SELECTED**
-- C: Suite Dockerfile derived at runtime from PS-ID template with `__PS_ID__`=`__SUITE__`
-- D: No suite Dockerfile template (manual validation only)
-- E:
 
 **Decision**: Option B — suite template files stored at `deployments/__SUITE__/Dockerfile` and
 `deployments/__SUITE__/compose.yml`. The path contains `__SUITE__` and expands to
-`deployments/cryptoutil/...` using the suite name from registry. Template content uses `__SUITE__`
-and other suite-level params throughout.
+`deployments/cryptoutil/...` using the suite name from registry.
 
-**Rationale**: ALL variable directory names MUST use `__PLACEHOLDER__` syntax. Even though there
-is currently only one suite (`cryptoutil`), hardcoding it violates the parameterization requirement
-and makes future renames (if any) require template edits. `__SUITE__` in the path costs nothing
-and ensures model consistency with PS-ID and product template paths.
+**Impact**: Suite template directory is `deployments/__SUITE__/` (2 files).
 
-**Impact**: Suite template directory is `deployments/__SUITE__/` (2 files). BuildExpectedFS expands
-`__SUITE__` using the suite name from registry (currently `cryptoutil`).
+### Decision 4: Three-Level pki-init with --domain (Q1 → E)
+
+**Source**: quizme-v1 Q1 — Product Compose `pki-init` Override
+
+**Decision**: There are 3 compose.yml templates (SUITE, PRODUCT, PS-ID). Each MUST include
+a `pki-init` service with `--domain=<LEVEL_NAME>`:
+- PS-ID template: `pki-init` with `--domain=__PS_ID__`
+- PRODUCT template: `pki-init` with `--domain=__PRODUCT__`
+- SUITE template: `pki-init` with `--domain=__SUITE__`
+
+**Current State**:
+- Suite compose: `pki-init` with `--domain=cryptoutil` ✓
+- SM product compose: `pki-init` with `--domain=sm` ✓ (only product with it)
+- Jose/pki/identity/skeleton products: NO `pki-init` ✗ (need to add)
+- PS-ID composes: `pki-init` with NO `--domain` flag ✗ (need to add `--domain=<PS-ID>`)
+
+**Impact**: Product template includes `pki-init`. All 5 actual product compose files must have
+`pki-init` with `--domain=<product>`. PS-ID template updated to add `--domain=__PS_ID__`.
+Actual PS-ID compose files must add `--domain=<ps-id>` to `pki-init` commands.
+**BLOCKED**: pki-init image reference and builder dependency — see quizme-v2 Q7.
+
+### Decision 5: Remove `image:` from Product Service Overrides (Q2 → B)
+
+**Source**: quizme-v1 Q2 — Product Compose `image:` References
+
+**Decision**: Option B — remove `image:` from `sm` product compose service overrides to match
+the other 4 products. PS-ID-level compose files are the single source of the image reference.
+Product-level overrides should NOT duplicate it.
+
+**Current State**:
+- SM product: specifies `image: cryptoutil-sm-*:dev` on every service override ✗ (remove)
+- Jose/pki/identity/skeleton products: correctly omit `image:` ✓
+
+**Impact**: Fix `deployments/sm/compose.yml` to remove `image:` from all service override lines.
+Product template uses NO `image:` in service port overrides. Note: `pki-init` service may
+still need its own `image:` — see quizme-v2 Q7.
+
+### Decision 6: All 4 PostgreSQL Secrets at All Levels (Q3 → E)
+
+**Source**: quizme-v1 Q3 — Product Compose PostgreSQL Secrets
+
+**Decision**: All SUITE, PRODUCT, and PS-ID compose files MUST include all 4 PostgreSQL secrets:
+`postgres-url.secret`, `postgres-username.secret`, `postgres-password.secret`,
+`postgres-database.secret`.
+
+**Current State**:
+- Suite compose: all 4 ✓
+- SM product: all 4 ✓
+- Jose/pki/identity/skeleton products: only `postgres-url.secret` ✗ (add 3 more)
+- PS-ID composes: all 4 (via shared-postgres include) ✓
+
+**Impact**: Add `postgres-username.secret`, `postgres-password.secret`, `postgres-database.secret`
+to jose, pki, identity, skeleton product compose secrets sections. All templates use 4 postgres
+secrets uniformly.
+
+### Decision 7: Standalone Config Domain Extensions (Q4 → E, NEEDS FOLLOW-UP)
+
+**Source**: quizme-v1 Q4 — Standalone Config Domain Extensions
+
+**User's Answer**: E — "I assume no domain-specific additions are required. All standalone
+configs would match the template exactly. If this causes issues, I need concrete examples."
+
+**Concrete Evidence (contradicts assumption)**:
+- `sm-kms.yml`: adds `database-url:` after template portion
+- `sm-im.yml`: adds `database-url:` + 6 session config lines (browser-session-*, service-session-*)
+- `pki-ca.yml`: extensive domain content — `ca:`, `storage:`, `revocation:`, `tsa:`, `est:`, `profiles:`
+- `identity-authz.yml`: adds `database-url:`, `issuer:`, `token-lifetime:`, `refresh-token-lifetime:`,
+  `authorization-code-ttl:`, `enable-discovery:`, `enable-dynamic-registration:`
+- `identity-idp.yml`: same OAuth settings as identity-authz
+- `jose-ja.yml`: clean — ends at `log-level: "INFO"` (no extensions)
+- `skeleton-template.yml`: clean — ends at `log-level: "INFO"` (no extensions)
+
+**Status**: ⚠️ **BLOCKED — carried forward to quizme-v2 Q1** with concrete evidence.
+
+### Decision 8: Config Hierarchy via Compose (Q5 → E, NEEDS FOLLOW-UP)
+
+**Source**: quizme-v1 Q5 — Suite-Level Config Schema
+
+**User's Answer**: E — SUITE/PRODUCT compose files should prepend/append extra YAML config file
+parameters to PS-ID startup commands. Config hierarchy: PS-ID → PRODUCT → SUITE.
+
+**Analysis**: This describes a **runtime behavior change** — product/suite compose files would
+need to add `command:` overrides (or volume mounts for product/suite config files) that layer
+additional config on top of PS-ID configs. Currently, product compose files only override
+`ports:` and `secrets:`. They do NOT touch `command:` or `volumes:`.
+
+**Status**: ⚠️ **BLOCKED — carried forward to quizme-v2 Q2**. This is potentially a significant
+scope expansion beyond template linting. Need clarification on whether this is v10 scope.
+
+### Decision 9: Domain Directory Pattern for PS-ID-Specific Files (Q6/Q7 → E)
+
+**Source**: quizme-v1 Q6 (pki-ca profiles) and Q7 (identity-authz policies)
+
+**Decision**: Templates include an empty `domain/` subdirectory placeholder. Each PS-ID
+instance is free to add domain-specific, non-parameterized files in its own `domain/` directory.
+The template linter only compares files that exist in the template tree; extra files in the
+actual `domain/` directories are allowed (one-directional check).
+
+**Concrete Application**:
+- `configs/pki-ca/profiles/` (25 files) — not compared against any template; allowed as extra files
+- `configs/identity-authz/domain/policies/` (3 files) — same treatment
+
+**Impact**: No template files created for domain-specific content. `CompareExpectedFS` is
+one-directional: every expected file must exist and match; extra actual files are silently allowed.
+No exclusion mechanism needed — the engine design naturally handles this.
+
+### Decision 10: shared-postgres Template Scope (Q8 → UNANSWERED)
+
+**Source**: quizme-v1 Q8
+
+**Status**: ⚠️ **UNANSWERED — carried forward to quizme-v2 Q3** with more context.
+
+### Decision 11: shared-telemetry Template Scope (Q9 → A)
+
+**Source**: quizme-v1 Q9 — Shared Telemetry Template Scope
+
+**Decision**: Option A — compose.yml and otel-collector-config.yaml get templates with `__SUITE__`
+substitution. Grafana JSON dashboards, provisioning YAML, and alert rules are static (too
+complex/fragile to template).
+
+**Template Files Created**:
+- `templates/deployments/shared-telemetry/compose.yml` — with `__SUITE__` substitution
+- `templates/deployments/shared-telemetry/otel/otel-collector-config.yaml` — with `__SUITE__` substitution
+
+**Excluded from Template Compliance** (extra files, allowed by one-directional check):
+- `alerts/cryptoutil.yml`
+- `grafana-otel-lgtm/dashboards/*.json`
+- `grafana-otel-lgtm/provisioning/**`
+- `otel/cryptoutil-otel.yml`
+
+**Impact**: 2 new template files for shared-telemetry. Static paths (no `__INFRA_TOOL__` expansion
+for now). Phase 1 adds these files.
+
+### Decision 12: Registry `infra_tools` / Shared Services Section (Q10 → UNANSWERED)
+
+**Source**: quizme-v1 Q10 — user's E) distinguishes "infra tools" (cicd-lint, cicd-workflow) from
+"shared services" (shared-postgres, shared-telemetry).
+
+**Status**: ⚠️ **UNANSWERED — carried forward to quizme-v2 Q4** with reframed question.
 
 ---
 
