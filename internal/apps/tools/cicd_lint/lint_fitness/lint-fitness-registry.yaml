@@ -123,6 +123,13 @@ sub_linters:
       SQLite variants and no database-url for PostgreSQL variants.
     category: config
 
+  - name: config-rules
+    directory: config_rules
+    description: >-
+      Supplementary rule-based config linters: kebab-case key naming, header identity,
+      instance config minimality, and common config completeness.
+    category: config
+
   - name: database-key-uniformity
     directory: database_key_uniformity
     description: >-

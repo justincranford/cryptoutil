@@ -28,6 +28,7 @@ import (
 	lintFitnessComposeServiceNames "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/compose_service_names"
 	lintFitnessComposeTierOverrideIntegrity "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/compose_tier_override_integrity"
 	lintFitnessConfigOverlayFreshness "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/config_overlay_freshness"
+	lintFitnessConfigRules "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/config_rules"
 	lintFitnessConfigsDeploymentsConsistency "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/configs_deployments_consistency"
 	lintFitnessConfigsEmptyDir "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/configs_empty_dir"
 	lintFitnessConfigsNaming "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/configs_naming"
@@ -186,6 +187,11 @@ var registeredLinters = []struct {
 	{"template-config-sqlite", lintFitnessTemplateDrift.CheckConfigSQLite},
 	{"template-config-postgresql", lintFitnessTemplateDrift.CheckConfigPostgreSQL},
 	{"template-standalone-config", lintFitnessTemplateDrift.CheckStandaloneConfig},
+	// New fitness checks (added in Phase 8 of framework-v9): supplementary config rules.
+	{"config-key-naming", lintFitnessConfigRules.CheckKeyNaming},
+	{"config-header-identity", lintFitnessConfigRules.CheckHeaderIdentity},
+	{"config-instance-minimal", lintFitnessConfigRules.CheckInstanceMinimal},
+	{"config-common-complete", lintFitnessConfigRules.CheckCommonComplete},
 }
 
 // Lint runs all registered architecture fitness linters.

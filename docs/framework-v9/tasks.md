@@ -1,6 +1,6 @@
 # Tasks — Framework v9: Quality & Consistency
 
-**Status**: 32 of 37 tasks complete (86%)
+**Status**: 34 of 37 tasks complete (92%)
 **Created**: 2026-04-08
 **Updated**: 2026-04-18
 
@@ -271,19 +271,21 @@ Affected: jose-ja, pki-ca
 
 **Implementation notes**: Templates stored in `internal/apps/tools/cicd_lint/lint_fitness/template_drift/templates/` using `__KEY__` placeholder format (double underscore delimiters avoid conflicts with Dockerfile `${VAR}` syntax). Template engine uses Go `embed.FS` and `strings.ReplaceAll`. Comparison modes: `compareExact` (Dockerfile, configs), `compareSupersetOrdered` (pki-ca compose — allows extra volume lines), `comparePrefix` (standalone configs — allows domain-specific additions). Comment alignment normalized via `normalizeCommentAlignment` for compose files. Coverage: 100%.
 
-### Task 8.2: Implement supplementary rule-based linters (Items 16, 21)
+### Task 8.2: Implement supplementary rule-based linters (Items 16, 21) ✅
 
-- [ ] `config_key_naming` — validate all YAML keys are kebab-case
-- [ ] `config_header_identity` — validate config file headers match PS-ID (not copy-paste)
-- [ ] `config_instance_minimal` — validate instance configs have only instance-specific keys
-- [ ] `config_common_complete` — validate common configs have all required shared keys
-- [ ] Add tests for each linter with ≥98% coverage
+- [x] `config_key_naming` — validate all YAML keys are kebab-case
+- [x] `config_header_identity` — validate config file headers match PS-ID (not copy-paste)
+- [x] `config_instance_minimal` — validate instance configs have only instance-specific keys
+- [x] `config_common_complete` — validate common configs have all required shared keys
+- [x] Add tests for each linter with ≥98% coverage
 
-### Task 8.3: Register all new linters
+**Implementation notes**: 4 linters in `config_rules` package under `lint_fitness/`. Deployment configs checked for kebab-case keys (standalone configs excluded — pki-ca has domain-specific underscore keys like `common_name`). Header identity checks lines 1-2 (deployment configs have PS-ID on line 1, standalone on line 2). Instance config minimality checks 4 allowed keys: `cors-origins`, `otlp-service`, `otlp-hostname`, `database-url`. Common config completeness checks 12 required keys. Coverage: 100%. Test files split: `config_rules_test.go` (195 lines) + `config_rules_error_test.go` (320 lines).
 
-- [ ] Add all new linters to fitness linter registry
-- [ ] Run `go run ./cmd/cicd-lint lint-fitness` — all pass on current codebase
-- [ ] Run `go test ./internal/apps/tools/cicd_lint/...` — all tests pass
+### Task 8.3: Register all new linters ✅
+
+- [x] Add all new linters to fitness linter registry
+- [x] Run `go run ./cmd/cicd-lint lint-fitness` — all pass on current codebase
+- [x] Run `go test ./internal/apps/tools/cicd_lint/...` — all tests pass
 
 ## Phase 9: Knowledge Propagation
 
