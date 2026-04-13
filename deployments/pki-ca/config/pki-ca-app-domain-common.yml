@@ -1,0 +1,5 @@
+# pki-ca Domain Common Configuration
+# Shared domain settings across all pki-ca deployment instances.
+
+# CRL (Certificate Revocation List) download directory.
+crl-directory: /app/crls

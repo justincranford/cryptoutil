@@ -574,8 +574,9 @@ Delete the obsolete `template_drift/templates/` directory.
 
 ### Task 1.17: Create domain deployment config files (Decision 16)
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 0.5h
+- **Actual**: 0.15h
 - **Dependencies**: Task 1.3 (framework config templates exist)
 - **Description**: Create domain deployment config files for all 10 PS-IDs (Decision 16,
   quizme-v3 Q5). These are NOT templated — they are per-PS-ID and initially empty.
@@ -587,10 +588,10 @@ Delete the obsolete `template_drift/templates/` directory.
   All files start empty (YAML comment header only) except:
   - pki-ca: `pki-ca-app-domain-common.yml` includes `crl-directory` setting
 - **Acceptance Criteria**:
-  - [ ] 50 domain deployment config files created (10 PS-IDs × 5 variants)
-  - [ ] All files initially empty (YAML comment header only) except pki-ca
-  - [ ] pki-ca domain common config includes `crl-directory`
-  - [ ] File naming follows `<ps-id>-app-domain-<variant>.yml` pattern
+  - [x] 50 domain deployment config files created (10 PS-IDs × 5 variants)
+  - [x] All files initially empty (YAML comment header only) except pki-ca
+  - [x] pki-ca domain common config includes `crl-directory`
+  - [x] File naming follows `<ps-id>-app-domain-<variant>.yml` pattern
 - **Files**:
   - `deployments/<ps-id>/config/<ps-id>-app-domain-*.yml` × 50 (CREATE)
 
