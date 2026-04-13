@@ -1,0 +1,28 @@
+# __PRODUCT_DISPLAY_NAME__ __SERVICE_DISPLAY_NAME__ Framework Configuration
+# Local development framework config for __PS_ID__.
+# Override with deployment configs in deployments/__PS_ID__/config/
+
+# Server binding (local development).
+bind-public-address: "127.0.0.1"
+bind-public-port: __SERVICE_APP_PORT_BASE__
+bind-admin-address: "127.0.0.1"
+bind-admin-port: 9090
+
+# TLS (auto-generated for local dev).
+tls-enabled: true
+tls-cert-file: ""
+tls-key-file: ""
+
+# CORS (local development ports).
+cors-origins:
+  - "https://localhost:__SERVICE_APP_PORT_BASE__"
+  - "https://127.0.0.1:__SERVICE_APP_PORT_BASE__"
+
+# Telemetry (disabled for local dev).
+otlp-enabled: false
+otlp-endpoint: ""
+otlp-service: "__PS_ID__"
+otlp-hostname: "localhost"
+
+# Logging.
+log-level: "INFO"

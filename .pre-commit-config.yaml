@@ -111,7 +111,7 @@ repos:
       - id: check-yaml
         name: Check YAML syntax
         args: ['--allow-multiple-documents', '--unsafe']  # --unsafe allows custom YAML tags (e.g. !override for Docker Compose)
-        exclude: '\.github/workflows/.*\.yml$'  # Workflows checked by actionlint
+        exclude: '(\.github/workflows/.*\.yml|api/cryptosuite-registry/templates/.*)$'  # Workflows checked by actionlint; templates have computed placeholders
         require_serial: false
         stages: [pre-commit]
 
@@ -291,6 +291,7 @@ repos:
         name: YAML strict lint
         args: [-c, .yamllint.yaml]
         files: '\.(yaml|yml)$'
+        exclude: 'api/cryptosuite-registry/templates/'
         stages: [pre-commit]
 
   # YAML file formatting (consistent indentation, trailing newlines)
@@ -300,7 +301,7 @@ repos:
       - id: yamlfmt
         name: Format YAML files
         files: '\.(yaml|yml)$'
-        exclude: '(\.github/|\.pre-commit-config\.yaml)$'
+        exclude: '\.github/|\.pre-commit-config\.yaml|api/cryptosuite-registry/templates/'
         stages: [pre-commit]
 
   # Specialized file linting: GitHub Actions workflow linting
@@ -317,7 +318,7 @@ repos:
     hooks:
       - id: hadolint-docker
         files: 'Dockerfile.*|Dockerfile$'
-        exclude: '\.tmpl$'
+        exclude: '\.tmpl$|api/cryptosuite-registry/templates/'
         require_serial: false
 
   # Semgrep static analysis with project-local rules (no cloud, no telemetry). See .semgrep/rules/.
@@ -342,6 +343,7 @@ repos:
         name: Shell script linting
         args: [--severity=warning]
         files: '\.(sh|bash|zsh)$|^(\.bashrc|\.zshrc|\.bash_profile|\.profile|\.zprofile|\.zshenv|\.bash_logout|\.zlogin|\.zlogout)$'
+        exclude: 'api/cryptosuite-registry/templates/'
         require_serial: false
 
   # Specialized file linting: Python security linting
@@ -404,6 +406,7 @@ repos:
           - --skip-check=CKV_DOCKER_2,CKV_DOCKER_3,CKV2_GHA_1,CKV_OPENAPI_3,CKV_OPENAPI_4,CKV_OPENAPI_5,CKV_OPENAPI_21,CKV_SECRET_4
           - --quiet
         files: '(deployments/.*\.(yml|yaml)$|Dockerfile.*|Dockerfile$)'
+        exclude: 'api/cryptosuite-registry/templates/'
         require_serial: false
         stages: [pre-commit]
 
@@ -415,6 +418,7 @@ repos:
         name: SQLFluff fix SQL migrations
         args: [--dialect, postgres]
         files: '\.sql$'
+        exclude: 'api/cryptosuite-registry/templates/'
         require_serial: true  # sqlfluff writes files; parallel instances crash on Windows (file locking)
         stages: [pre-commit]
 

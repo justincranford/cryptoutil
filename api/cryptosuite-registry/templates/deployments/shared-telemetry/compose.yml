@@ -1,0 +1,111 @@
+# $schema: https://raw.githubusercontent.com/compose-spec/compose-spec/master/schema/compose-spec.json
+#
+# Shared Telemetry Services for __SUITE__
+# This compose file provides OpenTelemetry Collector and Grafana OTEL LGTM stack.
+# Include this file from product-specific compose files using Docker Compose includes.
+#
+# Usage: Include this in your product compose.yml:
+#   include:
+#     - path: ../shared-telemetry/compose.yml
+#
+services:
+  # Healthcheck for OpenTelemetry Collector availability.
+  # Ephemeral job that validates otel-collector is accepting connections before services start.
+  healthcheck-opentelemetry-collector-contrib:
+    image: alpine:latest
+    command:
+      - sh
+      - -c
+      - |
+        apk add --no-cache wget
+        for i in $(seq 1 30); do
+          if wget --quiet --tries=1 --spider --timeout=2 http://opentelemetry-collector-contrib:13133/ 2>/dev/null; then
+            echo "OpenTelemetry Collector is ready"
+            exit 0
+          fi
+          echo "Waiting for OpenTelemetry Collector... ($$i/30)"
+          sleep 2
+        done
+        echo "OpenTelemetry Collector failed to become ready"
+        exit 1
+    depends_on:
+      opentelemetry-collector-contrib:
+        condition: service_started
+    networks:
+      - telemetry-network
+
+  opentelemetry-collector-contrib:
+    image: otel/opentelemetry-collector-contrib:latest
+    command: ["--config=/etc/otel-collector-config.yaml"]
+    # CRITICAL: Ports NOT exposed to host to allow multiple deployments (CA, JOSE, etc.)
+    # Services communicate via Docker network (telemetry-network) using container names
+    # Example: __SUITE__ services use "opentelemetry-collector-contrib:4317" internally
+    # ports:
+    #   - "4317:4317"   # OTLP gRPC (container-only, no host exposure)
+    #   - "4318:4318"   # OTLP HTTP (container-only, no host exposure)
+    #   - "8888:8888"   # Self-metrics (Prometheus, container-only)
+    #   - "8889:8889"   # Received-metrics (Prometheus, container-only)
+    #   - "13133:13133" # Health check (container-only)
+    #   - "1777:1777"   # pprof (container-only)
+    #   - "15679:55679" # zPages (container-only)
+    volumes:
+      - ./otel/otel-collector-config.yaml:/etc/otel-collector-config.yaml:ro
+    healthcheck:
+      # Use wget (available in Alpine-based image) against the health extension endpoint.
+      # Use 127.0.0.1 (not localhost) - localhost may resolve to ::1 (IPv6) in containers, causing connection failures.
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1:13133/"]
+      start_period: 10s
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    networks:
+      - telemetry-network
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.25'
+        reservations:
+          memory: 128M
+          cpus: '0.1'
+
+  grafana-otel-lgtm:
+    image: grafana/otel-lgtm:latest
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: admin # pragma: allowlist secret
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    ports:
+      - "3000:3000" # Grafana UI
+      - "14317:4317" # OTLP gRPC
+      - "14318:4318" # OTLP HTTP
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana-otel-lgtm/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana-otel-lgtm/dashboards:/var/lib/grafana/dashboards:ro
+    healthcheck:
+      # curl is available in this container, but using wget would be consistent with other containers.
+      # however wget is not available here, so curl is used for this container only.
+      # Use 127.0.0.1 (not localhost) - localhost may resolve to ::1 (IPv6) in containers, causing connection failures.
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:3000/api/health"]
+      start_period: 15s
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - telemetry-network
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+        reservations:
+          memory: 256M
+          cpus: '0.25'
+
+networks:
+  telemetry-network:
+    driver: bridge
+
+volumes:
+  grafana_data:
+    name: __SUITE___grafana_volume

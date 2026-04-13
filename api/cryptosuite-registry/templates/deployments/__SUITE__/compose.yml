@@ -1,0 +1,45 @@
+# $schema: https://raw.githubusercontent.com/compose-spec/compose-spec/master/schema/compose-spec.json
+#
+# __SUITE_UPPER__ SUITE Deployment (SUITE-Level)
+#
+# Purpose: Complete suite deployment with ALL 10 services across 5 products.
+# Deployment Level: SUITE (port range 28000-28999, SERVICE base + 20000 offset)
+# Each PS-ID has 4 instances: 2 SQLite + 2 PostgreSQL.
+#
+# Port formula: SUITE_PORT = SERVICE_BASE + 20000
+#
+# Usage:
+#   docker compose -f deployments/__SUITE__/compose.yml up -d
+#   docker compose -f deployments/__SUITE__/compose.yml down -v
+#
+# Architecture: Recursive includes + Approach C (!override) port substitution.
+#   Product composes include PS-ID composes (which include shared-postgres, shared-telemetry).
+#   This file overrides host ports to SUITE-level and secrets to suite-scoped paths.
+
+__SUITE_INCLUDE_LIST__
+
+services:
+
+  # SUITE-level PKI init (overrides PRODUCT/PS-ID cert material).
+  pki-init:
+    image: __SUITE__-__SUITE_INIT_PS_ID__:__IMAGE_TAG__
+    command: ["/app/__SUITE_INIT_PS_ID__", "init", "--domain=__SUITE__", "--output-dir=/certs"]
+    volumes:
+      - ./certs/:/certs/:rw
+    depends_on:
+      builder-__SUITE_INIT_PS_ID__:
+        condition: service_completed_successfully
+
+__SUITE_SERVICE_OVERRIDES__
+
+secrets:
+  unseal-1of5.secret: {file: ./secrets/unseal-1of5.secret}
+  unseal-2of5.secret: {file: ./secrets/unseal-2of5.secret}
+  unseal-3of5.secret: {file: ./secrets/unseal-3of5.secret}
+  unseal-4of5.secret: {file: ./secrets/unseal-4of5.secret}
+  unseal-5of5.secret: {file: ./secrets/unseal-5of5.secret}
+  hash-pepper-v3.secret: {file: ./secrets/hash-pepper-v3.secret}
+  postgres-url.secret: {file: ./secrets/postgres-url.secret}
+  postgres-username.secret: {file: ./secrets/postgres-username.secret}
+  postgres-password.secret: {file: ./secrets/postgres-password.secret}
+  postgres-database.secret: {file: ./secrets/postgres-database.secret}

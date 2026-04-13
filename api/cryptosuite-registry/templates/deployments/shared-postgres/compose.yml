@@ -1,0 +1,177 @@
+# $schema: https://raw.githubusercontent.com/compose-spec/compose-spec/master/schema/compose-spec.json
+#
+# Shared PostgreSQL Services for __SUITE__
+# Include this file from product-specific compose files using Docker Compose includes.
+#
+# Architecture:
+#   - postgres-leader:   PostgreSQL 18 OLTP (read-write, 30 logical databases)
+#   - postgres-follower: PostgreSQL 18 OLAP (read-only replica, analytics with grouped schemas)
+#
+# Logical Database Architecture (Leader - OLTP):
+#   Suite-level (10 databases):
+#     - suitedeployment-pki-ca
+#     - suitedeployment-jose-ja
+#     - suitedeployment-sm-im
+#     - suitedeployment-sm-kms
+#     - suitedeployment-identity-authz
+#     - suitedeployment-identity-idp
+#     - suitedeployment-identity-rs
+#     - suitedeployment-identity-rp
+#     - suitedeployment-identity-spa
+#     - suitedeployment-skeleton-template
+#
+#   Product-level (10 databases):
+#     - productdeployment-pki-ca
+#     - productdeployment-jose-ja
+#     - productdeployment-sm-im
+#     - productdeployment-sm-kms
+#     - productdeployment-identity-authz
+#     - productdeployment-identity-idp
+#     - productdeployment-identity-rs
+#     - productdeployment-identity-rp
+#     - productdeployment-identity-spa
+#     - productdeployment-skeleton-template
+#
+#   Service-level (10 databases):
+#     - servicedeployment-pki-ca
+#     - servicedeployment-jose-ja
+#     - servicedeployment-sm-im
+#     - servicedeployment-sm-kms
+#     - servicedeployment-identity-authz
+#     - servicedeployment-identity-idp
+#     - servicedeployment-identity-rs
+#     - servicedeployment-identity-rp
+#     - servicedeployment-identity-spa
+#     - servicedeployment-skeleton-template
+#
+# Logical Database Architecture (Follower - OLAP):
+#   Suite-level (1 database with 10 schemas):
+#     - __SUITE__ (schemas: pki_ca, jose_ja, sm_im, sm_kms, identity_authz, identity_idp, identity_rs, identity_rp, identity_spa, skeleton_template)
+#
+#   Product-level (5 product databases with schemas):
+#     - pki (schemas: ca)
+#     - jose (schemas: ja)
+#     - sm (schemas: kms, im)
+#     - identity (schemas: authz, idp, rs, rp, spa)
+#     - skeleton (schemas: template)
+#
+#   Service-level (10 databases with 1 schema each):
+#     - pki-ca (schema: ca)
+#     - jose-ja (schema: ja)
+#     - sm-im (schema: im)
+#     - sm-kms (schema: kms)
+#     - identity-authz (schema: authz)
+#     - identity-idp (schema: idp)
+#     - identity-rs (schema: rs)
+#     - identity-rp (schema: rp)
+#     - identity-spa (schema: spa)
+#     - skeleton-template (schema: template)
+#
+# Usage: Include this in your product compose.yml:
+#   include:
+#     - path: ../shared-postgres/compose.yml
+#
+services:
+  # PostgreSQL Leader (OLTP - Read/Write)
+  # Hosts 30 logical databases (10 services × 3 deployment types)
+  postgres-leader:
+    image: postgres:latest
+    container_name: __SUITE__-postgres-leader
+    hostname: postgres-leader
+    environment:
+      POSTGRES_USER_FILE: /run/secrets/postgres-username.secret
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres-password.secret
+      POSTGRES_INITDB_ARGS: "-c max_connections=500 -c shared_buffers=512MB"
+    command:
+      - postgres
+      - -c
+      - config_file=/etc/postgresql/postgresql.conf
+    shm_size: 512mb
+    volumes:
+      - postgres_leader_data:/var/lib/postgresql
+      - ../shared-postgres/postgresql-leader.conf:/etc/postgresql/postgresql.conf:ro
+      - ../shared-postgres/init-databases.sql:/docker-entrypoint-initdb.d/01-init-databases.sql:ro
+      - ../shared-postgres/init-users.sql:/docker-entrypoint-initdb.d/02-init-users.sql:ro
+    secrets:
+      - postgres-username.secret
+      - postgres-password.secret
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $(cat /run/secrets/postgres-username.secret) -d postgres"]
+      start_period: 30s
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - postgres-network
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '2.0'
+        reservations:
+          memory: 1G
+          cpus: '1.0'
+
+  # PostgreSQL Follower (OLAP - Read-Only Analytics)
+  # Logical replication from leader with grouped schemas for analytics
+  postgres-follower:
+    image: postgres:latest
+    container_name: __SUITE__-postgres-follower
+    hostname: postgres-follower
+    environment:
+      POSTGRES_USER_FILE: /run/secrets/postgres-username.secret
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres-password.secret
+      PGUSER_FILE: /run/secrets/postgres-username.secret
+      PGPASSWORD_FILE: /run/secrets/postgres-password.secret
+      POSTGRES_HOST_AUTH_METHOD: "scram-sha-256"
+      POSTGRES_INITDB_ARGS: "-c max_connections=200 -c shared_buffers=1GB"
+    command:
+      - postgres
+      - -c
+      - config_file=/etc/postgresql/postgresql.conf
+    shm_size: 1gb
+    volumes:
+      - postgres_follower_data:/var/lib/postgresql
+      - ../shared-postgres/postgresql-follower.conf:/etc/postgresql/postgresql.conf:ro
+      - ../shared-postgres/init-follower-databases.sql:/docker-entrypoint-initdb.d/01-init-databases.sql:ro
+      - ../shared-postgres/setup-logical-replication.sh:/docker-entrypoint-initdb.d/02-setup-replication.sh:ro
+    secrets:
+      - postgres-username.secret
+      - postgres-password.secret
+    depends_on:
+      postgres-leader:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $(cat /run/secrets/postgres-username.secret) -d postgres"]
+      start_period: 60s
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - postgres-network
+    deploy:
+      resources:
+        limits:
+          memory: 3G
+          cpus: '2.0'
+        reservations:
+          memory: 1.5G
+          cpus: '1.0'
+
+networks:
+  postgres-network:
+    driver: bridge
+
+volumes:
+  postgres_leader_data:
+    name: __SUITE___postgres_leader_volume
+  postgres_follower_data:
+    name: __SUITE___postgres_follower_volume
+
+secrets:
+  postgres-username.secret:
+    file: ./secrets/postgres-username.secret
+  postgres-password.secret:
+    file: ./secrets/postgres-password.secret
+  postgres-database.secret:
+    file: ./secrets/postgres-database.secret

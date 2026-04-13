@@ -1,0 +1,58 @@
+# $schema: https://raw.githubusercontent.com/compose-spec/compose-spec/master/schema/compose-spec.json
+#
+# __PRODUCT_UPPER__ Product Docker Compose Configuration
+#
+# PRODUCT-level deployment for __PRODUCT_DISPLAY_NAME__.
+# Recursive includes: __PRODUCT_PS_ID_LIST_DISPLAY__ (which include shared-postgres and shared-telemetry).
+#
+# Port allocation (PRODUCT level: SERVICE + 10000).
+#
+# Usage:
+#   docker compose -f compose.yml up -d
+#   docker compose -f compose.yml logs -f
+#   docker compose -f compose.yml down -v
+#
+
+__PRODUCT_INCLUDE_LIST__
+
+services:
+  # PRODUCT-level port overrides: SERVICE ports + 10000.
+  # Service definitions (image, command, volumes, secrets, depends_on) are inherited from PS-ID includes.
+
+  # PRODUCT-level PKI init (overrides PS-ID cert material).
+  pki-init:
+    image: __SUITE__-__PRODUCT_INIT_PS_ID__:__IMAGE_TAG__
+    command: ["/app/__PRODUCT_INIT_PS_ID__", "init", "--domain=__PRODUCT__", "--output-dir=/certs"]
+    volumes:
+      - ./certs/:/certs/:rw
+    depends_on:
+      builder-__PRODUCT_INIT_PS_ID__:
+        condition: service_completed_successfully
+
+__PRODUCT_SERVICE_OVERRIDES__
+
+secrets:
+  # PRODUCT-level secrets override PS-ID secrets (paths resolve relative to this file).
+  # CRITICAL: ALL __PRODUCT_UPPER__ instances MUST use the SAME unseal secrets
+  # to enable shared encryption/decryption of data in the database.
+  # NEVER create instance-specific or PS-ID-specific secrets.
+  unseal-1of5.secret:
+    file: ./secrets/unseal-1of5.secret # pragma: allowlist secret
+  unseal-2of5.secret:
+    file: ./secrets/unseal-2of5.secret
+  unseal-3of5.secret:
+    file: ./secrets/unseal-3of5.secret
+  unseal-4of5.secret:
+    file: ./secrets/unseal-4of5.secret
+  unseal-5of5.secret:
+    file: ./secrets/unseal-5of5.secret
+  hash-pepper-v3.secret:
+    file: ./secrets/hash-pepper-v3.secret
+  postgres-url.secret:
+    file: ./secrets/postgres-url.secret
+  postgres-username.secret:
+    file: ./secrets/postgres-username.secret
+  postgres-password.secret:
+    file: ./secrets/postgres-password.secret
+  postgres-database.secret:
+    file: ./secrets/postgres-database.secret

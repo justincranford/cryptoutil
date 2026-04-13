@@ -40,7 +40,7 @@ Delete the obsolete `template_drift/templates/` directory.
 
 ### Task 1.1: Read and understand all existing template content
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 0.5h
 - **Dependencies**: None
 - **Description**: Before creating any template files, read all 6 existing `.tmpl` files in
@@ -54,7 +54,7 @@ Delete the obsolete `template_drift/templates/` directory.
 
 ### Task 1.2: Create `api/cryptosuite-registry/templates/` directory tree
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 0.25h
 - **Dependencies**: Task 1.1
 - **Description**: Create the directory structure. No `.go` files. No Go package. Plain directories only.
@@ -73,7 +73,7 @@ Delete the obsolete `template_drift/templates/` directory.
 
 ### Task 1.3: Create PS-ID level template files (7 deployment + 1 config)
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 1.5h
 - **Dependencies**: Task 1.2
 - **Description**: Convert existing `.tmpl` files into parameterized template files.
@@ -135,7 +135,7 @@ Delete the obsolete `template_drift/templates/` directory.
 
 ### Task 1.4: Create product compose template file (1 file, `__PRODUCT__` in path)
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 1.5h
 - **Dependencies**: Task 1.2
 - **Description**: Create ONE parameterized template file at
@@ -187,7 +187,7 @@ Delete the obsolete `template_drift/templates/` directory.
 
 ### Task 1.5: Create suite template files (2 files, `__SUITE__` in path)
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 0.5h
 - **Dependencies**: Task 1.2
 - **Description**: Create suite-level template files in `templates/deployments/__SUITE__/`.
@@ -235,7 +235,7 @@ Delete the obsolete `template_drift/templates/` directory.
 
 ### Task 1.7: Create shared-telemetry template files (2 files, static path)
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 0.5h
 - **Dependencies**: Task 1.2
 - **Description**: Create 2 template files for shared-telemetry infrastructure (Decision 11).
@@ -342,7 +342,7 @@ Delete the obsolete `template_drift/templates/` directory.
 
 ### Task 1.9: Create PS-ID secrets directory templates
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 1h
 - **Dependencies**: Task 1.2
 - **Description**: Create parameterized secrets template files in
@@ -372,7 +372,7 @@ Delete the obsolete `template_drift/templates/` directory.
 
 ### Task 1.10: Create product and suite secrets directory templates
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 0.5h
 - **Dependencies**: Task 1.9
 - **Description**: Create secrets templates for product-level and suite-level deployments.
@@ -395,7 +395,7 @@ Delete the obsolete `template_drift/templates/` directory.
 
 ### Task 1.11: Create shared-postgres template files
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 1.5h
 - **Dependencies**: Task 1.2
 - **Description**: Create template files for the shared-postgres infrastructure service
@@ -441,7 +441,7 @@ Delete the obsolete `template_drift/templates/` directory.
 
 ### Task 1.12: Create shared-postgres secrets templates
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 0.25h
 - **Dependencies**: Task 1.11
 - **Description**: Create secrets templates for shared-postgres in
