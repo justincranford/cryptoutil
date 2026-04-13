@@ -143,6 +143,6 @@ EXPOSE 8080
 HEALTHCHECK --interval=__HEALTHCHECK_INTERVAL__ --timeout=__HEALTHCHECK_TIMEOUT__ --start-period=__HEALTHCHECK_START_PERIOD__ --retries=__HEALTHCHECK_RETRIES__ \
     CMD /app/__PS_ID__ livez || exit 1
 
-ENTRYPOINT ["/sbin/tini", "--", "/app/__PS_ID__"]
+ENTRYPOINT ["/sbin/tini", "--"]
 
 USER ${CONTAINER_UID}:${CONTAINER_GID}

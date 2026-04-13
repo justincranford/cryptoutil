@@ -143,6 +143,6 @@ EXPOSE 8080
 HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
     CMD /app/identity-rs livez || exit 1
 
-ENTRYPOINT ["/sbin/tini", "--", "/app/identity-rs"]
+ENTRYPOINT ["/sbin/tini", "--"]
 
 USER ${CONTAINER_UID}:${CONTAINER_GID}

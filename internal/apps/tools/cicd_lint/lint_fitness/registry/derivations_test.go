@@ -416,16 +416,16 @@ func TestDockerfileEntrypoint_AllPSIDs(t *testing.T) {
 		psID string
 		want []string
 	}{
-		{psID: cryptoutilSharedMagic.OTLPServiceSMKMS, want: []string{"/sbin/tini", "--", "/app/sm-kms"}},
-		{psID: cryptoutilSharedMagic.OTLPServiceSMIM, want: []string{"/sbin/tini", "--", "/app/sm-im"}},
-		{psID: cryptoutilSharedMagic.OTLPServiceJoseJA, want: []string{"/sbin/tini", "--", "/app/jose-ja"}},
-		{psID: cryptoutilSharedMagic.OTLPServicePKICA, want: []string{"/sbin/tini", "--", "/app/pki-ca"}},
-		{psID: cryptoutilSharedMagic.OTLPServiceIdentityAuthz, want: []string{"/sbin/tini", "--", "/app/identity-authz"}},
-		{psID: cryptoutilSharedMagic.OTLPServiceIdentityIDP, want: []string{"/sbin/tini", "--", "/app/identity-idp"}},
-		{psID: cryptoutilSharedMagic.OTLPServiceIdentityRS, want: []string{"/sbin/tini", "--", "/app/identity-rs"}},
-		{psID: cryptoutilSharedMagic.OTLPServiceIdentityRP, want: []string{"/sbin/tini", "--", "/app/identity-rp"}},
-		{psID: cryptoutilSharedMagic.OTLPServiceIdentitySPA, want: []string{"/sbin/tini", "--", "/app/identity-spa"}},
-		{psID: cryptoutilSharedMagic.OTLPServiceSkeletonTemplate, want: []string{"/sbin/tini", "--", "/app/skeleton-template"}},
+		{psID: cryptoutilSharedMagic.OTLPServiceSMKMS, want: []string{"/sbin/tini", "--"}},
+		{psID: cryptoutilSharedMagic.OTLPServiceSMIM, want: []string{"/sbin/tini", "--"}},
+		{psID: cryptoutilSharedMagic.OTLPServiceJoseJA, want: []string{"/sbin/tini", "--"}},
+		{psID: cryptoutilSharedMagic.OTLPServicePKICA, want: []string{"/sbin/tini", "--"}},
+		{psID: cryptoutilSharedMagic.OTLPServiceIdentityAuthz, want: []string{"/sbin/tini", "--"}},
+		{psID: cryptoutilSharedMagic.OTLPServiceIdentityIDP, want: []string{"/sbin/tini", "--"}},
+		{psID: cryptoutilSharedMagic.OTLPServiceIdentityRS, want: []string{"/sbin/tini", "--"}},
+		{psID: cryptoutilSharedMagic.OTLPServiceIdentityRP, want: []string{"/sbin/tini", "--"}},
+		{psID: cryptoutilSharedMagic.OTLPServiceIdentitySPA, want: []string{"/sbin/tini", "--"}},
+		{psID: cryptoutilSharedMagic.OTLPServiceSkeletonTemplate, want: []string{"/sbin/tini", "--"}},
 	}
 
 	for _, tt := range tests {

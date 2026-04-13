@@ -494,7 +494,7 @@ Delete the obsolete `template_drift/templates/` directory.
 
 ### Task 1.14: Add shared_services and infra_tools to registry.yaml
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 0.5h
 - **Dependencies**: None
 - **Description**: Add `shared_services` and `infra_tools` sections to
