@@ -83,10 +83,18 @@ Delete the obsolete `template_drift/templates/` directory.
   prefix with `framework` qualifier to match Decision 16 naming convention
   (e.g., `sm-kms-app-framework-common.yml`).
 
-  **compose.yml** MUST include `pki-init` service with pflag format:
-  `["init", "--domain=__PS_ID__", "--output-dir=/certs"]` (Decision 4 + Decision 15).
+  **Dockerfile** ENTRYPOINT changed from `["/sbin/tini", "--", "/app/__PS_ID__"]` to
+  `["/sbin/tini", "--"]` (Decision 8, quizme-v4 Q1). App binary moves into compose command.
+  Tini is already installed: `apk --no-cache add tini` in runtime-deps stage.
+
+  **compose.yml** MUST include `pki-init` service with pflag format and app binary in command:
+  `["/app/__PS_ID__", "init", "--domain=__PS_ID__", "--output-dir=/certs"]` (Decision 4/15;
+  app binary in command because ENTRYPOINT is tini-only).
   **compose.yml** MUST use shell-form command for app service:
   `command: /bin/sh -c "exec /app/__PS_ID__ server --config=... $SUITE_ARGS"` (Decision 8).
+  Config merge order (quizme-v4 Q3): later `--config=` files override earlier for same keys.
+  Specify all configs in precedence order (lowest first, highest last):
+  TLS → framework-common → framework-variant → domain-common → domain-variant → otel.
 
   **Domain deployment configs** (`__PS_ID__-app-domain-*.yml`) are per-PS-ID and NOT templated
   (Decision 16). They MUST exist on disk (initially empty except pki-ca `crl-directory`),
@@ -109,7 +117,8 @@ Delete the obsolete `template_drift/templates/` directory.
 - **Acceptance Criteria**:
   - [ ] 7 files in `templates/deployments/__PS_ID__/` (Dockerfile + compose + 5 framework configs)
   - [ ] Config filenames use `__PS_ID__-app-framework-` prefix (Decision 16)
-  - [ ] compose.yml includes `pki-init` service with pflag `["init", "--domain=__PS_ID__", "--output-dir=/certs"]`
+  - [ ] Dockerfile ENTRYPOINT is `["/sbin/tini", "--"]` (NOT `["/sbin/tini", "--", "/app/__PS_ID__"]`)
+  - [ ] compose.yml includes `pki-init` service with `["/app/__PS_ID__", "init", "--domain=__PS_ID__", "--output-dir=/certs"]`
   - [ ] compose.yml uses shell-form command with `$SUITE_ARGS` (Decision 8)
   - [ ] 1 file in `templates/configs/__PS_ID__/` (`__PS_ID__-framework.yml`)
   - [ ] Framework config template has all framework settings, NO domain settings
@@ -143,10 +152,14 @@ Delete the obsolete `template_drift/templates/` directory.
 
   **Decisions applied**:
   - **Decision 4 (Q1) + Decision 15**: Template MUST include `pki-init` service with pflag format:
-    `["init", "--domain=__PRODUCT__", "--output-dir=/certs"]`.
-    **Product-level override (quizme-v3 Q6)**: Product compose overrides PS-ID pki-init with a
-    single product-level pki-init that runs once with `--domain=<product>`. Remove per-PS-ID
-    pki-init from product includes via service override with deterministic no-op.
+    `["/app/__PS_ID__", "init", "--domain=__PRODUCT__", "--output-dir=/certs"]` (app binary
+    in command because ENTRYPOINT is tini-only; use first PS-ID's binary for the product).
+    **Product-level override (quizme-v3 Q6 + quizme-v4 Q2)**: Product compose uses standard
+    Docker Compose service-name override. Product includes PS-ID composes (which define
+    `pki-init`), then redefines `pki-init` service entirely with the product-level definition.
+    This is a clean full override — the PS-ID-level pki-init is fully replaced, not left as
+    a no-op. SM product compose already uses this pattern correctly.
+    Docker Compose profiles are BANNED (Decision 18).
   - **Decision 5 (Q2)**: Template MUST NOT include `image:` on service overrides.
     PS-ID compose is the single source for image references. SM product currently has `image:` —
     must be removed from actual `deployments/sm/compose.yml`.
@@ -157,8 +170,8 @@ Delete the obsolete `template_drift/templates/` directory.
 - **Acceptance Criteria**:
   - [ ] Exactly ONE template file: `templates/deployments/__PRODUCT__/compose.yml`
   - [ ] Template uses `__PRODUCT__`, `__SUITE__`, `__IMAGE_TAG__`, `__PRODUCT_INCLUDE_LIST__`
-  - [ ] Template includes `pki-init` with pflag `["init", "--domain=__PRODUCT__", "--output-dir=/certs"]`
-  - [ ] Template overrides per-PS-ID pki-init services with deterministic no-op (Decision 4/Q6)
+  - [ ] Template includes `pki-init` with `["/app/__PS_ID__", "init", "--domain=__PRODUCT__", "--output-dir=/certs"]`
+  - [ ] Template fully overrides PS-ID pki-init services via service-name override (NOT no-op, NOT profiles)
   - [ ] Template includes all 4 postgres secrets (Decision 6)
   - [ ] Template has NO `image:` on service overrides (Decision 5)
   - [ ] No literal product names (`sm`, `jose`, `pki`, `identity`, `skeleton`) in the path
@@ -180,7 +193,8 @@ Delete the obsolete `template_drift/templates/` directory.
 
   **Decisions applied**:
   - **Decision 4 (Q1) + Decision 15**: compose.yml MUST include `pki-init` with pflag format:
-    `["init", "--domain=__SUITE__", "--output-dir=/certs"]`.
+    `["/app/__PS_ID__", "init", "--domain=__SUITE__", "--output-dir=/certs"]` (app binary
+    in command because ENTRYPOINT is tini-only).
     Actual suite compose already has `--domain=cryptoutil` ✔ — update to pflag format.
   - **Decision 6 (Q3)**: compose.yml MUST reference all 4 postgres secrets.
     Actual suite compose already has all 4 ✔.
@@ -189,7 +203,7 @@ Delete the obsolete `template_drift/templates/` directory.
 - **Acceptance Criteria**:
   - [ ] `templates/deployments/__SUITE__/Dockerfile` created with `__SUITE__` and suite-level params
   - [ ] `templates/deployments/__SUITE__/compose.yml` created with `__SUITE__` and suite-level params
-  - [ ] compose.yml includes `pki-init` with pflag `["init", "--domain=__SUITE__", "--output-dir=/certs"]`
+  - [ ] compose.yml includes `pki-init` with `["/app/__PS_ID__", "init", "--domain=__SUITE__", "--output-dir=/certs"]`
   - [ ] compose.yml includes all 4 postgres secrets (Decision 6)
   - [ ] compose.yml uses shell-form command with `$SUITE_ARGS` (Decision 8)
   - [ ] Literal `cryptoutil` does NOT appear in either template file content (use `__SUITE__`)
@@ -243,12 +257,15 @@ Delete the obsolete `template_drift/templates/` directory.
   actual files. Changes needed:
 
   **Decision 4 (Q1) + Decision 15 — pki-init pflag at all levels**:
-  - Add `pki-init` service with pflag format `["init", "--domain=<product>", "--output-dir=/certs"]`
+  - Add `pki-init` service with pflag format
+    `["/app/<ps-id>", "init", "--domain=<product>", "--output-dir=/certs"]`
     to `deployments/jose/compose.yml`, `deployments/pki/compose.yml`,
     `deployments/identity/compose.yml`, `deployments/skeleton/compose.yml` (currently missing)
   - Update all 10 PS-ID compose `pki-init` commands to pflag format:
-    `["init", "--domain=<ps-id>", "--output-dir=/certs"]` (currently have no --domain flag)
-  - Product compose overrides PS-ID pki-init with product-level pki-init (Decision 4/Q6)
+    `["/app/<ps-id>", "init", "--domain=<ps-id>", "--output-dir=/certs"]` (app binary in command)
+  - Product compose uses full service-name override for pki-init (Decision 4/Q2, quizme-v4 Q2):
+    product defines its own `pki-init` service that fully replaces PS-ID-level pki-init.
+    Docker Compose profiles are BANNED (Decision 18).
 
   **Decision 5 (Q2) — remove image from sm product**:
   - Remove `image: cryptoutil-sm-*:dev` from service overrides in `deployments/sm/compose.yml`
@@ -258,10 +275,14 @@ Delete the obsolete `template_drift/templates/` directory.
     to secrets sections in `deployments/jose/compose.yml`, `deployments/pki/compose.yml`,
     `deployments/identity/compose.yml`, `deployments/skeleton/compose.yml`
 
-  **Decision 8 — shell-form command with `$SUITE_ARGS`**:
+  **Decision 8 — shell-form command with `$SUITE_ARGS` + ENTRYPOINT change**:
+  - Change all 10 PS-ID Dockerfiles: ENTRYPOINT from `["/sbin/tini", "--", "/app/<ps-id>"]`
+    to `["/sbin/tini", "--"]` (quizme-v4 Q1). App binary moves into compose command.
   - Update all 10 PS-ID compose app service commands from exec-form to shell-form:
     `command: /bin/sh -c "exec /app/<ps-id> server --config=... $SUITE_ARGS"`
-  - Verify tini is ENTRYPOINT in all Dockerfiles (mitigates PID 1 signal handling)
+  - Config merge order (quizme-v4 Q3): specify all `--config=` files in precedence order
+    (lowest first, highest last): TLS → framework-common → framework-variant →
+    domain-common → domain-variant → otel
 
   **Decision 16 — deployment config framework/domain split**:
   - Rename all 10 PS-ID deployment config files from `<ps-id>-app-common.yml` etc. to
@@ -285,9 +306,10 @@ Delete the obsolete `template_drift/templates/` directory.
   **⚠️ NOTE**: This task modifies actual deployment files, not templates. Template files define
   what actual files SHOULD look like; this task brings actual files into compliance.
 - **Acceptance Criteria**:
-  - [ ] All 5 product compose files have `pki-init` with pflag `["init", "--domain=<product>", "--output-dir=/certs"]`
-  - [ ] All 10 PS-ID compose files have `pki-init` with pflag `["init", "--domain=<ps-id>", "--output-dir=/certs"]`
+  - [ ] All 5 product compose files have `pki-init` with `["/app/<ps-id>", "init", "--domain=<product>", "--output-dir=/certs"]`
+  - [ ] All 10 PS-ID compose files have `pki-init` with `["/app/<ps-id>", "init", "--domain=<ps-id>", "--output-dir=/certs"]`
   - [ ] All 10 PS-ID compose files use shell-form command with `$SUITE_ARGS` (Decision 8)
+  - [ ] All 10 PS-ID Dockerfiles have ENTRYPOINT `["/sbin/tini", "--"]` (NOT including app binary)
   - [ ] SM product compose has NO `image:` on service overrides
   - [ ] All 5 product compose files reference all 4 postgres secrets
   - [ ] All 10 PS-ID deployment configs renamed to `framework` pattern (Decision 16)
@@ -360,15 +382,21 @@ Delete the obsolete `template_drift/templates/` directory.
 - **Description**: Create template files for the shared-postgres infrastructure service
   (Decision 10, quizme-v2 Q3, quizme-v3 Q3). These use `__SUITE__` substitution in content.
 
-  **Architecture (resolved quizme-v3 Q3)**:
-  - **30 leader databases**: 3 tiers (PS-ID, PRODUCT, SUITE) × 10 PS-IDs
+  **Architecture (resolved quizme-v3 Q3, quizme-v4 Q4/Q5)**:
+  - **Container topology**: Exactly TWO containers — ONE `postgres-leader` container and
+    ONE `postgres-follower` container. ALL databases below are LOGICAL databases within
+    their respective single PostgreSQL container (NOT separate containers per database).
+  - **30 leader databases**: 3 tiers (PS-ID, PRODUCT, SUITE) × 10 PS-IDs (all LOGICAL)
   - **16 follower databases**: 1 SUITE-level follower (replicates all 10) +
     5 PRODUCT-level followers (one per product, replicates that product's PS-IDs)
+    - 10 PS-ID-level followers (all LOGICAL)
   - **Admin user model**: 1 admin user per leader DB (e.g., `sm_kms_database_user`).
     Follower DBs reuse the same admin users as their corresponding leaders.
     No DDL/DML user separation — single admin user per DB simplifies management.
   - **PostgreSQL conf files**: `postgresql-leader.conf` and `postgresql-follower.conf`
     with appropriate tuning parameters and replication settings.
+  - **Template parameterization (quizme-v4 Q5)**: ALL template files — including conf files,
+    SQL scripts, shell scripts — MUST use ALL applicable `__KEY__` placeholders. NO EXCEPTIONS.
 
   Files to create in `api/cryptosuite-registry/templates/deployments/shared-postgres/`:
   - `compose.yml` — leader + follower PostgreSQL containers
@@ -430,7 +458,7 @@ Delete the obsolete `template_drift/templates/` directory.
     identity-rp-specific OIDC configuration, not generic framework connectivity.
   - identity-spa `static-files-path`: **FRAMEWORK** — any PS-ID may optionally support
     static file serving. This is a framework gap to be addressed (add to framework
-    config schema and pflag registration).
+    config schema `validate_schema.go` and pflag registration in v10 scope — quizme-v4 Q6/A).
 - **Acceptance Criteria**:
   - [ ] All 10 PS-IDs have `<ps-id>-framework.yml` + `<ps-id>-domain.yml`
   - [ ] Original `<ps-id>.yml` removed (breaking change, acceptable per Decision 7)
@@ -898,6 +926,24 @@ there during implementation is an error and must be removed immediately.
 qualifier: `sm-kms-app-framework-common.yml` (Decision 16). Template files use
 `__PS_ID__-app-framework-common.yml` with the prefix parameterized. Domain deployment configs
 use `<ps-id>-app-domain-<variant>.yml` and are NOT templated.
+
+**ENTRYPOINT change (quizme-v4 Q1)**: ALL PS-ID Dockerfiles change from
+`ENTRYPOINT ["/sbin/tini", "--", "/app/<ps-id>"]` to `ENTRYPOINT ["/sbin/tini", "--"]`.
+App binary moves into compose command. Tini already installed via `apk --no-cache add tini`.
+
+**Config merge order (quizme-v4 Q3)**: Framework `config_parse.go` uses `ReadInConfig` for
+first file, `MergeInConfig` for subsequent. Later files override earlier for same keys.
+Shell-form command specifies all config files in precedence order (lowest first, highest last).
+
+**Docker Compose profiles BANNED (Decision 18)**: NEVER use Docker Compose `profiles:` feature.
+Use service-name override instead (product compose redefines PS-ID `pki-init` service).
+
+**Container topology (quizme-v4 Q4)**: shared-postgres = 2 containers (leader + follower).
+ALL 30 leader databases and 16 follower databases are LOGICAL databases within PostgreSQL,
+NOT separate containers.
+
+**Template parameterization invariant (quizme-v4 Q5)**: ALL template files use ALL applicable
+`__KEY__` placeholders. NO EXCEPTIONS. Never ask whether to parameterize a template file.
 
 **Total template files**: ~63 physical files → ~381 expected files after full expansion
 (7 PS-ID deployment templates × 10 = 70, + 14 PS-ID secrets × 10 = 140, + 1 PS-ID config × 10 = 10,

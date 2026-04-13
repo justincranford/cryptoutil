@@ -11,7 +11,7 @@ directory paths AND file contents. `cicd-lint` reads these files at runtime, loo
 PS-ID/product/suite combinations, generates an in-memory expected filesystem, and recursively
 compares it against the actual `./configs/` and `./deployments/` directories on disk.
 
-**PREREQUISITE — quizme-v1 MERGED, quizme-v2 MERGED, quizme-v3 MERGED, quizme-v4 PENDING**: quizme-v1 (10 questions)
+**PREREQUISITE — quizme-v1 MERGED, quizme-v2 MERGED, quizme-v3 MERGED, quizme-v4 MERGED**: quizme-v1 (10 questions)
 answered and merged (8 decisions applied). quizme-v2 (7 questions) answered and merged — resolved
 Decisions 7/8/10/12 (previously BLOCKED/UNANSWERED) and added Decisions 13-14. quizme-v3 (8
 critical questions from deep analysis) answered and merged — resolved pki-init code rewrite
@@ -19,9 +19,13 @@ critical questions from deep analysis) answered and merged — resolved pki-init
 (Decision 10 rewritten), config edge cases (Decision 7 updated), deployment config
 framework/domain split (Decision 16), pki-init service collision (Decision 4 updated),
 full scope confirmation, and stale postgres URL fix (Decision 17). Decisions 15-17 added.
-quizme-v4 (7 questions) PENDING — implementation details: tini availability, product pki-init
-override mechanism, multiple --config= flags, shared-postgres follower topology, postgresql conf
-parameterization, validate_schema.go scope, `__PRODUCT_INCLUDE_LIST__` format.
+quizme-v4 (7 questions) answered and merged — resolved: tini already in Dockerfile (Decision 8
+updated with ENTRYPOINT change), product pki-init full service override (Decision 4 updated,
+Docker Compose profiles BANNED), config merge order from framework code (Decision 8 updated),
+PostgreSQL logical databases (Decision 10 clarified — 2 containers, not 30+16), ALL template
+files fully parameterized (Decision 10 updated), static-files-path in v10 scope (Decision 7
+confirmed), `__PRODUCT_INCLUDE_LIST__` indent format (Decision 2 updated). Decision 18 added
+(Docker Compose profiles BANNED).
 
 ---
 
@@ -288,10 +292,12 @@ configs into framework/domain (Decision 16), and fix stale postgres URLs (Decisi
 Full scope per quizme-v3 Q7 — nothing deferred from v10.
 
 **1A — PS-ID level templates** (12 files, each expands × 10):
-- `deployments/__PS_ID__/Dockerfile` — based on current `Dockerfile.tmpl` content (same params)
+- `deployments/__PS_ID__/Dockerfile` — based on current `Dockerfile.tmpl` content;
+  ENTRYPOINT changed to `["/sbin/tini", "--"]` (Decision 8, quizme-v4 Q1)
 - `deployments/__PS_ID__/compose.yml` — based on current `compose.yml.tmpl` content;
-  MUST include `pki-init` service with `["init", "--domain=__PS_ID__", "--output-dir=/certs"]`
-  (Decision 4/15); MUST use shell-form command for server (Decision 8)
+  MUST include `pki-init` service with `["/app/__PS_ID__", "init", "--domain=__PS_ID__", "--output-dir=/certs"]`
+  (Decision 4/15; app binary in command because ENTRYPOINT is tini-only);
+  MUST use shell-form command for server (Decision 8)
 - `deployments/__PS_ID__/config/__PS_ID__-app-framework-common.yml` — framework settings only (Decision 16)
 - `deployments/__PS_ID__/config/__PS_ID__-app-framework-sqlite-1.yml` — framework + instance-1 port
 - `deployments/__PS_ID__/config/__PS_ID__-app-framework-sqlite-2.yml` — framework + instance-2 port
@@ -517,6 +523,20 @@ in the directory path, expanded × 5 using per-product param sets derived from r
 
 **Rationale**: ALL variable directory names MUST use `__PLACEHOLDER__` syntax.
 
+**`__PRODUCT_INCLUDE_LIST__` format (quizme-v4 Q7)**: The `include:` key is in the template;
+`__PRODUCT_INCLUDE_LIST__` is the indented value, expanded to multi-line YAML list items:
+```yaml
+include:
+  __PRODUCT_INCLUDE_LIST__
+```
+expands to:
+```yaml
+include:
+  - path: ../sm-kms/compose.yml
+  - path: ../sm-im/compose.yml
+```
+`buildProductParams()` generates the indented list entries from registry.yaml product→PS-ID mapping.
+
 **Impact**: 1 product compose template file at `templates/deployments/__PRODUCT__/compose.yml`.
 
 ### Decision 3: Suite Files Use `__SUITE__` in Path (Parameterized, Not Literal)
@@ -558,6 +578,12 @@ pki-init capability. All compose levels override pki-init command with `--domain
 runs once with `--domain=<product>`, covering all PS-IDs in that product. Per-PS-ID pki-init
 services are removed from product includes (product-level override takes precedence). Products
 that currently lack pki-init override (jose, pki, identity, skeleton) MUST add one.
+
+**Resolved (quizme-v4 Q2)**: Product compose uses standard Docker Compose service-name override.
+The product compose includes PS-ID compose files (which define `pki-init` service), then
+redefines the `pki-init` service entirely with the product-level definition. This is a clean
+override — the PS-ID-level pki-init is fully replaced, not left as a no-op. SM product compose
+already uses this pattern correctly. Docker Compose profiles are BANNED (see Decision 18).
 
 **⚠️ RESOLVED (quizme-v3 Q1)**: pki-init Go code rewritten to use pflag with `--domain=<id>`
 and `--output-dir=<dir>` flags. See Decision 15.
@@ -619,6 +645,11 @@ and other PS-ID-specific settings.
 - identity-spa `static-files-path`: **FRAMEWORK** — any PS-ID should optionally support
   `static-files-path`. This is a framework gap to be addressed.
 
+**`static-files-path` scope (quizme-v4 Q6)**: Adding `static-files-path` to framework
+config schema (`validate_schema.go`) AND pflag registration is IN SCOPE for v10.
+`static-files-path` is a generic framework capability (any PS-ID MAY serve static files),
+not identity-spa-specific.
+
 **Breaking change**: Old single-file `<ps-id>.yml` configs replaced by two-file split.
 No backward compatibility required.
 
@@ -644,8 +675,39 @@ Suite compose defines `SUITE_ARGS` env var with suite-level config path.
 `tini` as ENTRYPOINT (`ENTRYPOINT ["/sbin/tini", "--"]`) which handles signal forwarding,
 zombie reaping, and graceful shutdown. This is already the pattern used in the project.
 
+**ENTRYPOINT change (quizme-v4 Q1)**: Current Dockerfiles have
+`ENTRYPOINT ["/sbin/tini", "--", "/app/<ps-id>"]` (app binary baked into ENTRYPOINT).
+v10 changes this to `ENTRYPOINT ["/sbin/tini", "--"]` (tini only). The app binary moves
+into the compose command. This is REQUIRED for shell-form command: shell-form passes the
+full command string to tini (→ `/bin/sh -c "exec /app/<ps-id> server --config=..."`).
+With the app binary in ENTRYPOINT, shell-form would produce
+`/sbin/tini -- /app/<ps-id> /bin/sh -c "..."` which is incorrect.
+Tini is already installed: `apk --no-cache add tini` in runtime-deps stage, then
+`COPY --from=runtime-deps /sbin/tini /sbin/tini` into final image.
+
+**Config merge order (quizme-v4 Q3)**: Framework code (`config_parse.go`) loads config files
+via pflag `--config` (`StringSliceP`, can be specified multiple times). First config loaded
+with `v.ReadInConfig()`, subsequent with `v.MergeInConfig()` — **later files override earlier
+for same keys**. Shell-form command specifies all config files in precedence order (lowest
+first, highest last):
+```yaml
+command: /bin/sh -c "exec /app/__PS_ID__ server \
+  --config=/certs/tls-config.yml \
+  --config=/app/config/__PS_ID__-app-framework-common.yml \
+  --config=/app/config/__PS_ID__-app-framework-<variant>.yml \
+  --config=/app/config/__PS_ID__-app-domain-common.yml \
+  --config=/app/config/__PS_ID__-app-domain-<variant>.yml \
+  --config=/app/otel/otel.yml \
+  $SUITE_ARGS $PRODUCT_ARGS"
+```
+(`$SUITE_ARGS` and `$PRODUCT_ARGS` add tier-level config paths, highest priority last.)
+For pki-init (exec-form, no env var expansion needed): compose command becomes
+`["/app/__PS_ID__", "init", "--domain=__PS_ID__", "--output-dir=/certs"]` — app binary
+moves from ENTRYPOINT to command.
+
 **Breaking change**: PS-ID compose `command:` modified from exec-form to shell-form.
-No backward compatibility required.
+PS-ID Dockerfile ENTRYPOINT simplified from `["/sbin/tini", "--", "/app/<ps-id>"]`
+to `["/sbin/tini", "--"]`. No backward compatibility required.
 
 **Impact**: v10 scope. Requires creating product-level and suite-level config files, modifying
 PS-ID compose templates to use shell-form command with `$SUITE_ARGS`/`$PRODUCT_ARGS`,
@@ -677,8 +739,18 @@ No exclusion mechanism needed — the engine design naturally handles this.
 **Source**: quizme-v1 Q8 → quizme-v2 Q3
 
 **Decision**: Full template for all shared-postgres files with `__SUITE__` substitution.
+
+**Container topology (quizme-v4 Q4)**: shared-postgres has exactly TWO containers:
+- **ONE `postgres-leader` container** — OLTP, contains 30 LOGICAL databases
+- **ONE `postgres-follower` container** — OLAP, contains 16 LOGICAL databases with schemas
+
+All 30 leader databases and 16 follower databases are LOGICAL databases within their
+respective single PostgreSQL container. There are NOT 30+ separate containers. PostgreSQL
+natively supports multiple logical databases per server.
+
 shared-postgres creates 30 logical databases: 3 deployment levels (SUITE, PRODUCT, PS-ID) ×
-10 PS-IDs. Leader postgres has 30 databases; follower postgres has 1 database with 30 schemas.
+10 PS-IDs. Leader postgres has 30 databases; follower postgres has 16 databases with
+domain-based schema isolation.
 
 Each deployment level uses DIFFERENT credentials, unseal secrets, and hash peppers to enforce
 authentication and cryptographic isolation between levels.
@@ -721,6 +793,12 @@ authentication and cryptographic isolation between levels.
   schema setup per domain isolation rules
 - `templates/deployments/shared-postgres/setup-logical-replication.sh` — replication subscriptions
   for all 3 tiers × 10 PS-IDs (30 leader → 16 follower domain mapping)
+
+**Template parameterization invariant (quizme-v4 Q5)**: ALL template files — including
+`postgresql-leader.conf`, `postgresql-follower.conf`, SQL init scripts, and shell scripts —
+MUST use ALL applicable `__KEY__` placeholders (`__SUITE__`, `__PRODUCT__`, `__PS_ID__`, etc.).
+NO EXCEPTIONS. Template files are NEVER instance-specific; they are parameterized templates
+that produce instance-specific files after placeholder substitution.
 
 **⚠️ RESOLVED (quizme-v3 Q3)**: All 5 documentation/implementation gaps are now addressed:
 1. DDL/DML separation REMOVED — 1 admin per leader DB, reused on followers (RESOLVED)
@@ -882,6 +960,24 @@ hostname and port:
 
 **Impact**: All 10 PS-ID `secrets/postgres-url.secret` files updated. All docs verified for
 correct PostgreSQL hostname. Prevents template-compliance drift for secrets files.
+
+### Decision 18: Docker Compose Profiles BANNED (quizme-v4 Q2 → E)
+
+**Source**: quizme-v4 Q2 (product pki-init override rationale)
+
+**Decision**: Docker Compose `profiles:` feature is BANNED from all compose files at ALL
+deployment levels (PS-ID, PRODUCT, SUITE). This project does NOT use profiles and MUST NOT
+introduce them.
+
+**Rationale**: Profiles add hidden conditional behavior that makes compose files harder to
+reason about. The project uses explicit Docker Compose service-name override
+(see Decision 4) for tier-level customization — not conditional activation via profiles.
+
+**Enforcement**: Add `profiles` to the `lint-compose` or `lint-fitness` banned-patterns check.
+Document in `docs/ENG-HANDBOOK.md` and propagate to deployment instructions.
+
+**Impact**: No template files use `profiles:`. Linter rejects any compose file containing
+`profiles:` key.
 
 ---
 
