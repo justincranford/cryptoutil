@@ -151,18 +151,24 @@ Delete the obsolete `template_drift/templates/` directory.
     (each product's PS-IDs produce include lines like `- path: ../sm-kms/compose.yml`)
 
   **Decisions applied**:
-  - **Decision 4 (Q1) + Decision 15**: Template MUST include `pki-init` service with pflag format:
-    `["/app/__PS_ID__", "init", "--domain=__PRODUCT__", "--output-dir=/certs"]` (app binary
-    in command because ENTRYPOINT is tini-only; use first PS-ID's binary for the product).
+  - **Decision 4 (Q1) + Decision 15**: Template MUST include `pki-init` service with full definition:
+    - `image: cryptoutil-__PRODUCT_INIT_PS_ID__:dev`
+    - `command: ["/app/__PRODUCT_INIT_PS_ID__", "init", "--domain=__PRODUCT__", "--output-dir=/certs"]`
+      (app binary in command because ENTRYPOINT is tini-only)
+    - `volumes: [./certs/:/certs/:rw]`
+    - `depends_on: builder-__PRODUCT_INIT_PS_ID__: { condition: service_completed_successfully }`
+    `__PRODUCT_INIT_PS_ID__` = first PS-ID of the product from registry.yaml (sm→sm-kms,
+    jose→jose-ja, pki→pki-ca, identity→identity-authz, skeleton→skeleton-template).
     **Product-level override (quizme-v3 Q6 + quizme-v4 Q2)**: Product compose uses standard
     Docker Compose service-name override. Product includes PS-ID composes (which define
     `pki-init`), then redefines `pki-init` service entirely with the product-level definition.
     This is a clean full override — the PS-ID-level pki-init is fully replaced, not left as
     a no-op. SM product compose already uses this pattern correctly.
     Docker Compose profiles are BANNED (Decision 18).
-  - **Decision 5 (Q2)**: Template MUST NOT include `image:` on service overrides.
-    PS-ID compose is the single source for image references. SM product currently has `image:` —
-    must be removed from actual `deployments/sm/compose.yml`.
+  - **Decision 5 (Q2)**: Template MUST NOT include `image:` on APP service overrides (port-only).
+    PS-ID compose is the single source for APP image references. SM product currently has `image:`
+    on port overrides — must be removed from actual `deployments/sm/compose.yml`.
+    Note: `pki-init` IS a full service definition (not a port override) and DOES need `image:`.
   - **Decision 6 (Q3)**: Template MUST reference all 4 postgres secrets:
     `postgres-url.secret`, `postgres-username.secret`, `postgres-password.secret`,
     `postgres-database.secret`. Currently jose/pki/identity/skeleton only reference
@@ -170,7 +176,7 @@ Delete the obsolete `template_drift/templates/` directory.
 - **Acceptance Criteria**:
   - [ ] Exactly ONE template file: `templates/deployments/__PRODUCT__/compose.yml`
   - [ ] Template uses `__PRODUCT__`, `__SUITE__`, `__IMAGE_TAG__`, `__PRODUCT_INCLUDE_LIST__`
-  - [ ] Template includes `pki-init` with `["/app/__PS_ID__", "init", "--domain=__PRODUCT__", "--output-dir=/certs"]`
+  - [ ] Template includes `pki-init` with full definition: `image`, `command` with `/app/__PRODUCT_INIT_PS_ID__`, `volumes`, `depends_on`
   - [ ] Template fully overrides PS-ID pki-init services via service-name override (NOT no-op, NOT profiles)
   - [ ] Template includes all 4 postgres secrets (Decision 6)
   - [ ] Template has NO `image:` on service overrides (Decision 5)
@@ -192,9 +198,13 @@ Delete the obsolete `template_drift/templates/` directory.
   These are compared against `deployments/cryptoutil/{Dockerfile,compose.yml}` (after expansion).
 
   **Decisions applied**:
-  - **Decision 4 (Q1) + Decision 15**: compose.yml MUST include `pki-init` with pflag format:
-    `["/app/__PS_ID__", "init", "--domain=__SUITE__", "--output-dir=/certs"]` (app binary
-    in command because ENTRYPOINT is tini-only).
+  - **Decision 4 (Q1) + Decision 15**: compose.yml MUST include `pki-init` with full definition:
+    - `image: cryptoutil-__SUITE_INIT_PS_ID__:dev`
+    - `command: ["/app/__SUITE_INIT_PS_ID__", "init", "--domain=__SUITE__", "--output-dir=/certs"]`
+      (app binary in command because ENTRYPOINT is tini-only)
+    - `volumes: [./certs/:/certs/:rw]`
+    - `depends_on: builder-__SUITE_INIT_PS_ID__: { condition: service_completed_successfully }`
+    `__SUITE_INIT_PS_ID__` = `sm-kms` (first PS-ID of first product).
     Actual suite compose already has `--domain=cryptoutil` ✔ — update to pflag format.
   - **Decision 6 (Q3)**: compose.yml MUST reference all 4 postgres secrets.
     Actual suite compose already has all 4 ✔.
@@ -203,7 +213,7 @@ Delete the obsolete `template_drift/templates/` directory.
 - **Acceptance Criteria**:
   - [ ] `templates/deployments/__SUITE__/Dockerfile` created with `__SUITE__` and suite-level params
   - [ ] `templates/deployments/__SUITE__/compose.yml` created with `__SUITE__` and suite-level params
-  - [ ] compose.yml includes `pki-init` with `["/app/__PS_ID__", "init", "--domain=__SUITE__", "--output-dir=/certs"]`
+  - [ ] compose.yml includes `pki-init` with full definition: `image`, `command` with `/app/__SUITE_INIT_PS_ID__`, `volumes`, `depends_on`
   - [ ] compose.yml includes all 4 postgres secrets (Decision 6)
   - [ ] compose.yml uses shell-form command with `$SUITE_ARGS` (Decision 8)
   - [ ] Literal `cryptoutil` does NOT appear in either template file content (use `__SUITE__`)
@@ -303,6 +313,13 @@ Delete the obsolete `template_drift/templates/` directory.
   - Fix all stale postgres-url.secret values to use `shared-postgres-leader:5432`
     (see Task 1.16 for details)
 
+  **Registry update — registry.yaml entrypoint field**:
+  - Update all 10 PS-ID `entrypoint` fields in `api/cryptosuite-registry/registry.yaml`
+    from `["/sbin/tini", "--", "/app/<ps-id>"]` to `["/sbin/tini", "--"]` (Decision 8)
+  - Add `init_ps_id` field to each product in registry.yaml (used for `__PRODUCT_INIT_PS_ID__`):
+    sm→sm-kms, jose→jose-ja, pki→pki-ca, identity→identity-authz, skeleton→skeleton-template
+  - Add `init_ps_id` field to suite in registry.yaml (used for `__SUITE_INIT_PS_ID__`): sm-kms
+
   **⚠️ NOTE**: This task modifies actual deployment files, not templates. Template files define
   what actual files SHOULD look like; this task brings actual files into compliance.
 - **Acceptance Criteria**:
@@ -317,6 +334,8 @@ Delete the obsolete `template_drift/templates/` directory.
   - [ ] All 10 standalone configs split into framework + domain files
   - [ ] All secrets directories conform to Decision 14 template
   - [ ] All stale postgres-url.secret values fixed (Decision 17)
+  - [ ] `api/cryptosuite-registry/registry.yaml` entrypoint fields updated to `["/sbin/tini", "--"]`
+  - [ ] `api/cryptosuite-registry/registry.yaml` has `init_ps_id` for each product and suite
   - [ ] `docker compose -f deployments/<ps-id>/compose.yml config` succeeds for all 10 PS-IDs
 - **Evidence**:
   - `test-output/framework-v10/phase1/deployment-fixes.log`

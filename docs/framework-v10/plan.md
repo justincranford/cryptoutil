@@ -207,7 +207,7 @@ api/cryptosuite-registry/templates/
                                           (domain config is __PS_ID__-domain.yml — NOT templated)
 ```
 
-**Template file count**: ~70 physical files:
+**Template file count**: ~63 physical files:
 - 7 deployment files (Dockerfile + compose + 5 framework configs) + 14 secrets
   under `deployments/__PS_ID__/` = 21
 - 1 compose + 14 secrets under `deployments/__PRODUCT__/` = 15
@@ -248,6 +248,15 @@ All existing `__KEY__` parameters remain valid. The `buildParams(psID)` function
 full substitution map for a given PS-ID. Product/suite files use a subset of params
 (`__SUITE__`, `__IMAGE_TAG__`, `__BUILD_DATE__`, plus product-specific display names).
 
+**New parameters for v10**:
+- `__PRODUCT_INIT_PS_ID__`: The PS-ID whose binary/image is used for product-level `pki-init`.
+  Derived from registry.yaml as the FIRST PS-ID listed under each product.
+  Mapping: sm→sm-kms, jose→jose-ja, pki→pki-ca, identity→identity-authz, skeleton→skeleton-template.
+- `__SUITE_INIT_PS_ID__`: The PS-ID whose binary/image is used for suite-level `pki-init`.
+  Convention: first PS-ID of first product = `sm-kms`. Configurable in registry.yaml if needed.
+- These are required because Decision 8 moves the app binary from ENTRYPOINT to compose command —
+  product/suite pki-init must specify which PS-ID binary to execute.
+
 ---
 
 ## Technical Context
@@ -284,14 +293,14 @@ full substitution map for a given PS-ID. Product/suite files use a subset of par
 
 ### Phase 1: Create Canonical Template Directory (4h) [Status: ☐ TODO]
 
-**Objective**: Create `api/cryptosuite-registry/templates/` with all ~70 parameterized template
+**Objective**: Create `api/cryptosuite-registry/templates/` with all ~63 parameterized template
 files. These are PLAIN FILES — not `.go`, not embedded. Structure mirrors `./deployments/` and
 `./configs/` with `__KEY__` in both paths and content. Also fix actual deployment files to
 match decisions from quizme-v1/v2/v3, rewrite pki-init Go code (Decision 15), split deployment
 configs into framework/domain (Decision 16), and fix stale postgres URLs (Decision 17).
 Full scope per quizme-v3 Q7 — nothing deferred from v10.
 
-**1A — PS-ID level templates** (12 files, each expands × 10):
+**1A — PS-ID level templates** (7 files, each expands × 10):
 - `deployments/__PS_ID__/Dockerfile` — based on current `Dockerfile.tmpl` content;
   ENTRYPOINT changed to `["/sbin/tini", "--"]` (Decision 8, quizme-v4 Q1)
 - `deployments/__PS_ID__/compose.yml` — based on current `compose.yml.tmpl` content;
@@ -312,16 +321,29 @@ Full scope per quizme-v3 Q7 — nothing deferred from v10.
 
 **1C — Product compose file** (1 physical file, expands × 5):
 - `deployments/__PRODUCT__/compose.yml` — template content uses `__PRODUCT__`, `__SUITE__`,
-  `__IMAGE_TAG__`, and `__PRODUCT_INCLUDE_LIST__`. Template MUST include:
-  - `pki-init` service with `["init", "--domain=__PRODUCT__", "--output-dir=/certs"]`
+  `__IMAGE_TAG__`, `__PRODUCT_INCLUDE_LIST__`, and `__PRODUCT_INIT_PS_ID__`.
+  Template MUST include:
+  - `pki-init` service with full definition (not just command):
+    - `image: cryptoutil-__PRODUCT_INIT_PS_ID__:dev`
+    - `command: ["/app/__PRODUCT_INIT_PS_ID__", "init", "--domain=__PRODUCT__", "--output-dir=/certs"]`
+      (app binary in command because ENTRYPOINT is tini-only — Decision 8)
+    - `volumes: [./certs/:/certs/:rw]`
+    - `depends_on: builder-__PRODUCT_INIT_PS_ID__: { condition: service_completed_successfully }`
     (Decision 4/15); product-level override covers all PS-IDs in product (Decision 4 quizme-v3 Q6)
   - All 4 postgres secrets: url, username, password, database (Decision 6)
-  - NO `image:` on service overrides — PS-ID level is single source (Decision 5)
+  - NO `image:` on APP service overrides (port-only) — PS-ID level is single source (Decision 5)
 
 **1D — Suite files** (2 files, `__SUITE__` in path, expands × 1):
 - `deployments/__SUITE__/Dockerfile` — 4-stage build pattern with `__SUITE__` params
-- `deployments/__SUITE__/compose.yml` — suite compose with `__SUITE__` params; MUST include:
-  - `pki-init` with `["init", "--domain=__SUITE__", "--output-dir=/certs"]` (Decision 4/15)
+- `deployments/__SUITE__/compose.yml` — suite compose with `__SUITE__` and `__SUITE_INIT_PS_ID__` params;
+  MUST include:
+  - `pki-init` with full service definition:
+    - `image: cryptoutil-__SUITE_INIT_PS_ID__:dev`
+    - `command: ["/app/__SUITE_INIT_PS_ID__", "init", "--domain=__SUITE__", "--output-dir=/certs"]`
+      (app binary in command because ENTRYPOINT is tini-only — Decision 8)
+    - `volumes: [./certs/:/certs/:rw]`
+    - `depends_on: builder-__SUITE_INIT_PS_ID__: { condition: service_completed_successfully }`
+    (Decision 4/15)
   - All 4 postgres secrets (Decision 6)
   - Shell-form command for server with `$SUITE_ARGS` (Decision 8)
 
@@ -703,7 +725,10 @@ command: /bin/sh -c "exec /app/__PS_ID__ server \
 (`$SUITE_ARGS` and `$PRODUCT_ARGS` add tier-level config paths, highest priority last.)
 For pki-init (exec-form, no env var expansion needed): compose command becomes
 `["/app/__PS_ID__", "init", "--domain=__PS_ID__", "--output-dir=/certs"]` — app binary
-moves from ENTRYPOINT to command.
+moves from ENTRYPOINT to command. At product level: `["/app/__PRODUCT_INIT_PS_ID__", "init",
+"--domain=__PRODUCT__", "--output-dir=/certs"]` using the product's first PS-ID binary.
+At suite level: `["/app/__SUITE_INIT_PS_ID__", "init", "--domain=__SUITE__",
+"--output-dir=/certs"]` using `sm-kms` (first PS-ID of first product).
 
 **Breaking change**: PS-ID compose `command:` modified from exec-form to shell-form.
 PS-ID Dockerfile ENTRYPOINT simplified from `["/sbin/tini", "--", "/app/<ps-id>"]`
