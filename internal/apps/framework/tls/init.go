@@ -15,6 +15,8 @@ import (
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
+
+	spfPflag "github.com/spf13/pflag"
 )
 
 // Init executes the pki-init CLI command.
@@ -62,15 +64,25 @@ func initRun(
 	telemetryFn func(context.Context) (*cryptoutilSharedTelemetry.TelemetryService, error),
 	generatorFn func(context.Context, *cryptoutilSharedTelemetry.TelemetryService) (*Generator, error),
 ) int {
-	expectedArgCount := 2
-	if len(args) != expectedArgCount {
-		_, _ = fmt.Fprintf(stderr, "pki-init: usage: pki-init <tier-id> <target-dir>\n")
+	fs := spfPflag.NewFlagSet(cryptoutilSharedMagic.PSIDPKIInit, spfPflag.ContinueOnError)
+	fs.SetOutput(stderr)
+
+	var domain, outputDir string
+
+	fs.StringVar(&domain, "domain", "", "tier identifier (PS-ID, product, or suite name)")
+	fs.StringVar(&outputDir, "output-dir", "", "certificate output directory")
+
+	if err := fs.Parse(args); err != nil {
+		_, _ = fmt.Fprintf(stderr, "pki-init: %v\n", err)
 
 		return 1
 	}
 
-	tierID := args[0]
-	targetDir := args[1]
+	if domain == "" || outputDir == "" {
+		_, _ = fmt.Fprintf(stderr, "pki-init: usage: pki-init --domain=<tier-id> --output-dir=<target-dir>\n")
+
+		return 1
+	}
 
 	ctx := context.Background()
 
@@ -92,13 +104,13 @@ func initRun(
 
 	defer gen.Shutdown()
 
-	if err := gen.Generate(tierID, targetDir); err != nil {
+	if err := gen.Generate(domain, outputDir); err != nil {
 		_, _ = fmt.Fprintf(stderr, "pki-init: %v\n", err)
 
 		return 1
 	}
 
-	_, _ = fmt.Fprintf(stdout, "pki-init: certificates written to %q for tier %q\n", targetDir, tierID)
+	_, _ = fmt.Fprintf(stdout, "pki-init: certificates written to %q for tier %q\n", outputDir, domain)
 
 	return 0
 }

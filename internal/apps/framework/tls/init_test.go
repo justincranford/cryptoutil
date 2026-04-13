@@ -27,16 +27,16 @@ import (
 	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 )
 
-func TestInit_WrongArgCount(t *testing.T) {
+func TestInit_MissingFlags(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
 		name string
 		args []string
 	}{
-		{name: "zero args", args: []string{}},
-		{name: "one arg", args: []string{cryptoutilSharedMagic.DefaultOTLPServiceDefault}},
-		{name: "three args", args: []string{cryptoutilSharedMagic.DefaultOTLPServiceDefault, "/certs", "extra"}},
+		{name: "no flags", args: []string{}},
+		{name: "domain only", args: []string{"--domain=" + cryptoutilSharedMagic.DefaultOTLPServiceDefault}},
+		{name: "output-dir only", args: []string{"--output-dir=/certs"}},
 	}
 
 	for _, tc := range tests {
@@ -53,6 +53,17 @@ func TestInit_WrongArgCount(t *testing.T) {
 	}
 }
 
+func TestInit_UnknownFlag(t *testing.T) {
+	t.Parallel()
+
+	var stdout, stderr bytes.Buffer
+
+	code := cryptoutilAppsFrameworkTls.ExportedInitRun([]string{"--unknown-flag=value"}, nil, &stdout, &stderr, nil, nil)
+	require.Equal(t, 1, code)
+	require.Contains(t, stderr.String(), "unknown flag")
+	require.Empty(t, stdout.String())
+}
+
 func TestInit_SeamInjection(t *testing.T) {
 	t.Parallel()
 
@@ -63,7 +74,7 @@ func TestInit_SeamInjection(t *testing.T) {
 
 		var stdout, stderr bytes.Buffer
 
-		code := cryptoutilAppsFrameworkTls.ExportedInitRun([]string{"nonexistent-tier", t.TempDir()}, nil, &stdout, &stderr, telemetryFn, generatorFn)
+		code := cryptoutilAppsFrameworkTls.ExportedInitRun([]string{"--domain=nonexistent-tier", "--output-dir=" + t.TempDir()}, nil, &stdout, &stderr, telemetryFn, generatorFn)
 		require.Equal(t, 1, code)
 		require.Contains(t, stderr.String(), "unknown tier ID")
 		require.Empty(t, stdout.String())
@@ -78,7 +89,7 @@ func TestInit_SeamInjection(t *testing.T) {
 
 		var stdout, stderr bytes.Buffer
 
-		code := cryptoutilAppsFrameworkTls.ExportedInitRun([]string{cryptoutilSharedMagic.DefaultOTLPServiceDefault, t.TempDir()}, nil, &stdout, &stderr, telemetryFn, nil)
+		code := cryptoutilAppsFrameworkTls.ExportedInitRun([]string{"--domain=" + cryptoutilSharedMagic.DefaultOTLPServiceDefault, "--output-dir=" + t.TempDir()}, nil, &stdout, &stderr, telemetryFn, nil)
 		require.Equal(t, 1, code)
 		require.Contains(t, stderr.String(), "injected telemetry error")
 		require.Empty(t, stdout.String())
@@ -97,7 +108,7 @@ func TestInit_SeamInjection(t *testing.T) {
 
 		var stdout, stderr bytes.Buffer
 
-		code := cryptoutilAppsFrameworkTls.ExportedInitRun([]string{cryptoutilSharedMagic.DefaultOTLPServiceDefault, t.TempDir()}, nil, &stdout, &stderr, telemetryFn, generatorFn)
+		code := cryptoutilAppsFrameworkTls.ExportedInitRun([]string{"--domain=" + cryptoutilSharedMagic.DefaultOTLPServiceDefault, "--output-dir=" + t.TempDir()}, nil, &stdout, &stderr, telemetryFn, generatorFn)
 		require.Equal(t, 1, code)
 		require.Contains(t, stderr.String(), "injected generator error")
 		require.Empty(t, stdout.String())
@@ -113,7 +124,7 @@ func TestInit_SeamInjection(t *testing.T) {
 
 		var stdout, stderr bytes.Buffer
 
-		code := cryptoutilAppsFrameworkTls.ExportedInitRun([]string{cryptoutilSharedMagic.OTLPServiceSMKMS, t.TempDir()}, nil, &stdout, &stderr, telemetryFn, generatorFn)
+		code := cryptoutilAppsFrameworkTls.ExportedInitRun([]string{"--domain=" + cryptoutilSharedMagic.OTLPServiceSMKMS, "--output-dir=" + t.TempDir()}, nil, &stdout, &stderr, telemetryFn, generatorFn)
 		require.Equal(t, 1, code)
 		require.Contains(t, stderr.String(), "pki-init:")
 		require.Empty(t, stdout.String())
@@ -129,7 +140,7 @@ func TestInit_SeamInjection(t *testing.T) {
 
 		var stdout, stderr bytes.Buffer
 
-		code := cryptoutilAppsFrameworkTls.ExportedInitRun([]string{cryptoutilSharedMagic.OTLPServiceSMKMS, outputDir}, nil, &stdout, &stderr, telemetryFn, generatorFn)
+		code := cryptoutilAppsFrameworkTls.ExportedInitRun([]string{"--domain=" + cryptoutilSharedMagic.OTLPServiceSMKMS, "--output-dir=" + outputDir}, nil, &stdout, &stderr, telemetryFn, generatorFn)
 		require.Equal(t, 1, code)
 		require.Contains(t, stderr.String(), "not empty")
 		require.Empty(t, stdout.String())
@@ -142,7 +153,7 @@ func TestInit_SeamInjection(t *testing.T) {
 
 		var stdout, stderr bytes.Buffer
 
-		code := cryptoutilAppsFrameworkTls.ExportedInitRun([]string{cryptoutilSharedMagic.DefaultOTLPServiceDefault, t.TempDir()}, nil, &stdout, &stderr, telemetryFn, generatorFn)
+		code := cryptoutilAppsFrameworkTls.ExportedInitRun([]string{"--domain=" + cryptoutilSharedMagic.DefaultOTLPServiceDefault, "--output-dir=" + t.TempDir()}, nil, &stdout, &stderr, telemetryFn, generatorFn)
 		require.Equal(t, 0, code, "stderr=%s", stderr.String())
 		require.Contains(t, stdout.String(), "certificates written")
 		require.Contains(t, stdout.String(), cryptoutilSharedMagic.DefaultOTLPServiceDefault)
@@ -156,7 +167,7 @@ func TestInit_SeamInjection(t *testing.T) {
 
 		var stdout, stderr bytes.Buffer
 
-		code := cryptoutilAppsFrameworkTls.ExportedInitRun([]string{cryptoutilSharedMagic.SMProductName, t.TempDir()}, nil, &stdout, &stderr, telemetryFn, generatorFn)
+		code := cryptoutilAppsFrameworkTls.ExportedInitRun([]string{"--domain=" + cryptoutilSharedMagic.SMProductName, "--output-dir=" + t.TempDir()}, nil, &stdout, &stderr, telemetryFn, generatorFn)
 		require.Equal(t, 0, code, "stderr=%s", stderr.String())
 		require.Contains(t, stdout.String(), "certificates written")
 		require.Empty(t, stderr.String())
@@ -169,7 +180,7 @@ func TestInit_SeamInjection(t *testing.T) {
 
 		var stdout, stderr bytes.Buffer
 
-		code := cryptoutilAppsFrameworkTls.ExportedInitRun([]string{cryptoutilSharedMagic.JoseProductName, t.TempDir()}, nil, &stdout, &stderr, telemetryFn, generatorFn)
+		code := cryptoutilAppsFrameworkTls.ExportedInitRun([]string{"--domain=" + cryptoutilSharedMagic.JoseProductName, "--output-dir=" + t.TempDir()}, nil, &stdout, &stderr, telemetryFn, generatorFn)
 		require.Equal(t, 0, code, "stderr=%s", stderr.String())
 		require.Contains(t, stdout.String(), "certificates written")
 		require.Empty(t, stderr.String())
@@ -182,7 +193,7 @@ func TestInit_SeamInjection(t *testing.T) {
 
 		var stdout, stderr bytes.Buffer
 
-		code := cryptoutilAppsFrameworkTls.ExportedInitRun([]string{cryptoutilSharedMagic.OTLPServiceSMKMS, t.TempDir()}, nil, &stdout, &stderr, telemetryFn, generatorFn)
+		code := cryptoutilAppsFrameworkTls.ExportedInitRun([]string{"--domain=" + cryptoutilSharedMagic.OTLPServiceSMKMS, "--output-dir=" + t.TempDir()}, nil, &stdout, &stderr, telemetryFn, generatorFn)
 		require.Equal(t, 0, code, "stderr=%s", stderr.String())
 		require.Contains(t, stdout.String(), "certificates written")
 		require.Empty(t, stderr.String())
@@ -195,7 +206,7 @@ func TestInit_SeamInjection(t *testing.T) {
 
 		var stdout, stderr bytes.Buffer
 
-		code := cryptoutilAppsFrameworkTls.ExportedInitRun([]string{cryptoutilSharedMagic.OTLPServiceJoseJA, t.TempDir()}, nil, &stdout, &stderr, telemetryFn, generatorFn)
+		code := cryptoutilAppsFrameworkTls.ExportedInitRun([]string{"--domain=" + cryptoutilSharedMagic.OTLPServiceJoseJA, "--output-dir=" + t.TempDir()}, nil, &stdout, &stderr, telemetryFn, generatorFn)
 		require.Equal(t, 0, code, "stderr=%s", stderr.String())
 		require.Contains(t, stdout.String(), "certificates written")
 		require.Empty(t, stderr.String())
@@ -209,7 +220,7 @@ func TestInitForSuite_HappyPath(t *testing.T) {
 
 	var stdout, stderr bytes.Buffer
 
-	code := cryptoutilAppsFrameworkTls.ExportedInitRun([]string{cryptoutilSharedMagic.DefaultOTLPServiceDefault, t.TempDir()}, nil, &stdout, &stderr, telemetryFn, generatorFn)
+	code := cryptoutilAppsFrameworkTls.ExportedInitRun([]string{"--domain=" + cryptoutilSharedMagic.DefaultOTLPServiceDefault, "--output-dir=" + t.TempDir()}, nil, &stdout, &stderr, telemetryFn, generatorFn)
 	require.Equal(t, 0, code, "stderr=%s", stderr.String())
 	require.Contains(t, stdout.String(), "certificates written")
 }
@@ -221,7 +232,7 @@ func TestInitForProduct_HappyPath(t *testing.T) {
 
 	var stdout, stderr bytes.Buffer
 
-	code := cryptoutilAppsFrameworkTls.ExportedInitRun([]string{cryptoutilSharedMagic.JoseProductName, t.TempDir()}, nil, &stdout, &stderr, telemetryFn, generatorFn)
+	code := cryptoutilAppsFrameworkTls.ExportedInitRun([]string{"--domain=" + cryptoutilSharedMagic.JoseProductName, "--output-dir=" + t.TempDir()}, nil, &stdout, &stderr, telemetryFn, generatorFn)
 	require.Equal(t, 0, code, "stderr=%s", stderr.String())
 	require.Contains(t, stdout.String(), "certificates written")
 }
@@ -233,7 +244,7 @@ func TestInitForService_HappyPath(t *testing.T) {
 
 	var stdout, stderr bytes.Buffer
 
-	code := cryptoutilAppsFrameworkTls.ExportedInitRun([]string{cryptoutilSharedMagic.OTLPServiceSMKMS, t.TempDir()}, nil, &stdout, &stderr, telemetryFn, generatorFn)
+	code := cryptoutilAppsFrameworkTls.ExportedInitRun([]string{"--domain=" + cryptoutilSharedMagic.OTLPServiceSMKMS, "--output-dir=" + t.TempDir()}, nil, &stdout, &stderr, telemetryFn, generatorFn)
 	require.Equal(t, 0, code, "stderr=%s", stderr.String())
 	require.Contains(t, stdout.String(), "certificates written")
 }

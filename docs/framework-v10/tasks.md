@@ -518,7 +518,7 @@ Delete the obsolete `template_drift/templates/` directory.
 
 ### Task 1.15: Rewrite pki-init init.go with pflag
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 1h
 - **Dependencies**: None
 - **Description**: Rewrite `internal/apps/framework/tls/init.go` to use pflag for argument
@@ -540,11 +540,11 @@ Delete the obsolete `template_drift/templates/` directory.
   - Error on unknown flags, missing required flags
   - Keep all existing TLS certificate generation logic unchanged
 - **Acceptance Criteria**:
-  - [ ] `init.go` uses pflag for `--domain` and `--output-dir` (no positional args)
-  - [ ] `go build ./...` succeeds
-  - [ ] Existing tests updated to use new flag format
-  - [ ] Tests ≥95% coverage for init.go
-  - [ ] `golangci-lint run` clean
+  - [x] `init.go` uses pflag for `--domain` and `--output-dir` (no positional args)
+  - [x] `go build ./...` succeeds
+  - [x] Existing tests updated to use new flag format
+  - [x] Tests ≥95% coverage for init.go
+  - [x] `golangci-lint run` clean
 - **Files**:
   - `internal/apps/framework/tls/init.go` (MODIFY)
   - `internal/apps/framework/tls/init_test.go` (MODIFY)
