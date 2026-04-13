@@ -1,0 +1,12 @@
+# identity-rp Framework SQLite Instance 1 Configuration
+# Framework settings UNIQUE to the 'identity-rp-app-sqlite-1' compose service.
+
+cors-origins:
+  - "https://localhost:8700"
+  - "https://127.0.0.1:8700"
+  - "https://[::1]:8700"
+
+otlp-service: identity-rp-sqlite-1
+otlp-hostname: identity-rp-sqlite-1
+
+database-url: "sqlite://file::memory:?cache=shared"

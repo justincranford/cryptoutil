@@ -224,11 +224,15 @@ Delete the obsolete `template_drift/templates/` directory.
 
 ### Task 1.6: Delete the obsolete `template_drift/templates/` directory
 
-- **Status**: ❌
+- **Status**: ⚠️ DEFERRED to Task 2.1
 - **Estimated**: 0.25h
-- **Dependencies**: Tasks 1.3, 1.4, 1.5, 1.7 (all canonical templates exist first)
+- **Dependencies**: Tasks 1.3, 1.4, 1.5, 1.7 (all canonical templates exist first), **Task 2.1** (embed.FS removal)
 - **Description**: Remove the 6 old `.tmpl` files from `internal/.../template_drift/templates/`.
   Their content is superseded by the canonical files in `api/cryptosuite-registry/templates/`.
+
+  **DEFERRED**: Cannot delete templates/ directory before Task 2.1 removes the `//go:embed templates/*`
+  directive. Deleting the directory while `embed.FS` references it causes build failure.
+  This deletion will be done as part of Task 2.1 (rewrite core engine).
 - **Acceptance Criteria**:
   - [ ] `internal/apps/tools/cicd_lint/lint_fitness/template_drift/templates/` does NOT exist
   - [ ] `go build ./...` succeeds (no dangling references to removed directory)

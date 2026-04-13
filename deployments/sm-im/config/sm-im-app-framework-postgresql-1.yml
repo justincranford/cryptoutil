@@ -1,0 +1,10 @@
+# sm-im Framework PostgreSQL Instance 1 Configuration
+# Framework settings UNIQUE to the 'sm-im-app-postgresql-1' compose service.
+
+cors-origins:
+  - "https://localhost:8102"
+  - "https://127.0.0.1:8102"
+  - "https://[::1]:8102"
+
+otlp-service: sm-im-postgresql-1
+otlp-hostname: sm-im-postgresql-1

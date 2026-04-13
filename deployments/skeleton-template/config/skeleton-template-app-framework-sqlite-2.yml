@@ -1,0 +1,12 @@
+# skeleton-template Framework SQLite Instance 2 Configuration
+# Framework settings UNIQUE to the 'skeleton-template-app-sqlite-2' compose service.
+
+cors-origins:
+  - "https://localhost:8901"
+  - "https://127.0.0.1:8901"
+  - "https://[::1]:8901"
+
+otlp-service: skeleton-template-sqlite-2
+otlp-hostname: skeleton-template-sqlite-2
+
+database-url: "sqlite://file::memory:?cache=shared"

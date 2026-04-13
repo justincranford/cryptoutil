@@ -1,0 +1,12 @@
+# identity-authz Framework SQLite Instance 1 Configuration
+# Framework settings UNIQUE to the 'identity-authz-app-sqlite-1' compose service.
+
+cors-origins:
+  - "https://localhost:8400"
+  - "https://127.0.0.1:8400"
+  - "https://[::1]:8400"
+
+otlp-service: identity-authz-sqlite-1
+otlp-hostname: identity-authz-sqlite-1
+
+database-url: "sqlite://file::memory:?cache=shared"

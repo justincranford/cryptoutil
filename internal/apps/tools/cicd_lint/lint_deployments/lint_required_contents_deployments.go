@@ -174,12 +174,19 @@ func addProductServiceFiles(contents *map[string]string, serviceName string) {
 	(*contents)[prefix+"service-password.secret"] = RequiredFileStatus
 	(*contents)[prefix+"service-username.secret"] = RequiredFileStatus
 
-	// Required config files (5 standard files per F.1).
-	(*contents)[serviceName+"/config/"+serviceName+"-app-common.yml"] = RequiredFileStatus
-	(*contents)[serviceName+"/config/"+serviceName+"-app-sqlite-1.yml"] = RequiredFileStatus
-	(*contents)[serviceName+"/config/"+serviceName+"-app-sqlite-2.yml"] = RequiredFileStatus
-	(*contents)[serviceName+"/config/"+serviceName+"-app-postgresql-1.yml"] = RequiredFileStatus
-	(*contents)[serviceName+"/config/"+serviceName+"-app-postgresql-2.yml"] = RequiredFileStatus
+	// Required config files (5 standard framework files per F.1).
+	(*contents)[serviceName+"/config/"+serviceName+"-app-framework-common.yml"] = RequiredFileStatus
+	(*contents)[serviceName+"/config/"+serviceName+"-app-framework-sqlite-1.yml"] = RequiredFileStatus
+	(*contents)[serviceName+"/config/"+serviceName+"-app-framework-sqlite-2.yml"] = RequiredFileStatus
+	(*contents)[serviceName+"/config/"+serviceName+"-app-framework-postgresql-1.yml"] = RequiredFileStatus
+	(*contents)[serviceName+"/config/"+serviceName+"-app-framework-postgresql-2.yml"] = RequiredFileStatus
+
+	// Required domain config files (5 per PS-ID, Decision 16).
+	(*contents)[serviceName+"/config/"+serviceName+"-app-domain-common.yml"] = RequiredFileStatus
+	(*contents)[serviceName+"/config/"+serviceName+"-app-domain-sqlite-1.yml"] = RequiredFileStatus
+	(*contents)[serviceName+"/config/"+serviceName+"-app-domain-sqlite-2.yml"] = RequiredFileStatus
+	(*contents)[serviceName+"/config/"+serviceName+"-app-domain-postgresql-1.yml"] = RequiredFileStatus
+	(*contents)[serviceName+"/config/"+serviceName+"-app-domain-postgresql-2.yml"] = RequiredFileStatus
 
 	// FORBIDDEN deprecated config files (Section 12.4.6).
 	(*contents)[serviceName+"/config/demo-seed.yml"] = ForbiddenFileStatus

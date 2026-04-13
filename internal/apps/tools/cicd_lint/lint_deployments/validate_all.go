@@ -128,11 +128,11 @@ func runKebabCaseValidation(configsDir string, result *AllValidationResult) {
 // serviceFrameworkSuffixes lists the file suffixes that identify service
 // framework config files when combined with a PS-ID prefix.
 var serviceFrameworkSuffixes = []string{
-	"-app-common.yml",
-	"-app-sqlite-1.yml",
-	"-app-sqlite-2.yml",
-	"-app-postgresql-1.yml",
-	"-app-postgresql-2.yml",
+	"-app-framework-common.yml",
+	"-app-framework-sqlite-1.yml",
+	"-app-framework-sqlite-2.yml",
+	"-app-framework-postgresql-1.yml",
+	"-app-framework-postgresql-2.yml",
 }
 
 // isServiceFrameworkConfig returns true if the file matches the service template
@@ -141,7 +141,7 @@ var serviceFrameworkSuffixes = []string{
 //
 // Recognized patterns:
 //   - config-*.yml / config-*.yaml (legacy generic prefix)
-//   - {PS-ID}-app-{variant}.yml (PS-ID-prefixed, e.g., sm-kms-app-sqlite-1.yml)
+//   - {PS-ID}-app-framework-{variant}.yml (PS-ID-prefixed, e.g., sm-kms-app-framework-sqlite-1.yml)
 //
 // Excluded patterns:
 //   - *-config-schema.* (CA definition, nested YAML)

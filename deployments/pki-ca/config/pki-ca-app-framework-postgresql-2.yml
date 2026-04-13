@@ -1,0 +1,10 @@
+# pki-ca Framework PostgreSQL Instance 2 Configuration
+# Framework settings UNIQUE to the 'pki-ca-app-postgresql-2' compose service.
+
+cors-origins:
+  - "https://localhost:8303"
+  - "https://127.0.0.1:8303"
+  - "https://[::1]:8303"
+
+otlp-service: pki-ca-postgresql-2
+otlp-hostname: pki-ca-postgresql-2

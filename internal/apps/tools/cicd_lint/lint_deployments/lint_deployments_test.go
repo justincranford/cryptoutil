@@ -31,17 +31,22 @@ func createRequiredSecrets(t *testing.T, baseDir string) {
 	}
 }
 
-// createRequiredConfigFiles creates the 5 required config files for a PRODUCT-SERVICE.
+// createRequiredConfigFiles creates the 5 required framework config files for a PRODUCT-SERVICE.
 func createRequiredConfigFiles(t *testing.T, baseDir string, productService string) {
 	t.Helper()
 
 	configPath := filepath.Join(baseDir, "config")
 	requiredConfigs := []string{
-		productService + "-app-common.yml",
-		productService + "-app-sqlite-1.yml",
-		productService + "-app-sqlite-2.yml",
-		productService + "-app-postgresql-1.yml",
-		productService + "-app-postgresql-2.yml",
+		productService + "-app-framework-common.yml",
+		productService + "-app-framework-sqlite-1.yml",
+		productService + "-app-framework-sqlite-2.yml",
+		productService + "-app-framework-postgresql-1.yml",
+		productService + "-app-framework-postgresql-2.yml",
+		productService + "-app-domain-common.yml",
+		productService + "-app-domain-sqlite-1.yml",
+		productService + "-app-domain-sqlite-2.yml",
+		productService + "-app-domain-postgresql-1.yml",
+		productService + "-app-domain-postgresql-2.yml",
 	}
 
 	for _, cfg := range requiredConfigs {

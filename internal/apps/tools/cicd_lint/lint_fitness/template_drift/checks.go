@@ -128,7 +128,7 @@ func checkConfigCommonInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir stri
 			continue
 		}
 
-		actualPath := filepath.Join(rootDir, "deployments", ps.PSID, "config", ps.PSID+"-app-common.yml")
+		actualPath := filepath.Join(rootDir, "deployments", ps.PSID, "config", ps.PSID+"-app-framework-common.yml")
 
 		actual, err := os.ReadFile(actualPath)
 		if err != nil {

@@ -6,10 +6,10 @@
 //   - compose.yml
 //   - secrets/ directory
 //   - config/ directory with 4 config files:
-//   - {PS-ID}-app-common.yml
-//   - {PS-ID}-app-sqlite-1.yml
-//   - {PS-ID}-app-postgresql-1.yml
-//   - {PS-ID}-app-postgresql-2.yml
+//   - {PS-ID}-app-framework-common.yml
+//   - {PS-ID}-app-framework-sqlite-1.yml
+//   - {PS-ID}-app-framework-postgresql-1.yml
+//   - {PS-ID}-app-framework-postgresql-2.yml
 //
 // This check prevents deployment drift: if a service is added to the registry
 // but its deployment files are incomplete, the check fails.
@@ -81,10 +81,10 @@ func checkDeploymentDir(rootDir, psID string) []string {
 
 	// 5. 4 required config files under config/
 	configFiles := []string{
-		psID + "-app-common.yml",
-		psID + "-app-sqlite-1.yml",
-		psID + "-app-postgresql-1.yml",
-		psID + "-app-postgresql-2.yml",
+		psID + "-app-framework-common.yml",
+		psID + "-app-framework-sqlite-1.yml",
+		psID + "-app-framework-postgresql-1.yml",
+		psID + "-app-framework-postgresql-2.yml",
 	}
 
 	for _, cfgFile := range configFiles {

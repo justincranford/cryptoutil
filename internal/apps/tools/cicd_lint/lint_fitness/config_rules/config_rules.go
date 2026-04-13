@@ -315,7 +315,7 @@ func checkCommonCompleteInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir st
 	var errs []string
 
 	for _, ps := range cryptoutilRegistry.AllProductServices() {
-		f := filepath.Join(rootDir, "deployments", ps.PSID, "config", ps.PSID+"-app-common.yml")
+		f := filepath.Join(rootDir, "deployments", ps.PSID, "config", ps.PSID+"-app-framework-common.yml")
 
 		if violations := checkCommonKeys(f); len(violations) > 0 {
 			relPath, _ := filepath.Rel(rootDir, f)

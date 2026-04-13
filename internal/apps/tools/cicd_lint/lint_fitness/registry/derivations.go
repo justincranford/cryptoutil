@@ -62,20 +62,20 @@ const ComposeVariantPostgres1 = "postgresql-1"
 const ComposeVariantPostgres2 = "postgresql-2"
 
 // DeploymentConfigSuffixSQLite1 is the deployment config file suffix for the SQLite instance 1 overlay.
-// File: {psid}-app-sqlite-1.yml → OTLP suffix: ComposeVariantSQLite1.
-const DeploymentConfigSuffixSQLite1 = "-app-sqlite-1.yml"
+// File: {psid}-app-framework-sqlite-1.yml → OTLP suffix: ComposeVariantSQLite1.
+const DeploymentConfigSuffixSQLite1 = "-app-framework-sqlite-1.yml"
 
 // DeploymentConfigSuffixSQLite2 is the deployment config file suffix for the SQLite instance 2 overlay.
-// File: {psid}-app-sqlite-2.yml → OTLP suffix: ComposeVariantSQLite2.
-const DeploymentConfigSuffixSQLite2 = "-app-sqlite-2.yml"
+// File: {psid}-app-framework-sqlite-2.yml → OTLP suffix: ComposeVariantSQLite2.
+const DeploymentConfigSuffixSQLite2 = "-app-framework-sqlite-2.yml"
 
 // DeploymentConfigSuffixPostgresql1 is the deployment config file suffix for the PostgreSQL instance 1 overlay.
-// File: {psid}-app-postgresql-1.yml → OTLP suffix: ComposeVariantPostgres1.
-const DeploymentConfigSuffixPostgresql1 = "-app-postgresql-1.yml"
+// File: {psid}-app-framework-postgresql-1.yml → OTLP suffix: ComposeVariantPostgres1.
+const DeploymentConfigSuffixPostgresql1 = "-app-framework-postgresql-1.yml"
 
 // DeploymentConfigSuffixPostgresql2 is the deployment config file suffix for the PostgreSQL instance 2 overlay.
-// File: {psid}-app-postgresql-2.yml → OTLP suffix: ComposeVariantPostgres2.
-const DeploymentConfigSuffixPostgresql2 = "-app-postgresql-2.yml"
+// File: {psid}-app-framework-postgresql-2.yml → OTLP suffix: ComposeVariantPostgres2.
+const DeploymentConfigSuffixPostgresql2 = "-app-framework-postgresql-2.yml"
 
 // -----------------------------------------------------------------------
 // Port derivation functions (Task 3.1)

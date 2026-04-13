@@ -5,10 +5,10 @@
 // deployments/{PS-ID}/config/.
 //
 // Required files per allowlist PS (PS-ID-prefixed):
-//   - {PS-ID}-app-common.yml
-//   - {PS-ID}-app-sqlite-1.yml
-//   - {PS-ID}-app-postgresql-1.yml
-//   - {PS-ID}-app-postgresql-2.yml
+//   - {PS-ID}-app-framework-common.yml
+//   - {PS-ID}-app-framework-sqlite-1.yml
+//   - {PS-ID}-app-framework-postgresql-1.yml
+//   - {PS-ID}-app-framework-postgresql-2.yml
 //
 // Only sm-im and sm-kms are in the allowlist.
 // Other product-services do not use the standardized standalone config layout.
@@ -27,10 +27,10 @@ import (
 
 // configFileSuffixes lists the suffixes appended to the PS-ID to form the required config filenames.
 var configFileSuffixes = []string{
-	"-app-common.yml",
-	"-app-sqlite-1.yml",
-	"-app-postgresql-1.yml",
-	"-app-postgresql-2.yml",
+	"-app-framework-common.yml",
+	"-app-framework-sqlite-1.yml",
+	"-app-framework-postgresql-1.yml",
+	"-app-framework-postgresql-2.yml",
 }
 
 // configAllowlist is the set of PS IDs that must have the required config files.

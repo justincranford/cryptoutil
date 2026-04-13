@@ -1,5 +1,5 @@
-# __PS_ID__ Framework Common Configuration
-# Shared framework settings across all __PS_ID__ deployment instances.
+# identity-authz Framework Common Configuration
+# Shared framework settings across all identity-authz deployment instances.
 
 # Binding address — 0.0.0.0 allows connections from Docker network.
 bind-public-address: "0.0.0.0"

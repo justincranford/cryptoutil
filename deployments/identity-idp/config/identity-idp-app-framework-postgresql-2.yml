@@ -1,0 +1,10 @@
+# identity-idp Framework PostgreSQL Instance 2 Configuration
+# Framework settings UNIQUE to the 'identity-idp-app-postgresql-2' compose service.
+
+cors-origins:
+  - "https://localhost:8503"
+  - "https://127.0.0.1:8503"
+  - "https://[::1]:8503"
+
+otlp-service: identity-idp-postgresql-2
+otlp-hostname: identity-idp-postgresql-2

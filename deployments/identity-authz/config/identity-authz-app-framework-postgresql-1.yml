@@ -1,0 +1,10 @@
+# identity-authz Framework PostgreSQL Instance 1 Configuration
+# Framework settings UNIQUE to the 'identity-authz-app-postgresql-1' compose service.
+
+cors-origins:
+  - "https://localhost:8402"
+  - "https://127.0.0.1:8402"
+  - "https://[::1]:8402"
+
+otlp-service: identity-authz-postgresql-1
+otlp-hostname: identity-authz-postgresql-1
