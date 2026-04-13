@@ -18,6 +18,8 @@ type Product struct {
 	InternalAppsDir string
 	// CmdDir is the sub-path under cmd/ (e.g. "sm/").
 	CmdDir string
+	// InitPSID is the PS-ID used for pki-init at product level (e.g. "sm-kms").
+	InitPSID string
 }
 
 // ProductService represents a product-service pair (e.g. "sm-kms").
@@ -45,6 +47,8 @@ type Suite struct {
 	DisplayName string
 	// CmdDir is the sub-path under cmd/ (e.g. "cryptoutil/").
 	CmdDir string
+	// InitPSID is the PS-ID used for pki-init at suite level (e.g. "sm-kms").
+	InitPSID string
 }
 
 // allRegistryFile holds the parsed registry YAML loaded once at init time.

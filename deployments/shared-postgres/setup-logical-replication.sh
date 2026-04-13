@@ -97,9 +97,7 @@ CREATE SUBSCRIPTION product_sm_im_sub
     CONNECTION 'host=$LEADER_HOST port=$LEADER_PORT user=$LEADER_USER password=$(cat /run/secrets/postgres-password.secret) dbname=productdeployment-sm-im'
     PUBLICATION product_sm_im_pub
     WITH (copy_data = true, create_slot = true, enabled = true, slot_name = 'product_sm_im_slot');
-EOF
 
-psql -h localhost -U "$LEADER_USER" -d sm <<EOF
 CREATE SUBSCRIPTION product_sm_kms_sub
     CONNECTION 'host=$LEADER_HOST port=$LEADER_PORT user=$LEADER_USER password=$(cat /run/secrets/postgres-password.secret) dbname=productdeployment-sm-kms'
     PUBLICATION product_sm_kms_pub
@@ -141,7 +139,6 @@ CREATE SUBSCRIPTION product_skeleton_template_sub
 EOF
 
 # Service-level subscriptions (10 service databases)
-# Note: Simplified example - expand similarly for all 10 services
 psql -h localhost -U "$LEADER_USER" -d "pki-ca" <<EOF
 CREATE SUBSCRIPTION service_pki_ca_sub
     CONNECTION 'host=$LEADER_HOST port=$LEADER_PORT user=$LEADER_USER password=$(cat /run/secrets/postgres-password.secret) dbname=servicedeployment-pki-ca'
@@ -149,6 +146,67 @@ CREATE SUBSCRIPTION service_pki_ca_sub
     WITH (copy_data = true, create_slot = true, enabled = true, slot_name = 'service_pki_ca_slot');
 EOF
 
-# Add remaining service subscriptions (jose-ja, sm-im, sm-kms, identity-*, skeleton-template, etc.)
+psql -h localhost -U "$LEADER_USER" -d "jose-ja" <<EOF
+CREATE SUBSCRIPTION service_jose_ja_sub
+    CONNECTION 'host=$LEADER_HOST port=$LEADER_PORT user=$LEADER_USER password=$(cat /run/secrets/postgres-password.secret) dbname=servicedeployment-jose-ja'
+    PUBLICATION service_jose_ja_pub
+    WITH (copy_data = true, create_slot = true, enabled = true, slot_name = 'service_jose_ja_slot');
+EOF
+
+psql -h localhost -U "$LEADER_USER" -d "sm-im" <<EOF
+CREATE SUBSCRIPTION service_sm_im_sub
+    CONNECTION 'host=$LEADER_HOST port=$LEADER_PORT user=$LEADER_USER password=$(cat /run/secrets/postgres-password.secret) dbname=servicedeployment-sm-im'
+    PUBLICATION service_sm_im_pub
+    WITH (copy_data = true, create_slot = true, enabled = true, slot_name = 'service_sm_im_slot');
+EOF
+
+psql -h localhost -U "$LEADER_USER" -d "sm-kms" <<EOF
+CREATE SUBSCRIPTION service_sm_kms_sub
+    CONNECTION 'host=$LEADER_HOST port=$LEADER_PORT user=$LEADER_USER password=$(cat /run/secrets/postgres-password.secret) dbname=servicedeployment-sm-kms'
+    PUBLICATION service_sm_kms_pub
+    WITH (copy_data = true, create_slot = true, enabled = true, slot_name = 'service_sm_kms_slot');
+EOF
+
+psql -h localhost -U "$LEADER_USER" -d "identity-authz" <<EOF
+CREATE SUBSCRIPTION service_identity_authz_sub
+    CONNECTION 'host=$LEADER_HOST port=$LEADER_PORT user=$LEADER_USER password=$(cat /run/secrets/postgres-password.secret) dbname=servicedeployment-identity-authz'
+    PUBLICATION service_identity_authz_pub
+    WITH (copy_data = true, create_slot = true, enabled = true, slot_name = 'service_identity_authz_slot');
+EOF
+
+psql -h localhost -U "$LEADER_USER" -d "identity-idp" <<EOF
+CREATE SUBSCRIPTION service_identity_idp_sub
+    CONNECTION 'host=$LEADER_HOST port=$LEADER_PORT user=$LEADER_USER password=$(cat /run/secrets/postgres-password.secret) dbname=servicedeployment-identity-idp'
+    PUBLICATION service_identity_idp_pub
+    WITH (copy_data = true, create_slot = true, enabled = true, slot_name = 'service_identity_idp_slot');
+EOF
+
+psql -h localhost -U "$LEADER_USER" -d "identity-rs" <<EOF
+CREATE SUBSCRIPTION service_identity_rs_sub
+    CONNECTION 'host=$LEADER_HOST port=$LEADER_PORT user=$LEADER_USER password=$(cat /run/secrets/postgres-password.secret) dbname=servicedeployment-identity-rs'
+    PUBLICATION service_identity_rs_pub
+    WITH (copy_data = true, create_slot = true, enabled = true, slot_name = 'service_identity_rs_slot');
+EOF
+
+psql -h localhost -U "$LEADER_USER" -d "identity-rp" <<EOF
+CREATE SUBSCRIPTION service_identity_rp_sub
+    CONNECTION 'host=$LEADER_HOST port=$LEADER_PORT user=$LEADER_USER password=$(cat /run/secrets/postgres-password.secret) dbname=servicedeployment-identity-rp'
+    PUBLICATION service_identity_rp_pub
+    WITH (copy_data = true, create_slot = true, enabled = true, slot_name = 'service_identity_rp_slot');
+EOF
+
+psql -h localhost -U "$LEADER_USER" -d "identity-spa" <<EOF
+CREATE SUBSCRIPTION service_identity_spa_sub
+    CONNECTION 'host=$LEADER_HOST port=$LEADER_PORT user=$LEADER_USER password=$(cat /run/secrets/postgres-password.secret) dbname=servicedeployment-identity-spa'
+    PUBLICATION service_identity_spa_pub
+    WITH (copy_data = true, create_slot = true, enabled = true, slot_name = 'service_identity_spa_slot');
+EOF
+
+psql -h localhost -U "$LEADER_USER" -d "skeleton-template" <<EOF
+CREATE SUBSCRIPTION service_skeleton_template_sub
+    CONNECTION 'host=$LEADER_HOST port=$LEADER_PORT user=$LEADER_USER password=$(cat /run/secrets/postgres-password.secret) dbname=servicedeployment-skeleton-template'
+    PUBLICATION service_skeleton_template_pub
+    WITH (copy_data = true, create_slot = true, enabled = true, slot_name = 'service_skeleton_template_slot');
+EOF
 
 echo "Logical replication setup complete"

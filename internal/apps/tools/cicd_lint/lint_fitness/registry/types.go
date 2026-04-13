@@ -21,6 +21,8 @@ type RegistrySuite struct {
 	DisplayName string `yaml:"display_name"`
 	// CmdDir is the sub-path under cmd/ (e.g. "cryptoutil/").
 	CmdDir string `yaml:"cmd_dir"`
+	// InitPSID is the PS-ID used for pki-init at suite level (e.g. "sm-kms").
+	InitPSID string `yaml:"init_ps_id"`
 }
 
 // RegistryProduct is a single product entry in registry.yaml.
@@ -33,6 +35,8 @@ type RegistryProduct struct {
 	InternalAppsDir string `yaml:"internal_apps_dir"`
 	// CmdDir is the sub-path under cmd/ (e.g. "sm/").
 	CmdDir string `yaml:"cmd_dir"`
+	// InitPSID is the PS-ID used for pki-init at product level (e.g. "sm-kms").
+	InitPSID string `yaml:"init_ps_id"`
 }
 
 // RegistryProductService is a single product-service entry in registry.yaml.

@@ -278,3 +278,81 @@ func PortRangeEnd(psID string) int {
 
 	return 0
 }
+
+// -----------------------------------------------------------------------
+// Product/Suite accessor functions for template expansion (Task 2.1)
+// -----------------------------------------------------------------------
+
+// PSIDsForProduct returns all PS-IDs belonging to the given product ID.
+// Returns nil if the product is not found.
+func PSIDsForProduct(productID string) []string {
+	var psIDs []string
+
+	for _, ps := range allProductServices {
+		if ps.Product == productID {
+			psIDs = append(psIDs, ps.PSID)
+		}
+	}
+
+	return psIDs
+}
+
+// ProductForPSID returns the product ID that owns the given PS-ID.
+// Returns empty string if not found.
+func ProductForPSID(psID string) string {
+	for _, ps := range allProductServices {
+		if ps.PSID == psID {
+			return ps.Product
+		}
+	}
+
+	return ""
+}
+
+// ProductInitPSID returns the init PS-ID for the given product.
+// Returns empty string if the product is not found.
+func ProductInitPSID(productID string) string {
+	for _, p := range allProducts {
+		if p.ID == productID {
+			return p.InitPSID
+		}
+	}
+
+	return ""
+}
+
+// SuiteInitPSID returns the init PS-ID for the given suite.
+// Returns empty string if the suite is not found.
+func SuiteInitPSID(suiteID string) string {
+	for _, s := range allSuites {
+		if s.ID == suiteID {
+			return s.InitPSID
+		}
+	}
+
+	return ""
+}
+
+// SuiteDisplayName returns the human-readable display name for the given suite ID.
+// Returns empty string if not found.
+func SuiteDisplayName(suiteID string) string {
+	for _, s := range allSuites {
+		if s.ID == suiteID {
+			return s.DisplayName
+		}
+	}
+
+	return ""
+}
+
+// ProductDisplayNameByID returns the human-readable display name for the given product ID.
+// Returns empty string if not found.
+func ProductDisplayNameByID(productID string) string {
+	for _, p := range allProducts {
+		if p.ID == productID {
+			return p.DisplayName
+		}
+	}
+
+	return ""
+}

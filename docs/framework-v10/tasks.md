@@ -1,6 +1,6 @@
 # Tasks — Framework v10: Canonical Template Registry
 
-**Status**: 0 of 33 tasks complete (0%)
+**Status**: 16 of 33 tasks complete (48%)
 **Created**: 2026-04-12
 **Last Updated**: 2026-04-13
 
@@ -263,7 +263,8 @@ Delete the obsolete `template_drift/templates/` directory.
 
 ### Task 1.8: Fix actual deployment files to match quizme-v1/v2/v3 decisions
 
-- **Status**: ❌
+- **Status**: ✅
+- **Actual**: 4h
 - **Estimated**: 2.5h
 - **Dependencies**: Tasks 1.3, 1.4, 1.5, 1.15, 1.16, 1.17 (template content and code fixes finalized)
 - **Description**: Update actual deployment files on disk to match all decisions from

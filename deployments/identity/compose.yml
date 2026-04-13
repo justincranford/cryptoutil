@@ -1,46 +1,16 @@
 # $schema: https://raw.githubusercontent.com/compose-spec/compose-spec/master/schema/compose-spec.json
 #
-# Identity Product Docker Compose Configuration
+# IDENTITY Product Docker Compose Configuration
 #
-# PRODUCT-level deployment for Identity product (5 services: authz, idp, rs, rp, spa).
-# Recursive includes: all 5 identity PS-IDs (which include shared-postgres and shared-telemetry).
+# PRODUCT-level deployment for Identity.
+# Recursive includes: IDENTITY product (5 services: authz, idp, rs, rp, spa) (which include shared-postgres and shared-telemetry).
 #
-# Port allocation (PRODUCT level: SERVICE + 10000):
-#   identity-authz (SERVICE 8400-8403):
-#   - identity-authz-app-sqlite-1:      18400
-#   - identity-authz-app-sqlite-2:      18401
-#   - identity-authz-app-postgresql-1:  18402
-#   - identity-authz-app-postgresql-2:  18403
-#   identity-idp (SERVICE 8500-8503):
-#   - identity-idp-app-sqlite-1:        18500
-#   - identity-idp-app-sqlite-2:        18501
-#   - identity-idp-app-postgresql-1:    18502
-#   - identity-idp-app-postgresql-2:    18503
-#   identity-rs (SERVICE 8600-8603):
-#   - identity-rs-app-sqlite-1:         18600
-#   - identity-rs-app-sqlite-2:         18601
-#   - identity-rs-app-postgresql-1:     18602
-#   - identity-rs-app-postgresql-2:     18603
-#   identity-rp (SERVICE 8700-8703):
-#   - identity-rp-app-sqlite-1:         18700
-#   - identity-rp-app-sqlite-2:         18701
-#   - identity-rp-app-postgresql-1:     18702
-#   - identity-rp-app-postgresql-2:     18703
-#   identity-spa (SERVICE 8800-8803):
-#   - identity-spa-app-sqlite-1:        18800
-#   - identity-spa-app-sqlite-2:        18801
-#   - identity-spa-app-postgresql-1:    18802
-#   - identity-spa-app-postgresql-2:    18803
+# Port allocation (PRODUCT level: SERVICE + 10000).
 #
 # Usage:
 #   docker compose -f compose.yml up -d
 #   docker compose -f compose.yml logs -f
 #   docker compose -f compose.yml down -v
-#
-# Health Checks:
-#   - identity-authz: https://localhost:18400/browser/api/v1/health
-#   - identity-idp:   https://localhost:18500/browser/api/v1/health
-#   - Admin:          https://127.0.0.1:9090/admin/api/v1/livez (container-internal only)
 #
 
 include:
@@ -146,7 +116,9 @@ services:
 
 secrets:
   # PRODUCT-level secrets override PS-ID secrets (paths resolve relative to this file).
-  # CRITICAL: ALL identity instances MUST use the SAME unseal secrets.
+  # CRITICAL: ALL IDENTITY instances MUST use the SAME unseal secrets
+  # to enable shared encryption/decryption of data in the database.
+  # NEVER create instance-specific or PS-ID-specific secrets.
   unseal-1of5.secret:
     file: ./secrets/unseal-1of5.secret # pragma: allowlist secret
   unseal-2of5.secret:

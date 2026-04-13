@@ -1,5 +1,5 @@
 # __PS_ID__ Framework PostgreSQL Instance 2 Configuration
-# Settings UNIQUE to the '__PS_ID__-app-postgresql-2' compose service.
+# Framework settings UNIQUE to the '__PS_ID__-app-postgresql-2' compose service.
 
 cors-origins:
   - "https://localhost:__SERVICE_APP_PORT_PG_2__"

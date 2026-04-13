@@ -24,21 +24,8 @@ type PortValidationResult struct {
 	Warnings []string
 }
 
-// Port range constants per deployment level.
-//
-// SERVICE level:  8000-8999  (isolated service deployment).
-// PRODUCT level: 18000-18999 (isolated product deployment, SERVICE + 10000).
-// SUITE level:   28000-28999 (full suite deployment, SERVICE + 20000).
-//
+// Port ranges follow SERVICE/PRODUCT/SUITE deployment level conventions.
 // See ENG-HANDBOOK.md Section 3.4 Port Assignments & Networking.
-const (
-	servicePortMin = cryptoutilSharedMagic.ServiceTierPortMin
-	servicePortMax = 8999
-	productPortMin = 18000
-	productPortMax = 18999
-	suitePortMin   = 28000
-	suitePortMax   = 28999
-)
 
 // ValidatePorts validates that ports in compose and config files follow the
 // SERVICE/PRODUCT/SUITE deployment level pattern.
@@ -183,12 +170,12 @@ func validateConfigPortValue(config map[string]any, configPath, deploymentName, 
 func getPortRange(deploymentLevel string) (int, int) {
 	switch deploymentLevel {
 	case DeploymentTypeProduct:
-		return productPortMin, productPortMax
+		return cryptoutilSharedMagic.ProductTierPortMin, cryptoutilSharedMagic.ProductTierPortMax
 	case DeploymentTypeSuite:
-		return suitePortMin, suitePortMax
+		return cryptoutilSharedMagic.SuiteTierPortMin, cryptoutilSharedMagic.SuiteTierPortMax
 	default:
 		// PRODUCT-SERVICE and any unknown level default to SERVICE range.
-		return cryptoutilSharedMagic.KMSServicePort, servicePortMax
+		return cryptoutilSharedMagic.ServiceTierPortMin, cryptoutilSharedMagic.ServiceTierPortMax
 	}
 }
 

@@ -332,6 +332,14 @@ sub_linters:
     description: Validates naming conventions for secret files within deployments/ directories.
     category: security
 
+  - name: secrets-compliance
+    directory: secrets_compliance
+    description: >-
+      Validates that all deployment secrets directories contain the expected set of
+      secret files per Decision 14 template structure: 14 files for PS-ID level,
+      15 files (with .secret.never markers) for product/suite levels.
+    category: security
+
   - name: service-contract-compliance
     directory: service_contract_compliance
     description: Validates that services implement their declared interface contracts.
@@ -357,11 +365,12 @@ sub_linters:
     description: Validates that skeleton template files are consistent across all service instances.
     category: architecture
 
-  - name: template-drift
+  - name: template-compliance
     directory: template_drift
     description: >-
-      Verifies all PS-ID deployment artifacts (Dockerfiles, compose files, config overlays,
-      standalone configs) match their canonical templates after placeholder substitution.
+      Verifies all deployment artifacts (Dockerfiles, compose files, config overlays,
+      standalone configs, secrets) match their canonical templates from
+      api/cryptosuite-registry/templates/ after placeholder expansion.
     category: architecture
 
   - name: test-patterns

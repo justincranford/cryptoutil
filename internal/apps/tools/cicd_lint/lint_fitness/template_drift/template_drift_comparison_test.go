@@ -5,9 +5,9 @@ package template_drift
 import (
 	"testing"
 
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
-
 	"github.com/stretchr/testify/require"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 func TestNormalizeLineEndings(t *testing.T) {
@@ -215,50 +215,78 @@ func TestCompareSupersetOrdered_DiffContent(t *testing.T) {
 	require.Contains(t, diff, "b")
 }
 
-func TestBuildParams(t *testing.T) {
+func TestCompareBase64Placeholder(t *testing.T) {
 	t.Parallel()
 
-	params := buildParams(cryptoutilSharedMagic.OTLPServiceJoseJA)
-	require.Equal(t, cryptoutilSharedMagic.OTLPServiceJoseJA, params["__PS_ID__"])
-	require.Equal(t, "JOSE-JA", params["__PS_ID_UPPER__"])
-	require.Equal(t, cryptoutilSharedMagic.DefaultOTLPServiceDefault, params["__SUITE__"])
-	require.Equal(t, "1.26.1", params["__GO_VERSION__"])
-	require.Equal(t, "65532", params["__CONTAINER_UID__"])
-	require.Equal(t, "65532", params["__CONTAINER_GID__"])
-	require.NotEmpty(t, params["__PRODUCT_DISPLAY_NAME__"])
-	require.NotEmpty(t, params["__SERVICE_DISPLAY_NAME__"])
-	require.NotEmpty(t, params["__SERVICE_APP_PORT_BASE__"])
-}
+	longB64 := testBase64String // 47 chars
 
-func TestBuildInstanceParams(t *testing.T) {
-	t.Parallel()
+	tests := []struct {
+		name     string
+		expected string
+		actual   string
+		wantDiff bool
+	}{
+		{
+			name:     "valid replacement",
+			expected: "prefix-BASE64_CHAR43-suffix",
+			actual:   "prefix-" + longB64 + "-suffix",
+			wantDiff: false,
+		},
+		{
+			name:     "too short replacement",
+			expected: "prefix-BASE64_CHAR43-suffix",
+			actual:   "prefix-SHORT-suffix",
+			wantDiff: true,
+		},
+		{
+			name:     "missing fixed segment",
+			expected: "prefix-BASE64_CHAR43-suffix",
+			actual:   "wrong-" + longB64 + "-suffix",
+			wantDiff: true,
+		},
+		{
+			name:     "multiple placeholders",
+			expected: "a-BASE64_CHAR43-b-BASE64_CHAR43-c",
+			actual:   "a-" + longB64 + "-b-" + longB64 + "-c",
+			wantDiff: false,
+		},
+		{
+			name:     "no placeholder exact match",
+			expected: "no placeholder",
+			actual:   "no placeholder",
+			wantDiff: false,
+		},
+		{
+			name:     "no placeholder mismatch",
+			expected: "expected",
+			actual:   "actual",
+			wantDiff: true,
+		},
+		{
+			name:     "exactly 43 chars",
+			expected: "x-BASE64_CHAR43-y",
+			actual:   "x-" + longB64[:cryptoutilSharedMagic.DefaultCodeChallengeLength] + "-y",
+			wantDiff: false,
+		},
+		{
+			name:     "42 chars too short",
+			expected: "x-BASE64_CHAR43-y",
+			actual:   "x-" + longB64[:cryptoutilSharedMagic.AnswerToLifeUniverseEverything] + "-y",
+			wantDiff: true,
+		},
+	}
 
-	params := buildInstanceParams(cryptoutilSharedMagic.OTLPServiceSMKMS, 1, int(cryptoutilSharedMagic.DefaultPublicPortCryptoutil))
-	require.Equal(t, cryptoutilSharedMagic.OTLPServiceSMKMS, params["__PS_ID__"])
-	require.Equal(t, "1", params["__INSTANCE_NUM__"])
-	require.Equal(t, "8000", params["__SERVICE_APP_PORT__"])
-	// Should also contain all base params.
-	require.Equal(t, "SM-KMS", params["__PS_ID_UPPER__"])
-}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 
-func TestInstantiate(t *testing.T) {
-	t.Parallel()
+			diff := compareBase64Placeholder(tt.expected, tt.actual)
 
-	t.Run("valid template", func(t *testing.T) {
-		t.Parallel()
-
-		params := buildParams(cryptoutilSharedMagic.OTLPServiceJoseJA)
-		result, err := instantiate("Dockerfile.tmpl", params)
-		require.NoError(t, err)
-		require.Contains(t, result, cryptoutilSharedMagic.OTLPServiceJoseJA)
-		require.NotContains(t, result, "__PS_ID__")
-	})
-
-	t.Run("nonexistent template", func(t *testing.T) {
-		t.Parallel()
-
-		_, err := instantiate("nonexistent.tmpl", map[string]string{})
-		require.Error(t, err)
-		require.Contains(t, err.Error(), "read template")
-	})
+			if tt.wantDiff {
+				require.NotEmpty(t, diff, "expected diff but got none")
+			} else {
+				require.Empty(t, diff, "expected no diff but got: %s", diff)
+			}
+		})
+	}
 }

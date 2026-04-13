@@ -25,21 +25,21 @@ func TestValidatePorts_ExactBoundaryPorts(t *testing.T) {
 		valid bool
 	}{
 		// Service range [8000-8999]: exact min and max are valid.
-		{name: "service exact min", port: servicePortMin, level: DeploymentTypeProductService, valid: true},
-		{name: "service exact max", port: servicePortMax, level: DeploymentTypeProductService, valid: true},
+		{name: "service exact min", port: cryptoutilSharedMagic.ServiceTierPortMin, level: DeploymentTypeProductService, valid: true},
+		{name: "service exact max", port: cryptoutilSharedMagic.ServiceTierPortMax, level: DeploymentTypeProductService, valid: true},
 		// One below min and one above max are invalid.
-		{name: "service below min", port: servicePortMin - 1, level: DeploymentTypeProductService, valid: false},
-		{name: "service above max", port: servicePortMax + 1, level: DeploymentTypeProductService, valid: false},
+		{name: "service below min", port: cryptoutilSharedMagic.ServiceTierPortMin - 1, level: DeploymentTypeProductService, valid: false},
+		{name: "service above max", port: cryptoutilSharedMagic.ServiceTierPortMax + 1, level: DeploymentTypeProductService, valid: false},
 		// Product range [18000-18999]: exact boundaries.
-		{name: "product exact min", port: productPortMin, level: DeploymentTypeProduct, valid: true},
-		{name: "product exact max", port: productPortMax, level: DeploymentTypeProduct, valid: true},
-		{name: "product below min", port: productPortMin - 1, level: DeploymentTypeProduct, valid: false},
-		{name: "product above max", port: productPortMax + 1, level: DeploymentTypeProduct, valid: false},
+		{name: "product exact min", port: cryptoutilSharedMagic.ProductTierPortMin, level: DeploymentTypeProduct, valid: true},
+		{name: "product exact max", port: cryptoutilSharedMagic.ProductTierPortMax, level: DeploymentTypeProduct, valid: true},
+		{name: "product below min", port: cryptoutilSharedMagic.ProductTierPortMin - 1, level: DeploymentTypeProduct, valid: false},
+		{name: "product above max", port: cryptoutilSharedMagic.ProductTierPortMax + 1, level: DeploymentTypeProduct, valid: false},
 		// Suite range [28000-28999]: exact boundaries.
-		{name: "suite exact min", port: suitePortMin, level: DeploymentTypeSuite, valid: true},
-		{name: "suite exact max", port: suitePortMax, level: DeploymentTypeSuite, valid: true},
-		{name: "suite below min", port: suitePortMin - 1, level: DeploymentTypeSuite, valid: false},
-		{name: "suite above max", port: suitePortMax + 1, level: DeploymentTypeSuite, valid: false},
+		{name: "suite exact min", port: cryptoutilSharedMagic.SuiteTierPortMin, level: DeploymentTypeSuite, valid: true},
+		{name: "suite exact max", port: cryptoutilSharedMagic.SuiteTierPortMax, level: DeploymentTypeSuite, valid: true},
+		{name: "suite below min", port: cryptoutilSharedMagic.SuiteTierPortMin - 1, level: DeploymentTypeSuite, valid: false},
+		{name: "suite above max", port: cryptoutilSharedMagic.SuiteTierPortMax + 1, level: DeploymentTypeSuite, valid: false},
 	}
 
 	for _, tc := range tests {
@@ -68,10 +68,10 @@ func TestValidateConfigPortValue_ExactBoundary(t *testing.T) {
 		level string
 		valid bool
 	}{
-		{name: "service exact min", port: servicePortMin, level: DeploymentTypeProductService, valid: true},
-		{name: "service exact max", port: servicePortMax, level: DeploymentTypeProductService, valid: true},
-		{name: "service below min", port: servicePortMin - 1, level: DeploymentTypeProductService, valid: false},
-		{name: "service above max", port: servicePortMax + 1, level: DeploymentTypeProductService, valid: false},
+		{name: "service exact min", port: cryptoutilSharedMagic.ServiceTierPortMin, level: DeploymentTypeProductService, valid: true},
+		{name: "service exact max", port: cryptoutilSharedMagic.ServiceTierPortMax, level: DeploymentTypeProductService, valid: true},
+		{name: "service below min", port: cryptoutilSharedMagic.ServiceTierPortMin - 1, level: DeploymentTypeProductService, valid: false},
+		{name: "service above max", port: cryptoutilSharedMagic.ServiceTierPortMax + 1, level: DeploymentTypeProductService, valid: false},
 	}
 
 	for _, tc := range tests {

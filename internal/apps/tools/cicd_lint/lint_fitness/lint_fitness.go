@@ -70,6 +70,7 @@ import (
 	lintFitnessRootJunkDetection "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/root_junk_detection"
 	lintFitnessSecretContent "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/secret_content"
 	lintFitnessSecretNaming "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/secret_naming"
+	lintFitnessSecretsCompliance "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/secrets_compliance"
 	lintFitnessServiceContractCompliance "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/service_contract_compliance"
 	lintFitnessServiceStructure "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/service_structure"
 	lintFitnessStandaloneConfigOTLPNames "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/standalone_config_otlp_names"
@@ -169,6 +170,7 @@ var registeredLinters = []struct {
 	{"dockerfile-labels", lintFitnessDockerfileLabels.Check},
 	{"secret-content", lintFitnessSecretContent.Check},
 	{"secret-naming", lintFitnessSecretNaming.Check},
+	{"secrets-compliance", lintFitnessSecretsCompliance.Check},
 	{"unseal-secret-content", lintFitnessUnsealSecretContent.Check},
 	// New fitness checks (added in Phase 6 of framework-v7).
 	{"api-path-registry", lintFitnessAPIPathRegistry.Check},
@@ -180,13 +182,8 @@ var registeredLinters = []struct {
 	{"magic-constant-location", lintFitnessMagicConstantLocation.Check},
 	{"root-junk-detection", lintFitnessRootJunkDetection.Check},
 	{"template-consistency", lintFitnessTemplateConsistency.Check},
-	// New fitness checks (added in Phase 8 of framework-v9): template drift detection.
-	{"template-dockerfile", lintFitnessTemplateDrift.CheckDockerfile},
-	{"template-compose", lintFitnessTemplateDrift.CheckCompose},
-	{"template-config-common", lintFitnessTemplateDrift.CheckConfigCommon},
-	{"template-config-sqlite", lintFitnessTemplateDrift.CheckConfigSQLite},
-	{"template-config-postgresql", lintFitnessTemplateDrift.CheckConfigPostgreSQL},
-	{"template-standalone-config", lintFitnessTemplateDrift.CheckStandaloneConfig},
+	// New fitness checks (added in Phase 8 of framework-v9; rewritten in framework-v10).
+	{"template-compliance", lintFitnessTemplateDrift.CheckTemplateCompliance},
 	// New fitness checks (added in Phase 8 of framework-v9): supplementary config rules.
 	{"config-key-naming", lintFitnessConfigRules.CheckKeyNaming},
 	{"config-header-identity", lintFitnessConfigRules.CheckHeaderIdentity},

@@ -347,10 +347,10 @@ func TestGetPortRange(t *testing.T) {
 		wantMin int
 		wantMax int
 	}{
-		{name: "service", level: DeploymentTypeProductService, wantMin: servicePortMin, wantMax: servicePortMax},
-		{name: "product", level: DeploymentTypeProduct, wantMin: productPortMin, wantMax: productPortMax},
-		{name: "suite", level: DeploymentTypeSuite, wantMin: suitePortMin, wantMax: suitePortMax},
-		{name: "unknown defaults to service", level: "unknown", wantMin: servicePortMin, wantMax: servicePortMax},
+		{name: "service", level: DeploymentTypeProductService, wantMin: cryptoutilSharedMagic.ServiceTierPortMin, wantMax: cryptoutilSharedMagic.ServiceTierPortMax},
+		{name: "product", level: DeploymentTypeProduct, wantMin: cryptoutilSharedMagic.ProductTierPortMin, wantMax: cryptoutilSharedMagic.ProductTierPortMax},
+		{name: "suite", level: DeploymentTypeSuite, wantMin: cryptoutilSharedMagic.SuiteTierPortMin, wantMax: cryptoutilSharedMagic.SuiteTierPortMax},
+		{name: "unknown defaults to service", level: "unknown", wantMin: cryptoutilSharedMagic.ServiceTierPortMin, wantMax: cryptoutilSharedMagic.ServiceTierPortMax},
 	}
 
 	for _, tc := range tests {

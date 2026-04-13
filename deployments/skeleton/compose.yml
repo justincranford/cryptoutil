@@ -2,24 +2,15 @@
 #
 # SKELETON Product Docker Compose Configuration
 #
-# PRODUCT-level deployment for SKELETON product (1 service: template).
-# Recursive includes: skeleton-template (which includes shared-postgres and shared-telemetry).
+# PRODUCT-level deployment for Skeleton.
+# Recursive includes: SKELETON product (1 service: template) (which include shared-postgres and shared-telemetry).
 #
-# Port allocation (PRODUCT level: SERVICE + 10000):
-#   skeleton-template (SERVICE 8900-8903):
-#   - skeleton-template-app-sqlite-1:      18900
-#   - skeleton-template-app-sqlite-2:      18901
-#   - skeleton-template-app-postgresql-1:  18902
-#   - skeleton-template-app-postgresql-2:  18903
+# Port allocation (PRODUCT level: SERVICE + 10000).
 #
 # Usage:
 #   docker compose -f compose.yml up -d
 #   docker compose -f compose.yml logs -f
 #   docker compose -f compose.yml down -v
-#
-# Health Checks:
-#   - skeleton-template: https://localhost:18900/browser/api/v1/health
-#   - Admin:             https://127.0.0.1:9090/admin/api/v1/livez (container-internal only)
 #
 
 include:
@@ -27,7 +18,7 @@ include:
 
 services:
   # PRODUCT-level port overrides: SERVICE ports + 10000.
-  # Service definitions (image, command, volumes, secrets, depends_on) are inherited from PS-ID include.
+  # Service definitions (image, command, volumes, secrets, depends_on) are inherited from PS-ID includes.
 
   # PRODUCT-level PKI init (overrides PS-ID cert material).
   pki-init:
@@ -57,6 +48,9 @@ services:
 
 secrets:
   # PRODUCT-level secrets override PS-ID secrets (paths resolve relative to this file).
+  # CRITICAL: ALL SKELETON instances MUST use the SAME unseal secrets
+  # to enable shared encryption/decryption of data in the database.
+  # NEVER create instance-specific or PS-ID-specific secrets.
   unseal-1of5.secret:
     file: ./secrets/unseal-1of5.secret # pragma: allowlist secret
   unseal-2of5.secret:

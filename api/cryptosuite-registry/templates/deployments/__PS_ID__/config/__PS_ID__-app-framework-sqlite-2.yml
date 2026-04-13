@@ -1,5 +1,5 @@
 # __PS_ID__ Framework SQLite Instance 2 Configuration
-# Settings UNIQUE to the '__PS_ID__-app-sqlite-2' compose service.
+# Framework settings UNIQUE to the '__PS_ID__-app-sqlite-2' compose service.
 
 cors-origins:
   - "https://localhost:__SERVICE_APP_PORT_SQLITE_2__"
@@ -8,3 +8,5 @@ cors-origins:
 
 otlp-service: __PS_ID__-sqlite-2
 otlp-hostname: __PS_ID__-sqlite-2
+
+database-url: "sqlite://file::memory:?cache=shared"

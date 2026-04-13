@@ -2,30 +2,15 @@
 #
 # SM Product Docker Compose Configuration
 #
-# PRODUCT-level deployment for SM product (2 services: kms, im).
-# Recursive includes: sm-kms and sm-im (which include shared-postgres and shared-telemetry).
+# PRODUCT-level deployment for Secrets Manager.
+# Recursive includes: SM product (2 services: kms, im) (which include shared-postgres and shared-telemetry).
 #
-# Port allocation (PRODUCT level: SERVICE + 10000):
-#   sm-kms (SERVICE 8000-8003):
-#   - sm-kms-app-sqlite-1:      18000
-#   - sm-kms-app-sqlite-2:      18001
-#   - sm-kms-app-postgresql-1:  18002
-#   - sm-kms-app-postgresql-2:  18003
-#   sm-im (SERVICE 8100-8103):
-#   - sm-im-app-sqlite-1:       18100
-#   - sm-im-app-sqlite-2:       18101
-#   - sm-im-app-postgresql-1:   18102
-#   - sm-im-app-postgresql-2:   18103
+# Port allocation (PRODUCT level: SERVICE + 10000).
 #
 # Usage:
 #   docker compose -f compose.yml up -d
 #   docker compose -f compose.yml logs -f
 #   docker compose -f compose.yml down -v
-#
-# Health Checks:
-#   - sm-kms: https://localhost:18000/browser/api/v1/health
-#   - sm-im:  https://localhost:18100/browser/api/v1/health
-#   - Admin:  https://127.0.0.1:9090/admin/api/v1/livez (container-internal only)
 #
 
 include:

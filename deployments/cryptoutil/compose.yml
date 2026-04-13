@@ -4,23 +4,12 @@
 #
 # Purpose: Complete suite deployment with ALL 10 services across 5 products.
 # Deployment Level: SUITE (port range 28000-28999, SERVICE base + 20000 offset)
-# Each PS-ID has 4 instances: 2 SQLite (dev/ci profiles) + 2 PostgreSQL (postgres profile).
+# Each PS-ID has 4 instances: 2 SQLite + 2 PostgreSQL.
 #
 # Port formula: SUITE_PORT = SERVICE_BASE + 20000
-#   - sm-kms:             28000-28003  (SERVICE: 8000-8003)
-#   - sm-im:              28100-28103  (SERVICE: 8100-8103)
-#   - jose-ja:            28200-28203  (SERVICE: 8200-8203)
-#   - pki-ca:             28300-28303  (SERVICE: 8300-8303)
-#   - identity-authz:     28400-28403  (SERVICE: 8400-8403)
-#   - identity-idp:       28500-28503  (SERVICE: 8500-8503)
-#   - identity-rs:        28600-28603  (SERVICE: 8600-8603)
-#   - identity-rp:        28700-28703  (SERVICE: 8700-8703)
-#   - identity-spa:       28800-28803  (SERVICE: 8800-8803)
-#   - skeleton-template:  28900-28903  (SERVICE: 8900-8903)
 #
 # Usage:
 #   docker compose -f deployments/cryptoutil/compose.yml up -d
-#   docker compose -f deployments/cryptoutil/compose.yml logs -f
 #   docker compose -f deployments/cryptoutil/compose.yml down -v
 #
 # Architecture: Recursive includes + Approach C (!override) port substitution.
@@ -45,10 +34,6 @@ services:
     depends_on:
       builder-sm-kms:
         condition: service_completed_successfully
-  # --------------------------------------------------------------------------
-  # Port overrides: !override replaces the entire ports array from PS-ID composes.
-  # Container port is always 8080 (matching PS-ID service definition).
-  # --------------------------------------------------------------------------
 
   # SM-KMS: SERVICE 8000-8003 -> SUITE 28000-28003
   sm-kms-app-sqlite-1: {ports: !override ["28000:8080"]}
