@@ -1248,7 +1248,7 @@ All tiers (service, product, suite) use **identical `{purpose}.secret` filenames
 | PostgreSQL username | `postgres-username.secret` | `{PS_ID}_database_user` | `{PRODUCT}_database_user` | `{SUITE}_database_user` |
 | PostgreSQL password | `postgres-password.secret` | `{PS_ID}_database_pass-{base64-random-32-bytes}` | `{PRODUCT}_database_pass-{base64-random-32-bytes}` | `{SUITE}_database_pass-{base64-random-32-bytes}` |
 | PostgreSQL database | `postgres-database.secret` | `{PS_ID}_database` | `{PRODUCT}_database` | `{SUITE}_database` |
-| PostgreSQL URL | `postgres-url.secret` | `postgres://{PS_ID}_database_user:{password}@{PS-ID}-postgres:5432/{PS_ID}_database?sslmode=disable` | `...@{PRODUCT}-postgres:5432/...` | `...@{SUITE}-postgres:5432/...` |
+| PostgreSQL URL | `postgres-url.secret` | `postgres://{PS_ID}_database_user:{password}@shared-postgres-leader:5432/{PS_ID}_database?sslmode=disable` | `...@shared-postgres-leader:5432/...` | `...@shared-postgres-leader:5432/...` |
 | Unseal shard N | `unseal-{N}of5.secret` | `{PS-ID}-unseal-key-N-of-5-{base64-random-32-bytes}` | `{PRODUCT}-unseal-key-N-of-5-{base64-random-32-bytes}` | `{SUITE}-unseal-key-N-of-5-{base64-random-32-bytes}` |
 
 #### 4.4.7 CLI Patterns
@@ -4357,7 +4357,7 @@ See [Section 4.4.6](#446-deployments) for the complete secret file listing at ea
 | `postgres-username.secret` | `{PS_ID}_database_user` | `{PRODUCT}_database_user` | `{SUITE}_database_user` |
 | `postgres-password.secret` | `{PS_ID}_database_pass-{base64-random-32-bytes}` | `{PRODUCT}_database_pass-{base64-random-32-bytes}` | `{SUITE}_database_pass-{base64-random-32-bytes}` |
 | `postgres-database.secret` | `{PS_ID}_database` | `{PRODUCT}_database` | `{SUITE}_database` |
-| `postgres-url.secret` | `postgres://{PS_ID}_database_user:{password}@{PS-ID}-postgres:5432/{PS_ID}_database?sslmode=disable` | `...@{PRODUCT}-postgres:5432/...` | `...@{SUITE}-postgres:5432/...` |
+| `postgres-url.secret` | `postgres://{PS_ID}_database_user:{password}@shared-postgres-leader:5432/{PS_ID}_database?sslmode=disable` | `...@shared-postgres-leader:5432/...` | `...@shared-postgres-leader:5432/...` |
 | `unseal-{N}of5.secret` | `{PS-ID}-unseal-key-N-of-5-{base64-random-32-bytes}` | `{PRODUCT}-unseal-key-N-of-5-{base64-random-32-bytes}` | `{SUITE}-unseal-key-N-of-5-{base64-random-32-bytes}` |
 
 **Encoding Notation**: `{base64-random-32-bytes}` = base64 encoding of 32 cryptographically random bytes. `{password}` = the full `{PS_ID}_database_pass-{base64-random-32-bytes}` value from `postgres-password.secret`.
@@ -4415,7 +4415,7 @@ See [Section 4.4.6](#446-deployments) for the complete secret file listing at ea
 | `postgres-database.secret` | `{PREFIX_UNDERSCORE}_database` | Static |
 | `postgres-username.secret` | `{PREFIX_UNDERSCORE}_database_user` | Static |
 | `postgres-password.secret` | `{PREFIX_UNDERSCORE}_database_pass-{base64-random-32-bytes}` | `base64.urlsafe_b64encode(secrets.token_bytes(32)).rstrip(b'=')` |
-| `postgres-url.secret` | `postgres://{user}:{pass}@{PREFIX}-postgres:5432/{db}?sslmode=disable` | Composed from above |
+| `postgres-url.secret` | `postgres://{user}:{pass}@shared-postgres-leader:5432/{db}?sslmode=disable` | Composed from above |
 
 **Encoding Notation**: `{base64-random-32-bytes}` = base64 encoding of 32 cryptographically random bytes. `{PREFIX}` = deployment-specific prefix (PS-ID, PRODUCT, or SUITE). `{PREFIX_UNDERSCORE}` = prefix with hyphens replaced by underscores for PostgreSQL identifiers.
 

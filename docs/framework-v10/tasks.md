@@ -551,8 +551,9 @@ Delete the obsolete `template_drift/templates/` directory.
 
 ### Task 1.16: Fix stale postgres-url.secret hostnames (Decision 17)
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 0.5h
+- **Actual**: 0.25h
 - **Dependencies**: None
 - **Description**: Fix all stale `postgres-url.secret` values across all 10 PS-ID deployment
   secret directories. Some files reference per-PS-ID postgres hostnames (e.g.,
@@ -564,11 +565,12 @@ Delete the obsolete `template_drift/templates/` directory.
   - `docs/deployment-templates.md` compose examples
   - `docs/tls-structure.md` if it references postgres
 - **Acceptance Criteria**:
-  - [ ] All 10 `deployments/<ps-id>/secrets/postgres-url.secret` files use `shared-postgres-leader:5432`
-  - [ ] No stale per-PS-ID postgres hostnames in any secrets file
-  - [ ] Documentation references verified for correct hostname
+  - [x] All 10 `deployments/<ps-id>/secrets/postgres-url.secret` files use `shared-postgres-leader:5432`
+  - [x] No stale per-PS-ID postgres hostnames in any secrets file
+  - [x] Documentation references verified for correct hostname
 - **Files**:
-  - `deployments/*/secrets/postgres-url.secret` × 10 (MODIFY)
+  - `deployments/*/secrets/postgres-url.secret` × 16 (MODIFY — 10 PS-ID + 5 product + 1 suite)
+  - `docs/ENG-HANDBOOK.md` (MODIFY — 3 hostname references fixed)
 
 ### Task 1.17: Create domain deployment config files (Decision 16)
 
