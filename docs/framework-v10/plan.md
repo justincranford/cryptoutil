@@ -11,12 +11,17 @@ directory paths AND file contents. `cicd-lint` reads these files at runtime, loo
 PS-ID/product/suite combinations, generates an in-memory expected filesystem, and recursively
 compares it against the actual `./configs/` and `./deployments/` directories on disk.
 
-**PREREQUISITE — quizme-v1 MERGED, quizme-v2 MERGED, quizme-v3 PENDING**: quizme-v1 (10 questions)
+**PREREQUISITE — quizme-v1 MERGED, quizme-v2 MERGED, quizme-v3 MERGED, quizme-v4 PENDING**: quizme-v1 (10 questions)
 answered and merged (8 decisions applied). quizme-v2 (7 questions) answered and merged — resolved
-Decisions 7/8/10/12 (previously BLOCKED/UNANSWERED) and added Decisions 13-14. Deep analysis
-uncovered critical issues (pki-init code mismatch, shared-postgres documentation gaps,
-Docker Compose env var expansion limitation) requiring user decisions before Phase 1 begins.
-See [`docs/framework-v10/quizme-v3.md`](quizme-v3.md).
+Decisions 7/8/10/12 (previously BLOCKED/UNANSWERED) and added Decisions 13-14. quizme-v3 (8
+critical questions from deep analysis) answered and merged — resolved pki-init code rewrite
+(Decision 15), shell-form command (Decision 8 updated), shared-postgres admin user model
+(Decision 10 rewritten), config edge cases (Decision 7 updated), deployment config
+framework/domain split (Decision 16), pki-init service collision (Decision 4 updated),
+full scope confirmation, and stale postgres URL fix (Decision 17). Decisions 15-17 added.
+quizme-v4 (7 questions) PENDING — implementation details: tini availability, product pki-init
+override mechanism, multiple --config= flags, shared-postgres follower topology, postgresql conf
+parameterization, validate_schema.go scope, `__PRODUCT_INCLUDE_LIST__` format.
 
 ---
 
@@ -136,13 +141,16 @@ api/cryptosuite-registry/templates/
   deployments/
     __PS_ID__/                          ← expands for each of 10 PS-IDs
       Dockerfile                        ← __PS_ID__ + build/label/healthcheck params
-      compose.yml                       ← __PS_ID__ + port params; pki-init with --domain=__PS_ID__
+      compose.yml                       ← __PS_ID__ + port params; pki-init with
+                                          ["init", "--domain=__PS_ID__", "--output-dir=/certs"]
+                                          shell-form server command (Decision 8)
       config/
-        __PS_ID__-app-common.yml        ← __PS_ID__ + shared config params (PS-ID prefix naming)
-        __PS_ID__-app-sqlite-1.yml      ← __PS_ID__ + __SERVICE_APP_PORT_SQLITE_1__
-        __PS_ID__-app-sqlite-2.yml      ← __PS_ID__ + __SERVICE_APP_PORT_SQLITE_2__
-        __PS_ID__-app-postgresql-1.yml   ← __PS_ID__ + __SERVICE_APP_PORT_PG_1__
-        __PS_ID__-app-postgresql-2.yml   ← __PS_ID__ + __SERVICE_APP_PORT_PG_2__
+        __PS_ID__-app-framework-common.yml       ← Decision 16: framework settings only
+        __PS_ID__-app-framework-sqlite-1.yml     ← framework + __SERVICE_APP_PORT_SQLITE_1__
+        __PS_ID__-app-framework-sqlite-2.yml     ← framework + __SERVICE_APP_PORT_SQLITE_2__
+        __PS_ID__-app-framework-postgresql-1.yml ← framework + __SERVICE_APP_PORT_PG_1__
+        __PS_ID__-app-framework-postgresql-2.yml ← framework + __SERVICE_APP_PORT_PG_2__
+        (domain deployment configs __PS_ID__-app-domain-*.yml are per-PS-ID, NOT templated)
       secrets/                          ← Decision 14: secrets directory template
         unseal-1of5.secret              ← __PS_ID__-unseal-key-1-of-5-BASE64_CHAR43
         unseal-2of5.secret              ← (through unseal-5of5.secret)
@@ -159,23 +167,29 @@ api/cryptosuite-registry/templates/
         service-username.secret         ← __PS_ID__-service-user
         service-password.secret         ← BASE64_CHAR43
     __PRODUCT__/                        ← expands × 5 (sm, jose, pki, identity, skeleton)
-      compose.yml                       ← __PRODUCT__ + per-product params; pki-init with --domain=__PRODUCT__;
+      compose.yml                       ← __PRODUCT__ + per-product params;
+                                          pki-init with ["init", "--domain=__PRODUCT__", "--output-dir=/certs"]
+                                          (Decision 4/15); product-level override covers all PS-IDs;
                                           all 4 postgres secrets; NO image: on service overrides
       secrets/                          ← Product-level secrets (Decision 14)
         unseal-1of5.secret              ← __PRODUCT__-unseal-key-1-of-5-BASE64_CHAR43
         (... same 14 files, browser/service use .secret.never suffix ...)
     __SUITE__/                          ← expands × 1 (cryptoutil); parameterized for future renames
       Dockerfile                        ← 4-stage build pattern; uses __SUITE__ + suite-level display params
-      compose.yml                       ← __SUITE__ + all product/PS-ID references; pki-init with --domain=__SUITE__;
-                                          all 4 postgres secrets
+      compose.yml                       ← __SUITE__ + all product/PS-ID references;
+                                          pki-init with ["init", "--domain=__SUITE__", "--output-dir=/certs"]
+                                          (Decision 4/15); all 4 postgres secrets;
+                                          shell-form server command with $SUITE_ARGS (Decision 8)
       secrets/                          ← Suite-level secrets (Decision 14)
         unseal-1of5.secret              ← __SUITE__-unseal-key-1-of-5-BASE64_CHAR43
         (... same 14 files, browser/service use .secret.never suffix ...)
-    shared-postgres/                    ← Decision 10: full shared-postgres template
-      compose.yml                       ← __SUITE__ substitution for service names
-      init-leader-databases.sql         ← 30 databases from __PS_ID_DATABASE_LIST__
-      init-follower-databases.sql       ← follower schema setup
-      setup-logical-replication.sh      ← replication subscriptions for all 10 PS-IDs
+    shared-postgres/                    ← Decision 10: full shared-postgres template (resolved quizme-v3 Q3)
+      compose.yml                       ← __SUITE__ substitution; leader + follower services
+      postgresql-leader.conf            ← OLTP tuning, wal_level=logical, replication slots
+      postgresql-follower.conf          ← OLAP tuning, hot_standby=on, read-only
+      init-leader-databases.sql         ← 30 databases (3 tiers × 10 PS-IDs) with per-DB admin
+      init-follower-databases.sql       ← 16 follower databases with domain-based schema isolation
+      setup-logical-replication.sh      ← complete replication: 30 leader → 16 follower mapping
       secrets/                          ← shared-postgres secrets
         postgres-username.secret        ← cryptoutil_admin
         postgres-password.secret        ← BASE64_CHAR43
@@ -189,17 +203,23 @@ api/cryptosuite-registry/templates/
                                           (domain config is __PS_ID__-domain.yml — NOT templated)
 ```
 
-**Template file count**: ~60 physical files (estimate pending quizme-v3 resolution):
-- 8 deployment files + 14 secrets under `deployments/__PS_ID__/` = 22
+**Template file count**: ~70 physical files:
+- 7 deployment files (Dockerfile + compose + 5 framework configs) + 14 secrets
+  under `deployments/__PS_ID__/` = 21
 - 1 compose + 14 secrets under `deployments/__PRODUCT__/` = 15
 - 2 deployment files + 14 secrets under `deployments/__SUITE__/` = 16
-- 4 files + 2 secrets under `deployments/shared-postgres/` = 6
+- 6 files (compose + 2 postgresql conf + 2 init SQL + 1 replication script) + 2 secrets
+  under `deployments/shared-postgres/` = 8
 - 2 under `deployments/shared-telemetry/` (compose.yml + otel-collector-config.yaml)
 - 1 under `configs/__PS_ID__/` (`__PS_ID__-framework.yml`)
+- Total: 21 + 15 + 16 + 8 + 2 + 1 = **63 physical template files**
 
-**Expected file count after expansion**: ~232 (estimate):
-- 22 PS-ID × 10 = 220 + 15 product × 5 = 75 + 16 suite × 1 = 16 + 6 shared-postgres + 2 shared-telemetry + 1 config × 10 = 10 ≈ 329
-- ⚠️ Exact count depends on quizme-v3 resolution of shared-postgres gaps and secrets structure
+**Expected file count after expansion**: ~399:
+- 21 PS-ID × 10 = 210 + 15 product × 5 = 75 + 16 suite × 1 = 16 + 8 shared-postgres
+  - 2 shared-telemetry + 1 config × 10 = 10 → **321 minimum**
+- Plus ~50 non-template domain deployment config files (10 PS-IDs × 5 variants, initially empty)
+  and ~10 non-template domain standalone config files → **~381 total tracked files**
+- Exact count may vary based on secrets file structure at each tier
 
 ### Existing Code That Changes
 
@@ -242,10 +262,17 @@ full substitution map for a given PS-ID. Product/suite files use a subset of par
 - **Related files (deleted)**:
   - `internal/apps/tools/cicd_lint/lint_fitness/template_drift/templates/` — wrong location, deleted
 - **Related files (created)**:
-  - `api/cryptosuite-registry/templates/` — 14 parameterized template files (see Structure above)
+  - `api/cryptosuite-registry/templates/` — ~63 parameterized template files (see Structure above)
+- **Related files (modified)**:
+  - `internal/apps/framework/tls/init.go` — pki-init pflag rewrite (Decision 15)
+  - All 10 PS-ID `secrets/postgres-url.secret` files — hostname fix (Decision 17)
+  - All 10 PS-ID compose files — pflag pki-init + shell-form command (Decisions 8/15)
+  - All 10 PS-ID deployment configs — framework/domain rename (Decision 16)
+  - All 10 standalone configs — framework/domain split (Decision 7)
 - **Documentation**:
   - `docs/deployment-templates.md` — update to reference canonical template files
   - `docs/target-structure.md` — add `api/cryptosuite-registry/templates/` listing
+  - `docs/ENG-HANDBOOK.md` — verify PostgreSQL hostnames, shared-postgres sections
 
 ---
 
@@ -253,21 +280,25 @@ full substitution map for a given PS-ID. Product/suite files use a subset of par
 
 ### Phase 1: Create Canonical Template Directory (4h) [Status: ☐ TODO]
 
-**Objective**: Create `api/cryptosuite-registry/templates/` with all 14 parameterized template
+**Objective**: Create `api/cryptosuite-registry/templates/` with all ~70 parameterized template
 files. These are PLAIN FILES — not `.go`, not embedded. Structure mirrors `./deployments/` and
 `./configs/` with `__KEY__` in both paths and content. Also fix actual deployment files to
-match decisions from quizme-v1 (pki-init at all levels, postgres secrets, image removal).
+match decisions from quizme-v1/v2/v3, rewrite pki-init Go code (Decision 15), split deployment
+configs into framework/domain (Decision 16), and fix stale postgres URLs (Decision 17).
+Full scope per quizme-v3 Q7 — nothing deferred from v10.
 
-**1A — PS-ID level templates** (8 files, each expands × 10):
+**1A — PS-ID level templates** (12 files, each expands × 10):
 - `deployments/__PS_ID__/Dockerfile` — based on current `Dockerfile.tmpl` content (same params)
 - `deployments/__PS_ID__/compose.yml` — based on current `compose.yml.tmpl` content;
-  MUST include `pki-init` service with `--domain=__PS_ID__` (Decision 4)
-- `deployments/__PS_ID__/config/__PS_ID__-app-common.yml` — from `config-common.yml.tmpl`;
-  filename uses PS-ID prefix (matches actual naming: `sm-kms-app-common.yml`)
-- `deployments/__PS_ID__/config/__PS_ID__-app-sqlite-1.yml` — from `config-sqlite.yml.tmpl` + instance-1
-- `deployments/__PS_ID__/config/__PS_ID__-app-sqlite-2.yml` — from `config-sqlite.yml.tmpl` + instance-2
-- `deployments/__PS_ID__/config/__PS_ID__-app-postgresql-1.yml` — from `config-postgresql.yml.tmpl` + instance-1
-- `deployments/__PS_ID__/config/__PS_ID__-app-postgresql-2.yml` — from `config-postgresql.yml.tmpl` + instance-2
+  MUST include `pki-init` service with `["init", "--domain=__PS_ID__", "--output-dir=/certs"]`
+  (Decision 4/15); MUST use shell-form command for server (Decision 8)
+- `deployments/__PS_ID__/config/__PS_ID__-app-framework-common.yml` — framework settings only (Decision 16)
+- `deployments/__PS_ID__/config/__PS_ID__-app-framework-sqlite-1.yml` — framework + instance-1 port
+- `deployments/__PS_ID__/config/__PS_ID__-app-framework-sqlite-2.yml` — framework + instance-2 port
+- `deployments/__PS_ID__/config/__PS_ID__-app-framework-postgresql-1.yml` — framework + instance-1 port
+- `deployments/__PS_ID__/config/__PS_ID__-app-framework-postgresql-2.yml` — framework + instance-2 port
+  Domain deployment configs (`__PS_ID__-app-domain-*.yml`) are per-PS-ID and NOT templated
+  (but files MUST exist on disk, initially empty except pki-ca which has `crl-directory`)
 
 **1B — PS-ID standalone config** (1 file, expands × 10):
 - `configs/__PS_ID__/__PS_ID__-framework.yml` — framework settings only (Decision 7/13);
@@ -276,15 +307,17 @@ match decisions from quizme-v1 (pki-init at all levels, postgres secrets, image 
 **1C — Product compose file** (1 physical file, expands × 5):
 - `deployments/__PRODUCT__/compose.yml` — template content uses `__PRODUCT__`, `__SUITE__`,
   `__IMAGE_TAG__`, and `__PRODUCT_INCLUDE_LIST__`. Template MUST include:
-  - `pki-init` service with `--domain=__PRODUCT__` (Decision 4)
+  - `pki-init` service with `["init", "--domain=__PRODUCT__", "--output-dir=/certs"]`
+    (Decision 4/15); product-level override covers all PS-IDs in product (Decision 4 quizme-v3 Q6)
   - All 4 postgres secrets: url, username, password, database (Decision 6)
   - NO `image:` on service overrides — PS-ID level is single source (Decision 5)
 
 **1D — Suite files** (2 files, `__SUITE__` in path, expands × 1):
 - `deployments/__SUITE__/Dockerfile` — 4-stage build pattern with `__SUITE__` params
 - `deployments/__SUITE__/compose.yml` — suite compose with `__SUITE__` params; MUST include:
-  - `pki-init` with `--domain=__SUITE__` (Decision 4)
+  - `pki-init` with `["init", "--domain=__SUITE__", "--output-dir=/certs"]` (Decision 4/15)
   - All 4 postgres secrets (Decision 6)
+  - Shell-form command for server with `$SUITE_ARGS` (Decision 8)
 
 **1E — shared-telemetry templates** (2 files, static path):
 - `deployments/shared-telemetry/compose.yml` — with `__SUITE__` substitution (Decision 11)
@@ -292,12 +325,36 @@ match decisions from quizme-v1 (pki-init at all levels, postgres secrets, image 
   (Grafana dashboards and alerts are NOT templated — too complex/fragile)
 
 **1F — Fix actual deployment files** (bring actual files into compliance with decisions):
-- Add `pki-init` with `--domain=<product>` to jose, pki, identity, skeleton product compose files
-- Add `--domain=<ps-id>` to all 10 PS-ID compose `pki-init` commands
-- Add `postgres-username.secret`, `postgres-password.secret`, `postgres-database.secret`
-  to jose, pki, identity, skeleton product compose secrets sections
-- Remove `image:` from sm product compose service overrides
-- Split all 10 standalone configs into `<ps-id>-framework.yml` + `<ps-id>-domain.yml` (Decision 7)
+- **Decision 4/15 — pki-init at all levels with pflag**:
+  - Add `pki-init` with `["init", "--domain=<product>", "--output-dir=/certs"]` to jose, pki,
+    identity, skeleton product compose files (currently missing)
+  - Update all 10 PS-ID compose `pki-init` commands to
+    `["init", "--domain=<ps-id>", "--output-dir=/certs"]` (currently have no --domain)
+- **Decision 5 — remove image from sm product**:
+  - Remove `image:` from sm product compose service overrides
+- **Decision 6 — all 4 postgres secrets everywhere**:
+  - Add `postgres-username.secret`, `postgres-password.secret`, `postgres-database.secret`
+    to jose, pki, identity, skeleton product compose secrets sections
+- **Decision 7 — standalone config split**:
+  - Split all 10 standalone configs into `<ps-id>-framework.yml` + `<ps-id>-domain.yml`
+- **Decision 8 — shell-form command**:
+  - Update all 10 PS-ID compose server commands to shell-form:
+    `command: /bin/sh -c "exec /app/<ps-id> server --config=... $SUITE_ARGS $PRODUCT_ARGS"`
+- **Decision 15 — pki-init Go code rewrite**:
+  - Rewrite `internal/apps/framework/tls/init.go` to use pflag with `--domain` + `--output-dir`
+  - Update all compose pki-init commands from positional args to pflag format
+  - Add tests for new pflag interface (≥95% coverage)
+- **Decision 16 — deployment config framework/domain split**:
+  - Rename all deployment configs: `<ps-id>-app-common.yml` → `<ps-id>-app-framework-common.yml`
+  - Create domain deployment configs: `<ps-id>-app-domain-{common,sqlite-1,sqlite-2,postgresql-1,postgresql-2}.yml`
+    (initially empty except pki-ca which has `crl-directory`)
+  - Move pki-ca `crl-directory` from framework config to domain config
+  - Update Dockerfile COPY commands if they reference old config filenames
+  - Update shell-form command `--config=` flags to reference new framework filenames
+- **Decision 17 — fix stale postgres-url.secret**:
+  - Update all 10 PS-ID `secrets/postgres-url.secret` hostnames from per-PS-ID postgres
+    (e.g., `sm-kms-postgres:5432`) to `shared-postgres-leader:5432`
+  - Verify all documentation references use correct PostgreSQL leader hostname
 
 **1G — Secrets directory templates** (Decision 14):
 - PS-ID: `deployments/__PS_ID__/secrets/` — 14 template files with `BASE64_CHAR43` placeholders
@@ -305,17 +362,27 @@ match decisions from quizme-v1 (pki-init at all levels, postgres secrets, image 
 - Suite: `deployments/__SUITE__/secrets/` — 14 template files (same as product)
 - shared-postgres: `deployments/shared-postgres/secrets/` — 2-3 template files
 
-**1H — shared-postgres templates** (Decision 10):
-- `deployments/shared-postgres/compose.yml` — with `__SUITE__` substitution
-- `deployments/shared-postgres/init-leader-databases.sql` — 30 databases from registry
-- `deployments/shared-postgres/init-follower-databases.sql` — follower schema setup
-- `deployments/shared-postgres/setup-logical-replication.sh` — all 10 PS-ID subscriptions
-- ⚠️ BLOCKED on quizme-v3 resolution of shared-postgres documentation/implementation gaps
+**1H — shared-postgres templates** (Decision 10, resolved by quizme-v3 Q3):
+- `deployments/shared-postgres/compose.yml` — leader + follower services with `__SUITE__` substitution
+- `deployments/shared-postgres/postgresql-leader.conf` — OLTP tuning, wal_level=logical,
+  max_replication_slots, max_wal_senders
+- `deployments/shared-postgres/postgresql-follower.conf` — OLAP tuning, hot_standby=on,
+  read-only workload optimizations
+- `deployments/shared-postgres/init-leader-databases.sql` — 30 databases (3 tiers × 10 PS-IDs)
+  with per-DB admin user from registry
+- `deployments/shared-postgres/init-follower-databases.sql` — 16 follower databases with
+  domain-based schema isolation (1 SUITE + 5 PRODUCT + 10 PS-ID)
+- `deployments/shared-postgres/setup-logical-replication.sh` — complete replication for all
+  3 tiers × 10 PS-IDs (30 leader → 16 follower domain mapping)
 
-- **Success**: ~60 template files exist under `api/cryptosuite-registry/templates/` with
+- **Success**: ~63 template files exist under `api/cryptosuite-registry/templates/` with
   `__PLACEHOLDER__` in ALL paths that vary by PS-ID, product, or suite. Secrets templates
   include `BASE64_CHAR43` placeholders. Standalone configs split into framework/domain.
-  No `.go` files in `api/cryptosuite-registry/`. All actual deployment files match decisions.
+  Deployment configs split into framework/domain (Decision 16). pki-init rewritten with pflag
+  (Decision 15). Shell-form commands for server (Decision 8). Stale postgres URLs fixed
+  (Decision 17). No `.go` files in `api/cryptosuite-registry/`. All actual deployment/config
+  files match decisions. shared-postgres has postgresql-leader.conf + postgresql-follower.conf
+  with complete 30-leader, 16-follower replication architecture.
 
 **Post-Mortem**: After quality gates pass, update lessons.md.
 
@@ -487,11 +554,13 @@ Actual PS-ID compose files must add `--domain=<ps-id>` to `pki-init` commands.
 **Resolved (quizme-v2 Q6)**: pki-init is framework code — every PS-ID binary bundles
 pki-init capability. All compose levels override pki-init command with `--domain=<level>`.
 
-**⚠️ CRITICAL ISSUE for quizme-v3**: Deep analysis discovered that the Go implementation
-(`internal/apps/framework/tls/init.go`) expects **2 positional args** (`<tier-id> <target-dir>`)
-with NO flag parsing (no pflag, no cobra). But all compose files pass `["init", "--output-dir=/certs"]`
-which is a **single** arg. This is a runtime bug — pki-init containers will ALWAYS fail with
-`"pki-init: usage: pki-init <tier-id> <target-dir>"`. See quizme-v3.
+**Resolved (quizme-v3 Q6)**: Product compose overrides with a product-level `pki-init` that
+runs once with `--domain=<product>`, covering all PS-IDs in that product. Per-PS-ID pki-init
+services are removed from product includes (product-level override takes precedence). Products
+that currently lack pki-init override (jose, pki, identity, skeleton) MUST add one.
+
+**⚠️ RESOLVED (quizme-v3 Q1)**: pki-init Go code rewritten to use pflag with `--domain=<id>`
+and `--output-dir=<dir>` flags. See Decision 15.
 
 ### Decision 5: Remove `image:` from Product Service Overrides (Q2 → B)
 
@@ -539,8 +608,16 @@ secrets uniformly.
 `enable-dynamic-registration`.
 
 **Domain settings** (NOT in template): `issuer`, `token-lifetime`, `refresh-token-lifetime`,
-`authorization-code-ttl`, `enable-discovery`, `ca:`, `storage:`, `revocation:`, `tsa:`,
-`est:`, `profiles:`, and other PS-ID-specific settings.
+`authorization-code-ttl`, `enable-discovery`, `ca:`, `revocation:`, `tsa:`,
+`est:`, `profiles:`, `authz-server-url`, `client-id`, `redirect-uri` (identity-rp OIDC),
+and other PS-ID-specific settings.
+
+**Edge cases resolved (quizme-v3 Q4)**:
+- pki-ca `storage.type`: **REMOVED** — framework abstracts storage backend differences. Not valid.
+- identity-rp `authz-server-url`, `client-id`, `redirect-uri`: **DOMAIN** — identity-rp-specific
+  OIDC configuration, not generic connectivity.
+- identity-spa `static-files-path`: **FRAMEWORK** — any PS-ID should optionally support
+  `static-files-path`. This is a framework gap to be addressed.
 
 **Breaking change**: Old single-file `<ps-id>.yml` configs replaced by two-file split.
 No backward compatibility required.
@@ -550,32 +627,33 @@ No backward compatibility required.
 per-PS-ID and NOT compared against any template. Go app config loading uses multiple
 `--config=` flags (already supported via pflag StringSlice + viper MergeInConfig).
 
-**⚠️ OPEN QUESTION for quizme-v3**: Exact classification of edge-case settings
-(pki-ca `storage.type` vs `database-url`, identity-rp `authz-server-url`/`client-id`,
-identity-spa `static-files-path`). See quizme-v3.
+### Decision 8: Config Hierarchy via Shell-Form Command (Q5 → E, resolved by quizme-v2 Q2 + quizme-v3 Q2)
 
-### Decision 8: Config Hierarchy via Environment Variables (Q5 → E, resolved by quizme-v2 Q2)
-
-**Source**: quizme-v1 Q5 → quizme-v2 Q2
+**Source**: quizme-v1 Q5 → quizme-v2 Q2 → quizme-v3 Q2
 
 **Decision**: Config hierarchy achieved via `SUITE_ARGS` and `PRODUCT_ARGS` environment
-variables. PS-ID compose command becomes:
-`command: ["server", "--config=/app/config/<ps-id>-app-*.yml", "$SUITE_ARGS", "$PRODUCT_ARGS"]`
+variables with **shell-form** command for variable expansion. PS-ID compose command becomes:
+```yaml
+command: /bin/sh -c "exec /app/__PS_ID__ server --config=/app/config/__PS_ID__-app-common.yml --config=/app/config/__PS_ID__-app-sqlite-1.yml $SUITE_ARGS $PRODUCT_ARGS"
+```
 
 Product compose defines `PRODUCT_ARGS` env var with product-level config path.
 Suite compose defines `SUITE_ARGS` env var with suite-level config path.
 
-**Breaking change**: PS-ID compose `command:` modified. No backward compatibility required.
+**Signal handling**: Shell-form makes `/bin/sh` PID 1 (not the app). The Dockerfile uses
+`tini` as ENTRYPOINT (`ENTRYPOINT ["/sbin/tini", "--"]`) which handles signal forwarding,
+zombie reaping, and graceful shutdown. This is already the pattern used in the project.
+
+**Breaking change**: PS-ID compose `command:` modified from exec-form to shell-form.
+No backward compatibility required.
 
 **Impact**: v10 scope. Requires creating product-level and suite-level config files, modifying
-PS-ID compose templates to include `$SUITE_ARGS`/`$PRODUCT_ARGS` in command, modifying
-product/suite compose templates to set the env vars.
+PS-ID compose templates to use shell-form command with `$SUITE_ARGS`/`$PRODUCT_ARGS`,
+modifying product/suite compose templates to set the env vars.
 
-**⚠️ CRITICAL ISSUE for quizme-v3**: Docker Compose `command:` uses exec form (JSON array),
-NOT shell form. `$SUITE_ARGS` in a JSON array is NOT expanded by a shell — it is passed as
-a literal string `"$SUITE_ARGS"`. This requires either: (a) shell-form command
-(`command: /bin/sh -c "exec /app/<ps-id> server --config=... $SUITE_ARGS $PRODUCT_ARGS"`)
-or (b) Docker Compose `environment:` mechanism with entrypoint script. See quizme-v3.
+**⚠️ RESOLVED (quizme-v3 Q2)**: Docker Compose exec-form (JSON array) does NOT shell-expand
+environment variables — `$SUITE_ARGS` is passed as literal string. Shell-form command
+(`/bin/sh -c "exec ..."`) resolves this. Tini entrypoint mitigates PID 1 signal handling.
 
 ### Decision 9: Domain Directory Pattern for PS-ID-Specific Files (Q6/Q7 → E)
 
@@ -605,23 +683,51 @@ shared-postgres creates 30 logical databases: 3 deployment levels (SUITE, PRODUC
 Each deployment level uses DIFFERENT credentials, unseal secrets, and hash peppers to enforce
 authentication and cryptographic isolation between levels.
 
+**Admin User Model (quizme-v3 Q3)**:
+- NO DDL/DML user separation. Each of the 30 leader databases has 1 admin user.
+- Admin user is defined per deployment template (3 tiers × 10 PS-IDs = 30 admin users).
+- The 16 follower databases reuse the same 30 admin users from leader databases:
+  - **SUITE-level follower** (1 DB, 10 schemas): all 10 PS-ID admin users
+  - **PRODUCT-level followers** (5 DBs, 1-5 schemas each): admin users for PS-IDs belonging
+    to that product
+  - **PS-ID-level followers** (10 DBs, 1 schema each): same single admin as corresponding leader
+- This simplifies management: no confusion about which users exist where.
+
+**PostgreSQL Configuration**:
+- Separate `postgresql-leader.conf` and `postgresql-follower.conf` files REQUIRED.
+- Leader conf: OLTP tuning, wal_level=logical, max_replication_slots, max_wal_senders.
+- Follower conf: OLAP tuning, hot_standby=on, read-only workload optimizations.
+
+**Replication Architecture**:
+- Leader: 30 databases with complete OLTP isolation (no cross-PS-ID/tier JOINs possible).
+- Follower: 16 databases with domain-based strategic isolation for OLAP read-only workloads.
+  JOINs allowed ONLY within each domain (SUITE domain has all 10 PS-ID schemas).
+- **Tier a**: 1 SUITE-level follower DB with 10 PS-ID schemas; each of 10 SUITE-level leader
+  DBs replicates to 1 schema each.
+- **Tier b**: 5 PRODUCT-level follower DBs with 1-5 PS-ID schemas (10 total); PRODUCT-level
+  leader DBs replicate to PS-ID schemas within the follower DB matching product membership.
+- **Tier c**: 10 PS-ID-level follower DBs with 1 schema each; each PS-ID leader replicates
+  to its PS-ID follower.
+- Complete replication for ALL 3 tiers × 10 PS-IDs (not just pki-ca).
+
 **Template Files Created**:
-- `templates/deployments/shared-postgres/compose.yml` — with `__SUITE__` substitution
-- `templates/deployments/shared-postgres/init-leader-databases.sql` — generated from registry
-  using `__PS_ID_DATABASE_LIST__` (30 databases = 3 levels × 10 PS-IDs)
-- `templates/deployments/shared-postgres/init-follower-databases.sql` — follower schema setup
+- `templates/deployments/shared-postgres/compose.yml` — leader + follower services with
+  `__SUITE__` substitution
+- `templates/deployments/shared-postgres/postgresql-leader.conf` — OLTP tuning, logical replication
+- `templates/deployments/shared-postgres/postgresql-follower.conf` — OLAP tuning, read-only
+- `templates/deployments/shared-postgres/init-leader-databases.sql` — CREATE DATABASE for 30 DBs
+  with per-DB admin user (generated from `__PS_ID_DATABASE_LIST__`)
+- `templates/deployments/shared-postgres/init-follower-databases.sql` — 16 follower DBs with
+  schema setup per domain isolation rules
 - `templates/deployments/shared-postgres/setup-logical-replication.sh` — replication subscriptions
+  for all 3 tiers × 10 PS-IDs (30 leader → 16 follower domain mapping)
 
-**⚠️ CRITICAL ISSUE for quizme-v3**: Deep analysis revealed SERIOUS documentation gaps in
-ENG-HANDBOOK.md Section 3.4.2 and IMPLEMENTATION gaps in actual shared-postgres files:
-
-1. DDL/DML user separation documented but NOT implemented (single admin user for all 30 DBs)
-2. `postgresql.conf` referenced in handbook but does NOT exist in deployments/
-3. `setup-logical-replication.sh` only implements pki-ca subscription (1 of 10)
-4. Follower creates 16 databases, not 30 schemas
-5. `postgres-url.secret` in PS-ID secrets dirs references stale per-PS-ID hostnames
-
-These gaps are BLOCKING for accurate template creation. See quizme-v3.
+**⚠️ RESOLVED (quizme-v3 Q3)**: All 5 documentation/implementation gaps are now addressed:
+1. DDL/DML separation REMOVED — 1 admin per leader DB, reused on followers (RESOLVED)
+2. `postgresql-leader.conf` + `postgresql-follower.conf` added as separate files (RESOLVED)
+3. `setup-logical-replication.sh` expanded to all 3 tiers × 10 PS-IDs (RESOLVED)
+4. Follower: 16 DBs with domain-based schema isolation confirmed correct (RESOLVED)
+5. Stale `postgres-url.secret` hostnames fixed — see Decision 17 (RESOLVED)
 
 ### Decision 11: shared-telemetry Template Scope (Q9 → A)
 
@@ -694,6 +800,89 @@ filtered out (expected and required to differ).
 **Impact**: Significant scope expansion. Adds ~42 template files (14 per tier × 3 tiers)
 plus shared-postgres secrets. Adds a new lint-fitness sublinter (`secrets-compliance` or similar).
 
+### Decision 15: pki-init Rewrite to pflag (quizme-v3 Q1 → E)
+
+**Source**: quizme-v3 Q1
+
+**Decision**: Rewrite `internal/apps/framework/tls/init.go` to use pflag with `--domain=<id>`
+and `--output-dir=<dir>` flags (replacing the broken positional-args interface).
+
+**Current State (BUG)**: Init() expects exactly 2 positional args (`tierID`, `targetDir`),
+does `len(args) != 2` with NO flag parsing. But ALL compose files pass
+`["init", "--output-dir=/certs"]` — after the router strips "init", only 1 arg
+`"--output-dir=/certs"` reaches Init(), causing runtime failure (usage + exit 1).
+**Containers ALWAYS fail on pki-init.**
+
+**New Interface**:
+```go
+// init.go — pflag-based
+func Init(ctx context.Context, args []string) error {
+    fs := pflag.NewFlagSet("init", pflag.ContinueOnError)
+    domain := fs.String("domain", "", "tier/domain ID for cert generation")
+    outputDir := fs.String("output-dir", "/certs", "target directory for generated certs")
+    if err := fs.Parse(args); err != nil { return err }
+    // ... generate certs for domain in outputDir
+}
+```
+
+**Compose Format**: `command: ["init", "--domain=sm-kms", "--output-dir=/certs"]`
+(exec-form is fine for pki-init — it runs once and exits, no env var expansion needed)
+
+**Impact**: Fixes runtime bug in all pki-init containers. All compose files must update
+pki-init command to `["init", "--domain=<level>", "--output-dir=/certs"]`. Template uses
+`["init", "--domain=__PS_ID__", "--output-dir=/certs"]` (and `__PRODUCT__`/`__SUITE__`
+at those levels). Aligns with rest of framework (pflag everywhere).
+
+### Decision 16: Deployment Config Framework/Domain Split (quizme-v3 Q5 → E)
+
+**Source**: quizme-v3 Q5
+
+**Decision**: Mirror the standalone config framework/domain split (Decision 7) in deployment
+configs. Pattern:
+```
+deployments/<ps-id>/config/<ps-id>-app-framework-{common,sqlite-1,sqlite-2,postgresql-1,postgresql-2}.yml
+deployments/<ps-id>/config/<ps-id>-app-domain-{common,sqlite-1,sqlite-2,postgresql-1,postgresql-2}.yml
+```
+
+**Rationale**: Consistent pattern between standalone and deployment configs. The framework
+config template can enforce that framework configs contain only framework keys and domain
+configs contain only domain keys, ensuring clean separation.
+
+**Current State**: All deployment configs are 100% framework across all 10 PS-IDs. Only pki-ca
+has one domain-specific key (`crl-directory` in common config). Move `crl-directory` from
+deployment config to domain config.
+
+**Template Impact**:
+- Framework deployment templates: `__PS_ID__-app-framework-common.yml`,
+  `__PS_ID__-app-framework-sqlite-1.yml`, etc. (5 files, expand × 10 = 50 expected)
+- Domain deployment templates: NOT templated (per-PS-ID specific, initially empty)
+- Domain deployment files exist on disk but contain only PS-ID-specific overrides (future-proof)
+- Adds ~50 new deployment config template files (5 framework variants × 10 PS-IDs)
+  plus ~50 non-template domain files
+
+**Breaking change**: Deployment config filenames change (e.g., `sm-kms-app-common.yml` →
+`sm-kms-app-framework-common.yml` + `sm-kms-app-domain-common.yml`). Config loading must
+accept both framework and domain files via multiple `--config=` flags.
+
+### Decision 17: Fix Stale postgres-url.secret Hostnames (quizme-v3 Q8 → E)
+
+**Source**: quizme-v3 Q8
+
+**Decision**: Fix all stale `postgres-url.secret` hostnames from per-PS-ID postgres containers
+(e.g., `sm-kms-postgres:5432`, `jose-ja-postgres:5432`) to `shared-postgres-leader:5432`.
+These per-PS-ID postgres services no longer exist (removed in v8 consolidation).
+
+**Additionally**: Verify ALL documentation references use the correct PostgreSQL leader
+hostname and port:
+- `docs/ENG-HANDBOOK.md` — shared-postgres sections
+- Copilot + Claude instructions/agents/skills
+- `docs/deployment-templates.md`
+- `docs/tls-structure.md`
+- `docs/target-structure.md`
+
+**Impact**: All 10 PS-ID `secrets/postgres-url.secret` files updated. All docs verified for
+correct PostgreSQL hostname. Prevents template-compliance drift for secrets files.
+
 ---
 
 ## Risk Assessment
@@ -706,11 +895,13 @@ plus shared-postgres secrets. Adds a new lint-fitness sublinter (`secrets-compli
 | `lint-fitness-registry.yaml` wiring for new single linter | Low | Low | Verify registration and dispatch before marking Phase 2 complete |
 | `deployment-templates.md` lint-docs failures after edit | Low | Low | Run `cicd-lint lint-docs` after every doc section edit |
 | Product compose files have undocumented content | Low | Low | Read actual files and reverse-engineer params before writing templates |
-| **pki-init code/compose mismatch** | **HIGH** | **HIGH** | Go code expects positional args; compose uses flags. Runtime bug. See quizme-v3 |
-| **Docker Compose env var expansion** | **HIGH** | **HIGH** | `$SUITE_ARGS` in exec-form command is NOT shell-expanded. See quizme-v3 |
-| **shared-postgres documentation gaps** | **HIGH** | **HIGH** | ENG-HANDBOOK §3.4.2 has 5 doc/impl gaps. See quizme-v3 |
-| **Scope explosion (14→~60 templates)** | **Medium** | **HIGH** | Phase restructuring needed; may defer secrets/shared-postgres to later phases |
-| **Config classification edge cases** | **Medium** | **Medium** | pki-ca uses `storage.type` not `database-url`; identity-rp has unique settings. See quizme-v3 |
+| ~~pki-init code/compose mismatch~~ | ~~HIGH~~ | ~~HIGH~~ | **RESOLVED**: Decision 15 — pflag rewrite with `--domain` + `--output-dir` |
+| ~~Docker Compose env var expansion~~ | ~~HIGH~~ | ~~HIGH~~ | **RESOLVED**: Decision 8 updated — shell-form command with tini entrypoint |
+| ~~shared-postgres documentation gaps~~ | ~~HIGH~~ | ~~HIGH~~ | **RESOLVED**: Decision 10 rewritten — admin user model, postgresql-leader/follower.conf, complete replication |
+| Scope expansion (14→~63 templates, ~329→~381 expected) | Medium | Medium | Full scope per Q7; split Phase 1 into internal milestones (1A-1H) for manageability |
+| ~~Config classification edge cases~~ | ~~Medium~~ | ~~Medium~~ | **RESOLVED**: Decision 7 updated — pki-ca storage.type removed, identity-rp OIDC → domain, static-files-path → framework |
+| Deployment config framework/domain split file count | Medium | Low | ~100 new files (50 framework + 50 domain); domain files initially empty but structure required |
+| Stale doc references to per-PS-ID postgres hostnames | Low | Medium | Decision 17 — systematic doc verification sweep |
 
 ---
 
@@ -757,11 +948,16 @@ plus shared-postgres secrets. Adds a new lint-fitness sublinter (`secrets-compli
 
 ## Success Criteria
 
-- [ ] `api/cryptosuite-registry/templates/` contains ~60 parameterized template files (NO `.go` files)
+- [ ] `api/cryptosuite-registry/templates/` contains ~63 parameterized template files (NO `.go` files)
 - [ ] Template directory structure mirrors `./deployments/` and `./configs/` with `__KEY__` in paths
 - [ ] Secrets templates use `BASE64_CHAR43` placeholders for random content
-- [ ] Standalone configs split into `<ps-id>-framework.yml` + `<ps-id>-domain.yml`
-- [ ] shared-postgres fully templated with 30-database model from registry
+- [ ] Standalone configs split into `<ps-id>-framework.yml` + `<ps-id>-domain.yml` (Decision 7)
+- [ ] Deployment configs split into framework + domain variants (Decision 16)
+- [ ] shared-postgres fully templated with 30-leader-DB + 16-follower-DB model (Decision 10)
+- [ ] shared-postgres uses postgresql-leader.conf + postgresql-follower.conf (Decision 10)
+- [ ] pki-init rewritten with pflag `--domain` + `--output-dir` (Decision 15)
+- [ ] All compose files use shell-form command with `$SUITE_ARGS` (Decision 8)
+- [ ] All `postgres-url.secret` files use `shared-postgres-leader:5432` hostname (Decision 17)
 - [ ] `internal/.../template_drift/templates/` directory deleted
 - [ ] `template_drift.go` uses `os.WalkDir` (no `//go:embed`, no `embed.FS`)
 - [ ] Single `CheckTemplateCompliance` linter replaces all per-file check functions
