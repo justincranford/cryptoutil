@@ -1007,6 +1007,51 @@ If contradictions or omissions are found, create new phase tasks to fix them imm
 
 **After user answers**: Merge into plan.md/tasks.md, DELETE quizme-v#.md
 
+### Quizme Quality Gates — MANDATORY
+
+**BEFORE generating ANY quizme question, the agent MUST pass ALL quality gates below.
+A question that fails ANY gate is REJECTED and MUST NOT appear in the quizme file.**
+
+**Gate 1 — Codebase Research First**: Read the relevant source files BEFORE asking.
+If the answer is discoverable by reading existing code, configs, Dockerfiles, compose files,
+or framework code, do NOT ask the question. Instead, state the finding as a fact in plan.md.
+- ❌ WRONG: "How should we handle tini in the Dockerfile?" (answer: read the Dockerfile)
+- ❌ WRONG: "How does multiple --config= work?" (answer: read config_parse.go)
+- ✅ CORRECT: Research first, then ask only about genuine architectural CHOICES the user must make
+
+**Gate 2 — No Banned Patterns as Options**: NEVER offer a banned pattern as an option.
+Known banned patterns in this project:
+- Docker Compose `profiles:` — BANNED (use service-name override instead)
+- bcrypt, scrypt, Argon2, MD5, SHA-1 — BANNED (FIPS 140-3)
+- Environment variables for config — BANNED (use config files)
+- `--no-verify` on git commit — BANNED
+- CGO — BANNED (except race detector)
+If a question's options include a banned pattern, REJECT the question and reformulate.
+
+**Gate 3 — No Re-Asking Answered Questions**: Before generating ANY question, review:
+1. ALL prior quizme-v*.md files (including deleted ones — check plan.md Decisions)
+2. ALL Decisions already recorded in plan.md
+3. ALL user answers from conversation history
+If the question was already answered in ANY prior quizme or Decision, do NOT re-ask.
+- ❌ WRONG: Re-asking about static-files-path when Decision 7 already resolved it
+- ✅ CORRECT: Reference the existing Decision and proceed
+
+**Gate 4 — Template Parameterization Invariant**: ALL template files MUST use ALL
+applicable `__KEY__` placeholders. This is an invariant, not a question. NEVER ask
+"should we parameterize X?" — the answer is ALWAYS YES.
+
+**Gate 5 — Understand Domain Concepts**: Before asking about infrastructure topology,
+verify understanding of basic concepts:
+- PostgreSQL databases are LOGICAL (multiple databases per container, not per container)
+- Docker Compose service-name override: later definition wins for same service name
+- Config merge: later files override earlier for same keys (pflag/viper pattern)
+- Template expansion: `__KEY__` in paths AND content, expanded from registry.yaml
+If a question reveals misunderstanding of these concepts, REJECT and self-correct.
+
+**Gate 6 — Genuine Decision Required**: The question MUST surface a genuine architectural
+choice where multiple valid approaches exist and the user's preference matters. Questions
+with objectively correct answers are NOT quizme material — just state the answer.
+
 ### Quizme Lifecycle Rules — MANDATORY
 
 **ONE quizme at a time**: Only ONE quizme-v*.md file may ever exist in `<work-dir>/`. Creating quizme-v2 without deleting quizme-v1 is FORBIDDEN.
