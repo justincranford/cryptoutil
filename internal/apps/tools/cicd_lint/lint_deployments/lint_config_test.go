@@ -32,11 +32,11 @@ func TestValidateConfigFiles_MissingRequiredConfigs(t *testing.T) {
 
 	// Verify specific missing files mentioned in errors.
 	errorStr := joinErrors(result.Errors)
-	require.Contains(t, errorStr, "sm-kms-app-common.yml")
-	require.Contains(t, errorStr, "sm-kms-app-sqlite-1.yml")
-	require.Contains(t, errorStr, "sm-kms-app-sqlite-2.yml")
-	require.Contains(t, errorStr, "sm-kms-app-postgresql-1.yml")
-	require.Contains(t, errorStr, "sm-kms-app-postgresql-2.yml")
+	require.Contains(t, errorStr, "sm-kms-app-framework-common.yml")
+	require.Contains(t, errorStr, "sm-kms-app-framework-sqlite-1.yml")
+	require.Contains(t, errorStr, "sm-kms-app-framework-sqlite-2.yml")
+	require.Contains(t, errorStr, "sm-kms-app-framework-postgresql-1.yml")
+	require.Contains(t, errorStr, "sm-kms-app-framework-postgresql-2.yml")
 }
 
 func TestValidateConfigFiles_WrongPrefix(t *testing.T) {
@@ -77,18 +77,18 @@ func TestValidateConfigFiles_WrongSuffix(t *testing.T) {
 	createRequiredSecrets(t, tmpDir)
 
 	// Create config files with wrong suffix (no instance number).
-	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "config", "sm-kms-app-common.yml"), []byte("# cfg"), cryptoutilSharedMagic.CacheFilePermissions))
-	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "config", "sm-kms-app-sqlite.yml"), []byte("# wrong"), cryptoutilSharedMagic.CacheFilePermissions))
-	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "config", "sm-kms-app-postgresql-1.yml"), []byte("# cfg"), cryptoutilSharedMagic.CacheFilePermissions))
-	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "config", "sm-kms-app-postgresql-2.yml"), []byte("# cfg"), cryptoutilSharedMagic.CacheFilePermissions))
+	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "config", "sm-kms-app-framework-common.yml"), []byte("# cfg"), cryptoutilSharedMagic.CacheFilePermissions))
+	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "config", "sm-kms-app-framework-sqlite.yml"), []byte("# wrong"), cryptoutilSharedMagic.CacheFilePermissions))
+	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "config", "sm-kms-app-framework-postgresql-1.yml"), []byte("# cfg"), cryptoutilSharedMagic.CacheFilePermissions))
+	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "config", "sm-kms-app-framework-postgresql-2.yml"), []byte("# cfg"), cryptoutilSharedMagic.CacheFilePermissions))
 
 	result := ValidateDeploymentStructure(tmpDir, cryptoutilSharedMagic.OTLPServiceSMKMS, "PRODUCT-SERVICE")
 
-	// Should be invalid because sm-kms-app-sqlite-1.yml is missing (sm-kms-app-sqlite.yml is not the right name).
+	// Should be invalid because sm-kms-app-framework-sqlite-1.yml is missing (sm-kms-app-framework-sqlite.yml is not the right name).
 	require.False(t, result.Valid, "should be invalid with missing sqlite-1 config file")
 
 	errorStr := joinErrors(result.Errors)
-	require.Contains(t, errorStr, "sm-kms-app-sqlite-1.yml")
+	require.Contains(t, errorStr, "sm-kms-app-framework-sqlite-1.yml")
 }
 
 func TestValidateConfigFiles_DeprecatedDemoSeed(t *testing.T) {

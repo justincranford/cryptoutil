@@ -106,11 +106,16 @@ func validateConfigFiles(basePath string, deploymentName string, result *Validat
 
 	// Define required standard config files per Section 12.4.5.
 	requiredConfigs := []string{
-		fmt.Sprintf("%s-app-common.yml", productService),       // sm-kms-app-common.yml.
-		fmt.Sprintf("%s-app-sqlite-1.yml", productService),     // sm-kms-app-sqlite-1.yml.
-		fmt.Sprintf("%s-app-sqlite-2.yml", productService),     // sm-kms-app-sqlite-2.yml.
-		fmt.Sprintf("%s-app-postgresql-1.yml", productService), // sm-kms-app-postgresql-1.yml.
-		fmt.Sprintf("%s-app-postgresql-2.yml", productService), // sm-kms-app-postgresql-2.yml.
+		fmt.Sprintf("%s-app-framework-common.yml", productService),       // sm-kms-app-framework-common.yml.
+		fmt.Sprintf("%s-app-framework-sqlite-1.yml", productService),     // sm-kms-app-framework-sqlite-1.yml.
+		fmt.Sprintf("%s-app-framework-sqlite-2.yml", productService),     // sm-kms-app-framework-sqlite-2.yml.
+		fmt.Sprintf("%s-app-framework-postgresql-1.yml", productService), // sm-kms-app-framework-postgresql-1.yml.
+		fmt.Sprintf("%s-app-framework-postgresql-2.yml", productService), // sm-kms-app-framework-postgresql-2.yml.
+		fmt.Sprintf("%s-app-domain-common.yml", productService),          // sm-kms-app-domain-common.yml.
+		fmt.Sprintf("%s-app-domain-sqlite-1.yml", productService),        // sm-kms-app-domain-sqlite-1.yml.
+		fmt.Sprintf("%s-app-domain-sqlite-2.yml", productService),        // sm-kms-app-domain-sqlite-2.yml.
+		fmt.Sprintf("%s-app-domain-postgresql-1.yml", productService),    // sm-kms-app-domain-postgresql-1.yml.
+		fmt.Sprintf("%s-app-domain-postgresql-2.yml", productService),    // sm-kms-app-domain-postgresql-2.yml.
 	}
 
 	// Check for required config files (strict enforcement: missing = error).

@@ -68,7 +68,7 @@ services:
   # Init job: bootstraps service prerequisites before app startup.
   pki-init:
     image: cryptoutil-sm-im:dev
-    command: ["init", "--output-dir=/certs"]
+    command: ["/app/sm-im", "init", "--domain=sm-im", "--output-dir=/certs"]
     volumes:
       - ./certs/:/certs/:rw
     depends_on:
@@ -80,13 +80,15 @@ services:
   # sm-im server with SQLite backend (instance 1).
   sm-im-app-sqlite-1:
     image: cryptoutil-sm-im:dev
-    command: ["server", "--bind-public-port=8080", "--config=/certs/tls-config.yml", "--config=/app/config/sm-im-app-sqlite-1.yml", "--config=/app/config/sm-im-app-common.yml", "--config=/app/otel/otel.yml", "-u", "sqlite://file::memory:?cache=shared"]
+    command: /bin/sh -c "exec /app/sm-im server --config=/certs/tls-config.yml --config=/app/config/sm-im-app-framework-common.yml --config=/app/config/sm-im-app-framework-sqlite-1.yml --config=/app/config/sm-im-app-domain-common.yml --config=/app/config/sm-im-app-domain-sqlite-1.yml --config=/app/otel/otel.yml --bind-public-port=8080 -u sqlite://file::memory:?cache=shared $$SUITE_ARGS"
     working_dir: /tmp
     ports:
       - "8100:8080" # HTTPS public
     volumes:
-      - ./config/sm-im-app-sqlite-1.yml:/app/config/sm-im-app-sqlite-1.yml:ro
-      - ./config/sm-im-app-common.yml:/app/config/sm-im-app-common.yml:ro
+      - ./config/sm-im-app-framework-common.yml:/app/config/sm-im-app-framework-common.yml:ro
+      - ./config/sm-im-app-framework-sqlite-1.yml:/app/config/sm-im-app-framework-sqlite-1.yml:ro
+      - ./config/sm-im-app-domain-common.yml:/app/config/sm-im-app-domain-common.yml:ro
+      - ./config/sm-im-app-domain-sqlite-1.yml:/app/config/sm-im-app-domain-sqlite-1.yml:ro
       - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
       - ./certs/:/certs/:ro
     secrets:
@@ -125,13 +127,15 @@ services:
   # sm-im server with SQLite backend (instance 2).
   sm-im-app-sqlite-2:
     image: cryptoutil-sm-im:dev
-    command: ["server", "--bind-public-port=8080", "--config=/certs/tls-config.yml", "--config=/app/config/sm-im-app-sqlite-2.yml", "--config=/app/config/sm-im-app-common.yml", "--config=/app/otel/otel.yml", "-u", "sqlite://file::memory:?cache=shared"]
+    command: /bin/sh -c "exec /app/sm-im server --config=/certs/tls-config.yml --config=/app/config/sm-im-app-framework-common.yml --config=/app/config/sm-im-app-framework-sqlite-2.yml --config=/app/config/sm-im-app-domain-common.yml --config=/app/config/sm-im-app-domain-sqlite-2.yml --config=/app/otel/otel.yml --bind-public-port=8080 -u sqlite://file::memory:?cache=shared $$SUITE_ARGS"
     working_dir: /tmp
     ports:
       - "8101:8080" # HTTPS public
     volumes:
-      - ./config/sm-im-app-sqlite-2.yml:/app/config/sm-im-app-sqlite-2.yml:ro
-      - ./config/sm-im-app-common.yml:/app/config/sm-im-app-common.yml:ro
+      - ./config/sm-im-app-framework-common.yml:/app/config/sm-im-app-framework-common.yml:ro
+      - ./config/sm-im-app-framework-sqlite-2.yml:/app/config/sm-im-app-framework-sqlite-2.yml:ro
+      - ./config/sm-im-app-domain-common.yml:/app/config/sm-im-app-domain-common.yml:ro
+      - ./config/sm-im-app-domain-sqlite-2.yml:/app/config/sm-im-app-domain-sqlite-2.yml:ro
       - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
       - ./certs/:/certs/:ro
     secrets:
@@ -170,13 +174,15 @@ services:
   # sm-im server with PostgreSQL backend (instance 1).
   sm-im-app-postgresql-1:
     image: cryptoutil-sm-im:dev
-    command: ["server", "--bind-public-port=8080", "--config=/certs/tls-config.yml", "--config=/app/config/sm-im-app-postgresql-1.yml", "--config=/app/config/sm-im-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret"]
+    command: /bin/sh -c "exec /app/sm-im server --config=/certs/tls-config.yml --config=/app/config/sm-im-app-framework-common.yml --config=/app/config/sm-im-app-framework-postgresql-1.yml --config=/app/config/sm-im-app-domain-common.yml --config=/app/config/sm-im-app-domain-postgresql-1.yml --config=/app/otel/otel.yml --bind-public-port=8080 -u file:///run/secrets/postgres-url.secret $$SUITE_ARGS"
     working_dir: /tmp
     ports:
       - "8102:8080" # HTTPS public
     volumes:
-      - ./config/sm-im-app-postgresql-1.yml:/app/config/sm-im-app-postgresql-1.yml:ro
-      - ./config/sm-im-app-common.yml:/app/config/sm-im-app-common.yml:ro
+      - ./config/sm-im-app-framework-common.yml:/app/config/sm-im-app-framework-common.yml:ro
+      - ./config/sm-im-app-framework-postgresql-1.yml:/app/config/sm-im-app-framework-postgresql-1.yml:ro
+      - ./config/sm-im-app-domain-common.yml:/app/config/sm-im-app-domain-common.yml:ro
+      - ./config/sm-im-app-domain-postgresql-1.yml:/app/config/sm-im-app-domain-postgresql-1.yml:ro
       - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
       - ./certs/:/certs/:ro
     secrets:
@@ -219,13 +225,15 @@ services:
   # sm-im server with PostgreSQL backend (instance 2 - shared DB with instance 1).
   sm-im-app-postgresql-2:
     image: cryptoutil-sm-im:dev
-    command: ["server", "--bind-public-port=8080", "--config=/certs/tls-config.yml", "--config=/app/config/sm-im-app-postgresql-2.yml", "--config=/app/config/sm-im-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret"]
+    command: /bin/sh -c "exec /app/sm-im server --config=/certs/tls-config.yml --config=/app/config/sm-im-app-framework-common.yml --config=/app/config/sm-im-app-framework-postgresql-2.yml --config=/app/config/sm-im-app-domain-common.yml --config=/app/config/sm-im-app-domain-postgresql-2.yml --config=/app/otel/otel.yml --bind-public-port=8080 -u file:///run/secrets/postgres-url.secret $$SUITE_ARGS"
     working_dir: /tmp
     ports:
       - "8103:8080" # HTTPS public
     volumes:
-      - ./config/sm-im-app-postgresql-2.yml:/app/config/sm-im-app-postgresql-2.yml:ro
-      - ./config/sm-im-app-common.yml:/app/config/sm-im-app-common.yml:ro
+      - ./config/sm-im-app-framework-common.yml:/app/config/sm-im-app-framework-common.yml:ro
+      - ./config/sm-im-app-framework-postgresql-2.yml:/app/config/sm-im-app-framework-postgresql-2.yml:ro
+      - ./config/sm-im-app-domain-common.yml:/app/config/sm-im-app-domain-common.yml:ro
+      - ./config/sm-im-app-domain-postgresql-2.yml:/app/config/sm-im-app-domain-postgresql-2.yml:ro
       - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
       - ./certs/:/certs/:ro
     secrets:

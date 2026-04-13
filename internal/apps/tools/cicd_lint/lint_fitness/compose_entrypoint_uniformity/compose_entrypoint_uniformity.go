@@ -1,15 +1,17 @@
 // Copyright (c) 2025 Justin Cranford
 
 // Package compose_entrypoint_uniformity validates that every PS-ID Docker Compose app
-// service uses the canonical command array structure defined in ENG-HANDBOOK.md §12.3.5.
+// service uses the canonical shell-form command structure defined in ENG-HANDBOOK.md §12.3.5.
 //
 // Canonical command format (all 10 PS-IDs × 4 variants = 40 service definitions):
 //
-//	["server", "--bind-public-port=8080", "--config=/certs/tls-config.yml",
-//	 "--config=/app/config/{PS-ID}-app-{variant}.yml",
-//	 "--config=/app/config/{PS-ID}-app-common.yml",
-//	 "--config=/app/otel/otel.yml",
-//	 "-u", "{DATABASE_URL}"]
+//	/bin/sh -c "exec /app/{PS-ID} server --config=/certs/tls-config.yml
+//	  --config=/app/config/{PS-ID}-app-framework-common.yml
+//	  --config=/app/config/{PS-ID}-app-framework-{variant}.yml
+//	  --config=/app/config/{PS-ID}-app-domain-common.yml
+//	  --config=/app/config/{PS-ID}-app-domain-{variant}.yml
+//	  --config=/app/otel/otel.yml
+//	  --bind-public-port=8080 -u {DATABASE_URL} $$SUITE_ARGS"
 //
 // Database URL by variant:
 //   - sqlite-1:      sqlite://file::memory:?cache=shared
@@ -34,11 +36,6 @@ import (
 const (
 	dsnSQLite   = "sqlite://file::memory:?cache=shared"
 	dsnPostgres = "file:///run/secrets/postgres-url.secret"
-	bindPublic  = "--bind-public-port=8080"
-	tlsConfig   = "--config=/certs/tls-config.yml"
-	otelConfig  = "--config=/app/otel/otel.yml"
-	argSubcmd   = "server"
-	argDSNFlag  = "-u"
 )
 
 // variantDSN maps each compose variant to its expected database URL.
@@ -63,8 +60,36 @@ type composeFile struct {
 }
 
 // composeService captures only the command field from a compose service definition.
+// Command can be either a string (shell-form) or []string (exec-form).
 type composeService struct {
-	Command []string `yaml:"command"`
+	Command yamlStringOrSlice `yaml:"command"`
+}
+
+// yamlStringOrSlice handles YAML values that can be either a string or []string.
+type yamlStringOrSlice struct {
+	Value string
+}
+
+// UnmarshalYAML handles both string and []string YAML values.
+func (y *yamlStringOrSlice) UnmarshalYAML(value *yaml.Node) error {
+	if value.Kind == yaml.ScalarNode {
+		y.Value = value.Value
+
+		return nil
+	}
+
+	if value.Kind == yaml.SequenceNode {
+		var items []string
+		if err := value.Decode(&items); err != nil {
+			return fmt.Errorf("decode sequence: %w", err)
+		}
+
+		y.Value = strings.Join(items, " ")
+
+		return nil
+	}
+
+	return fmt.Errorf("expected string or sequence, got %v", value.Kind)
 }
 
 // Check validates compose entrypoint uniformity from the workspace root.
@@ -97,21 +122,15 @@ func checkInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string, readFile
 	return nil
 }
 
-// expectedCommand returns the canonical 8-element command array for a PS-ID and variant.
-func expectedCommand(psID, variant string) []string {
-	return []string{
-		argSubcmd,
-		bindPublic,
-		tlsConfig,
-		fmt.Sprintf("--config=/app/config/%s-app-%s.yml", psID, variant),
-		fmt.Sprintf("--config=/app/config/%s-app-common.yml", psID),
-		otelConfig,
-		argDSNFlag,
-		variantDSN[variant],
-	}
+// expectedCommand returns the canonical shell-form command string for a PS-ID and variant.
+func expectedCommand(psID, variant string) string {
+	return fmt.Sprintf(
+		`/bin/sh -c "exec /app/%s server --config=/certs/tls-config.yml --config=/app/config/%s-app-framework-common.yml --config=/app/config/%s-app-framework-%s.yml --config=/app/config/%s-app-domain-common.yml --config=/app/config/%s-app-domain-%s.yml --config=/app/otel/otel.yml --bind-public-port=8080 -u %s $$SUITE_ARGS"`,
+		psID, psID, psID, variant, psID, psID, variant, variantDSN[variant],
+	)
 }
 
-// checkCompose validates all 4 app-service command arrays in one PS-ID compose file.
+// checkCompose validates all 4 app-service command strings in one PS-ID compose file.
 func checkCompose(rootDir, psID string, readFileFn func(string) ([]byte, error)) []string {
 	composePath := filepath.Join(rootDir, "deployments", psID, "compose.yml")
 
@@ -142,28 +161,13 @@ func checkCompose(rootDir, psID string, readFileFn func(string) ([]byte, error))
 
 		want := expectedCommand(psID, variant)
 
-		if !commandsEqual(svc.Command, want) {
+		if svc.Command.Value != want {
 			violations = append(violations, fmt.Sprintf(
-				"%s/%s: service %q command mismatch\n  got:  %v\n  want: %v",
-				psID, variant, svcName, svc.Command, want,
+				"%s/%s: service %q command mismatch\n  got:  %s\n  want: %s",
+				psID, variant, svcName, svc.Command.Value, want,
 			))
 		}
 	}
 
 	return violations
-}
-
-// commandsEqual returns true if a and b are identical element-by-element.
-func commandsEqual(a, b []string) bool {
-	if len(a) != len(b) {
-		return false
-	}
-
-	for i := range a {
-		if a[i] != b[i] {
-			return false
-		}
-	}
-
-	return true
 }

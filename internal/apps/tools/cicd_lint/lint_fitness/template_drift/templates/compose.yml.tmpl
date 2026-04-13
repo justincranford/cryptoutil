@@ -68,7 +68,7 @@ services:
   # Init job: bootstraps service prerequisites before app startup.
   pki-init:
     image: __SUITE__-__PS_ID__:__IMAGE_TAG__
-    command: ["init", "--output-dir=/certs"]
+    command: ["/app/__PS_ID__", "init", "--domain=__PS_ID__", "--output-dir=/certs"]
     volumes:
       - ./certs/:/certs/:rw
     depends_on:
@@ -80,13 +80,15 @@ services:
   # __PS_ID__ server with SQLite backend (instance 1).
   __PS_ID__-app-sqlite-1:
     image: __SUITE__-__PS_ID__:__IMAGE_TAG__
-    command: ["server", "--bind-public-port=8080", "--config=/certs/tls-config.yml", "--config=/app/config/__PS_ID__-app-sqlite-1.yml", "--config=/app/config/__PS_ID__-app-common.yml", "--config=/app/otel/otel.yml", "-u", "sqlite://file::memory:?cache=shared"]
+    command: /bin/sh -c "exec /app/__PS_ID__ server --config=/certs/tls-config.yml --config=/app/config/__PS_ID__-app-framework-common.yml --config=/app/config/__PS_ID__-app-framework-sqlite-1.yml --config=/app/config/__PS_ID__-app-domain-common.yml --config=/app/config/__PS_ID__-app-domain-sqlite-1.yml --config=/app/otel/otel.yml --bind-public-port=8080 -u sqlite://file::memory:?cache=shared $$SUITE_ARGS"
     working_dir: /tmp
     ports:
       - "__SERVICE_APP_PORT_SQLITE_1__:8080" # HTTPS public
     volumes:
-      - ./config/__PS_ID__-app-sqlite-1.yml:/app/config/__PS_ID__-app-sqlite-1.yml:ro
-      - ./config/__PS_ID__-app-common.yml:/app/config/__PS_ID__-app-common.yml:ro
+      - ./config/__PS_ID__-app-framework-common.yml:/app/config/__PS_ID__-app-framework-common.yml:ro
+      - ./config/__PS_ID__-app-framework-sqlite-1.yml:/app/config/__PS_ID__-app-framework-sqlite-1.yml:ro
+      - ./config/__PS_ID__-app-domain-common.yml:/app/config/__PS_ID__-app-domain-common.yml:ro
+      - ./config/__PS_ID__-app-domain-sqlite-1.yml:/app/config/__PS_ID__-app-domain-sqlite-1.yml:ro
       - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
       - ./certs/:/certs/:ro
     secrets:
@@ -125,13 +127,15 @@ services:
   # __PS_ID__ server with SQLite backend (instance 2).
   __PS_ID__-app-sqlite-2:
     image: __SUITE__-__PS_ID__:__IMAGE_TAG__
-    command: ["server", "--bind-public-port=8080", "--config=/certs/tls-config.yml", "--config=/app/config/__PS_ID__-app-sqlite-2.yml", "--config=/app/config/__PS_ID__-app-common.yml", "--config=/app/otel/otel.yml", "-u", "sqlite://file::memory:?cache=shared"]
+    command: /bin/sh -c "exec /app/__PS_ID__ server --config=/certs/tls-config.yml --config=/app/config/__PS_ID__-app-framework-common.yml --config=/app/config/__PS_ID__-app-framework-sqlite-2.yml --config=/app/config/__PS_ID__-app-domain-common.yml --config=/app/config/__PS_ID__-app-domain-sqlite-2.yml --config=/app/otel/otel.yml --bind-public-port=8080 -u sqlite://file::memory:?cache=shared $$SUITE_ARGS"
     working_dir: /tmp
     ports:
       - "__SERVICE_APP_PORT_SQLITE_2__:8080" # HTTPS public
     volumes:
-      - ./config/__PS_ID__-app-sqlite-2.yml:/app/config/__PS_ID__-app-sqlite-2.yml:ro
-      - ./config/__PS_ID__-app-common.yml:/app/config/__PS_ID__-app-common.yml:ro
+      - ./config/__PS_ID__-app-framework-common.yml:/app/config/__PS_ID__-app-framework-common.yml:ro
+      - ./config/__PS_ID__-app-framework-sqlite-2.yml:/app/config/__PS_ID__-app-framework-sqlite-2.yml:ro
+      - ./config/__PS_ID__-app-domain-common.yml:/app/config/__PS_ID__-app-domain-common.yml:ro
+      - ./config/__PS_ID__-app-domain-sqlite-2.yml:/app/config/__PS_ID__-app-domain-sqlite-2.yml:ro
       - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
       - ./certs/:/certs/:ro
     secrets:
@@ -170,13 +174,15 @@ services:
   # __PS_ID__ server with PostgreSQL backend (instance 1).
   __PS_ID__-app-postgresql-1:
     image: __SUITE__-__PS_ID__:__IMAGE_TAG__
-    command: ["server", "--bind-public-port=8080", "--config=/certs/tls-config.yml", "--config=/app/config/__PS_ID__-app-postgresql-1.yml", "--config=/app/config/__PS_ID__-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret"]
+    command: /bin/sh -c "exec /app/__PS_ID__ server --config=/certs/tls-config.yml --config=/app/config/__PS_ID__-app-framework-common.yml --config=/app/config/__PS_ID__-app-framework-postgresql-1.yml --config=/app/config/__PS_ID__-app-domain-common.yml --config=/app/config/__PS_ID__-app-domain-postgresql-1.yml --config=/app/otel/otel.yml --bind-public-port=8080 -u file:///run/secrets/postgres-url.secret $$SUITE_ARGS"
     working_dir: /tmp
     ports:
       - "__SERVICE_APP_PORT_PG_1__:8080" # HTTPS public
     volumes:
-      - ./config/__PS_ID__-app-postgresql-1.yml:/app/config/__PS_ID__-app-postgresql-1.yml:ro
-      - ./config/__PS_ID__-app-common.yml:/app/config/__PS_ID__-app-common.yml:ro
+      - ./config/__PS_ID__-app-framework-common.yml:/app/config/__PS_ID__-app-framework-common.yml:ro
+      - ./config/__PS_ID__-app-framework-postgresql-1.yml:/app/config/__PS_ID__-app-framework-postgresql-1.yml:ro
+      - ./config/__PS_ID__-app-domain-common.yml:/app/config/__PS_ID__-app-domain-common.yml:ro
+      - ./config/__PS_ID__-app-domain-postgresql-1.yml:/app/config/__PS_ID__-app-domain-postgresql-1.yml:ro
       - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
       - ./certs/:/certs/:ro
     secrets:
@@ -219,13 +225,15 @@ services:
   # __PS_ID__ server with PostgreSQL backend (instance 2 - shared DB with instance 1).
   __PS_ID__-app-postgresql-2:
     image: __SUITE__-__PS_ID__:__IMAGE_TAG__
-    command: ["server", "--bind-public-port=8080", "--config=/certs/tls-config.yml", "--config=/app/config/__PS_ID__-app-postgresql-2.yml", "--config=/app/config/__PS_ID__-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret"]
+    command: /bin/sh -c "exec /app/__PS_ID__ server --config=/certs/tls-config.yml --config=/app/config/__PS_ID__-app-framework-common.yml --config=/app/config/__PS_ID__-app-framework-postgresql-2.yml --config=/app/config/__PS_ID__-app-domain-common.yml --config=/app/config/__PS_ID__-app-domain-postgresql-2.yml --config=/app/otel/otel.yml --bind-public-port=8080 -u file:///run/secrets/postgres-url.secret $$SUITE_ARGS"
     working_dir: /tmp
     ports:
       - "__SERVICE_APP_PORT_PG_2__:8080" # HTTPS public
     volumes:
-      - ./config/__PS_ID__-app-postgresql-2.yml:/app/config/__PS_ID__-app-postgresql-2.yml:ro
-      - ./config/__PS_ID__-app-common.yml:/app/config/__PS_ID__-app-common.yml:ro
+      - ./config/__PS_ID__-app-framework-common.yml:/app/config/__PS_ID__-app-framework-common.yml:ro
+      - ./config/__PS_ID__-app-framework-postgresql-2.yml:/app/config/__PS_ID__-app-framework-postgresql-2.yml:ro
+      - ./config/__PS_ID__-app-domain-common.yml:/app/config/__PS_ID__-app-domain-common.yml:ro
+      - ./config/__PS_ID__-app-domain-postgresql-2.yml:/app/config/__PS_ID__-app-domain-postgresql-2.yml:ro
       - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
       - ./certs/:/certs/:ro
     secrets:

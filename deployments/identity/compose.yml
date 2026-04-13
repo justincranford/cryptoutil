@@ -9,35 +9,33 @@
 #   identity-authz (SERVICE 8400-8403):
 #   - identity-authz-app-sqlite-1:      18400
 #   - identity-authz-app-sqlite-2:      18401
-#   - identity-authz-app-postgresql-1:  18402  [--profile postgres]
-#   - identity-authz-app-postgresql-2:  18403  [--profile postgres]
+#   - identity-authz-app-postgresql-1:  18402
+#   - identity-authz-app-postgresql-2:  18403
 #   identity-idp (SERVICE 8500-8503):
 #   - identity-idp-app-sqlite-1:        18500
 #   - identity-idp-app-sqlite-2:        18501
-#   - identity-idp-app-postgresql-1:    18502  [--profile postgres]
-#   - identity-idp-app-postgresql-2:    18503  [--profile postgres]
+#   - identity-idp-app-postgresql-1:    18502
+#   - identity-idp-app-postgresql-2:    18503
 #   identity-rs (SERVICE 8600-8603):
 #   - identity-rs-app-sqlite-1:         18600
 #   - identity-rs-app-sqlite-2:         18601
-#   - identity-rs-app-postgresql-1:     18602  [--profile postgres]
-#   - identity-rs-app-postgresql-2:     18603  [--profile postgres]
+#   - identity-rs-app-postgresql-1:     18602
+#   - identity-rs-app-postgresql-2:     18603
 #   identity-rp (SERVICE 8700-8703):
 #   - identity-rp-app-sqlite-1:         18700
 #   - identity-rp-app-sqlite-2:         18701
-#   - identity-rp-app-postgresql-1:     18702  [--profile postgres]
-#   - identity-rp-app-postgresql-2:     18703  [--profile postgres]
+#   - identity-rp-app-postgresql-1:     18702
+#   - identity-rp-app-postgresql-2:     18703
 #   identity-spa (SERVICE 8800-8803):
 #   - identity-spa-app-sqlite-1:        18800
 #   - identity-spa-app-sqlite-2:        18801
-#   - identity-spa-app-postgresql-1:    18802  [--profile postgres]
-#   - identity-spa-app-postgresql-2:    18803  [--profile postgres]
+#   - identity-spa-app-postgresql-1:    18802
+#   - identity-spa-app-postgresql-2:    18803
 #
 # Usage:
-#   docker compose -f compose.yml up -d                        # SQLite (dev profile)
-#   docker compose -f compose.yml --profile postgres up -d     # All instances
-#   docker compose -f compose.yml --profile ci up -d           # CI mode
-#   docker compose -f compose.yml logs -f                      # View logs
-#   docker compose -f compose.yml down -v                      # Stop and clean up
+#   docker compose -f compose.yml up -d
+#   docker compose -f compose.yml logs -f
+#   docker compose -f compose.yml down -v
 #
 # Health Checks:
 #   - identity-authz: https://localhost:18400/browser/api/v1/health
@@ -55,6 +53,16 @@ include:
 services:
   # PRODUCT-level port overrides: SERVICE ports + 10000.
   # Service definitions (image, command, volumes, secrets, depends_on) are inherited from PS-ID includes.
+
+  # PRODUCT-level PKI init (overrides PS-ID cert material).
+  pki-init:
+    image: cryptoutil-identity-authz:dev
+    command: ["/app/identity-authz", "init", "--domain=identity", "--output-dir=/certs"]
+    volumes:
+      - ./certs/:/certs/:rw
+    depends_on:
+      builder-identity-authz:
+        condition: service_completed_successfully
 
   identity-authz-app-sqlite-1:
     ports: !override
@@ -153,3 +161,9 @@ secrets:
     file: ./secrets/hash-pepper-v3.secret
   postgres-url.secret:
     file: ./secrets/postgres-url.secret
+  postgres-username.secret:
+    file: ./secrets/postgres-username.secret
+  postgres-password.secret:
+    file: ./secrets/postgres-password.secret
+  postgres-database.secret:
+    file: ./secrets/postgres-database.secret

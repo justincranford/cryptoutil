@@ -9,15 +9,13 @@
 #   jose-ja (SERVICE 8200-8203):
 #   - jose-ja-app-sqlite-1:      18200
 #   - jose-ja-app-sqlite-2:      18201
-#   - jose-ja-app-postgresql-1:  18202  [--profile postgres]
-#   - jose-ja-app-postgresql-2:  18203  [--profile postgres]
+#   - jose-ja-app-postgresql-1:  18202
+#   - jose-ja-app-postgresql-2:  18203
 #
 # Usage:
-#   docker compose -f compose.yml up -d                        # SQLite (dev profile)
-#   docker compose -f compose.yml --profile postgres up -d     # All instances
-#   docker compose -f compose.yml --profile ci up -d           # CI mode
-#   docker compose -f compose.yml logs -f                      # View logs
-#   docker compose -f compose.yml down -v                      # Stop and clean up
+#   docker compose -f compose.yml up -d
+#   docker compose -f compose.yml logs -f
+#   docker compose -f compose.yml down -v
 #
 # Health Checks:
 #   - jose-ja: https://localhost:18200/browser/api/v1/health
@@ -30,6 +28,16 @@ include:
 services:
   # PRODUCT-level port overrides: SERVICE ports + 10000.
   # Service definitions (image, command, volumes, secrets, depends_on) are inherited from PS-ID include.
+
+  # PRODUCT-level PKI init (overrides PS-ID cert material).
+  pki-init:
+    image: cryptoutil-jose-ja:dev
+    command: ["/app/jose-ja", "init", "--domain=jose", "--output-dir=/certs"]
+    volumes:
+      - ./certs/:/certs/:rw
+    depends_on:
+      builder-jose-ja:
+        condition: service_completed_successfully
 
   jose-ja-app-sqlite-1:
     ports: !override
@@ -63,3 +71,9 @@ secrets:
     file: ./secrets/hash-pepper-v3.secret
   postgres-url.secret:
     file: ./secrets/postgres-url.secret
+  postgres-username.secret:
+    file: ./secrets/postgres-username.secret
+  postgres-password.secret:
+    file: ./secrets/postgres-password.secret
+  postgres-database.secret:
+    file: ./secrets/postgres-database.secret

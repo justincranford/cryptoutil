@@ -157,10 +157,10 @@ func TestIsServiceFrameworkConfig(t *testing.T) {
 		path     string
 		expected bool
 	}{
-		{name: "sm-im-app-postgresql-1.yml", path: "deployments/sm-im/config/sm-im-app-postgresql-1.yml", expected: true},
-		{name: "sm-im-app-sqlite-1.yml", path: "deployments/sm-im/config/sm-im-app-sqlite-1.yml", expected: true},
-		{name: "sm-kms-app-postgresql-2.yml", path: "deployments/sm-kms/config/sm-kms-app-postgresql-2.yml", expected: true},
-		{name: "sm-kms-app-common.yml", path: "configs/sm-kms/sm-kms-app-common.yml", expected: true},
+		{name: "sm-im-app-framework-postgresql-1.yml", path: "deployments/sm-im/config/sm-im-app-framework-postgresql-1.yml", expected: true},
+		{name: "sm-im-app-framework-sqlite-1.yml", path: "deployments/sm-im/config/sm-im-app-framework-sqlite-1.yml", expected: true},
+		{name: "sm-kms-app-framework-postgresql-2.yml", path: "deployments/sm-kms/config/sm-kms-app-framework-postgresql-2.yml", expected: true},
+		{name: "sm-kms-app-framework-common.yml", path: "configs/sm-kms/sm-kms-app-framework-common.yml", expected: true},
 		{name: "config-pg-2.yaml", path: "/tmp/config-pg-2.yaml", expected: true},
 		{name: "pki-ca-server.yml", path: "configs/pki-ca/pki-ca-server.yml", expected: false},
 		{name: "jose-ja-server.yml", path: "configs/jose-ja/jose-ja-server.yml", expected: false},

@@ -237,7 +237,7 @@ func TestCheckDeploymentConfigDir_Violation(t *testing.T) {
 	require.NoError(t, os.MkdirAll(configDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 	// Write a deployment config with the wrong OTLP service name.
-	filename := cryptoutilSharedMagic.OTLPServiceSMKMS + "-app-postgresql-1.yml"
+	filename := cryptoutilSharedMagic.OTLPServiceSMKMS + "-app-framework-postgresql-1.yml"
 	content := "otlp-service: \"wrong-service-name\"\n"
 	require.NoError(t, os.WriteFile(filepath.Join(configDir, filename), []byte(content), cryptoutilSharedMagic.FilePermissionsDefault))
 

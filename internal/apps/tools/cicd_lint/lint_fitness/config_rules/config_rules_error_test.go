@@ -107,7 +107,7 @@ func TestCheckInstanceMinimal_ExtraKey(t *testing.T) {
 	setupMinimalStructure(t, tmp)
 
 	writeFile(t, filepath.Join(tmp, "deployments", cryptoutilSharedMagic.OTLPServiceSMKMS,
-		"config", cryptoutilSharedMagic.OTLPServiceSMKMS+"-app-sqlite-1.yml"),
+		"config", cryptoutilSharedMagic.OTLPServiceSMKMS+"-app-framework-sqlite-1.yml"),
 		"# sm-kms SQLite Instance 1 Configuration\ncors-origins: []\notlp-service: test\nextra-key: bad\n")
 
 	logger := newTestLogger()
@@ -125,7 +125,7 @@ func TestCheckInstanceMinimal_InvalidYAML(t *testing.T) {
 	setupMinimalStructure(t, tmp)
 
 	writeFile(t, filepath.Join(tmp, "deployments", cryptoutilSharedMagic.OTLPServiceSMKMS,
-		"config", cryptoutilSharedMagic.OTLPServiceSMKMS+"-app-sqlite-1.yml"),
+		"config", cryptoutilSharedMagic.OTLPServiceSMKMS+"-app-framework-sqlite-1.yml"),
 		":\n[invalid\n")
 
 	logger := newTestLogger()
@@ -142,7 +142,7 @@ func TestCheckCommonComplete_MissingKeys(t *testing.T) {
 	setupMinimalStructure(t, tmp)
 
 	writeFile(t, filepath.Join(tmp, "deployments", cryptoutilSharedMagic.OTLPServiceSMKMS,
-		"config", cryptoutilSharedMagic.OTLPServiceSMKMS+"-app-common.yml"),
+		"config", cryptoutilSharedMagic.OTLPServiceSMKMS+"-app-framework-common.yml"),
 		"# sm-kms Common Configuration\nbind-public-address: 0.0.0.0\n")
 
 	logger := newTestLogger()
@@ -160,7 +160,7 @@ func TestCheckCommonComplete_InvalidYAML(t *testing.T) {
 	setupMinimalStructure(t, tmp)
 
 	writeFile(t, filepath.Join(tmp, "deployments", cryptoutilSharedMagic.OTLPServiceSMKMS,
-		"config", cryptoutilSharedMagic.OTLPServiceSMKMS+"-app-common.yml"),
+		"config", cryptoutilSharedMagic.OTLPServiceSMKMS+"-app-framework-common.yml"),
 		":\n[invalid\n")
 
 	logger := newTestLogger()
@@ -194,7 +194,7 @@ func TestCheckInstanceMinimal_ReadError(t *testing.T) {
 	setupMinimalStructure(t, tmp)
 
 	badPath := filepath.Join(tmp, "deployments", cryptoutilSharedMagic.OTLPServiceSMKMS,
-		"config", cryptoutilSharedMagic.OTLPServiceSMKMS+"-app-sqlite-1.yml")
+		"config", cryptoutilSharedMagic.OTLPServiceSMKMS+"-app-framework-sqlite-1.yml")
 
 	require.NoError(t, os.MkdirAll(badPath, cryptoutilSharedMagic.CICDTempDirPermissions))
 
@@ -212,7 +212,7 @@ func TestCheckCommonComplete_ReadError(t *testing.T) {
 	setupMinimalStructure(t, tmp)
 
 	badPath := filepath.Join(tmp, "deployments", cryptoutilSharedMagic.OTLPServiceSMKMS,
-		"config", cryptoutilSharedMagic.OTLPServiceSMKMS+"-app-common.yml")
+		"config", cryptoutilSharedMagic.OTLPServiceSMKMS+"-app-framework-common.yml")
 	_ = os.Remove(badPath)
 
 	require.NoError(t, os.MkdirAll(badPath, cryptoutilSharedMagic.CICDTempDirPermissions))

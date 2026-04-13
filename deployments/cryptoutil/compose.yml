@@ -19,8 +19,8 @@
 #   - skeleton-template:  28900-28903  (SERVICE: 8900-8903)
 #
 # Usage:
-#   docker compose -f deployments/cryptoutil/compose.yml up --profile dev -d   # SQLite only
-#   docker compose -f deployments/cryptoutil/compose.yml up --profile postgres -d  # All
+#   docker compose -f deployments/cryptoutil/compose.yml up -d
+#   docker compose -f deployments/cryptoutil/compose.yml logs -f
 #   docker compose -f deployments/cryptoutil/compose.yml down -v
 #
 # Architecture: Recursive includes + Approach C (!override) port substitution.
@@ -39,7 +39,7 @@ services:
   # SUITE-level PKI init (overrides PRODUCT/PS-ID cert material).
   pki-init:
     image: cryptoutil-sm-kms:dev
-    command: ["init", "--output-dir=/certs", "--domain=cryptoutil"]
+    command: ["/app/sm-kms", "init", "--domain=cryptoutil", "--output-dir=/certs"]
     volumes:
       - ./certs/:/certs/:rw
     depends_on:

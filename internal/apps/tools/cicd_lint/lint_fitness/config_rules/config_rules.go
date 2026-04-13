@@ -248,10 +248,10 @@ func checkInstanceMinimalInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir s
 	for _, ps := range cryptoutilRegistry.AllProductServices() {
 		configDir := filepath.Join(rootDir, "deployments", ps.PSID, "config")
 
-		// Instance configs match: {ps-id}-app-{sqlite|postgresql}-{N}.yml.
+		// Instance configs match: {ps-id}-app-framework-{sqlite|postgresql}-{N}.yml.
 		patterns := []string{
-			filepath.Join(configDir, ps.PSID+"-app-sqlite-*.yml"),
-			filepath.Join(configDir, ps.PSID+"-app-postgresql-*.yml"),
+			filepath.Join(configDir, ps.PSID+"-app-framework-sqlite-*.yml"),
+			filepath.Join(configDir, ps.PSID+"-app-framework-postgresql-*.yml"),
 		}
 
 		for _, pattern := range patterns {

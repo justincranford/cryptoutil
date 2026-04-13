@@ -43,21 +43,14 @@ func findProjectRoot(t *testing.T) string {
 }
 
 // buildComposeBlock returns a YAML services block with the 4 canonical app
-// service entries for the given PS-ID, all using the expected command arrays.
+// service entries for the given PS-ID, all using the expected shell-form command strings.
 func buildComposeBlock(psID string) string {
 	var sb strings.Builder
 
 	for _, v := range orderedVariants {
 		svcName := lintFitnessRegistry.ComposeServiceName(psID, v)
 		cmd := expectedCommand(psID, v)
-
-		// Build compact JSON-style array literal for the YAML value.
-		quoted := make([]string, len(cmd))
-		for i, arg := range cmd {
-			quoted[i] = fmt.Sprintf("%q", arg)
-		}
-
-		sb.WriteString(fmt.Sprintf("  %s:\n    command: [%s]\n", svcName, strings.Join(quoted, ", ")))
+		sb.WriteString(fmt.Sprintf("  %s:\n    command: %s\n", svcName, cmd))
 	}
 
 	return sb.String()
@@ -169,13 +162,7 @@ func TestCheckInDir_MissingService(t *testing.T) {
 
 		svcName := lintFitnessRegistry.ComposeServiceName(psID, v)
 		cmd := expectedCommand(psID, v)
-		quoted := make([]string, len(cmd))
-
-		for i, arg := range cmd {
-			quoted[i] = fmt.Sprintf("%q", arg)
-		}
-
-		sb.WriteString(fmt.Sprintf("  %s:\n    command: [%s]\n", svcName, strings.Join(quoted, ", ")))
+		sb.WriteString(fmt.Sprintf("  %s:\n    command: %s\n", svcName, cmd))
 	}
 
 	writeComposeYML(t, tmpDir, psID, sb.String())
@@ -195,27 +182,19 @@ func TestCheckInDir_CommandMismatch(t *testing.T) {
 
 	tests := []struct {
 		name    string
-		command []string
+		command string
 	}{
 		{
-			// Wrong first element (wrong subcommand).
 			name:    "wrong subcommand",
-			command: append([]string{cryptoutilSharedMagic.KMSServiceName}, expectedCommand(psID, variant)[1:]...),
+			command: `/bin/sh -c "exec /app/wrong-binary server --bind-public-port=8080"`,
 		},
 		{
-			// Wrong DSN for sqlite variant.
 			name:    "wrong DSN",
-			command: append(expectedCommand(psID, variant)[:len(expectedCommand(psID, variant))-1], dsnPostgres),
+			command: fmt.Sprintf(`/bin/sh -c "exec /app/%s server --config=/certs/tls-config.yml --config=/app/config/%s-app-framework-common.yml --config=/app/config/%s-app-framework-sqlite-1.yml --config=/app/config/%s-app-domain-common.yml --config=/app/config/%s-app-domain-sqlite-1.yml --config=/app/otel/otel.yml --bind-public-port=8080 -u %s $$SUITE_ARGS"`, psID, psID, psID, psID, psID, dsnPostgres),
 		},
 		{
-			// Extra arg at the end (length mismatch).
-			name:    "extra arg",
-			command: append(expectedCommand(psID, variant), "--extra"),
-		},
-		{
-			// Too few args (length mismatch).
-			name:    "too few args",
-			command: expectedCommand(psID, variant)[:4],
+			name:    "missing SUITE_ARGS",
+			command: fmt.Sprintf(`/bin/sh -c "exec /app/%s server --config=/certs/tls-config.yml --config=/app/config/%s-app-framework-common.yml --config=/app/config/%s-app-framework-sqlite-1.yml --config=/app/config/%s-app-domain-common.yml --config=/app/config/%s-app-domain-sqlite-1.yml --config=/app/otel/otel.yml --bind-public-port=8080 -u %s"`, psID, psID, psID, psID, psID, dsnSQLite),
 		},
 	}
 
@@ -227,27 +206,11 @@ func TestCheckInDir_CommandMismatch(t *testing.T) {
 			setupAllComposeFiles(t, tmpDir)
 
 			// Overwrite sm-im/sqlite-1 with the wrong command.
-			svcBlock := buildComposeBlock(psID)
-			// Replace the sqlite-1 entry with a malformed command.
-			quoted := make([]string, len(tc.command))
-			for i, arg := range tc.command {
-				quoted[i] = fmt.Sprintf("%q", arg)
-			}
-
-			badEntry := fmt.Sprintf("  %s:\n    command: [%s]\n", svcName, strings.Join(quoted, ", "))
-			goodEntry := fmt.Sprintf("  %s:\n    command: [%s]", svcName, strings.Join(func() []string {
-				want := expectedCommand(psID, variant)
-
-				q := make([]string, len(want))
-				for i, a := range want {
-					q[i] = fmt.Sprintf("%q", a)
-				}
-
-				return q
-			}(), ", "))
-
-			svcBlock = strings.Replace(svcBlock, goodEntry, badEntry, 1)
-			writeComposeYML(t, tmpDir, psID, svcBlock)
+			goodBlock := buildComposeBlock(psID)
+			goodEntry := fmt.Sprintf("  %s:\n    command: %s\n", svcName, expectedCommand(psID, variant))
+			badEntry := fmt.Sprintf("  %s:\n    command: %s\n", svcName, tc.command)
+			badBlock := strings.Replace(goodBlock, goodEntry, badEntry, 1)
+			writeComposeYML(t, tmpDir, psID, badBlock)
 
 			err := CheckInDir(newLogger(), tmpDir)
 			require.Error(t, err)

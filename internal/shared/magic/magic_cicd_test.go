@@ -38,7 +38,7 @@ func TestSuiteCountConstants(t *testing.T) {
 	}{
 		{name: "SuiteProductCount", got: cryptoutilSharedMagic.SuiteProductCount, expected: 5},
 		{name: "SuiteServiceCount", got: cryptoutilSharedMagic.SuiteServiceCount, expected: 10},
-		{name: "RequiredConfigOverlayCount", got: cryptoutilSharedMagic.RequiredConfigOverlayCount, expected: 5},
+		{name: "RequiredConfigOverlayCount", got: cryptoutilSharedMagic.RequiredConfigOverlayCount, expected: 10},
 	}
 
 	for _, tc := range tests {

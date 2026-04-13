@@ -281,8 +281,9 @@ const (
 	SuiteServiceCount = 10
 
 	// RequiredConfigOverlayCount is the number of required config overlay files per service.
-	// Variants: common, sqlite-1, sqlite-2, postgresql-1, postgresql-2.
-	RequiredConfigOverlayCount = 5
+	// Framework variants: common, sqlite-1, sqlite-2, postgresql-1, postgresql-2 (5)
+	// Domain variants: common, sqlite-1, sqlite-2, postgresql-1, postgresql-2 (5).
+	RequiredConfigOverlayCount = 10
 )
 
 // ListAllFilesStartDirectory is the ListAllFiles start directory.

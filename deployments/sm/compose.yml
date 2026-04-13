@@ -9,20 +9,18 @@
 #   sm-kms (SERVICE 8000-8003):
 #   - sm-kms-app-sqlite-1:      18000
 #   - sm-kms-app-sqlite-2:      18001
-#   - sm-kms-app-postgresql-1:  18002  [--profile postgres]
-#   - sm-kms-app-postgresql-2:  18003  [--profile postgres]
+#   - sm-kms-app-postgresql-1:  18002
+#   - sm-kms-app-postgresql-2:  18003
 #   sm-im (SERVICE 8100-8103):
 #   - sm-im-app-sqlite-1:       18100
 #   - sm-im-app-sqlite-2:       18101
-#   - sm-im-app-postgresql-1:   18102  [--profile postgres]
-#   - sm-im-app-postgresql-2:   18103  [--profile postgres]
+#   - sm-im-app-postgresql-1:   18102
+#   - sm-im-app-postgresql-2:   18103
 #
 # Usage:
-#   docker compose -f compose.yml up -d                        # SQLite (dev profile)
-#   docker compose -f compose.yml --profile postgres up -d     # All instances
-#   docker compose -f compose.yml --profile ci up -d           # CI mode
-#   docker compose -f compose.yml logs -f                      # View logs
-#   docker compose -f compose.yml down -v                      # Stop and clean up
+#   docker compose -f compose.yml up -d
+#   docker compose -f compose.yml logs -f
+#   docker compose -f compose.yml down -v
 #
 # Health Checks:
 #   - sm-kms: https://localhost:18000/browser/api/v1/health
@@ -41,7 +39,7 @@ services:
   # PRODUCT-level PKI init (overrides PS-ID cert material).
   pki-init:
     image: cryptoutil-sm-kms:dev
-    command: ["init", "--output-dir=/certs", "--domain=sm"]
+    command: ["/app/sm-kms", "init", "--domain=sm", "--output-dir=/certs"]
     volumes:
       - ./certs/:/certs/:rw
     depends_on:
@@ -49,42 +47,34 @@ services:
         condition: service_completed_successfully
 
   sm-kms-app-sqlite-1:
-    image: cryptoutil-sm-kms:dev
     ports: !override
       - "18000:8080"
 
   sm-kms-app-sqlite-2:
-    image: cryptoutil-sm-kms:dev
     ports: !override
       - "18001:8080"
 
   sm-kms-app-postgresql-1:
-    image: cryptoutil-sm-kms:dev
     ports: !override
       - "18002:8080"
 
   sm-kms-app-postgresql-2:
-    image: cryptoutil-sm-kms:dev
     ports: !override
       - "18003:8080"
 
   sm-im-app-sqlite-1:
-    image: cryptoutil-sm-im:dev
     ports: !override
       - "18100:8080"
 
   sm-im-app-sqlite-2:
-    image: cryptoutil-sm-im:dev
     ports: !override
       - "18101:8080"
 
   sm-im-app-postgresql-1:
-    image: cryptoutil-sm-im:dev
     ports: !override
       - "18102:8080"
 
   sm-im-app-postgresql-2:
-    image: cryptoutil-sm-im:dev
     ports: !override
       - "18103:8080"
 

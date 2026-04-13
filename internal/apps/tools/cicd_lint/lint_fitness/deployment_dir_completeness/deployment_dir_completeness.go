@@ -5,11 +5,17 @@
 //   - Dockerfile
 //   - compose.yml
 //   - secrets/ directory
-//   - config/ directory with 4 config files:
+//   - config/ directory with 10 config files (5 framework + 5 domain):
 //   - {PS-ID}-app-framework-common.yml
 //   - {PS-ID}-app-framework-sqlite-1.yml
+//   - {PS-ID}-app-framework-sqlite-2.yml
 //   - {PS-ID}-app-framework-postgresql-1.yml
 //   - {PS-ID}-app-framework-postgresql-2.yml
+//   - {PS-ID}-app-domain-common.yml
+//   - {PS-ID}-app-domain-sqlite-1.yml
+//   - {PS-ID}-app-domain-sqlite-2.yml
+//   - {PS-ID}-app-domain-postgresql-1.yml
+//   - {PS-ID}-app-domain-postgresql-2.yml
 //
 // This check prevents deployment drift: if a service is added to the registry
 // but its deployment files are incomplete, the check fails.
@@ -79,12 +85,18 @@ func checkDeploymentDir(rootDir, psID string) []string {
 		return violations
 	}
 
-	// 5. 4 required config files under config/
+	// 5. 10 required config files under config/ (5 framework + 5 domain)
 	configFiles := []string{
 		psID + "-app-framework-common.yml",
 		psID + "-app-framework-sqlite-1.yml",
+		psID + "-app-framework-sqlite-2.yml",
 		psID + "-app-framework-postgresql-1.yml",
 		psID + "-app-framework-postgresql-2.yml",
+		psID + "-app-domain-common.yml",
+		psID + "-app-domain-sqlite-1.yml",
+		psID + "-app-domain-sqlite-2.yml",
+		psID + "-app-domain-postgresql-1.yml",
+		psID + "-app-domain-postgresql-2.yml",
 	}
 
 	for _, cfgFile := range configFiles {

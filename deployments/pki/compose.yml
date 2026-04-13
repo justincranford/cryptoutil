@@ -9,15 +9,13 @@
 #   pki-ca (SERVICE 8300-8303):
 #   - pki-ca-app-sqlite-1:      18300
 #   - pki-ca-app-sqlite-2:      18301
-#   - pki-ca-app-postgresql-1:  18302  [--profile postgres]
-#   - pki-ca-app-postgresql-2:  18303  [--profile postgres]
+#   - pki-ca-app-postgresql-1:  18302
+#   - pki-ca-app-postgresql-2:  18303
 #
 # Usage:
-#   docker compose -f compose.yml up -d                        # SQLite (dev profile)
-#   docker compose -f compose.yml --profile postgres up -d     # All instances
-#   docker compose -f compose.yml --profile ci up -d           # CI mode
-#   docker compose -f compose.yml logs -f                      # View logs
-#   docker compose -f compose.yml down -v                      # Stop and clean up
+#   docker compose -f compose.yml up -d
+#   docker compose -f compose.yml logs -f
+#   docker compose -f compose.yml down -v
 #
 # Health Checks:
 #   - pki-ca: https://localhost:18300/browser/api/v1/health
@@ -30,6 +28,16 @@ include:
 services:
   # PRODUCT-level port overrides: SERVICE ports + 10000.
   # Service definitions (image, command, volumes, secrets, depends_on) are inherited from PS-ID include.
+
+  # PRODUCT-level PKI init (overrides PS-ID cert material).
+  pki-init:
+    image: cryptoutil-pki-ca:dev
+    command: ["/app/pki-ca", "init", "--domain=pki", "--output-dir=/certs"]
+    volumes:
+      - ./certs/:/certs/:rw
+    depends_on:
+      builder-pki-ca:
+        condition: service_completed_successfully
 
   pki-ca-app-sqlite-1:
     ports: !override
@@ -63,3 +71,9 @@ secrets:
     file: ./secrets/hash-pepper-v3.secret
   postgres-url.secret:
     file: ./secrets/postgres-url.secret
+  postgres-username.secret:
+    file: ./secrets/postgres-username.secret
+  postgres-password.secret:
+    file: ./secrets/postgres-password.secret
+  postgres-database.secret:
+    file: ./secrets/postgres-database.secret

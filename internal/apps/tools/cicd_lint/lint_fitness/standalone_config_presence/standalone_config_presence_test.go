@@ -48,12 +48,23 @@ func writeDeploymentConfigFile(t *testing.T, tmpDir, psID, filename, content str
 	require.NoError(t, os.WriteFile(filepath.Join(configDir, filename), []byte(content), cryptoutilSharedMagic.CICDOutputFilePermissions))
 }
 
-// setupAllRequiredConfigs creates all four required config files for both allowlist PS.
+// setupAllRequiredConfigs creates all required config files for both allowlist PS.
 func setupAllRequiredConfigs(t *testing.T, tmpDir string) {
 	t.Helper()
 
 	for _, psID := range []string{cryptoutilSharedMagic.OTLPServiceSMIM, cryptoutilSharedMagic.OTLPServiceSMKMS} {
-		for _, suffix := range []string{"-app-common.yml", "-app-sqlite-1.yml", "-app-postgresql-1.yml", "-app-postgresql-2.yml"} {
+		for _, suffix := range []string{
+			"-app-framework-common.yml",
+			"-app-framework-sqlite-1.yml",
+			"-app-framework-sqlite-2.yml",
+			"-app-framework-postgresql-1.yml",
+			"-app-framework-postgresql-2.yml",
+			"-app-domain-common.yml",
+			"-app-domain-sqlite-1.yml",
+			"-app-domain-sqlite-2.yml",
+			"-app-domain-postgresql-1.yml",
+			"-app-domain-postgresql-2.yml",
+		} {
 			writeDeploymentConfigFile(t, tmpDir, psID, psID+suffix, "# placeholder\n")
 		}
 	}
@@ -84,12 +95,12 @@ func TestCheckInDir_MissingSQLiteConfig(t *testing.T) {
 	tmpDir := t.TempDir()
 	setupAllRequiredConfigs(t, tmpDir)
 
-	require.NoError(t, os.Remove(filepath.Join(tmpDir, "deployments", cryptoutilSharedMagic.OTLPServiceSMKMS, "config", "sm-kms-app-sqlite-1.yml")))
+	require.NoError(t, os.Remove(filepath.Join(tmpDir, "deployments", cryptoutilSharedMagic.OTLPServiceSMKMS, "config", "sm-kms-app-framework-sqlite-1.yml")))
 
 	err := lintFitnessStandaloneConfigPresence.CheckInDir(newTestLogger(), tmpDir)
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), cryptoutilSharedMagic.OTLPServiceSMKMS)
-	assert.Contains(t, err.Error(), "sm-kms-app-sqlite-1.yml")
+	assert.Contains(t, err.Error(), "sm-kms-app-framework-sqlite-1.yml")
 }
 
 func TestCheckInDir_MissingPostgresConfig(t *testing.T) {
@@ -98,12 +109,12 @@ func TestCheckInDir_MissingPostgresConfig(t *testing.T) {
 	tmpDir := t.TempDir()
 	setupAllRequiredConfigs(t, tmpDir)
 
-	require.NoError(t, os.Remove(filepath.Join(tmpDir, "deployments", cryptoutilSharedMagic.OTLPServiceSMIM, "config", "sm-im-app-postgresql-1.yml")))
+	require.NoError(t, os.Remove(filepath.Join(tmpDir, "deployments", cryptoutilSharedMagic.OTLPServiceSMIM, "config", "sm-im-app-framework-postgresql-1.yml")))
 
 	err := lintFitnessStandaloneConfigPresence.CheckInDir(newTestLogger(), tmpDir)
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), cryptoutilSharedMagic.OTLPServiceSMIM)
-	assert.Contains(t, err.Error(), "sm-im-app-postgresql-1.yml")
+	assert.Contains(t, err.Error(), "sm-im-app-framework-postgresql-1.yml")
 }
 
 func TestCheckInDir_MissingConfigDir(t *testing.T) {

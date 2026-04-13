@@ -141,7 +141,7 @@ func TestAddProductServiceFiles(t *testing.T) {
 	require.Equal(t, RequiredFileStatus, contents["jose-ja/secrets/service-password.secret"])
 
 	// Should have config files.
-	require.Equal(t, RequiredFileStatus, contents["jose-ja/config/jose-ja-app-common.yml"])
+	require.Equal(t, RequiredFileStatus, contents["jose-ja/config/jose-ja-app-framework-common.yml"])
 
 	// Should have forbidden deprecated files.
 	require.Equal(t, ForbiddenFileStatus, contents["jose-ja/config/demo-seed.yml"])

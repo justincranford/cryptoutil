@@ -63,7 +63,18 @@ func createDeploymentDir(t *testing.T, tmpDir, psID string) {
 	require.NoError(t, os.WriteFile(filepath.Join(deployDir, "Dockerfile"), []byte("FROM scratch\n"), cryptoutilSharedMagic.CacheFilePermissions))
 	require.NoError(t, os.WriteFile(filepath.Join(deployDir, "compose.yml"), []byte("services: {}\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
-	for _, suffix := range []string{"-app-common.yml", "-app-sqlite-1.yml", "-app-postgresql-1.yml", "-app-postgresql-2.yml"} {
+	for _, suffix := range []string{
+		"-app-framework-common.yml",
+		"-app-framework-sqlite-1.yml",
+		"-app-framework-sqlite-2.yml",
+		"-app-framework-postgresql-1.yml",
+		"-app-framework-postgresql-2.yml",
+		"-app-domain-common.yml",
+		"-app-domain-sqlite-1.yml",
+		"-app-domain-sqlite-2.yml",
+		"-app-domain-postgresql-1.yml",
+		"-app-domain-postgresql-2.yml",
+	} {
 		fp := filepath.Join(configDir, psID+suffix)
 		require.NoError(t, os.WriteFile(fp, []byte("# config\n"), cryptoutilSharedMagic.CacheFilePermissions))
 	}
@@ -159,7 +170,18 @@ func TestCheckInDir_MissingConfigFile(t *testing.T) {
 	t.Parallel()
 
 	psID := cryptoutilSharedMagic.OTLPServiceSMIM
-	suffixes := []string{"-app-common.yml", "-app-sqlite-1.yml", "-app-postgresql-1.yml", "-app-postgresql-2.yml"}
+	suffixes := []string{
+		"-app-framework-common.yml",
+		"-app-framework-sqlite-1.yml",
+		"-app-framework-sqlite-2.yml",
+		"-app-framework-postgresql-1.yml",
+		"-app-framework-postgresql-2.yml",
+		"-app-domain-common.yml",
+		"-app-domain-sqlite-1.yml",
+		"-app-domain-sqlite-2.yml",
+		"-app-domain-postgresql-1.yml",
+		"-app-domain-postgresql-2.yml",
+	}
 
 	for _, suffix := range suffixes {
 		cfgFile := psID + suffix
