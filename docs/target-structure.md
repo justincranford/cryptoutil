@@ -307,7 +307,59 @@ generated code. Plus a `cryptosuite-registry/` directory for the machine-readabl
 api/                                                  # drwxr-x---
 ├── cryptosuite-registry/                             # Machine-readable entity registry (SSOT)
 │   ├── registry.yaml                                 #   Canonical YAML entity registry
-│   └── registry-schema.json                          #   JSON Schema validating registry.yaml
+│   ├── registry-schema.json                          #   JSON Schema validating registry.yaml
+│   └── templates/                                    #   Parameterized canonical deployment templates
+│       ├── configs/
+│       │   └── __PS_ID__/                            #     Standalone config templates (×1, expands to ×10)
+│       │       └── __PS_ID__-framework.yml           #       Framework config template
+│       └── deployments/
+│           ├── __PS_ID__/                            #     PS-ID templates (×1, expands to ×10)
+│           │   ├── Dockerfile                        #       Dockerfile template
+│           │   ├── compose.yml                       #       Compose template
+│           │   ├── config/                           #       Config overlay templates
+│           │   │   ├── __PS_ID__-app-framework-common.yml
+│           │   │   ├── __PS_ID__-app-framework-sqlite-1.yml
+│           │   │   ├── __PS_ID__-app-framework-sqlite-2.yml
+│           │   │   ├── __PS_ID__-app-framework-postgresql-1.yml
+│           │   │   └── __PS_ID__-app-framework-postgresql-2.yml
+│           │   └── secrets/                          #       Secrets templates (15 files)
+│           │       ├── unseal-{1..5}of5.secret       #         Unseal key shards
+│           │       ├── hash-pepper-v3.secret         #         Hash pepper
+│           │       ├── postgres-{url,username,password,database}.secret
+│           │       ├── browser-{username,password}.secret
+│           │       ├── service-{username,password}.secret
+│           │       └── issuing-ca-key.secret         #         PKI CA key (PS-ID level only)
+│           ├── __PRODUCT__/                          #     Product templates (×1, expands to ×5)
+│           │   ├── compose.yml                       #       Product compose template
+│           │   └── secrets/                          #       Secrets templates (15 files)
+│           │       ├── unseal-{1..5}of5.secret
+│           │       ├── hash-pepper-v3.secret
+│           │       ├── postgres-{url,username,password,database}.secret
+│           │       ├── browser-{username,password}.secret.never  # Marker only
+│           │       ├── service-{username,password}.secret.never  # Marker only
+│           │       └── issuing-ca-key.secret.never              # Marker only
+│           ├── __SUITE__/                            #     Suite templates (×1)
+│           │   ├── Dockerfile                        #       Suite Dockerfile template
+│           │   ├── compose.yml                       #       Suite compose template
+│           │   └── secrets/                          #       Secrets templates (15 files)
+│           │       ├── unseal-{1..5}of5.secret
+│           │       ├── hash-pepper-v3.secret
+│           │       ├── postgres-{url,username,password,database}.secret
+│           │       ├── browser-{username,password}.secret.never
+│           │       ├── service-{username,password}.secret.never
+│           │       └── issuing-ca-key.secret.never
+│           ├── shared-postgres/                      #     Shared PostgreSQL static templates
+│           │   ├── compose.yml
+│           │   ├── init-databases.sql
+│           │   ├── init-users.sql
+│           │   ├── postgresql-leader.conf
+│           │   ├── postgresql-follower.conf
+│           │   ├── setup-logical-replication.sh
+│           │   └── secrets/                          #       postgres-{database,username,password}.secret
+│           └── shared-telemetry/                     #     Shared telemetry static templates
+│               ├── compose.yml
+│               └── otel/
+│                   └── otel-collector-config.yaml
 ├── {PS-ID}/                                          # One dir per service (×10)
 │   ├── openapi_spec_components.yaml                  #   Reusable components
 │   ├── openapi_spec_paths.yaml                       #   API endpoints

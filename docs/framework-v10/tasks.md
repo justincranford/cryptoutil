@@ -814,14 +814,14 @@ Template files are the source of truth; docs describe them.
 
 ### Task 3.3: Update `target-structure.md`
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 0.25h
 - **Dependencies**: Task 3.2
 - **Description**: Add `api/cryptosuite-registry/templates/` tree to `target-structure.md`
   listing all template files and the full directory structure including secrets subdirectories.
 - **Acceptance Criteria**:
-  - [ ] `target-structure.md` shows `api/cryptosuite-registry/templates/` with full subtree
-  - [ ] `go run ./cmd/cicd-lint lint-docs` passes
+  - [x] `target-structure.md` shows `api/cryptosuite-registry/templates/` with full subtree
+  - [x] `go run ./cmd/cicd-lint lint-docs` passes
 - **Files**:
   - `docs/target-structure.md` (MODIFY)
 
