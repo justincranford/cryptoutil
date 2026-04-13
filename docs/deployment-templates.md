@@ -117,160 +117,15 @@ production).
 
 ### B.1 Canonical Template
 
-```dockerfile
-#############################################################################################
-# {PS-ID} Dockerfile — {PRODUCT_DISPLAY_NAME} {SERVICE_DISPLAY_NAME}
-#
-# Build: DOCKER_BUILDKIT=1 docker build \
-#          --build-arg APP_VERSION=<ver> \
-#          --build-arg VCS_REF=$(git rev-parse HEAD) \
-#          --build-arg BUILD_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ") \
-#          -t {SUITE}-{PS-ID}:{IMAGE_TAG} \
-#          -f deployments/{PS-ID}/Dockerfile .
-#############################################################################################
-ARG APP_VERSION=UNSET
-ARG VCS_REF=UNSET
-ARG BUILD_DATE=UNSET
-#############################################################################################
-ARG GO_VERSION={GO_VERSION}
-# hadolint ignore=DL3007
-ARG ALPINE_VERSION={ALPINE_VERSION}
-# Design intent is to NEVER set CGO_ENABLED=1
-ARG CGO_ENABLED={CGO_ENABLED}
-ARG GOOS=linux
-ARG GOARCH=amd64
-ARG LDFLAGS="-s -extldflags '-static'"
-#############################################################################################
-# Non-root container user/group IDs. Default 65532:65532 is the well-known nonroot UID/GID
-# convention. Running as non-root limits blast radius of container escapes: an attacker
-# inheriting this UID cannot modify system files, install packages, bind privileged ports,
-# or access host resources via shared namespaces. Override with --build-arg for local
-# debugging only (e.g., CONTAINER_UID=0 CONTAINER_GID=0 for strace) — NEVER in CI/CD or
-# production.
-ARG CONTAINER_UID={CONTAINER_UID}
-ARG CONTAINER_GID={CONTAINER_GID}
-#############################################################################################
+**Canonical file**: [`api/cryptosuite-registry/templates/deployments/__PS_ID__/Dockerfile`](../api/cryptosuite-registry/templates/deployments/__PS_ID__/Dockerfile)
 
-#############################################################################################
-# Stage 1: Validate build arguments
-#############################################################################################
-FROM alpine:${ALPINE_VERSION} AS validation
-ARG APP_VERSION=UNSET
-ARG VCS_REF=UNSET
-ARG BUILD_DATE=UNSET
+The template file is the machine-readable source of truth. Linters instantiate it for each of the
+10 PS-IDs by substituting all `__PS_ID__`, `__PRODUCT__`, `__SUITE__`, and numeric parameters,
+then compare byte-for-byte against `deployments/{PS-ID}/Dockerfile`.
 
-RUN set -e; \
-    errors=""; \
-    if [ "$APP_VERSION" = "UNSET" ]; then \
-        errors="${errors}ERROR: APP_VERSION build argument is required\n"; \
-    fi; \
-    if [ "$VCS_REF" = "UNSET" ]; then \
-        errors="${errors}ERROR: VCS_REF build argument is required\n"; \
-    fi; \
-    if [ "$BUILD_DATE" = "UNSET" ]; then \
-        errors="${errors}ERROR: BUILD_DATE build argument is required\n"; \
-    fi; \
-    if [ -n "$errors" ]; then \
-        printf "%b" "$errors" >&2; \
-        exit 1; \
-    fi
-
-RUN mkdir -p /app && \
-    echo "APP_VERSION=${APP_VERSION}" > /app/.build-params && \
-    echo "VCS_REF=${VCS_REF}" >> /app/.build-params && \
-    echo "BUILD_DATE=${BUILD_DATE}" >> /app/.build-params
-
-#############################################################################################
-# Stage 2: Build Go binary
-#############################################################################################
-FROM golang:${GO_VERSION} AS builder
-WORKDIR /src
-
-ARG APP_VERSION
-ARG VCS_REF
-ARG BUILD_DATE
-ARG GO_VERSION
-ARG CGO_ENABLED
-ARG GOOS
-ARG GOARCH
-ARG LDFLAGS
-
-COPY go.mod go.sum ./
-RUN --mount=type=cache,target=/go/pkg/mod \
-    --mount=type=cache,target=/root/.cache/go-build \
-    go mod download
-
-COPY . .
-
-RUN --mount=type=cache,target=/go/pkg/mod \
-    --mount=type=cache,target=/root/.cache/go-build \
-    CGO_ENABLED=${CGO_ENABLED} GOOS=${GOOS} GOARCH=${GOARCH} \
-    go build -a -tags netgo -trimpath -ldflags="${LDFLAGS}" \
-    -o /app/{PS-ID} ./cmd/{PS-ID}
-
-# Validate static linking
-SHELL ["/bin/bash", "-c"]
-RUN if ldd /app/{PS-ID} 2>/dev/null; then \
-        echo "Binary is dynamically linked - failing build"; \
-        exit 1; \
-    fi
-
-ARG CONTAINER_UID
-ARG CONTAINER_GID
-RUN mkdir -p /app && chmod 555 /app && chown -R ${CONTAINER_UID}:${CONTAINER_GID} /app
-
-#############################################################################################
-# Stage 3: Runtime dependencies
-#############################################################################################
-# hadolint ignore=DL3006
-FROM alpine:${ALPINE_VERSION} AS runtime-deps
-# hadolint ignore=DL3018
-RUN apk --no-cache add ca-certificates tzdata tini && \
-    update-ca-certificates
-
-#############################################################################################
-# Stage 4: Final image
-#############################################################################################
-# hadolint ignore=DL3006
-FROM alpine:${ALPINE_VERSION} AS final
-
-# Copy runtime dependencies
-COPY --from=runtime-deps /sbin/tini /sbin/tini
-COPY --from=runtime-deps /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
-
-# Copy application binary and build metadata
-COPY --from=builder /app /app
-COPY --from=validation /app/.build-params /app/.build-params
-
-# Create non-root user
-ARG CONTAINER_UID
-ARG CONTAINER_GID
-RUN addgroup -g ${CONTAINER_GID} -S appgroup && \
-    adduser -u ${CONTAINER_UID} -S appuser -G appgroup -h /app -s /sbin/nologin
-
-WORKDIR /app
-
-# OCI image labels
-ARG APP_VERSION
-ARG VCS_REF
-ARG BUILD_DATE
-LABEL org.opencontainers.image.title="{SUITE}-{PS-ID}" \
-      org.opencontainers.image.description="{PRODUCT_DISPLAY_NAME} {SERVICE_DISPLAY_NAME}" \
-      org.opencontainers.image.source="{GITHUB_REPOSITORY_URL}" \
-      org.opencontainers.image.authors="{AUTHORS}" \
-      org.opencontainers.image.version="${APP_VERSION}" \
-      org.opencontainers.image.revision="${VCS_REF}" \
-      org.opencontainers.image.created="${BUILD_DATE}"
-
-EXPOSE 8080
-
-HEALTHCHECK --interval={HEALTHCHECK_INTERVAL} --timeout={HEALTHCHECK_TIMEOUT} --start-period={HEALTHCHECK_START_PERIOD} --retries={HEALTHCHECK_RETRIES} \
-    CMD /app/{PS-ID} livez || exit 1
-
-ENTRYPOINT ["/sbin/tini", "--", "/app/{PS-ID}"]
-
-USER ${CONTAINER_UID}:${CONTAINER_GID}
-```
+See the canonical template file for the full content. The template implements the
+4-stage pattern (`validation` → `builder` → `runtime-deps` → `final`) described in
+Section B.2 below.
 
 ### B.2 Template Rules (Enforceable)
 
@@ -324,224 +179,11 @@ USER ${CONTAINER_UID}:${CONTAINER_GID}
 
 ### C.1 Canonical Template
 
-```yaml
-# $schema: https://raw.githubusercontent.com/compose-spec/compose-spec/master/schema/compose-spec.json
-#
-# {PS-ID} Docker Compose Configuration
-#
-# SERVICE-level deployment for {PRODUCT_DISPLAY_NAME} {SERVICE_DISPLAY_NAME}.
-# Supports 4 instances: 2 SQLite + 2 PostgreSQL.
-#
-# Port allocation (SERVICE level: {SERVICE_APP_PORT_BASE}-{SERVICE_APP_PORT_BASE+3}):
-#   - {PS-ID}-app-sqlite-1:      {SERVICE_APP_PORT_SQLITE_1}
-#   - {PS-ID}-app-sqlite-2:      {SERVICE_APP_PORT_SQLITE_2}
-#   - {PS-ID}-app-postgresql-1:  {SERVICE_APP_PORT_PG_1}
-#   - {PS-ID}-app-postgresql-2:  {SERVICE_APP_PORT_PG_2}
-#
-# Dual Role: Standalone deployable AND include target for PRODUCT/SUITE compose files.
-# Usage:
-#   docker compose -f compose.yml up -d
-#   docker compose -f compose.yml up {PS-ID}-app-sqlite-1 -d
-#   docker compose -f compose.yml logs -f
-#   docker compose -f compose.yml down -v
-#
-# Health Checks:
-#   - Public: https://localhost:{SERVICE_APP_PORT_SQLITE_1}/browser/api/v1/health
-#   - Admin:  https://127.0.0.1:9090/admin/api/v1/livez (container-internal only)
-#   - Admin:  https://127.0.0.1:9090/admin/api/v1/ready (container-internal only)
-#
-include:
-  - path: ../shared-telemetry/compose.yml
-  - path: ../shared-postgres/compose.yml
+**Canonical file**: [`api/cryptosuite-registry/templates/deployments/__PS_ID__/compose.yml`](../api/cryptosuite-registry/templates/deployments/__PS_ID__/compose.yml)
 
-services:
-  # Docker secrets availability check.
-  healthcheck-secrets:
-    image: alpine:latest
-    secrets:
-      - unseal-1of5.secret
-      - unseal-2of5.secret
-      - unseal-3of5.secret
-      - unseal-4of5.secret
-      - unseal-5of5.secret
-      - hash-pepper-v3.secret
-      - postgres-url.secret
-      - postgres-username.secret
-      - postgres-password.secret
-      - postgres-database.secret
-      - browser-username.secret
-      - browser-password.secret
-      - service-username.secret
-      - service-password.secret
-    command:
-      - sh
-      - -c
-      - |
-        set -e
-        for f in \
-          /run/secrets/unseal-1of5.secret \
-          /run/secrets/unseal-2of5.secret \
-          /run/secrets/unseal-3of5.secret \
-          /run/secrets/unseal-4of5.secret \
-          /run/secrets/unseal-5of5.secret \
-          /run/secrets/hash-pepper-v3.secret \
-          /run/secrets/postgres-url.secret \
-          /run/secrets/postgres-username.secret \
-          /run/secrets/postgres-password.secret \
-          /run/secrets/postgres-database.secret \
-          /run/secrets/browser-username.secret \
-          /run/secrets/browser-password.secret \
-          /run/secrets/service-username.secret \
-          /run/secrets/service-password.secret; do
-          test -s "$$f" || { echo "MISSING OR EMPTY: $$f"; exit 1; }
-        done
-        echo "All 14 secrets validated successfully"
-    networks:
-      - {PS-ID}-network
-
-  # Build image from source.
-  builder-{PS-ID}:
-    image: {SUITE}-{PS-ID}:{IMAGE_TAG}
-    build:
-      context: ../..
-      dockerfile: deployments/{PS-ID}/Dockerfile
-      args:
-        APP_VERSION: "{IMAGE_TAG}"
-        VCS_REF: "local"
-        BUILD_DATE: "2026-01-01T00:00:00Z"
-    entrypoint: ["sh", "-c"]
-    command: ["echo 'Build completed successfully'"]
-    depends_on:
-      healthcheck-secrets:
-        condition: service_completed_successfully
-
-  # PKI init: bootstrap TLS certificates.
-  pki-init:
-    image: {SUITE}-{PS-ID}:{IMAGE_TAG}
-    command: ["init", "--output-dir=/certs"]
-    volumes:
-      - ./certs/:/certs/:rw
-    depends_on:
-      builder-{PS-ID}:
-        condition: service_completed_successfully
-    networks:
-      - {PS-ID}-network
-
-  # App: SQLite instance 1.
-  {PS-ID}-app-sqlite-1:
-    image: {SUITE}-{PS-ID}:{IMAGE_TAG}
-    command: >-
-      server
-      --bind-public-port=8080
-      --config=/certs/tls-config.yml
-      --config=/app/config/{PS-ID}-app-sqlite-1.yml
-      --config=/app/config/{PS-ID}-app-common.yml
-      --config=/app/otel/otel.yml
-      -u sqlite://file::memory:?cache=shared
-    working_dir: /tmp
-    ports:
-      - "{SERVICE_APP_PORT_SQLITE_1}:8080"
-    volumes:
-      - ./config/{PS-ID}-app-sqlite-1.yml:/app/config/{PS-ID}-app-sqlite-1.yml:ro
-      - ./config/{PS-ID}-app-common.yml:/app/config/{PS-ID}-app-common.yml:ro
-      - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
-      - ./certs/:/certs/:ro
-    secrets:
-      - unseal-1of5.secret
-      - unseal-2of5.secret
-      - unseal-3of5.secret
-      - unseal-4of5.secret
-      - unseal-5of5.secret
-      - hash-pepper-v3.secret
-      - browser-username.secret
-      - browser-password.secret
-      - service-username.secret
-      - service-password.secret
-    depends_on:
-      healthcheck-secrets:
-        condition: service_completed_successfully
-      builder-{PS-ID}:
-        condition: service_completed_successfully
-      pki-init:
-        condition: service_completed_successfully
-      opentelemetry-collector-contrib:
-        condition: service_started
-      healthcheck-opentelemetry-collector-contrib:
-        condition: service_completed_successfully
-    healthcheck:
-      test: ["CMD", "/app/{PS-ID}", "livez"]
-      start-period: {HEALTHCHECK_START_PERIOD}
-      interval: {HEALTHCHECK_INTERVAL}
-      timeout: {HEALTHCHECK_TIMEOUT}
-      retries: {HEALTHCHECK_RETRIES}
-    networks:
-      - {PS-ID}-network
-      - telemetry-network
-    deploy:
-      resources:
-        limits:
-          memory: 256M
-        reservations:
-          memory: 128M
-
-  # App: SQLite instance 2.
-  {PS-ID}-app-sqlite-2:
-    # ... identical to sqlite-1 except:
-    #   port: {SERVICE_APP_PORT_SQLITE_2}:8080
-    #   config: {PS-ID}-app-sqlite-2.yml
-
-  # App: PostgreSQL instance 1.
-  {PS-ID}-app-postgresql-1:
-    # ... identical to sqlite-1 except:
-    #   port: {SERVICE_APP_PORT_PG_1}:8080
-    #   config: {PS-ID}-app-postgresql-1.yml
-    #   command: -u file:///run/secrets/postgres-url.secret (instead of sqlite URL)
-    #   additional secrets: postgres-url.secret, postgres-username.secret,
-    #                       postgres-password.secret, postgres-database.secret
-    #   additional depends_on: postgres-leader (condition: service_healthy)
-    #   additional network: postgres-network
-
-  # App: PostgreSQL instance 2.
-  {PS-ID}-app-postgresql-2:
-    # ... identical to postgresql-1 except:
-    #   port: {SERVICE_APP_PORT_PG_2}:8080
-    #   config: {PS-ID}-app-postgresql-2.yml
-    #   additional depends_on: {PS-ID}-app-postgresql-1 (condition: service_healthy)
-
-networks:
-  {PS-ID}-network:
-    driver: bridge
-
-secrets:
-  unseal-1of5.secret:
-    file: ./secrets/unseal-1of5.secret # pragma: allowlist secret
-  unseal-2of5.secret:
-    file: ./secrets/unseal-2of5.secret
-  unseal-3of5.secret:
-    file: ./secrets/unseal-3of5.secret
-  unseal-4of5.secret:
-    file: ./secrets/unseal-4of5.secret
-  unseal-5of5.secret:
-    file: ./secrets/unseal-5of5.secret
-  hash-pepper-v3.secret:
-    file: ./secrets/hash-pepper-v3.secret
-  postgres-url.secret:
-    file: ./secrets/postgres-url.secret
-  postgres-username.secret:
-    file: ./secrets/postgres-username.secret
-  postgres-password.secret:
-    file: ./secrets/postgres-password.secret
-  postgres-database.secret:
-    file: ./secrets/postgres-database.secret
-  browser-username.secret:
-    file: ./secrets/browser-username.secret
-  browser-password.secret:
-    file: ./secrets/browser-password.secret
-  service-username.secret:
-    file: ./secrets/service-username.secret
-  service-password.secret:
-    file: ./secrets/service-password.secret
-```
+The template file is the machine-readable source of truth. Linters instantiate it for each of the
+10 PS-IDs by substituting all `__PS_ID__`, `__PRODUCT__`, `__SUITE__`, and numeric parameters,
+then compare byte-for-byte against `deployments/{PS-ID}/compose.yml`.
 
 ### C.2 Compose Rules (Enforceable)
 
@@ -576,108 +218,27 @@ Five deployment config files per PS-ID, ALL using **kebab-case** YAML keys.
 
 ### D.1 `{PS-ID}-app-common.yml` (Shared Settings)
 
-```yaml
-# {PS-ID} Common Configuration
-# Shared settings across all {PS-ID} deployment instances.
-
-# Binding address — 0.0.0.0 allows connections from Docker network.
-bind-public-address: "0.0.0.0"
-
-# TLS certificate (generated by pki-init).
-tls-cert-file: /app/tls_public_server_certificate_0.pem
-tls-key-file: /app/tls_public_server_private_key.pem
-
-# Unseal configuration (3-of-5 Shamir shards).
-unseal-mode: "3-of-5"
-unseal-files:
-  - /run/secrets/unseal-1of5.secret
-  - /run/secrets/unseal-2of5.secret
-  - /run/secrets/unseal-3of5.secret
-  - /run/secrets/unseal-4of5.secret
-  - /run/secrets/unseal-5of5.secret
-
-# Authentication credentials (Docker secrets).
-browser-username-file: /run/secrets/browser-username.secret
-browser-password-file: /run/secrets/browser-password.secret
-service-username-file: /run/secrets/service-username.secret
-service-password-file: /run/secrets/service-password.secret
-
-# IP allowlist — allow all for development.
-allowed-ips:
-  - "127.0.0.1"
-  - "::1"
-  - "::ffff:127.0.0.1"
-allowed-cidrs:
-  - "0.0.0.0/0"
-  - "::/0"
-
-# CSRF — disabled for API testing.
-csrf-token-single-use-token: false
-```
+**Canonical file**: [`api/cryptosuite-registry/templates/deployments/__PS_ID__/config/__PS_ID__-app-framework-common.yml`](../api/cryptosuite-registry/templates/deployments/__PS_ID__/config/__PS_ID__-app-framework-common.yml)
 
 ### D.2 `{PS-ID}-app-sqlite-1.yml`
 
-```yaml
-# {PS-ID} SQLite Instance 1 Configuration
-# Settings UNIQUE to the '{PS-ID}-app-sqlite-1' compose service.
-
-cors-origins:
-  - "https://localhost:{SERVICE_APP_PORT_SQLITE_1}"
-  - "https://127.0.0.1:{SERVICE_APP_PORT_SQLITE_1}"
-  - "https://[::1]:{SERVICE_APP_PORT_SQLITE_1}"
-
-otlp-service: {PS-ID}-sqlite-1
-otlp-hostname: {PS-ID}-sqlite-1
-
-database-url: "sqlite://file::memory:?cache=shared"
-```
+**Canonical file**: [`api/cryptosuite-registry/templates/deployments/__PS_ID__/config/__PS_ID__-app-framework-sqlite-1.yml`](../api/cryptosuite-registry/templates/deployments/__PS_ID__/config/__PS_ID__-app-framework-sqlite-1.yml)
 
 ### D.3 `{PS-ID}-app-sqlite-2.yml`
 
-```yaml
-# {PS-ID} SQLite Instance 2 Configuration
-# Settings UNIQUE to the '{PS-ID}-app-sqlite-2' compose service.
-
-cors-origins:
-  - "https://localhost:{SERVICE_APP_PORT_SQLITE_2}"
-  - "https://127.0.0.1:{SERVICE_APP_PORT_SQLITE_2}"
-  - "https://[::1]:{SERVICE_APP_PORT_SQLITE_2}"
-
-otlp-service: {PS-ID}-sqlite-2
-otlp-hostname: {PS-ID}-sqlite-2
-
-database-url: "sqlite://file::memory:?cache=shared"
-```
+**Canonical file**: [`api/cryptosuite-registry/templates/deployments/__PS_ID__/config/__PS_ID__-app-framework-sqlite-2.yml`](../api/cryptosuite-registry/templates/deployments/__PS_ID__/config/__PS_ID__-app-framework-sqlite-2.yml)
 
 ### D.4 `{PS-ID}-app-postgresql-1.yml`
 
-```yaml
-# {PS-ID} PostgreSQL Instance 1 Configuration
-# Settings UNIQUE to the '{PS-ID}-app-postgresql-1' compose service.
-
-cors-origins:
-  - "https://localhost:{SERVICE_APP_PORT_PG_1}"
-  - "https://127.0.0.1:{SERVICE_APP_PORT_PG_1}"
-  - "https://[::1]:{SERVICE_APP_PORT_PG_1}"
-
-otlp-service: {PS-ID}-postgresql-1
-otlp-hostname: {PS-ID}-postgresql-1
-```
+**Canonical file**: [`api/cryptosuite-registry/templates/deployments/__PS_ID__/config/__PS_ID__-app-framework-postgresql-1.yml`](../api/cryptosuite-registry/templates/deployments/__PS_ID__/config/__PS_ID__-app-framework-postgresql-1.yml)
 
 ### D.5 `{PS-ID}-app-postgresql-2.yml`
 
-```yaml
-# {PS-ID} PostgreSQL Instance 2 Configuration
-# Settings UNIQUE to the '{PS-ID}-app-postgresql-2' compose service.
+**Canonical file**: [`api/cryptosuite-registry/templates/deployments/__PS_ID__/config/__PS_ID__-app-framework-postgresql-2.yml`](../api/cryptosuite-registry/templates/deployments/__PS_ID__/config/__PS_ID__-app-framework-postgresql-2.yml)
 
-cors-origins:
-  - "https://localhost:{SERVICE_APP_PORT_PG_2}"
-  - "https://127.0.0.1:{SERVICE_APP_PORT_PG_2}"
-  - "https://[::1]:{SERVICE_APP_PORT_PG_2}"
-
-otlp-service: {PS-ID}-postgresql-2
-otlp-hostname: {PS-ID}-postgresql-2
-```
+All five config templates are the machine-readable source of truth. Linters instantiate them for each
+of the 10 PS-IDs by substituting port numbers and PS-ID placeholders, then compare byte-for-byte
+against `deployments/{PS-ID}/config/{PS-ID}-app-framework-{variant}.yml`.
 
 ### D.6 Config File Rules (Enforceable)
 
@@ -702,36 +263,11 @@ otlp-hostname: {PS-ID}-postgresql-2
 
 Each PS-ID has a standalone config at `configs/{PS-ID}/{PS-ID}.yml` for local development.
 
-```yaml
-# {PRODUCT_DISPLAY_NAME} {SERVICE_DISPLAY_NAME} Configuration
-# Local development config for {PS-ID}.
-# Override with deployment configs in deployments/{PS-ID}/config/
+**Canonical file**: [`api/cryptosuite-registry/templates/configs/__PS_ID__/__PS_ID__-framework.yml`](../api/cryptosuite-registry/templates/configs/__PS_ID__/__PS_ID__-framework.yml)
 
-# Server binding (local development).
-bind-public-address: "127.0.0.1"
-bind-public-port: {SERVICE_APP_PORT_BASE}
-bind-admin-address: "127.0.0.1"
-bind-admin-port: 9090
-
-# TLS (auto-generated for local dev).
-tls-enabled: true
-tls-cert-file: ""
-tls-key-file: ""
-
-# CORS (local development ports).
-cors-origins:
-  - "https://localhost:{SERVICE_APP_PORT_BASE}"
-  - "https://127.0.0.1:{SERVICE_APP_PORT_BASE}"
-
-# Telemetry (disabled for local dev).
-otlp-enabled: false
-otlp-endpoint: ""
-otlp-service: "{PS-ID}"
-otlp-hostname: "localhost"
-
-# Logging.
-log-level: "INFO"
-```
+The template file is the machine-readable source of truth. Linters instantiate it for each of the
+10 PS-IDs by substituting port numbers and PS-ID placeholders, then compare byte-for-byte
+against `configs/{PS-ID}/{PS-ID}-framework.yml`.
 
 ### E.1 Standalone Config Rules
 
@@ -773,48 +309,11 @@ log-level: "INFO"
 
 **ONE canonical pattern for all 5 products.** Includes child PS-IDs, overrides ports.
 
-```yaml
-# $schema: https://raw.githubusercontent.com/compose-spec/compose-spec/master/schema/compose-spec.json
-#
-# {PRODUCT} Product Docker Compose Configuration
-#
-# PRODUCT-level deployment for {PRODUCT} product ({N} services: {list}).
-# Recursive includes: {PS-ID-1} and {PS-ID-2} (which include shared-postgres and shared-telemetry).
-#
-# Port allocation (PRODUCT level: SERVICE + 10000):
-#   {PS-ID-1} (SERVICE {SERVICE_APP_PORT_BASE_1}-{SERVICE_APP_PORT_BASE_1+3}):
-#   - {PS-ID-1}-app-sqlite-1:      {SERVICE_APP_PORT_BASE_1 + 10000}
-#   ...
-#
-include:
-  - path: ../{PS-ID-1}/compose.yml
-  - path: ../{PS-ID-2}/compose.yml
+**Canonical file**: [`api/cryptosuite-registry/templates/deployments/__PRODUCT__/compose.yml`](../api/cryptosuite-registry/templates/deployments/__PRODUCT__/compose.yml)
 
-services:
-  # PRODUCT-level PKI init (overrides PS-ID cert material).
-  pki-init:
-    image: {SUITE}-{PS-ID}:{IMAGE_TAG}
-    command: ["init", "--output-dir=/certs", "--domain={PRODUCT}"]
-    volumes:
-      - ./certs/:/certs/:rw
-    depends_on:
-      builder-{PS-ID-1}:
-        condition: service_completed_successfully
-
-  # Port overrides: SERVICE ports + 10000
-  {PS-ID-1}-app-sqlite-1:
-    image: {SUITE}-{PS-ID-1}:{IMAGE_TAG}
-    ports: !override
-      - "{SERVICE_APP_PORT_BASE_1 + 10000}:8080"
-  # ... repeat for all 4 instances of each PS-ID ...
-
-secrets:
-  # PRODUCT-level secrets (override PS-ID secrets).
-  unseal-1of5.secret:
-    file: ./secrets/unseal-1of5.secret # pragma: allowlist secret
-  # ... all 14 secrets with PRODUCT-level values ...
-  # Plus 4 .secret.never marker files for browser/service credentials
-```
+The template file is the machine-readable source of truth. Linters instantiate it for each of the
+5 products by substituting product names, PS-ID include lists, and port offsets, then compare
+byte-for-byte against `deployments/{PRODUCT}/compose.yml`.
 
 ### G.1 Product Compose Rules
 
@@ -841,45 +340,11 @@ become needed. This is deferred until the suite binary migration decision is fin
 
 ## I. Suite compose.yml Template
 
-```yaml
-# $schema: https://raw.githubusercontent.com/compose-spec/compose-spec/master/schema/compose-spec.json
-#
-# {SUITE} SUITE Deployment (SUITE-Level)
-#
-# Purpose: Complete suite deployment with ALL 10 services across 5 products.
-# Port formula: SUITE_PORT = SERVICE_BASE + 20000
-#
-include:
-  - path: ../sm/compose.yml
-  - path: ../jose/compose.yml
-  - path: ../pki/compose.yml
-  - path: ../identity/compose.yml
-  - path: ../skeleton/compose.yml
+**Canonical file**: [`api/cryptosuite-registry/templates/deployments/__SUITE__/compose.yml`](../api/cryptosuite-registry/templates/deployments/__SUITE__/compose.yml)
 
-services:
-  # SUITE-level PKI init.
-  pki-init:
-    image: {SUITE}-sm-kms:{IMAGE_TAG}
-    command: ["init", "--output-dir=/certs", "--domain={SUITE}"]
-    volumes:
-      - ./certs/:/certs/:rw
-    depends_on:
-      builder-sm-kms:
-        condition: service_completed_successfully
-
-  # Port overrides: SERVICE + 20000 (compact inline syntax).
-  sm-kms-app-sqlite-1: {ports: !override ["28000:8080"]}
-  sm-kms-app-sqlite-2: {ports: !override ["28001:8080"]}
-  sm-kms-app-postgres-1: {ports: !override ["28002:8080"]}
-  sm-kms-app-postgres-2: {ports: !override ["28003:8080"]}
-  # ... repeat for all 40 app instances (10 PS-IDs × 4 instances) ...
-
-secrets:
-  # SUITE-level secrets (override PRODUCT/PS-ID secrets).
-  unseal-1of5.secret:
-    file: ./secrets/unseal-1of5.secret # pragma: allowlist secret
-  # ... all secrets with SUITE-level values ...
-```
+The template file is the machine-readable source of truth. Linters instantiate it for the suite
+(`cryptoutil`) by substituting product include lists and port offsets (+20000), then compare
+byte-for-byte against `deployments/cryptoutil/compose.yml`.
 
 ### I.1 Suite Compose Rules
 
@@ -896,21 +361,11 @@ secrets:
 
 The suite Dockerfile builds the `{SUITE}` binary that can run any service via subcommands.
 
-```dockerfile
-#############################################################################################
-# {SUITE} Suite Dockerfile — Full Suite Binary
-#
-# Follows the same 4-stage pattern as PS-ID Dockerfiles.
-# Binary: ./cmd/{SUITE} → /app/{SUITE}
-#############################################################################################
-# [Same 4-stage pattern as Section B, substituting:]
-#   - {PS-ID} → {SUITE}
-#   - ./cmd/{PS-ID} → ./cmd/{SUITE}
-#   - LABEL title → {SUITE}
-#   - LABEL description → {SUITE} Suite
-#   - HEALTHCHECK → /app/{SUITE} livez || exit 1
-#   - ENTRYPOINT → ["/sbin/tini", "--", "/app/{SUITE}"]
-```
+**Canonical file**: [`api/cryptosuite-registry/templates/deployments/__SUITE__/Dockerfile`](../api/cryptosuite-registry/templates/deployments/__SUITE__/Dockerfile)
+
+The template follows the same 4-stage pattern as the PS-ID Dockerfile (Section B), substituting
+the suite name (`cryptoutil`) for `{PS-ID}` in all binary paths, LABEL fields, HEALTHCHECK, and
+ENTRYPOINT directives.
 
 ---
 
@@ -1022,13 +477,16 @@ byte-for-byte against the actual file on disk. Any deviation is a linting error.
 
 | Linter Name | Template File | Target Files | Comparison |
 |-------------|---------------|--------------|------------|
-| `template_dockerfile` | `templates/Dockerfile.tmpl` | `deployments/{PS-ID}/Dockerfile` (×10) | Full byte-for-byte |
-| `template_compose` | `templates/compose.yml.tmpl` | `deployments/{PS-ID}/compose.yml` (×10) | Full byte-for-byte |
-| `template_config_common` | `templates/config-common.yml.tmpl` | `deployments/{PS-ID}/config/{PS-ID}-app-common.yml` (×10) | Full byte-for-byte |
-| `template_config_sqlite` | `templates/config-sqlite.yml.tmpl` | `deployments/{PS-ID}/config/{PS-ID}-app-sqlite-{1,2}.yml` (×20) | Full byte-for-byte |
-| `template_config_pg` | `templates/config-postgresql.yml.tmpl` | `deployments/{PS-ID}/config/{PS-ID}-app-postgresql-{1,2}.yml` (×20) | Full byte-for-byte |
-| `template_standalone_config` | `templates/standalone-config.yml.tmpl` | `configs/{PS-ID}/{PS-ID}.yml` (×10) | Full byte-for-byte |
-| `template_secrets` | N/A (validation-only) | `deployments/{PS-ID}/secrets/*.secret` (×140) | File count + naming pattern |
+| `template-compliance` | `api/cryptosuite-registry/templates/deployments/__PS_ID__/Dockerfile` | `deployments/{PS-ID}/Dockerfile` (×10) | Full byte-for-byte |
+| `template-compliance` | `api/cryptosuite-registry/templates/deployments/__PS_ID__/compose.yml` | `deployments/{PS-ID}/compose.yml` (×10) | Full byte-for-byte |
+| `template-compliance` | `api/cryptosuite-registry/templates/deployments/__PS_ID__/config/__PS_ID__-app-framework-common.yml` | `deployments/{PS-ID}/config/{PS-ID}-app-framework-common.yml` (×10) | Full byte-for-byte |
+| `template-compliance` | `api/cryptosuite-registry/templates/deployments/__PS_ID__/config/__PS_ID__-app-framework-sqlite-{1,2}.yml` | `deployments/{PS-ID}/config/{PS-ID}-app-framework-sqlite-{1,2}.yml` (×20) | Full byte-for-byte |
+| `template-compliance` | `api/cryptosuite-registry/templates/deployments/__PS_ID__/config/__PS_ID__-app-framework-postgresql-{1,2}.yml` | `deployments/{PS-ID}/config/{PS-ID}-app-framework-postgresql-{1,2}.yml` (×20) | Full byte-for-byte |
+| `template-compliance` | `api/cryptosuite-registry/templates/configs/__PS_ID__/__PS_ID__-framework.yml` | `configs/{PS-ID}/{PS-ID}-framework.yml` (×10) | Full byte-for-byte |
+| `template-compliance` | `api/cryptosuite-registry/templates/deployments/__PRODUCT__/compose.yml` | `deployments/{PRODUCT}/compose.yml` (×5) | Full byte-for-byte |
+| `template-compliance` | `api/cryptosuite-registry/templates/deployments/__SUITE__/Dockerfile` | `deployments/cryptoutil/Dockerfile` (×1) | Full byte-for-byte |
+| `template-compliance` | `api/cryptosuite-registry/templates/deployments/__SUITE__/compose.yml` | `deployments/cryptoutil/compose.yml` (×1) | Full byte-for-byte |
+| `secrets-compliance` | N/A (validation-only) | `deployments/{PS-ID}/secrets/*.secret` (×140) | File count + naming pattern |
 
 **Instantiation Process**:
 1. Load `registry.yaml` → iterate `product-services`
@@ -1090,47 +548,55 @@ machine-readable, linter-consumable source of truth.
 
 ### O.2 Template File Catalog
 
-| Template File | Purpose | Instantiation Count |
-|---------------|---------|---------------------|
-| `Dockerfile.tmpl` | PS-ID Dockerfile (Section B) | ×10 (one per PS-ID) |
-| `compose.yml.tmpl` | PS-ID compose (Section C) | ×10 |
-| `config-common.yml.tmpl` | Deployment common config (Section D.1) | ×10 |
-| `config-sqlite.yml.tmpl` | Deployment SQLite instance config (Section D.2-D.3) | ×20 (2 per PS-ID) |
-| `config-postgresql.yml.tmpl` | Deployment PostgreSQL instance config (Section D.4-D.5) | ×20 (2 per PS-ID) |
-| `standalone-config.yml.tmpl` | Standalone dev config (Section E) | ×10 |
-| `product-compose.yml.tmpl` | Product compose (Section G) | ×5 (one per product) |
-| `suite-compose.yml.tmpl` | Suite compose (Section I) | ×1 |
-| `suite-Dockerfile.tmpl` | Suite Dockerfile (Section J) | ×1 |
+All template files live in `api/cryptosuite-registry/templates/`. Paths below are relative to that directory.
+
+| Template File | Section | Purpose | Instantiation Count |
+|---------------|---------|---------|---------------------|
+| `deployments/__PS_ID__/Dockerfile` | B | PS-ID Dockerfile | ×10 (one per PS-ID) |
+| `deployments/__PS_ID__/compose.yml` | C | PS-ID compose | ×10 |
+| `deployments/__PS_ID__/config/__PS_ID__-app-framework-common.yml` | D.1 | Deployment common config | ×10 |
+| `deployments/__PS_ID__/config/__PS_ID__-app-framework-sqlite-1.yml` | D.2 | Deployment SQLite instance 1 config | ×10 |
+| `deployments/__PS_ID__/config/__PS_ID__-app-framework-sqlite-2.yml` | D.3 | Deployment SQLite instance 2 config | ×10 |
+| `deployments/__PS_ID__/config/__PS_ID__-app-framework-postgresql-1.yml` | D.4 | Deployment PostgreSQL instance 1 config | ×10 |
+| `deployments/__PS_ID__/config/__PS_ID__-app-framework-postgresql-2.yml` | D.5 | Deployment PostgreSQL instance 2 config | ×10 |
+| `configs/__PS_ID__/__PS_ID__-framework.yml` | E | Standalone framework config | ×10 |
+| `deployments/__PRODUCT__/compose.yml` | G | Product compose | ×5 (one per product) |
+| `deployments/__SUITE__/Dockerfile` | J | Suite Dockerfile | ×1 |
+| `deployments/__SUITE__/compose.yml` | I | Suite compose | ×1 |
+| `deployments/__PS_ID__/secrets/` | F | PS-ID secrets (validation only) | ×10 directories |
+| `deployments/__PRODUCT__/secrets/` | — | Product secrets (validation only) | ×5 directories |
+| `deployments/__SUITE__/secrets/` | — | Suite secrets (validation only) | ×1 directory |
 
 ### O.3 Template Syntax
 
-Templates use `{PARAMETER_NAME}` placeholders (curly braces, ALL CAPS with underscores).
-Parameters are resolved from `registry.yaml` and the parameter tables in Section A.
+Templates use `__PARAMETER__` placeholders (double underscores, ALL CAPS with underscores).
+Parameters are resolved from `registry.yaml` and `internal/apps/tools/cicd_lint/lint_fitness/registry/registry.go`.
 
 ```
 # Example template line:
-LABEL org.opencontainers.image.title="{SUITE}-{PS-ID}" \
-      org.opencontainers.image.source="{GITHUB_REPOSITORY_URL}" \
-      org.opencontainers.image.authors="{AUTHORS}" \
-      org.opencontainers.image.description="{PRODUCT_DISPLAY_NAME} {SERVICE_DISPLAY_NAME}"
+LABEL org.opencontainers.image.title="__SUITE__-__PS_ID__" \
+      org.opencontainers.image.source="__GITHUB_REPOSITORY_URL__" \
+      org.opencontainers.image.authors="__AUTHORS__" \
+      org.opencontainers.image.description="__PRODUCT_DISPLAY_NAME__ __SERVICE_DISPLAY_NAME__"
 
 # After instantiation for jose-ja:
 LABEL org.opencontainers.image.title="cryptoutil-jose-ja" \
-      org.opencontainers.image.source="https://github.com/user/cryptoutil" \
-      org.opencontainers.image.authors="Project Authors" \
+      org.opencontainers.image.source="https://github.com/justincranford/cryptoutil" \
+      org.opencontainers.image.authors="Justin Cranford" \
       org.opencontainers.image.description="JOSE JWK Authority"
 ```
 
 ### O.4 Relationship Between Documents
 
 ```
-registry.yaml          → PS-ID definitions, port assignments, product groupings
+registry.yaml                                 → PS-ID definitions, port assignments, product groupings
   ↓
-templates/*.tmpl       → Parameterized canonical content (machine source of truth)
+api/cryptosuite-registry/templates/           → Parameterized canonical content (machine source of truth)
   ↓
-deployment-templates.md → Human-readable documentation of templates and rules
+deployment-templates.md                       → Human-readable documentation of templates and rules
   ↓
-Linters (template_*)   → Instantiate templates, compare to disk, report deviations
+lint-fitness template-compliance              → Instantiate templates, compare to disk, report deviations
+lint-fitness secrets-compliance               → Validate secrets directory structure
 ```
 
 ---

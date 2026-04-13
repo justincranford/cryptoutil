@@ -611,7 +611,7 @@ and `./configs/` directories. Replace all per-file `Check*` functions with a sin
 
 ### Task 2.1: Rewrite core engine in `template_drift.go`
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 2h
 - **Dependencies**: Phase 1 complete
 - **Description**: Rewrite `template_drift.go` to implement the new in-memory FS approach:
@@ -649,20 +649,20 @@ and `./configs/` directories. Replace all per-file `Check*` functions with a sin
   7. ADD: `buildSuiteParams(registry *Registry) map[string]string` —
      builds suite-level substitution map (`__SUITE__`, display names, etc.)
 - **Acceptance Criteria**:
-  - [ ] `template_drift.go` has NO `//go:embed` directive, NO `embed.FS`, NO `embed` import
-  - [ ] `LoadTemplatesDir` correctly discovers all ~63 template files
-  - [ ] `BuildExpectedFS` correctly expands `__PS_ID__` templates × 10: 70 deployment files + 10 config files
-  - [ ] `BuildExpectedFS` correctly expands `__PRODUCT__` template × 5 product compose files
-  - [ ] `BuildExpectedFS` correctly expands `__SUITE__` templates × 1 (Dockerfile + compose.yml)
-  - [ ] `BuildExpectedFS` correctly handles shared-telemetry static templates (no expansion, `__SUITE__` content sub)
-  - [ ] `CompareExpectedFS` returns aggregated error with description for each mismatch
-  - [ ] `go build ./...` succeeds
+  - [x] `template_drift.go` has NO `//go:embed` directive, NO `embed.FS`, NO `embed` import
+  - [x] `LoadTemplatesDir` correctly discovers all ~63 template files
+  - [x] `BuildExpectedFS` correctly expands `__PS_ID__` templates × 10: 70 deployment files + 10 config files
+  - [x] `BuildExpectedFS` correctly expands `__PRODUCT__` template × 5 product compose files
+  - [x] `BuildExpectedFS` correctly expands `__SUITE__` templates × 1 (Dockerfile + compose.yml)
+  - [x] `BuildExpectedFS` correctly handles shared-telemetry static templates (no expansion, `__SUITE__` content sub)
+  - [x] `CompareExpectedFS` returns aggregated error with description for each mismatch
+  - [x] `go build ./...` succeeds
 - **Files**:
   - `internal/apps/tools/cicd_lint/lint_fitness/template_drift/template_drift.go` (REWRITE)
 
 ### Task 2.2: Implement `CheckTemplateCompliance` single linter in `checks.go`
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 0.5h
 - **Dependencies**: Task 2.1
 - **Description**: Rewrite `checks.go` to remove all per-file `Check*` functions and add a single
@@ -680,31 +680,31 @@ and `./configs/` directories. Replace all per-file `Check*` functions with a sin
 
   `defaultComplianceFn` calls `LoadTemplatesDir → BuildExpectedFS → CompareExpectedFS`.
 - **Acceptance Criteria**:
-  - [ ] All old `Check*` functions removed from `checks.go`
-  - [ ] `CheckTemplateCompliance` added
-  - [ ] `checkTemplateComplianceInDir` is the seam-injectable private function
-  - [ ] `go build ./...` succeeds
+  - [x] All old `Check*` functions removed from `checks.go`
+  - [x] `CheckTemplateCompliance` added
+  - [x] `checkTemplateComplianceInDir` is the seam-injectable private function
+  - [x] `go build ./...` succeeds
 - **Files**:
   - `internal/apps/tools/cicd_lint/lint_fitness/template_drift/checks.go` (REWRITE)
 
 ### Task 2.3: Update `lint-fitness-registry.yaml` and dispatch
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 0.25h
 - **Dependencies**: Task 2.2
 - **Description**: Replace all per-file template linter entries with a single `template-compliance`
   entry. Update dispatch in `lint_fitness.go` to wire `CheckTemplateCompliance`.
 - **Acceptance Criteria**:
-  - [ ] All old per-file entries removed (`template-dockerfile`, `template-compose`, etc.)
-  - [ ] Single `template-compliance` entry added, wired to `CheckTemplateCompliance`
-  - [ ] `go run ./cmd/cicd-lint lint-fitness` runs without unknown command errors
+  - [x] All old per-file entries removed (`template-dockerfile`, `template-compose`, etc.)
+  - [x] Single `template-compliance` entry added, wired to `CheckTemplateCompliance`
+  - [x] `go run ./cmd/cicd-lint lint-fitness` runs without unknown command errors
 - **Files**:
   - `internal/apps/tools/cicd_lint/lint_fitness/lint-fitness-registry.yaml` (MODIFY)
   - `internal/apps/tools/cicd_lint/lint_fitness/lint_fitness.go` (MODIFY)
 
 ### Task 2.4: Write tests (≥98% coverage, seam injection pattern)
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 2h
 - **Dependencies**: Task 2.2
 - **Description**: Write comprehensive tests using `t.TempDir()` for file system test isolation.
@@ -727,16 +727,16 @@ and `./configs/` directories. Replace all per-file `Check*` functions with a sin
   - `TestCompareExpectedFS_SecretsPlaceholder`: verify `BASE64_CHAR43` placeholder comparison
     uses length-based matching, not exact byte comparison
 - **Acceptance Criteria**:
-  - [ ] All test functions have `t.Parallel()` at top
-  - [ ] Table-driven for multi-variant tests
-  - [ ] `go test ./internal/apps/tools/cicd_lint/lint_fitness/template_drift/...` → 100% pass
-  - [ ] Coverage ≥98% for `template_drift` package
+  - [x] All test functions have `t.Parallel()` at top
+  - [x] Table-driven for multi-variant tests
+  - [x] `go test ./internal/apps/tools/cicd_lint/lint_fitness/template_drift/...` → 100% pass
+  - [x] Coverage ≥98% for `template_drift` package
 - **Files**:
   - `internal/apps/tools/cicd_lint/lint_fitness/template_drift/template_drift_test.go` (MODIFY/ADD)
 
 ### Task 2.5: Fix actual deployment/config files if templates reveal drift
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 0.5h
 - **Dependencies**: Task 2.3
 - **Description**: Run `go run ./cmd/cicd-lint lint-fitness` to detect any drift between the new
@@ -744,13 +744,13 @@ and `./configs/` directories. Replace all per-file `Check*` functions with a sin
   spec — if a file on disk differs from the template-expanded expected content, fix the file on
   disk (not the template).
 - **Acceptance Criteria**:
-  - [ ] `go run ./cmd/cicd-lint lint-fitness` passes with zero template-compliance violations
+  - [x] `go run ./cmd/cicd-lint lint-fitness` passes with zero template-compliance violations
 - **Evidence**:
   - `test-output/framework-v10/phase2/lint-fitness-output.txt`
 
 ### Task 2.6: Create secrets-compliance sublinter
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 1h
 - **Dependencies**: Task 1.9 (secrets templates exist)
 - **Description**: Create a new lint-fitness sublinter that validates secrets directories
@@ -764,11 +764,11 @@ and `./configs/` directories. Replace all per-file `Check*` functions with a sin
 
   Uses seam injection pattern for testability.
 - **Acceptance Criteria**:
-  - [ ] `secrets-compliance` linter registered in `lint-fitness-registry.yaml`
-  - [ ] Catches missing secrets files, wrong prefixes, too-short secrets
-  - [ ] Allows extra non-.secret files (e.g., README)
-  - [ ] ≥98% test coverage
-  - [ ] `go build ./...` succeeds
+  - [x] `secrets-compliance` linter registered in `lint-fitness-registry.yaml`
+  - [x] Catches missing secrets files, wrong prefixes, too-short secrets
+  - [x] Allows extra non-.secret files (e.g., README)
+  - [x] ≥98% test coverage
+  - [x] `go build ./...` succeeds
 - **Files**:
   - `internal/apps/tools/cicd_lint/lint_fitness/secrets_compliance/secrets_compliance.go` (CREATE)
   - `internal/apps/tools/cicd_lint/lint_fitness/secrets_compliance/secrets_compliance_test.go` (CREATE)
@@ -782,23 +782,23 @@ Template files are the source of truth; docs describe them.
 
 ### Task 3.1: Update `deployment-templates.md` template content sections
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 1h
 - **Dependencies**: Phase 1 complete
 - **Description**: For Sections B.1, C.1, D.1-5, E, G.1, I, J: replace embedded template code
   blocks with a reference to the canonical file in `api/cryptosuite-registry/templates/{path}`.
   Keep all rule tables, parameter tables, and rationale text.
 - **Acceptance Criteria**:
-  - [ ] No embedded template code blocks remain in those sections
-  - [ ] Each section references its canonical template file path
-  - [ ] All rule tables and rationale text intact
-  - [ ] `go run ./cmd/cicd-lint lint-docs` passes
+  - [x] No embedded template code blocks remain in those sections
+  - [x] Each section references its canonical template file path
+  - [x] All rule tables and rationale text intact
+  - [x] `go run ./cmd/cicd-lint lint-docs` passes
 - **Files**:
   - `docs/deployment-templates.md` (MODIFY)
 
 ### Task 3.2: Update Section O.2 template catalog
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 0.25h
 - **Dependencies**: Task 3.1
 - **Description**: Update the template file catalog in Section O.2 to list all canonical
@@ -806,9 +806,9 @@ Template files are the source of truth; docs describe them.
   suite × 1, shared-telemetry static, shared-postgres static, secrets), and the actual files
   they validate.
 - **Acceptance Criteria**:
-  - [ ] Section O.2 correctly lists all template files grouped by category
-  - [ ] Expansion behavior documented for each file type
-  - [ ] `go run ./cmd/cicd-lint lint-docs` passes
+  - [x] Section O.2 correctly lists all template files grouped by category
+  - [x] Expansion behavior documented for each file type
+  - [x] `go run ./cmd/cicd-lint lint-docs` passes
 - **Files**:
   - `docs/deployment-templates.md` (MODIFY)
 
