@@ -1,10 +1,10 @@
-# Identity Resource Server Configuration
-# Local development config for identity-rs.
-# Override with deployment configs in deployments/identity-rs/config/
+# Identity Authorization Server Framework Configuration
+# Local development framework config for identity-authz.
+# Override with deployment configs in deployments/identity-authz/config/
 
 # Server binding (local development).
 bind-public-address: "127.0.0.1"
-bind-public-port: 8600
+bind-public-port: 8400
 bind-admin-address: "127.0.0.1"
 bind-admin-port: 9090
 
@@ -15,13 +15,13 @@ tls-key-file: ""
 
 # CORS (local development ports).
 cors-origins:
-  - "https://localhost:8600"
-  - "https://127.0.0.1:8600"
+  - "https://localhost:8400"
+  - "https://127.0.0.1:8400"
 
 # Telemetry (disabled for local dev).
 otlp-enabled: false
 otlp-endpoint: ""
-otlp-service: "identity-rs"
+otlp-service: "identity-authz"
 otlp-hostname: "localhost"
 
 # Logging.
@@ -30,8 +30,5 @@ log-level: "INFO"
 # Database (in-memory SQLite by default).
 database-url: "sqlite://file::memory:?cache=shared"
 
-# Resource Server settings
-issuer: "https://localhost:8600"
-token-lifetime: 3600
-refresh-token-lifetime: 86400
-authorization-code-ttl: 600
+# Dynamic registration.
+enable-dynamic-registration: false

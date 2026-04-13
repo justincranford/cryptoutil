@@ -1,5 +1,5 @@
-# Secrets Manager Instant Messenger Configuration
-# Local development config for sm-im.
+# Secrets Manager Instant Messenger Framework Configuration
+# Local development framework config for sm-im.
 # Override with deployment configs in deployments/sm-im/config/
 
 # Server binding (local development).
@@ -33,10 +33,10 @@ database-url: "sqlite://file::memory:?cache=shared"
 # Session Configuration
 # Browser session algorithm (OPAQUE, JWS, JWE)
 browser-session-algorithm: "JWS"
-browser-session-jws-algorithm: "HS256" # HS256 for faster testing (symmetric key)
+browser-session-jws-algorithm: "HS256"
 browser-session-jwe-algorithm: "dir+A256GCM"
 
 # Service session algorithm (OPAQUE, JWS, JWE)
 service-session-algorithm: "JWS"
-service-session-jws-algorithm: "HS256" # HS256 for faster testing (symmetric key)
+service-session-jws-algorithm: "HS256"
 service-session-jwe-algorithm: "dir+A256GCM"

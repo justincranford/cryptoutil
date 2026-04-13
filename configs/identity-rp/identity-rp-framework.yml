@@ -1,5 +1,5 @@
-# Identity Relying Party Configuration
-# Local development config for identity-rp.
+# Identity Relying Party Framework Configuration
+# Local development framework config for identity-rp.
 # Override with deployment configs in deployments/identity-rp/config/
 
 # Server binding (local development).
@@ -29,11 +29,3 @@ log-level: "INFO"
 
 # Database (in-memory SQLite by default).
 database-url: "sqlite://file::memory:?cache=shared"
-
-# OAuth 2.1 Provider settings
-authz-server-url: "https://localhost:8400"
-client-id: "" # Must be configured
-client-secret: "" # Must be configured via Docker secret
-redirect-uri: "" # Must be configured
-spa-origin: "https://localhost:8800"
-session-secret: "" # Must be configured via Docker secret

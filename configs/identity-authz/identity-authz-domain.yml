@@ -1,0 +1,9 @@
+# Identity Authorization Server Domain Configuration
+# Local development domain config for identity-authz.
+
+# OAuth 2.1 Authorization Server settings
+issuer: "https://localhost:8400"
+token-lifetime: 3600
+refresh-token-lifetime: 86400
+authorization-code-ttl: 600
+enable-discovery: true

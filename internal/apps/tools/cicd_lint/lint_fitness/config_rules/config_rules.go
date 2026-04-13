@@ -177,13 +177,15 @@ func checkHeaderIdentityInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir st
 		}
 	}
 
-	// Check standalone configs.
+	// Check standalone configs (framework + domain).
 	for _, ps := range cryptoutilRegistry.AllProductServices() {
-		f := filepath.Join(rootDir, cryptoutilSharedMagic.CICDConfigsDir, ps.PSID, ps.PSID+".yml")
+		for _, suffix := range []string{"-framework.yml", "-domain.yml"} {
+			f := filepath.Join(rootDir, cryptoutilSharedMagic.CICDConfigsDir, ps.PSID, ps.PSID+suffix)
 
-		if violation := checkFileHeader(f, ps.PSID); violation != "" {
-			relPath, _ := filepath.Rel(rootDir, f)
-			errs = append(errs, fmt.Sprintf("%s: %s", relPath, violation))
+			if violation := checkFileHeader(f, ps.PSID); violation != "" {
+				relPath, _ := filepath.Rel(rootDir, f)
+				errs = append(errs, fmt.Sprintf("%s: %s", relPath, violation))
+			}
 		}
 	}
 

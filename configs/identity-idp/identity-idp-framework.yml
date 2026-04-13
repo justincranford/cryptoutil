@@ -1,10 +1,10 @@
-# Secrets Manager Key Management Configuration
-# Local development config for sm-kms.
-# Override with deployment configs in deployments/sm-kms/config/
+# Identity Provider Framework Configuration
+# Local development framework config for identity-idp.
+# Override with deployment configs in deployments/identity-idp/config/
 
 # Server binding (local development).
 bind-public-address: "127.0.0.1"
-bind-public-port: 8000
+bind-public-port: 8500
 bind-admin-address: "127.0.0.1"
 bind-admin-port: 9090
 
@@ -15,13 +15,13 @@ tls-key-file: ""
 
 # CORS (local development ports).
 cors-origins:
-  - "https://localhost:8000"
-  - "https://127.0.0.1:8000"
+  - "https://localhost:8500"
+  - "https://127.0.0.1:8500"
 
 # Telemetry (disabled for local dev).
 otlp-enabled: false
 otlp-endpoint: ""
-otlp-service: "sm-kms"
+otlp-service: "identity-idp"
 otlp-hostname: "localhost"
 
 # Logging.
@@ -29,3 +29,6 @@ log-level: "INFO"
 
 # Database (in-memory SQLite by default).
 database-url: "sqlite://file::memory:?cache=shared"
+
+# Dynamic registration.
+enable-dynamic-registration: false

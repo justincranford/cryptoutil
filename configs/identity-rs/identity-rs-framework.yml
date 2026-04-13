@@ -1,10 +1,10 @@
-# Skeleton Template Configuration
-# Local development config for skeleton-template.
-# Override with deployment configs in deployments/skeleton-template/config/
+# Identity Resource Server Framework Configuration
+# Local development framework config for identity-rs.
+# Override with deployment configs in deployments/identity-rs/config/
 
 # Server binding (local development).
 bind-public-address: "127.0.0.1"
-bind-public-port: 8900
+bind-public-port: 8600
 bind-admin-address: "127.0.0.1"
 bind-admin-port: 9090
 
@@ -15,14 +15,17 @@ tls-key-file: ""
 
 # CORS (local development ports).
 cors-origins:
-  - "https://localhost:8900"
-  - "https://127.0.0.1:8900"
+  - "https://localhost:8600"
+  - "https://127.0.0.1:8600"
 
 # Telemetry (disabled for local dev).
 otlp-enabled: false
 otlp-endpoint: ""
-otlp-service: "skeleton-template"
+otlp-service: "identity-rs"
 otlp-hostname: "localhost"
 
 # Logging.
 log-level: "INFO"
+
+# Database (in-memory SQLite by default).
+database-url: "sqlite://file::memory:?cache=shared"

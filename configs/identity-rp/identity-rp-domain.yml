@@ -1,0 +1,10 @@
+# Identity Relying Party Domain Configuration
+# Local development domain config for identity-rp.
+
+# OAuth 2.1 Provider settings
+authz-server-url: "https://localhost:8400"
+client-id: ""
+client-secret: ""
+redirect-uri: ""
+spa-origin: "https://localhost:8800"
+session-secret: ""

@@ -1,5 +1,5 @@
-# Identity Single Page App Configuration
-# Local development config for identity-spa.
+# Identity Single Page App Framework Configuration
+# Local development framework config for identity-spa.
 # Override with deployment configs in deployments/identity-spa/config/
 
 # Server binding (local development).
@@ -30,7 +30,5 @@ log-level: "INFO"
 # Database (in-memory SQLite by default).
 database-url: "sqlite://file::memory:?cache=shared"
 
-# SPA-specific settings
+# SPA-specific framework settings
 static-files-path: "./static"
-index-file: "index.html"
-rp-origin: "" # Optional: Relying Party (BFF) origin for API proxying

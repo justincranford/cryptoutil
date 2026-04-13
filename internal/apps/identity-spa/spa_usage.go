@@ -37,7 +37,7 @@ Options:
 
 Examples:
   identity spa server
-  identity spa server --config configs/identity-spa/identity-spa.yml`
+  identity spa server --config configs/identity-spa/identity-spa-framework.yml`
 
 	// SPAUsageClient is the usage message for the client subcommand.
 	SPAUsageClient = `Usage: identity spa client [options]
@@ -63,7 +63,7 @@ Options:
 
 Examples:
   identity spa init
-  identity spa init --config configs/identity-spa/identity-spa.yml`
+  identity spa init --config configs/identity-spa/identity-spa-framework.yml`
 
 	// SPAUsageHealth is the usage message for the health subcommand.
 	SPAUsageHealth = `Usage: identity spa health [options]

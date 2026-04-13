@@ -456,7 +456,7 @@ Delete the obsolete `template_drift/templates/` directory.
 
 ### Task 1.13: Split all 10 actual standalone configs into framework/domain
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 1h
 - **Dependencies**: Task 1.3 (template defines framework settings)
 - **Description**: Split each of the 10 actual `configs/<ps-id>/<ps-id>.yml` files into
@@ -479,14 +479,14 @@ Delete the obsolete `template_drift/templates/` directory.
     static file serving. This is a framework gap to be addressed (add to framework
     config schema `validate_schema.go` and pflag registration in v10 scope — quizme-v4 Q6/A).
 - **Acceptance Criteria**:
-  - [ ] All 10 PS-IDs have `<ps-id>-framework.yml` + `<ps-id>-domain.yml`
-  - [ ] Original `<ps-id>.yml` removed (breaking change, acceptable per Decision 7)
-  - [ ] Framework files contain ONLY framework settings
-  - [ ] Domain files contain ONLY domain settings
-  - [ ] pki-ca has NO `storage.type` in either file (removed)
-  - [ ] identity-rp `authz-server-url`, `client-id`, `redirect-uri` in domain file
-  - [ ] identity-spa `static-files-path` in framework file (gap: add to framework schema)
-  - [ ] `go build ./...` succeeds (config loading must support new file names)
+  - [x] All 10 PS-IDs have `<ps-id>-framework.yml` + `<ps-id>-domain.yml`
+  - [x] Original `<ps-id>.yml` removed (breaking change, acceptable per Decision 7)
+  - [x] Framework files contain ONLY framework settings
+  - [x] Domain files contain ONLY domain settings
+  - [x] pki-ca has NO `storage.type` in either file (removed)
+  - [x] identity-rp `authz-server-url`, `client-id`, `redirect-uri` in domain file
+  - [x] identity-spa `static-files-path` in framework file (gap: add to framework schema)
+  - [x] `go build ./...` succeeds (config loading must support new file names)
 - **Files**:
   - `configs/<ps-id>/<ps-id>-framework.yml` × 10 (CREATE)
   - `configs/<ps-id>/<ps-id>-domain.yml` × 10 (CREATE)

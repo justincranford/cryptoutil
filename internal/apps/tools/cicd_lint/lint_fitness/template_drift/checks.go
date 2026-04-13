@@ -289,7 +289,7 @@ func checkStandaloneConfigInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir 
 			continue
 		}
 
-		actualPath := filepath.Join(rootDir, cryptoutilSharedMagic.CICDConfigsDir, ps.PSID, ps.PSID+".yml")
+		actualPath := filepath.Join(rootDir, cryptoutilSharedMagic.CICDConfigsDir, ps.PSID, ps.PSID+"-framework.yml")
 
 		actual, err := os.ReadFile(actualPath)
 		if err != nil {

@@ -292,7 +292,7 @@ func TestCheckHeaderIdentity_MissingFile(t *testing.T) {
 	setupMinimalStructure(t, tmp)
 
 	standaloneFile := filepath.Join(tmp, cryptoutilSharedMagic.CICDConfigsDir,
-		cryptoutilSharedMagic.OTLPServiceSMKMS, cryptoutilSharedMagic.OTLPServiceSMKMS+".yml")
+		cryptoutilSharedMagic.OTLPServiceSMKMS, cryptoutilSharedMagic.OTLPServiceSMKMS+"-framework.yml")
 	_ = os.Remove(standaloneFile)
 
 	logger := newTestLogger()
@@ -309,7 +309,7 @@ func TestCheckHeaderIdentity_StandaloneWrongPSID(t *testing.T) {
 	setupMinimalStructure(t, tmp)
 
 	standaloneFile := filepath.Join(tmp, cryptoutilSharedMagic.CICDConfigsDir,
-		cryptoutilSharedMagic.OTLPServiceSMKMS, cryptoutilSharedMagic.OTLPServiceSMKMS+".yml")
+		cryptoutilSharedMagic.OTLPServiceSMKMS, cryptoutilSharedMagic.OTLPServiceSMKMS+"-framework.yml")
 	writeFile(t, standaloneFile, "# Wrong Service Configuration\n# This is not the right service.\n")
 
 	logger := newTestLogger()

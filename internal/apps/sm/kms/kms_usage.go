@@ -37,7 +37,7 @@ Options:
 
 Examples:
   sm kms server
-  sm kms server --config configs/sm-kms/sm-kms.yml`
+  sm kms server --config configs/sm-kms/sm-kms-framework.yml`
 
 	// KMSUsageClient is the usage message for the client subcommand.
 	KMSUsageClient = `Usage: sm kms client [options]
@@ -63,7 +63,7 @@ Options:
 
 Examples:
   sm kms init
-  sm kms init --config configs/sm-kms/sm-kms.yml`
+  sm kms init --config configs/sm-kms/sm-kms-framework.yml`
 
 	// KMSUsageHealth is the usage message for the health subcommand.
 	KMSUsageHealth = `Usage: sm kms health [options]

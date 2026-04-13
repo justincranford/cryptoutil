@@ -1,0 +1,9 @@
+# Identity Provider Domain Configuration
+# Local development domain config for identity-idp.
+
+# Identity Provider settings
+issuer: "https://localhost:8500"
+token-lifetime: 3600
+refresh-token-lifetime: 86400
+authorization-code-ttl: 600
+enable-discovery: true

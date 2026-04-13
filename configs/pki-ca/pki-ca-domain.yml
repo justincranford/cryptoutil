@@ -1,31 +1,5 @@
-# PKI Certificate Authority Configuration
-# Local development config for pki-ca.
-# Override with deployment configs in deployments/pki-ca/config/
-
-# Server binding (local development).
-bind-public-address: "127.0.0.1"
-bind-public-port: 8300
-bind-admin-address: "127.0.0.1"
-bind-admin-port: 9090
-
-# TLS (auto-generated for local dev).
-tls-enabled: true
-tls-cert-file: ""
-tls-key-file: ""
-
-# CORS (local development ports).
-cors-origins:
-  - "https://localhost:8300"
-  - "https://127.0.0.1:8300"
-
-# Telemetry (disabled for local dev).
-otlp-enabled: false
-otlp-endpoint: ""
-otlp-service: "pki-ca"
-otlp-hostname: "localhost"
-
-# Logging.
-log-level: "INFO"
+# PKI Certificate Authority Domain Configuration
+# Local development domain config for pki-ca.
 
 # Development mode - creates self-signed CA on startup.
 dev: false
@@ -44,12 +18,7 @@ ca:
     algorithm: "ECDSA"
     curve_or_size: "P-384"
   validity:
-    days: 3650 # 10 years for root CA
-
-# Certificate storage
-storage:
-  type: "memory"
-  # For SQLite: dsn: "file:ca.db?cache=shared&mode=rwc"
+    days: 3650
 
 # Revocation services
 revocation:

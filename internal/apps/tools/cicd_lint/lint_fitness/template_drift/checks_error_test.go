@@ -344,7 +344,7 @@ func TestCheckStandaloneConfig_DriftDetection(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	for _, ps := range cryptoutilRegistry.AllProductServices() {
-		configPath := filepath.Join(tmpDir, cryptoutilSharedMagic.CICDConfigsDir, ps.PSID, ps.PSID+".yml")
+		configPath := filepath.Join(tmpDir, cryptoutilSharedMagic.CICDConfigsDir, ps.PSID, ps.PSID+"-framework.yml")
 		require.NoError(t, os.MkdirAll(filepath.Dir(configPath), cryptoutilSharedMagic.CICDTempDirPermissions))
 		require.NoError(t, os.WriteFile(configPath, []byte("wrong: content\n"), cryptoutilSharedMagic.CacheFilePermissions))
 	}

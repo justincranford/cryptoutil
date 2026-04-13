@@ -37,7 +37,7 @@ Options:
 
 Examples:
   identity idp server
-  identity idp server --config configs/identity-idp/identity-idp.yml`
+  identity idp server --config configs/identity-idp/identity-idp-framework.yml`
 
 	// IDPUsageClient is the usage message for the client subcommand.
 	IDPUsageClient = `Usage: identity idp client [options]
@@ -63,7 +63,7 @@ Options:
 
 Examples:
   identity idp init
-  identity idp init --config configs/identity-idp/identity-idp.yml`
+  identity idp init --config configs/identity-idp/identity-idp-framework.yml`
 
 	// IDPUsageHealth is the usage message for the health subcommand.
 	IDPUsageHealth = `Usage: identity idp health [options]

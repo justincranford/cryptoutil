@@ -1,0 +1,8 @@
+# Identity Resource Server Domain Configuration
+# Local development domain config for identity-rs.
+
+# Resource Server settings
+issuer: "https://localhost:8600"
+token-lifetime: 3600
+refresh-token-lifetime: 86400
+authorization-code-ttl: 600

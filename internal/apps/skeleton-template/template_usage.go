@@ -62,7 +62,7 @@ Options:
 
 Examples:
   skeleton template init
-  skeleton template init --config configs/skeleton-template/skeleton-template.yml`
+  skeleton template init --config configs/skeleton-template/skeleton-template-framework.yml`
 
 	// TemplateUsageHealth is the usage message for the health subcommand.
 	TemplateUsageHealth = `Usage: skeleton template health [options]

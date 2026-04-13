@@ -162,12 +162,14 @@ func setupMinimalStructure(t *testing.T, root string) {
 		configDir := filepath.Join(root, "deployments", ps, "config")
 		require.NoError(t, os.MkdirAll(configDir, cryptoutilSharedMagic.CICDTempDirPermissions))
 
-		// Create standalone config dir and file.
+		// Create standalone config dir and framework + domain files.
 		standaloneDir := filepath.Join(root, cryptoutilSharedMagic.CICDConfigsDir, ps)
 		require.NoError(t, os.MkdirAll(standaloneDir, cryptoutilSharedMagic.CICDTempDirPermissions))
 
-		writeFile(t, filepath.Join(standaloneDir, ps+".yml"),
-			"# "+ps+" Configuration\nbind-public-address: 127.0.0.1\n")
+		writeFile(t, filepath.Join(standaloneDir, ps+"-framework.yml"),
+			"# "+ps+" Framework Configuration\nbind-public-address: 127.0.0.1\n")
+		writeFile(t, filepath.Join(standaloneDir, ps+"-domain.yml"),
+			"# "+ps+" Domain Configuration\n")
 	}
 }
 

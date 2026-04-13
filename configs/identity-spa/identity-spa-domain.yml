@@ -1,0 +1,6 @@
+# Identity Single Page App Domain Configuration
+# Local development domain config for identity-spa.
+
+# SPA-specific settings
+index-file: "index.html"
+rp-origin: ""
