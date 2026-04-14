@@ -83,6 +83,33 @@ services:
       healthcheck-secrets:
         condition: service_completed_successfully
 
+  # Thorough Go binary secrets validation: verifies file presence, naming convention,
+  # location (/run/secrets/), content length (>=43 chars), and format (base64url).
+  # Runs after builder-skeleton-template so the binary is available, before pki-init.
+  validate-secrets-skeleton-template:
+    image: cryptoutil-skeleton-template:local
+    command: ["/app/skeleton-template", "validate-secrets"]
+    secrets:
+      - unseal-1of5.secret
+      - unseal-2of5.secret
+      - unseal-3of5.secret
+      - unseal-4of5.secret
+      - unseal-5of5.secret
+      - hash-pepper-v3.secret
+      - postgres-url.secret
+      - postgres-username.secret
+      - postgres-password.secret
+      - postgres-database.secret
+      - browser-username.secret
+      - browser-password.secret
+      - service-username.secret
+      - service-password.secret
+    depends_on:
+      builder-skeleton-template:
+        condition: service_completed_successfully
+    networks:
+      - skeleton-template-network
+
   # Init job: bootstraps service prerequisites before app startup.
   pki-init:
     image: cryptoutil-skeleton-template:local
@@ -91,6 +118,8 @@ services:
       - ./certs/:/certs/:rw
     depends_on:
       builder-skeleton-template:
+        condition: service_completed_successfully
+      validate-secrets-skeleton-template:
         condition: service_completed_successfully
     networks:
       - skeleton-template-network
@@ -119,6 +148,8 @@ services:
       healthcheck-secrets:
         condition: service_completed_successfully
       builder-skeleton-template:
+        condition: service_completed_successfully
+      validate-secrets-skeleton-template:
         condition: service_completed_successfully
       pki-init:
         condition: service_completed_successfully
@@ -167,6 +198,8 @@ services:
         condition: service_completed_successfully
       builder-skeleton-template:
         condition: service_completed_successfully
+      validate-secrets-skeleton-template:
+        condition: service_completed_successfully
       pki-init:
         condition: service_completed_successfully
       opentelemetry-collector-contrib:
@@ -214,6 +247,8 @@ services:
       healthcheck-secrets:
         condition: service_completed_successfully
       builder-skeleton-template:
+        condition: service_completed_successfully
+      validate-secrets-skeleton-template:
         condition: service_completed_successfully
       pki-init:
         condition: service_completed_successfully
@@ -265,6 +300,8 @@ services:
       healthcheck-secrets:
         condition: service_completed_successfully
       builder-skeleton-template:
+        condition: service_completed_successfully
+      validate-secrets-skeleton-template:
         condition: service_completed_successfully
       pki-init:
         condition: service_completed_successfully
