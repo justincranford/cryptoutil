@@ -37,14 +37,7 @@ func defaultComplianceFn(projectRoot string) error {
 		return fmt.Errorf("load templates: %w", err)
 	}
 
-	expected, err := BuildExpectedFS(templates)
-	if err != nil {
-		return fmt.Errorf("build expected FS: %w", err)
-	}
+	expected := BuildExpectedFS(templates)
 
-	if err := CompareExpectedFS(expected, projectRoot); err != nil {
-		return err
-	}
-
-	return nil
+	return CompareExpectedFS(expected, projectRoot)
 }

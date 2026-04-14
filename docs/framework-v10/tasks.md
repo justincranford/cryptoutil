@@ -827,17 +827,17 @@ Template files are the source of truth; docs describe them.
 
 ### Task 3.4: Annotate v9 plan and tasks with correction note
 
-- **Status**: ❌
+- **Status**: ✅ (N/A — v9 docs do not exist)
 - **Estimated**: 0.25h
 - **Dependencies**: None
 - **Description**: Add a `⚠️ v9 IMPLEMENTATION ERROR` note to v9 Task 8.1 and v9 plan Item 23
   indicating templates were placed at wrong location; v10 corrects this.
 - **Acceptance Criteria**:
-  - [ ] `docs/framework-v9/plan.md` Item 23 has correction note
-  - [ ] `docs/framework-v9/tasks.md` Task 8.1 has correction note
+  - [x] `docs/framework-v9/plan.md` Item 23 has correction note (NOT APPLICABLE — v9 files were never created; only v10 docs exist)
+  - [x] `docs/framework-v9/tasks.md` Task 8.1 has correction note (NOT APPLICABLE — v9 files were never created)
 - **Files**:
-  - `docs/framework-v9/plan.md` (MODIFY)
-  - `docs/framework-v9/tasks.md` (MODIFY)
+  - `docs/framework-v9/plan.md` (MODIFY) — file does not exist, skipped
+  - `docs/framework-v9/tasks.md` (MODIFY) — file does not exist, skipped
 
 ---
 
@@ -847,14 +847,14 @@ Template files are the source of truth; docs describe them.
 
 ### Task 4.1: Full build and lint validation
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 0.5h
 - **Dependencies**: All Phase 1–3 tasks
 - **Acceptance Criteria**:
-  - [ ] `go build ./...` clean
-  - [ ] `go build -tags e2e,integration ./...` clean
-  - [ ] `golangci-lint run` zero warnings/errors
-  - [ ] `golangci-lint run --build-tags e2e,integration` zero warnings/errors
+  - [x] `go build ./...` clean
+  - [x] `go build -tags e2e,integration ./...` clean
+  - [x] `golangci-lint run` zero warnings/errors
+  - [x] `golangci-lint run --build-tags e2e,integration` zero warnings/errors
 - **Evidence**: `test-output/framework-v10/phase4/build-lint.txt`
 
 ### Task 4.2: Full test suite and coverage

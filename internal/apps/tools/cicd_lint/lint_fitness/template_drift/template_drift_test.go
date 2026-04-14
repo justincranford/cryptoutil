@@ -3,6 +3,8 @@
 package template_drift
 
 import (
+	"errors"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"testing"
@@ -62,8 +64,7 @@ func TestBuildExpectedFS_PSIDExpansion(t *testing.T) {
 		"deployments/__PS_ID__/Dockerfile": "FROM __PS_ID__:latest",
 	}
 
-	expected, err := BuildExpectedFS(templates)
-	require.NoError(t, err)
+	expected := BuildExpectedFS(templates)
 	// One expanded entry per PS-ID.
 	require.Len(t, expected, len(cryptoutilRegistry.AllProductServices()))
 
@@ -81,8 +82,7 @@ func TestBuildExpectedFS_ProductExpansion(t *testing.T) {
 		"deployments/__PRODUCT__/compose.yml": "product: __PRODUCT__",
 	}
 
-	expected, err := BuildExpectedFS(templates)
-	require.NoError(t, err)
+	expected := BuildExpectedFS(templates)
 	// One expanded entry per product.
 	require.Len(t, expected, len(cryptoutilRegistry.AllProducts()))
 
@@ -98,8 +98,7 @@ func TestBuildExpectedFS_SuiteExpansion(t *testing.T) {
 		"deployments/__SUITE__/Dockerfile": "FROM __SUITE__:latest",
 	}
 
-	expected, err := BuildExpectedFS(templates)
-	require.NoError(t, err)
+	expected := BuildExpectedFS(templates)
 	// 1 suite → 1 entry.
 	require.Len(t, expected, 1)
 
@@ -115,8 +114,7 @@ func TestBuildExpectedFS_StaticPath(t *testing.T) {
 		"deployments/shared-telemetry/compose.yml": "suite: __SUITE__",
 	}
 
-	expected, err := BuildExpectedFS(templates)
-	require.NoError(t, err)
+	expected := BuildExpectedFS(templates)
 	require.Len(t, expected, 1)
 
 	content, ok := expected["deployments/shared-telemetry/compose.yml"]
@@ -132,8 +130,7 @@ func TestBuildExpectedFS_ContentSubstitution(t *testing.T) {
 		"deployments/__PS_ID__/config/__PS_ID__-app.yml": "psid: __PS_ID__\nupper: __PS_ID_UPPER__",
 	}
 
-	expected, err := BuildExpectedFS(templates)
-	require.NoError(t, err)
+	expected := BuildExpectedFS(templates)
 
 	content, ok := expected["deployments/jose-ja/config/jose-ja-app.yml"]
 	require.True(t, ok)
@@ -148,8 +145,7 @@ func TestBuildExpectedFS_SecretsExpansion(t *testing.T) {
 		"deployments/__PS_ID__/secrets/password.secret": "__PS_ID__-password-BASE64_CHAR43",
 	}
 
-	expected, err := BuildExpectedFS(templates)
-	require.NoError(t, err)
+	expected := BuildExpectedFS(templates)
 
 	content, ok := expected["deployments/sm-kms/secrets/password.secret"]
 	require.True(t, ok)
@@ -462,9 +458,88 @@ func TestCheckTemplateCompliance_IntegrationWithProjectRoot(t *testing.T) {
 	require.NoError(t, err)
 	require.NotEmpty(t, templates)
 
-	expected, err := BuildExpectedFS(templates)
-	require.NoError(t, err)
+	expected := BuildExpectedFS(templates)
 	require.NotEmpty(t, expected)
 	// Should expand to many files (>300).
 	require.Greater(t, len(expected), 300)
+}
+
+// fakeDirEntry is a minimal fs.DirEntry implementation for seam-injection tests.
+type fakeDirEntry struct {
+	name  string
+	isDir bool
+}
+
+func (f *fakeDirEntry) Name() string               { return f.name }
+func (f *fakeDirEntry) IsDir() bool                { return f.isDir }
+func (f *fakeDirEntry) Type() fs.FileMode          { return 0 }
+func (f *fakeDirEntry) Info() (fs.FileInfo, error) { return nil, nil }
+
+// TestLoadTemplatesDirFn_WalkCallbackError exercises the path where the WalkDirFunc
+// receives a non-nil error argument from the OS (e.g., permission denied on a dir entry).
+func TestLoadTemplatesDirFn_WalkCallbackError(t *testing.T) {
+	t.Parallel()
+
+	tmpDir := t.TempDir()
+	require.NoError(t, os.MkdirAll(filepath.Join(tmpDir, templatesRelPath), cryptoutilSharedMagic.CICDTempDirPermissions))
+
+	injectedErr := errors.New("permission denied")
+
+	_, err := loadTemplatesDirFn(tmpDir, func(_ string, fn fs.WalkDirFunc) error {
+		// Simulate the OS passing a non-nil err to the WalkDirFunc callback.
+		return fn(tmpDir, &fakeDirEntry{name: "locked-dir", isDir: true}, injectedErr)
+	})
+
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "walk templates directory")
+}
+
+// TestLoadTemplatesDirFn_WalkError exercises the outer walk error path where
+// filepath.WalkDir itself returns an error (not via the callback).
+func TestLoadTemplatesDirFn_WalkError(t *testing.T) {
+	t.Parallel()
+
+	tmpDir := t.TempDir()
+	require.NoError(t, os.MkdirAll(filepath.Join(tmpDir, templatesRelPath), cryptoutilSharedMagic.CICDTempDirPermissions))
+
+	_, err := loadTemplatesDirFn(tmpDir, func(_ string, _ fs.WalkDirFunc) error {
+		return errors.New("walk failed")
+	})
+
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "walk templates directory")
+}
+
+// TestLoadTemplatesDirFn_ReadFileError exercises the os.ReadFile error path.
+// We inject a fake DirEntry reporting a regular file but point it at a directory
+// on disk; os.ReadFile on a directory fails on all platforms.
+func TestLoadTemplatesDirFn_ReadFileError(t *testing.T) {
+	t.Parallel()
+
+	tmpDir := t.TempDir()
+	templatesDir := filepath.Join(tmpDir, templatesRelPath)
+	require.NoError(t, os.MkdirAll(templatesDir, cryptoutilSharedMagic.CICDTempDirPermissions))
+
+	// Create a sub-directory whose name ends in .yml — os.ReadFile on a directory is an error.
+	fakeFilePath := filepath.Join(templatesDir, "config.yml")
+	require.NoError(t, os.MkdirAll(fakeFilePath, cryptoutilSharedMagic.CICDTempDirPermissions))
+
+	_, err := loadTemplatesDirFn(tmpDir, func(_ string, fn fs.WalkDirFunc) error {
+		// Fake: claim the directory-with-.yml-name is a regular file.
+		return fn(fakeFilePath, &fakeDirEntry{name: "config.yml", isDir: false}, nil)
+	})
+
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "walk templates directory")
+}
+
+// TestCompareBase64Placeholder_TrailingTooShort verifies that a trailing BASE64_CHAR43
+// segment whose actual value is shorter than 43 characters reports a "too short" error.
+func TestCompareBase64Placeholder_TrailingTooShort(t *testing.T) {
+	t.Parallel()
+
+	// "SHORT" is only 5 characters — well below the 43-char minimum.
+	diff := compareBase64Placeholder("prefix-BASE64_CHAR43", "prefix-SHORT")
+	require.NotEmpty(t, diff)
+	require.Contains(t, diff, "too short")
 }

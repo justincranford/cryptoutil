@@ -43,9 +43,18 @@ const (
 	expansionKeySuite   = "__SUITE__"
 )
 
+// walkDirFn is the function signature for walking a directory tree.
+// Production uses filepath.WalkDir; tests may inject alternatives.
+type walkDirFn func(root string, fn fs.WalkDirFunc) error
+
 // LoadTemplatesDir walks the canonical templates directory and returns a map of
 // template-relative path → raw file content. Skips .gitkeep files.
 func LoadTemplatesDir(projectRoot string) (map[string]string, error) {
+	return loadTemplatesDirFn(projectRoot, filepath.WalkDir)
+}
+
+// loadTemplatesDirFn is the seam-injectable version of LoadTemplatesDir.
+func loadTemplatesDirFn(projectRoot string, walkFn walkDirFn) (map[string]string, error) {
 	templatesDir := filepath.Join(projectRoot, templatesRelPath)
 
 	if _, err := os.Stat(templatesDir); err != nil {
@@ -54,7 +63,7 @@ func LoadTemplatesDir(projectRoot string) (map[string]string, error) {
 
 	templates := make(map[string]string)
 
-	err := filepath.WalkDir(templatesDir, func(path string, d fs.DirEntry, err error) error {
+	err := walkFn(templatesDir, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
@@ -95,23 +104,17 @@ func LoadTemplatesDir(projectRoot string) (map[string]string, error) {
 // BuildExpectedFS expands all templates into an expected filesystem map.
 // The returned map has actual-relative paths (relative to project root) as keys
 // and expected file content as values.
-func BuildExpectedFS(templates map[string]string) (map[string]string, error) {
+func BuildExpectedFS(templates map[string]string) map[string]string {
 	expected := make(map[string]string)
 
 	for tmplPath, tmplContent := range templates {
 		switch {
 		case strings.Contains(tmplPath, expansionKeyPSID):
-			if err := expandPSIDTemplate(tmplPath, tmplContent, expected); err != nil {
-				return nil, err
-			}
+			expandPSIDTemplate(tmplPath, tmplContent, expected)
 		case strings.Contains(tmplPath, expansionKeyProduct):
-			if err := expandProductTemplate(tmplPath, tmplContent, expected); err != nil {
-				return nil, err
-			}
+			expandProductTemplate(tmplPath, tmplContent, expected)
 		case strings.Contains(tmplPath, expansionKeySuite):
-			if err := expandSuiteTemplate(tmplPath, tmplContent, expected); err != nil {
-				return nil, err
-			}
+			expandSuiteTemplate(tmplPath, tmplContent, expected)
 		default:
 			// Static template: no path expansion, content-only substitution.
 			actualPath := tmplPath
@@ -120,7 +123,7 @@ func BuildExpectedFS(templates map[string]string) (map[string]string, error) {
 		}
 	}
 
-	return expected, nil
+	return expected
 }
 
 // CompareExpectedFS compares the expected filesystem against actual files on disk.
@@ -182,39 +185,33 @@ func chooseComparison(relPath, expected, actual string) string {
 }
 
 // expandPSIDTemplate expands a __PS_ID__ template for all 10 PS-IDs.
-func expandPSIDTemplate(tmplPath, tmplContent string, expected map[string]string) error {
+func expandPSIDTemplate(tmplPath, tmplContent string, expected map[string]string) {
 	for _, ps := range cryptoutilRegistry.AllProductServices() {
 		params := buildParams(ps.PSID)
 		actualPath := substituteParams(tmplPath, params)
 		content := substituteParams(tmplContent, params)
 		expected[actualPath] = content
 	}
-
-	return nil
 }
 
 // expandProductTemplate expands a __PRODUCT__ template for all 5 products.
-func expandProductTemplate(tmplPath, tmplContent string, expected map[string]string) error {
+func expandProductTemplate(tmplPath, tmplContent string, expected map[string]string) {
 	for _, product := range cryptoutilRegistry.AllProducts() {
 		params := buildProductParams(product.ID)
 		actualPath := substituteParams(tmplPath, params)
 		content := substituteParams(tmplContent, params)
 		expected[actualPath] = content
 	}
-
-	return nil
 }
 
 // expandSuiteTemplate expands a __SUITE__ template for the suite.
-func expandSuiteTemplate(tmplPath, tmplContent string, expected map[string]string) error {
+func expandSuiteTemplate(tmplPath, tmplContent string, expected map[string]string) {
 	for _, suite := range cryptoutilRegistry.AllSuites() {
 		params := buildSuiteParams(suite.ID)
 		actualPath := substituteParams(tmplPath, params)
 		content := substituteParams(tmplContent, params)
 		expected[actualPath] = content
 	}
-
-	return nil
 }
 
 // substituteParams replaces all __KEY__ placeholders in s with their values from params.
