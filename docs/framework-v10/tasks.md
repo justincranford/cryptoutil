@@ -1,6 +1,6 @@
 # Tasks — Framework v10: Canonical Template Registry
 
-**Status**: 32 of 33 tasks complete (97%)
+**Status**: 33 of 33 tasks complete (100%)
 **Created**: 2026-04-12
 **Last Updated**: 2026-04-13
 
@@ -908,13 +908,13 @@ Template files are the source of truth; docs describe them.
 
 ### Task 5.3: Final clean commit
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 0.25h
 - **Dependencies**: Task 5.2
 - **Acceptance Criteria**:
-  - [ ] All changes committed with conventional commit messages (one commit per semantic group)
-  - [ ] `git status --porcelain` returns empty
-  - [ ] Final `go run ./cmd/cicd-lint lint-fitness` passes
+  - [x] All changes committed with conventional commit messages (one commit per semantic group)
+  - [x] `git status --porcelain` returns empty
+  - [x] Final `go run ./cmd/cicd-lint lint-fitness` passes
 
 ---
 
