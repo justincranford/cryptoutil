@@ -2821,7 +2821,7 @@ Architecture fitness functions are automated checks that enforce ENG-HANDBOOK.md
 |----------|-------|---------|
 | Security | 7 | `crypto-rand`, `tls-minimum-version`, `non-fips-algorithms` |
 | Architecture | 12 | `circular-deps`, `cmd-entry-whitelist`, `api-path-registry`, `subcommand-completeness` |
-| Deployment & Config | 14 | `compose-service-names`, `secret-naming`, `unseal-secret-content` |
+| Deployment & Config | 15 | `compose-service-names`, `secret-naming`, `unseal-secret-content` |
 | Code Quality | 9 | `file-size-limits`, `cgo-free-sqlite`, `banned-product-names` |
 | Testing | 7 | `parallel-tests`, `no-unit-test-real-db`, `test-patterns` |
 | Service Framework | 6 | `health-endpoint-presence`, `health-path-completeness`, `service-contract-compliance` |
@@ -2866,6 +2866,7 @@ Architecture fitness functions are automated checks that enforce ENG-HANDBOOK.md
 | `secret-naming` | All tiers use `{purpose}.secret` filenames; `.secret.never` markers enforced at product/suite tiers |
 | `standalone-config-otlp-names` | Config file `otlp-service` values must match `{ps-id}-{db}-N` pattern |
 | `standalone-config-presence` | All PS must have 5 config overlay files: `{PS-ID}-app-common.yml`, `{PS-ID}-app-sqlite-1.yml`, `{PS-ID}-app-sqlite-2.yml`, `{PS-ID}-app-postgresql-1.yml`, `{PS-ID}-app-postgresql-2.yml` |
+| `template-compliance` | All deployment artifacts in `deployments/` and `configs/` match their canonical templates in `api/cryptosuite-registry/templates/` after `__KEY__` placeholder expansion; uses runtime `os.WalkDir` (not `embed.FS`) |
 | `template-consistency` | `deployments/skeleton-template/` uses hyphenated secret names (not underscores) |
 | `unseal-secret-content` | Unseal secret values match `{TIER-PREFIX}-unseal-key-N-of-5-{base64-random-32-bytes}` (base64-encoded 32 random bytes, unique per shard, tier prefix matches deployment directory) |
 | | **Code Quality** |
@@ -5278,7 +5279,7 @@ command: ["server", "--bind-public-port=8080", "--config=/certs/tls-config.yml",
 
 **Purpose**: Automated enforcement of canonical deployment artifact templates. All 10 PS-ID services MUST produce identical artifacts (after placeholder substitution) from shared templates. This prevents the 3-pattern divergence problem where copy-paste errors lead to silently different deployment configurations across services.
 
-**Canonical Templates**: Stored in [deployment-templates.md](/docs/deployment-templates.md) and embedded as `__KEY__` placeholder templates in `lint_fitness/template_drift/templates/`. Six template types:
+**Canonical Templates**: Stored in [deployment-templates.md](/docs/deployment-templates.md) and as `__KEY__` placeholder files in `api/cryptosuite-registry/templates/`. Templates are organized into directory subdirectories mirroring the actual deployment layout — each `__PS_ID__`, `__PRODUCT__`, or `__SUITE__` path segment is expanded at lint time via `os.WalkDir` over the templates directory. Six template types:
 
 | Template | Scope | Comparison Mode |
 |----------|-------|----------------|
@@ -5289,7 +5290,14 @@ command: ["server", "--bind-public-port=8080", "--config=/certs/tls-config.yml",
 | config-postgresql.yml | 20 deployment PostgreSQL overlays | Exact match |
 | standalone-config.yml | 10 standalone configs | Prefix match (allows domain-specific additions) |
 
-**Placeholder Substitution**: Templates use `__KEY__` format (double underscore delimiters) to avoid conflicts with Dockerfile `${VAR}` syntax. Registry provides per-PS-ID values: `__PS_ID__`, `__PUBLIC_PORT__`, `__PRODUCT_DISPLAY_NAME__`, `__SERVICE_DISPLAY_NAME__`, etc.
+**Template Architecture (V10)**: Templates live in `api/cryptosuite-registry/templates/` — outside the linter package. The `template-compliance` sub-linter in `lint_fitness/template_drift/` uses `os.WalkDir` to load templates at runtime, then expands path and content placeholders in memory before comparing against actual files in `deployments/` and `configs/`. This avoids `embed.FS` re-compilation on every template change and places templates next to the registry that defines the entities they reference.
+
+**Expansion Keys**: Three path-level expansion keys trigger per-entity expansion:
+- `__PS_ID__` in path → expanded for all 10 PS-IDs (e.g., `deployments/__PS_ID__/Dockerfile` → 10 files)
+- `__PRODUCT__` in path → expanded for all 5 products
+- `__SUITE__` in path → expanded for 1 suite (cryptoutil)
+
+**Placeholder Substitution**: Templates use `__KEY__` format (double underscore delimiters) to avoid conflicts with Dockerfile `${VAR}` syntax. Registry provides per-PS-ID values: `__PS_ID__`, `__PUBLIC_PORT__`, `__PRODUCT_DISPLAY_NAME__`, `__SERVICE_DISPLAY_NAME__`, etc. Content-only placeholders (not in path) like `__SUITE__` and `__PS_ID_UPPER__` are also substituted.
 
 **Supplementary Rule-Based Linters**: Defense-in-depth alongside template drift detection:
 
@@ -5298,7 +5306,7 @@ command: ["server", "--bind-public-port=8080", "--config=/certs/tls-config.yml",
 - `config-instance-minimal`: Validates instance config overlays contain only allowed keys (`cors-origins`, `otlp-service`, `otlp-hostname`, `database-url`)
 - `config-common-complete`: Validates common config overlays contain all 12 required shared keys
 
-**Cross-References**: Template specifications in [deployment-templates.md](/docs/deployment-templates.md). Fitness linter infrastructure in [Section 11.2](#112-quality-gates). Registry in [lint_fitness/registry](/internal/apps/tools/cicd_lint/lint_fitness/registry/).
+**Cross-References**: Template specifications in [deployment-templates.md](/docs/deployment-templates.md). Fitness linter infrastructure in [Section 11.2](#112-quality-gates). Registry in [lint_fitness/registry](/internal/apps/tools/cicd_lint/lint_fitness/registry/). Canonical template directory: [api/cryptosuite-registry/templates](/api/cryptosuite-registry/templates/).
 
 ---
 
