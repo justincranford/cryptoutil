@@ -8,13 +8,6 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
-// base64Char43Placeholder is the placeholder used in secret templates to indicate
-// a position where a base64-encoded value of at least 43 characters should appear.
-const base64Char43Placeholder = "BASE64_CHAR43"
-
-// base64Char43MinLength is the minimum length for a BASE64_CHAR43 value.
-const base64Char43MinLength = cryptoutilSharedMagic.DefaultCodeChallengeLength
-
 // normalizeLineEndings converts CRLF to LF for consistent comparison.
 func normalizeLineEndings(s string) string {
 	return strings.ReplaceAll(s, "\r\n", "\n")
@@ -134,15 +127,15 @@ func compareSupersetOrdered(expected, actual string) string {
 }
 
 // compareBase64Placeholder validates that the actual content matches the expected pattern,
-// where BASE64_CHAR43 placeholders are replaced with values of at least 43 characters.
-// The expected string is split on BASE64_CHAR43 markers. Each segment between markers
+// where __BASE64_CHAR43__ placeholders are replaced with values of at least 43 characters.
+// The expected string is split on __BASE64_CHAR43__ markers. Each segment between markers
 // must appear in sequence in the actual string, and the actual content between them
 // must be at least 43 characters long.
 func compareBase64Placeholder(expected, actual string) string {
 	expected = strings.TrimRight(normalizeLineEndings(expected), "\n")
 	actual = strings.TrimRight(normalizeLineEndings(actual), "\n")
 
-	parts := strings.Split(expected, base64Char43Placeholder)
+	parts := strings.Split(expected, cryptoutilSharedMagic.CICDTemplateBase64Char43Placeholder)
 
 	// For each segment boundary: verify the fixed parts appear in order
 	// and the gaps between them are ≥ 43 chars.
@@ -150,10 +143,10 @@ func compareBase64Placeholder(expected, actual string) string {
 
 	for i, part := range parts {
 		if part == "" && i > 0 {
-			// Trailing empty part after final BASE64_CHAR43: validate remaining length.
-			if len(remaining) < base64Char43MinLength {
-				return fmt.Sprintf("  BASE64_CHAR43 value too short: got %d chars, need ≥ %d",
-					len(remaining), base64Char43MinLength)
+			// Trailing empty part after final __BASE64_CHAR43__: validate remaining length.
+			if len(remaining) < cryptoutilSharedMagic.DefaultCodeChallengeLength {
+				return fmt.Sprintf("  __BASE64_CHAR43__ value too short: got %d chars, need ≥ %d",
+					len(remaining), cryptoutilSharedMagic.DefaultCodeChallengeLength)
 			}
 
 			continue
@@ -164,9 +157,9 @@ func compareBase64Placeholder(expected, actual string) string {
 			return fmt.Sprintf("  expected fixed segment %q not found in actual", part)
 		}
 
-		if i > 0 && idx < base64Char43MinLength {
-			return fmt.Sprintf("  BASE64_CHAR43 value too short: got %d chars, need ≥ %d",
-				idx, base64Char43MinLength)
+		if i > 0 && idx < cryptoutilSharedMagic.DefaultCodeChallengeLength {
+			return fmt.Sprintf("  __BASE64_CHAR43__ value too short: got %d chars, need ≥ %d",
+				idx, cryptoutilSharedMagic.DefaultCodeChallengeLength)
 		}
 
 		remaining = remaining[idx+len(part):]

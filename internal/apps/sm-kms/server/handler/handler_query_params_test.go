@@ -72,7 +72,7 @@ func TestOamOasMapper_ToOamGetElasticKeyQueryParams_AllPopulated(t *testing.T) {
 	elasticKeyIDs := cryptoutilKmsServer.ElasticKeyIDs{elasticKeyID1}
 
 	names := cryptoutilKmsServer.Names{"key-1", "key-2"}
-	providers := cryptoutilKmsServer.Providers{"local", "hsm"}
+	providers := cryptoutilKmsServer.Providers{cryptoutilSharedMagic.DefaultOTLPEnvironmentDefault, "hsm"}
 	algorithms := cryptoutilKmsServer.Algorithms{"AES-256-GCM", "RSA-2048"}
 	statuses := cryptoutilKmsServer.Statuses{"active", cryptoutilSharedMagic.DefaultDatabaseContainerDisabled}
 	sorts := cryptoutilKmsServer.Sorts{"name:asc", "created_at:desc"}

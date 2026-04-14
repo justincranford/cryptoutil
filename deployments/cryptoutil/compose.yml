@@ -27,7 +27,7 @@ services:
 
   # SUITE-level PKI init (overrides PRODUCT/PS-ID cert material).
   pki-init:
-    image: cryptoutil-sm-kms:dev
+    image: cryptoutil-sm-kms:local
     command: ["/app/sm-kms", "init", "--domain=cryptoutil", "--output-dir=/certs"]
     volumes:
       - ./certs/:/certs/:rw
@@ -35,61 +35,61 @@ services:
       builder-sm-kms:
         condition: service_completed_successfully
 
-  # SM-KMS: SERVICE 8000-8003 -> SUITE 28000-28003
+  # SM-KMS: PS-PUBLIC 8000-8003 -> SUITE 28000-28003
   sm-kms-app-sqlite-1: {ports: !override ["28000:8080"]}
   sm-kms-app-sqlite-2: {ports: !override ["28001:8080"]}
   sm-kms-app-postgresql-1: {ports: !override ["28002:8080"]}
   sm-kms-app-postgresql-2: {ports: !override ["28003:8080"]}
 
-  # SM-IM: SERVICE 8100-8103 -> SUITE 28100-28103
+  # SM-IM: PS-PUBLIC 8100-8103 -> SUITE 28100-28103
   sm-im-app-sqlite-1: {ports: !override ["28100:8080"]}
   sm-im-app-sqlite-2: {ports: !override ["28101:8080"]}
   sm-im-app-postgresql-1: {ports: !override ["28102:8080"]}
   sm-im-app-postgresql-2: {ports: !override ["28103:8080"]}
 
-  # JOSE-JA: SERVICE 8200-8203 -> SUITE 28200-28203
+  # JOSE-JA: PS-PUBLIC 8200-8203 -> SUITE 28200-28203
   jose-ja-app-sqlite-1: {ports: !override ["28200:8080"]}
   jose-ja-app-sqlite-2: {ports: !override ["28201:8080"]}
   jose-ja-app-postgresql-1: {ports: !override ["28202:8080"]}
   jose-ja-app-postgresql-2: {ports: !override ["28203:8080"]}
 
-  # PKI-CA: SERVICE 8300-8303 -> SUITE 28300-28303
+  # PKI-CA: PS-PUBLIC 8300-8303 -> SUITE 28300-28303
   pki-ca-app-sqlite-1: {ports: !override ["28300:8080"]}
   pki-ca-app-sqlite-2: {ports: !override ["28301:8080"]}
   pki-ca-app-postgresql-1: {ports: !override ["28302:8080"]}
   pki-ca-app-postgresql-2: {ports: !override ["28303:8080"]}
 
-  # IDENTITY-AUTHZ: SERVICE 8400-8403 -> SUITE 28400-28403
+  # IDENTITY-AUTHZ: PS-PUBLIC 8400-8403 -> SUITE 28400-28403
   identity-authz-app-sqlite-1: {ports: !override ["28400:8080"]}
   identity-authz-app-sqlite-2: {ports: !override ["28401:8080"]}
   identity-authz-app-postgresql-1: {ports: !override ["28402:8080"]}
   identity-authz-app-postgresql-2: {ports: !override ["28403:8080"]}
 
-  # IDENTITY-IDP: SERVICE 8500-8503 -> SUITE 28500-28503
+  # IDENTITY-IDP: PS-PUBLIC 8500-8503 -> SUITE 28500-28503
   identity-idp-app-sqlite-1: {ports: !override ["28500:8080"]}
   identity-idp-app-sqlite-2: {ports: !override ["28501:8080"]}
   identity-idp-app-postgresql-1: {ports: !override ["28502:8080"]}
   identity-idp-app-postgresql-2: {ports: !override ["28503:8080"]}
 
-  # IDENTITY-RS: SERVICE 8600-8603 -> SUITE 28600-28603
+  # IDENTITY-RS: PS-PUBLIC 8600-8603 -> SUITE 28600-28603
   identity-rs-app-sqlite-1: {ports: !override ["28600:8080"]}
   identity-rs-app-sqlite-2: {ports: !override ["28601:8080"]}
   identity-rs-app-postgresql-1: {ports: !override ["28602:8080"]}
   identity-rs-app-postgresql-2: {ports: !override ["28603:8080"]}
 
-  # IDENTITY-RP: SERVICE 8700-8703 -> SUITE 28700-28703
+  # IDENTITY-RP: PS-PUBLIC 8700-8703 -> SUITE 28700-28703
   identity-rp-app-sqlite-1: {ports: !override ["28700:8080"]}
   identity-rp-app-sqlite-2: {ports: !override ["28701:8080"]}
   identity-rp-app-postgresql-1: {ports: !override ["28702:8080"]}
   identity-rp-app-postgresql-2: {ports: !override ["28703:8080"]}
 
-  # IDENTITY-SPA: SERVICE 8800-8803 -> SUITE 28800-28803
+  # IDENTITY-SPA: PS-PUBLIC 8800-8803 -> SUITE 28800-28803
   identity-spa-app-sqlite-1: {ports: !override ["28800:8080"]}
   identity-spa-app-sqlite-2: {ports: !override ["28801:8080"]}
   identity-spa-app-postgresql-1: {ports: !override ["28802:8080"]}
   identity-spa-app-postgresql-2: {ports: !override ["28803:8080"]}
 
-  # SKELETON-TEMPLATE: SERVICE 8900-8903 -> SUITE 28900-28903
+  # SKELETON-TEMPLATE: PS-PUBLIC 8900-8903 -> SUITE 28900-28903
   skeleton-template-app-sqlite-1: {ports: !override ["28900:8080"]}
   skeleton-template-app-sqlite-2: {ports: !override ["28901:8080"]}
   skeleton-template-app-postgresql-1: {ports: !override ["28902:8080"]}

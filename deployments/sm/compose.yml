@@ -23,7 +23,7 @@ services:
 
   # PRODUCT-level PKI init (overrides PS-ID cert material).
   pki-init:
-    image: cryptoutil-sm-kms:dev
+    image: cryptoutil-sm-kms:local
     command: ["/app/sm-kms", "init", "--domain=sm", "--output-dir=/certs"]
     volumes:
       - ./certs/:/certs/:rw

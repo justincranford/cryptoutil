@@ -52,8 +52,10 @@ const (
 	DefaultOTLPServiceDefault = "cryptoutil"
 	// DefaultOTLPVersionDefault - Default OTLP version.
 	DefaultOTLPVersionDefault = "0.0.1"
-	// DefaultOTLPEnvironmentDefault - Default OTLP environment.
-	DefaultOTLPEnvironmentDefault = "dev"
+	// DefaultOTLPEnvironmentDefault - Default OTLP environment tag. Neutral value suitable for
+	// both local development and on-prem production deployments (without containers).
+	// Does not assume a development-only context; use explicit env override for staging/prod.
+	DefaultOTLPEnvironmentDefault = "local"
 	// DefaultOTLPHostnameDefault - Default OTLP hostname.
 	DefaultOTLPHostnameDefault = "localhost"
 	// DefaultOTLPEndpointDefault - Default OTLP endpoint. GRPC preferred over HTTP for performance.

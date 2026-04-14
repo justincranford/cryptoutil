@@ -26,7 +26,7 @@ services:
 
   # PRODUCT-level PKI init (overrides PS-ID cert material).
   pki-init:
-    image: cryptoutil-identity-authz:dev
+    image: cryptoutil-identity-authz:local
     command: ["/app/identity-authz", "init", "--domain=identity", "--output-dir=/certs"]
     volumes:
       - ./certs/:/certs/:rw

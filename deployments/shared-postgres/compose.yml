@@ -4,8 +4,8 @@
 # Include this file from product-specific compose files using Docker Compose includes.
 #
 # Architecture:
-#   - postgres-leader:   PostgreSQL 18 OLTP (read-write, 30 logical databases)
-#   - postgres-follower: PostgreSQL 18 OLAP (read-only replica, analytics with grouped schemas)
+#   - postgres-leader:   PostgreSQL 18 OLTP (read-write, 30 logical databases, 3-tiers x 10 PS-IDs)
+#   - postgres-follower: PostgreSQL 18 OLAP (read-only replica, 16 logical databases with schemas grouped by domain)
 #
 # Logical Database Architecture (Leader - OLTP):
 #   Suite-level (10 databases):
@@ -75,36 +75,17 @@ services:
   # PostgreSQL Leader (OLTP - Read/Write)
   # Hosts 30 logical databases (10 services × 3 deployment types)
   postgres-leader:
-    image: postgres:latest
+    image: postgres:18
     container_name: cryptoutil-postgres-leader
     hostname: postgres-leader
     environment:
       POSTGRES_USER_FILE: /run/secrets/postgres-username.secret
       POSTGRES_PASSWORD_FILE: /run/secrets/postgres-password.secret
-      POSTGRES_INITDB_ARGS: "-c max_connections=500 -c shared_buffers=512MB"
-    command:
-      - postgres
-      - -c
-      - wal_level=logical
-      - -c
-      - max_wal_senders=10
-      - -c
-      - max_replication_slots=10
-      - -c
-      - hot_standby=on
-      - -c
-      - max_connections=500
-      - -c
-      - shared_buffers=512MB
-      - -c
-      - effective_cache_size=1GB
-      - -c
-      - maintenance_work_mem=128MB
-      - -c
-      - work_mem=16MB
+    command: ["postgres", "-c", "config_file=/etc/postgresql/postgresql.conf"]
     shm_size: 512mb
     volumes:
       - postgres_leader_data:/var/lib/postgresql
+      - ../shared-postgres/postgresql-leader.conf:/etc/postgresql/postgresql.conf:ro
       - ../shared-postgres/init-leader-databases.sql:/docker-entrypoint-initdb.d/01-init-databases.sql:ro
     secrets:
       - postgres-username.secret
@@ -130,7 +111,7 @@ services:
   # Logical replication from leader with grouped schemas for analytics
 
   postgres-follower:
-    image: postgres:latest
+    image: postgres:18
     container_name: cryptoutil-postgres-follower
     hostname: postgres-follower
     environment:
@@ -139,22 +120,11 @@ services:
       PGUSER_FILE: /run/secrets/postgres-username.secret
       PGPASSWORD_FILE: /run/secrets/postgres-password.secret
       POSTGRES_HOST_AUTH_METHOD: "scram-sha-256"
-      POSTGRES_INITDB_ARGS: "-c max_connections=200 -c shared_buffers=1GB"
-    command:
-      - postgres
-      - -c
-      - max_connections=200
-      - -c
-      - shared_buffers=1GB
-      - -c
-      - effective_cache_size=2GB
-      - -c
-      - maintenance_work_mem=256MB
-      - -c
-      - work_mem=32MB
+    command: ["postgres", "-c", "config_file=/etc/postgresql/postgresql.conf"]
     shm_size: 1gb
     volumes:
       - postgres_follower_data:/var/lib/postgresql
+      - ../shared-postgres/postgresql-follower.conf:/etc/postgresql/postgresql.conf:ro
       - ../shared-postgres/init-follower-databases.sql:/docker-entrypoint-initdb.d/01-init-databases.sql:ro
       - ../shared-postgres/setup-logical-replication.sh:/docker-entrypoint-initdb.d/02-setup-replication.sh:ro
     secrets:

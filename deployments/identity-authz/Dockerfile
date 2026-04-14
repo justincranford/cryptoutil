@@ -1,5 +1,5 @@
 #############################################################################################
-# identity-authz Dockerfile — Identity Authorization Server
+# identity-authz Dockerfile — Authorization Server
 #
 # Build: DOCKER_BUILDKIT=1 docker build \
 #          --build-arg APP_VERSION=<ver> \
@@ -131,7 +131,7 @@ ARG APP_VERSION
 ARG VCS_REF
 ARG BUILD_DATE
 LABEL org.opencontainers.image.title="cryptoutil-identity-authz" \
-    org.opencontainers.image.description="Identity Authorization Server" \
+    org.opencontainers.image.description="Authorization Server" \
     org.opencontainers.image.source="https://github.com/justincranford/cryptoutil" \
     org.opencontainers.image.authors="Justin Cranford" \
     org.opencontainers.image.version="${APP_VERSION}" \

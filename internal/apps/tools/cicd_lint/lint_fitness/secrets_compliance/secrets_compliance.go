@@ -7,7 +7,7 @@
 // Rules:
 //  1. All 14 expected .secret files exist in each PS-ID secrets directory.
 //  2. Secret values use correct PS-ID prefix format (enforced by secret-content linter).
-//  3. BASE64_CHAR43 positions contain values >= 43 characters (enforced by secret-content linter).
+//  3. __BASE64_CHAR43__ positions contain values >= 43 characters (enforced by secret-content linter).
 //  4. No extra unexpected .secret files allowed.
 //  5. Product/suite levels use .secret.never markers where required (enforced by secret-content linter).
 //
@@ -23,6 +23,7 @@ import (
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/tools/cicd_lint/common"
 	cryptoutilRegistry "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/registry"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // expectedPSIDSecrets lists all 15 expected .secret files in a PS-ID secrets directory.
@@ -180,7 +181,7 @@ func checkSecretsDir(secretsDir, deploymentName string, expectedFiles []string) 
 
 		name := entry.Name()
 		// Only flag .secret and .secret.never files — README and other non-secret files are allowed.
-		if !strings.HasSuffix(name, ".secret") && !strings.HasSuffix(name, ".secret.never") {
+		if !strings.HasSuffix(name, cryptoutilSharedMagic.CICDTemplateSecretFileSuffix) && !strings.HasSuffix(name, cryptoutilSharedMagic.CICDTemplateSecretFileNeverSuffix) {
 			continue
 		}
 

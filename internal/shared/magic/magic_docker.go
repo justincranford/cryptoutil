@@ -46,6 +46,10 @@ const (
 	DockerServiceNamePartsMin = 3
 	// DockerHTTPClientTimeoutSeconds - HTTP client timeout for Docker operations in seconds.
 	DockerHTTPClientTimeoutSeconds = 5
+	// DockerContainerPublicHTTPSPort is the fixed public HTTPS port used by the public endpoint
+	// inside all PS-ID containers. Maps to the container-internal port in compose port bindings
+	// (e.g. "8000:8080" where 8080 is this constant). Contains both /browser and /service paths.
+	DockerContainerPublicHTTPSPort = 8080
 )
 
 // Docker Compose relative file paths from project root.

@@ -1,5 +1,5 @@
 #############################################################################################
-# identity-spa Dockerfile — Identity Single Page App
+# identity-spa Dockerfile — Single Page App
 #
 # Build: DOCKER_BUILDKIT=1 docker build \
 #          --build-arg APP_VERSION=<ver> \
@@ -131,7 +131,7 @@ ARG APP_VERSION
 ARG VCS_REF
 ARG BUILD_DATE
 LABEL org.opencontainers.image.title="cryptoutil-identity-spa" \
-    org.opencontainers.image.description="Identity Single Page App" \
+    org.opencontainers.image.description="Single Page App" \
     org.opencontainers.image.source="https://github.com/justincranford/cryptoutil" \
     org.opencontainers.image.authors="Justin Cranford" \
     org.opencontainers.image.version="${APP_VERSION}" \

@@ -22,7 +22,7 @@ services:
 
   # PRODUCT-level PKI init (overrides PS-ID cert material).
   pki-init:
-    image: cryptoutil-jose-ja:dev
+    image: cryptoutil-jose-ja:local
     command: ["/app/jose-ja", "init", "--domain=jose", "--output-dir=/certs"]
     volumes:
       - ./certs/:/certs/:rw

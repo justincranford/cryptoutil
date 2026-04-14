@@ -228,25 +228,25 @@ func TestCompareBase64Placeholder(t *testing.T) {
 	}{
 		{
 			name:     "valid replacement",
-			expected: "prefix-BASE64_CHAR43-suffix",
+			expected: "prefix-" + cryptoutilSharedMagic.CICDTemplateBase64Char43Placeholder + "-suffix",
 			actual:   "prefix-" + longB64 + "-suffix",
 			wantDiff: false,
 		},
 		{
 			name:     "too short replacement",
-			expected: "prefix-BASE64_CHAR43-suffix",
+			expected: "prefix-" + cryptoutilSharedMagic.CICDTemplateBase64Char43Placeholder + "-suffix",
 			actual:   "prefix-SHORT-suffix",
 			wantDiff: true,
 		},
 		{
 			name:     "missing fixed segment",
-			expected: "prefix-BASE64_CHAR43-suffix",
+			expected: "prefix-" + cryptoutilSharedMagic.CICDTemplateBase64Char43Placeholder + "-suffix",
 			actual:   "wrong-" + longB64 + "-suffix",
 			wantDiff: true,
 		},
 		{
 			name:     "multiple placeholders",
-			expected: "a-BASE64_CHAR43-b-BASE64_CHAR43-c",
+			expected: "a-" + cryptoutilSharedMagic.CICDTemplateBase64Char43Placeholder + "-b-" + cryptoutilSharedMagic.CICDTemplateBase64Char43Placeholder + "-c",
 			actual:   "a-" + longB64 + "-b-" + longB64 + "-c",
 			wantDiff: false,
 		},
@@ -264,13 +264,13 @@ func TestCompareBase64Placeholder(t *testing.T) {
 		},
 		{
 			name:     "exactly 43 chars",
-			expected: "x-BASE64_CHAR43-y",
+			expected: "x-" + cryptoutilSharedMagic.CICDTemplateBase64Char43Placeholder + "-y",
 			actual:   "x-" + longB64[:cryptoutilSharedMagic.DefaultCodeChallengeLength] + "-y",
 			wantDiff: false,
 		},
 		{
 			name:     "42 chars too short",
-			expected: "x-BASE64_CHAR43-y",
+			expected: "x-" + cryptoutilSharedMagic.CICDTemplateBase64Char43Placeholder + "-y",
 			actual:   "x-" + longB64[:cryptoutilSharedMagic.AnswerToLifeUniverseEverything] + "-y",
 			wantDiff: true,
 		},

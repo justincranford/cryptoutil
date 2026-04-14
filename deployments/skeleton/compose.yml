@@ -22,7 +22,7 @@ services:
 
   # PRODUCT-level PKI init (overrides PS-ID cert material).
   pki-init:
-    image: cryptoutil-skeleton-template:dev
+    image: cryptoutil-skeleton-template:local
     command: ["/app/skeleton-template", "init", "--domain=skeleton", "--output-dir=/certs"]
     volumes:
       - ./certs/:/certs/:rw

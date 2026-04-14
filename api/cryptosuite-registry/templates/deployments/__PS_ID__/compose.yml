@@ -2,14 +2,14 @@
 #
 # __PS_ID_UPPER__ Docker Compose Configuration
 #
-# SERVICE-level deployment for __SERVICE_DISPLAY_NAME__.
+# SERVICE-level deployment for __PS_DISPLAY_NAME__.
 # Supports 4 instances: 2 SQLite + 2 PostgreSQL.
 #
-# Port allocation (SERVICE level: __SERVICE_APP_PORT_BASE__-__SERVICE_APP_PORT_END__):
-#   - __PS_ID__-app-sqlite-1:      __SERVICE_APP_PORT_SQLITE_1__
-#   - __PS_ID__-app-sqlite-2:      __SERVICE_APP_PORT_SQLITE_2__
-#   - __PS_ID__-app-postgresql-1:  __SERVICE_APP_PORT_PG_1__
-#   - __PS_ID__-app-postgresql-2:  __SERVICE_APP_PORT_PG_2__
+# Port allocation (SERVICE level: __PS_PUBLIC_PORT_BASE__-__PS_PUBLIC_PORT_END__):
+#   - __PS_ID__-app-sqlite-1:      __PS_PUBLIC_PORT_SQLITE_1__
+#   - __PS_ID__-app-sqlite-2:      __PS_PUBLIC_PORT_SQLITE_2__
+#   - __PS_ID__-app-postgresql-1:  __PS_PUBLIC_PORT_PG_1__
+#   - __PS_ID__-app-postgresql-2:  __PS_PUBLIC_PORT_PG_2__
 #
 # Dual Role: Standalone deployable AND include target for PRODUCT/SUITE compose files.
 # Usage:
@@ -19,7 +19,7 @@
 #   docker compose -f compose.yml down -v                      # Stop and clean up
 #
 # Health Checks:
-#   - Public health endpoint: https://localhost:__SERVICE_APP_PORT_SQLITE_1__/browser/api/v1/health
+#   - Public health endpoint: https://localhost:__PS_PUBLIC_PORT_SQLITE_1__/browser/api/v1/health
 #   - Admin livez endpoint: https://127.0.0.1:9090/admin/api/v1/livez (internal only)
 #
 include:
@@ -45,7 +45,25 @@ services:
       - browser-password.secret
       - service-username.secret
       - service-password.secret
-    command: ["sh", "-c", "ls -l /run/secrets/*.secret"]
+    command:
+      - sh
+      - -c
+      - |
+        test -f /run/secrets/unseal-1of5.secret &&
+        test -f /run/secrets/unseal-2of5.secret &&
+        test -f /run/secrets/unseal-3of5.secret &&
+        test -f /run/secrets/unseal-4of5.secret &&
+        test -f /run/secrets/unseal-5of5.secret &&
+        test -f /run/secrets/hash-pepper-v3.secret &&
+        test -f /run/secrets/postgres-url.secret &&
+        test -f /run/secrets/postgres-username.secret &&
+        test -f /run/secrets/postgres-password.secret &&
+        test -f /run/secrets/postgres-database.secret &&
+        test -f /run/secrets/browser-username.secret &&
+        test -f /run/secrets/browser-password.secret &&
+        test -f /run/secrets/service-username.secret &&
+        test -f /run/secrets/service-password.secret &&
+        echo All secrets verified
     networks:
       - __PS_ID__-network
 
@@ -83,7 +101,7 @@ services:
     command: /bin/sh -c "exec /app/__PS_ID__ server --config=/certs/tls-config.yml --config=/app/config/__PS_ID__-app-framework-common.yml --config=/app/config/__PS_ID__-app-framework-sqlite-1.yml --config=/app/config/__PS_ID__-app-domain-common.yml --config=/app/config/__PS_ID__-app-domain-sqlite-1.yml --config=/app/otel/otel.yml --bind-public-port=8080 -u sqlite://file::memory:?cache=shared $$SUITE_ARGS"
     working_dir: /tmp
     ports:
-      - "__SERVICE_APP_PORT_SQLITE_1__:8080" # HTTPS public
+      - "__PS_PUBLIC_PORT_SQLITE_1__:8080" # HTTPS public
     volumes:
       - ./config/__PS_ID__-app-framework-common.yml:/app/config/__PS_ID__-app-framework-common.yml:ro
       - ./config/__PS_ID__-app-framework-sqlite-1.yml:/app/config/__PS_ID__-app-framework-sqlite-1.yml:ro
@@ -109,11 +127,11 @@ services:
       healthcheck-opentelemetry-collector-contrib:
         condition: service_completed_successfully
     healthcheck:
-      test: ["CMD", "wget", "--ca-certificate=/certs/root-ca.pem", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/api/v1/livez"]
-      start_period: 60s
-      interval: 5s
-      timeout: 5s
-      retries: 10
+      test: ["CMD", "/app/__PS_ID__", "livez", "--cacert", "/certs/root-ca.pem"]
+      start_period: __HEALTHCHECK_START_PERIOD__
+      interval: __HEALTHCHECK_INTERVAL__
+      timeout: __HEALTHCHECK_TIMEOUT__
+      retries: __HEALTHCHECK_RETRIES__
     networks:
       - __PS_ID__-network
       - telemetry-network
@@ -130,7 +148,7 @@ services:
     command: /bin/sh -c "exec /app/__PS_ID__ server --config=/certs/tls-config.yml --config=/app/config/__PS_ID__-app-framework-common.yml --config=/app/config/__PS_ID__-app-framework-sqlite-2.yml --config=/app/config/__PS_ID__-app-domain-common.yml --config=/app/config/__PS_ID__-app-domain-sqlite-2.yml --config=/app/otel/otel.yml --bind-public-port=8080 -u sqlite://file::memory:?cache=shared $$SUITE_ARGS"
     working_dir: /tmp
     ports:
-      - "__SERVICE_APP_PORT_SQLITE_2__:8080" # HTTPS public
+      - "__PS_PUBLIC_PORT_SQLITE_2__:8080" # HTTPS public
     volumes:
       - ./config/__PS_ID__-app-framework-common.yml:/app/config/__PS_ID__-app-framework-common.yml:ro
       - ./config/__PS_ID__-app-framework-sqlite-2.yml:/app/config/__PS_ID__-app-framework-sqlite-2.yml:ro
@@ -156,11 +174,11 @@ services:
       healthcheck-opentelemetry-collector-contrib:
         condition: service_completed_successfully
     healthcheck:
-      test: ["CMD", "wget", "--ca-certificate=/certs/root-ca.pem", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/api/v1/livez"]
-      start_period: 60s
-      interval: 5s
-      timeout: 5s
-      retries: 10
+      test: ["CMD", "/app/__PS_ID__", "livez", "--cacert", "/certs/root-ca.pem"]
+      start_period: __HEALTHCHECK_START_PERIOD__
+      interval: __HEALTHCHECK_INTERVAL__
+      timeout: __HEALTHCHECK_TIMEOUT__
+      retries: __HEALTHCHECK_RETRIES__
     networks:
       - __PS_ID__-network
       - telemetry-network
@@ -177,7 +195,7 @@ services:
     command: /bin/sh -c "exec /app/__PS_ID__ server --config=/certs/tls-config.yml --config=/app/config/__PS_ID__-app-framework-common.yml --config=/app/config/__PS_ID__-app-framework-postgresql-1.yml --config=/app/config/__PS_ID__-app-domain-common.yml --config=/app/config/__PS_ID__-app-domain-postgresql-1.yml --config=/app/otel/otel.yml --bind-public-port=8080 -u file:///run/secrets/postgres-url.secret $$SUITE_ARGS"
     working_dir: /tmp
     ports:
-      - "__SERVICE_APP_PORT_PG_1__:8080" # HTTPS public
+      - "__PS_PUBLIC_PORT_PG_1__:8080" # HTTPS public
     volumes:
       - ./config/__PS_ID__-app-framework-common.yml:/app/config/__PS_ID__-app-framework-common.yml:ro
       - ./config/__PS_ID__-app-framework-postgresql-1.yml:/app/config/__PS_ID__-app-framework-postgresql-1.yml:ro
@@ -206,11 +224,11 @@ services:
       healthcheck-opentelemetry-collector-contrib:
         condition: service_completed_successfully
     healthcheck:
-      test: ["CMD", "wget", "--ca-certificate=/certs/root-ca.pem", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/api/v1/livez"]
-      start_period: 60s
-      interval: 5s
-      timeout: 5s
-      retries: 5
+      test: ["CMD", "/app/__PS_ID__", "livez", "--cacert", "/certs/root-ca.pem"]
+      start_period: __HEALTHCHECK_START_PERIOD__
+      interval: __HEALTHCHECK_INTERVAL__
+      timeout: __HEALTHCHECK_TIMEOUT__
+      retries: __HEALTHCHECK_RETRIES__
     networks:
       - __PS_ID__-network
       - telemetry-network
@@ -228,7 +246,7 @@ services:
     command: /bin/sh -c "exec /app/__PS_ID__ server --config=/certs/tls-config.yml --config=/app/config/__PS_ID__-app-framework-common.yml --config=/app/config/__PS_ID__-app-framework-postgresql-2.yml --config=/app/config/__PS_ID__-app-domain-common.yml --config=/app/config/__PS_ID__-app-domain-postgresql-2.yml --config=/app/otel/otel.yml --bind-public-port=8080 -u file:///run/secrets/postgres-url.secret $$SUITE_ARGS"
     working_dir: /tmp
     ports:
-      - "__SERVICE_APP_PORT_PG_2__:8080" # HTTPS public
+      - "__PS_PUBLIC_PORT_PG_2__:8080" # HTTPS public
     volumes:
       - ./config/__PS_ID__-app-framework-common.yml:/app/config/__PS_ID__-app-framework-common.yml:ro
       - ./config/__PS_ID__-app-framework-postgresql-2.yml:/app/config/__PS_ID__-app-framework-postgresql-2.yml:ro
@@ -259,11 +277,11 @@ services:
       __PS_ID__-app-postgresql-1:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "wget", "--ca-certificate=/certs/root-ca.pem", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/api/v1/livez"]
-      start_period: 60s
-      interval: 5s
-      timeout: 5s
-      retries: 5
+      test: ["CMD", "/app/__PS_ID__", "livez", "--cacert", "/certs/root-ca.pem"]
+      start_period: __HEALTHCHECK_START_PERIOD__
+      interval: __HEALTHCHECK_INTERVAL__
+      timeout: __HEALTHCHECK_TIMEOUT__
+      retries: __HEALTHCHECK_RETRIES__
     networks:
       - __PS_ID__-network
       - telemetry-network

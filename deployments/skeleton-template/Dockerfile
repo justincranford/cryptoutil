@@ -1,5 +1,5 @@
 #############################################################################################
-# skeleton-template Dockerfile — Skeleton Template
+# skeleton-template Dockerfile — Template
 #
 # Build: DOCKER_BUILDKIT=1 docker build \
 #          --build-arg APP_VERSION=<ver> \
@@ -131,7 +131,7 @@ ARG APP_VERSION
 ARG VCS_REF
 ARG BUILD_DATE
 LABEL org.opencontainers.image.title="cryptoutil-skeleton-template" \
-    org.opencontainers.image.description="Skeleton Template" \
+    org.opencontainers.image.description="Template" \
     org.opencontainers.image.source="https://github.com/justincranford/cryptoutil" \
     org.opencontainers.image.authors="Justin Cranford" \
     org.opencontainers.image.version="${APP_VERSION}" \

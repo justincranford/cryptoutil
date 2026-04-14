@@ -86,7 +86,7 @@ func TestDefaultComplianceFn_MissingActualFiles(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	// Create a minimal templates directory with one template.
-	templDir := filepath.Join(tmpDir, templatesRelPath, "deployments", "__PS_ID__")
+	templDir := filepath.Join(tmpDir, cryptoutilSharedMagic.CICDTemplatesRelPath, "deployments", cryptoutilSharedMagic.CICDTemplateExpansionKeyPSID)
 	require.NoError(t, os.MkdirAll(templDir, cryptoutilSharedMagic.CICDTempDirPermissions))
 	require.NoError(t, os.WriteFile(
 		filepath.Join(templDir, "Dockerfile"),

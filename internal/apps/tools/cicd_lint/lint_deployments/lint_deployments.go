@@ -37,7 +37,7 @@ func GetExpectedStructures() map[string]DeploymentStructure {
 				"postgres_username.secret", "postgres_password.secret",
 				"postgres_database.secret", "postgres_url.secret",
 			},
-			AllowedExtensions: []string{".yml", ".yaml", ".secret", ".md"},
+			AllowedExtensions: []string{".yml", ".yaml", cryptoutilSharedMagic.CICDTemplateSecretFileSuffix, ".md"},
 		},
 		DeploymentTypeProductService: {
 			Name:          "PRODUCT-SERVICE deployment (e.g., jose-ja, sm-im)",
@@ -50,7 +50,7 @@ func GetExpectedStructures() map[string]DeploymentStructure {
 				"postgres_username.secret", "postgres_password.secret",
 				"postgres_database.secret", "postgres_url.secret",
 			},
-			AllowedExtensions: []string{".yml", ".yaml", ".secret", ".md"},
+			AllowedExtensions: []string{".yml", ".yaml", cryptoutilSharedMagic.CICDTemplateSecretFileSuffix, ".md"},
 		},
 		DeploymentTypeProduct: {
 			Name:              "PRODUCT-level deployment (e.g., identity, sm, pki, jose, skeleton)",
@@ -58,7 +58,7 @@ func GetExpectedStructures() map[string]DeploymentStructure {
 			RequiredFiles:     []string{"compose.yml"},
 			OptionalFiles:     []string{}, // no optional files
 			RequiredSecrets:   []string{}, // Validated by validateProductSecrets() with product-specific prefixes
-			AllowedExtensions: []string{".yml", ".yaml", ".secret", ".never", ".md"},
+			AllowedExtensions: []string{".yml", ".yaml", cryptoutilSharedMagic.CICDTemplateSecretFileSuffix, cryptoutilSharedMagic.CICDTemplateSecretFileNeverSuffix, ".md"},
 		},
 		DeploymentTypeSuite: {
 			Name:              "SUITE-level deployment (cryptoutil - all 10 services)",
@@ -66,7 +66,7 @@ func GetExpectedStructures() map[string]DeploymentStructure {
 			RequiredFiles:     []string{"compose.yml", "Dockerfile"},
 			OptionalFiles:     []string{}, // no optional files
 			RequiredSecrets:   []string{}, // Validated by validateSuiteSecrets() with suite-specific prefixes
-			AllowedExtensions: []string{".yml", ".yaml", ".secret", ".never", ".md"},
+			AllowedExtensions: []string{".yml", ".yaml", cryptoutilSharedMagic.CICDTemplateSecretFileSuffix, cryptoutilSharedMagic.CICDTemplateSecretFileNeverSuffix, ".md"},
 		},
 		"infrastructure": {
 			Name:              "Infrastructure deployment (postgres, telemetry)",

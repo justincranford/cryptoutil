@@ -14,12 +14,7 @@ import (
 	"strings"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/tools/cicd_lint/common"
-)
-
-const (
-	defaultTemplateSecretsPath = "deployments/skeleton-template/secrets"
-	suffixSecret               = ".secret"
-	suffixNever                = ".secret.never"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // Check runs the template-consistency check from the current working directory.
@@ -53,12 +48,12 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 // FindViolationsInDir scans deployments/skeleton-template/secrets/ under rootDir
 // and returns relative paths of secret files whose base name contains underscores.
 func FindViolationsInDir(rootDir string) ([]string, error) {
-	secretsDir := filepath.Join(rootDir, filepath.FromSlash(defaultTemplateSecretsPath))
+	secretsDirPath := filepath.Join(rootDir, filepath.FromSlash(cryptoutilSharedMagic.CICDTemplateSecretsPath))
 
-	entries, err := os.ReadDir(secretsDir)
+	entries, err := os.ReadDir(secretsDirPath)
 	if err != nil {
 		if os.IsNotExist(err) {
-			return nil, fmt.Errorf("skeleton-template secrets directory not found: %s", secretsDir)
+			return nil, fmt.Errorf("skeleton-template secrets directory not found: %s", secretsDirPath)
 		}
 
 		return nil, fmt.Errorf("failed to read skeleton-template secrets directory: %w", err)
@@ -89,10 +84,10 @@ func hasUnderscoreInBase(filename string) bool {
 	var base string
 
 	switch {
-	case strings.HasSuffix(filename, suffixNever):
-		base = strings.TrimSuffix(filename, suffixNever)
-	case strings.HasSuffix(filename, suffixSecret):
-		base = strings.TrimSuffix(filename, suffixSecret)
+	case strings.HasSuffix(filename, cryptoutilSharedMagic.CICDTemplateSecretFileNeverSuffix):
+		base = strings.TrimSuffix(filename, cryptoutilSharedMagic.CICDTemplateSecretFileNeverSuffix)
+	case strings.HasSuffix(filename, cryptoutilSharedMagic.CICDTemplateSecretFileSuffix):
+		base = strings.TrimSuffix(filename, cryptoutilSharedMagic.CICDTemplateSecretFileSuffix)
 	default:
 		return false
 	}

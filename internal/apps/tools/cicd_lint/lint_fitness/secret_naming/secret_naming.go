@@ -15,6 +15,7 @@ import (
 	"strings"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/tools/cicd_lint/common"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // Check validates secret naming from the workspace root.
@@ -94,7 +95,7 @@ func validateSecretsDir(secretsDir, deploymentName string) []string {
 		}
 
 		// Check for correct extension.
-		if !strings.HasSuffix(filename, ".secret") && !strings.HasSuffix(filename, ".secret.never") {
+		if !strings.HasSuffix(filename, cryptoutilSharedMagic.CICDTemplateSecretFileSuffix) && !strings.HasSuffix(filename, cryptoutilSharedMagic.CICDTemplateSecretFileNeverSuffix) {
 			violations = append(violations, fmt.Sprintf("%s/secrets/%s: missing .secret or .secret.never extension", deploymentName, filename))
 		}
 

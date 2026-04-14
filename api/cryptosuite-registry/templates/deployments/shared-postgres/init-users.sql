@@ -1,7 +1,7 @@
 -- PostgreSQL User Initialization Script
--- Creates 1 admin user per leader database (30 databases × 1 admin = 30 grants)
--- No DDL/DML user separation — single admin user per DB simplifies management.
--- The admin user is created by POSTGRES_USER_FILE env var; this script grants ownership.
+-- Grants all privileges to the admin user (created by POSTGRES_USER_FILE) on all 30 databases.
+-- Per-PS-ID service users are registered at application startup, not here.
+-- The admin user already exists when this script runs (PostgreSQL entrypoint creates it first).
 
 -- Grant ownership of all databases to the admin user.
 -- The admin user already exists (created by POSTGRES_USER_FILE in PostgreSQL entrypoint).

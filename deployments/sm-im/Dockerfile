@@ -1,5 +1,5 @@
 #############################################################################################
-# sm-im Dockerfile — Secrets Manager Instant Messenger
+# sm-im Dockerfile — Instant Messenger
 #
 # Build: DOCKER_BUILDKIT=1 docker build \
 #          --build-arg APP_VERSION=<ver> \
@@ -131,7 +131,7 @@ ARG APP_VERSION
 ARG VCS_REF
 ARG BUILD_DATE
 LABEL org.opencontainers.image.title="cryptoutil-sm-im" \
-    org.opencontainers.image.description="Secrets Manager Instant Messenger" \
+    org.opencontainers.image.description="Instant Messenger" \
     org.opencontainers.image.source="https://github.com/justincranford/cryptoutil" \
     org.opencontainers.image.authors="Justin Cranford" \
     org.opencontainers.image.version="${APP_VERSION}" \

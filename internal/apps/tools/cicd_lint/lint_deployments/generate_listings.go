@@ -36,7 +36,7 @@ func classifyFileType(filename string) string {
 	lower := strings.ToLower(filename)
 
 	switch {
-	case strings.HasSuffix(lower, ".secret") || strings.HasSuffix(lower, ".never"):
+	case strings.HasSuffix(lower, cryptoutilSharedMagic.CICDTemplateSecretFileSuffix) || strings.HasSuffix(lower, ".never"):
 		return fileTypeSecret
 	case strings.HasPrefix(lower, "compose") && (strings.HasSuffix(lower, ".yml") || strings.HasSuffix(lower, ".yaml")):
 		return fileTypeCompose
@@ -62,7 +62,7 @@ func classifyFileStatus(relPath string) string {
 	switch {
 	case strings.Contains(lower, "compose.yml"):
 		return RequiredFileStatus
-	case strings.HasSuffix(lower, ".secret"):
+	case strings.HasSuffix(lower, cryptoutilSharedMagic.CICDTemplateSecretFileSuffix):
 		return RequiredFileStatus
 	case strings.HasSuffix(lower, "dockerfile"):
 		return RequiredFileStatus

@@ -124,7 +124,7 @@ func validateSecretFileLengths(secretsDir string, result *SecretValidationResult
 
 // isSecretFile returns true if the filename indicates a secret file.
 func isSecretFile(name string) bool {
-	return strings.HasSuffix(name, ".secret") || strings.HasSuffix(name, ".secret.never")
+	return strings.HasSuffix(name, cryptoutilSharedMagic.CICDTemplateSecretFileSuffix) || strings.HasSuffix(name, cryptoutilSharedMagic.CICDTemplateSecretFileNeverSuffix)
 }
 
 // isHighEntropySecretFile returns true if the secret file name indicates it should contain

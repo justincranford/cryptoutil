@@ -22,7 +22,7 @@ services:
 
   # PRODUCT-level PKI init (overrides PS-ID cert material).
   pki-init:
-    image: cryptoutil-pki-ca:dev
+    image: cryptoutil-pki-ca:local
     command: ["/app/pki-ca", "init", "--domain=pki", "--output-dir=/certs"]
     volumes:
       - ./certs/:/certs/:rw

@@ -245,7 +245,7 @@ func TestTenantRealmRepository_Delete(t *testing.T) {
 		RealmID:  googleUuid.New(),
 		Type:     "DB",
 		Active:   true,
-		Source:   "local",
+		Source:   cryptoutilSharedMagic.DefaultOTLPEnvironmentDefault,
 	}
 
 	err = realmRepo.Create(ctx, realm)

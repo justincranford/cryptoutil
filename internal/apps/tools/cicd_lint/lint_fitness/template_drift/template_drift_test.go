@@ -38,15 +38,15 @@ func TestLoadTemplatesDir_Happy(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	// Create templates dir structure.
-	templDir := filepath.Join(tmpDir, templatesRelPath, "deployments", "__PS_ID__")
+	templDir := filepath.Join(tmpDir, cryptoutilSharedMagic.CICDTemplatesRelPath, "deployments", cryptoutilSharedMagic.CICDTemplateExpansionKeyPSID)
 	require.NoError(t, os.MkdirAll(templDir, cryptoutilSharedMagic.CICDTempDirPermissions))
-	require.NoError(t, os.WriteFile(filepath.Join(templDir, "Dockerfile"), []byte("FROM __PS_ID__"), cryptoutilSharedMagic.CacheFilePermissions))
+	require.NoError(t, os.WriteFile(filepath.Join(templDir, "Dockerfile"), []byte("FROM "+cryptoutilSharedMagic.CICDTemplateExpansionKeyPSID), cryptoutilSharedMagic.CacheFilePermissions))
 	require.NoError(t, os.WriteFile(filepath.Join(templDir, ".gitkeep"), []byte(""), cryptoutilSharedMagic.CacheFilePermissions))
 
 	templates, err := LoadTemplatesDir(tmpDir)
 	require.NoError(t, err)
 	require.Len(t, templates, 1)
-	require.Equal(t, "FROM __PS_ID__", templates["deployments/__PS_ID__/Dockerfile"])
+	require.Equal(t, "FROM "+cryptoutilSharedMagic.CICDTemplateExpansionKeyPSID, templates["deployments/"+cryptoutilSharedMagic.CICDTemplateExpansionKeyPSID+"/Dockerfile"])
 }
 
 func TestLoadTemplatesDir_NonExistentRoot(t *testing.T) {
@@ -61,7 +61,7 @@ func TestBuildExpectedFS_PSIDExpansion(t *testing.T) {
 	t.Parallel()
 
 	templates := map[string]string{
-		"deployments/__PS_ID__/Dockerfile": "FROM __PS_ID__:latest",
+		"deployments/" + cryptoutilSharedMagic.CICDTemplateExpansionKeyPSID + "/Dockerfile": "FROM " + cryptoutilSharedMagic.CICDTemplateExpansionKeyPSID + ":latest",
 	}
 
 	expected := BuildExpectedFS(templates)
@@ -72,14 +72,14 @@ func TestBuildExpectedFS_PSIDExpansion(t *testing.T) {
 	content, ok := expected["deployments/"+cryptoutilSharedMagic.OTLPServiceSMKMS+"/Dockerfile"]
 	require.True(t, ok)
 	require.Contains(t, content, cryptoutilSharedMagic.OTLPServiceSMKMS)
-	require.NotContains(t, content, "__PS_ID__")
+	require.NotContains(t, content, cryptoutilSharedMagic.CICDTemplateExpansionKeyPSID)
 }
 
 func TestBuildExpectedFS_ProductExpansion(t *testing.T) {
 	t.Parallel()
 
 	templates := map[string]string{
-		"deployments/__PRODUCT__/compose.yml": "product: __PRODUCT__",
+		"deployments/" + cryptoutilSharedMagic.CICDTemplateExpansionKeyProduct + "/compose.yml": "product: " + cryptoutilSharedMagic.CICDTemplateExpansionKeyProduct,
 	}
 
 	expected := BuildExpectedFS(templates)
@@ -95,7 +95,7 @@ func TestBuildExpectedFS_SuiteExpansion(t *testing.T) {
 	t.Parallel()
 
 	templates := map[string]string{
-		"deployments/__SUITE__/Dockerfile": "FROM __SUITE__:latest",
+		"deployments/" + cryptoutilSharedMagic.CICDTemplateExpansionKeySuite + "/Dockerfile": "FROM " + cryptoutilSharedMagic.CICDTemplateExpansionKeySuite + ":latest",
 	}
 
 	expected := BuildExpectedFS(templates)
@@ -111,7 +111,7 @@ func TestBuildExpectedFS_StaticPath(t *testing.T) {
 	t.Parallel()
 
 	templates := map[string]string{
-		"deployments/shared-telemetry/compose.yml": "suite: __SUITE__",
+		"deployments/shared-telemetry/compose.yml": "suite: " + cryptoutilSharedMagic.CICDTemplateExpansionKeySuite,
 	}
 
 	expected := BuildExpectedFS(templates)
@@ -120,7 +120,7 @@ func TestBuildExpectedFS_StaticPath(t *testing.T) {
 	content, ok := expected["deployments/shared-telemetry/compose.yml"]
 	require.True(t, ok)
 	require.Contains(t, content, cryptoutilSharedMagic.DefaultOTLPServiceDefault)
-	require.NotContains(t, content, "__SUITE__")
+	require.NotContains(t, content, cryptoutilSharedMagic.CICDTemplateExpansionKeySuite)
 }
 
 func TestBuildExpectedFS_ContentSubstitution(t *testing.T) {
@@ -142,15 +142,15 @@ func TestBuildExpectedFS_SecretsExpansion(t *testing.T) {
 	t.Parallel()
 
 	templates := map[string]string{
-		"deployments/__PS_ID__/secrets/password.secret": "__PS_ID__-password-BASE64_CHAR43",
+		"deployments/__PS_ID__/secrets/password.secret": "__PS_ID__-password-" + cryptoutilSharedMagic.CICDTemplateBase64Char43Placeholder,
 	}
 
 	expected := BuildExpectedFS(templates)
 
 	content, ok := expected["deployments/sm-kms/secrets/password.secret"]
 	require.True(t, ok)
-	// BASE64_CHAR43 should NOT be substituted — it's a comparison placeholder.
-	require.Contains(t, content, "BASE64_CHAR43")
+	// __BASE64_CHAR43__ should NOT be substituted — it's a comparison placeholder.
+	require.Contains(t, content, cryptoutilSharedMagic.CICDTemplateBase64Char43Placeholder)
 	require.Contains(t, content, "sm-kms-password")
 }
 
@@ -209,7 +209,7 @@ func TestCompareExpectedFS_SecretsPlaceholder(t *testing.T) {
 
 	tmpDir := t.TempDir()
 
-	// The actual file has a real base64 value instead of BASE64_CHAR43.
+	// The actual file has a real base64 value instead of __BASE64_CHAR43__.
 	filePath := filepath.Join(tmpDir, "deployments", "test", "secrets", "password.secret")
 	require.NoError(t, os.MkdirAll(filepath.Dir(filePath), cryptoutilSharedMagic.CICDTempDirPermissions))
 
@@ -217,7 +217,7 @@ func TestCompareExpectedFS_SecretsPlaceholder(t *testing.T) {
 	require.NoError(t, os.WriteFile(filePath, []byte("test-password-"+realB64), cryptoutilSharedMagic.CacheFilePermissions))
 
 	expected := map[string]string{
-		"deployments/test/secrets/password.secret": "test-password-BASE64_CHAR43",
+		"deployments/test/secrets/password.secret": "test-password-" + cryptoutilSharedMagic.CICDTemplateBase64Char43Placeholder,
 	}
 
 	err := CompareExpectedFS(expected, tmpDir)
@@ -261,7 +261,7 @@ func TestChooseComparison_Base64Placeholder(t *testing.T) {
 
 	realB64 := testBase64String // 47 chars
 	diff := chooseComparison("deployments/sm-kms/secrets/password.secret",
-		"prefix-BASE64_CHAR43", "prefix-"+realB64)
+		"prefix-"+cryptoutilSharedMagic.CICDTemplateBase64Char43Placeholder, "prefix-"+realB64)
 	require.Empty(t, diff)
 }
 
@@ -269,24 +269,24 @@ func TestBuildParams(t *testing.T) {
 	t.Parallel()
 
 	params := buildParams(cryptoutilSharedMagic.OTLPServiceJoseJA)
-	require.Equal(t, cryptoutilSharedMagic.OTLPServiceJoseJA, params["__PS_ID__"])
+	require.Equal(t, cryptoutilSharedMagic.OTLPServiceJoseJA, params[cryptoutilSharedMagic.CICDTemplateExpansionKeyPSID])
 	require.Equal(t, "JOSE-JA", params["__PS_ID_UPPER__"])
-	require.Equal(t, cryptoutilSharedMagic.DefaultOTLPServiceDefault, params["__SUITE__"])
-	require.Equal(t, "1.26.1", params["__GO_VERSION__"])
-	require.Equal(t, "65532", params["__CONTAINER_UID__"])
-	require.Equal(t, "65532", params["__CONTAINER_GID__"])
+	require.Equal(t, cryptoutilSharedMagic.DefaultOTLPServiceDefault, params[cryptoutilSharedMagic.CICDTemplateExpansionKeySuite])
+	require.Equal(t, cryptoutilSharedMagic.CICDTemplateGoVersion, params["__GO_VERSION__"])
+	require.Equal(t, cryptoutilSharedMagic.CICDTemplateContainerUID, params["__CONTAINER_UID__"])
+	require.Equal(t, cryptoutilSharedMagic.CICDTemplateContainerGID, params["__CONTAINER_GID__"])
 	require.NotEmpty(t, params["__PRODUCT_DISPLAY_NAME__"])
-	require.NotEmpty(t, params["__SERVICE_DISPLAY_NAME__"])
-	require.NotEmpty(t, params["__SERVICE_APP_PORT_BASE__"])
+	require.NotEmpty(t, params["__PS_DISPLAY_NAME__"])
+	require.NotEmpty(t, params["__PS_PUBLIC_PORT_BASE__"])
 }
 
 func TestBuildInstanceParams(t *testing.T) {
 	t.Parallel()
 
 	params := buildInstanceParams(cryptoutilSharedMagic.OTLPServiceSMKMS, 1, int(cryptoutilSharedMagic.DefaultPublicPortCryptoutil))
-	require.Equal(t, cryptoutilSharedMagic.OTLPServiceSMKMS, params["__PS_ID__"])
+	require.Equal(t, cryptoutilSharedMagic.OTLPServiceSMKMS, params[cryptoutilSharedMagic.CICDTemplateExpansionKeyPSID])
 	require.Equal(t, "1", params["__INSTANCE_NUM__"])
-	require.Equal(t, "8000", params["__SERVICE_APP_PORT__"])
+	require.Equal(t, "8000", params["__PS_PUBLIC_PORT__"])
 	require.Equal(t, "SM-KMS", params["__PS_ID_UPPER__"])
 }
 
@@ -294,7 +294,7 @@ func TestBuildProductParams(t *testing.T) {
 	t.Parallel()
 
 	params := buildProductParams("sm")
-	require.Equal(t, "sm", params["__PRODUCT__"])
+	require.Equal(t, "sm", params[cryptoutilSharedMagic.CICDTemplateExpansionKeyProduct])
 	require.Equal(t, "SM", params["__PRODUCT_UPPER__"])
 	require.NotEmpty(t, params["__PRODUCT_INCLUDE_LIST__"])
 	require.NotEmpty(t, params["__PRODUCT_SERVICE_OVERRIDES__"])
@@ -305,7 +305,7 @@ func TestBuildSuiteParams(t *testing.T) {
 	t.Parallel()
 
 	params := buildSuiteParams(cryptoutilSharedMagic.DefaultOTLPServiceDefault)
-	require.Equal(t, cryptoutilSharedMagic.DefaultOTLPServiceDefault, params["__SUITE__"])
+	require.Equal(t, cryptoutilSharedMagic.DefaultOTLPServiceDefault, params[cryptoutilSharedMagic.CICDTemplateExpansionKeySuite])
 	require.NotEmpty(t, params["__SUITE_INCLUDE_LIST__"])
 	require.NotEmpty(t, params["__SUITE_SERVICE_OVERRIDES__"])
 	require.NotEmpty(t, params["__SUITE_INIT_PS_ID__"])
@@ -315,7 +315,7 @@ func TestBuildStaticParams(t *testing.T) {
 	t.Parallel()
 
 	params := buildStaticParams()
-	require.Equal(t, cryptoutilSharedMagic.DefaultOTLPServiceDefault, params["__SUITE__"])
+	require.Equal(t, cryptoutilSharedMagic.DefaultOTLPServiceDefault, params[cryptoutilSharedMagic.CICDTemplateExpansionKeySuite])
 	require.Equal(t, cryptoutilSharedMagic.DefaultOTLPEnvironmentDefault, params["__IMAGE_TAG__"])
 }
 
@@ -481,7 +481,7 @@ func TestLoadTemplatesDirFn_WalkCallbackError(t *testing.T) {
 	t.Parallel()
 
 	tmpDir := t.TempDir()
-	require.NoError(t, os.MkdirAll(filepath.Join(tmpDir, templatesRelPath), cryptoutilSharedMagic.CICDTempDirPermissions))
+	require.NoError(t, os.MkdirAll(filepath.Join(tmpDir, cryptoutilSharedMagic.CICDTemplatesRelPath), cryptoutilSharedMagic.CICDTempDirPermissions))
 
 	injectedErr := errors.New("permission denied")
 
@@ -500,7 +500,7 @@ func TestLoadTemplatesDirFn_WalkError(t *testing.T) {
 	t.Parallel()
 
 	tmpDir := t.TempDir()
-	require.NoError(t, os.MkdirAll(filepath.Join(tmpDir, templatesRelPath), cryptoutilSharedMagic.CICDTempDirPermissions))
+	require.NoError(t, os.MkdirAll(filepath.Join(tmpDir, cryptoutilSharedMagic.CICDTemplatesRelPath), cryptoutilSharedMagic.CICDTempDirPermissions))
 
 	_, err := loadTemplatesDirFn(tmpDir, func(_ string, _ fs.WalkDirFunc) error {
 		return errors.New("walk failed")
@@ -517,7 +517,7 @@ func TestLoadTemplatesDirFn_ReadFileError(t *testing.T) {
 	t.Parallel()
 
 	tmpDir := t.TempDir()
-	templatesDir := filepath.Join(tmpDir, templatesRelPath)
+	templatesDir := filepath.Join(tmpDir, cryptoutilSharedMagic.CICDTemplatesRelPath)
 	require.NoError(t, os.MkdirAll(templatesDir, cryptoutilSharedMagic.CICDTempDirPermissions))
 
 	// Create a sub-directory whose name ends in .yml — os.ReadFile on a directory is an error.
@@ -533,13 +533,13 @@ func TestLoadTemplatesDirFn_ReadFileError(t *testing.T) {
 	require.Contains(t, err.Error(), "walk templates directory")
 }
 
-// TestCompareBase64Placeholder_TrailingTooShort verifies that a trailing BASE64_CHAR43
+// TestCompareBase64Placeholder_TrailingTooShort verifies that a trailing __BASE64_CHAR43__
 // segment whose actual value is shorter than 43 characters reports a "too short" error.
 func TestCompareBase64Placeholder_TrailingTooShort(t *testing.T) {
 	t.Parallel()
 
 	// "SHORT" is only 5 characters — well below the 43-char minimum.
-	diff := compareBase64Placeholder("prefix-BASE64_CHAR43", "prefix-SHORT")
+	diff := compareBase64Placeholder("prefix-"+cryptoutilSharedMagic.CICDTemplateBase64Char43Placeholder, "prefix-SHORT")
 	require.NotEmpty(t, diff)
 	require.Contains(t, diff, "too short")
 }

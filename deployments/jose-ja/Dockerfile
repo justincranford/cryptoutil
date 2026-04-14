@@ -1,5 +1,5 @@
 #############################################################################################
-# jose-ja Dockerfile — JOSE JWK Authority
+# jose-ja Dockerfile — JWK Authority
 #
 # Build: DOCKER_BUILDKIT=1 docker build \
 #          --build-arg APP_VERSION=<ver> \
@@ -131,7 +131,7 @@ ARG APP_VERSION
 ARG VCS_REF
 ARG BUILD_DATE
 LABEL org.opencontainers.image.title="cryptoutil-jose-ja" \
-    org.opencontainers.image.description="JOSE JWK Authority" \
+    org.opencontainers.image.description="JWK Authority" \
     org.opencontainers.image.source="https://github.com/justincranford/cryptoutil" \
     org.opencontainers.image.authors="Justin Cranford" \
     org.opencontainers.image.version="${APP_VERSION}" \

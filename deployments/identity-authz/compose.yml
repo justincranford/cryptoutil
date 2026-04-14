@@ -45,18 +45,36 @@ services:
       - browser-password.secret
       - service-username.secret
       - service-password.secret
-    command: ["sh", "-c", "ls -l /run/secrets/*.secret"]
+    command:
+      - sh
+      - -c
+      - |
+        test -f /run/secrets/unseal-1of5.secret &&
+        test -f /run/secrets/unseal-2of5.secret &&
+        test -f /run/secrets/unseal-3of5.secret &&
+        test -f /run/secrets/unseal-4of5.secret &&
+        test -f /run/secrets/unseal-5of5.secret &&
+        test -f /run/secrets/hash-pepper-v3.secret &&
+        test -f /run/secrets/postgres-url.secret &&
+        test -f /run/secrets/postgres-username.secret &&
+        test -f /run/secrets/postgres-password.secret &&
+        test -f /run/secrets/postgres-database.secret &&
+        test -f /run/secrets/browser-username.secret &&
+        test -f /run/secrets/browser-password.secret &&
+        test -f /run/secrets/service-username.secret &&
+        test -f /run/secrets/service-password.secret &&
+        echo All secrets verified
     networks:
       - identity-authz-network
 
   # Build identity-authz image from source.
   builder-identity-authz:
-    image: cryptoutil-identity-authz:dev
+    image: cryptoutil-identity-authz:local
     build:
       context: ../..
       dockerfile: deployments/identity-authz/Dockerfile
       args:
-        APP_VERSION: "dev"
+        APP_VERSION: "local"
         VCS_REF: "local"
         BUILD_DATE: "2026-02-17T00:00:00Z"
     entrypoint: ["sh", "-c"]
@@ -67,7 +85,7 @@ services:
 
   # Init job: bootstraps service prerequisites before app startup.
   pki-init:
-    image: cryptoutil-identity-authz:dev
+    image: cryptoutil-identity-authz:local
     command: ["/app/identity-authz", "init", "--domain=identity-authz", "--output-dir=/certs"]
     volumes:
       - ./certs/:/certs/:rw
@@ -79,7 +97,7 @@ services:
 
   # identity-authz server with SQLite backend (instance 1).
   identity-authz-app-sqlite-1:
-    image: cryptoutil-identity-authz:dev
+    image: cryptoutil-identity-authz:local
     command: /bin/sh -c "exec /app/identity-authz server --config=/certs/tls-config.yml --config=/app/config/identity-authz-app-framework-common.yml --config=/app/config/identity-authz-app-framework-sqlite-1.yml --config=/app/config/identity-authz-app-domain-common.yml --config=/app/config/identity-authz-app-domain-sqlite-1.yml --config=/app/otel/otel.yml --bind-public-port=8080 -u sqlite://file::memory:?cache=shared $$SUITE_ARGS"
     working_dir: /tmp
     ports:
@@ -109,11 +127,11 @@ services:
       healthcheck-opentelemetry-collector-contrib:
         condition: service_completed_successfully
     healthcheck:
-      test: ["CMD", "wget", "--ca-certificate=/certs/root-ca.pem", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/api/v1/livez"]
-      start_period: 60s
-      interval: 5s
-      timeout: 5s
-      retries: 10
+      test: ["CMD", "/app/identity-authz", "livez", "--cacert", "/certs/root-ca.pem"]
+      start_period: 30s
+      interval: 30s
+      timeout: 10s
+      retries: 3
     networks:
       - identity-authz-network
       - telemetry-network
@@ -126,7 +144,7 @@ services:
 
   # identity-authz server with SQLite backend (instance 2).
   identity-authz-app-sqlite-2:
-    image: cryptoutil-identity-authz:dev
+    image: cryptoutil-identity-authz:local
     command: /bin/sh -c "exec /app/identity-authz server --config=/certs/tls-config.yml --config=/app/config/identity-authz-app-framework-common.yml --config=/app/config/identity-authz-app-framework-sqlite-2.yml --config=/app/config/identity-authz-app-domain-common.yml --config=/app/config/identity-authz-app-domain-sqlite-2.yml --config=/app/otel/otel.yml --bind-public-port=8080 -u sqlite://file::memory:?cache=shared $$SUITE_ARGS"
     working_dir: /tmp
     ports:
@@ -156,11 +174,11 @@ services:
       healthcheck-opentelemetry-collector-contrib:
         condition: service_completed_successfully
     healthcheck:
-      test: ["CMD", "wget", "--ca-certificate=/certs/root-ca.pem", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/api/v1/livez"]
-      start_period: 60s
-      interval: 5s
-      timeout: 5s
-      retries: 10
+      test: ["CMD", "/app/identity-authz", "livez", "--cacert", "/certs/root-ca.pem"]
+      start_period: 30s
+      interval: 30s
+      timeout: 10s
+      retries: 3
     networks:
       - identity-authz-network
       - telemetry-network
@@ -173,7 +191,7 @@ services:
 
   # identity-authz server with PostgreSQL backend (instance 1).
   identity-authz-app-postgresql-1:
-    image: cryptoutil-identity-authz:dev
+    image: cryptoutil-identity-authz:local
     command: /bin/sh -c "exec /app/identity-authz server --config=/certs/tls-config.yml --config=/app/config/identity-authz-app-framework-common.yml --config=/app/config/identity-authz-app-framework-postgresql-1.yml --config=/app/config/identity-authz-app-domain-common.yml --config=/app/config/identity-authz-app-domain-postgresql-1.yml --config=/app/otel/otel.yml --bind-public-port=8080 -u file:///run/secrets/postgres-url.secret $$SUITE_ARGS"
     working_dir: /tmp
     ports:
@@ -206,11 +224,11 @@ services:
       healthcheck-opentelemetry-collector-contrib:
         condition: service_completed_successfully
     healthcheck:
-      test: ["CMD", "wget", "--ca-certificate=/certs/root-ca.pem", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/api/v1/livez"]
-      start_period: 60s
-      interval: 5s
-      timeout: 5s
-      retries: 5
+      test: ["CMD", "/app/identity-authz", "livez", "--cacert", "/certs/root-ca.pem"]
+      start_period: 30s
+      interval: 30s
+      timeout: 10s
+      retries: 3
     networks:
       - identity-authz-network
       - telemetry-network
@@ -224,7 +242,7 @@ services:
 
   # identity-authz server with PostgreSQL backend (instance 2 - shared DB with instance 1).
   identity-authz-app-postgresql-2:
-    image: cryptoutil-identity-authz:dev
+    image: cryptoutil-identity-authz:local
     command: /bin/sh -c "exec /app/identity-authz server --config=/certs/tls-config.yml --config=/app/config/identity-authz-app-framework-common.yml --config=/app/config/identity-authz-app-framework-postgresql-2.yml --config=/app/config/identity-authz-app-domain-common.yml --config=/app/config/identity-authz-app-domain-postgresql-2.yml --config=/app/otel/otel.yml --bind-public-port=8080 -u file:///run/secrets/postgres-url.secret $$SUITE_ARGS"
     working_dir: /tmp
     ports:
@@ -259,11 +277,11 @@ services:
       identity-authz-app-postgresql-1:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "wget", "--ca-certificate=/certs/root-ca.pem", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/api/v1/livez"]
-      start_period: 60s
-      interval: 5s
-      timeout: 5s
-      retries: 5
+      test: ["CMD", "/app/identity-authz", "livez", "--cacert", "/certs/root-ca.pem"]
+      start_period: 30s
+      interval: 30s
+      timeout: 10s
+      retries: 3
     networks:
       - identity-authz-network
       - telemetry-network

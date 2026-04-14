@@ -17,32 +17,6 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
-// templatesRelPath is the path to the canonical templates directory relative to the project root.
-const templatesRelPath = "api/cryptosuite-registry/templates"
-
-// Shared constants for canonical template parameter values.
-const (
-	buildDate              = "2026-02-17T00:00:00Z"
-	goVersion              = "1.26.1"
-	alpineVersion          = "latest"
-	cgoEnabled             = "0"
-	containerUID           = "65532"
-	containerGID           = "65532"
-	githubRepoURL          = "https://github.com/justincranford/cryptoutil"
-	authors                = "Justin Cranford"
-	healthcheckInterval    = "30s"
-	healthcheckTimeout     = "10s"
-	healthcheckStartPeriod = "30s"
-	healthcheckRetries     = "3"
-)
-
-// Expansion placeholder keys detected in template paths.
-const (
-	expansionKeyPSID    = "__PS_ID__"
-	expansionKeyProduct = "__PRODUCT__"
-	expansionKeySuite   = "__SUITE__"
-)
-
 // walkDirFn is the function signature for walking a directory tree.
 // Production uses filepath.WalkDir; tests may inject alternatives.
 type walkDirFn func(root string, fn fs.WalkDirFunc) error
@@ -55,7 +29,7 @@ func LoadTemplatesDir(projectRoot string) (map[string]string, error) {
 
 // loadTemplatesDirFn is the seam-injectable version of LoadTemplatesDir.
 func loadTemplatesDirFn(projectRoot string, walkFn walkDirFn) (map[string]string, error) {
-	templatesDir := filepath.Join(projectRoot, templatesRelPath)
+	templatesDir := filepath.Join(projectRoot, cryptoutilSharedMagic.CICDTemplatesRelPath)
 
 	if _, err := os.Stat(templatesDir); err != nil {
 		return nil, fmt.Errorf("templates directory not found: %w", err)
@@ -66,15 +40,10 @@ func loadTemplatesDirFn(projectRoot string, walkFn walkDirFn) (map[string]string
 	err := walkFn(templatesDir, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
-		}
-
-		if d.IsDir() {
-			return nil
-		}
-
-		// Skip .gitkeep files.
-		if d.Name() == ".gitkeep" {
-			return nil
+		} else if d.IsDir() {
+			return nil // Skip directories.
+		} else if d.Name() == ".gitkeep" {
+			return nil // Skip marker-only placeholder files.
 		}
 
 		relPath, err := filepath.Rel(templatesDir, path)
@@ -109,11 +78,11 @@ func BuildExpectedFS(templates map[string]string) map[string]string {
 
 	for tmplPath, tmplContent := range templates {
 		switch {
-		case strings.Contains(tmplPath, expansionKeyPSID):
+		case strings.Contains(tmplPath, cryptoutilSharedMagic.CICDTemplateExpansionKeyPSID):
 			expandPSIDTemplate(tmplPath, tmplContent, expected)
-		case strings.Contains(tmplPath, expansionKeyProduct):
+		case strings.Contains(tmplPath, cryptoutilSharedMagic.CICDTemplateExpansionKeyProduct):
 			expandProductTemplate(tmplPath, tmplContent, expected)
-		case strings.Contains(tmplPath, expansionKeySuite):
+		case strings.Contains(tmplPath, cryptoutilSharedMagic.CICDTemplateExpansionKeySuite):
 			expandSuiteTemplate(tmplPath, tmplContent, expected)
 		default:
 			// Static template: no path expansion, content-only substitution.
@@ -159,7 +128,7 @@ func CompareExpectedFS(expected map[string]string, projectRoot string) error {
 // pki-ca compose uses superset (allows domain-specific extra volume mounts).
 // pki-ca framework common config uses prefix (allows domain-specific CRL additions).
 // Standalone configs use prefix (allows domain-specific additions after framework settings).
-// Secrets files with BASE64_CHAR43 use length-based matching.
+// Secrets files with __BASE64_CHAR43__ use length-based matching.
 // All other files use exact comparison.
 func chooseComparison(relPath, expected, actual string) string {
 	normalized := filepath.ToSlash(relPath)
@@ -174,7 +143,7 @@ func chooseComparison(relPath, expected, actual string) string {
 		return comparePrefix(expected, actual)
 	case strings.HasPrefix(normalized, "configs/") && strings.HasSuffix(normalized, "-framework.yml"):
 		return comparePrefix(expected, actual)
-	case strings.Contains(expected, base64Char43Placeholder):
+	case strings.Contains(expected, cryptoutilSharedMagic.CICDTemplateBase64Char43Placeholder):
 		return compareBase64Placeholder(expected, actual)
 	default:
 		return compareExact(
@@ -229,31 +198,31 @@ func buildParams(psID string) map[string]string {
 	basePort := cryptoutilRegistry.PublicPort(psID)
 
 	return map[string]string{
-		"__PS_ID__":                     psID,
-		"__PS_ID_UPPER__":               strings.ToUpper(psID),
-		"__PS_ID_UNDERSCORE__":          strings.ReplaceAll(psID, "-", "_"),
-		"__SUITE__":                     cryptoutilSharedMagic.DefaultOTLPServiceDefault,
-		"__IMAGE_TAG__":                 cryptoutilSharedMagic.DefaultOTLPEnvironmentDefault,
-		"__BUILD_DATE__":                buildDate,
-		"__GO_VERSION__":                goVersion,
-		"__ALPINE_VERSION__":            alpineVersion,
-		"__CGO_ENABLED__":               cgoEnabled,
-		"__CONTAINER_UID__":             containerUID,
-		"__CONTAINER_GID__":             containerGID,
-		"__GITHUB_REPOSITORY_URL__":     githubRepoURL,
-		"__AUTHORS__":                   authors,
-		"__HEALTHCHECK_INTERVAL__":      healthcheckInterval,
-		"__HEALTHCHECK_TIMEOUT__":       healthcheckTimeout,
-		"__HEALTHCHECK_START_PERIOD__":  healthcheckStartPeriod,
-		"__HEALTHCHECK_RETRIES__":       healthcheckRetries,
-		"__PRODUCT_DISPLAY_NAME__":      cryptoutilRegistry.ProductDisplayName(psID),
-		"__SERVICE_DISPLAY_NAME__":      cryptoutilRegistry.ServiceDisplayName(psID),
-		"__SERVICE_APP_PORT_BASE__":     fmt.Sprintf("%d", basePort),
-		"__SERVICE_APP_PORT_END__":      fmt.Sprintf("%d", cryptoutilRegistry.PortRangeEnd(psID)),
-		"__SERVICE_APP_PORT_SQLITE_1__": fmt.Sprintf("%d", basePort+cryptoutilRegistry.ComposeVariantOffsetSQLite1),
-		"__SERVICE_APP_PORT_SQLITE_2__": fmt.Sprintf("%d", basePort+cryptoutilRegistry.ComposeVariantOffsetSQLite2),
-		"__SERVICE_APP_PORT_PG_1__":     fmt.Sprintf("%d", basePort+cryptoutilRegistry.ComposeVariantOffsetPostgres1),
-		"__SERVICE_APP_PORT_PG_2__":     fmt.Sprintf("%d", basePort+cryptoutilRegistry.ComposeVariantOffsetPostgres2),
+		cryptoutilSharedMagic.CICDTemplateExpansionKeyPSID: psID,
+		"__PS_ID_UPPER__":      strings.ToUpper(psID),
+		"__PS_ID_UNDERSCORE__": strings.ReplaceAll(psID, "-", "_"),
+		cryptoutilSharedMagic.CICDTemplateExpansionKeySuite: cryptoutilSharedMagic.DefaultOTLPServiceDefault,
+		"__IMAGE_TAG__":                cryptoutilSharedMagic.DefaultOTLPEnvironmentDefault,
+		"__BUILD_DATE__":               cryptoutilSharedMagic.CICDTemplateBuildDate,
+		"__GO_VERSION__":               cryptoutilSharedMagic.CICDTemplateGoVersion,
+		"__ALPINE_VERSION__":           cryptoutilSharedMagic.CICDTemplateAlpineVersion,
+		"__CGO_ENABLED__":              cryptoutilSharedMagic.CICDTemplateCGOEnabled,
+		"__CONTAINER_UID__":            cryptoutilSharedMagic.CICDTemplateContainerUID,
+		"__CONTAINER_GID__":            cryptoutilSharedMagic.CICDTemplateContainerGID,
+		"__GITHUB_REPOSITORY_URL__":    cryptoutilSharedMagic.CICDTemplateGitHubRepoURL,
+		"__AUTHORS__":                  cryptoutilSharedMagic.CICDTemplateAuthors,
+		"__HEALTHCHECK_INTERVAL__":     cryptoutilSharedMagic.CICDTemplateHealthcheckInterval,
+		"__HEALTHCHECK_TIMEOUT__":      cryptoutilSharedMagic.CICDTemplateHealthcheckTimeout,
+		"__HEALTHCHECK_START_PERIOD__": cryptoutilSharedMagic.CICDTemplateHealthcheckStartPeriod,
+		"__HEALTHCHECK_RETRIES__":      cryptoutilSharedMagic.CICDTemplateHealthcheckRetries,
+		"__PRODUCT_DISPLAY_NAME__":     cryptoutilRegistry.ProductDisplayName(psID),
+		"__PS_DISPLAY_NAME__":          cryptoutilRegistry.ServiceDisplayName(psID),
+		"__PS_PUBLIC_PORT_BASE__":      fmt.Sprintf("%d", basePort),
+		"__PS_PUBLIC_PORT_END__":       fmt.Sprintf("%d", cryptoutilRegistry.PortRangeEnd(psID)),
+		"__PS_PUBLIC_PORT_SQLITE_1__":  fmt.Sprintf("%d", basePort+cryptoutilRegistry.ComposeVariantOffsetSQLite1),
+		"__PS_PUBLIC_PORT_SQLITE_2__":  fmt.Sprintf("%d", basePort+cryptoutilRegistry.ComposeVariantOffsetSQLite2),
+		"__PS_PUBLIC_PORT_PG_1__":      fmt.Sprintf("%d", basePort+cryptoutilRegistry.ComposeVariantOffsetPostgres1),
+		"__PS_PUBLIC_PORT_PG_2__":      fmt.Sprintf("%d", basePort+cryptoutilRegistry.ComposeVariantOffsetPostgres2),
 	}
 }
 
@@ -261,7 +230,7 @@ func buildParams(psID string) map[string]string {
 func buildInstanceParams(psID string, instanceNum int, port int) map[string]string {
 	params := buildParams(psID)
 	params["__INSTANCE_NUM__"] = fmt.Sprintf("%d", instanceNum)
-	params["__SERVICE_APP_PORT__"] = fmt.Sprintf("%d", port)
+	params["__PS_PUBLIC_PORT__"] = fmt.Sprintf("%d", port)
 
 	return params
 }
@@ -273,15 +242,15 @@ func buildProductParams(productID string) map[string]string {
 	displayName := cryptoutilRegistry.ProductDisplayNameByID(productID)
 
 	params := map[string]string{
-		"__PRODUCT__":                    productID,
-		"__PRODUCT_UPPER__":              strings.ToUpper(productID),
-		"__PRODUCT_DISPLAY_NAME__":       displayName,
-		"__PRODUCT_INIT_PS_ID__":         initPSID,
-		"__PRODUCT_PS_ID_LIST_DISPLAY__": buildProductPSIDListDisplay(productID, psIDs),
-		"__PRODUCT_INCLUDE_LIST__":       buildProductIncludeList(psIDs),
-		"__PRODUCT_SERVICE_OVERRIDES__":  buildProductServiceOverrides(productID, psIDs),
-		"__SUITE__":                      cryptoutilSharedMagic.DefaultOTLPServiceDefault,
-		"__IMAGE_TAG__":                  cryptoutilSharedMagic.DefaultOTLPEnvironmentDefault,
+		cryptoutilSharedMagic.CICDTemplateExpansionKeyProduct: productID,
+		"__PRODUCT_UPPER__":                                 strings.ToUpper(productID),
+		"__PRODUCT_DISPLAY_NAME__":                          displayName,
+		"__PRODUCT_INIT_PS_ID__":                            initPSID,
+		"__PRODUCT_PS_ID_LIST_DISPLAY__":                    buildProductPSIDListDisplay(productID, psIDs),
+		"__PRODUCT_INCLUDE_LIST__":                          buildProductIncludeList(psIDs),
+		"__PRODUCT_SERVICE_OVERRIDES__":                     buildProductServiceOverrides(productID, psIDs),
+		cryptoutilSharedMagic.CICDTemplateExpansionKeySuite: cryptoutilSharedMagic.DefaultOTLPServiceDefault,
+		"__IMAGE_TAG__":                                     cryptoutilSharedMagic.DefaultOTLPEnvironmentDefault,
 	}
 
 	return params
@@ -293,37 +262,34 @@ func buildSuiteParams(sID string) map[string]string {
 	displayName := cryptoutilRegistry.SuiteDisplayName(sID)
 	products := cryptoutilRegistry.AllProducts()
 
-	params := map[string]string{
-		"__SUITE__":                   sID,
-		"__SUITE_UPPER__":             strings.ToUpper(sID),
-		"__SUITE_DISPLAY_NAME__":      displayName,
-		"__SUITE_INIT_PS_ID__":        initPSID,
-		"__SUITE_INCLUDE_LIST__":      buildSuiteIncludeList(products),
-		"__SUITE_SERVICE_OVERRIDES__": buildSuiteServiceOverrides(),
-		"__IMAGE_TAG__":               cryptoutilSharedMagic.DefaultOTLPEnvironmentDefault,
-		// Build params for suite Dockerfile.
-		"__BUILD_DATE__":               buildDate,
-		"__GO_VERSION__":               goVersion,
-		"__ALPINE_VERSION__":           alpineVersion,
-		"__CGO_ENABLED__":              cgoEnabled,
-		"__CONTAINER_UID__":            containerUID,
-		"__CONTAINER_GID__":            containerGID,
-		"__GITHUB_REPOSITORY_URL__":    githubRepoURL,
-		"__AUTHORS__":                  authors,
-		"__HEALTHCHECK_INTERVAL__":     healthcheckInterval,
-		"__HEALTHCHECK_TIMEOUT__":      healthcheckTimeout,
-		"__HEALTHCHECK_START_PERIOD__": healthcheckStartPeriod,
-		"__HEALTHCHECK_RETRIES__":      healthcheckRetries,
+	return map[string]string{
+		cryptoutilSharedMagic.CICDTemplateExpansionKeySuite: sID,
+		"__SUITE_UPPER__":              strings.ToUpper(sID),
+		"__SUITE_DISPLAY_NAME__":       displayName,
+		"__SUITE_INIT_PS_ID__":         initPSID,
+		"__SUITE_INCLUDE_LIST__":       buildSuiteIncludeList(products),
+		"__SUITE_SERVICE_OVERRIDES__":  buildSuiteServiceOverrides(),
+		"__IMAGE_TAG__":                cryptoutilSharedMagic.DefaultOTLPEnvironmentDefault,
+		"__BUILD_DATE__":               cryptoutilSharedMagic.CICDTemplateBuildDate,
+		"__GO_VERSION__":               cryptoutilSharedMagic.CICDTemplateGoVersion,
+		"__ALPINE_VERSION__":           cryptoutilSharedMagic.CICDTemplateAlpineVersion,
+		"__CGO_ENABLED__":              cryptoutilSharedMagic.CICDTemplateCGOEnabled,
+		"__CONTAINER_UID__":            cryptoutilSharedMagic.CICDTemplateContainerUID,
+		"__CONTAINER_GID__":            cryptoutilSharedMagic.CICDTemplateContainerGID,
+		"__GITHUB_REPOSITORY_URL__":    cryptoutilSharedMagic.CICDTemplateGitHubRepoURL,
+		"__AUTHORS__":                  cryptoutilSharedMagic.CICDTemplateAuthors,
+		"__HEALTHCHECK_INTERVAL__":     cryptoutilSharedMagic.CICDTemplateHealthcheckInterval,
+		"__HEALTHCHECK_TIMEOUT__":      cryptoutilSharedMagic.CICDTemplateHealthcheckTimeout,
+		"__HEALTHCHECK_START_PERIOD__": cryptoutilSharedMagic.CICDTemplateHealthcheckStartPeriod,
+		"__HEALTHCHECK_RETRIES__":      cryptoutilSharedMagic.CICDTemplateHealthcheckRetries,
 	}
-
-	return params
 }
 
 // buildStaticParams constructs the parameter map for static (non-expanded) templates.
 // Static templates like shared-telemetry still need __SUITE__ substitution in content.
 func buildStaticParams() map[string]string {
 	return map[string]string{
-		"__SUITE__":     cryptoutilSharedMagic.DefaultOTLPServiceDefault,
+		cryptoutilSharedMagic.CICDTemplateExpansionKeySuite: cryptoutilSharedMagic.DefaultOTLPServiceDefault,
 		"__IMAGE_TAG__": cryptoutilSharedMagic.DefaultOTLPEnvironmentDefault,
 	}
 }
@@ -390,10 +356,10 @@ func buildProductServiceOverrides(productID string, psIDs []string) string {
 		suffix string
 		offset int
 	}{
-		{"sqlite-1", cryptoutilRegistry.ComposeVariantOffsetSQLite1},
-		{"sqlite-2", cryptoutilRegistry.ComposeVariantOffsetSQLite2},
-		{"postgresql-1", cryptoutilRegistry.ComposeVariantOffsetPostgres1},
-		{"postgresql-2", cryptoutilRegistry.ComposeVariantOffsetPostgres2},
+		{cryptoutilSharedMagic.CICDTemplateVariantSQLite1, cryptoutilRegistry.ComposeVariantOffsetSQLite1},
+		{cryptoutilSharedMagic.CICDTemplateVariantSQLite2, cryptoutilRegistry.ComposeVariantOffsetSQLite2},
+		{cryptoutilSharedMagic.CICDTemplateVariantPostgres1, cryptoutilRegistry.ComposeVariantOffsetPostgres1},
+		{cryptoutilSharedMagic.CICDTemplateVariantPostgres2, cryptoutilRegistry.ComposeVariantOffsetPostgres2},
 	}
 
 	for _, psID := range psIDs {
@@ -404,7 +370,7 @@ func buildProductServiceOverrides(productID string, psIDs []string) string {
 			port := productPort + v.offset
 			sb.WriteString(fmt.Sprintf("  %s-app-%s:\n", psID, v.suffix))
 			sb.WriteString("    ports: !override\n")
-			sb.WriteString(fmt.Sprintf("      - \"%d:8080\"\n", port))
+			sb.WriteString(fmt.Sprintf("      - \"%d:%d\"\n", port, cryptoutilSharedMagic.DockerContainerPublicHTTPSPort))
 			sb.WriteString("\n")
 		}
 	}
@@ -446,7 +412,7 @@ func buildSuiteServiceOverrides() string {
 			basePort := cryptoutilRegistry.PublicPort(ps.PSID)
 			endPort := basePort + cryptoutilRegistry.ComposeVariantOffsetPostgres2
 
-			sb.WriteString(fmt.Sprintf("  # %s: SERVICE %d-%d -> SUITE %d-%d\n",
+			sb.WriteString(fmt.Sprintf("  # %s: PS-PUBLIC %d-%d -> SUITE %d-%d\n",
 				strings.ToUpper(ps.PSID),
 				basePort, endPort,
 				basePort+cryptoutilRegistry.PortTierOffsetSuite,
@@ -458,7 +424,7 @@ func buildSuiteServiceOverrides() string {
 			basePort := cryptoutilRegistry.PublicPort(ps.PSID)
 			endPort := basePort + cryptoutilRegistry.ComposeVariantOffsetPostgres2
 
-			sb.WriteString(fmt.Sprintf("\n  # %s: SERVICE %d-%d -> SUITE %d-%d\n",
+			sb.WriteString(fmt.Sprintf("\n  # %s: PS-PUBLIC %d-%d -> SUITE %d-%d\n",
 				strings.ToUpper(ps.PSID),
 				basePort, endPort,
 				basePort+cryptoutilRegistry.PortTierOffsetSuite,
@@ -473,15 +439,15 @@ func buildSuiteServiceOverrides() string {
 			suffix string
 			offset int
 		}{
-			{"sqlite-1", cryptoutilRegistry.ComposeVariantOffsetSQLite1},
-			{"sqlite-2", cryptoutilRegistry.ComposeVariantOffsetSQLite2},
-			{"postgresql-1", cryptoutilRegistry.ComposeVariantOffsetPostgres1},
-			{"postgresql-2", cryptoutilRegistry.ComposeVariantOffsetPostgres2},
+			{cryptoutilSharedMagic.CICDTemplateVariantSQLite1, cryptoutilRegistry.ComposeVariantOffsetSQLite1},
+			{cryptoutilSharedMagic.CICDTemplateVariantSQLite2, cryptoutilRegistry.ComposeVariantOffsetSQLite2},
+			{cryptoutilSharedMagic.CICDTemplateVariantPostgres1, cryptoutilRegistry.ComposeVariantOffsetPostgres1},
+			{cryptoutilSharedMagic.CICDTemplateVariantPostgres2, cryptoutilRegistry.ComposeVariantOffsetPostgres2},
 		}
 
 		for _, v := range variants {
 			port := suitePort + v.offset
-			sb.WriteString(fmt.Sprintf("  %s-app-%s: {ports: !override [\"%d:8080\"]}\n", ps.PSID, v.suffix, port))
+			sb.WriteString(fmt.Sprintf("  %s-app-%s: {ports: !override [\"%d:%d\"]}\n", ps.PSID, v.suffix, port, cryptoutilSharedMagic.DockerContainerPublicHTTPSPort))
 		}
 	}
 

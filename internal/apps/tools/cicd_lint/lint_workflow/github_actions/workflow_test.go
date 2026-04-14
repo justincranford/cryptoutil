@@ -40,7 +40,7 @@ func TestValidateAndParseWorkflowFile_BranchPinned(t *testing.T) {
 func TestValidateAndParseWorkflowFile_BranchPinned_AllBranchNames(t *testing.T) {
 	t.Parallel()
 
-	branchNames := []string{"main", "master", "latest", "develop", cryptoutilSharedMagic.DefaultOTLPEnvironmentDefault, "trunk", "MAIN", "MASTER"}
+	branchNames := []string{"main", "master", cryptoutilSharedMagic.CICDTemplateAlpineVersion, "develop", cryptoutilSharedMagic.DefaultOTLPEnvironmentDefault, "trunk", "MAIN", "MASTER"}
 
 	for _, branch := range branchNames {
 		t.Run(branch, func(t *testing.T) {

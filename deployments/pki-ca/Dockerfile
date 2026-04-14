@@ -1,5 +1,5 @@
 #############################################################################################
-# pki-ca Dockerfile — PKI Certificate Authority
+# pki-ca Dockerfile — Certificate Authority
 #
 # Build: DOCKER_BUILDKIT=1 docker build \
 #          --build-arg APP_VERSION=<ver> \
@@ -131,7 +131,7 @@ ARG APP_VERSION
 ARG VCS_REF
 ARG BUILD_DATE
 LABEL org.opencontainers.image.title="cryptoutil-pki-ca" \
-    org.opencontainers.image.description="PKI Certificate Authority" \
+    org.opencontainers.image.description="Certificate Authority" \
     org.opencontainers.image.source="https://github.com/justincranford/cryptoutil" \
     org.opencontainers.image.authors="Justin Cranford" \
     org.opencontainers.image.version="${APP_VERSION}" \

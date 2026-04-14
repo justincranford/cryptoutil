@@ -335,7 +335,7 @@ func (g *Generator) generatePSIDDomains(targetDir, psID string, sd *sharedDomain
 	// --- {PS-ID}-app-postgresql-ALL-leader-private-client/ (2 client leaves) ---
 	leaderClientDir := filepath.Join(targetDir, psID+"-app-postgresql-ALL-leader-private-client")
 
-	for _, suffix := range []string{"postgresql-1", "postgresql-2"} {
+	for _, suffix := range []string{cryptoutilSharedMagic.CICDTemplateVariantPostgres1, cryptoutilSharedMagic.CICDTemplateVariantPostgres2} {
 		leafName := psID + "-app-" + suffix + "-leader-private-client"
 
 		if err := g.generateClientLeaf(leaderClientDir, leafName, leafName, sd.dbLeaderClientCA, validity); err != nil {
@@ -346,7 +346,7 @@ func (g *Generator) generatePSIDDomains(targetDir, psID string, sd *sharedDomain
 	// --- {PS-ID}-app-postgresql-ALL-follower-private-client/ (2 client leaves) ---
 	followerClientDir := filepath.Join(targetDir, psID+"-app-postgresql-ALL-follower-private-client")
 
-	for _, suffix := range []string{"postgresql-1", "postgresql-2"} {
+	for _, suffix := range []string{cryptoutilSharedMagic.CICDTemplateVariantPostgres1, cryptoutilSharedMagic.CICDTemplateVariantPostgres2} {
 		leafName := psID + "-app-" + suffix + "-follower-private-client"
 
 		if err := g.generateClientLeaf(followerClientDir, leafName, leafName, sd.dbFollowerClientCA, validity); err != nil {

@@ -37,7 +37,7 @@ type WorkflowActionExceptions struct {
 
 // disallowedVersionsBranchPinning lists branch names that should not be used as action versions.
 // Actions pinned to branches are not deterministic and fail security best practices.
-var disallowedVersionsBranchPinning = []string{"main", "master", "latest", "develop", cryptoutilSharedMagic.DefaultOTLPEnvironmentDefault, "trunk"}
+var disallowedVersionsBranchPinning = []string{"main", "master", cryptoutilSharedMagic.CICDTemplateAlpineVersion, "develop", cryptoutilSharedMagic.DefaultOTLPEnvironmentDefault, "trunk"}
 
 // Check validates GitHub workflow files for outdated actions and other issues.
 // It returns an error if validation fails or outdated actions are found.

@@ -50,16 +50,16 @@ const PostgresServiceSuffix = "-postgres"
 const DBServiceSuffix = "-db-postgres-1"
 
 // ComposeVariantSQLite1 is the SQLite instance 1 variant used in compose service names.
-const ComposeVariantSQLite1 = "sqlite-1"
+const ComposeVariantSQLite1 = cryptoutilSharedMagic.CICDTemplateVariantSQLite1
 
 // ComposeVariantSQLite2 is the SQLite instance 2 variant used in deployment config overlay names.
-const ComposeVariantSQLite2 = "sqlite-2"
+const ComposeVariantSQLite2 = cryptoutilSharedMagic.CICDTemplateVariantSQLite2
 
 // ComposeVariantPostgres1 is the PostgreSQL instance 1 variant used in compose service names.
-const ComposeVariantPostgres1 = "postgresql-1"
+const ComposeVariantPostgres1 = cryptoutilSharedMagic.CICDTemplateVariantPostgres1
 
 // ComposeVariantPostgres2 is the PostgreSQL instance 2 variant used in compose service names.
-const ComposeVariantPostgres2 = "postgresql-2"
+const ComposeVariantPostgres2 = cryptoutilSharedMagic.CICDTemplateVariantPostgres2
 
 // DeploymentConfigSuffixSQLite1 is the deployment config file suffix for the SQLite instance 1 overlay.
 // File: {psid}-app-framework-sqlite-1.yml → OTLP suffix: ComposeVariantSQLite1.

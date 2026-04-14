@@ -1,5 +1,5 @@
 #############################################################################################
-# __PS_ID__ Dockerfile — __PRODUCT_DISPLAY_NAME__ __SERVICE_DISPLAY_NAME__
+# __PS_ID__ Dockerfile — __PS_DISPLAY_NAME__
 #
 # Build: DOCKER_BUILDKIT=1 docker build \
 #          --build-arg APP_VERSION=<ver> \
@@ -131,7 +131,7 @@ ARG APP_VERSION
 ARG VCS_REF
 ARG BUILD_DATE
 LABEL org.opencontainers.image.title="__SUITE__-__PS_ID__" \
-    org.opencontainers.image.description="__PRODUCT_DISPLAY_NAME__ __SERVICE_DISPLAY_NAME__" \
+    org.opencontainers.image.description="__PS_DISPLAY_NAME__" \
     org.opencontainers.image.source="__GITHUB_REPOSITORY_URL__" \
     org.opencontainers.image.authors="__AUTHORS__" \
     org.opencontainers.image.version="${APP_VERSION}" \

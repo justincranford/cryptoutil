@@ -1,5 +1,5 @@
 #############################################################################################
-# identity-rp Dockerfile — Identity Relying Party
+# identity-rp Dockerfile — Relying Party
 #
 # Build: DOCKER_BUILDKIT=1 docker build \
 #          --build-arg APP_VERSION=<ver> \
@@ -131,7 +131,7 @@ ARG APP_VERSION
 ARG VCS_REF
 ARG BUILD_DATE
 LABEL org.opencontainers.image.title="cryptoutil-identity-rp" \
-    org.opencontainers.image.description="Identity Relying Party" \
+    org.opencontainers.image.description="Relying Party" \
     org.opencontainers.image.source="https://github.com/justincranford/cryptoutil" \
     org.opencontainers.image.authors="Justin Cranford" \
     org.opencontainers.image.version="${APP_VERSION}" \
