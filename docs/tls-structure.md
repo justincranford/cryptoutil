@@ -38,11 +38,11 @@ All output files are created under `TARGET-DIRECTORY/PKI-INIT-DOMAIN/`. If that 
 | PS-ID | `sm-kms`, `sm-im`, `jose-ja`, `pki-ca`, `identity-authz`, `identity-idp`, `identity-rs`, `identity-rp`, `identity-spa`, `skeleton-template` |
 
 Examples:
-1. `pki-init cryptoutil        /certs`   → output: `/certs/cryptoutil/` (suite scope, 608 dirs)
-2. `pki-init sm                /certs`   → output: `/certs/sm/` (product scope, 144 dirs for 2 PS-IDs)
+1. `pki-init cryptoutil        /certs`   → output: `/certs/cryptoutil/` (suite scope, 568 dirs)
+2. `pki-init sm                /certs`   → output: `/certs/sm/` (product scope, 136 dirs for 2 PS-IDs)
 3. `pki-init identity          /certs`   → output: `/certs/identity/` (product scope, 4 PS-IDs)
-4. `pki-init sm-kms            /tmp`     → output: `/tmp/sm-kms/` (PS-ID scope, 86 dirs)
-5. `pki-init skeleton-template /tmp`     → output: `/tmp/skeleton-template/` (PS-ID scope, 86 dirs)
+4. `pki-init sm-kms            /tmp`     → output: `/tmp/sm-kms/` (PS-ID scope, 82 dirs)
+5. `pki-init skeleton-template /tmp`     → output: `/tmp/skeleton-template/` (PS-ID scope, 82 dirs)
 
 ## File Format Convention
 
@@ -89,10 +89,10 @@ Required domains (16 categories):
 
 **4. Public PS-ID HTTPS Client CAs:**
 - Per-instance CA chain (root + issuing) for client authentication on each app instance.
-- {sqlite,postgres} × {1,2} = 4 PKI domains per PS-ID; each has root and issuing CAs; both keystore and truststore.
-- Total per PS-ID: 16 directories (4 instances × 2 CA tiers × 2 store types).
-- Total per PRODUCT: 16 × (PS-ID count in product).
-- Total per SUITE: 160 directories.
+- {sqlite-1,sqlite-2,postgres} = 3 PKI domains per PS-ID; each has root and issuing CAs; both keystore and truststore.
+- Total per PS-ID: 12 directories (3 PKI domains × 2 CA tiers × 2 store types).
+- Total per PRODUCT: 12 × (PS-ID count in product).
+- Total per SUITE: 120 directories.
 
 **5. Public PS-ID HTTPS Client Certs:**
 - Client leaf certs per API path prefix (`browseruser`, `serviceuser`) and per realm type, grouped into 3 PKI domains: `sqlite-1`, `sqlite-2`, `postgres` (postgres-1 and postgres-2 share client identity per Decision 7).
@@ -166,7 +166,7 @@ TARGET-DIRECTORY/{PKI-INIT-DOMAIN}/
   public-{grafana-otel-lgtm,otel-collector-contrib}-https-server-keystore/SAME-AS-DIR-NAME.{p12,crt,key}
   public-{PS-ID}-{sqlite,postgres}-{1,2}-https-server-keystore/SAME-AS-DIR-NAME.{p12,crt,key}
 
-  public-{PS-ID}-{root,issuing}-https-client-ca-{sqlite,postgres}-{1,2}-{keystore,truststore}/SAME-AS-DIR-NAME.{p12,crt,key}
+  public-{PS-ID}-{root,issuing}-https-client-ca-{sqlite-1,sqlite-2,postgres}-{keystore,truststore}/SAME-AS-DIR-NAME.{p12,crt,key}
   public-{PS-ID}-{browseruser,serviceuser}-{realm}-https-client-{sqlite-1,sqlite-2,postgres}-keystore/SAME-AS-DIR-NAME.{p12,crt,key}
 
   private-{PS-ID}-{root,issuing}-https-client-server-ca-{sqlite,postgres}-{1,2}-{keystore,truststore}/SAME-AS-DIR-NAME.{p12,crt,key}
@@ -190,7 +190,7 @@ TARGET-DIRECTORY/{PKI-INIT-DOMAIN}/
 | 1 | Global HTTPS Server CAs | 4 | 4 | 4 | `public-global-{root,issuing}-https-server-ca-{keystore,truststore}/` |
 | 2 | Grafana/OTel Server Certs | 2 | 2 | 2 | `public-{grafana-otel-lgtm,otel-collector-contrib}-https-server-keystore/` |
 | 3 | PS-ID App Server Certs | 4 | 4×N | 40 | `public-{PS-ID}-{sqlite,postgres}-{1,2}-https-server-keystore/` |
-| 4 | PS-ID HTTPS Client CAs | 16 | 16×N | 160 | `public-{PS-ID}-{root,issuing}-https-client-ca-{sqlite,postgres}-{1,2}-{keystore,truststore}/` |
+| 4 | PS-ID HTTPS Client CAs | 12 | 12×N | 120 | `public-{PS-ID}-{root,issuing}-https-client-ca-{sqlite-1,sqlite-2,postgres}-{keystore,truststore}/` |
 | 5 | PS-ID HTTPS Client Certs | 12 | 12×N | 120 | `public-{PS-ID}-{browseruser,serviceuser}-{realm}-https-client-{sqlite-1,sqlite-2,postgres}-keystore/` |
 | 6 | Private mTLS CAs (Admin) | 16 | 16×N | 160 | `private-{PS-ID}-{root,issuing}-https-client-server-ca-{sqlite,postgres}-{1,2}-{keystore,truststore}/` |
 | 7 | Private mTLS Leaves (Admin) | 4 | 4×N | 40 | `private-{PS-ID}-{mutual}-https-client-server-{sqlite,postgres}-{1,2}-keystore/` |
@@ -201,7 +201,7 @@ TARGET-DIRECTORY/{PKI-INIT-DOMAIN}/
 | 12 | PostgreSQL Client CAs | 4 | 4 | 4 | `public-postgres-{root,issuing}-https-client-ca-{keystore,truststore}/` |
 | 13 | PostgreSQL Replication Certs | 2 | 2 | 2 | `public-postgres-{leader,follower}-https-client-keystore/` |
 | 14 | PS-ID PostgreSQL App Clients | 4 | 4×N | 40 | `public-{PS-ID}-postgres-{1,2}-{leader,follower}-https-client-keystore/` |
-| **Total** | | **86** | **varies** | **608** | |
+| **Total** | | **82** | **varies** | **568** | |
 
 ## Policy Alignment
 
@@ -241,23 +241,19 @@ Realm values assumed: `file`, `db` (2 realms).
   public-skeleton-template-postgres-1-https-server-keystore/
   public-skeleton-template-postgres-2-https-server-keystore/
 
-  # Category 4: PS-ID HTTPS Client CAs (16 dirs)
+  # Category 4: PS-ID HTTPS Client CAs (12 dirs)
   public-skeleton-template-root-https-client-ca-sqlite-1-keystore/
   public-skeleton-template-root-https-client-ca-sqlite-1-truststore/
   public-skeleton-template-root-https-client-ca-sqlite-2-keystore/
   public-skeleton-template-root-https-client-ca-sqlite-2-truststore/
-  public-skeleton-template-root-https-client-ca-postgres-1-keystore/
-  public-skeleton-template-root-https-client-ca-postgres-1-truststore/
-  public-skeleton-template-root-https-client-ca-postgres-2-keystore/
-  public-skeleton-template-root-https-client-ca-postgres-2-truststore/
+  public-skeleton-template-root-https-client-ca-postgres-keystore/
+  public-skeleton-template-root-https-client-ca-postgres-truststore/
   public-skeleton-template-issuing-https-client-ca-sqlite-1-keystore/
   public-skeleton-template-issuing-https-client-ca-sqlite-1-truststore/
   public-skeleton-template-issuing-https-client-ca-sqlite-2-keystore/
   public-skeleton-template-issuing-https-client-ca-sqlite-2-truststore/
-  public-skeleton-template-issuing-https-client-ca-postgres-1-keystore/
-  public-skeleton-template-issuing-https-client-ca-postgres-1-truststore/
-  public-skeleton-template-issuing-https-client-ca-postgres-2-keystore/
-  public-skeleton-template-issuing-https-client-ca-postgres-2-truststore/
+  public-skeleton-template-issuing-https-client-ca-postgres-keystore/
+  public-skeleton-template-issuing-https-client-ca-postgres-truststore/
 
   # Category 5: PS-ID HTTPS Client Certs (12 dirs)
   public-skeleton-template-browseruser-file-https-client-sqlite-1-keystore/
@@ -340,7 +336,7 @@ Realm values assumed: `file`, `db` (2 realms).
   public-skeleton-template-postgres-2-follower-https-client-keystore/
 ```
 
-**Total: 86 directories** (30 global + 56 PS-ID-specific).
+**Total: 82 directories** (30 global + 52 PS-ID-specific).
 
 ## Example: sm (PRODUCT)
 
@@ -375,41 +371,33 @@ Global directories (categories 1, 2, 8, 10-13) are identical to the skeleton-tem
   public-sm-im-postgres-1-https-server-keystore/
   public-sm-im-postgres-2-https-server-keystore/
 
-  # Category 4: PS-ID HTTPS Client CAs (32 dirs = 16 × 2 PS-IDs)
-  # --- sm-kms (16 dirs: {root,issuing} × {sqlite,postgres} × {1,2} × {keystore,truststore}) ---
+  # Category 4: PS-ID HTTPS Client CAs (24 dirs = 12 × 2 PS-IDs)
+  # --- sm-kms (12 dirs: {root,issuing} × {sqlite-1,sqlite-2,postgres} × {keystore,truststore}) ---
   public-sm-kms-root-https-client-ca-sqlite-1-keystore/
   public-sm-kms-root-https-client-ca-sqlite-1-truststore/
   public-sm-kms-root-https-client-ca-sqlite-2-keystore/
   public-sm-kms-root-https-client-ca-sqlite-2-truststore/
-  public-sm-kms-root-https-client-ca-postgres-1-keystore/
-  public-sm-kms-root-https-client-ca-postgres-1-truststore/
-  public-sm-kms-root-https-client-ca-postgres-2-keystore/
-  public-sm-kms-root-https-client-ca-postgres-2-truststore/
+  public-sm-kms-root-https-client-ca-postgres-keystore/
+  public-sm-kms-root-https-client-ca-postgres-truststore/
   public-sm-kms-issuing-https-client-ca-sqlite-1-keystore/
   public-sm-kms-issuing-https-client-ca-sqlite-1-truststore/
   public-sm-kms-issuing-https-client-ca-sqlite-2-keystore/
   public-sm-kms-issuing-https-client-ca-sqlite-2-truststore/
-  public-sm-kms-issuing-https-client-ca-postgres-1-keystore/
-  public-sm-kms-issuing-https-client-ca-postgres-1-truststore/
-  public-sm-kms-issuing-https-client-ca-postgres-2-keystore/
-  public-sm-kms-issuing-https-client-ca-postgres-2-truststore/
-  # --- sm-im (16 dirs: same pattern) ---
+  public-sm-kms-issuing-https-client-ca-postgres-keystore/
+  public-sm-kms-issuing-https-client-ca-postgres-truststore/
+  # --- sm-im (12 dirs: same pattern) ---
   public-sm-im-root-https-client-ca-sqlite-1-keystore/
   public-sm-im-root-https-client-ca-sqlite-1-truststore/
   public-sm-im-root-https-client-ca-sqlite-2-keystore/
   public-sm-im-root-https-client-ca-sqlite-2-truststore/
-  public-sm-im-root-https-client-ca-postgres-1-keystore/
-  public-sm-im-root-https-client-ca-postgres-1-truststore/
-  public-sm-im-root-https-client-ca-postgres-2-keystore/
-  public-sm-im-root-https-client-ca-postgres-2-truststore/
+  public-sm-im-root-https-client-ca-postgres-keystore/
+  public-sm-im-root-https-client-ca-postgres-truststore/
   public-sm-im-issuing-https-client-ca-sqlite-1-keystore/
   public-sm-im-issuing-https-client-ca-sqlite-1-truststore/
   public-sm-im-issuing-https-client-ca-sqlite-2-keystore/
   public-sm-im-issuing-https-client-ca-sqlite-2-truststore/
-  public-sm-im-issuing-https-client-ca-postgres-1-keystore/
-  public-sm-im-issuing-https-client-ca-postgres-1-truststore/
-  public-sm-im-issuing-https-client-ca-postgres-2-keystore/
-  public-sm-im-issuing-https-client-ca-postgres-2-truststore/
+  public-sm-im-issuing-https-client-ca-postgres-keystore/
+  public-sm-im-issuing-https-client-ca-postgres-truststore/
 
   # Category 5: PS-ID HTTPS Client Certs (24 dirs = 12 × 2 PS-IDs)
   # --- sm-kms (12 dirs: {browseruser,serviceuser} × {file,db} × {sqlite-1,sqlite-2,postgres}) ---
@@ -538,4 +526,4 @@ Global directories (categories 1, 2, 8, 10-13) are identical to the skeleton-tem
   public-sm-im-postgres-2-follower-https-client-keystore/
 ```
 
-**Total: 144 directories** (26 global + 118 PS-ID-specific across 2 PS-IDs).
+**Total: 136 directories** (26 global + 110 PS-ID-specific across 2 PS-IDs).
