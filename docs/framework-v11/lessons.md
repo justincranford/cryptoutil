@@ -1,59 +1,40 @@
-# Lessons — Framework v11: TLS Integration for Shared Services
+# Lessons - Framework V11: PKI-Init Cert Structure
 
-## Phase 1: Architecture Resolution
+**Created**: 2025-06-26
+**Last Updated**: 2025-06-26
+
+---
+
+## Phase 1: Cert Structure Documentation
 
 *(To be filled during Phase 1 execution)*
 
 ---
 
-## Phase 2: OTel Collector TLS Wiring
+## Phase 2: Generator Rewrite
 
 *(To be filled during Phase 2 execution)*
 
 ---
 
-## Phase 3: Grafana LGTM TLS Wiring
+## Phase 3: pki-init CLI & Docker Volume Config
 
 *(To be filled during Phase 3 execution)*
 
 ---
 
-## Phase 4: PostgreSQL TLS Wiring
+## Phase 4: Template & Deployment Updates
 
 *(To be filled during Phase 4 execution)*
 
 ---
 
-## Phase 5: PS-ID Service Compose TLS Trust
+## Phase 5: Quality Gates & Testing
 
 *(To be filled during Phase 5 execution)*
 
 ---
 
-## Phase 6: Template Registry Updates
+## Phase 6: Knowledge Propagation
 
 *(To be filled during Phase 6 execution)*
-
----
-
-## Phase 7: Documentation Updates
-
-*(To be filled during Phase 7 execution)*
-
----
-
-## Phase 8: cicd-lint Evaluation
-
-*(To be filled during Phase 8 execution)*
-
----
-
-## Phase 9: Quality Gates
-
-*(To be filled during Phase 9 execution)*
-
----
-
-## Phase 10: Knowledge Propagation
-
-*(To be filled during Phase 10 execution)*
