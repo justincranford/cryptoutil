@@ -156,7 +156,7 @@ func (g *Generator) generateSharedCAs(basePath string) (*sharedCAs, error) {
 	shared := &sharedCAs{}
 
 	// --- Category 1: Global HTTPS Server CAs (4 dirs) ---
-	shared.globalServerIssuing, err = g.generateCAChain(basePath, "public-global", "https-server-ca")
+	shared.globalServerIssuing, err = g.generateCAChain(basePath, "public-https-server-global", "ca")
 	if err != nil {
 		return nil, fmt.Errorf("cat1 global server CA: %w", err)
 	}
@@ -164,44 +164,44 @@ func (g *Generator) generateSharedCAs(basePath string) (*sharedCAs, error) {
 	// --- Category 2: Grafana LGTM + OTel Collector Server Certs (2 dirs) ---
 	grafanaDNS := []string{cryptoutilSharedMagic.DockerServiceGrafanaOtelLgtm, cryptoutilSharedMagic.HostnameLocalhost}
 
-	if err := g.generateServerLeafDir(basePath, "public-"+cryptoutilSharedMagic.DockerServiceGrafanaOtelLgtm+"-https-server-keystore",
+	if err := g.generateServerLeafDir(basePath, "public-https-server-"+cryptoutilSharedMagic.DockerServiceGrafanaOtelLgtm+"-entity-keystore",
 		shared.globalServerIssuing, grafanaDNS, defaultIPs()); err != nil {
 		return nil, fmt.Errorf("cat2 grafana server leaf: %w", err)
 	}
 
 	otelDNS := []string{cryptoutilSharedMagic.IME2EOtelCollectorContainer, cryptoutilSharedMagic.HostnameLocalhost}
 
-	if err := g.generateServerLeafDir(basePath, "public-"+cryptoutilSharedMagic.PKIInitOtelCollectorContrib+"-https-server-keystore",
+	if err := g.generateServerLeafDir(basePath, "public-https-server-"+cryptoutilSharedMagic.PKIInitOtelCollectorContrib+"-entity-keystore",
 		shared.globalServerIssuing, otelDNS, defaultIPs()); err != nil {
 		return nil, fmt.Errorf("cat2 otel server leaf: %w", err)
 	}
 
 	// --- Category 8: Grafana LGTM + OTel Collector Client CAs (8 dirs) ---
-	shared.grafanaClientIssuing, err = g.generateCAChain(basePath, "public-"+cryptoutilSharedMagic.DockerServiceGrafanaOtelLgtm, "https-client-ca")
+	shared.grafanaClientIssuing, err = g.generateCAChain(basePath, "public-https-client-"+cryptoutilSharedMagic.DockerServiceGrafanaOtelLgtm, "ca")
 	if err != nil {
 		return nil, fmt.Errorf("cat8 grafana client CA: %w", err)
 	}
 
-	shared.otelClientIssuing, err = g.generateCAChain(basePath, "public-"+cryptoutilSharedMagic.PKIInitOtelCollectorContrib, "https-client-ca")
+	shared.otelClientIssuing, err = g.generateCAChain(basePath, "public-https-client-"+cryptoutilSharedMagic.PKIInitOtelCollectorContrib, "ca")
 	if err != nil {
 		return nil, fmt.Errorf("cat8 otel client CA: %w", err)
 	}
 
 	// --- Category 9 (admin): Admin client certs for Grafana + OTel (2 dirs) ---
-	grafanaAdminDir := "public-" + cryptoutilSharedMagic.DockerServiceGrafanaOtelLgtm + "-admin-https-client-keystore"
+	grafanaAdminDir := "public-https-client-" + cryptoutilSharedMagic.DockerServiceGrafanaOtelLgtm + "-admin-entity-keystore"
 
 	if err := g.generateClientLeafDir(basePath, grafanaAdminDir, shared.grafanaClientIssuing); err != nil {
 		return nil, fmt.Errorf("cat9 grafana admin client: %w", err)
 	}
 
-	otelAdminDir := "public-" + cryptoutilSharedMagic.PKIInitOtelCollectorContrib + "-admin-https-client-keystore"
+	otelAdminDir := "public-https-client-" + cryptoutilSharedMagic.PKIInitOtelCollectorContrib + "-admin-entity-keystore"
 
 	if err := g.generateClientLeafDir(basePath, otelAdminDir, shared.otelClientIssuing); err != nil {
 		return nil, fmt.Errorf("cat9 otel admin client: %w", err)
 	}
 
 	// --- Category 10: PostgreSQL Server CAs (4 dirs) ---
-	shared.postgresServerIssuing, err = g.generateCAChain(basePath, "public-postgres", "https-server-ca")
+	shared.postgresServerIssuing, err = g.generateCAChain(basePath, "private-tls-server-postgres", "ca")
 	if err != nil {
 		return nil, fmt.Errorf("cat10 postgres server CA: %w", err)
 	}
@@ -209,31 +209,31 @@ func (g *Generator) generateSharedCAs(basePath string) (*sharedCAs, error) {
 	// --- Category 11: PostgreSQL Server Certs (2 dirs) ---
 	leaderDNS := []string{cryptoutilSharedMagic.PKIInitPostgresLeaderService, cryptoutilSharedMagic.HostnameLocalhost}
 
-	if err := g.generateServerLeafDir(basePath, "public-postgres-"+cryptoutilSharedMagic.PKIInitPostgresLeader+"-https-server-keystore",
+	if err := g.generateServerLeafDir(basePath, "private-tls-server-postgres-"+cryptoutilSharedMagic.PKIInitPostgresLeader+"-entity-keystore",
 		shared.postgresServerIssuing, leaderDNS, defaultIPs()); err != nil {
 		return nil, fmt.Errorf("cat11 postgres leader server leaf: %w", err)
 	}
 
 	followerDNS := []string{cryptoutilSharedMagic.PKIInitPostgresFollowerService, cryptoutilSharedMagic.HostnameLocalhost}
 
-	if err := g.generateServerLeafDir(basePath, "public-postgres-"+cryptoutilSharedMagic.PKIInitPostgresFollower+"-https-server-keystore",
+	if err := g.generateServerLeafDir(basePath, "private-tls-server-postgres-"+cryptoutilSharedMagic.PKIInitPostgresFollower+"-entity-keystore",
 		shared.postgresServerIssuing, followerDNS, defaultIPs()); err != nil {
 		return nil, fmt.Errorf("cat11 postgres follower server leaf: %w", err)
 	}
 
 	// --- Category 12: PostgreSQL Client CAs (4 dirs) ---
-	shared.postgresClientIssuing, err = g.generateCAChain(basePath, "public-postgres", "https-client-ca")
+	shared.postgresClientIssuing, err = g.generateCAChain(basePath, "private-tls-client-postgres", "ca")
 	if err != nil {
 		return nil, fmt.Errorf("cat12 postgres client CA: %w", err)
 	}
 
 	// --- Category 13: PostgreSQL Replication Client Certs (2 dirs) ---
-	if err := g.generateClientLeafDir(basePath, "public-postgres-"+cryptoutilSharedMagic.PKIInitPostgresLeader+"-https-client-keystore",
+	if err := g.generateClientLeafDir(basePath, "private-tls-client-postgres-"+cryptoutilSharedMagic.PKIInitPostgresLeader+"-entity-keystore",
 		shared.postgresClientIssuing); err != nil {
 		return nil, fmt.Errorf("cat13 postgres leader replication client: %w", err)
 	}
 
-	if err := g.generateClientLeafDir(basePath, "public-postgres-"+cryptoutilSharedMagic.PKIInitPostgresFollower+"-https-client-keystore",
+	if err := g.generateClientLeafDir(basePath, "private-tls-client-postgres-"+cryptoutilSharedMagic.PKIInitPostgresFollower+"-entity-keystore",
 		shared.postgresClientIssuing); err != nil {
 		return nil, fmt.Errorf("cat13 postgres follower replication client: %w", err)
 	}
@@ -248,7 +248,7 @@ func (g *Generator) generateSharedCAs(basePath string) (*sharedCAs, error) {
 func (g *Generator) generatePSIDCerts(basePath, psID string, shared *sharedCAs) error {
 	// --- Category 3: PS-ID App Server Certs (4 dirs) ---
 	for _, suffix := range PKIInitAppInstanceSuffixes() {
-		dirName := "public-" + psID + "-" + suffix + "-https-server-keystore"
+		dirName := "public-https-server-" + psID + "-" + suffix + "-entity-keystore"
 		dns := []string{psID + "-app-" + suffix, cryptoutilSharedMagic.HostnameLocalhost}
 
 		if err := g.generateServerLeafDir(basePath, dirName, shared.globalServerIssuing, dns, defaultIPs()); err != nil {
@@ -264,7 +264,7 @@ func (g *Generator) generatePSIDCerts(basePath, psID string, shared *sharedCAs) 
 
 	for _, domain := range PKIInitClientPKIDomains() {
 		// Category 4: One CA chain per PKI domain (4 dirs each = 12 total).
-		clientIssuing, caErr := g.generateCAChain(basePath, "public-"+psID, "https-client-ca-"+domain)
+		clientIssuing, caErr := g.generateCAChain(basePath, "public-https-client-"+psID, "ca-"+domain)
 		if caErr != nil {
 			return fmt.Errorf("cat4 client CA domain=%s: %w", domain, caErr)
 		}
@@ -272,7 +272,7 @@ func (g *Generator) generatePSIDCerts(basePath, psID string, shared *sharedCAs) 
 		// Category 5: Client leaf certs per user type × realm (per domain).
 		for _, userType := range PKIInitUserTypes() {
 			for _, realm := range realms {
-				dirName := "public-" + psID + "-" + userType + "-" + realm + "-https-client-" + domain + "-keystore"
+				dirName := "public-https-client-" + psID + "-" + userType + "-entity-" + domain + "-" + realm + "-keystore"
 
 				if leafErr := g.generateClientLeafDir(basePath, dirName, clientIssuing); leafErr != nil {
 					return fmt.Errorf("cat5 client leaf user=%s realm=%s domain=%s: %w", userType, realm, domain, leafErr)
@@ -284,13 +284,13 @@ func (g *Generator) generatePSIDCerts(basePath, psID string, shared *sharedCAs) 
 	// --- Categories 6 + 7: Private Admin mTLS CAs and Leaf Certs (16 + 4 dirs) ---
 	for _, suffix := range PKIInitAdminInstanceSuffixes() {
 		// Category 6: One admin CA chain per instance (4 dirs each = 16 total).
-		adminIssuing, caErr := g.generateCAChain(basePath, "private-"+psID, "https-client-server-ca-"+suffix)
+		adminIssuing, caErr := g.generateCAChain(basePath, "private-https-client-"+psID, "ca-"+suffix)
 		if caErr != nil {
 			return fmt.Errorf("cat6 admin CA suffix=%s: %w", suffix, caErr)
 		}
 
 		// Category 7: One mTLS leaf per instance.
-		mutualDir := "private-" + psID + "-mutual-https-client-server-" + suffix + "-keystore"
+		mutualDir := "private-https-client-" + psID + "-mutual-entity-" + suffix + "-keystore"
 		dns := []string{psID + "-app-" + suffix, cryptoutilSharedMagic.HostnameLocalhost}
 
 		if leafErr := g.generateMutualLeafDir(basePath, mutualDir, adminIssuing, dns, defaultIPs()); leafErr != nil {
@@ -299,13 +299,13 @@ func (g *Generator) generatePSIDCerts(basePath, psID string, shared *sharedCAs) 
 	}
 
 	// --- Category 9 (per-PS-ID): Grafana + OTel client certs per PS-ID (2 dirs) ---
-	grafanaPSIDDir := "public-" + cryptoutilSharedMagic.DockerServiceGrafanaOtelLgtm + "-" + psID + "-https-client-keystore"
+	grafanaPSIDDir := "public-https-client-" + cryptoutilSharedMagic.DockerServiceGrafanaOtelLgtm + "-" + psID + "-entity-keystore"
 
 	if err := g.generateClientLeafDir(basePath, grafanaPSIDDir, shared.grafanaClientIssuing); err != nil {
 		return fmt.Errorf("cat9 grafana psid client %s: %w", psID, err)
 	}
 
-	otelPSIDDir := "public-" + cryptoutilSharedMagic.PKIInitOtelCollectorContrib + "-" + psID + "-https-client-keystore"
+	otelPSIDDir := "public-https-client-" + cryptoutilSharedMagic.PKIInitOtelCollectorContrib + "-" + psID + "-entity-keystore"
 
 	if err := g.generateClientLeafDir(basePath, otelPSIDDir, shared.otelClientIssuing); err != nil {
 		return fmt.Errorf("cat9 otel psid client %s: %w", psID, err)
@@ -314,7 +314,7 @@ func (g *Generator) generatePSIDCerts(basePath, psID string, shared *sharedCAs) 
 	// --- Category 14: PS-ID PostgreSQL App Client Certs (4 dirs) ---
 	for _, pgNum := range []string{"1", "2"} {
 		for _, role := range []string{cryptoutilSharedMagic.PKIInitPostgresLeader, cryptoutilSharedMagic.PKIInitPostgresFollower} {
-			dirName := "public-" + psID + "-postgres-" + pgNum + "-" + role + "-https-client-keystore"
+			dirName := "private-tls-client-" + psID + "-postgres-" + pgNum + "-" + role + "-entity-keystore"
 
 			if err := g.generateClientLeafDir(basePath, dirName, shared.postgresClientIssuing); err != nil {
 				return fmt.Errorf("cat14 postgres app client postgres-%s-%s: %w", pgNum, role, err)

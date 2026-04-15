@@ -1949,20 +1949,20 @@ The `pki-init` CLI generates the full `/certs` directory tree for each deploymen
 
 | Category | Naming Prefix | Example | Dir Type |
 |----------|--------------|---------|----------|
-| 1 | `public-global-root-https-server-ca` | Global root CA (shared) | truststore |
-| 2 | `public-global-issuing-https-server-ca` | Global issuing CA (shared) | truststore |
-| 3 | `public-{ps-id}-https-server` | PS-ID TLS server leaf cert | keystore |
-| 4 | `public-{ps-id}-https-client-ca-{domain}` | Client auth issuing CA | truststore |
-| 5 | `public-{ps-id}-https-client-{user-type}-{realm}-{domain}` | Client auth leaf cert | keystore |
-| 6 | `private-{ps-id}-admin-ca-{instance}` | Admin channel CA | truststore |
-| 7 | `private-{ps-id}-admin-{instance}` | Admin channel leaf cert | keystore |
-| 8 | `public-{ps-id}-postgres-ca` | PostgreSQL CA | truststore |
-| 9 | `public-{ps-id}-postgres-server` | PostgreSQL server leaf | keystore |
-| 10 | `public-{ps-id}-postgres-client-{domain}` | PostgreSQL client leaf | keystore |
-| 11 | `public-global-grafana-otel-lgtm-https-server-ca` | Grafana LGTM CA | truststore |
-| 12 | `public-grafana-otel-lgtm-https-server` | Grafana LGTM server leaf | keystore |
-| 13 | `public-global-otel-collector-contrib-https-server-ca` | OTel collector CA | truststore |
-| 14 | `public-otel-collector-contrib-https-server` | OTel collector leaf | keystore |
+| 1 | `public-https-server-global-root-ca` | Global root CA (shared) | truststore |
+| 2 | `public-https-server-global-issuing-ca` | Global issuing CA (shared) | truststore |
+| 3 | `public-https-server-{ps-id}-{instance}` | PS-ID TLS server leaf cert | keystore |
+| 4 | `public-https-client-{ps-id}-{root,issuing}-ca-{domain}` | Client auth issuing CA | truststore |
+| 5 | `public-https-client-{ps-id}-{user-type}-entity-{domain}-{realm}` | Client auth leaf cert | keystore |
+| 6 | `private-https-client-{ps-id}-{root,issuing}-ca-{instance}` | Admin channel CA | truststore |
+| 7 | `private-https-client-{ps-id}-mutual-entity-{instance}` | Admin channel leaf cert | keystore |
+| 8 | `public-https-client-{grafana,otel}-{root,issuing}-ca` | Grafana/OTel client CA | truststore |
+| 9 | `public-https-client-{grafana,otel}-{ps-id,admin}-entity` | Grafana/OTel client leaf | keystore |
+| 10 | `private-tls-server-postgres-{root,issuing}-ca` | PostgreSQL server CA | truststore |
+| 11 | `private-tls-server-postgres-{leader,follower}-entity` | PostgreSQL server leaf | keystore |
+| 12 | `private-tls-client-postgres-{root,issuing}-ca` | PostgreSQL client CA | truststore |
+| 13 | `private-tls-client-postgres-{leader,follower}-entity` | PostgreSQL replication leaf | keystore |
+| 14 | `private-tls-client-{ps-id}-postgres-{1,2}-{leader,follower}-entity` | PS-ID PostgreSQL app client | keystore |
 
 **File formats per directory**:
 - **Keystore** (`{name}-keystore`): contains `{name}.crt` (leaf cert), `{name}.key` (private key), `{name}.p12` (PKCS#12 bundle — MODERN format, SHA-256/AES-256-CBC)
