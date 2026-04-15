@@ -13,8 +13,8 @@ Key parameterization aspects include:
 Canonical PS-ID app instance names:
 - `{PS-ID}-app-sqlite-1`
 - `{PS-ID}-app-sqlite-2`
-- `{PS-ID}-app-postgresql-1`
-- `{PS-ID}-app-postgresql-2`
+- `{PS-ID}-app-postgres-1`
+- `{PS-ID}-app-postgres-2`
 
 Canonical tier IDs:
 - SUITE: `cryptoutil`
@@ -30,214 +30,596 @@ Canonical tier IDs:
 If the target directory exists and is not empty, `pki-init` will refuse to generate any files. If the target directory doesn't exist, or it exists but is empty, then `pki-init` will create all of the necessary subdirectories and generate all of the required files under the target directory, according to the structure defined in this document.
 
 Examples:
-1. `pki-init cryptoutil        /tmp/certs-for-deployment-of-cryptoutil-suite`
-2. `pki-init identity          /tmp/certs-for-deployment-of-identity-product`
-3. `pki-init sm-kms            /tmp/certs-for-deployment-of-sm-kms-service`
-4. `pki-init skeleton-template /certs`
+1. `pki-init cryptoutil        /tmp/cryptoutil`
+2. `pki-init identity          /tmp/identity`
+3. `pki-init sm-kms            /tmp/sm-kms`
+4. `pki-init skeleton-template /tmp/skeleton-template`
+5. `pki-init cryptoutil        /certs`
+
+## File Format Convention
+
+Each directory name IS the base name for the files it contains. Two directory types exist:
+
+| Type | Files | Description |
+|------|-------|-------------|
+| **keystore** | `SAME-AS-DIR-NAME.p12`, `SAME-AS-DIR-NAME.crt`, `SAME-AS-DIR-NAME.key` | PKCS#12 bundle + PEM cert + PEM private key |
+| **truststore** | `SAME-AS-DIR-NAME.p12`, `SAME-AS-DIR-NAME.crt` | PKCS#12 bundle + PEM cert (NO private key) |
+
+**Rule**: Any combination of `{truststore}` and `{key}` is ignored — a truststore NEVER contains a private key.
 
 ## Requirements
 
 Goal: generate a complete set of certs for the deployment of the SUITE, a PRODUCT, or a PS-ID.
 
 For every PS-ID, there are 4 app instances:
-1. {PS-ID}-app-sqlite-1
-2. {PS-ID}-app-sqlite-2
-3. {PS-ID}-app-postgresql-1
-4. {PS-ID}-app-postgresql-2
+1. `{PS-ID}-app-sqlite-1`
+2. `{PS-ID}-app-sqlite-2`
+3. `{PS-ID}-app-postgres-1`
+4. `{PS-ID}-app-postgres-2`
 
-For every PS-ID, the 4 app instances are grouped into 3 PKI domains:
-1. {PS-ID}-app-sqlite-1
-2. {PS-ID}-app-sqlite-2
-3. {PS-ID}-app-postgresql-ALL; includes {PS-ID}-app-postgresql-1 and {PS-ID}-app-postgresql-2
+Required domains (16 categories):
 
-Required domains:
+**1. Public Global HTTPS Server CAs:**
+- One globally shared CA chain (root + issuing) for all public HTTPS server leaf certs in the deployment (app instances, Grafana LGTM, OTel Collector).
+- Both keystore and truststore directories for root and issuing.
+- Total: 4 directories (2 CA tiers × 2 store types); same across PS-ID, PRODUCT, and SUITE levels.
 
-**Private HTTPS Mutual:**
-- Private HTTPS Mutual:
-  - One CA per app instance CA chain (root + issuing); suite has 40 total (4 instances × 10 PS-IDs).
-  - One mTLS leaf cert issued per app instance CA, with Client Auth and Server Auth; for use by the app instance's private admin HTTPS connections.
-  - Total per PS-ID: 4 CA chains + 4 mTLS leaf certs.
-  - Total per PRODUCT: same as PS-ID level, applied to all of the PS-IDs in the product (e.g. identity has 5 PS-IDs).
-  - Total per SUITE: 40 CA chains + 40 mTLS leaf certs; there are 10 PS-IDs in the suite, each with 4 app instances.
+**2. Public Grafana LGTM + OTel Collector Server Certs:**
+- One server leaf cert for Grafana LGTM HTTPS UI (port 3000), issued by the global server CA.
+- One server leaf cert for OTel Collector Contrib HTTPS (gRPC :4317, HTTP :4318 share the same cert), issued by the global server CA.
+- Both keystore and truststore per service.
+- Total: 4 directories (2 services × 2 store types); same across PS-ID, PRODUCT, and SUITE levels.
 
-**Public HTTPS Servers:**
-- Public HTTPS Servers:
-  - One globally shared CA chain (`ALL-app-public-server`, root + issuing) for all app instances and Grafana LGTM in the deployment.
-  - One server leaf cert per app instance (4 total: `sqlite-1`, `sqlite-2`, `postgresql-1`, `postgresql-2`), issued by that shared CA.
-  - One server leaf cert for the Grafana LGTM HTTPS UI (`ALL-telemetry-grafana-lgtm-public-server`), also issued by that shared CA.
-  - Total per PS-ID: 1 CA chain + 4 app-instance leaf certs + 1 Grafana LGTM leaf cert.
-  - Total per PRODUCT: 1 CA chain + (PS-ID count × 4) app-instance leaf certs + 1 Grafana LGTM leaf cert (e.g. sm has 2 PS-IDs: 1 CA + 9 leaf certs).
-  - Total per SUITE: 1 CA chain + 40 app-instance leaf certs + 1 Grafana LGTM leaf cert.
+**3. Public PS-ID App Server Certs:**
+- One server leaf cert per app instance (4 per PS-ID: sqlite-1, sqlite-2, postgres-1, postgres-2), issued by the global server CA.
+- Both keystore and truststore per instance.
+- Total per PS-ID: 8 directories (4 instances × 2 store types).
+- Total per PRODUCT: 8 × (PS-ID count in product).
+- Total per SUITE: 80 directories (4 instances × 10 PS-IDs × 2 store types).
 
-**Public HTTPS Clients:**
-- Public HTTPS Clients:
-  - Per-PKI domain CA chain (root + issuing) for `{PS-ID}-app-sqlite-1`, `{PS-ID}-app-sqlite-2`, and `{PS-ID}-app-postgresql-ALL`.
-  - 4 client leaf certs per PKI domain: `browser-realm-file`, `browser-realm-db`, `service-realm-file`, `service-realm-db`.
-  - Total per PS-ID: 3 CA chains + 12 client leaf certs (3 PKI domains × 4 realms).
-  - Total per PRODUCT: same as PS-ID level, applied to all of the PS-IDs in the product (e.g. identity has 5 PS-IDs).
-  - Total per SUITE: 30 CA chains + 120 client leaf certs; there are 10 PS-IDs in the suite, each with 3 PKI domains and 4 realms.
+**4. Public PS-ID HTTPS Client CAs:**
+- Per-instance CA chain (root + issuing) for client authentication on each app instance.
+- {sqlite,postgres} × {1,2} = 4 PKI domains per PS-ID; each has root and issuing CAs; both keystore and truststore.
+- Total per PS-ID: 16 directories (4 instances × 2 CA tiers × 2 store types).
+- Total per PRODUCT: 16 × (PS-ID count in product).
+- Total per SUITE: 160 directories.
 
-**Public Grafana LGTM HTTPS Client:**
-- Public Grafana LGTM HTTPS Client:
-  - One globally shared CA chain (`ALL-telemetry-grafana-lgtm-public-client`, root + issuing) for clients connecting to the Grafana LGTM HTTPS UI (port 3000).
-  - One client leaf cert: `admin`, issued by that CA.
-  - Total: 1 CA chain + 1 client leaf cert; same across PS-ID, PRODUCT, and SUITE levels.
+**5. Public PS-ID HTTPS Client Certs:**
+- Client leaf certs per API path prefix (`browseruser`, `serviceuser`) and per realm type, grouped into 3 PKI domains: `sqlite-1`, `sqlite-2`, `postgres` (postgres-1 and postgres-2 share client identity).
+- 4 leaf certs per PKI domain: `{browseruser,serviceuser}` × `{realm}`.
+- Both keystore and truststore per leaf cert.
+- Total per PS-ID: 24 directories (2 user types × 2 realms × 3 PKI domains × 2 store types).
+- Total per PRODUCT: 24 × (PS-ID count in product).
+- Total per SUITE: 240 directories.
 
-**Private PostgreSQL/TLS Leader+Follower Servers:**
-- Private PostgreSQL/TLS Leader+Follower Servers:
-  - One globally shared CA chain (`ALL-db-postgres-private-server`, root + issuing) for both the leader and follower DB instances.
-  - One server leaf cert for the leader DB instance.
-  - One server leaf cert for the follower DB instance.
+**6. Private PS-ID HTTPS Mutual TLS CAs (Admin Channel):**
+- Per-instance CA chain (root + issuing) for the private admin HTTPS channel; mutual TLS required.
+- {sqlite,postgres} × {1,2} = 4 instances per PS-ID; each has root and issuing CAs; both keystore and truststore.
+- Total per PS-ID: 16 directories (4 instances × 2 CA tiers × 2 store types).
+- Total per PRODUCT: 16 × (PS-ID count in product).
+- Total per SUITE: 160 directories.
 
-**Private PostgreSQL/TLS Leader+Follower Clients:**
-- Private PostgreSQL/TLS Leader+Follower Clients:
-  - Leader client domain: shared CA chain (root + issuing) covering all clients connecting to the leader (`ALL-db-postgresql-leader-private-client`).
-  - Follower client domain: shared CA chain (root + issuing) covering all clients connecting to the follower (`ALL-db-postgresql-follower-private-client`).
-  - Follower replication cert: one client leaf cert in leader client domain, for the follower connecting to the leader (`ALL-db-postgresql-leader-private-client-follower`), issued by the leader client CA.
-  - Leader replication cert: one client leaf cert in follower client domain, for the leader connecting to the follower (`ALL-db-postgresql-follower-private-client-leader`), issued by the follower client CA.
-- Private PostgreSQL Leader App Client:
-  - Per-PS-ID section (`{PS-ID}-app-postgresql-ALL-leader-private-client`).
-  - One client leaf cert for `postgresql-1` → leader, issued by the leader client CA.
-  - One client leaf cert for `postgresql-2` → leader, issued by the leader client CA.
-  - Total per PS-ID: 1 leader client CA chain + 2 client leaf certs.
-  - Total per PRODUCT: 1 leader client CA chain + same as PS-ID level, applied to all of the PS-IDs in the product (e.g. identity has 5 PS-IDs).
-  - Total per SUITE: 1 leader client CA chains + 20 client leaf certs; there are 10 PS-IDs in the suite, each with 2 leader client leaf certs.
-- Private PostgreSQL Follower App Client:
-  - Per-PS-ID section (`{PS-ID}-app-postgresql-ALL-follower-private-client`).
-  - One client leaf cert for `postgresql-1` → follower, issued by the follower client CA.
-  - One client leaf cert for `postgresql-2` → follower, issued by the follower client CA.
-  - Total per PS-ID: 1 follower client CA chain + 2 client leaf certs.
-  - Total per PRODUCT: 1 follower client CA chain + same as PS-ID level, applied to all of the PS-IDs in the product (e.g. identity has 5 PS-IDs).
-  - Total per SUITE: 1 follower client CA chains + 20 client leaf certs; there are 10 PS-IDs in the suite, each with 2 follower client leaf certs.
+**7. Private PS-ID HTTPS Mutual TLS Leaf Certs (Admin Channel):**
+- One mTLS leaf cert per app instance, with both Client Auth and Server Auth EKU; for use by the app instance's private admin HTTPS connections.
+- `{mutual}` is a literal keyword indicating the combined client+server role.
+- Both keystore and truststore per instance.
+- Total per PS-ID: 8 directories (4 instances × 2 store types).
+- Total per PRODUCT: 8 × (PS-ID count in product).
+- Total per SUITE: 80 directories.
 
-**Private Otel Collector Contrib/TLS Server:**
-- Private Otel Collector Contrib/TLS Server:
-  - One globally shared CA chain (`ALL-telemetry-otel-private-server`, root + issuing) for the OTel collector receiver.
-  - One server leaf cert for the OTel collector receiver endpoints (gRPC :4317, HTTP :4318).
-- Private Grafana LGTM Server:
-  - One globally shared CA chain (`ALL-telemetry-grafana-private-server`, root + issuing) for Grafana LGTM.
-  - One server leaf cert for the Grafana LGTM OTLP ingest endpoints (:14317/:14318).
+**8. Public Grafana LGTM + OTel Collector Client CAs:**
+- Per-service CA chain (root + issuing) for client authentication toward Grafana LGTM and OTel Collector.
+- Both keystore and truststore per CA tier per service.
+- Total: 8 directories (2 services × 2 CA tiers × 2 store types); same across PS-ID, PRODUCT, and SUITE levels.
 
-**Private OTel Collector Contrib Client:**
-- Private OTel Collector Contrib Client:
-  - One globally shared CA chain (`ALL-telemetry-otel-private-client`, root + issuing) for all app-instance OTLP clients.
-  - Per-PS-ID sections: one client leaf cert for each of the 4 app instances per PS-ID, issued by the OTel client CA.
-  - Total per PS-ID: 1 CA chain + 4 client leaf certs.
-  - Total per PRODUCT: 1 CA chain + same as PS-ID level, applied to all of the PS-IDs in the product (e.g. identity has 5 PS-IDs).
-  - Total per SUITE: 1 CA chain + 40 client leaf certs; there are 10 PS-IDs in the suite, each with 4 app instances.
+**9. Public Grafana LGTM + OTel Collector Client Certs:**
+- Client leaf certs for each PS-ID and one `admin` cert, issued by the respective client CA.
+- `{PS-ID,admin}` expands to all PS-IDs in the deployment scope plus `admin`.
+- Both keystore and truststore per leaf cert per service.
+- Total per PS-ID: 8 directories (2 services × 2 entities × 2 store types).
+- Total per PRODUCT: 2 services × (PS-ID count + 1 admin) × 2 store types.
+- Total per SUITE: 2 services × (10 PS-IDs + 1 admin) × 2 store types = 44 directories.
 
-**Private Grafana LGTM Client:**
-- Private Grafana LGTM Client:
-  - One globally shared CA chain (`ALL-telemetry-grafana-private-client`, root + issuing) for the OTel collector's client cert toward Grafana.
-  - One client leaf cert for the OTel Collector connecting to Grafana LGTM (`ALL-telemetry-otel-grafana-private-client`), issued by the Grafana client CA.
-  - Total per PS-ID: 1 CA chain + 1 client leaf cert; same as PRODUCT and SUITE levels.
-  - Total per PRODUCT: 1 CA chain + 1 client leaf cert; same as PS-ID and SUITE levels.
-  - Total per SUITE: 1 CA chain + 1 client leaf cert; same as PS-ID and PRODUCT level.
+**10. Public PostgreSQL Server CAs:**
+- One globally shared CA chain (root + issuing) for both the leader and follower PostgreSQL server instances.
+- Both keystore and truststore per CA tier.
+- Total: 4 directories (2 CA tiers × 2 store types); same across PS-ID, PRODUCT, and SUITE levels.
+
+**11. Public PostgreSQL Server Certs:**
+- One server leaf cert for the leader DB instance; one for the follower DB instance.
+- Both keystore and truststore per instance.
+- Total: 4 directories (2 instances × 2 store types); same across PS-ID, PRODUCT, and SUITE levels.
+
+**12. Public PostgreSQL Client CAs:**
+- One globally shared CA chain (root + issuing) for all clients connecting to PostgreSQL (covering both leader and follower).
+- Both keystore and truststore per CA tier.
+- Total: 4 directories (2 CA tiers × 2 store types); same across PS-ID, PRODUCT, and SUITE levels.
+
+**13. Public PostgreSQL Replication Client Certs:**
+- One client leaf cert for leader↔follower replication (leader cert, follower cert).
+- Both keystore and truststore per instance.
+- Total: 4 directories (2 instances × 2 store types); same across PS-ID, PRODUCT, and SUITE levels.
+
+**14. Public PS-ID PostgreSQL App Client Certs:**
+- Per-PS-ID client leaf certs for app instances connecting to both leader and follower.
+- {1,2} × {leader,follower} = 4 leaf certs per PS-ID.
+- Both keystore and truststore per leaf cert.
+- Total per PS-ID: 8 directories (2 instances × 2 DB roles × 2 store types).
+- Total per PRODUCT: 8 × (PS-ID count in product).
+- Total per SUITE: 80 directories.
 
 Required logical layout:
 
 ```text
-/TARGET-DIRECTORY/
-  ALL-app-public-server/
-    ALL-app-public-server-ca-root/ALL-app-public-server-ca-root-{crt,key}.pem
-    ALL-app-public-server-ca-issuing/ALL-app-public-server-ca-issuing-{crt,key}.pem
+TARGET-DIRECTORY/{PKI-INIT-DOMAIN}/
+  public-global-{root,issuing}-https-server-ca-{keystore,truststore}/SAME-AS-DIR-NAME.{p12,crt,key}
+  public-{grafana-otel-lgtm,otel-collector-contrib}-https-server-{keystore,truststore}/SAME-AS-DIR-NAME.{p12,crt,key}
+  public-{PS-ID}-{sqlite,postgres}-{1,2}-https-server-{keystore,truststore}/SAME-AS-DIR-NAME.{p12,crt,key}
 
-  {PS-ID}-app-public-server/                                          (for each PS-ID in the canonical tier ID)
-    {PS-ID}-app-sqlite-1-public-server/{PS-ID}-app-sqlite-1-public-server-{crt,key}.pem
-    {PS-ID}-app-sqlite-2-public-server/{PS-ID}-app-sqlite-2-public-server-{crt,key}.pem
-    {PS-ID}-app-postgresql-1-public-server/{PS-ID}-app-postgresql-1-public-server-{crt,key}.pem
-    {PS-ID}-app-postgresql-2-public-server/{PS-ID}-app-postgresql-2-public-server-{crt,key}.pem
+  public-{PS-ID}-{root,issuing}-https-client-ca-{sqlite,postgres}-{1,2}-{keystore,truststore}/SAME-AS-DIR-NAME.{p12,crt,key}
+  public-{PS-ID}-{browseruser,serviceuser}-{realm}-https-client-{sqlite-1,sqlite-2,postgres}-{keystore,truststore}/SAME-AS-DIR-NAME.{p12,crt,key}
 
-  ALL-telemetry-grafana-lgtm-public-server/
-    ALL-telemetry-grafana-lgtm-public-server/ALL-telemetry-grafana-lgtm-public-server-{crt,key}.pem
+  private-{PS-ID}-{root,issuing}-https-client-server-ca-{sqlite,postgres}-{1,2}-{keystore,truststore}/SAME-AS-DIR-NAME.{p12,crt,key}
+  private-{PS-ID}-{mutual}-https-client-server-{sqlite,postgres}-{1,2}-{keystore,truststore}/SAME-AS-DIR-NAME.{p12,crt,key}
 
-  {PS-ID}-app-public-client/                                          (for each PS-ID in the canonical tier ID)
-    {PS-ID}-app-sqlite-1-public-client-ca-root/{PS-ID}-app-sqlite-1-public-client-ca-root-{crt,key}.pem
-    {PS-ID}-app-sqlite-1-public-client-ca-issuing/{PS-ID}-app-sqlite-1-public-client-ca-issuing-{crt,key}.pem
-    {PS-ID}-app-sqlite-1-public-client-{realm}/{PS-ID}-app-sqlite-1-public-client-{realm}-{crt,key}.pem                    (×4 realms)
-    {PS-ID}-app-sqlite-2-public-client-ca-root/{PS-ID}-app-sqlite-2-public-client-ca-root-{crt,key}.pem
-    {PS-ID}-app-sqlite-2-public-client-ca-issuing/{PS-ID}-app-sqlite-2-public-client-ca-issuing-{crt,key}.pem
-    {PS-ID}-app-sqlite-2-public-client-{realm}/{PS-ID}-app-sqlite-2-public-client-{realm}-{crt,key}.pem                    (×4 realms)
-    {PS-ID}-app-postgresql-ALL-public-client-ca-root/{PS-ID}-app-postgresql-ALL-public-client-ca-root-{crt,key}.pem
-    {PS-ID}-app-postgresql-ALL-public-client-ca-issuing/{PS-ID}-app-postgresql-ALL-public-client-ca-issuing-{crt,key}.pem
-    {PS-ID}-app-postgresql-ALL-public-client-{realm}/{PS-ID}-app-postgresql-ALL-public-client-{realm}-{crt,key}.pem        (×4 realms)
+  public-{grafana-otel-lgtm,otel-collector-contrib}-{root,issuing}-https-client-ca-{keystore,truststore}/SAME-AS-DIR-NAME.{p12,crt,key}
+  public-{grafana-otel-lgtm,otel-collector-contrib}-{PS-ID,admin}-https-client-{keystore,truststore}/SAME-AS-DIR-NAME.{p12,crt,key}
 
-  ALL-telemetry-grafana-lgtm-public-client/
-    ALL-telemetry-grafana-lgtm-public-client-ca-root/ALL-telemetry-grafana-lgtm-public-client-ca-root-{crt,key}.pem
-    ALL-telemetry-grafana-lgtm-public-client-ca-issuing/ALL-telemetry-grafana-lgtm-public-client-ca-issuing-{crt,key}.pem
-    ALL-telemetry-grafana-lgtm-public-client-admin/ALL-telemetry-grafana-lgtm-public-client-admin-{crt,key}.pem
+  public-postgres-{root,issuing}-https-server-ca-{keystore,truststore}/SAME-AS-DIR-NAME.{p12,crt,key}
+  public-postgres-{leader,follower}-https-server-{keystore,truststore}/SAME-AS-DIR-NAME.{p12,crt,key}
 
-  {PS-ID}-app-private-mutual/                                         (for each PS-ID in the canonical tier ID)
-    {PS-ID}-app-sqlite-1-private-mutual-ca-root/{PS-ID}-app-sqlite-1-private-mutual-ca-root-{crt,key}.pem
-    {PS-ID}-app-sqlite-1-private-mutual-ca-issuing/{PS-ID}-app-sqlite-1-private-mutual-ca-issuing-{crt,key}.pem
-    {PS-ID}-app-sqlite-1-private-mutual-ALL/{PS-ID}-app-sqlite-1-private-mutual-ALL-{crt,key}.pem
-    {PS-ID}-app-sqlite-2-private-mutual-ca-root/{PS-ID}-app-sqlite-2-private-mutual-ca-root-{crt,key}.pem
-    {PS-ID}-app-sqlite-2-private-mutual-ca-issuing/{PS-ID}-app-sqlite-2-private-mutual-ca-issuing-{crt,key}.pem
-    {PS-ID}-app-sqlite-2-private-mutual-ALL/{PS-ID}-app-sqlite-2-private-mutual-ALL-{crt,key}.pem
-    {PS-ID}-app-postgresql-1-private-mutual-ca-root/{PS-ID}-app-postgresql-1-private-mutual-ca-root-{crt,key}.pem
-    {PS-ID}-app-postgresql-1-private-mutual-ca-issuing/{PS-ID}-app-postgresql-1-private-mutual-ca-issuing-{crt,key}.pem
-    {PS-ID}-app-postgresql-1-private-mutual-ALL/{PS-ID}-app-postgresql-1-private-mutual-ALL-{crt,key}.pem
-    {PS-ID}-app-postgresql-2-private-mutual-ca-root/{PS-ID}-app-postgresql-2-private-mutual-ca-root-{crt,key}.pem
-    {PS-ID}-app-postgresql-2-private-mutual-ca-issuing/{PS-ID}-app-postgresql-2-private-mutual-ca-issuing-{crt,key}.pem
-    {PS-ID}-app-postgresql-2-private-mutual-ALL/{PS-ID}-app-postgresql-2-private-mutual-ALL-{crt,key}.pem
-
-  ALL-db-postgres-private-server/
-    ALL-db-postgresql-private-server-ca-root/ALL-db-postgresql-private-server-ca-root-{crt,key}.pem
-    ALL-db-postgresql-private-server-ca-issuing/ALL-db-postgresql-private-server-ca-issuing-{crt,key}.pem
-    ALL-db-postgresql-leader-private-server/ALL-db-postgresql-leader-private-server-{crt,key}.pem
-    ALL-db-postgresql-follower-private-server/ALL-db-postgresql-follower-private-server-{crt,key}.pem
-
-  ALL-telemetry-otel-private-server/
-    ALL-telemetry-otel-private-server-ca-root/ALL-telemetry-otel-private-server-ca-root-{crt,key}.pem
-    ALL-telemetry-otel-private-server-ca-issuing/ALL-telemetry-otel-private-server-ca-issuing-{crt,key}.pem
-    ALL-telemetry-otel-receiver-private-server/ALL-telemetry-otel-receiver-private-server-{crt,key}.pem
-
-  ALL-telemetry-grafana-private-server/
-    ALL-telemetry-grafana-private-server-ca-root/ALL-telemetry-grafana-private-server-ca-root-{crt,key}.pem
-    ALL-telemetry-grafana-private-server-ca-issuing/ALL-telemetry-grafana-private-server-ca-issuing-{crt,key}.pem
-    ALL-telemetry-grafana-lgtm-private-server/ALL-telemetry-grafana-lgtm-private-server-{crt,key}.pem
-
-  ALL-db-postgresql-leader-private-client/
-    ALL-db-postgresql-leader-private-client-ca-root/ALL-db-postgresql-leader-private-client-ca-root-{crt,key}.pem
-    ALL-db-postgresql-leader-private-client-ca-issuing/ALL-db-postgresql-leader-private-client-ca-issuing-{crt,key}.pem
-  ALL-db-postgresql-leader-private-client-follower/
-    ALL-db-postgresql-leader-private-client-follower/ALL-db-postgresql-leader-private-client-follower-{crt,key}.pem
-  {PS-ID}-app-postgresql-ALL-leader-private-client/                   (for each PS-ID in the canonical tier ID)
-    {PS-ID}-app-postgresql-1-leader-private-client/{PS-ID}-app-postgresql-1-leader-private-client-{crt,key}.pem
-    {PS-ID}-app-postgresql-2-leader-private-client/{PS-ID}-app-postgresql-2-leader-private-client-{crt,key}.pem
-
-  ALL-db-postgresql-follower-private-client/
-    ALL-db-postgresql-follower-private-client-ca-root/ALL-db-postgresql-follower-private-client-ca-root-{crt,key}.pem
-    ALL-db-postgresql-follower-private-client-ca-issuing/ALL-db-postgresql-follower-private-client-ca-issuing-{crt,key}.pem
-  ALL-db-postgresql-follower-private-client-leader/
-    ALL-db-postgresql-follower-private-client-leader-ca-issuing/ALL-db-postgresql-follower-private-client-leader-ca-issuing-{crt,key}.pem
-    ALL-db-postgresql-follower-private-client-leader/ALL-db-postgresql-follower-private-client-leader-{crt,key}.pem
-  {PS-ID}-app-postgresql-ALL-follower-private-client/                 (for each PS-ID in the canonical tier ID)
-    {PS-ID}-app-postgresql-1-follower-private-client/{PS-ID}-app-postgresql-1-follower-private-client-{crt,key}.pem
-    {PS-ID}-app-postgresql-2-follower-private-client/{PS-ID}-app-postgresql-2-follower-private-client-{crt,key}.pem
-
-  ALL-telemetry-otel-private-client/
-    ALL-telemetry-otel-private-client-ca-root/ALL-telemetry-otel-private-client-ca-root-{crt,key}.pem
-    ALL-telemetry-otel-private-client-ca-issuing/ALL-telemetry-otel-private-client-ca-issuing-{crt,key}.pem
-  {PS-ID}-app-ALL-otel-private-client/                                (for each PS-ID in the canonical tier ID)
-    {PS-ID}-app-sqlite-1-otel-private-client/{PS-ID}-app-sqlite-1-otel-private-client-{crt,key}.pem
-    {PS-ID}-app-sqlite-2-otel-private-client/{PS-ID}-app-sqlite-2-otel-private-client-{crt,key}.pem
-    {PS-ID}-app-postgresql-1-otel-private-client/{PS-ID}-app-postgresql-1-otel-private-client-{crt,key}.pem
-    {PS-ID}-app-postgresql-2-otel-private-client/{PS-ID}-app-postgresql-2-otel-private-client-{crt,key}.pem
-
-  ALL-telemetry-grafana-private-client/
-    ALL-telemetry-grafana-private-client-ca-root/ALL-telemetry-grafana-private-client-ca-root-{crt,key}.pem
-    ALL-telemetry-grafana-private-client-ca-issuing/ALL-telemetry-grafana-private-client-ca-issuing-{crt,key}.pem
-  ALL-telemetry-otel-grafana-private-client/
-    ALL-telemetry-otel-grafana-private-client/ALL-telemetry-otel-grafana-private-client-{crt,key}.pem
+  public-postgres-{root,issuing}-https-client-ca-{keystore,truststore}/SAME-AS-DIR-NAME.{p12,crt,key}
+  public-postgres-{leader,follower}-https-client-{keystore,truststore}/SAME-AS-DIR-NAME.{p12,crt,key}
+  public-{PS-ID}-postgres-{1,2}-{leader,follower}-https-client-{keystore,truststore}/SAME-AS-DIR-NAME.{p12,crt,key}
 ```
+
+## Directory Count Summary
+
+| Category | Description | Per PS-ID | Per PRODUCT (N PS-IDs) | Per SUITE (10 PS-IDs) |
+|----------|-------------|-----------|------------------------|----------------------|
+| 1 | Global HTTPS Server CAs | 4 | 4 | 4 |
+| 2 | Grafana/OTel Server Certs | 4 | 4 | 4 |
+| 3 | PS-ID App Server Certs | 8 | 8×N | 80 |
+| 4 | PS-ID HTTPS Client CAs | 16 | 16×N | 160 |
+| 5 | PS-ID HTTPS Client Certs | 24 | 24×N | 240 |
+| 6 | Private mTLS CAs (Admin) | 16 | 16×N | 160 |
+| 7 | Private mTLS Leaves (Admin) | 8 | 8×N | 80 |
+| 8 | Grafana/OTel Client CAs | 8 | 8 | 8 |
+| 9 | Grafana/OTel Client Certs | 8 | 2×(N+1)×2 | 44 |
+| 10 | PostgreSQL Server CAs | 4 | 4 | 4 |
+| 11 | PostgreSQL Server Certs | 4 | 4 | 4 |
+| 12 | PostgreSQL Client CAs | 4 | 4 | 4 |
+| 13 | PostgreSQL Replication Certs | 4 | 4 | 4 |
+| 14 | PS-ID PostgreSQL App Clients | 8 | 8×N | 80 |
+| **Total** | | **120** | **varies** | **876** |
 
 ## Policy Alignment
 
-- Private HTTPS (admin channel): mutual TLS required; both server and client roles use the same combined leaf cert per instance.
-- Public HTTPS server: client TLS authentication optional
-- Public HTTPS client: client certificates issued per realm type per app instance per PS-ID.
-- PostgreSQL connections: mutual TLS required; mTLS required for all app-instance-to-DB connections, and replication connections.
-- OTel collector OTLP receiver: mutual TLS required for all app-instance-to-Otel connections.
-- Grafana LGTM OTLP ingest (:14317/:14318): mutual TLS required; mTLS required for OTel-to-Grafana connections.
-- Grafana LGTM HTTPS UI (port 3000): public HTTPS server cert issued by `ALL-app-public-server`; client certificate authentication using the `admin` realm issued by `ALL-telemetry-grafana-lgtm-public-client`.
+- **Private admin channel** (`private-{PS-ID}-*`): Mutual TLS required; both server and client auth use the same combined leaf cert per instance (`private-{PS-ID}-mutual-https-client-server-*`).
+- **Public HTTPS server** (`public-{PS-ID}-*-https-server-*`): Server cert issued by global server CA; client TLS authentication optional.
+- **Public HTTPS client** (`public-{PS-ID}-{browseruser,serviceuser}-*-https-client-*`): Client certificates issued per API path prefix (`/browser/` → `browseruser`, `/service/` → `serviceuser`) and per realm type, per PKI domain, per PS-ID.
+- **PostgreSQL connections** (`public-postgres-*`): Mutual TLS and username+password required; mTLS required for all app-instance-to-DB and leader↔follower replication connections.
+- **OTel Collector OTLP** (`public-otel-collector-contrib-*`): Server cert for :4317/:4318; client certs per PS-ID and admin for OTLP export.
+- **Grafana LGTM OTLP ingest** (`public-grafana-otel-lgtm-*`): Client certs per PS-ID and admin for UI access; server cert issued by global server CA.
+- **Grafana LGTM HTTPS UI** (port 3000): Server cert in `public-grafana-otel-lgtm-https-server-{keystore,truststore}/`, issued by global server CA.
+
+## Example: skeleton-template (PS-ID)
+
+Command: `pki-init skeleton-template /tmp`
+
+Realm values assumed: `file`, `db` (2 realms).
+
+**Keystore directories** contain: `SAME-AS-DIR-NAME.p12`, `SAME-AS-DIR-NAME.crt`, `SAME-AS-DIR-NAME.key`
+**Truststore directories** contain: `SAME-AS-DIR-NAME.p12`, `SAME-AS-DIR-NAME.crt`
+
+```text
+/tmp/skeleton-template/
+
+  # Category 1: Global HTTPS Server CAs (4 dirs)
+  public-global-root-https-server-ca-keystore/
+  public-global-root-https-server-ca-truststore/
+  public-global-issuing-https-server-ca-keystore/
+  public-global-issuing-https-server-ca-truststore/
+
+  # Category 2: Grafana/OTel Server Certs (4 dirs)
+  public-grafana-otel-lgtm-https-server-keystore/
+  public-grafana-otel-lgtm-https-server-truststore/
+  public-otel-collector-contrib-https-server-keystore/
+  public-otel-collector-contrib-https-server-truststore/
+
+  # Category 3: PS-ID App Server Certs (8 dirs)
+  public-skeleton-template-sqlite-1-https-server-keystore/
+  public-skeleton-template-sqlite-1-https-server-truststore/
+  public-skeleton-template-sqlite-2-https-server-keystore/
+  public-skeleton-template-sqlite-2-https-server-truststore/
+  public-skeleton-template-postgres-1-https-server-keystore/
+  public-skeleton-template-postgres-1-https-server-truststore/
+  public-skeleton-template-postgres-2-https-server-keystore/
+  public-skeleton-template-postgres-2-https-server-truststore/
+
+  # Category 4: PS-ID HTTPS Client CAs (16 dirs)
+  public-skeleton-template-root-https-client-ca-sqlite-1-keystore/
+  public-skeleton-template-root-https-client-ca-sqlite-1-truststore/
+  public-skeleton-template-root-https-client-ca-sqlite-2-keystore/
+  public-skeleton-template-root-https-client-ca-sqlite-2-truststore/
+  public-skeleton-template-root-https-client-ca-postgres-1-keystore/
+  public-skeleton-template-root-https-client-ca-postgres-1-truststore/
+  public-skeleton-template-root-https-client-ca-postgres-2-keystore/
+  public-skeleton-template-root-https-client-ca-postgres-2-truststore/
+  public-skeleton-template-issuing-https-client-ca-sqlite-1-keystore/
+  public-skeleton-template-issuing-https-client-ca-sqlite-1-truststore/
+  public-skeleton-template-issuing-https-client-ca-sqlite-2-keystore/
+  public-skeleton-template-issuing-https-client-ca-sqlite-2-truststore/
+  public-skeleton-template-issuing-https-client-ca-postgres-1-keystore/
+  public-skeleton-template-issuing-https-client-ca-postgres-1-truststore/
+  public-skeleton-template-issuing-https-client-ca-postgres-2-keystore/
+  public-skeleton-template-issuing-https-client-ca-postgres-2-truststore/
+
+  # Category 5: PS-ID HTTPS Client Certs (24 dirs)
+  public-skeleton-template-browseruser-file-https-client-sqlite-1-keystore/
+  public-skeleton-template-browseruser-file-https-client-sqlite-1-truststore/
+  public-skeleton-template-browseruser-file-https-client-sqlite-2-keystore/
+  public-skeleton-template-browseruser-file-https-client-sqlite-2-truststore/
+  public-skeleton-template-browseruser-file-https-client-postgres-keystore/
+  public-skeleton-template-browseruser-file-https-client-postgres-truststore/
+  public-skeleton-template-browseruser-db-https-client-sqlite-1-keystore/
+  public-skeleton-template-browseruser-db-https-client-sqlite-1-truststore/
+  public-skeleton-template-browseruser-db-https-client-sqlite-2-keystore/
+  public-skeleton-template-browseruser-db-https-client-sqlite-2-truststore/
+  public-skeleton-template-browseruser-db-https-client-postgres-keystore/
+  public-skeleton-template-browseruser-db-https-client-postgres-truststore/
+  public-skeleton-template-serviceuser-file-https-client-sqlite-1-keystore/
+  public-skeleton-template-serviceuser-file-https-client-sqlite-1-truststore/
+  public-skeleton-template-serviceuser-file-https-client-sqlite-2-keystore/
+  public-skeleton-template-serviceuser-file-https-client-sqlite-2-truststore/
+  public-skeleton-template-serviceuser-file-https-client-postgres-keystore/
+  public-skeleton-template-serviceuser-file-https-client-postgres-truststore/
+  public-skeleton-template-serviceuser-db-https-client-sqlite-1-keystore/
+  public-skeleton-template-serviceuser-db-https-client-sqlite-1-truststore/
+  public-skeleton-template-serviceuser-db-https-client-sqlite-2-keystore/
+  public-skeleton-template-serviceuser-db-https-client-sqlite-2-truststore/
+  public-skeleton-template-serviceuser-db-https-client-postgres-keystore/
+  public-skeleton-template-serviceuser-db-https-client-postgres-truststore/
+
+  # Category 6: Private mTLS CAs - Admin Channel (16 dirs)
+  private-skeleton-template-root-https-client-server-ca-sqlite-1-keystore/
+  private-skeleton-template-root-https-client-server-ca-sqlite-1-truststore/
+  private-skeleton-template-root-https-client-server-ca-sqlite-2-keystore/
+  private-skeleton-template-root-https-client-server-ca-sqlite-2-truststore/
+  private-skeleton-template-root-https-client-server-ca-postgres-1-keystore/
+  private-skeleton-template-root-https-client-server-ca-postgres-1-truststore/
+  private-skeleton-template-root-https-client-server-ca-postgres-2-keystore/
+  private-skeleton-template-root-https-client-server-ca-postgres-2-truststore/
+  private-skeleton-template-issuing-https-client-server-ca-sqlite-1-keystore/
+  private-skeleton-template-issuing-https-client-server-ca-sqlite-1-truststore/
+  private-skeleton-template-issuing-https-client-server-ca-sqlite-2-keystore/
+  private-skeleton-template-issuing-https-client-server-ca-sqlite-2-truststore/
+  private-skeleton-template-issuing-https-client-server-ca-postgres-1-keystore/
+  private-skeleton-template-issuing-https-client-server-ca-postgres-1-truststore/
+  private-skeleton-template-issuing-https-client-server-ca-postgres-2-keystore/
+  private-skeleton-template-issuing-https-client-server-ca-postgres-2-truststore/
+
+  # Category 7: Private mTLS Leaves - Admin Channel (8 dirs)
+  private-skeleton-template-mutual-https-client-server-sqlite-1-keystore/
+  private-skeleton-template-mutual-https-client-server-sqlite-1-truststore/
+  private-skeleton-template-mutual-https-client-server-sqlite-2-keystore/
+  private-skeleton-template-mutual-https-client-server-sqlite-2-truststore/
+  private-skeleton-template-mutual-https-client-server-postgres-1-keystore/
+  private-skeleton-template-mutual-https-client-server-postgres-1-truststore/
+  private-skeleton-template-mutual-https-client-server-postgres-2-keystore/
+  private-skeleton-template-mutual-https-client-server-postgres-2-truststore/
+
+  # Category 8: Grafana/OTel Client CAs (8 dirs)
+  public-grafana-otel-lgtm-root-https-client-ca-keystore/
+  public-grafana-otel-lgtm-root-https-client-ca-truststore/
+  public-grafana-otel-lgtm-issuing-https-client-ca-keystore/
+  public-grafana-otel-lgtm-issuing-https-client-ca-truststore/
+  public-otel-collector-contrib-root-https-client-ca-keystore/
+  public-otel-collector-contrib-root-https-client-ca-truststore/
+  public-otel-collector-contrib-issuing-https-client-ca-keystore/
+  public-otel-collector-contrib-issuing-https-client-ca-truststore/
+
+  # Category 9: Grafana/OTel Client Certs (8 dirs)
+  public-grafana-otel-lgtm-skeleton-template-https-client-keystore/
+  public-grafana-otel-lgtm-skeleton-template-https-client-truststore/
+  public-grafana-otel-lgtm-admin-https-client-keystore/
+  public-grafana-otel-lgtm-admin-https-client-truststore/
+  public-otel-collector-contrib-skeleton-template-https-client-keystore/
+  public-otel-collector-contrib-skeleton-template-https-client-truststore/
+  public-otel-collector-contrib-admin-https-client-keystore/
+  public-otel-collector-contrib-admin-https-client-truststore/
+
+  # Category 10: PostgreSQL Server CAs (4 dirs)
+  public-postgres-root-https-server-ca-keystore/
+  public-postgres-root-https-server-ca-truststore/
+  public-postgres-issuing-https-server-ca-keystore/
+  public-postgres-issuing-https-server-ca-truststore/
+
+  # Category 11: PostgreSQL Server Certs (4 dirs)
+  public-postgres-leader-https-server-keystore/
+  public-postgres-leader-https-server-truststore/
+  public-postgres-follower-https-server-keystore/
+  public-postgres-follower-https-server-truststore/
+
+  # Category 12: PostgreSQL Client CAs (4 dirs)
+  public-postgres-root-https-client-ca-keystore/
+  public-postgres-root-https-client-ca-truststore/
+  public-postgres-issuing-https-client-ca-keystore/
+  public-postgres-issuing-https-client-ca-truststore/
+
+  # Category 13: PostgreSQL Replication Client Certs (4 dirs)
+  public-postgres-leader-https-client-keystore/
+  public-postgres-leader-https-client-truststore/
+  public-postgres-follower-https-client-keystore/
+  public-postgres-follower-https-client-truststore/
+
+  # Category 14: PS-ID PostgreSQL App Client Certs (8 dirs)
+  public-skeleton-template-postgres-1-leader-https-client-keystore/
+  public-skeleton-template-postgres-1-leader-https-client-truststore/
+  public-skeleton-template-postgres-1-follower-https-client-keystore/
+  public-skeleton-template-postgres-1-follower-https-client-truststore/
+  public-skeleton-template-postgres-2-leader-https-client-keystore/
+  public-skeleton-template-postgres-2-leader-https-client-truststore/
+  public-skeleton-template-postgres-2-follower-https-client-keystore/
+  public-skeleton-template-postgres-2-follower-https-client-truststore/
+```
+
+**Total: 120 directories** (36 global + 84 PS-ID-specific).
+
+## Example: sm (PRODUCT)
+
+Command: `pki-init sm /tmp`
+
+PS-IDs in product: `sm-kms`, `sm-im`. Realm values assumed: `file`, `db`.
+
+Global directories (categories 1, 2, 8, 10-13) are identical to the skeleton-template example. Only PS-ID-specific and product-scoped directories differ.
+
+```text
+/tmp/sm/
+
+  # Category 1: Global HTTPS Server CAs (4 dirs) — same as PS-ID level
+  public-global-root-https-server-ca-keystore/
+  public-global-root-https-server-ca-truststore/
+  public-global-issuing-https-server-ca-keystore/
+  public-global-issuing-https-server-ca-truststore/
+
+  # Category 2: Grafana/OTel Server Certs (4 dirs) — same as PS-ID level
+  public-grafana-otel-lgtm-https-server-keystore/
+  public-grafana-otel-lgtm-https-server-truststore/
+  public-otel-collector-contrib-https-server-keystore/
+  public-otel-collector-contrib-https-server-truststore/
+
+  # Category 3: PS-ID App Server Certs (16 dirs = 8 × 2 PS-IDs)
+  # --- sm-kms ---
+  public-sm-kms-sqlite-1-https-server-keystore/
+  public-sm-kms-sqlite-1-https-server-truststore/
+  public-sm-kms-sqlite-2-https-server-keystore/
+  public-sm-kms-sqlite-2-https-server-truststore/
+  public-sm-kms-postgres-1-https-server-keystore/
+  public-sm-kms-postgres-1-https-server-truststore/
+  public-sm-kms-postgres-2-https-server-keystore/
+  public-sm-kms-postgres-2-https-server-truststore/
+  # --- sm-im ---
+  public-sm-im-sqlite-1-https-server-keystore/
+  public-sm-im-sqlite-1-https-server-truststore/
+  public-sm-im-sqlite-2-https-server-keystore/
+  public-sm-im-sqlite-2-https-server-truststore/
+  public-sm-im-postgres-1-https-server-keystore/
+  public-sm-im-postgres-1-https-server-truststore/
+  public-sm-im-postgres-2-https-server-keystore/
+  public-sm-im-postgres-2-https-server-truststore/
+
+  # Category 4: PS-ID HTTPS Client CAs (32 dirs = 16 × 2 PS-IDs)
+  # --- sm-kms (16 dirs: {root,issuing} × {sqlite,postgres} × {1,2} × {keystore,truststore}) ---
+  public-sm-kms-root-https-client-ca-sqlite-1-keystore/
+  public-sm-kms-root-https-client-ca-sqlite-1-truststore/
+  public-sm-kms-root-https-client-ca-sqlite-2-keystore/
+  public-sm-kms-root-https-client-ca-sqlite-2-truststore/
+  public-sm-kms-root-https-client-ca-postgres-1-keystore/
+  public-sm-kms-root-https-client-ca-postgres-1-truststore/
+  public-sm-kms-root-https-client-ca-postgres-2-keystore/
+  public-sm-kms-root-https-client-ca-postgres-2-truststore/
+  public-sm-kms-issuing-https-client-ca-sqlite-1-keystore/
+  public-sm-kms-issuing-https-client-ca-sqlite-1-truststore/
+  public-sm-kms-issuing-https-client-ca-sqlite-2-keystore/
+  public-sm-kms-issuing-https-client-ca-sqlite-2-truststore/
+  public-sm-kms-issuing-https-client-ca-postgres-1-keystore/
+  public-sm-kms-issuing-https-client-ca-postgres-1-truststore/
+  public-sm-kms-issuing-https-client-ca-postgres-2-keystore/
+  public-sm-kms-issuing-https-client-ca-postgres-2-truststore/
+  # --- sm-im (16 dirs: same pattern) ---
+  public-sm-im-root-https-client-ca-sqlite-1-keystore/
+  public-sm-im-root-https-client-ca-sqlite-1-truststore/
+  public-sm-im-root-https-client-ca-sqlite-2-keystore/
+  public-sm-im-root-https-client-ca-sqlite-2-truststore/
+  public-sm-im-root-https-client-ca-postgres-1-keystore/
+  public-sm-im-root-https-client-ca-postgres-1-truststore/
+  public-sm-im-root-https-client-ca-postgres-2-keystore/
+  public-sm-im-root-https-client-ca-postgres-2-truststore/
+  public-sm-im-issuing-https-client-ca-sqlite-1-keystore/
+  public-sm-im-issuing-https-client-ca-sqlite-1-truststore/
+  public-sm-im-issuing-https-client-ca-sqlite-2-keystore/
+  public-sm-im-issuing-https-client-ca-sqlite-2-truststore/
+  public-sm-im-issuing-https-client-ca-postgres-1-keystore/
+  public-sm-im-issuing-https-client-ca-postgres-1-truststore/
+  public-sm-im-issuing-https-client-ca-postgres-2-keystore/
+  public-sm-im-issuing-https-client-ca-postgres-2-truststore/
+
+  # Category 5: PS-ID HTTPS Client Certs (48 dirs = 24 × 2 PS-IDs)
+  # --- sm-kms (24 dirs: {browseruser,serviceuser} × {file,db} × {sqlite-1,sqlite-2,postgres} × {keystore,truststore}) ---
+  public-sm-kms-browseruser-file-https-client-sqlite-1-keystore/
+  public-sm-kms-browseruser-file-https-client-sqlite-1-truststore/
+  public-sm-kms-browseruser-file-https-client-sqlite-2-keystore/
+  public-sm-kms-browseruser-file-https-client-sqlite-2-truststore/
+  public-sm-kms-browseruser-file-https-client-postgres-keystore/
+  public-sm-kms-browseruser-file-https-client-postgres-truststore/
+  public-sm-kms-browseruser-db-https-client-sqlite-1-keystore/
+  public-sm-kms-browseruser-db-https-client-sqlite-1-truststore/
+  public-sm-kms-browseruser-db-https-client-sqlite-2-keystore/
+  public-sm-kms-browseruser-db-https-client-sqlite-2-truststore/
+  public-sm-kms-browseruser-db-https-client-postgres-keystore/
+  public-sm-kms-browseruser-db-https-client-postgres-truststore/
+  public-sm-kms-serviceuser-file-https-client-sqlite-1-keystore/
+  public-sm-kms-serviceuser-file-https-client-sqlite-1-truststore/
+  public-sm-kms-serviceuser-file-https-client-sqlite-2-keystore/
+  public-sm-kms-serviceuser-file-https-client-sqlite-2-truststore/
+  public-sm-kms-serviceuser-file-https-client-postgres-keystore/
+  public-sm-kms-serviceuser-file-https-client-postgres-truststore/
+  public-sm-kms-serviceuser-db-https-client-sqlite-1-keystore/
+  public-sm-kms-serviceuser-db-https-client-sqlite-1-truststore/
+  public-sm-kms-serviceuser-db-https-client-sqlite-2-keystore/
+  public-sm-kms-serviceuser-db-https-client-sqlite-2-truststore/
+  public-sm-kms-serviceuser-db-https-client-postgres-keystore/
+  public-sm-kms-serviceuser-db-https-client-postgres-truststore/
+  # --- sm-im (24 dirs: same pattern) ---
+  public-sm-im-browseruser-file-https-client-sqlite-1-keystore/
+  public-sm-im-browseruser-file-https-client-sqlite-1-truststore/
+  public-sm-im-browseruser-file-https-client-sqlite-2-keystore/
+  public-sm-im-browseruser-file-https-client-sqlite-2-truststore/
+  public-sm-im-browseruser-file-https-client-postgres-keystore/
+  public-sm-im-browseruser-file-https-client-postgres-truststore/
+  public-sm-im-browseruser-db-https-client-sqlite-1-keystore/
+  public-sm-im-browseruser-db-https-client-sqlite-1-truststore/
+  public-sm-im-browseruser-db-https-client-sqlite-2-keystore/
+  public-sm-im-browseruser-db-https-client-sqlite-2-truststore/
+  public-sm-im-browseruser-db-https-client-postgres-keystore/
+  public-sm-im-browseruser-db-https-client-postgres-truststore/
+  public-sm-im-serviceuser-file-https-client-sqlite-1-keystore/
+  public-sm-im-serviceuser-file-https-client-sqlite-1-truststore/
+  public-sm-im-serviceuser-file-https-client-sqlite-2-keystore/
+  public-sm-im-serviceuser-file-https-client-sqlite-2-truststore/
+  public-sm-im-serviceuser-file-https-client-postgres-keystore/
+  public-sm-im-serviceuser-file-https-client-postgres-truststore/
+  public-sm-im-serviceuser-db-https-client-sqlite-1-keystore/
+  public-sm-im-serviceuser-db-https-client-sqlite-1-truststore/
+  public-sm-im-serviceuser-db-https-client-sqlite-2-keystore/
+  public-sm-im-serviceuser-db-https-client-sqlite-2-truststore/
+  public-sm-im-serviceuser-db-https-client-postgres-keystore/
+  public-sm-im-serviceuser-db-https-client-postgres-truststore/
+
+  # Category 6: Private mTLS CAs - Admin Channel (32 dirs = 16 × 2 PS-IDs)
+  # --- sm-kms (16 dirs) ---
+  private-sm-kms-root-https-client-server-ca-sqlite-1-keystore/
+  private-sm-kms-root-https-client-server-ca-sqlite-1-truststore/
+  private-sm-kms-root-https-client-server-ca-sqlite-2-keystore/
+  private-sm-kms-root-https-client-server-ca-sqlite-2-truststore/
+  private-sm-kms-root-https-client-server-ca-postgres-1-keystore/
+  private-sm-kms-root-https-client-server-ca-postgres-1-truststore/
+  private-sm-kms-root-https-client-server-ca-postgres-2-keystore/
+  private-sm-kms-root-https-client-server-ca-postgres-2-truststore/
+  private-sm-kms-issuing-https-client-server-ca-sqlite-1-keystore/
+  private-sm-kms-issuing-https-client-server-ca-sqlite-1-truststore/
+  private-sm-kms-issuing-https-client-server-ca-sqlite-2-keystore/
+  private-sm-kms-issuing-https-client-server-ca-sqlite-2-truststore/
+  private-sm-kms-issuing-https-client-server-ca-postgres-1-keystore/
+  private-sm-kms-issuing-https-client-server-ca-postgres-1-truststore/
+  private-sm-kms-issuing-https-client-server-ca-postgres-2-keystore/
+  private-sm-kms-issuing-https-client-server-ca-postgres-2-truststore/
+  # --- sm-im (16 dirs) ---
+  private-sm-im-root-https-client-server-ca-sqlite-1-keystore/
+  private-sm-im-root-https-client-server-ca-sqlite-1-truststore/
+  private-sm-im-root-https-client-server-ca-sqlite-2-keystore/
+  private-sm-im-root-https-client-server-ca-sqlite-2-truststore/
+  private-sm-im-root-https-client-server-ca-postgres-1-keystore/
+  private-sm-im-root-https-client-server-ca-postgres-1-truststore/
+  private-sm-im-root-https-client-server-ca-postgres-2-keystore/
+  private-sm-im-root-https-client-server-ca-postgres-2-truststore/
+  private-sm-im-issuing-https-client-server-ca-sqlite-1-keystore/
+  private-sm-im-issuing-https-client-server-ca-sqlite-1-truststore/
+  private-sm-im-issuing-https-client-server-ca-sqlite-2-keystore/
+  private-sm-im-issuing-https-client-server-ca-sqlite-2-truststore/
+  private-sm-im-issuing-https-client-server-ca-postgres-1-keystore/
+  private-sm-im-issuing-https-client-server-ca-postgres-1-truststore/
+  private-sm-im-issuing-https-client-server-ca-postgres-2-keystore/
+  private-sm-im-issuing-https-client-server-ca-postgres-2-truststore/
+
+  # Category 7: Private mTLS Leaves - Admin Channel (16 dirs = 8 × 2 PS-IDs)
+  # --- sm-kms (8 dirs) ---
+  private-sm-kms-mutual-https-client-server-sqlite-1-keystore/
+  private-sm-kms-mutual-https-client-server-sqlite-1-truststore/
+  private-sm-kms-mutual-https-client-server-sqlite-2-keystore/
+  private-sm-kms-mutual-https-client-server-sqlite-2-truststore/
+  private-sm-kms-mutual-https-client-server-postgres-1-keystore/
+  private-sm-kms-mutual-https-client-server-postgres-1-truststore/
+  private-sm-kms-mutual-https-client-server-postgres-2-keystore/
+  private-sm-kms-mutual-https-client-server-postgres-2-truststore/
+  # --- sm-im (8 dirs) ---
+  private-sm-im-mutual-https-client-server-sqlite-1-keystore/
+  private-sm-im-mutual-https-client-server-sqlite-1-truststore/
+  private-sm-im-mutual-https-client-server-sqlite-2-keystore/
+  private-sm-im-mutual-https-client-server-sqlite-2-truststore/
+  private-sm-im-mutual-https-client-server-postgres-1-keystore/
+  private-sm-im-mutual-https-client-server-postgres-1-truststore/
+  private-sm-im-mutual-https-client-server-postgres-2-keystore/
+  private-sm-im-mutual-https-client-server-postgres-2-truststore/
+
+  # Category 8: Grafana/OTel Client CAs (8 dirs) — same as PS-ID level
+  public-grafana-otel-lgtm-root-https-client-ca-keystore/
+  public-grafana-otel-lgtm-root-https-client-ca-truststore/
+  public-grafana-otel-lgtm-issuing-https-client-ca-keystore/
+  public-grafana-otel-lgtm-issuing-https-client-ca-truststore/
+  public-otel-collector-contrib-root-https-client-ca-keystore/
+  public-otel-collector-contrib-root-https-client-ca-truststore/
+  public-otel-collector-contrib-issuing-https-client-ca-keystore/
+  public-otel-collector-contrib-issuing-https-client-ca-truststore/
+
+  # Category 9: Grafana/OTel Client Certs (12 dirs = 2 services × (2 PS-IDs + 1 admin) × 2 store types)
+  public-grafana-otel-lgtm-sm-kms-https-client-keystore/
+  public-grafana-otel-lgtm-sm-kms-https-client-truststore/
+  public-grafana-otel-lgtm-sm-im-https-client-keystore/
+  public-grafana-otel-lgtm-sm-im-https-client-truststore/
+  public-grafana-otel-lgtm-admin-https-client-keystore/
+  public-grafana-otel-lgtm-admin-https-client-truststore/
+  public-otel-collector-contrib-sm-kms-https-client-keystore/
+  public-otel-collector-contrib-sm-kms-https-client-truststore/
+  public-otel-collector-contrib-sm-im-https-client-keystore/
+  public-otel-collector-contrib-sm-im-https-client-truststore/
+  public-otel-collector-contrib-admin-https-client-keystore/
+  public-otel-collector-contrib-admin-https-client-truststore/
+
+  # Category 10: PostgreSQL Server CAs (4 dirs) — same as PS-ID level
+  public-postgres-root-https-server-ca-keystore/
+  public-postgres-root-https-server-ca-truststore/
+  public-postgres-issuing-https-server-ca-keystore/
+  public-postgres-issuing-https-server-ca-truststore/
+
+  # Category 11: PostgreSQL Server Certs (4 dirs) — same as PS-ID level
+  public-postgres-leader-https-server-keystore/
+  public-postgres-leader-https-server-truststore/
+  public-postgres-follower-https-server-keystore/
+  public-postgres-follower-https-server-truststore/
+
+  # Category 12: PostgreSQL Client CAs (4 dirs) — same as PS-ID level
+  public-postgres-root-https-client-ca-keystore/
+  public-postgres-root-https-client-ca-truststore/
+  public-postgres-issuing-https-client-ca-keystore/
+  public-postgres-issuing-https-client-ca-truststore/
+
+  # Category 13: PostgreSQL Replication Client Certs (4 dirs) — same as PS-ID level
+  public-postgres-leader-https-client-keystore/
+  public-postgres-leader-https-client-truststore/
+  public-postgres-follower-https-client-keystore/
+  public-postgres-follower-https-client-truststore/
+
+  # Category 14: PS-ID PostgreSQL App Client Certs (16 dirs = 8 × 2 PS-IDs)
+  # --- sm-kms (8 dirs) ---
+  public-sm-kms-postgres-1-leader-https-client-keystore/
+  public-sm-kms-postgres-1-leader-https-client-truststore/
+  public-sm-kms-postgres-1-follower-https-client-keystore/
+  public-sm-kms-postgres-1-follower-https-client-truststore/
+  public-sm-kms-postgres-2-leader-https-client-keystore/
+  public-sm-kms-postgres-2-leader-https-client-truststore/
+  public-sm-kms-postgres-2-follower-https-client-keystore/
+  public-sm-kms-postgres-2-follower-https-client-truststore/
+  # --- sm-im (8 dirs) ---
+  public-sm-im-postgres-1-leader-https-client-keystore/
+  public-sm-im-postgres-1-leader-https-client-truststore/
+  public-sm-im-postgres-1-follower-https-client-keystore/
+  public-sm-im-postgres-1-follower-https-client-truststore/
+  public-sm-im-postgres-2-leader-https-client-keystore/
+  public-sm-im-postgres-2-leader-https-client-truststore/
+  public-sm-im-postgres-2-follower-https-client-keystore/
+  public-sm-im-postgres-2-follower-https-client-truststore/
+```
+
+**Total: 204 directories** (36 global + 168 PS-ID-specific across 2 PS-IDs).
