@@ -1941,6 +1941,46 @@ The `GenerateTLSMaterial()` function in `internal/apps/framework/service/config/
 
 **Unit/Integration tests MUST use Auto TLS** (no Docker secrets needed). The server auto-generates a complete ephemeral PKI chain per test run. Test HTTP clients must use `TLSRootCAPool()` / `AdminTLSRootCAPool()` from the started server to trust the ephemeral CA. See [Section 10.3.7](#1037-tls-test-bundle-pattern) for the TestMain pattern.
 
+#### 6.11.3 pki-init Certificate Structure
+
+The `pki-init` CLI generates the full `/certs` directory tree for each deployment tier (PS-ID, PRODUCT, SUITE). The authoritative specification is [docs/tls-structure.md](tls-structure.md).
+
+**14 certificate categories** organized as named directories under `{target-dir}/{tier-id}/`:
+
+| Category | Naming Prefix | Example | Dir Type |
+|----------|--------------|---------|----------|
+| 1 | `public-global-root-https-server-ca` | Global root CA (shared) | truststore |
+| 2 | `public-global-issuing-https-server-ca` | Global issuing CA (shared) | truststore |
+| 3 | `public-{ps-id}-https-server` | PS-ID TLS server leaf cert | keystore |
+| 4 | `public-{ps-id}-https-client-ca-{domain}` | Client auth issuing CA | truststore |
+| 5 | `public-{ps-id}-https-client-{user-type}-{realm}-{domain}` | Client auth leaf cert | keystore |
+| 6 | `private-{ps-id}-admin-ca-{instance}` | Admin channel CA | truststore |
+| 7 | `private-{ps-id}-admin-{instance}` | Admin channel leaf cert | keystore |
+| 8 | `public-{ps-id}-postgres-ca` | PostgreSQL CA | truststore |
+| 9 | `public-{ps-id}-postgres-server` | PostgreSQL server leaf | keystore |
+| 10 | `public-{ps-id}-postgres-client-{domain}` | PostgreSQL client leaf | keystore |
+| 11 | `public-global-grafana-otel-lgtm-https-server-ca` | Grafana LGTM CA | truststore |
+| 12 | `public-grafana-otel-lgtm-https-server` | Grafana LGTM server leaf | keystore |
+| 13 | `public-global-otel-collector-contrib-https-server-ca` | OTel collector CA | truststore |
+| 14 | `public-otel-collector-contrib-https-server` | OTel collector leaf | keystore |
+
+**File formats per directory**:
+- **Keystore** (`{name}-keystore`): contains `{name}.crt` (leaf cert), `{name}.key` (private key), `{name}.p12` (PKCS#12 bundle — MODERN format, SHA-256/AES-256-CBC)
+- **Truststore** (`{name}-truststore`): contains `{name}.crt` (CA cert chain), `{name}.p12` (PKCS#12 trust store — no private key)
+
+**File naming**: All files inside a directory are named identically to the directory name (`SAME-AS-DIR-NAME` convention). No secondary naming scheme required.
+
+**PKCS#12 format**: `pkcs12.Modern.Encode` / `pkcs12.Modern.EncodeTrustStore` from `software.sslmate.com/src/go-pkcs12`. Modern format uses SHA-256 + AES-256-CBC (not legacy 3DES). CGO-free. Always use `pkcs12.Modern`, never `pkcs12.Legacy`.
+
+**Directory counts** (with 2 realms per PS-ID):
+- PS-ID scope: 82 directories
+- PRODUCT scope (sm = 2 PS-IDs × 82 — shared global dirs): 136 directories
+- SUITE scope (10 PS-IDs × 82 — shared global dirs): 568 directories
+
+**Docker volume delivery**: certs are written to a named Docker volume `{ps-id}-certs` by the `pki-init` service, then mounted read-only (`/certs:ro`) by all other services in the compose. NEVER use bind mounts for certs. See [docs/deployment-templates.md](deployment-templates.md) rules CO-21/CO-22.
+
+See [docs/tls-structure.md](tls-structure.md) for the full unrolled directory layout, per-category rationale, and directory count derivation formulas.
+
 ---
 
 ## 7. Data Architecture
