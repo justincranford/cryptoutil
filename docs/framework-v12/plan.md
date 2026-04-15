@@ -127,6 +127,7 @@ V12 was created by deferring decisions D2 (PostgreSQL TLS), D3 (OTel TLS), D4 (O
 **Objective**: Apply lessons learned to permanent artifacts.
 - Review lessons.md from all prior phases.
 - Update ENG-HANDBOOK.md with TLS wiring patterns.
+- ENG-HANDBOOK.md §10.3.4 `InsecureSkipVerify` fix (deferred from framework-v11 per Q7=E): Update §10.3.4 test example to use `RootCAs: testCAPool` with `TLSRootCAPool()` helper; remove `InsecureSkipVerify: true` from the test example entirely.
 - Update deployment-templates.md with actual TLS config examples.
 - Verify propagation integrity.
 - **Success**: All artifact updates committed; propagation check passes.

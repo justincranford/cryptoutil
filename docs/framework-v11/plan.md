@@ -156,6 +156,62 @@ Previous framework versions established the service builder, barrier layer, and 
 
 **Impact**: Category 9 consistently includes one `admin` entity alongside per-PS-ID entities. For skeleton-template at PS-ID scope: 2 services × (1 PS-ID + 1 admin) × 1 store type = 4 dirs.
 
+### Decision 10: Cat 4 PKI Domain Structure (Q4=E)
+
+**Question**: How many PKI domains for Cat 4 (PS-ID HTTPS Client CAs)?
+
+**Options**:
+- A: 4 PKI domains: `{sqlite,postgres} × {1,2}` = sqlite-1, sqlite-2, postgres-1, postgres-2
+- B: 2 PKI domains: `{sqlite,postgres}`
+- C: 3 PKI domains: `{sqlite-1,sqlite-2,postgres}` ✓ **SELECTED**
+- D: 1 shared PKI domain for all instances
+- E: *(custom)*
+
+**Decision**: Option C — Cat 4 uses 3 PKI domains: `{sqlite-1,sqlite-2,postgres}`. postgres-1 and postgres-2 share the same backend database, unseal secrets, and username/password credentials → they share a client TLS identity too. This corrects the prior assumption of 4 PKI domains.
+
+**Rationale**: Unlike Cat 6 (private admin channel, where each instance needs a unique identity for mTLS), the public HTTPS client CA authenticates to the shared logical postgres database. postgres-1 and postgres-2 access the same logical database; sharing a client TLS identity is correct and avoids unnecessary divergence.
+
+**Impact**:
+- Cat 4 drops from 16 dirs per PS-ID to 12 dirs (3 PKI domains × 2 CA tiers × 2 store types).
+- Total per PS-ID: 82 dirs (was 86); total per SUITE: 568 dirs (was 608).
+- skeleton-template example: 82 dirs total; sm example: 136 dirs total.
+- Cat 6 is unchanged: stays at `{sqlite,postgres}-{1,2}` = 4 PKI domains (each app instance has its own private admin channel identity).
+- `tls-structure.md` Required Logical Layout, directory count table, and unrolled examples updated accordingly.
+
+### Decision 11: Certificate Algorithm (Q5=A)
+
+**Question**: Which key algorithm for all certificates?
+
+**Options**:
+- A: ECDSA P-384 for ALL cert types (root CAs, issuing CAs, leaf certs) ✓ **SELECTED**
+- B: RSA 3072 for root/issuing CAs; ECDSA P-384 for leaf certs
+- C: ECDSA P-256 for all types
+- D: RSA 4096 root, RSA 3072 issuing, ECDSA P-256 leaf
+- E: *(custom)*
+
+**Decision**: Option A — ECDSA P-384 for ALL cert types.
+
+**Rationale**: Consistency across all tiers eliminates algorithm-mismatch errors. P-384 is FIPS 140-3 approved, CA/B Forum compliant, and provides strong 192-bit security. Per algorithm agility mandate, all implementations use configurable algorithms with P-384 as the hardcoded default.
+
+**Impact**: `generator.go` defaults to ECDSA P-384 key generation for all cert types; configuration allows override per algorithm agility requirement.
+
+### Decision 12: Certificate Validity Periods (Q6=A)
+
+**Question**: What default validity periods to use?
+
+**Options**:
+- A: CA/B Forum strictly: root 20yr, issuing 5yr, leaf 398 days ✓ **SELECTED**
+- B: Relaxed: root 25yr, issuing 10yr, leaf 2yr (dev-friendly)
+- C: Short-lived: root 10yr, issuing 2yr, leaf 90 days (security-focused)
+- D: No hardcoded defaults — must be fully configured
+- E: *(custom)*
+
+**Decision**: Option A — CA/B Forum strictly: root 20yr, issuing 5yr, leaf 398 days.
+
+**Rationale**: CA/B Forum compliance minimizes friction if certs are ever tested against strict validators and encourages good hygiene. Per algorithm agility mandate, validity periods are configurable with these CA/B Forum values as defaults.
+
+**Impact**: `generator.go` sets default validity periods per cert type; configuration allows override.
+
 ## Technical Context
 
 - **Language**: Go 1.26.1
@@ -189,7 +245,7 @@ Previous framework versions established the service builder, barrier layer, and 
 - Refactor from nested 2-level dirs to flat structure.
 - Handle all three deployment scopes: PS-ID, PRODUCT, SUITE.
 - Category 5 directory count is realm-driven (read from `registry.yaml`): `2 user types × |realms| × 3 PKI domains × 1 store type`.
-- **Success**: Generator produces directory tree matching tls-structure.md examples exactly (86 dirs per PS-ID with 2 realms).
+- **Success**: Generator produces directory tree matching tls-structure.md examples exactly (82 dirs per PS-ID with 2 realms).
 - **Post-Mortem**: After quality gates pass, update lessons.md.
 
 ### Phase 3: pki-init CLI & Docker Volume Config (4h) [Status: ☐ TODO]
@@ -220,7 +276,7 @@ Previous framework versions established the service builder, barrier layer, and 
 - Unit tests for keystore vs truststore file sets.
 - Unit tests for PKCS#12 generation.
 - Integration tests for PS-ID, PRODUCT, SUITE scope generation.
-- Verify directory counts match tls-structure.md (86 per PS-ID with 2 realms, 608 per SUITE with 2 realms).
+- Verify directory counts match tls-structure.md (82 per PS-ID with 2 realms, 568 per SUITE with 2 realms).
 - Coverage ≥95% for generator.go, ≥98% for utility functions.
 - Mutation testing ≥95%.
 - Race detector clean.
@@ -237,7 +293,7 @@ Previous framework versions established the service builder, barrier layer, and 
 - **Known documentation gaps to address** (from deep analysis):
   - ENG-HANDBOOK.md §6.11: Add cross-reference to `tls-structure.md` and the 14-category pki-init cert structure.
   - ENG-HANDBOOK.md §6.11: Add PKCS#12 (`.p12`) as a supported certificate format alongside PEM.
-  - ENG-HANDBOOK.md §10.3.4 vs §10.3.7: Pre-existing `InsecureSkipVerify` contradiction — §10.3.4 example uses `InsecureSkipVerify: true` while §10.3.7 says NEVER use it. Update §10.3.4 example to use `RootCAs` with `TLSRootCAPool()` instead.
+  - ENG-HANDBOOK.md §10.3.4 `InsecureSkipVerify` fix: Deferred to framework-v12 per Q7=E — address when cert wiring is complete in framework-v12 Phase 9.
 - **Success**: All artifact updates committed; propagation check passes.
 
 ## Risk Assessment
@@ -245,7 +301,7 @@ Previous framework versions established the service builder, barrier layer, and 
 | Risk | Probability | Impact | Mitigation |
 |------|-------------|--------|------------|
 | PKCS#12 library compatibility | Low | Medium | Use well-maintained `go-pkcs12` library; verify CGO-free |
-| Directory count explosion at SUITE level (876 dirs) | Medium | Low | Verify with automated count tests; optimize generation speed |
+| Directory count explosion at SUITE level | Medium | Low | Verified: 568 dirs per SUITE with 2 realms; automated count tests ensure correct generation. |
 | Realm values not yet finalized | Medium | Medium | Decision 8 (Q2=E): realms defined per PS-ID in registry.yaml; use `file`, `db` as representative defaults in examples |
 | registry.yaml realm schema design | Medium | High | New tasks in Phase 2/3: design schema field, implement reading in pki-init |
 | Existing tests break from renamed directories | High | Medium | Update all test assertions systematically; use golden files |
@@ -271,7 +327,7 @@ Previous framework versions established the service builder, barrier layer, and 
 - [ ] All 6 phases complete
 - [ ] Generator produces directory tree matching tls-structure.md examples
 - [ ] All quality gates passing
-- [ ] Directory counts verified (86 per PS-ID with 2 realms, 608 per SUITE with 2 realms)
+- [ ] Directory counts verified (82 per PS-ID with 2 realms, 568 per SUITE with 2 realms)
 - [ ] Documentation updated
 - [ ] CI/CD workflows green
 - [ ] Evidence archived

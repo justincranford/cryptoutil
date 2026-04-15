@@ -47,8 +47,8 @@
 - **Dependencies**: Task 1.1
 - **Description**: Add concrete examples for skeleton-template (PS-ID) and sm (PRODUCT).
 - **Acceptance Criteria**:
-  - [x] skeleton-template example: 86 directories fully listed (quizme-v2: removed end-entity truststores)
-  - [x] sm example: 144 directories fully listed (2 PS-IDs: sm-kms, sm-im)
+  - [x] skeleton-template example: 82 directories fully listed (quizme-v2: removed end-entity truststores, Q4=E: Cat 4 reduced from 16 to 12 dirs)
+  - [x] sm example: 136 directories fully listed (2 PS-IDs: sm-kms, sm-im, Q4=E: Cat 4 reduced from 32 to 24 dirs)
   - [x] Category comments in each listing
   - [x] Policy Alignment section updated
 
@@ -106,9 +106,9 @@
 - **Description**: Implement generation for all 14 categories from tls-structure.md. Handle PS-ID, PRODUCT, and SUITE deployment scopes.
 - **Acceptance Criteria**:
   - [ ] Categories 1-14 all generate correct directories
-  - [ ] PS-ID scope: 86 directories (skeleton-template example — assumes 2 realms)
-  - [ ] PRODUCT scope: correct count (sm = 144 — 2 PS-IDs × 72 each with 2 realms)
-  - [ ] SUITE scope: 608 directories (10 PS-IDs × 2 realms default)
+  - [ ] PS-ID scope: 82 directories (skeleton-template example — assumes 2 realms)
+  - [ ] PRODUCT scope: correct count (sm = 136 — 2 PS-IDs × 68 each with 2 realms)
+  - [ ] SUITE scope: 568 directories (10 PS-IDs × 2 realms default)
   - [ ] Realm values read dynamically from registry.yaml (see Task 2.5)
 
 #### Task 2.5: Design Realm Schema in registry.yaml
@@ -138,9 +138,9 @@
 - **Dependencies**: Phase 2 complete
 - **Description**: Update pki-init CLI to use new generator output. Verify command-line interface unchanged (`pki-init <tier-id> <target-dir>`).
 - **Acceptance Criteria**:
-  - [ ] `pki-init skeleton-template /tmp` produces correct 86-dir tree (2 realms)
-  - [ ] `pki-init sm /tmp` produces correct 144-dir tree (2 PS-IDs, 2 realms)
-  - [ ] `pki-init cryptoutil /tmp` produces correct 608-dir tree (10 PS-IDs, 2 realms)
+  - [ ] `pki-init skeleton-template /tmp` produces correct 82-dir tree (2 realms)
+  - [ ] `pki-init sm /tmp` produces correct 136-dir tree (2 PS-IDs, 2 realms)
+  - [ ] `pki-init cryptoutil /tmp` produces correct 568-dir tree (10 PS-IDs, 2 realms)
   - [ ] Empty/non-empty target directory check still works
   - [ ] Tests pass for all three scopes
 
@@ -256,9 +256,9 @@
 - **Dependencies**: Task 5.1
 - **Description**: Integration tests verifying PS-ID, PRODUCT, SUITE scope generation. Verify directory counts.
 - **Acceptance Criteria**:
-  - [ ] PS-ID scope: 86 dirs verified (skeleton-template, 2 realms)
+  - [ ] PS-ID scope: 82 dirs verified (skeleton-template, 2 realms)
   - [ ] PRODUCT scope: count verified per product
-  - [ ] SUITE scope: 608 dirs verified (10 PS-IDs, 2 realms)
+  - [ ] SUITE scope: 568 dirs verified (10 PS-IDs, 2 realms)
   - [ ] Temp directory cleanup after tests
 
 #### Task 5.3: Mutation Testing
@@ -300,7 +300,7 @@
 - **Description**: Run full pki-init command and verify output structure matches tls-structure.md examples byte-for-byte.
 - **Acceptance Criteria**:
   - [ ] `pki-init skeleton-template /tmp/test` matches Example: skeleton-template
-  - [ ] All 86 directories present with correct files (2 realms)
+  - [ ] All 82 directories present with correct files (2 realms)
   - [ ] File permissions correct
 
 ---
@@ -327,11 +327,10 @@
 - **Description**: Update ENG-HANDBOOK.md, agents, skills, instructions as warranted by lessons. Known gaps:
   - ENG-HANDBOOK.md §6.11: Add cross-reference to `tls-structure.md` and 14-category cert structure.
   - ENG-HANDBOOK.md §6.11: Add PKCS#12 as supported format.
-  - ENG-HANDBOOK.md §10.3.4: Fix pre-existing `InsecureSkipVerify: true` example (use `RootCAs` with `TLSRootCAPool()` instead).
+  - ENG-HANDBOOK.md §10.3.4 `InsecureSkipVerify` fix: Deferred to framework-v12 per Q7=E — address when cert wiring is complete.
 - **Acceptance Criteria**:
   - [ ] ENG-HANDBOOK.md §6.11 references tls-structure.md
   - [ ] ENG-HANDBOOK.md §6.11 mentions PKCS#12 format
-  - [ ] ENG-HANDBOOK.md §10.3.4 InsecureSkipVerify example fixed
   - [ ] Propagation check passes: `go run ./cmd/cicd-lint lint-docs validate-propagation`
 
 #### Task 6.3: Final Commit
