@@ -19,14 +19,14 @@ import (
 // global pflag.CommandLine state conflicts. This allows parallel test execution
 // and benchmark testing without "flag redefined" panics.
 
-// TestYAMLFieldMapping_KebabCase tests that kebab-case YAML field names (dev-mode, bind-public-address)
+// TestYAMLFieldMapping_KebabCase tests that kebab-case YAML field names (local, bind-public-address)
 // correctly map to PascalCase struct fields (DevMode, BindPublicAddress).
 // Priority: P1.3 (Critical - Must Have).
 func TestYAMLFieldMapping_KebabCase(t *testing.T) {
 	// NOTE: Cannot use t.Parallel() here - ParseWithFlagSet modifies global viper state
 	// which causes race conditions with other parallel tests
 	yamlContent := `
-dev: true
+local: true
 bind-public-protocol: https
 bind-public-address: 127.0.0.1
 bind-public-port: 8080
@@ -56,7 +56,7 @@ tls-private-ip-addresses:
 	settings, err := ParseWithFlagSet(fs, cmdParams, false)
 	require.NoError(t, err)
 
-	require.Equal(t, true, settings.DevMode, "dev should map to DevMode")
+	require.Equal(t, true, settings.DevMode, "local should map to DevMode")
 	require.Equal(t, cryptoutilSharedMagic.IPv4Loopback, settings.BindPublicAddress, "bind-public-address should map to BindPublicAddress")
 	require.Equal(t, uint16(cryptoutilSharedMagic.TestServerPort), settings.BindPublicPort, "bind-public-port should map to BindPublicPort")
 	require.Equal(t, cryptoutilSharedMagic.IPv4Loopback, settings.BindPrivateAddress, "bind-private-address should map to BindPrivateAddress")

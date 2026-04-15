@@ -120,7 +120,7 @@ func TestParse_BooleanEnvironmentVariableBinding(t *testing.T) {
 	resetFlags()
 
 	// Set environment variables for boolean settings
-	t.Setenv("CRYPTOUTIL_DEV", "true")
+	t.Setenv("CRYPTOUTIL_LOCAL", "true")
 	t.Setenv("CRYPTOUTIL_VERBOSE", "true")
 	t.Setenv("CRYPTOUTIL_DRY_RUN", "true")
 
@@ -130,15 +130,15 @@ func TestParse_BooleanEnvironmentVariableBinding(t *testing.T) {
 	require.NoError(t, err)
 
 	// Verify boolean environment variables were bound and parsed correctly
-	require.True(t, s.DevMode, "CRYPTOUTIL_DEV should set DevMode to true")
+	require.True(t, s.DevMode, "CRYPTOUTIL_LOCAL should set DevMode to true")
 	require.True(t, s.VerboseMode, "CRYPTOUTIL_VERBOSE should set VerboseMode to true")
 	require.True(t, s.DryRun, "CRYPTOUTIL_DRY_RUN should set DryRun to true")
 
 	// Verify that flag overrides environment variable (precedence test)
 	resetFlags()
-	t.Setenv("CRYPTOUTIL_DEV", "true")
+	t.Setenv("CRYPTOUTIL_LOCAL", "true")
 
-	commandParameters = []string{"start", "--dev=false"}
+	commandParameters = []string{"start", "--local=false"}
 	s, err = Parse(commandParameters, true)
 	require.NoError(t, err)
 	require.False(t, s.DevMode, "flag should override environment variable")

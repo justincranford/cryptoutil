@@ -22,7 +22,7 @@ func TestNewFromFile_Success(t *testing.T) {
 	t.Parallel()
 
 	yamlContent := `
-dev: true
+local: true
 bind-public-address: 127.0.0.1
 bind-public-port: 8080
 bind-private-address: 127.0.0.1

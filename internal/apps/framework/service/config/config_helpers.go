@@ -386,7 +386,7 @@ func NewForJOSEServer(bindAddr string, bindPort uint16, devMode bool) *ServiceFr
 	}
 
 	if devMode {
-		args = append(args, "--dev")
+		args = append(args, "--local")
 	}
 
 	settings, err := Parse(args, false)
@@ -409,7 +409,7 @@ func NewForCAServer(bindAddr string, bindPort uint16, devMode bool) *ServiceFram
 	}
 
 	if devMode {
-		args = append(args, "--dev")
+		args = append(args, "--local")
 	}
 
 	settings, err := Parse(args, false)

@@ -29,7 +29,7 @@ func TestParseWithFlagSet_ValidationError(t *testing.T) {
 
 	fs := pflag.NewFlagSet("test-validation-err", pflag.ContinueOnError)
 
-	_, err := ParseWithFlagSet(fs, []string{"start", "--dev", "--max-materials=0"}, false)
+	_, err := ParseWithFlagSet(fs, []string{"start", "--local", "--max-materials=0"}, false)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "jose-ja settings validation failed")
 }
@@ -38,7 +38,7 @@ func TestParseWithFlagSet_ValidationError(t *testing.T) {
 // Must be called at most ONCE per test binary execution.
 // Sequential: uses pflag.CommandLine global state via Parse().
 func TestParse_GlobalFlagSet(t *testing.T) {
-	settings, err := Parse([]string{"start", "--dev"}, false)
+	settings, err := Parse([]string{"start", "--local"}, false)
 	require.NoError(t, err)
 	require.NotNil(t, settings)
 }

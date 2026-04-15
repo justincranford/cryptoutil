@@ -30,7 +30,7 @@ func TestParseWithFlagSet_ValidationError(t *testing.T) {
 	// Not parallel: viper global state shared between tests.
 	fs := pflag.NewFlagSet("test-pki-ca-validation", pflag.ContinueOnError)
 
-	_, err := ParseWithFlagSet(fs, []string{"start", "--dev", "--ca-config", "/nonexistent/ca-config.yaml"}, false)
+	_, err := ParseWithFlagSet(fs, []string{"start", "--local", "--ca-config", "/nonexistent/ca-config.yaml"}, false)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "pki-ca settings validation failed")
 }
@@ -39,7 +39,7 @@ func TestParseWithFlagSet_ValidationError(t *testing.T) {
 // Must run exactly once per test binary (not parallel, not count > 1).
 func TestParse_WrapperDelegates(t *testing.T) {
 	// Not parallel: uses global pflag.CommandLine - can only be registered once.
-	settings, err := Parse([]string{"start", "--dev"}, false)
+	settings, err := Parse([]string{"start", "--local"}, false)
 	require.NoError(t, err)
 	require.NotNil(t, settings)
 }

@@ -208,7 +208,7 @@ func TestParseWithFlagSet_ValidationError(t *testing.T) {
 	resetFlags()
 
 	// Pass invalid config via flags - 0.0.0.0 in dev mode causes validation error
-	args := []string{"start", "--dev", "--bind-public-address=0.0.0.0"}
+	args := []string{"start", "--local", "--bind-public-address=0.0.0.0"}
 	_, err := Parse(args, false)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "validation failed")

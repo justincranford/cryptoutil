@@ -85,7 +85,7 @@ func TestParse_HappyPath_Overrides(t *testing.T) {
 		"--config=test.yaml",
 		"--log-level=debug",
 		"--verbose",
-		"--dev",
+		"--local",
 		"--bind-public-protocol=http",
 		"--bind-public-address=192.168.1.2",
 		"--bind-public-port=18080",
@@ -329,7 +329,7 @@ func TestParse_EnvironmentVariables(t *testing.T) {
 
 	// Set environment variables
 	t.Setenv("CRYPTOUTIL_LOG_LEVEL", "DEBUG")
-	t.Setenv("CRYPTOUTIL_DEV", "true")
+	t.Setenv("CRYPTOUTIL_LOCAL", "true")
 	t.Setenv("CRYPTOUTIL_BIND_PUBLIC_PORT", "8080")
 	t.Setenv("CRYPTOUTIL_DATABASE_URL", "postgres://env:pass@envdb:5432/envdb?sslmode=require")
 
@@ -349,10 +349,10 @@ func TestParse_EnvironmentVariables_CommandLineOverride(t *testing.T) {
 
 	// Set environment variables
 	t.Setenv("CRYPTOUTIL_LOG_LEVEL", "DEBUG")
-	t.Setenv("CRYPTOUTIL_DEV", "true")
+	t.Setenv("CRYPTOUTIL_LOCAL", "true")
 
 	// Override with command line flags
-	commandParameters := []string{"start", "--log-level=INFO", "--dev=false"}
+	commandParameters := []string{"start", "--log-level=INFO", "--local=false"}
 	s, err := Parse(commandParameters, false)
 	require.NoError(t, err)
 

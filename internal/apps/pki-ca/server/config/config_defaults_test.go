@@ -21,7 +21,7 @@ func TestParse_HappyPath(t *testing.T) {
 	args := []string{
 		"start", // Required subcommand.
 		"--bind-public-address", cryptoutilSharedMagic.IPv4Loopback,
-		"--dev",
+		"--local",
 	}
 
 	settings, err := ParseWithFlagSet(fs, args, false)
