@@ -43,7 +43,9 @@ func InitForService(_ string, args []string, stdout, stderr io.Writer) int {
 // productionNewTelemetryService creates the real telemetry service for production use.
 func productionNewTelemetryService(ctx context.Context) (*cryptoutilSharedTelemetry.TelemetryService, error) {
 	ts, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, &cryptoutilSharedTelemetry.TelemetrySettings{
-		OTLPService: cryptoutilSharedMagic.PSIDPKIInit,
+		LogLevel:     cryptoutilSharedMagic.DefaultLogLevelInfo,
+		OTLPService:  cryptoutilSharedMagic.PSIDPKIInit,
+		OTLPEndpoint: cryptoutilSharedMagic.DefaultOTLPEndpointDefault,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to create telemetry service: %w", err)

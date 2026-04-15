@@ -42,9 +42,9 @@ const (
 	// per CA/Browser Forum Baseline Requirements).
 	PKIInitValidityIssuingCA = 5 * 365 * 24 * time.Hour
 
-	// PKIInitValidityLeaf is the validity period for end-entity (leaf) certificates (398
-	// days per CA/Browser Forum Baseline Requirements).
-	PKIInitValidityLeaf = 398 * 24 * time.Hour
+	// PKIInitValidityLeaf is the validity period for end-entity (leaf) certificates (397
+	// days — one day below the CA/Browser Forum 398-day hard limit).
+	PKIInitValidityLeaf = 397 * 24 * time.Hour
 
 	// PKIInitOtelCollectorContrib is the directory name component used for the OTel
 	// Collector Contrib service in pki-init cert directory names.
