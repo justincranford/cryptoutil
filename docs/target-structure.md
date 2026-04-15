@@ -559,6 +559,12 @@ deployments/
                                                       # service level as appropriate
 ```
 
+**`/certs` Docker Volume**: Each PS-ID's `pki-init` init-container generates a TLS certificate tree
+into a named Docker volume mounted at `/certs`. The directory layout follows the 14-category
+keystore/truststore pattern defined in [`docs/tls-structure.md`](tls-structure.md). Per PS-ID scope:
+120 directories, each containing `SAME-AS-DIR-NAME.{p12,crt,key}` (keystores) or
+`SAME-AS-DIR-NAME.{p12,crt}` (truststores). See `tls-structure.md` for the full specification.
+
 ### F.5 Dockerfile Parameterization
 
 All Dockerfiles follow identical multi-stage structure (validation → builder → runtime).
@@ -673,6 +679,8 @@ internal/apps/
 │   │       ├── suite_router.go                       #     RouteSuite(), SuiteConfig, ProductEntry
 │   │       └── suite_router_test.go
 │   ├── tls/                                          #   TLS certificate generation (merged: tls_generator + pkiinit)
+│   │                                                 #   Generates /certs volume with 14-category keystore/truststore
+│   │                                                 #   layout — see docs/tls-structure.md for full specification
 │   └── service/                                      #   Service-level framework
 │       ├── cli/
 │       ├── client/

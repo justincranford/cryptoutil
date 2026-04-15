@@ -294,7 +294,7 @@ against `configs/{PS-ID}/{PS-ID}-framework.yml`.
 | `unseal-4of5.secret` | `{PS-ID}-unseal-key-4-of-5-{base64-random-32-bytes}` | Unique per shard |
 | `unseal-5of5.secret` | `{PS-ID}-unseal-key-5-of-5-{base64-random-32-bytes}` | Unique per shard |
 | `hash-pepper-v3.secret` | `{PS-ID}-hash-pepper-v3-{base64-random-32-bytes}` | Hash pepper |
-| `postgres-url.secret` | `postgres://{PS_ID}_database_user:{PS_ID}_database_pass@shared-postgres-leader:5432/{PS_ID}_database?sslmode=disable` | Full DSN |
+| `postgres-url.secret` | `postgres://{PS_ID}_database_user:{PS_ID}_database_pass@shared-postgres-leader:5432/{PS_ID}_database?sslmode=disable` | Full DSN (v12: `sslmode=verify-full` + `sslrootcert`/`sslcert`/`sslkey` params) |
 | `postgres-username.secret` | `{PS_ID}_database_user` | PostgreSQL user |
 | `postgres-password.secret` | `{PS_ID}_database_pass-{base64-random-32-bytes}` | PostgreSQL password |
 | `postgres-database.secret` | `{PS_ID}_database` | PostgreSQL database |
@@ -406,6 +406,8 @@ otlp-environment: "docker compose"
 ```
 
 ALL keys MUST be kebab-case.
+
+**V12 planned change**: `otlp-endpoint` will change to `https://` with mTLS when framework-v12 wires OTel TLS. See [`docs/framework-v12/plan.md`](framework-v12/plan.md) Phase 4.
 
 ---
 
