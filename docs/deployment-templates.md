@@ -209,6 +209,8 @@ then compare byte-for-byte against `deployments/{PS-ID}/compose.yml`.
 | CO-18 | PostgreSQL instance 2 MUST depend on instance 1 `service_healthy` | Schema init ordering |
 | CO-19 | Healthcheck timing MUST use parameterized values: `start-period: {HEALTHCHECK_START_PERIOD}`, `interval: {HEALTHCHECK_INTERVAL}`, `timeout: {HEALTHCHECK_TIMEOUT}`, `retries: {HEALTHCHECK_RETRIES}` | Configurable health probes |
 | CO-20 | All `image:` references MUST use `{SUITE}-{PS-ID}:{IMAGE_TAG}` (NOT hardcoded suite name or tag) | Parameterized naming |
+| CO-21 | All services (pki-init, app variants) MUST use named volume `{PS-ID}-certs:/certs` (NEVER bind mount `./certs/:/certs`) | Portable cert storage — named volumes work in Docker Desktop, Docker Swarm, and Kubernetes without host path dependencies |
+| CO-22 | Top-level `volumes:` section MUST declare `{PS-ID}-certs:` (no `driver:` override — defaults to local) | Named volume declaration required |
 
 ---
 
