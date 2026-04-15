@@ -360,7 +360,7 @@
   - ENG-HANDBOOK.md §6.11: Add cross-reference to `tls-structure.md` and 14-category cert structure.
   - ENG-HANDBOOK.md §6.11: Add PKCS#12 as supported format.
   - ENG-HANDBOOK.md §10.3.4 `InsecureSkipVerify` fix: Deferred to framework-v12 per Q7=E — address when cert wiring is complete.
-- **Acceptance Criteria**:  
+- **Acceptance Criteria**:
   - [x] ENG-HANDBOOK.md §6.11.3 added: references tls-structure.md with 14-category table
   - [x] ENG-HANDBOOK.md §6.11.3 mentions PKCS#12 Modern format (SHA-256/AES-256-CBC)
   - [x] Propagation check passes: `go run ./cmd/cicd-lint lint-docs` → EXIT:0

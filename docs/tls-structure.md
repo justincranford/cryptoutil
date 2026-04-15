@@ -162,43 +162,43 @@ Required logical layout:
 
 ```text
 TARGET-DIRECTORY/{PKI-INIT-DOMAIN}/
-  public-global-{root,issuing}-https-server-ca-{keystore,truststore}/SAME-AS-DIR-NAME.{p12,crt,key}
-  public-{grafana-otel-lgtm,otel-collector-contrib}-https-server-keystore/SAME-AS-DIR-NAME.{p12,crt,key}
-  public-{PS-ID}-{sqlite,postgres}-{1,2}-https-server-keystore/SAME-AS-DIR-NAME.{p12,crt,key}
+  public-https-server-global-{root,issuing}-ca-{keystore,truststore}/SAME-AS-DIR-NAME.{p12,crt,key}
+  public-https-server-{grafana-otel-lgtm,otel-collector-contrib}-entity-keystore/SAME-AS-DIR-NAME.{p12,crt,key}
+  public-https-server-{PS-ID}-{sqlite,postgres}-{1,2}-entity-keystore/SAME-AS-DIR-NAME.{p12,crt,key}
 
-  public-{PS-ID}-{root,issuing}-https-client-ca-{sqlite-1,sqlite-2,postgres}-{keystore,truststore}/SAME-AS-DIR-NAME.{p12,crt,key}
-  public-{PS-ID}-{browseruser,serviceuser}-{realm}-https-client-{sqlite-1,sqlite-2,postgres}-keystore/SAME-AS-DIR-NAME.{p12,crt,key}
+  public-https-client-{PS-ID}-{root,issuing}-ca-{sqlite-1,sqlite-2,postgres}-{keystore,truststore}/SAME-AS-DIR-NAME.{p12,crt,key}
+  public-https-client-{PS-ID}-{browseruser,serviceuser}-entity-{sqlite-1,sqlite-2,postgres}-{realm}-keystore/SAME-AS-DIR-NAME.{p12,crt,key}
 
-  private-{PS-ID}-{root,issuing}-https-client-server-ca-{sqlite,postgres}-{1,2}-{keystore,truststore}/SAME-AS-DIR-NAME.{p12,crt,key}
-  private-{PS-ID}-{mutual}-https-client-server-{sqlite,postgres}-{1,2}-keystore/SAME-AS-DIR-NAME.{p12,crt,key}
+  private-https-client-{PS-ID}-{root,issuing}-ca-{sqlite,postgres}-{1,2}-{keystore,truststore}/SAME-AS-DIR-NAME.{p12,crt,key}
+  private-https-client-{PS-ID}-{mutual}-entity-{sqlite,postgres}-{1,2}-keystore/SAME-AS-DIR-NAME.{p12,crt,key}
 
-  public-{grafana-otel-lgtm,otel-collector-contrib}-{root,issuing}-https-client-ca-{keystore,truststore}/SAME-AS-DIR-NAME.{p12,crt,key}
-  public-{grafana-otel-lgtm,otel-collector-contrib}-{PS-ID,admin}-https-client-keystore/SAME-AS-DIR-NAME.{p12,crt,key}
+  public-https-client-{grafana-otel-lgtm,otel-collector-contrib}-{root,issuing}-ca-{keystore,truststore}/SAME-AS-DIR-NAME.{p12,crt,key}
+  public-https-client-{grafana-otel-lgtm,otel-collector-contrib}-{PS-ID,admin}-entity-keystore/SAME-AS-DIR-NAME.{p12,crt,key}
 
-  public-postgres-{root,issuing}-https-server-ca-{keystore,truststore}/SAME-AS-DIR-NAME.{p12,crt,key}
-  public-postgres-{leader,follower}-https-server-keystore/SAME-AS-DIR-NAME.{p12,crt,key}
+  private-tls-server-postgres-{root,issuing}-ca-{keystore,truststore}/SAME-AS-DIR-NAME.{p12,crt,key}
+  private-tls-server-postgres-{leader,follower}-entity-keystore/SAME-AS-DIR-NAME.{p12,crt,key}
 
-  public-postgres-{root,issuing}-https-client-ca-{keystore,truststore}/SAME-AS-DIR-NAME.{p12,crt,key}
-  public-postgres-{leader,follower}-https-client-keystore/SAME-AS-DIR-NAME.{p12,crt,key}
-  public-{PS-ID}-postgres-{1,2}-{leader,follower}-https-client-keystore/SAME-AS-DIR-NAME.{p12,crt,key}
+  private-tls-client-postgres-{root,issuing}-ca-{keystore,truststore}/SAME-AS-DIR-NAME.{p12,crt,key}
+  private-tls-client-postgres-{leader,follower}-entity-keystore/SAME-AS-DIR-NAME.{p12,crt,key}
+  private-tls-client-{PS-ID}-postgres-{1,2}-{leader,follower}-entity-keystore/SAME-AS-DIR-NAME.{p12,crt,key}
 ```
 
 ## Directory Count Summary
 
 | Category | Description | Per PS-ID | Per PRODUCT (N PS-IDs) | Per SUITE (10 PS-IDs) | Logical Layout Pattern |
 |----------|-------------|-----------|------------------------|----------------------|------------------------|
-| 1 | Global HTTPS Server CAs | 4 | 4 | 4 | `public-global-{root,issuing}-https-server-ca-{keystore,truststore}/` |
+| 1 | Global HTTPS Server CAs | 4 | 4 | 4 | `public-global-{root,issuing}-ca-https-server-{keystore,truststore}/` |
 | 2 | Grafana/OTel Server Certs | 2 | 2 | 2 | `public-{grafana-otel-lgtm,otel-collector-contrib}-https-server-keystore/` |
 | 3 | PS-ID App Server Certs | 4 | 4×N | 40 | `public-{PS-ID}-{sqlite,postgres}-{1,2}-https-server-keystore/` |
-| 4 | PS-ID HTTPS Client CAs | 12 | 12×N | 120 | `public-{PS-ID}-{root,issuing}-https-client-ca-{sqlite-1,sqlite-2,postgres}-{keystore,truststore}/` |
+| 4 | PS-ID HTTPS Client CAs | 12 | 12×N | 120 | `public-{PS-ID}-{root,issuing}-ca-https-client-{sqlite-1,sqlite-2,postgres}-{keystore,truststore}/` |
 | 5 | PS-ID HTTPS Client Certs | 12 | 12×N | 120 | `public-{PS-ID}-{browseruser,serviceuser}-{realm}-https-client-{sqlite-1,sqlite-2,postgres}-keystore/` |
 | 6 | Private mTLS CAs (Admin) | 16 | 16×N | 160 | `private-{PS-ID}-{root,issuing}-https-client-server-ca-{sqlite,postgres}-{1,2}-{keystore,truststore}/` |
 | 7 | Private mTLS Leaves (Admin) | 4 | 4×N | 40 | `private-{PS-ID}-{mutual}-https-client-server-{sqlite,postgres}-{1,2}-keystore/` |
-| 8 | Grafana/OTel Client CAs | 8 | 8 | 8 | `public-{grafana-otel-lgtm,otel-collector-contrib}-{root,issuing}-https-client-ca-{keystore,truststore}/` |
+| 8 | Grafana/OTel Client CAs | 8 | 8 | 8 | `public-{grafana-otel-lgtm,otel-collector-contrib}-{root,issuing}-ca-https-client-{keystore,truststore}/` |
 | 9 | Grafana/OTel Client Certs | 4 | 2×(N+1) | 22 | `public-{grafana-otel-lgtm,otel-collector-contrib}-{PS-ID,admin}-https-client-keystore/` |
-| 10 | PostgreSQL Server CAs | 4 | 4 | 4 | `public-postgres-{root,issuing}-https-server-ca-{keystore,truststore}/` |
+| 10 | PostgreSQL Server CAs | 4 | 4 | 4 | `public-postgres-{root,issuing}-ca-https-server-{keystore,truststore}/` |
 | 11 | PostgreSQL Server Certs | 2 | 2 | 2 | `public-postgres-{leader,follower}-https-server-keystore/` |
-| 12 | PostgreSQL Client CAs | 4 | 4 | 4 | `public-postgres-{root,issuing}-https-client-ca-{keystore,truststore}/` |
+| 12 | PostgreSQL Client CAs | 4 | 4 | 4 | `public-postgres-{root,issuing}-ca-https-client-{keystore,truststore}/` |
 | 13 | PostgreSQL Replication Certs | 2 | 2 | 2 | `public-postgres-{leader,follower}-https-client-keystore/` |
 | 14 | PS-ID PostgreSQL App Clients | 4 | 4×N | 40 | `public-{PS-ID}-postgres-{1,2}-{leader,follower}-https-client-keystore/` |
 | **Total** | | **82** | **varies** | **568** | |
