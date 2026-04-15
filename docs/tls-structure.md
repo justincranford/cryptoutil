@@ -23,18 +23,26 @@ Canonical tier IDs:
 
 ## PKI INIT
 
-`pki-init` takes two input parameters:
-1. canonical tier ID e.g. `cryptoutil`, `identity`, `sm-kms`
-2. target directory e.g. `/certs`, `/tmp/deployment-123`
+`pki-init` takes two positional parameters:
+1. **PKI-INIT-DOMAIN** (`<tier-id>`) — canonical tier ID; one of the 16 valid domains below
+2. **TARGET-DIRECTORY** (`<target-dir>`) — target directory root; e.g. `/certs`, `/tmp`
 
-If the target directory exists and is not empty, `pki-init` will refuse to generate any files. If the target directory doesn't exist, or it exists but is empty, then `pki-init` will create all of the necessary subdirectories and generate all of the required files under the target directory, according to the structure defined in this document.
+All output files are created under `TARGET-DIRECTORY/PKI-INIT-DOMAIN/`. If that subdirectory exists and is not empty, `pki-init` refuses to generate any files. If the subdirectory does not exist, or exists but is empty, `pki-init` creates the full directory tree and generates all required files.
+
+### Valid PKI-INIT-DOMAIN Values (16 total)
+
+| Tier | Domain |
+|------|--------|
+| Suite | `cryptoutil` |
+| Product | `sm`, `jose`, `pki`, `identity`, `skeleton` |
+| PS-ID | `sm-kms`, `sm-im`, `jose-ja`, `pki-ca`, `identity-authz`, `identity-idp`, `identity-rs`, `identity-rp`, `identity-spa`, `skeleton-template` |
 
 Examples:
-1. `pki-init cryptoutil        /tmp/cryptoutil`
-2. `pki-init identity          /tmp/identity`
-3. `pki-init sm-kms            /tmp/sm-kms`
-4. `pki-init skeleton-template /tmp/skeleton-template`
-5. `pki-init cryptoutil        /certs`
+1. `pki-init cryptoutil        /certs`   → output: `/certs/cryptoutil/` (suite scope, 608 dirs)
+2. `pki-init sm                /certs`   → output: `/certs/sm/` (product scope, 144 dirs for 2 PS-IDs)
+3. `pki-init identity          /certs`   → output: `/certs/identity/` (product scope, 4 PS-IDs)
+4. `pki-init sm-kms            /tmp`     → output: `/tmp/sm-kms/` (PS-ID scope, 86 dirs)
+5. `pki-init skeleton-template /tmp`     → output: `/tmp/skeleton-template/` (PS-ID scope, 86 dirs)
 
 ## File Format Convention
 
@@ -87,12 +95,12 @@ Required domains (16 categories):
 - Total per SUITE: 160 directories.
 
 **5. Public PS-ID HTTPS Client Certs:**
-- Client leaf certs per API path prefix (`browseruser`, `serviceuser`) and per realm type, grouped into 3 PKI domains: `sqlite-1`, `sqlite-2`, `postgres` (postgres-1 and postgres-2 share client identity).
-- 4 leaf certs per PKI domain: `{browseruser,serviceuser}` × `{realm}`.
+- Client leaf certs per API path prefix (`browseruser`, `serviceuser`) and per realm type, grouped into 3 PKI domains: `sqlite-1`, `sqlite-2`, `postgres` (postgres-1 and postgres-2 share client identity per Decision 7).
+- Leaf certs per PKI domain: `{browseruser,serviceuser}` × `{realm}` — realm values are dynamic per PS-ID, read from `registry.yaml` at pki-init runtime (Decision 8).
 - Keystore only per leaf cert (leaf cert — trust established via issuing CA's truststore).
-- Total per PS-ID: 12 directories (2 user types × 2 realms × 3 PKI domains × 1 store type).
-- Total per PRODUCT: 12 × (PS-ID count in product).
-- Total per SUITE: 120 directories.
+- Total per PS-ID: `2 × |realms| × 3` directories. Examples assume 2 realms (`file`, `db`): 12 directories.
+- Total per PRODUCT: `2 × |realms| × 3 × (PS-ID count in product)`.
+- Total per SUITE: `2 × |realms| × 3 × 10`; assuming 2 realms: 120 directories.
 
 **6. Private PS-ID HTTPS Mutual TLS CAs (Admin Channel):**
 - Per-instance CA chain (root + issuing) for the private admin HTTPS channel; mutual TLS required.
