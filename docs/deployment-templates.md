@@ -193,7 +193,7 @@ then compare byte-for-byte against `deployments/{PS-ID}/compose.yml`.
 | CO-02 | MUST include `../shared-telemetry/compose.yml` and `../shared-postgres/compose.yml` | Required infrastructure |
 | CO-03 | MUST have `healthcheck-secrets` service listing all 14 secrets with validation (`test -s` per file, exit 1 on failure) | Secret validation |
 | CO-04 | MUST have `builder-{PS-ID}` service with `image: {SUITE}-{PS-ID}:{IMAGE_TAG}` and build context `../..` | Image building |
-| CO-05 | MUST have `pki-init` service with `["init", "--output-dir=/certs"]` | TLS bootstrap |
+| CO-05 | MUST have `pki-init` service with command `["{PS-ID}", "/certs"]` (positional args: tier-id then target-dir) | TLS bootstrap |
 | CO-06 | MUST have exactly 4 app instances: sqlite-1, sqlite-2, postgresql-1, postgresql-2 | Cross-DB testing |
 | CO-07 | App service names MUST follow `{PS-ID}-app-{variant}` pattern | Naming convention |
 | CO-08 | Container port MUST always be `8080` | Standardized internal port |
@@ -320,7 +320,7 @@ byte-for-byte against `deployments/{PRODUCT}/compose.yml`.
 | Rule ID | Rule | Rationale |
 |---------|------|-----------|
 | PC-01 | MUST include all child PS-ID compose files | Recursive architecture |
-| PC-02 | MUST override `pki-init` with `--domain={PRODUCT}` | Product-scoped certs |
+| PC-02 | MUST override `pki-init` command to `["{PRODUCT}", "/certs"]` (positional args: product tier-id then target-dir) | Product-scoped certs |
 | PC-03 | Port overrides MUST use `!override` tag | Complete port replacement |
 | PC-04 | Port formula: `SERVICE + 10000` | Product tier offset |
 | PC-05 | Unseal secrets MUST use `{PRODUCT}-unseal-key-N-of-5-...` values | Product-scoped encryption |
