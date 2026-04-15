@@ -1,6 +1,6 @@
 # Tasks - Framework V11: PKI-Init Cert Structure
 
-**Status**: 2 of 24 tasks complete (8%)
+**Status**: 2 of 26 tasks complete (8%)
 **Last Updated**: 2025-06-26
 **Created**: 2025-01-15
 
@@ -47,8 +47,8 @@
 - **Dependencies**: Task 1.1
 - **Description**: Add concrete examples for skeleton-template (PS-ID) and sm (PRODUCT).
 - **Acceptance Criteria**:
-  - [x] skeleton-template example: 120 directories fully listed
-  - [x] sm example: 204 directories fully listed (2 PS-IDs: sm-kms, sm-im)
+  - [x] skeleton-template example: 86 directories fully listed (quizme-v2: removed end-entity truststores)
+  - [x] sm example: 144 directories fully listed (2 PS-IDs: sm-kms, sm-im)
   - [x] Category comments in each listing
   - [x] Policy Alignment section updated
 
@@ -106,10 +106,24 @@
 - **Description**: Implement generation for all 14 categories from tls-structure.md. Handle PS-ID, PRODUCT, and SUITE deployment scopes.
 - **Acceptance Criteria**:
   - [ ] Categories 1-14 all generate correct directories
-  - [ ] PS-ID scope: 120 directories (skeleton-template example)
-  - [ ] PRODUCT scope: correct count (sm = 204)
-  - [ ] SUITE scope: 876 directories
-  - [ ] Realm values parameterized (default: `file`, `db`)
+  - [ ] PS-ID scope: 86 directories (skeleton-template example — assumes 2 realms)
+  - [ ] PRODUCT scope: correct count (sm = 144 — 2 PS-IDs × 72 each with 2 realms)
+  - [ ] SUITE scope: 608 directories (10 PS-IDs × 2 realms default)
+  - [ ] Realm values read dynamically from registry.yaml (see Task 2.5)
+
+#### Task 2.5: Design Realm Schema in registry.yaml
+
+- **Status**: ❌
+- **Estimated**: 1h
+- **Dependencies**: Task 2.4
+- **Description**: Define the `realms` field structure in `registry.yaml`. Each PS-ID entry gains a `realms` list; each realm has `location` (file/db/federated), `type` (user-pass/mtls/jwt/etc.), and a unique `name`. The framework defines the full realm type catalogue; PS-IDs select which realms they activate. Skeleton-template uses `file` and `db` as representative defaults.
+- **Acceptance Criteria**:
+  - [ ] `realms` field schema designed and documented in registry.yaml
+  - [ ] skeleton-template entry populated with `file` and `db` realm entries
+  - [ ] All 10 PS-ID entries have valid `realms` values
+  - [ ] Schema description added to `api/cryptosuite-registry/` docs
+- **Files**:
+  - `api/cryptosuite-registry/registry.yaml`
 
 ---
 
@@ -124,9 +138,9 @@
 - **Dependencies**: Phase 2 complete
 - **Description**: Update pki-init CLI to use new generator output. Verify command-line interface unchanged (`pki-init <tier-id> <target-dir>`).
 - **Acceptance Criteria**:
-  - [ ] `pki-init skeleton-template /tmp` produces correct 120-dir tree
-  - [ ] `pki-init sm /tmp` produces correct 204-dir tree
-  - [ ] `pki-init cryptoutil /tmp` produces correct 876-dir tree
+  - [ ] `pki-init skeleton-template /tmp` produces correct 86-dir tree (2 realms)
+  - [ ] `pki-init sm /tmp` produces correct 144-dir tree (2 PS-IDs, 2 realms)
+  - [ ] `pki-init cryptoutil /tmp` produces correct 608-dir tree (10 PS-IDs, 2 realms)
   - [ ] Empty/non-empty target directory check still works
   - [ ] Tests pass for all three scopes
 
@@ -152,6 +166,21 @@
   - [ ] Named volumes declared in compose templates
   - [ ] Volume scoping: each service mounts only its certs
   - [ ] `cicd-lint lint-deployments` passes
+
+#### Task 3.4: Implement registry.yaml Realm Reading
+
+- **Status**: ❌
+- **Estimated**: 1.5h
+- **Dependencies**: Tasks 3.1, 2.5
+- **Description**: Implement `registry.yaml` reading in pki-init. At startup, pki-init resolves the realm list for the requested tier-id from registry.yaml. Category 5 directory count becomes dynamic: `2 user types × |realms| × 3 PKI domains × 1 store type` per PS-ID instead of hardcoded `file`/`db`.
+- **Acceptance Criteria**:
+  - [ ] pki-init reads realm list from registry.yaml per PS-ID
+  - [ ] Category 5 count equals `2 × |realms| × 3` per PS-ID
+  - [ ] Missing or empty realm list returns a clear error
+  - [ ] Tests cover 1-realm, 2-realm, and 3-realm scenarios
+- **Files**:
+  - `internal/apps/framework/tls/generator.go`
+  - `internal/apps/pki-ca/` (or equivalent pki-init CLI entrypoint)
 
 ---
 
@@ -227,9 +256,9 @@
 - **Dependencies**: Task 5.1
 - **Description**: Integration tests verifying PS-ID, PRODUCT, SUITE scope generation. Verify directory counts.
 - **Acceptance Criteria**:
-  - [ ] PS-ID scope: 120 dirs verified
+  - [ ] PS-ID scope: 86 dirs verified (skeleton-template, 2 realms)
   - [ ] PRODUCT scope: count verified per product
-  - [ ] SUITE scope: 876 dirs verified
+  - [ ] SUITE scope: 608 dirs verified (10 PS-IDs, 2 realms)
   - [ ] Temp directory cleanup after tests
 
 #### Task 5.3: Mutation Testing
@@ -271,7 +300,7 @@
 - **Description**: Run full pki-init command and verify output structure matches tls-structure.md examples byte-for-byte.
 - **Acceptance Criteria**:
   - [ ] `pki-init skeleton-template /tmp/test` matches Example: skeleton-template
-  - [ ] All 120 directories present with correct files
+  - [ ] All 86 directories present with correct files (2 realms)
   - [ ] File permissions correct
 
 ---

@@ -15,7 +15,7 @@
 **D)** Different grouping: use `{sqlite,postgres}` (2 PKI domains) for both CAs and leaves.
 **E)**
 
-**Answer**:
+**Answer**: A
 
 **Rationale**: This determines the total directory count for categories 4 and 5, and whether postgres app instances can impersonate each other at the TLS layer.
 
@@ -29,9 +29,9 @@
 **B)** `realm-file`, `realm-db` — prefixed to make the purpose clearer in directory names.
 **C)** Dynamic — realm names come from the service configuration and can vary per PS-ID. pki-init reads a config file to determine realm names.
 **D)** Fixed list from registry.yaml — add a `realms` field to the registry for each PS-ID.
-**E)**
+**E)** E — add `realms` list to registry.yaml. At a high level, each PS-ID has list of realms that are described by 1) location (file, db, federated), 2) type (e.g. user/pass, mTLS, JWT, opaque access token, session cookie, etc), and 3) unique name. All types are implemented in framework and inherited by all PS-IDs, and individual PS-IDs select which ones they use. Any PS-ID can use any combination of realms they wish to use.
 
-**Answer**:
+**Answer**: E
 
 **Rationale**: This determines the directory naming pattern and whether pki-init needs external configuration input beyond tier-id and target-dir.
 
@@ -47,6 +47,6 @@
 **D)** Reserved for future use — generate it now but usage will be defined in v12 or later.
 **E)**
 
-**Answer**:
+**Answer**: A
 
 **Rationale**: This clarifies whether `admin` has a defined consumer or is a placeholder, and whether the cert should have different EKU/SAN constraints than PS-ID certs.

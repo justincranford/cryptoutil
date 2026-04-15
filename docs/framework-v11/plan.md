@@ -107,6 +107,55 @@ Previous framework versions established the service builder, barrier layer, and 
 
 **Rationale**: Each PS-ID compose already includes a `pki-init` service that generates all required certs (including Grafana/OTel/PostgreSQL certs). Adding a separate pki-init to shared-telemetry would create cert duplication and ownership confusion. Telemetry services mount volumes populated by the PS-ID's pki-init.
 
+### Decision 7: PostgreSQL Client PKI Domains (Q1=A — quizme-v2)
+
+**Options**:
+- A: postgres-1 and postgres-2 share one client identity = 3 PKI domains (`sqlite-1`, `sqlite-2`, `postgres`) ✓ **SELECTED**
+- B: postgres-1 and postgres-2 each have separate client identity = 4 PKI domains
+- C: All 4 instances share one client identity = 1 PKI domain
+- D: sqlite-1/sqlite-2 share; postgres-1/postgres-2 separate = 3 PKI domains (different grouping)
+
+**Decision**: Option A — postgres-1 and postgres-2 share one client identity (3 PKI domains: `sqlite-1`, `sqlite-2`, `postgres`).
+
+**Rationale**: postgres-1 and postgres-2 connect to the same PostgreSQL cluster as logically equivalent instances. Sharing client identity simplifies cert management and accurately reflects that both are essentially the same role within the PostgreSQL deployment.
+
+**Impact**: Category 5 has 12 dirs per PS-ID (2 user types × 2 realms × 3 PKI domains × 1 store type). Confirmed in tls-structure.md.
+
+### Decision 8: Realm Values (Q2=E — quizme-v2)
+
+**Options**:
+- A: Fixed defaults `file` and `db` (hardcoded)
+- B: Read from config file at `pki-init` invocation
+- C: Passed as CLI flags
+- D: Derived from deployment tier
+- E: Realm values are dynamic — each PS-ID declares its realms in `registry.yaml` ✓ **SELECTED**
+
+**Decision**: Option E — Each PS-ID has a `realms` list in `registry.yaml`. Each realm entry has: `location` (file, db, federated), `type` (e.g., user/pass, mTLS, JWT), and `unique name`. All realm types are implemented by the framework and inherited; PS-IDs select which they use.
+
+**Rationale**: Realm count and names vary per PS-ID. Hardcoding `file`/`db` makes pki-init inflexible. Using `registry.yaml` as the single source of truth for realm config is consistent with the registry's role as the canonical entity catalog.
+
+**Impact** (significant):
+- `registry.yaml` must gain a `realms` field per PS-ID entry.
+- `pki-init` must read `registry.yaml` at runtime to determine realm names for Category 5 cert generation.
+- Category 5 directory count becomes dynamic: `2 user types × |realms| × 3 PKI domains × 1 store type`.
+- Phase 2 Task 2.4 and Phase 3 Task 3.1 must account for realm-driven generation.
+- New tasks required: schema design for `realms` field, pki-init registry reading implementation.
+- Examples in `tls-structure.md` (skeleton-template, sm) assume 2 realms (`file`, `db`) as representative defaults.
+
+### Decision 9: `admin` Identity for Grafana/OTel (Q3=A — quizme-v2)
+
+**Options**:
+- A: `admin` = dedicated admin/ops user identity for directly accessing Grafana UI and OTel APIs ✓ **SELECTED**
+- B: `admin` = a shared identity for all services
+- C: `admin` = a system service account for internal use
+- D: No `admin` identity — use per-PS-ID identities only
+
+**Decision**: Option A — `admin` is a dedicated ops user identity for directly accessing Grafana UI (port 3000) and OTel Collector APIs (:4317/:4318). It is NOT a service account and NOT shared with PS-ID services.
+
+**Rationale**: Human operators monitoring the system need a dedicated cert identity to authenticate to Grafana and OTel. This should be separate from PS-ID service identities to maintain auditability and least-privilege.
+
+**Impact**: Category 9 consistently includes one `admin` entity alongside per-PS-ID entities. For skeleton-template at PS-ID scope: 2 services × (1 PS-ID + 1 admin) × 1 store type = 4 dirs.
+
 ## Technical Context
 
 - **Language**: Go 1.26.1
@@ -139,13 +188,15 @@ Previous framework versions established the service builder, barrier layer, and 
 - Implement `SAME-AS-DIR-NAME` file naming pattern.
 - Refactor from nested 2-level dirs to flat structure.
 - Handle all three deployment scopes: PS-ID, PRODUCT, SUITE.
-- **Success**: Generator produces directory tree matching tls-structure.md examples exactly.
+- Category 5 directory count is realm-driven (read from `registry.yaml`): `2 user types × |realms| × 3 PKI domains × 1 store type`.
+- **Success**: Generator produces directory tree matching tls-structure.md examples exactly (86 dirs per PS-ID with 2 realms).
 - **Post-Mortem**: After quality gates pass, update lessons.md.
 
 ### Phase 3: pki-init CLI & Docker Volume Config (4h) [Status: ☐ TODO]
 
 **Objective**: Update pki-init CLI and Docker volume configuration.
 - Update pki-init subcommand to use new generator output.
+- Implement reading of `realms` list from `registry.yaml` to drive Category 5 directory count.
 - Configure named Docker volumes in compose templates.
 - Set least-privilege file permissions (440 keystore, 444 truststore CA certs).
 - Update compose file volume mount declarations.
@@ -169,7 +220,7 @@ Previous framework versions established the service builder, barrier layer, and 
 - Unit tests for keystore vs truststore file sets.
 - Unit tests for PKCS#12 generation.
 - Integration tests for PS-ID, PRODUCT, SUITE scope generation.
-- Verify directory counts match tls-structure.md (120 per PS-ID, 876 per SUITE).
+- Verify directory counts match tls-structure.md (86 per PS-ID with 2 realms, 608 per SUITE with 2 realms).
 - Coverage ≥95% for generator.go, ≥98% for utility functions.
 - Mutation testing ≥95%.
 - Race detector clean.
@@ -195,7 +246,8 @@ Previous framework versions established the service builder, barrier layer, and 
 |------|-------------|--------|------------|
 | PKCS#12 library compatibility | Low | Medium | Use well-maintained `go-pkcs12` library; verify CGO-free |
 | Directory count explosion at SUITE level (876 dirs) | Medium | Low | Verify with automated count tests; optimize generation speed |
-| Realm values not yet finalized | Medium | Medium | Use `file`, `db` as defaults; parameterize for easy change (quizme-v2 pending) |
+| Realm values not yet finalized | Medium | Medium | Decision 8 (Q2=E): realms defined per PS-ID in registry.yaml; use `file`, `db` as representative defaults in examples |
+| registry.yaml realm schema design | Medium | High | New tasks in Phase 2/3: design schema field, implement reading in pki-init |
 | Existing tests break from renamed directories | High | Medium | Update all test assertions systematically; use golden files |
 
 ## Quality Gates - MANDATORY
@@ -219,7 +271,7 @@ Previous framework versions established the service builder, barrier layer, and 
 - [ ] All 6 phases complete
 - [ ] Generator produces directory tree matching tls-structure.md examples
 - [ ] All quality gates passing
-- [ ] Directory counts verified (120 per PS-ID, 876 per SUITE)
+- [ ] Directory counts verified (86 per PS-ID with 2 realms, 608 per SUITE with 2 realms)
 - [ ] Documentation updated
 - [ ] CI/CD workflows green
 - [ ] Evidence archived
