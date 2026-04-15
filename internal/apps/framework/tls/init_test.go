@@ -136,7 +136,10 @@ func TestInit_SeamInjection(t *testing.T) {
 		telemetryFn, generatorFn := buildStubSeams(t, stubMkdirAll, stubWriteFile, stubCreateCA, stubCreateLeaf, stubGetKeyPair)
 
 		outputDir := t.TempDir()
-		require.NoError(t, os.WriteFile(filepath.Join(outputDir, "existing-file.txt"), []byte("data"), cryptoutilSharedMagic.PKIInitCertFileMode))
+		// The basePath is filepath.Join(outputDir, tierID), so the file must be inside the tierID subdir.
+		subDir := filepath.Join(outputDir, cryptoutilSharedMagic.OTLPServiceSMKMS)
+		require.NoError(t, os.MkdirAll(subDir, cryptoutilSharedMagic.CICDTempDirPermissions))
+		require.NoError(t, os.WriteFile(filepath.Join(subDir, "existing-file.txt"), []byte("data"), cryptoutilSharedMagic.PKIInitCertFileMode))
 
 		var stdout, stderr bytes.Buffer
 
@@ -265,10 +268,28 @@ func buildStubSeams(
 	}
 
 	generatorFn := func(_ context.Context, _ *cryptoutilSharedTelemetry.TelemetryService) (*cryptoutilAppsFrameworkTls.Generator, error) {
-		return cryptoutilAppsFrameworkTls.ExportedNewTestGenerator(mkdirAllFn, writeFileFn, createCAFn, createLeafFn, getKeyPairFn), nil
+		return cryptoutilAppsFrameworkTls.ExportedNewTestGenerator(
+			mkdirAllFn, writeFileFn, createCAFn, createLeafFn, getKeyPairFn,
+			stubEncodePKCS12, stubEncodeTrustPKCS12, stubGetRealmsForPSID,
+		), nil
 	}
 
 	return telemetryFn, generatorFn
+}
+
+// stubEncodePKCS12 is a no-op PKCS#12 keystore encoder for testing.
+func stubEncodePKCS12(_ any, _ *x509.Certificate, _ []*x509.Certificate) ([]byte, error) {
+	return []byte{}, nil
+}
+
+// stubEncodeTrustPKCS12 is a no-op PKCS#12 truststore encoder for testing.
+func stubEncodeTrustPKCS12(_ []*x509.Certificate) ([]byte, error) {
+	return []byte{}, nil
+}
+
+// stubGetRealmsForPSID returns the default realms for testing.
+func stubGetRealmsForPSID(_ string) ([]string, error) {
+	return []string{"file", "db"}, nil
 }
 
 // stubMkdirAll is a no-op mkdir for testing.

@@ -61,6 +61,13 @@ product_services:
     pg_host_port: 54320
     migration_range_start: 2001
     migration_range_end: 2999
+    realms:
+      - name: file
+        location: file
+        type: user-pass
+      - name: db
+        location: db
+        type: user-pass
     api_resources:
       - /elastic-keys
       - /elastic-keys/{elasticKeyID}
@@ -86,6 +93,13 @@ product_services:
     pg_host_port: 54321
     migration_range_start: 3001
     migration_range_end: 3999
+    realms:
+      - name: file
+        location: file
+        type: user-pass
+      - name: db
+        location: db
+        type: user-pass
     api_resources:
       - /messages
       - /messages/{messageID}
@@ -103,6 +117,13 @@ product_services:
     pg_host_port: 54322
     migration_range_start: 4001
     migration_range_end: 4999
+    realms:
+      - name: file
+        location: file
+        type: user-pass
+      - name: db
+        location: db
+        type: user-pass
     api_resources:
       - /elastic-keys
       - /elastic-keys/{elasticKeyID}
@@ -129,6 +150,13 @@ product_services:
     pg_host_port: 54323
     migration_range_start: 5001
     migration_range_end: 5999
+    realms:
+      - name: file
+        location: file
+        type: user-pass
+      - name: db
+        location: db
+        type: user-pass
     api_resources:
       - /cas
       - /cas/{caID}
@@ -163,6 +191,13 @@ product_services:
     pg_host_port: 54324
     migration_range_start: 6001
     migration_range_end: 6999
+    realms:
+      - name: file
+        location: file
+        type: user-pass
+      - name: db
+        location: db
+        type: user-pass
     api_resources:
       - /oauth2/v1/authorize
       - /oauth2/v1/token
@@ -185,6 +220,13 @@ product_services:
     pg_host_port: 54325
     migration_range_start: 7001
     migration_range_end: 7999
+    realms:
+      - name: file
+        location: file
+        type: user-pass
+      - name: db
+        location: db
+        type: user-pass
     api_resources:
       - /oidc/v1/login
       - /oidc/v1/consent
@@ -212,6 +254,13 @@ product_services:
     pg_host_port: 54326
     migration_range_start: 8001
     migration_range_end: 8999
+    realms:
+      - name: file
+        location: file
+        type: user-pass
+      - name: db
+        location: db
+        type: user-pass
     api_resources:
       - /resources
       - /resources/{resourceID}
@@ -229,6 +278,13 @@ product_services:
     pg_host_port: 54327
     migration_range_start: 9001
     migration_range_end: 9999
+    realms:
+      - name: file
+        location: file
+        type: user-pass
+      - name: db
+        location: db
+        type: user-pass
     api_resources:
       - /authn/login
       - /authn/callback
@@ -249,6 +305,13 @@ product_services:
     pg_host_port: 54328
     migration_range_start: 10001
     migration_range_end: 10999
+    realms:
+      - name: file
+        location: file
+        type: user-pass
+      - name: db
+        location: db
+        type: user-pass
     api_resources:
       - /authn/login
       - /authn/callback
@@ -267,6 +330,13 @@ product_services:
     pg_host_port: 54329
     migration_range_start: 11001
     migration_range_end: 11999
+    realms:
+      - name: file
+        location: file
+        type: user-pass
+      - name: db
+        location: db
+        type: user-pass
     api_resources:
       - /items
       - /items/{itemID}

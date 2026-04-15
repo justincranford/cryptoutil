@@ -115,7 +115,7 @@ services:
     image: cryptoutil-identity-authz:local
     command: ["/app/identity-authz", "init", "--domain=identity-authz", "--output-dir=/certs"]
     volumes:
-      - ./certs/:/certs/:rw
+      - identity-authz-certs:/certs:rw
     depends_on:
       builder-identity-authz:
         condition: service_completed_successfully
@@ -137,7 +137,7 @@ services:
       - ./config/identity-authz-app-domain-common.yml:/app/config/identity-authz-app-domain-common.yml:ro
       - ./config/identity-authz-app-domain-sqlite-1.yml:/app/config/identity-authz-app-domain-sqlite-1.yml:ro
       - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
-      - ./certs/:/certs/:ro
+      - identity-authz-certs:/certs:ro
     secrets:
       - unseal-1of5.secret
       - unseal-2of5.secret
@@ -186,7 +186,7 @@ services:
       - ./config/identity-authz-app-domain-common.yml:/app/config/identity-authz-app-domain-common.yml:ro
       - ./config/identity-authz-app-domain-sqlite-2.yml:/app/config/identity-authz-app-domain-sqlite-2.yml:ro
       - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
-      - ./certs/:/certs/:ro
+      - identity-authz-certs:/certs:ro
     secrets:
       - unseal-1of5.secret
       - unseal-2of5.secret
@@ -235,7 +235,7 @@ services:
       - ./config/identity-authz-app-domain-common.yml:/app/config/identity-authz-app-domain-common.yml:ro
       - ./config/identity-authz-app-domain-postgresql-1.yml:/app/config/identity-authz-app-domain-postgresql-1.yml:ro
       - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
-      - ./certs/:/certs/:ro
+      - identity-authz-certs:/certs:ro
     secrets:
       - unseal-1of5.secret
       - unseal-2of5.secret
@@ -288,7 +288,7 @@ services:
       - ./config/identity-authz-app-domain-common.yml:/app/config/identity-authz-app-domain-common.yml:ro
       - ./config/identity-authz-app-domain-postgresql-2.yml:/app/config/identity-authz-app-domain-postgresql-2.yml:ro
       - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
-      - ./certs/:/certs/:ro
+      - identity-authz-certs:/certs:ro
     secrets:
       - unseal-1of5.secret
       - unseal-2of5.secret
@@ -329,6 +329,9 @@ services:
           memory: 256M
         reservations:
           memory: 128M
+
+volumes:
+  identity-authz-certs:
 
 networks:
   identity-authz-network:

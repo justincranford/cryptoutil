@@ -40,32 +40,24 @@ func resolveTierInternal(tierID string) (TierType, []string, error) {
 	}
 }
 
-// PKIInitAppInstances returns the 4 canonical app instance suffixes for a PS-ID.
-func PKIInitAppInstances(psID string) []string {
-	return []string{
-		psID + "-app-sqlite-1",
-		psID + "-app-sqlite-2",
-		psID + "-app-postgresql-1",
-		psID + "-app-postgresql-2",
-	}
+// PKIInitAppInstanceSuffixes returns the 4 canonical app instance suffixes.
+// These are used to form directory names and Docker service DNS names.
+func PKIInitAppInstanceSuffixes() []string {
+	return []string{cryptoutilSharedMagic.CICDTemplateVariantSQLite1, cryptoutilSharedMagic.CICDTemplateVariantSQLite2, cryptoutilSharedMagic.PKIInitInstanceSuffixPostgres1, cryptoutilSharedMagic.PKIInitInstanceSuffixPostgres2}
 }
 
-// PKIInitDomains returns the 3 PKI domain identifiers for a PS-ID.
-// sqlite-1 and sqlite-2 each get their own domain; postgresql-1 and postgresql-2 share one.
-func PKIInitDomains(psID string) []string {
-	return []string{
-		psID + "-app-sqlite-1",
-		psID + "-app-sqlite-2",
-		psID + "-app-postgresql-ALL",
-	}
+// PKIInitClientPKIDomains returns the 3 PKI domain identifiers used for client cert generation.
+// sqlite-1 and sqlite-2 each get their own domain; postgres-1 and postgres-2 share one.
+func PKIInitClientPKIDomains() []string {
+	return []string{cryptoutilSharedMagic.CICDTemplateVariantSQLite1, cryptoutilSharedMagic.CICDTemplateVariantSQLite2, cryptoutilSharedMagic.DockerServicePostgres}
 }
 
-// PKIInitClientRealms returns the 4 client realm names per PKI domain.
-func PKIInitClientRealms() []string {
-	return []string{
-		"browser-realm-file",
-		"browser-realm-db",
-		"service-realm-file",
-		"service-realm-db",
-	}
+// PKIInitAdminInstanceSuffixes returns the 4 instance suffixes for the private admin (mTLS) channel.
+func PKIInitAdminInstanceSuffixes() []string {
+	return []string{cryptoutilSharedMagic.CICDTemplateVariantSQLite1, cryptoutilSharedMagic.CICDTemplateVariantSQLite2, cryptoutilSharedMagic.PKIInitInstanceSuffixPostgres1, cryptoutilSharedMagic.PKIInitInstanceSuffixPostgres2}
+}
+
+// PKIInitUserTypes returns the 2 API path user type names for client cert generation.
+func PKIInitUserTypes() []string {
+	return []string{"browseruser", "serviceuser"}
 }

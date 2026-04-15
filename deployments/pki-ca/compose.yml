@@ -115,7 +115,7 @@ services:
     image: cryptoutil-pki-ca:local
     command: ["/app/pki-ca", "init", "--domain=pki-ca", "--output-dir=/certs"]
     volumes:
-      - ./certs/:/certs/:rw
+      - pki-ca-certs:/certs:rw
     depends_on:
       builder-pki-ca:
         condition: service_completed_successfully
@@ -137,7 +137,7 @@ services:
       - ./config/pki-ca-app-domain-common.yml:/app/config/pki-ca-app-domain-common.yml:ro
       - ./config/pki-ca-app-domain-sqlite-1.yml:/app/config/pki-ca-app-domain-sqlite-1.yml:ro
       - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
-      - ./certs/:/certs/:ro
+      - pki-ca-certs:/certs:ro
       - ./ca-crls:/app/crls
     secrets:
       - unseal-1of5.secret
@@ -187,7 +187,7 @@ services:
       - ./config/pki-ca-app-domain-common.yml:/app/config/pki-ca-app-domain-common.yml:ro
       - ./config/pki-ca-app-domain-sqlite-2.yml:/app/config/pki-ca-app-domain-sqlite-2.yml:ro
       - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
-      - ./certs/:/certs/:ro
+      - pki-ca-certs:/certs:ro
       - ./ca-crls:/app/crls
     secrets:
       - unseal-1of5.secret
@@ -237,7 +237,7 @@ services:
       - ./config/pki-ca-app-domain-common.yml:/app/config/pki-ca-app-domain-common.yml:ro
       - ./config/pki-ca-app-domain-postgresql-1.yml:/app/config/pki-ca-app-domain-postgresql-1.yml:ro
       - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
-      - ./certs/:/certs/:ro
+      - pki-ca-certs:/certs:ro
       - ./ca-crls:/app/crls
     secrets:
       - unseal-1of5.secret
@@ -291,7 +291,7 @@ services:
       - ./config/pki-ca-app-domain-common.yml:/app/config/pki-ca-app-domain-common.yml:ro
       - ./config/pki-ca-app-domain-postgresql-2.yml:/app/config/pki-ca-app-domain-postgresql-2.yml:ro
       - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
-      - ./certs/:/certs/:ro
+      - pki-ca-certs:/certs:ro
       - ./ca-crls:/app/crls
     secrets:
       - unseal-1of5.secret
@@ -333,6 +333,9 @@ services:
           memory: 256M
         reservations:
           memory: 128M
+
+volumes:
+  pki-ca-certs:
 
 networks:
   pki-ca-network:

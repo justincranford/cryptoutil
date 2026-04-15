@@ -50,6 +50,7 @@ require (
 	gorm.io/driver/sqlite v1.6.0
 	gorm.io/gorm v1.31.1
 	modernc.org/sqlite v1.48.2
+	software.sslmate.com/src/go-pkcs12 v0.7.1
 )
 
 require (
