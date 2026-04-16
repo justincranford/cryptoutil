@@ -53,9 +53,9 @@ func TestNewGenerator_NilInputs(t *testing.T) {
 	}
 }
 
-// TestGenerate_SkeletonTemplate_DirCount verifies that Generate creates exactly 80 leaf
+// TestGenerate_SkeletonTemplate_DirCount verifies that Generate creates exactly 92 leaf
 // certificate directories for the skeleton-template PS-ID with 2 realms.
-// The count is: 28 shared + 52 per-PS-ID = 80 (see docs/tls-structure.md).
+// The count is: 28 shared + 64 per-PS-ID = 92 (see docs/tls-structure.md).
 func TestGenerate_SkeletonTemplate_DirCount(t *testing.T) {
 	t.Parallel()
 
@@ -81,10 +81,10 @@ func TestGenerate_SkeletonTemplate_DirCount(t *testing.T) {
 		return nil
 	}))
 
-	const expectedDirs = 80
+	const expectedDirs = 92
 
 	require.Equal(t, expectedDirs, dirCount,
-		"expected %d cert dirs for skeleton-template with 2 realms (28 shared + 52 per-PSID)", expectedDirs)
+		"expected %d cert dirs for skeleton-template with 2 realms (28 shared + 64 per-PSID)", expectedDirs)
 }
 
 // TestGenerate_BasepathIsFile verifies that Generate returns an error when basePath
@@ -620,6 +620,8 @@ func TestGenerate_SharedCAs_ErrorBranches(t *testing.T) {
 //	createCA:  #11=cat4-sqlite1-root, #12=cat4-sqlite1-issuing, ... #22=cat6-first-root, ...
 //	createLeaf: #9=cat3-sqlite-1, #10=cat3-sqlite-2, #11=cat3-postgres-1, #12=cat3-postgres-2,
 //	            #13=cat5-first-leaf, ... #25=cat7-sqlite-1-mutual, ...
+//	            #29=cat9-grafana-psid-sqlite-1, #30=cat9-otel-psid-sqlite-1, ...
+//	            #37=cat14-leader-psid-sqlite-1, ...
 func TestGenerate_PSIDCerts_ErrorBranches(t *testing.T) {
 	t.Parallel()
 
@@ -636,7 +638,7 @@ func TestGenerate_PSIDCerts_ErrorBranches(t *testing.T) {
 		{"cat7 mutual leaf error", 0, cryptoutilSharedMagic.IdentityDefaultMaxOpenConns, "cat7 admin mutual leaf"},
 		{"cat9 grafana psid client error", 0, 29, "cat9 grafana psid client"},
 		{"cat9 otel psid client error", 0, cryptoutilSharedMagic.FiberReadTimeoutSeconds, "cat9 otel psid client"},
-		{"cat14 postgres client error", 0, 31, "cat14 postgres app client"},
+		{"cat14 postgres client error", 0, 37, "cat14 postgres app client"},
 	}
 
 	for _, tc := range tests {

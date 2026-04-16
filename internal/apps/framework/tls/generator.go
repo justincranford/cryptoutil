@@ -228,12 +228,12 @@ func (g *Generator) generateSharedCAs(basePath string) (*sharedCAs, error) {
 	}
 
 	// --- Category 13: PostgreSQL Replication Client Certs (2 dirs) ---
-	if err := g.generateClientLeafDir(basePath, "postgres-tls-client-entity-"+cryptoutilSharedMagic.PKIInitPostgresLeader,
+	if err := g.generateClientLeafDir(basePath, "postgres-tls-client-entity-"+cryptoutilSharedMagic.PKIInitPostgresLeader+"-replication",
 		shared.postgresClientIssuing); err != nil {
 		return nil, fmt.Errorf("cat13 postgres leader replication client: %w", err)
 	}
 
-	if err := g.generateClientLeafDir(basePath, "postgres-tls-client-entity-"+cryptoutilSharedMagic.PKIInitPostgresFollower,
+	if err := g.generateClientLeafDir(basePath, "postgres-tls-client-entity-"+cryptoutilSharedMagic.PKIInitPostgresFollower+"-replication",
 		shared.postgresClientIssuing); err != nil {
 		return nil, fmt.Errorf("cat13 postgres follower replication client: %w", err)
 	}
@@ -297,25 +297,29 @@ func (g *Generator) generatePSIDCerts(basePath, psID string, shared *sharedCAs) 
 		}
 	}
 
-	// --- Category 9 (per-PS-ID): Grafana + OTel client certs per PS-ID (2 dirs) ---
-	grafanaPSIDDir := cryptoutilSharedMagic.DockerServiceGrafanaOtelLgtm + "-https-client-entity-" + psID
+	// --- Category 9 (per-PS-ID): Grafana + OTel client certs per PS-ID × instance (8 dirs) ---
+	for _, suffix := range PKIInitAppInstanceSuffixes() {
+		grafanaPSIDDir := cryptoutilSharedMagic.DockerServiceGrafanaOtelLgtm + "-https-client-entity-" + psID + "-" + suffix
 
-	if err := g.generateClientLeafDir(basePath, grafanaPSIDDir, shared.grafanaClientIssuing); err != nil {
-		return fmt.Errorf("cat9 grafana psid client %s: %w", psID, err)
+		if err := g.generateClientLeafDir(basePath, grafanaPSIDDir, shared.grafanaClientIssuing); err != nil {
+			return fmt.Errorf("cat9 grafana psid client %s-%s: %w", psID, suffix, err)
+		}
+
+		otelPSIDDir := cryptoutilSharedMagic.PKIInitOtelCollectorContrib + "-https-client-entity-" + psID + "-" + suffix
+
+		if err := g.generateClientLeafDir(basePath, otelPSIDDir, shared.otelClientIssuing); err != nil {
+			return fmt.Errorf("cat9 otel psid client %s-%s: %w", psID, suffix, err)
+		}
 	}
 
-	otelPSIDDir := cryptoutilSharedMagic.PKIInitOtelCollectorContrib + "-https-client-entity-" + psID
-
-	if err := g.generateClientLeafDir(basePath, otelPSIDDir, shared.otelClientIssuing); err != nil {
-		return fmt.Errorf("cat9 otel psid client %s: %w", psID, err)
-	}
-
-	// --- Category 14: PS-ID PostgreSQL App Client Certs (2 dirs) ---
+	// --- Category 14: PS-ID PostgreSQL App Client Certs (8 dirs) ---
 	for _, role := range []string{cryptoutilSharedMagic.PKIInitPostgresLeader, cryptoutilSharedMagic.PKIInitPostgresFollower} {
-		dirName := "postgres-tls-client-entity-" + psID + "-" + role
+		for _, suffix := range PKIInitAppInstanceSuffixes() {
+			dirName := "postgres-tls-client-entity-" + role + "-" + psID + "-" + suffix
 
-		if err := g.generateClientLeafDir(basePath, dirName, shared.postgresClientIssuing); err != nil {
-			return fmt.Errorf("cat14 postgres app client %s: %w", role, err)
+			if err := g.generateClientLeafDir(basePath, dirName, shared.postgresClientIssuing); err != nil {
+				return fmt.Errorf("cat14 postgres app client %s-%s: %w", role, suffix, err)
+			}
 		}
 	}
 
