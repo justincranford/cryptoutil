@@ -272,7 +272,7 @@ func (g *Generator) generatePSIDCerts(basePath, psID string, shared *sharedCAs) 
 		// Category 5: Client leaf certs per user type × realm (per domain).
 		for _, userType := range PKIInitUserTypes() {
 			for _, realm := range realms {
-				dirName := "public-https-client-entity-" + psID + "-" + userType + "-" + domain + "-" + realm
+				dirName := "public-https-client-entity-" + psID + "-" + domain + "-" + userType + "-" + realm
 				if leafErr := g.generateClientLeafDir(basePath, dirName, clientIssuing); leafErr != nil {
 					return fmt.Errorf("cat5 client leaf user=%s realm=%s domain=%s: %w", userType, realm, domain, leafErr)
 				}

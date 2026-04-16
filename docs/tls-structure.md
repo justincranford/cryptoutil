@@ -192,7 +192,7 @@ TARGET-DIRECTORY/{PKI-INIT-DOMAIN}/
 | 2 | Grafana/OTel Server Certs | 2 | 2 | 2 | `public-https-server-entity-{otel-collector-contrib,grafana-otel-lgtm}/` |
 | 3 | PS-ID App Server Certs | 4 | 4×N | 40 | `public-https-server-entity-{PS-ID}-{sqlite,postgres}-{1,2}/` |
 | 4 | PS-ID HTTPS Client CAs | 12 | 12×N | 120 | `public-https-client-{root,issuing}-ca-{PS-ID}-{sqlite-1,sqlite-2,postgres}/[truststore/]` |
-| 5 | PS-ID HTTPS Client Certs | 12 | 12×N | 120 | `public-https-client-entity-{PS-ID}-{browseruser,serviceuser}-{sqlite-1,sqlite-2,postgres}-{realm}/` |
+| 5 | PS-ID HTTPS Client Certs | 12 | 12×N | 120 | `public-https-client-entity-{PS-ID}-{sqlite-1,sqlite-2,postgres}-{browseruser,serviceuser}-{realm}/` |
 | 6 | Private mTLS CAs (Admin) | 16 | 16×N | 160 | `private-https-mutual-{root,issuing}-ca-{PS-ID}-{sqlite,postgres}-{1,2}/[truststore/]` |
 | 7 | Private mTLS Leaves (Admin) | 4 | 4×N | 40 | `private-https-mutual-entity-{PS-ID}-{sqlite,postgres}-{1,2}/` |
 | 8 | Grafana/OTel Client CAs | 8 | 8 | 8 | `{otel-collector-contrib,grafana-otel-lgtm}-https-client-{root,issuing}-ca/[truststore/]` |
@@ -208,7 +208,7 @@ TARGET-DIRECTORY/{PKI-INIT-DOMAIN}/
 
 - **Private admin channel** (`private-https-mutual-{PS-ID}-*`): Mutual TLS required; both server and client auth use the same combined leaf cert per instance (`private-https-mutual-entity-{PS-ID}-*`).
 - **Public HTTPS server** (`public-https-server-entity-{PS-ID}-*`): Server cert issued by global server CA; client TLS authentication optional.
-- **Public HTTPS client** (`public-https-client-entity-{PS-ID}-{browseruser,serviceuser}-*`): Client certificates issued per API path prefix (`/browser/` → `browseruser`, `/service/` → `serviceuser`) and per realm type, per PKI domain, per PS-ID.
+- **Public HTTPS client** (`public-https-client-entity-{PS-ID}-{sqlite-1,sqlite-2,postgres}-{browseruser,serviceuser}-*`): Client certificates issued per PKI domain and per API path prefix (`/browser/` → `browseruser`, `/service/` → `serviceuser`) and per realm type, per PS-ID.
 - **PostgreSQL connections** (`postgres-tls-{server,client}-*`): Mutual TLS and username+password required; mTLS required for all app-instance-to-DB and leader↔follower replication connections.
 - **OTel Collector OTLP** (`public-https-server-entity-otel-collector-contrib` + `otel-collector-contrib-https-client-*`): Server cert for :4317/:4318; client certs per PS-ID per app instance and admin for OTLP export.
 - **Grafana LGTM OTLP ingest** (`grafana-otel-lgtm-https-client-*`): Client certs per PS-ID per app instance and admin for UI access; server cert issued by global server CA.
@@ -257,18 +257,18 @@ Realm values assumed: `file`, `db` (2 realms).
   public-https-client-issuing-ca-skeleton-template-postgres/truststore/
 
   # Category 5: PS-ID HTTPS Client Certs (12 dirs)
-  public-https-client-entity-skeleton-template-browseruser-sqlite-1-file/
-  public-https-client-entity-skeleton-template-browseruser-sqlite-1-db/
-  public-https-client-entity-skeleton-template-browseruser-sqlite-2-file/
-  public-https-client-entity-skeleton-template-browseruser-sqlite-2-db/
-  public-https-client-entity-skeleton-template-browseruser-postgres-file/
-  public-https-client-entity-skeleton-template-browseruser-postgres-db/
-  public-https-client-entity-skeleton-template-serviceuser-sqlite-1-file/
-  public-https-client-entity-skeleton-template-serviceuser-sqlite-1-db/
-  public-https-client-entity-skeleton-template-serviceuser-sqlite-2-file/
-  public-https-client-entity-skeleton-template-serviceuser-sqlite-2-db/
-  public-https-client-entity-skeleton-template-serviceuser-postgres-file/
-  public-https-client-entity-skeleton-template-serviceuser-postgres-db/
+  public-https-client-entity-skeleton-template-sqlite-1-browseruser-file/
+  public-https-client-entity-skeleton-template-sqlite-1-browseruser-db/
+  public-https-client-entity-skeleton-template-sqlite-1-serviceuser-file/
+  public-https-client-entity-skeleton-template-sqlite-1-serviceuser-db/
+  public-https-client-entity-skeleton-template-sqlite-2-browseruser-file/
+  public-https-client-entity-skeleton-template-sqlite-2-browseruser-db/
+  public-https-client-entity-skeleton-template-sqlite-2-serviceuser-file/
+  public-https-client-entity-skeleton-template-sqlite-2-serviceuser-db/
+  public-https-client-entity-skeleton-template-postgres-browseruser-file/
+  public-https-client-entity-skeleton-template-postgres-browseruser-db/
+  public-https-client-entity-skeleton-template-postgres-serviceuser-file/
+  public-https-client-entity-skeleton-template-postgres-serviceuser-db/
 
   # Category 6: Private mTLS CAs - Admin Channel (16 dirs = 8 keystore + 8 truststore subdirs)
   private-https-mutual-root-ca-skeleton-template-sqlite-1/
@@ -411,32 +411,32 @@ Global directories (categories 1, 2, 8, 10-13) are identical to the skeleton-tem
   public-https-client-issuing-ca-sm-im-postgres/truststore/
 
   # Category 5: PS-ID HTTPS Client Certs (24 dirs = 12 × 2 PS-IDs)
-  # --- sm-kms (12 dirs: {browseruser,serviceuser} × {file,db} × {sqlite-1,sqlite-2,postgres}) ---
-  public-https-client-entity-sm-kms-browseruser-sqlite-1-file/
-  public-https-client-entity-sm-kms-browseruser-sqlite-1-db/
-  public-https-client-entity-sm-kms-browseruser-sqlite-2-file/
-  public-https-client-entity-sm-kms-browseruser-sqlite-2-db/
-  public-https-client-entity-sm-kms-browseruser-postgres-file/
-  public-https-client-entity-sm-kms-browseruser-postgres-db/
-  public-https-client-entity-sm-kms-serviceuser-sqlite-1-file/
-  public-https-client-entity-sm-kms-serviceuser-sqlite-1-db/
-  public-https-client-entity-sm-kms-serviceuser-sqlite-2-file/
-  public-https-client-entity-sm-kms-serviceuser-sqlite-2-db/
-  public-https-client-entity-sm-kms-serviceuser-postgres-file/
-  public-https-client-entity-sm-kms-serviceuser-postgres-db/
+  # --- sm-kms (12 dirs: {sqlite-1,sqlite-2,postgres} × {browseruser,serviceuser} × {file,db}) ---
+  public-https-client-entity-sm-kms-sqlite-1-browseruser-file/
+  public-https-client-entity-sm-kms-sqlite-1-browseruser-db/
+  public-https-client-entity-sm-kms-sqlite-1-serviceuser-file/
+  public-https-client-entity-sm-kms-sqlite-1-serviceuser-db/
+  public-https-client-entity-sm-kms-sqlite-2-browseruser-file/
+  public-https-client-entity-sm-kms-sqlite-2-browseruser-db/
+  public-https-client-entity-sm-kms-sqlite-2-serviceuser-file/
+  public-https-client-entity-sm-kms-sqlite-2-serviceuser-db/
+  public-https-client-entity-sm-kms-postgres-browseruser-file/
+  public-https-client-entity-sm-kms-postgres-browseruser-db/
+  public-https-client-entity-sm-kms-postgres-serviceuser-file/
+  public-https-client-entity-sm-kms-postgres-serviceuser-db/
   # --- sm-im (12 dirs: same pattern) ---
-  public-https-client-entity-sm-im-browseruser-sqlite-1-file/
-  public-https-client-entity-sm-im-browseruser-sqlite-1-db/
-  public-https-client-entity-sm-im-browseruser-sqlite-2-file/
-  public-https-client-entity-sm-im-browseruser-sqlite-2-db/
-  public-https-client-entity-sm-im-browseruser-postgres-file/
-  public-https-client-entity-sm-im-browseruser-postgres-db/
-  public-https-client-entity-sm-im-serviceuser-sqlite-1-file/
-  public-https-client-entity-sm-im-serviceuser-sqlite-1-db/
-  public-https-client-entity-sm-im-serviceuser-sqlite-2-file/
-  public-https-client-entity-sm-im-serviceuser-sqlite-2-db/
-  public-https-client-entity-sm-im-serviceuser-postgres-file/
-  public-https-client-entity-sm-im-serviceuser-postgres-db/
+  public-https-client-entity-sm-im-sqlite-1-browseruser-file/
+  public-https-client-entity-sm-im-sqlite-1-browseruser-db/
+  public-https-client-entity-sm-im-sqlite-1-serviceuser-file/
+  public-https-client-entity-sm-im-sqlite-1-serviceuser-db/
+  public-https-client-entity-sm-im-sqlite-2-browseruser-file/
+  public-https-client-entity-sm-im-sqlite-2-browseruser-db/
+  public-https-client-entity-sm-im-sqlite-2-serviceuser-file/
+  public-https-client-entity-sm-im-sqlite-2-serviceuser-db/
+  public-https-client-entity-sm-im-postgres-browseruser-file/
+  public-https-client-entity-sm-im-postgres-browseruser-db/
+  public-https-client-entity-sm-im-postgres-serviceuser-file/
+  public-https-client-entity-sm-im-postgres-serviceuser-db/
 
   # Category 6: Private mTLS CAs - Admin Channel (32 dirs = 16 × 2 PS-IDs)
   # --- sm-kms (16 dirs) ---
