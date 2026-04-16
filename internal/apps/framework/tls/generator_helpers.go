@@ -45,12 +45,12 @@ func (g *Generator) validateTargetDir(basePath string) error {
 }
 
 // generateCAChain creates a 2-tier CA pair (root + issuing) under basePath.
-// Four directories are created:
+// Two keystore directories are created, each with a truststore/ subdirectory:
 //
-//	{prefix}-root-{suffix}-keystore/    (root CA with private key + trust anchor)
-//	{prefix}-root-{suffix}-truststore/  (root CA public trust anchor only)
-//	{prefix}-issuing-{suffix}-keystore/   (issuing CA with private key)
-//	{prefix}-issuing-{suffix}-truststore/ (issuing CA public trust anchor only)
+//	{prefix}-root-{suffix}/             (root CA keystore with private key + trust anchor)
+//	{prefix}-root-{suffix}/truststore/  (root CA public trust anchor only)
+//	{prefix}-issuing-{suffix}/          (issuing CA keystore with private key)
+//	{prefix}-issuing-{suffix}/truststore/ (issuing CA public trust anchor only)
 //
 // Returns the issuing CA Subject for signing leaf certificates.
 func (g *Generator) generateCAChain(basePath, prefix, suffix string) (*cryptoutilSharedCryptoCertificate.Subject, error) {
@@ -65,11 +65,11 @@ func (g *Generator) generateCAChain(basePath, prefix, suffix string) (*cryptouti
 		return nil, fmt.Errorf("root CA %s: %w", rootDirBase, err)
 	}
 
-	if err := g.writeKeystore(basePath, rootDirBase+"-keystore", root); err != nil {
+	if err := g.writeKeystore(basePath, rootDirBase, root); err != nil {
 		return nil, fmt.Errorf("root CA keystore %s: %w", rootDirBase, err)
 	}
 
-	if err := g.writeTruststore(basePath, rootDirBase+"-truststore", root); err != nil {
+	if err := g.writeTruststore(basePath, rootDirBase, root); err != nil {
 		return nil, fmt.Errorf("root CA truststore %s: %w", rootDirBase, err)
 	}
 
@@ -78,11 +78,11 @@ func (g *Generator) generateCAChain(basePath, prefix, suffix string) (*cryptouti
 		return nil, fmt.Errorf("issuing CA %s: %w", issuingDirBase, err)
 	}
 
-	if err := g.writeKeystore(basePath, issuingDirBase+"-keystore", issuing); err != nil {
+	if err := g.writeKeystore(basePath, issuingDirBase, issuing); err != nil {
 		return nil, fmt.Errorf("issuing CA keystore %s: %w", issuingDirBase, err)
 	}
 
-	if err := g.writeTruststore(basePath, issuingDirBase+"-truststore", issuing); err != nil {
+	if err := g.writeTruststore(basePath, issuingDirBase, issuing); err != nil {
 		return nil, fmt.Errorf("issuing CA truststore %s: %w", issuingDirBase, err)
 	}
 
@@ -184,12 +184,14 @@ func (g *Generator) writeKeystore(basePath, dirName string, subject *cryptoutilS
 	return nil
 }
 
-// writeTruststore writes a PKCS#12 truststore directory with 2 files:
+// writeTruststore writes a PKCS#12 truststore as a subdirectory of the keystore directory.
+// The truststore/ subdir is created inside basePath/dirName (the keystore directory).
+// Files use SAME-AS-KEYSTORE-DIR-NAME convention and are named after dirName, not "truststore":
 //
-//	{dirName}.p12  (0444 — PKCS#12 truststore, no private key)
-//	{dirName}.crt  (0444 — PEM certificate chain)
+//	{basePath}/{dirName}/truststore/{dirName}.p12  (0444 — PKCS#12 truststore, no private key)
+//	{basePath}/{dirName}/truststore/{dirName}.crt  (0444 — PEM certificate chain)
 func (g *Generator) writeTruststore(basePath, dirName string, subject *cryptoutilSharedCryptoCertificate.Subject) error {
-	dir := filepath.Join(basePath, dirName)
+	dir := filepath.Join(basePath, dirName, "truststore")
 
 	if err := g.mkdirAllFn(dir, cryptoutilSharedMagic.PKIInitCertsDirMode); err != nil {
 		return fmt.Errorf("mkdir %s: %w", dir, err)

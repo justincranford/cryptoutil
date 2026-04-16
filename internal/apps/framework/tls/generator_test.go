@@ -158,9 +158,9 @@ func TestGenerateLeafDirs_CreateLeafError(t *testing.T) {
 			runTest: func(t *testing.T, gen *cryptoutilAppsFrameworkTls.Generator, basePath string, issuer *cryptoutilSharedCryptoCertificate.Subject) {
 				t.Helper()
 
-				err := gen.ExportedGenerateServerLeafDir(basePath, "test-server-keystore", issuer,
+				err := gen.ExportedGenerateServerLeafDir(basePath, "test-server", issuer,
 					[]string{cryptoutilSharedMagic.DefaultOTLPHostnameDefault}, []net.IP{net.ParseIP(cryptoutilSharedMagic.IPv4Loopback)})
-				require.ErrorContains(t, err, "server leaf test-server-keystore")
+				require.ErrorContains(t, err, "server leaf test-server")
 			},
 		},
 		{
@@ -168,8 +168,8 @@ func TestGenerateLeafDirs_CreateLeafError(t *testing.T) {
 			runTest: func(t *testing.T, gen *cryptoutilAppsFrameworkTls.Generator, basePath string, issuer *cryptoutilSharedCryptoCertificate.Subject) {
 				t.Helper()
 
-				err := gen.ExportedGenerateClientLeafDir(basePath, "test-client-keystore", issuer)
-				require.ErrorContains(t, err, "client leaf test-client-keystore")
+				err := gen.ExportedGenerateClientLeafDir(basePath, "test-client", issuer)
+				require.ErrorContains(t, err, "client leaf test-client")
 			},
 		},
 		{
@@ -177,9 +177,9 @@ func TestGenerateLeafDirs_CreateLeafError(t *testing.T) {
 			runTest: func(t *testing.T, gen *cryptoutilAppsFrameworkTls.Generator, basePath string, issuer *cryptoutilSharedCryptoCertificate.Subject) {
 				t.Helper()
 
-				err := gen.ExportedGenerateMutualLeafDir(basePath, "test-mutual-keystore", issuer,
+				err := gen.ExportedGenerateMutualLeafDir(basePath, "test-mutual", issuer,
 					[]string{cryptoutilSharedMagic.DefaultOTLPHostnameDefault}, []net.IP{net.ParseIP(cryptoutilSharedMagic.IPv4Loopback)})
-				require.ErrorContains(t, err, "mutual leaf test-mutual-keystore")
+				require.ErrorContains(t, err, "mutual leaf test-mutual")
 			},
 		},
 	}

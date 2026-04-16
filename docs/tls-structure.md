@@ -50,12 +50,12 @@ Each directory name IS the base name for the files it contains. Two directory ty
 
 | Type | Files | Description |
 |------|-------|-------------|
-| **keystore** | `SAME-AS-DIR-NAME.p12`, `SAME-AS-DIR-NAME.crt`, `SAME-AS-DIR-NAME.key` | PKCS#12 bundle + PEM cert + PEM private key |
-| **truststore** | `SAME-AS-DIR-NAME.p12`, `SAME-AS-DIR-NAME.crt` | PKCS#12 bundle + PEM cert (NO private key) |
+| **keystore** | `SAME-AS-KEYSTORE-DIR-NAME.p12`, `SAME-AS-KEYSTORE-DIR-NAME.crt`, `SAME-AS-KEYSTORE-DIR-NAME.key` | PKCS#12 bundle + PEM cert + PEM private key |
+| **truststore** | `truststore/SAME-AS-KEYSTORE-DIR-NAME.p12`, `truststore/SAME-AS-KEYSTORE-DIR-NAME.crt` | PKCS#12 bundle + PEM cert (NO private key); in `truststore/` subdir of keystore dir |
 
 **Rule**: Any combination of `{truststore}` and `{key}` is ignored — a truststore NEVER contains a private key.
 
-**Rule**: `pki-init` generates truststores **only for CA certificates**. End-entity (leaf) certificates NEVER receive a `-truststore/` directory — trust is established via the issuing CA's truststore. `pki-init` never generates self-signed leaf certificates.
+**Rule**: `pki-init` generates truststores **only for CA certificates** as a `truststore/` subdirectory within the keystore directory. End-entity (leaf) certificates NEVER receive a `truststore/` subdirectory — trust is established via the issuing CA's truststore. `pki-init` never generates self-signed leaf certificates.
 
 ## Requirements
 
@@ -162,45 +162,45 @@ Required logical layout:
 
 ```text
 TARGET-DIRECTORY/{PKI-INIT-DOMAIN}/
-  public-https-server-global-{root,issuing}-ca-{keystore,truststore}/SAME-AS-DIR-NAME.{p12,crt,key}
-  public-https-server-{grafana-otel-lgtm,otel-collector-contrib}-entity-keystore/SAME-AS-DIR-NAME.{p12,crt,key}
-  public-https-server-{PS-ID}-{sqlite,postgres}-{1,2}-entity-keystore/SAME-AS-DIR-NAME.{p12,crt,key}
+  public-https-server-{root,issuing}-ca{/,/truststore/}SAME-AS-KEYSTORE-DIR-NAME.{p12,crt,key}
+  public-https-server-{entity}-{PS-ID}-{sqlite,postgres}-{1,2}{/,/truststore/}SAME-AS-KEYSTORE-DIR-NAME.{p12,crt,key}
+  public-https-server-{entity}-{otel-collector-contrib,grafana-otel-lgtm}{/,/truststore/}SAME-AS-KEYSTORE-DIR-NAME.{p12,crt,key}
 
-  public-https-client-{PS-ID}-{root,issuing}-ca-{sqlite-1,sqlite-2,postgres}-{keystore,truststore}/SAME-AS-DIR-NAME.{p12,crt,key}
-  public-https-client-{PS-ID}-{browseruser,serviceuser}-entity-{sqlite-1,sqlite-2,postgres}-{realm}-keystore/SAME-AS-DIR-NAME.{p12,crt,key}
+  public-https-client-{root,issuing}-ca-{PS-ID}-{sqlite-1,sqlite-2,postgres}{/,/truststore/}SAME-AS-KEYSTORE-DIR-NAME.{p12,crt,key}
+  public-https-client-{entity}-{PS-ID}-{browseruser,serviceuser}-{sqlite-1,sqlite-2,postgres}-{realm}{/,/truststore/}SAME-AS-KEYSTORE-DIR-NAME.{p12,crt,key}
 
-  private-https-client-{PS-ID}-{root,issuing}-ca-{sqlite,postgres}-{1,2}-{keystore,truststore}/SAME-AS-DIR-NAME.{p12,crt,key}
-  private-https-client-{PS-ID}-{mutual}-entity-{sqlite,postgres}-{1,2}-keystore/SAME-AS-DIR-NAME.{p12,crt,key}
+  private-https-mutual-{root,issuing}-ca-{PS-ID}-{sqlite,postgres}-{1,2}{/,/truststore/}SAME-AS-KEYSTORE-DIR-NAME.{p12,crt,key}
+  private-https-mutual-{entity}-{PS-ID}-{sqlite,postgres}-{1,2}{/,/truststore/}SAME-AS-KEYSTORE-DIR-NAME.{p12,crt,key}
 
-  public-https-client-{grafana-otel-lgtm,otel-collector-contrib}-{root,issuing}-ca-{keystore,truststore}/SAME-AS-DIR-NAME.{p12,crt,key}
-  public-https-client-{grafana-otel-lgtm,otel-collector-contrib}-{PS-ID,admin}-entity-keystore/SAME-AS-DIR-NAME.{p12,crt,key}
+  {otel-collector-contrib,grafana-otel-lgtm}-https-client-{root,issuing}-ca{/,/truststore/}SAME-AS-KEYSTORE-DIR-NAME.{p12,crt,key}
+  {otel-collector-contrib,grafana-otel-lgtm}-https-client-{entity}-{PS-ID,admin}{/,/truststore/}SAME-AS-KEYSTORE-DIR-NAME.{p12,crt,key}
 
-  private-tls-server-postgres-{root,issuing}-ca-{keystore,truststore}/SAME-AS-DIR-NAME.{p12,crt,key}
-  private-tls-server-postgres-{leader,follower}-entity-keystore/SAME-AS-DIR-NAME.{p12,crt,key}
+  postgres-tls-server-{root,issuing}-ca{/,/truststore/}SAME-AS-KEYSTORE-DIR-NAME.{p12,crt,key}
+  postgres-tls-server-{entity}-{leader,follower}{/,/truststore/}SAME-AS-KEYSTORE-DIR-NAME.{p12,crt,key}
 
-  private-tls-client-postgres-{root,issuing}-ca-{keystore,truststore}/SAME-AS-DIR-NAME.{p12,crt,key}
-  private-tls-client-postgres-{leader,follower}-entity-keystore/SAME-AS-DIR-NAME.{p12,crt,key}
-  private-tls-client-{PS-ID}-postgres-{1,2}-{leader,follower}-entity-keystore/SAME-AS-DIR-NAME.{p12,crt,key}
+  postgres-tls-client-{root,issuing}-ca{/,/truststore/}SAME-AS-KEYSTORE-DIR-NAME.{p12,crt,key}
+  postgres-tls-client-{entity}-{leader,follower}{/,/truststore/}SAME-AS-KEYSTORE-DIR-NAME.{p12,crt,key}
+  postgres-tls-client-{entity}-{PS-ID}-{leader,follower}{/,/truststore/}SAME-AS-KEYSTORE-DIR-NAME.{p12,crt,key}
 ```
 
 ## Directory Count Summary
 
 | Category | Description | Per PS-ID | Per PRODUCT (N PS-IDs) | Per SUITE (10 PS-IDs) | Logical Layout Pattern |
 |----------|-------------|-----------|------------------------|----------------------|------------------------|
-| 1 | Global HTTPS Server CAs | 4 | 4 | 4 | `public-https-server-global-{root,issuing}-ca-{keystore,truststore}/` |
-| 2 | Grafana/OTel Server Certs | 2 | 2 | 2 | `public-https-server-{grafana-otel-lgtm,otel-collector-contrib}-entity-keystore/` |
-| 3 | PS-ID App Server Certs | 4 | 4×N | 40 | `public-https-server-{PS-ID}-{sqlite,postgres}-{1,2}-entity-keystore/` |
-| 4 | PS-ID HTTPS Client CAs | 12 | 12×N | 120 | `public-https-client-{PS-ID}-{root,issuing}-ca-{sqlite-1,sqlite-2,postgres}-{keystore,truststore}/` |
-| 5 | PS-ID HTTPS Client Certs | 12 | 12×N | 120 | `public-https-client-{PS-ID}-{browseruser,serviceuser}-entity-{sqlite-1,sqlite-2,postgres}-{realm}-keystore/` |
-| 6 | Private mTLS CAs (Admin) | 16 | 16×N | 160 | `private-https-client-{PS-ID}-{root,issuing}-ca-{sqlite,postgres}-{1,2}-{keystore,truststore}/` |
-| 7 | Private mTLS Leaves (Admin) | 4 | 4×N | 40 | `private-https-client-{PS-ID}-{mutual}-entity-{sqlite,postgres}-{1,2}-keystore/` |
-| 8 | Grafana/OTel Client CAs | 8 | 8 | 8 | `public-https-client-{grafana-otel-lgtm,otel-collector-contrib}-{root,issuing}-ca-{keystore,truststore}/` |
-| 9 | Grafana/OTel Client Certs | 4 | 2×(N+1) | 22 | `public-https-client-{grafana-otel-lgtm,otel-collector-contrib}-{PS-ID,admin}-entity-keystore/` |
-| 10 | PostgreSQL Server CAs | 4 | 4 | 4 | `private-tls-server-postgres-{root,issuing}-ca-{keystore,truststore}/` |
-| 11 | PostgreSQL Server Certs | 2 | 2 | 2 | `private-tls-server-postgres-{leader,follower}-entity-keystore/` |
-| 12 | PostgreSQL Client CAs | 4 | 4 | 4 | `private-tls-client-postgres-{root,issuing}-ca-{keystore,truststore}/` |
-| 13 | PostgreSQL Replication Certs | 2 | 2 | 2 | `private-tls-client-postgres-{leader,follower}-entity-keystore/` |
-| 14 | PS-ID PostgreSQL App Clients | 4 | 4×N | 40 | `private-tls-client-{PS-ID}-postgres-{1,2}-{leader,follower}-entity-keystore/` |
+| 1 | Global HTTPS Server CAs | 4 | 4 | 4 | `public-https-server-global-{root,issuing}-ca/[truststore/]` |
+| 2 | Grafana/OTel Server Certs | 2 | 2 | 2 | `public-https-server-{otel-collector-contrib,grafana-otel-lgtm}-entity/` |
+| 3 | PS-ID App Server Certs | 4 | 4×N | 40 | `public-https-server-{PS-ID}-{sqlite,postgres}-{1,2}-entity/` |
+| 4 | PS-ID HTTPS Client CAs | 12 | 12×N | 120 | `public-https-client-{PS-ID}-{root,issuing}-ca-{sqlite-1,sqlite-2,postgres}/[truststore/]` |
+| 5 | PS-ID HTTPS Client Certs | 12 | 12×N | 120 | `public-https-client-{PS-ID}-{browseruser,serviceuser}-entity-{sqlite-1,sqlite-2,postgres}-{realm}/` |
+| 6 | Private mTLS CAs (Admin) | 16 | 16×N | 160 | `private-https-client-{PS-ID}-{root,issuing}-ca-{sqlite,postgres}-{1,2}/[truststore/]` |
+| 7 | Private mTLS Leaves (Admin) | 4 | 4×N | 40 | `private-https-client-{PS-ID}-{mutual}-entity-{sqlite,postgres}-{1,2}/` |
+| 8 | Grafana/OTel Client CAs | 8 | 8 | 8 | `public-https-client-{otel-collector-contrib,grafana-otel-lgtm}-{root,issuing}-ca/[truststore/]` |
+| 9 | Grafana/OTel Client Certs | 4 | 2×(N+1) | 22 | `public-https-client-{otel-collector-contrib,grafana-otel-lgtm}-{PS-ID,admin}-entity/` |
+| 10 | PostgreSQL Server CAs | 4 | 4 | 4 | `private-tls-server-postgres-{root,issuing}-ca/[truststore/]` |
+| 11 | PostgreSQL Server Certs | 2 | 2 | 2 | `private-tls-server-postgres-{leader,follower}-entity/` |
+| 12 | PostgreSQL Client CAs | 4 | 4 | 4 | `private-tls-client-postgres-{root,issuing}-ca/[truststore/]` |
+| 13 | PostgreSQL Replication Certs | 2 | 2 | 2 | `private-tls-client-postgres-{leader,follower}-entity/` |
+| 14 | PS-ID PostgreSQL App Clients | 4 | 4×N | 40 | `private-tls-client-{PS-ID}-postgres-{1,2}-{leader,follower}-entity/` |
 | **Total** | | **82** | **varies** | **568** | |
 
 ## Policy Alignment
@@ -211,7 +211,7 @@ TARGET-DIRECTORY/{PKI-INIT-DOMAIN}/
 - **PostgreSQL connections** (`private-tls-{server,client}-postgres-*`): Mutual TLS and username+password required; mTLS required for all app-instance-to-DB and leader↔follower replication connections.
 - **OTel Collector OTLP** (`public-https-{server,client}-otel-collector-contrib-*`): Server cert for :4317/:4318; client certs per PS-ID and admin for OTLP export.
 - **Grafana LGTM OTLP ingest** (`public-https-client-grafana-otel-lgtm-*`): Client certs per PS-ID and admin for UI access; server cert issued by global server CA.
-- **Grafana LGTM HTTPS UI** (port 3000): Server cert in `public-https-server-grafana-otel-lgtm-entity-keystore/`, issued by global server CA.
+- **Grafana LGTM HTTPS UI** (port 3000): Server cert in `public-https-server-grafana-otel-lgtm-entity/`, issued by global server CA.
 
 ## Example: skeleton-template (PS-ID)
 
@@ -219,121 +219,121 @@ Command: `pki-init skeleton-template /tmp`
 
 Realm values assumed: `file`, `db` (2 realms).
 
-**Keystore directories** contain: `SAME-AS-DIR-NAME.p12`, `SAME-AS-DIR-NAME.crt`, `SAME-AS-DIR-NAME.key`
-**Truststore directories** contain: `SAME-AS-DIR-NAME.p12`, `SAME-AS-DIR-NAME.crt`
+**Keystore directories** contain: `SAME-AS-KEYSTORE-DIR-NAME.p12`, `SAME-AS-KEYSTORE-DIR-NAME.crt`, `SAME-AS-KEYSTORE-DIR-NAME.key`
+**Truststore subdirectories** (`truststore/` inside keystore dir) contain: `SAME-AS-KEYSTORE-DIR-NAME.p12`, `SAME-AS-KEYSTORE-DIR-NAME.crt`
 
 ```text
 /tmp/skeleton-template/
 
-  # Category 1: Global HTTPS Server CAs (4 dirs)
-  public-https-server-global-root-ca-keystore/
-  public-https-server-global-root-ca-truststore/
-  public-https-server-global-issuing-ca-keystore/
-  public-https-server-global-issuing-ca-truststore/
+  # Category 1: Global HTTPS Server CAs (4 dirs = 2 keystore + 2 truststore subdirs)
+  public-https-server-global-root-ca/
+  public-https-server-global-root-ca/truststore/
+  public-https-server-global-issuing-ca/
+  public-https-server-global-issuing-ca/truststore/
 
   # Category 2: Grafana/OTel Server Certs (2 dirs)
-  public-https-server-grafana-otel-lgtm-entity-keystore/
-  public-https-server-otel-collector-contrib-entity-keystore/
+  public-https-server-grafana-otel-lgtm-entity/
+  public-https-server-otel-collector-contrib-entity/
 
   # Category 3: PS-ID App Server Certs (4 dirs)
-  public-https-server-skeleton-template-sqlite-1-entity-keystore/
-  public-https-server-skeleton-template-sqlite-2-entity-keystore/
-  public-https-server-skeleton-template-postgres-1-entity-keystore/
-  public-https-server-skeleton-template-postgres-2-entity-keystore/
+  public-https-server-skeleton-template-sqlite-1-entity/
+  public-https-server-skeleton-template-sqlite-2-entity/
+  public-https-server-skeleton-template-postgres-1-entity/
+  public-https-server-skeleton-template-postgres-2-entity/
 
-  # Category 4: PS-ID HTTPS Client CAs (12 dirs)
-  public-https-client-skeleton-template-root-ca-sqlite-1-keystore/
-  public-https-client-skeleton-template-root-ca-sqlite-1-truststore/
-  public-https-client-skeleton-template-root-ca-sqlite-2-keystore/
-  public-https-client-skeleton-template-root-ca-sqlite-2-truststore/
-  public-https-client-skeleton-template-root-ca-postgres-keystore/
-  public-https-client-skeleton-template-root-ca-postgres-truststore/
-  public-https-client-skeleton-template-issuing-ca-sqlite-1-keystore/
-  public-https-client-skeleton-template-issuing-ca-sqlite-1-truststore/
-  public-https-client-skeleton-template-issuing-ca-sqlite-2-keystore/
-  public-https-client-skeleton-template-issuing-ca-sqlite-2-truststore/
-  public-https-client-skeleton-template-issuing-ca-postgres-keystore/
-  public-https-client-skeleton-template-issuing-ca-postgres-truststore/
+  # Category 4: PS-ID HTTPS Client CAs (12 dirs = 6 keystore + 6 truststore subdirs)
+  public-https-client-skeleton-template-root-ca-sqlite-1/
+  public-https-client-skeleton-template-root-ca-sqlite-1/truststore/
+  public-https-client-skeleton-template-root-ca-sqlite-2/
+  public-https-client-skeleton-template-root-ca-sqlite-2/truststore/
+  public-https-client-skeleton-template-root-ca-postgres/
+  public-https-client-skeleton-template-root-ca-postgres/truststore/
+  public-https-client-skeleton-template-issuing-ca-sqlite-1/
+  public-https-client-skeleton-template-issuing-ca-sqlite-1/truststore/
+  public-https-client-skeleton-template-issuing-ca-sqlite-2/
+  public-https-client-skeleton-template-issuing-ca-sqlite-2/truststore/
+  public-https-client-skeleton-template-issuing-ca-postgres/
+  public-https-client-skeleton-template-issuing-ca-postgres/truststore/
 
   # Category 5: PS-ID HTTPS Client Certs (12 dirs)
-  public-https-client-skeleton-template-browseruser-entity-sqlite-1-file-keystore/
-  public-https-client-skeleton-template-browseruser-entity-sqlite-1-db-keystore/
-  public-https-client-skeleton-template-browseruser-entity-sqlite-2-file-keystore/
-  public-https-client-skeleton-template-browseruser-entity-sqlite-2-db-keystore/
-  public-https-client-skeleton-template-browseruser-entity-postgres-file-keystore/
-  public-https-client-skeleton-template-browseruser-entity-postgres-db-keystore/
-  public-https-client-skeleton-template-serviceuser-entity-sqlite-1-file-keystore/
-  public-https-client-skeleton-template-serviceuser-entity-sqlite-1-db-keystore/
-  public-https-client-skeleton-template-serviceuser-entity-sqlite-2-file-keystore/
-  public-https-client-skeleton-template-serviceuser-entity-sqlite-2-db-keystore/
-  public-https-client-skeleton-template-serviceuser-entity-postgres-file-keystore/
-  public-https-client-skeleton-template-serviceuser-entity-postgres-db-keystore/
+  public-https-client-skeleton-template-browseruser-entity-sqlite-1-file/
+  public-https-client-skeleton-template-browseruser-entity-sqlite-1-db/
+  public-https-client-skeleton-template-browseruser-entity-sqlite-2-file/
+  public-https-client-skeleton-template-browseruser-entity-sqlite-2-db/
+  public-https-client-skeleton-template-browseruser-entity-postgres-file/
+  public-https-client-skeleton-template-browseruser-entity-postgres-db/
+  public-https-client-skeleton-template-serviceuser-entity-sqlite-1-file/
+  public-https-client-skeleton-template-serviceuser-entity-sqlite-1-db/
+  public-https-client-skeleton-template-serviceuser-entity-sqlite-2-file/
+  public-https-client-skeleton-template-serviceuser-entity-sqlite-2-db/
+  public-https-client-skeleton-template-serviceuser-entity-postgres-file/
+  public-https-client-skeleton-template-serviceuser-entity-postgres-db/
 
-  # Category 6: Private mTLS CAs - Admin Channel (16 dirs)
-  private-https-client-skeleton-template-root-ca-sqlite-1-keystore/
-  private-https-client-skeleton-template-root-ca-sqlite-1-truststore/
-  private-https-client-skeleton-template-root-ca-sqlite-2-keystore/
-  private-https-client-skeleton-template-root-ca-sqlite-2-truststore/
-  private-https-client-skeleton-template-root-ca-postgres-1-keystore/
-  private-https-client-skeleton-template-root-ca-postgres-1-truststore/
-  private-https-client-skeleton-template-root-ca-postgres-2-keystore/
-  private-https-client-skeleton-template-root-ca-postgres-2-truststore/
-  private-https-client-skeleton-template-issuing-ca-sqlite-1-keystore/
-  private-https-client-skeleton-template-issuing-ca-sqlite-1-truststore/
-  private-https-client-skeleton-template-issuing-ca-sqlite-2-keystore/
-  private-https-client-skeleton-template-issuing-ca-sqlite-2-truststore/
-  private-https-client-skeleton-template-issuing-ca-postgres-1-keystore/
-  private-https-client-skeleton-template-issuing-ca-postgres-1-truststore/
-  private-https-client-skeleton-template-issuing-ca-postgres-2-keystore/
-  private-https-client-skeleton-template-issuing-ca-postgres-2-truststore/
+  # Category 6: Private mTLS CAs - Admin Channel (16 dirs = 8 keystore + 8 truststore subdirs)
+  private-https-client-skeleton-template-root-ca-sqlite-1/
+  private-https-client-skeleton-template-root-ca-sqlite-1/truststore/
+  private-https-client-skeleton-template-root-ca-sqlite-2/
+  private-https-client-skeleton-template-root-ca-sqlite-2/truststore/
+  private-https-client-skeleton-template-root-ca-postgres-1/
+  private-https-client-skeleton-template-root-ca-postgres-1/truststore/
+  private-https-client-skeleton-template-root-ca-postgres-2/
+  private-https-client-skeleton-template-root-ca-postgres-2/truststore/
+  private-https-client-skeleton-template-issuing-ca-sqlite-1/
+  private-https-client-skeleton-template-issuing-ca-sqlite-1/truststore/
+  private-https-client-skeleton-template-issuing-ca-sqlite-2/
+  private-https-client-skeleton-template-issuing-ca-sqlite-2/truststore/
+  private-https-client-skeleton-template-issuing-ca-postgres-1/
+  private-https-client-skeleton-template-issuing-ca-postgres-1/truststore/
+  private-https-client-skeleton-template-issuing-ca-postgres-2/
+  private-https-client-skeleton-template-issuing-ca-postgres-2/truststore/
 
   # Category 7: Private mTLS Leaves - Admin Channel (4 dirs)
-  private-https-client-skeleton-template-mutual-entity-sqlite-1-keystore/
-  private-https-client-skeleton-template-mutual-entity-sqlite-2-keystore/
-  private-https-client-skeleton-template-mutual-entity-postgres-1-keystore/
-  private-https-client-skeleton-template-mutual-entity-postgres-2-keystore/
+  private-https-client-skeleton-template-mutual-entity-sqlite-1/
+  private-https-client-skeleton-template-mutual-entity-sqlite-2/
+  private-https-client-skeleton-template-mutual-entity-postgres-1/
+  private-https-client-skeleton-template-mutual-entity-postgres-2/
 
-  # Category 8: Grafana/OTel Client CAs (8 dirs)
-  public-https-client-grafana-otel-lgtm-root-ca-keystore/
-  public-https-client-grafana-otel-lgtm-root-ca-truststore/
-  public-https-client-grafana-otel-lgtm-issuing-ca-keystore/
-  public-https-client-grafana-otel-lgtm-issuing-ca-truststore/
-  public-https-client-otel-collector-contrib-root-ca-keystore/
-  public-https-client-otel-collector-contrib-root-ca-truststore/
-  public-https-client-otel-collector-contrib-issuing-ca-keystore/
-  public-https-client-otel-collector-contrib-issuing-ca-truststore/
+  # Category 8: Grafana/OTel Client CAs (8 dirs = 4 keystore + 4 truststore subdirs)
+  public-https-client-grafana-otel-lgtm-root-ca/
+  public-https-client-grafana-otel-lgtm-root-ca/truststore/
+  public-https-client-grafana-otel-lgtm-issuing-ca/
+  public-https-client-grafana-otel-lgtm-issuing-ca/truststore/
+  public-https-client-otel-collector-contrib-root-ca/
+  public-https-client-otel-collector-contrib-root-ca/truststore/
+  public-https-client-otel-collector-contrib-issuing-ca/
+  public-https-client-otel-collector-contrib-issuing-ca/truststore/
 
   # Category 9: Grafana/OTel Client Certs (4 dirs)
-  public-https-client-grafana-otel-lgtm-skeleton-template-entity-keystore/
-  public-https-client-grafana-otel-lgtm-admin-entity-keystore/
-  public-https-client-otel-collector-contrib-skeleton-template-entity-keystore/
-  public-https-client-otel-collector-contrib-admin-entity-keystore/
+  public-https-client-grafana-otel-lgtm-skeleton-template-entity/
+  public-https-client-grafana-otel-lgtm-admin-entity/
+  public-https-client-otel-collector-contrib-skeleton-template-entity/
+  public-https-client-otel-collector-contrib-admin-entity/
 
-  # Category 10: PostgreSQL Server CAs (4 dirs)
-  private-tls-server-postgres-root-ca-keystore/
-  private-tls-server-postgres-root-ca-truststore/
-  private-tls-server-postgres-issuing-ca-keystore/
-  private-tls-server-postgres-issuing-ca-truststore/
+  # Category 10: PostgreSQL Server CAs (4 dirs = 2 keystore + 2 truststore subdirs)
+  private-tls-server-postgres-root-ca/
+  private-tls-server-postgres-root-ca/truststore/
+  private-tls-server-postgres-issuing-ca/
+  private-tls-server-postgres-issuing-ca/truststore/
 
   # Category 11: PostgreSQL Server Certs (2 dirs)
-  private-tls-server-postgres-leader-entity-keystore/
-  private-tls-server-postgres-follower-entity-keystore/
+  private-tls-server-postgres-leader-entity/
+  private-tls-server-postgres-follower-entity/
 
-  # Category 12: PostgreSQL Client CAs (4 dirs)
-  private-tls-client-postgres-root-ca-keystore/
-  private-tls-client-postgres-root-ca-truststore/
-  private-tls-client-postgres-issuing-ca-keystore/
-  private-tls-client-postgres-issuing-ca-truststore/
+  # Category 12: PostgreSQL Client CAs (4 dirs = 2 keystore + 2 truststore subdirs)
+  private-tls-client-postgres-root-ca/
+  private-tls-client-postgres-root-ca/truststore/
+  private-tls-client-postgres-issuing-ca/
+  private-tls-client-postgres-issuing-ca/truststore/
 
   # Category 13: PostgreSQL Replication Client Certs (2 dirs)
-  private-tls-client-postgres-leader-entity-keystore/
-  private-tls-client-postgres-follower-entity-keystore/
+  private-tls-client-postgres-leader-entity/
+  private-tls-client-postgres-follower-entity/
 
   # Category 14: PS-ID PostgreSQL App Client Certs (4 dirs)
-  private-tls-client-skeleton-template-postgres-1-leader-entity-keystore/
-  private-tls-client-skeleton-template-postgres-1-follower-entity-keystore/
-  private-tls-client-skeleton-template-postgres-2-leader-entity-keystore/
-  private-tls-client-skeleton-template-postgres-2-follower-entity-keystore/
+  private-tls-client-skeleton-template-postgres-1-leader-entity/
+  private-tls-client-skeleton-template-postgres-1-follower-entity/
+  private-tls-client-skeleton-template-postgres-2-leader-entity/
+  private-tls-client-skeleton-template-postgres-2-follower-entity/
 ```
 
 **Total: 82 directories** (30 global + 52 PS-ID-specific).
@@ -349,181 +349,181 @@ Global directories (categories 1, 2, 8, 10-13) are identical to the skeleton-tem
 ```text
 /tmp/sm/
 
-  # Category 1: Global HTTPS Server CAs (4 dirs) — same as PS-ID level
-  public-https-server-global-root-ca-keystore/
-  public-https-server-global-root-ca-truststore/
-  public-https-server-global-issuing-ca-keystore/
-  public-https-server-global-issuing-ca-truststore/
+  # Category 1: Global HTTPS Server CAs (4 dirs = 2 keystore + 2 truststore subdirs) — same as PS-ID level
+  public-https-server-global-root-ca/
+  public-https-server-global-root-ca/truststore/
+  public-https-server-global-issuing-ca/
+  public-https-server-global-issuing-ca/truststore/
 
   # Category 2: Grafana/OTel Server Certs (2 dirs) — same as PS-ID level
-  public-https-server-grafana-otel-lgtm-entity-keystore/
-  public-https-server-otel-collector-contrib-entity-keystore/
+  public-https-server-grafana-otel-lgtm-entity/
+  public-https-server-otel-collector-contrib-entity/
 
   # Category 3: PS-ID App Server Certs (8 dirs = 4 × 2 PS-IDs)
   # --- sm-kms ---
-  public-https-server-sm-kms-sqlite-1-entity-keystore/
-  public-https-server-sm-kms-sqlite-2-entity-keystore/
-  public-https-server-sm-kms-postgres-1-entity-keystore/
-  public-https-server-sm-kms-postgres-2-entity-keystore/
+  public-https-server-sm-kms-sqlite-1-entity/
+  public-https-server-sm-kms-sqlite-2-entity/
+  public-https-server-sm-kms-postgres-1-entity/
+  public-https-server-sm-kms-postgres-2-entity/
   # --- sm-im ---
-  public-https-server-sm-im-sqlite-1-entity-keystore/
-  public-https-server-sm-im-sqlite-2-entity-keystore/
-  public-https-server-sm-im-postgres-1-entity-keystore/
-  public-https-server-sm-im-postgres-2-entity-keystore/
+  public-https-server-sm-im-sqlite-1-entity/
+  public-https-server-sm-im-sqlite-2-entity/
+  public-https-server-sm-im-postgres-1-entity/
+  public-https-server-sm-im-postgres-2-entity/
 
   # Category 4: PS-ID HTTPS Client CAs (24 dirs = 12 × 2 PS-IDs)
-  # --- sm-kms (12 dirs: {root,issuing} × {sqlite-1,sqlite-2,postgres} × {keystore,truststore}) ---
-  public-https-client-sm-kms-root-ca-sqlite-1-keystore/
-  public-https-client-sm-kms-root-ca-sqlite-1-truststore/
-  public-https-client-sm-kms-root-ca-sqlite-2-keystore/
-  public-https-client-sm-kms-root-ca-sqlite-2-truststore/
-  public-https-client-sm-kms-root-ca-postgres-keystore/
-  public-https-client-sm-kms-root-ca-postgres-truststore/
-  public-https-client-sm-kms-issuing-ca-sqlite-1-keystore/
-  public-https-client-sm-kms-issuing-ca-sqlite-1-truststore/
-  public-https-client-sm-kms-issuing-ca-sqlite-2-keystore/
-  public-https-client-sm-kms-issuing-ca-sqlite-2-truststore/
-  public-https-client-sm-kms-issuing-ca-postgres-keystore/
-  public-https-client-sm-kms-issuing-ca-postgres-truststore/
+  # --- sm-kms (12 dirs: {root,issuing} × {sqlite-1,sqlite-2,postgres} × {keystore,truststore/}) ---
+  public-https-client-sm-kms-root-ca-sqlite-1/
+  public-https-client-sm-kms-root-ca-sqlite-1/truststore/
+  public-https-client-sm-kms-root-ca-sqlite-2/
+  public-https-client-sm-kms-root-ca-sqlite-2/truststore/
+  public-https-client-sm-kms-root-ca-postgres/
+  public-https-client-sm-kms-root-ca-postgres/truststore/
+  public-https-client-sm-kms-issuing-ca-sqlite-1/
+  public-https-client-sm-kms-issuing-ca-sqlite-1/truststore/
+  public-https-client-sm-kms-issuing-ca-sqlite-2/
+  public-https-client-sm-kms-issuing-ca-sqlite-2/truststore/
+  public-https-client-sm-kms-issuing-ca-postgres/
+  public-https-client-sm-kms-issuing-ca-postgres/truststore/
   # --- sm-im (12 dirs: same pattern) ---
-  public-https-client-sm-im-root-ca-sqlite-1-keystore/
-  public-https-client-sm-im-root-ca-sqlite-1-truststore/
-  public-https-client-sm-im-root-ca-sqlite-2-keystore/
-  public-https-client-sm-im-root-ca-sqlite-2-truststore/
-  public-https-client-sm-im-root-ca-postgres-keystore/
-  public-https-client-sm-im-root-ca-postgres-truststore/
-  public-https-client-sm-im-issuing-ca-sqlite-1-keystore/
-  public-https-client-sm-im-issuing-ca-sqlite-1-truststore/
-  public-https-client-sm-im-issuing-ca-sqlite-2-keystore/
-  public-https-client-sm-im-issuing-ca-sqlite-2-truststore/
-  public-https-client-sm-im-issuing-ca-postgres-keystore/
-  public-https-client-sm-im-issuing-ca-postgres-truststore/
+  public-https-client-sm-im-root-ca-sqlite-1/
+  public-https-client-sm-im-root-ca-sqlite-1/truststore/
+  public-https-client-sm-im-root-ca-sqlite-2/
+  public-https-client-sm-im-root-ca-sqlite-2/truststore/
+  public-https-client-sm-im-root-ca-postgres/
+  public-https-client-sm-im-root-ca-postgres/truststore/
+  public-https-client-sm-im-issuing-ca-sqlite-1/
+  public-https-client-sm-im-issuing-ca-sqlite-1/truststore/
+  public-https-client-sm-im-issuing-ca-sqlite-2/
+  public-https-client-sm-im-issuing-ca-sqlite-2/truststore/
+  public-https-client-sm-im-issuing-ca-postgres/
+  public-https-client-sm-im-issuing-ca-postgres/truststore/
 
   # Category 5: PS-ID HTTPS Client Certs (24 dirs = 12 × 2 PS-IDs)
   # --- sm-kms (12 dirs: {browseruser,serviceuser} × {file,db} × {sqlite-1,sqlite-2,postgres}) ---
-  public-https-client-sm-kms-browseruser-entity-sqlite-1-file-keystore/
-  public-https-client-sm-kms-browseruser-entity-sqlite-1-db-keystore/
-  public-https-client-sm-kms-browseruser-entity-sqlite-2-file-keystore/
-  public-https-client-sm-kms-browseruser-entity-sqlite-2-db-keystore/
-  public-https-client-sm-kms-browseruser-entity-postgres-file-keystore/
-  public-https-client-sm-kms-browseruser-entity-postgres-db-keystore/
-  public-https-client-sm-kms-serviceuser-entity-sqlite-1-file-keystore/
-  public-https-client-sm-kms-serviceuser-entity-sqlite-1-db-keystore/
-  public-https-client-sm-kms-serviceuser-entity-sqlite-2-file-keystore/
-  public-https-client-sm-kms-serviceuser-entity-sqlite-2-db-keystore/
-  public-https-client-sm-kms-serviceuser-entity-postgres-file-keystore/
-  public-https-client-sm-kms-serviceuser-entity-postgres-db-keystore/
+  public-https-client-sm-kms-browseruser-entity-sqlite-1-file/
+  public-https-client-sm-kms-browseruser-entity-sqlite-1-db/
+  public-https-client-sm-kms-browseruser-entity-sqlite-2-file/
+  public-https-client-sm-kms-browseruser-entity-sqlite-2-db/
+  public-https-client-sm-kms-browseruser-entity-postgres-file/
+  public-https-client-sm-kms-browseruser-entity-postgres-db/
+  public-https-client-sm-kms-serviceuser-entity-sqlite-1-file/
+  public-https-client-sm-kms-serviceuser-entity-sqlite-1-db/
+  public-https-client-sm-kms-serviceuser-entity-sqlite-2-file/
+  public-https-client-sm-kms-serviceuser-entity-sqlite-2-db/
+  public-https-client-sm-kms-serviceuser-entity-postgres-file/
+  public-https-client-sm-kms-serviceuser-entity-postgres-db/
   # --- sm-im (12 dirs: same pattern) ---
-  public-https-client-sm-im-browseruser-entity-sqlite-1-file-keystore/
-  public-https-client-sm-im-browseruser-entity-sqlite-1-db-keystore/
-  public-https-client-sm-im-browseruser-entity-sqlite-2-file-keystore/
-  public-https-client-sm-im-browseruser-entity-sqlite-2-db-keystore/
-  public-https-client-sm-im-browseruser-entity-postgres-file-keystore/
-  public-https-client-sm-im-browseruser-entity-postgres-db-keystore/
-  public-https-client-sm-im-serviceuser-entity-sqlite-1-file-keystore/
-  public-https-client-sm-im-serviceuser-entity-sqlite-1-db-keystore/
-  public-https-client-sm-im-serviceuser-entity-sqlite-2-file-keystore/
-  public-https-client-sm-im-serviceuser-entity-sqlite-2-db-keystore/
-  public-https-client-sm-im-serviceuser-entity-postgres-file-keystore/
-  public-https-client-sm-im-serviceuser-entity-postgres-db-keystore/
+  public-https-client-sm-im-browseruser-entity-sqlite-1-file/
+  public-https-client-sm-im-browseruser-entity-sqlite-1-db/
+  public-https-client-sm-im-browseruser-entity-sqlite-2-file/
+  public-https-client-sm-im-browseruser-entity-sqlite-2-db/
+  public-https-client-sm-im-browseruser-entity-postgres-file/
+  public-https-client-sm-im-browseruser-entity-postgres-db/
+  public-https-client-sm-im-serviceuser-entity-sqlite-1-file/
+  public-https-client-sm-im-serviceuser-entity-sqlite-1-db/
+  public-https-client-sm-im-serviceuser-entity-sqlite-2-file/
+  public-https-client-sm-im-serviceuser-entity-sqlite-2-db/
+  public-https-client-sm-im-serviceuser-entity-postgres-file/
+  public-https-client-sm-im-serviceuser-entity-postgres-db/
 
   # Category 6: Private mTLS CAs - Admin Channel (32 dirs = 16 × 2 PS-IDs)
   # --- sm-kms (16 dirs) ---
-  private-https-client-sm-kms-root-ca-sqlite-1-keystore/
-  private-https-client-sm-kms-root-ca-sqlite-1-truststore/
-  private-https-client-sm-kms-root-ca-sqlite-2-keystore/
-  private-https-client-sm-kms-root-ca-sqlite-2-truststore/
-  private-https-client-sm-kms-root-ca-postgres-1-keystore/
-  private-https-client-sm-kms-root-ca-postgres-1-truststore/
-  private-https-client-sm-kms-root-ca-postgres-2-keystore/
-  private-https-client-sm-kms-root-ca-postgres-2-truststore/
-  private-https-client-sm-kms-issuing-ca-sqlite-1-keystore/
-  private-https-client-sm-kms-issuing-ca-sqlite-1-truststore/
-  private-https-client-sm-kms-issuing-ca-sqlite-2-keystore/
-  private-https-client-sm-kms-issuing-ca-sqlite-2-truststore/
-  private-https-client-sm-kms-issuing-ca-postgres-1-keystore/
-  private-https-client-sm-kms-issuing-ca-postgres-1-truststore/
-  private-https-client-sm-kms-issuing-ca-postgres-2-keystore/
-  private-https-client-sm-kms-issuing-ca-postgres-2-truststore/
+  private-https-client-sm-kms-root-ca-sqlite-1/
+  private-https-client-sm-kms-root-ca-sqlite-1/truststore/
+  private-https-client-sm-kms-root-ca-sqlite-2/
+  private-https-client-sm-kms-root-ca-sqlite-2/truststore/
+  private-https-client-sm-kms-root-ca-postgres-1/
+  private-https-client-sm-kms-root-ca-postgres-1/truststore/
+  private-https-client-sm-kms-root-ca-postgres-2/
+  private-https-client-sm-kms-root-ca-postgres-2/truststore/
+  private-https-client-sm-kms-issuing-ca-sqlite-1/
+  private-https-client-sm-kms-issuing-ca-sqlite-1/truststore/
+  private-https-client-sm-kms-issuing-ca-sqlite-2/
+  private-https-client-sm-kms-issuing-ca-sqlite-2/truststore/
+  private-https-client-sm-kms-issuing-ca-postgres-1/
+  private-https-client-sm-kms-issuing-ca-postgres-1/truststore/
+  private-https-client-sm-kms-issuing-ca-postgres-2/
+  private-https-client-sm-kms-issuing-ca-postgres-2/truststore/
   # --- sm-im (16 dirs) ---
-  private-https-client-sm-im-root-ca-sqlite-1-keystore/
-  private-https-client-sm-im-root-ca-sqlite-1-truststore/
-  private-https-client-sm-im-root-ca-sqlite-2-keystore/
-  private-https-client-sm-im-root-ca-sqlite-2-truststore/
-  private-https-client-sm-im-root-ca-postgres-1-keystore/
-  private-https-client-sm-im-root-ca-postgres-1-truststore/
-  private-https-client-sm-im-root-ca-postgres-2-keystore/
-  private-https-client-sm-im-root-ca-postgres-2-truststore/
-  private-https-client-sm-im-issuing-ca-sqlite-1-keystore/
-  private-https-client-sm-im-issuing-ca-sqlite-1-truststore/
-  private-https-client-sm-im-issuing-ca-sqlite-2-keystore/
-  private-https-client-sm-im-issuing-ca-sqlite-2-truststore/
-  private-https-client-sm-im-issuing-ca-postgres-1-keystore/
-  private-https-client-sm-im-issuing-ca-postgres-1-truststore/
-  private-https-client-sm-im-issuing-ca-postgres-2-keystore/
-  private-https-client-sm-im-issuing-ca-postgres-2-truststore/
+  private-https-client-sm-im-root-ca-sqlite-1/
+  private-https-client-sm-im-root-ca-sqlite-1/truststore/
+  private-https-client-sm-im-root-ca-sqlite-2/
+  private-https-client-sm-im-root-ca-sqlite-2/truststore/
+  private-https-client-sm-im-root-ca-postgres-1/
+  private-https-client-sm-im-root-ca-postgres-1/truststore/
+  private-https-client-sm-im-root-ca-postgres-2/
+  private-https-client-sm-im-root-ca-postgres-2/truststore/
+  private-https-client-sm-im-issuing-ca-sqlite-1/
+  private-https-client-sm-im-issuing-ca-sqlite-1/truststore/
+  private-https-client-sm-im-issuing-ca-sqlite-2/
+  private-https-client-sm-im-issuing-ca-sqlite-2/truststore/
+  private-https-client-sm-im-issuing-ca-postgres-1/
+  private-https-client-sm-im-issuing-ca-postgres-1/truststore/
+  private-https-client-sm-im-issuing-ca-postgres-2/
+  private-https-client-sm-im-issuing-ca-postgres-2/truststore/
 
   # Category 7: Private mTLS Leaves - Admin Channel (8 dirs = 4 × 2 PS-IDs)
   # --- sm-kms (4 dirs) ---
-  private-https-client-sm-kms-mutual-entity-sqlite-1-keystore/
-  private-https-client-sm-kms-mutual-entity-sqlite-2-keystore/
-  private-https-client-sm-kms-mutual-entity-postgres-1-keystore/
-  private-https-client-sm-kms-mutual-entity-postgres-2-keystore/
+  private-https-client-sm-kms-mutual-entity-sqlite-1/
+  private-https-client-sm-kms-mutual-entity-sqlite-2/
+  private-https-client-sm-kms-mutual-entity-postgres-1/
+  private-https-client-sm-kms-mutual-entity-postgres-2/
   # --- sm-im (4 dirs) ---
-  private-https-client-sm-im-mutual-entity-sqlite-1-keystore/
-  private-https-client-sm-im-mutual-entity-sqlite-2-keystore/
-  private-https-client-sm-im-mutual-entity-postgres-1-keystore/
-  private-https-client-sm-im-mutual-entity-postgres-2-keystore/
+  private-https-client-sm-im-mutual-entity-sqlite-1/
+  private-https-client-sm-im-mutual-entity-sqlite-2/
+  private-https-client-sm-im-mutual-entity-postgres-1/
+  private-https-client-sm-im-mutual-entity-postgres-2/
 
-  # Category 8: Grafana/OTel Client CAs (8 dirs) — same as PS-ID level
-  public-https-client-grafana-otel-lgtm-root-ca-keystore/
-  public-https-client-grafana-otel-lgtm-root-ca-truststore/
-  public-https-client-grafana-otel-lgtm-issuing-ca-keystore/
-  public-https-client-grafana-otel-lgtm-issuing-ca-truststore/
-  public-https-client-otel-collector-contrib-root-ca-keystore/
-  public-https-client-otel-collector-contrib-root-ca-truststore/
-  public-https-client-otel-collector-contrib-issuing-ca-keystore/
-  public-https-client-otel-collector-contrib-issuing-ca-truststore/
+  # Category 8: Grafana/OTel Client CAs (8 dirs = 4 keystore + 4 truststore subdirs) — same as PS-ID level
+  public-https-client-grafana-otel-lgtm-root-ca/
+  public-https-client-grafana-otel-lgtm-root-ca/truststore/
+  public-https-client-grafana-otel-lgtm-issuing-ca/
+  public-https-client-grafana-otel-lgtm-issuing-ca/truststore/
+  public-https-client-otel-collector-contrib-root-ca/
+  public-https-client-otel-collector-contrib-root-ca/truststore/
+  public-https-client-otel-collector-contrib-issuing-ca/
+  public-https-client-otel-collector-contrib-issuing-ca/truststore/
 
   # Category 9: Grafana/OTel Client Certs (6 dirs = 2 services × (2 PS-IDs + 1 admin) × 1 store type)
-  public-https-client-grafana-otel-lgtm-sm-kms-entity-keystore/
-  public-https-client-grafana-otel-lgtm-sm-im-entity-keystore/
-  public-https-client-grafana-otel-lgtm-admin-entity-keystore/
-  public-https-client-otel-collector-contrib-sm-kms-entity-keystore/
-  public-https-client-otel-collector-contrib-sm-im-entity-keystore/
-  public-https-client-otel-collector-contrib-admin-entity-keystore/
+  public-https-client-grafana-otel-lgtm-sm-kms-entity/
+  public-https-client-grafana-otel-lgtm-sm-im-entity/
+  public-https-client-grafana-otel-lgtm-admin-entity/
+  public-https-client-otel-collector-contrib-sm-kms-entity/
+  public-https-client-otel-collector-contrib-sm-im-entity/
+  public-https-client-otel-collector-contrib-admin-entity/
 
-  # Category 10: PostgreSQL Server CAs (4 dirs) — same as PS-ID level
-  private-tls-server-postgres-root-ca-keystore/
-  private-tls-server-postgres-root-ca-truststore/
-  private-tls-server-postgres-issuing-ca-keystore/
-  private-tls-server-postgres-issuing-ca-truststore/
+  # Category 10: PostgreSQL Server CAs (4 dirs = 2 keystore + 2 truststore subdirs) — same as PS-ID level
+  private-tls-server-postgres-root-ca/
+  private-tls-server-postgres-root-ca/truststore/
+  private-tls-server-postgres-issuing-ca/
+  private-tls-server-postgres-issuing-ca/truststore/
 
   # Category 11: PostgreSQL Server Certs (2 dirs) — same as PS-ID level
-  private-tls-server-postgres-leader-entity-keystore/
-  private-tls-server-postgres-follower-entity-keystore/
+  private-tls-server-postgres-leader-entity/
+  private-tls-server-postgres-follower-entity/
 
-  # Category 12: PostgreSQL Client CAs (4 dirs) — same as PS-ID level
-  private-tls-client-postgres-root-ca-keystore/
-  private-tls-client-postgres-root-ca-truststore/
-  private-tls-client-postgres-issuing-ca-keystore/
-  private-tls-client-postgres-issuing-ca-truststore/
+  # Category 12: PostgreSQL Client CAs (4 dirs = 2 keystore + 2 truststore subdirs) — same as PS-ID level
+  private-tls-client-postgres-root-ca/
+  private-tls-client-postgres-root-ca/truststore/
+  private-tls-client-postgres-issuing-ca/
+  private-tls-client-postgres-issuing-ca/truststore/
 
   # Category 13: PostgreSQL Replication Client Certs (2 dirs) — same as PS-ID level
-  private-tls-client-postgres-leader-entity-keystore/
-  private-tls-client-postgres-follower-entity-keystore/
+  private-tls-client-postgres-leader-entity/
+  private-tls-client-postgres-follower-entity/
 
   # Category 14: PS-ID PostgreSQL App Client Certs (8 dirs = 4 × 2 PS-IDs)
   # --- sm-kms (4 dirs) ---
-  private-tls-client-sm-kms-postgres-1-leader-entity-keystore/
-  private-tls-client-sm-kms-postgres-1-follower-entity-keystore/
-  private-tls-client-sm-kms-postgres-2-leader-entity-keystore/
-  private-tls-client-sm-kms-postgres-2-follower-entity-keystore/
+  private-tls-client-sm-kms-postgres-1-leader-entity/
+  private-tls-client-sm-kms-postgres-1-follower-entity/
+  private-tls-client-sm-kms-postgres-2-leader-entity/
+  private-tls-client-sm-kms-postgres-2-follower-entity/
   # --- sm-im (4 dirs) ---
-  private-tls-client-sm-im-postgres-1-leader-entity-keystore/
-  private-tls-client-sm-im-postgres-1-follower-entity-keystore/
-  private-tls-client-sm-im-postgres-2-leader-entity-keystore/
-  private-tls-client-sm-im-postgres-2-follower-entity-keystore/
+  private-tls-client-sm-im-postgres-1-leader-entity/
+  private-tls-client-sm-im-postgres-1-follower-entity/
+  private-tls-client-sm-im-postgres-2-leader-entity/
+  private-tls-client-sm-im-postgres-2-follower-entity/
 ```
 
 **Total: 136 directories** (26 global + 110 PS-ID-specific across 2 PS-IDs).
