@@ -53,9 +53,9 @@ func TestNewGenerator_NilInputs(t *testing.T) {
 	}
 }
 
-// TestGenerate_SkeletonTemplate_DirCount verifies that Generate creates exactly 82 leaf
+// TestGenerate_SkeletonTemplate_DirCount verifies that Generate creates exactly 80 leaf
 // certificate directories for the skeleton-template PS-ID with 2 realms.
-// The count is: 28 shared + 54 per-PS-ID = 82 (see docs/tls-structure.md).
+// The count is: 28 shared + 52 per-PS-ID = 80 (see docs/tls-structure.md).
 func TestGenerate_SkeletonTemplate_DirCount(t *testing.T) {
 	t.Parallel()
 
@@ -81,10 +81,10 @@ func TestGenerate_SkeletonTemplate_DirCount(t *testing.T) {
 		return nil
 	}))
 
-	const expectedDirs = 82
+	const expectedDirs = 80
 
 	require.Equal(t, expectedDirs, dirCount,
-		"expected %d cert dirs for skeleton-template with 2 realms (28 shared + 54 per-PSID)", expectedDirs)
+		"expected %d cert dirs for skeleton-template with 2 realms (28 shared + 52 per-PSID)", expectedDirs)
 }
 
 // TestGenerate_BasepathIsFile verifies that Generate returns an error when basePath
