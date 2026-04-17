@@ -281,8 +281,8 @@ func TestParseWithFlagSet_ProfileKnown(t *testing.T) {
 	t.Parallel()
 
 	fs := pflag.NewFlagSet("test", pflag.ContinueOnError)
-	// Use a known profile (dev, stg, prod, test)
-	settings, err := ParseWithFlagSet(fs, []string{"start", "--profile=dev"}, false)
+	// Use a known profile (local, stg, prod, test)
+	settings, err := ParseWithFlagSet(fs, []string{"start", "--profile=local"}, false)
 	require.NoError(t, err)
 	require.NotNil(t, settings)
 }

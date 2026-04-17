@@ -213,7 +213,7 @@ func ParseWithFlagSet(fs *pflag.FlagSet, commandParameters []string, exitIfHelp 
 				}
 			}
 		} else {
-			return nil, fmt.Errorf("unknown configuration profile: %s (available: dev, local, stg, prod, test)", profileName)
+			return nil, fmt.Errorf("unknown configuration profile: %s (available: local, stg, prod, test)", profileName)
 		}
 	}
 
@@ -327,7 +327,7 @@ func ParseWithFlagSet(fs *pflag.FlagSet, commandParameters []string, exitIfHelp 
 		fmt.Println("  -h, --help                          print help")
 		fmt.Println("  -y, --config strings                path to config file (can be specified multiple times)")
 		fmt.Println("  -Y, --dry-run                       validate configuration and exit without starting server")
-		fmt.Println("  -P, --profile strings                configuration profile: dev, local, stg, prod, test")
+		fmt.Println("  -P, --profile strings                configuration profile: local, stg, prod, test")
 		fmt.Println()
 		fmt.Println("DATABASE SETTINGS:")
 		fmt.Println("  -u, --database-url string           database URL (default " + formatDefault(cryptoutilSharedMagic.DefaultDatabaseURL) + ")")
