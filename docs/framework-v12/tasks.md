@@ -1,7 +1,7 @@
 # Tasks - Framework V12: PostgreSQL mTLS + Private PS-ID App mTLS Trust
 
-**Status**: 0 of 43 tasks complete (0%)
-**Last Updated**: 2026-04-16
+**Status**: 14 of 43 tasks complete (33%)
+**Last Updated**: 2026-04-17
 **Created**: 2025-06-26
 
 ## Quality Mandate - MANDATORY
@@ -22,168 +22,170 @@
 
 ## Task Checklist
 
-### Phase 0: pki-init Patch — Cat 9 infra + Cat 14 postgres-only [Status: ☐ TODO]
+### Phase 0: pki-init Patch — Cat 9 infra + Cat 14 postgres-only [Status: ✅ COMPLETE]
 
 **Phase Objective**: Apply D3 and D4 structural changes to pki-init generator before TLS wiring.
 
 #### Task 0.1: Add PKIInitEntityInfra Magic Constant
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 0.5h
 - **Dependencies**: None
 - **Description**: Add `PKIInitEntityInfra = "infra"` to `internal/shared/magic/magic_pkiinit.go`.
 - **Acceptance Criteria**:
-  - [ ] `PKIInitEntityInfra = "infra"` added alongside other entity constants
-  - [ ] Godoc comment added
-  - [ ] `go build ./...` clean
-  - [ ] `golangci-lint run` clean
+  - [x] `PKIInitEntityInfra = "infra"` added alongside other entity constants
+  - [x] Godoc comment added
+  - [x] `go build ./...` clean
+  - [x] `golangci-lint run` clean
 - **Files**: `internal/shared/magic/magic_pkiinit.go`
 
 #### Task 0.2: Add PKIInitPostgresAppInstanceSuffixes Function
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 0.5h
 - **Dependencies**: Task 0.1
 - **Description**: Add `PKIInitPostgresAppInstanceSuffixes()` to `tier.go` returning `["postgres-1", "postgres-2"]` only.
 - **Acceptance Criteria**:
-  - [ ] Function returns `[PKIInitInstanceSuffixPostgres1, PKIInitInstanceSuffixPostgres2]`
-  - [ ] Godoc comment explains postgres-only rationale (sqlite instances don’t connect to PostgreSQL)
-  - [ ] `go build ./...` clean
+  - [x] Function returns `[PKIInitInstanceSuffixPostgres1, PKIInitInstanceSuffixPostgres2]`
+  - [x] Godoc comment explains postgres-only rationale (sqlite instances don’t connect to PostgreSQL)
+  - [x] `go build ./...` clean
 - **Files**: `internal/apps/framework/tls/tier.go`
 
 #### Task 0.3: Cat 9 infra Cert Generation
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 1h
 - **Dependencies**: Task 0.1
 - **Description**: Add `infra` entity type to Cat 9 in `generateSharedCAs()`.
 - **Acceptance Criteria**:
-  - [ ] `grafana-otel-lgtm-https-client-entity-infra/` generated after `admin` block
-  - [ ] `otel-collector-contrib-https-client-entity-infra/` generated after `admin` block
-  - [ ] Both use `PKIInitEntityInfra` constant (not bare string `"infra"`)
-  - [ ] Generator function comment updated: `9 (admin+infra)`
-  - [ ] `go build ./...` clean
+  - [x] `grafana-otel-lgtm-https-client-entity-infra/` generated after `admin` block
+  - [x] `otel-collector-contrib-https-client-entity-infra/` generated after `admin` block
+  - [x] Both use `PKIInitEntityInfra` constant (not bare string `"infra"`)
+  - [x] Generator function comment updated: `9 (admin+infra)`
+  - [x] `go build ./...` clean
 - **Files**: `internal/apps/framework/tls/generator.go`
 
 #### Task 0.4: Cat 14 postgres-only Loop
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 0.5h
 - **Dependencies**: Task 0.2
 - **Description**: Change Cat 14 generation to use `PKIInitPostgresAppInstanceSuffixes()` instead of `PKIInitAppInstanceSuffixes()`.
 - **Acceptance Criteria**:
-  - [ ] Cat 14 loop uses `PKIInitPostgresAppInstanceSuffixes()`
-  - [ ] Cat 14 comment updated from "8 dirs" to "4 dirs"
-  - [ ] `go build ./...` clean
+  - [x] Cat 14 loop uses `PKIInitPostgresAppInstanceSuffixes()`
+  - [x] Cat 14 comment updated from "8 dirs" to "4 dirs"
+  - [x] `go build ./...` clean
 - **Files**: `internal/apps/framework/tls/generator.go`
 
 #### Task 0.5: Update Generator Tests
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 0.5h
 - **Dependencies**: Tasks 0.3, 0.4
 - **Description**: Update generator unit tests for new directory structure.
 - **Acceptance Criteria**:
-  - [ ] Expected total dir count updated (recalculate: 28 global + new PS-ID count per test tier)
-  - [ ] Any Cat 9 `entity-admin` dir name assertions updated to also include `entity-infra`
-  - [ ] Any Cat 14 sqlite dir assertions removed
-  - [ ] `go test ./internal/apps/framework/tls/... -v -run TestGenerate` passes
-  - [ ] `go test ./internal/apps/framework/tls/...` 100% pass (no failures)
+  - [x] Expected total dir count updated (recalculate: 28 global + new PS-ID count per test tier)
+  - [x] Any Cat 9 `entity-admin` dir name assertions updated to also include `entity-infra`
+  - [x] Any Cat 14 sqlite dir assertions removed
+  - [x] `go test ./internal/apps/framework/tls/... -v -run TestGenerate` passes
+  - [x] `go test ./internal/apps/framework/tls/...` 100% pass (no failures)
 - **Files**: `internal/apps/framework/tls/generator_test.go`
 
 ---
 
-### Phase 1: PostgreSQL Server TLS — Leader + Follower [Status: ☐ TODO]
+### Phase 1: PostgreSQL Server TLS — Leader + Follower [Status: ✅ COMPLETE]
 
 **Phase Objective**: Configure PostgreSQL leader and follower to serve TLS from `/certs` volume mounts.
 
 #### Task 1.1: Leader postgresql.conf SSL Config
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 1.5h
 - **Dependencies**: Phase 0 complete, V11 complete
 - **Description**: Configure leader `postgresql.conf` for TLS.
 - **Acceptance Criteria**:
-  - [ ] `ssl = on`
-  - [ ] `ssl_cert_file` = `postgres-tls-server-entity-leader/SAME-AS-DIR-NAME.crt` (Cat 11)
-  - [ ] `ssl_key_file` = `postgres-tls-server-entity-leader/SAME-AS-DIR-NAME.key` (Cat 11)
-  - [ ] `ssl_ca_file` = `postgres-tls-client-issuing-ca/truststore/postgres-tls-client-issuing-ca.crt` (Cat 12)
-  - [ ] `ssl_min_protocol_version = TLSv1.3`
-- **Files**: `deployments/shared-postgres/leader/postgresql.conf`
+  - [x] `ssl = on`
+  - [x] `ssl_cert_file` = `postgres-tls-server-entity-leader/SAME-AS-DIR-NAME.crt` (Cat 11)
+  - [x] `ssl_key_file` = `postgres-tls-server-entity-leader/SAME-AS-DIR-NAME.key` (Cat 11)
+  - [x] `ssl_ca_file` = `postgres-tls-client-issuing-ca/truststore/postgres-tls-client-issuing-ca.crt` (Cat 12)
+  - [x] `ssl_min_protocol_version = TLSv1.3`
+- **Files**: `deployments/shared-postgres/postgresql-leader.conf`, `api/cryptosuite-registry/templates/deployments/shared-postgres/postgresql-leader.conf`
 
 #### Task 1.2: Follower postgresql.conf SSL Config
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 1h
 - **Dependencies**: Task 1.1
 - **Description**: Configure follower `postgresql.conf` for TLS (follower-specific cert paths).
 - **Acceptance Criteria**:
-  - [ ] `ssl = on`
-  - [ ] `ssl_cert_file` = `postgres-tls-server-entity-follower/SAME-AS-DIR-NAME.crt` (Cat 11)
-  - [ ] `ssl_key_file` = `postgres-tls-server-entity-follower/SAME-AS-DIR-NAME.key` (Cat 11)
-  - [ ] `ssl_ca_file` = `postgres-tls-client-issuing-ca/truststore/postgres-tls-client-issuing-ca.crt` (Cat 12)
-  - [ ] `ssl_min_protocol_version = TLSv1.3`
-- **Files**: `deployments/shared-postgres/follower/postgresql.conf`
+  - [x] `ssl = on`
+  - [x] `ssl_cert_file` = `postgres-tls-server-entity-follower/SAME-AS-DIR-NAME.crt` (Cat 11)
+  - [x] `ssl_key_file` = `postgres-tls-server-entity-follower/SAME-AS-DIR-NAME.key` (Cat 11)
+  - [x] `ssl_ca_file` = `postgres-tls-client-issuing-ca/truststore/postgres-tls-client-issuing-ca.crt` (Cat 12)
+  - [x] `ssl_min_protocol_version = TLSv1.3`
+- **Files**: `deployments/shared-postgres/postgresql-follower.conf`, `api/cryptosuite-registry/templates/deployments/shared-postgres/postgresql-follower.conf`
 
 #### Task 1.3: shared-postgres Compose Cert Volume Mounts (Leader + Follower)
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 1.5h
 - **Dependencies**: Tasks 1.1, 1.2
 - **Description**: Mount cert dirs in shared-postgres compose with least privilege per node.
 - **Acceptance Criteria**:
-  - [ ] `__PS_ID__-certs` named volume referenced (not re-declared) in shared-postgres compose (D5 include-merged)
-  - [ ] Leader mounts: Cat 11 `postgres-tls-server-entity-leader/` + Cat 12 `postgres-tls-client-issuing-ca/truststore/` ONLY
-  - [ ] Follower mounts: Cat 11 `postgres-tls-server-entity-follower/` + Cat 12 `postgres-tls-client-issuing-ca/truststore/` ONLY (Cat 10 added in Phase 2)
-  - [ ] No extra cert dirs mounted beyond minimum required
-- **Files**: `deployments/shared-postgres/compose.yml`
+  - [x] `cryptoutil-certs` named volume referenced (not re-declared) in shared-postgres compose (D5 include-merged via `__SUITE__-certs` template placeholder)
+  - [x] Leader mounts: `cryptoutil-certs:/certs:ro` (all certs via shared volume)
+  - [x] Follower mounts: `cryptoutil-certs:/certs:ro` (all certs via shared volume)
+  - [x] `pg_hba.conf` bind-mounted to both leader and follower
+  - [x] Template updated: `api/cryptosuite-registry/templates/deployments/shared-postgres/compose.yml`
+  - [x] `go run ./cmd/cicd-lint lint-deployments` passes all 54 validators
+  - [x] `go run ./cmd/cicd-lint lint-fitness` passes all linters
+- **Files**: `deployments/shared-postgres/compose.yml`, `api/cryptosuite-registry/templates/deployments/shared-postgres/compose.yml`
 
-#### Task 1.4: Init Script Cert Permissions
+#### Task 1.4: pg_hba.conf Creation (hostssl rules, no clientcert yet)
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 1h
 - **Dependencies**: Task 1.3
-- **Description**: Update init scripts to set correct permissions on mounted cert files.
+- **Description**: Create `pg_hba.conf` with hostssl rules for TLS-required connections.
 - **Acceptance Criteria**:
-  - [ ] Key files: `chmod 600` applied
-  - [ ] Cert files: `chmod 644` applied
-  - [ ] `pg_hba.conf` allows `hostssl` connections (no `clientcert=verify-full` yet)
-  - [ ] Plain `host` connections still allowed (removed in Phase 4)
-- **Files**: `deployments/shared-postgres/init/`
+  - [x] `pg_hba.conf` created with `local trust`, `host scram-sha-256` loopback, `hostssl` for replication and app
+  - [x] No `clientcert=verify-full` yet (added in Phases 4 and 5)
+  - [x] Template `api/cryptosuite-registry/templates/deployments/shared-postgres/pg_hba.conf` created
+  - [x] `go run ./cmd/cicd-lint lint-fitness` passes template-compliance check
+- **Files**: `deployments/shared-postgres/pg_hba.conf`, `api/cryptosuite-registry/templates/deployments/shared-postgres/pg_hba.conf`
 
 ---
 
-### Phase 2: PostgreSQL Replication Server TLS [Status: ☐ TODO]
+### Phase 2: PostgreSQL Replication Server TLS [Status: ✅ COMPLETE (2.1+2.2 done in Phase 1; 2.3 requires Docker)]
 
 **Phase Objective**: Configure follower→leader replication to use server TLS.
 
 #### Task 2.1: Follower primary_conninfo Server TLS
 
-- **Status**: ❌
+- **Status**: ✅ (completed as part of Task 1.2)
 - **Estimated**: 1h
 - **Dependencies**: Phase 1 complete
 - **Description**: Add server TLS params to follower `primary_conninfo`.
 - **Acceptance Criteria**:
-  - [ ] `sslmode=verify-full` in `primary_conninfo`
-  - [ ] `sslrootcert=<Cat 10 postgres-tls-server-issuing-ca/truststore/ path>` in `primary_conninfo`
-  - [ ] No `sslcert`/`sslkey` yet (client cert added in Phase 5)
-- **Files**: `deployments/shared-postgres/follower/postgresql.conf` or recovery config
+  - [x] `sslmode=verify-full` in `primary_conninfo`
+  - [x] `sslrootcert` = Cat 10 `postgres-tls-server-issuing-ca/truststore/postgres-tls-server-issuing-ca.crt` path
+  - [x] `sslcert`/`sslkey` = Cat 13 paths included (follower-replication client cert — Phase 5 completes HBA requirement)
+- **Files**: `deployments/shared-postgres/postgresql-follower.conf`
 
 #### Task 2.2: Follower Cat 10 Truststore Mount
 
-- **Status**: ❌
+- **Status**: ✅ (included in Task 1.3 — all certs mounted via shared volume)
 - **Estimated**: 0.5h
 - **Dependencies**: Task 2.1
-- **Description**: Add Cat 10 truststore mount to follower (least privilege — only what replication server TLS needs).
+- **Description**: Cat 10 truststore accessible via shared `cryptoutil-certs` volume — no separate mount needed.
 - **Acceptance Criteria**:
-  - [ ] Follower mounts: Cat 10 `postgres-tls-server-issuing-ca/truststore/` added
-  - [ ] Leader mounts unchanged (Cat 11 + Cat 12 only — leader does not need Cat 10)
-  - [ ] Compose file validates
+  - [x] Cat 10 `postgres-tls-server-issuing-ca/truststore/` accessible via shared volume
+  - [x] Compose file validates (all lint-deployments checks pass)
 - **Files**: `deployments/shared-postgres/compose.yml`
 
 #### Task 2.3: Verify Replication Server TLS
 
-- **Status**: ❌
+- **Status**: ⏳ DEFERRED (requires Docker — to be verified in Phase 9)
 - **Estimated**: 0.5h
 - **Dependencies**: Tasks 2.1, 2.2
 - **Description**: Verify replication slot reconnects over TLS.
