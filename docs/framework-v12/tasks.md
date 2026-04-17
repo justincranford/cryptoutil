@@ -1,7 +1,7 @@
 # Tasks - Framework V12: TLS Wiring
 
 **Status**: 0 of 32 tasks complete (0%)
-**Last Updated**: 2025-06-26
+**Last Updated**: 2025-07-07
 **Created**: 2025-06-26
 
 ## Quality Mandate - MANDATORY
@@ -33,9 +33,11 @@
 - **Dependencies**: V11 complete
 - **Description**: Configure shared-postgres to load server certs from named Docker volumes.
 - **Acceptance Criteria**:
-  - [ ] Leader loads `public-postgres-leader-https-server-keystore/` cert+key
-  - [ ] Follower loads `public-postgres-follower-https-server-keystore/` cert+key
+  - [ ] Leader loads `postgres-tls-server-entity-leader/` cert+key (Cat 11 keystore)
+  - [ ] Follower loads `postgres-tls-server-entity-follower/` cert+key (Cat 11 keystore)
   - [ ] `postgresql.conf`: `ssl = on`, `ssl_cert_file`, `ssl_key_file` configured
+  - [ ] `ssl_ca_file` points to `postgres-tls-client-issuing-ca/truststore/` (Cat 12)
+  - [ ] Compose volume strategy: pending D5 (quizme-v2 Q3)
 
 #### Task 1.2: PostgreSQL SSL Config
 
@@ -45,9 +47,11 @@
 - **Description**: Update shared-postgres `postgresql.conf` template for SSL parameters.
 - **Acceptance Criteria**:
   - [ ] `ssl = on`
-  - [ ] `ssl_ca_file` points to server CA truststore `.crt`
+  - [ ] `ssl_cert_file` = `postgres-tls-server-entity-{leader,follower}/SAME-AS-DIR-NAME.crt`
+  - [ ] `ssl_key_file` = `postgres-tls-server-entity-{leader,follower}/SAME-AS-DIR-NAME.key`
+  - [ ] `ssl_ca_file` = `postgres-tls-client-issuing-ca/truststore/postgres-tls-client-issuing-ca.crt` (Cat 12)
   - [ ] `ssl_min_protocol_version = TLSv1.3`
-  - [ ] Compose volumes mount cert directories
+  - [ ] Compose volumes mount cert directories (strategy: pending D5 quizme-v2 Q3)
 
 #### Task 1.3: PostgreSQL Init Script Updates
 
@@ -91,11 +95,14 @@
 - **Status**: ❌
 - **Estimated**: 2h
 - **Dependencies**: Task 2.1
-- **Description**: Configure GORM connection strings with client certs.
+- **Description**: Configure GORM connection with client certs via YAML config fields (D2: YAML cert paths).
 - **Acceptance Criteria**:
-  - [ ] DSN includes `sslmode=verify-full&sslcert=...&sslkey=...&sslrootcert=...`
-  - [ ] Each PS-ID uses its own client cert
-  - [ ] postgres-{1,2} connect to leader; read replicas to follower
+  - [ ] Framework config struct adds `database.sslmode`, `database.sslcert`, `database.sslkey`, `database.sslrootcert` fields
+  - [ ] `sslcert` = `postgres-tls-client-entity-leader-{PS-ID}-postgres-{1,2}/SAME-AS-DIR-NAME.crt` (Cat 14)
+  - [ ] `sslkey` = `postgres-tls-client-entity-leader-{PS-ID}-postgres-{1,2}/SAME-AS-DIR-NAME.key` (Cat 14)
+  - [ ] `sslrootcert` = `postgres-tls-server-issuing-ca/truststore/postgres-tls-server-issuing-ca.crt` (Cat 10)
+  - [ ] Only postgres-1 and postgres-2 instances use PostgreSQL client certs (sqlite-1/sqlite-2 do not)
+  - [ ] Config YAML files updated per PS-ID per postgres variant
 
 #### Task 2.3: Replication mTLS
 
@@ -104,8 +111,9 @@
 - **Dependencies**: Task 2.1
 - **Description**: Configure leader↔follower replication with mTLS.
 - **Acceptance Criteria**:
-  - [ ] Follower replication uses `public-postgres-follower-https-client-keystore/` cert
-  - [ ] Leader accepts replication with `public-postgres-leader-https-client-keystore/` cert
+  - [ ] Follower uses `postgres-tls-client-entity-follower-replication/` cert (Cat 13 keystore)
+  - [ ] Leader accepts replication from `postgres-tls-client-entity-leader-replication/` cert (Cat 13 keystore)
+  - [ ] `primary_conninfo` in follower uses `sslcert`, `sslkey`, `sslrootcert` parameters
 
 #### Task 2.4: Verify Client mTLS
 
@@ -131,9 +139,11 @@
 - **Dependencies**: V11 complete
 - **Description**: Update otel-collector-contrib YAML config for TLS receiver.
 - **Acceptance Criteria**:
-  - [ ] `receivers.otlp.protocols.grpc.tls.cert_file` and `key_file` configured
-  - [ ] `receivers.otlp.protocols.http.tls.cert_file` and `key_file` configured
-  - [ ] Client CA configured for client verification
+  - [ ] `receivers.otlp.protocols.grpc.tls.cert_file` = `public-https-server-entity-otel-collector-contrib/SAME-AS-DIR-NAME.crt` (Cat 2)
+  - [ ] `receivers.otlp.protocols.grpc.tls.key_file` = `public-https-server-entity-otel-collector-contrib/SAME-AS-DIR-NAME.key` (Cat 2)
+  - [ ] `receivers.otlp.protocols.grpc.tls.client_ca_file` = `otel-collector-contrib-https-client-issuing-ca/truststore/otel-collector-contrib-https-client-issuing-ca.crt` (Cat 8)
+  - [ ] HTTP OTLP receiver configured identically
+  - [ ] `insecure: false` on all OTLP receiver protocols
 
 #### Task 3.2: OTel Compose Volume Mounts
 
@@ -142,8 +152,9 @@
 - **Dependencies**: Task 3.1
 - **Description**: Mount cert volumes in otel-collector-contrib service.
 - **Acceptance Criteria**:
-  - [ ] Server keystore volume mounted
-  - [ ] Client CA truststore volume mounted
+  - [ ] `public-https-server-entity-otel-collector-contrib/` (Cat 2) mounted for server cert (keystore)
+  - [ ] `otel-collector-contrib-https-client-issuing-ca/truststore/` (Cat 8) mounted for client CA
+  - [ ] Volume strategy applied per D5 (quizme-v2 Q3)
   - [ ] Compose file validates
 
 #### Task 3.3: Verify OTel Server TLS
@@ -169,8 +180,8 @@
 - **Dependencies**: Phase 3 complete
 - **Description**: Update Go OTLP exporter configuration with client cert and CA.
 - **Acceptance Criteria**:
-  - [ ] Each PS-ID loads its OTel client cert
-  - [ ] CA trust configured for OTel server cert verification
+  - [ ] Each PS-ID app instance loads `otel-collector-contrib-https-client-entity-{PS-ID}-{sqlite,postgres}-{1,2}/` (Cat 9 keystore)
+  - [ ] Server CA trust from `public-https-server-issuing-ca/truststore/` (Cat 1) for OTel server cert verification
   - [ ] TLS 1.3 minimum
 
 #### Task 4.2: Compose Config Updates
@@ -198,29 +209,34 @@
 
 ### Phase 5: OTel → Grafana Client mTLS [Status: ☐ TODO]
 
-**Phase Objective**: Configure OTel-to-Grafana forwarding with mTLS.
+**Phase Objective**: Configure OTel-to-Grafana forwarding with TLS (mTLS or server-TLS-only pending quizme-v2 D3/D6).
+
+**⚠️ BLOCKED**: Tasks 5.1 and 5.2 cannot be finalized until quizme-v2 Q1 (D3: OTel→Grafana client cert) and Q4 (D6: grafana/otel-lgtm OTLP mTLS capability) are answered.
 
 #### Task 5.1: Grafana OTLP Ingest TLS
 
-- **Status**: ❌
+- **Status**: ❌ (BLOCKED: pending quizme-v2 Q1 D3 + Q4 D6)
 - **Estimated**: 1.5h
 - **Dependencies**: Phase 3 complete
-- **Description**: Configure grafana/otel-lgtm to accept mTLS on OTLP ingest ports.
+- **Description**: Configure grafana/otel-lgtm to accept TLS on OTLP ingest ports (mTLS or server-only per D3/D6).
 - **Acceptance Criteria**:
-  - [ ] Grafana OTLP ingest (:14317/:14318) accepts mTLS
-  - [ ] Server cert loaded
-  - [ ] Client CA configured
+  - [ ] Grafana OTLP ingest (:14317/:14318) accepts TLS connections
+  - [ ] [If D6=mTLS] Client CA from `grafana-otel-lgtm-https-client-issuing-ca/truststore/` (Cat 8) configured
+  - [ ] Server cert from `public-https-server-entity-grafana-otel-lgtm/` (Cat 2) used
+  - [ ] Volume strategy applied per D5 (quizme-v2 Q3)
 
 #### Task 5.2: OTel Exporter Client Cert
 
-- **Status**: ❌
+- **Status**: ❌ (BLOCKED: pending quizme-v2 Q1 D3)
 - **Estimated**: 1.5h
 - **Dependencies**: Task 5.1
-- **Description**: Configure OTel Collector exporter with client cert for Grafana.
+- **Description**: Configure OTel Collector exporter with client cert for Grafana (or no client cert if D3=server-only).
 - **Acceptance Criteria**:
-  - [ ] `exporters.otlp.tls` section configured
-  - [ ] Client cert from `public-grafana-otel-lgtm-*-https-client-keystore/`
-  - [ ] Pipeline verified
+  - [ ] `exporters.otlp.tls.ca_file` = `public-https-server-issuing-ca/truststore/` (Cat 1) for Grafana server cert
+  - [ ] [If D3=A] `exporters.otlp.tls.cert_file` = `grafana-otel-lgtm-https-client-entity-admin/SAME-AS-DIR-NAME.crt` (Cat 9)
+  - [ ] [If D3=B] `exporters.otlp.tls.cert_file` = `grafana-otel-lgtm-https-client-entity-otel-collector-contrib/SAME-AS-DIR-NAME.crt` (new Cat 9 entry)
+  - [ ] [If D3=C] No `cert_file`; server-TLS-only
+  - [ ] Pipeline verified: telemetry flows to Grafana
 
 ---
 
@@ -233,11 +249,15 @@
 - **Status**: ❌
 - **Estimated**: 1h
 - **Dependencies**: V11 complete
-- **Description**: Configure grafana/otel-lgtm for HTTPS serving on port 3000.
+- **Description**: Configure grafana/otel-lgtm for HTTPS via custom grafana.ini (D1: grafana.ini approach).
 - **Acceptance Criteria**:
-  - [ ] Server cert loaded from `public-grafana-otel-lgtm-https-server-keystore/`
-  - [ ] HTTPS enabled on :3000
-  - [ ] Admin client cert for access
+  - [ ] `shared-telemetry/grafana-otel-lgtm/grafana.ini` created with `[server]` section
+  - [ ] `protocol = https`
+  - [ ] `cert_file` = `/certs/__PS_ID__/public-https-server-entity-grafana-otel-lgtm/public-https-server-entity-grafana-otel-lgtm.crt` (Cat 2)
+  - [ ] `cert_key` = `/certs/__PS_ID__/public-https-server-entity-grafana-otel-lgtm/public-https-server-entity-grafana-otel-lgtm.key` (Cat 2)
+  - [ ] `grafana.ini` mounted as volume at `/etc/grafana/grafana.ini:ro` in compose
+  - [ ] Cert volume strategy applied per D5 (quizme-v2 Q3)
+  - [ ] `healthcheck` updated to `https://127.0.0.1:3000/api/health`
 
 #### Task 6.2: Verify Grafana HTTPS
 
@@ -262,8 +282,8 @@
 - **Dependencies**: V11 complete
 - **Description**: Configure apps to load public HTTPS server certs.
 - **Acceptance Criteria**:
-  - [ ] Each instance loads from `public-{PS-ID}-{variant}-https-server-keystore/`
-  - [ ] ServerSettings updated with cert paths
+  - [ ] Each instance loads `public-https-server-entity-{PS-ID}-{sqlite,postgres}-{1,2}/` (Cat 3 keystore)
+  - [ ] ServerSettings updated with cert file path and key file path
 
 #### Task 7.2: Private Admin mTLS Cert Loading
 
@@ -272,8 +292,8 @@
 - **Dependencies**: Task 7.1
 - **Description**: Configure apps to load private admin mTLS certs.
 - **Acceptance Criteria**:
-  - [ ] Each instance loads from `private-{PS-ID}-mutual-https-client-server-{variant}-keystore/`
-  - [ ] Admin endpoint verifies client certs
+  - [ ] Each instance loads `private-https-mutual-entity-{PS-ID}-{sqlite,postgres}-{1,2}/` (Cat 7 keystore) — this cert has both Client Auth and Server Auth EKU
+  - [ ] Admin CA truststore from `private-https-mutual-issuing-ca-{PS-ID}-{sqlite,postgres}-{1,2}/truststore/` (Cat 6) for verifying admin clients
 
 #### Task 7.3: Client Cert Loading
 
@@ -282,9 +302,9 @@
 - **Dependencies**: Task 7.1
 - **Description**: Configure apps to accept client certs per API path and realm.
 - **Acceptance Criteria**:
-  - [ ] Browser path uses browseruser realm certs
-  - [ ] Service path uses serviceuser realm certs
-  - [ ] Client CAs loaded from truststore directories
+  - [ ] Browser path (`/browser/`) uses `public-https-client-issuing-ca-{PS-ID}-{pki-domain}/truststore/` (Cat 4) where pki-domain=`sqlite-1`,`sqlite-2`, or `postgres`
+  - [ ] Service path (`/service/`) uses same Cat 4 truststore per PKI domain
+  - [ ] Global server CA truststore `public-https-server-issuing-ca/truststore/` (Cat 1) loaded for outbound TLS verification
 
 ---
 
