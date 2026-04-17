@@ -1,6 +1,6 @@
 # Tasks - Framework V12: TLS Wiring
 
-**Status**: 0 of 32 tasks complete (0%)
+**Status**: 0 of 36 tasks complete (0%)
 **Last Updated**: 2025-07-07
 **Created**: 2025-06-26
 
@@ -22,6 +22,77 @@
 
 ## Task Checklist
 
+### Phase 0: pki-init Patch — Cat 9 infra + Cat 14 postgres-only [Status: ☐ TODO]
+
+**Phase Objective**: Apply D3 and D4 structural changes to pki-init generator before TLS wiring.
+
+#### Task 0.1: Add PKIInitEntityInfra Magic Constant
+
+- **Status**: ❌
+- **Estimated**: 0.5h
+- **Dependencies**: None
+- **Description**: Add `PKIInitEntityInfra = "infra"` to `internal/shared/magic/magic_pkiinit.go`.
+- **Acceptance Criteria**:
+  - [ ] `PKIInitEntityInfra = "infra"` added alongside other entity constants
+  - [ ] Godoc comment added
+  - [ ] `go build ./...` clean
+  - [ ] `golangci-lint run` clean
+- **Files**: `internal/shared/magic/magic_pkiinit.go`
+
+#### Task 0.2: Add PKIInitPostgresAppInstanceSuffixes Function
+
+- **Status**: ❌
+- **Estimated**: 0.5h
+- **Dependencies**: Task 0.1
+- **Description**: Add `PKIInitPostgresAppInstanceSuffixes()` to `tier.go` returning `["postgres-1", "postgres-2"]` only.
+- **Acceptance Criteria**:
+  - [ ] Function returns `[PKIInitInstanceSuffixPostgres1, PKIInitInstanceSuffixPostgres2]`
+  - [ ] Godoc comment explains postgres-only rationale (sqlite instances don’t connect to PostgreSQL)
+  - [ ] `go build ./...` clean
+- **Files**: `internal/apps/framework/tls/tier.go`
+
+#### Task 0.3: Cat 9 infra Cert Generation
+
+- **Status**: ❌
+- **Estimated**: 1h
+- **Dependencies**: Task 0.1
+- **Description**: Add `infra` entity type to Cat 9 in `generateSharedCAs()`.
+- **Acceptance Criteria**:
+  - [ ] `grafana-otel-lgtm-https-client-entity-infra/` generated after `admin` block
+  - [ ] `otel-collector-contrib-https-client-entity-infra/` generated after `admin` block
+  - [ ] Both use `PKIInitEntityInfra` constant (not bare string `"infra"`)
+  - [ ] Generator function comment updated: `9 (admin+infra)`
+  - [ ] `go build ./...` clean
+- **Files**: `internal/apps/framework/tls/generator.go`
+
+#### Task 0.4: Cat 14 postgres-only Loop
+
+- **Status**: ❌
+- **Estimated**: 0.5h
+- **Dependencies**: Task 0.2
+- **Description**: Change Cat 14 generation to use `PKIInitPostgresAppInstanceSuffixes()` instead of `PKIInitAppInstanceSuffixes()`.
+- **Acceptance Criteria**:
+  - [ ] Cat 14 loop uses `PKIInitPostgresAppInstanceSuffixes()`
+  - [ ] Cat 14 comment updated from "8 dirs" to "4 dirs"
+  - [ ] `go build ./...` clean
+- **Files**: `internal/apps/framework/tls/generator.go`
+
+#### Task 0.5: Update Generator Tests
+
+- **Status**: ❌
+- **Estimated**: 0.5h
+- **Dependencies**: Tasks 0.3, 0.4
+- **Description**: Update generator unit tests for new directory structure.
+- **Acceptance Criteria**:
+  - [ ] Expected total dir count updated (recalculate: 28 global + new PS-ID count per test tier)
+  - [ ] Any Cat 9 `entity-admin` dir name assertions updated to also include `entity-infra`
+  - [ ] Any Cat 14 sqlite dir assertions removed
+  - [ ] `go test ./internal/apps/framework/tls/... -v -run TestGenerate` passes
+  - [ ] `go test ./internal/apps/framework/tls/...` 100% pass (no failures)
+- **Files**: `internal/apps/framework/tls/generator_test.go`
+
+---
+
 ### Phase 1: PostgreSQL Server TLS [Status: ☐ TODO]
 
 **Phase Objective**: Configure PostgreSQL leader and follower to serve TLS connections.
@@ -37,7 +108,7 @@
   - [ ] Follower loads `postgres-tls-server-entity-follower/` cert+key (Cat 11 keystore)
   - [ ] `postgresql.conf`: `ssl = on`, `ssl_cert_file`, `ssl_key_file` configured
   - [ ] `ssl_ca_file` points to `postgres-tls-client-issuing-ca/truststore/` (Cat 12)
-  - [ ] Compose volume strategy: pending D5 (quizme-v2 Q3)
+  - [ ] Compose volume: `__PS_ID__-certs` named volume defined in PS-ID compose (include-merged, D5)
 
 #### Task 1.2: PostgreSQL SSL Config
 
@@ -51,7 +122,7 @@
   - [ ] `ssl_key_file` = `postgres-tls-server-entity-{leader,follower}/SAME-AS-DIR-NAME.key`
   - [ ] `ssl_ca_file` = `postgres-tls-client-issuing-ca/truststore/postgres-tls-client-issuing-ca.crt` (Cat 12)
   - [ ] `ssl_min_protocol_version = TLSv1.3`
-  - [ ] Compose volumes mount cert directories (strategy: pending D5 quizme-v2 Q3)
+  - [ ] Compose volumes mount `__PS_ID__-certs` named volume (include-merged approach, D5)
 
 #### Task 1.3: PostgreSQL Init Script Updates
 
@@ -154,7 +225,7 @@
 - **Acceptance Criteria**:
   - [ ] `public-https-server-entity-otel-collector-contrib/` (Cat 2) mounted for server cert (keystore)
   - [ ] `otel-collector-contrib-https-client-issuing-ca/truststore/` (Cat 8) mounted for client CA
-  - [ ] Volume strategy applied per D5 (quizme-v2 Q3)
+  - [ ] Volume: `__PS_ID__-certs` named volume applied per D5 (include-merged)
   - [ ] Compose file validates
 
 #### Task 3.3: Verify OTel Server TLS
@@ -209,33 +280,30 @@
 
 ### Phase 5: OTel → Grafana Client mTLS [Status: ☐ TODO]
 
-**Phase Objective**: Configure OTel-to-Grafana forwarding with TLS (mTLS or server-TLS-only pending quizme-v2 D3/D6).
+**Phase Objective**: Configure OTel-to-Grafana forwarding with full mTLS (D6=mTLS assumed; D3=`infra` entity cert).
 
-**⚠️ BLOCKED**: Tasks 5.1 and 5.2 cannot be finalized until quizme-v2 Q1 (D3: OTel→Grafana client cert) and Q4 (D6: grafana/otel-lgtm OTLP mTLS capability) are answered.
+#### Task 5.1: Grafana OTLP Ingest mTLS
 
-#### Task 5.1: Grafana OTLP Ingest TLS
-
-- **Status**: ❌ (BLOCKED: pending quizme-v2 Q1 D3 + Q4 D6)
+- **Status**: ❌
 - **Estimated**: 1.5h
 - **Dependencies**: Phase 3 complete
-- **Description**: Configure grafana/otel-lgtm to accept TLS on OTLP ingest ports (mTLS or server-only per D3/D6).
+- **Description**: Configure grafana/otel-lgtm to accept mTLS on OTLP ingest ports (D6=mTLS assumed; D3=infra entity).
 - **Acceptance Criteria**:
-  - [ ] Grafana OTLP ingest (:14317/:14318) accepts TLS connections
-  - [ ] [If D6=mTLS] Client CA from `grafana-otel-lgtm-https-client-issuing-ca/truststore/` (Cat 8) configured
+  - [ ] Grafana OTLP ingest (:14317/:14318) accepts mTLS connections
+  - [ ] Client CA from `grafana-otel-lgtm-https-client-issuing-ca/truststore/` (Cat 8) configured
   - [ ] Server cert from `public-https-server-entity-grafana-otel-lgtm/` (Cat 2) used
-  - [ ] Volume strategy applied per D5 (quizme-v2 Q3)
+  - [ ] Volume: `__PS_ID__-certs` named volume applied per D5 (include-merged)
 
 #### Task 5.2: OTel Exporter Client Cert
 
-- **Status**: ❌ (BLOCKED: pending quizme-v2 Q1 D3)
+- **Status**: ❌
 - **Estimated**: 1.5h
 - **Dependencies**: Task 5.1
-- **Description**: Configure OTel Collector exporter with client cert for Grafana (or no client cert if D3=server-only).
+- **Description**: Configure OTel Collector exporter with `infra` client cert for Grafana (D3=E: new `infra` entity).
 - **Acceptance Criteria**:
   - [ ] `exporters.otlp.tls.ca_file` = `public-https-server-issuing-ca/truststore/` (Cat 1) for Grafana server cert
-  - [ ] [If D3=A] `exporters.otlp.tls.cert_file` = `grafana-otel-lgtm-https-client-entity-admin/SAME-AS-DIR-NAME.crt` (Cat 9)
-  - [ ] [If D3=B] `exporters.otlp.tls.cert_file` = `grafana-otel-lgtm-https-client-entity-otel-collector-contrib/SAME-AS-DIR-NAME.crt` (new Cat 9 entry)
-  - [ ] [If D3=C] No `cert_file`; server-TLS-only
+  - [ ] `exporters.otlp.tls.cert_file` = `grafana-otel-lgtm-https-client-entity-infra/SAME-AS-DIR-NAME.crt` (Cat 9 infra)
+  - [ ] `exporters.otlp.tls.key_file` = `grafana-otel-lgtm-https-client-entity-infra/SAME-AS-DIR-NAME.key` (Cat 9 infra)
   - [ ] Pipeline verified: telemetry flows to Grafana
 
 ---
@@ -256,7 +324,7 @@
   - [ ] `cert_file` = `/certs/__PS_ID__/public-https-server-entity-grafana-otel-lgtm/public-https-server-entity-grafana-otel-lgtm.crt` (Cat 2)
   - [ ] `cert_key` = `/certs/__PS_ID__/public-https-server-entity-grafana-otel-lgtm/public-https-server-entity-grafana-otel-lgtm.key` (Cat 2)
   - [ ] `grafana.ini` mounted as volume at `/etc/grafana/grafana.ini:ro` in compose
-  - [ ] Cert volume strategy applied per D5 (quizme-v2 Q3)
+  - [ ] Volume: `__PS_ID__-certs` named volume applied per D5 (include-merged)
   - [ ] `healthcheck` updated to `https://127.0.0.1:3000/api/health`
 
 #### Task 6.2: Verify Grafana HTTPS

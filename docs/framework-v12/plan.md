@@ -45,6 +45,19 @@ V12 was created by deferring decisions D2 (PostgreSQL TLS), D3 (OTel TLS), D4 (O
 
 ## Phases
 
+### Phase 0: pki-init Patch — Cat 9 infra + Cat 14 postgres-only (3h) [Status: ☐ TODO]
+
+**Objective**: Apply D3 and D4 structural changes to the pki-init generator before any TLS wiring.
+- Add `PKIInitEntityInfra = "infra"` magic constant to `internal/shared/magic/magic_pkiinit.go`.
+- Add `PKIInitPostgresAppInstanceSuffixes()` function to `tier.go` returning `["postgres-1", "postgres-2"]`.
+- Cat 9 `generateSharedCAs()`: add `infra` cert generation after `admin` (2 new dirs: `grafana-otel-lgtm-https-client-entity-infra/` and `otel-collector-contrib-https-client-entity-infra/`).
+- Cat 14 `generatePSIDCerts()`: replace `PKIInitAppInstanceSuffixes()` with `PKIInitPostgresAppInstanceSuffixes()` in Cat 14 loop. Update comment from "8 dirs" to "4 dirs".
+- Update `generateSharedCAs` comment: change `9 (admin only)` to `9 (admin+infra)`.
+- Update generator unit test: expected total from 82 to 90 (net: +2 Cat9 infra, -4 Cat14 sqlite → net -2 per PS-ID, but only 1 PS-ID in skeleton-template test so 82+2-4=80? Actually skeleton-template global=28, PS-ID=62 old, new PS-ID=60, total=88 — recalculate in code).
+- Verify: `go test ./internal/apps/framework/tls/... -run TestGenerate`.
+- **Success**: pki-init generates 90 dirs for skeleton-template; Cat 9 includes `infra`, Cat 14 has 4 postgres-only dirs; all tests pass.
+- **Post-Mortem**: After quality gates pass, update lessons.md.
+
 ### Phase 1: PostgreSQL Server TLS (6h) [Status: ☐ TODO]
 
 **Objective**: Configure PostgreSQL leader and follower to serve TLS connections.
@@ -52,7 +65,7 @@ V12 was created by deferring decisions D2 (PostgreSQL TLS), D3 (OTel TLS), D4 (O
 - Load client CA from `postgres-tls-client-issuing-ca/truststore/` (Cat 12, truststore) for `ssl_ca_file`.
 - Load server CA from `postgres-tls-server-issuing-ca/truststore/` for server cert chain verification.
 - Update `postgresql.conf` for `ssl = on`, cert paths.
-- Update shared-postgres compose with cert volume mounts (volume strategy: pending D5 quizme-v2 Q3).
+- Update shared-postgres compose with cert volume mounts (include-merged approach: reference `__PS_ID__-certs` named volume defined in PS-ID compose, without re-declaring it).
 - Update init scripts for TLS-aware startup.
 - **Success**: PostgreSQL accepts TLS connections; `psql "sslmode=verify-full"` connects successfully.
 - **Post-Mortem**: After quality gates pass, update lessons.md.
@@ -76,7 +89,7 @@ V12 was created by deferring decisions D2 (PostgreSQL TLS), D3 (OTel TLS), D4 (O
 - Load global server CA truststore from `public-https-server-issuing-ca/truststore/` (Cat 1) for chain verification.
 - Load client CA truststore from `otel-collector-contrib-https-client-issuing-ca/truststore/` (Cat 8) for verifying app instance client certs.
 - Update otel-collector-contrib config YAML: `receivers.otlp.protocols.grpc.tls` and `receivers.otlp.protocols.http.tls`.
-- Update shared-telemetry compose with cert volume mounts (volume strategy: pending D5 quizme-v2 Q3).
+- Update shared-telemetry compose with cert volume mounts (include-merged approach: reference `__PS_ID__-certs` named volume defined in PS-ID compose, without re-declaring it).
 - **Success**: OTel Collector accepts mTLS connections on :4317/:4318; insecure connections rejected.
 - **Post-Mortem**: After quality gates pass, update lessons.md.
 
@@ -92,12 +105,13 @@ V12 was created by deferring decisions D2 (PostgreSQL TLS), D3 (OTel TLS), D4 (O
 
 ### Phase 5: OTel → Grafana Client mTLS (3h) [Status: ☐ TODO]
 
-**Objective**: Configure OTel Collector to forward to Grafana LGTM with mTLS (or server-TLS-only — pending D3/D6 quizme-v2 Q1/Q4).
-- [Pending D3 quizme-v2 Q1]: OTel Collector client cert for Grafana: either Cat 9 `grafana-otel-lgtm-https-client-entity-admin/` (reuse), new Cat 9 entry `grafana-otel-lgtm-https-client-entity-otel-collector-contrib/` (correct), or server-TLS-only.
+**Objective**: Configure OTel Collector to forward telemetry to Grafana LGTM with full mTLS (D6: assume supported; D3: use `infra` entity cert).
+- OTel Collector config: OTLP/gRPC exporter to Grafana LGTM using mTLS.
+- Client cert: `grafana-otel-lgtm-https-client-entity-infra/` (Cat 9 `infra` entity from D3).
 - Load Grafana server CA truststore from `public-https-server-issuing-ca/truststore/` (Cat 1) for OTel exporter server cert verification.
-- Update otel-collector-contrib config: `exporters.otlp.tls` section.
-- [Pending D6 quizme-v2 Q4]: Confirm grafana/otel-lgtm supports mTLS on OTLP ingest (:14317/:14318) before implementing.
-- **Success**: OTel→Grafana pipeline uses TLS (mTLS or server-TLS-only per D3/D6); telemetry visible in Grafana dashboards.
+- Update otel-collector-contrib config: `exporters.otlp.tls.cert_file`, `tls.key_file`, `tls.ca_file`.
+- grafana/otel-lgtm OTLP ingest config: enable mTLS on :14317/:14318 via `tls.client_ca_file`, `tls.cert_file`, `tls.key_file`.
+- **Success**: OTel→Grafana pipeline uses full mTLS; telemetry visible in Grafana dashboards.
 - **Post-Mortem**: After quality gates pass, update lessons.md.
 
 ### Phase 6: Grafana LGTM HTTPS UI (2h) [Status: ☐ TODO]
@@ -105,7 +119,7 @@ V12 was created by deferring decisions D2 (PostgreSQL TLS), D3 (OTel TLS), D4 (O
 **Objective**: Configure Grafana LGTM UI to serve HTTPS on port 3000.
 - Load server cert from `public-https-server-entity-grafana-otel-lgtm/` (Cat 2, keystore).
 - Mount `grafana.ini` as volume at `/etc/grafana/grafana.ini` with `[server] protocol=https`, `cert_file`, `cert_key` (D1: grafana.ini approach).
-- Update shared-telemetry compose with cert volume mounts (volume strategy: pending D5 quizme-v2 Q3).
+- Update shared-telemetry compose with cert volume mounts (include-merged approach: reference `__PS_ID__-certs` named volume defined in PS-ID compose, without re-declaring it).
 - Update `healthcheck` from `http://` to `https://`.
 - **Success**: Grafana UI accessible via HTTPS on :3000; HTTP redirects to HTTPS.
 - **Post-Mortem**: After quality gates pass, update lessons.md.
@@ -190,9 +204,72 @@ database:
 
 ---
 
-### Decision D3–D6: Pending (quizme-v2)
+### Decision D3: Cat 9 OTel→Grafana Service-to-Service Client Cert (Q1=E)
 
-Decisions D3 (Q1: OTel→Grafana client cert gap), D4 (Q2: Cat 14 SQLite cert scope), D5 (Q3: cross-compose volume strategy), D6 (Q4: grafana/otel-lgtm OTLP mTLS capability) are deferred pending quizme-v2 user answers. Phases 1, 3, 5, 6 tasks will be updated after those answers.
+**Options**:
+- A: Reuse admin cert (`grafana-otel-lgtm-https-client-entity-admin/`)
+- B: Name it after the connecting service (`grafana-otel-lgtm-https-client-entity-otel-collector-contrib/`)
+- C: Server-TLS-only (no client cert), OTel Collector does not present a cert
+- D: Move to Cat 13 as a replication-style peer cert
+- E: New `infra` entity type in Cat 9 (alongside `admin`) ✓ **SELECTED**
+
+**Decision**: Add a new `infra` entity type to Cat 9 for service-to-service forwarding certs. Generates `grafana-otel-lgtm-https-client-entity-infra/` and `otel-collector-contrib-https-client-entity-infra/`.
+
+**Rationale**: `admin` certs are for human operators. OTel Collector acting as a forwarding agent is an infrastructure concern, not an admin concern. A dedicated `infra` entity type cleanly separates human vs. machine access. Naming it after the connecting service (B) would be confusing since both grafana and otel get infra certs. The `infra` label is generalizable to future service-to-service connections.
+
+**Impact on Phase 0**: pki-init generator must add infra cert generation to `generateSharedCAs()` (2 new dirs). Cat 9 count increases from 10→12 per PS-ID, 82→84 per SUITE. tls-structure.md updated.
+
+**Impact on Phase 5**: OTel Collector config uses `grafana-otel-lgtm-https-client-entity-infra/` cert for outbound OTLP forwarding to Grafana LGTM.
+
+---
+
+### Decision D4: Cat 14 PostgreSQL App Client Cert Scope (Q2=E)
+
+**Options**:
+- A: Generate certs for all 4 instances (sqlite-1, sqlite-2, postgres-1, postgres-2)
+- B: Generate certs only for postgres-1/postgres-2; generate empty placeholder dirs for sqlite-1/sqlite-2
+- C: Remove Cat 14 entirely; use a single shared app-client cert
+- D: Separate Cat 14 into two sub-categories: sqlite (server-TLS-only trust) and postgres (mTLS)
+- E: Remove sqlite variants from Cat 14; only generate postgres-1 and postgres-2 ✓ **SELECTED**
+
+**Decision**: Cat 14 generates certs only for `postgres-1` and `postgres-2` app instances. `sqlite-1` and `sqlite-2` instances never connect to PostgreSQL and need no PostgreSQL client certs.
+
+**Rationale**: SQLite app instances use in-memory SQLite, not PostgreSQL. Generating PostgreSQL client certs for them is incorrect and wasteful. Reducing from 8 to 4 dirs per PS-ID simplifies the structure and removes unused artifacts.
+
+**Impact on Phase 0**: pki-init generator Cat 14 loop uses `PKIInitPostgresAppInstanceSuffixes()` (new function returning `["postgres-1", "postgres-2"]`) instead of `PKIInitAppInstanceSuffixes()`. Cat 14 count decreases from 8→4 per PS-ID, 80→40 per SUITE. Total per PS-ID: 92→90. tls-structure.md updated.
+
+---
+
+### Decision D5: Cross-Compose Named Volume Strategy (Q3=A)
+
+**Options**:
+- A: Include-merged approach — each PS-ID compose file defines the named volume; shared-postgres/shared-telemetry composes reference it without declaring it (volume merges from PS-ID scope) ✓ **SELECTED**
+- B: Declare a global suite-level named volume `cryptoutil-certs` in a top-level compose; all PS-ID and shared composes reference it as `external: true`
+- C: Bind mount: use `./certs/__PS_ID__/` as a bind mount instead of a named volume
+- D: Copy certs into shared containers via init containers; no shared volume
+
+**Decision**: Include-merged approach. PS-ID compose defines `__PS_ID__-certs` named volume. Docker Compose include-merge makes it visible to all included shared composes.
+
+**Rationale**: Named volumes defined in PS-ID compose files are available in the merged project scope. shared-postgres and shared-telemetry reference them without re-declaring. This is standard Docker Compose behavior confirmed by Docker documentation.
+
+**Impact on Phases 1, 3**: PS-ID composes define `__PS_ID__-certs` volume; shared-postgres and shared-telemetry composes reference it by name without `external: true`. No global suite-level volume needed.
+
+---
+
+### Decision D6: grafana/otel-lgtm mTLS on OTLP Ingest (Q4=E)
+
+**Options**:
+- A: Assume mTLS is supported; proceed with full mTLS implementation
+- B: Test first: add integration test that checks mTLS handshake on :14317/:14318 before wiring
+- C: Implement server-TLS-only (no client cert on OTLP ingest); full mTLS only for Grafana UI
+- D: Replace grafana/otel-lgtm with separate grafana + otel-collector-contrib containers for independent TLS control
+- E: Assume mTLS is supported (grafana/otel-lgtm embeds OTel Collector Contrib); NEVER replace with separate containers ✓ **SELECTED**
+
+**Decision**: Assume grafana/otel-lgtm supports mTLS on OTLP ingest. Proceed with full mTLS. NEVER replace with separate containers.
+
+**Rationale**: grafana/otel-lgtm embeds the official OTel Collector Contrib distribution, which supports mTLS on OTLP endpoints out of the box via `tls.client_ca_file`, `tls.cert_file`, `tls.key_file`. The image architecture is a combined deployment for development convenience; breaking it apart would increase operational complexity without benefit.
+
+**Impact on Phase 5**: Configure OTel Collector’s exporter with full mTLS to Grafana LGTM OTLP ingest, using the `infra` cert from D3. If mTLS fails at runtime, fallback is server-TLS-only (not separate containers).
 
 ---
 
