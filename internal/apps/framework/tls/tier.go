@@ -57,6 +57,13 @@ func PKIInitAdminInstanceSuffixes() []string {
 	return []string{cryptoutilSharedMagic.CICDTemplateVariantSQLite1, cryptoutilSharedMagic.CICDTemplateVariantSQLite2, cryptoutilSharedMagic.PKIInitInstanceSuffixPostgres1, cryptoutilSharedMagic.PKIInitInstanceSuffixPostgres2}
 }
 
+// PKIInitPostgresAppInstanceSuffixes returns the 2 PostgreSQL app instance suffixes.
+// Only postgres-1 and postgres-2 connect to PostgreSQL; sqlite-1 and sqlite-2 use
+// in-memory SQLite and never connect to PostgreSQL.
+func PKIInitPostgresAppInstanceSuffixes() []string {
+	return []string{cryptoutilSharedMagic.PKIInitInstanceSuffixPostgres1, cryptoutilSharedMagic.PKIInitInstanceSuffixPostgres2}
+}
+
 // PKIInitUserTypes returns the 2 API path user type names for client cert generation.
 func PKIInitUserTypes() []string {
 	return []string{"browseruser", "serviceuser"}

@@ -53,9 +53,9 @@ func TestNewGenerator_NilInputs(t *testing.T) {
 	}
 }
 
-// TestGenerate_SkeletonTemplate_DirCount verifies that Generate creates exactly 92 leaf
+// TestGenerate_SkeletonTemplate_DirCount verifies that Generate creates exactly 90 leaf
 // certificate directories for the skeleton-template PS-ID with 2 realms.
-// The count is: 28 shared + 64 per-PS-ID = 92 (see docs/tls-structure.md).
+// The count is: 30 shared + 60 per-PS-ID = 90 (see docs/tls-structure.md).
 func TestGenerate_SkeletonTemplate_DirCount(t *testing.T) {
 	t.Parallel()
 
@@ -81,10 +81,10 @@ func TestGenerate_SkeletonTemplate_DirCount(t *testing.T) {
 		return nil
 	}))
 
-	const expectedDirs = 92
+	const expectedDirs = 90
 
 	require.Equal(t, expectedDirs, dirCount,
-		"expected %d cert dirs for skeleton-template with 2 realms (28 shared + 64 per-PSID)", expectedDirs)
+		"expected %d cert dirs for skeleton-template with 2 realms (30 shared + 60 per-PSID)", expectedDirs)
 }
 
 // TestGenerate_BasepathIsFile verifies that Generate returns an error when basePath
@@ -557,7 +557,8 @@ func TestGenerateCAChain_WriteErrors(t *testing.T) {
 //	           #5=cat8-otel-root, #6=cat8-otel-issuing, #7=cat10-root, #8=cat10-issuing,
 //	           #9=cat12-root, #10=cat12-issuing
 //	createLeaf: #1=cat2-grafana, #2=cat2-otel, #3=cat9-grafana-admin, #4=cat9-otel-admin,
-//	            #5=cat11-leader, #6=cat11-follower, #7=cat13-leader, #8=cat13-follower
+//	            #5=cat9-grafana-infra, #6=cat9-otel-infra, #7=cat11-leader, #8=cat11-follower,
+//	            #9=cat13-leader, #10=cat13-follower
 func TestGenerate_SharedCAs_ErrorBranches(t *testing.T) {
 	t.Parallel()
 
@@ -574,12 +575,14 @@ func TestGenerate_SharedCAs_ErrorBranches(t *testing.T) {
 		{"cat8 otel CA error", cryptoutilSharedMagic.DefaultEmailOTPRateLimit, 0, "cat8 otel client CA"},
 		{"cat9 grafana admin error", 0, 3, "cat9 grafana admin client"},
 		{"cat9 otel admin error", 0, 4, "cat9 otel admin client"},
+		{"cat9 grafana infra error", 0, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries, "cat9 grafana infra client"},
+		{"cat9 otel infra error", 0, cryptoutilSharedMagic.Utf8EnforceWorkerPoolSize, "cat9 otel infra client"},
 		{"cat10 postgres server CA error", cryptoutilSharedMagic.GitRecentActivityDays, 0, "cat10 postgres server CA"},
-		{"cat11 leader leaf error", 0, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries, "cat11 postgres leader server leaf"},
-		{"cat11 follower leaf error", 0, cryptoutilSharedMagic.Utf8EnforceWorkerPoolSize, "cat11 postgres follower server leaf"},
+		{"cat11 leader leaf error", 0, cryptoutilSharedMagic.GitRecentActivityDays, "cat11 postgres leader server leaf"},
+		{"cat11 follower leaf error", 0, cryptoutilSharedMagic.GitShortHashLength, "cat11 postgres follower server leaf"},
 		{"cat12 postgres client CA error", 9, 0, "cat12 postgres client CA"},
-		{"cat13 leader client error", 0, cryptoutilSharedMagic.GitRecentActivityDays, "cat13 postgres leader replication client"},
-		{"cat13 follower client error", 0, cryptoutilSharedMagic.GitShortHashLength, "cat13 postgres follower replication client"},
+		{"cat13 leader client error", 0, 9, "cat13 postgres leader replication client"},
+		{"cat13 follower client error", 0, cryptoutilSharedMagic.SuiteServiceCount, "cat13 postgres follower replication client"},
 	}
 
 	for _, tc := range tests {
@@ -615,13 +618,13 @@ func TestGenerate_SharedCAs_ErrorBranches(t *testing.T) {
 
 // TestGenerate_PSIDCerts_ErrorBranches covers error-return statements in generatePSIDCerts.
 //
-// After generateSharedCAs completes (10 CA calls + 8 leaf calls), generatePSIDCerts runs:
+// After generateSharedCAs completes (10 CA calls + 10 leaf calls), generatePSIDCerts runs:
 //
 //	createCA:  #11=cat4-sqlite1-root, #12=cat4-sqlite1-issuing, ... #22=cat6-first-root, ...
-//	createLeaf: #9=cat3-sqlite-1, #10=cat3-sqlite-2, #11=cat3-postgres-1, #12=cat3-postgres-2,
-//	            #13=cat5-first-leaf, ... #25=cat7-sqlite-1-mutual, ...
-//	            #29=cat9-grafana-psid-sqlite-1, #30=cat9-otel-psid-sqlite-1, ...
-//	            #37=cat14-leader-psid-sqlite-1, ...
+//	createLeaf: #11=cat3-sqlite-1, #12=cat3-sqlite-2, #13=cat3-postgres-1, #14=cat3-postgres-2,
+//	            #15=cat5-first-leaf, ... #27=cat7-sqlite-1-mutual, ...
+//	            #31=cat9-grafana-psid-sqlite-1, #32=cat9-otel-psid-sqlite-1, ...
+//	            #39=cat14-leader-psid-postgres-1, ...
 func TestGenerate_PSIDCerts_ErrorBranches(t *testing.T) {
 	t.Parallel()
 
@@ -631,14 +634,14 @@ func TestGenerate_PSIDCerts_ErrorBranches(t *testing.T) {
 		failLeafAt  int32
 		wantErrFrag string
 	}{
-		{"cat3 app server leaf error", 0, 9, "cat3 app server leaf"},
+		{"cat3 app server leaf error", 0, 11, "cat3 app server leaf"},
 		{"cat4 client CA sqlite-1 error", 11, 0, "cat4 client CA"},
-		{"cat5 client leaf error", 0, 13, "cat5 client leaf"},
+		{"cat5 client leaf error", 0, 15, "cat5 client leaf"},
 		{"cat6 admin CA error", 23, 0, "cat6 admin CA"},
-		{"cat7 mutual leaf error", 0, cryptoutilSharedMagic.IdentityDefaultMaxOpenConns, "cat7 admin mutual leaf"},
-		{"cat9 grafana psid client error", 0, 29, "cat9 grafana psid client"},
-		{"cat9 otel psid client error", 0, cryptoutilSharedMagic.FiberReadTimeoutSeconds, "cat9 otel psid client"},
-		{"cat14 postgres client error", 0, 37, "cat14 postgres app client"},
+		{"cat7 mutual leaf error", 0, 27, "cat7 admin mutual leaf"},
+		{"cat9 grafana psid client error", 0, 31, "cat9 grafana psid client"},
+		{"cat9 otel psid client error", 0, cryptoutilSharedMagic.ClientSecretLength, "cat9 otel psid client"},
+		{"cat14 postgres client error", 0, 39, "cat14 postgres app client"},
 	}
 
 	for _, tc := range tests {

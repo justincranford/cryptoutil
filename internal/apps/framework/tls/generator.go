@@ -146,7 +146,7 @@ type sharedCAs struct {
 }
 
 // generateSharedCAs generates the globally shared certificate infrastructure:
-// Categories 1, 2, 8, 9 (admin only), 10, 11, 12, 13.
+// Categories 1, 2, 8, 9 (admin+infra), 10, 11, 12, 13.
 // Returns the shared CA subjects needed to sign per-PS-ID leaf certs.
 //
 //nolint:cyclop // each block mirrors one TLS category; splitting would obscure the 1:1 spec mapping.
@@ -198,6 +198,19 @@ func (g *Generator) generateSharedCAs(basePath string) (*sharedCAs, error) {
 
 	if err := g.generateClientLeafDir(basePath, otelAdminDir, shared.otelClientIssuing); err != nil {
 		return nil, fmt.Errorf("cat9 otel admin client: %w", err)
+	}
+
+	// --- Category 9 (infra): OTel-to-Grafana service-to-service forwarding client certs (2 dirs) ---
+	grafanaInfraDir := cryptoutilSharedMagic.DockerServiceGrafanaOtelLgtm + "-https-client-entity-" + cryptoutilSharedMagic.PKIInitEntityInfra
+
+	if err := g.generateClientLeafDir(basePath, grafanaInfraDir, shared.grafanaClientIssuing); err != nil {
+		return nil, fmt.Errorf("cat9 grafana infra client: %w", err)
+	}
+
+	otelInfraDir := cryptoutilSharedMagic.PKIInitOtelCollectorContrib + "-https-client-entity-" + cryptoutilSharedMagic.PKIInitEntityInfra
+
+	if err := g.generateClientLeafDir(basePath, otelInfraDir, shared.otelClientIssuing); err != nil {
+		return nil, fmt.Errorf("cat9 otel infra client: %w", err)
 	}
 
 	// --- Category 10: PostgreSQL Server CAs (4 dirs) ---
@@ -312,9 +325,9 @@ func (g *Generator) generatePSIDCerts(basePath, psID string, shared *sharedCAs) 
 		}
 	}
 
-	// --- Category 14: PS-ID PostgreSQL App Client Certs (8 dirs) ---
+	// --- Category 14: PS-ID PostgreSQL App Client Certs (4 dirs) ---
 	for _, role := range []string{cryptoutilSharedMagic.PKIInitPostgresLeader, cryptoutilSharedMagic.PKIInitPostgresFollower} {
-		for _, suffix := range PKIInitAppInstanceSuffixes() {
+		for _, suffix := range PKIInitPostgresAppInstanceSuffixes() {
 			dirName := "postgres-tls-client-entity-" + role + "-" + psID + "-" + suffix
 
 			if err := g.generateClientLeafDir(basePath, dirName, shared.postgresClientIssuing); err != nil {

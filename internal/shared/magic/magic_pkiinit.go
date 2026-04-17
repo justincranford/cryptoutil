@@ -73,4 +73,9 @@ const (
 	// PKIInitInstanceSuffixPostgres2 is the suffix for the second PostgreSQL app instance.
 	// Used to form directory names and Docker service DNS names in pki-init cert generation.
 	PKIInitInstanceSuffixPostgres2 = "postgres-2"
+
+	// PKIInitEntityInfra is the entity type name for service-to-service infrastructure
+	// connections in pki-init cert directory names (e.g., OTel Collector -> Grafana LGTM
+	// OTLP forwarding). Distinguished from PKIInitEntityAdmin (human operator access).
+	PKIInitEntityInfra = "infra"
 )
