@@ -1957,12 +1957,12 @@ The `pki-init` CLI generates the full `/certs` directory tree for each deploymen
 | 6 | `private-https-client-{ps-id}-{root,issuing}-ca-{instance}` | Admin channel CA | truststore |
 | 7 | `private-https-client-{ps-id}-mutual-entity-{instance}` | Admin channel leaf cert | keystore |
 | 8 | `public-https-client-{grafana,otel}-{root,issuing}-ca` | Grafana/OTel client CA | truststore |
-| 9 | `public-https-client-{grafana,otel}-{ps-id,admin}-entity` | Grafana/OTel client leaf | keystore |
+| 9 | `public-https-client-{grafana,otel}-{ps-id,admin,infra}-entity` | Grafana/OTel client leaf | keystore |
 | 10 | `private-tls-server-postgres-{root,issuing}-ca` | PostgreSQL server CA | truststore |
 | 11 | `private-tls-server-postgres-{leader,follower}-entity` | PostgreSQL server leaf | keystore |
 | 12 | `private-tls-client-postgres-{root,issuing}-ca` | PostgreSQL client CA | truststore |
 | 13 | `private-tls-client-postgres-{leader,follower}-entity` | PostgreSQL replication leaf | keystore |
-| 14 | `private-tls-client-{ps-id}-postgres-{1,2}-{leader,follower}-entity` | PS-ID PostgreSQL app client | keystore |
+| 14 | `private-tls-client-{ps-id}-postgres-{1,2}-{leader,follower}-entity` | PS-ID PostgreSQL app client (postgres instances only) | keystore |
 
 **File formats per directory**:
 - **Keystore** (`{name}-keystore`): contains `{name}.crt` (leaf cert), `{name}.key` (private key), `{name}.p12` (PKCS#12 bundle — MODERN format, SHA-256/AES-256-CBC)
@@ -1973,9 +1973,9 @@ The `pki-init` CLI generates the full `/certs` directory tree for each deploymen
 **PKCS#12 format**: `pkcs12.Modern.Encode` / `pkcs12.Modern.EncodeTrustStore` from `software.sslmate.com/src/go-pkcs12`. Modern format uses SHA-256 + AES-256-CBC (not legacy 3DES). CGO-free. Always use `pkcs12.Modern`, never `pkcs12.Legacy`.
 
 **Directory counts** (with 2 realms per PS-ID):
-- PS-ID scope: 82 directories
-- PRODUCT scope (sm = 2 PS-IDs × 82 — shared global dirs): 136 directories
-- SUITE scope (10 PS-IDs × 82 — shared global dirs): 568 directories
+- PS-ID scope: 90 directories
+- PRODUCT scope (sm = 2 PS-IDs): 150 directories (30 global shared + 60 per PS-ID × 2)
+- SUITE scope (10 PS-IDs): 666 directories (30 global shared + 60 per PS-ID × 10)
 
 **Docker volume delivery**: certs are written to a named Docker volume `{ps-id}-certs` by the `pki-init` service, then mounted read-only (`/certs:ro`) by all other services in the compose. NEVER use bind mounts for certs. See [docs/deployment-templates.md](deployment-templates.md) rules CO-21/CO-22.
 
