@@ -562,8 +562,7 @@ deployments/
 **`/certs` Docker Volume**: Each PS-ID's `pki-init` init-container generates a TLS certificate tree
 into a named Docker volume mounted at `/certs`. The directory layout follows the 14-category
 keystore/truststore pattern defined in [`docs/tls-structure.md`](tls-structure.md). Per PS-ID scope:
-82 directories (assuming 2 realms; count is `|realms|`-dependent — see Decision 8 in
-`docs/framework-v11/plan.md` and the Directory Count Summary in `tls-structure.md`), each
+90 directories (assuming 2 realms; count is `|realms|`-dependent — see the Directory Count Summary in `tls-structure.md`), each
 containing `SAME-AS-DIR-NAME.{p12,crt,key}` (keystores) or `SAME-AS-DIR-NAME.{p12,crt}`
 (truststores). See [`docs/tls-structure.md`](tls-structure.md) for the full specification.
 
