@@ -244,6 +244,10 @@ type ServiceFrameworkServerSettings struct {
 	ServiceSessionExpiration    time.Duration // Service session expiration duration
 	SessionIdleTimeout          time.Duration // Session idle timeout duration
 	SessionCleanupInterval      time.Duration // Interval for cleaning up expired sessions
+	DatabaseSSLMode             string        // PostgreSQL SSL mode: disable, require, verify-ca, verify-full (empty = use DSN default)
+	DatabaseSSLCert             string        // Path to client TLS certificate file for PostgreSQL mTLS (Cat 14)
+	DatabaseSSLKey              string        // Path to client TLS private key file for PostgreSQL mTLS (Cat 14)
+	DatabaseSSLRootCert         string        // Path to CA truststore for verifying PostgreSQL server cert (Cat 10)
 }
 
 // PrivateBaseURL returns the private base URL constructed from protocol, address, and port.

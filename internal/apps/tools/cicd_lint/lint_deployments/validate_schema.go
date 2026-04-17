@@ -209,6 +209,35 @@ var configSchema = map[string]schemaField{
 		Required:    false,
 		Description: "Database connection string (prefer file:///run/secrets/ reference)",
 	},
+	// database-sslmode: PostgreSQL SSL/TLS verification mode.
+	// Use "verify-full" for mTLS (Phase 4+), "disable" for local dev SQLite instances.
+	"database-sslmode": {
+		Type:        fieldTypeString,
+		Required:    false,
+		ValidValues: []string{"disable", "require", "verify-ca", "verify-full"},
+		Description: "PostgreSQL SSL mode (verify-full for mTLS, disable for SQLite instances)",
+	},
+	// database-sslcert: Path to client certificate file (Cat 14 keystore) for mTLS.
+	// Mounted from __PS_ID__-certs named volume by pki-init.
+	"database-sslcert": {
+		Type:        fieldTypeString,
+		Required:    false,
+		Description: "Path to client TLS certificate file (Cat 14: postgres-tls-client-entity-leader-PS_ID-instance)",
+	},
+	// database-sslkey: Path to client private key file (Cat 14 keystore) for mTLS.
+	// Mounted from __PS_ID__-certs named volume by pki-init.
+	"database-sslkey": {
+		Type:        fieldTypeString,
+		Required:    false,
+		Description: "Path to client TLS private key file (Cat 14: postgres-tls-client-entity-leader-PS_ID-instance)",
+	},
+	// database-sslrootcert: Path to CA truststore file for verifying PostgreSQL server cert.
+	// Uses Cat 10 postgres-tls-server-issuing-ca truststore.
+	"database-sslrootcert": {
+		Type:        fieldTypeString,
+		Required:    false,
+		Description: "Path to CA truststore for verifying PostgreSQL server cert (Cat 10: postgres-tls-server-issuing-ca)",
+	},
 }
 
 // ValidateSchema validates a flat kebab-case config file against the hardcoded schema.

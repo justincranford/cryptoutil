@@ -102,6 +102,35 @@ var (
 		Description: "Database URL",
 		Redacted:    true,
 	})
+	databaseSSLMode = *SetEnvAndRegisterSetting(allServiceFrameworkServerRegisteredSettings, &Setting{
+		Name:        "database-sslmode",
+		Shorthand:   "",
+		Value:       "",
+		Usage:       "PostgreSQL SSL mode: disable, require, verify-ca, verify-full (empty = use DSN default)",
+		Description: "Database SSL Mode",
+	})
+	databaseSSLCert = *SetEnvAndRegisterSetting(allServiceFrameworkServerRegisteredSettings, &Setting{
+		Name:        "database-sslcert",
+		Shorthand:   "",
+		Value:       "",
+		Usage:       "path to client TLS certificate file for PostgreSQL mTLS (Cat 14)",
+		Description: "Database SSL Client Cert",
+	})
+	databaseSSLKey = *SetEnvAndRegisterSetting(allServiceFrameworkServerRegisteredSettings, &Setting{
+		Name:        "database-sslkey",
+		Shorthand:   "",
+		Value:       "",
+		Usage:       "path to client TLS private key file for PostgreSQL mTLS (Cat 14)",
+		Description: "Database SSL Client Key",
+		Redacted:    true,
+	})
+	databaseSSLRootCert = *SetEnvAndRegisterSetting(allServiceFrameworkServerRegisteredSettings, &Setting{
+		Name:        "database-sslrootcert",
+		Shorthand:   "",
+		Value:       "",
+		Usage:       "path to CA truststore for verifying PostgreSQL server cert (Cat 10)",
+		Description: "Database SSL Root Cert",
+	})
 	databaseInitTotalTimeout = *SetEnvAndRegisterSetting(allServiceFrameworkServerRegisteredSettings, &Setting{
 		Name:        "database-init-total-timeout",
 		Shorthand:   "Z",

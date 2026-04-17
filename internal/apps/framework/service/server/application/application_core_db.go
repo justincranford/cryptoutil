@@ -108,7 +108,7 @@ func provisionDatabaseInternal(
 		db, err = openSQLiteInternal(ctx, databaseURL, settings.VerboseMode, sqlOpenFn, gormOpenSQLiteFn)
 	} else {
 		basic.TelemetryService.Slogger.Debug("opening PostgreSQL database", "url", maskPassword(databaseURL))
-		db, err = openPostgreSQL(ctx, databaseURL, settings.VerboseMode)
+		db, err = openPostgreSQL(ctx, databaseURL, settings.VerboseMode, settings.DatabaseSSLMode, settings.DatabaseSSLCert, settings.DatabaseSSLKey, settings.DatabaseSSLRootCert)
 	}
 
 	if err != nil {
@@ -210,7 +210,30 @@ func openSQLiteInternal(
 }
 
 // openPostgreSQL opens a PostgreSQL database connection with GORM.
-func openPostgreSQL(_ context.Context, databaseURL string, debugMode bool) (*gorm.DB, error) {
+// sslMode, sslCert, sslKey, sslRootCert are optional mTLS parameters (Cat 10/14).
+// When sslMode is non-empty it is appended to the DSN; cert/key/rootcert are appended if non-empty.
+func openPostgreSQL(_ context.Context, databaseURL string, debugMode bool, sslMode, sslCert, sslKey, sslRootCert string) (*gorm.DB, error) {
+	if sslMode != "" {
+		sep := "?"
+		if strings.Contains(databaseURL, "?") {
+			sep = "&"
+		}
+
+		databaseURL += sep + "sslmode=" + sslMode
+
+		if sslCert != "" {
+			databaseURL += "&sslcert=" + sslCert
+		}
+
+		if sslKey != "" {
+			databaseURL += "&sslkey=" + sslKey
+		}
+
+		if sslRootCert != "" {
+			databaseURL += "&sslrootcert=" + sslRootCert
+		}
+	}
+
 	gormConfig := &gorm.Config{SkipDefaultTransaction: true}
 	if debugMode {
 		gormConfig.Logger = logger.Default.LogMode(cryptoutilSharedMagic.GormLogModeInfo)

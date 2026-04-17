@@ -270,7 +270,7 @@ func TestOpenPostgreSQL_WithContainer(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			db, err := openPostgreSQL(ctx, containerURL, tt.debugMode)
+			db, err := openPostgreSQL(ctx, containerURL, tt.debugMode, "", "", "", "")
 
 			if tt.expectError {
 				require.Error(t, err)

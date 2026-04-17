@@ -26,7 +26,7 @@ func TestOpenPostgreSQL(t *testing.T) {
 	// This test demonstrates openPostgreSQL function but will skip if no PostgreSQL available.
 	// In production, this would use testcontainers to start PostgreSQL.
 	// For now, we test the error path with invalid DSN.
-	_, err := openPostgreSQL(ctx, "invalid-dsn", false)
+	_, err := openPostgreSQL(ctx, "invalid-dsn", false, "", "", "", "")
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to open PostgreSQL database")
 }
@@ -340,7 +340,7 @@ func TestOpenPostgreSQL_Success(t *testing.T) {
 
 	// Use valid PostgreSQL DSN (won't connect but tests code path).
 	dsn := testPostgresDSN
-	db, err := openPostgreSQL(ctx, dsn, false)
+	db, err := openPostgreSQL(ctx, dsn, false, "", "", "", "")
 
 	// Note: Will fail to connect since no actual PostgreSQL server.
 	// This tests the error path which is at 41.7% coverage.
@@ -359,7 +359,7 @@ func TestOpenPostgreSQL_InvalidDSN(t *testing.T) {
 	ctx := context.Background()
 
 	// Empty DSN should fail.
-	db, err := openPostgreSQL(ctx, "", false)
+	db, err := openPostgreSQL(ctx, "", false, "", "", "", "")
 	require.Error(t, err)
 	require.Nil(t, db)
 	require.Contains(t, err.Error(), "failed to open PostgreSQL database")
@@ -374,7 +374,7 @@ func TestOpenPostgreSQL_DebugMode(t *testing.T) {
 	// Use valid DSN format but won't connect.
 	dsn := testPostgresDSN
 
-	db, err := openPostgreSQL(ctx, dsn, true) // Debug mode = true.
+	db, err := openPostgreSQL(ctx, dsn, true, "", "", "", "") // Debug mode = true.
 	if err != nil {
 		require.Error(t, err)
 	} else {

@@ -161,6 +161,10 @@ func ParseWithFlagSet(fs *pflag.FlagSet, commandParameters []string, exitIfHelp 
 	fs.DurationP(serviceSessionExpiration.Name, serviceSessionExpiration.Shorthand, RegisterAsDurationSetting(&serviceSessionExpiration), serviceSessionExpiration.Usage)
 	fs.DurationP(sessionIdleTimeout.Name, sessionIdleTimeout.Shorthand, RegisterAsDurationSetting(&sessionIdleTimeout), sessionIdleTimeout.Usage)
 	fs.DurationP(sessionCleanupInterval.Name, sessionCleanupInterval.Shorthand, RegisterAsDurationSetting(&sessionCleanupInterval), sessionCleanupInterval.Usage)
+	fs.StringP(databaseSSLMode.Name, databaseSSLMode.Shorthand, RegisterAsStringSetting(&databaseSSLMode), databaseSSLMode.Usage)
+	fs.StringP(databaseSSLCert.Name, databaseSSLCert.Shorthand, RegisterAsStringSetting(&databaseSSLCert), databaseSSLCert.Usage)
+	fs.StringP(databaseSSLKey.Name, databaseSSLKey.Shorthand, RegisterAsStringSetting(&databaseSSLKey), databaseSSLKey.Usage)
+	fs.StringP(databaseSSLRootCert.Name, databaseSSLRootCert.Shorthand, RegisterAsStringSetting(&databaseSSLRootCert), databaseSSLRootCert.Usage)
 
 	err := fs.Parse(subCommandParameters)
 	if err != nil {
@@ -300,6 +304,10 @@ func ParseWithFlagSet(fs *pflag.FlagSet, commandParameters []string, exitIfHelp 
 		ServiceSessionExpiration:    v.GetDuration(serviceSessionExpiration.Name),
 		SessionIdleTimeout:          v.GetDuration(sessionIdleTimeout.Name),
 		SessionCleanupInterval:      v.GetDuration(sessionCleanupInterval.Name),
+		DatabaseSSLMode:             v.GetString(databaseSSLMode.Name),
+		DatabaseSSLCert:             v.GetString(databaseSSLCert.Name),
+		DatabaseSSLKey:              v.GetString(databaseSSLKey.Name),
+		DatabaseSSLRootCert:         v.GetString(databaseSSLRootCert.Name),
 	}
 
 	// Resolve file:// URLs for sensitive settings from Docker secrets or Kubernetes secrets.
