@@ -1,7 +1,7 @@
-# Tasks - Framework V12: TLS Wiring
+# Tasks - Framework V12: PostgreSQL mTLS + Private PS-ID App mTLS Trust
 
-**Status**: 0 of 36 tasks complete (0%)
-**Last Updated**: 2025-07-07
+**Status**: 0 of 43 tasks complete (0%)
+**Last Updated**: 2026-04-16
 **Created**: 2025-06-26
 
 ## Quality Mandate - MANDATORY
@@ -93,368 +93,509 @@
 
 ---
 
-### Phase 1: PostgreSQL Server TLS [Status: ☐ TODO]
+### Phase 1: PostgreSQL Server TLS — Leader + Follower [Status: ☐ TODO]
 
-**Phase Objective**: Configure PostgreSQL leader and follower to serve TLS connections.
+**Phase Objective**: Configure PostgreSQL leader and follower to serve TLS from `/certs` volume mounts.
 
-#### Task 1.1: PostgreSQL Server Cert Loading
-
-- **Status**: ❌
-- **Estimated**: 2h
-- **Dependencies**: V11 complete
-- **Description**: Configure shared-postgres to load server certs from named Docker volumes.
-- **Acceptance Criteria**:
-  - [ ] Leader loads `postgres-tls-server-entity-leader/` cert+key (Cat 11 keystore)
-  - [ ] Follower loads `postgres-tls-server-entity-follower/` cert+key (Cat 11 keystore)
-  - [ ] `postgresql.conf`: `ssl = on`, `ssl_cert_file`, `ssl_key_file` configured
-  - [ ] `ssl_ca_file` points to `postgres-tls-client-issuing-ca/truststore/` (Cat 12)
-  - [ ] Compose volume: `__PS_ID__-certs` named volume defined in PS-ID compose (include-merged, D5)
-
-#### Task 1.2: PostgreSQL SSL Config
+#### Task 1.1: Leader postgresql.conf SSL Config
 
 - **Status**: ❌
-- **Estimated**: 2h
-- **Dependencies**: Task 1.1
-- **Description**: Update shared-postgres `postgresql.conf` template for SSL parameters.
+- **Estimated**: 1.5h
+- **Dependencies**: Phase 0 complete, V11 complete
+- **Description**: Configure leader `postgresql.conf` for TLS.
 - **Acceptance Criteria**:
   - [ ] `ssl = on`
-  - [ ] `ssl_cert_file` = `postgres-tls-server-entity-{leader,follower}/SAME-AS-DIR-NAME.crt`
-  - [ ] `ssl_key_file` = `postgres-tls-server-entity-{leader,follower}/SAME-AS-DIR-NAME.key`
+  - [ ] `ssl_cert_file` = `postgres-tls-server-entity-leader/SAME-AS-DIR-NAME.crt` (Cat 11)
+  - [ ] `ssl_key_file` = `postgres-tls-server-entity-leader/SAME-AS-DIR-NAME.key` (Cat 11)
   - [ ] `ssl_ca_file` = `postgres-tls-client-issuing-ca/truststore/postgres-tls-client-issuing-ca.crt` (Cat 12)
   - [ ] `ssl_min_protocol_version = TLSv1.3`
-  - [ ] Compose volumes mount `__PS_ID__-certs` named volume (include-merged approach, D5)
+- **Files**: `deployments/shared-postgres/leader/postgresql.conf`
 
-#### Task 1.3: PostgreSQL Init Script Updates
+#### Task 1.2: Follower postgresql.conf SSL Config
 
 - **Status**: ❌
 - **Estimated**: 1h
-- **Dependencies**: Task 1.2
-- **Description**: Update shared-postgres init scripts for TLS-aware startup.
+- **Dependencies**: Task 1.1
+- **Description**: Configure follower `postgresql.conf` for TLS (follower-specific cert paths).
 - **Acceptance Criteria**:
-  - [ ] Init scripts set correct file permissions on cert files
-  - [ ] SSL health check works after startup
+  - [ ] `ssl = on`
+  - [ ] `ssl_cert_file` = `postgres-tls-server-entity-follower/SAME-AS-DIR-NAME.crt` (Cat 11)
+  - [ ] `ssl_key_file` = `postgres-tls-server-entity-follower/SAME-AS-DIR-NAME.key` (Cat 11)
+  - [ ] `ssl_ca_file` = `postgres-tls-client-issuing-ca/truststore/postgres-tls-client-issuing-ca.crt` (Cat 12)
+  - [ ] `ssl_min_protocol_version = TLSv1.3`
+- **Files**: `deployments/shared-postgres/follower/postgresql.conf`
 
-#### Task 1.4: Verify Server TLS
+#### Task 1.3: shared-postgres Compose Cert Volume Mounts (Leader + Follower)
+
+- **Status**: ❌
+- **Estimated**: 1.5h
+- **Dependencies**: Tasks 1.1, 1.2
+- **Description**: Mount cert dirs in shared-postgres compose with least privilege per node.
+- **Acceptance Criteria**:
+  - [ ] `__PS_ID__-certs` named volume referenced (not re-declared) in shared-postgres compose (D5 include-merged)
+  - [ ] Leader mounts: Cat 11 `postgres-tls-server-entity-leader/` + Cat 12 `postgres-tls-client-issuing-ca/truststore/` ONLY
+  - [ ] Follower mounts: Cat 11 `postgres-tls-server-entity-follower/` + Cat 12 `postgres-tls-client-issuing-ca/truststore/` ONLY (Cat 10 added in Phase 2)
+  - [ ] No extra cert dirs mounted beyond minimum required
+- **Files**: `deployments/shared-postgres/compose.yml`
+
+#### Task 1.4: Init Script Cert Permissions
 
 - **Status**: ❌
 - **Estimated**: 1h
 - **Dependencies**: Task 1.3
-- **Description**: Verify PostgreSQL accepts TLS connections.
+- **Description**: Update init scripts to set correct permissions on mounted cert files.
 - **Acceptance Criteria**:
-  - [ ] `psql "sslmode=verify-full"` connects successfully
-  - [ ] TLS 1.3 negotiated
+  - [ ] Key files: `chmod 600` applied
+  - [ ] Cert files: `chmod 644` applied
+  - [ ] `pg_hba.conf` allows `hostssl` connections (no `clientcert=verify-full` yet)
+  - [ ] Plain `host` connections still allowed (removed in Phase 4)
+- **Files**: `deployments/shared-postgres/init/`
 
 ---
 
-### Phase 2: PostgreSQL Client mTLS [Status: ☐ TODO]
+### Phase 2: PostgreSQL Replication Server TLS [Status: ☐ TODO]
 
-**Phase Objective**: Configure mTLS for app-to-PostgreSQL and replication connections.
+**Phase Objective**: Configure follower→leader replication to use server TLS.
 
-#### Task 2.1: pg_hba.conf mTLS Rules
+#### Task 2.1: Follower primary_conninfo Server TLS
 
 - **Status**: ❌
-- **Estimated**: 2h
+- **Estimated**: 1h
 - **Dependencies**: Phase 1 complete
-- **Description**: Update `pg_hba.conf` template for client certificate verification.
+- **Description**: Add server TLS params to follower `primary_conninfo`.
 - **Acceptance Criteria**:
-  - [ ] `hostssl` rules with `clientcert=verify-full`
-  - [ ] Non-SSL connections rejected
-  - [ ] CN mapping configured
+  - [ ] `sslmode=verify-full` in `primary_conninfo`
+  - [ ] `sslrootcert=<Cat 10 postgres-tls-server-issuing-ca/truststore/ path>` in `primary_conninfo`
+  - [ ] No `sslcert`/`sslkey` yet (client cert added in Phase 5)
+- **Files**: `deployments/shared-postgres/follower/postgresql.conf` or recovery config
 
-#### Task 2.2: App Instance Client Certs
-
-- **Status**: ❌
-- **Estimated**: 2h
-- **Dependencies**: Task 2.1
-- **Description**: Configure GORM connection with client certs via YAML config fields (D2: YAML cert paths).
-- **Acceptance Criteria**:
-  - [ ] Framework config struct adds `database.sslmode`, `database.sslcert`, `database.sslkey`, `database.sslrootcert` fields
-  - [ ] `sslcert` = `postgres-tls-client-entity-leader-{PS-ID}-postgres-{1,2}/SAME-AS-DIR-NAME.crt` (Cat 14)
-  - [ ] `sslkey` = `postgres-tls-client-entity-leader-{PS-ID}-postgres-{1,2}/SAME-AS-DIR-NAME.key` (Cat 14)
-  - [ ] `sslrootcert` = `postgres-tls-server-issuing-ca/truststore/postgres-tls-server-issuing-ca.crt` (Cat 10)
-  - [ ] Only postgres-1 and postgres-2 instances use PostgreSQL client certs (sqlite-1/sqlite-2 do not)
-  - [ ] Config YAML files updated per PS-ID per postgres variant
-
-#### Task 2.3: Replication mTLS
-
-- **Status**: ❌
-- **Estimated**: 1h
-- **Dependencies**: Task 2.1
-- **Description**: Configure leader↔follower replication with mTLS.
-- **Acceptance Criteria**:
-  - [ ] Follower uses `postgres-tls-client-entity-follower-replication/` cert (Cat 13 keystore)
-  - [ ] Leader accepts replication from `postgres-tls-client-entity-leader-replication/` cert (Cat 13 keystore)
-  - [ ] `primary_conninfo` in follower uses `sslcert`, `sslkey`, `sslrootcert` parameters
-
-#### Task 2.4: Verify Client mTLS
-
-- **Status**: ❌
-- **Estimated**: 1h
-- **Dependencies**: Tasks 2.2, 2.3
-- **Description**: Verify mTLS connections and rejection of non-mTLS.
-- **Acceptance Criteria**:
-  - [ ] App instances connect via mTLS
-  - [ ] Non-client-cert connections rejected
-  - [ ] Replication streams verified
-
----
-
-### Phase 3: OTel Collector Server TLS [Status: ☐ TODO]
-
-**Phase Objective**: Configure OTel Collector to serve mTLS on OTLP endpoints.
-
-#### Task 3.1: OTel Server Cert Config
-
-- **Status**: ❌
-- **Estimated**: 2h
-- **Dependencies**: V11 complete
-- **Description**: Update otel-collector-contrib YAML config for TLS receiver.
-- **Acceptance Criteria**:
-  - [ ] `receivers.otlp.protocols.grpc.tls.cert_file` = `public-https-server-entity-otel-collector-contrib/SAME-AS-DIR-NAME.crt` (Cat 2)
-  - [ ] `receivers.otlp.protocols.grpc.tls.key_file` = `public-https-server-entity-otel-collector-contrib/SAME-AS-DIR-NAME.key` (Cat 2)
-  - [ ] `receivers.otlp.protocols.grpc.tls.client_ca_file` = `otel-collector-contrib-https-client-issuing-ca/truststore/otel-collector-contrib-https-client-issuing-ca.crt` (Cat 8)
-  - [ ] HTTP OTLP receiver configured identically
-  - [ ] `insecure: false` on all OTLP receiver protocols
-
-#### Task 3.2: OTel Compose Volume Mounts
-
-- **Status**: ❌
-- **Estimated**: 1h
-- **Dependencies**: Task 3.1
-- **Description**: Mount cert volumes in otel-collector-contrib service.
-- **Acceptance Criteria**:
-  - [ ] `public-https-server-entity-otel-collector-contrib/` (Cat 2) mounted for server cert (keystore)
-  - [ ] `otel-collector-contrib-https-client-issuing-ca/truststore/` (Cat 8) mounted for client CA
-  - [ ] Volume: `__PS_ID__-certs` named volume applied per D5 (include-merged)
-  - [ ] Compose file validates
-
-#### Task 3.3: Verify OTel Server TLS
-
-- **Status**: ❌
-- **Estimated**: 1h
-- **Dependencies**: Task 3.2
-- **Description**: Verify OTel accepts mTLS and rejects insecure connections.
-- **Acceptance Criteria**:
-  - [ ] mTLS connection succeeds on :4317 and :4318
-  - [ ] Insecure connection rejected
-
----
-
-### Phase 4: App → OTel Client mTLS [Status: ☐ TODO]
-
-**Phase Objective**: Configure app OTLP exporters to use client certs.
-
-#### Task 4.1: Go OTLP Exporter TLS Config
-
-- **Status**: ❌
-- **Estimated**: 2h
-- **Dependencies**: Phase 3 complete
-- **Description**: Update Go OTLP exporter configuration with client cert and CA.
-- **Acceptance Criteria**:
-  - [ ] Each PS-ID app instance loads `otel-collector-contrib-https-client-entity-{PS-ID}-{sqlite,postgres}-{1,2}/` (Cat 9 keystore)
-  - [ ] Server CA trust from `public-https-server-issuing-ca/truststore/` (Cat 1) for OTel server cert verification
-  - [ ] TLS 1.3 minimum
-
-#### Task 4.2: Compose Config Updates
-
-- **Status**: ❌
-- **Estimated**: 1h
-- **Dependencies**: Task 4.1
-- **Description**: Update compose configs for OTLP endpoint TLS.
-- **Acceptance Criteria**:
-  - [ ] `otlp.endpoint` uses `https://` scheme
-  - [ ] `otlp.insecure: false`
-  - [ ] Cert paths in service config
-
-#### Task 4.3: Verify App→OTel mTLS
-
-- **Status**: ❌
-- **Estimated**: 1h
-- **Dependencies**: Task 4.2
-- **Description**: Verify telemetry flows via mTLS.
-- **Acceptance Criteria**:
-  - [ ] Traces/metrics/logs appear in OTel
-  - [ ] Non-mTLS export rejected
-
----
-
-### Phase 5: OTel → Grafana Client mTLS [Status: ☐ TODO]
-
-**Phase Objective**: Configure OTel-to-Grafana forwarding with full mTLS (D6=mTLS assumed; D3=`infra` entity cert).
-
-#### Task 5.1: Grafana OTLP Ingest mTLS
-
-- **Status**: ❌
-- **Estimated**: 1.5h
-- **Dependencies**: Phase 3 complete
-- **Description**: Configure grafana/otel-lgtm to accept mTLS on OTLP ingest ports (D6=mTLS assumed; D3=infra entity).
-- **Acceptance Criteria**:
-  - [ ] Grafana OTLP ingest (:14317/:14318) accepts mTLS connections
-  - [ ] Client CA from `grafana-otel-lgtm-https-client-issuing-ca/truststore/` (Cat 8) configured
-  - [ ] Server cert from `public-https-server-entity-grafana-otel-lgtm/` (Cat 2) used
-  - [ ] Volume: `__PS_ID__-certs` named volume applied per D5 (include-merged)
-
-#### Task 5.2: OTel Exporter Client Cert
-
-- **Status**: ❌
-- **Estimated**: 1.5h
-- **Dependencies**: Task 5.1
-- **Description**: Configure OTel Collector exporter with `infra` client cert for Grafana (D3=E: new `infra` entity).
-- **Acceptance Criteria**:
-  - [ ] `exporters.otlp.tls.ca_file` = `public-https-server-issuing-ca/truststore/` (Cat 1) for Grafana server cert
-  - [ ] `exporters.otlp.tls.cert_file` = `grafana-otel-lgtm-https-client-entity-infra/SAME-AS-DIR-NAME.crt` (Cat 9 infra)
-  - [ ] `exporters.otlp.tls.key_file` = `grafana-otel-lgtm-https-client-entity-infra/SAME-AS-DIR-NAME.key` (Cat 9 infra)
-  - [ ] Pipeline verified: telemetry flows to Grafana
-
----
-
-### Phase 6: Grafana LGTM HTTPS UI [Status: ☐ TODO]
-
-**Phase Objective**: Serve Grafana UI over HTTPS.
-
-#### Task 6.1: Grafana HTTPS Config
-
-- **Status**: ❌
-- **Estimated**: 1h
-- **Dependencies**: V11 complete
-- **Description**: Configure grafana/otel-lgtm for HTTPS via custom grafana.ini (D1: grafana.ini approach).
-- **Acceptance Criteria**:
-  - [ ] `shared-telemetry/grafana-otel-lgtm/grafana.ini` created with `[server]` section
-  - [ ] `protocol = https`
-  - [ ] `cert_file` = `/certs/__PS_ID__/public-https-server-entity-grafana-otel-lgtm/public-https-server-entity-grafana-otel-lgtm.crt` (Cat 2)
-  - [ ] `cert_key` = `/certs/__PS_ID__/public-https-server-entity-grafana-otel-lgtm/public-https-server-entity-grafana-otel-lgtm.key` (Cat 2)
-  - [ ] `grafana.ini` mounted as volume at `/etc/grafana/grafana.ini:ro` in compose
-  - [ ] Volume: `__PS_ID__-certs` named volume applied per D5 (include-merged)
-  - [ ] `healthcheck` updated to `https://127.0.0.1:3000/api/health`
-
-#### Task 6.2: Verify Grafana HTTPS
-
-- **Status**: ❌
-- **Estimated**: 1h
-- **Dependencies**: Task 6.1
-- **Description**: Verify Grafana UI is accessible via HTTPS.
-- **Acceptance Criteria**:
-  - [ ] `curl --cacert ... https://localhost:3000` succeeds
-  - [ ] Dashboards accessible
-
----
-
-### Phase 7: PS-ID App TLS Trust [Status: ☐ TODO]
-
-**Phase Objective**: Configure all app instances to load certs and trust CAs.
-
-#### Task 7.1: Public Server Cert Loading
-
-- **Status**: ❌
-- **Estimated**: 1.5h
-- **Dependencies**: V11 complete
-- **Description**: Configure apps to load public HTTPS server certs.
-- **Acceptance Criteria**:
-  - [ ] Each instance loads `public-https-server-entity-{PS-ID}-{sqlite,postgres}-{1,2}/` (Cat 3 keystore)
-  - [ ] ServerSettings updated with cert file path and key file path
-
-#### Task 7.2: Private Admin mTLS Cert Loading
-
-- **Status**: ❌
-- **Estimated**: 1.5h
-- **Dependencies**: Task 7.1
-- **Description**: Configure apps to load private admin mTLS certs.
-- **Acceptance Criteria**:
-  - [ ] Each instance loads `private-https-mutual-entity-{PS-ID}-{sqlite,postgres}-{1,2}/` (Cat 7 keystore) — this cert has both Client Auth and Server Auth EKU
-  - [ ] Admin CA truststore from `private-https-mutual-issuing-ca-{PS-ID}-{sqlite,postgres}-{1,2}/truststore/` (Cat 6) for verifying admin clients
-
-#### Task 7.3: Client Cert Loading
-
-- **Status**: ❌
-- **Estimated**: 1h
-- **Dependencies**: Task 7.1
-- **Description**: Configure apps to accept client certs per API path and realm.
-- **Acceptance Criteria**:
-  - [ ] Browser path (`/browser/`) uses `public-https-client-issuing-ca-{PS-ID}-{pki-domain}/truststore/` (Cat 4) where pki-domain=`sqlite-1`,`sqlite-2`, or `postgres`
-  - [ ] Service path (`/service/`) uses same Cat 4 truststore per PKI domain
-  - [ ] Global server CA truststore `public-https-server-issuing-ca/truststore/` (Cat 1) loaded for outbound TLS verification
-
----
-
-### Phase 8: E2E Testing [Status: ☐ TODO]
-
-**Phase Objective**: End-to-end TLS verification.
-
-#### Task 8.1: Full Stack Docker Compose
-
-- **Status**: ❌
-- **Estimated**: 2h
-- **Dependencies**: Phases 1-7 complete
-- **Description**: Docker Compose up with all TLS enabled.
-- **Acceptance Criteria**:
-  - [ ] All services start with TLS
-  - [ ] Health checks pass
-
-#### Task 8.2: mTLS Connection Matrix
-
-- **Status**: ❌
-- **Estimated**: 2h
-- **Dependencies**: Task 8.1
-- **Description**: Verify every mTLS connection pair.
-- **Acceptance Criteria**:
-  - [ ] App ↔ PostgreSQL mTLS verified
-  - [ ] App → OTel mTLS verified
-  - [ ] OTel → Grafana mTLS verified
-  - [ ] Grafana HTTPS UI verified
-
-#### Task 8.3: Negative Tests
-
-- **Status**: ❌
-- **Estimated**: 1h
-- **Dependencies**: Task 8.2
-- **Description**: Verify non-TLS and wrong-cert connections are rejected.
-- **Acceptance Criteria**:
-  - [ ] Non-TLS connections rejected by all services
-  - [ ] Wrong client cert rejected
-  - [ ] Expired cert rejected
-
-#### Task 8.4: Performance Baseline
-
-- **Status**: ❌
-- **Estimated**: 1h
-- **Dependencies**: Task 8.2
-- **Description**: Measure TLS overhead.
-- **Acceptance Criteria**:
-  - [ ] Benchmark before/after TLS
-  - [ ] Acceptable overhead (<5% latency increase)
-
----
-
-### Phase 9: Knowledge Propagation [Status: ☐ TODO]
-
-**Phase Objective**: Apply lessons learned to permanent artifacts.
-
-#### Task 9.1: Review Lessons
+#### Task 2.2: Follower Cat 10 Truststore Mount
 
 - **Status**: ❌
 - **Estimated**: 0.5h
-- **Dependencies**: Phases 1-8 complete
-- **Description**: Review lessons.md.
+- **Dependencies**: Task 2.1
+- **Description**: Add Cat 10 truststore mount to follower (least privilege — only what replication server TLS needs).
 - **Acceptance Criteria**:
-  - [ ] All lessons reviewed
-  - [ ] Actionable items identified
+  - [ ] Follower mounts: Cat 10 `postgres-tls-server-issuing-ca/truststore/` added
+  - [ ] Leader mounts unchanged (Cat 11 + Cat 12 only — leader does not need Cat 10)
+  - [ ] Compose file validates
+- **Files**: `deployments/shared-postgres/compose.yml`
 
-#### Task 9.2: Update Artifacts
+#### Task 2.3: Verify Replication Server TLS
+
+- **Status**: ❌
+- **Estimated**: 0.5h
+- **Dependencies**: Tasks 2.1, 2.2
+- **Description**: Verify replication slot reconnects over TLS.
+- **Acceptance Criteria**:
+  - [ ] `SELECT * FROM pg_stat_replication` on leader shows `ssl = t`
+  - [ ] Replication lag returns to zero after TLS reconfiguration
+
+---
+
+### Phase 3: Verify PostgreSQL Standalone [Status: ☐ TODO]
+
+**Phase Objective**: Confirm each node responds to TLS connections independently before requiring client certs.
+
+#### Task 3.1: Verify Leader TLS
+
+- **Status**: ❌
+- **Estimated**: 0.5h
+- **Dependencies**: Phase 2 complete
+- **Description**: Verify leader accepts TLS connections.
+- **Acceptance Criteria**:
+  - [ ] `psql "sslmode=verify-full sslrootcert=<Cat 10>"` connects to leader
+  - [ ] `SELECT ssl_version FROM pg_stat_ssl WHERE pid = pg_backend_pid()` returns `TLSv1.3`
+  - [ ] `sslmode=disable` connection still succeeds (HBA not yet hardened)
+
+#### Task 3.2: Verify Follower TLS
+
+- **Status**: ❌
+- **Estimated**: 0.5h
+- **Dependencies**: Phase 2 complete
+- **Description**: Verify follower accepts TLS connections independently.
+- **Acceptance Criteria**:
+  - [ ] `psql "sslmode=verify-full sslrootcert=<Cat 10>"` connects to follower
+  - [ ] TLS 1.3 negotiated
+  - [ ] `sslmode=disable` connection still succeeds
+
+#### Task 3.3: Verify Replication Running Over TLS
+
+- **Status**: ❌
+- **Estimated**: 0.5h
+- **Dependencies**: Tasks 3.1, 3.2
+- **Description**: Verify replication is active and using TLS.
+- **Acceptance Criteria**:
+  - [ ] `pg_stat_replication` on leader shows `ssl = t` and active slot
+  - [ ] No replication lag issues
+
+---
+
+### Phase 4: PostgreSQL Client mTLS — HBA + GORM Config [Status: ☐ TODO]
+
+**Phase Objective**: Require client certs for app connections and configure GORM to present them.
+
+#### Task 4.1: pg_hba.conf mTLS Rules
+
+- **Status**: ❌
+- **Estimated**: 1.5h
+- **Dependencies**: Phase 3 complete
+- **Description**: Update `pg_hba.conf` to require client certs for app connections.
+- **Acceptance Criteria**:
+  - [ ] All `hostssl` app connection rules updated to `clientcert=verify-full`
+  - [ ] Plain `host` rules removed (only `hostssl` permitted)
+  - [ ] Replication rule remains `hostssl replication ... scram-sha-256` (no `clientcert` yet — added in Phase 5)
+- **Files**: `deployments/shared-postgres/leader/pg_hba.conf`, `deployments/shared-postgres/follower/pg_hba.conf`
+
+#### Task 4.2: Framework Config SSL Fields
+
+- **Status**: ❌
+- **Estimated**: 2h
+- **Dependencies**: Task 4.1
+- **Description**: Add SSL YAML fields to framework database config (D2: YAML config approach).
+- **Acceptance Criteria**:
+  - [ ] `database.sslmode` field added to framework config struct
+  - [ ] `database.sslcert` field added (path to Cat 14 client cert crt)
+  - [ ] `database.sslkey` field added (path to Cat 14 client cert key)
+  - [ ] `database.sslrootcert` field added (path to Cat 10 truststore)
+  - [ ] GORM DSN builder appends SSL params when `sslmode = verify-full`
+  - [ ] `go build ./...` clean; `golangci-lint run` clean
+- **Files**: `internal/apps/framework/service/config/`, GORM DSN builder
+
+#### Task 4.3: App Instance Client Cert Config
+
+- **Status**: ❌
+- **Estimated**: 2h
+- **Dependencies**: Task 4.2
+- **Description**: Configure YAML deployment configs for postgres-1 and postgres-2 instances with client cert paths.
+- **Acceptance Criteria**:
+  - [ ] postgres-1 config: `sslcert` = `postgres-tls-client-entity-leader-{PS-ID}-postgres-1/SAME-AS-DIR-NAME.crt` (Cat 14)
+  - [ ] postgres-1 config: `sslkey` = `postgres-tls-client-entity-leader-{PS-ID}-postgres-1/SAME-AS-DIR-NAME.key` (Cat 14)
+  - [ ] postgres-1 config: `sslrootcert` = `postgres-tls-server-issuing-ca/truststore/postgres-tls-server-issuing-ca.crt` (Cat 10)
+  - [ ] postgres-2 config: same pattern for postgres-2
+  - [ ] sqlite-1, sqlite-2 configs: NO `sslcert`/`sslkey`/`sslrootcert` fields
+- **Files**: `deployments/{PS-ID}/config/*-app-framework-postgresql-{1,2}.yml`
+
+#### Task 4.4: App Instance Cert Volume Mounts
+
+- **Status**: ❌
+- **Estimated**: 1h
+- **Dependencies**: Task 4.3
+- **Description**: Mount cert dirs for postgres-1 and postgres-2 instances (least privilege: Cat 14 + Cat 10 only).
+- **Acceptance Criteria**:
+  - [ ] postgres-1: Cat 14 `postgres-tls-client-entity-leader-{PS-ID}-postgres-1/` keystore + Cat 10 `postgres-tls-server-issuing-ca/truststore/`
+  - [ ] postgres-2: Cat 14 `postgres-tls-client-entity-leader-{PS-ID}-postgres-2/` keystore + Cat 10
+  - [ ] sqlite-1, sqlite-2: NO Cat 14 or Cat 10 dirs mounted
+- **Files**: `deployments/{PS-ID}/compose.yml`
+
+---
+
+### Phase 5: PostgreSQL Replication Client mTLS [Status: ☐ TODO]
+
+**Phase Objective**: Add client cert to follower replication connection; require it on leader.
+
+#### Task 5.1: Follower primary_conninfo Client Cert
+
+- **Status**: ❌
+- **Estimated**: 1h
+- **Dependencies**: Phase 4 complete
+- **Description**: Add follower replication client cert to `primary_conninfo`.
+- **Acceptance Criteria**:
+  - [ ] `sslcert=<Cat 13 postgres-tls-client-entity-follower-replication/ crt path>` in `primary_conninfo`
+  - [ ] `sslkey=<Cat 13 postgres-tls-client-entity-follower-replication/ key path>` in `primary_conninfo`
+  - [ ] `sslmode=verify-full` and `sslrootcert` retained from Phase 2
+- **Files**: `deployments/shared-postgres/follower/postgresql.conf`
+
+#### Task 5.2: Follower Cat 13 Client Cert Mount
+
+- **Status**: ❌
+- **Estimated**: 0.5h
+- **Dependencies**: Task 5.1
+- **Description**: Add Cat 13 replication client cert mount to follower (least privilege).
+- **Acceptance Criteria**:
+  - [ ] Follower mounts: Cat 13 `postgres-tls-client-entity-follower-replication/` keystore added
+  - [ ] Leader mounts: NO Cat 13 changes
+- **Files**: `deployments/shared-postgres/compose.yml`
+
+#### Task 5.3: Leader HBA Replication clientcert Requirement
+
+- **Status**: ❌
+- **Estimated**: 0.5h
+- **Dependencies**: Tasks 5.1, 5.2
+- **Description**: Update leader `pg_hba.conf` replication entry to require client cert.
+- **Acceptance Criteria**:
+  - [ ] `hostssl replication ... scram-sha-256 clientcert=verify-full` in leader HBA
+  - [ ] Replication without client cert rejected
+- **Files**: `deployments/shared-postgres/leader/pg_hba.conf`
+
+---
+
+### Phase 6: Verify PostgreSQL Full Stack [Status: ☐ TODO]
+
+**Phase Objective**: End-to-end verification of full mTLS with active replication.
+
+#### Task 6.1: Verify App mTLS to Leader
+
+- **Status**: ❌
+- **Estimated**: 0.5h
+- **Dependencies**: Phase 5 complete
+- **Description**: Verify postgres-1 and postgres-2 app instances connect via mTLS.
+- **Acceptance Criteria**:
+  - [ ] postgres-1 connects; `pg_stat_ssl` shows `ssl=t` and `client_dn` populated
+  - [ ] postgres-2 connects; same verification
+
+#### Task 6.2: Verify Non-mTLS Rejected
+
+- **Status**: ❌
+- **Estimated**: 0.5h
+- **Dependencies**: Task 6.1
+- **Description**: Verify connections without client certs are rejected.
+- **Acceptance Criteria**:
+  - [ ] `psql "sslmode=require"` (no sslcert) is rejected by leader and follower
+  - [ ] `psql "sslmode=disable"` is rejected
+
+#### Task 6.3: Verify Replication Full mTLS
+
+- **Status**: ❌
+- **Estimated**: 0.5h
+- **Dependencies**: Phase 5 complete
+- **Description**: Verify replication uses full mTLS and data replicates correctly.
+- **Acceptance Criteria**:
+  - [ ] `pg_stat_replication` shows `ssl=t` and `client_dn` (follower replication cert)
+  - [ ] Data written to leader appears on follower within replication lag threshold
+
+---
+
+### Phase 7: Deployment Templates for PostgreSQL TLS [Status: ☐ TODO]
+
+**Phase Objective**: Update canonical deployment templates for PG TLS cert mounts and SSL connection params.
+
+#### Task 7.1: Update deployment-templates.md
+
+- **Status**: ❌
+- **Estimated**: 1h
+- **Dependencies**: Phase 6 complete
+- **Description**: Document cert volume mount rules and least privilege table for PG TLS.
+- **Acceptance Criteria**:
+  - [ ] Least privilege table: service → cert dirs mounted (leader, follower, postgres-1 app, postgres-2 app; sqlite-1/2 explicitly excluded)
+  - [ ] `postgres-url.secret` template: `sslmode=verify-full&sslrootcert=...&sslcert=...&sslkey=...`
+- **Files**: `docs/deployment-templates.md`
+
+#### Task 7.2: Update shared-postgres Compose Template
+
+- **Status**: ❌
+- **Estimated**: 1.5h
+- **Dependencies**: Task 7.1
+- **Description**: Update shared-postgres compose template for per-node cert mounts.
+- **Acceptance Criteria**:
+  - [ ] Template leader service: Cat 11 + Cat 12 cert dirs mounted ONLY
+  - [ ] Template follower service: Cat 10 + Cat 11 + Cat 12 + Cat 13 cert dirs mounted ONLY
+  - [ ] `__PS_ID__` placeholders used for all PS-ID-specific paths
+  - [ ] Template compliance linter accepts the file
+- **Files**: `api/cryptosuite-registry/templates/deployments/shared-postgres/compose.yml`
+
+#### Task 7.3: Update PS-ID Compose Template (postgres-1, postgres-2)
+
+- **Status**: ❌
+- **Estimated**: 1.5h
+- **Dependencies**: Task 7.1
+- **Description**: Update PS-ID compose template for app instance postgres cert mounts.
+- **Acceptance Criteria**:
+  - [ ] postgres-1 instance: Cat 14 `postgres-tls-client-entity-leader-__PS_ID__-postgres-1/` + Cat 10 mounted
+  - [ ] postgres-2 instance: Cat 14 `postgres-tls-client-entity-leader-__PS_ID__-postgres-2/` + Cat 10 mounted
+  - [ ] sqlite-1, sqlite-2 instances: NO PG cert dirs mounted
+  - [ ] `__PS_ID__` placeholders used consistently
+- **Files**: `api/cryptosuite-registry/templates/deployments/__PS_ID__/compose.yml`
+
+#### Task 7.4: Update PostgreSQL Instance Config Templates
+
+- **Status**: ❌
+- **Estimated**: 1h
+- **Dependencies**: Task 7.3
+- **Description**: Update postgresql-1 and postgresql-2 config file templates with cert paths.
+- **Acceptance Criteria**:
+  - [ ] `__PS_ID__-app-framework-postgresql-1.yml`: `database.sslmode`, `database.sslcert`, `database.sslkey`, `database.sslrootcert` fields with `__PS_ID__` placeholders
+  - [ ] `__PS_ID__-app-framework-postgresql-2.yml`: same for postgres-2
+  - [ ] sqlite config templates: NO SSL fields added
+- **Files**: `api/cryptosuite-registry/templates/deployments/__PS_ID__/config/`
+
+---
+
+### Phase 8: Deployment Linting [Status: ☐ TODO]
+
+**Phase Objective**: All updated deployment files pass lint-deployments validators.
+
+#### Task 8.1: Run lint-deployments
+
+- **Status**: ❌
+- **Estimated**: 0.5h
+- **Dependencies**: Phase 7 complete
+- **Description**: Run lint-deployments and fix all violations.
+- **Acceptance Criteria**:
+  - [ ] `go run ./cmd/cicd-lint lint-deployments` exits 0
+  - [ ] All 8 validators pass (naming, kebab-case, schema, template, ports, telemetry, admin, secrets)
+  - [ ] No violations reported
+
+#### Task 8.2: Lint lint-deployments Code
+
+- **Status**: ❌
+- **Estimated**: 0.5h
+- **Dependencies**: Task 8.1
+- **Description**: Ensure the linter code itself is clean.
+- **Acceptance Criteria**:
+  - [ ] `golangci-lint run ./internal/apps/tools/cicd_lint/lint_deployments/...` passes
+  - [ ] `go test ./internal/apps/tools/cicd_lint/lint_deployments/...` passes
+
+---
+
+### Phase 9: Deployment Verification — PostgreSQL TLS [Status: ☐ TODO]
+
+**Phase Objective**: Start deployments and verify PG TLS connectivity and replication end-to-end.
+
+#### Task 9.1: Docker Compose Up (pki-init + shared-postgres)
+
+- **Status**: ❌
+- **Estimated**: 1h
+- **Dependencies**: Phase 8 complete
+- **Description**: Start pki-init and shared-postgres with TLS config.
+- **Acceptance Criteria**:
+  - [ ] pki-init generates certs into `__PS_ID__-certs` named volume
+  - [ ] shared-postgres leader and follower start with TLS
+  - [ ] Health checks pass for both leader and follower
+
+#### Task 9.2: Verify App Connects to PG Leader via mTLS
 
 - **Status**: ❌
 - **Estimated**: 1h
 - **Dependencies**: Task 9.1
-- **Description**: Update ENG-HANDBOOK.md and other artifacts.
+- **Description**: Start PS-ID service with postgres-1 instance; verify mTLS connection to leader.
 - **Acceptance Criteria**:
-  - [ ] TLS wiring patterns documented
-  - [ ] Propagation check passes
+  - [ ] PS-ID postgres-1 instance starts and connects to PG leader
+  - [ ] `pg_stat_ssl` on leader shows app connection with `ssl=t` and `client_dn` populated
+  - [ ] App health check passes
 
-#### Task 9.3: Final Commit
+#### Task 9.3: Verify PG Replication
+
+- **Status**: ❌
+- **Estimated**: 1h
+- **Dependencies**: Task 9.2
+- **Description**: Verify PG leader replicates to follower in deployment.
+- **Acceptance Criteria**:
+  - [ ] `pg_stat_replication` shows active slot with `ssl=t`
+  - [ ] Data written via postgres-1 app is readable from follower with `sslmode=verify-full`
+  - [ ] No replication lag accumulation
+
+---
+
+### Phase 10: Private PS-ID App mTLS Trust [Status: ☐ TODO]
+
+**Phase Objective**: Configure all PS-ID app instance variants to serve admin (:9090) endpoint with mTLS.
+
+#### Task 10.1: Framework Admin mTLS Cert Loading
+
+- **Status**: ❌
+- **Estimated**: 2h
+- **Dependencies**: Phase 9 complete
+- **Description**: Update framework server builder to load private admin mTLS certs from YAML config paths.
+- **Acceptance Criteria**:
+  - [ ] Framework server config: `server.admin-tls-cert-file` and `server.admin-tls-key-file` fields (Cat 7 keystore)
+  - [ ] Framework server config: `server.admin-tls-ca-file` field (Cat 6 truststore for verifying admin clients)
+  - [ ] Admin listener uses `tls.RequireAndVerifyClientCert` when cert fields are set
+  - [ ] `go build ./...` clean; `golangci-lint run` clean
+- **Files**: `internal/apps/framework/service/config/`, framework server builder
+
+#### Task 10.2: Deployment Config Templates for Admin mTLS
+
+- **Status**: ❌
+- **Estimated**: 1.5h
+- **Dependencies**: Task 10.1
+- **Description**: Update deployment config file templates for each instance variant with admin cert paths.
+- **Acceptance Criteria**:
+  - [ ] sqlite-1 config: `server.admin-tls-cert-file` = `private-https-mutual-entity-__PS_ID__-sqlite-1/SAME-AS-DIR-NAME.crt` (Cat 7); `server.admin-tls-ca-file` = Cat 6 path
+  - [ ] sqlite-2 config: same for sqlite-2
+  - [ ] postgres-1 config: same for postgres-1 (combined with PG SSL fields from Phase 4)
+  - [ ] postgres-2 config: same for postgres-2
+- **Files**: `api/cryptosuite-registry/templates/deployments/__PS_ID__/config/`
+
+#### Task 10.3: Deployment Compose Template — Admin Cert Mounts
+
+- **Status**: ❌
+- **Estimated**: 1.5h
+- **Dependencies**: Task 10.2
+- **Description**: Update PS-ID compose template to mount admin cert dirs (least privilege: Cat 6 + Cat 7 only for admin, per variant).
+- **Acceptance Criteria**:
+  - [ ] sqlite-1: Cat 7 `private-https-mutual-entity-__PS_ID__-sqlite-1/` + Cat 6 `private-https-mutual-issuing-ca-__PS_ID__-sqlite-1/truststore/` mounted ONLY
+  - [ ] sqlite-2: same for sqlite-2
+  - [ ] postgres-1: Cat 7 + Cat 6 for postgres-1 (in addition to Cat 14 + Cat 10 from Phase 4)
+  - [ ] postgres-2: same for postgres-2
+  - [ ] NO public cert dirs, NO OTel/Grafana cert dirs in admin mounts
+- **Files**: `api/cryptosuite-registry/templates/deployments/__PS_ID__/compose.yml`
+
+#### Task 10.4: Run lint-deployments After Admin mTLS Templates
 
 - **Status**: ❌
 - **Estimated**: 0.5h
-- **Dependencies**: Task 9.2
+- **Dependencies**: Task 10.3
 - **Acceptance Criteria**:
+  - [ ] `go run ./cmd/cicd-lint lint-deployments` exits 0
+  - [ ] All 8 validators pass
+
+#### Task 10.5: Verify Admin mTLS in Deployment
+
+- **Status**: ❌
+- **Estimated**: 1h
+- **Dependencies**: Task 10.4
+- **Description**: Start deployment and verify admin endpoint serves mTLS.
+- **Acceptance Criteria**:
+  - [ ] `/admin/api/v1/livez` responds over mTLS (requires client cert from Cat 6 CA)
+  - [ ] Admin request without client cert is rejected (TLS handshake failure)
+  - [ ] All 4 instance variants (sqlite-1, sqlite-2, postgres-1, postgres-2) verified
+
+---
+
+### Phase 11: Knowledge Propagation [Status: ☐ TODO]
+
+**Phase Objective**: Apply lessons learned to permanent artifacts.
+
+#### Task 11.1: Review Lessons
+
+- **Status**: ❌
+- **Estimated**: 0.5h
+- **Dependencies**: Phases 1-10 complete
+- **Description**: Review lessons.md from all prior phases.
+- **Acceptance Criteria**:
+  - [ ] All lessons reviewed
+  - [ ] Actionable items identified for ENG-HANDBOOK.md
+
+#### Task 11.2: Update ENG-HANDBOOK.md
+
+- **Status**: ❌
+- **Estimated**: 1h
+- **Dependencies**: Task 11.1
+- **Description**: Update ENG-HANDBOOK.md with PostgreSQL mTLS, private admin mTLS, and least privilege patterns.
+- **Acceptance Criteria**:
+  - [ ] PostgreSQL mTLS wiring pattern documented (staged: server TLS → verify → client TLS → verify)
+  - [ ] GORM SSL config YAML fields documented
+  - [ ] Private admin mTLS cert loading documented
+  - [ ] Cert mount least privilege principle documented with table
+  - [ ] §10.3.4 `InsecureSkipVerify` test example updated to use `RootCAs: testCAPool`
+
+#### Task 11.3: Update deployment-templates.md
+
+- **Status**: ❌
+- **Estimated**: 0.5h
+- **Dependencies**: Task 11.2
+- **Acceptance Criteria**:
+  - [ ] Least privilege cert mount table finalized
+  - [ ] postgres-url.secret TLS param format documented
+
+#### Task 11.4: Verify Propagation and Final Commit
+
+- **Status**: ❌
+- **Estimated**: 0.5h
+- **Dependencies**: Task 11.3
+- **Acceptance Criteria**:
+  - [ ] `go run ./cmd/cicd-lint lint-docs` passes
   - [ ] Clean working tree
   - [ ] All quality gates pass
 
@@ -464,25 +605,43 @@
 
 ### Testing
 
-- [ ] E2E tests pass with full TLS stack
-- [ ] mTLS connection matrix verified
-- [ ] Negative tests pass (rejection of non-TLS)
-- [ ] Performance baseline measured
+- [ ] Phase 0: pki-init generator tests pass (100%, no skips)
+- [ ] Phase 4: GORM SSL config unit tests pass
+- [ ] Phase 10: Framework admin mTLS unit tests pass
+- [ ] Phases 3, 6, 9, 10: verification tasks pass in Docker Compose
 
 ### Code Quality
 
-- [ ] Linting passes
+- [ ] Linting passes: `golangci-lint run ./...` and `golangci-lint run --build-tags e2e,integration ./...`
 - [ ] No new TODOs without tracking
+- [ ] Formatting clean
 
 ### Documentation
 
-- [ ] deployment-templates.md updated with TLS config examples
-- [ ] tls-structure.md cross-referenced
+- [ ] `deployment-templates.md` updated with TLS cert mount rules and least privilege table
+- [ ] `tls-structure.md` cross-referenced for cert category numbers
 - [ ] ENG-HANDBOOK.md updated with TLS wiring patterns
+
+### Deployment
+
+- [ ] `lint-deployments` passes after Phases 7 and 10
+- [ ] Docker Compose health checks pass (Phases 9 and 10)
+- [ ] `./configs/` unchanged (auto-TLS mode only)
+
+---
+
+## Notes
+
+- **Least Privilege Enforcement**: CRITICAL — every compose template task must list exactly which Cat dirs are mounted per service, and explicitly note what is NOT mounted.
+- **./configs/ isolation**: No changes to `./configs/` files; they continue using auto-TLS. All cert wiring is `./deployments/` only.
+- **Phase 0 is V12+V13 prerequisite**: V13 execution begins AFTER V12 Phase 0 is complete.
 
 ---
 
 ## Evidence Archive
 
-- `test-output/v12-phase1/` — PostgreSQL TLS verification
-- `test-output/v12-phase8/` — E2E TLS connection matrix
+- `test-output/v12-phase1/` — Phase 1 PostgreSQL server TLS verification
+- `test-output/v12-phase3/` — Phase 3 standalone TLS verification
+- `test-output/v12-phase6/` — Phase 6 full stack mTLS verification
+- `test-output/v12-phase9/` — Phase 9 deployment PG TLS verification
+- `test-output/v12-phase10/` — Phase 10 admin mTLS deployment verification
