@@ -211,9 +211,13 @@ func openSQLiteInternal(
 
 // openPostgreSQL opens a PostgreSQL database connection with GORM.
 // sslMode, sslCert, sslKey, sslRootCert are optional mTLS parameters (Cat 10/14).
-// When sslMode is non-empty it is appended to the DSN; cert/key/rootcert are appended if non-empty.
+// When sslMode is non-empty, any pre-existing sslmode param is stripped from the DSN first
+// (prevents duplicate sslmode params when the DSN URL already contains sslmode=disable),
+// then the new sslmode and cert/key/rootcert params are appended.
 func openPostgreSQL(_ context.Context, databaseURL string, debugMode bool, sslMode, sslCert, sslKey, sslRootCert string) (*gorm.DB, error) {
 	if sslMode != "" {
+		databaseURL = stripQueryParam(databaseURL, "sslmode")
+
 		sep := "?"
 		if strings.Contains(databaseURL, "?") {
 			sep = "&"
@@ -290,4 +294,32 @@ func maskPassword(dsn string) string {
 	}
 
 	return dsn[:start] + "***" + dsn[end:]
+}
+
+// stripQueryParam removes a named query parameter (all occurrences) from a raw URL string.
+// Used to remove pre-existing sslmode=disable before appending a new sslmode value,
+// preventing duplicate query parameters that may confuse the PostgreSQL driver.
+func stripQueryParam(rawURL, paramName string) string {
+	idx := strings.Index(rawURL, "?")
+	if idx < 0 {
+		return rawURL
+	}
+
+	base := rawURL[:idx]
+	query := rawURL[idx+1:]
+	parts := strings.Split(query, "&")
+	prefix := paramName + "="
+	filtered := make([]string, 0, len(parts))
+
+	for _, p := range parts {
+		if !strings.HasPrefix(p, prefix) && p != paramName {
+			filtered = append(filtered, p)
+		}
+	}
+
+	if len(filtered) == 0 {
+		return base
+	}
+
+	return base + "?" + strings.Join(filtered, "&")
 }

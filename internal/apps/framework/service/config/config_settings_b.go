@@ -131,6 +131,28 @@ var (
 		Usage:       "path to CA truststore for verifying PostgreSQL server cert (Cat 10)",
 		Description: "Database SSL Root Cert",
 	})
+	adminTLSCertFile = *SetEnvAndRegisterSetting(allServiceFrameworkServerRegisteredSettings, &Setting{
+		Name:        "server-admin-tls-cert-file",
+		Shorthand:   "",
+		Value:       "",
+		Usage:       "path to admin TLS server certificate file for private admin mTLS (Cat 7)",
+		Description: "Admin TLS Cert File",
+	})
+	adminTLSKeyFile = *SetEnvAndRegisterSetting(allServiceFrameworkServerRegisteredSettings, &Setting{
+		Name:        "server-admin-tls-key-file",
+		Shorthand:   "",
+		Value:       "",
+		Usage:       "path to admin TLS server private key file for private admin mTLS (Cat 7)",
+		Description: "Admin TLS Key File",
+		Redacted:    true,
+	})
+	adminTLSCAFile = *SetEnvAndRegisterSetting(allServiceFrameworkServerRegisteredSettings, &Setting{
+		Name:        "server-admin-tls-ca-file",
+		Shorthand:   "",
+		Value:       "",
+		Usage:       "path to CA truststore for verifying admin client certs (Cat 6)",
+		Description: "Admin TLS CA File",
+	})
 	databaseInitTotalTimeout = *SetEnvAndRegisterSetting(allServiceFrameworkServerRegisteredSettings, &Setting{
 		Name:        "database-init-total-timeout",
 		Shorthand:   "Z",

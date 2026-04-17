@@ -248,6 +248,9 @@ type ServiceFrameworkServerSettings struct {
 	DatabaseSSLCert             string        // Path to client TLS certificate file for PostgreSQL mTLS (Cat 14)
 	DatabaseSSLKey              string        // Path to client TLS private key file for PostgreSQL mTLS (Cat 14)
 	DatabaseSSLRootCert         string        // Path to CA truststore for verifying PostgreSQL server cert (Cat 10)
+	AdminTLSCertFile            string        // Path to admin TLS server certificate file for private admin mTLS (Cat 7)
+	AdminTLSKeyFile             string        // Path to admin TLS server private key file for private admin mTLS (Cat 7)
+	AdminTLSCAFile              string        // Path to CA truststore for verifying admin client certs (Cat 6)
 }
 
 // PrivateBaseURL returns the private base URL constructed from protocol, address, and port.

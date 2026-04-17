@@ -10,3 +10,8 @@ otlp-service: sm-im-sqlite-1
 otlp-hostname: sm-im-sqlite-1
 
 database-url: "sqlite://file::memory:?cache=shared"
+
+# Admin mTLS (Cat 7 + Cat 6): present server cert and verify client cert for private admin API.
+server-admin-tls-cert-file: /certs/sm-im/private-https-mutual-entity-sm-im-sqlite-1/private-https-mutual-entity-sm-im-sqlite-1.crt
+server-admin-tls-key-file: /certs/sm-im/private-https-mutual-entity-sm-im-sqlite-1/private-https-mutual-entity-sm-im-sqlite-1.key
+server-admin-tls-ca-file: /certs/sm-im/private-https-mutual-issuing-ca-sm-im-sqlite-1/truststore/private-https-mutual-issuing-ca-sm-im-sqlite-1.crt

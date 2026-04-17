@@ -258,6 +258,11 @@ against `deployments/{PS-ID}/config/{PS-ID}-app-framework-{variant}.yml`.
 | CF-10 | PostgreSQL instance files MUST NOT set `database-url` (passed via compose command) | Database config |
 | CF-11 | Instance files MUST NOT duplicate keys from common file | DRY principle |
 | CF-12 | Header comment MUST reference `{PS-ID}`, NOT another PS-ID | No copy-paste errors |
+| CF-13 | PostgreSQL-1/2 instance files MUST set `database-sslmode: verify-full` | PostgreSQL mTLS (V12+) |
+| CF-14 | PostgreSQL-1/2 instance files MUST set `database-sslcert` (Cat 14 per-instance cert path) | PostgreSQL mTLS (V12+) |
+| CF-15 | PostgreSQL-1/2 instance files MUST set `database-sslkey` (Cat 14 per-instance key path) | PostgreSQL mTLS (V12+) |
+| CF-16 | PostgreSQL-1/2 instance files MUST set `database-sslrootcert` (Cat 10 truststore path) | PostgreSQL mTLS (V12+) |
+| CF-17 | SQLite-1/2 instance files MUST NOT set any `database-ssl*` fields | No PG cert dirs for SQLite |
 
 ---
 
@@ -296,7 +301,7 @@ against `configs/{PS-ID}/{PS-ID}-framework.yml`.
 | `unseal-4of5.secret` | `{PS-ID}-unseal-key-4-of-5-{base64-random-32-bytes}` | Unique per shard |
 | `unseal-5of5.secret` | `{PS-ID}-unseal-key-5-of-5-{base64-random-32-bytes}` | Unique per shard |
 | `hash-pepper-v3.secret` | `{PS-ID}-hash-pepper-v3-{base64-random-32-bytes}` | Hash pepper |
-| `postgres-url.secret` | `postgres://{PS_ID}_database_user:{PS_ID}_database_pass@shared-postgres-leader:5432/{PS_ID}_database?sslmode=disable` | Full DSN (v12: `sslmode=verify-full` + `sslrootcert`/`sslcert`/`sslkey` params) |
+| `postgres-url.secret` | `postgres://{PS_ID}_database_user:{PS_ID}_database_pass@shared-postgres-leader:5432/{PS_ID}_database` | Base DSN — no SSL params in URL. SSL mode (`verify-full`) and cert paths (Cat 10/14) are configured via `database-ssl*` YAML fields in the framework postgresql instance configs. |
 | `postgres-username.secret` | `{PS_ID}_database_user` | PostgreSQL user |
 | `postgres-password.secret` | `{PS_ID}_database_pass-{base64-random-32-bytes}` | PostgreSQL password |
 | `postgres-database.secret` | `{PS_ID}_database` | PostgreSQL database |
@@ -392,6 +397,36 @@ Provides PostgreSQL leader+follower for all services.
 - Leader service: `postgres-leader`
 - Init scripts in `docker-entrypoint-initdb.d/` create per-PS-ID databases
 - Each PS-ID gets its own database created by init script
+- Both leader and follower mount the suite `{SUITE}-certs:/certs:ro` named volume (D5 full-volume strategy)
+- `pg_hba.conf` bind-mounted from `../shared-postgres/pg_hba.conf` into both nodes
+
+**V12 PostgreSQL mTLS — Cert Category Reference**:
+
+| PKI Category | Name | Used By |
+|---|---|---|
+| Cat 10 | `postgres-tls-server-issuing-ca` | Server CA truststore — app clients, follower replication verify leader cert |
+| Cat 11 | `postgres-tls-server-entity-leader` | Leader server cert+key (TLS identity for leader) |
+| Cat 11 | `postgres-tls-server-entity-follower` | Follower server cert+key (TLS identity for follower) |
+| Cat 12 | `postgres-tls-client-issuing-ca` | Client CA truststore — leader verifies app + replication client certs |
+| Cat 13 | `postgres-tls-client-entity-follower-replication` | Follower replication client cert+key (mTLS to leader replication slot) |
+| Cat 14 | `postgres-tls-client-entity-leader-{PS-ID}-postgres-1` | App postgres-1 instance client cert+key (mTLS to leader) |
+| Cat 14 | `postgres-tls-client-entity-leader-{PS-ID}-postgres-2` | App postgres-2 instance client cert+key (mTLS to leader) |
+
+**Logical cert ownership per PostgreSQL node** (all accessible via shared `{SUITE}-certs` volume):
+
+| Node | TLS Certs Used | Why |
+|---|---|---|
+| postgres-leader | Cat 11 leader (server cert+key) + Cat 12 (verify client certs) | Serves TLS; requires client certs |
+| postgres-follower | Cat 11 follower (server cert+key) + Cat 12 (verify clients) + Cat 10 (verify leader) + Cat 13 (replication client) | Serves TLS; mTLS replication to leader |
+| {PS-ID}-postgres-1 | Cat 14 postgres-1 client cert+key + Cat 10 (verify leader server cert) | mTLS client to leader |
+| {PS-ID}-postgres-2 | Cat 14 postgres-2 client cert+key + Cat 10 | mTLS client to leader |
+| {PS-ID}-sqlite-1/2 | **None** (SQLite instances do NOT connect to PostgreSQL) | No PostgreSQL SSL needed |
+
+**SSL mode configuration**: SSL mode and cert paths are configured entirely via framework YAML config
+(`database-sslmode`, `database-sslcert`, `database-sslkey`, `database-sslrootcert`). The
+`postgres-url.secret` contains ONLY the base DSN (no `sslmode=` param). The framework GORM DSN
+builder appends SSL params from YAML config, stripping any pre-existing `sslmode` to prevent
+conflicts.
 
 ---
 

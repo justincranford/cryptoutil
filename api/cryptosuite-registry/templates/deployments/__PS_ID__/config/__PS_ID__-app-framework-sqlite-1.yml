@@ -10,3 +10,8 @@ otlp-service: __PS_ID__-sqlite-1
 otlp-hostname: __PS_ID__-sqlite-1
 
 database-url: "sqlite://file::memory:?cache=shared"
+
+# Admin mTLS (Cat 7 + Cat 6): present server cert and verify client cert for private admin API.
+server-admin-tls-cert-file: /certs/__PS_ID__/private-https-mutual-entity-__PS_ID__-sqlite-1/private-https-mutual-entity-__PS_ID__-sqlite-1.crt
+server-admin-tls-key-file: /certs/__PS_ID__/private-https-mutual-entity-__PS_ID__-sqlite-1/private-https-mutual-entity-__PS_ID__-sqlite-1.key
+server-admin-tls-ca-file: /certs/__PS_ID__/private-https-mutual-issuing-ca-__PS_ID__-sqlite-1/truststore/private-https-mutual-issuing-ca-__PS_ID__-sqlite-1.crt

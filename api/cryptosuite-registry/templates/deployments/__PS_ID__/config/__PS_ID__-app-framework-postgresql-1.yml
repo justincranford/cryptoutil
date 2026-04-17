@@ -8,3 +8,14 @@ cors-origins:
 
 otlp-service: __PS_ID__-postgresql-1
 otlp-hostname: __PS_ID__-postgresql-1
+
+# PostgreSQL mTLS (Cat 10 + Cat 14): require server cert verification and present client cert.
+database-sslmode: verify-full
+database-sslcert: /certs/__PS_ID__/postgres-tls-client-entity-leader-__PS_ID__-postgres-1/postgres-tls-client-entity-leader-__PS_ID__-postgres-1.crt
+database-sslkey: /certs/__PS_ID__/postgres-tls-client-entity-leader-__PS_ID__-postgres-1/postgres-tls-client-entity-leader-__PS_ID__-postgres-1.key
+database-sslrootcert: /certs/__PS_ID__/postgres-tls-server-issuing-ca/truststore/postgres-tls-server-issuing-ca.crt
+
+# Admin mTLS (Cat 7 + Cat 6): present server cert and verify client cert for private admin API.
+server-admin-tls-cert-file: /certs/__PS_ID__/private-https-mutual-entity-__PS_ID__-postgres-1/private-https-mutual-entity-__PS_ID__-postgres-1.crt
+server-admin-tls-key-file: /certs/__PS_ID__/private-https-mutual-entity-__PS_ID__-postgres-1/private-https-mutual-entity-__PS_ID__-postgres-1.key
+server-admin-tls-ca-file: /certs/__PS_ID__/private-https-mutual-issuing-ca-__PS_ID__-postgres-1/truststore/private-https-mutual-issuing-ca-__PS_ID__-postgres-1.crt

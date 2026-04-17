@@ -6,6 +6,7 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"os"
 	"testing"
 	"time"
 
@@ -64,6 +65,7 @@ func TestAdminServer_Start_NonTCPAddr(t *testing.T) {
 		cryptoutilAppsFrameworkServiceConfigTlsGenerator.GenerateTLSMaterial,
 		stubListenFn,
 		func(app *fiber.App, ln net.Listener) error { return app.Listener(ln) },
+		os.ReadFile,
 	)
 	require.NoError(t, err)
 
@@ -93,6 +95,7 @@ func TestAdminServer_Start_InvalidPort(t *testing.T) {
 		cryptoutilAppsFrameworkServiceConfigTlsGenerator.GenerateTLSMaterial,
 		stubListenFn,
 		func(app *fiber.App, ln net.Listener) error { return app.Listener(ln) },
+		os.ReadFile,
 	)
 	require.NoError(t, err)
 	err = server.Start(context.Background())
@@ -120,6 +123,7 @@ func TestAdminServer_Start_AppListenerError(t *testing.T) {
 			return (&net.ListenConfig{}).Listen(ctx, network, address)
 		},
 		stubAppListenerFn,
+		os.ReadFile,
 	)
 	require.NoError(t, err)
 

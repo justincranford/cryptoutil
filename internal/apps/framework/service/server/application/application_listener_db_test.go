@@ -365,6 +365,64 @@ func TestOpenPostgreSQL_InvalidDSN(t *testing.T) {
 	require.Contains(t, err.Error(), "failed to open PostgreSQL database")
 }
 
+// TestStripQueryParam tests stripping a query parameter from a URL string.
+func TestStripQueryParam(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name      string
+		rawURL    string
+		paramName string
+		want      string
+	}{
+		{
+			name:      "strips sslmode=disable from URL with only that param",
+			rawURL:    "postgres://user:pass@host:5432/db?sslmode=disable",
+			paramName: "sslmode",
+			want:      "postgres://user:pass@host:5432/db",
+		},
+		{
+			name:      "strips sslmode=disable with trailing params",
+			rawURL:    "postgres://user:pass@host:5432/db?sslmode=disable&other=val",
+			paramName: "sslmode",
+			want:      "postgres://user:pass@host:5432/db?other=val",
+		},
+		{
+			name:      "strips sslmode in middle of params",
+			rawURL:    "postgres://user:pass@host:5432/db?before=1&sslmode=disable&after=2",
+			paramName: "sslmode",
+			want:      "postgres://user:pass@host:5432/db?before=1&after=2",
+		},
+		{
+			name:      "no change when param absent",
+			rawURL:    "postgres://user:pass@host:5432/db?other=val",
+			paramName: "sslmode",
+			want:      "postgres://user:pass@host:5432/db?other=val",
+		},
+		{
+			name:      "no query string — returns unchanged",
+			rawURL:    "postgres://user:pass@host:5432/db",
+			paramName: "sslmode",
+			want:      "postgres://user:pass@host:5432/db",
+		},
+		{
+			name:      "strips only sslmode=verify-full not sslrootcert",
+			rawURL:    "postgres://host/db?sslmode=verify-full&sslrootcert=/certs/ca.crt",
+			paramName: "sslmode",
+			want:      "postgres://host/db?sslrootcert=/certs/ca.crt",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			got := stripQueryParam(tt.rawURL, tt.paramName)
+			require.Equal(t, tt.want, got)
+		})
+	}
+}
+
 // TestOpenPostgreSQL_DebugMode tests openPostgreSQL with debug mode enabled.
 func TestOpenPostgreSQL_DebugMode(t *testing.T) {
 	t.Parallel()

@@ -165,6 +165,9 @@ func ParseWithFlagSet(fs *pflag.FlagSet, commandParameters []string, exitIfHelp 
 	fs.StringP(databaseSSLCert.Name, databaseSSLCert.Shorthand, RegisterAsStringSetting(&databaseSSLCert), databaseSSLCert.Usage)
 	fs.StringP(databaseSSLKey.Name, databaseSSLKey.Shorthand, RegisterAsStringSetting(&databaseSSLKey), databaseSSLKey.Usage)
 	fs.StringP(databaseSSLRootCert.Name, databaseSSLRootCert.Shorthand, RegisterAsStringSetting(&databaseSSLRootCert), databaseSSLRootCert.Usage)
+	fs.StringP(adminTLSCertFile.Name, adminTLSCertFile.Shorthand, RegisterAsStringSetting(&adminTLSCertFile), adminTLSCertFile.Usage)
+	fs.StringP(adminTLSKeyFile.Name, adminTLSKeyFile.Shorthand, RegisterAsStringSetting(&adminTLSKeyFile), adminTLSKeyFile.Usage)
+	fs.StringP(adminTLSCAFile.Name, adminTLSCAFile.Shorthand, RegisterAsStringSetting(&adminTLSCAFile), adminTLSCAFile.Usage)
 
 	err := fs.Parse(subCommandParameters)
 	if err != nil {
@@ -308,6 +311,9 @@ func ParseWithFlagSet(fs *pflag.FlagSet, commandParameters []string, exitIfHelp 
 		DatabaseSSLCert:             v.GetString(databaseSSLCert.Name),
 		DatabaseSSLKey:              v.GetString(databaseSSLKey.Name),
 		DatabaseSSLRootCert:         v.GetString(databaseSSLRootCert.Name),
+		AdminTLSCertFile:            v.GetString(adminTLSCertFile.Name),
+		AdminTLSKeyFile:             v.GetString(adminTLSKeyFile.Name),
+		AdminTLSCAFile:              v.GetString(adminTLSCAFile.Name),
 	}
 
 	// Resolve file:// URLs for sensitive settings from Docker secrets or Kubernetes secrets.

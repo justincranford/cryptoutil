@@ -10,8 +10,10 @@ import (
 	"context"
 	"crypto/tls"
 	"crypto/x509"
+	"encoding/pem"
 	"fmt"
 	"net"
+	"os"
 	"strconv"
 	"sync"
 	"time"
@@ -51,6 +53,7 @@ func NewAdminHTTPServer(ctx context.Context, settings *cryptoutilAppsFrameworkSe
 			//nolint:wrapcheck // Pass-through to Fiber framework.
 			return app.Listener(ln)
 		},
+		os.ReadFile,
 	)
 }
 
@@ -61,6 +64,7 @@ func newAdminHTTPServerInternal(
 	generateTLSMaterialFn func(cfg *cryptoutilAppsFrameworkServiceConfigTlsGenerator.TLSGeneratedSettings) (*cryptoutilAppsFrameworkServiceConfig.TLSMaterial, error),
 	listenFn func(ctx context.Context, network, address string) (net.Listener, error),
 	appListenerFn func(app *fiber.App, ln net.Listener) error,
+	osReadFileFn func(name string) ([]byte, error),
 ) (*AdminServer, error) {
 	if ctx == nil {
 		return nil, fmt.Errorf("context cannot be nil")
@@ -78,6 +82,12 @@ func newAdminHTTPServerInternal(
 	tlsMaterial, err := generateTLSMaterialFn(tlsCfg)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate TLS material: %w", err)
+	}
+
+	// Apply admin mTLS cert overrides from file paths (Cat 7 server cert + Cat 6 client CA).
+	// When set, overrides auto-generated TLS with production certs and requires client certs.
+	if err := applyAdminMTLS(settings, tlsMaterial, osReadFileFn); err != nil {
+		return nil, fmt.Errorf("failed to apply admin mTLS configuration: %w", err)
 	}
 
 	server := &AdminServer{
@@ -353,4 +363,71 @@ func (s *AdminServer) AdminTLSRootCAPool() *x509.CertPool {
 	}
 
 	return s.tlsMaterial.RootCAPool
+}
+
+// applyAdminMTLS applies admin mTLS configuration from file paths in settings.
+// When AdminTLSCertFile and AdminTLSKeyFile are set, the auto-generated TLS cert is replaced
+// with the static cert from files (Cat 7: private-https-mutual-entity).
+// When AdminTLSCAFile is set, client certificate verification is enabled using the CA
+// truststore (Cat 6: private-https-mutual-issuing-ca) with tls.RequireAndVerifyClientCert.
+// Both fields are independent: cert override and client auth can be configured separately.
+func applyAdminMTLS(
+	settings *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings,
+	tlsMaterial *cryptoutilAppsFrameworkServiceConfig.TLSMaterial,
+	osReadFileFn func(name string) ([]byte, error),
+) error {
+	// Override server cert from Cat 7 file paths when both cert and key are configured.
+	if settings.AdminTLSCertFile != "" && settings.AdminTLSKeyFile != "" {
+		certPEM, err := osReadFileFn(settings.AdminTLSCertFile)
+		if err != nil {
+			return fmt.Errorf("failed to read admin TLS cert file %q: %w", settings.AdminTLSCertFile, err)
+		}
+
+		keyPEM, err := osReadFileFn(settings.AdminTLSKeyFile)
+		if err != nil {
+			return fmt.Errorf("failed to read admin TLS key file %q: %w", settings.AdminTLSKeyFile, err)
+		}
+
+		cert, err := tls.X509KeyPair(certPEM, keyPEM)
+		if err != nil {
+			return fmt.Errorf("failed to parse admin TLS cert+key pair: %w", err)
+		}
+
+		tlsMaterial.Config.Certificates = []tls.Certificate{cert}
+	}
+
+	// Enable client cert verification from Cat 6 CA truststore when CA file is configured.
+	if settings.AdminTLSCAFile != "" {
+		caPEM, err := osReadFileFn(settings.AdminTLSCAFile)
+		if err != nil {
+			return fmt.Errorf("failed to read admin TLS CA file %q: %w", settings.AdminTLSCAFile, err)
+		}
+
+		clientCAPool := x509.NewCertPool()
+
+		for rest := caPEM; len(rest) > 0; {
+			var block *pem.Block
+
+			block, rest = pem.Decode(rest)
+			if block == nil {
+				break
+			}
+
+			if block.Type != cryptoutilSharedMagic.StringPEMTypeCertificate {
+				continue
+			}
+
+			caCert, parseErr := x509.ParseCertificate(block.Bytes)
+			if parseErr != nil {
+				return fmt.Errorf("failed to parse CA certificate from %q: %w", settings.AdminTLSCAFile, parseErr)
+			}
+
+			clientCAPool.AddCert(caCert)
+		}
+
+		tlsMaterial.Config.ClientAuth = tls.RequireAndVerifyClientCert
+		tlsMaterial.Config.ClientCAs = clientCAPool
+	}
+
+	return nil
 }

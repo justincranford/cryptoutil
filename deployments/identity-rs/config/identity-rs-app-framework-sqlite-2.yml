@@ -10,3 +10,8 @@ otlp-service: identity-rs-sqlite-2
 otlp-hostname: identity-rs-sqlite-2
 
 database-url: "sqlite://file::memory:?cache=shared"
+
+# Admin mTLS (Cat 7 + Cat 6): present server cert and verify client cert for private admin API.
+server-admin-tls-cert-file: /certs/identity-rs/private-https-mutual-entity-identity-rs-sqlite-2/private-https-mutual-entity-identity-rs-sqlite-2.crt
+server-admin-tls-key-file: /certs/identity-rs/private-https-mutual-entity-identity-rs-sqlite-2/private-https-mutual-entity-identity-rs-sqlite-2.key
+server-admin-tls-ca-file: /certs/identity-rs/private-https-mutual-issuing-ca-identity-rs-sqlite-2/truststore/private-https-mutual-issuing-ca-identity-rs-sqlite-2.crt

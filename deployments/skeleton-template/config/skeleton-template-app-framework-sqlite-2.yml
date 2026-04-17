@@ -10,3 +10,8 @@ otlp-service: skeleton-template-sqlite-2
 otlp-hostname: skeleton-template-sqlite-2
 
 database-url: "sqlite://file::memory:?cache=shared"
+
+# Admin mTLS (Cat 7 + Cat 6): present server cert and verify client cert for private admin API.
+server-admin-tls-cert-file: /certs/skeleton-template/private-https-mutual-entity-skeleton-template-sqlite-2/private-https-mutual-entity-skeleton-template-sqlite-2.crt
+server-admin-tls-key-file: /certs/skeleton-template/private-https-mutual-entity-skeleton-template-sqlite-2/private-https-mutual-entity-skeleton-template-sqlite-2.key
+server-admin-tls-ca-file: /certs/skeleton-template/private-https-mutual-issuing-ca-skeleton-template-sqlite-2/truststore/private-https-mutual-issuing-ca-skeleton-template-sqlite-2.crt

@@ -40,15 +40,31 @@ variants:
   - variant: postgresql-1
     description: >-
       PostgreSQL instance 1 config overlay: database URL passed via secret or env var at runtime.
-    required_keys: []
+      mTLS fields (Cat 10 + Cat 14) required for server cert verification and client cert presentation.
+    required_keys:
+      - database-sslmode
+      - database-sslcert
+      - database-sslkey
+      - database-sslrootcert
     forbidden_keys:
       - database-url
-    required_patterns: []
+    required_patterns:
+      - key: database-sslmode
+        pattern: "^verify-full$"
+        description: PostgreSQL instance must use verify-full SSL mode for mTLS.
 
   - variant: postgresql-2
     description: >-
       PostgreSQL instance 2 config overlay: database URL passed via secret or env var at runtime.
-    required_keys: []
+      mTLS fields (Cat 10 + Cat 14) required for server cert verification and client cert presentation.
+    required_keys:
+      - database-sslmode
+      - database-sslcert
+      - database-sslkey
+      - database-sslrootcert
     forbidden_keys:
       - database-url
-    required_patterns: []
+    required_patterns:
+      - key: database-sslmode
+        pattern: "^verify-full$"
+        description: PostgreSQL instance must use verify-full SSL mode for mTLS.

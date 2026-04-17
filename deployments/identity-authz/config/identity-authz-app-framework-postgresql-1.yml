@@ -8,3 +8,14 @@ cors-origins:
 
 otlp-service: identity-authz-postgresql-1
 otlp-hostname: identity-authz-postgresql-1
+
+# PostgreSQL mTLS (Cat 10 + Cat 14): require server cert verification and present client cert.
+database-sslmode: verify-full
+database-sslcert: /certs/identity-authz/postgres-tls-client-entity-leader-identity-authz-postgres-1/postgres-tls-client-entity-leader-identity-authz-postgres-1.crt
+database-sslkey: /certs/identity-authz/postgres-tls-client-entity-leader-identity-authz-postgres-1/postgres-tls-client-entity-leader-identity-authz-postgres-1.key
+database-sslrootcert: /certs/identity-authz/postgres-tls-server-issuing-ca/truststore/postgres-tls-server-issuing-ca.crt
+
+# Admin mTLS (Cat 7 + Cat 6): present server cert and verify client cert for private admin API.
+server-admin-tls-cert-file: /certs/identity-authz/private-https-mutual-entity-identity-authz-postgres-1/private-https-mutual-entity-identity-authz-postgres-1.crt
+server-admin-tls-key-file: /certs/identity-authz/private-https-mutual-entity-identity-authz-postgres-1/private-https-mutual-entity-identity-authz-postgres-1.key
+server-admin-tls-ca-file: /certs/identity-authz/private-https-mutual-issuing-ca-identity-authz-postgres-1/truststore/private-https-mutual-issuing-ca-identity-authz-postgres-1.crt

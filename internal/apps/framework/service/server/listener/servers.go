@@ -6,6 +6,7 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"os"
 
 	fiber "github.com/gofiber/fiber/v2"
 
@@ -72,6 +73,7 @@ func newHTTPServersInternal(
 			//nolint:wrapcheck // Pass-through to Fiber framework.
 			return app.Listener(ln)
 		},
+		os.ReadFile,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create admin server: %w", err)

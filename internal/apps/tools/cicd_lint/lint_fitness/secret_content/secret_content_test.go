@@ -40,7 +40,7 @@ func TestFindViolationsInDir_ValidDeployments(t *testing.T) {
 				"deployments/jose-ja/secrets/postgres-database.secret": "jose_ja_database",
 				"deployments/jose-ja/secrets/postgres-username.secret": "jose_ja_database_user",
 				"deployments/jose-ja/secrets/postgres-password.secret": "jose_ja_database_pass-" + base64url43D(),
-				"deployments/jose-ja/secrets/postgres-url.secret":      "postgres://jose_ja_database_user:jose_ja_database_pass-" + base64url43D() + "@shared-postgres-leader:5432/jose_ja_database?sslmode=disable",
+				"deployments/jose-ja/secrets/postgres-url.secret":      "postgres://jose_ja_database_user:jose_ja_database_pass-" + base64url43D() + "@shared-postgres-leader:5432/jose_ja_database",
 			},
 		},
 		{
@@ -54,7 +54,7 @@ func TestFindViolationsInDir_ValidDeployments(t *testing.T) {
 				"deployments/sm/secrets/postgres-database.secret":      "sm_database",
 				"deployments/sm/secrets/postgres-username.secret":      "sm_database_user",
 				"deployments/sm/secrets/postgres-password.secret":      "sm_database_pass-" + base64url43B(),
-				"deployments/sm/secrets/postgres-url.secret":           "postgres://sm_database_user:sm_database_pass-" + base64url43B() + "@shared-postgres-leader:5432/sm_database?sslmode=disable",
+				"deployments/sm/secrets/postgres-url.secret":           "postgres://sm_database_user:sm_database_pass-" + base64url43B() + "@shared-postgres-leader:5432/sm_database",
 			},
 		},
 		{
@@ -68,7 +68,7 @@ func TestFindViolationsInDir_ValidDeployments(t *testing.T) {
 				"deployments/cryptoutil/secrets/postgres-database.secret":      "cryptoutil_database",
 				"deployments/cryptoutil/secrets/postgres-username.secret":      "cryptoutil_database_user",
 				"deployments/cryptoutil/secrets/postgres-password.secret":      "cryptoutil_database_pass-" + base64url43C(),
-				"deployments/cryptoutil/secrets/postgres-url.secret":           "postgres://cryptoutil_database_user:cryptoutil_database_pass-" + base64url43C() + "@shared-postgres-leader:5432/cryptoutil_database?sslmode=disable",
+				"deployments/cryptoutil/secrets/postgres-url.secret":           "postgres://cryptoutil_database_user:cryptoutil_database_pass-" + base64url43C() + "@shared-postgres-leader:5432/cryptoutil_database",
 			},
 		},
 		{
@@ -203,7 +203,7 @@ func TestFindViolationsInDir_InvalidContent(t *testing.T) {
 		{
 			name: "wrong postgres url host",
 			setupFiles: map[string]string{
-				"deployments/jose-ja/secrets/postgres-url.secret": "postgres://jose_ja_database_user:jose_ja_database_pass-" + base64url43A() + "@wrong-postgres:5432/jose_ja_database?sslmode=disable",
+				"deployments/jose-ja/secrets/postgres-url.secret": "postgres://jose_ja_database_user:jose_ja_database_pass-" + base64url43A() + "@wrong-postgres:5432/jose_ja_database",
 			},
 			wantViolations: 1,
 			wantSubstring:  "does not match expected pattern",

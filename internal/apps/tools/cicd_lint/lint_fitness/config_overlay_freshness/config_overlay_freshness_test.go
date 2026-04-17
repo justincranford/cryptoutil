@@ -34,6 +34,22 @@ func setupTempDir(t *testing.T, files map[string]string) string {
 	return rootDir
 }
 
+// minimalPostgresContent returns the minimal valid content for a postgresql instance overlay.
+// Includes the required mTLS fields (Cat 10 + Cat 14) and database-sslmode=verify-full.
+func minimalPostgresContent(psID, instance string) string {
+	return fmt.Sprintf(
+		"otlp-service: %s-postgres-%s\n"+
+			"database-sslmode: verify-full\n"+
+			"database-sslcert: /certs/%s/postgres-tls-client-entity-leader-%s-postgres-%s/postgres-tls-client-entity-leader-%s-postgres-%s.crt\n"+
+			"database-sslkey: /certs/%s/postgres-tls-client-entity-leader-%s-postgres-%s/postgres-tls-client-entity-leader-%s-postgres-%s.key\n"+
+			"database-sslrootcert: /certs/%s/postgres-tls-server-issuing-ca/truststore/postgres-tls-server-issuing-ca.crt\n",
+		psID, instance,
+		psID, psID, instance, psID, instance,
+		psID, psID, instance, psID, instance,
+		psID,
+	)
+}
+
 // allMinimalPSIDFiles returns a file map with minimal valid content for every PS-ID in the
 // registry. Callers may merge their own specific content on top to override individual entries.
 // This allows CheckInDir tests to satisfy the hard-error-on-absent-config-dir requirement
@@ -45,8 +61,8 @@ func allMinimalPSIDFiles() map[string]string {
 		id := ps.PSID
 		files[fmt.Sprintf("deployments/%s/config/%s-app-framework-sqlite-1.yml", id, id)] = fmt.Sprintf("database-url: \"sqlite://file::memory:?cache=shared\"\notlp-service: %s-sqlite-1\n", id)
 		files[fmt.Sprintf("deployments/%s/config/%s-app-framework-sqlite-2.yml", id, id)] = fmt.Sprintf("database-url: \"sqlite://file::memory:?cache=shared\"\notlp-service: %s-sqlite-2\n", id)
-		files[fmt.Sprintf("deployments/%s/config/%s-app-framework-postgresql-1.yml", id, id)] = fmt.Sprintf("otlp-service: %s-postgres-1\n", id)
-		files[fmt.Sprintf("deployments/%s/config/%s-app-framework-postgresql-2.yml", id, id)] = fmt.Sprintf("otlp-service: %s-postgres-2\n", id)
+		files[fmt.Sprintf("deployments/%s/config/%s-app-framework-postgresql-1.yml", id, id)] = minimalPostgresContent(id, "1")
+		files[fmt.Sprintf("deployments/%s/config/%s-app-framework-postgresql-2.yml", id, id)] = minimalPostgresContent(id, "2")
 	}
 
 	return files
@@ -56,8 +72,8 @@ func sqliteFilesFor(psID string) map[string]string {
 	return map[string]string{
 		fmt.Sprintf("deployments/%s/config/%s-app-framework-sqlite-1.yml", psID, psID):     fmt.Sprintf("database-url: \"sqlite://file::memory:?cache=shared\"\notlp-service: %s-sqlite-1\n", psID),
 		fmt.Sprintf("deployments/%s/config/%s-app-framework-sqlite-2.yml", psID, psID):     fmt.Sprintf("database-url: \"sqlite://file::memory:?cache=shared\"\notlp-service: %s-sqlite-2\n", psID),
-		fmt.Sprintf("deployments/%s/config/%s-app-framework-postgresql-1.yml", psID, psID): fmt.Sprintf("otlp-service: %s-postgres-1\n", psID),
-		fmt.Sprintf("deployments/%s/config/%s-app-framework-postgresql-2.yml", psID, psID): fmt.Sprintf("otlp-service: %s-postgres-2\n", psID),
+		fmt.Sprintf("deployments/%s/config/%s-app-framework-postgresql-1.yml", psID, psID): minimalPostgresContent(psID, "1"),
+		fmt.Sprintf("deployments/%s/config/%s-app-framework-postgresql-2.yml", psID, psID): minimalPostgresContent(psID, "2"),
 	}
 }
 
@@ -77,30 +93,23 @@ func TestCheck_RealWorkspace(t *testing.T) {
 func TestCheckInDir_ValidOverlays(t *testing.T) {
 	t.Parallel()
 
+	psID := cryptoutilSharedMagic.OTLPServiceSMKMS
+
 	tests := []struct {
 		name       string
 		setupFiles map[string]string
 	}{
 		{
 			name:       "valid sqlite and postgresql overlays for one service",
-			setupFiles: sqliteFilesFor(cryptoutilSharedMagic.OTLPServiceSMKMS),
+			setupFiles: sqliteFilesFor(psID),
 		},
 		{
-			name: "postgresql overlay: no database-url is valid",
+			name: "postgresql overlay: no database-url, with mTLS fields is valid",
 			setupFiles: map[string]string{
-				"deployments/sm-kms/config/sm-kms-app-framework-sqlite-1.yml":     "database-url: \"sqlite://file::memory:?cache=shared\"\n",
-				"deployments/sm-kms/config/sm-kms-app-framework-sqlite-2.yml":     "database-url: \"sqlite://file::memory:?cache=shared\"\n",
-				"deployments/sm-kms/config/sm-kms-app-framework-postgresql-1.yml": "otlp-service: sm-kms-postgres-1\n",
-				"deployments/sm-kms/config/sm-kms-app-framework-postgresql-2.yml": "otlp-service: sm-kms-postgres-2\n",
-			},
-		},
-		{
-			name: "empty postgresql overlay is valid",
-			setupFiles: map[string]string{
-				"deployments/sm-kms/config/sm-kms-app-framework-sqlite-1.yml":     "database-url: \"sqlite://file::memory:?cache=shared\"\n",
-				"deployments/sm-kms/config/sm-kms-app-framework-sqlite-2.yml":     "database-url: \"sqlite://file::memory:?cache=shared\"\n",
-				"deployments/sm-kms/config/sm-kms-app-framework-postgresql-1.yml": "",
-				"deployments/sm-kms/config/sm-kms-app-framework-postgresql-2.yml": "",
+				fmt.Sprintf("deployments/%s/config/%s-app-framework-sqlite-1.yml", psID, psID):     "database-url: \"sqlite://file::memory:?cache=shared\"\n",
+				fmt.Sprintf("deployments/%s/config/%s-app-framework-sqlite-2.yml", psID, psID):     "database-url: \"sqlite://file::memory:?cache=shared\"\n",
+				fmt.Sprintf("deployments/%s/config/%s-app-framework-postgresql-1.yml", psID, psID): minimalPostgresContent(psID, "1"),
+				fmt.Sprintf("deployments/%s/config/%s-app-framework-postgresql-2.yml", psID, psID): minimalPostgresContent(psID, "2"),
 			},
 		},
 	}
@@ -130,6 +139,8 @@ func TestCheckInDir_ValidOverlays(t *testing.T) {
 func TestCheckInDir_Violations(t *testing.T) {
 	t.Parallel()
 
+	psID := cryptoutilSharedMagic.OTLPServiceSMKMS
+
 	tests := []struct {
 		name          string
 		setupFiles    map[string]string
@@ -138,52 +149,72 @@ func TestCheckInDir_Violations(t *testing.T) {
 		{
 			name: "sqlite variant missing database-url",
 			setupFiles: map[string]string{
-				"deployments/sm-kms/config/sm-kms-app-framework-sqlite-1.yml":     "otlp-service: sm-kms-sqlite-1\n",
-				"deployments/sm-kms/config/sm-kms-app-framework-sqlite-2.yml":     "database-url: \"sqlite://file::memory:?cache=shared\"\n",
-				"deployments/sm-kms/config/sm-kms-app-framework-postgresql-1.yml": "otlp-service: sm-kms-postgres-1\n",
-				"deployments/sm-kms/config/sm-kms-app-framework-postgresql-2.yml": "otlp-service: sm-kms-postgres-2\n",
+				fmt.Sprintf("deployments/%s/config/%s-app-framework-sqlite-1.yml", psID, psID):     fmt.Sprintf("otlp-service: %s-sqlite-1\n", psID),
+				fmt.Sprintf("deployments/%s/config/%s-app-framework-sqlite-2.yml", psID, psID):     "database-url: \"sqlite://file::memory:?cache=shared\"\n",
+				fmt.Sprintf("deployments/%s/config/%s-app-framework-postgresql-1.yml", psID, psID): minimalPostgresContent(psID, "1"),
+				fmt.Sprintf("deployments/%s/config/%s-app-framework-postgresql-2.yml", psID, psID): minimalPostgresContent(psID, "2"),
 			},
 			wantSubstring: `missing required key "database-url"`,
 		},
 		{
 			name: "sqlite variant has non-sqlite database-url",
 			setupFiles: map[string]string{
-				"deployments/sm-kms/config/sm-kms-app-framework-sqlite-1.yml":     "database-url: \"postgres://localhost/db\"\n",
-				"deployments/sm-kms/config/sm-kms-app-framework-sqlite-2.yml":     "database-url: \"sqlite://file::memory:?cache=shared\"\n",
-				"deployments/sm-kms/config/sm-kms-app-framework-postgresql-1.yml": "otlp-service: sm-kms-postgres-1\n",
-				"deployments/sm-kms/config/sm-kms-app-framework-postgresql-2.yml": "otlp-service: sm-kms-postgres-2\n",
+				fmt.Sprintf("deployments/%s/config/%s-app-framework-sqlite-1.yml", psID, psID):     "database-url: \"postgres://localhost/db\"\n",
+				fmt.Sprintf("deployments/%s/config/%s-app-framework-sqlite-2.yml", psID, psID):     "database-url: \"sqlite://file::memory:?cache=shared\"\n",
+				fmt.Sprintf("deployments/%s/config/%s-app-framework-postgresql-1.yml", psID, psID): minimalPostgresContent(psID, "1"),
+				fmt.Sprintf("deployments/%s/config/%s-app-framework-postgresql-2.yml", psID, psID): minimalPostgresContent(psID, "2"),
 			},
 			wantSubstring: `does not match pattern`,
 		},
 		{
 			name: "postgresql variant has database-url (forbidden)",
 			setupFiles: map[string]string{
-				"deployments/sm-kms/config/sm-kms-app-framework-sqlite-1.yml":     "database-url: \"sqlite://file::memory:?cache=shared\"\n",
-				"deployments/sm-kms/config/sm-kms-app-framework-sqlite-2.yml":     "database-url: \"sqlite://file::memory:?cache=shared\"\n",
-				"deployments/sm-kms/config/sm-kms-app-framework-postgresql-1.yml": "database-url: \"postgres://localhost/db\"\n",
-				"deployments/sm-kms/config/sm-kms-app-framework-postgresql-2.yml": "otlp-service: sm-kms-postgres-2\n",
+				fmt.Sprintf("deployments/%s/config/%s-app-framework-sqlite-1.yml", psID, psID):     "database-url: \"sqlite://file::memory:?cache=shared\"\n",
+				fmt.Sprintf("deployments/%s/config/%s-app-framework-sqlite-2.yml", psID, psID):     "database-url: \"sqlite://file::memory:?cache=shared\"\n",
+				fmt.Sprintf("deployments/%s/config/%s-app-framework-postgresql-1.yml", psID, psID): "database-url: \"postgres://localhost/db\"\n",
+				fmt.Sprintf("deployments/%s/config/%s-app-framework-postgresql-2.yml", psID, psID): minimalPostgresContent(psID, "2"),
 			},
 			wantSubstring: `forbidden key "database-url"`,
 		},
 		{
 			name: "missing overlay file",
 			setupFiles: map[string]string{
-				"deployments/sm-kms/config/sm-kms-app-framework-sqlite-1.yml": "database-url: \"sqlite://file::memory:?cache=shared\"\n",
+				fmt.Sprintf("deployments/%s/config/%s-app-framework-sqlite-1.yml", psID, psID): "database-url: \"sqlite://file::memory:?cache=shared\"\n",
 				// sqlite-2 is missing
-				"deployments/sm-kms/config/sm-kms-app-framework-postgresql-1.yml": "otlp-service: sm-kms-postgres-1\n",
-				"deployments/sm-kms/config/sm-kms-app-framework-postgresql-2.yml": "otlp-service: sm-kms-postgres-2\n",
+				fmt.Sprintf("deployments/%s/config/%s-app-framework-postgresql-1.yml", psID, psID): minimalPostgresContent(psID, "1"),
+				fmt.Sprintf("deployments/%s/config/%s-app-framework-postgresql-2.yml", psID, psID): minimalPostgresContent(psID, "2"),
 			},
 			wantSubstring: "missing overlay file",
 		},
 		{
 			name: "database-url value is not a string",
 			setupFiles: map[string]string{
-				"deployments/sm-kms/config/sm-kms-app-framework-sqlite-1.yml":     "database-url: 12345\n",
-				"deployments/sm-kms/config/sm-kms-app-framework-sqlite-2.yml":     "database-url: \"sqlite://file::memory:?cache=shared\"\n",
-				"deployments/sm-kms/config/sm-kms-app-framework-postgresql-1.yml": "otlp-service: sm-kms-postgres-1\n",
-				"deployments/sm-kms/config/sm-kms-app-framework-postgresql-2.yml": "otlp-service: sm-kms-postgres-2\n",
+				fmt.Sprintf("deployments/%s/config/%s-app-framework-sqlite-1.yml", psID, psID):     "database-url: 12345\n",
+				fmt.Sprintf("deployments/%s/config/%s-app-framework-sqlite-2.yml", psID, psID):     "database-url: \"sqlite://file::memory:?cache=shared\"\n",
+				fmt.Sprintf("deployments/%s/config/%s-app-framework-postgresql-1.yml", psID, psID): minimalPostgresContent(psID, "1"),
+				fmt.Sprintf("deployments/%s/config/%s-app-framework-postgresql-2.yml", psID, psID): minimalPostgresContent(psID, "2"),
 			},
 			wantSubstring: "must be a string",
+		},
+		{
+			name: "postgresql variant missing database-sslmode",
+			setupFiles: map[string]string{
+				fmt.Sprintf("deployments/%s/config/%s-app-framework-sqlite-1.yml", psID, psID):     "database-url: \"sqlite://file::memory:?cache=shared\"\n",
+				fmt.Sprintf("deployments/%s/config/%s-app-framework-sqlite-2.yml", psID, psID):     "database-url: \"sqlite://file::memory:?cache=shared\"\n",
+				fmt.Sprintf("deployments/%s/config/%s-app-framework-postgresql-1.yml", psID, psID): fmt.Sprintf("otlp-service: %s-postgres-1\ndatabase-sslcert: /certs/%s/c.crt\ndatabase-sslkey: /certs/%s/c.key\ndatabase-sslrootcert: /certs/%s/ca.crt\n", psID, psID, psID, psID),
+				fmt.Sprintf("deployments/%s/config/%s-app-framework-postgresql-2.yml", psID, psID): minimalPostgresContent(psID, "2"),
+			},
+			wantSubstring: `missing required key "database-sslmode"`,
+		},
+		{
+			name: "postgresql variant database-sslmode not verify-full",
+			setupFiles: map[string]string{
+				fmt.Sprintf("deployments/%s/config/%s-app-framework-sqlite-1.yml", psID, psID):     "database-url: \"sqlite://file::memory:?cache=shared\"\n",
+				fmt.Sprintf("deployments/%s/config/%s-app-framework-sqlite-2.yml", psID, psID):     "database-url: \"sqlite://file::memory:?cache=shared\"\n",
+				fmt.Sprintf("deployments/%s/config/%s-app-framework-postgresql-1.yml", psID, psID): fmt.Sprintf("database-sslmode: require\ndatabase-sslcert: /certs/%s/c.crt\ndatabase-sslkey: /certs/%s/c.key\ndatabase-sslrootcert: /certs/%s/ca.crt\n", psID, psID, psID),
+				fmt.Sprintf("deployments/%s/config/%s-app-framework-postgresql-2.yml", psID, psID): minimalPostgresContent(psID, "2"),
+			},
+			wantSubstring: "does not match pattern",
 		},
 	}
 
@@ -209,11 +240,13 @@ func TestCheckInDir_Violations(t *testing.T) {
 func TestCheckInDir_YAMLParseError(t *testing.T) {
 	t.Parallel()
 
+	psID := cryptoutilSharedMagic.OTLPServiceSMKMS
+
 	setupFiles := map[string]string{
-		"deployments/sm-kms/config/sm-kms-app-framework-sqlite-1.yml":     "{ invalid yaml: [unclosed\n",
-		"deployments/sm-kms/config/sm-kms-app-framework-sqlite-2.yml":     "database-url: \"sqlite://file::memory:?cache=shared\"\n",
-		"deployments/sm-kms/config/sm-kms-app-framework-postgresql-1.yml": "otlp-service: sm-kms-postgres-1\n",
-		"deployments/sm-kms/config/sm-kms-app-framework-postgresql-2.yml": "otlp-service: sm-kms-postgres-2\n",
+		fmt.Sprintf("deployments/%s/config/%s-app-framework-sqlite-1.yml", psID, psID):     "{ invalid yaml: [unclosed\n",
+		fmt.Sprintf("deployments/%s/config/%s-app-framework-sqlite-2.yml", psID, psID):     "database-url: \"sqlite://file::memory:?cache=shared\"\n",
+		fmt.Sprintf("deployments/%s/config/%s-app-framework-postgresql-1.yml", psID, psID): minimalPostgresContent(psID, "1"),
+		fmt.Sprintf("deployments/%s/config/%s-app-framework-postgresql-2.yml", psID, psID): minimalPostgresContent(psID, "2"),
 	}
 
 	rootDir := setupTempDir(t, setupFiles)
@@ -232,11 +265,13 @@ func TestCheckInDir_YAMLParseError(t *testing.T) {
 func TestCheckInDir_ReadFileError(t *testing.T) {
 	t.Parallel()
 
+	psID := cryptoutilSharedMagic.OTLPServiceSMKMS
+
 	setupFiles := map[string]string{
-		"deployments/sm-kms/config/sm-kms-app-framework-sqlite-1.yml":     "exists",
-		"deployments/sm-kms/config/sm-kms-app-framework-sqlite-2.yml":     "exists",
-		"deployments/sm-kms/config/sm-kms-app-framework-postgresql-1.yml": "exists",
-		"deployments/sm-kms/config/sm-kms-app-framework-postgresql-2.yml": "exists",
+		fmt.Sprintf("deployments/%s/config/%s-app-framework-sqlite-1.yml", psID, psID):     "database-url: \"sqlite://file::memory:?cache=shared\"\n",
+		fmt.Sprintf("deployments/%s/config/%s-app-framework-sqlite-2.yml", psID, psID):     "database-url: \"sqlite://file::memory:?cache=shared\"\n",
+		fmt.Sprintf("deployments/%s/config/%s-app-framework-postgresql-1.yml", psID, psID): minimalPostgresContent(psID, "1"),
+		fmt.Sprintf("deployments/%s/config/%s-app-framework-postgresql-2.yml", psID, psID): minimalPostgresContent(psID, "2"),
 	}
 
 	rootDir := setupTempDir(t, setupFiles)
@@ -307,8 +342,10 @@ func TestCheckInDir_UnknownVariantInTemplate(t *testing.T) {
     required_patterns: []
 `)
 
+	psID := cryptoutilSharedMagic.OTLPServiceSMKMS
+
 	setupFiles := map[string]string{
-		"deployments/sm-kms/config/sm-kms-app-framework-sqlite-1.yml": "database-url: \"sqlite://file::memory:?cache=shared\"\n",
+		fmt.Sprintf("deployments/%s/config/%s-app-framework-sqlite-1.yml", psID, psID): "database-url: \"sqlite://file::memory:?cache=shared\"\n",
 	}
 
 	rootDir := setupTempDir(t, setupFiles)

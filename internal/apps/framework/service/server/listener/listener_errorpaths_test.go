@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"net"
+	"os"
 	"sync"
 	"testing"
 	"time"
@@ -53,6 +54,7 @@ func TestNewAdminHTTPServer_TLSMaterialGenFailure(t *testing.T) {
 			return (&net.ListenConfig{}).Listen(ctx, network, address)
 		},
 		func(app *fiber.App, ln net.Listener) error { return app.Listener(ln) },
+		os.ReadFile,
 	)
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "failed to generate TLS material")

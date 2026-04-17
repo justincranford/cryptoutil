@@ -42,11 +42,22 @@ var requiredCommonKeys = []string{
 }
 
 // allowedInstanceKeys lists the ONLY keys permitted in instance config overlays.
+// PostgreSQL instance configs also allow database-sslmode, database-sslcert, database-sslkey,
+// and database-sslrootcert for mTLS (Cat 10 truststore + Cat 14 client cert). SQLite instance
+// configs do not include these keys (SQLite does not support TLS).
+// All instance configs allow server-admin-tls-* for admin mTLS (Cat 6 client CA + Cat 7 server cert).
 var allowedInstanceKeys = map[string]bool{
-	"cors-origins":  true,
-	"otlp-service":  true,
-	"otlp-hostname": true,
-	"database-url":  true,
+	"cors-origins":               true,
+	"otlp-service":               true,
+	"otlp-hostname":              true,
+	"database-url":               true,
+	"database-sslmode":           true,
+	"database-sslcert":           true,
+	"database-sslkey":            true,
+	"database-sslrootcert":       true,
+	"server-admin-tls-cert-file": true,
+	"server-admin-tls-key-file":  true,
+	"server-admin-tls-ca-file":   true,
 }
 
 // CheckKeyNaming validates all YAML keys in config files are kebab-case.
@@ -297,7 +308,7 @@ func checkInstanceKeys(path string) []string {
 
 	for key := range config {
 		if !allowedInstanceKeys[key] {
-			violations = append(violations, fmt.Sprintf("unexpected key %q (only cors-origins, otlp-service, otlp-hostname, database-url allowed)", key))
+			violations = append(violations, fmt.Sprintf("unexpected key %q (only cors-origins, otlp-service, otlp-hostname, database-url, database-sslmode, database-sslcert, database-sslkey, database-sslrootcert allowed)", key))
 		}
 	}
 
