@@ -38,11 +38,11 @@ All output files are created under `TARGET-DIRECTORY/PKI-INIT-DOMAIN/`. If that 
 | PS-ID | `sm-kms`, `sm-im`, `jose-ja`, `pki-ca`, `identity-authz`, `identity-idp`, `identity-rs`, `identity-rp`, `identity-spa`, `skeleton-template` |
 
 Examples:
-1. `pki-init cryptoutil        /certs`   → output: `/certs/cryptoutil/` (suite scope, 568 dirs)
-2. `pki-init sm                /certs`   → output: `/certs/sm/` (product scope, 136 dirs for 2 PS-IDs)
+1. `pki-init cryptoutil        /certs`   → output: `/certs/cryptoutil/` (suite scope, 666 dirs)
+2. `pki-init sm                /certs`   → output: `/certs/sm/` (product scope, 150 dirs for 2 PS-IDs)
 3. `pki-init identity          /certs`   → output: `/certs/identity/` (product scope, 4 PS-IDs)
-4. `pki-init sm-kms            /tmp`     → output: `/tmp/sm-kms/` (PS-ID scope, 82 dirs)
-5. `pki-init skeleton-template /tmp`     → output: `/tmp/skeleton-template/` (PS-ID scope, 82 dirs)
+4. `pki-init sm-kms            /tmp`     → output: `/tmp/sm-kms/` (PS-ID scope, 90 dirs)
+5. `pki-init skeleton-template /tmp`     → output: `/tmp/skeleton-template/` (PS-ID scope, 90 dirs)
 
 ## File Format Convention
 
@@ -123,12 +123,12 @@ Required domains (16 categories):
 - Total: 8 directories (2 services × 2 CA tiers × 2 store types); same across PS-ID, PRODUCT, and SUITE levels.
 
 **9. Public Grafana LGTM + OTel Collector Client Certs:**
-- Client leaf certs for each PS-ID app instance and one `admin` cert, issued by the respective client CA.
-- `{PS-ID}-{sqlite,postgres}-{1,2}` expands to all 4 app instances per PS-ID; `admin` is one shared cert.
+- Client leaf certs for each PS-ID app instance, one `admin` cert (human operator UI/API access), and one `infra` cert (OTel Collector → Grafana LGTM OTLP ingest service-to-service), issued by the respective client CA.
+- `{PS-ID}-{sqlite,postgres}-{1,2}` expands to all 4 app instances per PS-ID; `admin` is one shared cert for operators; `infra` is one shared cert for service-to-service OTel→Grafana forwarding.
 - Keystore only per leaf cert per service (leaf cert — trust established via issuing CA's truststore).
-- Total per PS-ID: 10 directories (2 services × (4 per-PS-ID instances + 1 admin) × 1 store type).
-- Total per PRODUCT: 2 services × (4×N per-PS-ID instances + 1 admin) × 1 store type = 2+8×N.
-- Total per SUITE: 2 services × (4×10 per-PS-ID instances + 1 admin) × 1 store type = 82 directories.
+- Total per PS-ID: 12 directories (2 services × (4 per-PS-ID instances + 1 admin + 1 infra) × 1 store type).
+- Total per PRODUCT: 2 services × (4×N per-PS-ID instances + 1 admin + 1 infra) × 1 store type = 4+8×N.
+- Total per SUITE: 2 services × (4×10 per-PS-ID instances + 1 admin + 1 infra) × 1 store type = 84 directories.
 
 **10. Public PostgreSQL Server CAs:**
 - One globally shared CA chain (root + issuing) for both the leader and follower PostgreSQL server instances.
@@ -151,12 +151,12 @@ Required domains (16 categories):
 - Total: 2 directories (2 instances × 1 store type); same across PS-ID, PRODUCT, and SUITE levels.
 
 **14. Public PS-ID PostgreSQL App Client Certs:**
-- Per-PS-ID client leaf certs for each app instance connecting to both leader and follower.
-- One cert per app instance per DB role (leader, follower).
+- Per-PS-ID client leaf certs for postgres-1 and postgres-2 app instances only (sqlite-1 and sqlite-2 instances use in-memory SQLite and never connect to PostgreSQL).
+- One cert per postgres instance per DB role (leader, follower).
 - Keystore only per leaf cert (leaf cert — trust established via issuing CA's truststore).
-- Total per PS-ID: 8 directories (2 DB roles × 4 app instances × 1 store type).
-- Total per PRODUCT: 8 × (PS-ID count in product).
-- Total per SUITE: 80 directories.
+- Total per PS-ID: 4 directories (2 DB roles × 2 postgres instances × 1 store type).
+- Total per PRODUCT: 4 × (PS-ID count in product).
+- Total per SUITE: 40 directories.
 
 Required logical layout:
 
@@ -174,14 +174,14 @@ TARGET-DIRECTORY/{PKI-INIT-DOMAIN}/
 
   {otel-collector-contrib,grafana-otel-lgtm}-https-client-{root,issuing}-ca{/,/truststore/}SAME-AS-KEYSTORE-DIR-NAME.{p12,crt,key}
   {otel-collector-contrib,grafana-otel-lgtm}-https-client-{entity}-{PS-ID}-{sqlite,postgres}-{1,2}{/,/truststore/}SAME-AS-KEYSTORE-DIR-NAME.{p12,crt,key}
-  {otel-collector-contrib,grafana-otel-lgtm}-https-client-{entity}-{admin}{/,/truststore/}SAME-AS-KEYSTORE-DIR-NAME.{p12,crt,key}
+  {otel-collector-contrib,grafana-otel-lgtm}-https-client-{entity}-{admin,infra}{/,/truststore/}SAME-AS-KEYSTORE-DIR-NAME.{p12,crt,key}
 
   postgres-tls-server-{root,issuing}-ca{/,/truststore/}SAME-AS-KEYSTORE-DIR-NAME.{p12,crt,key}
   postgres-tls-server-{entity}-{leader,follower}{/,/truststore/}SAME-AS-KEYSTORE-DIR-NAME.{p12,crt,key}
 
   postgres-tls-client-{root,issuing}-ca{/,/truststore/}SAME-AS-KEYSTORE-DIR-NAME.{p12,crt,key}
   postgres-tls-client-{entity}-{leader,follower}-{replication}{/,/truststore/}SAME-AS-KEYSTORE-DIR-NAME.{p12,crt,key}
-  postgres-tls-client-{entity}-{leader,follower}-{PS-ID}-{sqlite,postgres}-{1,2}{/,/truststore/}SAME-AS-KEYSTORE-DIR-NAME.{p12,crt,key}
+  postgres-tls-client-{entity}-{leader,follower}-{PS-ID}-{postgres}-{1,2}{/,/truststore/}SAME-AS-KEYSTORE-DIR-NAME.{p12,crt,key}
 ```
 
 ## Directory Count Summary
@@ -196,22 +196,22 @@ TARGET-DIRECTORY/{PKI-INIT-DOMAIN}/
 | 6 | Private mTLS CAs (Admin) | 16 | 16×N | 160 | `private-https-mutual-{root,issuing}-ca-{PS-ID}-{sqlite,postgres}-{1,2}/[truststore/]` |
 | 7 | Private mTLS Leaves (Admin) | 4 | 4×N | 40 | `private-https-mutual-entity-{PS-ID}-{sqlite,postgres}-{1,2}/` |
 | 8 | Grafana/OTel Client CAs | 8 | 8 | 8 | `{otel-collector-contrib,grafana-otel-lgtm}-https-client-{root,issuing}-ca/[truststore/]` |
-| 9 | Grafana/OTel Client Certs | 10 | 2+8×N | 82 | `{otel-collector-contrib,grafana-otel-lgtm}-https-client-entity-{PS-ID}-{sqlite,postgres}-{1,2}/` and `-entity-admin/` |
+| 9 | Grafana/OTel Client Certs | 12 | 4+8×N | 84 | `{otel-collector-contrib,grafana-otel-lgtm}-https-client-entity-{PS-ID}-{sqlite,postgres}-{1,2}/` and `-entity-{admin,infra}/` |
 | 10 | PostgreSQL Server CAs | 4 | 4 | 4 | `postgres-tls-server-{root,issuing}-ca/[truststore/]` |
 | 11 | PostgreSQL Server Certs | 2 | 2 | 2 | `postgres-tls-server-entity-{leader,follower}/` |
 | 12 | PostgreSQL Client CAs | 4 | 4 | 4 | `postgres-tls-client-{root,issuing}-ca/[truststore/]` |
 | 13 | PostgreSQL Replication Certs | 2 | 2 | 2 | `postgres-tls-client-entity-{leader,follower}-replication/` |
-| 14 | PS-ID PostgreSQL App Clients | 8 | 8×N | 80 | `postgres-tls-client-entity-{leader,follower}-{PS-ID}-{sqlite,postgres}-{1,2}/` |
-| **Total** | | **92** | **varies** | **668** | |
+| 14 | PS-ID PostgreSQL App Clients | 4 | 4×N | 40 | `postgres-tls-client-entity-{leader,follower}-{PS-ID}-{postgres}-{1,2}/` |
+| **Total** | | **90** | **varies** | **666** | |
 
 ## Policy Alignment
 
 - **Private admin channel** (`private-https-mutual-{PS-ID}-*`): Mutual TLS required; both server and client auth use the same combined leaf cert per instance (`private-https-mutual-entity-{PS-ID}-*`).
 - **Public HTTPS server** (`public-https-server-entity-{PS-ID}-*`): Server cert issued by global server CA; client TLS authentication optional.
 - **Public HTTPS client** (`public-https-client-entity-{PS-ID}-{sqlite-1,sqlite-2,postgres}-{browseruser,serviceuser}-*`): Client certificates issued per PKI domain and per API path prefix (`/browser/` → `browseruser`, `/service/` → `serviceuser`) and per realm type, per PS-ID.
-- **PostgreSQL connections** (`postgres-tls-{server,client}-*`): Mutual TLS and username+password required; mTLS required for all app-instance-to-DB and leader↔follower replication connections.
-- **OTel Collector OTLP** (`public-https-server-entity-otel-collector-contrib` + `otel-collector-contrib-https-client-*`): Server cert for :4317/:4318; client certs per PS-ID per app instance and admin for OTLP export.
-- **Grafana LGTM OTLP ingest** (`grafana-otel-lgtm-https-client-*`): Client certs per PS-ID per app instance and admin for UI access; server cert issued by global server CA.
+- **PostgreSQL connections** (`postgres-tls-{server,client}-*`): Mutual TLS and username+password required; mTLS required for all app-instance-to-DB and leader↔follower replication connections. Only postgres-1 and postgres-2 app instances connect to PostgreSQL; sqlite-1 and sqlite-2 do not.
+- **OTel Collector OTLP** (`public-https-server-entity-otel-collector-contrib` + `otel-collector-contrib-https-client-*`): Server cert for :4317/:4318; client certs per PS-ID per app instance, one `admin` cert for operators, and one `infra` cert for OTel Collector’s outbound connection to Grafana LGTM OTLP ingest.
+- **Grafana LGTM OTLP ingest** (`grafana-otel-lgtm-https-client-*`): Client certs per PS-ID per app instance, one `admin` cert for UI access, and one `infra` cert for service-to-service OTel→Grafana forwarding; server cert issued by global server CA.
 - **Grafana LGTM HTTPS UI** (port 3000): Server cert in `public-https-server-entity-grafana-otel-lgtm/`, issued by global server CA.
 
 ## Example: skeleton-template (PS-ID)
@@ -304,17 +304,19 @@ Realm values assumed: `file`, `db` (2 realms).
   otel-collector-contrib-https-client-issuing-ca/
   otel-collector-contrib-https-client-issuing-ca/truststore/
 
-  # Category 9: Grafana/OTel Client Certs (10 dirs = 2 services × (4 per-PS-ID instances + 1 admin))
+  # Category 9: Grafana/OTel Client Certs (12 dirs = 2 services × (4 per-PS-ID instances + 1 admin + 1 infra))
   grafana-otel-lgtm-https-client-entity-skeleton-template-sqlite-1/
   grafana-otel-lgtm-https-client-entity-skeleton-template-sqlite-2/
   grafana-otel-lgtm-https-client-entity-skeleton-template-postgres-1/
   grafana-otel-lgtm-https-client-entity-skeleton-template-postgres-2/
   grafana-otel-lgtm-https-client-entity-admin/
+  grafana-otel-lgtm-https-client-entity-infra/
   otel-collector-contrib-https-client-entity-skeleton-template-sqlite-1/
   otel-collector-contrib-https-client-entity-skeleton-template-sqlite-2/
   otel-collector-contrib-https-client-entity-skeleton-template-postgres-1/
   otel-collector-contrib-https-client-entity-skeleton-template-postgres-2/
   otel-collector-contrib-https-client-entity-admin/
+  otel-collector-contrib-https-client-entity-infra/
 
   # Category 10: PostgreSQL Server CAs (4 dirs = 2 keystore + 2 truststore subdirs)
   postgres-tls-server-root-ca/
@@ -336,18 +338,14 @@ Realm values assumed: `file`, `db` (2 realms).
   postgres-tls-client-entity-leader-replication/
   postgres-tls-client-entity-follower-replication/
 
-  # Category 14: PS-ID PostgreSQL App Client Certs (8 dirs = 2 roles × 4 instances)
-  postgres-tls-client-entity-leader-skeleton-template-sqlite-1/
-  postgres-tls-client-entity-leader-skeleton-template-sqlite-2/
+  # Category 14: PS-ID PostgreSQL App Client Certs (4 dirs = 2 roles × 2 postgres instances)
   postgres-tls-client-entity-leader-skeleton-template-postgres-1/
   postgres-tls-client-entity-leader-skeleton-template-postgres-2/
-  postgres-tls-client-entity-follower-skeleton-template-sqlite-1/
-  postgres-tls-client-entity-follower-skeleton-template-sqlite-2/
   postgres-tls-client-entity-follower-skeleton-template-postgres-1/
   postgres-tls-client-entity-follower-skeleton-template-postgres-2/
 ```
 
-**Total: 92 directories** (28 global + 64 PS-ID-specific).
+**Total: 90 directories** (30 global + 60 PS-ID-specific).
 
 ## Example: sm (PRODUCT)
 
@@ -496,7 +494,7 @@ Global directories (categories 1, 2, 8, 10-13) are identical to the skeleton-tem
   otel-collector-contrib-https-client-issuing-ca/
   otel-collector-contrib-https-client-issuing-ca/truststore/
 
-  # Category 9: Grafana/OTel Client Certs (18 dirs = 2 services × (2 PS-IDs × 4 instances + 1 admin))
+  # Category 9: Grafana/OTel Client Certs (20 dirs = 2 services × (2 PS-IDs × 4 instances + 1 admin + 1 infra))
   grafana-otel-lgtm-https-client-entity-sm-kms-sqlite-1/
   grafana-otel-lgtm-https-client-entity-sm-kms-sqlite-2/
   grafana-otel-lgtm-https-client-entity-sm-kms-postgres-1/
@@ -506,6 +504,7 @@ Global directories (categories 1, 2, 8, 10-13) are identical to the skeleton-tem
   grafana-otel-lgtm-https-client-entity-sm-im-postgres-1/
   grafana-otel-lgtm-https-client-entity-sm-im-postgres-2/
   grafana-otel-lgtm-https-client-entity-admin/
+  grafana-otel-lgtm-https-client-entity-infra/
   otel-collector-contrib-https-client-entity-sm-kms-sqlite-1/
   otel-collector-contrib-https-client-entity-sm-kms-sqlite-2/
   otel-collector-contrib-https-client-entity-sm-kms-postgres-1/
@@ -515,6 +514,7 @@ Global directories (categories 1, 2, 8, 10-13) are identical to the skeleton-tem
   otel-collector-contrib-https-client-entity-sm-im-postgres-1/
   otel-collector-contrib-https-client-entity-sm-im-postgres-2/
   otel-collector-contrib-https-client-entity-admin/
+  otel-collector-contrib-https-client-entity-infra/
 
   # Category 10: PostgreSQL Server CAs (4 dirs = 2 keystore + 2 truststore subdirs) — same as PS-ID level
   postgres-tls-server-root-ca/
@@ -536,25 +536,17 @@ Global directories (categories 1, 2, 8, 10-13) are identical to the skeleton-tem
   postgres-tls-client-entity-leader-replication/
   postgres-tls-client-entity-follower-replication/
 
-  # Category 14: PS-ID PostgreSQL App Client Certs (16 dirs = 2 roles × 4 instances × 2 PS-IDs)
-  # --- sm-kms (8 dirs) ---
-  postgres-tls-client-entity-leader-sm-kms-sqlite-1/
-  postgres-tls-client-entity-leader-sm-kms-sqlite-2/
+  # Category 14: PS-ID PostgreSQL App Client Certs (8 dirs = 2 roles × 2 postgres instances × 2 PS-IDs)
+  # --- sm-kms (4 dirs) ---
   postgres-tls-client-entity-leader-sm-kms-postgres-1/
   postgres-tls-client-entity-leader-sm-kms-postgres-2/
-  postgres-tls-client-entity-follower-sm-kms-sqlite-1/
-  postgres-tls-client-entity-follower-sm-kms-sqlite-2/
   postgres-tls-client-entity-follower-sm-kms-postgres-1/
   postgres-tls-client-entity-follower-sm-kms-postgres-2/
-  # --- sm-im (8 dirs) ---
-  postgres-tls-client-entity-leader-sm-im-sqlite-1/
-  postgres-tls-client-entity-leader-sm-im-sqlite-2/
+  # --- sm-im (4 dirs) ---
   postgres-tls-client-entity-leader-sm-im-postgres-1/
   postgres-tls-client-entity-leader-sm-im-postgres-2/
-  postgres-tls-client-entity-follower-sm-im-sqlite-1/
-  postgres-tls-client-entity-follower-sm-im-sqlite-2/
   postgres-tls-client-entity-follower-sm-im-postgres-1/
   postgres-tls-client-entity-follower-sm-im-postgres-2/
 ```
 
-**Total: 156 directories** (28 global + 128 PS-ID-specific across 2 PS-IDs).
+**Total: 150 directories** (30 global + 120 PS-ID-specific across 2 PS-IDs).
