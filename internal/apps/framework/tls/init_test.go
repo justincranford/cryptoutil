@@ -143,7 +143,7 @@ func TestInit_SeamInjection(t *testing.T) {
 
 		var stdout, stderr bytes.Buffer
 
-		// Non-empty target dir is treated as "already generated" — returns success (code=0).
+		// Non-empty target dir is cleaned and regenerated — pki-init is idempotent.
 		code := cryptoutilAppsFrameworkTls.ExportedInitRun([]string{"--domain=" + cryptoutilSharedMagic.OTLPServiceSMKMS, "--output-dir=" + outputDir}, nil, &stdout, &stderr, telemetryFn, generatorFn)
 		require.Equal(t, 0, code, "stderr=%s", stderr.String())
 		require.Contains(t, stdout.String(), "certificates written")
