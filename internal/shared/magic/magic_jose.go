@@ -67,10 +67,14 @@ const (
 
 // JOSE-JA E2E Test Configuration.
 const (
-	// JoseJAE2EComposeFile is the path to the jose docker compose file (relative from e2e test directory).
-	// Path: internal/apps/jose-ja/e2e → ../../../../../deployments/jose/compose.yml
-	// Levels: e2e→ja(1)→jose(2)→apps(3)→internal(4)→root(5), then deployments/jose.
-	JoseJAE2EComposeFile = "../../../../deployments/jose/compose.yml"
+	// JoseJAE2EComposeFile is the path to the jose-ja PS-ID compose file (relative from e2e test directory).
+	// Path: internal/apps/jose-ja/e2e → ../../../../deployments/jose-ja/compose.yml
+	// Using PS-ID level (not PRODUCT level) to avoid env_file path resolution issues:
+	// Docker Compose resolves env_file relative to CWD, not the compose file location.
+	// When running from internal/apps/jose-ja/e2e, the PRODUCT compose includes jose-ja/compose.yml
+	// and then Docker tries to resolve .env.postgres relative to CWD, producing a path that
+	// doesn't exist (internal/apps/jose-ja/.env.postgres).
+	JoseJAE2EComposeFile = "../../../../deployments/jose-ja/compose.yml"
 
 	// JoseJAE2ESQLiteContainer is the SQLite instance service name in compose.
 	JoseJAE2ESQLiteContainer = "jose-ja-app-sqlite-1"
@@ -90,17 +94,17 @@ const (
 	// JoseJAE2EHealthPollInterval is the interval between health check attempts.
 	JoseJAE2EHealthPollInterval = 2 * time.Second
 
-	// JoseJAE2ESQLitePublicPort is the SQLite instance public HTTPS port (PRODUCT level: 18200).
-	JoseJAE2ESQLitePublicPort = 18200
+	// JoseJAE2ESQLitePublicPort is the SQLite instance public HTTPS port (PS-ID level: 8200).
+	JoseJAE2ESQLitePublicPort = 8200
 
-	// JoseJAE2ESQLite2PublicPort is the SQLite instance 2 public HTTPS port (PRODUCT level: 18201).
-	JoseJAE2ESQLite2PublicPort = 18201
+	// JoseJAE2ESQLite2PublicPort is the SQLite instance 2 public HTTPS port (PS-ID level: 8201).
+	JoseJAE2ESQLite2PublicPort = 8201
 
-	// JoseJAE2EPostgreSQL1PublicPort is the PostgreSQL instance 1 public HTTPS port (PRODUCT level: 18202).
-	JoseJAE2EPostgreSQL1PublicPort = 18202
+	// JoseJAE2EPostgreSQL1PublicPort is the PostgreSQL instance 1 public HTTPS port (PS-ID level: 8202).
+	JoseJAE2EPostgreSQL1PublicPort = 8202
 
-	// JoseJAE2EPostgreSQL2PublicPort is the PostgreSQL instance 2 public HTTPS port (PRODUCT level: 18203).
-	JoseJAE2EPostgreSQL2PublicPort = 18203
+	// JoseJAE2EPostgreSQL2PublicPort is the PostgreSQL instance 2 public HTTPS port (PS-ID level: 8203).
+	JoseJAE2EPostgreSQL2PublicPort = 8203
 
 	// JoseJAE2EGrafanaPort is the Grafana port for E2E tests.
 	JoseJAE2EGrafanaPort = 3000
