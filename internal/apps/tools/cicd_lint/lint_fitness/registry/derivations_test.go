@@ -122,14 +122,14 @@ func TestProductPublicPort_AllPSIDs(t *testing.T) {
 	}{
 		{psID: cryptoutilSharedMagic.OTLPServiceSMKMS, want: int(cryptoutilSharedMagic.ProductTierPortMin)},
 		{psID: cryptoutilSharedMagic.OTLPServiceSMIM, want: 18100},
-		{psID: cryptoutilSharedMagic.OTLPServiceJoseJA, want: int(cryptoutilSharedMagic.JoseJAE2ESQLitePublicPort)},
+		{psID: cryptoutilSharedMagic.OTLPServiceJoseJA, want: 18200}, // PRODUCT level: jose-ja base 8200 + offset 10000
 		{psID: cryptoutilSharedMagic.OTLPServicePKICA, want: 18300},
 		{psID: cryptoutilSharedMagic.OTLPServiceIdentityAuthz, want: int(cryptoutilSharedMagic.IdentityE2EAuthzPublicPort)},
 		{psID: cryptoutilSharedMagic.OTLPServiceIdentityIDP, want: int(cryptoutilSharedMagic.IdentityE2EIDPPublicPort)},
 		{psID: cryptoutilSharedMagic.OTLPServiceIdentityRS, want: int(cryptoutilSharedMagic.IdentityE2ERSPublicPort)},
 		{psID: cryptoutilSharedMagic.OTLPServiceIdentityRP, want: int(cryptoutilSharedMagic.IdentityE2ERPPublicPort)},
 		{psID: cryptoutilSharedMagic.OTLPServiceIdentitySPA, want: int(cryptoutilSharedMagic.IdentityE2ESPAPublicPort)},
-		{psID: cryptoutilSharedMagic.OTLPServiceSkeletonTemplate, want: int(cryptoutilSharedMagic.SkeletonTemplateE2ESQLitePublicPort)},
+		{psID: cryptoutilSharedMagic.OTLPServiceSkeletonTemplate, want: 18900}, // PRODUCT level: skeleton-template base 8900 + offset 10000
 	}
 
 	for _, tt := range tests {
