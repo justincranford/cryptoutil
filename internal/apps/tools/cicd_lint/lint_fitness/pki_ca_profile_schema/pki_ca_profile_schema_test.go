@@ -26,7 +26,7 @@ func buildProfileRoot(t *testing.T) string {
 
 	rootDir := t.TempDir()
 	profilesDir := filepath.Join(rootDir, filepath.FromSlash(cryptoutilSharedMagic.CICDPKICAProfilesDir))
-	require.NoError(t, os.MkdirAll(profilesDir, cryptoutilSharedMagic.CacheFilePermissions))
+	require.NoError(t, os.MkdirAll(profilesDir, cryptoutilSharedMagic.CICDTempDirPermissions))
 
 	return rootDir
 }
