@@ -74,9 +74,6 @@
 services:
   # PostgreSQL Leader (OLTP - Read/Write)
   # Hosts 30 logical databases (10 services × 3 deployment types)
-  # TLS cert mounts (least privilege — leader only):
-  #   Cat 11: postgres-tls-server-entity-leader/ (server cert + key)
-  #   Cat 12: postgres-tls-client-issuing-ca/truststore/ (CA for verifying client certs)
   postgres-leader:
     image: postgres:18
     container_name: __SUITE__-postgres-leader
@@ -91,7 +88,6 @@ services:
       - ${POSTGRES_CONF_DIR:-../shared-postgres}/postgresql-leader.conf:/etc/postgresql/postgresql.conf:ro
       - ../shared-postgres/pg_hba.conf:/etc/postgresql/pg_hba.conf:ro
       - ../shared-postgres/init-leader-databases.sql:/docker-entrypoint-initdb.d/01-init-databases.sql:ro
-      - __SUITE__-certs:/certs:ro
     secrets:
       - postgres-username.secret
       - postgres-password.secret
@@ -114,11 +110,6 @@ services:
 
   # PostgreSQL Follower (OLAP - Read-Only Analytics)
   # Logical replication from leader with grouped schemas for analytics
-  # TLS cert mounts (least privilege — follower only):
-  #   Cat 10: postgres-tls-server-issuing-ca/truststore/ (CA for verifying leader server cert during replication)
-  #   Cat 11: postgres-tls-server-entity-follower/ (follower server cert + key)
-  #   Cat 12: postgres-tls-client-issuing-ca/truststore/ (CA for verifying client certs)
-  #   Cat 13: postgres-tls-client-entity-follower-replication/ (replication client cert + key)
 
   postgres-follower:
     image: postgres:18
@@ -138,7 +129,6 @@ services:
       - ../shared-postgres/pg_hba.conf:/etc/postgresql/pg_hba.conf:ro
       - ../shared-postgres/init-follower-databases.sql:/docker-entrypoint-initdb.d/01-init-databases.sql:ro
       - ../shared-postgres/setup-logical-replication.sh:/docker-entrypoint-initdb.d/02-setup-replication.sh:ro
-      - __SUITE__-certs:/certs:ro
     secrets:
       - postgres-username.secret
       - postgres-password.secret
@@ -171,7 +161,6 @@ volumes:
     name: __SUITE___postgres_leader_volume
   postgres_follower_data:
     name: __SUITE___postgres_follower_volume
-  cryptoutil-certs:
 
 secrets:
   postgres-username.secret:
