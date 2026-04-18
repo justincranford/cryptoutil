@@ -36,9 +36,11 @@ const (
 
 // Skeleton-Template E2E Test Configuration.
 const (
-	// SkeletonTemplateE2EComposeFile is the path to the skeleton docker compose file (relative from e2e test directory).
-	// Path: internal/apps/skeleton-template/e2e → ../../../../../deployments/skeleton/compose.yml.
-	SkeletonTemplateE2EComposeFile = "../../../../deployments/skeleton/compose.yml"
+	// SkeletonTemplateE2EComposeFile is the path to the skeleton-template PS-ID compose file (relative from e2e test directory).
+	// Path: internal/apps/skeleton-template/e2e → ../../../../deployments/skeleton-template/compose.yml.
+	// Using PS-ID level (not PRODUCT level) to avoid env_file path resolution issues:
+	// Docker Compose resolves env_file relative to CWD, not the compose file location.
+	SkeletonTemplateE2EComposeFile = "../../../../deployments/skeleton-template/compose.yml"
 
 	// SkeletonTemplateE2ESQLiteContainer is the SQLite instance service name in compose.
 	SkeletonTemplateE2ESQLiteContainer = "skeleton-template-app-sqlite-1"
@@ -58,17 +60,17 @@ const (
 	// SkeletonTemplateE2EHealthPollInterval is the interval between health check attempts.
 	SkeletonTemplateE2EHealthPollInterval = 2 * time.Second
 
-	// SkeletonTemplateE2ESQLitePublicPort is the SQLite instance public HTTPS port (PRODUCT level: 18900).
-	SkeletonTemplateE2ESQLitePublicPort = 18900
+	// SkeletonTemplateE2ESQLitePublicPort is the SQLite instance public HTTPS port (PS-ID level: 8900).
+	SkeletonTemplateE2ESQLitePublicPort = 8900
 
-	// SkeletonTemplateE2ESQLite2PublicPort is the SQLite instance 2 public HTTPS port (PRODUCT level: 18901).
-	SkeletonTemplateE2ESQLite2PublicPort = 18901
+	// SkeletonTemplateE2ESQLite2PublicPort is the SQLite instance 2 public HTTPS port (PS-ID level: 8901).
+	SkeletonTemplateE2ESQLite2PublicPort = 8901
 
-	// SkeletonTemplateE2EPostgreSQL1PublicPort is the PostgreSQL instance 1 public HTTPS port (PRODUCT level: 18902).
-	SkeletonTemplateE2EPostgreSQL1PublicPort = 18902
+	// SkeletonTemplateE2EPostgreSQL1PublicPort is the PostgreSQL instance 1 public HTTPS port (PS-ID level: 8902).
+	SkeletonTemplateE2EPostgreSQL1PublicPort = 8902
 
-	// SkeletonTemplateE2EPostgreSQL2PublicPort is the PostgreSQL instance 2 public HTTPS port (PRODUCT level: 18903).
-	SkeletonTemplateE2EPostgreSQL2PublicPort = 18903
+	// SkeletonTemplateE2EPostgreSQL2PublicPort is the PostgreSQL instance 2 public HTTPS port (PS-ID level: 8903).
+	SkeletonTemplateE2EPostgreSQL2PublicPort = 8903
 
 	// SkeletonTemplateE2EGrafanaPort is the Grafana port for E2E tests.
 	SkeletonTemplateE2EGrafanaPort = 3000
