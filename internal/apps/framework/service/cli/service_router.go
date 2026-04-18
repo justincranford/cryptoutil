@@ -47,14 +47,15 @@ type SubcommandFunc func(args []string, stdout, stderr io.Writer) int
 // It handles version/help flags and routes to the standard subcommands.
 //
 // Mandatory subcommands (all services MUST support):
-//   - version:  Print version information.
-//   - server:   Start the service server (via serverFn).
-//   - client:   Run client operations (via clientFn).
-//   - init:     Initialize database and configuration (via initFn).
-//   - health:   Check service health via public API (template-provided).
-//   - livez:    Check service liveness via admin API (template-provided).
-//   - readyz:   Check service readiness via admin API (template-provided).
-//   - shutdown: Trigger graceful shutdown via admin API (template-provided).
+//   - version:          Print version information.
+//   - server:           Start the service server (via serverFn).
+//   - client:           Run client operations (via clientFn).
+//   - init:             Initialize database and configuration (via initFn).
+//   - validate-secrets: Validate Docker secrets at /run/secrets/ (template-provided).
+//   - health:           Check service health via public API (template-provided).
+//   - livez:            Check service liveness via admin API (template-provided).
+//   - readyz:           Check service readiness via admin API (template-provided).
+//   - shutdown:         Trigger graceful shutdown via admin API (template-provided).
 //
 // The serverFn, clientFn, and initFn are service-specific implementations.
 // The health/livez/readyz/shutdown commands are provided by the template.
@@ -85,6 +86,8 @@ func RouteService(cfg ServiceConfig, args []string, stdout, stderr io.Writer, se
 		return clientFn(args[1:], stdout, stderr)
 	case "init":
 		return initFn(args[1:], stdout, stderr)
+	case cryptoutilSharedMagic.CLIValidateSecretsCommand:
+		return ValidateSecretsCommand(args[1:], stdout, stderr)
 	case "health":
 		return HealthCommand(args[1:], stdout, stderr, cfg.UsageHealth, cfg.DefaultPublicPort)
 	case "livez":

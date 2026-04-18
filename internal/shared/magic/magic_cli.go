@@ -21,4 +21,10 @@ const (
 	CLIVersionFlag = "--version"
 	// CLIVersionShortFlag is the short-form version flag.
 	CLIVersionShortFlag = "-v"
+	// CLIValidateSecretsCommand is the validate-secrets subcommand name.
+	CLIValidateSecretsCommand = "validate-secrets"
+	// DockerSecretsDir is the standard Docker secrets mount path.
+	DockerSecretsDir = "/run/secrets"
+	// DockerSecretMinLength is the minimum acceptable character length for high-entropy secret files.
+	DockerSecretMinLength = 43
 )
