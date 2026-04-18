@@ -62,6 +62,10 @@ const (
 	// instance. Used as a DNS SAN in server leaf certificates.
 	PKIInitPostgresLeaderService = "postgres-leader"
 
+	// PKIInitPostgresLeaderNetworkAlias is the Docker network alias for the leader PostgreSQL
+	// instance. Apps connect using this alias; it MUST appear in the server cert SANs.
+	PKIInitPostgresLeaderNetworkAlias = "shared-postgres-leader"
+
 	// PKIInitPostgresFollowerService is the Docker service DNS name for the follower
 	// PostgreSQL instance. Used as a DNS SAN in server leaf certificates.
 	PKIInitPostgresFollowerService = "postgres-follower"
