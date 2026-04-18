@@ -25,6 +25,7 @@
 include:
   - path: ../shared-telemetry/compose.yml
   - path: ../shared-postgres/compose.yml
+    env_file: .env.postgres
 
 services:
   # Healthcheck for Docker secrets availability.
@@ -159,7 +160,7 @@ services:
         condition: service_completed_successfully
     healthcheck:
       test: ["CMD", "/app/__PS_ID__", "health", "--url", "https://127.0.0.1:8080/service/api/v1"]
-      start-period: __HEALTHCHECK_START_PERIOD__
+      start_period: __HEALTHCHECK_START_PERIOD__
       interval: __HEALTHCHECK_INTERVAL__
       timeout: __HEALTHCHECK_TIMEOUT__
       retries: __HEALTHCHECK_RETRIES__
@@ -208,7 +209,7 @@ services:
         condition: service_completed_successfully
     healthcheck:
       test: ["CMD", "/app/__PS_ID__", "health", "--url", "https://127.0.0.1:8080/service/api/v1"]
-      start-period: __HEALTHCHECK_START_PERIOD__
+      start_period: __HEALTHCHECK_START_PERIOD__
       interval: __HEALTHCHECK_INTERVAL__
       timeout: __HEALTHCHECK_TIMEOUT__
       retries: __HEALTHCHECK_RETRIES__
@@ -260,7 +261,7 @@ services:
         condition: service_completed_successfully
     healthcheck:
       test: ["CMD", "/app/__PS_ID__", "health", "--url", "https://127.0.0.1:8080/service/api/v1"]
-      start-period: __HEALTHCHECK_START_PERIOD__
+      start_period: __HEALTHCHECK_START_PERIOD__
       interval: __HEALTHCHECK_INTERVAL__
       timeout: __HEALTHCHECK_TIMEOUT__
       retries: __HEALTHCHECK_RETRIES__
@@ -315,7 +316,7 @@ services:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "/app/__PS_ID__", "health", "--url", "https://127.0.0.1:8080/service/api/v1"]
-      start-period: __HEALTHCHECK_START_PERIOD__
+      start_period: __HEALTHCHECK_START_PERIOD__
       interval: __HEALTHCHECK_INTERVAL__
       timeout: __HEALTHCHECK_TIMEOUT__
       retries: __HEALTHCHECK_RETRIES__

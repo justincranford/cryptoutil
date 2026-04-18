@@ -88,7 +88,7 @@ services:
     shm_size: 512mb
     volumes:
       - postgres_leader_data:/var/lib/postgresql
-      - ../shared-postgres/postgresql-leader.conf:/etc/postgresql/postgresql.conf:ro
+      - ${POSTGRES_CONF_DIR:-../shared-postgres}/postgresql-leader.conf:/etc/postgresql/postgresql.conf:ro
       - ../shared-postgres/pg_hba.conf:/etc/postgresql/pg_hba.conf:ro
       - ../shared-postgres/init-leader-databases.sql:/docker-entrypoint-initdb.d/01-init-databases.sql:ro
       - cryptoutil-certs:/certs:ro
@@ -97,7 +97,7 @@ services:
       - postgres-password.secret
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $(cat /run/secrets/postgres-username.secret) -d postgres"]
-      start-period: 30s
+      start_period: 30s
       interval: 10s
       timeout: 5s
       retries: 5
@@ -134,7 +134,7 @@ services:
     shm_size: 1gb
     volumes:
       - postgres_follower_data:/var/lib/postgresql
-      - ../shared-postgres/postgresql-follower.conf:/etc/postgresql/postgresql.conf:ro
+      - ${POSTGRES_CONF_DIR:-../shared-postgres}/postgresql-follower.conf:/etc/postgresql/postgresql.conf:ro
       - ../shared-postgres/pg_hba.conf:/etc/postgresql/pg_hba.conf:ro
       - ../shared-postgres/init-follower-databases.sql:/docker-entrypoint-initdb.d/01-init-databases.sql:ro
       - ../shared-postgres/setup-logical-replication.sh:/docker-entrypoint-initdb.d/02-setup-replication.sh:ro
@@ -147,7 +147,7 @@ services:
         condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $(cat /run/secrets/postgres-username.secret) -d postgres"]
-      start-period: 60s
+      start_period: 60s
       interval: 10s
       timeout: 5s
       retries: 5
@@ -171,6 +171,7 @@ volumes:
     name: cryptoutil_postgres_leader_volume
   postgres_follower_data:
     name: cryptoutil_postgres_follower_volume
+  cryptoutil-certs:
 
 secrets:
   postgres-username.secret:

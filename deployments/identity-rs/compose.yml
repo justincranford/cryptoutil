@@ -25,6 +25,7 @@
 include:
   - path: ../shared-telemetry/compose.yml
   - path: ../shared-postgres/compose.yml
+    env_file: .env.postgres
 
 services:
   # Healthcheck for Docker secrets availability.
@@ -159,7 +160,7 @@ services:
         condition: service_completed_successfully
     healthcheck:
       test: ["CMD", "/app/identity-rs", "health", "--url", "https://127.0.0.1:8080/service/api/v1"]
-      start-period: 30s
+      start_period: 30s
       interval: 30s
       timeout: 10s
       retries: 3
@@ -208,7 +209,7 @@ services:
         condition: service_completed_successfully
     healthcheck:
       test: ["CMD", "/app/identity-rs", "health", "--url", "https://127.0.0.1:8080/service/api/v1"]
-      start-period: 30s
+      start_period: 30s
       interval: 30s
       timeout: 10s
       retries: 3
@@ -260,7 +261,7 @@ services:
         condition: service_completed_successfully
     healthcheck:
       test: ["CMD", "/app/identity-rs", "health", "--url", "https://127.0.0.1:8080/service/api/v1"]
-      start-period: 30s
+      start_period: 30s
       interval: 30s
       timeout: 10s
       retries: 3
@@ -315,7 +316,7 @@ services:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "/app/identity-rs", "health", "--url", "https://127.0.0.1:8080/service/api/v1"]
-      start-period: 30s
+      start_period: 30s
       interval: 30s
       timeout: 10s
       retries: 3
