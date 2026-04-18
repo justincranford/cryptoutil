@@ -98,7 +98,9 @@ services:
       timeout: 5s
       retries: 5
     networks:
-      - postgres-network
+      postgres-network:
+        aliases:
+          - shared-postgres-leader
     deploy:
       resources:
         limits:
