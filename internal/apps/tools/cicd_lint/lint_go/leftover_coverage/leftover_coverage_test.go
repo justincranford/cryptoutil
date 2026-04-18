@@ -11,6 +11,7 @@ import (
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/tools/cicd_lint/common"
 	leftoverCoverage "cryptoutil/internal/apps/tools/cicd_lint/lint_go/leftover_coverage"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 func TestCheck_NoViolations(t *testing.T) {
@@ -75,7 +76,7 @@ func TestCheckInDir_ExceptionMatchesParentDir(t *testing.T) {
 	// cicd_coverage/cicd_coverage_test.go is allowed because stem == parent dir name.
 	dir := t.TempDir()
 	pkgDir := filepath.Join(dir, "cicd_coverage")
-	require.NoError(t, os.MkdirAll(pkgDir, 0o750))
+	require.NoError(t, os.MkdirAll(pkgDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupReadExecute))
 	writeFile(t, pkgDir, "cicd_coverage_test.go", "")
 
 	logger := cryptoutilCmdCicdCommon.NewLogger(t.Name())
@@ -102,6 +103,6 @@ func TestCheckInDir_WalkError(t *testing.T) {
 func writeFile(t *testing.T, dir, name, content string) {
 	t.Helper()
 
-	err := os.WriteFile(filepath.Join(dir, name), []byte(content), 0o600)
+	err := os.WriteFile(filepath.Join(dir, name), []byte(content), cryptoutilSharedMagic.FilePermissionsDefault)
 	require.NoError(t, err)
 }
