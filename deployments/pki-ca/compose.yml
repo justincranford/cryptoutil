@@ -345,13 +345,13 @@ services:
       - -c
       - |
         SSL=/var/lib/postgresql/ssl
-        mkdir -p "$SSL"
-        cp /ssl-in/server.crt "$SSL/server.crt" 2>/dev/null || true
-        cp /ssl-in/server.key "$SSL/server.key" 2>/dev/null || true
-        cp /ssl-in/client-ca.crt "$SSL/client-ca.crt" 2>/dev/null || true
-        chown 999:999 "$SSL/server.crt" "$SSL/server.key" "$SSL/client-ca.crt" 2>/dev/null || true
-        chmod 600 "$SSL/server.key" 2>/dev/null || true
-        chmod 644 "$SSL/server.crt" "$SSL/client-ca.crt" 2>/dev/null || true
+        mkdir -p "$$SSL"
+        cp /ssl-in/server.crt "$$SSL/server.crt" 2>/dev/null || true
+        cp /ssl-in/server.key "$$SSL/server.key" 2>/dev/null || true
+        cp /ssl-in/client-ca.crt "$$SSL/client-ca.crt" 2>/dev/null || true
+        chown 999:999 "$$SSL/server.crt" "$$SSL/server.key" "$$SSL/client-ca.crt" 2>/dev/null || true
+        chmod 600 "$$SSL/server.key" 2>/dev/null || true
+        chmod 644 "$$SSL/server.crt" "$$SSL/client-ca.crt" 2>/dev/null || true
         exec docker-entrypoint.sh postgres -c config_file=/etc/postgresql/postgresql.conf
     depends_on:
       pki-init:
