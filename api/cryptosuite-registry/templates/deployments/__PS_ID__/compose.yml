@@ -115,7 +115,7 @@ services:
     image: __SUITE__-__PS_ID__:__IMAGE_TAG__
     command: ["/app/__PS_ID__", "init", "--domain=__PS_ID__", "--output-dir=/certs"]
     volumes:
-      - __PS_ID__-certs:/certs:rw
+      - ./certs:/certs:rw
     depends_on:
       builder-__PS_ID__:
         condition: service_completed_successfully
@@ -137,7 +137,7 @@ services:
       - ./config/__PS_ID__-app-domain-common.yml:/app/config/__PS_ID__-app-domain-common.yml:ro
       - ./config/__PS_ID__-app-domain-sqlite-1.yml:/app/config/__PS_ID__-app-domain-sqlite-1.yml:ro
       - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
-      - __PS_ID__-certs:/certs:ro
+      - ./certs:/certs:ro
     secrets:
       - unseal-1of5.secret
       - unseal-2of5.secret
@@ -158,8 +158,8 @@ services:
       healthcheck-opentelemetry-collector-contrib:
         condition: service_completed_successfully
     healthcheck:
-      test: ["CMD", "/app/__PS_ID__", "livez", "--cacert", "/certs/root-ca.pem"]
-      start_period: __HEALTHCHECK_START_PERIOD__
+      test: ["CMD", "/app/__PS_ID__", "health", "--url", "https://127.0.0.1:8080/service/api/v1"]
+      start-period: __HEALTHCHECK_START_PERIOD__
       interval: __HEALTHCHECK_INTERVAL__
       timeout: __HEALTHCHECK_TIMEOUT__
       retries: __HEALTHCHECK_RETRIES__
@@ -186,7 +186,7 @@ services:
       - ./config/__PS_ID__-app-domain-common.yml:/app/config/__PS_ID__-app-domain-common.yml:ro
       - ./config/__PS_ID__-app-domain-sqlite-2.yml:/app/config/__PS_ID__-app-domain-sqlite-2.yml:ro
       - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
-      - __PS_ID__-certs:/certs:ro
+      - ./certs:/certs:ro
     secrets:
       - unseal-1of5.secret
       - unseal-2of5.secret
@@ -207,8 +207,8 @@ services:
       healthcheck-opentelemetry-collector-contrib:
         condition: service_completed_successfully
     healthcheck:
-      test: ["CMD", "/app/__PS_ID__", "livez", "--cacert", "/certs/root-ca.pem"]
-      start_period: __HEALTHCHECK_START_PERIOD__
+      test: ["CMD", "/app/__PS_ID__", "health", "--url", "https://127.0.0.1:8080/service/api/v1"]
+      start-period: __HEALTHCHECK_START_PERIOD__
       interval: __HEALTHCHECK_INTERVAL__
       timeout: __HEALTHCHECK_TIMEOUT__
       retries: __HEALTHCHECK_RETRIES__
@@ -235,7 +235,7 @@ services:
       - ./config/__PS_ID__-app-domain-common.yml:/app/config/__PS_ID__-app-domain-common.yml:ro
       - ./config/__PS_ID__-app-domain-postgresql-1.yml:/app/config/__PS_ID__-app-domain-postgresql-1.yml:ro
       - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
-      - __PS_ID__-certs:/certs:ro
+      - ./certs:/certs:ro
     secrets:
       - unseal-1of5.secret
       - unseal-2of5.secret
@@ -259,8 +259,8 @@ services:
       healthcheck-opentelemetry-collector-contrib:
         condition: service_completed_successfully
     healthcheck:
-      test: ["CMD", "/app/__PS_ID__", "livez", "--cacert", "/certs/root-ca.pem"]
-      start_period: __HEALTHCHECK_START_PERIOD__
+      test: ["CMD", "/app/__PS_ID__", "health", "--url", "https://127.0.0.1:8080/service/api/v1"]
+      start-period: __HEALTHCHECK_START_PERIOD__
       interval: __HEALTHCHECK_INTERVAL__
       timeout: __HEALTHCHECK_TIMEOUT__
       retries: __HEALTHCHECK_RETRIES__
@@ -288,7 +288,7 @@ services:
       - ./config/__PS_ID__-app-domain-common.yml:/app/config/__PS_ID__-app-domain-common.yml:ro
       - ./config/__PS_ID__-app-domain-postgresql-2.yml:/app/config/__PS_ID__-app-domain-postgresql-2.yml:ro
       - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
-      - __PS_ID__-certs:/certs:ro
+      - ./certs:/certs:ro
     secrets:
       - unseal-1of5.secret
       - unseal-2of5.secret
@@ -314,8 +314,8 @@ services:
       __PS_ID__-app-postgresql-1:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "/app/__PS_ID__", "livez", "--cacert", "/certs/root-ca.pem"]
-      start_period: __HEALTHCHECK_START_PERIOD__
+      test: ["CMD", "/app/__PS_ID__", "health", "--url", "https://127.0.0.1:8080/service/api/v1"]
+      start-period: __HEALTHCHECK_START_PERIOD__
       interval: __HEALTHCHECK_INTERVAL__
       timeout: __HEALTHCHECK_TIMEOUT__
       retries: __HEALTHCHECK_RETRIES__
@@ -330,8 +330,6 @@ services:
         reservations:
           memory: 128M
 
-volumes:
-  __PS_ID__-certs:
 
 networks:
   __PS_ID__-network:

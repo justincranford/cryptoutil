@@ -97,7 +97,7 @@ services:
       - postgres-password.secret
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $(cat /run/secrets/postgres-username.secret) -d postgres"]
-      start_period: 30s
+      start-period: 30s
       interval: 10s
       timeout: 5s
       retries: 5
@@ -147,7 +147,7 @@ services:
         condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $(cat /run/secrets/postgres-username.secret) -d postgres"]
-      start_period: 60s
+      start-period: 60s
       interval: 10s
       timeout: 5s
       retries: 5
