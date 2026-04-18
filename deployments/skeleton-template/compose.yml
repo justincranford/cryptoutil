@@ -331,6 +331,31 @@ services:
         reservations:
           memory: 128M
 
+  # postgres-leader SSL setup — extends shared-postgres service with mTLS cert setup.
+  # Runs as root to copy certs into a writable directory, chown to postgres (uid 999),
+  # then drops to postgres user via docker-entrypoint.sh.
+  postgres-leader:
+    user: "0"
+    entrypoint:
+      - /bin/bash
+      - -c
+      - |
+        SSL=/var/lib/postgresql/ssl
+        mkdir -p "$SSL"
+        cp /ssl-in/server.crt "$SSL/server.crt" 2>/dev/null || true
+        cp /ssl-in/server.key "$SSL/server.key" 2>/dev/null || true
+        cp /ssl-in/client-ca.crt "$SSL/client-ca.crt" 2>/dev/null || true
+        chown 999:999 "$SSL/server.crt" "$SSL/server.key" "$SSL/client-ca.crt" 2>/dev/null || true
+        chmod 600 "$SSL/server.key" 2>/dev/null || true
+        chmod 644 "$SSL/server.crt" "$SSL/client-ca.crt" 2>/dev/null || true
+        exec docker-entrypoint.sh postgres -c config_file=/etc/postgresql/postgresql.conf
+    depends_on:
+      pki-init:
+        condition: service_completed_successfully
+    volumes:
+      - ./certs/skeleton-template/postgres-tls-server-entity-leader/postgres-tls-server-entity-leader.crt:/ssl-in/server.crt:ro
+      - ./certs/skeleton-template/postgres-tls-server-entity-leader/postgres-tls-server-entity-leader.key:/ssl-in/server.key:ro
+      - ./certs/skeleton-template/postgres-tls-client-issuing-ca/truststore/postgres-tls-client-issuing-ca.crt:/ssl-in/client-ca.crt:ro
 
 networks:
   skeleton-template-network:
