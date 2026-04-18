@@ -230,7 +230,7 @@ var ExcludedDirs = map[string]bool{
 // isExcludedFromContentRules returns true for test files that deliberately contain
 // benchmark or fuzz pattern strings as test fixture content (cicd tooling).
 func isExcludedFromContentRules(filePath string) bool {
-	normalised := filepath.ToSlash(filePath)
+	normalised := strings.ReplaceAll(filepath.ToSlash(filePath), "\\", "/")
 
 	return strings.Contains(normalised, "cicd_lint/format_gotest") ||
 		strings.Contains(normalised, "cicd_lint/lint_fitness") ||
