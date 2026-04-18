@@ -28,8 +28,6 @@ var kebabCaseRegexp = regexp.MustCompile(`^[a-z][a-z0-9]*(-[a-z0-9]+)*$`)
 // requiredCommonKeys lists config keys that MUST appear in every common config overlay.
 var requiredCommonKeys = []string{
 	"bind-public-address",
-	"tls-cert-file",
-	"tls-key-file",
 	"unseal-mode",
 	"unseal-files",
 	"browser-username-file",

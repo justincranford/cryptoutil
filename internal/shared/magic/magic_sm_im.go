@@ -146,10 +146,6 @@ const (
 	// Levels: e2e→im(1)→sm(2)→apps(3)→internal(4)→cryptoutil(5), then deployments/sm-im.
 	IME2EComposeFile = "../../../../deployments/sm-im/compose.yml"
 
-	// IME2ECACertPath is the path to the pki-init root CA cert for sm-im E2E tests.
-	// Path: internal/apps/sm-im/e2e → ../../../../../deployments/sm-im/certs/root-ca.pem.
-	IME2ECACertPath = "../../../../../deployments/sm-im/certs/root-ca.pem"
-
 	// IME2ESQLiteContainer is the SQLite instance service name in compose.
 	IME2ESQLiteContainer = "sm-im-app-sqlite-1"
 
