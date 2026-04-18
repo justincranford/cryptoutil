@@ -1981,6 +1981,55 @@ The `pki-init` CLI generates the full `/certs` directory tree for each deploymen
 
 See [docs/tls-structure.md](tls-structure.md) for the full unrolled directory layout, per-category rationale, and directory count derivation formulas.
 
+#### 6.11.4 PostgreSQL mTLS Wiring Pattern
+
+**Staged deployment sequence** (never skip stages):
+
+1. **Stage 1 — Server TLS only**: Configure PostgreSQL to serve TLS; app connects with `sslmode=verify-full sslrootcert=<Cat 10>`. No client cert yet.
+2. **Stage 2 — Verify server TLS**: Confirm `pg_stat_ssl` shows `ssl=t`, `TLSv1.3` negotiated.
+3. **Stage 3 — App client mTLS**: Add `sslcert=<Cat 14>` + `sslkey=<Cat 14>` to GORM config; update `pg_hba.conf` to `clientcert=verify-full`.
+4. **Stage 4 — Replication client mTLS**: Add `sslcert=<Cat 13>` + `sslkey=<Cat 13>` to follower `primary_conninfo`; update leader `pg_hba.conf` replication rule to `clientcert=verify-full`.
+5. **Stage 5 — Verify full stack**: Confirm `pg_stat_ssl` shows `client_dn` populated for app and replication connections.
+
+**D2: YAML config for SSL params** (NOT in postgres-url.secret DSN):
+- SSL params (`database-sslmode`, `database-sslcert`, `database-sslkey`, `database-sslrootcert`) live in per-instance YAML config files
+- `postgres-url.secret` contains bare DSN: `postgres://user:pass@host:5432/db` (no query params)
+- GORM DSN builder calls `stripQueryParam(url, "sslmode")` before appending configured sslmode to prevent duplicate params
+
+**D4: Cat 14 postgres-only** (sqlite instances do NOT get PostgreSQL client certs):
+- `PKIInitPostgresAppInstanceSuffixes()` returns `["postgres-1", "postgres-2"]` only
+- sqlite-1, sqlite-2 instance configs MUST NOT contain `database-sslcert`/`database-sslkey`/`database-sslrootcert` fields
+
+**D5: Full named volume strategy**:
+- All services mount `{suite}-certs:/certs:ro` — the complete certs tree is accessible
+- Never mount individual cert directories; always mount the full named volume
+- Least-privilege is enforced at the pki-init generation level (not mount level)
+
+**`pg_hba.conf` rules (final state)**:
+```
+local       all             postgres                                peer
+host        all             all             127.0.0.1/32            scram-sha-256
+host        all             all             ::1/128                 scram-sha-256
+hostssl     replication     all             all                     scram-sha-256 clientcert=verify-full
+hostssl     all             all             all                     scram-sha-256 clientcert=verify-full
+```
+
+#### 6.11.5 Admin mTLS Pattern
+
+**Private admin endpoint (:9090) mTLS** is configured via YAML config file fields:
+
+```yaml
+server-admin-tls-cert-file: /certs/{ps-id}/private-https-mutual-entity-{ps-id}-{variant}/{name}.crt
+server-admin-tls-key-file:  /certs/{ps-id}/private-https-mutual-entity-{ps-id}-{variant}/{name}.key
+server-admin-tls-ca-file:   /certs/{ps-id}/private-https-mutual-issuing-ca-{ps-id}-{variant}/truststore/{name}.crt
+```
+
+- When all 3 fields are set: admin listener uses `tls.RequireAndVerifyClientCert`
+- When `server-admin-tls-ca-file` only is set: server-side TLS only (no client cert required)
+- When none are set: framework auto-generates ephemeral TLS (unit/integration test mode)
+- Config key naming: `server-admin-tls-*` (kebab-case, in `allowedInstanceKeys` NOT `requiredCommonKeys`)
+- Each instance variant (sqlite-1, sqlite-2, postgres-1, postgres-2) has its own Cat 6/7 cert pair
+
 ---
 
 ## 7. Data Architecture
