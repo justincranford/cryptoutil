@@ -368,7 +368,8 @@ func TestReadRealmsForPSID_Scenarios(t *testing.T) {
 				return filepath.Join(t.TempDir(), "missing.yaml")
 			},
 			psID:        validPSID,
-			wantErrFrag: "failed to read registry file",
+			wantRealms:  []string{"file", "db"}, // falls back to defaultRealms() when file not found
+			wantErrFrag: "",
 		},
 		{
 			name: "invalid YAML",

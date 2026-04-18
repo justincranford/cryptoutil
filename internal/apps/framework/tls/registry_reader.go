@@ -39,9 +39,14 @@ func defaultRealms() []string {
 
 // readRealmsForPSID reads the realm names for a given PS-ID from the registry file.
 // Returns an error if the PS-ID is not found or has no realms configured.
+// Falls back to defaultRealms() when the registry file is not present.
 func readRealmsForPSID(registryPath, psID string) ([]string, error) {
 	data, err := os.ReadFile(registryPath)
 	if err != nil {
+		if os.IsNotExist(err) {
+			return defaultRealms(), nil
+		}
+
 		return nil, fmt.Errorf("failed to read registry file %q: %w", registryPath, err)
 	}
 
