@@ -220,7 +220,7 @@ func (g *Generator) generateSharedCAs(basePath string) (*sharedCAs, error) {
 	}
 
 	// --- Category 11: PostgreSQL Server Certs (2 dirs) ---
-leaderDNS := []string{cryptoutilSharedMagic.PKIInitPostgresLeaderService, cryptoutilSharedMagic.PKIInitPostgresLeaderNetworkAlias, cryptoutilSharedMagic.HostnameLocalhost}
+	leaderDNS := []string{cryptoutilSharedMagic.PKIInitPostgresLeaderService, cryptoutilSharedMagic.PKIInitPostgresLeaderNetworkAlias, cryptoutilSharedMagic.HostnameLocalhost}
 
 	if err := g.generateServerLeafDir(basePath, "postgres-tls-server-entity-"+cryptoutilSharedMagic.PKIInitPostgresLeader,
 		shared.postgresServerIssuing, leaderDNS, defaultIPs()); err != nil {

@@ -128,3 +128,16 @@ CREATE PUBLICATION service_identity_spa_pub FOR ALL TABLES;
 
 \c "servicedeployment-skeleton-template"
 CREATE PUBLICATION service_skeleton_template_pub FOR ALL TABLES;
+
+-- PS-ID application databases (one per PS-ID, named by DatabaseName derivation)
+-- These are the databases that app containers connect to via postgres-url.secret.
+CREATE DATABASE sm_kms_database;
+CREATE DATABASE sm_im_database;
+CREATE DATABASE jose_ja_database;
+CREATE DATABASE pki_ca_database;
+CREATE DATABASE identity_authz_database;
+CREATE DATABASE identity_idp_database;
+CREATE DATABASE identity_rp_database;
+CREATE DATABASE identity_rs_database;
+CREATE DATABASE identity_spa_database;
+CREATE DATABASE skeleton_template_database;
