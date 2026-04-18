@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"os"
 	"testing"
+	"time"
 
 	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps/framework/service/config"
 	cryptoutilAppsFrameworkServiceServerBarrier "cryptoutil/internal/apps/framework/service/server/barrier"
@@ -165,7 +166,8 @@ func TestInitializeServicesOnCore_ErrorPaths(t *testing.T) {
 func TestStartCore_DatabaseProvisionFailure(t *testing.T) {
 	t.Parallel()
 
-	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultHTTPServerTimeoutSeconds*time.Second)
+	defer cancel()
 
 	// Use invalid database URL to trigger provisioning failure.
 	settings := &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{
