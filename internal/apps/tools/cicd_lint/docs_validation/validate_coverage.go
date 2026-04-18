@@ -262,22 +262,22 @@ func FormatCoverageValidationResults(result *CoverageResult) string {
 	var sb strings.Builder
 
 	sb.WriteString("=== Propagation Coverage Validation ===\n\n")
-	sb.WriteString(fmt.Sprintf("Manifest chunks:      %d\n", result.ManifestChunks))
-	sb.WriteString(fmt.Sprintf("Architecture chunks:  %d\n", result.ArchitectureChunks))
+	fmt.Fprintf(&sb, "Manifest chunks:      %d\n", result.ManifestChunks)
+	fmt.Fprintf(&sb, "Architecture chunks:  %d\n", result.ArchitectureChunks)
 
 	if len(result.OrphanedChunks) > 0 {
-		sb.WriteString(fmt.Sprintf("\nORPHANED CHUNKS (%d) — in ENG-HANDBOOK.md but missing from manifest:\n", len(result.OrphanedChunks)))
+		fmt.Fprintf(&sb, "\nORPHANED CHUNKS (%d) — in ENG-HANDBOOK.md but missing from manifest:\n", len(result.OrphanedChunks))
 
 		for _, id := range result.OrphanedChunks {
-			sb.WriteString(fmt.Sprintf("  - %s\n", id))
+			fmt.Fprintf(&sb, "  - %s\n", id)
 		}
 	}
 
 	if len(result.Violations) > 0 {
-		sb.WriteString(fmt.Sprintf("\nMISSING @SOURCE BLOCKS (%d):\n", len(result.Violations)))
+		fmt.Fprintf(&sb, "\nMISSING @SOURCE BLOCKS (%d):\n", len(result.Violations))
 
 		for _, v := range result.Violations {
-			sb.WriteString(fmt.Sprintf("  - chunk=%s file=%s\n", v.ChunkID, v.File))
+			fmt.Fprintf(&sb, "  - chunk=%s file=%s\n", v.ChunkID, v.File)
 		}
 
 		sb.WriteString("\nCoverage validation FAILED. Add missing @source blocks or update the manifest.\n")

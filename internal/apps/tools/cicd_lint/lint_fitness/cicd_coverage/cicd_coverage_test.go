@@ -24,7 +24,7 @@ func buildValidContent() string {
 
 	for cmd := range cryptoutilSharedMagic.ValidCommands {
 		if strings.HasPrefix(cmd, "lint-") || strings.HasPrefix(cmd, "format-") {
-			sb.WriteString(fmt.Sprintf("./cicd %s\n", cmd))
+			fmt.Fprintf(&sb, "./cicd %s\n", cmd)
 		}
 	}
 

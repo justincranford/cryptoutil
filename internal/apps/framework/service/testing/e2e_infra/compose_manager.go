@@ -82,7 +82,8 @@ func (cm *ComposeManager) Stop(ctx context.Context) error {
 
 // buildComposeArgs builds the docker compose command arguments including profiles.
 func (cm *ComposeManager) buildComposeArgs(subcommand ...string) []string {
-	args := []string{"compose", "-f", cm.ComposeFile}
+	args := make([]string, 0, 3+2*len(cm.Profiles)+len(subcommand))
+	args = append(args, "compose", "-f", cm.ComposeFile)
 
 	for _, profile := range cm.Profiles {
 		args = append(args, "--profile", profile)

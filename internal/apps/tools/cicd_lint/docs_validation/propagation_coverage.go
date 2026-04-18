@@ -132,22 +132,22 @@ func FormatCoverageResults(result *PropagationCoverageResult) string {
 
 	// File coverage.
 	filePct := percentage(result.CoveredFiles, result.TotalFiles)
-	sb.WriteString(fmt.Sprintf("FILE COVERAGE: %d/%d files have @source blocks (%.0f%%)\n", result.CoveredFiles, result.TotalFiles, filePct))
+	fmt.Fprintf(&sb, "FILE COVERAGE: %d/%d files have @source blocks (%.0f%%)\n", result.CoveredFiles, result.TotalFiles, filePct)
 
 	// Line coverage.
 	linePct := percentage(result.CoveredLines, result.TotalLines)
-	sb.WriteString(fmt.Sprintf("LINE COVERAGE: %d/%d lines inside @source blocks (%.0f%%)\n", result.CoveredLines, result.TotalLines, linePct))
+	fmt.Fprintf(&sb, "LINE COVERAGE: %d/%d lines inside @source blocks (%.0f%%)\n", result.CoveredLines, result.TotalLines, linePct)
 
 	// Zero coverage files.
 	if len(result.ZeroCoverageFiles) > 0 {
-		sb.WriteString(fmt.Sprintf("\nZERO COVERAGE FILES (%d):\n", len(result.ZeroCoverageFiles)))
+		fmt.Fprintf(&sb, "\nZERO COVERAGE FILES (%d):\n", len(result.ZeroCoverageFiles))
 
 		for _, f := range result.ZeroCoverageFiles {
-			sb.WriteString(fmt.Sprintf("  - %s\n", f))
+			fmt.Fprintf(&sb, "  - %s\n", f)
 		}
 	}
 
-	sb.WriteString(fmt.Sprintf("\n=== Summary: %d files, %.0f%% file coverage, %.0f%% line coverage ===\n", result.TotalFiles, filePct, linePct))
+	fmt.Fprintf(&sb, "\n=== Summary: %d files, %.0f%% file coverage, %.0f%% line coverage ===\n", result.TotalFiles, filePct, linePct)
 
 	return sb.String()
 }

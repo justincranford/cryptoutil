@@ -66,7 +66,7 @@ func findRegistryYAMLPath() (string, error) {
 // validateRegistry enforces structural invariants on the registry.
 // All violations are gathered and returned in a single error.
 func validateRegistry(r *RegistryFile) error {
-	var errs []string
+	var errs []string //nolint:prealloc // size determined by validation
 
 	errs = append(errs, validateSuites(r.Suites)...)
 	errs = append(errs, validateProducts(r.Products)...)

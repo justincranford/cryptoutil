@@ -118,7 +118,7 @@ func storePEM(subject *cryptoutilSharedCryptoCertificate.Subject, opts *StorageO
 	keyPath := filepath.Join(opts.Directory, opts.PrivateKeyFilename)
 
 	// Build certificate chain PEM.
-	var certChainPEM []byte
+	var certChainPEM []byte //nolint:prealloc // dynamic append, size determined at runtime
 
 	for _, cert := range subject.KeyMaterial.CertificateChain {
 		block := &pem.Block{

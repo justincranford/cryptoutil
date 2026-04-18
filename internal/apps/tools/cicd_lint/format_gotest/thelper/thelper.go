@@ -49,6 +49,7 @@ func Fix(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) (int, int, int,
 		}
 
 		processed++
+
 		if changed {
 			modified++
 			issuesFixed += fixes

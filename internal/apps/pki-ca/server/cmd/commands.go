@@ -65,7 +65,9 @@ Examples:
 
 			if len(configFiles) > 0 {
 				// Build args with multiple --config flags for Parse()
-				parseArgs := []string{"start"} // Subcommand required by Parse()
+				parseArgs := make([]string, 0, 1+2*len(configFiles))
+
+				parseArgs = append(parseArgs, "start") // Subcommand required by Parse()
 				for _, cf := range configFiles {
 					parseArgs = append(parseArgs, cryptoutilSharedMagic.IdentityCLIFlagConfig, cf)
 				}

@@ -175,7 +175,7 @@ func setupMinimalStructure(t *testing.T, root string) {
 
 // allTestPSIDs returns all PS-IDs from the registry for minimal test scaffolding.
 func allTestPSIDs() []string {
-	psIDs := make([]string, 0)
+	psIDs := make([]string, 0, len(cryptoutilRegistry.AllProductServices()))
 
 	for _, ps := range cryptoutilRegistry.AllProductServices() {
 		psIDs = append(psIDs, ps.PSID)

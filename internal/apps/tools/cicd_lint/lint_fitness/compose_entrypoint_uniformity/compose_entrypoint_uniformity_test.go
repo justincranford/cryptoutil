@@ -50,7 +50,7 @@ func buildComposeBlock(psID string) string {
 	for _, v := range orderedVariants {
 		svcName := lintFitnessRegistry.ComposeServiceName(psID, v)
 		cmd := expectedCommand(psID, v)
-		sb.WriteString(fmt.Sprintf("  %s:\n    command: %s\n", svcName, cmd))
+		fmt.Fprintf(&sb, "  %s:\n    command: %s\n", svcName, cmd)
 	}
 
 	return sb.String()
@@ -162,7 +162,7 @@ func TestCheckInDir_MissingService(t *testing.T) {
 
 		svcName := lintFitnessRegistry.ComposeServiceName(psID, v)
 		cmd := expectedCommand(psID, v)
-		sb.WriteString(fmt.Sprintf("  %s:\n    command: %s\n", svcName, cmd))
+		fmt.Fprintf(&sb, "  %s:\n    command: %s\n", svcName, cmd)
 	}
 
 	writeComposeYML(t, tmpDir, psID, sb.String())

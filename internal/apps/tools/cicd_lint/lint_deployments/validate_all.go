@@ -368,14 +368,14 @@ func FormatAllValidationResult(result *AllValidationResult) string {
 			passedCount++
 		}
 
-		sb.WriteString(fmt.Sprintf("[%s] %s (%s) [%s]\n", status, vr.Name, vr.Target, vr.Duration.Round(time.Millisecond)))
+		fmt.Fprintf(&sb, "[%s] %s (%s) [%s]\n", status, vr.Name, vr.Target, vr.Duration.Round(time.Millisecond))
 	}
 
 	sb.WriteString("\n--- Summary ---\n")
-	sb.WriteString(fmt.Sprintf("Total:    %d validators\n", len(result.Results)))
-	sb.WriteString(fmt.Sprintf("Passed:   %d\n", passedCount))
-	sb.WriteString(fmt.Sprintf("Failed:   %d\n", failedCount))
-	sb.WriteString(fmt.Sprintf("Duration: %s\n", result.TotalDuration.Round(time.Millisecond)))
+	fmt.Fprintf(&sb, "Total:    %d validators\n", len(result.Results))
+	fmt.Fprintf(&sb, "Passed:   %d\n", passedCount)
+	fmt.Fprintf(&sb, "Failed:   %d\n", failedCount)
+	fmt.Fprintf(&sb, "Duration: %s\n", result.TotalDuration.Round(time.Millisecond))
 
 	if result.AllPassed() {
 		sb.WriteString("\nResult: ALL VALIDATORS PASSED\n")
@@ -386,7 +386,7 @@ func FormatAllValidationResult(result *AllValidationResult) string {
 		for i := range result.Results {
 			vr := &result.Results[i]
 			if !vr.Passed {
-				sb.WriteString(fmt.Sprintf("  - %s (%s)\n", vr.Name, vr.Target))
+				fmt.Fprintf(&sb, "  - %s (%s)\n", vr.Name, vr.Target)
 			}
 		}
 	}

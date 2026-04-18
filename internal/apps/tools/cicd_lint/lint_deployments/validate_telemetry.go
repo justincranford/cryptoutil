@@ -221,7 +221,7 @@ func validateOTLPConsistency(entries []otlpConfigEntry, result *TelemetryValidat
 	}
 
 	if len(endpoints) > 1 {
-		var details []string
+		var details []string //nolint:prealloc // range map iteration, size varies
 
 		for ep, files := range endpoints {
 			details = append(details, fmt.Sprintf("  %s: %s", ep, strings.Join(files, ", ")))
@@ -253,11 +253,11 @@ func FormatTelemetryValidationResult(result *TelemetryValidationResult) string {
 	}
 
 	for _, e := range result.Errors {
-		sb.WriteString(fmt.Sprintf("  ERROR: %s\n", e))
+		fmt.Fprintf(&sb, "  ERROR: %s\n", e)
 	}
 
 	for _, w := range result.Warnings {
-		sb.WriteString(fmt.Sprintf("  WARNING: %s\n", w))
+		fmt.Fprintf(&sb, "  WARNING: %s\n", w)
 	}
 
 	return sb.String()

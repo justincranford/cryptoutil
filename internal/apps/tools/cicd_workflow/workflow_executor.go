@@ -371,23 +371,23 @@ func analyzeWorkflowLog(logFile string, result *WorkflowResult) {
 func createAnalysisFile(result WorkflowResult) {
 	analysis := strings.Builder{}
 
-	analysis.WriteString(fmt.Sprintf("# Workflow Analysis: %s\n\n", result.Name))
-	analysis.WriteString(fmt.Sprintf("**Generated:** %s\n\n", time.Now().UTC().Format("2006-01-02 15:04:05")))
+	fmt.Fprintf(&analysis, "# Workflow Analysis: %s\n\n", result.Name)
+	fmt.Fprintf(&analysis, "**Generated:** %s\n\n", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 	analysis.WriteString("## Executive Summary\n\n")
-	analysis.WriteString(fmt.Sprintf("- **Duration:** %v\n", result.Duration.Round(time.Second)))
-	analysis.WriteString(fmt.Sprintf("- **Status:** %s\n", statusBadge(result.Success)))
-	analysis.WriteString(fmt.Sprintf("- **Completion Found:** %v\n", result.CompletionFound))
-	analysis.WriteString(fmt.Sprintf("- **Tasks Analyzed:** %d\n", len(result.TaskResults)))
-	analysis.WriteString(fmt.Sprintf("- **Errors:** %d\n", len(result.ErrorMessages)))
-	analysis.WriteString(fmt.Sprintf("- **Warnings:** %d\n\n", len(result.Warnings)))
+	fmt.Fprintf(&analysis, "- **Duration:** %v\n", result.Duration.Round(time.Second))
+	fmt.Fprintf(&analysis, "- **Status:** %s\n", statusBadge(result.Success))
+	fmt.Fprintf(&analysis, "- **Completion Found:** %v\n", result.CompletionFound)
+	fmt.Fprintf(&analysis, "- **Tasks Analyzed:** %d\n", len(result.TaskResults))
+	fmt.Fprintf(&analysis, "- **Errors:** %d\n", len(result.ErrorMessages))
+	fmt.Fprintf(&analysis, "- **Warnings:** %d\n\n", len(result.Warnings))
 
 	analysis.WriteString("## Execution Metrics\n\n")
-	analysis.WriteString(fmt.Sprintf("- **Start Time:** %s\n", result.StartTime.Format("2006-01-02 15:04:05")))
-	analysis.WriteString(fmt.Sprintf("- **End Time:** %s\n", result.EndTime.Format("2006-01-02 15:04:05")))
-	analysis.WriteString(fmt.Sprintf("- **Duration:** %v\n", result.Duration.Round(time.Millisecond)))
-	analysis.WriteString(fmt.Sprintf("- **CPU Time:** %v (approximated)\n", result.CPUTime.Round(time.Millisecond)))
-	analysis.WriteString(fmt.Sprintf("- **Memory Usage:** %.2f MB\n\n", float64(result.MemoryUsage)/cryptoutilSharedMagic.BytesPerMB))
+	fmt.Fprintf(&analysis, "- **Start Time:** %s\n", result.StartTime.Format("2006-01-02 15:04:05"))
+	fmt.Fprintf(&analysis, "- **End Time:** %s\n", result.EndTime.Format("2006-01-02 15:04:05"))
+	fmt.Fprintf(&analysis, "- **Duration:** %v\n", result.Duration.Round(time.Millisecond))
+	fmt.Fprintf(&analysis, "- **CPU Time:** %v (approximated)\n", result.CPUTime.Round(time.Millisecond))
+	fmt.Fprintf(&analysis, "- **Memory Usage:** %.2f MB\n\n", float64(result.MemoryUsage)/cryptoutilSharedMagic.BytesPerMB)
 
 	if len(result.TaskResults) > 0 {
 		analysis.WriteString("## Task Results\n\n")
@@ -400,7 +400,7 @@ func createAnalysisFile(result WorkflowResult) {
 				artifacts = strings.Join(task.Artifacts, ", ")
 			}
 
-			analysis.WriteString(fmt.Sprintf("| %s | %s | %s |\n", task.Name, statusBadge(task.Status == cryptoutilSharedMagic.TaskSuccess), artifacts))
+			fmt.Fprintf(&analysis, "| %s | %s | %s |\n", task.Name, statusBadge(task.Status == cryptoutilSharedMagic.TaskSuccess), artifacts)
 		}
 
 		analysis.WriteString("\n")
@@ -411,12 +411,12 @@ func createAnalysisFile(result WorkflowResult) {
 
 		for i, err := range result.ErrorMessages {
 			if i >= cryptoutilSharedMagic.MaxErrorDisplay {
-				analysis.WriteString(fmt.Sprintf("... and %d more errors (see log file)\n\n", len(result.ErrorMessages)-cryptoutilSharedMagic.MaxErrorDisplay))
+				fmt.Fprintf(&analysis, "... and %d more errors (see log file)\n\n", len(result.ErrorMessages)-cryptoutilSharedMagic.MaxErrorDisplay)
 
 				break
 			}
 
-			analysis.WriteString(fmt.Sprintf("- `%s`\n", err))
+			fmt.Fprintf(&analysis, "- `%s`\n", err)
 		}
 
 		analysis.WriteString("\n")
@@ -427,19 +427,19 @@ func createAnalysisFile(result WorkflowResult) {
 
 		for i, warn := range result.Warnings {
 			if i >= cryptoutilSharedMagic.MaxWarningDisplay {
-				analysis.WriteString(fmt.Sprintf("... and %d more warnings (see log file)\n\n", len(result.Warnings)-cryptoutilSharedMagic.MaxWarningDisplay))
+				fmt.Fprintf(&analysis, "... and %d more warnings (see log file)\n\n", len(result.Warnings)-cryptoutilSharedMagic.MaxWarningDisplay)
 
 				break
 			}
 
-			analysis.WriteString(fmt.Sprintf("- `%s`\n", warn))
+			fmt.Fprintf(&analysis, "- `%s`\n", warn)
 		}
 
 		analysis.WriteString("\n")
 	}
 
 	analysis.WriteString("## Log Files\n\n")
-	analysis.WriteString(fmt.Sprintf("- **Workflow Log:** `%s`\n", result.LogFile))
+	fmt.Fprintf(&analysis, "- **Workflow Log:** `%s`\n", result.LogFile)
 
 	analysis.WriteString("\n## Recommendations\n\n")
 
@@ -451,7 +451,7 @@ func createAnalysisFile(result WorkflowResult) {
 		}
 
 		if len(result.ErrorMessages) > 0 {
-			analysis.WriteString(fmt.Sprintf("- ❌ %d error(s) detected - review log file for details\n", len(result.ErrorMessages)))
+			fmt.Fprintf(&analysis, "- ❌ %d error(s) detected - review log file for details\n", len(result.ErrorMessages))
 		}
 
 		analysis.WriteString("\n")
@@ -459,7 +459,7 @@ func createAnalysisFile(result WorkflowResult) {
 
 	if len(result.Warnings) > 0 {
 		analysis.WriteString("### Warnings to Address\n\n")
-		analysis.WriteString(fmt.Sprintf("- ⚠️ %d warning(s) detected - consider investigating\n\n", len(result.Warnings)))
+		fmt.Fprintf(&analysis, "- ⚠️ %d warning(s) detected - consider investigating\n\n", len(result.Warnings))
 	}
 
 	if result.Success && len(result.ErrorMessages) == 0 && len(result.Warnings) == 0 {

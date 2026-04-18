@@ -88,7 +88,7 @@ func FormatResults(results []ValidationResult) string {
 		}
 	}
 
-	sb.WriteString(fmt.Sprintf("Validated %d deployments: %d valid, %d with issues\n\n", len(results), validCount, len(results)-validCount))
+	fmt.Fprintf(&sb, "Validated %d deployments: %d valid, %d with issues\n\n", len(results), validCount, len(results)-validCount)
 
 	// Sort results: invalid first, then by path
 	sorted := make([]ValidationResult, len(results))
@@ -107,29 +107,29 @@ func FormatResults(results []ValidationResult) string {
 			status = "❌ INVALID"
 		}
 
-		sb.WriteString(fmt.Sprintf("%s %s (%s)\n", status, filepath.Base(r.Path), r.Type))
+		fmt.Fprintf(&sb, "%s %s (%s)\n", status, filepath.Base(r.Path), r.Type)
 
 		if len(r.MissingDirs) > 0 {
-			sb.WriteString(fmt.Sprintf("  Missing directories: %s\n", strings.Join(r.MissingDirs, ", ")))
+			fmt.Fprintf(&sb, "  Missing directories: %s\n", strings.Join(r.MissingDirs, ", "))
 		}
 
 		if len(r.MissingFiles) > 0 {
-			sb.WriteString(fmt.Sprintf("  Missing files: %s\n", strings.Join(r.MissingFiles, ", ")))
+			fmt.Fprintf(&sb, "  Missing files: %s\n", strings.Join(r.MissingFiles, ", "))
 		}
 
 		if len(r.MissingSecrets) > 0 {
-			sb.WriteString(fmt.Sprintf("  Missing secrets: %s\n", strings.Join(r.MissingSecrets, ", ")))
+			fmt.Fprintf(&sb, "  Missing secrets: %s\n", strings.Join(r.MissingSecrets, ", "))
 		}
 
 		if len(r.Errors) > 0 {
 			for _, err := range r.Errors {
-				sb.WriteString(fmt.Sprintf("  ERROR: %s\n", err))
+				fmt.Fprintf(&sb, "  ERROR: %s\n", err)
 			}
 		}
 
 		if len(r.Warnings) > 0 {
 			for _, warn := range r.Warnings {
-				sb.WriteString(fmt.Sprintf("  WARN: %s\n", warn))
+				fmt.Fprintf(&sb, "  WARN: %s\n", warn)
 			}
 		}
 	}

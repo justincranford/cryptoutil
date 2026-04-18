@@ -291,7 +291,7 @@ func formatSkillCommandDriftResults(result *SkillCommandDriftResult) string {
 	var sb strings.Builder
 
 	sb.WriteString("=== Skill Drift Check ===\n\n")
-	sb.WriteString(fmt.Sprintf("Checked %d Copilot skill / Claude Code skill pairs\n\n", result.Checked))
+	fmt.Fprintf(&sb, "Checked %d Copilot skill / Claude Code skill pairs\n\n", result.Checked)
 
 	if len(result.Violations) == 0 {
 		sb.WriteString("✅ All skill pairs are in sync\n")
@@ -299,20 +299,20 @@ func formatSkillCommandDriftResults(result *SkillCommandDriftResult) string {
 		return sb.String()
 	}
 
-	sb.WriteString(fmt.Sprintf("❌ %d violation(s) found:\n\n", len(result.Violations)))
+	fmt.Fprintf(&sb, "❌ %d violation(s) found:\n\n", len(result.Violations))
 
 	for i, v := range result.Violations {
-		sb.WriteString(fmt.Sprintf("[%d] field=%s\n", i+1, v.Field))
+		fmt.Fprintf(&sb, "[%d] field=%s\n", i+1, v.Field)
 
 		if v.SkillFile != "" {
-			sb.WriteString(fmt.Sprintf("    copilot-skill: %s\n", v.SkillFile))
+			fmt.Fprintf(&sb, "    copilot-skill: %s\n", v.SkillFile)
 		}
 
 		if v.ClaudeSkillFile != "" {
-			sb.WriteString(fmt.Sprintf("    claude-skill:  %s\n", v.ClaudeSkillFile))
+			fmt.Fprintf(&sb, "    claude-skill:  %s\n", v.ClaudeSkillFile)
 		}
 
-		sb.WriteString(fmt.Sprintf("    %s\n\n", v.Detail))
+		fmt.Fprintf(&sb, "    %s\n\n", v.Detail)
 	}
 
 	return sb.String()

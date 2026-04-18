@@ -150,7 +150,7 @@ func TestCheckCommonComplete_MissingKeys(t *testing.T) {
 	err := checkCommonCompleteInDir(logger, tmp)
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "missing required key")
-	assert.Contains(t, err.Error(), "tls-cert-file")
+	assert.Contains(t, err.Error(), "unseal-mode")
 }
 
 func TestCheckCommonComplete_InvalidYAML(t *testing.T) {

@@ -50,7 +50,7 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 	linters, formatters := linterAndFormatterCmds()
 	allCmds := append(linters, formatters...) //nolint:gocritic // intentional append to new slice
 
-	var violations []string
+	var violations []string //nolint:prealloc // dynamic appends across multiple checks
 
 	// 1. Validate .pre-commit-config.yaml covers all linters and formatters.
 	preCommitPath := filepath.Join(rootDir, ".pre-commit-config.yaml")

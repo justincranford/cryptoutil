@@ -155,30 +155,30 @@ func FormatMirrorResult(result *MirrorResult) string {
 	}
 
 	if len(result.Excluded) > 0 {
-		sb.WriteString(fmt.Sprintf("Excluded (%d):\n", len(result.Excluded)))
+		fmt.Fprintf(&sb, "Excluded (%d):\n", len(result.Excluded))
 
 		for _, e := range result.Excluded {
-			sb.WriteString(fmt.Sprintf("  - %s (infrastructure/template)\n", e))
+			fmt.Fprintf(&sb, "  - %s (infrastructure/template)\n", e)
 		}
 
 		sb.WriteString("\n")
 	}
 
 	if len(result.Errors) > 0 {
-		sb.WriteString(fmt.Sprintf("Errors (%d):\n", len(result.Errors)))
+		fmt.Fprintf(&sb, "Errors (%d):\n", len(result.Errors))
 
 		for _, e := range result.Errors {
-			sb.WriteString(fmt.Sprintf("  ✗ %s\n", e))
+			fmt.Fprintf(&sb, "  ✗ %s\n", e)
 		}
 
 		sb.WriteString("\n")
 	}
 
 	if len(result.Warnings) > 0 {
-		sb.WriteString(fmt.Sprintf("Warnings (%d):\n", len(result.Warnings)))
+		fmt.Fprintf(&sb, "Warnings (%d):\n", len(result.Warnings))
 
 		for _, w := range result.Warnings {
-			sb.WriteString(fmt.Sprintf("  ⚠ %s\n", w))
+			fmt.Fprintf(&sb, "  ⚠ %s\n", w)
 		}
 
 		sb.WriteString("\n")
@@ -189,8 +189,8 @@ func FormatMirrorResult(result *MirrorResult) string {
 		configsDir     = filepath.Clean(cryptoutilSharedMagic.CICDConfigsDir)
 	)
 
-	sb.WriteString(fmt.Sprintf("Summary: deployments=%s configs=%s valid=%t missing=%d orphans=%d excluded=%d\n",
-		deploymentsDir, configsDir, result.Valid, len(result.MissingMirrors), len(result.Orphans), len(result.Excluded)))
+	fmt.Fprintf(&sb, "Summary: deployments=%s configs=%s valid=%t missing=%d orphans=%d excluded=%d\n",
+		deploymentsDir, configsDir, result.Valid, len(result.MissingMirrors), len(result.Orphans), len(result.Excluded))
 
 	return sb.String()
 }

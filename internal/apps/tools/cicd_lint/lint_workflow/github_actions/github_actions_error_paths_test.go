@@ -19,7 +19,7 @@ func TestCheck_OutdatedActionsFound(t *testing.T) {
 	t.Parallel()
 
 	stubCheckVersionsFn := func(_ *cryptoutilCmdCicdCommon.Logger, details map[string]WorkflowActionDetails, _ *WorkflowActionExceptions) ([]WorkflowActionDetails, []WorkflowActionDetails, []string) {
-		var outdated []WorkflowActionDetails
+		var outdated []WorkflowActionDetails //nolint:prealloc // range map, size unknown
 
 		for _, d := range details {
 			d.LatestVersion = "v99.0.0"

@@ -221,17 +221,17 @@ func FormatTemplatePatternResult(result *TemplatePatternResult) string {
 	var sb strings.Builder
 
 	if result.Valid {
-		sb.WriteString(fmt.Sprintf("  PASS: Template pattern validation: %s\n", result.Path))
+		fmt.Fprintf(&sb, "  PASS: Template pattern validation: %s\n", result.Path)
 	} else {
-		sb.WriteString(fmt.Sprintf("  FAIL: Template pattern validation: %s\n", result.Path))
+		fmt.Fprintf(&sb, "  FAIL: Template pattern validation: %s\n", result.Path)
 	}
 
 	for _, e := range result.Errors {
-		sb.WriteString(fmt.Sprintf("    ERROR: %s\n", e))
+		fmt.Fprintf(&sb, "    ERROR: %s\n", e)
 	}
 
 	for _, w := range result.Warnings {
-		sb.WriteString(fmt.Sprintf("    WARN: %s\n", w))
+		fmt.Fprintf(&sb, "    WARN: %s\n", w)
 	}
 
 	return sb.String()

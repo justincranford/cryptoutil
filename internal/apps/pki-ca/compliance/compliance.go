@@ -221,7 +221,7 @@ func (c *Checker) CheckCertificate(_ context.Context, cert *x509.Certificate) ([
 
 // checkCABFBaseline checks CA/Browser Forum Baseline Requirements.
 func (c *Checker) checkCABFBaseline(cert *x509.Certificate) []Requirement {
-	requirements := make([]Requirement, 0)
+	requirements := make([]Requirement, 0) //nolint:prealloc // size varies by cert content
 
 	// BR Section 7.1.2.1 - Subject
 	requirements = append(requirements, c.checkSubject(cert))

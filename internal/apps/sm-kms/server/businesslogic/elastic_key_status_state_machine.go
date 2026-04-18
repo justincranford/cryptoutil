@@ -29,6 +29,7 @@ var validTransitions = func() map[cryptoutilKmsServer.ElasticKeyStatus]map[crypt
 		cryptoutilKmsServer.ElasticKeyStatus(cryptoutilOpenapiModel.StartedDelete):                  {cryptoutilKmsServer.ElasticKeyStatus(cryptoutilOpenapiModel.FinishedDelete)},
 		cryptoutilKmsServer.ElasticKeyStatus(cryptoutilOpenapiModel.FinishedDelete):                 {},
 	}
+
 	convertedTransitions := make(map[cryptoutilKmsServer.ElasticKeyStatus]map[cryptoutilKmsServer.ElasticKeyStatus]bool)
 	for current, nextStates := range transitions {
 		convertedTransitions[current] = make(map[cryptoutilKmsServer.ElasticKeyStatus]bool)

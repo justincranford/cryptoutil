@@ -48,15 +48,18 @@ var (
 				if workers > size {
 					continue
 				}
+
 				for _, maxLifetimeValues := range happyPathMaxLifetimeValues {
 					if uint64(size) > maxLifetimeValues {
 						continue
 					}
+
 					for _, maxLifetimeDuration := range happyPathMaxLifetimeDuration {
 						for _, gets := range happyPathGets {
 							if gets > maxLifetimeValues {
 								continue
 							}
+
 							name := fmt.Sprintf("workers[%d] size[%d] maxLifetimeValues[%d] maxLifetimeDuration[%v] gets[%d]", workers, size, maxLifetimeValues, maxLifetimeDuration, gets)
 							testCases = append(testCases, &TestCase{name: name, workers: workers, size: size, maxLifetimeValues: maxLifetimeValues, maxLifetimeDuration: maxLifetimeDuration, gets: gets})
 						}

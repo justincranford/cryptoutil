@@ -307,45 +307,45 @@ func FormatChunkResults(result *ChunkValidationResult) string {
 	}
 
 	if len(fileErrors) > 0 {
-		sb.WriteString(fmt.Sprintf("FILE NOT FOUND (%d):\n", len(fileErrors)))
+		fmt.Fprintf(&sb, "FILE NOT FOUND (%d):\n", len(fileErrors))
 
 		sort.Slice(fileErrors, func(i, j int) bool { return fileErrors[i].ChunkID < fileErrors[j].ChunkID })
 
 		for _, cr := range fileErrors {
-			sb.WriteString(fmt.Sprintf("  FAIL [%s] target=%s (line %d)\n", cr.ChunkID, cr.PropagateBlock.TargetFile, cr.PropagateBlock.LineNumber))
+			fmt.Fprintf(&sb, "  FAIL [%s] target=%s (line %d)\n", cr.ChunkID, cr.PropagateBlock.TargetFile, cr.PropagateBlock.LineNumber)
 		}
 
 		sb.WriteString("\n")
 	}
 
 	if len(missing) > 0 {
-		sb.WriteString(fmt.Sprintf("MISSING @source BLOCKS (%d):\n", len(missing)))
+		fmt.Fprintf(&sb, "MISSING @source BLOCKS (%d):\n", len(missing))
 
 		sort.Slice(missing, func(i, j int) bool { return missing[i].ChunkID < missing[j].ChunkID })
 
 		for _, cr := range missing {
-			sb.WriteString(fmt.Sprintf("  FAIL [%s] not found in %s (propagate at line %d)\n", cr.ChunkID, cr.PropagateBlock.TargetFile, cr.PropagateBlock.LineNumber))
+			fmt.Fprintf(&sb, "  FAIL [%s] not found in %s (propagate at line %d)\n", cr.ChunkID, cr.PropagateBlock.TargetFile, cr.PropagateBlock.LineNumber)
 		}
 
 		sb.WriteString("\n")
 	}
 
 	if len(mismatches) > 0 {
-		sb.WriteString(fmt.Sprintf("CONTENT MISMATCHES (%d):\n", len(mismatches)))
+		fmt.Fprintf(&sb, "CONTENT MISMATCHES (%d):\n", len(mismatches))
 
 		sort.Slice(mismatches, func(i, j int) bool { return mismatches[i].ChunkID < mismatches[j].ChunkID })
 
 		for _, cr := range mismatches {
-			sb.WriteString(fmt.Sprintf("  STALE [%s] in %s (propagate line %d, source line %d)\n",
-				cr.ChunkID, cr.PropagateBlock.TargetFile, cr.PropagateBlock.LineNumber, cr.SourceBlock.LineNumber))
+			fmt.Fprintf(&sb, "  STALE [%s] in %s (propagate line %d, source line %d)\n",
+				cr.ChunkID, cr.PropagateBlock.TargetFile, cr.PropagateBlock.LineNumber, cr.SourceBlock.LineNumber)
 		}
 
 		sb.WriteString("\n")
 	}
 
 	total := len(result.Results)
-	sb.WriteString(fmt.Sprintf("=== Summary: %d chunks, %d matched, %d mismatched, %d missing, %d file errors ===\n",
-		total, result.Matched, result.Mismatched, result.Missing, result.FileErrors))
+	fmt.Fprintf(&sb, "=== Summary: %d chunks, %d matched, %d mismatched, %d missing, %d file errors ===\n",
+		total, result.Matched, result.Mismatched, result.Missing, result.FileErrors)
 
 	if result.Mismatched == 0 && result.Missing == 0 && result.FileErrors == 0 {
 		sb.WriteString("All propagated chunks are in sync.\n")

@@ -52,7 +52,8 @@ func tplRelPath() string {
 }
 
 func domainRelPath(parts ...string) string {
-	elems := []string{"internal", "apps"}
+	elems := make([]string, 0, 2+len(parts)+2)
+	elems = append(elems, "internal", "apps")
 	elems = append(elems, parts...)
 	elems = append(elems, "repository", "migrations")
 

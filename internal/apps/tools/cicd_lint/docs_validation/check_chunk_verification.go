@@ -153,21 +153,21 @@ func FormatVerificationResults(results []ChunkVerificationResult, allPassed bool
 		case r.Error != nil:
 			failCount++
 
-			sb.WriteString(fmt.Sprintf("FAIL [%s] %s\n", r.Mapping.ArchSection, r.Mapping.Description))
-			sb.WriteString(fmt.Sprintf("     Error: %s\n", r.Error))
+			fmt.Fprintf(&sb, "FAIL [%s] %s\n", r.Mapping.ArchSection, r.Mapping.Description)
+			fmt.Fprintf(&sb, "     Error: %s\n", r.Error)
 		case !r.Found:
 			failCount++
 
-			sb.WriteString(fmt.Sprintf("FAIL [%s] %s\n", r.Mapping.ArchSection, r.Mapping.Description))
-			sb.WriteString(fmt.Sprintf("     Missing marker %q in %s\n", r.Mapping.MarkerText, r.Mapping.DestFile))
+			fmt.Fprintf(&sb, "FAIL [%s] %s\n", r.Mapping.ArchSection, r.Mapping.Description)
+			fmt.Fprintf(&sb, "     Missing marker %q in %s\n", r.Mapping.MarkerText, r.Mapping.DestFile)
 		default:
 			passCount++
 
-			sb.WriteString(fmt.Sprintf("PASS [%s] %s\n", r.Mapping.ArchSection, r.Mapping.Description))
+			fmt.Fprintf(&sb, "PASS [%s] %s\n", r.Mapping.ArchSection, r.Mapping.Description)
 		}
 	}
 
-	sb.WriteString(fmt.Sprintf("\n=== Summary: %d PASS, %d FAIL ===\n", passCount, failCount))
+	fmt.Fprintf(&sb, "\n=== Summary: %d PASS, %d FAIL ===\n", passCount, failCount)
 
 	if allPassed {
 		sb.WriteString("All chunks verified successfully.\n")

@@ -249,7 +249,7 @@ func formatAgentDriftResults(result *AgentDriftResult) string {
 	var sb strings.Builder
 
 	sb.WriteString("=== Agent Drift Check ===\n\n")
-	sb.WriteString(fmt.Sprintf("Checked %d Copilot/Claude Code agent pairs\n\n", result.Checked))
+	fmt.Fprintf(&sb, "Checked %d Copilot/Claude Code agent pairs\n\n", result.Checked)
 
 	if len(result.Violations) == 0 {
 		sb.WriteString("✅ All agent pairs are in sync\n")
@@ -257,20 +257,20 @@ func formatAgentDriftResults(result *AgentDriftResult) string {
 		return sb.String()
 	}
 
-	sb.WriteString(fmt.Sprintf("❌ %d violation(s) found:\n\n", len(result.Violations)))
+	fmt.Fprintf(&sb, "❌ %d violation(s) found:\n\n", len(result.Violations))
 
 	for i, v := range result.Violations {
-		sb.WriteString(fmt.Sprintf("[%d] field=%s\n", i+1, v.Field))
+		fmt.Fprintf(&sb, "[%d] field=%s\n", i+1, v.Field)
 
 		if v.CopilotFile != "" {
-			sb.WriteString(fmt.Sprintf("    copilot: %s\n", v.CopilotFile))
+			fmt.Fprintf(&sb, "    copilot: %s\n", v.CopilotFile)
 		}
 
 		if v.ClaudeFile != "" {
-			sb.WriteString(fmt.Sprintf("    claude:  %s\n", v.ClaudeFile))
+			fmt.Fprintf(&sb, "    claude:  %s\n", v.ClaudeFile)
 		}
 
-		sb.WriteString(fmt.Sprintf("    %s\n\n", v.Detail))
+		fmt.Fprintf(&sb, "    %s\n\n", v.Detail)
 	}
 
 	return sb.String()

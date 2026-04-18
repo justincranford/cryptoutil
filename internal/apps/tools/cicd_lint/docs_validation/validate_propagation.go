@@ -375,10 +375,10 @@ func FormatPropagationResults(result *PropagationResult) string {
 
 	// Broken refs.
 	if len(result.BrokenRefs) > 0 {
-		sb.WriteString(fmt.Sprintf("BROKEN REFERENCES (%d):\n", len(result.BrokenRefs)))
+		fmt.Fprintf(&sb, "BROKEN REFERENCES (%d):\n", len(result.BrokenRefs))
 
 		for _, ref := range result.BrokenRefs {
-			sb.WriteString(fmt.Sprintf("  FAIL %s:%d -> #%s\n", ref.SourceFile, ref.LineNumber, ref.Anchor))
+			fmt.Fprintf(&sb, "  FAIL %s:%d -> #%s\n", ref.SourceFile, ref.LineNumber, ref.Anchor)
 		}
 
 		sb.WriteString("\n")
@@ -386,10 +386,10 @@ func FormatPropagationResults(result *PropagationResult) string {
 
 	// Orphaned sections.
 	if len(result.OrphanedKeys) > 0 {
-		sb.WriteString(fmt.Sprintf("ORPHANED SECTIONS (%d of %d, ## and ### level):\n", len(result.OrphanedKeys), result.TotalAnchors))
+		fmt.Fprintf(&sb, "ORPHANED SECTIONS (%d of %d, ## and ### level):\n", len(result.OrphanedKeys), result.TotalAnchors)
 
 		for _, anchor := range result.OrphanedKeys {
-			sb.WriteString(fmt.Sprintf("  WARN #%s\n", anchor))
+			fmt.Fprintf(&sb, "  WARN #%s\n", anchor)
 		}
 
 		sb.WriteString("\n")
@@ -397,10 +397,10 @@ func FormatPropagationResults(result *PropagationResult) string {
 
 	// Display text accuracy warnings.
 	if len(result.DisplayTextWarnings) > 0 {
-		sb.WriteString(fmt.Sprintf("DISPLAY TEXT MISMATCHES (%d):\n", len(result.DisplayTextWarnings)))
+		fmt.Fprintf(&sb, "DISPLAY TEXT MISMATCHES (%d):\n", len(result.DisplayTextWarnings))
 
 		for _, w := range result.DisplayTextWarnings {
-			sb.WriteString(fmt.Sprintf("  WARN %s:%d -> #%s (display: %s, heading: %s)\n", w.SourceFile, w.LineNumber, w.Anchor, w.DisplayNumber, w.HeadingNumber))
+			fmt.Fprintf(&sb, "  WARN %s:%d -> #%s (display: %s, heading: %s)\n", w.SourceFile, w.LineNumber, w.Anchor, w.DisplayNumber, w.HeadingNumber)
 		}
 
 		sb.WriteString("\n")
@@ -423,7 +423,7 @@ func FormatPropagationResults(result *PropagationResult) string {
 	sb.WriteString(formatLevelCoverage("  Combined ##/###", LevelCoverage{Total: combinedTotal, Referenced: combinedReferenced}))
 	sb.WriteString("\n")
 
-	sb.WriteString(fmt.Sprintf("=== Summary: %d valid refs, %d broken refs, %d orphaned sections ===\n", referencedCount, brokenCount, orphanedCount))
+	fmt.Fprintf(&sb, "=== Summary: %d valid refs, %d broken refs, %d orphaned sections ===\n", referencedCount, brokenCount, orphanedCount)
 
 	if brokenCount == 0 {
 		sb.WriteString("All references resolve to valid ENG-HANDBOOK.md sections.\n")

@@ -64,7 +64,7 @@ func newAuthTestServer(t *testing.T, protectedPaths []string) *httptest.Server {
 func TestRunAuthContracts(t *testing.T) {
 	t.Parallel()
 
-	servicePaths := []string{"/service/api/v1/protected"}
+	servicePaths := []string{"/service/api/v1/protected"} //nolint:prealloc // browserPaths not yet defined
 	browserPaths := []string{"/browser/api/v1/protected"}
 	allPaths := append(servicePaths, browserPaths...)
 
@@ -95,7 +95,7 @@ func TestRunAuthContracts_EmptyPaths(t *testing.T) {
 func TestRunAuthContracts_MultiplePaths(t *testing.T) {
 	t.Parallel()
 
-	servicePaths := []string{"/service/api/v1/messages/rx", "/service/api/v1/keys"}
+	servicePaths := []string{"/service/api/v1/messages/rx", "/service/api/v1/keys"} //nolint:prealloc // browserPaths not yet defined
 	browserPaths := []string{"/browser/api/v1/messages/rx", "/browser/api/v1/keys"}
 	allPaths := append(servicePaths, browserPaths...)
 

@@ -175,11 +175,11 @@ func FormatAdminValidationResult(result *AdminValidationResult) string {
 	}
 
 	for _, e := range result.Errors {
-		sb.WriteString(fmt.Sprintf("  ERROR: %s\n", e))
+		fmt.Fprintf(&sb, "  ERROR: %s\n", e)
 	}
 
 	for _, w := range result.Warnings {
-		sb.WriteString(fmt.Sprintf("  WARNING: %s\n", w))
+		fmt.Fprintf(&sb, "  WARNING: %s\n", w)
 	}
 
 	return sb.String()

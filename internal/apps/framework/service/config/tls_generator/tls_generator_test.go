@@ -217,7 +217,7 @@ func TestGenerateTLSMaterialStatic_HappyPath(t *testing.T) {
 	require.NoError(t, err)
 
 	// Serialize certificate chain to PEM.
-	var certPEM []byte
+	var certPEM []byte //nolint:prealloc // dynamic append, size unknown
 
 	for _, cert := range serverSubject.KeyMaterial.CertificateChain {
 		certPEM = append(certPEM, pem.EncodeToMemory(&pem.Block{

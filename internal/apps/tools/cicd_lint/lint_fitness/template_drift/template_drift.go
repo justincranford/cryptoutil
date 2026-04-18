@@ -337,7 +337,7 @@ func buildProductIncludeList(psIDs []string) string {
 	sb.WriteString("include:\n")
 
 	for _, psID := range psIDs {
-		sb.WriteString(fmt.Sprintf("  - path: ../%s/compose.yml\n", psID))
+		fmt.Fprintf(&sb, "  - path: ../%s/compose.yml\n", psID)
 	}
 
 	return strings.TrimRight(sb.String(), "\n")
@@ -368,9 +368,9 @@ func buildProductServiceOverrides(productID string, psIDs []string) string {
 
 		for _, v := range variants {
 			port := productPort + v.offset
-			sb.WriteString(fmt.Sprintf("  %s-app-%s:\n", psID, v.suffix))
+			fmt.Fprintf(&sb, "  %s-app-%s:\n", psID, v.suffix)
 			sb.WriteString("    ports: !override\n")
-			sb.WriteString(fmt.Sprintf("      - \"%d:%d\"\n", port, cryptoutilSharedMagic.DockerContainerPublicHTTPSPort))
+			fmt.Fprintf(&sb, "      - \"%d:%d\"\n", port, cryptoutilSharedMagic.DockerContainerPublicHTTPSPort)
 			sb.WriteString("\n")
 		}
 	}
@@ -385,7 +385,7 @@ func buildSuiteIncludeList(products []cryptoutilRegistry.Product) string {
 	sb.WriteString("include:\n")
 
 	for _, p := range products {
-		sb.WriteString(fmt.Sprintf("  - path: ../%s/compose.yml\n", p.ID))
+		fmt.Fprintf(&sb, "  - path: ../%s/compose.yml\n", p.ID)
 	}
 
 	return strings.TrimRight(sb.String(), "\n")
@@ -412,24 +412,22 @@ func buildSuiteServiceOverrides() string {
 			basePort := cryptoutilRegistry.PublicPort(ps.PSID)
 			endPort := basePort + cryptoutilRegistry.ComposeVariantOffsetPostgres2
 
-			sb.WriteString(fmt.Sprintf("  # %s: PS-PUBLIC %d-%d -> SUITE %d-%d\n",
+			fmt.Fprintf(&sb, "  # %s: PS-PUBLIC %d-%d -> SUITE %d-%d\n",
 				strings.ToUpper(ps.PSID),
 				basePort, endPort,
 				basePort+cryptoutilRegistry.PortTierOffsetSuite,
-				endPort+cryptoutilRegistry.PortTierOffsetSuite,
-			))
+				endPort+cryptoutilRegistry.PortTierOffsetSuite)
 
 			currentProduct = product
 		} else {
 			basePort := cryptoutilRegistry.PublicPort(ps.PSID)
 			endPort := basePort + cryptoutilRegistry.ComposeVariantOffsetPostgres2
 
-			sb.WriteString(fmt.Sprintf("\n  # %s: PS-PUBLIC %d-%d -> SUITE %d-%d\n",
+			fmt.Fprintf(&sb, "\n  # %s: PS-PUBLIC %d-%d -> SUITE %d-%d\n",
 				strings.ToUpper(ps.PSID),
 				basePort, endPort,
 				basePort+cryptoutilRegistry.PortTierOffsetSuite,
-				endPort+cryptoutilRegistry.PortTierOffsetSuite,
-			))
+				endPort+cryptoutilRegistry.PortTierOffsetSuite)
 		}
 
 		basePort := cryptoutilRegistry.PublicPort(ps.PSID)
@@ -447,7 +445,7 @@ func buildSuiteServiceOverrides() string {
 
 		for _, v := range variants {
 			port := suitePort + v.offset
-			sb.WriteString(fmt.Sprintf("  %s-app-%s: {ports: !override [\"%d:%d\"]}\n", ps.PSID, v.suffix, port, cryptoutilSharedMagic.DockerContainerPublicHTTPSPort))
+			fmt.Fprintf(&sb, "  %s-app-%s: {ports: !override [\"%d:%d\"]}\n", ps.PSID, v.suffix, port, cryptoutilSharedMagic.DockerContainerPublicHTTPSPort)
 		}
 	}
 
