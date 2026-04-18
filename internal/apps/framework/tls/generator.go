@@ -8,6 +8,7 @@ import (
 	"context"
 	"crypto/elliptic"
 	"crypto/x509"
+	"errors"
 	"fmt"
 	"net"
 	"os"
@@ -99,6 +100,10 @@ func (g *Generator) Generate(tierID, targetDir string) error {
 	basePath := filepath.Join(targetDir, tierID)
 
 	if err := g.validateTargetDir(basePath); err != nil {
+		if errors.Is(err, errTargetDirExists) {
+			return nil // certs already generated; nothing to do
+		}
+
 		return fmt.Errorf("failed to validate target directory %q: %w", basePath, err)
 	}
 

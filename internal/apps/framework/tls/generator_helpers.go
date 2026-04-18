@@ -6,6 +6,7 @@ package tls
 
 import (
 	"crypto/x509"
+	"errors"
 	"fmt"
 	"net"
 	"os"
@@ -16,7 +17,13 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
+// errTargetDirExists is returned by validateTargetDir when the target directory
+// is non-empty, signalling that cert generation was already completed.
+var errTargetDirExists = errors.New("target directory already exists")
+
 // validateTargetDir ensures the base path is non-existent or an empty directory.
+// Returns errTargetDirExists when the directory already contains files, allowing
+// callers to skip generation rather than treating it as a hard error.
 // It uses os.Stat first to distinguish "not found" from "exists but is a file".
 func (g *Generator) validateTargetDir(basePath string) error {
 	fi, err := os.Stat(basePath)
@@ -38,7 +45,7 @@ func (g *Generator) validateTargetDir(basePath string) error {
 	}
 
 	if len(entries) > 0 {
-		return fmt.Errorf("target directory %q is not empty", basePath)
+		return errTargetDirExists
 	}
 
 	return nil
