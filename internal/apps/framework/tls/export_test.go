@@ -94,3 +94,8 @@ func ExportedReadRealmsForPSID(registryPath, psID string) ([]string, error) {
 func ExportedDefaultRealms() []string {
 	return defaultRealms()
 }
+
+// ExportedWriteTLSConfigYAML wraps writeTLSConfigYAML for direct testing.
+func (g *Generator) ExportedWriteTLSConfigYAML(targetDir string, issuingCA *cryptoutilSharedCryptoCertificate.Subject) error {
+	return g.writeTLSConfigYAML(targetDir, issuingCA)
+}

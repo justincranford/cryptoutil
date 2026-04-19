@@ -107,6 +107,10 @@ func (g *Generator) Generate(tierID, targetDir string) error {
 		return fmt.Errorf("failed to generate shared CAs: %w", err)
 	}
 
+	if err := g.writeTLSConfigYAML(targetDir, shared.globalServerIssuing); err != nil {
+		return fmt.Errorf("failed to write tls-config.yml: %w", err)
+	}
+
 	errCh := make(chan error, len(psIDs))
 
 	var wg sync.WaitGroup

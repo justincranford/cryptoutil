@@ -6,6 +6,7 @@ package tls
 
 import (
 	"crypto/x509"
+	"encoding/base64"
 	"fmt"
 	"net"
 	"os"
@@ -219,6 +220,41 @@ func (g *Generator) writeTruststore(basePath, dirName string, subject *cryptouti
 
 	if err := g.writeFileFn(filepath.Join(dir, dirName+".crt"), certPEM, cryptoutilSharedMagic.PKIInitPublicCertFileMode); err != nil {
 		return fmt.Errorf("write .crt %s: %w", dirName, err)
+	}
+
+	return nil
+}
+
+// writeTLSConfigYAML writes targetDir/tls-config.yml configuring the service
+// framework to use TLSModeMixed with the provided issuing CA. Every app instance
+// that loads this file will obtain a dynamically generated server certificate
+// signed by the pki-init CA, giving real CA-verifiable TLS without per-instance
+// static cert files.
+//
+// File mode is PKIInitPrivateKeyFileMode (0o440) because the CA private key is
+// embedded — it must not be world-readable.
+func (g *Generator) writeTLSConfigYAML(targetDir string, issuingCA *cryptoutilSharedCryptoCertificate.Subject) error {
+	certPEM, err := cryptoutilSharedCryptoAsn1.PEMEncodeCertChain(issuingCA.KeyMaterial.CertificateChain)
+	if err != nil {
+		return fmt.Errorf("pem encode issuing CA cert chain: %w", err)
+	}
+
+	keyPEM, err := cryptoutilSharedCryptoAsn1.PEMEncode(issuingCA.KeyMaterial.PrivateKey)
+	if err != nil {
+		return fmt.Errorf("pem encode issuing CA key: %w", err)
+	}
+
+	certBase64 := base64.StdEncoding.EncodeToString(certPEM)
+	keyBase64 := base64.StdEncoding.EncodeToString(keyPEM)
+
+	content := "tls-public-mode: mixed\n" +
+		"tls-mixed-ca-cert-pem: " + certBase64 + "\n" +
+		"tls-mixed-ca-key-pem: " + keyBase64 + "\n"
+
+	path := filepath.Join(targetDir, "tls-config.yml")
+
+	if err := g.writeFileFn(path, []byte(content), cryptoutilSharedMagic.PKIInitPrivateKeyFileMode); err != nil {
+		return fmt.Errorf("write tls-config.yml: %w", err)
 	}
 
 	return nil
