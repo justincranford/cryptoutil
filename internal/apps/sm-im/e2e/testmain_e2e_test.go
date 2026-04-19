@@ -20,8 +20,9 @@ import (
 
 // Shared test resources (initialized once per package).
 var (
-	sharedHTTPClient *http.Client
-	composeManager   *cryptoutilAppsFrameworkTestingE2eInfra.ComposeManager
+	sharedHTTPClient       *http.Client // InsecureSkipVerify — used for health checks / compose readiness.
+	sharedHTTPClientWithCA *http.Client // CA-validated — used for TLS chain verification tests.
+	composeManager         *cryptoutilAppsFrameworkTestingE2eInfra.ComposeManager
 
 	// Three sm-im instances with different backends (actual container names).
 	sqliteContainer    = cryptoutilSharedMagic.IME2ESQLiteContainer      // "sm-im-app-sqlite-1"
@@ -74,12 +75,15 @@ func TestMain(m *testing.M) {
 		os.Exit(1)
 	}
 
+	// Step 3: Build CA-validated client AFTER pki-init has run and generated certs.
+	sharedHTTPClientWithCA = cryptoutilSharedCryptoTls.NewClientForTestWithCA(cryptoutilSharedMagic.IME2EPublicCACertPath)
+
 	fmt.Println("All services healthy. Running tests...")
 
-	// Step 3: Run tests.
+	// Step 4: Run tests.
 	exitCode := m.Run()
 
-	// Step 4: Cleanup docker compose stack.
+	// Step 5: Cleanup docker compose stack.
 	_ = composeManager.Stop(ctx)
 
 	os.Exit(exitCode)

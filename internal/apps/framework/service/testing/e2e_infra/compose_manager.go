@@ -94,6 +94,14 @@ func (cm *ComposeManager) buildComposeArgs(subcommand ...string) []string {
 	return args
 }
 
+// BuildDockerExecArgs builds the docker exec arguments to run a command inside a container.
+// Returns arguments suitable for passing to exec.Command("docker", args...).
+func (cm *ComposeManager) BuildDockerExecArgs(service string, command ...string) []string {
+	execArgs := cm.buildComposeArgs(append([]string{"exec", service}, command...)...)
+
+	return execArgs
+}
+
 // WaitForHealth polls an health endpoint until healthy or timeout.
 // Supports both admin endpoints (/admin/api/v1/livez) and public endpoints (/health).
 func (cm *ComposeManager) WaitForHealth(healthURL string, timeout time.Duration) error {
