@@ -33,7 +33,7 @@
 
 1. **`setup-logical-replication.sh` used `-h localhost` (TCP) during initdb**: PostgreSQL's Docker init scripts run with `-c listen_addresses=''` (Unix socket only). TCP refused. All 16 `psql -h localhost` failed with `exit code 2`.
 2. **OTel collector healthcheck used `wget`**: `otel/opentelemetry-collector-contrib` is a distroless image — no shell, no wget. Container's own healthcheck failed permanently.
-3. **`pki-init` did NOT generate `tls-config.yml`**: Generator produced 66 cert directories but no YAML config file. The compose `--config=/certs/tls-config.yml` flag was silently skipped (framework's `config_parse.go` uses `os.Stat` before reading — missing files are silently skipped). Result: public TLS used `TLSModeAuto` (auto-generated self-signed certs, CN="Auto-Generated Server Certificate").
+3. **`pki-init` did NOT generate `tls-config.yml`**: Generator produced 66 cert directories but no YAML config file. The compose `--config=/certs/tls-config.yml` flag was silently skipped (framework's `config_parse.go` uses `os.Stat` before reading — missing files are silently skipped). Result: public TLS used `TLSModeAuto` (auto-generated self-signed certs, CN="Auto-Generated Server Certificate"). But wait, the deployments templates and compose.yml are supposed to configured to use the framework's static certs option.
 
 ### Root Causes
 
