@@ -92,7 +92,7 @@ type MagicInventory struct {
 func ParseMagicDir(magicDir string) (*MagicInventory, error) {
 	fset := token.NewFileSet()
 
-	pkgs, err := parser.ParseDir(fset, magicDir, func(fi os.FileInfo) bool {
+	pkgs, err := parser.ParseDir(fset, magicDir, func(fi os.FileInfo) bool { //nolint:staticcheck // parser.ParseDir deprecated since Go 1.25; golang.org/x/tools/go/packages alternative requires larger refactor
 		return !strings.HasSuffix(fi.Name(), "_test.go")
 	}, 0)
 	if err != nil {

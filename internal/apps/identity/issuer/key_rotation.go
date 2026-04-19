@@ -426,13 +426,27 @@ func convertToJWK(key *SigningKey) map[string]any {
 	case *ecdsa.PrivateKey:
 		jwk["kty"] = cryptoutilSharedMagic.KeyTypeEC
 		jwk["crv"] = ecdsaCurveName(k.Curve)
-		jwk["x"] = base64URLEncode(k.X.Bytes())
-		jwk["y"] = base64URLEncode(k.Y.Bytes())
+		// k.PublicKey.Bytes() returns 04 || X || Y (uncompressed, zero-padded per RFC 7518 §6.2.1.2)
+		pubBytes, pubErr := k.PublicKey.Bytes()
+		if pubErr != nil {
+			return nil
+		}
+
+		coordLen := (len(pubBytes) - 1) / 2
+		jwk["x"] = base64URLEncode(pubBytes[1 : 1+coordLen])
+		jwk["y"] = base64URLEncode(pubBytes[1+coordLen:])
 	case *ecdsa.PublicKey:
 		jwk["kty"] = cryptoutilSharedMagic.KeyTypeEC
 		jwk["crv"] = ecdsaCurveName(k.Curve)
-		jwk["x"] = base64URLEncode(k.X.Bytes())
-		jwk["y"] = base64URLEncode(k.Y.Bytes())
+		// k.Bytes() returns 04 || X || Y (uncompressed, zero-padded per RFC 7518 §6.2.1.2)
+		pubBytes, pubErr := k.Bytes()
+		if pubErr != nil {
+			return nil
+		}
+
+		coordLen := (len(pubBytes) - 1) / 2
+		jwk["x"] = base64URLEncode(pubBytes[1 : 1+coordLen])
+		jwk["y"] = base64URLEncode(pubBytes[1+coordLen:])
 	case []byte:
 		// HMAC keys - don't expose in JWKS (symmetric)
 		return nil

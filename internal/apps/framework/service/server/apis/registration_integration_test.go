@@ -314,7 +314,7 @@ func TestIntegration_RegisterUser_CreateTenant(t *testing.T) {
 		TenantName:   tenantName,
 		CreateTenant: true,
 	}
-	bodyBytes, _ := json.Marshal(reqBody)
+	bodyBytes, _ := json.Marshal(reqBody) //nolint:gosec // G117: test fixture marshaling registration request; password is a test placeholder
 
 	req := httptest.NewRequest(http.MethodPost, "/browser/api/v1/auth/register", bytes.NewReader(bodyBytes))
 	req.Header.Set("Content-Type", "application/json")
@@ -368,7 +368,7 @@ func TestIntegration_RegisterUser_JoinExistingTenant(t *testing.T) {
 		CreateTenant: false,
 		TenantName:   tenant.Name,
 	}
-	bodyBytes, _ := json.Marshal(reqBody)
+	bodyBytes, _ := json.Marshal(reqBody) //nolint:gosec // G117: test fixture marshaling registration request; password is a test placeholder
 
 	req := httptest.NewRequest(http.MethodPost, "/browser/api/v1/auth/register", bytes.NewReader(bodyBytes))
 	req.Header.Set("Content-Type", "application/json")
@@ -436,7 +436,7 @@ func TestIntegration_RateLimiting_ExceedsLimit(t *testing.T) {
 			TenantName:   fmt.Sprintf("tenant_%d", i),
 			CreateTenant: true,
 		}
-		bodyBytes, _ := json.Marshal(reqBody)
+		bodyBytes, _ := json.Marshal(reqBody) //nolint:gosec // G117: test fixture marshaling registration request; password is a test placeholder
 
 		req := httptest.NewRequest(http.MethodPost, "/browser/api/v1/auth/register", bytes.NewReader(bodyBytes))
 		req.Header.Set("Content-Type", "application/json")

@@ -111,8 +111,8 @@ func (i *JWEIssuer) EncryptToken(_ context.Context, plaintext string) (string, e
 		keyIDBytes := []byte(keyID)
 		keyIDLen := len(keyIDBytes)
 		result := make([]byte, 2+keyIDLen+len(ciphertext))
-		result[0] = byte(keyIDLen >> cryptoutilSharedMagic.ByteShift)
-		result[1] = byte(keyIDLen)
+		result[0] = byte(keyIDLen >> cryptoutilSharedMagic.ByteShift) //nolint:gosec // G115: 2-byte big-endian length prefix; key ID length bounded by construction
+		result[1] = byte(keyIDLen)                                    //nolint:gosec // G115: low byte of 2-byte big-endian length; key ID max 65535 bytes
 		copy(result[2:], keyIDBytes)
 		copy(result[2+keyIDLen:], ciphertext)
 		ciphertext = result

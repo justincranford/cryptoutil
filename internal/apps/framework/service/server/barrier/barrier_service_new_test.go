@@ -35,7 +35,7 @@ func TestService_ConcurrentEncryption(t *testing.T) {
 
 	for i := 0; i < numGoroutines; i++ {
 		go func(id int) {
-			plaintext := []byte("concurrent test data " + string(rune(id)))
+			plaintext := []byte("concurrent test data " + string(rune(id))) //nolint:gosec // G115: id is 0-9 (numGoroutines=10); rune conversion safe
 
 			ciphertext, err := testService.EncryptContentWithContext(ctx, plaintext)
 			if err != nil {

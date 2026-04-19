@@ -45,7 +45,7 @@ func TestHandleRegisterUser_ValidationError(t *testing.T) {
 		Password:   strings.Repeat("p", cryptoutilSharedMagic.IMMinPasswordLength),
 		TenantName: strings.Repeat("t", cryptoutilSharedMagic.IMMinUsernameLength),
 	}
-	bodyBytes, err := json.Marshal(body)
+	bodyBytes, err := json.Marshal(body) //nolint:gosec // G117: test fixture marshaling registration request; password is a test placeholder
 	require.NoError(t, err)
 
 	req := httptest.NewRequest("POST", cryptoutilSharedMagic.PathRegistration, bytes.NewReader(bodyBytes))
@@ -82,7 +82,7 @@ func TestHandleRegisterUser_HashError(t *testing.T) {
 		Password:   strings.Repeat("p", cryptoutilSharedMagic.IMMinPasswordLength),
 		TenantName: strings.Repeat("t", cryptoutilSharedMagic.IMMinUsernameLength),
 	}
-	bodyBytes, err := json.Marshal(body)
+	bodyBytes, err := json.Marshal(body) //nolint:gosec // G117: test fixture marshaling registration request; password is a test placeholder
 	require.NoError(t, err)
 
 	req := httptest.NewRequest("POST", cryptoutilSharedMagic.PathRegistration, bytes.NewReader(bodyBytes))
@@ -165,7 +165,7 @@ func TestHandleRegisterUser_ServiceError(t *testing.T) {
 		CreateTenant: true,
 	}
 
-	bodyBytes, marshalErr := json.Marshal(body)
+	bodyBytes, marshalErr := json.Marshal(body) //nolint:gosec // G117: test fixture marshaling registration request; password is a test placeholder
 	require.NoError(t, marshalErr)
 
 	req := httptest.NewRequest("POST", cryptoutilSharedMagic.PathRegistration, bytes.NewReader(bodyBytes))

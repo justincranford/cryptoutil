@@ -490,7 +490,7 @@ func TestRevocationReason_Values(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		t.Run(string(rune(tc.expected)), func(t *testing.T) {
+		t.Run(string(rune(tc.expected)), func(t *testing.T) { //nolint:gosec // G115: tc.expected is a small CRL reason code (0-10); rune conversion safe
 			t.Parallel()
 			require.Equal(t, tc.expected, int(tc.reason))
 		})

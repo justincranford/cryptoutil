@@ -155,7 +155,7 @@ func TestECDSAKeyGenerationProperties(t *testing.T) {
 			}
 
 			// Different keys should have different private values
-			return ecdsaPriv1.D.Cmp(ecdsaPriv2.D) != 0
+			return ecdsaPriv1.D.Cmp(ecdsaPriv2.D) != 0 //nolint:staticcheck // D deprecated in Go 1.26; property test read-only comparison
 		},
 	))
 

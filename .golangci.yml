@@ -70,6 +70,9 @@ linters:
       # Exclude wrapcheck from test files (test error helpers don't require wrapping).
       - path: "_test\\.go$"
         linters: [wrapcheck]
+      # Exclude noctx from test files (httptest.NewRequest is standard Go test practice for mock HTTP servers).
+      - path: "_test\\.go$"
+        linters: [noctx]
       # Exclude nilnil from step_up_auth.go (intentional pattern).
       - path: "internal/apps/identity-idp/userauth/step_up_auth\\.go$"
         linters: [nilnil]

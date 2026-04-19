@@ -174,8 +174,8 @@ func TestUntil(t *testing.T) {
 				}
 			},
 			ctxFn: func() context.Context {
-				ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days*time.Millisecond)
-				_ = cancel // let timeout handle cancellation.
+				ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days*time.Millisecond) //nolint:gosec // G118: cancel intentionally not called; timeout handles cancellation
+				_ = cancel                                                                                                                          // let timeout handle cancellation.
 
 				return ctx
 			},

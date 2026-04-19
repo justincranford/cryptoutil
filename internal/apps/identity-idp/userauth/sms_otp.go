@@ -178,7 +178,7 @@ func (g *DefaultOTPGenerator) GenerateOTP(length int) (string, error) {
 			return "", fmt.Errorf("failed to generate random digit: %w", err)
 		}
 
-		otp[i] = byte('0' + digit.Int64())
+		otp[i] = byte('0' + digit.Int64()) //nolint:gosec // G115: digit is 0-9 from crand.Int(Reader, 10); '0'+digit fits in byte
 	}
 
 	return string(otp), nil

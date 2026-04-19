@@ -129,7 +129,7 @@ func newValueGenPoolInternal[T any](cfg *ValueGenPoolConfig[T], err error, newFl
 		return nil, fmt.Errorf("failed to create generate counter metric: %w", err)
 	}
 
-	stopGeneratingCtx, stopGeneratingFunction := context.WithCancel(cfg.ctx)
+	stopGeneratingCtx, stopGeneratingFunction := context.WithCancel(cfg.ctx) //nolint:gosec // G118: cancel stored in struct; called by Close()
 	valuePool := &ValueGenPool[T]{
 		poolStartTime:               poolStartTime,
 		generateCounter:             0,

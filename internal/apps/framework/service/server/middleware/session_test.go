@@ -65,7 +65,7 @@ func TestSessionMiddleware_MissingAuthHeader(t *testing.T) {
 		return c.SendString("OK")
 	})
 
-	req := httptest.NewRequest("GET", "/test", nil)
+	req := httptest.NewRequestWithContext(t.Context(), "GET", "/test", nil)
 
 	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
@@ -85,7 +85,7 @@ func TestSessionMiddleware_InvalidAuthHeaderFormat(t *testing.T) {
 		return c.SendString("OK")
 	})
 
-	req := httptest.NewRequest("GET", "/test", nil)
+	req := httptest.NewRequestWithContext(t.Context(), "GET", "/test", nil)
 	req.Header.Set("Authorization", "InvalidFormat")
 
 	resp, err := app.Test(req, -1)
@@ -106,7 +106,7 @@ func TestSessionMiddleware_EmptyToken(t *testing.T) {
 		return c.SendString("OK")
 	})
 
-	req := httptest.NewRequest("GET", "/test", nil)
+	req := httptest.NewRequestWithContext(t.Context(), "GET", "/test", nil)
 	// Note: "Bearer " (Bearer + space) gets trimmed by Fiber to "Bearer" (no space),
 	// which triggers the "invalid format" check before reaching the "empty token" check.
 	// The empty token check (session.go:75-79) is defensive dead code that can't be
@@ -135,7 +135,7 @@ func TestSessionMiddleware_BrowserSession_ValidationError(t *testing.T) {
 		return c.SendString("OK")
 	})
 
-	req := httptest.NewRequest("GET", "/test", nil)
+	req := httptest.NewRequestWithContext(t.Context(), "GET", "/test", nil)
 	req.Header.Set("Authorization", "Bearer validtoken")
 
 	resp, err := app.Test(req, -1)
@@ -179,7 +179,7 @@ func TestSessionMiddleware_BrowserSession_Success(t *testing.T) {
 		return c.SendString("OK")
 	})
 
-	req := httptest.NewRequest("GET", "/test", nil)
+	req := httptest.NewRequestWithContext(t.Context(), "GET", "/test", nil)
 	req.Header.Set("Authorization", "Bearer validtoken")
 
 	resp, err := app.Test(req, -1)
@@ -225,7 +225,7 @@ func TestSessionMiddleware_BrowserSession_NilUserID(t *testing.T) {
 		return c.SendString("OK")
 	})
 
-	req := httptest.NewRequest("GET", "/test", nil)
+	req := httptest.NewRequestWithContext(t.Context(), "GET", "/test", nil)
 	req.Header.Set("Authorization", "Bearer validtoken")
 
 	resp, err := app.Test(req, -1)
@@ -251,7 +251,7 @@ func TestSessionMiddleware_ServiceSession_ValidationError(t *testing.T) {
 		return c.SendString("OK")
 	})
 
-	req := httptest.NewRequest("GET", "/test", nil)
+	req := httptest.NewRequestWithContext(t.Context(), "GET", "/test", nil)
 	req.Header.Set("Authorization", "Bearer validtoken")
 
 	resp, err := app.Test(req, -1)
@@ -297,7 +297,7 @@ func TestSessionMiddleware_ServiceSession_Success(t *testing.T) {
 		return c.SendString("OK")
 	})
 
-	req := httptest.NewRequest("GET", "/test", nil)
+	req := httptest.NewRequestWithContext(t.Context(), "GET", "/test", nil)
 	req.Header.Set("Authorization", "Bearer validtoken")
 
 	resp, err := app.Test(req, -1)
@@ -344,7 +344,7 @@ func TestSessionMiddleware_ServiceSession_NilClientID(t *testing.T) {
 		return c.SendString("OK")
 	})
 
-	req := httptest.NewRequest("GET", "/test", nil)
+	req := httptest.NewRequestWithContext(t.Context(), "GET", "/test", nil)
 	req.Header.Set("Authorization", "Bearer validtoken")
 
 	resp, err := app.Test(req, -1)
@@ -378,7 +378,7 @@ func TestBrowserSessionMiddleware(t *testing.T) {
 		return c.SendString("OK")
 	})
 
-	req := httptest.NewRequest("GET", "/test", nil)
+	req := httptest.NewRequestWithContext(t.Context(), "GET", "/test", nil)
 	req.Header.Set("Authorization", "Bearer validtoken")
 
 	resp, err := app.Test(req, -1)
@@ -409,7 +409,7 @@ func TestServiceSessionMiddleware(t *testing.T) {
 		return c.SendString("OK")
 	})
 
-	req := httptest.NewRequest("GET", "/test", nil)
+	req := httptest.NewRequestWithContext(t.Context(), "GET", "/test", nil)
 	req.Header.Set("Authorization", "Bearer validtoken")
 
 	resp, err := app.Test(req, -1)

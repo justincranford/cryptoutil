@@ -158,10 +158,10 @@ func TestBackChannelLogoutService_DeliverLogoutToken(t *testing.T) {
 				require.Equal(t, http.MethodPost, r.Method)
 				require.Equal(t, "application/x-www-form-urlencoded", r.Header.Get("Content-Type"))
 
-				err := r.ParseForm()
+				err := r.ParseForm() //nolint:gosec // G120: test mock server; no memory exhaustion risk
 				require.NoError(t, err)
 
-				receivedToken = r.FormValue("logout_token")
+				receivedToken = r.FormValue("logout_token") //nolint:gosec // G120: test mock server; no memory exhaustion risk
 
 				w.WriteHeader(tc.serverStatus)
 			}))

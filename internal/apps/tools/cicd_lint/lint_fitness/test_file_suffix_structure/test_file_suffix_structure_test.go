@@ -32,7 +32,7 @@ func buildSuffixRoot(t *testing.T) string {
 	require.NoError(t, err, "test-file-suffix-rules.yaml must exist in the package directory")
 
 	destPath := filepath.Join(rootDir, filepath.FromSlash(cryptoutilSharedMagic.CICDTestFileSuffixRulesFile))
-	require.NoError(t, os.WriteFile(destPath, data, cryptoutilSharedMagic.FilePermissionsDefault))
+	require.NoError(t, os.WriteFile(destPath, data, cryptoutilSharedMagic.FilePermissionsDefault)) //nolint:gosec // G703: test setup writing to t.TempDir(); path is constructed from controlled inputs
 
 	return rootDir
 }

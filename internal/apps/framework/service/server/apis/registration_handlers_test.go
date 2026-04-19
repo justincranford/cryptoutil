@@ -210,7 +210,7 @@ func TestRegisterUserRequest_JSON(t *testing.T) {
 		CreateTenant: true,
 	}
 
-	data, err := json.Marshal(req)
+	data, err := json.Marshal(req) //nolint:gosec // G117: test fixture marshaling registration request; password is a test placeholder
 	require.NoError(t, err)
 	require.NotEmpty(t, data)
 

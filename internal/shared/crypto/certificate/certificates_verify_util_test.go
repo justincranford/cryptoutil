@@ -104,7 +104,7 @@ func verifyCASubjects(t *testing.T, err error, caSubjects []*Subject) {
 		if i == lastIndex {
 			require.Equal(t, subject.SubjectName, subject.IssuerName, "Root CA issuer name should be self-signed at index %d", i)
 		} else {
-			expectedIssuerName := caSubjects[i+1].SubjectName
+			expectedIssuerName := caSubjects[i+1].SubjectName //nolint:gosec // G602: i < lastIndex guarantees i+1 is valid
 			require.Equal(t, expectedIssuerName, subject.IssuerName, "Intermediate CA should be issued by next CA at index %d", i)
 		}
 

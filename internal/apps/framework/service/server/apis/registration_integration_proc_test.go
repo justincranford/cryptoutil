@@ -101,7 +101,7 @@ func TestIntegration_ProcessJoinRequest_Approve(t *testing.T) {
 	reqBody := ProcessJoinRequestRequest{
 		Approved: true,
 	}
-	bodyBytes, _ := json.Marshal(reqBody)
+	bodyBytes, _ := json.Marshal(reqBody) //nolint:gosec // G117: test fixture marshaling registration request; password is a test placeholder
 
 	req := httptest.NewRequest(http.MethodPut, fmt.Sprintf("/admin/api/v1/join-requests/%s", jr.ID), bytes.NewReader(bodyBytes))
 	req.Header.Set("Content-Type", "application/json")
@@ -146,7 +146,7 @@ func TestIntegration_ProcessJoinRequest_Reject(t *testing.T) {
 	reqBody := ProcessJoinRequestRequest{
 		Approved: false,
 	}
-	bodyBytes, _ := json.Marshal(reqBody)
+	bodyBytes, _ := json.Marshal(reqBody) //nolint:gosec // G117: test fixture marshaling registration request; password is a test placeholder
 
 	req := httptest.NewRequest(http.MethodPut, fmt.Sprintf("/admin/api/v1/join-requests/%s", jr.ID), bytes.NewReader(bodyBytes))
 	req.Header.Set("Content-Type", "application/json")
@@ -198,7 +198,7 @@ func TestIntegration_DuplicateUsername_SameTenant(t *testing.T) {
 		CreateTenant: false,
 		TenantName:   tenant.Name,
 	}
-	bodyBytes, _ := json.Marshal(reqBody)
+	bodyBytes, _ := json.Marshal(reqBody) //nolint:gosec // G117: test fixture marshaling registration request; password is a test placeholder
 
 	req := httptest.NewRequest(http.MethodPost, "/browser/api/v1/auth/register", bytes.NewReader(bodyBytes))
 	req.Header.Set("Content-Type", "application/json")

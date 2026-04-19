@@ -77,7 +77,7 @@ func TestDiscoveryHandler_ReturnsValidOIDCMetadata(t *testing.T) {
 			testService.RegisterRoutes(app)
 
 			// Make request to discovery endpoint.
-			req := httptest.NewRequest("GET", "https://"+tc.requestHost+cryptoutilSharedMagic.PathDiscovery, nil)
+			req := httptest.NewRequestWithContext(t.Context(), "GET", "https://"+tc.requestHost+cryptoutilSharedMagic.PathDiscovery, nil)
 
 			// Set protocol via X-Forwarded-Proto header (standard proxy header).
 			req.Header.Set("X-Forwarded-Proto", tc.requestProtocol)
@@ -177,7 +177,7 @@ func TestDiscoveryHandler_HTTPSByDefault(t *testing.T) {
 	app := fiber.New()
 	testService.RegisterRoutes(app)
 
-	req := httptest.NewRequest("GET", "https://identity.example.com/.well-known/openid-configuration", nil)
+	req := httptest.NewRequestWithContext(t.Context(), "GET", "https://identity.example.com/.well-known/openid-configuration", nil)
 
 	// Explicitly set X-Forwarded-Proto to test HTTPS default behavior.
 	req.Header.Set("X-Forwarded-Proto", cryptoutilSharedMagic.ProtocolHTTPS)
@@ -228,7 +228,7 @@ func TestDiscoveryHandler_AllRequiredOIDCFieldsPresent(t *testing.T) {
 	app := fiber.New()
 	testService.RegisterRoutes(app)
 
-	req := httptest.NewRequest("GET", "https://identity.example.com/.well-known/openid-configuration", nil)
+	req := httptest.NewRequestWithContext(t.Context(), "GET", "https://identity.example.com/.well-known/openid-configuration", nil)
 
 	resp, err := app.Test(req, -1)
 	require.NoError(t, err)

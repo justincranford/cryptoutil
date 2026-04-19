@@ -36,7 +36,7 @@ func TestGormRepository_ConcurrentTransactions(t *testing.T) {
 			keyUUID, _ := googleUuid.NewV7()
 			key := &cryptoutilAppsFrameworkServiceServerBarrier.RootKey{
 				UUID:      keyUUID,
-				Encrypted: "encrypted_root_key_" + string(rune(id)),
+				Encrypted: "encrypted_root_key_" + string(rune(id)), //nolint:gosec // G115: id is 0-9 (numGoroutines=10); rune conversion safe
 				KEKUUID:   googleUuid.UUID{},
 			}
 

@@ -26,7 +26,7 @@ func TestServeOpenAPISpec_Success(t *testing.T) {
 	app := fiber.New()
 	app.Get("/spec", handler)
 
-	req := httptest.NewRequest(http.MethodGet, "/spec", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/spec", nil)
 	resp, err := app.Test(req, -1)
 	require.NoError(t, err, "Request should succeed")
 
@@ -56,7 +56,7 @@ func TestServeOpenAPISpec_HandlerInvocation(t *testing.T) {
 	app.Get("/spec", handler)
 
 	for range 3 {
-		req := httptest.NewRequest(http.MethodGet, "/spec", nil)
+		req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/spec", nil)
 		resp, err := app.Test(req, -1)
 		require.NoError(t, err, "Request should succeed")
 
