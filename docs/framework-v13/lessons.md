@@ -160,4 +160,21 @@ N/A — No issues encountered.
 
 ## Phase 6: Knowledge Propagation
 
-*(To be filled during Phase 6 execution using the 4-section structure above)*
+### What Worked
+
+- **Targeted propagation**: Only 4 bullet points added to the `docker-compose-rules` @propagate chunk in ENG-HANDBOOK.md §12.3.1. Each maps directly to a root cause found during Phases 1-5. No bloat.
+- **@propagate / @source system**: Once ENG-HANDBOOK.md was updated, propagating to `04-01.deployment.instructions.md` was a single string replace. lint-docs validates automatically.
+- **No agent/skill updates needed**: The docker compose rules are infrastructure concerns, not agent workflow concerns. Correct artifact placement: ENG-HANDBOOK.md → deployment instructions.
+
+### What Didn't Work
+
+- Nothing. Straightforward propagation of 4 concrete rules.
+
+### Root Causes
+
+N/A — Phase 6 is distillation of earlier root causes into permanent artifacts.
+
+### Patterns for Future Phases
+
+- **Propagation is cheap when rules are concrete**: Abstract lessons are hard to propagate. The 4 rules (distroless, initdb, volume isolation, template sync) are specific and actionable — they fit naturally into the existing docker-compose-rules chunk as bullet points.
+- **v13 plan completion**: All 6 phases and 30 tasks complete. The framework-v13 plan is fully executed.

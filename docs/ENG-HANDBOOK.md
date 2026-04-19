@@ -4394,6 +4394,10 @@ All Dockerfiles follow identical multi-stage structure. Parameterized fields dif
 - ALWAYS `127.0.0.1` in containers (NOT `localhost` - Alpine resolves to IPv6)
 - Dockerfile HEALTHCHECK: Use built-in PS-ID `livez` CLI (NEVER wget/curl)
 - Healthcheck fields use hyphens: `start-period` (NOT `start_period`)
+- **Distroless images** (e.g. `otel/opentelemetry-collector-contrib`): NEVER use `wget`/`curl` healthchecks — set `disable: true` and use a sidecar Alpine container with wget for readiness signaling
+- **`docker-entrypoint-initdb.d/` scripts**: PostgreSQL initdb runs with Unix socket only (no TCP). ALL `psql` commands MUST omit `-h localhost`/`-h 127.0.0.1`; using `-h` causes `SASL auth` failures inside initdb
+- **Stack volume isolation**: Named volumes (e.g. `cryptoutil_postgres_leader_volume`) are shared across PS-ID stacks. Always run `docker compose down -v` before switching stacks to ensure fresh PostgreSQL initdb
+- **Canonical template sync**: When modifying ANY file in `deployments/*/` that has a counterpart in `api/cryptosuite-registry/templates/`, update the canonical template in the SAME commit
 <!-- @/propagate -->
 
 - Secret management via Docker secrets (MANDATORY)
