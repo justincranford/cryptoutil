@@ -142,6 +142,13 @@ After every phase post-mortem:
 
 **Rationale**: Maximum quality paramount. Example: sm-im E2E timeouts treated as non-blocking was WRONG.
 
+**Docker-Dependent Work — NEVER Defer Indefinitely**:
+
+- If a task requires Docker and Docker is unavailable, it is BLOCKED (not completed, not deferred)
+- BLOCKED tasks MUST have a concrete resolution plan: which version, which phase, what prerequisites
+- **Anti-pattern (v12)**: 5 Docker-dependent tasks marked "⏳ DEFERRED (requires Docker)" with no next-version assignment, no deadline, no backlog entry — they became permanently unresolved
+- **Correct pattern**: Mark blocked, create follow-up phase in current plan OR create explicit next-version task with acceptance criteria
+
 ## GAP Task Creation - MANDATORY
 
 **When deferring incomplete work**:
@@ -586,6 +593,7 @@ You MUST verify these conditions BEFORE marking any task complete:
    - ≥98% infrastructure
 7. Objective evidence exists
 8. Conventional git commit exists with evidence
+9. lessons.md updated for completed phases (BLOCKING — phase section MUST NOT be empty placeholder)
 
 If any gate fails:
 
@@ -881,11 +889,15 @@ When writing ANY file via PowerShell terminal commands, use UTF-8 without BOM. T
 Set-Content -Path $path -Value $content -Encoding UTF8  # ❌ BOM
 ```
 
-**Phase-Based Post-Mortem - MANDATORY:**
+**Phase-Based Post-Mortem - MANDATORY BLOCKING QUALITY GATE:**
 
 - Tasks in tasks.md are grouped by phase
 - At end of EVERY phase (after quality gates pass), conduct post-mortem BEFORE starting next phase:
-  1. Update lessons.md with lessons learned (what worked, what didn't, root causes, patterns)
+  1. **BLOCKING: Update lessons.md** with lessons learned (what worked, what didn't, root causes, patterns)
+     - The lessons.md section for the completed phase MUST contain substantive content (not just the placeholder)
+     - A phase with only `*(To be filled during Phase N execution)*` in lessons.md is NOT COMPLETE — it is BLOCKED
+     - **Verification**: Read the phase's lessons.md section after writing it — if it still matches the empty placeholder, the phase is INCOMPLETE
+     - **Anti-pattern**: v10 completed 33/33 tasks but lessons.md remained 100% empty placeholders — this is a CRITICAL FAILURE that this gate prevents
   2. **CRITICAL: Artifact Self-Evaluation** — evaluate whether phase lessons expose contradictions or omissions in:
        - `docs/ENG-HANDBOOK.md` — architecture decisions, patterns, strategies
        - `.github/agents/*.agent.md` — agent guidance and workflows

@@ -407,6 +407,8 @@ EOF
 
 ## Phases
 
+**Phase Status Legend**: `☐ TODO` | `🔄 IN PROGRESS` | `✅ COMPLETE` | `⏳ BLOCKED`
+
 ### Phase 1: Foundation (Xh) [Status: ☐ TODO]
 **Objective**: [What foundational work will be done]
 - Database schema design (if applicable)
@@ -595,6 +597,19 @@ EOF
 - ✅ **NEVER de-prioritize quality** - Evidence-based verification is ALWAYS highest priority
 
 **Rationale**: Maintaining maximum quality prevents cascading failures and rework.
+
+---
+
+## Task Status Legend — MANDATORY
+
+| Symbol | Meaning | When to Use |
+|--------|---------|-------------|
+| ❌ | Not started | Task not yet begun |
+| 🔄 | In progress | Currently being worked on |
+| ✅ | Complete | Task finished with evidence |
+| ⏳ | Blocked | Requires external dependency (MUST have resolution plan) |
+
+**Anti-pattern (v10/v11/v12)**: Each version used different symbols. v13+ MUST use this legend consistently.
 
 ---
 
@@ -806,8 +821,9 @@ Set-Content -Path $path -Value $content -Encoding UTF8  # ❌ BOM
 3. Create `<work-dir>/tasks.md` from template
 
 4. Create `<work-dir>/lessons.md` as empty scaffold:
+   - Include a blockquote at the top with the MANDATORY per-phase structure: What Worked, What Didn't Work, Root Causes, Patterns for Future Phases
    - One `## Phase N: <name>` heading per phase defined in plan.md
-   - Each heading followed by: `*(To be filled during Phase N execution)*`
+   - Each heading followed by: `*(To be filled during Phase N execution using the 4-section structure above)*`
    - NO "Inherited from" sections — clean slate, execution agent fills lessons in
 
 5. Optionally create `<work-dir>/quizme-v#.md` for unknowns/risks/inefficiencies ONLY
