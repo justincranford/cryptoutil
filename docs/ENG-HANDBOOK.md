@@ -328,6 +328,8 @@ Implementation plans use the following files in `<work-dir>/`:
 **Ephemeral** (temporary, session-scoped):
 - `quizme-v#.md` — Unknowns clarification during planning only (A-D options + E blank; deleted after answers merged)
 
+**Quizme Q&A Persistence** (MANDATORY): After each quizme round, ALL question+answer tuples from that round MUST be appended as a section at the END of `plan.md` under heading `## Quizme Round N (YYYY-MM-DD)`. The section is append-only — never deleted or edited. This lets the implementation-planning agent skip already-answered questions on subsequent invocations, and allows reviewers to update answers in a later round section if new information changes their perspective.
+
 <!-- @propagate to=".github/instructions/06-02.agent-format.instructions.md" as="agent-self-containment" -->
 **Agent Self-Containment Checklist** (MANDATORY):
 - Agents generating implementation plans MUST reference ENG-HANDBOOK.md testing (Section 10), quality gates (Section 11), coding standards (Section 14)
@@ -1752,6 +1754,8 @@ Non-Deterministic Example: {n2}nonce:aad#{R5}HKDF-HMAC-SHA256:abc123...:def456..
 - **Issuance**: CSR validation, identity verification, generation, signing, publication
 - **Renewal**: Pre-expiration notification (60/30/7 days), re-validation if required
 - **Revocation**: Request validation, CRL/OCSP update, notification
+
+**Shared-Identity CA Chain Tracing** (MANDATORY): When accepting a design decision involving shared certificates or identities (e.g., a single cert shared by multiple replicas or services), IMMEDIATELY trace the full signing chain: (1) Which CA issues the cert? (2) Which truststores contain that CA? (3) Is the trust chain complete for ALL consumers? Accepting a shared-identity decision without tracing this chain is a design gap — gaps discovered during implementation require Phase 1 re-work.
 
 ### 6.6 JOSE Architecture & Strategy
 
@@ -3188,6 +3192,8 @@ func TestListMessages_Handler(t *testing.T) {
 - Generated code excluded from coverage
 - **`internal/shared/magic/` excluded**: constants-only package, no executable logic
 
+**MANDATORY: `internalMain` from the start**: New CLI entry points MUST use the `internalMain` pattern (`cmd/*/main.go` is a thin wrapper; all logic lives in `internalMain(args, stdin, stdout, stderr)`) from the moment they are created. Existing CLI entry points MUST be migrated when touched. Never defer this — retrofitting requires changing method signatures, adding test helpers, and re-visiting coverage ceilings.
+
 **Coverage Ceiling Analysis** (MANDATORY before setting per-package targets):
 
 1. Generate `go tool cover -html=coverage.out`
@@ -3290,6 +3296,24 @@ func TestShutdownError(t *testing.T) {
 **Coverage Impact**: Function-param injection enables full parallel error-path testing (3-8% coverage gain) without the sequential test constraint imposed by package-level seam variable mutation.
 
 **FORBIDDEN**: `var xxxFn = pkg.Func` in non-test production files (except `osExit` / `log.Fatal` patterns). Use `golangci-lint` `no-pkg-seam-vars` fitness linter to enforce.
+
+**Inject I/O Dependencies from the Start** (MANDATORY): Inject all I/O, filesystem, and network dependencies as function fields when the struct is first created — do NOT wait until test-writing reveals untestability. Retrofitting requires changing method signatures across call sites and is a code smell indicating deferred quality work.
+
+**Atomic Counter Pattern for Call-Count Verification**: Use `sync/atomic` int32 counters in stub functions to verify call counts without mock libraries:
+
+```go
+var callCount int32
+stub := func() error {
+    if atomic.AddInt32(&callCount, 1) == wantFailAt {
+        return fmt.Errorf("injected failure")
+    }
+    return nil
+}
+// After execution:
+require.Equal(t, int32(expectedCalls), atomic.LoadInt32(&callCount))
+```
+
+This verifies "function called exactly N times" without mockery or `testify/mock` — fully parallel-safe.
 
 #### 10.2.5 Sequential Test Exemption
 
@@ -3607,6 +3631,8 @@ adminPool  := cryptoutilTestutil.PrivateRootCAPool()  // admin server CA
 **MANDATORY: Runtime E2E for Deployment Refactors**: `docker compose config` and lint validation alone cannot catch runtime startup failures (entrypoint binaries, init job collisions, runtime script assumptions). ALL deployment-level refactors MUST include a runtime E2E pass that actually starts containers and validates health endpoints.
 
 **E2E Test Scope**: MUST test BOTH `/service/**` and `/browser/**` paths, verify middleware (IP allowlist, CSRF, CORS), cross-service integration
+
+**MANDATORY E2E for CLI Entry Points with `productionNew*` functions**: Every CLI entry point that constructs production dependencies via `productionNew*` functions (e.g., telemetry, database connections, TLS config) MUST have at least one E2E smoke test in CI/CD. Unit tests with stubs cannot catch initialization-time configuration errors (missing fields, off-by-one validity periods, DSN mismatches). Pattern: start the process in Docker Compose, wait for health endpoint to succeed, then assert at least one API call completes. Example: `pki-init` Phase 3 exposed 3 bugs (cert validity period, truststore path, PKCS#12 encoding) that were invisible to unit tests.
 
 #### 10.4.1 Docker Compose Orchestration
 
@@ -4079,6 +4105,11 @@ def test_health_check(api_client):
 `golangci-lint run --fix` → zero warnings (all non-tagged files)
 `golangci-lint run --build-tags e2e,integration --fix` → zero warnings (all build-tagged files)
 `go test -cover -shuffle=on ./...` → MANDATORY 100% tests pass, and ≥98% coverage per package
+
+**Context-Specific MANDATORY Gates**:
+
+- After ANY change to `deployments/**`, `configs/**`, or deployment validator source: `go run ./cmd/cicd-lint lint-deployments` (runs 8 deployment validators; unrelated-looking validators can fail from any deployment change — always run all of them)
+- After ANY edit to `docs/ENG-HANDBOOK.md`: `go run ./cmd/cicd-lint lint-docs` (`replace_string_in_file` can silently delete section headings if `oldString` includes the heading but `newString` omits it; `lint-docs` catches broken @propagate anchors and section drift)
 
 #### 11.2.2 RECOMMENDED Pre-Commit Quality Gates
 
@@ -5425,6 +5456,23 @@ This applies to ALL issue types including but not limited to:
 
 **Atomic Staging for Cross-Cutting Changes**: When a refactor touches imports across multiple packages AND renames/moves directories, ALL changes MUST be staged together. Pre-commit hooks run against the staged state, not the working directory — partial staging of cross-cutting changes will fail type-checking.
 
+#### 14.1.2 Cross-Platform File/Directory Access
+
+**Use `os.Stat` before `os.ReadDir`** (MANDATORY): On Windows, `os.ReadDir` on a non-existent path returns an error (not an empty slice as on Unix). Always check existence first:
+
+```go
+if _, err := os.Stat(dir); errors.Is(err, fs.ErrNotExist) {
+    return nil // directory absent — treat as empty
+}
+entries, err := os.ReadDir(dir)
+```
+
+This is a documented Go cross-platform difference. Skipping the `Stat` check causes Windows CI/CD failures that do not reproduce on Linux.
+
+**Derive directory/file counts from pattern expansion** (MANDATORY): When documenting or implementing functions that generate multiple output directories/files (e.g., `pki-init` 14 certificate categories), ALWAYS show the derivation formula rather than stating a raw count. Example: `30 global + 60 per-PS-ID × 10 PS-IDs = 630`. Never state `630` without the formula — formula errors are caught immediately during review; raw counts are not.
+
+**Multi-Category Generator Call Sites**: When implementing a function that generates multiple named categories (e.g., `pki-init`'s 14 certificate categories), add `// Cat N: <name>` comments at each call site. Reviewers can then cross-reference the spec document without mentally mapping code positions to category numbers.
+
 ### 14.2 Version Control
 
 #### 14.2.1 Conventional Commits
@@ -5623,6 +5671,26 @@ See [Section 9.4.2 Docker Desktop and Testcontainers API Compatibility](#942-doc
 - Conduct post-mortems after EVERY phase to self-evaluate artifacts for contradictions or omissions
 - Document all architectural decisions in plan.md before archiving the plan
 
+**Deferred Work Assignment** (MANDATORY): Any work deferred out of the current plan MUST name the target version/plan and be added to that plan as an explicit prerequisite phase. Deferrals without version assignment become permanent gaps. Format: `⏳ DEFERRED to v14-plan: <description of deferred work>`.
+
+**Project-Wide Decisions belong in ENG-HANDBOOK.md** (MANDATORY): Any architectural or process decision that applies beyond the current plan MUST be added to ENG-HANDBOOK.md. Plan.md may reference the ENG-HANDBOOK.md section. Never bury project-wide policies in plan.md — they become undiscoverable once the plan is archived.
+
+**Quizme Q&A Persistence** (MANDATORY): After each quizme round, ALL question+answer tuples MUST be appended as a section at the END of `plan.md` under heading `## Quizme Round N (YYYY-MM-DD)`. The section is append-only and never edited. This enables: (1) the implementation-planning agent to skip already-answered questions on re-invocation, (2) reviewers to update earlier answers if a later round changes their perspective. The quizme file itself is deleted after answers are applied to plan.md/tasks.md.
+
+**Standardized Task Status Notation** (MANDATORY across all plan, task, and tracking documents):
+
+| Symbol | Meaning | Usage |
+|--------|---------|-------|
+| `✅ COMPLETE` | Finished with evidence | All quality gates passed |
+| `🔄 IN-PROGRESS` | Currently executing | Only ONE task at a time |
+| `⏳ DEFERRED (reason)` | Moved to future plan | Must name target plan |
+| `☐ TODO` | Not yet started | Default state |
+| `❌ BLOCKED (reason)` | Cannot proceed | Must name blocker and unblocked alternative |
+
+**Estimation and Tracking**:
+- `tasks.md` SHOULD track estimated vs actual hours per phase: `Phase N (est: Xh, actual: Yh)`. Without actuals, estimation calibration for future plans is impossible.
+- Documentation and verification phases consistently take ~50% of their estimated time (they verify existing state rather than producing new artifacts). Estimate doc/verification phases at 50% of implementation phase estimates unless the lessons explicitly identify new artifacts needed.
+
 ### 14.7 Infrastructure Blocker Escalation
 
 <!-- @propagate to=".github/instructions/06-01.evidence-based.instructions.md, .github/instructions/01-02.beast-mode.instructions.md" as="infrastructure-blocker-escalation" -->
@@ -5658,7 +5726,12 @@ Three-encounter rule: 1st → document, 2nd → create fix task, 3rd → MANDATO
 
 At the end of EVERY phase's quality gates, conduct a post-mortem **before starting the next phase**:
 
-1. **lessons.md** (in `<work-dir>/`): Record lessons learned — what worked, what didn't, root causes, patterns observed.
+1. **lessons.md** (in `<work-dir>/`): Record lessons learned using the **4-section structure** (MANDATORY):
+   - **What Worked** — positive patterns worth repeating
+   - **What Didn't Work** — anti-patterns to avoid
+   - **Root Causes** — why things went wrong (not just what happened)
+   - **Patterns** — reusable rules derived from this phase's experience
+   Terse 2-4 bullet formats without root cause analysis are NOT acceptable. Only the 4-section format produces lessons that are genuinely useful for future plans.
 2. **Artifact Self-Evaluation**: Actively evaluate whether phase lessons expose contradictions or omissions in:
    - `docs/ENG-HANDBOOK.md` — architecture decisions, patterns, strategies
    - `.github/agents/*.agent.md` — agent guidance and workflows
@@ -5670,6 +5743,10 @@ At the end of EVERY phase's quality gates, conduct a post-mortem **before starti
    - Project documentation — README, docs/, comments that contradict new patterns
 3. **Create Fix Tasks**: If contradictions or omissions are found, create new phase tasks to fix them — NEVER defer artifact updates.
 4. **Identify new phases**: Create follow-up phases for any blockers, gaps, or artifact fixes discovered.
+
+**Docker Verification Must Be In-Scope** (MANDATORY): Phases that modify Docker Compose files, config files consumed by containers, cert mount paths, or any artifact that affects runtime behavior MUST include a Docker Compose verification step **within the same phase** (`docker compose up --wait` + health endpoint check). If Docker Desktop is unavailable, the phase is **BLOCKED — not complete**. Configuration-only changes without Docker verification are untested hypotheses.
+
+**Multi-File Config Changes Need Integration Verification**: Any change spanning multiple interrelated configuration files (e.g., `postgresql.conf` + `pg_hba.conf` + GORM DSN + Docker volume mounts) MUST include an integration verification step that exercises the full configuration chain in a running environment — within the same phase. Common failure modes: wrong cert paths after mounting, permission errors inside containers, HBA rule ordering, DSN parameter mismatches.
 
 Skipping post-mortems is FORBIDDEN. This is continuous self-improvement.
 

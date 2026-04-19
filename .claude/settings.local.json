@@ -2,6 +2,10 @@
   "permissions": {
     "additionalDirectories": [
       "C:\\Users\\justi\\.claude\\projects\\c--Dev-Projects-cryptoutil\\memory"
+    ],
+    "allow": [
+      "Bash(git add *)",
+      "Bash(git commit *)"
     ]
   }
 }

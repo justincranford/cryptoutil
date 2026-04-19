@@ -7,33 +7,36 @@
 
 ## Executive Summary
 
-Three framework versions produced 102 tasks, 18 formal design decisions, and significant infrastructure. The lessons cluster into five themes: (1) Docker-dependent verification must not be deferred — it accumulates as unpaid debt, (2) lessons must be captured during each phase, not after, (3) scope management via quizme rounds works but needs limits, (4) seam injection and table-driven tests are proven patterns that should be mandatory, and (5) cross-document consistency requires automated enforcement. The 25 lessons below are prioritized by impact on v13 execution quality.
+Three framework versions produced 102 tasks, 18 formal design decisions, and significant infrastructure. The lessons cluster into five themes: (1) Docker-dependent verification must not be deferred — it accumulates as unpaid debt, (2) lessons must be captured during each phase, not after, (3) quizme Q&A tuples must be persisted in plan.md for auditability and to avoid re-asking prior questions, (4) seam injection and table-driven tests are proven patterns that should be mandatory, and (5) cross-document consistency requires automated enforcement. The 25 lessons below are prioritized by impact on v13 execution quality.
 
-1. [Docker verification MUST be in-scope, never deferred](#1-docker-verification-must-be-in-scope-never-deferred)
-2. [Capture lessons during each phase, not after](#2-capture-lessons-during-each-phase-not-after)
-3. [Every config change needs runtime verification](#3-every-config-change-needs-runtime-verification)
-4. [Deferred work must be explicitly assigned to a future version](#4-deferred-work-must-be-explicitly-assigned-to-a-future-version)
-5. [E2E tests are mandatory for CLI entry points with productionNew* functions](#5-e2e-tests-are-mandatory-for-cli-entry-points-with-productionnew-functions)
-6. [Struct-field seam injection is the proven pattern for testability](#6-struct-field-seam-injection-is-the-proven-pattern-for-testability)
-7. [The internalMain pattern raises coverage ceilings](#7-the-internalmain-pattern-raises-coverage-ceilings)
-8. [Table-driven tests with atomic counter injection eliminate mock libraries](#8-table-driven-tests-with-atomic-counter-injection-eliminate-mock-libraries)
-9. [quizme rounds should be limited to 2 per plan](#9-quizme-rounds-should-be-limited-to-2-per-plan)
-10. [Project-wide decisions belong in ENG-HANDBOOK.md, not plan.md](#10-project-wide-decisions-belong-in-eng-handbookmd-not-planmd)
-11. [Derive directory/file counts from patterns, never estimate](#11-derive-directoryfile-counts-from-patterns-never-estimate)
-12. [When accepting shared-identity decisions, trace the full CA signing chain](#12-when-accepting-shared-identity-decisions-trace-the-full-ca-signing-chain)
-13. [os.Stat before os.ReadDir for cross-platform compatibility](#13-osstat-before-osreaddir-for-cross-platform-compatibility)
-14. [PKCS#12 Modern (SHA-256/AES-256-CBC) is unconditionally preferred](#14-pkcs12-modern-sha-256aes-256-cbc-is-unconditionally-preferred)
-15. [Comment category numbers at generation call sites](#15-comment-category-numbers-at-generation-call-sites)
-16. [Inject all I/O dependencies as function fields from the start](#16-inject-all-io-dependencies-as-function-fields-from-the-start)
-17. [Truststores never contain .key files — keystores do](#17-truststores-never-contain-key-files--keystores-do)
-18. [SAME-AS-DIR-NAME convention eliminates secondary naming decisions](#18-same-as-dir-name-convention-eliminates-secondary-naming-decisions)
-19. [stripQueryParam before appending DSN parameters](#19-stripqueryparam-before-appending-dsn-parameters)
-20. [Template-compliance and lint-deployments must run after every deployment change](#20-template-compliance-and-lint-deployments-must-run-after-every-deployment-change)
-21. [ENG-HANDBOOK.md edits require lint-docs verification](#21-eng-handbookmd-edits-require-lint-docs-verification)
-22. [Estimation bias: documentation/verification phases take 50% of estimated time](#22-estimation-bias-documentationverification-phases-take-50-of-estimated-time)
-23. [Track estimated vs actual hours per phase](#23-track-estimated-vs-actual-hours-per-phase)
-24. [Standardize task status notation across all plans](#24-standardize-task-status-notation-across-all-plans)
-25. [Named Docker volumes only — never bind mounts for certs](#25-named-docker-volumes-only--never-bind-mounts-for-certs)
+- [Lessons Learned — Framework v10, v11, v12 (Consolidated)](#lessons-learned--framework-v10-v11-v12-consolidated)
+  - [Executive Summary](#executive-summary)
+  - [Details](#details)
+    - [1. Docker verification MUST be in-scope, never deferred](#1-docker-verification-must-be-in-scope-never-deferred)
+    - [2. Capture lessons during each phase, not after](#2-capture-lessons-during-each-phase-not-after)
+    - [3. Every config change needs runtime verification](#3-every-config-change-needs-runtime-verification)
+    - [4. Deferred work must be explicitly assigned to a future version](#4-deferred-work-must-be-explicitly-assigned-to-a-future-version)
+    - [5. E2E tests are mandatory for CLI entry points with productionNew\* functions](#5-e2e-tests-are-mandatory-for-cli-entry-points-with-productionnew-functions)
+    - [6. Struct-field seam injection is the proven pattern for testability](#6-struct-field-seam-injection-is-the-proven-pattern-for-testability)
+    - [7. The internalMain pattern raises coverage ceilings](#7-the-internalmain-pattern-raises-coverage-ceilings)
+    - [8. Table-driven tests with atomic counter injection eliminate mock libraries](#8-table-driven-tests-with-atomic-counter-injection-eliminate-mock-libraries)
+    - [9. Quizme Q&A tuples must be persisted in plan.md after each round](#9-quizme-qa-tuples-must-be-persisted-in-planmd-after-each-round)
+    - [10. Project-wide decisions belong in ENG-HANDBOOK.md, not plan.md](#10-project-wide-decisions-belong-in-eng-handbookmd-not-planmd)
+    - [11. Derive directory/file counts from patterns, never estimate](#11-derive-directoryfile-counts-from-patterns-never-estimate)
+    - [12. When accepting shared-identity decisions, trace the full CA signing chain](#12-when-accepting-shared-identity-decisions-trace-the-full-ca-signing-chain)
+    - [13. os.Stat before os.ReadDir for cross-platform compatibility](#13-osstat-before-osreaddir-for-cross-platform-compatibility)
+    - [14. PKCS#12 Modern (SHA-256/AES-256-CBC) is unconditionally preferred](#14-pkcs12-modern-sha-256aes-256-cbc-is-unconditionally-preferred)
+    - [15. Comment category numbers at generation call sites](#15-comment-category-numbers-at-generation-call-sites)
+    - [16. Inject all I/O dependencies as function fields from the start](#16-inject-all-io-dependencies-as-function-fields-from-the-start)
+    - [17. Truststores never contain .key files — keystores do](#17-truststores-never-contain-key-files--keystores-do)
+    - [18. SAME-AS-DIR-NAME convention eliminates secondary naming decisions](#18-same-as-dir-name-convention-eliminates-secondary-naming-decisions)
+    - [19. stripQueryParam before appending DSN parameters](#19-stripqueryparam-before-appending-dsn-parameters)
+    - [20. Template-compliance and lint-deployments must run after every deployment change](#20-template-compliance-and-lint-deployments-must-run-after-every-deployment-change)
+    - [21. ENG-HANDBOOK.md edits require lint-docs verification](#21-eng-handbookmd-edits-require-lint-docs-verification)
+    - [22. Estimation bias: documentation/verification phases take 50% of estimated time](#22-estimation-bias-documentationverification-phases-take-50-of-estimated-time)
+    - [23. Track estimated vs actual hours per phase](#23-track-estimated-vs-actual-hours-per-phase)
+    - [24. Standardize task status notation across all plans](#24-standardize-task-status-notation-across-all-plans)
+    - [25. Named Docker volumes only — never bind mounts for certs](#25-named-docker-volumes-only--never-bind-mounts-for-certs)
 
 ---
 
@@ -127,14 +130,19 @@ v11's pki-init tests use `sync/atomic` int32 counters in stub functions to verif
 
 ---
 
-### 9. quizme rounds should be limited to 2 per plan
+### 9. Quizme Q&A tuples must be persisted in plan.md after each round
 
-**Source**: v10 (4 rounds, 32 questions, 18 decisions)
+**Source**: v10 (4 rounds, 32 questions, 18 decisions — answers scattered, some overwritten)
 **Priority**: MEDIUM
 
-v10 required 4 quizme rounds before implementation started. Some decisions were updated 3 times across rounds. While design questions prevented architectural mistakes, the overhead was disproportionate for a template registry.
+v10 deleted each quizme file after merging answers into plan.md. Only the resulting decisions were recorded, not the original questions. When the agent ran a subsequent round, it could not verify whether new questions overlapped with prior ones without scanning all Decisions sections. Some Q&A pairs were silently superseded without a visible audit trail.
 
-**Rule for v13**: Maximum 2 quizme rounds (initial + clarification). If a third round seems needed, the plan scope is too large — split it.
+**Rule for v13**: After each quizme round, append ALL question+answer tuples as a fenced section at the END of plan.md (`## Quizme Round N (YYYY-MM-DD)`). The section is append-only — never deleted or edited. This:
+1. Lets the implementation-planning agent see every prior Q&A without re-asking the same questions.
+2. Lets reviewers change earlier answers if a later-round answer makes them reconsider a prior decision (cross-round revision is explicit and visible).
+3. Provides a complete audit trail of how design decisions evolved.
+
+The quizme file itself is still deleted after answers are applied to plan.md/tasks.md. Only the Q&A tuples are persisted in plan.md.
 
 ---
 
@@ -196,7 +204,7 @@ v11's Decision Q1 (postgres instances share identity) was accepted without traci
 **Source**: v11 Phase 2 lessons
 **Priority**: LOW
 
-When implementing a multi-category generate function (like pki-init's 14 categories), add `// Cat N: <name>` comments at each invocation site. Reviewers can cross-reference tls-structure.md without mentally mapping the code.
+When implementing a multi-category generate function (like pki-init's 16 categories), add `// Cat N: <name>` comments at each invocation site. Reviewers can cross-reference tls-structure.md without mentally mapping the code.
 
 ---
 

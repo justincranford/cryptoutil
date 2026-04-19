@@ -1029,10 +1029,10 @@ Known banned patterns in this project:
 If a question's options include a banned pattern, REJECT the question and reformulate.
 
 **Gate 3 — No Re-Asking Answered Questions**: Before generating ANY question, review:
-1. ALL prior quizme-v*.md files (including deleted ones — check plan.md Decisions)
+1. ALL `## Quizme Round N` sections at the end of plan.md (Q&A history, append-only)
 2. ALL Decisions already recorded in plan.md
 3. ALL user answers from conversation history
-If the question was already answered in ANY prior quizme or Decision, do NOT re-ask.
+If the question was already answered in ANY prior quizme round or Decision, do NOT re-ask.
 - ❌ WRONG: Re-asking about static-files-path when Decision 7 already resolved it
 - ✅ CORRECT: Reference the existing Decision and proceed
 
@@ -1065,8 +1065,9 @@ with objectively correct answers are NOT quizme material — just state the answ
    - Mark the decision as confirmed (remove "tentative" labels)
 3. For each question where user answered E (custom):
    - Apply the custom answer text to plan.md/tasks.md as a new or updated decision
-4. **DELETE the answered quizme file** — no exceptions, even for partial application
-5. **Carry forward unanswered questions** (if any remain from E answers that need more depth): create the NEXT quizme-v(N+1).md with MORE research, MORE context, MORE concrete examples than the previous version
+4. **APPEND ALL Q&A tuples to plan.md** (MANDATORY): Add a new section at the END of plan.md: `## Quizme Round N (YYYY-MM-DD)` containing every question+answer pair from this round verbatim. This section is append-only — never deleted or edited. Purpose: (a) prevents re-asking already-answered questions on subsequent invocations, (b) allows reviewers to update earlier answers if a later round changes their perspective.
+5. **DELETE the answered quizme file** — no exceptions, even for partial application
+6. **Carry forward unanswered questions** (if any remain from E answers that need more depth): create the NEXT quizme-v(N+1).md with MORE research, MORE context, MORE concrete examples than the previous version
 
 **If ALL questions answered**: Delete quizme, do NOT create a new one unless brand new unknowns arise during subsequent implementation phases.
 
