@@ -63,7 +63,7 @@ V13 carries forward:
 - **Telemetry**: otel-collector-contrib + grafana/otel-lgtm
 - **TLS Structure**: `docs/tls-structure.md` (14 cert categories)
 - **Deployment Templates**: `api/cryptosuite-registry/templates/`
-- **Ordering Rationale**: `docs/framework-v13/pki-init-order.md`
+- **Ordering Rationale**: `docs/framework-v14/pki-init-order.md`
 
 **Cert Categories for V13**:
 
