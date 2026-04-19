@@ -1,76 +1,44 @@
-# Lessons - Framework V13: OTel/Grafana mTLS + Public PS-ID App TLS Trust
+# Lessons — Framework v14: v13 Completion
 
-**Created**: 2026-04-16
-**Last Updated**: 2026-04-16
-
----
-
-## Phase 0: pki-init Patch — Cat 2, Cat 3, Cat 4, Cat 8, Cat 9 app
-
-*(To be filled during Phase 0 execution)*
+> **MANDATORY per-phase structure** (fill this in after each phase's quality gates pass):
+>
+> - **What Worked**: Approaches, tools, patterns that succeeded — worth repeating
+> - **What Didn't Work**: Approaches that failed, took longer than expected, or produced rework
+> - **Root Causes**: Underlying reasons for failures or surprises (NOT symptoms)
+> - **Patterns for Future Phases**: Concrete rules or heuristics to carry forward
 
 ---
 
-## Phase 1: OTel Collector Server TLS
+## Phase 1: Close v13 Cross-Cutting Quality Gates
 
-*(To be filled during Phase 1 execution)*
-
----
-
-## Phase 2: App→OTel Client mTLS
-
-*(To be filled during Phase 2 execution)*
+*(To be filled during Phase 1 execution using the 4-section structure above)*
 
 ---
 
-## Phase 3: Verify OTel Standalone
+## Phase 2: Admin mTLS Full Round-Trip Test
 
-*(To be filled during Phase 3 execution)*
-
----
-
-## Phase 4: Grafana LGTM HTTPS + OTLP Ingest TLS
-
-*(To be filled during Phase 4 execution)*
+*(To be filled during Phase 2 execution using the 4-section structure above)*
 
 ---
 
-## Phase 5: OTel→Grafana Client mTLS
+## Phase 3: pki-init Coverage Ceiling Mitigation
 
-*(To be filled during Phase 5 execution)*
-
----
-
-## Phase 6: Verify OTel→Grafana Pipeline
-
-*(To be filled during Phase 6 execution)*
+*(To be filled during Phase 3 execution using the 4-section structure above)*
 
 ---
 
-## Phase 7: Public PS-ID App Server TLS
+## Phase 4: E2E Framework Redesign — Shared TestMain Factory
 
-*(To be filled during Phase 7 execution)*
-
----
-
-## Phase 8: Deployment Templates
-
-*(To be filled during Phase 8 execution)*
+*(To be filled during Phase 4 execution using the 4-section structure above)*
 
 ---
 
-## Phase 9: Deployment Linting
+## Phase 5: Mutation Testing on e2e_infra Code
 
-*(To be filled during Phase 9 execution)*
-
----
-
-## Phase 10: Deployment Verification — Full Telemetry Stack
-
-*(To be filled during Phase 10 execution)*
+*(To be filled during Phase 5 execution using the 4-section structure above)*
 
 ---
 
-## Phase 11: Knowledge Propagation
+## Phase 6: Knowledge Propagation
 
-*(To be filled during Phase 11 execution)*
+*(To be filled during Phase 6 execution using the 4-section structure above)*

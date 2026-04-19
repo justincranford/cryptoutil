@@ -1,14 +1,16 @@
-# Tasks - Framework V13: OTel/Grafana mTLS + Public PS-ID App TLS Trust
+# Tasks — Framework v14: v13 Completion
 
-**Status**: 0 of 37 tasks complete (0%)
-**Last Updated**: 2026-04-16
-**Created**: 2026-04-16
+**Status**: 0 of 24 tasks complete (0%)
+**Last Updated**: 2026-04-19
+**Created**: 2026-04-19
+
+---
 
 ## Quality Mandate - MANDATORY
 
 **Quality Attributes (NO EXCEPTIONS)**:
 - ✅ **Correctness**: ALL code must be functionally correct with comprehensive tests
-- ✅ **Completeness**: NO phases or tasks or steps skipped, NO shortcuts
+- ✅ **Completeness**: NO phases or tasks or steps skipped, NO features de-prioritized, NO shortcuts
 - ✅ **Thoroughness**: Evidence-based validation at every step
 - ✅ **Reliability**: Quality gates enforced (≥95%/98% coverage/mutation)
 - ✅ **Efficiency**: Optimized for maintainability and performance, NOT implementation speed
@@ -16,581 +18,402 @@
 - ❌ **Time Pressure**: NEVER rush, NEVER skip validation, NEVER defer quality checks
 - ❌ **Premature Completion**: NEVER mark phases or tasks or steps complete without objective evidence
 
-**ALL issues are blockers - NO exceptions:**
+**ALL issues are blockers — NO exceptions.**
 
-- ✅ **Fix issues immediately** - All failing tests/builds/lints are BLOCKING
-- ✅ **Treat as BLOCKING**: ALL issues block progress to next task
-- ✅ **Document root causes** — root cause analysis required; planning blockers resolved during planning
-- ✅ **NEVER defer**: No "we'll fix later", no "non-critical", no "nice-to-have"
-- ✅ **NEVER skip**: Cannot mark phase or task or step complete with known issues
-- ✅ **NEVER de-prioritize quality**
+---
+
+## Task Status Legend
+
+| Symbol | Meaning |
+|--------|---------|
+| ❌ | Not started |
+| 🔄 | In progress |
+| ✅ | Complete |
+| ⏳ | Blocked (must have resolution plan) |
 
 ---
 
 ## Task Checklist
 
-### Phase 0: pki-init Patch — Cat 2, Cat 3, Cat 4, Cat 8, Cat 9 app [Status: ☐ TODO]
+### Phase 1: Close v13 Cross-Cutting Quality Gates
 
-**Phase Objective**: Add V13 cert category generation to pki-init generator.
+**Phase Objective**: Explicitly verify and close every unchecked cross-cutting task inherited from
+v13. These were effectively done through v13's phases but never individually confirmed.
 
-#### Task 0.1: Add Cat 2 Server Entity Generation
-
+#### Task 1.1: Build + Lint Verification
 - **Status**: ❌
-- **Estimated**: 1h
-- **Dependencies**: V12 Phase 0 complete
-- **Description**: Add `public-https-server-entity-otel-collector-contrib` and `public-https-server-entity-grafana-otel-lgtm` cert generation to pki-init.
+- **Estimated**: 10m
+- **Dependencies**: None
+- **Description**: Run all build and lint checks; confirm clean baseline.
 - **Acceptance Criteria**:
-  - [ ] Cat 2 OTel entity generated with Server Auth EKU
-  - [ ] Cat 2 Grafana entity generated with Server Auth EKU
-  - [ ] SAME-AS-DIR-NAME file naming convention used
-  - [ ] `go test ./...` passes with ≥98% coverage on generator code
+  - [ ] `go build ./...` exits 0
+  - [ ] `go build -tags e2e,integration ./...` exits 0
+  - [ ] `golangci-lint run` exits 0, zero violations
+  - [ ] `golangci-lint run --build-tags e2e,integration` exits 0, zero violations
+- **Evidence**: `test-output/v14-phase1/build-lint.log`
 
-#### Task 0.2: Add Cat 3 + Cat 4 Per-PS-ID Entity Generation
-
+#### Task 1.2: Full Test Suite Verification
 - **Status**: ❌
-- **Estimated**: 1.5h
-- **Dependencies**: Task 0.1
-- **Description**: Add PS-ID public server cert (Cat 3) and PS-ID public client CA (Cat 4) generation.
-- **Acceptance Criteria**:
-  - [ ] Cat 3: `public-https-server-entity-{PS-ID}-{sqlite-1,sqlite-2,postgres-1,postgres-2}` generated per PS-ID with Server Auth EKU
-  - [ ] Cat 4: `public-https-client-issuing-ca-{PS-ID}-{sqlite,postgres}/truststore/` CA generated per PS-ID
-  - [ ] pki-domain parameter (sqlite, postgres) correctly maps to variant sets
-  - [ ] Tests updated: 4 new Cat 3 dirs + 2 new Cat 4 dirs per PS-ID asserted
-
-#### Task 0.3: Add Cat 8 + Cat 9 app Entity Generation
-
-- **Status**: ❌
-- **Estimated**: 1h
-- **Dependencies**: Task 0.2
-- **Description**: Add OTel/Grafana client CA (Cat 8) and app→OTel client certs (Cat 9 app) generation.
-- **Acceptance Criteria**:
-  - [ ] Cat 8: `otel-collector-contrib-https-client-issuing-ca/truststore/` CA generated
-  - [ ] Cat 8: `grafana-otel-lgtm-https-client-issuing-ca/truststore/` CA generated
-  - [ ] Cat 9 app: `otel-collector-contrib-https-client-entity-{PS-ID}-{sqlite-1,sqlite-2,postgres-1,postgres-2}` per PS-ID with Client Auth EKU
-  - [ ] Tests cover all new dirs; `go test ./...` clean; coverage ≥98%
-
-#### Task 0.4: Integration Verify pki-init Output
-
-- **Status**: ❌
-- **Estimated**: 0.5h
-- **Dependencies**: Task 0.3
-- **Description**: Run pki-init and verify all expected V13 cert dirs are created.
-- **Acceptance Criteria**:
-  - [ ] All Cat 2, 3, 4, 8, 9 app dirs present in output volume
-  - [ ] No V12 cert dirs missing (regression check)
-  - [ ] `golangci-lint run` clean on pki-init package
-
----
-
-### Phase 1: OTel Collector Server TLS [Status: ☐ TODO]
-
-**Phase Objective**: Configure OTel Collector OTLP receivers to serve TLS and require client certs.
-
-#### Task 1.1: OTLP gRPC Receiver TLS Config
-
-- **Status**: ❌
-- **Estimated**: 1h
-- **Dependencies**: Phase 0 complete
-- **Description**: Update otel-collector-contrib YAML config for TLS on gRPC receiver.
-- **Acceptance Criteria**:
-  - [ ] `receivers.otlp.protocols.grpc.tls.cert_file` = Cat 2 `public-https-server-entity-otel-collector-contrib/SAME-AS-DIR-NAME.crt`
-  - [ ] `receivers.otlp.protocols.grpc.tls.key_file` = Cat 2 key path
-  - [ ] `receivers.otlp.protocols.grpc.tls.client_ca_file` = Cat 8 `otel-collector-contrib-https-client-issuing-ca/truststore/` path
-  - [ ] `insecure: false` (or field removed — default is false)
-- **Files**: `deployments/shared-telemetry/otel-collector-contrib/config.yml`
-
-#### Task 1.2: OTLP HTTP Receiver TLS Config
-
-- **Status**: ❌
-- **Estimated**: 0.5h
+- **Estimated**: 15m
 - **Dependencies**: Task 1.1
-- **Description**: Apply identical TLS config to HTTP receiver.
+- **Description**: Run the full unit + integration test suite with shuffle.
 - **Acceptance Criteria**:
-  - [ ] `receivers.otlp.protocols.http.tls.cert_file`, `tls.key_file`, `tls.client_ca_file` configured
-  - [ ] Same Cat 2 / Cat 8 cert paths as gRPC receiver
-- **Files**: `deployments/shared-telemetry/otel-collector-contrib/config.yml`
+  - [ ] `go test ./... -shuffle=on -count=1` — 100% pass, zero skips
+  - [ ] Zero `InsecureSkipVerify: true` usages in e2e_tls_test.go files (CA-validated path)
+  - [ ] All 4 PS-ID testmain files initialize `sharedHTTPClientWithCA` after `WaitForMultipleServices`
+- **Evidence**: `test-output/v14-phase1/test-results.log`
 
-#### Task 1.3: OTel Compose Cert Volume Mounts
-
+#### Task 1.3: Fitness + Doc Linting
 - **Status**: ❌
-- **Estimated**: 1h
-- **Dependencies**: Tasks 1.1, 1.2
-- **Description**: Mount cert dirs in otel-collector-contrib service with least privilege.
+- **Estimated**: 5m
+- **Dependencies**: Task 1.1
+- **Description**: Run all cicd-lint checks.
 - **Acceptance Criteria**:
-  - [ ] `__PS_ID__-certs` named volume referenced (D5 include-merged, not re-declared)
-  - [ ] OTel Collector mounts: Cat 2 `public-https-server-entity-otel-collector-contrib/` + Cat 8 `otel-collector-contrib-https-client-issuing-ca/truststore/` ONLY
-  - [ ] NO Cat 9 infra mount yet (added in Phase 5)
-  - [ ] NO Cat 1, Cat 3, Cat 4 dirs mounted (OTel server does not need these)
-  - [ ] Healthcheck updated: endpoint uses `https://` scheme
-- **Files**: `deployments/shared-telemetry/compose.yml`
+  - [ ] `go run ./cmd/cicd-lint lint-fitness` exits 0
+  - [ ] `go run ./cmd/cicd-lint lint-docs` exits 0
+- **Evidence**: `test-output/v14-phase1/cicd-lint.log`
+
+#### Task 1.4: Close v13 Cross-Cutting Checklist
+- **Status**: ❌
+- **Estimated**: 10m
+- **Dependencies**: Tasks 1.1-1.3
+- **Description**: Update `docs/framework-v13/tasks.md` to mark all cross-cutting items ✅.
+- **Acceptance Criteria**:
+  - [ ] All Testing cross-cutting items marked ✅ with evidence reference
+  - [ ] All Code Quality cross-cutting items marked ✅ with evidence reference
+  - [ ] All Documentation cross-cutting items marked ✅ with evidence reference
+  - [ ] All Deployment cross-cutting items marked ✅ with evidence reference
+  - [ ] Commit: `docs(framework-v13): close cross-cutting quality tasks`
+
+#### Task 1.5: Phase 1 Post-Mortem
+- **Status**: ❌
+- **Estimated**: 10m
+- **Dependencies**: Tasks 1.1-1.4
+- **Description**: Update lessons.md with Phase 1 findings.
+- **Acceptance Criteria**:
+  - [ ] lessons.md Phase 1 section populated with What Worked / What Didn't / Root Causes / Patterns
 
 ---
 
-### Phase 2: App→OTel Client mTLS [Status: ☐ TODO]
+### Phase 2: Admin mTLS Full Round-Trip Test
 
-**Phase Objective**: Configure app OTLP exporters to present client certs to OTel Collector.
+**Phase Objective**: Write a Go E2E test that verifies admin endpoint mTLS from INSIDE the Docker
+container network, filling the gap left by v13 Phase 2 (which only tested port isolation).
 
-#### Task 2.1: Framework OTLP Exporter TLS Config Fields
-
+#### Task 2.1: Audit Docker Exec Infrastructure
 - **Status**: ❌
-- **Estimated**: 1.5h
+- **Estimated**: 30m
 - **Dependencies**: Phase 1 complete
-- **Description**: Add TLS config fields to framework OTLP exporter settings.
+- **Description**: Review `composeManager.BuildDockerExecArgs` added in v13; understand what
+  tooling (curl, wget, openssl) is available inside the sm-kms app container.
 - **Acceptance Criteria**:
-  - [ ] Framework config struct: `otlp.tls.cert-file` (Cat 9 app client cert path)
-  - [ ] Framework config struct: `otlp.tls.key-file` (Cat 9 app client key path)
-  - [ ] Framework config struct: `otlp.tls.ca-file` (Cat 1 server CA truststore path)
-  - [ ] OTLP exporter uses `grpc.WithTransportCredentials(credentials.NewTLS(...))` when cert fields set
-  - [ ] `otlp.insecure` field defaults to `false` when TLS fields present
-  - [ ] `go build ./...` clean; `golangci-lint run` clean
-- **Files**: `internal/apps/framework/service/config/`, `internal/shared/telemetry/`
+  - [ ] Confirmed: sm-kms app container image (Alpine or similar) has `wget` or `curl`
+  - [ ] `BuildDockerExecArgs` API understood; sample invocation drafted
+  - [ ] Admin cert paths inside the container confirmed (from compose volume mounts)
 
-#### Task 2.2: Deployment Config Per Variant
-
+#### Task 2.2: Write `e2e_admin_mtls_test.go`
 - **Status**: ❌
 - **Estimated**: 1.5h
 - **Dependencies**: Task 2.1
-- **Description**: Add OTLP TLS config to per-variant deployment config files.
+- **Description**: Add `e2e_admin_mtls_test.go` to `internal/apps/sm-kms/e2e/` with table-driven
+  tests for admin mTLS happy and sad paths via docker exec.
 - **Acceptance Criteria**:
-  - [ ] sqlite-1: `otlp.tls.cert-file` = Cat 9 app `otel-collector-contrib-https-client-entity-{PS-ID}-sqlite-1/SAME-AS-DIR-NAME.crt`
-  - [ ] sqlite-1: `otlp.tls.key-file`, `otlp.tls.ca-file` = Cat 1 truststore
-  - [ ] sqlite-2: same for sqlite-2
-  - [ ] postgres-1: same for postgres-1 (combined with PG SSL fields from V12 Phase 4)
-  - [ ] postgres-2: same for postgres-2
-  - [ ] `otlp.endpoint` changed from `http://` to `https://` for all variants
-- **Files**: `deployments/{PS-ID}/config/*-app-framework-{variant}.yml`
+  - [ ] Happy path: `docker exec` with correct admin client cert → HTTP 200 from `/admin/api/v1/livez`
+  - [ ] Sad path: `docker exec` without client cert → TLS handshake error (rejected)
+  - [ ] Table-driven structure with `t.Parallel()` on outer test; subtests sequential (docker exec)
+  - [ ] `//go:build e2e` build tag on file
+  - [ ] `golangci-lint run --build-tags e2e` clean
+- **Files**: `internal/apps/sm-kms/e2e/e2e_admin_mtls_test.go`
 
-#### Task 2.3: App Compose Cert Volume Mounts
-
+#### Task 2.3: Run New Test Against Docker Stack
 - **Status**: ❌
-- **Estimated**: 1h
-- **Dependencies**: Task 2.2
-- **Description**: Mount Cat 9 app cert dir and Cat 1 truststore in app compose per variant.
+- **Estimated**: 30m
+- **Dependencies**: Task 2.2, Docker Desktop running
+- **Description**: Start sm-kms Docker Compose stack and verify the new test passes.
 - **Acceptance Criteria**:
-  - [ ] sqlite-1: mounts Cat 9 app `otel-collector-contrib-https-client-entity-{PS-ID}-sqlite-1/` + Cat 1 `public-https-server-issuing-ca/truststore/`
-  - [ ] sqlite-2: same for sqlite-2
-  - [ ] postgres-1: mounts Cat 9 app for postgres-1 + Cat 1 (in addition to V12 Cat 14 + Cat 10 mounts)
-  - [ ] postgres-2: same for postgres-2
-  - [ ] NO extra cert dirs mounted beyond minimum required
-- **Files**: `deployments/{PS-ID}/compose.yml`
+  - [ ] `docker compose -f deployments/sm-kms/compose.yml up --wait` succeeds
+  - [ ] `go test -tags e2e -run TestE2E_AdminMTLS ./internal/apps/sm-kms/e2e/...` passes
+  - [ ] Both happy and sad path subtests pass
+  - [ ] `docker compose down -v` cleans up after test
+
+#### Task 2.4: Phase 2 Post-Mortem
+- **Status**: ❌
+- **Estimated**: 10m
+- **Dependencies**: Tasks 2.1-2.3
+- **Description**: Update lessons.md with Phase 2 findings.
+- **Acceptance Criteria**:
+  - [ ] lessons.md Phase 2 section populated
 
 ---
 
-### Phase 3: Verify OTel Standalone [Status: ☐ TODO]
+### Phase 3: pki-init Coverage Ceiling Mitigation
 
-**Phase Objective**: Confirm app→OTel mTLS works end-to-end before wiring Grafana.
+**Phase Objective**: Apply the `internalMain` pattern to pki-init CLI entry points to raise
+coverage from 92.4% (accepted v11 ceiling) to ≥95% (mandatory production target).
 
-#### Task 3.1: Verify OTel Server TLS
-
+#### Task 3.1: Audit pki-init CLI Entry Point Structure
 - **Status**: ❌
-- **Estimated**: 0.5h
-- **Dependencies**: Phase 2 complete
-- **Description**: Verify OTel server TLS alone.
+- **Estimated**: 30m
+- **Dependencies**: None
+- **Description**: Read the pki-init CLI entry point (`cmd/` and `internal/apps/framework/tls/`)
+  to understand the `productionNew*` functions and what blocks coverage.
 - **Acceptance Criteria**:
-  - [ ] `openssl s_client -connect localhost:4317 -servername otel-collector-contrib` shows Cat 2 cert
-  - [ ] TLS 1.3 negotiated
+  - [ ] Identified: which functions are currently uncoverable
+  - [ ] Measured: current coverage with `go test -coverprofile=coverage.out -coverpkg=./... ./internal/apps/framework/tls/...`
+  - [ ] Baseline documented in `test-output/v14-phase3/coverage-baseline.txt`
+  - [ ] `internalMain` refactor scope defined: which functions to inject
 
-#### Task 3.2: Verify App→OTel mTLS
-
+#### Task 3.2: Refactor to `internalMain` Pattern
 - **Status**: ❌
-- **Estimated**: 1h
+- **Estimated**: 2h
 - **Dependencies**: Task 3.1
-- **Description**: Verify telemetry flows from app to OTel Collector via mTLS.
+- **Description**: Refactor the CLI entry point to use function-parameter injection per
+  ENG-HANDBOOK.md §10.2.4. Move production init code into injectable form.
 - **Acceptance Criteria**:
-  - [ ] App instances start; OTLP exporter connects to OTel successfully
-  - [ ] Traces visible in OTel pipeline (logs from collector show data received)
-  - [ ] OTel healthcheck passes
+  - [ ] `internalMain(args []string, stdin io.Reader, stdout, stderr io.Writer) int` function exists
+  - [ ] `productionNew*` functions accepted as parameters (fn fields or function args)
+  - [ ] `main()` in `cmd/` delegates to `internalMain` with production implementations
+  - [ ] `golangci-lint run` clean on refactored code
+  - [ ] Existing tests still pass
 
-#### Task 3.3: Verify Non-mTLS Export Rejected
-
+#### Task 3.3: Add `internalMain` Unit Tests
 - **Status**: ❌
-- **Estimated**: 0.5h
+- **Estimated**: 1.5h
 - **Dependencies**: Task 3.2
-- **Description**: Verify plaintext OTLP and missing-client-cert connections are rejected.
+- **Description**: Write unit tests for the `internalMain` function with injected stubs.
 - **Acceptance Criteria**:
-  - [ ] OTLP export with `insecure: true` rejected (connection refused or TLS error)
-  - [ ] OTLP export with TLS but no client cert rejected (TLS handshake failure)
+  - [ ] Tests cover: successful invocation, bad args, logger init failure, generator init failure
+  - [ ] `go test -coverprofile=coverage.out ./internal/apps/framework/tls/...` → ≥95%
+  - [ ] Coverage delta documented in `test-output/v14-phase3/coverage-after.txt`
+  - [ ] `t.Parallel()` on all tests and subtests
+
+#### Task 3.4: Re-run gremlins on pki-init
+- **Status**: ❌
+- **Estimated**: 15m
+- **Dependencies**: Task 3.3
+- **Description**: Re-run mutation testing to confirm efficacy is maintained or improved.
+- **Acceptance Criteria**:
+  - [ ] `gremlins unleash --tags=!integration ./internal/apps/framework/tls` passes
+  - [ ] Efficacy: ≥95% (was 100% in v13 — new tests should maintain this)
+  - [ ] Zero new LIVED (survived) mutations
+  - [ ] Results in `test-output/v14-phase3/mutation-report.txt`
+
+#### Task 3.5: Phase 3 Post-Mortem
+- **Status**: ❌
+- **Estimated**: 10m
+- **Dependencies**: Tasks 3.1-3.4
+- **Description**: Update lessons.md with Phase 3 findings.
+- **Acceptance Criteria**:
+  - [ ] lessons.md Phase 3 section populated
+  - [ ] Retrospective Issue #10 explicitly closed (reference in commit message)
 
 ---
 
-### Phase 4: Grafana LGTM HTTPS + OTLP Ingest TLS [Status: ☐ TODO]
+### Phase 4: E2E Framework Redesign — Shared TestMain Factory
 
-**Phase Objective**: Enable Grafana HTTPS UI (D1: grafana.ini) and OTLP ingest TLS (D6: mTLS assumed).
+**Phase Objective**: Eliminate ~200-line copy-paste TestMain boilerplate across 4 PS-ID e2e
+directories. Implement a parameterized factory in `e2e_infra/` per v13 deferred Item 7.
 
-#### Task 4.1: Create grafana.ini with HTTPS Config
-
+#### Task 4.1: Audit Current TestMain Boilerplate
 - **Status**: ❌
-- **Estimated**: 1h
-- **Dependencies**: Phase 3 complete
-- **Description**: Create custom `grafana.ini` with `[server]` HTTPS configuration.
+- **Estimated**: 30m
+- **Dependencies**: None
+- **Description**: Read all 4 PS-ID `testmain_e2e_test.go` files side-by-side; identify shared vs
+  PS-ID-specific code; design the factory interface.
 - **Acceptance Criteria**:
-  - [ ] `deployments/shared-telemetry/grafana-otel-lgtm/grafana.ini` created
-  - [ ] `[server]` section: `protocol = https`, `cert_file = /certs/__PS_ID__/public-https-server-entity-grafana-otel-lgtm/public-https-server-entity-grafana-otel-lgtm.crt`
-  - [ ] `cert_key = /certs/__PS_ID__/public-https-server-entity-grafana-otel-lgtm/public-https-server-entity-grafana-otel-lgtm.key`
-  - [ ] File uses `__PS_ID__` placeholder (template compliance)
-- **Files**: `deployments/shared-telemetry/grafana-otel-lgtm/grafana.ini`
+  - [ ] Shared code identified: `ComposeManager` setup, `WaitForMultipleServices`, HTTP client init
+  - [ ] PS-ID-specific code identified: magic constants (compose path, health URLs, CA cert path)
+  - [ ] Factory interface drafted: method signatures documented in task notes
+  - [ ] Findings in `test-output/v14-phase4/testmain-audit.md`
 
-#### Task 4.2: Grafana OTLP Ingest TLS Config
-
+#### Task 4.2: Implement `testmain_factory.go` in `e2e_infra`
 - **Status**: ❌
-- **Estimated**: 1h
+- **Estimated**: 2h
 - **Dependencies**: Task 4.1
-- **Description**: Configure Grafana OTLP ingest TLS (D6 verification step: confirm grafana/otel-lgtm supports this).
+- **Description**: Write the shared TestMain factory in `internal/apps/framework/service/testing/e2e_infra/testmain_factory.go`.
 - **Acceptance Criteria**:
-  - [ ] Grafana OTLP ingest ports (:14317/:14318) configured for TLS
-  - [ ] `client_ca_file` = Cat 8 `grafana-otel-lgtm-https-client-issuing-ca/truststore/` path
-  - [ ] If D6=A (mTLS supported): config applied. If not supported: document finding; proceed with Phase 4 HTTPS-only; create fix task for OTel sidecar approach
-- **Files**: `deployments/shared-telemetry/grafana-otel-lgtm/` config
+  - [ ] `E2ETestEnv` struct with fields: `ComposeManager`, `InsecureClient *http.Client`, `SecureClient *http.Client`
+  - [ ] `NewE2ETestEnv(cfg E2ETestConfig) (*E2ETestEnv, error)` constructor
+  - [ ] `E2ETestConfig` struct accepts: compose file path, health URLs ([]string), CA cert path
+  - [ ] `SetupE2ETestMain(m *testing.M, cfg E2ETestConfig) int` top-level helper (wraps Setup + os.Exit)
+  - [ ] `//go:build e2e` tag on file
+  - [ ] `golangci-lint run --build-tags e2e` clean
+- **Files**: `internal/apps/framework/service/testing/e2e_infra/testmain_factory.go`
 
-#### Task 4.3: Grafana Compose Volume Mounts and healthcheck
-
+#### Task 4.3: Unit Tests for `testmain_factory.go`
 - **Status**: ❌
 - **Estimated**: 1h
 - **Dependencies**: Task 4.2
-- **Description**: Mount cert dirs and grafana.ini; update healthcheck.
+- **Description**: Write unit tests for the factory with seam-injected compose manager and HTTP client stubs.
 - **Acceptance Criteria**:
-  - [ ] `grafana.ini` mounted at `/etc/grafana/grafana.ini:ro`
-  - [ ] Cat 2 `public-https-server-entity-grafana-otel-lgtm/` keystore mounted
-  - [ ] Cat 8 `grafana-otel-lgtm-https-client-issuing-ca/truststore/` mounted
-  - [ ] `__PS_ID__-certs` named volume referenced (D5 include-merged)
-  - [ ] Healthcheck updated: `https://127.0.0.1:3000/api/health`
-  - [ ] NO Cat 9 dirs mounted (Grafana does not need them)
-- **Files**: `deployments/shared-telemetry/compose.yml`
+  - [ ] Tests cover: successful init, missing CA cert file, compose startup failure, health check timeout
+  - [ ] `go test -cover -tags e2e ./internal/apps/framework/service/testing/e2e_infra/...` → ≥95%
+  - [ ] `t.Parallel()` on all applicable tests
+
+#### Task 4.4: Migrate All 4 PS-ID TestMain Files
+- **Status**: ❌
+- **Estimated**: 1.5h
+- **Dependencies**: Task 4.3
+- **Description**: Update `testmain_e2e_test.go` in all 4 PS-ID e2e directories to use the factory.
+- **Acceptance Criteria**:
+  - [ ] `internal/apps/sm-kms/e2e/testmain_e2e_test.go` uses `SetupE2ETestMain`
+  - [ ] `internal/apps/jose-ja/e2e/testmain_e2e_test.go` uses `SetupE2ETestMain`
+  - [ ] `internal/apps/sm-im/e2e/testmain_e2e_test.go` uses `SetupE2ETestMain`
+  - [ ] `internal/apps/skeleton-template/e2e/testmain_e2e_test.go` uses `SetupE2ETestMain`
+  - [ ] Old boilerplate removed (net line reduction ≥100 lines across 4 files)
+  - [ ] `golangci-lint run --build-tags e2e,integration` clean
+
+#### Task 4.5: Smoke-Test Migrated E2E Suites
+- **Status**: ❌
+- **Estimated**: 30m
+- **Dependencies**: Task 4.4, Docker Desktop running
+- **Description**: Run one PS-ID's E2E suite to confirm the factory works end-to-end.
+- **Acceptance Criteria**:
+  - [ ] Start skeleton-template Docker Compose stack: `docker compose up --wait`
+  - [ ] `go test -tags e2e -run TestE2E ./internal/apps/skeleton-template/e2e/...` passes
+  - [ ] `docker compose down -v` after
+
+#### Task 4.6: Phase 4 Post-Mortem
+- **Status**: ❌
+- **Estimated**: 10m
+- **Dependencies**: Tasks 4.1-4.5
+- **Description**: Update lessons.md with Phase 4 findings.
+- **Acceptance Criteria**:
+  - [ ] lessons.md Phase 4 section populated
+  - [ ] v13 Item 7 explicitly closed (reference in commit message)
 
 ---
 
-### Phase 5: OTel→Grafana Client mTLS [Status: ☐ TODO]
+### Phase 5: Mutation Testing on e2e_infra Code
 
-**Phase Objective**: Configure OTel Collector exporter to present Cat 9 infra client cert to Grafana.
+**Phase Objective**: Run gremlins mutation testing on the `e2e_infra` package, which gained
+significant new code in v13 (`BuildDockerExecArgs`) and v14 (TestMain factory). These additions
+were never mutation-tested.
 
-#### Task 5.1: OTel Exporter Client Cert Config
-
+#### Task 5.1: Run gremlins on `e2e_infra`
 - **Status**: ❌
-- **Estimated**: 1h
+- **Estimated**: 20m
 - **Dependencies**: Phase 4 complete
-- **Description**: Update OTel Collector exporter TLS config with Cat 9 infra client cert.
+- **Description**: Run `gremlins unleash` on the e2e_infra package.
 - **Acceptance Criteria**:
-  - [ ] `exporters.otlp.tls.ca_file` = Cat 1 `public-https-server-issuing-ca/truststore/` (verify Grafana server cert)
-  - [ ] `exporters.otlp.tls.cert_file` = Cat 9 infra `otel-collector-contrib-https-client-entity-infra/SAME-AS-DIR-NAME.crt`
-  - [ ] `exporters.otlp.tls.key_file` = Cat 9 infra key path
-  - [ ] `exporters.otlp.endpoint` uses `https://grafana-otel-lgtm:14317` (or 14318 for HTTP)
-- **Files**: `deployments/shared-telemetry/otel-collector-contrib/config.yml`
+  - [ ] `gremlins unleash --tags=e2e ./internal/apps/framework/service/testing/e2e_infra` runs without error
+  - [ ] Efficacy ≥95% (all mutations killed or timed out)
+  - [ ] LIVED count: 0 (no surviving mutations)
+  - [ ] NOT COVERED paths documented and justified
+  - [ ] Results in `test-output/v14-phase5/mutation-report.txt`
 
-#### Task 5.2: OTel Compose Add Cat 9 Infra Mount
-
+#### Task 5.2: Fix Surviving Mutations (if any)
 - **Status**: ❌
-- **Estimated**: 0.5h
+- **Estimated**: 30m
 - **Dependencies**: Task 5.1
-- **Description**: Add Cat 9 infra cert dir mount to OTel Collector compose (and Cat 1 truststore).
+- **Description**: Add tests for any surviving mutations found in Task 5.1.
 - **Acceptance Criteria**:
-  - [ ] Cat 9 infra `otel-collector-contrib-https-client-entity-infra/` keystore mounted
-  - [ ] Cat 1 `public-https-server-issuing-ca/truststore/` mounted (OTel needs to verify Grafana server cert)
-  - [ ] Previous mounts (Cat 2 + Cat 8 from Phase 1) retained
-  - [ ] Total OTel mounts: Cat 1 truststore + Cat 2 keystore + Cat 8 truststore + Cat 9 infra keystore (exactly 4 dirs)
-- **Files**: `deployments/shared-telemetry/compose.yml`
+  - [ ] All surviving mutations addressed (new tests or documented impossibility)
+  - [ ] Re-run confirms efficacy ≥95%
+
+#### Task 5.3: Race Detection on `e2e_infra`
+- **Status**: ❌
+- **Estimated**: 10m
+- **Dependencies**: Phase 4 complete
+- **Description**: Run the race detector on e2e_infra unit tests.
+- **Acceptance Criteria**:
+  - [ ] `CGO_ENABLED=1 go test -race -count=2 -tags=e2e ./internal/apps/framework/service/testing/e2e_infra/...` → zero data races
+  - [ ] Results in `test-output/v14-phase5/race-report.txt`
+
+#### Task 5.4: Phase 5 Post-Mortem
+- **Status**: ❌
+- **Estimated**: 10m
+- **Dependencies**: Tasks 5.1-5.3
+- **Description**: Update lessons.md with Phase 5 findings.
+- **Acceptance Criteria**:
+  - [ ] lessons.md Phase 5 section populated
 
 ---
 
-### Phase 6: Verify OTel→Grafana Pipeline [Status: ☐ TODO]
+### Phase 6: Knowledge Propagation
 
-**Phase Objective**: End-to-end telemetry pipeline verification with full mTLS chain.
+**Phase Objective**: Apply v14 lessons to permanent artifacts.
 
-#### Task 6.1: Verify Full Pipeline (app → OTel → Grafana)
-
+#### Task 6.1: Review All Lessons
 - **Status**: ❌
-- **Estimated**: 1h
-- **Dependencies**: Phase 5 complete
-- **Description**: Verify traces, metrics, and logs flow from app to Grafana dashboards.
+- **Estimated**: 10m
+- **Dependencies**: Phases 1-5 complete
+- **Description**: Review lessons.md Phases 1-5; categorize by artifact impact.
 - **Acceptance Criteria**:
-  - [ ] App instances send OTLP data to OTel; OTel forwards to Grafana
-  - [ ] Traces visible in Grafana Tempo
-  - [ ] Metrics visible in Grafana Mimir/Prometheus
-  - [ ] Logs visible in Grafana Loki
+  - [ ] All lessons categorized (ENG-HANDBOOK, agents, skills, instructions, code, tests, workflows)
+  - [ ] Priority assigned per lesson
 
-#### Task 6.2: Verify Grafana HTTPS UI
-
+#### Task 6.2: Update ENG-HANDBOOK.md
 - **Status**: ❌
-- **Estimated**: 0.5h
+- **Estimated**: 30m
 - **Dependencies**: Task 6.1
-- **Description**: Verify Grafana UI accessible via HTTPS.
+- **Description**: Update ENG-HANDBOOK.md with v14 patterns.
 - **Acceptance Criteria**:
-  - [ ] `curl --cacert <Cat 1> https://localhost:3000/api/health` returns 200
-  - [ ] Dashboards load in browser via HTTPS
-  - [ ] Certificate matches Cat 2 `public-https-server-entity-grafana-otel-lgtm`
+  - [ ] §10.4 E2E Testing: admin mTLS docker exec test pattern documented
+  - [ ] §10.2.3 Coverage Targets: `internalMain` applicability to pki-init documented
+  - [ ] §10.3.6 Shared Test Infrastructure: TestMain factory pattern added
+  - [ ] lint-docs passes with zero errors
 
-#### Task 6.3: Verify OTel→Grafana mTLS Rejection
-
+#### Task 6.3: Update Agents, Skills, Instructions
 - **Status**: ❌
-- **Estimated**: 0.5h
-- **Dependencies**: Task 6.2
-- **Description**: Verify OTel→Grafana connection fails without client cert.
+- **Estimated**: 15m
+- **Dependencies**: Task 6.1
+- **Description**: Update instruction/skill files where v14 work exposed gaps.
 - **Acceptance Criteria**:
-  - [ ] OTel exporter without `cert_file`/`key_file`: TLS handshake failure
-  - [ ] OTel exporter with wrong client cert (not from Cat 8 CA): handshake failure
+  - [ ] Relevant instruction files updated (if applicable)
+  - [ ] No agent/skill updates needed (or updates made with lint-agent-drift passing)
+  - [ ] lint-docs passes
 
----
-
-### Phase 7: Public PS-ID App Server TLS [Status: ☐ TODO]
-
-**Phase Objective**: Configure framework to load public server cert (Cat 3) and public client CA (Cat 4).
-
-#### Task 7.1: Framework Public Server Cert Config Fields
-
+#### Task 6.4: Verify Propagation Integrity
 - **Status**: ❌
-- **Estimated**: 2h
-- **Dependencies**: Phase 6 complete
-- **Description**: Add public server cert and client CA config fields to framework ServerSettings.
+- **Estimated**: 5m
+- **Dependencies**: Tasks 6.2, 6.3
+- **Description**: Run `go run ./cmd/cicd-lint lint-docs` to confirm zero propagation drift.
 - **Acceptance Criteria**:
-  - [ ] Framework config struct: `server.public-tls-cert-file` (path to Cat 3 `.crt`)
-  - [ ] Framework config struct: `server.public-tls-key-file` (path to Cat 3 `.key`)
-  - [ ] Framework config struct: `server.public-tls-client-ca-file` (path to Cat 4 truststore)
-  - [ ] Public listener uses provided cert+key; `tls.RequireAndVerifyClientCert` when `client-ca-file` set
-  - [ ] Falls back to auto-TLS (existing behavior) when fields absent
-  - [ ] `go build ./...` clean; `golangci-lint run` clean
-- **Files**: `internal/apps/framework/service/config/`, framework server builder
-
-#### Task 7.2: Deployment Config Templates for Public TLS
-
-- **Status**: ❌
-- **Estimated**: 1.5h
-- **Dependencies**: Task 7.1
-- **Description**: Add `server.public-tls-*` fields to per-variant deployment config files.
-- **Acceptance Criteria**:
-  - [ ] sqlite-1: `server.public-tls-cert-file` = Cat 3 `public-https-server-entity-{PS-ID}-sqlite-1/SAME-AS-DIR-NAME.crt`
-  - [ ] sqlite-1: `server.public-tls-key-file`, `server.public-tls-client-ca-file` = Cat 4 sqlite-domain truststore
-  - [ ] sqlite-2: same for sqlite-2
-  - [ ] postgres-1: same for postgres-1 (combined with OTLP TLS fields from Phase 2 + PG SSL fields from V12)
-  - [ ] postgres-2: same for postgres-2
-- **Files**: `deployments/{PS-ID}/config/*-app-framework-{variant}.yml`
-
-#### Task 7.3: App Compose Cert Volume Mounts for Public TLS
-
-- **Status**: ❌
-- **Estimated**: 1h
-- **Dependencies**: Task 7.2
-- **Description**: Mount Cat 3 and Cat 4 cert dirs in app compose per variant (least privilege).
-- **Acceptance Criteria**:
-  - [ ] sqlite-1: Cat 3 `public-https-server-entity-{PS-ID}-sqlite-1/` + Cat 4 sqlite-domain truststore
-  - [ ] sqlite-2: same for sqlite-2
-  - [ ] postgres-1: Cat 3 + Cat 4 postgres-domain (combined with V12 Cat 6+7+10+14 mounts)
-  - [ ] postgres-2: same for postgres-2
-- **Files**: `deployments/{PS-ID}/compose.yml`
-
----
-
-### Phase 8: Deployment Templates [Status: ☐ TODO]
-
-**Phase Objective**: Update canonical deployment templates to encode V13 cert mounts and config fields.
-
-#### Task 8.1: Update deployment-templates.md
-
-- **Status**: ❌
-- **Estimated**: 1h
-- **Dependencies**: Phase 7 complete
-- **Description**: Document V13 cert mount rules and combined V12+V13 least privilege table.
-- **Acceptance Criteria**:
-  - [ ] Combined V12+V13 least privilege table: service row × cert-dir column for all 4 variants + shared-telemetry services
-  - [ ] OTel Collector cert dirs: Cat 1 truststore + Cat 2 keystore + Cat 8 truststore + Cat 9 infra keystore
-  - [ ] Grafana cert dirs: Cat 2 keystore + Cat 8 truststore
-  - [ ] App variants: Cat 3 + Cat 4 + Cat 6 + Cat 7 + Cat 9 app + Cat 10 + Cat 14 (all mounts combined)
-- **Files**: `docs/deployment-templates.md`
-
-#### Task 8.2: Update shared-telemetry OTel Compose Template
-
-- **Status**: ❌
-- **Estimated**: 1.5h
-- **Dependencies**: Task 8.1
-- **Description**: Update shared-telemetry OTel Collector compose template.
-- **Acceptance Criteria**:
-  - [ ] OTel mounts: Cat 1 truststore + Cat 2 `public-https-server-entity-otel-collector-contrib/` + Cat 8 `otel-collector-contrib-https-client-issuing-ca/truststore/` + Cat 9 infra `otel-collector-contrib-https-client-entity-infra/`
-  - [ ] `__PS_ID__` placeholders in all paths
-  - [ ] Template compliance linter accepts the file
-- **Files**: `api/cryptosuite-registry/templates/deployments/shared-telemetry/compose.yml`
-
-#### Task 8.3: Update shared-telemetry Grafana Compose Template
-
-- **Status**: ❌
-- **Estimated**: 1h
-- **Dependencies**: Task 8.1
-- **Description**: Update shared-telemetry Grafana compose template with cert mounts and grafana.ini.
-- **Acceptance Criteria**:
-  - [ ] Grafana mounts: Cat 2 `public-https-server-entity-grafana-otel-lgtm/` + Cat 8 `grafana-otel-lgtm-https-client-issuing-ca/truststore/`
-  - [ ] `grafana.ini` mounted at `/etc/grafana/grafana.ini:ro`
-  - [ ] Healthcheck uses `https://`
-  - [ ] `__PS_ID__` placeholders used
-- **Files**: `api/cryptosuite-registry/templates/deployments/shared-telemetry/compose.yml`
-
-#### Task 8.4: Update PS-ID Compose Template (V13 additions)
-
-- **Status**: ❌
-- **Estimated**: 1.5h
-- **Dependencies**: Task 8.1
-- **Description**: Add Cat 3, Cat 4, Cat 9 app cert mounts to PS-ID compose template per variant.
-- **Acceptance Criteria**:
-  - [ ] sqlite-1: Cat 3 `public-https-server-entity-__PS_ID__-sqlite-1/` + Cat 4 sqlite-domain truststore + Cat 9 app sqlite-1 keystore
-  - [ ] sqlite-2: same for sqlite-2
-  - [ ] postgres-1: Cat 3 + Cat 4 postgres-domain + Cat 9 app postgres-1 (in addition to V12 mounts)
-  - [ ] postgres-2: same for postgres-2
-  - [ ] `__PS_ID__` placeholders consistent
-- **Files**: `api/cryptosuite-registry/templates/deployments/__PS_ID__/compose.yml`
-
----
-
-### Phase 9: Deployment Linting [Status: ☐ TODO]
-
-**Phase Objective**: All updated deployment files pass lint-deployments validators.
-
-#### Task 9.1: Run lint-deployments
-
-- **Status**: ❌
-- **Estimated**: 0.5h
-- **Dependencies**: Phase 8 complete
-- **Acceptance Criteria**:
-  - [ ] `go run ./cmd/cicd-lint lint-deployments` exits 0
-  - [ ] All 8 validators pass
-
-#### Task 9.2: Lint Deployments Code
-
-- **Status**: ❌
-- **Estimated**: 0.5h
-- **Dependencies**: Task 9.1
-- **Acceptance Criteria**:
-  - [ ] `golangci-lint run ./internal/apps/tools/cicd_lint/lint_deployments/...` passes
-  - [ ] `go test ./internal/apps/tools/cicd_lint/lint_deployments/...` passes
-
----
-
-### Phase 10: Deployment Verification — Full Telemetry Stack [Status: ☐ TODO]
-
-**Phase Objective**: Start full deployment and verify telemetry mTLS chain and app public TLS.
-
-#### Task 10.1: Docker Compose Up (pki-init + shared-telemetry + one PS-ID)
-
-- **Status**: ❌
-- **Estimated**: 1h
-- **Dependencies**: Phase 9 complete
-- **Description**: Start pki-init, shared-telemetry (OTel + Grafana), and one PS-ID deployment.
-- **Acceptance Criteria**:
-  - [ ] pki-init completes; all cert dirs present in `__PS_ID__-certs` volume
-  - [ ] OTel Collector healthy (TLS active)
-  - [ ] Grafana healthy (HTTPS active)
-  - [ ] PS-ID app instances (all 4 variants) healthy
-
-#### Task 10.2: Verify App→OTel→Grafana mTLS Pipeline
-
-- **Status**: ❌
-- **Estimated**: 1h
-- **Dependencies**: Task 10.1
-- **Description**: Verify telemetry flows end-to-end through mTLS chain.
-- **Acceptance Criteria**:
-  - [ ] All 4 PS-ID app variants send OTLP via mTLS to OTel (Cat 9 app certs)
-  - [ ] OTel forwards to Grafana via mTLS (Cat 9 infra cert)
-  - [ ] Traces visible in Grafana Tempo
-  - [ ] Non-mTLS OTLP rejected by OTel
-  - [ ] Grafana HTTPS UI accessible at `https://localhost:3000`
-
-#### Task 10.3: Verify App Public HTTPS
-
-- **Status**: ❌
-- **Estimated**: 1h
-- **Dependencies**: Task 10.2
-- **Description**: Verify each PS-ID app variant serves its public API over HTTPS with Cat 3 cert.
-- **Acceptance Criteria**:
-  - [ ] `GET /service/api/v1/health` via HTTPS returns 200 for all 4 variants
-  - [ ] Server cert matches Cat 3 `public-https-server-entity-{PS-ID}-{variant}`
-  - [ ] Connections without valid client cert rejected (Cat 4 CA enforcement)
-
----
-
-### Phase 11: Knowledge Propagation [Status: ☐ TODO]
-
-**Phase Objective**: Apply lessons learned to permanent artifacts.
-
-#### Task 11.1: Review Lessons
-
-- **Status**: ❌
-- **Estimated**: 0.5h
-- **Dependencies**: Phases 1-10 complete
-- **Description**: Review lessons.md entries from all prior phases.
-- **Acceptance Criteria**:
-  - [ ] All lessons reviewed
-  - [ ] Actionable items identified for ENG-HANDBOOK.md
-
-#### Task 11.2: Update ENG-HANDBOOK.md
-
-- **Status**: ❌
-- **Estimated**: 1h
-- **Dependencies**: Task 11.1
-- **Description**: Update ENG-HANDBOOK.md with OTel/Grafana mTLS and public app TLS patterns.
-- **Acceptance Criteria**:
-  - [ ] OTel Collector mTLS receiver config documented (§9.4 or new subsection)
-  - [ ] Grafana HTTPS grafana.ini approach documented (D1)
-  - [ ] OTel→Grafana mTLS forwarding documented
-  - [ ] Public PS-ID app server TLS (Cat 3/Cat 4) documented
-  - [ ] Combined V12+V13 cert mount least privilege table referenced
-
-#### Task 11.3: Update deployment-templates.md
-
-- **Status**: ❌
-- **Estimated**: 0.5h
-- **Dependencies**: Task 11.2
-- **Acceptance Criteria**:
-  - [ ] Final combined V12+V13 cert mount table verified accurate
-  - [ ] grafana.ini template content documented
-
-#### Task 11.4: Verify Propagation and Final Commit
-
-- **Status**: ❌
-- **Estimated**: 0.5h
-- **Dependencies**: Task 11.3
-- **Acceptance Criteria**:
-  - [ ] `go run ./cmd/cicd-lint lint-docs` passes
-  - [ ] Clean working tree
-  - [ ] All quality gates pass
+  - [ ] lint-docs passes with zero errors
 
 ---
 
 ## Cross-Cutting Tasks
 
-### Testing
-
-- [ ] Phase 0: pki-init generator tests pass (≥98% coverage)
-- [ ] Phase 2: Framework OTLP exporter config unit tests pass (≥95%)
-- [ ] Phase 7: Framework public server cert loading unit tests pass (≥95%)
-- [ ] Phases 3, 6, 10: verification tasks pass in Docker Compose
+### Testing (verified in Phase 1; maintained throughout)
+- [ ] All tests pass (`go test ./... -shuffle=on`)
+- [ ] pki-init coverage ≥95% (raised from v11/v13 ceiling)
+- [ ] e2e_infra coverage ≥95%
+- [ ] Mutation efficacy ≥95% for pki-init and e2e_infra
+- [ ] Race detector clean on all new code
 
 ### Code Quality
-
-- [ ] Linting passes: `golangci-lint run ./...` and `golangci-lint run --build-tags e2e,integration ./...`
-- [ ] No new TODOs without tracking
-- [ ] Formatting clean
+- [ ] `golangci-lint run` clean
+- [ ] `golangci-lint run --build-tags e2e,integration` clean
+- [ ] `go build ./...` clean
+- [ ] `go build -tags e2e,integration ./...` clean
 
 ### Documentation
-
-- [ ] `deployment-templates.md` updated with combined V12+V13 least privilege table
-- [ ] `tls-structure.md` cross-referenced for cert category numbers
-- [ ] ENG-HANDBOOK.md updated with OTel/Grafana/App TLS wiring patterns
+- [ ] ENG-HANDBOOK.md updated with v14 patterns
+- [ ] lint-docs passes
+- [ ] v13 cross-cutting tasks explicitly closed
 
 ### Deployment
-
-- [ ] `lint-deployments` passes after Phase 8 template updates (Phase 9)
-- [ ] Docker Compose health checks pass (Phase 10)
-- [ ] `./configs/` unchanged (auto-TLS mode only — no changes to configs/)
+- [ ] sm-kms Docker Compose: admin mTLS test passes
+- [ ] skeleton-template Docker Compose: migrated E2E suite passes
 
 ---
 
-## Notes
+## Notes / Deferred Work
 
-- **Least Privilege Enforcement**: Every compose template task MUST list exactly which Cat dirs are mounted and explicitly note what is NOT mounted.
-- **./configs/ isolation**: No changes to `./configs/` files; they continue using auto-TLS only.
-- **V13 depends on V12 Phase 0**: Cat 9 infra cert (`otel-collector-contrib-https-client-entity-infra`) generated in V12 Phase 0. V13 Phase 0 is independent (can run in parallel with V12 Phases 1-9).
-- **D6 contingency**: If grafana/otel-lgtm does not support OTLP ingest TLS, pivot to OTel sidecar (D6=C) in Phase 4 Task 4.2.
+- **Framework-v15 prerequisite**: This plan MUST be complete before beginning framework-v15
+  (OTel/Grafana mTLS + Public PS-ID App TLS Trust — now in `docs/framework-v15/`).
+- **16-deployment orchestrator**: v13 Item 7 mentioned this scope. Phase 4 implements the shared
+  factory (core redesign). A full 16-deployment test runner (all 4 PS-IDs × 4 variants in one run)
+  may be addressed in a future plan if needed.
 
 ---
 
 ## Evidence Archive
 
-- `test-output/v13-phase0/` — pki-init V13 cert generation verification
-- `test-output/v13-phase3/` — OTel standalone mTLS verification
-- `test-output/v13-phase6/` — OTel→Grafana pipeline verification
-- `test-output/v13-phase10/` — Full deployment stack verification
+- `test-output/v14-phase1/` — Cross-cutting quality gate verification logs
+- `test-output/v14-phase2/` — Admin mTLS test results
+- `test-output/v14-phase3/` — pki-init coverage baseline + after; mutation report
+- `test-output/v14-phase4/` — TestMain factory audit and smoke test logs
+- `test-output/v14-phase5/` — e2e_infra mutation and race results
