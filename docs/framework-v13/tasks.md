@@ -1,7 +1,7 @@
 # Tasks — Framework v13: v10-v12 Cleanup
 
-**Status**: 0 of 30 tasks complete (0%)
-**Last Updated**: 2026-06-30
+**Status**: 9 of 30 tasks complete (30%)
+**Last Updated**: 2026-07-12
 **Created**: 2026-06-30
 
 ---
@@ -47,115 +47,115 @@
 **Phase Objective**: Verify ALL v12 TLS/mTLS configuration actually works in running Docker Compose containers.
 
 #### Task 1.1: Docker Desktop Verification
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 15m
-- **Actual**: —
+- **Actual**: 10m
 - **Dependencies**: None
 - **Description**: Verify Docker Desktop is running and `docker compose` is available.
 - **Acceptance Criteria**:
-  - [ ] `docker ps` succeeds
-  - [ ] `docker compose version` shows v5+
-  - [ ] Docker engine is responsive
+  - [x] `docker ps` succeeds
+  - [x] `docker compose version` shows v5+
+  - [x] Docker engine is responsive
 
 #### Task 1.2: Start sm-kms Docker Compose Stack
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 30m
-- **Actual**: —
+- **Actual**: 45m (including 2 infrastructure bug fixes)
 - **Dependencies**: Task 1.1
 - **Description**: Build and start the sm-kms PS-ID deployment with all 4 instances (sqlite-1, sqlite-2, postgres-1, postgres-2) using `docker compose up --wait`.
 - **Acceptance Criteria**:
-  - [ ] `docker compose -f deployments/sm-kms/compose.yml up --wait` succeeds
-  - [ ] All 4 app instances reach healthy status
-  - [ ] PostgreSQL containers are running and accepting connections
-  - [ ] pki-init container completed cert generation
+  - [x] `docker compose -f deployments/sm-kms/compose.yml up --wait` succeeds
+  - [x] All 4 app instances reach healthy status
+  - [x] PostgreSQL containers are running and accepting connections
+  - [x] pki-init container completed cert generation
 
 #### Task 1.3: Verify PostgreSQL Server TLS (Cat 10)
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 30m
-- **Actual**: —
+- **Actual**: 20m
 - **Dependencies**: Task 1.2
 - **Description**: Verify PostgreSQL leader and follower accept TLS connections using Cat 10 server certificates.
 - **Acceptance Criteria**:
-  - [ ] `psql` connects to leader with `sslmode=verify-full`
-  - [ ] `psql` connects to follower with `sslmode=verify-full`
-  - [ ] `pg_stat_ssl` confirms SSL=true for connections
-  - [ ] Non-TLS connections are rejected (if HBA rules enforce)
+  - [x] `psql` connects to leader with `sslmode=verify-full`
+  - [x] `psql` connects to follower with `sslmode=verify-full`
+  - [x] `pg_stat_ssl` confirms SSL=true for connections
+  - [x] Non-TLS connections are rejected (if HBA rules enforce)
 
 #### Task 1.4: Verify PostgreSQL Client mTLS (Cat 12)
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 30m
-- **Actual**: —
+- **Actual**: 15m
 - **Dependencies**: Task 1.2
 - **Description**: Verify app instances connect to PostgreSQL with client certificates (Cat 12).
 - **Acceptance Criteria**:
-  - [ ] App instances' PostgreSQL connections show client cert in `pg_stat_ssl`
-  - [ ] GORM DSN includes correct cert paths
-  - [ ] Connection works for both postgres-1 and postgres-2 app instances
+  - [x] App instances' PostgreSQL connections show client cert in `pg_stat_ssl`
+  - [x] GORM DSN includes correct cert paths
+  - [x] Connection works for both postgres-1 and postgres-2 app instances
 
 #### Task 1.5: Verify PostgreSQL Replication TLS (Cat 13)
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 30m
-- **Actual**: —
+- **Actual**: 15m
 - **Dependencies**: Task 1.2
 - **Description**: Verify leader↔follower replication uses mTLS (Cat 13 replication certs).
 - **Acceptance Criteria**:
-  - [ ] `pg_stat_ssl` shows SSL=true for replication connection
-  - [ ] Replication status is streaming
-  - [ ] Cat 13 replication cert is mounted and used
+  - [x] `pg_stat_ssl` shows SSL=true for replication connection
+  - [x] Replication status is streaming
+  - [x] Cat 13 replication cert is mounted and used
 
 #### Task 1.6: Verify Public TLS Endpoint (Cat 2)
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 30m
-- **Actual**: —
+- **Actual**: 20m
 - **Dependencies**: Task 1.2
 - **Description**: Verify public endpoint `/service/api/v1/health` responds over TLS using Cat 2 public server cert.
 - **Acceptance Criteria**:
-  - [ ] `curl --cacert <ca-cert> https://127.0.0.1:<port>/service/api/v1/health` succeeds
-  - [ ] Response is HTTP 200 with valid health payload
-  - [ ] All 4 instances respond correctly at their assigned ports
+  - [x] `curl --cacert <ca-cert> https://127.0.0.1:<port>/service/api/v1/health` succeeds
+  - [x] Response is HTTP 200 with valid health payload
+  - [x] All 4 instances respond correctly at their assigned ports
 
 #### Task 1.7: Verify Admin mTLS Endpoint (Cat 3)
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 30m
-- **Actual**: —
+- **Actual**: 20m
 - **Dependencies**: Task 1.2
 - **Description**: Verify admin endpoint `/admin/api/v1/livez` responds over mTLS using Cat 3 admin cert (from inside container, since admin is 127.0.0.1:9090).
 - **Acceptance Criteria**:
-  - [ ] `docker compose exec` reaches admin endpoint from inside container
-  - [ ] `/admin/api/v1/livez` responds HTTP 200
-  - [ ] `/admin/api/v1/readyz` responds HTTP 200
-  - [ ] All 4 instances have functioning admin endpoints
+  - [x] `docker compose exec` reaches admin endpoint from inside container
+  - [x] `/admin/api/v1/livez` responds HTTP 200
+  - [x] `/admin/api/v1/readyz` responds HTTP 200
+  - [x] All 4 instances have functioning admin endpoints
 
 #### Task 1.8: Fix Configuration Issues
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 1h
-- **Actual**: —
+- **Actual**: 2h (3 infrastructure bugs found and fixed)
 - **Dependencies**: Tasks 1.3-1.7
 - **Description**: Fix any configuration issues discovered during TLS verification (cert paths, HBA rules, volume mounts, GORM DSN, etc.).
 - **Acceptance Criteria**:
-  - [ ] All issues from Tasks 1.3-1.7 resolved
-  - [ ] Docker compose stack restarts cleanly with fixes
-  - [ ] Evidence logged in `test-output/v13-phase1/`
+  - [x] All issues from Tasks 1.3-1.7 resolved
+  - [x] Docker compose stack restarts cleanly with fixes
+  - [x] Evidence logged in `test-output/v13-phase1/`
 
 #### Task 1.9: Phase 1 Post-Mortem
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 15m
-- **Actual**: —
+- **Actual**: 20m
 - **Dependencies**: Tasks 1.1-1.8
 - **Description**: Update lessons.md with Phase 1 findings.
 - **Acceptance Criteria**:
-  - [ ] lessons.md Phase 1 section populated
-  - [ ] Evidence archived in `test-output/v13-phase1/`
-  - [ ] Commit: `docs(framework-v13): phase 1 post-mortem`
+  - [x] lessons.md Phase 1 section populated
+  - [x] Evidence archived in `test-output/v13-phase1/`
+  - [x] Commit: `docs(framework-v13): phase 1 post-mortem`
 
 ---
 
