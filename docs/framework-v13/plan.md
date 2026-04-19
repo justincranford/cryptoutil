@@ -73,7 +73,7 @@ Framework v13 is a **cleanup plan** that resolves specific unfinished work from 
 
 ### Consolidated Lessons
 
-25 lessons consolidated in [LESSONS-10-11-12.md](LESSONS-10-11-12.md). Top 5:
+25 lessons consolidated in [RETROSPECTIVE-10-11-12.md](RETROSPECTIVE-10-11-12.md). Top 5:
 1. Docker verification MUST be in-scope, never deferred
 2. Capture lessons during each phase, not after
 3. Every config change needs runtime verification
