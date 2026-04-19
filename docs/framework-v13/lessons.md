@@ -53,7 +53,30 @@
 
 ## Phase 2: TLS/mTLS E2E Go Tests
 
-*(To be filled during Phase 2 execution using the 4-section structure above)*
+### What Worked
+
+- **`NewClientForTestWithCA` API was already available**: The function existed in `internal/shared/crypto/tls/tls_test_util.go` from a previous session. Adding it to testmains required only adding the magic constant (CA cert path) and the initialization step.
+- **Initializing CA-validated client AFTER `WaitForMultipleServices`**: The key insight from INVESTIGATION.md was that `sharedHTTPClientWithCA` was previously reverted because it was initialized before pki-init completed. Waiting until after the health checks pass guarantees pki-init has written the CA cert to the host-mounted volume.
+- **Same TLS chain test pattern works for all 4 PS-IDs**: Only the health endpoint magic constant differs between PS-IDs. `sed` substitution produced correct files for jose-ja, sm-im, skeleton-template from the sm-kms original.
+- **`ComposeManager.BuildDockerExecArgs`**: Adding a simple method that wraps `buildComposeArgs` with "exec + service" gave a clean interface for `docker exec` in tests. Unit test pass on first write.
+- **Admin port isolation test pattern**: Testing that `net.DialTimeout("tcp", "127.0.0.1:9090", 2s)` fails is a valid and fast Go E2E test for admin port non-exposure. Avoids any docker exec complexity.
+
+### What Didn't Work
+
+1. **Task 2.4 full mTLS client cert sad-path**: Writing a Go test that connects to the admin endpoint with a *wrong* client cert requires (a) the admin port to be accessible from the test host AND (b) a test client cert. Since admin is `127.0.0.1:9090` inside the container, neither condition is satisfied without docker exec complexity. Settled for admin port isolation test (not exposed to host) instead.
+2. **`gosec` nolint required for `exec.Command("docker", args...)`**: `gosec` G204 flags subprocess calls with variable commands. The `//nolint:gosec` annotation was needed for the PostgreSQL mTLS test since `docker exec` with known args is safe.
+
+### Root Causes
+
+1. **Admin mTLS limitation is architectural**: `127.0.0.1:9090` is the correct security posture for admin endpoints. Full programmatic mTLS testing from outside the container is impossible by design. The Docker Compose healthcheck (calling `/app/sm-kms livez`) provides sufficient coverage that admin TLS is functional.
+2. **pki-init CA cert path is relative**: Magic constants like `KMSE2EPublicCACertPath` are relative paths from the e2e test directory. This works correctly when tests are run with `go test ./internal/apps/sm-kms/e2e/...` from the project root.
+
+### Patterns for Future Phases
+
+- **CA-validated client initialization order is critical**: Always initialize after `WaitForMultipleServices` to guarantee pki-init has completed. Document this as a comment near initialization in testmain.
+- **Admin mTLS testing strategy**: Use Docker Compose healthcheck as the integration test for admin TLS (it calls livez via the built-in binary). Go E2E tests add admin port isolation verification (not exposed to host). Full mTLS sad-path (wrong cert → rejected) is out of scope for host-based tests.
+- **E2E test file organization**: Each PS-ID's `e2e/` directory should have: `testmain_e2e_test.go` (lifecycle), `e2e_test.go` (health checks), `e2e_tls_test.go` (TLS chain validation). Admin isolation and PostgreSQL mTLS tests are sm-kms-specific (only sm-kms has PostgreSQL in its own compose stack).
+- **PostgreSQL mTLS test via `pg_stat_ssl`**: The `docker exec psql` approach works but requires the correct compose service name and database credentials matching the secrets. Use the magic constant for the container name.
 
 ---
 
