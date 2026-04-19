@@ -95,46 +95,62 @@ v13. These were effectively done through v13's phases but never individually con
 
 ---
 
-### Phase 2: Admin mTLS Full Round-Trip Test
+### Phase 2: Admin mTLS via PS-ID livez Healthcheck
 
-**Phase Objective**: Write a Go E2E test that verifies admin endpoint mTLS from INSIDE the Docker
-container network, filling the gap left by v13 Phase 2 (which only tested port isolation).
+**Phase Objective**: Fix all PS-ID compose.yml healthchecks to use `livez` (admin port 9090,
+verifies mTLS) instead of `health` (public port 8080, no mTLS verification). Extend the `livez`
+CLI command to support `--cert`/`--key` mTLS client cert flags. A passing healthcheck IS the
+canonical proof of admin mTLS connectivity.
 
-#### Task 2.1: Audit Docker Exec Infrastructure
+#### Task 2.1: Extend livez/readyz CLI Commands for mTLS Client Cert Support
 - **Status**: ❌
-- **Estimated**: 30m
+- **Estimated**: 1h
 - **Dependencies**: Phase 1 complete
-- **Description**: Review `composeManager.BuildDockerExecArgs` added in v13; understand what
-  tooling (curl, wget, openssl) is available inside the sm-kms app container.
+- **Description**: Add `--cert` and `--key` flag support to `HTTPGet`/`HTTPPost` in
+  `internal/apps/framework/service/cli/http_client.go` and propagate through
+  `LivezCommand`/`ReadyzCommand` in `health_commands.go`.
 - **Acceptance Criteria**:
-  - [ ] Confirmed: sm-kms app container image (Alpine or similar) has `wget` or `curl`
-  - [ ] `BuildDockerExecArgs` API understood; sample invocation drafted
-  - [ ] Admin cert paths inside the container confirmed (from compose volume mounts)
+  - [ ] `HTTPGet(url, cacertPath, certPath, keyPath string)` signature extended (or new overload)
+  - [ ] `livez --cert /path/client.crt --key /path/client.key` flags parsed and used in TLS config
+  - [ ] Unit tests for new flag parsing in `http_client_test.go` (≥95% coverage)
+  - [ ] `golangci-lint run` clean on modified files
+  - [ ] Existing unit tests still pass
+- **Files**:
+  - `internal/apps/framework/service/cli/http_client.go`
+  - `internal/apps/framework/service/cli/health_commands.go`
+  - `internal/apps/framework/service/cli/http_client_test.go`
 
-#### Task 2.2: Write `e2e_admin_mtls_test.go`
+#### Task 2.2: Fix All PS-ID compose.yml Healthchecks (health → livez)
 - **Status**: ❌
-- **Estimated**: 1.5h
+- **Estimated**: 45m
 - **Dependencies**: Task 2.1
-- **Description**: Add `e2e_admin_mtls_test.go` to `internal/apps/sm-kms/e2e/` with table-driven
-  tests for admin mTLS happy and sad paths via docker exec.
+- **Description**: Update all 4 PS-ID compose.yml files to replace the `health` subcommand
+  healthcheck with the `livez` subcommand, targeting admin port 9090 with `--cacert` CA cert.
+  Update the canonical compose template in `api/cryptosuite-registry/templates/`.
 - **Acceptance Criteria**:
-  - [ ] Happy path: `docker exec` with correct admin client cert → HTTP 200 from `/admin/api/v1/livez`
-  - [ ] Sad path: `docker exec` without client cert → TLS handshake error (rejected)
-  - [ ] Table-driven structure with `t.Parallel()` on outer test; subtests sequential (docker exec)
-  - [ ] `//go:build e2e` build tag on file
-  - [ ] `golangci-lint run --build-tags e2e` clean
-- **Files**: `internal/apps/sm-kms/e2e/e2e_admin_mtls_test.go`
+  - [ ] All 4 PS-ID compose.yml healthchecks changed: `["CMD", "/app/{PS-ID}", "health", ...]`
+        → `["CMD", "/app/{PS-ID}", "livez", "--cacert", "/certs/issuing-ca.pem"]`
+  - [ ] `start_period` → `start-period` (hyphen, per docker-compose-rules)
+  - [ ] Canonical template in `api/cryptosuite-registry/templates/` updated to match
+  - [ ] `go run ./cmd/cicd-lint lint-deployments` passes
+- **Files**:
+  - `deployments/sm-kms/compose.yml`
+  - `deployments/jose-ja/compose.yml`
+  - `deployments/sm-im/compose.yml`
+  - `deployments/skeleton-template/compose.yml`
+  - `api/cryptosuite-registry/templates/compose.yml` (canonical template)
 
-#### Task 2.3: Run New Test Against Docker Stack
+#### Task 2.3: Verify Healthcheck Passes in Docker Stack
 - **Status**: ❌
 - **Estimated**: 30m
 - **Dependencies**: Task 2.2, Docker Desktop running
-- **Description**: Start sm-kms Docker Compose stack and verify the new test passes.
+- **Description**: Start sm-kms Docker Compose stack; confirm the `livez`-based healthcheck
+  passes for all 4 app instances, confirming admin TLS connectivity.
 - **Acceptance Criteria**:
   - [ ] `docker compose -f deployments/sm-kms/compose.yml up --wait` succeeds
-  - [ ] `go test -tags e2e -run TestE2E_AdminMTLS ./internal/apps/sm-kms/e2e/...` passes
-  - [ ] Both happy and sad path subtests pass
-  - [ ] `docker compose down -v` cleans up after test
+  - [ ] `docker ps` shows all 4 sm-kms app containers as `(healthy)`
+  - [ ] `docker compose -f deployments/sm-kms/compose.yml logs sm-kms-app-sqlite-1 | grep livez` shows successful connection to 127.0.0.1:9090
+  - [ ] `docker compose down -v` cleans up after verification
 
 #### Task 2.4: Phase 2 Post-Mortem
 - **Status**: ❌

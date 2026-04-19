@@ -127,24 +127,36 @@ These were done as side effects of phases but never individually confirmed.
   what didn't, root causes, patterns. Evaluate artifacts for contradictions/omissions; create fix
   tasks immediately.
 
-### Phase 2: Admin mTLS Full Round-Trip Test (3h) [Status: ☐ TODO]
+### Phase 2: Admin mTLS via PS-ID livez Healthcheck (3h) [Status: ☐ TODO]
 
-**Objective**: Write a Go E2E test that verifies the admin endpoint's mTLS requirement by
-connecting FROM INSIDE the Docker container network — filling the gap from v13 Phase 2.
+**Objective**: Establish the PS-ID binary's `livez` subcommand as the canonical admin mTLS
+verification mechanism — by fixing all PS-ID compose.yml healthchecks to use `livez` (admin port
+9090 with mTLS) instead of `health` (public port 8080, server TLS only), and extending the `livez`
+client to support mTLS client cert flags.
 
-**Context**: v13 Phase 2 established the admin port isolation test (port 9090 is NOT exposed to
-host → `net.DialTimeout` fails from test host). This is necessary but not sufficient. The full
-correctness test is: when connecting WITH the correct client cert, the admin endpoint accepts the
-connection; when connecting WITHOUT a cert, it returns `tls: certificate required`. This requires
-`docker exec` to run from inside the container.
+**Context**: v13 Phase 2 established that port 9090 is NOT exposed to the host (isolation test).
+The broader architectural insight now confirmed: the Docker Compose `HEALTHCHECK` using
+`/app/{PS-ID} livez` IS the correct admin mTLS verification mechanism — if the `livez` subcommand
+correctly presents the admin mTLS client cert to 127.0.0.1:9090 and the healthcheck passes, this
+proves end-to-end admin mTLS connectivity (server cert + client cert + mutual auth all verified).
+Separate docker exec tests are therefore unnecessary — the healthcheck IS the test.
 
-- Add `e2e_admin_mtls_test.go` to `internal/apps/sm-kms/e2e/`:
-  - Use `composeManager.BuildDockerExecArgs` (added in v13) to run `curl --cert ... --key ... --cacert ...` inside the container
-  - Happy path: connect with correct admin client cert → HTTP 200 from `/admin/api/v1/livez`
-  - Sad path: connect without client cert → `tls: certificate required` (TLS handshake error)
-- Run the new test against the sm-kms Docker Compose stack to verify it passes
-- Confirm `golangci-lint run --build-tags e2e` is clean on new file
-- **Success**: Both happy and sad paths pass in CI
+**Current gap**: All 4 PS-ID compose.yml healthchecks currently use the `health` subcommand
+targeting the PUBLIC port 8080 (`/app/sm-kms health --url https://127.0.0.1:8080/service/api/v1`).
+This bypasses the admin port entirely and provides NO verification of admin TLS or mTLS.
+
+- Extend `HTTPGet` / `HTTPPost` in `internal/apps/framework/service/cli/http_client.go` to accept
+  `--cert` and `--key` flags for mTLS client certificate presentation
+- Update `LivezCommand` and `ReadyzCommand` in `health_commands.go` to pass `--cert`/`--key` flags
+  through to `httpGetCommand` / `HTTPGet`
+- Fix all 4 PS-ID compose.yml healthchecks from `health` (port 8080) to `livez` (port 9090)
+  with `--cacert /certs/issuing-ca.pem` (and `--cert`/`--key` once admin mTLS is active)
+- Update canonical deployment template in `api/cryptosuite-registry/templates/`
+- Add unit tests for the new `--cert`/`--key` parsing in `http_client_test.go` (≥95% coverage)
+- Verify `golangci-lint run --build-tags e2e,integration` clean on changed files
+- Run `docker compose -f deployments/sm-kms/compose.yml up --wait` and confirm healthcheck passes
+  using the `livez`-based configuration
+- **Success**: All 4 PS-ID compose healthchecks use `livez`; tests pass; healthcheck passes in Docker
 - **Post-Mortem**: After quality gates pass, update lessons.md.
 
 ### Phase 3: pki-init Coverage Ceiling Mitigation (4h) [Status: ☐ TODO]
@@ -214,7 +226,8 @@ additions (`BuildDockerExecArgs`) and the new TestMain factory were never mutati
 
 - Review lessons.md from all prior phases
 - Update ENG-HANDBOOK.md with patterns from v14:
-  - Admin mTLS testing via docker exec (§10.4 E2E Testing Strategy)
+  - Admin mTLS via `livez` healthcheck as canonical verification mechanism (§5.5.5, §12.3.1)
+  - `livez`/`readyz` client mTLS cert flags (`--cert`/`--key`) (§5.3, §12.3.1)
   - `internalMain` pattern applicability to pki-init CLI entry points (§10.2.3 Coverage Targets)
   - Shared TestMain factory pattern for E2E suites (§10.3.6 Shared Test Infrastructure)
 - Update agents/skills/instructions where v14 work exposed gaps
@@ -226,21 +239,32 @@ additions (`BuildDockerExecArgs`) and the new TestMain factory were never mutati
 
 ## Decisions
 
-### D1: Admin mTLS Test Approach
+### D1: Admin mTLS Verification Approach
 
 **Options**:
 - A: docker exec curl with client cert flags inside the container
 - B: Go test that directly calls `docker exec` via `exec.Command`
 - C: Add a dedicated test helper container that runs the mTLS connection attempt
 - D: Accept port isolation test as sufficient; skip full round-trip
+- F: Fix compose healthchecks to use `livez` (admin port) + extend `livez` to accept `--cert`/`--key` mTLS client cert flags — Docker healthcheck IS the canonical mTLS round-trip test
 - E:
 
-**Decision**: Option B selected — Go test using `exec.Command("docker", ...)` via `composeManager.BuildDockerExecArgs`
+**Decision**: Option F selected — PS-ID `livez` healthcheck as canonical admin mTLS verification
 
-**Rationale**: Option B uses the `BuildDockerExecArgs` infrastructure added in v13 Phase 2
-(commit `8dae215dd`). The helper was added specifically in anticipation of this use case. Option A
-requires manual shell steps. Option C adds unnecessary complexity. Option D was v13's choice and
-explicitly called out in lessons as insufficient.
+**Rationale**: The Docker Compose `HEALTHCHECK` calling `/app/{PS-ID} livez` connects AS AN mTLS
+client to 127.0.0.1:9090. When the `livez` subcommand presents the admin client cert and the
+healthcheck passes, this proves the full mTLS round-trip (server cert + client cert + mutual auth).
+This is superior to Option B (docker exec curl) because:
+1. It is the same binary path used in production (same binary, same flags, same cert paths)
+2. It requires NO additional test code — the existing `TestE2E_AdminPortIsolation` + passing
+   healthcheck is sufficient evidence
+3. Option B uses `curl` (not available in Alpine-based images by default) and requires manual
+   client cert path discovery inside containers
+4. Option D was explicitly rejected in v13 lessons as insufficient (port isolation ≠ mTLS test)
+
+**Impact**: Phase 2 adds `--cert`/`--key` mTLS client cert support to the `livez`/`readyz`
+CLI commands and switches all 4 PS-ID compose healthchecks from `health` (public) to `livez`
+(admin). No new test files required.
 
 ### D2: pki-init `internalMain` Scope
 
