@@ -3207,9 +3207,13 @@ func TestListMessages_Handler(t *testing.T) {
 
 **Package-Level Exceptions**: Packages MAY have targets below the mandatory minimum IF a coverage ceiling analysis documents the structural ceiling. Exception format:
 
-| Package | Standard Target | Actual Target | Ceiling | Justification |
-|---------|----------------|---------------|---------|---------------|
-| internal/shared/crypto/jose | 95% | 95% | ~96% | JWE OKP branches unreachable |
+| Package | Standard Target | Actual Target | Ceiling | Justification | Mitigation |
+|---------|----------------|---------------|---------|---------------|------------|
+| internal/shared/crypto/jose | 95% | 95% | ~96% | JWE OKP branches unreachable | N/A (at target) |
+
+**Mitigation Plan — MANDATORY for exceptions below standard target**: Every package with an actual target below the standard target MUST include a mitigation plan describing how the ceiling will be raised. Acceptable mitigations: `internalMain` refactoring, E2E CI/CD integration, seam injection for `productionNew*` functions, test helper extraction. "Accept as permanent" is NOT a valid mitigation — it must include a concrete action or be explicitly marked as a next-version task with acceptance criteria.
+
+**Anti-pattern (v11 pki-init)**: Coverage ceiling of ~93% accepted at 92.4% with no mitigation plan — `productionNew*` functions remained permanently untested because no E2E CI/CD or `internalMain` refactoring was planned.
 
 #### 10.2.4 Test Seam Injection Pattern
 
