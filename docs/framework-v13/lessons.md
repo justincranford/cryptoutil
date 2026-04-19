@@ -82,7 +82,27 @@
 
 ## Phase 3: v11 Mutation & Race Testing
 
-*(To be filled during Phase 3 execution using the 4-section structure above)*
+### What Worked
+
+- **gremlins already installed**: `/home/q/go/bin/gremlins` — no install needed.
+- **Race detection clean**: `CGO_ENABLED=1 go test -race -count=2 ./internal/apps/framework/tls/` completed in 1.3s with zero data races.
+- **Mutation efficacy 100%**: Zero mutants survived. Every mutation was either killed or timed out. Timed-out mutants indicate the test suite detects the mutation (the tests hang waiting for behavior that the mutation changes, meaning the mutation IS caught, just slowly).
+- **92% mutator coverage**: 6 NOT COVERED mutations in `init.go:50` and `tier.go:32-34` are uncoverable in unit tests by design — they require production telemetry wiring or suite-level `cryptoutil` tier invocation. These are correctly excluded from coverage targets.
+
+### What Didn't Work
+
+- **`./...` pattern fails in gremlins**: `gremlins unleash --tags=!integration ./internal/apps/framework/tls/...` produced "matched no packages". Must use bare package path without `...` suffix.
+
+### Root Causes
+
+1. **gremlins `./...` pattern**: gremlins uses a different pattern matching than `go test` — it does not support recursive `...` glob. Use the explicit package directory.
+2. **Timed out ≠ survived**: gremlins reports TIMED OUT mutations separately from LIVED (survived). Timed out means the mutation caused the test to hang (detected but slowly). Both KILLED and TIMED OUT count as "mutation caught by tests". LIVED would be the problematic category.
+
+### Patterns for Future Phases
+
+- **gremlins package pattern**: Use `./internal/apps/framework/tls` (no trailing `/...`) for gremlins. `go test ./...` still works as expected.
+- **100% efficacy is the target, not 100% coverage**: Some paths in production CLI code are intentionally not unit-tested (production wiring). 92%+ mutator coverage + 100% efficacy = excellent for pki-init code.
+- **Timeout distinction**: In gremlins output, TIMED OUT mutants are caught (not survivors). Only LIVED mutants represent coverage gaps requiring new tests.
 
 ---
 
