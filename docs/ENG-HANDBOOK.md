@@ -1569,6 +1569,44 @@ if err := rateLimiter.Allow(userID.String()); err != nil {
 | Process alive, dependencies down | ✅ Pass | ❌ Fail | Remove from LB, don't restart |
 | Process stuck/deadlocked | ❌ Fail | ❌ Fail | Restart container |
 
+#### 5.5.5 Admin mTLS Healthcheck Verification Pattern
+
+The PS-ID binary's `livez` and `readyz` subcommands act as **admin port clients** — they connect to
+`127.0.0.1:9090` via HTTPS. When admin mTLS is active (the admin server requires client certs from
+all inbound connections), the `livez` subcommand **must present a valid admin client cert** for the
+TLS handshake to succeed.
+
+The Docker Compose `HEALTHCHECK` using the PS-ID binary is therefore the **canonical admin mTLS
+verification mechanism** inside containers:
+
+```yaml
+sm-kms-app-sqlite-1:
+  healthcheck:
+    test: ["CMD", "/app/sm-kms", "livez",
+           "--cacert", "/certs/issuing-ca.pem",
+           "--cert",   "/certs/admin-client.crt",
+           "--key",    "/certs/admin-client.key"]
+    start-period: 60s
+    interval: 5s
+    timeout: 10s
+    retries: 3
+```
+
+**What a passing healthcheck proves**:
+
+1. The admin TLS server (127.0.0.1:9090) is reachable and serving TLS
+2. The `livez` client successfully loaded the admin client cert from the configured paths
+3. The admin server validated the client cert (mutual TLS round-trip complete)
+4. The `/admin/api/v1/livez` endpoint returned HTTP 200 (service is alive)
+
+**MANDATORY rules**:
+
+- Use `livez` (admin port 9090, mTLS), NEVER `health` (public port 8080, server TLS only)
+- NEVER use `wget`/`curl` — they cannot present mTLS client certs and bypass mTLS verification
+- When admin server TLS is enabled but full mTLS is not yet active, `--cacert` alone suffices
+- Once admin mTLS is fully active, `--cert` and `--key` flags are **required** for the healthcheck to succeed
+- A **failing** healthcheck in mTLS mode indicates cert misconfiguration (wrong path, wrong CA, expired cert)
+
 ---
 
 ## 6. Security Architecture
@@ -4392,7 +4430,8 @@ All Dockerfiles follow identical multi-stage structure. Parameterized fields dif
 - Use `docker compose` (NOT `docker-compose`)
 - ALWAYS relative paths in compose.yml (NEVER absolute)
 - ALWAYS `127.0.0.1` in containers (NOT `localhost` - Alpine resolves to IPv6)
-- Dockerfile HEALTHCHECK: Use built-in PS-ID `livez` CLI (NEVER wget/curl)
+- Dockerfile HEALTHCHECK: Use built-in PS-ID `livez` CLI targeting admin port 9090 (NEVER the `health` CLI on public port 8080, NEVER wget/curl)
+- **Admin mTLS via `livez` healthcheck**: `livez` connects to `127.0.0.1:9090` as an mTLS client — when admin mTLS is active, `livez` MUST present the admin client cert (`--cert`/`--key`); a **passing Docker healthcheck is the canonical proof of admin mTLS end-to-end connectivity** inside the container
 - Healthcheck fields use hyphens: `start-period` (NOT `start_period`)
 - **Distroless images** (e.g. `otel/opentelemetry-collector-contrib`): NEVER use `wget`/`curl` healthchecks — set `disable: true` and use a sidecar Alpine container with wget for readiness signaling
 - **`docker-entrypoint-initdb.d/` scripts**: PostgreSQL initdb runs with Unix socket only (no TCP). ALL `psql` commands MUST omit `-h localhost`/`-h 127.0.0.1`; using `-h` causes `SASL auth` failures inside initdb
@@ -4424,30 +4463,33 @@ services:
 
 ##### Health Checks
 
-**Three Healthcheck Patterns** (see Section 10.4.2 for details):
+**Three Healthcheck Patterns** (see Section 5.5.5 for admin mTLS details):
 
-1. **Service-only** (native HEALTHCHECK):
+1. **Service-only** (PS-ID binary `livez` — targets admin port 9090, verifies admin mTLS when mTLS active):
 ```yaml
-cryptoutil-service:
+sm-kms-app-sqlite-1:
   healthcheck:
-    test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null",
-           "https://127.0.0.1:9090/admin/api/v1/livez"]
-    start_period: 60s
+    test: ["CMD", "/app/sm-kms", "livez",
+           "--cacert", "/certs/issuing-ca.pem"]
+    start-period: 60s
     interval: 5s
+    timeout: 10s
+    retries: 3
 ```
+*(When admin mTLS is active, also add `--cert /certs/admin-client.crt --key /certs/admin-client.key`)*
 
-1. **Job-only** (validation job, ExitCode=0 required):
+2. **Job-only** (validation job, ExitCode=0 required):
 ```yaml
 healthcheck-secrets:
   image: alpine:latest
   command: ["sh", "-c", "test -f /run/secrets/unseal-1of5.secret || exit 1"]
 ```
 
-1. **Service with healthcheck job** (external sidecar):
+3. **Service with healthcheck job** (external sidecar for distroless images — NEVER wget/curl for PS-ID services):
 ```yaml
 otel-collector:
   image: otel/opentelemetry-collector-contrib:latest
-  # No native healthcheck
+  # No native healthcheck (distroless image — no wget/curl available)
 
 healthcheck-otel-collector:
   image: alpine:latest
@@ -4457,7 +4499,7 @@ healthcheck-otel-collector:
       condition: service_started
 ```
 
-**Use wget (Alpine), 127.0.0.1 (not localhost), port 9090 for services. Job-only and service-with-job patterns validate availability before services start.**
+**Pattern 1 (PS-ID `livez`) is MANDATORY for all PS-ID service containers.** It verifies admin mTLS end-to-end when `--cert`/`--key` flags are supplied. NEVER use `wget`/`curl` for PS-ID service healthchecks — they bypass mTLS verification. Patterns 2 and 3 are for non-PS-ID infrastructure containers only.
 
 #### 12.3.2 Kubernetes Deployment
 
