@@ -1,414 +1,338 @@
-# Framework v13: Deterministic E2E Testing for All 16 Docker Compose Deployments
+# Framework v13: v10-v12 Cleanup — TLS Verification, Mutation Testing, Doc Sync
 
-## Executive Summary
-
-The current E2E testing infrastructure has critical gaps that prevent consistent, deterministic, and reproducible validation of all 16 Docker Compose deployments (1 suite, 5 product, 10 PS-ID). Only 4 of 10 PS-ID-level deployments have compose-based E2E tests. Zero product-level or suite-level deployments are tested. Tests are copy-pasted across services with massive code duplication, use InsecureSkipVerify instead of validating the actual TLS certificate chain, skip the sqlite-2 instance entirely, and cannot be orchestrated as a single deterministic test suite.
-
-This plan defines a comprehensive, phased approach to deliver Go-based E2E tests that orchestrate and validate all 16 `docker compose` deployments using reusable framework code. The result must be deterministic and reproducible — not dependent on LLM agent non-deterministic behavior from chat session to chat session.
-
----
-
-## Flaws Identified (Deep Analysis)
-
-### F1. Missing PS-ID E2E Tests (5 of 10 PS-IDs untested)
-
-**Current state**: Only 4 PS-IDs have compose-based E2E tests: `sm-kms`, `sm-im`, `jose-ja`, `skeleton-template`.
-
-**Missing compose-based E2E**: `pki-ca`, `identity-idp`, `identity-rs`, `identity-rp`, `identity-spa`.
-
-**`identity-authz`**: Has `rotation_test.go` in `e2e/` package, but this is NOT a compose E2E test — it creates its own in-memory SQLite DB and does not use Docker Compose at all. It must be reclassified as an integration test and a proper compose-based E2E test must be added.
-
-### F2. Zero Product-Level E2E Tests (0 of 5 products tested)
-
-No tests validate the 5 product-level compose files (`deployments/sm/`, `deployments/jose/`, `deployments/pki/`, `deployments/identity/`, `deployments/skeleton/`). These use recursive includes with `!override` port substitution (SERVICE + 10000), which is a different code path from PS-ID-level compose files. Port conflicts, include resolution, and secret path resolution are untested at this tier.
-
-### F3. Zero Suite-Level E2E Tests (0 of 1 suite tested)
-
-The suite compose file (`deployments/cryptoutil/compose.yml`) includes all 5 products, which recursively include all 10 PS-IDs. This deployment starts 40+ app instances, shared PostgreSQL, shared telemetry, and pki-init with suite-scoped cert generation. It has NEVER been tested end-to-end. Port formula (SERVICE + 20000) is untested.
-
-### F4. Massive Code Duplication in TestMain Files
-
-Each PS-ID's `testmain_e2e_test.go` is ~80 lines, of which ~70 are identical boilerplate:
-- Same 4-step lifecycle (Start → WaitForHealth → Run → Stop)
-- Same error handling pattern
-- Same variable declarations
-- Only differences: magic constant names, service-specific container names, port numbers
-
-**Impact**: When a pattern change is needed (e.g., adding compose config validation, adding cleanup verification, adding admin health checks), every TestMain must be updated independently.
-
-### F5. Magic Constant Explosion (~160 E2E constants for 4 PS-IDs)
-
-Each PS-ID requires ~15-20 magic constants for E2E: compose file path, container names (×4), port numbers (×4), health endpoint, timeout. Current 4 PS-IDs already have 146+ E2E-specific magic constants across 6 magic files. Extending to all 10 PS-IDs would require ~400+ constants. Product-level (5) and suite-level (1) would add another ~200+.
-
-**Root cause**: No data-driven test configuration. Each service hardcodes its own constants instead of deriving them from the entity registry (`registry.yaml`).
-
-### F6. sqlite-2 Instance Not Tested
-
-All existing E2E tests test only 3 of 4 instances: sqlite-1, postgres-1, postgres-2. The sqlite-2 instance is deployed but never health-checked or tested. This means 25% of deployed instances have zero E2E validation.
-
-### F7. No Admin Endpoint E2E Testing
-
-E2E tests only validate public health endpoints (`/service/api/v1/health`). Admin endpoints (`/admin/api/v1/livez`, `/admin/api/v1/readyz`) are never tested in the deployed Docker environment. The admin channel uses a different TLS configuration (127.0.0.1:9090 mTLS) that is completely unvalidated.
-
-### F8. TLS Certificate Chain Not Validated
-
-All E2E tests use `NewClientForTest()` with `InsecureSkipVerify: true`. This means:
-- TLS certificate chain is never validated (any self-signed cert accepted)
-- CA trust chain from pki-init output is never verified
-- Certificate SANs are never validated against actual container DNS names
-- mTLS client certificates are never presented or verified
-
-The `NewClientForTestWithCA()` function exists but is unused by any E2E test.
-
-### F9. PostgreSQL mTLS Not Verified (Framework v12 Deferred)
-
-Framework v12 deferred Phase 3 (verify leader/follower TLS), Phase 6 (verify app mTLS), Phase 9 (Docker Compose full verification), and Phase 10.5 (verify admin mTLS). These 10 tasks require Docker and were tagged "Docker-deferred." They remain unimplemented.
-
-### F10. No pki-init Output Verification
-
-E2E tests don't validate that pki-init generates the correct certificate tree structure. The 14-category, 90-dir (PS-ID) / 630-dir (suite) cert tree is assumed correct but never verified by any automated test in a deployed Docker environment.
-
-### F11. No Compose Config Validation Before Start
-
-`ComposeManager.Start()` calls `docker compose up` directly without first running `docker compose config` to validate the compose file. Syntax errors, invalid includes, undefined secrets, or port conflicts are only caught at container startup time, not upfront.
-
-### F12. No Cross-Service Communication Testing
-
-Products with multiple PS-IDs (e.g., SM has sm-kms + sm-im; Identity has 5 services) never test inter-service communication. Cross-service mTLS, shared database state, and federation patterns are unvalidated.
-
-### F13. No Parallel E2E Orchestration
-
-E2E tests run sequentially — one compose stack per `go test` invocation. There's no orchestrator that can bring up all 16 deployments (sequentially or parallel) and validate them in a single test run with proper resource isolation.
-
-### F14. No Cleanup Verification
-
-`ComposeManager.Stop()` calls `docker compose down -v` but doesn't verify that all containers were actually removed. Orphaned containers from failed runs can cause port conflicts in subsequent test runs.
-
-### F15. Health Endpoint Path Inconsistency
-
-Different services use different health endpoint constants. Some use `/service/api/v1/health`, which is the actual path. The constants should be standardized and derived from a single source.
-
-### F16. No Test Result Aggregation
-
-When running E2E tests across multiple deployments, there's no aggregated test result report. Each `go test` invocation produces independent output with no correlation between deployment tiers.
-
-### F17. ComposeManager Start Has No Retry Logic
-
-If `docker compose up` fails transiently (e.g., image pull timeout, Docker daemon transient error), the test fails immediately with no retry. This makes tests non-deterministic in CI/CD environments.
-
-### F18. E2E Tests Not Registry-Driven
-
-Tests are not generated or driven from the canonical entity registry (`api/cryptosuite-registry/registry.yaml`). Each PS-ID's E2E test is hand-crafted. When a new PS-ID is added or ports change, E2E tests must be manually updated.
-
-### F19. No Telemetry Verification in E2E
-
-E2E tests deploy OTel Collector and Grafana LGTM but never verify that telemetry data is actually flowing from app instances through the collector to Grafana. The `TestE2E_OtelCollectorHealth` test is skipped in sm-im with a comment about port 13133 not being exposed.
-
-### F20. No Graceful Shutdown Testing
-
-E2E tests never exercise the `/admin/api/v1/shutdown` endpoint. Graceful shutdown behavior under Docker Compose `stop` is unverified.
+**Status**: Planning
+**Created**: 2026-06-30
+**Last Updated**: 2026-06-30
+**Purpose**: Resolve specific unfinished work from Framework v10, v11, and v12 identified in RETROSPECTIVE-10-11-12.md.
 
 ---
 
-## Architecture Decisions
+## Quality Mandate - MANDATORY
 
-### D1. Registry-Driven Test Configuration
+**Quality Attributes (NO EXCEPTIONS)**:
+- ✅ **Correctness**: ALL code must be functionally correct with comprehensive tests
+- ✅ **Completeness**: NO phases or tasks or steps skipped, NO features de-prioritized, NO shortcuts
+- ✅ **Thoroughness**: Evidence-based validation at every step
+- ✅ **Reliability**: Quality gates enforced (≥95%/98% coverage/mutation)
+- ✅ **Efficiency**: Optimized for maintainability and performance, NOT implementation speed
+- ✅ **Accuracy**: Changes must address root cause, not just symptoms
+- ❌ **Time Pressure**: NEVER rush, NEVER skip validation, NEVER defer quality checks
+- ❌ **Premature Completion**: NEVER mark phases or tasks or steps complete without objective evidence
 
-**Decision**: All E2E test configuration (compose file paths, container names, port numbers, health endpoints) MUST be derived from `api/cryptosuite-registry/registry.yaml` at test runtime or via code generation. NEVER hardcode per-PS-ID magic constants.
+**ALL issues are blockers - NO exceptions:**
 
-**Rationale**: Eliminates the magic constant explosion (F5), ensures consistency with deployment configuration, and makes adding new PS-IDs automatic.
-
-### D2. Shared TestMain Factory
-
-**Decision**: A single reusable `TestMain` factory function in `e2e_infra` package MUST be used by all E2E tests. Service-specific test files only define test cases, not lifecycle management.
-
-```go
-// Framework provides this:
-func RunE2ETestMain(m *testing.M, config E2EConfig) {
-    // Standard 4-step lifecycle with all quality checks
-}
-
-// Each PS-ID test uses it:
-func TestMain(m *testing.M) {
-    e2e_infra.RunE2ETestMain(m, e2e_infra.E2EConfig{
-        DeploymentTier: "ps-id",
-        DeploymentID:   "sm-kms",
-    })
-}
-```
-
-**Rationale**: Eliminates code duplication (F4), ensures consistent lifecycle management, and makes pattern changes global.
-
-### D3. Three-Tier Test Organization
-
-**Decision**: E2E tests MUST be organized in three tiers matching the deployment hierarchy:
-
-| Tier | Location | Compose File | Port Range |
-|------|----------|-------------|-----------|
-| PS-ID | `internal/apps/{PS-ID}/e2e/` | `deployments/{PS-ID}/compose.yml` | 8000-8999 |
-| Product | `internal/apps/{PRODUCT}/e2e/` | `deployments/{PRODUCT}/compose.yml` | 18000-18999 |
-| Suite | `internal/apps/cryptoutil/e2e/` | `deployments/cryptoutil/compose.yml` | 28000-28999 |
-
-**Rationale**: Tests mirror the deployment hierarchy. Each tier validates different concerns (PS-ID: single service correctness, Product: multi-service integration, Suite: full system).
-
-### D4. All 4 Instances Must Be Tested
-
-**Decision**: Every PS-ID E2E test MUST validate all 4 instances: sqlite-1, sqlite-2, postgres-1, postgres-2. No instance may be skipped.
-
-**Rationale**: Fixes F6. The sqlite-2 instance exists to validate multi-instance isolation. Skipping it defeats the purpose of the 4-instance deployment pattern.
-
-### D5. TLS Certificate Chain Validation Required
-
-**Decision**: E2E tests MUST validate the actual TLS certificate chain from pki-init output. Use `NewClientForTestWithCA()` with the generated CA certificate, NOT `InsecureSkipVerify: true`.
-
-**Rationale**: Fixes F8. The pki-init output generates a full CA chain. Tests must verify that the chain is correct by using it for TLS verification.
-
-### D6. Compose Config Validation Before Start
-
-**Decision**: `ComposeManager.Start()` MUST run `docker compose config --quiet` before `docker compose up` to detect syntax errors, invalid includes, undefined secrets, and port conflicts early.
-
-**Rationale**: Fixes F11. Catches configuration errors before expensive container builds/starts.
-
-### D7. Admin + Public Endpoint Testing
-
-**Decision**: E2E tests MUST validate both public endpoints (`/service/api/v1/health`, `/browser/api/v1/health`) AND admin endpoints (`/admin/api/v1/livez`, `/admin/api/v1/readyz`) on every deployed instance.
-
-**Rationale**: Fixes F7. The admin channel uses different TLS (mTLS on 127.0.0.1:9090), and admin endpoint failures would be invisible without testing.
-
-**Note**: Admin endpoints are bound to `127.0.0.1:9090` inside containers and are NOT exposed to the host. E2E tests MUST use `docker compose exec` to reach admin endpoints from inside the container network, or use a test-specific compose override that exposes admin ports.
-
-### D8. Deterministic Orchestrator Command
-
-**Decision**: A single Go command (`go run ./cmd/cicd-workflow -workflows=e2e`) MUST be capable of orchestrating all 16 E2E deployments in a deterministic order: PS-ID first (smallest), then Product, then Suite. Each deployment's compose stack MUST be fully torn down before the next starts (to avoid port conflicts), unless resource isolation is achieved via Docker networks.
-
-**Rationale**: Fixes F13. Creates reproducible test execution independent of LLM agent behavior.
-
-### D9. pki-init Output Verification
-
-**Decision**: PS-ID E2E tests MUST include a test that verifies the pki-init-generated cert tree matches the expected directory count and structure for the deployment tier (90 dirs for PS-ID, varies for Product, 630 for Suite).
-
-**Rationale**: Fixes F10. Certificate structure errors are silent unless explicitly verified.
-
-### D10. Cleanup Verification and Orphan Detection
-
-**Decision**: `ComposeManager.Stop()` MUST verify that all containers are removed after `docker compose down -v`. Before `Start()`, MUST check for orphaned containers from previous runs and clean them up.
-
-**Rationale**: Fixes F14. Orphaned containers cause non-deterministic port-conflict failures.
+- ✅ **Fix issues immediately** - When unknowns discovered, blockers identified, tests fail, or quality gates are not met, STOP and address
+- ✅ **Treat as BLOCKING** - ALL issues block progress to next phase or task
+- ✅ **Document root causes** - Root cause analysis is part of planning AND implementation
+- ✅ **NEVER defer**: No "we'll fix later", no "non-critical", no "nice-to-have"
+- ✅ **NEVER skip**: Cannot mark phase or task or step complete with known issues
+- ✅ **NEVER de-prioritize quality** - Evidence-based verification is ALWAYS highest priority
 
 ---
 
-## Phased Implementation Plan
+## Overview
 
-### Phase 0: Prerequisite Cleanup and Framework v12 Completion
+Framework v13 is a **cleanup plan** that resolves specific unfinished work from v10, v11, and v12. It addresses 7 of the 15 issues identified in [RETROSPECTIVE-10-11-12.md](RETROSPECTIVE-10-11-12.md). The remaining issues were handled separately: 3 deleted (items 8, 13, 15 — not actionable), 5 fixed immediately outside this plan (items 1partial, 2, 9, 10, 14), and 1 deferred to v14 (item 7 — scope creep pattern).
 
-**Goal**: Complete the deferred Docker-dependent tasks from Framework v12 and fix structural issues before building the new E2E framework.
+**Scope (retrospective items IN this plan)**:
 
-**Tasks**:
-1. Reclassify `identity-authz/e2e/rotation_test.go` — move to integration test (it's not a compose E2E test)
-2. Complete Framework v12 Phase 3: Verify PostgreSQL leader/follower TLS in Docker
-3. Complete Framework v12 Phase 6: Verify app-to-PostgreSQL mTLS in Docker
-4. Complete Framework v12 Phase 9: Docker Compose deployment verification
-5. Complete Framework v12 Phase 10.5: Verify admin mTLS in deployment
-6. Verify all 10 PS-ID compose files pass `docker compose config --quiet`
-7. Verify all 5 Product compose files pass `docker compose config --quiet`
-8. Verify suite compose file passes `docker compose config --quiet`
+| Item | Summary | Phase |
+|------|---------|-------|
+| 1 (partial) | v12 Docker-deferred TLS tasks — Docker verification | Phase 1 |
+| 3 | No E2E verification for TLS/mTLS wiring | Phases 1, 2 |
+| 4 | PostgreSQL mTLS wiring untested end-to-end | Phases 1, 2 |
+| 5 | Admin mTLS trust verification never executed | Phases 1, 2 |
+| 6 | v11 mutation/race testing permanently deferred | Phase 3 |
+| 11 | Cross-version documentation drift (tls-structure.md vs ENG-HANDBOOK.md) | Phase 4 |
+| 12 | v10 template directory never validated via Docker | Phase 5 |
 
-### Phase 1: E2E Test Configuration Registry
+**Out of scope** (handled separately):
 
-**Goal**: Replace per-PS-ID magic constants with a registry-driven configuration system.
+| Item | Handling | Rationale |
+|------|----------|-----------|
+| 2 | Immediate fix (agent directive) | Added lessons.md mandate to implementation-execution agents |
+| 7 | Deferred to v14 | Scope creep pattern — v14 plan already exists |
+| 8 | Deleted | Over-engineered planning observation, not actionable |
+| 9 | Immediate fix (apply v12 lessons) | Sparse lessons applied to permanent artifacts |
+| 10 | Immediate fix (coverage ceiling directive) | Added mitigation plan directive to instructions/agents |
+| 13 | Deleted | Estimation accuracy observation, not actionable |
+| 14 | Immediate fix (standardize templates) | Task notation standardized in agents/instructions |
+| 15 | Deleted | Estimation bias observation, not actionable |
 
-**Tasks**:
-1. Define `E2EDeploymentConfig` struct in `e2e_infra` package:
-   ```go
-   type E2EDeploymentConfig struct {
-       Tier           string // "ps-id", "product", "suite"
-       ID             string // "sm-kms", "sm", "cryptoutil"
-       ComposeFile    string // relative to project root
-       Instances      []InstanceConfig
-       HealthEndpoint string
-       HealthTimeout  time.Duration
-       Profiles       []string
-   }
-   type InstanceConfig struct {
-       Name      string // container service name
-       PublicPort uint16
-       AdminPort  uint16 // 0 if not host-exposed
-       DBBackend  string // "sqlite" or "postgresql"
-   }
-   ```
-2. Create `e2e_infra.LoadDeploymentConfig(tier, id)` that derives config from registry.yaml + port assignment rules
-3. Create `e2e_infra.LoadAllDeploymentConfigs()` returning all 16 configs
-4. Migrate existing sm-kms E2E to use registry-driven config (validate migration)
-5. Remove per-PS-ID E2E magic constants from `internal/shared/magic/` (after all E2E tests are migrated)
-
-### Phase 2: Shared TestMain Factory and ComposeManager Enhancements
-
-**Goal**: Create a reusable TestMain that eliminates boilerplate duplication.
-
-**Tasks**:
-1. Enhance `ComposeManager` with compose config validation (`docker compose config --quiet` before `up`)
-2. Add retry logic to `ComposeManager.Start()` (1 retry with cleanup between attempts)
-3. Add orphan container detection and cleanup before `Start()`
-4. Add cleanup verification after `Stop()` (verify all containers removed)
-5. Create `RunE2ETestMain(m *testing.M, config E2EDeploymentConfig)` factory:
-   - Step 0: Validate compose config
-   - Step 1: Detect and clean orphans
-   - Step 2: Start compose stack (with retry)
-   - Step 3: Wait for all instance health (public + admin)
-   - Step 4: Run tests
-   - Step 5: Stop and verify cleanup
-6. Create `E2ETestContext` struct that TestMain provides to test functions via package-level var:
-   ```go
-   type E2ETestContext struct {
-       Config     E2EDeploymentConfig
-       HTTPClient *http.Client // TLS-verified client
-       Instances  map[string]InstanceTestEndpoints
-   }
-   ```
-
-### Phase 3: Shared E2E Test Library
-
-**Goal**: Create reusable test functions that work across all 16 deployments.
-
-**Tasks**:
-1. Create `e2e_helpers.TestAllInstancesHealthy(t, ctx)` — validates all 4 instances' public health
-2. Create `e2e_helpers.TestAllInstancesAdminHealthy(t, ctx)` — validates admin livez/readyz (via `docker compose exec`)
-3. Create `e2e_helpers.TestSQLiteIsolation(t, ctx)` — verifies sqlite-1 and sqlite-2 are isolated
-4. Create `e2e_helpers.TestPostgreSQLSharedState(t, ctx)` — verifies postgres-1 and postgres-2 share state
-5. Create `e2e_helpers.TestRegistrationFlow(t, ctx)` — tests both `/browser/` and `/service/` registration
-6. Create `e2e_helpers.TestPKIInitCertTree(t, ctx)` — verifies cert directory structure
-7. Create `e2e_helpers.TestTLSCertificateChain(t, ctx)` — validates TLS cert chain against pki-init CA
-8. Create `e2e_helpers.TestPublicAndAdminEndpoints(t, ctx)` — combined public+admin health validation
-
-### Phase 4: PS-ID E2E Tests for All 10 Services
-
-**Goal**: Every PS-ID has a compose-based E2E test using the shared framework.
-
-**Tasks**:
-1. Migrate `sm-kms` E2E to shared TestMain factory (validate no regression)
-2. Migrate `sm-im` E2E to shared TestMain factory (preserve registration tests)
-3. Migrate `jose-ja` E2E to shared TestMain factory
-4. Migrate `skeleton-template` E2E to shared TestMain factory
-5. Create `pki-ca` E2E test using shared TestMain factory
-6. Create `identity-authz` compose-based E2E test (replace rotation test with integration classification)
-7. Create `identity-idp` E2E test using shared TestMain factory
-8. Create `identity-rs` E2E test using shared TestMain factory
-9. Create `identity-rp` E2E test using shared TestMain factory
-10. Create `identity-spa` E2E test using shared TestMain factory
-
-**Each PS-ID test MUST include**: Health checks (4 instances × public + admin), SQLite isolation, PostgreSQL shared state, TLS cert chain validation, pki-init tree verification.
-
-### Phase 5: Product-Level E2E Tests (5 Products)
-
-**Goal**: Validate product-level compose files with `!override` port substitution.
-
-**Tasks**:
-1. Create `internal/apps/sm/e2e/` — tests SM product deployment (sm-kms + sm-im, ports 18000-18199)
-2. Create `internal/apps/jose/e2e/` — tests JOSE product deployment (jose-ja, ports 18200-18299)
-3. Create `internal/apps/pki/e2e/` — tests PKI product deployment (pki-ca, ports 18300-18399)
-4. Create `internal/apps/identity/e2e/` — tests Identity product deployment (5 services, ports 18400-18899)
-5. Create `internal/apps/skeleton/e2e/` — tests Skeleton product deployment (skeleton-template, ports 18900-18999)
-
-**Each product test MUST include**: All PS-ID instance health checks at product-level ports, product-level pki-init verification (correct cert tree scope), cross-service communication (for multi-PS-ID products), port formula validation (SERVICE + 10000).
-
-### Phase 6: Suite-Level E2E Test
-
-**Goal**: Validate the full suite deployment with all 40 app instances.
-
-**Tasks**:
-1. Create `internal/apps/cryptoutil/e2e/` — tests full suite deployment (all 10 PS-IDs, ports 28000-28999)
-2. Verify all 40 app instances are healthy (10 PS-IDs × 4 instances)
-3. Verify shared PostgreSQL handles all 10 PS-IDs' app connections
-4. Verify shared telemetry (OTel + Grafana) receives data from all services
-5. Verify suite-level pki-init generates 630 directories
-6. Port formula validation (SERVICE + 20000)
-
-### Phase 7: E2E Orchestrator Integration
-
-**Goal**: Integrate all 16 E2E deployments into the `cicd-workflow` command for CI/CD.
-
-**Tasks**:
-1. Update `cicd-workflow` to support tiered E2E execution: `--e2e-tier=ps-id`, `--e2e-tier=product`, `--e2e-tier=suite`, `--e2e-tier=all`
-2. Implement sequential execution with proper cleanup between deployments
-3. Add aggregated test result reporting across all 16 deployments
-4. Add CI/CD workflow for E2E: `.github/workflows/ci-e2e.yml`
-5. Add timing reporting per deployment tier
-
-### Phase 8: PostgreSQL mTLS E2E Verification (Framework v12 Completion)
-
-**Goal**: Complete the deferred PostgreSQL mTLS verification tasks from Framework v12.
-
-**Tasks**:
-1. Verify PostgreSQL leader accepts TLS connections (Cat 11 server cert validated)
-2. Verify PostgreSQL follower accepts TLS connections (Cat 11 server cert validated)
-3. Verify leader↔follower replication uses mTLS (Cat 13 replication certs)
-4. Verify app instances connect to PostgreSQL with mTLS (Cat 14 app client certs)
-5. Verify non-mTLS connections are rejected by PostgreSQL (pg_hba.conf enforcement)
-6. Verify admin channel mTLS works in deployed containers (Cat 6 + Cat 7 certs)
-
-### Phase 9: Quality Gates and Documentation
-
-**Goal**: Ensure all E2E tests meet quality standards and documentation is updated.
-
-**Tasks**:
-1. All 16 E2E tests pass deterministically (run 3 times consecutively, all pass)
-2. All E2E tests use TLS certificate chain validation (no InsecureSkipVerify)
-3. E2E test code coverage for `e2e_infra` and `e2e_helpers` packages ≥95%
-4. All old per-PS-ID E2E magic constants removed from `internal/shared/magic/`
-5. Update ENG-HANDBOOK.md Section 10.4 (E2E Testing Strategy) with new patterns
-6. Update docs/deployment-templates.md with E2E test requirements per tier
-7. Create fitness linter `e2e-coverage` that validates every PS-ID has E2E tests
-8. Update CI/CD workflows to run tiered E2E
+**Definition of E2E test** (for this plan): A Go test that orchestrates `docker compose` for start/stop, and validates everything is working according to design intent while services are up, including happy path and sad path table-driven testing.
 
 ---
 
-## Directory Count Verification Matrix
+## Background
 
-Each E2E tier MUST verify the pki-init cert tree directory count:
+### Prior Work
 
-| Tier | Deployment | Expected Dirs (2 realms) | Formula |
-|------|------------|--------------------------|---------|
-| PS-ID | Any PS-ID | 90 | 30 global + 60 PS-ID |
-| Product | sm (2 PS-IDs) | 150 | 30 global + 120 (60×2) |
-| Product | jose (1 PS-ID) | 90 | 30 global + 60 (60×1) |
-| Product | pki (1 PS-ID) | 90 | 30 global + 60 (60×1) |
-| Product | identity (5 PS-IDs) | 330 | 30 global + 300 (60×5) |
-| Product | skeleton (1 PS-ID) | 90 | 30 global + 60 (60×1) |
-| Suite | cryptoutil (10 PS-IDs) | 630 | 30 global + 600 (60 per PS-ID × 10) |
+- **v10** (Canonical Template Registry): Created ~63 template files, pki-init pflag rewrite, template-compliance linter. 33/33 tasks complete. Lessons: empty (complete knowledge loss).
+- **v11** (PKI-Init Cert Structure): Implemented 14-category cert generation, PKCS#12 keystores. 25/26 tasks complete. Deferred: mutation testing, race detection (Linux-only).
+- **v12** (PostgreSQL mTLS + Admin mTLS): Configured PostgreSQL server TLS, replication TLS, client mTLS, admin mTLS. 38/43 tasks complete. Deferred: 5 Docker verification tasks across Phases 3, 6, 9, 10.5.
 
----
+### Consolidated Lessons
 
-## Port Assignment Verification Matrix
+25 lessons consolidated in [LESSONS-10-11-12.md](LESSONS-10-11-12.md). Top 5:
+1. Docker verification MUST be in-scope, never deferred
+2. Capture lessons during each phase, not after
+3. Every config change needs runtime verification
+4. Deferred work must be explicitly assigned to a future version
+5. E2E tests mandatory for CLI entry points with productionNew* functions
 
-| Tier | Port Formula | Example (sm-kms sqlite-1) |
-|------|-------------|--------------------------|
-| PS-ID (SERVICE) | Base ports | 8000 |
-| Product | SERVICE + 10000 | 18000 |
-| Suite | SERVICE + 20000 | 28000 |
+### Prior Analysis (Preserved)
 
-E2E tests at each tier MUST verify that instances respond on the correct tier-specific ports.
+The original framework-v13 plan.md contained deep E2E gap analysis (Flaws F1-F20, Decisions D1-D10) for a comprehensive E2E overhaul of all 16 Docker Compose deployments. That analysis remains valid but is **out of scope** for this cleanup plan. The comprehensive E2E overhaul is a separate future effort. Original analysis recoverable via: `git log --all --oneline -- docs/framework-v13/plan.md`
 
 ---
 
-## Resource Requirements
+## Technical Context
 
-- **Docker Desktop**: Required for all E2E tests
-- **Memory**: Suite deployment requires ~16GB RAM (40 app instances + PostgreSQL + OTel + Grafana)
-- **Disk**: pki-init generates ~630 directories with ~2000 files for suite tier
-- **Time**: PS-ID E2E ~3-5 min each, Product ~5-10 min, Suite ~15-20 min
-- **CI/CD**: E2E workflow should run PS-ID tier on every push, Product/Suite on nightly/weekly
+- **Language**: Go 1.26.1
+- **E2E Infrastructure**: `internal/apps/framework/service/testing/e2e_infra/` — `ComposeManager` struct with `Start()`, `Stop()`, `WaitForHealth()`, `WaitForMultipleServices()`
+- **Existing E2E Tests**: 4 PS-IDs have compose-based E2E tests: `sm-kms`, `sm-im`, `jose-ja`, `skeleton-template`
+- **Missing E2E Tests**: `pki-ca`, `identity-authz`, `identity-idp`, `identity-rs`, `identity-rp`, `identity-spa`
+- **TLS Structure**: 14 cert categories generated by pki-init. See `docs/tls-structure.md`.
+- **Compose Deployments**: 10 PS-ID + 5 Product + 1 Suite = 16 total (each with 4 instances: sqlite-1, sqlite-2, postgres-1, postgres-2)
+- **Docker Requirement**: Docker Desktop MUST be running for Phases 1, 2, 5
+- **OS**: Linux (required for Phase 3 — gremlins and race detector)
+
+### Current E2E State
+
+| PS-ID | Has e2e/ dir | Has testmain | Has magic constants | TLS validated |
+|-------|:-:|:-:|:-:|:-:|
+| skeleton-template | ✅ | ✅ | ✅ | ❌ (InsecureSkipVerify) |
+| jose-ja | ✅ | ✅ | ✅ | ❌ (InsecureSkipVerify) |
+| sm-im | ✅ | ✅ | ✅ | ❌ (InsecureSkipVerify) |
+| sm-kms | ✅ | ✅ | ✅ | ❌ (InsecureSkipVerify) |
+| identity-authz | ✅ (partial) | ❌ | ✅ (PRODUCT) | ❌ |
+| identity-idp | ❌ | ❌ | ✅ (PRODUCT) | ❌ |
+| identity-rs | ❌ | ❌ | ✅ (PRODUCT) | ❌ |
+| identity-rp | ❌ | ❌ | ✅ (PRODUCT) | ❌ |
+| identity-spa | ❌ | ❌ | ✅ (PRODUCT) | ❌ |
+| pki-ca | ❌ | ❌ | ❌ | ❌ |
+
+---
+
+## Phase Status Legend
+
+`☐ TODO` | `🔄 IN PROGRESS` | `✅ COMPLETE` | `⏳ BLOCKED`
+
+## Phases
+
+### Phase 1: v12 Docker-Deferred TLS Smoke Test (4h) [Status: ☐ TODO]
+
+**Objective**: Verify that ALL v12 TLS/mTLS configuration actually works in running Docker Compose containers. This is the prerequisite smoke test that v12 deferred.
+
+**Addresses**: Retrospective items 1 (partial), 3, 4, 5
+
+**What this phase does**:
+- Start Docker Desktop
+- Run `docker compose up` for a PS-ID deployment with PostgreSQL (sm-kms is the reference service)
+- Verify PostgreSQL server TLS is active (Cat 10 server cert mounted and used)
+- Verify PostgreSQL client mTLS works (Cat 12 client cert presented by app)
+- Verify PostgreSQL replication TLS between leader/follower
+- Verify admin mTLS endpoint responds (Cat 3 admin cert)
+- Verify public TLS endpoint responds (Cat 2 public cert)
+- Fix any configuration issues found (cert paths, HBA rules, volume mounts, GORM DSN)
+
+**Success Criteria**:
+- `docker compose up --wait` succeeds for sm-kms deployment
+- All 4 app instances (sqlite-1, sqlite-2, postgres-1, postgres-2) reach healthy status
+- `psql` connects to PostgreSQL leader with `sslmode=verify-full`
+- PostgreSQL replication uses TLS (`pg_stat_ssl` shows SSL=true for replication)
+- Admin endpoint `/admin/api/v1/livez` responds over mTLS
+- Public endpoint `/service/api/v1/health` responds over TLS
+
+**Post-Mortem**: After quality gates pass, update lessons.md — what worked, what didn't, root causes, patterns.
+
+---
+
+### Phase 2: TLS/mTLS E2E Go Tests (6h) [Status: ☐ TODO]
+
+**Objective**: Write Go E2E tests that programmatically validate TLS certificate chains and mTLS authentication in running Docker Compose deployments. Replace `InsecureSkipVerify: true` with real CA trust validation.
+
+**Addresses**: Retrospective items 3, 4, 5
+
+**What this phase does**:
+- Add CA-validated TLS client to `e2e_infra` (use `NewClientForTestWithCA()` or equivalent)
+- Update existing 4 PS-ID E2E tests to validate TLS chain instead of InsecureSkipVerify
+- Add table-driven tests for public TLS chain validation (happy path: correct CA, sad path: wrong CA, expired cert)
+- Add table-driven tests for admin mTLS validation (happy path: correct client cert, sad path: no client cert, wrong client cert)
+- Add PostgreSQL mTLS connection test (verify app connects to PostgreSQL with client cert)
+- All tests orchestrate `docker compose` for start/stop via `ComposeManager`
+
+**Success Criteria**:
+- All 4 existing PS-ID E2E tests pass with real CA trust (no InsecureSkipVerify)
+- New TLS chain validation tests pass (happy + sad paths)
+- New admin mTLS tests pass (happy + sad paths)
+- PostgreSQL mTLS connection verified programmatically
+- Tests are table-driven with t.Parallel() where applicable
+
+**Post-Mortem**: After quality gates pass, update lessons.md.
+
+---
+
+### Phase 3: v11 Mutation & Race Testing (2h) [Status: ☐ TODO]
+
+**Objective**: Execute the mutation testing and race detection that v11 deferred to Linux.
+
+**Addresses**: Retrospective item 6
+
+**What this phase does**:
+- Run `gremlins unleash` on pki-init packages (`internal/apps/tools/pki_init/`)
+- Run `go test -race -count=2` on pki-init packages
+- Fix any mutation survivors or race conditions found
+- Document mutation testing efficacy score
+
+**Success Criteria**:
+- gremlins mutation score ≥95% for pki-init packages
+- Race detector clean (zero data races)
+- Any survivors analyzed and documented (true survivors vs equivalent mutations)
+
+**Post-Mortem**: After quality gates pass, update lessons.md.
+
+---
+
+### Phase 4: Documentation Synchronization (2h) [Status: ☐ TODO]
+
+**Objective**: Resolve documentation drift between `tls-structure.md`, `tls-structure-suggestions.md`, and `ENG-HANDBOOK.md`.
+
+**Addresses**: Retrospective item 11
+
+**What this phase does**:
+- Review `docs/tls-structure-suggestions.md` for pending ENG-HANDBOOK.md updates
+- Merge applicable suggestions into ENG-HANDBOOK.md §6.11.3
+- Verify `docs/tls-structure.md` reflects post-v12 cert structure (Cat 9, Cat 14 changes)
+- Run `go run ./cmd/cicd-lint lint-docs` to verify propagation integrity
+- Delete `docs/tls-structure-suggestions.md` after merging (git history preserves content)
+
+**Success Criteria**:
+- ENG-HANDBOOK.md §6.11.3 reflects the current 14-category cert structure
+- `tls-structure.md` and ENG-HANDBOOK.md are consistent
+- `lint-docs` passes with zero errors
+- No documentation references stale v11 cert structure
+
+**Post-Mortem**: After quality gates pass, update lessons.md.
+
+---
+
+### Phase 5: Template Docker Validation (2h) [Status: ☐ TODO]
+
+**Objective**: Verify that v10's template directory produces functionally correct Docker Compose deployments (not just structurally correct).
+
+**Addresses**: Retrospective item 12
+
+**What this phase does**:
+- Run `docker compose up --wait` for skeleton-template deployment (the reference service)
+- Verify all 4 instances reach healthy status
+- Run template-compliance linter (`go run ./cmd/cicd-lint lint-fitness`) to confirm structural match
+- Compare template output against actual deployment files for skeleton-template
+- Document any discrepancies between structural compliance and functional correctness
+
+**Success Criteria**:
+- skeleton-template Docker Compose deployment starts successfully
+- All 4 instances (sqlite-1, sqlite-2, postgres-1, postgres-2) healthy
+- template-compliance linter passes
+- No functional issues discovered that the structural linter missed
+
+**Post-Mortem**: After quality gates pass, update lessons.md.
+
+---
+
+### Phase 6: Knowledge Propagation (1h) [Status: ☐ TODO]
+
+**Objective**: Apply lessons learned from Phases 1-5 to permanent artifacts.
+
+**What this phase does**:
+- Review lessons.md from all prior phases
+- Update ENG-HANDBOOK.md with new patterns and decisions discovered
+- Update agents, skills, instructions as warranted
+- Update code, tests, workflows where plan work exposed gaps
+- Verify propagation integrity (`go run ./cmd/cicd-lint lint-docs validate-propagation`)
+
+**Success Criteria**:
+- All artifact updates committed with separate semantic commits per artifact type
+- Propagation check passes
+- No lessons remain unextracted
+
+---
+
+## Risk Assessment
+
+| Risk | Probability | Impact | Mitigation |
+|------|-------------|--------|------------|
+| Docker Desktop not available | Low | High (blocks Phases 1, 2, 5) | Phase 3, 4 can proceed without Docker; verify Docker before starting |
+| v12 TLS wiring has configuration bugs | Medium | Medium | Phase 1 smoke test catches these before writing E2E Go tests |
+| gremlins not installed on Linux | Low | Low | Install via `go install` or download binary |
+| PostgreSQL replication TLS hard to verify | Medium | Medium | Use `psql` with `sslinfo` extension; check `pg_stat_ssl` |
+| tls-structure-suggestions.md references stale code | Low | Low | Cross-reference with actual pki-init generator code |
+
+---
+
+## Quality Gates - MANDATORY
+
+**Per-Phase Quality Gates**:
+- ✅ All tests pass (`go test ./...`) — 100% passing, zero skips
+- ✅ Build clean (`go build ./...` AND `go build -tags e2e,integration ./...`) — zero errors
+- ✅ Linting clean (`golangci-lint run` AND `golangci-lint run --build-tags e2e,integration`) — zero warnings
+- ✅ No new TODOs without tracking in tasks.md
+- ✅ lessons.md updated with phase post-mortem (definition of done for every phase)
+
+**Coverage Targets**:
+- ✅ Production code: ≥95% line coverage
+- ✅ Infrastructure/utility code: ≥98% line coverage
+- ✅ Generated code: Excluded from coverage
+
+**Docker-Dependent Phases (1, 2, 5)**:
+- ✅ Docker Desktop running
+- ✅ `docker compose up --wait` succeeds
+- ✅ All containers reach healthy status
+- ✅ Health endpoints respond correctly
+
+**Overall**:
+- ✅ All 6 phases complete with evidence
+- ✅ All retrospective items addressed (1partial, 3, 4, 5, 6, 11, 12)
+- ✅ CI/CD clean (build, lint, test)
 
 ---
 
 ## Success Criteria
 
-1. All 16 Docker Compose deployments (10 PS-ID + 5 Product + 1 Suite) have E2E tests
-2. All E2E tests are deterministic (same result on every run given same code)
-3. All E2E tests use registry-driven configuration (no per-PS-ID magic constants)
-4. All E2E tests validate all 4 instances per PS-ID (sqlite-1, sqlite-2, postgres-1, postgres-2)
-5. All E2E tests validate TLS certificate chain (no InsecureSkipVerify)
-6. All E2E tests validate both public and admin health endpoints
-7. All E2E tests verify pki-init cert tree structure
-8. Single command orchestrates all 16 deployments: `go run ./cmd/cicd-workflow -workflows=e2e`
-9. PostgreSQL mTLS is verified in deployed Docker environment
-10. E2E test framework code has ≥95% unit test coverage
+- [ ] Phase 1: v12 TLS wiring verified in Docker — all endpoints respond correctly
+- [ ] Phase 2: E2E Go tests validate TLS chains — no InsecureSkipVerify in E2E tests
+- [ ] Phase 3: pki-init mutation score ≥95%, race detector clean
+- [ ] Phase 4: ENG-HANDBOOK.md §6.11.3 current, lint-docs passes
+- [ ] Phase 5: skeleton-template Docker Compose functional, template-compliance passes
+- [ ] Phase 6: Lessons extracted to permanent artifacts, propagation passes
+- [ ] All quality gates passing
+- [ ] Evidence archived in test-output/
+
+---
+
+## ENG-HANDBOOK.md Cross-References - MANDATORY
+
+| Topic | ENG-HANDBOOK.md Section | Phases |
+|-------|------------------------|--------|
+| Testing Strategy | [Section 10](../../docs/ENG-HANDBOOK.md#10-testing-architecture) | ALL |
+| E2E Testing | [Section 10.4](../../docs/ENG-HANDBOOK.md#104-e2e-testing-strategy) | 1, 2, 5 |
+| Mutation Testing | [Section 10.5](../../docs/ENG-HANDBOOK.md#105-mutation-testing-strategy) | 3 |
+| Quality Gates | [Section 11.2](../../docs/ENG-HANDBOOK.md#112-quality-gates) | ALL |
+| Security Architecture | [Section 6](../../docs/ENG-HANDBOOK.md#6-security-architecture) | 1, 2 |
+| PKI Architecture | [Section 6.5](../../docs/ENG-HANDBOOK.md#65-pki-architecture--strategy) | 1, 2 |
+| Deployment Architecture | [Section 12](../../docs/ENG-HANDBOOK.md#12-deployment-architecture) | 1, 2, 5 |
+| Plan Lifecycle | [Section 14.6](../../docs/ENG-HANDBOOK.md#146-plan-lifecycle-management) | ALL |
+| Post-Mortem & Knowledge Propagation | [Section 14.8](../../docs/ENG-HANDBOOK.md#148-phase-post-mortem--knowledge-propagation) | ALL |
+| Coding Standards | [Section 14.1](../../docs/ENG-HANDBOOK.md#141-coding-standards) | 2 |
+| Version Control | [Section 14.2](../../docs/ENG-HANDBOOK.md#142-version-control) | ALL |
+
+---
+
+## Evidence Archive
+
+- `test-output/phase0-research/` — Phase 0 research findings (from plan creation)
+- `test-output/v13-phase1/` — Docker TLS smoke test logs
+- `test-output/v13-phase2/` — E2E TLS test results
+- `test-output/v13-phase3/` — Mutation and race testing results
+- `test-output/v13-phase4/` — Documentation sync verification
+- `test-output/v13-phase5/` — Template Docker validation logs
