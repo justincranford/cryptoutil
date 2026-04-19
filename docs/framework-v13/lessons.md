@@ -108,7 +108,24 @@
 
 ## Phase 4: Documentation Synchronization
 
-*(To be filled during Phase 4 execution using the 4-section structure above)*
+### What Worked
+
+- **Targeted merges**: Only the 2 highest-value suggestions were merged: CLI interface docs (positional params + idempotency rule) and truststore generation rule. The remaining 6 suggestions (per-category count table, full logical layout, etc.) were intentionally left in `tls-structure.md` which ENG-HANDBOOK.md already explicitly references as the authoritative specification.
+- **lint-docs passes cleanly**: No propagation errors after ENG-HANDBOOK.md edits. All @propagate/@source blocks intact.
+
+### What Didn't Work
+
+- Nothing. Straightforward doc review and targeted merge.
+
+### Root Causes
+
+N/A — No issues encountered.
+
+### Patterns for Future Phases
+
+- **tls-structure.md is the authoritative reference**: ENG-HANDBOOK.md §6.11.3 explicitly defers to tls-structure.md for full detail. Do NOT duplicate all tls-structure.md content in ENG-HANDBOOK.md — only include what's essential for readers who won't look at the detailed spec.
+- **Suggestions files are ephemeral**: After review+merge, delete immediately. Git history preserves the content.
+- **CLI interface docs belong in ENG-HANDBOOK.md**: Operational commands (what arguments, what idempotency behavior) are more likely to be referenced by engineers working on other services than the full layout structure.
 
 ---
 

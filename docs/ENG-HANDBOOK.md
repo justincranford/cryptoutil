@@ -1949,6 +1949,12 @@ The `GenerateTLSMaterial()` function in `internal/apps/framework/service/config/
 
 The `pki-init` CLI generates the full `/certs` directory tree for each deployment tier (PS-ID, PRODUCT, SUITE). The authoritative specification is [docs/tls-structure.md](tls-structure.md).
 
+**CLI Interface**: `pki-init <PKI-INIT-DOMAIN> <TARGET-DIRECTORY>`
+
+- `<PKI-INIT-DOMAIN>` — one of 16 valid tier IDs: `cryptoutil` (suite), `sm`/`jose`/`pki`/`identity`/`skeleton` (products), or any of the 10 PS-IDs.
+- `<TARGET-DIRECTORY>` — root output directory (e.g., `/certs`). All files are written under `<TARGET-DIRECTORY>/<PKI-INIT-DOMAIN>/`.
+- **Idempotency**: if `<TARGET-DIRECTORY>/<PKI-INIT-DOMAIN>/` exists and is non-empty, `pki-init` refuses to generate and exits with an error.
+
 **14 certificate categories** organized as named directories under `{target-dir}/{tier-id}/`:
 
 | Category | Description | Directory Naming Pattern | Store Types |
@@ -1967,6 +1973,8 @@ The `pki-init` CLI generates the full `/certs` directory tree for each deploymen
 | 12 | PostgreSQL Client CAs | `postgres-tls-client-{root,issuing}-ca` | keystore+truststore |
 | 13 | PostgreSQL Replication Certs | `postgres-tls-client-entity-{leader,follower}-replication` | keystore |
 | 14 | PS-ID PostgreSQL App Clients | `postgres-tls-client-entity-{leader,follower}-{PS-ID}-postgres-{1,2}` | keystore |
+
+**Truststore rule**: `pki-init` generates a `truststore/` subdirectory **only for CA certificates** (root and issuing). End-entity (leaf) certificates never receive a `truststore/` subdirectory — trust is established via the issuing CA's truststore.
 
 **File formats per directory**:
 - **Keystore** (`{dir-name}/`): contains `{dir-name}.crt` (cert chain PEM), `{dir-name}.key` (private key PEM), `{dir-name}.p12` (PKCS#12 bundle — MODERN format, SHA-256/AES-256-CBC)
