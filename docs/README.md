@@ -702,6 +702,13 @@ OTEL Collector self-metrics → Prometheus scraping ( 8888)
 
 ## Testing Documentation
 
+**Mandatory Quality Gates** (must pass before every commit):
+
+- `go run ./cmd/cicd-lint lint-deployments` — required after any change to `deployments/` or `configs/` directories
+- `go run ./cmd/cicd-lint lint-docs` — required after any change to `docs/ENG-HANDBOOK.md` or instruction files in `.github/instructions/`
+
+**E2E Tests for CLI Entry Points with `productionNew*` Functions**: Every CLI that constructs production dependencies (telemetry, database connections, TLS config) via `productionNew*` functions MUST have at least one E2E smoke test in CI/CD. Unit tests with stubs cannot catch initialization-time config errors. See [ENG-HANDBOOK.md §10.4](ENG-HANDBOOK.md#104-e2e-testing-strategy) for details.
+
 ### End-to-End (E2E) Testing
 
 Comprehensive E2E testing validates complete workflows across all services (KMS, CA, JOSE, Identity). Tests use real service deployments with Docker Compose, real databases (PostgreSQL, SQLite), and real telemetry infrastructure.

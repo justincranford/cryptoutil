@@ -9,6 +9,8 @@ This document supersedes framework-v5/target-structure.md (deleted — git histo
 
 **RULE**: Everything listed here MUST exist. Everything NOT listed is deleted.
 
+**Directory/File Count Derivation Principle**: All file and directory counts in this document MUST be shown as a formula derived from the entity multipliers above (e.g., `4 global + 12×10 PS-IDs = 124`). Raw counts without formulas are unverifiable during review.
+
 ---
 
 ## Entity Hierarchy (Canonical)

@@ -214,6 +214,8 @@ TARGET-DIRECTORY/{PKI-INIT-DOMAIN}/
 - **Grafana LGTM OTLP ingest** (`grafana-otel-lgtm-https-client-*`): Client certs per PS-ID per app instance, one `admin` cert for UI access, and one `infra` cert for service-to-service OTel→Grafana forwarding; server cert issued by global server CA.
 - **Grafana LGTM HTTPS UI** (port 3000): Server cert in `public-https-server-entity-grafana-otel-lgtm/`, issued by global server CA.
 
+**Shared-Identity CA Chain Tracing Rule**: When accepting any design decision that involves a shared identity or certificate (e.g., a single cert shared by replication partners), IMMEDIATELY trace: (1) which CA issues the cert, (2) which truststores include that CA, (3) whether all consumers of that cert have the CA in their truststore. Gaps discovered during implementation require significant re-work. See [ENG-HANDBOOK.md §6.5](ENG-HANDBOOK.md#65-pki-architecture--strategy) for details.
+
 ## Example: skeleton-template (PS-ID)
 
 Command: `pki-init skeleton-template /tmp`

@@ -468,6 +468,18 @@ go run main.go \
 
 ## Testing
 
+### Mandatory Quality Gates
+
+Before every commit, run:
+
+```sh
+# Deployment and config structure validation (after deployments/ or configs/ changes)
+go run ./cmd/cicd-lint lint-deployments
+
+# Documentation propagation check (after ENG-HANDBOOK.md or instruction file changes)
+go run ./cmd/cicd-lint lint-docs
+```
+
 ### Automated Tests
 
 ```sh

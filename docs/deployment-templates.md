@@ -14,6 +14,8 @@ are the single source of truth for enforcement.
 **Enforcement**: `cicd-lint lint-fitness` and `cicd-lint lint-deployments` validators MUST enforce
 these templates. Any deviation from the canonical templates is a blocking error.
 
+**Docker Verification Requirement**: Any change to files in `deployments/` or `configs/` MUST include Docker Compose verification (`docker compose up --wait` + health endpoint check) **within the same phase or task**. Config-only changes without Docker verification are untested hypotheses. If Docker Desktop is unavailable, the phase is BLOCKED — not complete. Multi-file config changes (e.g., `postgresql.conf` + GORM DSN + volume mounts) MUST exercise the full config chain end-to-end before marking complete.
+
 ---
 
 ## Table of Contents
