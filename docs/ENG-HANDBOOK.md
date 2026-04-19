@@ -1947,35 +1947,35 @@ The `pki-init` CLI generates the full `/certs` directory tree for each deploymen
 
 **14 certificate categories** organized as named directories under `{target-dir}/{tier-id}/`:
 
-| Category | Naming Prefix | Example | Dir Type |
-|----------|--------------|---------|----------|
-| 1 | `public-https-server-global-root-ca` | Global root CA (shared) | truststore |
-| 2 | `public-https-server-global-issuing-ca` | Global issuing CA (shared) | truststore |
-| 3 | `public-https-server-{ps-id}-{instance}` | PS-ID TLS server leaf cert | keystore |
-| 4 | `public-https-client-{ps-id}-{root,issuing}-ca-{domain}` | Client auth issuing CA | truststore |
-| 5 | `public-https-client-{ps-id}-{user-type}-entity-{domain}-{realm}` | Client auth leaf cert | keystore |
-| 6 | `private-https-client-{ps-id}-{root,issuing}-ca-{instance}` | Admin channel CA | truststore |
-| 7 | `private-https-client-{ps-id}-mutual-entity-{instance}` | Admin channel leaf cert | keystore |
-| 8 | `public-https-client-{grafana,otel}-{root,issuing}-ca` | Grafana/OTel client CA | truststore |
-| 9 | `public-https-client-{grafana,otel}-{ps-id,admin,infra}-entity` | Grafana/OTel client leaf | keystore |
-| 10 | `private-tls-server-postgres-{root,issuing}-ca` | PostgreSQL server CA | truststore |
-| 11 | `private-tls-server-postgres-{leader,follower}-entity` | PostgreSQL server leaf | keystore |
-| 12 | `private-tls-client-postgres-{root,issuing}-ca` | PostgreSQL client CA | truststore |
-| 13 | `private-tls-client-postgres-{leader,follower}-entity` | PostgreSQL replication leaf | keystore |
-| 14 | `private-tls-client-{ps-id}-postgres-{1,2}-{leader,follower}-entity` | PS-ID PostgreSQL app client (postgres instances only) | keystore |
+| Category | Description | Directory Naming Pattern | Store Types |
+|----------|-------------|--------------------------|-------------|
+| 1 | Global HTTPS Server CAs | `public-https-server-{root,issuing}-ca` | keystore+truststore |
+| 2 | Grafana/OTel Server Certs | `public-https-server-entity-{grafana-otel-lgtm,otel-collector-contrib}` | keystore |
+| 3 | PS-ID App Server Certs | `public-https-server-entity-{PS-ID}-{sqlite,postgres}-{1,2}` | keystore |
+| 4 | PS-ID HTTPS Client CAs | `public-https-client-{root,issuing}-ca-{PS-ID}-{sqlite-1,sqlite-2,postgres}` | keystore+truststore |
+| 5 | PS-ID HTTPS Client Certs | `public-https-client-entity-{PS-ID}-{sqlite-1,sqlite-2,postgres}-{browseruser,serviceuser}-{realm}` | keystore |
+| 6 | Private mTLS CAs (Admin) | `private-https-mutual-{root,issuing}-ca-{PS-ID}-{sqlite,postgres}-{1,2}` | keystore+truststore |
+| 7 | Private mTLS Leaves (Admin) | `private-https-mutual-entity-{PS-ID}-{sqlite,postgres}-{1,2}` | keystore |
+| 8 | Grafana/OTel Client CAs | `{grafana-otel-lgtm,otel-collector-contrib}-https-client-{root,issuing}-ca` | keystore+truststore |
+| 9 | Grafana/OTel Client Certs | `{grafana-otel-lgtm,otel-collector-contrib}-https-client-entity-{PS-ID-instance,admin,infra}` | keystore |
+| 10 | PostgreSQL Server CAs | `postgres-tls-server-{root,issuing}-ca` | keystore+truststore |
+| 11 | PostgreSQL Server Certs | `postgres-tls-server-entity-{leader,follower}` | keystore |
+| 12 | PostgreSQL Client CAs | `postgres-tls-client-{root,issuing}-ca` | keystore+truststore |
+| 13 | PostgreSQL Replication Certs | `postgres-tls-client-entity-{leader,follower}-replication` | keystore |
+| 14 | PS-ID PostgreSQL App Clients | `postgres-tls-client-entity-{leader,follower}-{PS-ID}-postgres-{1,2}` | keystore |
 
 **File formats per directory**:
-- **Keystore** (`{name}-keystore`): contains `{name}.crt` (leaf cert), `{name}.key` (private key), `{name}.p12` (PKCS#12 bundle — MODERN format, SHA-256/AES-256-CBC)
-- **Truststore** (`{name}-truststore`): contains `{name}.crt` (CA cert chain), `{name}.p12` (PKCS#12 trust store — no private key)
+- **Keystore** (`{dir-name}/`): contains `{dir-name}.crt` (cert chain PEM), `{dir-name}.key` (private key PEM), `{dir-name}.p12` (PKCS#12 bundle — MODERN format, SHA-256/AES-256-CBC)
+- **Truststore** (`{dir-name}/truststore/`): subdirectory inside the keystore dir; contains `{dir-name}.crt` (CA cert chain PEM), `{dir-name}.p12` (PKCS#12 trust store — no private key)
 
-**File naming**: All files inside a directory are named identically to the directory name (`SAME-AS-DIR-NAME` convention). No secondary naming scheme required.
+**File naming**: All files inside a directory use the `SAME-AS-KEYSTORE-DIR-NAME` convention — named identically to the parent keystore directory name, not the subdirectory. No secondary naming scheme required.
 
 **PKCS#12 format**: `pkcs12.Modern.Encode` / `pkcs12.Modern.EncodeTrustStore` from `software.sslmate.com/src/go-pkcs12`. Modern format uses SHA-256 + AES-256-CBC (not legacy 3DES). CGO-free. Always use `pkcs12.Modern`, never `pkcs12.Legacy`.
 
 **Directory counts** (with 2 realms per PS-ID):
 - PS-ID scope: 90 directories
 - PRODUCT scope (sm = 2 PS-IDs): 150 directories (30 global shared + 60 per PS-ID × 2)
-- SUITE scope (10 PS-IDs): 666 directories (30 global shared + 60 per PS-ID × 10)
+- SUITE scope (10 PS-IDs): 630 directories (30 global shared + 60 per PS-ID × 10)
 
 **Docker volume delivery**: certs are written to a named Docker volume `{ps-id}-certs` by the `pki-init` service, then mounted read-only (`/certs:ro`) by all other services in the compose. NEVER use bind mounts for certs. See [docs/deployment-templates.md](deployment-templates.md) rules CO-21/CO-22.
 

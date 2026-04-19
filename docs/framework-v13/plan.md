@@ -66,7 +66,7 @@ Framework v12 deferred Phase 3 (verify leader/follower TLS), Phase 6 (verify app
 
 ### F10. No pki-init Output Verification
 
-E2E tests don't validate that pki-init generates the correct certificate tree structure. The 14-category, 90-dir (PS-ID) / 666-dir (suite) cert tree is assumed correct but never verified by any automated test in a deployed Docker environment.
+E2E tests don't validate that pki-init generates the correct certificate tree structure. The 14-category, 90-dir (PS-ID) / 630-dir (suite) cert tree is assumed correct but never verified by any automated test in a deployed Docker environment.
 
 ### F11. No Compose Config Validation Before Start
 
@@ -185,7 +185,7 @@ func TestMain(m *testing.M) {
 
 ### D9. pki-init Output Verification
 
-**Decision**: PS-ID E2E tests MUST include a test that verifies the pki-init-generated cert tree matches the expected directory count and structure for the deployment tier (90 dirs for PS-ID, varies for Product, 666 for Suite).
+**Decision**: PS-ID E2E tests MUST include a test that verifies the pki-init-generated cert tree matches the expected directory count and structure for the deployment tier (90 dirs for PS-ID, varies for Product, 630 for Suite).
 
 **Rationale**: Fixes F10. Certificate structure errors are silent unless explicitly verified.
 
@@ -320,7 +320,7 @@ func TestMain(m *testing.M) {
 2. Verify all 40 app instances are healthy (10 PS-IDs × 4 instances)
 3. Verify shared PostgreSQL handles all 10 PS-IDs' app connections
 4. Verify shared telemetry (OTel + Grafana) receives data from all services
-5. Verify suite-level pki-init generates 666 directories
+5. Verify suite-level pki-init generates 630 directories
 6. Port formula validation (SERVICE + 20000)
 
 ### Phase 7: E2E Orchestrator Integration
@@ -374,7 +374,7 @@ Each E2E tier MUST verify the pki-init cert tree directory count:
 | Product | pki (1 PS-ID) | 90 | 30 global + 60 (60×1) |
 | Product | identity (5 PS-IDs) | 330 | 30 global + 300 (60×5) |
 | Product | skeleton (1 PS-ID) | 90 | 30 global + 60 (60×1) |
-| Suite | cryptoutil (10 PS-IDs) | 666 | 30 global + 636 (varies due to shared Cat 9 admin/infra) |
+| Suite | cryptoutil (10 PS-IDs) | 630 | 30 global + 600 (60 per PS-ID × 10) |
 
 ---
 
@@ -394,7 +394,7 @@ E2E tests at each tier MUST verify that instances respond on the correct tier-sp
 
 - **Docker Desktop**: Required for all E2E tests
 - **Memory**: Suite deployment requires ~16GB RAM (40 app instances + PostgreSQL + OTel + Grafana)
-- **Disk**: pki-init generates ~666 directories with ~2000 files for suite tier
+- **Disk**: pki-init generates ~630 directories with ~2000 files for suite tier
 - **Time**: PS-ID E2E ~3-5 min each, Product ~5-10 min, Suite ~15-20 min
 - **CI/CD**: E2E workflow should run PS-ID tier on every push, Product/Suite on nightly/weekly
 

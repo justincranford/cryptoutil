@@ -38,7 +38,7 @@ All output files are created under `TARGET-DIRECTORY/PKI-INIT-DOMAIN/`. If that 
 | PS-ID | `sm-kms`, `sm-im`, `jose-ja`, `pki-ca`, `identity-authz`, `identity-idp`, `identity-rs`, `identity-rp`, `identity-spa`, `skeleton-template` |
 
 Examples:
-1. `pki-init cryptoutil        /certs`   → output: `/certs/cryptoutil/` (suite scope, 666 dirs)
+1. `pki-init cryptoutil        /certs`   → output: `/certs/cryptoutil/` (suite scope, 630 dirs)
 2. `pki-init sm                /certs`   → output: `/certs/sm/` (product scope, 150 dirs for 2 PS-IDs)
 3. `pki-init identity          /certs`   → output: `/certs/identity/` (product scope, 4 PS-IDs)
 4. `pki-init sm-kms            /tmp`     → output: `/tmp/sm-kms/` (PS-ID scope, 90 dirs)
@@ -67,7 +67,7 @@ For every PS-ID, there are 4 app instances:
 3. `{PS-ID}-app-postgres-1`
 4. `{PS-ID}-app-postgres-2`
 
-Required domains (16 categories):
+Required domains (14 certificate categories):
 
 **1. Public Global HTTPS Server CAs:**
 - One globally shared CA chain (root + issuing) for all public HTTPS server leaf certs in the deployment (app instances, Grafana LGTM, OTel Collector).
@@ -202,7 +202,7 @@ TARGET-DIRECTORY/{PKI-INIT-DOMAIN}/
 | 12 | PostgreSQL Client CAs | 4 | 4 | 4 | `postgres-tls-client-{root,issuing}-ca/[truststore/]` |
 | 13 | PostgreSQL Replication Certs | 2 | 2 | 2 | `postgres-tls-client-entity-{leader,follower}-replication/` |
 | 14 | PS-ID PostgreSQL App Clients | 4 | 4×N | 40 | `postgres-tls-client-entity-{leader,follower}-{PS-ID}-{postgres}-{1,2}/` |
-| **Total** | | **90** | **varies** | **666** | |
+| **Total** | | **90** | **varies** | **630** | |
 
 ## Policy Alignment
 
