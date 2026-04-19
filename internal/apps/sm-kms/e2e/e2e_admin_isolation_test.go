@@ -8,6 +8,8 @@ import (
 	"net"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/require"
 )
 
 // TestE2E_AdminPortIsolation verifies that the admin port (127.0.0.1:9090) is NOT exposed
@@ -43,7 +45,7 @@ func TestE2E_AdminPortIsolation(t *testing.T) {
 			if err == nil {
 				_ = conn.Close()
 				// If we reach here, an admin port leaked to host — fail the test.
-				t.Errorf("admin port %s is unexpectedly reachable from host — admin ports must NOT be exposed", tt.addr)
+				require.Fail(t, "admin port unexpectedly reachable from host — admin ports must NOT be exposed", "addr=%s", tt.addr)
 			}
 			// Connection refused or timeout = admin port correctly not exposed.
 			// This is the expected (happy) path.

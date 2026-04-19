@@ -131,7 +131,30 @@ N/A — No issues encountered.
 
 ## Phase 5: Template Docker Validation
 
-*(To be filled during Phase 5 execution using the 4-section structure above)*
+### What Worked
+
+- **All 4 skeleton-template instances reached healthy status**: sqlite-1, sqlite-2, postgres-1, postgres-2 all healthy. Both `/service/api/v1/health` and `/browser/api/v1/health` return HTTP 200 on ports 8900-8903.
+- **pki-init TLS cert generation fully functional**: The tls-config.yml fix from Phase 1 (writeTLSConfigYAML) enables skeleton-template to start cleanly with mTLS-protected PostgreSQL.
+- **Template-compliance fitness linter passes cleanly**: After updating both canonical templates (setup-logical-replication.sh: remove `-h localhost`; shared-telemetry/compose.yml: `disable: true` healthcheck), lint-fitness passes with zero errors.
+
+### What Didn't Work
+
+- **Canonical template drift**: Phase 1 fixed `setup-logical-replication.sh` and `shared-telemetry/compose.yml` in the deployed files, but the canonical templates in `api/cryptosuite-registry/templates/` were NOT updated. This caused template-compliance linter failures that blocked Phase 5 start. The fix pattern: whenever an actual deployment file is changed, the corresponding canonical template MUST also be updated.
+- **Shared PostgreSQL volume reuse**: When sm-kms stack is torn down and skeleton-template started, Docker reuses the existing `cryptoutil_postgres_leader_volume` (from sm-kms initdb). The skeleton-template user (`skeleton_template_database_user`) doesn't exist in that volume → SASL auth failure. Fix: always use `docker compose down -v` before switching stacks that share the same PostgreSQL volume names.
+- **test-patterns linter**: `e2e_admin_isolation_test.go` used `t.Errorf()` instead of `require.Fail()`. The test-patterns fitness linter catches this. Fix: replace `t.Errorf()` with `require.Fail()` + add `require` import.
+
+### Root Causes
+
+1. **Template drift**: Phase 1 patch went to deployment files only. Template update was not part of Phase 1 commit. Root cause: no "canonical template update" step in Phase 1 task checklist.
+2. **Volume naming conflict**: All product-service compose stacks use `cryptoutil_postgres_leader_volume` — the same Docker volume name. When PostgreSQL initializes, it only runs initdb scripts once (guards against re-init). If volume already contains a different PS-ID's users/databases, the new PS-ID's app fails to authenticate.
+3. **t.Errorf vs require.Fail**: Phase 2 added admin isolation test without running lint-fitness check. The test-patterns linter specifically requires testify over stdlib test assertions.
+
+### Patterns for Future Phases
+
+- **MANDATORY: Update canonical templates whenever deployment files change**: After any change to `deployments/*/` or `deployments/shared-*/` files, check `api/cryptosuite-registry/templates/` for the corresponding template and update it.
+- **Stack isolation via `docker compose down -v`**: Before starting a different PS-ID's compose stack that uses shared PostgreSQL volume names, always run `docker compose down -v` on the current stack. The `-v` flag removes named volumes, ensuring fresh PostgreSQL initdb.
+- **Run lint-fitness after every E2E test code addition**: The test-patterns sub-linter catches testify violations. Always run `go run ./cmd/cicd-lint lint-fitness` immediately after adding new test files.
+- **Fitness check checklist for any code change**: build → lint → test → lint-fitness → lint-docs. All five must pass before committing.
 
 ---
 
