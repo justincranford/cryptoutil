@@ -15,6 +15,10 @@ const (
 	CLIURLFlag = "--url"
 	// CLICACertFlag is the CA certificate flag for health/client commands.
 	CLICACertFlag = "--cacert"
+	// CLICertFlag is the client certificate flag for mTLS client authentication.
+	CLICertFlag = "--cert"
+	// CLIKeyFlag is the client private key flag for mTLS client authentication.
+	CLIKeyFlag = "--key"
 	// CLIVersionCommand is the version subcommand name.
 	CLIVersionCommand = "version"
 	// CLIVersionFlag is the long-form version flag.

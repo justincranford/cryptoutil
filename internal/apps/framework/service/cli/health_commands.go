@@ -25,6 +25,7 @@ func HealthCommand(args []string, stdout, stderr io.Writer, usageText string, de
 
 // LivezCommand implements the livez subcommand.
 // Calls GET /admin/api/v1/livez on the admin server.
+// Supports --cert and --key flags for admin mTLS client certificate presentation.
 // usageText is shown when --help is passed.
 func LivezCommand(args []string, stdout, stderr io.Writer, usageText string) int {
 	livezPath := cryptoutilSharedMagic.DefaultPrivateAdminAPIContextPath + cryptoutilSharedMagic.PrivateAdminLivezRequestPath
@@ -36,6 +37,7 @@ func LivezCommand(args []string, stdout, stderr io.Writer, usageText string) int
 
 // ReadyzCommand implements the readyz subcommand.
 // Calls GET /admin/api/v1/readyz on the admin server.
+// Supports --cert and --key flags for admin mTLS client certificate presentation.
 // usageText is shown when --help is passed.
 func ReadyzCommand(args []string, stdout, stderr io.Writer, usageText string) int {
 	readyzPath := cryptoutilSharedMagic.DefaultPrivateAdminAPIContextPath + cryptoutilSharedMagic.PrivateAdminReadyzRequestPath
@@ -57,7 +59,7 @@ func ShutdownCommand(args []string, stdout, stderr io.Writer, usageText string) 
 }
 
 // httpGetCommand is the shared implementation for GET-based health check commands.
-// It parses --url and --cacert flags, calls HTTPGet, and displays results.
+// It parses --url, --cacert, --cert, and --key flags, calls HTTPGet, and displays results.
 // successCode is the expected HTTP status code for success.
 // successMsg, requestErrMsg, and failureMsg are the display messages.
 func httpGetCommand(
@@ -77,9 +79,9 @@ func httpGetCommand(
 		return 0
 	}
 
-	url, cacertPath := parseURLAndCACert(args, defaultURL, urlSuffix)
+	url, cacertPath, certPath, keyPath := parseURLAndCerts(args, defaultURL, urlSuffix)
 
-	statusCode, body, err := HTTPGet(url, cacertPath)
+	statusCode, body, err := HTTPGet(url, cacertPath, certPath, keyPath)
 	if err != nil {
 		_, _ = fmt.Fprintf(stderr, "❌ %s: %v\n", requestErrMsg, err)
 
@@ -90,7 +92,7 @@ func httpGetCommand(
 }
 
 // httpPostCommand is the shared implementation for POST-based admin commands (shutdown).
-// It parses --url and --cacert flags, calls HTTPPost, and displays results.
+// It parses --url, --cacert, --cert, and --key flags, calls HTTPPost, and displays results.
 func httpPostCommand(
 	args []string,
 	stdout, stderr io.Writer,
@@ -107,9 +109,9 @@ func httpPostCommand(
 		return 0
 	}
 
-	url, cacertPath := parseURLAndCACert(args, defaultURL, urlSuffix)
+	url, cacertPath, certPath, keyPath := parseURLAndCerts(args, defaultURL, urlSuffix)
 
-	statusCode, body, err := HTTPPost(url, cacertPath)
+	statusCode, body, err := HTTPPost(url, cacertPath, certPath, keyPath)
 	if err != nil {
 		_, _ = fmt.Fprintf(stderr, "❌ %s: %v\n", requestErrMsg, err)
 
@@ -136,10 +138,10 @@ func httpPostCommand(
 	return 1
 }
 
-// parseURLAndCACert parses --url and --cacert flags from args.
+// parseURLAndCerts parses --url, --cacert, --cert, and --key flags from args.
 // defaultURL is used when --url is not provided.
 // urlSuffix ensures the URL ends with the correct path suffix.
-func parseURLAndCACert(args []string, defaultURL, urlSuffix string) (url, cacertPath string) {
+func parseURLAndCerts(args []string, defaultURL, urlSuffix string) (url, cacertPath, certPath, keyPath string) {
 	url = defaultURL
 
 	for i := 0; i < len(args); i++ {
@@ -161,10 +163,20 @@ func parseURLAndCACert(args []string, defaultURL, urlSuffix string) (url, cacert
 				cacertPath = args[i+1]
 				i++
 			}
+		case cryptoutilSharedMagic.CLICertFlag:
+			if i+1 < len(args) && certPath == "" {
+				certPath = args[i+1]
+				i++
+			}
+		case cryptoutilSharedMagic.CLIKeyFlag:
+			if i+1 < len(args) && keyPath == "" {
+				keyPath = args[i+1]
+				i++
+			}
 		}
 	}
 
-	return url, cacertPath
+	return url, cacertPath, certPath, keyPath
 }
 
 // displayResult writes success or failure output based on the HTTP status code.

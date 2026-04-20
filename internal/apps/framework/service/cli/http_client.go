@@ -58,21 +58,56 @@ func LoadCACertPool(cacertPath string) (*x509.CertPool, error) {
 	return caCertPool, nil
 }
 
-// HTTPGet performs an HTTP GET request with optional CA certificate validation.
-// Used by health check CLI wrappers to call API endpoints.
-func HTTPGet(url, cacertPath string) (int, string, error) {
+// LoadClientCert loads a client certificate and key for mTLS authentication.
+// Returns nil if both certPath and keyPath are empty (no mTLS client cert).
+// Returns an error if only one of certPath/keyPath is provided.
+func LoadClientCert(certPath, keyPath string) (*tls.Certificate, error) {
+	switch {
+	case certPath == "" && keyPath == "":
+		return nil, nil //nolint:nilnil // Valid: no mTLS client cert requested
+	case certPath == "" || keyPath == "":
+		return nil, fmt.Errorf("both --cert and --key must be provided together (got cert=%q key=%q)", certPath, keyPath)
+	}
+
+	cert, err := tls.LoadX509KeyPair(certPath, keyPath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to load client certificate and key: %w", err)
+	}
+
+	return &cert, nil
+}
+
+// buildTLSConfig constructs a TLS config with optional CA pool and optional client cert.
+func buildTLSConfig(caCertPool *x509.CertPool, clientCert *tls.Certificate) *tls.Config {
+	cfg := &tls.Config{
+		MinVersion:         tls.VersionTLS13,
+		RootCAs:            caCertPool,
+		InsecureSkipVerify: caCertPool == nil, //nolint:gosec // Skip verification if no CA cert provided (backward compatibility)
+	}
+
+	if clientCert != nil {
+		cfg.Certificates = []tls.Certificate{*clientCert}
+	}
+
+	return cfg
+}
+
+// HTTPGet performs an HTTP GET request with optional CA certificate validation and optional
+// mTLS client certificate. Used by health check CLI wrappers to call API endpoints.
+func HTTPGet(url, cacertPath, certPath, keyPath string) (int, string, error) {
 	caCertPool, err := LoadCACertPool(cacertPath)
 	if err != nil {
 		return 0, "", fmt.Errorf("failed to load CA certificate: %w", err)
 	}
 
+	clientCert, err := LoadClientCert(certPath, keyPath)
+	if err != nil {
+		return 0, "", fmt.Errorf("failed to load client certificate: %w", err)
+	}
+
 	client := &http.Client{
 		Transport: &http.Transport{
-			TLSClientConfig: &tls.Config{
-				MinVersion:         tls.VersionTLS13,
-				RootCAs:            caCertPool,
-				InsecureSkipVerify: caCertPool == nil, //nolint:gosec // Skip verification if no CA cert provided (backward compatibility)
-			},
+			TLSClientConfig: buildTLSConfig(caCertPool, clientCert),
 		},
 	}
 
@@ -100,21 +135,22 @@ func HTTPGet(url, cacertPath string) (int, string, error) {
 	return resp.StatusCode, string(body), nil
 }
 
-// HTTPPost performs an HTTP POST request with optional CA certificate validation.
-// Used by shutdown CLI wrapper to call admin API endpoint.
-func HTTPPost(url, cacertPath string) (int, string, error) {
+// HTTPPost performs an HTTP POST request with optional CA certificate validation and optional
+// mTLS client certificate. Used by shutdown CLI wrapper to call admin API endpoint.
+func HTTPPost(url, cacertPath, certPath, keyPath string) (int, string, error) {
 	caCertPool, err := LoadCACertPool(cacertPath)
 	if err != nil {
 		return 0, "", fmt.Errorf("failed to load CA certificate: %w", err)
 	}
 
+	clientCert, err := LoadClientCert(certPath, keyPath)
+	if err != nil {
+		return 0, "", fmt.Errorf("failed to load client certificate: %w", err)
+	}
+
 	client := &http.Client{
 		Transport: &http.Transport{
-			TLSClientConfig: &tls.Config{
-				MinVersion:         tls.VersionTLS13,
-				RootCAs:            caCertPool,
-				InsecureSkipVerify: caCertPool == nil, //nolint:gosec // Skip verification if no CA cert provided (backward compatibility)
-			},
+			TLSClientConfig: buildTLSConfig(caCertPool, clientCert),
 		},
 	}
 
