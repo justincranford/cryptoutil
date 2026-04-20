@@ -408,6 +408,16 @@ func TestReadRealmsForPSID_Scenarios(t *testing.T) {
 			psID:        validPSID,
 			wantErrFrag: "no realms configured",
 		},
+		{
+			name: "non-ENOENT read error (path is directory)",
+			registryFn: func(t *testing.T) string {
+				t.Helper()
+
+				return t.TempDir() // directory: ReadFile returns "is a directory" (not ENOENT)
+			},
+			psID:        validPSID,
+			wantErrFrag: "failed to read registry file",
+		},
 	}
 
 	for _, tc := range tests {
@@ -677,6 +687,53 @@ func TestGenerate_PSIDCerts_ErrorBranches(t *testing.T) {
 }
 
 // --- additional helpers ---
+
+// TestGenerate_WriteFails covers the two remaining error-return paths inside Generate:
+// the writeTLSConfigYAML error branch and the writeAdminCABundle error branch.
+// Both branches are only reachable when the final write step fails after all cert
+// generation has completed — earlier tests inject failures before these points.
+func TestGenerate_WriteFails(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name        string
+		failOnBase  string // filepath.Base match for selective write failure
+		wantErrFrag string
+	}{
+		{
+			name:        "writeTLSConfigYAML fails in Generate",
+			failOnBase:  "tls-config.yml",
+			wantErrFrag: "failed to write tls-config.yml",
+		},
+		{
+			name:        "writeAdminCABundle fails in Generate",
+			failOnBase:  cryptoutilSharedMagic.PKIInitAdminCABundleFilename,
+			wantErrFrag: "failed to write admin CA bundle",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			gen := cryptoutilAppsFrameworkTls.ExportedNewTestGenerator(
+				stubMkdirAll,
+				func(path string, _ []byte, _ fs.FileMode) error {
+					if filepath.Base(path) == tc.failOnBase {
+						return fmt.Errorf("injected write error for %q", tc.failOnBase)
+					}
+
+					return nil
+				},
+				stubCreateCA, stubCreateLeaf, stubGetKeyPair,
+				stubEncodePKCS12, stubEncodeTrustPKCS12, stubGetRealmsForPSID,
+			)
+
+			err := gen.Generate(cryptoutilSharedMagic.OTLPServiceSkeletonTemplate, t.TempDir())
+			require.ErrorContains(t, err, tc.wantErrFrag)
+		})
+	}
+}
 
 // failNthEncode returns an encodePKCS12Fn that fails on the Nth call.
 func failNthEncode(n int32) func(any, *x509.Certificate, []*x509.Certificate) ([]byte, error) {

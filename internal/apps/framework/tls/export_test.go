@@ -99,3 +99,23 @@ func ExportedDefaultRealms() []string {
 func (g *Generator) ExportedWriteTLSConfigYAML(targetDir string, issuingCA *cryptoutilSharedCryptoCertificate.Subject) error {
 	return g.writeTLSConfigYAML(targetDir, issuingCA)
 }
+
+// ExportedValidateTargetDir wraps validateTargetDir for direct error-path testing.
+func (g *Generator) ExportedValidateTargetDir(basePath string) error {
+	return g.validateTargetDir(basePath)
+}
+
+// ExportedWriteAdminCABundle wraps writeAdminCABundle for direct error-path testing.
+func (g *Generator) ExportedWriteAdminCABundle(targetDir string, adminCACerts [][]byte) error {
+	return g.writeAdminCABundle(targetDir, adminCACerts)
+}
+
+// ExportedProductionNewTelemetryService exposes productionNewTelemetryService for production wiring tests.
+func ExportedProductionNewTelemetryService(ctx context.Context) (*cryptoutilSharedTelemetry.TelemetryService, error) {
+	return productionNewTelemetryService(ctx)
+}
+
+// ExportedProductionNewGenerator exposes productionNewGenerator for production wiring tests.
+func ExportedProductionNewGenerator(ctx context.Context, ts *cryptoutilSharedTelemetry.TelemetryService) (*Generator, error) {
+	return productionNewGenerator(ctx, ts)
+}
