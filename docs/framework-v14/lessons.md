@@ -102,7 +102,33 @@
 
 ## Phase 3: pki-init Coverage Ceiling Mitigation
 
-*(To be filled during Phase 3 execution using the 4-section structure above)*
+### What Worked
+
+- **internalMain pre-existing**: The `initRun(ctx, newTelemetryFn, newGeneratorFn, args, stdout, stderr)` pattern was already fully in place from v13. Task 3.2 (refactor) was essentially a no-op — the work was already done. Auditing before writing new code would have confirmed this in minutes.
+- **Export-test.go seam additions**: Adding `ExportedValidateTargetDir`, `ExportedWriteAdminCABundle`, `ExportedProductionNewTelemetryService`, and `ExportedProductionNewGenerator` to `export_test.go` (without touching production files) provided clean seam access following the project's established pattern.
+- **Directory-as-path technique for non-ENOENT ReadFile errors**: Passing a directory path to `readRealmsForPSID` (via `t.TempDir()`) produces a "is a directory" error which is not `os.IsNotExist`. This reliably covers the `"failed to read registry file"` error branch with zero platform-specific tricks — works as root and non-root, on all platforms.
+- **Selective writeFileFn injection via `filepath.Base`**: Using `filepath.Base(path) == "tls-config.yml"` in a stub `writeFileFn` to selectively fail writes for `TestGenerate_WriteFails` was clean and robust — the unique filenames for `tls-config.yml` and `issuing-ca.pem` don't collide with any other write paths in `Generate()`.
+- **Production Generator for closure coverage**: Creating a real Generator via `ExportedProductionNewGenerator` and then calling `ExportedWriteKeystore`/`ExportedWriteTruststore` with a P-256 stub subject covered the `encodePKCS12Fn` and `encodeTrustPKCS12Fn` closure bodies. These are thin 1-line delegates to `pkcs12.Modern.Encode`/`EncodeTrustStore` — tested without needing P-384 key generation.
+- **100% gremlins efficacy**: Test efficacy remained at 100.00% (64 killed, 0 lived, 80 timed out) even after adding 4 new test files. New tests strengthened mutation killing for the paths they covered.
+
+### What Didn't Work
+
+- **Attempted 95% target without production closure coverage first**: The session started by adding `init_production_wiring_test.go` and `generator_admin_bundle_test.go` (getting to 93.5%), then needed 3 more separate increments to reach 95.1%: +1 for Generate error paths, +1 for production write closures, +1 for the directory-as-path registry trick. A more systematic upfront analysis would have identified all needed tests in one pass.
+- **Anonymous closures in NewGenerator are not covered by ExportedNewTestGenerator**: The test Generator bypasses `NewGenerator` entirely — closures defined inside `NewGenerator`'s return struct are never reachable via the stub path. This was not obvious until explicitly checking coverage.
+
+### Root Causes
+
+- **Coverage at 66.7% for NewGenerator**: The 5 anonymous closure bodies (`createCAFn`, `createLeafFn`, `encodePKCS12Fn`, `encodeTrustPKCS12Fn`, `getRealmsForPSIDFn`) inside the `return &Generator{...}` statement are separate coverage blocks only counted as covered when the closure is INVOKED. Creating the Generator via `NewGenerator` does not cover the closure bodies — only calling them does.
+- **Structural ceiling ~4.9%**: PEM encode error returns (writeKeystore, writeTruststore, writeTLSConfigYAML, generatePSIDCerts) are unreachable with valid certificate material. The production wiring error path is unreachable with valid settings. The validateTargetDir OS-level error paths (non-ENOENT stat error, ReadDir error, RemoveAll error) require OS-level fault injection.
+- **Generate() had 2 uncovered stmts**: No test injected a writeFileFn failure AFTER all cert generation succeeded — only before (at validateTargetDir, generateSharedCAs, etc.). The writeTLSConfigYAML and writeAdminCABundle error returns in Generate() required a selective failure that let all preceding steps succeed.
+
+### Patterns for Future Phases
+
+- **Audit closure bodies explicitly**: When `NewGenerator` or similar factory functions define anonymous closures in their return struct, check whether any test calls those closures. Coverage report at 50% for a factory function is a strong signal that closure bodies are unreachable via the current test entry points.
+- **Two test paths for production wiring**: Always have (a) tests via `ExportedNewTestGenerator` with stubs for control flow, AND (b) tests via `ExportedProductionNew*` for production closure body coverage. These serve different purposes — stubs test behavior, production tests verify wiring.
+- **Structural ceiling documentation is worth writing**: Documenting which paths are unreachable (with why) prevents re-investigation in future plans. The ~4.9% structural ceiling in `internal/apps/framework/tls` is now documented in `test-output/v14-phase3/coverage-baseline.txt` with rationale.
+- **E2E for productionNew* functions**: The `productionNewTelemetryService` error path and `createCAFn`/`createLeafFn`/`getRealmsForPSIDFn` closure bodies are best covered by the E2E CLI smoke test (Docker Compose runs `pki-init` against a real directory). Documenting this expectation prevents future agents from spending time trying to cover them in unit tests.
+- **gremlins TIMED OUT ≠ LIVED**: In gremlins output, TIMED OUT mutations count toward efficacy just like KILLED — both mean the mutation was detected. Only LIVED mutations are failures. The 80 TIMED OUT results in this package are from `CONDITIONALS_NEGATION` mutants that cause infinite loops or hangs in concurrent code (goroutines in Generate()).
 
 ---
 
