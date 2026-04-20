@@ -160,8 +160,8 @@ services:
       healthcheck-opentelemetry-collector-contrib:
         condition: service_completed_successfully
     healthcheck:
-      test: ["CMD", "/app/pki-ca", "livez", "--cacert", "/certs/issuing-ca.pem"]
-      start_period: 30s
+      test: ["CMD", "/app/pki-ca", "livez", "--cacert", "/certs/issuing-ca.pem", "--cert", "/certs/pki-ca/private-https-mutual-entity-pki-ca-sqlite-1/private-https-mutual-entity-pki-ca-sqlite-1.crt", "--key", "/certs/pki-ca/private-https-mutual-entity-pki-ca-sqlite-1/private-https-mutual-entity-pki-ca-sqlite-1.key"]
+      start-period: 30s
       interval: 30s
       timeout: 10s
       retries: 3
@@ -211,7 +211,7 @@ services:
         condition: service_completed_successfully
     healthcheck:
       test: ["CMD", "/app/pki-ca", "livez", "--cacert", "/certs/issuing-ca.pem"]
-      start_period: 30s
+      start-period: 30s
       interval: 30s
       timeout: 10s
       retries: 3
@@ -264,7 +264,7 @@ services:
         condition: service_completed_successfully
     healthcheck:
       test: ["CMD", "/app/pki-ca", "livez", "--cacert", "/certs/issuing-ca.pem"]
-      start_period: 30s
+      start-period: 30s
       interval: 30s
       timeout: 10s
       retries: 3
@@ -320,7 +320,7 @@ services:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "/app/pki-ca", "livez", "--cacert", "/certs/issuing-ca.pem"]
-      start_period: 30s
+      start-period: 30s
       interval: 30s
       timeout: 10s
       retries: 3
