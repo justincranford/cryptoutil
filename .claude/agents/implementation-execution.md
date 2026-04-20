@@ -63,6 +63,17 @@ You MUST keep working until the problem is completely solved, and all items in t
 
 **If any check fails**: Report error, DO NOT start
 
+## Resuming a Plan — Mandatory First Steps
+
+**MANDATORY additional steps when resuming a plan started in a previous session:**
+
+1. **Lint check FIRST**: Run `golangci-lint run` as the very first step — builds can pass while lint fails. Literal-use violations are BLOCKING in `TestLint_Integration` and will break `go test ./...` throughout the plan if not fixed immediately.
+2. **Verify TestLint_Integration**: Run `go test ./internal/apps/tools/cicd_lint/lint_go/...` immediately after lint — this surfaces any `literal-use` or `const-redefine` violations introduced by recent magic constant additions that `golangci-lint` alone may not surface in isolation.
+3. **Verify task pre-completion**: Before beginning any task, read the relevant source files to check whether the task was already completed in a previous session. Prevents wasted analysis and re-implementation of already-done work.
+4. **Substitute evidence for deleted files**: When a task.md references a file path that no longer exists (e.g., a deleted intermediate output), substitute with equivalent evidence from the current run (e.g., current `go test` output, current `golangci-lint` output) rather than failing the task. Deleted files are expected in long-running plans.
+
+**Root cause**: Framework V14 Phase 1 — resuming mid-plan without linting surfaced 7 blocking `literal-use` violations that caused `TestLint_Integration` to fail throughout the remaining phases, requiring costly mid-stream fixes.
+
 ## Mandatory Phase Continuation Check — CRITICAL
 
 **AFTER completing each phase and its "validation and post-mortem" task:**
