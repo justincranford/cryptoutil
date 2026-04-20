@@ -263,6 +263,26 @@ const (
 	OSNameWindows = "windows"
 )
 
+// Unit test poll interval and timeout constants for e2e_infra package tests.
+// These are intentionally short to keep unit tests fast.
+const (
+	// TestUnitPollIntervalMs is the health poll interval used in unit tests
+	// to exercise the retry loop quickly (10ms → fast tick in WaitForHealth unit tests).
+	TestUnitPollIntervalMs = 10 * time.Millisecond
+
+	// TestUnitHTTPClientTimeoutMs is the HTTP client timeout used in unit tests
+	// that need a short timeout for connection-error testing.
+	TestUnitHTTPClientTimeoutMs = 5 * time.Millisecond
+
+	// TestUnitShortTimeoutMs is a short overall timeout for unit tests that need
+	// a few ticks before triggering the timeout path.
+	TestUnitShortTimeoutMs = 50 * time.Millisecond
+
+	// TestUnitMediumTimeoutMs is a medium overall timeout used in unit tests that
+	// need slightly more ticks (e.g. non-OK status retry path).
+	TestUnitMediumTimeoutMs = 60 * time.Millisecond
+)
+
 var (
 	// TestJwkJweAlgorithm - JWE algorithm for elastic key encryption in tests.
 	TestJwkJweAlgorithm = "A256GCM/A256KW"

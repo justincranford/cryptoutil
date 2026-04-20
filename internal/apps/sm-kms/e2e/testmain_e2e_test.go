@@ -52,7 +52,7 @@ func TestMain(m *testing.M) {
 			HealthChecks:   healthChecks,
 			HealthTimeout:  cryptoutilSharedMagic.KMSE2EHealthTimeout,
 			CACertPath:     cryptoutilSharedMagic.KMSE2EPublicCACertPath,
-			ServiceLogName: "sm-kms",
+			ServiceLogName: cryptoutilSharedMagic.OTLPServiceSMKMS,
 		},
 		func(env *cryptoutilAppsFrameworkTestingE2eInfra.E2ETestEnv) {
 			sharedHTTPClient = env.InsecureClient

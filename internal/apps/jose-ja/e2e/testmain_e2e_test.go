@@ -52,7 +52,7 @@ func TestMain(m *testing.M) {
 			HealthChecks:   healthChecks,
 			HealthTimeout:  cryptoutilSharedMagic.JoseJAE2EHealthTimeout,
 			CACertPath:     cryptoutilSharedMagic.JoseJAE2EPublicCACertPath,
-			ServiceLogName: "jose-ja",
+			ServiceLogName: cryptoutilSharedMagic.OTLPServiceJoseJA,
 		},
 		func(env *cryptoutilAppsFrameworkTestingE2eInfra.E2ETestEnv) {
 			sharedHTTPClient = env.InsecureClient

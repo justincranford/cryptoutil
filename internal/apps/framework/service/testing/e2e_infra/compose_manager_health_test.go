@@ -12,6 +12,8 @@ import (
 	"testing"
 	"time"
 
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+
 	"github.com/stretchr/testify/require"
 )
 
@@ -19,11 +21,11 @@ import (
 
 // TestWaitForHealth_Timeout verifies that WaitForHealth returns error when timeout fires
 // before the ticker and no server is reachable. The 1ms timeout guarantees the timeout
-// channel fires first (ticker is set to 10ms via SetDefaultHealthPollInterval).
+// channel fires first (ticker is set to TestUnitPollIntervalMs via SetDefaultHealthPollInterval).
 //
 // Sequential: modifies package-level defaultHealthPollInterval state.
 func TestWaitForHealth_Timeout(t *testing.T) {
-	restore := SetDefaultHealthPollInterval(10 * time.Millisecond)
+	restore := SetDefaultHealthPollInterval(cryptoutilSharedMagic.TestUnitPollIntervalMs)
 	defer restore()
 
 	cm := &ComposeManager{
@@ -31,7 +33,7 @@ func TestWaitForHealth_Timeout(t *testing.T) {
 		HTTPClient:  &http.Client{Timeout: time.Second},
 	}
 
-	// 1ms timeout fires before the 10ms tick.
+	// 1ms timeout fires before the poll tick.
 	err := cm.WaitForHealth("http://127.0.0.1:19999/health", 1*time.Millisecond)
 	require.Error(t, err)
 	require.ErrorContains(t, err, "health check timeout after")
@@ -42,16 +44,16 @@ func TestWaitForHealth_Timeout(t *testing.T) {
 //
 // Sequential: modifies package-level defaultHealthPollInterval state.
 func TestWaitForHealth_ConnError(t *testing.T) {
-	restore := SetDefaultHealthPollInterval(10 * time.Millisecond)
+	restore := SetDefaultHealthPollInterval(cryptoutilSharedMagic.TestUnitPollIntervalMs)
 	defer restore()
 
 	cm := &ComposeManager{
 		ComposeFile: "nonexistent/compose.yml",
-		HTTPClient:  &http.Client{Timeout: 5 * time.Millisecond},
+		HTTPClient:  &http.Client{Timeout: cryptoutilSharedMagic.TestUnitHTTPClientTimeoutMs},
 	}
 
-	// Timeout after 50ms, ticker at 10ms → several retries.
-	err := cm.WaitForHealth("http://127.0.0.1:19999/health", 50*time.Millisecond)
+	// Timeout after TestUnitShortTimeoutMs, ticker at TestUnitPollIntervalMs → several retries.
+	err := cm.WaitForHealth("http://127.0.0.1:19999/health", cryptoutilSharedMagic.TestUnitShortTimeoutMs)
 	require.Error(t, err)
 	// Either timeout or connection error message.
 	require.True(t,
@@ -65,7 +67,7 @@ func TestWaitForHealth_ConnError(t *testing.T) {
 //
 // Sequential: modifies package-level defaultHealthPollInterval state.
 func TestWaitForHealth_NonOKStatus(t *testing.T) {
-	restore := SetDefaultHealthPollInterval(10 * time.Millisecond)
+	restore := SetDefaultHealthPollInterval(cryptoutilSharedMagic.TestUnitPollIntervalMs)
 	defer restore()
 
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
@@ -78,7 +80,7 @@ func TestWaitForHealth_NonOKStatus(t *testing.T) {
 		HTTPClient:  srv.Client(),
 	}
 
-	err := cm.WaitForHealth(srv.URL+"/health", 60*time.Millisecond)
+	err := cm.WaitForHealth(srv.URL+"/health", cryptoutilSharedMagic.TestUnitMediumTimeoutMs)
 	require.Error(t, err)
 	require.ErrorContains(t, err, "health check timeout after")
 }
@@ -87,7 +89,7 @@ func TestWaitForHealth_NonOKStatus(t *testing.T) {
 //
 // Sequential: modifies package-level defaultHealthPollInterval state.
 func TestWaitForHealth_Success(t *testing.T) {
-	restore := SetDefaultHealthPollInterval(10 * time.Millisecond)
+	restore := SetDefaultHealthPollInterval(cryptoutilSharedMagic.TestUnitPollIntervalMs)
 	defer restore()
 
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
@@ -100,7 +102,7 @@ func TestWaitForHealth_Success(t *testing.T) {
 		HTTPClient:  srv.Client(),
 	}
 
-	err := cm.WaitForHealth(srv.URL+"/health", 5*time.Second)
+	err := cm.WaitForHealth(srv.URL+"/health", cryptoutilSharedMagic.TimeoutHTTPHealthRequest)
 	require.NoError(t, err)
 }
 
@@ -110,7 +112,7 @@ func TestWaitForHealth_Success(t *testing.T) {
 //
 // Sequential: modifies package-level defaultHealthPollInterval state.
 func TestWaitForHealth_InvalidURL(t *testing.T) {
-	restore := SetDefaultHealthPollInterval(10 * time.Millisecond)
+	restore := SetDefaultHealthPollInterval(cryptoutilSharedMagic.TestUnitPollIntervalMs)
 	defer restore()
 
 	cm := &ComposeManager{
@@ -119,7 +121,7 @@ func TestWaitForHealth_InvalidURL(t *testing.T) {
 	}
 
 	// Control characters in host cause NewRequestWithContext to return an error.
-	err := cm.WaitForHealth("http://invalid\x00host/health", 50*time.Millisecond)
+	err := cm.WaitForHealth("http://invalid\x00host/health", cryptoutilSharedMagic.TestUnitShortTimeoutMs)
 	require.Error(t, err)
 }
 
@@ -142,19 +144,19 @@ func TestWaitForMultipleServices_Empty(t *testing.T) {
 //
 // Sequential: modifies package-level defaultHealthPollInterval state.
 func TestWaitForMultipleServices_Timeout(t *testing.T) {
-	restore := SetDefaultHealthPollInterval(10 * time.Millisecond)
+	restore := SetDefaultHealthPollInterval(cryptoutilSharedMagic.TestUnitPollIntervalMs)
 	defer restore()
 
 	cm := &ComposeManager{
 		ComposeFile: "nonexistent/compose.yml",
-		HTTPClient:  &http.Client{Timeout: 5 * time.Millisecond},
+		HTTPClient:  &http.Client{Timeout: cryptoutilSharedMagic.TestUnitHTTPClientTimeoutMs},
 	}
 
 	services := map[string]string{
 		"test-svc": "http://127.0.0.1:19999/health",
 	}
 
-	err := cm.WaitForMultipleServices(services, 50*time.Millisecond)
+	err := cm.WaitForMultipleServices(services, cryptoutilSharedMagic.TestUnitShortTimeoutMs)
 	require.Error(t, err)
 	require.ErrorContains(t, err, "test-svc")
 }
@@ -163,7 +165,7 @@ func TestWaitForMultipleServices_Timeout(t *testing.T) {
 //
 // Sequential: modifies package-level defaultHealthPollInterval state.
 func TestWaitForMultipleServices_Success(t *testing.T) {
-	restore := SetDefaultHealthPollInterval(10 * time.Millisecond)
+	restore := SetDefaultHealthPollInterval(cryptoutilSharedMagic.TestUnitPollIntervalMs)
 	defer restore()
 
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
@@ -181,7 +183,7 @@ func TestWaitForMultipleServices_Success(t *testing.T) {
 		"svc-b": srv.URL + "/health",
 	}
 
-	err := cm.WaitForMultipleServices(services, 5*time.Second)
+	err := cm.WaitForMultipleServices(services, cryptoutilSharedMagic.TimeoutHTTPHealthRequest)
 	require.NoError(t, err)
 }
 
@@ -278,7 +280,7 @@ func TestDefaultTestmainFactoryDeps_ClosureBodies(t *testing.T) {
 	require.Error(t, err, "startFn must fail with nonexistent compose file")
 
 	// waitForServicesFn body → calls cm.WaitForMultipleServices with empty map → nil.
-	err = deps.waitForServicesFn(cm, map[string]string{}, 100*time.Millisecond)
+	err = deps.waitForServicesFn(cm, map[string]string{}, cryptoutilSharedMagic.TestTLSClientRetryWait)
 	require.NoError(t, err, "waitForServicesFn with empty services must return nil")
 
 	// stopFn body → calls cm.Stop → docker command fails → error.
@@ -296,7 +298,7 @@ func TestSetupE2ETestMain_SetupFails(t *testing.T) {
 	cfg := E2ETestConfig{
 		ComposeFile:    "/nonexistent/compose.yml",
 		HealthChecks:   map[string]string{},
-		HealthTimeout:  100 * time.Millisecond,
+		HealthTimeout:  cryptoutilSharedMagic.TestTLSClientRetryWait,
 		ServiceLogName: "test",
 	}
 

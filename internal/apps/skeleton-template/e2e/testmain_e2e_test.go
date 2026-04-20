@@ -50,7 +50,7 @@ func TestMain(m *testing.M) {
 			HealthChecks:   healthChecks,
 			HealthTimeout:  cryptoutilSharedMagic.SkeletonTemplateE2EHealthTimeout,
 			CACertPath:     cryptoutilSharedMagic.SkeletonTemplateE2EPublicCACertPath,
-			ServiceLogName: "skeleton-template",
+			ServiceLogName: cryptoutilSharedMagic.OTLPServiceSkeletonTemplate,
 		},
 		func(env *cryptoutilAppsFrameworkTestingE2eInfra.E2ETestEnv) {
 			sharedHTTPClient = env.InsecureClient

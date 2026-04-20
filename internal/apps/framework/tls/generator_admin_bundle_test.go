@@ -11,6 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	cryptoutilAppsFrameworkTls "cryptoutil/internal/apps/framework/tls"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // TestWriteAdminCABundle_WriteFileFails verifies that writeAdminCABundle propagates
@@ -68,7 +69,7 @@ func TestValidateTargetDir_FileInsteadOfDir(t *testing.T) {
 
 	tmpDir := t.TempDir()
 	filePath := fmt.Sprintf("%s/blocking-file", tmpDir)
-	require.NoError(t, os.WriteFile(filePath, []byte("data"), 0o600))
+	require.NoError(t, os.WriteFile(filePath, []byte("data"), cryptoutilSharedMagic.CacheFilePermissions))
 
 	err := gen.ExportedValidateTargetDir(filePath)
 	require.ErrorContains(t, err, "not a directory")
