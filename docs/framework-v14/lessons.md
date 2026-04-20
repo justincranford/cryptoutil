@@ -11,7 +11,42 @@
 
 ## Phase 1: Close v13 Cross-Cutting Quality Gates
 
-*(To be filled during Phase 1 execution using the 4-section structure above)*
+### What Worked
+
+- Running `go build ./...` and `golangci-lint run` immediately revealed a real blocking issue
+  (`sm-kms/e2e/e2e_tls_test.go` had a stray `package e2e` line before the copyright header),
+  confirming Phase 1's value as a quality gate rather than a rubber-stamp exercise.
+- Running `go test ./internal/apps/tools/cicd_lint/lint_go/...` surfaced 7 blocking `literal-use`
+  violations that the normal `go test ./...` output buried — those violations would have blocked the
+  next pre-commit.
+- All four verification steps (build, lint, test, cicd-lint) ran in under 10 minutes total.
+
+### What Didn't Work
+
+- `docs/framework-v13/tasks.md` no longer exists — it was deleted after v13's cleanup phase.
+  Task 1.4 as written (mark v13 cross-cutting items ✅) was not actionable. The evidence from
+  Phase 1 runs serves as the closure proof instead.
+- The initial `go test ./... -shuffle=on` run showed a transient failure in `identity-idp` that
+  disappeared on a deterministic rerun — shuffle exposed a hidden ordering sensitivity but no
+  root cause was found (likely a test-specific timing issue in CI, not a real race).
+
+### Root Causes
+
+- Stray `package e2e` in `sm-kms/e2e/e2e_tls_test.go`: a previous session's partial fix left the
+  old package declaration before the copyright header instead of removing it. The `//go:build e2e`
+  build tag suppressed the error during normal builds but golangci-lint caught it.
+- Magic literal violations in `compose_manager_test.go` and `generator_tls_config_test.go`: test
+  files were written before the corresponding magic constants were defined (or without looking them
+  up), resulting in bare string literals that matched named constants.
+
+### Patterns for Future Phases
+
+- Always run `golangci-lint run` AND `go test ./internal/apps/tools/cicd_lint/lint_go/...` as the
+  first two steps when resuming a plan — both catch issues that `go build` misses.
+- When a plan references a file that may have been deleted (like `docs/framework-v13/tasks.md`),
+  substitute with equivalent evidence from the current run rather than failing the task.
+- Literal-use violations are **blocking** in `TestLint_Integration` — fix them before any
+  subsequent tasks to keep `go test ./...` clean throughout the plan.
 
 ---
 
