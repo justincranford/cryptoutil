@@ -1586,7 +1586,7 @@ sm-kms-app-sqlite-1:
            "--cacert", "/certs/issuing-ca.pem",
            "--cert",   "/certs/admin-client.crt",
            "--key",    "/certs/admin-client.key"]
-    start-period: 60s
+    start_period: 60s
     interval: 5s
     timeout: 10s
     retries: 3
@@ -3259,7 +3259,39 @@ func TestListMessages_Handler(t *testing.T) {
 
 **Mitigation Plan — MANDATORY for exceptions below standard target**: Every package with an actual target below the standard target MUST include a mitigation plan describing how the ceiling will be raised. Acceptable mitigations: `internalMain` refactoring, E2E CI/CD integration, seam injection for `productionNew*` functions, test helper extraction. "Accept as permanent" is NOT a valid mitigation — it must include a concrete action or be explicitly marked as a next-version task with acceptance criteria.
 
-**Anti-pattern (v11 pki-init)**: Coverage ceiling of ~93% accepted at 92.4% with no mitigation plan — `productionNew*` functions remained permanently untested because no E2E CI/CD or `internalMain` refactoring was planned.
+**Anti-pattern (v11 pki-init)**: Coverage ceiling of ~93% accepted at 92.4% with no mitigation plan — `productionNew*` functions remained permanently untested because no E2E CI/CD or `internalMain` refactoring was planned. **Resolved in v14** by applying the Production Closure Body Coverage pattern (see below).
+
+**Production Closure Body Coverage Pattern**: When a factory function (`NewXxx`) defines anonymous
+closures in its return struct, the closure bodies are separate coverage blocks — creating the struct
+does NOT cover the closure bodies. Only INVOKING the closures covers their bodies.
+
+Two test paths are required:
+
+1. **Stub tests** — use `ExportedNewTestXxx` or equivalent seam to test control flow (error paths, ordering, etc.)
+2. **Production wiring tests** — use `ExportedProductionNewXxx` and invoke the real closures to cover closure bodies
+
+```go
+// Generator defines 5 anonymous closures inside its return struct:
+//   return &Generator{createCAFn: func(...) {...}, encodePKCS12Fn: func(...) {...}, ...}
+// Creating a test Generator does NOT cover these closure bodies.
+
+// Test pattern: get a production Generator and invoke its closures with valid inputs.
+func TestProductionGenerator_WriteClosures(t *testing.T) {
+    t.Parallel()
+    gen := ExportedProductionNewGenerator(t)   // real factory, real closures
+    key, cert := makeTestCert(t)               // minimal valid inputs (e.g. P-256)
+    err := ExportedWriteKeystore(gen, key, cert, t.TempDir())
+    require.NoError(t, err)                    // this line covers encodePKCS12Fn closure body
+}
+```
+
+**`export_test.go` seam additions**: Add `ExportedXxx` wrappers to `export_test.go` for
+`productionNew*` functions and unexported helpers that block coverage. This avoids touching
+production files and follows the established project convention for test seams.
+
+**Structural ceiling for production wiring errors**: `productionNewTelemetryService` error paths
+and OS-level faults (`RemoveAll` failures, non-ENOENT `Stat` errors) remain uncoverable via unit
+tests. Document these as structural ceilings and cover via E2E CI/CD smoke tests instead.
 
 #### 10.2.4 Test Seam Injection Pattern
 
@@ -3618,7 +3650,43 @@ livezResp, err  := client.Livez()
 readyzResp, err := client.Readyz()
 ```
 
-**coverage ceiling**: `testdb` (57.5%) and `e2e_infra` (37.3%) have documented ceilings due to Docker-dependent code paths unreachable in unit tests. All other packages: ≥95% production, ≥98% infrastructure.
+**coverage ceiling**: `testdb` (57.5%) and `e2e_infra` (96.55% efficacy, 1 LIVED `make` capacity-hint mutation — structural ceiling) have documented ceilings due to Docker-dependent code paths unreachable in unit tests. All other packages: ≥95% production, ≥98% infrastructure.
+
+**e2e_infra** — E2E TestMain factory (eliminates PS-ID TestMain boilerplate):
+
+```go
+import cryptoutilE2eInfra "cryptoutil/internal/apps/framework/service/testing/e2e_infra"
+
+// In testmain_e2e_test.go (with //go:build e2e build tag):
+func TestMain(m *testing.M) {
+    os.Exit(cryptoutilE2eInfra.SetupE2ETestMain(m, cryptoutilE2eInfra.E2ETestConfig{
+        ComposeFile:    cryptoutilMagic.DefaultSMKMSComposeFilePath,
+        CACertPath:     cryptoutilMagic.DefaultSMKMSCABundlePath,
+        ServiceLogName: cryptoutilMagic.OTLPServiceSMKMS,
+        HealthTimeout:  cryptoutilMagic.DefaultE2EHealthTimeout,
+        HealthChecks: map[string]string{
+            cryptoutilMagic.DefaultSMKMSAppSQLite1URL:  "/service/api/v1/health",
+            cryptoutilMagic.DefaultSMKMSAppSQLite2URL:  "/service/api/v1/health",
+            cryptoutilMagic.DefaultSMKMSPostgres1URL:   "/service/api/v1/health",
+            cryptoutilMagic.DefaultSMKMSPostgres2URL:   "/service/api/v1/health",
+        },
+    }, func(env *cryptoutilE2eInfra.E2ETestEnv) {
+        sharedHTTPClient      = env.InsecureClient  // InsecureSkipVerify — for readiness polls
+        sharedHTTPClientWithCA = env.SecureClient    // CA-validated — for TLS assertion tests
+        composeManager        = env.ComposeManager
+    }))
+}
+```
+
+**Why SecureClient is built AFTER WaitForMultipleServices**: The CA bundle (`issuing-ca.pem`) is
+written by pki-init during service startup. Building `SecureClient` before health checks pass
+would reference a non-existent file. The factory enforces the correct order automatically.
+
+**Key rules**:
+- ALWAYS use `SetupE2ETestMain` for new PS-ID E2E suites — never copy-paste TestMain boilerplate
+- `InsecureClient` is for compose readiness polls only; NEVER use it for TLS assertion tests
+- `SecureClient` validates TLS against the CA cert generated by pki-init (admin CA bundle)
+- Populate `E2ETestConfig.HealthChecks` with all service health URLs (keyed by URL, value = path)
 
 #### 10.3.7 TLS Test Bundle Pattern
 
@@ -3683,6 +3751,29 @@ adminPool  := cryptoutilTestutil.PrivateRootCAPool()  // admin server CA
 **E2E Test Scope**: MUST test BOTH `/service/**` and `/browser/**` paths, verify middleware (IP allowlist, CSRF, CORS), cross-service integration
 
 **MANDATORY E2E for CLI Entry Points with `productionNew*` functions**: Every CLI entry point that constructs production dependencies via `productionNew*` functions (e.g., telemetry, database connections, TLS config) MUST have at least one E2E smoke test in CI/CD. Unit tests with stubs cannot catch initialization-time configuration errors (missing fields, off-by-one validity periods, DSN mismatches). Pattern: start the process in Docker Compose, wait for health endpoint to succeed, then assert at least one API call completes. Example: `pki-init` Phase 3 exposed 3 bugs (cert validity period, truststore path, PKCS#12 encoding) that were invisible to unit tests.
+
+**Admin mTLS E2E Verification**: Admin mTLS in E2E suites is verified via the Docker Compose
+`HEALTHCHECK` — NOT via `docker exec curl`. The PS-ID `livez` CLI subcommand presents the admin
+client cert to `127.0.0.1:9090`; a passing healthcheck proves end-to-end admin mTLS connectivity.
+See [Section 5.5.5](#555-admin-mtls-healthcheck-verification-pattern) for the canonical pattern.
+NEVER use `docker exec curl` — curl is unavailable in Alpine-based images by default and cannot be
+verified to use the correct cert paths. NEVER use the `health` subcommand (public port 8080) as a
+proxy for admin TLS verification.
+
+**PostgreSQL mTLS Client Identity in E2E**: Use `client_dn` (from the mTLS certificate CN) to
+identify a GORM service's mTLS connection in `pg_stat_ssl`, NOT `application_name`. GORM does not
+set `application_name` by default — it is always empty. Pattern:
+
+```sql
+SELECT COUNT(*) FROM pg_stat_ssl
+JOIN pg_stat_activity ON pg_stat_ssl.pid = pg_stat_activity.pid
+WHERE pg_stat_ssl.ssl = true
+  AND pg_stat_ssl.client_dn LIKE '%-sm-kms-%'
+```
+
+**Docker image rebuild before E2E**: `docker compose build` is MANDATORY before running E2E when
+production code changes (especially init/startup code). A stale Docker image silently hides new
+features — a passing healthcheck on a stale image can mask that new capabilities are missing.
 
 #### 10.4.1 Docker Compose Orchestration
 
@@ -3870,6 +3961,29 @@ type ServiceAndJob struct {
 - GORM models (database schema definitions)
 - Protobuf-generated code (gRPC/protobuf stubs)
 - **`internal/shared/magic/`**: constants-only package, no executable logic to mutate
+
+#### 10.5.3 Common Surviving Mutations and Fixes
+
+**`attempts++` in retry loops**: The `attempts` increment is mutated to a no-op. Fix: include
+`attempts` in the timeout error message and assert the error string does NOT contain `"after 0 attempts"`:
+
+```go
+// Production
+return fmt.Errorf("timed out after %d attempts waiting for %s: %w", attempts, name, lastErr)
+
+// Test
+require.ErrorContains(t, err, "timed out")
+require.NotContains(t, err.Error(), "after 0 attempts") // kills attempts++ mutation
+```
+
+**`make` capacity hints**: `make(map[K]V, len(xs))` capacity mutations (`len(xs)` → `0`) cannot be
+killed via black-box tests — the capacity hint is an internal optimization invisible to callers.
+Document as a structural ceiling; do NOT spend time trying to kill this mutation.
+
+**`TIMED OUT` ≠ `LIVED`**: In gremlins output, `TIMED OUT` mutations count toward efficacy just
+like `KILLED` — both mean the mutation was detected. Only `LIVED` mutations are failures. Packages
+with blocking operations (polling loops, network waits) produce more TIMEOUTs; budget ~30s per
+TIMED OUT mutation when estimating gremlins run time.
 
 ### 10.6 Load Testing Strategy
 
@@ -4432,7 +4546,7 @@ All Dockerfiles follow identical multi-stage structure. Parameterized fields dif
 - ALWAYS `127.0.0.1` in containers (NOT `localhost` - Alpine resolves to IPv6)
 - Dockerfile HEALTHCHECK: Use built-in PS-ID `livez` CLI targeting admin port 9090 (NEVER the `health` CLI on public port 8080, NEVER wget/curl)
 - **Admin mTLS via `livez` healthcheck**: `livez` connects to `127.0.0.1:9090` as an mTLS client — when admin mTLS is active, `livez` MUST present the admin client cert (`--cert`/`--key`); a **passing Docker healthcheck is the canonical proof of admin mTLS end-to-end connectivity** inside the container
-- Healthcheck fields use hyphens: `start-period` (NOT `start_period`)
+- Healthcheck fields use underscores in Docker Compose YAML: `start_period` (NOT `start-period`); the Dockerfile `HEALTHCHECK` instruction uses `--start-period` (hyphen) — these are different syntaxes
 - **Distroless images** (e.g. `otel/opentelemetry-collector-contrib`): NEVER use `wget`/`curl` healthchecks — set `disable: true` and use a sidecar Alpine container with wget for readiness signaling
 - **`docker-entrypoint-initdb.d/` scripts**: PostgreSQL initdb runs with Unix socket only (no TCP). ALL `psql` commands MUST omit `-h localhost`/`-h 127.0.0.1`; using `-h` causes `SASL auth` failures inside initdb
 - **Stack volume isolation**: Named volumes (e.g. `cryptoutil_postgres_leader_volume`) are shared across PS-ID stacks. Always run `docker compose down -v` before switching stacks to ensure fresh PostgreSQL initdb
@@ -4440,7 +4554,7 @@ All Dockerfiles follow identical multi-stage structure. Parameterized fields dif
 <!-- @/propagate -->
 
 - Secret management via Docker secrets (MANDATORY)
-- Health check configuration (interval, timeout, retries, start-period)
+- Health check configuration (interval, timeout, retries, start_period)
 - Dependency ordering (depends_on with service_healthy)
 - Network isolation patterns
 
@@ -4471,7 +4585,7 @@ sm-kms-app-sqlite-1:
   healthcheck:
     test: ["CMD", "/app/sm-kms", "livez",
            "--cacert", "/certs/issuing-ca.pem"]
-    start-period: 60s
+    start_period: 60s
     interval: 5s
     timeout: 10s
     retries: 3
