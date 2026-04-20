@@ -128,6 +128,24 @@ You are explicitly instructed NOT to:
 
 ---
 
+## Planning Principles - MANDATORY
+
+**Enumerate all affected files early**: Before estimating effort, enumerate the relative paths of ALL files expected to be created or modified. Use parameterization and pattern matching to condense repetitive sets into a readable format for both LLM agents and human reviewers.
+
+```
+# WRONG: raw count with no structure
+"Approximately 30 compose files across all services"
+
+# CORRECT: parameterized paths with derivation formula
+deployments/{sm-kms,jose-ja,sm-im,pki-ca,identity-authz,identity-idp,identity-rp,identity-rs,identity-spa,skeleton-template}/compose.yml  (10 files)
+configs/{sm-kms,jose-ja,...}/config-common.yml  (10 files)
+# Total: 20 files = 2 per PS-ID × 10 PS-IDs
+```
+
+Always derive counts from the formula, not memory. Missing files in the enumeration are the most common source of task underestimation.
+
+---
+
 ## Directory Path Guidelines
 
 **Existing Examples**:
@@ -363,7 +381,7 @@ EOF
 - **Framework**: [Framework if applicable]
 - **Database**: PostgreSQL OR SQLite with GORM
 - **Dependencies**: [Key dependencies]
-- **Related Files**: [Critical files affected]
+- **Affected Files**: [MANDATORY: enumerate relative paths of ALL files expected to change, using parameterization and pattern matching to condense sets. Example: `deployments/{sm-kms,jose-ja,sm-im,pki-ca,identity-authz,identity-idp,identity-rp,identity-rs,identity-spa,skeleton-template}/compose.yml` (10 files). Always show the derivation formula: `30 global + 60 per-PS-ID × 10 = 630`. Raw counts without formulas are unverifiable during review.]
 
 ## Phases
 
