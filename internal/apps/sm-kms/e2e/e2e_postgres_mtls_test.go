@@ -25,10 +25,11 @@ func TestE2E_PostgreSQLMTLS(t *testing.T) {
 	t.Parallel()
 
 	// Query pg_stat_ssl to verify SSL connections from sm-kms app instances.
-	// We look for connections where ssl=true and client_dn is non-empty (client cert present).
+	// We look for connections where ssl=true and client_dn contains "sm-kms" (mTLS client cert).
+	// GORM does not set application_name by default, so we filter on client_dn instead.
 	query := "SELECT application_name, ssl, client_dn FROM pg_stat_ssl " +
 		"JOIN pg_stat_activity ON pg_stat_ssl.pid = pg_stat_activity.pid " +
-		"WHERE application_name LIKE 'sm-kms%' AND ssl = true AND client_dn IS NOT NULL;"
+		"WHERE client_dn LIKE '%-sm-kms-%' AND ssl = true AND client_dn IS NOT NULL;"
 
 	args := composeManager.BuildDockerExecArgs(cryptoutilSharedMagic.KMSPostgresLeaderContainer,
 		"psql", "--username=sm_kms_database_user", "--dbname=sm_kms_database",
@@ -46,6 +47,7 @@ func TestE2E_PostgreSQLMTLS(t *testing.T) {
 	output := stdout.String()
 	t.Logf("pg_stat_ssl output:\n%s", output)
 
-	// At least one sm-kms app connection should show ssl=true with client cert.
+	// At least one sm-kms app connection should show ssl=true with mTLS client cert.
+	// The 't' value for ssl=true appears in psql tuple output when at least one mTLS connection is active.
 	require.True(t, strings.Contains(output, "t"), "Expected ssl=true (t) in pg_stat_ssl output, got:\n%s", output)
 }
