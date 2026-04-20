@@ -1,11 +1,16 @@
 {
   "permissions": {
-    "additionalDirectories": [
-      "C:\\Users\\justi\\.claude\\projects\\c--Dev-Projects-cryptoutil\\memory"
-    ],
     "allow": [
       "Bash(git add *)",
-      "Bash(git commit *)"
+      "Bash(git commit *)",
+      "Bash(go version *)",
+      "Bash(go build *)",
+      "Bash(mkdir -p /home/q/git/cryptoutil/test-output/v14-phase1)",
+      "Bash(echo \"Exit: $?\")",
+      "Bash(golangci-lint run *)"
+    ],
+    "additionalDirectories": [
+      "C:\\Users\\justi\\.claude\\projects\\c--Dev-Projects-cryptoutil\\memory"
     ]
   }
 }

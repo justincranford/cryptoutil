@@ -17,6 +17,7 @@ import (
 
 	pkcs12 "software.sslmate.com/src/go-pkcs12"
 
+	cryptoutilSharedCryptoAsn1 "cryptoutil/internal/shared/crypto/asn1"
 	cryptoutilSharedCryptoCertificate "cryptoutil/internal/shared/crypto/certificate"
 	cryptoutilSharedCryptoKeygen "cryptoutil/internal/shared/crypto/keygen"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
@@ -111,7 +112,13 @@ func (g *Generator) Generate(tierID, targetDir string) error {
 		return fmt.Errorf("failed to write tls-config.yml: %w", err)
 	}
 
-	errCh := make(chan error, len(psIDs))
+	type psIDResult struct {
+		psID         string
+		adminCACerts [][]byte
+		err          error
+	}
+
+	resultCh := make(chan psIDResult, len(psIDs))
 
 	var wg sync.WaitGroup
 
@@ -121,22 +128,33 @@ func (g *Generator) Generate(tierID, targetDir string) error {
 		go func(id string) {
 			defer wg.Done()
 
-			if genErr := g.generatePSIDCerts(basePath, id, shared); genErr != nil {
-				errCh <- fmt.Errorf("PS-ID %s: %w", id, genErr)
-			}
+			certs, genErr := g.generatePSIDCerts(basePath, id, shared)
+			resultCh <- psIDResult{psID: id, adminCACerts: certs, err: genErr}
 		}(psID)
 	}
 
 	wg.Wait()
-	close(errCh)
+	close(resultCh)
 
-	for e := range errCh {
-		if err == nil {
-			err = e
+	var adminCACerts [][]byte
+
+	for r := range resultCh {
+		if r.err != nil && err == nil {
+			err = fmt.Errorf("PS-ID %s: %w", r.psID, r.err)
 		}
+
+		adminCACerts = append(adminCACerts, r.adminCACerts...)
 	}
 
-	return err
+	if err != nil {
+		return err
+	}
+
+	if err := g.writeAdminCABundle(targetDir, adminCACerts); err != nil {
+		return fmt.Errorf("failed to write admin CA bundle: %w", err)
+	}
+
+	return nil
 }
 
 // sharedCAs holds the issuing CA subjects that are shared across all PS-IDs.
@@ -260,30 +278,32 @@ func (g *Generator) generateSharedCAs(basePath string) (*sharedCAs, error) {
 
 // generatePSIDCerts generates all per-PS-ID certificate directories:
 // Categories 3, 4, 5, 6, 7, 9 (per-PS-ID), 14.
+// Returns the PEM bytes for each per-instance admin (Cat 6) issuing CA for
+// use in the combined issuing-ca.pem bundle written by Generate().
 //
 //nolint:cyclop // each block mirrors one TLS category; splitting would obscure the 1:1 spec mapping.
-func (g *Generator) generatePSIDCerts(basePath, psID string, shared *sharedCAs) error {
+func (g *Generator) generatePSIDCerts(basePath, psID string, shared *sharedCAs) ([][]byte, error) {
 	// --- Category 3: PS-ID App Server Certs (4 dirs) ---
 	for _, suffix := range PKIInitAppInstanceSuffixes() {
 		dirName := "public-https-server-entity-" + psID + "-" + suffix
 		dns := []string{psID + "-app-" + suffix, cryptoutilSharedMagic.HostnameLocalhost}
 
 		if err := g.generateServerLeafDir(basePath, dirName, shared.globalServerIssuing, dns, defaultIPs()); err != nil {
-			return fmt.Errorf("cat3 app server leaf %s: %w", suffix, err)
+			return nil, fmt.Errorf("cat3 app server leaf %s: %w", suffix, err)
 		}
 	}
 
 	// --- Categories 4 + 5: PS-ID HTTPS Client CAs and Leaf Certs (12 + 12 dirs) ---
 	realms, err := g.getRealmsForPSIDFn(psID)
 	if err != nil {
-		return fmt.Errorf("cat4/5 read realms for %s: %w", psID, err)
+		return nil, fmt.Errorf("cat4/5 read realms for %s: %w", psID, err)
 	}
 
 	for _, domain := range PKIInitClientPKIDomains() {
 		// Category 4: One CA chain per PKI domain (4 dirs each = 12 total).
 		clientIssuing, caErr := g.generateCAChain(basePath, "public-https-client", "ca-"+psID+"-"+domain)
 		if caErr != nil {
-			return fmt.Errorf("cat4 client CA domain=%s: %w", domain, caErr)
+			return nil, fmt.Errorf("cat4 client CA domain=%s: %w", domain, caErr)
 		}
 
 		// Category 5: Client leaf certs per user type × realm (per domain).
@@ -291,26 +311,37 @@ func (g *Generator) generatePSIDCerts(basePath, psID string, shared *sharedCAs) 
 			for _, realm := range realms {
 				dirName := "public-https-client-entity-" + psID + "-" + domain + "-" + userType + "-" + realm
 				if leafErr := g.generateClientLeafDir(basePath, dirName, clientIssuing); leafErr != nil {
-					return fmt.Errorf("cat5 client leaf user=%s realm=%s domain=%s: %w", userType, realm, domain, leafErr)
+					return nil, fmt.Errorf("cat5 client leaf user=%s realm=%s domain=%s: %w", userType, realm, domain, leafErr)
 				}
 			}
 		}
 	}
 
 	// --- Categories 6 + 7: Private Admin mTLS CAs and Leaf Certs (16 + 4 dirs) ---
+	// adminCACerts collects the PEM bytes of each per-instance admin issuing CA for
+	// inclusion in the combined issuing-ca.pem bundle (written by Generate()).
+	var adminCACerts [][]byte
+
 	for _, suffix := range PKIInitAdminInstanceSuffixes() {
 		// Category 6: One admin CA chain per instance (4 dirs each = 16 total).
 		adminIssuing, caErr := g.generateCAChain(basePath, "private-https-mutual", "ca-"+psID+"-"+suffix)
 		if caErr != nil {
-			return fmt.Errorf("cat6 admin CA suffix=%s: %w", suffix, caErr)
+			return nil, fmt.Errorf("cat6 admin CA suffix=%s: %w", suffix, caErr)
 		}
+
+		caPEM, pemErr := cryptoutilSharedCryptoAsn1.PEMEncodeCertChain(adminIssuing.KeyMaterial.CertificateChain)
+		if pemErr != nil {
+			return nil, fmt.Errorf("cat6 pem encode admin CA cert chain suffix=%s: %w", suffix, pemErr)
+		}
+
+		adminCACerts = append(adminCACerts, caPEM)
 
 		// Category 7: One mTLS leaf per instance.
 		mutualDir := "private-https-mutual-entity-" + psID + "-" + suffix
 		dns := []string{psID + "-app-" + suffix, cryptoutilSharedMagic.HostnameLocalhost}
 
 		if leafErr := g.generateMutualLeafDir(basePath, mutualDir, adminIssuing, dns, defaultIPs()); leafErr != nil {
-			return fmt.Errorf("cat7 admin mutual leaf suffix=%s: %w", suffix, leafErr)
+			return nil, fmt.Errorf("cat7 admin mutual leaf suffix=%s: %w", suffix, leafErr)
 		}
 	}
 
@@ -319,13 +350,13 @@ func (g *Generator) generatePSIDCerts(basePath, psID string, shared *sharedCAs) 
 		grafanaPSIDDir := cryptoutilSharedMagic.DockerServiceGrafanaOtelLgtm + "-https-client-entity-" + psID + "-" + suffix
 
 		if err := g.generateClientLeafDir(basePath, grafanaPSIDDir, shared.grafanaClientIssuing); err != nil {
-			return fmt.Errorf("cat9 grafana psid client %s-%s: %w", psID, suffix, err)
+			return nil, fmt.Errorf("cat9 grafana psid client %s-%s: %w", psID, suffix, err)
 		}
 
 		otelPSIDDir := cryptoutilSharedMagic.PKIInitOtelCollectorContrib + "-https-client-entity-" + psID + "-" + suffix
 
 		if err := g.generateClientLeafDir(basePath, otelPSIDDir, shared.otelClientIssuing); err != nil {
-			return fmt.Errorf("cat9 otel psid client %s-%s: %w", psID, suffix, err)
+			return nil, fmt.Errorf("cat9 otel psid client %s-%s: %w", psID, suffix, err)
 		}
 	}
 
@@ -335,12 +366,12 @@ func (g *Generator) generatePSIDCerts(basePath, psID string, shared *sharedCAs) 
 			dirName := "postgres-tls-client-entity-" + role + "-" + psID + "-" + suffix
 
 			if err := g.generateClientLeafDir(basePath, dirName, shared.postgresClientIssuing); err != nil {
-				return fmt.Errorf("cat14 postgres app client %s-%s: %w", role, suffix, err)
+				return nil, fmt.Errorf("cat14 postgres app client %s-%s: %w", role, suffix, err)
 			}
 		}
 	}
 
-	return nil
+	return adminCACerts, nil
 }
 
 // defaultIPs returns the default IP SANs for development/E2E certificates.

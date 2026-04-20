@@ -82,4 +82,10 @@ const (
 	// connections in pki-init cert directory names (e.g., OTel Collector -> Grafana LGTM
 	// OTLP forwarding). Distinguished from PKIInitEntityAdmin (human operator access).
 	PKIInitEntityInfra = "infra"
+
+	// PKIInitAdminCABundleFilename is the filename for the combined admin mTLS CA certificate
+	// bundle written by pki-init at the root of the target output directory.
+	// Contains the issuing CAs for all per-instance admin mTLS server certificates.
+	// Used by the livez/readyz healthcheck commands as --cacert to trust the admin server.
+	PKIInitAdminCABundleFilename = "issuing-ca.pem"
 )

@@ -225,6 +225,33 @@ func (g *Generator) writeTruststore(basePath, dirName string, subject *cryptouti
 	return nil
 }
 
+// writeAdminCABundle writes a PEM CA bundle at targetDir/issuing-ca.pem by
+// concatenating the PEM bytes for every per-PS-ID admin mTLS issuing CA
+// (Categories 6+7 in the TLS spec). The file allows the livez healthcheck
+// command to trust the admin server TLS cert of any instance without needing
+// the per-instance path at runtime.
+//
+// adminCACerts is populated by generatePSIDCerts (one entry per admin instance
+// suffix) so no disk reads are required here.
+//
+// File mode is PKIInitPublicCertFileMode (0o444) because the bundle contains
+// only public certificates, no private keys.
+func (g *Generator) writeAdminCABundle(targetDir string, adminCACerts [][]byte) error {
+	var bundle []byte
+
+	for _, caPEM := range adminCACerts {
+		bundle = append(bundle, caPEM...)
+	}
+
+	bundlePath := filepath.Join(targetDir, cryptoutilSharedMagic.PKIInitAdminCABundleFilename)
+
+	if err := g.writeFileFn(bundlePath, bundle, cryptoutilSharedMagic.PKIInitPublicCertFileMode); err != nil {
+		return fmt.Errorf("write admin CA bundle: %w", err)
+	}
+
+	return nil
+}
+
 // writeTLSConfigYAML writes targetDir/tls-config.yml configuring the service
 // framework to use TLSModeMixed with the provided issuing CA. Every app instance
 // that loads this file will obtain a dynamically generated server certificate
