@@ -7,14 +7,12 @@
 package e2e_test
 
 import (
-	"context"
 	"fmt"
 	http "net/http"
 	"os"
 	"testing"
 
 	cryptoutilAppsFrameworkTestingE2eInfra "cryptoutil/internal/apps/framework/service/testing/e2e_infra"
-	cryptoutilSharedCryptoTls "cryptoutil/internal/shared/crypto/tls"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
@@ -52,39 +50,18 @@ var (
 // This is an environmental requirement, not a code issue. The integration tests (in ../integration/)
 // provide sufficient coverage using SQLite in-memory and do not require Docker.
 func TestMain(m *testing.M) {
-	ctx := context.Background()
-
-	// Initialize compose manager with reusable helper.
-	composeManager = cryptoutilAppsFrameworkTestingE2eInfra.NewComposeManager(cryptoutilSharedMagic.IME2EComposeFile, cryptoutilSharedMagic.DefaultOTLPEnvironmentDefault, cryptoutilSharedMagic.DockerServicePostgres)
-	sharedHTTPClient = cryptoutilSharedCryptoTls.NewClientForTest()
-
-	// Step 1: Start docker compose stack.
-	if err := composeManager.Start(ctx); err != nil {
-		fmt.Printf("Failed to start docker compose: %v\n", err)
-		os.Exit(1)
-	}
-
-	// Step 2: Wait for all services to be healthy using public /health endpoint.
-	fmt.Println("Waiting for all sm-im instances to be healthy...")
-
-	if err := composeManager.WaitForMultipleServices(healthChecks, cryptoutilSharedMagic.IME2EHealthTimeout); err != nil {
-		fmt.Printf("Service health checks failed: %v\n", err)
-
-		_ = composeManager.Stop(ctx)
-
-		os.Exit(1)
-	}
-
-	// Step 3: Build CA-validated client AFTER pki-init has run and generated certs.
-	sharedHTTPClientWithCA = cryptoutilSharedCryptoTls.NewClientForTestWithCA(cryptoutilSharedMagic.IME2EPublicCACertPath)
-
-	fmt.Println("All services healthy. Running tests...")
-
-	// Step 4: Run tests.
-	exitCode := m.Run()
-
-	// Step 5: Cleanup docker compose stack.
-	_ = composeManager.Stop(ctx)
-
-	os.Exit(exitCode)
+	os.Exit(cryptoutilAppsFrameworkTestingE2eInfra.SetupE2ETestMain(m,
+		cryptoutilAppsFrameworkTestingE2eInfra.E2ETestConfig{
+			ComposeFile:    cryptoutilSharedMagic.IME2EComposeFile,
+			Profiles:       []string{cryptoutilSharedMagic.DefaultOTLPEnvironmentDefault, cryptoutilSharedMagic.DockerServicePostgres},
+			HealthChecks:   healthChecks,
+			HealthTimeout:  cryptoutilSharedMagic.IME2EHealthTimeout,
+			CACertPath:     cryptoutilSharedMagic.IME2EPublicCACertPath,
+			ServiceLogName: "sm-im",
+		},
+		func(env *cryptoutilAppsFrameworkTestingE2eInfra.E2ETestEnv) {
+			sharedHTTPClient = env.InsecureClient
+			sharedHTTPClientWithCA = env.SecureClient
+			composeManager = env.ComposeManager
+		}))
 }

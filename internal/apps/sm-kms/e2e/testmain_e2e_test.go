@@ -7,14 +7,12 @@
 package e2e_test
 
 import (
-	"context"
 	"fmt"
 	http "net/http"
 	"os"
 	"testing"
 
 	cryptoutilAppsFrameworkTestingE2eInfra "cryptoutil/internal/apps/framework/service/testing/e2e_infra"
-	cryptoutilSharedCryptoTls "cryptoutil/internal/shared/crypto/tls"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
@@ -47,40 +45,18 @@ var (
 // ENVIRONMENTAL NOTE: These E2E tests require Docker Desktop to be running.
 // Without Docker Desktop, the tests will fail with compose errors.
 func TestMain(m *testing.M) {
-	ctx := context.Background()
-
-	// Initialize compose manager with reusable helper.
-	composeManager = cryptoutilAppsFrameworkTestingE2eInfra.NewComposeManager(cryptoutilSharedMagic.KMSE2EComposeFile, cryptoutilSharedMagic.DefaultOTLPEnvironmentDefault, cryptoutilSharedMagic.DockerServicePostgres)
-	sharedHTTPClient = cryptoutilSharedCryptoTls.NewClientForTest()
-
-	// Step 1: Start docker compose stack.
-	if err := composeManager.Start(ctx); err != nil {
-		fmt.Printf("Failed to start docker compose: %v\n", err)
-		os.Exit(1)
-	}
-
-	// Step 2: Wait for all services to be healthy using public /health endpoint.
-	fmt.Println("Waiting for all sm-kms instances to be healthy...")
-
-	if err := composeManager.WaitForMultipleServices(healthChecks, cryptoutilSharedMagic.KMSE2EHealthTimeout); err != nil {
-		fmt.Printf("Service health checks failed: %v\n", err)
-
-		_ = composeManager.Stop(ctx)
-
-		os.Exit(1)
-	}
-
-	// Step 3: Build CA-validated client AFTER pki-init has run and generated certs.
-	// pki-init writes the issuing CA cert to the host-mounted volume at the path below.
-	sharedHTTPClientWithCA = cryptoutilSharedCryptoTls.NewClientForTestWithCA(cryptoutilSharedMagic.KMSE2EPublicCACertPath)
-
-	fmt.Println("All services healthy. Running tests...")
-
-	// Step 4: Run tests.
-	exitCode := m.Run()
-
-	// Step 5: Cleanup docker compose stack.
-	_ = composeManager.Stop(ctx)
-
-	os.Exit(exitCode)
+	os.Exit(cryptoutilAppsFrameworkTestingE2eInfra.SetupE2ETestMain(m,
+		cryptoutilAppsFrameworkTestingE2eInfra.E2ETestConfig{
+			ComposeFile:    cryptoutilSharedMagic.KMSE2EComposeFile,
+			Profiles:       []string{cryptoutilSharedMagic.DefaultOTLPEnvironmentDefault, cryptoutilSharedMagic.DockerServicePostgres},
+			HealthChecks:   healthChecks,
+			HealthTimeout:  cryptoutilSharedMagic.KMSE2EHealthTimeout,
+			CACertPath:     cryptoutilSharedMagic.KMSE2EPublicCACertPath,
+			ServiceLogName: "sm-kms",
+		},
+		func(env *cryptoutilAppsFrameworkTestingE2eInfra.E2ETestEnv) {
+			sharedHTTPClient = env.InsecureClient
+			sharedHTTPClientWithCA = env.SecureClient
+			composeManager = env.ComposeManager
+		}))
 }

@@ -1,6 +1,6 @@
 # Tasks — Framework v14: v13 Completion
 
-**Status**: 17 of 24 tasks complete (71%)
+**Status**: 18 of 24 tasks complete (75%)
 **Last Updated**: 2026-04-20
 **Created**: 2026-04-19
 
@@ -274,17 +274,17 @@ directories. Implement a parameterized factory in `e2e_infra/` per v13 deferred 
   - [x] `t.Parallel()` on all applicable tests (Sequential exemptions documented for package-state-mutating tests)
 
 #### Task 4.4: Migrate All 4 PS-ID TestMain Files
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 1.5h
 - **Dependencies**: Task 4.3
 - **Description**: Update `testmain_e2e_test.go` in all 4 PS-ID e2e directories to use the factory.
 - **Acceptance Criteria**:
-  - [ ] `internal/apps/sm-kms/e2e/testmain_e2e_test.go` uses `SetupE2ETestMain`
-  - [ ] `internal/apps/jose-ja/e2e/testmain_e2e_test.go` uses `SetupE2ETestMain`
-  - [ ] `internal/apps/sm-im/e2e/testmain_e2e_test.go` uses `SetupE2ETestMain`
-  - [ ] `internal/apps/skeleton-template/e2e/testmain_e2e_test.go` uses `SetupE2ETestMain`
-  - [ ] Old boilerplate removed (net line reduction ≥100 lines across 4 files)
-  - [ ] `golangci-lint run --build-tags e2e,integration` clean
+  - [x] `internal/apps/sm-kms/e2e/testmain_e2e_test.go` uses `SetupE2ETestMain`
+  - [x] `internal/apps/jose-ja/e2e/testmain_e2e_test.go` uses `SetupE2ETestMain`
+  - [x] `internal/apps/sm-im/e2e/testmain_e2e_test.go` uses `SetupE2ETestMain`
+  - [x] `internal/apps/skeleton-template/e2e/testmain_e2e_test.go` uses `SetupE2ETestMain`
+  - [x] Old boilerplate removed (net line reduction ≥100 lines across 4 files: ~40 lines per file = ~160 lines total)
+  - [x] `golangci-lint run --build-tags e2e,integration` clean
 
 #### Task 4.5: Smoke-Test Migrated E2E Suites
 - **Status**: ❌
