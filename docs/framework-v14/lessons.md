@@ -226,10 +226,132 @@
 
 ## Phase 5: Mutation Testing on e2e_infra Code
 
-*(To be filled during Phase 5 execution using the 4-section structure above)*
+### What Worked
+
+- **Initial gremlins run identified exactly 2 surviving mutations**: Both were visible within the
+  first gremlins pass — no guessing required. The structured output (KILLED vs LIVED vs TIMED OUT)
+  made it straightforward to target fixes.
+- **Error-message assertion killed `attempts++` mutation**: Including the attempt count in the
+  timeout error message (`fmt.Sprintf("... after %d attempts", attempts)`) and asserting
+  `require.NotContains(t, err.Error(), "after 0 attempts")` was a precise, minimal fix. No new
+  logic needed — just richer error messages that are already useful for debugging.
+- **Zero data races**: The `go test -race -count=2` run confirmed the e2e_infra package is
+  race-free. The seam-injection pattern (per-test factory deps, no shared mutable state) naturally
+  prevents races.
+- **96.55% efficacy (≥95% ✓)**: The final efficacy exceeded the production code target of ≥95%,
+  confirming the test suite is rigorous enough to catch mutations in this infrastructure package.
+- **`make` capacity hint documented as structural ceiling**: Rather than spending time trying to
+  kill an unkillable mutation, we documented why it cannot be killed (the capacity hint is an
+  internal optimization hint inaccessible from the test boundary) and verified it is the only
+  remaining LIVED mutation. This avoids future re-investigation.
+
+### What Didn't Work
+
+- **Initial efficacy 93.10% (below ≥95% target)**: The first gremlins run produced 2 LIVED
+  mutations, requiring a fix pass before the target was met. A more complete initial test suite
+  (asserting richer error messages) would have achieved ≥95% on the first run.
+- **TIMED OUT mutations inflate completion time**: The 4 TIMED OUT mutations in `testmain_factory.go`
+  are from paths that involve blocking operations (the factory's wait loops). They count toward
+  efficacy (correctly — they represent detected mutations) but add real time to each gremlins run.
+  Future plans should budget for this.
+
+### Root Causes
+
+- **`attempts++` mutation survived**: The `WaitForMultipleServices` timeout error message did not
+  include the attempt count in the initial implementation. Without an assertion on the attempt count,
+  the mutation (which prevents `attempts` from incrementing) was invisible to tests. The fix was
+  strictly additive — richer error messages expose iteration state.
+- **`make` capacity hint mutation is a structural ceiling**: The `make(map[string]error, len(services))`
+  capacity hint is an internal optimization that produces the same observable output regardless of
+  the capacity argument. Black-box tests cannot observe the capacity of an internal map. This is a
+  known gremlins limitation for capacity hints — not a test quality issue.
+- **Infrastructure code ≥98% efficacy target**: The e2e_infra package is infrastructure/utility
+  code (target ≥98%), but the 1 LIVED `make` mutation is a structural ceiling. 96.55% is the
+  practical maximum achievable. This is documented as an accepted ceiling.
+
+### Patterns for Future Phases
+
+- **Retry/timeout loops MUST include attempt counts in error messages**: Any function that retries
+  in a loop (`for attempts := 0; ...; attempts++`) MUST include `attempts` in the error message
+  returned on exhaustion. This kills `attempts++` mutations AND produces more useful debugging
+  output. Pattern: `fmt.Sprintf("timed out after %d attempts: %w", attempts, err)`.
+- **`make` capacity hints are structural mutation ceilings**: Do NOT spend time trying to write
+  tests to kill `make(T, cap)` mutations where `cap` is computed from input. These are unobservable
+  from the outside. Document them as structural ceilings and move on.
+- **Budget for gremlins TIMED OUT in time estimates**: Each TIMED OUT mutation represents ~30s of
+  real time (the default gremlins timeout). Packages with blocking operations (polling loops,
+  network waits) will have more TIMEOUTs. For a package with 4 TIMEOUTs, budget an extra 2 minutes
+  per gremlins run.
+- **Phase 5 lesson: mutation testing is most effective AFTER unit tests are complete**: Running
+  gremlins before the unit test suite is fully written produces misleading low efficacy scores.
+  The correct sequence (unit tests → integration tests → mutation testing) was followed correctly
+  in this plan (Phases 3-4 test code, Phase 5 mutation testing).
 
 ---
 
 ## Phase 6: Knowledge Propagation
 
-*(To be filled during Phase 6 execution using the 4-section structure above)*
+### What Worked
+
+- **lint-docs as the first verification step**: Running `go run ./cmd/cicd-lint lint-docs`
+  immediately after updating ENG-HANDBOOK.md confirmed propagation integrity and identified the
+  exact `@source` block in `04-01.deployment.instructions.md` that needed to match the fixed
+  `@propagate` block. The linter's diff-style output made the mismatch obvious.
+- **Single root cause cascaded to three fixes**: The `start_period` / `start-period` bug was one
+  root cause that required fixes in four places (the `@propagate` block, §5.5.5 YAML, §12 YAML,
+  §12 bullet, and the `@source` block in instructions). Having a checklist of all four locations
+  in the tasks.md prevented any from being missed.
+- **Opportunistic quality fix (ST1011)**: Running `golangci-lint run --fix ./...` surfaced 4
+  pre-existing `ST1011` violations in `magic_testing.go` (`TestUnitPollIntervalMs` etc.). These
+  were fixed immediately per the mandatory opportunistic quality fix policy, resulting in a cleaner
+  codebase with names that correctly communicate units via type alone (`time.Duration`).
+- **New ENG-HANDBOOK.md sections directly address real lessons**: §10.5.3 (common surviving
+  mutations) directly captures the Phase 5 `attempts++` and `make` capacity patterns. §10.3.6
+  (e2e_infra TestMain factory) directly captures the Phase 4 factory design with working code
+  examples. §10.2.3 (production closure body coverage) directly captures the Phase 3 pki-init
+  coverage ceiling solution. All sections are grounded in evidence from this plan.
+
+### What Didn't Work
+
+- **Context limit interrupted mid-task**: The session context limit was hit while §10.3.6,
+  §10.4, and §10.2.3 additions were still pending. The conversation summary mechanism preserved
+  the state, but resuming mid-task requires careful re-reading of the summary to avoid duplicate
+  or conflicting edits. The lesson: commit more granularly (per section, not per task) to reduce
+  the amount of work left in an open state.
+- **Tasks.md counter was slightly stale**: At the start of this session, the task count showed
+  "20/28 complete" but tasks 5.4 and 6.1 had been completed in the session before the context
+  limit. Stale counts in tasks.md cause incorrect progress reporting. The fix is to always update
+  the counter atomically with the task checkbox, not as a separate step.
+
+### Root Causes
+
+- **`start-period` vs `start_period` typo in ENG-HANDBOOK.md**: The canonical pattern was written
+  with Docker CLI syntax (`--start-period`, hyphen) instead of Docker Compose YAML syntax
+  (`start_period`, underscore). The actual compose files were correct; only the documentation
+  example was wrong. Root cause: the author conflated the two syntaxes when writing the doc.
+- **ST1011 violations in magic_testing.go**: The `Ms` suffix on time.Duration constants was added
+  when the constants were first defined, before the team enforced ST1011 via golangci-lint.
+  The linter version in use at that time may not have included staticcheck's ST1011 rule, or the
+  rule was not yet in the golangci-lint configuration. Now that the linter enforces it, the suffix
+  is redundant (the type `time.Duration` communicates units without any suffix).
+
+### Patterns for Future Phases
+
+- **Propagation integrity check is part of every ENG-HANDBOOK.md update**: After ANY change to an
+  ENG-HANDBOOK.md `@propagate` block, immediately (1) update the corresponding `@source` block in
+  the target instruction file, and (2) run `go run ./cmd/cicd-lint lint-docs` to confirm zero drift.
+  Never commit ENG-HANDBOOK.md changes without the instructions file update in the same or immediately
+  following commit.
+- **Document new patterns in ENG-HANDBOOK.md immediately after discovering them**: Phase 6 added
+  five new documentation sections capturing lessons from Phases 3-5. The value is proportional to
+  how soon the lessons are captured. Waiting until Phase 6 means any subsequent plan that starts
+  before Phase 6 runs will miss the lesson. Ideal timing: add ENG-HANDBOOK.md sections at the end
+  of each phase's post-mortem, not deferred to a dedicated propagation phase.
+- **`time.Duration` constants MUST NOT have unit suffixes (Ms, Ns, Sec, etc.)**: The `time.Duration`
+  type is self-documenting — `10 * time.Millisecond` already communicates the unit. Adding `Ms` to
+  the name is redundant and violates ST1011. Always name Duration constants without unit suffixes:
+  `TestUnitPollInterval`, not `TestUnitPollIntervalMs`.
+- **Commit atomically per section when editing large documents**: When updating ENG-HANDBOOK.md
+  with multiple independent sections, commit each section (or group of closely related sections)
+  separately. This limits the blast radius of context loss and makes individual changes bisectable.
+
