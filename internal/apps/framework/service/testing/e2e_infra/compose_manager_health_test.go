@@ -6,7 +6,6 @@ package e2e_infra
 
 import (
 	"context"
-	"errors"
 	http "net/http"
 	"net/http/httptest"
 	"testing"
@@ -55,11 +54,10 @@ func TestWaitForHealth_ConnError(t *testing.T) {
 	// Timeout after TestUnitShortTimeoutMs, ticker at TestUnitPollIntervalMs → several retries.
 	err := cm.WaitForHealth("http://127.0.0.1:19999/health", cryptoutilSharedMagic.TestUnitShortTimeoutMs)
 	require.Error(t, err)
-	// Either timeout or connection error message.
-	require.True(t,
-		errors.Is(err, errors.New("health check timeout after 50ms")) ||
-			err != nil,
-		"expected non-nil error")
+	require.ErrorContains(t, err, "health check timeout after")
+	// Error message must contain a non-negative attempts count: "(N attempts)" where N >= 0.
+	// This kills the attempts++ → attempts-- mutation: negative attempts would produce "(-N attempts)".
+	require.NotContains(t, err.Error(), "(-", "attempts counter must not be negative")
 }
 
 // TestWaitForHealth_NonOKStatus verifies the non-200 retry path: server exists but

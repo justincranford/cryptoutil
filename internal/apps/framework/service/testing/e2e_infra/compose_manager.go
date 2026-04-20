@@ -142,7 +142,7 @@ func (cm *ComposeManager) WaitForHealth(healthURL string, timeout time.Duration)
 		case <-timeoutCh:
 			fmt.Printf("[WaitForHealth] TIMEOUT for %s after %d attempts\n", healthURL, attempts)
 
-			return fmt.Errorf("health check timeout after %v", timeout)
+			return fmt.Errorf("health check timeout after %v (%d attempts)", timeout, attempts)
 		case <-ticker.C:
 			attempts++
 
