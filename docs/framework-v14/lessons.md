@@ -77,13 +77,15 @@
 
 ### Root Causes
 
-- `start_period` (underscore) is silently accepted by Docker Compose but treated as an unknown key
-  and IGNORED — Docker uses the default 0-second start period, which means healthchecks fire
-  immediately before the service is ready. The correct spelling is `start-period` (hyphen).
-- sqlite-2/postgres-1/postgres-2 healthchecks correctly use only `--cacert` (they are app instances
-  that don't require mTLS client cert authentication). Only sqlite-1 presents a client cert because
-  the canonical template was designed this way — each PS-ID instance has a unique client cert under
-  `/certs/{PS-ID}/private-https-mutual-entity-{PS-ID}-{suffix}/`.
+- `start_period` (underscore) is the CORRECT Docker Compose YAML key spelling. Docker Compose spec
+  uses underscore (`start_period`), while the Dockerfile `HEALTHCHECK` instruction uses hyphens
+  (`--start-period`). A previous session's lesson entry was incorrect about this. Do NOT change
+  compose YAML `start_period` to `start-period` — Docker Compose validation rejects `start-period`.
+- ALL 4 app instances (sqlite-1, sqlite-2, postgres-1, postgres-2) require `--cert`/`--key` mTLS
+  client certs in the livez healthcheck. The canonical template initially only had them on sqlite-1.
+  This was discovered by running the healthcheck manually and observing `tls: certificate required`
+  for sqlite-2 even when using the CA cert (`--cacert` only). The admin port requires mTLS from ALL
+  clients.
 
 ### Patterns for Future Phases
 
@@ -91,10 +93,15 @@
   tests to identify all existing drift — otherwise you risk partial fixes.
 - **Enumerate all affected files early**: The initial description mentioned "4 PS-ID compose files"
   but the actual scope was 10 (all identity services and pki-ca also needed fixes). Always grep for
-  `start_period` (or the relevant pattern) across ALL compose files before planning effort.
-- **Task 2.3 Docker verification gate**: Mark Docker-dependent tasks as BLOCKED immediately if
-  Docker is unavailable, rather than attempting them and failing. Create an explicit resolution plan
-  in lessons.md so the next session knows exactly what to verify.
+  the relevant pattern across ALL compose files before planning effort.
+- **Docker YAML vs Dockerfile key naming**: Docker Compose YAML healthcheck uses `start_period`
+  (underscore). Dockerfile `HEALTHCHECK` instruction uses `--start-period` (hyphen). NEVER confuse
+  these — Docker Compose v2 rejects `start-period` (hyphen) in YAML with "additional properties
+  not allowed" error.
+- **ALL instances need mTLS client certs for admin port**: The admin port (9090) requires mutual TLS
+  from ALL clients — not just the first instance. Each instance has its own client cert under
+  `/certs/{PS-ID}/private-https-mutual-entity-{PS-ID}-{suffix}/`. All 4 healthchecks must include
+  `--cert`/`--key` pointing to the instance-specific cert.
 - **Verify task pre-completion**: Before beginning any task, verify whether it was already done in
   a previous session by reading the relevant source files — prevents wasted analysis work.
 
