@@ -585,6 +585,7 @@
 - **./configs/ isolation**: No changes to `./configs/` files; they continue using auto-TLS only.
 - **V13 depends on V12 Phase 0**: Cat 9 infra cert (`otel-collector-contrib-https-client-entity-infra`) generated in V12 Phase 0. V13 Phase 0 is independent (can run in parallel with V12 Phases 1-9).
 - **D6 contingency**: If grafana/otel-lgtm does not support OTLP ingest TLS, pivot to OTel sidecar (D6=C) in Phase 4 Task 4.2.
+- **V14 carry-forward (admin port YAML config)**: `internal/apps/framework/service/cli/` subcommands (`livez`, `readyz`, `shutdown`) are currently CLI-args-only. They should be extended to support YAML config files following the config-priority pattern (Docker secrets > YAML > CLI), allowing PS-ID instances to reuse their existing config files instead of passing all cert paths as CLI args. Track as a dedicated Phase in V15 or a separate V16 plan.
 
 ---
 
