@@ -159,7 +159,7 @@ services:
       healthcheck-opentelemetry-collector-contrib:
         condition: service_completed_successfully
     healthcheck:
-      test: ["CMD", "/app/__PS_ID__", "health", "--url", "https://127.0.0.1:8080/service/api/v1"]
+      test: ["CMD", "/app/__PS_ID__", "livez", "--cacert", "/certs/issuing-ca.pem"]
       start_period: __HEALTHCHECK_START_PERIOD__
       interval: __HEALTHCHECK_INTERVAL__
       timeout: __HEALTHCHECK_TIMEOUT__
@@ -208,7 +208,7 @@ services:
       healthcheck-opentelemetry-collector-contrib:
         condition: service_completed_successfully
     healthcheck:
-      test: ["CMD", "/app/__PS_ID__", "health", "--url", "https://127.0.0.1:8080/service/api/v1"]
+      test: ["CMD", "/app/__PS_ID__", "livez", "--cacert", "/certs/issuing-ca.pem"]
       start_period: __HEALTHCHECK_START_PERIOD__
       interval: __HEALTHCHECK_INTERVAL__
       timeout: __HEALTHCHECK_TIMEOUT__
@@ -260,7 +260,7 @@ services:
       healthcheck-opentelemetry-collector-contrib:
         condition: service_completed_successfully
     healthcheck:
-      test: ["CMD", "/app/__PS_ID__", "health", "--url", "https://127.0.0.1:8080/service/api/v1"]
+      test: ["CMD", "/app/__PS_ID__", "livez", "--cacert", "/certs/issuing-ca.pem"]
       start_period: __HEALTHCHECK_START_PERIOD__
       interval: __HEALTHCHECK_INTERVAL__
       timeout: __HEALTHCHECK_TIMEOUT__
@@ -315,7 +315,7 @@ services:
       __PS_ID__-app-postgresql-1:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "/app/__PS_ID__", "health", "--url", "https://127.0.0.1:8080/service/api/v1"]
+      test: ["CMD", "/app/__PS_ID__", "livez", "--cacert", "/certs/issuing-ca.pem"]
       start_period: __HEALTHCHECK_START_PERIOD__
       interval: __HEALTHCHECK_INTERVAL__
       timeout: __HEALTHCHECK_TIMEOUT__
