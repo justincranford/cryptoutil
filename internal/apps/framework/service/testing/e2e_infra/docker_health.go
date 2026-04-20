@@ -7,7 +7,6 @@ import (
 	"context"
 	json "encoding/json"
 	"fmt"
-	"os/exec"
 	"strings"
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
@@ -128,10 +127,8 @@ func determineServiceHealthStatus(serviceMap map[string]map[string]any, services
 func (cm *ComposeManager) WaitForServicesHealthy(ctx context.Context, services []ServiceAndJob) error {
 	fmt.Println("[WaitForServicesHealthy] Starting batch health check...")
 
-	// Run docker compose ps to get service status
-	psCmd := exec.CommandContext(ctx, "docker", "compose", "-f", cm.ComposeFile, "ps", "-a", "--format", "json")
-
-	output, err := psCmd.CombinedOutput()
+	// Run docker compose ps to get service status.
+	output, err := cm.psOutputFn(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to get docker compose ps output: %w (output: %s)", err, string(output))
 	}

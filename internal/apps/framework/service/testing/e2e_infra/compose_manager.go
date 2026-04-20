@@ -21,17 +21,34 @@ type ComposeManager struct {
 	ComposeFile string
 	Profiles    []string
 	HTTPClient  *http.Client
+	// psOutputFn provides docker compose ps JSON output; injectable for testing.
+	psOutputFn func(ctx context.Context) ([]byte, error)
 }
 
 // NewComposeManager creates a compose manager with TLS-enabled HTTP client.
 // Profiles specifies Docker Compose profiles to activate (e.g., "dev", "postgres").
 // Services with profiles: [...] in compose.yml only start when their profile is active.
 func NewComposeManager(composeFile string, profiles ...string) *ComposeManager {
-	return &ComposeManager{
+	cm := &ComposeManager{
 		ComposeFile: composeFile,
 		Profiles:    profiles,
 		HTTPClient:  cryptoutilSharedCryptoTls.NewClientForTest(),
 	}
+	cm.psOutputFn = cm.defaultPsOutput
+
+	return cm
+}
+
+// defaultPsOutput runs the real docker compose ps command.
+func (cm *ComposeManager) defaultPsOutput(ctx context.Context) ([]byte, error) {
+	psCmd := exec.CommandContext(ctx, "docker", "compose", "-f", cm.ComposeFile, "ps", "-a", "--format", "json")
+
+	output, err := psCmd.CombinedOutput()
+	if err != nil {
+		return output, fmt.Errorf("docker compose ps failed: %w", err)
+	}
+
+	return output, nil
 }
 
 // Start brings up docker compose stack.
@@ -102,6 +119,10 @@ func (cm *ComposeManager) BuildDockerExecArgs(service string, command ...string)
 	return execArgs
 }
 
+// defaultHealthPollInterval is the polling cadence for WaitForHealth.
+// Tests override it via export_test.go to avoid 2-second delays.
+var defaultHealthPollInterval = 2 * time.Second //nolint:gochecknoglobals // seam for tests
+
 // WaitForHealth polls an health endpoint until healthy or timeout.
 // Supports both admin endpoints (/admin/api/v1/livez) and public endpoints (/health).
 func (cm *ComposeManager) WaitForHealth(healthURL string, timeout time.Duration) error {
@@ -109,7 +130,7 @@ func (cm *ComposeManager) WaitForHealth(healthURL string, timeout time.Duration)
 
 	timeoutCh := time.After(timeout)
 
-	ticker := time.NewTicker(2 * time.Second)
+	ticker := time.NewTicker(defaultHealthPollInterval)
 	defer ticker.Stop()
 
 	fmt.Printf("[WaitForHealth] Starting health check for %s (timeout: %v)\n", healthURL, timeout)
