@@ -3261,6 +3261,7 @@ func TestListMessages_Handler(t *testing.T) {
 
 **Anti-pattern (v11 pki-init)**: Coverage ceiling of ~93% accepted at 92.4% with no mitigation plan — `productionNew*` functions remained permanently untested because no E2E CI/CD or `internalMain` refactoring was planned. **Resolved in v14** by applying the Production Closure Body Coverage pattern (see below).
 
+<!-- @propagate to=".github/instructions/03-02.testing.instructions.md" as="production-closure-body-coverage" -->
 **Production Closure Body Coverage Pattern**: When a factory function (`NewXxx`) defines anonymous
 closures in its return struct, the closure bodies are separate coverage blocks — creating the struct
 does NOT cover the closure bodies. Only INVOKING the closures covers their bodies.
@@ -3292,6 +3293,7 @@ production files and follows the established project convention for test seams.
 **Structural ceiling for production wiring errors**: `productionNewTelemetryService` error paths
 and OS-level faults (`RemoveAll` failures, non-ENOENT `Stat` errors) remain uncoverable via unit
 tests. Document these as structural ceilings and cover via E2E CI/CD smoke tests instead.
+<!-- @/propagate -->
 
 #### 10.2.4 Test Seam Injection Pattern
 
@@ -3760,6 +3762,7 @@ NEVER use `docker exec curl` — curl is unavailable in Alpine-based images by d
 verified to use the correct cert paths. NEVER use the `health` subcommand (public port 8080) as a
 proxy for admin TLS verification.
 
+<!-- @propagate to=".github/instructions/03-02.testing.instructions.md" as="postgres-mtls-client-identity" -->
 **PostgreSQL mTLS Client Identity in E2E**: Use `client_dn` (from the mTLS certificate CN) to
 identify a GORM service's mTLS connection in `pg_stat_ssl`, NOT `application_name`. GORM does not
 set `application_name` by default — it is always empty. Pattern:
@@ -3770,6 +3773,7 @@ JOIN pg_stat_activity ON pg_stat_ssl.pid = pg_stat_activity.pid
 WHERE pg_stat_ssl.ssl = true
   AND pg_stat_ssl.client_dn LIKE '%-sm-kms-%'
 ```
+<!-- @/propagate -->
 
 **Docker image rebuild before E2E**: `docker compose build` is MANDATORY before running E2E when
 production code changes (especially init/startup code). A stale Docker image silently hides new
@@ -3964,6 +3968,7 @@ type ServiceAndJob struct {
 
 #### 10.5.3 Common Surviving Mutations and Fixes
 
+<!-- @propagate to=".github/instructions/03-02.testing.instructions.md" as="mutation-common-survivors" -->
 **`attempts++` in retry loops**: The `attempts` increment is mutated to a no-op. Fix: include
 `attempts` in the timeout error message and assert the error string does NOT contain `"after 0 attempts"`:
 
@@ -3984,6 +3989,7 @@ Document as a structural ceiling; do NOT spend time trying to kill this mutation
 like `KILLED` — both mean the mutation was detected. Only `LIVED` mutations are failures. Packages
 with blocking operations (polling loops, network waits) produce more TIMEOUTs; budget ~30s per
 TIMED OUT mutation when estimating gremlins run time.
+<!-- @/propagate -->
 
 ### 10.6 Load Testing Strategy
 
@@ -4259,6 +4265,8 @@ def test_health_check(api_client):
 - Pattern: Declare as named variables, NEVER inline literals
 - Rationale: mnd (magic number detector) linter enforcement
 - **Coverage/Mutation Exemption**: `internal/shared/magic/` is **excluded from all code coverage and mutation testing thresholds**; it contains only named constants and variables with no executable logic to test
+- **`time.Duration` constants MUST NOT have unit suffixes** (e.g., `Ms`, `Ns`, `Sec`, `Min` — violates staticcheck ST1011). The `time.Duration` type already encodes the unit. Correct: `DefaultPollInterval = 5 * time.Second`. Wrong: `DefaultPollIntervalMs = 5000`.
+- **ALWAYS check `internal/shared/magic/` before writing any literal**: Search for an existing named constant before adding any string or numeric literal in test or production code. Bare literals violate `literal-use` (blocked by `TestLint_Integration`). Discovering these violations mid-plan is costly.
 
 ### 11.2 Quality Gates
 
@@ -5327,6 +5335,8 @@ configs/
 **Solution**: ENG-HANDBOOK.md is the **absolute single source of truth**. Content is propagated to downstream files using **chunk-based verbatim copying** with HTML comment markers. A deterministic CI/CD validator verifies propagation integrity.
 
 **MANDATORY**: Changes to ENG-HANDBOOK.md MUST be propagated to ALL downstream files in the SAME commit. Infrastructure changes (Docker, OTel, testcontainers, CI/CD) are ALWAYS BLOCKING — NEVER deferred.
+
+**Propagation integrity check**: Run `go run ./cmd/cicd-lint lint-docs` immediately after every ENG-HANDBOOK.md update, BEFORE committing. `replace_string_in_file` can silently delete section headings or break `@propagate` anchors when `oldString` includes the heading but `newString` omits it. `lint-docs` catches all such drift in a single pass.
 
 #### 13.4.2 Propagation Marker System
 

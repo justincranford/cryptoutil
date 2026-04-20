@@ -221,6 +221,21 @@ required_propagations:
     required_targets:
       - .github/instructions/03-05.linting.instructions.md
 
+  - chunk_id: mutation-common-survivors
+    source_file: docs/ENG-HANDBOOK.md
+    required_targets:
+      - .github/instructions/03-02.testing.instructions.md
+
+  - chunk_id: postgres-mtls-client-identity
+    source_file: docs/ENG-HANDBOOK.md
+    required_targets:
+      - .github/instructions/03-02.testing.instructions.md
+
+  - chunk_id: production-closure-body-coverage
+    source_file: docs/ENG-HANDBOOK.md
+    required_targets:
+      - .github/instructions/03-02.testing.instructions.md
+
   - chunk_id: validator-error-aggregation
     source_file: docs/ENG-HANDBOOK.md
     required_targets:
