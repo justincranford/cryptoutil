@@ -52,7 +52,51 @@
 
 ## Phase 2: Admin mTLS Full Round-Trip Test
 
-*(To be filled during Phase 2 execution using the 4-section structure above)*
+### What Worked
+
+- Python `str.replace(old, new, count=1)` for targeted multi-line healthcheck replacement worked
+  reliably: the sqlite-1 healthcheck is always the FIRST occurrence in each compose file, so
+  replacing only the first occurrence correctly added `--cert`/`--key` to sqlite-1 while leaving
+  sqlite-2/postgres-1/postgres-2 untouched.
+- Running `go test ./internal/apps/tools/cicd_lint/lint_fitness/template_drift/...` immediately
+  after modifying compose files provided fast, precise feedback on template compliance.
+- The `template_drift` linter caught that sm-kms had extra `--cert`/`--key` on non-sqlite-1
+  healthchecks — a pre-existing error introduced before this plan — which we fixed.
+- Semantic commit separation (Phase 1 code changes vs Phase 2 compose fixes) kept the git history
+  clean and each commit independently reviewable.
+
+### What Didn't Work
+
+- Task 2.1 was marked ❌ in tasks.md but was already complete before this plan began. Auditing
+  current implementation state before marking tasks as incomplete would have saved confusion.
+- Task 2.3 (Docker verification) is blocked because Docker Desktop is not running in this
+  development environment. The Docker-dependent smoke test cannot be completed without it.
+- The canonical template already had the correct `--cert`/`--key` for sqlite-1, but 9 of 10 PS-ID
+  compose files were missing them — drift between the template and the instances was silent until
+  the template_drift linter was run.
+
+### Root Causes
+
+- `start_period` (underscore) is silently accepted by Docker Compose but treated as an unknown key
+  and IGNORED — Docker uses the default 0-second start period, which means healthchecks fire
+  immediately before the service is ready. The correct spelling is `start-period` (hyphen).
+- sqlite-2/postgres-1/postgres-2 healthchecks correctly use only `--cacert` (they are app instances
+  that don't require mTLS client cert authentication). Only sqlite-1 presents a client cert because
+  the canonical template was designed this way — each PS-ID instance has a unique client cert under
+  `/certs/{PS-ID}/private-https-mutual-entity-{PS-ID}-{suffix}/`.
+
+### Patterns for Future Phases
+
+- **Template drift check first**: Before starting any compose file changes, run `template_drift`
+  tests to identify all existing drift — otherwise you risk partial fixes.
+- **Enumerate all affected files early**: The initial description mentioned "4 PS-ID compose files"
+  but the actual scope was 10 (all identity services and pki-ca also needed fixes). Always grep for
+  `start_period` (or the relevant pattern) across ALL compose files before planning effort.
+- **Task 2.3 Docker verification gate**: Mark Docker-dependent tasks as BLOCKED immediately if
+  Docker is unavailable, rather than attempting them and failing. Create an explicit resolution plan
+  in lessons.md so the next session knows exactly what to verify.
+- **Verify task pre-completion**: Before beginning any task, verify whether it was already done in
+  a previous session by reading the relevant source files — prevents wasted analysis work.
 
 ---
 
