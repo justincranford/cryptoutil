@@ -5,6 +5,8 @@ package e2e_infra
 import (
 	"testing"
 
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+
 	"github.com/stretchr/testify/require"
 )
 
@@ -22,17 +24,17 @@ func TestBuildDockerExecArgs(t *testing.T) {
 		{
 			name:    "no-profiles",
 			compose: "deployments/sm-kms/compose.yml",
-			service: "postgres-leader",
+			service: cryptoutilSharedMagic.PKIInitPostgresLeaderService,
 			command: []string{"psql", "--username=user", "--command", "SELECT 1"},
-			want:    []string{"compose", "-f", "deployments/sm-kms/compose.yml", "exec", "postgres-leader", "psql", "--username=user", "--command", "SELECT 1"},
+			want:    []string{"compose", "-f", "deployments/sm-kms/compose.yml", "exec", cryptoutilSharedMagic.PKIInitPostgresLeaderService, "psql", "--username=user", "--command", "SELECT 1"},
 		},
 		{
 			name:     "with-profile",
 			compose:  "deployments/sm-kms/compose.yml",
-			profiles: []string{"postgres"},
-			service:  "sm-kms-app-sqlite-1",
+			profiles: []string{cryptoutilSharedMagic.DockerServicePostgres},
+			service:  cryptoutilSharedMagic.KMSE2ESQLiteContainer,
 			command:  []string{"/bin/sh"},
-			want:     []string{"compose", "-f", "deployments/sm-kms/compose.yml", "--profile", "postgres", "exec", "sm-kms-app-sqlite-1", "/bin/sh"},
+			want:     []string{"compose", "-f", "deployments/sm-kms/compose.yml", "--profile", cryptoutilSharedMagic.DockerServicePostgres, "exec", cryptoutilSharedMagic.KMSE2ESQLiteContainer, "/bin/sh"},
 		},
 	}
 

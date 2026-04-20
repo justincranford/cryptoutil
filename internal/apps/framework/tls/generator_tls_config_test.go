@@ -14,6 +14,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	cryptoutilAppsFrameworkTls "cryptoutil/internal/apps/framework/tls"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // TestWriteTLSConfigYAML_HappyPath verifies that writeTLSConfigYAML writes a valid
@@ -116,7 +117,7 @@ func TestWriteTLSConfigYAML_Generate_WritesConfigFile(t *testing.T) {
 	)
 
 	tmpDir := t.TempDir()
-	require.NoError(t, gen.Generate("skeleton-template", tmpDir))
+	require.NoError(t, gen.Generate(cryptoutilSharedMagic.OTLPServiceSkeletonTemplate, tmpDir))
 
 	// tls-config.yml must be at targetDir/tls-config.yml, not inside the tier subdir.
 	require.Equal(t, filepath.Join(tmpDir, "tls-config.yml"), tlsConfigPath,
