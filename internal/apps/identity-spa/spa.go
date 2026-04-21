@@ -33,7 +33,7 @@ func Spa(args []string, _ io.Reader, stdout, stderr io.Writer) int {
 			ServiceID:         cryptoutilSharedMagic.IdentitySPAServiceID,
 			ProductName:       cryptoutilSharedMagic.IdentityProductName,
 			ServiceName:       cryptoutilSharedMagic.SPAServiceName,
-			DefaultPublicPort: cryptoutilSharedMagic.IdentitySPAServicePort,
+			DefaultPublicPort: uint16(cryptoutilSharedMagic.IdentitySPAServicePort),
 			UsageMain:         SPAUsageMain,
 			UsageServer:       SPAUsageServer,
 			UsageClient:       SPAUsageClient,
@@ -112,6 +112,7 @@ func spaServerStart(args []string, stdout, stderr io.Writer) int {
 	}
 
 	signal.Stop(sigChan)
+	close(sigChan)
 
 	_, _ = fmt.Fprintln(stdout, "✅ identity-spa service stopped")
 

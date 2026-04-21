@@ -33,7 +33,7 @@ func Authz(args []string, _ io.Reader, stdout, stderr io.Writer) int {
 			ServiceID:         cryptoutilSharedMagic.IdentityAuthzServiceID,
 			ProductName:       cryptoutilSharedMagic.IdentityProductName,
 			ServiceName:       cryptoutilSharedMagic.AuthzServiceName,
-			DefaultPublicPort: cryptoutilSharedMagic.IdentityAuthzServicePort,
+			DefaultPublicPort: uint16(cryptoutilSharedMagic.IdentityAuthzServicePort),
 			UsageMain:         AUTHZUsageMain,
 			UsageServer:       AUTHZUsageServer,
 			UsageClient:       AUTHZUsageClient,
@@ -119,6 +119,7 @@ func authzServerStart(args []string, stdout, stderr io.Writer) int {
 	}
 
 	signal.Stop(sigChan)
+	close(sigChan)
 
 	_, _ = fmt.Fprintln(stdout, "✅ identity-authz service stopped")
 

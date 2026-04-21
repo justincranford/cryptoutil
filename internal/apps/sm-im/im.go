@@ -123,6 +123,7 @@ func imServiceServerStart(args []string, stdout, stderr io.Writer) int {
 	}
 
 	signal.Stop(sigChan)
+	close(sigChan)
 
 	_, _ = fmt.Fprintln(stdout, "✅ sm-im service stopped")
 

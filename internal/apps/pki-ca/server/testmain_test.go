@@ -12,9 +12,9 @@ import (
 	"testing"
 	"time"
 
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
-
+	cryptoutilE2EHelpers "cryptoutil/internal/apps/framework/service/testing/e2e_helpers"
 	cryptoutilAppsCaServerConfig "cryptoutil/internal/apps/pki-ca/server/config"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 var (
@@ -38,41 +38,10 @@ func TestMain(m *testing.M) {
 		panic(fmt.Sprintf("TestMain: failed to create server: %v", err))
 	}
 
-	// Start server in background.
-	errChan := make(chan error, 1)
-
-	go func() {
-		if startErr := testServer.Start(ctx); startErr != nil {
-			errChan <- startErr
-		}
-	}()
-
-	// Wait for server ports to be assigned.
-	const (
-		maxWaitAttempts = 300
-		waitInterval    = 100 * time.Millisecond
-	)
-
-	var publicPort, adminPort int
-
-	for i := 0; i < maxWaitAttempts; i++ {
-		publicPort = testServer.PublicPort()
-		adminPort = testServer.AdminPort()
-
-		if publicPort > 0 && adminPort > 0 {
-			break
-		}
-
-		select {
-		case err := <-errChan:
-			panic(fmt.Sprintf("TestMain: server failed to start: %v", err))
-		case <-time.After(waitInterval):
-		}
-	}
-
-	if publicPort == 0 || adminPort == 0 {
-		panic("TestMain: server did not bind to ports")
-	}
+	// Start server in background and wait for both ports to bind.
+	cryptoutilE2EHelpers.MustStartAndWaitForDualPorts(testServer, func() error {
+		return testServer.Start(ctx)
+	})
 
 	// Mark server as ready.
 	testServer.SetReady(true)

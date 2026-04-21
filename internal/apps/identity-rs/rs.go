@@ -33,7 +33,7 @@ func Rs(args []string, _ io.Reader, stdout, stderr io.Writer) int {
 			ServiceID:         cryptoutilSharedMagic.IdentityRSServiceID,
 			ProductName:       cryptoutilSharedMagic.IdentityProductName,
 			ServiceName:       cryptoutilSharedMagic.RSServiceName,
-			DefaultPublicPort: cryptoutilSharedMagic.IdentityRSServicePort,
+			DefaultPublicPort: uint16(cryptoutilSharedMagic.IdentityRSServicePort),
 			UsageMain:         RSUsageMain,
 			UsageServer:       RSUsageServer,
 			UsageClient:       RSUsageClient,
@@ -112,6 +112,7 @@ func rsServerStart(args []string, stdout, stderr io.Writer) int {
 	}
 
 	signal.Stop(sigChan)
+	close(sigChan)
 
 	_, _ = fmt.Fprintln(stdout, "✅ identity-rs service stopped")
 

@@ -33,7 +33,7 @@ func Idp(args []string, _ io.Reader, stdout, stderr io.Writer) int {
 			ServiceID:         cryptoutilSharedMagic.IdentityIDPServiceID,
 			ProductName:       cryptoutilSharedMagic.IdentityProductName,
 			ServiceName:       cryptoutilSharedMagic.IDPServiceName,
-			DefaultPublicPort: cryptoutilSharedMagic.IdentityIDPServicePort,
+			DefaultPublicPort: uint16(cryptoutilSharedMagic.IdentityIDPServicePort),
 			UsageMain:         IDPUsageMain,
 			UsageServer:       IDPUsageServer,
 			UsageClient:       IDPUsageClient,
@@ -112,6 +112,7 @@ func idpServerStart(args []string, stdout, stderr io.Writer) int {
 	}
 
 	signal.Stop(sigChan)
+	close(sigChan)
 
 	_, _ = fmt.Fprintln(stdout, "✅ identity-idp service stopped")
 

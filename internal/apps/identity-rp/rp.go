@@ -33,7 +33,7 @@ func Rp(args []string, _ io.Reader, stdout, stderr io.Writer) int {
 			ServiceID:         cryptoutilSharedMagic.IdentityRPServiceID,
 			ProductName:       cryptoutilSharedMagic.IdentityProductName,
 			ServiceName:       cryptoutilSharedMagic.RPServiceName,
-			DefaultPublicPort: cryptoutilSharedMagic.IdentityRPServicePort,
+			DefaultPublicPort: uint16(cryptoutilSharedMagic.IdentityRPServicePort),
 			UsageMain:         RPUsageMain,
 			UsageServer:       RPUsageServer,
 			UsageClient:       RPUsageClient,
@@ -112,6 +112,7 @@ func rpServerStart(args []string, stdout, stderr io.Writer) int {
 	}
 
 	signal.Stop(sigChan)
+	close(sigChan)
 
 	_, _ = fmt.Fprintln(stdout, "✅ identity-rp service stopped")
 
