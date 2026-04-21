@@ -217,6 +217,98 @@ TARGET-DIRECTORY/{PKI-INIT-DOMAIN}/
 
 **Shared-Identity CA Chain Tracing Rule**: When accepting any design decision that involves a shared identity or certificate (e.g., a single cert shared by replication partners), IMMEDIATELY trace: (1) which CA issues the cert, (2) which truststores include that CA, (3) whether all consumers of that cert have the CA in their truststore. Gaps discovered during implementation require significant re-work. See [ENG-HANDBOOK.md §6.5](ENG-HANDBOOK.md#65-pki-architecture--strategy) for details.
 
+## Directory Count Formula Derivation
+
+The totals in the Directory Count Summary table are derived as follows (assuming 2 realms: `file`, `db`):
+
+| Category | Per-PS-ID Formula | Per-SUITE Formula | Result |
+|----------|-------------------|-------------------|--------|
+| 1 Global HTTPS Server CAs | 2 tiers × 2 store types = **4** | same (shared global) | 4 |
+| 2 Grafana/OTel Server Certs | 2 services × 1 store type = **2** | same (shared global) | 2 |
+| 3 PS-ID App Server Certs | 4 instances × 1 = **4** | 4 × 10 PS-IDs | 40 |
+| 4 PS-ID HTTPS Client CAs | 3 PKI domains × 2 tiers × 2 store types = **12** | 12 × 10 | 120 |
+| 5 PS-ID HTTPS Client Certs | 3 PKI domains × 2 prefixes × 2 realms = **12** | 12 × 10 | 120 |
+| 6 Private mTLS CAs (Admin) | 4 instances × 2 tiers × 2 store types = **16** | 16 × 10 | 160 |
+| 7 Private mTLS Leaves (Admin) | 4 instances × 1 = **4** | 4 × 10 | 40 |
+| 8 Grafana/OTel Client CAs | 2 services × 2 tiers × 2 store types = **8** | same (shared global) | 8 |
+| 9 Grafana/OTel Client Certs | 2 services × (4 instances + 1 admin + 1 infra) = **12** | 2 × (4×10 + 1 + 1) | 84 |
+| 10 PostgreSQL Server CAs | 2 tiers × 2 store types = **4** | same (shared global) | 4 |
+| 11 PostgreSQL Server Certs | 2 instances × 1 = **2** | same (shared global) | 2 |
+| 12 PostgreSQL Client CAs | 2 tiers × 2 store types = **4** | same (shared global) | 4 |
+| 13 PostgreSQL Replication Certs | 2 instances × 1 = **2** | same (shared global) | 2 |
+| 14 PS-ID PostgreSQL App Clients | 2 DB roles × 2 postgres instances = **4** | 4 × 10 | 40 |
+| **Total** | **90** | | **630** |
+
+**PS-ID breakdown**: 30 global (cats 1, 2, 8, 10, 11, 12, 13 = 4+2+8+4+2+4+2) + 60 PS-ID-specific (cats 3, 4, 5, 6, 7, 9, 14 = 4+12+12+16+4+12+4 − global shares) = **90 per PS-ID**.
+
+**SUITE total**: 30 global directories (identical at every tier) + 60 × 10 PS-IDs = 30 + 600 = **630**.
+
+## Admin CA Bundle — issuing-ca.pem
+
+The admin mTLS channel (Category 6/7) uses a dedicated per-instance CA chain. Each admin HTTPS
+server presents its leaf cert (`private-https-mutual-entity-{PS-ID}-{instance}`), which is issued
+by the instance's issuing CA (`private-https-mutual-issuing-ca-{PS-ID}-{instance}`).
+
+Callers of the admin API (health checks, shutdown, ops tooling) must trust the issuing CA.
+`pki-init` outputs the issuing CA's certificate as both:
+
+- **Keystore dir**: `private-https-mutual-issuing-ca-{PS-ID}-{instance}/`
+  → `private-https-mutual-issuing-ca-{PS-ID}-{instance}.pem` (DER-encoded public cert only)
+- **Truststore subdir**: `private-https-mutual-issuing-ca-{PS-ID}-{instance}/truststore/`
+  → `private-https-mutual-issuing-ca-{PS-ID}-{instance}.crt` (PEM bundle for trust anchoring)
+
+The `tls-config.yml` consumed by admin mTLS clients references the truststore `.crt` as the
+CA bundle (field: `issuing-ca`). Docker Compose mounts this file as a read-only secret. See
+[ENG-HANDBOOK.md §6.9](ENG-HANDBOOK.md#69-authentication--authorization) for the admin mTLS client pattern.
+
+## TLS Config Patterns — TLSModeMixed
+
+Services support three TLS modes via `tls-config.yml`:
+
+| Mode | Meaning | When Used |
+|------|---------|-----------|
+| `TLSModeOff` | No TLS (plaintext) | Development only, never production |
+| `TLSModeOn` | Full server TLS + optional client cert | Standard public HTTPS API |
+| `TLSModeMixed` | Server TLS required; client cert optional | Transitional or hybrid deployments |
+
+**`TLSModeMixed` pattern**: The server presents its cert (enforcing server-auth TLS), but client
+certificates are optional — the server accepts both mTLS clients and plain TLS clients on the same
+listener. This is the intended mode during OTel mTLS rollout (Phase 2–5): the OTel Collector
+begins sending its client cert while older clients without certs continue to work.
+
+```yaml
+# tls-config.yml for OTel mTLS transitional mode
+public:
+  mode: TLSModeMixed   # Server TLS on; client cert optional
+  cert: /run/secrets/public-https-server-entity-{PS-ID}-{instance}.crt
+  key:  /run/secrets/public-https-server-entity-{PS-ID}-{instance}.key
+  ca:   /run/secrets/public-https-client-issuing-ca-{PS-ID}-{instance}.crt
+```
+
+Once all clients present certs, flip `mode` to `TLSModeOn` (full mTLS).
+
+## Realm Dynamic Binding
+
+Category 5 (Public HTTPS Client Certs) is parameterized by realm type. Realm values are **not
+hardcoded** in `pki-init` — they are read at runtime from `api/cryptosuite-registry/registry.yaml`
+under the `realms` key for each PS-ID.
+
+**Why dynamic**: Different PS-IDs may support different realm types. For example, `sm-kms` may
+support `file` + `db` realms while `identity-idp` supports `file` + `db` + `ldap`. Hardcoding realm
+names would require updating `pki-init` every time a realm is added to any service.
+
+**Binding mechanism**:
+
+1. `pki-init` parses `api/cryptosuite-registry/registry.yaml` at startup.
+2. For the target PS-ID (or all PS-IDs in the product/suite), it reads the `realms` list.
+3. Category 5 client cert directories are generated as:
+   `public-https-client-entity-{PS-ID}-{PKI-domain}-{browseruser,serviceuser}-{realm}/`
+   for each realm in the registry's realm list for that PS-ID.
+4. The directory count formula `2 × |realms| × 3` uses `|realms|` = number of realm entries in
+   the registry. The skeleton-template example assumes 2 realms (`file`, `db`).
+
+See [ENG-HANDBOOK.md §7.2.1](ENG-HANDBOOK.md#721-authentication-realms) for realm type definitions.
+
 ## Example: skeleton-template (PS-ID)
 
 Command: `pki-init skeleton-template /tmp`
