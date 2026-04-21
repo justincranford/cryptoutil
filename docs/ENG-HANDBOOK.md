@@ -2029,6 +2029,20 @@ The `pki-init` CLI generates the full `/certs` directory tree for each deploymen
 
 **Docker volume delivery**: certs are written to a named Docker volume `{ps-id}-certs` by the `pki-init` service, then mounted read-only (`/certs:ro`) by all other services in the compose. NEVER use bind mounts for certs. See [docs/deployment-templates.md](deployment-templates.md) rules CO-21/CO-22.
 
+**PostgreSQL PKI naming convention** (`postgres` vs. `postgres-1`/`postgres-2`):
+
+This is intentional design — NOT a naming inconsistency. Two distinct naming scopes serve different purposes:
+
+| Name | Scope | Used In | Meaning |
+|------|-------|---------|---------|
+| `postgres` (no suffix) | Application-level PKI domain | Cat 4, Cat 5 directories | A **shared PKI domain** covering both postgres-1 and postgres-2 as a logical pair. App instances authenticate to "postgres-the-domain" regardless of which physical instance serves them. One CA chain issues certs for both postgres instances. |
+| `postgres-1`, `postgres-2` | Individual TLS endpoint identity | Cat 6, Cat 7, Cat 14 directories | **Per-endpoint TLS identity**. TLS best practice: each endpoint must have a unique server/client cert for proper identification and revocation. `postgres-1` = leader container; `postgres-2` = follower container. |
+
+**Why different scopes?**
+- **Cat 4 (client CA)**: App instances do not care which postgres container they connect to — they authenticate to the database service. One client CA for `postgres` as a logical service.
+- **Cat 6/7 (admin mTLS)**: Each container instance has its own mTLS identity for administrative connections. Admin channels must identify the specific container.
+- **Cat 14 (postgres-only app client leaf)**: Each postgres-instance connection uses its own client cert to identify itself to PostgreSQL (`pg_hba.conf clientcert=verify-full` validates cert CN matches).
+
 See [docs/tls-structure.md](tls-structure.md) for the full unrolled directory layout, per-category rationale, and directory count derivation formulas.
 
 #### 6.11.4 PostgreSQL mTLS Wiring Pattern
@@ -2673,6 +2687,23 @@ COPY --from=validator /app/cryptoutil /app/cryptoutil
 - Critical path: Test execution for largest packages
 - Expected durations by workflow type
 - Parallel vs sequential execution patterns
+
+#### 9.7.4 CI/CD Artifact Retention Policy
+
+**Short retention is intentional design** — this is NOT a gap or deficiency. Each artifact class has a purposefully short lifetime calibrated to its usefulness window:
+
+| Artifact Class | Retention | Rationale |
+|---------------|-----------|-----------|
+| Temporary logs (workflow debug) | 1 day | Useful only during active investigation; purge quickly to control storage costs |
+| Coverage reports | 7 days | Long enough to investigate failures; coverage trends tracked in code, not artifacts |
+| Security scan results (SAST/DAST) | 30 days | Compliance audit trail; longer retention for governance |
+| Benchmark results | 30 days | Performance trend comparison across recent commits |
+
+**Upload policy**: `if: always()` — upload even on failure. Failure artifacts are the most important for debugging.
+
+**GitHub Actions storage cost**: Short retention prevents unbounded storage growth. The `github-cleanup` script (`go run ./cmd/cicd-lint github-cleanup`) can be run periodically to prune old runs and artifacts.
+
+**NEVER extend retention periods without justification** — longer retention increases costs and creates false expectations that artifacts are archived long-term.
 
 ### 9.8 Reusable Action Patterns
 
@@ -3941,6 +3972,53 @@ type ServiceAndJob struct {
 - Verify middleware behavior (IP allowlist, CSRF, CORS)
 - Production-like environment (Docker secrets, TLS)
 
+#### 10.4.4 TLS Verification in E2E Tests
+
+**MANDATORY: All TLS verification MUST be implemented as Go E2E tests — NEVER via `openssl s_client`.**
+
+`openssl s_client` is an acceptable diagnostic tool during interactive debugging and development, but MUST NOT appear in committed test code. Reasons:
+
+- Non-deterministic: output format changes across OpenSSL versions
+- Not Go-native: cannot be asserted programmatically in a test
+- Platform-dependent: different behavior on Alpine vs. Ubuntu vs. macOS
+- No structured error: raw text output must be parsed with fragile regex
+
+**Correct E2E TLS Test Pattern**:
+
+```go
+// E2E TLS verification: start docker compose, tap /certs volume,
+// use cert+key pairs from /certs to establish verified TLS connections.
+func TestE2E_TLSHandshake(t *testing.T) {
+    if testing.Short() {
+        t.Skip("Skipping E2E test")
+    }
+
+    ctx := context.Background()
+    manager := e2e.NewComposeManager(t, "../../../deployments/sm-kms")
+    manager.Up(ctx)
+    defer manager.Down(ctx)
+
+    // Client cert and CA from pki-init /certs volume
+    certFile := manager.CertsPath("sm-kms/public-https-client-entity-sm-kms-sqlite-1-serviceuser-realm1/...")
+    tlsConfig := e2e.LoadTLSConfig(t, certFile, manager.CertsPath("sm-kms/public-https-server-root-ca/truststore/..."))
+
+    client := &http.Client{Transport: &http.Transport{TLSClientConfig: tlsConfig}}
+    resp, err := client.Get(manager.ServiceURL("sm-kms") + "/service/api/v1/health")
+    require.NoError(t, err)
+    require.Equal(t, 200, resp.StatusCode)
+}
+```
+
+**Verification Checklist for TLS E2E Tests**:
+- Start Docker Compose stack (including pki-init service that populates `/certs` volume)
+- Wait for pki-init to complete (health check or volume sentinel file)
+- Load cert/key from `/certs` path using `manager.CertsPath()`
+- Assert TLS handshake succeeds (no error from `client.Get`)
+- Assert service returns expected HTTP status code
+- For mTLS phases: assert server rejects connections without client cert (test with raw TLS dial)
+
+**Volume path convention**: `pki-init` writes to a named Docker volume `{ps-id}-certs`. Inside the volume, paths follow the `tls-structure.md` layout: `{tier-id}/{category-dir-name}/{files}`.
+
 ### 10.5 Mutation Testing Strategy
 
 **Efficacy Targets**:
@@ -4539,6 +4617,29 @@ All Dockerfiles follow identical multi-stage structure. Parameterized fields dif
 - Validates Docker secrets existence and permissions
 - Fails fast on missing/misconfigured secrets
 - Prevents runtime secret access errors
+
+#### 12.2.4 Base Image Tag Policy
+
+**Alpine Linux `latest` tag is intentional design** — this is NOT a security gap or a missing enhancement. Digest-pinning MUST NOT be used.
+
+**Policy**: All `FROM alpine:latest` and equivalent base image references use unpinned `latest` tags.
+
+**Rationale**:
+- **Automatic security patch delivery**: Security CVEs in Alpine base layers are patched within hours. Pinned digests prevent these patches from reaching deployed images without manual intervention.
+- **Operational simplicity**: Digest-pinning requires a separate automation pipeline to detect new base images and update Dockerfiles — a maintenance burden with higher operational risk than the problem it solves.
+- **Build-time freshness**: Docker builds pull the latest Alpine at build time. CI/CD rebuilds happen on every commit, so patches are automatically incorporated.
+
+**hadolint compliance**: Add `# hadolint ignore=DL3007` directly above any `FROM alpine:latest` line to suppress the DL3007 "use a specific version tag" warning. This is NOT a lint suppression of a real problem — it is a conscious policy declaration.
+
+```dockerfile
+# hadolint ignore=DL3007
+FROM alpine:latest AS runtime
+```
+
+**NEVER**:
+- Pin Alpine to a specific digest (`FROM alpine@sha256:...`)
+- Use a specific Alpine version tag (`FROM alpine:3.19`) — version tags become stale
+- Remove the `# hadolint ignore=DL3007` comment without updating this policy
 
 ### 12.3 Deployment Patterns
 

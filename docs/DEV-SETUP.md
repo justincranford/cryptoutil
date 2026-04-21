@@ -33,6 +33,8 @@ This guide covers setting up a complete development environment for the cryptout
 | **Maven** | 3.9+ | Java build tool | Gatling tests (optional) |
 | **Git** | 2.40+ | Version control | All development |
 
+See [ENG-HANDBOOK.md Section 2.2 Architecture Strategy](ENG-HANDBOOK.md#22-architecture-strategy) for version consistency requirements — all tools MUST use the same version across development, CI/CD, Docker, and documentation.
+
 ### Go Development Tools
 
 | Tool | Installation | Purpose |
@@ -101,6 +103,8 @@ github.com/testcontainers/testcontainers-go  # Integration testing
 - **Observability Stack**: OpenTelemetry Collector, Grafana LGTM in containers
 - **CI/CD Parity**: Local testing matches GitHub Actions environment
 
+See [ENG-HANDBOOK.md Section 12 Deployment Architecture](ENG-HANDBOOK.md#12-deployment-architecture) for Docker Compose conventions and [Section 9.4.2](ENG-HANDBOOK.md#942-docker-desktop-and-testcontainers-api-compatibility) for testcontainers API compatibility requirements.
+
 ### Python 3.14+
 
 **Why required?**
@@ -135,6 +139,8 @@ github.com/testcontainers/testcontainers-go  # Integration testing
 - v2.x has breaking config changes from v1.x (see `.golangci.yml`)
 - Pre-commit hooks depend on this version
 
+See [ENG-HANDBOOK.md Section 11.3 Code Quality Standards](ENG-HANDBOOK.md#113-code-quality-standards) for linter configuration, required linters, and enforcement rules.
+
 ### Gremlins (Mutation Testing)
 
 **Why required?**
@@ -143,6 +149,8 @@ github.com/testcontainers/testcontainers-go  # Integration testing
 - Ensures tests actually catch bugs (not just coverage theater)
 - CI/CD workflow `ci-mutation.yml` requires this tool
 
+See [ENG-HANDBOOK.md Section 10.5 Mutation Testing Strategy](ENG-HANDBOOK.md#105-mutation-testing-strategy) for mutation targets (≥95% production, ≥98% infrastructure) and exemptions.
+
 ### Security Tools (Trivy, Nuclei)
 
 **Why required?**
@@ -150,6 +158,8 @@ github.com/testcontainers/testcontainers-go  # Integration testing
 - **Trivy**: Scans container images for CVEs before deployment
 - **Nuclei**: Dynamic security testing (DAST) for API endpoints
 - Used by CI/CD workflows `ci-sast.yml` and `ci-dast.yml`
+
+See [ENG-HANDBOOK.md Section 6.2 SDLC Security Strategy](ENG-HANDBOOK.md#62-sdlc-security-strategy) for security scanning requirements and [Section 10.11 DAST Strategy](ENG-HANDBOOK.md#1011-dast-strategy) for dynamic testing patterns.
 
 ---
 
@@ -688,6 +698,8 @@ rm -rf $(go env GOPATH)/pkg/mod/cache/gopls
 go run ./cmd/cryptoutil/main.go --dev
 ```
 
+See [ENG-HANDBOOK.md Section 7 Data Architecture](ENG-HANDBOOK.md#7-data-architecture) for the 3-tier database strategy (SQLite in unit/integration tests; PostgreSQL only in E2E) and cross-database compatibility patterns.
+
 ### Development with PostgreSQL
 
 ```bash
@@ -787,6 +799,8 @@ golangci-lint run --timeout=10m
 echo "=== Pre-commit Hooks ==="
 pre-commit run --all-files
 ```
+
+See [ENG-HANDBOOK.md Section 11.2 Quality Gates](ENG-HANDBOOK.md#112-quality-gates) for mandatory pre-commit quality gates, coverage targets (≥95% production, ≥98% infrastructure), and the full validation checklist.
 
 ---
 
@@ -908,3 +922,23 @@ trivy image cryptoutil:latest
 ---
 
 This setup guide ensures you have all the tools needed for cryptoutil development. The project includes automated scripts and configurations to make the setup process as smooth as possible across all supported platforms.
+
+## Architecture References
+
+For canonical documentation on architectural decisions described in this guide:
+
+| Topic | ENG-HANDBOOK.md Section |
+|-------|-------------------------|
+| Version requirements | [Section 2.2 Architecture Strategy](ENG-HANDBOOK.md#22-architecture-strategy) |
+| Go project structure | [Section 4.4.1 Go Project Structure](ENG-HANDBOOK.md#441-go-project-structure) |
+| Service framework pattern | [Section 5.1 Service Framework Pattern](ENG-HANDBOOK.md#51-service-framework-pattern) |
+| Security and cryptography | [Section 6 Security Architecture](ENG-HANDBOOK.md#6-security-architecture) |
+| Database strategy | [Section 7 Data Architecture](ENG-HANDBOOK.md#7-data-architecture) |
+| API architecture (OpenAPI) | [Section 8 API Architecture](ENG-HANDBOOK.md#8-api-architecture) |
+| Observability (OTel) | [Section 9.4 Telemetry Strategy](ENG-HANDBOOK.md#94-telemetry-strategy) |
+| CI/CD workflows | [Section 9.7 CI/CD Workflow Architecture](ENG-HANDBOOK.md#97-cicd-workflow-architecture) |
+| Testing strategy | [Section 10 Testing Architecture](ENG-HANDBOOK.md#10-testing-architecture) |
+| Quality gates | [Section 11.2 Quality Gates](ENG-HANDBOOK.md#112-quality-gates) |
+| Code quality / linting | [Section 11.3 Code Quality Standards](ENG-HANDBOOK.md#113-code-quality-standards) |
+| Deployment architecture | [Section 12 Deployment Architecture](ENG-HANDBOOK.md#12-deployment-architecture) |
+| Development practices | [Section 14 Development Practices](ENG-HANDBOOK.md#14-development-practices) |
