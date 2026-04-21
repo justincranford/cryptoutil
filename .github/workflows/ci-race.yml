@@ -115,7 +115,7 @@ jobs:
           echo "⚠️ Note: Known DATA RACE issues in crypto/certificate and shared/pool packages"
           START_TIME=$(date +%s)
           echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-          go test -race -timeout=25m -count=2 ./internal/... ./scripts/...
+          go test -race -tags integration -timeout=25m -count=2 ./internal/... ./scripts/...
           END_TIME=$(date +%s)
           DURATION=$((END_TIME - START_TIME))
           echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"

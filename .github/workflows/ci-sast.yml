@@ -84,15 +84,7 @@ jobs:
         with:
           java-version: '21'
           distribution: 'temurin'
-
-      - name: Cache Maven dependencies
-        # https://github.com/actions/cache/releases (v4.3.0, 2025-04-18)
-        uses: actions/cache@v4.3.0
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
+          cache: 'maven'
 
       # SpotBugs Static Analysis with FindSecBugs
       - name: Run SpotBugs Security Analysis
