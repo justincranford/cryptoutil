@@ -49,7 +49,7 @@ func TestServerInit_HappyPath(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
+			// Sequential: uses os.Chdir (global process state, cannot run in parallel).
 
 			// Create subdirectory for this specific test case
 			testCaseDir := filepath.Join(tempDir, tt.name)
