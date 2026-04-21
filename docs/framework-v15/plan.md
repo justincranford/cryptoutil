@@ -237,8 +237,11 @@ this verification so regression is caught in CI.
    the full generator with real crypto (real RSA/ECDSA key generation) to catch encoding errors
    that stub crypto cannot detect. Use `t.Short()` to skip in normal `-short` runs.
 
-**Seam pattern**: Use existing `ExportedNewTestGenerator` and `ExportedProductionNewGenerator`
-seams. Do NOT start a real HTTPS server in unit tests — test generator code only.
+**Seam pattern (D7=E — real ECDSA)**: All Phase 1 tests (Tasks 1.1–1.3) use real ECDSA (P-256)
+crypto — no stub needed. P-256 key generation is fast enough for 16-tier table-driven tests.
+`ExportedProductionNewGenerator` used only in Task 1.4 (explicit cert-parsing validation). Add
+`t.Short()` guard on Task 1.4 so CI can skip under `-short` flag. Do NOT start a real HTTPS
+server in unit tests — test generator code only.
 
 **E2E TLS Tests (Phase 1.5)**: E2E tests that verify TLS handshakes against real docker compose
 stacks are written alongside each wiring phase (Phases 2–8), following ENG-HANDBOOK.md §10.4.4.
@@ -321,9 +324,11 @@ adds new variables.
 - **D1 (grafana.ini)**: Create `deployments/shared-telemetry/grafana-otel-lgtm/grafana.ini` with
   `[server]` block: `protocol = https`, `cert_file`, `cert_key` pointing to Cat 2
   `public-https-server-entity-grafana-otel-lgtm/` paths.
-- **D6 (OTLP ingest TLS)**: Configure Grafana OTLP ingest (:14317/:14318) with Cat 8
-  `grafana-otel-lgtm-https-client-issuing-ca/truststore/` as `client_ca_file`. If Grafana image
-  does not support this, document finding and pivot to D6=C (OTel sidecar) — create fix task.
+- **D6 (OTLP ingest TLS — empirical first per Q3=C)**: Task 5.2 split into two sub-tasks:
+  - **5.2a (verify)**: Spin up `grafana/otel-lgtm`, attempt OTLP ingest with a client cert,
+    document finding in `test-output/v15-phase5/d6-verification.md`.
+  - **5.2b (apply)**: If D6=A supported, apply Cat 8 `client_ca_file` config. If not, document
+    finding and create D6=C (OTel sidecar) fix task. Either outcome commits to a clear path.
 - **Compose mounts**: Cat 2 server cert dir + Cat 8 client CA truststore + `grafana.ini` config.
   Healthcheck: `https://127.0.0.1:3000/api/health` with `--cacert`.
 - **V14 lesson**: `start_period` underscore in YAML. Test BOTH Grafana UI HTTPS AND OTLP ingest in
@@ -394,9 +399,11 @@ client CAs for optional client cert enforcement.
 
 ---
 
-### Phase 9: Deployment Templates (5h) [Status: ☐ TODO]
+### Phase 9: Deployment Templates (2h) [Status: ☐ TODO]
 
-**Objective**: Update canonical deployment templates to encode V15 cert mounts and config fields.
+**Objective**: Verify canonical deployment template compliance (D9=A: templates were updated
+atomically in Tasks 2.3, 3.3, 5.3, 6.2, 8.3; Phase 9 tasks 9.2/9.3/9.4 are verification-only —
+run template-compliance linter, no new template writing).
 
 - **V14 lesson**: Config correctness verified in a RUNNING stack (Phases 4, 7, 8) BEFORE encoding
   into canonical templates. Do NOT write templates based on untested configs.
@@ -479,13 +486,61 @@ server TLS.
 ### Decision 6 (D6): Grafana OTLP Ingest TLS Support
 
 **Options**:
-- A: Configure Grafana OTLP ingest TLS directly (Cat 8 truststore, `client_ca_file`) ✓ **ASSUMED**
+- A: Configure Grafana OTLP ingest TLS directly (Cat 8 truststore, `client_ca_file`)
 - B: Grafana OTLP ingest does not support TLS — keep existing behavior (accept plaintext from OTel)
 - C: OTel sidecar receives from apps over mTLS; forwards to Grafana OTLP over internal loopback
 
-**Decision**: Option A assumed. Verify empirically in Phase 5 Task 5.2. If grafana/otel-lgtm image
-does not support OTLP ingest mTLS configuration, document finding and pivot to Option C (sidecar
-wraps Grafana OTLP endpoint).
+**Decision (Q3=C — empirical first)**: Task 5.2 is split into 5.2a (verify) + 5.2b (apply). Spin
+up `grafana/otel-lgtm` locally, attempt OTLP ingest with a client cert, document the result, then
+apply the appropriate config. If D6=A is supported, apply in 5.2b. If not, pivot to D6=C (OTel
+sidecar) and create a fix task. Do not assume D6=A or D6=B without empirical evidence.
+
+---
+
+### Decision 7 (D7): Phase 1 Test Generator Seam (Q1=E)
+
+**Options**:
+- A: `export_test.go` with `ExportedNewTestGenerator` stub crypto seam
+- B: `TestMode bool` field in Generator struct
+- C: `generator_stub.go` with `//go:build !production` tag
+- D: Real RSA crypto for all 16-tier tests
+- E: Real ECDSA (P-256) crypto for all 16-tier tests ✓ **SELECTED**
+
+**Decision**: All Phase 1 tests use real ECDSA (P-256) crypto — no stub seam needed. P-256 key
+generation is fast enough for 16-tier table-driven tests (~1–3s total). `t.Short()` guard added to
+Task 1.4 (cert-parsing validation). No `export_test.go` seam created for Phase 1.
+
+---
+
+### Decision 8 (D8): Go E2E Test Package Location (Q2=E)
+
+**Options**:
+- A: `test/e2e/` existing directory
+- B: `internal/apps/framework/tls/` (adjacent to code, `//go:build e2e` tag)
+- C: `internal/apps/framework/tls/e2etests/` dedicated package
+- D: `test/e2e/framework/tls/` nested directory
+- E: `internal/apps/framework/tls/e2e/` dedicated package ✓ **SELECTED**
+
+**Decision**: New package `internal/apps/framework/tls/e2e/` for all TLS E2E tests (Phases 4, 7,
+11). Single `TestMain` owns Docker Compose lifecycle. E2E tests adjacent to the code they
+validate. All files use `//go:build e2e`. Invoked via:
+`go test -tags=e2e ./internal/apps/framework/tls/e2e/...`
+
+---
+
+### Decision 9 (D9): Deployment Template Update Timing (Q4=A)
+
+**Options**:
+- A: Atomic update in the SAME task as the per-service file ✓ **SELECTED**
+- B: Per-service files first (Phases 2/3/5/6/8); canonical templates in Phase 9
+- C: Atomic per-task (A) + Phase 9 becomes verification-only
+- D: Deferred to Phase 9 with `template-compliance` linter skipped during Phases 2–8
+
+**Decision**: Canonical template in `api/cryptosuite-registry/templates/` updated atomically with
+each per-service compose file modification. Tasks 2.3, 3.3, 5.3, 6.2, 8.3 each include the
+criterion: "canonical template updated in the same commit." Phase 9 tasks 9.2/9.3/9.4 become
+verification-only — run `template-compliance` linter; no new template writing. Phase 9 time
+estimate reduced from 5h to 2h.
 
 ---
 
@@ -605,3 +660,87 @@ wraps Grafana OTLP endpoint).
 | Infrastructure Blockers | [§14.7](../../docs/ENG-HANDBOOK.md#147-infrastructure-blocker-escalation) | D6 fallback; all Phase 0 CI/CD gaps are BLOCKING |
 | Plan Lifecycle | [§14.6](../../docs/ENG-HANDBOOK.md#146-plan-lifecycle-management) | ALL phases |
 | Post-Mortem & Propagation | [§14.8](../../docs/ENG-HANDBOOK.md#148-phase-post-mortem--knowledge-propagation) | Every phase post-mortem + Phase 12 knowledge propagation |
+
+---
+
+## Quizme Round 1 (2026-04-21)
+
+### Q1: Phase 1 Test Generator Seam Location
+
+**Question**: The pki-init generator tests (Tasks 1.1–1.3) require a seam-injected (stub crypto)
+generator for speed. Where should the test seam (`ExportedNewTestGenerator`) be defined?
+
+**Options**:
+- A: `export_test.go` with `ExportedNewTestGenerator` stub crypto seam
+- B: `TestMode bool` field in Generator struct
+- C: `generator_stub.go` with `//go:build !production` tag
+- D: Real RSA crypto for all 16-tier tests
+- E: Real ECDSA crypto for all 16-tier tests (no stub)
+
+**Answer: E** — Do not use a stub — run all 16-tier tests with real ECDSA crypto. Accept that Phase 1
+tests will be slower but fully representative.
+
+**Applied**: Tasks 1.1 and 1.2 updated to use real ECDSA (D7=E). Phase 1 seam paragraph updated.
+Decision 7 added to plan Decisions section.
+
+---
+
+### Q2: Go E2E Test Package Location
+
+**Question**: Phases 4, 7, and 11 require committed Go E2E tests that orchestrate Docker Compose
+and verify TLS via `crypto/tls.Dial`. Where should these tests live?
+
+**Options**:
+- A: `test/e2e/` existing directory
+- B: `internal/apps/framework/tls/` (adjacent to code, `//go:build e2e` tag)
+- C: `internal/apps/framework/tls/e2etests/` dedicated package
+- D: `test/e2e/framework/tls/` nested directory
+- E: `internal/apps/framework/tls/e2e/` dedicated package
+
+**Answer: E** — A new package `internal/apps/framework/tls/e2e/` dedicated to TLS E2E tests.
+Cleanly separated from unit/integration tests; single `TestMain` owns the compose lifecycle.
+
+**Applied**: Task 4.1 file path updated to `internal/apps/framework/tls/e2e/otel_tls_test.go`.
+Task 11.2 updated to `internal/apps/framework/tls/e2e/full_pipeline_test.go`. Decision 8 added.
+
+---
+
+### Q3: D6 — Grafana OTLP Ingest mTLS Strategy
+
+**Question**: Phase 5 Task 5.2 needs to configure Grafana OTLP ingest TLS. The `grafana/otel-lgtm`
+image support for explicit OTLP ingest mTLS is not fully documented. What strategy should Task 5.2
+follow?
+
+**Options**:
+- A: Assume D6=A: attempt to configure it and proceed; create fix task if it fails
+- B: Skip OTLP ingest mTLS for `grafana/otel-lgtm` entirely
+- C: Pre-validate empirically FIRST (Task 5.2 split into 5.2a verify + 5.2b apply)
+- D: Pivot immediately to D6=C (OTel sidecar architecture)
+
+**Answer: C** — Pre-validate empirically FIRST (Phase 5 Task 5.2 is split into 5.2a verify + 5.2b
+apply): spin up the image locally, attempt OTLP ingest with a client cert, document the result,
+THEN apply the appropriate config.
+
+**Applied**: Task 5.2 split into 5.2a (verify) + 5.2b (apply). D6 Decision updated to reflect
+empirical-first strategy. Phase 5 D6 bullet updated.
+
+---
+
+### Q4: Deployment Template Update Timing
+
+**Question**: Phases 2, 3, 5, 6, 8 each modify `deployments/` compose files. When should the
+canonical templates be updated relative to the per-service deployment files?
+
+**Options**:
+- A: Atomic update in the SAME task as the per-service file (both updated together)
+- B: Per-service files first; canonical templates updated in Phase 9 as a dedicated phase
+- C: Atomic per-task (A) + Phase 9 becomes verification-only
+- D: Deferred to Phase 9 with `template-compliance` linter explicitly skipped during Phases 2–8
+
+**Answer: A** — Within the SAME task that modifies the per-service file: update both the actual
+file in `deployments/` AND the canonical template in `api/cryptosuite-registry/templates/`
+atomically.
+
+**Applied**: Tasks 2.3, 3.3, 5.3, 6.2, 8.3 each updated with "canonical template updated
+atomically in same commit (D9=A)" acceptance criterion. Phase 9 tasks 9.2/9.3/9.4 changed to
+verification-only. Phase 9 objective and time estimate (5h→2h) updated. Decision 9 added.

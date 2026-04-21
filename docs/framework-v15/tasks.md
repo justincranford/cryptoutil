@@ -242,7 +242,7 @@ Phase 1 validates the existing generator via automated tests so regression is ca
   ```
 - **Acceptance Criteria**:
   - [ ] Table-driven test with all 16 entries — each tier ID gets its own subtest
-  - [ ] Uses `ExportedNewTestGenerator` seam (stub crypto for speed)
+  - [ ] Uses real ECDSA (P-256) crypto (D7=E — no stub seam needed; P-256 is fast for 16 tiers)
   - [ ] No hardcoded UUIDs; uses `t.TempDir()` for output dir per subtest
   - [ ] `t.Parallel()` on parent test and ALL subtests
   - [ ] All 16 subtests pass; CI confirms none skipped
@@ -264,7 +264,7 @@ Phase 1 validates the existing generator via automated tests so regression is ca
   - [ ] Add `// Cat N: <name>` comment at each expected-dir definition for cross-reference
   - [ ] Missing dirs = test failure (generator regression caught)
   - [ ] Extra dirs beyond expected set = test failure in Task 1.3
-  - [ ] Tests use `ExportedNewTestGenerator` seam (stub crypto)
+  - [ ] Tests use real ECDSA (P-256) crypto (D7=E — no stub seam needed)
 - **Files**: `internal/apps/framework/tls/generator_category_mapping_test.go` (new file)
 
 ---
@@ -348,8 +348,11 @@ Phase 1 validates the existing generator via automated tests so regression is ca
   - [ ] NOT mounted: Cat 9 infra (Phase 6), Cat 1, Cat 3, Cat 4 (OTel server does not need these)
   - [ ] Healthcheck updated: endpoint uses `https://` scheme
   - [ ] `start_period` used (underscore — not `start-period`)
+  - [ ] Canonical template `api/cryptosuite-registry/templates/deployments/shared-telemetry/compose.yml`
+    updated atomically in the same commit (D9=A)
   - [ ] `go run ./cmd/cicd-lint lint-deployments` exits 0 after this task
-- **Files**: `deployments/shared-telemetry/compose.yml`
+- **Files**: `deployments/shared-telemetry/compose.yml`,
+  `api/cryptosuite-registry/templates/deployments/shared-telemetry/compose.yml`
 
 ---
 
@@ -398,8 +401,11 @@ Phase 1 validates the existing generator via automated tests so regression is ca
   - [ ] postgres-1: Cat 9 app postgres-1 + Cat 1 (combined with V12 Cat 14 + Cat 10 mounts)
   - [ ] postgres-2: same for postgres-2
   - [ ] NO extra cert dirs beyond minimum required
+  - [ ] Canonical template `api/cryptosuite-registry/templates/deployments/__PS_ID__/compose.yml`
+    updated atomically in the same commit (D9=A)
   - [ ] `go run ./cmd/cicd-lint lint-deployments` exits 0 after this task
-- **Files**: `deployments/{PS-ID}/compose.yml` (10 files = 1 per PS-ID)
+- **Files**: `deployments/{PS-ID}/compose.yml` (10 files),
+  `api/cryptosuite-registry/templates/deployments/__PS_ID__/compose.yml`
 
 ---
 
@@ -423,9 +429,9 @@ interactive diagnostic tool only. See ENG-HANDBOOK.md §10.4.4.
   - [ ] Go test uses `crypto/tls.Dial` or `net/http` with TLS config (per §10.4.4 pattern)
   - [ ] Assert gRPC `:4317` handshake succeeds; server cert is Cat 2 (`public-https-server-entity-otel-collector-contrib`)
   - [ ] Assert HTTP `:4318` handshake succeeds; same Cat 2 cert
-  - [ ] Test file in `test/e2e/` (or adjacent framework/tls E2E package) with `//go:build e2e`
+  - [ ] Test file in `internal/apps/framework/tls/e2e/` with `//go:build e2e` (D8=E)
   - [ ] Evidence saved: `test-output/v15-phase4/otel-server-tls.log`
-- **Files**: `test/e2e/framework_tls_otel_test.go` (or equivalent E2E test package)
+- **Files**: `internal/apps/framework/tls/e2e/otel_tls_test.go` (new — D8=E)
 
 #### Task 4.2: Write Go E2E Test — App→OTel mTLS
 
@@ -469,18 +475,34 @@ interactive diagnostic tool only. See ENG-HANDBOOK.md §10.4.4.
   - [ ] File uses `__PS_ID__` placeholder (template compliance)
 - **Files**: `deployments/shared-telemetry/grafana-otel-lgtm/grafana.ini`
 
-#### Task 5.2: Grafana OTLP Ingest TLS Config
+#### Task 5.2a: Empirically Verify Grafana OTLP Ingest mTLS Support (D6 investigation)
 
 - **Status**: ❌
-- **Estimated**: 1h
+- **Estimated**: 0.5h
 - **Dependencies**: Task 5.1
-- **Description**: Configure Grafana OTLP ingest TLS (D6 verification — confirm grafana/otel-lgtm
-  supports mTLS OTLP ingest).
+- **Description**: Before configuring D6, empirically verify whether `grafana/otel-lgtm` supports
+  OTLP ingest mTLS natively. Spin up the image, attempt OTLP ingest with a client cert, document
+  the result. Do not assume D6=A or D6=B without evidence (per Q3=C decision).
 - **Acceptance Criteria**:
-  - [ ] Grafana OTLP ingest (:14317/:14318) configured for TLS with Cat 8 truststore
-  - [ ] If D6=A supported: config applied
-  - [ ] If NOT supported: finding documented; proceed HTTPS-only; create fix task for D6=C sidecar
-- **Files**: Grafana config at `deployments/shared-telemetry/grafana-otel-lgtm/`
+  - [ ] `grafana/otel-lgtm` image started locally (via compose or `docker run`)
+  - [ ] OTLP ingest attempted with a test client cert (use existing Cat 8 truststore)
+  - [ ] Result documented in `test-output/v15-phase5/d6-verification.md`: supports mTLS? (yes/no)
+  - [ ] Decision recorded: D6=A (apply config) or D6=C (OTel sidecar fix task)
+- **Files**: `test-output/v15-phase5/d6-verification.md` (evidence only, not committed)
+
+#### Task 5.2b: Apply D6 Config Based on 5.2a Findings
+
+- **Status**: ❌
+- **Estimated**: 0.5h
+- **Dependencies**: Task 5.2a
+- **Description**: Apply the appropriate Grafana OTLP ingest TLS configuration based on empirical
+  findings from Task 5.2a.
+- **Acceptance Criteria**:
+  - [ ] If D6=A supported: Grafana OTLP ingest (:14317/:14318) configured with Cat 8 `client_ca_file`
+  - [ ] If D6=C required: finding documented in `lessons.md`; fix task created for OTel sidecar;
+    Phase 5 completes with Grafana HTTPS UI only (no OTLP mTLS until sidecar task)
+  - [ ] Either outcome commits to a clear, documented path — no ambiguous states
+- **Files**: Grafana config at `deployments/shared-telemetry/grafana-otel-lgtm/` (if D6=A)
 
 #### Task 5.3: Grafana Compose Volume Mounts and Healthcheck
 
@@ -495,8 +517,11 @@ interactive diagnostic tool only. See ENG-HANDBOOK.md §10.4.4.
   - [ ] `__PS_ID__-certs` named volume referenced (D5 include-merged)
   - [ ] Healthcheck: `https://127.0.0.1:3000/api/health`; `start_period` (underscore in YAML)
   - [ ] NOT mounted: Cat 9 dirs (Grafana does not present client certs)
+  - [ ] Canonical template `api/cryptosuite-registry/templates/deployments/shared-telemetry/compose.yml`
+    updated atomically in the same commit (D9=A)
   - [ ] `go run ./cmd/cicd-lint lint-deployments` exits 0 after this task
-- **Files**: `deployments/shared-telemetry/compose.yml`
+- **Files**: `deployments/shared-telemetry/compose.yml`,
+  `api/cryptosuite-registry/templates/deployments/shared-telemetry/compose.yml`
 
 ---
 
@@ -528,8 +553,11 @@ interactive diagnostic tool only. See ENG-HANDBOOK.md §10.4.4.
   - [ ] Cat 1 `public-https-server-issuing-ca/truststore/` mounted (verify Grafana server cert)
   - [ ] Phase 2 mounts retained: Cat 2 keystore + Cat 8 truststore
   - [ ] Total OTel mounts: **exactly 4 dirs**: Cat 1 + Cat 2 + Cat 8 + Cat 9 infra
+  - [ ] Canonical template `api/cryptosuite-registry/templates/deployments/shared-telemetry/compose.yml`
+    updated atomically in the same commit (D9=A)
   - [ ] `go run ./cmd/cicd-lint lint-deployments` exits 0 after this task
-- **Files**: `deployments/shared-telemetry/compose.yml`
+- **Files**: `deployments/shared-telemetry/compose.yml`,
+  `api/cryptosuite-registry/templates/deployments/shared-telemetry/compose.yml`
 
 ---
 
@@ -622,8 +650,11 @@ interactive diagnostic tool only. See ENG-HANDBOOK.md §10.4.4.
   - [ ] postgres-1: Cat 3 + Cat 4 postgres-domain (combined with V12 Cat 6+7+10+14 + Phase 3 Cat 9 app)
   - [ ] postgres-2: same for postgres-2
   - [ ] Total per-variant app mounts verified with least-privilege table
+  - [ ] Canonical template `api/cryptosuite-registry/templates/deployments/__PS_ID__/compose.yml`
+    updated atomically in the same commit (D9=A)
   - [ ] `go run ./cmd/cicd-lint lint-deployments` exits 0 after this task
-- **Files**: `deployments/{PS-ID}/compose.yml` (10 files)
+- **Files**: `deployments/{PS-ID}/compose.yml` (10 files),
+  `api/cryptosuite-registry/templates/deployments/__PS_ID__/compose.yml`
 
 ---
 
@@ -644,44 +675,49 @@ interactive diagnostic tool only. See ENG-HANDBOOK.md §10.4.4.
   - [ ] App variants: Cat 3 + Cat 4 + Cat 6 + Cat 7 + Cat 9 app + Cat 10 + Cat 14 (all combined)
 - **Files**: `docs/deployment-templates.md`
 
-#### Task 9.2: Update shared-telemetry OTel Compose Template
+#### Task 9.2: Verify shared-telemetry OTel Compose Template (verification only)
 
 - **Status**: ❌
-- **Estimated**: 1.5h
+- **Estimated**: 0.5h
 - **Dependencies**: Task 9.1
-- **Description**: Update shared-telemetry OTel Collector compose template with V15 mounts.
+- **Description**: Verify shared-telemetry OTel Collector compose template (updated atomically in
+  Tasks 2.3 and 6.2 per D9=A). This task is verification-only — no new template writing.
 - **Acceptance Criteria**:
-  - [ ] OTel mounts: Cat 1 truststore + Cat 2 `public-https-server-entity-otel-collector-contrib/` + Cat 8 `otel-collector-contrib-https-client-issuing-ca/truststore/` + Cat 9 infra `otel-collector-contrib-https-client-entity-infra/`
-  - [ ] `__PS_ID__` placeholders in all paths
-  - [ ] Template compliance linter accepts the file
-- **Files**: `api/cryptosuite-registry/templates/deployments/shared-telemetry/compose.yml`
+  - [ ] `go run ./cmd/cicd-lint lint-fitness` template-compliance check passes for OTel template
+  - [ ] Template matches actual `deployments/shared-telemetry/compose.yml` with `__PS_ID__` substituted
+  - [ ] OTel mounts present: Cat 1 truststore + Cat 2 keystore + Cat 8 truststore + Cat 9 infra
+  - [ ] No new writes — template was updated atomically in Tasks 2.3 and 6.2
+- **Files**: `api/cryptosuite-registry/templates/deployments/shared-telemetry/compose.yml` (verify only)
 
-#### Task 9.3: Update shared-telemetry Grafana Compose Template
+#### Task 9.3: Verify shared-telemetry Grafana Compose Template (verification only)
 
 - **Status**: ❌
-- **Estimated**: 1h
+- **Estimated**: 0.5h
 - **Dependencies**: Task 9.1
-- **Description**: Update shared-telemetry Grafana compose template with cert mounts + grafana.ini.
+- **Description**: Verify shared-telemetry Grafana compose template (updated atomically in Tasks 5.3
+  per D9=A). This task is verification-only — no new template writing.
 - **Acceptance Criteria**:
-  - [ ] Grafana mounts: Cat 2 `public-https-server-entity-grafana-otel-lgtm/` + Cat 8 `grafana-otel-lgtm-https-client-issuing-ca/truststore/`
-  - [ ] `grafana.ini` mounted at `/etc/grafana/grafana.ini:ro`
+  - [ ] `go run ./cmd/cicd-lint lint-fitness` template-compliance check passes for Grafana template
+  - [ ] Template matches actual `deployments/shared-telemetry/compose.yml` Grafana service section
+  - [ ] Grafana mounts present: Cat 2 keystore + Cat 8 truststore + grafana.ini
   - [ ] Healthcheck uses `https://`; `start_period` (underscore in YAML)
-  - [ ] `__PS_ID__` placeholders used
-- **Files**: `api/cryptosuite-registry/templates/deployments/shared-telemetry/compose.yml`
+  - [ ] No new writes — template was updated atomically in Task 5.3
+- **Files**: `api/cryptosuite-registry/templates/deployments/shared-telemetry/compose.yml` (verify only)
 
-#### Task 9.4: Update PS-ID Compose Template (V15 additions)
+#### Task 9.4: Verify PS-ID Compose Template (verification only)
 
 - **Status**: ❌
-- **Estimated**: 1.5h
+- **Estimated**: 0.5h
 - **Dependencies**: Task 9.1
-- **Description**: Add Cat 3, Cat 4, Cat 9 app cert mounts to PS-ID compose template per variant.
+- **Description**: Verify PS-ID compose template (updated atomically in Tasks 3.3 and 8.3 per D9=A).
+  This task is verification-only — no new template writing.
 - **Acceptance Criteria**:
-  - [ ] sqlite-1: Cat 3 `public-https-server-entity-__PS_ID__-sqlite-1/` + Cat 4 sqlite-domain truststore + Cat 9 app sqlite-1 keystore
-  - [ ] sqlite-2: same for sqlite-2
-  - [ ] postgres-1: Cat 3 + Cat 4 postgres-domain + Cat 9 app postgres-1 (in addition to V12 mounts)
-  - [ ] postgres-2: same for postgres-2
+  - [ ] `go run ./cmd/cicd-lint lint-fitness` template-compliance check passes for PS-ID template
+  - [ ] Template matches actual `deployments/{PS-ID}/compose.yml` with `__PS_ID__` substituted
+  - [ ] All 4 variant cert mounts present: Cat 3 + Cat 4 + Cat 9 app (per variant)
   - [ ] `__PS_ID__` placeholders consistent throughout
-- **Files**: `api/cryptosuite-registry/templates/deployments/__PS_ID__/compose.yml`
+  - [ ] No new writes — template was updated atomically in Tasks 3.3 and 8.3
+- **Files**: `api/cryptosuite-registry/templates/deployments/__PS_ID__/compose.yml` (verify only)
 
 ---
 
@@ -738,7 +774,7 @@ interactive diagnostic tool only. See ENG-HANDBOOK.md §10.4.4.
   - [ ] Go test attempts OTLP without client cert; asserts TLS handshake error (rejection verified)
   - [ ] Go test asserts Grafana HTTPS UI (`https://localhost:3000/api/health`) returns 200
   - [ ] All verification uses Go `crypto/tls` / `net/http` — NO `curl`, NO `openssl s_client`
-  - [ ] Test file has `//go:build e2e` tag; saved to `test/e2e/framework_tls_full_pipeline_test.go`
+  - [ ] Test file has `//go:build e2e` tag; saved to `internal/apps/framework/tls/e2e/full_pipeline_test.go` (D8=E)
 
 #### Task 11.3: Write Go E2E Test — App Public HTTPS
 
