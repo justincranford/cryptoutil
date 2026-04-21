@@ -14,13 +14,18 @@
 | HIGH | CI/CD | 2 | ❌ |
 | HIGH | Main Code | 2 | ❌ |
 | HIGH | Tests | 1 | ✅ |
-| MEDIUM | CI/CD | 5 | ❌ |
+| MEDIUM | CI/CD | 3 | ❌ |
 | MEDIUM | Main Code | 2 | ❌ |
 | MEDIUM | Pre-commit | 2 | ❌ |
-| MEDIUM | Docs | 6 | ❌ |
+| MEDIUM | Docs | 4 | ❌ |
 | CODE QUALITY | Tests | 1 | ❌ |
 | DESIGN CHOICE | Tests | 1 | (intentional) |
 | FALSE POSITIVE | Tests | 1 | N/A |
+
+**Design intent items** (removed from gap tracking — documented in ENG-HANDBOOK.md):
+- Alpine `latest` tag → §12.2.4 Base Image Tag Policy
+- CI artifact retention (7d/30d) → §9.7.4 CI/CD Artifact Retention Policy
+- PostgreSQL `postgres` vs `postgres-1`/`postgres-2` naming → §6.11.3 PKI naming convention
 
 ---
 
@@ -56,16 +61,6 @@
 
 ---
 
-### 1.4 — MEDIUM: Unpinned Docker Images in 6+ Workflows
-
-**Finding**: Multiple workflows use unpinned Docker image tags (`postgres:latest`, `zaproxy:stable`) in service container configurations. Per security-first principles, Docker images should be pinned to specific digest or semantic version to prevent unexpected updates from breaking CI/CD.
-
-**Affected workflows**: `ci-e2e.yml`, `ci-dast.yml`, `ci-load.yml`, and others using PostgreSQL containers.
-**Recommended Fix**: Pin all Docker images to specific versions (`postgres:17.2`, `zaproxy/zap-stable:2.15.0`).
-**Status**: ❌ Not fixed
-
----
-
 ### 1.5 — MEDIUM: `ci-race.yml` Missing Build Tag Exclusions
 
 **Finding**: `ci-race.yml` runs `go test -race ./...` without build tag exclusions (`-tags=!integration,!bench,!fuzz,!e2e`). This means benchmark and fuzz test files are compiled but excluded by their function name pattern, while integration test files (which do NOT have build tags by design) ARE compiled and run under the race detector. If integration tests start real servers with `TestMain`, this significantly increases CI time.
@@ -76,29 +71,11 @@
 
 ---
 
-### 1.6 — MEDIUM: `ci-mutation.yml` Short Artifact Retention
-
-**Finding**: `ci-mutation.yml` uses `retention-days: 7` for mutation testing artifacts. Per ENG-HANDBOOK.md Section 9.7 (artifact management), security testing artifacts should be retained for 30 days. Mutation test results are a form of test quality assurance that informs security-relevant decisions.
-
-**Recommended Fix**: Change retention-days from 7 to 30 in `ci-mutation.yml`.
-**Status**: ❌ Not fixed
-
----
-
 ### 1.7 — MEDIUM: `ci-quality.yml` Missing Top-Level Permissions Block
 
 **Finding**: `ci-quality.yml` does not declare an explicit top-level `permissions:` block. Per ENG-HANDBOOK.md Section 9.7 security requirements, all workflows MUST declare explicit minimum permissions. Without an explicit block, GitHub uses the organization default (typically `contents: read`, but this is not guaranteed).
 
 **Recommended Fix**: Add `permissions: { contents: read }` block to `ci-quality.yml`.
-**Status**: ❌ Not fixed
-
----
-
-### 1.8 — MEDIUM: `ci-load.yml` No Artifact Retention Configuration
-
-**Finding**: `ci-load.yml` uploads artifacts without `retention-days` configuration, resulting in the organization default (90 days). Load test artifacts are large (Gatling HTML reports) and should be explicitly configured with a shorter retention period (7 days per ENG-HANDBOOK.md Section 9.7 for temp logs).
-
-**Recommended Fix**: Add `retention-days: 7` to load test artifact upload steps.
 **Status**: ❌ Not fixed
 
 ---
@@ -253,29 +230,9 @@ cryptoutilAppsFrameworkServiceTestingE2eHelpers.MustStartAndWaitForDualPorts(
 
 ---
 
-### 6.4 — MEDIUM: PostgreSQL Naming Ambiguity (`postgres` vs `postgres-1`/`postgres-2`)
-
-**Finding**: Certificate categories in `tls-structure.md` use inconsistent PostgreSQL naming:
-- Cat 4–5: Use `postgres` (shared domain, e.g., `public-https-client-issuing-ca-{PS-ID}-postgres/`)
-- Cat 6–7, 14: Use `postgres-1`/`postgres-2` (individual containers, e.g., `private-https-server-entity-postgres-1/`)
-
-This ambiguity makes it unclear whether a specific cert directory targets the shared PostgreSQL cluster or an individual PostgreSQL container.
-
-**Status**: ❌ Documented in tls-structure-suggestions.md
-
----
-
 ### 6.5 — MEDIUM: Directory Count Formula Derivation Missing
 
 **Finding**: `tls-structure.md` states "639 total cert directories" without showing the derivation formula. Per ENG-HANDBOOK.md Section 14.1.2 ("Derive directory/file counts from pattern expansion"), counts MUST include the formula (e.g., `30 global + 60 per-PS-ID × 10 = 630`). Reviewers cannot verify the count without the breakdown.
-
-**Status**: ❌ Documented in tls-structure-suggestions.md
-
----
-
-### 6.6 — MEDIUM: V12/V13 Phase Dependency Graph Missing from `pki-init-order.md`
-
-**Finding**: `pki-init-order.md` describes V12 and V13 phases but lacks a visual dependency graph showing which phases can run in parallel and which have strict ordering. The cross-plan dependency section is also contradictory: it states "V13 Phase 0 can be done in parallel with V12 Phases 1-9" but V13 Phase 0 requires V12 Phase 0 cert categories to exist as prerequisites.
 
 **Status**: ❌ Documented in tls-structure-suggestions.md
 
@@ -293,32 +250,20 @@ This ambiguity makes it unclear whether a specific cert directory targets the sh
 
 ---
 
-## 8. Low Priority / Future Work
-
-### 8.1 — LOW: `DEV-SETUP.md` Missing ENG-HANDBOOK Cross-References
-
-**Finding**: `docs/DEV-SETUP.md` does not reference ENG-HANDBOOK.md sections for architecture decisions it describes. Developers reading DEV-SETUP.md have no way to find the canonical source of truth for the patterns they're setting up.
-
-**Recommended Fix**: Add "See ENG-HANDBOOK.md §X for..." cross-references to relevant sections in DEV-SETUP.md.
-**Status**: ❌ Low priority, not fixed
-
----
-
 ## Prioritization Recommendation
 
-**Fix next (unblocking CI/CD integrity):**
+**Fix next (unblocking CI/CD integrity) — V15 Phase 0:**
 1. Gap 1.1 (CRITICAL): Add `lint-docs` + `lint-deployments` to CI/CD workflow
 2. Gap 1.2 (HIGH): Remove `continue-on-error: true` from coverage enforcement
 3. Gap 2.2 (HIGH): Add shutdown timeout to sm-kms
 
-**Fix in next sprint:**
+**Fix in V15 Phase 0:**
 4. Gap 4.1 (MEDIUM): Pin golangci-lint version in `.pre-commit-config.yaml`
 5. Gap 1.3 (HIGH): Scope permissions in `ci-identity-validation.yml`
 6. Gap 2.1 (HIGH): Extract duplicate `usage.go` files to framework package
 7. Gap 5.1 (CODE QUALITY): Replace manual loop with `MustStartAndWaitForDualPorts` in pki-ca testmain
-8. Gaps 6.1–6.6: Update tls-structure.md per suggestions doc
+8. Gaps 6.1–6.5: Update tls-structure.md per suggestions doc
 
-**Lower priority:**
-9. Gaps 1.4–1.9 (MEDIUM): Various CI/CD improvements
+**Lower priority (V15 Phase 0 if time allows, else V16):**
+9. Gaps 1.5, 1.7, 1.9 (MEDIUM): race.yml build tags, ci-quality.yml permissions, ci-sast.yml Maven
 10. Gaps 2.3–2.4 (MEDIUM): Port cast and signal handling cleanup
-11. Gap 8.1 (LOW): DEV-SETUP.md cross-references

@@ -90,6 +90,7 @@ Required domains (14 certificate categories):
 **4. Public PS-ID HTTPS Client CAs:**
 - Per-instance CA chain (root + issuing) for client authentication on each app instance.
 - {sqlite-1,sqlite-2,postgres} = 3 PKI domains per PS-ID; each has root and issuing CAs; both keystore and truststore.
+- **PostgreSQL naming**: `postgres` (no suffix) is used here because this is an **application-level PKI domain** — a single CA chain covers both postgres-1 and postgres-2 as a logical service pair. App instances authenticate to "postgres-the-domain" regardless of which physical container serves them. In contrast, Cat 6/7/14 use `postgres-1`/`postgres-2` because those categories represent individual per-endpoint TLS identities (server cert or client leaf cert) where each container must have a unique identity. See [ENG-HANDBOOK.md §6.11.3](ENG-HANDBOOK.md#6113-pki-init-certificate-structure) for the full naming convention rationale.
 - Total per PS-ID: 12 directories (3 PKI domains × 2 CA tiers × 2 store types).
 - Total per PRODUCT: 12 × (PS-ID count in product).
 - Total per SUITE: 120 directories.
