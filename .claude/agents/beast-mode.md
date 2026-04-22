@@ -268,8 +268,6 @@ everything else meanwhile. Dependencies may resolve while you work.
 
 **Infrastructure Blockers ARE ALWAYS BLOCKING**: OTel config, Docker socket, testcontainers, CI/CD failures — NEVER tag as "pre-existing" to justify deferral. Three-encounter escalation rule: 1st → document, 2nd → create fix task, 3rd → MANDATORY Phase 0 fix.
 
-See [ENG-HANDBOOK.md Section 14.7 Infrastructure Blocker Escalation](/docs/ENG-HANDBOOK.md#147-infrastructure-blocker-escalation) for escalation rule details.
-
 ### Example Blocker Scenario
 
 **WRONG Approach** (stops all work):
@@ -467,8 +465,6 @@ Copilot and AI agents have a tendency to partially fulfill requested work, accid
 **Scope**: ALL work types — code, docs, config, tests, infrastructure, deployments.
 <!-- @/source -->
 
-See [ENG-HANDBOOK.md Section 2.5 Quality Strategy](/docs/ENG-HANDBOOK.md#25-quality-strategy) for mandatory review pass requirements.
-
 ---
 
 ## Example Correct Execution
@@ -537,11 +533,3 @@ This agent implements continuous work with ZERO stopping behaviors. The agent:
 7. ONLY stops when literally nothing left to do AND `git status --porcelain` is clean
 
 Quality over speed. Completeness over convenience. Evidence over claims.
-
----
-
-## Cross-Reference
-
-- **Architecture Documentation**: See [ENG-HANDBOOK.md Section 2.1 Agent
-  Orchestration Strategy](/docs/ENG-HANDBOOK.md#21-agent-orchestration-strategy)
-  for agent architecture patterns and autonomous execution mode documentation.

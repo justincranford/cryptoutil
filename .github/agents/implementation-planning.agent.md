@@ -1258,8 +1258,6 @@ Copilot and AI agents have a tendency to partially fulfill requested work, accid
 **Scope**: ALL work types — code, docs, config, tests, infrastructure, deployments.
 <!-- @/source -->
 
-See [ENG-HANDBOOK.md Section 2.5 Quality Strategy](/docs/ENG-HANDBOOK.md#25-quality-strategy) for mandatory review pass requirements.
-
 ---
 
 ## End-of-Turn Protocol - MANDATORY LAST STEP
@@ -1282,10 +1280,3 @@ git status --porcelain   # MUST return empty
 ❌ **NEVER assume the worktree is clean — always RUN the command as a tool call.**
 
 A response that leaves uncommitted changes is incomplete by definition.
-
----
-
-## Cross-Reference
-
-- **Architecture Documentation**: See [ENG-HANDBOOK.md Section 2.1 Agent Orchestration Strategy](/docs/ENG-HANDBOOK.md#21-agent-orchestration-strategy) for agent architecture patterns and autonomous execution mode documentation.
-- **Quality Strategy**: See [ENG-HANDBOOK.md Section 2.5 Quality Strategy](/docs/ENG-HANDBOOK.md#25-quality-strategy) for mandatory review pass requirements.

@@ -208,8 +208,6 @@ systemctl --user start docker-desktop
 - E2E tests skip with environmental warnings
 - Integration test containers cannot start
 
-See [ENG-HANDBOOK.md Section 14.5.5 Docker Desktop Startup](../../docs/ENG-HANDBOOK.md#1455-docker-desktop-startup---critical) for comprehensive documentation.
-
 ### 1. Local Workflow Execution (MANDATORY METHOD)
 
 **CRITICAL: ONLY use `go run ./cmd/cicd-workflow -workflows=<name>` for workflow testing**
@@ -817,8 +815,6 @@ Copilot and AI agents have a tendency to partially fulfill requested work, accid
 **Scope**: ALL work types — code, docs, config, tests, infrastructure, deployments.
 <!-- @/source -->
 
-See [ENG-HANDBOOK.md Section 2.5 Quality Strategy](/docs/ENG-HANDBOOK.md#25-quality-strategy) for mandatory review pass requirements.
-
 ---
 
 ## End-of-Turn Protocol - MANDATORY LAST STEP
@@ -841,13 +837,3 @@ git status --porcelain   # MUST return empty
 ❌ **NEVER assume the worktree is clean — always RUN the command as a tool call.**
 
 A response that leaves uncommitted changes is incomplete by definition.
-
----
-
-## Cross-Reference
-
-- **Architecture Documentation**: See [ENG-HANDBOOK.md Section 2.1 Agent Orchestration Strategy](/docs/ENG-HANDBOOK.md#21-agent-orchestration-strategy) for agent architecture patterns and autonomous execution mode documentation.
-- **CI/CD Workflow Architecture**: See [ENG-HANDBOOK.md Section 9.7 CI/CD Workflow Architecture](/docs/ENG-HANDBOOK.md#97-cicd-workflow-architecture) for workflow catalog, matrix patterns, cost optimization, and artifact management.
-- **Pre-Commit Hook Architecture**: See [ENG-HANDBOOK.md Section 9.9 Pre-Commit Hook Architecture](/docs/ENG-HANDBOOK.md#99-pre-commit-hook-architecture) for pre-commit hook configuration, UTF-8 enforcement, and secret detection integration.
-- **CICD Command Architecture**: See [ENG-HANDBOOK.md Section 9.10 CICD Command Architecture](/docs/ENG-HANDBOOK.md#910-cicd-command-architecture) for `cicd-lint` and `cicd-workflow` command naming conventions and enforcement invariants.
-- **Infrastructure Blocker Escalation**: See [ENG-HANDBOOK.md Section 14.7 Infrastructure Blocker Escalation](/docs/ENG-HANDBOOK.md#147-infrastructure-blocker-escalation) for three-encounter escalation rule — CI/CD failures are ALWAYS BLOCKING.

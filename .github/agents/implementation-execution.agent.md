@@ -563,8 +563,6 @@ Unit + integration + E2E tests MUST be done during EVERY phase:
 - **Integration tests**: ONE shared SQLite in-memory instance per package via TestMain. NEVER PostgreSQL. NEVER per-test DB creation.
 - **E2E tests**: Docker Compose with 3 app instances (2 PostgreSQL + 1 SQLite). PostgreSQL tested ONLY here.
 
-See [ENG-HANDBOOK.md Section 10.1](../../docs/ENG-HANDBOOK.md#101-testing-strategy-overview) for canonical definition.
-
 **Mutation Testing:**
 
 Mutations MUST be grouped towards the END of plan.md:
@@ -1040,8 +1038,6 @@ Copilot and AI agents have a tendency to partially fulfill requested work, accid
 **Scope**: ALL work types — code, docs, config, tests, infrastructure, deployments.
 <!-- @/source -->
 
-See [ENG-HANDBOOK.md Section 2.5 Quality Strategy](/docs/ENG-HANDBOOK.md#25-quality-strategy) for mandatory review pass requirements.
-
 ---
 
 ## End-of-Turn Protocol - MANDATORY LAST STEP
@@ -1064,16 +1060,3 @@ git status --porcelain   # MUST return empty
 ❌ **NEVER assume the worktree is clean — always RUN the command as a tool call.**
 
 A response that leaves uncommitted changes is incomplete by definition.
-
----
-
-## Cross-Reference
-
-- **Architecture Documentation**: See [ENG-HANDBOOK.md Section 2.1 Agent Orchestration Strategy](/docs/ENG-HANDBOOK.md#21-agent-orchestration-strategy) for agent architecture patterns and autonomous execution mode documentation.
-- **Testing Strategy**: See [ENG-HANDBOOK.md Section 10.2 Unit Testing Strategy](/docs/ENG-HANDBOOK.md#102-unit-testing-strategy) for table-driven tests, test seam injection, and coverage ceiling analysis.
-- **Test Seam Pattern**: See [ENG-HANDBOOK.md Section 10.2.4 Test Seam Injection Pattern](/docs/ENG-HANDBOOK.md#1024-test-seam-injection-pattern) for unreachable code path testing.
-- **Quality Gates**: See [ENG-HANDBOOK.md Section 11.2 Quality Gates](/docs/ENG-HANDBOOK.md#112-quality-gates) for mandatory quality gate enforcement.
-- **Mandatory Review Passes**: See [ENG-HANDBOOK.md Section 2.5 Quality Strategy](/docs/ENG-HANDBOOK.md#25-quality-strategy) for 3-pass review requirements.
-- **Infrastructure Blockers**: See [ENG-HANDBOOK.md Section 14.7 Infrastructure Blocker Escalation](/docs/ENG-HANDBOOK.md#147-infrastructure-blocker-escalation) for three-encounter escalation rule.
-- **Coding Standards**: See [ENG-HANDBOOK.md Section 14.1 Coding Standards](/docs/ENG-HANDBOOK.md#141-coding-standards) for Go coding patterns.
-- **Plan Lifecycle**: See [ENG-HANDBOOK.md Section 14.6 Plan Lifecycle Management](/docs/ENG-HANDBOOK.md#146-plan-lifecycle-management) for plan document rules.

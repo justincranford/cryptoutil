@@ -59,8 +59,9 @@ GitHub Actions steps gain `::group::` collapse; pre-commit hooks suppress verbos
 
 ### Task 0.2: Agent File Boilerplate Compaction
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 1h
+- **Actual**: 0.25h
 - **Dependencies**: None
 - **Description**: Compact non-behavioral prose in agent files. Remove duplicate cross-cutting
   tables in `implementation-planning.agent.md`. Compact Prohibited Stop Behaviors from multi-line
@@ -68,9 +69,9 @@ GitHub Actions steps gain `::group::` collapse; pre-commit hooks suppress verbos
   NOTE: Quality mandate, continuous execution section, and all workflow steps MUST remain in full
   — agent isolation principle requires self-containment.
 - **Acceptance Criteria**:
-  - [ ] `wc -l .github/agents/*.agent.md` shows measurable reduction
-  - [ ] `go run ./cmd/cicd-lint lint-docs` passes (`lint-agent-drift` sub-check)
-  - [ ] Both Copilot and Claude canonical pairs updated in sync
+  - [x] `wc -l .github/agents/*.agent.md` shows measurable reduction (7453→7349 = 104 lines removed)
+  - [x] `go run ./cmd/cicd-lint lint-docs` passes (`lint-agent-drift` sub-check)
+  - [x] Both Copilot and Claude canonical pairs updated in sync
 - **Files**:
   - `.github/agents/implementation-planning.agent.md`
   - `.github/agents/implementation-execution.agent.md`
