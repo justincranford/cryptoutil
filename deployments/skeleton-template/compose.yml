@@ -333,14 +333,33 @@ services:
 
   # OTel Collector mTLS cert setup: Cat 2 server cert + Cat 8 client issuing CA.
   # Extends the shared-telemetry service with PS-ID-specific cert mounts so the
-  # collector can present its server cert and verify app client certs.
+  # collector can present its server cert and verify app client certs (Cat 2 + Cat 8).
+  # Also adds Cat 1 CA truststore and Cat 9 infra client cert for OTel→Grafana mTLS.
   opentelemetry-collector-contrib:
     depends_on:
       pki-init:
         condition: service_completed_successfully
     volumes:
+      # Cat 2: OTel server cert + key (OTel presents to apps as its server identity)
       - ./certs/skeleton-template/public-https-server-entity-otel-collector-contrib:/etc/pki-init/certs/public-https-server-entity-otel-collector-contrib:ro
+      # Cat 8: App→OTel client issuing CA truststore (OTel verifies app client certs)
       - ./certs/skeleton-template/otel-collector-contrib-https-client-issuing-ca:/etc/pki-init/certs/otel-collector-contrib-https-client-issuing-ca:ro
+      # Cat 1: Public HTTPS server issuing CA truststore (OTel verifies Grafana server cert)
+      - ./certs/skeleton-template/public-https-server-issuing-ca:/etc/pki-init/certs/public-https-server-issuing-ca:ro
+      # Cat 9 infra: OTel→Grafana client cert (OTel presents to Grafana as its client identity)
+      - ./certs/skeleton-template/otel-collector-contrib-https-client-entity-infra:/etc/pki-init/certs/otel-collector-contrib-https-client-entity-infra:ro
+
+  # Grafana HTTPS and OTLP ingest mTLS cert setup.
+  # Extends the shared-telemetry Grafana service with PS-ID-specific cert mounts.
+  grafana-otel-lgtm:
+    depends_on:
+      pki-init:
+        condition: service_completed_successfully
+    volumes:
+      # Cat 2: Grafana server cert + key (Grafana presents to browsers/OTel as its server identity)
+      - ./certs/skeleton-template/public-https-server-entity-grafana-otel-lgtm:/etc/pki-init/certs/public-https-server-entity-grafana-otel-lgtm:ro
+      # Cat 8: OTel→Grafana client issuing CA truststore (Grafana verifies OTel client certs)
+      - ./certs/skeleton-template/grafana-otel-lgtm-https-client-issuing-ca:/etc/pki-init/certs/grafana-otel-lgtm-https-client-issuing-ca:ro
 
   # postgres-leader SSL setup — extends shared-postgres service with mTLS cert setup.
   # Runs as root to copy certs into a writable directory, chown to postgres (uid 999),

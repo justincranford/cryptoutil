@@ -131,12 +131,17 @@ processors:
 
 exporters:
   ###################################################################
-  # Sends telemetry to Grafana LGTM stack via OTLP/HTTP
+  # Sends telemetry to Grafana LGTM stack via OTLP/gRPC with mTLS
+  # Cat 9 infra: otel-collector-contrib-https-client-entity-infra (OTel client identity)
+  # Cat 1 CA:   public-https-server-issuing-ca truststore (verifies Grafana server cert)
+  # Grafana OTLP ingest: port 14317 (gRPC, host-side) → container port 4317
   ###################################################################
-  otlphttp:
-    endpoint: "http://grafana-otel-lgtm:4318"
-    # compression: gzip
-    # headers: { "Authorization": "Bearer <token>" }   # optional
+  otlp:
+    endpoint: "https://grafana-otel-lgtm:4317"
+    tls:
+      ca_file: /etc/pki-init/certs/public-https-server-issuing-ca/truststore/public-https-server-issuing-ca.crt
+      cert_file: /etc/pki-init/certs/otel-collector-contrib-https-client-entity-infra/otel-collector-contrib-https-client-entity-infra.crt
+      key_file: /etc/pki-init/certs/otel-collector-contrib-https-client-entity-infra/otel-collector-contrib-https-client-entity-infra.key
 
   ###################################################################
   # Logs all exported telemetry to stdout (useful for debugging)
@@ -155,7 +160,7 @@ service:
     # logs/self:
     #   receivers: [filelog/self]
     #   processors: [resourcedetection, attributes, memory_limiter, batch]
-    #   exporters: [otlphttp]
+    #   exporters: [otlp]
 
     #################################################################
     # 🔹 Collector's own metrics (from internal Prometheus endpoint)
@@ -163,7 +168,7 @@ service:
     metrics/internal:
       receivers: [prometheus/self]
       processors: [resourcedetection, attributes, memory_limiter, batch]
-      exporters: [otlphttp, debug]
+      exporters: [otlp, debug]
 
     #################################################################
     # 🔹 Application logs received from external OTLP clients
@@ -171,7 +176,7 @@ service:
     logs:
       receivers: [otlp]
       processors: [resourcedetection, attributes, memory_limiter, batch]
-      exporters: [otlphttp, debug]
+      exporters: [otlp, debug]
 
     #################################################################
     # 🔹 Application metrics received from external OTLP clients
@@ -179,7 +184,7 @@ service:
     metrics:
       receivers: [otlp]
       processors: [resourcedetection, attributes, memory_limiter, batch]
-      exporters: [otlphttp, debug]
+      exporters: [otlp, debug]
 
     #################################################################
     # 🔹 Application traces received from external OTLP clients
@@ -187,7 +192,7 @@ service:
     traces:
       receivers: [otlp]
       processors: [resourcedetection, attributes, memory_limiter, batch]
-      exporters: [otlphttp, debug]
+      exporters: [otlp, debug]
 
   ###################################################################
   # Self-telemetry of the Collector itself (for debugging/tuning)
