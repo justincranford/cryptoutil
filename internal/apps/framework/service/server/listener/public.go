@@ -7,8 +7,11 @@ package listener
 import (
 	"context"
 	"crypto/tls"
+	"crypto/x509"
+	"encoding/pem"
 	"fmt"
 	"net"
+	"os"
 	"strconv"
 	"sync"
 	"time"
@@ -62,6 +65,7 @@ func NewPublicHTTPServer(ctx context.Context, settings *cryptoutilAppsFrameworkS
 		func(app *fiber.App, ln net.Listener) error {
 			return app.Listener(ln) //nolint:wrapcheck // Pass-through to Fiber framework.
 		},
+		os.ReadFile,
 	)
 }
 
@@ -72,6 +76,7 @@ func newPublicHTTPServerInternal(
 	generateTLSMaterialFn func(cfg *cryptoutilAppsFrameworkServiceConfigTlsGenerator.TLSGeneratedSettings) (*cryptoutilAppsFrameworkServiceConfig.TLSMaterial, error),
 	listenFn func(ctx context.Context, network, address string) (net.Listener, error),
 	appListenerFn func(app *fiber.App, ln net.Listener) error,
+	osReadFileFn func(name string) ([]byte, error),
 ) (*PublicHTTPServer, error) {
 	if ctx == nil {
 		return nil, fmt.Errorf("context cannot be nil")
@@ -85,6 +90,12 @@ func newPublicHTTPServerInternal(
 	tlsMaterial, err := generateTLSMaterialFn(tlsCfg)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate TLS material: %w", err)
+	}
+
+	// Apply public mTLS cert overrides from file paths (Cat 3 server cert + Cat 4 client CA).
+	// When set, overrides auto-generated TLS with production certs and requires client certs.
+	if err := applyPublicMTLS(settings, tlsMaterial, osReadFileFn); err != nil {
+		return nil, fmt.Errorf("failed to apply public mTLS configuration: %w", err)
 	}
 
 	server := &PublicHTTPServer{
@@ -278,4 +289,81 @@ func (s *PublicHTTPServer) PublicBaseURL() string {
 // This allows tests to use app.Test() without starting an HTTPS listener.
 func (s *PublicHTTPServer) App() *fiber.App {
 	return s.app
+}
+
+// PublicTLSRootCAPool returns the root CA certificate pool for the public server's TLS chain.
+// Used by test infrastructure to configure secure HTTP clients without InsecureSkipVerify.
+func (s *PublicHTTPServer) PublicTLSRootCAPool() *x509.CertPool {
+	if s.tlsMaterial == nil {
+		return nil
+	}
+
+	return s.tlsMaterial.RootCAPool
+}
+
+// applyPublicMTLS applies public mTLS configuration from file paths in settings.
+// When PublicTLSCertFile and PublicTLSKeyFile are set, the auto-generated TLS cert is replaced
+// with the static cert from files (Cat 3: public-https-server-entity-{PS-ID}).
+// When PublicTLSCAFile is set, client certificate verification is enabled using the CA
+// truststore (Cat 4: public-https-client-issuing-ca) with tls.RequireAndVerifyClientCert.
+// Both fields are independent: cert override and client auth can be configured separately.
+func applyPublicMTLS(
+	settings *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings,
+	tlsMaterial *cryptoutilAppsFrameworkServiceConfig.TLSMaterial,
+	osReadFileFn func(name string) ([]byte, error),
+) error {
+	// Override server cert from Cat 3 file paths when both cert and key are configured.
+	if settings.PublicTLSCertFile != "" && settings.PublicTLSKeyFile != "" {
+		certPEM, err := osReadFileFn(settings.PublicTLSCertFile)
+		if err != nil {
+			return fmt.Errorf("failed to read public TLS cert file %q: %w", settings.PublicTLSCertFile, err)
+		}
+
+		keyPEM, err := osReadFileFn(settings.PublicTLSKeyFile)
+		if err != nil {
+			return fmt.Errorf("failed to read public TLS key file %q: %w", settings.PublicTLSKeyFile, err)
+		}
+
+		cert, err := tls.X509KeyPair(certPEM, keyPEM)
+		if err != nil {
+			return fmt.Errorf("failed to parse public TLS cert+key pair: %w", err)
+		}
+
+		tlsMaterial.Config.Certificates = []tls.Certificate{cert}
+	}
+
+	// Enable client cert verification from Cat 4 CA truststore when CA file is configured.
+	if settings.PublicTLSCAFile != "" {
+		caPEM, err := osReadFileFn(settings.PublicTLSCAFile)
+		if err != nil {
+			return fmt.Errorf("failed to read public TLS CA file %q: %w", settings.PublicTLSCAFile, err)
+		}
+
+		clientCAPool := x509.NewCertPool()
+
+		for rest := caPEM; len(rest) > 0; {
+			var block *pem.Block
+
+			block, rest = pem.Decode(rest)
+			if block == nil {
+				break
+			}
+
+			if block.Type != cryptoutilSharedMagic.StringPEMTypeCertificate {
+				continue
+			}
+
+			caCert, parseErr := x509.ParseCertificate(block.Bytes)
+			if parseErr != nil {
+				return fmt.Errorf("failed to parse CA certificate from %q: %w", settings.PublicTLSCAFile, parseErr)
+			}
+
+			clientCAPool.AddCert(caCert)
+		}
+
+		tlsMaterial.Config.ClientAuth = tls.RequireAndVerifyClientCert
+		tlsMaterial.Config.ClientCAs = clientCAPool
+	}
+
+	return nil
 }

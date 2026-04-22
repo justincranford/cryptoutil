@@ -60,6 +60,7 @@ func newHTTPServersInternal(
 		func(app *fiber.App, ln net.Listener) error {
 			return app.Listener(ln) //nolint:wrapcheck // Pass-through to Fiber framework.
 		},
+		os.ReadFile,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create public server: %w", err)

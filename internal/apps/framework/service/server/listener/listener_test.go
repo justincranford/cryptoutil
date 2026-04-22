@@ -185,6 +185,7 @@ func TestPublicServer_Start_NonTCPAddr(t *testing.T) {
 		cryptoutilAppsFrameworkServiceConfigTlsGenerator.GenerateTLSMaterial,
 		stubListenFn,
 		func(app *fiber.App, ln net.Listener) error { return app.Listener(ln) },
+		func(_ string) ([]byte, error) { return nil, nil },
 	)
 	require.NoError(t, err)
 
@@ -213,6 +214,7 @@ func TestPublicServer_Start_AppListenerError(t *testing.T) {
 			return (&net.ListenConfig{}).Listen(ctx, network, address)
 		},
 		stubAppListenerFn,
+		func(_ string) ([]byte, error) { return nil, nil },
 	)
 	require.NoError(t, err)
 

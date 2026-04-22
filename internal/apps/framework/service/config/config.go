@@ -251,6 +251,9 @@ type ServiceFrameworkServerSettings struct {
 	AdminTLSCertFile            string        // Path to admin TLS server certificate file for private admin mTLS (Cat 7)
 	AdminTLSKeyFile             string        // Path to admin TLS server private key file for private admin mTLS (Cat 7)
 	AdminTLSCAFile              string        // Path to CA truststore for verifying admin client certs (Cat 6)
+	PublicTLSCertFile           string        // Path to public TLS server certificate file (Cat 3); absent = auto-TLS
+	PublicTLSKeyFile            string        // Path to public TLS server private key file (Cat 3); absent = auto-TLS
+	PublicTLSCAFile             string        // Path to CA truststore for verifying public client certs (Cat 4); absent = no mTLS
 	OTLPTLSCertFile             string        // Path to client TLS certificate file for OTLP mTLS (Cat 9)
 	OTLPTLSKeyFile              string        // Path to client TLS private key file for OTLP mTLS (Cat 9)
 	OTLPTLSCAFile               string        // Path to CA truststore for verifying the OTLP server cert (Cat 1)

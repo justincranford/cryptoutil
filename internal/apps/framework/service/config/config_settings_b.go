@@ -153,6 +153,28 @@ var (
 		Usage:       "path to CA truststore for verifying admin client certs (Cat 6)",
 		Description: "Admin TLS CA File",
 	})
+	publicTLSCertFile = *SetEnvAndRegisterSetting(allServiceFrameworkServerRegisteredSettings, &Setting{
+		Name:        "server-public-tls-cert-file",
+		Shorthand:   "",
+		Value:       "",
+		Usage:       "path to public TLS server certificate file (Cat 3); absent = auto-TLS",
+		Description: "Public TLS Cert File",
+	})
+	publicTLSKeyFile = *SetEnvAndRegisterSetting(allServiceFrameworkServerRegisteredSettings, &Setting{
+		Name:        "server-public-tls-key-file",
+		Shorthand:   "",
+		Value:       "",
+		Usage:       "path to public TLS server private key file (Cat 3); absent = auto-TLS",
+		Description: "Public TLS Key File",
+		Redacted:    true,
+	})
+	publicTLSCAFile = *SetEnvAndRegisterSetting(allServiceFrameworkServerRegisteredSettings, &Setting{
+		Name:        "server-public-tls-ca-file",
+		Shorthand:   "",
+		Value:       "",
+		Usage:       "path to CA truststore for verifying public client certs (Cat 4); absent = no client cert enforcement",
+		Description: "Public TLS CA File",
+	})
 	databaseInitTotalTimeout = *SetEnvAndRegisterSetting(allServiceFrameworkServerRegisteredSettings, &Setting{
 		Name:        "database-init-total-timeout",
 		Shorthand:   "Z",

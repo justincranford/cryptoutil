@@ -168,6 +168,9 @@ func ParseWithFlagSet(fs *pflag.FlagSet, commandParameters []string, exitIfHelp 
 	fs.StringP(adminTLSCertFile.Name, adminTLSCertFile.Shorthand, RegisterAsStringSetting(&adminTLSCertFile), adminTLSCertFile.Usage)
 	fs.StringP(adminTLSKeyFile.Name, adminTLSKeyFile.Shorthand, RegisterAsStringSetting(&adminTLSKeyFile), adminTLSKeyFile.Usage)
 	fs.StringP(adminTLSCAFile.Name, adminTLSCAFile.Shorthand, RegisterAsStringSetting(&adminTLSCAFile), adminTLSCAFile.Usage)
+	fs.StringP(publicTLSCertFile.Name, publicTLSCertFile.Shorthand, RegisterAsStringSetting(&publicTLSCertFile), publicTLSCertFile.Usage)
+	fs.StringP(publicTLSKeyFile.Name, publicTLSKeyFile.Shorthand, RegisterAsStringSetting(&publicTLSKeyFile), publicTLSKeyFile.Usage)
+	fs.StringP(publicTLSCAFile.Name, publicTLSCAFile.Shorthand, RegisterAsStringSetting(&publicTLSCAFile), publicTLSCAFile.Usage)
 	fs.StringP(otlpTLSCertFile.Name, otlpTLSCertFile.Shorthand, RegisterAsStringSetting(&otlpTLSCertFile), otlpTLSCertFile.Usage)
 	fs.StringP(otlpTLSKeyFile.Name, otlpTLSKeyFile.Shorthand, RegisterAsStringSetting(&otlpTLSKeyFile), otlpTLSKeyFile.Usage)
 	fs.StringP(otlpTLSCAFile.Name, otlpTLSCAFile.Shorthand, RegisterAsStringSetting(&otlpTLSCAFile), otlpTLSCAFile.Usage)
@@ -317,6 +320,9 @@ func ParseWithFlagSet(fs *pflag.FlagSet, commandParameters []string, exitIfHelp 
 		AdminTLSCertFile:            v.GetString(adminTLSCertFile.Name),
 		AdminTLSKeyFile:             v.GetString(adminTLSKeyFile.Name),
 		AdminTLSCAFile:              v.GetString(adminTLSCAFile.Name),
+		PublicTLSCertFile:           v.GetString(publicTLSCertFile.Name),
+		PublicTLSKeyFile:            v.GetString(publicTLSKeyFile.Name),
+		PublicTLSCAFile:             v.GetString(publicTLSCAFile.Name),
 		OTLPTLSCertFile:             v.GetString(otlpTLSCertFile.Name),
 		OTLPTLSKeyFile:              v.GetString(otlpTLSKeyFile.Name),
 		OTLPTLSCAFile:               v.GetString(otlpTLSCAFile.Name),

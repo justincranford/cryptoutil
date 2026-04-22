@@ -76,6 +76,7 @@ func TestNewPublicHTTPServer_TLSMaterialGenFailure(t *testing.T) {
 			return (&net.ListenConfig{}).Listen(ctx, network, address)
 		},
 		func(app *fiber.App, ln net.Listener) error { return app.Listener(ln) },
+		func(_ string) ([]byte, error) { return nil, nil },
 	)
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "failed to generate TLS material")
