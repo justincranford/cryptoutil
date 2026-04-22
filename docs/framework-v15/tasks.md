@@ -1,7 +1,7 @@
 # Tasks - Framework V15: Pre-Flight Gap Fixes + OTel/Grafana mTLS + Public App TLS Trust
 
-**Status**: 0 of 46 tasks complete (0%)
-**Last Updated**: 2026-04-22
+**Status**: 14 of 46 tasks complete (30%) — Phase 0+1 COMPLETE, Phases 2-12 remaining
+**Last Updated**: 2026-04-21
 **Created**: 2026-04-16
 
 ## Quality Mandate - MANDATORY
@@ -38,7 +38,7 @@
 
 ## Task Checklist
 
-### Phase 0: Pre-Flight Gap Fixes [Status: ☐ TODO]
+### Phase 0: Pre-Flight Gap Fixes [Status: ✅ COMPLETE]
 
 **Phase Objective**: Fix all CRITICAL and HIGH gaps from `gaps.md` before TLS work begins.
 
@@ -51,57 +51,57 @@
 
 #### Task 0.1: Fix ci-quality.yml — Add lint-docs + lint-deployments + Permissions Block
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 1h
 - **Dependencies**: None
 - **Gaps Fixed**: Gap 1.1 (CRITICAL), Gap 1.7 (MEDIUM)
 - **Description**: Add `lint-docs` and `lint-deployments` CI steps; add top-level permissions block.
 - **Acceptance Criteria**:
-  - [ ] New step: `go run ./cmd/cicd-lint lint-docs` in `ci-quality.yml`
-  - [ ] New step: `go run ./cmd/cicd-lint lint-deployments` in `ci-quality.yml`
-  - [ ] Top-level `permissions: { contents: read }` block added
-  - [ ] Both steps run on every push/PR
-  - [ ] `golangci-lint run` clean on workflow YAML (if applicable)
+  - [x] New step: `go run ./cmd/cicd-lint lint-docs` in `ci-quality.yml`
+  - [x] New step: `go run ./cmd/cicd-lint lint-deployments` in `ci-quality.yml`
+  - [x] Top-level `permissions: { contents: read }` block added
+  - [x] Both steps run on every push/PR
+  - [x] `golangci-lint run` clean on workflow YAML (if applicable)
 - **Files**: `.github/workflows/ci-quality.yml`
 
 ---
 
 #### Task 0.2: Fix ci-coverage.yml — Remove continue-on-error
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 0.25h
 - **Dependencies**: None
 - **Gaps Fixed**: Gap 1.2 (HIGH)
 - **Description**: Remove `continue-on-error: true` from coverage enforcement step so coverage
   threshold violations actually block CI.
 - **Acceptance Criteria**:
-  - [ ] `continue-on-error: true` removed from coverage enforcement step
-  - [ ] Coverage failure causes workflow to fail with non-zero exit code
-  - [ ] No other `continue-on-error: true` on quality-gate steps
+  - [x] `continue-on-error: true` removed from coverage enforcement step
+  - [x] Coverage failure causes workflow to fail with non-zero exit code
+  - [x] No other `continue-on-error: true` on quality-gate steps
 - **Files**: `.github/workflows/ci-coverage.yml`
 
 ---
 
 #### Task 0.3: Fix ci-identity-validation.yml — Permissions + GO_VERSION
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 0.75h
 - **Dependencies**: None
 - **Gaps Fixed**: Gap 1.3 (HIGH)
 - **Description**: Scope permissions to minimum required per job; consume GO_VERSION from shared
   workflow output instead of hardcoding.
 - **Acceptance Criteria**:
-  - [ ] Remove workflow-level `pull-requests: write` (too broad)
-  - [ ] Add per-job `permissions:` blocks scoped to minimum required
-  - [ ] `GO_VERSION` consumed from shared `workflow-job-begin` outputs (not hardcoded)
-  - [ ] Workflow still functions correctly after permission scoping
+  - [x] Remove workflow-level `pull-requests: write` (too broad)
+  - [x] Add per-job `permissions:` blocks scoped to minimum required
+  - [x] `GO_VERSION` consumed from shared `workflow-job-begin` outputs (not hardcoded)
+  - [x] Workflow still functions correctly after permission scoping
 - **Files**: `.github/workflows/ci-identity-validation.yml`
 
 ---
 
 #### Task 0.4: Fix sm-kms Shutdown — Add Timeout Context
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 0.5h
 - **Dependencies**: None
 - **Gaps Fixed**: Gap 2.2 (HIGH)
@@ -109,17 +109,17 @@
   All other services use a bounded timeout. Add `context.WithTimeout` with the canonical shutdown
   duration constant.
 - **Acceptance Criteria**:
-  - [ ] `context.WithTimeout(ctx, magic.DefaultDataServerShutdownTimeout)` applied in Shutdown path
-  - [ ] `magic.DefaultDataServerShutdownTimeout` constant exists in `internal/shared/magic/`
-  - [ ] `go test ./internal/apps/sm-kms/...` passes
-  - [ ] `golangci-lint run ./internal/apps/sm-kms/...` passes
+  - [x] `context.WithTimeout(ctx, magic.DefaultDataServerShutdownTimeout)` applied in Shutdown path
+  - [x] `magic.DefaultDataServerShutdownTimeout` constant exists in `internal/shared/magic/`
+  - [x] `go test ./internal/apps/sm-kms/...` passes
+  - [x] `golangci-lint run ./internal/apps/sm-kms/...` passes
 - **Files**: `internal/apps/sm-kms/server/server.go`, `internal/shared/magic/magic_*.go` (if constant missing)
 
 ---
 
 #### Task 0.5: Refactor Duplicate usage.go Files
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 1.5h
 - **Dependencies**: None
 - **Gaps Fixed**: Gap 2.1 (HIGH)
@@ -127,11 +127,11 @@
   Extract shared usage generation to `internal/apps/framework/service/usage/`.
   **NOTE**: If this refactor proves larger than estimated (>2h), defer to V16 with a GAP file.
 - **Acceptance Criteria**:
-  - [ ] `internal/apps/framework/service/usage/` package created with shared usage generation logic
-  - [ ] `internal/apps/{sm,sm-kms,sm-im}/usage.go` updated to use shared util
-  - [ ] `internal/apps/{jose,jose-ja}/usage.go` updated to use shared util
-  - [ ] `internal/apps/{pki,pki-ca}/usage.go` updated to use shared util
-  - [ ] `go build ./...` clean; `golangci-lint run ./...` clean; all tests pass
+  - [x] `internal/apps/framework/service/usage/` package created with shared usage generation logic
+  - [x] `internal/apps/{sm,sm-kms,sm-im}/usage.go` updated to use shared util
+  - [x] `internal/apps/{jose,jose-ja}/usage.go` updated to use shared util
+  - [x] `internal/apps/{pki,pki-ca}/usage.go` updated to use shared util
+  - [x] `go build ./...` clean; `golangci-lint run ./...` clean; all tests pass
 - **Files**: New `internal/apps/framework/service/usage/usage.go`,
   `internal/apps/{sm,sm-kms,sm-im,jose,jose-ja,pki,pki-ca}/usage.go` (7 files)
 
@@ -139,7 +139,7 @@
 
 #### Task 0.6: Batch Small Code Fixes
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 0.75h
 - **Dependencies**: None
 - **Gaps Fixed**: Gap 2.3 (MEDIUM), Gap 2.4 (MEDIUM), Gap 5.1 (CODE QUALITY)
@@ -151,10 +151,10 @@
   - **Gap 5.1**: Replace `pki-ca` TestMain manual 300-attempt polling loop with
     `MustStartAndWaitForDualPorts` helper from shared test infrastructure.
 - **Acceptance Criteria**:
-  - [ ] `identity-authz`: `uint16(port)` cast present
-  - [ ] Signal handling: all 10 entry points use `signal.Stop(sigChan); close(sigChan)` in defer
-  - [ ] `pki-ca` TestMain uses `MustStartAndWaitForDualPorts` (not manual loop)
-  - [ ] `go test ./...` clean; `golangci-lint run ./...` clean
+  - [x] `identity-authz`: `uint16(port)` cast present
+  - [x] Signal handling: all 10 entry points use `signal.Stop(sigChan); close(sigChan)` in defer
+  - [x] `pki-ca` TestMain uses `MustStartAndWaitForDualPorts` (not manual loop)
+  - [x] `go test ./...` clean; `golangci-lint run ./...` clean
 - **Files**: `internal/apps/identity-authz/server/server.go`,
   service entry points for `{sm-kms,sm-im,jose-ja,pki-ca,identity-authz,identity-idp,identity-rp,identity-rs,identity-spa,skeleton-template}` (10 files),
   `internal/apps/pki-ca/server/testmain_test.go`
@@ -163,7 +163,7 @@
 
 #### Task 0.7: Fix Pre-Commit and Medium CI/CD Gaps
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 0.75h
 - **Dependencies**: None
 - **Gaps Fixed**: Gap 4.1 (MEDIUM), Gap 1.5 (MEDIUM), Gap 1.9 (MEDIUM)
@@ -172,10 +172,10 @@
   - **Gap 1.5**: Fix `ci-race.yml` — add `-tags integration` build tag to coverage
   - **Gap 1.9**: Move Maven cache from `ci-sast.yml` to `ci-load.yml` where it's actually needed
 - **Acceptance Criteria**:
-  - [ ] `.pre-commit-config.yaml`: golangci-lint pinned to `v2.7.2`
-  - [ ] `ci-race.yml`: `-tags integration` build tag added to coverage step
-  - [ ] `ci-load.yml`: Maven cache added; Maven steps succeed
-  - [ ] `ci-sast.yml`: redundant Maven cache removed
+  - [x] `.pre-commit-config.yaml`: golangci-lint pinned to `v2.7.2`
+  - [x] `ci-race.yml`: `-tags integration` build tag added to coverage step
+  - [x] `ci-load.yml`: Maven cache added; Maven steps succeed
+  - [x] `ci-sast.yml`: redundant Maven cache removed
 - **Files**: `.pre-commit-config.yaml`, `.github/workflows/ci-race.yml`,
   `.github/workflows/ci-load.yml`, `.github/workflows/ci-sast.yml`
 
@@ -183,7 +183,7 @@
 
 #### Task 0.8: Update tls-structure.md Documentation
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 1h
 - **Dependencies**: None
 - **Gaps Fixed**: Gaps 6.1–6.5 (MEDIUM documentation)
@@ -194,28 +194,28 @@
   - **6.4**: Clarify `postgres` vs `postgres-1`/`postgres-2` naming (partially done — verify completeness)
   - **6.5**: Add directory count formula derivation (show `30 global + ...` breakdown)
 - **Acceptance Criteria**:
-  - [ ] `tls-structure.md` addresses all 5 documentation gaps
-  - [ ] Directory count includes derivation formula (e.g., `10 global + 40 per-PS-ID × 10 = ...`)
-  - [ ] Cat 4 postgres naming explanation references ENG-HANDBOOK.md §6.11.3
-  - [ ] `go run ./cmd/cicd-lint lint-docs` passes
+  - [x] `tls-structure.md` addresses all 5 documentation gaps
+  - [x] Directory count includes derivation formula (e.g., `10 global + 40 per-PS-ID × 10 = ...`)
+  - [x] Cat 4 postgres naming explanation references ENG-HANDBOOK.md §6.11.3
+  - [x] `go run ./cmd/cicd-lint lint-docs` passes
 - **Files**: `docs/tls-structure.md`
 
 ---
 
 #### Task 0.9: Phase 0 Post-Mortem
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 0.25h
 - **Dependencies**: Tasks 0.1–0.8 complete
 - **Description**: Review Phase 0 findings and update lessons.md.
 - **Acceptance Criteria**:
-  - [ ] `lessons.md` Phase 0 section filled with: what worked, what didn't, root causes, patterns
-  - [ ] All quality gates pass: `go test ./...`, `golangci-lint run`, build clean
-  - [ ] Clean working tree: `git status --porcelain` returns empty
+  - [x] `lessons.md` Phase 0 section filled with: what worked, what didn't, root causes, patterns
+  - [x] All quality gates pass: `go test ./...`, `golangci-lint run`, build clean
+  - [x] Clean working tree: `git status --porcelain` returns empty
 
 ---
 
-### Phase 1: pki-init Comprehensive Tests — All 16 Tier Domain Parameters [Status: ☐ TODO]
+### Phase 1: pki-init Comprehensive Tests — All 16 Tier Domain Parameters [Status: ✅ COMPLETE]
 
 **Phase Objective**: Write comprehensive unit + integration tests for ALL 16 valid tier domain
 parameters. The generator code is already fully implemented. Phase 1 is PURELY test-writing.
@@ -227,7 +227,7 @@ Phase 1 validates the existing generator via automated tests so regression is ca
 
 #### Task 1.1: All-16-Tiers Unit Test
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 1.5h
 - **Dependencies**: Phase 0 complete
 - **Description**: Table-driven test calling `Generate()` with each of the 16 valid tier IDs,
@@ -241,67 +241,67 @@ Phase 1 validates the existing generator via automated tests so regression is ca
           skeleton-template
   ```
 - **Acceptance Criteria**:
-  - [ ] Table-driven test with all 16 entries — each tier ID gets its own subtest
-  - [ ] Uses real ECDSA (P-256) crypto (D7=E — no stub seam needed; P-256 is fast for 16 tiers)
-  - [ ] No hardcoded UUIDs; uses `t.TempDir()` for output dir per subtest
-  - [ ] `t.Parallel()` on parent test and ALL subtests
-  - [ ] All 16 subtests pass; CI confirms none skipped
-  - [ ] Test file name is semantic (e.g., `generator_all_tiers_test.go`, not `generator_coverage_test.go`)
+  - [x] Table-driven test with all 16 entries — each tier ID gets its own subtest
+  - [x] Uses real ECDSA (P-256) crypto (D7=E — no stub seam needed; P-256 is fast for 16 tiers)
+  - [x] No hardcoded UUIDs; uses `t.TempDir()` for output dir per subtest
+  - [x] `t.Parallel()` on parent test and ALL subtests
+  - [x] All 16 subtests pass; CI confirms none skipped
+  - [x] Test file name is semantic (e.g., `generator_all_tiers_test.go`, not `generator_coverage_test.go`)
 - **Files**: `internal/apps/framework/tls/generator_all_tiers_test.go` (new file)
 
 ---
 
 #### Task 1.2: 1-to-Many Category Mapping Test
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 2h
 - **Dependencies**: Task 1.1
 - **Description**: For each of the 14 certificate categories, assert that the expected set of
   output directories is created by the generator.
 - **Acceptance Criteria**:
-  - [ ] For each Cat N (1–14), define the expected output directory names (parameterized by tier)
-  - [ ] Assert: all expected dirs for that Cat N exist → 1-to-many confirmed
-  - [ ] Add `// Cat N: <name>` comment at each expected-dir definition for cross-reference
-  - [ ] Missing dirs = test failure (generator regression caught)
-  - [ ] Extra dirs beyond expected set = test failure in Task 1.3
-  - [ ] Tests use real ECDSA (P-256) crypto (D7=E — no stub seam needed)
+  - [x] For each Cat N (1–14), define the expected output directory names (parameterized by tier)
+  - [x] Assert: all expected dirs for that Cat N exist → 1-to-many confirmed
+  - [x] Add `// Cat N: <name>` comment at each expected-dir definition for cross-reference
+  - [x] Missing dirs = test failure (generator regression caught)
+  - [x] Extra dirs beyond expected set = test failure in Task 1.3
+  - [x] Tests use real ECDSA (P-256) crypto (D7=E — no stub seam needed)
 - **Files**: `internal/apps/framework/tls/generator_category_mapping_test.go` (new file)
 
 ---
 
 #### Task 1.3: 1-to-1 Uniqueness Validation Test
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 1.5h
 - **Dependencies**: Task 1.2
 - **Description**: Assert each generated directory maps to EXACTLY ONE category. No directory should
   appear in two category definitions, and no generated directory should be missing from the category
   spec (no orphans).
 - **Acceptance Criteria**:
-  - [ ] Build complete expected-dir → category mapping (from Task 1.2 definitions)
-  - [ ] Walk actual generated output; for each dir found, look up its category — assert exactly 1 match
-  - [ ] Any generated dir NOT in the mapping → test fails (orphan dir detected)
-  - [ ] Any category mapping entry NOT generated → test fails (missing dir, caught by Task 1.2)
-  - [ ] 1-to-1 invariant confirmed bidirectionally
+  - [x] Build complete expected-dir → category mapping (from Task 1.2 definitions)
+  - [x] Walk actual generated output; for each dir found, look up its category — assert exactly 1 match
+  - [x] Any generated dir NOT in the mapping → test fails (orphan dir detected)
+  - [x] Any category mapping entry NOT generated → test fails (missing dir, caught by Task 1.2)
+  - [x] 1-to-1 invariant confirmed bidirectionally
 - **Files**: Same file as Task 1.2 or `generator_uniqueness_test.go` (new file)
 
 ---
 
 #### Task 1.4: Integration Test with Real Crypto
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 1h
 - **Dependencies**: Task 1.3
 - **Description**: Run the full generator with real RSA/ECDSA key generation for at least one tier
   to catch encoding errors that stub crypto cannot detect.
 - **Acceptance Criteria**:
-  - [ ] Uses `ExportedProductionNewGenerator` (real crypto — NOT stub)
-  - [ ] Test skipped under `-short` flag (`if testing.Short() { t.Skip("real crypto") }`)
-  - [ ] Tests `skeleton-template` tier (smallest — 1 PS-ID × 4 variants)
-  - [ ] Generated certs: valid X.509 (parsed with `x509.ParseCertificate` — no errors)
-  - [ ] Generated keys: valid PKCS#8 or EC key format (parsed — no errors)
-  - [ ] File is named `generator_integration_test.go`; uses `//go:build integration` tag
-  - [ ] Coverage ≥98%; mutation score ≥98% for generator package
+  - [x] Uses `ExportedProductionNewGenerator` (real crypto — NOT stub)
+  - [x] Test skipped under `-short` flag (`if testing.Short() { t.Skip("real crypto") }`)
+  - [x] Tests `skeleton-template` tier (smallest — 1 PS-ID × 4 variants)
+  - [x] Generated certs: valid X.509 (parsed with `x509.ParseCertificate` — no errors)
+  - [x] Generated keys: valid PKCS#8 or EC key format (parsed — no errors)
+  - [x] File is named `generator_integration_test.go`; uses `//go:build integration` tag
+  - [x] Coverage ≥98%; mutation score ≥98% for generator package
 - **Files**: `internal/apps/framework/tls/generator_integration_test.go` (new file)
 
 ---
