@@ -24,3 +24,8 @@ server-admin-tls-ca-file: /certs/skeleton-template/private-https-mutual-issuing-
 otlp-tls-cert-file: /certs/skeleton-template/otel-collector-contrib-https-client-entity-skeleton-template-postgres-2/otel-collector-contrib-https-client-entity-skeleton-template-postgres-2.crt
 otlp-tls-key-file: /certs/skeleton-template/otel-collector-contrib-https-client-entity-skeleton-template-postgres-2/otel-collector-contrib-https-client-entity-skeleton-template-postgres-2.key
 otlp-tls-ca-file: /certs/skeleton-template/public-https-server-issuing-ca/truststore/public-https-server-issuing-ca.crt
+
+# Public HTTPS mTLS (Cat 3 + Cat 4): serve public server cert and verify client cert.
+server-public-tls-cert-file: /certs/skeleton-template/public-https-server-entity-skeleton-template-postgres-2/public-https-server-entity-skeleton-template-postgres-2.crt
+server-public-tls-key-file: /certs/skeleton-template/public-https-server-entity-skeleton-template-postgres-2/public-https-server-entity-skeleton-template-postgres-2.key
+server-public-tls-ca-file: /certs/skeleton-template/public-https-client-issuing-ca-skeleton-template-postgres/truststore/public-https-client-issuing-ca-skeleton-template-postgres.crt

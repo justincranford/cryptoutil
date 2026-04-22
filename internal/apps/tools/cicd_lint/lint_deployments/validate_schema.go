@@ -163,6 +163,48 @@ var configSchema = map[string]schemaField{
 		Description: "CA truststore file path for verifying OTLP server cert (Cat 1)",
 	},
 
+	// Public TLS Configuration (Cat 3 + Cat 4).
+	// server-public-tls-cert-file: Path to public HTTPS server certificate file (Cat 3).
+	// When absent, auto-generated TLS is used (dev/test default).
+	"server-public-tls-cert-file": {
+		Type:        fieldTypeString,
+		Required:    false,
+		Description: "Public TLS server certificate file path (Cat 3: public-https-server-entity-PS_ID-variant)",
+	},
+	// server-public-tls-key-file: Path to public HTTPS server private key file (Cat 3).
+	"server-public-tls-key-file": {
+		Type:        fieldTypeString,
+		Required:    false,
+		Description: "Public TLS server private key file path (Cat 3: public-https-server-entity-PS_ID-variant)",
+	},
+	// server-public-tls-ca-file: Path to CA truststore for verifying public client certs (Cat 4).
+	// When absent, no client certificate enforcement is applied.
+	"server-public-tls-ca-file": {
+		Type:        fieldTypeString,
+		Required:    false,
+		Description: "CA truststore file path for verifying public client certs (Cat 4: public-https-client-issuing-ca-PS_ID-domain)",
+	},
+
+	// Admin TLS Configuration (Cat 7 + Cat 6).
+	// server-admin-tls-cert-file: Path to admin HTTPS server certificate file (Cat 7).
+	"server-admin-tls-cert-file": {
+		Type:        fieldTypeString,
+		Required:    false,
+		Description: "Admin TLS server certificate file path (Cat 7: private-https-mutual-entity-PS_ID-variant)",
+	},
+	// server-admin-tls-key-file: Path to admin HTTPS server private key file (Cat 7).
+	"server-admin-tls-key-file": {
+		Type:        fieldTypeString,
+		Required:    false,
+		Description: "Admin TLS server private key file path (Cat 7: private-https-mutual-entity-PS_ID-variant)",
+	},
+	// server-admin-tls-ca-file: Path to CA truststore for verifying admin client certs (Cat 6).
+	"server-admin-tls-ca-file": {
+		Type:        fieldTypeString,
+		Required:    false,
+		Description: "CA truststore file path for verifying admin client certs (Cat 6: private-https-mutual-issuing-ca-PS_ID-variant)",
+	},
+
 	// CORS Configuration.
 	// cors-max-age: Preflight cache duration in seconds.
 	"cors-max-age": {

@@ -20,3 +20,8 @@ server-admin-tls-ca-file: /certs/identity-spa/private-https-mutual-issuing-ca-id
 otlp-tls-cert-file: /certs/identity-spa/otel-collector-contrib-https-client-entity-identity-spa-sqlite-1/otel-collector-contrib-https-client-entity-identity-spa-sqlite-1.crt
 otlp-tls-key-file: /certs/identity-spa/otel-collector-contrib-https-client-entity-identity-spa-sqlite-1/otel-collector-contrib-https-client-entity-identity-spa-sqlite-1.key
 otlp-tls-ca-file: /certs/identity-spa/public-https-server-issuing-ca/truststore/public-https-server-issuing-ca.crt
+
+# Public HTTPS mTLS (Cat 3 + Cat 4): serve public server cert and verify client cert.
+server-public-tls-cert-file: /certs/identity-spa/public-https-server-entity-identity-spa-sqlite-1/public-https-server-entity-identity-spa-sqlite-1.crt
+server-public-tls-key-file: /certs/identity-spa/public-https-server-entity-identity-spa-sqlite-1/public-https-server-entity-identity-spa-sqlite-1.key
+server-public-tls-ca-file: /certs/identity-spa/public-https-client-issuing-ca-identity-spa-sqlite-1/truststore/public-https-client-issuing-ca-identity-spa-sqlite-1.crt

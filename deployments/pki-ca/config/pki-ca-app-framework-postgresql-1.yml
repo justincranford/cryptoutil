@@ -24,3 +24,8 @@ server-admin-tls-ca-file: /certs/pki-ca/private-https-mutual-issuing-ca-pki-ca-p
 otlp-tls-cert-file: /certs/pki-ca/otel-collector-contrib-https-client-entity-pki-ca-postgres-1/otel-collector-contrib-https-client-entity-pki-ca-postgres-1.crt
 otlp-tls-key-file: /certs/pki-ca/otel-collector-contrib-https-client-entity-pki-ca-postgres-1/otel-collector-contrib-https-client-entity-pki-ca-postgres-1.key
 otlp-tls-ca-file: /certs/pki-ca/public-https-server-issuing-ca/truststore/public-https-server-issuing-ca.crt
+
+# Public HTTPS mTLS (Cat 3 + Cat 4): serve public server cert and verify client cert.
+server-public-tls-cert-file: /certs/pki-ca/public-https-server-entity-pki-ca-postgres-1/public-https-server-entity-pki-ca-postgres-1.crt
+server-public-tls-key-file: /certs/pki-ca/public-https-server-entity-pki-ca-postgres-1/public-https-server-entity-pki-ca-postgres-1.key
+server-public-tls-ca-file: /certs/pki-ca/public-https-client-issuing-ca-pki-ca-postgres/truststore/public-https-client-issuing-ca-pki-ca-postgres.crt
