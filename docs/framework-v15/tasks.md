@@ -646,90 +646,92 @@ interactive diagnostic tool only. See ENG-HANDBOOK.md §10.4.4.
 
 ---
 
-### Phase 9: Deployment Templates [Status: ☐ TODO]
+### Phase 9: Deployment Templates [Status: ✅ COMPLETE]
 
 **Phase Objective**: Update canonical deployment templates to encode V15 cert mounts and config.
 
 #### Task 9.1: Update deployment-templates.md
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 1h
 - **Dependencies**: Phase 8 complete
 - **Description**: Document V15 cert mount rules and combined V12+V15 least privilege table.
 - **Acceptance Criteria**:
-  - [ ] Combined V12+V15 least privilege table: service row × cert-dir column for all 4 variants + shared-telemetry services
-  - [ ] OTel Collector cert dirs: Cat 1 truststore + Cat 2 keystore + Cat 8 truststore + Cat 9 infra keystore
-  - [ ] Grafana cert dirs: Cat 2 keystore + Cat 8 truststore
-  - [ ] App variants: Cat 3 + Cat 4 + Cat 6 + Cat 7 + Cat 9 app + Cat 10 + Cat 14 (all combined)
+  - [x] Combined V12+V15 least privilege table: service row × cert-dir column for all 4 variants + shared-telemetry services
+  - [x] OTel Collector cert dirs: Cat 1 truststore + Cat 2 keystore + Cat 8 truststore + Cat 9 infra keystore
+  - [x] Grafana cert dirs: Cat 2 keystore + Cat 8 truststore
+  - [x] App variants: Cat 3 + Cat 4 + Cat 6 + Cat 7 + Cat 9 app + Cat 10 + Cat 14 (all combined)
 - **Files**: `docs/deployment-templates.md`
 
 #### Task 9.2: Verify shared-telemetry OTel Compose Template (verification only)
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 0.5h
 - **Dependencies**: Task 9.1
 - **Description**: Verify shared-telemetry OTel Collector compose template (updated atomically in
   Tasks 2.3 and 6.2 per D9=A). This task is verification-only — no new template writing.
 - **Acceptance Criteria**:
-  - [ ] `go run ./cmd/cicd-lint lint-fitness` template-compliance check passes for OTel template
-  - [ ] Template matches actual `deployments/shared-telemetry/compose.yml` with `__PS_ID__` substituted
-  - [ ] OTel mounts present: Cat 1 truststore + Cat 2 keystore + Cat 8 truststore + Cat 9 infra
-  - [ ] No new writes — template was updated atomically in Tasks 2.3 and 6.2
+  - [x] `go run ./cmd/cicd-lint lint-fitness` template-compliance check passes for OTel template
+  - [x] Template matches actual `deployments/shared-telemetry/compose.yml` with `__PS_ID__` substituted
+  - [x] OTel mounts present: Cat 1 truststore + Cat 2 keystore + Cat 8 truststore + Cat 9 infra
+  - [x] No new writes — template was updated atomically in Tasks 2.3 and 6.2
 - **Files**: `api/cryptosuite-registry/templates/deployments/shared-telemetry/compose.yml` (verify only)
 
 #### Task 9.3: Verify shared-telemetry Grafana Compose Template (verification only)
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 0.5h
 - **Dependencies**: Task 9.1
 - **Description**: Verify shared-telemetry Grafana compose template (updated atomically in Tasks 5.3
   per D9=A). This task is verification-only — no new template writing.
 - **Acceptance Criteria**:
-  - [ ] `go run ./cmd/cicd-lint lint-fitness` template-compliance check passes for Grafana template
-  - [ ] Template matches actual `deployments/shared-telemetry/compose.yml` Grafana service section
-  - [ ] Grafana mounts present: Cat 2 keystore + Cat 8 truststore + grafana.ini
-  - [ ] Healthcheck uses `https://`; `start_period` (underscore in YAML)
-  - [ ] No new writes — template was updated atomically in Task 5.3
+  - [x] `go run ./cmd/cicd-lint lint-fitness` template-compliance check passes for Grafana template
+  - [x] Template matches actual `deployments/shared-telemetry/compose.yml` Grafana service section
+  - [x] Grafana mounts present: Cat 2 keystore + Cat 8 truststore + grafana.ini
+  - [x] Healthcheck uses `https://`; `start_period` (underscore in YAML)
+  - [x] No new writes — template was updated atomically in Task 5.3
 - **Files**: `api/cryptosuite-registry/templates/deployments/shared-telemetry/compose.yml` (verify only)
 
 #### Task 9.4: Verify PS-ID Compose Template (verification only)
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 0.5h
 - **Dependencies**: Task 9.1
 - **Description**: Verify PS-ID compose template (updated atomically in Tasks 3.3 and 8.3 per D9=A).
   This task is verification-only — no new template writing.
 - **Acceptance Criteria**:
-  - [ ] `go run ./cmd/cicd-lint lint-fitness` template-compliance check passes for PS-ID template
-  - [ ] Template matches actual `deployments/{PS-ID}/compose.yml` with `__PS_ID__` substituted
-  - [ ] All 4 variant cert mounts present: Cat 3 + Cat 4 + Cat 9 app (per variant)
-  - [ ] `__PS_ID__` placeholders consistent throughout
-  - [ ] No new writes — template was updated atomically in Tasks 3.3 and 8.3
+  - [x] `go run ./cmd/cicd-lint lint-fitness` template-compliance check passes for PS-ID template
+  - [x] Template matches actual `deployments/{PS-ID}/compose.yml` with `__PS_ID__` substituted
+  - [x] All 4 variant cert mounts present: Cat 3 + Cat 4 + Cat 9 app (per variant)
+  - [x] `__PS_ID__` placeholders consistent throughout
+  - [x] No new writes — template was updated atomically in Tasks 3.3 and 8.3
 - **Files**: `api/cryptosuite-registry/templates/deployments/__PS_ID__/compose.yml` (verify only)
+- **Evidence**: `go run ./cmd/cicd-lint lint-fitness` exits 0 (all template compliance checks pass)
 
 ---
 
-### Phase 10: Deployment Linting [Status: ☐ TODO]
+### Phase 10: Deployment Linting [Status: ✅ COMPLETE]
 
 **Phase Objective**: All updated deployment files pass lint-deployments validators.
 
 #### Task 10.1: Run lint-deployments
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 0.5h
 - **Dependencies**: Phase 9 complete
 - **Acceptance Criteria**:
-  - [ ] `go run ./cmd/cicd-lint lint-deployments` exits 0
-  - [ ] All 8 validators pass
+  - [x] `go run ./cmd/cicd-lint lint-deployments` exits 0
+  - [x] All 8 validators pass (54/54 validators passed)
 
 #### Task 10.2: Lint Deployments Code
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 0.5h
 - **Dependencies**: Task 10.1
 - **Acceptance Criteria**:
-  - [ ] `golangci-lint run ./internal/apps/tools/cicd_lint/lint_deployments/...` passes
-  - [ ] `go test ./internal/apps/tools/cicd_lint/lint_deployments/...` passes
+  - [x] `golangci-lint run ./internal/apps/tools/cicd_lint/lint_deployments/...` passes (0 issues)
+  - [x] `go test ./internal/apps/tools/cicd_lint/lint_deployments/...` passes (ok)
+- **Evidence**: commit `c275a2750`
 
 ---
 
