@@ -1,0 +1,16 @@
+# compose-test-otel-expose.yml
+#
+# Test-only compose override that exposes OTel Collector OTLP ports to the host.
+# Use alongside the main compose.yml to allow Go E2E tests to directly dial
+# OTel gRPC (:4317) and HTTP (:4318) for TLS handshake verification.
+#
+# NEVER use this override in production deployments.
+# Usage (from deployments/sm-kms/):
+#   docker compose -f compose.yml -f compose-test-otel-expose.yml up
+#
+services:
+  opentelemetry-collector-contrib:
+    ports:
+      - "127.0.0.1:14317:4317" # OTLP gRPC — test-only exposure
+      - "127.0.0.1:14318:4318" # OTLP HTTP — test-only exposure
+      - "127.0.0.1:14133:13133" # OTel health check — test-only exposure
