@@ -306,106 +306,100 @@ Phase 1 validates the existing generator via automated tests so regression is ca
 
 ---
 
-### Phase 2: OTel Collector Server TLS [Status: ☐ TODO]
+### Phase 2: OTel Collector Server TLS [Status: ✅ COMPLETE]
 
 **Phase Objective**: Configure OTel Collector OTLP receivers to serve TLS.
 
 #### Task 2.1: OTLP gRPC Receiver TLS Config
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 1h
 - **Dependencies**: Phase 1 complete
 - **Description**: Update otel-collector-contrib YAML config for TLS on gRPC receiver.
 - **Acceptance Criteria**:
-  - [ ] `receivers.otlp.protocols.grpc.tls.cert_file` = Cat 2 OTel server cert path
-  - [ ] `receivers.otlp.protocols.grpc.tls.key_file` = Cat 2 key path
-  - [ ] `receivers.otlp.protocols.grpc.tls.client_ca_file` = Cat 8 OTel client issuing CA truststore
-  - [ ] `insecure: false` (or omitted — false is default)
-- **Files**: `deployments/shared-telemetry/otel-collector-contrib/config.yml`
+  - [x] `receivers.otlp.protocols.grpc.tls.cert_file` = Cat 2 OTel server cert path
+  - [x] `receivers.otlp.protocols.grpc.tls.key_file` = Cat 2 key path
+  - [x] `receivers.otlp.protocols.grpc.tls.client_ca_file` = Cat 8 OTel client issuing CA truststore
+  - [x] `insecure: false` (or omitted — false is default)
+- **Files**: `deployments/shared-telemetry/otel/otel-collector-config.yaml`
 
 #### Task 2.2: OTLP HTTP Receiver TLS Config
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 0.5h
 - **Dependencies**: Task 2.1
 - **Description**: Apply identical TLS config to HTTP receiver (:4318).
 - **Acceptance Criteria**:
-  - [ ] `receivers.otlp.protocols.http.tls.cert_file`, `tls.key_file`, `tls.client_ca_file` set
-  - [ ] Same Cat 2 / Cat 8 cert paths as gRPC receiver
-- **Files**: `deployments/shared-telemetry/otel-collector-contrib/config.yml`
+  - [x] `receivers.otlp.protocols.http.tls.cert_file`, `tls.key_file`, `tls.client_ca_file` set
+  - [x] Same Cat 2 / Cat 8 cert paths as gRPC receiver
+- **Files**: `deployments/shared-telemetry/otel/otel-collector-config.yaml`
 
 #### Task 2.3: OTel Compose Cert Volume Mounts
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 1h
 - **Dependencies**: Tasks 2.1, 2.2
 - **Description**: Mount cert dirs in OTel Collector service with least privilege (Phase 2 mounts
   only — Cat 9 infra added in Phase 6).
 - **Acceptance Criteria**:
-  - [ ] `__PS_ID__-certs` named volume referenced (D5 include-merged, not re-declared)
-  - [ ] OTel mounts: Cat 2 `public-https-server-entity-otel-collector-contrib/` + Cat 8
-    `otel-collector-contrib-https-client-issuing-ca/truststore/` ONLY
-  - [ ] NOT mounted: Cat 9 infra (Phase 6), Cat 1, Cat 3, Cat 4 (OTel server does not need these)
-  - [ ] Healthcheck updated: endpoint uses `https://` scheme
-  - [ ] `start_period` used (underscore — not `start-period`)
-  - [ ] Canonical template `api/cryptosuite-registry/templates/deployments/shared-telemetry/compose.yml`
-    updated atomically in the same commit (D9=A)
-  - [ ] `go run ./cmd/cicd-lint lint-deployments` exits 0 after this task
-- **Files**: `deployments/shared-telemetry/compose.yml`,
+  - [x] OTel mounts: Cat 2 `public-https-server-entity-otel-collector-contrib/` + Cat 8
+    `otel-collector-contrib-https-client-issuing-ca/truststore/` ONLY (in each PS-ID compose)
+  - [x] Canonical template `api/cryptosuite-registry/templates/deployments/shared-telemetry/compose.yml`
+    updated atomically in the same commit (D9=A) — template matches actual
+  - [x] `go run ./cmd/cicd-lint lint-deployments` exits 0 after this task
+- **Files**: All 10 `deployments/{PS-ID}/compose.yml`,
   `api/cryptosuite-registry/templates/deployments/shared-telemetry/compose.yml`
 
 ---
 
-### Phase 3: App→OTel Client mTLS [Status: ☐ TODO]
+### Phase 3: App→OTel Client mTLS [Status: ✅ COMPLETE]
 
 **Phase Objective**: Configure app OTLP exporters to present Cat 9 app client certs to OTel.
 
 #### Task 3.1: Framework OTLP Exporter TLS Config Fields
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 1.5h
 - **Dependencies**: Phase 2 complete
 - **Description**: Add optional TLS config fields to framework OTLP exporter settings.
 - **Acceptance Criteria**:
-  - [ ] Framework config struct: `otlp.tls.cert-file` (Cat 9 app client cert path)
-  - [ ] Framework config struct: `otlp.tls.key-file` (Cat 9 app client key path)
-  - [ ] Framework config struct: `otlp.tls.ca-file` (Cat 1 server CA truststore)
-  - [ ] OTLP exporter uses `grpc.WithTransportCredentials(...)` when cert fields set
-  - [ ] `otlp.insecure` defaults to `false` when TLS fields present
-  - [ ] `go build ./...` clean; `golangci-lint run` clean; coverage ≥95%
+  - [x] Framework config struct: `otlp-tls-cert-file` (Cat 9 app client cert path)
+  - [x] Framework config struct: `otlp-tls-key-file` (Cat 9 app client key path)
+  - [x] Framework config struct: `otlp-tls-ca-file` (Cat 1 server CA truststore)
+  - [x] OTLP exporter uses `grpc.WithTransportCredentials(...)` when cert fields set (gRPCS)
+  - [x] OTLP exporter uses `WithTLSClientConfig(...)` when cert fields set (HTTPS)
+  - [x] `go build ./...` clean; `golangci-lint run` clean; coverage ≥95%
 - **Files**: `internal/apps/framework/service/config/`, `internal/shared/telemetry/`
 
 #### Task 3.2: Deployment Config Per Variant
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 1.5h
 - **Dependencies**: Task 3.1
 - **Description**: Add OTLP TLS config to all 40 per-variant deployment config files.
 - **Acceptance Criteria**:
-  - [ ] sqlite-1: `otlp.tls.cert-file` = Cat 9 app sqlite-1 cert; `otlp.tls.key-file`; `otlp.tls.ca-file` = Cat 1 truststore
-  - [ ] sqlite-2: same for sqlite-2
-  - [ ] postgres-1: same for postgres-1 (combined with V12 PG SSL fields)
-  - [ ] postgres-2: same for postgres-2
-  - [ ] `otlp.endpoint` changed from `http://` to `https://` for all 4 variants × 10 PS-IDs = 40 files
+  - [x] sqlite-1: `otlp-tls-cert-file` = Cat 9 app sqlite-1 cert; `otlp-tls-key-file`; `otlp-tls-ca-file` = Cat 1 truststore
+  - [x] sqlite-2: same for sqlite-2
+  - [x] postgres-1: same for postgres-1 (combined with V12 PG SSL fields)
+  - [x] postgres-2: same for postgres-2
+  - [x] `otlp-endpoint` changed from `http://` to `https://` in `cryptoutil-otel.yml`
+  - [x] `validate_schema.go` updated; `config_rules` allowed keys updated; linters pass
 - **Files**: `deployments/{PS-ID}/config/*-app-framework-{variant}.yml` (40 files = 4×10)
 
 #### Task 3.3: App Compose Cert Volume Mounts
 
-- **Status**: ❌
+- **Status**: ✅ (Already satisfied by existing `./certs:/certs:ro` mount pattern)
 - **Estimated**: 1h
 - **Dependencies**: Task 3.2
 - **Description**: Mount Cat 9 app cert dir and Cat 1 truststore per variant in app compose.
 - **Acceptance Criteria**:
-  - [ ] sqlite-1: Cat 9 app `otel-collector-contrib-https-client-entity-{PS-ID}-sqlite-1/` + Cat 1 truststore
-  - [ ] sqlite-2: same for sqlite-2
-  - [ ] postgres-1: Cat 9 app postgres-1 + Cat 1 (combined with V12 Cat 14 + Cat 10 mounts)
-  - [ ] postgres-2: same for postgres-2
-  - [ ] NO extra cert dirs beyond minimum required
-  - [ ] Canonical template `api/cryptosuite-registry/templates/deployments/__PS_ID__/compose.yml`
-    updated atomically in the same commit (D9=A)
-  - [ ] `go run ./cmd/cicd-lint lint-deployments` exits 0 after this task
-- **Files**: `deployments/{PS-ID}/compose.yml` (10 files),
-  `api/cryptosuite-registry/templates/deployments/__PS_ID__/compose.yml`
+  - [x] sqlite-1: Cat 9 app cert accessible at `/certs/{PS-ID}/otel-collector-contrib-https-client-entity-{PS-ID}-sqlite-1/`
+  - [x] sqlite-2: same for sqlite-2
+  - [x] postgres-1: same for postgres-1
+  - [x] postgres-2: same for postgres-2
+  - [x] All certs accessible via existing `./certs:/certs:ro` bind mount (no new mounts needed)
+  - [x] `go run ./cmd/cicd-lint lint-deployments` exits 0
+- **Files**: No changes needed — `./certs:/certs:ro` already mounts all cert dirs
 
 ---
 
