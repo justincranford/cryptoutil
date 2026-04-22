@@ -15,20 +15,24 @@ const (
 
 	// OtelTLSE2EComposeOverrideFile exposes OTel OTLP ports to the host for TLS verification.
 	// Loaded alongside OtelTLSE2EComposeFile so Go tests can dial gRPC :4317 and HTTP :4318.
+	// Uses ports 24317/24318/24133 (offset +10000 from Grafana 14317/14318) to avoid conflict
+	// when Grafana and OTel containers both run in the full-pipeline stack.
 	OtelTLSE2EComposeOverrideFile = "../../../../../deployments/sm-kms/compose-test-otel-expose.yml"
 
 	// OtelTLSE2EHealthTimeout is the max wait for the OTel Collector to become ready.
 	OtelTLSE2EHealthTimeout = 120 * time.Second
 
 	// OtelTLSE2EGRPCPort is the host-side port used by the test compose override for OTel gRPC.
-	// Must not conflict with other running stacks.
-	OtelTLSE2EGRPCPort = 14317
+	// Port 24317 (not 14317) to avoid conflict with Grafana's OTLP gRPC binding 14317:4317.
+	OtelTLSE2EGRPCPort = 24317
 
 	// OtelTLSE2EHTTPPort is the host-side port used by the test compose override for OTel HTTP.
-	OtelTLSE2EHTTPPort = 14318
+	// Port 24318 (not 14318) to avoid conflict with Grafana's OTLP HTTP binding 14318:4318.
+	OtelTLSE2EHTTPPort = 24318
 
 	// OtelTLSE2EHealthPort is the host-side port for the OTel health check endpoint.
-	OtelTLSE2EHealthPort = 14133
+	// Port 24133 (not 14133) to avoid conflict with Grafana bindings in the full-pipeline stack.
+	OtelTLSE2EHealthPort = 24133
 
 	// OtelTLSE2ECACertPath is the Cat 1 public HTTPS server issuing CA truststore.
 	// Used to verify the Cat 2 OTel Collector server cert in TLS handshakes.
@@ -78,4 +82,76 @@ const (
 
 	// GrafanaTLSE2EContainer is the Grafana compose service name.
 	GrafanaTLSE2EContainer = "grafana-otel-lgtm"
+
+	// FullPipelineTLSE2ETimeout is the max wait for the full pipeline stack (all services).
+	// Longer than OTel/Grafana timeouts because PostgreSQL startup adds ~30s.
+	FullPipelineTLSE2ETimeout = 300 * time.Second
+
+	// App public HTTPS ports — bound in deployments/sm-kms/compose.yml as {HOST}:8080.
+	// Tests dial these from the host to verify Cat 3 server certs and Cat 4 mTLS enforcement.
+
+	// AppSMKMSSQLite1PublicPort is the host port for sm-kms-app-sqlite-1 public HTTPS.
+	AppSMKMSSQLite1PublicPort = 8000
+
+	// AppSMKMSSQLite2PublicPort is the host port for sm-kms-app-sqlite-2 public HTTPS.
+	AppSMKMSSQLite2PublicPort = 8001
+
+	// AppSMKMSPostgres1PublicPort is the host port for sm-kms-app-postgresql-1 public HTTPS.
+	AppSMKMSPostgres1PublicPort = 8002
+
+	// AppSMKMSPostgres2PublicPort is the host port for sm-kms-app-postgresql-2 public HTTPS.
+	AppSMKMSPostgres2PublicPort = 8003
+
+	// Cat 3 server cert CNs — the expected Common Names of the public HTTPS server certs per variant.
+	// These are the CNs the app presents during TLS handshake on the public port.
+
+	// AppSMKMSSQLite1ServerCertCN is the Cat 3 server cert CN for sm-kms-app-sqlite-1.
+	AppSMKMSSQLite1ServerCertCN = "public-https-server-entity-sm-kms-sqlite-1"
+
+	// AppSMKMSSQLite2ServerCertCN is the Cat 3 server cert CN for sm-kms-app-sqlite-2.
+	AppSMKMSSQLite2ServerCertCN = "public-https-server-entity-sm-kms-sqlite-2"
+
+	// AppSMKMSPostgres1ServerCertCN is the Cat 3 server cert CN for sm-kms-app-postgresql-1.
+	AppSMKMSPostgres1ServerCertCN = "public-https-server-entity-sm-kms-postgres-1"
+
+	// AppSMKMSPostgres2ServerCertCN is the Cat 3 server cert CN for sm-kms-app-postgresql-2.
+	AppSMKMSPostgres2ServerCertCN = "public-https-server-entity-sm-kms-postgres-2"
+
+	// App public HTTPS client cert paths (Cat 5 service-user certs) for mTLS.
+	// These certs are signed by the Cat 4 CA (public-https-client-issuing-ca-sm-kms-{variant})
+	// and are used by test clients to satisfy the server's RequireAndVerifyClientCert policy.
+	// Paths are relative to internal/apps/framework/tls/e2e/.
+
+	// AppSMKMSSQLite1ClientCertPath is the Cat 5 service-user client cert for sqlite-1.
+	AppSMKMSSQLite1ClientCertPath = "../../../../../deployments/sm-kms/certs/sm-kms/public-https-client-entity-sm-kms-sqlite-1-serviceuser-db/public-https-client-entity-sm-kms-sqlite-1-serviceuser-db.crt"
+
+	// AppSMKMSSQLite1ClientKeyPath is the Cat 5 service-user client key for sqlite-1.
+	AppSMKMSSQLite1ClientKeyPath = "../../../../../deployments/sm-kms/certs/sm-kms/public-https-client-entity-sm-kms-sqlite-1-serviceuser-db/public-https-client-entity-sm-kms-sqlite-1-serviceuser-db.key"
+
+	// AppSMKMSSQLite2ClientCertPath is the Cat 5 service-user client cert for sqlite-2.
+	AppSMKMSSQLite2ClientCertPath = "../../../../../deployments/sm-kms/certs/sm-kms/public-https-client-entity-sm-kms-sqlite-2-serviceuser-db/public-https-client-entity-sm-kms-sqlite-2-serviceuser-db.crt"
+
+	// AppSMKMSSQLite2ClientKeyPath is the Cat 5 service-user client key for sqlite-2.
+	AppSMKMSSQLite2ClientKeyPath = "../../../../../deployments/sm-kms/certs/sm-kms/public-https-client-entity-sm-kms-sqlite-2-serviceuser-db/public-https-client-entity-sm-kms-sqlite-2-serviceuser-db.key"
+
+	// AppSMKMSPostgresClientCertPath is the Cat 5 service-user client cert for postgres variants.
+	// Postgres-1 and postgres-2 share the same Cat 4 issuing CA (public-https-client-issuing-ca-sm-kms-postgres).
+	AppSMKMSPostgresClientCertPath = "../../../../../deployments/sm-kms/certs/sm-kms/public-https-client-entity-sm-kms-postgres-serviceuser-db/public-https-client-entity-sm-kms-postgres-serviceuser-db.crt"
+
+	// AppSMKMSPostgresClientKeyPath is the Cat 5 service-user client key for postgres variants.
+	AppSMKMSPostgresClientKeyPath = "../../../../../deployments/sm-kms/certs/sm-kms/public-https-client-entity-sm-kms-postgres-serviceuser-db/public-https-client-entity-sm-kms-postgres-serviceuser-db.key"
+
+	// Compose service names for sm-kms app variants (full pipeline stack).
+
+	// AppSMKMSSQLite1Container is the compose service name for sm-kms-app-sqlite-1.
+	AppSMKMSSQLite1Container = "sm-kms-app-sqlite-1"
+
+	// AppSMKMSSQLite2Container is the compose service name for sm-kms-app-sqlite-2.
+	AppSMKMSSQLite2Container = "sm-kms-app-sqlite-2"
+
+	// AppSMKMSPostgres1Container is the compose service name for sm-kms-app-postgresql-1.
+	AppSMKMSPostgres1Container = "sm-kms-app-postgresql-1"
+
+	// AppSMKMSPostgres2Container is the compose service name for sm-kms-app-postgresql-2.
+	AppSMKMSPostgres2Container = "sm-kms-app-postgresql-2"
 )

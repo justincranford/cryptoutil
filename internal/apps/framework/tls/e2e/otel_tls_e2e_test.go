@@ -48,6 +48,11 @@ func (m *otelComposeManager) start(ctx context.Context) error {
 		"up", "-d", "--build",
 		cryptoutilSharedMagic.PSIDPKIInit,
 		cryptoutilSharedMagic.OtelTLSE2EContainer,
+		cryptoutilSharedMagic.GrafanaTLSE2EContainer,
+		cryptoutilSharedMagic.AppSMKMSSQLite1Container,
+		cryptoutilSharedMagic.AppSMKMSSQLite2Container,
+		cryptoutilSharedMagic.AppSMKMSPostgres1Container,
+		cryptoutilSharedMagic.AppSMKMSPostgres2Container,
 	)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
