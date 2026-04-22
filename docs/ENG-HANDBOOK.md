@@ -2551,7 +2551,108 @@ log.Info("operation completed",
 
 **Anti-Pattern**: NEVER defer OTel or infrastructure configuration issues as "pre-existing." Infrastructure blockers that prevent E2E validation MUST be fixed immediately — they are BLOCKING, not "nice-to-have."
 
-#### 9.4.2 Docker Desktop and Testcontainers API Compatibility
+#### 9.4.2 OTel Collector Server TLS (Receiver mTLS)
+
+The OTel Collector's OTLP receiver supports TLS and mTLS via the `tls:` block in the config YAML.
+This is required for secure telemetry ingestion from services that enforce Cat 9 app client certs.
+
+**OTel Collector `config.yaml` TLS Block (MANDATORY for production)**:
+
+```yaml
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+        tls:
+          cert_file: /certs/otel-server.crt        # Cat 2 server cert
+          key_file:  /certs/otel-server.key         # Cat 2 server key
+          client_ca_file: /certs/app-client-ca.crt  # Cat 8 issuing CA — forces mTLS
+      http:
+        endpoint: 0.0.0.0:4318
+        tls:
+          cert_file: /certs/otel-server.crt
+          key_file:  /certs/otel-server.key
+          client_ca_file: /certs/app-client-ca.crt
+```
+
+**Key fields**:
+- `cert_file` / `key_file` — server identity (Cat 2 cert/key)
+- `client_ca_file` — enables mTLS; OTel Collector requires client cert signed by this CA (Cat 8)
+- Cert files are mounted via Docker Compose `./certs:/certs:ro` bind volume
+
+**Cat 8 CA scope**: The Cat 8 issuing CA is the trust anchor for ALL app→OTel client certs (Cat 9
+app certs, one per PS-ID per deployment variant). A single Cat 8 CA covers all tenants.
+
+#### 9.4.3 Grafana LGTM HTTPS and Embedded OTel TLS
+
+Grafana LGTM bundles its own OTel Collector instance. Enabling HTTPS on Grafana UI and mTLS on its
+OTLP ingest requires two separate configuration mechanisms.
+
+**Grafana UI HTTPS — `grafana.ini`**:
+
+Mount a custom `grafana.ini` with HTTPS settings:
+
+```ini
+[server]
+protocol = https
+cert_file = /certs/grafana-server.crt   # Cat 2 server cert
+cert_key  = /certs/grafana-server.key   # Cat 2 server key
+```
+
+**Docker Compose mount**:
+
+```yaml
+volumes:
+  - ./grafana/grafana.ini:/etc/grafana/grafana.ini:ro
+  - ./certs:/certs:ro
+```
+
+**Grafana Embedded OTel Collector mTLS — `OTELCOL_EXTRA_ARGS`**:
+
+Grafana LGTM's embedded `otelcol` binary reads its config from a bundled default. Override with
+an additional config file via `OTELCOL_EXTRA_ARGS`:
+
+```yaml
+environment:
+  OTELCOL_EXTRA_ARGS: "--config=file:///etc/grafana/otel-tls-config.yaml"
+```
+
+The extra config file uses the same `receivers.otlp.protocols.grpc.tls:` structure as a standalone
+OTel Collector. Mount the file alongside `grafana.ini`.
+
+**Why `OTELCOL_EXTRA_ARGS`**: The Grafana LGTM image manages the embedded otelcol lifecycle
+internally. Standard OTel env vars do not override the embedded config — only `OTELCOL_EXTRA_ARGS`
+with `--config=file://` reaches the bundled binary.
+
+#### 9.4.4 OTel→Grafana Client mTLS (Cat 9 Infra Cert)
+
+The OTel Collector's `otlphttp` or `otlp` exporter forwards spans/metrics to Grafana. When Grafana
+enforces mTLS (via Cat 8 CA in `client_ca_file`), the OTel Collector must present a Cat 9 infra
+client cert.
+
+**OTel Collector exporter config**:
+
+```yaml
+exporters:
+  otlphttp:
+    endpoint: https://grafana-otel-lgtm:4318
+    tls:
+      cert_file: /certs/otel-to-grafana-client.crt   # Cat 9 infra cert
+      key_file:  /certs/otel-to-grafana-client.key   # Cat 9 infra key
+      ca_file:   /certs/grafana-server-ca.crt         # Cat 1 CA — verifies Grafana server cert
+```
+
+**Endpoint port**: Use the container-internal port (`4318`), not the host-mapped port (`14318`).
+Service-to-service communication inside Docker always uses container ports.
+
+**Cat 9 infra cert vs Cat 9 app cert**:
+- **Cat 9 infra**: OTel Collector → Grafana (one cert, infrastructure tier)
+- **Cat 9 app**: Service → OTel Collector (one cert per PS-ID per variant, app tier)
+
+Both Cat 9 cert types are issued by the Cat 8 CA and verified by `client_ca_file` on the receiver.
+
+#### 9.4.5 Docker Desktop and Testcontainers API Compatibility
 
 **CRITICAL: Docker Desktop upgrades can break testcontainers.**
 
@@ -5677,6 +5778,56 @@ command: ["server", "--bind-public-port=8080", "--config=/certs/tls-config.yml",
 - Each service builds its own binary (not the suite binary) for minimal image size
 
 **Cross-References**: CICD command architecture in [Section 9.10](#910-cicd-command-architecture). Build pipeline in [Section 12.2](#122-build-pipeline).
+
+#### 12.3.7 TLS Certificate Mount Least-Privilege Table (V12 + V15)
+
+Every PS-ID Docker Compose service mounts certs from `./certs:/certs:ro`. The cert paths within
+`/certs` follow a strict naming convention tied to the certificate category system defined in
+[Section 6.5 PKI Architecture](#65-pki-architecture--strategy).
+
+**Certificate Categories Used in Deployments**:
+
+| Cat | Role | Scope | Mounted By |
+|-----|------|-------|-----------|
+| Cat 1 | Public HTTPS server issuing CA / truststore | All variants | App (verify server cert), Test client |
+| Cat 2 | OTel Collector + Grafana server identity cert | Global | OTel container, Grafana container |
+| Cat 3 | App public HTTPS server cert (per variant) | Per variant | App container only |
+| Cat 4 | App public HTTPS client issuing CA (per variant) | Per variant | App container only (RequireAndVerifyClientCert) |
+| Cat 5 | App public HTTPS client entity cert (serviceuser) | Per variant | Service-to-service clients, test clients |
+| Cat 8 | OTel ingest client issuing CA | Global | OTel container (client_ca_file), Grafana embedded OTel |
+| Cat 9 infra | OTel→Grafana client cert | Global | OTel container (exporter tls) |
+| Cat 9 app | App→OTel client cert (per PS-ID per variant) | Per variant | App container (framework OTLP tls config) |
+
+**Path Convention** (relative to `certs/{PS-ID}/`):
+
+| Cat | Directory pattern |
+|-----|------------------|
+| Cat 1 | `public-https-server-issuing-ca/truststore/public-https-server-issuing-ca.crt` |
+| Cat 2 | `otel-collector-contrib-https-server-entity-{PS-ID}-{variant}/` |
+| Cat 3 | `public-https-server-entity-{PS-ID}-{variant}/` |
+| Cat 4 | `public-https-client-issuing-ca-{PS-ID}-{variant}/` |
+| Cat 5 | `public-https-client-entity-{PS-ID}-{variant}-serviceuser-db/` |
+| Cat 8 | `otel-collector-contrib-https-client-issuing-ca/` |
+| Cat 9 infra | `otel-collector-contrib-https-client-entity-otel-grafana/` |
+| Cat 9 app | `otel-collector-contrib-https-client-entity-{PS-ID}-{variant}/` |
+
+**Least-Privilege Rule**: Each container mounts ONLY the cert categories it needs:
+
+- **App container**: Cat 1 (trust), Cat 3 (own server cert), Cat 4 (client CA), Cat 9 app (OTel client)
+- **OTel container**: Cat 2 (own server cert), Cat 8 (OTel client CA), Cat 9 infra (Grafana client)
+- **Grafana container**: Cat 2 (own server cert), Cat 8 (OTel client CA, in embedded otelcol config)
+- **pki-init**: reads cert outputs from all categories during generation (write-phase only)
+
+**`tls-config.yml` for the app** (used in compose `command:` as `--config=/certs/tls-config.yml`):
+
+```yaml
+server-public-tls-cert-file: /certs/{PS-ID}/public-https-server-entity-{PS-ID}-{variant}/cert.pem
+server-public-tls-key-file:  /certs/{PS-ID}/public-https-server-entity-{PS-ID}-{variant}/key.pem
+server-public-tls-ca-file:   /certs/{PS-ID}/public-https-client-issuing-ca-{PS-ID}-{variant}/cert.pem
+otlp-tls-cert-file: /certs/{PS-ID}/otel-collector-contrib-https-client-entity-{PS-ID}-{variant}/cert.pem
+otlp-tls-key-file:  /certs/{PS-ID}/otel-collector-contrib-https-client-entity-{PS-ID}-{variant}/key.pem
+otlp-tls-ca-file:   /certs/{PS-ID}/otel-collector-contrib-https-client-issuing-ca/cert.pem
+```
 
 ### 13.6 Template Enforcement & Drift Detection
 
