@@ -2,7 +2,7 @@
 
 ## Executive Summary
 
-Analysis of [tls-structure.md](tls-structure.md) and [framework-v15/pki-init-order.md](framework-v15/pki-init-order.md) against [ENG-HANDBOOK.md §6.5](ENG-HANDBOOK.md#65-pki-architecture--strategy) reveals several documentation gaps. The handbook covers PKI architecture, TLS configuration, and CA hierarchy at a policy level, but the implementation-specific details in `tls-structure.md` have gaps that affect developers implementing new services and cert categories.
+Analysis of [tls-structure.md](tls-structure.md) and [framework-v15/pki-init-order.md](framework-v16/pki-init-order.md) against [ENG-HANDBOOK.md §6.5](ENG-HANDBOOK.md#65-pki-architecture--strategy) reveals several documentation gaps. The handbook covers PKI architecture, TLS configuration, and CA hierarchy at a policy level, but the implementation-specific details in `tls-structure.md` have gaps that affect developers implementing new services and cert categories.
 
 1. [Admin CA Bundle (`issuing-ca.pem`) Undocumented](#1-admin-ca-bundle-issuing-capem-undocumented) — the CA chain file distributed to admin mTLS clients is absent from tls-structure.md.
 2. [`tls-config.yml` Dynamic Cert Pattern Undocumented](#2-tls-configyml-dynamic-cert-pattern-undocumented) — the `TLSModeMixed` mechanism for selecting pre-generated vs dynamically generated certs is not described.

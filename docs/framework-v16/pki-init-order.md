@@ -103,7 +103,7 @@ No generator code changes are required for V15. V15 focuses on:
 
 ## V15 Scope
 
-V15 implements the service-side TLS wiring for all 10 PS-IDs across all deployment variants (sqlite-1, sqlite-2, postgres-1, postgres-2). See [plan.md](plan.md) for the phased implementation.
+V15 implements the service-side TLS wiring for all 10 PS-IDs across all deployment variants (sqlite-1, sqlite-2, postgres-1, postgres-2). See [plan.md](../framework-v15/plan.md) for the phased implementation.
 
 **Key constraint**: Generator code is already complete. V15 work is entirely wiring + testing.
 
