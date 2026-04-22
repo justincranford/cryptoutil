@@ -46,7 +46,7 @@ func (m *otelComposeManager) start(ctx context.Context) error {
 		"-f", m.mainFile,
 		"-f", m.overrideFile,
 		"up", "-d", "--build",
-		"pki-init",
+		cryptoutilSharedMagic.PSIDPKIInit,
 		cryptoutilSharedMagic.OtelTLSE2EContainer,
 	)
 	cmd.Stdout = os.Stdout
@@ -102,7 +102,7 @@ func loadClientCert(t *testing.T, certPath, keyPath string) tls.Certificate {
 func waitForOtelHealth(t *testing.T, timeout time.Duration) {
 	t.Helper()
 
-	deadline := time.Now().Add(timeout)
+	deadline := time.Now().UTC().Add(timeout)
 
 	client := &http.Client{
 		Timeout: cryptoutilSharedMagic.OtelCollectorHealthCheckTimeout,
@@ -110,7 +110,7 @@ func waitForOtelHealth(t *testing.T, timeout time.Duration) {
 
 	healthURL := fmt.Sprintf("http://127.0.0.1:%d/", cryptoutilSharedMagic.OtelTLSE2EHealthPort)
 
-	for time.Now().Before(deadline) {
+	for time.Now().UTC().Before(deadline) {
 		resp, err := client.Get(healthURL) //nolint:noctx // Simple health poll, no context needed.
 		if err == nil {
 			_ = resp.Body.Close()
