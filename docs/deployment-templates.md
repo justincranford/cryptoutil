@@ -34,6 +34,7 @@ these templates. Any deviation from the canonical templates is a blocking error.
 - [L. OTel Config Template](#l-otel-config-template)
 - [M. Current Inconsistencies Inventory](#m-current-inconsistencies-inventory)
 - [N. Enforcement Requirements](#n-enforcement-requirements)
+- [Q. V12+V15 Cert Mount Least Privilege Table](#q-v12v15-cert-mount-least-privilege-table)
 
 ---
 
@@ -639,6 +640,70 @@ deployment-templates.md                       → Human-readable documentation o
 lint-fitness template-compliance              → Instantiate templates, compare to disk, report deviations
 lint-fitness secrets-compliance               → Validate secrets directory structure
 ```
+
+---
+
+## Q. V12+V15 Cert Mount Least Privilege Table
+
+### Q.1 Overview
+
+This table documents which PKI certificate categories each service logically uses
+across V12 (PostgreSQL mTLS, admin mTLS) and V15 (OTel mTLS, Grafana HTTPS, public app TLS).
+
+**Volume strategy**: All PS-ID services receive the full `./certs:{PS-ID}/` bind mount. This
+table describes which cert directories are **logically required** by each service role — it is
+a design reference, not an enforcement table. Only pki-init writes to `./certs`; all other
+services mount it read-only.
+
+### Q.2 PS-ID App Service Cert Requirements
+
+| Cert Category | sqlite-1 | sqlite-2 | postgresql-1 | postgresql-2 | Notes |
+|--------------|----------|----------|--------------|--------------|-------|
+| **Cat 3** `public-https-server-entity-{PS-ID}-{variant}` | ✅ | ✅ | ✅ | ✅ | Public server cert+key — loaded via `server-public-tls-cert-file` / `server-public-tls-key-file` (V15) |
+| **Cat 4** `public-https-client-issuing-ca-{PS-ID}-{domain}/truststore/` | ✅ sqlite-1 domain | ✅ sqlite-2 domain | ✅ postgres domain | ✅ postgres domain | Public client CA — loaded via `server-public-tls-ca-file`; postgres-1 and postgres-2 share the `postgres` domain (V15) |
+| **Cat 6** `private-https-mutual-issuing-ca-{PS-ID}-{variant}/truststore/` | ✅ | ✅ | ✅ | ✅ | Admin client CA — loaded via `server-admin-tls-ca-file`; verifies livez/readyz CLI client cert (V12) |
+| **Cat 7** `private-https-mutual-entity-{PS-ID}-{variant}` | ✅ | ✅ | ✅ | ✅ | Admin server cert+key — loaded via `server-admin-tls-cert-file` / `server-admin-tls-key-file` (V12) |
+| **Cat 9 app** `otel-collector-contrib-https-client-entity-{PS-ID}-{variant}` | ✅ | ✅ | ✅ | ✅ | OTLP client cert+key — loaded via `otlp-tls-cert-file` / `otlp-tls-key-file`; app presents to OTel (V15) |
+| **Cat 10** `postgres-tls-server-issuing-ca/truststore/` | ❌ | ❌ | ✅ | ✅ | PostgreSQL server CA — loaded via `database-sslrootcert`; verifies leader server cert (V12) |
+| **Cat 14** `postgres-tls-client-entity-leader-{PS-ID}-postgres-{N}` | ❌ | ❌ | ✅ postgres-1 | ✅ postgres-2 | PostgreSQL client cert+key — loaded via `database-sslcert` / `database-sslkey`; app presents to leader (V12) |
+
+**Notes**:
+- Cat 4 domain mapping: sqlite-1 → `sqlite-1` domain, sqlite-2 → `sqlite-2` domain, postgres-1/postgres-2 → `postgres` domain.
+- SQLite instances do NOT connect to PostgreSQL — Cat 10 and Cat 14 are not needed for sqlite-1/2.
+- Cat 6 and Cat 7 are present for ALL 4 variants — the admin port `:9090` is always mTLS regardless of database backend.
+- The OTLP CA trust (`otlp-tls-ca-file`) points to `public-https-server-issuing-ca/truststore/` (Cat 1) in the common config.
+
+### Q.3 Shared Telemetry Cert Requirements
+
+| Service | Cert Category | Directory | Purpose |
+|---------|--------------|-----------|---------|
+| `opentelemetry-collector-contrib` | **Cat 1** `public-https-server-issuing-ca/truststore/` | `/etc/pki-init/certs/public-https-server-issuing-ca` | Verifies Grafana server cert (OTel→Grafana forwarding) |
+| `opentelemetry-collector-contrib` | **Cat 2** `public-https-server-entity-otel-collector-contrib` | `/etc/pki-init/certs/public-https-server-entity-otel-collector-contrib` | OTel server cert+key (presented to app OTLP exporters) |
+| `opentelemetry-collector-contrib` | **Cat 8** `otel-collector-contrib-https-client-issuing-ca/truststore/` | `/etc/pki-init/certs/otel-collector-contrib-https-client-issuing-ca` | Verifies app OTLP client certs (Cat 9 app enforcement) |
+| `opentelemetry-collector-contrib` | **Cat 9 infra** `otel-collector-contrib-https-client-entity-infra` | `/etc/pki-init/certs/otel-collector-contrib-https-client-entity-infra` | OTel→Grafana client cert+key (OTel presents to Grafana OTLP ingest) |
+| `grafana-otel-lgtm` | **Cat 2** `public-https-server-entity-grafana-otel-lgtm` | `/etc/pki-init/certs/public-https-server-entity-grafana-otel-lgtm` | Grafana server cert+key (presented to browsers + OTel forwarder) |
+| `grafana-otel-lgtm` | **Cat 8** `grafana-otel-lgtm-https-client-issuing-ca/truststore/` | `/etc/pki-init/certs/grafana-otel-lgtm-https-client-issuing-ca` | Verifies OTel→Grafana client cert (Cat 9 infra enforcement) |
+
+### Q.4 PostgreSQL Service Cert Requirements
+
+| Service | Cert Category | Purpose |
+|---------|--------------|---------|
+| `postgres-leader` | **Cat 11** `postgres-tls-server-entity-leader` | Leader server cert+key (PostgreSQL presents to app clients and replication follower) |
+| `postgres-leader` | **Cat 12** `postgres-tls-client-issuing-ca/truststore/` | Verifies app client certs (Cat 14) and follower replication cert (Cat 13) |
+| `postgres-follower` | **Cat 10** `postgres-tls-server-issuing-ca/truststore/` | Verifies leader server cert during replication |
+| `postgres-follower` | **Cat 11** `postgres-tls-server-entity-follower` | Follower server cert+key |
+| `postgres-follower` | **Cat 12** `postgres-tls-client-issuing-ca/truststore/` | Verifies replication client cert (Cat 13) |
+| `postgres-follower` | **Cat 13** `postgres-tls-client-entity-follower-replication` | Replication client cert+key (follower presents to leader slot) |
+
+See [K.2 shared-postgres](#k2-shared-postgrescomposeyml) for full PostgreSQL mTLS architecture and cert ownership diagram.
+
+### Q.5 Summary by Plan Version
+
+| Plan | Scope | Cert Categories Added |
+|------|-------|-----------------------|
+| **V12** | PostgreSQL mTLS + Admin mTLS | Cat 6, 7 (admin), Cat 10, 11, 12, 13, 14 (PostgreSQL) |
+| **V15** | OTel mTLS + Grafana HTTPS + Public App TLS | Cat 1, 2, 3, 4, 8, 9 app, 9 infra |
+| **Combined** | All 14 categories fully wired | Cat 1–14 all assigned; pki-init generates all 14 |
 
 ---
 

@@ -45,21 +45,25 @@ var requiredCommonKeys = []string{
 // configs do not include these keys (SQLite does not support TLS).
 // All instance configs allow server-admin-tls-* for admin mTLS (Cat 6 client CA + Cat 7 server cert).
 // All instance configs allow otlp-tls-* for OTLP mTLS (Cat 9 client cert + Cat 1 server CA).
+// All instance configs allow server-public-tls-* for public server TLS (Cat 3 server cert + Cat 4 client CA).
 var allowedInstanceKeys = map[string]bool{
-	"cors-origins":               true,
-	"otlp-service":               true,
-	"otlp-hostname":              true,
-	"otlp-tls-cert-file":         true,
-	"otlp-tls-key-file":          true,
-	"otlp-tls-ca-file":           true,
-	"database-url":               true,
-	"database-sslmode":           true,
-	"database-sslcert":           true,
-	"database-sslkey":            true,
-	"database-sslrootcert":       true,
-	"server-admin-tls-cert-file": true,
-	"server-admin-tls-key-file":  true,
-	"server-admin-tls-ca-file":   true,
+	"cors-origins":                true,
+	"otlp-service":                true,
+	"otlp-hostname":               true,
+	"otlp-tls-cert-file":          true,
+	"otlp-tls-key-file":           true,
+	"otlp-tls-ca-file":            true,
+	"database-url":                true,
+	"database-sslmode":            true,
+	"database-sslcert":            true,
+	"database-sslkey":             true,
+	"database-sslrootcert":        true,
+	"server-admin-tls-cert-file":  true,
+	"server-admin-tls-key-file":   true,
+	"server-admin-tls-ca-file":    true,
+	"server-public-tls-cert-file": true,
+	"server-public-tls-key-file":  true,
+	"server-public-tls-ca-file":   true,
 }
 
 // CheckKeyNaming validates all YAML keys in config files are kebab-case.
@@ -310,7 +314,7 @@ func checkInstanceKeys(path string) []string {
 
 	for key := range config {
 		if !allowedInstanceKeys[key] {
-			violations = append(violations, fmt.Sprintf("unexpected key %q (only cors-origins, otlp-service, otlp-hostname, otlp-tls-cert-file, otlp-tls-key-file, otlp-tls-ca-file, database-url, database-sslmode, database-sslcert, database-sslkey, database-sslrootcert allowed)", key))
+			violations = append(violations, fmt.Sprintf("unexpected key %q (only cors-origins, otlp-service, otlp-hostname, otlp-tls-cert-file, otlp-tls-key-file, otlp-tls-ca-file, database-url, database-sslmode, database-sslcert, database-sslkey, database-sslrootcert, server-admin-tls-cert-file, server-admin-tls-key-file, server-admin-tls-ca-file, server-public-tls-cert-file, server-public-tls-key-file, server-public-tls-ca-file allowed)", key))
 		}
 	}
 
