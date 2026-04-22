@@ -47,6 +47,7 @@ Copilot instruction files auto-apply to all Claude Code work in this repo.
 @.github/instructions/05-02.git.instructions.md
 @.github/instructions/06-01.evidence-based.instructions.md
 @.github/instructions/06-02.agent-format.instructions.md
+@.github/instructions/06-03.tool-efficiency.instructions.md
 
 ## Agents
 

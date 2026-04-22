@@ -82,19 +82,20 @@ GitHub Actions steps gain `::group::` collapse; pre-commit hooks suppress verbos
 
 ### Task 0.3: New Instruction File — 06-03.tool-efficiency.instructions.md
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 0.5h
+- **Actual**: 0.2h
 - **Dependencies**: None
 - **Description**: Create `.github/instructions/06-03.tool-efficiency.instructions.md` with
   codified token-efficient tool use patterns (F1–F8 from plan.md). Add to
   `.github/copilot-instructions.md` instruction table. Add corresponding Claude instruction file.
   Verify `lint-docs` passes.
 - **Acceptance Criteria**:
-  - [ ] File created and valid YAML frontmatter
-  - [ ] All 8 rules (F1–F8) documented
-  - [ ] Referenced in `.github/copilot-instructions.md` instruction table
-  - [ ] `go run ./cmd/cicd-lint lint-docs` passes
-  - [ ] `CLAUDE.md` updated if instruction files are listed there
+  - [x] File created and valid YAML frontmatter
+  - [x] All 8 rules (F1–F8) documented
+  - [x] Referenced in `.github/copilot-instructions.md` instruction table
+  - [x] `go run ./cmd/cicd-lint lint-docs` passes
+  - [x] `CLAUDE.md` updated if instruction files are listed there
 - **Files**:
   - `.github/instructions/06-03.tool-efficiency.instructions.md` (NEW)
   - `.github/copilot-instructions.md`

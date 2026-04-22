@@ -72,3 +72,4 @@ See [.github/skills/README.md](.github/skills/README.md) for the full catalogue.
 | [05-02.git](.github/instructions/05-02.git.instructions.md) | Git commands and commit conventions |
 | [06-01.evidence-based](.github/instructions/06-01.evidence-based.instructions.md) | Evidence-based task completion |
 | [06-02.agent-format](.github/instructions/06-02.agent-format.instructions.md) | Agent file format and structure |
+| [06-03.tool-efficiency](.github/instructions/06-03.tool-efficiency.instructions.md) | LLM agent token-efficient tool use |
