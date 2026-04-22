@@ -463,4 +463,3 @@
 - **Extract permanent knowledge to ENG-HANDBOOK.md after each plan**: The lessons in phases 1-11
   above contain patterns that belong in §9.4, §6, §10 of ENG-HANDBOOK.md. Always extract before
   the plan is archived.
-
