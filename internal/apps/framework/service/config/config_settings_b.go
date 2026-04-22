@@ -223,6 +223,28 @@ var (
 		Usage:       "OTLP endpoint (grpc://host:port or http://host:port)",
 		Description: "OTLP Endpoint",
 	})
+	otlpTLSCertFile = *SetEnvAndRegisterSetting(allServiceFrameworkServerRegisteredSettings, &Setting{
+		Name:        "otlp-tls-cert-file",
+		Shorthand:   "",
+		Value:       "",
+		Usage:       "path to client TLS certificate file for OTLP mTLS (Cat 9)",
+		Description: "OTLP TLS Cert File",
+	})
+	otlpTLSKeyFile = *SetEnvAndRegisterSetting(allServiceFrameworkServerRegisteredSettings, &Setting{
+		Name:        "otlp-tls-key-file",
+		Shorthand:   "",
+		Value:       "",
+		Usage:       "path to client TLS private key file for OTLP mTLS (Cat 9)",
+		Description: "OTLP TLS Key File",
+		Redacted:    true,
+	})
+	otlpTLSCAFile = *SetEnvAndRegisterSetting(allServiceFrameworkServerRegisteredSettings, &Setting{
+		Name:        "otlp-tls-ca-file",
+		Shorthand:   "",
+		Value:       "",
+		Usage:       "path to CA truststore for verifying the OTLP server cert (Cat 1)",
+		Description: "OTLP TLS CA File",
+	})
 	otlpInstance = *SetEnvAndRegisterSetting(allServiceFrameworkServerRegisteredSettings, &Setting{
 		Name:        "otlp-instance",
 		Shorthand:   "V",

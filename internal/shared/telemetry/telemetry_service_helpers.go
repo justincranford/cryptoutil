@@ -6,8 +6,11 @@ package telemetry
 
 import (
 	"context"
+	"crypto/tls"
+	"crypto/x509"
 	"errors"
 	"fmt"
+	"os"
 	"strings"
 	"time"
 
@@ -25,6 +28,8 @@ import (
 	traceSdk "go.opentelemetry.io/otel/sdk/trace"
 
 	oltpSemanticConventions "go.opentelemetry.io/otel/semconv/v1.30.0"
+
+	googleGRPCCredentials "google.golang.org/grpc/credentials"
 )
 
 // TelemetryService is a composite of OpenTelemetry providers for Logs, Metrics, and Traces.
@@ -36,6 +41,47 @@ func initTextMapPropagator() *propagationApi.TextMapPropagator {
 	)
 
 	return &textMapPropagator
+}
+
+// buildOTLPTLSConfig builds a *tls.Config for mTLS to the OTLP receiver.
+// Called only when OTLPTLSCertFile is non-empty (Cat 9 client cert present).
+// TLS 1.3 minimum; InsecureSkipVerify is always false.
+func buildOTLPTLSConfig(settings *TelemetrySettings) (*tls.Config, error) {
+	cert, err := tls.LoadX509KeyPair(settings.OTLPTLSCertFile, settings.OTLPTLSKeyFile)
+	if err != nil {
+		return nil, fmt.Errorf("failed to load OTLP client cert/key: %w", err)
+	}
+
+	caCert, err := os.ReadFile(settings.OTLPTLSCAFile)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read OTLP CA cert: %w", err)
+	}
+
+	certPool := x509.NewCertPool()
+	if !certPool.AppendCertsFromPEM(caCert) {
+		return nil, fmt.Errorf("failed to parse OTLP CA cert PEM")
+	}
+
+	return &tls.Config{
+		MinVersion:   tls.VersionTLS13,
+		Certificates: []tls.Certificate{cert},
+		RootCAs:      certPool,
+	}, nil
+}
+
+// buildOTLPGRPCCredentials returns gRPC transport credentials for OTLP mTLS.
+// Returns nil when OTLPTLSCertFile is empty (use default system CAs).
+func buildOTLPGRPCCredentials(settings *TelemetrySettings) googleGRPCCredentials.TransportCredentials {
+	if settings.OTLPTLSCertFile == "" {
+		return nil
+	}
+
+	tlsCfg, err := buildOTLPTLSConfig(settings)
+	if err != nil {
+		return nil
+	}
+
+	return googleGRPCCredentials.NewTLS(tlsCfg)
 }
 
 func doExampleTracesSpans(ctx context.Context, tracesProvider *traceSdk.TracerProvider, slogger *stdoutLogExporter.Logger) {

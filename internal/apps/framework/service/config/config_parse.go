@@ -168,6 +168,9 @@ func ParseWithFlagSet(fs *pflag.FlagSet, commandParameters []string, exitIfHelp 
 	fs.StringP(adminTLSCertFile.Name, adminTLSCertFile.Shorthand, RegisterAsStringSetting(&adminTLSCertFile), adminTLSCertFile.Usage)
 	fs.StringP(adminTLSKeyFile.Name, adminTLSKeyFile.Shorthand, RegisterAsStringSetting(&adminTLSKeyFile), adminTLSKeyFile.Usage)
 	fs.StringP(adminTLSCAFile.Name, adminTLSCAFile.Shorthand, RegisterAsStringSetting(&adminTLSCAFile), adminTLSCAFile.Usage)
+	fs.StringP(otlpTLSCertFile.Name, otlpTLSCertFile.Shorthand, RegisterAsStringSetting(&otlpTLSCertFile), otlpTLSCertFile.Usage)
+	fs.StringP(otlpTLSKeyFile.Name, otlpTLSKeyFile.Shorthand, RegisterAsStringSetting(&otlpTLSKeyFile), otlpTLSKeyFile.Usage)
+	fs.StringP(otlpTLSCAFile.Name, otlpTLSCAFile.Shorthand, RegisterAsStringSetting(&otlpTLSCAFile), otlpTLSCAFile.Usage)
 
 	err := fs.Parse(subCommandParameters)
 	if err != nil {
@@ -314,6 +317,9 @@ func ParseWithFlagSet(fs *pflag.FlagSet, commandParameters []string, exitIfHelp 
 		AdminTLSCertFile:            v.GetString(adminTLSCertFile.Name),
 		AdminTLSKeyFile:             v.GetString(adminTLSKeyFile.Name),
 		AdminTLSCAFile:              v.GetString(adminTLSCAFile.Name),
+		OTLPTLSCertFile:             v.GetString(otlpTLSCertFile.Name),
+		OTLPTLSKeyFile:              v.GetString(otlpTLSKeyFile.Name),
+		OTLPTLSCAFile:               v.GetString(otlpTLSCAFile.Name),
 	}
 
 	// Resolve file:// URLs for sensitive settings from Docker secrets or Kubernetes secrets.

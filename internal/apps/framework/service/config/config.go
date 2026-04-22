@@ -251,6 +251,9 @@ type ServiceFrameworkServerSettings struct {
 	AdminTLSCertFile            string        // Path to admin TLS server certificate file for private admin mTLS (Cat 7)
 	AdminTLSKeyFile             string        // Path to admin TLS server private key file for private admin mTLS (Cat 7)
 	AdminTLSCAFile              string        // Path to CA truststore for verifying admin client certs (Cat 6)
+	OTLPTLSCertFile             string        // Path to client TLS certificate file for OTLP mTLS (Cat 9)
+	OTLPTLSKeyFile              string        // Path to client TLS private key file for OTLP mTLS (Cat 9)
+	OTLPTLSCAFile               string        // Path to CA truststore for verifying the OTLP server cert (Cat 1)
 }
 
 // PrivateBaseURL returns the private base URL constructed from protocol, address, and port.
@@ -294,5 +297,8 @@ func (s *ServiceFrameworkServerSettings) ToTelemetrySettings() *cryptoutilShared
 		OTLPEnvironment: s.OTLPEnvironment,
 		OTLPHostname:    s.OTLPHostname,
 		OTLPEndpoint:    s.OTLPEndpoint,
+		OTLPTLSCertFile: s.OTLPTLSCertFile,
+		OTLPTLSKeyFile:  s.OTLPTLSKeyFile,
+		OTLPTLSCAFile:   s.OTLPTLSCAFile,
 	}
 }

@@ -273,11 +273,24 @@ func initLogger(ctx context.Context, settings *TelemetrySettings) (*stdoutLogExp
 	if isHTTP {
 		otelExporter, _ = httpLogExporter.New(ctx, httpLogExporter.WithEndpoint(*endpoint), httpLogExporter.WithInsecure())
 	} else if isHTTPS {
-		otelExporter, _ = httpLogExporter.New(ctx, httpLogExporter.WithEndpoint(*endpoint))
+		httpLogOpts := []httpLogExporter.Option{httpLogExporter.WithEndpoint(*endpoint)}
+
+		if settings.OTLPTLSCertFile != "" {
+			if tlsCfg, tlsErr := buildOTLPTLSConfig(settings); tlsErr == nil {
+				httpLogOpts = append(httpLogOpts, httpLogExporter.WithTLSClientConfig(tlsCfg))
+			}
+		}
+
+		otelExporter, _ = httpLogExporter.New(ctx, httpLogOpts...)
 	} else if isGRPC {
 		otelExporter, _ = grpcLogExporter.New(ctx, grpcLogExporter.WithEndpoint(*endpoint), grpcLogExporter.WithInsecure())
 	} else if isGRPCS {
-		otelExporter, _ = grpcLogExporter.New(ctx, grpcLogExporter.WithEndpoint(*endpoint))
+		grpcLogOpts := []grpcLogExporter.Option{grpcLogExporter.WithEndpoint(*endpoint)}
+		if creds := buildOTLPGRPCCredentials(settings); creds != nil {
+			grpcLogOpts = append(grpcLogOpts, grpcLogExporter.WithTLSCredentials(creds))
+		}
+
+		otelExporter, _ = grpcLogExporter.New(ctx, grpcLogOpts...)
 	}
 
 	otelProviderOptions := []logSdk.LoggerProviderOption{
@@ -321,11 +334,24 @@ func initMetrics(ctx context.Context, slogger *stdoutLogExporter.Logger, setting
 		if isHTTP {
 			httpMetricsExporter, err = httpMetricExporter.New(ctx, httpMetricExporter.WithEndpoint(*endpoint), httpMetricExporter.WithInsecure())
 		} else if isHTTPS {
-			httpMetricsExporter, err = httpMetricExporter.New(ctx, httpMetricExporter.WithEndpoint(*endpoint))
+			httpMetricOpts := []httpMetricExporter.Option{httpMetricExporter.WithEndpoint(*endpoint)}
+
+			if settings.OTLPTLSCertFile != "" {
+				if tlsCfg, tlsErr := buildOTLPTLSConfig(settings); tlsErr == nil {
+					httpMetricOpts = append(httpMetricOpts, httpMetricExporter.WithTLSClientConfig(tlsCfg))
+				}
+			}
+
+			httpMetricsExporter, err = httpMetricExporter.New(ctx, httpMetricOpts...)
 		} else if isGRPC {
 			grpcMetricsExporter, err = grpcMetricExporter.New(ctx, grpcMetricExporter.WithEndpoint(*endpoint), grpcMetricExporter.WithInsecure())
 		} else if isGRPCS {
-			grpcMetricsExporter, err = grpcMetricExporter.New(ctx, grpcMetricExporter.WithEndpoint(*endpoint))
+			grpcMetricOpts := []grpcMetricExporter.Option{grpcMetricExporter.WithEndpoint(*endpoint)}
+			if creds := buildOTLPGRPCCredentials(settings); creds != nil {
+				grpcMetricOpts = append(grpcMetricOpts, grpcMetricExporter.WithTLSCredentials(creds))
+			}
+
+			grpcMetricsExporter, err = grpcMetricExporter.New(ctx, grpcMetricOpts...)
 		}
 
 		if err != nil {
@@ -383,11 +409,24 @@ func initTraces(ctx context.Context, slogger *stdoutLogExporter.Logger, settings
 		if isHTTP {
 			tracesSpanExporter, err = httpTraceExporterotlptracehttp.New(ctx, httpTraceExporterotlptracehttp.WithEndpoint(*endpoint), httpTraceExporterotlptracehttp.WithInsecure())
 		} else if isHTTPS {
-			tracesSpanExporter, err = httpTraceExporterotlptracehttp.New(ctx, httpTraceExporterotlptracehttp.WithEndpoint(*endpoint))
+			httpTraceOpts := []httpTraceExporterotlptracehttp.Option{httpTraceExporterotlptracehttp.WithEndpoint(*endpoint)}
+
+			if settings.OTLPTLSCertFile != "" {
+				if tlsCfg, tlsErr := buildOTLPTLSConfig(settings); tlsErr == nil {
+					httpTraceOpts = append(httpTraceOpts, httpTraceExporterotlptracehttp.WithTLSClientConfig(tlsCfg))
+				}
+			}
+
+			tracesSpanExporter, err = httpTraceExporterotlptracehttp.New(ctx, httpTraceOpts...)
 		} else if isGRPC {
 			tracesSpanExporter, err = grpcTraceExporterotlptracegrpc.New(ctx, grpcTraceExporterotlptracegrpc.WithEndpoint(*endpoint), grpcTraceExporterotlptracegrpc.WithInsecure())
 		} else if isGRPCS {
-			tracesSpanExporter, err = grpcTraceExporterotlptracegrpc.New(ctx, grpcTraceExporterotlptracegrpc.WithEndpoint(*endpoint))
+			grpcTraceOpts := []grpcTraceExporterotlptracegrpc.Option{grpcTraceExporterotlptracegrpc.WithEndpoint(*endpoint)}
+			if creds := buildOTLPGRPCCredentials(settings); creds != nil {
+				grpcTraceOpts = append(grpcTraceOpts, grpcTraceExporterotlptracegrpc.WithTLSCredentials(creds))
+			}
+
+			tracesSpanExporter, err = grpcTraceExporterotlptracegrpc.New(ctx, grpcTraceOpts...)
 		}
 
 		if err != nil {
