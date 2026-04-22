@@ -40,8 +40,9 @@ GitHub Actions steps gain `::group::` collapse; pre-commit hooks suppress verbos
 
 ### Task 0.1: Instruction File Cross-Reference Pruning
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 2h
+- **Actual**: 0.5h
 - **Dependencies**: None
 - **Description**: Remove 197 redundant `See [ENG-HANDBOOK.md Section X.Y...]` trailing lines from
   instruction files. These are glue text OUTSIDE `@source` blocks and can be removed without
@@ -49,10 +50,10 @@ GitHub Actions steps gain `::group::` collapse; pre-commit hooks suppress verbos
   repeat refs already distributed through the file. Audit for identical-structure bullets convertible
   to tables.
 - **Acceptance Criteria**:
-  - [ ] `wc -l .github/instructions/*.instructions.md` shows ≥200 lines removed vs baseline
-  - [ ] `go run ./cmd/cicd-lint lint-docs` passes (no propagation drift)
-  - [ ] Agent-drift linter passes (instruction changes don't affect `@source` blocks)
-  - [ ] No `@source` block content was modified
+  - [x] `wc -l .github/instructions/*.instructions.md` shows ≥200 lines removed vs baseline (3046→2641 = 405 removed)
+  - [x] `go run ./cmd/cicd-lint lint-docs` passes (no propagation drift)
+  - [x] Agent-drift linter passes (instruction changes don't affect `@source` blocks)
+  - [x] No `@source` block content was modified
 - **Files**:
   - `.github/instructions/*.instructions.md` (all 18 files)
 
