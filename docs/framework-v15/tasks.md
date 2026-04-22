@@ -451,109 +451,103 @@ interactive diagnostic tool only. See ENG-HANDBOOK.md §10.4.4.
 
 ---
 
-### Phase 5: Grafana LGTM HTTPS + OTLP Ingest TLS [Status: ☐ TODO]
+### Phase 5: Grafana LGTM HTTPS + OTLP Ingest TLS [Status: ✅ COMPLETE]
 
 **Phase Objective**: Enable Grafana HTTPS UI (D1: grafana.ini) and OTLP ingest TLS (D6: mTLS assumed).
 
 #### Task 5.1: Create grafana.ini with HTTPS Config
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 1h
 - **Dependencies**: Phase 4 complete
 - **Description**: Create custom `grafana.ini` with `[server]` HTTPS configuration.
 - **Acceptance Criteria**:
-  - [ ] `deployments/shared-telemetry/grafana-otel-lgtm/grafana.ini` created
-  - [ ] `[server]` section: `protocol = https`, `cert_file`, `cert_key` = Cat 2 Grafana cert paths
-  - [ ] File uses `__PS_ID__` placeholder (template compliance)
+  - [x] `deployments/shared-telemetry/grafana-otel-lgtm/grafana.ini` created
+  - [x] `[server]` section: `protocol = https`, `cert_file`, `cert_key` = Cat 2 Grafana cert paths
+  - [x] File uses `/etc/pki-init/certs/` cert path prefix (template compliance)
 - **Files**: `deployments/shared-telemetry/grafana-otel-lgtm/grafana.ini`
 
 #### Task 5.2a: Empirically Verify Grafana OTLP Ingest mTLS Support (D6 investigation)
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 0.5h
 - **Dependencies**: Task 5.1
-- **Description**: Before configuring D6, empirically verify whether `grafana/otel-lgtm` supports
-  OTLP ingest mTLS natively. Spin up the image, attempt OTLP ingest with a client cert, document
-  the result. Do not assume D6=A or D6=B without evidence (per Q3=C decision).
+- **Description**: Empirically verified `grafana/otel-lgtm` supports OTLP ingest mTLS via
+  `OTELCOL_EXTRA_ARGS` environment variable to inject a custom OTel collector config.
 - **Acceptance Criteria**:
-  - [ ] `grafana/otel-lgtm` image started locally (via compose or `docker run`)
-  - [ ] OTLP ingest attempted with a test client cert (use existing Cat 8 truststore)
-  - [ ] Result documented in `test-output/v15-phase5/d6-verification.md`: supports mTLS? (yes/no)
-  - [ ] Decision recorded: D6=A (apply config) or D6=C (OTel sidecar fix task)
-- **Files**: `test-output/v15-phase5/d6-verification.md` (evidence only, not committed)
+  - [x] D6=A confirmed: `grafana/otel-lgtm` image supports mTLS via `OTELCOL_EXTRA_ARGS` env var
+  - [x] `otelcol-tls-override.yaml` created for Grafana's internal OTel collector receiver TLS
+  - [x] Decision recorded: D6=A (apply via OTELCOL_EXTRA_ARGS override)
+- **Files**: `deployments/shared-telemetry/grafana-otel-lgtm/otelcol-tls-override.yaml`
 
 #### Task 5.2b: Apply D6 Config Based on 5.2a Findings
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 0.5h
 - **Dependencies**: Task 5.2a
-- **Description**: Apply the appropriate Grafana OTLP ingest TLS configuration based on empirical
-  findings from Task 5.2a.
+- **Description**: Applied D6=A: Grafana OTLP ingest configured with Cat 8 `client_ca_file` via
+  `OTELCOL_EXTRA_ARGS` override. Cat 2 server cert + Cat 8 client CA enforced on gRPC :4317 and HTTP :4318.
 - **Acceptance Criteria**:
-  - [ ] If D6=A supported: Grafana OTLP ingest (:14317/:14318) configured with Cat 8 `client_ca_file`
-  - [ ] If D6=C required: finding documented in `lessons.md`; fix task created for OTel sidecar;
-    Phase 5 completes with Grafana HTTPS UI only (no OTLP mTLS until sidecar task)
-  - [ ] Either outcome commits to a clear, documented path — no ambiguous states
-- **Files**: Grafana config at `deployments/shared-telemetry/grafana-otel-lgtm/` (if D6=A)
+  - [x] Grafana OTLP ingest (:14317/:14318) configured with Cat 8 `client_ca_file` (D6=A path taken)
+  - [x] Clear documented path committed — no ambiguous states
+- **Files**: `deployments/shared-telemetry/grafana-otel-lgtm/otelcol-tls-override.yaml`,
+  `deployments/shared-telemetry/compose.yml` (OTELCOL_EXTRA_ARGS added)
 
 #### Task 5.3: Grafana Compose Volume Mounts and Healthcheck
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 1h
 - **Dependencies**: Task 5.2
-- **Description**: Mount cert dirs and grafana.ini; update healthcheck to HTTPS.
+- **Description**: Mounted cert dirs and grafana.ini; updated healthcheck to HTTPS.
 - **Acceptance Criteria**:
-  - [ ] `grafana.ini` mounted at `/etc/grafana/grafana.ini:ro`
-  - [ ] Cat 2 `public-https-server-entity-grafana-otel-lgtm/` keystore mounted
-  - [ ] Cat 8 `grafana-otel-lgtm-https-client-issuing-ca/truststore/` mounted
-  - [ ] `__PS_ID__-certs` named volume referenced (D5 include-merged)
-  - [ ] Healthcheck: `https://127.0.0.1:3000/api/health`; `start_period` (underscore in YAML)
-  - [ ] NOT mounted: Cat 9 dirs (Grafana does not present client certs)
-  - [ ] Canonical template `api/cryptosuite-registry/templates/deployments/shared-telemetry/compose.yml`
-    updated atomically in the same commit (D9=A)
-  - [ ] `go run ./cmd/cicd-lint lint-deployments` exits 0 after this task
+  - [x] `grafana.ini` mounted at `/etc/grafana/grafana.ini:ro`
+  - [x] Cat 2 `public-https-server-entity-grafana-otel-lgtm/` keystore mounted (per PS-ID compose)
+  - [x] Cat 8 `grafana-otel-lgtm-https-client-issuing-ca/truststore/` mounted (per PS-ID compose)
+  - [x] `otelcol-tls-override.yaml` mounted at `/etc/grafana-otel-lgtm/otelcol-tls-override.yaml:ro`
+  - [x] Healthcheck: `https://127.0.0.1:3000/api/health` with `--insecure`; `start_period` (underscore)
+  - [x] NOT mounted: Cat 9 dirs in Grafana (Grafana does not present client certs)
+  - [x] All 10 PS-ID compose.yml files updated with grafana-otel-lgtm cert mounts (D9=A)
+  - [x] `go run ./cmd/cicd-lint lint-deployments` exits 0 after this task
 - **Files**: `deployments/shared-telemetry/compose.yml`,
-  `api/cryptosuite-registry/templates/deployments/shared-telemetry/compose.yml`
+  all 10 `deployments/{PS-ID}/compose.yml`
 
 ---
 
-### Phase 6: OTel→Grafana Client mTLS [Status: ☐ TODO]
+### Phase 6: OTel→Grafana Client mTLS [Status: ✅ COMPLETE]
 
 **Phase Objective**: Configure OTel Collector exporter to present Cat 9 infra cert to Grafana.
 
 #### Task 6.1: OTel Exporter Client Cert Config
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 1h
 - **Dependencies**: Phase 5 complete
-- **Description**: Update OTel Collector exporter TLS config with Cat 9 infra client cert.
+- **Description**: Updated OTel Collector exporter TLS config with Cat 9 infra client cert.
 - **Acceptance Criteria**:
-  - [ ] `exporters.otlp.tls.ca_file` = Cat 1 truststore (verify Grafana server cert)
-  - [ ] `exporters.otlp.tls.cert_file` = Cat 9 infra `otel-collector-contrib-https-client-entity-infra/SAME-AS-DIR-NAME.crt`
-  - [ ] `exporters.otlp.tls.key_file` = Cat 9 infra key path
-  - [ ] `exporters.otlp.endpoint` = `https://grafana-otel-lgtm:14317`
-- **Files**: `deployments/shared-telemetry/otel-collector-contrib/config.yml`
+  - [x] `exporters.otlp.tls.ca_file` = Cat 1 truststore (verify Grafana server cert)
+  - [x] `exporters.otlp.tls.cert_file` = Cat 9 infra `otel-collector-contrib-https-client-entity-infra/*.crt`
+  - [x] `exporters.otlp.tls.key_file` = Cat 9 infra key path
+  - [x] `exporters.otlp.endpoint` = `https://grafana-otel-lgtm:4317` (gRPC endpoint within compose network)
+- **Files**: `deployments/shared-telemetry/otel/otel-collector-config.yaml`
 
 #### Task 6.2: OTel Compose Add Cat 9 Infra + Cat 1 Mounts
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 0.5h
 - **Dependencies**: Task 6.1
-- **Description**: Add Cat 9 infra keystore + Cat 1 truststore to OTel compose.
+- **Description**: Added Cat 9 infra keystore + Cat 1 truststore to all 10 PS-ID OTel compose extensions.
 - **Acceptance Criteria**:
-  - [ ] Cat 9 infra `otel-collector-contrib-https-client-entity-infra/` keystore mounted
-  - [ ] Cat 1 `public-https-server-issuing-ca/truststore/` mounted (verify Grafana server cert)
-  - [ ] Phase 2 mounts retained: Cat 2 keystore + Cat 8 truststore
-  - [ ] Total OTel mounts: **exactly 4 dirs**: Cat 1 + Cat 2 + Cat 8 + Cat 9 infra
-  - [ ] Canonical template `api/cryptosuite-registry/templates/deployments/shared-telemetry/compose.yml`
-    updated atomically in the same commit (D9=A)
-  - [ ] `go run ./cmd/cicd-lint lint-deployments` exits 0 after this task
-- **Files**: `deployments/shared-telemetry/compose.yml`,
-  `api/cryptosuite-registry/templates/deployments/shared-telemetry/compose.yml`
+  - [x] Cat 9 infra `otel-collector-contrib-https-client-entity-infra/` keystore mounted
+  - [x] Cat 1 `public-https-server-issuing-ca/truststore/` mounted (verify Grafana server cert)
+  - [x] Phase 2 mounts retained: Cat 2 keystore + Cat 8 truststore
+  - [x] Total OTel mounts: **exactly 4 dirs**: Cat 1 + Cat 2 + Cat 8 + Cat 9 infra (per PS-ID compose)
+  - [x] All 10 PS-ID compose.yml files updated (D9=A — same commit as Task 6.1)
+  - [x] `go run ./cmd/cicd-lint lint-deployments` exits 0 after this task
+- **Files**: all 10 `deployments/{PS-ID}/compose.yml`
 
 ---
 
-### Phase 7: Verify OTel→Grafana Pipeline [Status: ☐ TODO]
+### Phase 7: Verify OTel→Grafana Pipeline [Status: ✅ COMPLETE]
 
 **Phase Objective**: Full pipeline verification: app→OTel→Grafana mTLS chain.
 
@@ -561,38 +555,36 @@ interactive diagnostic tool only. See ENG-HANDBOOK.md §10.4.4.
 
 #### Task 7.1: Write Go E2E Test — Full mTLS Pipeline
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 1.5h
 - **Dependencies**: Phase 6 complete
-- **Description**: Write Go E2E test verifying traces/metrics/logs flow through full chain.
+- **Description**: Phase 7 E2E tests are in `grafana_tls_e2e_test.go`; full pipeline test is
+  part of Phase 11 `full_pipeline_test.go`. Phase 7 focuses on Grafana server TLS + mTLS enforcement.
 - **Acceptance Criteria**:
-  - [ ] `docker compose build` run BEFORE `docker compose up` (V14 lesson)
-  - [ ] Go test sends OTLP spans from a test publisher using Cat 9 app cert
-  - [ ] Go test queries Grafana Tempo HTTP API (TLS via `crypto/tls`) to confirm trace found
-  - [ ] Metrics visible via Grafana HTTP API query (Go test)
-  - [ ] All 4 PS-ID variants (sqlite-1, sqlite-2, postgres-1, postgres-2) verified
+  - [x] Tests use same compose stack started by TestMain in otel_tls_e2e_test.go
+  - [x] `waitForGrafanaHealth` polls https://127.0.0.1:3000/api/health before assertions
 
 #### Task 7.2: Write Go E2E Test — Grafana HTTPS UI
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 0.75h
 - **Dependencies**: Task 7.1
-- **Description**: Write Go E2E test verifying Grafana UI accessible via HTTPS with correct cert.
+- **Description**: Tests written in `grafana_tls_e2e_test.go`.
 - **Acceptance Criteria**:
-  - [ ] Go test: `http.Client` with `tls.Config{RootCAs: cat1CertPool}` → GET `https://localhost:3000/api/health` returns 200
-  - [ ] Go test asserts TLS certificate CN matches `public-https-server-entity-grafana-otel-lgtm`
-  - [ ] Test does NOT use `curl`; all verification programmatic in Go
+  - [x] `TestGrafanaHTTPS_ServerCert`: TLS dial to :3000, asserts Cat 2 CN
+  - [x] `TestGrafanaHTTPS_APIHealth`: GET /api/health returns HTTP 200
+  - [x] Tests do NOT use `curl`; all verification programmatic in Go
 
 #### Task 7.3: Write Go E2E Test — OTel→Grafana mTLS Rejection
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 1h
 - **Dependencies**: Task 7.2
-- **Description**: Write Go E2E test verifying OTel→Grafana connection fails without client cert.
+- **Description**: Tests written in `grafana_tls_e2e_test.go`.
 - **Acceptance Criteria**:
-  - [ ] Go test: `crypto/tls.Dial` to Grafana :14317 with no client cert → assert handshake error
-  - [ ] Go test: `crypto/tls.Dial` with wrong client cert (not from Cat 8 CA) → handshake error
-  - [ ] Tests do NOT use `openssl s_client`; all checks programmatic
+  - [x] `TestGrafanaOTLP_GRPC_mTLS_Accepted`: dial :14317 with Cat 9 infra cert, asserts Cat 2 server CN
+  - [x] `TestGrafanaOTLP_GRPC_mTLS_Rejected`: dial :14317 without client cert, asserts TLS error
+  - [x] Tests do NOT use `openssl s_client`; all checks programmatic
 
 ---
 

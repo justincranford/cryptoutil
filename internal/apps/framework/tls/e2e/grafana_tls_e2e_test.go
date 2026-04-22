@@ -46,9 +46,9 @@ func waitForGrafanaHealth(t *testing.T) {
 	}
 
 	healthURL := fmt.Sprintf("https://127.0.0.1:%d/api/health", cryptoutilSharedMagic.GrafanaTLSE2EUIPort)
-	deadline := time.Now().Add(cryptoutilSharedMagic.GrafanaTLSE2EHealthTimeout)
+	deadline := time.Now().UTC().Add(cryptoutilSharedMagic.GrafanaTLSE2EHealthTimeout)
 
-	for time.Now().Before(deadline) {
+	for time.Now().UTC().Before(deadline) {
 		resp, err := client.Get(healthURL) //nolint:noctx // Simple health poll, no context needed.
 		if err == nil {
 			_ = resp.Body.Close()
