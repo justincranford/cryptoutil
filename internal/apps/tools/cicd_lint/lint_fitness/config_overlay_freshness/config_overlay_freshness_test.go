@@ -34,8 +34,24 @@ func setupTempDir(t *testing.T, files map[string]string) string {
 	return rootDir
 }
 
+// minimalOTLPTLSContent returns the required OTLP mTLS config lines for a given PS-ID and cert
+// suffix (e.g. "sqlite-1", "postgres-1"). Cat 9 app cert + Cat 1 CA truststore.
+func minimalOTLPTLSContent(psID, certSuffix string) string {
+	certDir := fmt.Sprintf("otel-collector-contrib-https-client-entity-%s-%s", psID, certSuffix)
+
+	return fmt.Sprintf(
+		"otlp-tls-cert-file: /certs/%s/%s/%s.crt\n"+
+			"otlp-tls-key-file: /certs/%s/%s/%s.key\n"+
+			"otlp-tls-ca-file: /certs/%s/public-https-server-issuing-ca/truststore/public-https-server-issuing-ca.crt\n",
+		psID, certDir, certDir,
+		psID, certDir, certDir,
+		psID,
+	)
+}
+
 // minimalPostgresContent returns the minimal valid content for a postgresql instance overlay.
 // Includes the required mTLS fields (Cat 10 + Cat 14) and database-sslmode=verify-full.
+// instance is "1" or "2"; cert suffix uses "postgres-N" (not "postgresql-N").
 func minimalPostgresContent(psID, instance string) string {
 	return fmt.Sprintf(
 		"otlp-service: %s-postgres-%s\n"+
@@ -47,7 +63,7 @@ func minimalPostgresContent(psID, instance string) string {
 		psID, psID, instance, psID, instance,
 		psID, psID, instance, psID, instance,
 		psID,
-	)
+	) + minimalOTLPTLSContent(psID, "postgres-"+instance)
 }
 
 // allMinimalPSIDFiles returns a file map with minimal valid content for every PS-ID in the
@@ -59,8 +75,8 @@ func allMinimalPSIDFiles() map[string]string {
 
 	for _, ps := range lintFitnessRegistry.AllProductServices() {
 		id := ps.PSID
-		files[fmt.Sprintf("deployments/%s/config/%s-app-framework-sqlite-1.yml", id, id)] = fmt.Sprintf("database-url: \"sqlite://file::memory:?cache=shared\"\notlp-service: %s-sqlite-1\n", id)
-		files[fmt.Sprintf("deployments/%s/config/%s-app-framework-sqlite-2.yml", id, id)] = fmt.Sprintf("database-url: \"sqlite://file::memory:?cache=shared\"\notlp-service: %s-sqlite-2\n", id)
+		files[fmt.Sprintf("deployments/%s/config/%s-app-framework-sqlite-1.yml", id, id)] = fmt.Sprintf("database-url: \"sqlite://file::memory:?cache=shared\"\notlp-service: %s-sqlite-1\n", id) + minimalOTLPTLSContent(id, cryptoutilSharedMagic.CICDTemplateVariantSQLite1)
+		files[fmt.Sprintf("deployments/%s/config/%s-app-framework-sqlite-2.yml", id, id)] = fmt.Sprintf("database-url: \"sqlite://file::memory:?cache=shared\"\notlp-service: %s-sqlite-2\n", id) + minimalOTLPTLSContent(id, cryptoutilSharedMagic.CICDTemplateVariantSQLite2)
 		files[fmt.Sprintf("deployments/%s/config/%s-app-framework-postgresql-1.yml", id, id)] = minimalPostgresContent(id, "1")
 		files[fmt.Sprintf("deployments/%s/config/%s-app-framework-postgresql-2.yml", id, id)] = minimalPostgresContent(id, "2")
 	}
@@ -70,8 +86,8 @@ func allMinimalPSIDFiles() map[string]string {
 
 func sqliteFilesFor(psID string) map[string]string {
 	return map[string]string{
-		fmt.Sprintf("deployments/%s/config/%s-app-framework-sqlite-1.yml", psID, psID):     fmt.Sprintf("database-url: \"sqlite://file::memory:?cache=shared\"\notlp-service: %s-sqlite-1\n", psID),
-		fmt.Sprintf("deployments/%s/config/%s-app-framework-sqlite-2.yml", psID, psID):     fmt.Sprintf("database-url: \"sqlite://file::memory:?cache=shared\"\notlp-service: %s-sqlite-2\n", psID),
+		fmt.Sprintf("deployments/%s/config/%s-app-framework-sqlite-1.yml", psID, psID):     fmt.Sprintf("database-url: \"sqlite://file::memory:?cache=shared\"\notlp-service: %s-sqlite-1\n", psID) + minimalOTLPTLSContent(psID, cryptoutilSharedMagic.CICDTemplateVariantSQLite1),
+		fmt.Sprintf("deployments/%s/config/%s-app-framework-sqlite-2.yml", psID, psID):     fmt.Sprintf("database-url: \"sqlite://file::memory:?cache=shared\"\notlp-service: %s-sqlite-2\n", psID) + minimalOTLPTLSContent(psID, cryptoutilSharedMagic.CICDTemplateVariantSQLite2),
 		fmt.Sprintf("deployments/%s/config/%s-app-framework-postgresql-1.yml", psID, psID): minimalPostgresContent(psID, "1"),
 		fmt.Sprintf("deployments/%s/config/%s-app-framework-postgresql-2.yml", psID, psID): minimalPostgresContent(psID, "2"),
 	}
@@ -106,8 +122,8 @@ func TestCheckInDir_ValidOverlays(t *testing.T) {
 		{
 			name: "postgresql overlay: no database-url, with mTLS fields is valid",
 			setupFiles: map[string]string{
-				fmt.Sprintf("deployments/%s/config/%s-app-framework-sqlite-1.yml", psID, psID):     "database-url: \"sqlite://file::memory:?cache=shared\"\n",
-				fmt.Sprintf("deployments/%s/config/%s-app-framework-sqlite-2.yml", psID, psID):     "database-url: \"sqlite://file::memory:?cache=shared\"\n",
+				fmt.Sprintf("deployments/%s/config/%s-app-framework-sqlite-1.yml", psID, psID):     fmt.Sprintf("database-url: \"sqlite://file::memory:?cache=shared\"\notlp-service: %s-sqlite-1\n", psID) + minimalOTLPTLSContent(psID, cryptoutilSharedMagic.CICDTemplateVariantSQLite1),
+				fmt.Sprintf("deployments/%s/config/%s-app-framework-sqlite-2.yml", psID, psID):     fmt.Sprintf("database-url: \"sqlite://file::memory:?cache=shared\"\notlp-service: %s-sqlite-2\n", psID) + minimalOTLPTLSContent(psID, cryptoutilSharedMagic.CICDTemplateVariantSQLite2),
 				fmt.Sprintf("deployments/%s/config/%s-app-framework-postgresql-1.yml", psID, psID): minimalPostgresContent(psID, "1"),
 				fmt.Sprintf("deployments/%s/config/%s-app-framework-postgresql-2.yml", psID, psID): minimalPostgresContent(psID, "2"),
 			},

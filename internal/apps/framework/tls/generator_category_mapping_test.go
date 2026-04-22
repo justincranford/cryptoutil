@@ -4,6 +4,7 @@
 package tls_test
 
 import (
+	"fmt"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -61,19 +62,19 @@ func TestGenerate_CategoryUniqueness(t *testing.T) {
 	// Build dir→category inverted map; detect spec duplicates.
 	dirToCategory := make(map[string]string)
 
+	var specErrs []string
+
 	for catName, dirs := range categories {
 		for _, dir := range dirs {
 			if existing, seen := dirToCategory[dir]; seen {
-				t.Errorf("spec error: dir %q appears in both %q and %q", dir, existing, catName)
+				specErrs = append(specErrs, fmt.Sprintf("spec error: dir %q appears in both %q and %q", dir, existing, catName))
 			}
 
 			dirToCategory[dir] = catName
 		}
 	}
 
-	if t.Failed() {
-		return
-	}
+	require.Empty(t, specErrs, "spec errors found")
 
 	gen := cryptoutilAppsFrameworkTls.ExportedNewTestGenerator(
 		os.MkdirAll,

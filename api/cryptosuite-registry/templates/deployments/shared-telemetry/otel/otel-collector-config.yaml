@@ -4,7 +4,7 @@
 # Docs: https://opentelemetry.io/docs/collector/configuration/
 #
 # This collector runs in a Docker container and:
-#   • Receives OTLP telemetry (metrics, logs, traces) from __SUITE__ products and services
+#   • Receives OTLP telemetry (metrics, logs, traces) from cryptoutil products and services
 #   • Exports them to Grafana-OTEL-LGTM via OTLP/HTTP
 #   • Collects its own metrics, logs, and traces for self-observability
 #######################################################################
@@ -12,19 +12,22 @@
 receivers:
   ###################################################################
   # Receives telemetry from external applications (your services)
+  # mTLS: Cat 2 server cert + Cat 8 client issuing CA truststore
   ###################################################################
   otlp:
     protocols:
       grpc:
         endpoint: 0.0.0.0:4317 # OTLP/gRPC receiver (default port)
-        # tls:
-        #   cert_file: /etc/otel/certs/server.crt
-        #   key_file: /etc/otel/certs/server.key
+        tls:
+          cert_file: /etc/pki-init/certs/public-https-server-entity-otel-collector-contrib/public-https-server-entity-otel-collector-contrib.crt
+          key_file: /etc/pki-init/certs/public-https-server-entity-otel-collector-contrib/public-https-server-entity-otel-collector-contrib.key
+          client_ca_file: /etc/pki-init/certs/otel-collector-contrib-https-client-issuing-ca/truststore/otel-collector-contrib-https-client-issuing-ca.crt
       http:
         endpoint: 0.0.0.0:4318 # OTLP/HTTP receiver (default port)
-        # tls:
-        #   cert_file: /etc/otel/certs/server.crt
-        #   key_file: /etc/otel/certs/server.key
+        tls:
+          cert_file: /etc/pki-init/certs/public-https-server-entity-otel-collector-contrib/public-https-server-entity-otel-collector-contrib.crt
+          key_file: /etc/pki-init/certs/public-https-server-entity-otel-collector-contrib/public-https-server-entity-otel-collector-contrib.key
+          client_ca_file: /etc/pki-init/certs/otel-collector-contrib-https-client-issuing-ca/truststore/otel-collector-contrib-https-client-issuing-ca.crt
 
   ###################################################################
   # Scrapes the Collector's own Prometheus metrics (e.g., CPU, queue)

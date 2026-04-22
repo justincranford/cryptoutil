@@ -20,6 +20,9 @@ variants:
       SQLite instance 1 config overlay: in-memory database for containerized testing.
     required_keys:
       - database-url
+      - otlp-tls-cert-file
+      - otlp-tls-key-file
+      - otlp-tls-ca-file
     forbidden_keys: []
     required_patterns:
       - key: database-url
@@ -31,6 +34,9 @@ variants:
       SQLite instance 2 config overlay: in-memory database for containerized testing.
     required_keys:
       - database-url
+      - otlp-tls-cert-file
+      - otlp-tls-key-file
+      - otlp-tls-ca-file
     forbidden_keys: []
     required_patterns:
       - key: database-url
@@ -46,6 +52,9 @@ variants:
       - database-sslcert
       - database-sslkey
       - database-sslrootcert
+      - otlp-tls-cert-file
+      - otlp-tls-key-file
+      - otlp-tls-ca-file
     forbidden_keys:
       - database-url
     required_patterns:
@@ -62,6 +71,9 @@ variants:
       - database-sslcert
       - database-sslkey
       - database-sslrootcert
+      - otlp-tls-cert-file
+      - otlp-tls-key-file
+      - otlp-tls-ca-file
     forbidden_keys:
       - database-url
     required_patterns:

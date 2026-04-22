@@ -19,3 +19,8 @@ database-sslrootcert: /certs/__PS_ID__/postgres-tls-server-issuing-ca/truststore
 server-admin-tls-cert-file: /certs/__PS_ID__/private-https-mutual-entity-__PS_ID__-postgres-2/private-https-mutual-entity-__PS_ID__-postgres-2.crt
 server-admin-tls-key-file: /certs/__PS_ID__/private-https-mutual-entity-__PS_ID__-postgres-2/private-https-mutual-entity-__PS_ID__-postgres-2.key
 server-admin-tls-ca-file: /certs/__PS_ID__/private-https-mutual-issuing-ca-__PS_ID__-postgres-2/truststore/private-https-mutual-issuing-ca-__PS_ID__-postgres-2.crt
+
+# OTLP mTLS (Cat 9 + Cat 1): present client cert and verify OTel Collector server cert.
+otlp-tls-cert-file: /certs/__PS_ID__/otel-collector-contrib-https-client-entity-__PS_ID__-postgres-2/otel-collector-contrib-https-client-entity-__PS_ID__-postgres-2.crt
+otlp-tls-key-file: /certs/__PS_ID__/otel-collector-contrib-https-client-entity-__PS_ID__-postgres-2/otel-collector-contrib-https-client-entity-__PS_ID__-postgres-2.key
+otlp-tls-ca-file: /certs/__PS_ID__/public-https-server-issuing-ca/truststore/public-https-server-issuing-ca.crt

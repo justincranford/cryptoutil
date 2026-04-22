@@ -97,7 +97,7 @@ func assertValidCertChain(t *testing.T, path string, pemData []byte) {
 
 		rest = remaining
 
-		if block.Type != "CERTIFICATE" {
+		if block.Type != cryptoutilSharedMagic.StringPEMTypeCertificate {
 			continue
 		}
 
@@ -117,7 +117,7 @@ func assertValidPKCS8Key(t *testing.T, path string, pemData []byte) {
 
 	block, _ := pem.Decode(pemData)
 	require.NotNil(t, block, "no PEM block found in %s", path)
-	require.Equal(t, "PRIVATE KEY", block.Type, "expected PKCS#8 PEM type in %s", path)
+	require.Equal(t, cryptoutilSharedMagic.StringPEMTypePKCS8PrivateKey, block.Type, "expected PKCS#8 PEM type in %s", path)
 
 	_, err := x509.ParsePKCS8PrivateKey(block.Bytes)
 	require.NoError(t, err, "x509.ParsePKCS8PrivateKey failed for %s", path)

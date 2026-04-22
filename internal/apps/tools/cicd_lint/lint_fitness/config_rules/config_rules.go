@@ -44,10 +44,14 @@ var requiredCommonKeys = []string{
 // and database-sslrootcert for mTLS (Cat 10 truststore + Cat 14 client cert). SQLite instance
 // configs do not include these keys (SQLite does not support TLS).
 // All instance configs allow server-admin-tls-* for admin mTLS (Cat 6 client CA + Cat 7 server cert).
+// All instance configs allow otlp-tls-* for OTLP mTLS (Cat 9 client cert + Cat 1 server CA).
 var allowedInstanceKeys = map[string]bool{
 	"cors-origins":               true,
 	"otlp-service":               true,
 	"otlp-hostname":              true,
+	"otlp-tls-cert-file":         true,
+	"otlp-tls-key-file":          true,
+	"otlp-tls-ca-file":           true,
 	"database-url":               true,
 	"database-sslmode":           true,
 	"database-sslcert":           true,
@@ -306,7 +310,7 @@ func checkInstanceKeys(path string) []string {
 
 	for key := range config {
 		if !allowedInstanceKeys[key] {
-			violations = append(violations, fmt.Sprintf("unexpected key %q (only cors-origins, otlp-service, otlp-hostname, database-url, database-sslmode, database-sslcert, database-sslkey, database-sslrootcert allowed)", key))
+			violations = append(violations, fmt.Sprintf("unexpected key %q (only cors-origins, otlp-service, otlp-hostname, otlp-tls-cert-file, otlp-tls-key-file, otlp-tls-ca-file, database-url, database-sslmode, database-sslcert, database-sslkey, database-sslrootcert allowed)", key))
 		}
 	}
 

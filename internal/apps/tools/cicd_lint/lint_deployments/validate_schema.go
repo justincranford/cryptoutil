@@ -144,6 +144,24 @@ var configSchema = map[string]schemaField{
 		Required:    false,
 		Description: "OTLP collector endpoint (required when otlp: true)",
 	},
+	// otlp-tls-cert-file: Path to client TLS certificate for mTLS to OTel Collector (Cat 9).
+	"otlp-tls-cert-file": {
+		Type:        fieldTypeString,
+		Required:    false,
+		Description: "Client TLS certificate file path for OTLP mTLS (Cat 9)",
+	},
+	// otlp-tls-key-file: Path to client TLS private key for mTLS to OTel Collector (Cat 9).
+	"otlp-tls-key-file": {
+		Type:        fieldTypeString,
+		Required:    false,
+		Description: "Client TLS private key file path for OTLP mTLS (Cat 9)",
+	},
+	// otlp-tls-ca-file: Path to CA truststore for verifying OTel Collector server cert (Cat 1).
+	"otlp-tls-ca-file": {
+		Type:        fieldTypeString,
+		Required:    false,
+		Description: "CA truststore file path for verifying OTLP server cert (Cat 1)",
+	},
 
 	// CORS Configuration.
 	// cors-max-age: Preflight cache duration in seconds.
