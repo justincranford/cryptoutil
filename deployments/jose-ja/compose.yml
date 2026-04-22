@@ -331,6 +331,17 @@ services:
         reservations:
           memory: 128M
 
+  # OTel Collector mTLS cert setup: Cat 2 server cert + Cat 8 client issuing CA.
+  # Extends the shared-telemetry service with PS-ID-specific cert mounts so the
+  # collector can present its server cert and verify app client certs.
+  opentelemetry-collector-contrib:
+    depends_on:
+      pki-init:
+        condition: service_completed_successfully
+    volumes:
+      - ./certs/jose-ja/public-https-server-entity-otel-collector-contrib:/etc/pki-init/certs/public-https-server-entity-otel-collector-contrib:ro
+      - ./certs/jose-ja/otel-collector-contrib-https-client-issuing-ca:/etc/pki-init/certs/otel-collector-contrib-https-client-issuing-ca:ro
+
   # postgres-leader SSL setup — extends shared-postgres service with mTLS cert setup.
   # Runs as root to copy certs into a writable directory, chown to postgres (uid 999),
   # then drops to postgres user via docker-entrypoint.sh.
