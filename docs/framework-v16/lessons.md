@@ -195,4 +195,46 @@
 
 ## Phase 4: V16 Knowledge Propagation
 
-*(To be filled during Phase 4 execution using the 4-section structure above)*
+**What Worked**:
+
+- Extracting `lifecycle.RunService()` and `BuildUsage*()` patterns into ENG-HANDBOOK §5.6 as a
+  dedicated "PS-ID Entry Point Patterns" section created a clear canonical reference. Future
+  plans that touch service entry points can reference §5.6 directly instead of reverse-engineering
+  the pattern from existing services.
+- Adding `§14.1.3 Fitness Linter Awareness During Refactoring` captured a V15/V16 lesson that
+  would otherwise only live in lessons.md. The grep command in the section gives future developers
+  a concrete diagnostic tool to check before migrating string literals.
+- The `new-service` skill update (adding §5.6 reference) ensures that the lifecycle/usage patterns
+  propagate to the right place — the moment a developer creates a new service, they are directed
+  to the mandatory patterns in §5.6.
+- Checking `diff` between Copilot and Claude skill files immediately revealed ordering drift
+  introduced by the two separate edits. The `lint-skill-command-drift` check then confirmed
+  the fix resolved the drift.
+
+**What Didn't Work**:
+
+- Initial edit of the Copilot `new-service` skill inserted the §5.6 line BEFORE the §5.2 line
+  (different order from the Claude skill). Required a second edit to remove the out-of-order
+  line and re-add it in the correct position. Editing insertion points in both files independently
+  is error-prone; always check the diff immediately after editing both files.
+
+**Root Causes**:
+
+- When editing two parallel files independently (Copilot vs Claude skill), insertion order differs
+  depending on which `old_string` anchor each edit uses. The two edits used different anchor
+  text, causing different insertion points. Fix: after editing both files, always run
+  `diff copilot-file claude-file` to detect ordering or content divergence before committing.
+
+**Patterns for Future Phases**:
+
+- Extract framework package patterns (lifecycle, usage, builder) to ENG-HANDBOOK §5 subsections
+  immediately when the package is created — not at end-of-plan propagation time. §5.6 should
+  have been written in V16 Phase 1 when the packages were created.
+- After editing Copilot + Claude skill files, always run `diff copilot-file claude-file` to
+  detect ordering differences before running `lint-docs`. Lint-docs only checks body content
+  equality, but insertion order differences produce visible diff output immediately.
+- Skills that guide service creation (`new-service`) should reference ALL mandatory framework
+  sections (§5.1, §5.2, §5.6) in their References section. Any new framework section = update
+  the skill in the same commit.
+- The Phase 4 propagation step should reference the specific new sections (§5.6.1, §5.6.2,
+  §14.1.3) added in tasks.md, so future audits can trace which plan introduced each section.
