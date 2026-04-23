@@ -126,6 +126,14 @@ required_propagations:
     required_targets:
       - .github/instructions/02-06.authn.instructions.md
 
+  - chunk_id: lessons-md-structure
+    source_file: docs/ENG-HANDBOOK.md
+    required_targets:
+      - .github/agents/implementation-execution.agent.md
+      - .github/agents/implementation-planning.agent.md
+      - .claude/agents/implementation-execution.md
+      - .claude/agents/implementation-planning.md
+
   - chunk_id: mandatory-review-passes
     source_file: docs/ENG-HANDBOOK.md
     required_targets:

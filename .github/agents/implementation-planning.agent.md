@@ -839,7 +839,9 @@ Set-Content -Path $path -Value $content -Encoding UTF8  # ❌ BOM
 3. Create `<work-dir>/tasks.md` from template
 
 4. Create `<work-dir>/lessons.md` as empty scaffold:
-   - Include a blockquote at the top with the MANDATORY per-phase structure: What Worked, What Didn't Work, Root Causes, Patterns for Future Phases
+   - `## Executive Summary` at top with placeholder: `*(To be filled at plan completion — numbered links to each phase section with one-sentence outcome)*`
+   - `## Actions` below Executive Summary with placeholder: `*(To be filled at plan completion — numbered list of concrete follow-up items for reviewer)*`
+   - A blockquote with the MANDATORY per-phase structure: What Worked, What Didn't Work, Root Causes, Patterns for Future Phases
    - One `## Phase N: <name>` heading per phase defined in plan.md
    - Each heading followed by: `*(To be filled during Phase N execution using the 4-section structure above)*`
    - NO "Inherited from" sections — clean slate, execution agent fills lessons in
@@ -1235,6 +1237,32 @@ Would you like me to...?  ❌ FORBIDDEN
 ```
 
 ---
+
+## lessons.md Document Structure
+
+<!-- @source from="docs/ENG-HANDBOOK.md" as="lessons-md-structure" -->
+A completed `lessons.md` MUST contain three top-level sections **in this order**:
+
+**1. `## Executive Summary`** — Written at plan completion. A numbered list where each entry is a markdown link to a `## Phase N:` section followed by a one-sentence description of the key outcome. Enables reviewers to scan the entire plan scope at a glance and navigate directly to relevant phases.
+
+Example entries:
+- `1. [Phase 1: Framework Migration](#phase-1-framework-migration) — Migrated 10 PS-ID entry points; no API breakage.`
+- `2. [Phase 2: Knowledge Propagation](#phase-2-knowledge-propagation) — Added 12 ENG-HANDBOOK sections and updated 4 instruction files.`
+
+**2. `## Actions`** — Written at plan completion, directly below Executive Summary. A numbered list of concrete follow-up tasks for the reviewer, each specific enough to copy-paste directly into Copilot Chat or Claude Code as a follow-up prompt.
+
+Example entries:
+- `1. Migrate sm-kms application_basic.go to use framework's Basic struct directly.`
+- `2. Apply lifecycle.RunService() pattern to identity-authz (only remaining service).`
+
+**3. `## Phase N: <name>`** — One section per plan phase, written during each phase post-mortem using the 4-section structure (What Worked, What Didn't Work, Root Causes, Patterns). See §14.8.1.
+
+**Agent responsibilities**:
+- `implementation-planning`: Scaffold `## Executive Summary` (empty placeholder), `## Actions` (empty placeholder), and one `## Phase N:` stub per phase.
+- `implementation-execution`: At plan completion, fill `## Executive Summary` with phase links and one-sentence outcomes, fill `## Actions` with concrete copy-paste follow-up items, and populate each `## Phase N:` section with the 4-section post-mortem content.
+
+**Rationale**: Without top-level sections, reviewers must read all phase sections linearly to understand plan scope and identify follow-up work. `## Executive Summary` enables rapid navigation; `## Actions` enables copy-paste follow-up without re-reading all phases — eliminating the manual extraction step that slows reviewer triage.
+<!-- @/source -->
 
 ## Mandatory Review Passes
 

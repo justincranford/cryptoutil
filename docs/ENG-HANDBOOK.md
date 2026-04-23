@@ -6457,7 +6457,33 @@ At the end of EVERY phase's quality gates, conduct a post-mortem **before starti
 
 Skipping post-mortems is FORBIDDEN. This is continuous self-improvement.
 
-#### 14.8.2 Plan Completion Knowledge Propagation — MANDATORY
+#### 14.8.2 lessons.md Document Structure — MANDATORY
+
+<!-- @propagate to=".github/agents/implementation-execution.agent.md, .github/agents/implementation-planning.agent.md, .claude/agents/implementation-execution.md, .claude/agents/implementation-planning.md" as="lessons-md-structure" -->
+A completed `lessons.md` MUST contain three top-level sections **in this order**:
+
+**1. `## Executive Summary`** — Written at plan completion. A numbered list where each entry is a markdown link to a `## Phase N:` section followed by a one-sentence description of the key outcome. Enables reviewers to scan the entire plan scope at a glance and navigate directly to relevant phases.
+
+Example entries:
+- `1. [Phase 1: Framework Migration](#phase-1-framework-migration) — Migrated 10 PS-ID entry points; no API breakage.`
+- `2. [Phase 2: Knowledge Propagation](#phase-2-knowledge-propagation) — Added 12 ENG-HANDBOOK sections and updated 4 instruction files.`
+
+**2. `## Actions`** — Written at plan completion, directly below Executive Summary. A numbered list of concrete follow-up tasks for the reviewer, each specific enough to copy-paste directly into Copilot Chat or Claude Code as a follow-up prompt.
+
+Example entries:
+- `1. Migrate sm-kms application_basic.go to use framework's Basic struct directly.`
+- `2. Apply lifecycle.RunService() pattern to identity-authz (only remaining service).`
+
+**3. `## Phase N: <name>`** — One section per plan phase, written during each phase post-mortem using the 4-section structure (What Worked, What Didn't Work, Root Causes, Patterns). See §14.8.1.
+
+**Agent responsibilities**:
+- `implementation-planning`: Scaffold `## Executive Summary` (empty placeholder), `## Actions` (empty placeholder), and one `## Phase N:` stub per phase.
+- `implementation-execution`: At plan completion, fill `## Executive Summary` with phase links and one-sentence outcomes, fill `## Actions` with concrete copy-paste follow-up items, and populate each `## Phase N:` section with the 4-section post-mortem content.
+
+**Rationale**: Without top-level sections, reviewers must read all phase sections linearly to understand plan scope and identify follow-up work. `## Executive Summary` enables rapid navigation; `## Actions` enables copy-paste follow-up without re-reading all phases — eliminating the manual extraction step that slows reviewer triage.
+<!-- @/propagate -->
+
+#### 14.8.3 Plan Completion Knowledge Propagation — MANDATORY
 
 After ALL plan tasks are complete, apply accumulated lessons to permanent artifacts:
 
