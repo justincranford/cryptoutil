@@ -3,10 +3,12 @@
 package usage_test
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 
 	cryptoutilUsage "cryptoutil/internal/apps/framework/service/usage"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/stretchr/testify/require"
 )
@@ -23,8 +25,8 @@ func TestBuildUsageMain(t *testing.T) {
 	}{
 		{
 			name:               "sm kms",
-			productName:        "sm",
-			serviceName:        "kms",
+			productName:        cryptoutilSharedMagic.SMProductName,
+			serviceName:        cryptoutilSharedMagic.KMSServiceName,
 			serviceDisplayName: "Key Management Service",
 			wantContains: []string{
 				"Usage: sm kms <subcommand> [options]",
@@ -34,8 +36,8 @@ func TestBuildUsageMain(t *testing.T) {
 		},
 		{
 			name:               "jose ja",
-			productName:        "jose",
-			serviceName:        "ja",
+			productName:        cryptoutilSharedMagic.JoseProductName,
+			serviceName:        cryptoutilSharedMagic.JoseJAServiceName,
 			serviceDisplayName: "JWK Authority",
 			wantContains: []string{
 				"Usage: jose ja <subcommand> [options]",
@@ -45,8 +47,8 @@ func TestBuildUsageMain(t *testing.T) {
 		},
 		{
 			name:               "pki ca",
-			productName:        "pki",
-			serviceName:        "ca",
+			productName:        cryptoutilSharedMagic.PKIProductName,
+			serviceName:        cryptoutilSharedMagic.PKICAServiceName,
 			serviceDisplayName: "Certificate Authority",
 			wantContains: []string{
 				"Usage: pki ca <subcommand> [options]",
@@ -82,10 +84,10 @@ func TestBuildUsageServer(t *testing.T) {
 	}{
 		{
 			name:               "sm kms server",
-			productName:        "sm",
-			serviceName:        "kms",
+			productName:        cryptoutilSharedMagic.SMProductName,
+			serviceName:        cryptoutilSharedMagic.KMSServiceName,
 			serviceDisplayName: "Key Management Service",
-			configFilePath:     "configs/sm-kms/sm-kms-framework.yml",
+			configFilePath:     fmt.Sprintf("configs/%s/%s-framework.yml", cryptoutilSharedMagic.KMSServiceID, cryptoutilSharedMagic.KMSServiceID),
 			wantContains: []string{
 				"Usage: sm kms server [options]",
 				"Key Management Service",
@@ -96,10 +98,10 @@ func TestBuildUsageServer(t *testing.T) {
 		},
 		{
 			name:               "jose ja server",
-			productName:        "jose",
-			serviceName:        "ja",
+			productName:        cryptoutilSharedMagic.JoseProductName,
+			serviceName:        cryptoutilSharedMagic.JoseJAServiceName,
 			serviceDisplayName: "JWK Authority",
-			configFilePath:     "configs/jose-ja/jose-ja-framework.yml",
+			configFilePath:     fmt.Sprintf("configs/%s/%s-framework.yml", cryptoutilSharedMagic.JoseJAServiceID, cryptoutilSharedMagic.JoseJAServiceID),
 			wantContains: []string{
 				"Usage: jose ja server [options]",
 				"JWK Authority",
@@ -133,8 +135,8 @@ func TestBuildUsageClient(t *testing.T) {
 	}{
 		{
 			name:               "sm kms client",
-			productName:        "sm",
-			serviceName:        "kms",
+			productName:        cryptoutilSharedMagic.SMProductName,
+			serviceName:        cryptoutilSharedMagic.KMSServiceName,
 			serviceDisplayName: "Key Management Service",
 			wantContains: []string{
 				"Usage: sm kms client [options]",
@@ -170,10 +172,10 @@ func TestBuildUsageInit(t *testing.T) {
 	}{
 		{
 			name:               "sm kms init",
-			productName:        "sm",
-			serviceName:        "kms",
+			productName:        cryptoutilSharedMagic.SMProductName,
+			serviceName:        cryptoutilSharedMagic.KMSServiceName,
 			serviceDisplayName: "Key Management Service",
-			configFilePath:     "configs/sm-kms/sm-kms-framework.yml",
+			configFilePath:     fmt.Sprintf("configs/%s/%s-framework.yml", cryptoutilSharedMagic.KMSServiceID, cryptoutilSharedMagic.KMSServiceID),
 			wantContains: []string{
 				"Usage: sm kms init [options]",
 				"Key Management Service",
@@ -206,10 +208,10 @@ func TestBuildUsageHealth(t *testing.T) {
 		wantContains      []string
 	}{
 		{
-			name:              "sm kms health port 8000",
-			productName:       "sm",
-			serviceName:       "kms",
-			defaultPublicPort: "8000",
+			name:              "sm kms health",
+			productName:       cryptoutilSharedMagic.SMProductName,
+			serviceName:       cryptoutilSharedMagic.KMSServiceName,
+			defaultPublicPort: fmt.Sprintf("%d", cryptoutilSharedMagic.KMSServicePort),
 			wantContains: []string{
 				"Usage: sm kms health [options]",
 				"https://127.0.0.1:8000",
@@ -218,10 +220,10 @@ func TestBuildUsageHealth(t *testing.T) {
 			},
 		},
 		{
-			name:              "jose ja health port 8200",
-			productName:       "jose",
-			serviceName:       "ja",
-			defaultPublicPort: "8200",
+			name:              "jose ja health",
+			productName:       cryptoutilSharedMagic.JoseProductName,
+			serviceName:       cryptoutilSharedMagic.JoseJAServiceName,
+			defaultPublicPort: fmt.Sprintf("%d", cryptoutilSharedMagic.JoseJAServicePort),
 			wantContains: []string{
 				"Usage: jose ja health [options]",
 				"https://127.0.0.1:8200",
@@ -254,8 +256,8 @@ func TestBuildUsageLivez(t *testing.T) {
 	}{
 		{
 			name:        "sm kms livez",
-			productName: "sm",
-			serviceName: "kms",
+			productName: cryptoutilSharedMagic.SMProductName,
+			serviceName: cryptoutilSharedMagic.KMSServiceName,
 			wantContains: []string{
 				"Usage: sm kms livez [options]",
 				"https://127.0.0.1:9090",
@@ -264,8 +266,8 @@ func TestBuildUsageLivez(t *testing.T) {
 		},
 		{
 			name:        "pki ca livez",
-			productName: "pki",
-			serviceName: "ca",
+			productName: cryptoutilSharedMagic.PKIProductName,
+			serviceName: cryptoutilSharedMagic.PKICAServiceName,
 			wantContains: []string{
 				"Usage: pki ca livez [options]",
 				"https://127.0.0.1:9090",
@@ -297,8 +299,8 @@ func TestBuildUsageReadyz(t *testing.T) {
 	}{
 		{
 			name:        "sm kms readyz",
-			productName: "sm",
-			serviceName: "kms",
+			productName: cryptoutilSharedMagic.SMProductName,
+			serviceName: cryptoutilSharedMagic.KMSServiceName,
 			wantContains: []string{
 				"Usage: sm kms readyz [options]",
 				"https://127.0.0.1:9090",
@@ -331,8 +333,8 @@ func TestBuildUsageShutdown(t *testing.T) {
 	}{
 		{
 			name:        "sm kms shutdown",
-			productName: "sm",
-			serviceName: "kms",
+			productName: cryptoutilSharedMagic.SMProductName,
+			serviceName: cryptoutilSharedMagic.KMSServiceName,
 			wantContains: []string{
 				"Usage: sm kms shutdown [options]",
 				"https://127.0.0.1:9090",

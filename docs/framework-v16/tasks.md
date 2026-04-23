@@ -182,8 +182,9 @@ new packages at ≥98% test coverage.
 
 ### Task 1.1: Create lifecycle Package
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 2h
+- **Actual**: 1.5h
 - **Dependencies**: None
 - **Description**: Create `internal/apps/framework/service/lifecycle/` package. Implement
   `RunService(ctx, stdout, stderr, srv Starter) int` and `RunWithGracefulShutdown(ctx, stdout,
@@ -191,28 +192,29 @@ new packages at ≥98% test coverage.
   close(sigChan), context.WithTimeout with `magic.DefaultDataServerShutdownTimeout`, and error
   logging. Table-driven tests with injected start/shutdown functions (seam injection pattern).
 - **Acceptance Criteria**:
-  - [ ] Package compiles and `go test ./internal/apps/framework/service/lifecycle/...` passes
-  - [ ] ≥98% line coverage (infrastructure package)
-  - [ ] Handles: server error, SIGINT, SIGTERM, shutdown error
-  - [ ] `golangci-lint run` clean on new package
-  - [ ] `t.Parallel()` on all tests; table-driven for signal/error combinations
+  - [x] Package compiles and `go test ./internal/apps/framework/service/lifecycle/...` passes
+  - [x] ≥98% line coverage (infrastructure package) — 100% achieved
+  - [x] Handles: server error, SIGINT, SIGTERM, shutdown error
+  - [x] `golangci-lint run` clean on new package
+  - [x] `t.Parallel()` on all tests; table-driven for signal/error combinations
 - **Files**:
   - `internal/apps/framework/service/lifecycle/lifecycle.go` (NEW)
   - `internal/apps/framework/service/lifecycle/lifecycle_test.go` (NEW)
 
 ### Task 1.2: Migrate 5 Core PS-ID Entry Points to lifecycle.RunService
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 1h
+- **Actual**: 0.5h
 - **Dependencies**: Task 1.1
 - **Description**: Update sm-kms, sm-im, jose-ja, pki-ca, skeleton-template entry points to use
   `lifecycle.RunService()`. Remove duplicate signal handling code (~25 lines per file). Verify
   all tests still pass.
 - **Acceptance Criteria**:
-  - [ ] `go build ./cmd/sm-kms/...` `./cmd/sm-im/...` `./cmd/jose-ja/...` `./cmd/pki-ca/...` `./cmd/skeleton-template/...` clean
-  - [ ] All existing tests pass
-  - [ ] No signal handling code remaining in entry point files (grep verified)
-  - [ ] `golangci-lint run` clean
+  - [x] `go build ./cmd/sm-kms/...` `./cmd/sm-im/...` `./cmd/jose-ja/...` `./cmd/pki-ca/...` `./cmd/skeleton-template/...` clean
+  - [x] All existing tests pass
+  - [x] No signal handling code remaining in entry point files (grep verified)
+  - [x] `golangci-lint run` clean
 - **Files**:
   - `internal/apps/sm-kms/kms.go`
   - `internal/apps/sm-im/im.go`
@@ -222,16 +224,17 @@ new packages at ≥98% test coverage.
 
 ### Task 1.3: Migrate 5 Identity PS-ID Entry Points to lifecycle.RunService
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 1h
+- **Actual**: 0.5h
 - **Dependencies**: Task 1.2
 - **Description**: Update identity-authz, identity-idp, identity-rp, identity-rs, identity-spa
   entry points. These are larger codebases — verify no behavioral changes.
 - **Acceptance Criteria**:
-  - [ ] All 5 identity service entry points updated
-  - [ ] `go build ./cmd/identity-authz/... ./cmd/identity-idp/... ./cmd/identity-rp/... ./cmd/identity-rs/... ./cmd/identity-spa/...` clean
-  - [ ] `go test ./internal/apps/identity-authz/... ./internal/apps/identity-idp/...` passes
-  - [ ] `golangci-lint run ./internal/apps/identity-*/...` clean
+  - [x] All 5 identity service entry points updated
+  - [x] `go build ./cmd/identity-authz/... ./cmd/identity-idp/... ./cmd/identity-rp/... ./cmd/identity-rs/... ./cmd/identity-spa/...` clean
+  - [x] `go test ./internal/apps/identity-authz/... ./internal/apps/identity-idp/...` passes
+  - [x] `golangci-lint run ./internal/apps/identity-*/...` clean
 - **Files**:
   - `internal/apps/identity-authz/authz.go`
   - `internal/apps/identity-idp/idp.go`
@@ -241,18 +244,19 @@ new packages at ≥98% test coverage.
 
 ### Task 1.4: Create usage Package (GAP-0.5 Completion)
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 1.5h
+- **Actual**: 1h
 - **Dependencies**: None
 - **Description**: Create `internal/apps/framework/service/usage/` package with `BuildUsageMain()`,
   `BuildUsageServer()`, `BuildUsageClient()`, `BuildUsageHealth()`, `BuildUsageLivez()`,
   `BuildUsageReadyz()`, `BuildUsageShutdown()`. Table-driven tests with parameterized inputs.
   Each function takes named parameters for product name, service name, config file path.
 - **Acceptance Criteria**:
-  - [ ] Package compiles; `go test ./internal/apps/framework/service/usage/...` passes
-  - [ ] ≥98% coverage (infrastructure package)
-  - [ ] Output strings match current usage.go `var` values exactly
-  - [ ] `t.Parallel()` on all tests; table-driven for all string builder functions
+  - [x] Package compiles; `go test ./internal/apps/framework/service/usage/...` passes
+  - [x] ≥98% coverage (infrastructure package) — 100% achieved
+  - [x] Output strings match current usage.go `var` values exactly
+  - [x] `t.Parallel()` on all tests; table-driven for all string builder functions
 - **Files**:
   - `internal/apps/framework/service/usage/usage.go` (NEW)
   - `internal/apps/framework/service/usage/usage_test.go` (NEW)
