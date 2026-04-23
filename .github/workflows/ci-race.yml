@@ -108,18 +108,15 @@ jobs:
           go-mod-tidy: true
 
       - name: Run race condition detection tests (informational)
+        # continue-on-error: true is intentional — known DATA RACE in crypto/certificate and shared/pool
+        # Tracking: remove when races are fixed (https://github.com/justincranford/cryptoutil/issues/TBD)
         continue-on-error: true
         working-directory: .
         run: |
-          echo "🔄 Running race condition detection tests..."
-          echo "⚠️ Note: Known DATA RACE issues in crypto/certificate and shared/pool packages"
-          START_TIME=$(date +%s)
-          echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          echo "::group::go test -race"
+          echo "Note: Known DATA RACE issues in crypto/certificate and shared/pool packages"
           go test -race -tags integration -timeout=25m -count=2 ./internal/... ./scripts/...
-          END_TIME=$(date +%s)
-          DURATION=$((END_TIME - START_TIME))
-          echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-          echo "⏱️ Race detection tests completed in: ${DURATION}s"
+          echo "::endgroup::"
 
       - name: Race condition detection test summary
         run: |

@@ -110,19 +110,14 @@ jobs:
     - name: Run coverage on tests
       working-directory: .
       run: |
-        echo "📊 Generating coverage report for tests..."
-        START_TIME=$(date +%s)
-        echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        echo "::group::go test with coverage"
         mkdir -p workflow-reports/coverage
         # Exclude cmd/* packages (main packages without coverage requirements)
         # Exclude e2e/* packages (require Docker Compose, run in ci-e2e workflow)
         go test -count=1 -p=2 -coverprofile=workflow-reports/coverage/coverage.out -covermode=atomic \
           $(go list ./internal/... | grep -v '/cmd$' | grep -v '/cmd/' | grep -v '/e2e$' | grep -v '/e2e/') \
           2>&1 | tee workflow-reports/coverage/coverage-per-pkg.txt
-        END_TIME=$(date +%s)
-        DURATION=$((END_TIME - START_TIME))
-        echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-        echo "⏱️ Coverage tests completed in: ${DURATION}s"
+        echo "::endgroup::"
 
     - name: Generate coverage report
       run: go tool cover -html=workflow-reports/coverage/coverage.out -o workflow-reports/coverage/coverage.html

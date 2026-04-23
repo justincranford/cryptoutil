@@ -123,44 +123,29 @@ jobs:
 
       - name: Build binary
         run: |
-          echo "🔨 Building application binary..."
+          echo "::group::Build application binary"
           START_TIME=$(date +%s)
-          echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
           # Build with static linking and minimal symbol stripping for CI/testing
           # -s: Strip symbol table for smaller binary size (keeps debug symbols for diagnostics)
           # -extldflags '-static': Force static linking for maximum portability
           # Performance and diagnostics prioritized over size; debug symbols retained for troubleshooting
-          go build -v -ldflags="-s -extldflags '-static'" -o cryptoutil ./cmd/cryptoutil
+          go build -ldflags="-s -extldflags '-static'" -o cryptoutil ./cmd/cryptoutil
           END_TIME=$(date +%s)
           DURATION=$((END_TIME - START_TIME))
-          echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-          echo "⏱️ Binary build completed in: ${DURATION}s"
+          echo "Binary build completed in: ${DURATION}s"
+          echo "::endgroup::"
 
       - name: Test binary
         run: |
-          echo "🧪 Testing binary execution..."
-          START_TIME=$(date +%s)
-          echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-          # Test that the binary was built successfully
+          echo "::group::Test binary execution"
           ls -la ./cryptoutil
           file ./cryptoutil
           # Test basic execution (expect it to show usage and exit with error since no valid command given)
           ./cryptoutil || echo "Binary executed successfully (expected error due to no command)"
-          END_TIME=$(date +%s)
-          DURATION=$((END_TIME - START_TIME))
-          echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-          echo "⏱️ Binary test completed in: ${DURATION}s"
+          echo "::endgroup::"
 
       - name: Set up Docker Buildx
-        run: |
-          echo "🐳 Setting up Docker Buildx..."
-          START_TIME=$(date +%s)
-          echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-          docker buildx create --use
-          END_TIME=$(date +%s)
-          DURATION=$((END_TIME - START_TIME))
-          echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-          echo "⏱️ Docker Buildx setup completed in: ${DURATION}s"
+        run: docker buildx create --use
 
       - name: Log in to Container Registry
         if: github.event_name != 'pull_request'
@@ -184,10 +169,7 @@ jobs:
 
       - name: Build Docker image
         run: |
-          echo "🏗️ Building Docker image..."
-          START_TIME=$(date +%s)
-          echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-
+          echo "::group::Docker image build"
           # Build the tag arguments using process substitution to avoid subshell variable scoping issues
           TAG_ARGS=""
           while IFS= read -r tag; do
@@ -198,6 +180,7 @@ jobs:
 
           docker buildx build \
             --load \
+            --progress=quiet \
             $TAG_ARGS \
             --label "org.opencontainers.image.created=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" \
             --label "org.opencontainers.image.revision=${{ github.sha }}" \
@@ -209,10 +192,7 @@ jobs:
             --cache-to type=gha,mode=max \
             -f ./deployments/cryptoutil/Dockerfile \
             .
-          END_TIME=$(date +%s)
-          DURATION=$((END_TIME - START_TIME))
-          echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-          echo "⏱️ Docker image build completed in: ${DURATION}s"
+          echo "::endgroup::"
 
       - name: Get first Docker tag for Trivy scan
         id: first-tag
@@ -290,10 +270,7 @@ jobs:
       - name: Push Docker image
         if: github.event_name != 'pull_request'
         run: |
-          echo "📤 Pushing Docker image..."
-          START_TIME=$(date +%s)
-          echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-
+          echo "::group::Docker image push"
           # Build the tag arguments using process substitution to avoid subshell variable scoping issues
           TAG_ARGS=""
           while IFS= read -r tag; do
@@ -304,6 +281,7 @@ jobs:
 
           docker buildx build \
             --push \
+            --progress=quiet \
             $TAG_ARGS \
             --label "org.opencontainers.image.created=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" \
             --label "org.opencontainers.image.revision=${{ github.sha }}" \
@@ -313,10 +291,7 @@ jobs:
             --build-arg BUILD_DATE=1970-01-01T00:00:00Z \
             -f ./deployments/cryptoutil/Dockerfile \
             .
-          END_TIME=$(date +%s)
-          DURATION=$((END_TIME - START_TIME))
-          echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-          echo "⏱️ Docker image push completed in: ${DURATION}s"
+          echo "::endgroup::"
 
       - name: Build summary
         if: always()
@@ -344,21 +319,21 @@ jobs:
           go-mod-tidy: false
       - name: Build cicd binary
         shell: bash
-        run: |
-          echo "Building cicd-lint binary..."
-          CGO_ENABLED=0 go build -o ./cicd ./cmd/cicd-lint
-          chmod +x ./cicd
-          echo "Build complete."
+        run: CGO_ENABLED=0 go build -o ./cicd ./cmd/cicd-lint
       - name: Run all linters (sequential)
         shell: bash
         run: |
-          ./cicd lint-fitness lint-text lint-go lint-go-test lint-compose \
+          echo "::group::cicd-lint linters"
+          ./cicd -q lint-fitness lint-text lint-go lint-go-test lint-compose \
                 lint-openapi lint-ports lint-workflow lint-go-mod \
                 lint-golangci lint-docs lint-deployments lint-java-test lint-python-test
+          echo "::endgroup::"
       - name: Run formatters and verify no changes needed
         shell: bash
         run: |
-          ./cicd format-go format-go-test
+          echo "::group::cicd-lint formatters"
+          ./cicd -q format-go format-go-test
+          echo "::endgroup::"
           if ! git diff --exit-code; then
             echo "[FAIL] Files need formatting. Run './cicd format-go format-go-test' locally and commit the changes."
             git diff

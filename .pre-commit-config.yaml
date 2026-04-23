@@ -62,7 +62,7 @@ repos:
       - id: golangci-lint-full
         name: golangci-lint v2.7.2 (full validation)
         entry: golangci-lint
-        args: [run, --timeout=30m]
+        args: [run, --quiet, --timeout=30m]
         language: system  # Requires golangci-lint v2.7.2 installed: go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.7.2
         pass_filenames: false
         files: '\.go$'
@@ -75,7 +75,7 @@ repos:
       - id: golangci-lint
         name: golangci-lint v2.7.2 (incremental auto-fix)
         entry: golangci-lint
-        args: [run, --fix, --timeout=30m, --new-from-rev=HEAD~1]
+        args: [run, --fix, --quiet, --timeout=30m, --new-from-rev=HEAD~1]
         language: system  # Requires golangci-lint v2.7.2 installed: go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.7.2
         files: '\.go$'
         pass_filenames: false
@@ -219,7 +219,7 @@ repos:
       - id: cicd-lint-all
         name: Run custom CI/CD lint checks
         entry: go
-        args: [run, cmd/cicd-lint/main.go, lint-fitness, lint-text, lint-go, lint-go-test, lint-golangci, lint-compose, lint-openapi, lint-ports, lint-workflow, lint-deployments, lint-docs, lint-java-test, lint-python-test]
+        args: [run, cmd/cicd-lint/main.go, -q, lint-fitness, lint-text, lint-go, lint-go-test, lint-golangci, lint-compose, lint-openapi, lint-ports, lint-workflow, lint-deployments, lint-docs, lint-java-test, lint-python-test]
         language: system
         pass_filenames: false  # linters handle file scanning internally; no filenames needed
         require_serial: false  # linters are read-only and support concurrency
@@ -233,7 +233,7 @@ repos:
       - id: cicd-format-go
         name: Run custom CI/CD format checks
         entry: go
-        args: [run, cmd/cicd-lint/main.go, format-go]
+        args: [run, cmd/cicd-lint/main.go, -q, format-go]
         language: system
         pass_filenames: false  # formatters handle file scanning internally; no filenames needed
         require_serial: true   # formatters are read-write; must run sequentially to avoid conflicts
@@ -242,7 +242,7 @@ repos:
       - id: cicd-format-go-test
         name: Auto-fix Go test files (t.Helper)
         entry: go
-        args: [run, cmd/cicd-lint/main.go, format-go-test]
+        args: [run, cmd/cicd-lint/main.go, -q, format-go-test]
         language: system
         pass_filenames: false  # formatters handle file scanning internally; no filenames needed
         require_serial: true   # formatters are read-write; must run sequentially to avoid conflicts
