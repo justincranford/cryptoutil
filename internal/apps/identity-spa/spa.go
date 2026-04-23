@@ -9,9 +9,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"os"
-	"os/signal"
-	"syscall"
 
 	_ "github.com/jackc/pgx/v5/stdlib" // PostgreSQL driver
 	_ "modernc.org/sqlite"             // CGO-free SQLite driver
@@ -19,6 +16,7 @@ import (
 	"github.com/spf13/pflag"
 
 	cryptoutilTemplateCli "cryptoutil/internal/apps/framework/service/cli"
+	cryptoutilLifecycle "cryptoutil/internal/apps/framework/service/lifecycle"
 	cryptoutilAppsFrameworkTls "cryptoutil/internal/apps/framework/tls"
 	cryptoutilAppsIdentitySpaServer "cryptoutil/internal/apps/identity-spa/server"
 	cryptoutilAppsIdentitySpaServerConfig "cryptoutil/internal/apps/identity-spa/server/config"
@@ -80,43 +78,15 @@ func spaServerStart(args []string, stdout, stderr io.Writer) int {
 
 	srv.SetReady(true)
 
-	errChan := make(chan error, 1)
+	_, _ = fmt.Fprintf(stdout, "🚀 Starting identity-spa service...\n")
+	_, _ = fmt.Fprintf(stdout, "   Public Server: https://%s:%d\n", cfg.BindPublicAddress, cfg.BindPublicPort)
+	_, _ = fmt.Fprintf(stdout, "   Admin Server:  https://%s:%d\n", cfg.BindPrivateAddress, cfg.BindPrivatePort)
 
-	go func() {
-		_, _ = fmt.Fprintf(stdout, "🚀 Starting identity-spa service...\n")
-		_, _ = fmt.Fprintf(stdout, "   Public Server: https://%s:%d\n", cfg.BindPublicAddress, cfg.BindPublicPort)
-		_, _ = fmt.Fprintf(stdout, "   Admin Server:  https://%s:%d\n", cfg.BindPrivateAddress, cfg.BindPrivatePort)
-
-		errChan <- srv.Start(ctx)
-	}()
-
-	sigChan := make(chan os.Signal, 1)
-	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
-
-	select {
-	case err := <-errChan:
-		if err != nil {
-			_, _ = fmt.Fprintf(stderr, "❌ Server error: %v\n", err)
-
-			return 1
-		}
-	case sig := <-sigChan:
-		_, _ = fmt.Fprintf(stdout, "\n⏹️  Received signal %v, shutting down gracefully...\n", sig)
-
-		shutdownCtx, cancel := context.WithTimeout(ctx, cryptoutilSharedMagic.DefaultDataServerShutdownTimeout)
-		defer cancel()
-
-		if shutdownErr := srv.Shutdown(shutdownCtx); shutdownErr != nil {
-			_, _ = fmt.Fprintf(stderr, "⚠️  Shutdown error: %v\n", shutdownErr)
-		}
-	}
-
-	signal.Stop(sigChan)
-	close(sigChan)
+	exitCode := cryptoutilLifecycle.RunService(ctx, stdout, stderr, srv)
 
 	_, _ = fmt.Fprintln(stdout, "✅ identity-spa service stopped")
 
-	return 0
+	return exitCode
 }
 
 // spaClient implements the client subcommand.

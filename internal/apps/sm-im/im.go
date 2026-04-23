@@ -8,14 +8,12 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"os"
-	"os/signal"
-	"syscall"
 
 	_ "github.com/jackc/pgx/v5/stdlib" // PostgreSQL driver
 	_ "modernc.org/sqlite"             // CGO-free SQLite driver
 
 	cryptoutilTemplateCli "cryptoutil/internal/apps/framework/service/cli"
+	cryptoutilLifecycle "cryptoutil/internal/apps/framework/service/lifecycle"
 	cryptoutilAppsFrameworkTls "cryptoutil/internal/apps/framework/tls"
 	cryptoutilAppsSmImServer "cryptoutil/internal/apps/sm-im/server"
 	cryptoutilAppsSmImServerConfig "cryptoutil/internal/apps/sm-im/server/config"
@@ -89,45 +87,15 @@ func imServiceServerStart(args []string, stdout, stderr io.Writer) int {
 	// This enables /admin/api/v1/readyz to return 200 OK instead of 503 Service Unavailable.
 	srv.SetReady(true)
 
-	// Start server with graceful shutdown.
-	errChan := make(chan error, 1)
+	_, _ = fmt.Fprintf(stdout, "🚀 Starting sm-im service...\n")
+	_, _ = fmt.Fprintf(stdout, "   Public Server: https://%s:%d\n", cfg.BindPublicAddress, cfg.BindPublicPort)
+	_, _ = fmt.Fprintf(stdout, "   Admin Server:  https://%s:%d\n", cfg.BindPrivateAddress, cfg.BindPrivatePort)
 
-	go func() {
-		_, _ = fmt.Fprintf(stdout, "🚀 Starting sm-im service...\n")
-		_, _ = fmt.Fprintf(stdout, "   Public Server: https://%s:%d\n", cfg.BindPublicAddress, cfg.BindPublicPort)
-		_, _ = fmt.Fprintf(stdout, "   Admin Server:  https://%s:%d\n", cfg.BindPrivateAddress, cfg.BindPrivatePort)
-
-		errChan <- srv.Start(ctx)
-	}()
-
-	// Wait for interrupt signal.
-	sigChan := make(chan os.Signal, 1)
-	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
-
-	select {
-	case err := <-errChan:
-		if err != nil {
-			_, _ = fmt.Fprintf(stderr, "❌ Server error: %v\n", err)
-
-			return 1
-		}
-	case sig := <-sigChan:
-		_, _ = fmt.Fprintf(stdout, "\n⏹️  Received signal %v, shutting down gracefully...\n", sig)
-
-		shutdownCtx, cancel := context.WithTimeout(ctx, cryptoutilSharedMagic.DefaultDataServerShutdownTimeout)
-		defer cancel()
-
-		if shutdownErr := srv.Shutdown(shutdownCtx); shutdownErr != nil {
-			_, _ = fmt.Fprintf(stderr, "⚠️  Shutdown error: %v\n", shutdownErr)
-		}
-	}
-
-	signal.Stop(sigChan)
-	close(sigChan)
+	exitCode := cryptoutilLifecycle.RunService(ctx, stdout, stderr, srv)
 
 	_, _ = fmt.Fprintln(stdout, "✅ sm-im service stopped")
 
-	return 0
+	return exitCode
 }
 
 // imServiceClient implements the client subcommand.

@@ -9,9 +9,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"os"
-	"os/signal"
-	"syscall"
 
 	"github.com/spf13/pflag"
 
@@ -19,6 +16,7 @@ import (
 	_ "modernc.org/sqlite"             // CGO-free SQLite driver
 
 	cryptoutilTemplateCli "cryptoutil/internal/apps/framework/service/cli"
+	cryptoutilLifecycle "cryptoutil/internal/apps/framework/service/lifecycle"
 	cryptoutilAppsFrameworkTls "cryptoutil/internal/apps/framework/tls"
 	cryptoutilAppsSkeletonTemplateServer "cryptoutil/internal/apps/skeleton-template/server"
 	cryptoutilAppsSkeletonTemplateServerConfig "cryptoutil/internal/apps/skeleton-template/server/config"
@@ -85,45 +83,15 @@ func templateServerStart(args []string, stdout, stderr io.Writer) int {
 	// This enables /admin/api/v1/readyz to return 200 OK instead of 503 Service Unavailable.
 	srv.SetReady(true)
 
-	// Start server with graceful shutdown.
-	errChan := make(chan error, 1)
+	_, _ = fmt.Fprintf(stdout, "🚀 Starting skeleton-template service...\n")
+	_, _ = fmt.Fprintf(stdout, "   Public Server: https://%s:%d\n", cfg.BindPublicAddress, cfg.BindPublicPort)
+	_, _ = fmt.Fprintf(stdout, "   Admin Server:  https://%s:%d\n", cfg.BindPrivateAddress, cfg.BindPrivatePort)
 
-	go func() {
-		_, _ = fmt.Fprintf(stdout, "🚀 Starting skeleton-template service...\n")
-		_, _ = fmt.Fprintf(stdout, "   Public Server: https://%s:%d\n", cfg.BindPublicAddress, cfg.BindPublicPort)
-		_, _ = fmt.Fprintf(stdout, "   Admin Server:  https://%s:%d\n", cfg.BindPrivateAddress, cfg.BindPrivatePort)
-
-		errChan <- srv.Start(ctx)
-	}()
-
-	// Wait for interrupt signal.
-	sigChan := make(chan os.Signal, 1)
-	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
-
-	select {
-	case err := <-errChan:
-		if err != nil {
-			_, _ = fmt.Fprintf(stderr, "❌ Server error: %v\n", err)
-
-			return 1
-		}
-	case sig := <-sigChan:
-		_, _ = fmt.Fprintf(stdout, "\n⏹️  Received signal %v, shutting down gracefully...\n", sig)
-
-		shutdownCtx, cancel := context.WithTimeout(ctx, cryptoutilSharedMagic.DefaultDataServerShutdownTimeout)
-		defer cancel()
-
-		if shutdownErr := srv.Shutdown(shutdownCtx); shutdownErr != nil {
-			_, _ = fmt.Fprintf(stderr, "⚠️  Shutdown error: %v\n", shutdownErr)
-		}
-	}
-
-	signal.Stop(sigChan)
-	close(sigChan)
+	exitCode := cryptoutilLifecycle.RunService(ctx, stdout, stderr, srv)
 
 	_, _ = fmt.Fprintln(stdout, "✅ skeleton-template service stopped")
 
-	return 0
+	return exitCode
 }
 
 // templateClient implements the client subcommand.
