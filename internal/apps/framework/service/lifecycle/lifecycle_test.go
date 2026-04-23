@@ -255,9 +255,6 @@ func TestRunWithSignalChan_SignalDeliveredBeforeStart(t *testing.T) {
 	ctx := context.Background()
 
 	startFn := func(_ context.Context) error {
-		// Brief delay so signal select branch races with clean exit.
-		time.Sleep(cryptoutilSharedMagic.TestSleepCancelChanContext)
-
 		return nil
 	}
 
