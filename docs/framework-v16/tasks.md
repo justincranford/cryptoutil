@@ -502,47 +502,50 @@ verified fixed/deferred/intentional before deletion.
 
 ### Task 3.1: Confirm V15 Usage Work Delivered
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 0.1h
+- **Actual**: 0.05h
 - **Dependencies**: Phase 1 complete
 - **Description**: Confirm V16 Phase 1 delivered all usage deduplication work from V15 gap-0.5.
   V15 directory is deleted; this task simply verifies the work is done via build/lint/test.
 - **Acceptance Criteria**:
   - [x] `docs/framework-v15/` deleted pre-V16 (already done)
-  - [ ] V16 Phase 1 usage package confirmed delivered (`go test ./internal/apps/framework/service/usage/...` passes)
-  - [ ] V16 Phase 1 lifecycle package confirmed delivered (`go test ./internal/apps/framework/service/lifecycle/...` passes)
+  - [x] V16 Phase 1 usage package confirmed delivered (`go test ./internal/apps/framework/service/usage/...` passes — 100%)
+  - [x] V16 Phase 1 lifecycle package confirmed delivered (`go test ./internal/apps/framework/service/lifecycle/...` passes — 100%)
 - **Files**: Verification only
 
 ### Task 3.2: Confirm Gap 1.5 Disposition (ci-race Build Tags)
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 0.25h
+- **Actual**: 0.1h
 - **Dependencies**: None
 - **Description**: Gap 1.5 from V15 gaps.md — ci-race.yml missing build tag exclusions for bench/fuzz/e2e.
   Pre-V16 audit confirmed this is intentional design (integration tags optional). Verify the current
   state of ci-race.yml and confirm no action is needed, or add `--tags=!bench,!fuzz,!e2e` if appropriate.
 - **Acceptance Criteria**:
-  - [ ] ci-race.yml reviewed
-  - [ ] Decision documented: intentional design (no action) OR add build tag exclusions
-  - [ ] If change made: `go run ./cmd/cicd-lint lint-docs` passes
-- **Files**: `.github/workflows/ci-race.yml` (review only, change if warranted)
+  - [x] ci-race.yml reviewed — uses `-tags integration ./internal/... ./scripts/...`
+  - [x] Decision: INTENTIONAL DESIGN — e2e excluded by `//go:build e2e` tag (not included without `-tags e2e`); bench/fuzz tests run safely without special flags (seed corpus only without `-bench`/`-fuzz` flags); `continue-on-error: true` has documented tracking comment for known DATA RACE in crypto/certificate + shared/pool
+  - [x] No change needed
+- **Files**: `.github/workflows/ci-race.yml` (review only, no change)
 
 ### Task 3.3: Phase 3 Post-Mortem
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 0.1h
+- **Actual**: 0.05h
 - **Dependencies**: Tasks 3.1, 3.2
 - **Description**: Document Phase 3 findings in V16 lessons.md.
 - **Acceptance Criteria**:
-  - [ ] `docs/framework-v16/lessons.md` Phase 3 section filled with substantive content
+  - [x] `docs/framework-v16/lessons.md` Phase 3 section filled with substantive content
 - **Files**: `docs/framework-v16/lessons.md`
 
 ### Phase 3 Quality Gate
 
-- [ ] V16 Phase 1 usage + lifecycle packages confirmed delivered
-- [ ] Gap 1.5 disposition confirmed (intentional design or fix applied)
-- [ ] `go build ./...` clean
-- [ ] Update `lessons.md` Phase 3 section with post-mortem
+- [x] V16 Phase 1 usage + lifecycle packages confirmed delivered (both `ok` in `go test`)
+- [x] Gap 1.5 disposition confirmed (intentional design — e2e excluded by build tag; bench/fuzz safe)
+- [x] `go build ./...` clean
+- [x] Update `lessons.md` Phase 3 section with post-mortem
 
 ---
 

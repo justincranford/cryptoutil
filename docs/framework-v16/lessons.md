@@ -163,7 +163,33 @@
 
 ## Phase 3: V15 Incomplete Work Cleanup
 
-*(To be filled during Phase 3 execution using the 4-section structure above)*
+**What Worked**:
+
+- Gap 1.5 (ci-race build tags) was confirmed as intentional design with zero code changes needed.
+  The `//go:build e2e` tag on all E2E package files naturally excludes E2E tests from
+  `go test ./internal/...` without any explicit `-tags !e2e` exclusion. The design is correct.
+- Task 3.1 verification was instant — `go test` on both packages cached with `ok` status
+  confirmed Phase 1 work persisted correctly across sessions.
+- `continue-on-error: true` in ci-race.yml has a documented tracking comment (DATA RACE in
+  crypto/certificate + shared/pool). This satisfies the V16 §9.7.5 anti-pattern exception rule
+  (tracking comment with root cause and removal plan is present).
+
+**What Didn't Work**:
+
+- Nothing failed in Phase 3 — it was a pure verification phase with no new code.
+
+**Root Causes**:
+
+- Gap 1.5 was documented as "intentional design" pre-V16. Phase 3 simply confirmed this
+  disposition. The V15 gaps audit was accurate.
+
+**Patterns for Future Phases**:
+
+- Verification-only phases (like Phase 3) should run quickly. The main value is confirming
+  previously-marked-complete work still passes after intervening changes. Use `go test -count=1`
+  (bypass cache) for final verification if caching is a concern.
+- When `continue-on-error: true` has a documented tracking comment, it satisfies the §9.7.5
+  exception rule. No change is needed unless the underlying issue is fixed.
 
 ---
 
