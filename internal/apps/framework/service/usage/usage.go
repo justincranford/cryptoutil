@@ -99,7 +99,8 @@ func BuildUsageHealth(productName, serviceName, defaultPublicPort string) string
 
 Description:
   Check service health via public API endpoint.
-  Calls GET /browser/api/v1/health endpoint on the public server.
+  Calls GET /service/api/v1/health endpoint by service-to-service clients.
+  Calls GET /browser/api/v1/health endpoint by browser clients.
 
 Options:
   --url URL      Service URL (default: https://127.0.0.1:%s)

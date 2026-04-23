@@ -165,7 +165,7 @@ GitHub Actions steps gain `::group::` collapse; pre-commit hooks suppress verbos
 
 ### Phase 0 Quality Gate
 
-- [ ] All tests pass: `go test ./...` (100%, zero skips)
+- [x] All tests pass: `go test ./...` (100%, zero skips)
 - [x] Build clean: `go build ./...` AND `go build -tags e2e,integration ./...`
 - [x] Lint clean: `golangci-lint run ./...` (0 issues)
 - [x] cicd-lint passes: `go run ./cmd/cicd-lint -q lint-text lint-go lint-go-test lint-fitness lint-docs lint-workflow`
@@ -263,38 +263,42 @@ new packages at ≥98% test coverage.
 
 ### Task 1.5: Migrate 4 PS-ID usage.go Files to usage.Build*()
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 1h
+- **Actual**: 0.5h
 - **Dependencies**: Task 1.4
 - **Description**: Update sm-kms, sm-im, jose-ja, pki-ca usage.go files to use `usage.Build*()`
   functions. Change `const` → `var` for usage strings (required for non-compile-time values).
   Verify existing usage strings match output of new helpers.
 - **Acceptance Criteria**:
-  - [ ] 4 usage.go files updated: `sm-kms/usage.go`, `sm-im/usage.go`, `jose-ja/usage.go`, `pki-ca/usage.go`
-  - [ ] No more raw usage string literals (grep verified)
-  - [ ] `golangci-lint run ./...` clean (no `mnd` or `literal-use` violations)
-  - [ ] `go build ./...` clean
+  - [x] 4 usage.go files updated: `kms_usage.go`, `im_usage.go`, `ja_usage.go`, `ca_usage.go`
+  - [x] No more raw usage string literals (grep verified)
+  - [x] `golangci-lint run ./...` clean (no `mnd` or `literal-use` violations)
+  - [x] `go build ./...` clean
+  - [x] health-path-completeness fitness check passes (health paths added to file comments)
 - **Files**:
-  - `internal/apps/sm-kms/sm_kms_usage.go` (or equivalent filename — verify actual name)
-  - `internal/apps/sm-im/sm_im_usage.go`
-  - `internal/apps/jose-ja/jose_ja_usage.go`
-  - `internal/apps/pki-ca/pki_ca_usage.go`
+  - `internal/apps/sm-kms/kms_usage.go`
+  - `internal/apps/sm-im/im_usage.go`
+  - `internal/apps/jose-ja/ja_usage.go`
+  - `internal/apps/pki-ca/ca_usage.go`
 
 ### Task 1.6: Migrate 3 Product-Level usage.go Files to usage.Build*()
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 0.5h
+- **Actual**: 0.5h
 - **Dependencies**: Task 1.5
 - **Description**: Update sm, jose, pki product-level usage.go files. These contain usage strings
   for the product-level CLI wiring. Verify actual file names and locations first.
 - **Acceptance Criteria**:
-  - [ ] 3 product usage.go files updated
-  - [ ] `go build ./cmd/sm/... ./cmd/jose/... ./cmd/pki/...` clean
-  - [ ] No raw usage string literals in product usage files
+  - [x] 3 product usage.go files updated (sm/kms, sm/im, jose/ja, pki/ca — orphaned packages under product dirs)
+  - [x] `go build ./cmd/sm/... ./cmd/jose/... ./cmd/pki/...` clean
+  - [x] No raw usage string literals in product usage files
 - **Files**:
-  - `internal/apps/sm/sm_usage.go` (or equivalent — verify actual filename)
-  - `internal/apps/jose/jose_usage.go`
-  - `internal/apps/pki/pki_usage.go`
+  - `internal/apps/sm/kms/kms_usage.go` (actual filename — sm product subdirectory)
+  - `internal/apps/sm/im/im_usage.go`
+  - `internal/apps/jose/ja/ja_usage.go`
+  - `internal/apps/pki/ca/ca_usage.go`
 
 ### Task 1.7: Confirm GAP-0.5 Work Delivered
 
