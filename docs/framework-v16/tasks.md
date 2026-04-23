@@ -170,7 +170,7 @@ GitHub Actions steps gain `::group::` collapse; pre-commit hooks suppress verbos
 - [x] Lint clean: `golangci-lint run ./...` (0 issues)
 - [x] cicd-lint passes: `go run ./cmd/cicd-lint -q lint-text lint-go lint-go-test lint-fitness lint-docs lint-workflow`
 - [x] Instruction file size: ≥200 lines removed (405 removed in Task 0.1)
-- [ ] Update `lessons.md` Phase 0 section with post-mortem
+- [x] Update `lessons.md` Phase 0 section with post-mortem
 
 ---
 
