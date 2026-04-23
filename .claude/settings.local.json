@@ -7,7 +7,8 @@
       "Bash(go build *)",
       "Bash(mkdir -p /home/q/git/cryptoutil/test-output/v14-phase1)",
       "Bash(echo \"Exit: $?\")",
-      "Bash(golangci-lint run *)"
+      "Bash(golangci-lint run *)",
+      "Bash(go test *)"
     ],
     "additionalDirectories": [
       "C:\\Users\\justi\\.claude\\projects\\c--Dev-Projects-cryptoutil\\memory"

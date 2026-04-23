@@ -240,3 +240,8 @@ required_propagations:
     source_file: docs/ENG-HANDBOOK.md
     required_targets:
       - .github/instructions/03-01.coding.instructions.md
+
+  - chunk_id: tool-preference-order
+    source_file: docs/ENG-HANDBOOK.md
+    required_targets:
+      - .github/instructions/06-03.tool-efficiency.instructions.md

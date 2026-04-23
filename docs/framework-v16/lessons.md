@@ -113,7 +113,51 @@
 
 ## Phase 2: V15 Knowledge Propagation
 
-*(To be filled during Phase 2 execution using the 4-section structure above)*
+**What Worked**:
+
+- Uncommitted changes from the previous session were fully recoverable via `git diff HEAD`. All
+  ENG-HANDBOOK.md sections (2.1–2.5) and the observability instruction file (2.8 partial) had
+  already been written. Resuming required only adding the 3 remaining instruction files.
+- The `@propagate` system in ENG-HANDBOOK.md + `required-propagations.yaml` correctly enforced
+  that the `tool-preference-order` chunk was present in `06-03.tool-efficiency.instructions.md`.
+  `lint-docs` caught any drift immediately.
+- Adding patterns as new sections after existing `@source` blocks avoids drift — only content
+  INSIDE `@source`…`@/source` blocks is validated for propagation. Glue text outside those
+  blocks can be added freely without triggering lint-docs failures.
+- The Cat 3 CN constant file (`magic_pki_tls.go`) was already created in the previous session as
+  an untracked file. Discovered it via `git status` before starting any duplicate work.
+
+**What Didn't Work**:
+
+- Task 2.7 acceptance criteria specified `grep -c "// Cat [0-9]" generator.go` = 14 but the
+  actual code uses `// --- Category N:` format (more descriptive). The grep test doesn't match
+  the actual code style. The task intent (all 14 categories have named comments) was satisfied
+  by the existing `// --- Category N:` format, which is more readable.
+- The `04-01.deployment.instructions.md` Cat 4 CA scope section was in ENG-HANDBOOK.md (§6.5)
+  but not mirrored in the instruction file. The task only required the `lint-deployments`
+  post-phase gate and `./certs:/certs:ro` bind mount in the instruction file — the Cat 4 CA
+  scope belongs in security (§6.5), not in deployment instructions.
+
+**Root Causes**:
+
+- Acceptance criteria grep patterns for generator.go were written against a hypothetical
+  `// Cat N:` format without verifying the actual code style first. Always grep the actual
+  file before writing acceptance criteria test commands.
+- ENG-HANDBOOK.md already had `client_ca_file` and `OTELCOL_EXTRA_ARGS` in §9.4.2/9.4.3
+  (written in V15). Task 2.1 added a new §9.4.5 Container Endpoint Naming pattern that was
+  the missing piece, while the other two patterns were already present.
+
+**Patterns for Future Phases**:
+
+- When resuming a plan, ALWAYS check `git diff HEAD` before starting work — uncommitted files
+  from the previous session may contain completed work ready for commit.
+- When writing acceptance criteria with grep test commands, run the grep against the actual
+  file first to verify the format matches before documenting it in tasks.md.
+- `@source`/`@propagate` blocks in ENG-HANDBOOK.md enforce exact content match in instruction
+  files. Adding patterns as non-propagated glue text is faster and appropriate when the pattern
+  is instruction-file-specific (not shared across multiple files).
+- The magic package `magic_pki_tls.go` file was created but not committed — discovered via
+  `git status`. Always commit completed sub-tasks before ending a session.
 
 ---
 

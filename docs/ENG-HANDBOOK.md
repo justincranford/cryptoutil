@@ -1008,6 +1008,25 @@ PostgreSQL uses a **single shared leader/follower pair** (`deployments/shared-po
 | grafana-otel-lgtm | 127.0.0.1:4317 | 0.0.0.0:4317 | OTLP gRPC (no TLS) |
 | grafana-otel-lgtm | 127.0.0.1:4318 | 0.0.0.0:4318 | OTLP HTTP (no TLS) |
 
+**E2E Telemetry Port Offset (+10000)**:
+
+When telemetry services coexist with PRODUCT or SUITE deployment stacks on the same host, the
+shared telemetry services must use offset host ports to avoid conflicts with service-tier ports:
+
+| Service | E2E Host Port (Product/Suite) | Container Port |
+|---------|-------------------------------|----------------|
+| opentelemetry-collector-contrib | 127.0.0.1:14317 | 0.0.0.0:4317 |
+| opentelemetry-collector-contrib | 127.0.0.1:14318 | 0.0.0.0:4318 |
+| grafana-otel-lgtm | 127.0.0.1:13000 | 0.0.0.0:3000 |
+| grafana-otel-lgtm | 127.0.0.1:14317 | 0.0.0.0:4317 |
+| grafana-otel-lgtm | 127.0.0.1:14318 | 0.0.0.0:4318 |
+
+**Rationale**: Service-tier app ports (8000–8999) and service-tier OTel ports (4317, 4318, 3000)
+do not conflict. Product/Suite tier app ports use +10000/+20000 offsets. To match, OTel/Grafana
+host ports in product/suite compose files also use +10000 offset. CI/CD integration tests that
+call OTel endpoints from the host (Go test code) MUST use the `14317`/`14318` host ports when
+running against a product or suite stack.
+
 ---
 
 ## 4. System Architecture
@@ -1794,6 +1813,26 @@ Non-Deterministic Example: {n2}nonce:aad#{R5}HKDF-HMAC-SHA256:abc123...:def456..
 - **Revocation**: Request validation, CRL/OCSP update, notification
 
 **Shared-Identity CA Chain Tracing** (MANDATORY): When accepting a design decision involving shared certificates or identities (e.g., a single cert shared by multiple replicas or services), IMMEDIATELY trace the full signing chain: (1) Which CA issues the cert? (2) Which truststores contain that CA? (3) Is the trust chain complete for ALL consumers? Accepting a shared-identity decision without tracing this chain is a design gap — gaps discovered during implementation require Phase 1 re-work.
+
+**Cat 4 CA Scope — Postgres vs. SQLite Trust Domain Isolation**:
+
+Cat 4 (PS-ID HTTPS client CAs) scope differs by database variant:
+
+| Variant | Cat 4 CA Scope | Rationale |
+|---------|---------------|-----------|
+| `postgres` | **Shared** across postgres-1 and postgres-2 | Same trust domain — both instances are logical replicas in the same PostgreSQL cluster; one CA issues client certs for both |
+| `sqlite-1` | **Isolated** (separate Cat 4 CA for sqlite-1) | Independent deployment unit; no shared trust with sqlite-2 or postgres |
+| `sqlite-2` | **Isolated** (separate Cat 4 CA for sqlite-2) | Independent deployment unit; no shared trust with sqlite-1 or postgres |
+
+**Why postgres is shared**: postgres-1 and postgres-2 are not independent services — they are a
+primary+follower pair in the same PostgreSQL cluster. App instances may connect to either. Using
+one shared CA means all app client certs are trusted by both postgres containers without needing
+per-instance trust anchors.
+
+**Why SQLite is isolated**: sqlite-1 and sqlite-2 are fully independent service instances with
+separate in-memory databases. There is no data sharing, so there is no reason for a shared trust
+domain between them. See [Section 6.11.3](#6113-pki-init-certificate-structure) for the directory
+naming convention that encodes this design.
 
 ### 6.6 JOSE Architecture & Strategy
 
@@ -2652,7 +2691,28 @@ Service-to-service communication inside Docker always uses container ports.
 
 Both Cat 9 cert types are issued by the Cat 8 CA and verified by `client_ca_file` on the receiver.
 
-#### 9.4.5 Docker Desktop and Testcontainers API Compatibility
+#### 9.4.5 Container Endpoint Naming Convention
+
+**MANDATORY: Use the correct endpoint format based on caller context.**
+
+| Caller Context | Endpoint Format | Example |
+|----------------|----------------|---------|
+| Container → Container (same Compose network) | `service-name:container-port` | `otel-collector-contrib:4317` |
+| Host test → Container (port-mapped) | `127.0.0.1:host-port` | `127.0.0.1:14317` |
+| CI/CD workflow → Container (port-mapped) | `127.0.0.1:host-port` | `127.0.0.1:14317` |
+
+**Rule**: Inside a Docker Compose network, services resolve each other by service name on the
+container-internal port. From the host (including test code and CI/CD), use `127.0.0.1` with the
+host-mapped port from `ports:` in `compose.yml`.
+
+**Anti-Pattern**: Using `localhost:host-port` inside a container — Alpine resolves `localhost` to
+`::1` (IPv6) which may not be bound. Always use `127.0.0.1` for IPv4 host-side connections.
+
+**Config file separation**: Service configs reference container endpoints
+(`opentelemetry-collector:4317`). Test overrides and CI/CD integration steps use host endpoints
+(`127.0.0.1:14317`). Never mix the two contexts in the same config file.
+
+#### 9.4.6 Docker Desktop and Testcontainers API Compatibility
 
 **CRITICAL: Docker Desktop upgrades can break testcontainers.**
 
@@ -2805,6 +2865,47 @@ COPY --from=validator /app/cryptoutil /app/cryptoutil
 **GitHub Actions storage cost**: Short retention prevents unbounded storage growth. The `github-cleanup` script (`go run ./cmd/cicd-lint github-cleanup`) can be run periodically to prune old runs and artifacts.
 
 **NEVER extend retention periods without justification** — longer retention increases costs and creates false expectations that artifacts are archived long-term.
+
+#### 9.7.5 CI/CD Quality Gate Anti-Patterns
+
+**`continue-on-error: true` on quality gate steps is a suppressor anti-pattern**:
+
+Setting `continue-on-error: true` on a quality gate step (build, lint, test, coverage, mutation)
+allows failed gates to pass silently. This defeats the purpose of the gate and creates false
+confidence in CI/CD results. When this must be used temporarily (e.g., flaky third-party action),
+add a tracking comment citing the root cause and removal plan:
+
+```yaml
+- name: Run mutation tests
+  continue-on-error: true  # TODO: Remove after gremlins v0.7 fixes Windows panic (issue #123)
+  run: gremlins unleash --tags=!integration
+```
+
+A `continue-on-error: true` without a tracking comment is a blocking lint violation (caught by
+`lint-workflow`). NEVER merge quality gate suppressors without documented justification and a
+removal plan.
+
+**`pull-requests: write` at workflow level is over-scoped**:
+
+Declaring `pull-requests: write` at the workflow level grants write permission to ALL jobs in the
+workflow, even jobs that only read. Use per-job minimum permissions instead:
+
+```yaml
+# WRONG: over-scoped at workflow level
+permissions:
+  pull-requests: write
+
+# CORRECT: per-job minimum permissions
+jobs:
+  upload-coverage:
+    permissions:
+      pull-requests: write   # only this job needs to post comments
+  run-tests:
+    permissions:
+      pull-requests: read    # this job only reads PR metadata
+```
+
+Apply least-privilege permissions at the job level, not the workflow level.
 
 ### 9.8 Reusable Action Patterns
 
@@ -4120,6 +4221,60 @@ func TestE2E_TLSHandshake(t *testing.T) {
 
 **Volume path convention**: `pki-init` writes to a named Docker volume `{ps-id}-certs`. Inside the volume, paths follow the `tls-structure.md` layout: `{tier-id}/{category-dir-name}/{files}`.
 
+#### 10.4.5 TLS Rejection Test Assertions
+
+**MANDATORY: TLS rejection tests MUST assert the error message contains `"tls"`.**
+
+`require.Error(t, err)` alone does not prove TLS rejection — it passes for any error (network
+timeout, DNS failure, connection refused). A TLS rejection produces a `tls:` prefix or `TLS`
+substring in the error string. Assert this explicitly:
+
+```go
+// WRONG: any error passes — does not prove TLS rejected the connection
+require.Error(t, err)
+
+// CORRECT: assert the error is specifically a TLS rejection
+require.Error(t, err)
+require.ErrorContains(t, err.Error(), "tls")
+```
+
+**Rationale**: If the server is down, `require.Error` passes and the test gives false confidence.
+Only a TLS-level error proves the server actively rejected the connection.
+
+#### 10.4.6 `//go:build e2e` Build Tag — Package-Wide Requirement
+
+**MANDATORY: The `//go:build e2e` tag MUST appear on ALL `.go` files in an E2E package, not only the test files.**
+
+If any non-test file in the package (e.g., `compose_manager.go`, `helpers.go`) lacks the build
+tag, `go build ./...` includes that file in the non-E2E build and may cause compile errors or
+unwanted dependencies.
+
+```
+internal/apps/sm-kms/e2e/
+├── compose_manager.go        // MUST have //go:build e2e
+├── helpers.go                // MUST have //go:build e2e
+└── sm_kms_e2e_test.go       // MUST have //go:build e2e
+```
+
+**Enforcement**: The `go build -tags e2e ./...` step in CI validates the tagged build. The
+non-tagged `go build ./...` step validates that untagged files compile without E2E imports.
+
+#### 10.4.7 `golangci-lint --fix` Two-Pass Rule
+
+**MANDATORY: After `golangci-lint --fix`, ALWAYS re-run `golangci-lint run` without `--fix`.**
+
+The `--fix` flag applies auto-fixers (gofumpt, goimports, wsl, etc.). Some fixers modify code in
+ways that trigger OTHER linters (for example: gofumpt may reformat a line that `wsl` then flags
+differently, or goimports may add a blank line that `godot` flags). A single `--fix` pass may
+leave residual violations.
+
+```bash
+golangci-lint run --fix ./...              # Step 1: apply auto-fixes
+golangci-lint run ./...                    # Step 2: verify no new violations were introduced
+```
+
+**Pattern**: Make this a habit — `--fix` followed by `run` before every commit.
+
 ### 10.5 Mutation Testing Strategy
 
 **Efficacy Targets**:
@@ -4767,6 +4922,37 @@ FROM alpine:latest AS runtime
 - Health check configuration (interval, timeout, retries, start_period)
 - Dependency ordering (depends_on with service_healthy)
 - Network isolation patterns
+
+**TLS Certificate Bind Mount (MANDATORY)**:
+
+The `./certs:/certs:ro` bind mount is a **structural requirement** for all services that use TLS.
+Every app service in `compose.yml` MUST include:
+
+```yaml
+volumes:
+  - ./certs:/certs:ro
+```
+
+Where `./certs` is the host-side output directory populated by `pki-init` before `docker compose up`.
+The `/certs:ro` (read-only) mount ensures containers cannot modify TLS material. Services read certs
+at startup from `/certs/{tier-id}/{category-dir-name}/{dir-name}.crt` and
+`/certs/{tier-id}/{category-dir-name}/{dir-name}.key`.
+
+**Omitting `./certs:/certs:ro` from any app service is a deployment configuration error** — the service
+will start but fail TLS handshakes as it cannot locate cert files at `/certs/...`.
+
+**`lint-deployments` as Post-Phase Gate (MANDATORY)**:
+
+After ANY change to `deployments/**`, `configs/**`, or deployment validator source code, run:
+
+```bash
+go run ./cmd/cicd-lint lint-deployments
+```
+
+This gate is MANDATORY — it is not sufficient to only check `docker compose config` syntax. The 8
+deployment validators check structural invariants (port formula, secrets policy, schema compliance,
+template drift) that `docker compose config` does not validate. Run this within the same phase as
+the deployment change, not deferred to a later phase.
 
 ##### Docker Secrets (MANDATORY)
 
@@ -6293,6 +6479,84 @@ Key settings:
 All autonomous execution modes enforce the same quality gates as Section 11.2 and the same commit discipline as Section 14.2. Beast-mode and implementation-execution agents are held to identical standards as interactive chat — the difference is only in interruption behavior, not in quality requirements.
 
 **Cross-References**: Agent orchestration strategy in [Section 2.1](#21-agent-orchestration-strategy). Agent/skill catalog in [Appendix B.5](#b5-agentskill-catalog).
+
+### 14.12 LLM Agent Token Efficiency Strategy
+
+**CRITICAL: Token budget is finite per hour. Efficient tool use extends available work per session.**
+
+#### 14.12.1 Tool Preference Order
+
+Use the least expensive tool that satisfies the requirement:
+
+<!-- @propagate to=".github/instructions/06-03.tool-efficiency.instructions.md" as="tool-preference-order" -->
+| Priority | Tool | When to Use |
+|----------|------|-------------|
+| 1 (cheapest) | `grep_search` / `text_search` | Exact string or regex match in known files |
+| 2 | `file_search` | Confirm file existence or locate by name pattern |
+| 3 | `list_dir` | Enumerate directory contents (unknown structure) |
+| 4 | `read_file` (targeted) | Read a specific 50–200 line window of a known file |
+| 5 | `read_file` (full) | Full file read only when entire context required |
+| 6 (costliest) | `semantic_search` | ONLY when query cannot be expressed as regex/literal |
+<!-- @/propagate -->
+
+**Never** use `semantic_search` to find a function name, constant, import path, or error string —
+these are all expressible as regex. `semantic_search` scans the entire workspace; `grep_search`
+returns targeted matches in milliseconds.
+
+#### 14.12.2 Instruction File Efficiency
+
+**Cross-Reference Pruning**: Remove trailing `See [ENG-HANDBOOK.md Section X.Y...]` cross-reference
+lines that appear OUTSIDE `@source` blocks. These glue references add tokens without adding
+information — readers can follow `@source` blocks directly to the canonical location. Removing
+redundant cross-references from instruction files reduces per-session token load without losing
+content.
+
+**Agent File Compaction**: Non-behavioral prose in agent files (wordy preambles, duplicate tables)
+can be compacted without losing behavioral guidance. Quality mandates, continuous execution
+sections, and workflow steps MUST remain in full — agent isolation requires self-containment.
+
+#### 14.12.3 CI/CD Output Collapsing
+
+Verbose CI steps MUST be wrapped in `::group::` / `::endgroup::` annotations:
+
+```yaml
+- name: Run linter
+  run: |
+    echo "::group::golangci-lint output"
+    golangci-lint run --quiet ./...
+    echo "::endgroup::"
+```
+
+**Benefits**: Passing steps collapse in the GitHub Actions UI, reducing log noise in agent context
+windows. Failing steps still expand automatically with full output. Zero behavioral change — purely
+a UI collapse.
+
+**Mandatory quiet flags**:
+- `golangci-lint run --quiet` — suppresses per-file passing output
+- `go test` in CI — omit `-v`; failures still print without it
+- `docker build --progress=quiet` — suppresses layer-by-layer build output
+- `go run ./cmd/cicd-lint <cmd> -q` — summary-only mode (one line per linter: PASS/FAIL with count)
+
+#### 14.12.4 cicd-lint Quiet Mode
+
+The `-q` flag enables summary-only output across all 14 linters:
+
+```bash
+go run ./cmd/cicd-lint -q lint-text lint-fitness lint-docs   # PASS (N files) per linter
+```
+
+On failure: errors are shown regardless of `-q`. On success: one summary line per linter.
+Use `-q` in pre-commit hooks and CI/CD steps to reduce log verbosity. Use verbose mode (no `-q`)
+when debugging specific linter failures.
+
+#### 14.12.5 Targeted read_file Usage
+
+Always specify `startLine`/`endLine` when reading files. Full-file reads consume tokens
+proportional to file size — unnecessary when only a specific section is needed.
+
+**Default window**: 50–200 lines centered on the section of interest. Expand only if context is
+incomplete. Use `grep_search` first to find the relevant line numbers, then use targeted
+`read_file`.
 
 ---
 
