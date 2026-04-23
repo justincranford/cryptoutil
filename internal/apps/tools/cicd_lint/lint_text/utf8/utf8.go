@@ -45,7 +45,7 @@ func Check(logger *cryptoutilCmdCicdCommon.Logger, filesByExtension map[string][
 		return fmt.Errorf("file encoding violations found: %d files have incorrect encoding", len(encodingViolations))
 	}
 
-	fmt.Fprintln(os.Stderr, "\n✅ All files have correct UTF-8 encoding without BOM")
+	logger.LogWithPrefix("utf8", "✅ All files have correct UTF-8 encoding without BOM")
 
 	logger.Log("UTF-8 enforcement completed")
 

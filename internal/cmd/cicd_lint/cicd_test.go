@@ -89,3 +89,62 @@ func TestPrintUsage(t *testing.T) {
 	require.Contains(t, output, "lint-docs")
 	require.Contains(t, output, "github-cleanup")
 }
+
+func TestFirstNonFlag(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+		args []string
+		want string
+	}{
+		{name: "no args", args: []string{}, want: ""},
+		{name: "only flags", args: []string{"-q", cryptoutilSharedMagic.FlagSummary}, want: ""},
+		{name: "command first", args: []string{"lint-text"}, want: "lint-text"},
+		{name: "flag then command", args: []string{"-q", "lint-text"}, want: "lint-text"},
+		{name: "multiple flags then command", args: []string{"-q", cryptoutilSharedMagic.FlagSummary, "lint-go"}, want: "lint-go"},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			require.Equal(t, tc.want, firstNonFlag(tc.args))
+		})
+	}
+}
+
+func TestHasHelpFlag(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+		args []string
+		want bool
+	}{
+		{name: "no flags", args: []string{"lint-text"}, want: false},
+		{name: "short -h", args: []string{"-h"}, want: true},
+		{name: "--help flag", args: []string{cryptoutilSharedMagic.CLIHelpFlag}, want: true},
+		{name: "help command", args: []string{cryptoutilSharedMagic.CLIHelpCommand}, want: true},
+		{name: "help mixed with other args", args: []string{"lint-text", cryptoutilSharedMagic.CLIHelpFlag}, want: true},
+		{name: "empty", args: []string{}, want: false},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			require.Equal(t, tc.want, hasHelpFlag(tc.args))
+		})
+	}
+}
+
+func TestCicd_QuietFlag(t *testing.T) {
+	t.Parallel()
+
+	var stdout, stderr bytes.Buffer
+
+	// lint-workflow is fast and always passes in the project root.
+	exitCode := Cicd([]string{"cicd", "-q", "lint-workflow"}, strings.NewReader(""), &stdout, &stderr)
+	require.Equal(t, 0, exitCode, "Expected exit code 0 for -q lint-workflow")
+}

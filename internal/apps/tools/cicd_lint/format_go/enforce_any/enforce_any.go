@@ -63,13 +63,13 @@ func Enforce(logger *cryptoutilCmdCicdCommon.Logger, filesByExtension map[string
 	fmt.Fprintf(os.Stderr, "Total replacements: %d\n", totalReplacements)
 
 	if filesModified > 0 {
-		fmt.Fprintln(os.Stderr, "\n✅ Successfully applied custom Go source code fixes")
-		fmt.Fprintln(os.Stderr, "Please review and commit the changes")
+		logger.LogWithPrefix("enforce-any", "✅ Successfully applied custom Go source code fixes")
+		logger.LogWithPrefix("enforce-any", "Please review and commit the changes")
 
 		return fmt.Errorf("modified %d files with %d total replacements", filesModified, totalReplacements)
 	}
 
-	fmt.Fprintln(os.Stderr, "\n✅ All Go files are already properly formatted")
+	logger.LogWithPrefix("enforce-any", "✅ All Go files are already properly formatted")
 
 	logger.Log("Any enforcement completed")
 

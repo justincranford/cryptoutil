@@ -58,7 +58,7 @@ func CheckFiles(logger *cryptoutilCmdCicdCommon.Logger, testFiles []string) erro
 		return fmt.Errorf("found %d missing t.Parallel() violations", totalIssues)
 	}
 
-	fmt.Fprintln(os.Stderr, "\n✅ All test functions use t.Parallel()")
+	logger.LogWithPrefix("parallel-tests", "✅ All test functions use t.Parallel()")
 
 	logger.Log("t.Parallel() enforcement completed")
 

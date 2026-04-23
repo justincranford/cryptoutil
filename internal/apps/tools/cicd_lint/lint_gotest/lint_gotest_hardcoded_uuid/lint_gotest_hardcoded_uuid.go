@@ -63,7 +63,7 @@ func Check(logger *cryptoutilCmdCicdCommon.Logger, testFiles []string) error {
 		return fmt.Errorf("found %d hardcoded UUID literal violations", totalIssues)
 	}
 
-	fmt.Fprintln(os.Stderr, "\n✅ No hardcoded uuid.MustParse literals found")
+	logger.LogWithPrefix("hardcoded-uuid", "✅ No hardcoded uuid.MustParse literals found")
 
 	logger.Log("Hardcoded UUID check completed")
 

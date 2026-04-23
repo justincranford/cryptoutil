@@ -121,7 +121,7 @@ func checkUnittestAntipattern(logger *cryptoutilCmdCicdCommon.Logger, pythonFile
 		return fmt.Errorf("found %d unittest antipattern violations", totalIssues)
 	}
 
-	fmt.Fprintln(os.Stderr, "\n✅ All Python test files use pytest style (no unittest.TestCase)")
+	logger.LogWithPrefix("unittest-antipattern", "✅ All Python test files use pytest style (no unittest.TestCase)")
 
 	logger.Log("Unittest antipattern check completed")
 

@@ -56,7 +56,7 @@ func Check(logger *cryptoutilCmdCicdCommon.Logger, testFiles []string) error {
 		return fmt.Errorf("found %d assert usage violations", totalIssues)
 	}
 
-	fmt.Fprintln(os.Stderr, "\n✅ All test files use require over assert")
+	logger.LogWithPrefix("require-over-assert", "✅ All test files use require over assert")
 
 	logger.Log("Require over assert enforcement completed")
 

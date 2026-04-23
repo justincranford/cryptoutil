@@ -57,6 +57,7 @@ const (
 
 // Cicd executes the specified CI/CD check commands.
 // Commands are executed sequentially, collecting results for each.
+// Pass -q as a flag for quiet/summary mode: one PASS/FAIL line per command.
 // Returns exit code: 0 for success, 1 for failure.
 func Cicd(args []string, _ io.Reader, stdout, stderr io.Writer) int {
 	if len(args) < 2 {
@@ -67,14 +68,26 @@ func Cicd(args []string, _ io.Reader, stdout, stderr io.Writer) int {
 
 	commands := args[1:]
 	extraArgs := getExtraArgs(args)
+	quiet := hasQuietFlag(commands)
 
-	if err := run(commands, extraArgs); err != nil {
+	if err := run(commands, extraArgs, quiet); err != nil {
 		_, _ = fmt.Fprintf(stderr, "Error: %v\n", err)
 
 		return 1
 	}
 
 	return 0
+}
+
+// hasQuietFlag returns true if -q or --summary appears in the command arguments.
+func hasQuietFlag(args []string) bool {
+	for _, arg := range args {
+		if arg == cryptoutilSharedMagic.FlagQuiet || arg == cryptoutilSharedMagic.FlagSummary {
+			return true
+		}
+	}
+
+	return false
 }
 
 // getExtraArgs safely extracts arguments after the command name.
@@ -91,12 +104,19 @@ func getExtraArgs(args []string) []string {
 
 // run executes the specified CI/CD check commands.
 // Commands are executed sequentially, collecting results for each.
+// When quiet is true, verbose per-file output is suppressed; one PASS/FAIL line is printed per command.
 // Returns an error if any command fails, but continues executing all commands.
-func run(commands []string, extraArgs []string) error {
-	logger := cryptoutilCmdCicdCommon.NewLogger("Run")
+func run(commands []string, extraArgs []string, quiet bool) error {
+	var logger *cryptoutilCmdCicdCommon.Logger
+	if quiet {
+		logger = cryptoutilCmdCicdCommon.NewQuietLogger("Run")
+	} else {
+		logger = cryptoutilCmdCicdCommon.NewLogger("Run")
+	}
+
 	startTime := time.Now().UTC()
 
-	actualCommands, err := validateCommands(commands)
+	actualCommands, err := validateCommands(logger, commands)
 	if err != nil {
 		return fmt.Errorf("command validation failed: %w", err)
 	}
@@ -112,6 +132,8 @@ func run(commands []string, extraArgs []string) error {
 			return fmt.Errorf("failed to collect files: %w", err)
 		}
 	}
+
+	totalFileCount := countFiles(filesByExtension)
 
 	logger.Log(fmt.Sprintf("Executing %d commands", len(actualCommands)))
 
@@ -172,15 +194,30 @@ func run(commands []string, extraArgs []string) error {
 
 		logger.Log(fmt.Sprintf("Command '%s' completed in %.2fs", command, cmdDuration.Seconds()))
 
-		// Add a separator between multiple commands.
-		if i < len(actualCommands)-1 {
+		// In quiet mode: print one-line summary per command.
+		if quiet {
+			if cmdErr == nil {
+				if commandNeedsFiles(command) {
+					fmt.Fprintf(os.Stderr, cryptoutilSharedMagic.CICDQuietPassFormat, command, totalFileCount)
+				} else {
+					fmt.Fprintf(os.Stderr, cryptoutilSharedMagic.CICDQuietPassNoFilesFormat, command)
+				}
+			} else {
+				fmt.Fprintf(os.Stderr, cryptoutilSharedMagic.CICDQuietFailFormat, command)
+			}
+		}
+
+		// Add a separator between multiple commands (verbose mode only).
+		if !quiet && i < len(actualCommands)-1 {
 			cryptoutilCmdCicdCommon.PrintCommandSeparator(os.Stderr)
 		}
 	}
 
-	// Print summary
-	totalDuration := time.Since(startTime)
-	cryptoutilCmdCicdCommon.PrintExecutionSummary(os.Stderr, results, totalDuration)
+	// Print full summary in verbose mode only.
+	if !quiet {
+		totalDuration := time.Since(startTime)
+		cryptoutilCmdCicdCommon.PrintExecutionSummary(os.Stderr, results, totalDuration)
+	}
 
 	// Collect all errors
 	failedCommands := cryptoutilCmdCicdCommon.GetFailedCommands(results)
@@ -192,6 +229,31 @@ func run(commands []string, extraArgs []string) error {
 	logger.Log("Run completed successfully")
 
 	return nil
+}
+
+// countFiles returns the total number of files across all extensions.
+func countFiles(filesByExtension map[string][]string) int {
+	total := 0
+
+	for _, files := range filesByExtension {
+		total += len(files)
+	}
+
+	return total
+}
+
+// commandNeedsFiles returns true if a single command requires file-based scanning.
+func commandNeedsFiles(command string) bool {
+	switch command {
+	case cmdLintText, cmdLintCompose, cmdFormatGo,
+		cmdLintGoTest, cmdLintWorkflow,
+		cmdLintPorts, cmdLintGolangci,
+		cmdLintJavaTest, cmdLintPythonTest,
+		cmdLintOpenAPI:
+		return true
+	}
+
+	return false
 }
 
 // commandsNeedFiles returns true if any command in the list requires file-based scanning.
@@ -210,9 +272,7 @@ func commandsNeedFiles(commands []string) bool {
 	return false
 }
 
-func validateCommands(commands []string) ([]string, error) {
-	logger := cryptoutilCmdCicdCommon.NewLogger("validateCommands")
-
+func validateCommands(logger *cryptoutilCmdCicdCommon.Logger, commands []string) ([]string, error) {
 	if len(commands) == 0 {
 		logger.Log("validateCommands: empty commands")
 
@@ -220,6 +280,7 @@ func validateCommands(commands []string) ([]string, error) {
 	}
 
 	// Extract actual commands (skip flags starting with - and their values).
+	// Boolean flags (-q, --summary) take no value; other flags skip the next argument.
 	actualCommands := []string{}
 	skipNext := false
 
@@ -231,7 +292,9 @@ func validateCommands(commands []string) ([]string, error) {
 		}
 
 		if strings.HasPrefix(cmd, "-") {
-			skipNext = true // Next arg is flag value, skip it
+			if !cryptoutilSharedMagic.BooleanFlags[cmd] {
+				skipNext = true // Non-boolean flag: next arg is its value, skip it.
+			}
 
 			continue
 		}

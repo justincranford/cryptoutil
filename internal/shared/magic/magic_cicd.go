@@ -70,6 +70,25 @@ const (
 
 	// CICDConfigsDir is the top-level directory name for service configuration files.
 	CICDConfigsDir = "configs"
+
+	// FlagQuiet is the short flag for quiet/summary mode in cicd-lint (-q).
+	// Boolean flag — takes no value argument.
+	FlagQuiet = "-q"
+
+	// FlagSummary is the long flag for quiet/summary mode in cicd-lint (--summary).
+	// Boolean flag — takes no value argument.
+	FlagSummary = "--summary"
+
+	// CICDQuietPassFormat is the format string for a quiet-mode PASS line.
+	// Arguments: command name, file count.
+	CICDQuietPassFormat = "%s: PASS (%d files)\n"
+
+	// CICDQuietPassNoFilesFormat is the format string for a quiet-mode PASS line for commands that don't scan files.
+	CICDQuietPassNoFilesFormat = "%s: PASS\n"
+
+	// CICDQuietFailFormat is the format string for a quiet-mode FAIL line.
+	// Arguments: command name.
+	CICDQuietFailFormat = "%s: FAIL\n"
 )
 
 // getProjectRoot finds the project root by walking up the directory tree to find .git directory.
@@ -336,6 +355,13 @@ const (
 		lint-text           - [Linter]    Enforce UTF-8 encoding without BOM for text files
 		lint-workflow       - [Linter]    Validate GitHub Actions workflow naming and versions`
 )
+
+// BooleanFlags defines cicd flags that take no value argument.
+// These flags are skipped without consuming the next argument.
+var BooleanFlags = map[string]bool{
+	FlagQuiet:   true,
+	FlagSummary: true,
+}
 
 // ValidCommands defines the set of valid cicd commands.
 var ValidCommands = map[string]bool{

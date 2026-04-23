@@ -12,16 +12,14 @@ import (
 	"sync"
 	"testing"
 
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+
 	"github.com/stretchr/testify/require"
 )
 
 const (
-	bytesPerUint32 = 4
-	bitsPerByte    = 8
 	// SkipMessage is the message used when a test is skipped by probability sampling.
 	SkipMessage = "Skipped by probability sampling"
-	float32_0   = float32(0.0)
-	float32_1   = float32(1.0)
 )
 
 var (
@@ -54,12 +52,12 @@ func SkipByProbability(t *testing.T, prob float32) {
 
 // validateProbability returns an error if prob not in [0,1].
 func validateProbability(prob float32) error {
-	if prob < float32_0 {
-		return fmt.Errorf("probability %v is less than %v", prob, float32_0)
+	if prob < cryptoutilSharedMagic.Float32Zero {
+		return fmt.Errorf("probability %v is less than %v", prob, cryptoutilSharedMagic.Float32Zero)
 	}
 
-	if prob > float32_1 {
-		return fmt.Errorf("probability %v is greater than %v", prob, float32_1)
+	if prob > cryptoutilSharedMagic.Float32One {
+		return fmt.Errorf("probability %v is greater than %v", prob, cryptoutilSharedMagic.Float32One)
 	}
 
 	return nil
@@ -67,15 +65,15 @@ func validateProbability(prob float32) error {
 
 // normalizedRandomFloat32 generates a cryptographically secure random float32 in [0,1).
 func normalizedRandomFloat32(t *testing.T) float32 {
-	var b [bytesPerUint32]byte
+	var b [cryptoutilSharedMagic.BytesPerUint32]byte
 
 	_, err := crand.Read(b[:])
 	require.NoError(t, err)
 
 	randomUint32 := uint32(0)
 	for i, v := range b {
-		// shift by bits (8 bits per byte) not by number of bytes
-		randomUint32 |= uint32(v) << (i * bitsPerByte)
+		// shift by bits (8 bits per byte) not by number of bytes.
+		randomUint32 |= uint32(v) << (i * cryptoutilSharedMagic.BitsToBytes)
 	}
 
 	return float32(randomUint32) / float32(math.MaxUint32)
@@ -85,7 +83,7 @@ func normalizedRandomFloat32(t *testing.T) float32 {
 // Suitable for production probabilistic decisions such as audit sampling.
 // Returns an error if random byte generation fails.
 func SamplingBool(rate float64) (bool, error) {
-	var b [bytesPerUint32]byte
+	var b [cryptoutilSharedMagic.BytesPerUint32]byte
 
 	if _, err := crand.Read(b[:]); err != nil {
 		return false, fmt.Errorf("failed to generate sampling random: %w", err)
@@ -93,7 +91,7 @@ func SamplingBool(rate float64) (bool, error) {
 
 	randomUint32 := uint32(0)
 	for i, v := range b {
-		randomUint32 |= uint32(v) << (i * bitsPerByte)
+		randomUint32 |= uint32(v) << (i * cryptoutilSharedMagic.BitsToBytes)
 	}
 
 	return float64(randomUint32)/float64(math.MaxUint32) < rate, nil

@@ -24,7 +24,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
@@ -106,7 +105,7 @@ func waitForAppsHealthy(t *testing.T) {
 		}
 
 		if time.Now().UTC().After(deadline) {
-			t.Fatalf("app %q did not become healthy within %s at %s", v.name, cryptoutilSharedMagic.FullPipelineTLSE2ETimeout, healthURL)
+			require.Failf(t, "app did not become healthy", "app %q did not become healthy within %s at %s", v.name, cryptoutilSharedMagic.FullPipelineTLSE2ETimeout, healthURL)
 		}
 	}
 }
@@ -142,7 +141,7 @@ func TestFullPipeline_GrafanaHealth(t *testing.T) {
 	body, err := io.ReadAll(resp.Body)
 	require.NoError(t, err)
 
-	assert.Equal(t, http.StatusOK, resp.StatusCode,
+	require.Equal(t, http.StatusOK, resp.StatusCode,
 		"Grafana /api/health must return 200; body: %s", body)
 }
 
@@ -174,7 +173,7 @@ func TestFullPipeline_GrafanaOTLP_ServerCert(t *testing.T) {
 	require.NotEmpty(t, certs, "Grafana OTLP gRPC must present a server certificate")
 
 	cn := certs[0].Subject.CommonName
-	assert.Equal(t, cryptoutilSharedMagic.GrafanaTLSE2EServerCertCN, cn,
+	require.Equal(t, cryptoutilSharedMagic.GrafanaTLSE2EServerCertCN, cn,
 		"Grafana OTLP gRPC server cert CN must be Cat 2 identity")
 }
 
@@ -206,7 +205,7 @@ func TestFullPipeline_GrafanaOTLP_MTLSRejected(t *testing.T) {
 	}
 
 	// Verify it's a TLS error, not a network error.
-	assert.Contains(t, err.Error(), "tls",
+	require.Contains(t, err.Error(), "tls",
 		"error from no-cert Grafana OTLP gRPC dial must be a TLS handshake failure")
 }
 
@@ -287,7 +286,7 @@ func TestFullPipeline_AppPublicHTTPS_ServerCert(t *testing.T) {
 			require.NotEmpty(t, certs, "app %q must present a server certificate", tc.name)
 
 			cn := certs[0].Subject.CommonName
-			assert.Equal(t, tc.serverCertCN, cn,
+			require.Equal(t, tc.serverCertCN, cn,
 				"app %q server cert CN must be Cat 3 identity", tc.name)
 		})
 	}
@@ -331,7 +330,7 @@ func TestFullPipeline_AppPublicHTTPS_HealthEndpoint(t *testing.T) {
 			body, err := io.ReadAll(resp.Body)
 			require.NoError(t, err)
 
-			assert.Equal(t, http.StatusOK, resp.StatusCode,
+			require.Equal(t, http.StatusOK, resp.StatusCode,
 				"app %q health endpoint must return 200; body: %s", tc.name, body)
 		})
 	}
@@ -365,11 +364,11 @@ func TestFullPipeline_AppPublicHTTPS_MTLSRejected(t *testing.T) {
 			if err == nil {
 				_ = conn.Close()
 
-				t.Fatalf("TLS dial to app %q at %s without client cert must fail (Cat 4 mTLS enforced)", tc.name, addr)
+				require.Failf(t, "TLS dial must fail for mTLS enforcement", "TLS dial to app %q at %s without client cert must fail (Cat 4 mTLS enforced)", tc.name, addr)
 			}
 
 			// Verify it's a TLS error, not a network error.
-			assert.Contains(t, err.Error(), "tls",
+			require.Contains(t, err.Error(), "tls",
 				"error from no-cert dial to app %q must be a TLS handshake failure", tc.name)
 		})
 	}

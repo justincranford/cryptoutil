@@ -117,7 +117,7 @@ func checkInDir(logger *cryptoutilCmdCicdCommon.Logger, workflowFiles []string, 
 		return fmt.Errorf("found %d outdated GitHub Actions", len(outdated))
 	}
 
-	fmt.Fprintln(os.Stderr, "All GitHub Actions are up to date.")
+	logger.LogWithPrefix("lint-workflow", "All GitHub Actions are up to date.")
 
 	logger.Log("lint-workflow completed")
 

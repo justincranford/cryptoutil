@@ -199,6 +199,11 @@ func isExemptedFile(filePath string) bool {
 		return true
 	}
 
+	// E2E tests: must wait for services to become healthy (polling loops).
+	if strings.Contains(filePath, "/e2e/") {
+		return true
+	}
+
 	return false
 }
 
@@ -248,7 +253,7 @@ func Check(logger *cryptoutilCmdCicdCommon.Logger, testFiles []string) error {
 		return fmt.Errorf("found %d time.Sleep violations", totalIssues)
 	}
 
-	fmt.Fprintln(os.Stderr, "\n✅ No non-exempted time.Sleep usage found in test files")
+	logger.LogWithPrefix("test-sleep", "✅ No non-exempted time.Sleep usage found in test files")
 
 	logger.Log("Test sleep check completed")
 

@@ -253,3 +253,66 @@ func TestLogger_ConcurrentLogging(t *testing.T) {
 		require.Contains(t, output, expectedMsg, "Should contain message %d", i)
 	}
 }
+
+func TestNewQuietLogger(t *testing.T) {
+	// Note: Not using t.Parallel() to avoid stderr capture conflicts
+	oldStderr := os.Stderr
+	r, w, _ := os.Pipe()
+	os.Stderr = w
+
+	logger := NewQuietLogger("quiet-test")
+
+	logger.Log("this should be suppressed")
+	logger.LogWithPrefix("PREFIX", "this should be suppressed too")
+
+	if err := w.Close(); err != nil {
+		t.Logf("Warning: failed to close write pipe: %v", err)
+	}
+
+	os.Stderr = oldStderr
+
+	var buf bytes.Buffer
+
+	_, _ = buf.ReadFrom(r)
+	output := buf.String()
+
+	require.NotNil(t, logger, "Quiet logger should not be nil")
+	require.Equal(t, "quiet-test", logger.Operation(), "Operation should match")
+	require.True(t, logger.IsQuiet(), "Logger should be quiet")
+	require.NotContains(t, output, "[CICD]", "Quiet logger should suppress Log output")
+	require.NotContains(t, output, "suppressed", "Quiet logger should suppress Log message content")
+}
+
+func TestQuietLogger_LogError_AlwaysWrites(t *testing.T) {
+	// Note: Not using t.Parallel() to avoid stderr capture conflicts
+	oldStderr := os.Stderr
+	r, w, _ := os.Pipe()
+	os.Stderr = w
+
+	logger := NewQuietLogger("quiet-error-test")
+	logger.LogError(fmt.Errorf("important error"))
+
+	if err := w.Close(); err != nil {
+		t.Logf("Warning: failed to close write pipe: %v", err)
+	}
+
+	os.Stderr = oldStderr
+
+	var buf bytes.Buffer
+
+	_, _ = buf.ReadFrom(r)
+	output := buf.String()
+
+	require.Contains(t, output, "ERROR:", "Quiet logger should still write LogError output")
+	require.Contains(t, output, "important error", "Quiet logger LogError should include the error message")
+}
+
+func TestIsQuiet(t *testing.T) {
+	t.Parallel()
+
+	verbose := NewLogger("verbose")
+	require.False(t, verbose.IsQuiet(), "Standard logger should not be quiet")
+
+	quiet := NewQuietLogger("quiet")
+	require.True(t, quiet.IsQuiet(), "Quiet logger should be quiet")
+}

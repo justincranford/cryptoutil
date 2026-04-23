@@ -3,6 +3,7 @@
 package cicd_lint
 
 import (
+	"bytes"
 	"fmt"
 	"os"
 	"testing"
@@ -27,7 +28,7 @@ func TestRunInvalidCommand(t *testing.T) {
 	t.Parallel()
 
 	// Test with invalid command.
-	err := run([]string{"invalid-command"}, []string{})
+	err := run([]string{"invalid-command"}, []string{}, false)
 	require.Error(t, err, "Expected error for invalid command")
 	require.Contains(t, err.Error(), "unknown command: invalid-command", "Error message should indicate unknown command")
 }
@@ -123,7 +124,7 @@ func TestRun_AllCommands_HappyPath(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			err := run(tc.commands, []string{})
+			err := run(tc.commands, []string{}, false)
 			// Note: Some commands may fail due to project state (e.g., outdated dependencies).
 			// We're testing that the switch cases execute without panic, not that they pass.
 			if err != nil {
@@ -177,7 +178,7 @@ func TestValidateCommands_HappyPath(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			actualCommands, err := validateCommands(tc.commands)
+			actualCommands, err := validateCommands(cryptoutilCmdCicdCommon.NewQuietLogger("test"), tc.commands)
 			require.NoError(t, err, "Expected no error for valid commands: %v", tc.commands)
 			require.Equal(t, tc.commands, actualCommands, "Expected actualCommands to match input commands")
 		})
@@ -218,7 +219,7 @@ func TestValidateCommands_DuplicateCommands(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			_, err := validateCommands(tc.commands)
+			_, err := validateCommands(cryptoutilCmdCicdCommon.NewQuietLogger("test"), tc.commands)
 			require.Error(t, err, "Expected error for duplicate commands: %v", tc.commands)
 			require.Contains(t, err.Error(), tc.expectedText, "Error message should contain expected text")
 		})
@@ -254,7 +255,7 @@ func TestValidateCommands_UnknownCommands(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			_, err := validateCommands(tc.commands)
+			_, err := validateCommands(cryptoutilCmdCicdCommon.NewQuietLogger("test"), tc.commands)
 			require.Error(t, err, "Expected error for unknown command: %v", tc.commands)
 			require.Contains(t, err.Error(), tc.expectedText, "Error message should contain expected text")
 		})
@@ -282,13 +283,25 @@ func TestValidateCommands_EdgeCases(t *testing.T) {
 			expectErr:    false,
 			expectedCmds: []string{"lint-text"},
 		},
+		{
+			name:         "boolean flag -q does not consume next argument",
+			commands:     []string{"-q", "lint-text"},
+			expectErr:    false,
+			expectedCmds: []string{"lint-text"},
+		},
+		{
+			name:         "boolean flag --summary does not consume next argument",
+			commands:     []string{cryptoutilSharedMagic.FlagSummary, "lint-workflow"},
+			expectErr:    false,
+			expectedCmds: []string{"lint-workflow"},
+		},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			actualCommands, err := validateCommands(tc.commands)
+			actualCommands, err := validateCommands(cryptoutilCmdCicdCommon.NewQuietLogger("test"), tc.commands)
 			if tc.expectErr {
 				require.Error(t, err, "Expected error for test case: %s", tc.name)
 			} else {
@@ -357,7 +370,7 @@ func TestGetFailedCommands_NoFailures(t *testing.T) {
 func TestRun_LintComposeCommand(t *testing.T) {
 	t.Parallel()
 
-	err := run([]string{"lint-compose"}, []string{})
+	err := run([]string{"lint-compose"}, []string{}, false)
 	// Command may pass or fail depending on compose files in project.
 	// We're testing that the switch case executes without panic.
 	if err != nil {
@@ -370,7 +383,7 @@ func TestValidateCommands_OnlyFlags(t *testing.T) {
 	t.Parallel()
 
 	// Pass only flags with values (no actual commands).
-	actualCommands, err := validateCommands([]string{"-v", "true", "-debug", "enabled"})
+	actualCommands, err := validateCommands(cryptoutilCmdCicdCommon.NewQuietLogger("test"), []string{"-v", "true", "-debug", "enabled"})
 	require.Error(t, err, "Expected error when only flags provided")
 	require.Nil(t, actualCommands, "Expected nil actual commands")
 	require.Contains(t, err.Error(), "Usage: cicd <command>", "Error should contain usage info")
@@ -392,4 +405,255 @@ func TestCicd_SuccessPath(t *testing.T) {
 	// lint-workflow runs successfully from the project root.
 	exitCode := Cicd([]string{"cicd", "lint-workflow"}, nil, os.Stdout, os.Stderr)
 	require.Equal(t, 0, exitCode, "Expected exit code 0 for lint-workflow")
+}
+
+// TestHasQuietFlag verifies detection of -q and --summary flags.
+func TestHasQuietFlag(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name     string
+		args     []string
+		wantBool bool
+	}{
+		{name: "no flags", args: []string{"lint-text"}, wantBool: false},
+		{name: "short flag -q", args: []string{"-q", "lint-text"}, wantBool: true},
+		{name: "long flag --summary", args: []string{cryptoutilSharedMagic.FlagSummary, "lint-text"}, wantBool: true},
+		{name: "flag after command", args: []string{"lint-text", "-q"}, wantBool: true},
+		{name: "empty args", args: []string{}, wantBool: false},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			require.Equal(t, tc.wantBool, hasQuietFlag(tc.args))
+		})
+	}
+}
+
+// TestCountFiles verifies counting files across extension map.
+func TestCountFiles(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		input   map[string][]string
+		wantInt int
+	}{
+		{name: "nil map", input: nil, wantInt: 0},
+		{name: "empty map", input: map[string][]string{}, wantInt: 0},
+		{name: "one extension", input: map[string][]string{".go": {"a.go", "b.go"}}, wantInt: 2},
+		{name: "two extensions", input: map[string][]string{".go": {"a.go"}, ".yml": {"b.yml", "c.yml"}}, wantInt: 3},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			require.Equal(t, tc.wantInt, countFiles(tc.input))
+		})
+	}
+}
+
+// TestCommandNeedsFiles verifies which commands use file-count display in quiet mode.
+func TestCommandNeedsFiles(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name     string
+		command  string
+		wantBool bool
+	}{
+		{name: "lint-text needs files", command: "lint-text", wantBool: true},
+		{name: "lint-compose needs files", command: "lint-compose", wantBool: true},
+		{name: "lint-workflow needs files", command: "lint-workflow", wantBool: true},
+		{name: "lint-go does not", command: "lint-go", wantBool: false},
+		{name: "lint-docs does not", command: "lint-docs", wantBool: false},
+		{name: "lint-fitness does not", command: "lint-fitness", wantBool: false},
+		{name: "lint-deployments does not", command: "lint-deployments", wantBool: false},
+		{name: "github-cleanup does not", command: "github-cleanup", wantBool: false},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			require.Equal(t, tc.wantBool, commandNeedsFiles(tc.command))
+		})
+	}
+}
+
+// TestRun_QuietMode verifies quiet mode produces summary output for a passing command.
+// Sequential: uses os.Stderr pipe (global process state, cannot run in parallel).
+func TestRun_QuietMode(t *testing.T) {
+	oldStderr := os.Stderr
+	r, w, err := os.Pipe()
+	require.NoError(t, err)
+
+	os.Stderr = w
+
+	runErr := run([]string{"lint-workflow"}, []string{}, true)
+
+	_ = w.Close()
+	os.Stderr = oldStderr
+
+	var buf bytes.Buffer
+
+	_, _ = buf.ReadFrom(r)
+	output := buf.String()
+
+	require.NoError(t, runErr, "lint-workflow should pass")
+	require.Contains(t, output, "lint-workflow: PASS", "Quiet mode should output PASS summary")
+	require.NotContains(t, output, "[CICD]", "Quiet mode should suppress verbose [CICD] logger output")
+}
+
+// TestCicd_QuietFlagShort verifies -q flag produces quiet output.
+// Sequential: uses os.Stderr pipe (global process state, cannot run in parallel).
+func TestCicd_QuietFlagShort(t *testing.T) {
+	oldStderr := os.Stderr
+	r, w, err := os.Pipe()
+	require.NoError(t, err)
+
+	os.Stderr = w
+
+	exitCode := Cicd([]string{"cicd", "-q", "lint-workflow"}, nil, os.Stdout, os.Stderr)
+
+	_ = w.Close()
+	os.Stderr = oldStderr
+
+	var buf bytes.Buffer
+
+	_, _ = buf.ReadFrom(r)
+	output := buf.String()
+
+	require.Equal(t, 0, exitCode, "Expected exit code 0 for lint-workflow -q")
+	require.Contains(t, output, "lint-workflow: PASS", "Quiet mode should output PASS summary")
+}
+
+// TestCicd_SummaryFlagLong verifies --summary flag produces quiet output.
+// Sequential: uses os.Stderr pipe (global process state, cannot run in parallel).
+func TestCicd_SummaryFlagLong(t *testing.T) {
+	oldStderr := os.Stderr
+	r, w, err := os.Pipe()
+	require.NoError(t, err)
+
+	os.Stderr = w
+
+	exitCode := Cicd([]string{"cicd", cryptoutilSharedMagic.FlagSummary, "lint-workflow"}, nil, os.Stdout, os.Stderr)
+
+	_ = w.Close()
+	os.Stderr = oldStderr
+
+	var buf bytes.Buffer
+
+	_, _ = buf.ReadFrom(r)
+	output := buf.String()
+
+	require.Equal(t, 0, exitCode, "Expected exit code 0 for lint-workflow --summary")
+	require.Contains(t, output, "lint-workflow: PASS", "Summary mode should output PASS summary")
+}
+
+// TestRun_QuietMode_FileBasedCommand verifies quiet mode shows file count for file-based commands.
+// Sequential: uses os.Stderr pipe (global process state, cannot run in parallel).
+func TestRun_QuietMode_FileBasedCommand(t *testing.T) {
+	oldStderr := os.Stderr
+	r, w, err := os.Pipe()
+	require.NoError(t, err)
+
+	os.Stderr = w
+
+	runErr := run([]string{"lint-text"}, []string{}, true)
+
+	_ = w.Close()
+	os.Stderr = oldStderr
+
+	var buf bytes.Buffer
+
+	_, _ = buf.ReadFrom(r)
+	output := buf.String()
+
+	// lint-text always passes; quiet mode for file-based command shows file count.
+	if runErr == nil {
+		require.Contains(t, output, "lint-text: PASS (", "Quiet mode file-based command should include file count")
+	}
+}
+
+// TestRun_QuietMode_FailingCommand verifies quiet mode outputs FAIL for a failing command.
+// lint-go-mod always fails when dependencies are outdated (expected in this project).
+// Sequential: uses os.Stderr pipe (global process state, cannot run in parallel).
+func TestRun_QuietMode_FailingCommand(t *testing.T) {
+	oldStderr := os.Stderr
+	r, w, err := os.Pipe()
+	require.NoError(t, err)
+
+	os.Stderr = w
+
+	// lint-go-mod fails when dependencies are outdated (always fails in this project).
+	runErr := run([]string{"lint-go-mod"}, []string{}, true)
+
+	_ = w.Close()
+	os.Stderr = oldStderr
+
+	var buf bytes.Buffer
+
+	_, _ = buf.ReadFrom(r)
+	output := buf.String()
+
+	// lint-go-mod is expected to fail (outdated dependencies).
+	require.Error(t, runErr, "lint-go-mod should fail due to outdated dependencies")
+	require.Contains(t, output, "lint-go-mod: FAIL", "Quiet mode should output FAIL for failing command")
+	require.NotContains(t, output, "[CICD]", "Quiet mode should suppress verbose [CICD] logger output")
+}
+
+// TestRun_QuietMode_NoFilesCommand verifies quiet mode for commands that don't use file counts.
+// lint-docs does NOT use file-based scanning → covers CICDQuietPassNoFilesFormat branch.
+// Sequential: uses os.Stderr pipe (global process state, cannot run in parallel).
+func TestRun_QuietMode_NoFilesCommand(t *testing.T) {
+	oldStderr := os.Stderr
+	r, w, err := os.Pipe()
+	require.NoError(t, err)
+
+	os.Stderr = w
+
+	// lint-docs does NOT need files and always passes → covers CICDQuietPassNoFilesFormat branch.
+	runErr := run([]string{"lint-docs"}, []string{}, true)
+
+	_ = w.Close()
+	os.Stderr = oldStderr
+
+	var buf bytes.Buffer
+
+	_, _ = buf.ReadFrom(r)
+	output := buf.String()
+
+	// lint-docs always passes — verify PASS line has no file count parenthetical.
+	require.NoError(t, runErr, "lint-docs should pass in project root")
+	require.Contains(t, output, "lint-docs: PASS", "Quiet mode no-files command should show PASS without file count")
+	require.NotContains(t, output, "lint-docs: PASS (", "Quiet mode no-files command should NOT show file count")
+}
+
+// TestRun_JavaTest_PythonTest verifies lint-java-test and lint-python-test commands execute.
+func TestRun_JavaTest_PythonTest(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		command string
+	}{
+		{name: "lint-java-test", command: "lint-java-test"},
+		{name: "lint-python-test", command: "lint-python-test"},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			err := run([]string{tc.command}, []string{}, false)
+			// These commands may pass or fail depending on project state.
+			if err != nil {
+				require.Contains(t, err.Error(), "failed commands:", "Error should indicate failed commands")
+			}
+		})
+	}
 }

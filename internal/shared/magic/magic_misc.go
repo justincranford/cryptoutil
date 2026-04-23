@@ -40,6 +40,15 @@ const (
 	// FilePermOwnerReadWriteExecuteGroupOtherReadExecute - Owner read/write/execute, group/other read/execute (0o755).
 	FilePermOwnerReadWriteExecuteGroupOtherReadExecute = 0o755
 
+	// BytesPerUint32 is the number of bytes in a uint32 value (used for random byte generation).
+	BytesPerUint32 = 4
+
+	// Float32Zero is the float32 representation of zero (used in probability range validation).
+	Float32Zero = float32(0.0)
+
+	// Float32One is the float32 representation of one (used in probability range validation).
+	Float32One = float32(1.0)
+
 	// SysInfoConcurrentOpCount - Number of concurrent info-gathering goroutines in GetAllInfoWithTimeout.
 	SysInfoConcurrentOpCount = 5
 

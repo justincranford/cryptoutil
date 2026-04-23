@@ -15,8 +15,8 @@ func TestNormalizedRandomFloat32_Range(t *testing.T) {
 
 	for i := 0; i < cryptoutilSharedMagic.JoseJADefaultMaxMaterials; i++ {
 		v := normalizedRandomFloat32(t)
-		require.GreaterOrEqual(t, v, float32_0)
-		require.Less(t, v, float32_1)
+		require.GreaterOrEqual(t, v, cryptoutilSharedMagic.Float32Zero)
+		require.Less(t, v, cryptoutilSharedMagic.Float32One)
 	}
 }
 
@@ -119,11 +119,9 @@ func TestSamplingBool_HappyPaths(t *testing.T) {
 	t.Run("Case/RateHalf_StatisticalDistribution", func(t *testing.T) {
 		t.Parallel()
 
-		const iterations = 1000
-
 		trueCount := 0
 
-		for i := 0; i < iterations; i++ {
+		for i := 0; i < cryptoutilSharedMagic.JoseJADefaultListLimit; i++ {
 			result, err := SamplingBool(cryptoutilSharedMagic.ConfidenceWeightFactors)
 			require.NoError(t, err)
 
@@ -133,7 +131,7 @@ func TestSamplingBool_HappyPaths(t *testing.T) {
 		}
 
 		// Expect ~50% true; allow ±20% tolerance for statistical variance.
-		ratio := float64(trueCount) / iterations
+		ratio := float64(trueCount) / cryptoutilSharedMagic.JoseJADefaultListLimit
 		require.InDelta(t, cryptoutilSharedMagic.ConfidenceWeightFactors, ratio, 0.2, "SamplingBool(0.5) should return true ~50%% of the time")
 	})
 }

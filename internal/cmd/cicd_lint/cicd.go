@@ -12,6 +12,7 @@ import (
 
 // Cicd is the thin entry point for the cicd-lint command.
 // It validates the command and delegates to internal/apps/cicd for all processing.
+// Flags (e.g. -q, --summary) are allowed before or after command names.
 // Returns exit code: 0 for success, 1 for failure.
 func Cicd(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 	if len(args) < 2 {
@@ -20,22 +21,52 @@ func Cicd(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		return 1
 	}
 
-	command := args[1]
-
-	switch {
-	case cryptoutilSharedMagic.ValidCommands[command]:
-		// ALL valid commands route to apps/cicd for processing.
-		return cryptoutilAppsCicd.Cicd(args, stdin, stdout, stderr)
-	case command == cryptoutilSharedMagic.CLIHelpCommand || command == cryptoutilSharedMagic.CLIHelpFlag || command == "-h":
+	// Check for help flags anywhere in the argument list.
+	if hasHelpFlag(args[1:]) {
 		printUsage(stdout)
 
 		return 0
+	}
+
+	// Find the first non-flag argument to determine the command for routing.
+	firstCommand := firstNonFlag(args[1:])
+
+	switch {
+	case firstCommand == "":
+		// Only flags provided (non-help) — delegate to apps/cicd which will return usage error.
+		return cryptoutilAppsCicd.Cicd(args, stdin, stdout, stderr)
+	case cryptoutilSharedMagic.ValidCommands[firstCommand]:
+		// ALL valid commands route to apps/cicd for processing.
+		return cryptoutilAppsCicd.Cicd(args, stdin, stdout, stderr)
 	default:
-		_, _ = fmt.Fprintf(stderr, "Unknown command: %s\n\n", command)
+		_, _ = fmt.Fprintf(stderr, "Unknown command: %s\n\n", firstCommand)
 		printUsage(stderr)
 
 		return 1
 	}
+}
+
+// hasHelpFlag returns true if any help flag (-h, --help, help) is present in args.
+func hasHelpFlag(args []string) bool {
+	for _, arg := range args {
+		if arg == cryptoutilSharedMagic.CLIHelpCommand || arg == cryptoutilSharedMagic.CLIHelpFlag || arg == "-h" {
+			return true
+		}
+	}
+
+	return false
+}
+
+// firstNonFlag returns the first argument that does not begin with '-'.
+// Returns empty string if no non-flag argument is found.
+func firstNonFlag(args []string) string {
+	for _, arg := range args {
+		if arg != "" && arg[0] != '-' {
+			return arg
+		}
+	}
+
+	return ""
 }
 
 func printUsage(w io.Writer) {

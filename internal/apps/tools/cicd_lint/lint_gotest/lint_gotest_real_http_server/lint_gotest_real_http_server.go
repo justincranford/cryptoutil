@@ -108,7 +108,7 @@ func Check(logger *cryptoutilCmdCicdCommon.Logger, testFiles []string) error {
 		return fmt.Errorf("found %d real HTTP server violations", totalIssues)
 	}
 
-	fmt.Fprintln(os.Stderr, "\n✅ No real HTTP server usage found in handler tests")
+	logger.LogWithPrefix("real-http-server", "✅ No real HTTP server usage found in handler tests")
 
 	logger.Log("Real HTTP server check completed")
 

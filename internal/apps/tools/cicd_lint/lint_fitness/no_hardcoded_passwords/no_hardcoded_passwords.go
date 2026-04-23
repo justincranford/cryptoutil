@@ -53,7 +53,7 @@ func CheckFiles(logger *cryptoutilCmdCicdCommon.Logger, testFiles []string) erro
 		return fmt.Errorf("found %d hardcoded password violations", totalIssues)
 	}
 
-	fmt.Fprintln(os.Stderr, "\n✅ No hardcoded passwords found in tests")
+	logger.LogWithPrefix("no-hardcoded-passwords", "✅ No hardcoded passwords found in tests")
 
 	logger.Log("Hardcoded password enforcement completed")
 

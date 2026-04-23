@@ -67,8 +67,8 @@ func check(logger *cryptoutilCmdCicdCommon.Logger, goListFn func() ([]byte, erro
 				return fmt.Errorf("%s", errMsg)
 			}
 
-			fmt.Fprintln(os.Stderr, "✅ RESULT: No circular dependencies found (cached)")
-			fmt.Fprintln(os.Stderr, "All internal package dependencies are acyclic.")
+			logger.LogWithPrefix("circular-deps", "✅ RESULT: No circular dependencies found (cached)")
+			logger.LogWithPrefix("circular-deps", "All internal package dependencies are acyclic.")
 			logger.Log("Circular dependency check completed (cached, no circular dependencies)")
 
 			return nil
@@ -122,8 +122,8 @@ func check(logger *cryptoutilCmdCicdCommon.Logger, goListFn func() ([]byte, erro
 		return circularDepsError
 	}
 
-	fmt.Fprintln(os.Stderr, "✅ RESULT: No circular dependencies found")
-	fmt.Fprintln(os.Stderr, "All internal package dependencies are acyclic.")
+	logger.LogWithPrefix("circular-deps", "✅ RESULT: No circular dependencies found")
+	logger.LogWithPrefix("circular-deps", "All internal package dependencies are acyclic.")
 
 	logger.Log("Circular dependency check completed (no circular dependencies)")
 

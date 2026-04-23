@@ -101,7 +101,7 @@ func checkInsecureRandom(logger *cryptoutilCmdCicdCommon.Logger, javaFiles []str
 		return fmt.Errorf("found %d insecure RNG violations", totalIssues)
 	}
 
-	fmt.Fprintln(os.Stderr, "\n✅ All Java files use SecureRandom for random number generation")
+	logger.LogWithPrefix("insecure-random", "✅ All Java files use SecureRandom for random number generation")
 
 	logger.Log("Insecure random check completed")
 

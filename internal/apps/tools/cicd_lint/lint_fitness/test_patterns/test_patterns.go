@@ -89,7 +89,7 @@ func CheckFiles(logger *cryptoutilCmdCicdCommon.Logger, testFiles []string) erro
 		return fmt.Errorf("found %d banned test filename violations", len(bannedNameIssues))
 	}
 
-	fmt.Fprintln(os.Stderr, "\n✅ All test files follow established patterns")
+	logger.LogWithPrefix("test-patterns", "✅ All test files follow established patterns")
 
 	logger.Log("Test pattern enforcement completed")
 

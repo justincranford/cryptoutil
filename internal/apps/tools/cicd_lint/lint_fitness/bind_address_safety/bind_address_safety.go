@@ -79,7 +79,7 @@ func CheckFiles(logger *cryptoutilCmdCicdCommon.Logger, testFiles []string) erro
 		return fmt.Errorf("found %d bind address violations across %d files", totalIssues, len(filteredTestFiles))
 	}
 
-	fmt.Fprintln(os.Stderr, "\n✅ All test files use safe bind addresses (127.0.0.1)")
+	logger.LogWithPrefix("bind-address-safety", "✅ All test files use safe bind addresses (127.0.0.1)")
 
 	logger.Log("Bind address safety check completed")
 

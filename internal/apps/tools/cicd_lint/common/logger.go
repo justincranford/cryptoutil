@@ -13,9 +13,11 @@ import (
 )
 
 // Logger provides structured logging for CICD commands with timing information.
+// When quiet is true, Log and LogWithPrefix are no-ops; LogError always writes.
 type Logger struct {
 	startTime time.Time
 	operation string
+	quiet     bool
 }
 
 // NewLogger creates a new logger for the specified operation.
@@ -32,8 +34,23 @@ func NewLogger(operation string) *Logger {
 	}
 }
 
+// NewQuietLogger creates a silent logger that suppresses Log and LogWithPrefix output.
+// LogError always writes regardless of quiet mode so errors remain visible.
+func NewQuietLogger(operation string) *Logger {
+	return &Logger{
+		startTime: time.Now().UTC(),
+		operation: operation,
+		quiet:     true,
+	}
+}
+
 // Log outputs a message with duration and timestamp information.
+// No-op when logger is in quiet mode.
 func (l *Logger) Log(message string) {
+	if l.quiet {
+		return
+	}
+
 	now := time.Now().UTC()
 	fmt.Fprintf(os.Stderr, "[CICD] dur=%v now=%s: %s\n",
 		now.Sub(l.startTime),
@@ -42,6 +59,7 @@ func (l *Logger) Log(message string) {
 }
 
 // LogError outputs an error message with duration and timestamp.
+// Always writes even in quiet mode.
 func (l *Logger) LogError(err error) {
 	now := time.Now().UTC()
 	fmt.Fprintf(os.Stderr, "[CICD] dur=%v now=%s ERROR: %v\n",
@@ -51,13 +69,23 @@ func (l *Logger) LogError(err error) {
 }
 
 // LogWithPrefix outputs a message with a custom prefix.
+// No-op when logger is in quiet mode.
 func (l *Logger) LogWithPrefix(prefix, message string) {
+	if l.quiet {
+		return
+	}
+
 	now := time.Now().UTC()
 	fmt.Fprintf(os.Stderr, "[CICD] dur=%v now=%s %s: %s\n",
 		now.Sub(l.startTime),
 		now.Format(cryptoutilSharedMagic.TimeFormat),
 		prefix,
 		message)
+}
+
+// IsQuiet returns true if this logger suppresses verbose output.
+func (l *Logger) IsQuiet() bool {
+	return l.quiet
 }
 
 // Duration returns the elapsed time since the logger was created.
