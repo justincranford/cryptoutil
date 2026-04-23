@@ -302,8 +302,9 @@ new packages at ≥98% test coverage.
 
 ### Task 1.7: Confirm GAP-0.5 Work Delivered
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 0.1h
+- **Actual**: 0.1h
 - **Dependencies**: Tasks 1.4, 1.5, 1.6
 - **Description**: Confirm usage package and all 8 usage.go migrations are complete. Note:
   `docs/framework-v15/` was deleted pre-V16 as part of plan cleanup (all 46 V15 tasks were
@@ -311,19 +312,19 @@ new packages at ≥98% test coverage.
 - **Acceptance Criteria**:
   - [x] `docs/framework-v15/gap-0.5-usage-deduplication.md` deleted (done pre-V16)
   - [x] `docs/framework-v15/` directory deleted (done pre-V16; all tasks verified complete)
-  - [ ] Confirm `go build ./...` clean and `golangci-lint run ./...` clean after usage migrations
+  - [x] Confirm `go build ./...` clean and `golangci-lint run ./...` clean after usage migrations
 - **Files**:
   - Verification only (no file writes)
 
 ### Phase 1 Quality Gate
 
-- [ ] All tests pass: `go test ./...` (100%, zero skips)
-- [ ] Build clean: `go build ./...` AND `go build -tags e2e,integration ./...`
-- [ ] Lint clean: `golangci-lint run ./...`
-- [ ] Coverage: `lifecycle` package ≥98%; `usage` package ≥98%
-- [ ] No signal handling code in any PS-ID entry point (grep `sigChan\|signal\.Notify` in entry points = 0 results)
-- [ ] No raw usage string literals in migrated files (grep `literal-use` violations = 0)
-- [ ] Update `lessons.md` Phase 1 section with post-mortem
+- [x] All tests pass: `go test ./...` (100%, zero skips)
+- [x] Build clean: `go build ./...` AND `go build -tags e2e,integration ./...`
+- [x] Lint clean: `golangci-lint run ./...`
+- [x] Coverage: `lifecycle` package ≥98% (100%); `usage` package ≥98% (100%)
+- [x] No signal handling code in any PS-ID entry point (grep `sigChan\|signal\.Notify` in entry points = 0 results)
+- [x] No raw usage string literals in migrated files (grep `literal-use` violations = 0)
+- [x] Update `lessons.md` Phase 1 section with post-mortem
 
 ---
 
