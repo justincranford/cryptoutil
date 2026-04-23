@@ -43,7 +43,7 @@ func StartServerListenerApplication(settings *cryptoutilAppsFrameworkServiceConf
 	}
 
 	// Initialize basic services (telemetry, unseal keys, JWK generation) for TLS cert generation.
-	serverApplicationBasic, err := StartServerApplicationBasic(ctx, settings)
+	basic, err := cryptoutilAppsFrameworkServiceServerApplication.StartBasic(ctx, settings)
 	if err != nil {
 		core.Shutdown()
 
@@ -51,9 +51,9 @@ func StartServerListenerApplication(settings *cryptoutilAppsFrameworkServiceConf
 	}
 
 	// Generate TLS certificate subjects in memory (no disk I/O, safe for parallel tests).
-	publicSubject, privateSubject, err := generateTLSServerSubjectsInMemory(settings, serverApplicationBasic)
+	publicSubject, privateSubject, err := generateTLSServerSubjectsInMemory(settings, basic)
 	if err != nil {
-		serverApplicationBasic.Shutdown()()
+		basic.Shutdown()
 		core.Shutdown()
 
 		return nil, fmt.Errorf("failed to generate TLS server subjects: %w", err)
@@ -63,7 +63,7 @@ func StartServerListenerApplication(settings *cryptoutilAppsFrameworkServiceConf
 		PublicTLSServer:  publicSubject,
 		PrivateTLSServer: privateSubject,
 		ShutdownFunction: func() {
-			serverApplicationBasic.Shutdown()()
+			basic.Shutdown()
 			core.Shutdown()
 		},
 	}, nil

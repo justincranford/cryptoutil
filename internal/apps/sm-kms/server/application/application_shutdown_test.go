@@ -13,6 +13,7 @@ import (
 	"testing"
 
 	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps/framework/service/config"
+	cryptoutilAppsFrameworkServiceServerApplication "cryptoutil/internal/apps/framework/service/server/application"
 
 	"github.com/stretchr/testify/require"
 )
@@ -22,17 +23,17 @@ func TestServerApplicationBasic_Shutdown(t *testing.T) {
 
 	tests := []struct {
 		name        string
-		setupFunc   func(t *testing.T) *ServerApplicationBasic
+		setupFunc   func(t *testing.T) *cryptoutilAppsFrameworkServiceServerApplication.Basic
 		expectPanic bool
 	}{
 		{
 			name: "Shutdown_AllComponents_Success",
-			setupFunc: func(t *testing.T) *ServerApplicationBasic {
+			setupFunc: func(t *testing.T) *cryptoutilAppsFrameworkServiceServerApplication.Basic {
 				t.Helper()
 
 				settings := cryptoutilAppsFrameworkServiceConfig.RequireNewForTest("shutdown_test_basic")
 				ctx := context.Background()
-				app, err := StartServerApplicationBasic(ctx, settings)
+				app, err := cryptoutilAppsFrameworkServiceServerApplication.StartBasic(ctx, settings)
 				require.NoError(t, err, "failed to start server application basic")
 				require.NotNil(t, app, "server application basic should not be nil")
 
@@ -41,11 +42,11 @@ func TestServerApplicationBasic_Shutdown(t *testing.T) {
 			expectPanic: false,
 		},
 		{
-			name: "Shutdown_NilComponents_NoP anic",
-			setupFunc: func(t *testing.T) *ServerApplicationBasic {
+			name: "Shutdown_NilComponents_NoPanic",
+			setupFunc: func(t *testing.T) *cryptoutilAppsFrameworkServiceServerApplication.Basic {
 				t.Helper()
 
-				return &ServerApplicationBasic{}
+				return &cryptoutilAppsFrameworkServiceServerApplication.Basic{}
 			},
 			expectPanic: false,
 		},
@@ -57,16 +58,13 @@ func TestServerApplicationBasic_Shutdown(t *testing.T) {
 
 			app := tt.setupFunc(t)
 
-			shutdownFunc := app.Shutdown()
-			require.NotNil(t, shutdownFunc, "shutdown function should not be nil")
-
 			if tt.expectPanic {
-				require.Panics(t, shutdownFunc, "expected panic during shutdown")
+				require.Panics(t, app.Shutdown, "expected panic during shutdown")
 			} else {
-				require.NotPanics(t, shutdownFunc, "shutdown should not panic")
+				require.NotPanics(t, app.Shutdown, "shutdown should not panic")
 			}
 
-			t.Logf("âœ“ Shutdown test passed: %s", tt.name)
+			t.Logf("Shutdown test passed: %s", tt.name)
 		})
 	}
 }
