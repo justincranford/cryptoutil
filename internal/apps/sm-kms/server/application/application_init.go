@@ -6,7 +6,6 @@ package application
 
 import (
 	"context"
-	"crypto/x509"
 	"fmt"
 	"net"
 	"os"
@@ -17,14 +16,6 @@ import (
 	cryptoutilSharedCryptoCertificate "cryptoutil/internal/shared/crypto/certificate"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	cryptoutilSharedUtilNetwork "cryptoutil/internal/shared/util/network"
-)
-
-const (
-	// TLS certificate validity and helper constants.
-	tlsEndEntityValidityDays = 396 // days for server end-entity certificate (reduced from 397 to allow for randomization)
-	tlsServerKeyPairsNeeded  = 2   // number of keypairs requested for server TLS
-
-	// File mode for written PEM files.
 )
 
 // ServerInit initializes the server by generating TLS certificates and other required configuration.
@@ -39,7 +30,7 @@ func ServerInit(settings *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkS
 
 	_, _, err = generateTLSServerSubjects(settings, basic)
 	if err != nil {
-		return fmt.Errorf("failed to run new function: %w", err)
+		return fmt.Errorf("failed to generate TLS server subjects: %w", err)
 	}
 
 	return nil
@@ -69,61 +60,11 @@ func generateTLSServerSubjects(settings *cryptoutilAppsFrameworkServiceConfig.Se
 	return public, private, nil
 }
 
-// generateTLSServerSubjectsInMemory generates TLS server certificate subjects for both public and private servers
-// without writing any files to disk. Unlike generateTLSServerSubjects, this is safe for parallel tests.
-func generateTLSServerSubjectsInMemory(settings *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings, basic *cryptoutilAppsFrameworkServiceServerApplication.Basic) (*cryptoutilSharedCryptoCertificate.Subject, *cryptoutilSharedCryptoCertificate.Subject, error) {
-	publicTLSServerIPAddresses, err := cryptoutilSharedUtilNetwork.ParseIPAddresses(settings.TLSPublicIPAddresses)
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to parse public TLS server IP addresses: %w", err)
-	}
-
-	privateTLSServerIPAddresses, err := cryptoutilSharedUtilNetwork.ParseIPAddresses(settings.TLSPrivateIPAddresses)
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to parse private TLS server IP addresses: %w", err)
-	}
-
-	public, err := generateTLSServerSubjectInMemory(basic, settings.TLSPublicDNSNames, publicTLSServerIPAddresses)
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to create TLS public server certs in memory: %w", err)
-	}
-
-	private, err := generateTLSServerSubjectInMemory(basic, settings.TLSPrivateDNSNames, privateTLSServerIPAddresses)
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to create TLS private server certs in memory: %w", err)
-	}
-
-	return public, private, nil
-}
-
-// generateTLSServerSubjectInMemory generates a single TLS server certificate subject in memory.
-// No files are written to disk, making it safe for concurrent parallel tests.
-func generateTLSServerSubjectInMemory(basic *cryptoutilAppsFrameworkServiceServerApplication.Basic, dnsNames []string, ipAddresses []net.IP) (*cryptoutilSharedCryptoCertificate.Subject, error) {
-	tlsServerSubjectsKeyPairs := basic.JWKGenService.ECDSAP256KeyGenPool.GetMany(tlsServerKeyPairsNeeded)
-
-	tlsServerCASubjects, err := cryptoutilSharedCryptoCertificate.CreateCASubjects(tlsServerSubjectsKeyPairs[1:], "TLS Server CA", cryptoutilSharedMagic.TLSDefaultValidityCACertYears*cryptoutilSharedMagic.Days365)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create TLS server CA subjects: %w", err)
-	}
-
-	tlsServerEndEntitySubject, err := cryptoutilSharedCryptoCertificate.CreateEndEntitySubject(tlsServerCASubjects[0], tlsServerSubjectsKeyPairs[0], "TLS Server", tlsEndEntityValidityDays*cryptoutilSharedMagic.Days1, dnsNames, ipAddresses, nil, nil, x509.KeyUsageDigitalSignature, []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth})
-	if err != nil {
-		return nil, fmt.Errorf("failed to create TLS server end entity subject: %w", err)
-	}
-
-	return tlsServerEndEntitySubject, nil
-}
-
 func generateTLSServerSubject(basic *cryptoutilAppsFrameworkServiceServerApplication.Basic, prefix string, publicTLSServerDNSNames []string, publicTLSServerIPAddresses []net.IP) (*cryptoutilSharedCryptoCertificate.Subject, error) {
-	tlsServerSubjectsKeyPairs := basic.JWKGenService.ECDSAP256KeyGenPool.GetMany(tlsServerKeyPairsNeeded)
-
-	tlsServerCASubjects, err := cryptoutilSharedCryptoCertificate.CreateCASubjects(tlsServerSubjectsKeyPairs[1:], "TLS Server CA", cryptoutilSharedMagic.TLSDefaultValidityCACertYears*cryptoutilSharedMagic.Days365)
+	// Generate the TLS server subject in memory using the shared framework function.
+	tlsServerEndEntitySubject, err := cryptoutilAppsFrameworkServiceServerApplication.GenerateTLSServerSubjectInMemory(basic, publicTLSServerDNSNames, publicTLSServerIPAddresses)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create TLS server CA subjects: %w", err)
-	}
-
-	tlsServerEndEntitySubject, err := cryptoutilSharedCryptoCertificate.CreateEndEntitySubject(tlsServerCASubjects[0], tlsServerSubjectsKeyPairs[0], "TLS Server", tlsEndEntityValidityDays*cryptoutilSharedMagic.Days1, publicTLSServerDNSNames, publicTLSServerIPAddresses, nil, nil, x509.KeyUsageDigitalSignature, []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth})
-	if err != nil {
-		return nil, fmt.Errorf("failed to create TLS server end entity subject: %w", err)
+		return nil, fmt.Errorf("failed to generate TLS server subject: %w", err)
 	}
 
 	// Encode Certificates as PEM and write to files
