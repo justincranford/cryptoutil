@@ -170,18 +170,6 @@ func (s *SPAServer) AdminBaseURL() string {
 	return s.app.AdminBaseURL()
 }
 
-// PublicServerActualPort returns the actual port the public server is listening on.
-// Alias for PublicPort() — both return the same value.
-func (s *SPAServer) PublicServerActualPort() int {
-	return s.PublicPort()
-}
-
-// AdminServerActualPort returns the actual port the admin server is listening on.
-// Alias for AdminPort() — both return the same value.
-func (s *SPAServer) AdminServerActualPort() int {
-	return s.AdminPort()
-}
-
 // TLSRootCAPool returns the root CA pool for test client TLS configuration (public server).
 func (s *SPAServer) TLSRootCAPool() *x509.CertPool {
 	return s.app.TLSRootCAPool()

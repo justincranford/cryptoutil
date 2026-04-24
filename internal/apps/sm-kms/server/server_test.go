@@ -340,8 +340,8 @@ func TestKMSServer_MissingAccessors(t *testing.T) {
 
 	require.Nil(t, srv.DB())
 	require.Nil(t, srv.App())
-	require.Equal(t, 0, srv.PublicServerActualPort())
-	require.Equal(t, 0, srv.AdminServerActualPort())
+	require.Equal(t, 0, srv.PublicPort())
+	require.Equal(t, 0, srv.AdminPort())
 	require.Nil(t, srv.TLSRootCAPool())
 	require.Nil(t, srv.AdminTLSRootCAPool())
 	require.Nil(t, srv.JWKGen())
@@ -361,8 +361,8 @@ func TestKMSServer_MissingAccessorsWithResources(t *testing.T) {
 
 	require.Nil(t, srv.DB())
 	require.Equal(t, app, srv.App())
-	require.Equal(t, 8443, srv.PublicServerActualPort())
-	require.Equal(t, cryptoutilSharedMagic.JoseJAAdminPort, srv.AdminServerActualPort())
+	require.Equal(t, 8443, srv.PublicPort())
+	require.Equal(t, cryptoutilSharedMagic.JoseJAAdminPort, srv.AdminPort())
 	require.Nil(t, srv.TLSRootCAPool())
 	require.Nil(t, srv.AdminTLSRootCAPool())
 	require.Nil(t, srv.JWKGen())

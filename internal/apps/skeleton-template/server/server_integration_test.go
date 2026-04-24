@@ -69,8 +69,8 @@ func TestSkeletonTemplateServer_Accessors(t *testing.T) {
 	// Verify port accessors return valid values.
 	require.Greater(t, testServer.PublicPort(), 0, "PublicPort should be positive")
 	require.Greater(t, testServer.AdminPort(), 0, "AdminPort should be positive")
-	require.Greater(t, testServer.PublicServerActualPort(), 0, "PublicServerActualPort should be positive")
-	require.Greater(t, testServer.AdminServerActualPort(), 0, "AdminServerActualPort should be positive")
+	require.Greater(t, testServer.PublicPort(), 0, "PublicPort should be positive")
+	require.Greater(t, testServer.AdminPort(), 0, "AdminPort should be positive")
 
 	// Verify URL accessors.
 	require.NotEmpty(t, testServer.PublicBaseURL(), "PublicBaseURL should not be empty")

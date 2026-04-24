@@ -150,9 +150,8 @@ func TestNewPublicServer_NilBarrierService(t *testing.T) {
 	require.Contains(t, err.Error(), "barrier service cannot be nil")
 }
 
-// TestNewPublicServer_ValidCreationAndPublicBaseURL tests successful PublicServer
-// creation and that PublicBaseURL delegates to the base.
-func TestNewPublicServer_ValidCreationAndPublicBaseURL(t *testing.T) {
+// TestNewPublicServer_ValidCreation tests successful PublicServer creation with all valid parameters.
+func TestNewPublicServer_ValidCreation(t *testing.T) {
 	t.Parallel()
 
 	base := testSmIMServer.PublicServerBase()
@@ -168,9 +167,4 @@ func TestNewPublicServer_ValidCreationAndPublicBaseURL(t *testing.T) {
 	ps, err := cryptoutilAppsSmImServer.NewPublicServer(base, sessionMgr, realmSvc, regSvc, userRepo, msgRepo, jwkRepo, jwkGenSvc, barrierSvc)
 	require.NoError(t, err)
 	require.NotNil(t, ps)
-
-	// Call PublicBaseURL() to cover the delegation in public_server.go:184.
-	url := ps.PublicBaseURL()
-	require.NotEmpty(t, url)
-	require.Contains(t, url, "https://")
 }

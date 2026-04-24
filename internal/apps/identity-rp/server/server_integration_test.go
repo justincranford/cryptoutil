@@ -134,16 +134,6 @@ func TestRPServer_AccessorMethods(t *testing.T) {
 	adminURL := testServer.AdminBaseURL()
 	require.NotEmpty(t, adminURL, "admin base URL should not be empty")
 	require.Contains(t, adminURL, "https://", "admin URL should use HTTPS")
-
-	// Test PublicServerActualPort.
-	publicActualPort := testServer.PublicServerActualPort()
-	require.Equal(t, testServer.PublicPort(), publicActualPort,
-		"PublicServerActualPort should match PublicPort")
-
-	// Test AdminServerActualPort.
-	adminActualPort := testServer.AdminServerActualPort()
-	require.Equal(t, testServer.AdminPort(), adminActualPort,
-		"AdminServerActualPort should match AdminPort")
 }
 
 func TestRPServer_ContractCompliance(t *testing.T) {

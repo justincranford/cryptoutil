@@ -169,18 +169,6 @@ func (s *RPServer) AdminBaseURL() string {
 	return s.app.AdminBaseURL()
 }
 
-// PublicServerActualPort returns the actual port the public server is listening on.
-// Useful when configured with port 0 for dynamic allocation.
-func (s *RPServer) PublicServerActualPort() int {
-	return s.app.PublicPort()
-}
-
-// AdminServerActualPort returns the actual port the admin server is listening on.
-// Useful when configured with port 0 for dynamic allocation.
-func (s *RPServer) AdminServerActualPort() int {
-	return s.app.AdminPort()
-}
-
 // TLSRootCAPool returns the root CA pool for test client TLS configuration (public server).
 func (s *RPServer) TLSRootCAPool() *x509.CertPool {
 	return s.app.TLSRootCAPool()

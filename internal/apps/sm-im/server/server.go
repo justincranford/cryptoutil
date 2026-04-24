@@ -180,18 +180,6 @@ func (s *SmIMServer) AdminBaseURL() string {
 	return s.app.AdminBaseURL()
 }
 
-// PublicServerActualPort returns the actual port the public server is listening on.
-// Useful when configured with port 0 for dynamic allocation.
-func (s *SmIMServer) PublicServerActualPort() int {
-	return s.app.PublicPort()
-}
-
-// AdminServerActualPort returns the actual port the admin server is listening on.
-// Useful when configured with port 0 for dynamic allocation.
-func (s *SmIMServer) AdminServerActualPort() int {
-	return s.app.AdminPort()
-}
-
 // SessionManager returns the session manager service (for tests).
 func (s *SmIMServer) SessionManager() *cryptoutilAppsFrameworkServiceServerBusinesslogic.SessionManagerService {
 	return s.sessionManagerService

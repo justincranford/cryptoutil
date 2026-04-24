@@ -179,8 +179,3 @@ func (s *PublicServer) registerRoutes() error {
 
 	return nil
 }
-
-// PublicBaseURL returns the base URL for public API access by delegating to PublicServerBase.
-func (s *PublicServer) PublicBaseURL() string {
-	return s.base.PublicBaseURL()
-}

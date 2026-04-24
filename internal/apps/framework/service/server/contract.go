@@ -52,14 +52,6 @@ type ServiceServer interface {
 	// AdminBaseURL returns the base URL for the admin server (e.g. https://127.0.0.1:9090).
 	AdminBaseURL() string
 
-	// PublicServerActualPort returns the actual port the public server is listening on.
-	// Alias for PublicPort() — both return the same value.
-	PublicServerActualPort() int
-
-	// AdminServerActualPort returns the actual port the admin server is listening on.
-	// Alias for AdminPort() — both return the same value.
-	AdminServerActualPort() int
-
 	// TLSRootCAPool returns the root CA certificate pool for the server's TLS chain.
 	// Used by test infrastructure to configure secure HTTP clients without InsecureSkipVerify.
 	// Returns nil when the server has not yet started or uses a non-PublicServerBase implementation.

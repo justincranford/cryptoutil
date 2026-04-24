@@ -59,14 +59,6 @@ func TestServer_AccessorMethods(t *testing.T) {
 			accessorFn: func() any { return testSmIMServer.AdminBaseURL() },
 		},
 		{
-			name:       "PublicServerActualPort() returns valid port number",
-			accessorFn: func() any { return testSmIMServer.PublicServerActualPort() },
-		},
-		{
-			name:       "AdminServerActualPort() returns valid port number",
-			accessorFn: func() any { return testSmIMServer.AdminServerActualPort() },
-		},
-		{
 			name:       "SessionManager() returns non-nil session manager service",
 			accessorFn: func() any { return testSmIMServer.SessionManager() },
 		},

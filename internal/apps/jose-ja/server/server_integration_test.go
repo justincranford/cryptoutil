@@ -82,16 +82,6 @@ func TestJoseJAServer_Accessors(t *testing.T) {
 	barrier := testServer.Barrier()
 	require.NotNil(t, barrier, "Barrier() should return non-nil barrier service")
 
-	// PublicServerActualPort - duplicate of PublicPort but different method.
-	publicActualPort := testServer.PublicServerActualPort()
-	require.Greater(t, publicActualPort, 0, "PublicServerActualPort() should return allocated port")
-	require.Equal(t, testServer.PublicPort(), publicActualPort, "PublicServerActualPort() should match PublicPort()")
-
-	// AdminServerActualPort - duplicate of AdminPort but different method.
-	adminActualPort := testServer.AdminServerActualPort()
-	require.Greater(t, adminActualPort, 0, "AdminServerActualPort() should return allocated port")
-	require.Equal(t, testServer.AdminPort(), adminActualPort, "AdminServerActualPort() should match AdminPort()")
-
 	// PublicBaseURL accessor.
 	publicBaseURL := testServer.PublicBaseURL()
 	require.NotEmpty(t, publicBaseURL, "PublicBaseURL() should return non-empty URL")

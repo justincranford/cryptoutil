@@ -99,20 +99,6 @@ func (m *mockServer) AdminBaseURL() string {
 	return "https://127.0.0.1:9090"
 }
 
-func (m *mockServer) PublicServerActualPort() int {
-	m.mu.Lock()
-	defer m.mu.Unlock()
-
-	return m.publicPort
-}
-
-func (m *mockServer) AdminServerActualPort() int {
-	m.mu.Lock()
-	defer m.mu.Unlock()
-
-	return m.adminPort
-}
-
 func (m *mockServer) TLSRootCAPool() *x509.CertPool {
 	return x509.NewCertPool()
 }

@@ -261,18 +261,6 @@ func (s *KMSServer) App() *cryptoutilAppsFrameworkServiceServer.Application {
 	return nil
 }
 
-// PublicServerActualPort returns the actual port the public server is listening on.
-// Alias for PublicPort() — both return the same value.
-func (s *KMSServer) PublicServerActualPort() int {
-	return s.PublicPort()
-}
-
-// AdminServerActualPort returns the actual port the admin server is listening on.
-// Alias for AdminPort() — both return the same value.
-func (s *KMSServer) AdminServerActualPort() int {
-	return s.AdminPort()
-}
-
 // TLSRootCAPool returns the root CA pool for test client TLS configuration (public server).
 func (s *KMSServer) TLSRootCAPool() *x509.CertPool {
 	if s.resources != nil && s.resources.Application != nil {
