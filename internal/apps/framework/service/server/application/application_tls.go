@@ -9,8 +9,10 @@ import (
 	"crypto/x509"
 	"fmt"
 	"net"
+	"os"
 
 	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps/framework/service/config"
+	cryptoutilSharedCryptoAsn1 "cryptoutil/internal/shared/crypto/asn1"
 	cryptoutilSharedCryptoCertificate "cryptoutil/internal/shared/crypto/certificate"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	cryptoutilSharedUtilNetwork "cryptoutil/internal/shared/util/network"
@@ -97,6 +99,93 @@ func GenerateTLSServerSubjectsInMemory(settings *cryptoutilAppsFrameworkServiceC
 	}
 
 	return public, private, nil
+}
+
+// InitTLSServerCerts initializes TLS certificates by starting Basic services,
+// generating cert files to disk, then shutting down. Used by the init subcommand.
+func InitTLSServerCerts(settings *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings) error {
+	ctx := context.Background()
+
+	basic, err := StartBasic(ctx, settings)
+	if err != nil {
+		return fmt.Errorf("failed to initialize server application core: %w", err)
+	}
+
+	defer basic.Shutdown()
+
+	_, _, err = GenerateTLSServerSubjectsToDisk(settings, basic)
+	if err != nil {
+		return fmt.Errorf("failed to generate TLS server subjects: %w", err)
+	}
+
+	return nil
+}
+
+// GenerateTLSServerSubjectsToDisk generates TLS server certificate subjects for both public and
+// private servers and writes the certificate chain PEMs and encrypted private key PEMs to disk.
+// prefix is used to name files (e.g., "tls_public_server_" or "tls_private_server_").
+func GenerateTLSServerSubjectsToDisk(settings *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings, basic *Basic) (*cryptoutilSharedCryptoCertificate.Subject, *cryptoutilSharedCryptoCertificate.Subject, error) {
+	publicTLSServerIPAddresses, err := cryptoutilSharedUtilNetwork.ParseIPAddresses(settings.TLSPublicIPAddresses)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to parse public TLS server IP addresses: %w", err)
+	}
+
+	privateTLSServerIPAddresses, err := cryptoutilSharedUtilNetwork.ParseIPAddresses(settings.TLSPrivateIPAddresses)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to parse private TLS server IP addresses: %w", err)
+	}
+
+	public, err := GenerateTLSServerSubjectToDisk(basic, "tls_public_server_", settings.TLSPublicDNSNames, publicTLSServerIPAddresses)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to create TLS public server certs: %w", err)
+	}
+
+	private, err := GenerateTLSServerSubjectToDisk(basic, "tls_private_server_", settings.TLSPrivateDNSNames, privateTLSServerIPAddresses)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to create TLS private server certs: %w", err)
+	}
+
+	return public, private, nil
+}
+
+// GenerateTLSServerSubjectToDisk generates a single TLS server certificate subject in memory,
+// then writes the certificate chain PEMs and encrypted private key PEM to disk.
+// prefix is used to name the output files (e.g., "tls_public_server_").
+func GenerateTLSServerSubjectToDisk(basic *Basic, prefix string, dnsNames []string, ipAddresses []net.IP) (*cryptoutilSharedCryptoCertificate.Subject, error) {
+	tlsServerEndEntitySubject, err := GenerateTLSServerSubjectInMemory(basic, dnsNames, ipAddresses)
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate TLS server subject: %w", err)
+	}
+
+	// Encode certificates as PEM and write to files.
+	tlsServerCertificateChainPEMs, err := cryptoutilSharedCryptoAsn1.PEMEncodes(tlsServerEndEntitySubject.KeyMaterial.CertificateChain)
+	if err != nil {
+		return nil, fmt.Errorf("failed to encode certificate chain as PEM: %w", err)
+	}
+
+	for i, certPEM := range tlsServerCertificateChainPEMs {
+		filename := fmt.Sprintf("%scertificate_%d.pem", prefix, i)
+		if err := os.WriteFile(filename, certPEM, cryptoutilSharedMagic.FilePermOwnerReadWriteOnly); err != nil {
+			return nil, fmt.Errorf("failed to write TLS server certificate PEM file %s: %w", filename, err)
+		}
+	}
+
+	// Encrypt private key as PEM and write to file.
+	tlsPrivateKeyPEM, err := cryptoutilSharedCryptoAsn1.PEMEncode(tlsServerEndEntitySubject.KeyMaterial.PrivateKey)
+	if err != nil {
+		return nil, fmt.Errorf("failed to encode private key as PEM: %w", err)
+	}
+
+	encryptedTLSPrivateKeyPEM, err := basic.UnsealKeysService.EncryptData(tlsPrivateKeyPEM)
+	if err != nil {
+		return nil, fmt.Errorf("failed to encrypt TLS server private key PEM: %w", err)
+	}
+
+	if err := os.WriteFile(fmt.Sprintf("%sprivate_key.pem", prefix), encryptedTLSPrivateKeyPEM, cryptoutilSharedMagic.FilePermOwnerReadWriteOnly); err != nil {
+		return nil, fmt.Errorf("failed to write encrypted TLS server private key PEM file: %w", err)
+	}
+
+	return tlsServerEndEntitySubject, nil
 }
 
 // GenerateTLSServerSubjectInMemory generates a single TLS server certificate subject in memory.
