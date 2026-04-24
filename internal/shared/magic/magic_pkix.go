@@ -48,6 +48,14 @@ const (
 	// TLSDefaultSubscriberCertDuration - Default duration for subscriber certificates (397 days).
 	TLSDefaultSubscriberCertDuration = TLSDefaultValidityEndEntityDays * Days1
 
+	// TLSDefaultValidityEndEntityDaysWithRandomizationBuffer is the safe end-entity cert validity
+	// period when NotBefore randomization is enabled. CertificateRandomizationNotBeforeMinutes (120)
+	// can shift NotBefore backward by up to 2 hours, extending effective validity past the nominal
+	// period. Using 396 instead of 397 ensures the actual validity never exceeds
+	// TLSMaxValidityEndEntityDays (398) even with maximum randomization applied.
+	// Derivation: TLSDefaultValidityEndEntityDays (397) - 1 day buffer for 120-minute randomization.
+	TLSDefaultValidityEndEntityDaysWithRandomizationBuffer = TLSDefaultValidityEndEntityDays - 1 // 396
+
 	// Test certificate validity durations.
 	TLSTestCACertValidity20Years        = 20
 	TLSTestCACertValidity5Years         = 5
@@ -89,4 +97,8 @@ const (
 	// DefaultTLSAutoCAChainTiers - Default number of CA chain tiers for auto-generated TLS certificates.
 	// Tier layout: Root CA + Intermediate CA + End Entity certificate = 3 tiers.
 	DefaultTLSAutoCAChainTiers = 3
+
+	// TLSServerKeyPairsNeeded is the number of ECDSA P-256 key pairs required to generate one TLS
+	// server subject: 1 for the end-entity certificate + 1 for the issuing CA certificate.
+	TLSServerKeyPairsNeeded = 2
 )
