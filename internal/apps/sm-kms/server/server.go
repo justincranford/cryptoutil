@@ -21,7 +21,6 @@ import (
 	cryptoutilAppsFrameworkServiceServerMiddleware "cryptoutil/internal/apps/framework/service/server/middleware"
 	cryptoutilKmsServerBusinesslogic "cryptoutil/internal/apps/sm-kms/server/businesslogic"
 	cryptoutilKmsServerHandler "cryptoutil/internal/apps/sm-kms/server/handler"
-	cryptoutilKmsServerMiddleware "cryptoutil/internal/apps/sm-kms/server/middleware"
 	cryptoutilAppsSmKmsServerRepository "cryptoutil/internal/apps/sm-kms/server/repository"
 	cryptoutilOrmRepository "cryptoutil/internal/apps/sm-kms/server/repository/orm"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
@@ -87,12 +86,12 @@ func tenantContextBridgeMiddleware() fiber.Handler {
 		tid, ok := c.Locals(cryptoutilAppsFrameworkServiceServerMiddleware.ContextKeyTenantID).(googleUuid.UUID)
 		if ok && tid != googleUuid.Nil {
 			rid, _ := c.Locals(cryptoutilAppsFrameworkServiceServerMiddleware.ContextKeyRealmID).(googleUuid.UUID)
-			rc := &cryptoutilKmsServerMiddleware.RealmContext{
+			rc := &cryptoutilAppsFrameworkServiceServerMiddleware.RealmContext{
 				TenantID: tid,
 				RealmID:  rid,
 				Source:   "session",
 			}
-			c.SetUserContext(context.WithValue(c.UserContext(), cryptoutilKmsServerMiddleware.RealmContextKey{}, rc))
+			c.SetUserContext(context.WithValue(c.UserContext(), cryptoutilAppsFrameworkServiceServerMiddleware.RealmContextKey{}, rc))
 		}
 
 		return c.Next()

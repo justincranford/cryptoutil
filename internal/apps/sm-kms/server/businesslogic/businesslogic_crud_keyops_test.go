@@ -6,7 +6,7 @@ import (
 
 	cryptoutilOpenapiModel "cryptoutil/api/sm-kms/models"
 	cryptoutilKmsServer "cryptoutil/api/sm-kms/server"
-	cryptoutilKmsMiddleware "cryptoutil/internal/apps/sm-kms/server/middleware"
+	cryptoutilAppsFrameworkServiceServerMiddleware "cryptoutil/internal/apps/framework/service/server/middleware"
 	cryptoutilOrmRepository "cryptoutil/internal/apps/sm-kms/server/repository/orm"
 
 	googleUuid "github.com/google/uuid"
@@ -19,7 +19,7 @@ func ptr[T any](v T) *T { return &v }
 func seedImportableElasticKeyWithStatus(t *testing.T, stack *testStack, name string, status cryptoutilKmsServer.ElasticKeyStatus) googleUuid.UUID {
 	t.Helper()
 
-	tenantID := cryptoutilKmsMiddleware.GetRealmContext(stack.ctx).TenantID
+	tenantID := cryptoutilAppsFrameworkServiceServerMiddleware.GetRealmContext(stack.ctx).TenantID
 	ekID := googleUuid.New()
 	ek := &cryptoutilOrmRepository.ElasticKey{
 		ElasticKeyID:                ekID,

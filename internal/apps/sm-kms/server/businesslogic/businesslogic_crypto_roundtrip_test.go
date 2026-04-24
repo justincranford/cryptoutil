@@ -6,7 +6,7 @@ import (
 
 	cryptoutilOpenapiModel "cryptoutil/api/sm-kms/models"
 	cryptoutilKmsServer "cryptoutil/api/sm-kms/server"
-	cryptoutilKmsMiddleware "cryptoutil/internal/apps/sm-kms/server/middleware"
+	cryptoutilAppsFrameworkServiceServerMiddleware "cryptoutil/internal/apps/framework/service/server/middleware"
 	cryptoutilOrmRepository "cryptoutil/internal/apps/sm-kms/server/repository/orm"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
@@ -45,7 +45,7 @@ func seedBarrierEncryptedElasticKey(
 ) googleUuid.UUID {
 	t.Helper()
 
-	tenantID := cryptoutilKmsMiddleware.GetRealmContext(stack.ctx).TenantID
+	tenantID := cryptoutilAppsFrameworkServiceServerMiddleware.GetRealmContext(stack.ctx).TenantID
 
 	// Create elastic key directly via GORM (no transaction nesting).
 	ekID := stack.service.jwkGenService.GenerateUUIDv7()

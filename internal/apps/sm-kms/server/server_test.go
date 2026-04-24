@@ -15,7 +15,6 @@ import (
 	cryptoutilAppsFrameworkServiceServerBusinesslogic "cryptoutil/internal/apps/framework/service/server/businesslogic"
 	cryptoutilAppsFrameworkServiceServerMiddleware "cryptoutil/internal/apps/framework/service/server/middleware"
 	cryptoutilKmsServerBusinesslogic "cryptoutil/internal/apps/sm-kms/server/businesslogic"
-	cryptoutilKmsServerMiddleware "cryptoutil/internal/apps/sm-kms/server/middleware"
 
 	fiber "github.com/gofiber/fiber/v2"
 	googleUuid "github.com/google/uuid"
@@ -416,7 +415,7 @@ func TestTenantContextBridgeMiddleware(t *testing.T) {
 
 			fiberApp := fiber.New(fiber.Config{DisableStartupMessage: true})
 
-			var capturedRC *cryptoutilKmsServerMiddleware.RealmContext
+			var capturedRC *cryptoutilAppsFrameworkServiceServerMiddleware.RealmContext
 
 			fiberApp.Use(func(c *fiber.Ctx) error {
 				tc.setup(c)
@@ -425,7 +424,7 @@ func TestTenantContextBridgeMiddleware(t *testing.T) {
 			})
 			fiberApp.Use(tenantContextBridgeMiddleware())
 			fiberApp.Get("/test", func(c *fiber.Ctx) error {
-				capturedRC = cryptoutilKmsServerMiddleware.GetRealmContext(c.UserContext())
+				capturedRC = cryptoutilAppsFrameworkServiceServerMiddleware.GetRealmContext(c.UserContext())
 
 				return c.SendStatus(fiber.StatusOK)
 			})

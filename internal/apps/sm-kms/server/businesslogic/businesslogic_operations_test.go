@@ -8,7 +8,7 @@ import (
 
 	cryptoutilOpenapiModel "cryptoutil/api/sm-kms/models"
 	cryptoutilKmsServer "cryptoutil/api/sm-kms/server"
-	cryptoutilKmsMiddleware "cryptoutil/internal/apps/sm-kms/server/middleware"
+	cryptoutilAppsFrameworkServiceServerMiddleware "cryptoutil/internal/apps/framework/service/server/middleware"
 	cryptoutilOrmRepository "cryptoutil/internal/apps/sm-kms/server/repository/orm"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
@@ -52,7 +52,7 @@ func TestGenerateMaterialKey_UnsupportedAlgorithm(t *testing.T) {
 	stack := setupTestStack(t)
 
 	// Insert elastic key directly with an unsupported algorithm (no DB constraint on algorithm).
-	tenantID := cryptoutilKmsMiddleware.GetRealmContext(stack.ctx).TenantID
+	tenantID := cryptoutilAppsFrameworkServiceServerMiddleware.GetRealmContext(stack.ctx).TenantID
 	ekID := googleUuid.New()
 	ek := &cryptoutilOrmRepository.ElasticKey{
 		ElasticKeyID:                ekID,
@@ -100,7 +100,7 @@ var _ = setupCryptoTestStack // ensure function is reachable (used in roundtrip 
 func seedBarrierElasticKeyForCoverage(t *testing.T, stack *testStack, name string, alg cryptoutilOpenapiModel.ElasticKeyAlgorithm) googleUuid.UUID {
 	t.Helper()
 
-	tenantID := cryptoutilKmsMiddleware.GetRealmContext(stack.ctx).TenantID
+	tenantID := cryptoutilAppsFrameworkServiceServerMiddleware.GetRealmContext(stack.ctx).TenantID
 	ekID := stack.service.jwkGenService.GenerateUUIDv7()
 	ek := &cryptoutilOrmRepository.ElasticKey{
 		ElasticKeyID:                *ekID,
@@ -200,7 +200,7 @@ func TestGenerateMaterialKeyInElasticKey_VersioningMaterialKey(t *testing.T) {
 	sqlDB.SetMaxIdleConns(cryptoutilSharedMagic.SQLiteMaxOpenConnectionsForGORM)
 
 	// Seed a versioning-allowed elastic key directly.
-	tenantID := cryptoutilKmsMiddleware.GetRealmContext(stack.ctx).TenantID
+	tenantID := cryptoutilAppsFrameworkServiceServerMiddleware.GetRealmContext(stack.ctx).TenantID
 	ekID := stack.service.jwkGenService.GenerateUUIDv7()
 	ek := &cryptoutilOrmRepository.ElasticKey{
 		ElasticKeyID:                *ekID,

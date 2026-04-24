@@ -13,7 +13,7 @@ import (
 	cryptoutilOpenapiModel "cryptoutil/api/sm-kms/models"
 	cryptoutilKmsServer "cryptoutil/api/sm-kms/server"
 	cryptoutilAppsFrameworkServiceServerBarrier "cryptoutil/internal/apps/framework/service/server/barrier"
-	cryptoutilKmsMiddleware "cryptoutil/internal/apps/sm-kms/server/middleware"
+	cryptoutilAppsFrameworkServiceServerMiddleware "cryptoutil/internal/apps/framework/service/server/middleware"
 	cryptoutilOrmRepository "cryptoutil/internal/apps/sm-kms/server/repository/orm"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
@@ -59,7 +59,7 @@ func NewBusinessLogicService(ctx context.Context, telemetryService *cryptoutilSh
 
 // getTenantID extracts the tenant ID from context. Returns error if not set.
 func getTenantID(ctx context.Context) (googleUuid.UUID, error) {
-	realmCtx := cryptoutilKmsMiddleware.GetRealmContext(ctx)
+	realmCtx := cryptoutilAppsFrameworkServiceServerMiddleware.GetRealmContext(ctx)
 	if realmCtx == nil || realmCtx.TenantID == googleUuid.Nil {
 		return googleUuid.Nil, fmt.Errorf("tenant context required")
 	}

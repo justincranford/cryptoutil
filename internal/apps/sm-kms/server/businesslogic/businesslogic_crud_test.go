@@ -14,8 +14,8 @@ import (
 	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps/framework/service/config"
 	cryptoutilAppsFrameworkServiceServerApplication "cryptoutil/internal/apps/framework/service/server/application"
 	cryptoutilAppsFrameworkServiceServerBarrier "cryptoutil/internal/apps/framework/service/server/barrier"
+	cryptoutilAppsFrameworkServiceServerMiddleware "cryptoutil/internal/apps/framework/service/server/middleware"
 	cryptoutilAppsFrameworkServiceServerRepository "cryptoutil/internal/apps/framework/service/server/repository"
-	cryptoutilKmsMiddleware "cryptoutil/internal/apps/sm-kms/server/middleware"
 	cryptoutilKmsServerRepository "cryptoutil/internal/apps/sm-kms/server/repository"
 	cryptoutilOrmRepository "cryptoutil/internal/apps/sm-kms/server/repository/orm"
 
@@ -152,8 +152,8 @@ func setupTestStack(tb testing.TB) *testStack {
 	testify.NoError(tb, err)
 
 	tenantID := googleUuid.New()
-	rc := &cryptoutilKmsMiddleware.RealmContext{TenantID: tenantID}
-	testCtx := context.WithValue(ctx, cryptoutilKmsMiddleware.RealmContextKey{}, rc)
+	rc := &cryptoutilAppsFrameworkServiceServerMiddleware.RealmContext{TenantID: tenantID}
+	testCtx := context.WithValue(ctx, cryptoutilAppsFrameworkServiceServerMiddleware.RealmContextKey{}, rc)
 
 	return &testStack{service: service, ctx: testCtx, core: templateCore}
 }
@@ -161,7 +161,7 @@ func setupTestStack(tb testing.TB) *testStack {
 func seedElasticKey(t *testing.T, stack *testStack, name string, alg cryptoutilOpenapiModel.ElasticKeyAlgorithm, status cryptoutilKmsServer.ElasticKeyStatus) googleUuid.UUID {
 	t.Helper()
 
-	tenantID := cryptoutilKmsMiddleware.GetRealmContext(stack.ctx).TenantID
+	tenantID := cryptoutilAppsFrameworkServiceServerMiddleware.GetRealmContext(stack.ctx).TenantID
 	ekID := googleUuid.New()
 	ek := &cryptoutilOrmRepository.ElasticKey{
 		ElasticKeyID:                ekID,

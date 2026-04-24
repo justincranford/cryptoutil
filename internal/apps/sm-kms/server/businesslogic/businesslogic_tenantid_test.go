@@ -7,7 +7,7 @@ import (
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
-	cryptoutilKmsMiddleware "cryptoutil/internal/apps/sm-kms/server/middleware"
+	cryptoutilAppsFrameworkServiceServerMiddleware "cryptoutil/internal/apps/framework/service/server/middleware"
 )
 
 func TestGetTenantID(t *testing.T) {
@@ -24,11 +24,11 @@ func TestGetTenantID(t *testing.T) {
 			name: "valid tenant ID in realm context",
 			setupCtx: func() context.Context {
 				tenantID := googleUuid.New()
-				rc := &cryptoutilKmsMiddleware.RealmContext{
+				rc := &cryptoutilAppsFrameworkServiceServerMiddleware.RealmContext{
 					TenantID: tenantID,
 				}
 
-				return context.WithValue(context.Background(), cryptoutilKmsMiddleware.RealmContextKey{}, rc)
+				return context.WithValue(context.Background(), cryptoutilAppsFrameworkServiceServerMiddleware.RealmContextKey{}, rc)
 			},
 			wantErr: false,
 		},
@@ -43,11 +43,11 @@ func TestGetTenantID(t *testing.T) {
 		{
 			name: "nil tenant ID in realm context",
 			setupCtx: func() context.Context {
-				rc := &cryptoutilKmsMiddleware.RealmContext{
+				rc := &cryptoutilAppsFrameworkServiceServerMiddleware.RealmContext{
 					TenantID: googleUuid.Nil,
 				}
 
-				return context.WithValue(context.Background(), cryptoutilKmsMiddleware.RealmContextKey{}, rc)
+				return context.WithValue(context.Background(), cryptoutilAppsFrameworkServiceServerMiddleware.RealmContextKey{}, rc)
 			},
 			wantErr:    true,
 			wantErrMsg: "tenant context required",
