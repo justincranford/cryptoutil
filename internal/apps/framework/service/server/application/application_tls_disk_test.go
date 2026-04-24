@@ -120,6 +120,14 @@ func TestInitTLSServerCerts_InvalidIPAddresses(t *testing.T) {
 	}
 }
 
+// TestBasic_Shutdown_NilComponents verifies that Shutdown does not panic when all struct fields are nil.
+func TestBasic_Shutdown_NilComponents(t *testing.T) {
+	t.Parallel()
+
+	app := &Basic{}
+	require.NotPanics(t, app.Shutdown, "shutdown should not panic with nil components")
+}
+
 // TestStartTLSListener_ContainerConfig tests StartTLSListener with container mode and dev mode configurations.
 func TestStartTLSListener_ContainerConfig(t *testing.T) {
 	t.Parallel()
