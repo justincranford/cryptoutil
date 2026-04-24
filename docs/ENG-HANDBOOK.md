@@ -1862,7 +1862,7 @@ Non-Deterministic Example: {n2}nonce:aad#{R5}HKDF-HMAC-SHA256:abc123...:def456..
 
 - **Serial Number**: ≥64 bits CSPRNG, non-sequential, >0, <2^159
 - **Algorithms**: RSA ≥2048, ECDSA P-256/384/521, EdDSA, SHA-256/384/512 (NEVER MD5/SHA-1)
-- **Validity**: Subscriber certs ≤398 days, Intermediate CA 5-10 years, Root CA 20-25 years
+- **Validity**: Subscriber certs ≤398 days, Intermediate CA 5-10 years, Root CA 20-25 years. **Production end-entity certs use 396 days** (not 397) when NotBefore randomization is active — `CertificateRandomizationNotBeforeMinutes` (120 min) shifts NotBefore backward, extending effective validity by up to 2 hours; 1-day buffer ensures actual validity never exceeds 398 days. Constant: `TLSDefaultValidityEndEntityDaysWithRandomizationBuffer`.
 - **Extensions**: Key Usage (critical), EKU, SAN, AKI, SKI, CRL Distribution Points, OCSP
 - **CRL/OCSP**: Update ≤7 days, OCSP response ≤7-10 days validity
 - **Audit Logging**: 7-year retention minimum
