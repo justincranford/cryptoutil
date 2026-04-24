@@ -5,10 +5,18 @@ package testutil
 import (
 	"crypto/x509"
 	"fmt"
+	"io"
+	http "net/http"
+	"net/http/httptest"
+	"testing"
 
 	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps/framework/service/config"
 	cryptoutilAppsFrameworkServiceConfigTlsGenerator "cryptoutil/internal/apps/framework/service/config/tls_generator"
+
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+
+	fiber "github.com/gofiber/fiber/v2"
+	"github.com/stretchr/testify/require"
 )
 
 var (
@@ -111,4 +119,31 @@ func PublicRootCAPool() *x509.CertPool {
 // Use this in test HTTP clients instead of InsecureSkipVerify.
 func PrivateRootCAPool() *x509.CertPool {
 	return privateRootCAPool
+}
+
+// AssertOpenAPISpecHandler validates that a Fiber handler correctly serves an OpenAPI JSON spec.
+// Tests: HTTP 200 response, application/json content type, required openapi/info/paths fields.
+func AssertOpenAPISpecHandler(t *testing.T, handler fiber.Handler) {
+	t.Helper()
+
+	app := fiber.New(fiber.Config{DisableStartupMessage: true})
+	app.Get("/spec", handler)
+
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/spec", nil)
+	resp, err := app.Test(req, -1)
+	require.NoError(t, err)
+
+	defer func() { _ = resp.Body.Close() }()
+
+	require.Equal(t, fiber.StatusOK, resp.StatusCode)
+	require.Equal(t, "application/json", resp.Header.Get("Content-Type"))
+
+	body, err := io.ReadAll(resp.Body)
+	require.NoError(t, err)
+	require.NotEmpty(t, body)
+
+	bodyStr := string(body)
+	require.Contains(t, bodyStr, `"openapi"`)
+	require.Contains(t, bodyStr, `"info"`)
+	require.Contains(t, bodyStr, `"paths"`)
 }
