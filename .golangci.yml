@@ -122,6 +122,9 @@ linters:
       # Exclude wrapcheck from template registration handlers (Fiber HTTP response helpers).
       - path: "internal/apps/framework/service/server/apis/registration_handlers\\.go$"
         linters: [wrapcheck]
+      # Exclude wrapcheck from sm-kms ORM transaction toAppErr (delegates to MapGormError which wraps internally).
+      - path: "internal/apps/sm-kms/server/repository/orm/business_entities_operations\\.go$"
+        linters: [wrapcheck]
 
       # Exclude revive package-comments from doc.go (false positive with block comments).
       - path: "internal/shared/crypto/digests/doc\\.go$"

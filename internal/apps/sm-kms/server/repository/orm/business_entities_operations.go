@@ -3,19 +3,13 @@
 package orm
 
 import (
-	"errors"
-	"fmt"
-
 	cryptoutilKmsServer "cryptoutil/api/sm-kms/server"
 	cryptoutilSharedApperr "cryptoutil/internal/shared/apperr"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	cryptoutilSharedUtilRandom "cryptoutil/internal/shared/util/random"
 
 	"gorm.io/gorm"
 
 	googleUuid "github.com/google/uuid"
-	"github.com/jackc/pgx/v5/pgconn"
-	"modernc.org/sqlite"
 )
 
 // Database error code constants (SQLite numeric codes and Postgres SQLSTATE strings).
@@ -212,60 +206,7 @@ func (tx *OrmTransaction) UpdateElasticKeyMaterialKeyRevoke(materialKey *Materia
 }
 
 func (tx *OrmTransaction) toAppErr(msg *string, err error) error {
-	tx.ormRepository.telemetryService.Slogger.Error(*msg, cryptoutilSharedMagic.StringError, err)
-
-	// custom errors
-	if cryptoutilSharedApperr.IsAppErr(err) {
-		return cryptoutilSharedApperr.NewHTTP400BadRequest(msg, fmt.Errorf("%s: %w", *msg, err))
-	}
-
-	// gorm errors
-	switch {
-	case errors.Is(err, gorm.ErrRecordNotFound):
-		return cryptoutilSharedApperr.NewHTTP404NotFound(msg, fmt.Errorf("%s: %w", *msg, err))
-	case errors.Is(err, gorm.ErrDuplicatedKey):
-		return cryptoutilSharedApperr.NewHTTP400BadRequest(msg, fmt.Errorf("%s: %w", *msg, err))
-	case errors.Is(err, gorm.ErrForeignKeyViolated):
-		return cryptoutilSharedApperr.NewHTTP400BadRequest(msg, fmt.Errorf("%s: %w", *msg, err))
-	case errors.Is(err, gorm.ErrCheckConstraintViolated):
-		return cryptoutilSharedApperr.NewHTTP400BadRequest(msg, fmt.Errorf("%s: %w", *msg, err))
-	case errors.Is(err, gorm.ErrInvalidData):
-		return cryptoutilSharedApperr.NewHTTP400BadRequest(msg, fmt.Errorf("%s: %w", *msg, err))
-	case errors.Is(err, gorm.ErrInvalidValueOfLength):
-		return cryptoutilSharedApperr.NewHTTP400BadRequest(msg, fmt.Errorf("%s: %w", *msg, err))
-	case errors.Is(err, gorm.ErrNotImplemented):
-		return cryptoutilSharedApperr.NewHTTP501StatusLineAndCodeNotImplemented(msg, fmt.Errorf("%s: %w", *msg, err))
-	}
-
-	// SQLite errors
-	var sqliteErr *sqlite.Error
-	if errors.As(err, &sqliteErr) {
-		switch sqliteErr.Code() {
-		case cryptoutilSharedMagic.SQLiteErrUniqueConstraint: // UNIQUE constraint failed
-			return cryptoutilSharedApperr.NewHTTP400BadRequest(msg, fmt.Errorf("%s: %w", *msg, err))
-		case cryptoutilSharedMagic.SQLiteErrForeignKey: // FOREIGN KEY constraint failed
-			return cryptoutilSharedApperr.NewHTTP400BadRequest(msg, fmt.Errorf("%s: %w", *msg, err))
-		case cryptoutilSharedMagic.SQLiteErrCheckConstraint: // CHECK constraint failed
-			return cryptoutilSharedApperr.NewHTTP400BadRequest(msg, fmt.Errorf("%s: %w", *msg, err))
-		}
-	}
-
-	// PostgreSQL errors
-	var pgErr *pgconn.PgError
-	if errors.As(err, &pgErr) {
-		switch pgErr.Code {
-		case cryptoutilSharedMagic.PGCodeUniqueViolation: // unique_violation
-			return cryptoutilSharedApperr.NewHTTP400BadRequest(msg, fmt.Errorf("%s: %w", *msg, err))
-		case cryptoutilSharedMagic.PGCodeForeignKeyViolation: // foreign_key_violation
-			return cryptoutilSharedApperr.NewHTTP400BadRequest(msg, fmt.Errorf("%s: %w", *msg, err))
-		case cryptoutilSharedMagic.PGCodeCheckViolation: // check_violation
-			return cryptoutilSharedApperr.NewHTTP400BadRequest(msg, fmt.Errorf("%s: %w", *msg, err))
-		case cryptoutilSharedMagic.PGCodeStringDataTruncation: // string_data_right_truncation
-			return cryptoutilSharedApperr.NewHTTP400BadRequest(msg, fmt.Errorf("%s: %w", *msg, err))
-		}
-	}
-
-	return cryptoutilSharedApperr.NewHTTP500InternalServerError(msg, fmt.Errorf("%s: %w", *msg, err))
+	return cryptoutilSharedApperr.MapGormError(tx.ormRepository.telemetryService.Slogger, msg, err)
 }
 
 func applyGetElasticKeysFilters(db *gorm.DB, filters *GetElasticKeysFilters) *gorm.DB {
