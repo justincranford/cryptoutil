@@ -14,7 +14,7 @@ import (
 
 func TestOrmTransaction_AddContentKey(t *testing.T) {
 	t.Parallel()
-	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository) })
+	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository, KMSCleanupTables) })
 
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 		contentKeyID := googleUuid.New()
@@ -37,7 +37,7 @@ func TestOrmTransaction_AddContentKey(t *testing.T) {
 
 func TestOrmTransaction_GetContentKeys(t *testing.T) {
 	t.Parallel()
-	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository) })
+	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository, KMSCleanupTables) })
 
 	// Create 2 content keys.
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
@@ -77,7 +77,7 @@ func TestOrmTransaction_GetContentKeys(t *testing.T) {
 
 func TestOrmTransaction_GetContentKeyLatest(t *testing.T) {
 	t.Parallel()
-	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository) })
+	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository, KMSCleanupTables) })
 
 	var contentKeyID1, contentKeyID2 googleUuid.UUID
 
@@ -126,7 +126,7 @@ func TestOrmTransaction_GetContentKeyLatest(t *testing.T) {
 
 func TestOrmTransaction_GetContentKey(t *testing.T) {
 	t.Parallel()
-	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository) })
+	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository, KMSCleanupTables) })
 
 	var contentKeyID googleUuid.UUID
 
@@ -161,7 +161,7 @@ func TestOrmTransaction_GetContentKey(t *testing.T) {
 
 func TestOrmTransaction_DeleteContentKey(t *testing.T) {
 	t.Parallel()
-	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository) })
+	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository, KMSCleanupTables) })
 
 	var contentKeyID googleUuid.UUID
 

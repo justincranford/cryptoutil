@@ -18,7 +18,7 @@ import (
 // TestUpdateElasticKey_InvalidUUID tests error path when updating with invalid UUID.
 func TestUpdateElasticKey_InvalidUUID(t *testing.T) {
 	t.Parallel()
-	CleanupDatabase(t, testOrmRepository)
+	CleanupDatabase(t, testOrmRepository, KMSCleanupTables)
 
 	// Create elastic key with zero UUID (invalid).
 	tenantID := googleUuid.New()
@@ -49,7 +49,7 @@ func TestUpdateElasticKey_InvalidUUID(t *testing.T) {
 // TestUpdateElasticKey_NonExistentRecord tests error path when updating non-existent record.
 func TestUpdateElasticKey_NonExistentRecord(t *testing.T) {
 	t.Parallel()
-	CleanupDatabase(t, testOrmRepository)
+	CleanupDatabase(t, testOrmRepository, KMSCleanupTables)
 
 	// Create elastic key with non-existent UUID.
 	tenantID := googleUuid.New()
@@ -81,7 +81,7 @@ func TestUpdateElasticKey_NonExistentRecord(t *testing.T) {
 // TestUpdateElasticKeyStatus_InvalidUUID tests error path when updating status with invalid UUID.
 func TestUpdateElasticKeyStatus_InvalidUUID(t *testing.T) {
 	t.Parallel()
-	CleanupDatabase(t, testOrmRepository)
+	CleanupDatabase(t, testOrmRepository, KMSCleanupTables)
 
 	// Attempt update with zero UUID (invalid).
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
@@ -96,7 +96,7 @@ func TestUpdateElasticKeyStatus_InvalidUUID(t *testing.T) {
 // TestUpdateElasticKeyStatus_NonExistentRecord tests error path when updating status of non-existent record.
 func TestUpdateElasticKeyStatus_NonExistentRecord(t *testing.T) {
 	t.Parallel()
-	CleanupDatabase(t, testOrmRepository)
+	CleanupDatabase(t, testOrmRepository, KMSCleanupTables)
 
 	// Attempt update on non-existent UUID.
 	nonExistentID := googleUuid.New()
@@ -113,7 +113,7 @@ func TestUpdateElasticKeyStatus_NonExistentRecord(t *testing.T) {
 // Note: This is difficult to trigger without database errors.
 func TestGetElasticKeys_EmptyResult(t *testing.T) {
 	t.Parallel()
-	CleanupDatabase(t, testOrmRepository)
+	CleanupDatabase(t, testOrmRepository, KMSCleanupTables)
 
 	// Query with filters that match nothing.
 	var keys []ElasticKey
@@ -138,7 +138,7 @@ func TestGetElasticKeys_EmptyResult(t *testing.T) {
 // TestUpdateElasticKey_DatabaseConstraintViolation tests error path when violating database constraints.
 func TestUpdateElasticKey_DatabaseConstraintViolation(t *testing.T) {
 	t.Parallel()
-	CleanupDatabase(t, testOrmRepository)
+	CleanupDatabase(t, testOrmRepository, KMSCleanupTables)
 
 	// First create a valid elastic key.
 	tenantID := googleUuid.New()
@@ -191,7 +191,7 @@ func TestUpdateElasticKey_DatabaseConstraintViolation(t *testing.T) {
 // TestUpdateElasticKeyStatus_DatabaseConstraintViolation tests error path when violating constraints.
 func TestUpdateElasticKeyStatus_DatabaseConstraintViolation(t *testing.T) {
 	t.Parallel()
-	CleanupDatabase(t, testOrmRepository)
+	CleanupDatabase(t, testOrmRepository, KMSCleanupTables)
 
 	// First create a valid elastic key.
 	tenantID := googleUuid.New()

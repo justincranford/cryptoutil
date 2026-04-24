@@ -24,7 +24,7 @@ import (
 // and verifies that using this non-existent filter field results in a database error.
 func TestGetElasticKeysWithExportAllowedFilter(t *testing.T) {
 	t.Parallel()
-	CleanupDatabase(t, testOrmRepository)
+	CleanupDatabase(t, testOrmRepository, KMSCleanupTables)
 
 	// Create an elastic key for testing.
 	tenantID := googleUuid.New()
@@ -66,7 +66,7 @@ func TestGetElasticKeysWithExportAllowedFilter(t *testing.T) {
 // TestGetElasticKeysWithImportAllowedFilter tests the ImportAllowed filter path.
 func TestGetElasticKeysWithImportAllowedFilter(t *testing.T) {
 	t.Parallel()
-	CleanupDatabase(t, testOrmRepository)
+	CleanupDatabase(t, testOrmRepository, KMSCleanupTables)
 
 	// Create an elastic key with ImportAllowed=true.
 	tenantID := googleUuid.New()

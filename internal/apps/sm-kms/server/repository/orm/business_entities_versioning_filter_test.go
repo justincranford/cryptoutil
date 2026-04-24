@@ -18,7 +18,7 @@ import (
 // TestGetElasticKeysWithVersioningAllowedFilter tests the VersioningAllowed filter path.
 func TestGetElasticKeysWithVersioningAllowedFilter(t *testing.T) {
 	t.Parallel()
-	CleanupDatabase(t, testOrmRepository)
+	CleanupDatabase(t, testOrmRepository, KMSCleanupTables)
 
 	// Create two elastic keys: one with versioning allowed, one without.
 	tenantID := googleUuid.New()

@@ -19,7 +19,7 @@ import (
 // TestOrmRepository_VerboseMode tests verbose logging during transactions.
 func TestOrmRepository_VerboseMode(t *testing.T) {
 	t.Parallel()
-	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository) })
+	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository, KMSCleanupTables) })
 
 	// Enable verbose mode.
 	testOrmRepository.verboseMode = true
@@ -103,7 +103,7 @@ func TestOrmTransaction_Rollback_NotActive(t *testing.T) {
 // TestOrmTransaction_DeferredRollback_OnFunctionError tests deferred rollback when transaction function fails.
 func TestOrmTransaction_DeferredRollback_OnFunctionError(t *testing.T) {
 	t.Parallel()
-	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository) })
+	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository, KMSCleanupTables) })
 
 	// Create transaction that fails in function.
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {

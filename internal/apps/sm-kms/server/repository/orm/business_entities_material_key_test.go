@@ -20,7 +20,7 @@ import (
 // TestOrmTransaction_GetElasticKeyMaterialKeyVersion tests getting a specific material key version.
 func TestOrmTransaction_GetElasticKeyMaterialKeyVersion(t *testing.T) {
 	t.Parallel()
-	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository) })
+	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository, KMSCleanupTables) })
 
 	// Create elastic key and multiple material keys.
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
@@ -100,7 +100,7 @@ func TestOrmTransaction_GetElasticKeyMaterialKeyVersion(t *testing.T) {
 // TestOrmTransaction_GetElasticKeyMaterialKeyLatest tests getting the latest material key.
 func TestOrmTransaction_GetElasticKeyMaterialKeyLatest(t *testing.T) {
 	t.Parallel()
-	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository) })
+	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository, KMSCleanupTables) })
 
 	var ekID googleUuid.UUID
 

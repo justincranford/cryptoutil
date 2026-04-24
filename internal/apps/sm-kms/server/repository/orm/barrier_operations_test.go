@@ -16,7 +16,7 @@ import (
 func TestRootKeyOperations(t *testing.T) {
 	t.Parallel()
 	t.Run("Add and retrieve multiple root keys", func(t *testing.T) {
-		CleanupDatabase(t, testOrmRepository)
+		CleanupDatabase(t, testOrmRepository, KMSCleanupTables)
 
 		err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 			// Add 3 root keys.
@@ -48,7 +48,7 @@ func TestRootKeyOperations(t *testing.T) {
 	})
 
 	t.Run("Get latest root key", func(t *testing.T) {
-		CleanupDatabase(t, testOrmRepository)
+		CleanupDatabase(t, testOrmRepository, KMSCleanupTables)
 
 		err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 			// Add 5 root keys.
@@ -93,7 +93,7 @@ func TestRootKeyOperations(t *testing.T) {
 	})
 
 	t.Run("Get root key by UUID", func(t *testing.T) {
-		CleanupDatabase(t, testOrmRepository)
+		CleanupDatabase(t, testOrmRepository, KMSCleanupTables)
 
 		err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 			// Add key.
@@ -119,7 +119,7 @@ func TestRootKeyOperations(t *testing.T) {
 	})
 
 	t.Run("Delete root key", func(t *testing.T) {
-		CleanupDatabase(t, testOrmRepository)
+		CleanupDatabase(t, testOrmRepository, KMSCleanupTables)
 
 		err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 			// Add 3 keys.
@@ -161,7 +161,7 @@ func TestRootKeyOperations(t *testing.T) {
 func TestIntermediateKeyOperations(t *testing.T) {
 	t.Parallel()
 	t.Run("Add and retrieve multiple intermediate keys", func(t *testing.T) {
-		CleanupDatabase(t, testOrmRepository)
+		CleanupDatabase(t, testOrmRepository, KMSCleanupTables)
 
 		err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 			// Add 4 intermediate keys.
@@ -193,7 +193,7 @@ func TestIntermediateKeyOperations(t *testing.T) {
 	})
 
 	t.Run("Get latest intermediate key", func(t *testing.T) {
-		CleanupDatabase(t, testOrmRepository)
+		CleanupDatabase(t, testOrmRepository, KMSCleanupTables)
 
 		err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 			// Add 6 intermediate keys.
@@ -238,7 +238,7 @@ func TestIntermediateKeyOperations(t *testing.T) {
 	})
 
 	t.Run("Get intermediate key by UUID", func(t *testing.T) {
-		CleanupDatabase(t, testOrmRepository)
+		CleanupDatabase(t, testOrmRepository, KMSCleanupTables)
 
 		err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 			// Add key.
@@ -264,7 +264,7 @@ func TestIntermediateKeyOperations(t *testing.T) {
 	})
 
 	t.Run("Delete intermediate key", func(t *testing.T) {
-		CleanupDatabase(t, testOrmRepository)
+		CleanupDatabase(t, testOrmRepository, KMSCleanupTables)
 
 		err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 			// Add 5 keys.
@@ -306,7 +306,7 @@ func TestIntermediateKeyOperations(t *testing.T) {
 func TestContentKeyOperations(t *testing.T) {
 	t.Parallel()
 	t.Run("Add and retrieve multiple content keys", func(t *testing.T) {
-		CleanupDatabase(t, testOrmRepository)
+		CleanupDatabase(t, testOrmRepository, KMSCleanupTables)
 
 		err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 			// Add 5 content keys.
@@ -338,7 +338,7 @@ func TestContentKeyOperations(t *testing.T) {
 	})
 
 	t.Run("Get latest content key", func(t *testing.T) {
-		CleanupDatabase(t, testOrmRepository)
+		CleanupDatabase(t, testOrmRepository, KMSCleanupTables)
 
 		err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 			// Add 7 content keys.
@@ -383,7 +383,7 @@ func TestContentKeyOperations(t *testing.T) {
 	})
 
 	t.Run("Get content key by UUID", func(t *testing.T) {
-		CleanupDatabase(t, testOrmRepository)
+		CleanupDatabase(t, testOrmRepository, KMSCleanupTables)
 
 		err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 			// Add key.
@@ -409,7 +409,7 @@ func TestContentKeyOperations(t *testing.T) {
 	})
 
 	t.Run("Delete content key", func(t *testing.T) {
-		CleanupDatabase(t, testOrmRepository)
+		CleanupDatabase(t, testOrmRepository, KMSCleanupTables)
 
 		err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 			// Add 6 keys.

@@ -21,7 +21,7 @@ import (
 // TestToAppErr_GormRecordNotFound tests toAppErr handling of gorm.ErrRecordNotFound.
 func TestToAppErr_GormRecordNotFound(t *testing.T) {
 	t.Parallel()
-	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository) })
+	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository, KMSCleanupTables) })
 
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 		// Try to get non-existent elastic key (will trigger gorm.ErrRecordNotFound).
@@ -48,7 +48,7 @@ func TestToAppErr_GormRecordNotFound(t *testing.T) {
 // TestToAppErr_UniqueConstraintViolation tests toAppErr handling of unique constraint violations.
 func TestToAppErr_UniqueConstraintViolation(t *testing.T) {
 	t.Parallel()
-	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository) })
+	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository, KMSCleanupTables) })
 
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 		// Create first elastic key.
@@ -107,7 +107,7 @@ func TestToAppErr_UniqueConstraintViolation(t *testing.T) {
 // TestToAppErr_ForeignKeyViolation tests toAppErr handling of foreign key constraint violations.
 func TestToAppErr_ForeignKeyViolation(t *testing.T) {
 	t.Parallel()
-	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository) })
+	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository, KMSCleanupTables) })
 
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 		// Try to create material key without parent elastic key (foreign key violation).
@@ -160,7 +160,7 @@ func TestToAppErr_GenericError(t *testing.T) {
 
 func TestOrmTransaction_toAppErr_GormRecordNotFound(t *testing.T) {
 	t.Parallel()
-	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository) })
+	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository, KMSCleanupTables) })
 
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 		msg := "record not found test"
@@ -178,7 +178,7 @@ func TestOrmTransaction_toAppErr_GormRecordNotFound(t *testing.T) {
 
 func TestOrmTransaction_toAppErr_GormDuplicatedKey(t *testing.T) {
 	t.Parallel()
-	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository) })
+	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository, KMSCleanupTables) })
 
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 		msg := "duplicated key test"
@@ -196,7 +196,7 @@ func TestOrmTransaction_toAppErr_GormDuplicatedKey(t *testing.T) {
 
 func TestOrmTransaction_toAppErr_GormForeignKeyViolated(t *testing.T) {
 	t.Parallel()
-	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository) })
+	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository, KMSCleanupTables) })
 
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 		msg := "foreign key violated test"
@@ -214,7 +214,7 @@ func TestOrmTransaction_toAppErr_GormForeignKeyViolated(t *testing.T) {
 
 func TestOrmTransaction_toAppErr_GormCheckConstraintViolated(t *testing.T) {
 	t.Parallel()
-	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository) })
+	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository, KMSCleanupTables) })
 
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 		msg := "check constraint violated test"
@@ -232,7 +232,7 @@ func TestOrmTransaction_toAppErr_GormCheckConstraintViolated(t *testing.T) {
 
 func TestOrmTransaction_toAppErr_GormInvalidData(t *testing.T) {
 	t.Parallel()
-	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository) })
+	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository, KMSCleanupTables) })
 
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 		msg := "invalid data test"
@@ -250,7 +250,7 @@ func TestOrmTransaction_toAppErr_GormInvalidData(t *testing.T) {
 
 func TestOrmTransaction_toAppErr_GormInvalidValueOfLength(t *testing.T) {
 	t.Parallel()
-	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository) })
+	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository, KMSCleanupTables) })
 
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 		msg := "invalid value of length test"
@@ -268,7 +268,7 @@ func TestOrmTransaction_toAppErr_GormInvalidValueOfLength(t *testing.T) {
 
 func TestOrmTransaction_toAppErr_GormNotImplemented(t *testing.T) {
 	t.Parallel()
-	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository) })
+	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository, KMSCleanupTables) })
 
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 		msg := "not implemented test"
@@ -288,7 +288,7 @@ func TestOrmTransaction_toAppErr_GormNotImplemented(t *testing.T) {
 
 func TestOrmTransaction_toAppErr_SQLiteUniqueConstraint(t *testing.T) {
 	t.Parallel()
-	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository) })
+	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository, KMSCleanupTables) })
 
 	// Create elastic key.
 	tenantID := googleUuid.New()
@@ -338,7 +338,7 @@ func TestOrmTransaction_toAppErr_SQLiteUniqueConstraint(t *testing.T) {
 
 func TestOrmTransaction_toAppErr_UnknownError(t *testing.T) {
 	t.Parallel()
-	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository) })
+	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository, KMSCleanupTables) })
 
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 		unknownErr := errors.New("unknown database error")

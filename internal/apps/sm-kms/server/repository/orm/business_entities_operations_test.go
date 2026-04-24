@@ -20,7 +20,7 @@ import (
 // TestElasticKeyOperations tests CRUD operations for ElasticKey entity.
 func TestElasticKeyOperations(t *testing.T) {
 	t.Parallel()
-	CleanupDatabase(t, testOrmRepository)
+	CleanupDatabase(t, testOrmRepository, KMSCleanupTables)
 
 	t.Run("Add and retrieve single elastic key", func(t *testing.T) {
 		err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
@@ -123,7 +123,7 @@ func TestElasticKeyOperations(t *testing.T) {
 	})
 
 	t.Run("Get elastic keys with filters", func(t *testing.T) {
-		CleanupDatabase(t, testOrmRepository)
+		CleanupDatabase(t, testOrmRepository, KMSCleanupTables)
 
 		err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 			// Use a shared tenantID for this test
@@ -167,10 +167,10 @@ func TestElasticKeyOperations(t *testing.T) {
 // TestMaterialKeyOperations tests CRUD operations for MaterialKey entity.
 func TestMaterialKeyOperations(t *testing.T) {
 	t.Parallel()
-	CleanupDatabase(t, testOrmRepository)
+	CleanupDatabase(t, testOrmRepository, KMSCleanupTables)
 
 	t.Run("Add and retrieve material keys for elastic key", func(t *testing.T) {
-		CleanupDatabase(t, testOrmRepository)
+		CleanupDatabase(t, testOrmRepository, KMSCleanupTables)
 
 		err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 			// Create parent elastic key.
@@ -263,7 +263,7 @@ func TestMaterialKeyOperations(t *testing.T) {
 	})
 
 	t.Run("Get all material keys with filters", func(t *testing.T) {
-		CleanupDatabase(t, testOrmRepository)
+		CleanupDatabase(t, testOrmRepository, KMSCleanupTables)
 
 		err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 			// Create parent elastic key.

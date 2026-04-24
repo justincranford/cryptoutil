@@ -55,7 +55,7 @@ func TestOrmTransaction_AutoCommit_RollbackFailure(t *testing.T) {
 // TestOrmTransaction_AutoCommit_Success tests successful AutoCommit transaction.
 func TestOrmTransaction_AutoCommit_Success(t *testing.T) {
 	t.Parallel()
-	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository) })
+	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository, KMSCleanupTables) })
 
 	err := testOrmRepository.WithTransaction(testCtx, AutoCommit, func(tx *OrmTransaction) error {
 		require.NotNil(t, tx)

@@ -16,7 +16,7 @@ import (
 
 func TestOrmTransaction_GetRootKey_NotFound(t *testing.T) {
 	t.Parallel()
-	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository) })
+	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository, KMSCleanupTables) })
 
 	err := testOrmRepository.WithTransaction(testCtx, ReadOnly, func(tx *OrmTransaction) error {
 		nonExistentUUID := googleUuid.New()
@@ -32,7 +32,7 @@ func TestOrmTransaction_GetRootKey_NotFound(t *testing.T) {
 
 func TestOrmTransaction_GetRootKeyLatest_NotFound(t *testing.T) {
 	t.Parallel()
-	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository) })
+	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository, KMSCleanupTables) })
 
 	err := testOrmRepository.WithTransaction(testCtx, ReadOnly, func(tx *OrmTransaction) error {
 		_, getErr := tx.GetRootKeyLatest()
@@ -47,7 +47,7 @@ func TestOrmTransaction_GetRootKeyLatest_NotFound(t *testing.T) {
 
 func TestOrmTransaction_DeleteRootKey_NotFound(t *testing.T) {
 	t.Parallel()
-	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository) })
+	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository, KMSCleanupTables) })
 
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 		nonExistentUUID := googleUuid.New()
@@ -66,7 +66,7 @@ func TestOrmTransaction_DeleteRootKey_NotFound(t *testing.T) {
 
 func TestOrmTransaction_GetIntermediateKey_NotFound(t *testing.T) {
 	t.Parallel()
-	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository) })
+	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository, KMSCleanupTables) })
 
 	err := testOrmRepository.WithTransaction(testCtx, ReadOnly, func(tx *OrmTransaction) error {
 		nonExistentUUID := googleUuid.New()
@@ -82,7 +82,7 @@ func TestOrmTransaction_GetIntermediateKey_NotFound(t *testing.T) {
 
 func TestOrmTransaction_GetIntermediateKeyLatest_NotFound(t *testing.T) {
 	t.Parallel()
-	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository) })
+	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository, KMSCleanupTables) })
 
 	err := testOrmRepository.WithTransaction(testCtx, ReadOnly, func(tx *OrmTransaction) error {
 		_, getErr := tx.GetIntermediateKeyLatest()
@@ -97,7 +97,7 @@ func TestOrmTransaction_GetIntermediateKeyLatest_NotFound(t *testing.T) {
 
 func TestOrmTransaction_DeleteIntermediateKey_NotFound(t *testing.T) {
 	t.Parallel()
-	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository) })
+	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository, KMSCleanupTables) })
 
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 		nonExistentUUID := googleUuid.New()
@@ -116,7 +116,7 @@ func TestOrmTransaction_DeleteIntermediateKey_NotFound(t *testing.T) {
 
 func TestOrmTransaction_GetContentKey_NotFound(t *testing.T) {
 	t.Parallel()
-	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository) })
+	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository, KMSCleanupTables) })
 
 	err := testOrmRepository.WithTransaction(testCtx, ReadOnly, func(tx *OrmTransaction) error {
 		nonExistentUUID := googleUuid.New()
@@ -132,7 +132,7 @@ func TestOrmTransaction_GetContentKey_NotFound(t *testing.T) {
 
 func TestOrmTransaction_GetContentKeyLatest_NotFound(t *testing.T) {
 	t.Parallel()
-	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository) })
+	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository, KMSCleanupTables) })
 
 	err := testOrmRepository.WithTransaction(testCtx, ReadOnly, func(tx *OrmTransaction) error {
 		_, getErr := tx.GetContentKeyLatest()
@@ -147,7 +147,7 @@ func TestOrmTransaction_GetContentKeyLatest_NotFound(t *testing.T) {
 
 func TestOrmTransaction_DeleteContentKey_NotFound(t *testing.T) {
 	t.Parallel()
-	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository) })
+	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository, KMSCleanupTables) })
 
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 		nonExistentUUID := googleUuid.New()
@@ -166,7 +166,7 @@ func TestOrmTransaction_DeleteContentKey_NotFound(t *testing.T) {
 
 func TestOrmTransaction_AddRootKey_DuplicateUUID(t *testing.T) {
 	t.Parallel()
-	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository) })
+	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository, KMSCleanupTables) })
 
 	rootKeyID := googleUuid.New()
 	kekID := googleUuid.New()
@@ -202,7 +202,7 @@ func TestOrmTransaction_AddRootKey_DuplicateUUID(t *testing.T) {
 
 func TestOrmTransaction_AddIntermediateKey_DuplicateUUID(t *testing.T) {
 	t.Parallel()
-	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository) })
+	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository, KMSCleanupTables) })
 
 	intermediateKeyID := googleUuid.New()
 	kekID := googleUuid.New()
@@ -238,7 +238,7 @@ func TestOrmTransaction_AddIntermediateKey_DuplicateUUID(t *testing.T) {
 
 func TestOrmTransaction_AddContentKey_DuplicateUUID(t *testing.T) {
 	t.Parallel()
-	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository) })
+	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository, KMSCleanupTables) })
 
 	contentKeyID := googleUuid.New()
 	kekID := googleUuid.New()
