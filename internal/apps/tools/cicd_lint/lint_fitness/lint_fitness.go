@@ -45,6 +45,7 @@ import (
 	lintFitnessGenConfigInitialisms "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/gen_config_initialisms"
 	lintFitnessHealthEndpointPresence "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/health_endpoint_presence"
 	lintFitnessHealthPathCompleteness "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/health_path_completeness"
+	lintFitnessIfElseChain "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/if_else_chain"
 	lintFitnessImportAliasFormula "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/import_alias_formula"
 	lintFitnessInfraToolNaming "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/infra_tool_naming"
 	lintFitnessInsecureSkipVerify "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/insecure_skip_verify"
@@ -189,6 +190,8 @@ var registeredLinters = []struct {
 	{"config-header-identity", lintFitnessConfigRules.CheckHeaderIdentity},
 	{"config-instance-minimal", lintFitnessConfigRules.CheckInstanceMinimal},
 	{"config-common-complete", lintFitnessConfigRules.CheckCommonComplete},
+	// New fitness checks (added for if-else chain enforcement).
+	{"if-else-chain", lintFitnessIfElseChain.Check},
 }
 
 // Lint runs all registered architecture fitness linters.
