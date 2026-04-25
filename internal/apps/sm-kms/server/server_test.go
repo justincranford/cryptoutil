@@ -1,53 +1,33 @@
+// Copyright (c) 2025 Justin Cranford
+//
+//
+
 package server
 
 import (
 	"context"
-	"crypto/x509"
 	"fmt"
 	"net/http/httptest"
 	"testing"
-
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps/framework/service/config"
 	cryptoutilAppsFrameworkServiceServer "cryptoutil/internal/apps/framework/service/server"
 	cryptoutilAppsFrameworkServiceServerBuilder "cryptoutil/internal/apps/framework/service/server/builder"
 	cryptoutilAppsFrameworkServiceServerBusinesslogic "cryptoutil/internal/apps/framework/service/server/businesslogic"
 	cryptoutilAppsFrameworkServiceServerMiddleware "cryptoutil/internal/apps/framework/service/server/middleware"
+	cryptoutilTestingStubs "cryptoutil/internal/apps/framework/service/testing/stubs"
 	cryptoutilKmsServerBusinesslogic "cryptoutil/internal/apps/sm-kms/server/businesslogic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	fiber "github.com/gofiber/fiber/v2"
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 )
 
-// stubPublicServer implements IPublicServer for testing accessor branches.
-type stubPublicServer struct{ startErr error }
-
-func (s *stubPublicServer) Start(context.Context) error    { return s.startErr }
-func (s *stubPublicServer) Shutdown(context.Context) error { return nil }
-func (s *stubPublicServer) ActualPort() int                { return 8443 }
-func (s *stubPublicServer) PublicBaseURL() string          { return "https://localhost:8443" }
-
-// stubAdminServer implements IAdminServer for testing accessor branches.
-type stubAdminServer struct{}
-
-func (s *stubAdminServer) Start(context.Context) error        { return nil }
-func (s *stubAdminServer) Shutdown(context.Context) error     { return nil }
-func (s *stubAdminServer) ActualPort() int                    { return cryptoutilSharedMagic.JoseJAAdminPort }
-func (s *stubAdminServer) SetReady(bool)                      {}
-func (s *stubAdminServer) AdminBaseURL() string               { return "https://localhost:9090" }
-func (s *stubAdminServer) AdminTLSRootCAPool() *x509.CertPool { return nil }
-
 func newTestApp(t *testing.T) *cryptoutilAppsFrameworkServiceServer.Application {
 	t.Helper()
 
-	app, err := cryptoutilAppsFrameworkServiceServer.NewApplication(
-		context.Background(), &stubPublicServer{}, &stubAdminServer{},
-	)
-	require.NoError(t, err)
-
-	return app
+	return cryptoutilTestingStubs.NewTestApplication(t)
 }
 
 func TestNewKMSServer_NilChecks(t *testing.T) {
@@ -176,8 +156,8 @@ func TestKMSServer_AccessorsWithResources(t *testing.T) {
 		},
 	}
 
-	require.Equal(t, 8443, srv.PublicPort())
-	require.Equal(t, cryptoutilSharedMagic.JoseJAAdminPort, srv.AdminPort())
+	require.Equal(t, cryptoutilTestingStubs.StubPublicPortValue, srv.PublicPort())
+	require.Equal(t, cryptoutilTestingStubs.StubAdminPortValue, srv.AdminPort())
 	require.Equal(t, "https://localhost:8443", srv.PublicBaseURL())
 	require.Equal(t, "https://localhost:9090", srv.AdminBaseURL())
 	require.NotNil(t, srv.Resources())
@@ -188,8 +168,8 @@ func TestKMSServer_StartError(t *testing.T) {
 
 	app, err := cryptoutilAppsFrameworkServiceServer.NewApplication(
 		context.Background(),
-		&stubPublicServer{startErr: fmt.Errorf("bind failed")},
-		&stubAdminServer{},
+		&cryptoutilTestingStubs.StubPublicServer{StartErr: fmt.Errorf("bind failed")},
+		&cryptoutilTestingStubs.StubAdminServer{},
 	)
 	require.NoError(t, err)
 
@@ -360,8 +340,8 @@ func TestKMSServer_MissingAccessorsWithResources(t *testing.T) {
 
 	require.Nil(t, srv.DB())
 	require.Equal(t, app, srv.App())
-	require.Equal(t, 8443, srv.PublicPort())
-	require.Equal(t, cryptoutilSharedMagic.JoseJAAdminPort, srv.AdminPort())
+	require.Equal(t, cryptoutilTestingStubs.StubPublicPortValue, srv.PublicPort())
+	require.Equal(t, cryptoutilTestingStubs.StubAdminPortValue, srv.AdminPort())
 	require.Nil(t, srv.TLSRootCAPool())
 	require.Nil(t, srv.AdminTLSRootCAPool())
 	require.Nil(t, srv.JWKGen())
