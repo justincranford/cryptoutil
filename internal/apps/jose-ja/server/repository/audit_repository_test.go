@@ -346,10 +346,8 @@ func TestAuditLogRepository_CreateMultipleEntries(t *testing.T) {
 
 	tenantID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
 
-	const numEntries = 20
-
 	// Create many audit log entries.
-	for i := 0; i < numEntries; i++ {
+	for i := 0; i < cryptoutilSharedMagic.MaxErrorDisplay; i++ {
 		id, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
 		entry := &cryptoutilAppsJoseJaModel.AuditLogEntry{
 			ID:        *id,
@@ -372,6 +370,6 @@ func TestAuditLogRepository_CreateMultipleEntries(t *testing.T) {
 	// List them.
 	entries, total, err := repo.List(ctx, *tenantID, 0, cryptoutilSharedMagic.JoseJAMaxMaterials)
 	require.NoError(t, err)
-	require.Equal(t, int64(numEntries), total)
-	require.Len(t, entries, numEntries)
+	require.Equal(t, int64(cryptoutilSharedMagic.MaxErrorDisplay), total)
+	require.Len(t, entries, cryptoutilSharedMagic.MaxErrorDisplay)
 }

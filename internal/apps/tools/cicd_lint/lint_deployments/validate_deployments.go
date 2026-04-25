@@ -153,7 +153,8 @@ func checkDelegationPattern(basePath string, deploymentName string, structType s
 
 	text := string(content)
 
-	if structType == DeploymentTypeSuite {
+	switch structType { //nolint:gocritic // two branches with distinct local vars; switch is cleaner than else-if here
+	case DeploymentTypeSuite:
 		// Suite MUST include product-level compose files, NOT service-level
 		invalidPatterns := []string{
 			"../sm-kms/compose.yml",
@@ -198,9 +199,7 @@ func checkDelegationPattern(basePath string, deploymentName string, structType s
 			result.Warnings = append(result.Warnings,
 				"Suite should include all 5 products (sm, pki, jose, identity, skeleton) via PRODUCT-level compose")
 		}
-	}
-
-	if structType == DeploymentTypeProduct {
+	case DeploymentTypeProduct:
 		// Product MUST include service-level compose files
 		smProduct := "sm"
 		if deploymentName == smProduct && !strings.Contains(text, "../sm-kms/compose.yml") {

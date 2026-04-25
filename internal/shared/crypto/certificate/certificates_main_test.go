@@ -19,7 +19,6 @@ import (
 
 const (
 	numWorkers = 4
-	poolSize   = 20
 )
 
 var (
@@ -38,7 +37,7 @@ func TestMain(m *testing.M) {
 
 		var err error
 
-		testKeyGenPool, err = cryptoutilSharedPool.NewValueGenPool(cryptoutilSharedPool.NewValueGenPoolConfig(testCtx, testTelemetryService, "certificates_test", numWorkers, poolSize, cryptoutilSharedMagic.MaxPoolLifetimeValues, cryptoutilSharedMagic.MaxPoolLifetimeDuration, cryptoutilSharedCryptoKeygen.GenerateECDSAKeyPairFunction(elliptic.P256()), false))
+		testKeyGenPool, err = cryptoutilSharedPool.NewValueGenPool(cryptoutilSharedPool.NewValueGenPoolConfig(testCtx, testTelemetryService, "certificates_test", numWorkers, cryptoutilSharedMagic.MaxErrorDisplay, cryptoutilSharedMagic.MaxPoolLifetimeValues, cryptoutilSharedMagic.MaxPoolLifetimeDuration, cryptoutilSharedCryptoKeygen.GenerateECDSAKeyPairFunction(elliptic.P256()), false))
 		if err != nil {
 			log.Fatalf("failed to create key pool: %v", err)
 		}

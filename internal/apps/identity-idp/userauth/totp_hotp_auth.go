@@ -53,10 +53,8 @@ func (t *TOTPAuthenticator) Method() string {
 
 // GenerateSecret generates a random TOTP secret.
 func (t *TOTPAuthenticator) GenerateSecret(_ context.Context) (string, error) {
-	const secretLength = 20
-
 	// Generate random bytes.
-	secret := make([]byte, secretLength)
+	secret := make([]byte, cryptoutilSharedMagic.TOTPSecretLength)
 	if _, err := crand.Read(secret); err != nil {
 		return "", fmt.Errorf("failed to generate random secret: %w", err)
 	}
@@ -260,10 +258,8 @@ func (h *HOTPAuthenticator) Method() string {
 
 // GenerateSecret generates a random HOTP secret (same as TOTP).
 func (h *HOTPAuthenticator) GenerateSecret(_ context.Context) (string, error) {
-	const secretLength = 20
-
 	// Generate random bytes.
-	secret := make([]byte, secretLength)
+	secret := make([]byte, cryptoutilSharedMagic.TOTPSecretLength)
 	if _, err := crand.Read(secret); err != nil {
 		return "", fmt.Errorf("failed to generate random secret: %w", err)
 	}

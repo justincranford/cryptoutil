@@ -268,9 +268,7 @@ func validateValidity(v *ValiditySpec, filename string) []string {
 
 	if v.MaxDays < v.MinDays {
 		errs = append(errs, fmt.Sprintf("profile.validity.max_days (%d) must be >= min_days (%d)", v.MaxDays, v.MinDays))
-	}
-
-	if v.MaxDays > maxValidityDaysAbsoluteCap {
+	} else if v.MaxDays > maxValidityDaysAbsoluteCap {
 		errs = append(errs, fmt.Sprintf("profile.validity.max_days (%d) exceeds absolute cap of %d (30 years)", v.MaxDays, maxValidityDaysAbsoluteCap))
 	}
 

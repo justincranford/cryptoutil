@@ -55,18 +55,13 @@ func ValidateDeploymentStructure(basePath string, deploymentName string, structT
 		}
 	}
 
-	// Check config files for PRODUCT-SERVICE deployments
-	if structType == DeploymentTypeProductService {
+	// Check type-specific requirements.
+	switch structType {
+	case DeploymentTypeProductService:
 		validateConfigFiles(basePath, deploymentName, result)
-	}
-
-	// Check PRODUCT-level specific requirements
-	if structType == DeploymentTypeProduct {
+	case DeploymentTypeProduct:
 		validateProductSecrets(basePath, deploymentName, result)
-	}
-
-	// Check SUITE-level specific requirements
-	if structType == DeploymentTypeSuite {
+	case DeploymentTypeSuite:
 		validateSuiteSecrets(basePath, result)
 	}
 

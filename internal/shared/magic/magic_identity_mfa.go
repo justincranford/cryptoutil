@@ -5,6 +5,12 @@ package magic
 
 import "time"
 
+// TOTP Generation constants.
+const (
+	// TOTPSecretLength is the length in bytes of a randomly generated TOTP secret.
+	TOTPSecretLength = 20
+)
+
 // MFA Factor Type constants.
 const (
 	// MFATypeTOTP is the TOTP (time-based one-time password) MFA factor type.

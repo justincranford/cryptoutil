@@ -34,7 +34,6 @@ const (
 	DefaultTOTPDigits    = 6
 	DefaultTOTPPeriod    = 30
 	DefaultTOTPAlgorithm = cryptoutilSharedMagic.DefaultTOTPAlgorithm
-	TOTPSecretLength     = 20
 	BackupCodeCount      = 10
 	BackupCodeLength     = 8
 	MaxFailedAttempts    = 5
@@ -55,7 +54,7 @@ func NewTOTPService(db *gorm.DB) *TOTPService {
 // EnrollTOTP enrolls a user in TOTP MFA.
 func (s *TOTPService) EnrollTOTP(ctx context.Context, userID googleUuid.UUID, issuer, accountName string) (*TOTPSecret, string, []string, error) {
 	// Generate cryptographically secure random secret.
-	secretBytes := make([]byte, TOTPSecretLength)
+	secretBytes := make([]byte, cryptoutilSharedMagic.TOTPSecretLength)
 	if _, err := crand.Read(secretBytes); err != nil {
 		return nil, "", nil, fmt.Errorf("failed to generate TOTP secret: %w", err)
 	}

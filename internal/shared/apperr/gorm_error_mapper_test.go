@@ -39,7 +39,7 @@ func discardSlogger() *slog.Logger {
 func newSQLiteDBWithUniqueConstraint(t *testing.T) *gorm.DB {
 	t.Helper()
 
-	sqlDB, err := sql.Open("sqlite", "file::memory:?cache=private")
+	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, "file::memory:?cache=private")
 	require.NoError(t, err)
 
 	db, err := gorm.Open(gsqlite.Dialector{Conn: sqlDB}, &gorm.Config{
