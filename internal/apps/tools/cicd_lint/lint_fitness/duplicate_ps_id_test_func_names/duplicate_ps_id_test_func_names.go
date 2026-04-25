@@ -28,7 +28,10 @@ import (
 
 // DuplicateThreshold is the minimum number of PS-ID server packages a test function
 // must appear in before it is reported as a duplication candidate.
-const DuplicateThreshold = 3
+const (
+	DuplicateThreshold = 3
+	toolsProductName   = "tools"
+)
 
 // FuncOccurrence records which PS-IDs contain a given test function name.
 type FuncOccurrence struct {
@@ -173,7 +176,7 @@ func extractPSIDFromServerTestPath(normalized string) (string, bool) {
 	psID := rest[:slash]
 
 	switch psID {
-	case "framework", "tools", "template":
+	case cryptoutilSharedMagic.FrameworkProductName, toolsProductName, cryptoutilSharedMagic.SkeletonTemplateServiceName:
 		return "", false
 	}
 

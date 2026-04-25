@@ -27,6 +27,8 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
+const toolsProductName = "tools"
+
 // publicServerMethods is the complete method set of IPublicServer.
 var publicServerMethods = []string{"Start", "Shutdown", "ActualPort", "PublicBaseURL"}
 
@@ -134,7 +136,7 @@ func isPSIDTestFile(normalized string) bool {
 
 	// Exclude shared infrastructure directories.
 	switch psID {
-	case "framework", "tools", "template":
+	case cryptoutilSharedMagic.FrameworkProductName, toolsProductName, cryptoutilSharedMagic.SkeletonTemplateServiceName:
 		return false
 	}
 
