@@ -38,6 +38,7 @@ import (
 	lintFitnessDockerfileHealthcheck "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/dockerfile_healthcheck"
 	lintFitnessDockerfileLabels "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/dockerfile_labels"
 	lintFitnessDomainLayerIsolation "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/domain_layer_isolation"
+	lintFitnessDuplicatePSIDTestFuncNames "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/duplicate_ps_id_test_func_names"
 	lintFitnessEntityRegistryCompleteness "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/entity_registry_completeness"
 	lintFitnessEntityRegistrySchema "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/entity_registry_schema"
 	lintFitnessFileSizeLimits "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/file_size_limits"
@@ -58,6 +59,7 @@ import (
 	lintFitnessMigrationRangeCompliance "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/migration_range_compliance"
 	lintFitnessNoHardcodedPasswords "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/no_hardcoded_passwords"
 	lintFitnessNoLocalClosedDBHelper "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/no_local_closed_db_helper"
+	lintFitnessNoLocalPSIDServerStubs "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/no_local_ps_id_server_stubs"
 	lintFitnessNoPostgresInNonE2E "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/no_postgres_in_non_e2e"
 	lintFitnessNoUnitTestRealDB "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/no_unit_test_real_db"
 	lintFitnessNoUnitTestRealServer "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/no_unit_test_real_server"
@@ -192,6 +194,9 @@ var registeredLinters = []struct {
 	{"config-common-complete", lintFitnessConfigRules.CheckCommonComplete},
 	// New fitness checks (added for if-else chain enforcement).
 	{"if-else-chain", lintFitnessIfElseChain.Check},
+	// New fitness checks (added for PS-ID framework boilerplate migration).
+	{"no-local-ps-id-server-stubs", lintFitnessNoLocalPSIDServerStubs.Check},
+	{"duplicate-ps-id-test-func-names", lintFitnessDuplicatePSIDTestFuncNames.Check},
 }
 
 // Lint runs all registered architecture fitness linters.

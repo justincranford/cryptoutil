@@ -409,3 +409,17 @@ sub_linters:
       Detects consecutive if statements in Go source where the first block does not exit
       (return, panic, break, continue, goto); such pairs should be else if chains or switch.
     category: architecture
+
+  - name: no-local-ps-id-server-stubs
+    directory: no_local_ps_id_server_stubs
+    description: >-
+      Detects struct types in PS-ID test files that re-implement IPublicServer or IAdminServer
+      locally instead of using the shared stubs in internal/apps/framework/service/testing/stubs.
+    category: testing
+
+  - name: duplicate-ps-id-test-func-names
+    directory: duplicate_ps_id_test_func_names
+    description: >-
+      Reports test function names that appear in ≥3 PS-ID server packages, ranked by
+      occurrence count, to identify boilerplate candidates for framework parameterisation.
+    category: testing
