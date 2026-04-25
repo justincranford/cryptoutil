@@ -197,15 +197,15 @@ func (s *BusinessLogicService) getAndDecryptMaterialKeyInElasticKey(ctx context.
 	err = s.ormRepository.WithTransaction(ctx, cryptoutilOrmRepository.ReadOnly, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
 		var err error
 
-		ormElasticKey, err = sqlTransaction.GetElasticKey(tenantID, elasticKeyID)
+		ormElasticKey, err = cryptoutilOrmRepository.GetElasticKey(sqlTransaction.GormTx(), s.telemetryService.Slogger, tenantID, elasticKeyID)
 		if err != nil {
 			return fmt.Errorf("failed to get ElasticKey by ElasticKeyID: %w", err)
 		}
 
 		if materialKeyKidUUID == nil {
-			ormMaterialKey, err = sqlTransaction.GetElasticKeyMaterialKeyLatest(*elasticKeyID)
+			ormMaterialKey, err = cryptoutilOrmRepository.GetElasticKeyMaterialKeyLatest(sqlTransaction.GormTx(), s.telemetryService.Slogger, *elasticKeyID)
 		} else {
-			ormMaterialKey, err = sqlTransaction.GetElasticKeyMaterialKeyVersion(elasticKeyID, materialKeyKidUUID)
+			ormMaterialKey, err = cryptoutilOrmRepository.GetElasticKeyMaterialKeyVersion(sqlTransaction.GormTx(), s.telemetryService.Slogger, elasticKeyID, materialKeyKidUUID)
 		}
 
 		if err != nil {
@@ -251,7 +251,7 @@ func (s *BusinessLogicService) UpdateElasticKey(ctx context.Context, elasticKeyI
 	err = s.ormRepository.WithTransaction(ctx, cryptoutilOrmRepository.ReadWrite, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
 		var err error
 
-		ormElasticKey, err = sqlTransaction.GetElasticKey(tenantID, elasticKeyID)
+		ormElasticKey, err = cryptoutilOrmRepository.GetElasticKey(sqlTransaction.GormTx(), s.telemetryService.Slogger, tenantID, elasticKeyID)
 		if err != nil {
 			return fmt.Errorf("failed to get ElasticKey: %w", err)
 		}
@@ -259,12 +259,12 @@ func (s *BusinessLogicService) UpdateElasticKey(ctx context.Context, elasticKeyI
 		ormElasticKey.ElasticKeyName = updateRequest.Name
 		ormElasticKey.ElasticKeyDescription = *updateRequest.Description
 
-		err = sqlTransaction.UpdateElasticKey(ormElasticKey)
+		err = cryptoutilOrmRepository.UpdateElasticKey(sqlTransaction.GormTx(), s.telemetryService.Slogger, ormElasticKey)
 		if err != nil {
 			return fmt.Errorf("failed to update ElasticKey: %w", err)
 		}
 
-		ormElasticKey, err = sqlTransaction.GetElasticKey(tenantID, elasticKeyID)
+		ormElasticKey, err = cryptoutilOrmRepository.GetElasticKey(sqlTransaction.GormTx(), s.telemetryService.Slogger, tenantID, elasticKeyID)
 		if err != nil {
 			return fmt.Errorf("failed to get updated ElasticKey: %w", err)
 		}
@@ -286,7 +286,7 @@ func (s *BusinessLogicService) DeleteElasticKey(ctx context.Context, elasticKeyI
 	}
 
 	err = s.ormRepository.WithTransaction(ctx, cryptoutilOrmRepository.ReadWrite, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
-		ormElasticKey, err := sqlTransaction.GetElasticKey(tenantID, elasticKeyID)
+		ormElasticKey, err := cryptoutilOrmRepository.GetElasticKey(sqlTransaction.GormTx(), s.telemetryService.Slogger, tenantID, elasticKeyID)
 		if err != nil {
 			return fmt.Errorf("failed to get ElasticKey: %w", err)
 		}
@@ -308,7 +308,7 @@ func (s *BusinessLogicService) DeleteElasticKey(ctx context.Context, elasticKeyI
 			return fmt.Errorf("cannot delete ElasticKey in status %s", ormElasticKey.ElasticKeyStatus)
 		}
 
-		err = sqlTransaction.UpdateElasticKeyStatus(ormElasticKey.ElasticKeyID, deleteStatus)
+		err = cryptoutilOrmRepository.UpdateElasticKeyStatus(sqlTransaction.GormTx(), s.telemetryService.Slogger, ormElasticKey.ElasticKeyID, deleteStatus)
 		if err != nil {
 			return fmt.Errorf("failed to update ElasticKey status to %s: %w", deleteStatus, err)
 		}
@@ -346,7 +346,7 @@ func (s *BusinessLogicService) ImportMaterialKey(ctx context.Context, elasticKey
 	err = s.ormRepository.WithTransaction(ctx, cryptoutilOrmRepository.ReadWrite, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
 		var err error
 
-		ormElasticKey, err = sqlTransaction.GetElasticKey(tenantID, elasticKeyID)
+		ormElasticKey, err = cryptoutilOrmRepository.GetElasticKey(sqlTransaction.GormTx(), s.telemetryService.Slogger, tenantID, elasticKeyID)
 		if err != nil {
 			return fmt.Errorf("failed to get ElasticKey: %w", err)
 		}
@@ -371,7 +371,7 @@ func (s *BusinessLogicService) ImportMaterialKey(ctx context.Context, elasticKey
 			MaterialKeyImportDate:         &importDateMillis,
 		}
 
-		if err = sqlTransaction.AddElasticKeyMaterialKey(ormMaterialKey); err != nil {
+		if err = cryptoutilOrmRepository.AddElasticKeyMaterialKey(sqlTransaction.GormTx(), s.telemetryService.Slogger, ormMaterialKey); err != nil {
 			return fmt.Errorf("failed to insert imported MaterialKey: %w", err)
 		}
 
@@ -392,7 +392,7 @@ func (s *BusinessLogicService) ImportMaterialKey(ctx context.Context, elasticKey
 // RevokeMaterialKey revokes a MaterialKey within an ElasticKey.
 func (s *BusinessLogicService) RevokeMaterialKey(ctx context.Context, elasticKeyID, materialKeyID *googleUuid.UUID) error {
 	err := s.ormRepository.WithTransaction(ctx, cryptoutilOrmRepository.ReadWrite, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
-		ormMaterialKey, err := sqlTransaction.GetElasticKeyMaterialKeyVersion(elasticKeyID, materialKeyID)
+		ormMaterialKey, err := cryptoutilOrmRepository.GetElasticKeyMaterialKeyVersion(sqlTransaction.GormTx(), s.telemetryService.Slogger, elasticKeyID, materialKeyID)
 		if err != nil {
 			return fmt.Errorf("failed to get MaterialKey: %w", err)
 		}
@@ -406,7 +406,7 @@ func (s *BusinessLogicService) RevokeMaterialKey(ctx context.Context, elasticKey
 		revocationDateMillis := revocationDate.UnixMilli()
 		ormMaterialKey.MaterialKeyRevocationDate = &revocationDateMillis
 
-		err = sqlTransaction.UpdateElasticKeyMaterialKeyRevoke(ormMaterialKey)
+		err = cryptoutilOrmRepository.UpdateElasticKeyMaterialKeyRevoke(sqlTransaction.GormTx(), s.telemetryService.Slogger, ormMaterialKey)
 		if err != nil {
 			return fmt.Errorf("failed to revoke MaterialKey: %w", err)
 		}

@@ -52,11 +52,11 @@ func TestGetElasticKeysWithVersioningAllowedFilter(t *testing.T) {
 
 	// Insert both keys.
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
-		if err := tx.AddElasticKey(keyWithVersioning); err != nil {
+		if err := AddElasticKey(tx.GormTx(), testTelemetryService.Slogger, keyWithVersioning); err != nil {
 			return err
 		}
 
-		return tx.AddElasticKey(keyWithoutVersioning)
+		return AddElasticKey(tx.GormTx(), testTelemetryService.Slogger, keyWithoutVersioning)
 	})
 	require.NoError(t, err)
 
@@ -66,7 +66,7 @@ func TestGetElasticKeysWithVersioningAllowedFilter(t *testing.T) {
 		filters := &GetElasticKeysFilters{
 			VersioningAllowed: &versioningAllowedTrue,
 		}
-		keys, err := tx.GetElasticKeys(filters)
+		keys, err := GetElasticKeys(tx.GormTx(), testTelemetryService.Slogger, filters)
 		require.NoError(t, err)
 		require.Len(t, keys, 1, "Expected 1 key with VersioningAllowed=true")
 		require.Equal(t, keyWithVersioning.ElasticKeyID, keys[0].ElasticKeyID)
@@ -81,7 +81,7 @@ func TestGetElasticKeysWithVersioningAllowedFilter(t *testing.T) {
 		filters := &GetElasticKeysFilters{
 			VersioningAllowed: &versioningAllowedFalse,
 		}
-		keys, err := tx.GetElasticKeys(filters)
+		keys, err := GetElasticKeys(tx.GormTx(), testTelemetryService.Slogger, filters)
 		require.NoError(t, err)
 		require.Len(t, keys, 1, "Expected 1 key with VersioningAllowed=false")
 		require.Equal(t, keyWithoutVersioning.ElasticKeyID, keys[0].ElasticKeyID)

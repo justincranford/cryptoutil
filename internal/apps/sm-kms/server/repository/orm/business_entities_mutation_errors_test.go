@@ -38,7 +38,7 @@ func TestUpdateElasticKey_InvalidUUID(t *testing.T) {
 
 	// Attempt update with invalid UUID.
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
-		return tx.UpdateElasticKey(elasticKey)
+		return UpdateElasticKey(tx.GormTx(), testTelemetryService.Slogger, elasticKey)
 	})
 
 	// Should fail with invalid ElasticKeyID error.
@@ -70,7 +70,7 @@ func TestUpdateElasticKey_NonExistentRecord(t *testing.T) {
 
 	// Attempt update on non-existent record.
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
-		return tx.UpdateElasticKey(elasticKey)
+		return UpdateElasticKey(tx.GormTx(), testTelemetryService.Slogger, elasticKey)
 	})
 
 	// GORM UpdateColumns doesn't error on zero rows affected.
@@ -85,7 +85,7 @@ func TestUpdateElasticKeyStatus_InvalidUUID(t *testing.T) {
 
 	// Attempt update with zero UUID (invalid).
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
-		return tx.UpdateElasticKeyStatus(googleUuid.UUID{}, cryptoutilKmsServer.Active)
+		return UpdateElasticKeyStatus(tx.GormTx(), testTelemetryService.Slogger, googleUuid.UUID{}, cryptoutilKmsServer.Active)
 	})
 
 	// Should fail with invalid ElasticKeyID error.
@@ -101,7 +101,7 @@ func TestUpdateElasticKeyStatus_NonExistentRecord(t *testing.T) {
 	// Attempt update on non-existent UUID.
 	nonExistentID := googleUuid.New()
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
-		return tx.UpdateElasticKeyStatus(nonExistentID, cryptoutilKmsServer.Active)
+		return UpdateElasticKeyStatus(tx.GormTx(), testTelemetryService.Slogger, nonExistentID, cryptoutilKmsServer.Active)
 	})
 
 	// GORM Update doesn't error on zero rows affected.
@@ -125,7 +125,7 @@ func TestGetElasticKeys_EmptyResult(t *testing.T) {
 
 		var queryErr error
 
-		keys, queryErr = tx.GetElasticKeys(filters)
+		keys, queryErr = GetElasticKeys(tx.GormTx(), testTelemetryService.Slogger, filters)
 
 		return queryErr
 	})
@@ -158,7 +158,7 @@ func TestUpdateElasticKey_DatabaseConstraintViolation(t *testing.T) {
 		)
 		require.NoError(t, buildErr)
 
-		return tx.AddElasticKey(elasticKey)
+		return AddElasticKey(tx.GormTx(), testTelemetryService.Slogger, elasticKey)
 	})
 	require.NoError(t, err)
 
@@ -180,7 +180,7 @@ func TestUpdateElasticKey_DatabaseConstraintViolation(t *testing.T) {
 		)
 		require.NoError(t, buildErr)
 
-		return tx.UpdateElasticKey(elasticKey)
+		return UpdateElasticKey(tx.GormTx(), testTelemetryService.Slogger, elasticKey)
 	})
 
 	// May or may not error depending on DB enforcement.
@@ -211,14 +211,14 @@ func TestUpdateElasticKeyStatus_DatabaseConstraintViolation(t *testing.T) {
 		)
 		require.NoError(t, buildErr)
 
-		return tx.AddElasticKey(elasticKey)
+		return AddElasticKey(tx.GormTx(), testTelemetryService.Slogger, elasticKey)
 	})
 	require.NoError(t, err)
 
 	// Attempt to update status with invalid enum value.
 	// Note: GORM doesn't enforce enum constraints at DB level for SQLite.
 	err = testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
-		return tx.UpdateElasticKeyStatus(elasticKeyID, "INVALID_STATUS")
+		return UpdateElasticKeyStatus(tx.GormTx(), testTelemetryService.Slogger, elasticKeyID, "INVALID_STATUS")
 	})
 
 	// May or may not error depending on DB enforcement.
@@ -234,7 +234,7 @@ func TestGetMaterialKeysForElasticKey_EmptyResult(t *testing.T) {
 
 	err := testOrmRepository.WithTransaction(testCtx, ReadOnly, func(tx *OrmTransaction) error {
 		// Query for material keys with non-existent elastic key ID.
-		keys, getErr := tx.GetMaterialKeysForElasticKey(&nonExistentID, &GetElasticKeyMaterialKeysFilters{})
+		keys, getErr := GetMaterialKeysForElasticKey(tx.GormTx(), testTelemetryService.Slogger, &nonExistentID, &GetElasticKeyMaterialKeysFilters{})
 		require.NoError(t, getErr, "Query should succeed even with no results")
 		require.Empty(t, keys, "Should return empty slice for non-existent elastic key")
 
@@ -254,7 +254,7 @@ func TestGetMaterialKeys_EmptyResult(t *testing.T) {
 		filters := &GetMaterialKeysFilters{
 			ElasticKeyID: []googleUuid.UUID{nonExistentID},
 		}
-		keys, getErr := tx.GetMaterialKeys(filters)
+		keys, getErr := GetMaterialKeys(tx.GormTx(), testTelemetryService.Slogger, filters)
 		require.NoError(t, getErr, "Query should succeed even with no results")
 		require.Empty(t, keys, "Should return empty slice for non-matching filter")
 
@@ -284,7 +284,7 @@ func TestAddElasticKeyMaterialKey_DuplicateConstraintViolation(t *testing.T) {
 		)
 		require.NoError(t, buildErr, "Should build elastic key")
 
-		createErr := tx.AddElasticKey(elasticKey)
+		createErr := AddElasticKey(tx.GormTx(), testTelemetryService.Slogger, elasticKey)
 		require.NoError(t, createErr, "Should create elastic key")
 
 		// Create first material key successfully.
@@ -294,7 +294,7 @@ func TestAddElasticKeyMaterialKey_DuplicateConstraintViolation(t *testing.T) {
 			MaterialKeyClearPublic:        []byte("public-key-data-1"),
 			MaterialKeyEncryptedNonPublic: []byte("encrypted-private-key-data-1"),
 		}
-		addErr1 := tx.AddElasticKeyMaterialKey(materialKey1)
+		addErr1 := AddElasticKeyMaterialKey(tx.GormTx(), testTelemetryService.Slogger, materialKey1)
 		require.NoError(t, addErr1, "First material key creation should succeed")
 
 		// Attempt to create duplicate material key (same ElasticKeyID + MaterialKeyID).
@@ -304,7 +304,7 @@ func TestAddElasticKeyMaterialKey_DuplicateConstraintViolation(t *testing.T) {
 			MaterialKeyClearPublic:        []byte("public-key-data-2"),
 			MaterialKeyEncryptedNonPublic: []byte("encrypted-private-key-data-2"),
 		}
-		addErr2 := tx.AddElasticKeyMaterialKey(materialKey2)
+		addErr2 := AddElasticKeyMaterialKey(tx.GormTx(), testTelemetryService.Slogger, materialKey2)
 		require.Error(t, addErr2, "Duplicate material key should fail")
 		require.Contains(t, addErr2.Error(), "UNIQUE", "Error should mention UNIQUE constraint")
 

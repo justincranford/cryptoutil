@@ -22,9 +22,9 @@ func TestOrmRepository_VerboseMode(t *testing.T) {
 	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository, KMSCleanupTables) })
 
 	// Enable verbose mode.
-	testOrmRepository.verboseMode = true
+	testOrmRepository.SetVerboseMode(true)
 
-	defer func() { testOrmRepository.verboseMode = false }() // Restore after test
+	defer func() { testOrmRepository.SetVerboseMode(false) }() // Restore after test
 
 	// Test verbose logging in begin/commit/rollback.
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
@@ -45,7 +45,7 @@ func TestOrmRepository_VerboseMode(t *testing.T) {
 		)
 		require.NoError(t, buildErr)
 
-		createErr := tx.AddElasticKey(elasticKey)
+		createErr := AddElasticKey(tx.GormTx(), testTelemetryService.Slogger, elasticKey)
 		require.NoError(t, createErr)
 
 		// Rollback transaction by returning error (triggers verbose rollback logging).
@@ -60,19 +60,19 @@ func TestOrmRepository_VerboseMode(t *testing.T) {
 func TestOrmTransaction_Begin_AlreadyStarted(t *testing.T) {
 	t.Parallel()
 
-	tx := &OrmTransaction{ormRepository: testOrmRepository}
+	tx := NewOrmTransactionWithRepository(testOrmRepository)
 
 	// Start transaction first time.
-	err := tx.begin(testCtx, ReadWrite)
+	err := tx.Begin(testCtx, ReadWrite)
 	require.NoError(t, err, "First begin should succeed")
 
 	// Try to start again (should fail).
-	err = tx.begin(testCtx, ReadWrite)
+	err = tx.Begin(testCtx, ReadWrite)
 	require.Error(t, err, "Second begin should fail")
 	require.Contains(t, err.Error(), "transaction already started", "Should contain specific error")
 
 	// Cleanup: rollback transaction.
-	rollbackErr := tx.rollback()
+	rollbackErr := tx.Rollback()
 	require.NoError(t, rollbackErr)
 }
 
@@ -80,10 +80,10 @@ func TestOrmTransaction_Begin_AlreadyStarted(t *testing.T) {
 func TestOrmTransaction_Commit_NotActive(t *testing.T) {
 	t.Parallel()
 
-	tx := &OrmTransaction{ormRepository: testOrmRepository}
+	tx := NewOrmTransactionWithRepository(testOrmRepository)
 
 	// Try to commit without starting transaction.
-	err := tx.commit()
+	err := tx.Commit()
 	require.Error(t, err, "Commit should fail when transaction not active")
 	require.Contains(t, err.Error(), "can't commit because transaction not active", "Should contain specific error")
 }
@@ -92,10 +92,10 @@ func TestOrmTransaction_Commit_NotActive(t *testing.T) {
 func TestOrmTransaction_Rollback_NotActive(t *testing.T) {
 	t.Parallel()
 
-	tx := &OrmTransaction{ormRepository: testOrmRepository}
+	tx := NewOrmTransactionWithRepository(testOrmRepository)
 
 	// Try to rollback without starting transaction.
-	err := tx.rollback()
+	err := tx.Rollback()
 	require.Error(t, err, "Rollback should fail when transaction not active")
 	require.Contains(t, err.Error(), "can't rollback because transaction not active", "Should contain specific error")
 }
@@ -124,7 +124,7 @@ func TestOrmTransaction_DeferredRollback_OnFunctionError(t *testing.T) {
 		)
 		require.NoError(t, buildErr)
 
-		createErr := tx.AddElasticKey(elasticKey)
+		createErr := AddElasticKey(tx.GormTx(), testTelemetryService.Slogger, elasticKey)
 		require.NoError(t, createErr)
 
 		// Fail transaction - should trigger deferred rollback.
@@ -140,7 +140,7 @@ func TestOrmTransaction_DeferredRollback_OnFunctionError(t *testing.T) {
 		filters := GetElasticKeysFilters{
 			Name: []string{"deferred-rollback-test"},
 		}
-		elasticKeys, getErr := tx.GetElasticKeys(&filters)
+		elasticKeys, getErr := GetElasticKeys(tx.GormTx(), testTelemetryService.Slogger, &filters)
 		require.NoError(t, getErr)
 		require.Empty(t, elasticKeys, "Elastic key should not exist after rollback")
 

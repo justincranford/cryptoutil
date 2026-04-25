@@ -43,7 +43,7 @@ func TestToAppErr_GormDuplicatedKey(t *testing.T) {
 		)
 		require.NoError(t, buildErr)
 
-		createErr := tx.state.gormTx.Create(elasticKey1).Error
+		createErr := tx.GormTx().Create(elasticKey1).Error
 		require.NoError(t, createErr, "First create should succeed")
 
 		// Try to create second elastic key with same primary key (ErrDuplicatedKey).
@@ -61,7 +61,7 @@ func TestToAppErr_GormDuplicatedKey(t *testing.T) {
 		)
 		require.NoError(t, buildErr2)
 
-		dupKeyErr := tx.state.gormTx.Create(elasticKey2).Error
+		dupKeyErr := tx.GormTx().Create(elasticKey2).Error
 		require.Error(t, dupKeyErr, "Duplicate key should fail")
 
 		// Test toAppErr mapping.
@@ -100,7 +100,7 @@ func TestToAppErr_GormCheckConstraintViolated(t *testing.T) {
 		)
 		require.NoError(t, buildErr)
 
-		createErr := tx.state.gormTx.Create(elasticKey).Error
+		createErr := tx.GormTx().Create(elasticKey).Error
 		require.NoError(t, createErr, "Parent key create should succeed")
 
 		// Try to create material key with empty encrypted data (check constraint: length >= 1).
@@ -110,7 +110,7 @@ func TestToAppErr_GormCheckConstraintViolated(t *testing.T) {
 			MaterialKeyEncryptedNonPublic: []byte{}, // Empty - violates check constraint.
 		}
 
-		checkErr := tx.state.gormTx.Create(materialKey).Error
+		checkErr := tx.GormTx().Create(materialKey).Error
 
 		// Check constraint might not always trigger gorm.ErrCheckConstraintViolated.
 		// It depends on database driver error mapping.
@@ -342,7 +342,7 @@ func TestAddElasticKey_DuplicateConstraintViolation(t *testing.T) {
 		)
 		require.NoError(t, buildErr, "Should build elastic key")
 
-		createErr := tx.AddElasticKey(elasticKey)
+		createErr := AddElasticKey(tx.GormTx(), testTelemetryService.Slogger, elasticKey)
 		require.NoError(t, createErr, "First elastic key creation should succeed")
 
 		// Attempt to create duplicate elastic key (same ID).
@@ -356,7 +356,7 @@ func TestAddElasticKey_DuplicateConstraintViolation(t *testing.T) {
 			ElasticKeyImportAllowed:     false,
 			ElasticKeyStatus:            cryptoutilKmsServer.Active,
 		}
-		addErr := tx.AddElasticKey(duplicateKey)
+		addErr := AddElasticKey(tx.GormTx(), testTelemetryService.Slogger, duplicateKey)
 		require.Error(t, addErr, "Duplicate elastic key should fail")
 		require.Contains(t, addErr.Error(), "UNIQUE", "Error should mention UNIQUE constraint")
 
@@ -386,11 +386,11 @@ func TestGetElasticKeyMaterialKeyLatest_NotFoundError(t *testing.T) {
 		)
 		require.NoError(t, buildErr, "Should build elastic key")
 
-		createErr := tx.AddElasticKey(elasticKey)
+		createErr := AddElasticKey(tx.GormTx(), testTelemetryService.Slogger, elasticKey)
 		require.NoError(t, createErr, "Elastic key creation should succeed")
 
 		// Attempt to get latest material key when none exist.
-		_, getErr := tx.GetElasticKeyMaterialKeyLatest(elasticKey.ElasticKeyID)
+		_, getErr := GetElasticKeyMaterialKeyLatest(tx.GormTx(), testTelemetryService.Slogger, elasticKey.ElasticKeyID)
 		require.Error(t, getErr, "Should fail when no material keys exist")
 		require.Contains(t, getErr.Error(), ErrFailedToGetLatestMaterialKeyByElasticKeyID, "Error should indicate get latest failure")
 
@@ -408,7 +408,7 @@ func TestGetElasticKeyMaterialKeyVersion_NotFoundError(t *testing.T) {
 
 	err := testOrmRepository.WithTransaction(testCtx, ReadOnly, func(tx *OrmTransaction) error {
 		// Attempt to get non-existent material key version.
-		_, getErr := tx.GetElasticKeyMaterialKeyVersion(&nonExistentElasticKeyID, &nonExistentMaterialKeyID)
+		_, getErr := GetElasticKeyMaterialKeyVersion(tx.GormTx(), testTelemetryService.Slogger, &nonExistentElasticKeyID, &nonExistentMaterialKeyID)
 		require.Error(t, getErr, "Should fail when material key version not found")
 		require.Contains(t, getErr.Error(), ErrFailedToGetMaterialKeyByElasticKeyIDAndMaterialKeyID, "Error should indicate get failure")
 

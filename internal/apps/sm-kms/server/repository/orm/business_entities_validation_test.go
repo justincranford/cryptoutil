@@ -37,7 +37,7 @@ func TestOrmTransaction_AddElasticKey_InvalidUUID(t *testing.T) {
 		require.NoError(t, buildErr)
 
 		// Try to add elastic key with invalid UUID.
-		createErr := tx.AddElasticKey(elasticKey)
+		createErr := AddElasticKey(tx.GormTx(), testTelemetryService.Slogger, elasticKey)
 		require.Error(t, createErr, "Should fail with invalid UUID")
 		require.Contains(t, createErr.Error(), ErrFailedToAddElasticKey)
 
@@ -68,7 +68,7 @@ func TestOrmTransaction_UpdateElasticKey_InvalidUUID(t *testing.T) {
 		require.NoError(t, buildErr)
 
 		// Try to update elastic key with invalid UUID.
-		updateErr := tx.UpdateElasticKey(elasticKey)
+		updateErr := UpdateElasticKey(tx.GormTx(), testTelemetryService.Slogger, elasticKey)
 		require.Error(t, updateErr, "Should fail with invalid UUID")
 		require.Contains(t, updateErr.Error(), ErrFailedToUpdateElasticKeyByElasticKeyID)
 
@@ -83,7 +83,7 @@ func TestOrmTransaction_UpdateElasticKeyStatus_InvalidUUID(t *testing.T) {
 
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 		// Try to update status with zero UUID (invalid).
-		updateErr := tx.UpdateElasticKeyStatus(googleUuid.UUID{}, cryptoutilKmsServer.Inactive)
+		updateErr := UpdateElasticKeyStatus(tx.GormTx(), testTelemetryService.Slogger, googleUuid.UUID{}, cryptoutilKmsServer.Inactive)
 		require.Error(t, updateErr, "Should fail with invalid UUID")
 		require.Contains(t, updateErr.Error(), ErrFailedToUpdateElasticKeyStatusByElasticKeyID)
 
@@ -99,7 +99,7 @@ func TestOrmTransaction_GetElasticKey_InvalidUUID(t *testing.T) {
 	err := testOrmRepository.WithTransaction(testCtx, ReadOnly, func(tx *OrmTransaction) error {
 		// Try to get elastic key with nil UUID.
 		tenantID := googleUuid.New()
-		_, getErr := tx.GetElasticKey(tenantID, nil)
+		_, getErr := GetElasticKey(tx.GormTx(), testTelemetryService.Slogger, tenantID, nil)
 		require.Error(t, getErr, "Should fail with nil UUID")
 		require.Contains(t, getErr.Error(), ErrFailedToGetElasticKeyByElasticKeyID)
 
@@ -122,7 +122,7 @@ func TestOrmTransaction_AddElasticKeyMaterialKey_InvalidElasticKeyUUID(t *testin
 		}
 
 		// Try to add material key with invalid elastic key UUID.
-		createErr := tx.AddElasticKeyMaterialKey(materialKey)
+		createErr := AddElasticKeyMaterialKey(tx.GormTx(), testTelemetryService.Slogger, materialKey)
 		require.Error(t, createErr, "Should fail with invalid elastic key UUID")
 		require.Contains(t, createErr.Error(), ErrFailedToAddMaterialKey)
 
@@ -145,7 +145,7 @@ func TestOrmTransaction_AddElasticKeyMaterialKey_InvalidMaterialKeyUUID(t *testi
 		}
 
 		// Try to add material key with invalid material key UUID.
-		createErr := tx.AddElasticKeyMaterialKey(materialKey)
+		createErr := AddElasticKeyMaterialKey(tx.GormTx(), testTelemetryService.Slogger, materialKey)
 		require.Error(t, createErr, "Should fail with invalid material key UUID")
 		require.Contains(t, createErr.Error(), ErrFailedToAddMaterialKey)
 
@@ -160,7 +160,7 @@ func TestOrmTransaction_GetMaterialKeysForElasticKey_InvalidUUID(t *testing.T) {
 
 	err := testOrmRepository.WithTransaction(testCtx, ReadOnly, func(tx *OrmTransaction) error {
 		// Try to get material keys with nil elastic key UUID.
-		_, getErr := tx.GetMaterialKeysForElasticKey(nil, &GetElasticKeyMaterialKeysFilters{})
+		_, getErr := GetMaterialKeysForElasticKey(tx.GormTx(), testTelemetryService.Slogger, nil, &GetElasticKeyMaterialKeysFilters{})
 		require.Error(t, getErr, "Should fail with nil UUID")
 		require.Contains(t, getErr.Error(), ErrFailedToGetMaterialKeysByElasticKeyID)
 

@@ -49,7 +49,6 @@ func TestMain(m *testing.M) {
 	var rc int
 
 	func() {
-		// Start template Core which provides GORM directly with proper migrations
 		var err error
 
 		testTemplateCore, err = cryptoutilAppsFrameworkServiceServerApplication.StartCore(testCtx, testSettings)
@@ -68,7 +67,6 @@ func TestMain(m *testing.M) {
 		testTelemetryService = testTemplateCore.Basic.TelemetryService
 		testJWKGenService = testTemplateCore.Basic.JWKGenService
 
-		// Apply template migrations (1001-1005 for barrier tables, sessions, etc.)
 		sqlDB, err := testTemplateCore.DB.DB()
 		if err != nil {
 			panic(fmt.Sprintf("failed to get sql.DB from GORM: %v", err))
@@ -84,14 +82,11 @@ func TestMain(m *testing.M) {
 			panic(fmt.Sprintf("failed to apply template migrations: %v", err))
 		}
 
-		// Apply KMS domain tables using GORM AutoMigrate.
-		// This creates elastic_keys and material_keys tables without golang-migrate.
 		err = testTemplateCore.DB.AutoMigrate(&ElasticKey{}, &MaterialKey{})
 		if err != nil {
 			panic(fmt.Sprintf("failed to apply KMS domain tables: %v", err))
 		}
 
-		// Use GORM directly from template Core (not SQLRepository)
 		testOrmRepository = RequireNewForTest(testCtx, testTelemetryService, testTemplateCore.DB, testJWKGenService, testSettings.VerboseMode)
 		defer testOrmRepository.Shutdown()
 
@@ -124,7 +119,7 @@ func TestSQLTransaction_BeginAlreadyStartedFailure(t *testing.T) {
 		require.NotNil(t, ormTransaction)
 		require.Equal(t, ReadWrite, *ormTransaction.Mode())
 
-		err := ormTransaction.begin(testCtx, ReadWrite)
+		err := ormTransaction.Begin(testCtx, ReadWrite)
 		require.Error(t, err)
 
 		return err
@@ -136,9 +131,9 @@ func TestSQLTransaction_BeginAlreadyStartedFailure(t *testing.T) {
 func TestSQLTransaction_CommitNotStartedFailure(t *testing.T) {
 	t.Parallel()
 
-	ormTransaction := &OrmTransaction{ormRepository: testOrmRepository}
+	ormTransaction := NewOrmTransactionWithRepository(testOrmRepository)
 
-	commitErr := ormTransaction.commit()
+	commitErr := ormTransaction.Commit()
 	require.Error(t, commitErr)
 	require.EqualError(t, commitErr, "can't commit because transaction not active")
 }
@@ -146,9 +141,9 @@ func TestSQLTransaction_CommitNotStartedFailure(t *testing.T) {
 func TestSQLTransaction_RollbackNotStartedFailure(t *testing.T) {
 	t.Parallel()
 
-	ormTransaction := &OrmTransaction{ormRepository: testOrmRepository}
+	ormTransaction := NewOrmTransactionWithRepository(testOrmRepository)
 
-	rollbackErr := ormTransaction.rollback()
+	rollbackErr := ormTransaction.Rollback()
 	require.Error(t, rollbackErr)
 	require.EqualError(t, rollbackErr, "can't rollback because transaction not active")
 }
@@ -210,7 +205,7 @@ func TestSQLTransaction_Success(t *testing.T) {
 
 			elasticKey, err := BuildElasticKey(tenantID, *uuidV7, "Elastic Key Name "+uuidV7.String(), "Elastic Key Description "+uuidV7.String(), cryptoutilOpenapiModel.Internal, cryptoutilOpenapiModel.A256GCMDir, true, true, true, string(cryptoutilKmsServer.Active))
 			cryptoutilSharedApperr.RequireNoError(err, "failed to create AES 256 Elastic Key")
-			err = ormTransaction.AddElasticKey(elasticKey)
+			err = AddElasticKey(ormTransaction.GormTx(), testTelemetryService.Slogger, elasticKey)
 			cryptoutilSharedApperr.RequireNoError(err, "failed to add AES 256 Elastic Key")
 
 			addedElasticKeys = append(addedElasticKeys, elasticKey)
@@ -232,8 +227,7 @@ func TestSQLTransaction_Success(t *testing.T) {
 					MaterialKeyRevocationDate:     nil,
 				}
 
-				err = ormTransaction.AddElasticKeyMaterialKey(&key)
-				if err != nil {
+				if err = AddElasticKeyMaterialKey(ormTransaction.GormTx(), testTelemetryService.Slogger, &key); err != nil {
 					return fmt.Errorf("failed to add Key: %w", err)
 				}
 			}
@@ -256,7 +250,7 @@ func TestSQLTransaction_Success(t *testing.T) {
 				require.NotNil(t, ormTransaction.Context())
 				require.Equal(t, ReadOnly, *ormTransaction.Mode())
 
-				retrievedElasticKey, err := ormTransaction.GetElasticKey(addedElasticKey.TenantID, &addedElasticKey.ElasticKeyID)
+				retrievedElasticKey, err := GetElasticKey(ormTransaction.GormTx(), testTelemetryService.Slogger, addedElasticKey.TenantID, &addedElasticKey.ElasticKeyID)
 				if err != nil {
 					return fmt.Errorf("failed to get Elastic Key: %w", err)
 				}
@@ -275,7 +269,7 @@ func TestSQLTransaction_Success(t *testing.T) {
 				require.NotNil(t, ormTransaction.Context())
 				require.Equal(t, ReadOnly, *ormTransaction.Mode())
 
-				retrievedKey, err := ormTransaction.GetElasticKeyMaterialKeyVersion(&addedKey.ElasticKeyID, &addedKey.MaterialKeyID)
+				retrievedKey, err := GetElasticKeyMaterialKeyVersion(ormTransaction.GormTx(), testTelemetryService.Slogger, &addedKey.ElasticKeyID, &addedKey.MaterialKeyID)
 				if err != nil {
 					return fmt.Errorf("failed to get Key: %w", err)
 				}

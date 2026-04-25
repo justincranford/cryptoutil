@@ -3,6 +3,8 @@
 package orm
 
 import (
+	"log/slog"
+
 	cryptoutilKmsServer "cryptoutil/api/sm-kms/server"
 	cryptoutilSharedApperr "cryptoutil/internal/shared/apperr"
 	cryptoutilSharedUtilRandom "cryptoutil/internal/shared/util/random"
@@ -11,10 +13,6 @@ import (
 
 	googleUuid "github.com/google/uuid"
 )
-
-// Database error code constants (SQLite numeric codes and Postgres SQLSTATE strings).
-
-// Service-Repository calls
 
 // Error messages for elastic key and material key operations.
 var (
@@ -34,179 +32,165 @@ var (
 )
 
 // AddElasticKey adds a new elastic key to the database.
-func (tx *OrmTransaction) AddElasticKey(elasticKey *ElasticKey) error {
+func AddElasticKey(gormTx *gorm.DB, slogger *slog.Logger, elasticKey *ElasticKey) error {
 	if err := cryptoutilSharedUtilRandom.ValidateUUID(&elasticKey.ElasticKeyID, ErrInvalidElasticKeyID); err != nil {
-		return tx.toAppErr(&ErrFailedToAddElasticKey, err)
+		return toAppErr(slogger, &ErrFailedToAddElasticKey, err)
 	}
 
-	err := tx.state.gormTx.Create(elasticKey).Error
-	if err != nil {
-		return tx.toAppErr(&ErrFailedToAddElasticKey, err)
+	if err := gormTx.Create(elasticKey).Error; err != nil {
+		return toAppErr(slogger, &ErrFailedToAddElasticKey, err)
 	}
 
 	return nil
 }
 
 // GetElasticKey retrieves an elastic key by ID from the database, filtered by tenant.
-func (tx *OrmTransaction) GetElasticKey(tenantID googleUuid.UUID, elasticKeyID *googleUuid.UUID) (*ElasticKey, error) {
+func GetElasticKey(gormTx *gorm.DB, slogger *slog.Logger, tenantID googleUuid.UUID, elasticKeyID *googleUuid.UUID) (*ElasticKey, error) {
 	if err := cryptoutilSharedUtilRandom.ValidateUUID(elasticKeyID, ErrInvalidElasticKeyID); err != nil {
-		return nil, tx.toAppErr(&ErrFailedToGetElasticKeyByElasticKeyID, err)
+		return nil, toAppErr(slogger, &ErrFailedToGetElasticKeyByElasticKeyID, err)
 	}
 
 	var elasticKey ElasticKey
 
-	err := tx.state.gormTx.First(&elasticKey, "tenant_id=? AND elastic_key_id=?", tenantID, elasticKeyID).Error
-	if err != nil {
-		return nil, tx.toAppErr(&ErrFailedToGetElasticKeyByElasticKeyID, err)
+	if err := gormTx.First(&elasticKey, "tenant_id=? AND elastic_key_id=?", tenantID, elasticKeyID).Error; err != nil {
+		return nil, toAppErr(slogger, &ErrFailedToGetElasticKeyByElasticKeyID, err)
 	}
 
 	return &elasticKey, nil
 }
 
 // UpdateElasticKey updates an existing elastic key in the database.
-func (tx *OrmTransaction) UpdateElasticKey(elasticKey *ElasticKey) error {
+func UpdateElasticKey(gormTx *gorm.DB, slogger *slog.Logger, elasticKey *ElasticKey) error {
 	if err := cryptoutilSharedUtilRandom.ValidateUUID(&elasticKey.ElasticKeyID, ErrInvalidElasticKeyID); err != nil {
-		return tx.toAppErr(&ErrFailedToUpdateElasticKeyByElasticKeyID, err)
+		return toAppErr(slogger, &ErrFailedToUpdateElasticKeyByElasticKeyID, err)
 	}
 
-	err := tx.state.gormTx.UpdateColumns(elasticKey).Error
-	if err != nil {
-		return tx.toAppErr(&ErrFailedToUpdateElasticKeyByElasticKeyID, err)
+	if err := gormTx.UpdateColumns(elasticKey).Error; err != nil {
+		return toAppErr(slogger, &ErrFailedToUpdateElasticKeyByElasticKeyID, err)
 	}
 
 	return nil
 }
 
 // UpdateElasticKeyStatus updates the status of an elastic key in the database.
-func (tx *OrmTransaction) UpdateElasticKeyStatus(elasticKeyID googleUuid.UUID, elasticKeyStatus cryptoutilKmsServer.ElasticKeyStatus) error {
+func UpdateElasticKeyStatus(gormTx *gorm.DB, slogger *slog.Logger, elasticKeyID googleUuid.UUID, elasticKeyStatus cryptoutilKmsServer.ElasticKeyStatus) error {
 	if err := cryptoutilSharedUtilRandom.ValidateUUID(&elasticKeyID, ErrInvalidElasticKeyID); err != nil {
-		return tx.toAppErr(&ErrFailedToUpdateElasticKeyStatusByElasticKeyID, err)
+		return toAppErr(slogger, &ErrFailedToUpdateElasticKeyStatusByElasticKeyID, err)
 	}
 
-	err := tx.state.gormTx.Model(&ElasticKey{}).Where("elastic_key_id=?", elasticKeyID).Update("elastic_key_status", elasticKeyStatus).Error
-	if err != nil {
-		return tx.toAppErr(&ErrFailedToUpdateElasticKeyStatusByElasticKeyID, err)
+	if err := gormTx.Model(&ElasticKey{}).Where("elastic_key_id=?", elasticKeyID).Update("elastic_key_status", elasticKeyStatus).Error; err != nil {
+		return toAppErr(slogger, &ErrFailedToUpdateElasticKeyStatusByElasticKeyID, err)
 	}
 
 	return nil
 }
 
 // GetElasticKeys retrieves elastic keys with optional filters from the database.
-func (tx *OrmTransaction) GetElasticKeys(getElasticKeysFilters *GetElasticKeysFilters) ([]ElasticKey, error) {
+func GetElasticKeys(gormTx *gorm.DB, slogger *slog.Logger, getElasticKeysFilters *GetElasticKeysFilters) ([]ElasticKey, error) {
 	var elasticKeys []ElasticKey
 
-	query := tx.state.gormTx
-
-	err := applyGetElasticKeysFilters(query, getElasticKeysFilters).Find(&elasticKeys).Error
-	if err != nil {
-		return nil, tx.toAppErr(&ErrFailedToGetElasticKeys, err)
+	if err := applyGetElasticKeysFilters(gormTx, getElasticKeysFilters).Find(&elasticKeys).Error; err != nil {
+		return nil, toAppErr(slogger, &ErrFailedToGetElasticKeys, err)
 	}
 
 	return elasticKeys, nil
 }
 
 // AddElasticKeyMaterialKey adds a new material key for an elastic key to the database.
-func (tx *OrmTransaction) AddElasticKeyMaterialKey(key *MaterialKey) error {
+func AddElasticKeyMaterialKey(gormTx *gorm.DB, slogger *slog.Logger, key *MaterialKey) error {
 	if err := cryptoutilSharedUtilRandom.ValidateUUID(&key.ElasticKeyID, ErrInvalidElasticKeyID); err != nil {
-		return tx.toAppErr(&ErrFailedToAddMaterialKey, err)
+		return toAppErr(slogger, &ErrFailedToAddMaterialKey, err)
 	} else if err := cryptoutilSharedUtilRandom.ValidateUUID(&key.MaterialKeyID, ErrInvalidMaterialKeyID); err != nil {
-		return tx.toAppErr(&ErrFailedToAddMaterialKey, err)
+		return toAppErr(slogger, &ErrFailedToAddMaterialKey, err)
 	}
 
-	err := tx.state.gormTx.Create(key).Error
-	if err != nil {
-		return tx.toAppErr(&ErrFailedToAddMaterialKey, err)
+	if err := gormTx.Create(key).Error; err != nil {
+		return toAppErr(slogger, &ErrFailedToAddMaterialKey, err)
 	}
 
 	return nil
 }
 
 // GetMaterialKeysForElasticKey retrieves material keys for an elastic key with optional filters.
-func (tx *OrmTransaction) GetMaterialKeysForElasticKey(elasticKeyID *googleUuid.UUID, getElasticKeyKeysFilters *GetElasticKeyMaterialKeysFilters) ([]MaterialKey, error) {
+func GetMaterialKeysForElasticKey(gormTx *gorm.DB, slogger *slog.Logger, elasticKeyID *googleUuid.UUID, getElasticKeyKeysFilters *GetElasticKeyMaterialKeysFilters) ([]MaterialKey, error) {
 	if err := cryptoutilSharedUtilRandom.ValidateUUID(elasticKeyID, ErrFailedToGetMaterialKeysByElasticKeyID); err != nil {
-		return nil, tx.toAppErr(&ErrFailedToGetMaterialKeysByElasticKeyID, err)
+		return nil, toAppErr(slogger, &ErrFailedToGetMaterialKeysByElasticKeyID, err)
 	}
 
 	var keys []MaterialKey
 
-	query := tx.state.gormTx.Where("elastic_key_id=?", elasticKeyID)
+	query := gormTx.Where("elastic_key_id=?", elasticKeyID)
 
-	err := applyGetElasticKeyKeysFilters(query, getElasticKeyKeysFilters).Find(&keys).Error
-	if err != nil {
-		return nil, tx.toAppErr(&ErrFailedToGetMaterialKeysByElasticKeyID, err)
+	if err := applyGetElasticKeyKeysFilters(query, getElasticKeyKeysFilters).Find(&keys).Error; err != nil {
+		return nil, toAppErr(slogger, &ErrFailedToGetMaterialKeysByElasticKeyID, err)
 	}
 
 	return keys, nil
 }
 
 // GetMaterialKeys retrieves material keys based on the provided filter criteria.
-func (tx *OrmTransaction) GetMaterialKeys(getKeysFilters *GetMaterialKeysFilters) ([]MaterialKey, error) {
+func GetMaterialKeys(gormTx *gorm.DB, slogger *slog.Logger, getKeysFilters *GetMaterialKeysFilters) ([]MaterialKey, error) {
 	var keys []MaterialKey
 
-	query := tx.state.gormTx
-
-	err := applyKeyFilters(query, getKeysFilters).Find(&keys).Error
-	if err != nil {
-		return nil, tx.toAppErr(&ErrFailedToGetMaterialKeys, err)
+	if err := applyKeyFilters(gormTx, getKeysFilters).Find(&keys).Error; err != nil {
+		return nil, toAppErr(slogger, &ErrFailedToGetMaterialKeys, err)
 	}
 
 	return keys, nil
 }
 
 // GetElasticKeyMaterialKeyVersion retrieves a specific version of a material key by elastic key ID and material key ID.
-func (tx *OrmTransaction) GetElasticKeyMaterialKeyVersion(elasticKeyID, materialKeyID *googleUuid.UUID) (*MaterialKey, error) {
+func GetElasticKeyMaterialKeyVersion(gormTx *gorm.DB, slogger *slog.Logger, elasticKeyID, materialKeyID *googleUuid.UUID) (*MaterialKey, error) {
 	if err := cryptoutilSharedUtilRandom.ValidateUUID(elasticKeyID, ErrInvalidElasticKeyID); err != nil {
-		return nil, tx.toAppErr(&ErrFailedToGetMaterialKeyByElasticKeyIDAndMaterialKeyID, err)
+		return nil, toAppErr(slogger, &ErrFailedToGetMaterialKeyByElasticKeyIDAndMaterialKeyID, err)
 	} else if err := cryptoutilSharedUtilRandom.ValidateUUID(materialKeyID, ErrInvalidMaterialKeyID); err != nil {
-		return nil, tx.toAppErr(&ErrFailedToGetMaterialKeyByElasticKeyIDAndMaterialKeyID, err)
+		return nil, toAppErr(slogger, &ErrFailedToGetMaterialKeyByElasticKeyIDAndMaterialKeyID, err)
 	}
 
 	var key MaterialKey
 
-	err := tx.state.gormTx.First(&key, "elastic_key_id=? AND material_key_id=?", elasticKeyID, materialKeyID).Error
-	if err != nil {
-		return nil, tx.toAppErr(&ErrFailedToGetMaterialKeyByElasticKeyIDAndMaterialKeyID, err)
+	if err := gormTx.First(&key, "elastic_key_id=? AND material_key_id=?", elasticKeyID, materialKeyID).Error; err != nil {
+		return nil, toAppErr(slogger, &ErrFailedToGetMaterialKeyByElasticKeyIDAndMaterialKeyID, err)
 	}
 
 	return &key, nil
 }
 
 // GetElasticKeyMaterialKeyLatest retrieves the latest material key for the given elastic key ID.
-func (tx *OrmTransaction) GetElasticKeyMaterialKeyLatest(elasticKeyID googleUuid.UUID) (*MaterialKey, error) {
+func GetElasticKeyMaterialKeyLatest(gormTx *gorm.DB, slogger *slog.Logger, elasticKeyID googleUuid.UUID) (*MaterialKey, error) {
 	if err := cryptoutilSharedUtilRandom.ValidateUUID(&elasticKeyID, ErrInvalidElasticKeyID); err != nil {
-		return nil, tx.toAppErr(&ErrFailedToGetLatestMaterialKeyByElasticKeyID, err)
+		return nil, toAppErr(slogger, &ErrFailedToGetLatestMaterialKeyByElasticKeyID, err)
 	}
 
 	var key MaterialKey
 
-	err := tx.state.gormTx.Order("material_key_id DESC").First(&key, "elastic_key_id=?", elasticKeyID).Error
-	if err != nil {
-		return nil, tx.toAppErr(&ErrFailedToGetLatestMaterialKeyByElasticKeyID, err)
+	if err := gormTx.Order("material_key_id DESC").First(&key, "elastic_key_id=?", elasticKeyID).Error; err != nil {
+		return nil, toAppErr(slogger, &ErrFailedToGetLatestMaterialKeyByElasticKeyID, err)
 	}
 
 	return &key, nil
 }
 
 // UpdateElasticKeyMaterialKeyRevoke updates the revocation date for a material key.
-func (tx *OrmTransaction) UpdateElasticKeyMaterialKeyRevoke(materialKey *MaterialKey) error {
+func UpdateElasticKeyMaterialKeyRevoke(gormTx *gorm.DB, slogger *slog.Logger, materialKey *MaterialKey) error {
 	if err := cryptoutilSharedUtilRandom.ValidateUUID(&materialKey.ElasticKeyID, ErrInvalidElasticKeyID); err != nil {
-		return tx.toAppErr(&ErrFailedToUpdateMaterialKey, err)
+		return toAppErr(slogger, &ErrFailedToUpdateMaterialKey, err)
 	} else if err := cryptoutilSharedUtilRandom.ValidateUUID(&materialKey.MaterialKeyID, ErrInvalidMaterialKeyID); err != nil {
-		return tx.toAppErr(&ErrFailedToUpdateMaterialKey, err)
+		return toAppErr(slogger, &ErrFailedToUpdateMaterialKey, err)
 	}
 
-	err := tx.state.gormTx.Model(&MaterialKey{}).
+	err := gormTx.Model(&MaterialKey{}).
 		Where("elastic_key_id=? AND material_key_id=?", materialKey.ElasticKeyID, materialKey.MaterialKeyID).
 		Update("material_key_revocation_date", materialKey.MaterialKeyRevocationDate).Error
 	if err != nil {
-		return tx.toAppErr(&ErrFailedToUpdateMaterialKey, err)
+		return toAppErr(slogger, &ErrFailedToUpdateMaterialKey, err)
 	}
 
 	return nil
 }
 
-func (tx *OrmTransaction) toAppErr(msg *string, err error) error {
-	return cryptoutilSharedApperr.MapGormError(tx.ormRepository.telemetryService.Slogger, msg, err)
+func toAppErr(slogger *slog.Logger, msg *string, err error) error {
+	return cryptoutilSharedApperr.MapGormError(slogger, msg, err)
 }
 
 func applyGetElasticKeysFilters(db *gorm.DB, filters *GetElasticKeysFilters) *gorm.DB {
@@ -214,7 +198,6 @@ func applyGetElasticKeysFilters(db *gorm.DB, filters *GetElasticKeysFilters) *go
 		return db
 	}
 
-	// TenantID is required for multi-tenant isolation.
 	db = db.Where("tenant_id=?", filters.TenantID)
 
 	if len(filters.ElasticKeyID) > 0 {
@@ -247,7 +230,6 @@ func applyGetElasticKeysFilters(db *gorm.DB, filters *GetElasticKeysFilters) *go
 		}
 	}
 
-	// Only apply pagination if PageSize is set (> 0).
 	if filters.PageSize > 0 {
 		db = db.Offset(filters.PageNumber * filters.PageSize)
 		db = db.Limit(filters.PageSize)
@@ -283,7 +265,6 @@ func applyKeyFilters(db *gorm.DB, filters *GetMaterialKeysFilters) *gorm.DB {
 		}
 	}
 
-	// Only apply pagination if PageSize is set (> 0).
 	if filters.PageSize > 0 {
 		db = db.Offset(filters.PageNumber * filters.PageSize)
 		db = db.Limit(filters.PageSize)
@@ -315,7 +296,6 @@ func applyGetElasticKeyKeysFilters(db *gorm.DB, filters *GetElasticKeyMaterialKe
 		}
 	}
 
-	// Only apply pagination if PageSize is set (> 0).
 	if filters.PageSize > 0 {
 		db = db.Offset(filters.PageNumber * filters.PageSize)
 		db = db.Limit(filters.PageSize)

@@ -40,11 +40,11 @@ func TestElasticKeyOperations(t *testing.T) {
 			}
 
 			// Add elastic key.
-			err := tx.AddElasticKey(elasticKey)
+			err := AddElasticKey(tx.GormTx(), testTelemetryService.Slogger, elasticKey)
 			require.NoError(t, err, "AddElasticKey should succeed")
 
 			// Retrieve elastic key by ID.
-			retrieved, err := tx.GetElasticKey(tenantID, &ekID)
+			retrieved, err := GetElasticKey(tx.GormTx(), testTelemetryService.Slogger, tenantID, &ekID)
 			require.NoError(t, err, "GetElasticKey should succeed")
 			require.Equal(t, ekID, retrieved.ElasticKeyID, "Elastic Key ID should match")
 			require.Equal(t, "test-key-1", retrieved.ElasticKeyName, "Elastic Key Name should match")
@@ -71,16 +71,16 @@ func TestElasticKeyOperations(t *testing.T) {
 				ElasticKeyImportAllowed:     true,
 				ElasticKeyStatus:            cryptoutilKmsServer.Active,
 			}
-			err := tx.AddElasticKey(elasticKey)
+			err := AddElasticKey(tx.GormTx(), testTelemetryService.Slogger, elasticKey)
 			require.NoError(t, err, "AddElasticKey should succeed")
 
 			// Update elastic key fields.
 			elasticKey.ElasticKeyDescription = "Updated description"
-			err = tx.UpdateElasticKey(elasticKey)
+			err = UpdateElasticKey(tx.GormTx(), testTelemetryService.Slogger, elasticKey)
 			require.NoError(t, err, "UpdateElasticKey should succeed")
 
 			// Verify update.
-			retrieved, err := tx.GetElasticKey(tenantID, &ekID)
+			retrieved, err := GetElasticKey(tx.GormTx(), testTelemetryService.Slogger, tenantID, &ekID)
 			require.NoError(t, err, "GetElasticKey should succeed")
 			require.Equal(t, "Updated description", retrieved.ElasticKeyDescription, "Description should be updated")
 
@@ -105,15 +105,15 @@ func TestElasticKeyOperations(t *testing.T) {
 				ElasticKeyImportAllowed:     false,
 				ElasticKeyStatus:            cryptoutilKmsServer.Active,
 			}
-			err := tx.AddElasticKey(elasticKey)
+			err := AddElasticKey(tx.GormTx(), testTelemetryService.Slogger, elasticKey)
 			require.NoError(t, err, "AddElasticKey should succeed")
 
 			// Update status to Disabled.
-			err = tx.UpdateElasticKeyStatus(ekID, cryptoutilKmsServer.Inactive)
+			err = UpdateElasticKeyStatus(tx.GormTx(), testTelemetryService.Slogger, ekID, cryptoutilKmsServer.Inactive)
 			require.NoError(t, err, "UpdateElasticKeyStatus should succeed")
 
 			// Verify status update.
-			retrieved, err := tx.GetElasticKey(tenantID, &ekID)
+			retrieved, err := GetElasticKey(tx.GormTx(), testTelemetryService.Slogger, tenantID, &ekID)
 			require.NoError(t, err, "GetElasticKey should succeed")
 			require.Equal(t, cryptoutilKmsServer.Inactive, retrieved.ElasticKeyStatus, "Status should be Disabled")
 
@@ -149,12 +149,12 @@ func TestElasticKeyOperations(t *testing.T) {
 					ElasticKeyImportAllowed:     false,
 					ElasticKeyStatus:            status,
 				}
-				err := tx.AddElasticKey(elasticKey)
+				err := AddElasticKey(tx.GormTx(), testTelemetryService.Slogger, elasticKey)
 				require.NoError(t, err, "AddElasticKey should succeed")
 			}
 
 			// Get all elastic keys for this tenant.
-			allKeys, err := tx.GetElasticKeys(&GetElasticKeysFilters{TenantID: tenantID})
+			allKeys, err := GetElasticKeys(tx.GormTx(), testTelemetryService.Slogger, &GetElasticKeysFilters{TenantID: tenantID})
 			require.NoError(t, err, "GetElasticKeys should succeed")
 			require.GreaterOrEqual(t, len(allKeys), 3, "Should return at least 3 elastic keys")
 
@@ -185,7 +185,7 @@ func TestMaterialKeyOperations(t *testing.T) {
 				ElasticKeyImportAllowed:     false,
 				ElasticKeyStatus:            cryptoutilKmsServer.Active,
 			}
-			err := tx.AddElasticKey(elasticKey)
+			err := AddElasticKey(tx.GormTx(), testTelemetryService.Slogger, elasticKey)
 			require.NoError(t, err, "AddElasticKey should succeed")
 
 			// Create 3 material key versions.
@@ -200,17 +200,17 @@ func TestMaterialKeyOperations(t *testing.T) {
 					MaterialKeyClearPublic:        []byte("public-key-data"),
 					MaterialKeyEncryptedNonPublic: []byte("encrypted-private-key-data"),
 				}
-				err := tx.AddElasticKeyMaterialKey(materialKey)
+				err := AddElasticKeyMaterialKey(tx.GormTx(), testTelemetryService.Slogger, materialKey)
 				require.NoError(t, err, "AddElasticKeyMaterialKey should succeed")
 			}
 
 			// Retrieve all material keys for elastic key.
-			keys, err := tx.GetMaterialKeysForElasticKey(&ekID, &GetElasticKeyMaterialKeysFilters{})
+			keys, err := GetMaterialKeysForElasticKey(tx.GormTx(), testTelemetryService.Slogger, &ekID, &GetElasticKeyMaterialKeysFilters{})
 			require.NoError(t, err, "GetMaterialKeysForElasticKey should succeed")
 			require.GreaterOrEqual(t, len(keys), 3, "Should return at least 3 material keys")
 
 			// Verify first material key can be retrieved individually.
-			retrieved, err := tx.GetElasticKeyMaterialKeyVersion(&ekID, &mkIDs[0])
+			retrieved, err := GetElasticKeyMaterialKeyVersion(tx.GormTx(), testTelemetryService.Slogger, &ekID, &mkIDs[0])
 			require.NoError(t, err, "GetElasticKeyMaterialKeyVersion should succeed")
 			require.Equal(t, ekID, retrieved.ElasticKeyID, "Elastic Key ID should match")
 			require.Equal(t, mkIDs[0], retrieved.MaterialKeyID, "Material Key ID should match")
@@ -234,7 +234,7 @@ func TestMaterialKeyOperations(t *testing.T) {
 				ElasticKeyImportAllowed:     false,
 				ElasticKeyStatus:            cryptoutilKmsServer.Active,
 			}
-			err := tx.AddElasticKey(elasticKey)
+			err := AddElasticKey(tx.GormTx(), testTelemetryService.Slogger, elasticKey)
 			require.NoError(t, err, "AddElasticKey should succeed")
 
 			// Create 5 material key versions.
@@ -246,12 +246,12 @@ func TestMaterialKeyOperations(t *testing.T) {
 					MaterialKeyClearPublic:        []byte("public-key-data"),
 					MaterialKeyEncryptedNonPublic: []byte("encrypted-private-key-data"),
 				}
-				err := tx.AddElasticKeyMaterialKey(materialKey)
+				err := AddElasticKeyMaterialKey(tx.GormTx(), testTelemetryService.Slogger, materialKey)
 				require.NoError(t, err, "AddElasticKeyMaterialKey should succeed")
 			}
 
 			// Get latest material key (UUIDv7 sorting: latest = highest ID).
-			latest, err := tx.GetElasticKeyMaterialKeyLatest(ekID)
+			latest, err := GetElasticKeyMaterialKeyLatest(tx.GormTx(), testTelemetryService.Slogger, ekID)
 			require.NoError(t, err, "GetElasticKeyMaterialKeyLatest should succeed")
 			// Note: Latest may not match latestMKID due to UUIDv7 timestamp ordering.
 			require.Equal(t, ekID, latest.ElasticKeyID, "Elastic Key ID should match")
@@ -278,7 +278,7 @@ func TestMaterialKeyOperations(t *testing.T) {
 				ElasticKeyImportAllowed:     true,
 				ElasticKeyStatus:            cryptoutilKmsServer.Active,
 			}
-			err := tx.AddElasticKey(elasticKey)
+			err := AddElasticKey(tx.GormTx(), testTelemetryService.Slogger, elasticKey)
 			require.NoError(t, err, "AddElasticKey should succeed")
 
 			// Create 4 material keys.
@@ -290,12 +290,12 @@ func TestMaterialKeyOperations(t *testing.T) {
 					MaterialKeyClearPublic:        []byte("public-key-data"),
 					MaterialKeyEncryptedNonPublic: []byte("encrypted-private-key-data"),
 				}
-				err := tx.AddElasticKeyMaterialKey(materialKey)
+				err := AddElasticKeyMaterialKey(tx.GormTx(), testTelemetryService.Slogger, materialKey)
 				require.NoError(t, err, "AddElasticKeyMaterialKey should succeed")
 			}
 
 			// Get all material keys (no filters).
-			allKeys, err := tx.GetMaterialKeys(&GetMaterialKeysFilters{})
+			allKeys, err := GetMaterialKeys(tx.GormTx(), testTelemetryService.Slogger, &GetMaterialKeysFilters{})
 			require.NoError(t, err, "GetMaterialKeys should succeed")
 			require.GreaterOrEqual(t, len(allKeys), 4, "Should return at least 4 material keys")
 
@@ -323,7 +323,7 @@ func TestBusinessEntityErrorHandling(t *testing.T) {
 			}
 
 			// Attempt to add elastic key.
-			err := tx.AddElasticKey(elasticKey)
+			err := AddElasticKey(tx.GormTx(), testTelemetryService.Slogger, elasticKey)
 			require.Error(t, err, "AddElasticKey should fail with invalid UUID")
 
 			return err
@@ -336,7 +336,7 @@ func TestBusinessEntityErrorHandling(t *testing.T) {
 			// Attempt to get nonexistent elastic key.
 			tenantID := googleUuid.New()
 			nonexistentID := googleUuid.New()
-			_, err := tx.GetElasticKey(tenantID, &nonexistentID)
+			_, err := GetElasticKey(tx.GormTx(), testTelemetryService.Slogger, tenantID, &nonexistentID)
 			require.Error(t, err, "GetElasticKey should fail for nonexistent ID")
 
 			return err
@@ -355,7 +355,7 @@ func TestBusinessEntityErrorHandling(t *testing.T) {
 			}
 
 			// Attempt to add material key.
-			err := tx.AddElasticKeyMaterialKey(materialKey)
+			err := AddElasticKeyMaterialKey(tx.GormTx(), testTelemetryService.Slogger, materialKey)
 			require.Error(t, err, "AddElasticKeyMaterialKey should fail with invalid elastic key UUID")
 
 			return err
@@ -368,7 +368,7 @@ func TestBusinessEntityErrorHandling(t *testing.T) {
 			// Attempt to get material key with nil material key ID.
 			ekID := googleUuid.New()
 			mkID := googleUuid.Nil
-			_, err := tx.GetElasticKeyMaterialKeyVersion(&ekID, &mkID)
+			_, err := GetElasticKeyMaterialKeyVersion(tx.GormTx(), testTelemetryService.Slogger, &ekID, &mkID)
 			require.Error(t, err, "GetElasticKeyMaterialKeyVersion should fail with invalid material key UUID")
 
 			return err
@@ -391,7 +391,7 @@ func TestBusinessEntityErrorHandling(t *testing.T) {
 			}
 
 			// Attempt to update (should succeed with GORM but affect 0 rows).
-			err := tx.UpdateElasticKey(elasticKey)
+			err := UpdateElasticKey(tx.GormTx(), testTelemetryService.Slogger, elasticKey)
 			require.NoError(t, err, "UpdateElasticKey doesn't fail for nonexistent key (GORM limitation)")
 
 			return nil

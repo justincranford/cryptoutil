@@ -17,7 +17,7 @@ import (
 	"gorm.io/gorm"
 )
 
-// OrmTransaction represents a database transaction with lifecycle management.
+// OrmTransaction represents a database transaction with explicit lifecycle management.
 type OrmTransaction struct {
 	ormRepository *OrmRepository
 	guardState    sync.Mutex
@@ -35,7 +35,7 @@ type OrmTransactionState struct {
 // TransactionMode specifies the isolation and commit behavior of a transaction.
 type TransactionMode string
 
-// AutoCommit represents a transaction that commits automatically after each statement.
+// AutoCommit, ReadWrite, ReadOnly are the supported transaction modes.
 var (
 	AutoCommit TransactionMode = "AutoCommit"
 	// ReadWrite represents a read-write transaction.
@@ -44,13 +44,27 @@ var (
 	ReadOnly TransactionMode = "ReadOnly"
 )
 
-// OrmRepository
+// NewOrmTransactionWithRepository creates an OrmTransaction bound to the given repository.
+// Intended for testing error-path behaviour (e.g. commit/rollback without a prior Begin).
+func NewOrmTransactionWithRepository(repo *OrmRepository) *OrmTransaction {
+	return &OrmTransaction{ormRepository: repo}
+}
 
-// WithTransaction executes the provided function within a database transaction.
-func (r *OrmRepository) WithTransaction(ctx context.Context, transactionMode TransactionMode, function func(ormTransaction *OrmTransaction) error) error {
+// GormTx returns the underlying GORM transaction (or base DB for AutoCommit mode).
+// Returns nil when no transaction is active.
+func (tx *OrmTransaction) GormTx() *gorm.DB {
+	if tx.state == nil {
+		return nil
+	}
+
+	return tx.state.gormTx
+}
+
+// WithTransaction executes fn within a managed database transaction.
+func (r *OrmRepository) WithTransaction(ctx context.Context, transactionMode TransactionMode, fn func(ormTransaction *OrmTransaction) error) error {
 	tx := &OrmTransaction{ormRepository: r}
 
-	err := tx.begin(ctx, transactionMode)
+	err := tx.Begin(ctx, transactionMode)
 	if err != nil {
 		r.telemetryService.Slogger.Error("failed to begin transaction", cryptoutilSharedMagic.StringError, err)
 
@@ -58,8 +72,8 @@ func (r *OrmRepository) WithTransaction(ctx context.Context, transactionMode Tra
 	}
 
 	defer func() {
-		if tx.state != nil && tx.state.txMode != AutoCommit { // watch out for other commit() or rollback() calls that set tx.state as nil
-			if err := tx.rollback(); err != nil {
+		if tx.state != nil && tx.state.txMode != AutoCommit {
+			if err := tx.Rollback(); err != nil {
 				r.telemetryService.Slogger.Error("failed to rollback transaction", "txID", tx.ID(), "mode", tx.Mode(), cryptoutilSharedMagic.StringError, err)
 			}
 		}
@@ -70,14 +84,14 @@ func (r *OrmRepository) WithTransaction(ctx context.Context, transactionMode Tra
 		}
 	}()
 
-	if err := function(tx); err != nil {
+	if err := fn(tx); err != nil {
 		r.telemetryService.Slogger.Error("transaction function failed", "txID", tx.ID(), "mode", tx.Mode(), cryptoutilSharedMagic.StringError, err)
 
 		return fmt.Errorf("failed to execute transaction: %w", err)
 	}
 
 	if tx.state.txMode != AutoCommit {
-		if err := tx.commit(); err != nil { // clears state
+		if err := tx.Commit(); err != nil {
 			r.telemetryService.Slogger.Error("failed to commit transaction", "txID", tx.ID(), "mode", tx.Mode(), cryptoutilSharedMagic.StringError, err)
 
 			return fmt.Errorf("failed to commit transaction: %w", err)
@@ -87,12 +101,8 @@ func (r *OrmRepository) WithTransaction(ctx context.Context, transactionMode Tra
 	return nil
 }
 
-// RepositoryTransaction
-
 // ID returns the unique identifier of the transaction.
 func (tx *OrmTransaction) ID() *googleUuid.UUID {
-	// tx.guardState.Lock()
-	// defer tx.guardState.Unlock()
 	if tx.state == nil {
 		return nil
 	}
@@ -102,8 +112,6 @@ func (tx *OrmTransaction) ID() *googleUuid.UUID {
 
 // Context returns the context associated with the transaction.
 func (tx *OrmTransaction) Context() context.Context {
-	// tx.guardState.Lock()
-	// defer tx.guardState.Unlock()
 	if tx.state == nil {
 		return nil
 	}
@@ -113,8 +121,6 @@ func (tx *OrmTransaction) Context() context.Context {
 
 // Mode returns the transaction mode (AutoCommit, ReadWrite, or ReadOnly).
 func (tx *OrmTransaction) Mode() *TransactionMode {
-	// tx.guardState.Lock()
-	// defer tx.guardState.Unlock()
 	if tx.state == nil {
 		return nil
 	}
@@ -122,9 +128,9 @@ func (tx *OrmTransaction) Mode() *TransactionMode {
 	return &tx.state.txMode
 }
 
-// Helpers
-
-func (tx *OrmTransaction) begin(ctx context.Context, transactionMode TransactionMode) error {
+// Begin starts the transaction with the given mode.
+// Returns an error if the transaction is already active.
+func (tx *OrmTransaction) Begin(ctx context.Context, transactionMode TransactionMode) error {
 	tx.guardState.Lock()
 	defer tx.guardState.Unlock()
 
@@ -151,7 +157,9 @@ func (tx *OrmTransaction) begin(ctx context.Context, transactionMode Transaction
 	return nil
 }
 
-func (tx *OrmTransaction) commit() error {
+// Commit commits the active transaction and clears the state.
+// Returns an error if the transaction is not active or is in AutoCommit mode.
+func (tx *OrmTransaction) Commit() error {
 	tx.guardState.Lock()
 	defer tx.guardState.Unlock()
 
@@ -181,7 +189,9 @@ func (tx *OrmTransaction) commit() error {
 	return nil
 }
 
-func (tx *OrmTransaction) rollback() error {
+// Rollback rolls back the active transaction and clears the state.
+// Returns an error if the transaction is not active or is in AutoCommit mode.
+func (tx *OrmTransaction) Rollback() error {
 	tx.guardState.Lock()
 	defer tx.guardState.Unlock()
 
@@ -210,8 +220,6 @@ func (tx *OrmTransaction) rollback() error {
 
 	return nil
 }
-
-// Implementation using Gorm
 
 func (tx *OrmTransaction) beginImplementation(ctx context.Context, transactionMode TransactionMode) (*gorm.DB, error) {
 	gormTx := tx.ormRepository.gormDB.WithContext(ctx)

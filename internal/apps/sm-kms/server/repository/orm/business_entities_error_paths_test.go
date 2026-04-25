@@ -27,7 +27,7 @@ func TestToAppErr_GormRecordNotFound(t *testing.T) {
 		// Try to get non-existent elastic key (will trigger gorm.ErrRecordNotFound).
 		nonExistentID := googleUuid.New()
 		elasticKey := &ElasticKey{}
-		dbErr := tx.state.gormTx.Where("elastic_key_id = ?", nonExistentID).First(elasticKey).Error
+		dbErr := tx.GormTx().Where("elastic_key_id = ?", nonExistentID).First(elasticKey).Error
 
 		require.Error(t, dbErr, "Should get error for non-existent key")
 		require.ErrorIs(t, dbErr, gorm.ErrRecordNotFound, "Error should be gorm.ErrRecordNotFound")
@@ -69,7 +69,7 @@ func TestToAppErr_UniqueConstraintViolation(t *testing.T) {
 		)
 		require.NoError(t, buildErr)
 
-		createErr := tx.state.gormTx.Create(elasticKey1).Error
+		createErr := tx.GormTx().Create(elasticKey1).Error
 		require.NoError(t, createErr, "First create should succeed")
 
 		// Try to create second elastic key with same name (unique constraint violation).
@@ -88,7 +88,7 @@ func TestToAppErr_UniqueConstraintViolation(t *testing.T) {
 		)
 		require.NoError(t, buildErr2)
 
-		duplicateErr := tx.state.gormTx.Create(elasticKey2).Error
+		duplicateErr := tx.GormTx().Create(elasticKey2).Error
 		require.Error(t, duplicateErr, "Duplicate name should fail")
 
 		// Test toAppErr mapping.
@@ -118,7 +118,7 @@ func TestToAppErr_ForeignKeyViolation(t *testing.T) {
 			MaterialKeyEncryptedNonPublic: []byte("test-encrypted-key"),
 		}
 
-		fkErr := tx.state.gormTx.Create(materialKey).Error
+		fkErr := tx.GormTx().Create(materialKey).Error
 
 		// Foreign key constraints might not be enforced in all configs.
 		if fkErr != nil {
@@ -306,7 +306,7 @@ func TestOrmTransaction_toAppErr_SQLiteUniqueConstraint(t *testing.T) {
 		)
 		require.NoError(t, buildErr)
 
-		return tx.AddElasticKey(elasticKey)
+		return AddElasticKey(tx.GormTx(), testTelemetryService.Slogger, elasticKey)
 	})
 	require.NoError(t, err)
 
@@ -324,7 +324,7 @@ func TestOrmTransaction_toAppErr_SQLiteUniqueConstraint(t *testing.T) {
 		)
 		require.NoError(t, buildErr)
 
-		createErr := tx.AddElasticKey(duplicateKey)
+		createErr := AddElasticKey(tx.GormTx(), testTelemetryService.Slogger, duplicateKey)
 		require.Error(t, createErr, "Should fail with UNIQUE constraint")
 		require.Contains(t, createErr.Error(), ErrFailedToAddElasticKey)
 
@@ -364,7 +364,7 @@ func TestGetElasticKey_NotFoundError(t *testing.T) {
 
 	err := testOrmRepository.WithTransaction(testCtx, ReadOnly, func(tx *OrmTransaction) error {
 		// Attempt to get non-existent elastic key.
-		_, getErr := tx.GetElasticKey(tenantID, &nonExistentID)
+		_, getErr := GetElasticKey(tx.GormTx(), testTelemetryService.Slogger, tenantID, &nonExistentID)
 		require.Error(t, getErr, "Should fail when elastic key not found")
 		require.Contains(t, getErr.Error(), ErrFailedToGetElasticKeyByElasticKeyID, "Error should indicate get failure")
 

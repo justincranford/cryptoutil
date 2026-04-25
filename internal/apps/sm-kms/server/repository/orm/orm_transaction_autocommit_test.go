@@ -23,7 +23,7 @@ func TestOrmTransaction_AutoCommit_CommitFailure(t *testing.T) {
 		require.Equal(t, AutoCommit, *tx.Mode())
 
 		// Manually call commit on autocommit transaction - should fail.
-		commitErr := tx.commit()
+		commitErr := tx.Commit()
 		require.Error(t, commitErr, "Commit should fail for AutoCommit transaction")
 		require.Contains(t, commitErr.Error(), "can't commit because transaction is autocommit")
 
@@ -42,7 +42,7 @@ func TestOrmTransaction_AutoCommit_RollbackFailure(t *testing.T) {
 		require.Equal(t, AutoCommit, *tx.Mode())
 
 		// Manually call rollback on autocommit transaction - should fail.
-		rollbackErr := tx.rollback()
+		rollbackErr := tx.Rollback()
 		require.Error(t, rollbackErr, "Rollback should fail for AutoCommit transaction")
 		require.Contains(t, rollbackErr.Error(), "can't rollback because transaction is autocommit")
 
@@ -60,8 +60,8 @@ func TestOrmTransaction_AutoCommit_Success(t *testing.T) {
 	err := testOrmRepository.WithTransaction(testCtx, AutoCommit, func(tx *OrmTransaction) error {
 		require.NotNil(t, tx)
 		require.Equal(t, AutoCommit, *tx.Mode())
-		require.NotNil(t, tx.state)
-		require.NotNil(t, tx.state.gormTx)
+		require.NotNil(t, tx.GormTx())
+		require.NotNil(t, tx.GormTx())
 
 		// AutoCommit mode should allow database operations.
 		tenantID := googleUuid.New()
@@ -80,7 +80,7 @@ func TestOrmTransaction_AutoCommit_Success(t *testing.T) {
 		)
 		require.NoError(t, buildErr)
 
-		createErr := tx.state.gormTx.Create(elasticKey).Error
+		createErr := tx.GormTx().Create(elasticKey).Error
 		require.NoError(t, createErr, "AutoCommit should allow database operations")
 
 		return nil

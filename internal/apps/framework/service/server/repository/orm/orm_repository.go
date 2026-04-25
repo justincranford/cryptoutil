@@ -19,7 +19,7 @@ import (
 	_ "modernc.org/sqlite"             // SQLite driver for database/sql
 )
 
-// OrmRepository provides GORM-based database operations for the KMS server.
+// OrmRepository provides GORM-based database operations with telemetry support.
 type OrmRepository struct {
 	telemetryService *cryptoutilSharedTelemetry.TelemetryService
 	jwkGenService    *cryptoutilSharedCryptoJose.JWKGenService
@@ -32,8 +32,7 @@ func (r *OrmRepository) Shutdown() {
 	// no-op
 }
 
-// NewOrmRepository creates a new OrmRepository with GORM directly (template pattern).
-// KMS integrates with ServerBuilder which provides GORM instances.
+// NewOrmRepository creates a new OrmRepository backed by the provided GORM instance.
 func NewOrmRepository(_ context.Context, telemetryService *cryptoutilSharedTelemetry.TelemetryService, gormDB *gorm.DB, jwkGenService *cryptoutilSharedCryptoJose.JWKGenService, verboseMode bool) (*OrmRepository, error) {
 	if telemetryService == nil {
 		return nil, fmt.Errorf("telemetryService must be non-nil")
@@ -51,8 +50,12 @@ func (r *OrmRepository) GormDB() *gorm.DB {
 	return r.gormDB
 }
 
+// SetVerboseMode enables or disables verbose transaction logging.
+func (r *OrmRepository) SetVerboseMode(enabled bool) {
+	r.verboseMode = enabled
+}
+
 // HealthCheck performs a database connectivity check and returns detailed status.
-// Uses GORM's underlying sql.DB for connection pool statistics.
 func (r *OrmRepository) HealthCheck(ctx context.Context) (map[string]any, error) {
 	if r.gormDB == nil {
 		return map[string]any{
@@ -61,7 +64,6 @@ func (r *OrmRepository) HealthCheck(ctx context.Context) (map[string]any, error)
 		}, fmt.Errorf("database connection not initialized")
 	}
 
-	// Get underlying sql.DB for health check.
 	sqlDB, err := r.gormDB.DB()
 	if err != nil {
 		return map[string]any{
@@ -70,7 +72,6 @@ func (r *OrmRepository) HealthCheck(ctx context.Context) (map[string]any, error)
 		}, fmt.Errorf("failed to get sql.DB from GORM: %w", err)
 	}
 
-	// Ping with timeout.
 	err = sqlDB.PingContext(ctx)
 	if err != nil {
 		return map[string]any{
@@ -79,10 +80,7 @@ func (r *OrmRepository) HealthCheck(ctx context.Context) (map[string]any, error)
 		}, fmt.Errorf("database ping failed: %w", err)
 	}
 
-	// Get connection pool stats.
 	stats := sqlDB.Stats()
-
-	// Get database type from GORM dialector.
 	dbType := r.gormDB.Name()
 
 	return map[string]any{

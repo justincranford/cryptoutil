@@ -43,7 +43,7 @@ func TestGetElasticKeysWithExportAllowedFilter(t *testing.T) {
 	require.NoError(t, buildErr)
 
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
-		return tx.AddElasticKey(elasticKey)
+		return AddElasticKey(tx.GormTx(), testTelemetryService.Slogger, elasticKey)
 	})
 	require.NoError(t, err)
 
@@ -54,7 +54,7 @@ func TestGetElasticKeysWithExportAllowedFilter(t *testing.T) {
 		filters := &GetElasticKeysFilters{
 			ExportAllowed: &exportAllowed, // This filter path is DEAD CODE - column doesn't exist
 		}
-		_, err := tx.GetElasticKeys(filters)
+		_, err := GetElasticKeys(tx.GormTx(), testTelemetryService.Slogger, filters)
 
 		return err
 	})
@@ -85,7 +85,7 @@ func TestGetElasticKeysWithImportAllowedFilter(t *testing.T) {
 	require.NoError(t, buildErr)
 
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
-		return tx.AddElasticKey(elasticKey)
+		return AddElasticKey(tx.GormTx(), testTelemetryService.Slogger, elasticKey)
 	})
 	require.NoError(t, err)
 
@@ -95,7 +95,7 @@ func TestGetElasticKeysWithImportAllowedFilter(t *testing.T) {
 		filters := &GetElasticKeysFilters{
 			ImportAllowed: &importAllowed,
 		}
-		keys, err := tx.GetElasticKeys(filters)
+		keys, err := GetElasticKeys(tx.GormTx(), testTelemetryService.Slogger, filters)
 		require.NoError(t, err)
 		require.NotEmpty(t, keys, "Expected keys with ImportAllowed=true")
 
@@ -109,7 +109,7 @@ func TestGetElasticKeysWithImportAllowedFilter(t *testing.T) {
 		filters := &GetElasticKeysFilters{
 			ImportAllowed: &importAllowedFalse,
 		}
-		keys, err := tx.GetElasticKeys(filters)
+		keys, err := GetElasticKeys(tx.GormTx(), testTelemetryService.Slogger, filters)
 		require.NoError(t, err)
 		require.Empty(t, keys, "Expected no keys with ImportAllowed=false")
 

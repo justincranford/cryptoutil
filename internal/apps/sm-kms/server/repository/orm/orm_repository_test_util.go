@@ -40,7 +40,7 @@ func CleanupDatabase(t *testing.T, repo *OrmRepository, tables []string) {
 	t.Cleanup(func() {
 		err := repo.WithTransaction(context.Background(), ReadWrite, func(tx *OrmTransaction) error {
 			for _, table := range tables {
-				if err := tx.state.gormTx.Exec("DELETE FROM " + table).Error; err != nil { //nolint:gosec // Table names are internal constants, not user input
+				if err := tx.GormTx().Exec("DELETE FROM " + table).Error; err != nil { //nolint:gosec // Table names are internal constants, not user input
 					return err
 				}
 			}

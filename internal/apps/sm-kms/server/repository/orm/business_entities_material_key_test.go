@@ -41,7 +41,7 @@ func TestOrmTransaction_GetElasticKeyMaterialKeyVersion(t *testing.T) {
 		)
 		require.NoError(t, buildErr)
 
-		createErr := tx.AddElasticKey(elasticKey)
+		createErr := AddElasticKey(tx.GormTx(), testTelemetryService.Slogger, elasticKey)
 		require.NoError(t, createErr)
 
 		// Create multiple material keys.
@@ -53,7 +53,7 @@ func TestOrmTransaction_GetElasticKeyMaterialKeyVersion(t *testing.T) {
 			MaterialKeyEncryptedNonPublic: []byte("encrypted-private-key-data-1"),
 		}
 
-		createErr = tx.AddElasticKeyMaterialKey(materialKey1)
+		createErr = AddElasticKeyMaterialKey(tx.GormTx(), testTelemetryService.Slogger, materialKey1)
 		require.NoError(t, createErr)
 
 		mkID2 := googleUuid.New()
@@ -64,7 +64,7 @@ func TestOrmTransaction_GetElasticKeyMaterialKeyVersion(t *testing.T) {
 			MaterialKeyEncryptedNonPublic: []byte("encrypted-private-key-data-2"),
 		}
 
-		createErr = tx.AddElasticKeyMaterialKey(materialKey2)
+		createErr = AddElasticKeyMaterialKey(tx.GormTx(), testTelemetryService.Slogger, materialKey2)
 		require.NoError(t, createErr)
 
 		return nil
@@ -77,17 +77,17 @@ func TestOrmTransaction_GetElasticKeyMaterialKeyVersion(t *testing.T) {
 		filters := GetMaterialKeysFilters{
 			PageSize: cryptoutilSharedMagic.JoseJAMaxMaterials,
 		}
-		allKeys, getErr := tx.GetMaterialKeys(&filters)
+		allKeys, getErr := GetMaterialKeys(tx.GormTx(), testTelemetryService.Slogger, &filters)
 		require.NoError(t, getErr)
 		require.Len(t, allKeys, 2, "Should have 2 material keys")
 
 		// Get specific version by ekID and mkID.
-		key1, getErr := tx.GetElasticKeyMaterialKeyVersion(&allKeys[0].ElasticKeyID, &allKeys[0].MaterialKeyID)
+		key1, getErr := GetElasticKeyMaterialKeyVersion(tx.GormTx(), testTelemetryService.Slogger, &allKeys[0].ElasticKeyID, &allKeys[0].MaterialKeyID)
 		require.NoError(t, getErr)
 		require.NotNil(t, key1)
 		require.Equal(t, allKeys[0].MaterialKeyID, key1.MaterialKeyID)
 
-		key2, getErr := tx.GetElasticKeyMaterialKeyVersion(&allKeys[1].ElasticKeyID, &allKeys[1].MaterialKeyID)
+		key2, getErr := GetElasticKeyMaterialKeyVersion(tx.GormTx(), testTelemetryService.Slogger, &allKeys[1].ElasticKeyID, &allKeys[1].MaterialKeyID)
 		require.NoError(t, getErr)
 		require.NotNil(t, key2)
 		require.Equal(t, allKeys[1].MaterialKeyID, key2.MaterialKeyID)
@@ -125,7 +125,7 @@ func TestOrmTransaction_GetElasticKeyMaterialKeyLatest(t *testing.T) {
 		)
 		require.NoError(t, buildErr)
 
-		createErr := tx.AddElasticKey(elasticKey)
+		createErr := AddElasticKey(tx.GormTx(), testTelemetryService.Slogger, elasticKey)
 		require.NoError(t, createErr)
 
 		// Create first material key (older).
@@ -137,7 +137,7 @@ func TestOrmTransaction_GetElasticKeyMaterialKeyLatest(t *testing.T) {
 			MaterialKeyEncryptedNonPublic: []byte("encrypted-private-key-data-1"),
 		}
 
-		createErr = tx.AddElasticKeyMaterialKey(materialKey1)
+		createErr = AddElasticKeyMaterialKey(tx.GormTx(), testTelemetryService.Slogger, materialKey1)
 		require.NoError(t, createErr)
 
 		// Create second material key (newer).
@@ -149,7 +149,7 @@ func TestOrmTransaction_GetElasticKeyMaterialKeyLatest(t *testing.T) {
 			MaterialKeyEncryptedNonPublic: []byte("encrypted-private-key-data-2"),
 		}
 
-		createErr = tx.AddElasticKeyMaterialKey(materialKey2)
+		createErr = AddElasticKeyMaterialKey(tx.GormTx(), testTelemetryService.Slogger, materialKey2)
 		require.NoError(t, createErr)
 
 		return nil
@@ -159,7 +159,7 @@ func TestOrmTransaction_GetElasticKeyMaterialKeyLatest(t *testing.T) {
 	// Test GetElasticKeyMaterialKeyLatest.
 	err = testOrmRepository.WithTransaction(testCtx, ReadOnly, func(tx *OrmTransaction) error {
 		// Get latest material key.
-		latestKey, getErr := tx.GetElasticKeyMaterialKeyLatest(ekID)
+		latestKey, getErr := GetElasticKeyMaterialKeyLatest(tx.GormTx(), testTelemetryService.Slogger, ekID)
 		require.NoError(t, getErr)
 		require.NotNil(t, latestKey)
 
@@ -189,7 +189,7 @@ func TestOrmTransaction_GetElasticKeyMaterialKeyVersion_InvalidElasticKeyID(t *t
 
 	err := testOrmRepository.WithTransaction(testCtx, ReadOnly, func(tx *OrmTransaction) error {
 		// Test nil elasticKeyID.
-		_, getErr := tx.GetElasticKeyMaterialKeyVersion(nil, &googleUuid.UUID{})
+		_, getErr := GetElasticKeyMaterialKeyVersion(tx.GormTx(), testTelemetryService.Slogger, nil, &googleUuid.UUID{})
 		require.Error(t, getErr)
 		require.Contains(t, getErr.Error(), ErrFailedToGetMaterialKeyByElasticKeyIDAndMaterialKeyID)
 
@@ -206,7 +206,7 @@ func TestOrmTransaction_GetElasticKeyMaterialKeyVersion_InvalidMaterialKeyID(t *
 		ekID := googleUuid.New()
 
 		// Test nil materialKeyID.
-		_, getErr := tx.GetElasticKeyMaterialKeyVersion(&ekID, nil)
+		_, getErr := GetElasticKeyMaterialKeyVersion(tx.GormTx(), testTelemetryService.Slogger, &ekID, nil)
 		require.Error(t, getErr)
 		require.Contains(t, getErr.Error(), ErrFailedToGetMaterialKeyByElasticKeyIDAndMaterialKeyID)
 
@@ -221,7 +221,7 @@ func TestOrmTransaction_GetElasticKeyMaterialKeyLatest_InvalidElasticKeyID(t *te
 
 	err := testOrmRepository.WithTransaction(testCtx, ReadOnly, func(tx *OrmTransaction) error {
 		// Test zero UUID (invalid).
-		_, getErr := tx.GetElasticKeyMaterialKeyLatest(googleUuid.UUID{})
+		_, getErr := GetElasticKeyMaterialKeyLatest(tx.GormTx(), testTelemetryService.Slogger, googleUuid.UUID{})
 		require.Error(t, getErr)
 		require.Contains(t, getErr.Error(), ErrFailedToGetLatestMaterialKeyByElasticKeyID)
 
@@ -239,7 +239,7 @@ func TestOrmTransaction_GetElasticKeyMaterialKeyVersion_NotFound(t *testing.T) {
 		mkID := googleUuid.New()
 
 		// Get non-existent material key.
-		_, getErr := tx.GetElasticKeyMaterialKeyVersion(&ekID, &mkID)
+		_, getErr := GetElasticKeyMaterialKeyVersion(tx.GormTx(), testTelemetryService.Slogger, &ekID, &mkID)
 		require.Error(t, getErr)
 		require.Contains(t, getErr.Error(), ErrFailedToGetMaterialKeyByElasticKeyIDAndMaterialKeyID)
 
@@ -256,7 +256,7 @@ func TestOrmTransaction_GetElasticKeyMaterialKeyLatest_NotFound(t *testing.T) {
 		ekID := googleUuid.New()
 
 		// Get latest material key for non-existent elastic key.
-		_, getErr := tx.GetElasticKeyMaterialKeyLatest(ekID)
+		_, getErr := GetElasticKeyMaterialKeyLatest(tx.GormTx(), testTelemetryService.Slogger, ekID)
 		require.Error(t, getErr)
 		require.Contains(t, getErr.Error(), ErrFailedToGetLatestMaterialKeyByElasticKeyID)
 
