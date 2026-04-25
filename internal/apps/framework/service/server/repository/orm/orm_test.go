@@ -16,9 +16,9 @@ func TestNewOrmRepository_NilChecks(t *testing.T) {
 
 	tests := []struct {
 		name            string
-		telemetry       interface{}
-		gormDB          interface{}
-		jwkGen          interface{}
+		telemetry       any
+		gormDB          any
+		jwkGen          any
 		wantErrContains string
 	}{
 		{name: "nil telemetryService", telemetry: nil, wantErrContains: "telemetryService must be non-nil"},
