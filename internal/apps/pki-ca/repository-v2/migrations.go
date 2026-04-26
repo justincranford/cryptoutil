@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"io/fs"
 
-	cryptoutilAppsFrameworkServiceServerRepository "cryptoutil/internal/apps/framework/service/server/repository"
+	cryptoutilAppsFrameworkServiceServerRepository "cryptoutil/internal/apps-framework/service/server/repository"
 )
 
 // DatabaseType represents supported database types for pki-ca.

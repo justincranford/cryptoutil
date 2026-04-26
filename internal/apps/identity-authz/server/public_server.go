@@ -9,7 +9,7 @@ import (
 
 	fiber "github.com/gofiber/fiber/v2"
 
-	cryptoutilAppsFrameworkServiceServer "cryptoutil/internal/apps/framework/service/server"
+	cryptoutilAppsFrameworkServiceServer "cryptoutil/internal/apps-framework/service/server"
 	cryptoutilAppsIdentityAuthzServerConfig "cryptoutil/internal/apps/identity-authz/server/config"
 )
 

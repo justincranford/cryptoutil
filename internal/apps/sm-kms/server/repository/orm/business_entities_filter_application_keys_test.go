@@ -21,7 +21,7 @@ func TestApplyKeyFilters(t *testing.T) {
 	require.NotNil(t, testOrmRepository)
 
 	t.Run("Filter by single MaterialKeyID", func(t *testing.T) {
-		query := testOrmRepository.gormDB.Model(&MaterialKey{})
+		query := testOrmRepository.GormDB().Model(&MaterialKey{})
 		filters := &GetMaterialKeysFilters{
 			MaterialKeyID: []googleUuid.UUID{googleUuid.New()},
 			PageSize:      cryptoutilSharedMagic.DefaultPageSize,
@@ -32,7 +32,7 @@ func TestApplyKeyFilters(t *testing.T) {
 	})
 
 	t.Run("Filter by multiple MaterialKeyIDs", func(t *testing.T) {
-		query := testOrmRepository.gormDB.Model(&MaterialKey{})
+		query := testOrmRepository.GormDB().Model(&MaterialKey{})
 		filters := &GetMaterialKeysFilters{
 			MaterialKeyID: []googleUuid.UUID{googleUuid.New(), googleUuid.New(), googleUuid.New()},
 			PageSize:      cryptoutilSharedMagic.DefaultPageSize,
@@ -43,7 +43,7 @@ func TestApplyKeyFilters(t *testing.T) {
 	})
 
 	t.Run("Filter by empty MaterialKeyID slice", func(t *testing.T) {
-		query := testOrmRepository.gormDB.Model(&MaterialKey{})
+		query := testOrmRepository.GormDB().Model(&MaterialKey{})
 		filters := &GetMaterialKeysFilters{
 			MaterialKeyID: []googleUuid.UUID{},
 			PageSize:      cryptoutilSharedMagic.DefaultPageSize,
@@ -54,7 +54,7 @@ func TestApplyKeyFilters(t *testing.T) {
 	})
 
 	t.Run("Filter by single ElasticKeyID", func(t *testing.T) {
-		query := testOrmRepository.gormDB.Model(&MaterialKey{})
+		query := testOrmRepository.GormDB().Model(&MaterialKey{})
 		filters := &GetMaterialKeysFilters{
 			ElasticKeyID: []googleUuid.UUID{googleUuid.New()},
 			PageSize:     cryptoutilSharedMagic.DefaultPageSize,
@@ -65,7 +65,7 @@ func TestApplyKeyFilters(t *testing.T) {
 	})
 
 	t.Run("Filter by MinimumGenerateDate", func(t *testing.T) {
-		query := testOrmRepository.gormDB.Model(&MaterialKey{})
+		query := testOrmRepository.GormDB().Model(&MaterialKey{})
 		minDate := time.Now().UTC().Add(-cryptoutilSharedMagic.HoursPerDay * time.Hour)
 		filters := &GetMaterialKeysFilters{
 			MinimumGenerateDate: timePtr(minDate),
@@ -77,7 +77,7 @@ func TestApplyKeyFilters(t *testing.T) {
 	})
 
 	t.Run("Filter by MaximumGenerateDate", func(t *testing.T) {
-		query := testOrmRepository.gormDB.Model(&MaterialKey{})
+		query := testOrmRepository.GormDB().Model(&MaterialKey{})
 		maxDate := time.Now().UTC()
 		filters := &GetMaterialKeysFilters{
 			MaximumGenerateDate: timePtr(maxDate),
@@ -89,7 +89,7 @@ func TestApplyKeyFilters(t *testing.T) {
 	})
 
 	t.Run("Filter by date range", func(t *testing.T) {
-		query := testOrmRepository.gormDB.Model(&MaterialKey{})
+		query := testOrmRepository.GormDB().Model(&MaterialKey{})
 		minDate := time.Now().UTC().Add(-cryptoutilSharedMagic.HoursPerDay * time.Hour)
 		maxDate := time.Now().UTC()
 		filters := &GetMaterialKeysFilters{
@@ -103,7 +103,7 @@ func TestApplyKeyFilters(t *testing.T) {
 	})
 
 	t.Run("Filter by combined MaterialKeyID and ElasticKeyID", func(t *testing.T) {
-		query := testOrmRepository.gormDB.Model(&MaterialKey{})
+		query := testOrmRepository.GormDB().Model(&MaterialKey{})
 		filters := &GetMaterialKeysFilters{
 			MaterialKeyID: []googleUuid.UUID{googleUuid.New()},
 			ElasticKeyID:  []googleUuid.UUID{googleUuid.New()},
@@ -115,7 +115,7 @@ func TestApplyKeyFilters(t *testing.T) {
 	})
 
 	t.Run("Filter by combined filters and date range", func(t *testing.T) {
-		query := testOrmRepository.gormDB.Model(&MaterialKey{})
+		query := testOrmRepository.GormDB().Model(&MaterialKey{})
 		minDate := time.Now().UTC().Add(-cryptoutilSharedMagic.HoursPerDay * time.Hour)
 		maxDate := time.Now().UTC()
 		filters := &GetMaterialKeysFilters{
@@ -131,7 +131,7 @@ func TestApplyKeyFilters(t *testing.T) {
 	})
 
 	t.Run("Filter by Sort ascending", func(t *testing.T) {
-		query := testOrmRepository.gormDB.Model(&MaterialKey{})
+		query := testOrmRepository.GormDB().Model(&MaterialKey{})
 		filters := &GetMaterialKeysFilters{
 			Sort:     []string{"material_key_generate_date ASC"},
 			PageSize: cryptoutilSharedMagic.DefaultPageSize,
@@ -142,7 +142,7 @@ func TestApplyKeyFilters(t *testing.T) {
 	})
 
 	t.Run("Filter by all fields comprehensive", func(t *testing.T) {
-		query := testOrmRepository.gormDB.Model(&MaterialKey{})
+		query := testOrmRepository.GormDB().Model(&MaterialKey{})
 		minDate := time.Now().UTC().Add(-cryptoutilSharedMagic.HoursPerDay * time.Hour)
 		maxDate := time.Now().UTC()
 		filters := &GetMaterialKeysFilters{
@@ -159,7 +159,7 @@ func TestApplyKeyFilters(t *testing.T) {
 	})
 
 	t.Run("No filters (minimal struct)", func(t *testing.T) {
-		query := testOrmRepository.gormDB.Model(&MaterialKey{})
+		query := testOrmRepository.GormDB().Model(&MaterialKey{})
 		filters := &GetMaterialKeysFilters{
 			PageSize: cryptoutilSharedMagic.DefaultPageSize,
 		}
@@ -169,14 +169,14 @@ func TestApplyKeyFilters(t *testing.T) {
 	})
 
 	t.Run("Nil filters", func(t *testing.T) {
-		query := testOrmRepository.gormDB.Model(&MaterialKey{})
+		query := testOrmRepository.GormDB().Model(&MaterialKey{})
 		filteredQuery := applyKeyFilters(query, nil)
 		require.NotNil(t, filteredQuery)
 		require.IsType(t, &gorm.DB{}, filteredQuery)
 	})
 
 	t.Run("Pagination with PageNumber", func(t *testing.T) {
-		query := testOrmRepository.gormDB.Model(&MaterialKey{})
+		query := testOrmRepository.GormDB().Model(&MaterialKey{})
 		filters := &GetMaterialKeysFilters{
 			PageNumber: 3,
 			PageSize:   cryptoutilSharedMagic.DefaultPageSize,
@@ -192,7 +192,7 @@ func TestApplyGetElasticKeyKeysFilters(t *testing.T) {
 	require.NotNil(t, testOrmRepository)
 
 	t.Run("Filter by single ElasticKeyID", func(t *testing.T) {
-		query := testOrmRepository.gormDB.Model(&MaterialKey{})
+		query := testOrmRepository.GormDB().Model(&MaterialKey{})
 		filters := &GetElasticKeyMaterialKeysFilters{
 			ElasticKeyID: []googleUuid.UUID{googleUuid.New()},
 			PageSize:     cryptoutilSharedMagic.DefaultPageSize,
@@ -203,7 +203,7 @@ func TestApplyGetElasticKeyKeysFilters(t *testing.T) {
 	})
 
 	t.Run("Filter by multiple ElasticKeyIDs", func(t *testing.T) {
-		query := testOrmRepository.gormDB.Model(&MaterialKey{})
+		query := testOrmRepository.GormDB().Model(&MaterialKey{})
 		filters := &GetElasticKeyMaterialKeysFilters{
 			ElasticKeyID: []googleUuid.UUID{googleUuid.New(), googleUuid.New()},
 			PageSize:     cryptoutilSharedMagic.DefaultPageSize,
@@ -214,7 +214,7 @@ func TestApplyGetElasticKeyKeysFilters(t *testing.T) {
 	})
 
 	t.Run("Filter by MinimumGenerateDate", func(t *testing.T) {
-		query := testOrmRepository.gormDB.Model(&MaterialKey{})
+		query := testOrmRepository.GormDB().Model(&MaterialKey{})
 		minDate := time.Now().UTC().Add(-cryptoutilSharedMagic.HoursPerDay * time.Hour)
 		filters := &GetElasticKeyMaterialKeysFilters{
 			MinimumGenerateDate: timePtr(minDate),
@@ -226,7 +226,7 @@ func TestApplyGetElasticKeyKeysFilters(t *testing.T) {
 	})
 
 	t.Run("Filter by MaximumGenerateDate", func(t *testing.T) {
-		query := testOrmRepository.gormDB.Model(&MaterialKey{})
+		query := testOrmRepository.GormDB().Model(&MaterialKey{})
 		maxDate := time.Now().UTC()
 		filters := &GetElasticKeyMaterialKeysFilters{
 			MaximumGenerateDate: timePtr(maxDate),
@@ -238,7 +238,7 @@ func TestApplyGetElasticKeyKeysFilters(t *testing.T) {
 	})
 
 	t.Run("Filter by date range", func(t *testing.T) {
-		query := testOrmRepository.gormDB.Model(&MaterialKey{})
+		query := testOrmRepository.GormDB().Model(&MaterialKey{})
 		minDate := time.Now().UTC().Add(-cryptoutilSharedMagic.HoursPerDay * time.Hour)
 		maxDate := time.Now().UTC()
 		filters := &GetElasticKeyMaterialKeysFilters{
@@ -252,7 +252,7 @@ func TestApplyGetElasticKeyKeysFilters(t *testing.T) {
 	})
 
 	t.Run("Filter by combined ElasticKeyID and date range", func(t *testing.T) {
-		query := testOrmRepository.gormDB.Model(&MaterialKey{})
+		query := testOrmRepository.GormDB().Model(&MaterialKey{})
 		minDate := time.Now().UTC().Add(-cryptoutilSharedMagic.HoursPerDay * time.Hour)
 		maxDate := time.Now().UTC()
 		filters := &GetElasticKeyMaterialKeysFilters{
@@ -267,7 +267,7 @@ func TestApplyGetElasticKeyKeysFilters(t *testing.T) {
 	})
 
 	t.Run("Filter by Sort ascending", func(t *testing.T) {
-		query := testOrmRepository.gormDB.Model(&MaterialKey{})
+		query := testOrmRepository.GormDB().Model(&MaterialKey{})
 		filters := &GetElasticKeyMaterialKeysFilters{
 			Sort:     []string{"material_key_generate_date ASC"},
 			PageSize: cryptoutilSharedMagic.DefaultPageSize,
@@ -278,7 +278,7 @@ func TestApplyGetElasticKeyKeysFilters(t *testing.T) {
 	})
 
 	t.Run("Filter by all fields comprehensive", func(t *testing.T) {
-		query := testOrmRepository.gormDB.Model(&MaterialKey{})
+		query := testOrmRepository.GormDB().Model(&MaterialKey{})
 		minDate := time.Now().UTC().Add(-cryptoutilSharedMagic.HoursPerDay * time.Hour)
 		maxDate := time.Now().UTC()
 		filters := &GetElasticKeyMaterialKeysFilters{
@@ -294,7 +294,7 @@ func TestApplyGetElasticKeyKeysFilters(t *testing.T) {
 	})
 
 	t.Run("No filters (minimal struct)", func(t *testing.T) {
-		query := testOrmRepository.gormDB.Model(&MaterialKey{})
+		query := testOrmRepository.GormDB().Model(&MaterialKey{})
 		filters := &GetElasticKeyMaterialKeysFilters{
 			PageSize: cryptoutilSharedMagic.DefaultPageSize,
 		}
@@ -304,14 +304,14 @@ func TestApplyGetElasticKeyKeysFilters(t *testing.T) {
 	})
 
 	t.Run("Nil filters", func(t *testing.T) {
-		query := testOrmRepository.gormDB.Model(&MaterialKey{})
+		query := testOrmRepository.GormDB().Model(&MaterialKey{})
 		filteredQuery := applyGetElasticKeyKeysFilters(query, nil)
 		require.NotNil(t, filteredQuery)
 		require.IsType(t, &gorm.DB{}, filteredQuery)
 	})
 
 	t.Run("Empty ElasticKeyID slice", func(t *testing.T) {
-		query := testOrmRepository.gormDB.Model(&MaterialKey{})
+		query := testOrmRepository.GormDB().Model(&MaterialKey{})
 		filters := &GetElasticKeyMaterialKeysFilters{
 			ElasticKeyID: []googleUuid.UUID{},
 			PageSize:     cryptoutilSharedMagic.DefaultPageSize,
@@ -322,7 +322,7 @@ func TestApplyGetElasticKeyKeysFilters(t *testing.T) {
 	})
 
 	t.Run("Pagination with PageNumber", func(t *testing.T) {
-		query := testOrmRepository.gormDB.Model(&MaterialKey{})
+		query := testOrmRepository.GormDB().Model(&MaterialKey{})
 		filters := &GetElasticKeyMaterialKeysFilters{
 			PageNumber: 1,
 			PageSize:   cryptoutilSharedMagic.DefaultPageSize,

@@ -11,6 +11,7 @@ import (
 
 	cryptoutilOpenapiModel "cryptoutil/api/sm-kms/models"
 	cryptoutilKmsServer "cryptoutil/api/sm-kms/server"
+	cryptoutilAppsFrameworkServiceServerRepositoryOrm "cryptoutil/internal/apps-framework/service/server/repository/orm"
 
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
@@ -60,7 +61,7 @@ func TestOrmRepository_VerboseMode(t *testing.T) {
 func TestOrmTransaction_Begin_AlreadyStarted(t *testing.T) {
 	t.Parallel()
 
-	tx := NewOrmTransactionWithRepository(testOrmRepository)
+	tx := cryptoutilAppsFrameworkServiceServerRepositoryOrm.NewOrmTransactionWithRepository(testOrmRepository)
 
 	// Start transaction first time.
 	err := tx.Begin(testCtx, ReadWrite)
@@ -80,7 +81,7 @@ func TestOrmTransaction_Begin_AlreadyStarted(t *testing.T) {
 func TestOrmTransaction_Commit_NotActive(t *testing.T) {
 	t.Parallel()
 
-	tx := NewOrmTransactionWithRepository(testOrmRepository)
+	tx := cryptoutilAppsFrameworkServiceServerRepositoryOrm.NewOrmTransactionWithRepository(testOrmRepository)
 
 	// Try to commit without starting transaction.
 	err := tx.Commit()
@@ -92,7 +93,7 @@ func TestOrmTransaction_Commit_NotActive(t *testing.T) {
 func TestOrmTransaction_Rollback_NotActive(t *testing.T) {
 	t.Parallel()
 
-	tx := NewOrmTransactionWithRepository(testOrmRepository)
+	tx := cryptoutilAppsFrameworkServiceServerRepositoryOrm.NewOrmTransactionWithRepository(testOrmRepository)
 
 	// Try to rollback without starting transaction.
 	err := tx.Rollback()

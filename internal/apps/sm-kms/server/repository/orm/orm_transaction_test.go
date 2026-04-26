@@ -17,9 +17,10 @@ import (
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
-	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps/framework/service/config"
-	cryptoutilAppsFrameworkServiceServerApplication "cryptoutil/internal/apps/framework/service/server/application"
-	cryptoutilAppsFrameworkServiceServerRepository "cryptoutil/internal/apps/framework/service/server/repository"
+	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps-framework/service/config"
+	cryptoutilAppsFrameworkServiceServerApplication "cryptoutil/internal/apps-framework/service/server/application"
+	cryptoutilAppsFrameworkServiceServerRepository "cryptoutil/internal/apps-framework/service/server/repository"
+	cryptoutilAppsFrameworkServiceServerRepositoryOrm "cryptoutil/internal/apps-framework/service/server/repository/orm"
 	cryptoutilSharedApperr "cryptoutil/internal/shared/apperr"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
@@ -131,7 +132,7 @@ func TestSQLTransaction_BeginAlreadyStartedFailure(t *testing.T) {
 func TestSQLTransaction_CommitNotStartedFailure(t *testing.T) {
 	t.Parallel()
 
-	ormTransaction := NewOrmTransactionWithRepository(testOrmRepository)
+	ormTransaction := cryptoutilAppsFrameworkServiceServerRepositoryOrm.NewOrmTransactionWithRepository(testOrmRepository)
 
 	commitErr := ormTransaction.Commit()
 	require.Error(t, commitErr)
@@ -141,7 +142,7 @@ func TestSQLTransaction_CommitNotStartedFailure(t *testing.T) {
 func TestSQLTransaction_RollbackNotStartedFailure(t *testing.T) {
 	t.Parallel()
 
-	ormTransaction := NewOrmTransactionWithRepository(testOrmRepository)
+	ormTransaction := cryptoutilAppsFrameworkServiceServerRepositoryOrm.NewOrmTransactionWithRepository(testOrmRepository)
 
 	rollbackErr := ormTransaction.Rollback()
 	require.Error(t, rollbackErr)

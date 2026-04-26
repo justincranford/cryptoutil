@@ -66,7 +66,7 @@ func TestToAppErr_GormDuplicatedKey(t *testing.T) {
 
 		// Test toAppErr mapping.
 		msg := "test duplicated key"
-		mappedErr := tx.toAppErr(&msg, dupKeyErr)
+		mappedErr := toAppErr(nil, &msg, dupKeyErr)
 		require.Error(t, mappedErr, "Mapped error should not be nil")
 		require.Contains(t, mappedErr.Error(), "test duplicated key", "Should contain custom message")
 
@@ -116,7 +116,7 @@ func TestToAppErr_GormCheckConstraintViolated(t *testing.T) {
 		// It depends on database driver error mapping.
 		if checkErr != nil {
 			msg := "test check constraint violation"
-			mappedErr := tx.toAppErr(&msg, checkErr)
+			mappedErr := toAppErr(nil, &msg, checkErr)
 			require.Error(t, mappedErr, "Mapped error should not be nil")
 			require.Contains(t, mappedErr.Error(), "test check constraint violation", "Should contain custom message")
 		}
@@ -138,7 +138,7 @@ func TestToAppErr_GormInvalidData(t *testing.T) {
 		// Note: This error is typically triggered by GORM's internal validation, which is hard to trigger naturally.
 		// We'll test the mapping logic directly.
 		msg := "test invalid data"
-		mappedErr := tx.toAppErr(&msg, gorm.ErrInvalidData)
+		mappedErr := toAppErr(nil, &msg, gorm.ErrInvalidData)
 		require.Error(t, mappedErr, "Mapped error should not be nil")
 		require.Contains(t, mappedErr.Error(), "test invalid data", "Should contain custom message")
 		require.Contains(t, mappedErr.Error(), "invalid data", "Should contain GORM error")
@@ -158,7 +158,7 @@ func TestToAppErr_GormInvalidValueOfLength(t *testing.T) {
 		// Simulate gorm.ErrInvalidValueOfLength by passing it directly.
 		// This error is typically triggered by GORM's internal length validation.
 		msg := "test invalid value of length"
-		mappedErr := tx.toAppErr(&msg, gorm.ErrInvalidValueOfLength)
+		mappedErr := toAppErr(nil, &msg, gorm.ErrInvalidValueOfLength)
 		require.Error(t, mappedErr, "Mapped error should not be nil")
 		require.Contains(t, mappedErr.Error(), "test invalid value of length", "Should contain custom message")
 		// Note: The actual error message varies, so just check it's an error.
@@ -178,7 +178,7 @@ func TestToAppErr_GormNotImplemented(t *testing.T) {
 		// Simulate gorm.ErrNotImplemented by passing it directly.
 		// This error is typically triggered when calling unimplemented features.
 		msg := "test not implemented"
-		mappedErr := tx.toAppErr(&msg, gorm.ErrNotImplemented)
+		mappedErr := toAppErr(nil, &msg, gorm.ErrNotImplemented)
 		require.Error(t, mappedErr, "Mapped error should not be nil")
 		require.Contains(t, mappedErr.Error(), "test not implemented", "Should contain custom message")
 		require.Contains(t, mappedErr.Error(), "not implemented", "Should contain GORM error")
@@ -205,7 +205,7 @@ func TestToAppErr_PostgresUniqueViolation(t *testing.T) {
 			Message: "duplicate key value violates unique constraint",
 		}
 
-		mappedErr := tx.toAppErr(&msg, pgErr)
+		mappedErr := toAppErr(nil, &msg, pgErr)
 
 		require.Error(t, mappedErr, "Mapped error should not be nil")
 		require.Contains(t, mappedErr.Error(), testOperationFailedMsg, "Should contain custom message")
@@ -231,7 +231,7 @@ func TestToAppErr_PostgresForeignKeyViolation(t *testing.T) {
 			Message: "insert or update on table violates foreign key constraint",
 		}
 
-		mappedErr := tx.toAppErr(&msg, pgErr)
+		mappedErr := toAppErr(nil, &msg, pgErr)
 
 		require.Error(t, mappedErr, "Mapped error should not be nil")
 		require.Contains(t, mappedErr.Error(), testOperationFailedMsg, "Should contain custom message")
@@ -257,7 +257,7 @@ func TestToAppErr_PostgresCheckViolation(t *testing.T) {
 			Message: "new row violates check constraint",
 		}
 
-		mappedErr := tx.toAppErr(&msg, pgErr)
+		mappedErr := toAppErr(nil, &msg, pgErr)
 
 		require.Error(t, mappedErr, "Mapped error should not be nil")
 		require.Contains(t, mappedErr.Error(), testOperationFailedMsg, "Should contain custom message")
@@ -283,7 +283,7 @@ func TestToAppErr_PostgresStringDataTruncation(t *testing.T) {
 			Message: "value too long for type character varying",
 		}
 
-		mappedErr := tx.toAppErr(&msg, pgErr)
+		mappedErr := toAppErr(nil, &msg, pgErr)
 
 		require.Error(t, mappedErr, "Mapped error should not be nil")
 		require.Contains(t, mappedErr.Error(), testOperationFailedMsg, "Should contain custom message")
@@ -309,7 +309,7 @@ func TestToAppErr_UnknownPostgresError(t *testing.T) {
 			Message: "unknown database error",
 		}
 
-		mappedErr := tx.toAppErr(&msg, pgErr)
+		mappedErr := toAppErr(nil, &msg, pgErr)
 
 		require.Error(t, mappedErr, "Mapped error should not be nil")
 		require.Contains(t, mappedErr.Error(), testOperationFailedMsg, "Should contain custom message")

@@ -86,41 +86,41 @@ linters:
       - path: "internal/apps/identity/rotation/secret_rotation_service\\.go$"
         linters: [nilnil]
       # Exclude nilnil from realm_service.go (intentional "no realms found" pattern).
-      - path: "internal/apps/framework/service/server/service/realm_service\\.go$"
+      - path: "internal/apps-framework/service/server/service/realm_service\\.go$"
         linters: [nilnil]
       # Exclude nilerr from jwk_util.go (intentional type-check pattern).
       - path: "internal/shared/crypto/jose/jwk_util\\.go$"
         linters: [nilerr]
       # Exclude nilerr from validate_naming.go (error captured in result.Errors; callers check result.Valid).
-      - path: "internal/apps/tools/cicd_lint/lint_deployments/validate_naming\\.go$"
+      - path: "internal/apps-tools/cicd_lint/lint_deployments/validate_naming\\.go$"
         linters: [nilerr]
       # Exclude nilerr from validate_kebab_case.go (error captured in result.Errors; callers check result.Valid).
-      - path: "internal/apps/tools/cicd_lint/lint_deployments/validate_kebab_case\\.go$"
+      - path: "internal/apps-tools/cicd_lint/lint_deployments/validate_kebab_case\\.go$"
         linters: [nilerr]
       # Exclude nilerr from validate_template_pattern.go (error captured in result.Errors; callers check result.Valid).
-      - path: "internal/apps/tools/cicd_lint/lint_deployments/validate_template_pattern\\.go$"
+      - path: "internal/apps-tools/cicd_lint/lint_deployments/validate_template_pattern\\.go$"
         linters: [nilerr]
       # Exclude nilerr from validate_ports.go (error captured in result.Errors; callers check result.Valid).
-      - path: "internal/apps/tools/cicd_lint/lint_deployments/validate_ports\\.go$"
+      - path: "internal/apps-tools/cicd_lint/lint_deployments/validate_ports\\.go$"
         linters: [nilerr]
       # Exclude nilerr from validate_telemetry.go (error captured in result.Errors; callers check result.Valid).
-      - path: "internal/apps/tools/cicd_lint/lint_deployments/validate_telemetry\\.go$"
+      - path: "internal/apps-tools/cicd_lint/lint_deployments/validate_telemetry\\.go$"
         linters: [nilerr]
       # Exclude nilerr from validate_admin.go (error captured in result.Errors; callers check result.Valid).
-      - path: "internal/apps/tools/cicd_lint/lint_deployments/validate_admin\\.go$"
+      - path: "internal/apps-tools/cicd_lint/lint_deployments/validate_admin\\.go$"
         linters: [nilerr]
       # Exclude nilerr from validate_secrets.go (error captured in result.Errors; callers check result.Valid).
-      - path: "internal/apps/tools/cicd_lint/lint_deployments/validate_secrets\\.go$"
+      - path: "internal/apps-tools/cicd_lint/lint_deployments/validate_secrets\\.go$"
         linters: [nilerr]
       # Exclude nilerr from validate_all.go (WalkDir callback returns nil on error to continue walking).
-      - path: "internal/apps/tools/cicd_lint/lint_deployments/validate_all\\.go$"
+      - path: "internal/apps-tools/cicd_lint/lint_deployments/validate_all\\.go$"
         linters: [nilerr]
 
       # Exclude wrapcheck from template session manager barrier wrappers (internal package delegation).
-      - path: "internal/apps/framework/service/server/businesslogic/session_manager\\.go$"
+      - path: "internal/apps-framework/service/server/businesslogic/session_manager\\.go$"
         linters: [wrapcheck]
       # Exclude wrapcheck from template registration handlers (Fiber HTTP response helpers).
-      - path: "internal/apps/framework/service/server/apis/registration_handlers\\.go$"
+      - path: "internal/apps-framework/service/server/apis/registration_handlers\\.go$"
         linters: [wrapcheck]
       # Exclude wrapcheck from sm-kms ORM transaction toAppErr (delegates to MapGormError which wraps internally).
       - path: "internal/apps/sm-kms/server/repository/orm/business_entities_operations\\.go$"
@@ -295,49 +295,49 @@ linters:
           alias: cryptoutilAppsSm
         - pkg: "cryptoutil/internal/apps/sm/im"
           alias: cryptoutilAppsSmIm
-        - pkg: "cryptoutil/internal/apps/framework/service/server"
+        - pkg: "cryptoutil/internal/apps-framework/service/server"
           alias: cryptoutilAppsFrameworkServiceServer
-        - pkg: "cryptoutil/internal/apps/framework/service/server/repository"
+        - pkg: "cryptoutil/internal/apps-framework/service/server/repository"
           alias: cryptoutilAppsFrameworkServiceServerRepository
-        - pkg: "cryptoutil/internal/apps/framework/service/client"
+        - pkg: "cryptoutil/internal/apps-framework/service/client"
           alias: cryptoutilAppsFrameworkServiceClient
-        - pkg: "cryptoutil/internal/apps/framework/service/config"
+        - pkg: "cryptoutil/internal/apps-framework/service/config"
           alias: cryptoutilAppsFrameworkServiceConfig
-        - pkg: "cryptoutil/internal/apps/framework/service/config/tls_generator"
+        - pkg: "cryptoutil/internal/apps-framework/service/config/tls_generator"
           alias: cryptoutilAppsFrameworkServiceConfigTlsGenerator
-        - pkg: "cryptoutil/internal/apps/framework/tls"
+        - pkg: "cryptoutil/internal/apps-framework/tls"
           alias: cryptoutilAppsFrameworkTls
-        - pkg: "cryptoutil/internal/apps/framework/product/cli"
+        - pkg: "cryptoutil/internal/apps-framework/product/cli"
           alias: cryptoutilAppsFrameworkProductCli
-        - pkg: "cryptoutil/internal/apps/framework/suite/cli"
+        - pkg: "cryptoutil/internal/apps-framework/suite/cli"
           alias: cryptoutilAppsFrameworkSuiteCli
-        - pkg: "cryptoutil/internal/apps/tools/cicd_workflow"
+        - pkg: "cryptoutil/internal/apps-tools/cicd_workflow"
           alias: cryptoutilAppsToolsCicdWorkflow
-        - pkg: "cryptoutil/internal/apps/framework/service/server/apis"
+        - pkg: "cryptoutil/internal/apps-framework/service/server/apis"
           alias: cryptoutilAppsFrameworkServiceServerApis
-        - pkg: "cryptoutil/internal/apps/framework/service/server/application"
+        - pkg: "cryptoutil/internal/apps-framework/service/server/application"
           alias: cryptoutilAppsFrameworkServiceServerApplication
-        - pkg: "cryptoutil/internal/apps/framework/service/server/barrier"
+        - pkg: "cryptoutil/internal/apps-framework/service/server/barrier"
           alias: cryptoutilAppsFrameworkServiceServerBarrier
-        - pkg: "cryptoutil/internal/apps/framework/service/server/builder"
+        - pkg: "cryptoutil/internal/apps-framework/service/server/builder"
           alias: cryptoutilAppsFrameworkServiceServerBuilder
-        - pkg: "cryptoutil/internal/apps/framework/service/server/businesslogic"
+        - pkg: "cryptoutil/internal/apps-framework/service/server/businesslogic"
           alias: cryptoutilAppsFrameworkServiceServerBusinesslogic
-        - pkg: "cryptoutil/internal/apps/framework/service/server/domain"
+        - pkg: "cryptoutil/internal/apps-framework/service/server/domain"
           alias: cryptoutilAppsFrameworkServiceServerDomain
-        - pkg: "cryptoutil/internal/apps/framework/service/server/listener"
+        - pkg: "cryptoutil/internal/apps-framework/service/server/listener"
           alias: cryptoutilAppsFrameworkServiceServerListener
-        - pkg: "cryptoutil/internal/apps/framework/service/server/middleware"
+        - pkg: "cryptoutil/internal/apps-framework/service/server/middleware"
           alias: cryptoutilAppsFrameworkServiceServerMiddleware
-        - pkg: "cryptoutil/internal/apps/framework/service/server/realms"
+        - pkg: "cryptoutil/internal/apps-framework/service/server/realms"
           alias: cryptoutilAppsFrameworkServiceServerRealms
-        - pkg: "cryptoutil/internal/apps/framework/service/server/service"
+        - pkg: "cryptoutil/internal/apps-framework/service/server/service"
           alias: cryptoutilAppsFrameworkServiceServerService
-        - pkg: "cryptoutil/internal/apps/framework/service/server/testutil"
+        - pkg: "cryptoutil/internal/apps-framework/service/server/testutil"
           alias: cryptoutilAppsFrameworkServiceServerTestutil
-        - pkg: "cryptoutil/internal/apps/framework/service/testing/httpservertests"
+        - pkg: "cryptoutil/internal/apps-framework/service/testing/httpservertests"
           alias: cryptoutilAppsFrameworkServiceTestingHttpservertests
-        - pkg: "cryptoutil/internal/apps/framework/service/testutil"
+        - pkg: "cryptoutil/internal/apps-framework/service/testutil"
           alias: cryptoutilAppsFrameworkServiceTestutil
         # Crypto packages
         - {pkg: "crypto/aes", alias: aes}

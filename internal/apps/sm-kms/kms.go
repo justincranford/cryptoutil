@@ -13,10 +13,10 @@ import (
 	_ "github.com/jackc/pgx/v5/stdlib" // PostgreSQL driver
 	_ "modernc.org/sqlite"             // CGO-free SQLite driver
 
-	cryptoutilTemplateCli "cryptoutil/internal/apps/framework/service/cli"
-	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps/framework/service/config"
-	cryptoutilLifecycle "cryptoutil/internal/apps/framework/service/lifecycle"
-	cryptoutilAppsFrameworkTls "cryptoutil/internal/apps/framework/tls"
+	cryptoutilTemplateCli "cryptoutil/internal/apps-framework/service/cli"
+	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps-framework/service/config"
+	cryptoutilLifecycle "cryptoutil/internal/apps-framework/service/lifecycle"
+	cryptoutilAppsFrameworkTls "cryptoutil/internal/apps-framework/tls"
 	cryptoutilKMSServer "cryptoutil/internal/apps/sm-kms/server"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 

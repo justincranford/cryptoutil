@@ -8,11 +8,11 @@ import (
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
-	cryptoutilAppsFrameworkServiceServer "cryptoutil/internal/apps/framework/service/server"
-	cryptoutilAppsFrameworkServiceServerBarrier "cryptoutil/internal/apps/framework/service/server/barrier"
-	cryptoutilAppsFrameworkServiceServerBusinesslogic "cryptoutil/internal/apps/framework/service/server/businesslogic"
-	cryptoutilAppsFrameworkServiceServerMiddleware "cryptoutil/internal/apps/framework/service/server/middleware"
-	cryptoutilAppsFrameworkServiceServerService "cryptoutil/internal/apps/framework/service/server/service"
+	cryptoutilAppsFrameworkServiceServer "cryptoutil/internal/apps-framework/service/server"
+	cryptoutilAppsFrameworkServiceServerBarrier "cryptoutil/internal/apps-framework/service/server/barrier"
+	cryptoutilAppsFrameworkServiceServerBusinesslogic "cryptoutil/internal/apps-framework/service/server/businesslogic"
+	cryptoutilAppsFrameworkServiceServerMiddleware "cryptoutil/internal/apps-framework/service/server/middleware"
+	cryptoutilAppsFrameworkServiceServerService "cryptoutil/internal/apps-framework/service/server/service"
 	cryptoutilAppsJoseJaServerApis "cryptoutil/internal/apps/jose-ja/server/apis"
 	cryptoutilAppsJoseJaRepository "cryptoutil/internal/apps/jose-ja/server/repository"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"

@@ -6,8 +6,8 @@
 package apis
 
 import (
-	cryptoutilAppsFrameworkServiceServerApis "cryptoutil/internal/apps/framework/service/server/apis"
-	cryptoutilAppsFrameworkServiceServerBusinesslogic "cryptoutil/internal/apps/framework/service/server/businesslogic"
+	cryptoutilAppsFrameworkServiceServerApis "cryptoutil/internal/apps-framework/service/server/apis"
+	cryptoutilAppsFrameworkServiceServerBusinesslogic "cryptoutil/internal/apps-framework/service/server/businesslogic"
 )
 
 // SessionHandler is an alias to the template's SessionHandler.

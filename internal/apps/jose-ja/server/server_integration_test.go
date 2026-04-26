@@ -14,8 +14,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	cryptoutilContract "cryptoutil/internal/apps/framework/service/testing/contract"
-	cryptoutilTestingTestserver "cryptoutil/internal/apps/framework/service/testing/testserver"
+	cryptoutilContract "cryptoutil/internal/apps-framework/service/testing/contract"
+	cryptoutilTestingTestserver "cryptoutil/internal/apps-framework/service/testing/testserver"
 	cryptoutilAppsJoseJaServerConfig "cryptoutil/internal/apps/jose-ja/server/config"
 )
 

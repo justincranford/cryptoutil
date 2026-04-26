@@ -1,0 +1,311 @@
+// Copyright (c) 2025 Justin Cranford
+
+package listener
+
+import (
+	"context"
+	"errors"
+	"net"
+	"os"
+	"sync"
+	"testing"
+	"time"
+
+	fiber "github.com/gofiber/fiber/v2"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
+	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps-framework/service/config"
+	cryptoutilAppsFrameworkServiceConfigTlsGenerator "cryptoutil/internal/apps-framework/service/config/tls_generator"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+)
+
+var errForcedTLSMaterialFailure = errors.New("forced TLS material failure")
+
+const testInvalidBindAddress = "999.999.999.999"
+
+func validAutoTLSSettings(t *testing.T) *cryptoutilAppsFrameworkServiceConfigTlsGenerator.TLSGeneratedSettings {
+	t.Helper()
+
+	tlsCfg, err := cryptoutilAppsFrameworkServiceConfigTlsGenerator.GenerateAutoTLSGeneratedSettings(
+		[]string{cryptoutilSharedMagic.DefaultOTLPHostnameDefault},
+		[]string{cryptoutilSharedMagic.IPv4Loopback},
+		cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year,
+	)
+	require.NoError(t, err)
+
+	return tlsCfg
+}
+
+// === TLS Material Generation Failure (admin.go:55, public.go:64) ===
+
+func TestNewAdminHTTPServer_TLSMaterialGenFailure(t *testing.T) {
+	t.Parallel()
+
+	stubGenerateTLS := func(_ *cryptoutilAppsFrameworkServiceConfigTlsGenerator.TLSGeneratedSettings) (*cryptoutilAppsFrameworkServiceConfig.TLSMaterial, error) {
+		return nil, errForcedTLSMaterialFailure
+	}
+
+	settings := cryptoutilAppsFrameworkServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
+	tlsCfg := &cryptoutilAppsFrameworkServiceConfigTlsGenerator.TLSGeneratedSettings{}
+
+	server, err := newAdminHTTPServerInternal(context.Background(), settings, tlsCfg, stubGenerateTLS,
+		func(ctx context.Context, network, address string) (net.Listener, error) {
+			return (&net.ListenConfig{}).Listen(ctx, network, address)
+		},
+		func(app *fiber.App, ln net.Listener) error { return app.Listener(ln) },
+		os.ReadFile,
+	)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "failed to generate TLS material")
+	assert.Nil(t, server)
+}
+
+func TestNewPublicHTTPServer_TLSMaterialGenFailure(t *testing.T) {
+	t.Parallel()
+
+	stubGenerateTLS := func(_ *cryptoutilAppsFrameworkServiceConfigTlsGenerator.TLSGeneratedSettings) (*cryptoutilAppsFrameworkServiceConfig.TLSMaterial, error) {
+		return nil, errForcedTLSMaterialFailure
+	}
+
+	settings := cryptoutilAppsFrameworkServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
+	tlsCfg := &cryptoutilAppsFrameworkServiceConfigTlsGenerator.TLSGeneratedSettings{}
+
+	server, err := newPublicHTTPServerInternal(context.Background(), settings, tlsCfg, stubGenerateTLS,
+		func(ctx context.Context, network, address string) (net.Listener, error) {
+			return (&net.ListenConfig{}).Listen(ctx, network, address)
+		},
+		func(app *fiber.App, ln net.Listener) error { return app.Listener(ln) },
+		func(_ string) ([]byte, error) { return nil, nil },
+	)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "failed to generate TLS material")
+	assert.Nil(t, server)
+}
+
+// === Start with Invalid Bind Address (admin.go:193, public.go:168) ===
+
+func TestAdminServer_Start_InvalidBindAddress(t *testing.T) {
+	t.Parallel()
+
+	settings := cryptoutilAppsFrameworkServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
+	settings.BindPrivateAddress = testInvalidBindAddress
+
+	tlsCfg := validAutoTLSSettings(t)
+
+	server, err := NewAdminHTTPServer(context.Background(), settings, tlsCfg)
+	require.NoError(t, err)
+
+	err = server.Start(context.Background())
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "failed to create admin listener")
+}
+
+func TestPublicHTTPServer_Start_InvalidBindAddress(t *testing.T) {
+	t.Parallel()
+
+	settings := cryptoutilAppsFrameworkServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
+	settings.BindPublicAddress = testInvalidBindAddress
+
+	tlsCfg := validAutoTLSSettings(t)
+
+	server, err := NewPublicHTTPServer(context.Background(), settings, tlsCfg)
+	require.NoError(t, err)
+
+	err = server.Start(context.Background())
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "failed to create listener")
+}
+
+// === Context Cancellation (admin.go ctx.Done branch, public.go ctx.Done branch) ===
+
+func TestAdminServer_Start_ContextCancellation(t *testing.T) {
+	settings := cryptoutilAppsFrameworkServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
+	tlsCfg := validAutoTLSSettings(t)
+
+	server, err := NewAdminHTTPServer(context.Background(), settings, tlsCfg)
+	require.NoError(t, err)
+
+	ctx, cancel := context.WithCancel(context.Background())
+
+	var wg sync.WaitGroup
+
+	wg.Add(1)
+
+	startErr := make(chan error, 1)
+
+	go func() {
+		defer wg.Done()
+
+		startErr <- server.Start(ctx)
+	}()
+
+	for i := 0; i < cryptoutilSharedMagic.MaxErrorDisplay; i++ {
+		time.Sleep(cryptoutilSharedMagic.IMMaxUsernameLength * time.Millisecond)
+
+		if server.ActualPort() > 0 {
+			break
+		}
+	}
+
+	require.Greater(t, int(server.ActualPort()), 0)
+
+	cancel()
+	wg.Wait()
+
+	err = <-startErr
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "admin server stopped")
+}
+
+func TestPublicHTTPServer_Start_ContextCancellation(t *testing.T) {
+	settings := cryptoutilAppsFrameworkServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
+	tlsCfg := validAutoTLSSettings(t)
+
+	server, err := NewPublicHTTPServer(context.Background(), settings, tlsCfg)
+	require.NoError(t, err)
+
+	ctx, cancel := context.WithCancel(context.Background())
+
+	var wg sync.WaitGroup
+
+	wg.Add(1)
+
+	startErr := make(chan error, 1)
+
+	go func() {
+		defer wg.Done()
+
+		startErr <- server.Start(ctx)
+	}()
+
+	for i := 0; i < cryptoutilSharedMagic.MaxErrorDisplay; i++ {
+		time.Sleep(cryptoutilSharedMagic.IMMaxUsernameLength * time.Millisecond)
+
+		if server.ActualPort() > 0 {
+			break
+		}
+	}
+
+	require.Greater(t, server.ActualPort(), 0)
+
+	cancel()
+	wg.Wait()
+
+	err = <-startErr
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "public server stopped")
+}
+
+// === NewHTTPServers Server Creation Failures (servers.go:45, servers.go:50) ===
+
+func TestNewHTTPServers_PublicServerCreateFailure(t *testing.T) {
+	t.Parallel()
+
+	stubGenerateTLS := func(_ *cryptoutilAppsFrameworkServiceConfigTlsGenerator.TLSGeneratedSettings) (*cryptoutilAppsFrameworkServiceConfig.TLSMaterial, error) {
+		return nil, errForcedTLSMaterialFailure
+	}
+
+	settings := cryptoutilAppsFrameworkServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
+
+	h, err := newHTTPServersInternal(context.Background(), settings, stubGenerateTLS)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "failed to create public server")
+	assert.Nil(t, h)
+}
+
+func TestNewHTTPServers_AdminServerCreateFailure(t *testing.T) {
+	t.Parallel()
+
+	callCount := 0
+	realGenerateTLS := cryptoutilAppsFrameworkServiceConfigTlsGenerator.GenerateTLSMaterial
+	stubGenerateTLS := func(cfg *cryptoutilAppsFrameworkServiceConfigTlsGenerator.TLSGeneratedSettings) (*cryptoutilAppsFrameworkServiceConfig.TLSMaterial, error) {
+		callCount++
+		if callCount >= 2 {
+			return nil, errForcedTLSMaterialFailure
+		}
+
+		return realGenerateTLS(cfg)
+	}
+
+	settings := cryptoutilAppsFrameworkServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
+
+	h, err := newHTTPServersInternal(context.Background(), settings, stubGenerateTLS)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "failed to create admin server")
+	assert.Nil(t, h)
+}
+
+// === Auto-Mode TLS Generation Errors (servers.go:83, servers.go:113) ===
+
+func TestNewHTTPServers_AutoMode_InvalidPublicIPAutoGeneration(t *testing.T) {
+	t.Parallel()
+
+	settings := cryptoutilAppsFrameworkServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
+	settings.TLSPublicMode = cryptoutilAppsFrameworkServiceConfig.TLSModeAuto
+	settings.TLSPublicIPAddresses = []string{"not-a-valid-ip"}
+
+	h, err := NewHTTPServers(context.Background(), settings)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "auto-generate public server certs")
+	assert.Nil(t, h)
+}
+
+func TestNewHTTPServers_AutoMode_InvalidPrivateIPAutoGeneration(t *testing.T) {
+	t.Parallel()
+
+	settings := cryptoutilAppsFrameworkServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
+	settings.TLSPublicMode = cryptoutilAppsFrameworkServiceConfig.TLSModeAuto
+	settings.TLSPublicIPAddresses = []string{cryptoutilSharedMagic.IPv4Loopback}
+	settings.TLSPrivateMode = cryptoutilAppsFrameworkServiceConfig.TLSModeAuto
+	settings.TLSPrivateIPAddresses = []string{"not-a-valid-ip"}
+
+	h, err := NewHTTPServers(context.Background(), settings)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "auto-generate admin server certs")
+	assert.Nil(t, h)
+}
+
+// === Admin Start with Non-Zero Port (admin.go else branch for actualPort assignment) ===
+
+func TestAdminServer_Start_NonZeroPort(t *testing.T) {
+	// Find an available port by briefly listening on port 0.
+	var lc net.ListenConfig
+
+	tempListener, err := lc.Listen(context.Background(), "tcp", cryptoutilSharedMagic.IPv4Loopback+":0")
+	require.NoError(t, err)
+
+	tcpAddr, ok := tempListener.Addr().(*net.TCPAddr)
+	require.True(t, ok)
+
+	port := uint16(tcpAddr.Port) //nolint:gosec // Port range validated by OS.
+
+	require.NoError(t, tempListener.Close())
+
+	settings := cryptoutilAppsFrameworkServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
+	settings.BindPrivatePort = port
+
+	tlsCfg := validAutoTLSSettings(t)
+
+	server, err := NewAdminHTTPServer(context.Background(), settings, tlsCfg)
+	require.NoError(t, err)
+
+	ctx, cancel := context.WithCancel(context.Background())
+
+	var wg sync.WaitGroup
+
+	wg.Add(1)
+
+	go func() {
+		defer wg.Done()
+
+		_ = server.Start(ctx)
+	}()
+
+	// Wait for server to start.
+	time.Sleep(200 * time.Millisecond)
+	require.Equal(t, int(port), server.ActualPort())
+
+	cancel()
+	wg.Wait()
+}

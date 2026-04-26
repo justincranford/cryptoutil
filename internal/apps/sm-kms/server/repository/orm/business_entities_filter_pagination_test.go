@@ -122,7 +122,7 @@ func TestGetElasticKeysWithImportAllowedFilter(t *testing.T) {
 func TestApplyGetElasticKeysFilters_NilFilters(t *testing.T) {
 	t.Parallel()
 
-	query := testOrmRepository.gormDB.Model(&ElasticKey{})
+	query := testOrmRepository.GormDB().Model(&ElasticKey{})
 	filteredQuery := applyGetElasticKeysFilters(query, nil)
 	require.NotNil(t, filteredQuery)
 	require.Equal(t, query, filteredQuery, "Nil filters should return unmodified query")
@@ -132,7 +132,7 @@ func TestApplyGetElasticKeysFilters_NilFilters(t *testing.T) {
 func TestApplyKeyFilters_NilFilters(t *testing.T) {
 	t.Parallel()
 
-	query := testOrmRepository.gormDB.Model(&MaterialKey{})
+	query := testOrmRepository.GormDB().Model(&MaterialKey{})
 	filteredQuery := applyKeyFilters(query, nil)
 	require.NotNil(t, filteredQuery)
 	require.Equal(t, query, filteredQuery, "Nil filters should return unmodified query")
@@ -142,7 +142,7 @@ func TestApplyKeyFilters_NilFilters(t *testing.T) {
 func TestApplyGetElasticKeyKeysFilters_NilFilters(t *testing.T) {
 	t.Parallel()
 
-	query := testOrmRepository.gormDB.Model(&MaterialKey{})
+	query := testOrmRepository.GormDB().Model(&MaterialKey{})
 	filteredQuery := applyGetElasticKeyKeysFilters(query, nil)
 	require.NotNil(t, filteredQuery)
 	require.Equal(t, query, filteredQuery, "Nil filters should return unmodified query")
@@ -152,7 +152,7 @@ func TestApplyGetElasticKeyKeysFilters_NilFilters(t *testing.T) {
 func TestApplyKeyFilters_WithDates(t *testing.T) {
 	t.Parallel()
 
-	query := testOrmRepository.gormDB.Model(&MaterialKey{})
+	query := testOrmRepository.GormDB().Model(&MaterialKey{})
 
 	// Test with MinimumGenerateDate.
 	minDate := time.Now().UTC().Add(-cryptoutilSharedMagic.HoursPerDay * time.Hour)
@@ -183,7 +183,7 @@ func TestApplyKeyFilters_WithDates(t *testing.T) {
 func TestApplyGetElasticKeyKeysFilters_WithDates(t *testing.T) {
 	t.Parallel()
 
-	query := testOrmRepository.gormDB.Model(&MaterialKey{})
+	query := testOrmRepository.GormDB().Model(&MaterialKey{})
 
 	// Test with MinimumGenerateDate.
 	minDate := time.Now().UTC().Add(-cryptoutilSharedMagic.HoursPerDay * time.Hour)
@@ -214,7 +214,7 @@ func TestApplyGetElasticKeyKeysFilters_WithDates(t *testing.T) {
 func TestApplyKeyFilters_WithSort(t *testing.T) {
 	t.Parallel()
 
-	query := testOrmRepository.gormDB.Model(&MaterialKey{})
+	query := testOrmRepository.GormDB().Model(&MaterialKey{})
 
 	// Test with single sort field.
 	filters := &GetMaterialKeysFilters{
@@ -235,7 +235,7 @@ func TestApplyKeyFilters_WithSort(t *testing.T) {
 func TestApplyGetElasticKeyKeysFilters_WithSort(t *testing.T) {
 	t.Parallel()
 
-	query := testOrmRepository.gormDB.Model(&MaterialKey{})
+	query := testOrmRepository.GormDB().Model(&MaterialKey{})
 
 	// Test with single sort field.
 	filters := &GetElasticKeyMaterialKeysFilters{
@@ -256,7 +256,7 @@ func TestApplyGetElasticKeyKeysFilters_WithSort(t *testing.T) {
 func TestApplyGetElasticKeysFilters_WithSort(t *testing.T) {
 	t.Parallel()
 
-	query := testOrmRepository.gormDB.Model(&ElasticKey{})
+	query := testOrmRepository.GormDB().Model(&ElasticKey{})
 
 	// Test with single sort field.
 	filters := &GetElasticKeysFilters{
@@ -277,7 +277,7 @@ func TestApplyGetElasticKeysFilters_WithSort(t *testing.T) {
 func TestApplyKeyFilters_WithPagination(t *testing.T) {
 	t.Parallel()
 
-	query := testOrmRepository.gormDB.Model(&MaterialKey{})
+	query := testOrmRepository.GormDB().Model(&MaterialKey{})
 
 	// Test with pagination (PageSize > 0).
 	filters := &GetMaterialKeysFilters{
@@ -300,7 +300,7 @@ func TestApplyKeyFilters_WithPagination(t *testing.T) {
 func TestApplyGetElasticKeyKeysFilters_WithPagination(t *testing.T) {
 	t.Parallel()
 
-	query := testOrmRepository.gormDB.Model(&MaterialKey{})
+	query := testOrmRepository.GormDB().Model(&MaterialKey{})
 
 	// Test with pagination (PageSize > 0).
 	filters := &GetElasticKeyMaterialKeysFilters{
@@ -323,7 +323,7 @@ func TestApplyGetElasticKeyKeysFilters_WithPagination(t *testing.T) {
 func TestApplyKeyFilters_WithMaterialKeyIDs(t *testing.T) {
 	t.Parallel()
 
-	query := testOrmRepository.gormDB.Model(&MaterialKey{})
+	query := testOrmRepository.GormDB().Model(&MaterialKey{})
 
 	// Test with single material key ID.
 	materialKeyID := googleUuid.New()
@@ -345,7 +345,7 @@ func TestApplyKeyFilters_WithMaterialKeyIDs(t *testing.T) {
 func TestApplyKeyFilters_WithElasticKeyIDs(t *testing.T) {
 	t.Parallel()
 
-	query := testOrmRepository.gormDB.Model(&MaterialKey{})
+	query := testOrmRepository.GormDB().Model(&MaterialKey{})
 
 	// Test with single elastic key ID.
 	elasticKeyID := googleUuid.New()
@@ -367,7 +367,7 @@ func TestApplyKeyFilters_WithElasticKeyIDs(t *testing.T) {
 func TestApplyGetElasticKeyKeysFilters_WithElasticKeyIDs(t *testing.T) {
 	t.Parallel()
 
-	query := testOrmRepository.gormDB.Model(&MaterialKey{})
+	query := testOrmRepository.GormDB().Model(&MaterialKey{})
 
 	// Test with single elastic key ID.
 	elasticKeyID := googleUuid.New()

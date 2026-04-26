@@ -6,7 +6,7 @@ package idp
 
 import (
 	cryptoutilApiIdentityIdp "cryptoutil/api/identity-idp"
-	cryptoutilAppsFrameworkServiceServerBuilder "cryptoutil/internal/apps/framework/service/server/builder"
+	cryptoutilAppsFrameworkServiceServerBuilder "cryptoutil/internal/apps-framework/service/server/builder"
 
 	fiber "github.com/gofiber/fiber/v2"
 )

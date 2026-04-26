@@ -14,7 +14,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	cryptoutilAppsFrameworkServiceTestingHttpservertests "cryptoutil/internal/apps/framework/service/testing/httpservertests"
+	cryptoutilAppsFrameworkServiceTestingHttpservertests "cryptoutil/internal/apps-framework/service/testing/httpservertests"
 	cryptoutilIdentityConfig "cryptoutil/internal/apps/identity/config"
 )
 

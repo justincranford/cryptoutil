@@ -12,8 +12,8 @@ import (
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
-	cryptoutilAppsFrameworkServiceTestingE2eHelpers "cryptoutil/internal/apps/framework/service/testing/e2e_helpers"
-	cryptoutilTestingHealthclient "cryptoutil/internal/apps/framework/service/testing/healthclient"
+	cryptoutilAppsFrameworkServiceTestingE2eHelpers "cryptoutil/internal/apps-framework/service/testing/e2e_helpers"
+	cryptoutilTestingHealthclient "cryptoutil/internal/apps-framework/service/testing/healthclient"
 	cryptoutilAppsJoseJaServerConfig "cryptoutil/internal/apps/jose-ja/server/config"
 )
 

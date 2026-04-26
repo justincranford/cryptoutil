@@ -4,7 +4,7 @@
 package config
 
 import (
-	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps/framework/service/config"
+	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps-framework/service/config"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 

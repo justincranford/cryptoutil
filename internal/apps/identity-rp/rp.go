@@ -15,9 +15,9 @@ import (
 
 	"github.com/spf13/pflag"
 
-	cryptoutilTemplateCli "cryptoutil/internal/apps/framework/service/cli"
-	cryptoutilLifecycle "cryptoutil/internal/apps/framework/service/lifecycle"
-	cryptoutilAppsFrameworkTls "cryptoutil/internal/apps/framework/tls"
+	cryptoutilTemplateCli "cryptoutil/internal/apps-framework/service/cli"
+	cryptoutilLifecycle "cryptoutil/internal/apps-framework/service/lifecycle"
+	cryptoutilAppsFrameworkTls "cryptoutil/internal/apps-framework/tls"
 	cryptoutilAppsIdentityRpServer "cryptoutil/internal/apps/identity-rp/server"
 	cryptoutilAppsIdentityRpServerConfig "cryptoutil/internal/apps/identity-rp/server/config"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"

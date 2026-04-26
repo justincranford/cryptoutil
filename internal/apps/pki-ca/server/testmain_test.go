@@ -12,7 +12,7 @@ import (
 	"testing"
 	"time"
 
-	cryptoutilE2EHelpers "cryptoutil/internal/apps/framework/service/testing/e2e_helpers"
+	cryptoutilE2EHelpers "cryptoutil/internal/apps-framework/service/testing/e2e_helpers"
 	cryptoutilAppsCaServerConfig "cryptoutil/internal/apps/pki-ca/server/config"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )

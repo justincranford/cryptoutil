@@ -6,7 +6,7 @@ package authz
 
 import (
 	cryptoutilApiIdentityAuthz "cryptoutil/api/identity-authz"
-	cryptoutilAppsFrameworkServiceServerBuilder "cryptoutil/internal/apps/framework/service/server/builder"
+	cryptoutilAppsFrameworkServiceServerBuilder "cryptoutil/internal/apps-framework/service/server/builder"
 
 	fiber "github.com/gofiber/fiber/v2"
 )

@@ -6,7 +6,7 @@ package kms
 
 import (
 	cryptoutilApiSmKmsServer "cryptoutil/api/sm-kms/server"
-	cryptoutilAppsFrameworkServiceServerBuilder "cryptoutil/internal/apps/framework/service/server/builder"
+	cryptoutilAppsFrameworkServiceServerBuilder "cryptoutil/internal/apps-framework/service/server/builder"
 
 	fiber "github.com/gofiber/fiber/v2"
 )

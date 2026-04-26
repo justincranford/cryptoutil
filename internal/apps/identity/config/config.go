@@ -8,7 +8,7 @@ package config
 import (
 	"time"
 
-	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps/framework/service/config"
+	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps-framework/service/config"
 )
 
 // Config represents the identity module configuration.

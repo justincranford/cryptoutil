@@ -9,7 +9,7 @@ package client
 import (
 	"testing"
 
-	cryptoutilAppsFrameworkServiceTestingE2eHelpers "cryptoutil/internal/apps/framework/service/testing/e2e_helpers"
+	cryptoutilAppsFrameworkServiceTestingE2eHelpers "cryptoutil/internal/apps-framework/service/testing/e2e_helpers"
 
 	"github.com/stretchr/testify/require"
 )

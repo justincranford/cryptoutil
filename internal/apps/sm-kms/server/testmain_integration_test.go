@@ -11,9 +11,9 @@ import (
 	"os"
 	"testing"
 
-	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps/framework/service/config"
-	cryptoutilAppsFrameworkServiceTestingE2eHelpers "cryptoutil/internal/apps/framework/service/testing/e2e_helpers"
-	cryptoutilTestingHealthclient "cryptoutil/internal/apps/framework/service/testing/healthclient"
+	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps-framework/service/config"
+	cryptoutilAppsFrameworkServiceTestingE2eHelpers "cryptoutil/internal/apps-framework/service/testing/e2e_helpers"
+	cryptoutilTestingHealthclient "cryptoutil/internal/apps-framework/service/testing/healthclient"
 )
 
 var (

@@ -9,8 +9,8 @@ import (
 
 	googleUuid "github.com/google/uuid"
 
-	cryptoutilAppsFrameworkServiceServerRealms "cryptoutil/internal/apps/framework/service/server/realms"
-	cryptoutilAppsFrameworkServiceServerRepository "cryptoutil/internal/apps/framework/service/server/repository"
+	cryptoutilAppsFrameworkServiceServerRealms "cryptoutil/internal/apps-framework/service/server/realms"
+	cryptoutilAppsFrameworkServiceServerRepository "cryptoutil/internal/apps-framework/service/server/repository"
 )
 
 // UserRepositoryAdapter adapts UserRepository to realms.UserRepository interface.

@@ -12,7 +12,7 @@ import (
 	"os"
 	"testing"
 
-	cryptoutilAppsFrameworkTestingE2eInfra "cryptoutil/internal/apps/framework/service/testing/e2e_infra"
+	cryptoutilAppsFrameworkTestingE2eInfra "cryptoutil/internal/apps-framework/service/testing/e2e_infra"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 

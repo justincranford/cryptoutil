@@ -11,7 +11,7 @@ package kms
 import (
 	"fmt"
 
-	cryptoutilUsage "cryptoutil/internal/apps/framework/service/usage"
+	cryptoutilUsage "cryptoutil/internal/apps-framework/service/usage"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 

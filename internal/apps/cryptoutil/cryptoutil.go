@@ -10,8 +10,8 @@ import (
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
-	cryptoutilAppsFrameworkSuiteCli "cryptoutil/internal/apps/framework/suite/cli"
-	cryptoutilAppsFrameworkTls "cryptoutil/internal/apps/framework/tls"
+	cryptoutilAppsFrameworkSuiteCli "cryptoutil/internal/apps-framework/suite/cli"
+	cryptoutilAppsFrameworkTls "cryptoutil/internal/apps-framework/tls"
 	cryptoutilAppsIdentity "cryptoutil/internal/apps/identity"
 	cryptoutilAppsJose "cryptoutil/internal/apps/jose"
 	cryptoutilAppsPki "cryptoutil/internal/apps/pki"

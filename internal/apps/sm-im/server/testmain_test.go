@@ -12,7 +12,7 @@ import (
 
 	"gorm.io/gorm"
 
-	cryptoutilAppsFrameworkServiceConfigTlsGenerator "cryptoutil/internal/apps/framework/service/config/tls_generator"
+	cryptoutilAppsFrameworkServiceConfigTlsGenerator "cryptoutil/internal/apps-framework/service/config/tls_generator"
 	cryptoutilAppsSmImServer "cryptoutil/internal/apps/sm-im/server"
 	cryptoutilAppsSmImTesting "cryptoutil/internal/apps/sm-im/testing"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"

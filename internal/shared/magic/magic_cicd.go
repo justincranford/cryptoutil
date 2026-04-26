@@ -60,7 +60,7 @@ const (
 	CICDInfraToolCmdPrefix = "cicd-"
 
 	// CICDInfraToolInternalDir is the internal/ directory where infrastructure tool packages live.
-	CICDInfraToolInternalDir = "internal/apps/tools"
+	CICDInfraToolInternalDir = "internal/apps-tools"
 
 	// PortRangeSuspiciousMin is the minimum integer value in the suspicious port range for const linting.
 	PortRangeSuspiciousMin = 1000
@@ -227,16 +227,16 @@ const (
 	CICDFrontmatterFirstNLines = 3
 
 	// CICDLintFitnessDir is the relative path to the lint_fitness sub-linters directory.
-	CICDLintFitnessDir = "internal/apps/tools/cicd_lint/lint_fitness"
+	CICDLintFitnessDir = "internal/apps-tools/cicd_lint/lint_fitness"
 
 	// CICDFitnessRegistryFile is the relative path to the fitness sub-linter registry YAML.
-	CICDFitnessRegistryFile = "internal/apps/tools/cicd_lint/lint_fitness/lint-fitness-registry.yaml"
+	CICDFitnessRegistryFile = "internal/apps-tools/cicd_lint/lint_fitness/lint-fitness-registry.yaml"
 
 	// CICDTestFileSuffixRulesFile is the relative path to the test file suffix rules YAML.
-	CICDTestFileSuffixRulesFile = "internal/apps/tools/cicd_lint/lint_fitness/test_file_suffix_structure/test-file-suffix-rules.yaml"
+	CICDTestFileSuffixRulesFile = "internal/apps-tools/cicd_lint/lint_fitness/test_file_suffix_structure/test-file-suffix-rules.yaml"
 
 	// CICDImportAliasMapFile is the relative path to the import alias map YAML.
-	CICDImportAliasMapFile = "internal/apps/tools/cicd_lint/lint_fitness/import_alias_formula/alias_map.yaml"
+	CICDImportAliasMapFile = "internal/apps-tools/cicd_lint/lint_fitness/import_alias_formula/alias_map.yaml"
 
 	// CICDPKICAProfilesDir is the relative path to the PKI-CA certificate profile YAML files.
 	CICDPKICAProfilesDir = "configs/pki-ca/profiles"
@@ -403,20 +403,20 @@ var (
 	// CRITICAL: Each command excludes its own subdirectory to prevent self-modification.
 	// Keys match command names: lint-text, lint-go, lint-compose, format-go, lint-go-test, format-go-test, lint-golangci, lint-ports, lint-workflow, lint-go-mod.
 	CICDSelfExclusionPatterns = map[string]string{
-		"format-go":        `internal[/\\]apps[/\\]tools[/\\]cicd_lint[/\\]format_go[/\\].*\.go$`,
-		"format-go-test":   `internal[/\\]apps[/\\]tools[/\\]cicd_lint[/\\]format_gotest[/\\].*\.go$`,
-		"lint-compose":     `internal[/\\]apps[/\\]tools[/\\]cicd_lint[/\\]lint_compose[/\\].*\.go$`,
-		"lint-fitness":     `internal[/\\]apps[/\\]tools[/\\]cicd_lint[/\\]lint_fitness[/\\].*\.go$`,
-		"lint-go":          `internal[/\\]apps[/\\]tools[/\\]cicd_lint[/\\]lint_go[/\\].*\.go$`,
-		"lint-go-mod":      `internal[/\\]apps[/\\]tools[/\\]cicd_lint[/\\]lint_go_mod[/\\].*\.go$`,
-		"lint-go-test":     `internal[/\\]apps[/\\]tools[/\\]cicd_lint[/\\]lint_gotest[/\\].*\.go$`,
-		"lint-golangci":    `internal[/\\]apps[/\\]tools[/\\]cicd_lint[/\\]lint_golangci[/\\].*\.go$`,
-		"lint-java-test":   `internal[/\\]apps[/\\]tools[/\\]cicd_lint[/\\]lint_javatest[/\\].*\.go$`,
-		"lint-openapi":     `internal[/\\]apps[/\\]tools[/\\]cicd_lint[/\\]lint_openapi[/\\].*\.go$`,
-		"lint-ports":       `internal[/\\]apps[/\\]tools[/\\]cicd_lint[/\\]lint_ports[/\\].*\.go$`,
-		"lint-python-test": `internal[/\\]apps[/\\]tools[/\\]cicd_lint[/\\]lint_pythontest[/\\].*\.go$`,
-		"lint-text":        `internal[/\\]apps[/\\]tools[/\\]cicd_lint[/\\]lint_text[/\\].*\.go$`,
-		"lint-workflow":    `internal[/\\]apps[/\\]tools[/\\]cicd_lint[/\\]lint_workflow[/\\].*\.go$`,
+		"format-go":        `internal[/\\]apps-tools[/\\]cicd_lint[/\\]format_go[/\\].*\.go$`,
+		"format-go-test":   `internal[/\\]apps-tools[/\\]cicd_lint[/\\]format_gotest[/\\].*\.go$`,
+		"lint-compose":     `internal[/\\]apps-tools[/\\]cicd_lint[/\\]lint_compose[/\\].*\.go$`,
+		"lint-fitness":     `internal[/\\]apps-tools[/\\]cicd_lint[/\\]lint_fitness[/\\].*\.go$`,
+		"lint-go":          `internal[/\\]apps-tools[/\\]cicd_lint[/\\]lint_go[/\\].*\.go$`,
+		"lint-go-mod":      `internal[/\\]apps-tools[/\\]cicd_lint[/\\]lint_go_mod[/\\].*\.go$`,
+		"lint-go-test":     `internal[/\\]apps-tools[/\\]cicd_lint[/\\]lint_gotest[/\\].*\.go$`,
+		"lint-golangci":    `internal[/\\]apps-tools[/\\]cicd_lint[/\\]lint_golangci[/\\].*\.go$`,
+		"lint-java-test":   `internal[/\\]apps-tools[/\\]cicd_lint[/\\]lint_javatest[/\\].*\.go$`,
+		"lint-openapi":     `internal[/\\]apps-tools[/\\]cicd_lint[/\\]lint_openapi[/\\].*\.go$`,
+		"lint-ports":       `internal[/\\]apps-tools[/\\]cicd_lint[/\\]lint_ports[/\\].*\.go$`,
+		"lint-python-test": `internal[/\\]apps-tools[/\\]cicd_lint[/\\]lint_pythontest[/\\].*\.go$`,
+		"lint-text":        `internal[/\\]apps-tools[/\\]cicd_lint[/\\]lint_text[/\\].*\.go$`,
+		"lint-workflow":    `internal[/\\]apps-tools[/\\]cicd_lint[/\\]lint_workflow[/\\].*\.go$`,
 	}
 
 	// GeneratedFileExcludePatterns - File patterns for generated files that should be excluded from linting.

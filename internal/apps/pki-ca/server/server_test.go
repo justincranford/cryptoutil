@@ -8,7 +8,7 @@ import (
 	"context"
 	"testing"
 
-	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps/framework/service/config"
+	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps-framework/service/config"
 	cryptoutilAppsCaServerConfig "cryptoutil/internal/apps/pki-ca/server/config"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 

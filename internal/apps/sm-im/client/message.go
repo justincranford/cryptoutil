@@ -11,7 +11,7 @@ import (
 
 	googleUuid "github.com/google/uuid"
 
-	cryptoutilAppsFrameworkServiceClient "cryptoutil/internal/apps/framework/service/client"
+	cryptoutilAppsFrameworkServiceClient "cryptoutil/internal/apps-framework/service/client"
 )
 
 // SendMessage sends a message to one or more receivers via /service/api/v1/messages/tx.

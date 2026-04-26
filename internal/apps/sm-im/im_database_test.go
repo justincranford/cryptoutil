@@ -3,7 +3,7 @@ package im
 import (
 	"testing"
 
-	cryptoutilAppsFrameworkServiceServerTestutil "cryptoutil/internal/apps/framework/service/server/testutil"
+	cryptoutilAppsFrameworkServiceServerTestutil "cryptoutil/internal/apps-framework/service/server/testutil"
 	cryptoutilAppsSmImRepository "cryptoutil/internal/apps/sm-im/server/repository"
 )
 

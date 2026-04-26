@@ -12,7 +12,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	cryptoutilTestingTestserver "cryptoutil/internal/apps/framework/service/testing/testserver"
+	cryptoutilTestingTestserver "cryptoutil/internal/apps-framework/service/testing/testserver"
 	cryptoutilAppsSmImServer "cryptoutil/internal/apps/sm-im/server"
 	cryptoutilAppsSmImServerConfig "cryptoutil/internal/apps/sm-im/server/config"
 )

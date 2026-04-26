@@ -9,7 +9,7 @@ import "time"
 // These constants configure the TLS connectivity tests for OTel Collector
 // using the sm-kms compose stack (includes pki-init + OTel Collector).
 const (
-	// OtelTLSE2EComposeFile is the sm-kms compose path relative to internal/apps/framework/tls/e2e/.
+	// OtelTLSE2EComposeFile is the sm-kms compose path relative to internal/apps-framework/tls/e2e/.
 	// Levels: e2e→tls(1)→framework(2)→apps(3)→internal(4)→root(5), then deployments/sm-kms.
 	OtelTLSE2EComposeFile = "../../../../../deployments/sm-kms/compose.yml"
 
@@ -36,15 +36,15 @@ const (
 
 	// OtelTLSE2ECACertPath is the Cat 1 public HTTPS server issuing CA truststore.
 	// Used to verify the Cat 2 OTel Collector server cert in TLS handshakes.
-	// Path is relative to internal/apps/framework/tls/e2e/.
+	// Path is relative to internal/apps-framework/tls/e2e/.
 	OtelTLSE2ECACertPath = "../../../../../deployments/sm-kms/certs/sm-kms/public-https-server-issuing-ca/truststore/public-https-server-issuing-ca.crt"
 
 	// OtelTLSE2EClientCertPath is the Cat 9 app client cert (sqlite-1) for mTLS to OTel.
-	// Path is relative to internal/apps/framework/tls/e2e/.
+	// Path is relative to internal/apps-framework/tls/e2e/.
 	OtelTLSE2EClientCertPath = "../../../../../deployments/sm-kms/certs/sm-kms/otel-collector-contrib-https-client-entity-sm-kms-sqlite-1/otel-collector-contrib-https-client-entity-sm-kms-sqlite-1.crt"
 
 	// OtelTLSE2EClientKeyPath is the Cat 9 app client key (sqlite-1).
-	// Path is relative to internal/apps/framework/tls/e2e/.
+	// Path is relative to internal/apps-framework/tls/e2e/.
 	OtelTLSE2EClientKeyPath = "../../../../../deployments/sm-kms/certs/sm-kms/otel-collector-contrib-https-client-entity-sm-kms-sqlite-1/otel-collector-contrib-https-client-entity-sm-kms-sqlite-1.key"
 
 	// OtelTLSE2EOtelServerCertCN is the expected Common Name of the Cat 2 OTel server cert.
@@ -66,15 +66,15 @@ const (
 
 	// GrafanaTLSE2ECACertPath is the Cat 1 public HTTPS server issuing CA truststore.
 	// Used to verify the Cat 2 Grafana server cert in TLS handshakes.
-	// Path is relative to internal/apps/framework/tls/e2e/.
+	// Path is relative to internal/apps-framework/tls/e2e/.
 	GrafanaTLSE2ECACertPath = "../../../../../deployments/sm-kms/certs/sm-kms/public-https-server-issuing-ca/truststore/public-https-server-issuing-ca.crt"
 
 	// GrafanaTLSE2EInfraCertPath is the Cat 9 infra client cert (OTel→Grafana) for mTLS.
-	// Path is relative to internal/apps/framework/tls/e2e/.
+	// Path is relative to internal/apps-framework/tls/e2e/.
 	GrafanaTLSE2EInfraCertPath = "../../../../../deployments/sm-kms/certs/sm-kms/otel-collector-contrib-https-client-entity-infra/otel-collector-contrib-https-client-entity-infra.crt"
 
 	// GrafanaTLSE2EInfraKeyPath is the Cat 9 infra client key (OTel→Grafana).
-	// Path is relative to internal/apps/framework/tls/e2e/.
+	// Path is relative to internal/apps-framework/tls/e2e/.
 	GrafanaTLSE2EInfraKeyPath = "../../../../../deployments/sm-kms/certs/sm-kms/otel-collector-contrib-https-client-entity-infra/otel-collector-contrib-https-client-entity-infra.key"
 
 	// GrafanaTLSE2EHealthTimeout is the max wait for Grafana to become ready.
@@ -120,7 +120,7 @@ const (
 	// App public HTTPS client cert paths (Cat 5 service-user certs) for mTLS.
 	// These certs are signed by the Cat 4 CA (public-https-client-issuing-ca-sm-kms-{variant})
 	// and are used by test clients to satisfy the server's RequireAndVerifyClientCert policy.
-	// Paths are relative to internal/apps/framework/tls/e2e/.
+	// Paths are relative to internal/apps-framework/tls/e2e/.
 
 	// AppSMKMSSQLite1ClientCertPath is the Cat 5 service-user client cert for sqlite-1.
 	AppSMKMSSQLite1ClientCertPath = "../../../../../deployments/sm-kms/certs/sm-kms/public-https-client-entity-sm-kms-sqlite-1-serviceuser-db/public-https-client-entity-sm-kms-sqlite-1-serviceuser-db.crt"

@@ -12,8 +12,8 @@ import (
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
-	cryptoutilAppsFrameworkServiceServerRepository "cryptoutil/internal/apps/framework/service/server/repository"
-	cryptoutilTestdb "cryptoutil/internal/apps/framework/service/testing/testdb"
+	cryptoutilAppsFrameworkServiceServerRepository "cryptoutil/internal/apps-framework/service/server/repository"
+	cryptoutilTestdb "cryptoutil/internal/apps-framework/service/testing/testdb"
 	cryptoutilAppsSmImModel "cryptoutil/internal/apps/sm-im/server/model"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )

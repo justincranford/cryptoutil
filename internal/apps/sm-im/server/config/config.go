@@ -7,7 +7,7 @@ import (
 	"os"
 	"strings"
 
-	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps/framework/service/config"
+	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps-framework/service/config"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/spf13/pflag"
@@ -108,7 +108,7 @@ func ParseWithFlagSet(fs *pflag.FlagSet, args []string, exitIfHelp bool) (*SmIMS
 	// Template uses cryptoutilSharedMagic.DefaultBrowserRealms (6 browser realms) and
 	// cryptoutilSharedMagic.DefaultServiceRealms (6 service realms) as defaults.
 	// See internal/shared/magic/magic_identity.go for complete realm definitions.
-	// See internal/apps/framework/service/server/repository/tenant_domain.go for TenantRealm types.
+	// See internal/apps-framework/service/server/repository/tenant_domain.go for TenantRealm types.
 	// See internal/apps/sm-im/service/realm_service.go for realm management.
 	// Realms are stored in database and loaded at runtime via migration 0005_add_realms.up.sql.
 

@@ -8,7 +8,7 @@ package main
 import (
 	"os"
 
-	cryptoutilAppsToolsCicdWorkflow "cryptoutil/internal/apps/tools/cicd_workflow"
+	cryptoutilAppsToolsCicdWorkflow "cryptoutil/internal/apps-tools/cicd_workflow"
 )
 
 func main() {

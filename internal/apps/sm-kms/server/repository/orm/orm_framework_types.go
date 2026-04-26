@@ -11,7 +11,7 @@ import (
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 
-	cryptoutilFrameworkOrm "cryptoutil/internal/apps/framework/service/server/repository/orm"
+	cryptoutilFrameworkOrm "cryptoutil/internal/apps-framework/service/server/repository/orm"
 
 	"gorm.io/gorm"
 )

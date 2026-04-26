@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"time"
 
-	cryptoutilFrameworkServiceRatelimit "cryptoutil/internal/apps/framework/service/ratelimit"
+	cryptoutilFrameworkServiceRatelimit "cryptoutil/internal/apps-framework/service/ratelimit"
 	cryptoutilIdentityAppErr "cryptoutil/internal/apps/identity/apperr"
 	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
 	cryptoutilIdentityEmail "cryptoutil/internal/apps/identity/email"

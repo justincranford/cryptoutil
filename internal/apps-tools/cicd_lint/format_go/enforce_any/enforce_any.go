@@ -1,0 +1,126 @@
+// Copyright (c) 2025 Justin Cranford
+
+package enforce_any
+
+import (
+	"fmt"
+	"os"
+	"regexp"
+
+	cryptoutilCmdCicdCommon "cryptoutil/internal/apps-tools/cicd_lint/common"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedUtilFiles "cryptoutil/internal/shared/util/files"
+)
+
+// enforceAny enforces custom Go source code fixes across all Go files.
+// It applies automated fixes like replacing any with any.
+//
+// CRITICAL SELF-MODIFICATION PREVENTION:
+// This file and its tests MUST use exclusion patterns to avoid self-modification.
+// The exclusion pattern "format_go" in GetGoFiles() prevents this file from being processed.
+// Test files MUST use any in test data, NOT any, to avoid test failures.
+//
+// Files matching exclusion patterns are skipped to prevent self-modification.
+// Returns an error if any files were modified (to indicate changes were made).
+func Enforce(logger *cryptoutilCmdCicdCommon.Logger, filesByExtension map[string][]string) error {
+	logger.Log("Enforcing 'any' instead of 'any' in Go files...")
+
+	// Get only Go files from the map.
+	goFiles := FilterGoFiles(filesByExtension)
+
+	if len(goFiles) == 0 {
+		logger.Log("Any enforcement completed (no Go files)")
+
+		return nil
+	}
+
+	logger.Log(fmt.Sprintf("Found %d Go files to process", len(goFiles)))
+
+	// Process each file.
+	filesModified := 0
+	totalReplacements := 0
+
+	for _, filePath := range goFiles {
+		replacements, err := ProcessGoFile(filePath)
+		if err != nil {
+			logger.Log(fmt.Sprintf("Error processing %s: %v", filePath, err))
+
+			continue
+		}
+
+		if replacements > 0 {
+			filesModified++
+			totalReplacements += replacements
+			logger.Log(fmt.Sprintf("Modified %s: %d replacements", filePath, replacements))
+		}
+	}
+
+	// Summary.
+	fmt.Fprintf(os.Stderr, "\n=== GO FORMAT SUMMARY ===\n")
+	fmt.Fprintf(os.Stderr, "Files processed: %d\n", len(goFiles))
+	fmt.Fprintf(os.Stderr, "Files modified: %d\n", filesModified)
+	fmt.Fprintf(os.Stderr, "Total replacements: %d\n", totalReplacements)
+
+	if filesModified > 0 {
+		logger.LogWithPrefix("enforce-any", "✅ Successfully applied custom Go source code fixes")
+		logger.LogWithPrefix("enforce-any", "Please review and commit the changes")
+
+		return fmt.Errorf("modified %d files with %d total replacements", filesModified, totalReplacements)
+	}
+
+	logger.LogWithPrefix("enforce-any", "✅ All Go files are already properly formatted")
+
+	logger.Log("Any enforcement completed")
+
+	return nil
+}
+
+// processGoFile applies custom Go source code fixes to a single file.
+// Currently replaces any with any.
+// This function is protected from self-modification by exclusion patterns.
+// Returns the number of replacements made and any error encountered.
+func ProcessGoFile(filePath string) (int, error) {
+	// Read the file.
+	content, err := os.ReadFile(filePath)
+	if err != nil {
+		return 0, fmt.Errorf("failed to read file: %w", err)
+	}
+
+	originalContent := string(content)
+
+	// CRITICAL: Replace any with any
+	//
+	// SELF-MODIFICATION PROTECTION:
+	// 1. This file is EXCLUDED by GetGoFiles("format-go") exclusion pattern
+	// 2. LLM agents (Copilot, Grok) MUST NOT modify comments in this function
+	// 3. Test data MUST use any (NOT any) to verify replacement works
+	// 4. Narrow-focus LLM refactoring loses exclusion context → ALWAYS preserve these comments
+	//
+	// This regex matches the literal string "any" in Go source code.
+	// The exclusion patterns prevent this file from being processed
+	// to avoid self-modification of the enforce-any hook implementation.
+	interfacePattern := `interface\{\}`
+	re := regexp.MustCompile(interfacePattern)
+	modifiedContent := re.ReplaceAllString(originalContent, "any")
+
+	// Count actual replacements by counting the target pattern in the original.
+	// Use string concatenation to prevent self-modification by this formatter.
+	replacements := len(re.FindAllString(originalContent, -1))
+
+	// Only write if content actually changed.
+	if originalContent != modifiedContent {
+		err = cryptoutilSharedUtilFiles.WriteFile(filePath, modifiedContent, cryptoutilSharedMagic.FilePermissionsDefault)
+		if err != nil {
+			return 0, fmt.Errorf("failed to write file: %w", err)
+		}
+	}
+
+	return replacements, nil
+}
+
+// filterGoFiles extracts Go files from the file map and applies exclusion patterns.
+func FilterGoFiles(filesByExtension map[string][]string) []string {
+	// Apply command-specific filtering (self-exclusion and generated files).
+	// Directory-level exclusions already applied by ListAllFiles.
+	return cryptoutilCmdCicdCommon.GetGoFiles(filesByExtension, "format-go")
+}

@@ -6,7 +6,7 @@ package main
 import (
 	"os"
 
-	cryptoutilCmdCicd "cryptoutil/internal/cmd/cicd_lint"
+	cryptoutilCmdCicd "cryptoutil/internal/apps-tools/cicd_lint/cmd"
 )
 
 func main() {

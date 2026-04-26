@@ -10,8 +10,8 @@ import (
 	"testing"
 	"time"
 
-	cryptoutilContract "cryptoutil/internal/apps/framework/service/testing/contract"
-	cryptoutilTestingTestserver "cryptoutil/internal/apps/framework/service/testing/testserver"
+	cryptoutilContract "cryptoutil/internal/apps-framework/service/testing/contract"
+	cryptoutilTestingTestserver "cryptoutil/internal/apps-framework/service/testing/testserver"
 	cryptoutilAppsSkeletonTemplateServerConfig "cryptoutil/internal/apps/skeleton-template/server/config"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 

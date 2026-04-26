@@ -34,7 +34,7 @@ func TestToAppErr_GormRecordNotFound(t *testing.T) {
 
 		// Test toAppErr mapping.
 		msg := "test record not found"
-		mappedErr := tx.toAppErr(&msg, dbErr)
+		mappedErr := toAppErr(nil, &msg, dbErr)
 		require.Error(t, mappedErr, "Mapped error should not be nil")
 		require.Contains(t, mappedErr.Error(), "test record not found", "Should contain custom message")
 		require.Contains(t, mappedErr.Error(), "record not found", "Should contain original error")
@@ -93,7 +93,7 @@ func TestToAppErr_UniqueConstraintViolation(t *testing.T) {
 
 		// Test toAppErr mapping.
 		msg := "test unique constraint violation"
-		mappedErr := tx.toAppErr(&msg, duplicateErr)
+		mappedErr := toAppErr(nil, &msg, duplicateErr)
 		require.Error(t, mappedErr, "Mapped error should not be nil")
 		require.Contains(t, mappedErr.Error(), "test unique constraint violation", "Should contain custom message")
 
@@ -124,7 +124,7 @@ func TestToAppErr_ForeignKeyViolation(t *testing.T) {
 		if fkErr != nil {
 			// Test toAppErr mapping if we got an error.
 			msg := "test foreign key violation"
-			mappedErr := tx.toAppErr(&msg, fkErr)
+			mappedErr := toAppErr(nil, &msg, fkErr)
 			require.Error(t, mappedErr, "Mapped error should not be nil")
 			require.Contains(t, mappedErr.Error(), "test foreign key violation", "Should contain custom message")
 		}
@@ -145,7 +145,7 @@ func TestToAppErr_GenericError(t *testing.T) {
 
 		// Test toAppErr mapping.
 		msg := "test generic error"
-		mappedErr := tx.toAppErr(&msg, genericErr)
+		mappedErr := toAppErr(nil, &msg, genericErr)
 		require.Error(t, mappedErr, "Mapped error should not be nil")
 		require.Contains(t, mappedErr.Error(), "test generic error", "Should contain custom message")
 		require.Contains(t, mappedErr.Error(), "generic unexpected error", "Should contain original error")
@@ -165,7 +165,7 @@ func TestOrmTransaction_toAppErr_GormRecordNotFound(t *testing.T) {
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 		msg := "record not found test"
 
-		mappedErr := tx.toAppErr(&msg, gorm.ErrRecordNotFound)
+		mappedErr := toAppErr(nil, &msg, gorm.ErrRecordNotFound)
 
 		require.Error(t, mappedErr)
 		require.Contains(t, mappedErr.Error(), "record not found test")
@@ -183,7 +183,7 @@ func TestOrmTransaction_toAppErr_GormDuplicatedKey(t *testing.T) {
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 		msg := "duplicated key test"
 
-		mappedErr := tx.toAppErr(&msg, gorm.ErrDuplicatedKey)
+		mappedErr := toAppErr(nil, &msg, gorm.ErrDuplicatedKey)
 
 		require.Error(t, mappedErr)
 		require.Contains(t, mappedErr.Error(), "duplicated key test")
@@ -201,7 +201,7 @@ func TestOrmTransaction_toAppErr_GormForeignKeyViolated(t *testing.T) {
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 		msg := "foreign key violated test"
 
-		mappedErr := tx.toAppErr(&msg, gorm.ErrForeignKeyViolated)
+		mappedErr := toAppErr(nil, &msg, gorm.ErrForeignKeyViolated)
 
 		require.Error(t, mappedErr)
 		require.Contains(t, mappedErr.Error(), "foreign key violated test")
@@ -219,7 +219,7 @@ func TestOrmTransaction_toAppErr_GormCheckConstraintViolated(t *testing.T) {
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 		msg := "check constraint violated test"
 
-		mappedErr := tx.toAppErr(&msg, gorm.ErrCheckConstraintViolated)
+		mappedErr := toAppErr(nil, &msg, gorm.ErrCheckConstraintViolated)
 
 		require.Error(t, mappedErr)
 		require.Contains(t, mappedErr.Error(), "check constraint violated test")
@@ -237,7 +237,7 @@ func TestOrmTransaction_toAppErr_GormInvalidData(t *testing.T) {
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 		msg := "invalid data test"
 
-		mappedErr := tx.toAppErr(&msg, gorm.ErrInvalidData)
+		mappedErr := toAppErr(nil, &msg, gorm.ErrInvalidData)
 
 		require.Error(t, mappedErr)
 		require.Contains(t, mappedErr.Error(), "invalid data test")
@@ -255,7 +255,7 @@ func TestOrmTransaction_toAppErr_GormInvalidValueOfLength(t *testing.T) {
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 		msg := "invalid value of length test"
 
-		mappedErr := tx.toAppErr(&msg, gorm.ErrInvalidValueOfLength)
+		mappedErr := toAppErr(nil, &msg, gorm.ErrInvalidValueOfLength)
 
 		require.Error(t, mappedErr)
 		require.Contains(t, mappedErr.Error(), "invalid value of length test")
@@ -273,7 +273,7 @@ func TestOrmTransaction_toAppErr_GormNotImplemented(t *testing.T) {
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 		msg := "not implemented test"
 
-		mappedErr := tx.toAppErr(&msg, gorm.ErrNotImplemented)
+		mappedErr := toAppErr(nil, &msg, gorm.ErrNotImplemented)
 
 		require.Error(t, mappedErr)
 		require.Contains(t, mappedErr.Error(), "not implemented test")
@@ -344,7 +344,7 @@ func TestOrmTransaction_toAppErr_UnknownError(t *testing.T) {
 		unknownErr := errors.New("unknown database error")
 		msg := "unknown error test"
 
-		mappedErr := tx.toAppErr(&msg, unknownErr)
+		mappedErr := toAppErr(nil, &msg, unknownErr)
 
 		require.Error(t, mappedErr)
 		require.Contains(t, mappedErr.Error(), "unknown error test")

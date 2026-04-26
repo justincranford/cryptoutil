@@ -12,8 +12,8 @@ import (
 	"testing"
 	"time"
 
-	cryptoutilAppsFrameworkServiceTestingE2eHelpers "cryptoutil/internal/apps/framework/service/testing/e2e_helpers"
-	cryptoutilTestingHealthclient "cryptoutil/internal/apps/framework/service/testing/healthclient"
+	cryptoutilAppsFrameworkServiceTestingE2eHelpers "cryptoutil/internal/apps-framework/service/testing/e2e_helpers"
+	cryptoutilTestingHealthclient "cryptoutil/internal/apps-framework/service/testing/healthclient"
 	cryptoutilAppsSkeletonTemplateServerConfig "cryptoutil/internal/apps/skeleton-template/server/config"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
