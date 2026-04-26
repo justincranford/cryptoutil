@@ -1,6 +1,6 @@
 # Tasks - Framework V17: internal/apps/ Structure Fitness Linters
 
-**Status**: 0 of 40 tasks complete (0%)
+**Status**: 0 of 43 tasks complete (0%)
 **Last Updated**: 2026-04-26
 **Created**: 2026-04-26
 
@@ -160,7 +160,7 @@ the live codebase; finalize the violation matrix; write linter acceptance criter
   - `internal/apps-tools/cicd_lint/lint_fitness/apps_ps_id_server_package/apps_ps_id_server_package_test.go` (NEW)
 - **Evidence**: `test-output/phase2/task-2.2-coverage.log`
 
-### Task 2.3: Linter `apps-ps-id-swagger-presence` (swagger.go + swagger_test.go)
+### Task 2.3: Linter `apps-ps-id-swagger-presence` (server/swagger.go + server/swagger_test.go)
 
 - **Status**: ❌
 - **Owner**: LLM Agent
@@ -168,26 +168,28 @@ the live codebase; finalize the violation matrix; write linter acceptance criter
 - **Actual**: [Fill when complete]
 - **Dependencies**: Task 1.3
 - **Description**: Implement `apps_ps_id_swagger_presence/apps_ps_id_swagger_presence.go`. Checks
-  every PS-ID has `swagger.go` and `swagger_test.go` at the package root. `knownExclusions`:
-  `identity-rp` and `identity-spa` (confirmed missing per gap matrix — these are launch-time
-  exclusions until the files are created in a follow-on plan).
+  every PS-ID has `swagger.go` and `swagger_test.go` inside the `server/` subdirectory (NOT at
+  the PS-ID root — per architectural decision 2026-04-26, swagger lives in `server/`). Since no
+  PS-ID currently has swagger in `server/` (all have it at root), `knownExclusions` covers all
+  10 PS-IDs at launch; exclusions are removed as Phase 5 move tasks complete.
 - **Acceptance Criteria**:
   - [ ] `Check(logger) error` and `CheckInDir(logger, rootDir) error` implemented
-  - [ ] Checks `swagger.go` for 8 PS-IDs (excludes `identity-rp`, `identity-spa`)
-  - [ ] Checks `swagger_test.go` for same 8 PS-IDs
-  - [ ] `identity-rp` and `identity-spa` excluded via `knownExclusions` with TODO comment
-  - [ ] Error message format: `"{PS-ID}: missing required file internal/apps/{PS-ID}/swagger.go"`
-  - [ ] Test: pass case
-  - [ ] Test: fail case (missing swagger.go)
-  - [ ] Test: fail case (missing swagger_test.go)
+  - [ ] Checks `server/swagger.go` (NOT root-level `swagger.go`) for each PS-ID in scope
+  - [ ] Checks `server/swagger_test.go` for same PS-IDs
+  - [ ] `knownExclusions` covers all 10 at launch; each is removed after its Phase 5 move task
+  - [ ] Error message format: `"{PS-ID}: missing required file internal/apps/{PS-ID}/server/swagger.go"`
+  - [ ] Test: pass case (server/swagger.go present in synthetic dir)
+  - [ ] Test: fail case (server/swagger.go missing)
+  - [ ] Test: fail case (server/swagger_test.go missing)
+  - [ ] Test: root-level swagger.go does NOT satisfy the check
   - [ ] Coverage ≥98%
-  - [ ] `go run ./cmd/cicd-lint lint-fitness` still passes
+  - [ ] `go run ./cmd/cicd-lint lint-fitness` still passes against current codebase
 - **Files**:
   - `internal/apps-tools/cicd_lint/lint_fitness/apps_ps_id_swagger_presence/apps_ps_id_swagger_presence.go` (NEW)
   - `internal/apps-tools/cicd_lint/lint_fitness/apps_ps_id_swagger_presence/apps_ps_id_swagger_presence_test.go` (NEW)
 - **Evidence**: `test-output/phase2/task-2.3-coverage.log`
 
-### Task 2.4: Linter `apps-ps-id-test-patterns` (testmain + lifecycle + port conflict tests)
+### Task 2.4: Linter `apps-ps-id-test-patterns` (server/testmain + server/lifecycle + server/port_conflict)
 
 - **Status**: ❌
 - **Owner**: LLM Agent
@@ -195,32 +197,32 @@ the live codebase; finalize the violation matrix; write linter acceptance criter
 - **Actual**: [Fill when complete]
 - **Dependencies**: Task 1.3
 - **Description**: Implement `apps_ps_id_test_patterns/apps_ps_id_test_patterns.go`. Three
-  sub-checks per PS-ID:
-  1. `testmain_test.go` at package root
-  2. At least one `*_lifecycle_test.go` file at package root
-  3. At least one `*_port_conflict_test.go` file at package root
+  sub-checks per PS-ID, all checking inside `server/` (NOT at PS-ID root — per architectural
+  decision 2026-04-26):
+  1. `server/testmain_test.go` present
+  2. At least one `*_lifecycle_test.go` inside `server/`
+  3. At least one `*_port_conflict_test.go` inside `server/`
 
-  `knownExclusions` for testmain: `sm-kms`, `identity-authz`, `identity-idp`, `identity-rs`,
-  `identity-rp`, `identity-spa` (6 PS-IDs missing — excluded at launch).
+  Current `server/` state: `testmain_test.go` exists in 9 of 10 (`sm-kms` missing). Lifecycle
+  and port_conflict tests currently exist at PS-ID root (not server/) for most PS-IDs.
 
-  `knownExclusions` for lifecycle: `identity-rs`, `identity-rp`, `identity-spa` (3 PS-IDs).
+  `knownExclusions` for testmain: `sm-kms` (1 PS-ID — all others have server/testmain_test.go).
+  `knownExclusions` for lifecycle: all 10 at launch (files are at root, not server/); reduce as Phase 5 moves complete.
+  `knownExclusions` for port conflict: same — all 10 at launch; reduce as Phase 5 moves complete.
 
-  `knownExclusions` for port conflict: `identity-authz`, `identity-idp`, `identity-rs`,
-  `identity-rp`, `identity-spa` (5 PS-IDs).
-
-  The linter uses `os.ReadDir` to scan for glob-like patterns (`*_lifecycle_test.go`), checking
-  if any directory entry name has the required suffix.
+  The linter scans `server/` (not root) using `os.ReadDir` for suffix matching.
 - **Acceptance Criteria**:
   - [ ] `Check(logger) error` and `CheckInDir(logger, rootDir) error` implemented
-  - [ ] Three separate sub-check functions (testmain, lifecycle, port_conflict), each with own exclusion list
-  - [ ] Uses `os.ReadDir` for glob-style suffix matching (NOT filepath.Glob to avoid path issues)
-  - [ ] `sm-im`, `jose-ja`, `pki-ca`, `skeleton-template` included in all three checks
-  - [ ] `sm-kms` excluded from testmain check only (has lifecycle + port_conflict)
-  - [ ] All 5 identity services excluded from port_conflict check
-  - [ ] `identity-rs`, `identity-rp`, `identity-spa` excluded from lifecycle check
-  - [ ] Test: pass case per sub-check
-  - [ ] Test: fail case per sub-check (missing file)
-  - [ ] Test: exception case (excluded PS-ID passes without required file)
+  - [ ] All three sub-checks scan `internal/apps/{PS-ID}/server/` (NOT PS-ID root)
+  - [ ] Three separate sub-check functions with independent exclusion lists
+  - [ ] Uses `os.ReadDir` on `server/` for suffix matching (NOT filepath.Glob)
+  - [ ] `sm-im`, `jose-ja`, `pki-ca`, `skeleton-template` included in testmain check (they have server/testmain_test.go)
+  - [ ] `sm-kms` excluded from testmain check only
+  - [ ] All 10 excluded from lifecycle and port_conflict at launch
+  - [ ] Test: synthetic `server/` dir with files satisfies pass case
+  - [ ] Test: fail case per sub-check (file missing from server/)
+  - [ ] Test: root-level file does NOT satisfy server/ check
+  - [ ] Test: exception case (excluded PS-ID passes without required file in server/)
   - [ ] Coverage ≥98%
   - [ ] `go run ./cmd/cicd-lint lint-fitness` still passes
 - **Files**:
@@ -740,134 +742,192 @@ retired in Phase 3 and enforce structural invariants via template substitution.
 ## Phase 5: Conformance Migration — Fill All Gaps
 
 **Phase Objective**: Transform all 10 PS-IDs, 5 products, and 1 suite to fully conform to the
-canonical templates. After this phase, all `knownExclusions` lists are empty and every linter runs
-in block-immediately mode with zero exceptions.
+canonical templates. This phase has two categories of work:
 
-**Work order**: Fill PS-ID file gaps first (5.1-5.6), then resolve product service dirs (5.7),
-then remove all knownExclusions (5.8), then validate (5.9).
+1. **FILE MOVES** — Relocate files from PS-ID root to `server/` (architectural decision 2026-04-26)
+2. **FILE CREATES** — Add missing files in `server/` for PS-IDs that lack them entirely
+3. **LARGE FILE MOVES** — Move server implementation code (handlers, routes, services) from
+   identity-authz, identity-idp, identity-rs, and sm-im roots into their `server/` packages
 
-### Task 5.1: Add testmain_test.go to sm-kms
+After this phase, `knownExclusions` are empty and all linters run in block-immediately mode.
 
-- **Status**: ❌
-- **Owner**: LLM Agent
-- **Estimated**: 0.5h
-- **Actual**: [Fill when complete]
-- **Dependencies**: Phase 4 complete
-- **Description**: Add `internal/apps/sm-kms/testmain_test.go` following the pattern established
-  in `sm-im`, `jose-ja`, `pki-ca`, `skeleton-template`. The TestMain must start a shared test
-  server and database for all root-package tests in `sm-kms`.
-- **Acceptance Criteria**:
-  - [ ] `testmain_test.go` created with correct TestMain function
-  - [ ] Follows `testdb.NewInMemorySQLiteDB(t)` + `testserver.StartAndWait` pattern
-  - [ ] `go test ./internal/apps/sm-kms/...` passes
-  - [ ] Existing sm-kms tests still pass (no regressions)
-  - [ ] `go run ./cmd/cicd-lint lint-fitness` passes after sm-kms removed from testmain exclusion
-- **Files**:
-  - `internal/apps/sm-kms/testmain_test.go` (NEW)
-- **Evidence**: `test-output/phase5/task-5.1-sm-kms.log`
+**Work order**: Move swagger files (5.0), then sm-kms testmain (5.1), then identity services (5.2-5.6),
+then product dirs (5.7), then remove exclusions (5.8), then validate (5.9).
 
-### Task 5.2: Add testmain_test.go + port_conflict_test.go to identity-authz
+**Pre-work**: Answer quizme-v1.md Q1, Q2, Q3 before starting any Phase 5 tasks.
+
+### Task 5.0: Move swagger.go + swagger_test.go to server/ for 8 PS-IDs
 
 - **Status**: ❌
 - **Owner**: LLM Agent
-- **Estimated**: 1h
+- **Estimated**: 2h
 - **Actual**: [Fill when complete]
-- **Dependencies**: Phase 4 complete
-- **Description**: Add `internal/apps/identity-authz/testmain_test.go` and
-  `internal/apps/identity-authz/authz_port_conflict_test.go`. Port conflict test verifies
-  deterministic failure when the authz service ports are already in use (pattern from sm-im).
+- **Dependencies**: Phase 4 complete; quizme-v1.md Q2 answered
+- **Description**: Move `swagger.go` and `swagger_test.go` from PS-ID root to `server/` for the
+  8 PS-IDs that currently have them at root: sm-kms, sm-im, jose-ja, pki-ca, identity-authz,
+  identity-idp, identity-rs, skeleton-template. These files belong in the `server/` package
+  (per architectural decision 2026-04-26). Update Go package declarations in moved files.
+  Do NOT create swagger files for identity-rp and identity-spa (handled in Tasks 5.5-5.6).
 - **Acceptance Criteria**:
-  - [ ] `testmain_test.go` created following shared pattern
-  - [ ] `authz_port_conflict_test.go` follows sm-im/jose-ja port conflict test pattern
-  - [ ] `go test ./internal/apps/identity-authz/...` passes (including new files)
-  - [ ] `go run ./cmd/cicd-lint lint-fitness` passes after identity-authz removed from exclusions
-- **Files**:
-  - `internal/apps/identity-authz/testmain_test.go` (NEW)
-  - `internal/apps/identity-authz/authz_port_conflict_test.go` (NEW)
+  - [ ] `swagger.go` and `swagger_test.go` moved to `server/` for all 8 PS-IDs
+  - [ ] Package declaration updated from `package {psid}` to `package server` (or `server_test`) in moved files
+  - [ ] Root `swagger.go` and `swagger_test.go` deleted for all 8 PS-IDs
+  - [ ] `go build ./...` exits 0
+  - [ ] `go test ./...` exits 0 (no regressions)
+  - [ ] `go run ./cmd/cicd-lint lint-fitness` passes after removing exclusions from swagger linter
+- **Files**: 8× `internal/apps/{PS-ID}/swagger.go` (DELETE), 8× `internal/apps/{PS-ID}/server/swagger.go` (NEW/MOVE)
+- **Evidence**: `test-output/phase5/task-5.0-swagger-move.log`
+
+### Task 5.1: Move lifecycle + port_conflict tests to server/ + create sm-kms testmain
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 2h
+- **Actual**: [Fill when complete]
+- **Dependencies**: Task 5.0
+- **Description**: Move `{SVC}_lifecycle_test.go` and `{SVC}_port_conflict_test.go` from PS-ID
+  root to `server/` for 5 PS-IDs (sm-kms, sm-im, jose-ja, pki-ca, skeleton-template) that have
+  both tests at root. Also: rename pki-ca's `server/server_lifecycle_test.go` → `ca_lifecycle_test.go`.
+  Additionally create `internal/apps/sm-kms/server/testmain_test.go` (the one missing server/ testmain).
+  Also clean up root `testmain_test.go` for PS-IDs that have it at both root and server/ (sm-im,
+  jose-ja, pki-ca, skeleton-template now only need it in server/).
+- **Acceptance Criteria**:
+  - [ ] Lifecycle and port_conflict tests moved to `server/` for sm-kms, sm-im, jose-ja, pki-ca, skeleton-template
+  - [ ] pki-ca `server/server_lifecycle_test.go` renamed to `server/ca_lifecycle_test.go`
+  - [ ] Root `testmain_test.go` removed from sm-im, jose-ja, pki-ca, skeleton-template (server/ version takes over)
+  - [ ] `server/testmain_test.go` created for sm-kms
+  - [ ] Package declarations in moved test files updated to `package server_test`
+  - [ ] `go build ./...` exits 0; `go test ./...` exits 0
+  - [ ] `go run ./cmd/cicd-lint lint-fitness` passes (sm-kms testmain + lifecycle/port_conflict exclusions removed)
+- **Files**: Various moves/deletes/creates across sm-kms, sm-im, jose-ja, pki-ca, skeleton-template
+- **Evidence**: `test-output/phase5/task-5.1-moves.log`
+
+### Task 5.2: Move identity-authz root server code to server/ + create missing tests
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 4h
+- **Actual**: [Fill when complete]
+- **Dependencies**: Task 5.1; quizme-v1.md Q3 answered
+- **Description**: identity-authz has ~80 Go files at root (handlers, routes, service, middleware,
+  etc.) that belong in `server/`. Move all non-CLI files from root to `server/`. Also rename
+  `service_lifecycle_test.go` → `authz_lifecycle_test.go` (on move), and create
+  `authz_port_conflict_test.go`. Clean up root `testmain_test.go` (server/ already has one).
+  This is the largest single task in Phase 5.
+- **Acceptance Criteria**:
+  - [ ] Only `authz.go`, `authz_usage.go`, `authz_cli_test.go` remain at root
+  - [ ] All `handlers_*.go`, `routes.go`, `service.go`, `middleware.go`, `cleanup.go`, etc. moved to `server/`
+  - [ ] `service_lifecycle_test.go` moved to `server/authz_lifecycle_test.go`
+  - [ ] `authz_port_conflict_test.go` created in `server/`
+  - [ ] Root `testmain_test.go` deleted (server/ already has one)
+  - [ ] All inter-package imports updated; `go build ./...` exits 0
+  - [ ] `go test ./internal/apps/identity-authz/...` exits 0
+  - [ ] `go run ./cmd/cicd-lint lint-fitness` passes after identity-authz removed from all exclusions
+- **Files**: identity-authz root → server/ (many files)
 - **Evidence**: `test-output/phase5/task-5.2-identity-authz.log`
 
-### Task 5.3: Add testmain_test.go + port_conflict_test.go to identity-idp
+### Task 5.3: Move identity-idp root server code to server/ + create missing tests
 
 - **Status**: ❌
 - **Owner**: LLM Agent
-- **Estimated**: 1h
+- **Estimated**: 3h
 - **Actual**: [Fill when complete]
-- **Dependencies**: Task 5.2 (same pattern)
-- **Description**: Same as Task 5.2 but for `identity-idp`.
+- **Dependencies**: Task 5.1 (same pattern as 5.2)
+- **Description**: Same large-scale move as Task 5.2 but for `identity-idp`. Move all non-CLI
+  files from root to `server/`. Rename `service_lifecycle_test.go` → `idp_lifecycle_test.go`.
+  Create `idp_port_conflict_test.go`. Clean up root `testmain_test.go`.
 - **Acceptance Criteria**:
-  - [ ] `testmain_test.go` created
-  - [ ] `idp_port_conflict_test.go` created
-  - [ ] Tests pass; fitness linter passes after idp removed from exclusions
-- **Files**:
-  - `internal/apps/identity-idp/testmain_test.go` (NEW)
-  - `internal/apps/identity-idp/idp_port_conflict_test.go` (NEW)
+  - [ ] Only `idp.go`, `idp_usage.go`, `idp_cli_test.go` remain at root
+  - [ ] All server implementation files moved to `server/`
+  - [ ] `service_lifecycle_test.go` moved to `server/idp_lifecycle_test.go`
+  - [ ] `idp_port_conflict_test.go` created in `server/`
+  - [ ] `go build ./...` exits 0; `go test ./internal/apps/identity-idp/...` exits 0
+  - [ ] `go run ./cmd/cicd-lint lint-fitness` passes after identity-idp removed from all exclusions
+- **Files**: identity-idp root → server/ (many files)
 - **Evidence**: `test-output/phase5/task-5.3-identity-idp.log`
 
-### Task 5.4: Add testmain + lifecycle + port_conflict tests to identity-rs
+### Task 5.4: Move identity-rs root server code to server/ + create missing tests
 
 - **Status**: ❌
 - **Owner**: LLM Agent
 - **Estimated**: 1.5h
 - **Actual**: [Fill when complete]
-- **Dependencies**: Task 5.2 (same patterns)
-- **Description**: Add `testmain_test.go`, `rs_lifecycle_test.go`, and `rs_port_conflict_test.go`
-  to `identity-rs`. Lifecycle test verifies server start/stop/graceful-shutdown pattern across
-  dual public+admin ports (pattern from sm-im or jose-ja).
+- **Dependencies**: Task 5.1
+- **Description**: identity-rs has `service.go`, `validator.go`, and several test files at root
+  that belong in `server/`. Move them. Create `rs_lifecycle_test.go` and `rs_port_conflict_test.go`
+  in `server/`. Clean up root `testmain_test.go`.
 - **Acceptance Criteria**:
-  - [ ] `testmain_test.go`, `rs_lifecycle_test.go`, `rs_port_conflict_test.go` created
-  - [ ] Lifecycle test covers: start, health check, shutdown, verify stopped
-  - [ ] Port conflict test covers: both public and admin port conflicts
-  - [ ] Tests pass; fitness linters pass after rs removed from all three exclusion lists
-- **Files**:
-  - `internal/apps/identity-rs/testmain_test.go` (NEW)
-  - `internal/apps/identity-rs/rs_lifecycle_test.go` (NEW)
-  - `internal/apps/identity-rs/rs_port_conflict_test.go` (NEW)
+  - [ ] Only `rs.go`, `rs_usage.go`, `rs_cli_test.go` remain at root
+  - [ ] `service.go`, `validator.go`, `service_admin_test.go`, `service_test.go` moved to `server/`
+  - [ ] `rs_lifecycle_test.go` and `rs_port_conflict_test.go` created in `server/`
+  - [ ] `go build ./...` exits 0; `go test ./internal/apps/identity-rs/...` exits 0
+  - [ ] `go run ./cmd/cicd-lint lint-fitness` passes after identity-rs removed from all exclusions
+- **Files**: identity-rs root → server/ + create 2 new test files
 - **Evidence**: `test-output/phase5/task-5.4-identity-rs.log`
 
-### Task 5.5: Add swagger + testmain + lifecycle + port_conflict to identity-rp
+### Task 5.5: Add swagger + lifecycle + port_conflict to identity-rp/server/
 
 - **Status**: ❌
 - **Owner**: LLM Agent
 - **Estimated**: 2h
 - **Actual**: [Fill when complete]
-- **Dependencies**: Task 5.4 (same patterns); requires confirmation that identity-rp has OpenAPI spec
-- **Description**: Add `swagger.go`, `swagger_test.go`, `testmain_test.go`, `rp_lifecycle_test.go`,
-  `rp_port_conflict_test.go` to `identity-rp`. If identity-rp does not yet have an OpenAPI spec,
-  add a minimal swagger stub (consistent with how other services handle this). Investigate first.
+- **Dependencies**: Task 5.4; quizme-v1.md Q2 answered (does identity-rp have OpenAPI spec?)
+- **Description**: identity-rp currently has only `rp.go`, `rp_usage.go`, `rp_cli_test.go`,
+  `rp_test.go` at root. The `server/` already has `public_server.go`, `server.go`,
+  `server_integration_test.go`, `testmain_test.go`. Need to CREATE `server/swagger.go`,
+  `server/swagger_test.go`, `server/rp_lifecycle_test.go`, `server/rp_port_conflict_test.go`.
+  Move `rp_test.go` from root to `server/` (non-CLI test). See quizme-v1.md Q2 for swagger stub
+  guidance.
 - **Acceptance Criteria**:
-  - [ ] Investigation confirms whether identity-rp has OpenAPI spec (or will have one)
-  - [ ] `swagger.go` added (or swagger stub documented as intentional placeholder)
-  - [ ] `swagger_test.go` added
-  - [ ] `testmain_test.go`, `rp_lifecycle_test.go`, `rp_port_conflict_test.go` added
-  - [ ] Tests pass; fitness linters pass after rp removed from all exclusion lists
-- **Files**:
-  - `internal/apps/identity-rp/swagger.go` (NEW)
-  - `internal/apps/identity-rp/swagger_test.go` (NEW)
-  - `internal/apps/identity-rp/testmain_test.go` (NEW)
-  - `internal/apps/identity-rp/rp_lifecycle_test.go` (NEW)
-  - `internal/apps/identity-rp/rp_port_conflict_test.go` (NEW)
+  - [ ] Only `rp.go`, `rp_usage.go`, `rp_cli_test.go` remain at root
+  - [ ] `rp_test.go` moved to `server/` (or deleted if covered by other tests)
+  - [ ] `server/swagger.go` created (or stub with TODO if no OpenAPI spec yet — per Q2 answer)
+  - [ ] `server/swagger_test.go` created
+  - [ ] `server/rp_lifecycle_test.go` and `server/rp_port_conflict_test.go` created
+  - [ ] `go test ./internal/apps/identity-rp/...` exits 0
+  - [ ] `go run ./cmd/cicd-lint lint-fitness` passes after identity-rp removed from all exclusions
+- **Files**: Various new/moved files in identity-rp/server/
 - **Evidence**: `test-output/phase5/task-5.5-identity-rp.log`
 
-### Task 5.6: Add swagger + testmain + lifecycle + port_conflict to identity-spa
+### Task 5.6: Add swagger + lifecycle + port_conflict to identity-spa/server/
 
 - **Status**: ❌
 - **Owner**: LLM Agent
 - **Estimated**: 2h
 - **Actual**: [Fill when complete]
-- **Dependencies**: Task 5.5 (same patterns)
-- **Description**: Same as Task 5.5 but for `identity-spa`.
+- **Dependencies**: Task 5.5 (same pattern)
+- **Description**: Same as Task 5.5 but for `identity-spa`. Move `spa_test.go` from root to
+  `server/`. Create swagger, lifecycle, and port_conflict in `server/`.
 - **Acceptance Criteria**:
-  - [ ] Same checklist as Task 5.5 (adapted for identity-spa)
-  - [ ] Tests pass; fitness linters pass after spa removed from all exclusion lists
-- **Files**:
-  - `internal/apps/identity-spa/swagger.go` (NEW)
-  - `internal/apps/identity-spa/swagger_test.go` (NEW)
-  - `internal/apps/identity-spa/testmain_test.go` (NEW)
-  - `internal/apps/identity-spa/spa_lifecycle_test.go` (NEW)
-  - `internal/apps/identity-spa/spa_port_conflict_test.go` (NEW)
+  - [ ] Only `spa.go`, `spa_usage.go`, `spa_cli_test.go` remain at root
+  - [ ] `spa_test.go` moved to `server/` (or deleted if redundant)
+  - [ ] `server/swagger.go`, `server/swagger_test.go` created
+  - [ ] `server/spa_lifecycle_test.go`, `server/spa_port_conflict_test.go` created
+  - [ ] `go test ./internal/apps/identity-spa/...` exits 0
+  - [ ] `go run ./cmd/cicd-lint lint-fitness` passes after identity-spa removed from all exclusions
+- **Files**: Various new/moved files in identity-spa/server/
 - **Evidence**: `test-output/phase5/task-5.6-identity-spa.log`
 
-### Task 5.7: Audit and Resolve Product Service Directories (GAP-E)
+### Task 5.7: Move sm-im non-CLI root files to server/
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 1h
+- **Actual**: [Fill when complete]
+- **Dependencies**: Task 5.1
+- **Description**: sm-im has `http_test.go`, `http_errors_test.go`, `response_body_test.go`,
+  `im_database_test.go`, `im_server_lifecycle_test.go` at root — these are server integration
+  tests that belong in `server/`. Move them. The root should only have `im.go`, `im_usage.go`,
+  `im_cli_commands_test.go`, `im_cli_url_test.go`.
+- **Acceptance Criteria**:
+  - [ ] Only CLI files remain at root: `im.go`, `im_usage.go`, `im_cli_commands_test.go`, `im_cli_url_test.go`
+  - [ ] `http_test.go`, `http_errors_test.go`, `response_body_test.go`, `im_database_test.go`, `im_server_lifecycle_test.go` moved to `server/`
+  - [ ] Package declarations updated in moved files
+  - [ ] `go build ./...` exits 0; `go test ./internal/apps/sm-im/...` exits 0
+- **Files**: sm-im root → server/ (5 test files)
+- **Evidence**: `test-output/phase5/task-5.7-sm-im.log`
+
+### Task 5.8: Audit and Resolve Product Service Directories (GAP-E)
 
 - **Status**: ❌
 - **Owner**: LLM Agent
@@ -896,16 +956,16 @@ then remove all knownExclusions (5.8), then validate (5.9).
   - `internal/apps/pki/ca/` (DELETE or MOVE)
   - `internal/apps/skeleton/template/` (DELETE or MOVE)
   - Affected linter files (MODIFIED — remove exceptions)
-- **Evidence**: `test-output/phase5/gap-e-audit.md`, `test-output/phase5/task-5.7-build.log`
+- **Evidence**: `test-output/phase5/gap-e-audit.md`, `test-output/phase5/task-5.8-build.log`
 
-### Task 5.8: Remove All knownExclusions from Phase 2–4 Linters
+### Task 5.9: Remove All knownExclusions from Phase 2–4 Linters
 
 - **Status**: ❌
 - **Owner**: LLM Agent
 - **Estimated**: 0.75h
 - **Actual**: [Fill when complete]
-- **Dependencies**: Tasks 5.1-5.7
-- **Description**: After all gaps are filled in Tasks 5.1-5.7, remove all `knownExclusions`,
+- **Dependencies**: Tasks 5.0-5.8
+- **Description**: After all gaps are filled in Tasks 5.0-5.8, remove all `knownExclusions`,
   `knownServiceDirExceptions`, and TODO-marked exception entries from every Phase 2-4 linter.
   Every linter should now run in strict block-immediately mode with no exceptions.
 - **Acceptance Criteria**:
@@ -916,15 +976,15 @@ then remove all knownExclusions (5.8), then validate (5.9).
   - [ ] `go test ./internal/apps-tools/cicd_lint/lint_fitness/...` exits 0
 - **Files**:
   - All Phase 2-4 linter `.go` files (MODIFIED — remove exclusion maps)
-- **Evidence**: `test-output/phase5/task-5.8-build.log`
+- **Evidence**: `test-output/phase5/task-5.9-build.log`
 
-### Task 5.9: Final Fitness Run — Zero Exceptions Verification
+### Task 5.10: Final Fitness Run — Zero Exceptions Verification
 
 - **Status**: ❌
 - **Owner**: LLM Agent
 - **Estimated**: 0.25h
 - **Actual**: [Fill when complete]
-- **Dependencies**: Task 5.8
+- **Dependencies**: Task 5.9
 - **Description**: Run the complete fitness suite. Verify all 80 linters pass with zero exceptions
   and zero known-gap suppressions. Archive final output.
 - **Acceptance Criteria**:

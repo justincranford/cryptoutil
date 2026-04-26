@@ -9,6 +9,14 @@
 #   skeleton-template → template    sm-im → im
 #
 # ENG-HANDBOOK references: §5.1 (Service Framework), §10.2 (Unit Testing), §14.1 (Coding Standards)
+#
+# ROOT FILE RULE: ALL files at the PS-ID root MUST start with the __SERVICE__  prefix.
+#   Correct:   kms.go, kms_usage.go, kms_cli_test.go
+#   FORBIDDEN: swagger.go, testmain_test.go, http_test.go (any non-service-prefixed file)
+#
+# SEPARATION OF CONCERNS:
+#   Root   → CLI integration only (entry point, usage string, CLI tests)
+#   server/ → All server implementation, swagger, integration tests, lifecycle/port tests
 
 required_root_files:
   # Primary service entry point - routes CLI subcommands (server, health, livez, readyz, shutdown)
@@ -17,20 +25,28 @@ required_root_files:
   - __SERVICE___usage.go
   # CLI integration tests - verifies help, version, unknown-subcommand exit codes
   - __SERVICE___cli_test.go
+
+required_dirs:
+  # Server implementation directory (ALL server code, swagger, testmain, integration tests live here)
+  - server
+
+required_server_files:
+  # Core admin server implementation
+  - server.go
+  # OpenAPI/swagger serving (NOT at PS-ID root — lives in server/ package)
+  - swagger.go
+  # Swagger serving tests
+  - swagger_test.go
+  # TestMain for server-package integration test setup (shared server/DB for server/ tests)
+  - testmain_test.go
   # Lifecycle tests - start/stop/graceful-shutdown across dual public+admin ports
   - __SERVICE___lifecycle_test.go
   # Port conflict tests - verifies deterministic failure when ports already in use
   - __SERVICE___port_conflict_test.go
-  # OpenAPI/swagger serving - registers swagger UI handler via builder.WithSwagger()
-  - swagger.go
-  # Swagger serving tests
-  - swagger_test.go
-  # TestMain for package-level heavyweight setup (shared server/DB for all root-package tests)
-  - testmain_test.go
 
-required_dirs:
-  # Admin + public server implementation; contains server.go, public_server.go, testmain_test.go
-  - server
+optional_server_files:
+  # Public API server (present in 9 of 10; sm-kms uses a different legacy structure)
+  - public_server.go
 
 optional_dirs:
   # End-to-end Docker Compose tests (required for fully-migrated services; optional during migration)
@@ -39,8 +55,3 @@ optional_dirs:
   - client
   # Test helpers shared across root-package tests (only for services with complex test setup)
   - testing
-
-forbidden_dir_patterns:
-  # Service-named subdirectories are FORBIDDEN inside PS-ID directories.
-  # PS-ID services are flat (internal/apps/sm-kms/), not nested (internal/apps/sm/kms/).
-  # This pattern is checked by the apps-product-no-service-dirs linter, not this manifest.

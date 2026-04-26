@@ -99,44 +99,61 @@ proper `internal/apps/sm-im/` etc. flat directories (which are the real service 
 subdirectories inside product directories. EXCEPTION: `identity/` shared packages are legitimate
 (documented in ENG-HANDBOOK §G.1.1 as "shared packages: optional, varies").
 
-#### PS-IDs — Detailed Gap Matrix
+#### Architectural Decision: PS-ID Root = CLI Only (Added 2026-04-26)
+
+**DECISION**: The PS-ID root directory contains ONLY CLI integration files. All server
+implementation, swagger, TestMain, lifecycle tests, and port conflict tests live in `server/`.
+
+**Root file rule**: ALL files at the PS-ID root MUST start with the `{SERVICE}_` prefix.
+- ALLOWED at root: `{SERVICE}.go`, `{SERVICE}_usage.go`, `{SERVICE}_cli_test.go`
+- FORBIDDEN at root: `swagger.go`, `testmain_test.go`, `http_test.go`, `handlers_*.go`, etc.
+
+**Rationale**: The PS-ID root package is the CLI entry point — it should only contain code that
+tests and exercises the CLI dispatcher. All service implementation belongs in `server/` (which is
+already the separate Go package for the admin/public server). Mixing CLI and server test code at
+root confuses package boundaries and makes it unclear which tests require a running server.
+
+**Impact on Phase 2 linters**: Linters checking `swagger.go`, `testmain_test.go`, lifecycle, and
+port conflict tests now check `server/` paths, not PS-ID root paths.
+
+**Impact on Phase 5**: Includes file MOVES (from root → `server/`) in addition to creating missing
+files. Eight PS-IDs need swagger/swagger_test.go moved. Nine PS-IDs need `testmain_test.go` root
+copy removed (most already have server/ version). Seven to nine PS-IDs need lifecycle/port_conflict
+moved. See target-structure.md G.1.2 for the complete gap matrix.
+
+#### PS-IDs — Detailed Gap Matrix (target: `server/` location for all non-CLI files)
 
 | Invariant | sm-kms | sm-im | jose-ja | pki-ca | id-authz | id-idp | id-rs | id-rp | id-spa | skel-tmpl |
 |-----------|--------|-------|---------|--------|----------|--------|-------|-------|--------|-----------|
-| `{SERVICE}.go` | OK | OK | OK | OK | OK | OK | OK | OK | OK | OK |
-| `{SERVICE}_usage.go` | OK | OK | OK | OK | OK | OK | OK | OK | OK | OK |
-| `swagger.go` | OK | OK | OK | OK | OK | OK | OK | **MISS** | **MISS** | OK |
-| `testmain_test.go` | **MISS** | OK | OK | OK | **MISS** | **MISS** | **MISS** | **MISS** | **MISS** | OK |
-| `*_lifecycle_test.go` | OK | OK | OK | OK | OK | OK | **MISS** | **MISS** | **MISS** | OK |
-| `*_port_conflict_test.go` | OK | OK | OK | OK | **MISS** | **MISS** | **MISS** | **MISS** | **MISS** | OK |
-| `server/` dir | OK | OK | OK | OK | OK | OK | OK | OK | OK | OK |
+| root `{SERVICE}.go` | OK | OK | OK | OK | OK | OK | OK | OK | OK | OK |
+| root `{SERVICE}_usage.go` | OK | OK | OK | OK | OK | OK | OK | OK | OK | OK |
+| root `{SERVICE}_cli_test.go` | OK | OK | OK | OK | OK | OK | OK | OK | OK | OK |
+| `server/server.go` | OK | OK | OK | OK | OK | OK | OK | OK | OK | OK |
+| `server/swagger.go` | MOVE | MOVE | MOVE | MOVE | MOVE | MOVE | MOVE | **MISS** | **MISS** | MOVE |
+| `server/swagger_test.go` | MOVE | MOVE | MOVE | MOVE | MOVE | MOVE | MOVE | **MISS** | **MISS** | MOVE |
+| `server/testmain_test.go` | **MISS** | OK | OK | OK | OK | OK | OK | OK | OK | OK |
+| `server/{SVC}_lifecycle_test.go` | MOVE | MOVE | MOVE | MOVE¹ | MOVE² | MOVE² | **MISS** | **MISS** | **MISS** | MOVE |
+| `server/{SVC}_port_conflict_test.go` | MOVE | MOVE | MOVE | MOVE | **MISS** | **MISS** | **MISS** | **MISS** | **MISS** | MOVE |
 | `e2e/` dir | OK | OK | OK | **MISS** | OK | **MISS** | **MISS** | **MISS** | **MISS** | OK |
 | `*_contract_test.go` | **MISS** | **MISS** | **MISS** | **MISS** | OK | OK | OK | **MISS** | **MISS** | **MISS** |
 
-**Notes**:
-- `testmain_test.go`: Required per testing instructions (TestMain for heavyweight resources). The
-  5 identity services without it use inline setup — a pattern drift that should be enforced.
-- `swagger.go`: Present in 8 of 10. `identity-rp` and `identity-spa` missing — likely incomplete
-  migration to OpenAPI-based serving.
-- `e2e/`: Present in 5 of 10. ENG-HANDBOOK marks it optional but the 5 missing represent work not
-  yet done (identity-rp, identity-spa, identity-idp, identity-rs, pki-ca have no E2E tests).
-  Plan: enforce as REQUIRED for all PS-IDs, consistent with the framework migration target.
-- `*_contract_test.go`: Only 3 of 10 have it (identity-authz, identity-idp, identity-rs). The
-  missing 7 represent framework migration work not yet complete.
-- `*_lifecycle_test.go` and `*_port_conflict_test.go`: Absent from identity-rs, identity-rp,
-  identity-spa. These are framework-standard tests for all services.
+¹ pki-ca has `server/server_lifecycle_test.go` — must rename to `ca_lifecycle_test.go`.
+² identity-authz/idp have `service_lifecycle_test.go` at root — rename on move.
+
+**MOVE** = file exists at PS-ID root, must be relocated to `server/`.
+**MISS** = file does not exist anywhere, must be created in `server/`.
 
 #### Severity Classification
 
 | Category | Invariant | Severity | Rationale |
 |----------|-----------|----------|-----------|
-| REQUIRED | `{SERVICE}.go` | ERROR | Primary entry point; already partially enforced |
-| REQUIRED | `{SERVICE}_usage.go` | ERROR | CLI usage string; already partially enforced |
-| REQUIRED | `server/server.go` | ERROR | Core service implementation |
-| REQUIRED | `swagger.go` | ERROR | OpenAPI serving; 8/10 have it; gap is drift |
-| REQUIRED | `testmain_test.go` | ERROR | TestMain for heavyweight resources; 5/10 missing = technical debt |
-| REQUIRED | `*_lifecycle_test.go` | ERROR | Server lifecycle tests; 3/10 missing = drift |
-| REQUIRED | `*_port_conflict_test.go` | ERROR | Port conflict tests; 5/10 missing = drift |
+| REQUIRED | `{SERVICE}.go` | ERROR | Primary CLI entry point |
+| REQUIRED | `{SERVICE}_usage.go` | ERROR | CLI usage string |
+| REQUIRED | `server/server.go` | ERROR | Core admin server |
+| REQUIRED | `server/swagger.go` | ERROR | OpenAPI serving; must live in server/ (not root) |
+| REQUIRED | `server/testmain_test.go` | ERROR | Integration TestMain; missing from sm-kms |
+| REQUIRED | `server/{SVC}_lifecycle_test.go` | ERROR | Lifecycle tests; 3 missing, 7 need move |
+| REQUIRED | `server/{SVC}_port_conflict_test.go` | ERROR | Port conflict tests; 5 missing, 5 need move |
 | INFORMATIONAL | `e2e/` directory | WARN | E2E not complete for 5 PS-IDs; log but don't block |
 | INFORMATIONAL | `*_contract_test.go` | WARN | Contract tests incomplete for 7 PS-IDs; in progress |
 
@@ -231,15 +248,17 @@ fitness linters.
 - Tests: pass case, fail case (missing server dir), fail case (missing public_server.go), exception case
 
 **Linter 3: `apps-ps-id-swagger-presence`** (`apps_ps_id_swagger_presence/`)
-- Checks every PS-ID has `swagger.go` and `swagger_test.go` at the package root
-- Current state: `identity-rp` and `identity-spa` are missing these files
-- Tests: pass case, fail case (missing swagger.go), fail case (missing swagger_test.go)
+- Checks every PS-ID has `swagger.go` and `swagger_test.go` in the `server/` subdirectory
+- (Per architectural decision 2026-04-26: swagger lives in `server/`, NOT at PS-ID root)
+- Current state: files exist at PS-ID root for 8 PS-IDs (MOVE needed); `identity-rp`, `identity-spa` missing entirely
+- Tests: pass case, fail case (missing server/swagger.go), fail case (missing server/swagger_test.go)
 
 **Linter 4: `apps-ps-id-test-patterns`** (`apps_ps_id_test_patterns/`)
-- Checks every PS-ID has `testmain_test.go` at the package root
-- Checks every PS-ID has at least one `*_lifecycle_test.go` file at package root
-- Checks every PS-ID has at least one `*_port_conflict_test.go` file at package root
-- Current state: 5 PS-IDs missing `testmain_test.go`; 3 missing lifecycle; 5 missing port conflict
+- Checks every PS-ID has `testmain_test.go` in the `server/` subdirectory (NOT at PS-ID root)
+- Checks every PS-ID has at least one `*_lifecycle_test.go` in `server/`
+- Checks every PS-ID has at least one `*_port_conflict_test.go` in `server/`
+- (Per architectural decision 2026-04-26: these tests live in `server/`, NOT at PS-ID root)
+- Current state: `testmain_test.go` missing from `server/` for sm-kms; lifecycle missing for 3; port_conflict missing for 5
 - Tests: pass case, fail case per invariant
 
 **Linter 5: `apps-product-no-service-dirs`** (`apps_product_no_service_dirs/`)
@@ -357,28 +376,54 @@ These replace the ad-hoc linters retired in Phase 3 with template-driven enforce
 
 **Post-Mortem**: After quality gates pass, update `lessons.md` with lessons learned.
 
-### Phase 5: Conformance Migration — Fill All Gaps (12h) [Status: ☐ TODO]
+### Phase 5: Conformance Migration — Fill All Gaps (20h) [Status: ☐ TODO]
 
 **Objective**: Transform all 10 PS-IDs, 5 products, and 1 suite to fully conform to the canonical
-templates. Remove all `knownExclusions` from Phase 2-4 linters. After this phase, all new linters
-run in block-immediately mode with zero exceptions.
+templates. This phase has two categories of work:
 
-**PS-ID gaps to fill** (based on gap matrix in docs/target-structure.md G.1.2):
+1. **FILE MOVES** — Relocate files from PS-ID root to `server/` (architectural decision 2026-04-26)
+2. **FILE CREATES** — Add missing files in `server/` for PS-IDs that lack them entirely
 
-| PS-ID | Missing files to create |
-|-------|------------------------|
+After this phase, all `knownExclusions` are empty and every linter runs in block-immediately mode.
+
+**PS-ID file moves** (root → `server/`; see gap matrix in docs/target-structure.md G.1.2):
+
+| PS-ID | Files to MOVE from root to `server/` | Notes |
+|-------|--------------------------------------|-------|
+| `sm-kms` | `swagger.go`, `swagger_test.go`, `kms_lifecycle_test.go`, `kms_port_conflict_test.go` | Also CREATE `server/testmain_test.go` |
+| `sm-im` | `swagger.go`, `swagger_test.go`, `im_lifecycle_test.go`, `im_port_conflict_test.go` | Also remove redundant root `testmain_test.go` |
+| `jose-ja` | `swagger.go`, `swagger_test.go`, `ja_lifecycle_test.go`, `ja_port_conflict_test.go` | Also remove redundant root `testmain_test.go` |
+| `pki-ca` | `swagger.go`, `swagger_test.go`, `ca_lifecycle_test.go`, `ca_port_conflict_test.go` | Also rename `server/server_lifecycle_test.go` → `ca_lifecycle_test.go`; remove root `testmain_test.go` |
+| `identity-authz` | `swagger.go`, `swagger_test.go`, `service_lifecycle_test.go` → rename `authz_lifecycle_test.go` | Also remove root `testmain_test.go`; CREATE `authz_port_conflict_test.go` |
+| `identity-idp` | `swagger.go`, `swagger_test.go`, `service_lifecycle_test.go` → rename `idp_lifecycle_test.go` | Also remove root `testmain_test.go`; CREATE `idp_port_conflict_test.go` |
+| `identity-rs` | `swagger.go`, `swagger_test.go`, `service.go`, `service_admin_test.go`, `service_test.go`, `validator.go` | Also remove root `testmain_test.go`; CREATE `rs_lifecycle_test.go`, `rs_port_conflict_test.go` |
+| `skeleton-template` | `swagger.go`, `swagger_test.go`, `template_lifecycle_test.go`, `template_port_conflict_test.go` | Also remove redundant root `testmain_test.go` |
+
+**PS-ID files to CREATE** (do not exist anywhere):
+
+| PS-ID | Files to CREATE in `server/` |
+|-------|------------------------------|
 | `sm-kms` | `testmain_test.go` |
-| `identity-authz` | `testmain_test.go`, `authz_port_conflict_test.go` |
-| `identity-idp` | `testmain_test.go`, `idp_port_conflict_test.go` |
-| `identity-rs` | `testmain_test.go`, `rs_lifecycle_test.go`, `rs_port_conflict_test.go` |
-| `identity-rp` | `swagger.go`, `swagger_test.go`, `testmain_test.go`, `rp_lifecycle_test.go`, `rp_port_conflict_test.go` |
-| `identity-spa` | `swagger.go`, `swagger_test.go`, `testmain_test.go`, `spa_lifecycle_test.go`, `spa_port_conflict_test.go` |
+| `identity-authz` | `authz_port_conflict_test.go` |
+| `identity-idp` | `idp_port_conflict_test.go` |
+| `identity-rs` | `rs_lifecycle_test.go`, `rs_port_conflict_test.go` |
+| `identity-rp` | `swagger.go`, `swagger_test.go`, `rp_lifecycle_test.go`, `rp_port_conflict_test.go` |
+| `identity-spa` | `swagger.go`, `swagger_test.go`, `spa_lifecycle_test.go`, `spa_port_conflict_test.go` |
+
+**Non-CLI root files to move** (identity-authz/idp have large amounts of server code at root):
+
+| PS-ID | Root files to move to `server/` |
+|-------|----------------------------------|
+| `identity-authz` | All `handlers_*.go`, `routes.go`, `service.go`, `middleware.go`, `cleanup.go`, and associated `*_test.go` |
+| `identity-idp` | All `handlers_*.go`, `routes.go`, `service.go`, `middleware.go`, `random.go`, and associated `*_test.go` |
+| `identity-rs` | `service.go`, `validator.go`, `service_admin_test.go`, `service_test.go` |
+| `sm-im` | `http_test.go`, `http_errors_test.go`, `response_body_test.go`, `im_database_test.go`, `im_server_lifecycle_test.go` |
 
 **Product gaps to fix** (service-named subdirectories — forbidden by `apps-product-template`):
 
 | Product | Action |
 |---------|--------|
-| `sm/im/`, `sm/kms/` | Audit for unique code not already in `internal/apps/sm-im/`, `sm-kms/`; delete if redundant |
+| `sm/im/`, `sm/kms/` | Audit for unique code not in `internal/apps/sm-im/`, `sm-kms/`; delete if redundant |
 | `jose/ja/` | Audit and delete if redundant with `internal/apps/jose-ja/` |
 | `pki/ca/` | Audit and delete if redundant with `internal/apps/pki-ca/` |
 | `skeleton/template/` | Audit and delete if redundant with `internal/apps/skeleton-template/` |
@@ -388,7 +433,12 @@ run in block-immediately mode with zero exceptions.
 - Verify `go run ./cmd/cicd-lint lint-fitness` passes with zero exceptions
 - All 12 new linters run in block-immediately mode
 
-**Success**: Zero `knownExclusions` remain; all 16 directories conform to canonical templates.
+**Answers to quizme-v1.md required before starting**: Q1 (canonical vs duplicate product dirs)
+answers Task 5.7 (delete vs move); Q2 (identity-rp/spa OpenAPI) answers Task 5.6; Q3 (identity
+TestMain pattern) answers Tasks 5.2-5.6.
+
+**Success**: Zero `knownExclusions` remain; all 16 directories conform to canonical templates;
+PS-ID roots contain ONLY `{SERVICE}_`-prefixed CLI files.
 
 **Post-Mortem**: After quality gates pass, update `lessons.md` with lessons learned.
 

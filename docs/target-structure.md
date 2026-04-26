@@ -663,52 +663,66 @@ Each service lives at `internal/apps/{PS-ID}/` (flat, NOT nested under product).
 **Canonical template**: `api/cryptosuite-registry/templates/internal/apps/__PS_ID__/MANIFEST.yaml`
 enforced by lint-fitness `apps-ps-id-template`.
 
-**PS-ID rigid structure** (all 10 PS-IDs):
+**ROOT FILE RULE**: ALL files at the PS-ID root MUST start with the `{SERVICE}_` prefix.
+The root contains ONLY CLI integration code — no server logic, no HTTP handlers, no OpenAPI.
+
+**PS-ID root rigid structure** (CLI files only — all 10 PS-IDs):
 
 | File/Dir | Status | Purpose |
 |----------|--------|---------|
 | `{SERVICE}.go` | **REQUIRED** | Service entry point (`Kms()`, `Ja()`, `Ca()`, etc.) |
 | `{SERVICE}_usage.go` | **REQUIRED** | CLI usage string via `BuildUsageMain()` |
 | `{SERVICE}_cli_test.go` | **REQUIRED** | CLI integration tests (help, version, unknown-subcommand) |
-| `{SERVICE}_lifecycle_test.go` | **REQUIRED** | Start/stop/graceful-shutdown across dual ports |
-| `{SERVICE}_port_conflict_test.go` | **REQUIRED** | Deterministic failure when ports already in use |
-| `swagger.go` | **REQUIRED** | OpenAPI/swagger serving via `builder.WithSwagger()` |
-| `swagger_test.go` | **REQUIRED** | Swagger serving tests |
-| `testmain_test.go` | **REQUIRED** | `TestMain` for package-level heavyweight setup |
-| `server/` | **REQUIRED** | Admin + public server implementation |
+| `server/` | **REQUIRED** | All server implementation, swagger, and integration tests |
 | `e2e/` | OPTIONAL | Docker Compose E2E tests |
 | `client/` | OPTIONAL | Typed HTTP client (sm-kms, sm-im only) |
-| `testing/` | OPTIONAL | Test helpers shared across root-package tests |
+| `testing/` | OPTIONAL | Test helpers shared across packages |
 
-**Current gap matrix** (MISS = required file missing, enforced as ERROR by `apps-ps-id-template`):
+**`server/` rigid structure** (all server code lives here, NOT at PS-ID root):
+
+| File | Status | Purpose |
+|------|--------|---------|
+| `server.go` | **REQUIRED** | Admin server implementation |
+| `swagger.go` | **REQUIRED** | OpenAPI/swagger serving via `builder.WithSwagger()` |
+| `swagger_test.go` | **REQUIRED** | Swagger serving tests |
+| `testmain_test.go` | **REQUIRED** | `TestMain` for integration test heavyweight setup |
+| `{SERVICE}_lifecycle_test.go` | **REQUIRED** | Start/stop/graceful-shutdown across dual ports |
+| `{SERVICE}_port_conflict_test.go` | **REQUIRED** | Deterministic failure when ports already in use |
+| `public_server.go` | OPTIONAL | Public API server (absent in sm-kms legacy structure) |
+
+**Current gap matrix** (✓ = correct location · MOVE = exists at PS-ID root, must migrate to `server/` · MISS = does not exist anywhere):
 
 | Invariant | sm-kms | sm-im | jose-ja | pki-ca | id-authz | id-idp | id-rs | id-rp | id-spa | skel-tmpl |
 |-----------|:------:|:-----:|:-------:|:------:|:--------:|:------:|:-----:|:-----:|:------:|:---------:|
-| `{SVC}.go` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| `{SVC}_usage.go` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| `swagger.go` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | **MISS** | **MISS** | ✓ |
-| `testmain_test.go` | **MISS** | ✓ | ✓ | ✓ | **MISS** | **MISS** | **MISS** | **MISS** | **MISS** | ✓ |
-| `{SVC}_lifecycle_test.go` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | **MISS** | **MISS** | **MISS** | ✓ |
-| `{SVC}_port_conflict_test.go` | ✓ | ✓ | ✓ | ✓ | **MISS** | **MISS** | **MISS** | **MISS** | **MISS** | ✓ |
-| `server/` dir | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| root `{SVC}.go` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| root `{SVC}_usage.go` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| root `{SVC}_cli_test.go` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| `server/server.go` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| `server/swagger.go` | MOVE | MOVE | MOVE | MOVE | MOVE | MOVE | MOVE | **MISS** | **MISS** | MOVE |
+| `server/swagger_test.go` | MOVE | MOVE | MOVE | MOVE | MOVE | MOVE | MOVE | **MISS** | **MISS** | MOVE |
+| `server/testmain_test.go` | **MISS** | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| `server/{SVC}_lifecycle_test.go` | MOVE | MOVE | MOVE | MOVE¹ | MOVE² | MOVE² | **MISS** | **MISS** | **MISS** | MOVE |
+| `server/{SVC}_port_conflict_test.go` | MOVE | MOVE | MOVE | MOVE | **MISS** | **MISS** | **MISS** | **MISS** | **MISS** | MOVE |
+
+¹ pki-ca `server/` has `server_lifecycle_test.go` — rename to `ca_lifecycle_test.go` on move.
+² identity-authz/idp have `service_lifecycle_test.go` at root — rename to `authz_`/`idp_lifecycle_test.go` on move.
 
 **{SVC} = service component** (`kms`, `im`, `ja`, `ca`, `authz`, `idp`, `rs`, `rp`, `spa`, `template`)
 
 ```
 ├── {PS-ID}/                                          # Flat PS-ID directory (×10 total)
-│   ├── {SERVICE}.go                                  #   REQUIRED: Service entry point
+│   ├── {SERVICE}.go                                  #   REQUIRED: Service entry point (CLI only)
 │   ├── {SERVICE}_usage.go                            #   REQUIRED: CLI usage string
 │   ├── {SERVICE}_cli_test.go                         #   REQUIRED: CLI integration tests
-│   ├── {SERVICE}_lifecycle_test.go                   #   REQUIRED: Lifecycle tests
-│   ├── {SERVICE}_port_conflict_test.go               #   REQUIRED: Port conflict tests
-│   ├── swagger.go                                    #   REQUIRED: OpenAPI serving
-│   ├── swagger_test.go                               #   REQUIRED: Swagger tests
-│   ├── testmain_test.go                              #   REQUIRED: TestMain
-│   ├── server/                                       #   REQUIRED: Server implementation
+│   ├── server/                                       #   REQUIRED: All server code + tests
 │   │   ├── server.go                                 #     Admin server
-│   │   ├── public_server.go                          #     Public server (most PS-IDs)
-│   │   ├── server_test.go
-│   │   └── testmain_test.go                          #     Integration TestMain
+│   │   ├── public_server.go                          #     Public server (OPTIONAL: absent in sm-kms)
+│   │   ├── swagger.go                                #     OpenAPI serving (NOT at PS-ID root)
+│   │   ├── swagger_test.go                           #     Swagger tests
+│   │   ├── testmain_test.go                          #     Integration TestMain
+│   │   ├── {SERVICE}_lifecycle_test.go               #     Lifecycle tests
+│   │   ├── {SERVICE}_port_conflict_test.go           #     Port conflict tests
+│   │   └── (handler/route/service/contract files)   #     Per-service implementation
 │   ├── e2e/                                          #   OPTIONAL: Docker Compose E2E tests
 │   ├── client/                                       #   OPTIONAL: Typed HTTP client
 │   └── (domain packages)/                            #   OPTIONAL: Varies by service complexity
@@ -907,16 +921,20 @@ internal/shared/                                      # drwxr-x---
     └── thread/
 ```
 
-### G.3 internal/apps-tools/cicd_lint/cmd/ — CLI Wiring `drwxr-x---`
+### G.3 INFRA_TOOL CLI Wiring Rule `drwxr-x---`
+
+**RULE**: All INFRA_TOOL CLI wiring files are at the tool root (`internal/apps-tools/{TOOL}/`),
+NOT in a nested `cmd/` subdirectory within the tool.
 
 ```
-internal/apps-tools/cicd_lint/cmd/                   # drwxr-x---
-├── cicd.go                                           #   Validates command name, delegates to cicd_lint/cicd.go
+internal/apps-tools/cicd_lint/                       # drwxr-x---
+├── cicd.go                                           #   CLI entry point + command dispatch (at tool root)
 └── cicd_test.go
 ```
 
-**Note**: `internal/apps-tools/cicd_lint/cmd/` is the thin wiring layer between `cmd/cicd-lint/main.go`
-and `internal/apps-tools/cicd_lint/`. It contains the CLI entry point and argument parsing.
+**Known violation**: `internal/apps-tools/cicd_lint/cmd/cicd.go` (and `cicd_test.go`) currently
+exists as a nested thin-wrapper layer. These files must be merged into
+`internal/apps-tools/cicd_lint/cicd.go` and the `cmd/` subdirectory deleted. See Section N.
 
 ---
 
@@ -929,13 +947,11 @@ docs/                                                 # drwxr-x---
 ├── README.md                                         # Documentation index
 ├── required-propagations.yaml                        # @propagate coverage completeness manifest
 ├── target-structure.md                               # THIS FILE — canonical target structure
-├── framework-v7/                                     # Framework-v7 implementation artifacts (complete)
-│   ├── lessons.md                                    #   Lessons (apply to ENG-HANDBOOK.md + delete after)
-│   ├── plan.md                                       #   Implementation plan (48 tasks complete)
-│   └── tasks.md                                      #   Task checklist (48/48 ✅)
-└── framework-v8/                                     # Framework-v8 planning artifacts (in progress)
-    ├── carryover.md                                  #   Prioritized carryover items
-    └── claude.md                                     #   Claude AI best practices and file structure
+└── framework-v17/                                    # Framework-v17 implementation artifacts (in progress)
+    ├── lessons.md                                    #   Lessons learned (filled during execution)
+    ├── plan.md                                       #   Implementation plan (6 phases, 40+ tasks)
+    ├── tasks.md                                      #   Task checklist
+    └── quizme-v1.md                                  #   Open architectural questions (answer before Phase 5)
 ```
 
 ---
@@ -1011,15 +1027,29 @@ reminders that browser/service credentials are service-level concerns.
 
 ---
 
-## M. Fitness Linter Coverage (68 linters)
+## M. Fitness Linter Coverage (68 existing + 12 planned in V17 = 80 target)
 
-**All 68 fitness linter directories** (alphabetical):
+**Current**: 68 linters. **V17 target**: 80 linters (68 + 12 new in Phases 2–4; see `docs/framework-v17/`).
+
+**All fitness linter directories** (alphabetical; `†` = new in framework-v17, not yet implemented):
 
 ```
 lint_fitness/
 ├── lint-fitness-registry.yaml             # Machine-readable linter category registry
 ├── admin_bind_address/                    # Admin 127.0.0.1:9090 bind enforcement
 ├── api_path_registry/                     # API path registry validation (v7 NEW)
+├── apps_product_no_service_dirs/          # † No service-named subdirs in product dirs (v17 Phase 2)
+├── apps_product_template/                 # † MANIFEST.yaml-driven product structure (v17 Phase 4)
+├── apps_ps_id_required_files/             # † Registry-driven PS-ID entry+usage file checks (v17 Phase 2)
+├── apps_ps_id_server_package/             # † server/server.go + server/public_server.go (v17 Phase 2)
+├── apps_ps_id_swagger_presence/           # † server/swagger.go + server/swagger_test.go (v17 Phase 2)
+├── apps_ps_id_template/                   # † MANIFEST.yaml-driven PS-ID structure check (v17 Phase 4)
+├── apps_ps_id_test_patterns/              # † server/testmain + lifecycle + port_conflict (v17 Phase 2)
+├── apps_suite_required_files/             # † cryptoutil.go + cryptoutil_test.go (v17 Phase 2)
+├── apps_suite_template/                   # † MANIFEST.yaml-driven suite structure (v17 Phase 4)
+├── cmd_product_template/                  # † cmd/{PRODUCT}/main.go structural invariants (v17 Phase 4)
+├── cmd_ps_id_template/                    # † cmd/{PS-ID}/main.go structural invariants (v17 Phase 4)
+├── cmd_suite_template/                    # † cmd/{SUITE}/main.go structural invariants (v17 Phase 4)
 ├── archive_detector/                      # No archived/orphaned directories
 ├── banned_product_names/                  # Legacy product name detection
 ├── bind_address_safety/                   # Bind address safety (no 0.0.0.0 in tests)
@@ -1106,6 +1136,47 @@ lint_fitness/
 
 ## N. Remaining Work (Pending Items)
 
+### N.1 PS-ID Root-to-server/ File Migration (V17 Phase 5)
+
+All files currently at PS-ID root that do not start with `{SERVICE}_` must move to `server/`.
+See framework-v17/ plan.md Phase 5 and the gap matrix in G.1.2 for per-PS-ID details.
+
+| Area | Current State | Target State | Action |
+|------|--------------|-------------|--------|
+| `swagger.go`, `swagger_test.go` at root | 8 PS-IDs have these at root | All in `server/` | MOVE |
+| `testmain_test.go` at root | 9 PS-IDs have at root (sm-kms missing) | All in `server/` | MOVE (+ CREATE for sm-kms) |
+| `{SVC}_lifecycle_test.go` at root | 7 PS-IDs have at root | All in `server/` | MOVE (+ CREATE for id-rs, id-rp, id-spa) |
+| `{SVC}_port_conflict_test.go` at root | 5 PS-IDs have at root | All in `server/` | MOVE (+ CREATE for id-authz, id-idp, id-rs, id-rp, id-spa) |
+| Non-`{SERVICE}_`-prefixed files at root | sm-im, id-authz, id-idp, id-rs have extra root files | None | MOVE to `server/` or appropriate subpackage |
+| `swagger.go`/`swagger_test.go` creation | identity-rp, identity-spa missing entirely | Present in `server/` | CREATE in `server/` |
+
+### N.2 Product Service-Dir Cleanup (V17 Phase 5)
+
+Service-named subdirectories inside product directories violate the flat PS-ID layout rule.
+
+| Product | Forbidden dirs | Correct location | Action |
+|---------|---------------|-----------------|--------|
+| `sm/` | `im/`, `kms/` | `internal/apps/sm-im/`, `internal/apps/sm-kms/` | Audit + DELETE if redundant |
+| `jose/` | `ja/` | `internal/apps/jose-ja/` | Audit + DELETE if redundant |
+| `pki/` | `ca/` | `internal/apps/pki-ca/` | Audit + DELETE if redundant |
+| `skeleton/` | `template/` | `internal/apps/skeleton-template/` | Audit + DELETE if redundant |
+
+### N.3 INFRA_TOOL Nested cmd/ Removal
+
+| Area | Current State | Target State | Action |
+|------|--------------|-------------|--------|
+| `internal/apps-tools/cicd_lint/cmd/` | Thin-wrapper `cmd/cicd.go` nested inside tool | Logic merged into `cicd_lint/cicd.go`, `cmd/` deleted | MERGE + DELETE |
+
+### N.4 Deployments
+
 | Area | Current State | Target State | Action |
 |------|--------------|-------------|--------|
 | `deployments/` product Dockerfile | Missing in all 5 products | Present in all 5 products | CREATE |
+
+### N.5 Framework V17 Linter Implementation
+
+| Phase | Linters | Status |
+|-------|---------|--------|
+| V17 Phase 2 | 6 new linters (`apps-ps-id-*`, `apps-product-no-service-dirs`, `apps-suite-required-files`) | ❌ TODO |
+| V17 Phase 3 | Register + integrate Phase 2 linters | ❌ TODO |
+| V17 Phase 4 | 6 template-compliance linters (`apps-*-template`, `cmd-*-template`) | ❌ TODO |
