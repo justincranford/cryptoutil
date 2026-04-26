@@ -832,17 +832,16 @@ internal/shared/                                      # drwxr-x---
     └── thread/
 ```
 
-### G.3 internal/cmd/ — CLI Wiring `drwxr-x---`
+### G.3 internal/apps-tools/cicd_lint/cmd/ — CLI Wiring `drwxr-x---`
 
 ```
-internal/cmd/                                         # drwxr-x---
-└── cicd_lint/                                        # cicd-lint CLI wiring
-    ├── cicd.go                                       #   Bridges cmd/cicd-lint/main.go → tools/cicd_lint/
-    └── cicd_test.go
+internal/apps-tools/cicd_lint/cmd/                   # drwxr-x---
+├── cicd.go                                           #   Validates command name, delegates to cicd_lint/cicd.go
+└── cicd_test.go
 ```
 
-**Note**: `internal/cmd/cicd_lint/` is the thin wiring layer between `cmd/cicd-lint/main.go`
-and `internal/apps/tools/cicd_lint/`. It contains the CLI entry point and argument parsing.
+**Note**: `internal/apps-tools/cicd_lint/cmd/` is the thin wiring layer between `cmd/cicd-lint/main.go`
+and `internal/apps-tools/cicd_lint/`. It contains the CLI entry point and argument parsing.
 
 ---
 

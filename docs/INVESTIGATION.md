@@ -147,8 +147,8 @@ cert now carries all three SANs: `postgres-leader`, `shared-postgres-leader`, `l
 
 **Files changed**:
 - `internal/shared/magic/magic_pkiinit.go`
-- `internal/apps/framework/tls/generator.go`
-- `internal/apps/framework/tls/generator_test.go`
+- `internal/apps-framework/tls/generator.go`
+- `internal/apps-framework/tls/generator_test.go`
 
 ---
 
@@ -200,9 +200,9 @@ Also added constants `DockerSecretsDir` and `DockerSecretMinLength` to `magic_cl
 98 lines of tests in `validate_secrets_command_test.go`.
 
 **Files changed**:
-- `internal/apps/framework/service/cli/service_router.go`
-- `internal/apps/framework/service/cli/validate_secrets_command.go` (new)
-- `internal/apps/framework/service/cli/validate_secrets_command_test.go` (new)
+- `internal/apps-framework/service/cli/service_router.go`
+- `internal/apps-framework/service/cli/validate_secrets_command.go` (new)
+- `internal/apps-framework/service/cli/validate_secrets_command_test.go` (new)
 - `internal/shared/magic/magic_cli.go`
 
 ---
@@ -224,8 +224,8 @@ open api/cryptosuite-registry/registry.yaml: no such file or directory
 The "file not found" test case was updated to expect the fallback output rather than an error.
 
 **Files changed**:
-- `internal/apps/framework/tls/generator.go`
-- `internal/apps/framework/tls/generator_test.go`
+- `internal/apps-framework/tls/generator.go`
+- `internal/apps-framework/tls/generator_test.go`
 
 ---
 
@@ -245,10 +245,10 @@ accidental overwrites.
 - Commit `daae304c4`: Correct fix — when `validateTargetDir` finds a non-empty directory, call `os.RemoveAll` and regenerate from scratch. This ensures every `pki-init` invocation produces fresh, consistent certs regardless of prior state.
 
 **Files changed**:
-- `internal/apps/framework/tls/generator.go`
-- `internal/apps/framework/tls/init.go`
-- `internal/apps/framework/tls/generator_test.go`
-- `internal/apps/framework/tls/init_test.go`
+- `internal/apps-framework/tls/generator.go`
+- `internal/apps-framework/tls/init.go`
+- `internal/apps-framework/tls/generator_test.go`
+- `internal/apps-framework/tls/init_test.go`
 
 ---
 
@@ -451,7 +451,7 @@ constant value changed.
 **Fix** (`4c7154c55`): Replaced the reused E2E constants with explicit literal values `18200` and
 `18900` in the test, making the intent clear and the test immune to future E2E port changes.
 
-**Files changed**: `internal/apps/tools/cicd_lint/lint_fitness/registry/registry_test.go`
+**Files changed**: `internal/apps-tools/cicd_lint/lint_fitness/registry/registry_test.go`
 
 ---
 

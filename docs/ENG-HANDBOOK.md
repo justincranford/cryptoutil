@@ -445,7 +445,7 @@ for d in sorted(ext_dir.iterdir()):
 
 #### Service Framework Pattern
 
-- **Single Reusable Template**: All 10 services across 5 products inherit from `internal/apps/framework/`
+- **Single Reusable Template**: All 10 services across 5 products inherit from `internal/apps-framework/`
 - **Eliminates 48,000+ lines per service**: TLS setup, dual HTTPS servers, database, migrations, sessions, barrier
 - **Merged Migrations**: Template (1001-1999) + Domain (2001+) for golang-migrate validation
 - **Builder Pattern**: Fluent API with `NewServerBuilder(ctx, cfg).WithDomainMigrations(...).Build()`
@@ -1085,7 +1085,7 @@ Based on golang-standards/project-layout:
 - deployments/: Docker Compose, Kubernetes manifests
 - docs/: Documentation
 - pkg/: Public library code (intentionally empty - all code is internal)
-- scripts/: Placeholder only (`.gitkeep`). All tooling lives in `cmd/` or `internal/apps/tools/`.
+- scripts/: Placeholder only (`.gitkeep`). All tooling lives in `cmd/` or `internal/apps-tools/`.
 - test/: Additional test files (Gatling load tests — Java/Maven only)
 
 #### 4.4.2 Directory Rules
@@ -1125,8 +1125,8 @@ cmd/
 ├── sm-kms/main.go                      # Service CLI → internal/apps/sm-kms/sm-kms.go
 │
 │   # Infra tools (×2, {INFRA-TOOL}=cicd-lint|cicd-workflow)
-├── cicd-lint/main.go                   # CICD lint CLI → internal/apps/tools/cicd_lint/cicd.go
-└── cicd-workflow/main.go               # Workflow CLI → internal/apps/tools/cicd_workflow/workflow.go
+├── cicd-lint/main.go                   # CICD lint CLI → internal/apps-tools/cicd_lint/cicd.go
+└── cicd-workflow/main.go               # Workflow CLI → internal/apps-tools/cicd_workflow/workflow.go
 ```
 
 **Pattern**: Thin `main()` pattern for all cmd/ CLIs, with all logic in `internal/apps/` for maximum code reuse and testability.
@@ -1304,7 +1304,7 @@ cryptoutil sm kms server --config=/etc/sm/kms.yml   # {SUITE} {PRODUCT} {SERVICE
 ### CLI Subcommand
 
 All CLIs for all 10 services MUST support these subcommands, with consistent behavior and config parsing and flag parsing.
-Consistency MUST be guaranteed by inheriting from service-framework, which will reuse `internal/apps/framework/service/<SUBCOMMAND>/` packages:
+Consistency MUST be guaranteed by inheriting from service-framework, which will reuse `internal/apps-framework/service/<SUBCOMMAND>/` packages:
 
 | Subcommand | Description |
 |------------|-------------|
@@ -1322,9 +1322,9 @@ The suite → product → service CLI hierarchy is implemented by three framewor
 
 | Package | Function | Call Pattern |
 |---------|----------|-------------|
-| `internal/apps/framework/suite/cli/` | `RouteSuite(cfg, args, stdin, stdout, stderr, products)` | `{SUITE} {PRODUCT} {SERVICE} <subcommand>` |
-| `internal/apps/framework/product/cli/` | `RouteProduct(cfg, args, stdin, stdout, stderr, services)` | `{PRODUCT} {SERVICE} <subcommand>` |
-| `internal/apps/framework/service/` | Service-level subcommand dispatch | `{PS-ID} <subcommand>` |
+| `internal/apps-framework/suite/cli/` | `RouteSuite(cfg, args, stdin, stdout, stderr, products)` | `{SUITE} {PRODUCT} {SERVICE} <subcommand>` |
+| `internal/apps-framework/product/cli/` | `RouteProduct(cfg, args, stdin, stdout, stderr, services)` | `{PRODUCT} {SERVICE} <subcommand>` |
+| `internal/apps-framework/service/` | Service-level subcommand dispatch | `{PS-ID} <subcommand>` |
 
 **RouteSuite** accepts a `[]ProductEntry` (name + handler). Matches `args[0]` to a product name, delegates remaining args to the product handler.
 
@@ -1347,8 +1347,8 @@ Two `cmd/` entries exist as deliberate **infrastructure tools**, NOT product/ser
 
 | Entry | Internal Package | Purpose |
 |-------|-----------------|---------|
-| `cmd/cicd-lint/` | `internal/apps/tools/cicd_lint/` | CI/CD quality tooling: 11 linters, 2 formatters, 1 script |
-| `cmd/cicd-workflow/` | `internal/apps/tools/cicd_workflow/` | GitHub Actions workflow testing infrastructure |
+| `cmd/cicd-lint/` | `internal/apps-tools/cicd_lint/` | CI/CD quality tooling: 11 linters, 2 formatters, 1 script |
+| `cmd/cicd-workflow/` | `internal/apps-tools/cicd_workflow/` | GitHub Actions workflow testing infrastructure |
 
 These are **intentional exceptions** to the product/service CLI pattern (`{INFRA-TOOL}=cicd-lint|cicd-workflow`). They serve **repository infrastructure**, not business domain concerns:
 
@@ -1384,8 +1384,8 @@ See [Section 9.10 CICD Command Architecture](#910-cicd-command-architecture) for
 
 #### 5.1.3 Mandatory Usage
 
-- ALL new services MUST use `internal/apps/framework/service/` (consistency, reduced duplication)
-- ALL existing services MUST be refactored to use `internal/apps/framework/service/` (iterative migration)
+- ALL new services MUST use `internal/apps-framework/service/` (consistency, reduced duplication)
+- ALL existing services MUST be refactored to use `internal/apps-framework/service/` (iterative migration)
 - Migration priority: sm-im → jose-ja → sm-kms → pki-ca → identity services
   - sm-im/jose-ja/sm-kms migrate first (SM product); pki-ca second; identity last
 
@@ -1393,7 +1393,7 @@ See [Section 9.10 CICD Command Architecture](#910-cicd-command-architecture) for
 
 #### 5.2.1 Builder Methods
 
-- NewServerBuilder(ctx, cfg): Create builder with `internal/apps/framework/service/` config
+- NewServerBuilder(ctx, cfg): Create builder with `internal/apps-framework/service/` config
 - WithDomainMigrations(fs, path): Register domain migrations (2001+)
 - WithPublicRouteRegistration(func): Register domain-specific public routes
 - Build(): Construct complete infrastructure and return ServiceResources
@@ -1462,9 +1462,9 @@ if session.CreatedAt.After(time.Now().UTC()) { ... }
 
 #### 5.2.5 Framework Shared Types
 
-The `internal/apps/framework/service/` package provides reusable infrastructure types that all services share. These types eliminate boilerplate and ensure architectural consistency.
+The `internal/apps-framework/service/` package provides reusable infrastructure types that all services share. These types eliminate boilerplate and ensure architectural consistency.
 
-##### Config Types (`internal/apps/framework/service/config/`)
+##### Config Types (`internal/apps-framework/service/config/`)
 
 | Type | Purpose | Key Fields |
 |------|---------|-----------|
@@ -1478,7 +1478,7 @@ Each type has a `Validate()` method that enforces field constraints.
 **Usage pattern** (type alias for backward compatibility in service-specific config packages):
 
 ```go
-import cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps/framework/service/config"
+import cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps-framework/service/config"
 
 // Type alias: backward compatible — all importers unchanged, Validate() inherited
 type ServerConfig = cryptoutilAppsFrameworkServiceConfig.ServerConfig
@@ -1491,7 +1491,7 @@ Service-specific types (e.g., `identity.TokenConfig`, `identity.SecurityConfig`)
 
 **Cross-References**: Config file naming conventions in [Section 13.1.5](#1315-config-file-naming-strategy).
 
-##### Rate Limiter (`internal/apps/framework/service/ratelimit/`)
+##### Rate Limiter (`internal/apps-framework/service/ratelimit/`)
 
 The `RateLimiter` type provides per-key token-bucket rate limiting with configurable windows. Used by services to throttle operations like email OTP sending.
 
@@ -1631,11 +1631,11 @@ sm-kms-app-sqlite-1:
 #### 5.6.1 lifecycle.RunService — Signal Handling (MANDATORY)
 
 All PS-ID entry points MUST use `lifecycle.RunService()` from
-`internal/apps/framework/service/lifecycle/` to handle OS signal shutdown. This eliminates ~25
+`internal/apps-framework/service/lifecycle/` to handle OS signal shutdown. This eliminates ~25
 lines of duplicate signal-handling boilerplate per entry point.
 
 ```go
-import cryptoutilLifecycle "cryptoutil/internal/apps/framework/service/lifecycle"
+import cryptoutilLifecycle "cryptoutil/internal/apps-framework/service/lifecycle"
 
 func internalMain(ctx context.Context, args []string, stdout, stderr io.Writer) int {
     server, err := NewServer(ctx, cfg)
@@ -1661,11 +1661,11 @@ directly in entry point files. All signal handling is centralized in the `lifecy
 #### 5.6.2 BuildUsage*() — Usage String Deduplication (MANDATORY)
 
 All PS-ID usage strings MUST be generated via `BuildUsage*()` functions from
-`internal/apps/framework/service/usage/`. Use `var` blocks (NOT `const`) since function calls
+`internal/apps-framework/service/usage/`. Use `var` blocks (NOT `const`) since function calls
 are not compile-time constants:
 
 ```go
-import cryptoutilUsage "cryptoutil/internal/apps/framework/service/usage"
+import cryptoutilUsage "cryptoutil/internal/apps-framework/service/usage"
 
 var (
     KMSUsageMain   = cryptoutilUsage.BuildUsageMain("Secrets Manager", "Key Management Service", "/configs/sm-kms/sm-kms.yml")
@@ -2050,7 +2050,7 @@ naming convention that encodes this design.
 
 **Trade-offs**: Length threshold catches most real secrets (UUIDs, tokens, hashes) while allowing short developer passwords (`admin`, `dev123`). Infrastructure deployments (Grafana, OTLP collector) are excluded since they intentionally use inline dev credentials.
 
-**Cross-References**: Implementation in [validate_secrets.go](/internal/apps/tools/cicd_lint/lint_deployments/validate_secrets.go). Deployment secrets management in [Section 13.3](#133-secrets-management-in-deployments).
+**Cross-References**: Implementation in [validate_secrets.go](/internal/apps-tools/cicd_lint/lint_deployments/validate_secrets.go). Deployment secrets management in [Section 13.3](#133-secrets-management-in-deployments).
 
 ---
 
@@ -2066,7 +2066,7 @@ naming convention that encodes this design.
 
 #### 6.11.1 TLS Mode Taxonomy (Static / Mixed / Auto)
 
-The `GenerateTLSMaterial()` function in `internal/apps/framework/service/config/tls_generator.go` selects one of three modes based on available credentials:
+The `GenerateTLSMaterial()` function in `internal/apps-framework/service/config/tls_generator.go` selects one of three modes based on available credentials:
 
 **TLSModeStatic** (Production):
 - Provides pre-generated certificate chain + private key via Docker secrets
@@ -3075,18 +3075,18 @@ The `cicd-lint` CLI tool implements a strict directory-driven code organization 
 
 ```
 cmd/cicd-lint/main.go                          # Layer 1: Thin main(), os.Exit(Cicd(...))
-  → internal/cmd/cicd_lint/cicd.go             # Layer 2: Validates command name, delegates to apps
-    → internal/apps/tools/cicd_lint/cicd.go          # Layer 3: Unified dispatch switch, run()
-      → internal/apps/tools/cicd_lint/<command>/     # Layer 4: Registered linters/formatters/scripts
-        → internal/apps/tools/cicd_lint/<command>/<sub>/  # Sub-linters/formatters/scripts
+  → internal/apps-tools/cicd_lint/cmd/cicd.go             # Layer 2: Validates command name, delegates to apps
+    → internal/apps-tools/cicd_lint/cicd.go          # Layer 3: Unified dispatch switch, run()
+      → internal/apps-tools/cicd_lint/<command>/     # Layer 4: Registered linters/formatters/scripts
+        → internal/apps-tools/cicd_lint/<command>/<sub>/  # Sub-linters/formatters/scripts
 ```
 
 **Strict Enforcement Rules**:
 
 - Layer 1 (`cmd/cicd-lint/main.go`): ONLY `os.Exit()` + delegate. Zero logic.
-- Layer 2 (`internal/cmd/cicd_lint/cicd.go`): ONLY command validation + usage display + delegate to Layer 3. Zero business logic.
-- Layer 3 (`internal/apps/tools/cicd_lint/cicd.go`): Unified `run()` switch for ALL commands. Each command has a `const` declaration. `ValidCommands` in `internal/shared/magic/magic_cicd.go` MUST match the switch cases 1:1.
-- Layer 4 (`internal/apps/tools/cicd_lint/<command>/`): Package-per-command. Entry point is `Lint()`, `Format()`, or `Cleanup()`/script-specific. Internal sub-linters/formatters registered in a `registeredLinters`/`registeredFormatters`/`registeredCleaners` slice.
+- Layer 2 (`internal/apps-tools/cicd_lint/cmd/cicd.go`): ONLY command validation + usage display + delegate to Layer 3. Zero business logic.
+- Layer 3 (`internal/apps-tools/cicd_lint/cicd.go`): Unified `run()` switch for ALL commands. Each command has a `const` declaration. `ValidCommands` in `internal/shared/magic/magic_cicd.go` MUST match the switch cases 1:1.
+- Layer 4 (`internal/apps-tools/cicd_lint/<command>/`): Package-per-command. Entry point is `Lint()`, `Format()`, or `Cleanup()`/script-specific. Internal sub-linters/formatters registered in a `registeredLinters`/`registeredFormatters`/`registeredCleaners` slice.
 
 #### 9.10.2 Command Naming Patterns
 
@@ -3138,8 +3138,8 @@ func Lint(logger *common.Logger) error {
 
 ```
 cmd/cicd-lint/main.go                                    # Thin main()
-internal/cmd/cicd_lint/cicd.go                           # Validation + delegation
-internal/apps/tools/cicd_lint/
+internal/apps-tools/cicd_lint/cmd/cicd.go                           # Validation + delegation
+internal/apps-tools/cicd_lint/
 ├── cicd.go                                         # Unified dispatch (ALL commands)
 ├── common/                                         # Shared logger, summary, filter
 ├── docs_validation/                                # Core docs validation logic
@@ -3217,12 +3217,12 @@ internal/apps/tools/cicd_lint/
 
 #### 9.10.5 Enforcement Invariants
 
-1. **1:1 mapping**: Every `const cmd*` in `cicd.go` MUST have a matching `switch case` in `run()`, a matching entry in `ValidCommands`, and a matching directory under `internal/apps/tools/cicd_lint/`.
+1. **1:1 mapping**: Every `const cmd*` in `cicd.go` MUST have a matching `switch case` in `run()`, a matching entry in `ValidCommands`, and a matching directory under `internal/apps-tools/cicd_lint/`.
 2. **No scattered commands**: ALL cicd commands MUST be dispatched through the single `run()` function. No secondary dispatch paths.
 3. **Directory = Command**: Directory name (with underscores) MUST match command name (with hyphens). Example: command `lint-go` → directory `lint_go/`.
 4. **Entry point naming**: Linters export `Lint()`, formatters export `Format()`, scripts export their action verb (e.g., `Cleanup()`).
 5. **Sub-commands are registered**: Sub-linters/formatters MUST be registered in a slice within the parent command's entry point file. No ad-hoc invocations.
-6. **Test presence**: Every package under `internal/apps/tools/cicd_lint/` MUST have at least one `_test.go` file (enforced by `lint_go/test_presence` sub-linter).
+6. **Test presence**: Every package under `internal/apps-tools/cicd_lint/` MUST have at least one `_test.go` file (enforced by `lint_go/test_presence` sub-linter).
 
 #### 9.10.6 cicd-lint Command Constraints — MANDATORY
 
@@ -3234,7 +3234,7 @@ internal/apps/tools/cicd_lint/
 1. **Subcommands only**: `go run ./cmd/cicd-lint <subcommand> [<subcommand2> ...]` — the ONLY accepted arguments are subcommand names. No `--flags`, no `--ps-id=`, no customization parameters of any kind.
 2. **Linting and formatting only**: Linter commands detect deviations from expected structure and return errors. Formatter commands auto-fix style issues. Neither generates new content.
 3. **No content generation**: cicd-lint NEVER creates Dockerfiles, compose files, config overlays, secrets, migration files, or any other repository artifacts. The strategy is detect-and-error, not generate-and-apply.
-4. **No Python under cicd_lint**: `internal/apps/tools/cicd_lint/` is pure Go. No Python scripts, modules, or helpers.
+4. **No Python under cicd_lint**: `internal/apps-tools/cicd_lint/` is pure Go. No Python scripts, modules, or helpers.
 5. **Codify as validators**: When a new invariant is identified, implement it as a fitness linter that validates the actual state against expected state and returns descriptive errors. NEVER implement it as a generator that creates the expected state.
 <!-- @/propagate -->
 
@@ -3354,7 +3354,7 @@ The majority pattern (`os.IsNotExist(err) → return nil`) silently hides compli
 
 #### 9.11.3 Entity Registry
 
-**Location**: `internal/apps/tools/cicd_lint/lint_fitness/registry/registry.go`
+**Location**: `internal/apps-tools/cicd_lint/lint_fitness/registry/registry.go`
 
 **YAML Source**: `api/cryptosuite-registry/registry.yaml` — single source of truth for all products and product-services. Loaded at startup via `gopkg.in/yaml.v3` with JSON Schema validation at `api/cryptosuite-registry/registry-schema.json`.
 
@@ -3862,7 +3862,7 @@ ctx, cancel := context.WithTimeout(ctx, magic.DefaultDataServerShutdownTimeout) 
 **Entry Point**:
 
 ```go
-import cryptoutilContract "cryptoutil/internal/apps/framework/service/testing/contract"
+import cryptoutilContract "cryptoutil/internal/apps-framework/service/testing/contract"
 
 func TestMyService_ContractCompliance(t *testing.T) {
     t.Parallel()
@@ -3879,7 +3879,7 @@ type ServiceServer interface {
     SetReady(ready bool)                   // used by RunReadyzNotReadyContract
     TLSRootCAPool() *x509.CertPool         // public server CA pool (no InsecureSkipVerify)
     AdminTLSRootCAPool() *x509.CertPool    // admin server CA pool (no InsecureSkipVerify)
-    // ... (full interface: see internal/apps/framework/service/server/contract.go)
+    // ... (full interface: see internal/apps-framework/service/server/contract.go)
 }
 ```
 
@@ -3891,12 +3891,12 @@ type ServiceServer interface {
 
 #### 10.3.6 Shared Test Infrastructure
 
-Shared test packages in `internal/apps/framework/service/testing/` eliminate TestMain boilerplate by providing reusable setup helpers.
+Shared test packages in `internal/apps-framework/service/testing/` eliminate TestMain boilerplate by providing reusable setup helpers.
 
 **testdb** — Database setup helpers:
 
 ```go
-import cryptoutilTestdb "cryptoutil/internal/apps/framework/service/testing/testdb"
+import cryptoutilTestdb "cryptoutil/internal/apps-framework/service/testing/testdb"
 
 // In-memory SQLite (fast, no cleanup needed)
 db := cryptoutilTestdb.NewInMemorySQLiteDB(t)
@@ -3915,7 +3915,7 @@ db := cryptoutilTestdb.RequireNewPostgresTestContainer(ctx, t, &MyModel{})
 **testserver** — Test server lifecycle:
 
 ```go
-import cryptoutilTestserver "cryptoutil/internal/apps/framework/service/testing/testserver"
+import cryptoutilTestserver "cryptoutil/internal/apps-framework/service/testing/testserver"
 
 // Start server with port 0 (dynamic), wait for ready, register cleanup
 srv := cryptoutilTestserver.StartAndWait(ctx, t, myServiceServer)
@@ -3924,7 +3924,7 @@ srv := cryptoutilTestserver.StartAndWait(ctx, t, myServiceServer)
 **fixtures** — Test data creation:
 
 ```go
-import cryptoutilFixtures "cryptoutil/internal/apps/framework/service/testing/fixtures"
+import cryptoutilFixtures "cryptoutil/internal/apps-framework/service/testing/fixtures"
 
 tenant := cryptoutilFixtures.CreateTestTenant(t, db)
 realm  := cryptoutilFixtures.CreateTestRealm(t, db, tenant.ID)
@@ -3934,7 +3934,7 @@ user   := cryptoutilFixtures.CreateTestUser(t, db, tenant.ID)
 **assertions** — HTTP response assertions:
 
 ```go
-import cryptoutilAssertions "cryptoutil/internal/apps/framework/service/testing/assertions"
+import cryptoutilAssertions "cryptoutil/internal/apps-framework/service/testing/assertions"
 
 cryptoutilAssertions.AssertHealthy(t, resp)                         // 200 OK
 cryptoutilAssertions.AssertErrorResponse(t, resp, http.StatusBadRequest)
@@ -3945,7 +3945,7 @@ cryptoutilAssertions.AssertTraceID(t, resp)
 **healthclient** — HTTPS health endpoint client:
 
 ```go
-import cryptoutilHealthclient "cryptoutil/internal/apps/framework/service/testing/healthclient"
+import cryptoutilHealthclient "cryptoutil/internal/apps-framework/service/testing/healthclient"
 
 client := cryptoutilHealthclient.NewHealthClient(srv.PublicBaseURL(), srv.AdminBaseURL())
 livezResp, err  := client.Livez()
@@ -3957,7 +3957,7 @@ readyzResp, err := client.Readyz()
 **e2e_infra** — E2E TestMain factory (eliminates PS-ID TestMain boilerplate):
 
 ```go
-import cryptoutilE2eInfra "cryptoutil/internal/apps/framework/service/testing/e2e_infra"
+import cryptoutilE2eInfra "cryptoutil/internal/apps-framework/service/testing/e2e_infra"
 
 // In testmain_e2e_test.go (with //go:build e2e build tag):
 func TestMain(m *testing.M) {
@@ -4025,7 +4025,7 @@ testAdminHTTPClient = &http.Client{
 **Testutil Helpers** (shared test infrastructure for template-derived tests):
 
 ```go
-import cryptoutilTestutil "cryptoutil/internal/apps/framework/service/server/testutil"
+import cryptoutilTestutil "cryptoutil/internal/apps-framework/service/server/testutil"
 
 // Pre-configured cert pools from the shared test TLS bundle.
 publicPool := cryptoutilTestutil.PublicRootCAPool()   // public server CA
@@ -4233,7 +4233,7 @@ type ServiceAndJob struct {
 }
 ```
 
-**Implementation**: See `internal/apps/framework/service/testing/e2e_infra/docker_health.go` for parseDockerComposePsOutput(), determineServiceHealthStatus(), WaitForServicesHealthy().
+**Implementation**: See `internal/apps-framework/service/testing/e2e_infra/docker_health.go` for parseDockerComposePsOutput(), determineServiceHealthStatus(), WaitForServicesHealthy().
 
 #### 10.4.3 E2E Test Scope
 
@@ -5055,14 +5055,14 @@ sm-kms-app-sqlite-1:
 ```
 *(When admin mTLS is active, also add `--cert /certs/admin-client.crt --key /certs/admin-client.key`)*
 
-2. **Job-only** (validation job, ExitCode=0 required):
+1. **Job-only** (validation job, ExitCode=0 required):
 ```yaml
 healthcheck-secrets:
   image: alpine:latest
   command: ["sh", "-c", "test -f /run/secrets/unseal-1of5.secret || exit 1"]
 ```
 
-3. **Service with healthcheck job** (external sidecar for distroless images — NEVER wget/curl for PS-ID services):
+1. **Service with healthcheck job** (external sidecar for distroless images — NEVER wget/curl for PS-ID services):
 ```yaml
 otel-collector:
   image: otel/opentelemetry-collector-contrib:latest
@@ -5306,7 +5306,7 @@ All tiers use the identical filename `hash-pepper-v3.secret` — the tier is sel
 
 **Coverage**: Linter validates ALL deployments (10 SERVICE, 5 PRODUCT, 1 SUITE, 2 shared infrastructure).
 
-**Implementation**: [internal/apps/tools/cicd_lint/lint_deployments/lint_deployments.go](/internal/apps/tools/cicd_lint/lint_deployments/) with `validateProductSecrets()` and `validateSuiteSecrets()` functions.
+**Implementation**: [internal/apps-tools/cicd_lint/lint_deployments/lint_deployments.go](/internal/apps-tools/cicd_lint/lint_deployments/) with `validateProductSecrets()` and `validateSuiteSecrets()` functions.
 
 ##### Cross-Reference Documentation
 
@@ -5449,7 +5449,7 @@ Detection heuristic: `svc.Image == "" && svc.Build == nil && len(svc.Ports) > 0`
 
 **Linter Tool**: `cicd-lint lint-deployments` validates ALL deployments in `deployments/` and `configs/` directories.
 
-**Implementation**: [internal/apps/tools/cicd_lint/lint_deployments](/internal/apps/tools/cicd_lint/lint_deployments/) package with comprehensive table-driven tests.
+**Implementation**: [internal/apps-tools/cicd_lint/lint_deployments](/internal/apps-tools/cicd_lint/lint_deployments/) package with comprehensive table-driven tests.
 
 **Cross-References**: Template enforcement and drift detection in [Section 13.6](#136-template-enforcement--drift-detection). Canonical templates in [deployment-templates.md](/docs/deployment-templates.md).
 
@@ -5613,7 +5613,7 @@ deployments/{PS-ID}/config/         # e.g., {PS-ID}=sm-kms
 
 #### 13.1.8 Config File Content Validation
 
-**Implementation**: `ValidateConfigFile()` in [internal/apps/tools/cicd_lint/lint_deployments/validate_config.go](/internal/apps/tools/cicd_lint/lint_deployments/validate_config.go)
+**Implementation**: `ValidateConfigFile()` in [internal/apps-tools/cicd_lint/lint_deployments/validate_config.go](/internal/apps-tools/cicd_lint/lint_deployments/validate_config.go)
 
 **Validation Rules**:
 
@@ -5629,7 +5629,7 @@ deployments/{PS-ID}/config/         # e.g., {PS-ID}=sm-kms
 
 #### 13.1.9 Compose File Content Validation
 
-**Implementation**: `ValidateComposeFile()` in [internal/apps/tools/cicd_lint/lint_deployments/validate_compose.go](/internal/apps/tools/cicd_lint/lint_deployments/validate_compose.go)
+**Implementation**: `ValidateComposeFile()` in [internal/apps-tools/cicd_lint/lint_deployments/validate_compose.go](/internal/apps-tools/cicd_lint/lint_deployments/validate_compose.go)
 
 **Validation Rules**:
 
@@ -5645,7 +5645,7 @@ deployments/{PS-ID}/config/         # e.g., {PS-ID}=sm-kms
 
 #### 13.1.10 Structural Mirror Validation
 
-**Implementation**: `ValidateStructuralMirror()` in [internal/apps/tools/cicd_lint/lint_deployments/validate_mirror.go](/internal/apps/tools/cicd_lint/lint_deployments/validate_mirror.go)
+**Implementation**: `ValidateStructuralMirror()` in [internal/apps-tools/cicd_lint/lint_deployments/validate_mirror.go](/internal/apps-tools/cicd_lint/lint_deployments/validate_mirror.go)
 
 **Direction**: `deployments/` → `configs/` (one-way). Every deployment directory MUST have a `configs/` counterpart.
 
@@ -5694,7 +5694,7 @@ deployments/{PS-ID}/config/         # e.g., {PS-ID}=sm-kms
 | 7 | **ValidateAdmin** | `deployments/` compose files | Validate admin endpoint bind policy | Admin port must bind to `127.0.0.1:9090` (never `0.0.0.0`); ensures admin API never exposed outside container. |
 | 8 | **ValidateSecrets** | `deployments/` compose files | Detect inline secrets in environment variables | Secret-pattern env vars (PASSWORD, SECRET, TOKEN, KEY, API_KEY) must use Docker secrets (`/run/secrets/`); length threshold ≥32/43 chars for non-reference values. Infrastructure deployments excluded. |
 
-**Cross-References**: Each validator is implemented in `internal/apps/tools/cicd_lint/lint_deployments/validate_<name>.go` with comprehensive table-driven tests in `validate_<name>_test.go`. See code comments for detailed validation rules (per Decision 9:A minimal docs, comprehensive code comments).
+**Cross-References**: Each validator is implemented in `internal/apps-tools/cicd_lint/lint_deployments/validate_<name>.go` with comprehensive table-driven tests in `validate_<name>_test.go`. See code comments for detailed validation rules (per Decision 9:A minimal docs, comprehensive code comments).
 
 ### 13.2 Config File Architecture
 
@@ -5757,7 +5757,7 @@ configs/
 
 **Dual configs/ vs deployments/config/ Relationship**: The `configs/` directory holds **standalone development configs** for direct `go run` usage. The `deployments/{PS-ID}/config/` directories hold **Docker Compose deployment configs** (`{PS-ID}-app-{variant}.yml`) with 5 required variant files (common, sqlite-1, sqlite-2, postgresql-1, postgresql-2). Both follow the same flat kebab-case schema for service framework configs.
 
-**Cross-References**: Schema validation rules in [validate_schema.go](/internal/apps/tools/cicd_lint/lint_deployments/validate_schema.go). Config naming in [Section 13.1.5](#1315-config-file-naming-strategy).
+**Cross-References**: Schema validation rules in [validate_schema.go](/internal/apps-tools/cicd_lint/lint_deployments/validate_schema.go). Config naming in [Section 13.1.5](#1315-config-file-naming-strategy).
 
 ### 13.3 Secrets Management in Deployments
 
@@ -5779,7 +5779,7 @@ configs/
 - Underscore-based secrets: `hash_pepper_v3.secret`, `unseal_1of5.secret` (use hyphenated `hash-pepper-v3.secret`, `unseal-1of5.secret`).
 - Product-prefixed filenames: `sm-hash-pepper.secret`, `jose-unseal-1of5.secret` (prefix goes in VALUE, not filename).
 
-**Cross-References**: Secrets coordination strategy in [Section 12.3.3](#1233-secrets-coordination-strategy). Validator implementation in [validate_secrets.go](/internal/apps/tools/cicd_lint/lint_deployments/validate_secrets.go).
+**Cross-References**: Secrets coordination strategy in [Section 12.3.3](#1233-secrets-coordination-strategy). Validator implementation in [validate_secrets.go](/internal/apps-tools/cicd_lint/lint_deployments/validate_secrets.go).
 
 ### 13.4 Documentation Propagation Strategy
 
@@ -6113,7 +6113,7 @@ otlp-tls-ca-file:   /certs/{PS-ID}/otel-collector-contrib-https-client-issuing-c
 - `config-instance-minimal`: Validates instance config overlays contain only allowed keys (`cors-origins`, `otlp-service`, `otlp-hostname`, `database-url`)
 - `config-common-complete`: Validates common config overlays contain all 12 required shared keys
 
-**Cross-References**: Template specifications in [deployment-templates.md](/docs/deployment-templates.md). Fitness linter infrastructure in [Section 11.2](#112-quality-gates). Registry in [lint_fitness/registry](/internal/apps/tools/cicd_lint/lint_fitness/registry/). Canonical template directory: [api/cryptosuite-registry/templates](/api/cryptosuite-registry/templates/).
+**Cross-References**: Template specifications in [deployment-templates.md](/docs/deployment-templates.md). Fitness linter infrastructure in [Section 11.2](#112-quality-gates). Registry in [lint_fitness/registry](/internal/apps-tools/cicd_lint/lint_fitness/registry/). Canonical template directory: [api/cryptosuite-registry/templates](/api/cryptosuite-registry/templates/).
 
 ---
 
@@ -6173,7 +6173,7 @@ from the source file and the fitness check fails even though the behavior is cor
 if any check depends on the literal being present in source text:
 
 ```bash
-grep -r "strings.Contains\|filepath.WalkDir.*\.go" internal/apps/tools/cicd_lint/lint_fitness/
+grep -r "strings.Contains\|filepath.WalkDir.*\.go" internal/apps-tools/cicd_lint/lint_fitness/
 ```
 
 If a fitness linter scans source text, satisfy it via a **comment block** containing the literal
@@ -6517,7 +6517,7 @@ After ALL plan tasks are complete, apply accumulated lessons to permanent artifa
 
 **Docker container init exception**: The official PostgreSQL Docker image's `docker-entrypoint-initdb.d/` mechanism runs shell scripts natively. Shell scripts in this specific directory are the only permitted Bash exception. Minimize logic in these scripts; prefer `.sql` files where possible.
 
-**NO Python under `internal/apps/tools/cicd_lint/`**: The `cicd_lint` tool is pure Go. No Python scripts, generation helpers, or utility modules belong here. If a capability requires Python (rare), it belongs outside the Go module.
+**NO Python under `internal/apps-tools/cicd_lint/`**: The `cicd_lint` tool is pure Go. No Python scripts, generation helpers, or utility modules belong here. If a capability requires Python (rare), it belongs outside the Go module.
 <!-- @/propagate -->
 
 ### 14.10 Archive and Dead Code Policy

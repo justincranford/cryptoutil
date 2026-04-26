@@ -16,7 +16,7 @@ from copying the skeleton to registering with CI/CD.
 
 - ALWAYS copy from `skeleton-template` — NEVER create from scratch
 - Port block: assign from registry.yaml (4 ports per PS-ID: sqlite-1=+0, sqlite-2=+1, postgresql-1=+2, postgresql-2=+3)
-- Register PS-ID in `internal/apps/tools/cicd_lint/lint_fitness/registry/registry.go`
+- Register PS-ID in `internal/apps-tools/cicd_lint/lint_fitness/registry/registry.go`
 - Add magic constants to `internal/shared/magic/magic_psids.go`
 - Compose.yml MUST have 4 service instances (2 SQLite + 2 PostgreSQL)
 - Migration numbers MUST use PS-ID range from `api/cryptosuite-registry/registry.yaml`

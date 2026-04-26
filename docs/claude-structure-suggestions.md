@@ -243,7 +243,7 @@ Example rule file:
 ```markdown
 ---
 paths:
-  - "internal/apps/framework/**/*.go"
+  - "internal/apps-framework/**/*.go"
   - "api/**/*.yaml"
 ---
 
@@ -262,7 +262,7 @@ Recommended rule files for cryptoutil:
 
 | File | Paths Filter | Purpose |
 |------|-------------|---------|
-| `.claude/rules/framework.md` | `internal/apps/framework/**/*.go` | Framework seam injection and test helper requirements |
+| `.claude/rules/framework.md` | `internal/apps-framework/**/*.go` | Framework seam injection and test helper requirements |
 | `.claude/rules/tests.md` | `**/*_test.go` | t.Parallel, table-driven, UUIDv7, DisableKeepAlives |
 
 ---
@@ -296,7 +296,7 @@ Scaling strategy for large monorepos: Consider adding subdirectory-level CLAUDE.
 
 Best practice for cryptoutil:
 - Root `CLAUDE.md`: Architecture summary, agent/skill tables, `@.github/instructions/*` imports — keep under 200 lines.
-- `.claude/rules/framework.md` (with `paths: internal/apps/framework/**`): Framework-specific seam injection and test helper requirements.
+- `.claude/rules/framework.md` (with `paths: internal/apps-framework/**`): Framework-specific seam injection and test helper requirements.
 - `.claude/rules/tests.md` (with `paths: **/*_test.go`): Test-specific rules (t.Parallel, table-driven, DisableKeepAlives).
 
 Monitoring adherence: If Claude consistently ignores a rule in CLAUDE.md, the file may have grown too large. Extract the violated section into a path-scoped rule file instead.

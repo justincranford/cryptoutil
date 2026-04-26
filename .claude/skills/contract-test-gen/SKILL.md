@@ -16,7 +16,7 @@ Every cryptoutil service MUST call RunContractTests to verify it conforms to the
 
 ## Key Rules
 
-- Use `RunContractTests(t, testServer)` from `internal/apps/framework/service/testing/contract`
+- Use `RunContractTests(t, testServer)` from `internal/apps-framework/service/testing/contract`
 - Service MUST implement `ServiceServer` interface (PublicBaseURL, AdminBaseURL, SetReady)
 - Call `server.SetReady(true)` after startup when using manual TestMain
 - Use `testserver.StartAndWait(ctx, t, srv)` helper for standard test setup
@@ -36,7 +36,7 @@ RunContractTests verifies 8 contracts per service:
 
 ## Required: Service Interface
 
-The service MUST implement the full server.ServiceServer interface (see internal/apps/framework/service/server/contract.go):
+The service MUST implement the full server.ServiceServer interface (see internal/apps-framework/service/server/contract.go):
 
 `go
 // Add to your service server type declaration to enforce at compile time:
@@ -59,10 +59,10 @@ import (
 "os"
 "testing"
 
-cryptoutilContract "cryptoutil/internal/apps/framework/service/testing/contract"
+cryptoutilContract "cryptoutil/internal/apps-framework/service/testing/contract"
 cryptoutilYourServer "cryptoutil/internal/apps/your-ps-id/server"
 cryptoutilYourConfig "cryptoutil/internal/apps/your-ps-id/server/config"
-cryptoutilE2eHelpers "cryptoutil/internal/apps/framework/service/testing/e2e_helpers"
+cryptoutilE2eHelpers "cryptoutil/internal/apps-framework/service/testing/e2e_helpers"
 cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 

@@ -41,7 +41,7 @@ these templates. Any deviation from the canonical templates is a blocking error.
 ## A. Parameterization Table
 
 All templates use parameterized placeholders. Values for each PS-ID are defined in
-`api/cryptosuite-registry/registry.yaml` and `internal/apps/tools/cicd_lint/lint_fitness/registry/registry.go`.
+`api/cryptosuite-registry/registry.yaml` and `internal/apps-tools/cicd_lint/lint_fitness/registry/registry.go`.
 
 ### A.1 Entity Parameters
 
@@ -612,7 +612,7 @@ All template files live in `api/cryptosuite-registry/templates/`. Paths below ar
 ### O.3 Template Syntax
 
 Templates use `__PARAMETER__` placeholders (double underscores, ALL CAPS with underscores).
-Parameters are resolved from `registry.yaml` and `internal/apps/tools/cicd_lint/lint_fitness/registry/registry.go`.
+Parameters are resolved from `registry.yaml` and `internal/apps-tools/cicd_lint/lint_fitness/registry/registry.go`.
 
 ```
 # Example template line:

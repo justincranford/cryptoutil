@@ -203,7 +203,7 @@ standards, API conventions, or test patterns.
 ```markdown
 ---
 paths:
-  - "internal/apps/framework/**/*.go"
+  - "internal/apps-framework/**/*.go"
   - "api/**/*.yaml"
 ---
 
@@ -258,7 +258,7 @@ Body content SHOULD be identical. The only expected difference is in handling (C
 
 ### Linter Alignment
 
-The `lint-skill-command-drift` linter in `internal/apps/tools/cicd_lint/lint_docs/` checks
+The `lint-skill-command-drift` linter in `internal/apps-tools/cicd_lint/lint_docs/` checks
 `.claude/skills/<name>/SKILL.md` for each Copilot skill in `.github/skills/<NAME>/SKILL.md`.
 
 ---
@@ -281,5 +281,5 @@ This keeps the root CLAUDE.md concise (target <200 lines) while allowing deep co
 
 **Best practice for cryptoutil**:
 - Root `CLAUDE.md`: Architecture summary, agent/skill tables, `@.github/instructions/*` imports
-- `.claude/rules/framework.md` with `paths: internal/apps/framework/**` for framework coding rules
+- `.claude/rules/framework.md` with `paths: internal/apps-framework/**` for framework coding rules
 - `.claude/rules/tests.md` with `paths: **/*_test.go` for test-specific rules
