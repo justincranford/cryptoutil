@@ -49,6 +49,40 @@ func TestLoadTemplatesDir_Happy(t *testing.T) {
 	require.Equal(t, "FROM "+cryptoutilSharedMagic.CICDTemplateExpansionKeyPSID, templates["deployments/"+cryptoutilSharedMagic.CICDTemplateExpansionKeyPSID+"/Dockerfile"])
 }
 
+func TestLoadTemplatesDir_SkipsStructuralManifestPaths(t *testing.T) {
+	t.Parallel()
+
+	tmpDir := t.TempDir()
+	baseTemplDir := filepath.Join(tmpDir, cryptoutilSharedMagic.CICDTemplatesRelPath)
+
+	// Deployment template (should be loaded).
+	deploymentsDir := filepath.Join(baseTemplDir, "deployments", cryptoutilSharedMagic.CICDTemplateExpansionKeyPSID)
+	require.NoError(t, os.MkdirAll(deploymentsDir, cryptoutilSharedMagic.CICDTempDirPermissions))
+	require.NoError(t, os.WriteFile(filepath.Join(deploymentsDir, "Dockerfile"), []byte("FROM alpine"), cryptoutilSharedMagic.CacheFilePermissions))
+
+	// Structural manifest templates (should be SKIPPED — cmd/ and internal/ prefixes).
+	cmdDir := filepath.Join(baseTemplDir, "cmd", cryptoutilSharedMagic.CICDTemplateExpansionKeyPSID)
+	require.NoError(t, os.MkdirAll(cmdDir, cryptoutilSharedMagic.CICDTempDirPermissions))
+	require.NoError(t, os.WriteFile(filepath.Join(cmdDir, "main.go"), []byte("//go:build ignore\npackage main"), cryptoutilSharedMagic.CacheFilePermissions))
+
+	internalDir := filepath.Join(baseTemplDir, "internal", "apps", cryptoutilSharedMagic.CICDTemplateExpansionKeyPSID)
+	require.NoError(t, os.MkdirAll(internalDir, cryptoutilSharedMagic.CICDTempDirPermissions))
+	require.NoError(t, os.WriteFile(filepath.Join(internalDir, "MANIFEST.yaml"), []byte("required_root_files: []"), cryptoutilSharedMagic.CacheFilePermissions))
+
+	templates, err := LoadTemplatesDir(tmpDir)
+	require.NoError(t, err)
+	// Only the deployment Dockerfile should be loaded; cmd/ and internal/ are skipped.
+	require.Len(t, templates, 1)
+	_, hasDockerfile := templates["deployments/"+cryptoutilSharedMagic.CICDTemplateExpansionKeyPSID+"/Dockerfile"]
+	require.True(t, hasDockerfile, "deployment template should be loaded")
+
+	_, hasCmdMain := templates["cmd/"+cryptoutilSharedMagic.CICDTemplateExpansionKeyPSID+"/main.go"]
+	require.False(t, hasCmdMain, "structural manifest (cmd/) should be skipped")
+
+	_, hasManifest := templates["internal/apps/"+cryptoutilSharedMagic.CICDTemplateExpansionKeyPSID+"/MANIFEST.yaml"]
+	require.False(t, hasManifest, "structural manifest (internal/) should be skipped")
+}
+
 func TestLoadTemplatesDir_NonExistentRoot(t *testing.T) {
 	t.Parallel()
 

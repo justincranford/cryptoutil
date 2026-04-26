@@ -1,0 +1,22 @@
+# Canonical structure manifest for internal/apps/__SUITE__/
+#
+# Used by lint-fitness apps-suite-template linter to enforce structural consistency
+# of the single suite directory. Violations are errors (blocking CI).
+#
+# Placeholder substitution: __SUITE__ → suite ID (currently: cryptoutil)
+#
+# ENG-HANDBOOK references: §1 (Executive Summary), §14.1 (Coding Standards)
+
+required_root_files:
+  # Suite command router - routes to products via RouteSuite()
+  # Imports all products; delegates via framework suite/cli/
+  - __SUITE__.go
+  # Suite router tests
+  - __SUITE___test.go
+
+required_dirs:
+  # (none - suite directory is minimal: __SUITE__.go + __SUITE___test.go only)
+
+optional_dirs:
+  # Suite-level end-to-end tests spanning multiple products (rare, not yet present)
+  - e2e

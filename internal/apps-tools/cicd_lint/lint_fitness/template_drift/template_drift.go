@@ -54,6 +54,13 @@ func loadTemplatesDirFn(projectRoot string, walkFn walkDirFn) (map[string]string
 		// Normalize to forward slashes for cross-platform consistency.
 		relPath = filepath.ToSlash(relPath)
 
+		// Skip structural manifest templates (cmd/, internal/). These are MANIFEST.yaml and
+		// //go:build ignore .go stubs used by Phase 4 linters (apps-ps-id-template, etc.).
+		// They are NOT deployment artifacts — do not compare against actual project files.
+		if strings.HasPrefix(relPath, "cmd/") || strings.HasPrefix(relPath, "internal/") {
+			return nil
+		}
+
 		content, err := os.ReadFile(path)
 		if err != nil {
 			return fmt.Errorf("read template %s: %w", relPath, err)

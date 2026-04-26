@@ -1,0 +1,42 @@
+# Canonical structure manifest for internal/apps/__PRODUCT__/
+#
+# Used by lint-fitness apps-product-template linter to enforce structural consistency
+# across all 5 product directories. Violations are errors (blocking CI).
+#
+# Placeholder substitution: __PRODUCT__ → product ID
+#   sm  jose  pki  identity  skeleton
+#
+# ENG-HANDBOOK references: §4 (Product Architecture), §14.1 (Coding Standards)
+
+required_root_files:
+  # Product command router - routes to PS-ID services via RouteProduct()
+  # Imports all PS-IDs in the product; delegates via framework product/cli/
+  - __PRODUCT__.go
+  # Product router tests
+  - __PRODUCT___test.go
+
+required_dirs:
+  # (none - product directories contain only __PRODUCT__.go, __PRODUCT___test.go,
+  #  and optional shared packages. NO service subdirectories.)
+
+optional_dirs:
+  # Shared packages used by multiple PS-IDs within this product.
+  # identity/ is the canonical example: apperr/, config/, domain/, email/, etc.
+  # Other products may have shared packages as the codebase grows.
+
+forbidden_dir_patterns:
+  # Service-named subdirectories are FORBIDDEN in product directories.
+  # These represent the historical nested layout (sm/kms/, jose/ja/, pki/ca/, skeleton/template/)
+  # that predates the flat PS-ID pattern. All service code must live at internal/apps/{PS-ID}/.
+  #
+  # Known violations (tracked as GAP tasks in docs/framework-v17/tasks.md):
+  #   sm/:       im/, kms/        (service code should be at internal/apps/sm-im/, sm-kms/)
+  #   jose/:     ja/              (service code should be at internal/apps/jose-ja/)
+  #   pki/:      ca/              (service code should be at internal/apps/pki-ca/)
+  #   skeleton/: template/        (service code should be at internal/apps/skeleton-template/)
+  #   identity/: apperr/, config/, domain/, email/, issuer/, jobs/, mfa/, repository/,
+  #              rotation/ are LEGITIMATE shared packages — NOT service dirs.
+  #
+  # Detection: lint-fitness apps-product-no-service-dirs linter cross-references registry.
+  - FORBIDDEN: any subdirectory whose name matches a PS-ID service component
+  - EXCEPTION: identity/ shared packages (apperr, config, domain, email, issuer, jobs, mfa, repository, rotation, userauth, auth, templates, unified)

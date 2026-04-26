@@ -1,0 +1,46 @@
+# Canonical structure manifest for internal/apps/__PS_ID__/
+#
+# Used by lint-fitness apps-ps-id-template linter to enforce structural consistency
+# across all 10 PS-ID service directories. Violations are errors (blocking CI).
+#
+# Placeholder substitution: __SERVICE__ → service component of the PS-ID
+#   sm-kms  → kms    jose-ja → ja     pki-ca → ca     identity-authz → authz
+#   identity-idp → idp  identity-rs → rs  identity-rp → rp  identity-spa → spa
+#   skeleton-template → template    sm-im → im
+#
+# ENG-HANDBOOK references: §5.1 (Service Framework), §10.2 (Unit Testing), §14.1 (Coding Standards)
+
+required_root_files:
+  # Primary service entry point - routes CLI subcommands (server, health, livez, readyz, shutdown)
+  - __SERVICE__.go
+  # CLI usage string - BuildUsageMain() from internal/apps-framework/service/usage/
+  - __SERVICE___usage.go
+  # CLI integration tests - verifies help, version, unknown-subcommand exit codes
+  - __SERVICE___cli_test.go
+  # Lifecycle tests - start/stop/graceful-shutdown across dual public+admin ports
+  - __SERVICE___lifecycle_test.go
+  # Port conflict tests - verifies deterministic failure when ports already in use
+  - __SERVICE___port_conflict_test.go
+  # OpenAPI/swagger serving - registers swagger UI handler via builder.WithSwagger()
+  - swagger.go
+  # Swagger serving tests
+  - swagger_test.go
+  # TestMain for package-level heavyweight setup (shared server/DB for all root-package tests)
+  - testmain_test.go
+
+required_dirs:
+  # Admin + public server implementation; contains server.go, public_server.go, testmain_test.go
+  - server
+
+optional_dirs:
+  # End-to-end Docker Compose tests (required for fully-migrated services; optional during migration)
+  - e2e
+  # HTTP client wrapper (only for services that expose a typed client, e.g., sm-kms, sm-im)
+  - client
+  # Test helpers shared across root-package tests (only for services with complex test setup)
+  - testing
+
+forbidden_dir_patterns:
+  # Service-named subdirectories are FORBIDDEN inside PS-ID directories.
+  # PS-ID services are flat (internal/apps/sm-kms/), not nested (internal/apps/sm/kms/).
+  # This pattern is checked by the apps-product-no-service-dirs linter, not this manifest.
