@@ -266,6 +266,17 @@ for the dual canonical file strategy and drift linting (`lint-agent-drift`, `lin
 **Pattern**: Flat directories — every entry is a direct child of `cmd/`. No nesting.
 Each entry has exactly one `main.go` that delegates to `internal/apps/`.
 
+**Canonical templates**: `api/cryptosuite-registry/templates/cmd/{__PS_ID__,__PRODUCT__,__SUITE__}/main.go`
+enforced by lint-fitness `cmd-ps-id-template`, `cmd-product-template`, `cmd-suite-template`.
+
+**Rigid structure (all three types)**:
+
+| Type | Required file | Invariants |
+|------|--------------|------------|
+| `cmd/{PS-ID}/` | `main.go` | `package main`; imports `os` + `cryptoutil/internal/apps/{PS-ID}`; calls `os.Exit(<alias>.<PascalService>(os.Args[1:], os.Stdin, os.Stdout, os.Stderr))` |
+| `cmd/{PRODUCT}/` | `main.go` | `package main`; imports `os` + `cryptoutil/internal/apps/{PRODUCT}`; calls `os.Exit(<alias>.<PascalProduct>(os.Args[1:], os.Stdin, os.Stdout, os.Stderr))` |
+| `cmd/{SUITE}/` | `main.go` | `package main`; imports `os` + `cryptoutil/internal/apps/{SUITE}`; calls `os.Exit(<alias>.Suite(os.Args, os.Stdin, os.Stdout, os.Stderr))` — uses full `os.Args`, NOT `os.Args[1:]` |
+
 ```
 cmd/                                                  # drwxr-x---  (18 flat entries)
 │
@@ -601,42 +612,106 @@ Product directories (`internal/apps/{PRODUCT}/`) contain ONLY product-level code
 
 #### G.1.1 Suite & Product Pattern
 
+**Canonical templates**: `api/cryptosuite-registry/templates/internal/apps/{__SUITE__,__PRODUCT__}/MANIFEST.yaml`
+enforced by lint-fitness `apps-suite-template`, `apps-product-template`.
+
+**Suite rigid structure** (`internal/apps/cryptoutil/` — exactly 1 suite):
+
+| File/Dir | Status | Purpose |
+|----------|--------|---------|
+| `cryptoutil.go` | **REQUIRED** | Suite CLI dispatch via `RouteSuite()` |
+| `cryptoutil_test.go` | **REQUIRED** | Suite router tests |
+| `e2e/` | OPTIONAL | Full-suite E2E tests |
+
+**Product rigid structure** (`internal/apps/{PRODUCT}/` — 5 products):
+
+| File/Dir | Status | Purpose |
+|----------|--------|---------|
+| `{PRODUCT}.go` | **REQUIRED** | Product CLI dispatch via `RouteProduct()` |
+| `{PRODUCT}_test.go` | **REQUIRED** | Product router tests |
+| `{SERVICE}/` (any) | **FORBIDDEN** | Service code belongs at `internal/apps/{PS-ID}/`, NOT nested under product |
+| shared packages | OPTIONAL | Varies by product; `identity/` has `apperr/`, `config/`, `domain/`, etc. |
+
+**Known product violations** (service-named subdirs — GAP tasks in V17):
+
+| Product | Forbidden dirs | Correct location |
+|---------|---------------|-----------------|
+| `sm/` | `im/`, `kms/` | `internal/apps/sm-im/`, `internal/apps/sm-kms/` |
+| `jose/` | `ja/` | `internal/apps/jose-ja/` |
+| `pki/` | `ca/` | `internal/apps/pki-ca/` |
+| `skeleton/` | `template/` | `internal/apps/skeleton-template/` |
+
 ```
 internal/apps/                                        # drwxr-x---
 │
-│   # Suite orchestration (×1, {SUITE}=cryptoutil)
+│   # Suite (×1)
 ├── cryptoutil/
-│   ├── cryptoutil.go                                 #   Suite CLI dispatch (seam pattern)
-│   ├── *_test.go
-│   └── e2e/                                          #   E2E tests (full suite docker compose)
+│   ├── cryptoutil.go                                 #   REQUIRED: Suite CLI dispatch
+│   └── cryptoutil_test.go                            #   REQUIRED: Suite tests
 │
-│   # Product level (×5)
+│   # Products (×5)
 ├── {PRODUCT}/                                        # identity, jose, pki, skeleton, sm
-│   ├── {PRODUCT}.go                                  #   Product CLI dispatch
-│   ├── *_test.go
-│   ├── e2e/                                          #   E2E tests (full product docker compose)
-│   └── (shared packages)/                            #   Shared within product (optional, varies)
+│   ├── {PRODUCT}.go                                  #   REQUIRED: Product CLI dispatch
+│   ├── {PRODUCT}_test.go                             #   REQUIRED: Product tests
+│   └── (shared packages only)/                       #   OPTIONAL: NO service subdirectories
 ```
 
 #### G.1.2 Service Pattern (`{PS-ID}/`)
 
-Each service lives at `internal/apps/{PS-ID}/` (flat, NOT nested under product). The generic pattern:
+Each service lives at `internal/apps/{PS-ID}/` (flat, NOT nested under product).
+
+**Canonical template**: `api/cryptosuite-registry/templates/internal/apps/__PS_ID__/MANIFEST.yaml`
+enforced by lint-fitness `apps-ps-id-template`.
+
+**PS-ID rigid structure** (all 10 PS-IDs):
+
+| File/Dir | Status | Purpose |
+|----------|--------|---------|
+| `{SERVICE}.go` | **REQUIRED** | Service entry point (`Kms()`, `Ja()`, `Ca()`, etc.) |
+| `{SERVICE}_usage.go` | **REQUIRED** | CLI usage string via `BuildUsageMain()` |
+| `{SERVICE}_cli_test.go` | **REQUIRED** | CLI integration tests (help, version, unknown-subcommand) |
+| `{SERVICE}_lifecycle_test.go` | **REQUIRED** | Start/stop/graceful-shutdown across dual ports |
+| `{SERVICE}_port_conflict_test.go` | **REQUIRED** | Deterministic failure when ports already in use |
+| `swagger.go` | **REQUIRED** | OpenAPI/swagger serving via `builder.WithSwagger()` |
+| `swagger_test.go` | **REQUIRED** | Swagger serving tests |
+| `testmain_test.go` | **REQUIRED** | `TestMain` for package-level heavyweight setup |
+| `server/` | **REQUIRED** | Admin + public server implementation |
+| `e2e/` | OPTIONAL | Docker Compose E2E tests |
+| `client/` | OPTIONAL | Typed HTTP client (sm-kms, sm-im only) |
+| `testing/` | OPTIONAL | Test helpers shared across root-package tests |
+
+**Current gap matrix** (MISS = required file missing, enforced as ERROR by `apps-ps-id-template`):
+
+| Invariant | sm-kms | sm-im | jose-ja | pki-ca | id-authz | id-idp | id-rs | id-rp | id-spa | skel-tmpl |
+|-----------|:------:|:-----:|:-------:|:------:|:--------:|:------:|:-----:|:-----:|:------:|:---------:|
+| `{SVC}.go` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| `{SVC}_usage.go` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| `swagger.go` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | **MISS** | **MISS** | ✓ |
+| `testmain_test.go` | **MISS** | ✓ | ✓ | ✓ | **MISS** | **MISS** | **MISS** | **MISS** | **MISS** | ✓ |
+| `{SVC}_lifecycle_test.go` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | **MISS** | **MISS** | **MISS** | ✓ |
+| `{SVC}_port_conflict_test.go` | ✓ | ✓ | ✓ | ✓ | **MISS** | **MISS** | **MISS** | **MISS** | **MISS** | ✓ |
+| `server/` dir | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+
+**{SVC} = service component** (`kms`, `im`, `ja`, `ca`, `authz`, `idp`, `rs`, `rp`, `spa`, `template`)
 
 ```
 ├── {PS-ID}/                                          # Flat PS-ID directory (×10 total)
-│   ├── {PS-ID}.go                                    #   Service entry point (seam pattern)
-│   ├── *_test.go
-│   ├── client/                                       #   HTTP client (optional)
-│   ├── e2e/                                          #   E2E tests (service docker compose)
-│   ├── integration/                                  #   Integration tests (optional)
-│   ├── model/                                        #   Domain models (optional)
-│   ├── repository/                                   #   Data access layer (optional)
-│   │   ├── *.go                                      #     GORM entity models + repository methods
-│   │   ├── *_test.go
-│   │   └── migrations/                               #     Domain migrations (2001+)
-│   ├── server/                                       #   HTTP server setup
-│   ├── service/                                      #   Business logic (optional)
-│   └── testing/                                      #   Test helpers (optional)
+│   ├── {SERVICE}.go                                  #   REQUIRED: Service entry point
+│   ├── {SERVICE}_usage.go                            #   REQUIRED: CLI usage string
+│   ├── {SERVICE}_cli_test.go                         #   REQUIRED: CLI integration tests
+│   ├── {SERVICE}_lifecycle_test.go                   #   REQUIRED: Lifecycle tests
+│   ├── {SERVICE}_port_conflict_test.go               #   REQUIRED: Port conflict tests
+│   ├── swagger.go                                    #   REQUIRED: OpenAPI serving
+│   ├── swagger_test.go                               #   REQUIRED: Swagger tests
+│   ├── testmain_test.go                              #   REQUIRED: TestMain
+│   ├── server/                                       #   REQUIRED: Server implementation
+│   │   ├── server.go                                 #     Admin server
+│   │   ├── public_server.go                          #     Public server (most PS-IDs)
+│   │   ├── server_test.go
+│   │   └── testmain_test.go                          #     Integration TestMain
+│   ├── e2e/                                          #   OPTIONAL: Docker Compose E2E tests
+│   ├── client/                                       #   OPTIONAL: Typed HTTP client
+│   └── (domain packages)/                            #   OPTIONAL: Varies by service complexity
 ```
 
 **Concrete service subdirectories** (discovered from actual codebase):
@@ -671,8 +746,8 @@ Each service lives at `internal/apps/{PS-ID}/` (flat, NOT nested under product).
 #### G.1.3 Framework & Tools
 
 ```
-internal/apps/
-├── framework/                                        # Service framework (shared by ALL services)
+internal/
+├── apps-framework/                                   # Service framework (shared by ALL services)
 │   ├── product/                                      #   Product-level framework
 │   │   └── cli/
 │   │       ├── product_router.go                     #     RouteProduct(), ProductConfig, ServiceEntry
@@ -719,7 +794,7 @@ internal/apps/
 │       │   └── testserver/
 │       └── testutil/
 │
-├── tools/                                            # Infrastructure tooling
+├── apps-tools/                                       # Infrastructure tooling
 │   ├── cicd_lint/                                    #   Custom linting and formatting tools
 │   │   ├── cicd.go                                   #     CLI entry point + command registration
 │   │   ├── cicd_test.go

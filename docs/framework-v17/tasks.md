@@ -1,6 +1,6 @@
 # Tasks - Framework V17: internal/apps/ Structure Fitness Linters
 
-**Status**: 0 of 21 tasks complete (0%)
+**Status**: 0 of 40 tasks complete (0%)
 **Last Updated**: 2026-04-26
 **Created**: 2026-04-26
 
@@ -511,6 +511,528 @@ propagate lessons to permanent artifacts.
 
 ---
 
+## Phase 4: Template-Compliance Linters for cmd/ and internal/apps/
+
+**Phase Objective**: Implement 6 template-compliance linters driven by the MANIFEST.yaml files and
+cmd/ template `.go` files created during planning. These linters supersede the ad-hoc linters
+retired in Phase 3 and enforce structural invariants via template substitution.
+
+**Prerequisites** (already on disk from planning):
+- `api/cryptosuite-registry/templates/cmd/__PS_ID__/main.go`
+- `api/cryptosuite-registry/templates/cmd/__PRODUCT__/main.go`
+- `api/cryptosuite-registry/templates/cmd/__SUITE__/main.go`
+- `api/cryptosuite-registry/templates/internal/apps/__PS_ID__/MANIFEST.yaml`
+- `api/cryptosuite-registry/templates/internal/apps/__PRODUCT__/MANIFEST.yaml`
+- `api/cryptosuite-registry/templates/internal/apps/__SUITE__/MANIFEST.yaml`
+- `CICDTemplateExpansionKeyService = "__SERVICE__"` in `internal/shared/magic/magic_template.go`
+
+### Task 4.1: Linter `apps-ps-id-template` (MANIFEST.yaml-driven PS-ID structure check)
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 1.5h
+- **Actual**: [Fill when complete]
+- **Dependencies**: Phase 3 complete; Task 1.2 gap matrix
+- **Description**: Implement `apps_ps_id_template/apps_ps_id_template.go`. Reads
+  `api/cryptosuite-registry/templates/internal/apps/__PS_ID__/MANIFEST.yaml` at runtime.
+  For each PS-ID in `AllProductServices()`, substitutes `__SERVICE__` → `ProductService.Service`
+  and `__PS_ID__` → `ProductService.PSID` in file name patterns. Checks that all
+  `required_root_files` exist in `internal/apps/{PS-ID}/` and all `required_dirs` exist.
+  Known exclusions mirror Task 2.4 exclusion lists at launch.
+- **Acceptance Criteria**:
+  - [ ] `Check(logger) error` and `CheckInDir(logger, rootDir) error` implemented
+  - [ ] Reads MANIFEST.yaml using `os.ReadFile` (not embedded FS — template is external)
+  - [ ] `__SERVICE__` substitution correct (e.g., `sm-kms` → service=`kms`)
+  - [ ] `__PS_ID__` substitution correct
+  - [ ] Checks all 8 required_root_files from MANIFEST.yaml
+  - [ ] Checks `server` required_dir from MANIFEST.yaml
+  - [ ] Error message format: `"{PS-ID}: missing required file internal/apps/{PS-ID}/{file}"`
+  - [ ] `knownExclusions` matches Phase 2 exclusion lists (consistent at launch)
+  - [ ] Test: pass case (all required files and dirs present)
+  - [ ] Test: fail case per each missing required_root_file type
+  - [ ] Test: fail case (missing server/ dir)
+  - [ ] Test: exception case (excluded PS-ID passes without testmain_test.go)
+  - [ ] Coverage ≥98%
+  - [ ] `golangci-lint run` exits 0
+  - [ ] `go run ./cmd/cicd-lint lint-fitness` passes after registration
+- **Files**:
+  - `internal/apps-tools/cicd_lint/lint_fitness/apps_ps_id_template/apps_ps_id_template.go` (NEW)
+  - `internal/apps-tools/cicd_lint/lint_fitness/apps_ps_id_template/apps_ps_id_template_test.go` (NEW)
+- **Evidence**: `test-output/phase4/task-4.1-coverage.log`
+
+### Task 4.2: Linter `apps-product-template` (MANIFEST.yaml-driven product structure check)
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 1.25h
+- **Actual**: [Fill when complete]
+- **Dependencies**: Phase 3 complete; Task 2.5
+- **Description**: Implement `apps_product_template/apps_product_template.go`. Reads
+  `api/cryptosuite-registry/templates/internal/apps/__PRODUCT__/MANIFEST.yaml`. For each product
+  in `AllProducts()`, substitutes `__PRODUCT__` → `Product.ID`. Checks required_root_files exist.
+  For `forbidden_dir_patterns`, uses `AllProductServices()` to derive known service suffixes per
+  product, then scans `internal/apps/{PRODUCT}/` for directories matching those suffixes.
+  Maintains the identity/ shared-package whitelist from the MANIFEST.yaml EXCEPTION comment.
+- **Acceptance Criteria**:
+  - [ ] `Check(logger) error` and `CheckInDir(logger, rootDir) error` implemented
+  - [ ] Reads MANIFEST.yaml with `__PRODUCT__` substitution
+  - [ ] Checks `{PRODUCT}.go` and `{PRODUCT}_test.go` required files
+  - [ ] Service-dir detection uses `AllProductServices()` filtered by product
+  - [ ] `identity/` shared packages whitelist: `apperr`, `config`, `domain`, `email`, `issuer`, `jobs`, `mfa`, `repository`, `rotation` — NOT flagged
+  - [ ] Known violations (`sm/kms/`, `sm/im/`, `jose/ja/`, `pki/ca/`, `skeleton/template/`)
+    registered in `knownServiceDirExceptions` with TODO comments
+  - [ ] Test: pass case (identity/ shared packages pass correctly)
+  - [ ] Test: fail case (missing `{PRODUCT}.go`)
+  - [ ] Test: fail case (forbidden service dir detected in non-excepted product)
+  - [ ] Test: exception case (known violation in exception list passes)
+  - [ ] Test: identity whitelisted dirs do NOT trigger forbidden check
+  - [ ] Coverage ≥98%
+  - [ ] `go run ./cmd/cicd-lint lint-fitness` passes after registration
+- **Files**:
+  - `internal/apps-tools/cicd_lint/lint_fitness/apps_product_template/apps_product_template.go` (NEW)
+  - `internal/apps-tools/cicd_lint/lint_fitness/apps_product_template/apps_product_template_test.go` (NEW)
+- **Evidence**: `test-output/phase4/task-4.2-coverage.log`
+
+### Task 4.3: Linter `apps-suite-template` (MANIFEST.yaml-driven suite structure check)
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 0.75h
+- **Actual**: [Fill when complete]
+- **Dependencies**: Phase 3 complete
+- **Description**: Implement `apps_suite_template/apps_suite_template.go`. Reads
+  `api/cryptosuite-registry/templates/internal/apps/__SUITE__/MANIFEST.yaml`. For each suite in
+  `AllSuites()`, substitutes `__SUITE__` → `Suite.ID`. Checks `{SUITE}.go` and `{SUITE}_test.go`
+  exist. Supersedes `apps_suite_required_files` from Phase 2 (retire that linter after this one
+  is registered).
+- **Acceptance Criteria**:
+  - [ ] `Check(logger) error` and `CheckInDir(logger, rootDir) error` implemented
+  - [ ] Reads MANIFEST.yaml from template directory
+  - [ ] `__SUITE__` substitution correct
+  - [ ] Checks `cryptoutil.go` and `cryptoutil_test.go` for the suite
+  - [ ] Test: pass case
+  - [ ] Test: fail case (missing cryptoutil.go)
+  - [ ] Test: fail case (missing cryptoutil_test.go)
+  - [ ] Coverage ≥98%
+  - [ ] `go run ./cmd/cicd-lint lint-fitness` passes after registration
+- **Files**:
+  - `internal/apps-tools/cicd_lint/lint_fitness/apps_suite_template/apps_suite_template.go` (NEW)
+  - `internal/apps-tools/cicd_lint/lint_fitness/apps_suite_template/apps_suite_template_test.go` (NEW)
+- **Evidence**: `test-output/phase4/task-4.3-coverage.log`
+
+### Task 4.4: Linter `cmd-ps-id-template` (structural invariants for cmd/{PS-ID}/main.go)
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 1.25h
+- **Actual**: [Fill when complete]
+- **Dependencies**: Phase 3 complete
+- **Description**: Implement `cmd_ps_id_template/cmd_ps_id_template.go`. Checks structural
+  invariants for `cmd/{PS-ID}/main.go` for all 10 PS-IDs. Reads file content (does NOT compile
+  it). Checks: (1) file exists, (2) contains `package main`, (3) contains import path
+  `cryptoutil/internal/apps/{PS-ID}`, (4) calls `os.Args[1:]` (NOT `os.Args`). Uses string
+  matching, not AST parsing (string matching is sufficient for these structural invariants).
+- **Acceptance Criteria**:
+  - [ ] `Check(logger) error` and `CheckInDir(logger, rootDir) error` implemented
+  - [ ] All 10 PS-IDs checked via `AllProductServices()`
+  - [ ] File-existence check: `cmd/{PS-ID}/main.go`
+  - [ ] `package main` check
+  - [ ] Import path check: `cryptoutil/internal/apps/{PS-ID}`
+  - [ ] `os.Args[1:]` check (CRITICAL: must NOT accept bare `os.Args`)
+  - [ ] Error message format: `"{PS-ID}: cmd/{PS-ID}/main.go {reason}"`
+  - [ ] Test: pass case (all 10 PS-IDs valid)
+  - [ ] Test: fail case (missing main.go)
+  - [ ] Test: fail case (wrong package declaration)
+  - [ ] Test: fail case (missing import path)
+  - [ ] Test: fail case (uses os.Args instead of os.Args[1:])
+  - [ ] Coverage ≥98%
+  - [ ] `go run ./cmd/cicd-lint lint-fitness` passes after registration
+- **Files**:
+  - `internal/apps-tools/cicd_lint/lint_fitness/cmd_ps_id_template/cmd_ps_id_template.go` (NEW)
+  - `internal/apps-tools/cicd_lint/lint_fitness/cmd_ps_id_template/cmd_ps_id_template_test.go` (NEW)
+- **Evidence**: `test-output/phase4/task-4.4-coverage.log`
+
+### Task 4.5: Linter `cmd-product-template` (structural invariants for cmd/{PRODUCT}/main.go)
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 0.75h
+- **Actual**: [Fill when complete]
+- **Dependencies**: Task 4.4 (same pattern, just 5 products)
+- **Description**: Same structure as Task 4.4 but for 5 products. Checks: (1) file exists,
+  (2) `package main`, (3) import path `cryptoutil/internal/apps/{PRODUCT}`,
+  (4) uses `os.Args[1:]` (NOT `os.Args`).
+- **Acceptance Criteria**:
+  - [ ] All 5 products checked via `AllProducts()`
+  - [ ] Same 4 structural invariants as Task 4.4
+  - [ ] Test: pass case, fail cases per invariant
+  - [ ] Coverage ≥98%
+  - [ ] `go run ./cmd/cicd-lint lint-fitness` passes after registration
+- **Files**:
+  - `internal/apps-tools/cicd_lint/lint_fitness/cmd_product_template/cmd_product_template.go` (NEW)
+  - `internal/apps-tools/cicd_lint/lint_fitness/cmd_product_template/cmd_product_template_test.go` (NEW)
+- **Evidence**: `test-output/phase4/task-4.5-coverage.log`
+
+### Task 4.6: Linter `cmd-suite-template` (structural invariants for cmd/{SUITE}/main.go)
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 0.75h
+- **Actual**: [Fill when complete]
+- **Dependencies**: Task 4.4 (same pattern, 1 suite)
+- **Description**: Same structure as Task 4.4 but for the suite. **CRITICAL difference**: suite
+  main.go uses `os.Args` (full, including argv[0]) NOT `os.Args[1:]`. The linter must check for
+  `os.Args` WITHOUT the `[1:]` slice for the suite only. This matches the suite's need for
+  full argv for multi-level routing display.
+- **Acceptance Criteria**:
+  - [ ] Suite (`cryptoutil`) checked via `AllSuites()`
+  - [ ] Checks `os.Args` (NOT `os.Args[1:]`) — OPPOSITE of PS-ID and product linters
+  - [ ] Test: pass case (cryptoutil/main.go uses os.Args)
+  - [ ] Test: fail case (suite main.go uses os.Args[1:])
+  - [ ] Test: fail case (missing main.go)
+  - [ ] Coverage ≥98%
+  - [ ] `go run ./cmd/cicd-lint lint-fitness` passes after registration
+- **Files**:
+  - `internal/apps-tools/cicd_lint/lint_fitness/cmd_suite_template/cmd_suite_template.go` (NEW)
+  - `internal/apps-tools/cicd_lint/lint_fitness/cmd_suite_template/cmd_suite_template_test.go` (NEW)
+- **Evidence**: `test-output/phase4/task-4.6-coverage.log`
+
+### Task 4.7: Register Phase 4 Linters + Update YAML + Update Count
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 0.5h
+- **Actual**: [Fill when complete]
+- **Dependencies**: Tasks 4.1-4.6
+- **Description**: Register all 6 Phase 4 linters in `lint_fitness.go` and `lint-fitness-registry.yaml`.
+  Update `fitness_registry_completeness` test expected count. Retire `apps-suite-required-files`
+  (superseded by `apps-suite-template`).
+- **Acceptance Criteria**:
+  - [ ] 6 new imports and entries in `lint_fitness.go`
+  - [ ] 6 new entries in `lint-fitness-registry.yaml` (alphabetical)
+  - [ ] `apps-suite-required-files` retired (removed from `lint_fitness.go` and YAML)
+  - [ ] `fitness_registry_completeness` test count updated to reflect net change (80 total = 74 + 6 new - 0 retired; minus `apps-suite-required-files` if it was from Phase 2)
+  - [ ] `go build ./...` exits 0
+  - [ ] `go run ./cmd/cicd-lint lint-fitness` passes
+- **Files**:
+  - `internal/apps-tools/cicd_lint/lint_fitness/lint_fitness.go` (MODIFIED)
+  - `internal/apps-tools/cicd_lint/lint_fitness/lint-fitness-registry.yaml` (MODIFIED)
+  - `internal/apps-tools/cicd_lint/lint_fitness/fitness_registry_completeness/fitness_registry_completeness_test.go` (MODIFIED)
+- **Evidence**: `test-output/phase4/task-4.7-fitness.log`
+
+### Task 4.8: Phase 4 Coverage + Race Detection Verification
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 0.5h
+- **Actual**: [Fill when complete]
+- **Dependencies**: Tasks 4.1-4.7
+- **Description**: Run coverage and race detection across all Phase 4 packages. Archive results.
+- **Acceptance Criteria**:
+  - [ ] ≥98% coverage for each of: `apps_ps_id_template`, `apps_product_template`, `apps_suite_template`, `cmd_ps_id_template`, `cmd_product_template`, `cmd_suite_template`
+  - [ ] `go test -race -count=2 ./internal/apps-tools/cicd_lint/lint_fitness/...` exits 0
+  - [ ] Results archived in `test-output/phase4/`
+- **Files**: None (verification only)
+- **Evidence**: `test-output/phase4/coverage-summary.log`, `test-output/phase4/race-detector.log`
+
+---
+
+## Phase 5: Conformance Migration — Fill All Gaps
+
+**Phase Objective**: Transform all 10 PS-IDs, 5 products, and 1 suite to fully conform to the
+canonical templates. After this phase, all `knownExclusions` lists are empty and every linter runs
+in block-immediately mode with zero exceptions.
+
+**Work order**: Fill PS-ID file gaps first (5.1-5.6), then resolve product service dirs (5.7),
+then remove all knownExclusions (5.8), then validate (5.9).
+
+### Task 5.1: Add testmain_test.go to sm-kms
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 0.5h
+- **Actual**: [Fill when complete]
+- **Dependencies**: Phase 4 complete
+- **Description**: Add `internal/apps/sm-kms/testmain_test.go` following the pattern established
+  in `sm-im`, `jose-ja`, `pki-ca`, `skeleton-template`. The TestMain must start a shared test
+  server and database for all root-package tests in `sm-kms`.
+- **Acceptance Criteria**:
+  - [ ] `testmain_test.go` created with correct TestMain function
+  - [ ] Follows `testdb.NewInMemorySQLiteDB(t)` + `testserver.StartAndWait` pattern
+  - [ ] `go test ./internal/apps/sm-kms/...` passes
+  - [ ] Existing sm-kms tests still pass (no regressions)
+  - [ ] `go run ./cmd/cicd-lint lint-fitness` passes after sm-kms removed from testmain exclusion
+- **Files**:
+  - `internal/apps/sm-kms/testmain_test.go` (NEW)
+- **Evidence**: `test-output/phase5/task-5.1-sm-kms.log`
+
+### Task 5.2: Add testmain_test.go + port_conflict_test.go to identity-authz
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 1h
+- **Actual**: [Fill when complete]
+- **Dependencies**: Phase 4 complete
+- **Description**: Add `internal/apps/identity-authz/testmain_test.go` and
+  `internal/apps/identity-authz/authz_port_conflict_test.go`. Port conflict test verifies
+  deterministic failure when the authz service ports are already in use (pattern from sm-im).
+- **Acceptance Criteria**:
+  - [ ] `testmain_test.go` created following shared pattern
+  - [ ] `authz_port_conflict_test.go` follows sm-im/jose-ja port conflict test pattern
+  - [ ] `go test ./internal/apps/identity-authz/...` passes (including new files)
+  - [ ] `go run ./cmd/cicd-lint lint-fitness` passes after identity-authz removed from exclusions
+- **Files**:
+  - `internal/apps/identity-authz/testmain_test.go` (NEW)
+  - `internal/apps/identity-authz/authz_port_conflict_test.go` (NEW)
+- **Evidence**: `test-output/phase5/task-5.2-identity-authz.log`
+
+### Task 5.3: Add testmain_test.go + port_conflict_test.go to identity-idp
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 1h
+- **Actual**: [Fill when complete]
+- **Dependencies**: Task 5.2 (same pattern)
+- **Description**: Same as Task 5.2 but for `identity-idp`.
+- **Acceptance Criteria**:
+  - [ ] `testmain_test.go` created
+  - [ ] `idp_port_conflict_test.go` created
+  - [ ] Tests pass; fitness linter passes after idp removed from exclusions
+- **Files**:
+  - `internal/apps/identity-idp/testmain_test.go` (NEW)
+  - `internal/apps/identity-idp/idp_port_conflict_test.go` (NEW)
+- **Evidence**: `test-output/phase5/task-5.3-identity-idp.log`
+
+### Task 5.4: Add testmain + lifecycle + port_conflict tests to identity-rs
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 1.5h
+- **Actual**: [Fill when complete]
+- **Dependencies**: Task 5.2 (same patterns)
+- **Description**: Add `testmain_test.go`, `rs_lifecycle_test.go`, and `rs_port_conflict_test.go`
+  to `identity-rs`. Lifecycle test verifies server start/stop/graceful-shutdown pattern across
+  dual public+admin ports (pattern from sm-im or jose-ja).
+- **Acceptance Criteria**:
+  - [ ] `testmain_test.go`, `rs_lifecycle_test.go`, `rs_port_conflict_test.go` created
+  - [ ] Lifecycle test covers: start, health check, shutdown, verify stopped
+  - [ ] Port conflict test covers: both public and admin port conflicts
+  - [ ] Tests pass; fitness linters pass after rs removed from all three exclusion lists
+- **Files**:
+  - `internal/apps/identity-rs/testmain_test.go` (NEW)
+  - `internal/apps/identity-rs/rs_lifecycle_test.go` (NEW)
+  - `internal/apps/identity-rs/rs_port_conflict_test.go` (NEW)
+- **Evidence**: `test-output/phase5/task-5.4-identity-rs.log`
+
+### Task 5.5: Add swagger + testmain + lifecycle + port_conflict to identity-rp
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 2h
+- **Actual**: [Fill when complete]
+- **Dependencies**: Task 5.4 (same patterns); requires confirmation that identity-rp has OpenAPI spec
+- **Description**: Add `swagger.go`, `swagger_test.go`, `testmain_test.go`, `rp_lifecycle_test.go`,
+  `rp_port_conflict_test.go` to `identity-rp`. If identity-rp does not yet have an OpenAPI spec,
+  add a minimal swagger stub (consistent with how other services handle this). Investigate first.
+- **Acceptance Criteria**:
+  - [ ] Investigation confirms whether identity-rp has OpenAPI spec (or will have one)
+  - [ ] `swagger.go` added (or swagger stub documented as intentional placeholder)
+  - [ ] `swagger_test.go` added
+  - [ ] `testmain_test.go`, `rp_lifecycle_test.go`, `rp_port_conflict_test.go` added
+  - [ ] Tests pass; fitness linters pass after rp removed from all exclusion lists
+- **Files**:
+  - `internal/apps/identity-rp/swagger.go` (NEW)
+  - `internal/apps/identity-rp/swagger_test.go` (NEW)
+  - `internal/apps/identity-rp/testmain_test.go` (NEW)
+  - `internal/apps/identity-rp/rp_lifecycle_test.go` (NEW)
+  - `internal/apps/identity-rp/rp_port_conflict_test.go` (NEW)
+- **Evidence**: `test-output/phase5/task-5.5-identity-rp.log`
+
+### Task 5.6: Add swagger + testmain + lifecycle + port_conflict to identity-spa
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 2h
+- **Actual**: [Fill when complete]
+- **Dependencies**: Task 5.5 (same patterns)
+- **Description**: Same as Task 5.5 but for `identity-spa`.
+- **Acceptance Criteria**:
+  - [ ] Same checklist as Task 5.5 (adapted for identity-spa)
+  - [ ] Tests pass; fitness linters pass after spa removed from all exclusion lists
+- **Files**:
+  - `internal/apps/identity-spa/swagger.go` (NEW)
+  - `internal/apps/identity-spa/swagger_test.go` (NEW)
+  - `internal/apps/identity-spa/testmain_test.go` (NEW)
+  - `internal/apps/identity-spa/spa_lifecycle_test.go` (NEW)
+  - `internal/apps/identity-spa/spa_port_conflict_test.go` (NEW)
+- **Evidence**: `test-output/phase5/task-5.6-identity-spa.log`
+
+### Task 5.7: Audit and Resolve Product Service Directories (GAP-E)
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 8h
+- **Actual**: [Fill when complete]
+- **Dependencies**: Tasks 5.1-5.6
+- **Description**: Investigate and resolve the 5 service-named subdirectories inside product dirs:
+  `sm/kms/`, `sm/im/`, `jose/ja/`, `pki/ca/`, `skeleton/template/`. For each:
+  1. Determine if this is canonical code (not yet moved) or duplicated code (already in PS-ID dir)
+  2. If duplicated: delete the product-level copy, update any remaining imports
+  3. If canonical: move to PS-ID dir, update all imports, delete product-level copy
+  This is the largest gap and requires careful investigation before any deletions.
+- **Acceptance Criteria**:
+  - [ ] Each of the 5 product service dirs investigated (finding documented in `test-output/phase5/gap-e-audit.md`)
+  - [ ] Each dir either deleted (if fully mirrored in PS-ID dir) or moved (if canonical)
+  - [ ] All imports updated after any moves
+  - [ ] `go build ./...` exits 0 after each individual deletion/move
+  - [ ] All existing tests pass: `go test ./...`
+  - [ ] Zero service-named subdirs remain in any product dir (no more identity/ whitelist needed)
+  - [ ] `knownServiceDirExceptions` map emptied in `apps-product-template` linter
+  - [ ] `go run ./cmd/cicd-lint lint-fitness` passes
+- **Files**:
+  - `internal/apps/sm/kms/` (DELETE or MOVE)
+  - `internal/apps/sm/im/` (DELETE or MOVE)
+  - `internal/apps/jose/ja/` (DELETE or MOVE)
+  - `internal/apps/pki/ca/` (DELETE or MOVE)
+  - `internal/apps/skeleton/template/` (DELETE or MOVE)
+  - Affected linter files (MODIFIED — remove exceptions)
+- **Evidence**: `test-output/phase5/gap-e-audit.md`, `test-output/phase5/task-5.7-build.log`
+
+### Task 5.8: Remove All knownExclusions from Phase 2–4 Linters
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 0.75h
+- **Actual**: [Fill when complete]
+- **Dependencies**: Tasks 5.1-5.7
+- **Description**: After all gaps are filled in Tasks 5.1-5.7, remove all `knownExclusions`,
+  `knownServiceDirExceptions`, and TODO-marked exception entries from every Phase 2-4 linter.
+  Every linter should now run in strict block-immediately mode with no exceptions.
+- **Acceptance Criteria**:
+  - [ ] `knownExclusions` is empty (or the variable removed) in all Phase 2-4 linters
+  - [ ] `knownServiceDirExceptions` map is empty in `apps-product-template`
+  - [ ] No TODO comments referencing "gap-" or "follow-on" remain in linter code
+  - [ ] `go build ./...` exits 0
+  - [ ] `go test ./internal/apps-tools/cicd_lint/lint_fitness/...` exits 0
+- **Files**:
+  - All Phase 2-4 linter `.go` files (MODIFIED — remove exclusion maps)
+- **Evidence**: `test-output/phase5/task-5.8-build.log`
+
+### Task 5.9: Final Fitness Run — Zero Exceptions Verification
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 0.25h
+- **Actual**: [Fill when complete]
+- **Dependencies**: Task 5.8
+- **Description**: Run the complete fitness suite. Verify all 80 linters pass with zero exceptions
+  and zero known-gap suppressions. Archive final output.
+- **Acceptance Criteria**:
+  - [ ] `go run ./cmd/cicd-lint lint-fitness` exits 0
+  - [ ] `go run ./cmd/cicd-lint lint-fitness -q` shows "PASS" for all linters
+  - [ ] Zero `knownExclusions` entries remain across all new linters (confirmed by grep)
+  - [ ] `grep -r "knownExclusions\|knownServiceDirExceptions" internal/apps-tools/cicd_lint/lint_fitness/` returns only empty-slice/map declarations
+  - [ ] Output archived in `test-output/phase5/final-fitness-run.log`
+- **Files**: None (verification only)
+- **Evidence**: `test-output/phase5/final-fitness-run.log`
+
+---
+
+## Phase 6: Knowledge Propagation
+
+**Phase Objective**: Apply all lessons learned to permanent artifacts. This phase is MANDATORY —
+never skip it. Each lesson becomes a lasting improvement to documentation, instructions, or skills.
+
+### Task 6.1: Update ENG-HANDBOOK.md §9.11.1 Fitness Linter Catalog (All 12 New Linters)
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 1h
+- **Actual**: [Fill when complete]
+- **Dependencies**: Phase 5 complete; `lessons.md` Phase 4-5 sections filled
+- **Description**: Add all 12 new linters from Phases 2-4 to the §9.11.1 catalog. Update total
+  linter count. Also update §G.1.1 and §G.1.2 to reference the template-compliance linters as
+  the enforcement mechanism for the structural invariants described there.
+- **Acceptance Criteria**:
+  - [ ] All 12 new linter entries added to §9.11.1 in alphabetical order
+  - [ ] Linter total count updated everywhere it appears in ENG-HANDBOOK.md
+  - [ ] §G.1.1 references: `apps-ps-id-template`, `apps-product-template`, `apps-suite-template`
+  - [ ] §G.1.2 references: `cmd-ps-id-template`, `cmd-product-template`, `cmd-suite-template`
+  - [ ] Retired linters marked as `[RETIRED in V17]` in §9.11.1 catalog
+  - [ ] `go run ./cmd/cicd-lint lint-docs` passes
+- **Files**:
+  - `docs/ENG-HANDBOOK.md` (MODIFIED)
+- **Evidence**: `test-output/phase6/task-6.1-lint-docs.log`
+
+### Task 6.2: Update Instruction Files + Skills for Template Pattern
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 1h
+- **Actual**: [Fill when complete]
+- **Dependencies**: Task 6.1
+- **Description**: Apply lessons from Phases 2-5 to instruction files and skills:
+  1. Add `__SERVICE__` expansion key note to `.github/instructions/03-01.coding.instructions.md`
+     (under "CICD Template Parameterization Invariant" or a new section)
+  2. Update `.github/skills/fitness-function-gen/SKILL.md` to mention the MANIFEST.yaml-driven
+     pattern as the preferred approach for structural linters
+  3. Mirror all changes to `.claude/` counterparts
+  4. Run `lint-skill-command-drift` and `lint-agent-drift` sub-linters to verify no drift
+- **Acceptance Criteria**:
+  - [ ] `03-01.coding.instructions.md` updated with `__SERVICE__` expansion key guidance
+  - [ ] `.github/skills/fitness-function-gen/SKILL.md` updated with MANIFEST.yaml pattern
+  - [ ] `.claude/skills/fitness-function-gen/SKILL.md` updated identically (drift = 0)
+  - [ ] `go run ./cmd/cicd-lint lint-docs` passes
+  - [ ] `golangci-lint run ./...` still exits 0
+- **Files**:
+  - `.github/instructions/03-01.coding.instructions.md` (MODIFIED)
+  - `.github/skills/fitness-function-gen/SKILL.md` (MODIFIED)
+  - `.claude/skills/fitness-function-gen/SKILL.md` (MODIFIED)
+- **Evidence**: `test-output/phase6/task-6.2-lint-docs.log`
+
+### Task 6.3: Final Full-Suite Verification
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 0.5h
+- **Actual**: [Fill when complete]
+- **Dependencies**: Tasks 6.1-6.2
+- **Description**: Run the full test suite, linting, fitness, and docs checks. Confirm zero
+  regressions and all gates green.
+- **Acceptance Criteria**:
+  - [ ] `go test ./...` exits 0
+  - [ ] `go test -race -count=2 ./internal/apps-tools/cicd_lint/lint_fitness/...` exits 0
+  - [ ] `golangci-lint run ./...` exits 0
+  - [ ] `golangci-lint run --build-tags e2e,integration ./...` exits 0
+  - [ ] `go run ./cmd/cicd-lint lint-fitness` exits 0 (all linters pass, zero exceptions)
+  - [ ] `go run ./cmd/cicd-lint lint-docs` exits 0
+  - [ ] Results archived in `test-output/phase6/`
+- **Files**: None (verification only)
+- **Evidence**: `test-output/phase6/final-verification.log`
+
+### Task 6.4: Populate lessons.md Executive Summary + Actions
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 0.5h
+- **Actual**: [Fill when complete]
+- **Dependencies**: Task 6.3
+- **Description**: Complete the `lessons.md` Executive Summary (linking all 6 phase post-mortems)
+  and Actions sections. Commit all V17 documentation artifacts with a final semantic commit.
+- **Acceptance Criteria**:
+  - [ ] `lessons.md` Executive Summary section filled (links to all 6 phase sections)
+  - [ ] `lessons.md` Actions section lists concrete follow-on items with LOE and priority
+  - [ ] `docs/framework-v17/tasks.md` Status header updated: "40 of 40 tasks complete (100%)"
+  - [ ] `docs/framework-v17/plan.md` Status updated: "Complete"
+  - [ ] Final commit pushed; CI/CD green
+- **Files**:
+  - `docs/framework-v17/lessons.md` (MODIFIED)
+  - `docs/framework-v17/tasks.md` (MODIFIED — final status update)
+  - `docs/framework-v17/plan.md` (MODIFIED — final status update)
+- **Evidence**: `test-output/phase6/lessons-summary.log`
+
+---
+
 ## Cross-Cutting Tasks
 
 ### Testing
@@ -606,8 +1128,9 @@ via `knownExclusions` lists. They represent technical debt for follow-on plans.
 - GAP-E (service code in product dirs) is the most significant architectural debt item.
   The V17 plan deliberately excludes it from enforcement scope to avoid breaking CI while
   the investigation is pending. A dedicated framework-v18 plan should address it.
-- The linter count in `fitness_registry_completeness` tests will need updating in Task 3.3.
-  The current count is 68; it becomes 74 after V17.
+- The linter count in `fitness_registry_completeness` tests will need updating in Tasks 3.3 and 4.7.
+  The current count is 68; it becomes 74 after Phase 3 (6 new) and ~80 after Phase 4 (6 more new,
+  minus any retired linters like `apps-suite-required-files`). Exact count determined at implementation time.
 - Mutation testing for new packages should be run on Linux CI/CD (gremlins v0.6.0 panics on Windows).
 
 ---
@@ -632,3 +1155,24 @@ via `knownExclusions` lists. They represent technical debt for follow-on plans.
   - `task-3.6-lint-docs.log` — lint-docs output after target-structure update
   - `full-test-suite.log` — `go test ./...` full output
   - `task-3.8-propagation.log` — Knowledge propagation verification
+- `test-output/phase4/` — Phase 4 template-compliance linter artifacts
+  - `task-4.1-coverage.log` — apps-ps-id-template coverage
+  - `task-4.2-coverage.log` — apps-product-template coverage
+  - `task-4.3-coverage.log` — apps-suite-template coverage
+  - `task-4.4-coverage.log` — cmd-ps-id-template coverage
+  - `task-4.5-coverage.log` — cmd-product-template coverage
+  - `task-4.6-coverage.log` — cmd-suite-template coverage
+  - `task-4.7-fitness.log` — Fitness run after Phase 4 registration
+  - `coverage-summary.log` — Combined Phase 4 coverage
+  - `race-detector.log` — Race detector output
+- `test-output/phase5/` — Phase 5 conformance migration artifacts
+  - `gap-e-audit.md` — Product service directory audit findings
+  - `task-5.N-{ps-id}.log` — Per-PS-ID gap fill evidence (N=1-6)
+  - `task-5.7-build.log` — Build after product service dir resolution
+  - `task-5.8-build.log` — Build after knownExclusions removal
+  - `final-fitness-run.log` — Final fitness run with zero exceptions
+- `test-output/phase6/` — Phase 6 knowledge propagation artifacts
+  - `task-6.1-lint-docs.log` — ENG-HANDBOOK update propagation check
+  - `task-6.2-lint-docs.log` — Instruction/skill update propagation check
+  - `final-verification.log` — Full test + lint + fitness + docs verification
+  - `lessons-summary.log` — lessons.md final state

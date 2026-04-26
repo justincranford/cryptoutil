@@ -274,26 +274,137 @@ exempt during the migration period. Task 2.1 specifies which approach to use for
 
 **Post-Mortem**: After quality gates pass, update `lessons.md` with lessons learned.
 
-### Phase 3: Registration, Integration & Knowledge Propagation (3h) [Status: ☐ TODO]
+### Phase 3: Registration, Integration & Linter Retirement (3h) [Status: ☐ TODO]
 
 **Objective**: Register all 6 new linters, update the YAML manifest, extend the existing
-`service-structure` linter, validate end-to-end, and propagate lessons.
+`service-structure` linter, retire obsolete linters, and validate end-to-end.
 
 - Register all 6 linters in `lint_fitness.go` `registeredLinters` slice
 - Add 6 entries to `lint-fitness-registry.yaml` manifest
 - Extend `service_structure.go` to cover all 10 PS-IDs (remove "legacy" exclusion, use registry)
   OR deprecate it in favor of the new `apps-ps-id-required-files` linter
+- Retire `service_structure` linter (superseded by `apps-ps-id-required-files` + `apps-ps-id-server-package`)
+- Retire `product_structure` linter (superseded by `apps-product-template`)
+- Retire `product_wiring` linter (superseded by `cmd-ps-id-template` + `cmd-product-template` + `cmd-suite-template`)
+- Retire `subcommand_completeness` linter (superseded by `apps-ps-id-required-files`)
 - Run `go run ./cmd/cicd-lint lint-fitness` — must pass with 0 errors
-- Run `go run ./cmd/cicd-lint lint-fitness -q` — must show all linters PASS
-- Update ENG-HANDBOOK.md §9.11.1 fitness linter catalog with 6 new entries
-- Update `docs/target-structure.md` §G.1.1 to reference the new enforcement
-- Update `fitness_registry_completeness` test expectations (count goes from 68 to 74 linters)
-- Review `lessons.md` and propagate insights to ENG-HANDBOOK.md, agents, instructions
+- Update `fitness_registry_completeness` test expectations (count changes after retirements)
+- Update ENG-HANDBOOK.md §9.11.1 fitness linter catalog (add new, mark retired)
 
-**Success**: `go run ./cmd/cicd-lint lint-fitness` passes; all 6 linters in YAML manifest; ENG-HANDBOOK
-updated; coverage and mutation targets met.
+**Success**: `go run ./cmd/cicd-lint lint-fitness` passes; YAML manifest updated; redundant linters retired.
 
 **Post-Mortem**: After quality gates pass, update `lessons.md` with lessons learned.
+
+### Phase 4: Template-Compliance Linters for cmd/ and internal/apps/ (6h) [Status: ☐ TODO]
+
+**Objective**: Implement template-compliance linters that use the new MANIFEST.yaml and main.go
+template files to enforce structural invariants across all cmd/ and internal/apps/ directories.
+These replace the ad-hoc linters retired in Phase 3 with template-driven enforcement.
+
+**What was done in planning** (already on disk):
+- Added `CICDTemplateExpansionKeyService = "__SERVICE__"` to `internal/shared/magic/magic_template.go`
+- Created `api/cryptosuite-registry/templates/cmd/__PS_ID__/main.go` — structural invariant documentation
+- Created `api/cryptosuite-registry/templates/cmd/__PRODUCT__/main.go`
+- Created `api/cryptosuite-registry/templates/cmd/__SUITE__/main.go`
+- Created `api/cryptosuite-registry/templates/internal/apps/__PS_ID__/MANIFEST.yaml`
+- Created `api/cryptosuite-registry/templates/internal/apps/__PRODUCT__/MANIFEST.yaml`
+- Created `api/cryptosuite-registry/templates/internal/apps/__SUITE__/MANIFEST.yaml`
+- Updated `docs/target-structure.md` C, G.1.1, G.1.2 with rigid structure tables and gap matrix
+
+**New linters to implement** (6 linters, each with `{name}.go` + `{name}_test.go`):
+
+**Linter 7: `apps-ps-id-template`** (`apps_ps_id_template/`)
+- Reads `api/cryptosuite-registry/templates/internal/apps/__PS_ID__/MANIFEST.yaml`
+- For each PS-ID in `AllProductServices()`, substitutes `__SERVICE__` → `ProductService.Service`
+- Checks that all `required_root_files` exist in `internal/apps/{PS-ID}/`
+- Checks that all `required_dirs` exist in `internal/apps/{PS-ID}/`
+- Errors on any missing required file or dir
+- Tests: pass case, fail for each missing file type, fail for missing dir
+
+**Linter 8: `apps-product-template`** (`apps_product_template/`)
+- Reads `api/cryptosuite-registry/templates/internal/apps/__PRODUCT__/MANIFEST.yaml`
+- For each product in `AllProducts()`, substitutes `__PRODUCT__` → `Product.ID`
+- Checks that all `required_root_files` exist in `internal/apps/{PRODUCT}/`
+- Checks `forbidden_dir_patterns`: no subdirectory whose name matches a PS-ID service component
+  (using `AllProductServices()` to build the forbidden-name set; identity/ exception whitelisted)
+- Tests: pass case (identity/ passes), fail for missing required files, fail for forbidden dir
+
+**Linter 9: `apps-suite-template`** (`apps_suite_template/`)
+- Reads `api/cryptosuite-registry/templates/internal/apps/__SUITE__/MANIFEST.yaml`
+- For the suite in `AllSuites()`, substitutes `__SUITE__` → `Suite.ID`
+- Checks that all `required_root_files` exist in `internal/apps/{SUITE}/`
+- Tests: pass case, fail for missing suite.go, fail for missing suite_test.go
+
+**Linter 10: `cmd-ps-id-template`** (`cmd_ps_id_template/`)
+- Checks structural invariants for `cmd/{PS-ID}/main.go` for all 10 PS-IDs:
+  - File exists
+  - `package main` declaration
+  - Imports `cryptoutil/internal/apps/{PS-ID}` (contains the PS-ID import path)
+  - Calls `os.Exit(...)` with `os.Args[1:]` (NOT `os.Args`)
+- Tests: pass case, fail for missing file, fail for wrong package, fail for missing import
+
+**Linter 11: `cmd-product-template`** (`cmd_product_template/`)
+- Same structure as `cmd-ps-id-template` but for 5 products
+- Tests: pass case, fail cases for missing file and structural invariants
+
+**Linter 12: `cmd-suite-template`** (`cmd_suite_template/`)
+- Same structure but for 1 suite; checks `os.Args` (not `os.Args[1:]`)
+- Tests: pass case, fail for wrong args pattern
+
+**Per-linter quality gates**: ≥98% line coverage; lint clean; `go run ./cmd/cicd-lint lint-fitness` passes.
+
+**Success**: All 6 template-compliance linters implemented; lint-fitness count updated to match.
+
+**Post-Mortem**: After quality gates pass, update `lessons.md` with lessons learned.
+
+### Phase 5: Conformance Migration — Fill All Gaps (12h) [Status: ☐ TODO]
+
+**Objective**: Transform all 10 PS-IDs, 5 products, and 1 suite to fully conform to the canonical
+templates. Remove all `knownExclusions` from Phase 2-4 linters. After this phase, all new linters
+run in block-immediately mode with zero exceptions.
+
+**PS-ID gaps to fill** (based on gap matrix in docs/target-structure.md G.1.2):
+
+| PS-ID | Missing files to create |
+|-------|------------------------|
+| `sm-kms` | `testmain_test.go` |
+| `identity-authz` | `testmain_test.go`, `authz_port_conflict_test.go` |
+| `identity-idp` | `testmain_test.go`, `idp_port_conflict_test.go` |
+| `identity-rs` | `testmain_test.go`, `rs_lifecycle_test.go`, `rs_port_conflict_test.go` |
+| `identity-rp` | `swagger.go`, `swagger_test.go`, `testmain_test.go`, `rp_lifecycle_test.go`, `rp_port_conflict_test.go` |
+| `identity-spa` | `swagger.go`, `swagger_test.go`, `testmain_test.go`, `spa_lifecycle_test.go`, `spa_port_conflict_test.go` |
+
+**Product gaps to fix** (service-named subdirectories — forbidden by `apps-product-template`):
+
+| Product | Action |
+|---------|--------|
+| `sm/im/`, `sm/kms/` | Audit for unique code not already in `internal/apps/sm-im/`, `sm-kms/`; delete if redundant |
+| `jose/ja/` | Audit and delete if redundant with `internal/apps/jose-ja/` |
+| `pki/ca/` | Audit and delete if redundant with `internal/apps/pki-ca/` |
+| `skeleton/template/` | Audit and delete if redundant with `internal/apps/skeleton-template/` |
+
+**After all gaps fixed**:
+- Remove all `knownExclusions` from Phase 2-4 linters
+- Verify `go run ./cmd/cicd-lint lint-fitness` passes with zero exceptions
+- All 12 new linters run in block-immediately mode
+
+**Success**: Zero `knownExclusions` remain; all 16 directories conform to canonical templates.
+
+**Post-Mortem**: After quality gates pass, update `lessons.md` with lessons learned.
+
+### Phase 6: Knowledge Propagation (2h) [Status: ☐ TODO]
+
+**Objective**: Apply lessons learned to permanent artifacts. NEVER skip this phase.
+
+- Review `lessons.md` from all prior phases
+- Update ENG-HANDBOOK.md §9.11.1 fitness linter catalog with all 12 new entries
+- Update ENG-HANDBOOK.md §G.1.1 and G.1.2 to reference template enforcement
+- Update `.github/instructions/03-01.coding.instructions.md` with `__SERVICE__` expansion key note
+- Update `.github/skills/fitness-function-gen/SKILL.md` with MANIFEST.yaml pattern
+- Verify propagation integrity: `go run ./cmd/cicd-lint lint-docs`
+- Commit all artifact updates with separate semantic commits per artifact type
+
+**Success**: All artifact updates committed; propagation check passes; lessons permanently codified.
 
 ---
 
@@ -382,26 +493,33 @@ automatically included in structural checks without manual code updates.
 - ✅ Phase 1: Gap analysis document complete in `test-output/phase1/gap-analysis.md`
 - ✅ Phase 2: All 6 new linter packages have ≥98% coverage; lint-fitness passes
 - ✅ Phase 3: `go run ./cmd/cicd-lint lint-fitness` passes end-to-end; YAML manifest updated; ENG-HANDBOOK updated
+- ✅ Phase 4: All 6 template-compliance linters have ≥98% coverage; lint-fitness passes with new count
+- ✅ Phase 5: All PS-ID gaps filled; all product service dirs resolved; zero knownExclusions remain
+- ✅ Phase 6: All 12 new linters documented in ENG-HANDBOOK §9.11.1; lint-docs passes; lessons.md complete
 
 ### Overall Project Quality Gates
 
-- ✅ `go run ./cmd/cicd-lint lint-fitness` passes with all 74 linters (was 68 + 6 new)
+- ✅ `go run ./cmd/cicd-lint lint-fitness` passes with all ~80 linters (was 68; +12 new in Phases 2-4)
 - ✅ `go run ./cmd/cicd-lint lint-docs` passes (no propagation drift)
-- ✅ Coverage ≥98% for all new packages
+- ✅ Coverage ≥98% for all new packages (12 packages)
 - ✅ Mutation testing ≥98% for all new packages (run via `gremlins unleash`)
 - ✅ Race detector clean: `go test -race -count=2 ./internal/apps-tools/cicd_lint/lint_fitness/...`
+- ✅ Zero `knownExclusions` entries after Phase 5 (confirmed by grep)
+- ✅ Zero service-named subdirectories in product dirs after Phase 5
 
 ---
 
 ## Success Criteria
 
-- [ ] 6 new fitness linter packages created with ≥98% coverage and ≥98% mutation
-- [ ] All 6 linters registered in `lint_fitness.go` and `lint-fitness-registry.yaml`
+- [ ] 12 new fitness linter packages created with ≥98% coverage and ≥98% mutation (Phases 2-4)
+- [ ] All 12 linters registered in `lint_fitness.go` and `lint-fitness-registry.yaml`
 - [ ] `service_structure.go` refactored to use `AllProductServices()` (registry-driven)
-- [ ] `go run ./cmd/cicd-lint lint-fitness` passes with zero errors
-- [ ] ENG-HANDBOOK.md §9.11.1 updated with 6 new linter entries
-- [ ] `docs/target-structure.md` §G.1.1 references enforcement mechanism
-- [ ] `lessons.md` populated with post-mortem from all 3 phases
+- [ ] `go run ./cmd/cicd-lint lint-fitness` passes with zero errors and zero exceptions
+- [ ] All 10 PS-IDs fully conform to `__PS_ID__/MANIFEST.yaml` (no missing required files)
+- [ ] All 5 products free of service-named subdirectories (no `sm/kms/`, `jose/ja/`, etc.)
+- [ ] ENG-HANDBOOK.md §9.11.1 updated with all 12 new linter entries
+- [ ] `docs/target-structure.md` §G.1.1 and §G.1.2 reference enforcement mechanism
+- [ ] `lessons.md` populated with post-mortem from all 6 phases
 
 ---
 
