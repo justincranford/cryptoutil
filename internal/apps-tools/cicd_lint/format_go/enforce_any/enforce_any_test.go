@@ -5,6 +5,7 @@ package enforce_any
 import (
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
@@ -48,13 +49,9 @@ func TestEnforceAny_WithModifications(t *testing.T) {
 	tmpDir := t.TempDir()
 	testFile := filepath.Join(tmpDir, "server.go")
 
-	// File with any that needs replacement with any.
-	oldContent := `package server
-
-func Process(data any) any {
-	return data
-}
-`
+	// File with interface{} that needs replacement with any.
+	// Uses string concatenation to prevent self-modification by the enforce-any formatter.
+	oldContent := "package server\n\nfunc Process(data " + "interface{}" + ") " + "interface{}" + " {\n\treturn data\n}\n"
 	err := os.WriteFile(testFile, []byte(oldContent), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
@@ -67,7 +64,7 @@ func Process(data any) any {
 	modifiedContent, readErr := os.ReadFile(testFile)
 	require.NoError(t, readErr)
 	require.Contains(t, string(modifiedContent), "any", "File should contain 'any' after replacement")
-	require.NotContains(t, string(modifiedContent), "any", "File should not contain 'any' after replacement")
+	require.NotContains(t, string(modifiedContent), "interface{}", "File should not contain 'interface{}' after replacement")
 }
 
 func TestEnforceAny_ErrorProcessingFile(t *testing.T) {
@@ -99,8 +96,10 @@ func TestProcessGoFile_NoChanges(t *testing.T) {
 }
 
 const (
-	testGoContentClean              = "package main\n\nfunc main() {\n\tvar x any = 42\n\tprintln(x)\n}\n"
-	testGoContentWithInterfaceEmpty = "package main\n\nfunc main() {\n\tvar x any = 42\n\tprintln(x)\n}\n"
+	testGoContentClean = "package main\n\nfunc main() {\n\tvar x any = 42\n\tprintln(x)\n}\n"
+	// testGoContentWithInterfaceEmpty uses string concatenation to prevent self-modification by the enforce-any formatter.
+	// The formatter replaces interface{} with any. Split across concatenation so the formatter cannot match the pattern.
+	testGoContentWithInterfaceEmpty = "package main\n\nfunc main() {\n\tvar x " + "interface{}" + " = 42\n\tprintln(x)\n}\n"
 	testGoContentInvalid            = "package main\n\nfunc main() {\n\tthis is not valid go code\n}\n"
 )
 
@@ -123,7 +122,7 @@ func TestProcessGoFile_WithChanges(t *testing.T) {
 	modifiedContent, err := os.ReadFile(testFile)
 	require.NoError(t, err)
 	require.Contains(t, string(modifiedContent), "any", "File should contain 'any' after replacement")
-	require.NotContains(t, string(modifiedContent), "any", "File should not contain 'any' after replacement")
+	require.NotContains(t, string(modifiedContent), "interface{}", "File should not contain 'interface{}' after replacement")
 }
 
 func TestFilterGoFiles_NoGoFiles(t *testing.T) {
@@ -165,10 +164,10 @@ func TestProcessGoFile_ReadError(t *testing.T) {
 	require.Contains(t, err.Error(), "failed to read file")
 }
 
-// testGoContentWithInterfaceBraces is Go content with any in a temp file
+// testGoContentWithInterfaceBraces is Go content with interface{} in a temp file
 // that will NOT match the format-go self-exclusion pattern (not in format_go dir).
-// CRITICAL: Uses any in string literal intentionally - this is test data, not production code.
-const testGoContentWithInterfaceBraces = "package server\n\nfunc Handle(data any) any {\n\treturn data\n}\n"
+// CRITICAL: Uses interface{} in string literal intentionally via concatenation to prevent self-modification.
+const testGoContentWithInterfaceBraces = "package server\n\nfunc Handle(data " + "interface{}" + ") " + "interface{}" + " {\n\treturn data\n}\n"
 
 // TestEnforceAny_WithModificationsViaEnforceAny calls enforceAny directly with a file
 // containing any to cover the filesModified > 0 code path.
@@ -192,14 +191,19 @@ func TestEnforceAny_WithModificationsViaEnforceAny(t *testing.T) {
 }
 
 // TestProcessGoFile_WriteError tests that processGoFile returns an error when
-// the file has any but cannot be written (read-only file).
+// the file has interface{} but cannot be written (read-only file).
+// Sequential: mutates filesystem state (chmod) that is not parallel-safe on some platforms.
 func TestProcessGoFile_WriteError(t *testing.T) {
+	if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
+		t.Skip("os.Chmod(0o400) does not prevent writes on Windows")
+	}
+
 	t.Parallel()
 
 	tmpDir := t.TempDir()
 	testFile := filepath.Join(tmpDir, "readonly.go")
 
-	// Create file with any that needs replacement.
+	// Create file with interface{} that needs replacement.
 	err := os.WriteFile(testFile, []byte(testGoContentWithInterfaceBraces), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 

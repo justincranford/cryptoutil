@@ -3259,7 +3259,7 @@ Architecture fitness functions are automated checks that enforce ENG-HANDBOOK.md
 | Category | Count | Examples |
 |----------|-------|---------|
 | Security | 7 | `crypto-rand`, `tls-minimum-version`, `non-fips-algorithms` |
-| Architecture | 12 | `circular-deps`, `cmd-entry-whitelist`, `api-path-registry`, `subcommand-completeness` |
+| Architecture | 24 | `circular-deps`, `cmd-entry-whitelist`, `api-path-registry`, `apps-ps-id-template`, `cmd-ps-id-template` |
 | Deployment & Config | 15 | `compose-service-names`, `secret-naming`, `unseal-secret-content` |
 | Code Quality | 9 | `file-size-limits`, `cgo-free-sqlite`, `banned-product-names` |
 | Testing | 7 | `parallel-tests`, `no-unit-test-real-db`, `test-patterns` |
@@ -3290,6 +3290,18 @@ Architecture fitness functions are automated checks that enforce ENG-HANDBOOK.md
 | `product-wiring` | Product wiring must delegate to service entry points |
 | `service-structure` | Service packages must follow PRODUCT/SERVICE layout convention |
 | `api-path-registry` | OpenAPI specs must have paths matching the registry entry for each PS-ID; no paths allowed outside the declared `api_resources` list |
+| `apps-product-no-service-dirs` | Product directories (`internal/apps/{PRODUCT}/`) must not contain service-named subdirectories — service code belongs in `internal/apps/{PS-ID}/`, not nested under the product |
+| `apps-product-template` | Product `internal/apps/{PRODUCT}/` must contain `{PRODUCT}.go` and `{PRODUCT}_test.go`; no service subdirectories |
+| `apps-ps-id-required-files` | Every PS-ID `internal/apps/{PS-ID}/` must contain `{PS-ID}.go`, `{PS-ID}_usage.go`, `{PS-ID}_cli_test.go` |
+| `apps-ps-id-server-package` | Every PS-ID must have a `server/` subdirectory under `internal/apps/{PS-ID}/` |
+| `apps-ps-id-swagger-presence` | Every PS-ID `server/` must contain a `swagger.go` file serving its OpenAPI spec |
+| `apps-ps-id-template` | Every PS-ID `internal/apps/{PS-ID}/` must have all files defined in `api/cryptosuite-registry/templates/internal/apps/__PS_ID__/MANIFEST.yaml` |
+| `apps-ps-id-test-patterns` | Every PS-ID `server/` must contain `testmain_test.go`, `*_lifecycle_test.go`, and `*_port_conflict_test.go` |
+| `apps-suite-required-files` | Suite `internal/apps/{SUITE}/` must contain `{SUITE}.go` and `{SUITE}_test.go` |
+| `apps-suite-template` | Suite `internal/apps/{SUITE}/` must conform to `api/cryptosuite-registry/templates/internal/apps/__SUITE__/MANIFEST.yaml` |
+| `cmd-product-template` | Product `cmd/{PRODUCT}/main.go` must contain `package main`, import `cryptoutil/internal/apps/{PRODUCT}`, and use `os.Args[1:]` |
+| `cmd-ps-id-template` | PS-ID `cmd/{PS-ID}/main.go` must contain `package main`, import `cryptoutil/internal/apps/{PS-ID}`, and use `os.Args[1:]` |
+| `cmd-suite-template` | Suite `cmd/{SUITE}/main.go` must contain `package main`, import `cryptoutil/internal/apps/{SUITE}`, and use `os.Args` (full, not `os.Args[1:]`) |
 | `subcommand-completeness` | Service `cmd/*/main.go` must use the `route.Service()` entry point for all registered PS-IDs |
 | | **Deployment & Configuration** |
 | `compose-db-naming` | Compose DB service names must use `sqlite`/`postgres` not `pg` |

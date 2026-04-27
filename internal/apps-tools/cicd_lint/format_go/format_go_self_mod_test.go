@@ -33,20 +33,20 @@ func TestEnforceAnyDoesNotModifyItself(t *testing.T) {
 		"enforce_any.go MUST contain SELF-MODIFICATION PROTECTION comment block")
 	require.Contains(t, string(originalContent), "CRITICAL: Replace any with any",
 		"enforce_any.go MUST contain CRITICAL comment explaining pattern replacement")
-	require.Contains(t, string(originalContent), `strings.Count(originalContent, "any")`,
-		"enforce_any.go MUST count any occurrences, NOT any")
+	require.Contains(t, string(originalContent), `strings.Count(originalContent, "interface"`,
+		"enforce_any.go MUST count interface{} occurrences, NOT any")
 
 	// Verify test data uses any (not any) to properly test replacement.
 	testContent, err := os.ReadFile("enforce_any/enforce_any_test.go")
 	require.NoError(t, err, "Failed to read enforce_any/enforce_any_test.go")
 
-	// Check test constants use any as input data.
-	require.Contains(t, string(testContent), `testGoContentWithInterfaceEmpty = "package main\n\nfunc main() {\n\tvar x any`,
-		"Test constants MUST use any as input data, NOT any")
+	// Check test constants use interface{} via string concatenation as input data (to prevent self-modification).
+	require.Contains(t, string(testContent), `testGoContentWithInterfaceEmpty = "package main\n\nfunc main() {\n\tvar x " + "interface{}"`,
+		"Test constants MUST use interface{} via string concatenation as input data, NOT any keyword directly")
 
 	// Verify test expectations check for 'any' after replacement.
 	require.Contains(t, string(testContent), `"File should contain 'any' after replacement"`,
 		"Tests MUST verify 'any' appears after replacement")
-	require.Contains(t, string(testContent), `"File should not contain 'any' after replacement"`,
-		"Tests MUST verify 'any' removed after replacement")
+	require.Contains(t, string(testContent), `"File should not contain 'interface{}' after replacement"`,
+		"Tests MUST verify 'interface{}' removed after replacement")
 }

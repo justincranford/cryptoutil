@@ -11,6 +11,14 @@ import (
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps-tools/cicd_lint/common"
 	lintFitnessAdminBindAddress "cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/admin_bind_address"
 	lintFitnessAPIPathRegistry "cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/api_path_registry"
+	lintFitnessAppsProductNoServiceDirs "cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/apps_product_no_service_dirs"
+	lintFitnessAppsProductTemplate "cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/apps_product_template"
+	lintFitnessAppsPSIDRequiredFiles "cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/apps_ps_id_required_files"
+	lintFitnessAppsPSIDServerPackage "cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/apps_ps_id_server_package"
+	lintFitnessAppsPSIDSwaggerPresence "cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/apps_ps_id_swagger_presence"
+	lintFitnessAppsPSIDTemplate "cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/apps_ps_id_template"
+	lintFitnessAppsPSIDTestPatterns "cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/apps_ps_id_test_patterns"
+	lintFitnessAppsSuiteTemplate "cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/apps_suite_template"
 	lintFitnessArchiveDetector "cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/archive_detector"
 	lintFitnessBannedProductNames "cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/banned_product_names"
 	lintFitnessBindAddressSafety "cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/bind_address_safety"
@@ -21,6 +29,9 @@ import (
 	lintFitnessCmdAntiPattern "cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/cmd_anti_pattern"
 	lintFitnessCmdEntryWhitelist "cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/cmd_entry_whitelist"
 	lintFitnessCmdMainPattern "cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/cmd_main_pattern"
+	lintFitnessCmdProductTemplate "cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/cmd_product_template"
+	lintFitnessCmdPSIDTemplate "cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/cmd_ps_id_template"
+	lintFitnessCmdSuiteTemplate "cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/cmd_suite_template"
 	lintFitnessComposeDBNaming "cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/compose_db_naming"
 	lintFitnessComposeEntrypointUniformity "cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/compose_entrypoint_uniformity"
 	lintFitnessComposeHeaderFormat "cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/compose_header_format"
@@ -197,6 +208,19 @@ var registeredLinters = []struct {
 	// New fitness checks (added for PS-ID framework boilerplate migration).
 	{"no-local-ps-id-server-stubs", lintFitnessNoLocalPSIDServerStubs.Check},
 	{"duplicate-ps-id-test-func-names", lintFitnessDuplicatePSIDTestFuncNames.Check},
+	// New fitness checks (added for internal/apps/ structural validation).
+	{"apps-ps-id-required-files", lintFitnessAppsPSIDRequiredFiles.Check},
+	{"apps-ps-id-server-package", lintFitnessAppsPSIDServerPackage.Check},
+	{"apps-ps-id-swagger-presence", lintFitnessAppsPSIDSwaggerPresence.Check},
+	{"apps-ps-id-test-patterns", lintFitnessAppsPSIDTestPatterns.Check},
+	{"apps-product-no-service-dirs", lintFitnessAppsProductNoServiceDirs.Check},
+	// New fitness checks (added in framework-v17: template conformance linters).
+	{"apps-ps-id-template", lintFitnessAppsPSIDTemplate.Check},
+	{"apps-product-template", lintFitnessAppsProductTemplate.Check},
+	{"apps-suite-template", lintFitnessAppsSuiteTemplate.Check},
+	{"cmd-ps-id-template", lintFitnessCmdPSIDTemplate.Check},
+	{"cmd-product-template", lintFitnessCmdProductTemplate.Check},
+	{"cmd-suite-template", lintFitnessCmdSuiteTemplate.Check},
 }
 
 // Lint runs all registered architecture fitness linters.

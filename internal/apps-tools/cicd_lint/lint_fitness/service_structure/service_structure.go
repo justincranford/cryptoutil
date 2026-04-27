@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps-tools/cicd_lint/common"
+	cryptoutilFitnessRegistry "cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/registry"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
@@ -20,17 +21,47 @@ type ServiceDef struct {
 	Required []string // Optional override; nil means use defaultRequiredFiles.
 }
 
-// knownServices lists all product-service pairs that must follow structural conventions.
-// identity/authz and identity/idp are intentionally excluded (legacy, don't follow service template pattern).
-var knownServices = []ServiceDef{
-	{PSID: cryptoutilSharedMagic.OTLPServiceSMKMS, Service: cryptoutilSharedMagic.KMSServiceName, Required: kmsRequiredFiles},
-	{PSID: cryptoutilSharedMagic.OTLPServiceSMIM, Service: cryptoutilSharedMagic.IMServiceName},
-	{PSID: cryptoutilSharedMagic.OTLPServiceJoseJA, Service: cryptoutilSharedMagic.JoseJAServiceName},
-	{PSID: cryptoutilSharedMagic.OTLPServicePKICA, Service: cryptoutilSharedMagic.PKICAServiceName},
-	{PSID: cryptoutilSharedMagic.OTLPServiceIdentityRS, Service: cryptoutilSharedMagic.RSServiceName},
-	{PSID: cryptoutilSharedMagic.OTLPServiceIdentityRP, Service: cryptoutilSharedMagic.RPServiceName},
-	{PSID: cryptoutilSharedMagic.OTLPServiceIdentitySPA, Service: cryptoutilSharedMagic.SPAServiceName},
-	{PSID: cryptoutilSharedMagic.OTLPServiceSkeletonTemplate, Service: cryptoutilSharedMagic.SkeletonTemplateServiceName},
+// knownExclusions are PS-IDs excluded from service structure validation
+// (legacy services that do not follow the service template pattern).
+var knownExclusions = map[string]bool{
+	cryptoutilSharedMagic.OTLPServiceIdentityAuthz: true,
+	cryptoutilSharedMagic.OTLPServiceIdentityIDP:   true,
+}
+
+// psidRequiredFilesOverrides maps PS-IDs to a custom required files list.
+// When absent, defaultRequiredFiles is used.
+var psidRequiredFilesOverrides = map[string][]string{
+	cryptoutilSharedMagic.OTLPServiceSMKMS: kmsRequiredFiles,
+}
+
+// knownServices is derived from the entity registry, excluding legacy PS-IDs.
+// Tests access this variable directly for fixture setup.
+var knownServices = buildKnownServices()
+
+// buildKnownServices constructs the service list from AllProductServices(), applying exclusions and
+// required-file overrides.
+func buildKnownServices() []ServiceDef {
+	all := cryptoutilFitnessRegistry.AllProductServices()
+	result := make([]ServiceDef, 0, len(all))
+
+	for _, ps := range all {
+		if knownExclusions[ps.PSID] {
+			continue
+		}
+
+		svc := ServiceDef{
+			PSID:    ps.PSID,
+			Service: ps.Service,
+		}
+
+		if override, ok := psidRequiredFilesOverrides[ps.PSID]; ok {
+			svc.Required = override
+		}
+
+		result = append(result, svc)
+	}
+
+	return result
 }
 
 // defaultRequiredFiles are files that every service must have (relative to service dir).

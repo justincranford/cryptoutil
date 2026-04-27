@@ -103,10 +103,10 @@ func main() {
 }
 `
 
-// testGoContentWithInterfaceBraces is Go content with any in a temp file
+// testGoContentWithInterfaceBraces is Go content with interface{} in a temp file
 // that will NOT match the format-go self-exclusion pattern (not in format_go dir).
-// CRITICAL: Uses any in string literal intentionally - this is test data, not production code.
-const testGoContentWithInterfaceBraces = "package server\n\nfunc Handle(data any) any {\n\treturn data\n}\n"
+// CRITICAL: Uses interface{} via string concatenation to prevent self-modification by the enforce-any formatter.
+const testGoContentWithInterfaceBraces = "package server\n\nfunc Handle(data " + "interface{}" + ") " + "interface{}" + " {\n\treturn data\n}\n"
 
 // TestFormat_WithEnforceAnyModification calls Format with a file containing any
 // to cover the simple formatter error path and the len(errors) > 0 final return.

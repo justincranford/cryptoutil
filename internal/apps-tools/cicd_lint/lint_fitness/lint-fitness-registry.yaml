@@ -423,3 +423,58 @@ sub_linters:
       Reports test function names that appear in ≥3 PS-ID server packages, ranked by
       occurrence count, to identify boilerplate candidates for framework parameterisation.
     category: testing
+
+  - name: apps-ps-id-required-files
+    directory: apps_ps_id_required_files
+    description: Verifies every PS-ID directory under internal/apps/ has {service}.go and {service}_usage.go entry-point files.
+    category: architecture
+
+  - name: apps-ps-id-server-package
+    directory: apps_ps_id_server_package
+    description: Verifies every PS-ID directory under internal/apps/ has server/server.go, and all non-excluded PS-IDs have server/public_server.go.
+    category: architecture
+
+  - name: apps-ps-id-swagger-presence
+    directory: apps_ps_id_swagger_presence
+    description: Verifies every non-excluded PS-ID has server/swagger.go and server/swagger_test.go.
+    category: architecture
+
+  - name: apps-ps-id-test-patterns
+    directory: apps_ps_id_test_patterns
+    description: Verifies every non-excluded PS-ID has server/testmain_test.go, a server/*_lifecycle_test.go, and a server/*_port_conflict_test.go.
+    category: testing
+
+  - name: apps-product-no-service-dirs
+    directory: apps_product_no_service_dirs
+    description: Verifies that product directories under internal/apps/ do not contain service-named subdirectories (duplicate copies of canonical PS-ID entries).
+    category: architecture
+
+  - name: apps-ps-id-template
+    directory: apps_ps_id_template
+    description: Verifies every PS-ID directory under internal/apps/ conforms to the MANIFEST.yaml template (required root files, required server files, and required subdirectories).
+    category: architecture
+
+  - name: apps-product-template
+    directory: apps_product_template
+    description: Verifies every product directory under internal/apps/ conforms to the MANIFEST.yaml template.
+    category: architecture
+
+  - name: apps-suite-template
+    directory: apps_suite_template
+    description: Verifies the suite directory under internal/apps/ conforms to the MANIFEST.yaml template. Supersedes apps-suite-required-files.
+    category: architecture
+
+  - name: cmd-ps-id-template
+    directory: cmd_ps_id_template
+    description: Verifies every cmd/{PS-ID}/main.go exists, declares package main, imports the correct internal/apps path, and uses os.Args[1:].
+    category: architecture
+
+  - name: cmd-product-template
+    directory: cmd_product_template
+    description: Verifies every cmd/{PRODUCT}/main.go exists, declares package main, imports the correct internal/apps path, and uses os.Args[1:].
+    category: architecture
+
+  - name: cmd-suite-template
+    directory: cmd_suite_template
+    description: Verifies cmd/{SUITE}/main.go exists, declares package main, imports the correct internal/apps path, and uses os.Args (not os.Args[1:]).
+    category: architecture

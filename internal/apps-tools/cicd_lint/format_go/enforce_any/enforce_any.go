@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"regexp"
+	"strings"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps-tools/cicd_lint/common"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
@@ -104,8 +105,9 @@ func ProcessGoFile(filePath string) (int, error) {
 	modifiedContent := re.ReplaceAllString(originalContent, "any")
 
 	// Count actual replacements by counting the target pattern in the original.
-	// Use string concatenation to prevent self-modification by this formatter.
-	replacements := len(re.FindAllString(originalContent, -1))
+	// Uses the pattern string from the regexp (interface{}) to count occurrences.
+	// The assignment below uses string concatenation so the formatter cannot self-modify it.
+	replacements := strings.Count(originalContent, "interface"+"{}")
 
 	// Only write if content actually changed.
 	if originalContent != modifiedContent {

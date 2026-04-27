@@ -115,6 +115,8 @@ const (
 const (
 	// SQLiteInMemoryDSN - SQLite in-memory DSN for testing.
 	SQLiteInMemoryDSN = "file::memory:?cache=shared"
+	// SQLiteInMemoryURL - SQLite in-memory URL with protocol prefix for config profiles.
+	SQLiteInMemoryURL = "sqlite://" + SQLiteInMemoryDSN
 	// SQLiteMemoryPlaceholder - SQLite memory placeholder pattern.
 	SQLiteMemoryPlaceholder = ":memory:"
 )
