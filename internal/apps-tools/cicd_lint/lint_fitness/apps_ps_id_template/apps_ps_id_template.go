@@ -26,9 +26,14 @@ import (
 
 // psIDManifest mirrors the YAML structure of the PS-ID MANIFEST.yaml template.
 type psIDManifest struct {
-	RequiredRootFiles   []string `yaml:"required_root_files"`
-	RequiredDirs        []string `yaml:"required_dirs"`
-	RequiredServerFiles []string `yaml:"required_server_files"`
+	RequiredRootFiles             []string `yaml:"required_root_files"`
+	RequiredDirs                  []string `yaml:"required_dirs"`
+	RequiredServerFiles           []string `yaml:"required_server_files"`
+	RequiredServerDirs            []string `yaml:"required_server_dirs"`
+	RequiredServerConfigFiles     []string `yaml:"required_server_config_files"`
+	RequiredServerRepositoryFiles []string `yaml:"required_server_repository_files"`
+	RequiredServerRepositoryDirs  []string `yaml:"required_server_repository_dirs"`
+	RequiredE2EFiles              []string `yaml:"required_e2e_files"`
 }
 
 // allTenPSIDs is a convenience set containing all 10 known PS-IDs used in exclusion maps.
@@ -44,6 +49,18 @@ var allTenPSIDs = map[string]bool{
 	cryptoutilSharedMagic.OTLPServiceIdentityRP:       true,
 	cryptoutilSharedMagic.OTLPServiceIdentitySPA:      true,
 	cryptoutilSharedMagic.OTLPServiceSkeletonTemplate: true,
+}
+
+// psIDExclusions bundles all exclusion maps to avoid a long parameter list.
+// Each field maps a template filename (pre-substitution) to a set of PS-IDs exempt from that check.
+type psIDExclusions struct {
+	rootFiles   map[string]map[string]bool
+	serverFiles map[string]map[string]bool
+	serverDirs  map[string]map[string]bool
+	configFiles map[string]map[string]bool
+	repoFiles   map[string]map[string]bool
+	repoDirs    map[string]map[string]bool
+	e2eFiles    map[string]map[string]bool
 }
 
 // knownRootFileExclusions maps template filenames (pre-substitution) to sets of PS-IDs
@@ -72,6 +89,109 @@ var knownServerFileExclusions = map[string]map[string]bool{
 	"__SERVICE___port_conflict_test.go": allTenPSIDs,
 }
 
+// knownServerDirExclusions maps required server/ subdirectory names to PS-IDs excluded from that check.
+// Remove entries as each PS-ID creates the missing subdirectory.
+var knownServerDirExclusions = map[string]map[string]bool{
+	// apis/: sm-kms uses businesslogic/handler layout (V20); pki-ca uses cmd/config/middleware (V20).
+	// identity-* are pending V19 Phase 3 migration.
+	"apis": {
+		cryptoutilSharedMagic.OTLPServiceSMKMS:         true,
+		cryptoutilSharedMagic.OTLPServicePKICA:         true,
+		cryptoutilSharedMagic.OTLPServiceIdentityAuthz: true,
+		cryptoutilSharedMagic.OTLPServiceIdentityIDP:   true,
+		cryptoutilSharedMagic.OTLPServiceIdentityRS:    true,
+		cryptoutilSharedMagic.OTLPServiceIdentityRP:    true,
+		cryptoutilSharedMagic.OTLPServiceIdentitySPA:   true,
+	},
+	// model/: sm-kms and pki-ca pending V20; identity-* pending V19 Phase 5.
+	"model": {
+		cryptoutilSharedMagic.OTLPServiceSMKMS:         true,
+		cryptoutilSharedMagic.OTLPServicePKICA:         true,
+		cryptoutilSharedMagic.OTLPServiceIdentityAuthz: true,
+		cryptoutilSharedMagic.OTLPServiceIdentityIDP:   true,
+		cryptoutilSharedMagic.OTLPServiceIdentityRS:    true,
+		cryptoutilSharedMagic.OTLPServiceIdentityRP:    true,
+		cryptoutilSharedMagic.OTLPServiceIdentitySPA:   true,
+	},
+	// repository/: pki-ca and identity-* pending V19 Phase 5 (sm-kms already has repository/).
+	"repository": {
+		cryptoutilSharedMagic.OTLPServicePKICA:         true,
+		cryptoutilSharedMagic.OTLPServiceIdentityAuthz: true,
+		cryptoutilSharedMagic.OTLPServiceIdentityIDP:   true,
+		cryptoutilSharedMagic.OTLPServiceIdentityRS:    true,
+		cryptoutilSharedMagic.OTLPServiceIdentityRP:    true,
+		cryptoutilSharedMagic.OTLPServiceIdentitySPA:   true,
+	},
+}
+
+// knownServerConfigFileExclusions maps required server/config/ filenames to exempt PS-IDs.
+// Remove entries as each PS-ID adds the missing config file.
+var knownServerConfigFileExclusions = map[string]map[string]bool{
+	// sm-kms has no server/config/ directory yet (pending V20 migration).
+	"config.go": {
+		cryptoutilSharedMagic.OTLPServiceSMKMS: true,
+	},
+	"config_test.go": {
+		cryptoutilSharedMagic.OTLPServiceSMKMS: true,
+	},
+	// config_test_helper.go: sm-kms (no server/config/), pki-ca and identity-* (pending V19 Phase 5).
+	"config_test_helper.go": {
+		cryptoutilSharedMagic.OTLPServiceSMKMS:         true,
+		cryptoutilSharedMagic.OTLPServicePKICA:         true,
+		cryptoutilSharedMagic.OTLPServiceIdentityAuthz: true,
+		cryptoutilSharedMagic.OTLPServiceIdentityIDP:   true,
+		cryptoutilSharedMagic.OTLPServiceIdentityRS:    true,
+		cryptoutilSharedMagic.OTLPServiceIdentityRP:    true,
+		cryptoutilSharedMagic.OTLPServiceIdentitySPA:   true,
+	},
+}
+
+// knownServerRepositoryFileExclusions maps required server/repository/ filenames to exempt PS-IDs.
+// Remove entries as each PS-ID creates its server/repository/ directory with required files.
+var knownServerRepositoryFileExclusions = map[string]map[string]bool{
+	// pki-ca and identity-* have no server/repository/ directory yet (pending V19 Phase 5).
+	"migrations.go": {
+		cryptoutilSharedMagic.OTLPServicePKICA:         true,
+		cryptoutilSharedMagic.OTLPServiceIdentityAuthz: true,
+		cryptoutilSharedMagic.OTLPServiceIdentityIDP:   true,
+		cryptoutilSharedMagic.OTLPServiceIdentityRS:    true,
+		cryptoutilSharedMagic.OTLPServiceIdentityRP:    true,
+		cryptoutilSharedMagic.OTLPServiceIdentitySPA:   true,
+	},
+}
+
+// knownServerRepositoryDirExclusions maps required server/repository/ subdirectory names to exempt PS-IDs.
+// Remove entries as each PS-ID creates its server/repository/migrations/ directory.
+var knownServerRepositoryDirExclusions = map[string]map[string]bool{
+	// pki-ca and identity-* have no server/repository/ directory yet (pending V19 Phase 5).
+	"migrations": {
+		cryptoutilSharedMagic.OTLPServicePKICA:         true,
+		cryptoutilSharedMagic.OTLPServiceIdentityAuthz: true,
+		cryptoutilSharedMagic.OTLPServiceIdentityIDP:   true,
+		cryptoutilSharedMagic.OTLPServiceIdentityRS:    true,
+		cryptoutilSharedMagic.OTLPServiceIdentityRP:    true,
+		cryptoutilSharedMagic.OTLPServiceIdentitySPA:   true,
+	},
+}
+
+// knownE2EFileExclusions maps required e2e/ filenames to exempt PS-IDs.
+// checkE2EFiles only fires when e2e/ dir exists; services without e2e/ are skipped automatically.
+// Remove entries as each PS-ID adopts the canonical e2e file naming convention.
+var knownE2EFileExclusions = map[string]map[string]bool{
+	// identity-authz has e2e/ dir but no testmain_e2e_test.go (pending V19 Phase 7).
+	"testmain_e2e_test.go": {
+		cryptoutilSharedMagic.OTLPServiceIdentityAuthz: true,
+	},
+	// No PS-ID uses __SERVICE___e2e_test.go naming yet; all use e2e_test.go (pending V19+).
+	"__SERVICE___e2e_test.go": {
+		cryptoutilSharedMagic.OTLPServiceSMKMS:            true,
+		cryptoutilSharedMagic.OTLPServiceSMIM:             true,
+		cryptoutilSharedMagic.OTLPServiceJoseJA:           true,
+		cryptoutilSharedMagic.OTLPServiceIdentityAuthz:    true,
+		cryptoutilSharedMagic.OTLPServiceSkeletonTemplate: true,
+	},
+}
+
 // manifestRelPath is the path to the PS-ID MANIFEST.yaml relative to rootDir.
 const manifestRelPath = "api/cryptosuite-registry/templates/internal/apps/__PS_ID__/MANIFEST.yaml"
 
@@ -82,17 +202,26 @@ func Check(logger *cryptoutilCmdCicdCommon.Logger) error {
 
 // CheckInDir validates PS-ID template conformance under rootDir.
 func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
-	return checkInDirWithExclusions(logger, rootDir, knownRootFileExclusions, knownServerFileExclusions)
+	excl := psIDExclusions{
+		rootFiles:   knownRootFileExclusions,
+		serverFiles: knownServerFileExclusions,
+		serverDirs:  knownServerDirExclusions,
+		configFiles: knownServerConfigFileExclusions,
+		repoFiles:   knownServerRepositoryFileExclusions,
+		repoDirs:    knownServerRepositoryDirExclusions,
+		e2eFiles:    knownE2EFileExclusions,
+	}
+
+	return checkInDirWithExclusions(logger, rootDir, excl)
 }
 
 // checkInDirWithExclusions implements the validation logic with configurable exclusion sets.
-// rootExcl and serverExcl map pre-substitution template filenames to sets of PS-IDs to skip.
+// The excl struct maps pre-substitution template filenames to sets of PS-IDs to skip.
 // This seam allows tests to inject empty exclusion sets and exercise all code paths.
 func checkInDirWithExclusions(
 	logger *cryptoutilCmdCicdCommon.Logger,
 	rootDir string,
-	rootExcl map[string]map[string]bool,
-	serverExcl map[string]map[string]bool,
+	excl psIDExclusions,
 ) error {
 	manifestPath := filepath.Join(rootDir, filepath.FromSlash(manifestRelPath))
 
@@ -115,7 +244,7 @@ func checkInDirWithExclusions(
 
 	for _, ps := range cryptoutilFitnessRegistry.AllProductServices() {
 		psDir := filepath.Join(appsDir, ps.PSID)
-		errs := checkPSIDFiles(psDir, ps, manifest, rootExcl, serverExcl)
+		errs := checkPSIDFiles(psDir, ps, manifest, excl)
 		violations = append(violations, errs...)
 	}
 
@@ -133,14 +262,13 @@ func checkPSIDFiles(
 	psDir string,
 	ps cryptoutilFitnessRegistry.ProductService,
 	manifest psIDManifest,
-	rootExcl map[string]map[string]bool,
-	serverExcl map[string]map[string]bool,
+	excl psIDExclusions,
 ) []string {
 	var violations []string
 
 	// Check required root files.
 	for _, tmplFile := range manifest.RequiredRootFiles {
-		if excl, ok := rootExcl[tmplFile]; ok && excl[ps.PSID] {
+		if excl, ok := excl.rootFiles[tmplFile]; ok && excl[ps.PSID] {
 			continue
 		}
 
@@ -163,7 +291,7 @@ func checkPSIDFiles(
 	serverDir := filepath.Join(psDir, "server")
 
 	for _, tmplFile := range manifest.RequiredServerFiles {
-		if excl, ok := serverExcl[tmplFile]; ok && excl[ps.PSID] {
+		if excl, ok := excl.serverFiles[tmplFile]; ok && excl[ps.PSID] {
 			continue
 		}
 
@@ -172,6 +300,145 @@ func checkPSIDFiles(
 
 		if _, err := os.Stat(filepath.Join(serverDir, expanded)); os.IsNotExist(err) {
 			violations = append(violations, fmt.Sprintf("%s: missing required server file: %s", ps.PSID, expanded))
+		}
+	}
+
+	violations = append(violations, checkServerDirs(psDir, ps, manifest, excl)...)
+	violations = append(violations, checkServerConfigFiles(psDir, ps, manifest, excl)...)
+	violations = append(violations, checkServerRepositoryFiles(psDir, ps, manifest, excl)...)
+	violations = append(violations, checkServerRepositoryDirs(psDir, ps, manifest, excl)...)
+	violations = append(violations, checkE2EFiles(psDir, ps, manifest, excl)...)
+
+	return violations
+}
+
+// checkServerDirs verifies that each entry in RequiredServerDirs exists under server/.
+func checkServerDirs(
+	psDir string,
+	ps cryptoutilFitnessRegistry.ProductService,
+	manifest psIDManifest,
+	excl psIDExclusions,
+) []string {
+	var violations []string
+
+	serverDir := filepath.Join(psDir, "server")
+
+	for _, dir := range manifest.RequiredServerDirs {
+		if excl.serverDirs[dir][ps.PSID] {
+			continue
+		}
+
+		if _, err := os.Stat(filepath.Join(serverDir, dir)); os.IsNotExist(err) {
+			violations = append(violations, fmt.Sprintf("%s: missing required server subdirectory: %s", ps.PSID, dir))
+		}
+	}
+
+	return violations
+}
+
+// checkServerConfigFiles verifies that each entry in RequiredServerConfigFiles exists under server/config/.
+func checkServerConfigFiles(
+	psDir string,
+	ps cryptoutilFitnessRegistry.ProductService,
+	manifest psIDManifest,
+	excl psIDExclusions,
+) []string {
+	var violations []string
+
+	configDir := filepath.Join(psDir, "server", "config")
+
+	for _, tmplFile := range manifest.RequiredServerConfigFiles {
+		if excl.configFiles[tmplFile][ps.PSID] {
+			continue
+		}
+
+		expanded := strings.ReplaceAll(tmplFile, cryptoutilSharedMagic.CICDTemplateExpansionKeyService, ps.Service)
+		expanded = strings.ReplaceAll(expanded, cryptoutilSharedMagic.CICDTemplateExpansionKeyPSID, ps.PSID)
+
+		if _, err := os.Stat(filepath.Join(configDir, expanded)); os.IsNotExist(err) {
+			violations = append(violations, fmt.Sprintf("%s: missing required server config file: %s", ps.PSID, expanded))
+		}
+	}
+
+	return violations
+}
+
+// checkServerRepositoryFiles verifies that each entry in RequiredServerRepositoryFiles exists under server/repository/.
+func checkServerRepositoryFiles(
+	psDir string,
+	ps cryptoutilFitnessRegistry.ProductService,
+	manifest psIDManifest,
+	excl psIDExclusions,
+) []string {
+	var violations []string
+
+	repoDir := filepath.Join(psDir, "server", "repository")
+
+	for _, tmplFile := range manifest.RequiredServerRepositoryFiles {
+		if excl.repoFiles[tmplFile][ps.PSID] {
+			continue
+		}
+
+		expanded := strings.ReplaceAll(tmplFile, cryptoutilSharedMagic.CICDTemplateExpansionKeyService, ps.Service)
+		expanded = strings.ReplaceAll(expanded, cryptoutilSharedMagic.CICDTemplateExpansionKeyPSID, ps.PSID)
+
+		if _, err := os.Stat(filepath.Join(repoDir, expanded)); os.IsNotExist(err) {
+			violations = append(violations, fmt.Sprintf("%s: missing required server repository file: %s", ps.PSID, expanded))
+		}
+	}
+
+	return violations
+}
+
+// checkServerRepositoryDirs verifies that each entry in RequiredServerRepositoryDirs exists under server/repository/.
+func checkServerRepositoryDirs(
+	psDir string,
+	ps cryptoutilFitnessRegistry.ProductService,
+	manifest psIDManifest,
+	excl psIDExclusions,
+) []string {
+	var violations []string
+
+	repoDir := filepath.Join(psDir, "server", "repository")
+
+	for _, dir := range manifest.RequiredServerRepositoryDirs {
+		if excl.repoDirs[dir][ps.PSID] {
+			continue
+		}
+
+		if _, err := os.Stat(filepath.Join(repoDir, dir)); os.IsNotExist(err) {
+			violations = append(violations, fmt.Sprintf("%s: missing required server repository subdirectory: %s", ps.PSID, dir))
+		}
+	}
+
+	return violations
+}
+
+// checkE2EFiles verifies that each entry in RequiredE2EFiles exists under e2e/.
+// This check is skipped entirely when the e2e/ directory does not exist.
+func checkE2EFiles(
+	psDir string,
+	ps cryptoutilFitnessRegistry.ProductService,
+	manifest psIDManifest,
+	excl psIDExclusions,
+) []string {
+	e2eDir := filepath.Join(psDir, "e2e")
+	if _, err := os.Stat(e2eDir); os.IsNotExist(err) {
+		return nil
+	}
+
+	var violations []string
+
+	for _, tmplFile := range manifest.RequiredE2EFiles {
+		if excl.e2eFiles[tmplFile][ps.PSID] {
+			continue
+		}
+
+		expanded := strings.ReplaceAll(tmplFile, cryptoutilSharedMagic.CICDTemplateExpansionKeyService, ps.Service)
+		expanded = strings.ReplaceAll(expanded, cryptoutilSharedMagic.CICDTemplateExpansionKeyPSID, ps.PSID)
+
+		if _, err := os.Stat(filepath.Join(e2eDir, expanded)); os.IsNotExist(err) {
+			violations = append(violations, fmt.Sprintf("%s: missing required e2e file: %s", ps.PSID, expanded))
 		}
 	}
 

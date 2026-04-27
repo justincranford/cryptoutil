@@ -78,6 +78,34 @@ func createFullPSIDRoot(t *testing.T, realRoot, tmpDir string) {
 			require.NoError(t, os.WriteFile(filepath.Join(serverDir, "testmain_test.go"), []byte("package server\n"), cryptoutilSharedMagic.CacheFilePermissions))
 		}
 		// swagger.go, swagger_test.go, lifecycle_test, port_conflict_test: all excluded, skip.
+
+		// Required server subdirs: apis, model, repository (respecting production exclusions).
+		for _, dir := range []string{"apis", "model", "repository"} {
+			if !knownServerDirExclusions[dir][ps.PSID] {
+				require.NoError(t, os.MkdirAll(filepath.Join(serverDir, dir), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+			}
+		}
+
+		// Required server config files (respecting production exclusions).
+		if !knownServerConfigFileExclusions["config.go"][ps.PSID] {
+			configDir := filepath.Join(serverDir, "config")
+			require.NoError(t, os.MkdirAll(configDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+			require.NoError(t, os.WriteFile(filepath.Join(configDir, "config.go"), []byte("package config\n"), cryptoutilSharedMagic.CacheFilePermissions))
+			require.NoError(t, os.WriteFile(filepath.Join(configDir, "config_test.go"), []byte("package config\n"), cryptoutilSharedMagic.CacheFilePermissions))
+		}
+
+		if !knownServerConfigFileExclusions["config_test_helper.go"][ps.PSID] {
+			configDir := filepath.Join(serverDir, "config")
+			require.NoError(t, os.MkdirAll(configDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+			require.NoError(t, os.WriteFile(filepath.Join(configDir, "config_test_helper.go"), []byte("package config\n"), cryptoutilSharedMagic.CacheFilePermissions))
+		}
+
+		// Required server repository files and dirs (respecting production exclusions).
+		if !knownServerRepositoryFileExclusions["migrations.go"][ps.PSID] {
+			repoDir := filepath.Join(serverDir, "repository")
+			require.NoError(t, os.MkdirAll(filepath.Join(repoDir, "migrations"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+			require.NoError(t, os.WriteFile(filepath.Join(repoDir, "migrations.go"), []byte("package repository\n"), cryptoutilSharedMagic.CacheFilePermissions))
+		}
 	}
 }
 
@@ -276,7 +304,13 @@ func TestCheckInDir_NoExclusions_AllValid(t *testing.T) {
 	for _, ps := range cryptoutilFitnessRegistry.AllProductServices() {
 		psDir := filepath.Join(tmpDir, "internal", "apps", ps.PSID)
 		serverDir := filepath.Join(psDir, "server")
-		require.NoError(t, os.MkdirAll(serverDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+		configDir := filepath.Join(serverDir, "config")
+		repoDir := filepath.Join(serverDir, "repository")
+
+		require.NoError(t, os.MkdirAll(filepath.Join(serverDir, "apis"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+		require.NoError(t, os.MkdirAll(filepath.Join(serverDir, "model"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+		require.NoError(t, os.MkdirAll(configDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+		require.NoError(t, os.MkdirAll(filepath.Join(repoDir, "migrations"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 		// All required root files.
 		require.NoError(t, os.WriteFile(filepath.Join(psDir, ps.Service+".go"), []byte("package main\n"), cryptoutilSharedMagic.CacheFilePermissions))
@@ -290,9 +324,226 @@ func TestCheckInDir_NoExclusions_AllValid(t *testing.T) {
 		require.NoError(t, os.WriteFile(filepath.Join(serverDir, "testmain_test.go"), []byte("package server\n"), cryptoutilSharedMagic.CacheFilePermissions))
 		require.NoError(t, os.WriteFile(filepath.Join(serverDir, ps.Service+"_lifecycle_test.go"), []byte("package server\n"), cryptoutilSharedMagic.CacheFilePermissions))
 		require.NoError(t, os.WriteFile(filepath.Join(serverDir, ps.Service+"_port_conflict_test.go"), []byte("package server\n"), cryptoutilSharedMagic.CacheFilePermissions))
+
+		// All required server config files.
+		require.NoError(t, os.WriteFile(filepath.Join(configDir, "config.go"), []byte("package config\n"), cryptoutilSharedMagic.CacheFilePermissions))
+		require.NoError(t, os.WriteFile(filepath.Join(configDir, "config_test.go"), []byte("package config\n"), cryptoutilSharedMagic.CacheFilePermissions))
+		require.NoError(t, os.WriteFile(filepath.Join(configDir, "config_test_helper.go"), []byte("package config\n"), cryptoutilSharedMagic.CacheFilePermissions))
+
+		// All required server repository files.
+		require.NoError(t, os.WriteFile(filepath.Join(repoDir, "migrations.go"), []byte("package repository\n"), cryptoutilSharedMagic.CacheFilePermissions))
 	}
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	err = ExportedCheckInDirNoExclusions(logger, tmpDir)
 	require.NoError(t, err)
+}
+
+// TestCheckInDir_NoExclusions_MissingServerDir exercises the server subdirectory violation path.
+func TestCheckInDir_NoExclusions_MissingServerDir(t *testing.T) {
+	t.Parallel()
+
+	root, err := findProjectRoot()
+	if err != nil {
+		t.Skip("cannot find project root")
+	}
+
+	tmpDir := t.TempDir()
+	copyManifest(t, root, tmpDir)
+
+	// Create root files + server/ + required server files + config + repository files, but omit server/apis/.
+	for _, ps := range cryptoutilFitnessRegistry.AllProductServices() {
+		psDir := filepath.Join(tmpDir, "internal", "apps", ps.PSID)
+		serverDir := filepath.Join(psDir, "server")
+		configDir := filepath.Join(serverDir, "config")
+		repoDir := filepath.Join(serverDir, "repository")
+
+		require.NoError(t, os.MkdirAll(filepath.Join(serverDir, "model"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+		require.NoError(t, os.MkdirAll(configDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+		require.NoError(t, os.MkdirAll(filepath.Join(repoDir, "migrations"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+
+		require.NoError(t, os.WriteFile(filepath.Join(psDir, ps.Service+".go"), []byte("package main\n"), cryptoutilSharedMagic.CacheFilePermissions))
+		require.NoError(t, os.WriteFile(filepath.Join(psDir, ps.Service+"_usage.go"), []byte("package main\n"), cryptoutilSharedMagic.CacheFilePermissions))
+		require.NoError(t, os.WriteFile(filepath.Join(psDir, ps.Service+"_cli_test.go"), []byte("package main\n"), cryptoutilSharedMagic.CacheFilePermissions))
+		require.NoError(t, os.WriteFile(filepath.Join(serverDir, "server.go"), []byte("package server\n"), cryptoutilSharedMagic.CacheFilePermissions))
+		require.NoError(t, os.WriteFile(filepath.Join(serverDir, "testmain_test.go"), []byte("package server\n"), cryptoutilSharedMagic.CacheFilePermissions))
+		require.NoError(t, os.WriteFile(filepath.Join(configDir, "config.go"), []byte("package config\n"), cryptoutilSharedMagic.CacheFilePermissions))
+		require.NoError(t, os.WriteFile(filepath.Join(configDir, "config_test.go"), []byte("package config\n"), cryptoutilSharedMagic.CacheFilePermissions))
+		require.NoError(t, os.WriteFile(filepath.Join(configDir, "config_test_helper.go"), []byte("package config\n"), cryptoutilSharedMagic.CacheFilePermissions))
+		require.NoError(t, os.WriteFile(filepath.Join(repoDir, "migrations.go"), []byte("package repository\n"), cryptoutilSharedMagic.CacheFilePermissions))
+		// No server/apis/ directory created.
+	}
+
+	logger := cryptoutilCmdCicdCommon.NewLogger("test")
+	err = ExportedCheckInDirNoExclusions(logger, tmpDir)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "missing required server subdirectory")
+}
+
+// TestCheckInDir_NoExclusions_MissingServerConfigFile exercises the server config file violation path.
+func TestCheckInDir_NoExclusions_MissingServerConfigFile(t *testing.T) {
+	t.Parallel()
+
+	root, err := findProjectRoot()
+	if err != nil {
+		t.Skip("cannot find project root")
+	}
+
+	tmpDir := t.TempDir()
+	copyManifest(t, root, tmpDir)
+
+	// Create everything except server/config/config_test_helper.go.
+	for _, ps := range cryptoutilFitnessRegistry.AllProductServices() {
+		psDir := filepath.Join(tmpDir, "internal", "apps", ps.PSID)
+		serverDir := filepath.Join(psDir, "server")
+		configDir := filepath.Join(serverDir, "config")
+		repoDir := filepath.Join(serverDir, "repository")
+
+		require.NoError(t, os.MkdirAll(filepath.Join(serverDir, "apis"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+		require.NoError(t, os.MkdirAll(filepath.Join(serverDir, "model"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+		require.NoError(t, os.MkdirAll(configDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+		require.NoError(t, os.MkdirAll(filepath.Join(repoDir, "migrations"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+
+		require.NoError(t, os.WriteFile(filepath.Join(psDir, ps.Service+".go"), []byte("package main\n"), cryptoutilSharedMagic.CacheFilePermissions))
+		require.NoError(t, os.WriteFile(filepath.Join(psDir, ps.Service+"_usage.go"), []byte("package main\n"), cryptoutilSharedMagic.CacheFilePermissions))
+		require.NoError(t, os.WriteFile(filepath.Join(psDir, ps.Service+"_cli_test.go"), []byte("package main\n"), cryptoutilSharedMagic.CacheFilePermissions))
+		require.NoError(t, os.WriteFile(filepath.Join(serverDir, "server.go"), []byte("package server\n"), cryptoutilSharedMagic.CacheFilePermissions))
+		require.NoError(t, os.WriteFile(filepath.Join(serverDir, "testmain_test.go"), []byte("package server\n"), cryptoutilSharedMagic.CacheFilePermissions))
+		require.NoError(t, os.WriteFile(filepath.Join(configDir, "config.go"), []byte("package config\n"), cryptoutilSharedMagic.CacheFilePermissions))
+		require.NoError(t, os.WriteFile(filepath.Join(configDir, "config_test.go"), []byte("package config\n"), cryptoutilSharedMagic.CacheFilePermissions))
+		// config_test_helper.go intentionally omitted.
+		require.NoError(t, os.WriteFile(filepath.Join(repoDir, "migrations.go"), []byte("package repository\n"), cryptoutilSharedMagic.CacheFilePermissions))
+	}
+
+	logger := cryptoutilCmdCicdCommon.NewLogger("test")
+	err = ExportedCheckInDirNoExclusions(logger, tmpDir)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "missing required server config file")
+}
+
+// TestCheckInDir_NoExclusions_MissingServerRepositoryFile exercises the server repository file violation path.
+func TestCheckInDir_NoExclusions_MissingServerRepositoryFile(t *testing.T) {
+	t.Parallel()
+
+	root, err := findProjectRoot()
+	if err != nil {
+		t.Skip("cannot find project root")
+	}
+
+	tmpDir := t.TempDir()
+	copyManifest(t, root, tmpDir)
+
+	// Create everything except server/repository/migrations.go.
+	for _, ps := range cryptoutilFitnessRegistry.AllProductServices() {
+		psDir := filepath.Join(tmpDir, "internal", "apps", ps.PSID)
+		serverDir := filepath.Join(psDir, "server")
+		configDir := filepath.Join(serverDir, "config")
+		repoDir := filepath.Join(serverDir, "repository")
+
+		require.NoError(t, os.MkdirAll(filepath.Join(serverDir, "apis"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+		require.NoError(t, os.MkdirAll(filepath.Join(serverDir, "model"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+		require.NoError(t, os.MkdirAll(configDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+		require.NoError(t, os.MkdirAll(filepath.Join(repoDir, "migrations"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+
+		require.NoError(t, os.WriteFile(filepath.Join(psDir, ps.Service+".go"), []byte("package main\n"), cryptoutilSharedMagic.CacheFilePermissions))
+		require.NoError(t, os.WriteFile(filepath.Join(psDir, ps.Service+"_usage.go"), []byte("package main\n"), cryptoutilSharedMagic.CacheFilePermissions))
+		require.NoError(t, os.WriteFile(filepath.Join(psDir, ps.Service+"_cli_test.go"), []byte("package main\n"), cryptoutilSharedMagic.CacheFilePermissions))
+		require.NoError(t, os.WriteFile(filepath.Join(serverDir, "server.go"), []byte("package server\n"), cryptoutilSharedMagic.CacheFilePermissions))
+		require.NoError(t, os.WriteFile(filepath.Join(serverDir, "testmain_test.go"), []byte("package server\n"), cryptoutilSharedMagic.CacheFilePermissions))
+		require.NoError(t, os.WriteFile(filepath.Join(configDir, "config.go"), []byte("package config\n"), cryptoutilSharedMagic.CacheFilePermissions))
+		require.NoError(t, os.WriteFile(filepath.Join(configDir, "config_test.go"), []byte("package config\n"), cryptoutilSharedMagic.CacheFilePermissions))
+		require.NoError(t, os.WriteFile(filepath.Join(configDir, "config_test_helper.go"), []byte("package config\n"), cryptoutilSharedMagic.CacheFilePermissions))
+		// migrations.go intentionally omitted.
+	}
+
+	logger := cryptoutilCmdCicdCommon.NewLogger("test")
+	err = ExportedCheckInDirNoExclusions(logger, tmpDir)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "missing required server repository file")
+}
+
+// TestCheckInDir_NoExclusions_MissingServerRepositoryDir exercises the server repository subdirectory violation path.
+func TestCheckInDir_NoExclusions_MissingServerRepositoryDir(t *testing.T) {
+	t.Parallel()
+
+	root, err := findProjectRoot()
+	if err != nil {
+		t.Skip("cannot find project root")
+	}
+
+	tmpDir := t.TempDir()
+	copyManifest(t, root, tmpDir)
+
+	// Create everything except server/repository/migrations/ subdirectory.
+	for _, ps := range cryptoutilFitnessRegistry.AllProductServices() {
+		psDir := filepath.Join(tmpDir, "internal", "apps", ps.PSID)
+		serverDir := filepath.Join(psDir, "server")
+		configDir := filepath.Join(serverDir, "config")
+		repoDir := filepath.Join(serverDir, "repository")
+
+		require.NoError(t, os.MkdirAll(filepath.Join(serverDir, "apis"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+		require.NoError(t, os.MkdirAll(filepath.Join(serverDir, "model"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+		require.NoError(t, os.MkdirAll(configDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+		require.NoError(t, os.MkdirAll(repoDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+		// migrations/ subdirectory intentionally omitted.
+
+		require.NoError(t, os.WriteFile(filepath.Join(psDir, ps.Service+".go"), []byte("package main\n"), cryptoutilSharedMagic.CacheFilePermissions))
+		require.NoError(t, os.WriteFile(filepath.Join(psDir, ps.Service+"_usage.go"), []byte("package main\n"), cryptoutilSharedMagic.CacheFilePermissions))
+		require.NoError(t, os.WriteFile(filepath.Join(psDir, ps.Service+"_cli_test.go"), []byte("package main\n"), cryptoutilSharedMagic.CacheFilePermissions))
+		require.NoError(t, os.WriteFile(filepath.Join(serverDir, "server.go"), []byte("package server\n"), cryptoutilSharedMagic.CacheFilePermissions))
+		require.NoError(t, os.WriteFile(filepath.Join(serverDir, "testmain_test.go"), []byte("package server\n"), cryptoutilSharedMagic.CacheFilePermissions))
+		require.NoError(t, os.WriteFile(filepath.Join(configDir, "config.go"), []byte("package config\n"), cryptoutilSharedMagic.CacheFilePermissions))
+		require.NoError(t, os.WriteFile(filepath.Join(configDir, "config_test.go"), []byte("package config\n"), cryptoutilSharedMagic.CacheFilePermissions))
+		require.NoError(t, os.WriteFile(filepath.Join(configDir, "config_test_helper.go"), []byte("package config\n"), cryptoutilSharedMagic.CacheFilePermissions))
+		require.NoError(t, os.WriteFile(filepath.Join(repoDir, "migrations.go"), []byte("package repository\n"), cryptoutilSharedMagic.CacheFilePermissions))
+	}
+
+	logger := cryptoutilCmdCicdCommon.NewLogger("test")
+	err = ExportedCheckInDirNoExclusions(logger, tmpDir)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "missing required server repository subdirectory")
+}
+
+// TestCheckInDir_NoExclusions_MissingE2EFile exercises the e2e file violation path.
+// Only fires when the e2e/ directory exists but required files are absent.
+func TestCheckInDir_NoExclusions_MissingE2EFile(t *testing.T) {
+	t.Parallel()
+
+	root, err := findProjectRoot()
+	if err != nil {
+		t.Skip("cannot find project root")
+	}
+
+	tmpDir := t.TempDir()
+	copyManifest(t, root, tmpDir)
+
+	// Create a full valid PS-ID structure but add an e2e/ dir without required files for one PS-ID.
+	for _, ps := range cryptoutilFitnessRegistry.AllProductServices() {
+		psDir := filepath.Join(tmpDir, "internal", "apps", ps.PSID)
+		serverDir := filepath.Join(psDir, "server")
+		configDir := filepath.Join(serverDir, "config")
+		repoDir := filepath.Join(serverDir, "repository")
+
+		require.NoError(t, os.MkdirAll(filepath.Join(serverDir, "apis"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+		require.NoError(t, os.MkdirAll(filepath.Join(serverDir, "model"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+		require.NoError(t, os.MkdirAll(configDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+		require.NoError(t, os.MkdirAll(filepath.Join(repoDir, "migrations"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+		// Create e2e/ dir but intentionally omit required e2e files.
+		require.NoError(t, os.MkdirAll(filepath.Join(psDir, "e2e"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+
+		require.NoError(t, os.WriteFile(filepath.Join(psDir, ps.Service+".go"), []byte("package main\n"), cryptoutilSharedMagic.CacheFilePermissions))
+		require.NoError(t, os.WriteFile(filepath.Join(psDir, ps.Service+"_usage.go"), []byte("package main\n"), cryptoutilSharedMagic.CacheFilePermissions))
+		require.NoError(t, os.WriteFile(filepath.Join(psDir, ps.Service+"_cli_test.go"), []byte("package main\n"), cryptoutilSharedMagic.CacheFilePermissions))
+		require.NoError(t, os.WriteFile(filepath.Join(serverDir, "server.go"), []byte("package server\n"), cryptoutilSharedMagic.CacheFilePermissions))
+		require.NoError(t, os.WriteFile(filepath.Join(serverDir, "testmain_test.go"), []byte("package server\n"), cryptoutilSharedMagic.CacheFilePermissions))
+		require.NoError(t, os.WriteFile(filepath.Join(configDir, "config.go"), []byte("package config\n"), cryptoutilSharedMagic.CacheFilePermissions))
+		require.NoError(t, os.WriteFile(filepath.Join(configDir, "config_test.go"), []byte("package config\n"), cryptoutilSharedMagic.CacheFilePermissions))
+		require.NoError(t, os.WriteFile(filepath.Join(configDir, "config_test_helper.go"), []byte("package config\n"), cryptoutilSharedMagic.CacheFilePermissions))
+		require.NoError(t, os.WriteFile(filepath.Join(repoDir, "migrations.go"), []byte("package repository\n"), cryptoutilSharedMagic.CacheFilePermissions))
+	}
+
+	logger := cryptoutilCmdCicdCommon.NewLogger("test")
+	err = ExportedCheckInDirNoExclusions(logger, tmpDir)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "missing required e2e file")
 }

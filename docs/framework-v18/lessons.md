@@ -61,7 +61,28 @@
 
 ## Phase 2: Prescriptive MANIFEST.yaml + Linter Extension
 
-*(To be filled during Phase 2 execution using the 4-section structure above)*
+**What Worked**:
+- The `psIDExclusions` struct design (7 maps bundled into one value) eliminated a potential 7-parameter function signature. Using a struct keeps the call site readable and makes it easy to add an 8th exclusion category in the future without changing all call sites.
+- Conditional `checkE2EFiles` logic (skip entirely if `e2e/` dir absent) was the right design choice. Alternatives (registering all ~5 services with no e2e/ as exclusions) would have created a large, noisy exclusion list that grows inverse to migration progress. The conditional approach becomes stricter automatically as e2e/ directories are created.
+- `__SERVICE__` placeholder substitution for e2e file names (e.g., `__SERVICE___e2e_test.go` → `sm-kms_e2e_test.go`) leverages the existing PSID → Service mapping in `AllProductServices()`. No extra registry data needed.
+- All 14 tests passed on the first run after implementation (0 failures, 0 regressions). 100% statement coverage.
+- `lint-fitness` confirmed real workspace passes with initial knownExclusions in place — the exclusion maps correctly model the current (transitional) state of each PS-ID directory structure.
+- `golangci-lint run --fix` caught one gofumpt violation in the new exclusion map initializer block (blank lines between map entries). Auto-fixed cleanly with no secondary violations.
+
+**What Didn't Work**:
+- Task 2.1 was marked ❌ in tasks.md but was actually completed in the prior session. The compaction summary correctly noted it was done, but the tasks.md file still had the ❌ marker. Required a "verify before implementing" check at session start to avoid duplicate work.
+- The initial `ExportedCheckInDirNoExclusions` function in `export_test.go` needed updating from the old 4-parameter `checkInDirWithExclusions(logger, rootDir, rootExcl, serverExcl)` signature to the new `psIDExclusions` struct. The export seam pattern isolates this change correctly (no production code paths changed).
+
+**Root Causes**:
+- tasks.md out of sync with actual work completed (Phase 1 → Phase 2 boundary occurred across sessions). Mitigation: verify each task's actual state by reading source files before marking in-progress.
+- gofumpt requires blank lines between map literal groups to be consistent with its group-separation rules. This is a style enforcement that `golangci-lint run --fix` handles automatically, but it means a single `--fix` pass is always needed after adding new map initializers.
+
+**Patterns for Future Phases**:
+1. **Verify task pre-completion before coding**: When resuming from a compaction, read the relevant source files to confirm what was already done vs. what the tasks.md shows. Tasks can be completed in prior sessions without tasks.md being updated.
+2. **psIDExclusions pattern**: When adding new MANIFEST validation categories that will temporarily fail for some PS-IDs, add the exclusion to `psIDExclusions` (not to MANIFEST.yaml). MANIFEST.yaml is the canonical target state; exclusions in the Go linter are the transition mechanism.
+3. **Conditional check for optional directories**: When a required directory (e2e/) doesn't exist yet for many services, make the check conditional (`if !dirExists { return nil }`) rather than populating a large exclusion list. This auto-tightens as migration progresses.
+4. **golangci-lint two-pass always**: After adding new struct literals with map initializers, run `golangci-lint run --fix` first (for gofumpt/wsl), then re-run `golangci-lint run` without `--fix` to catch any secondary violations introduced by auto-fixers.
+5. **Evidence file naming**: Use `test-output/v18v19-phase2/` pattern consistently. The subdirectory name encodes the plan version (v18v19 = ENG-HANDBOOK v18 → v19 migration) and the phase number, making it easy to correlate with tasks.md evidence archive.
 
 ---
 

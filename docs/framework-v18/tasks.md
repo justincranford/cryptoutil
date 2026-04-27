@@ -1,6 +1,6 @@
 # Tasks — ENG-HANDBOOK.md Propagation + Prescriptive MANIFEST + Identity Conformance Migration
 
-**Status**: 6 of 49 tasks complete (12%)
+**Status**: 11 of 49 tasks complete (22%)
 **Last Updated**: 2026-04-27
 **Created**: 2026-04-27
 
@@ -111,71 +111,71 @@ tls-structure.md; verify with lint-docs; delete suggestion docs.
 
 ### Task 2.1: Update MANIFEST.yaml
 
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 1h
-- **Actual**: —
+- **Actual**: 0.5h
 - **Dependencies**: Task 5.3
 - **Files**: `api/cryptosuite-registry/templates/internal/apps/__PS_ID__/MANIFEST.yaml`
 - **Acceptance Criteria**:
-  - [ ] `required_server_dirs` field added (apis, config, model, repository + knownExclusions)
-  - [ ] `required_server_config_files` field added
-  - [ ] `required_server_repository_files` field added
-  - [ ] `required_server_repository_dirs` field added
-  - [ ] `required_e2e_files` field added (with `__SERVICE__` substitution)
-  - [ ] YAML parses without error
+  - [x] `required_server_dirs` field added (apis, config, model, repository + knownExclusions)
+  - [x] `required_server_config_files` field added
+  - [x] `required_server_repository_files` field added
+  - [x] `required_server_repository_dirs` field added
+  - [x] `required_e2e_files` field added (with `__SERVICE__` substitution)
+  - [x] YAML parses without error
 
 ### Task 2.2: Implement checkServerDirs
 
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 0.5h
-- **Actual**: —
+- **Actual**: 1h
 - **Dependencies**: Task 2.1
 - **Files**: `internal/apps-tools/cicd_lint/lint_fitness/apps_ps_id_template/apps_ps_id_template.go`
 - **Acceptance Criteria**:
-  - [ ] Function verifies `server/{dir}` for each RequiredServerDirs entry
-  - [ ] Respects `knownExclusions` per dir
-  - [ ] Unit test cases added in `apps_ps_id_template_test.go`
+  - [x] Function verifies `server/{dir}` for each RequiredServerDirs entry
+  - [x] Respects `knownExclusions` per dir
+  - [x] Unit test cases added in `apps_ps_id_template_test.go`
 
 ### Task 2.3: Implement checkServerConfigFiles + checkServerRepositoryFiles
 
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 0.5h
-- **Actual**: —
+- **Actual**: 1h
 - **Dependencies**: Task 2.2
 - **Files**: `internal/apps-tools/cicd_lint/lint_fitness/apps_ps_id_template/apps_ps_id_template.go`
 - **Acceptance Criteria**:
-  - [ ] `checkServerConfigFiles` verifies `server/config/{file}`
-  - [ ] `checkServerRepositoryFiles` verifies `server/repository/{file}`
-  - [ ] `checkServerRepositoryDirs` verifies `server/repository/{dir}`
-  - [ ] Unit test cases for each function
+  - [x] `checkServerConfigFiles` verifies `server/config/{file}`
+  - [x] `checkServerRepositoryFiles` verifies `server/repository/{file}`
+  - [x] `checkServerRepositoryDirs` verifies `server/repository/{dir}`
+  - [x] Unit test cases for each function
 
 ### Task 2.4: Implement checkE2EFiles
 
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 0.5h
-- **Actual**: —
+- **Actual**: 0.5h
 - **Dependencies**: Task 2.3
 - **Files**: `internal/apps-tools/cicd_lint/lint_fitness/apps_ps_id_template/apps_ps_id_template.go`
 - **Acceptance Criteria**:
-  - [ ] `checkE2EFiles` verifies `e2e/{file}` with `__SERVICE__` → actual service name substitution
-  - [ ] Unit test cases added
+  - [x] `checkE2EFiles` verifies `e2e/{file}` with `__SERVICE__` → actual service name substitution
+  - [x] Unit test cases added
 
 ### Task 2.5: Coverage + lint-fitness Validation
 
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 0.5h
-- **Actual**: —
+- **Actual**: 0.25h
 - **Dependencies**: Task 2.4
 - **Acceptance Criteria**:
-  - [ ] `go test ./internal/apps-tools/cicd_lint/lint_fitness/apps_ps_id_template/...` exits 0
-  - [ ] Coverage ≥98% for apps_ps_id_template package
-  - [ ] `go run ./cmd/cicd-lint lint-fitness` exits 0 with initial knownExclusions in place
-  - [ ] Output archived in `test-output/v18v19-phase2/`
+  - [x] `go test ./internal/apps-tools/cicd_lint/lint_fitness/apps_ps_id_template/...` exits 0
+  - [x] Coverage 100% for apps_ps_id_template package (≥98% target exceeded)
+  - [x] `go run ./cmd/cicd-lint lint-fitness` exits 0 with initial knownExclusions in place
+  - [x] Output archived in `test-output/v18v19-phase2/`
 
 ---
 
