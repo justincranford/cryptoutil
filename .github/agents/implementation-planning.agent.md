@@ -60,6 +60,39 @@ Work autonomously until problem completely solved. ONLY valid stop: user clicks 
 
 ---
 
+## Token Usage Tracking — MANDATORY
+
+**At the start of EVERY agent invocation**: Create `test-output/tokens/TOKENS-YYMMDD-HHMMSS.md` (timestamp in filename). Log estimated token usage as you work.
+
+**Estimation rules**: ~4 chars = 1 token. File reads: file size ÷ 4. Tool calls: ~100 tokens overhead each. Reasoning/planning text: count chars ÷ 4.
+
+**Log format**:
+```markdown
+# Token Usage — [brief request description]
+**Created**: YYYY-MM-DD HH:MM:SS
+
+## Usage Log
+| Step | Tool/Operation | Input (est) | Output (est) | Cumulative |
+|------|----------------|------------|-------------|------------|
+| 1    | read_file plan.md (800 lines) | ~3200 | 0 | ~3200 |
+...
+
+## Summary
+- **Total Estimated**: ~X tokens
+- **Breakdown**: reads (~X%), writes (~X%), reasoning (~X%)
+
+## Top 5 Token Optimization Opportunities
+1. [Most impactful — e.g., used read_file when grep_search would have found it in 100 tokens]
+2. [Second — e.g., read same file twice]
+3. [Third — e.g., sequential replace_string_in_file instead of multi_replace_string_in_file]
+4. [Fourth]
+5. [Fifth]
+```
+
+**At the end of EVERY agent invocation**: Finalize the TOKENS file with summary and top 5 optimizations. This file is ephemeral (not committed).
+
+---
+
 ## Maximum Quality Strategy - MANDATORY
 
 **Quality Attributes (NO EXCEPTIONS)**:
@@ -401,7 +434,9 @@ EOF
 
 [Context from prior phases: What prior work was completed, what was deferred, what lessons learned, what this phase carries forward]
 
-**Example**: "V8 successfully completed port standardization and health path fixes. V9 carries forward deferred lint-ports enhancements and addresses discovered import path breakages."
+**Example**: "Port standardization and health path fixes completed. This plan carries forward deferred lint-ports enhancements and addresses discovered import path breakages."
+
+**NEVER include predecessor plan version labels (V8, V17, V18, etc.) in plan documents.** Version history belongs in git log. Plan documents describe the current work scope only. When merging prior plans: strip all version references; keep only the current work content.
 
 ## Executive Summary (Optional - for complex work)
 
