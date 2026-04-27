@@ -307,12 +307,34 @@ VS Code Copilot supports exactly 3 customization file types:
 
 See [Section 2.1.5 Copilot Skills](#215-copilot-skills) for skill catalogue and `.github/skills/` organization.
 
+**`.github/` Top-Level Files**:
+
+| File | Purpose |
+|------|---------|
+| `copilot-instructions.md` | Auto-loaded by VS Code Copilot for all conversations — provides project overview and links to instruction files |
+| `dependabot.yml` | Dependabot configuration for automated dependency updates |
+| `SECURITY.md` | Security vulnerability reporting policy and contact information |
+| `versions-rules.xml` | Maven version enforcement rules for Gatling load tests |
+| `workflows-outdated-action-exemptions.json` | Exemption list for GitHub Actions version-pin linter |
+
 #### 2.1.1 Agent Architecture
 
 - Agent isolation principle (agents do NOT inherit copilot instructions)
 - **Dual canonical files**: `.github/agents/*.agent.md` (Copilot) and `.claude/agents/*.md` (Claude Code) — both must exist and stay in sync
 - **Copilot format** (`.github/agents/*.agent.md`): YAML frontmatter with `name`, `description`, `tools` (whitelist — required for full tool access), `handoffs`, `argument-hint`
 - **Claude Code format** (`.claude/agents/*.md`): YAML frontmatter with `name`, `description`, `argument-hint` only — omit `tools:` so Claude inherits all tools; Copilot-only fields (`handoffs`, `skills`) not applicable
+
+**Claude Code Extended Agent Frontmatter** (less common, supported by Claude Code):
+
+| Field | Type | Purpose |
+|-------|------|---------|
+| `disallowedTools` | string[] | Explicitly block specific tools (e.g., `["Bash", "computer"]`) |
+| `permissionMode` | string | Permission prompt mode: `"auto"` (no prompts), `"default"` (prompt for sensitive ops), `"bypassPermissions"` |
+| `maxTurns` | int | Maximum agentic turns before stopping and asking user |
+| `skills` | object[] | Sub-skills to load (experimental — prefer `/skill-name` invocation) |
+| `memory` | object | Memory configuration (project files, user preferences) |
+| `color` | string | Agent display color in Claude Code UI |
+
 - Autonomous execution mode patterns
 - Quality over speed enforcement
 
@@ -380,6 +402,56 @@ Skills live in `.github/skills/NAME/SKILL.md` — each skill in its own subdirec
 **Claude Code skills**: Each Copilot skill has a corresponding Claude Code skill at `.claude/skills/NAME/SKILL.md` (directory-based, following the [Agent Skills open standard](https://agentskills.io/)). The `lint-skill-command-drift` sub-linter (part of `cicd-lint lint-docs`) enforces this 1:1 correspondence — missing Claude skills, `description`/`argument-hint` mismatches, and missing `## Key Rules` sections all produce errors.
 
 **Claude Skill Frontmatter Requirements** (`.claude/skills/NAME/SKILL.md`): YAML frontmatter (`---`) is REQUIRED. Fields: `name` (bare skill name — e.g., `test-table-driven` NOT `claude-test-table-driven`), `description` (IDENTICAL to the corresponding Copilot skill's `description`), `argument-hint` (IDENTICAL to the Copilot skill's `argument-hint` when the skill has one). NEVER include `disable-model-invocation` — that field is Copilot-ONLY. Body content MUST be identical to the Copilot skill body. The `lint-skill-command-drift` linter validates frontmatter presence, `description` match, `argument-hint` match, and `## Key Rules` presence.
+
+**Extended Claude Skill Frontmatter** (full field reference for Claude Code skills):
+
+| Field | Required | Purpose |
+|-------|----------|---------|
+| `name` | YES | Bare skill name matching directory; `lowercase-hyphens` |
+| `description` | YES | Identical to Copilot `description`; determines auto-loading trigger |
+| `argument-hint` | No | Identical to Copilot `argument-hint` when present |
+| `allowed-tools` | No | Comma-separated list of tools the skill may use |
+| `model` | No | Override model for this skill (e.g., `claude-opus-4-5`) |
+| `effort` | No | Thinking budget: `"low"`, `"medium"`, `"high"` |
+| `context` | No | Extra context snippets to prepend (array of file paths or inline strings) |
+| `agent` | No | Sub-agent to delegate to when skill is invoked |
+| `paths` | No | Array of glob patterns; skill auto-loads only for matching file paths |
+| `shell` | No | Shell command to run for dynamic context injection |
+
+**Dynamic Context Injection** (Claude Code skill bodies):
+
+Skills can embed dynamic runtime context using **backtick-bang** blocks:
+
+```markdown
+Here is current git status:
+`!git status --short`
+```
+
+**Special variables available inside skill bodies**:
+
+| Variable | Expansion |
+|----------|----------|
+| `$ARGUMENTS` | Full argument string passed to the skill (e.g., `/my-skill some args`) |
+| `$1`, `$2`, … | Individual positional arguments |
+| `${CLAUDE_SESSION_ID}` | Unique session identifier for namespacing |
+
+**Skill Body Structure** (recommended template):
+
+```markdown
+## Overview
+[One-paragraph description of what this skill does]
+
+## Key Rules
+[Bullet list of MUST / MUST NOT constraints — enforced by lint-skill-command-drift]
+
+## Workflow
+[Numbered steps or sub-sections describing the skill procedure]
+
+## Examples
+[Worked examples or before/after code snippets]
+```
+
+**agentskills.io Open Standard Context**: Claude skills follow the cross-agent [Agent Skills open standard](https://agentskills.io/). The directory-based skill format (`NAME/SKILL.md`) is compatible with Claude Code, Copilot, and other agents that implement the standard. Using this standard means skills written for this project are portable to other Claude Code or compatible agent environments.
 
 **Legacy commands** (`.claude/commands/NAME.md`): Removed — all migrated to `.claude/skills/NAME/SKILL.md`. The `lint-skill-command-drift` linter now checks `.claude/skills/` exclusively.
 
@@ -1074,6 +1146,81 @@ running against a product or suite stack.
 
 ### 4.4 Code Organization
 
+#### 4.4.0 File Permissions & Root Layout
+
+**Permission Convention** (all directories and files):
+
+| Target | Permission | Octal | Description |
+|--------|-----------|-------|-------------|
+| Directories | `drwxr-x---` | 750 | Owner rwx, group rx, others no access |
+| Source files (`.go`, `.yml`, `.yaml`, `.md`, `.sql`) | `-rw-r-----` | 640 | Owner rw, group r, others no access |
+| Secret files (`.secret`) | `-r--r-----` | 440 | Owner/group r only, no other |
+| Secret marker files (`.secret.never`) | `-r--r-----` | 440 | Same as secrets |
+| Executable scripts (`mvnw`) | `-rwxr-x---` | 750 | Owner rwx, group rx, others no access |
+| Generated files (`*.gen.go`) | `-rw-r-----` | 640 | Same as source |
+
+**Root Files** (these MUST exist at project root — 24 files):
+
+```
+{ROOT}/
+├── .air.toml                              # Air live-reload config
+├── .dockerignore                          # Docker build context exclusions
+├── .editorconfig                          # Editor formatting standards
+├── .gitattributes                         # Git line ending and diff config
+├── .gitignore                             # Git ignore rules
+├── .gitleaks.toml                         # Gitleaks secret detection config
+├── .gofumpt.toml                          # gofumpt Go formatting config
+├── .golangci.yml                          # golangci-lint v2 linter config
+├── .gremlins.yaml                         # Gremlins mutation testing config
+├── .markdownlint.jsonc                    # Markdown linting rules
+├── .nuclei-ignore                         # Nuclei DAST scan exclusions
+├── .pre-commit-config.yaml                # Pre-commit hook definitions
+├── .rgignore                              # ripgrep ignore patterns
+├── .sqlfluff                              # SQL linting config
+├── .yamlfmt                               # yamlfmt YAML formatter config
+├── CLAUDE.md                              # Claude Code project instructions
+├── go.mod                                 # Go module definition
+├── go.sum                                 # Go module dependency checksums
+├── LICENSE                                # Project license
+├── NOTICE                                 # Third-party attribution notices
+├── pyproject.toml                         # Python project config (pre-commit tooling)
+├── README.md                              # Project README
+├── robots.txt                             # Web crawler control
+└── TERMS.md                               # Terms of service
+```
+
+**Root Hidden Directories** (all gitignored unless noted):
+
+```
+{ROOT}/
+├── .cicd-lint/                             # CICD-lint runtime caches (gitignored)
+│   ├── circular-dep-cache.json            #   Circular dependency analysis cache
+│   └── dep-cache.json                     #   Dependency analysis cache
+├── .ruff_cache/                           # Ruff Python linter cache (gitignored)
+├── .semgrep/                              # Semgrep SAST rules (tracked in git)
+│   └── rules/
+│       └── go-testing.yml                 #   Go testing SAST rules
+├── .vscode/                               # VS Code workspace settings (tracked in git)
+│   ├── cspell.json                        #   Spell checking dictionary
+│   ├── extensions.json                    #   Recommended extensions
+│   ├── launch.json                        #   Debug launch configs
+│   ├── mcp.json                           #   MCP server configuration
+│   └── settings.json                      #   Workspace settings
+├── .well-known/                           # Well-known URIs (RFC 8615, tracked in git)
+│   └── tdm-reservation.txt               #   Text & Data Mining reservation
+└── .zap/                                  # OWASP ZAP DAST config (tracked in git)
+    └── rules.tsv                          #   ZAP scan rules
+```
+
+**Other Top-Level Directories** (non-standard, tracked in git):
+
+| Directory | Purpose |
+|-----------|---------|
+| `scripts/` | Placeholder only (`.gitkeep`). All tooling lives in `cmd/` or `internal/apps-tools/`. |
+| `workflow-reports/` | CI/CD workflow run reports and coverage dashboards (gitignored by default). |
+| `test-output/` | Ephemeral test output, coverage profiles, mutation results (gitignored). |
+| `pkg/` | Public library code — intentionally empty by design; all code is `internal/`. |
+
 #### 4.4.1 Go Project Structure
 
 Based on golang-standards/project-layout:
@@ -1202,6 +1349,35 @@ internal/apps/
 └── tools/                                # Infrastructure tooling (cicd_lint, cicd_workflow)
 ```
 
+**Concrete service subdirectories** (actual codebase, by PS-ID):
+
+| PS-ID | Subdirectories |
+|-------|---------------|
+| `identity-authz` | `clientauth/`, `dpop/`, `e2e/`, `pkce/`, `server/`, `unified/` |
+| `identity-idp` | `auth/`, `server/`, `templates/`, `unified/`, `userauth/` |
+| `identity-rp` | `server/`, `unified/` |
+| `identity-rs` | `server/`, `unified/` |
+| `identity-spa` | `server/`, `unified/` |
+| `jose-ja` | `e2e/`, `model/`, `repository/`, `server/`, `service/` |
+| `pki-ca` | `api/`, `bootstrap/`, `cli/`, `compliance/`, `config/`, `crypto/`, `domain/`, `domain-v2/`, `intermediate/`, `observability/`, `profile/`, `repository-v2/`, `security/`, `server/`, `service/`, `storage/` |
+| `skeleton-template` | `domain/`, `e2e/`, `repository/`, `server/` |
+| `sm-im` | `client/`, `e2e/`, `integration/`, `model/`, `repository/`, `server/`, `testing/` |
+| `sm-kms` | `client/`, `e2e/`, `server/` |
+
+**Identity shared packages** (at `internal/apps/identity/`, shared across all 5 identity services):
+
+| Package | Purpose |
+|---------|---------|
+| `apperr/` | Identity-specific error types |
+| `config/` | Shared identity configuration |
+| `domain/` | Shared identity domain types |
+| `email/` | Email sending |
+| `issuer/` | Token issuer |
+| `jobs/` | Background jobs |
+| `mfa/` | Multi-factor authentication |
+| `repository/` (with `orm/`, `migrations/`) | Shared identity data access |
+| `rotation/` | Key/token rotation |
+
 #### 4.4.5 Shared Utilities
 
 ```
@@ -1271,6 +1447,13 @@ All tiers (service, product, suite) use **identical `{purpose}.secret` filenames
 | PostgreSQL database | `postgres-database.secret` | `{PS_ID}_database` | `{PRODUCT}_database` | `{SUITE}_database` |
 | PostgreSQL URL | `postgres-url.secret` | `postgres://{PS_ID}_database_user:{password}@shared-postgres-leader:5432/{PS_ID}_database?sslmode=disable` | `...@shared-postgres-leader:5432/...` | `...@shared-postgres-leader:5432/...` |
 | Unseal shard N | `unseal-{N}of5.secret` | `{PS-ID}-unseal-key-N-of-5-{base64-random-32-bytes}` | `{PRODUCT}-unseal-key-N-of-5-{base64-random-32-bytes}` | `{SUITE}-unseal-key-N-of-5-{base64-random-32-bytes}` |
+
+**`postgres-url.secret` Base DSN Note**: The value is a BASE DSN only — NO SSL parameters in the URL (e.g., no `sslmode=verify-full`, no `sslcert=`, no `sslrootcert=`). SSL mode and cert paths (PKI Cat 10/14 — see Section 6.11.3) are configured via `database-sslmode`, `database-sslcert`, `database-sslkey`, and `database-sslrootcert` YAML fields in the deployment config overlays. The framework GORM DSN builder appends SSL params from YAML config and strips any pre-existing `sslmode` to prevent conflicts.
+
+**Pending Work** (known gaps):
+
+- **Product Dockerfiles missing**: All 5 products (`identity`, `jose`, `pki`, `skeleton`, `sm`) are missing `deployments/{PRODUCT}/Dockerfile`. Product Dockerfiles are unnecessary when each PS-ID builds its own binary. Deferred until the suite binary migration decision is finalized (each PS-ID currently builds `./cmd/{PS-ID}` independently).
+- See `deployment-templates.md` Section H for full rationale.
 
 #### 4.4.7 CLI Patterns
 
@@ -1901,6 +2084,25 @@ separate in-memory databases. There is no data sharing, so there is no reason fo
 domain between them. See [Section 6.11.3](#6113-pki-init-certificate-structure) for the directory
 naming convention that encodes this design.
 
+**Admin CA Bundle** (mTLS trust configuration):
+
+Admin mTLS uses a per-instance CA chain where the admin client caller must trust the issuing CA. The key design points:
+
+- `pki-init` outputs each issuing CA in TWO forms: a **keystore directory** (`Cat-N-{PS-ID}-admin-issuing-ca/`) and a **truststore subdirectory** (`Cat-N-{PS-ID}-admin-truststore/`).
+- The `tls-config.yml` `issuing-ca` field references the **truststore** (`.crt` file only, no private key) so services can verify incoming client certs without exposing the CA private key.
+- Service instances' outbound admin client calls present a leaf cert signed by the issuing CA. Inbound checks validate against the truststore.
+
+**Realm Dynamic Binding** (PKI parameterization per realm):
+
+Category 5 client certs (per-realm per-service) are parameterized by realm. Realms are read from `api/cryptosuite-registry/registry.yaml` at pki-init runtime. The formula for the number of per-realm cert directories is:
+
+```
+N_realm_dirs = 2 × |realms| × 3
+             = 2 (client/server pair) × |realms| (one per realm) × 3 (PS-ID sqlite-1, sqlite-2, postgres)
+```
+
+Each realm gets its own directory under `Cat-5-{PS-ID}-realm-{realm-id}-{variant}/`.
+
 ### 6.6 JOSE Architecture & Strategy
 
 **Elastic Key Rotation** (per-message):
@@ -2199,6 +2401,53 @@ server-admin-tls-ca-file:   /certs/{ps-id}/private-https-mutual-issuing-ca-{ps-i
 - When none are set: framework auto-generates ephemeral TLS (unit/integration test mode)
 - Config key naming: `server-admin-tls-*` (kebab-case, in `allowedInstanceKeys` NOT `requiredCommonKeys`)
 - Each instance variant (sqlite-1, sqlite-2, postgres-1, postgres-2) has its own Cat 6/7 cert pair
+
+#### 6.11.6 TLS Runtime Enforcement Modes
+
+Services support three **runtime TLS enforcement modes** via `tls-config.yml` (distinct from the
+credential-generation modes in §6.11.1):
+
+| Mode | Meaning | When Used |
+|------|---------|-----------|
+| `TLSModeOff` | No TLS (plaintext) | Development only; NEVER production |
+| `TLSModeOn` | Server TLS + optional client cert required | Standard public HTTPS API |
+| `TLSModeMixed` | Server TLS required; client cert optional | Transitional or hybrid deployments |
+
+**`TLSModeMixed` pattern**: Server presents its certificate (enforcing server-auth TLS), but client
+certificates are optional — the server accepts both mTLS clients and plain TLS clients on the same
+listener. Intended for OTel mTLS rollout (progressive migration):
+
+```yaml
+# tls-config.yml for OTel mTLS transitional mode
+public:
+  mode: TLSModeMixed   # Server TLS on; client cert optional
+  cert: /run/secrets/public-https-server-entity-{PS-ID}-{instance}.crt
+  key:  /run/secrets/public-https-server-entity-{PS-ID}-{instance}.key
+  ca:   /run/secrets/public-https-client-issuing-ca-{PS-ID}-{instance}.crt
+```
+
+Once all clients present certificates, flip `mode` to `TLSModeOn` (full mTLS).
+
+**Directory Count Formula Derivation** (Category 5, per PS-ID with 2 realms):
+
+| Category | Formula | Count (2 realms) | Explanation |
+|----------|---------|-----------------|-------------|
+| Cat 5 leaf dirs | `2 × |realms| × 3` | 12 | 2 user types (browser/service) × 2 realms × 3 variants (sqlite-1, sqlite-2, postgres) |
+| Cat 6 CA dirs | `2 (root+issuing) × 4 instances` | 8 | Each of 4 instances has its own admin mTLS CA chain |
+| Cat 7 leaf dirs | `4 instances` | 4 | One admin mTLS leaf per instance |
+| Total per PS-ID | `30 global + 60 PS-ID-specific` | 90 | Fixed count assuming 2 realms |
+| PRODUCT (2 PS-IDs) | `30 + 60 × 2` | 150 | SM product: sm-kms + sm-im |
+| SUITE (10 PS-IDs) | `30 + 60 × 10` | 630 | Full cryptoutil suite |
+
+**PostgreSQL mTLS Certificate Ownership** (Category 10–14):
+
+| Category | Name Pattern | Owner | Trust At |
+|----------|-------------|-------|---------|
+| Cat 10 | `postgres-tls-server-{root,issuing}-ca` | Shared (all services trust it) | App GORM `sslrootcert`; PSQL `ssl_ca_file` |
+| Cat 11 | `postgres-tls-server-entity-{leader,follower}` | `postgres-leader`, `postgres-follower` | Validated by app via Cat 10 |
+| Cat 12 | `postgres-tls-client-{root,issuing}-ca` | Shared (PostgreSQL trusts for client authn) | `pg_hba.conf clientcert=verify-full` |
+| Cat 13 | `postgres-tls-client-entity-{leader,follower}-replication` | Follower replication user | `primary_conninfo` `sslcert`/`sslkey` |
+| Cat 14 | `postgres-tls-client-entity-{leader,follower}-{PS-ID}-postgres-{1,2}` | Each PS-ID postgres instance | GORM `sslcert`/`sslkey`; CN validated by pg_hba |
 
 ---
 
@@ -4681,6 +4930,23 @@ def test_health_check(api_client):
 - **`time.Duration` constants MUST NOT have unit suffixes** (e.g., `Ms`, `Ns`, `Sec`, `Min` — violates staticcheck ST1011). The `time.Duration` type already encodes the unit. Correct: `DefaultPollInterval = 5 * time.Second`. Wrong: `DefaultPollIntervalMs = 5000`.
 - **ALWAYS check `internal/shared/magic/` before writing any literal**: Search for an existing named constant before adding any string or numeric literal in test or production code. Bare literals violate `literal-use` (blocked by `TestLint_Integration`). Discovering these violations mid-plan is costly.
 
+**Magic File Inventory** (46 production files as of this writing):
+
+| Domain | Files |
+|--------|-------|
+| Core | `magic_api.go`, `magic_cli.go`, `magic_cicd.go`, `magic_console.go`, `magic_misc.go`, `magic_memory.go`, `magic_percent.go`, `magic_tier.go` |
+| Networking | `magic_network.go`, `magic_docker.go`, `magic_framework.go`, `magic_orchestration.go` |
+| Crypto/Security | `magic_crypto.go`, `magic_security.go`, `magic_unseal.go`, `magic_pki.go`, `magic_pki_ca.go`, `magic_pki_tls.go`, `magic_pkiinit.go`, `magic_pkix.go` |
+| Data/Sessions | `magic_database.go`, `magic_session.go` |
+| JOSE/PKI | `magic_jose.go` |
+| Identity (14 files) | `magic_identity.go`, `magic_identity_adaptive.go`, `magic_identity_config.go`, `magic_identity_http.go`, `magic_identity_keys.go`, `magic_identity_metrics.go`, `magic_identity_mfa.go`, `magic_identity_oauth.go`, `magic_identity_oidc.go`, `magic_identity_pbkdf2.go`, `magic_identity_scopes.go`, `magic_identity_testing.go`, `magic_identity_timeouts.go`, `magic_identity_uris.go` |
+| SM/JOSE | `magic_sm.go`, `magic_sm_im.go` |
+| Infrastructure | `magic_telemetry.go`, `magic_otel_e2e.go`, `magic_workflows.go` |
+| Services | `magic_skeleton.go`, `magic_template.go` |
+| Testing | `magic_testing.go`, `magic_test_fixtures.go` |
+
+Note: `magic_cicd_test.go` is the single test file for this package (tests the `CICD` magic-value protection via the `format_go` self-modification guard). All other files are pure constant declarations.
+
 ### 11.2 Quality Gates
 
 #### 11.2.1 MANDATORY Pre-Commit Quality Gates
@@ -4935,9 +5201,40 @@ All Dockerfiles follow identical multi-stage structure. Parameterized fields dif
 | Binary built | `./cmd/{SUITE}` (always suite binary) | `./cmd/{SUITE}` | `./cmd/{SUITE}` |
 | `EXPOSE` | 8080 (public only; admin 9090 binds 127.0.0.1, never exposed) | Service-range (e.g., 18000) | Suite-range (e.g., 28000) |
 | `HEALTHCHECK` | `CMD /app/{PS-ID} livez \|\| exit 1` | Same, product binary | Same, suite binary |
-| `ENTRYPOINT` | `["/app/{SUITE}", "{PS-ID}", "start"]` | `["/app/{SUITE}", "{PRODUCT}", "start"]` | `["/app/{SUITE}"]` |
+| `ENTRYPOINT` | `["/sbin/tini", "--", "/app/{PS-ID}"]` | `["/sbin/tini", "--", "/app/{PRODUCT}"]` | `["/sbin/tini", "--", "/app/{SUITE}"]` |
 
-**Current state**: 10 service-level + 1 suite-level Dockerfiles exist. 0 product-level Dockerfiles exist (TODO: create when product-level deployment is implemented).
+**UID/GID Security Rationale**: Running containers as a non-root user (UID 65532, GID 65532) is a defense-in-depth measure limiting the blast radius of container escapes. UID 65532 is a well-known convention for non-root container users (commonly named `nonroot`). Declaring UID and GID as build ARGs serves two purposes: (1) de-duplicates the literal values across the Dockerfile (used in `addgroup`, `adduser`, `chown`, and `USER` directives); (2) allows override during local debugging builds (`--build-arg CONTAINER_UID=0` to temporarily run as root — NEVER in CI/CD or production).
+
+**Dockerfile Template Rules** (DF-01 through DF-24):
+
+| Rule ID | Rule | Rationale |
+|---------|------|-----------|
+| DF-01 | MUST have exactly 4 named stages: `validation`, `builder`, `runtime-deps`, `final` | Structural consistency |
+| DF-02 | MUST use `ARG GO_VERSION={GO_VERSION}` | Version consistency |
+| DF-03 | MUST use `ARG ALPINE_VERSION={ALPINE_VERSION}` with `# hadolint ignore=DL3007` | Security patch policy |
+| DF-04 | MUST use `ARG CGO_ENABLED={CGO_ENABLED}` | CGO ban enforcement |
+| DF-05 | Builder MUST use BuildKit cache mounts for `/go/pkg/mod` and `/root/.cache/go-build` | Build performance |
+| DF-06 | MUST build `./cmd/{PS-ID}` and output to `/app/{PS-ID}` | Binary naming convention |
+| DF-07 | MUST validate static linking with `ldd` check | Portability — no glibc dependencies |
+| DF-08 | Runtime-deps MUST install `ca-certificates`, `tzdata`, `tini` ONLY (NO curl, NO wget) | Minimal attack surface |
+| DF-09 | Final stage MUST NOT install any packages via `apk` | Minimal attack surface |
+| DF-10 | MUST use `ARG CONTAINER_UID={CONTAINER_UID}` and `ARG CONTAINER_GID={CONTAINER_GID}` for user creation | Security (non-root, parameterized; see UID/GID rationale above) |
+| DF-11 | MUST use `WORKDIR /app` (NOT `/app/run`) | Uniformity |
+| DF-12 | MUST use compact multi-line `LABEL` block (NOT individual LABEL lines) | Style consistency |
+| DF-13 | `LABEL org.opencontainers.image.title` MUST equal `{SUITE}-{PS-ID}` | Naming convention |
+| DF-14 | MUST have `EXPOSE 8080` only (NO 9090 — admin is 127.0.0.1-only) | Security |
+| DF-15 | HEALTHCHECK MUST use parameterized timing: `--interval={HEALTHCHECK_INTERVAL} --timeout={HEALTHCHECK_TIMEOUT} --start-period={HEALTHCHECK_START_PERIOD} --retries={HEALTHCHECK_RETRIES}` | Configurable health probes |
+| DF-16 | HEALTHCHECK command MUST use `/app/{PS-ID} livez \|\| exit 1` (built-in CLI subcommand) | Built-in healthcheck |
+| DF-17 | ENTRYPOINT MUST be `["/sbin/tini", "--", "/app/{PS-ID}"]` (tini for signal handling) | PID 1 signal handling |
+| DF-18 | MUST end with `USER ${CONTAINER_UID}:${CONTAINER_GID}` (NOT commented out) | Security — run as nonroot |
+| DF-19 | MUST NOT set `GOMODCACHE` or `GOCACHE` env vars | Unnecessary in final runtime |
+| DF-20 | MUST NOT have `CMD` instruction (compose `command:` overrides start behavior) | Compose controls args |
+| DF-21 | Header comment MUST reference `{SUITE}-{PS-ID}:{IMAGE_TAG}` and `{PRODUCT_DISPLAY_NAME} {SERVICE_DISPLAY_NAME}` | No copy-paste errors |
+| DF-22 | `LABEL org.opencontainers.image.source` MUST equal `{GITHUB_REPOSITORY_URL}` | Repository traceability |
+| DF-23 | `LABEL org.opencontainers.image.authors` MUST equal `{AUTHORS}` | Author attribution |
+| DF-24 | `LABEL org.opencontainers.image.description` MUST equal `{PRODUCT_DISPLAY_NAME} {SERVICE_DISPLAY_NAME}` | Human-readable description |
+
+**Current state**: 10 service-level + 1 suite-level Dockerfiles exist. 0 product-level Dockerfiles exist (not needed when each PS-ID builds its own binary; see Section 4.4.6 Pending Work).
 
 #### 12.2.2 Build Optimization
 
@@ -5089,6 +5386,53 @@ healthcheck-otel-collector:
 ```
 
 **Pattern 1 (PS-ID `livez`) is MANDATORY for all PS-ID service containers.** It verifies admin mTLS end-to-end when `--cert`/`--key` flags are supplied. NEVER use `wget`/`curl` for PS-ID service healthchecks — they bypass mTLS verification. Patterns 2 and 3 are for non-PS-ID infrastructure containers only.
+
+**PS-ID compose.yml Template Rules** (CO-01 through CO-22):
+
+| Rule ID | Rule | Rationale |
+|---------|------|-----------|
+| CO-01 | Header MUST include `$schema` reference and PS-ID description | Documentation |
+| CO-02 | MUST include `../shared-telemetry/compose.yml` and `../shared-postgres/compose.yml` | Required infrastructure |
+| CO-03 | MUST have `healthcheck-secrets` service listing all 14 secrets with validation (`test -s` per file, exit 1 on failure) | Secret validation |
+| CO-04 | MUST have `builder-{PS-ID}` service with `image: {SUITE}-{PS-ID}:{IMAGE_TAG}` and build context `../..` | Image building |
+| CO-05 | MUST have `pki-init` service with command `["{PS-ID}", "/certs"]` (positional args: tier-id then target-dir) | TLS bootstrap |
+| CO-06 | MUST have exactly 4 app instances: sqlite-1, sqlite-2, postgresql-1, postgresql-2 | Cross-DB testing |
+| CO-07 | App service names MUST follow `{PS-ID}-app-{variant}` pattern | Naming convention |
+| CO-08 | Container port MUST always be `8080` | Standardized internal port |
+| CO-09 | Host ports MUST follow port formula: sqlite-1=+0, sqlite-2=+1, pg-1=+2, pg-2=+3 | Port consistency |
+| CO-10 | Command MUST include: `server`, `--bind-public-port=8080`, `--config=...` args | Startup parameters |
+| CO-11 | Config volume mount order: instance-specific, common, otel | Priority ordering |
+| CO-12 | Healthcheck MUST use `["CMD", "/app/{PS-ID}", "livez"]` (built-in CLI, NOT wget) | Built-in healthcheck |
+| CO-13 | Resource limits: 256M limit, 128M reservation | Resource control |
+| CO-14 | Networks: `{PS-ID}-network` + `telemetry-network`; PostgreSQL instances add `postgres-network` | Network isolation |
+| CO-15 | `working_dir: /tmp` on all app services | Writable temp dir |
+| CO-16 | All 14 secrets MUST be declared in top-level `secrets:` section with `file: ./secrets/` relative paths | Docker secrets |
+| CO-17 | SQLite instances MUST mount 10 secrets (5 unseal + hash-pepper + 2 browser + 2 service); PostgreSQL instances add 4 postgres secrets (14 total) | Minimal secrets per variant |
+| CO-18 | PostgreSQL instance 2 MUST depend on instance 1 `service_healthy` | Schema init ordering |
+| CO-19 | Healthcheck timing MUST use parameterized values from A.3 (`start_period`, `interval`, `timeout`, `retries`) | Configurable health probes |
+| CO-20 | All `image:` references MUST use `{SUITE}-{PS-ID}:{IMAGE_TAG}` (NOT hardcoded suite name or tag) | Parameterized naming |
+| CO-21 | All services (pki-init, app variants) MUST use named volume `{PS-ID}-certs:/certs` (NEVER bind mount `./certs/:/certs`) | Portable cert storage (works in Docker Desktop, Swarm, Kubernetes) |
+| CO-22 | Top-level `volumes:` section MUST declare `{PS-ID}-certs:` (no `driver:` override) | Named volume declaration |
+
+**Product compose.yml Template Rules** (PC-01 through PC-06):
+
+| Rule ID | Rule | Rationale |
+|---------|------|-----------|
+| PC-01 | MUST include all child PS-ID compose files via `include:` | Recursive architecture |
+| PC-02 | MUST override `pki-init` command to `["{PRODUCT}", "/certs"]` (product tier-id then target-dir) | Product-scoped TLS certs |
+| PC-03 | Port overrides MUST use `!override` tag | Complete port replacement (not merge) |
+| PC-04 | Host port formula: `{SERVICE_APP_PORT_BASE} + 10000` | Product tier offset |
+| PC-05 | Unseal secret values MUST use `{PRODUCT}-unseal-key-N-of-5-...` prefix | Product-scoped encryption |
+| PC-06 | MUST include `browser-*.secret.never` and `service-*.secret.never` marker files | Credential scope enforcement |
+
+**Suite compose.yml Template Rules** (SU-01 through SU-04):
+
+| Rule ID | Rule | Rationale |
+|---------|------|-----------|
+| SU-01 | MUST include all 5 product compose files via `include:` (NOT service-level compose files) | Complete suite, correct delegation |
+| SU-02 | Host port formula: `{SERVICE_APP_PORT_BASE} + 20000` | Suite tier offset |
+| SU-03 | Compact inline port override syntax for all 40 service instances | Readability |
+| SU-04 | Unseal secret values MUST use `cryptoutil-unseal-key-N-of-5-...` prefix | Suite-scoped encryption |
 
 #### 12.3.2 Kubernetes Deployment
 
@@ -5769,6 +6113,39 @@ configs/
 
 **Dual configs/ vs deployments/config/ Relationship**: The `configs/` directory holds **standalone development configs** for direct `go run` usage. The `deployments/{PS-ID}/config/` directories hold **Docker Compose deployment configs** (`{PS-ID}-app-{variant}.yml`) with 5 required variant files (common, sqlite-1, sqlite-2, postgresql-1, postgresql-2). Both follow the same flat kebab-case schema for service framework configs.
 
+**Deployment Config File Rules** (CF-01 through CF-17):
+
+| Rule ID | Rule | Rationale |
+|---------|------|-----------|
+| CF-01 | ALL keys MUST be kebab-case (NEVER snake_case) | ENG-HANDBOOK §13.2 key naming |
+| CF-02 | Common file MUST set `bind-public-address: "0.0.0.0"` | Container networking |
+| CF-03 | Common file MUST reference TLS cert paths populated by pki-init | TLS bootstrap |
+| CF-04 | Common file MUST reference all 5 unseal secret paths | Barrier service initialization |
+| CF-05 | Common file MUST reference browser/service credential secret paths | Authentication secrets |
+| CF-06 | Instance files MUST set `cors-origins` with correct port for that instance | CORS correctness per port |
+| CF-07 | Instance files MUST set `otlp-service` = `{PS-ID}-{variant}` | Telemetry identity |
+| CF-08 | Instance files MUST set `otlp-hostname` = `{PS-ID}-{variant}` | Telemetry identity |
+| CF-09 | SQLite instance files MUST set `database-url: "sqlite://file::memory:?cache=shared"` | In-memory SQLite config |
+| CF-10 | PostgreSQL instance files MUST NOT set `database-url` (passed via compose `command:`) | Database URL via compose |
+| CF-11 | Instance files MUST NOT duplicate keys already present in common file | DRY principle |
+| CF-12 | Header comment MUST reference `{PS-ID}`, NOT another PS-ID | No copy-paste identity errors |
+| CF-13 | PostgreSQL-1/2 instance files MUST set `database-sslmode: verify-full` | PostgreSQL mTLS (V12+) |
+| CF-14 | PostgreSQL-1/2 instance files MUST set `database-sslcert` (Cat 14 per-instance cert path) | PostgreSQL mTLS client cert |
+| CF-15 | PostgreSQL-1/2 instance files MUST set `database-sslkey` (Cat 14 per-instance key path) | PostgreSQL mTLS client key |
+| CF-16 | PostgreSQL-1/2 instance files MUST set `database-sslrootcert` (Cat 10 truststore path) | PostgreSQL server CA trust |
+| CF-17 | SQLite-1/2 instance files MUST NOT set any `database-ssl*` fields | SQLite has no PostgreSQL certs |
+
+**Standalone Development Config Rules** (SC-01 through SC-06):
+
+| Rule ID | Rule | Rationale |
+|---------|------|-----------|
+| SC-01 | ALL keys MUST be kebab-case | ENG-HANDBOOK §13.2 key naming |
+| SC-02 | `bind-public-address` MUST be `127.0.0.1` (NOT `0.0.0.0`) | Windows firewall prevention in dev |
+| SC-03 | `bind-public-port` MUST equal `{SERVICE_APP_PORT_BASE}` from registry | Port consistency (see §3.1) |
+| SC-04 | `bind-admin-port` MUST be `9090` | Admin port standardization |
+| SC-05 | `otlp-service` MUST equal `{PS-ID}` | Telemetry naming |
+| SC-06 | Header comment MUST reference `{PRODUCT_DISPLAY_NAME} {SERVICE_DISPLAY_NAME}` and `{PS-ID}` correctly | No copy-paste identity errors |
+
 **Cross-References**: Schema validation rules in [validate_schema.go](/internal/apps-tools/cicd_lint/lint_deployments/validate_schema.go). Config naming in [Section 13.1.5](#1315-config-file-naming-strategy).
 
 ### 13.3 Secrets Management in Deployments
@@ -6126,6 +6503,61 @@ otlp-tls-ca-file:   /certs/{PS-ID}/otel-collector-contrib-https-client-issuing-c
 - `config-common-complete`: Validates common config overlays contain all 12 required shared keys
 
 **Cross-References**: Template specifications in [deployment-templates.md](/docs/deployment-templates.md). Fitness linter infrastructure in [Section 11.2](#112-quality-gates). Registry in [lint_fitness/registry](/internal/apps-tools/cicd_lint/lint_fitness/registry/). Canonical template directory: [api/cryptosuite-registry/templates](/api/cryptosuite-registry/templates/).
+
+**Complete PS-ID Parameter Matrix** (A.4 — inputs to template instantiation):
+
+| PS-ID | PRODUCT | SERVICE | SERVICE_APP_PORT_BASE | SERVICE_PG_HOST_PORT | PRODUCT_APP_PORT_OFFSET | SUITE_APP_PORT_OFFSET |
+|-------|---------|---------|---------------------|--------------------|-----------------------|---------------------|
+| `sm-kms` | `sm` | `kms` | `8000` | `54320` | `18000` | `28000` |
+| `sm-im` | `sm` | `im` | `8100` | `54321` | `18100` | `28100` |
+| `jose-ja` | `jose` | `ja` | `8200` | `54322` | `18200` | `28200` |
+| `pki-ca` | `pki` | `ca` | `8300` | `54323` | `18300` | `28300` |
+| `identity-authz` | `identity` | `authz` | `8400` | `54324` | `18400` | `28400` |
+| `identity-idp` | `identity` | `idp` | `8500` | `54325` | `18500` | `28500` |
+| `identity-rs` | `identity` | `rs` | `8600` | `54326` | `18600` | `28600` |
+| `identity-rp` | `identity` | `rp` | `8700` | `54327` | `18700` | `28700` |
+| `identity-spa` | `identity` | `spa` | `8800` | `54328` | `18800` | `28800` |
+| `skeleton-template` | `skeleton` | `template` | `8900` | `54329` | `18900` | `28900` |
+
+**Port Offset Formula**: SERVICE tier = `{SERVICE_APP_PORT_BASE}+{0..3}`. PRODUCT tier = `{SERVICE_APP_PORT_BASE}+10000`. SUITE tier = `{SERVICE_APP_PORT_BASE}+20000`. Port variants within each tier: `+0`=sqlite-1, `+1`=sqlite-2, `+2`=postgresql-1, `+3`=postgresql-2.
+
+**Build Parameters** (A.3 defaults):
+
+| Parameter | Default | Notes |
+|-----------|---------|-------|
+| `GO_VERSION` | `1.26.1` | Must match go.mod (always identical everywhere) |
+| `ALPINE_VERSION` | `latest` | With `# hadolint ignore=DL3007` |
+| `CGO_ENABLED` | `0` | CGO ban is MANDATORY |
+| `CONTAINER_UID` | `65532` | Well-known `nonroot` convention |
+| `CONTAINER_GID` | `65532` | Matches UID for simplicity |
+| `IMAGE_TAG` | `local` | Override in CI/CD: `{GIT_SHORT_SHA}` |
+| `HEALTHCHECK_INTERVAL` | `30s` | Docker compose: `start_period` field (underscores) |
+| `HEALTHCHECK_TIMEOUT` | `10s` | Dockerfile: `--start-period` (hyphens) |
+| `HEALTHCHECK_START_PERIOD` | `30s` | Different syntaxes, same intent |
+| `HEALTHCHECK_RETRIES` | `3` | Fail after 3 consecutive failures |
+
+**Template Syntax Specification**: Template files use `__KEY__` (double underscore, ALL CAPS with underscores). This avoids conflict with Dockerfile `${VAR}` syntax and shell variable expansion. Examples:
+
+- Path segment: `deployments/__PS_ID__/Dockerfile` → `deployments/sm-kms/Dockerfile`
+- Content placeholder: `__PS_ID__` → `sm-kms`, `__PS_ID_UPPER__` → `SM_KMS`
+- Multi-word: `__PRODUCT_DISPLAY_NAME__` → `Secrets Manager`
+- GitHub URL: `__GITHUB_REPOSITORY_URL__` → `https://github.com/justincranford/cryptoutil`
+
+**Current Inconsistencies Inventory** (known deviations from canonical templates):
+
+| Category | Affected PS-IDs | Deviation |
+|----------|----------------|-----------|
+| Dockerfile pattern (Pattern A) | sm-kms, identity-authz, identity-idp, identity-rp, identity-rs | 4-stage but: `WORKDIR /app/run`, `GOMODCACHE`/`GOCACHE` env vars, `curl` installed in final, `USER` commented out, individual `LABEL` lines |
+| Dockerfile pattern (Pattern B) | jose-ja, pki-ca, skeleton-template | 3-stage (no `runtime-deps`): `adduser`-based user creation, compact `LABEL`, `CMD` with config path |
+| Dockerfile pattern (Pattern C) | sm-im | 2-stage (no `validation`): user `1000:1000` (wrong UID), no BuildKit caches, no static link check |
+| Skeleton-template identity | skeleton-template | Header says "JOSE Authority Server", username is `jose`, dirs are `/etc/jose` |
+| identity-spa COPY bug | identity-spa | Builder builds `/app/identity-spa` but runtime COPY copies `/app/cryptoutil` — **runtime failure** |
+| Config key naming | sm-kms, sm-im, identity-* (7 services) | Uses snake_case keys (`bind_address`, `max_open_conns`) instead of kebab-case |
+| Admin port | jose-ja, skeleton-template | `bind-admin-port: 9092` (should be `9090`) |
+| Deployment common config | sm-im | Missing TLS cert paths and unseal config |
+| Suite Dockerfile | cryptoutil | No tini installed/copied — missing signal handling |
+
+Note: Items marked **runtime failure** are P0 blockers. All others are scheduled for cleanup via template-compliance enforcement.
 
 ---
 
@@ -6577,33 +7009,181 @@ Use for: features requiring upfront design decisions, multi-phase implementation
 
 Default conversational mode. Claude asks clarifying questions and waits for confirmation. Use for: single-file edits, Q&A, quick targeted fixes, code review.
 
-**`.claude/settings.local.json` Configuration**
+#### 14.11.1 `.claude/` Directory Structure
 
-`.claude/settings.local.json` configures Claude Code workspace behavior. This file is tracked in git but contains machine-local paths where needed.
+```
+.claude/                        # Claude Code project configuration
+├── CLAUDE.md                   # Project instructions (loaded every session)
+│                               # Target: <200 lines. Longer = reduced adherence.
+│                               # Block HTML comments <!-- ... --> are stripped.
+│                               # @path imports inline-expand (max 5 hops).
+├── agents/                     # Custom sub-agent definitions
+│   └── <name>.md               # Agent file (YAML frontmatter + system prompt)
+├── skills/                     # Custom slash commands (preferred new format)
+│   └── <name>/                 # Each skill is a DIRECTORY
+│       ├── SKILL.md            # Required entrypoint
+│       ├── references/         # Optional: detailed docs loaded on demand
+│       ├── scripts/            # Optional: executable code
+│       └── assets/             # Optional: templates, resources
+├── rules/                      # Path-scoped project rules (optional)
+│   └── *.md                    # Rule files with optional `paths` frontmatter
+├── settings.json               # Project settings (team-level, commit to git)
+├── settings.local.json         # Local settings (personal, gitignore)
+├── agent-memory/               # Persistent memory for project-scoped agents
+└── worktrees/                  # Isolated git worktrees (--worktree flag)
+```
+
+**User-level** (`~/.claude/`): `CLAUDE.md`, `agents/`, `skills/`, `rules/`, `projects/<proj>/memory/`
+
+#### 14.11.2 CLAUDE.md Format and Loading Behavior
+
+**Format**: Plain Markdown. **No YAML frontmatter.** Target under 200 lines per file — shorter = better adherence (no hard maximum enforced). Content is delivered as a user message after the system prompt. Multiple files are concatenated (not overriding). User-level `~/.claude/CLAUDE.md` loads before project-level.
+
+**Key behaviors**:
+- `@path/to/file` imports inline-expand (max 5 hops deep)
+- Block HTML comments `<!-- text -->` are stripped (useful for maintainer notes)
+- Survives `/compact` — re-read from disk afterward
+- Project-level CLAUDE.md must reference ENG-HANDBOOK.md and agent/skill catalog
+
+**Required Sections for cryptoutil CLAUDE.md**:
+
+```markdown
+# {Project Name} — Claude Code Instructions
+
+## Architecture Source of Truth
+(Links to ENG-HANDBOOK.md and key section index)
+
+## Instruction Files
+@.github/instructions/*.instructions.md references
+
+## Agents
+(Table of custom agents and when to use each)
+
+## Skills (Slash Commands)
+(Table of available skills and when to use each)
+```
+
+#### 14.11.3 Sub-Agent Frontmatter (`.claude/agents/<name>.md`)
+
+Claude Code sub-agents support an extended frontmatter compared to the Copilot format:
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `name` | Yes | Unique ID — lowercase letters and hyphens (e.g., `beast-mode`) |
+| `description` | Yes | When Claude should delegate to this agent |
+| `tools` | No | Tool allowlist. Inherits all if omitted. |
+| `disallowedTools` | No | Denylist (removed from inherited/specified tools) |
+| `model` | No | `sonnet`, `opus`, `haiku`, or `inherit` (default) |
+| `permissionMode` | No | `default`, `acceptEdits`, `auto`, `dontAsk`, `bypassPermissions`, `plan` |
+| `maxTurns` | No | Max agentic turns before stopping |
+| `skills` | No | Skills preloaded into agent's context at startup |
+| `memory` | No | Persistent memory scope: `user`, `project`, or `local` |
+| `color` | No | Agent color in UI |
+
+**Key behavior**: Subagents receive ONLY their system prompt + basic env details. They do NOT inherit: the full Claude Code system prompt, conversation history, or parent skills (unless listed in the `skills` field). **Agents MUST be self-contained** (see §2.1.1 agent self-containment checklist).
+
+#### 14.11.4 Skill Format (`.claude/skills/<name>/SKILL.md`)
+
+Skills are **directories** with `SKILL.md` as the required entrypoint. Extended frontmatter fields available in Claude Code skills:
+
+| Field | Description |
+|-------|-------------|
+| `name` | Optional if matches directory name. Lowercase, hyphens, max 64 chars |
+| `description` | When Claude should activate. Truncated at 250 chars in listing |
+| `argument-hint` | Shown in autocomplete (e.g., `"[package-name]"`) |
+| `disable-model-invocation` | If true: user-only invocation. Default: false |
+| `user-invocable` | If false: hidden from `/` menu but Claude can auto-invoke. Default: true |
+| `allowed-tools` | Tools allowed without per-use approval when skill active |
+| `model` | Model override when skill is active |
+| `effort` | `low`, `medium`, `high`, `max` (Opus 4.6 only) |
+| `context` | `fork` to run skill in isolated subagent (no conversation history) |
+| `agent` | Subagent to use with `context: fork` |
+| `paths` | Load skill automatically only when working with matching files |
+| `shell` | `bash` (default) or `powershell` |
+
+**Dynamic Context Injection** — inline execution before Claude reads the prompt:
+
+```markdown
+# Current git status:
+` ``!
+git log --oneline -5
+` ``
+
+Working on: $ARGUMENTS
+```
+
+**String Substitutions**:
+
+| Substitution | Meaning |
+|---|---|
+| `$ARGUMENTS` | All arguments passed to the skill |
+| `$0`, `$1`, `$N` | Positional arguments (0-based) |
+| `${CLAUDE_SESSION_ID}` | Current session ID |
+| `${CLAUDE_SKILL_DIR}` | Absolute path to the skill's directory |
+
+**agentskills.io Open Standard**: The `.claude/skills/` format is based on the Agent Skills open standard ([agentskills.io](https://agentskills.io/)) adopted by multiple AI tools (Claude, Copilot, Gemini CLI, Amp, Kiro, Qodo, VS Code). Shared required fields: `name` (max 64 chars, lowercase/hyphens, must match directory name), `description` (max 1024 chars).
+
+#### 14.11.5 Path-Scoped Rules (`.claude/rules/`)
+
+Rules auto-load based on which files Claude is working with. The `paths:` frontmatter specifies which file globs trigger the rule.
+
+```markdown
+---
+paths:
+  - "internal/apps-framework/**/*.go"
+  - "api/**/*.yaml"
+---
+
+# Framework Rules
+
+When working in the framework package, always:
+- Use function-parameter injection for seams (not package-level vars)
+- Check testdb.NewInMemorySQLiteDB(t) for unit tests
+```
+
+**Without `paths`**: loaded at launch (same priority as CLAUDE.md).
+**With `paths`**: loaded lazily only when Claude works with matching files.
+
+**cryptoutil recommended rules**:
+- `.claude/rules/framework.md` with `paths: internal/apps-framework/**` for framework coding patterns
+- `.claude/rules/tests.md` with `paths: **/*_test.go` for test-specific rules
+
+#### 14.11.6 CLAUDE.md Length and Scoping Strategy
+
+**Target**: Root CLAUDE.md under 200 lines. Longer files reduce adherence. Use `@` imports to reference instruction files without inline-expanding them.
+
+**Architecture for cryptoutil**:
+- Root `CLAUDE.md`: Architecture summary, agent/skill tables, `@.github/instructions/*` imports
+- `.claude/rules/` files for path-scoped per-directory rules (loaded lazily)
+- User-level `~/.claude/CLAUDE.md` for cross-project personal preferences (committer name, editor habits)
+
+**For large monorepos**: Subdirectory-level CLAUDE.md files are loaded when Claude works in those directories. Claude loads them lazily without explicit root-level registration.
+
+#### 14.11.7 `.claude/settings.local.json` Configuration
+
+`.claude/settings.json` (team-level, committed) and `.claude/settings.local.json` (personal, gitignored) configure Claude Code workspace behavior.
 
 ```json
 {
   "permissions": {
-    "additionalDirectories": ["/path/to/memory/dir"]
+    "additionalDirectories": ["/path/to/memory/dir"],
+    "allow": ["Bash(go test*)", "Bash(golangci-lint*)"],
+    "deny": ["WebSearch"]
   }
 }
 ```
 
-Key settings:
-
 | Setting | Purpose |
 |---------|---------|
 | `permissions.additionalDirectories` | Extra directories Claude can read/write (e.g., memory store) |
-| `permissions.allow` | Tool patterns to allow without prompting (e.g., `"Bash(go test*)"`) |
+| `permissions.allow` | Tool patterns to allow without prompting |
 | `permissions.deny` | Tool patterns to deny unconditionally |
 
-**CLAUDE.md** (`.claude/agents/`, `.claude/skills/`) registers all Claude Code agents and skills. Update CLAUDE.md when adding new agents or skills.
+**CLAUDE.md** and the `.claude/` directory are the primary configuration surface for Claude Code. Update CLAUDE.md whenever agents or skills are added or removed.
 
-**Enforcement**
+**Enforcement**: All autonomous execution modes enforce the same quality gates as Section 11.2 and the same commit discipline as Section 14.2. Beast-mode and implementation-execution agents are held to identical standards as interactive chat — the difference is only in interruption behavior, not in quality requirements.
 
-All autonomous execution modes enforce the same quality gates as Section 11.2 and the same commit discipline as Section 14.2. Beast-mode and implementation-execution agents are held to identical standards as interactive chat — the difference is only in interruption behavior, not in quality requirements.
-
-**Cross-References**: Agent orchestration strategy in [Section 2.1](#21-agent-orchestration-strategy). Agent/skill catalog in [Appendix B.5](#b5-agentskill-catalog).
+**Cross-References**: Agent orchestration strategy in [Section 2.1](#21-agent-orchestration-strategy). Agent/skill catalog in [Appendix B.5](#b5-agentskill-catalog). Dual canonical file format in [Section 2.1.1](#211-agentskill-file-format-requirements).
 
 ### 14.12 LLM Agent Token Efficiency Strategy
 
@@ -6833,11 +7413,27 @@ See `.github/agents/*.agent.md` `tools:` frontmatter for the authoritative Copil
 
 ### B.7 Reusable Action Catalog
 
-| Action | Description | Inputs | Outputs |
-|--------|-------------|--------|---------|
-| docker-images-pull | Parallel Docker image pre-fetching | images (newline-separated list) | None |
+All reusable actions live in `.github/actions/`. Each action is a composite action with a `README.md` and `action.yml`.
 
-See `.github/actions/` for the authoritative action catalog.
+| Action | Description |
+|--------|-------------|
+| `docker-compose-build` | Build Docker images for Compose services |
+| `docker-compose-down` | Stop and remove Docker Compose services |
+| `docker-compose-logs` | Retrieve logs from Docker Compose services |
+| `docker-compose-up` | Start Docker Compose services |
+| `docker-compose-verify` | Verify Docker Compose service health |
+| `docker-images-pull` | Parallel Docker image pre-fetching (inputs: `images` newline-separated list) |
+| `download-cicd` | Download cicd-lint binary from GitHub Releases |
+| `fuzz-test` | Run Go fuzz tests with configurable duration |
+| `go-setup` | Go toolchain setup with module cache (replaces manual `actions/setup-go` + cache) |
+| `golangci-lint` | golangci-lint v2 execution (wraps `golangci-lint run` with `::group::` output) |
+| `security-scan-gitleaks` | Secret detection scan (gitleaks) |
+| `security-scan-trivy` | Manual Trivy install + CLI (supports `scan-files` mode for multiple target types) |
+| `security-scan-trivy2` | Official `aquasecurity/trivy-action` (simpler, SARIF output to GitHub Security tab) |
+| `workflow-job-begin` | Job telemetry start (records job start time, emits OTel span) |
+| `workflow-job-end` | Job telemetry end (records duration, emits OTel span with status) |
+
+See `.github/actions/` for the authoritative action catalog and per-action `action.yml` inputs/outputs.
 
 ### B.8 Linter Rule Reference
 
