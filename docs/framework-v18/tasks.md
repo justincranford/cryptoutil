@@ -1,8 +1,8 @@
-# Tasks - Framework V18: ENG-HANDBOOK.md Knowledge Propagation
+# Tasks — Framework V18+V19: ENG-HANDBOOK.md Propagation + Prescriptive MANIFEST + Identity Conformance Migration
 
-**Status**: 0 of 47 tasks complete (0%)
-**Last Updated**: 2026-04-26
-**Created**: 2026-04-26
+**Status**: 0 of 94 tasks complete (0%)
+**Last Updated**: 2026-04-27
+**Created**: 2026-04-27
 
 ## Quality Mandate — MANDATORY
 
@@ -32,26 +32,32 @@
 
 ---
 
-## Phase 1: ENG-HANDBOOK.md Additions from target-structure.md
+## Phase 0: Pre-flight Build Health
 
-**Phase Objective**: Add 11 missing catalog entries, tables, and inventory sections from
-`target-structure.md` into the appropriate ENG-HANDBOOK.md sections.
+**Phase Objective**: Verify clean baseline before any V18 or V19 changes.
 
-### Task 1.0: Build Health Pre-Flight
+### Task 0.1: Build Health Pre-flight
 
 - **Status**: ❌
 - **Owner**: LLM Agent
-- **Estimated**: 0.25h
-- **Actual**: [Fill when complete]
+- **Estimated**: 0.5h
+- **Actual**: —
 - **Dependencies**: None
-- **Description**: Verify the codebase compiles and all existing linters pass before starting.
-  Establish a clean baseline.
 - **Acceptance Criteria**:
   - [ ] `go build ./...` exits 0
   - [ ] `go build -tags e2e,integration ./...` exits 0
   - [ ] `go run ./cmd/cicd-lint lint-fitness` exits 0
   - [ ] `go run ./cmd/cicd-lint lint-docs` exits 0
+  - [ ] `go test ./internal/apps-tools/cicd_lint/lint_fitness/apps_ps_id_template/...` exits 0
+  - [ ] Output archived in `test-output/v18v19-phase0/`
 - **Files**: None (verification only)
+
+---
+
+## Phase 1: ENG-HANDBOOK.md Additions from target-structure.md
+
+**Phase Objective**: Add 11 missing catalog entries, tables, and inventory sections from
+`target-structure.md` into the appropriate ENG-HANDBOOK.md sections.
 
 ### Task 1.1: Add File Permission Convention Table → §4.4.1
 
@@ -59,7 +65,7 @@
 - **Owner**: LLM Agent
 - **Estimated**: 0.25h
 - **Actual**: [Fill when complete]
-- **Dependencies**: Task 1.0
+- **Dependencies**: Task 0.1
 - **Description**: Add the octal permission table for directories (750), source files (640),
   secret files (440), executables (750), and generated files (640) to ENG-HANDBOOK.md §4.4.1.
 - **Source**: `docs/target-structure-suggestions.md` Item 1
@@ -806,3 +812,671 @@ ENG-HANDBOOK.md sections and their corresponding instruction files.
   - [ ] `go run ./cmd/cicd-lint lint-docs` exits 0 (clean)
   - [ ] `go build ./...` exits 0
 - **Files**: `docs/ENG-HANDBOOK.md`, instruction files (if propagation drift discovered)
+
+### Task 5.3: Delete Suggestion Docs
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 0.1h
+- **Actual**: —
+- **Dependencies**: Task 5.2
+- **Description**: Delete the 4 suggestion docs now that their content has been merged into ENG-HANDBOOK.md.
+- **Files** (to DELETE):
+  - `docs/tls-structure-suggestions.md`
+  - `docs/target-structure-suggestions.md`
+  - `docs/deployment-templates-suggestions.md`
+  - `docs/claude-structure-suggestions.md`
+- **Acceptance Criteria**:  
+  - [ ] All 4 suggestion docs deleted
+  - [ ] `lint-docs` exits 0 after deletion (no broken references)
+  - [ ] Output archived in `test-output/v18v19-phase5/`
+
+---
+
+## Phase 6: Prescriptive MANIFEST.yaml + Linter Extension
+
+**Phase Objective**: Expand MANIFEST.yaml to be fully prescriptive; extend apps_ps_id_template linter.
+
+### Task 6.1: Update MANIFEST.yaml
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 1h
+- **Actual**: —
+- **Dependencies**: Task 5.3
+- **Files**: `api/cryptosuite-registry/templates/internal/apps/__PS_ID__/MANIFEST.yaml`
+- **Acceptance Criteria**:
+  - [ ] `required_server_dirs` field added (apis, config, model, repository + knownExclusions)
+  - [ ] `required_server_config_files` field added
+  - [ ] `required_server_repository_files` field added
+  - [ ] `required_server_repository_dirs` field added
+  - [ ] `required_e2e_files` field added (with `__SERVICE__` substitution)
+  - [ ] YAML parses without error
+
+### Task 6.2: Implement checkServerDirs
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 0.5h
+- **Actual**: —
+- **Dependencies**: Task 6.1
+- **Files**: `internal/apps-tools/cicd_lint/lint_fitness/apps_ps_id_template/apps_ps_id_template.go`
+- **Acceptance Criteria**:
+  - [ ] Function verifies `server/{dir}` for each RequiredServerDirs entry
+  - [ ] Respects `knownExclusions` per dir
+  - [ ] Unit test cases added in `apps_ps_id_template_test.go`
+
+### Task 6.3: Implement checkServerConfigFiles + checkServerRepositoryFiles
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 0.5h
+- **Actual**: —
+- **Dependencies**: Task 6.2
+- **Files**: `internal/apps-tools/cicd_lint/lint_fitness/apps_ps_id_template/apps_ps_id_template.go`
+- **Acceptance Criteria**:
+  - [ ] `checkServerConfigFiles` verifies `server/config/{file}`
+  - [ ] `checkServerRepositoryFiles` verifies `server/repository/{file}`
+  - [ ] `checkServerRepositoryDirs` verifies `server/repository/{dir}`
+  - [ ] Unit test cases for each function
+
+### Task 6.4: Implement checkE2EFiles
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 0.5h
+- **Actual**: —
+- **Dependencies**: Task 6.3
+- **Files**: `internal/apps-tools/cicd_lint/lint_fitness/apps_ps_id_template/apps_ps_id_template.go`
+- **Acceptance Criteria**:
+  - [ ] `checkE2EFiles` verifies `e2e/{file}` with `__SERVICE__` → actual service name substitution
+  - [ ] Unit test cases added
+
+### Task 6.5: Coverage + lint-fitness Validation
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 0.5h
+- **Actual**: —
+- **Dependencies**: Task 6.4
+- **Acceptance Criteria**:
+  - [ ] `go test ./internal/apps-tools/cicd_lint/lint_fitness/apps_ps_id_template/...` exits 0
+  - [ ] Coverage ≥98% for apps_ps_id_template package
+  - [ ] `go run ./cmd/cicd-lint lint-fitness` exits 0 with initial knownExclusions in place
+  - [ ] Output archived in `test-output/v18v19-phase6/`
+
+---
+
+## Phase 7: Identity Services Server Code Migration
+
+**Phase Objective**: Move domain code from identity service PS-ID roots → server/.
+
+### Task 7.1: identity-authz Inventory — Files at Root
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 0.5h
+- **Actual**: —
+- **Dependencies**: Task 6.5
+- **Acceptance Criteria**:
+  - [ ] Complete inventory of files at identity-authz root (excluding CLI files)
+  - [ ] Package declarations noted for all files to move
+  - [ ] Import cycle risk assessed
+
+### Task 7.2: identity-authz swagger.go + service.go Migration
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 0.5h
+- **Actual**: —
+- **Dependencies**: Task 7.1
+- **Files**: `internal/apps/identity-authz/server/` (swagger.go, service.go)
+- **Acceptance Criteria**:
+  - [ ] `swagger.go` moved from root to server/
+  - [ ] `service.go` moved from root to server/
+  - [ ] Package declarations updated to `package server`
+  - [ ] `go build ./internal/apps/identity-authz/...` exits 0
+
+### Task 7.3: identity-authz handlers_*.go Migration → server/apis/
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 2h
+- **Actual**: —
+- **Dependencies**: Task 7.2
+- **Files**: `internal/apps/identity-authz/server/apis/` (new dir + moved files)
+- **Acceptance Criteria**:
+  - [ ] All `handlers_*.go` moved to `server/apis/` as `package apis`
+  - [ ] `authz_lifecycle_test.go`, `authz_port_conflict_test.go` created in server/
+  - [ ] `go test ./internal/apps/identity-authz/...` exits 0
+
+### Task 7.4: identity-idp handlers + service Migration → server/apis/
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 2h
+- **Actual**: —
+- **Dependencies**: Task 7.3
+- **Files**: `internal/apps/identity-idp/server/` (multiple files)
+- **Acceptance Criteria**:
+  - [ ] `swagger.go`, `service.go`, all `handlers_*.go` moved
+  - [ ] `idp_lifecycle_test.go`, `idp_port_conflict_test.go` created in server/
+  - [ ] `go test ./internal/apps/identity-idp/...` exits 0
+
+### Task 7.5: identity-rs service.go + validator.go Migration → server/
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 1h
+- **Actual**: —
+- **Dependencies**: Task 7.4
+- **Files**: `internal/apps/identity-rs/server/`
+- **Acceptance Criteria**:
+  - [ ] `swagger.go`, `service.go`, `validator.go` moved to server/
+  - [ ] `rs_lifecycle_test.go`, `rs_port_conflict_test.go` created in server/
+  - [ ] `go test ./internal/apps/identity-rs/...` exits 0
+
+### Task 7.6: identity-rp rp_test.go Migration + Lifecycle Tests
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 0.5h
+- **Actual**: —
+- **Dependencies**: Task 7.5
+- **Files**: `internal/apps/identity-rp/server/`
+- **Acceptance Criteria**:
+  - [ ] `rp_test.go` moved from root to server/ (package updated to `package server_test`)
+  - [ ] `rp_lifecycle_test.go`, `rp_port_conflict_test.go` created in server/
+  - [ ] `go test ./internal/apps/identity-rp/...` exits 0
+
+### Task 7.7: identity-spa spa_test.go Migration + Lifecycle Tests
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 0.5h
+- **Actual**: —
+- **Dependencies**: Task 7.6
+- **Files**: `internal/apps/identity-spa/server/`
+- **Acceptance Criteria**:
+  - [ ] `spa_test.go` moved from root to server/
+  - [ ] `spa_lifecycle_test.go`, `spa_port_conflict_test.go` created in server/
+  - [ ] `go test ./internal/apps/identity-spa/...` exits 0
+
+### Task 7.8: Full Identity Suite Build + Test
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 0.5h
+- **Actual**: —
+- **Dependencies**: Tasks 7.2–7.7
+- **Acceptance Criteria**:
+  - [ ] `go build ./internal/apps/identity-.../...` exits 0
+  - [ ] `go test ./internal/apps/identity-.../...` exits 0
+  - [ ] `golangci-lint run ./internal/apps/identity-.../...` exits 0
+
+### Task 7.9: lint-fitness Post-Migration Check
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 0.25h
+- **Actual**: —
+- **Dependencies**: Task 7.8
+- **Acceptance Criteria**:
+  - [ ] `go run ./cmd/cicd-lint lint-fitness` exits 0
+  - [ ] Output archived in `test-output/v18v19-phase7/`
+
+---
+
+## Phase 8: sm-im Root Cleanup
+
+**Phase Objective**: Move non-CLI test files from sm-im root → server/.
+
+### Task 8.1: Move sm-im Server Test Files from Root → server/
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 1h
+- **Actual**: —
+- **Dependencies**: Task 7.9
+- **Files to MOVE** from `internal/apps/sm-im/` root to `internal/apps/sm-im/server/`:
+  - `http_test.go`
+  - `http_errors_test.go`
+  - `response_body_test.go`
+  - `im_database_test.go`
+  - `im_server_lifecycle_test.go`
+  - `im_lifecycle_test.go`
+  - `im_port_conflict_test.go`
+- **Acceptance Criteria**:
+  - [ ] All 7 files moved; package declarations updated if needed
+  - [ ] `go test ./internal/apps/sm-im/...` exits 0
+
+### Task 8.2: Delete testmain_test.go from sm-im Root
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 0.25h
+- **Actual**: —
+- **Dependencies**: Task 8.1
+- **Files to DELETE**: `internal/apps/sm-im/testmain_test.go`
+- **Acceptance Criteria**:
+  - [ ] Root `testmain_test.go` deleted (server/ copy retained)
+  - [ ] `go test ./internal/apps/sm-im/...` exits 0
+  - [ ] sm-im root has ONLY `im.go`, `im_usage.go`, `im_cli_commands_test.go`, `im_cli_url_test.go`
+  - [ ] `go run ./cmd/cicd-lint lint-fitness` exits 0
+  - [ ] Output archived in `test-output/v18v19-phase8/`
+
+---
+
+## Phase 9: Create Missing server/ Subdirectory Packages
+
+**Phase Objective**: Create server/apis/, server/model/, server/repository/ for 5 identity services.
+
+### Task 9.1: identity-authz server/model/ + server/repository/migrations/
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 1.5h
+- **Actual**: —
+- **Dependencies**: Task 8.2
+- **Files** (NEW):
+  - `internal/apps/identity-authz/server/model/model.go`
+  - `internal/apps/identity-authz/server/repository/migrations/` (dir)
+  - `internal/apps/identity-authz/server/repository/migrations.go`
+- **Acceptance Criteria**:
+  - [ ] Migration SQL uses range from registry.yaml for identity-authz
+  - [ ] `go build ./internal/apps/identity-authz/...` exits 0
+
+### Task 9.2: identity-idp server/model/ + server/repository/migrations/
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 1.5h
+- **Actual**: —
+- **Dependencies**: Task 9.1
+- **Files** (NEW): same pattern as Task 9.1 for identity-idp
+- **Acceptance Criteria**:
+  - [ ] Migration SQL uses range from registry.yaml for identity-idp
+  - [ ] `go build ./internal/apps/identity-idp/...` exits 0
+
+### Task 9.3: identity-rs server/model/ + server/repository/migrations/
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 1.5h
+- **Actual**: —
+- **Dependencies**: Task 9.2
+- **Files** (NEW): same pattern for identity-rs
+- **Acceptance Criteria**:
+  - [ ] Migration SQL uses range from registry.yaml for identity-rs
+  - [ ] `go build ./internal/apps/identity-rs/...` exits 0
+
+### Task 9.4: identity-rp server/apis/ + server/model/ + server/repository/
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 2h
+- **Actual**: —
+- **Dependencies**: Task 9.3
+- **Files** (NEW): server/apis/handler.go (minimal), model/, repository/migrations/
+- **Acceptance Criteria**:
+  - [ ] Minimal handler in server/apis/
+  - [ ] Migration SQL uses range from registry.yaml for identity-rp
+  - [ ] `go build ./internal/apps/identity-rp/...` exits 0
+
+### Task 9.5: identity-spa server/apis/ + server/model/ + server/repository/
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 2h
+- **Actual**: —
+- **Dependencies**: Task 9.4
+- **Files** (NEW): same pattern for identity-spa
+- **Acceptance Criteria**:
+  - [ ] Minimal handler in server/apis/
+  - [ ] Migration SQL uses range from registry.yaml for identity-spa
+  - [ ] `go build ./internal/apps/identity-spa/...` exits 0
+
+### Task 9.6: Phase 9 Build + lint-fitness Validation
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 0.5h
+- **Actual**: —
+- **Dependencies**: Task 9.5
+- **Acceptance Criteria**:
+  - [ ] `go build ./...` exits 0
+  - [ ] `go test ./internal/apps/identity-.../...` exits 0
+  - [ ] `go run ./cmd/cicd-lint lint-fitness` exits 0
+  - [ ] Output archived in `test-output/v18v19-phase9/`
+
+---
+
+## Phase 10: Create Missing client/ Packages
+
+**Phase Objective**: Create typed HTTP client packages for 8 PS-IDs that currently lack them.
+
+### Task 10.1: jose-ja client/
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 0.75h
+- **Actual**: —
+- **Dependencies**: Task 9.6
+- **Files** (NEW): `internal/apps/jose-ja/client/client.go`
+- **Acceptance Criteria**:
+  - [ ] GetJWKS, CreateJWK, RotateJWK methods implemented
+  - [ ] `go build ./internal/apps/jose-ja/...` exits 0
+
+### Task 10.2: pki-ca client/
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 0.75h
+- **Actual**: —
+- **Dependencies**: Task 9.6
+- **Files** (NEW): `internal/apps/pki-ca/client/client.go`
+- **Acceptance Criteria**:
+  - [ ] IssueCert, RevokeCert, GetCRL methods implemented
+  - [ ] `go build ./internal/apps/pki-ca/...` exits 0
+
+### Task 10.3: identity-authz client/
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 0.75h
+- **Actual**: —
+- **Dependencies**: Task 9.6
+- **Files** (NEW): `internal/apps/identity-authz/client/client.go`
+- **Acceptance Criteria**:
+  - [ ] Authorize, Introspect, Token methods implemented
+  - [ ] `go build ./internal/apps/identity-authz/...` exits 0
+
+### Task 10.4: identity-idp client/
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 0.75h
+- **Actual**: —
+- **Dependencies**: Task 9.6
+- **Files** (NEW): `internal/apps/identity-idp/client/client.go`
+- **Acceptance Criteria**:
+  - [ ] Login, Logout, JWKS methods implemented
+  - [ ] `go build ./internal/apps/identity-idp/...` exits 0
+
+### Task 10.5: identity-rs client/
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 0.75h
+- **Actual**: —
+- **Dependencies**: Task 9.6
+- **Files** (NEW): `internal/apps/identity-rs/client/client.go`
+- **Acceptance Criteria**:
+  - [ ] ValidateToken, GetResources methods implemented
+  - [ ] `go build ./internal/apps/identity-rs/...` exits 0
+
+### Task 10.6: identity-rp client/
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 0.75h
+- **Actual**: —
+- **Dependencies**: Task 9.6
+- **Files** (NEW): `internal/apps/identity-rp/client/client.go`
+- **Acceptance Criteria**:
+  - [ ] Callback, Logout methods implemented
+  - [ ] `go build ./internal/apps/identity-rp/...` exits 0
+
+### Task 10.7: identity-spa client/
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 0.75h
+- **Actual**: —
+- **Dependencies**: Task 9.6
+- **Files** (NEW): `internal/apps/identity-spa/client/client.go`
+- **Acceptance Criteria**:
+  - [ ] Minimal API surface implemented
+  - [ ] `go build ./internal/apps/identity-spa/...` exits 0
+
+### Task 10.8: skeleton-template client/
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 0.5h
+- **Actual**: —
+- **Dependencies**: Task 9.6
+- **Files** (NEW): `internal/apps/skeleton-template/client/client.go`
+- **Acceptance Criteria**:
+  - [ ] Placeholder client implemented
+  - [ ] `go build ./internal/apps/skeleton-template/...` exits 0
+
+### Task 10.9: Phase 10 Build + lint-fitness Validation
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 0.5h
+- **Actual**: —
+- **Dependencies**: Tasks 10.1–10.8
+- **Acceptance Criteria**:
+  - [ ] `go build ./...` exits 0
+  - [ ] `go run ./cmd/cicd-lint lint-fitness` exits 0
+  - [ ] `required_dirs: client` knownExclusions emptied for migrated services
+  - [ ] Output archived in `test-output/v18v19-phase10/`
+
+---
+
+## Phase 11: Create Missing e2e/ Packages
+
+**Phase Objective**: Create E2E test packages for 5 PS-IDs that currently lack them.
+
+### Task 11.1: pki-ca e2e/
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 1.5h
+- **Actual**: —
+- **Dependencies**: Task 10.9
+- **Files** (NEW):
+  - `internal/apps/pki-ca/e2e/testmain_e2e_test.go`
+  - `internal/apps/pki-ca/e2e/ca_e2e_test.go`
+- **Acceptance Criteria**:
+  - [ ] Both files have `//go:build e2e` as first line
+  - [ ] `testmain_e2e_test.go` has TestMain that starts Docker Compose
+  - [ ] `go build -tags e2e ./internal/apps/pki-ca/...` exits 0
+
+### Task 11.2: identity-idp e2e/
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 1.5h
+- **Actual**: —
+- **Dependencies**: Task 10.9
+- **Files** (NEW):
+  - `internal/apps/identity-idp/e2e/testmain_e2e_test.go`
+  - `internal/apps/identity-idp/e2e/idp_e2e_test.go`
+- **Acceptance Criteria**:
+  - [ ] Both files have `//go:build e2e` as first line
+  - [ ] `go build -tags e2e ./internal/apps/identity-idp/...` exits 0
+
+### Task 11.3: identity-rs e2e/
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 1.5h
+- **Actual**: —
+- **Dependencies**: Task 10.9
+- **Files** (NEW):
+  - `internal/apps/identity-rs/e2e/testmain_e2e_test.go`
+  - `internal/apps/identity-rs/e2e/rs_e2e_test.go`
+- **Acceptance Criteria**:
+  - [ ] Both files have `//go:build e2e` as first line
+  - [ ] `go build -tags e2e ./internal/apps/identity-rs/...` exits 0
+
+### Task 11.4: identity-rp e2e/
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 1.5h
+- **Actual**: —
+- **Dependencies**: Task 10.9
+- **Files** (NEW):
+  - `internal/apps/identity-rp/e2e/testmain_e2e_test.go`
+  - `internal/apps/identity-rp/e2e/rp_e2e_test.go`
+- **Acceptance Criteria**:
+  - [ ] Both files have `//go:build e2e` as first line
+  - [ ] `go build -tags e2e ./internal/apps/identity-rp/...` exits 0
+
+### Task 11.5: identity-spa e2e/
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 1.5h
+- **Actual**: —
+- **Dependencies**: Task 10.9
+- **Files** (NEW):
+  - `internal/apps/identity-spa/e2e/testmain_e2e_test.go`
+  - `internal/apps/identity-spa/e2e/spa_e2e_test.go`
+- **Acceptance Criteria**:
+  - [ ] Both files have `//go:build e2e` as first line
+  - [ ] `go build -tags e2e ./internal/apps/identity-spa/...` exits 0
+
+### Task 11.6: Phase 11 Build + lint-fitness Validation
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 0.5h
+- **Actual**: —
+- **Dependencies**: Tasks 11.1–11.5
+- **Acceptance Criteria**:
+  - [ ] `go build -tags e2e ./...` exits 0
+  - [ ] `go run ./cmd/cicd-lint lint-fitness` exits 0
+  - [ ] `required_dirs: e2e` knownExclusions emptied for migrated services
+  - [ ] Output archived in `test-output/v18v19-phase11/`
+
+---
+
+## Phase 12: Remove knownExclusions + Final Validation
+
+**Phase Objective**: Remove temporary knownExclusions from MANIFEST/linter after all migration complete.
+
+### Task 12.1: Remove Temporary knownExclusions
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 1h
+- **Actual**: —
+- **Dependencies**: Task 11.6
+- **Files**: `api/cryptosuite-registry/templates/internal/apps/__PS_ID__/MANIFEST.yaml` (or linter Go source)
+- **Acceptance Criteria**:
+  - [ ] All identity service exclusions for `required_server_dirs` removed
+  - [ ] All identity service exclusions for `required_server_config_files` removed
+  - [ ] All identity service exclusions for `required_server_repository_files` removed
+  - [ ] All identity service exclusions for `required_dirs: client` removed
+  - [ ] All identity service exclusions for `required_dirs: e2e` removed
+  - [ ] All identity service exclusions for `required_e2e_files` removed
+  - [ ] Only 3 permanent exceptions remain (sm-kms public_server.go, sm-im CLI test, sm-kms/pki-ca server/ subdirs)
+
+### Task 12.2: Final lint-fitness + Full Build Validation
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 1h
+- **Actual**: —
+- **Dependencies**: Task 12.1
+- **Acceptance Criteria**:
+  - [ ] `go build ./...` exits 0
+  - [ ] `go build -tags e2e,integration ./...` exits 0
+  - [ ] `go test ./...` exits 0
+  - [ ] `golangci-lint run ./...` exits 0
+  - [ ] `golangci-lint run --build-tags e2e,integration ./...` exits 0
+  - [ ] `go run ./cmd/cicd-lint lint-fitness` exits 0 (only 3 permanent exceptions)
+  - [ ] Race detector clean: `go test -race -count=2 ./...`
+  - [ ] Output archived in `test-output/v18v19-phase12/`
+
+---
+
+## Phase 13: Knowledge Propagation
+
+**Phase Objective**: Apply lessons from all phases to permanent artifacts.
+
+### Task 13.1: Review lessons.md + Update ENG-HANDBOOK.md
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 0.75h
+- **Actual**: —
+- **Dependencies**: Task 12.2
+- **Files**: `docs/ENG-HANDBOOK.md`
+- **Acceptance Criteria**:
+  - [ ] Canonical PS-ID structure spec updated to reflect V19 final state
+  - [ ] MANIFEST field catalog added or updated
+  - [ ] Migration range patterns documented
+
+### Task 13.2: Update target-structure.md
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 0.5h
+- **Actual**: —
+- **Dependencies**: Task 13.1
+- **Files**: `docs/target-structure.md`
+- **Acceptance Criteria**:
+  - [ ] Canonical PS-ID layout updated to reflect V19 outcomes
+  - [ ] Server/ subdirectory state table updated (all 10 PS-IDs)
+
+### Task 13.3: Update Instruction Files + Skills
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 0.5h
+- **Actual**: —
+- **Dependencies**: Task 13.1
+- **Acceptance Criteria**:
+  - [ ] `.github/skills/fitness-function-gen/SKILL.md` updated with recursive MANIFEST pattern
+  - [ ] Instruction files updated where V19 work surfaces new patterns
+  - [ ] `.claude/skills/` counterparts synced (lint-agent-drift must pass)
+
+### Task 13.4: Propagation Verification + Final Commit
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 0.25h
+- **Actual**: —
+- **Dependencies**: Task 13.3
+- **Acceptance Criteria**:
+  - [ ] `go run ./cmd/cicd-lint lint-docs` exits 0
+  - [ ] `git status --porcelain` returns empty
+  - [ ] Output archived in `test-output/v18v19-phase13/`
+
+---
+
+## Cross-Cutting Quality Gates
+
+- [ ] `go build ./...` exits 0 (maintained after every task)
+- [ ] `go test ./...` exits 0
+- [ ] `golangci-lint run ./...` exits 0
+- [ ] `golangci-lint run --build-tags e2e,integration ./...` exits 0
+- [ ] `go run ./cmd/cicd-lint lint-fitness` exits 0 (maintained after V19 phases)
+- [ ] `go run ./cmd/cicd-lint lint-docs` exits 0 (maintained after V18 phases)
+- [ ] Coverage ≥98% for apps_ps_id_template; ≥95% for identity service packages
+- [ ] Race detector clean: `go test -race -count=2 ./...`
+
+---
+
+## Evidence Archive
+
+- `test-output/v18v19-phase0/` — Pre-flight build health
+- `test-output/v18v19-phase1/` — Phase 1 lint check output
+- `test-output/v18v19-phase2/` — Phase 2 lint check output
+- `test-output/v18v19-phase3/` — Phase 3 lint check output
+- `test-output/v18v19-phase4/` — Phase 4 lint check output
+- `test-output/v18v19-phase5/` — lint-docs full verification
+- `test-output/v18v19-phase6/` — apps_ps_id_template coverage + lint-fitness
+- `test-output/v18v19-phase7/` — identity migration test results
+- `test-output/v18v19-phase8/` — sm-im cleanup lint-fitness
+- `test-output/v18v19-phase9/` — identity server/ subdir build verification
+- `test-output/v18v19-phase10/` — client/ creation build verification
+- `test-output/v18v19-phase11/` — e2e/ creation build verification
+- `test-output/v18v19-phase12/` — final full validation
+- `test-output/v18v19-phase13/` — knowledge propagation lint-docs
