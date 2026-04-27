@@ -573,6 +573,41 @@ automatically included in structural checks without manual code updates.
 
 ---
 
+## Quizme Round 1 (2026-04-26)
+
+**Note**: Questions researched and answered autonomously via codebase inspection (no human input required — all answers derivable from current source).
+
+### Q1: Are product service dirs canonical or duplicates? (Was: Blocks Task 5.8)
+
+**Findings** (from `ls internal/apps/{sm/kms,sm/im,jose/ja,pki/ca,skeleton/template}/`):
+
+| Directory | Contents | Verdict |
+|-----------|----------|---------|
+| `internal/apps/sm/kms/` | `kms_usage.go` only | **DUPLICATE** — thin usage stub; `sm-kms/` is canonical |
+| `internal/apps/sm/im/` | `im_usage.go` only | **DUPLICATE** — thin usage stub; `sm-im/` is canonical |
+| `internal/apps/jose/ja/` | `ja_usage.go` only | **DUPLICATE** — thin usage stub; `jose-ja/` is canonical |
+| `internal/apps/pki/ca/` | `ca_usage.go` only | **DUPLICATE** — thin usage stub; `pki-ca/` is canonical |
+| `internal/apps/skeleton/template/` | `template_usage.go` only | **DUPLICATE** — thin usage stub; `skeleton-template/` is canonical |
+
+**Implication for Task 5.8**: All 5 product service dirs contain ONLY a `*_usage.go` file (duplicate of the same file already at the PS-ID root). Task 5.8 is a **safe delete** — no code moves, no import updates, low risk.
+
+### Q2: Do identity-rp and identity-spa have OpenAPI specs? (Was: Blocks Tasks 5.5, 5.6)
+
+**Findings** (from `public_server.go` inspection):
+
+| Service | Endpoints Found | Verdict |
+|---------|----------------|---------|
+| `identity-rp` | `/health`, livez, readyz (health only; BFF proxies OAuth flows) | **Stub spec** — no domain API; needs placeholder `swagger.go` |
+| `identity-spa` | `/health`, livez, readyz, `/config.json`, `/*` (static files) | **Stub spec** — static file server; needs placeholder `swagger.go` |
+
+**Implication**: Both need a stub `swagger.go` serving a minimal placeholder OpenAPI spec (empty `paths: {}` with service metadata). Neither has oapi-codegen generated code.
+
+### Q3: Which identity services use the shared server builder? (Was: Informs Tasks 5.2-5.6)
+
+**Findings**: All 5 identity services already have `testmain_test.go` in `server/`. They use **custom per-service setup** (`NewFromConfig` + `waitForReady`), not the shared `testserver.StartAndWait` builder. Question is moot for Tasks 5.2-5.6 — no new testmain files needed for identity services.
+
+For sm-kms (Task 5.1): use the **standard shared builder** (`testserver.StartAndWait`) since sm-kms uses the framework builder pattern.
+
 ## ENG-HANDBOOK.md Cross-References — MANDATORY
 
 | Topic | ENG-HANDBOOK.md Section | Relevance |

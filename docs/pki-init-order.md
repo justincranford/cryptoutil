@@ -114,7 +114,6 @@ V15 implements the service-side TLS wiring for all 10 PS-IDs across all deployme
 - **Cat 9** (Grafana/OTel client entity) → configure app OTLP exporter mTLS
 - **Cat 14** (PS-ID postgres client) → configure GORM PostgreSQL mTLS (postgres-1/2 instances only)
 
-
 ---
 
 ## Ordering Principles

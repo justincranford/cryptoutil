@@ -871,17 +871,18 @@ then product dirs (5.7), then remove exclusions (5.8), then validate (5.9).
 - **Owner**: LLM Agent
 - **Estimated**: 2h
 - **Actual**: [Fill when complete]
-- **Dependencies**: Task 5.4; quizme-v1.md Q2 answered (does identity-rp have OpenAPI spec?)
+- **Dependencies**: Task 5.4
 - **Description**: identity-rp currently has only `rp.go`, `rp_usage.go`, `rp_cli_test.go`,
   `rp_test.go` at root. The `server/` already has `public_server.go`, `server.go`,
   `server_integration_test.go`, `testmain_test.go`. Need to CREATE `server/swagger.go`,
   `server/swagger_test.go`, `server/rp_lifecycle_test.go`, `server/rp_port_conflict_test.go`.
-  Move `rp_test.go` from root to `server/` (non-CLI test). See quizme-v1.md Q2 for swagger stub
-  guidance.
+  Move `rp_test.go` from root to `server/` (non-CLI test). `swagger.go` is a stub serving a
+  placeholder OpenAPI spec (empty `paths: {}`) — identity-rp is a BFF with no domain API
+  (confirmed by Quizme Round 1, Q2).
 - **Acceptance Criteria**:
   - [ ] Only `rp.go`, `rp_usage.go`, `rp_cli_test.go` remain at root
   - [ ] `rp_test.go` moved to `server/` (or deleted if covered by other tests)
-  - [ ] `server/swagger.go` created (or stub with TODO if no OpenAPI spec yet — per Q2 answer)
+  - [ ] `server/swagger.go` created as placeholder stub (no domain API — identity-rp is a BFF proxy with infra endpoints only; use empty `paths: {}` spec with service metadata)
   - [ ] `server/swagger_test.go` created
   - [ ] `server/rp_lifecycle_test.go` and `server/rp_port_conflict_test.go` created
   - [ ] `go test ./internal/apps/identity-rp/...` exits 0
@@ -897,7 +898,9 @@ then product dirs (5.7), then remove exclusions (5.8), then validate (5.9).
 - **Actual**: [Fill when complete]
 - **Dependencies**: Task 5.5 (same pattern)
 - **Description**: Same as Task 5.5 but for `identity-spa`. Move `spa_test.go` from root to
-  `server/`. Create swagger, lifecycle, and port_conflict in `server/`.
+  `server/`. Create swagger, lifecycle, and port_conflict in `server/`. `swagger.go` is a stub
+  serving a placeholder OpenAPI spec — identity-spa is a static file server with no domain API
+  (confirmed by Quizme Round 1, Q2).
 - **Acceptance Criteria**:
   - [ ] Only `spa.go`, `spa_usage.go`, `spa_cli_test.go` remain at root
   - [ ] `spa_test.go` moved to `server/` (or deleted if redundant)
@@ -927,36 +930,37 @@ then product dirs (5.7), then remove exclusions (5.8), then validate (5.9).
 - **Files**: sm-im root → server/ (5 test files)
 - **Evidence**: `test-output/phase5/task-5.7-sm-im.log`
 
-### Task 5.8: Audit and Resolve Product Service Directories (GAP-E)
+### Task 5.8: Delete Redundant Product Service Directories (GAP-E)
 
 - **Status**: ❌
 - **Owner**: LLM Agent
-- **Estimated**: 8h
+- **Estimated**: 1h
 - **Actual**: [Fill when complete]
-- **Dependencies**: Tasks 5.1-5.6
-- **Description**: Investigate and resolve the 5 service-named subdirectories inside product dirs:
-  `sm/kms/`, `sm/im/`, `jose/ja/`, `pki/ca/`, `skeleton/template/`. For each:
-  1. Determine if this is canonical code (not yet moved) or duplicated code (already in PS-ID dir)
-  2. If duplicated: delete the product-level copy, update any remaining imports
-  3. If canonical: move to PS-ID dir, update all imports, delete product-level copy
-  This is the largest gap and requires careful investigation before any deletions.
+- **Dependencies**: Tasks 5.0-5.7
+- **Description**: Delete the 5 service-named subdirectories inside product dirs. Pre-flight
+  research (Quizme Round 1, Q1) confirmed all 5 dirs contain ONLY a `*_usage.go` stub file —
+  the PS-ID directories are already the canonical implementation. Safe deletes, no code moves,
+  no import changes needed.
+  - `internal/apps/sm/kms/` — only `kms_usage.go` (duplicate of `sm-kms/kms_usage.go`)
+  - `internal/apps/sm/im/` — only `im_usage.go` (duplicate of `sm-im/im_usage.go`)
+  - `internal/apps/jose/ja/` — only `ja_usage.go` (duplicate of `jose-ja/ja_usage.go`)
+  - `internal/apps/pki/ca/` — only `ca_usage.go` (duplicate of `pki-ca/ca_usage.go`)
+  - `internal/apps/skeleton/template/` — only `template_usage.go` (duplicate of `skeleton-template/template_usage.go`)
 - **Acceptance Criteria**:
-  - [ ] Each of the 5 product service dirs investigated (finding documented in `test-output/phase5/gap-e-audit.md`)
-  - [ ] Each dir either deleted (if fully mirrored in PS-ID dir) or moved (if canonical)
-  - [ ] All imports updated after any moves
-  - [ ] `go build ./...` exits 0 after each individual deletion/move
+  - [ ] All 5 product service dirs deleted
+  - [ ] `go build ./...` exits 0
   - [ ] All existing tests pass: `go test ./...`
-  - [ ] Zero service-named subdirs remain in any product dir (no more identity/ whitelist needed)
+  - [ ] Zero service-named subdirs remain in any product dir
   - [ ] `knownServiceDirExceptions` map emptied in `apps-product-template` linter
   - [ ] `go run ./cmd/cicd-lint lint-fitness` passes
 - **Files**:
-  - `internal/apps/sm/kms/` (DELETE or MOVE)
-  - `internal/apps/sm/im/` (DELETE or MOVE)
-  - `internal/apps/jose/ja/` (DELETE or MOVE)
-  - `internal/apps/pki/ca/` (DELETE or MOVE)
-  - `internal/apps/skeleton/template/` (DELETE or MOVE)
-  - Affected linter files (MODIFIED — remove exceptions)
-- **Evidence**: `test-output/phase5/gap-e-audit.md`, `test-output/phase5/task-5.8-build.log`
+  - `internal/apps/sm/kms/` (DELETE)
+  - `internal/apps/sm/im/` (DELETE)
+  - `internal/apps/jose/ja/` (DELETE)
+  - `internal/apps/pki/ca/` (DELETE)
+  - `internal/apps/skeleton/template/` (DELETE)
+  - `internal/apps-tools/cicd_lint/lint_fitness/apps_product_template/` (MODIFY — empty exception map)
+- **Evidence**: `test-output/phase5/task-5.8-build.log`
 
 ### Task 5.9: Remove All knownExclusions from Phase 2–4 Linters
 
