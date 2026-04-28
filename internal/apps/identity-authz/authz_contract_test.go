@@ -21,7 +21,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	cryptoutilApiIdentityAuthz "cryptoutil/api/identity-authz"
-	cryptoutilIdentityAuthz "cryptoutil/internal/apps/identity-authz"
+	cryptoutilIdentityAuthz "cryptoutil/internal/apps/identity-authz/server/apis"
 	cryptoutilIdentityConfig "cryptoutil/internal/apps/identity/config"
 	cryptoutilIdentityIssuer "cryptoutil/internal/apps/identity/issuer"
 	cryptoutilIdentityRepository "cryptoutil/internal/apps/identity/repository"
