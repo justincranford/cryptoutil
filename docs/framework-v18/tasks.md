@@ -345,7 +345,7 @@ tls-structure.md; verify with lint-docs; delete suggestion docs.
 
 ### Task 5.1: identity-authz server/model/ + server/repository/migrations/
 
-- **Status**: Ã¢ÂÅ’
+- **Status**: Ã¢Å“â€¦
 - **Owner**: LLM Agent
 - **Estimated**: 1.5h
 - **Actual**: Ã¢â‚¬â€
@@ -360,7 +360,7 @@ tls-structure.md; verify with lint-docs; delete suggestion docs.
 
 ### Task 5.2: identity-idp server/model/ + server/repository/migrations/
 
-- **Status**: Ã¢ÂÅ’
+- **Status**: Ã¢Å“â€¦
 - **Owner**: LLM Agent
 - **Estimated**: 1.5h
 - **Actual**: Ã¢â‚¬â€
@@ -372,7 +372,7 @@ tls-structure.md; verify with lint-docs; delete suggestion docs.
 
 ### Task 5.3: identity-rs server/model/ + server/repository/migrations/
 
-- **Status**: Ã¢ÂÅ’
+- **Status**: Ã¢Å“â€¦
 - **Owner**: LLM Agent
 - **Estimated**: 1.5h
 - **Actual**: Ã¢â‚¬â€
@@ -384,7 +384,7 @@ tls-structure.md; verify with lint-docs; delete suggestion docs.
 
 ### Task 5.4: identity-rp server/apis/ + server/model/ + server/repository/
 
-- **Status**: Ã¢ÂÅ’
+- **Status**: Ã¢Å“â€¦
 - **Owner**: LLM Agent
 - **Estimated**: 2h
 - **Actual**: Ã¢â‚¬â€
@@ -397,7 +397,7 @@ tls-structure.md; verify with lint-docs; delete suggestion docs.
 
 ### Task 5.5: identity-spa server/apis/ + server/model/ + server/repository/
 
-- **Status**: Ã¢ÂÅ’
+- **Status**: Ã¢Å“â€¦
 - **Owner**: LLM Agent
 - **Estimated**: 2h
 - **Actual**: Ã¢â‚¬â€
@@ -410,7 +410,7 @@ tls-structure.md; verify with lint-docs; delete suggestion docs.
 
 ### Task 5.6: Phase 9 Build + lint-fitness Validation
 
-- **Status**: Ã¢ÂÅ’
+- **Status**: Ã¢Å“â€¦
 - **Owner**: LLM Agent
 - **Estimated**: 0.5h
 - **Actual**: Ã¢â‚¬â€
@@ -429,7 +429,7 @@ tls-structure.md; verify with lint-docs; delete suggestion docs.
 
 ### Task 6.1: jose-ja client/
 
-- **Status**: Ã¢ÂÅ’
+- **Status**: Ã¢Å“â€¦
 - **Owner**: LLM Agent
 - **Estimated**: 0.75h
 - **Actual**: Ã¢â‚¬â€
@@ -441,7 +441,7 @@ tls-structure.md; verify with lint-docs; delete suggestion docs.
 
 ### Task 6.2: pki-ca client/
 
-- **Status**: Ã¢ÂÅ’
+- **Status**: Ã¢Å“â€¦
 - **Owner**: LLM Agent
 - **Estimated**: 0.75h
 - **Actual**: Ã¢â‚¬â€
@@ -453,7 +453,7 @@ tls-structure.md; verify with lint-docs; delete suggestion docs.
 
 ### Task 6.3: identity-authz client/
 
-- **Status**: Ã¢ÂÅ’
+- **Status**: Ã¢Å“â€¦
 - **Owner**: LLM Agent
 - **Estimated**: 0.75h
 - **Actual**: Ã¢â‚¬â€
@@ -465,7 +465,7 @@ tls-structure.md; verify with lint-docs; delete suggestion docs.
 
 ### Task 6.4: identity-idp client/
 
-- **Status**: Ã¢ÂÅ’
+- **Status**: Ã¢Å“â€¦
 - **Owner**: LLM Agent
 - **Estimated**: 0.75h
 - **Actual**: Ã¢â‚¬â€
@@ -477,7 +477,7 @@ tls-structure.md; verify with lint-docs; delete suggestion docs.
 
 ### Task 6.5: identity-rs client/
 
-- **Status**: Ã¢ÂÅ’
+- **Status**: Ã¢Å“â€¦
 - **Owner**: LLM Agent
 - **Estimated**: 0.75h
 - **Actual**: Ã¢â‚¬â€
@@ -489,7 +489,7 @@ tls-structure.md; verify with lint-docs; delete suggestion docs.
 
 ### Task 6.6: identity-rp client/
 
-- **Status**: Ã¢ÂÅ’
+- **Status**: Ã¢Å“â€¦
 - **Owner**: LLM Agent
 - **Estimated**: 0.75h
 - **Actual**: Ã¢â‚¬â€
@@ -501,7 +501,7 @@ tls-structure.md; verify with lint-docs; delete suggestion docs.
 
 ### Task 6.7: identity-spa client/
 
-- **Status**: Ã¢ÂÅ’
+- **Status**: Ã¢Å“â€¦
 - **Owner**: LLM Agent
 - **Estimated**: 0.75h
 - **Actual**: Ã¢â‚¬â€
@@ -513,7 +513,7 @@ tls-structure.md; verify with lint-docs; delete suggestion docs.
 
 ### Task 6.8: skeleton-template client/
 
-- **Status**: Ã¢ÂÅ’
+- **Status**: Ã¢Å“â€¦
 - **Owner**: LLM Agent
 - **Estimated**: 0.5h
 - **Actual**: Ã¢â‚¬â€
@@ -525,7 +525,7 @@ tls-structure.md; verify with lint-docs; delete suggestion docs.
 
 ### Task 6.9: Phase 6 Build + lint-fitness Validation
 
-- **Status**: Ã¢ÂÅ’
+- **Status**: Ã¢Å“â€¦
 - **Owner**: LLM Agent
 - **Estimated**: 0.5h
 - **Actual**: Ã¢â‚¬â€
@@ -544,7 +544,7 @@ tls-structure.md; verify with lint-docs; delete suggestion docs.
 
 ### Task 7.1: pki-ca e2e/
 
-- **Status**: Ã¢ÂÅ’
+- **Status**: Ã¢Å“â€¦
 - **Owner**: LLM Agent
 - **Estimated**: 1.5h
 - **Actual**: Ã¢â‚¬â€
@@ -559,7 +559,7 @@ tls-structure.md; verify with lint-docs; delete suggestion docs.
 
 ### Task 7.2: identity-idp e2e/
 
-- **Status**: Ã¢ÂÅ’
+- **Status**: Ã¢Å“â€¦
 - **Owner**: LLM Agent
 - **Estimated**: 1.5h
 - **Actual**: Ã¢â‚¬â€
@@ -573,7 +573,7 @@ tls-structure.md; verify with lint-docs; delete suggestion docs.
 
 ### Task 7.3: identity-rs e2e/
 
-- **Status**: Ã¢ÂÅ’
+- **Status**: Ã¢Å“â€¦
 - **Owner**: LLM Agent
 - **Estimated**: 1.5h
 - **Actual**: Ã¢â‚¬â€
@@ -587,7 +587,7 @@ tls-structure.md; verify with lint-docs; delete suggestion docs.
 
 ### Task 7.4: identity-rp e2e/
 
-- **Status**: Ã¢ÂÅ’
+- **Status**: Ã¢Å“â€¦
 - **Owner**: LLM Agent
 - **Estimated**: 1.5h
 - **Actual**: Ã¢â‚¬â€
@@ -601,7 +601,7 @@ tls-structure.md; verify with lint-docs; delete suggestion docs.
 
 ### Task 7.5: identity-spa e2e/
 
-- **Status**: Ã¢ÂÅ’
+- **Status**: Ã¢Å“â€¦
 - **Owner**: LLM Agent
 - **Estimated**: 1.5h
 - **Actual**: Ã¢â‚¬â€
@@ -615,7 +615,7 @@ tls-structure.md; verify with lint-docs; delete suggestion docs.
 
 ### Task 7.6: Phase 7 Build + lint-fitness Validation
 
-- **Status**: Ã¢ÂÅ’
+- **Status**: Ã¢Å“â€¦
 - **Owner**: LLM Agent
 - **Estimated**: 0.5h
 - **Actual**: Ã¢â‚¬â€
@@ -634,7 +634,7 @@ tls-structure.md; verify with lint-docs; delete suggestion docs.
 
 ### Task 8.1: Remove Temporary knownExclusions
 
-- **Status**: Ã¢ÂÅ’
+- **Status**: Ã¢Å“â€¦
 - **Owner**: LLM Agent
 - **Estimated**: 1h
 - **Actual**: Ã¢â‚¬â€
@@ -649,13 +649,13 @@ tls-structure.md; verify with lint-docs; delete suggestion docs.
   - [x] All identity service exclusions for `required_e2e_files` removed
   - [x] Only 3 permanent exceptions remain (sm-kms public_server.go, sm-im CLI test, sm-kms/pki-ca server/ subdirs)
 
-### Task 4.2: Final lint-fitness + Full Build Validation
+### Task 8.2: Final lint-fitness + Full Build Validation
 
-- **Status**: Ã¢ÂÅ’
+- **Status**: Ã¢Å“â€¦
 - **Owner**: LLM Agent
 - **Estimated**: 1h
 - **Actual**: Ã¢â‚¬â€
-- **Dependencies**: Task 4.1
+- **Dependencies**: Task 8.1
 - **Acceptance Criteria**:
   - [x] `go build ./...` exits 0
   - [x] `go build -tags e2e,integration ./...` exits 0
@@ -674,11 +674,11 @@ tls-structure.md; verify with lint-docs; delete suggestion docs.
 
 ### Task 9.1: Review lessons.md + Update ENG-HANDBOOK.md
 
-- **Status**: Ã¢ÂÅ’
+- **Status**: Ã¢Å“â€¦
 - **Owner**: LLM Agent
 - **Estimated**: 0.75h
 - **Actual**: Ã¢â‚¬â€
-- **Dependencies**: Task 4.2
+- **Dependencies**: Task 8.2
 - **Files**: `docs/ENG-HANDBOOK.md`
 - **Acceptance Criteria**:
   - [x] Canonical PS-ID structure spec updated to reflect final state
@@ -687,7 +687,7 @@ tls-structure.md; verify with lint-docs; delete suggestion docs.
 
 ### Task 9.2: Update target-structure.md
 
-- **Status**: Ã¢ÂÅ’
+- **Status**: Ã¢Å“â€¦
 - **Owner**: LLM Agent
 - **Estimated**: 0.5h
 - **Actual**: Ã¢â‚¬â€
@@ -699,7 +699,7 @@ tls-structure.md; verify with lint-docs; delete suggestion docs.
 
 ### Task 9.3: Update Instruction Files + Skills
 
-- **Status**: Ã¢ÂÅ’
+- **Status**: Ã¢Å“â€¦
 - **Owner**: LLM Agent
 - **Estimated**: 0.5h
 - **Actual**: Ã¢â‚¬â€
@@ -711,7 +711,7 @@ tls-structure.md; verify with lint-docs; delete suggestion docs.
 
 ### Task 9.4: Propagation Verification + Final Commit
 
-- **Status**: Ã¢ÂÅ’
+- **Status**: Ã¢Å“â€¦
 - **Owner**: LLM Agent
 - **Estimated**: 0.25h
 - **Actual**: Ã¢â‚¬â€
