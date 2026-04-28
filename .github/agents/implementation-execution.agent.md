@@ -113,6 +113,16 @@ You MUST keep working until the problem is completely solved, and all items in t
 6. **Count Incomplete Tasks**: `N_INCOMPLETE` MUST reach 0 before the execution session is considered complete. If N_INCOMPLETE > 0 after any phase, continue immediately to the next phase.
 7. **Enumerate All Phases**: List all `### Phase N` sections from tasks.md. Count them. Every phase MUST be completed before stopping.
 
+## Ambiguity Resolution - MANDATORY
+
+When requirements or acceptance criteria are unclear:
+
+1. Investigate first using repository evidence (plan.md, tasks.md, code, tests, docs, git history, errors).
+2. Make the most conservative evidence-based interpretation and proceed.
+3. Ask the user only if you are genuinely blocked after investigation and cannot infer a safe/correct path.
+
+NEVER ask speculative clarification questions before attempting investigation.
+
 **If any check fails**: Report error, DO NOT start
 
 ## Resuming a Plan — Mandatory First Steps
@@ -676,7 +686,10 @@ These are the ONLY valid stopping conditions.
 
 ```bash
 # MANDATORY before stopping: verify zero incomplete tasks
-grep -c "[ ]" "<work-dir>/tasks.md"  # must return 0
+grep -E -c "\[ \]" "<work-dir>/tasks.md"  # must return 0
+
+# MANDATORY before stopping: verify no unfinished status markers
+grep -E -c "\*\*Status\*\*: (❌|🔄|⏳)" "<work-dir>/tasks.md"  # must return 0
 ```
 
 **NEVER STOP FOR:**
@@ -694,8 +707,8 @@ grep -c "[ ]" "<work-dir>/tasks.md"  # must return 0
 - Do NOT ask for permission to continue
 - Do NOT provide status updates
 - Just continue working until ALL tasks complete
-- Run grep check: `grep -c "[ ]" <work-dir>/tasks.md` must return 0 before stopping
-- Run grep check: `grep -c "[ ]" <work-dir>/tasks.md` must return 0 before stopping
+- Run grep check: `grep -E -c "\[ \]" <work-dir>/tasks.md` must return 0 before stopping
+- Run grep check: `grep -E -c "\*\*Status\*\*: (❌|🔄|⏳)" <work-dir>/tasks.md` must return 0 before stopping
 
 --------------------------------------------
 
@@ -861,7 +874,7 @@ MUST commit at END of each agent invocation:
 - Include summary of work done in commit message
 - NEVER leave uncommitted changes when agent stops
 
-Do not ask questions.
+Ask questions only as a last resort after investigation if genuinely blocked.
 Do not explain.
 Do not pause.
 
