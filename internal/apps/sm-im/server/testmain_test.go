@@ -13,6 +13,7 @@ import (
 	"gorm.io/gorm"
 
 	cryptoutilAppsFrameworkServiceConfigTlsGenerator "cryptoutil/internal/apps-framework/service/config/tls_generator"
+	cryptoutilAppsFrameworkServiceTestutil "cryptoutil/internal/apps-framework/service/testutil"
 	cryptoutilAppsSmImServer "cryptoutil/internal/apps/sm-im/server"
 	cryptoutilAppsSmImTesting "cryptoutil/internal/apps/sm-im/testing"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
@@ -31,6 +32,12 @@ var (
 	testTelemetryService *cryptoutilSharedTelemetry.TelemetryService
 
 	testTLSCfg *cryptoutilAppsFrameworkServiceConfigTlsGenerator.TLSGeneratedSettings
+)
+
+var (
+	testMockServerOK     = cryptoutilAppsFrameworkServiceTestutil.NewMockServerOK()
+	testMockServerError  = cryptoutilAppsFrameworkServiceTestutil.NewMockServerError()
+	testMockServerCustom = cryptoutilAppsFrameworkServiceTestutil.NewMockServerCustom()
 )
 
 func TestMain(m *testing.M) {
@@ -52,6 +59,10 @@ func TestMain(m *testing.M) {
 	testJWKGenService = resources.JWKGenService
 	testTelemetryService = resources.TelemetryService
 	testTLSCfg = resources.TLSCfg
+
+	defer testMockServerOK.Close()
+	defer testMockServerError.Close()
+	defer testMockServerCustom.Close()
 
 	// Record start time for benchmark.
 	startTime := time.Now().UTC()

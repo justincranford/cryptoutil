@@ -93,34 +93,19 @@ var knownServerFileExclusions = map[string]map[string]bool{
 // Remove entries as each PS-ID creates the missing subdirectory.
 var knownServerDirExclusions = map[string]map[string]bool{
 	// apis/: sm-kms uses businesslogic/handler layout (V20); pki-ca uses cmd/config/middleware (V20).
-	// identity-* are pending V19 Phase 3 migration.
+	// identity-* migrated and are no longer excluded.
 	"apis": {
-		cryptoutilSharedMagic.OTLPServiceSMKMS:         true,
-		cryptoutilSharedMagic.OTLPServicePKICA:         true,
-		cryptoutilSharedMagic.OTLPServiceIdentityAuthz: true,
-		cryptoutilSharedMagic.OTLPServiceIdentityIDP:   true,
-		cryptoutilSharedMagic.OTLPServiceIdentityRS:    true,
-		cryptoutilSharedMagic.OTLPServiceIdentityRP:    true,
-		cryptoutilSharedMagic.OTLPServiceIdentitySPA:   true,
+		cryptoutilSharedMagic.OTLPServiceSMKMS: true,
+		cryptoutilSharedMagic.OTLPServicePKICA: true,
 	},
-	// model/: sm-kms and pki-ca pending V20; identity-* pending V19 Phase 5.
+	// model/: sm-kms and pki-ca pending V20.
 	"model": {
-		cryptoutilSharedMagic.OTLPServiceSMKMS:         true,
-		cryptoutilSharedMagic.OTLPServicePKICA:         true,
-		cryptoutilSharedMagic.OTLPServiceIdentityAuthz: true,
-		cryptoutilSharedMagic.OTLPServiceIdentityIDP:   true,
-		cryptoutilSharedMagic.OTLPServiceIdentityRS:    true,
-		cryptoutilSharedMagic.OTLPServiceIdentityRP:    true,
-		cryptoutilSharedMagic.OTLPServiceIdentitySPA:   true,
+		cryptoutilSharedMagic.OTLPServiceSMKMS: true,
+		cryptoutilSharedMagic.OTLPServicePKICA: true,
 	},
-	// repository/: pki-ca and identity-* pending V19 Phase 5 (sm-kms already has repository/).
+	// repository/: pki-ca pending V20 migration (sm-kms already has repository/).
 	"repository": {
-		cryptoutilSharedMagic.OTLPServicePKICA:         true,
-		cryptoutilSharedMagic.OTLPServiceIdentityAuthz: true,
-		cryptoutilSharedMagic.OTLPServiceIdentityIDP:   true,
-		cryptoutilSharedMagic.OTLPServiceIdentityRS:    true,
-		cryptoutilSharedMagic.OTLPServiceIdentityRP:    true,
-		cryptoutilSharedMagic.OTLPServiceIdentitySPA:   true,
+		cryptoutilSharedMagic.OTLPServicePKICA: true,
 	},
 }
 
@@ -134,43 +119,28 @@ var knownServerConfigFileExclusions = map[string]map[string]bool{
 	"config_test.go": {
 		cryptoutilSharedMagic.OTLPServiceSMKMS: true,
 	},
-	// config_test_helper.go: sm-kms (no server/config/), pki-ca and identity-* (pending V19 Phase 5).
+	// config_test_helper.go: sm-kms (no server/config/), pki-ca (pending V20 migration).
 	"config_test_helper.go": {
-		cryptoutilSharedMagic.OTLPServiceSMKMS:         true,
-		cryptoutilSharedMagic.OTLPServicePKICA:         true,
-		cryptoutilSharedMagic.OTLPServiceIdentityAuthz: true,
-		cryptoutilSharedMagic.OTLPServiceIdentityIDP:   true,
-		cryptoutilSharedMagic.OTLPServiceIdentityRS:    true,
-		cryptoutilSharedMagic.OTLPServiceIdentityRP:    true,
-		cryptoutilSharedMagic.OTLPServiceIdentitySPA:   true,
+		cryptoutilSharedMagic.OTLPServiceSMKMS: true,
+		cryptoutilSharedMagic.OTLPServicePKICA: true,
 	},
 }
 
 // knownServerRepositoryFileExclusions maps required server/repository/ filenames to exempt PS-IDs.
 // Remove entries as each PS-ID creates its server/repository/ directory with required files.
 var knownServerRepositoryFileExclusions = map[string]map[string]bool{
-	// pki-ca and identity-* have no server/repository/ directory yet (pending V19 Phase 5).
+	// pki-ca has no server/repository/ directory yet (pending V20 migration).
 	"migrations.go": {
-		cryptoutilSharedMagic.OTLPServicePKICA:         true,
-		cryptoutilSharedMagic.OTLPServiceIdentityAuthz: true,
-		cryptoutilSharedMagic.OTLPServiceIdentityIDP:   true,
-		cryptoutilSharedMagic.OTLPServiceIdentityRS:    true,
-		cryptoutilSharedMagic.OTLPServiceIdentityRP:    true,
-		cryptoutilSharedMagic.OTLPServiceIdentitySPA:   true,
+		cryptoutilSharedMagic.OTLPServicePKICA: true,
 	},
 }
 
 // knownServerRepositoryDirExclusions maps required server/repository/ subdirectory names to exempt PS-IDs.
 // Remove entries as each PS-ID creates its server/repository/migrations/ directory.
 var knownServerRepositoryDirExclusions = map[string]map[string]bool{
-	// pki-ca and identity-* have no server/repository/ directory yet (pending V19 Phase 5).
+	// pki-ca has no server/repository/ directory yet (pending V20 migration).
 	"migrations": {
-		cryptoutilSharedMagic.OTLPServicePKICA:         true,
-		cryptoutilSharedMagic.OTLPServiceIdentityAuthz: true,
-		cryptoutilSharedMagic.OTLPServiceIdentityIDP:   true,
-		cryptoutilSharedMagic.OTLPServiceIdentityRS:    true,
-		cryptoutilSharedMagic.OTLPServiceIdentityRP:    true,
-		cryptoutilSharedMagic.OTLPServiceIdentitySPA:   true,
+		cryptoutilSharedMagic.OTLPServicePKICA: true,
 	},
 }
 
@@ -178,16 +148,13 @@ var knownServerRepositoryDirExclusions = map[string]map[string]bool{
 // checkE2EFiles only fires when e2e/ dir exists; services without e2e/ are skipped automatically.
 // Remove entries as each PS-ID adopts the canonical e2e file naming convention.
 var knownE2EFileExclusions = map[string]map[string]bool{
-	// identity-authz has e2e/ dir but no testmain_e2e_test.go (pending V19 Phase 7).
-	"testmain_e2e_test.go": {
-		cryptoutilSharedMagic.OTLPServiceIdentityAuthz: true,
-	},
-	// No PS-ID uses __SERVICE___e2e_test.go naming yet; all use e2e_test.go (pending V19+).
+	// All identity services now include testmain_e2e_test.go.
+	"testmain_e2e_test.go": {},
+	// Services listed here still use non-canonical smoke test filenames.
 	"__SERVICE___e2e_test.go": {
 		cryptoutilSharedMagic.OTLPServiceSMKMS:            true,
 		cryptoutilSharedMagic.OTLPServiceSMIM:             true,
 		cryptoutilSharedMagic.OTLPServiceJoseJA:           true,
-		cryptoutilSharedMagic.OTLPServiceIdentityAuthz:    true,
 		cryptoutilSharedMagic.OTLPServiceSkeletonTemplate: true,
 	},
 }

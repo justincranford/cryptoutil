@@ -86,6 +86,11 @@ func createFullPSIDRoot(t *testing.T, realRoot, tmpDir string) {
 			}
 		}
 
+		require.NoError(t, os.MkdirAll(filepath.Join(psDir, "client"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+		require.NoError(t, os.MkdirAll(filepath.Join(psDir, "e2e"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+		require.NoError(t, os.WriteFile(filepath.Join(psDir, "e2e", "testmain_e2e_test.go"), []byte("package e2e_test\n"), cryptoutilSharedMagic.CacheFilePermissions))
+		require.NoError(t, os.WriteFile(filepath.Join(psDir, "e2e", ps.Service+"_e2e_test.go"), []byte("package e2e_test\n"), cryptoutilSharedMagic.CacheFilePermissions))
+
 		// Required server config files (respecting production exclusions).
 		if !knownServerConfigFileExclusions["config.go"][ps.PSID] {
 			configDir := filepath.Join(serverDir, "config")
@@ -309,6 +314,10 @@ func TestCheckInDir_NoExclusions_AllValid(t *testing.T) {
 
 		require.NoError(t, os.MkdirAll(filepath.Join(serverDir, "apis"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 		require.NoError(t, os.MkdirAll(filepath.Join(serverDir, "model"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+		require.NoError(t, os.MkdirAll(filepath.Join(psDir, "client"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+		require.NoError(t, os.MkdirAll(filepath.Join(psDir, "e2e"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+		require.NoError(t, os.WriteFile(filepath.Join(psDir, "e2e", "testmain_e2e_test.go"), []byte("package e2e_test\n"), cryptoutilSharedMagic.CacheFilePermissions))
+		require.NoError(t, os.WriteFile(filepath.Join(psDir, "e2e", ps.Service+"_e2e_test.go"), []byte("package e2e_test\n"), cryptoutilSharedMagic.CacheFilePermissions))
 		require.NoError(t, os.MkdirAll(configDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 		require.NoError(t, os.MkdirAll(filepath.Join(repoDir, "migrations"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 

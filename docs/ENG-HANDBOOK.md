@@ -1353,14 +1353,14 @@ internal/apps/
 
 | PS-ID | Subdirectories |
 |-------|---------------|
-| `identity-authz` | `clientauth/`, `dpop/`, `e2e/`, `pkce/`, `server/`, `unified/` |
-| `identity-idp` | `auth/`, `server/`, `templates/`, `unified/`, `userauth/` |
-| `identity-rp` | `server/`, `unified/` |
-| `identity-rs` | `server/`, `unified/` |
-| `identity-spa` | `server/`, `unified/` |
-| `jose-ja` | `e2e/`, `model/`, `repository/`, `server/`, `service/` |
+| `identity-authz` | `client/`, `clientauth/`, `dpop/`, `e2e/`, `pkce/`, `server/`, `unified/` |
+| `identity-idp` | `auth/`, `client/`, `e2e/`, `server/`, `templates/`, `unified/`, `userauth/` |
+| `identity-rp` | `client/`, `e2e/`, `server/`, `unified/` |
+| `identity-rs` | `client/`, `e2e/`, `server/`, `unified/` |
+| `identity-spa` | `client/`, `e2e/`, `server/`, `unified/` |
+| `jose-ja` | `client/`, `e2e/`, `model/`, `repository/`, `server/`, `service/` |
 | `pki-ca` | `api/`, `bootstrap/`, `cli/`, `compliance/`, `config/`, `crypto/`, `domain/`, `domain-v2/`, `intermediate/`, `observability/`, `profile/`, `repository-v2/`, `security/`, `server/`, `service/`, `storage/` |
-| `skeleton-template` | `domain/`, `e2e/`, `repository/`, `server/` |
+| `skeleton-template` | `client/`, `domain/`, `e2e/`, `repository/`, `server/` |
 | `sm-im` | `client/`, `e2e/`, `integration/`, `model/`, `repository/`, `server/`, `testing/` |
 | `sm-kms` | `client/`, `e2e/`, `server/` |
 

@@ -17,17 +17,39 @@
 
 ## Executive Summary
 
-*(To be filled at plan completion — numbered links to each phase section with one-sentence outcome)*
+1. [Phase 0: Pre-flight Build Health](#phase-0-pre-flight-build-health) - Established a repeatable baseline for build and lint validation before migrations.
+2. [Phase 1: ENG-HANDBOOK.md Documentation Propagation](#phase-1-eng-handbookmd-documentation-propagation) - Completed handbook propagation updates and validated with lint-docs.
+3. [Phase 2: Prescriptive MANIFEST.yaml + Linter Extension](#phase-2-prescriptive-manifestyaml--linter-extension) - Extended the PS-ID template linter and MANIFEST enforcement model to support deeper structure checks.
+4. [Phase 3: Identity Services Server Code Migration](#phase-3-identity-services-server-code-migration) - Migrated identity service server structure into MANIFEST-conformant locations.
+5. [Phase 4: sm-im Root Cleanup](#phase-4-sm-im-root-cleanup) - Removed root-level server artifacts and repaired test placement under `server/`.
+6. [Phase 5: Create Missing server/ Subdirectory Packages](#phase-5-create-missing-server-subdirectory-packages) - Added missing `server/model`, `server/repository/migrations`, and required config helper markers across identity services.
+7. [Phase 6: Create Missing client/ Packages](#phase-6-create-missing-client-packages) - Added typed client packages for all required PS-IDs and aligned them to lint rules.
+8. [Phase 7: Create Missing e2e/ Packages](#phase-7-create-missing-e2e-packages) - Added required `e2e/` scaffolding and tests for remaining PS-IDs.
+9. [Phase 8: Remove knownExclusions + Final Validation](#phase-8-remove-knownexclusions--final-validation) - Removed temporary template/linter exclusions and reached clean build, lint, and non-race test gates.
+10. [Phase 9: Knowledge Propagation](#phase-9-knowledge-propagation) - Updated handbook/target structure and synced Copilot+Claude skill guidance.
 
 ## Actions
 
-*(To be filled at plan completion — numbered list of concrete follow-up items for reviewer)*
+1. Install a Windows C toolchain (`gcc`) in developer environments so `go test -race -count=2 ./...` can run locally without infrastructure blocking.
+2. Add meaningful behavioral tests for newly added `client/`, `server/model/`, and `server/repository/` scaffolding packages to raise package-level coverage beyond placeholder thresholds.
+3. Consolidate recurring magic-usage `const-redefine` informational findings in identity and PKI packages into a dedicated follow-up refactor plan.
+4. Extend `apps_ps_id_template` test fixtures to generate required MANIFEST categories from parsed manifest metadata instead of hardcoded fixture assumptions.
 
 ---
 
 ## Phase 0: Pre-flight Build Health
 
-*(To be filled during Phase 0 execution using the 4-section structure above)*
+**What Worked**:
+- Running build and lint gates before migration changes quickly separated baseline issues from migration regressions.
+
+**What Didn't Work**:
+- Initial evidence capture was fragmented across multiple transient outputs.
+
+**Root Causes**:
+- Early execution focused on fixing blockers before normalizing evidence paths.
+
+**Patterns for Future Phases**:
+1. Create phase-specific `test-output/` directories before running any validation commands.
 
 ---
 
@@ -88,40 +110,110 @@
 
 ## Phase 3: Identity Services Server Code Migration
 
-*(To be filled during Phase 3 execution using the 4-section structure above)*
+**What Worked**:
+- Moving identity server files into MANIFEST-expected layouts resolved structural drift quickly.
+
+**What Didn't Work**:
+- Some migrated tests referenced private root helpers and required package boundary fixes.
+
+**Root Causes**:
+- Earlier root-level layouts leaked package-private assumptions into tests.
+
+**Patterns for Future Phases**:
+1. When relocating tests, immediately convert them to exported entry points and `*_test` package boundaries.
 
 ---
 
 ## Phase 4: sm-im Root Cleanup
 
-*(To be filled during Phase 4 execution using the 4-section structure above)*
+**What Worked**:
+- Rehousing sm-im lifecycle and HTTP tests under `server/` restored template conformance and reduced root clutter.
+
+**What Didn't Work**:
+- Formatting and package-name mismatches reappeared after file moves.
+
+**Root Causes**:
+- Moved files preserved old package declarations and style assumptions.
+
+**Patterns for Future Phases**:
+1. Immediately run gofumpt and package-targeted tests after any file relocation.
 
 ---
 
 ## Phase 5: Create Missing server/ Subdirectory Packages
 
-*(To be filled during Phase 5 execution using the 4-section structure above)*
+**What Worked**:
+- Adding `server/model`, `server/repository/migrations`, and SQL migration headers for identity services satisfied linter and template checks.
+
+**What Didn't Work**:
+- Initial `config_test_helper.go` implementations duplicated existing symbols.
+
+**Root Causes**:
+- Marker-file requirement was misread as requiring functional helpers instead of presence-only files.
+
+**Patterns for Future Phases**:
+1. For structural template requirements, use minimal marker files unless logic is explicitly required.
 
 ---
 
 ## Phase 6: Create Missing client/ Packages
 
-*(To be filled during Phase 6 execution using the 4-section structure above)*
+**What Worked**:
+- Uniform typed client scaffolding made cross-PS-ID implementation fast and consistent.
+
+**What Didn't Work**:
+- New client files triggered `errcheck`, `wsl_v5`, and `literal-use` blockers.
+
+**Root Causes**:
+- Small style/literal constraints were missed during initial scaffold creation.
+
+**Patterns for Future Phases**:
+1. Include close-error handling and shared magic constants in the initial scaffold template.
 
 ---
 
 ## Phase 7: Create Missing e2e/ Packages
 
-*(To be filled during Phase 7 execution using the 4-section structure above)*
+**What Worked**:
+- Adding required `testmain_e2e_test.go` and service e2e tests unblocked template compliance.
+
+**What Didn't Work**:
+- Template test fixtures lagged new required e2e expectations and failed unit tests.
+
+**Root Causes**:
+- Fixture generators encoded old manifest assumptions.
+
+**Patterns for Future Phases**:
+1. Update linter fixture builders in the same change whenever MANIFEST requirements are tightened.
 
 ---
 
 ## Phase 8: Remove knownExclusions + Final Validation
 
-*(To be filled during Phase 8 execution using the 4-section structure above)*
+**What Worked**:
+- Removing exclusion maps and updating MANIFEST required dirs exposed true remaining conformance gaps.
+
+**What Didn't Work**:
+- Full race validation was blocked by local toolchain (`gcc`) absence.
+
+**Root Causes**:
+- Windows environment lacked C compiler required for Go race detector.
+
+**Patterns for Future Phases**:
+1. Treat race checks as infrastructure prerequisites and verify toolchain availability during pre-flight.
 
 ---
 
 ## Phase 9: Knowledge Propagation
 
-*(To be filled during Phase 9 execution using the 4-section structure above)*
+**What Worked**:
+- Updating `ENG-HANDBOOK.md`, `target-structure.md`, and paired Copilot/Claude skill files in one pass kept propagation drift minimal.
+
+**What Didn't Work**:
+- Late-stage documentation updates required retroactive alignment with already-completed code phases.
+
+**Root Causes**:
+- Execution prioritized code/lint blockers first; doc updates were deferred to final phase.
+
+**Patterns for Future Phases**:
+1. Update canonical docs immediately when template or structural invariants change to reduce end-phase sync work.

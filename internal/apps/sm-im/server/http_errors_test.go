@@ -1,7 +1,7 @@
 // Copyright (c) 2025 Justin Cranford
 
-// Package im provides an in-memory sm-im service implementation.
-package im
+// Package server_test validates sm-im CLI behavior against server test fixtures.
+package server_test
 
 import (
 	"bytes"
@@ -14,6 +14,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	cryptoutilAppsSmIm "cryptoutil/internal/apps/sm-im"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
@@ -63,7 +64,7 @@ func TestIM_HealthSubcommand_SlowResponse(t *testing.T) {
 	// Test health check completes despite slow response.
 	var stdout, stderr bytes.Buffer
 
-	exitCode := Im([]string{
+	exitCode := cryptoutilAppsSmIm.Im([]string{
 		"health",
 		cryptoutilSharedMagic.CLIURLFlag, fmt.Sprintf("http://127.0.0.1:%d%s", actualPort, adminHealthPath),
 	}, nil, &stdout, &stderr)
@@ -80,7 +81,7 @@ func TestIM_LivezSubcommand_EmptyResponse(t *testing.T) {
 	// Test livez check with empty response using shared OK server (returns "OK" body).
 	var stdout, stderr bytes.Buffer
 
-	exitCode := Im([]string{"livez", cryptoutilSharedMagic.CLIURLFlag, testMockServerOK.URL + adminLivezPath}, nil, &stdout, &stderr)
+	exitCode := cryptoutilAppsSmIm.Im([]string{"livez", cryptoutilSharedMagic.CLIURLFlag, testMockServerOK.URL + adminLivezPath}, nil, &stdout, &stderr)
 	require.Equal(t, 0, exitCode, "Livez should succeed with 200 OK")
 
 	output := stdout.String() + stderr.String()
@@ -94,7 +95,7 @@ func TestIM_ReadyzSubcommand_404NotFound(t *testing.T) {
 	// Use shared error server that returns 503 (close enough to 404 for error case).
 	var stdout, stderr bytes.Buffer
 
-	exitCode := Im([]string{"readyz", cryptoutilSharedMagic.CLIURLFlag, testMockServerError.URL + adminReadyzPath}, nil, &stdout, &stderr)
+	exitCode := cryptoutilAppsSmIm.Im([]string{"readyz", cryptoutilSharedMagic.CLIURLFlag, testMockServerError.URL + adminReadyzPath}, nil, &stdout, &stderr)
 	require.Equal(t, 1, exitCode, "Readyz should fail with non-200 status")
 
 	output := stdout.String() + stderr.String()
@@ -109,7 +110,7 @@ func TestIM_ShutdownSubcommand_500InternalServerError(t *testing.T) {
 	// Use shared error server that returns 503 (close enough to 500 for error case).
 	var stdout, stderr bytes.Buffer
 
-	exitCode := Im([]string{"shutdown", cryptoutilSharedMagic.CLIURLFlag, testMockServerError.URL + cryptoutilSharedMagic.DefaultPrivateAdminAPIContextPath + cryptoutilSharedMagic.PrivateAdminShutdownRequestPath}, nil, &stdout, &stderr)
+	exitCode := cryptoutilAppsSmIm.Im([]string{"shutdown", cryptoutilSharedMagic.CLIURLFlag, testMockServerError.URL + cryptoutilSharedMagic.DefaultPrivateAdminAPIContextPath + cryptoutilSharedMagic.PrivateAdminShutdownRequestPath}, nil, &stdout, &stderr)
 	require.Equal(t, 1, exitCode, "Shutdown should fail with error status")
 
 	output := stdout.String() + stderr.String()

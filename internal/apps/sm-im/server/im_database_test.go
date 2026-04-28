@@ -1,4 +1,4 @@
-package im
+package server_test
 
 import (
 	"testing"

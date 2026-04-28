@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: MIT
 
-package im
+package server_test
 
 import (
 	"os"
@@ -12,6 +12,7 @@ import (
 	"testing"
 	"time"
 
+	cryptoutilAppsSmIm "cryptoutil/internal/apps/sm-im"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/stretchr/testify/require"
@@ -19,7 +20,7 @@ import (
 	cryptoutilSharedTestutil "cryptoutil/internal/shared/testutil"
 )
 
-// TestIM_ServerLifecycle verifies the full server start → signal → graceful shutdown path.
+// TestIM_ServerLifecycle verifies the full server start â†’ signal â†’ graceful shutdown path.
 // Sequential: uses pflag.CommandLine global state via Parse() and process-level signals.
 func TestIM_ServerLifecycle(t *testing.T) {
 	if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
@@ -31,10 +32,7 @@ func TestIM_ServerLifecycle(t *testing.T) {
 	exitCodeCh := make(chan int, 1)
 
 	go func() {
-		exitCodeCh <- imServiceServerStart(
-			[]string{"--profile=test", "--bind-public-port=0", "--bind-private-port=0"},
-			&stdout, &stderr,
-		)
+		exitCodeCh <- cryptoutilAppsSmIm.Im([]string{"server", "--profile=test", "--bind-public-port=0", "--bind-private-port=0"}, nil, &stdout, &stderr)
 	}()
 
 	// Wait for server to be fully started and listening.

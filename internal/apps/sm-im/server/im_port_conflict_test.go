@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: MIT
 
-package im
+package server_test
 
 import (
 	"context"
@@ -12,6 +12,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	cryptoutilAppsSmIm "cryptoutil/internal/apps/sm-im"
 	cryptoutilSharedTestutil "cryptoutil/internal/shared/testutil"
 )
 
@@ -34,14 +35,7 @@ func TestIM_ServerStartPortConflict(t *testing.T) {
 
 	var stdout, stderr cryptoutilSharedTestutil.SafeBuffer
 
-	exitCode := imServiceServerStart(
-		[]string{
-			"--profile=test",
-			fmt.Sprintf("--bind-public-port=%d", occupiedPort),
-			"--bind-private-port=0",
-		},
-		&stdout, &stderr,
-	)
+	exitCode := cryptoutilAppsSmIm.Im([]string{"server", "--profile=test", fmt.Sprintf("--bind-public-port=%d", occupiedPort), "--bind-private-port=0"}, nil, &stdout, &stderr)
 
 	require.Equal(t, 1, exitCode, "server should return exit code 1 when port is occupied")
 	require.Contains(t, stderr.String(), "Server error", "stderr should contain server error message")

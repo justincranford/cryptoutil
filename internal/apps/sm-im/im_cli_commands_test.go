@@ -6,14 +6,78 @@ package im
 
 import (
 	"bytes"
+	"context"
+	"crypto/tls"
+	"fmt"
+	http "net/http"
+	"os"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 
+	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps-framework/service/config"
+	cryptoutilAppsFrameworkServiceTestutil "cryptoutil/internal/apps-framework/service/testutil"
+	cryptoutilAppsSmImServer "cryptoutil/internal/apps/sm-im/server"
+	cryptoutilAppsSmImServerConfig "cryptoutil/internal/apps/sm-im/server/config"
+	cryptoutilAppsSmImTesting "cryptoutil/internal/apps/sm-im/testing"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	cryptoutilSharedTestutil "cryptoutil/internal/shared/testutil"
 )
+
+var (
+	testSmIMService  *cryptoutilAppsSmImServer.SmIMServer
+	sharedHTTPClient *http.Client
+	publicBaseURL    string
+	adminBaseURL     string
+)
+
+var (
+	testMockServerOK     = cryptoutilAppsFrameworkServiceTestutil.NewMockServerOK()
+	testMockServerError  = cryptoutilAppsFrameworkServiceTestutil.NewMockServerError()
+	testMockServerCustom = cryptoutilAppsFrameworkServiceTestutil.NewMockServerCustom()
+)
+
+func TestMain(m *testing.M) {
+	serviceFrameworkServerSettings := cryptoutilAppsFrameworkServiceConfig.RequireNewForTest("sm-im-test")
+	serviceFrameworkServerSettings.DatabaseURL = cryptoutilSharedMagic.SQLiteInMemoryDSN
+
+	sharedAppConfig := &cryptoutilAppsSmImServerConfig.SmIMServerSettings{
+		ServiceFrameworkServerSettings: serviceFrameworkServerSettings,
+	}
+
+	testSmIMService = cryptoutilAppsSmImTesting.StartSmIMService(sharedAppConfig)
+
+	defer func() {
+		shutdownCtx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second)
+		defer cancel()
+
+		if err := testSmIMService.Shutdown(shutdownCtx); err != nil {
+			fmt.Fprintf(os.Stderr, "Failed to shutdown test server: %v\n", err)
+		}
+	}()
+
+	sharedHTTPClient = &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{
+				MinVersion: tls.VersionTLS13,
+				RootCAs:    testSmIMService.TLSRootCAPool(),
+			},
+			DisableKeepAlives: true,
+		},
+		Timeout: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Second,
+	}
+
+	publicBaseURL = testSmIMService.PublicBaseURL()
+	adminBaseURL = testSmIMService.AdminBaseURL()
+
+	defer testMockServerOK.Close()
+	defer testMockServerError.Close()
+	defer testMockServerCustom.Close()
+
+	os.Exit(m.Run())
+}
 
 // TestIM_SubcommandHelpFlags tests help flag for all subcommands in table-driven format.
 func TestIM_SubcommandHelpFlags(t *testing.T) {

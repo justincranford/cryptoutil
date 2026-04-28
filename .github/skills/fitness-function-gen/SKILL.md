@@ -22,6 +22,7 @@ The lint-fitness framework runs 87 architectural invariant checks on every CI pu
 - Use function-param injection for OS I/O (never package-level `var walkFn = filepath.Walk`)
 - Tests ≥98% line coverage (infrastructure/utility target)
 - Validator error aggregation: collect ALL violations before returning (never short-circuit)
+- For recursive MANIFEST checks, treat `required_dirs` (`client`, `e2e`) as mandatory and validate `required_e2e_files` only when `e2e/` exists during migration transitions
 
 ## Fitness Function Registration
 

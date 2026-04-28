@@ -44,9 +44,10 @@ required_root_files:
 required_dirs:
   # Server implementation directory (ALL server code, swagger, testmain, integration tests live here)
   - server
-  # NOTE: client/ and e2e/ are TARGET required dirs (promoted during V19 execution Phase 1
-  # once knownExclusions are registered in apps_ps_id_template.go). Currently optional.
-  # See plan.md Decision 2 and tasks.md Task 1.1 for implementation plan.
+  # Typed HTTP client wrapper (package client); required for inter-service calls.
+  - client
+  # Docker Compose-driven E2E tests with //go:build e2e on all package files.
+  - e2e
 
 # =============================================================================
 # REQUIRED server/ FILES
@@ -154,11 +155,5 @@ required_e2e_files:
 # =============================================================================
 
 optional_dirs:
-  # Typed HTTP client wrapper (package client); TARGET: required after V19 Phase 5.
-  # Will be promoted to required_dirs once knownExclusions registered in Phase 1.
-  - client
-  # Docker Compose-driven E2E tests (//go:build e2e on ALL files in the package).
-  # TARGET: required after V19 Phase 6. Will be promoted once knownExclusions registered.
-  - e2e
   # Test helpers shared across root-package tests (only for services with complex test setup).
   - testing
