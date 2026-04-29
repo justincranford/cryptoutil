@@ -1,13 +1,42 @@
-Exact legacy runtime terms: TLSModeOff, TLSModeOn, or TLSModeMixed
+Legacy runtime labels (listener/client-cert policy domain): TLSModeOff, TLSModeOn, TLSModeMixed
 .\docs\ENG-HANDBOOK.md
 .\docs\tls-structure.md
 .\test-output\config-review.txt
 
-TLSModeMixed only in the current provisioning-mode enum family: TLSModeStatic, TLSModeMixed, TLSModeAuto
+Provisioning enum family (certificate material sourcing domain): TLSModeStatic, TLSModeMixed, TLSModeAuto
 .\internal\apps-framework\service\config\config.go
 .\internal\apps-framework\service\config\tls_generator\tls_generator.go
 .\internal\apps-framework\service\server\builder\server_builder_build.go
 .\internal\apps-framework\service\server\builder\server_builder_migrations_test.go
+.\internal\apps-framework\service\server\builder\server_builder_build_test.go
 .\internal\apps-framework\service\server\listener\servers.go
 .\internal\apps-framework\service\server\listener\servers_test.go
+.\internal\apps-framework\service\server\listener\listener_errorpaths_test.go
+.\internal\apps-framework\service\server\testutil\helpers.go
+.\internal\apps-framework\service\config\config_test_helper.go
+.\internal\apps-framework\service\config\config_test_util.go
 .\internal\apps-framework\tls\generator_helpers.go
+
+Current listener mTLS policy wiring (hardcoded RequireAndVerifyClientCert when CA file is present)
+.\internal\apps-framework\service\server\listener\public.go
+.\internal\apps-framework\service\server\listener\admin.go
+.\internal\apps-framework\service\server\listener\public_mtls_test.go
+.\internal\apps-framework\service\server\listener\admin_mtls_test.go
+
+Existing richer client-auth capability in shared TLS package (superset beyond 3 modes)
+.\internal\shared\crypto\tls\config.go
+.\internal\shared\crypto\tls\tls_test.go
+.\internal\shared\crypto\tls\tls_mutation_test.go
+.\internal\shared\crypto\tls\tls_load_store_error_paths_test.go
+
+Agent drift enforcement and synchronized agent policy files (workspace cleanliness gate)
+.\internal\apps-tools\cicd_lint\docs_validation\agent_drift.go
+.\internal\apps-tools\cicd_lint\lint_docs\lint_docs.go
+.\.github\agents\beast-mode.agent.md
+.\.claude\agents\beast-mode.md
+.\.github\agents\implementation-execution.agent.md
+.\.claude\agents\implementation-execution.md
+.\.github\agents\implementation-planning.agent.md
+.\.claude\agents\implementation-planning.md
+.\.github\agents\fix-workflows.agent.md
+.\.claude\agents\fix-workflows.md
