@@ -18,18 +18,24 @@ const (
 ```go
 // TLSClientPolicy controls TLS-layer client certificate request/require/verification behavior.
 // This enum is about client certificate auth policy, not certificate provisioning.
+// Ordered weakest -> strongest (overall): Off, Ask, Require, Verify, Enforce.
 type TLSClientPolicy string
 
 const (
     // Off (Go TLS: NoClientCert): do not request a client cert.
+    // PoP: no | authn: no | ident: no | authz: no.
     TLSClientPolicyOff TLSClientPolicy = "off"
     // Ask (Go TLS: RequestClientCert): request a client cert, but do not require one and do not verify X.509 chain/CA trust.
+    // PoP: conditional (yes only if client sends cert) | authn: conditional | ident: conditional/weak | authz: no.
     TLSClientPolicyAsk TLSClientPolicy = "ask"
-    // Verify (Go TLS: VerifyClientCertIfGiven): request a client cert, do not require one, and if sent verify X.509 chain/CA trust, validity window, and key usage rules.
-    TLSClientPolicyVerify TLSClientPolicy = "verify"
     // Require (Go TLS: RequireAnyClientCert): require a client cert, but do not verify X.509 chain/CA trust.
+    // PoP: yes | authn: yes (key possession only) | ident: weak/untrusted | authz: no.
     TLSClientPolicyRequire TLSClientPolicy = "require"
+    // Verify (Go TLS: VerifyClientCertIfGiven): request a client cert, do not require one, and if sent verify X.509 chain/CA trust, validity window, and key usage rules.
+    // PoP: conditional (yes only if client sends cert) | authn: conditional/strong-when-present | ident: conditional/trusted-when-present | authz: no.
+    TLSClientPolicyVerify TLSClientPolicy = "verify"
     // Enforce (Go TLS: RequireAndVerifyClientCert): require a client cert and verify X.509 chain/CA trust, validity window, and key usage rules.
+    // PoP: yes | authn: yes | ident: yes | authz: no.
     TLSClientPolicyEnforce TLSClientPolicy = "enforce"
 )
 ```
