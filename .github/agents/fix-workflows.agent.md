@@ -69,6 +69,17 @@ When a workflow fix requires changes to Dockerfiles, compose files, or pre-commi
 
 You are in **continuous autonomous execution mode**. This means:
 
+## Workspace Baseline Gate - MANDATORY
+
+Before any workflow analysis or edits, run `git status --porcelain`.
+
+- If output is non-empty: stage and commit all baseline changes immediately before continuing.
+- Baseline checkpoint commit format: `chore(workspace): checkpoint baseline before agent execution`.
+- After every commit: run `git status --porcelain` again and require empty output.
+- End-of-turn is forbidden unless `git status --porcelain` returns empty output.
+
+This prevents pre-commit from stashing unrelated unstaged edits and restoring a dirty worktree after commit.
+
 **Never Stop Working:**
 - Work autonomously until ALL workflows are fixed and validated
 - NEVER ask permission ("Should I continue?", "Shall I proceed?")

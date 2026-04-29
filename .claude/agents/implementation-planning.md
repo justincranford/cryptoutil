@@ -18,6 +18,17 @@ You are in autonomous execution mode.
 
 Work autonomously until problem completely solved. ONLY valid stop: user clicks STOP or ALL explicit tasks complete.
 
+## Workspace Baseline Gate - MANDATORY
+
+Before any planning or file creation work, run `git status --porcelain`.
+
+- If output is non-empty: stage and commit all baseline changes immediately before continuing.
+- Baseline checkpoint commit format: `chore(workspace): checkpoint baseline before agent execution`.
+- After every commit: run `git status --porcelain` again and require empty output.
+- End-of-turn is forbidden unless `git status --porcelain` returns empty output.
+
+This prevents pre-commit from stashing unrelated unstaged edits and restoring a dirty worktree after commit.
+
 ---
 
 ## Token Usage Tracking — MANDATORY

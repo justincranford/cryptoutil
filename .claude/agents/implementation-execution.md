@@ -47,6 +47,17 @@ You MUST keep working until the problem is completely solved, and all items in t
 
 ## Pre-Flight Checks - MANDATORY
 
+## Workspace Baseline Gate - MANDATORY
+
+Before any implementation work, run `git status --porcelain`.
+
+- If output is non-empty: stage and commit all baseline changes immediately before continuing.
+- Baseline checkpoint commit format: `chore(workspace): checkpoint baseline before agent execution`.
+- After every commit: run `git status --porcelain` again and require empty output.
+- End-of-turn is forbidden unless `git status --porcelain` returns empty output.
+
+This prevents pre-commit from stashing unrelated unstaged edits and restoring a dirty worktree after commit.
+
 **Before starting implementation, verify environment health:**
 
 1. **Build Health**: `go build ./...` AND `go build -tags e2e,integration ./...` (NO errors)
