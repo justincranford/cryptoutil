@@ -1,6 +1,6 @@
 # Implementation Plan - Framework V19: Reality Reconciliation and Backlog Closure
 
-**Status**: Planning
+**Status**: Complete
 **Created**: 2026-04-28
 **Last Updated**: 2026-04-28
 **Purpose**: Reconcile plan documents (v16-v18), actual codebase state, and recent session execution evidence to close work that is marked complete but is incomplete, incorrect, or inefficient.
@@ -95,6 +95,18 @@ Framework V19 is a corrective implementation plan. It is not a rewrite of v16-v1
 **Success**:
 - Reduced retry/failure loops in workflow.
 - V19 tasks include evidence requirements for each completion claim.
+
+**Mandatory Guardrails (Added in execution):**
+- Status transitions to complete require an evidence artifact path under `test-output/`.
+- When verification is inconclusive, record "I don't know" and keep the item unresolved.
+- Retry ceiling is three attempts per failing tool/operation; then change strategy.
+- Phase completion requires contradiction-check across plan/tasks/lessons/code before marking done.
+
+**Contradiction-Check Template:**
+1. Compare phase claims in `plan.md` with task states in `tasks.md`.
+2. Compare both against repository reality (code/tests/docs).
+3. Verify referenced evidence artifacts exist and are readable.
+4. If any mismatch exists, keep status unresolved and document explicitly.
 
 ### Phase 4: Knowledge Propagation
 

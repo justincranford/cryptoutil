@@ -7263,6 +7263,22 @@ proportional to file size — unnecessary when only a specific section is needed
 incomplete. Use `grep_search` first to find the relevant line numbers, then use targeted
 `read_file`.
 
+#### 14.12.6 Status-Evidence Integrity and Exclusion Lifecycle
+
+Status claims in planning artifacts MUST be backed by objective evidence files under `test-output/`.
+If evidence is missing or ambiguous, record `I don't know` and keep the task unresolved.
+
+When architectural fitness checks use exclusion maps, each exclusion entry MUST be classified as:
+- `required` (still blocked by current repository state),
+- `stale-removed` (no longer needed and removed immediately), or
+- `unresolved` (insufficient evidence; do not guess).
+
+Operational rule: retries have a ceiling of three attempts per failing tool/operation. After the
+third failure, switch strategy and capture the reason in phase evidence.
+
+Before closing a phase, run a contradiction-check across `plan.md`, `tasks.md`, `lessons.md`, code,
+and evidence artifacts. Any mismatch blocks completion.
+
 ---
 
 ## 15. Operational Excellence

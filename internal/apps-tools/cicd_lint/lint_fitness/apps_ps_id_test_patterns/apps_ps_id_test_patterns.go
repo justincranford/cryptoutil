@@ -22,27 +22,15 @@ var knownExclusionsTestMain = map[string]bool{}
 
 // knownExclusionsLifecycle lists PS-IDs that lack server/*_lifecycle_test.go.
 var knownExclusionsLifecycle = map[string]bool{
-	cryptoutilSharedMagic.OTLPServiceSMIM:             true,
 	cryptoutilSharedMagic.OTLPServiceJoseJA:           true,
-	cryptoutilSharedMagic.OTLPServiceIdentityAuthz:    true,
-	cryptoutilSharedMagic.OTLPServiceIdentityIDP:      true,
-	cryptoutilSharedMagic.OTLPServiceIdentityRS:       true,
-	cryptoutilSharedMagic.OTLPServiceIdentityRP:       true,
-	cryptoutilSharedMagic.OTLPServiceIdentitySPA:      true,
 	cryptoutilSharedMagic.OTLPServiceSkeletonTemplate: true,
 }
 
 // knownExclusionsPortConflict lists PS-IDs that lack server/*_port_conflict_test.go.
 // All except sm-kms are excluded; no other PS-ID has this file yet.
 var knownExclusionsPortConflict = map[string]bool{
-	cryptoutilSharedMagic.OTLPServiceSMIM:             true,
 	cryptoutilSharedMagic.OTLPServiceJoseJA:           true,
 	cryptoutilSharedMagic.OTLPServicePKICA:            true,
-	cryptoutilSharedMagic.OTLPServiceIdentityAuthz:    true,
-	cryptoutilSharedMagic.OTLPServiceIdentityIDP:      true,
-	cryptoutilSharedMagic.OTLPServiceIdentityRS:       true,
-	cryptoutilSharedMagic.OTLPServiceIdentityRP:       true,
-	cryptoutilSharedMagic.OTLPServiceIdentitySPA:      true,
 	cryptoutilSharedMagic.OTLPServiceSkeletonTemplate: true,
 }
 

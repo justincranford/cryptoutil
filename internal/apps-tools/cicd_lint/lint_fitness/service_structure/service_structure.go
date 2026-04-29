@@ -24,8 +24,6 @@ type ServiceDef struct {
 // knownExclusions are PS-IDs excluded from service structure validation
 // (legacy services that do not follow the service template pattern).
 var knownExclusions = map[string]bool{
-	cryptoutilSharedMagic.OTLPServiceIdentityAuthz: true,
-	cryptoutilSharedMagic.OTLPServiceIdentityIDP:   true,
 }
 
 // psidRequiredFilesOverrides maps PS-IDs to a custom required files list.

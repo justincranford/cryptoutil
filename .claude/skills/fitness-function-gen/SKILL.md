@@ -23,6 +23,8 @@ The lint-fitness framework runs 87 architectural invariant checks on every CI pu
 - Tests ≥98% line coverage (infrastructure/utility target)
 - Validator error aggregation: collect ALL violations before returning (never short-circuit)
 - For recursive MANIFEST checks, treat `required_dirs` (`client`, `e2e`) as mandatory and validate `required_e2e_files` only when `e2e/` exists during migration transitions
+- Exclusion lifecycle: classify each exclusion as `required`, `stale-removed`, or `unresolved` (`I don't know`); remove stale entries immediately
+- When evidence is insufficient for an exclusion decision, keep it unresolved and do not guess
 
 ## Fitness Function Registration
 

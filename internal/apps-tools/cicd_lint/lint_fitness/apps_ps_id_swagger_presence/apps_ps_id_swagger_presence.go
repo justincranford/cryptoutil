@@ -14,17 +14,10 @@ import (
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps-tools/cicd_lint/common"
 	cryptoutilFitnessRegistry "cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/registry"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
-// knownExclusions lists PS-IDs that currently lack server/swagger.go + server/swagger_test.go.
-// Remove entries here once a PS-ID's swagger files are migrated to its server/ directory.
-// identity-authz/idp/rs have swagger at service root, blocked by routes.go dependency (framework-v17 Phase 5 GAP).
-var knownExclusions = map[string]bool{
-	cryptoutilSharedMagic.OTLPServiceIdentityAuthz: true, // swagger at service root; blocked by routes.go dependency.
-	cryptoutilSharedMagic.OTLPServiceIdentityIDP:   true, // swagger at service root; blocked by routes.go dependency.
-	cryptoutilSharedMagic.OTLPServiceIdentityRS:    true, // swagger at service root; blocked by routes.go dependency.
-}
+// knownExclusions lists PS-IDs that are temporarily exempt from server swagger checks.
+var knownExclusions = map[string]bool{}
 
 // Check validates PS-ID swagger file presence from the workspace root.
 func Check(logger *cryptoutilCmdCicdCommon.Logger) error {

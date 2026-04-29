@@ -1,6 +1,6 @@
 # Implementation Plan - Framework V17: internal/apps/ Structure Fitness Linters
 
-**Status**: Planning
+**Status**: Historical Snapshot
 **Created**: 2026-04-26
 **Last Updated**: 2026-04-26
 **Purpose**: Expand `lint-fitness` to enforce structural consistency across all 16 directories under

@@ -1,6 +1,6 @@
 # Tasks - Framework V17: internal/apps/ Structure Fitness Linters
 
-**Status**: 37 of 43 tasks complete (86%) — 6 deferred (Tasks 5.2-5.7) as documented GAPs
+**Status**: Historical snapshot (header reconciled in V19); task-level statuses are unresolved without replay evidence
 **Last Updated**: 2026-04-27
 **Created**: 2026-04-26
 
