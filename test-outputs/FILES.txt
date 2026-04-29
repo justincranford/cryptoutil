@@ -1,0 +1,13 @@
+Exact legacy runtime terms: TLSModeOff, TLSModeOn, or TLSModeMixed
+.\docs\ENG-HANDBOOK.md
+.\docs\tls-structure.md
+.\test-output\config-review.txt
+
+TLSModeMixed only in the current provisioning-mode enum family: TLSModeStatic, TLSModeMixed, TLSModeAuto
+.\internal\apps-framework\service\config\config.go
+.\internal\apps-framework\service\config\tls_generator\tls_generator.go
+.\internal\apps-framework\service\server\builder\server_builder_build.go
+.\internal\apps-framework\service\server\builder\server_builder_migrations_test.go
+.\internal\apps-framework\service\server\listener\servers.go
+.\internal\apps-framework\service\server\listener\servers_test.go
+.\internal\apps-framework\tls\generator_helpers.go
