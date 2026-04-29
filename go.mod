@@ -4,7 +4,7 @@ go 1.26.1
 
 require (
 	github.com/cloudflare/circl v1.6.3
-	github.com/getkin/kin-openapi v0.136.0
+	github.com/getkin/kin-openapi v0.137.0
 	github.com/go-jose/go-jose/v4 v4.1.4
 	github.com/go-webauthn/webauthn v0.17.0
 	github.com/goccy/go-yaml v1.19.2
