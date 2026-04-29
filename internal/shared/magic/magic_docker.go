@@ -21,7 +21,7 @@ const (
 	// DockerJobHealthcheckSecrets - Healthcheck for secrets job name.
 	DockerJobHealthcheckSecrets = "healthcheck-secrets"
 
-	// DockerJobBuilderCryptoutil - Builder for Cryptoutil job name.
+	// DockerJobBuilderCryptoutil - Legacy forbidden suite-builder job name.
 	DockerJobBuilderCryptoutil = "builder-cryptoutil"
 
 	// DockerServicePostgres - PostgreSQL service name.

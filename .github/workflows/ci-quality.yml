@@ -57,6 +57,8 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
+  DOCKER_SCAN_PS_ID: sm-kms
+  DOCKER_SCAN_IMAGE_NAME: ${{ github.repository }}-sm-kms
 
 permissions:
   contents: read
@@ -161,15 +163,16 @@ jobs:
         # https://github.com/docker/metadata-action/releases (v5.9.0, 2025-11-11)
         uses: docker/metadata-action@v5.9.0
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          images: ${{ env.REGISTRY }}/${{ env.DOCKER_SCAN_IMAGE_NAME }}
           tags: |
             type=ref,event=branch
             type=ref,event=pr
             type=sha,prefix=sha-
 
-      - name: Build Docker image
+      - name: Build representative PS-ID Docker image
         run: |
           echo "::group::Docker image build"
+          echo "Building representative PS-ID image for ${{ env.DOCKER_SCAN_PS_ID }}. Template-compliance keeps the other 9 PS-ID Dockerfiles aligned."
           # Build the tag arguments using process substitution to avoid subshell variable scoping issues
           TAG_ARGS=""
           while IFS= read -r tag; do
@@ -190,7 +193,7 @@ jobs:
             --build-arg BUILD_DATE=1970-01-01T00:00:00Z \
             --cache-from type=gha \
             --cache-to type=gha,mode=max \
-            -f ./deployments/cryptoutil/Dockerfile \
+            -f ./deployments/${{ env.DOCKER_SCAN_PS_ID }}/Dockerfile \
             .
           echo "::endgroup::"
 
@@ -198,10 +201,10 @@ jobs:
         id: first-tag
         run: echo "tag=$(echo '${{ steps.meta.outputs.tags }}' | head -n1)" >> $GITHUB_OUTPUT
 
-      - name: Scan Docker image for vulnerabilities
+      - name: Scan representative PS-ID Docker image for vulnerabilities
         uses: ./.github/actions/security-scan-trivy2
         with:
-          scan-name: 'docker-image'
+          scan-name: 'docker-image-sm-kms'
           scan-type: 'image'
           scan-ref: ${{ steps.first-tag.outputs.tag }}
           trivy-sarif-output: 'trivy-image.sarif'
@@ -267,10 +270,11 @@ jobs:
         continue-on-error: true
         if: steps.scout-auth.outputs.authenticated == 'true'
 
-      - name: Push Docker image
+      - name: Push representative PS-ID Docker image
         if: github.event_name != 'pull_request'
         run: |
           echo "::group::Docker image push"
+          echo "Pushing representative PS-ID image for ${{ env.DOCKER_SCAN_PS_ID }}."
           # Build the tag arguments using process substitution to avoid subshell variable scoping issues
           TAG_ARGS=""
           while IFS= read -r tag; do
@@ -289,7 +293,7 @@ jobs:
             --build-arg APP_VERSION=${{ github.sha }} \
             --build-arg VCS_REF=${{ github.sha }} \
             --build-arg BUILD_DATE=1970-01-01T00:00:00Z \
-            -f ./deployments/cryptoutil/Dockerfile \
+            -f ./deployments/${{ env.DOCKER_SCAN_PS_ID }}/Dockerfile \
             .
           echo "::endgroup::"
 

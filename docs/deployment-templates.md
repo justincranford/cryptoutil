@@ -27,9 +27,9 @@ these templates. Any deviation from the canonical templates is a blocking error.
 - [E. PS-ID Standalone Config Template](#e-ps-id-standalone-config-template)
 - [F. PS-ID Secrets Template](#f-ps-id-secrets-template)
 - [G. Product compose.yml Template](#g-product-composeyml-template)
-- [H. Product Dockerfile Template (Pending)](#h-product-dockerfile-template-pending)
+- [H. Product Dockerfiles Are Intentionally Absent](#h-product-dockerfiles-are-intentionally-absent)
 - [I. Suite compose.yml Template](#i-suite-composeyml-template)
-- [J. Suite Dockerfile Template](#j-suite-dockerfile-template)
+- [J. Suite Dockerfiles Are Intentionally Absent](#j-suite-dockerfiles-are-intentionally-absent)
 - [K. Shared Services Templates](#k-shared-services-templates)
 - [L. OTel Config Template](#l-otel-config-template)
 - [M. Current Inconsistencies Inventory](#m-current-inconsistencies-inventory)
@@ -338,13 +338,14 @@ byte-for-byte against `deployments/{PRODUCT}/compose.yml`.
 
 ---
 
-## H. Product Dockerfile Template (Pending)
+## H. Product Dockerfiles Are Intentionally Absent
 
-**Status**: Missing for all 5 products. Target-structure.md Section N marks this as CREATE pending.
+Product deployment domains do not define their own Dockerfiles. Each PRODUCT compose file includes
+its PS-ID compose files, reuses those PS-ID builder services, and runs the resulting PS-ID images
+as a federated PRODUCT domain.
 
-Product Dockerfiles are unnecessary when each PS-ID builds its own binary. If the
-architecture migrates to a single suite binary (`./cmd/cryptoutil`), product Dockerfiles
-become needed. This is deferred until the suite binary migration decision is finalized.
+There is no canonical template at `api/cryptosuite-registry/templates/deployments/__PRODUCT__/Dockerfile`
+and no runtime file at `deployments/{PRODUCT}/Dockerfile`.
 
 ---
 
@@ -367,15 +368,15 @@ byte-for-byte against `deployments/cryptoutil/compose.yml`.
 
 ---
 
-## J. Suite Dockerfile Template
+## J. Suite Dockerfiles Are Intentionally Absent
 
-The suite Dockerfile builds the `{SUITE}` binary that can run any service via subcommands.
+The SUITE deployment domain does not define its own Dockerfile. `deployments/cryptoutil/compose.yml`
+includes the 5 PRODUCT compose files, which in turn include the 10 PS-ID compose files and their
+PS-ID builder services. The suite therefore federates the 10 PS-ID images instead of building a
+separate suite image.
 
-**Canonical file**: [`api/cryptosuite-registry/templates/deployments/__SUITE__/Dockerfile`](../api/cryptosuite-registry/templates/deployments/__SUITE__/Dockerfile)
-
-The template follows the same 4-stage pattern as the PS-ID Dockerfile (Section B), substituting
-the suite name (`cryptoutil`) for `{PS-ID}` in all binary paths, LABEL fields, HEALTHCHECK, and
-ENTRYPOINT directives.
+There is no canonical template at `api/cryptosuite-registry/templates/deployments/__SUITE__/Dockerfile`
+and no runtime file at `deployments/cryptoutil/Dockerfile`.
 
 ---
 
@@ -526,7 +527,6 @@ byte-for-byte against the actual file on disk. Any deviation is a linting error.
 | `template-compliance` | `api/cryptosuite-registry/templates/deployments/__PS_ID__/config/__PS_ID__-app-framework-postgresql-{1,2}.yml` | `deployments/{PS-ID}/config/{PS-ID}-app-framework-postgresql-{1,2}.yml` (×20) | Full byte-for-byte |
 | `template-compliance` | `api/cryptosuite-registry/templates/configs/__PS_ID__/__PS_ID__-framework.yml` | `configs/{PS-ID}/{PS-ID}-framework.yml` (×10) | Full byte-for-byte |
 | `template-compliance` | `api/cryptosuite-registry/templates/deployments/__PRODUCT__/compose.yml` | `deployments/{PRODUCT}/compose.yml` (×5) | Full byte-for-byte |
-| `template-compliance` | `api/cryptosuite-registry/templates/deployments/__SUITE__/Dockerfile` | `deployments/cryptoutil/Dockerfile` (×1) | Full byte-for-byte |
 | `template-compliance` | `api/cryptosuite-registry/templates/deployments/__SUITE__/compose.yml` | `deployments/cryptoutil/compose.yml` (×1) | Full byte-for-byte |
 | `secrets-compliance` | N/A (validation-only) | `deployments/{PS-ID}/secrets/*.secret` (×140) | File count + naming pattern |
 
@@ -575,7 +575,6 @@ template-comparison linter is the authoritative enforcement mechanism.
 6. **P1 (HIGH)**: Implement template-comparison linters (N.1)
 7. **P2 (MEDIUM)**: Migrate snake_case configs to kebab-case (7 services)
 8. **P2 (MEDIUM)**: Standardize deployment config overlay structure
-9. **P3 (LOW)**: Fix suite Dockerfile (add tini)
 
 ---
 
@@ -603,7 +602,6 @@ All template files live in `api/cryptosuite-registry/templates/`. Paths below ar
 | `deployments/__PS_ID__/config/__PS_ID__-app-framework-postgresql-2.yml` | D.5 | Deployment PostgreSQL instance 2 config | ×10 |
 | `configs/__PS_ID__/__PS_ID__-framework.yml` | E | Standalone framework config | ×10 |
 | `deployments/__PRODUCT__/compose.yml` | G | Product compose | ×5 (one per product) |
-| `deployments/__SUITE__/Dockerfile` | J | Suite Dockerfile | ×1 |
 | `deployments/__SUITE__/compose.yml` | I | Suite compose | ×1 |
 | `deployments/__PS_ID__/secrets/` | F | PS-ID secrets (validation only) | ×10 directories |
 | `deployments/__PRODUCT__/secrets/` | — | Product secrets (validation only) | ×5 directories |

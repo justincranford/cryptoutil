@@ -63,6 +63,8 @@ invalid json line`
 func TestDetermineServiceHealthStatus_JobOnly(t *testing.T) {
 	t.Parallel()
 
+	builderJobName := "builder-" + cryptoutilSharedMagic.OTLPServiceSMKMS
+
 	// Use case 1: Job-only (standalone job that must exit successfully)
 	serviceMap := map[string]map[string]any{
 		cryptoutilSharedMagic.DockerJobHealthcheckSecrets: {
@@ -70,8 +72,8 @@ func TestDetermineServiceHealthStatus_JobOnly(t *testing.T) {
 			"State":    cryptoutilSharedMagic.DockerServiceStateExited,
 			"ExitCode": float64(0),
 		},
-		cryptoutilSharedMagic.DockerJobBuilderCryptoutil: {
-			"Name":     "compose-builder-cryptoutil-1",
+		builderJobName: {
+			"Name":     "compose-builder-sm-kms-1",
 			"State":    cryptoutilSharedMagic.DockerServiceStateExited,
 			"ExitCode": float64(1), // Failed job
 		},
@@ -79,13 +81,13 @@ func TestDetermineServiceHealthStatus_JobOnly(t *testing.T) {
 
 	services := []ServiceAndJob{
 		{Service: "", Job: cryptoutilSharedMagic.DockerJobHealthcheckSecrets},
-		{Service: "", Job: cryptoutilSharedMagic.DockerJobBuilderCryptoutil},
+		{Service: "", Job: builderJobName},
 	}
 
 	healthStatus := determineServiceHealthStatus(serviceMap, services)
 
 	require.True(t, healthStatus[cryptoutilSharedMagic.DockerJobHealthcheckSecrets], "healthcheck-secrets should be healthy (ExitCode=0)")
-	require.False(t, healthStatus[cryptoutilSharedMagic.DockerJobBuilderCryptoutil], "builder-cryptoutil should be unhealthy (ExitCode=1)")
+	require.False(t, healthStatus[builderJobName], "builder-sm-kms should be unhealthy (ExitCode=1)")
 }
 
 func TestDetermineServiceHealthStatus_ServiceOnly(t *testing.T) {

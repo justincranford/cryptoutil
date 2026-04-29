@@ -1,8 +1,9 @@
 // Copyright (c) 2025 Justin Cranford
 
-// Package dockerfile_healthcheck validates that all Dockerfiles in deployments/
+// Package dockerfile_healthcheck validates that PS-ID Dockerfiles in deployments/
 // use the built-in PS-ID CLI livez subcommand for HEALTHCHECK instead of
-// third-party tools like wget or curl.
+// third-party tools like wget or curl, and that non-PS-ID deployment
+// directories do not define Dockerfiles.
 //
 // The canonical HEALTHCHECK pattern is:
 //
@@ -76,6 +77,15 @@ func FindViolationsInDir(rootDir string) ([]string, error) {
 			continue
 		}
 
+		if _, isPSID := psidBinaryMap[deploymentName]; !isPSID {
+			violations = append(violations, fmt.Sprintf(
+				"%s: non-PS-ID deployment MUST NOT define Dockerfile %q; only deployments/{PS-ID}/Dockerfile is allowed",
+				deploymentName, dockerfilePath,
+			))
+
+			continue
+		}
+
 		v := validateDockerfileHealthcheck(dockerfilePath, deploymentName, psidBinaryMap)
 		violations = append(violations, v...)
 	}
@@ -85,19 +95,12 @@ func FindViolationsInDir(rootDir string) ([]string, error) {
 
 // buildPSIDBinaryMap returns a map of deployment-name → expected binary name.
 // For PS-ID services, the binary is /app/<ps-id>.
-// Suite deployments map to /app/<suite-id>.
 func buildPSIDBinaryMap() map[string]string {
 	pss := cryptoutilCmdCicdRegistry.AllProductServices()
-	suites := cryptoutilCmdCicdRegistry.AllSuites()
-	binaryMap := make(map[string]string, len(pss)+len(suites))
+	binaryMap := make(map[string]string, len(pss))
 
 	for _, ps := range pss {
 		binaryMap[ps.PSID] = fmt.Sprintf("/app/%s", ps.PSID)
-	}
-
-	// Suite-level deployments use the suite binary.
-	for _, s := range suites {
-		binaryMap[s.ID] = fmt.Sprintf("/app/%s", s.ID)
 	}
 
 	return binaryMap
@@ -128,15 +131,14 @@ func validateDockerfileHealthcheck(dockerfilePath, deploymentName string, psidBi
 	}
 
 	// Check for expected PS-ID livez pattern.
-	expectedBinary, isPSIDOrSuite := psidBinaryMap[deploymentName]
-	if isPSIDOrSuite {
-		expectedCMD := fmt.Sprintf("%s livez || exit 1", expectedBinary)
-		if !strings.Contains(healthcheckCMD, expectedCMD) {
-			violations = append(violations, fmt.Sprintf(
-				"%s: HEALTHCHECK CMD should be %q, got %q",
-				deploymentName, expectedCMD, healthcheckCMD,
-			))
-		}
+	expectedBinary := psidBinaryMap[deploymentName]
+
+	expectedCMD := fmt.Sprintf("%s livez || exit 1", expectedBinary)
+	if !strings.Contains(healthcheckCMD, expectedCMD) {
+		violations = append(violations, fmt.Sprintf(
+			"%s: HEALTHCHECK CMD should be %q, got %q",
+			deploymentName, expectedCMD, healthcheckCMD,
+		))
 	}
 
 	return violations

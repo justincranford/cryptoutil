@@ -59,7 +59,7 @@ func (cm *ComposeManager) defaultPsOutput(ctx context.Context) ([]byte, error) {
 //
 // Instead, this project uses three healthcheck strategies (implemented in docker_health.go):
 //  1. Job-only healthchecks: Standalone jobs that must exit successfully (ExitCode=0)
-//     Examples: healthcheck-secrets, builder-cryptoutil
+//     Examples: healthcheck-secrets, builder-sm-kms
 //  2. Service-only healthchecks: Services with native HEALTHCHECK instructions
 //     Examples: cryptoutil-sqlite, cryptoutil-postgres-1, postgres, grafana-otel-lgtm
 //  3. Service with healthcheck job: Services use external sidecar job for health verification

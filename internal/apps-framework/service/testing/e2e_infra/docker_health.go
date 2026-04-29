@@ -16,7 +16,7 @@ import (
 //
 // Three use cases are supported:
 //  1. Job-only (Service="", Job="job-name"): Standalone job that must exit successfully (ExitCode=0)
-//     Examples: healthcheck-secrets, builder-cryptoutil
+//     Examples: healthcheck-secrets, builder-sm-kms
 //  2. Service-only (Service="service-name", Job=""): Service that must be running/healthy with native health checks
 //     Examples: cryptoutil-sqlite, cryptoutil-postgres-1, cryptoutil-postgres-2, postgres, grafana-otel-lgtm
 //  3. Service with healthcheck job (Service="service-name", Job="job-name"): Service uses external job for health verification

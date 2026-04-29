@@ -189,7 +189,7 @@ fix `tls-structure.md` Admin CA Bundle section; verify with `lint-docs`; delete 
 | 1.8 | Complete magic/ File Listing | §11.1.4 | 42 `magic_*.go` files organized by domain |
 | 1.9 | Other Top-Level Directories | §4.4.1 | `scripts/`, `workflow-reports/`, `test-output/`, `pkg/` |
 | 1.10 | Dockerfile Parameterization Table | §12.2.1 | Per-tier image.title, binary, EXPOSE, HEALTHCHECK, ENTRYPOINT |
-| 1.11 | Pending Work Inventory | §4.4.6 | Product Dockerfiles missing (all 5 products) |
+| 1.11 | Dockerfile Scope Clarification | §4.4.6 | Product and suite Dockerfiles are intentionally absent; PRODUCT/SUITE domains reuse PS-ID images |
 
 #### 1b: tls-structure.md fix + ENG-HANDBOOK.md additions (6 items)
 

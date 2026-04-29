@@ -1452,8 +1452,8 @@ All tiers (service, product, suite) use **identical `{purpose}.secret` filenames
 
 **Pending Work** (known gaps):
 
-- **Product Dockerfiles missing**: All 5 products (`identity`, `jose`, `pki`, `skeleton`, `sm`) are missing `deployments/{PRODUCT}/Dockerfile`. Product Dockerfiles are unnecessary when each PS-ID builds its own binary. Deferred until the suite binary migration decision is finalized (each PS-ID currently builds `./cmd/{PS-ID}` independently).
-- See `deployment-templates.md` Section H for full rationale.
+- **Dockerfile scope is closed**: `deployments/{PRODUCT}/Dockerfile` and `deployments/{SUITE}/Dockerfile` are intentionally absent. The repository builds 10 PS-ID images from `deployments/{PS-ID}/Dockerfile`; PRODUCT and SUITE deployment domains federate those PS-ID images via compose overlays rather than introducing extra Dockerfiles.
+- See `deployment-templates.md` Sections G-I for the compose-only PRODUCT/SUITE deployment model.
 
 #### 4.4.7 CLI Patterns
 
@@ -4392,7 +4392,7 @@ Docker Compose health checking supports three distinct patterns. The `docker com
 
 **Pattern**: Standalone job that must exit successfully (ExitCode=0)
 
-**Examples**: `healthcheck-secrets`, `builder-cryptoutil`
+**Examples**: `healthcheck-secrets`, `builder-sm-kms`
 
 **Usage**:
 ```go
@@ -5234,7 +5234,7 @@ All Dockerfiles follow identical multi-stage structure. Parameterized fields dif
 | DF-23 | `LABEL org.opencontainers.image.authors` MUST equal `{AUTHORS}` | Author attribution |
 | DF-24 | `LABEL org.opencontainers.image.description` MUST equal `{PRODUCT_DISPLAY_NAME} {SERVICE_DISPLAY_NAME}` | Human-readable description |
 
-**Current state**: 10 service-level + 1 suite-level Dockerfiles exist. 0 product-level Dockerfiles exist (not needed when each PS-ID builds its own binary; see Section 4.4.6 Pending Work).
+**Current state**: 10 PS-ID Dockerfiles exist. 0 product-level Dockerfiles exist. 0 suite-level Dockerfiles exist. This is by design: PRODUCT and SUITE deployment domains reuse PS-ID images and PS-ID builders via compose includes.
 
 #### 12.2.2 Build Optimization
 
@@ -5753,8 +5753,8 @@ Builder services (`builder-{scope}`) are scoped to each tier:
 | Tier | Builder Service | Dockerfile | Purpose |
 |------|----------------|------------|---------|
 | SERVICE | `builder-{ps-id}` | `deployments/{PS-ID}/Dockerfile` | Build PS-ID binary |
-| PRODUCT | `builder-{product}` | `deployments/{PRODUCT}/Dockerfile` | Build product binary (currently none) |
-| SUITE | `builder-cryptoutil` | `deployments/cryptoutil/Dockerfile` | Build suite binary |
+| PRODUCT | none | n/a | Reuse included PS-ID builders and PS-ID images |
+| SUITE | none | n/a | Reuse included PS-ID builders and PS-ID images |
 
 Docker layer caching ensures a shared image is built only once even when multiple services reference the same base image.
 
@@ -6555,7 +6555,6 @@ otlp-tls-ca-file:   /certs/{PS-ID}/otel-collector-contrib-https-client-issuing-c
 | Config key naming | sm-kms, sm-im, identity-* (7 services) | Uses snake_case keys (`bind_address`, `max_open_conns`) instead of kebab-case |
 | Admin port | jose-ja, skeleton-template | `bind-admin-port: 9092` (should be `9090`) |
 | Deployment common config | sm-im | Missing TLS cert paths and unseal config |
-| Suite Dockerfile | cryptoutil | No tini installed/copied — missing signal handling |
 
 Note: Items marked **runtime failure** are P0 blockers. All others are scheduled for cleanup via template-compliance enforcement.
 

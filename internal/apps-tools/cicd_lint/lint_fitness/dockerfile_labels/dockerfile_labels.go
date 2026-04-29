@@ -1,12 +1,14 @@
 // Copyright (c) 2025 Justin Cranford
 
-// Package dockerfile_labels validates that all Dockerfiles in deployments/
-// contain correct OCI labels and ENTRYPOINT instructions:
+// Package dockerfile_labels validates that PS-ID Dockerfiles in deployments/
+// contain correct OCI labels and ENTRYPOINT instructions, and that non-PS-ID
+// deployment directories do not define Dockerfiles:
 //
 //   - org.opencontainers.image.title must exactly match the OTLP service name for PS-ID directories
-//     (e.g. "cryptoutil-sm-kms") or contain the deployment name for suite/product directories.
+//     (e.g. "cryptoutil-sm-kms").
 //   - org.opencontainers.image.description must be present (non-empty).
 //   - ENTRYPOINT must match the registry-declared entrypoint for PS-ID directories.
+//   - Non-PS-ID deployment directories MUST NOT define Dockerfiles.
 //
 // The linter only checks Dockerfiles that have at least one OCI label line.
 // Dockerfiles without any labels are reported as violations (labels are required).
@@ -78,6 +80,15 @@ func FindViolationsInDir(rootDir string) ([]string, error) {
 			continue
 		}
 
+		if _, isPSID := psidTitleMap[deploymentName]; !isPSID {
+			violations = append(violations, fmt.Sprintf(
+				"%s: non-PS-ID deployment MUST NOT define Dockerfile %q; only deployments/{PS-ID}/Dockerfile is allowed",
+				deploymentName, dockerfilePath,
+			))
+
+			continue
+		}
+
 		v := validateDockerfileLabels(dockerfilePath, deploymentName, psidTitleMap, psidEntrypointMap)
 		violations = append(violations, v...)
 	}
@@ -117,16 +128,9 @@ func validateDockerfileLabels(dockerfilePath, deploymentName string, psidTitleMa
 
 	// Validate title.
 	if title, exists := labels["org.opencontainers.image.title"]; exists {
-		if expectedTitle, isPSID := psidTitleMap[deploymentName]; isPSID {
-			// PS-ID directories: exact match (case-insensitive) against registry-derived OTLP service name.
-			if !strings.EqualFold(title, expectedTitle) {
-				violations = append(violations, fmt.Sprintf("%s: image.title %q must exactly match registry-derived value %q", deploymentName, title, expectedTitle))
-			}
-		} else {
-			// Suite/product directories: contains-match (legacy check).
-			if !titleContainsDeploymentName(title, deploymentName) {
-				violations = append(violations, fmt.Sprintf("%s: image.title %q does not contain deployment name %q", deploymentName, title, deploymentName))
-			}
+		expectedTitle := psidTitleMap[deploymentName]
+		if !strings.EqualFold(title, expectedTitle) {
+			violations = append(violations, fmt.Sprintf("%s: image.title %q must exactly match registry-derived value %q", deploymentName, title, expectedTitle))
 		}
 	}
 
@@ -155,16 +159,6 @@ func entrypointEqual(a, b []string) bool {
 	}
 
 	return true
-}
-
-// titleContainsDeploymentName checks if the title references the deployment name.
-// The title should contain the deployment name (e.g., "cryptoutil-sm-kms" contains "sm-kms").
-// Hyphens and spaces are treated as equivalent for comparison (e.g. "CryptoUtil Suite" matches "cryptoutil").
-func titleContainsDeploymentName(title, deploymentName string) bool {
-	normalizedTitle := strings.ToLower(strings.ReplaceAll(title, " ", "-"))
-	normalizedName := strings.ToLower(strings.ReplaceAll(deploymentName, " ", "-"))
-
-	return strings.Contains(normalizedTitle, normalizedName)
 }
 
 // extractLabelsAndEntrypoint parses a Dockerfile and extracts OCI label key-value pairs

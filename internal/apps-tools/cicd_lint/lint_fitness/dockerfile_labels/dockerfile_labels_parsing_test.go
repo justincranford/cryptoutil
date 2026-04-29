@@ -99,33 +99,6 @@ func TestEntrypointEqual(t *testing.T) {
 	}
 }
 
-func TestTitleContainsDeploymentName(t *testing.T) {
-	t.Parallel()
-
-	tests := []struct {
-		name           string
-		title          string
-		deploymentName string
-		want           bool
-	}{
-		{name: "exact match", title: cryptoutilSharedMagic.OTLPServiceSMKMS, deploymentName: cryptoutilSharedMagic.OTLPServiceSMKMS, want: true},
-		{name: "prefixed match", title: "cryptoutil-" + cryptoutilSharedMagic.OTLPServiceSMKMS, deploymentName: cryptoutilSharedMagic.OTLPServiceSMKMS, want: true},
-		{name: "case insensitive", title: "CryptoUtil-Suite", deploymentName: cryptoutilSharedMagic.DefaultOTLPServiceDefault, want: true},
-		{name: "no match", title: "CA Server", deploymentName: cryptoutilSharedMagic.OTLPServiceSMKMS, want: false},
-	}
-
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-
-			got := titleContainsDeploymentName(tc.title, tc.deploymentName)
-			if got != tc.want {
-				t.Errorf("titleContainsDeploymentName(%q, %q) = %v, want %v", tc.title, tc.deploymentName, got, tc.want)
-			}
-		})
-	}
-}
-
 func TestParseLabelsFromLine_UnquotedNoSpace(t *testing.T) {
 	t.Parallel()
 

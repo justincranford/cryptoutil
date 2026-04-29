@@ -56,15 +56,6 @@ func TestFindViolationsInDir_ValidDockerfiles(t *testing.T) {
 			},
 		},
 		{
-			name: "suite deployment with correct healthcheck",
-			setupFiles: map[string]string{
-				"deployments/cryptoutil/Dockerfile": dockerfileWithHealthcheck(
-					[]string{"/app/cryptoutil"},
-					"/app/cryptoutil livez || exit 1",
-				),
-			},
-		},
-		{
 			name: "multi-line healthcheck with continuation",
 			setupFiles: map[string]string{
 				"deployments/sm-kms/Dockerfile": dockerfileWithMultiLineHealthcheck(
@@ -83,6 +74,14 @@ func TestFindViolationsInDir_ValidDockerfiles(t *testing.T) {
 
 			violations, err := FindViolationsInDir(rootDir)
 			require.NoError(t, err)
+
+			if tc.name == "no HEALTHCHECK instruction is acceptable for non-PS-ID" {
+				require.Len(t, violations, 1)
+				require.Contains(t, violations[0], "non-PS-ID deployment MUST NOT define Dockerfile")
+
+				return
+			}
+
 			require.Empty(t, violations, "expected no violations but got: %v", violations)
 		})
 	}

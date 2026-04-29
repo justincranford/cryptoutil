@@ -352,7 +352,6 @@ api/                                                  # drwxr-x---
 │           │       ├── service-{username,password}.secret.never  # Marker only
 │           │       └── issuing-ca-key.secret.never              # Marker only
 │           ├── __SUITE__/                            #     Suite templates (×1)
-│           │   ├── Dockerfile                        #       Suite Dockerfile template
 │           │   ├── compose.yml                       #       Suite compose template
 │           │   └── secrets/                          #       Secrets templates (15 files)
 │           │       ├── unseal-{1..5}of5.secret
@@ -502,7 +501,7 @@ this identical structure.
 ### F.2 Per-Product Deployment (5 products)
 
 Each product has a deployment directory with a compose.yml and secrets. Product-level
-Dockerfiles do NOT yet exist (CREATE pending — see Section N).
+Dockerfiles are intentionally absent; PRODUCT domains reuse included PS-ID builders and PS-ID images.
 
 ```
 deployments/{PRODUCT}/                                # drwxr-x---
@@ -524,7 +523,7 @@ deployments/{PRODUCT}/                                # drwxr-x---
     └── unseal-5of5.secret                            # {PRODUCT}-unseal-key-5-of-5-{base64-random-32-bytes}
 ```
 
-**Total per product**: 4 `.secret.never` + 10 `.secret` = 14 files (no Dockerfile yet).
+**Total per product**: 4 `.secret.never` + 10 `.secret` = 14 files + compose.yml.
 
 **All 5 products** (`identity`, `jose`, `pki`, `skeleton`, `sm`) follow this identical structure.
 
@@ -533,13 +532,11 @@ deployments/{PRODUCT}/                                # drwxr-x---
 **Pattern**: `deployments/{SUITE}/`
 
 The suite deployment directory uses the bare `{SUITE}` name (e.g., `cryptoutil`),
-consistent with all other naming conventions. Contains a Dockerfile, compose.yml,
-and secrets.
+consistent with all other naming conventions. Contains compose.yml and secrets.
 
 ```
 deployments/{SUITE}/                                  # drwxr-x---
 ├── compose.yml                                       # Suite-level Docker Compose
-├── Dockerfile                                        # Suite Docker image build
 └── secrets/
     ├── hash-pepper-v3.secret                         # {SUITE}-hash-pepper-v3-{base64-random-32-bytes}
     ├── browser-username.secret.never                 # MUST use `.never` filename extension at suite level; these are service-level creds only
@@ -557,7 +554,7 @@ deployments/{SUITE}/                                  # drwxr-x---
     └── unseal-5of5.secret                            # {SUITE}-unseal-key-5-of-5-{base64-random-32-bytes}
 ```
 
-**Total**: 4 `.secret.never` + 10 `.secret` = 14 files + Dockerfile + compose.yml.
+**Total**: 4 `.secret.never` + 10 `.secret` = 14 files + compose.yml.
 
 ### F.4 Shared Infrastructure Deployments
 
@@ -581,21 +578,21 @@ containing `SAME-AS-DIR-NAME.{p12,crt,key}` (keystores) or `SAME-AS-DIR-NAME.{p1
 
 ### F.5 Dockerfile Parameterization
 
-All Dockerfiles follow identical multi-stage structure (validation → builder → runtime).
-Parameterized fields differ by deployment tier.
+All Dockerfiles are PS-ID Dockerfiles. PRODUCT and SUITE deployment domains are compose-only layers
+that reuse PS-ID builder services and PS-ID images.
 
-**Pattern**: `deployments/{DEPLOYMENT-DIR}/Dockerfile`
+**Pattern**: `deployments/{PS-ID}/Dockerfile`
 
-| Field | Service (`{PS-ID}`) | Product (`{PRODUCT}`) | Suite (`{SUITE}`) |
-|-------|---------------------|----------------------|-------------------|
-| `image.title` LABEL | `{SUITE}-{PS-ID}` | `{SUITE}-{PRODUCT}` | `{SUITE}` |
-| `image.description` LABEL | Service-specific description | Product-specific description | Suite-level description |
-| Binary built | `./cmd/{SUITE}` (always suite binary) | `./cmd/{SUITE}` | `./cmd/{SUITE}` |
-| `EXPOSE` | 8080 (container public) | Service-range (e.g., 18000) | Suite-range (e.g., 28000) |
-| `HEALTHCHECK` | `wget --no-check-certificate -qO- https://127.0.0.1:8080/browser/api/v1/health` | Same pattern, product port | Same pattern, suite port |
-| `ENTRYPOINT` | `["/app/{SUITE}", "{PS-ID}", "start"]` | `["/app/{SUITE}", "{PRODUCT}", "start"]` | `["/app/{SUITE}"]` |
+| Field | PS-ID Dockerfile |
+|-------|------------------|
+| `image.title` LABEL | `{SUITE}-{PS-ID}` |
+| `image.description` LABEL | Service-specific description |
+| Binary built | `./cmd/{PS-ID}` |
+| `EXPOSE` | 8080 (container public) |
+| `HEALTHCHECK` | `CMD /app/{PS-ID} livez || exit 1` |
+| `ENTRYPOINT` | `["/sbin/tini", "--", "/app/{PS-ID}"]` |
 
-**Current state**: 10 service-level + 1 suite-level Dockerfiles exist. 0 product-level Dockerfiles exist (CREATE pending).
+**Current state**: 10 PS-ID Dockerfiles exist. 0 product-level Dockerfiles exist. 0 suite-level Dockerfiles exist. This is the intended 10-image deployment model.
 
 ---
 
@@ -1171,7 +1168,7 @@ Service-named subdirectories inside product directories violate the flat PS-ID l
 
 | Area | Current State | Target State | Action |
 |------|--------------|-------------|--------|
-| `deployments/` product Dockerfile | Missing in all 5 products | Present in all 5 products | CREATE |
+| `deployments/` product Dockerfile | Absent in all 5 products | Intentionally absent in all 5 products; PRODUCT domains reuse PS-ID images | KEEP ABSENT |
 
 ### N.5 Framework V17 Linter Implementation
 

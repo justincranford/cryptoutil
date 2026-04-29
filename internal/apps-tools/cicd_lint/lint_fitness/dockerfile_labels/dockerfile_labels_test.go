@@ -62,12 +62,6 @@ func TestFindViolationsInDir_ValidDockerfiles(t *testing.T) {
 			},
 		},
 		{
-			name: "correct suite title (not a PS-ID, uses substring match)",
-			setupFiles: map[string]string{
-				"deployments/cryptoutil/Dockerfile": dockerfileWithLabels("CryptoUtil Suite", "CryptoUtil Suite Server"),
-			},
-		},
-		{
 			name: "deployment without Dockerfile is skipped",
 			setupFiles: map[string]string{
 				"deployments/shared-postgres/.gitkeep": "",
@@ -181,12 +175,12 @@ func TestFindViolationsInDir_InvalidDockerfiles(t *testing.T) {
 			wantViolations: 3,
 		},
 		{
-			name: "wrong title for suite (uses substring match)",
+			name: "non PS-ID deployment Dockerfile is rejected",
 			setupFiles: map[string]string{
 				"deployments/cryptoutil/Dockerfile": dockerfileWithLabels("CA Server", "Some description"),
 			},
 			wantViolations: 1,
-			wantSubstring:  "does not contain deployment name",
+			wantSubstring:  "non-PS-ID deployment MUST NOT define Dockerfile",
 		},
 	}
 
