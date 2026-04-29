@@ -219,6 +219,16 @@ required_propagations:
       - .github/instructions/03-02.testing.instructions.md
       - .github/instructions/03-04.data-infrastructure.instructions.md
 
+  - chunk_id: tls-client-policy
+    source_file: docs/ENG-HANDBOOK.md
+    required_targets:
+      - .github/instructions/02-05.security.instructions.md
+
+  - chunk_id: tls-provision-mode
+    source_file: docs/ENG-HANDBOOK.md
+    required_targets:
+      - .github/instructions/02-01.architecture.instructions.md
+
   - chunk_id: timeout-double-multiplication-antipattern
     source_file: docs/ENG-HANDBOOK.md
     required_targets:

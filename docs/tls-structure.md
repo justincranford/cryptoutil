@@ -261,31 +261,27 @@ The `tls-config.yml` consumed by admin mTLS clients references the truststore `.
 CA bundle (field: `issuing-ca`). Docker Compose mounts this file as a read-only secret. See
 [ENG-HANDBOOK.md §6.9](ENG-HANDBOOK.md#69-authentication--authorization) for the admin mTLS client pattern.
 
-## TLS Config Patterns — TLSModeMixed
+## TLS Config Patterns — `TLSProvisionMode` and `TLSClientPolicy`
 
-Services support three TLS modes via `tls-config.yml`:
+The framework now treats server TLS as two explicit axes:
 
-| Mode | Meaning | When Used |
-|------|---------|-----------|
-| `TLSModeOff` | No TLS (plaintext) | Development only, never production |
-| `TLSModeOn` | Full server TLS + optional client cert | Standard public HTTPS API |
-| `TLSModeMixed` | Server TLS required; client cert optional | Transitional or hybrid deployments |
+1. `TLSProvisionMode` controls how the server certificate and key are sourced: `static`, `mixed`, or `auto`.
+2. `TLSClientPolicy` controls what the listener does with client certificates: `none`, `request`, `require-any`, `verify-if-given`, or `require-and-verify`.
 
-**`TLSModeMixed` pattern**: The server presents its cert (enforcing server-auth TLS), but client
-certificates are optional — the server accepts both mTLS clients and plain TLS clients on the same
-listener. This is the intended mode during OTel mTLS rollout (Phase 2–5): the OTel Collector
-begins sending its client cert while older clients without certs continue to work.
+The CA bundle path is trust material input, not an implicit runtime switch.
+
+**Transitional `TLSClientPolicy` pattern**: the server always presents its own certificate; `verify-if-given` allows a phased rollout where mTLS-capable clients succeed first while older TLS-only clients continue to work.
 
 ```yaml
-# tls-config.yml for OTel mTLS transitional mode
+# tls-config.yml for transitional client-certificate rollout
 public:
-  mode: TLSModeMixed   # Server TLS on; client cert optional
+  client-policy: verify-if-given
   cert: /run/secrets/public-https-server-entity-{PS-ID}-{instance}.crt
   key:  /run/secrets/public-https-server-entity-{PS-ID}-{instance}.key
   ca:   /run/secrets/public-https-client-issuing-ca-{PS-ID}-{instance}.crt
 ```
 
-Once all clients present certs, flip `mode` to `TLSModeOn` (full mTLS).
+Once all clients present certs, flip `client-policy` to `require-and-verify`.
 
 ## Realm Dynamic Binding
 

@@ -2258,38 +2258,36 @@ Each realm gets its own directory under `Cat-5-{PS-ID}-realm-{realm-id}-{variant
 
 ### 6.11 TLS Certificate Configuration
 
-**Service Template uses a 3-mode auto-detect strategy** based on credentials provided at startup:
+**Server TLS has two separate axes** that MUST NOT be conflated:
 
-| Environment | Cert Chain | TLS Key | Issuing CA Key | TLS Mode | Outcome |
-|-------------|-----------|---------|----------------|----------|---------|
-| Production | Provided | Docker Secret | Not provided | Static | Use as-is |
-| E2E Dev | Provided | Not provided | Docker Secret | Mixed | Generate + sign TLS cert |
-| Unit/Integration | Not provided | Not provided | Not provided | Auto | Auto-create all certs |
+1. `TLSProvisionMode` answers **where the server certificate material comes from**.
+2. `TLSClientPolicy` answers **what the listener does with client certificates during the TLS handshake**.
 
-#### 6.11.1 TLS Mode Taxonomy (Static / Mixed / Auto)
+`TLSProvisionMode` is about certificate sourcing. `TLSClientPolicy` is about runtime client-auth behavior. A CA bundle path is trust material input only; it MUST NOT implicitly select the runtime policy.
 
-The `GenerateTLSMaterial()` function in `internal/apps-framework/service/config/tls_generator.go` selects one of three modes based on available credentials:
+<!-- @propagate to=".github/instructions/02-01.architecture.instructions.md" as="tls-provision-mode" -->
+**Service template server certificates use `TLSProvisionMode`** based on credentials provided at startup:
 
-**TLSModeStatic** (Production):
-- Provides pre-generated certificate chain + private key via Docker secrets
-- No key generation at runtime — fastest, most deterministic
-- Requires: `tls_server_cert.secret` + `tls_server_key.secret`
+| Environment | Cert Chain | TLS Key | Issuing CA Key | TLS Provision Mode | Outcome |
+|-------------|-----------|---------|----------------|--------------------|---------|
+| Production | Provided | Docker Secret | Not provided | `static` | Use as-is |
+| E2E Dev | Provided | Not provided | Docker Secret | `mixed` | Generate + sign TLS cert |
+| Unit/Integration | Not provided | Not provided | Not provided | `auto` | Auto-create all certs |
 
-**TLSModeMixed** (E2E Dev):
-- Provides CA certificate + CA private key; server certificate generated at startup
-- Server private key generated in-memory (not stored)
-- Requires: `tls_ca_cert.secret` + `tls_issuing_ca_key.secret`
+#### 6.11.1 `TLSProvisionMode` Taxonomy (`static` / `mixed` / `auto`)
 
-**TLSModeAuto** (Unit/Integration Tests):
-- Fully auto-generates 3-tier CA hierarchy (root → intermediate → server)
-- All keys generated in-memory; ephemeral per process start
-- Requires: no TLS secrets (any absent → Auto mode)
+The `GenerateTLSMaterial()` function in `internal/apps-framework/service/config/tls_generator.go` selects one of three provisioning modes based on available credentials:
 
-**Detection Logic**: `StaticCertPEM + StaticKeyPEM` provided → **Static**. `MixedCACertPEM + MixedCAKeyPEM` provided → generate server cert then treat as **Static**. Nothing provided → **Auto**.
+- `static`: pre-generated certificate chain + private key are supplied via Docker secrets. No runtime key generation occurs.
+- `mixed`: issuing CA certificate + issuing CA private key are supplied; the server leaf certificate is generated at startup and then used as static material for the running process.
+- `auto`: no server TLS material is supplied; the framework generates an ephemeral CA hierarchy and server leaf in memory.
+
+**Detection logic**: `StaticCertPEM + StaticKeyPEM` provided → `static`. `MixedCACertPEM + MixedCAKeyPEM` provided → generate server cert then use `static` material for the running process. Nothing provided → `auto`.
+<!-- @/propagate -->
 
 #### 6.11.2 Test TLS Bundle
 
-**Unit/Integration tests MUST use Auto TLS** (no Docker secrets needed). The server auto-generates a complete ephemeral PKI chain per test run. Test HTTP clients must use `TLSRootCAPool()` / `AdminTLSRootCAPool()` from the started server to trust the ephemeral CA. See [Section 10.3.7](#1037-tls-test-bundle-pattern) for the TestMain pattern.
+**Unit/Integration tests MUST use `TLSProvisionMode=auto`** (no Docker secrets needed). The server auto-generates a complete ephemeral PKI chain per test run. Test HTTP clients must use `TLSRootCAPool()` / `AdminTLSRootCAPool()` from the started server to trust the ephemeral CA. See [Section 10.3.7](#1037-tls-test-bundle-pattern) for the TestMain pattern.
 
 #### 6.11.3 pki-init Certificate Structure
 
@@ -2394,39 +2392,45 @@ hostssl     all             all             all                     scram-sha-25
 server-admin-tls-cert-file: /certs/{ps-id}/private-https-mutual-entity-{ps-id}-{variant}/{name}.crt
 server-admin-tls-key-file:  /certs/{ps-id}/private-https-mutual-entity-{ps-id}-{variant}/{name}.key
 server-admin-tls-ca-file:   /certs/{ps-id}/private-https-mutual-issuing-ca-{ps-id}-{variant}/truststore/{name}.crt
+server-admin-tls-client-policy: require-and-verify
 ```
 
-- When all 3 fields are set: admin listener uses `tls.RequireAndVerifyClientCert`
-- When `server-admin-tls-ca-file` only is set: server-side TLS only (no client cert required)
-- When none are set: framework auto-generates ephemeral TLS (unit/integration test mode)
+- `server-admin-tls-cert-file` + `server-admin-tls-key-file` provide server identity material.
+- `server-admin-tls-ca-file` provides client trust material.
+- `server-admin-tls-client-policy` selects the runtime client-certificate policy.
+- Admin mTLS requires both trust material and a policy that verifies client certificates.
 - Config key naming: `server-admin-tls-*` (kebab-case, in `allowedInstanceKeys` NOT `requiredCommonKeys`)
 - Each instance variant (sqlite-1, sqlite-2, postgres-1, postgres-2) has its own Cat 6/7 cert pair
 
-#### 6.11.6 TLS Runtime Enforcement Modes
+#### 6.11.6 `TLSClientPolicy` Runtime Modes
 
-Services support three **runtime TLS enforcement modes** via `tls-config.yml` (distinct from the
-credential-generation modes in §6.11.1):
+<!-- @propagate to=".github/instructions/02-05.security.instructions.md" as="tls-client-policy" -->
+Services support five **runtime `TLSClientPolicy` states**. These are distinct from the
+certificate-provisioning modes in §6.11.1 and map directly to Go's `tls.ClientAuthType` behavior:
 
-| Mode | Meaning | When Used |
-|------|---------|-----------|
-| `TLSModeOff` | No TLS (plaintext) | Development only; NEVER production |
-| `TLSModeOn` | Server TLS + optional client cert required | Standard public HTTPS API |
-| `TLSModeMixed` | Server TLS required; client cert optional | Transitional or hybrid deployments |
+| Client Policy | Go TLS Mapping | Meaning |
+|---------------|----------------|---------|
+| `none` | `tls.NoClientCert` | Do not request client certificates. |
+| `request` | `tls.RequestClientCert` | Request a client certificate but do not require or verify it. |
+| `require-any` | `tls.RequireAnyClientCert` | Require a client certificate but do not verify it against a CA bundle. |
+| `verify-if-given` | `tls.VerifyClientCertIfGiven` | Verify client certificates when presented; allow clients without certificates. |
+| `require-and-verify` | `tls.RequireAndVerifyClientCert` | Require a client certificate and verify it against the configured CA bundle. |
 
-**`TLSModeMixed` pattern**: Server presents its certificate (enforcing server-auth TLS), but client
-certificates are optional — the server accepts both mTLS clients and plain TLS clients on the same
-listener. Intended for OTel mTLS rollout (progressive migration):
+**Policy rule**: `*-tls-ca-file` fields supply trust material only. They MUST NOT implicitly switch the listener into a verification policy. If a listener uses `verify-if-given` or `require-and-verify`, a CA bundle must be configured explicitly.
+
+**Transitional pattern**: use `verify-if-given` when rolling clients onto mTLS gradually. The server presents its certificate in all cases; only the client-certificate requirement changes:
 
 ```yaml
-# tls-config.yml for OTel mTLS transitional mode
+# tls-config.yml for transitional client-certificate rollout
 public:
-  mode: TLSModeMixed   # Server TLS on; client cert optional
+  client-policy: verify-if-given
   cert: /run/secrets/public-https-server-entity-{PS-ID}-{instance}.crt
   key:  /run/secrets/public-https-server-entity-{PS-ID}-{instance}.key
   ca:   /run/secrets/public-https-client-issuing-ca-{PS-ID}-{instance}.crt
 ```
 
-Once all clients present certificates, flip `mode` to `TLSModeOn` (full mTLS).
+Once all clients present certificates, flip `client-policy` to `require-and-verify`.
+<!-- @/propagate -->
 
 **Directory Count Formula Derivation** (Category 5, per PS-ID with 2 realms):
 
