@@ -41,9 +41,9 @@ var (
 // GenerateTLSMaterial creates TLS configuration based on the specified mode.
 //
 // Supports three modes:
-//   - TLSModeStatic: Uses pre-provided certificate chain and private key.
-//   - TLSModeMixed: Uses pre-provided CA to sign dynamically generated server certificate.
-//   - TLSModeAuto: Fully auto-generates 3-tier CA hierarchy and server certificate.
+//   - TLSProvisionModeStatic: Uses pre-provided certificate chain and private key.
+//   - TLSProvisionModeMixed: Uses pre-provided CA to sign dynamically generated server certificate.
+//   - TLSProvisionModeAuto: Fully auto-generates 3-tier CA hierarchy and server certificate.
 //
 // Returns TLSMaterial containing tls.Config and certificate pools for client validation.
 func GenerateTLSMaterial(cfg *TLSGeneratedSettings) (*cryptoutilAppsFrameworkServiceConfig.TLSMaterial, error) {

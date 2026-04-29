@@ -307,6 +307,43 @@ func TestNewServerConfig(t *testing.T) {
 	}
 }
 
+func TestClientAuthTypeForPolicy(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name      string
+		policy    TLSClientPolicy
+		want      tls.ClientAuthType
+		wantError string
+	}{
+		{name: "empty policy defaults to none", policy: "", want: tls.NoClientCert},
+		{name: string(TLSClientPolicyNone), policy: TLSClientPolicyNone, want: tls.NoClientCert},
+		{name: string(TLSClientPolicyRequest), policy: TLSClientPolicyRequest, want: tls.RequestClientCert},
+		{name: string(TLSClientPolicyRequireAny), policy: TLSClientPolicyRequireAny, want: tls.RequireAnyClientCert},
+		{name: string(TLSClientPolicyVerifyIfGiven), policy: TLSClientPolicyVerifyIfGiven, want: tls.VerifyClientCertIfGiven},
+		{name: string(TLSClientPolicyRequireAndVerify), policy: TLSClientPolicyRequireAndVerify, want: tls.RequireAndVerifyClientCert},
+		{name: "invalid", policy: TLSClientPolicy("bogus"), wantError: "unknown TLS client policy"},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			got, err := ClientAuthTypeForPolicy(tc.policy)
+
+			if tc.wantError != "" {
+				require.Error(t, err)
+				require.ErrorContains(t, err, tc.wantError)
+
+				return
+			}
+
+			require.NoError(t, err)
+			require.Equal(t, tc.want, got)
+		})
+	}
+}
+
 func TestNewClientConfig(t *testing.T) {
 	t.Parallel()
 

@@ -50,7 +50,7 @@ func TestParallelTestSafety(t *testing.T) {
 		{
 			name:           "parallel_mixed_operations",
 			parallelOps:    cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days,
-			entityType:     "mixed",
+			entityType:     "mixed-ops",
 			validateUnique: true,
 		},
 	}
@@ -177,7 +177,7 @@ func TestParallelTestSafety(t *testing.T) {
 					}(i)
 				}
 
-			case "mixed":
+			case "mixed-ops":
 				userRepo := cryptoutilIdentityORM.NewUserRepository(db)
 				clientRepo := cryptoutilIdentityORM.NewClientRepository(db)
 

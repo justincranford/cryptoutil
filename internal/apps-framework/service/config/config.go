@@ -12,28 +12,45 @@ import (
 
 	googleUuid "github.com/google/uuid"
 
+	cryptoutilSharedCryptoTls "cryptoutil/internal/shared/crypto/tls"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 )
 
-// TLSMode defines the three supported TLS certificate provisioning modes.
-type TLSMode string
+// TLSClientPolicy defines the supported runtime client-certificate policies.
+type TLSClientPolicy = cryptoutilSharedCryptoTls.TLSClientPolicy
 
 const (
-	// TLSModeStatic uses pre-generated TLS certificates (production).
+	// TLSClientPolicyNone does not request client certificates.
+	TLSClientPolicyNone = cryptoutilSharedCryptoTls.TLSClientPolicyNone
+	// TLSClientPolicyRequest requests a client certificate but does not require or verify it.
+	TLSClientPolicyRequest = cryptoutilSharedCryptoTls.TLSClientPolicyRequest
+	// TLSClientPolicyRequireAny requires a client certificate without CA verification.
+	TLSClientPolicyRequireAny = cryptoutilSharedCryptoTls.TLSClientPolicyRequireAny
+	// TLSClientPolicyVerifyIfGiven verifies client certificates when presented.
+	TLSClientPolicyVerifyIfGiven = cryptoutilSharedCryptoTls.TLSClientPolicyVerifyIfGiven
+	// TLSClientPolicyRequireAndVerify requires and verifies client certificates.
+	TLSClientPolicyRequireAndVerify = cryptoutilSharedCryptoTls.TLSClientPolicyRequireAndVerify
+)
+
+// TLSProvisionMode defines the three supported TLS certificate provisioning modes.
+type TLSProvisionMode string
+
+const (
+	// TLSProvisionModeStatic uses pre-generated TLS certificates (production).
 	// Requires: TLS certificate chain (PEM), private key (PEM).
 	// Source: Docker secrets, Kubernetes secrets, CA-signed certificates.
-	TLSModeStatic TLSMode = "static"
+	TLSProvisionModeStatic TLSProvisionMode = cryptoutilSharedMagic.TLSProvisionModeStatic
 
-	// TLSModeMixed uses static CA to sign dynamically generated server certificates (staging/QA).
+	// TLSProvisionModeMixed uses static CA to sign dynamically generated server certificates (staging/QA).
 	// Requires: CA certificate chain (PEM), CA private key (PEM).
 	// Auto-generates: Server certificate signed by provided CA on startup.
-	TLSModeMixed TLSMode = "mixed"
+	TLSProvisionModeMixed TLSProvisionMode = cryptoutilSharedMagic.TLSProvisionModeMixed
 
-	// TLSModeAuto fully auto-generates CA hierarchy and server certificates (development/testing).
+	// TLSProvisionModeAuto fully auto-generates CA hierarchy and server certificates (development/testing).
 	// Requires: Configuration parameters only (DNS names, IP addresses, validity).
 	// Auto-generates: 3-tier CA hierarchy (Root → Intermediate → Server).
-	TLSModeAuto TLSMode = cryptoutilSharedMagic.DefaultTLSPublicMode
+	TLSProvisionModeAuto TLSProvisionMode = cryptoutilSharedMagic.TLSProvisionModeAuto
 )
 
 // TLSMaterial holds the runtime TLS configuration and certificate pools.
@@ -49,8 +66,10 @@ type TLSMaterial struct {
 }
 
 const (
-	defaultTLSPublicMode  = TLSMode(cryptoutilSharedMagic.DefaultTLSPublicMode)
-	defaultTLSPrivateMode = TLSMode(cryptoutilSharedMagic.DefaultTLSPrivateMode)
+	defaultTLSPublicProvisionMode  = TLSProvisionMode(cryptoutilSharedMagic.DefaultTLSPublicMode)
+	defaultTLSPrivateProvisionMode = TLSProvisionMode(cryptoutilSharedMagic.DefaultTLSPrivateMode)
+	defaultTLSPublicClientPolicy   = TLSClientPolicy(cryptoutilSharedMagic.DefaultTLSPublicClientPolicy)
+	defaultTLSPrivateClientPolicy  = TLSClientPolicy(cryptoutilSharedMagic.DefaultTLSPrivateClientPolicy)
 )
 
 var (
@@ -185,16 +204,16 @@ type ServiceFrameworkServerSettings struct {
 	BindPrivateProtocol         string
 	BindPrivateAddress          string
 	BindPrivatePort             uint16
-	TLSPublicMode               TLSMode // Default TLSModeAuto
+	TLSPublicProvisionMode      TLSProvisionMode // Default TLSProvisionModeAuto
 	TLSPublicDNSNames           []string
 	TLSPublicIPAddresses        []string
 	TLSPrivateDNSNames          []string
-	TLSPrivateMode              TLSMode // Default TLSModeAuto
+	TLSPrivateProvisionMode     TLSProvisionMode // Default TLSProvisionModeAuto
 	TLSPrivateIPAddresses       []string
-	TLSStaticCertPEM            []byte // Default nil. PEM-encoded certificate chain (for TLSModeStatic). Should contain: [Server Cert, Intermediate CA(s), Root CA] or [Server Cert, Root CA].
-	TLSStaticKeyPEM             []byte // Default nil. PEM-encoded private key (for TLSModeStatic).
-	TLSMixedCACertPEM           []byte // Default nil. PEM-encoded CA certificate chain (for TLSModeMixed). Should contain: [Intermediate CA(s), Root CA] or [Root CA].
-	TLSMixedCAKeyPEM            []byte // Default nil. PEM-encoded CA private key (for TLSModeMixed).
+	TLSStaticCertPEM            []byte // Default nil. PEM-encoded certificate chain (for TLSProvisionModeStatic). Should contain: [Server Cert, Intermediate CA(s), Root CA] or [Server Cert, Root CA].
+	TLSStaticKeyPEM             []byte // Default nil. PEM-encoded private key (for TLSProvisionModeStatic).
+	TLSMixedCACertPEM           []byte // Default nil. PEM-encoded CA certificate chain (for TLSProvisionModeMixed). Should contain: [Intermediate CA(s), Root CA] or [Root CA].
+	TLSMixedCAKeyPEM            []byte // Default nil. PEM-encoded CA private key (for TLSProvisionModeMixed).
 	PublicBrowserAPIContextPath string
 	PublicServiceAPIContextPath string
 	PrivateAdminAPIContextPath  string
@@ -231,32 +250,34 @@ type ServiceFrameworkServerSettings struct {
 	OTLPEndpoint                string
 	UnsealMode                  string
 	UnsealFiles                 []string
-	BrowserRealms               []string      // Paths to browser realm configuration files (session-based auth)
-	ServiceRealms               []string      // Paths to service realm configuration files (token-based auth)
-	BrowserSessionCookie        string        // Cookie type: jwe (encrypted), jws (signed), opaque (database) - DEPRECATED: use BrowserSessionAlgorithm
-	BrowserSessionAlgorithm     string        // Session algorithm: OPAQUE (hashed), JWS (signed JWT), JWE (encrypted JWT)
-	BrowserSessionJWSAlgorithm  string        // JWS algorithm for browser sessions (e.g., RS256, ES256, EdDSA)
-	BrowserSessionJWEAlgorithm  string        // JWE algorithm for browser sessions (e.g., dir+A256GCM, A256GCMKW+A256GCM)
-	BrowserSessionExpiration    time.Duration // Browser session expiration duration
-	ServiceSessionAlgorithm     string        // Session algorithm: OPAQUE (hashed), JWS (signed JWT), JWE (encrypted JWT)
-	ServiceSessionJWSAlgorithm  string        // JWS algorithm for service sessions (e.g., RS256, ES256, EdDSA)
-	ServiceSessionJWEAlgorithm  string        // JWE algorithm for service sessions (e.g., dir+A256GCM, A256GCMKW+A256GCM)
-	ServiceSessionExpiration    time.Duration // Service session expiration duration
-	SessionIdleTimeout          time.Duration // Session idle timeout duration
-	SessionCleanupInterval      time.Duration // Interval for cleaning up expired sessions
-	DatabaseSSLMode             string        // PostgreSQL SSL mode: disable, require, verify-ca, verify-full (empty = use DSN default)
-	DatabaseSSLCert             string        // Path to client TLS certificate file for PostgreSQL mTLS (Cat 14)
-	DatabaseSSLKey              string        // Path to client TLS private key file for PostgreSQL mTLS (Cat 14)
-	DatabaseSSLRootCert         string        // Path to CA truststore for verifying PostgreSQL server cert (Cat 10)
-	AdminTLSCertFile            string        // Path to admin TLS server certificate file for private admin mTLS (Cat 7)
-	AdminTLSKeyFile             string        // Path to admin TLS server private key file for private admin mTLS (Cat 7)
-	AdminTLSCAFile              string        // Path to CA truststore for verifying admin client certs (Cat 6)
-	PublicTLSCertFile           string        // Path to public TLS server certificate file (Cat 3); absent = auto-TLS
-	PublicTLSKeyFile            string        // Path to public TLS server private key file (Cat 3); absent = auto-TLS
-	PublicTLSCAFile             string        // Path to CA truststore for verifying public client certs (Cat 4); absent = no mTLS
-	OTLPTLSCertFile             string        // Path to client TLS certificate file for OTLP mTLS (Cat 9)
-	OTLPTLSKeyFile              string        // Path to client TLS private key file for OTLP mTLS (Cat 9)
-	OTLPTLSCAFile               string        // Path to CA truststore for verifying the OTLP server cert (Cat 1)
+	BrowserRealms               []string        // Paths to browser realm configuration files (session-based auth)
+	ServiceRealms               []string        // Paths to service realm configuration files (token-based auth)
+	BrowserSessionCookie        string          // Cookie type: jwe (encrypted), jws (signed), opaque (database) - DEPRECATED: use BrowserSessionAlgorithm
+	BrowserSessionAlgorithm     string          // Session algorithm: OPAQUE (hashed), JWS (signed JWT), JWE (encrypted JWT)
+	BrowserSessionJWSAlgorithm  string          // JWS algorithm for browser sessions (e.g., RS256, ES256, EdDSA)
+	BrowserSessionJWEAlgorithm  string          // JWE algorithm for browser sessions (e.g., dir+A256GCM, A256GCMKW+A256GCM)
+	BrowserSessionExpiration    time.Duration   // Browser session expiration duration
+	ServiceSessionAlgorithm     string          // Session algorithm: OPAQUE (hashed), JWS (signed JWT), JWE (encrypted JWT)
+	ServiceSessionJWSAlgorithm  string          // JWS algorithm for service sessions (e.g., RS256, ES256, EdDSA)
+	ServiceSessionJWEAlgorithm  string          // JWE algorithm for service sessions (e.g., dir+A256GCM, A256GCMKW+A256GCM)
+	ServiceSessionExpiration    time.Duration   // Service session expiration duration
+	SessionIdleTimeout          time.Duration   // Session idle timeout duration
+	SessionCleanupInterval      time.Duration   // Interval for cleaning up expired sessions
+	DatabaseSSLMode             string          // PostgreSQL SSL mode: disable, require, verify-ca, verify-full (empty = use DSN default)
+	DatabaseSSLCert             string          // Path to client TLS certificate file for PostgreSQL mTLS (Cat 14)
+	DatabaseSSLKey              string          // Path to client TLS private key file for PostgreSQL mTLS (Cat 14)
+	DatabaseSSLRootCert         string          // Path to CA truststore for verifying PostgreSQL server cert (Cat 10)
+	AdminTLSCertFile            string          // Path to admin TLS server certificate file for private admin mTLS (Cat 7)
+	AdminTLSKeyFile             string          // Path to admin TLS server private key file for private admin mTLS (Cat 7)
+	AdminTLSCAFile              string          // Path to CA truststore for verifying admin client certs (Cat 6)
+	AdminTLSClientPolicy        TLSClientPolicy // Default TLSClientPolicyNone. Selects the admin listener client-certificate policy.
+	PublicTLSCertFile           string          // Path to public TLS server certificate file (Cat 3); absent = auto-TLS
+	PublicTLSKeyFile            string          // Path to public TLS server private key file (Cat 3); absent = auto-TLS
+	PublicTLSCAFile             string          // Path to CA truststore for verifying public client certs (Cat 4)
+	PublicTLSClientPolicy       TLSClientPolicy // Default TLSClientPolicyNone. Selects the public listener client-certificate policy.
+	OTLPTLSCertFile             string          // Path to client TLS certificate file for OTLP mTLS (Cat 9)
+	OTLPTLSKeyFile              string          // Path to client TLS private key file for OTLP mTLS (Cat 9)
+	OTLPTLSCAFile               string          // Path to CA truststore for verifying the OTLP server cert (Cat 1)
 }
 
 // PrivateBaseURL returns the private base URL constructed from protocol, address, and port.

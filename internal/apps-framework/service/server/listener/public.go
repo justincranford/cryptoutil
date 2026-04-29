@@ -20,6 +20,7 @@ import (
 
 	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps-framework/service/config"
 	cryptoutilAppsFrameworkServiceConfigTlsGenerator "cryptoutil/internal/apps-framework/service/config/tls_generator"
+	cryptoutilSharedCryptoTls "cryptoutil/internal/shared/crypto/tls"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
@@ -301,12 +302,8 @@ func (s *PublicHTTPServer) PublicTLSRootCAPool() *x509.CertPool {
 	return s.tlsMaterial.RootCAPool
 }
 
-// applyPublicMTLS applies public mTLS configuration from file paths in settings.
-// When PublicTLSCertFile and PublicTLSKeyFile are set, the auto-generated TLS cert is replaced
-// with the static cert from files (Cat 3: public-https-server-entity-{PS-ID}).
-// When PublicTLSCAFile is set, client certificate verification is enabled using the CA
-// truststore (Cat 4: public-https-client-issuing-ca) with tls.RequireAndVerifyClientCert.
-// Both fields are independent: cert override and client auth can be configured separately.
+// applyPublicMTLS applies public TLS file overrides and explicit client-certificate policy.
+// Server certificate overrides and client-certificate policy are independent concerns.
 func applyPublicMTLS(
 	settings *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings,
 	tlsMaterial *cryptoutilAppsFrameworkServiceConfig.TLSMaterial,
@@ -332,7 +329,12 @@ func applyPublicMTLS(
 		tlsMaterial.Config.Certificates = []tls.Certificate{cert}
 	}
 
-	// Enable client cert verification from Cat 4 CA truststore when CA file is configured.
+	clientAuth, err := cryptoutilSharedCryptoTls.ClientAuthTypeForPolicy(settings.PublicTLSClientPolicy)
+	if err != nil {
+		return fmt.Errorf("invalid public TLS client policy %q: %w", settings.PublicTLSClientPolicy, err)
+	}
+
+	// Load client trust material from the Cat 4 CA truststore when configured.
 	if settings.PublicTLSCAFile != "" {
 		caPEM, err := osReadFileFn(settings.PublicTLSCAFile)
 		if err != nil {
@@ -361,9 +363,14 @@ func applyPublicMTLS(
 			clientCAPool.AddCert(caCert)
 		}
 
-		tlsMaterial.Config.ClientAuth = tls.RequireAndVerifyClientCert
 		tlsMaterial.Config.ClientCAs = clientCAPool
 	}
+
+	if (clientAuth == tls.VerifyClientCertIfGiven || clientAuth == tls.RequireAndVerifyClientCert) && settings.PublicTLSCAFile == "" {
+		return fmt.Errorf("public TLS client policy %q requires a CA file", settings.PublicTLSClientPolicy)
+	}
+
+	tlsMaterial.Config.ClientAuth = clientAuth
 
 	return nil
 }

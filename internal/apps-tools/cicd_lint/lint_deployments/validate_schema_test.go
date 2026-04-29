@@ -18,8 +18,10 @@ bind-public-port: 8080
 bind-private-protocol: "https"
 bind-private-address: "127.0.0.1"
 bind-private-port: 9090
-tls-public-mode: "auto"
-tls-private-mode: "auto"
+tls-public-provision-mode: "auto"
+tls-private-provision-mode: "auto"
+server-admin-tls-client-policy: "require-and-verify"
+server-public-tls-client-policy: "verify-if-given"
 otlp: true
 otlp-service: "my-service"
 otlp-environment: "development"
@@ -50,17 +52,17 @@ func TestValidateSchema_MissingRequiredFields(t *testing.T) {
 	}{
 		{
 			name:    "missing bind-public-protocol",
-			content: "bind-public-address: \"0.0.0.0\"\nbind-public-port: 8080\nbind-private-protocol: \"https\"\nbind-private-address: \"127.0.0.1\"\nbind-private-port: 9090\ntls-public-mode: \"auto\"\ntls-private-mode: \"auto\"\notlp: true\n",
+			content: "bind-public-address: \"0.0.0.0\"\nbind-public-port: 8080\nbind-private-protocol: \"https\"\nbind-private-address: \"127.0.0.1\"\nbind-private-port: 9090\ntls-public-provision-mode: \"auto\"\ntls-private-provision-mode: \"auto\"\notlp: true\n",
 			wantErr: "bind-public-protocol",
 		},
 		{
 			name:    "missing bind-private-address",
-			content: "bind-public-protocol: \"https\"\nbind-public-address: \"0.0.0.0\"\nbind-public-port: 8080\nbind-private-protocol: \"https\"\nbind-private-port: 9090\ntls-public-mode: \"auto\"\ntls-private-mode: \"auto\"\notlp: true\n",
+			content: "bind-public-protocol: \"https\"\nbind-public-address: \"0.0.0.0\"\nbind-public-port: 8080\nbind-private-protocol: \"https\"\nbind-private-port: 9090\ntls-public-provision-mode: \"auto\"\ntls-private-provision-mode: \"auto\"\notlp: true\n",
 			wantErr: "bind-private-address",
 		},
 		{
 			name:    "missing otlp",
-			content: "bind-public-protocol: \"https\"\nbind-public-address: \"0.0.0.0\"\nbind-public-port: 8080\nbind-private-protocol: \"https\"\nbind-private-address: \"127.0.0.1\"\nbind-private-port: 9090\ntls-public-mode: \"auto\"\ntls-private-mode: \"auto\"\n",
+			content: "bind-public-protocol: \"https\"\nbind-public-address: \"0.0.0.0\"\nbind-public-port: 8080\nbind-private-protocol: \"https\"\nbind-private-address: \"127.0.0.1\"\nbind-private-port: 9090\ntls-public-provision-mode: \"auto\"\ntls-private-provision-mode: \"auto\"\n",
 			wantErr: "otlp",
 		},
 	}
@@ -96,17 +98,17 @@ func TestValidateSchema_InvalidTypes(t *testing.T) {
 		},
 		{
 			name:    "protocol as int",
-			content: "bind-public-protocol: 123\nbind-public-address: \"0.0.0.0\"\nbind-public-port: 8080\nbind-private-protocol: \"https\"\nbind-private-address: \"127.0.0.1\"\nbind-private-port: 9090\ntls-public-mode: \"auto\"\ntls-private-mode: \"auto\"\notlp: true\n",
+			content: "bind-public-protocol: 123\nbind-public-address: \"0.0.0.0\"\nbind-public-port: 8080\nbind-private-protocol: \"https\"\nbind-private-address: \"127.0.0.1\"\nbind-private-port: 9090\ntls-public-provision-mode: \"auto\"\ntls-private-provision-mode: \"auto\"\notlp: true\n",
 			wantErr: "must be a string",
 		},
 		{
 			name:    "otlp as string",
-			content: "bind-public-protocol: \"https\"\nbind-public-address: \"0.0.0.0\"\nbind-public-port: 8080\nbind-private-protocol: \"https\"\nbind-private-address: \"127.0.0.1\"\nbind-private-port: 9090\ntls-public-mode: \"auto\"\ntls-private-mode: \"auto\"\notlp: \"yes\"\n",
+			content: "bind-public-protocol: \"https\"\nbind-public-address: \"0.0.0.0\"\nbind-public-port: 8080\nbind-private-protocol: \"https\"\nbind-private-address: \"127.0.0.1\"\nbind-private-port: 9090\ntls-public-provision-mode: \"auto\"\ntls-private-provision-mode: \"auto\"\notlp: \"yes\"\n",
 			wantErr: "must be a boolean",
 		},
 		{
 			name:    "port as bool",
-			content: "bind-public-protocol: \"https\"\nbind-public-address: \"0.0.0.0\"\nbind-public-port: true\nbind-private-protocol: \"https\"\nbind-private-address: \"127.0.0.1\"\nbind-private-port: 9090\ntls-public-mode: \"auto\"\ntls-private-mode: \"auto\"\notlp: true\n",
+			content: "bind-public-protocol: \"https\"\nbind-public-address: \"0.0.0.0\"\nbind-public-port: true\nbind-private-protocol: \"https\"\nbind-private-address: \"127.0.0.1\"\nbind-private-port: 9090\ntls-public-provision-mode: \"auto\"\ntls-private-provision-mode: \"auto\"\notlp: true\n",
 			wantErr: "must be an integer",
 		},
 		{
@@ -147,27 +149,37 @@ func TestValidateSchema_InvalidEnumValues(t *testing.T) {
 	}{
 		{
 			name:    "invalid protocol",
-			content: "bind-public-protocol: \"http\"\nbind-public-address: \"0.0.0.0\"\nbind-public-port: 8080\nbind-private-protocol: \"https\"\nbind-private-address: \"127.0.0.1\"\nbind-private-port: 9090\ntls-public-mode: \"auto\"\ntls-private-mode: \"auto\"\notlp: true\n",
+			content: "bind-public-protocol: \"http\"\nbind-public-address: \"0.0.0.0\"\nbind-public-port: 8080\nbind-private-protocol: \"https\"\nbind-private-address: \"127.0.0.1\"\nbind-private-port: 9090\ntls-public-provision-mode: \"auto\"\ntls-private-provision-mode: \"auto\"\notlp: true\n",
 			wantErr: "not in allowed values",
 		},
 		{
 			name:    "invalid private address",
-			content: "bind-public-protocol: \"https\"\nbind-public-address: \"0.0.0.0\"\nbind-public-port: 8080\nbind-private-protocol: \"https\"\nbind-private-address: \"0.0.0.0\"\nbind-private-port: 9090\ntls-public-mode: \"auto\"\ntls-private-mode: \"auto\"\notlp: true\n",
+			content: "bind-public-protocol: \"https\"\nbind-public-address: \"0.0.0.0\"\nbind-public-port: 8080\nbind-private-protocol: \"https\"\nbind-private-address: \"0.0.0.0\"\nbind-private-port: 9090\ntls-public-provision-mode: \"auto\"\ntls-private-provision-mode: \"auto\"\notlp: true\n",
 			wantErr: "not in allowed values",
 		},
 		{
 			name:    "invalid tls mode",
-			content: "bind-public-protocol: \"https\"\nbind-public-address: \"0.0.0.0\"\nbind-public-port: 8080\nbind-private-protocol: \"https\"\nbind-private-address: \"127.0.0.1\"\nbind-private-port: 9090\ntls-public-mode: \"invalid\"\ntls-private-mode: \"auto\"\notlp: true\n",
+			content: "bind-public-protocol: \"https\"\nbind-public-address: \"0.0.0.0\"\nbind-public-port: 8080\nbind-private-protocol: \"https\"\nbind-private-address: \"127.0.0.1\"\nbind-private-port: 9090\ntls-public-provision-mode: \"invalid\"\ntls-private-provision-mode: \"auto\"\notlp: true\n",
+			wantErr: "not in allowed values",
+		},
+		{
+			name:    "invalid public client policy",
+			content: "bind-public-protocol: \"https\"\nbind-public-address: \"0.0.0.0\"\nbind-public-port: 8080\nbind-private-protocol: \"https\"\nbind-private-address: \"127.0.0.1\"\nbind-private-port: 9090\ntls-public-provision-mode: \"auto\"\ntls-private-provision-mode: \"auto\"\nserver-public-tls-client-policy: \"enforce\"\notlp: true\n",
+			wantErr: "not in allowed values",
+		},
+		{
+			name:    "invalid admin client policy",
+			content: "bind-public-protocol: \"https\"\nbind-public-address: \"0.0.0.0\"\nbind-public-port: 8080\nbind-private-protocol: \"https\"\nbind-private-address: \"127.0.0.1\"\nbind-private-port: 9090\ntls-public-provision-mode: \"auto\"\ntls-private-provision-mode: \"auto\"\nserver-admin-tls-client-policy: \"mandatory\"\notlp: true\n",
 			wantErr: "not in allowed values",
 		},
 		{
 			name:    "invalid otlp-environment",
-			content: "bind-public-protocol: \"https\"\nbind-public-address: \"0.0.0.0\"\nbind-public-port: 8080\nbind-private-protocol: \"https\"\nbind-private-address: \"127.0.0.1\"\nbind-private-port: 9090\ntls-public-mode: \"auto\"\ntls-private-mode: \"auto\"\notlp: true\notlp-environment: \"staging\"\n",
+			content: "bind-public-protocol: \"https\"\nbind-public-address: \"0.0.0.0\"\nbind-public-port: 8080\nbind-private-protocol: \"https\"\nbind-private-address: \"127.0.0.1\"\nbind-private-port: 9090\ntls-public-provision-mode: \"auto\"\ntls-private-provision-mode: \"auto\"\notlp: true\notlp-environment: \"staging\"\n",
 			wantErr: "not in allowed values",
 		},
 		{
 			name:    "invalid session algorithm",
-			content: "bind-public-protocol: \"https\"\nbind-public-address: \"0.0.0.0\"\nbind-public-port: 8080\nbind-private-protocol: \"https\"\nbind-private-address: \"127.0.0.1\"\nbind-private-port: 9090\ntls-public-mode: \"auto\"\ntls-private-mode: \"auto\"\notlp: true\nbrowser-session-algorithm: \"HMAC\"\n",
+			content: "bind-public-protocol: \"https\"\nbind-public-address: \"0.0.0.0\"\nbind-public-port: 8080\nbind-private-protocol: \"https\"\nbind-private-address: \"127.0.0.1\"\nbind-private-port: 9090\ntls-public-provision-mode: \"auto\"\ntls-private-provision-mode: \"auto\"\notlp: true\nbrowser-session-algorithm: \"HMAC\"\n",
 			wantErr: "not in allowed values",
 		},
 	}

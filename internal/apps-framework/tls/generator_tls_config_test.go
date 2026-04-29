@@ -54,7 +54,7 @@ func TestWriteTLSConfigYAML_HappyPath(t *testing.T) {
 
 	// Verify content contains the expected YAML keys.
 	content := string(writtenContent)
-	require.Contains(t, content, "tls-public-mode: mixed")
+	require.Contains(t, content, "tls-public-provision-mode: mixed")
 	require.Contains(t, content, "tls-mixed-ca-cert-pem: ")
 	require.Contains(t, content, "tls-mixed-ca-key-pem: ")
 

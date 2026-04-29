@@ -34,8 +34,8 @@ func TestParse_HappyPath_Defaults(t *testing.T) {
 	require.Equal(t, tlsPublicIPAddresses.Value, s.TLSPublicIPAddresses)
 	require.Equal(t, tlsPrivateDNSNames.Value, s.TLSPrivateDNSNames)
 	require.Equal(t, tlsPrivateIPAddresses.Value, s.TLSPrivateIPAddresses)
-	require.Equal(t, tlsPublicMode.Value, s.TLSPublicMode)
-	require.Equal(t, tlsPrivateMode.Value, s.TLSPrivateMode)
+	require.Equal(t, tlsPublicProvisionMode.Value, s.TLSPublicProvisionMode)
+	require.Equal(t, tlsPrivateProvisionMode.Value, s.TLSPrivateProvisionMode)
 	require.Equal(t, tlsStaticCertPEM.Value, s.TLSStaticCertPEM)
 	require.Equal(t, tlsStaticKeyPEM.Value, s.TLSStaticKeyPEM)
 	require.Equal(t, tlsMixedCACertPEM.Value, s.TLSMixedCACertPEM)
@@ -96,8 +96,8 @@ func TestParse_HappyPath_Overrides(t *testing.T) {
 		"--tls-public-ip-addresses=192.168.1.4,192.168.1.6",
 		"--tls-private-dns-names=private1.example.com,private2.example.com",
 		"--tls-private-ip-addresses=192.168.1.5,192.168.1.7",
-		"--tls-public-mode=static",
-		"--tls-private-mode=mixed",
+		"--tls-public-provision-mode=static",
+		"--tls-private-provision-mode=mixed",
 		"--tls-static-cert-pem=LS0tQkVHSU4=",
 		"--tls-static-key-pem=S0VZLUJFRw==",
 		"--tls-mixed-ca-cert-pem=Q0VSVC0tLQ==",
@@ -131,6 +131,8 @@ func TestParse_HappyPath_Overrides(t *testing.T) {
 		"--otlp-environment=development",
 		"--otlp-hostname=example.com",
 		"--otlp-endpoint=grpc://example.com:4317",
+		"--server-admin-tls-client-policy=require-and-verify",
+		"--server-public-tls-client-policy=verify-if-given",
 		"--unseal-mode=2-of-3",
 		"--unseal-files=/docker/secrets/unseal1",
 		"--unseal-files=/docker/secrets/unseal2",
@@ -153,8 +155,8 @@ func TestParse_HappyPath_Overrides(t *testing.T) {
 	require.Equal(t, []string{"192.168.1.4", "192.168.1.6"}, s.TLSPublicIPAddresses)
 	require.Equal(t, []string{"private1.example.com", "private2.example.com"}, s.TLSPrivateDNSNames)
 	require.Equal(t, []string{"192.168.1.5", "192.168.1.7"}, s.TLSPrivateIPAddresses)
-	require.Equal(t, TLSMode("static"), s.TLSPublicMode)
-	require.Equal(t, TLSMode("mixed"), s.TLSPrivateMode)
+	require.Equal(t, TLSProvisionModeStatic, s.TLSPublicProvisionMode)
+	require.Equal(t, TLSProvisionModeMixed, s.TLSPrivateProvisionMode)
 	// Base64-decoded "LS0tQkVHSU4=" -> "---BEGIN"
 	require.Equal(t, []byte("---BEGIN"), s.TLSStaticCertPEM)
 	// Base64-decoded "S0VZLUJFRw==" -> "KEY-BEG"
@@ -192,6 +194,8 @@ func TestParse_HappyPath_Overrides(t *testing.T) {
 	require.Equal(t, "development", s.OTLPEnvironment)
 	require.Equal(t, "example.com", s.OTLPHostname)
 	require.Equal(t, "grpc://example.com:4317", s.OTLPEndpoint)
+	require.Equal(t, TLSClientPolicyRequireAndVerify, s.AdminTLSClientPolicy)
+	require.Equal(t, TLSClientPolicyVerifyIfGiven, s.PublicTLSClientPolicy)
 	require.True(t, s.DevMode)
 	require.Equal(t, "2-of-3", s.UnsealMode)
 	require.Equal(t, []string{"/docker/secrets/unseal1", "/docker/secrets/unseal2", "/docker/secrets/unseal3"}, s.UnsealFiles)

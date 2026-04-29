@@ -93,7 +93,7 @@ func (b *ServerBuilder) Build() (*ServiceResources, error) {
 
 	// Generate admin TLS configuration.
 	adminTLSCfg, err := b.generateTLSConfig(
-		b.config.TLSPrivateMode,
+		b.config.TLSPrivateProvisionMode,
 		b.config.TLSStaticCertPEM,
 		b.config.TLSStaticKeyPEM,
 		b.config.TLSMixedCACertPEM,
@@ -157,7 +157,7 @@ func (b *ServerBuilder) Build() (*ServiceResources, error) {
 
 	// Generate public TLS configuration.
 	publicTLSCfg, err := b.generateTLSConfig(
-		b.config.TLSPublicMode,
+		b.config.TLSPublicProvisionMode,
 		b.config.TLSStaticCertPEM,
 		b.config.TLSStaticKeyPEM,
 		b.config.TLSMixedCACertPEM,
@@ -276,7 +276,7 @@ func (b *ServerBuilder) Build() (*ServiceResources, error) {
 // generateTLSConfig handles TLS configuration generation for admin or public server.
 // Supports three modes: static (pre-provided certs), mixed (generate from CA), auto (fully auto-generate).
 func (b *ServerBuilder) generateTLSConfig(
-	mode cryptoutilAppsFrameworkServiceConfig.TLSMode,
+	mode cryptoutilAppsFrameworkServiceConfig.TLSProvisionMode,
 	staticCertPEM []byte,
 	staticKeyPEM []byte,
 	mixedCACertPEM []byte,
@@ -287,17 +287,17 @@ func (b *ServerBuilder) generateTLSConfig(
 ) (*cryptoutilAppsFrameworkServiceConfigTlsGenerator.TLSGeneratedSettings, error) {
 	// Default to auto mode if not specified.
 	if mode == "" {
-		mode = cryptoutilAppsFrameworkServiceConfig.TLSModeAuto
+		mode = cryptoutilAppsFrameworkServiceConfig.TLSProvisionModeAuto
 	}
 
 	switch mode {
-	case cryptoutilAppsFrameworkServiceConfig.TLSModeStatic:
+	case cryptoutilAppsFrameworkServiceConfig.TLSProvisionModeStatic:
 		return &cryptoutilAppsFrameworkServiceConfigTlsGenerator.TLSGeneratedSettings{
 			StaticCertPEM: staticCertPEM,
 			StaticKeyPEM:  staticKeyPEM,
 		}, nil
 
-	case cryptoutilAppsFrameworkServiceConfig.TLSModeMixed:
+	case cryptoutilAppsFrameworkServiceConfig.TLSProvisionModeMixed:
 		tlsCfg, err := cryptoutilAppsFrameworkServiceConfigTlsGenerator.GenerateServerCertFromCA(
 			mixedCACertPEM,
 			mixedCAKeyPEM,
@@ -311,7 +311,7 @@ func (b *ServerBuilder) generateTLSConfig(
 
 		return tlsCfg, nil
 
-	case cryptoutilAppsFrameworkServiceConfig.TLSModeAuto:
+	case cryptoutilAppsFrameworkServiceConfig.TLSProvisionModeAuto:
 		tlsCfg, err := cryptoutilAppsFrameworkServiceConfigTlsGenerator.GenerateAutoTLSGeneratedSettings(
 			dnsNames,
 			ipAddresses,

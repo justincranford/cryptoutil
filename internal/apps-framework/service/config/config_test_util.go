@@ -307,8 +307,8 @@ func RequireNewForTest(applicationName string) *ServiceFrameworkServerSettings {
 	}
 
 	settings := &ServiceFrameworkServerSettings{
-		TLSPublicMode:               TLSModeAuto,
-		TLSPrivateMode:              TLSModeAuto,
+		TLSPublicProvisionMode:      TLSProvisionModeAuto,
+		TLSPrivateProvisionMode:     TLSProvisionModeAuto,
 		ConfigFile:                  configFileValue,
 		LogLevel:                    logLevelValue,
 		VerboseMode:                 verboseModeValue,

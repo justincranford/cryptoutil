@@ -25,7 +25,7 @@ type HTTPSServers struct {
 }
 
 // NewHTTPServers creates public and admin HTTPS servers using provided ServiceFrameworkServerSettings.
-// It will generate TLS material based on TLSPublicMode/TLSPrivateMode and return
+// It will generate TLS material based on TLSPublicProvisionMode/TLSPrivateProvisionMode and return
 // an HTTPSServers wrapper containing servers and TLS configs.
 func NewHTTPServers(ctx context.Context, settings *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings) (*HTTPSServers, error) {
 	return newHTTPServersInternal(ctx, settings, cryptoutilAppsFrameworkServiceConfigTlsGenerator.GenerateTLSMaterial)
@@ -92,20 +92,20 @@ func newHTTPServersInternal(
 func createPublicTLSGeneratedSettings(settings *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings) (*cryptoutilAppsFrameworkServiceConfigTlsGenerator.TLSGeneratedSettings, error) {
 	var publicTLSGeneratedSettings *cryptoutilAppsFrameworkServiceConfigTlsGenerator.TLSGeneratedSettings
 
-	switch settings.TLSPublicMode {
-	case cryptoutilAppsFrameworkServiceConfig.TLSModeStatic:
+	switch settings.TLSPublicProvisionMode {
+	case cryptoutilAppsFrameworkServiceConfig.TLSProvisionModeStatic:
 		publicTLSGeneratedSettings = &cryptoutilAppsFrameworkServiceConfigTlsGenerator.TLSGeneratedSettings{
 			StaticCertPEM: settings.TLSStaticCertPEM,
 			StaticKeyPEM:  settings.TLSStaticKeyPEM,
 		}
-	case cryptoutilAppsFrameworkServiceConfig.TLSModeMixed:
+	case cryptoutilAppsFrameworkServiceConfig.TLSProvisionModeMixed:
 		var err error
 
 		publicTLSGeneratedSettings, err = cryptoutilAppsFrameworkServiceConfigTlsGenerator.GenerateServerCertFromCA(settings.TLSMixedCACertPEM, settings.TLSMixedCAKeyPEM, settings.TLSPublicDNSNames, settings.TLSPublicIPAddresses, cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year)
 		if err != nil {
 			return nil, fmt.Errorf("failed to generate public server cert from CA: %w", err)
 		}
-	case cryptoutilAppsFrameworkServiceConfig.TLSModeAuto:
+	case cryptoutilAppsFrameworkServiceConfig.TLSProvisionModeAuto:
 		var err error
 
 		publicTLSGeneratedSettings, err = cryptoutilAppsFrameworkServiceConfigTlsGenerator.GenerateAutoTLSGeneratedSettings(settings.TLSPublicDNSNames, settings.TLSPublicIPAddresses, cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year)
@@ -113,7 +113,7 @@ func createPublicTLSGeneratedSettings(settings *cryptoutilAppsFrameworkServiceCo
 			return nil, fmt.Errorf("failed to auto-generate public server certs: %w", err)
 		}
 	default:
-		return nil, fmt.Errorf("unknown public TLS mode: %s", settings.TLSPublicMode)
+		return nil, fmt.Errorf("unknown public TLS provision mode: %s", settings.TLSPublicProvisionMode)
 	}
 
 	return publicTLSGeneratedSettings, nil
@@ -122,20 +122,20 @@ func createPublicTLSGeneratedSettings(settings *cryptoutilAppsFrameworkServiceCo
 func createAdminTLSGeneratedSettings(settings *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings) (*cryptoutilAppsFrameworkServiceConfigTlsGenerator.TLSGeneratedSettings, error) {
 	var adminTLSGeneratedSettings *cryptoutilAppsFrameworkServiceConfigTlsGenerator.TLSGeneratedSettings
 
-	switch settings.TLSPrivateMode {
-	case cryptoutilAppsFrameworkServiceConfig.TLSModeStatic:
+	switch settings.TLSPrivateProvisionMode {
+	case cryptoutilAppsFrameworkServiceConfig.TLSProvisionModeStatic:
 		adminTLSGeneratedSettings = &cryptoutilAppsFrameworkServiceConfigTlsGenerator.TLSGeneratedSettings{
 			StaticCertPEM: settings.TLSStaticCertPEM,
 			StaticKeyPEM:  settings.TLSStaticKeyPEM,
 		}
-	case cryptoutilAppsFrameworkServiceConfig.TLSModeMixed:
+	case cryptoutilAppsFrameworkServiceConfig.TLSProvisionModeMixed:
 		var err error
 
 		adminTLSGeneratedSettings, err = cryptoutilAppsFrameworkServiceConfigTlsGenerator.GenerateServerCertFromCA(settings.TLSMixedCACertPEM, settings.TLSMixedCAKeyPEM, settings.TLSPrivateDNSNames, settings.TLSPrivateIPAddresses, cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year)
 		if err != nil {
 			return nil, fmt.Errorf("failed to generate admin server cert from CA: %w", err)
 		}
-	case cryptoutilAppsFrameworkServiceConfig.TLSModeAuto:
+	case cryptoutilAppsFrameworkServiceConfig.TLSProvisionModeAuto:
 		var err error
 
 		adminTLSGeneratedSettings, err = cryptoutilAppsFrameworkServiceConfigTlsGenerator.GenerateAutoTLSGeneratedSettings(settings.TLSPrivateDNSNames, settings.TLSPrivateIPAddresses, cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year)
@@ -143,7 +143,7 @@ func createAdminTLSGeneratedSettings(settings *cryptoutilAppsFrameworkServiceCon
 			return nil, fmt.Errorf("failed to auto-generate admin server certs: %w", err)
 		}
 	default:
-		return nil, fmt.Errorf("unknown admin TLS mode: %s", settings.TLSPrivateMode)
+		return nil, fmt.Errorf("unknown admin TLS provision mode: %s", settings.TLSPrivateProvisionMode)
 	}
 
 	return adminTLSGeneratedSettings, nil

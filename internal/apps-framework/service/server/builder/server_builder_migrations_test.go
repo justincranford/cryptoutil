@@ -168,14 +168,14 @@ func TestGenerateTLSConfig_StaticMode(t *testing.T) {
 
 	ctx := context.Background()
 	settings := getMinimalSettings()
-	settings.TLSPrivateMode = cryptoutilAppsFrameworkServiceConfig.TLSModeStatic
+	settings.TLSPrivateProvisionMode = cryptoutilAppsFrameworkServiceConfig.TLSProvisionModeStatic
 	settings.TLSStaticCertPEM = []byte("test-cert-pem")
 	settings.TLSStaticKeyPEM = []byte("test-key-pem")
 
 	builder := NewServerBuilder(ctx, settings)
 
 	cfg, err := builder.generateTLSConfig(
-		cryptoutilAppsFrameworkServiceConfig.TLSModeStatic,
+		cryptoutilAppsFrameworkServiceConfig.TLSProvisionModeStatic,
 		[]byte("test-cert-pem"),
 		[]byte("test-key-pem"),
 		nil,
@@ -204,7 +204,7 @@ func TestGenerateTLSConfig_MixedMode(t *testing.T) {
 	caCertPEM, caKeyPEM := generateTestCA(t)
 
 	cfg, err := builder.generateTLSConfig(
-		cryptoutilAppsFrameworkServiceConfig.TLSModeMixed,
+		cryptoutilAppsFrameworkServiceConfig.TLSProvisionModeMixed,
 		nil,
 		nil,
 		caCertPEM,
@@ -229,7 +229,7 @@ func TestGenerateTLSConfig_MixedModeError(t *testing.T) {
 
 	// Invalid CA certificate should cause error.
 	cfg, err := builder.generateTLSConfig(
-		cryptoutilAppsFrameworkServiceConfig.TLSModeMixed,
+		cryptoutilAppsFrameworkServiceConfig.TLSProvisionModeMixed,
 		nil,
 		nil,
 		[]byte("invalid-ca-cert"),
@@ -256,7 +256,7 @@ func TestGenerateTLSConfig_AutoModeError(t *testing.T) {
 
 	// Invalid IP address triggers GenerateAutoTLSGeneratedSettings error.
 	cfg, err := builder.generateTLSConfig(
-		cryptoutilAppsFrameworkServiceConfig.TLSModeAuto,
+		cryptoutilAppsFrameworkServiceConfig.TLSProvisionModeAuto,
 		nil,
 		nil,
 		nil,
@@ -281,7 +281,7 @@ func TestGenerateTLSConfig_UnsupportedMode(t *testing.T) {
 	builder := NewServerBuilder(ctx, settings)
 
 	cfg, err := builder.generateTLSConfig(
-		cryptoutilAppsFrameworkServiceConfig.TLSMode("unsupported"),
+		cryptoutilAppsFrameworkServiceConfig.TLSProvisionMode("unsupported"),
 		nil,
 		nil,
 		nil,

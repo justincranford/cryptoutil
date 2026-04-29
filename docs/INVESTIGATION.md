@@ -259,13 +259,14 @@ when establishing the HTTPS client used for all subsequent test requests.
 
 **Root Cause**: The E2E `TestMain` functions called `NewClientForTestWithCA(caCertPath)`, which
 loaded a saved CA certificate and configured the HTTP client to verify the server cert against it.
-However, the service framework uses `TLSModeAuto` for the public HTTPS endpoint — this generates a
-fresh ephemeral TLS certificate on every process restart. The CA cert from any previous session
-was therefore stale and did not match the new ephemeral cert.
+However, the service framework uses `TLSProvisionModeAuto` with the default public client policy
+for the public HTTPS endpoint — this generates a fresh ephemeral TLS certificate on every process
+restart. The CA cert from any previous session was therefore stale and did not match the new
+ephemeral cert.
 
 Additionally, magic constants `E2ECACertPath` were defined in all four service magic files
 (`magic_sm.go`, `magic_jose.go`, `magic_skeleton.go`, `magic_sm_im.go`) but served no valid
-purpose under `TLSModeAuto`.
+purpose under `TLSProvisionModeAuto`.
 
 **Fix** (`d45d935a3`): Replaced `NewClientForTestWithCA` with `NewClientForTest` (which sets
 `InsecureSkipVerify: true`) in all 4 E2E `TestMain` files. Removed the stale `E2ECACertPath`
@@ -294,8 +295,8 @@ endpoint:
 ```
 /app/{ps-id} health --url https://127.0.0.1:8080/service/api/v1
 ```
-The public endpoint uses `TLSModeAuto` (ephemeral cert, no client cert required, standard
-`InsecureSkipVerify` acceptable for healthchecks).
+The public endpoint uses `TLSProvisionModeAuto` with the default public client policy (ephemeral
+cert, no client cert required, standard `InsecureSkipVerify` acceptable for healthchecks).
 
 **Files changed**: All 10 PS-ID `compose.yml` files and template.
 
@@ -340,7 +341,7 @@ E2E service startup also emitted warnings about unrecognised configuration field
 **Root Cause**: During an earlier design iteration (before framework-v12), a proposal to configure
 the public TLS cert/key via YAML config files was partially implemented. The keys were added to
 the common config files but were never wired into `ServiceFrameworkServerSettings`. When
-framework-v12 adopted `TLSModeAuto` (ephemeral certs for public endpoint), these keys became
+framework-v12 adopted `TLSProvisionModeAuto` (ephemeral certs for public endpoint), these keys became
 permanently orphaned. The schema validator's `requiredCommonKeys` list also incorrectly included
 them.
 

@@ -22,6 +22,7 @@ import (
 
 	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps-framework/service/config"
 	cryptoutilAppsFrameworkServiceConfigTlsGenerator "cryptoutil/internal/apps-framework/service/config/tls_generator"
+	cryptoutilSharedCryptoTls "cryptoutil/internal/shared/crypto/tls"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
@@ -365,12 +366,8 @@ func (s *AdminServer) AdminTLSRootCAPool() *x509.CertPool {
 	return s.tlsMaterial.RootCAPool
 }
 
-// applyAdminMTLS applies admin mTLS configuration from file paths in settings.
-// When AdminTLSCertFile and AdminTLSKeyFile are set, the auto-generated TLS cert is replaced
-// with the static cert from files (Cat 7: private-https-mutual-entity).
-// When AdminTLSCAFile is set, client certificate verification is enabled using the CA
-// truststore (Cat 6: private-https-mutual-issuing-ca) with tls.RequireAndVerifyClientCert.
-// Both fields are independent: cert override and client auth can be configured separately.
+// applyAdminMTLS applies admin TLS file overrides and explicit client-certificate policy.
+// Server certificate overrides and client-certificate policy are independent concerns.
 func applyAdminMTLS(
 	settings *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings,
 	tlsMaterial *cryptoutilAppsFrameworkServiceConfig.TLSMaterial,
@@ -396,7 +393,12 @@ func applyAdminMTLS(
 		tlsMaterial.Config.Certificates = []tls.Certificate{cert}
 	}
 
-	// Enable client cert verification from Cat 6 CA truststore when CA file is configured.
+	clientAuth, err := cryptoutilSharedCryptoTls.ClientAuthTypeForPolicy(settings.AdminTLSClientPolicy)
+	if err != nil {
+		return fmt.Errorf("invalid admin TLS client policy %q: %w", settings.AdminTLSClientPolicy, err)
+	}
+
+	// Load client trust material from the Cat 6 CA truststore when configured.
 	if settings.AdminTLSCAFile != "" {
 		caPEM, err := osReadFileFn(settings.AdminTLSCAFile)
 		if err != nil {
@@ -425,9 +427,14 @@ func applyAdminMTLS(
 			clientCAPool.AddCert(caCert)
 		}
 
-		tlsMaterial.Config.ClientAuth = tls.RequireAndVerifyClientCert
 		tlsMaterial.Config.ClientCAs = clientCAPool
 	}
+
+	if (clientAuth == tls.VerifyClientCertIfGiven || clientAuth == tls.RequireAndVerifyClientCert) && settings.AdminTLSCAFile == "" {
+		return fmt.Errorf("admin TLS client policy %q requires a CA file", settings.AdminTLSClientPolicy)
+	}
+
+	tlsMaterial.Config.ClientAuth = clientAuth
 
 	return nil
 }

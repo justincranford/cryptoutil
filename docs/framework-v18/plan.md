@@ -200,7 +200,7 @@ Items 6–7 from `tls-structure-suggestions.md` are **obsolete** — already cov
 |------|------|-----------------|---------|
 | — | Admin CA Bundle fix | `tls-structure.md` | Add `--cert`/`--key`/`--ca-cert` flags to Policy Alignment section |
 | 1.12 | Admin CA Bundle → ENG-HANDBOOK.md | §6.5 (PKI Architecture) | Admin mTLS client trust requirement |
-| 1.13 | tls-config.yml Dynamic Cert Pattern | §6.11 (TLS Config) | TLSModeAutoGenerate/PreGenerated/Mixed table; SAME-AS-DIR-NAME convention |
+| 1.13 | tls-config.yml Dynamic Cert Pattern | §6.11 (TLS Config) | TLSProvisionMode static/mixed/auto table; SAME-AS-DIR-NAME convention |
 | 1.14 | Realm Dynamic Binding | §6.5 | pki-init realm list from registry.yaml; per-PS-ID realm defaults |
 | 1.15 | postgres vs postgres-1/2 Naming | §6.11 | Shared domain vs per-instance naming rationale |
 | 1.16 | Directory Count Formula Derivation | §6.11 | 26 global + 64 per-PS-ID × 10 = 630 formula with Cat 9 correction |

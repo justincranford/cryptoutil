@@ -15,17 +15,19 @@ database-sslcert: /certs/identity-spa/postgres-tls-client-entity-leader-identity
 database-sslkey: /certs/identity-spa/postgres-tls-client-entity-leader-identity-spa-postgres-1/postgres-tls-client-entity-leader-identity-spa-postgres-1.key
 database-sslrootcert: /certs/identity-spa/postgres-tls-server-issuing-ca/truststore/postgres-tls-server-issuing-ca.crt
 
-# Admin mTLS (Cat 7 + Cat 6): present server cert and verify client cert for private admin API.
+# Admin mTLS (Cat 7 + Cat 6): present server cert and explicitly require-and-verify client certs for the private admin API.
 server-admin-tls-cert-file: /certs/identity-spa/private-https-mutual-entity-identity-spa-postgres-1/private-https-mutual-entity-identity-spa-postgres-1.crt
 server-admin-tls-key-file: /certs/identity-spa/private-https-mutual-entity-identity-spa-postgres-1/private-https-mutual-entity-identity-spa-postgres-1.key
 server-admin-tls-ca-file: /certs/identity-spa/private-https-mutual-issuing-ca-identity-spa-postgres-1/truststore/private-https-mutual-issuing-ca-identity-spa-postgres-1.crt
+server-admin-tls-client-policy: require-and-verify
 
 # OTLP mTLS (Cat 9 + Cat 1): present client cert and verify OTel Collector server cert.
 otlp-tls-cert-file: /certs/identity-spa/otel-collector-contrib-https-client-entity-identity-spa-postgres-1/otel-collector-contrib-https-client-entity-identity-spa-postgres-1.crt
 otlp-tls-key-file: /certs/identity-spa/otel-collector-contrib-https-client-entity-identity-spa-postgres-1/otel-collector-contrib-https-client-entity-identity-spa-postgres-1.key
 otlp-tls-ca-file: /certs/identity-spa/public-https-server-issuing-ca/truststore/public-https-server-issuing-ca.crt
 
-# Public HTTPS mTLS (Cat 3 + Cat 4): serve public server cert and verify client cert.
+# Public HTTPS mTLS (Cat 3 + Cat 4): serve the public server cert and explicitly require-and-verify client certs.
 server-public-tls-cert-file: /certs/identity-spa/public-https-server-entity-identity-spa-postgres-1/public-https-server-entity-identity-spa-postgres-1.crt
 server-public-tls-key-file: /certs/identity-spa/public-https-server-entity-identity-spa-postgres-1/public-https-server-entity-identity-spa-postgres-1.key
 server-public-tls-ca-file: /certs/identity-spa/public-https-client-issuing-ca-identity-spa-postgres/truststore/public-https-client-issuing-ca-identity-spa-postgres.crt
+server-public-tls-client-policy: require-and-verify

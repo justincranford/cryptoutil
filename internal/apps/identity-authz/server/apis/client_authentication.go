@@ -94,7 +94,7 @@ func (s *Service) authenticateClient(c *fiber.Ctx) (*cryptoutilIdentityDomain.Cl
 			// Get the first certificate (client certificate) from the peer chain.
 			// The TLS handshake has already validated the certificate chain using the configured ClientCAs.
 			// Here we just need to extract it for application-level verification (subject, fingerprint).
-			// Note: In production, Fiber/fasthttp must be configured with tls.Config.ClientAuth = tls.RequireAndVerifyClientCert
+			// Note: In production, Fiber/fasthttp must be configured with a TLS client policy of require-and-verify
 			// and tls.Config.ClientCAs set to the trusted CA pool.
 			peerCerts := c.Context().TLSConnectionState().PeerCertificates
 			if len(peerCerts) == 0 {

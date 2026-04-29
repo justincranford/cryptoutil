@@ -242,7 +242,7 @@ func TestNewHTTPServers_AutoMode_InvalidPublicIPAutoGeneration(t *testing.T) {
 	t.Parallel()
 
 	settings := cryptoutilAppsFrameworkServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
-	settings.TLSPublicMode = cryptoutilAppsFrameworkServiceConfig.TLSModeAuto
+	settings.TLSPublicProvisionMode = cryptoutilAppsFrameworkServiceConfig.TLSProvisionModeAuto
 	settings.TLSPublicIPAddresses = []string{"not-a-valid-ip"}
 
 	h, err := NewHTTPServers(context.Background(), settings)
@@ -255,9 +255,9 @@ func TestNewHTTPServers_AutoMode_InvalidPrivateIPAutoGeneration(t *testing.T) {
 	t.Parallel()
 
 	settings := cryptoutilAppsFrameworkServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
-	settings.TLSPublicMode = cryptoutilAppsFrameworkServiceConfig.TLSModeAuto
+	settings.TLSPublicProvisionMode = cryptoutilAppsFrameworkServiceConfig.TLSProvisionModeAuto
 	settings.TLSPublicIPAddresses = []string{cryptoutilSharedMagic.IPv4Loopback}
-	settings.TLSPrivateMode = cryptoutilAppsFrameworkServiceConfig.TLSModeAuto
+	settings.TLSPrivateProvisionMode = cryptoutilAppsFrameworkServiceConfig.TLSProvisionModeAuto
 	settings.TLSPrivateIPAddresses = []string{"not-a-valid-ip"}
 
 	h, err := NewHTTPServers(context.Background(), settings)

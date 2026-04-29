@@ -253,7 +253,7 @@ func (g *Generator) writeAdminCABundle(targetDir string, adminCACerts [][]byte) 
 }
 
 // writeTLSConfigYAML writes targetDir/tls-config.yml configuring the service
-// framework to use TLSModeMixed with the provided issuing CA. Every app instance
+// framework to use TLSProvisionModeMixed with the provided issuing CA. Every app instance
 // that loads this file will obtain a dynamically generated server certificate
 // signed by the pki-init CA, giving real CA-verifiable TLS without per-instance
 // static cert files.
@@ -274,7 +274,7 @@ func (g *Generator) writeTLSConfigYAML(targetDir string, issuingCA *cryptoutilSh
 	certBase64 := base64.StdEncoding.EncodeToString(certPEM)
 	keyBase64 := base64.StdEncoding.EncodeToString(keyPEM)
 
-	content := "tls-public-mode: mixed\n" +
+	content := "tls-public-provision-mode: mixed\n" +
 		"tls-mixed-ca-cert-pem: " + certBase64 + "\n" +
 		"tls-mixed-ca-key-pem: " + keyBase64 + "\n"
 

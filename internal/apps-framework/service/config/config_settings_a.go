@@ -130,19 +130,19 @@ var (
 		Usage:       "TLS private IP addresses",
 		Description: "TLS Private IP Addresses",
 	})
-	tlsPublicMode = *SetEnvAndRegisterSetting(allServiceFrameworkServerRegisteredSettings, &Setting{
-		Name:        "tls-public-mode",
+	tlsPublicProvisionMode = *SetEnvAndRegisterSetting(allServiceFrameworkServerRegisteredSettings, &Setting{
+		Name:        "tls-public-provision-mode",
 		Shorthand:   "",
-		Value:       defaultTLSPublicMode,
-		Usage:       "TLS public mode (static, mixed, auto)",
-		Description: "TLS Public Mode",
+		Value:       defaultTLSPublicProvisionMode,
+		Usage:       "TLS public provisioning mode (static, mixed, auto)",
+		Description: "TLS Public Provision Mode",
 	})
-	tlsPrivateMode = *SetEnvAndRegisterSetting(allServiceFrameworkServerRegisteredSettings, &Setting{
-		Name:        "tls-private-mode",
+	tlsPrivateProvisionMode = *SetEnvAndRegisterSetting(allServiceFrameworkServerRegisteredSettings, &Setting{
+		Name:        "tls-private-provision-mode",
 		Shorthand:   "",
-		Value:       defaultTLSPrivateMode,
-		Usage:       "TLS private mode (static, mixed, auto)",
-		Description: "TLS Private Mode",
+		Value:       defaultTLSPrivateProvisionMode,
+		Usage:       "TLS private provisioning mode (static, mixed, auto)",
+		Description: "TLS Private Provision Mode",
 	})
 	tlsStaticCertPEM = *SetEnvAndRegisterSetting(allServiceFrameworkServerRegisteredSettings, &Setting{
 		Name:        "tls-static-cert-pem",

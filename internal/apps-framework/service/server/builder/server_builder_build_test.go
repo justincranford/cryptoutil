@@ -39,7 +39,7 @@ func TestBuild_SimpleErrors(t *testing.T) {
 			name: "admin TLS invalid mode",
 			setupFn: func() *ServerBuilder {
 				settings := getMinimalSettings()
-				settings.TLSPrivateMode = cryptoutilAppsFrameworkServiceConfig.TLSMode("invalid-mode")
+				settings.TLSPrivateProvisionMode = cryptoutilAppsFrameworkServiceConfig.TLSProvisionMode("invalid-mode")
 
 				return NewServerBuilder(context.Background(), settings)
 			},
@@ -95,9 +95,9 @@ func TestBuild_PublicTLSError(t *testing.T) {
 
 	settings := getMinimalSettings()
 	// Valid admin TLS mode (auto).
-	settings.TLSPrivateMode = cryptoutilAppsFrameworkServiceConfig.TLSModeAuto
+	settings.TLSPrivateProvisionMode = cryptoutilAppsFrameworkServiceConfig.TLSProvisionModeAuto
 	// Invalid public TLS mode causes error AFTER services are initialized.
-	settings.TLSPublicMode = cryptoutilAppsFrameworkServiceConfig.TLSMode("invalid_mode")
+	settings.TLSPublicProvisionMode = cryptoutilAppsFrameworkServiceConfig.TLSProvisionMode("invalid_mode")
 
 	builder := NewServerBuilder(ctx, settings)
 

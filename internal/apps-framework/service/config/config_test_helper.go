@@ -35,8 +35,8 @@ func NewTestConfig(bindAddr string, bindPort uint16, devMode bool) *ServiceFrame
 	}
 
 	s := &ServiceFrameworkServerSettings{
-		TLSPublicMode:               TLSModeAuto,
-		TLSPrivateMode:              TLSModeAuto,
+		TLSPublicProvisionMode:      TLSProvisionModeAuto,
+		TLSPrivateProvisionMode:     TLSProvisionModeAuto,
 		ConfigFile:                  []string{},
 		LogLevel:                    cryptoutilSharedMagic.DefaultLogLevelInfo,
 		VerboseMode:                 cryptoutilSharedMagic.DefaultVerboseMode,

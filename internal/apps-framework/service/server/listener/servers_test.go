@@ -13,9 +13,9 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-const testUnknownTLSMode = "unknown"
+const testUnknownTLSProvisionMode = "unknown"
 
-func TestNewHTTPServers_AutoMode_HappyPath(t *testing.T) {
+func TestNewHTTPServers_AutoProvisionMode_HappyPath(t *testing.T) {
 	t.Parallel()
 
 	settings := cryptoutilAppsFrameworkServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
@@ -50,7 +50,7 @@ func TestNewHTTPServers_NilSettings(t *testing.T) {
 	require.Nil(t, h)
 }
 
-func TestNewHTTPServers_StaticMode_HappyPath(t *testing.T) {
+func TestNewHTTPServers_StaticProvisionMode_HappyPath(t *testing.T) {
 	t.Parallel()
 	// Generate static certs first using auto mode.
 	staticTLS, err := cryptoutilAppsFrameworkServiceConfigTlsGenerator.GenerateAutoTLSGeneratedSettings(
@@ -62,8 +62,8 @@ func TestNewHTTPServers_StaticMode_HappyPath(t *testing.T) {
 
 	// Create settings with static TLS mode.
 	settings := cryptoutilAppsFrameworkServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
-	settings.TLSPublicMode = cryptoutilAppsFrameworkServiceConfig.TLSModeStatic
-	settings.TLSPrivateMode = cryptoutilAppsFrameworkServiceConfig.TLSModeStatic
+	settings.TLSPublicProvisionMode = cryptoutilAppsFrameworkServiceConfig.TLSProvisionModeStatic
+	settings.TLSPrivateProvisionMode = cryptoutilAppsFrameworkServiceConfig.TLSProvisionModeStatic
 	settings.TLSStaticCertPEM = staticTLS.StaticCertPEM
 	settings.TLSStaticKeyPEM = staticTLS.StaticKeyPEM
 
@@ -75,33 +75,33 @@ func TestNewHTTPServers_StaticMode_HappyPath(t *testing.T) {
 	require.NotNil(t, h.AdminServer)
 }
 
-func TestNewHTTPServers_UnknownPublicTLSMode(t *testing.T) {
+func TestNewHTTPServers_UnknownPublicTLSProvisionMode(t *testing.T) {
 	t.Parallel()
 
 	settings := cryptoutilAppsFrameworkServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
-	settings.TLSPublicMode = testUnknownTLSMode
+	settings.TLSPublicProvisionMode = testUnknownTLSProvisionMode
 
 	ctx := context.Background()
 	h, err := NewHTTPServers(ctx, settings)
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "unknown public TLS mode")
+	require.Contains(t, err.Error(), "unknown public TLS provision mode")
 	require.Nil(t, h)
 }
 
-func TestNewHTTPServers_UnknownPrivateTLSMode(t *testing.T) {
+func TestNewHTTPServers_UnknownPrivateTLSProvisionMode(t *testing.T) {
 	t.Parallel()
 
 	settings := cryptoutilAppsFrameworkServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
-	settings.TLSPrivateMode = testUnknownTLSMode
+	settings.TLSPrivateProvisionMode = testUnknownTLSProvisionMode
 
 	ctx := context.Background()
 	h, err := NewHTTPServers(ctx, settings)
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "unknown admin TLS mode")
+	require.Contains(t, err.Error(), "unknown admin TLS provision mode")
 	require.Nil(t, h)
 }
 
-func TestNewHTTPServers_MixedMode_HappyPath(t *testing.T) {
+func TestNewHTTPServers_MixedProvisionMode_HappyPath(t *testing.T) {
 	t.Parallel()
 	// First, generate a CA to use for mixed mode.
 	caCertPEM, caKeyPEM, err := cryptoutilAppsFrameworkServiceConfigTlsGenerator.GenerateTestCA()
@@ -109,8 +109,8 @@ func TestNewHTTPServers_MixedMode_HappyPath(t *testing.T) {
 
 	// Create settings with mixed TLS mode using the generated CA.
 	settings := cryptoutilAppsFrameworkServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
-	settings.TLSPublicMode = cryptoutilAppsFrameworkServiceConfig.TLSModeMixed
-	settings.TLSPrivateMode = cryptoutilAppsFrameworkServiceConfig.TLSModeMixed
+	settings.TLSPublicProvisionMode = cryptoutilAppsFrameworkServiceConfig.TLSProvisionModeMixed
+	settings.TLSPrivateProvisionMode = cryptoutilAppsFrameworkServiceConfig.TLSProvisionModeMixed
 	settings.TLSMixedCACertPEM = caCertPEM
 	settings.TLSMixedCAKeyPEM = caKeyPEM
 	settings.TLSPublicDNSNames = []string{cryptoutilSharedMagic.DefaultOTLPHostnameDefault}
@@ -130,7 +130,7 @@ func TestNewHTTPServers_MixedMode_InvalidPublicCA(t *testing.T) {
 	t.Parallel()
 	// Create settings with mixed TLS mode but invalid CA cert.
 	settings := cryptoutilAppsFrameworkServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
-	settings.TLSPublicMode = cryptoutilAppsFrameworkServiceConfig.TLSModeMixed
+	settings.TLSPublicProvisionMode = cryptoutilAppsFrameworkServiceConfig.TLSProvisionModeMixed
 	settings.TLSMixedCACertPEM = []byte("invalid-ca-cert")
 	settings.TLSMixedCAKeyPEM = []byte("invalid-ca-key")
 	settings.TLSPublicDNSNames = []string{cryptoutilSharedMagic.DefaultOTLPHostnameDefault}
@@ -147,8 +147,8 @@ func TestNewHTTPServers_MixedMode_InvalidPrivateCA(t *testing.T) {
 	t.Parallel()
 	// Create settings with auto for public, mixed for private with invalid CA.
 	settings := cryptoutilAppsFrameworkServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
-	settings.TLSPublicMode = cryptoutilAppsFrameworkServiceConfig.TLSModeAuto
-	settings.TLSPrivateMode = cryptoutilAppsFrameworkServiceConfig.TLSModeMixed
+	settings.TLSPublicProvisionMode = cryptoutilAppsFrameworkServiceConfig.TLSProvisionModeAuto
+	settings.TLSPrivateProvisionMode = cryptoutilAppsFrameworkServiceConfig.TLSProvisionModeMixed
 	settings.TLSMixedCACertPEM = []byte("invalid-ca-cert")
 	settings.TLSMixedCAKeyPEM = []byte("invalid-ca-key")
 	settings.TLSPrivateDNSNames = []string{cryptoutilSharedMagic.DefaultOTLPHostnameDefault}

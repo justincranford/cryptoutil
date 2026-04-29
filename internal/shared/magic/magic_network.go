@@ -314,10 +314,30 @@ var (
 )
 
 const (
+	// TLSProvisionModeStatic - Provisioning mode using pre-generated server certificate material.
+	TLSProvisionModeStatic = "static"
+	// TLSProvisionModeMixed - Provisioning mode using CA material to mint a server certificate at startup.
+	TLSProvisionModeMixed = "mixed"
+	// TLSProvisionModeAuto - Provisioning mode generating the full server TLS chain in memory.
+	TLSProvisionModeAuto = "auto"
+	// TLSClientPolicyNone - Do not request client certificates.
+	TLSClientPolicyNone = "none"
+	// TLSClientPolicyRequest - Request a client certificate but do not require or verify it.
+	TLSClientPolicyRequest = "request"
+	// TLSClientPolicyRequireAny - Require a client certificate without CA verification.
+	TLSClientPolicyRequireAny = "require-any"
+	// TLSClientPolicyVerifyIfGiven - Verify a client certificate when provided, but allow no certificate.
+	TLSClientPolicyVerifyIfGiven = "verify-if-given"
+	// TLSClientPolicyRequireAndVerify - Require a client certificate and verify it against the configured CA bundle.
+	TLSClientPolicyRequireAndVerify = "require-and-verify"
 	// DefaultTLSPublicMode - Default TLS mode for public servers (auto-generate for ease of development).
-	DefaultTLSPublicMode = "auto"
+	DefaultTLSPublicMode = TLSProvisionModeAuto
 	// DefaultTLSPrivateMode - Default TLS mode for private/admin servers (auto-generate for ease of development).
-	DefaultTLSPrivateMode = "auto"
+	DefaultTLSPrivateMode = TLSProvisionModeAuto
+	// DefaultTLSPublicClientPolicy - Default TLS client policy for public servers.
+	DefaultTLSPublicClientPolicy = TLSClientPolicyNone
+	// DefaultTLSPrivateClientPolicy - Default TLS client policy for private/admin servers.
+	DefaultTLSPrivateClientPolicy = TLSClientPolicyNone
 	// DefaultHTTPRequestBodyLimit - Default request body limit in bytes (2MB).
 	DefaultHTTPRequestBodyLimit = 2 << 20
 	// ServerStartupWait - Time to wait for server startup in tests.

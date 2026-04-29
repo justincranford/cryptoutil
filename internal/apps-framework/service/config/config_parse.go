@@ -105,8 +105,8 @@ func ParseWithFlagSet(fs *pflag.FlagSet, commandParameters []string, exitIfHelp 
 	fs.StringSliceP(tlsPublicIPAddresses.Name, tlsPublicIPAddresses.Shorthand, RegisterAsStringSliceSetting(&tlsPublicIPAddresses), tlsPublicIPAddresses.Usage)
 	fs.StringSliceP(tlsPrivateDNSNames.Name, tlsPrivateDNSNames.Shorthand, RegisterAsStringSliceSetting(&tlsPrivateDNSNames), tlsPrivateDNSNames.Usage)
 	fs.StringSliceP(tlsPrivateIPAddresses.Name, tlsPrivateIPAddresses.Shorthand, RegisterAsStringSliceSetting(&tlsPrivateIPAddresses), tlsPrivateIPAddresses.Usage)
-	fs.StringP(tlsPublicMode.Name, tlsPublicMode.Shorthand, string(defaultTLSPublicMode), tlsPublicMode.Usage)
-	fs.StringP(tlsPrivateMode.Name, tlsPrivateMode.Shorthand, string(defaultTLSPrivateMode), tlsPrivateMode.Usage)
+	fs.StringP(tlsPublicProvisionMode.Name, tlsPublicProvisionMode.Shorthand, string(defaultTLSPublicProvisionMode), tlsPublicProvisionMode.Usage)
+	fs.StringP(tlsPrivateProvisionMode.Name, tlsPrivateProvisionMode.Shorthand, string(defaultTLSPrivateProvisionMode), tlsPrivateProvisionMode.Usage)
 	fs.BytesBase64P(tlsStaticCertPEM.Name, tlsStaticCertPEM.Shorthand, []byte(nil), tlsStaticCertPEM.Usage)
 	fs.BytesBase64P(tlsStaticKeyPEM.Name, tlsStaticKeyPEM.Shorthand, []byte(nil), tlsStaticKeyPEM.Usage)
 	fs.BytesBase64P(tlsMixedCACertPEM.Name, tlsMixedCACertPEM.Shorthand, []byte(nil), tlsMixedCACertPEM.Usage)
@@ -168,9 +168,11 @@ func ParseWithFlagSet(fs *pflag.FlagSet, commandParameters []string, exitIfHelp 
 	fs.StringP(adminTLSCertFile.Name, adminTLSCertFile.Shorthand, RegisterAsStringSetting(&adminTLSCertFile), adminTLSCertFile.Usage)
 	fs.StringP(adminTLSKeyFile.Name, adminTLSKeyFile.Shorthand, RegisterAsStringSetting(&adminTLSKeyFile), adminTLSKeyFile.Usage)
 	fs.StringP(adminTLSCAFile.Name, adminTLSCAFile.Shorthand, RegisterAsStringSetting(&adminTLSCAFile), adminTLSCAFile.Usage)
+	fs.StringP(adminTLSClientPolicy.Name, adminTLSClientPolicy.Shorthand, string(defaultTLSPrivateClientPolicy), adminTLSClientPolicy.Usage)
 	fs.StringP(publicTLSCertFile.Name, publicTLSCertFile.Shorthand, RegisterAsStringSetting(&publicTLSCertFile), publicTLSCertFile.Usage)
 	fs.StringP(publicTLSKeyFile.Name, publicTLSKeyFile.Shorthand, RegisterAsStringSetting(&publicTLSKeyFile), publicTLSKeyFile.Usage)
 	fs.StringP(publicTLSCAFile.Name, publicTLSCAFile.Shorthand, RegisterAsStringSetting(&publicTLSCAFile), publicTLSCAFile.Usage)
+	fs.StringP(publicTLSClientPolicy.Name, publicTLSClientPolicy.Shorthand, string(defaultTLSPublicClientPolicy), publicTLSClientPolicy.Usage)
 	fs.StringP(otlpTLSCertFile.Name, otlpTLSCertFile.Shorthand, RegisterAsStringSetting(&otlpTLSCertFile), otlpTLSCertFile.Usage)
 	fs.StringP(otlpTLSKeyFile.Name, otlpTLSKeyFile.Shorthand, RegisterAsStringSetting(&otlpTLSKeyFile), otlpTLSKeyFile.Usage)
 	fs.StringP(otlpTLSCAFile.Name, otlpTLSCAFile.Shorthand, RegisterAsStringSetting(&otlpTLSCAFile), otlpTLSCAFile.Usage)
@@ -230,20 +232,20 @@ func ParseWithFlagSet(fs *pflag.FlagSet, commandParameters []string, exitIfHelp 
 		}
 	}
 
-	// Parse TLS mode and PEM fields
-	tlsPublicModeStr := v.GetString(tlsPublicMode.Name)
-	if tlsPublicModeStr == "" {
-		tlsPublicModeStr = string(defaultTLSPublicMode)
+	// Parse TLS provisioning mode and PEM fields.
+	tlsPublicProvisionModeStr := v.GetString(tlsPublicProvisionMode.Name)
+	if tlsPublicProvisionModeStr == "" {
+		tlsPublicProvisionModeStr = string(defaultTLSPublicProvisionMode)
 	}
 
-	tlsPrivateModeStr := v.GetString(tlsPrivateMode.Name)
-	if tlsPrivateModeStr == "" {
-		tlsPrivateModeStr = string(defaultTLSPrivateMode)
+	tlsPrivateProvisionModeStr := v.GetString(tlsPrivateProvisionMode.Name)
+	if tlsPrivateProvisionModeStr == "" {
+		tlsPrivateProvisionModeStr = string(defaultTLSPrivateProvisionMode)
 	}
 
 	s := &ServiceFrameworkServerSettings{
-		TLSPublicMode:               TLSMode(tlsPublicModeStr),
-		TLSPrivateMode:              TLSMode(tlsPrivateModeStr),
+		TLSPublicProvisionMode:      TLSProvisionMode(tlsPublicProvisionModeStr),
+		TLSPrivateProvisionMode:     TLSProvisionMode(tlsPrivateProvisionModeStr),
 		TLSStaticCertPEM:            getTLSPEMBytes(v, tlsStaticCertPEM.Name),
 		TLSStaticKeyPEM:             getTLSPEMBytes(v, tlsStaticKeyPEM.Name),
 		TLSMixedCACertPEM:           getTLSPEMBytes(v, tlsMixedCACertPEM.Name),
@@ -320,9 +322,11 @@ func ParseWithFlagSet(fs *pflag.FlagSet, commandParameters []string, exitIfHelp 
 		AdminTLSCertFile:            v.GetString(adminTLSCertFile.Name),
 		AdminTLSKeyFile:             v.GetString(adminTLSKeyFile.Name),
 		AdminTLSCAFile:              v.GetString(adminTLSCAFile.Name),
+		AdminTLSClientPolicy:        TLSClientPolicy(v.GetString(adminTLSClientPolicy.Name)),
 		PublicTLSCertFile:           v.GetString(publicTLSCertFile.Name),
 		PublicTLSKeyFile:            v.GetString(publicTLSKeyFile.Name),
 		PublicTLSCAFile:             v.GetString(publicTLSCAFile.Name),
+		PublicTLSClientPolicy:       TLSClientPolicy(v.GetString(publicTLSClientPolicy.Name)),
 		OTLPTLSCertFile:             v.GetString(otlpTLSCertFile.Name),
 		OTLPTLSKeyFile:              v.GetString(otlpTLSKeyFile.Name),
 		OTLPTLSCAFile:               v.GetString(otlpTLSCAFile.Name),

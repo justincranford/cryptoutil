@@ -53,7 +53,7 @@ type schemaField struct {
 // Schema groups:
 // 1. Public Server: bind-public-* (protocol, address, port)
 // 2. Admin Server: bind-private-* (protocol, address, port)
-// 3. TLS: tls-public-mode, tls-private-mode
+// 3. TLS: tls-public-provision-mode, tls-private-provision-mode
 // 4. OTLP Telemetry: otlp, otlp-service, otlp-environment, otlp-endpoint
 // 5. CORS: cors-max-age, cors-allowed-origins
 // 6. Session: browser-session-*, service-session-*
@@ -103,19 +103,19 @@ var configSchema = map[string]schemaField{
 	},
 
 	// TLS Configuration.
-	// tls-public-mode: Certificate provisioning mode for public endpoint.
-	"tls-public-mode": {
+	// tls-public-provision-mode: Certificate provisioning mode for public endpoint.
+	"tls-public-provision-mode": {
 		Type:        fieldTypeString,
 		Required:    true,
-		ValidValues: []string{cryptoutilSharedMagic.DefaultTLSPublicMode, "manual"},
-		Description: "TLS certificate mode for public endpoint",
+		ValidValues: []string{cryptoutilSharedMagic.TLSProvisionModeStatic, cryptoutilSharedMagic.TLSProvisionModeMixed, cryptoutilSharedMagic.TLSProvisionModeAuto},
+		Description: "TLS certificate provisioning mode for public endpoint",
 	},
-	// tls-private-mode: Certificate provisioning mode for admin endpoint.
-	"tls-private-mode": {
+	// tls-private-provision-mode: Certificate provisioning mode for admin endpoint.
+	"tls-private-provision-mode": {
 		Type:        fieldTypeString,
 		Required:    true,
-		ValidValues: []string{cryptoutilSharedMagic.DefaultTLSPublicMode, "manual"},
-		Description: "TLS certificate mode for admin endpoint",
+		ValidValues: []string{cryptoutilSharedMagic.TLSProvisionModeStatic, cryptoutilSharedMagic.TLSProvisionModeMixed, cryptoutilSharedMagic.TLSProvisionModeAuto},
+		Description: "TLS certificate provisioning mode for admin endpoint",
 	},
 
 	// OTLP Telemetry Configuration.
@@ -178,11 +178,18 @@ var configSchema = map[string]schemaField{
 		Description: "Public TLS server private key file path (Cat 3: public-https-server-entity-PS_ID-variant)",
 	},
 	// server-public-tls-ca-file: Path to CA truststore for verifying public client certs (Cat 4).
-	// When absent, no client certificate enforcement is applied.
+	// CA trust material does not imply a client-certificate policy on its own.
 	"server-public-tls-ca-file": {
 		Type:        fieldTypeString,
 		Required:    false,
 		Description: "CA truststore file path for verifying public client certs (Cat 4: public-https-client-issuing-ca-PS_ID-domain)",
+	},
+	// server-public-tls-client-policy: Explicit runtime client-certificate policy for the public listener.
+	"server-public-tls-client-policy": {
+		Type:        fieldTypeString,
+		Required:    false,
+		ValidValues: []string{cryptoutilSharedMagic.TLSClientPolicyNone, cryptoutilSharedMagic.TLSClientPolicyRequest, cryptoutilSharedMagic.TLSClientPolicyRequireAny, cryptoutilSharedMagic.TLSClientPolicyVerifyIfGiven, cryptoutilSharedMagic.TLSClientPolicyRequireAndVerify},
+		Description: "Explicit TLS client-certificate policy for the public listener",
 	},
 
 	// Admin TLS Configuration (Cat 7 + Cat 6).
@@ -203,6 +210,13 @@ var configSchema = map[string]schemaField{
 		Type:        fieldTypeString,
 		Required:    false,
 		Description: "CA truststore file path for verifying admin client certs (Cat 6: private-https-mutual-issuing-ca-PS_ID-variant)",
+	},
+	// server-admin-tls-client-policy: Explicit runtime client-certificate policy for the admin listener.
+	"server-admin-tls-client-policy": {
+		Type:        fieldTypeString,
+		Required:    false,
+		ValidValues: []string{cryptoutilSharedMagic.TLSClientPolicyNone, cryptoutilSharedMagic.TLSClientPolicyRequest, cryptoutilSharedMagic.TLSClientPolicyRequireAny, cryptoutilSharedMagic.TLSClientPolicyVerifyIfGiven, cryptoutilSharedMagic.TLSClientPolicyRequireAndVerify},
+		Description: "Explicit TLS client-certificate policy for the admin listener",
 	},
 
 	// CORS Configuration.

@@ -13,10 +13,45 @@ import (
 	"fmt"
 
 	cryptoutilSharedCryptoCertificate "cryptoutil/internal/shared/crypto/certificate"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // MinTLSVersion is the minimum TLS version allowed (TLS 1.3 only per Session 4 Q5).
 const MinTLSVersion = tls.VersionTLS13
+
+// TLSClientPolicy defines the supported runtime client-certificate policies.
+type TLSClientPolicy string
+
+const (
+	// TLSClientPolicyNone does not request client certificates.
+	TLSClientPolicyNone TLSClientPolicy = cryptoutilSharedMagic.TLSClientPolicyNone
+	// TLSClientPolicyRequest requests a client certificate but does not require or verify it.
+	TLSClientPolicyRequest TLSClientPolicy = cryptoutilSharedMagic.TLSClientPolicyRequest
+	// TLSClientPolicyRequireAny requires a client certificate without CA verification.
+	TLSClientPolicyRequireAny TLSClientPolicy = cryptoutilSharedMagic.TLSClientPolicyRequireAny
+	// TLSClientPolicyVerifyIfGiven verifies a client certificate when presented but allows clients without one.
+	TLSClientPolicyVerifyIfGiven TLSClientPolicy = cryptoutilSharedMagic.TLSClientPolicyVerifyIfGiven
+	// TLSClientPolicyRequireAndVerify requires a client certificate and verifies it against the configured CA bundle.
+	TLSClientPolicyRequireAndVerify TLSClientPolicy = cryptoutilSharedMagic.TLSClientPolicyRequireAndVerify
+)
+
+// ClientAuthTypeForPolicy maps a TLSClientPolicy to Go's tls.ClientAuthType.
+func ClientAuthTypeForPolicy(policy TLSClientPolicy) (tls.ClientAuthType, error) {
+	switch policy {
+	case "", TLSClientPolicyNone:
+		return tls.NoClientCert, nil
+	case TLSClientPolicyRequest:
+		return tls.RequestClientCert, nil
+	case TLSClientPolicyRequireAny:
+		return tls.RequireAnyClientCert, nil
+	case TLSClientPolicyVerifyIfGiven:
+		return tls.VerifyClientCertIfGiven, nil
+	case TLSClientPolicyRequireAndVerify:
+		return tls.RequireAndVerifyClientCert, nil
+	default:
+		return tls.NoClientCert, fmt.Errorf("unknown TLS client policy: %s", policy)
+	}
+}
 
 // Config holds the TLS configuration for a server or client.
 type Config struct {
@@ -32,7 +67,7 @@ type ServerConfigOptions struct {
 	Subject *cryptoutilSharedCryptoCertificate.Subject
 
 	// ClientAuth specifies the client authentication mode.
-	// Use tls.NoClientCert for server-only TLS, tls.RequireAndVerifyClientCert for mTLS.
+	// Prefer ClientAuthTypeForPolicy when the source configuration is a TLSClientPolicy value.
 	ClientAuth tls.ClientAuthType
 
 	// ClientCAs is the pool of root CAs to verify client certificates (for mTLS).

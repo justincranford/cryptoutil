@@ -36,10 +36,8 @@ func findProjectRoot() (string, error) {
 func copyManifest(t *testing.T, realRoot, tmpDir string) {
 	t.Helper()
 
-	const templateDirName = cryptoutilSharedMagic.CICDTemplateExpansionKeyProduct
-
-	srcPath := filepath.Join(realRoot, "api", "cryptosuite-registry", "templates", "internal", "apps", templateDirName, "MANIFEST.yaml")
-	destDir := filepath.Join(tmpDir, "api", "cryptosuite-registry", "templates", "internal", "apps", templateDirName)
+	srcPath := filepath.Join(realRoot, "api", "cryptosuite-registry", "templates", "internal", "apps", cryptoutilSharedMagic.CICDTemplateExpansionKeyProduct, "MANIFEST.yaml")
+	destDir := filepath.Join(tmpDir, "api", "cryptosuite-registry", "templates", "internal", "apps", cryptoutilSharedMagic.CICDTemplateExpansionKeyProduct)
 
 	require.NoError(t, os.MkdirAll(destDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 

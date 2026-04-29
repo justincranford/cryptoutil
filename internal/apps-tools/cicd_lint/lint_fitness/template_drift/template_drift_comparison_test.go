@@ -20,7 +20,7 @@ func TestNormalizeLineEndings(t *testing.T) {
 	}{
 		{name: "lf only", input: "a\nb\nc", want: "a\nb\nc"},
 		{name: "crlf to lf", input: "a\r\nb\r\nc", want: "a\nb\nc"},
-		{name: "mixed", input: "a\r\nb\nc\r\n", want: "a\nb\nc\n"},
+		{name: "mixed line endings", input: "a\r\nb\nc\r\n", want: "a\nb\nc\n"},
 		{name: "empty", input: "", want: ""},
 		{name: "no newlines", input: "abc", want: "abc"},
 	}

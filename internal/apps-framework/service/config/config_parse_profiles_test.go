@@ -214,26 +214,26 @@ func TestParseWithFlagSet_ValidationError(t *testing.T) {
 	require.Contains(t, err.Error(), "validation failed")
 }
 
-// TestParseWithFlagSet_EmptyTLSMode tests that empty TLS mode gets default.
+// TestParseWithFlagSet_EmptyTLSProvisionMode tests that empty TLS provision mode gets default.
 // Sequential: uses pflag.CommandLine global state via Parse().
-func TestParseWithFlagSet_EmptyTLSMode(t *testing.T) {
+func TestParseWithFlagSet_EmptyTLSProvisionMode(t *testing.T) {
 	resetFlags()
 
-	// Create config file that sets TLS mode to empty
+	// Create config file that sets TLS provision mode to empty.
 	configDir := t.TempDir()
 	configFile := configDir + "/config.yml"
 	configContent := `dev: true
-tls-public-mode: ""
-tls-private-mode: ""
+tls-public-provision-mode: ""
+tls-private-provision-mode: ""
 `
 	require.NoError(t, os.WriteFile(configFile, []byte(configContent), cryptoutilSharedMagic.CacheFilePermissions))
 
 	args := []string{"start", cryptoutilSharedMagic.IdentityCLIFlagConfig, configFile}
 	s, err := Parse(args, true)
 	require.NoError(t, err)
-	// Empty TLS mode should get default (self_signed for dev mode)
-	require.NotEmpty(t, s.TLSPublicMode)
-	require.NotEmpty(t, s.TLSPrivateMode)
+	// Empty TLS provision mode should get the default auto setting.
+	require.NotEmpty(t, s.TLSPublicProvisionMode)
+	require.NotEmpty(t, s.TLSPrivateProvisionMode)
 }
 
 // TestNewForCAServer_HappyPath tests the happy path for NewForCAServer.

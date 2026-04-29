@@ -44,8 +44,8 @@ func Initialize() error {
 		TLSPublicIPAddresses:        []string{cryptoutilSharedMagic.IPv4Loopback},
 		TLSPrivateDNSNames:          []string{cryptoutilSharedMagic.DefaultOTLPHostnameDefault},
 		TLSPrivateIPAddresses:       []string{cryptoutilSharedMagic.IPv4Loopback},
-		TLSPublicMode:               cryptoutilAppsFrameworkServiceConfig.TLSModeAuto,
-		TLSPrivateMode:              cryptoutilAppsFrameworkServiceConfig.TLSModeAuto,
+		TLSPublicProvisionMode:      cryptoutilAppsFrameworkServiceConfig.TLSProvisionModeAuto,
+		TLSPrivateProvisionMode:     cryptoutilAppsFrameworkServiceConfig.TLSProvisionModeAuto,
 	}
 
 	// Generate shared TLS fixtures for tests (auto-mode, localhost/IPs).

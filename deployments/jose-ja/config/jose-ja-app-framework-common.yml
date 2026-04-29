@@ -19,7 +19,7 @@ browser-password-file: /run/secrets/browser-password.secret
 service-username-file: /run/secrets/service-username.secret
 service-password-file: /run/secrets/service-password.secret
 
-# IP allowlist — allow all for development.
+# IP allowlist â€” allow all for development.
 allowed-ips:
   - "127.0.0.1"
   - "::1"
@@ -27,6 +27,10 @@ allowed-ips:
 allowed-cidrs:
   - "0.0.0.0/0"
   - "::/0"
+
+# Listener TLS client policy is explicit. Instance overlays that set
+# server-admin-tls-ca-file or server-public-tls-ca-file must also set the matching
+# server-*-tls-client-policy key.
 
 # CSRF — disabled for API testing.
 csrf-token-single-use-token: false

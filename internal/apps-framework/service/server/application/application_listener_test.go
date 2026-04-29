@@ -14,6 +14,7 @@ import (
 	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps-framework/service/config"
 	cryptoutilAppsFrameworkServiceServerBarrier "cryptoutil/internal/apps-framework/service/server/barrier"
 	cryptoutilAppsFrameworkServiceServerRepository "cryptoutil/internal/apps-framework/service/server/repository"
+	cryptoutilSharedCryptoTls "cryptoutil/internal/shared/crypto/tls"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	fiber "github.com/gofiber/fiber/v2"
@@ -192,59 +193,51 @@ func TestContainerModeDetection(t *testing.T) {
 	}
 }
 
-// TestMTLSConfiguration tests mTLS client auth configuration for private/public servers
-// in dev/container/production modes.
-// Priority: P1.2 (MOST CRITICAL - Currently 0% coverage on security code).
-func TestMTLSConfiguration(t *testing.T) {
+// TestTLSClientPolicyConfiguration tests explicit TLS client policy mapping for private/public servers.
+func TestTLSClientPolicyConfiguration(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name                  string
-		devMode               bool
-		bindPublicAddress     string
-		bindPrivateAddress    string
-		wantPrivateClientAuth tls.ClientAuthType
-		wantPublicClientAuth  tls.ClientAuthType
+		name            string
+		privatePolicy   cryptoutilAppsFrameworkServiceConfig.TLSClientPolicy
+		publicPolicy    cryptoutilAppsFrameworkServiceConfig.TLSClientPolicy
+		wantPrivateAuth tls.ClientAuthType
+		wantPublicAuth  tls.ClientAuthType
 	}{
 		{
-			name:                  "dev mode disables mTLS on private server",
-			devMode:               true,
-			bindPublicAddress:     cryptoutilSharedMagic.IPv4Loopback,
-			bindPrivateAddress:    cryptoutilSharedMagic.IPv4Loopback,
-			wantPrivateClientAuth: tls.NoClientCert,
-			wantPublicClientAuth:  tls.NoClientCert, // Public never requires client certs
+			name:            "none policies disable client certificates",
+			privatePolicy:   cryptoutilAppsFrameworkServiceConfig.TLSClientPolicyNone,
+			publicPolicy:    cryptoutilAppsFrameworkServiceConfig.TLSClientPolicyNone,
+			wantPrivateAuth: tls.NoClientCert,
+			wantPublicAuth:  tls.NoClientCert,
 		},
 		{
-			name:                  "container mode disables mTLS on private server",
-			devMode:               false,
-			bindPublicAddress:     cryptoutilSharedMagic.IPv4AnyAddress,
-			bindPrivateAddress:    cryptoutilSharedMagic.IPv4Loopback,
-			wantPrivateClientAuth: tls.NoClientCert,
-			wantPublicClientAuth:  tls.NoClientCert,
+			name:            "request policy is explicit",
+			privatePolicy:   cryptoutilAppsFrameworkServiceConfig.TLSClientPolicyRequest,
+			publicPolicy:    cryptoutilAppsFrameworkServiceConfig.TLSClientPolicyRequest,
+			wantPrivateAuth: tls.RequestClientCert,
+			wantPublicAuth:  tls.RequestClientCert,
 		},
 		{
-			name:                  "production mode enables mTLS on private server",
-			devMode:               false,
-			bindPublicAddress:     cryptoutilSharedMagic.IPv4Loopback,
-			bindPrivateAddress:    cryptoutilSharedMagic.IPv4Loopback,
-			wantPrivateClientAuth: tls.RequireAndVerifyClientCert,
-			wantPublicClientAuth:  tls.NoClientCert, // Public never requires client certs
+			name:            "require-any policy is explicit",
+			privatePolicy:   cryptoutilAppsFrameworkServiceConfig.TLSClientPolicyRequireAny,
+			publicPolicy:    cryptoutilAppsFrameworkServiceConfig.TLSClientPolicyRequireAny,
+			wantPrivateAuth: tls.RequireAnyClientCert,
+			wantPublicAuth:  tls.RequireAnyClientCert,
 		},
 		{
-			name:                  "container mode with private IPv4AnyAddress still enables mTLS",
-			devMode:               false,
-			bindPublicAddress:     cryptoutilSharedMagic.IPv4Loopback,
-			bindPrivateAddress:    cryptoutilSharedMagic.IPv4AnyAddress,
-			wantPrivateClientAuth: tls.RequireAndVerifyClientCert, // Only public triggers container mode
-			wantPublicClientAuth:  tls.NoClientCert,
+			name:            "verify-if-given policy is explicit",
+			privatePolicy:   cryptoutilAppsFrameworkServiceConfig.TLSClientPolicyVerifyIfGiven,
+			publicPolicy:    cryptoutilAppsFrameworkServiceConfig.TLSClientPolicyVerifyIfGiven,
+			wantPrivateAuth: tls.VerifyClientCertIfGiven,
+			wantPublicAuth:  tls.VerifyClientCertIfGiven,
 		},
 		{
-			name:                  "public server never uses RequireAndVerifyClientCert",
-			devMode:               false,
-			bindPublicAddress:     cryptoutilSharedMagic.IPv4Loopback,
-			bindPrivateAddress:    cryptoutilSharedMagic.IPv4Loopback,
-			wantPrivateClientAuth: tls.RequireAndVerifyClientCert,
-			wantPublicClientAuth:  tls.NoClientCert, // Browsers don't have client certs
+			name:            "require-and-verify policy is explicit",
+			privatePolicy:   cryptoutilAppsFrameworkServiceConfig.TLSClientPolicyRequireAndVerify,
+			publicPolicy:    cryptoutilAppsFrameworkServiceConfig.TLSClientPolicyRequireAndVerify,
+			wantPrivateAuth: tls.RequireAndVerifyClientCert,
+			wantPublicAuth:  tls.RequireAndVerifyClientCert,
 		},
 	}
 
@@ -252,24 +245,14 @@ func TestMTLSConfiguration(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			settings := &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{
-				DevMode:            tc.devMode,
-				BindPublicAddress:  tc.bindPublicAddress,
-				BindPrivateAddress: tc.bindPrivateAddress,
-			}
+			privateClientAuth, err := cryptoutilSharedCryptoTls.ClientAuthTypeForPolicy(tc.privatePolicy)
+			require.NoError(t, err)
 
-			// Replicate the mTLS logic from application_listener.go.
-			isContainerMode := settings.BindPublicAddress == cryptoutilSharedMagic.IPv4AnyAddress
+			publicClientAuth, err := cryptoutilSharedCryptoTls.ClientAuthTypeForPolicy(tc.publicPolicy)
+			require.NoError(t, err)
 
-			privateClientAuth := tls.RequireAndVerifyClientCert
-			if settings.DevMode || isContainerMode {
-				privateClientAuth = tls.NoClientCert
-			}
-
-			publicClientAuth := tls.NoClientCert // Always NoClientCert for browser compatibility
-
-			require.Equal(t, tc.wantPrivateClientAuth, privateClientAuth, "Private server mTLS")
-			require.Equal(t, tc.wantPublicClientAuth, publicClientAuth, "Public server mTLS")
+			require.Equal(t, tc.wantPrivateAuth, privateClientAuth, "Private server TLS client policy")
+			require.Equal(t, tc.wantPublicAuth, publicClientAuth, "Public server TLS client policy")
 		})
 	}
 }
