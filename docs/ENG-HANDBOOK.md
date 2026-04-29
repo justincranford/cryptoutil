@@ -2401,6 +2401,7 @@ server-admin-tls-client-policy: require-and-verify
 - Admin mTLS requires both trust material and a policy that verifies client certificates.
 - Config key naming: `server-admin-tls-*` (kebab-case, in `allowedInstanceKeys` NOT `requiredCommonKeys`)
 - Each instance variant (sqlite-1, sqlite-2, postgres-1, postgres-2) has its own Cat 6/7 cert pair
+- **Dual allowlist rule**: When adding new deployment config keys, update BOTH `validate_schema.go` (enum validation) AND `config_rules.go` `allowedInstanceKeys` map (fitness check). Updating only one causes `lint-deployments` to pass but `lint-fitness` to fail.
 
 #### 6.11.6 `TLSClientPolicy` Runtime Modes
 
@@ -6579,7 +6580,7 @@ This applies to ALL issue types including but not limited to:
 
 - `goconst`: Repeated string literals must become constants
 - `noctx`: Missing context in database/HTTP calls (`Ping()` → `PingContext(ctx)`)
-- `lint-go literal-use`: Magic constants must use `cryptoutilSharedMagic` values
+- `lint-go literal-use`: Magic constants must use `cryptoutilSharedMagic` values — **avoid false positives** by not using string literals that coincide with magic constant values as test case `name:` fields; use `string(magic.ConstName)` or a domain-specific discriminator that cannot collide
 - `wsl`, `godot`, `gofumpt`: Formatting and style violations
 - Import ordering and unused imports
 - Pre-commit hook findings from any linter

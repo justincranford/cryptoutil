@@ -1,6 +1,6 @@
 # Tasks - Framework V20: TLS Enum Split and Policy Surface Migration
 
-**Status**: 18 of 30 tasks complete (60%)
+**Status**: 30 of 30 tasks complete (100%)
 **Created**: 2026-04-29
 **Last Updated**: 2026-04-29
 
@@ -168,98 +168,98 @@
 
 ### Task 5.1: Extend deployment schema for client-policy keys
 
-- **Status**: ❌
+- **Status**: ✅
 - **Acceptance Criteria**:
-  - [ ] Schema includes explicit public/admin client-policy keys.
-  - [ ] Validation rules enforce the intended enum values.
+  - [x] Schema includes explicit public/admin client-policy keys.
+  - [x] Validation rules enforce the intended enum values.
 
 ### Task 5.2: Update PS-ID deployment overlays
 
-- **Status**: ❌
+- **Status**: ✅
 - **Acceptance Criteria**:
-  - [ ] All 10 common config files are aligned to provisioning terminology where needed.
-  - [ ] All 40 instance overlay files set explicit client-policy keys where CA trust files are used.
-  - [ ] No overlay relies on implicit `Enforce` semantics.
+  - [x] All 10 common config files are aligned to provisioning terminology where needed.
+  - [x] All 40 instance overlay files set explicit client-policy keys where CA trust files are used.
+  - [x] No overlay relies on implicit `Enforce` semantics.
 
 ### Task 5.3: Update canonical deployment templates
 
-- **Status**: ❌
+- **Status**: ✅
 - **Acceptance Criteria**:
-  - [ ] All 5 canonical `__PS_ID__` config templates reflect the new provisioning and client-policy model.
-  - [ ] Template changes remain synchronized with concrete deployment overlays.
+  - [x] All 5 canonical `__PS_ID__` config templates reflect the new provisioning and client-policy model.
+  - [x] Template changes remain synchronized with concrete deployment overlays.
 
 ### Task 5.4: Update legacy `tls-config.yml` examples
 
-- **Status**: ❌
+- **Status**: ✅
 - **Acceptance Criteria**:
-  - [ ] The 4 `deployments/*/certs/tls-config.yml` files no longer use old runtime `TLSMode*` names.
-  - [ ] Examples are consistent with the handbook terminology.
+  - [x] The 4 `deployments/*/certs/tls-config.yml` files no longer use old runtime `TLSMode*` names.
+  - [x] Examples are consistent with the handbook terminology.
 
 ### Task 5.5: Phase 5 verification
 
-- **Status**: ❌
+- **Status**: ✅
 - **Acceptance Criteria**:
-  - [ ] `go run ./cmd/cicd-lint lint-deployments` passes.
-  - [ ] Evidence archived in `test-output/v20-phase5/`.
+  - [x] `go run ./cmd/cicd-lint lint-deployments` passes.
+  - [x] Evidence archived in `test-output/v20-phase5/`.
 
 ## Phase 6: Historical Document Backfill
 
 ### Task 6.1: Update investigation doc terminology
 
-- **Status**: ❌
+- **Status**: ✅
 - **Acceptance Criteria**:
-  - [ ] `docs/INVESTIGATION.md` no longer leaves stale active terminology around `TLSModeAuto`.
-  - [ ] Historical context remains readable and accurate.
+  - [x] `docs/INVESTIGATION.md` no longer leaves stale active terminology around `TLSModeAuto`.
+  - [x] Historical context remains readable and accurate.
 
 ### Task 6.2: Update archived v18 planning references
 
-- **Status**: ❌
+- **Status**: ✅
 - **Acceptance Criteria**:
-  - [ ] `docs/framework-v18/plan.md` no longer references obsolete enum names without explanation.
-  - [ ] Archived context still reads coherently.
+  - [x] `docs/framework-v18/plan.md` no longer references obsolete enum names without explanation.
+  - [x] Archived context still reads coherently.
 
 ### Task 6.3: Phase 6 verification
 
-- **Status**: ❌
+- **Status**: ✅
 - **Acceptance Criteria**:
-  - [ ] Historical-doc pass completed and contradictions with active docs removed.
-  - [ ] Evidence archived in `test-output/v20-phase6/`.
+  - [x] Historical-doc pass completed and contradictions with active docs removed.
+  - [x] Evidence archived in `test-output/v20-phase6/`.
 
 ## Phase 7: Final Verification and Closure
 
 ### Task 7.1: Full quality suite
 
-- **Status**: ❌
+- **Status**: ✅
 - **Acceptance Criteria**:
-  - [ ] `go build ./...` passes.
-  - [ ] `go build -tags e2e,integration ./...` passes.
-  - [ ] `go test ./...` passes.
-  - [ ] `golangci-lint run ./...` passes.
-  - [ ] `go run ./cmd/cicd-lint lint-fitness` passes.
-  - [ ] `go run ./cmd/cicd-lint lint-docs` passes.
-  - [ ] `go run ./cmd/cicd-lint lint-deployments` passes.
+  - [x] `go build ./...` passes.
+  - [x] `go build -tags e2e,integration ./...` passes.
+  - [x] `go test ./...` passes.
+  - [x] `golangci-lint run ./...` passes.
+  - [x] `go run ./cmd/cicd-lint lint-fitness` passes.
+  - [x] `go run ./cmd/cicd-lint lint-docs` passes.
+  - [x] `go run ./cmd/cicd-lint lint-deployments` passes.
 
 ### Task 7.2: Refresh final inventory and contradiction review
 
-- **Status**: ❌
+- **Status**: ✅
 - **Acceptance Criteria**:
-  - [ ] Final inventory of changed surfaces is archived under `test-output/v20-phase7/`.
-  - [ ] `docs/framework-v20/plan.md`, `docs/framework-v20/tasks.md`, and repository reality are consistent.
-  - [ ] If any item remains uncertain, mark it unresolved instead of guessing.
+  - [x] Final inventory of changed surfaces is archived under `test-output/v20-phase7/`.
+  - [x] `docs/framework-v20/plan.md`, `docs/framework-v20/tasks.md`, and repository reality are consistent.
+  - [x] If any item remains uncertain, mark it unresolved instead of guessing.
 
 ## Phase 8: Knowledge Propagation
 
 ### Task 8.1: Review execution lessons for durable guidance updates
 
-- **Status**: ❌
+- **Status**: ✅
 - **Acceptance Criteria**:
-  - [ ] `docs/framework-v20/lessons.md` is reviewed after execution phases complete.
-  - [ ] Any new durable guidance for handbook or instructions is explicitly identified.
+  - [x] `docs/framework-v20/lessons.md` is reviewed after execution phases complete.
+  - [x] Any new durable guidance for handbook or instructions is explicitly identified.
 
 ### Task 8.2: Apply durable documentation/process updates
 
-- **Status**: ❌
+- **Status**: ✅
 - **Acceptance Criteria**:
-  - [ ] Durable doc/process updates discovered during V20 are applied.
-  - [ ] `go run ./cmd/cicd-lint lint-docs` passes again after those updates.
-  - [ ] Evidence archived in `test-output/v20-phase8/`.
+  - [x] Durable doc/process updates discovered during V20 are applied.
+  - [x] `go run ./cmd/cicd-lint lint-docs` passes again after those updates.
+  - [x] Evidence archived in `test-output/v20-phase8/`.

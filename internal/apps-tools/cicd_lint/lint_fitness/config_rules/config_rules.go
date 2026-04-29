@@ -58,12 +58,14 @@ var allowedInstanceKeys = map[string]bool{
 	"database-sslcert":            true,
 	"database-sslkey":             true,
 	"database-sslrootcert":        true,
-	"server-admin-tls-cert-file":  true,
-	"server-admin-tls-key-file":   true,
-	"server-admin-tls-ca-file":    true,
-	"server-public-tls-cert-file": true,
-	"server-public-tls-key-file":  true,
-	"server-public-tls-ca-file":   true,
+	"server-admin-tls-cert-file":          true,
+	"server-admin-tls-key-file":           true,
+	"server-admin-tls-ca-file":            true,
+	"server-admin-tls-client-policy":      true,
+	"server-public-tls-cert-file":         true,
+	"server-public-tls-key-file":          true,
+	"server-public-tls-ca-file":           true,
+	"server-public-tls-client-policy":     true,
 }
 
 // CheckKeyNaming validates all YAML keys in config files are kebab-case.
@@ -314,7 +316,7 @@ func checkInstanceKeys(path string) []string {
 
 	for key := range config {
 		if !allowedInstanceKeys[key] {
-			violations = append(violations, fmt.Sprintf("unexpected key %q (only cors-origins, otlp-service, otlp-hostname, otlp-tls-cert-file, otlp-tls-key-file, otlp-tls-ca-file, database-url, database-sslmode, database-sslcert, database-sslkey, database-sslrootcert, server-admin-tls-cert-file, server-admin-tls-key-file, server-admin-tls-ca-file, server-public-tls-cert-file, server-public-tls-key-file, server-public-tls-ca-file allowed)", key))
+			violations = append(violations, fmt.Sprintf("unexpected key %q (only cors-origins, otlp-service, otlp-hostname, otlp-tls-cert-file, otlp-tls-key-file, otlp-tls-ca-file, database-url, database-sslmode, database-sslcert, database-sslkey, database-sslrootcert, server-admin-tls-cert-file, server-admin-tls-key-file, server-admin-tls-ca-file, server-admin-tls-client-policy, server-public-tls-cert-file, server-public-tls-key-file, server-public-tls-ca-file, server-public-tls-client-policy allowed)", key))
 		}
 	}
 
