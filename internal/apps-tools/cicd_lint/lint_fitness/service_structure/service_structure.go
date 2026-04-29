@@ -23,8 +23,7 @@ type ServiceDef struct {
 
 // knownExclusions are PS-IDs excluded from service structure validation
 // (legacy services that do not follow the service template pattern).
-var knownExclusions = map[string]bool{
-}
+var knownExclusions = map[string]bool{}
 
 // psidRequiredFilesOverrides maps PS-IDs to a custom required files list.
 // When absent, defaultRequiredFiles is used.
