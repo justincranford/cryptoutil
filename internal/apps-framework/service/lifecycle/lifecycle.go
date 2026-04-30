@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package lifecycle provides a reusable graceful-shutdown lifecycle helper for service entry points.
 // It encapsulates the signal.Notify / errChan / select / signal.Stop pattern that all PS-ID server
 // subcommands share, eliminating ~25 lines of identical boilerplate per service.

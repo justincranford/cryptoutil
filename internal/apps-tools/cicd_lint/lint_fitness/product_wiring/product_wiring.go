@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package product_wiring validates cmd/ entry points exist for all products and services.
 package product_wiring
 

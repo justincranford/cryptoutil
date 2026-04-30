@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package cmd_product_template verifies that every cmd/{PRODUCT}/main.go entry point:
 //  1. Exists at cmd/{PRODUCT}/main.go.
 //  2. Contains "package main".

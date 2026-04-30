@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package subject provides subject template resolution for certificate subjects.
 // It implements YAML-driven subject profile rendering with validation.
 package subject

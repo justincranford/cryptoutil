@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package lint_ports validates port assignments across cryptoutil codebase.
 // Ensures legacy ports are not used and ports match the standardized scheme.
 package lint_ports

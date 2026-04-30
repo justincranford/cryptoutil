@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package compose_service_names validates that every product-service compose.yml
 // contains the four required service definitions and no unrecognised service names:
 //   - {PS-ID}-app-sqlite-1

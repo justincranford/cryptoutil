@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 package pki_ca_profile_schema
 
 import (
@@ -441,4 +440,4 @@ func TestCheckInDir_ZeroMinDaysIsError(t *testing.T) {
 	require.Contains(t, err.Error(), "min_days must be >= 1")
 }
 
-// Copyright (c) 2025 Justin Cranford
+// Copyright (c) 2025-2026 Justin Cranford.

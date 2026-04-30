@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package config tests Parse via ParseWithFlagSet for pki-ca server configuration.
 package config
 

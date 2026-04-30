@@ -1,7 +1,6 @@
 //go:build ignore
 
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package main provides the __PS_ID__ service entry point.
 //
 // Structural invariants (enforced by lint-fitness cmd-ps-id-template):

@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package service_contract_compliance verifies that all services have a
 // compile-time interface assertion: `var _ ServiceServer = (*XxxServer)(nil)`.
 // This assertion ensures services satisfy the ServiceServer contract defined in

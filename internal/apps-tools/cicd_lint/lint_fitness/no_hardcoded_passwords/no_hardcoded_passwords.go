@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package no_hardcoded_passwords enforces that tests do not contain hardcoded passwords.
 package no_hardcoded_passwords
 

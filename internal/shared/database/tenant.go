@@ -1,6 +1,5 @@
-// Copyright (c) 2025 Justin Cranford.
-// SPDX-License-Identifier: Apache-2.0.
-
+// Copyright (c) 2025-2026 Justin Cranford.
+// SPDX-License-Identifier: AGPL-3.0-only
 // Package database provides shared database utilities for multi-tenancy and sharding.
 package database
 

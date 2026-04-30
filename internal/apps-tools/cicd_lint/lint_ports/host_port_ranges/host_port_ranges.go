@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package host_port_ranges provides linting for host port range assignments in Docker Compose files.
 package host_port_ranges
 

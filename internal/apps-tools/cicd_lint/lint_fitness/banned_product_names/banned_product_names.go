@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package banned_product_names enforces that banned legacy product/service names
 // do not appear in any tracked file. This prevents naming regression drift — for
 // example, old "Cipher IM" product names re-appearing after the SM rename.

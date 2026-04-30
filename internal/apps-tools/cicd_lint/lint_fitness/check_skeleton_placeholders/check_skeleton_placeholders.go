@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package check_skeleton_placeholders detects unreplaced skeleton placeholder strings
 // in Go source files outside the canonical skeleton-template directories.
 // When a developer copies the skeleton-template to create a new service, all

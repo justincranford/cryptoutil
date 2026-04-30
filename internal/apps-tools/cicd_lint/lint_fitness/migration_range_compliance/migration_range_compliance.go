@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package migration_range_compliance verifies migration file version numbers are
 // within assigned ranges: template migrations 1001-1999, domain migrations per-PS-ID
 // ranges declared in the entity registry YAML. Also detects cross-service range overlaps.

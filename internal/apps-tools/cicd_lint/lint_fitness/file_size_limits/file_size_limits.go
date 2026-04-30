@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package file_size_limits enforces ENG-HANDBOOK.md Section 11.2.6 file size limits.
 // Soft limit: 300 lines (warning), Hard limit: 500 lines (error).
 // Excludes: *_gen.go, *_test.go, internal/shared/magic/ (constants only).

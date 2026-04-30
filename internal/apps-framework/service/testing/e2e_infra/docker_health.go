@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package e2e_infra provides reusable helpers for E2E testing with docker compose.
 package e2e_infra
 

@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package validate_propagation validates that @source references in instruction
 // files correspond to valid @propagate marker blocks.
 package validate_propagation

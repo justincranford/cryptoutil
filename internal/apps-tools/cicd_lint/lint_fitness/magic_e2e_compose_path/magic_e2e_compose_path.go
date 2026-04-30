@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package magic_e2e_compose_path validates that every *E2EComposeFile magic constant
 // in internal/shared/magic/ resolves to an existing compose.yml on disk.
 //

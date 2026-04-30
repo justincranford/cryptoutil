@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package issuer provides end-entity certificate issuance services.
 // It implements certificate request processing, validation, and signing.
 package issuer

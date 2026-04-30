@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package unseal_secret_content validates that all unseal secret files across
 // deployments/ have correct content format:
 //

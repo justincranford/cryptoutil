@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package server_test validates sm-im CLI behavior against server test fixtures.
 package server_test
 

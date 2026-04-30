@@ -1,5 +1,5 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
+//
 //nolint:testpackage // Testing private fields requires same-package access.
 package repository_test
 

@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package certificate provides certificate profile rendering for X.509 certificates.
 // It implements YAML-driven certificate policy rendering with validation.
 package certificate

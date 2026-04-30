@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package require_api_dir validates that every registered service has a corresponding
 // api/<product>-<service>/ directory with required OpenAPI generation files.
 package require_api_dir

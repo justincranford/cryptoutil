@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package template_drift verifies that all deployment artifacts match their
 // canonical templates after placeholder substitution. This catches structural drift
 // between services' Dockerfiles, compose files, config overlays, and secrets.

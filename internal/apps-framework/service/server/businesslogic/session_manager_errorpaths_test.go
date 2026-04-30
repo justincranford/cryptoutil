@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package businesslogic Ã¢â‚¬â€ error path coverage tests for session manager.
 // These tests inject errors via SessionManager struct fields, enabling t.Parallel().
 package businesslogic

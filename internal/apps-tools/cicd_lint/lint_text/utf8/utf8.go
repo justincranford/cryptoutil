@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package utf8 enforces UTF-8 encoding without BOM for text files.
 package utf8
 

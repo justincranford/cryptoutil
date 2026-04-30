@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package apps_ps_id_server_package verifies that every PS-ID directory contains the required
 // server package files: server/server.go for all 10 PS-IDs, and server/public_server.go for
 // all PS-IDs except those in knownExclusionsPublicServer (currently sm-kms and skeleton-template).

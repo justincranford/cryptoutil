@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package businesslogic â€” additional error path coverage tests (part 2).
 // Covers JWK parse errors, verify/decrypt result errors, and DB query/update errors.
 // Tests inject errors via SessionManager struct fields, enabling t.Parallel().

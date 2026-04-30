@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package no_local_closed_db_helper enforces that createClosedDatabase-style helpers
 // are not defined outside the shared testdb package.
 // Use testdb.NewClosedSQLiteDB() from internal/apps-framework/service/testing/testdb instead.

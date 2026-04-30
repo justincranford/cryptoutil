@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package no_local_ps_id_server_stubs detects struct types in PS-ID test files that
 // re-implement IPublicServer or IAdminServer locally instead of using the shared stubs
 // in internal/apps-framework/service/testing/stubs.

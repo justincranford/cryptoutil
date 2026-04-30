@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package cmd_entry_whitelist enforces that the cmd/ directory contains only the
 // 18 allowed entry points: 1 suite, 5 products, 10 product-services, and 2
 // infrastructure tools. Any extra or unknown cmd/ directory is a violation

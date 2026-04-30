@@ -1,4 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
+// Copyright (c) 2025-2026 Justin Cranford.
 //
 
 // Package testdb_test provides black-box tests for the testdb package.

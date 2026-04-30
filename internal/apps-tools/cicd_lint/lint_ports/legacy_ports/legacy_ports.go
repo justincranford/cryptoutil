@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package legacy_ports provides linting for legacy port usage in cryptoutil services.
 package legacy_ports
 

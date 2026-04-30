@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package config_overlay_freshness validates deployment config overlay files against
 // canonical templates. Each PS-ID under deployments/{ps-id}/config/ must have
 // the correct YAML keys and value patterns for each of its 4 variant files:

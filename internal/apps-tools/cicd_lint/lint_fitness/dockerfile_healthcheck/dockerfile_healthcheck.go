@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package dockerfile_healthcheck validates that PS-ID Dockerfiles in deployments/
 // use the built-in PS-ID CLI livez subcommand for HEALTHCHECK instead of
 // third-party tools like wget or curl, and that non-PS-ID deployment

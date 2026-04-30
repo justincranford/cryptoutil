@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package apps_product_template verifies that every product directory under internal/apps/{PRODUCT}/
 // conforms to the canonical MANIFEST.yaml template. The template is read at runtime from
 // api/cryptosuite-registry/templates/internal/apps/__PRODUCT__/MANIFEST.yaml.

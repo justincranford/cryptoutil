@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package domain provides domain models for the pki-ca service.
 // These models represent a minimal CA item for demonstration purposes.
 package domain

@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package bootstrap provides Root CA bootstrap workflows for offline root CA creation.
 // It implements deterministic serial numbers, key storage, and audit logging.
 package bootstrap

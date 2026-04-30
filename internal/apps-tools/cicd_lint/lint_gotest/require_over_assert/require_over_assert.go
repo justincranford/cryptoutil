@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package require_over_assert enforces use of testify require over assert.
 package require_over_assert
 

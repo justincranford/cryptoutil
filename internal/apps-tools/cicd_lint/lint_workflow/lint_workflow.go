@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package lint_workflow provides linting utilities for GitHub workflow files.
 package lint_workflow
 

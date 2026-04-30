@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package no_unaliased_cryptoutil_imports verifies that all cryptoutil imports use aliases.
 package no_unaliased_cryptoutil_imports
 

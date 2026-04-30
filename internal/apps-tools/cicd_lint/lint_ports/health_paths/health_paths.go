@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package health_paths provides linting for health path configuration in Dockerfiles and compose files.
 package health_paths
 

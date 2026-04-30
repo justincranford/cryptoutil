@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package test_file_suffix_structure validates that Go test files follow the project's
 // suffix naming convention: benchmark functions belong in _bench_test.go files,
 // fuzz functions in _fuzz_test.go files, property tests in _property_test.go files,

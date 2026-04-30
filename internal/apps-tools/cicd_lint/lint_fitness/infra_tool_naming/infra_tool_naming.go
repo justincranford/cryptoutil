@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package infra_tool_naming enforces that infrastructure tool cmd/ directories
 // follow the cicd- prefix convention and have matching internal/apps-tools/
 // counterparts (ENG-HANDBOOK.md Section 4.4.7 CLI Patterns).

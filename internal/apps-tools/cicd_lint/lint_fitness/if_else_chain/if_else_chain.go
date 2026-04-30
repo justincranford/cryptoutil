@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package if_else_chain detects consecutive if statements in Go source where the first
 // block does NOT end with an exit statement (return, panic, continue, break, goto) AND
 // both conditions reference the same primary variable/expression. Such pairs should be

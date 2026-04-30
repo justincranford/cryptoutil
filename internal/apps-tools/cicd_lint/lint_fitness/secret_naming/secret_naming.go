@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package secret_naming validates that all secret files under deployments/
 // follow naming conventions:
 //

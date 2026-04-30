@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package no_unit_test_real_db enforces that unit tests do not create real PostgreSQL database containers.
 // Unit tests MUST use testdb.NewInMemorySQLiteDB() instead.
 // See ENG-HANDBOOK.md Section 10.3 TestMain Pattern (Forbidden Pattern #3).

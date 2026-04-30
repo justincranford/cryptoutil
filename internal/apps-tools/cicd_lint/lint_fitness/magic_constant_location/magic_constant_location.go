@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package magic_constant_location enforces that magic constants are declared
 // in internal/shared/magic/ and NOT as package-local const declarations
 // (ENG-HANDBOOK.md Section 11.1.4 Magic Values Organization).

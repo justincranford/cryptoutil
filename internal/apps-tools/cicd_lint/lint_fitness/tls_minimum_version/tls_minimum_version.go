@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package tls_minimum_version verifies that all TLS configurations use
 // TLS 1.3 as the minimum version. Configurations that explicitly set
 // MinVersion to a value below tls.VersionTLS13 are flagged as violations.

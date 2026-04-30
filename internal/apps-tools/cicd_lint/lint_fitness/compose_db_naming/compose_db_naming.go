@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package compose_db_naming validates that no product-service compose.yml
 // contains a per-PS-ID PostgreSQL service "{PS-ID}-db-postgres-1".
 //

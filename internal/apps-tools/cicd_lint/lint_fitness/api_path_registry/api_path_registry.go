@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package api_path_registry validates that the OpenAPI spec paths declared in each
 // service's api/{ps-id}/openapi_spec*.yaml file(s) match the api_resources declared
 // in the entity registry (api/cryptosuite-registry/registry.yaml).

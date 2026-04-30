@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 package hash
 
 // HashLowEntropyNonDeterministic hashes a low-entropy secret (e.g., password, PIN) using a random salt.

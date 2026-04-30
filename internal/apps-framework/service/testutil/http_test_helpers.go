@@ -1,7 +1,6 @@
-// Copyright (c) 2025 Justin Cranford
+// Copyright (c) 2025-2026 Justin Cranford.
 //
-// SPDX-License-Identifier: MIT
-
+// SPDX-License-Identifier: AGPL-3.0-only
 // Package testutil provides test utilities for HTTP server testing.
 package testutil
 

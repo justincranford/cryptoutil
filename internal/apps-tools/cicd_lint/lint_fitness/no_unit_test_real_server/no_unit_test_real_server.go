@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package no_unit_test_real_server enforces that unit tests do not start real HTTP/HTTPS servers.
 // Unit tests MUST use fiber.App.Test() for handler testing instead of app.Listen().
 // See ENG-HANDBOOK.md Section 10.2 Forbidden Pattern #2.

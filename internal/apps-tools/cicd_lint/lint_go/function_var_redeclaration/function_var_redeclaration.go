@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package function_var_redeclaration detects package-level var declarations
 // that redeclare functions from other packages using the `Fn` naming suffix
 // (e.g. var walkFn = filepath.Walk). This seam-injection anti-pattern is banned

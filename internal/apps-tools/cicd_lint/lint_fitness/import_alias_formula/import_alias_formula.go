@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package import_alias_formula verifies that all Go source files use canonical import aliases
 // for the packages listed in alias_map.yaml. The canonical aliases are defined once in the
 // YAML and enforced here as a fitness linter - acting as the single source of truth for

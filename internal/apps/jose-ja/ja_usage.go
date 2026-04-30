@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Health endpoints exposed by this service (referenced in BuildUsage* output):
 //   - /service/api/v1/health  (service-to-service health check)
 //   - /browser/api/v1/health  (browser health check)

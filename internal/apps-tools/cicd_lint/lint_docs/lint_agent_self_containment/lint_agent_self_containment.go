@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package lint_agent_self_containment validates that every Copilot agent file
 // in .github/agents/ contains at least one reference to ENG-HANDBOOK.md,
 // enforcing the agent self-containment requirement from ENG-HANDBOOK.md §2.1.1.

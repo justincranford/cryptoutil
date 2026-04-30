@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package legacy_dir_detection enforces that legacy product/service directories
 // do not exist in the repository. This prevents the old "Cipher" product name
 // from persisting as obsolete directories after the rename to SM.

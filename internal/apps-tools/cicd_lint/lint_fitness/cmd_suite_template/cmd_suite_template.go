@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package cmd_suite_template verifies that cmd/{SUITE}/main.go entry points:
 //  1. Exist at cmd/{SUITE}/main.go.
 //  2. Contain "package main".

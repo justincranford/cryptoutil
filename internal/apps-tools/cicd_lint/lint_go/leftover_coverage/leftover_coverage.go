@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package leftover_coverage detects banned "coverage-oriented" test file names
 // such as *_coverage_test.go, *_comprehensive_test.go, *_gaps_test.go, etc.
 // These names describe coverage intent rather than test content and are banned

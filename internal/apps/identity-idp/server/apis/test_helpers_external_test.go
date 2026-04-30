@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 package apis_test
 
 // boolPtr converts bool to *bool for struct literals requiring pointer fields.

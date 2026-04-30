@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 /*
 Package hash provides high-level cryptographic hashing APIs for secret management with semantic naming and parameter versioning.
 

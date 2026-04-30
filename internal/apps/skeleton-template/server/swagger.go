@@ -1,4 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
+// Copyright (c) 2025-2026 Justin Cranford.
 //
 
 //nolint:wrapcheck // Fiber HTTP handlers return framework errors directly

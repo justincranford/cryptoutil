@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package cgo_free_sqlite verifies that source code uses the CGO-free SQLite driver.
 package cgo_free_sqlite
 

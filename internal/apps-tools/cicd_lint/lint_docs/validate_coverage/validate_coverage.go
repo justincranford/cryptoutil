@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package validate_coverage validates that every required @propagate chunk from
 // docs/required-propagations.yaml is covered by an @source block in at least one
 // instruction or agent file.

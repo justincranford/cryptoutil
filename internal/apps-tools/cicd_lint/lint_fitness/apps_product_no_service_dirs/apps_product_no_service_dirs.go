@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package apps_product_no_service_dirs verifies that product directories under internal/apps/ do
 // not contain subdirectories named after individual services.  Service-named subdirectories are
 // duplicate copies of the canonical PS-ID entry point (internal/apps/{PS-ID}/); they must be

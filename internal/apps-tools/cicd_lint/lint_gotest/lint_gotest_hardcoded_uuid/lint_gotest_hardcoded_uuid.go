@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package lint_gotest_hardcoded_uuid enforces that test files do not use
 // uuid.MustParse with hardcoded literal strings. Per ENG-HANDBOOK.md §10.2,
 // tests must use googleUuid.NewV7() for dynamic test data, or googleUuid.UUID{}

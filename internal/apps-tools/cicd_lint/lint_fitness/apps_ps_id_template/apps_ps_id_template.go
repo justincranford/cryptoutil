@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package apps_ps_id_template verifies that every PS-ID directory under internal/apps/{PS-ID}/
 // conforms to the canonical MANIFEST.yaml template. The template is read at runtime from
 // api/cryptosuite-registry/templates/internal/apps/__PS_ID__/MANIFEST.yaml.

@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package template_consistency verifies that deployments/skeleton-template/secrets/
 // uses hyphenated filenames (not underscores). This enforces the canonical secret
 // naming convention so the template serves as a correct reference for new services.

@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package intermediate provides Intermediate CA provisioning workflows.
 // It implements creation and signing of intermediate CAs by a root or superior CA.
 package intermediate

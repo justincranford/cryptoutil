@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package migration_numbering validates SQL migration file naming conventions.
 package migration_numbering
 

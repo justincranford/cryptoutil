@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package lint_gotest_test_sleep enforces that test files do not use time.Sleep.
 // Per ENG-HANDBOOK.md §10.2, time.Sleep in tests indicates a poorly designed test
 // that relies on timing rather than proper synchronization primitives (channels,

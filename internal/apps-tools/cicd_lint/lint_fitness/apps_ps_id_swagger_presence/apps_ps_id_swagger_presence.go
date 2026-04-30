@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package apps_ps_id_swagger_presence verifies that every PS-ID has swagger.go and
 // swagger_test.go files inside its server/ subdirectory.  All PS-IDs are currently listed in
 // knownExclusions because swagger files live at the service root rather than server/; they will be

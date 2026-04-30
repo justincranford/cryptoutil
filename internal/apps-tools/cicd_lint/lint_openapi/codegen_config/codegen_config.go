@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package codegen_config validates oapi-codegen config files have the required base initialisms.
 package codegen_config
 

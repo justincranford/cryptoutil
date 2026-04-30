@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package database_key_uniformity validates that no deployment config overlay file
 // uses the deprecated nested "database:" key structure (with sub-keys like "type:"
 // and "dsn:"). The framework standard is the flat "database-url:" key only.

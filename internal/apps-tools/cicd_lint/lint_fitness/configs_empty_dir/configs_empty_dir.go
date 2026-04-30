@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package configs_empty_dir enforces that every directory inside configs/
 // contains at least one file. Empty directories must have a .gitkeep marker
 // to be tracked by git and to make their presence intentional.

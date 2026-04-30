@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package cmd_anti_pattern validates that cmd/ directories follow the canonical
 // naming convention. Every cmd/ directory must be one of:
 //

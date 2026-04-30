@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package fitness_registry_completeness validates that the lint-fitness-registry.yaml
 // manifest is consistent with the fitness sub-linter directories on disk.
 //

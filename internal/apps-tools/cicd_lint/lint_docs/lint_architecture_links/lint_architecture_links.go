@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package lint_architecture_links validates that all ENG-HANDBOOK.md section anchors
 // referenced in instruction, agent, and skill files resolve to real headings in
 // docs/ENG-HANDBOOK.md. Prevents broken cross-references that lead to dead links.

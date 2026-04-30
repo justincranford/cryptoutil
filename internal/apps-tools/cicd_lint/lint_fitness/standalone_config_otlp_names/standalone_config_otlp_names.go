@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package standalone_config_otlp_names validates that the otlp-service value in
 // each deployment config file matches the canonical naming convention.
 //

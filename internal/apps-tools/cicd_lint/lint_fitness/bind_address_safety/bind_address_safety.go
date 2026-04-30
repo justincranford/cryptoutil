@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package bind_address_safety enforces architectural rules in Go test files.
 package bind_address_safety
 

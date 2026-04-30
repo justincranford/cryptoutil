@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package propagation_coverage reports @source block line and file coverage
 // across instruction and agent files.
 package propagation_coverage

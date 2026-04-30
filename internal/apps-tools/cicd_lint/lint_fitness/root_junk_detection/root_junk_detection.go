@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package root_junk_detection enforces that no junk files or directories exist at the project root.
 // Junk files include compiled binaries (*.exe, *.test.exe), Python scripts (*.py),
 // and test-output coverage files (coverage*). Junk directories include coverage

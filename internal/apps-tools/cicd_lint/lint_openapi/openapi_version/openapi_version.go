@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package openapi_version validates that OpenAPI spec files use version 3.0.3.
 package openapi_version
 

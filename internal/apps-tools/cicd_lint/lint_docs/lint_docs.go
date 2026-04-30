@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package lint_docs provides documentation linting: chunk verification, chunk
 // content validation, propagation reference validation, and agent/skill drift detection.
 package lint_docs

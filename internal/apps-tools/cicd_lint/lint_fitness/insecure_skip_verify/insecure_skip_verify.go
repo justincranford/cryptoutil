@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package insecure_skip_verify verifies that code does not disable TLS certificate verification.
 package insecure_skip_verify
 

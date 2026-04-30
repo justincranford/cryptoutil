@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package stubs provides exported IPublicServer and IAdminServer stub implementations
 // for use in PS-ID unit tests. Centralises the stub definitions so each PS-ID does
 // not need to re-define identical local types.

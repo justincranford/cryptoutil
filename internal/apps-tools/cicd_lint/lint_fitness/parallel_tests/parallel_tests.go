@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package parallel_tests enforces t.Parallel() usage in test functions.
 package parallel_tests
 

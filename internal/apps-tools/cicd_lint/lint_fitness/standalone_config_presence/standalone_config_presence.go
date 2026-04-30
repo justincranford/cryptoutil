@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package standalone_config_presence validates that each product-service in the
 // standalone config allowlist has all required config files present under
 // deployments/{PS-ID}/config/.

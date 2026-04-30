@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package lint_skill_command_drift validates that every Copilot skill in
 // .github/skills/NAME/ has a matching Claude Code skill at
 // .claude/skills/NAME/SKILL.md and that frontmatter fields and body content

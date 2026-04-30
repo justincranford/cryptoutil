@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package magic_aliases detects const alias redeclarations of magic package constants.
 // An alias is a const declaration like `localName = cryptoutilSharedMagic.MagicName`
 // that adds indirection without value. Callers should use the magic constant directly.

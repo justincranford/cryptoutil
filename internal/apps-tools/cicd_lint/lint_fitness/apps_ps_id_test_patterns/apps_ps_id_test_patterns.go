@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package apps_ps_id_test_patterns verifies that every PS-ID's server/ directory contains the
 // expected test infrastructure files: testmain_test.go, a *_lifecycle_test.go file, and a
 // *_port_conflict_test.go file.  PS-IDs that have not yet been brought into conformance are

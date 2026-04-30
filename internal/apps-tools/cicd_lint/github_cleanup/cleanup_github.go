@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package github_cleanup provides GitHub Actions storage cleanup automation.
 // It uses the gh CLI to delete old workflow runs, artifacts, and caches.
 //

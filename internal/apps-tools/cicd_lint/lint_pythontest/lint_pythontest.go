@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package lint_pythontest provides linting for Python test files in CI/CD pipelines.
 // Sub-linters validate Python test files for cryptoutil project standards.
 package lint_pythontest

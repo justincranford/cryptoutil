@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package health_path_completeness verifies that all services document all
 // required health endpoint paths. Each service must reference all five standard
 // health paths: /service/api/v1/health, /browser/api/v1/health,

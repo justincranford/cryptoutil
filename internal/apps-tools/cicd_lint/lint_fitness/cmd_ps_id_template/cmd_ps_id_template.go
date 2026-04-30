@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package cmd_ps_id_template verifies that every cmd/{PS-ID}/main.go entry point:
 //  1. Exists at cmd/{PS-ID}/main.go.
 //  2. Contains "package main".

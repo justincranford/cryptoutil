@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package duplicate_ps_id_test_func_names detects test function names that appear in
 // multiple PS-ID server packages, indicating boilerplate that should be extracted into
 // a parameterised framework helper instead of being copied across services.

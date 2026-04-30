@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package deployment_dir_completeness validates that every product-service in the
 // canonical entity registry has all required files under deployments/{PS-ID}/:
 //   - Dockerfile

@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package magic_usage verifies that magic constants are properly defined and used in magic files.
 package magic_usage
 

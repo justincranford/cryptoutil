@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package admin_port_exposure checks Docker Compose files for admin port exposure.
 package admin_port_exposure
 

@@ -1,4 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
+// Copyright (c) 2025-2026 Justin Cranford.
 //
 // Tests for RunAuthContracts using a mock TLS server with auth-protected routes.
 package contract

@@ -1,4 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
+// Copyright (c) 2025-2026 Justin Cranford.
 //
 
 // Unit tests for skeleton-template server NewFromConfig validation.

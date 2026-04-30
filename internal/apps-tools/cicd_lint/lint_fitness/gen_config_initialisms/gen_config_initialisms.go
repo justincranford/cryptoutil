@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package gen_config_initialisms validates that all openapi-gen_config_server.yaml files
 // contain the full canonical base initialisms list defined in ENG-HANDBOOK.md Section 8.1.4.
 package gen_config_initialisms

@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package magic_e2e_container_names validates that E2E container name magic constants
 // in internal/shared/magic/ match the expected compose service names.
 //

@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package cross_service_import_isolation verifies that no service package imports
 // another product's service internal package. This enforces product boundary
 // isolation: service code in product A must not import internal packages

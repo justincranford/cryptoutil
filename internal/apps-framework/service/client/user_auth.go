@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package client provides reusable client utilities for all cryptoutil services.
 // Extracted from E2E testing helpers to support client implementations.
 package client

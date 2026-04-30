@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package github_actions validates GitHub workflow files for outdated actions.
 package github_actions
 

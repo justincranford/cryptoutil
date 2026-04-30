@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package otlp_service_name_pattern validates that service config files use the
 // canonical otlp-service naming convention:
 //   - Standalone: {ps-id}-sqlite.yml  -> {ps-id}-sqlite-1

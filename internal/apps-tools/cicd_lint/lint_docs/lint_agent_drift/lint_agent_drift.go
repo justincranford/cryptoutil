@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package lint_agent_drift validates that every Copilot agent file in
 // .github/agents/ has a matching Claude Code agent in .claude/agents/ with
 // identical description, argument-hint, and body. Only the name prefix

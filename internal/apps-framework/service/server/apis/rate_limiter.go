@@ -1,4 +1,4 @@
-// Copyright (c) 2025 Justin Cranford.
+// Copyright (c) 2025-2026 Justin Cranford.
 // Licensed under the MIT License. See LICENSE file in the project root for license information.
 
 // Package apis provides HTTP handlers and routing for template service APIs.

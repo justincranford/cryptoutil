@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package crypto — additional coverage tests for jose message utilities.
 // Covers: wrong JWK type for sign/encrypt/decrypt, ExtractKidAlg malformed headers, mixed enc/alg.
 package crypto

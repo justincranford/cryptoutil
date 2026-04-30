@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package lint_golangci provides validation for golangci-lint configuration files.
 // Validates that .golangci.yml uses v2 schema and detects deprecated v1 options.
 package golangci_config

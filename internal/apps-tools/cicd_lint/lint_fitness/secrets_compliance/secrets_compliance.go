@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package secrets_compliance validates that all deployments/ secrets directories
 // contain the expected set of secret files per ENG-HANDBOOK.md Section 13.3
 // and the Decision 14 template structure.

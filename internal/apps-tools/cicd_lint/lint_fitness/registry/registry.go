@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package registry defines the canonical entity registry for all cryptoutil products,
 // product-services, and suites. This is the single source of truth for structural
 // conventions. Fitness linters use this registry to detect drift.

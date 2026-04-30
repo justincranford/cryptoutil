@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package entity_registry_schema validates the structural correctness of the
 // canonical entity registry YAML file (api/cryptosuite-registry/registry.yaml).
 //

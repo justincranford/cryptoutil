@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package compose_entrypoint_uniformity validates that every PS-ID Docker Compose app
 // service uses the canonical shell-form command structure defined in ENG-HANDBOOK.md §12.3.5.
 //

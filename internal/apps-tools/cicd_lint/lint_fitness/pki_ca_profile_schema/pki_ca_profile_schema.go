@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package pki_ca_profile_schema validates the structural correctness of all
 // PKI-CA certificate profile YAML files in configs/pki-ca/profiles/.
 //

@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package health_endpoint_presence verifies that all services register
 // health check endpoints. Services must reference livez, readyz, and health
 // paths to satisfy the ENG-HANDBOOK.md Section 5.5 health check pattern.

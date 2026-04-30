@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package no_postgres_in_non_e2e enforces that PostgreSQL test containers are only used in E2E tests.
 // Unit tests and integration tests MUST use testdb.NewInMemorySQLiteDB() instead.
 // PostgreSQL containers are allowed only in files ending with _e2e_test.go or containing //go:build e2e.

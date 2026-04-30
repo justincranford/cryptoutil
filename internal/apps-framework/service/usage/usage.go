@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package usage provides shared builder functions for PS-ID CLI usage strings.
 // All 10 PS-ID services and their product-level wrappers use these helpers to
 // eliminate const-redefine linter violations that arise when the same usage

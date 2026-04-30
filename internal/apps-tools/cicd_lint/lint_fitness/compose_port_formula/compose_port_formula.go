@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package compose_port_formula validates that Docker Compose port bindings follow
 // the canonical formula: host_port = base_port + tier_offset + variant_offset.
 //

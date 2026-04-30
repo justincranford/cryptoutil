@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package admin_bind_address verifies that admin/private server bindings use
 // 127.0.0.1 (loopback), not 0.0.0.0. The admin port must never be exposed
 // publicly. See ENG-HANDBOOK.md Section 5.3: admin binds to 127.0.0.1.

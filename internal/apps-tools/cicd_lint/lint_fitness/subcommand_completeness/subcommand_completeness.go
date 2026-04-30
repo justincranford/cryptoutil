@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package subcommand_completeness validates that all registry-declared product-services
 // use the standard RouteService framework, which guarantees the mandatory subcommands
 // (server, client, init, health, livez, readyz, shutdown) are all present.

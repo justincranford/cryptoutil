@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package compose_tier_override_integrity validates tier-level compose override invariants:
 // 1. Forbidden builder service definitions are not reintroduced at PRODUCT/SUITE levels.
 // 2. PRODUCT/SUITE compose files override all required postgres secrets.

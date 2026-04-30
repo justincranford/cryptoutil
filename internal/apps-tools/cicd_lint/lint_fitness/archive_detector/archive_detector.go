@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package archive_detector enforces that archived or orphaned directories
 // do not exist in the repository. Directories named "_archived/", "archived/",
 // or "orphaned/" represent dead code and must be removed per the Archive and

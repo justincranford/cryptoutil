@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package compose_header_format validates that every product-service compose.yml
 // has the correct comment header:
 //   - Line 3 (1-indexed): "# {PS-ID-UPPER} Docker Compose Configuration"

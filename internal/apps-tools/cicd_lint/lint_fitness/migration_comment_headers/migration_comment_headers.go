@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package migration_comment_headers validates that every domain migration file
 // (number 2001+) has the canonical comment header on its first non-blank line.
 //

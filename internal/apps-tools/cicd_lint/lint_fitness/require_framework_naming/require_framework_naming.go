@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package require_framework_naming prevents regression to the old
 // internal/apps/template/ import path. After the framework rename
 // (internal/apps/template/ -> internal/apps/framework/ -> internal/apps-framework/), any Go file

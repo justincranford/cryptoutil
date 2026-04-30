@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package ra provides Registration Authority (RA) workflow services.
 // The RA handles certificate request validation, approval workflows,
 // and acts as an intermediary between end-entities and the CA.

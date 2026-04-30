@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package lint_gotest_real_http_server enforces that test files do not use
 // httptest.NewServer to start real HTTP listeners when testing service handlers.
 // Per ENG-HANDBOOK.md §10.2, handler tests must use Fiber's app.Test() (in-memory,

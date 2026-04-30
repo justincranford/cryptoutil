@@ -1,4 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
+// Copyright (c) 2025-2026 Justin Cranford.
 //
 // Tests for RunContractTests - verifies the full contract suite against the test server.
 package contract

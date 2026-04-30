@@ -1,4 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
+// Copyright (c) 2025-2026 Justin Cranford.
 //
 
 // Package assertions provides reusable HTTP response assertion helpers for cryptoutil service tests.

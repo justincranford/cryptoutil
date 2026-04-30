@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package apps_ps_id_required_files verifies that every PS-ID directory under
 // internal/apps/{PS-ID}/ contains the required entry file ({SERVICE}.go) and
 // usage file ({SERVICE}_usage.go). Uses the canonical registry so new PS-IDs

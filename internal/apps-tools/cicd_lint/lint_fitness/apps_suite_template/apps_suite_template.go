@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package apps_suite_template verifies that the suite directory under internal/apps/{SUITE}/
 // conforms to the canonical MANIFEST.yaml template. The template is read at runtime from
 // api/cryptosuite-registry/templates/internal/apps/__SUITE__/MANIFEST.yaml.

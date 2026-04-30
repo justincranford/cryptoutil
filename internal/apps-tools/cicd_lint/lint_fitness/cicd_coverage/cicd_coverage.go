@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package cicd_coverage validates that all cicd linter and formatter commands
 // are covered in both the pre-commit configuration and the CI workflow.
 // This ensures no command is accidentally omitted from either local or CI enforcement.

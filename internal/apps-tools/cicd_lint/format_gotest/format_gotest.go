@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package format_gotest provides Go test file formatting utilities for CICD workflows.
 package format_gotest
 

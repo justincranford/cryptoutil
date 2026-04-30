@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package server provides the identity-spa server implementation.
 // SPA serves static files for the Single Page Application frontend (reference implementation).
 package server

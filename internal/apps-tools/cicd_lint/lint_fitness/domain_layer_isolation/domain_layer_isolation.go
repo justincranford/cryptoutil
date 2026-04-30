@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package domain_layer_isolation verifies that domain/ packages do not import
 // server/, client/, or api/ packages. Domain packages contain business logic
 // and must not depend on delivery-layer concerns.

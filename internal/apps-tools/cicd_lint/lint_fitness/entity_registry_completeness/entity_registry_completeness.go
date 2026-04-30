@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package entity_registry_completeness validates that every product-service in the
 // canonical entity registry has the required structural components on disk:
 //   - deployments/{PS-ID}/ directory
