@@ -62,14 +62,14 @@ func TestCheckInDirWithYear_DetectsSPDXMismatch(t *testing.T) {
 	require.Contains(t, err.Error(), "AGPL-3.0-only")
 }
 
-func TestCheckInDirWithYear_DetectsStaleYear(t *testing.T) {
+func TestCheckInDirWithYear_StaleYearAllowed(t *testing.T) {
 	t.Parallel()
 
 	tmpDir := t.TempDir()
 	currentYear := time.Now().UTC().Year()
 	staleYear := currentYear - 1
 
-	badFile := filepath.Join(tmpDir, "bad_year.go")
+	filePath := filepath.Join(tmpDir, "stale_year.go")
 	content := strings.Join([]string{
 		"// Copyright (c) " + intToString(staleYear) + " Justin Cranford.",
 		"// SPDX-License-Identifier: AGPL-3.0-only",
@@ -78,7 +78,30 @@ func TestCheckInDirWithYear_DetectsStaleYear(t *testing.T) {
 		"",
 	}, "\n")
 
-	require.NoError(t, os.WriteFile(badFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions))
+	require.NoError(t, os.WriteFile(filePath, []byte(content), cryptoutilSharedMagic.CacheFilePermissions))
+
+	logger := cryptoutilCmdCicdCommon.NewLogger("source-header-policy-test")
+	err := checkInDirWithYear(logger, tmpDir, currentYear)
+	require.NoError(t, err)
+}
+
+func TestCheckInDirWithYear_FutureYearRejected(t *testing.T) {
+	t.Parallel()
+
+	tmpDir := t.TempDir()
+	currentYear := time.Now().UTC().Year()
+	futureYear := currentYear + 1
+
+	filePath := filepath.Join(tmpDir, "future_year.go")
+	content := strings.Join([]string{
+		"// Copyright (c) 2025-" + intToString(futureYear) + " Justin Cranford.",
+		"// SPDX-License-Identifier: AGPL-3.0-only",
+		"",
+		"package example",
+		"",
+	}, "\n")
+
+	require.NoError(t, os.WriteFile(filePath, []byte(content), cryptoutilSharedMagic.CacheFilePermissions))
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("source-header-policy-test")
 	err := checkInDirWithYear(logger, tmpDir, currentYear)

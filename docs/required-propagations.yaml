@@ -55,6 +55,13 @@ required_propagations:
     required_targets:
       - .github/instructions/04-01.deployment.instructions.md
 
+  - chunk_id: cicd-bulk-hook-architecture
+    source_file: docs/ENG-HANDBOOK.md
+    required_targets:
+      - .github/instructions/03-05.linting.instructions.md
+      - .github/agents/beast-mode.agent.md
+      - .claude/agents/beast-mode.md
+
   - chunk_id: conventional-commits
     source_file: docs/ENG-HANDBOOK.md
     required_targets:

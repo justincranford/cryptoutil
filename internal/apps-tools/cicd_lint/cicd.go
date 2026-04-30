@@ -11,6 +11,7 @@ import (
 	"io"
 	"os"
 	"strings"
+	"sync"
 	"time"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps-tools/cicd_lint/common"
@@ -103,7 +104,8 @@ func getExtraArgs(args []string) []string {
 }
 
 // run executes the specified CI/CD check commands.
-// Commands are executed sequentially, collecting results for each.
+// lint-* commands execute concurrently (read-only), then format-* commands execute
+// serially (read-write), then script commands execute serially.
 // When quiet is true, verbose per-file output is suppressed; one PASS/FAIL line is printed per command.
 // Returns an error if any command fails, but continues executing all commands.
 func run(commands []string, extraArgs []string, quiet bool) error {
@@ -137,66 +139,46 @@ func run(commands []string, extraArgs []string, quiet bool) error {
 
 	logger.Log(fmt.Sprintf("Executing %d commands", len(actualCommands)))
 
-	// Execute all commands and collect results.
+	resultsByCommand := make(map[string]cryptoutilCmdCicdCommon.CommandResult, len(actualCommands))
+
+	lintCommands := collectCommandsByType(actualCommands, commandTypeLint)
+	if len(lintCommands) > 0 {
+		logger.Log(fmt.Sprintf("Executing %d lint command(s) concurrently", len(lintCommands)))
+
+		lintResults := runConcurrentCommands(logger, lintCommands, filesByExtension, extraArgs)
+		for command, result := range lintResults {
+			resultsByCommand[command] = result
+		}
+	}
+
+	formatCommands := collectCommandsByType(actualCommands, commandTypeFormat)
+	if len(formatCommands) > 0 {
+		logger.Log(fmt.Sprintf("Executing %d format command(s) serially", len(formatCommands)))
+
+		formatResults := runSerialCommands(logger, formatCommands, filesByExtension, extraArgs)
+		for command, result := range formatResults {
+			resultsByCommand[command] = result
+		}
+	}
+
+	scriptCommands := collectCommandsByType(actualCommands, commandTypeScript)
+	if len(scriptCommands) > 0 {
+		logger.Log(fmt.Sprintf("Executing %d script command(s) serially", len(scriptCommands)))
+
+		scriptResults := runSerialCommands(logger, scriptCommands, filesByExtension, extraArgs)
+		for command, result := range scriptResults {
+			resultsByCommand[command] = result
+		}
+	}
+
 	results := make([]cryptoutilCmdCicdCommon.CommandResult, 0, len(actualCommands))
 
 	for i, command := range actualCommands {
-		cmdStart := time.Now().UTC()
+		result := resultsByCommand[command]
+		results = append(results, result)
 
-		logger.Log(fmt.Sprintf("Executing command %d/%d: %s", i+1, len(actualCommands), command))
-
-		var cmdErr error
-
-		switch command {
-		case cmdLintText:
-			cmdErr = cryptoutilCmdCicdLintText.Lint(logger, filesByExtension)
-		case cmdLintGo:
-			cmdErr = cryptoutilCmdCicdLintGo.Lint(logger)
-		case cmdLintCompose:
-			cmdErr = cryptoutilCmdCicdLintCompose.Lint(logger, filesByExtension)
-		case cmdFormatGo:
-			cmdErr = cryptoutilCmdCicdFormatGo.Format(logger, filesByExtension)
-		case cmdLintGoTest:
-			cmdErr = cryptoutilCmdCicdLintGotest.Lint(logger, filesByExtension)
-		case cmdFormatGoTest:
-			cmdErr = cryptoutilCmdCicdFormatGotest.Format(logger)
-		case cmdLintWorkflow:
-			cmdErr = cryptoutilCmdCicdLintWorkflow.Lint(logger, filesByExtension)
-		case cmdLintGoMod:
-			cmdErr = cryptoutilCmdCicdLintGoMod.Lint(logger)
-		case cmdLintPorts:
-			cmdErr = cryptoutilCmdCicdLintPorts.Lint(logger, filesByExtension)
-		case cmdLintGolangci:
-			cmdErr = cryptoutilCmdCicdLintGolangci.Lint(logger, filesByExtension)
-		case cmdLintDocs:
-			cmdErr = cryptoutilLintDocs.Lint(logger)
-		case cmdLintDeployments:
-			cmdErr = cryptoutilLintDeployments.Lint(logger)
-		case cmdLintFitness:
-			cmdErr = cryptoutilLintFitness.Lint(logger)
-		case cmdLintOpenAPI:
-			cmdErr = cryptoutilCmdCicdLintOpenAPI.Lint(logger, filesByExtension)
-		case cmdLintJavaTest:
-			cmdErr = cryptoutilCmdCicdLintJavaTest.Lint(logger, filesByExtension)
-		case cmdLintPythonTest:
-			cmdErr = cryptoutilCmdCicdLintPythonTest.Lint(logger, filesByExtension)
-
-		case cmdGitHubCleanup:
-			cmdErr = cryptoutilGitHubCleanup.Cleanup(logger, extraArgs)
-		}
-
-		cmdDuration := time.Since(cmdStart)
-		results = append(results, cryptoutilCmdCicdCommon.CommandResult{
-			Command:  command,
-			Duration: cmdDuration,
-			Error:    cmdErr,
-		})
-
-		logger.Log(fmt.Sprintf("Command '%s' completed in %.2fs", command, cmdDuration.Seconds()))
-
-		// In quiet mode: print one-line summary per command.
 		if quiet {
-			if cmdErr == nil {
+			if result.Error == nil {
 				if commandNeedsFiles(command) {
 					fmt.Fprintf(os.Stderr, cryptoutilSharedMagic.CICDQuietPassFormat, command, totalFileCount)
 				} else {
@@ -207,7 +189,6 @@ func run(commands []string, extraArgs []string, quiet bool) error {
 			}
 		}
 
-		// Add a separator between multiple commands (verbose mode only).
 		if !quiet && i < len(actualCommands)-1 {
 			cryptoutilCmdCicdCommon.PrintCommandSeparator(os.Stderr)
 		}
@@ -229,6 +210,145 @@ func run(commands []string, extraArgs []string, quiet bool) error {
 	logger.Log("Run completed successfully")
 
 	return nil
+}
+
+type cmdType int
+
+const (
+	commandTypeLint cmdType = iota
+	commandTypeFormat
+	commandTypeScript
+)
+
+func classifyCommand(command string) cmdType {
+	switch {
+	case strings.HasPrefix(command, "lint-"):
+		return commandTypeLint
+	case strings.HasPrefix(command, "format-"):
+		return commandTypeFormat
+	default:
+		return commandTypeScript
+	}
+}
+
+func collectCommandsByType(commands []string, expectedType cmdType) []string {
+	selected := make([]string, 0, len(commands))
+
+	for _, command := range commands {
+		if classifyCommand(command) == expectedType {
+			selected = append(selected, command)
+		}
+	}
+
+	return selected
+}
+
+func runConcurrentCommands(
+	logger *cryptoutilCmdCicdCommon.Logger,
+	commands []string,
+	filesByExtension map[string][]string,
+	extraArgs []string,
+) map[string]cryptoutilCmdCicdCommon.CommandResult {
+	results := make(map[string]cryptoutilCmdCicdCommon.CommandResult, len(commands))
+
+	var (
+		mu sync.Mutex
+		wg sync.WaitGroup
+	)
+
+	for _, command := range commands {
+		wg.Add(1)
+
+		go func(cmd string) {
+			defer wg.Done()
+
+			result := executeCommand(logger, cmd, filesByExtension, extraArgs)
+
+			mu.Lock()
+
+			results[cmd] = result
+
+			mu.Unlock()
+		}(command)
+	}
+
+	wg.Wait()
+
+	return results
+}
+
+func runSerialCommands(
+	logger *cryptoutilCmdCicdCommon.Logger,
+	commands []string,
+	filesByExtension map[string][]string,
+	extraArgs []string,
+) map[string]cryptoutilCmdCicdCommon.CommandResult {
+	results := make(map[string]cryptoutilCmdCicdCommon.CommandResult, len(commands))
+
+	for _, command := range commands {
+		results[command] = executeCommand(logger, command, filesByExtension, extraArgs)
+	}
+
+	return results
+}
+
+func executeCommand(
+	logger *cryptoutilCmdCicdCommon.Logger,
+	command string,
+	filesByExtension map[string][]string,
+	extraArgs []string,
+) cryptoutilCmdCicdCommon.CommandResult {
+	cmdStart := time.Now().UTC()
+
+	logger.Log(fmt.Sprintf("Executing command: %s", command))
+
+	var cmdErr error
+
+	switch command {
+	case cmdLintText:
+		cmdErr = cryptoutilCmdCicdLintText.Lint(logger, filesByExtension)
+	case cmdLintGo:
+		cmdErr = cryptoutilCmdCicdLintGo.Lint(logger)
+	case cmdLintCompose:
+		cmdErr = cryptoutilCmdCicdLintCompose.Lint(logger, filesByExtension)
+	case cmdFormatGo:
+		cmdErr = cryptoutilCmdCicdFormatGo.Format(logger, filesByExtension)
+	case cmdLintGoTest:
+		cmdErr = cryptoutilCmdCicdLintGotest.Lint(logger, filesByExtension)
+	case cmdFormatGoTest:
+		cmdErr = cryptoutilCmdCicdFormatGotest.Format(logger)
+	case cmdLintWorkflow:
+		cmdErr = cryptoutilCmdCicdLintWorkflow.Lint(logger, filesByExtension)
+	case cmdLintGoMod:
+		cmdErr = cryptoutilCmdCicdLintGoMod.Lint(logger)
+	case cmdLintPorts:
+		cmdErr = cryptoutilCmdCicdLintPorts.Lint(logger, filesByExtension)
+	case cmdLintGolangci:
+		cmdErr = cryptoutilCmdCicdLintGolangci.Lint(logger, filesByExtension)
+	case cmdLintDocs:
+		cmdErr = cryptoutilLintDocs.Lint(logger)
+	case cmdLintDeployments:
+		cmdErr = cryptoutilLintDeployments.Lint(logger)
+	case cmdLintFitness:
+		cmdErr = cryptoutilLintFitness.Lint(logger)
+	case cmdLintOpenAPI:
+		cmdErr = cryptoutilCmdCicdLintOpenAPI.Lint(logger, filesByExtension)
+	case cmdLintJavaTest:
+		cmdErr = cryptoutilCmdCicdLintJavaTest.Lint(logger, filesByExtension)
+	case cmdLintPythonTest:
+		cmdErr = cryptoutilCmdCicdLintPythonTest.Lint(logger, filesByExtension)
+	case cmdGitHubCleanup:
+		cmdErr = cryptoutilGitHubCleanup.Cleanup(logger, extraArgs)
+	}
+
+	cmdDuration := time.Since(cmdStart)
+	logger.Log(fmt.Sprintf("Command '%s' completed in %.2fs", command, cmdDuration.Seconds()))
+
+	return cryptoutilCmdCicdCommon.CommandResult{
+		Command:  command,
+		Duration: cmdDuration,
+		Error:    cmdErr,
+	}
 }
 
 // countFiles returns the total number of files across all extensions.

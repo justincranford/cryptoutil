@@ -3494,6 +3494,29 @@ internal/apps-tools/cicd_lint/
 
 **Rationale**: The single source of truth is `docs/ENG-HANDBOOK.md` (prose). Its invariants are codified by a combination of pre-commit and pre-push hooks, including many `cicd-lint` subcommands. This strategy means ENG-HANDBOOK.md drives the repository, not generated files that can drift from the prose.
 
+#### 9.10.7 Bulk Hook Execution Model (MANDATORY)
+
+<!-- @propagate to=".github/instructions/03-05.linting.instructions.md, .github/agents/beast-mode.agent.md, .claude/agents/beast-mode.md" as="cicd-bulk-hook-architecture" -->
+`cicd-lint` command execution and `.pre-commit-config.yaml` wiring MUST follow this architecture:
+
+1. **Four bulk cicd hooks only** in `.pre-commit-config.yaml`:
+- `pre-commit` lint-only bulk call
+- `pre-commit` format-only bulk call
+- `pre-push` lint-only bulk call
+- `pre-push` format-only bulk call
+1. **Mutual exclusivity**: lint bulk calls MUST include only `lint-*` commands; format bulk calls MUST include only `format-*` commands.
+2. **Coverage**: Every `lint-*` and `format-*` command in `ValidCommands` MUST appear in at least one corresponding bulk hook.
+3. **Concurrency model**:
+- `lint-*` commands are read-only and MUST execute concurrently.
+- `format-*` commands are read-write and MUST execute serially.
+1. **Pre-commit hook flags**:
+- lint bulk hooks MUST use `require_serial: false`
+- format bulk hooks MUST use `require_serial: true`
+1. **Enforcement**: `lint-fitness` sub-linter `precommit-cicd-architecture` is authoritative and MUST fail on any drift.
+
+**Rationale**: This prevents cross-category races (read-only lint vs mutating format), preserves deterministic developer workflows, and ensures new cicd subcommands cannot be added without being wired into bulk hooks.
+<!-- @/propagate -->
+
 ---
 
 ### 9.11 Architecture Fitness Functions

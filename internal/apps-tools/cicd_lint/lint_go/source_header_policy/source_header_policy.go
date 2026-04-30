@@ -40,7 +40,7 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 }
 
 func checkInDirWithYear(logger *cryptoutilCmdCicdCommon.Logger, rootDir string, currentYear int) error {
-	logger.Log("Checking source header policy for SPDX and copyright year drift...")
+	logger.Log("Checking source header policy for SPDX and copyright format drift...")
 
 	violations, err := findViolations(rootDir, currentYear)
 	if err != nil {
@@ -122,12 +122,12 @@ func checkFile(path string, currentYear int) ([]string, error) {
 		if parseErr != nil {
 			violations = append(violations, fmt.Sprintf("%s: invalid copyright header years: %v", path, parseErr))
 		} else {
-			if endYear < currentYear {
-				violations = append(violations, fmt.Sprintf("%s: copyright year range ends at %d; current year is %d", path, endYear, currentYear))
-			}
-
 			if startYear > endYear {
 				violations = append(violations, fmt.Sprintf("%s: copyright year range start %d is greater than end %d", path, startYear, endYear))
+			}
+
+			if endYear > currentYear {
+				violations = append(violations, fmt.Sprintf("%s: copyright year range ends at %d; current year is %d", path, endYear, currentYear))
 			}
 		}
 	}

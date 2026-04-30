@@ -350,12 +350,13 @@ sub_linters:
     description: Validates that service packages follow the required internal layer structure.
     category: architecture
 
-  - name: source-header-policy
-    directory: source_header_policy
+  - name: precommit-cicd-architecture
+    directory: precommit_cicd_architecture
     description: >-
-      Validates Go source header policy: SPDX identifier must be AGPL-3.0-only when present,
-      and copyright year ranges must include the current year.
-    category: style
+      Validates .pre-commit-config.yaml bulk cicd hook architecture: exactly one lint-only
+      and one format-only hook per pre-commit/pre-push stage, with complete command coverage,
+      lint concurrency safety, and formatter serial execution.
+    category: architecture
 
   - name: standalone-config-otlp-names
     directory: standalone_config_otlp_names

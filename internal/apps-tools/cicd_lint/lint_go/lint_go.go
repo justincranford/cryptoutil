@@ -12,6 +12,7 @@ import (
 	lintGoMagicDuplicates "cryptoutil/internal/apps-tools/cicd_lint/lint_go/magic_duplicates"
 	lintGoMagicUsage "cryptoutil/internal/apps-tools/cicd_lint/lint_go/magic_usage"
 	lintGoNoUnaliasedCryptoutilImports "cryptoutil/internal/apps-tools/cicd_lint/lint_go/no_unaliased_cryptoutil_imports"
+	lintGoSourceHeaderPolicy "cryptoutil/internal/apps-tools/cicd_lint/lint_go/source_header_policy"
 	lintGoTestPresence "cryptoutil/internal/apps-tools/cicd_lint/lint_go/test_presence"
 )
 
@@ -30,6 +31,7 @@ var registeredLinters = []struct {
 	{"magic-duplicates", lintGoMagicDuplicates.Check},
 	{"magic-usage", lintGoMagicUsage.Check},
 	{"no-unaliased-cryptoutil-imports", lintGoNoUnaliasedCryptoutilImports.Check},
+	{"source-header-policy", lintGoSourceHeaderPolicy.Check},
 	{"test-presence", lintGoTestPresence.Check},
 }
 

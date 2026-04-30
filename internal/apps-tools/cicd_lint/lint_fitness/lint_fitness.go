@@ -76,6 +76,7 @@ import (
 	lintFitnessOTLPServiceNamePattern "cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/otlp_service_name_pattern"
 	lintFitnessParallelTests "cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/parallel_tests"
 	lintFitnessPKICAProfileSchema "cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/pki_ca_profile_schema"
+	lintFitnessPrecommitCICDArchitecture "cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/precommit_cicd_architecture"
 	lintFitnessProductStructure "cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/product_structure"
 	lintFitnessProductWiring "cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/product_wiring"
 	lintFitnessRequireAPIDir "cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/require_api_dir"
@@ -86,7 +87,6 @@ import (
 	lintFitnessSecretsCompliance "cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/secrets_compliance"
 	lintFitnessServiceContractCompliance "cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/service_contract_compliance"
 	lintFitnessServiceStructure "cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/service_structure"
-	lintFitnessSourceHeaderPolicy "cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/source_header_policy"
 	lintFitnessStandaloneConfigOTLPNames "cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/standalone_config_otlp_names"
 	lintFitnessStandaloneConfigPresence "cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/standalone_config_presence"
 	lintFitnessSubcommandCompleteness "cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/subcommand_completeness"
@@ -204,7 +204,7 @@ var registeredLinters = []struct {
 	{"config-instance-minimal", lintFitnessConfigRules.CheckInstanceMinimal},
 	{"config-common-complete", lintFitnessConfigRules.CheckCommonComplete},
 	{"config-tls-ca-policy-coupling", lintFitnessConfigRules.CheckTLSCAPolicyCoupling},
-	{"source-header-policy", lintFitnessSourceHeaderPolicy.Check},
+	{"precommit-cicd-architecture", lintFitnessPrecommitCICDArchitecture.Check},
 	// New fitness checks (added for if-else chain enforcement).
 	{"if-else-chain", lintFitnessIfElseChain.Check},
 	// New fitness checks (added for PS-ID framework boilerplate migration).

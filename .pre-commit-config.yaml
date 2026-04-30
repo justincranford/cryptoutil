@@ -25,16 +25,6 @@ repos:
         require_serial: true
         stages: [pre-push]
 
-      # Check Go direct dependency versions (expensive - network calls)
-      - id: lint-go-mod
-        name: Check Go direct dependency updates
-        entry: go
-        args: [run, cmd/cicd-lint/main.go, lint-go-mod]
-        language: system
-        pass_filenames: false
-        require_serial: true
-        stages: [pre-push]
-
       # Go build validation (expensive - network calls)
       - id: go-build
         name: go build
@@ -211,13 +201,12 @@ repos:
         name: Fix mixed line endings
         require_serial: false
 
-  # Custom CI/CD lint checks — ONE hook for ALL linters.
-  # Linters are read-only and support concurrency; no files: filter (linters handle own scanning).
-  # DO NOT split into per-linter hooks or add files: filters — linters own their file scanning.
+  # Custom CI/CD lint checks — ONE bulk hook per stage for ALL linters.
+  # Linters are read-only and concurrency-safe.
   - repo: local
     hooks:
-      - id: cicd-lint-all
-        name: Run custom CI/CD lint checks
+      - id: cicd-lint-all-pre-commit
+        name: Run custom CI/CD lint checks (pre-commit)
         entry: go
         args: [run, cmd/cicd-lint/main.go, -q, lint-fitness, lint-text, lint-go, lint-go-test, lint-golangci, lint-compose, lint-openapi, lint-ports, lint-workflow, lint-deployments, lint-docs, lint-java-test, lint-python-test]
         language: system
@@ -225,28 +214,36 @@ repos:
         require_serial: false  # linters are read-only and support concurrency
         stages: [pre-commit]
 
-  # Custom CI/CD formatters — each formatter is a separate hook (read-write, must be serial).
-  # Formatters are read-write; require_serial: true prevents concurrent writes.
-  # DO NOT merge formatters into the linter hook or set require_serial: false.
+      - id: cicd-lint-all-pre-push
+        name: Run custom CI/CD lint checks (pre-push)
+        entry: go
+        args: [run, cmd/cicd-lint/main.go, -q, lint-fitness, lint-text, lint-go, lint-go-test, lint-go-mod, lint-golangci, lint-compose, lint-openapi, lint-ports, lint-workflow, lint-deployments, lint-docs, lint-java-test, lint-python-test]
+        language: system
+        pass_filenames: false  # linters handle file scanning internally; no filenames needed
+        require_serial: false  # linters are read-only and support concurrency
+        stages: [pre-push]
+
+  # Custom CI/CD formatters — ONE bulk hook per stage for ALL formatters.
+  # Formatters are read-write and must remain serial.
   - repo: local
     hooks:
-      - id: cicd-format-go
-        name: Run custom CI/CD format checks
+      - id: cicd-format-all-pre-commit
+        name: Run custom CI/CD format checks (pre-commit)
         entry: go
-        args: [run, cmd/cicd-lint/main.go, -q, format-go]
+        args: [run, cmd/cicd-lint/main.go, -q, format-go, format-go-test]
         language: system
         pass_filenames: false  # formatters handle file scanning internally; no filenames needed
         require_serial: true   # formatters are read-write; must run sequentially to avoid conflicts
         stages: [pre-commit]
 
-      - id: cicd-format-go-test
-        name: Auto-fix Go test files (t.Helper)
+      - id: cicd-format-all-pre-push
+        name: Run custom CI/CD format checks (pre-push)
         entry: go
-        args: [run, cmd/cicd-lint/main.go, -q, format-go-test]
+        args: [run, cmd/cicd-lint/main.go, -q, format-go, format-go-test]
         language: system
         pass_filenames: false  # formatters handle file scanning internally; no filenames needed
         require_serial: true   # formatters are read-write; must run sequentially to avoid conflicts
-        stages: [pre-commit]
+        stages: [pre-push]
 
   # Go dependency management (clean state before linting)
   - repo: local
