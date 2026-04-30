@@ -606,14 +606,46 @@ git clone https://github.com/justincranford/cryptoutil.git
 cd cryptoutil
 ```
 
-### 2. Initialize Go Modules
+### 2. Configure Git Line Endings (one-time, per machine)
+
+This repo uses `.gitattributes * text=auto` — objects are stored as LF; working-tree
+line endings follow your platform setting.
+
+**Windows** (CRLF working tree):
+
+```bash
+git config core.autocrlf true
+```
+
+**Linux / macOS** (LF working tree):
+
+```bash
+git config core.autocrlf input
+```
+
+> **Why `input` on Linux?** `input` means "normalize CRLF → LF on commit, but never convert
+> on checkout". Combined with `text=auto`, this keeps object blobs as LF and leaves your
+> working tree as LF. Using `false` disables all conversion and can push CRLF blobs.
+>
+> **Go tooling writes LF everywhere.** `gofmt`, `gofumpt`, and `goimports` always output LF
+> regardless of platform. This is intentional and works correctly with the setup above:
+> `text=auto` normalizes the index entry to LF so `git status` stays clean after tool runs.
+>
+> **If `git status` ever shows a large dirty tree** after running `golangci-lint --fix`,
+> the index has stale line-ending metadata. Fix with:
+>
+> ```bash
+> git add --renormalize .
+> ```
+
+### 3. Initialize Go Modules
 
 ```bash
 go mod tidy
 go mod download
 ```
 
-### 3. Install Pre-commit Hooks
+### 4. Install Pre-commit Hooks
 
 ```bash
 pre-commit install
@@ -621,13 +653,13 @@ pre-commit install --hook-type commit-msg
 pre-commit install --hook-type pre-push
 ```
 
-### 4. Generate OpenAPI Code
+### 5. Generate OpenAPI Code
 
 ```bash
 go generate ./...
 ```
 
-### 5. Build and Test
+### 6. Build and Test
 
 ```bash
 # Build all packages
@@ -640,7 +672,7 @@ go test ./... -cover
 golangci-lint run --timeout=10m
 ```
 
-### 6. Verify Pre-commit Hooks
+### 7. Verify Pre-commit Hooks
 
 ```bash
 # Run all hooks on all files
