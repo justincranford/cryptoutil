@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 package cmd_ps_id_template
 
 import (
@@ -34,7 +33,7 @@ func findProjectRoot() (string, error) {
 
 // validPSIDMain returns a valid main.go content for the given PS-ID.
 func validPSIDMain(psid string) string {
-	return `// Copyright (c) 2025 Justin Cranford
+	return `// Copyright (c) 2025-2026 Justin Cranford.
 
 package main
 

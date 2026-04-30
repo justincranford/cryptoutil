@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 package cmd_suite_template
 
 import (
@@ -35,7 +34,7 @@ func findProjectRoot() (string, error) {
 // validSuiteMain returns a valid main.go content for the given suite ID.
 // Suite entry points use os.Args directly (NOT os.Args[1:]).
 func validSuiteMain(suiteID string) string {
-	return `// Copyright (c) 2025 Justin Cranford
+	return `// Copyright (c) 2025-2026 Justin Cranford.
 
 package main
 

@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package lint_fitness runs all registered architecture fitness functions.
 // Fitness functions verify that the codebase conforms to architectural
 // invariants defined in ENG-HANDBOOK.md.
@@ -87,6 +86,7 @@ import (
 	lintFitnessSecretsCompliance "cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/secrets_compliance"
 	lintFitnessServiceContractCompliance "cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/service_contract_compliance"
 	lintFitnessServiceStructure "cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/service_structure"
+	lintFitnessSourceHeaderPolicy "cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/source_header_policy"
 	lintFitnessStandaloneConfigOTLPNames "cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/standalone_config_otlp_names"
 	lintFitnessStandaloneConfigPresence "cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/standalone_config_presence"
 	lintFitnessSubcommandCompleteness "cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/subcommand_completeness"
@@ -203,6 +203,8 @@ var registeredLinters = []struct {
 	{"config-header-identity", lintFitnessConfigRules.CheckHeaderIdentity},
 	{"config-instance-minimal", lintFitnessConfigRules.CheckInstanceMinimal},
 	{"config-common-complete", lintFitnessConfigRules.CheckCommonComplete},
+	{"config-tls-ca-policy-coupling", lintFitnessConfigRules.CheckTLSCAPolicyCoupling},
+	{"source-header-policy", lintFitnessSourceHeaderPolicy.Check},
 	// New fitness checks (added for if-else chain enforcement).
 	{"if-else-chain", lintFitnessIfElseChain.Check},
 	// New fitness checks (added for PS-ID framework boilerplate migration).

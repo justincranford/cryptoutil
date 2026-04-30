@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 // Package config_rules provides supplementary rule-based linters for config files.
 // These complement the template_drift linters by enforcing cross-cutting structural
 // rules: kebab-case key naming, header identity, instance minimality, and common
@@ -349,6 +348,91 @@ func checkCommonCompleteInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir st
 	logger.Log("config-common-complete: all common configs have required keys")
 
 	return nil
+}
+
+// CheckTLSCAPolicyCoupling validates that any TLS CA file key in instance overlays
+// is paired with its corresponding TLS client-policy key.
+func CheckTLSCAPolicyCoupling(logger *cryptoutilCmdCicdCommon.Logger) error {
+	return checkTLSCAPolicyCouplingInDir(logger, ".")
+}
+
+func checkTLSCAPolicyCouplingInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
+	logger.Log("Checking TLS CA/client-policy coupling in instance overlays...")
+
+	var errs []string
+
+	for _, ps := range cryptoutilRegistry.AllProductServices() {
+		configDir := filepath.Join(rootDir, "deployments", ps.PSID, "config")
+
+		patterns := []string{
+			filepath.Join(configDir, ps.PSID+"-app-framework-sqlite-*.yml"),
+			filepath.Join(configDir, ps.PSID+"-app-framework-postgresql-*.yml"),
+		}
+
+		for _, pattern := range patterns {
+			files, err := filepath.Glob(pattern)
+			if err != nil {
+				errs = append(errs, fmt.Sprintf("%s: glob error: %s", ps.PSID, err))
+
+				continue
+			}
+
+			for _, f := range files {
+				if violations := checkTLSCAPolicyPairs(f); len(violations) > 0 {
+					relPath, _ := filepath.Rel(rootDir, f)
+					errs = append(errs, fmt.Sprintf("%s: %s", relPath, strings.Join(violations, "; ")))
+				}
+			}
+		}
+	}
+
+	if len(errs) > 0 {
+		return fmt.Errorf("config-tls-ca-policy-coupling violations:\n%s", strings.Join(errs, "\n"))
+	}
+
+	logger.Log("config-tls-ca-policy-coupling: all instance overlays pair TLS CA keys with TLS client-policy keys")
+
+	return nil
+}
+
+// checkTLSCAPolicyPairs validates TLS CA/client-policy key coupling for one instance overlay.
+func checkTLSCAPolicyPairs(path string) []string {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return []string{fmt.Sprintf("read error: %s", err)}
+	}
+
+	var config map[string]any
+
+	if err := yaml.Unmarshal(data, &config); err != nil {
+		return []string{fmt.Sprintf("parse error: %s", err)}
+	}
+
+	var violations []string
+
+	if hasNonEmptyStringKey(config, "server-admin-tls-ca-file") && !hasNonEmptyStringKey(config, "server-admin-tls-client-policy") {
+		violations = append(violations, "server-admin-tls-ca-file requires server-admin-tls-client-policy")
+	}
+
+	if hasNonEmptyStringKey(config, "server-public-tls-ca-file") && !hasNonEmptyStringKey(config, "server-public-tls-client-policy") {
+		violations = append(violations, "server-public-tls-ca-file requires server-public-tls-client-policy")
+	}
+
+	return violations
+}
+
+func hasNonEmptyStringKey(config map[string]any, key string) bool {
+	value, ok := config[key]
+	if !ok {
+		return false
+	}
+
+	text, ok := value.(string)
+	if !ok {
+		return true
+	}
+
+	return strings.TrimSpace(text) != ""
 }
 
 // checkCommonKeys parses a YAML file and returns missing required keys.

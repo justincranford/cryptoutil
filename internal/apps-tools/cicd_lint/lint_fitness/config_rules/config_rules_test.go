@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 package config_rules
 
 import (
@@ -83,6 +82,16 @@ func TestCheckCommonComplete_RealWorkspace(t *testing.T) {
 	assert.NoError(t, err, "config-common-complete should pass on real workspace")
 }
 
+func TestCheckTLSCAPolicyCoupling_RealWorkspace(t *testing.T) {
+	t.Parallel()
+
+	root := findProjectRoot(t)
+	logger := newTestLogger()
+
+	err := checkTLSCAPolicyCouplingInDir(logger, root)
+	assert.NoError(t, err, "config-tls-ca-policy-coupling should pass on real workspace")
+}
+
 // --- Public wrapper tests ---
 
 // TestCheckKeyNaming_PublicWrapper verifies the public wrapper delegates correctly.
@@ -126,6 +135,55 @@ func TestCheckCommonComplete_PublicWrapper(t *testing.T) {
 
 	err := CheckCommonComplete(logger)
 	assert.Error(t, err)
+}
+
+// TestCheckTLSCAPolicyCoupling_PublicWrapper verifies the public wrapper delegates correctly.
+// From the test package cwd, glob finds no instance configs, so the function succeeds.
+func TestCheckTLSCAPolicyCoupling_PublicWrapper(t *testing.T) {
+	t.Parallel()
+
+	logger := newTestLogger()
+
+	err := CheckTLSCAPolicyCoupling(logger)
+	assert.NoError(t, err)
+}
+
+func TestCheckTLSCAPolicyPairs_MissingPolicy(t *testing.T) {
+	t.Parallel()
+
+	tmpDir := t.TempDir()
+	filePath := filepath.Join(tmpDir, "instance.yml")
+
+	writeFile(t, filePath, strings.Join([]string{
+		"server-admin-tls-ca-file: /certs/admin-ca.crt",
+		"server-public-tls-ca-file: /certs/public-ca.crt",
+		"database-url: sqlite://file::memory:?cache=shared",
+		"", // trailing newline
+	}, "\n"))
+
+	violations := checkTLSCAPolicyPairs(filePath)
+	require.Len(t, violations, 2)
+	require.Contains(t, strings.Join(violations, "\n"), "server-admin-tls-ca-file requires server-admin-tls-client-policy")
+	require.Contains(t, strings.Join(violations, "\n"), "server-public-tls-ca-file requires server-public-tls-client-policy")
+}
+
+func TestCheckTLSCAPolicyPairs_WithPolicy(t *testing.T) {
+	t.Parallel()
+
+	tmpDir := t.TempDir()
+	filePath := filepath.Join(tmpDir, "instance.yml")
+
+	writeFile(t, filePath, strings.Join([]string{
+		"server-admin-tls-ca-file: /certs/admin-ca.crt",
+		"server-admin-tls-client-policy: require-and-verify",
+		"server-public-tls-ca-file: /certs/public-ca.crt",
+		"server-public-tls-client-policy: require-and-verify",
+		"database-url: sqlite://file::memory:?cache=shared",
+		"", // trailing newline
+	}, "\n"))
+
+	violations := checkTLSCAPolicyPairs(filePath)
+	require.Empty(t, violations)
 }
 
 // --- collectNonKebabKeys edge cases ---

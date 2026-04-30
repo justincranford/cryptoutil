@@ -27,7 +27,7 @@
 
 1. Add `server-admin-tls-client-policy` and `server-public-tls-client-policy` to all remaining PS-ID deployment overlays as new PS-IDs are onboarded (template already updated).
 2. Update skeleton-template config defaults to document that the default `TLSClientPolicy` is `none` for new services.
-3. Consider adding a lint-fitness rule that rejects deployment overlay files that have a `*-tls-ca-file` key but no corresponding `*-tls-client-policy` key to prevent future implicit-enforcement drift.
+3. Completed 2026-04-29: Added `lint-fitness` rule `config-tls-ca-policy-coupling` that rejects deployment overlay files with `*-tls-ca-file` but missing corresponding `*-tls-client-policy` key.
 4. Propagate the two-axis TLS model summary to the agent/skill files that reference TLS provisioning so they reflect the current vocabulary.
 
 ## Phase 1: Canonical Documentation Split

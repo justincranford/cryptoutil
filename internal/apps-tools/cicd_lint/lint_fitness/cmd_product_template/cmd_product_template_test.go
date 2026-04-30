@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Copyright (c) 2025-2026 Justin Cranford.
 package cmd_product_template
 
 import (
@@ -34,7 +33,7 @@ func findProjectRoot() (string, error) {
 
 // validProductMain returns a valid main.go content for the given product ID.
 func validProductMain(productID string) string {
-	return `// Copyright (c) 2025 Justin Cranford
+	return `// Copyright (c) 2025-2026 Justin Cranford.
 
 package main
 

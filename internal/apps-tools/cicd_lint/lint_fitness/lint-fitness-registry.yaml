@@ -127,7 +127,7 @@ sub_linters:
     directory: config_rules
     description: >-
       Supplementary rule-based config linters: kebab-case key naming, header identity,
-      instance config minimality, and common config completeness.
+      instance config minimality, common config completeness, and TLS CA/client-policy coupling.
     category: config
 
   - name: database-key-uniformity
@@ -349,6 +349,13 @@ sub_linters:
     directory: service_structure
     description: Validates that service packages follow the required internal layer structure.
     category: architecture
+
+  - name: source-header-policy
+    directory: source_header_policy
+    description: >-
+      Validates Go source header policy: SPDX identifier must be AGPL-3.0-only when present,
+      and copyright year ranges must include the current year.
+    category: style
 
   - name: standalone-config-otlp-names
     directory: standalone_config_otlp_names
