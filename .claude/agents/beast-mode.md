@@ -257,6 +257,35 @@ fix(tooling): fix config file padding violations
 
 **Anti-Pattern** (NEVER): One 155-file commit mixing CRLF fixes, Dockerfile tabs, .editorconfig changes, shell padding, and YAML continuation lines.
 
+<!-- @source from="docs/ENG-HANDBOOK.md" as="platform-line-ending-operations" -->
+**Policy** (MANDATORY):
+
+- **Repository storage**: Always LF (`\n`). Git normalizes on commit.
+- **Windows developers**: `git config --global core.autocrlf true` — git converts LF→CRLF on checkout, CRLF→LF on commit. Working tree has CRLF.
+- **Linux/macOS developers**: `git config --global core.autocrlf input` — git converts CRLF→LF on commit; no conversion on checkout. Working tree has LF.
+- **Local repo override BANNED**: `git config core.autocrlf false` in `.git/config` overrides the global setting and prevents CRLF working-tree checkout on Windows. NEVER set this local override.
+- **Formatter behavior (expected)**: Go formatters (`gofmt`, `gofumpt`, `goimports`) write LF line endings by design for deterministic, byte-stable output across operating systems. This is NOT a bug.
+- **JS formatter behavior (expected)**: Prettier defaults `endOfLine=lf` (since v2.0.0) for the same cross-platform reproducibility reason.
+- **Git mediation principle**: Formatter LF output and Windows CRLF checkouts are compatible when `* text=auto` is enforced. Git clean/smudge handles conversion at add/checkout boundaries.
+- **`mixed-line-ending` hook**: MUST NOT have `--fix lf` arg. Keep default "auto" mode.
+
+**To fix if local override was set**:
+
+```bash
+git config --unset core.autocrlf          # remove local override
+git config core.autocrlf                  # verify: empty = global takes effect
+git config --global core.autocrlf         # verify: true (Windows) or input (Linux)
+```
+
+**Emergency recovery for a large line-ending dirty tree**:
+
+```bash
+git add --renormalize .
+```
+
+Use this when `git status` shows a large set of text files as modified after formatter runs, checkout switches, or stash/apply cycles. `--renormalize` reapplies `.gitattributes` clean rules to index entries without manual byte conversion.
+<!-- @/source -->
+
 **Todo List Empty?**
 - ✅ Read tracking documents
 - ✅ Find next incomplete task

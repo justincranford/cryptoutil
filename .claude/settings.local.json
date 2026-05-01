@@ -1,5 +1,8 @@
 {
   "permissions": {
+    "additionalDirectories": [
+      "C:\\Users\\justi\\.claude\\projects\\c--Dev-Projects-cryptoutil\\memory"
+    ],
     "allow": [
       "Bash(git add *)",
       "Bash(git commit *)",
@@ -9,9 +12,6 @@
       "Bash(echo \"Exit: $?\")",
       "Bash(golangci-lint run *)",
       "Bash(go test *)"
-    ],
-    "additionalDirectories": [
-      "C:\\Users\\justi\\.claude\\projects\\c--Dev-Projects-cryptoutil\\memory"
     ]
   }
 }
