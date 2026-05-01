@@ -170,6 +170,13 @@ required_propagations:
     required_targets:
       - .github/instructions/02-03.observability.instructions.md
 
+  - chunk_id: platform-line-ending-operations
+    source_file: docs/ENG-HANDBOOK.md
+    required_targets:
+      - .github/instructions/05-02.git.instructions.md
+      - .github/agents/beast-mode.agent.md
+      - .claude/agents/beast-mode.md
+
   - chunk_id: quality-attributes
     source_file: docs/ENG-HANDBOOK.md
     required_targets:

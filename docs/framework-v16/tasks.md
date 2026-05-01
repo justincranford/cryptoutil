@@ -626,6 +626,7 @@ Update ENG-HANDBOOK.md, agents, skills, instructions. Verify `lint-docs` passes.
 ## Cross-Cutting Tasks
 
 ### Testing
+
 - [x] Unit tests ≥98% coverage (lifecycle 100%, usage 100% — infrastructure packages)
 - [x] Unit tests ≥95% coverage (production code — no new production code in V16)
 - [x] Integration tests pass (`go test -tags integration ./...` — all packages pass)
@@ -633,6 +634,7 @@ Update ENG-HANDBOOK.md, agents, skills, instructions. Verify `lint-docs` passes.
 - [x] Race detector clean: covered by ci-race.yml with known documented DATA RACE exception in crypto/certificate + shared/pool
 
 ### Code Quality
+
 - [x] Linting passes: `golangci-lint run ./...` (0 issues)
 - [x] Linting passes: `golangci-lint run --build-tags e2e,integration ./...` (0 issues, verified via `go build -tags e2e,integration ./...`)
 - [x] No new TODOs without tracking

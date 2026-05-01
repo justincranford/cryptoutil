@@ -3304,13 +3304,16 @@ Set-Content -Path $path -Value $content -Encoding UTF8  # ❌ BOM
 
 The repository stores files with LF line endings (`\n`). Working-tree line endings are platform-native on developer machines.
 
+<!-- @propagate to=".github/instructions/05-02.git.instructions.md, .github/agents/beast-mode.agent.md, .claude/agents/beast-mode.md" as="platform-line-ending-operations" -->
 **Policy** (MANDATORY):
 
 - **Repository storage**: Always LF (`\n`). Git normalizes on commit.
 - **Windows developers**: `git config --global core.autocrlf true` — git converts LF→CRLF on checkout, CRLF→LF on commit. Working tree has CRLF.
 - **Linux/macOS developers**: `git config --global core.autocrlf input` — git converts CRLF→LF on commit; no conversion on checkout. Working tree has LF.
 - **Local repo override BANNED**: `git config core.autocrlf false` in `.git/config` overrides the global setting and prevents CRLF working-tree checkout on Windows. NEVER set this local override.
-- **AI agent behavior**: LLMs always write `\n` (LF) regardless of platform. With `core.autocrlf=true`, files written by AI agents are LF on disk until the next `git checkout`. This is acceptable — the `mixed-line-ending` pre-commit hook (default "auto") only modifies files with **mixed** CRLF+LF content; consistently LF-only files are not touched.
+- **Formatter behavior (expected)**: Go formatters (`gofmt`, `gofumpt`, `goimports`) write LF line endings by design for deterministic, byte-stable output across operating systems. This is NOT a bug.
+- **JS formatter behavior (expected)**: Prettier defaults `endOfLine=lf` (since v2.0.0) for the same cross-platform reproducibility reason.
+- **Git mediation principle**: Formatter LF output and Windows CRLF checkouts are compatible when `* text=auto` is enforced. Git clean/smudge handles conversion at add/checkout boundaries.
 - **`mixed-line-ending` hook**: MUST NOT have `--fix lf` arg. Keep default "auto" mode.
 
 **To fix if local override was set**:
@@ -3320,6 +3323,15 @@ git config --unset core.autocrlf          # remove local override
 git config core.autocrlf                  # verify: empty = global takes effect
 git config --global core.autocrlf         # verify: true (Windows) or input (Linux)
 ```
+
+**Emergency recovery for a large line-ending dirty tree**:
+
+```bash
+git add --renormalize .
+```
+
+Use this when `git status` shows a large set of text files as modified after formatter runs, checkout switches, or stash/apply cycles. `--renormalize` reapplies `.gitattributes` clean rules to index entries without manual byte conversion.
+<!-- @/propagate -->
 
 ### 9.10 CICD Command Architecture
 
