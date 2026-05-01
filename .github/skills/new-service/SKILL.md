@@ -20,6 +20,7 @@ from copying the skeleton to registering with CI/CD.
 - Add magic constants to `internal/shared/magic/magic_psids.go`
 - Compose.yml MUST have 4 service instances (2 SQLite + 2 PostgreSQL)
 - Migration numbers MUST use PS-ID range from `api/cryptosuite-registry/registry.yaml`
+- TLS client policy: ALWAYS add `server-*-tls-client-policy` alongside any `server-*-tls-ca-file` in deployment overlays
 
 ## Service Catalog
 
@@ -87,6 +88,41 @@ done
 cp -r deployments/skeleton-template deployments/PRODUCT-SERVICE
 # Update port bindings, service name, secrets references
 ```
+
+### TLS Configuration (Two-Axis Model)
+
+Cryptoutil uses a two-axis TLS model. Understand both axes before editing deployment configs.
+
+**Axis 1 — TLSProvisionMode** (`auto` / `mixed` / `static`): controls certificate sourcing.
+This is **automatic** — no manual configuration needed for new services:
+- `auto`: no secrets provided → framework generates ephemeral certs in memory (local dev, tests)
+- `mixed`: issuing CA key provided → framework generates a leaf cert at startup
+- `static`: cert chain + private key provided → framework uses the pre-generated cert as-is
+
+**Axis 2 — TLSClientPolicy** (`none` / `request` / `require-any` / `verify-if-given` / `require-and-verify`): controls runtime client-certificate enforcement.
+This **must be set explicitly** in deployment overlay configs:
+- Default (framework config): `none` — no client certificates requested
+- Skeleton-template overlays: `require-and-verify` for both `server-public-tls-client-policy`
+  and `server-admin-tls-client-policy` — already set correctly when you copy them
+
+**Rule when copying skeleton-template overlays (Steps 5–6)**:
+The `server-*-tls-client-policy` keys come with the copy — do not remove them.
+
+**Rule when adding new `server-*-tls-ca-file` keys**:
+ALWAYS add the corresponding `server-*-tls-client-policy` key alongside it.
+The `config-tls-ca-policy-coupling` fitness linter enforces this and blocks commit.
+
+Example (from any overlay in `deployments/skeleton-template/config/`):
+```yaml
+server-admin-tls-ca-file: /certs/.../truststore/issuing-ca.crt
+server-admin-tls-client-policy: require-and-verify   # MANDATORY when ca-file present
+
+server-public-tls-ca-file: /certs/.../truststore/issuing-ca.crt
+server-public-tls-client-policy: require-and-verify  # MANDATORY when ca-file present
+```
+
+For a transitional rollout where some clients don't yet present certificates, use
+`verify-if-given` until all clients are migrated, then switch to `require-and-verify`.
 
 ### Step 7: Register in CI/CD
 
