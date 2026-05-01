@@ -261,12 +261,13 @@ fix(tooling): fix config file padding violations
 **Policy** (MANDATORY):
 
 - **Repository storage**: Always LF (`\n`). Git normalizes on commit.
-- **Windows developers**: `git config --global core.autocrlf true` — git converts LF→CRLF on checkout, CRLF→LF on commit. Working tree has CRLF.
+- **Windows developers**: `git config --global core.autocrlf true` — git converts LF→CRLF on checkout, CRLF→LF on commit. Working tree is CRLF for most files; LF for Go and crypto files (see below).
 - **Linux/macOS developers**: `git config --global core.autocrlf input` — git converts CRLF→LF on commit; no conversion on checkout. Working tree has LF.
-- **Local repo override BANNED**: `git config core.autocrlf false` in `.git/config` overrides the global setting and prevents CRLF working-tree checkout on Windows. NEVER set this local override.
-- **Formatter behavior (expected)**: Go formatters (`gofmt`, `gofumpt`, `goimports`) write LF line endings by design for deterministic, byte-stable output across operating systems. This is NOT a bug.
+- **Local repo override BANNED**: `git config core.autocrlf` in `.git/config` overrides per-developer global settings. On Linux a `true` override causes CRLF checkout; on Windows a `false` override breaks CRLF checkout. NEVER set any local repo override — always use the global (`--global`) setting.
+- **Go files always LF — everywhere**: `.gitattributes` pins `*.go text eol=lf` and `*.go.tmpl text eol=lf`. Go formatters (`gofmt`, `gofumpt`, `goimports`) write LF exclusively — Go's internal AST printer (`go/format`) uses `\n` for byte-stable, deterministic output. Without this pin, Windows CRLF checkout + gofumpt LF rewrite = perpetual dirty working tree on every formatter run. The `eol=lf` override forces LF checkout for Go files so gofumpt never creates a working-tree mismatch.
+- **Crypto files always LF**: `.gitattributes` pins `*.pem`, `*.crt`, `*.key` to `eol=lf`. OpenSSL and crypto tooling generate LF; some strict TLS parsers reject CRLF.
 - **JS formatter behavior (expected)**: Prettier defaults `endOfLine=lf` (since v2.0.0) for the same cross-platform reproducibility reason.
-- **Git mediation principle**: Formatter LF output and Windows CRLF checkouts are compatible when `* text=auto` is enforced. Git clean/smudge handles conversion at add/checkout boundaries.
+- **Git mediation principle**: `* text=auto` handles CRLF/LF for most text files (platform-native). Per-type `eol=lf` overrides in `.gitattributes` (Go, PEM, crypto) force LF even on Windows for file types where tools enforce LF internally.
 - **`mixed-line-ending` hook**: MUST NOT have `--fix lf` arg. Keep default "auto" mode.
 
 **To fix if local override was set**:
