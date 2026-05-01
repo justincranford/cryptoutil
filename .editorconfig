@@ -18,11 +18,13 @@ indent_size = 4
 # exclusively by gofmt/golangci-lint pre-commit hooks.
 [*.go]
 indent_size = 4
+end_of_line = lf
 
 # Go template files
 [*.go.tpl]
 indent_style = tab
 indent_size = 4
+end_of_line = lf
 
 # YAML configuration files (2-space indent)
 [*.{yml,yaml}]

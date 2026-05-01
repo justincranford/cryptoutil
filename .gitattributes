@@ -5,6 +5,10 @@
 *.bat text eol=crlf
 *.cmd text eol=crlf
 
+# Go source files — always LF (gofmt/gofumpt/goimports write LF by design)
+*.go text eol=lf
+*.go.tmpl text eol=lf
+
 # Crypto text files — PEM is text (RFC 7468 §2: eol = CRLF / CR / LF, parsers MUST handle all)
 # Pinned to LF: openssl and crypto tooling generates LF; some strict TLS parsers reject CRLF
 *.pem text eol=lf
