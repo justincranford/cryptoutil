@@ -24,6 +24,10 @@ b) Moved to a new `server/service/` subdirectory to complete the layered archite
 
 c) Another approach?
 
+d) server/businesslogic/ subdirectory is required for all PS-ID. the name server/service/ is too ambiguous, server/businesslogic/ is the correct name. this is where all pure business logic should go.
+
+ANSWER: D
+
 **Implication**: Option (a) is minimal-change and lower risk. Option (b) is more architecturally
 complete but requires additional import-path updates and may reveal additional test dependencies.
 
@@ -46,6 +50,10 @@ b) Create genuine HTTP handler wrappers in `server/apis/` that wrap the existing
    following the identity service handler pattern, OR
 
 c) Another approach?
+
+d) I don't know yet. I need you to compute the superset of all PS-ID server/ subdirectories, and recommend a consistent directory structure for all PS-IDs. Based on that list, I am hoping I can decide what directories are required and what directories should be renamed/replaced/refactored. Surface this in quizme-v2.md; mark one of the answers with your recommendation, and give other options, and provide option E for me to fill in with my own idea.
+
+ANSWER: D
 
 **Implication**: Option (a) passes the structural linter with minimal risk. Option (b) may require
 significant refactoring of pki-ca's server/public_server.go route registration logic. The scope
@@ -70,6 +78,10 @@ b) Create empty `server/repository/migrations/` (for structural compliance) and 
    file reorganization to a later plan, OR
 
 c) Another approach?
+
+d) I found internal\apps\pki-ca\repository-v2, but I don't know if that is the only one. This is a question should should be able to answer yourself by searching in internal\apps\pki-ca\ for any files with .sql extension, and then looking at the content of those files to confirm they are indeed SQL migration files.
+
+ANSWER: D
 
 **Implication**: Moving existing migration files may affect the golang-migrate embedded FS paths
 referenced in production code. A wrong move breaks database schema on startup.
@@ -99,6 +111,8 @@ b) Leave this for a separate plan — the linter exclusion is already in place a
    so this is cosmetic cleanup that can be deferred, OR
 
 c) Another approach?
+
+ANSWER: A
 
 **Implication**: Option (a) expands V21 scope. Option (b) keeps V21 focused on the mandatory
 structural migration (apis/, model/, repository/) and explicit tooling items.
