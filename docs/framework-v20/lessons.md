@@ -25,10 +25,10 @@
 
 ## Actions
 
-1. Add `server-admin-tls-client-policy` and `server-public-tls-client-policy` to all remaining PS-ID deployment overlays as new PS-IDs are onboarded (template already updated).
-2. Update skeleton-template config defaults to document that the default `TLSClientPolicy` is `none` for new services.
+1. Completed 2026-05-01: All 10 PS-IDs already had `server-admin-tls-client-policy` and `server-public-tls-client-policy` in their deployment overlays (implemented in Phase 5). Template updated. Forward-looking: new PS-IDs inherit the policy keys from the overlay templates automatically.
+2. Completed 2026-05-01: Added TLS client policy comment to `api/cryptosuite-registry/templates/configs/__PS_ID__/__PS_ID__-framework.yml` and all 10 `configs/{PS-ID}/{PS-ID}-framework.yml` instances documenting that the default `TLSClientPolicy` is `none`.
 3. Completed 2026-04-29: Added `lint-fitness` rule `config-tls-ca-policy-coupling` that rejects deployment overlay files with `*-tls-ca-file` but missing corresponding `*-tls-client-policy` key.
-4. Propagate the two-axis TLS model summary to the agent/skill files that reference TLS provisioning so they reflect the current vocabulary.
+4. Completed 2026-05-01: Added two-axis TLS model section to `.github/skills/new-service/SKILL.md` and `.claude/skills/new-service/SKILL.md`, covering TLSProvisionMode (automatic) vs TLSClientPolicy (must be set explicitly in deployment overlays).
 
 ## Phase 1: Canonical Documentation Split
 
