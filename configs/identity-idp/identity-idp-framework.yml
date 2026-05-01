@@ -27,6 +27,10 @@ otlp-hostname: "localhost"
 # Logging.
 log-level: "INFO"
 
+# TLS client policy — default is 'none' (no client certificates requested).
+# Deployment overlays must explicitly set server-admin-tls-client-policy and
+# server-public-tls-client-policy alongside any server-*-tls-ca-file keys.
+
 # Database (in-memory SQLite by default).
 database-url: "sqlite://file::memory:?cache=shared"
 
