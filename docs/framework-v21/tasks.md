@@ -21,6 +21,11 @@
 4. Every exclusion removal must be validated by `lint-fitness` before marking complete.
 5. Mojibake sub-linter must not produce false positives on legitimate UTF-8 content.
 6. All phases complete only when `go test ./...` and `golangci-lint run` pass.
+7. Quizme Round 1 decisions are binding: `server/businesslogic/` is canonical for pure business
+  logic, lifecycle/port-conflict tests must move into `server/`, and pki-ca migration planning
+  must include repository-v2 SQL migration consolidation mapping.
+8. Quizme Round 2 must finalize canonical recursive directory structure to be enforced for all
+  10 PS-IDs before broad all-service refactor execution begins.
 
 ## Phase 1: sm-kms Server Subdirectory Migration
 
@@ -82,8 +87,27 @@
 - **Acceptance Criteria**:
   - [x] Existing pki-ca server/ layout documented: current cmd/, config/, middleware/ are non-canonical but accepted.
   - [x] Three missing canonical dirs identified: apis/, model/, repository/.
+  - [x] Existing pki-ca SQL migration source paths identified (repository-v2/migrations).
   - [x] Plan for thin handler wrappers in server/apis/ that delegate to existing domain layers documented.
   - [x] Evidence archived in `test-output/v21-phase2/`.
+
+### Task 2.7: Produce pki-ca consolidation map to canonical structure
+
+- **Status**: ❌
+- **Acceptance Criteria**:
+  - [x] Current pki-ca recursive subdirectory set inventoried with evidence.
+  - [x] Each current pki-ca subdirectory is mapped to one of: keep, migrate, merge, or deprecate.
+  - [x] Mapping includes target canonical location under the selected all-10 PS-ID structure.
+  - [x] Migration order is documented to avoid import-cycle and runtime-risk regressions.
+
+### Task 2.8: Define all-10 PS-ID canonical directory rollout plan
+
+- **Status**: ❌
+- **Acceptance Criteria**:
+  - [x] Recursive directory supersets computed for focus PS-IDs and all 10 PS-IDs.
+  - [x] Canonical required/optional directory policy drafted for all 10 PS-IDs.
+  - [x] Linter/template update tasks listed to enforce allowed-only subdirectories.
+  - [x] Rollout sequencing documented with pki-ca as high-sprawl migration case.
 
 ### Task 2.2: Create server/apis/ with thin handler wrappers
 
@@ -159,6 +183,14 @@
   - [x] `knownServerFileExclusions["swagger_test.go"]` entry removed.
   - [x] Verify `checkServerFiles` validates presence of swagger.go in server/ correctly after removal.
   - [x] `lint-fitness` passes after removals.
+
+### Task 3.3a: Migrate remaining root lifecycle and port-conflict tests into server/
+
+- **Status**: ❌
+- **Acceptance Criteria**:
+  - [x] Move `__SERVICE___lifecycle_test.go` and `__SERVICE___port_conflict_test.go` into `server/` for sm-kms, jose-ja, pki-ca, and skeleton-template.
+  - [x] Remove now-stale exclusions from `knownServerFileExclusions` for those files.
+  - [x] `go test` and `lint-fitness` both pass after moves.
 
 ### Task 3.4: Update MANIFEST.yaml to remove stale migration references
 

@@ -34,6 +34,11 @@ Framework V21 closes four categories of deferred work identified across V16-V20 
       "repository"}` in `createFullPSIDRoot` should be parsed from MANIFEST.yaml `required_server_dirs`
       instead (V18 Action 4 — test still uses hardcoded list as of V21 start)
 
+5. **All-10 PS-ID directory-shape convergence planning** — Based on Quizme Round 1 Q2 answer,
+   V21 must produce a researched superset of recursive PS-ID directories and define the canonical
+   recursive structure to be applied to all 10 PS-IDs. This includes explicit consolidation tasks
+   for pki-ca package/subdirectory sprawl.
+
 ## Source Evidence
 
 Work carried forward from:
@@ -52,11 +57,18 @@ Work carried forward from:
 - New: `internal/apps/sm-kms/server/model/model.go` (GORM entity structs)
 - New/updated: `internal/apps/sm-kms/server/apis/` (handler files)
 
-**pki-ca migration (Phase 2)**:
+**pki-ca migration + consolidation planning (Phase 2)**:
 - New: `internal/apps/pki-ca/server/apis/` (HTTP handler wrappers)
 - New: `internal/apps/pki-ca/server/model/model.go`
 - New: `internal/apps/pki-ca/server/repository/` + `migrations/`
 - New: `internal/apps/pki-ca/server/config/config_test_helper.go`
+- Existing sprawl to consolidate under canonical target:
+  - `internal/apps/pki-ca/{api,bootstrap,compliance,crypto,domain,domain-v2,intermediate,observability,profile,security,service,storage}/`
+
+**all-10 PS-ID canonicalization planning (Phase 2/3)**:
+- `internal/apps/{sm-kms,sm-im,jose-ja,pki-ca,identity-authz,identity-idp,identity-rp,identity-rs,identity-spa,skeleton-template}/`
+- `api/cryptosuite-registry/templates/internal/apps/__PS_ID__/MANIFEST.yaml`
+- `internal/apps-tools/cicd_lint/lint_fitness/apps_ps_id_template/apps_ps_id_template.go`
 
 **Exclusion cleanup (Phase 3)**:
 - `internal/apps-tools/cicd_lint/lint_fitness/apps_ps_id_template/apps_ps_id_template.go`
@@ -71,7 +83,6 @@ Work carried forward from:
 
 ## Non-Goals
 
-- Re-architect pki-ca CA domain logic (bootstrap, compliance, intermediate, issuer layers)
 - Change sm-kms ORM/business logic semantics
 - Address const-redefine-numeric informational violations (215 in identity/mfa tests) — these
   are informational and do not block CI
@@ -83,18 +94,24 @@ Work carried forward from:
 1. sm-kms migration uses the canonical `server/apis/` layout: move all OAS handlers from
    `server/handler/` into `server/apis/`; move all GORM-entity structs from
    `server/businesslogic/` (the `oam_orm_mapper*.go` files) into `server/model/`.
-   Pure business logic in `server/businesslogic/` is preserved in place or moved to a new
-   `server/service/` subdirectory if needed — the linter only requires `apis/`, `model/`, and
-   `repository/` to exist.
+   Pure business logic remains in `server/businesslogic/` and this subdirectory is treated as a
+   required canonical location for pure business logic across PS-IDs (Quizme Round 1 Q1 answer).
 2. pki-ca already has `server/cmd/`, `server/config/`, `server/middleware/` — these are
    non-standard but have been accepted as-is by the linter exclusion strategy. V21 adds the
    three missing canonical subdirs: `server/apis/`, `server/model/`, `server/repository/`.
-3. The mojibake sub-linter checks `.md` files in `docs/` and `docs/framework-v*/` directories
+3. pki-ca SQL migrations currently live in `internal/apps/pki-ca/repository-v2/migrations/`
+   (`5001_ca_items.up.sql` and `5001_ca_items.down.sql` verified). V21 plans migration-path
+   consolidation into `server/repository/migrations/` with explicit verification gates.
+4. Quizme Round 1 Q4 selected active cleanup: move lifecycle/port-conflict tests into `server/`
+   for remaining PS-IDs and remove corresponding stale exclusions once migrated.
+5. The mojibake sub-linter checks `.md` files in `docs/` and `docs/framework-v*/` directories
    for the Unicode replacement markers `\xc3`, `\xe2`, `\xc2` (UTF-8 encodings of Ã, â, Â).
    It returns a lint error (not just a warning) when found outside of legitimate content.
-4. The MANIFEST-driven fixture change in `apps_ps_id_template_test.go` parses
+6. The MANIFEST-driven fixture change in `apps_ps_id_template_test.go` parses
    `required_server_dirs` from MANIFEST.yaml and creates those directories in the synthetic
    root rather than the hardcoded `[]string{"apis", "model", "repository"}` slice.
+7. Q2 remains open pending Quizme Round 2: canonical recursive directory structure for all 10
+   PS-IDs and allowed-only directory policy will be finalized before broad refactor execution.
 
 ## Phase Summary
 
@@ -120,13 +137,17 @@ Confirm `businesslogic.go` and related pure-logic files remain compilable.
 Create `server/apis/` with thin handler wrappers (delegating to existing domain layers).
 Create `server/model/model.go` as the GORM entity struct home.
 Create `server/repository/` with `migrations.go` + `server/repository/migrations/` directory.
+Map existing `repository-v2/migrations/*.sql` into canonical `server/repository/migrations/`
+with compatibility validation for embedded migration FS paths.
 Create `server/config/config_test_helper.go`.
+Draft a pki-ca consolidation map from current package sprawl to canonical allowed directories.
 
 **Success**:
 - `go build ./internal/apps/pki-ca/...` clean.
 - `go test ./internal/apps/pki-ca/...` passes.
 - `lint-fitness` pki-ca exclusions for `apis`, `model`, `repository`, `config_test_helper.go`,
   `migrations.go` removed.
+- pki-ca consolidation map is complete with explicit per-subdirectory move/deprecate targets.
 
 ### Phase 3: Linter Exclusion Cleanup
 
@@ -142,9 +163,8 @@ Remove sm-kms and pki-ca entries from:
 Remove stale `swagger.go`/`swagger_test.go` exclusions (all 10 PS-IDs already have these in
 `server/`; the exclusion map has been a no-op since at least V19).
 
-Remove stale `__SERVICE___lifecycle_test.go` and `__SERVICE___port_conflict_test.go` exclusions
-for PS-IDs that now have those tests in `server/` (identity-*, sm-im already migrated; sm-kms and
-jose-ja and pki-ca and skeleton-template still have them at root — keep those entries).
+Move `__SERVICE___lifecycle_test.go` and `__SERVICE___port_conflict_test.go` to `server/` for
+remaining PS-IDs (sm-kms, jose-ja, pki-ca, skeleton-template), then remove stale exclusions.
 
 Update MANIFEST.yaml comment to remove "pending V20 migration" references.
 
@@ -230,3 +250,30 @@ Archive V21 execution evidence under:
 4. mojibake sub-linter false positives: emoji, some language characters, and intentional UTF-8
    content may trigger byte-sequence matches. The sub-linter must only flag the specific
    replacement-character sequences that indicate windows-1252-into-UTF-8 mojibake.
+5. Canonical all-10 PS-ID directory-shape decision is not finalized until Quizme Round 2 closes.
+
+## Quizme Round 1 (2026-04-30)
+
+### Q1: sm-kms businesslogic split strategy
+
+- **Question**: Should pure business logic stay in `server/businesslogic/`, move to `server/service/`, or another approach?
+- **Answer**: D
+- **Applied decision**: `server/businesslogic/` is the required canonical location for pure business logic; `server/service/` is not adopted.
+
+### Q2: pki-ca APIs layer design
+
+- **Question**: Should V21 use a placeholder `server/apis/`, full wrappers, or another approach?
+- **Answer**: D
+- **Applied decision**: Requires follow-up via Quizme Round 2 after researched superset of recursive PS-ID directory structures and canonical-all-10 proposal.
+
+### Q3: pki-ca repository and SQL migrations scope
+
+- **Question**: Where are current SQL migrations and how should V21 proceed?
+- **Answer**: D
+- **Applied decision**: Research confirmed SQL migration files at `internal/apps/pki-ca/repository-v2/migrations/5001_ca_items.up.sql` and `internal/apps/pki-ca/repository-v2/migrations/5001_ca_items.down.sql`; plan includes consolidation mapping into canonical `server/repository/migrations/`.
+
+### Q4: lifecycle_test and port_conflict_test cleanup
+
+- **Question**: Should V21 migrate these remaining root-level tests to `server/` now?
+- **Answer**: A
+- **Applied decision**: Include migration for remaining PS-IDs (sm-kms, jose-ja, pki-ca, skeleton-template) and remove stale linter exclusions after verification.
