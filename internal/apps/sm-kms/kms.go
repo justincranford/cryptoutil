@@ -15,12 +15,9 @@ import (
 
 	cryptoutilTemplateCli "cryptoutil/internal/apps-framework/service/cli"
 	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps-framework/service/config"
-	cryptoutilAppsFrameworkServiceLifecycle "cryptoutil/internal/apps-framework/service/lifecycle"
 	cryptoutilAppsFrameworkTls "cryptoutil/internal/apps-framework/tls"
 	cryptoutilAppsSmKmsServer "cryptoutil/internal/apps/sm-kms/server"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
-
-	"github.com/spf13/pflag"
 )
 
 // Kms implements the Key Management Service subcommand handler.
@@ -50,46 +47,23 @@ func Kms(args []string, _ io.Reader, stdout, stderr io.Writer) int {
 
 // kmsServerStart implements the server subcommand.
 func kmsServerStart(args []string, stdout, stderr io.Writer) int {
-	if cryptoutilTemplateCli.IsHelpRequest(args) {
-		_, _ = fmt.Fprintln(stderr, KMSUsageServer)
-
-		return 0
-	}
-
-	ctx := context.Background()
-
-	// Parse configuration using config.Parse() which leverages viper+pflag.
-	// Note: We prepend "start" as the subcommand for Parse() to validate.
-	argsWithSubcommand := append([]string{"start"}, args...)
-
-	fs := pflag.NewFlagSet("sm-kms-server", pflag.ContinueOnError)
-
-	settings, err := cryptoutilAppsFrameworkServiceConfig.ParseWithFlagSet(fs, argsWithSubcommand, true)
-	if err != nil {
-		_, _ = fmt.Fprintf(stderr, "❌ Failed to parse configuration: %v\n", err)
-
-		return 1
-	}
-
-	srv, err := cryptoutilAppsSmKmsServer.NewKMSServerFromConfig(ctx, settings)
-	if err != nil {
-		_, _ = fmt.Fprintf(stderr, "❌ Failed to create server: %v\n", err)
-
-		return 1
-	}
-
-	// Mark server as ready so /admin/api/v1/readyz return 200 OK instead of 503 Service Unavailable.
-	srv.SetReady(true)
-
-	_, _ = fmt.Fprintf(stdout, "🚀 Starting sm-kms service...\n")
-	_, _ = fmt.Fprintf(stdout, "   Public Server: https://%s:%d\n", settings.BindPublicAddress, settings.BindPublicPort)
-	_, _ = fmt.Fprintf(stdout, "   Admin Server:  https://%s:%d\n", settings.BindPrivateAddress, settings.BindPrivatePort)
-
-	exitCode := cryptoutilAppsFrameworkServiceLifecycle.RunService(ctx, stdout, stderr, srv)
-
-	_, _ = fmt.Fprintln(stdout, "✅ sm-kms service stopped")
-
-	return exitCode
+	return cryptoutilTemplateCli.StartServiceServer(
+		args,
+		stdout,
+		stderr,
+		cryptoutilTemplateCli.ServerStartOptions[*cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings]{
+			UsageServer:  KMSUsageServer,
+			ServiceLabel: cryptoutilSharedMagic.KMSServiceID,
+			FlagSetName:  "sm-kms-server",
+			ParseConfig:  cryptoutilAppsFrameworkServiceConfig.ParseWithFlagSet,
+			NewServer: func(ctx context.Context, settings *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings) (cryptoutilTemplateCli.ReadyStarter, error) {
+				return cryptoutilAppsSmKmsServer.NewKMSServerFromConfig(ctx, settings)
+			},
+			BindAddresses: func(settings *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings) (string, uint16, string, uint16) {
+				return settings.BindPublicAddress, settings.BindPublicPort, settings.BindPrivateAddress, settings.BindPrivatePort
+			},
+		},
+	)
 }
 
 // kmsClient implements the client subcommand.
