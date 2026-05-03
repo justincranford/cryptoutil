@@ -13,10 +13,7 @@ import (
 	_ "github.com/jackc/pgx/v5/stdlib" // PostgreSQL driver
 	_ "modernc.org/sqlite"             // CGO-free SQLite driver
 
-	"github.com/spf13/pflag"
-
 	cryptoutilTemplateCli "cryptoutil/internal/apps-framework/service/cli"
-	cryptoutilLifecycle "cryptoutil/internal/apps-framework/service/lifecycle"
 	cryptoutilAppsFrameworkTls "cryptoutil/internal/apps-framework/tls"
 	cryptoutilAppsIdentitySpaServer "cryptoutil/internal/apps/identity-spa/server"
 	cryptoutilAppsIdentitySpaServerConfig "cryptoutil/internal/apps/identity-spa/server/config"
@@ -50,43 +47,23 @@ func Spa(args []string, _ io.Reader, stdout, stderr io.Writer) int {
 
 // spaServerStart implements the server subcommand.
 func spaServerStart(args []string, stdout, stderr io.Writer) int {
-	if cryptoutilTemplateCli.IsHelpRequest(args) {
-		_, _ = fmt.Fprintln(stderr, SPAUsageServer)
-
-		return 0
-	}
-
-	ctx := context.Background()
-
-	argsWithSubcommand := append([]string{"start"}, args...)
-
-	fs := pflag.NewFlagSet("identity-spa-server", pflag.ContinueOnError)
-
-	cfg, err := cryptoutilAppsIdentitySpaServerConfig.ParseWithFlagSet(fs, argsWithSubcommand, true)
-	if err != nil {
-		_, _ = fmt.Fprintf(stderr, "❌ Failed to parse configuration: %v\n", err)
-
-		return 1
-	}
-
-	srv, err := cryptoutilAppsIdentitySpaServer.NewFromConfig(ctx, cfg)
-	if err != nil {
-		_, _ = fmt.Fprintf(stderr, "❌ Failed to create server: %v\n", err)
-
-		return 1
-	}
-
-	srv.SetReady(true)
-
-	_, _ = fmt.Fprintf(stdout, "🚀 Starting identity-spa service...\n")
-	_, _ = fmt.Fprintf(stdout, "   Public Server: https://%s:%d\n", cfg.BindPublicAddress, cfg.BindPublicPort)
-	_, _ = fmt.Fprintf(stdout, "   Admin Server:  https://%s:%d\n", cfg.BindPrivateAddress, cfg.BindPrivatePort)
-
-	exitCode := cryptoutilLifecycle.RunService(ctx, stdout, stderr, srv)
-
-	_, _ = fmt.Fprintln(stdout, "✅ identity-spa service stopped")
-
-	return exitCode
+	return cryptoutilTemplateCli.StartServiceServer(
+		args,
+		stdout,
+		stderr,
+		cryptoutilTemplateCli.ServerStartOptions[*cryptoutilAppsIdentitySpaServerConfig.IdentitySPAServerSettings]{
+			UsageServer:  SPAUsageServer,
+			ServiceLabel: cryptoutilSharedMagic.IdentitySPAServiceID,
+			FlagSetName:  "identity-spa-server",
+			ParseConfig:  cryptoutilAppsIdentitySpaServerConfig.ParseWithFlagSet,
+			NewServer: func(ctx context.Context, settings *cryptoutilAppsIdentitySpaServerConfig.IdentitySPAServerSettings) (cryptoutilTemplateCli.ReadyStarter, error) {
+				return cryptoutilAppsIdentitySpaServer.NewFromConfig(ctx, settings)
+			},
+			BindAddresses: func(settings *cryptoutilAppsIdentitySpaServerConfig.IdentitySPAServerSettings) (string, uint16, string, uint16) {
+				return settings.BindPublicAddress, settings.BindPublicPort, settings.BindPrivateAddress, settings.BindPrivatePort
+			},
+		},
+	)
 }
 
 // spaClient implements the client subcommand.

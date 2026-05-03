@@ -13,10 +13,7 @@ import (
 	_ "github.com/jackc/pgx/v5/stdlib" // PostgreSQL driver
 	_ "modernc.org/sqlite"             // CGO-free SQLite driver
 
-	"github.com/spf13/pflag"
-
 	cryptoutilTemplateCli "cryptoutil/internal/apps-framework/service/cli"
-	cryptoutilLifecycle "cryptoutil/internal/apps-framework/service/lifecycle"
 	cryptoutilAppsFrameworkTls "cryptoutil/internal/apps-framework/tls"
 	cryptoutilAppsIdentityIdpServer "cryptoutil/internal/apps/identity-idp/server"
 	cryptoutilAppsIdentityIdpServerConfig "cryptoutil/internal/apps/identity-idp/server/config"
@@ -50,43 +47,23 @@ func Idp(args []string, _ io.Reader, stdout, stderr io.Writer) int {
 
 // idpServerStart implements the server subcommand.
 func idpServerStart(args []string, stdout, stderr io.Writer) int {
-	if cryptoutilTemplateCli.IsHelpRequest(args) {
-		_, _ = fmt.Fprintln(stderr, IDPUsageServer)
-
-		return 0
-	}
-
-	ctx := context.Background()
-
-	argsWithSubcommand := append([]string{"start"}, args...)
-
-	fs := pflag.NewFlagSet("identity-idp-server", pflag.ContinueOnError)
-
-	cfg, err := cryptoutilAppsIdentityIdpServerConfig.ParseWithFlagSet(fs, argsWithSubcommand, true)
-	if err != nil {
-		_, _ = fmt.Fprintf(stderr, "❌ Failed to parse configuration: %v\n", err)
-
-		return 1
-	}
-
-	srv, err := cryptoutilAppsIdentityIdpServer.NewFromConfig(ctx, cfg)
-	if err != nil {
-		_, _ = fmt.Fprintf(stderr, "❌ Failed to create server: %v\n", err)
-
-		return 1
-	}
-
-	srv.SetReady(true)
-
-	_, _ = fmt.Fprintf(stdout, "🚀 Starting identity-idp service...\n")
-	_, _ = fmt.Fprintf(stdout, "   Public Server: https://%s:%d\n", cfg.BindPublicAddress, cfg.BindPublicPort)
-	_, _ = fmt.Fprintf(stdout, "   Admin Server:  https://%s:%d\n", cfg.BindPrivateAddress, cfg.BindPrivatePort)
-
-	exitCode := cryptoutilLifecycle.RunService(ctx, stdout, stderr, srv)
-
-	_, _ = fmt.Fprintln(stdout, "✅ identity-idp service stopped")
-
-	return exitCode
+	return cryptoutilTemplateCli.StartServiceServer(
+		args,
+		stdout,
+		stderr,
+		cryptoutilTemplateCli.ServerStartOptions[*cryptoutilAppsIdentityIdpServerConfig.IdentityIDPServerSettings]{
+			UsageServer:  IDPUsageServer,
+			ServiceLabel: cryptoutilSharedMagic.IdentityIDPServiceID,
+			FlagSetName:  "identity-idp-server",
+			ParseConfig:  cryptoutilAppsIdentityIdpServerConfig.ParseWithFlagSet,
+			NewServer: func(ctx context.Context, settings *cryptoutilAppsIdentityIdpServerConfig.IdentityIDPServerSettings) (cryptoutilTemplateCli.ReadyStarter, error) {
+				return cryptoutilAppsIdentityIdpServer.NewFromConfig(ctx, settings)
+			},
+			BindAddresses: func(settings *cryptoutilAppsIdentityIdpServerConfig.IdentityIDPServerSettings) (string, uint16, string, uint16) {
+				return settings.BindPublicAddress, settings.BindPublicPort, settings.BindPrivateAddress, settings.BindPrivatePort
+			},
+		},
+	)
 }
 
 // idpClient implements the client subcommand.

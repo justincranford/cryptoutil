@@ -13,10 +13,7 @@ import (
 	_ "github.com/jackc/pgx/v5/stdlib" // PostgreSQL driver
 	_ "modernc.org/sqlite"             // CGO-free SQLite driver
 
-	"github.com/spf13/pflag"
-
 	cryptoutilTemplateCli "cryptoutil/internal/apps-framework/service/cli"
-	cryptoutilLifecycle "cryptoutil/internal/apps-framework/service/lifecycle"
 	cryptoutilAppsFrameworkTls "cryptoutil/internal/apps-framework/tls"
 	cryptoutilAppsIdentityAuthzServer "cryptoutil/internal/apps/identity-authz/server"
 	cryptoutilAppsIdentityAuthzServerConfig "cryptoutil/internal/apps/identity-authz/server/config"
@@ -50,48 +47,23 @@ func Authz(args []string, _ io.Reader, stdout, stderr io.Writer) int {
 
 // authzServerStart implements the server subcommand.
 func authzServerStart(args []string, stdout, stderr io.Writer) int {
-	if cryptoutilTemplateCli.IsHelpRequest(args) {
-		_, _ = fmt.Fprintln(stderr, AUTHZUsageServer)
-
-		return 0
-	}
-
-	ctx := context.Background()
-
-	// Parse configuration using ParseWithFlagSet with a fresh FlagSet.
-	// Uses ContinueOnError for proper error handling (no os.Exit on bad flags).
-	// Note: We prepend "start" as the subcommand for Parse() to validate.
-	argsWithSubcommand := append([]string{"start"}, args...)
-
-	fs := pflag.NewFlagSet("identity-authz-server", pflag.ContinueOnError)
-
-	cfg, err := cryptoutilAppsIdentityAuthzServerConfig.ParseWithFlagSet(fs, argsWithSubcommand, true)
-	if err != nil {
-		_, _ = fmt.Fprintf(stderr, "❌ Failed to parse configuration: %v\n", err)
-
-		return 1
-	}
-
-	srv, err := cryptoutilAppsIdentityAuthzServer.NewFromConfig(ctx, cfg)
-	if err != nil {
-		_, _ = fmt.Fprintf(stderr, "❌ Failed to create server: %v\n", err)
-
-		return 1
-	}
-
-	// Mark server as ready after successful initialization.
-	// This enables /admin/api/v1/readyz to return 200 OK instead of 503 Service Unavailable.
-	srv.SetReady(true)
-
-	_, _ = fmt.Fprintf(stdout, "🚀 Starting identity-authz service...\n")
-	_, _ = fmt.Fprintf(stdout, "   Public Server: https://%s:%d\n", cfg.BindPublicAddress, cfg.BindPublicPort)
-	_, _ = fmt.Fprintf(stdout, "   Admin Server:  https://%s:%d\n", cfg.BindPrivateAddress, cfg.BindPrivatePort)
-
-	exitCode := cryptoutilLifecycle.RunService(ctx, stdout, stderr, srv)
-
-	_, _ = fmt.Fprintln(stdout, "✅ identity-authz service stopped")
-
-	return exitCode
+	return cryptoutilTemplateCli.StartServiceServer(
+		args,
+		stdout,
+		stderr,
+		cryptoutilTemplateCli.ServerStartOptions[*cryptoutilAppsIdentityAuthzServerConfig.IdentityAuthzServerSettings]{
+			UsageServer:  AUTHZUsageServer,
+			ServiceLabel: cryptoutilSharedMagic.IdentityAuthzServiceID,
+			FlagSetName:  "identity-authz-server",
+			ParseConfig:  cryptoutilAppsIdentityAuthzServerConfig.ParseWithFlagSet,
+			NewServer: func(ctx context.Context, settings *cryptoutilAppsIdentityAuthzServerConfig.IdentityAuthzServerSettings) (cryptoutilTemplateCli.ReadyStarter, error) {
+				return cryptoutilAppsIdentityAuthzServer.NewFromConfig(ctx, settings)
+			},
+			BindAddresses: func(settings *cryptoutilAppsIdentityAuthzServerConfig.IdentityAuthzServerSettings) (string, uint16, string, uint16) {
+				return settings.BindPublicAddress, settings.BindPublicPort, settings.BindPrivateAddress, settings.BindPrivatePort
+			},
+		},
+	)
 }
 
 // authzClient implements the client subcommand.

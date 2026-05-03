@@ -13,10 +13,7 @@ import (
 	_ "github.com/jackc/pgx/v5/stdlib" // PostgreSQL driver
 	_ "modernc.org/sqlite"             // CGO-free SQLite driver
 
-	"github.com/spf13/pflag"
-
 	cryptoutilTemplateCli "cryptoutil/internal/apps-framework/service/cli"
-	cryptoutilLifecycle "cryptoutil/internal/apps-framework/service/lifecycle"
 	cryptoutilAppsFrameworkTls "cryptoutil/internal/apps-framework/tls"
 	cryptoutilAppsIdentityRsServer "cryptoutil/internal/apps/identity-rs/server"
 	cryptoutilAppsIdentityRsServerConfig "cryptoutil/internal/apps/identity-rs/server/config"
@@ -50,43 +47,23 @@ func Rs(args []string, _ io.Reader, stdout, stderr io.Writer) int {
 
 // rsServerStart implements the server subcommand.
 func rsServerStart(args []string, stdout, stderr io.Writer) int {
-	if cryptoutilTemplateCli.IsHelpRequest(args) {
-		_, _ = fmt.Fprintln(stderr, RSUsageServer)
-
-		return 0
-	}
-
-	ctx := context.Background()
-
-	argsWithSubcommand := append([]string{"start"}, args...)
-
-	fs := pflag.NewFlagSet("identity-rs-server", pflag.ContinueOnError)
-
-	cfg, err := cryptoutilAppsIdentityRsServerConfig.ParseWithFlagSet(fs, argsWithSubcommand, true)
-	if err != nil {
-		_, _ = fmt.Fprintf(stderr, "❌ Failed to parse configuration: %v\n", err)
-
-		return 1
-	}
-
-	srv, err := cryptoutilAppsIdentityRsServer.NewFromConfig(ctx, cfg)
-	if err != nil {
-		_, _ = fmt.Fprintf(stderr, "❌ Failed to create server: %v\n", err)
-
-		return 1
-	}
-
-	srv.SetReady(true)
-
-	_, _ = fmt.Fprintf(stdout, "🚀 Starting identity-rs service...\n")
-	_, _ = fmt.Fprintf(stdout, "   Public Server: https://%s:%d\n", cfg.BindPublicAddress, cfg.BindPublicPort)
-	_, _ = fmt.Fprintf(stdout, "   Admin Server:  https://%s:%d\n", cfg.BindPrivateAddress, cfg.BindPrivatePort)
-
-	exitCode := cryptoutilLifecycle.RunService(ctx, stdout, stderr, srv)
-
-	_, _ = fmt.Fprintln(stdout, "✅ identity-rs service stopped")
-
-	return exitCode
+	return cryptoutilTemplateCli.StartServiceServer(
+		args,
+		stdout,
+		stderr,
+		cryptoutilTemplateCli.ServerStartOptions[*cryptoutilAppsIdentityRsServerConfig.IdentityRSServerSettings]{
+			UsageServer:  RSUsageServer,
+			ServiceLabel: cryptoutilSharedMagic.IdentityRSServiceID,
+			FlagSetName:  "identity-rs-server",
+			ParseConfig:  cryptoutilAppsIdentityRsServerConfig.ParseWithFlagSet,
+			NewServer: func(ctx context.Context, settings *cryptoutilAppsIdentityRsServerConfig.IdentityRSServerSettings) (cryptoutilTemplateCli.ReadyStarter, error) {
+				return cryptoutilAppsIdentityRsServer.NewFromConfig(ctx, settings)
+			},
+			BindAddresses: func(settings *cryptoutilAppsIdentityRsServerConfig.IdentityRSServerSettings) (string, uint16, string, uint16) {
+				return settings.BindPublicAddress, settings.BindPublicPort, settings.BindPrivateAddress, settings.BindPrivatePort
+			},
+		},
+	)
 }
 
 // rsClient implements the client subcommand.
