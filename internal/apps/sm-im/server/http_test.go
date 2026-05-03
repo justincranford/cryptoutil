@@ -40,7 +40,7 @@ func TestHTTPGet(t *testing.T) {
 	// Create server with dynamic ports.
 	cfg := initTestConfig()
 
-	srv, err := cryptoutilAppsSmImServer.NewFromConfig(ctx, cfg)
+	srv, err := cryptoutilAppsSmImServer.NewIMServerFromConfig(ctx, cfg)
 	require.NoError(t, err)
 
 	// Mark server as ready after successful initialization.
@@ -145,7 +145,7 @@ func TestHTTPPost(t *testing.T) {
 	// Create server with dynamic ports.
 	cfg := initTestConfig()
 
-	srv, err := cryptoutilAppsSmImServer.NewFromConfig(ctx, cfg)
+	srv, err := cryptoutilAppsSmImServer.NewIMServerFromConfig(ctx, cfg)
 	require.NoError(t, err)
 
 	// Start server in background with cancellable context.

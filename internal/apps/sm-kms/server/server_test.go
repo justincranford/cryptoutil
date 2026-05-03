@@ -49,7 +49,7 @@ func TestNewKMSServer_NilChecks(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			server, err := NewKMSServer(tc.ctx, nil) //nolint:staticcheck // SA1012: Intentionally testing nil context handling
+			server, err := NewKMSServerFromConfig(tc.ctx, nil) //nolint:staticcheck // SA1012: Intentionally testing nil context handling
 			require.Error(t, err)
 			require.Nil(t, server)
 			require.Contains(t, err.Error(), tc.wantErr)
@@ -62,7 +62,7 @@ func TestNewKMSServer_NilSettings(t *testing.T) {
 
 	ctx := context.Background()
 
-	server, err := NewKMSServer(ctx, nil)
+	server, err := NewKMSServerFromConfig(ctx, nil)
 	require.Error(t, err)
 	require.Nil(t, server)
 	require.Contains(t, err.Error(), "settings cannot be nil")

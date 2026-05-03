@@ -25,7 +25,7 @@ func TestKMSServer_Lifecycle(t *testing.T) {
 	cfg := cryptoutilAppsFrameworkServiceConfig.RequireNewForTest(cryptoutilSharedMagic.OTLPServiceSMKMS)
 	cfg.DatabaseURL = cryptoutilSharedMagic.SQLiteInMemoryDSN
 
-	server, err := NewKMSServer(ctx, cfg)
+	server, err := NewKMSServerFromConfig(ctx, cfg)
 	require.NoError(t, err)
 	require.NotNil(t, server)
 

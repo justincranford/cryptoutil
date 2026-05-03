@@ -28,11 +28,11 @@ func TestKMSServer_PortConflict(t *testing.T) {
 	cfg2 := cryptoutilAppsFrameworkServiceConfig.RequireNewForTest(cryptoutilSharedMagic.OTLPServiceSMKMS)
 	cfg2.DatabaseURL = cryptoutilSharedMagic.SQLiteInMemoryDSN
 
-	server1, err := NewKMSServer(ctx, cfg1)
+	server1, err := NewKMSServerFromConfig(ctx, cfg1)
 	require.NoError(t, err)
 	require.NotNil(t, server1)
 
-	server2, err := NewKMSServer(ctx, cfg2)
+	server2, err := NewKMSServerFromConfig(ctx, cfg2)
 	require.NoError(t, err)
 	require.NotNil(t, server2)
 

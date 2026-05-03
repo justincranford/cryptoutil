@@ -44,7 +44,7 @@ var (
 func TestMain(m *testing.M) {
 	ctx := context.Background()
 
-	testServer, err := cryptoutilKmsServer.NewKMSServer(ctx, testSettings)
+	testServer, err := cryptoutilKmsServer.NewKMSServerFromConfig(ctx, testSettings)
 	if err != nil {
 		log.Fatalf("failed to create server: %v", err)
 	}

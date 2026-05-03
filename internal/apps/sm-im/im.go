@@ -2,6 +2,7 @@
 //
 //
 
+// Package im provides the Instant Messaging Service entry point.
 package im
 
 import (
@@ -13,7 +14,7 @@ import (
 	_ "modernc.org/sqlite"             // CGO-free SQLite driver
 
 	cryptoutilTemplateCli "cryptoutil/internal/apps-framework/service/cli"
-	cryptoutilLifecycle "cryptoutil/internal/apps-framework/service/lifecycle"
+	cryptoutilAppsFrameworkServiceLifecycle "cryptoutil/internal/apps-framework/service/lifecycle"
 	cryptoutilAppsFrameworkTls "cryptoutil/internal/apps-framework/tls"
 	cryptoutilAppsSmImServer "cryptoutil/internal/apps/sm-im/server"
 	cryptoutilAppsSmImServerConfig "cryptoutil/internal/apps/sm-im/server/config"
@@ -41,14 +42,14 @@ func Im(args []string, _ io.Reader, stdout, stderr io.Writer) int {
 			UsageShutdown:     IMUsageShutdown,
 		},
 		args, stdout, stderr,
-		imServiceServerStart,
-		imServiceClient,
-		imServiceInit,
+		imServerStart,
+		imClient,
+		imInit,
 	)
 }
 
-// imServiceServerStart implements the server subcommand.
-func imServiceServerStart(args []string, stdout, stderr io.Writer) int {
+// imServerStart implements the server subcommand.
+func imServerStart(args []string, stdout, stderr io.Writer) int {
 	if cryptoutilTemplateCli.IsHelpRequest(args) {
 		_, _ = fmt.Fprintln(stderr, IMUsageServer)
 
@@ -58,12 +59,6 @@ func imServiceServerStart(args []string, stdout, stderr io.Writer) int {
 	ctx := context.Background()
 
 	// Parse configuration using config.Parse() which leverages viper+pflag.
-	// The Parse() function:
-	//   1. Calls parent ServiceFrameworkServerSettings.Parse() for base settings
-	//   2. Adds sm-im specific flags (JWE algorithm, message constraints, JWT secret)
-	//   3. Merges config files, environment variables, and command-line flags
-	//   4. Returns fully populated SmIMServerSettings
-	//
 	// Note: We prepend "start" as the subcommand for Parse() to validate.
 	argsWithSubcommand := append([]string{"start"}, args...)
 
@@ -76,31 +71,30 @@ func imServiceServerStart(args []string, stdout, stderr io.Writer) int {
 		return 1
 	}
 
-	srv, err := cryptoutilAppsSmImServer.NewFromConfig(ctx, cfg)
+	srv, err := cryptoutilAppsSmImServer.NewIMServerFromConfig(ctx, cfg)
 	if err != nil {
 		_, _ = fmt.Fprintf(stderr, "❌ Failed to create server: %v\n", err)
 
 		return 1
 	}
 
-	// Mark server as ready after successful initialization.
-	// This enables /admin/api/v1/readyz to return 200 OK instead of 503 Service Unavailable.
+	// Mark server as ready so /admin/api/v1/readyz return 200 OK instead of 503 Service Unavailable.
 	srv.SetReady(true)
 
 	_, _ = fmt.Fprintf(stdout, "🚀 Starting sm-im service...\n")
 	_, _ = fmt.Fprintf(stdout, "   Public Server: https://%s:%d\n", cfg.BindPublicAddress, cfg.BindPublicPort)
 	_, _ = fmt.Fprintf(stdout, "   Admin Server:  https://%s:%d\n", cfg.BindPrivateAddress, cfg.BindPrivatePort)
 
-	exitCode := cryptoutilLifecycle.RunService(ctx, stdout, stderr, srv)
+	exitCode := cryptoutilAppsFrameworkServiceLifecycle.RunService(ctx, stdout, stderr, srv)
 
 	_, _ = fmt.Fprintln(stdout, "✅ sm-im service stopped")
 
 	return exitCode
 }
 
-// imServiceClient implements the client subcommand.
+// imClient implements the client subcommand.
 // CLI wrapper for client operations.
-func imServiceClient(args []string, _, stderr io.Writer) int {
+func imClient(args []string, _, stderr io.Writer) int {
 	if cryptoutilTemplateCli.IsHelpRequest(args) {
 		_, _ = fmt.Fprintln(stderr, IMUsageClient)
 
@@ -113,9 +107,9 @@ func imServiceClient(args []string, _, stderr io.Writer) int {
 	return 1
 }
 
-// imServiceInit implements the init subcommand.
+// imInit implements the init subcommand.
 // Generates PKI certificates for sm-im TLS endpoints via the framework PKI init.
-func imServiceInit(args []string, stdout, stderr io.Writer) int {
+func imInit(args []string, stdout, stderr io.Writer) int {
 	if cryptoutilTemplateCli.IsHelpRequest(args) {
 		_, _ = fmt.Fprintln(stderr, IMUsageInit)
 

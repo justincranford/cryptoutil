@@ -92,7 +92,7 @@ func TestUserRegistration_DBClosedError(t *testing.T) {
 	cfg := cryptoutilAppsSmImServerConfig.DefaultTestConfig()
 
 	// Create and start a fresh server (separate from TestMain's testSmIMServer).
-	server, err := cryptoutilAppsSmImServer.NewFromConfig(ctx, cfg)
+	server, err := cryptoutilAppsSmImServer.NewIMServerFromConfig(ctx, cfg)
 	require.NoError(t, err)
 	require.NotNil(t, server)
 

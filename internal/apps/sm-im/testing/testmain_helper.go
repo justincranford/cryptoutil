@@ -85,7 +85,7 @@ func SetupTestServer(ctx context.Context, _ bool) (*TestServerResources, error) 
 	cfg.DatabaseURL = dsn // Set database URL for NewFromConfig
 
 	// Create full server using NewFromConfig.
-	resources.SmIMServer, err = cryptoutilAppsSmImServer.NewFromConfig(ctx, cfg)
+	resources.SmIMServer, err = cryptoutilAppsSmImServer.NewIMServerFromConfig(ctx, cfg)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create SmIMServer: %w", err)
 	}
@@ -152,7 +152,7 @@ func SetupTestServer(ctx context.Context, _ bool) (*TestServerResources, error) 
 func StartSmIMService(SmIMServerSettings *cryptoutilAppsSmImServerConfig.SmIMServerSettings) *cryptoutilAppsSmImServer.SmIMServer {
 	ctx := context.Background()
 
-	smIMServer, err := cryptoutilAppsSmImServer.NewFromConfig(ctx, SmIMServerSettings)
+	smIMServer, err := cryptoutilAppsSmImServer.NewIMServerFromConfig(ctx, SmIMServerSettings)
 	if err != nil {
 		panic(fmt.Sprintf("failed to create server: %v", err))
 	}

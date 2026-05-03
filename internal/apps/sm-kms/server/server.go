@@ -37,9 +37,9 @@ type KMSServer struct {
 	ready     atomic.Bool
 }
 
-// NewKMSServer creates a new KMS server using the template's ServerBuilder.
+// NewKMSServerFromConfig creates a new KMS server using the template's ServerBuilder.
 // All KMS-specific services (OrmRepository, BusinessLogicService) are created inside the RouteRegistration callback using builder-provided resources.
-func NewKMSServer(
+func NewKMSServerFromConfig(
 	ctx context.Context,
 	settings *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings,
 ) (*KMSServer, error) {

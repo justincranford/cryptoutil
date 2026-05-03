@@ -15,9 +15,9 @@ import (
 
 	cryptoutilTemplateCli "cryptoutil/internal/apps-framework/service/cli"
 	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps-framework/service/config"
-	cryptoutilLifecycle "cryptoutil/internal/apps-framework/service/lifecycle"
+	cryptoutilAppsFrameworkServiceLifecycle "cryptoutil/internal/apps-framework/service/lifecycle"
 	cryptoutilAppsFrameworkTls "cryptoutil/internal/apps-framework/tls"
-	cryptoutilKMSServer "cryptoutil/internal/apps/sm-kms/server"
+	cryptoutilAppsSmKmsServer "cryptoutil/internal/apps/sm-kms/server"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/spf13/pflag"
@@ -58,7 +58,7 @@ func kmsServerStart(args []string, stdout, stderr io.Writer) int {
 
 	ctx := context.Background()
 
-	// Parse base service template configuration.
+	// Parse configuration using config.Parse() which leverages viper+pflag.
 	// Note: We prepend "start" as the subcommand for Parse() to validate.
 	argsWithSubcommand := append([]string{"start"}, args...)
 
@@ -71,18 +71,21 @@ func kmsServerStart(args []string, stdout, stderr io.Writer) int {
 		return 1
 	}
 
-	srv, err := cryptoutilKMSServer.NewKMSServer(ctx, settings)
+	srv, err := cryptoutilAppsSmKmsServer.NewKMSServerFromConfig(ctx, settings)
 	if err != nil {
 		_, _ = fmt.Fprintf(stderr, "❌ Failed to create server: %v\n", err)
 
 		return 1
 	}
 
+	// Mark server as ready so /admin/api/v1/readyz return 200 OK instead of 503 Service Unavailable.
+	srv.SetReady(true)
+
 	_, _ = fmt.Fprintf(stdout, "🚀 Starting sm-kms service...\n")
 	_, _ = fmt.Fprintf(stdout, "   Public Server: https://%s:%d\n", settings.BindPublicAddress, settings.BindPublicPort)
 	_, _ = fmt.Fprintf(stdout, "   Admin Server:  https://%s:%d\n", settings.BindPrivateAddress, settings.BindPrivatePort)
 
-	exitCode := cryptoutilLifecycle.RunService(ctx, stdout, stderr, srv)
+	exitCode := cryptoutilAppsFrameworkServiceLifecycle.RunService(ctx, stdout, stderr, srv)
 
 	_, _ = fmt.Fprintln(stdout, "✅ sm-kms service stopped")
 

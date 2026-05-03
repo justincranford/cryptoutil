@@ -44,9 +44,9 @@ type SmIMServer struct {
 	realmRepo               cryptoutilAppsFrameworkServiceServerRepository.TenantRealmRepository // Uses service-framework repository.
 }
 
-// NewFromConfig creates a new sm-im server from SmIMServerSettings only.
+// NewIMServerFromConfig creates a new sm-im server from SmIMServerSettings only.
 // Uses service-framework builder for infrastructure initialization.
-func NewFromConfig(ctx context.Context, cfg *cryptoutilAppsSmImServerConfig.SmIMServerSettings) (*SmIMServer, error) {
+func NewIMServerFromConfig(ctx context.Context, cfg *cryptoutilAppsSmImServerConfig.SmIMServerSettings) (*SmIMServer, error) {
 	if ctx == nil {
 		return nil, fmt.Errorf("context cannot be nil")
 	} else if cfg == nil {
