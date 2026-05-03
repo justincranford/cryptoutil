@@ -2,7 +2,7 @@
 //
 //
 
-// Package spa provides the Single Page Application service entry point.
+// Package spa provides the identity-spa service entry point.
 package spa
 
 import (
@@ -15,12 +15,12 @@ import (
 
 	cryptoutilTemplateCli "cryptoutil/internal/apps-framework/service/cli"
 	cryptoutilAppsFrameworkTls "cryptoutil/internal/apps-framework/tls"
-	cryptoutilAppsIdentitySpaServer "cryptoutil/internal/apps/identity-spa/server"
-	cryptoutilAppsIdentitySpaServerConfig "cryptoutil/internal/apps/identity-spa/server/config"
+	cryptoutilAppsServiceServer "cryptoutil/internal/apps/identity-spa/server"
+	cryptoutilAppsServiceServerConfig "cryptoutil/internal/apps/identity-spa/server/config"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
-// Spa implements the Single Page Application service subcommand handler.
+// Spa implements the identity-spa service subcommand handler.
 // Handles subcommands: server, client, init, health, livez, readyz, shutdown.
 func Spa(args []string, _ io.Reader, stdout, stderr io.Writer) int {
 	return cryptoutilTemplateCli.RouteService(
@@ -41,7 +41,7 @@ func Spa(args []string, _ io.Reader, stdout, stderr io.Writer) int {
 		args, stdout, stderr,
 		spaServerStart,
 		spaClient,
-		spaServiceInit,
+		spaInit,
 	)
 }
 
@@ -51,15 +51,15 @@ func spaServerStart(args []string, stdout, stderr io.Writer) int {
 		args,
 		stdout,
 		stderr,
-		cryptoutilTemplateCli.ServerStartOptions[*cryptoutilAppsIdentitySpaServerConfig.IdentitySPAServerSettings]{
+		cryptoutilTemplateCli.ServerStartOptions[*cryptoutilAppsServiceServerConfig.IdentitySPAServerSettings]{
 			UsageServer:  SPAUsageServer,
 			ServiceLabel: cryptoutilSharedMagic.IdentitySPAServiceID,
-			FlagSetName:  "identity-spa-server",
-			ParseConfig:  cryptoutilAppsIdentitySpaServerConfig.ParseWithFlagSet,
-			NewServer: func(ctx context.Context, settings *cryptoutilAppsIdentitySpaServerConfig.IdentitySPAServerSettings) (cryptoutilTemplateCli.ReadyStarter, error) {
-				return cryptoutilAppsIdentitySpaServer.NewFromConfig(ctx, settings)
+			FlagSetName:  cryptoutilTemplateCli.ServerFlagSetName(cryptoutilSharedMagic.IdentitySPAServiceID),
+			ParseConfig:  cryptoutilAppsServiceServerConfig.ParseWithFlagSet,
+			NewServer: func(ctx context.Context, settings *cryptoutilAppsServiceServerConfig.IdentitySPAServerSettings) (cryptoutilTemplateCli.ReadyStarter, error) {
+				return cryptoutilAppsServiceServer.NewFromConfig(ctx, settings)
 			},
-			BindAddresses: func(settings *cryptoutilAppsIdentitySpaServerConfig.IdentitySPAServerSettings) (string, uint16, string, uint16) {
+			BindAddresses: func(settings *cryptoutilAppsServiceServerConfig.IdentitySPAServerSettings) (string, uint16, string, uint16) {
 				return settings.BindPublicAddress, settings.BindPublicPort, settings.BindPrivateAddress, settings.BindPrivatePort
 			},
 		},
@@ -69,21 +69,18 @@ func spaServerStart(args []string, stdout, stderr io.Writer) int {
 // spaClient implements the client subcommand.
 // CLI wrapper for client operations.
 func spaClient(args []string, _, stderr io.Writer) int {
-	if cryptoutilTemplateCli.IsHelpRequest(args) {
+	if cryptoutilTemplateCli.IsHelpRequest(args, cryptoutilTemplateCli.ClientNotImplementedMessageConfig{Stderr: stderr, ServiceID: cryptoutilSharedMagic.IdentitySPAServiceID}) {
 		_, _ = fmt.Fprintln(stderr, SPAUsageClient)
 
 		return 0
 	}
 
-	_, _ = fmt.Fprintln(stderr, "❌ Client subcommand not yet implemented")
-	_, _ = fmt.Fprintln(stderr, "   This will provide CLI tools for interacting with the Single Page Application service")
-
 	return 1
 }
 
-// spaServiceInit implements the init subcommand.
+// spaInit implements the init subcommand.
 // Generates PKI certificates for identity-spa TLS endpoints via the framework PKI init.
-func spaServiceInit(args []string, stdout, stderr io.Writer) int {
+func spaInit(args []string, stdout, stderr io.Writer) int {
 	if cryptoutilTemplateCli.IsHelpRequest(args) {
 		_, _ = fmt.Fprintln(stderr, SPAUsageInit)
 

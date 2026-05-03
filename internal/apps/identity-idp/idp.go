@@ -2,7 +2,7 @@
 //
 //
 
-// Package idp provides the Identity Provider service entry point.
+// Package idp provides the identity-idp service entry point.
 package idp
 
 import (
@@ -15,12 +15,12 @@ import (
 
 	cryptoutilTemplateCli "cryptoutil/internal/apps-framework/service/cli"
 	cryptoutilAppsFrameworkTls "cryptoutil/internal/apps-framework/tls"
-	cryptoutilAppsIdentityIdpServer "cryptoutil/internal/apps/identity-idp/server"
-	cryptoutilAppsIdentityIdpServerConfig "cryptoutil/internal/apps/identity-idp/server/config"
+	cryptoutilAppsServiceServer "cryptoutil/internal/apps/identity-idp/server"
+	cryptoutilAppsServiceServerConfig "cryptoutil/internal/apps/identity-idp/server/config"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
-// Idp implements the Identity Provider service subcommand handler.
+// Idp implements the identity-idp service subcommand handler.
 // Handles subcommands: server, client, init, health, livez, readyz, shutdown.
 func Idp(args []string, _ io.Reader, stdout, stderr io.Writer) int {
 	return cryptoutilTemplateCli.RouteService(
@@ -41,7 +41,7 @@ func Idp(args []string, _ io.Reader, stdout, stderr io.Writer) int {
 		args, stdout, stderr,
 		idpServerStart,
 		idpClient,
-		idpServiceInit,
+		idpInit,
 	)
 }
 
@@ -51,15 +51,15 @@ func idpServerStart(args []string, stdout, stderr io.Writer) int {
 		args,
 		stdout,
 		stderr,
-		cryptoutilTemplateCli.ServerStartOptions[*cryptoutilAppsIdentityIdpServerConfig.IdentityIDPServerSettings]{
+		cryptoutilTemplateCli.ServerStartOptions[*cryptoutilAppsServiceServerConfig.IdentityIDPServerSettings]{
 			UsageServer:  IDPUsageServer,
 			ServiceLabel: cryptoutilSharedMagic.IdentityIDPServiceID,
-			FlagSetName:  "identity-idp-server",
-			ParseConfig:  cryptoutilAppsIdentityIdpServerConfig.ParseWithFlagSet,
-			NewServer: func(ctx context.Context, settings *cryptoutilAppsIdentityIdpServerConfig.IdentityIDPServerSettings) (cryptoutilTemplateCli.ReadyStarter, error) {
-				return cryptoutilAppsIdentityIdpServer.NewFromConfig(ctx, settings)
+			FlagSetName:  cryptoutilTemplateCli.ServerFlagSetName(cryptoutilSharedMagic.IdentityIDPServiceID),
+			ParseConfig:  cryptoutilAppsServiceServerConfig.ParseWithFlagSet,
+			NewServer: func(ctx context.Context, settings *cryptoutilAppsServiceServerConfig.IdentityIDPServerSettings) (cryptoutilTemplateCli.ReadyStarter, error) {
+				return cryptoutilAppsServiceServer.NewFromConfig(ctx, settings)
 			},
-			BindAddresses: func(settings *cryptoutilAppsIdentityIdpServerConfig.IdentityIDPServerSettings) (string, uint16, string, uint16) {
+			BindAddresses: func(settings *cryptoutilAppsServiceServerConfig.IdentityIDPServerSettings) (string, uint16, string, uint16) {
 				return settings.BindPublicAddress, settings.BindPublicPort, settings.BindPrivateAddress, settings.BindPrivatePort
 			},
 		},
@@ -69,21 +69,18 @@ func idpServerStart(args []string, stdout, stderr io.Writer) int {
 // idpClient implements the client subcommand.
 // CLI wrapper for client operations.
 func idpClient(args []string, _, stderr io.Writer) int {
-	if cryptoutilTemplateCli.IsHelpRequest(args) {
+	if cryptoutilTemplateCli.IsHelpRequest(args, cryptoutilTemplateCli.ClientNotImplementedMessageConfig{Stderr: stderr, ServiceID: cryptoutilSharedMagic.IdentityIDPServiceID}) {
 		_, _ = fmt.Fprintln(stderr, IDPUsageClient)
 
 		return 0
 	}
 
-	_, _ = fmt.Fprintln(stderr, "❌ Client subcommand not yet implemented")
-	_, _ = fmt.Fprintln(stderr, "   This will provide CLI tools for interacting with the Identity Provider service")
-
 	return 1
 }
 
-// idpServiceInit implements the init subcommand.
+// idpInit implements the init subcommand.
 // Generates PKI certificates for identity-idp TLS endpoints via the framework PKI init.
-func idpServiceInit(args []string, stdout, stderr io.Writer) int {
+func idpInit(args []string, stdout, stderr io.Writer) int {
 	if cryptoutilTemplateCli.IsHelpRequest(args) {
 		_, _ = fmt.Fprintln(stderr, IDPUsageInit)
 

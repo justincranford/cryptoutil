@@ -2,7 +2,7 @@
 //
 //
 
-// Package im provides the Instant Messaging Service entry point.
+// Package im provides the sm-im service entry point.
 package im
 
 import (
@@ -15,12 +15,12 @@ import (
 
 	cryptoutilTemplateCli "cryptoutil/internal/apps-framework/service/cli"
 	cryptoutilAppsFrameworkTls "cryptoutil/internal/apps-framework/tls"
-	cryptoutilAppsSmImServer "cryptoutil/internal/apps/sm-im/server"
-	cryptoutilAppsSmImServerConfig "cryptoutil/internal/apps/sm-im/server/config"
+	cryptoutilAppsServiceServer "cryptoutil/internal/apps/sm-im/server"
+	cryptoutilAppsServiceServerConfig "cryptoutil/internal/apps/sm-im/server/config"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
-// Im implements the instant messaging service subcommand handler.
+// Im implements the sm-im service subcommand handler.
 // Handles subcommands: server, client, init, health, livez, readyz, shutdown.
 func Im(args []string, _ io.Reader, stdout, stderr io.Writer) int {
 	return cryptoutilTemplateCli.RouteService(
@@ -51,15 +51,15 @@ func imServerStart(args []string, stdout, stderr io.Writer) int {
 		args,
 		stdout,
 		stderr,
-		cryptoutilTemplateCli.ServerStartOptions[*cryptoutilAppsSmImServerConfig.SmIMServerSettings]{
+		cryptoutilTemplateCli.ServerStartOptions[*cryptoutilAppsServiceServerConfig.SmIMServerSettings]{
 			UsageServer:  IMUsageServer,
 			ServiceLabel: cryptoutilSharedMagic.IMServiceID,
-			FlagSetName:  cryptoutilSharedMagic.IMServerFlagSetName,
-			ParseConfig:  cryptoutilAppsSmImServerConfig.ParseWithFlagSet,
-			NewServer: func(ctx context.Context, settings *cryptoutilAppsSmImServerConfig.SmIMServerSettings) (cryptoutilTemplateCli.ReadyStarter, error) {
-				return cryptoutilAppsSmImServer.NewIMServerFromConfig(ctx, settings)
+			FlagSetName:  cryptoutilTemplateCli.ServerFlagSetName(cryptoutilSharedMagic.IMServiceID),
+			ParseConfig:  cryptoutilAppsServiceServerConfig.ParseWithFlagSet,
+			NewServer: func(ctx context.Context, settings *cryptoutilAppsServiceServerConfig.SmIMServerSettings) (cryptoutilTemplateCli.ReadyStarter, error) {
+				return cryptoutilAppsServiceServer.NewIMServerFromConfig(ctx, settings)
 			},
-			BindAddresses: func(settings *cryptoutilAppsSmImServerConfig.SmIMServerSettings) (string, uint16, string, uint16) {
+			BindAddresses: func(settings *cryptoutilAppsServiceServerConfig.SmIMServerSettings) (string, uint16, string, uint16) {
 				return settings.BindPublicAddress, settings.BindPublicPort, settings.BindPrivateAddress, settings.BindPrivatePort
 			},
 		},

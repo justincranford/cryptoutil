@@ -2,7 +2,7 @@
 //
 //
 
-// Package kms provides the Key Management Service entry point.
+// Package kms provides the sm-kms service entry point.
 package kms
 
 import (
@@ -16,11 +16,11 @@ import (
 	cryptoutilTemplateCli "cryptoutil/internal/apps-framework/service/cli"
 	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps-framework/service/config"
 	cryptoutilAppsFrameworkTls "cryptoutil/internal/apps-framework/tls"
-	cryptoutilAppsSmKmsServer "cryptoutil/internal/apps/sm-kms/server"
+	cryptoutilAppsServiceServer "cryptoutil/internal/apps/sm-kms/server"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
-// Kms implements the Key Management Service subcommand handler.
+// Kms implements the sm-kms service subcommand handler.
 // Handles subcommands: server, client, init, health, livez, readyz, shutdown.
 func Kms(args []string, _ io.Reader, stdout, stderr io.Writer) int {
 	return cryptoutilTemplateCli.RouteService(
@@ -54,10 +54,10 @@ func kmsServerStart(args []string, stdout, stderr io.Writer) int {
 		cryptoutilTemplateCli.ServerStartOptions[*cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings]{
 			UsageServer:  KMSUsageServer,
 			ServiceLabel: cryptoutilSharedMagic.KMSServiceID,
-			FlagSetName:  cryptoutilSharedMagic.KMSServerFlagSetName,
+			FlagSetName:  cryptoutilTemplateCli.ServerFlagSetName(cryptoutilSharedMagic.KMSServiceID),
 			ParseConfig:  cryptoutilAppsFrameworkServiceConfig.ParseWithFlagSet,
 			NewServer: func(ctx context.Context, settings *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings) (cryptoutilTemplateCli.ReadyStarter, error) {
-				return cryptoutilAppsSmKmsServer.NewKMSServerFromConfig(ctx, settings)
+				return cryptoutilAppsServiceServer.NewKMSServerFromConfig(ctx, settings)
 			},
 			BindAddresses: func(settings *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings) (string, uint16, string, uint16) {
 				return settings.BindPublicAddress, settings.BindPublicPort, settings.BindPrivateAddress, settings.BindPrivatePort

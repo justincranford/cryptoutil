@@ -2,7 +2,7 @@
 //
 //
 
-// Package rs provides the Resource Server service entry point.
+// Package rs provides the identity-rs service entry point.
 package rs
 
 import (
@@ -15,12 +15,12 @@ import (
 
 	cryptoutilTemplateCli "cryptoutil/internal/apps-framework/service/cli"
 	cryptoutilAppsFrameworkTls "cryptoutil/internal/apps-framework/tls"
-	cryptoutilAppsIdentityRsServer "cryptoutil/internal/apps/identity-rs/server"
-	cryptoutilAppsIdentityRsServerConfig "cryptoutil/internal/apps/identity-rs/server/config"
+	cryptoutilAppsServiceServer "cryptoutil/internal/apps/identity-rs/server"
+	cryptoutilAppsServiceServerConfig "cryptoutil/internal/apps/identity-rs/server/config"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
-// Rs implements the Resource Server service subcommand handler.
+// Rs implements the identity-rs service subcommand handler.
 // Handles subcommands: server, client, init, health, livez, readyz, shutdown.
 func Rs(args []string, _ io.Reader, stdout, stderr io.Writer) int {
 	return cryptoutilTemplateCli.RouteService(
@@ -41,7 +41,7 @@ func Rs(args []string, _ io.Reader, stdout, stderr io.Writer) int {
 		args, stdout, stderr,
 		rsServerStart,
 		rsClient,
-		rsServiceInit,
+		rsInit,
 	)
 }
 
@@ -51,15 +51,15 @@ func rsServerStart(args []string, stdout, stderr io.Writer) int {
 		args,
 		stdout,
 		stderr,
-		cryptoutilTemplateCli.ServerStartOptions[*cryptoutilAppsIdentityRsServerConfig.IdentityRSServerSettings]{
+		cryptoutilTemplateCli.ServerStartOptions[*cryptoutilAppsServiceServerConfig.IdentityRSServerSettings]{
 			UsageServer:  RSUsageServer,
 			ServiceLabel: cryptoutilSharedMagic.IdentityRSServiceID,
-			FlagSetName:  "identity-rs-server",
-			ParseConfig:  cryptoutilAppsIdentityRsServerConfig.ParseWithFlagSet,
-			NewServer: func(ctx context.Context, settings *cryptoutilAppsIdentityRsServerConfig.IdentityRSServerSettings) (cryptoutilTemplateCli.ReadyStarter, error) {
-				return cryptoutilAppsIdentityRsServer.NewFromConfig(ctx, settings)
+			FlagSetName:  cryptoutilTemplateCli.ServerFlagSetName(cryptoutilSharedMagic.IdentityRSServiceID),
+			ParseConfig:  cryptoutilAppsServiceServerConfig.ParseWithFlagSet,
+			NewServer: func(ctx context.Context, settings *cryptoutilAppsServiceServerConfig.IdentityRSServerSettings) (cryptoutilTemplateCli.ReadyStarter, error) {
+				return cryptoutilAppsServiceServer.NewFromConfig(ctx, settings)
 			},
-			BindAddresses: func(settings *cryptoutilAppsIdentityRsServerConfig.IdentityRSServerSettings) (string, uint16, string, uint16) {
+			BindAddresses: func(settings *cryptoutilAppsServiceServerConfig.IdentityRSServerSettings) (string, uint16, string, uint16) {
 				return settings.BindPublicAddress, settings.BindPublicPort, settings.BindPrivateAddress, settings.BindPrivatePort
 			},
 		},
@@ -69,21 +69,18 @@ func rsServerStart(args []string, stdout, stderr io.Writer) int {
 // rsClient implements the client subcommand.
 // CLI wrapper for client operations.
 func rsClient(args []string, _, stderr io.Writer) int {
-	if cryptoutilTemplateCli.IsHelpRequest(args) {
+	if cryptoutilTemplateCli.IsHelpRequest(args, cryptoutilTemplateCli.ClientNotImplementedMessageConfig{Stderr: stderr, ServiceID: cryptoutilSharedMagic.IdentityRSServiceID}) {
 		_, _ = fmt.Fprintln(stderr, RSUsageClient)
 
 		return 0
 	}
 
-	_, _ = fmt.Fprintln(stderr, "❌ Client subcommand not yet implemented")
-	_, _ = fmt.Fprintln(stderr, "   This will provide CLI tools for interacting with the Resource Server service")
-
 	return 1
 }
 
-// rsServiceInit implements the init subcommand.
+// rsInit implements the init subcommand.
 // Generates PKI certificates for identity-rs TLS endpoints via the framework PKI init.
-func rsServiceInit(args []string, stdout, stderr io.Writer) int {
+func rsInit(args []string, stdout, stderr io.Writer) int {
 	if cryptoutilTemplateCli.IsHelpRequest(args) {
 		_, _ = fmt.Fprintln(stderr, RSUsageInit)
 

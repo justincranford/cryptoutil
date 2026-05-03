@@ -210,7 +210,7 @@ func checkInDirWithExclusions(
 
 	for _, ps := range cryptoutilFitnessRegistry.AllProductServices() {
 		psDir := filepath.Join(appsDir, ps.PSID)
-		errs := checkPSIDFiles(psDir, ps, manifest, excl)
+		errs := checkPSIDFiles(rootDir, psDir, ps, manifest, excl)
 		violations = append(violations, errs...)
 	}
 
@@ -225,6 +225,7 @@ func checkInDirWithExclusions(
 
 // checkPSIDFiles checks one PS-ID directory against the manifest, applying exclusions.
 func checkPSIDFiles(
+	rootDir string,
 	psDir string,
 	ps cryptoutilFitnessRegistry.ProductService,
 	manifest psIDManifest,
@@ -245,6 +246,8 @@ func checkPSIDFiles(
 			violations = append(violations, fmt.Sprintf("%s: missing required root file: %s", ps.PSID, expanded))
 		}
 	}
+
+	violations = append(violations, checkServiceRootTemplate(rootDir, psDir, ps)...)
 
 	// Check required directories.
 	for _, dir := range manifest.RequiredDirs {

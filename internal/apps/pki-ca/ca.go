@@ -2,7 +2,7 @@
 //
 //
 
-// Package ca provides the Certificate Authority service entry point.
+// Package ca provides the pki-ca service entry point.
 package ca
 
 import (
@@ -15,12 +15,12 @@ import (
 
 	cryptoutilTemplateCli "cryptoutil/internal/apps-framework/service/cli"
 	cryptoutilAppsFrameworkTls "cryptoutil/internal/apps-framework/tls"
-	cryptoutilAppsCaServer "cryptoutil/internal/apps/pki-ca/server"
-	cryptoutilAppsCaServerConfig "cryptoutil/internal/apps/pki-ca/server/config"
+	cryptoutilAppsServiceServer "cryptoutil/internal/apps/pki-ca/server"
+	cryptoutilAppsServiceServerConfig "cryptoutil/internal/apps/pki-ca/server/config"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
-// Ca implements the Certificate Authority service subcommand handler.
+// Ca implements the pki-ca service subcommand handler.
 // Handles subcommands: server, client, init, health, livez, readyz, shutdown.
 func Ca(args []string, _ io.Reader, stdout, stderr io.Writer) int {
 	return cryptoutilTemplateCli.RouteService(
@@ -51,15 +51,15 @@ func caServerStart(args []string, stdout, stderr io.Writer) int {
 		args,
 		stdout,
 		stderr,
-		cryptoutilTemplateCli.ServerStartOptions[*cryptoutilAppsCaServerConfig.CAServerSettings]{
+		cryptoutilTemplateCli.ServerStartOptions[*cryptoutilAppsServiceServerConfig.CAServerSettings]{
 			UsageServer:  CAUsageServer,
 			ServiceLabel: cryptoutilSharedMagic.PKICAServiceID,
-			FlagSetName:  "pki-ca-server",
-			ParseConfig:  cryptoutilAppsCaServerConfig.ParseWithFlagSet,
-			NewServer: func(ctx context.Context, settings *cryptoutilAppsCaServerConfig.CAServerSettings) (cryptoutilTemplateCli.ReadyStarter, error) {
-				return cryptoutilAppsCaServer.NewFromConfig(ctx, settings)
+			FlagSetName:  cryptoutilTemplateCli.ServerFlagSetName(cryptoutilSharedMagic.PKICAServiceID),
+			ParseConfig:  cryptoutilAppsServiceServerConfig.ParseWithFlagSet,
+			NewServer: func(ctx context.Context, settings *cryptoutilAppsServiceServerConfig.CAServerSettings) (cryptoutilTemplateCli.ReadyStarter, error) {
+				return cryptoutilAppsServiceServer.NewFromConfig(ctx, settings)
 			},
-			BindAddresses: func(settings *cryptoutilAppsCaServerConfig.CAServerSettings) (string, uint16, string, uint16) {
+			BindAddresses: func(settings *cryptoutilAppsServiceServerConfig.CAServerSettings) (string, uint16, string, uint16) {
 				return settings.BindPublicAddress, settings.BindPublicPort, settings.BindPrivateAddress, settings.BindPrivatePort
 			},
 		},
@@ -69,14 +69,11 @@ func caServerStart(args []string, stdout, stderr io.Writer) int {
 // caClient implements the client subcommand.
 // CLI wrapper for client operations.
 func caClient(args []string, _, stderr io.Writer) int {
-	if cryptoutilTemplateCli.IsHelpRequest(args) {
+	if cryptoutilTemplateCli.IsHelpRequest(args, cryptoutilTemplateCli.ClientNotImplementedMessageConfig{Stderr: stderr, ServiceID: cryptoutilSharedMagic.PKICAServiceID}) {
 		_, _ = fmt.Fprintln(stderr, CAUsageClient)
 
 		return 0
 	}
-
-	_, _ = fmt.Fprintln(stderr, "❌ Client subcommand not yet implemented")
-	_, _ = fmt.Fprintln(stderr, "   This will provide CLI tools for interacting with the CA service")
 
 	return 1
 }

@@ -381,7 +381,7 @@ repos:
 
   # Conventional commit validation
   - repo: https://github.com/commitizen-tools/commitizen
-    rev: v4.13.10
+    rev: v4.15.0
     hooks:
       - id: commitizen
         name: Check conventional commit message

@@ -2,7 +2,7 @@
 //
 //
 
-// Package ja provides the JWK Authority service entry point.
+// Package ja provides the jose-ja service entry point.
 package ja
 
 import (
@@ -15,12 +15,12 @@ import (
 
 	cryptoutilTemplateCli "cryptoutil/internal/apps-framework/service/cli"
 	cryptoutilAppsFrameworkTls "cryptoutil/internal/apps-framework/tls"
-	cryptoutilAppsJoseJaServer "cryptoutil/internal/apps/jose-ja/server"
-	cryptoutilAppsJoseJaServerConfig "cryptoutil/internal/apps/jose-ja/server/config"
+	cryptoutilAppsServiceServer "cryptoutil/internal/apps/jose-ja/server"
+	cryptoutilAppsServiceServerConfig "cryptoutil/internal/apps/jose-ja/server/config"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
-// Ja implements the JWK Authority service subcommand handler.
+// Ja implements the jose-ja service subcommand handler.
 // Handles subcommands: server, client, init, health, livez, readyz, shutdown.
 func Ja(args []string, _ io.Reader, stdout, stderr io.Writer) int {
 	return cryptoutilTemplateCli.RouteService(
@@ -51,15 +51,15 @@ func jaServerStart(args []string, stdout, stderr io.Writer) int {
 		args,
 		stdout,
 		stderr,
-		cryptoutilTemplateCli.ServerStartOptions[*cryptoutilAppsJoseJaServerConfig.JoseJAServerSettings]{
+		cryptoutilTemplateCli.ServerStartOptions[*cryptoutilAppsServiceServerConfig.JoseJAServerSettings]{
 			UsageServer:  JAUsageServer,
 			ServiceLabel: cryptoutilSharedMagic.JoseJAServiceID,
-			FlagSetName:  "jose-ja-server",
-			ParseConfig:  cryptoutilAppsJoseJaServerConfig.ParseWithFlagSet,
-			NewServer: func(ctx context.Context, settings *cryptoutilAppsJoseJaServerConfig.JoseJAServerSettings) (cryptoutilTemplateCli.ReadyStarter, error) {
-				return cryptoutilAppsJoseJaServer.NewFromConfig(ctx, settings)
+			FlagSetName:  cryptoutilTemplateCli.ServerFlagSetName(cryptoutilSharedMagic.JoseJAServiceID),
+			ParseConfig:  cryptoutilAppsServiceServerConfig.ParseWithFlagSet,
+			NewServer: func(ctx context.Context, settings *cryptoutilAppsServiceServerConfig.JoseJAServerSettings) (cryptoutilTemplateCli.ReadyStarter, error) {
+				return cryptoutilAppsServiceServer.NewFromConfig(ctx, settings)
 			},
-			BindAddresses: func(settings *cryptoutilAppsJoseJaServerConfig.JoseJAServerSettings) (string, uint16, string, uint16) {
+			BindAddresses: func(settings *cryptoutilAppsServiceServerConfig.JoseJAServerSettings) (string, uint16, string, uint16) {
 				return settings.BindPublicAddress, settings.BindPublicPort, settings.BindPrivateAddress, settings.BindPrivatePort
 			},
 		},
@@ -69,14 +69,11 @@ func jaServerStart(args []string, stdout, stderr io.Writer) int {
 // jaClient implements the client subcommand.
 // CLI wrapper for client operations.
 func jaClient(args []string, _, stderr io.Writer) int {
-	if cryptoutilTemplateCli.IsHelpRequest(args) {
+	if cryptoutilTemplateCli.IsHelpRequest(args, cryptoutilTemplateCli.ClientNotImplementedMessageConfig{Stderr: stderr, ServiceID: cryptoutilSharedMagic.JoseJAServiceID}) {
 		_, _ = fmt.Fprintln(stderr, JAUsageClient)
 
 		return 0
 	}
-
-	_, _ = fmt.Fprintln(stderr, "❌ Client subcommand not yet implemented")
-	_, _ = fmt.Fprintln(stderr, "   This will provide CLI tools for interacting with the JWK Authority service")
 
 	return 1
 }

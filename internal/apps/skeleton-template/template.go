@@ -1,8 +1,8 @@
 // Copyright (c) 2025-2026 Justin Cranford.
 //
-// TEMPLATE: Copy and rename 'skeleton' → your-service-name before use.
+//
 
-// Package template provides the Skeleton Template service entry point.
+// Package template provides the skeleton-template service entry point.
 package template
 
 import (
@@ -15,12 +15,12 @@ import (
 
 	cryptoutilTemplateCli "cryptoutil/internal/apps-framework/service/cli"
 	cryptoutilAppsFrameworkTls "cryptoutil/internal/apps-framework/tls"
-	cryptoutilAppsSkeletonTemplateServer "cryptoutil/internal/apps/skeleton-template/server"
-	cryptoutilAppsSkeletonTemplateServerConfig "cryptoutil/internal/apps/skeleton-template/server/config"
+	cryptoutilAppsServiceServer "cryptoutil/internal/apps/skeleton-template/server"
+	cryptoutilAppsServiceServerConfig "cryptoutil/internal/apps/skeleton-template/server/config"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
-// Template implements the Skeleton Template service subcommand handler.
+// Template implements the skeleton-template service subcommand handler.
 // Handles subcommands: server, client, init, health, livez, readyz, shutdown.
 func Template(args []string, _ io.Reader, stdout, stderr io.Writer) int {
 	return cryptoutilTemplateCli.RouteService(
@@ -51,15 +51,15 @@ func templateServerStart(args []string, stdout, stderr io.Writer) int {
 		args,
 		stdout,
 		stderr,
-		cryptoutilTemplateCli.ServerStartOptions[*cryptoutilAppsSkeletonTemplateServerConfig.SkeletonTemplateServerSettings]{
+		cryptoutilTemplateCli.ServerStartOptions[*cryptoutilAppsServiceServerConfig.SkeletonTemplateServerSettings]{
 			UsageServer:  TemplateUsageServer,
 			ServiceLabel: cryptoutilSharedMagic.SkeletonTemplateServiceID,
-			FlagSetName:  "skeleton-template-server",
-			ParseConfig:  cryptoutilAppsSkeletonTemplateServerConfig.ParseWithFlagSet,
-			NewServer: func(ctx context.Context, settings *cryptoutilAppsSkeletonTemplateServerConfig.SkeletonTemplateServerSettings) (cryptoutilTemplateCli.ReadyStarter, error) {
-				return cryptoutilAppsSkeletonTemplateServer.NewFromConfig(ctx, settings)
+			FlagSetName:  cryptoutilTemplateCli.ServerFlagSetName(cryptoutilSharedMagic.SkeletonTemplateServiceID),
+			ParseConfig:  cryptoutilAppsServiceServerConfig.ParseWithFlagSet,
+			NewServer: func(ctx context.Context, settings *cryptoutilAppsServiceServerConfig.SkeletonTemplateServerSettings) (cryptoutilTemplateCli.ReadyStarter, error) {
+				return cryptoutilAppsServiceServer.NewFromConfig(ctx, settings)
 			},
-			BindAddresses: func(settings *cryptoutilAppsSkeletonTemplateServerConfig.SkeletonTemplateServerSettings) (string, uint16, string, uint16) {
+			BindAddresses: func(settings *cryptoutilAppsServiceServerConfig.SkeletonTemplateServerSettings) (string, uint16, string, uint16) {
 				return settings.BindPublicAddress, settings.BindPublicPort, settings.BindPrivateAddress, settings.BindPrivatePort
 			},
 		},
@@ -69,14 +69,11 @@ func templateServerStart(args []string, stdout, stderr io.Writer) int {
 // templateClient implements the client subcommand.
 // CLI wrapper for client operations.
 func templateClient(args []string, _, stderr io.Writer) int {
-	if cryptoutilTemplateCli.IsHelpRequest(args) {
+	if cryptoutilTemplateCli.IsHelpRequest(args, cryptoutilTemplateCli.ClientNotImplementedMessageConfig{Stderr: stderr, ServiceID: cryptoutilSharedMagic.SkeletonTemplateServiceID}) {
 		_, _ = fmt.Fprintln(stderr, TemplateUsageClient)
 
 		return 0
 	}
-
-	_, _ = fmt.Fprintln(stderr, "❌ Client subcommand not yet implemented")
-	_, _ = fmt.Fprintln(stderr, "   This will provide CLI tools for interacting with the Skeleton Template service")
 
 	return 1
 }

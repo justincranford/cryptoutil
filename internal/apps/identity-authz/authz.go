@@ -2,7 +2,7 @@
 //
 //
 
-// Package authz provides the Authorization Server service entry point.
+// Package authz provides the identity-authz service entry point.
 package authz
 
 import (
@@ -15,12 +15,12 @@ import (
 
 	cryptoutilTemplateCli "cryptoutil/internal/apps-framework/service/cli"
 	cryptoutilAppsFrameworkTls "cryptoutil/internal/apps-framework/tls"
-	cryptoutilAppsIdentityAuthzServer "cryptoutil/internal/apps/identity-authz/server"
-	cryptoutilAppsIdentityAuthzServerConfig "cryptoutil/internal/apps/identity-authz/server/config"
+	cryptoutilAppsServiceServer "cryptoutil/internal/apps/identity-authz/server"
+	cryptoutilAppsServiceServerConfig "cryptoutil/internal/apps/identity-authz/server/config"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
-// Authz implements the Authorization Server service subcommand handler.
+// Authz implements the identity-authz service subcommand handler.
 // Handles subcommands: server, client, init, health, livez, readyz, shutdown.
 func Authz(args []string, _ io.Reader, stdout, stderr io.Writer) int {
 	return cryptoutilTemplateCli.RouteService(
@@ -41,7 +41,7 @@ func Authz(args []string, _ io.Reader, stdout, stderr io.Writer) int {
 		args, stdout, stderr,
 		authzServerStart,
 		authzClient,
-		authzServiceInit,
+		authzInit,
 	)
 }
 
@@ -51,15 +51,15 @@ func authzServerStart(args []string, stdout, stderr io.Writer) int {
 		args,
 		stdout,
 		stderr,
-		cryptoutilTemplateCli.ServerStartOptions[*cryptoutilAppsIdentityAuthzServerConfig.IdentityAuthzServerSettings]{
+		cryptoutilTemplateCli.ServerStartOptions[*cryptoutilAppsServiceServerConfig.IdentityAuthzServerSettings]{
 			UsageServer:  AUTHZUsageServer,
 			ServiceLabel: cryptoutilSharedMagic.IdentityAuthzServiceID,
-			FlagSetName:  "identity-authz-server",
-			ParseConfig:  cryptoutilAppsIdentityAuthzServerConfig.ParseWithFlagSet,
-			NewServer: func(ctx context.Context, settings *cryptoutilAppsIdentityAuthzServerConfig.IdentityAuthzServerSettings) (cryptoutilTemplateCli.ReadyStarter, error) {
-				return cryptoutilAppsIdentityAuthzServer.NewFromConfig(ctx, settings)
+			FlagSetName:  cryptoutilTemplateCli.ServerFlagSetName(cryptoutilSharedMagic.IdentityAuthzServiceID),
+			ParseConfig:  cryptoutilAppsServiceServerConfig.ParseWithFlagSet,
+			NewServer: func(ctx context.Context, settings *cryptoutilAppsServiceServerConfig.IdentityAuthzServerSettings) (cryptoutilTemplateCli.ReadyStarter, error) {
+				return cryptoutilAppsServiceServer.NewFromConfig(ctx, settings)
 			},
-			BindAddresses: func(settings *cryptoutilAppsIdentityAuthzServerConfig.IdentityAuthzServerSettings) (string, uint16, string, uint16) {
+			BindAddresses: func(settings *cryptoutilAppsServiceServerConfig.IdentityAuthzServerSettings) (string, uint16, string, uint16) {
 				return settings.BindPublicAddress, settings.BindPublicPort, settings.BindPrivateAddress, settings.BindPrivatePort
 			},
 		},
@@ -69,21 +69,18 @@ func authzServerStart(args []string, stdout, stderr io.Writer) int {
 // authzClient implements the client subcommand.
 // CLI wrapper for client operations.
 func authzClient(args []string, _, stderr io.Writer) int {
-	if cryptoutilTemplateCli.IsHelpRequest(args) {
+	if cryptoutilTemplateCli.IsHelpRequest(args, cryptoutilTemplateCli.ClientNotImplementedMessageConfig{Stderr: stderr, ServiceID: cryptoutilSharedMagic.IdentityAuthzServiceID}) {
 		_, _ = fmt.Fprintln(stderr, AUTHZUsageClient)
 
 		return 0
 	}
 
-	_, _ = fmt.Fprintln(stderr, "❌ Client subcommand not yet implemented")
-	_, _ = fmt.Fprintln(stderr, "   This will provide CLI tools for interacting with the Authorization Server service")
-
 	return 1
 }
 
-// authzServiceInit implements the init subcommand.
+// authzInit implements the init subcommand.
 // Generates PKI certificates for identity-authz TLS endpoints via the framework PKI init.
-func authzServiceInit(args []string, stdout, stderr io.Writer) int {
+func authzInit(args []string, stdout, stderr io.Writer) int {
 	if cryptoutilTemplateCli.IsHelpRequest(args) {
 		_, _ = fmt.Fprintln(stderr, AUTHZUsageInit)
 

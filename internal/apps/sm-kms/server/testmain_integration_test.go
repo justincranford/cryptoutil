@@ -32,7 +32,7 @@ func TestMain(m *testing.M) {
 	// Create KMS server.
 	var err error
 
-	testIntegrationServer, err = NewKMSServer(ctx, cfg)
+	testIntegrationServer, err = NewKMSServerFromConfig(ctx, cfg)
 	if err != nil {
 		panic(fmt.Sprintf("TestMain: failed to create KMS server: %v", err))
 	}

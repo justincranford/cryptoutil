@@ -2,7 +2,7 @@
 //
 //
 
-// Package rp provides the Relying Party service entry point.
+// Package rp provides the identity-rp service entry point.
 package rp
 
 import (
@@ -15,12 +15,12 @@ import (
 
 	cryptoutilTemplateCli "cryptoutil/internal/apps-framework/service/cli"
 	cryptoutilAppsFrameworkTls "cryptoutil/internal/apps-framework/tls"
-	cryptoutilAppsIdentityRpServer "cryptoutil/internal/apps/identity-rp/server"
-	cryptoutilAppsIdentityRpServerConfig "cryptoutil/internal/apps/identity-rp/server/config"
+	cryptoutilAppsServiceServer "cryptoutil/internal/apps/identity-rp/server"
+	cryptoutilAppsServiceServerConfig "cryptoutil/internal/apps/identity-rp/server/config"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
-// Rp implements the Relying Party service subcommand handler.
+// Rp implements the identity-rp service subcommand handler.
 // Handles subcommands: server, client, init, health, livez, readyz, shutdown.
 func Rp(args []string, _ io.Reader, stdout, stderr io.Writer) int {
 	return cryptoutilTemplateCli.RouteService(
@@ -41,7 +41,7 @@ func Rp(args []string, _ io.Reader, stdout, stderr io.Writer) int {
 		args, stdout, stderr,
 		rpServerStart,
 		rpClient,
-		rpServiceInit,
+		rpInit,
 	)
 }
 
@@ -51,15 +51,15 @@ func rpServerStart(args []string, stdout, stderr io.Writer) int {
 		args,
 		stdout,
 		stderr,
-		cryptoutilTemplateCli.ServerStartOptions[*cryptoutilAppsIdentityRpServerConfig.IdentityRPServerSettings]{
+		cryptoutilTemplateCli.ServerStartOptions[*cryptoutilAppsServiceServerConfig.IdentityRPServerSettings]{
 			UsageServer:  RPUsageServer,
 			ServiceLabel: cryptoutilSharedMagic.IdentityRPServiceID,
-			FlagSetName:  "identity-rp-server",
-			ParseConfig:  cryptoutilAppsIdentityRpServerConfig.ParseWithFlagSet,
-			NewServer: func(ctx context.Context, settings *cryptoutilAppsIdentityRpServerConfig.IdentityRPServerSettings) (cryptoutilTemplateCli.ReadyStarter, error) {
-				return cryptoutilAppsIdentityRpServer.NewFromConfig(ctx, settings)
+			FlagSetName:  cryptoutilTemplateCli.ServerFlagSetName(cryptoutilSharedMagic.IdentityRPServiceID),
+			ParseConfig:  cryptoutilAppsServiceServerConfig.ParseWithFlagSet,
+			NewServer: func(ctx context.Context, settings *cryptoutilAppsServiceServerConfig.IdentityRPServerSettings) (cryptoutilTemplateCli.ReadyStarter, error) {
+				return cryptoutilAppsServiceServer.NewFromConfig(ctx, settings)
 			},
-			BindAddresses: func(settings *cryptoutilAppsIdentityRpServerConfig.IdentityRPServerSettings) (string, uint16, string, uint16) {
+			BindAddresses: func(settings *cryptoutilAppsServiceServerConfig.IdentityRPServerSettings) (string, uint16, string, uint16) {
 				return settings.BindPublicAddress, settings.BindPublicPort, settings.BindPrivateAddress, settings.BindPrivatePort
 			},
 		},
@@ -69,21 +69,18 @@ func rpServerStart(args []string, stdout, stderr io.Writer) int {
 // rpClient implements the client subcommand.
 // CLI wrapper for client operations.
 func rpClient(args []string, _, stderr io.Writer) int {
-	if cryptoutilTemplateCli.IsHelpRequest(args) {
+	if cryptoutilTemplateCli.IsHelpRequest(args, cryptoutilTemplateCli.ClientNotImplementedMessageConfig{Stderr: stderr, ServiceID: cryptoutilSharedMagic.IdentityRPServiceID}) {
 		_, _ = fmt.Fprintln(stderr, RPUsageClient)
 
 		return 0
 	}
 
-	_, _ = fmt.Fprintln(stderr, "❌ Client subcommand not yet implemented")
-	_, _ = fmt.Fprintln(stderr, "   This will provide CLI tools for interacting with the Relying Party service")
-
 	return 1
 }
 
-// rpServiceInit implements the init subcommand.
+// rpInit implements the init subcommand.
 // Generates PKI certificates for identity-rp TLS endpoints via the framework PKI init.
-func rpServiceInit(args []string, stdout, stderr io.Writer) int {
+func rpInit(args []string, stdout, stderr io.Writer) int {
 	if cryptoutilTemplateCli.IsHelpRequest(args) {
 		_, _ = fmt.Fprintln(stderr, RPUsageInit)
 
