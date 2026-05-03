@@ -21,6 +21,9 @@ const (
 	// KMSServicePort is the default public API port for sm-kms service.
 	// Port range for SM KMS: 8000-8099 (100-port block).
 	KMSServicePort = 8000
+
+	// KMSServerFlagSetName is the pflag set name for the sm-kms server subcommand.
+	KMSServerFlagSetName = "sm-kms-server"
 )
 
 // SM-KMS E2E Test Configuration.

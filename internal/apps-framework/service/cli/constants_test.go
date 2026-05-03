@@ -4,6 +4,7 @@
 package cli_test
 
 import (
+	"bytes"
 	"testing"
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
@@ -37,4 +38,39 @@ func TestIsHelpRequest(t *testing.T) {
 			require.Equal(t, tc.expect, result)
 		})
 	}
+}
+
+func TestIsHelpRequest_WithClientNotImplementedMessage(t *testing.T) {
+	t.Parallel()
+
+	var stderr bytes.Buffer
+
+	result := cryptoutilAppsFrameworkCli.IsHelpRequest(
+		[]string{"client"},
+		cryptoutilAppsFrameworkCli.ClientNotImplementedMessageConfig{
+			Stderr:    &stderr,
+			ServiceID: cryptoutilSharedMagic.IMServiceID,
+		},
+	)
+
+	require.False(t, result)
+	require.Contains(t, stderr.String(), "Client subcommand not yet implemented")
+	require.Contains(t, stderr.String(), "interacting with the "+cryptoutilSharedMagic.IMServiceID)
+}
+
+func TestIsHelpRequest_WithClientNotImplementedMessage_HelpRequest(t *testing.T) {
+	t.Parallel()
+
+	var stderr bytes.Buffer
+
+	result := cryptoutilAppsFrameworkCli.IsHelpRequest(
+		[]string{cryptoutilSharedMagic.CLIHelpFlag},
+		cryptoutilAppsFrameworkCli.ClientNotImplementedMessageConfig{
+			Stderr:    &stderr,
+			ServiceID: cryptoutilSharedMagic.IMServiceID,
+		},
+	)
+
+	require.True(t, result)
+	require.Empty(t, stderr.String())
 }

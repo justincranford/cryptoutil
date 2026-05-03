@@ -22,6 +22,9 @@ const (
 	// IMServicePort is the default public HTTPS server port for sm-im.
 	IMServicePort = 8100
 
+	// IMServerFlagSetName is the pflag set name for the sm-im server subcommand.
+	IMServerFlagSetName = "sm-im-server"
+
 	// IMAdminPort is the default private admin HTTPS server port for sm-im.
 	IMAdminPort = 9090
 

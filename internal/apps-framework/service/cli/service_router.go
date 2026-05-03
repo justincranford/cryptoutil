@@ -10,6 +10,12 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
+// ClientNotImplementedMessageConfig controls optional client-subcommand placeholder output.
+type ClientNotImplementedMessageConfig struct {
+	Stderr    io.Writer
+	ServiceID string
+}
+
 // ServiceConfig holds configuration for a service CLI entrypoint.
 // All SERVICE CLI entrypoints (product-service combinations) use this.
 type ServiceConfig struct {
@@ -106,6 +112,23 @@ func RouteService(cfg ServiceConfig, args []string, stdout, stderr io.Writer, se
 }
 
 // IsHelpRequest reports whether the first arg is a help command or flag.
-func IsHelpRequest(args []string) bool {
-	return len(args) > 0 && (args[0] == cryptoutilSharedMagic.CLIHelpCommand || args[0] == cryptoutilSharedMagic.CLIHelpFlag || args[0] == cryptoutilSharedMagic.CLIHelpShortFlag)
+//
+// When optional clientNotImplemented settings are provided and args are not a
+// help request, it prints a standardized placeholder for unimplemented client
+// subcommands.
+func IsHelpRequest(args []string, clientNotImplemented ...ClientNotImplementedMessageConfig) bool {
+	isHelp := len(args) > 0 && (args[0] == cryptoutilSharedMagic.CLIHelpCommand || args[0] == cryptoutilSharedMagic.CLIHelpFlag || args[0] == cryptoutilSharedMagic.CLIHelpShortFlag)
+	if isHelp {
+		return true
+	}
+
+	if len(clientNotImplemented) > 0 {
+		cfg := clientNotImplemented[0]
+		if cfg.Stderr != nil {
+			_, _ = fmt.Fprintln(cfg.Stderr, "❌ Client subcommand not yet implemented")
+			_, _ = fmt.Fprintf(cfg.Stderr, "   This will provide CLI tools for interacting with the %s\n", cfg.ServiceID)
+		}
+	}
+
+	return false
 }

@@ -54,7 +54,7 @@ func kmsServerStart(args []string, stdout, stderr io.Writer) int {
 		cryptoutilTemplateCli.ServerStartOptions[*cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings]{
 			UsageServer:  KMSUsageServer,
 			ServiceLabel: cryptoutilSharedMagic.KMSServiceID,
-			FlagSetName:  "sm-kms-server",
+			FlagSetName:  cryptoutilSharedMagic.KMSServerFlagSetName,
 			ParseConfig:  cryptoutilAppsFrameworkServiceConfig.ParseWithFlagSet,
 			NewServer: func(ctx context.Context, settings *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings) (cryptoutilTemplateCli.ReadyStarter, error) {
 				return cryptoutilAppsSmKmsServer.NewKMSServerFromConfig(ctx, settings)
@@ -69,14 +69,11 @@ func kmsServerStart(args []string, stdout, stderr io.Writer) int {
 // kmsClient implements the client subcommand.
 // CLI wrapper for client operations.
 func kmsClient(args []string, _, stderr io.Writer) int {
-	if cryptoutilTemplateCli.IsHelpRequest(args) {
+	if cryptoutilTemplateCli.IsHelpRequest(args, cryptoutilTemplateCli.ClientNotImplementedMessageConfig{Stderr: stderr, ServiceID: cryptoutilSharedMagic.KMSServiceID}) {
 		_, _ = fmt.Fprintln(stderr, KMSUsageClient)
 
 		return 0
 	}
-
-	_, _ = fmt.Fprintln(stderr, "❌ Client subcommand not yet implemented")
-	_, _ = fmt.Fprintln(stderr, "   This will provide CLI tools for interacting with the KMS service")
 
 	return 1
 }

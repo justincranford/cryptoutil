@@ -54,7 +54,7 @@ func imServerStart(args []string, stdout, stderr io.Writer) int {
 		cryptoutilTemplateCli.ServerStartOptions[*cryptoutilAppsSmImServerConfig.SmIMServerSettings]{
 			UsageServer:  IMUsageServer,
 			ServiceLabel: cryptoutilSharedMagic.IMServiceID,
-			FlagSetName:  "sm-im-server",
+			FlagSetName:  cryptoutilSharedMagic.IMServerFlagSetName,
 			ParseConfig:  cryptoutilAppsSmImServerConfig.ParseWithFlagSet,
 			NewServer: func(ctx context.Context, settings *cryptoutilAppsSmImServerConfig.SmIMServerSettings) (cryptoutilTemplateCli.ReadyStarter, error) {
 				return cryptoutilAppsSmImServer.NewIMServerFromConfig(ctx, settings)
@@ -69,14 +69,11 @@ func imServerStart(args []string, stdout, stderr io.Writer) int {
 // imClient implements the client subcommand.
 // CLI wrapper for client operations.
 func imClient(args []string, _, stderr io.Writer) int {
-	if cryptoutilTemplateCli.IsHelpRequest(args) {
+	if cryptoutilTemplateCli.IsHelpRequest(args, cryptoutilTemplateCli.ClientNotImplementedMessageConfig{Stderr: stderr, ServiceID: cryptoutilSharedMagic.IMServiceID}) {
 		_, _ = fmt.Fprintln(stderr, IMUsageClient)
 
 		return 0
 	}
-
-	_, _ = fmt.Fprintln(stderr, "❌ Client subcommand not yet implemented")
-	_, _ = fmt.Fprintln(stderr, "   This will provide CLI tools for interacting with the IM service")
 
 	return 1
 }
