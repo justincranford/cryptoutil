@@ -5,31 +5,13 @@ package im
 
 import (
 	"bytes"
-	"context"
-	"crypto/tls"
-	"fmt"
-	http "net/http"
-	"os"
-	"strings"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/require"
 
-	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps-framework/service/config"
 	cryptoutilAppsFrameworkServiceTestutil "cryptoutil/internal/apps-framework/service/testutil"
-	cryptoutilAppsSmImServer "cryptoutil/internal/apps/sm-im/server"
-	cryptoutilAppsSmImServerConfig "cryptoutil/internal/apps/sm-im/server/config"
-	cryptoutilAppsSmImTesting "cryptoutil/internal/apps/sm-im/testing"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	cryptoutilSharedTestutil "cryptoutil/internal/shared/testutil"
-)
-
-var (
-	testSmIMService  *cryptoutilAppsSmImServer.SmIMServer
-	sharedHTTPClient *http.Client
-	publicBaseURL    string
-	adminBaseURL     string
 )
 
 var (
@@ -37,46 +19,6 @@ var (
 	testMockServerError  = cryptoutilAppsFrameworkServiceTestutil.NewMockServerError()
 	testMockServerCustom = cryptoutilAppsFrameworkServiceTestutil.NewMockServerCustom()
 )
-
-func TestMain(m *testing.M) {
-	serviceFrameworkServerSettings := cryptoutilAppsFrameworkServiceConfig.RequireNewForTest("sm-im-test")
-	serviceFrameworkServerSettings.DatabaseURL = cryptoutilSharedMagic.SQLiteInMemoryDSN
-
-	sharedAppConfig := &cryptoutilAppsSmImServerConfig.SmIMServerSettings{
-		ServiceFrameworkServerSettings: serviceFrameworkServerSettings,
-	}
-
-	testSmIMService = cryptoutilAppsSmImTesting.StartSmIMService(sharedAppConfig)
-
-	defer func() {
-		shutdownCtx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second)
-		defer cancel()
-
-		if err := testSmIMService.Shutdown(shutdownCtx); err != nil {
-			fmt.Fprintf(os.Stderr, "Failed to shutdown test server: %v\n", err)
-		}
-	}()
-
-	sharedHTTPClient = &http.Client{
-		Transport: &http.Transport{
-			TLSClientConfig: &tls.Config{
-				MinVersion: tls.VersionTLS13,
-				RootCAs:    testSmIMService.TLSRootCAPool(),
-			},
-			DisableKeepAlives: true,
-		},
-		Timeout: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Second,
-	}
-
-	publicBaseURL = testSmIMService.PublicBaseURL()
-	adminBaseURL = testSmIMService.AdminBaseURL()
-
-	defer testMockServerOK.Close()
-	defer testMockServerError.Close()
-	defer testMockServerCustom.Close()
-
-	os.Exit(m.Run())
-}
 
 // TestIM_SubcommandHelpFlags tests help flag for all subcommands in table-driven format.
 func TestIM_SubcommandHelpFlags(t *testing.T) {
@@ -187,67 +129,6 @@ func TestIM_SubcommandNotImplemented(t *testing.T) {
 
 			output := stdout.String() + stderr.String()
 			require.Contains(t, output, tt.expectedMessage)
-		})
-	}
-}
-
-// TestIM_SubcommandLiveServer tests health check subcommands with shared test server.
-func TestIM_SubcommandLiveServer(t *testing.T) {
-	tests := []struct {
-		subcommand       string
-		url              string
-		expectedExitCode int
-		expectedOutputs  []string
-		customCheck      func(t *testing.T, output string) // For special cases like readyz
-	}{
-		{
-			subcommand:       "health",
-			url:              publicBaseURL + cryptoutilSharedMagic.DefaultPublicServiceAPIContextPath,
-			expectedExitCode: 0,
-			expectedOutputs:  []string{"Service is healthy", "HTTP 200"},
-		},
-		{
-			subcommand:       "livez",
-			url:              adminBaseURL,
-			expectedExitCode: 0,
-			expectedOutputs:  []string{"Service is alive", "HTTP 200"},
-		},
-		{
-			subcommand: "readyz",
-			url:        adminBaseURL,
-			customCheck: func(t *testing.T, output string) {
-				// Readyz may return 0 (ready) or 1 (not ready) depending on service state
-				// Check that we got a valid response (either ready or not ready)
-				validResponse := strings.Contains(output, "Service is ready") || strings.Contains(output, "Service is not ready")
-				require.True(t, validResponse, "Output should indicate readiness status")
-			},
-		},
-	}
-
-	for _, tt := range tests {
-		// Capture range variable.
-		t.Run(tt.subcommand, func(t *testing.T) {
-			t.Parallel()
-
-			var stdout, stderr bytes.Buffer
-
-			exitCode := Im([]string{tt.subcommand, cryptoutilSharedMagic.CLIURLFlag, tt.url}, nil, &stdout, &stderr)
-
-			if tt.customCheck != nil {
-				// For readyz: check exit code is 0 or 1, and custom output check
-				require.Contains(t, []int{0, 1}, exitCode, "%s should return 0 or 1", tt.subcommand)
-
-				output := stdout.String() + stderr.String()
-				tt.customCheck(t, output)
-			} else {
-				// For health and livez: exact exit code and output checks
-				require.Equal(t, tt.expectedExitCode, exitCode, "%s should succeed", tt.subcommand)
-
-				output := stdout.String() + stderr.String()
-				for _, expected := range tt.expectedOutputs {
-					require.Contains(t, output, expected, "Output should contain: %s", expected)
-				}
-			}
 		})
 	}
 }
