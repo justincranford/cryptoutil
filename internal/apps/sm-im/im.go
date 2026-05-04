@@ -7,7 +7,6 @@ package im
 
 import (
 	"context"
-	"fmt"
 	"io"
 
 	_ "github.com/jackc/pgx/v5/stdlib" // PostgreSQL driver
@@ -69,9 +68,7 @@ func imServerStart(args []string, stdout, stderr io.Writer) int {
 // imClient implements the client subcommand.
 // CLI wrapper for client operations.
 func imClient(args []string, _, stderr io.Writer) int {
-	if cryptoutilTemplateCli.IsHelpRequest(args, cryptoutilTemplateCli.ClientNotImplementedMessageConfig{Stderr: stderr, ServiceID: cryptoutilSharedMagic.IMServiceID}) {
-		_, _ = fmt.Fprintln(stderr, IMUsageClient)
-
+	if cryptoutilTemplateCli.IsHelpRequest(args, cryptoutilTemplateCli.ClientNotImplementedMessageConfig{Stderr: stderr, ServiceID: cryptoutilSharedMagic.IMServiceID, UsageText: IMUsageClient}) {
 		return 0
 	}
 
@@ -81,9 +78,7 @@ func imClient(args []string, _, stderr io.Writer) int {
 // imInit implements the init subcommand.
 // Generates PKI certificates for sm-im TLS endpoints via the framework PKI init.
 func imInit(args []string, stdout, stderr io.Writer) int {
-	if cryptoutilTemplateCli.IsHelpRequest(args) {
-		_, _ = fmt.Fprintln(stderr, IMUsageInit)
-
+	if cryptoutilTemplateCli.IsHelpRequest(args, cryptoutilTemplateCli.ClientNotImplementedMessageConfig{Stderr: stderr, UsageText: IMUsageInit}) {
 		return 0
 	}
 

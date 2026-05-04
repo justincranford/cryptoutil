@@ -7,7 +7,6 @@ package ja
 
 import (
 	"context"
-	"fmt"
 	"io"
 
 	_ "github.com/jackc/pgx/v5/stdlib" // PostgreSQL driver
@@ -69,9 +68,7 @@ func jaServerStart(args []string, stdout, stderr io.Writer) int {
 // jaClient implements the client subcommand.
 // CLI wrapper for client operations.
 func jaClient(args []string, _, stderr io.Writer) int {
-	if cryptoutilTemplateCli.IsHelpRequest(args, cryptoutilTemplateCli.ClientNotImplementedMessageConfig{Stderr: stderr, ServiceID: cryptoutilSharedMagic.JoseJAServiceID}) {
-		_, _ = fmt.Fprintln(stderr, JAUsageClient)
-
+	if cryptoutilTemplateCli.IsHelpRequest(args, cryptoutilTemplateCli.ClientNotImplementedMessageConfig{Stderr: stderr, ServiceID: cryptoutilSharedMagic.JoseJAServiceID, UsageText: JAUsageClient}) {
 		return 0
 	}
 
@@ -81,9 +78,7 @@ func jaClient(args []string, _, stderr io.Writer) int {
 // jaInit implements the init subcommand.
 // Generates PKI certificates for jose-ja TLS endpoints via the framework PKI init.
 func jaInit(args []string, stdout, stderr io.Writer) int {
-	if cryptoutilTemplateCli.IsHelpRequest(args) {
-		_, _ = fmt.Fprintln(stderr, JAUsageInit)
-
+	if cryptoutilTemplateCli.IsHelpRequest(args, cryptoutilTemplateCli.ClientNotImplementedMessageConfig{Stderr: stderr, UsageText: JAUsageInit}) {
 		return 0
 	}
 

@@ -14,6 +14,7 @@ import (
 type ClientNotImplementedMessageConfig struct {
 	Stderr    io.Writer
 	ServiceID string
+	UsageText string
 }
 
 // ServiceConfig holds configuration for a service CLI entrypoint.
@@ -118,17 +119,19 @@ func RouteService(cfg ServiceConfig, args []string, stdout, stderr io.Writer, se
 // subcommands.
 func IsHelpRequest(args []string, clientNotImplemented ...ClientNotImplementedMessageConfig) bool {
 	isHelp := len(args) > 0 && (args[0] == cryptoutilSharedMagic.CLIHelpCommand || args[0] == cryptoutilSharedMagic.CLIHelpFlag || args[0] == cryptoutilSharedMagic.CLIHelpShortFlag)
-	if isHelp {
-		return true
-	}
 
 	if len(clientNotImplemented) > 0 {
 		cfg := clientNotImplemented[0]
-		if cfg.Stderr != nil {
+
+		if isHelp {
+			if cfg.Stderr != nil && cfg.UsageText != "" {
+				_, _ = fmt.Fprintln(cfg.Stderr, cfg.UsageText)
+			}
+		} else if cfg.ServiceID != "" && cfg.Stderr != nil {
 			_, _ = fmt.Fprintln(cfg.Stderr, "❌ Client subcommand not yet implemented")
 			_, _ = fmt.Fprintf(cfg.Stderr, "   This will provide CLI tools for interacting with the %s\n", cfg.ServiceID)
 		}
 	}
 
-	return false
+	return isHelp
 }

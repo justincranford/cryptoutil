@@ -7,7 +7,6 @@ package rp
 
 import (
 	"context"
-	"fmt"
 	"io"
 
 	_ "github.com/jackc/pgx/v5/stdlib" // PostgreSQL driver
@@ -69,9 +68,7 @@ func rpServerStart(args []string, stdout, stderr io.Writer) int {
 // rpClient implements the client subcommand.
 // CLI wrapper for client operations.
 func rpClient(args []string, _, stderr io.Writer) int {
-	if cryptoutilTemplateCli.IsHelpRequest(args, cryptoutilTemplateCli.ClientNotImplementedMessageConfig{Stderr: stderr, ServiceID: cryptoutilSharedMagic.IdentityRPServiceID}) {
-		_, _ = fmt.Fprintln(stderr, RPUsageClient)
-
+	if cryptoutilTemplateCli.IsHelpRequest(args, cryptoutilTemplateCli.ClientNotImplementedMessageConfig{Stderr: stderr, ServiceID: cryptoutilSharedMagic.IdentityRPServiceID, UsageText: RPUsageClient}) {
 		return 0
 	}
 
@@ -81,9 +78,7 @@ func rpClient(args []string, _, stderr io.Writer) int {
 // rpInit implements the init subcommand.
 // Generates PKI certificates for identity-rp TLS endpoints via the framework PKI init.
 func rpInit(args []string, stdout, stderr io.Writer) int {
-	if cryptoutilTemplateCli.IsHelpRequest(args) {
-		_, _ = fmt.Fprintln(stderr, RPUsageInit)
-
+	if cryptoutilTemplateCli.IsHelpRequest(args, cryptoutilTemplateCli.ClientNotImplementedMessageConfig{Stderr: stderr, UsageText: RPUsageInit}) {
 		return 0
 	}
 

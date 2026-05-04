@@ -74,3 +74,56 @@ func TestIsHelpRequest_WithClientNotImplementedMessage_HelpRequest(t *testing.T)
 	require.True(t, result)
 	require.Empty(t, stderr.String())
 }
+
+func TestIsHelpRequest_WithUsageText_HelpRequest(t *testing.T) {
+	t.Parallel()
+
+	var stderr bytes.Buffer
+
+	result := cryptoutilAppsFrameworkCli.IsHelpRequest(
+		[]string{cryptoutilSharedMagic.CLIHelpFlag},
+		cryptoutilAppsFrameworkCli.ClientNotImplementedMessageConfig{
+			Stderr:    &stderr,
+			ServiceID: cryptoutilSharedMagic.IMServiceID,
+			UsageText: "usage: sm-im client [flags]",
+		},
+	)
+
+	require.True(t, result)
+	require.Contains(t, stderr.String(), "usage: sm-im client [flags]")
+}
+
+func TestIsHelpRequest_WithUsageTextOnly_HelpRequest(t *testing.T) {
+	t.Parallel()
+
+	var stderr bytes.Buffer
+
+	result := cryptoutilAppsFrameworkCli.IsHelpRequest(
+		[]string{cryptoutilSharedMagic.CLIHelpFlag},
+		cryptoutilAppsFrameworkCli.ClientNotImplementedMessageConfig{
+			Stderr:    &stderr,
+			UsageText: "usage: sm-im init [flags]",
+		},
+	)
+
+	require.True(t, result)
+	require.Contains(t, stderr.String(), "usage: sm-im init [flags]")
+	require.NotContains(t, stderr.String(), "not yet implemented")
+}
+
+func TestIsHelpRequest_WithUsageTextOnly_NotHelpRequest(t *testing.T) {
+	t.Parallel()
+
+	var stderr bytes.Buffer
+
+	result := cryptoutilAppsFrameworkCli.IsHelpRequest(
+		[]string{"some-arg"},
+		cryptoutilAppsFrameworkCli.ClientNotImplementedMessageConfig{
+			Stderr:    &stderr,
+			UsageText: "usage: sm-im init [flags]",
+		},
+	)
+
+	require.False(t, result)
+	require.Empty(t, stderr.String())
+}

@@ -7,7 +7,6 @@ package template
 
 import (
 	"context"
-	"fmt"
 	"io"
 
 	_ "github.com/jackc/pgx/v5/stdlib" // PostgreSQL driver
@@ -69,9 +68,7 @@ func templateServerStart(args []string, stdout, stderr io.Writer) int {
 // templateClient implements the client subcommand.
 // CLI wrapper for client operations.
 func templateClient(args []string, _, stderr io.Writer) int {
-	if cryptoutilTemplateCli.IsHelpRequest(args, cryptoutilTemplateCli.ClientNotImplementedMessageConfig{Stderr: stderr, ServiceID: cryptoutilSharedMagic.SkeletonTemplateServiceID}) {
-		_, _ = fmt.Fprintln(stderr, TemplateUsageClient)
-
+	if cryptoutilTemplateCli.IsHelpRequest(args, cryptoutilTemplateCli.ClientNotImplementedMessageConfig{Stderr: stderr, ServiceID: cryptoutilSharedMagic.SkeletonTemplateServiceID, UsageText: TemplateUsageClient}) {
 		return 0
 	}
 
@@ -81,9 +78,7 @@ func templateClient(args []string, _, stderr io.Writer) int {
 // templateInit implements the init subcommand.
 // Generates PKI certificates for skeleton-template TLS endpoints via the framework PKI init.
 func templateInit(args []string, stdout, stderr io.Writer) int {
-	if cryptoutilTemplateCli.IsHelpRequest(args) {
-		_, _ = fmt.Fprintln(stderr, TemplateUsageInit)
-
+	if cryptoutilTemplateCli.IsHelpRequest(args, cryptoutilTemplateCli.ClientNotImplementedMessageConfig{Stderr: stderr, UsageText: TemplateUsageInit}) {
 		return 0
 	}
 

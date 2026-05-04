@@ -7,7 +7,6 @@ package ca
 
 import (
 	"context"
-	"fmt"
 	"io"
 
 	_ "github.com/jackc/pgx/v5/stdlib" // PostgreSQL driver
@@ -69,9 +68,7 @@ func caServerStart(args []string, stdout, stderr io.Writer) int {
 // caClient implements the client subcommand.
 // CLI wrapper for client operations.
 func caClient(args []string, _, stderr io.Writer) int {
-	if cryptoutilTemplateCli.IsHelpRequest(args, cryptoutilTemplateCli.ClientNotImplementedMessageConfig{Stderr: stderr, ServiceID: cryptoutilSharedMagic.PKICAServiceID}) {
-		_, _ = fmt.Fprintln(stderr, CAUsageClient)
-
+	if cryptoutilTemplateCli.IsHelpRequest(args, cryptoutilTemplateCli.ClientNotImplementedMessageConfig{Stderr: stderr, ServiceID: cryptoutilSharedMagic.PKICAServiceID, UsageText: CAUsageClient}) {
 		return 0
 	}
 
@@ -81,9 +78,7 @@ func caClient(args []string, _, stderr io.Writer) int {
 // caInit implements the init subcommand.
 // Generates PKI certificates for pki-ca TLS endpoints via the framework PKI init.
 func caInit(args []string, stdout, stderr io.Writer) int {
-	if cryptoutilTemplateCli.IsHelpRequest(args) {
-		_, _ = fmt.Fprintln(stderr, CAUsageInit)
-
+	if cryptoutilTemplateCli.IsHelpRequest(args, cryptoutilTemplateCli.ClientNotImplementedMessageConfig{Stderr: stderr, UsageText: CAUsageInit}) {
 		return 0
 	}
 

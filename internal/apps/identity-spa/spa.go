@@ -7,7 +7,6 @@ package spa
 
 import (
 	"context"
-	"fmt"
 	"io"
 
 	_ "github.com/jackc/pgx/v5/stdlib" // PostgreSQL driver
@@ -69,9 +68,7 @@ func spaServerStart(args []string, stdout, stderr io.Writer) int {
 // spaClient implements the client subcommand.
 // CLI wrapper for client operations.
 func spaClient(args []string, _, stderr io.Writer) int {
-	if cryptoutilTemplateCli.IsHelpRequest(args, cryptoutilTemplateCli.ClientNotImplementedMessageConfig{Stderr: stderr, ServiceID: cryptoutilSharedMagic.IdentitySPAServiceID}) {
-		_, _ = fmt.Fprintln(stderr, SPAUsageClient)
-
+	if cryptoutilTemplateCli.IsHelpRequest(args, cryptoutilTemplateCli.ClientNotImplementedMessageConfig{Stderr: stderr, ServiceID: cryptoutilSharedMagic.IdentitySPAServiceID, UsageText: SPAUsageClient}) {
 		return 0
 	}
 
@@ -81,9 +78,7 @@ func spaClient(args []string, _, stderr io.Writer) int {
 // spaInit implements the init subcommand.
 // Generates PKI certificates for identity-spa TLS endpoints via the framework PKI init.
 func spaInit(args []string, stdout, stderr io.Writer) int {
-	if cryptoutilTemplateCli.IsHelpRequest(args) {
-		_, _ = fmt.Fprintln(stderr, SPAUsageInit)
-
+	if cryptoutilTemplateCli.IsHelpRequest(args, cryptoutilTemplateCli.ClientNotImplementedMessageConfig{Stderr: stderr, UsageText: SPAUsageInit}) {
 		return 0
 	}
 

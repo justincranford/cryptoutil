@@ -7,7 +7,6 @@ package kms
 
 import (
 	"context"
-	"fmt"
 	"io"
 
 	_ "github.com/jackc/pgx/v5/stdlib" // PostgreSQL driver
@@ -69,9 +68,7 @@ func kmsServerStart(args []string, stdout, stderr io.Writer) int {
 // kmsClient implements the client subcommand.
 // CLI wrapper for client operations.
 func kmsClient(args []string, _, stderr io.Writer) int {
-	if cryptoutilTemplateCli.IsHelpRequest(args, cryptoutilTemplateCli.ClientNotImplementedMessageConfig{Stderr: stderr, ServiceID: cryptoutilSharedMagic.KMSServiceID}) {
-		_, _ = fmt.Fprintln(stderr, KMSUsageClient)
-
+	if cryptoutilTemplateCli.IsHelpRequest(args, cryptoutilTemplateCli.ClientNotImplementedMessageConfig{Stderr: stderr, ServiceID: cryptoutilSharedMagic.KMSServiceID, UsageText: KMSUsageClient}) {
 		return 0
 	}
 
@@ -81,9 +78,7 @@ func kmsClient(args []string, _, stderr io.Writer) int {
 // kmsInit implements the init subcommand.
 // Generates PKI certificates for sm-kms TLS endpoints via the framework PKI init.
 func kmsInit(args []string, stdout, stderr io.Writer) int {
-	if cryptoutilTemplateCli.IsHelpRequest(args) {
-		_, _ = fmt.Fprintln(stderr, KMSUsageInit)
-
+	if cryptoutilTemplateCli.IsHelpRequest(args, cryptoutilTemplateCli.ClientNotImplementedMessageConfig{Stderr: stderr, UsageText: KMSUsageInit}) {
 		return 0
 	}
 

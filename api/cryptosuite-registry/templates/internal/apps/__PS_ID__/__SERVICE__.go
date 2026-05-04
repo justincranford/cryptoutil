@@ -9,7 +9,6 @@ package __SERVICE__
 
 import (
 	"context"
-	"fmt"
 	"io"
 
 	_ "github.com/jackc/pgx/v5/stdlib" // PostgreSQL driver
@@ -71,9 +70,7 @@ func __SERVICE__ServerStart(args []string, stdout, stderr io.Writer) int {
 // __SERVICE__Client implements the client subcommand.
 // CLI wrapper for client operations.
 func __SERVICE__Client(args []string, _, stderr io.Writer) int {
-	if cryptoutilTemplateCli.IsHelpRequest(args, cryptoutilTemplateCli.ClientNotImplementedMessageConfig{Stderr: stderr, ServiceID: cryptoutilSharedMagic.__SERVICE_ID_CONST__}) {
-		_, _ = fmt.Fprintln(stderr, __USAGE_PREFIX__UsageClient)
-
+	if cryptoutilTemplateCli.IsHelpRequest(args, cryptoutilTemplateCli.ClientNotImplementedMessageConfig{Stderr: stderr, ServiceID: cryptoutilSharedMagic.__SERVICE_ID_CONST__, UsageText: __USAGE_PREFIX__UsageClient}) {
 		return 0
 	}
 
@@ -83,9 +80,7 @@ func __SERVICE__Client(args []string, _, stderr io.Writer) int {
 // __SERVICE__Init implements the init subcommand.
 // Generates PKI certificates for __PS_ID__ TLS endpoints via the framework PKI init.
 func __SERVICE__Init(args []string, stdout, stderr io.Writer) int {
-	if cryptoutilTemplateCli.IsHelpRequest(args) {
-		_, _ = fmt.Fprintln(stderr, __USAGE_PREFIX__UsageInit)
-
+	if cryptoutilTemplateCli.IsHelpRequest(args, cryptoutilTemplateCli.ClientNotImplementedMessageConfig{Stderr: stderr, UsageText: __USAGE_PREFIX__UsageInit}) {
 		return 0
 	}
 

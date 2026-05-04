@@ -7,7 +7,6 @@ package idp
 
 import (
 	"context"
-	"fmt"
 	"io"
 
 	_ "github.com/jackc/pgx/v5/stdlib" // PostgreSQL driver
@@ -69,9 +68,7 @@ func idpServerStart(args []string, stdout, stderr io.Writer) int {
 // idpClient implements the client subcommand.
 // CLI wrapper for client operations.
 func idpClient(args []string, _, stderr io.Writer) int {
-	if cryptoutilTemplateCli.IsHelpRequest(args, cryptoutilTemplateCli.ClientNotImplementedMessageConfig{Stderr: stderr, ServiceID: cryptoutilSharedMagic.IdentityIDPServiceID}) {
-		_, _ = fmt.Fprintln(stderr, IDPUsageClient)
-
+	if cryptoutilTemplateCli.IsHelpRequest(args, cryptoutilTemplateCli.ClientNotImplementedMessageConfig{Stderr: stderr, ServiceID: cryptoutilSharedMagic.IdentityIDPServiceID, UsageText: IDPUsageClient}) {
 		return 0
 	}
 
@@ -81,9 +78,7 @@ func idpClient(args []string, _, stderr io.Writer) int {
 // idpInit implements the init subcommand.
 // Generates PKI certificates for identity-idp TLS endpoints via the framework PKI init.
 func idpInit(args []string, stdout, stderr io.Writer) int {
-	if cryptoutilTemplateCli.IsHelpRequest(args) {
-		_, _ = fmt.Fprintln(stderr, IDPUsageInit)
-
+	if cryptoutilTemplateCli.IsHelpRequest(args, cryptoutilTemplateCli.ClientNotImplementedMessageConfig{Stderr: stderr, UsageText: IDPUsageInit}) {
 		return 0
 	}
 

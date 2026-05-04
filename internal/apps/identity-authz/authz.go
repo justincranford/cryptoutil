@@ -7,7 +7,6 @@ package authz
 
 import (
 	"context"
-	"fmt"
 	"io"
 
 	_ "github.com/jackc/pgx/v5/stdlib" // PostgreSQL driver
@@ -69,9 +68,7 @@ func authzServerStart(args []string, stdout, stderr io.Writer) int {
 // authzClient implements the client subcommand.
 // CLI wrapper for client operations.
 func authzClient(args []string, _, stderr io.Writer) int {
-	if cryptoutilTemplateCli.IsHelpRequest(args, cryptoutilTemplateCli.ClientNotImplementedMessageConfig{Stderr: stderr, ServiceID: cryptoutilSharedMagic.IdentityAuthzServiceID}) {
-		_, _ = fmt.Fprintln(stderr, AUTHZUsageClient)
-
+	if cryptoutilTemplateCli.IsHelpRequest(args, cryptoutilTemplateCli.ClientNotImplementedMessageConfig{Stderr: stderr, ServiceID: cryptoutilSharedMagic.IdentityAuthzServiceID, UsageText: AUTHZUsageClient}) {
 		return 0
 	}
 
@@ -81,9 +78,7 @@ func authzClient(args []string, _, stderr io.Writer) int {
 // authzInit implements the init subcommand.
 // Generates PKI certificates for identity-authz TLS endpoints via the framework PKI init.
 func authzInit(args []string, stdout, stderr io.Writer) int {
-	if cryptoutilTemplateCli.IsHelpRequest(args) {
-		_, _ = fmt.Fprintln(stderr, AUTHZUsageInit)
-
+	if cryptoutilTemplateCli.IsHelpRequest(args, cryptoutilTemplateCli.ClientNotImplementedMessageConfig{Stderr: stderr, UsageText: AUTHZUsageInit}) {
 		return 0
 	}
 
