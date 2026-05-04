@@ -1,134 +1,72 @@
 // Copyright (c) 2025-2026 Justin Cranford.
-//
-//
-
+// Health endpoints exposed by this service (referenced in BuildUsage* output):
+//   - /service/api/v1/health  (service-to-service health check)
+//   - /browser/api/v1/health  (browser health check)
+//   - /admin/api/v1/livez     (liveness probe)
+//   - /admin/api/v1/readyz    (readiness probe)
+//   - /admin/api/v1/shutdown  (graceful shutdown trigger)
 package idp
 
-const (
-	// IDPUsageMain is the main usage message for the identity idp command.
-	IDPUsageMain = `Usage: identity idp <subcommand> [options]
+import (
+	"fmt"
 
-Available subcommands:
-  version     Print version information
-  server      Start the Identity Provider server (default)
-  client      Run client operations
-  init        Initialize database and configuration
-  health      Check service health (public API)
-  livez       Check service liveness (admin API)
-  readyz      Check service readiness (admin API)
-  shutdown    Trigger graceful shutdown (admin API)
+	cryptoutilUsage "cryptoutil/internal/apps-framework/service/usage"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+)
 
-Use "identity idp <subcommand> help" for subcommand-specific help.
-Version information is available via Docker image tags.`
+var (
+	// IDPUsageMain is the main usage message for the identity-idp command.
+	IDPUsageMain = cryptoutilUsage.BuildUsageMain(
+		cryptoutilSharedMagic.IdentityProductName,
+		cryptoutilSharedMagic.IDPServiceName,
+		"Identity Provider",
+	)
 
 	// IDPUsageServer is the usage message for the server subcommand.
-	IDPUsageServer = `Usage: identity idp server [options]
-
-Description:
-  Start the Identity Provider server with database initialization.
-  Supports both SQLite (default) and PostgreSQL databases.
-
-Options:
-  --database-url URL    Database URL (default: SQLite in-memory)
-                        SQLite: file::memory:?cache=shared
-                        PostgreSQL: postgres://user:pass@host:port/dbname?sslmode=disable
-  --config PATH         Configuration file path
-  --help, -h            Show this help message
-
-Examples:
-  identity idp server
-  identity idp server --config configs/identity-idp/identity-idp-framework.yml`
+	IDPUsageServer = cryptoutilUsage.BuildUsageServer(
+		cryptoutilSharedMagic.IdentityProductName,
+		cryptoutilSharedMagic.IDPServiceName,
+		"Identity Provider",
+		fmt.Sprintf("configs/%s/%s-framework.yml", cryptoutilSharedMagic.IdentityIDPServiceID, cryptoutilSharedMagic.IdentityIDPServiceID),
+	)
 
 	// IDPUsageClient is the usage message for the client subcommand.
-	IDPUsageClient = `Usage: identity idp client [options]
-
-Description:
-  Run client operations for the Identity Provider service.
-
-Options:
-  --help, -h    Show this help message
-
-Examples:
-  identity idp client`
+	IDPUsageClient = cryptoutilUsage.BuildUsageClient(
+		cryptoutilSharedMagic.IdentityProductName,
+		cryptoutilSharedMagic.IDPServiceName,
+		"Identity Provider",
+	)
 
 	// IDPUsageInit is the usage message for the init subcommand.
-	IDPUsageInit = `Usage: identity idp init [options]
-
-Description:
-  Initialize database schema and configuration for the Identity Provider service.
-
-Options:
-  --config PATH    Configuration file path
-  --help, -h       Show this help message
-
-Examples:
-  identity idp init
-  identity idp init --config configs/identity-idp/identity-idp-framework.yml`
+	IDPUsageInit = cryptoutilUsage.BuildUsageInit(
+		cryptoutilSharedMagic.IdentityProductName,
+		cryptoutilSharedMagic.IDPServiceName,
+		"Identity Provider",
+		fmt.Sprintf("configs/%s/%s-framework.yml", cryptoutilSharedMagic.IdentityIDPServiceID, cryptoutilSharedMagic.IdentityIDPServiceID),
+	)
 
 	// IDPUsageHealth is the usage message for the health subcommand.
-	IDPUsageHealth = `Usage: identity idp health [options]
-
-Description:
-  Check service health via public API endpoint.
-  Calls GET /service/api/v1/health endpoint by service-to-service clients.
-  Calls GET /browser/api/v1/health endpoint by browser clients.
-
-Options:
-  --url URL      Service URL (default: https://127.0.0.1:idp)
-  --cacert FILE  CA certificate file for TLS validation
-  --help, -h     Show this help message
-
-Examples:
-  identity idp health
-  identity idp health --cacert /path/to/ca.pem`
+	IDPUsageHealth = cryptoutilUsage.BuildUsageHealth(
+		cryptoutilSharedMagic.IdentityProductName,
+		cryptoutilSharedMagic.IDPServiceName,
+		fmt.Sprintf("%d", cryptoutilSharedMagic.IdentityIDPServicePort),
+	)
 
 	// IDPUsageLivez is the usage message for the livez subcommand.
-	IDPUsageLivez = `Usage: identity idp livez [options]
-
-Description:
-  Check service liveness via admin API endpoint.
-  Calls GET /admin/api/v1/livez endpoint on the admin server.
-
-Options:
-  --url URL      Admin URL (default: https://127.0.0.1:9090)
-  --cacert FILE  CA certificate file for TLS validation
-  --help, -h     Show this help message
-
-Examples:
-  identity idp livez
-  identity idp livez --url https://localhost:9090`
+	IDPUsageLivez = cryptoutilUsage.BuildUsageLivez(
+		cryptoutilSharedMagic.IdentityProductName,
+		cryptoutilSharedMagic.IDPServiceName,
+	)
 
 	// IDPUsageReadyz is the usage message for the readyz subcommand.
-	IDPUsageReadyz = `Usage: identity idp readyz [options]
-
-Description:
-  Check service readiness via admin API endpoint.
-  Calls GET /admin/api/v1/readyz endpoint on the admin server.
-
-Options:
-  --url URL      Admin URL (default: https://127.0.0.1:9090)
-  --cacert FILE  CA certificate file for TLS validation
-  --help, -h     Show this help message
-
-Examples:
-  identity idp readyz
-  identity idp readyz --url https://localhost:9090`
+	IDPUsageReadyz = cryptoutilUsage.BuildUsageReadyz(
+		cryptoutilSharedMagic.IdentityProductName,
+		cryptoutilSharedMagic.IDPServiceName,
+	)
 
 	// IDPUsageShutdown is the usage message for the shutdown subcommand.
-	IDPUsageShutdown = `Usage: identity idp shutdown [options]
-
-Description:
-  Trigger graceful shutdown via admin API endpoint.
-  Calls POST /admin/api/v1/shutdown endpoint on the admin server.
-
-Options:
-  --url URL      Admin URL (default: https://127.0.0.1:9090)
-  --cacert FILE  CA certificate file for TLS validation
-  --force        Force shutdown without graceful drain
-  --help, -h     Show this help message
-
-Examples:
-  identity idp shutdown
-  identity idp shutdown --url https://localhost:9090
-  identity idp shutdown --force`
+	IDPUsageShutdown = cryptoutilUsage.BuildUsageShutdown(
+		cryptoutilSharedMagic.IdentityProductName,
+		cryptoutilSharedMagic.IDPServiceName,
+	)
 )

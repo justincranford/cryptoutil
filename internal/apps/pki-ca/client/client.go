@@ -25,21 +25,10 @@ func New(baseURL string) *Client {
 	return &Client{baseURL: strings.TrimRight(baseURL, "/"), httpClient: &http.Client{Timeout: requestTimeout}}
 }
 
-// IssueCert submits a certificate issuance request.
-func (c *Client) IssueCert(ctx context.Context, request map[string]any) error {
-	return c.doJSON(ctx, http.MethodPost, "/service/api/v1/certificates", request, nil)
-}
-
-// RevokeCert submits a certificate revocation request.
-func (c *Client) RevokeCert(ctx context.Context, certID string, request map[string]any) error {
-	return c.doJSON(ctx, http.MethodPost, "/service/api/v1/certificates/"+certID+cryptoutilSharedMagic.PathRevoke, request, nil)
-}
-
-// GetCRL fetches certificate revocation list data.
-func (c *Client) GetCRL(ctx context.Context) (map[string]any, error) {
+// Ping executes a health request against the service path.
+func (c *Client) Ping(ctx context.Context) (map[string]any, error) {
 	var out map[string]any
-
-	if err := c.doJSON(ctx, http.MethodGet, "/service/api/v1/crl", nil, &out); err != nil {
+	if err := c.doJSON(ctx, http.MethodGet, cryptoutilSharedMagic.DefaultPublicServiceAPIContextPath+"/health", nil, &out); err != nil {
 		return nil, err
 	}
 

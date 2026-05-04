@@ -18,17 +18,17 @@ type Client struct {
 	httpClient *http.Client
 }
 
-// New creates an identity-spa client.
+// New creates a identity-spa client.
 func New(baseURL string) *Client {
 	requestTimeout := time.Duration(cryptoutilSharedMagic.DefaultMaxIdleConns) * time.Second
 
 	return &Client{baseURL: strings.TrimRight(baseURL, "/"), httpClient: &http.Client{Timeout: requestTimeout}}
 }
 
-// Health performs a minimal SPA backend health check.
-func (c *Client) Health(ctx context.Context) (map[string]any, error) {
+// Ping executes a health request against the service path.
+func (c *Client) Ping(ctx context.Context) (map[string]any, error) {
 	var out map[string]any
-	if err := c.doJSON(ctx, http.MethodGet, cryptoutilSharedMagic.IdentityE2EHealthEndpoint, nil, &out); err != nil {
+	if err := c.doJSON(ctx, http.MethodGet, cryptoutilSharedMagic.DefaultPublicServiceAPIContextPath+"/health", nil, &out); err != nil {
 		return nil, err
 	}
 

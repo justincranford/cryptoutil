@@ -15,7 +15,7 @@ import (
 )
 
 var (
-	// KMSUsageMain is the main usage message for the sm kms command.
+	// KMSUsageMain is the main usage message for the sm-kms command.
 	KMSUsageMain = cryptoutilUsage.BuildUsageMain(
 		cryptoutilSharedMagic.SMProductName,
 		cryptoutilSharedMagic.KMSServiceName,

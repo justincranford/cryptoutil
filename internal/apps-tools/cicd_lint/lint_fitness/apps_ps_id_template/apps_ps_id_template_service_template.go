@@ -12,8 +12,25 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
-// serviceRootTemplateFilename is the canonical template filename for the root service entrypoint.
-const serviceRootTemplateFilename = "__SERVICE__.go"
+// templateBaseDir is the canonical templates directory for PS-ID application files.
+const templateBaseDir = "api/cryptosuite-registry/templates/internal/apps/__PS_ID__"
+
+// templateFileSpec maps one canonical template file to one concrete PS-ID file path.
+type templateFileSpec struct {
+	templatePath string
+	actualPath   string
+	displayName  string
+}
+
+var canonicalTemplateFiles = []templateFileSpec{
+	{templatePath: "__SERVICE___usage.go", actualPath: "__SERVICE___usage.go", displayName: "usage constants"},
+	{templatePath: "__SERVICE___cli_test.go", actualPath: "__SERVICE___cli_test.go", displayName: "CLI tests"},
+	{templatePath: "__SERVICE___lifecycle_test.go", actualPath: "__SERVICE___lifecycle_test.go", displayName: "lifecycle tests"},
+	{templatePath: "__SERVICE___port_conflict_test.go", actualPath: "__SERVICE___port_conflict_test.go", displayName: "port conflict tests"},
+	{templatePath: "testmain_test.go", actualPath: "testmain_test.go", displayName: "root TestMain"},
+	{templatePath: "README.md", actualPath: "README.md", displayName: "package README"},
+	{templatePath: "client/client.go", actualPath: "client/client.go", displayName: "typed client"},
+}
 
 const (
 	templateParseWithFlagSet      = "ParseWithFlagSet"
@@ -22,57 +39,63 @@ const (
 	templateEntryFuncTemplateName = "Template"
 )
 
-// checkServiceRootTemplate validates root __SERVICE__.go content against the canonical template.
-func checkServiceRootTemplate(rootDir, psDir string, ps cryptoutilFitnessRegistry.ProductService) []string {
-	templatePath := filepath.Join(
-		rootDir,
-		"api",
-		"cryptosuite-registry",
-		"templates",
-		"internal",
-		"apps",
-		cryptoutilSharedMagic.CICDTemplateExpansionKeyPSID,
-		serviceRootTemplateFilename,
-	)
-
-	templateContent, templateReadErr := os.ReadFile(templatePath)
-	if templateReadErr != nil {
-		return []string{fmt.Sprintf("%s: failed to read SERVICE.go template at %s: %v", ps.PSID, templatePath, templateReadErr)}
-	}
-
+// checkRootTemplates validates canonical template conformance for root and client files.
+func checkRootTemplates(rootDir, psDir string, ps cryptoutilFitnessRegistry.ProductService) []string {
 	templateValues, valuesErr := serviceRootTemplateValues(ps)
 	if valuesErr != nil {
 		return []string{fmt.Sprintf("%s: %v", ps.PSID, valuesErr)}
 	}
 
-	expectedContent := string(templateContent)
-	expectedContent = applyTemplateValues(expectedContent, templateValues)
+	var violations []string
 
-	actualPath := filepath.Join(psDir, ps.Service+".go")
+	for _, spec := range canonicalTemplateFiles {
+		templatePath := filepath.Join(rootDir, filepath.FromSlash(templateBaseDir), filepath.FromSlash(spec.templatePath))
+		violations = append(violations, checkSingleTemplateFile(templatePath, psDir, spec, ps, templateValues)...)
+	}
+
+	return violations
+}
+
+func checkSingleTemplateFile(
+	templatePath string,
+	psDir string,
+	spec templateFileSpec,
+	ps cryptoutilFitnessRegistry.ProductService,
+	templateValues map[string]string,
+) []string {
+	templateContent, templateReadErr := os.ReadFile(templatePath)
+	if templateReadErr != nil {
+		return []string{fmt.Sprintf("%s: failed to read %s template at %s: %v", ps.PSID, spec.displayName, templatePath, templateReadErr)}
+	}
+
+	expectedContent := applyTemplateValues(string(templateContent), templateValues)
+	actualRelPath := applyTemplateValues(spec.actualPath, templateValues)
+	actualPath := filepath.Join(psDir, filepath.FromSlash(actualRelPath))
 
 	actualContent, actualReadErr := os.ReadFile(actualPath)
 	if actualReadErr != nil {
-		return []string{fmt.Sprintf("%s: failed to read root service file %s: %v", ps.PSID, actualPath, actualReadErr)}
+		return []string{fmt.Sprintf("%s: failed to read %s file %s: %v", ps.PSID, spec.displayName, actualPath, actualReadErr)}
 	}
 
 	normalizedExpected := normalizeTemplateContent(expectedContent)
 	normalizedActual := normalizeTemplateContent(string(actualContent))
 
-	if normalizedExpected != normalizedActual {
-		lineNumber, expectedLine, actualLine := firstMismatchLine(normalizedExpected, normalizedActual)
-
-		return []string{fmt.Sprintf(
-			"%s: root service file %s does not match canonical template %s (line %d; expected=%q actual=%q)",
-			ps.PSID,
-			actualPath,
-			templatePath,
-			lineNumber,
-			expectedLine,
-			actualLine,
-		)}
+	if normalizedExpected == normalizedActual {
+		return nil
 	}
 
-	return nil
+	lineNumber, expectedLine, actualLine := firstMismatchLine(normalizedExpected, normalizedActual)
+
+	return []string{fmt.Sprintf(
+		"%s: %s file %s does not match canonical template %s (line %d; expected=%q actual=%q)",
+		ps.PSID,
+		spec.displayName,
+		actualPath,
+		templatePath,
+		lineNumber,
+		expectedLine,
+		actualLine,
+	)}
 }
 
 // firstMismatchLine returns the first differing 1-based line and both line values.
@@ -138,6 +161,7 @@ func normalizeTemplateContent(content string) string {
 	}
 
 	joined := strings.Join(lines, "\n")
+	joined = strings.TrimLeft(joined, "\n")
 
 	return strings.TrimRight(joined, "\n")
 }
@@ -159,6 +183,7 @@ func serviceRootTemplateValues(ps cryptoutilFitnessRegistry.ProductService) (map
 		serviceConfigImportPath = "cryptoutil/internal/apps/sm-im/server/config"
 		serviceServerImportPath = "cryptoutil/internal/apps/sm-im/server"
 		values["__ENTRY_FUNC__"] = "Im"
+		values["__SERVICE_DISPLAY_NAME__"] = "Instant Messenger"
 		values["__SERVICE_ID_CONST__"] = "IMServiceID"
 		values["__PRODUCT_NAME_CONST__"] = "IMProductName"
 		values["__SERVICE_NAME_CONST__"] = "IMServiceName"
@@ -173,6 +198,7 @@ func serviceRootTemplateValues(ps cryptoutilFitnessRegistry.ProductService) (map
 		serviceConfigAlias = "cryptoutilAppsFrameworkServiceConfig"
 		configBeforeTLS = true
 		values["__ENTRY_FUNC__"] = "Kms"
+		values["__SERVICE_DISPLAY_NAME__"] = "Key Management Service"
 		values["__SERVICE_ID_CONST__"] = "KMSServiceID"
 		values["__PRODUCT_NAME_CONST__"] = "SMProductName"
 		values["__SERVICE_NAME_CONST__"] = "KMSServiceName"
@@ -185,6 +211,7 @@ func serviceRootTemplateValues(ps cryptoutilFitnessRegistry.ProductService) (map
 		serviceConfigImportPath = "cryptoutil/internal/apps/jose-ja/server/config"
 		serviceServerImportPath = "cryptoutil/internal/apps/jose-ja/server"
 		values["__ENTRY_FUNC__"] = "Ja"
+		values["__SERVICE_DISPLAY_NAME__"] = "JWK Authority"
 		values["__SERVICE_ID_CONST__"] = "JoseJAServiceID"
 		values["__PRODUCT_NAME_CONST__"] = "JoseProductName"
 		values["__SERVICE_NAME_CONST__"] = "JoseJAServiceName"
@@ -197,6 +224,7 @@ func serviceRootTemplateValues(ps cryptoutilFitnessRegistry.ProductService) (map
 		serviceConfigImportPath = "cryptoutil/internal/apps/pki-ca/server/config"
 		serviceServerImportPath = "cryptoutil/internal/apps/pki-ca/server"
 		values["__ENTRY_FUNC__"] = "Ca"
+		values["__SERVICE_DISPLAY_NAME__"] = "Certificate Authority"
 		values["__SERVICE_ID_CONST__"] = "PKICAServiceID"
 		values["__PRODUCT_NAME_CONST__"] = "PKIProductName"
 		values["__SERVICE_NAME_CONST__"] = "PKICAServiceName"
@@ -209,6 +237,7 @@ func serviceRootTemplateValues(ps cryptoutilFitnessRegistry.ProductService) (map
 		serviceConfigImportPath = "cryptoutil/internal/apps/identity-authz/server/config"
 		serviceServerImportPath = "cryptoutil/internal/apps/identity-authz/server"
 		values["__ENTRY_FUNC__"] = "Authz"
+		values["__SERVICE_DISPLAY_NAME__"] = "Authorization Server"
 		values["__SERVICE_ID_CONST__"] = "IdentityAuthzServiceID"
 		values["__PRODUCT_NAME_CONST__"] = templateIdentityProductName
 		values["__SERVICE_NAME_CONST__"] = "AuthzServiceName"
@@ -221,6 +250,7 @@ func serviceRootTemplateValues(ps cryptoutilFitnessRegistry.ProductService) (map
 		serviceConfigImportPath = "cryptoutil/internal/apps/identity-idp/server/config"
 		serviceServerImportPath = "cryptoutil/internal/apps/identity-idp/server"
 		values["__ENTRY_FUNC__"] = "Idp"
+		values["__SERVICE_DISPLAY_NAME__"] = "Identity Provider"
 		values["__SERVICE_ID_CONST__"] = "IdentityIDPServiceID"
 		values["__PRODUCT_NAME_CONST__"] = templateIdentityProductName
 		values["__SERVICE_NAME_CONST__"] = "IDPServiceName"
@@ -233,6 +263,7 @@ func serviceRootTemplateValues(ps cryptoutilFitnessRegistry.ProductService) (map
 		serviceConfigImportPath = "cryptoutil/internal/apps/identity-rp/server/config"
 		serviceServerImportPath = "cryptoutil/internal/apps/identity-rp/server"
 		values["__ENTRY_FUNC__"] = "Rp"
+		values["__SERVICE_DISPLAY_NAME__"] = "Relying Party"
 		values["__SERVICE_ID_CONST__"] = "IdentityRPServiceID"
 		values["__PRODUCT_NAME_CONST__"] = templateIdentityProductName
 		values["__SERVICE_NAME_CONST__"] = "RPServiceName"
@@ -245,6 +276,7 @@ func serviceRootTemplateValues(ps cryptoutilFitnessRegistry.ProductService) (map
 		serviceConfigImportPath = "cryptoutil/internal/apps/identity-rs/server/config"
 		serviceServerImportPath = "cryptoutil/internal/apps/identity-rs/server"
 		values["__ENTRY_FUNC__"] = "Rs"
+		values["__SERVICE_DISPLAY_NAME__"] = "Resource Server"
 		values["__SERVICE_ID_CONST__"] = "IdentityRSServiceID"
 		values["__PRODUCT_NAME_CONST__"] = templateIdentityProductName
 		values["__SERVICE_NAME_CONST__"] = "RSServiceName"
@@ -257,6 +289,7 @@ func serviceRootTemplateValues(ps cryptoutilFitnessRegistry.ProductService) (map
 		serviceConfigImportPath = "cryptoutil/internal/apps/identity-spa/server/config"
 		serviceServerImportPath = "cryptoutil/internal/apps/identity-spa/server"
 		values["__ENTRY_FUNC__"] = "Spa"
+		values["__SERVICE_DISPLAY_NAME__"] = "Single Page App"
 		values["__SERVICE_ID_CONST__"] = "IdentitySPAServiceID"
 		values["__PRODUCT_NAME_CONST__"] = "IdentityProductName"
 		values["__SERVICE_NAME_CONST__"] = "SPAServiceName"
@@ -269,6 +302,7 @@ func serviceRootTemplateValues(ps cryptoutilFitnessRegistry.ProductService) (map
 		serviceConfigImportPath = "cryptoutil/internal/apps/skeleton-template/server/config"
 		serviceServerImportPath = "cryptoutil/internal/apps/skeleton-template/server"
 		values["__ENTRY_FUNC__"] = templateEntryFuncTemplateName
+		values["__SERVICE_DISPLAY_NAME__"] = "Skeleton Template"
 		values["__SERVICE_ID_CONST__"] = "SkeletonTemplateServiceID"
 		values["__PRODUCT_NAME_CONST__"] = "SkeletonProductName"
 		values["__SERVICE_NAME_CONST__"] = "SkeletonTemplateServiceName"

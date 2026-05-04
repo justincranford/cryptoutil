@@ -15,7 +15,7 @@ import (
 )
 
 var (
-	// CAUsageMain is the main usage message for the pki ca command.
+	// CAUsageMain is the main usage message for the pki-ca command.
 	CAUsageMain = cryptoutilUsage.BuildUsageMain(
 		cryptoutilSharedMagic.PKIProductName,
 		cryptoutilSharedMagic.PKICAServiceName,

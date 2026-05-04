@@ -1,8 +1,13 @@
 //go:build ignore
 
 // Copyright (c) 2025-2026 Justin Cranford.
-package __SERVICE__
+package __SERVICE___test
 
-// NOTE: This template is documentation/scaffold only and is NOT currently enforced by lint-fitness.
+import (
+	"os"
+	"testing"
+)
 
-// Root-level TestMain variant used by selected services for package-scoped integration setup.
+func TestMain(m *testing.M) {
+	os.Exit(m.Run())
+}

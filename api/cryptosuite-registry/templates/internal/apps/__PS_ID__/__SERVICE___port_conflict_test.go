@@ -3,9 +3,11 @@
 // Copyright (c) 2025-2026 Justin Cranford.
 package __SERVICE__
 
-// NOTE: This template is documentation/scaffold only and is NOT currently enforced by lint-fitness.
+import "testing"
 
-// Port conflict test pattern:
-//   - reserve public/admin ports
-//   - assert startup fails with address-in-use error
-//   - release listeners and verify recovery path
+// Test__USAGE_PREFIX___ServerStartPortConflict is a canonical placeholder test.
+// Service-specific port conflict validation may be added in dedicated files.
+func Test__USAGE_PREFIX___ServerStartPortConflict(t *testing.T) {
+	t.Parallel()
+	t.Skip("port conflict integration test template placeholder")
+}

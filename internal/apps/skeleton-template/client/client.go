@@ -12,7 +12,7 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
-// Client is a placeholder typed HTTP client for skeleton-template APIs.
+// Client is a typed HTTP client for skeleton-template APIs.
 type Client struct {
 	baseURL    string
 	httpClient *http.Client
@@ -25,10 +25,10 @@ func New(baseURL string) *Client {
 	return &Client{baseURL: strings.TrimRight(baseURL, "/"), httpClient: &http.Client{Timeout: requestTimeout}}
 }
 
-// Ping calls a minimal placeholder endpoint.
+// Ping executes a health request against the service path.
 func (c *Client) Ping(ctx context.Context) (map[string]any, error) {
 	var out map[string]any
-	if err := c.doJSON(ctx, http.MethodGet, cryptoutilSharedMagic.IdentityE2EHealthEndpoint, nil, &out); err != nil {
+	if err := c.doJSON(ctx, http.MethodGet, cryptoutilSharedMagic.DefaultPublicServiceAPIContextPath+"/health", nil, &out); err != nil {
 		return nil, err
 	}
 

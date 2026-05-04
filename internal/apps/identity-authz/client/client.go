@@ -18,37 +18,17 @@ type Client struct {
 	httpClient *http.Client
 }
 
-// New creates an identity-authz client.
+// New creates a identity-authz client.
 func New(baseURL string) *Client {
 	requestTimeout := time.Duration(cryptoutilSharedMagic.DefaultMaxIdleConns) * time.Second
 
 	return &Client{baseURL: strings.TrimRight(baseURL, "/"), httpClient: &http.Client{Timeout: requestTimeout}}
 }
 
-// Authorize performs an OAuth authorization request.
-func (c *Client) Authorize(ctx context.Context, request map[string]any) (map[string]any, error) {
+// Ping executes a health request against the service path.
+func (c *Client) Ping(ctx context.Context) (map[string]any, error) {
 	var out map[string]any
-	if err := c.doJSON(ctx, http.MethodPost, "/service/api/v1/oauth2/authorize", request, &out); err != nil {
-		return nil, err
-	}
-
-	return out, nil
-}
-
-// Introspect performs OAuth token introspection.
-func (c *Client) Introspect(ctx context.Context, request map[string]any) (map[string]any, error) {
-	var out map[string]any
-	if err := c.doJSON(ctx, http.MethodPost, "/service/api/v1/oauth2/introspect", request, &out); err != nil {
-		return nil, err
-	}
-
-	return out, nil
-}
-
-// Token requests an OAuth token.
-func (c *Client) Token(ctx context.Context, request map[string]any) (map[string]any, error) {
-	var out map[string]any
-	if err := c.doJSON(ctx, http.MethodPost, "/service/api/v1/oauth2/token", request, &out); err != nil {
+	if err := c.doJSON(ctx, http.MethodGet, cryptoutilSharedMagic.DefaultPublicServiceAPIContextPath+"/health", nil, &out); err != nil {
 		return nil, err
 	}
 

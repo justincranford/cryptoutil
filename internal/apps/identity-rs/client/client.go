@@ -18,27 +18,17 @@ type Client struct {
 	httpClient *http.Client
 }
 
-// New creates an identity-rs client.
+// New creates a identity-rs client.
 func New(baseURL string) *Client {
 	requestTimeout := time.Duration(cryptoutilSharedMagic.DefaultMaxIdleConns) * time.Second
 
 	return &Client{baseURL: strings.TrimRight(baseURL, "/"), httpClient: &http.Client{Timeout: requestTimeout}}
 }
 
-// ValidateToken validates a token with the resource server.
-func (c *Client) ValidateToken(ctx context.Context, request map[string]any) (map[string]any, error) {
+// Ping executes a health request against the service path.
+func (c *Client) Ping(ctx context.Context) (map[string]any, error) {
 	var out map[string]any
-	if err := c.doJSON(ctx, http.MethodPost, "/service/api/v1/tokens/validate", request, &out); err != nil {
-		return nil, err
-	}
-
-	return out, nil
-}
-
-// GetResources retrieves protected resources.
-func (c *Client) GetResources(ctx context.Context) (map[string]any, error) {
-	var out map[string]any
-	if err := c.doJSON(ctx, http.MethodGet, "/service/api/v1/resources", nil, &out); err != nil {
+	if err := c.doJSON(ctx, http.MethodGet, cryptoutilSharedMagic.DefaultPublicServiceAPIContextPath+"/health", nil, &out); err != nil {
 		return nil, err
 	}
 

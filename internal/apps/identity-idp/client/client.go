@@ -18,32 +18,17 @@ type Client struct {
 	httpClient *http.Client
 }
 
-// New creates an identity-idp client.
+// New creates a identity-idp client.
 func New(baseURL string) *Client {
 	requestTimeout := time.Duration(cryptoutilSharedMagic.DefaultMaxIdleConns) * time.Second
 
 	return &Client{baseURL: strings.TrimRight(baseURL, "/"), httpClient: &http.Client{Timeout: requestTimeout}}
 }
 
-// Login performs a login flow request.
-func (c *Client) Login(ctx context.Context, request map[string]any) (map[string]any, error) {
+// Ping executes a health request against the service path.
+func (c *Client) Ping(ctx context.Context) (map[string]any, error) {
 	var out map[string]any
-	if err := c.doJSON(ctx, http.MethodPost, "/browser/api/v1/oidc/login", request, &out); err != nil {
-		return nil, err
-	}
-
-	return out, nil
-}
-
-// Logout terminates an IDP session.
-func (c *Client) Logout(ctx context.Context, request map[string]any) error {
-	return c.doJSON(ctx, http.MethodPost, "/browser/api/v1/oidc/logout", request, nil)
-}
-
-// JWKS fetches OIDC JWKS metadata.
-func (c *Client) JWKS(ctx context.Context) (map[string]any, error) {
-	var out map[string]any
-	if err := c.doJSON(ctx, http.MethodGet, "/service/api/v1/jwks", nil, &out); err != nil {
+	if err := c.doJSON(ctx, http.MethodGet, cryptoutilSharedMagic.DefaultPublicServiceAPIContextPath+"/health", nil, &out); err != nil {
 		return nil, err
 	}
 

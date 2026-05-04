@@ -1,134 +1,72 @@
 // Copyright (c) 2025-2026 Justin Cranford.
-//
-//
-
+// Health endpoints exposed by this service (referenced in BuildUsage* output):
+//   - /service/api/v1/health  (service-to-service health check)
+//   - /browser/api/v1/health  (browser health check)
+//   - /admin/api/v1/livez     (liveness probe)
+//   - /admin/api/v1/readyz    (readiness probe)
+//   - /admin/api/v1/shutdown  (graceful shutdown trigger)
 package rp
 
-const (
-	// RPUsageMain is the main usage message for the identity rp command.
-	RPUsageMain = `Usage: identity rp <subcommand> [options]
+import (
+	"fmt"
 
-Available subcommands:
-  version     Print version information
-  server      Start the Relying Party server (default)
-  client      Run client operations
-  init        Initialize database and configuration
-  health      Check service health (public API)
-  livez       Check service liveness (admin API)
-  readyz      Check service readiness (admin API)
-  shutdown    Trigger graceful shutdown (admin API)
+	cryptoutilUsage "cryptoutil/internal/apps-framework/service/usage"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+)
 
-Use "identity rp <subcommand> help" for subcommand-specific help.
-Version information is available via Docker image tags.`
+var (
+	// RPUsageMain is the main usage message for the identity-rp command.
+	RPUsageMain = cryptoutilUsage.BuildUsageMain(
+		cryptoutilSharedMagic.IdentityProductName,
+		cryptoutilSharedMagic.RPServiceName,
+		"Relying Party",
+	)
 
 	// RPUsageServer is the usage message for the server subcommand.
-	RPUsageServer = `Usage: identity rp server [options]
-
-Description:
-  Start the Relying Party server with database initialization.
-  Supports both SQLite (default) and PostgreSQL databases.
-
-Options:
-  --database-url URL    Database URL (default: SQLite in-memory)
-                        SQLite: file::memory:?cache=shared
-                        PostgreSQL: postgres://user:pass@host:port/dbname?sslmode=disable
-  --config PATH         Configuration file path
-  --help, -h            Show this help message
-
-Examples:
-  identity rp server
-  identity rp server --config configs/identity-rp/identity-rp-framework.yml`
+	RPUsageServer = cryptoutilUsage.BuildUsageServer(
+		cryptoutilSharedMagic.IdentityProductName,
+		cryptoutilSharedMagic.RPServiceName,
+		"Relying Party",
+		fmt.Sprintf("configs/%s/%s-framework.yml", cryptoutilSharedMagic.IdentityRPServiceID, cryptoutilSharedMagic.IdentityRPServiceID),
+	)
 
 	// RPUsageClient is the usage message for the client subcommand.
-	RPUsageClient = `Usage: identity rp client [options]
-
-Description:
-  Run client operations for the Relying Party service.
-
-Options:
-  --help, -h    Show this help message
-
-Examples:
-  identity rp client`
+	RPUsageClient = cryptoutilUsage.BuildUsageClient(
+		cryptoutilSharedMagic.IdentityProductName,
+		cryptoutilSharedMagic.RPServiceName,
+		"Relying Party",
+	)
 
 	// RPUsageInit is the usage message for the init subcommand.
-	RPUsageInit = `Usage: identity rp init [options]
-
-Description:
-  Initialize database schema and configuration for the Relying Party service.
-
-Options:
-  --config PATH    Configuration file path
-  --help, -h       Show this help message
-
-Examples:
-  identity rp init
-  identity rp init --config configs/identity-rp/identity-rp-framework.yml`
+	RPUsageInit = cryptoutilUsage.BuildUsageInit(
+		cryptoutilSharedMagic.IdentityProductName,
+		cryptoutilSharedMagic.RPServiceName,
+		"Relying Party",
+		fmt.Sprintf("configs/%s/%s-framework.yml", cryptoutilSharedMagic.IdentityRPServiceID, cryptoutilSharedMagic.IdentityRPServiceID),
+	)
 
 	// RPUsageHealth is the usage message for the health subcommand.
-	RPUsageHealth = `Usage: identity rp health [options]
-
-Description:
-  Check service health via public API endpoint.
-  Calls GET /service/api/v1/health endpoint by service-to-service clients.
-  Calls GET /browser/api/v1/health endpoint by browser clients.
-
-Options:
-  --url URL      Service URL (default: https://127.0.0.1:rp)
-  --cacert FILE  CA certificate file for TLS validation
-  --help, -h     Show this help message
-
-Examples:
-  identity rp health
-  identity rp health --cacert /path/to/ca.pem`
+	RPUsageHealth = cryptoutilUsage.BuildUsageHealth(
+		cryptoutilSharedMagic.IdentityProductName,
+		cryptoutilSharedMagic.RPServiceName,
+		fmt.Sprintf("%d", cryptoutilSharedMagic.IdentityRPServicePort),
+	)
 
 	// RPUsageLivez is the usage message for the livez subcommand.
-	RPUsageLivez = `Usage: identity rp livez [options]
-
-Description:
-  Check service liveness via admin API endpoint.
-  Calls GET /admin/api/v1/livez endpoint on the admin server.
-
-Options:
-  --url URL      Admin URL (default: https://127.0.0.1:9090)
-  --cacert FILE  CA certificate file for TLS validation
-  --help, -h     Show this help message
-
-Examples:
-  identity rp livez
-  identity rp livez --url https://localhost:9090`
+	RPUsageLivez = cryptoutilUsage.BuildUsageLivez(
+		cryptoutilSharedMagic.IdentityProductName,
+		cryptoutilSharedMagic.RPServiceName,
+	)
 
 	// RPUsageReadyz is the usage message for the readyz subcommand.
-	RPUsageReadyz = `Usage: identity rp readyz [options]
-
-Description:
-  Check service readiness via admin API endpoint.
-  Calls GET /admin/api/v1/readyz endpoint on the admin server.
-
-Options:
-  --url URL      Admin URL (default: https://127.0.0.1:9090)
-  --cacert FILE  CA certificate file for TLS validation
-  --help, -h     Show this help message
-
-Examples:
-  identity rp readyz
-  identity rp readyz --url https://localhost:9090`
+	RPUsageReadyz = cryptoutilUsage.BuildUsageReadyz(
+		cryptoutilSharedMagic.IdentityProductName,
+		cryptoutilSharedMagic.RPServiceName,
+	)
 
 	// RPUsageShutdown is the usage message for the shutdown subcommand.
-	RPUsageShutdown = `Usage: identity rp shutdown [options]
-
-Description:
-  Trigger graceful shutdown via admin API endpoint.
-  Calls POST /admin/api/v1/shutdown endpoint on the admin server.
-
-Options:
-  --url URL      Admin URL (default: https://127.0.0.1:9090)
-  --cacert FILE  CA certificate file for TLS validation
-  --force        Force shutdown without graceful drain
-  --help, -h     Show this help message
-
-Examples:
-  identity rp shutdown
-  identity rp shutdown --url https://localhost:9090
-  identity rp shutdown --force`
+	RPUsageShutdown = cryptoutilUsage.BuildUsageShutdown(
+		cryptoutilSharedMagic.IdentityProductName,
+		cryptoutilSharedMagic.RPServiceName,
+	)
 )

@@ -15,10 +15,6 @@ import (
 	_ "modernc.org/sqlite"             // CGO-free SQLite driver
 
 	cryptoutilTemplateCli "cryptoutil/internal/apps-framework/service/cli"
-	__FIRST_APP_IMPORT_ALIAS__ "__FIRST_APP_IMPORT_PATH__"
-	__SECOND_APP_IMPORT_ALIAS__ "__SECOND_APP_IMPORT_PATH__"
-	__THIRD_APP_IMPORT_ALIAS__ "__THIRD_APP_IMPORT_PATH__"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // __ENTRY_FUNC__ implements the __PS_ID__ service subcommand handler.

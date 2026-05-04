@@ -3,9 +3,38 @@
 // Copyright (c) 2025-2026 Justin Cranford.
 package __SERVICE__
 
-// NOTE: This template is documentation/scaffold only and is NOT currently enforced by lint-fitness.
+import (
+	"bytes"
+	"testing"
 
-// Typical coverage for __SERVICE___cli_test.go:
-//   - help path for main command and subcommands
-//   - unknown subcommand returns non-zero
-//   - version/help output wiring is stable
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+
+	"github.com/stretchr/testify/require"
+)
+
+func Test__USAGE_PREFIX___MainHelp(t *testing.T) {
+	t.Parallel()
+
+	var stdout, stderr bytes.Buffer
+
+	exitCode := __ENTRY_FUNC__([]string{cryptoutilSharedMagic.CLIHelpFlag}, nil, &stdout, &stderr)
+	require.Equal(t, 0, exitCode)
+}
+
+func Test__USAGE_PREFIX___Version(t *testing.T) {
+	t.Parallel()
+
+	var stdout, stderr bytes.Buffer
+
+	exitCode := __ENTRY_FUNC__([]string{cryptoutilSharedMagic.CLIVersionCommand}, nil, &stdout, &stderr)
+	require.Equal(t, 0, exitCode)
+}
+
+func Test__USAGE_PREFIX___UnknownSubcommand(t *testing.T) {
+	t.Parallel()
+
+	var stdout, stderr bytes.Buffer
+
+	exitCode := __ENTRY_FUNC__([]string{"unknown-subcommand"}, nil, &stdout, &stderr)
+	require.Equal(t, 1, exitCode)
+}

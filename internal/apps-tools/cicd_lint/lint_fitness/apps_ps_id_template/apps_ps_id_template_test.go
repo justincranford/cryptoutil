@@ -31,25 +31,36 @@ func findProjectRoot() (string, error) {
 	}
 }
 
-// copyManifest copies the real PS-ID MANIFEST.yaml and enforced SERVICE.go template
-// into a synthetic root directory.
+// copyManifest copies the real PS-ID template directory into a synthetic root directory.
 func copyManifest(t *testing.T, realRoot, tmpDir string) {
 	t.Helper()
 
 	templateDir := filepath.Join(realRoot, "api", "cryptosuite-registry", "templates", "internal", "apps", cryptoutilSharedMagic.CICDTemplateExpansionKeyPSID)
-	srcManifestPath := filepath.Join(templateDir, "MANIFEST.yaml")
-	srcServiceTemplatePath := filepath.Join(templateDir, "__SERVICE__.go")
 	destDir := filepath.Join(tmpDir, "api", "cryptosuite-registry", "templates", "internal", "apps", cryptoutilSharedMagic.CICDTemplateExpansionKeyPSID)
 
-	require.NoError(t, os.MkdirAll(destDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+	require.NoError(t, filepath.Walk(templateDir, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
 
-	manifestData, err := os.ReadFile(srcManifestPath)
-	require.NoError(t, err)
-	require.NoError(t, os.WriteFile(filepath.Join(destDir, "MANIFEST.yaml"), manifestData, cryptoutilSharedMagic.CacheFilePermissions))
+		relPath, relErr := filepath.Rel(templateDir, path)
+		if relErr != nil {
+			return relErr
+		}
 
-	serviceTemplateData, err := os.ReadFile(srcServiceTemplatePath)
-	require.NoError(t, err)
-	require.NoError(t, os.WriteFile(filepath.Join(destDir, "__SERVICE__.go"), serviceTemplateData, cryptoutilSharedMagic.CacheFilePermissions))
+		targetPath := filepath.Join(destDir, relPath)
+
+		if info.IsDir() {
+			return os.MkdirAll(targetPath, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute)
+		}
+
+		data, readErr := os.ReadFile(path)
+		if readErr != nil {
+			return readErr
+		}
+
+		return os.WriteFile(targetPath, data, cryptoutilSharedMagic.CacheFilePermissions)
+	}))
 }
 
 // createFullPSIDRoot creates all required files for all PS-IDs according to the manifest +
@@ -65,24 +76,35 @@ func createFullPSIDRoot(t *testing.T, realRoot, tmpDir string) {
 
 		require.NoError(t, os.MkdirAll(serverDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
-		// Required root files (respecting production exclusions).
+		// Canonical template-enforced root/client files.
 		realServiceRootPath := filepath.Join(realRoot, "internal", "apps", ps.PSID, ps.Service+".go")
 		realServiceRootContent, err := os.ReadFile(realServiceRootPath)
 		require.NoError(t, err)
 		require.NoError(t, os.WriteFile(filepath.Join(psDir, ps.Service+".go"), realServiceRootContent, cryptoutilSharedMagic.CacheFilePermissions))
-		require.NoError(t, os.WriteFile(filepath.Join(psDir, ps.Service+"_usage.go"), []byte("package main\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
-		if !knownRootFileExclusions["__SERVICE___cli_test.go"][ps.PSID] {
-			require.NoError(t, os.WriteFile(filepath.Join(psDir, ps.Service+"_cli_test.go"), []byte("package main\n"), cryptoutilSharedMagic.CacheFilePermissions))
+		canonicalFiles := []string{
+			ps.Service + "_usage.go",
+			ps.Service + "_cli_test.go",
+			ps.Service + "_lifecycle_test.go",
+			ps.Service + "_port_conflict_test.go",
+			"testmain_test.go",
+			"README.md",
+			filepath.Join("client", "client.go"),
+		}
+
+		for _, rel := range canonicalFiles {
+			srcPath := filepath.Join(realRoot, "internal", "apps", ps.PSID, rel)
+			srcData, readErr := os.ReadFile(srcPath)
+			require.NoError(t, readErr)
+
+			dstPath := filepath.Join(psDir, rel)
+			require.NoError(t, os.MkdirAll(filepath.Dir(dstPath), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+			require.NoError(t, os.WriteFile(dstPath, srcData, cryptoutilSharedMagic.CacheFilePermissions))
 		}
 
 		// Required server file: server.go (no exclusions).
 		require.NoError(t, os.WriteFile(filepath.Join(serverDir, "server.go"), []byte("package server\n"), cryptoutilSharedMagic.CacheFilePermissions))
-
-		// testmain_test.go: create only for non-excluded PS-IDs.
-		if !knownServerFileExclusions["testmain_test.go"][ps.PSID] {
-			require.NoError(t, os.WriteFile(filepath.Join(serverDir, "testmain_test.go"), []byte("package server\n"), cryptoutilSharedMagic.CacheFilePermissions))
-		}
+		require.NoError(t, os.WriteFile(filepath.Join(serverDir, "testmain_test.go"), []byte("package server\n"), cryptoutilSharedMagic.CacheFilePermissions))
 		// swagger.go, swagger_test.go, lifecycle_test, port_conflict_test: all excluded, skip.
 
 		// Required server subdirs: apis, model, repository (respecting production exclusions).
@@ -219,7 +241,7 @@ func TestCheckInDir_WithExclusions_AllPass(t *testing.T) {
 }
 
 // TestCheckInDir_WithExclusions_ServiceRootTemplateMismatch verifies template-content enforcement
-// for the root SERVICE.go entrypoint.
+// for canonical root templates.
 func TestCheckInDir_WithExclusions_ServiceRootTemplateMismatch(t *testing.T) {
 	t.Parallel()
 
@@ -231,7 +253,7 @@ func TestCheckInDir_WithExclusions_ServiceRootTemplateMismatch(t *testing.T) {
 	tmpDir := t.TempDir()
 	createFullPSIDRoot(t, root, tmpDir)
 
-	servicePath := filepath.Join(tmpDir, "internal", "apps", cryptoutilSharedMagic.OTLPServicePKICA, "ca.go")
+	servicePath := filepath.Join(tmpDir, "internal", "apps", cryptoutilSharedMagic.OTLPServicePKICA, "ca_usage.go")
 	serviceContent, readErr := os.ReadFile(servicePath)
 	require.NoError(t, readErr)
 

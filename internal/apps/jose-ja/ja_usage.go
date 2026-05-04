@@ -15,7 +15,7 @@ import (
 )
 
 var (
-	// JAUsageMain is the main usage message for the jose ja command.
+	// JAUsageMain is the main usage message for the jose-ja command.
 	JAUsageMain = cryptoutilUsage.BuildUsageMain(
 		cryptoutilSharedMagic.JoseProductName,
 		cryptoutilSharedMagic.JoseJAServiceName,

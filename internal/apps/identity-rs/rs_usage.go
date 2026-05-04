@@ -1,134 +1,72 @@
 // Copyright (c) 2025-2026 Justin Cranford.
-//
-//
-
+// Health endpoints exposed by this service (referenced in BuildUsage* output):
+//   - /service/api/v1/health  (service-to-service health check)
+//   - /browser/api/v1/health  (browser health check)
+//   - /admin/api/v1/livez     (liveness probe)
+//   - /admin/api/v1/readyz    (readiness probe)
+//   - /admin/api/v1/shutdown  (graceful shutdown trigger)
 package rs
 
-const (
-	// RSUsageMain is the main usage message for the identity rs command.
-	RSUsageMain = `Usage: identity rs <subcommand> [options]
+import (
+	"fmt"
 
-Available subcommands:
-  version     Print version information
-  server      Start the Resource Server server (default)
-  client      Run client operations
-  init        Initialize database and configuration
-  health      Check service health (public API)
-  livez       Check service liveness (admin API)
-  readyz      Check service readiness (admin API)
-  shutdown    Trigger graceful shutdown (admin API)
+	cryptoutilUsage "cryptoutil/internal/apps-framework/service/usage"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+)
 
-Use "identity rs <subcommand> help" for subcommand-specific help.
-Version information is available via Docker image tags.`
+var (
+	// RSUsageMain is the main usage message for the identity-rs command.
+	RSUsageMain = cryptoutilUsage.BuildUsageMain(
+		cryptoutilSharedMagic.IdentityProductName,
+		cryptoutilSharedMagic.RSServiceName,
+		"Resource Server",
+	)
 
 	// RSUsageServer is the usage message for the server subcommand.
-	RSUsageServer = `Usage: identity rs server [options]
-
-Description:
-  Start the Resource Server server with database initialization.
-  Supports both SQLite (default) and PostgreSQL databases.
-
-Options:
-  --database-url URL    Database URL (default: SQLite in-memory)
-                        SQLite: file::memory:?cache=shared
-                        PostgreSQL: postgres://user:pass@host:port/dbname?sslmode=disable
-  --config PATH         Configuration file path
-  --help, -h            Show this help message
-
-Examples:
-  identity rs server
-  identity rs server --config configs/identity-rs/identity-rs-framework.yml`
+	RSUsageServer = cryptoutilUsage.BuildUsageServer(
+		cryptoutilSharedMagic.IdentityProductName,
+		cryptoutilSharedMagic.RSServiceName,
+		"Resource Server",
+		fmt.Sprintf("configs/%s/%s-framework.yml", cryptoutilSharedMagic.IdentityRSServiceID, cryptoutilSharedMagic.IdentityRSServiceID),
+	)
 
 	// RSUsageClient is the usage message for the client subcommand.
-	RSUsageClient = `Usage: identity rs client [options]
-
-Description:
-  Run client operations for the Resource Server service.
-
-Options:
-  --help, -h    Show this help message
-
-Examples:
-  identity rs client`
+	RSUsageClient = cryptoutilUsage.BuildUsageClient(
+		cryptoutilSharedMagic.IdentityProductName,
+		cryptoutilSharedMagic.RSServiceName,
+		"Resource Server",
+	)
 
 	// RSUsageInit is the usage message for the init subcommand.
-	RSUsageInit = `Usage: identity rs init [options]
-
-Description:
-  Initialize database schema and configuration for the Resource Server service.
-
-Options:
-  --config PATH    Configuration file path
-  --help, -h       Show this help message
-
-Examples:
-  identity rs init
-  identity rs init --config configs/identity-rs/identity-rs-framework.yml`
+	RSUsageInit = cryptoutilUsage.BuildUsageInit(
+		cryptoutilSharedMagic.IdentityProductName,
+		cryptoutilSharedMagic.RSServiceName,
+		"Resource Server",
+		fmt.Sprintf("configs/%s/%s-framework.yml", cryptoutilSharedMagic.IdentityRSServiceID, cryptoutilSharedMagic.IdentityRSServiceID),
+	)
 
 	// RSUsageHealth is the usage message for the health subcommand.
-	RSUsageHealth = `Usage: identity rs health [options]
-
-Description:
-  Check service health via public API endpoint.
-  Calls GET /service/api/v1/health endpoint by service-to-service clients.
-  Calls GET /browser/api/v1/health endpoint by browser clients.
-
-Options:
-  --url URL      Service URL (default: https://127.0.0.1:rs)
-  --cacert FILE  CA certificate file for TLS validation
-  --help, -h     Show this help message
-
-Examples:
-  identity rs health
-  identity rs health --cacert /path/to/ca.pem`
+	RSUsageHealth = cryptoutilUsage.BuildUsageHealth(
+		cryptoutilSharedMagic.IdentityProductName,
+		cryptoutilSharedMagic.RSServiceName,
+		fmt.Sprintf("%d", cryptoutilSharedMagic.IdentityRSServicePort),
+	)
 
 	// RSUsageLivez is the usage message for the livez subcommand.
-	RSUsageLivez = `Usage: identity rs livez [options]
-
-Description:
-  Check service liveness via admin API endpoint.
-  Calls GET /admin/api/v1/livez endpoint on the admin server.
-
-Options:
-  --url URL      Admin URL (default: https://127.0.0.1:9090)
-  --cacert FILE  CA certificate file for TLS validation
-  --help, -h     Show this help message
-
-Examples:
-  identity rs livez
-  identity rs livez --url https://localhost:9090`
+	RSUsageLivez = cryptoutilUsage.BuildUsageLivez(
+		cryptoutilSharedMagic.IdentityProductName,
+		cryptoutilSharedMagic.RSServiceName,
+	)
 
 	// RSUsageReadyz is the usage message for the readyz subcommand.
-	RSUsageReadyz = `Usage: identity rs readyz [options]
-
-Description:
-  Check service readiness via admin API endpoint.
-  Calls GET /admin/api/v1/readyz endpoint on the admin server.
-
-Options:
-  --url URL      Admin URL (default: https://127.0.0.1:9090)
-  --cacert FILE  CA certificate file for TLS validation
-  --help, -h     Show this help message
-
-Examples:
-  identity rs readyz
-  identity rs readyz --url https://localhost:9090`
+	RSUsageReadyz = cryptoutilUsage.BuildUsageReadyz(
+		cryptoutilSharedMagic.IdentityProductName,
+		cryptoutilSharedMagic.RSServiceName,
+	)
 
 	// RSUsageShutdown is the usage message for the shutdown subcommand.
-	RSUsageShutdown = `Usage: identity rs shutdown [options]
-
-Description:
-  Trigger graceful shutdown via admin API endpoint.
-  Calls POST /admin/api/v1/shutdown endpoint on the admin server.
-
-Options:
-  --url URL      Admin URL (default: https://127.0.0.1:9090)
-  --cacert FILE  CA certificate file for TLS validation
-  --force        Force shutdown without graceful drain
-  --help, -h     Show this help message
-
-Examples:
-  identity rs shutdown
-  identity rs shutdown --url https://localhost:9090
-  identity rs shutdown --force`
+	RSUsageShutdown = cryptoutilUsage.BuildUsageShutdown(
+		cryptoutilSharedMagic.IdentityProductName,
+		cryptoutilSharedMagic.RSServiceName,
+	)
 )

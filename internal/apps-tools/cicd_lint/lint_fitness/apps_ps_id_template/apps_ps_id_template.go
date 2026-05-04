@@ -53,13 +53,14 @@ var allTenPSIDs = map[string]bool{
 // psIDExclusions bundles all exclusion maps to avoid a long parameter list.
 // Each field maps a template filename (pre-substitution) to a set of PS-IDs exempt from that check.
 type psIDExclusions struct {
-	rootFiles   map[string]map[string]bool
-	serverFiles map[string]map[string]bool
-	serverDirs  map[string]map[string]bool
-	configFiles map[string]map[string]bool
-	repoFiles   map[string]map[string]bool
-	repoDirs    map[string]map[string]bool
-	e2eFiles    map[string]map[string]bool
+	enforceRootTemplates bool
+	rootFiles            map[string]map[string]bool
+	serverFiles          map[string]map[string]bool
+	serverDirs           map[string]map[string]bool
+	configFiles          map[string]map[string]bool
+	repoFiles            map[string]map[string]bool
+	repoDirs             map[string]map[string]bool
+	e2eFiles             map[string]map[string]bool
 }
 
 // knownRootFileExclusions maps template filenames (pre-substitution) to sets of PS-IDs
@@ -169,13 +170,14 @@ func Check(logger *cryptoutilCmdCicdCommon.Logger) error {
 // CheckInDir validates PS-ID template conformance under rootDir.
 func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 	excl := psIDExclusions{
-		rootFiles:   knownRootFileExclusions,
-		serverFiles: knownServerFileExclusions,
-		serverDirs:  knownServerDirExclusions,
-		configFiles: knownServerConfigFileExclusions,
-		repoFiles:   knownServerRepositoryFileExclusions,
-		repoDirs:    knownServerRepositoryDirExclusions,
-		e2eFiles:    knownE2EFileExclusions,
+		enforceRootTemplates: true,
+		rootFiles:            knownRootFileExclusions,
+		serverFiles:          knownServerFileExclusions,
+		serverDirs:           knownServerDirExclusions,
+		configFiles:          knownServerConfigFileExclusions,
+		repoFiles:            knownServerRepositoryFileExclusions,
+		repoDirs:             knownServerRepositoryDirExclusions,
+		e2eFiles:             knownE2EFileExclusions,
 	}
 
 	return checkInDirWithExclusions(logger, rootDir, excl)
@@ -247,7 +249,9 @@ func checkPSIDFiles(
 		}
 	}
 
-	violations = append(violations, checkServiceRootTemplate(rootDir, psDir, ps)...)
+	if excl.enforceRootTemplates {
+		violations = append(violations, checkRootTemplates(rootDir, psDir, ps)...)
+	}
 
 	// Check required directories.
 	for _, dir := range manifest.RequiredDirs {

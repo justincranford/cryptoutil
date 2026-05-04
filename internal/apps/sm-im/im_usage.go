@@ -15,7 +15,7 @@ import (
 )
 
 var (
-	// IMUsageMain is the main usage message for the sm im command.
+	// IMUsageMain is the main usage message for the sm-im command.
 	IMUsageMain = cryptoutilUsage.BuildUsageMain(
 		cryptoutilSharedMagic.IMProductName,
 		cryptoutilSharedMagic.IMServiceName,

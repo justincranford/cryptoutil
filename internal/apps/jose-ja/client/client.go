@@ -22,34 +22,17 @@ type Client struct {
 func New(baseURL string) *Client {
 	requestTimeout := time.Duration(cryptoutilSharedMagic.DefaultMaxIdleConns) * time.Second
 
-	return &Client{
-		baseURL: strings.TrimRight(baseURL, "/"),
-		httpClient: &http.Client{
-			Timeout: requestTimeout,
-		},
-	}
+	return &Client{baseURL: strings.TrimRight(baseURL, "/"), httpClient: &http.Client{Timeout: requestTimeout}}
 }
 
-// GetJWKS fetches the JSON Web Key Set payload.
-func (c *Client) GetJWKS(ctx context.Context) (map[string]any, error) {
+// Ping executes a health request against the service path.
+func (c *Client) Ping(ctx context.Context) (map[string]any, error) {
 	var out map[string]any
-
-	err := c.doJSON(ctx, http.MethodGet, "/service/api/v1/jwks", nil, &out)
-	if err != nil {
+	if err := c.doJSON(ctx, http.MethodGet, cryptoutilSharedMagic.DefaultPublicServiceAPIContextPath+"/health", nil, &out); err != nil {
 		return nil, err
 	}
 
 	return out, nil
-}
-
-// CreateJWK creates a new JWK with the given request payload.
-func (c *Client) CreateJWK(ctx context.Context, request map[string]any) error {
-	return c.doJSON(ctx, http.MethodPost, "/service/api/v1/jwks", request, nil)
-}
-
-// RotateJWK rotates active key material.
-func (c *Client) RotateJWK(ctx context.Context, request map[string]any) error {
-	return c.doJSON(ctx, http.MethodPost, "/service/api/v1/jwks/rotate", request, nil)
 }
 
 func (c *Client) doJSON(ctx context.Context, method, path string, in any, out any) error {

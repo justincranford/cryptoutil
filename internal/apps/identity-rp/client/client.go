@@ -18,26 +18,21 @@ type Client struct {
 	httpClient *http.Client
 }
 
-// New creates an identity-rp client.
+// New creates a identity-rp client.
 func New(baseURL string) *Client {
 	requestTimeout := time.Duration(cryptoutilSharedMagic.DefaultMaxIdleConns) * time.Second
 
 	return &Client{baseURL: strings.TrimRight(baseURL, "/"), httpClient: &http.Client{Timeout: requestTimeout}}
 }
 
-// Callback handles RP callback endpoint requests.
-func (c *Client) Callback(ctx context.Context, request map[string]any) (map[string]any, error) {
+// Ping executes a health request against the service path.
+func (c *Client) Ping(ctx context.Context) (map[string]any, error) {
 	var out map[string]any
-	if err := c.doJSON(ctx, http.MethodPost, "/browser/api/v1/authn/callback", request, &out); err != nil {
+	if err := c.doJSON(ctx, http.MethodGet, cryptoutilSharedMagic.DefaultPublicServiceAPIContextPath+"/health", nil, &out); err != nil {
 		return nil, err
 	}
 
 	return out, nil
-}
-
-// Logout performs RP logout flow.
-func (c *Client) Logout(ctx context.Context, request map[string]any) error {
-	return c.doJSON(ctx, http.MethodPost, "/browser/api/v1/authn/logout", request, nil)
 }
 
 func (c *Client) doJSON(ctx context.Context, method, path string, in any, out any) error {
