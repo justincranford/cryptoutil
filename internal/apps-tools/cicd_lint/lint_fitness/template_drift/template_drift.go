@@ -21,7 +21,7 @@ import (
 type walkDirFn func(root string, fn fs.WalkDirFunc) error
 
 // LoadTemplatesDir walks the canonical templates directory and returns a map of
-// template-relative path → raw file content. Skips .gitkeep files.
+// template-relative path â†’ raw file content. Skips .gitkeep files.
 func LoadTemplatesDir(projectRoot string) (map[string]string, error) {
 	return loadTemplatesDirFn(projectRoot, filepath.WalkDir)
 }
@@ -53,10 +53,10 @@ func loadTemplatesDirFn(projectRoot string, walkFn walkDirFn) (map[string]string
 		// Normalize to forward slashes for cross-platform consistency.
 		relPath = filepath.ToSlash(relPath)
 
-		// Skip structural manifest templates (cmd/, internal/). These are MANIFEST.yaml and
-		// //go:build ignore .go stubs used by Phase 4 linters (apps-ps-id-template, etc.).
-		// They are NOT deployment artifacts — do not compare against actual project files.
-		if strings.HasPrefix(relPath, "cmd/") || strings.HasPrefix(relPath, "internal/") {
+		// Skip pure structural meta-files (MANIFEST.yaml, README.md) that exist only to
+		// guide Phase 4 linters â€” they have no corresponding actual project file.
+		// All other internal/ and cmd/ Go source templates ARE real files and must be compared.
+		if isStructuralMetaFile(relPath) {
 			return nil
 		}
 
@@ -65,7 +65,10 @@ func loadTemplatesDirFn(projectRoot string, walkFn walkDirFn) (map[string]string
 			return fmt.Errorf("read template %s: %w", relPath, err)
 		}
 
-		templates[relPath] = string(content)
+		// Strip the //go:build ignore header from Go source templates.
+		// The actual project files do not carry this tag â€” it is only present in the
+		// template copy to prevent the compiler from picking up placeholder-bearing files.
+		templates[relPath] = stripBuildIgnoreTag(string(content))
 
 		return nil
 	})
@@ -163,8 +166,17 @@ func chooseComparison(relPath, expected, actual string) string {
 func expandPSIDTemplate(tmplPath, tmplContent string, expected map[string]string) {
 	for _, ps := range cryptoutilRegistry.AllProductServices() {
 		params := buildParams(ps.PSID)
+		addGoSourceParams(params, ps)
 		actualPath := substituteParams(tmplPath, params)
 		content := substituteParams(tmplContent, params)
+
+		// Skip templates that still contain unresolved __PLACEHOLDER__ tokens after substitution.
+		// This gracefully handles templates (e.g. __SERVICE__.go) that require additional
+		// params not yet wired in â€” they should not produce false comparison failures.
+		if hasUnresolvedPlaceholders(content) {
+			continue
+		}
+
 		expected[actualPath] = content
 	}
 }
@@ -197,263 +209,4 @@ func substituteParams(s string, params map[string]string) string {
 	}
 
 	return result
-}
-
-// buildParams constructs the full parameter map for PS-ID template instantiation.
-func buildParams(psID string) map[string]string {
-	basePort := cryptoutilRegistry.PublicPort(psID)
-
-	return map[string]string{
-		cryptoutilSharedMagic.CICDTemplateExpansionKeyPSID: psID,
-		"__PS_ID_UPPER__":      strings.ToUpper(psID),
-		"__PS_ID_UNDERSCORE__": strings.ReplaceAll(psID, "-", "_"),
-		cryptoutilSharedMagic.CICDTemplateExpansionKeySuite: cryptoutilSharedMagic.DefaultOTLPServiceDefault,
-		"__IMAGE_TAG__":                cryptoutilSharedMagic.DefaultOTLPEnvironmentDefault,
-		"__BUILD_DATE__":               cryptoutilSharedMagic.CICDTemplateBuildDate,
-		"__GO_VERSION__":               cryptoutilSharedMagic.CICDTemplateGoVersion,
-		"__ALPINE_VERSION__":           cryptoutilSharedMagic.CICDTemplateAlpineVersion,
-		"__CGO_ENABLED__":              cryptoutilSharedMagic.CICDTemplateCGOEnabled,
-		"__CONTAINER_UID__":            cryptoutilSharedMagic.CICDTemplateContainerUID,
-		"__CONTAINER_GID__":            cryptoutilSharedMagic.CICDTemplateContainerGID,
-		"__GITHUB_REPOSITORY_URL__":    cryptoutilSharedMagic.CICDTemplateGitHubRepoURL,
-		"__AUTHORS__":                  cryptoutilSharedMagic.CICDTemplateAuthors,
-		"__HEALTHCHECK_INTERVAL__":     cryptoutilSharedMagic.CICDTemplateHealthcheckInterval,
-		"__HEALTHCHECK_TIMEOUT__":      cryptoutilSharedMagic.CICDTemplateHealthcheckTimeout,
-		"__HEALTHCHECK_START_PERIOD__": cryptoutilSharedMagic.CICDTemplateHealthcheckStartPeriod,
-		"__HEALTHCHECK_RETRIES__":      cryptoutilSharedMagic.CICDTemplateHealthcheckRetries,
-		"__PRODUCT_DISPLAY_NAME__":     cryptoutilRegistry.ProductDisplayName(psID),
-		"__PS_DISPLAY_NAME__":          cryptoutilRegistry.ServiceDisplayName(psID),
-		"__PS_PUBLIC_PORT_BASE__":      fmt.Sprintf("%d", basePort),
-		"__PS_PUBLIC_PORT_END__":       fmt.Sprintf("%d", cryptoutilRegistry.PortRangeEnd(psID)),
-		"__PS_PUBLIC_PORT_SQLITE_1__":  fmt.Sprintf("%d", basePort+cryptoutilRegistry.ComposeVariantOffsetSQLite1),
-		"__PS_PUBLIC_PORT_SQLITE_2__":  fmt.Sprintf("%d", basePort+cryptoutilRegistry.ComposeVariantOffsetSQLite2),
-		"__PS_PUBLIC_PORT_PG_1__":      fmt.Sprintf("%d", basePort+cryptoutilRegistry.ComposeVariantOffsetPostgres1),
-		"__PS_PUBLIC_PORT_PG_2__":      fmt.Sprintf("%d", basePort+cryptoutilRegistry.ComposeVariantOffsetPostgres2),
-	}
-}
-
-// buildInstanceParams extends base params with per-instance values.
-func buildInstanceParams(psID string, instanceNum int, port int) map[string]string {
-	params := buildParams(psID)
-	params["__INSTANCE_NUM__"] = fmt.Sprintf("%d", instanceNum)
-	params["__PS_PUBLIC_PORT__"] = fmt.Sprintf("%d", port)
-
-	return params
-}
-
-// buildProductParams constructs the parameter map for product-level template instantiation.
-func buildProductParams(productID string) map[string]string {
-	psIDs := cryptoutilRegistry.PSIDsForProduct(productID)
-	initPSID := cryptoutilRegistry.ProductInitPSID(productID)
-	displayName := cryptoutilRegistry.ProductDisplayNameByID(productID)
-
-	params := map[string]string{
-		cryptoutilSharedMagic.CICDTemplateExpansionKeyProduct: productID,
-		"__PRODUCT_UPPER__":                                 strings.ToUpper(productID),
-		"__PRODUCT_DISPLAY_NAME__":                          displayName,
-		"__PRODUCT_INIT_PS_ID__":                            initPSID,
-		"__PRODUCT_PS_ID_LIST_DISPLAY__":                    buildProductPSIDListDisplay(productID, psIDs),
-		"__PRODUCT_INCLUDE_LIST__":                          buildProductIncludeList(psIDs),
-		"__PRODUCT_SERVICE_OVERRIDES__":                     buildProductServiceOverrides(productID, psIDs),
-		cryptoutilSharedMagic.CICDTemplateExpansionKeySuite: cryptoutilSharedMagic.DefaultOTLPServiceDefault,
-		"__IMAGE_TAG__":                                     cryptoutilSharedMagic.DefaultOTLPEnvironmentDefault,
-	}
-
-	return params
-}
-
-// buildSuiteParams constructs the parameter map for suite-level template instantiation.
-func buildSuiteParams(sID string) map[string]string {
-	initPSID := cryptoutilRegistry.SuiteInitPSID(sID)
-	displayName := cryptoutilRegistry.SuiteDisplayName(sID)
-	products := cryptoutilRegistry.AllProducts()
-
-	return map[string]string{
-		cryptoutilSharedMagic.CICDTemplateExpansionKeySuite: sID,
-		"__SUITE_UPPER__":              strings.ToUpper(sID),
-		"__SUITE_DISPLAY_NAME__":       displayName,
-		"__SUITE_INIT_PS_ID__":         initPSID,
-		"__SUITE_INCLUDE_LIST__":       buildSuiteIncludeList(products),
-		"__SUITE_SERVICE_OVERRIDES__":  buildSuiteServiceOverrides(),
-		"__IMAGE_TAG__":                cryptoutilSharedMagic.DefaultOTLPEnvironmentDefault,
-		"__BUILD_DATE__":               cryptoutilSharedMagic.CICDTemplateBuildDate,
-		"__GO_VERSION__":               cryptoutilSharedMagic.CICDTemplateGoVersion,
-		"__ALPINE_VERSION__":           cryptoutilSharedMagic.CICDTemplateAlpineVersion,
-		"__CGO_ENABLED__":              cryptoutilSharedMagic.CICDTemplateCGOEnabled,
-		"__CONTAINER_UID__":            cryptoutilSharedMagic.CICDTemplateContainerUID,
-		"__CONTAINER_GID__":            cryptoutilSharedMagic.CICDTemplateContainerGID,
-		"__GITHUB_REPOSITORY_URL__":    cryptoutilSharedMagic.CICDTemplateGitHubRepoURL,
-		"__AUTHORS__":                  cryptoutilSharedMagic.CICDTemplateAuthors,
-		"__HEALTHCHECK_INTERVAL__":     cryptoutilSharedMagic.CICDTemplateHealthcheckInterval,
-		"__HEALTHCHECK_TIMEOUT__":      cryptoutilSharedMagic.CICDTemplateHealthcheckTimeout,
-		"__HEALTHCHECK_START_PERIOD__": cryptoutilSharedMagic.CICDTemplateHealthcheckStartPeriod,
-		"__HEALTHCHECK_RETRIES__":      cryptoutilSharedMagic.CICDTemplateHealthcheckRetries,
-	}
-}
-
-// buildStaticParams constructs the parameter map for static (non-expanded) templates.
-// Static templates like shared-telemetry still need __SUITE__ substitution in content.
-func buildStaticParams() map[string]string {
-	return map[string]string{
-		cryptoutilSharedMagic.CICDTemplateExpansionKeySuite: cryptoutilSharedMagic.DefaultOTLPServiceDefault,
-		"__IMAGE_TAG__": cryptoutilSharedMagic.DefaultOTLPEnvironmentDefault,
-	}
-}
-
-// buildProductPSIDListDisplay builds the display string for product compose header comment.
-// Format for SM (2 services): "sm-kms and sm-im"
-// Format for Identity (5 services): "all 5 identity PS-IDs".
-func buildProductPSIDListDisplay(productID string, psIDs []string) string {
-	serviceCount := len(psIDs)
-	if serviceCount == 0 {
-		return ""
-	}
-
-	// Extract service names (strip product prefix).
-	services := make([]string, len(psIDs))
-	for i, psID := range psIDs {
-		services[i] = strings.TrimPrefix(psID, productID+"-")
-	}
-
-	return fmt.Sprintf("%s (%d service%s: %s)",
-		strings.ToUpper(productID)+" product",
-		serviceCount,
-		pluralS(serviceCount),
-		strings.Join(services, ", "),
-	)
-}
-
-func pluralS(n int) string {
-	if n == 1 {
-		return ""
-	}
-
-	return "s"
-}
-
-// buildProductIncludeList generates the Docker Compose include entries for a product.
-// Format:
-//
-//	include:
-//	  - path: ../sm-kms/compose.yml
-//	  - path: ../sm-im/compose.yml
-func buildProductIncludeList(psIDs []string) string {
-	var sb strings.Builder
-
-	sb.WriteString("include:\n")
-
-	for _, psID := range psIDs {
-		fmt.Fprintf(&sb, "  - path: ../%s/compose.yml\n", psID)
-	}
-
-	return strings.TrimRight(sb.String(), "\n")
-}
-
-// buildProductServiceOverrides generates the port override blocks for a product compose.
-// Product format (multi-line ports: !override):
-//
-//	sm-kms-app-sqlite-1:
-//	  ports: !override
-//	    - "18000:8080"
-func buildProductServiceOverrides(productID string, psIDs []string) string {
-	var sb strings.Builder
-
-	variants := []struct {
-		suffix string
-		offset int
-	}{
-		{cryptoutilSharedMagic.CICDTemplateVariantSQLite1, cryptoutilRegistry.ComposeVariantOffsetSQLite1},
-		{cryptoutilSharedMagic.CICDTemplateVariantSQLite2, cryptoutilRegistry.ComposeVariantOffsetSQLite2},
-		{cryptoutilSharedMagic.CICDTemplateVariantPostgres1, cryptoutilRegistry.ComposeVariantOffsetPostgres1},
-		{cryptoutilSharedMagic.CICDTemplateVariantPostgres2, cryptoutilRegistry.ComposeVariantOffsetPostgres2},
-	}
-
-	for _, psID := range psIDs {
-		basePort := cryptoutilRegistry.PublicPort(psID)
-		productPort := basePort + cryptoutilRegistry.PortTierOffsetProduct
-
-		for _, v := range variants {
-			port := productPort + v.offset
-			fmt.Fprintf(&sb, "  %s-app-%s:\n", psID, v.suffix)
-			sb.WriteString("    ports: !override\n")
-			fmt.Fprintf(&sb, "      - \"%d:%d\"\n", port, cryptoutilSharedMagic.DockerContainerPublicHTTPSPort)
-			sb.WriteString("\n")
-		}
-	}
-
-	return strings.TrimRight(sb.String(), "\n")
-}
-
-// buildSuiteIncludeList generates the Docker Compose include entries for the suite.
-func buildSuiteIncludeList(products []cryptoutilRegistry.Product) string {
-	var sb strings.Builder
-
-	sb.WriteString("include:\n")
-
-	for _, p := range products {
-		fmt.Fprintf(&sb, "  - path: ../%s/compose.yml\n", p.ID)
-	}
-
-	return strings.TrimRight(sb.String(), "\n")
-}
-
-// buildSuiteServiceOverrides generates the inline port override blocks for a suite compose.
-// Suite format (inline): sm-kms-app-sqlite-1: {ports: !override ["28000:8080"]}.
-func buildSuiteServiceOverrides() string {
-	var sb strings.Builder
-
-	allPS := cryptoutilRegistry.AllProductServices()
-
-	// Group by product for comments.
-	currentProduct := ""
-
-	for _, ps := range allPS {
-		product := cryptoutilRegistry.ProductForPSID(ps.PSID)
-
-		if product != currentProduct {
-			if currentProduct != "" {
-				sb.WriteString("\n")
-			}
-
-			basePort := cryptoutilRegistry.PublicPort(ps.PSID)
-			endPort := basePort + cryptoutilRegistry.ComposeVariantOffsetPostgres2
-
-			fmt.Fprintf(&sb, "  # %s: PS-PUBLIC %d-%d -> SUITE %d-%d\n",
-				strings.ToUpper(ps.PSID),
-				basePort, endPort,
-				basePort+cryptoutilRegistry.PortTierOffsetSuite,
-				endPort+cryptoutilRegistry.PortTierOffsetSuite)
-
-			currentProduct = product
-		} else {
-			basePort := cryptoutilRegistry.PublicPort(ps.PSID)
-			endPort := basePort + cryptoutilRegistry.ComposeVariantOffsetPostgres2
-
-			fmt.Fprintf(&sb, "\n  # %s: PS-PUBLIC %d-%d -> SUITE %d-%d\n",
-				strings.ToUpper(ps.PSID),
-				basePort, endPort,
-				basePort+cryptoutilRegistry.PortTierOffsetSuite,
-				endPort+cryptoutilRegistry.PortTierOffsetSuite)
-		}
-
-		basePort := cryptoutilRegistry.PublicPort(ps.PSID)
-		suitePort := basePort + cryptoutilRegistry.PortTierOffsetSuite
-
-		variants := []struct {
-			suffix string
-			offset int
-		}{
-			{cryptoutilSharedMagic.CICDTemplateVariantSQLite1, cryptoutilRegistry.ComposeVariantOffsetSQLite1},
-			{cryptoutilSharedMagic.CICDTemplateVariantSQLite2, cryptoutilRegistry.ComposeVariantOffsetSQLite2},
-			{cryptoutilSharedMagic.CICDTemplateVariantPostgres1, cryptoutilRegistry.ComposeVariantOffsetPostgres1},
-			{cryptoutilSharedMagic.CICDTemplateVariantPostgres2, cryptoutilRegistry.ComposeVariantOffsetPostgres2},
-		}
-
-		for _, v := range variants {
-			port := suitePort + v.offset
-			fmt.Fprintf(&sb, "  %s-app-%s: {ports: !override [\"%d:%d\"]}\n", ps.PSID, v.suffix, port, cryptoutilSharedMagic.DockerContainerPublicHTTPSPort)
-		}
-	}
-
-	return strings.TrimRight(sb.String(), "\n")
 }

@@ -66,6 +66,28 @@ type RegistryProductService struct {
 	// Entrypoint is the canonical Dockerfile ENTRYPOINT arguments for this PS-ID.
 	// Example: ["/app/jose-ja"] or ["/sbin/tini", "--", "/app/cryptoutil", "identity-authz", "start"].
 	Entrypoint []string `yaml:"entrypoint"`
+	// GoTemplateParams holds Go source-code-specific placeholder values used to compare
+	// internal/apps/__PS_ID__/ source files against their canonical templates.
+	GoTemplateParams RegistryGoTemplateParams `yaml:"go_template_params"`
+}
+
+// RegistryGoTemplateParams holds the Go-specific placeholder values for a PS-ID's
+// source template comparison. These map directly to __PLACEHOLDER__ tokens in the
+// canonical template files under api/cryptosuite-registry/templates/internal/apps/__PS_ID__/.
+type RegistryGoTemplateParams struct {
+	// UsagePrefix is the Go identifier prefix for usage variables (e.g. "KMS", "Template").
+	UsagePrefix string `yaml:"usage_prefix"`
+	// ProductNameConst is the magic constant name for the product name (e.g. "SMProductName").
+	ProductNameConst string `yaml:"product_name_const"`
+	// ServiceNameConst is the magic constant name for the service name (e.g. "KMSServiceName").
+	ServiceNameConst string `yaml:"service_name_const"`
+	// ServiceIDConst is the magic constant name for the service ID (e.g. "KMSServiceID").
+	ServiceIDConst string `yaml:"service_id_const"`
+	// ServicePortConst is the magic constant name for the service port (e.g. "KMSServicePort").
+	ServicePortConst string `yaml:"service_port_const"`
+	// ServiceDisplayName is the human-readable display name used in usage strings
+	// (e.g. "Key Management Service"). May differ from the registry display_name field.
+	ServiceDisplayName string `yaml:"service_display_name"`
 }
 
 // PortInfo holds port information derived from the registry for a product-service.

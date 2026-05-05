@@ -205,6 +205,8 @@ func validateProductServices(pss []RegistryProductService) []string {
 			errs = append(errs, prefix+".magic_file: must not be empty")
 		}
 
+		errs = append(errs, validateGoTemplateParams(prefix, ps.GoTemplateParams)...)
+
 		// PSID == product + "-" + service invariant.
 		if ps.PSID != "" && ps.Product != "" && ps.Service != "" {
 			expected := ps.Product + "-" + ps.Service
@@ -280,6 +282,37 @@ func validateProductServices(pss []RegistryProductService) []string {
 	return errs
 }
 
+// validateGoTemplateParams checks that all required Go template placeholder fields are populated.
+func validateGoTemplateParams(prefix string, p RegistryGoTemplateParams) []string {
+	var errs []string
+
+	if p.UsagePrefix == "" {
+		errs = append(errs, prefix+".go_template_params.usage_prefix: must not be empty")
+	}
+
+	if p.ProductNameConst == "" {
+		errs = append(errs, prefix+".go_template_params.product_name_const: must not be empty")
+	}
+
+	if p.ServiceNameConst == "" {
+		errs = append(errs, prefix+".go_template_params.service_name_const: must not be empty")
+	}
+
+	if p.ServiceIDConst == "" {
+		errs = append(errs, prefix+".go_template_params.service_id_const: must not be empty")
+	}
+
+	if p.ServicePortConst == "" {
+		errs = append(errs, prefix+".go_template_params.service_port_const: must not be empty")
+	}
+
+	if p.ServiceDisplayName == "" {
+		errs = append(errs, prefix+".go_template_params.service_display_name: must not be empty")
+	}
+
+	return errs
+}
+
 // ToSuites converts the YAML suites to the Go registry Suite type.
 func (r *RegistryFile) ToSuites() []Suite {
 	suites := make([]Suite, len(r.Suites))
@@ -308,12 +341,13 @@ func (r *RegistryFile) ToProductServices() []ProductService {
 
 	for i, ps := range r.ProductServices {
 		pss[i] = ProductService{
-			PSID:            ps.PSID,
-			Product:         ps.Product,
-			Service:         ps.Service,
-			DisplayName:     ps.DisplayName,
-			InternalAppsDir: ps.InternalAppsDir,
-			MagicFile:       ps.MagicFile,
+			PSID:             ps.PSID,
+			Product:          ps.Product,
+			Service:          ps.Service,
+			DisplayName:      ps.DisplayName,
+			InternalAppsDir:  ps.InternalAppsDir,
+			MagicFile:        ps.MagicFile,
+			GoTemplateParams: ps.GoTemplateParams,
 		}
 	}
 

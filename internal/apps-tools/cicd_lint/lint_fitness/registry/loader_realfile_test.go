@@ -81,6 +81,13 @@ product_services:
     migration_range_end: 2999
     api_resources:
       - /items
+    go_template_params:
+      usage_prefix: Svc
+      product_name_const: ExProductName
+      service_name_const: SVCServiceName
+      service_id_const: SVCServiceID
+      service_port_const: SVCServicePort
+      service_display_name: "Example Service"
 `
 }
 

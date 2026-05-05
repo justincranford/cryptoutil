@@ -61,6 +61,13 @@ product_services:
     pg_host_port: 54320
     migration_range_start: 2001
     migration_range_end: 2999
+    go_template_params:
+      usage_prefix: KMS
+      product_name_const: SMProductName
+      service_name_const: KMSServiceName
+      service_id_const: KMSServiceID
+      service_port_const: KMSServicePort
+      service_display_name: "Key Management Service"
     realms:
       - name: file
         location: file
@@ -93,6 +100,13 @@ product_services:
     pg_host_port: 54321
     migration_range_start: 3001
     migration_range_end: 3999
+    go_template_params:
+      usage_prefix: IM
+      product_name_const: IMProductName
+      service_name_const: IMServiceName
+      service_id_const: IMServiceID
+      service_port_const: IMServicePort
+      service_display_name: "Instant Messenger"
     realms:
       - name: file
         location: file
@@ -117,6 +131,13 @@ product_services:
     pg_host_port: 54322
     migration_range_start: 4001
     migration_range_end: 4999
+    go_template_params:
+      usage_prefix: JA
+      product_name_const: JoseProductName
+      service_name_const: JoseJAServiceName
+      service_id_const: JoseJAServiceID
+      service_port_const: JoseJAServicePort
+      service_display_name: "JWK Authority"
     realms:
       - name: file
         location: file
@@ -150,6 +171,13 @@ product_services:
     pg_host_port: 54323
     migration_range_start: 5001
     migration_range_end: 5999
+    go_template_params:
+      usage_prefix: CA
+      product_name_const: PKIProductName
+      service_name_const: PKICAServiceName
+      service_id_const: PKICAServiceID
+      service_port_const: PKICAServicePort
+      service_display_name: "Certificate Authority"
     realms:
       - name: file
         location: file
@@ -191,6 +219,13 @@ product_services:
     pg_host_port: 54324
     migration_range_start: 6001
     migration_range_end: 6999
+    go_template_params:
+      usage_prefix: AUTHZ
+      product_name_const: IdentityProductName
+      service_name_const: AuthzServiceName
+      service_id_const: IdentityAuthzServiceID
+      service_port_const: IdentityAuthzServicePort
+      service_display_name: "Authorization Server"
     realms:
       - name: file
         location: file
@@ -220,6 +255,13 @@ product_services:
     pg_host_port: 54325
     migration_range_start: 7001
     migration_range_end: 7999
+    go_template_params:
+      usage_prefix: IDP
+      product_name_const: IdentityProductName
+      service_name_const: IDPServiceName
+      service_id_const: IdentityIDPServiceID
+      service_port_const: IdentityIDPServicePort
+      service_display_name: "Identity Provider"
     realms:
       - name: file
         location: file
@@ -254,6 +296,13 @@ product_services:
     pg_host_port: 54326
     migration_range_start: 8001
     migration_range_end: 8999
+    go_template_params:
+      usage_prefix: RS
+      product_name_const: IdentityProductName
+      service_name_const: RSServiceName
+      service_id_const: IdentityRSServiceID
+      service_port_const: IdentityRSServicePort
+      service_display_name: "Resource Server"
     realms:
       - name: file
         location: file
@@ -278,6 +327,13 @@ product_services:
     pg_host_port: 54327
     migration_range_start: 9001
     migration_range_end: 9999
+    go_template_params:
+      usage_prefix: RP
+      product_name_const: IdentityProductName
+      service_name_const: RPServiceName
+      service_id_const: IdentityRPServiceID
+      service_port_const: IdentityRPServicePort
+      service_display_name: "Relying Party"
     realms:
       - name: file
         location: file
@@ -305,6 +361,13 @@ product_services:
     pg_host_port: 54328
     migration_range_start: 10001
     migration_range_end: 10999
+    go_template_params:
+      usage_prefix: SPA
+      product_name_const: IdentityProductName
+      service_name_const: SPAServiceName
+      service_id_const: IdentitySPAServiceID
+      service_port_const: IdentitySPAServicePort
+      service_display_name: "Single Page App"
     realms:
       - name: file
         location: file
@@ -330,6 +393,13 @@ product_services:
     pg_host_port: 54329
     migration_range_start: 11001
     migration_range_end: 11999
+    go_template_params:
+      usage_prefix: Template
+      product_name_const: SkeletonProductName
+      service_name_const: SkeletonTemplateServiceName
+      service_id_const: SkeletonTemplateServiceID
+      service_port_const: SkeletonTemplateServicePort
+      service_display_name: "Skeleton Template"
     realms:
       - name: file
         location: file

@@ -36,6 +36,8 @@ type ProductService struct {
 	// MagicFile is the filename of the primary magic constants file
 	// under internal/shared/magic/ (e.g. "magic_sm.go").
 	MagicFile string
+	// GoTemplateParams holds Go source-code-specific placeholder values for template comparison.
+	GoTemplateParams RegistryGoTemplateParams
 }
 
 // Suite represents the cryptoutil top-level suite deployment.
