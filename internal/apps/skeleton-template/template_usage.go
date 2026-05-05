@@ -19,14 +19,14 @@ var (
 	TemplateUsageMain = cryptoutilUsage.BuildUsageMain(
 		cryptoutilSharedMagic.SkeletonProductName,
 		cryptoutilSharedMagic.SkeletonTemplateServiceName,
-		"Skeleton Template",
+		cryptoutilSharedMagic.TemplateDisplayName,
 	)
 
 	// TemplateUsageServer is the usage message for the server subcommand.
 	TemplateUsageServer = cryptoutilUsage.BuildUsageServer(
 		cryptoutilSharedMagic.SkeletonProductName,
 		cryptoutilSharedMagic.SkeletonTemplateServiceName,
-		"Skeleton Template",
+		cryptoutilSharedMagic.TemplateDisplayName,
 		fmt.Sprintf("configs/%s/%s-framework.yml", cryptoutilSharedMagic.SkeletonTemplateServiceID, cryptoutilSharedMagic.SkeletonTemplateServiceID),
 	)
 
@@ -34,14 +34,14 @@ var (
 	TemplateUsageClient = cryptoutilUsage.BuildUsageClient(
 		cryptoutilSharedMagic.SkeletonProductName,
 		cryptoutilSharedMagic.SkeletonTemplateServiceName,
-		"Skeleton Template",
+		cryptoutilSharedMagic.TemplateDisplayName,
 	)
 
 	// TemplateUsageInit is the usage message for the init subcommand.
 	TemplateUsageInit = cryptoutilUsage.BuildUsageInit(
 		cryptoutilSharedMagic.SkeletonProductName,
 		cryptoutilSharedMagic.SkeletonTemplateServiceName,
-		"Skeleton Template",
+		cryptoutilSharedMagic.TemplateDisplayName,
 		fmt.Sprintf("configs/%s/%s-framework.yml", cryptoutilSharedMagic.SkeletonTemplateServiceID, cryptoutilSharedMagic.SkeletonTemplateServiceID),
 	)
 

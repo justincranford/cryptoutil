@@ -19,14 +19,14 @@ var (
 	IDPUsageMain = cryptoutilUsage.BuildUsageMain(
 		cryptoutilSharedMagic.IdentityProductName,
 		cryptoutilSharedMagic.IDPServiceName,
-		"Identity Provider",
+		cryptoutilSharedMagic.IDPDisplayName,
 	)
 
 	// IDPUsageServer is the usage message for the server subcommand.
 	IDPUsageServer = cryptoutilUsage.BuildUsageServer(
 		cryptoutilSharedMagic.IdentityProductName,
 		cryptoutilSharedMagic.IDPServiceName,
-		"Identity Provider",
+		cryptoutilSharedMagic.IDPDisplayName,
 		fmt.Sprintf("configs/%s/%s-framework.yml", cryptoutilSharedMagic.IdentityIDPServiceID, cryptoutilSharedMagic.IdentityIDPServiceID),
 	)
 
@@ -34,14 +34,14 @@ var (
 	IDPUsageClient = cryptoutilUsage.BuildUsageClient(
 		cryptoutilSharedMagic.IdentityProductName,
 		cryptoutilSharedMagic.IDPServiceName,
-		"Identity Provider",
+		cryptoutilSharedMagic.IDPDisplayName,
 	)
 
 	// IDPUsageInit is the usage message for the init subcommand.
 	IDPUsageInit = cryptoutilUsage.BuildUsageInit(
 		cryptoutilSharedMagic.IdentityProductName,
 		cryptoutilSharedMagic.IDPServiceName,
-		"Identity Provider",
+		cryptoutilSharedMagic.IDPDisplayName,
 		fmt.Sprintf("configs/%s/%s-framework.yml", cryptoutilSharedMagic.IdentityIDPServiceID, cryptoutilSharedMagic.IdentityIDPServiceID),
 	)
 

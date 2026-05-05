@@ -21,14 +21,14 @@ var (
 	__USAGE_PREFIX__UsageMain = cryptoutilUsage.BuildUsageMain(
 		cryptoutilSharedMagic.__PRODUCT_NAME_CONST__,
 		cryptoutilSharedMagic.__SERVICE_NAME_CONST__,
-		"__SERVICE_DISPLAY_NAME__",
+		cryptoutilSharedMagic.__SERVICE_DISPLAY_NAME_CONST__,
 	)
 
 	// __USAGE_PREFIX__UsageServer is the usage message for the server subcommand.
 	__USAGE_PREFIX__UsageServer = cryptoutilUsage.BuildUsageServer(
 		cryptoutilSharedMagic.__PRODUCT_NAME_CONST__,
 		cryptoutilSharedMagic.__SERVICE_NAME_CONST__,
-		"__SERVICE_DISPLAY_NAME__",
+		cryptoutilSharedMagic.__SERVICE_DISPLAY_NAME_CONST__,
 		fmt.Sprintf("configs/%s/%s-framework.yml", cryptoutilSharedMagic.__SERVICE_ID_CONST__, cryptoutilSharedMagic.__SERVICE_ID_CONST__),
 	)
 
@@ -36,14 +36,14 @@ var (
 	__USAGE_PREFIX__UsageClient = cryptoutilUsage.BuildUsageClient(
 		cryptoutilSharedMagic.__PRODUCT_NAME_CONST__,
 		cryptoutilSharedMagic.__SERVICE_NAME_CONST__,
-		"__SERVICE_DISPLAY_NAME__",
+		cryptoutilSharedMagic.__SERVICE_DISPLAY_NAME_CONST__,
 	)
 
 	// __USAGE_PREFIX__UsageInit is the usage message for the init subcommand.
 	__USAGE_PREFIX__UsageInit = cryptoutilUsage.BuildUsageInit(
 		cryptoutilSharedMagic.__PRODUCT_NAME_CONST__,
 		cryptoutilSharedMagic.__SERVICE_NAME_CONST__,
-		"__SERVICE_DISPLAY_NAME__",
+		cryptoutilSharedMagic.__SERVICE_DISPLAY_NAME_CONST__,
 		fmt.Sprintf("configs/%s/%s-framework.yml", cryptoutilSharedMagic.__SERVICE_ID_CONST__, cryptoutilSharedMagic.__SERVICE_ID_CONST__),
 	)
 

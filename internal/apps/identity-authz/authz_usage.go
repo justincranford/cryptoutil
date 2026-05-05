@@ -19,14 +19,14 @@ var (
 	AUTHZUsageMain = cryptoutilUsage.BuildUsageMain(
 		cryptoutilSharedMagic.IdentityProductName,
 		cryptoutilSharedMagic.AuthzServiceName,
-		"Authorization Server",
+		cryptoutilSharedMagic.AuthzDisplayName,
 	)
 
 	// AUTHZUsageServer is the usage message for the server subcommand.
 	AUTHZUsageServer = cryptoutilUsage.BuildUsageServer(
 		cryptoutilSharedMagic.IdentityProductName,
 		cryptoutilSharedMagic.AuthzServiceName,
-		"Authorization Server",
+		cryptoutilSharedMagic.AuthzDisplayName,
 		fmt.Sprintf("configs/%s/%s-framework.yml", cryptoutilSharedMagic.IdentityAuthzServiceID, cryptoutilSharedMagic.IdentityAuthzServiceID),
 	)
 
@@ -34,14 +34,14 @@ var (
 	AUTHZUsageClient = cryptoutilUsage.BuildUsageClient(
 		cryptoutilSharedMagic.IdentityProductName,
 		cryptoutilSharedMagic.AuthzServiceName,
-		"Authorization Server",
+		cryptoutilSharedMagic.AuthzDisplayName,
 	)
 
 	// AUTHZUsageInit is the usage message for the init subcommand.
 	AUTHZUsageInit = cryptoutilUsage.BuildUsageInit(
 		cryptoutilSharedMagic.IdentityProductName,
 		cryptoutilSharedMagic.AuthzServiceName,
-		"Authorization Server",
+		cryptoutilSharedMagic.AuthzDisplayName,
 		fmt.Sprintf("configs/%s/%s-framework.yml", cryptoutilSharedMagic.IdentityAuthzServiceID, cryptoutilSharedMagic.IdentityAuthzServiceID),
 	)
 

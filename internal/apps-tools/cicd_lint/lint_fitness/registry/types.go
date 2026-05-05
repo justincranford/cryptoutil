@@ -85,9 +85,9 @@ type RegistryGoTemplateParams struct {
 	ServiceIDConst string `yaml:"service_id_const"`
 	// ServicePortConst is the magic constant name for the service port (e.g. "KMSServicePort").
 	ServicePortConst string `yaml:"service_port_const"`
-	// ServiceDisplayName is the human-readable display name used in usage strings
-	// (e.g. "Key Management Service"). May differ from the registry display_name field.
-	ServiceDisplayName string `yaml:"service_display_name"`
+	// ServiceDisplayNameConst is the magic constant name for the service's human-readable
+	// display name (e.g. "KMSDisplayName"). The constant must exist in the magic package.
+	ServiceDisplayNameConst string `yaml:"service_display_name_const"`
 }
 
 // PortInfo holds port information derived from the registry for a product-service.

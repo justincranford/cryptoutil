@@ -67,7 +67,7 @@ product_services:
       service_name_const: KMSServiceName
       service_id_const: KMSServiceID
       service_port_const: KMSServicePort
-      service_display_name: "Key Management Service"
+      service_display_name_const: KMSDisplayName
     realms:
       - name: file
         location: file
@@ -106,7 +106,7 @@ product_services:
       service_name_const: IMServiceName
       service_id_const: IMServiceID
       service_port_const: IMServicePort
-      service_display_name: "Instant Messenger"
+      service_display_name_const: IMDisplayName
     realms:
       - name: file
         location: file
@@ -137,7 +137,7 @@ product_services:
       service_name_const: JoseJAServiceName
       service_id_const: JoseJAServiceID
       service_port_const: JoseJAServicePort
-      service_display_name: "JWK Authority"
+      service_display_name_const: JoseJADisplayName
     realms:
       - name: file
         location: file
@@ -177,7 +177,7 @@ product_services:
       service_name_const: PKICAServiceName
       service_id_const: PKICAServiceID
       service_port_const: PKICAServicePort
-      service_display_name: "Certificate Authority"
+      service_display_name_const: PKICADisplayName
     realms:
       - name: file
         location: file
@@ -205,7 +205,7 @@ product_services:
       - /est/csrattrs
       - /tsa/timestamp
 
-  # OAuth 2.1 Authorization Server — handles token lifecycle only.
+  # OAuth 2.1 Authorization Server â€” handles token lifecycle only.
   # MFA endpoints belong in identity-idp (authentication concern, not authorization).
   # See RFC 6749 (OAuth 2.0), RFC 9101 (OAuth 2.1), OIDC Core 1.0.
   - ps_id: identity-authz
@@ -225,7 +225,7 @@ product_services:
       service_name_const: AuthzServiceName
       service_id_const: IdentityAuthzServiceID
       service_port_const: IdentityAuthzServicePort
-      service_display_name: "Authorization Server"
+      service_display_name_const: AuthzDisplayName
     realms:
       - name: file
         location: file
@@ -240,7 +240,7 @@ product_services:
       - /oauth2/v1/revoke
       - /.well-known/openid-configuration
 
-  # OIDC 1.0 Identity Provider — handles user authentication including MFA.
+  # OIDC 1.0 Identity Provider â€” handles user authentication including MFA.
   # MFA (TOTP, WebAuthn) is an authentication concern that verifies user identity,
   # which is the IdP's responsibility. Best practice (Keycloak, Okta, Azure AD)
   # separates token lifecycle (authz) from user authentication (idp).
@@ -261,7 +261,7 @@ product_services:
       service_name_const: IDPServiceName
       service_id_const: IdentityIDPServiceID
       service_port_const: IdentityIDPServicePort
-      service_display_name: "Identity Provider"
+      service_display_name_const: IDPDisplayName
     realms:
       - name: file
         location: file
@@ -302,7 +302,7 @@ product_services:
       service_name_const: RSServiceName
       service_id_const: IdentityRSServiceID
       service_port_const: IdentityRSServicePort
-      service_display_name: "Resource Server"
+      service_display_name_const: RSDisplayName
     realms:
       - name: file
         location: file
@@ -314,7 +314,7 @@ product_services:
       - /resources
       - /resources/{resourceID}
 
-  # OIDC Relying Party — consumes tokens from the IdP/Authz server.
+  # OIDC Relying Party â€” consumes tokens from the IdP/Authz server.
   # Handles OAuth 2.1 callback flow, session management, and token refresh.
   - ps_id: identity-rp
     product: identity
@@ -333,7 +333,7 @@ product_services:
       service_name_const: RPServiceName
       service_id_const: IdentityRPServiceID
       service_port_const: IdentityRPServicePort
-      service_display_name: "Relying Party"
+      service_display_name_const: RPDisplayName
     realms:
       - name: file
         location: file
@@ -348,7 +348,7 @@ product_services:
       - /authn/session
       - /authn/refresh
 
-  # Single Page App Backend-for-Frontend (BFF) — browser-facing OAuth 2.1 client.
+  # Single Page App Backend-for-Frontend (BFF) â€” browser-facing OAuth 2.1 client.
   # Proxies authentication flows for SPA clients that cannot securely store tokens.
   - ps_id: identity-spa
     product: identity
@@ -367,7 +367,7 @@ product_services:
       service_name_const: SPAServiceName
       service_id_const: IdentitySPAServiceID
       service_port_const: IdentitySPAServicePort
-      service_display_name: "Single Page App"
+      service_display_name_const: SPADisplayName
     realms:
       - name: file
         location: file
@@ -399,7 +399,7 @@ product_services:
       service_name_const: SkeletonTemplateServiceName
       service_id_const: SkeletonTemplateServiceID
       service_port_const: SkeletonTemplateServicePort
-      service_display_name: "Skeleton Template"
+      service_display_name_const: TemplateDisplayName
     realms:
       - name: file
         location: file

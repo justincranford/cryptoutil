@@ -86,13 +86,10 @@ func TestCheckInDir_CorrectHeaders(t *testing.T) {
 	createAllPSDirStubs(t, tmpDir)
 
 	// Write correct migrations for sm-im (representative PS with migrations).
-	const (
-		smIMAppsDir     = "sm-im/"
-		smIMDisplayName = "Instant Messenger"
-	)
+	const smIMAppsDir = "sm-im/"
 
-	writeMigrationFile(t, tmpDir, smIMAppsDir, "2001_init.up.sql", upHeader(smIMDisplayName))
-	writeMigrationFile(t, tmpDir, smIMAppsDir, "2001_init.down.sql", downHeader(smIMDisplayName))
+	writeMigrationFile(t, tmpDir, smIMAppsDir, "2001_init.up.sql", upHeader(cryptoutilSharedMagic.IMDisplayName))
+	writeMigrationFile(t, tmpDir, smIMAppsDir, "2001_init.down.sql", downHeader(cryptoutilSharedMagic.IMDisplayName))
 
 	err := lintFitnessMigrationCommentHeaders.CheckInDir(newTestLogger(), tmpDir)
 	require.NoError(t, err)
@@ -104,19 +101,16 @@ func TestCheckInDir_WrongUpHeader(t *testing.T) {
 	tmpDir := t.TempDir()
 	createAllPSDirStubs(t, tmpDir)
 
-	const (
-		smIMAppsDir     = "sm-im/"
-		smIMDisplayName = "Instant Messenger"
-	)
+	const smIMAppsDir = "sm-im/"
 
 	writeMigrationFile(t, tmpDir, smIMAppsDir, "2001_init.up.sql",
 		"--\n-- OLD NAME database schema\n-- Detail\n--\n\nCREATE TABLE foo (id INTEGER);\n",
 	)
-	writeMigrationFile(t, tmpDir, smIMAppsDir, "2001_init.down.sql", downHeader(smIMDisplayName))
+	writeMigrationFile(t, tmpDir, smIMAppsDir, "2001_init.down.sql", downHeader(cryptoutilSharedMagic.IMDisplayName))
 
 	err := lintFitnessMigrationCommentHeaders.CheckInDir(newTestLogger(), tmpDir)
 	require.Error(t, err)
-	assert.Contains(t, err.Error(), smIMDisplayName+" database schema")
+	assert.Contains(t, err.Error(), cryptoutilSharedMagic.IMDisplayName+" database schema")
 	assert.Contains(t, err.Error(), "OLD NAME database schema")
 }
 
@@ -126,19 +120,16 @@ func TestCheckInDir_WrongDownHeader(t *testing.T) {
 	tmpDir := t.TempDir()
 	createAllPSDirStubs(t, tmpDir)
 
-	const (
-		smIMAppsDir     = "sm-im/"
-		smIMDisplayName = "Instant Messenger"
-	)
+	const smIMAppsDir = "sm-im/"
 
-	writeMigrationFile(t, tmpDir, smIMAppsDir, "2001_init.up.sql", upHeader(smIMDisplayName))
+	writeMigrationFile(t, tmpDir, smIMAppsDir, "2001_init.up.sql", upHeader(cryptoutilSharedMagic.IMDisplayName))
 	writeMigrationFile(t, tmpDir, smIMAppsDir, "2001_init.down.sql",
 		"--\n-- OLD NAME database schema rollback\n-- Detail\n--\n\nDROP TABLE foo;\n",
 	)
 
 	err := lintFitnessMigrationCommentHeaders.CheckInDir(newTestLogger(), tmpDir)
 	require.Error(t, err)
-	assert.Contains(t, err.Error(), smIMDisplayName+" database schema rollback")
+	assert.Contains(t, err.Error(), cryptoutilSharedMagic.IMDisplayName+" database schema rollback")
 	assert.Contains(t, err.Error(), "OLD NAME database schema rollback")
 }
 
@@ -148,17 +139,14 @@ func TestCheckInDir_NoCommentHeader(t *testing.T) {
 	tmpDir := t.TempDir()
 	createAllPSDirStubs(t, tmpDir)
 
-	const (
-		smIMAppsDir     = "sm-im/"
-		smIMDisplayName = "Instant Messenger"
-	)
+	const smIMAppsDir = "sm-im/"
 
 	// File with no comment header at all.
 
 	writeMigrationFile(t, tmpDir, smIMAppsDir, "2001_init.up.sql",
 		"CREATE TABLE foo (id INTEGER);\n",
 	)
-	writeMigrationFile(t, tmpDir, smIMAppsDir, "2001_init.down.sql", downHeader(smIMDisplayName))
+	writeMigrationFile(t, tmpDir, smIMAppsDir, "2001_init.down.sql", downHeader(cryptoutilSharedMagic.IMDisplayName))
 
 	err := lintFitnessMigrationCommentHeaders.CheckInDir(newTestLogger(), tmpDir)
 	require.Error(t, err)
@@ -171,10 +159,7 @@ func TestCheckInDir_FrameworkMigrationSkipped(t *testing.T) {
 	tmpDir := t.TempDir()
 	createAllPSDirStubs(t, tmpDir)
 
-	const (
-		smIMAppsDir     = "sm-im/"
-		smIMDisplayName = "Instant Messenger"
-	)
+	const smIMAppsDir = "sm-im/"
 
 	// Framework migration (1001) - must be skipped even with wrong header.
 
@@ -182,8 +167,8 @@ func TestCheckInDir_FrameworkMigrationSkipped(t *testing.T) {
 		"--\n-- Some framework migration\n", // wrong header but should be skipped
 	)
 	// Domain migration (2001) with correct header.
-	writeMigrationFile(t, tmpDir, smIMAppsDir, "2001_init.up.sql", upHeader(smIMDisplayName))
-	writeMigrationFile(t, tmpDir, smIMAppsDir, "2001_init.down.sql", downHeader(smIMDisplayName))
+	writeMigrationFile(t, tmpDir, smIMAppsDir, "2001_init.up.sql", upHeader(cryptoutilSharedMagic.IMDisplayName))
+	writeMigrationFile(t, tmpDir, smIMAppsDir, "2001_init.down.sql", downHeader(cryptoutilSharedMagic.IMDisplayName))
 
 	err := lintFitnessMigrationCommentHeaders.CheckInDir(newTestLogger(), tmpDir)
 	require.NoError(t, err)
@@ -207,7 +192,7 @@ func TestCheckPS_AbsentPSDir(t *testing.T) {
 
 	// A PS whose internal/apps/{InternalAppsDir} does not exist at all is a hard error.
 	tmpDir := t.TempDir()
-	// Do NOT call createAllPSDirStubs — leave all PS dirs absent.
+	// Do NOT call createAllPSDirStubs â€” leave all PS dirs absent.
 
 	err := lintFitnessMigrationCommentHeaders.CheckInDir(newTestLogger(), tmpDir)
 	require.Error(t, err)

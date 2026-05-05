@@ -19,14 +19,14 @@ var (
 	JAUsageMain = cryptoutilUsage.BuildUsageMain(
 		cryptoutilSharedMagic.JoseProductName,
 		cryptoutilSharedMagic.JoseJAServiceName,
-		"JWK Authority",
+		cryptoutilSharedMagic.JoseJADisplayName,
 	)
 
 	// JAUsageServer is the usage message for the server subcommand.
 	JAUsageServer = cryptoutilUsage.BuildUsageServer(
 		cryptoutilSharedMagic.JoseProductName,
 		cryptoutilSharedMagic.JoseJAServiceName,
-		"JWK Authority",
+		cryptoutilSharedMagic.JoseJADisplayName,
 		fmt.Sprintf("configs/%s/%s-framework.yml", cryptoutilSharedMagic.JoseJAServiceID, cryptoutilSharedMagic.JoseJAServiceID),
 	)
 
@@ -34,14 +34,14 @@ var (
 	JAUsageClient = cryptoutilUsage.BuildUsageClient(
 		cryptoutilSharedMagic.JoseProductName,
 		cryptoutilSharedMagic.JoseJAServiceName,
-		"JWK Authority",
+		cryptoutilSharedMagic.JoseJADisplayName,
 	)
 
 	// JAUsageInit is the usage message for the init subcommand.
 	JAUsageInit = cryptoutilUsage.BuildUsageInit(
 		cryptoutilSharedMagic.JoseProductName,
 		cryptoutilSharedMagic.JoseJAServiceName,
-		"JWK Authority",
+		cryptoutilSharedMagic.JoseJADisplayName,
 		fmt.Sprintf("configs/%s/%s-framework.yml", cryptoutilSharedMagic.JoseJAServiceID, cryptoutilSharedMagic.JoseJAServiceID),
 	)
 

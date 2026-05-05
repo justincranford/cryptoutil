@@ -211,4 +211,7 @@ const (
 
 	// IMAPIV1Messages is the API v1 messages content path for sm-im.
 	IMAPV1Messages = "/api/v1/messages"
+
+	// IMDisplayName is the human-readable display name for the sm-im service.
+	IMDisplayName = "Instant Messenger"
 )

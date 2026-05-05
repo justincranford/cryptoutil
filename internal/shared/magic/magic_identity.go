@@ -214,3 +214,21 @@ const (
 	// IdentityCLIFlagConfig is the --config CLI flag used by all identity service executables.
 	IdentityCLIFlagConfig = "--config"
 )
+
+// Identity service display name constants.
+const (
+	// AuthzDisplayName is the human-readable display name for the identity-authz service.
+	AuthzDisplayName = "Authorization Server"
+
+	// IDPDisplayName is the human-readable display name for the identity-idp service.
+	IDPDisplayName = "Identity Provider"
+
+	// RPDisplayName is the human-readable display name for the identity-rp service.
+	RPDisplayName = "Relying Party"
+
+	// RSDisplayName is the human-readable display name for the identity-rs service.
+	RSDisplayName = "Resource Server"
+
+	// SPADisplayName is the human-readable display name for the identity-spa service.
+	SPADisplayName = "Single Page App"
+)

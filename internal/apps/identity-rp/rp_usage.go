@@ -19,14 +19,14 @@ var (
 	RPUsageMain = cryptoutilUsage.BuildUsageMain(
 		cryptoutilSharedMagic.IdentityProductName,
 		cryptoutilSharedMagic.RPServiceName,
-		"Relying Party",
+		cryptoutilSharedMagic.RPDisplayName,
 	)
 
 	// RPUsageServer is the usage message for the server subcommand.
 	RPUsageServer = cryptoutilUsage.BuildUsageServer(
 		cryptoutilSharedMagic.IdentityProductName,
 		cryptoutilSharedMagic.RPServiceName,
-		"Relying Party",
+		cryptoutilSharedMagic.RPDisplayName,
 		fmt.Sprintf("configs/%s/%s-framework.yml", cryptoutilSharedMagic.IdentityRPServiceID, cryptoutilSharedMagic.IdentityRPServiceID),
 	)
 
@@ -34,14 +34,14 @@ var (
 	RPUsageClient = cryptoutilUsage.BuildUsageClient(
 		cryptoutilSharedMagic.IdentityProductName,
 		cryptoutilSharedMagic.RPServiceName,
-		"Relying Party",
+		cryptoutilSharedMagic.RPDisplayName,
 	)
 
 	// RPUsageInit is the usage message for the init subcommand.
 	RPUsageInit = cryptoutilUsage.BuildUsageInit(
 		cryptoutilSharedMagic.IdentityProductName,
 		cryptoutilSharedMagic.RPServiceName,
-		"Relying Party",
+		cryptoutilSharedMagic.RPDisplayName,
 		fmt.Sprintf("configs/%s/%s-framework.yml", cryptoutilSharedMagic.IdentityRPServiceID, cryptoutilSharedMagic.IdentityRPServiceID),
 	)
 

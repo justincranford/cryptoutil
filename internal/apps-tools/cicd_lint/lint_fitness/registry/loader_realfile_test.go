@@ -87,7 +87,7 @@ product_services:
       service_name_const: SVCServiceName
       service_id_const: SVCServiceID
       service_port_const: SVCServicePort
-      service_display_name: "Example Service"
+      service_display_name_const: ExampleDisplayName
 `
 }
 

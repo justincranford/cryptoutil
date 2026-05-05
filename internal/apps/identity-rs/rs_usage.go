@@ -19,14 +19,14 @@ var (
 	RSUsageMain = cryptoutilUsage.BuildUsageMain(
 		cryptoutilSharedMagic.IdentityProductName,
 		cryptoutilSharedMagic.RSServiceName,
-		"Resource Server",
+		cryptoutilSharedMagic.RSDisplayName,
 	)
 
 	// RSUsageServer is the usage message for the server subcommand.
 	RSUsageServer = cryptoutilUsage.BuildUsageServer(
 		cryptoutilSharedMagic.IdentityProductName,
 		cryptoutilSharedMagic.RSServiceName,
-		"Resource Server",
+		cryptoutilSharedMagic.RSDisplayName,
 		fmt.Sprintf("configs/%s/%s-framework.yml", cryptoutilSharedMagic.IdentityRSServiceID, cryptoutilSharedMagic.IdentityRSServiceID),
 	)
 
@@ -34,14 +34,14 @@ var (
 	RSUsageClient = cryptoutilUsage.BuildUsageClient(
 		cryptoutilSharedMagic.IdentityProductName,
 		cryptoutilSharedMagic.RSServiceName,
-		"Resource Server",
+		cryptoutilSharedMagic.RSDisplayName,
 	)
 
 	// RSUsageInit is the usage message for the init subcommand.
 	RSUsageInit = cryptoutilUsage.BuildUsageInit(
 		cryptoutilSharedMagic.IdentityProductName,
 		cryptoutilSharedMagic.RSServiceName,
-		"Resource Server",
+		cryptoutilSharedMagic.RSDisplayName,
 		fmt.Sprintf("configs/%s/%s-framework.yml", cryptoutilSharedMagic.IdentityRSServiceID, cryptoutilSharedMagic.IdentityRSServiceID),
 	)
 

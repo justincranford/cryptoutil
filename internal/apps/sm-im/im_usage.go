@@ -19,14 +19,14 @@ var (
 	IMUsageMain = cryptoutilUsage.BuildUsageMain(
 		cryptoutilSharedMagic.IMProductName,
 		cryptoutilSharedMagic.IMServiceName,
-		"Instant Messenger",
+		cryptoutilSharedMagic.IMDisplayName,
 	)
 
 	// IMUsageServer is the usage message for the server subcommand.
 	IMUsageServer = cryptoutilUsage.BuildUsageServer(
 		cryptoutilSharedMagic.IMProductName,
 		cryptoutilSharedMagic.IMServiceName,
-		"Instant Messenger",
+		cryptoutilSharedMagic.IMDisplayName,
 		fmt.Sprintf("configs/%s/%s-framework.yml", cryptoutilSharedMagic.IMServiceID, cryptoutilSharedMagic.IMServiceID),
 	)
 
@@ -34,14 +34,14 @@ var (
 	IMUsageClient = cryptoutilUsage.BuildUsageClient(
 		cryptoutilSharedMagic.IMProductName,
 		cryptoutilSharedMagic.IMServiceName,
-		"Instant Messenger",
+		cryptoutilSharedMagic.IMDisplayName,
 	)
 
 	// IMUsageInit is the usage message for the init subcommand.
 	IMUsageInit = cryptoutilUsage.BuildUsageInit(
 		cryptoutilSharedMagic.IMProductName,
 		cryptoutilSharedMagic.IMServiceName,
-		"Instant Messenger",
+		cryptoutilSharedMagic.IMDisplayName,
 		fmt.Sprintf("configs/%s/%s-framework.yml", cryptoutilSharedMagic.IMServiceID, cryptoutilSharedMagic.IMServiceID),
 	)
 

@@ -280,5 +280,5 @@ func addGoSourceParams(params map[string]string, ps cryptoutilRegistry.ProductSe
 	params["__SERVICE_NAME_CONST__"] = p.ServiceNameConst
 	params["__SERVICE_ID_CONST__"] = p.ServiceIDConst
 	params["__SERVICE_PORT_CONST__"] = p.ServicePortConst
-	params["__SERVICE_DISPLAY_NAME__"] = p.ServiceDisplayName
+	params["__SERVICE_DISPLAY_NAME_CONST__"] = p.ServiceDisplayNameConst
 }

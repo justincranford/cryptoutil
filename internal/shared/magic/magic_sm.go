@@ -74,4 +74,7 @@ const (
 	// KMSPostgresLeaderContainer is the compose service name of the PostgreSQL leader
 	// used by the sm-kms deployment (via shared-postgres).
 	KMSPostgresLeaderContainer = "postgres-leader"
+
+	// KMSDisplayName is the human-readable display name for the sm-kms service.
+	KMSDisplayName = "Key Management Service"
 )

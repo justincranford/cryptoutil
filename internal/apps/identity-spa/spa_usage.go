@@ -19,14 +19,14 @@ var (
 	SPAUsageMain = cryptoutilUsage.BuildUsageMain(
 		cryptoutilSharedMagic.IdentityProductName,
 		cryptoutilSharedMagic.SPAServiceName,
-		"Single Page App",
+		cryptoutilSharedMagic.SPADisplayName,
 	)
 
 	// SPAUsageServer is the usage message for the server subcommand.
 	SPAUsageServer = cryptoutilUsage.BuildUsageServer(
 		cryptoutilSharedMagic.IdentityProductName,
 		cryptoutilSharedMagic.SPAServiceName,
-		"Single Page App",
+		cryptoutilSharedMagic.SPADisplayName,
 		fmt.Sprintf("configs/%s/%s-framework.yml", cryptoutilSharedMagic.IdentitySPAServiceID, cryptoutilSharedMagic.IdentitySPAServiceID),
 	)
 
@@ -34,14 +34,14 @@ var (
 	SPAUsageClient = cryptoutilUsage.BuildUsageClient(
 		cryptoutilSharedMagic.IdentityProductName,
 		cryptoutilSharedMagic.SPAServiceName,
-		"Single Page App",
+		cryptoutilSharedMagic.SPADisplayName,
 	)
 
 	// SPAUsageInit is the usage message for the init subcommand.
 	SPAUsageInit = cryptoutilUsage.BuildUsageInit(
 		cryptoutilSharedMagic.IdentityProductName,
 		cryptoutilSharedMagic.SPAServiceName,
-		"Single Page App",
+		cryptoutilSharedMagic.SPADisplayName,
 		fmt.Sprintf("configs/%s/%s-framework.yml", cryptoutilSharedMagic.IdentitySPAServiceID, cryptoutilSharedMagic.IdentitySPAServiceID),
 	)
 

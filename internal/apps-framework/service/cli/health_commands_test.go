@@ -8,6 +8,7 @@ import (
 	"fmt"
 	http "net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
@@ -437,4 +438,86 @@ func TestRouteService_ShutdownSubcommand_Success(t *testing.T) {
 	exitCode := cryptoutilAppsFrameworkCli.RouteService(testServiceCfg, []string{"shutdown", cryptoutilSharedMagic.CLIURLFlag, srv.URL}, &stdout, &stderr, noopSubcmd, noopSubcmd, noopSubcmd)
 	require.Equal(t, 0, exitCode)
 	require.Contains(t, stdout.String(), cryptoutilSharedMagic.TestStatusEmojiPass)
+}
+
+func TestHealthCommand_DuplicateURLFlag(t *testing.T) {
+	t.Parallel()
+
+	srv := newHealthMockServer(t, "/health", http.StatusOK, `{"status":"ok"}`)
+
+	var stdout, stderr bytes.Buffer
+
+	exitCode := cryptoutilAppsFrameworkCli.HealthCommand(
+		[]string{cryptoutilSharedMagic.CLIURLFlag, srv.URL, cryptoutilSharedMagic.CLIURLFlag, "https://127.0.0.1:1"},
+		&stdout, &stderr,
+		"Usage: health",
+		cryptoutilSharedMagic.JoseJAServicePort,
+	)
+	require.Equal(t, 0, exitCode)
+	require.Contains(t, stdout.String(), cryptoutilSharedMagic.TestStatusEmojiPass)
+}
+
+func TestHealthCommand_URLWithFragment(t *testing.T) {
+	t.Parallel()
+
+	srv := newHealthMockServer(t, "/health", http.StatusOK, `{"status":"ok"}`)
+
+	var stdout, stderr bytes.Buffer
+
+	exitCode := cryptoutilAppsFrameworkCli.HealthCommand(
+		[]string{cryptoutilSharedMagic.CLIURLFlag, srv.URL + "/health#section"},
+		&stdout, &stderr,
+		"Usage: health",
+		cryptoutilSharedMagic.JoseJAServicePort,
+	)
+	require.Equal(t, 0, exitCode)
+	require.Contains(t, stdout.String(), cryptoutilSharedMagic.TestStatusEmojiPass)
+}
+
+func TestReadyzCommand_ExtraArgumentsIgnored(t *testing.T) {
+	t.Parallel()
+
+	srv := newHealthMockServer(t, "/admin/api/v1/readyz", http.StatusOK, `{"ready":true}`)
+
+	var stdout, stderr bytes.Buffer
+
+	exitCode := cryptoutilAppsFrameworkCli.ReadyzCommand(
+		[]string{cryptoutilSharedMagic.CLIURLFlag, srv.URL, "extra", "ignored", "args"},
+		&stdout, &stderr,
+		"Usage: readyz",
+	)
+	require.Equal(t, 0, exitCode)
+	require.Contains(t, stdout.String(), cryptoutilSharedMagic.TestStatusEmojiPass)
+}
+
+func TestLivezCommand_URLWithUserInfo(t *testing.T) {
+	t.Parallel()
+
+	srv := newHealthMockServer(t, "/admin/api/v1/livez", http.StatusOK, `{"status":"alive"}`)
+	urlParts := strings.SplitN(srv.URL, "//", 2)
+	urlWithUserInfo := urlParts[0] + "//user:pass@" + urlParts[1] + "/admin/api/v1/livez"
+
+	var stdout, stderr bytes.Buffer
+
+	exitCode := cryptoutilAppsFrameworkCli.LivezCommand(
+		[]string{cryptoutilSharedMagic.CLIURLFlag, urlWithUserInfo},
+		&stdout, &stderr,
+		"Usage: livez",
+	)
+	require.Equal(t, 0, exitCode)
+	require.Contains(t, stdout.String(), cryptoutilSharedMagic.TestStatusEmojiPass)
+}
+
+func TestLivezCommand_URLFlagWithoutValue(t *testing.T) {
+	t.Parallel()
+
+	var stdout, stderr bytes.Buffer
+
+	exitCode := cryptoutilAppsFrameworkCli.LivezCommand(
+		[]string{cryptoutilSharedMagic.CLIURLFlag},
+		&stdout, &stderr,
+		"Usage: livez",
+	)
+	require.Equal(t, 1, exitCode)
+	require.Contains(t, stdout.String()+stderr.String(), "Liveness check failed")
 }

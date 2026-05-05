@@ -19,4 +19,7 @@ const (
 	// PKICAServicePort is the default public API port for pki-ca service.
 	// Port range for PKI CA: 8300-8399 (100-port block).
 	PKICAServicePort = 8300
+
+	// PKICADisplayName is the human-readable display name for the pki-ca service.
+	PKICADisplayName = "Certificate Authority"
 )

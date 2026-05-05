@@ -19,14 +19,14 @@ var (
 	KMSUsageMain = cryptoutilUsage.BuildUsageMain(
 		cryptoutilSharedMagic.SMProductName,
 		cryptoutilSharedMagic.KMSServiceName,
-		"Key Management Service",
+		cryptoutilSharedMagic.KMSDisplayName,
 	)
 
 	// KMSUsageServer is the usage message for the server subcommand.
 	KMSUsageServer = cryptoutilUsage.BuildUsageServer(
 		cryptoutilSharedMagic.SMProductName,
 		cryptoutilSharedMagic.KMSServiceName,
-		"Key Management Service",
+		cryptoutilSharedMagic.KMSDisplayName,
 		fmt.Sprintf("configs/%s/%s-framework.yml", cryptoutilSharedMagic.KMSServiceID, cryptoutilSharedMagic.KMSServiceID),
 	)
 
@@ -34,14 +34,14 @@ var (
 	KMSUsageClient = cryptoutilUsage.BuildUsageClient(
 		cryptoutilSharedMagic.SMProductName,
 		cryptoutilSharedMagic.KMSServiceName,
-		"Key Management Service",
+		cryptoutilSharedMagic.KMSDisplayName,
 	)
 
 	// KMSUsageInit is the usage message for the init subcommand.
 	KMSUsageInit = cryptoutilUsage.BuildUsageInit(
 		cryptoutilSharedMagic.SMProductName,
 		cryptoutilSharedMagic.KMSServiceName,
-		"Key Management Service",
+		cryptoutilSharedMagic.KMSDisplayName,
 		fmt.Sprintf("configs/%s/%s-framework.yml", cryptoutilSharedMagic.KMSServiceID, cryptoutilSharedMagic.KMSServiceID),
 	)
 

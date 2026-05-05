@@ -306,8 +306,8 @@ func validateGoTemplateParams(prefix string, p RegistryGoTemplateParams) []strin
 		errs = append(errs, prefix+".go_template_params.service_port_const: must not be empty")
 	}
 
-	if p.ServiceDisplayName == "" {
-		errs = append(errs, prefix+".go_template_params.service_display_name: must not be empty")
+	if p.ServiceDisplayNameConst == "" {
+		errs = append(errs, prefix+".go_template_params.service_display_name_const: must not be empty")
 	}
 
 	return errs

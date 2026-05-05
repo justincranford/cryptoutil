@@ -19,14 +19,14 @@ var (
 	CAUsageMain = cryptoutilUsage.BuildUsageMain(
 		cryptoutilSharedMagic.PKIProductName,
 		cryptoutilSharedMagic.PKICAServiceName,
-		"Certificate Authority",
+		cryptoutilSharedMagic.PKICADisplayName,
 	)
 
 	// CAUsageServer is the usage message for the server subcommand.
 	CAUsageServer = cryptoutilUsage.BuildUsageServer(
 		cryptoutilSharedMagic.PKIProductName,
 		cryptoutilSharedMagic.PKICAServiceName,
-		"Certificate Authority",
+		cryptoutilSharedMagic.PKICADisplayName,
 		fmt.Sprintf("configs/%s/%s-framework.yml", cryptoutilSharedMagic.PKICAServiceID, cryptoutilSharedMagic.PKICAServiceID),
 	)
 
@@ -34,14 +34,14 @@ var (
 	CAUsageClient = cryptoutilUsage.BuildUsageClient(
 		cryptoutilSharedMagic.PKIProductName,
 		cryptoutilSharedMagic.PKICAServiceName,
-		"Certificate Authority",
+		cryptoutilSharedMagic.PKICADisplayName,
 	)
 
 	// CAUsageInit is the usage message for the init subcommand.
 	CAUsageInit = cryptoutilUsage.BuildUsageInit(
 		cryptoutilSharedMagic.PKIProductName,
 		cryptoutilSharedMagic.PKICAServiceName,
-		"Certificate Authority",
+		cryptoutilSharedMagic.PKICADisplayName,
 		fmt.Sprintf("configs/%s/%s-framework.yml", cryptoutilSharedMagic.PKICAServiceID, cryptoutilSharedMagic.PKICAServiceID),
 	)
 

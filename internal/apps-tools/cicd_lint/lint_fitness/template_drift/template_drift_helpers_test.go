@@ -133,7 +133,7 @@ func TestAddGoSourceParams(t *testing.T) {
 	require.NotEmpty(t, params["__SERVICE_NAME_CONST__"])
 	require.NotEmpty(t, params["__SERVICE_ID_CONST__"])
 	require.NotEmpty(t, params["__SERVICE_PORT_CONST__"])
-	require.NotEmpty(t, params["__SERVICE_DISPLAY_NAME__"])
+	require.NotEmpty(t, params["__SERVICE_DISPLAY_NAME_CONST__"])
 }
 
 func TestBuildExpectedFS_GoSourceTemplateExpansion(t *testing.T) {
@@ -142,7 +142,7 @@ func TestBuildExpectedFS_GoSourceTemplateExpansion(t *testing.T) {
 	// Simulate a usage.go template with all resolvable placeholders.
 	// Note: LoadTemplatesDir strips the //go:build ignore tag on load, so templates
 	// passed directly to BuildExpectedFS should already have the tag removed.
-	tmplContent := "package __PS_ID_UNDERSCORE__\n// __SERVICE_DISPLAY_NAME__\n"
+	tmplContent := "package __PS_ID_UNDERSCORE__\n// __SERVICE_DISPLAY_NAME_CONST__\n"
 
 	templates := map[string]string{
 		"internal/apps/" + cryptoutilSharedMagic.CICDTemplateExpansionKeyPSID + "/__SERVICE___usage.go": tmplContent,

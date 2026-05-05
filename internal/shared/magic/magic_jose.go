@@ -208,3 +208,9 @@ const (
 	// JoseAlgDir is direct encryption.
 	JoseAlgDir = "dir"
 )
+
+// JWK Authority service display name constant.
+const (
+	// JoseJADisplayName is the human-readable display name for the jose-ja service.
+	JoseJADisplayName = "JWK Authority"
+)
