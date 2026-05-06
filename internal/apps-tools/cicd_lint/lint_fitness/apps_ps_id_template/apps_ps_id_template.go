@@ -84,8 +84,13 @@ var knownServerFileExclusions = map[string]map[string]bool{
 	"testmain_test.go": {
 		cryptoutilSharedMagic.OTLPServiceSMKMS: true,
 	},
-	// lifecycle and port-conflict tests live at PS-ID root, not server/ yet; all 10 excluded.
-	"__SERVICE___lifecycle_test.go":     allTenPSIDs,
+	// Lifecycle tests are still non-canonical for these services.
+	"__SERVICE___lifecycle_test.go": {
+		cryptoutilSharedMagic.OTLPServiceJoseJA:           true,
+		cryptoutilSharedMagic.OTLPServicePKICA:            true,
+		cryptoutilSharedMagic.OTLPServiceSkeletonTemplate: true,
+	},
+	// Port-conflict tests live at PS-ID root, not server/ yet; all 10 excluded.
 	"__SERVICE___port_conflict_test.go": allTenPSIDs,
 }
 

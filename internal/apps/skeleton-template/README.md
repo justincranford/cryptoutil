@@ -9,7 +9,6 @@ This directory contains the skeleton-template application entrypoint package.
 - template.go
 - template_usage.go
 - template_cli_test.go
-- template_lifecycle_test.go
 - template_port_conflict_test.go
 - testmain_test.go
 

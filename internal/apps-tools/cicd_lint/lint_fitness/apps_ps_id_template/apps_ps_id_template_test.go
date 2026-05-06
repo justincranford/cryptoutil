@@ -85,7 +85,6 @@ func createFullPSIDRoot(t *testing.T, realRoot, tmpDir string) {
 		canonicalFiles := []string{
 			ps.Service + "_usage.go",
 			ps.Service + "_cli_test.go",
-			ps.Service + "_lifecycle_test.go",
 			ps.Service + "_port_conflict_test.go",
 			"testmain_test.go",
 			"README.md",
@@ -105,7 +104,14 @@ func createFullPSIDRoot(t *testing.T, realRoot, tmpDir string) {
 		// Required server file: server.go (no exclusions).
 		require.NoError(t, os.WriteFile(filepath.Join(serverDir, "server.go"), []byte("package server\n"), cryptoutilSharedMagic.CacheFilePermissions))
 		require.NoError(t, os.WriteFile(filepath.Join(serverDir, "testmain_test.go"), []byte("package server\n"), cryptoutilSharedMagic.CacheFilePermissions))
-		// swagger.go, swagger_test.go, lifecycle_test, port_conflict_test: all excluded, skip.
+		// swagger.go, swagger_test.go, and port_conflict_test are excluded, skip.
+		if !knownServerFileExclusions["__SERVICE___lifecycle_test.go"][ps.PSID] {
+			require.NoError(t, os.WriteFile(
+				filepath.Join(serverDir, ps.Service+"_lifecycle_test.go"),
+				[]byte("package server\n"),
+				cryptoutilSharedMagic.CacheFilePermissions,
+			))
+		}
 
 		// Required server subdirs: apis, model, repository (respecting production exclusions).
 		for _, dir := range []string{"apis", "model", "repository"} {

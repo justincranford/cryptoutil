@@ -9,7 +9,6 @@ This directory contains the identity-rs application entrypoint package.
 - rs.go
 - rs_usage.go
 - rs_cli_test.go
-- rs_lifecycle_test.go
 - rs_port_conflict_test.go
 - testmain_test.go
 

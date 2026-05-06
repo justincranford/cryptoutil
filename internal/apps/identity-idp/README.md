@@ -9,7 +9,6 @@ This directory contains the identity-idp application entrypoint package.
 - idp.go
 - idp_usage.go
 - idp_cli_test.go
-- idp_lifecycle_test.go
 - idp_port_conflict_test.go
 - testmain_test.go
 

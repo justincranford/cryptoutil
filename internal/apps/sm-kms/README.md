@@ -9,7 +9,6 @@ This directory contains the sm-kms application entrypoint package.
 - kms.go
 - kms_usage.go
 - kms_cli_test.go
-- kms_lifecycle_test.go
 - kms_port_conflict_test.go
 - testmain_test.go
 
