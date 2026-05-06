@@ -90,8 +90,6 @@ var knownServerFileExclusions = map[string]map[string]bool{
 		cryptoutilSharedMagic.OTLPServicePKICA:            true,
 		cryptoutilSharedMagic.OTLPServiceSkeletonTemplate: true,
 	},
-	// Port-conflict tests live at PS-ID root, not server/ yet; all 10 excluded.
-	"__SERVICE___port_conflict_test.go": allTenPSIDs,
 }
 
 // knownServerDirExclusions maps required server/ subdirectory names to PS-IDs excluded from that check.
