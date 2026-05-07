@@ -53,9 +53,8 @@ func loadTemplatesDirFn(projectRoot string, walkFn walkDirFn) (map[string]string
 		// Normalize to forward slashes for cross-platform consistency.
 		relPath = filepath.ToSlash(relPath)
 
-		// Skip pure structural meta-files (MANIFEST.yaml, README.md) that exist only to
-		// guide Phase 4 linters â€” they have no corresponding actual project file.
-		// All other internal/ and cmd/ Go source templates ARE real files and must be compared.
+		// Skip structural meta-files and cmd/internal Go source templates that are
+		// validated by dedicated fitness linters rather than template-drift exact match.
 		if isStructuralMetaFile(relPath) {
 			return nil
 		}

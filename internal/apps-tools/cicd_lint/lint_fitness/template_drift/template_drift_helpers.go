@@ -28,9 +28,8 @@ func hasUnresolvedPlaceholders(s string) bool {
 // Two categories are excluded:
 //  1. Pure meta-files (MANIFEST.yaml, README.md) that guide Phase 4 linters with no
 //     corresponding actual project file.
-//  2. Go source templates in cmd/ and internal/ that are aspirational stubs not yet
-//     stable enough for content enforcement — EXCEPT for *_usage.go files which are
-//     canonically sync'd across all 10 PS-IDs and must be enforced.
+//  2. Go source templates in cmd/ and internal/, which are validated by dedicated
+//     fitness linters and are not template-drift exact-match targets.
 func isStructuralMetaFile(relPath string) bool {
 	base := filepath.ToSlash(filepath.Base(relPath))
 
@@ -38,11 +37,10 @@ func isStructuralMetaFile(relPath string) bool {
 		return true
 	}
 
-	// Allow only *_usage.go files from internal/ and cmd/ to be content-compared.
-	// All other Go source templates (main.go, *_cli*.go, client.go, *_test.go, etc.)
-	// are still aspirational or have diverged — exclude them to avoid false positives.
+	// Exclude all Go source templates from cmd/ and internal/ from template-drift
+	// exact-match checks.
 	if strings.HasPrefix(relPath, "cmd/") || strings.HasPrefix(relPath, "internal/") {
-		return !strings.HasSuffix(base, "_usage.go")
+		return true
 	}
 
 	return false

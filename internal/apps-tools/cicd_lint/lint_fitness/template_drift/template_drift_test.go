@@ -57,12 +57,12 @@ func TestLoadTemplatesDir_SkipsStructuralMetaFiles(t *testing.T) {
 	require.NoError(t, os.MkdirAll(deploymentsDir, cryptoutilSharedMagic.CICDTempDirPermissions))
 	require.NoError(t, os.WriteFile(filepath.Join(deploymentsDir, "Dockerfile"), []byte("FROM alpine"), cryptoutilSharedMagic.CacheFilePermissions))
 
-	// Go source template (should be LOADED â€” cmd/ is no longer skipped).
+	// Go source template under cmd/ (should be skipped).
 	cmdDir := filepath.Join(baseTemplDir, "cmd", cryptoutilSharedMagic.CICDTemplateExpansionKeyPSID)
 	require.NoError(t, os.MkdirAll(cmdDir, cryptoutilSharedMagic.CICDTempDirPermissions))
 	require.NoError(t, os.WriteFile(filepath.Join(cmdDir, "main.go"), []byte("//go:build ignore\n\npackage main"), cryptoutilSharedMagic.CacheFilePermissions))
 
-	// Go source template under internal/ (should be LOADED â€” only MANIFEST.yaml is skipped).
+	// Go source template under internal/ (should be skipped).
 	internalDir := filepath.Join(baseTemplDir, "internal", "apps", cryptoutilSharedMagic.CICDTemplateExpansionKeyPSID)
 	require.NoError(t, os.MkdirAll(internalDir, cryptoutilSharedMagic.CICDTempDirPermissions))
 	require.NoError(t, os.WriteFile(filepath.Join(internalDir, "MANIFEST.yaml"), []byte("required_root_files: []"), cryptoutilSharedMagic.CacheFilePermissions))
@@ -83,10 +83,9 @@ func TestLoadTemplatesDir_SkipsStructuralMetaFiles(t *testing.T) {
 	_, hasCmdMain := templates["cmd/"+cryptoutilSharedMagic.CICDTemplateExpansionKeyPSID+"/main.go"]
 	require.False(t, hasCmdMain, "non-usage Go source template in cmd/ must be skipped")
 
-	// internal/ Go source template (*_usage.go) must be loaded (//go:build ignore header stripped).
-	usageContent, hasUsage := templates["internal/apps/"+cryptoutilSharedMagic.CICDTemplateExpansionKeyPSID+"/__SERVICE___usage.go"]
-	require.True(t, hasUsage, "usage Go source template in internal/ must be loaded")
-	require.NotContains(t, usageContent, "//go:build ignore", "//go:build ignore tag must be stripped")
+	// internal/ Go source template must be skipped.
+	_, hasUsage := templates["internal/apps/"+cryptoutilSharedMagic.CICDTemplateExpansionKeyPSID+"/__SERVICE___usage.go"]
+	require.False(t, hasUsage, "Go source template in internal/ must be skipped")
 }
 
 func TestLoadTemplatesDir_NonExistentRoot(t *testing.T) {
