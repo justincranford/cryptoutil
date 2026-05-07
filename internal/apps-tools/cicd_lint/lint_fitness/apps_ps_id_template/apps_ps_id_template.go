@@ -66,12 +66,7 @@ type psIDExclusions struct {
 // knownRootFileExclusions maps template filenames (pre-substitution) to sets of PS-IDs
 // that are exempt from that specific root-file check.
 // Remove entries as each PS-ID migrates to the canonical structure.
-var knownRootFileExclusions = map[string]map[string]bool{
-	// sm-im has im_cli_commands_test.go + im_cli_url_test.go instead of im_cli_test.go.
-	"__SERVICE___cli_test.go": {
-		cryptoutilSharedMagic.OTLPServiceSMIM: true,
-	},
-}
+var knownRootFileExclusions = map[string]map[string]bool{}
 
 // knownServerFileExclusions maps template filenames (pre-substitution) to sets of PS-IDs
 // that are exempt from that specific server-file check.
