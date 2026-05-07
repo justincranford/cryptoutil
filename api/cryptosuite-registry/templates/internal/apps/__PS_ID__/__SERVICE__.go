@@ -17,6 +17,9 @@ import (
 
 	cryptoutilTemplateCli "cryptoutil/internal/apps-framework/service/cli"
 	cryptoutilUsage "cryptoutil/internal/apps-framework/service/usage"
+	__FIRST_APP_IMPORT_ALIAS__ "__FIRST_APP_IMPORT_PATH__"
+	__SECOND_APP_IMPORT_ALIAS__ "__SECOND_APP_IMPORT_PATH__"
+	__THIRD_APP_IMPORT_ALIAS__ "__THIRD_APP_IMPORT_PATH__"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 

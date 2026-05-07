@@ -39,7 +39,6 @@ func createAllPSIDs(t *testing.T, tmpDir string) {
 		serviceDir := filepath.Join(tmpDir, "internal", "apps", ps.PSID)
 		require.NoError(t, os.MkdirAll(serviceDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 		require.NoError(t, os.WriteFile(filepath.Join(serviceDir, ps.Service+".go"), []byte("package x\n"), cryptoutilSharedMagic.CacheFilePermissions))
-		require.NoError(t, os.WriteFile(filepath.Join(serviceDir, ps.Service+"_usage.go"), []byte("package x\n"), cryptoutilSharedMagic.CacheFilePermissions))
 	}
 }
 
@@ -127,7 +126,6 @@ func TestCheckInDir_MissingPSIDDir(t *testing.T) {
 		serviceDir := filepath.Join(tmpDir, "internal", "apps", ps.PSID)
 		require.NoError(t, os.MkdirAll(serviceDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 		require.NoError(t, os.WriteFile(filepath.Join(serviceDir, ps.Service+".go"), []byte("package x\n"), cryptoutilSharedMagic.CacheFilePermissions))
-		require.NoError(t, os.WriteFile(filepath.Join(serviceDir, ps.Service+"_usage.go"), []byte("package x\n"), cryptoutilSharedMagic.CacheFilePermissions))
 	}
 
 	// Create only the apps dir (not the target PS-ID dir).
@@ -162,30 +160,6 @@ func TestCheckInDir_MissingEntryFile(t *testing.T) {
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "missing required file")
 	require.Contains(t, err.Error(), target.Service+".go")
-}
-
-func TestCheckInDir_MissingUsageFile(t *testing.T) {
-	t.Parallel()
-
-	services := cryptoutilFitnessRegistry.AllProductServices()
-	if len(services) == 0 {
-		t.Skip("no product services in registry")
-	}
-
-	target := services[0]
-
-	tmpDir := t.TempDir()
-	createAllPSIDs(t, tmpDir)
-
-	// Remove usage file for the first PS-ID.
-	usageFile := filepath.Join(tmpDir, "internal", "apps", target.PSID, target.Service+"_usage.go")
-	require.NoError(t, os.Remove(usageFile))
-
-	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	err := CheckInDir(logger, tmpDir)
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "missing required file")
-	require.Contains(t, err.Error(), target.Service+"_usage.go")
 }
 
 func TestCheckInDir_MultipleViolations(t *testing.T) {

@@ -11,7 +11,7 @@
 # ENG-HANDBOOK references: SS5.1 (Service Framework), SS10.2 (Unit Testing), SS14.1 (Coding Standards)
 #
 # ROOT FILE RULE: ALL files at the PS-ID root MUST start with the __SERVICE__ prefix.
-#   Correct:   kms.go, kms_usage.go, kms_cli_test.go
+#   Correct:   kms.go, kms_cli_test.go
 #   FORBIDDEN: swagger.go, testmain_test.go, http_test.go (any non-service-prefixed file)
 #
 # SEPARATION OF CONCERNS:
@@ -32,8 +32,6 @@
 required_root_files:
   # Primary service entry point - routes CLI subcommands (server, health, livez, readyz, shutdown)
   - __SERVICE__.go
-  # CLI usage string - BuildUsageMain() from internal/apps-framework/service/usage/
-  - __SERVICE___usage.go
   # CLI integration tests - verifies help, version, unknown-subcommand exit codes
   - __SERVICE___cli_test.go
 

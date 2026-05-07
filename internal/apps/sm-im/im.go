@@ -1,4 +1,10 @@
 // Copyright (c) 2025-2026 Justin Cranford.
+// Health endpoints exposed by this service (referenced in BuildUsage* output):
+//   - /service/api/v1/health  (service-to-service health check)
+//   - /browser/api/v1/health  (browser health check)
+//   - /admin/api/v1/livez     (liveness probe)
+//   - /admin/api/v1/readyz    (readiness probe)
+//   - /admin/api/v1/shutdown  (graceful shutdown trigger)
 //
 //
 
@@ -7,16 +13,75 @@ package im
 
 import (
 	"context"
+	"fmt"
 	"io"
 
 	_ "github.com/jackc/pgx/v5/stdlib" // PostgreSQL driver
 	_ "modernc.org/sqlite"             // CGO-free SQLite driver
 
 	cryptoutilTemplateCli "cryptoutil/internal/apps-framework/service/cli"
+	cryptoutilUsage "cryptoutil/internal/apps-framework/service/usage"
 	cryptoutilAppsFrameworkTls "cryptoutil/internal/apps-framework/tls"
 	cryptoutilAppsServiceServer "cryptoutil/internal/apps/sm-im/server"
 	cryptoutilAppsServiceServerConfig "cryptoutil/internal/apps/sm-im/server/config"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+)
+
+var (
+	// IMUsageMain is the main usage message for the sm-im command.
+	IMUsageMain = cryptoutilUsage.BuildUsageMain(
+		cryptoutilSharedMagic.IMProductName,
+		cryptoutilSharedMagic.IMServiceName,
+		cryptoutilSharedMagic.IMDisplayName,
+	)
+
+	// IMUsageServer is the usage message for the server subcommand.
+	IMUsageServer = cryptoutilUsage.BuildUsageServer(
+		cryptoutilSharedMagic.IMProductName,
+		cryptoutilSharedMagic.IMServiceName,
+		cryptoutilSharedMagic.IMDisplayName,
+		fmt.Sprintf("configs/%s/%s-framework.yml", cryptoutilSharedMagic.IMServiceID, cryptoutilSharedMagic.IMServiceID),
+	)
+
+	// IMUsageClient is the usage message for the client subcommand.
+	IMUsageClient = cryptoutilUsage.BuildUsageClient(
+		cryptoutilSharedMagic.IMProductName,
+		cryptoutilSharedMagic.IMServiceName,
+		cryptoutilSharedMagic.IMDisplayName,
+	)
+
+	// IMUsageInit is the usage message for the init subcommand.
+	IMUsageInit = cryptoutilUsage.BuildUsageInit(
+		cryptoutilSharedMagic.IMProductName,
+		cryptoutilSharedMagic.IMServiceName,
+		cryptoutilSharedMagic.IMDisplayName,
+		fmt.Sprintf("configs/%s/%s-framework.yml", cryptoutilSharedMagic.IMServiceID, cryptoutilSharedMagic.IMServiceID),
+	)
+
+	// IMUsageHealth is the usage message for the health subcommand.
+	IMUsageHealth = cryptoutilUsage.BuildUsageHealth(
+		cryptoutilSharedMagic.IMProductName,
+		cryptoutilSharedMagic.IMServiceName,
+		fmt.Sprintf("%d", cryptoutilSharedMagic.IMServicePort),
+	)
+
+	// IMUsageLivez is the usage message for the livez subcommand.
+	IMUsageLivez = cryptoutilUsage.BuildUsageLivez(
+		cryptoutilSharedMagic.IMProductName,
+		cryptoutilSharedMagic.IMServiceName,
+	)
+
+	// IMUsageReadyz is the usage message for the readyz subcommand.
+	IMUsageReadyz = cryptoutilUsage.BuildUsageReadyz(
+		cryptoutilSharedMagic.IMProductName,
+		cryptoutilSharedMagic.IMServiceName,
+	)
+
+	// IMUsageShutdown is the usage message for the shutdown subcommand.
+	IMUsageShutdown = cryptoutilUsage.BuildUsageShutdown(
+		cryptoutilSharedMagic.IMProductName,
+		cryptoutilSharedMagic.IMServiceName,
+	)
 )
 
 // Im implements the sm-im service subcommand handler.

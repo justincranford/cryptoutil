@@ -7,7 +7,6 @@ This directory contains the sm-kms application entrypoint package.
 ## Canonical Root Files
 
 - kms.go
-- kms_usage.go
 - kms_cli_test.go
 - kms_port_conflict_test.go
 - testmain_test.go

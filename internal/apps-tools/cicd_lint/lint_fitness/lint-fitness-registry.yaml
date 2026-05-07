@@ -434,7 +434,7 @@ sub_linters:
 
   - name: apps-ps-id-required-files
     directory: apps_ps_id_required_files
-    description: Verifies every PS-ID directory under internal/apps/ has {service}.go and {service}_usage.go entry-point files.
+    description: Verifies every PS-ID directory under internal/apps/ has {service}.go entry-point file.
     category: architecture
 
   - name: apps-ps-id-server-package

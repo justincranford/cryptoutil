@@ -1,7 +1,7 @@
 // Copyright (c) 2025-2026 Justin Cranford.
 // Package apps_ps_id_required_files verifies that every PS-ID directory under
-// internal/apps/{PS-ID}/ contains the required entry file ({SERVICE}.go) and
-// usage file ({SERVICE}_usage.go). Uses the canonical registry so new PS-IDs
+// internal/apps/{PS-ID}/ contains the required entry file ({SERVICE}.go).
+// Uses the canonical registry so new PS-IDs
 // are automatically covered without manual code changes.
 package apps_ps_id_required_files
 
@@ -46,7 +46,7 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 	return nil
 }
 
-// checkPSIDRequiredFiles verifies {SERVICE}.go and {SERVICE}_usage.go exist in the PS-ID dir.
+// checkPSIDRequiredFiles verifies {SERVICE}.go exists in the PS-ID dir.
 func checkPSIDRequiredFiles(serviceDir, psid, service string) []string {
 	var errors []string
 
@@ -57,11 +57,6 @@ func checkPSIDRequiredFiles(serviceDir, psid, service string) []string {
 	entryFile := filepath.Join(serviceDir, service+".go")
 	if _, err := os.Stat(entryFile); os.IsNotExist(err) {
 		errors = append(errors, fmt.Sprintf("%s: missing required file internal/apps/%s/%s.go", serviceDir, psid, service))
-	}
-
-	usageFile := filepath.Join(serviceDir, service+"_usage.go")
-	if _, err := os.Stat(usageFile); os.IsNotExist(err) {
-		errors = append(errors, fmt.Sprintf("%s: missing required file internal/apps/%s/%s_usage.go", serviceDir, psid, service))
 	}
 
 	return errors

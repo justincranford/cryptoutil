@@ -95,7 +95,6 @@ func TestCheckInDir_MissingEntryFile(t *testing.T) {
 	require.NoError(t, os.MkdirAll(filepath.Join(serviceDir, "server", "config"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 	// Create all required files except the entry file.
-	require.NoError(t, os.WriteFile(filepath.Join(serviceDir, "template_usage.go"), []byte("package x\n"), cryptoutilSharedMagic.CacheFilePermissions))
 	require.NoError(t, os.WriteFile(filepath.Join(serviceDir, "server", "server.go"), []byte("package x\n"), cryptoutilSharedMagic.CacheFilePermissions))
 	require.NoError(t, os.WriteFile(filepath.Join(serviceDir, "server", "config", "config.go"), []byte("package x\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
@@ -125,42 +124,6 @@ func TestCheckInDir_MissingEntryFile(t *testing.T) {
 	require.Contains(t, err.Error(), "missing required file template.go")
 }
 
-func TestCheckInDir_MissingUsageFile(t *testing.T) {
-	t.Parallel()
-
-	tmpDir := t.TempDir()
-	serviceDir := filepath.Join(tmpDir, "internal", "apps", cryptoutilSharedMagic.OTLPServiceSkeletonTemplate)
-	require.NoError(t, os.MkdirAll(filepath.Join(serviceDir, "server", "config"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
-
-	require.NoError(t, os.WriteFile(filepath.Join(serviceDir, "template.go"), []byte("package x\n"), cryptoutilSharedMagic.CacheFilePermissions))
-	require.NoError(t, os.WriteFile(filepath.Join(serviceDir, "server", "server.go"), []byte("package x\n"), cryptoutilSharedMagic.CacheFilePermissions))
-	require.NoError(t, os.WriteFile(filepath.Join(serviceDir, "server", "config", "config.go"), []byte("package x\n"), cryptoutilSharedMagic.CacheFilePermissions))
-
-	for _, svc := range knownServices {
-		if svc.PSID == cryptoutilSharedMagic.OTLPServiceSkeletonTemplate {
-			continue
-		}
-
-		svcDir := filepath.Join(tmpDir, "internal", "apps", svc.PSID)
-
-		required := svc.Required
-		if required == nil {
-			required = defaultRequiredFiles
-		}
-
-		for _, tmpl := range required {
-			relPath := filepath.Join(svcDir, replaceService(tmpl, svc.Service))
-			require.NoError(t, os.MkdirAll(filepath.Dir(relPath), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
-			require.NoError(t, os.WriteFile(relPath, []byte("package x\n"), cryptoutilSharedMagic.CacheFilePermissions))
-		}
-	}
-
-	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	err := CheckInDir(logger, tmpDir)
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "missing required file template_usage.go")
-}
-
 func TestCheckInDir_MissingServerGo(t *testing.T) {
 	t.Parallel()
 
@@ -169,7 +132,6 @@ func TestCheckInDir_MissingServerGo(t *testing.T) {
 	require.NoError(t, os.MkdirAll(filepath.Join(serviceDir, "server", "config"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 	require.NoError(t, os.WriteFile(filepath.Join(serviceDir, "template.go"), []byte("package x\n"), cryptoutilSharedMagic.CacheFilePermissions))
-	require.NoError(t, os.WriteFile(filepath.Join(serviceDir, "template_usage.go"), []byte("package x\n"), cryptoutilSharedMagic.CacheFilePermissions))
 	require.NoError(t, os.WriteFile(filepath.Join(serviceDir, "server", "config", "config.go"), []byte("package x\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
 	for _, svc := range knownServices {
@@ -205,7 +167,6 @@ func TestCheckInDir_MissingConfigGo(t *testing.T) {
 	require.NoError(t, os.MkdirAll(filepath.Join(serviceDir, "server"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 	require.NoError(t, os.WriteFile(filepath.Join(serviceDir, "template.go"), []byte("package x\n"), cryptoutilSharedMagic.CacheFilePermissions))
-	require.NoError(t, os.WriteFile(filepath.Join(serviceDir, "template_usage.go"), []byte("package x\n"), cryptoutilSharedMagic.CacheFilePermissions))
 	require.NoError(t, os.WriteFile(filepath.Join(serviceDir, "server", "server.go"), []byte("package x\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
 	for _, svc := range knownServices {

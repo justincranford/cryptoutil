@@ -7,7 +7,6 @@ This directory contains the pki-ca application entrypoint package.
 ## Canonical Root Files
 
 - ca.go
-- ca_usage.go
 - ca_cli_test.go
 - ca_port_conflict_test.go
 - testmain_test.go

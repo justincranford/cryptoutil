@@ -83,7 +83,6 @@ func createFullPSIDRoot(t *testing.T, realRoot, tmpDir string) {
 		require.NoError(t, os.WriteFile(filepath.Join(psDir, ps.Service+".go"), realServiceRootContent, cryptoutilSharedMagic.CacheFilePermissions))
 
 		canonicalFiles := []string{
-			ps.Service + "_usage.go",
 			ps.Service + "_cli_test.go",
 			"testmain_test.go",
 			"README.md",
@@ -314,7 +313,6 @@ func TestCheckInDir_NoExclusions_MissingRequiredDir(t *testing.T) {
 		psDir := filepath.Join(tmpDir, "internal", "apps", ps.PSID)
 		require.NoError(t, os.MkdirAll(psDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 		require.NoError(t, os.WriteFile(filepath.Join(psDir, ps.Service+".go"), []byte("package main\n"), cryptoutilSharedMagic.CacheFilePermissions))
-		require.NoError(t, os.WriteFile(filepath.Join(psDir, ps.Service+"_usage.go"), []byte("package main\n"), cryptoutilSharedMagic.CacheFilePermissions))
 		require.NoError(t, os.WriteFile(filepath.Join(psDir, ps.Service+"_cli_test.go"), []byte("package main\n"), cryptoutilSharedMagic.CacheFilePermissions))
 	}
 
@@ -342,7 +340,6 @@ func TestCheckInDir_NoExclusions_MissingServerFile(t *testing.T) {
 		serverDir := filepath.Join(psDir, "server")
 		require.NoError(t, os.MkdirAll(serverDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 		require.NoError(t, os.WriteFile(filepath.Join(psDir, ps.Service+".go"), []byte("package main\n"), cryptoutilSharedMagic.CacheFilePermissions))
-		require.NoError(t, os.WriteFile(filepath.Join(psDir, ps.Service+"_usage.go"), []byte("package main\n"), cryptoutilSharedMagic.CacheFilePermissions))
 		require.NoError(t, os.WriteFile(filepath.Join(psDir, ps.Service+"_cli_test.go"), []byte("package main\n"), cryptoutilSharedMagic.CacheFilePermissions))
 		// No server files created.
 	}
@@ -385,7 +382,6 @@ func TestCheckInDir_NoExclusions_AllValid(t *testing.T) {
 		realServiceRootContent, readErr := os.ReadFile(realServiceRootPath)
 		require.NoError(t, readErr)
 		require.NoError(t, os.WriteFile(filepath.Join(psDir, ps.Service+".go"), realServiceRootContent, cryptoutilSharedMagic.CacheFilePermissions))
-		require.NoError(t, os.WriteFile(filepath.Join(psDir, ps.Service+"_usage.go"), []byte("package main\n"), cryptoutilSharedMagic.CacheFilePermissions))
 		require.NoError(t, os.WriteFile(filepath.Join(psDir, ps.Service+"_cli_test.go"), []byte("package main\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
 		// All required server files.
@@ -434,7 +430,6 @@ func TestCheckInDir_NoExclusions_MissingServerDir(t *testing.T) {
 		require.NoError(t, os.MkdirAll(filepath.Join(repoDir, "migrations"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 		require.NoError(t, os.WriteFile(filepath.Join(psDir, ps.Service+".go"), []byte("package main\n"), cryptoutilSharedMagic.CacheFilePermissions))
-		require.NoError(t, os.WriteFile(filepath.Join(psDir, ps.Service+"_usage.go"), []byte("package main\n"), cryptoutilSharedMagic.CacheFilePermissions))
 		require.NoError(t, os.WriteFile(filepath.Join(psDir, ps.Service+"_cli_test.go"), []byte("package main\n"), cryptoutilSharedMagic.CacheFilePermissions))
 		require.NoError(t, os.WriteFile(filepath.Join(serverDir, "server.go"), []byte("package server\n"), cryptoutilSharedMagic.CacheFilePermissions))
 		require.NoError(t, os.WriteFile(filepath.Join(serverDir, "testmain_test.go"), []byte("package server\n"), cryptoutilSharedMagic.CacheFilePermissions))
@@ -476,7 +471,6 @@ func TestCheckInDir_NoExclusions_MissingServerConfigFile(t *testing.T) {
 		require.NoError(t, os.MkdirAll(filepath.Join(repoDir, "migrations"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 		require.NoError(t, os.WriteFile(filepath.Join(psDir, ps.Service+".go"), []byte("package main\n"), cryptoutilSharedMagic.CacheFilePermissions))
-		require.NoError(t, os.WriteFile(filepath.Join(psDir, ps.Service+"_usage.go"), []byte("package main\n"), cryptoutilSharedMagic.CacheFilePermissions))
 		require.NoError(t, os.WriteFile(filepath.Join(psDir, ps.Service+"_cli_test.go"), []byte("package main\n"), cryptoutilSharedMagic.CacheFilePermissions))
 		require.NoError(t, os.WriteFile(filepath.Join(serverDir, "server.go"), []byte("package server\n"), cryptoutilSharedMagic.CacheFilePermissions))
 		require.NoError(t, os.WriteFile(filepath.Join(serverDir, "testmain_test.go"), []byte("package server\n"), cryptoutilSharedMagic.CacheFilePermissions))
@@ -517,7 +511,6 @@ func TestCheckInDir_NoExclusions_MissingServerRepositoryFile(t *testing.T) {
 		require.NoError(t, os.MkdirAll(filepath.Join(repoDir, "migrations"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 		require.NoError(t, os.WriteFile(filepath.Join(psDir, ps.Service+".go"), []byte("package main\n"), cryptoutilSharedMagic.CacheFilePermissions))
-		require.NoError(t, os.WriteFile(filepath.Join(psDir, ps.Service+"_usage.go"), []byte("package main\n"), cryptoutilSharedMagic.CacheFilePermissions))
 		require.NoError(t, os.WriteFile(filepath.Join(psDir, ps.Service+"_cli_test.go"), []byte("package main\n"), cryptoutilSharedMagic.CacheFilePermissions))
 		require.NoError(t, os.WriteFile(filepath.Join(serverDir, "server.go"), []byte("package server\n"), cryptoutilSharedMagic.CacheFilePermissions))
 		require.NoError(t, os.WriteFile(filepath.Join(serverDir, "testmain_test.go"), []byte("package server\n"), cryptoutilSharedMagic.CacheFilePermissions))
@@ -559,7 +552,6 @@ func TestCheckInDir_NoExclusions_MissingServerRepositoryDir(t *testing.T) {
 		// migrations/ subdirectory intentionally omitted.
 
 		require.NoError(t, os.WriteFile(filepath.Join(psDir, ps.Service+".go"), []byte("package main\n"), cryptoutilSharedMagic.CacheFilePermissions))
-		require.NoError(t, os.WriteFile(filepath.Join(psDir, ps.Service+"_usage.go"), []byte("package main\n"), cryptoutilSharedMagic.CacheFilePermissions))
 		require.NoError(t, os.WriteFile(filepath.Join(psDir, ps.Service+"_cli_test.go"), []byte("package main\n"), cryptoutilSharedMagic.CacheFilePermissions))
 		require.NoError(t, os.WriteFile(filepath.Join(serverDir, "server.go"), []byte("package server\n"), cryptoutilSharedMagic.CacheFilePermissions))
 		require.NoError(t, os.WriteFile(filepath.Join(serverDir, "testmain_test.go"), []byte("package server\n"), cryptoutilSharedMagic.CacheFilePermissions))
@@ -603,7 +595,6 @@ func TestCheckInDir_NoExclusions_MissingE2EFile(t *testing.T) {
 		require.NoError(t, os.MkdirAll(filepath.Join(psDir, "e2e"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 		require.NoError(t, os.WriteFile(filepath.Join(psDir, ps.Service+".go"), []byte("package main\n"), cryptoutilSharedMagic.CacheFilePermissions))
-		require.NoError(t, os.WriteFile(filepath.Join(psDir, ps.Service+"_usage.go"), []byte("package main\n"), cryptoutilSharedMagic.CacheFilePermissions))
 		require.NoError(t, os.WriteFile(filepath.Join(psDir, ps.Service+"_cli_test.go"), []byte("package main\n"), cryptoutilSharedMagic.CacheFilePermissions))
 		require.NoError(t, os.WriteFile(filepath.Join(serverDir, "server.go"), []byte("package server\n"), cryptoutilSharedMagic.CacheFilePermissions))
 		require.NoError(t, os.WriteFile(filepath.Join(serverDir, "testmain_test.go"), []byte("package server\n"), cryptoutilSharedMagic.CacheFilePermissions))

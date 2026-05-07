@@ -7,7 +7,6 @@ This directory contains the identity-rs application entrypoint package.
 ## Canonical Root Files
 
 - rs.go
-- rs_usage.go
 - rs_cli_test.go
 - rs_port_conflict_test.go
 - testmain_test.go

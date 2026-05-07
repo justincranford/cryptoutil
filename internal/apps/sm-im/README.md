@@ -7,7 +7,6 @@ This directory contains the sm-im application entrypoint package.
 ## Canonical Root Files
 
 - im.go
-- im_usage.go
 - im_cli_test.go
 - im_port_conflict_test.go
 - testmain_test.go

@@ -7,7 +7,6 @@ This directory contains the identity-authz application entrypoint package.
 ## Canonical Root Files
 
 - authz.go
-- authz_usage.go
 - authz_cli_test.go
 - authz_port_conflict_test.go
 - testmain_test.go

@@ -7,7 +7,6 @@ This directory contains the jose-ja application entrypoint package.
 ## Canonical Root Files
 
 - ja.go
-- ja_usage.go
 - ja_cli_test.go
 - ja_port_conflict_test.go
 - testmain_test.go
