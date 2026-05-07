@@ -76,7 +76,7 @@ This document is structured to serve multiple audiences:
 | Secrets management | [12.3.3](#1233-secrets-coordination-strategy) | [6.10](#610-secrets-detection-strategy), [13.3](#133-secrets-management-in-deployments), [4.4.6](#446-deployments) |
 | TLS / mTLS | [6.11](#611-tls-certificate-configuration) | [5.3](#53-dual-https-endpoint-pattern), [6.5](#65-pki-architecture--strategy) |
 | Port assignments | [3.4](#34-port-assignments--networking) | [3.4.1](#341-port-design-principles), [12.3.4](#1234-multi-level-deployment-hierarchy) |
-| Health checks | [5.5](#55-health-check-patterns) | [10.3.5](#1035-cross-service-contract-test-pattern) |
+| Health checks | [5.5](#55-health-check-patterns) | [10.3.5](#1035-cross-service-ps-id-template-instantiation-pattern) |
 | Testing database tiers | [10.1](#101-testing-strategy-overview) | [7.3](#73-dual-database-strategy) |
 | @propagate system | [13.4](#134-documentation-propagation-strategy) | [13.4.7](#1347-propagation-coverage-accounting) |
 | Key rotation | [6.4.2](#642-key-hierarchy-barrier-service) | [6.7](#67-key-management-system-architecture) |
@@ -470,7 +470,7 @@ Here is current git status:
 | `migration-create` | data | Create numbered golang-migrate SQL files (template 1001-1999, domain 2001+) | [SKILL.md](.github/skills/migration-create/SKILL.md) |
 | `new-service` | architecture | Guide service creation from skeleton-template: copy, rename, register, migrate, test | [SKILL.md](.github/skills/new-service/SKILL.md) |
 | `propagation-check` | docs | Detect @propagate/@source drift, generate corrected @source blocks | [SKILL.md](.github/skills/propagation-check/SKILL.md) |
-| `contract-test-gen` | testing | Generate cross-service contract compliance tests for framework behavioral contracts | [SKILL.md](.github/skills/contract-test-gen/SKILL.md) |
+| `psid-template-sync` | testing | Keep stable PS-ID template-instantiated files synchronized across all 10 services via exact template-drift enforcement | [SKILL.md](.github/skills/psid-template-sync/SKILL.md) |
 | `fitness-function-gen` | tooling | Create new architecture fitness function (linter) for lint-fitness framework | [SKILL.md](.github/skills/fitness-function-gen/SKILL.md) |
 | `agent-scaffold` | tooling | Create both `.github/agents/NAME.agent.md` (Copilot, with `tools:`) and `.claude/agents/NAME.md` (Claude Code, without `tools:`) with all mandatory sections | [SKILL.md](.github/skills/agent-scaffold/SKILL.md) |
 | `instruction-scaffold` | tooling | Create conformant `.github/instructions/NN-NN.name.instructions.md` | [SKILL.md](.github/skills/instruction-scaffold/SKILL.md) |
@@ -4157,39 +4157,29 @@ ctx, cancel := context.WithTimeout(ctx, magic.DefaultDataServerShutdownTimeout) 
 ```
 <!-- @/propagate -->
 
-#### 10.3.5 Cross-Service Contract Test Pattern
+#### 10.3.5 Cross-Service PS-ID Template Instantiation Pattern
 
-**Purpose**: Validate that all services conform to shared behavioral contracts (health endpoints, dual-server isolation, response format) without duplicating test code in each service.
+**Purpose**: Enforce consistent source and test scaffolding across all 10 PS-IDs using canonical templates under `api/cryptosuite-registry/templates/internal/apps/__PS_ID__/` and exact-match linting.
 
-**Entry Point**:
+**Canonical enforcement mechanism**: `go run ./cmd/cicd-lint lint-fitness` runs the `apps-ps-id-template` sub-linter, which validates every PS-ID against `api/cryptosuite-registry/templates/internal/apps/__PS_ID__/MANIFEST.yaml` and exact canonical template comparisons for the enforced file families.
 
-```go
-import cryptoutilContract "cryptoutil/internal/apps-framework/service/testing/contract"
+**Exact-match canonical template families enforced today**:
 
-func TestMyService_ContractCompliance(t *testing.T) {
-    t.Parallel()
-    cryptoutilContract.RunContractTests(t, testServer)
-}
-```
+- `internal/apps/__PS_ID__/__SERVICE___usage.go`
+- `internal/apps/__PS_ID__/__SERVICE___cli_test.go`
+- `internal/apps/__PS_ID__/client/client.go`
+- `internal/apps/__PS_ID__/README.md`
+- `internal/apps/__PS_ID__/testmain_test.go`
+- `internal/apps/__PS_ID__/server/__SERVICE___port_conflict_test.go`
 
-**`ServiceServer` Interface** (required by `RunContractTests`):
+**Required workflow**:
 
-```go
-type ServiceServer interface {
-    PublicBaseURL() string                 // base URL e.g. "https://127.0.0.1:8080"
-    AdminBaseURL() string                  // base URL e.g. "https://127.0.0.1:9090"
-    SetReady(ready bool)                   // used by RunReadyzNotReadyContract
-    TLSRootCAPool() *x509.CertPool         // public server CA pool (no InsecureSkipVerify)
-    AdminTLSRootCAPool() *x509.CertPool    // admin server CA pool (no InsecureSkipVerify)
-    // ... (full interface: see internal/apps-framework/service/server/contract.go)
-}
-```
+1. Update the canonical template under `api/cryptosuite-registry/templates/internal/apps/__PS_ID__/` first.
+2. Apply the equivalent change to every instantiated PS-ID file in the same semantic commit.
+3. Run `go run ./cmd/cicd-lint lint-fitness` and require `apps-ps-id-template` to pass with exact content matching.
+4. If a file family is no longer structurally identical across all 10 PS-IDs, remove it from exact template enforcement explicitly instead of allowing silent drift.
 
-**TLS Accessors**: `TLSRootCAPool()` and `AdminTLSRootCAPool()` return the root CA certificate pools for the auto-generated ephemeral TLS chains. Test infrastructure uses these to create properly-trusted HTTP clients without `InsecureSkipVerify: true`. See [Section 10.3.7](#1037-tls-test-bundle-pattern) for the full pattern.
-
-**What contracts are verified**: health endpoint liveness, readiness, dual-server isolation (public vs. admin port separation), and response format correctness.
-
-**`SetReady(true)` Requirement**: If using `MustStartAndWaitForDualPorts` in a manual `TestMain`, you MUST call `server.SetReady(true)` explicitly after the server starts. The `testserver.StartAndWait` helper does this automatically.
+**Rationale**: Template-instantiated files are a stronger consistency mechanism than shared contract test helpers because the linter confirms the exact bytes of the maintained scaffolding across all services.
 
 #### 10.3.6 Shared Test Infrastructure
 

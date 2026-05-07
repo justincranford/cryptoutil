@@ -11,8 +11,6 @@ import (
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
-	cryptoutilContract "cryptoutil/internal/apps-framework/service/testing/contract"
-
 	"github.com/stretchr/testify/require"
 )
 
@@ -195,10 +193,3 @@ func TestAuthzServer_AccessorMethods(t *testing.T) {
 
 // HTTP timeout for test requests.
 const httpTimeout = 5 * time.Second
-
-func TestAuthzServer_ContractCompliance(t *testing.T) {
-	t.Parallel()
-	requireTestSetup(t)
-
-	cryptoutilContract.RunContractTests(t, testServer)
-}

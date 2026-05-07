@@ -14,7 +14,6 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	cryptoutilContract "cryptoutil/internal/apps-framework/service/testing/contract"
 	cryptoutilTestingTestserver "cryptoutil/internal/apps-framework/service/testing/testserver"
 	cryptoutilAppsJoseJaServerConfig "cryptoutil/internal/apps/jose-ja/server/config"
 )
@@ -117,9 +116,4 @@ func TestJoseJAServer_ShutdownIdempotent(t *testing.T) {
 
 	err = server.Shutdown(shutdownCtx)
 	require.NoError(t, err, "shutdown should succeed")
-}
-
-func TestJoseJAServer_ContractCompliance(t *testing.T) {
-	t.Parallel()
-	cryptoutilContract.RunContractTests(t, testServer)
 }

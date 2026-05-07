@@ -77,7 +77,7 @@ Full Copilot originals: [.github/skills/](.github/skills/).
 | `/migration-create` | Create numbered SQL migration files per registry.yaml ranges |
 | `/new-service` | Create new PS-ID service from skeleton-template (9-step guide) |
 | `/propagation-check` | Detect `@propagate`/`@source` drift between ENG-HANDBOOK.md and instruction files |
-| `/contract-test-gen` | Cross-service contract compliance tests via TestMain pattern |
+| `/psid-template-sync` | Keep stable PS-ID template-instantiated files synchronized across all 10 services |
 | `/fitness-function-gen` | New architecture fitness function linter in cicd_lint/lint_fitness/ |
 | `/agent-scaffold` | New `.github/agents/NAME.agent.md` + `.claude/agents/NAME.md` dual canonical pair |
 | `/instruction-scaffold` | New `.github/instructions/NN-NN.name.instructions.md` |

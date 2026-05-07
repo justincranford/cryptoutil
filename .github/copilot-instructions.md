@@ -45,7 +45,7 @@ See [.github/skills/README.md](.github/skills/README.md) for the full catalogue.
 | `/skill-scaffold` | Creating a new `.github/skills/NAME/SKILL.md` |
 | `/sync-copilot-claude` | Auditing/syncing Copilot skills and agents with their Claude counterparts |
 | `/new-service` | Creating a new service from skeleton-template |
-| `/contract-test-gen` | Adding cross-service contract compliance tests to a service |
+| `/psid-template-sync` | Updating stable PS-ID template-instantiated files and keeping all 10 services exact-match lint clean |
 | `/fitness-function-gen` | Creating a new architecture fitness function (linter) |
 
 ## Instruction Files Reference

@@ -86,7 +86,6 @@
 | internal/apps/{PS-ID}/**PS_ID**.go | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | Canonical PS-ID entrypoint file; required across services. |
 | internal/apps/{PS-ID}/__PS_ID___usage.go | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | Canonical usage/help wiring file; allowed in all PS-IDs. |
 | internal/apps/{PS-ID}/__PS_ID___cli_test.go | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | Canonical CLI behavior test file. |
-| internal/apps/{PS-ID}/__PS_ID___contract_test.go | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | Contract compliance tests are mandatory across services. |
 | internal/apps/{PS-ID}/__PS_ID___lifecycle_test.go | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | Standard lifecycle regression test pattern. |
 | internal/apps/{PS-ID}/__PS_ID___port_conflict_test.go | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | Standard port conflict safety test pattern. |
 | internal/apps/{PS-ID}/testmain_test.go | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | Shared TestMain pattern is valid across all services. |

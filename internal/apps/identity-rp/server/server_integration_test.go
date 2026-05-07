@@ -10,8 +10,6 @@ import (
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
-	cryptoutilContract "cryptoutil/internal/apps-framework/service/testing/contract"
-
 	"github.com/stretchr/testify/require"
 )
 
@@ -133,11 +131,4 @@ func TestRPServer_AccessorMethods(t *testing.T) {
 	adminURL := testServer.AdminBaseURL()
 	require.NotEmpty(t, adminURL, "admin base URL should not be empty")
 	require.Contains(t, adminURL, "https://", "admin URL should use HTTPS")
-}
-
-func TestRPServer_ContractCompliance(t *testing.T) {
-	t.Parallel()
-	requireTestSetup(t)
-
-	cryptoutilContract.RunContractTests(t, testServer)
 }

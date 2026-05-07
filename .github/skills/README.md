@@ -36,7 +36,7 @@ Copilot auto-load it when your request matches the skill description.
 | `instruction-scaffold` | tooling | Create conformant `.github/instructions/NN-NN.name.instructions.md` | [SKILL.md](instruction-scaffold/SKILL.md) |
 | `skill-scaffold` | tooling | Create conformant `.github/skills/NAME/SKILL.md` with proper frontmatter | [SKILL.md](skill-scaffold/SKILL.md) |
 | `sync-copilot-claude` | tooling | Audit/sync Copilot skills+agents with Claude skills+agents; migration status for legacy commands | [SKILL.md](sync-copilot-claude/SKILL.md) |
-| `contract-test-gen` | testing | Generate cross-service contract compliance tests (RunContractTests, ServiceServer, SetReady) | [SKILL.md](contract-test-gen/SKILL.md) |
+| `psid-template-sync` | testing | Keep stable PS-ID template-instantiated files synchronized across all 10 services via template-drift | [SKILL.md](psid-template-sync/SKILL.md) |
 | `fitness-function-gen` | testing | Generate architecture fitness functions for lint-fitness (Check, CheckInDir, registration) | [SKILL.md](fitness-function-gen/SKILL.md) |
 
 ## Skills vs Custom Instructions vs Agents

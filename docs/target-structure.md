@@ -189,7 +189,7 @@ artifacts that must never be committed.
 .github/skills/
 ├── README.md
 ├── agent-scaffold/SKILL.md
-├── contract-test-gen/SKILL.md
+├── psid-template-sync/SKILL.md
 ├── coverage-analysis/SKILL.md
 ├── fips-audit/SKILL.md
 ├── fitness-function-gen/SKILL.md
@@ -243,7 +243,7 @@ for the dual canonical file strategy and drift linting (`lint-agent-drift`, `lin
 │   └── implementation-planning.md
 └── skills/                                # Claude skills (15 — mirrors .github/skills/)
     ├── agent-scaffold/SKILL.md
-    ├── contract-test-gen/SKILL.md
+    ├── psid-template-sync/SKILL.md
     ├── coverage-analysis/SKILL.md
     ├── fips-audit/SKILL.md
     ├── fitness-function-gen/SKILL.md
@@ -1104,7 +1104,7 @@ lint_fitness/
 ├── root_junk_detection/                   # Root directory junk file detection
 ├── secret_content/                        # Secret file content validation
 ├── secret_naming/                         # Secret file naming conventions
-├── service_contract_compliance/           # Service contract test presence
+├── service_contract_compliance/           # ServiceServer compile-time assertion enforcement
 ├── service_structure/                     # Service directory structure validation
 ├── standalone_config_otlp_names/          # Standalone config OTLP name consistency
 ├── standalone_config_presence/            # Standalone config file presence
