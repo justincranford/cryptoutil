@@ -15,7 +15,7 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/jackc/pgx/v5 v5.9.2
 	github.com/leanovate/gopter v0.2.11
-	github.com/lestrrat-go/jwx/v3 v3.1.0
+	github.com/lestrrat-go/jwx/v3 v3.1.1
 	github.com/lib/pq v1.12.3
 	github.com/moby/moby/api v1.54.2
 	github.com/oapi-codegen/fiber-middleware v1.0.2
