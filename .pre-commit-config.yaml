@@ -381,7 +381,7 @@ repos:
 
   # Conventional commit validation
   - repo: https://github.com/commitizen-tools/commitizen
-    rev: v4.15.0
+    rev: v4.15.1
     hooks:
       - id: commitizen
         name: Check conventional commit message
@@ -390,7 +390,7 @@ repos:
 
   # IaC / Container security scanning (Dockerfiles, Docker Compose, Kubernetes)
   - repo: https://github.com/bridgecrewio/checkov
-    rev: 3.2.526
+    rev: 3.2.527
     hooks:
       - id: checkov
         name: Checkov IaC security scan
