@@ -1,6 +1,12 @@
 //go:build ignore
 
 // Copyright (c) 2025-2026 Justin Cranford.
+// Health endpoints exposed by this service (referenced in BuildUsage* output):
+//   - /service/api/v1/health  (service-to-service health check)
+//   - /browser/api/v1/health  (browser health check)
+//   - /admin/api/v1/livez     (liveness probe)
+//   - /admin/api/v1/readyz    (readiness probe)
+//   - /admin/api/v1/shutdown  (graceful shutdown trigger)
 //
 //
 
@@ -14,6 +20,9 @@ import (
 	_ "modernc.org/sqlite"             // CGO-free SQLite driver
 
 	cryptoutilTemplateCli "cryptoutil/internal/apps-framework/service/cli"
+	__FIRST_APP_IMPORT_ALIAS__ "__FIRST_APP_IMPORT_PATH__"
+	__SECOND_APP_IMPORT_ALIAS__ "__SECOND_APP_IMPORT_PATH__"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // __ENTRY_FUNC__ implements the __PS_ID__ service subcommand handler.

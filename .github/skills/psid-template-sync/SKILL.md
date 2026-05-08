@@ -23,6 +23,7 @@ This applies to the stable PS-ID file families instantiated from `api/cryptosuit
 
 The current exact-match PS-ID template families are:
 
+- `internal/apps/__PS_ID__/__SERVICE__.go`
 - `internal/apps/__PS_ID__/__SERVICE___usage.go`
 - `internal/apps/__PS_ID__/__SERVICE___test.go`
 - `internal/apps/__PS_ID__/client/client.go`

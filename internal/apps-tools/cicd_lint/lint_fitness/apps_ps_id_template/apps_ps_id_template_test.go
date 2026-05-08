@@ -22,8 +22,14 @@ func TestCanonicalTemplateFilesUseActualCanonicalPaths(t *testing.T) {
 			continue
 		}
 
-		require.Equal(t, "__SERVICE___test.go", spec.templatePath)
-		require.Equal(t, "__SERVICE___test.go", spec.actualPath)
+		switch spec.templatePath {
+		case "__SERVICE__.go":
+			require.Equal(t, "__SERVICE__.go", spec.actualPath)
+		case "__SERVICE___test.go":
+			require.Equal(t, "__SERVICE___test.go", spec.actualPath)
+		default:
+			t.Fatalf("unexpected root template path: %s", spec.templatePath)
+		}
 	}
 }
 
