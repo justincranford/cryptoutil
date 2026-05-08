@@ -426,6 +426,10 @@ var (
 		`\.pb\.go$`, // Protocol buffer files.
 	}
 
+	// CICDFormatGoTemplateExcludePattern excludes template Go sources from format-go.
+	// Template placeholders intentionally include unresolved aliases and must not be goimports-normalized.
+	CICDFormatGoTemplateExcludePattern = `api[/\\]cryptosuite-registry[/\\]templates[/\\].*\.go$`
+
 	// EnforceUtf8FileIncludePatterns - File patterns to include in UTF-8 encoding checks.
 	EnforceUtf8FileIncludePatterns = []string{
 		// Source code files.

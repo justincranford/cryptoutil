@@ -37,6 +37,12 @@ func TestFilterFilesForCommand(t *testing.T) {
 			expected:    []string{"internal/common/magic/magic.go"},
 		},
 		{
+			name:        "filters template go files for format-go",
+			files:       []string{"api/cryptosuite-registry/templates/internal/apps/__PS_ID__/__SERVICE__.go", "internal/common/magic/magic.go"},
+			commandName: "format-go",
+			expected:    []string{"internal/common/magic/magic.go"},
+		},
+		{
 			name:        "filters generated files",
 			files:       []string{"api/server/generated_gen.go", "internal/common/magic/magic.go", "proto/service.pb.go"},
 			commandName: "lint-text",

@@ -24,6 +24,11 @@ func FilterFilesForCommand(files []string, commandName string) []string {
 		selfExclusionRegex = regexp.MustCompile(selfExclusionPattern)
 	}
 
+	var formatGoTemplateExclusionRegex *regexp.Regexp
+	if commandName == "format-go" {
+		formatGoTemplateExclusionRegex = regexp.MustCompile(cryptoutilSharedMagic.CICDFormatGoTemplateExcludePattern)
+	}
+
 	generatedPatterns := make([]*regexp.Regexp, 0, len(cryptoutilSharedMagic.GeneratedFileExcludePatterns))
 	for _, pattern := range cryptoutilSharedMagic.GeneratedFileExcludePatterns {
 		generatedPatterns = append(generatedPatterns, regexp.MustCompile(pattern))
@@ -34,6 +39,10 @@ func FilterFilesForCommand(files []string, commandName string) []string {
 	for _, file := range files {
 		// Check self-exclusion.
 		if selfExclusionRegex != nil && selfExclusionRegex.MatchString(file) {
+			continue
+		}
+
+		if formatGoTemplateExclusionRegex != nil && formatGoTemplateExclusionRegex.MatchString(file) {
 			continue
 		}
 
