@@ -49,6 +49,7 @@ linters:
 
   exclusions:
     paths:
+      - api/cryptosuite-registry/templates
       - api/client
       - api/model
       - api/server

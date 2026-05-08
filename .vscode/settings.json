@@ -625,6 +625,9 @@
   "go.toolsManagement.autoUpdate": true, // Auto-update Go tools - Default: true, Recommended: true (keep tools current)
   "go.terminal.activateEnvironment": true, // Activate Go environment in terminal - Default: true
   "gopls": {
+    "build.directoryFilters": [
+      "-api/cryptosuite-registry/templates"
+    ], // Exclude template Go sources from gopls analysis — prevents format-on-save from stripping placeholder imports (//go:build ignore files with unresolvable __ALIAS__ "__PATH__" placeholders)
     "ui.completion.usePlaceholders": false, // Use placeholders in completion - Default: true, Recommended: false
     "ui.completion.completionBudget": "200ms", // Time budget for completion - Default: "100ms"
     "ui.diagnostic.analyses": {
