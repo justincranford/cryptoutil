@@ -4067,6 +4067,10 @@ der_pem_coverage_test.go              der_pem_error_paths_test.go
 
 **ALL integration tests MUST use TestMain for heavyweight dependencies**:
 
+- Use exactly one `testmain_test.go` per package.
+- `testmain_test.go` MUST NOT include `//go:build` or `// +build` directives.
+- Split files such as `testmain_integration_test.go` are forbidden; one TestMain must serve both tagged and untagged test runs.
+
 ```go
 var (
     testDB     *gorm.DB
@@ -4172,6 +4176,12 @@ ctx, cancel := context.WithTimeout(ctx, magic.DefaultDataServerShutdownTimeout) 
 - `internal/apps/__PS_ID__/README.md`
 - `internal/apps/__PS_ID__/testmain_test.go`
 - `internal/apps/__PS_ID__/server/__SERVICE___port_conflict_test.go`
+
+**Additional structural conformance enforced today**:
+
+- `internal/apps/__PS_ID__/server/testmain_test.go` exists for all 10 PS-IDs.
+- `internal/apps/__PS_ID__/server/testmain_test.go` MUST NOT include `//go:build` or `// +build`.
+- `internal/apps/__PS_ID__/server/` MUST NOT contain split files such as `testmain_integration_test.go` or other `testmain_*_test.go` variants.
 
 **Required workflow**:
 

@@ -501,6 +501,8 @@ After tests pass, think about the original intent, write additional tests to ens
 **TestMain Pattern (MANDATORY):**
 
 - ALWAYS use TestMain to start heavyweight resources once per package (databases, servers, containers)
+- ALWAYS keep exactly one `testmain_test.go` per package; never split into `testmain_*_test.go` files
+- `testmain_test.go` MUST NOT include `//go:build` or `// +build` directives
 - Reuse heavyweight resources across ALL tests in the package
 - ALWAYS use UUIDv7 to create orthogonal test data per test that is independent from all other tests
 - Pattern: var (testDB *gorm.DB; testServer*Server) initialized in TestMain(m *testing.M)

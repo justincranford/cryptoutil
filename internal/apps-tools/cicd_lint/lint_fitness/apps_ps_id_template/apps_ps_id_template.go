@@ -75,10 +75,6 @@ var knownServerFileExclusions = map[string]map[string]bool{
 	// swagger files live at PS-ID root, not server/ yet; all 10 excluded during migration.
 	"swagger.go":      allTenPSIDs,
 	"swagger_test.go": allTenPSIDs,
-	// sm-kms: testmain_test.go not yet present in server/ (pending migration).
-	"testmain_test.go": {
-		cryptoutilSharedMagic.OTLPServiceSMKMS: true,
-	},
 	// Lifecycle tests are still non-canonical for these services.
 	"__SERVICE___lifecycle_test.go": {
 		cryptoutilSharedMagic.OTLPServiceJoseJA:           true,
@@ -278,6 +274,7 @@ func checkPSIDFiles(
 	violations = append(violations, checkServerConfigFiles(psDir, ps, manifest, excl)...)
 	violations = append(violations, checkServerRepositoryFiles(psDir, ps, manifest, excl)...)
 	violations = append(violations, checkServerRepositoryDirs(psDir, ps, manifest, excl)...)
+	violations = append(violations, checkTestmainConformance(psDir, ps)...)
 	violations = append(violations, checkE2EFiles(psDir, ps, manifest, excl)...)
 
 	return violations

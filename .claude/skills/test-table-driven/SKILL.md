@@ -18,6 +18,8 @@ Use this skill when writing or reviewing Go tests. Ensures correct patterns:
 - `require` package (fail-fast) over `assert` (continue-on-failure)
 - Table-driven for ALL multi-case tests (happy path AND sad path)
 - TestMain for heavyweight resources (DB, servers, containers) — one per package
+- Use exactly one `testmain_test.go` per package; never split into `testmain_*_test.go` variants
+- `testmain_test.go` must not use `//go:build` or `// +build` directives
 - Fiber `app.Test()` for ALL HTTP handler tests (no real network listeners)
 - SQLite DateTime: ALWAYS use `time.Now().UTC()` when comparing timestamps
 - Timing: unit tests MUST complete in <15s per package; full suite <180s
@@ -79,6 +81,8 @@ func TestListMessages_Handler(t *testing.T) {
 Benefits: no port conflicts, no Windows Firewall popups, tests run in <1ms.
 
 ## TestMain Pattern (heavyweight resources)
+
+Use one untagged `testmain_test.go` file per package so the same TestMain works for both tagged and untagged test runs.
 
 ```go
 var (

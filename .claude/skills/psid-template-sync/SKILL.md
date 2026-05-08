@@ -18,6 +18,7 @@ This applies to the stable PS-ID file families instantiated from `api/cryptosuit
 - Apply the template change and all 10 instantiations in the same semantic commit.
 - Validate with `go run ./cmd/cicd-lint lint-fitness` and require `apps-ps-id-template` to pass.
 - If a file family is no longer structurally identical across all 10 PS-IDs, remove it from exact template enforcement explicitly instead of allowing silent drift.
+- Enforce one untagged `server/testmain_test.go` per PS-ID server package (no `testmain_*_test.go` split variants).
 
 ## Enforced Canonical Template Families
 
@@ -30,6 +31,12 @@ The current exact-match PS-ID template families are:
 - `internal/apps/__PS_ID__/README.md`
 - `internal/apps/__PS_ID__/testmain_test.go`
 - `internal/apps/__PS_ID__/server/__SERVICE___port_conflict_test.go`
+
+## Additional Structural Conformance
+
+- `internal/apps/__PS_ID__/server/testmain_test.go` must exist for all 10 PS-IDs.
+- `internal/apps/__PS_ID__/server/testmain_test.go` must not include `//go:build` or `// +build`.
+- `internal/apps/__PS_ID__/server/` must not contain split files such as `testmain_integration_test.go` or other `testmain_*_test.go` variants.
 
 ## Workflow
 

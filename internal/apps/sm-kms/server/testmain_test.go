@@ -1,8 +1,6 @@
-//go:build !integration
-
 // Copyright (c) 2025-2026 Justin Cranford.
 //
-// TestMain for SM-KMS server unit tests.
+// TestMain for SM-KMS server tests.
 package server
 
 import (

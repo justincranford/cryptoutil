@@ -13,5 +13,6 @@ required_dirs:
   - server
 
 required_server_files:
+  - testmain_test.go
   - __SERVICE___lifecycle_test.go
   - __SERVICE___port_conflict_test.go

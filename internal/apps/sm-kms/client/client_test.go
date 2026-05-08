@@ -2,26 +2,20 @@
 
 // Copyright (c) 2025-2026 Justin Cranford.
 //
-// NOTE: These tests require a PostgreSQL database and are skipped in CI without the integration tag.
+// NOTE: These tests require the integration or e2e build tag.
 //
 
 package client
 
 import (
 	"context"
-	"crypto/x509"
 	json "encoding/json"
 	"fmt"
-	"log"
-	"os"
 	"strconv"
 	"strings"
 	"testing"
 
 	cryptoutilOpenapiModel "cryptoutil/api/sm-kms/models"
-	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps-framework/service/config"
-	cryptoutilAppsFrameworkServiceTestingE2eHelpers "cryptoutil/internal/apps-framework/service/testing/e2e_helpers"
-	cryptoutilKmsServer "cryptoutil/internal/apps/sm-kms/server"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	cryptoutilSharedUtilRandom "cryptoutil/internal/shared/util/random"
@@ -33,36 +27,6 @@ import (
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 )
-
-var (
-	testSettings         = cryptoutilAppsFrameworkServiceConfig.RequireNewForTest("application_test")
-	testServerPublicURL  string
-	testServerPrivateURL string
-	testRootCAsPool      *x509.CertPool
-)
-
-func TestMain(m *testing.M) {
-	ctx := context.Background()
-
-	testServer, err := cryptoutilKmsServer.NewKMSServerFromConfig(ctx, testSettings)
-	if err != nil {
-		log.Fatalf("failed to create server: %v", err)
-	}
-
-	cryptoutilAppsFrameworkServiceTestingE2eHelpers.MustStartAndWaitForDualPorts(testServer, func() error {
-		return testServer.Start(ctx)
-	})
-
-	defer func() {
-		_ = testServer.Shutdown(ctx)
-	}()
-
-	testServerPublicURL = testServer.PublicBaseURL()
-	testServerPrivateURL = testServer.AdminBaseURL()
-	testRootCAsPool = testServer.TLSRootCAPool()
-
-	os.Exit(m.Run())
-}
 
 type elasticKeyTestCase struct {
 	name              string

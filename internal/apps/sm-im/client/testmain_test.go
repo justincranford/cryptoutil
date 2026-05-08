@@ -1,9 +1,6 @@
-//go:build integration
-// +build integration
-
 // Copyright (c) 2025-2026 Justin Cranford.
 //
-//
+// TestMain for SM-IM client tests.
 
 package client
 
@@ -33,12 +30,12 @@ var (
 	sharedServiceBaseURL string // Deprecated: use publicBaseURL.
 )
 
-// TestMain initializes sm-im server with SQLite in-memory for fast integration tests.
-// Integration tests start the full application but use SQLite instead of PostgreSQL,
+// TestMain initializes sm-im server with SQLite in-memory for fast tests.
+// Tests start the full application but use SQLite instead of PostgreSQL,
 // and exclude telemetry containers (otel-collector, grafana-lgtm).
 func TestMain(m *testing.M) {
 	settings := cryptoutilAppsFrameworkServiceConfig.RequireNewForTest("sm-im-integration-test")
-	settings.DatabaseURL = cryptoutilSharedMagic.SQLiteInMemoryDSN // SQLite in-memory for fast integration tests.
+	settings.DatabaseURL = cryptoutilSharedMagic.SQLiteInMemoryDSN // SQLite in-memory for fast tests.
 
 	testSmIMServer = &cryptoutilAppsSmImServerConfig.SmIMServerSettings{
 		ServiceFrameworkServerSettings: settings,

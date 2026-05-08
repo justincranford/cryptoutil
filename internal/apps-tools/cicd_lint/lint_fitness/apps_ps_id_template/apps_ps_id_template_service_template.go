@@ -54,6 +54,94 @@ func checkRootTemplates(rootDir, psDir string, ps cryptoutilFitnessRegistry.Prod
 	return violations
 }
 
+// checkTestmainConformance enforces one untagged testmain_test.go per package.
+// server/ must have exactly one testmain_test.go and no split variants.
+// client/ may omit testmain_test.go, but if present it must be untagged and unique.
+func checkTestmainConformance(psDir string, ps cryptoutilFitnessRegistry.ProductService) []string {
+	var violations []string
+
+	violations = append(violations, checkPackageTestmainConformance(psDir, ps, "server", true)...)
+	violations = append(violations, checkPackageTestmainConformance(psDir, ps, "client", false)...)
+
+	return violations
+}
+
+func checkPackageTestmainConformance(
+	psDir string,
+	ps cryptoutilFitnessRegistry.ProductService,
+	packageName string,
+	requireTestmain bool,
+) []string {
+	packageDir := filepath.Join(psDir, packageName)
+
+	entries, readErr := os.ReadDir(packageDir)
+	if readErr != nil {
+		return []string{fmt.Sprintf("%s: failed to read %s package directory %s: %v", ps.PSID, packageName, packageDir, readErr)}
+	}
+
+	var violations []string
+
+	hasTestmain := false
+
+	for _, entry := range entries {
+		if entry.IsDir() {
+			continue
+		}
+
+		name := entry.Name()
+		if name == "testmain_test.go" {
+			hasTestmain = true
+
+			continue
+		}
+
+		if strings.HasPrefix(name, "testmain_") && strings.HasSuffix(name, "_test.go") {
+			violations = append(
+				violations,
+				fmt.Sprintf("%s: %s package has split TestMain file %s; use only testmain_test.go", ps.PSID, packageName, filepath.Join(packageDir, name)),
+			)
+		}
+	}
+
+	if requireTestmain && !hasTestmain {
+		violations = append(
+			violations,
+			fmt.Sprintf("%s: %s package missing required testmain_test.go", ps.PSID, packageName),
+		)
+	}
+
+	if !hasTestmain {
+		return violations
+	}
+
+	testmainPath := filepath.Join(packageDir, "testmain_test.go")
+
+	content, readErr := os.ReadFile(testmainPath)
+	if readErr != nil {
+		violations = append(violations, fmt.Sprintf("%s: failed to read %s: %v", ps.PSID, testmainPath, readErr))
+
+		return violations
+	}
+
+	for lineNumber, line := range strings.Split(string(content), "\n") {
+		trimmed := strings.TrimSpace(line)
+		if strings.HasPrefix(trimmed, "//go:build") || strings.HasPrefix(trimmed, "// +build") {
+			violations = append(
+				violations,
+				fmt.Sprintf(
+					"%s: %s package testmain_test.go must not include build tags (line %d in %s)",
+					ps.PSID,
+					packageName,
+					lineNumber+1,
+					testmainPath,
+				),
+			)
+		}
+	}
+
+	return violations
+}
+
 func checkSingleTemplateFile(
 	templatePath string,
 	psDir string,
