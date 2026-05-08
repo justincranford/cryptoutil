@@ -2,37 +2,13 @@
 package ca
 
 import (
-	"bytes"
 	"testing"
 
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
-
-	"github.com/stretchr/testify/require"
+	cryptoutilTestCli "cryptoutil/internal/apps-framework/service/testing/testcli"
 )
 
-func TestCA_MainHelp(t *testing.T) {
+func TestCA(t *testing.T) {
 	t.Parallel()
 
-	var stdout, stderr bytes.Buffer
-
-	exitCode := Ca([]string{cryptoutilSharedMagic.CLIHelpFlag}, nil, &stdout, &stderr)
-	require.Equal(t, 0, exitCode)
-}
-
-func TestCA_Version(t *testing.T) {
-	t.Parallel()
-
-	var stdout, stderr bytes.Buffer
-
-	exitCode := Ca([]string{cryptoutilSharedMagic.CLIVersionCommand}, nil, &stdout, &stderr)
-	require.Equal(t, 0, exitCode)
-}
-
-func TestCA_UnknownSubcommand(t *testing.T) {
-	t.Parallel()
-
-	var stdout, stderr bytes.Buffer
-
-	exitCode := Ca([]string{"unknown-subcommand"}, nil, &stdout, &stderr)
-	require.Equal(t, 1, exitCode)
+	cryptoutilTestCli.RunCLITests(t, Ca)
 }

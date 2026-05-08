@@ -35,6 +35,7 @@ const (
 	templateNewFromConfig         = "NewFromConfig"
 	templateIdentityProductName   = "IdentityProductName"
 	templateEntryFuncTemplateName = "Template"
+	templateServerImportAlias     = "cryptoutilAppsServiceServer"
 )
 
 // checkRootTemplates validates canonical template conformance for root and client files.
@@ -169,7 +170,7 @@ func serviceRootTemplateValues(ps cryptoutilFitnessRegistry.ProductService) (map
 	serviceConfigAlias := "cryptoutilAppsServiceServerConfig"
 	serviceConfigImportPath := ""
 	serviceServerImportPath := ""
-	configBeforeTLS := false
+	configBeforeServer := false
 
 	values := map[string]string{
 		cryptoutilSharedMagic.CICDTemplateExpansionKeyService: ps.Service,
@@ -194,7 +195,7 @@ func serviceRootTemplateValues(ps cryptoutilFitnessRegistry.ProductService) (map
 		serviceConfigImportPath = "cryptoutil/internal/apps-framework/service/config"
 		serviceServerImportPath = "cryptoutil/internal/apps/sm-kms/server"
 		serviceConfigAlias = "cryptoutilAppsFrameworkServiceConfig"
-		configBeforeTLS = true
+		configBeforeServer = true
 		values["__ENTRY_FUNC__"] = "Kms"
 		values["__SERVICE_DISPLAY_NAME_CONST__"] = "KMSDisplayName"
 		values["__SERVICE_ID_CONST__"] = "KMSServiceID"
@@ -314,26 +315,20 @@ func serviceRootTemplateValues(ps cryptoutilFitnessRegistry.ProductService) (map
 	}
 
 	values["__SERVICE_CONFIG_ALIAS__"] = serviceConfigAlias
+	values["__SERVER_ALIAS__"] = templateServerImportAlias
 
-	tlsImportAlias := "cryptoutilAppsFrameworkTls"
-	tlsImportPath := "cryptoutil/internal/apps-framework/tls"
-	serverImportAlias := "cryptoutilAppsServiceServer"
-	values["__SERVER_ALIAS__"] = serverImportAlias
-
-	if configBeforeTLS {
+	if configBeforeServer {
+		// sm-kms: framework config (alphabetically before apps/) comes before server
 		values["__FIRST_APP_IMPORT_ALIAS__"] = serviceConfigAlias
 		values["__FIRST_APP_IMPORT_PATH__"] = serviceConfigImportPath
-		values["__SECOND_APP_IMPORT_ALIAS__"] = tlsImportAlias
-		values["__SECOND_APP_IMPORT_PATH__"] = tlsImportPath
-		values["__THIRD_APP_IMPORT_ALIAS__"] = serverImportAlias
-		values["__THIRD_APP_IMPORT_PATH__"] = serviceServerImportPath
-	} else {
-		values["__FIRST_APP_IMPORT_ALIAS__"] = tlsImportAlias
-		values["__FIRST_APP_IMPORT_PATH__"] = tlsImportPath
-		values["__SECOND_APP_IMPORT_ALIAS__"] = serverImportAlias
+		values["__SECOND_APP_IMPORT_ALIAS__"] = templateServerImportAlias
 		values["__SECOND_APP_IMPORT_PATH__"] = serviceServerImportPath
-		values["__THIRD_APP_IMPORT_ALIAS__"] = serviceConfigAlias
-		values["__THIRD_APP_IMPORT_PATH__"] = serviceConfigImportPath
+	} else {
+		// all other services: server comes before server/config alphabetically
+		values["__FIRST_APP_IMPORT_ALIAS__"] = templateServerImportAlias
+		values["__FIRST_APP_IMPORT_PATH__"] = serviceServerImportPath
+		values["__SECOND_APP_IMPORT_ALIAS__"] = serviceConfigAlias
+		values["__SECOND_APP_IMPORT_PATH__"] = serviceConfigImportPath
 	}
 
 	return values, nil

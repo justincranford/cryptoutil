@@ -2,37 +2,13 @@
 package ja
 
 import (
-	"bytes"
 	"testing"
 
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
-
-	"github.com/stretchr/testify/require"
+	cryptoutilTestCli "cryptoutil/internal/apps-framework/service/testing/testcli"
 )
 
-func TestJA_MainHelp(t *testing.T) {
+func TestJA(t *testing.T) {
 	t.Parallel()
 
-	var stdout, stderr bytes.Buffer
-
-	exitCode := Ja([]string{cryptoutilSharedMagic.CLIHelpFlag}, nil, &stdout, &stderr)
-	require.Equal(t, 0, exitCode)
-}
-
-func TestJA_Version(t *testing.T) {
-	t.Parallel()
-
-	var stdout, stderr bytes.Buffer
-
-	exitCode := Ja([]string{cryptoutilSharedMagic.CLIVersionCommand}, nil, &stdout, &stderr)
-	require.Equal(t, 0, exitCode)
-}
-
-func TestJA_UnknownSubcommand(t *testing.T) {
-	t.Parallel()
-
-	var stdout, stderr bytes.Buffer
-
-	exitCode := Ja([]string{"unknown-subcommand"}, nil, &stdout, &stderr)
-	require.Equal(t, 1, exitCode)
+	cryptoutilTestCli.RunCLITests(t, Ja)
 }
