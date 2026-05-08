@@ -23,7 +23,7 @@ func TestCanonicalTemplateFilesUseActualCanonicalPaths(t *testing.T) {
 		}
 
 		switch spec.templatePath {
-		case "__SERVICE__.go":
+		case "__SERVICE__.go.tmpl":
 			require.Equal(t, "__SERVICE__.go", spec.actualPath)
 		case "__SERVICE___test.go":
 			require.Equal(t, "__SERVICE___test.go", spec.actualPath)
