@@ -669,7 +669,7 @@ The root contains ONLY CLI integration code — no server logic, no HTTP handler
 |----------|--------|---------|
 | `{SERVICE}.go` | **REQUIRED** | Service entry point (`Kms()`, `Ja()`, `Ca()`, etc.) |
 | `{SERVICE}_usage.go` | **REQUIRED** | CLI usage string via `BuildUsageMain()` |
-| `{SERVICE}_cli_test.go` | **REQUIRED** | CLI integration tests (help, version, unknown-subcommand) |
+| `{SERVICE}_test.go` | **REQUIRED** | CLI integration tests (help, version, unknown-subcommand) |
 | `server/` | **REQUIRED** | All server implementation, swagger, and integration tests |
 | `e2e/` | OPTIONAL | Docker Compose E2E tests |
 | `client/` | OPTIONAL | Typed HTTP client (sm-kms, sm-im only) |
@@ -693,7 +693,7 @@ The root contains ONLY CLI integration code — no server logic, no HTTP handler
 |-----------|:------:|:-----:|:-------:|:------:|:--------:|:------:|:-----:|:-----:|:------:|:---------:|
 | root `{SVC}.go` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | root `{SVC}_usage.go` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| root `{SVC}_cli_test.go` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| root `{SVC}_test.go` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | `server/server.go` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | `server/swagger.go` | MOVE | MOVE | MOVE | MOVE | MOVE | MOVE | MOVE | **MISS** | **MISS** | MOVE |
 | `server/swagger_test.go` | MOVE | MOVE | MOVE | MOVE | MOVE | MOVE | MOVE | **MISS** | **MISS** | MOVE |
@@ -710,7 +710,7 @@ The root contains ONLY CLI integration code — no server logic, no HTTP handler
 ├── {PS-ID}/                                          # Flat PS-ID directory (×10 total)
 │   ├── {SERVICE}.go                                  #   REQUIRED: Service entry point (CLI only)
 │   ├── {SERVICE}_usage.go                            #   REQUIRED: CLI usage string
-│   ├── {SERVICE}_cli_test.go                         #   REQUIRED: CLI integration tests
+│   ├── {SERVICE}_test.go                             #   REQUIRED: CLI integration tests
 │   ├── server/                                       #   REQUIRED: All server code + tests
 │   │   ├── server.go                                 #     Admin server
 │   │   ├── public_server.go                          #     Public server (OPTIONAL: absent in sm-kms)

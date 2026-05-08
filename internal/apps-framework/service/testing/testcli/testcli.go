@@ -1,6 +1,6 @@
 // Copyright (c) 2025-2026 Justin Cranford.
 // Package testcli provides shared test helpers for PS-ID service CLI entry point tests.
-// All 10 PS-ID service packages call RunCLITests to reduce their *_cli_test.go files
+// All 10 PS-ID service packages call RunCLITests to reduce their *_test.go files
 // to a single function that delegates the standard three-case suite to this helper.
 package testcli
 

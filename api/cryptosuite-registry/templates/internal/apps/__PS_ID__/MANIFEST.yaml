@@ -5,7 +5,7 @@
 
 required_root_files:
   - __SERVICE__.go
-  - __SERVICE___cli_test.go
+  - __SERVICE___test.go
 
 required_dirs:
   - client

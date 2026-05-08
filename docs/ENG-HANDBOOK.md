@@ -3582,7 +3582,7 @@ Architecture fitness functions are automated checks that enforce ENG-HANDBOOK.md
 | `api-path-registry` | OpenAPI specs must have paths matching the registry entry for each PS-ID; no paths allowed outside the declared `api_resources` list |
 | `apps-product-no-service-dirs` | Product directories (`internal/apps/{PRODUCT}/`) must not contain service-named subdirectories — service code belongs in `internal/apps/{PS-ID}/`, not nested under the product |
 | `apps-product-template` | Product `internal/apps/{PRODUCT}/` must contain `{PRODUCT}.go` and `{PRODUCT}_test.go`; no service subdirectories |
-| `apps-ps-id-required-files` | Every PS-ID `internal/apps/{PS-ID}/` must contain `{PS-ID}.go`, `{PS-ID}_usage.go`, `{PS-ID}_cli_test.go` |
+| `apps-ps-id-required-files` | Every PS-ID `internal/apps/{PS-ID}/` must contain `{PS-ID}.go`, `{PS-ID}_usage.go`, `{PS-ID}_test.go` |
 | `apps-ps-id-server-package` | Every PS-ID must have a `server/` subdirectory under `internal/apps/{PS-ID}/` |
 | `apps-ps-id-swagger-presence` | Every PS-ID `server/` must contain a `swagger.go` file serving its OpenAPI spec |
 | `apps-ps-id-template` | Every PS-ID `internal/apps/{PS-ID}/` must have all files defined in `api/cryptosuite-registry/templates/internal/apps/__PS_ID__/MANIFEST.yaml` |
@@ -4166,7 +4166,7 @@ ctx, cancel := context.WithTimeout(ctx, magic.DefaultDataServerShutdownTimeout) 
 **Exact-match canonical template families enforced today**:
 
 - `internal/apps/__PS_ID__/__SERVICE___usage.go`
-- `internal/apps/__PS_ID__/__SERVICE___cli_test.go`
+- `internal/apps/__PS_ID__/__SERVICE___test.go`
 - `internal/apps/__PS_ID__/client/client.go`
 - `internal/apps/__PS_ID__/README.md`
 - `internal/apps/__PS_ID__/testmain_test.go`
