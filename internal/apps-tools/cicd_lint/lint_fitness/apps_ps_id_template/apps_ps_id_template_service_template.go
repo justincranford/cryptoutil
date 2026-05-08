@@ -25,7 +25,6 @@ type templateFileSpec struct {
 var canonicalTemplateFiles = []templateFileSpec{
 	{templatePath: "__SERVICE___test.go", actualPath: "__SERVICE___cli_test.go", displayName: "CLI tests"},
 	{templatePath: "server/__SERVICE___port_conflict_test.go", actualPath: "server/__SERVICE___port_conflict_test.go", displayName: "port conflict tests"},
-	{templatePath: "testmain_test.go", actualPath: "testmain_test.go", displayName: "root TestMain"},
 	{templatePath: "README.md", actualPath: "README.md", displayName: "package README"},
 	{templatePath: "client/client.go", actualPath: "client/client.go", displayName: "typed client"},
 }

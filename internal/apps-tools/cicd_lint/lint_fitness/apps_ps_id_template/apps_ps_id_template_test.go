@@ -84,7 +84,6 @@ func createFullPSIDRoot(t *testing.T, realRoot, tmpDir string) {
 
 		canonicalFiles := []string{
 			ps.Service + "_cli_test.go",
-			"testmain_test.go",
 			"README.md",
 			filepath.Join("client", "client.go"),
 			filepath.Join("server", ps.Service+"_port_conflict_test.go"),

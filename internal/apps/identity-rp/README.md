@@ -9,7 +9,6 @@ This directory contains the identity-rp application entrypoint package.
 - rp.go
 - rp_cli_test.go
 - rp_port_conflict_test.go
-- testmain_test.go
 
 ## Canonical Subdirectories
 

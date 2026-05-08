@@ -9,7 +9,6 @@ This directory contains the identity-spa application entrypoint package.
 - spa.go
 - spa_cli_test.go
 - spa_port_conflict_test.go
-- testmain_test.go
 
 ## Canonical Subdirectories
 

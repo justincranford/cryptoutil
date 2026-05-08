@@ -9,7 +9,6 @@ This directory contains the identity-authz application entrypoint package.
 - authz.go
 - authz_cli_test.go
 - authz_port_conflict_test.go
-- testmain_test.go
 
 ## Canonical Subdirectories
 

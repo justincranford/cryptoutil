@@ -9,7 +9,6 @@ This directory contains the jose-ja application entrypoint package.
 - ja.go
 - ja_cli_test.go
 - ja_port_conflict_test.go
-- testmain_test.go
 
 ## Canonical Subdirectories
 

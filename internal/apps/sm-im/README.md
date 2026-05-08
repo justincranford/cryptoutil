@@ -9,7 +9,6 @@ This directory contains the sm-im application entrypoint package.
 - im.go
 - im_cli_test.go
 - im_port_conflict_test.go
-- testmain_test.go
 
 ## Canonical Subdirectories
 
