@@ -21,12 +21,7 @@
 | filename | allow? | sm-kms | sm-im | jose-ja | skeleton-template | comment |
 |---|---|---|---|---|---|---|
 | internal/apps/{PS-ID}/**PS_ID**.go | ✓ | ✓ | ✓ | ✓ | ✓ | Canonical PS-ID entrypoint file; required across services. |
-| internal/apps/{PS-ID}/__PS_ID___usage.go | ✓ | ✓ | ✓ | ✓ | ✓ | Canonical usage/help wiring file; allowed in all PS-IDs. |
-| internal/apps/{PS-ID}/__PS_ID___cli_test.go | ✓ | ✓ | ✓ | ✓ | ✓ | Canonical CLI behavior test file. |
-| internal/apps/{PS-ID}/__PS_ID___lifecycle_test.go | ✓ | ✓ | ✓ | ✓ | ✓ | Standard lifecycle regression test pattern. |
-| internal/apps/{PS-ID}/__PS_ID___port_conflict_test.go | ✓ | ✓ | ✓ | ✓ | ✓ | Standard port conflict safety test pattern. |
-| internal/apps/{PS-ID}/testmain_test.go | ✓ | ✓ | ✓ | ✓ | ✓ | Shared TestMain pattern is valid across all services. |
-| internal/apps/{PS-ID}/README.md | ✓ | ✓ | ✓ | ✓ | ✓ | Service-level README is explicitly allowed. |
+| internal/apps/{PS-ID}/__PS_ID___test.go | ✓ | ✓ | ✓ | ✓ | ✓ | Canonical test file. |
 | internal/apps/{PS-ID}/client/client.go | ✓ | ✓ | ✓ | ✓ | ✓ | Root client package is in required root set. |
 | internal/apps/{PS-ID}/client/client_*.go | ✓ | ✓ | ✓ | ✓ | ✓ | Client implementation split files are allowed. |
 | internal/apps/{PS-ID}/client/package_test.go | ✓ | ✓ | ✓ | ✓ | ✓ | Package-level client tests are allowed. |
@@ -84,12 +79,7 @@
 | filename | allow? | pki-ca | identity-authz | identity-idp | identity-rs | identity-rp | identity-spa | comment |
 |---|---|---|---|---|---|---|---|---|
 | internal/apps/{PS-ID}/**PS_ID**.go | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | Canonical PS-ID entrypoint file; required across services. |
-| internal/apps/{PS-ID}/__PS_ID___usage.go | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | Canonical usage/help wiring file; allowed in all PS-IDs. |
-| internal/apps/{PS-ID}/__PS_ID___cli_test.go | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | Canonical CLI behavior test file. |
-| internal/apps/{PS-ID}/__PS_ID___lifecycle_test.go | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | Standard lifecycle regression test pattern. |
-| internal/apps/{PS-ID}/__PS_ID___port_conflict_test.go | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | Standard port conflict safety test pattern. |
-| internal/apps/{PS-ID}/testmain_test.go | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | Shared TestMain pattern is valid across all services. |
-| internal/apps/{PS-ID}/README.md | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | Service-level README is explicitly allowed. |
+| internal/apps/{PS-ID}/__PS_ID___test.go | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | Canonical test file. |
 | internal/apps/{PS-ID}/*.TODO |  | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | TODO marker files are technical debt and should not be template/lint allowed. |
 | internal/apps/{PS-ID}/client/client.go | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | Root client package is in required root set. |
 | internal/apps/{PS-ID}/client/package_test.go | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | Package-level client tests are allowed. |
