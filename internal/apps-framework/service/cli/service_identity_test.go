@@ -15,7 +15,9 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
-var testIdentity = cryptoutilAppsFrameworkCli.ServiceIdentity{ //nolint:gochecknoglobals // test fixture
+// testIdentityBase holds the 5 service-identity constants used across multiple tests.
+// Tests that need a custom ServerFn build a local ServiceIdentity with these same fields.
+var testIdentityBase = cryptoutilAppsFrameworkCli.ServiceIdentity{ //nolint:gochecknoglobals // test fixture
 	ServiceID:   testServiceID,
 	ProductName: testProductNameService,
 	ServiceName: testServiceNameConst,
@@ -26,7 +28,7 @@ var testIdentity = cryptoutilAppsFrameworkCli.ServiceIdentity{ //nolint:gocheckn
 func TestBuildServerUsage(t *testing.T) {
 	t.Parallel()
 
-	got := cryptoutilAppsFrameworkCli.BuildServerUsage(testIdentity)
+	got := cryptoutilAppsFrameworkCli.BuildServerUsage(testIdentityBase)
 	require.Contains(t, got, testProductNameService)
 	require.Contains(t, got, testServiceNameConst)
 	require.Contains(t, got, "Test Service")
@@ -52,10 +54,9 @@ func TestRouteServiceFromIdentity_HelpFlag(t *testing.T) {
 			var stdout, stderr bytes.Buffer
 
 			exitCode := cryptoutilAppsFrameworkCli.RouteServiceFromIdentity(
-				testIdentity,
+				testIdentityBase,
 				[]string{tt.arg},
 				&stdout, &stderr,
-				func(_ []string, _, _ io.Writer) int { return 0 },
 			)
 			require.Equal(t, 0, exitCode)
 			require.Contains(t, stdout.String(), testServiceNameConst)
@@ -69,10 +70,9 @@ func TestRouteServiceFromIdentity_VersionSubcommand(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 
 	exitCode := cryptoutilAppsFrameworkCli.RouteServiceFromIdentity(
-		testIdentity,
+		testIdentityBase,
 		[]string{cryptoutilSharedMagic.CLIVersionCommand},
 		&stdout, &stderr,
-		func(_ []string, _, _ io.Writer) int { return 0 },
 	)
 	require.Equal(t, 0, exitCode)
 	require.Contains(t, stdout.String(), testServiceID)
@@ -84,17 +84,23 @@ func TestRouteServiceFromIdentity_ServerSubcommand(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 
 	serverCalled := false
-	serverFn := func(_ []string, _, _ io.Writer) int {
-		serverCalled = true
+	id := cryptoutilAppsFrameworkCli.ServiceIdentity{
+		ServiceID:   testServiceID,
+		ProductName: testProductNameService,
+		ServiceName: testServiceNameConst,
+		DisplayName: "Test Service",
+		ServicePort: testDefaultPort,
+		ServerFn: func(_ []string, _, _ io.Writer) int {
+			serverCalled = true
 
-		return 0
+			return 0
+		},
 	}
 
 	exitCode := cryptoutilAppsFrameworkCli.RouteServiceFromIdentity(
-		testIdentity,
+		id,
 		[]string{"server"},
 		&stdout, &stderr,
-		serverFn,
 	)
 	require.Equal(t, 0, exitCode)
 	require.True(t, serverCalled)
@@ -106,10 +112,9 @@ func TestRouteServiceFromIdentity_ClientHelpSubcommand(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 
 	exitCode := cryptoutilAppsFrameworkCli.RouteServiceFromIdentity(
-		testIdentity,
+		testIdentityBase,
 		[]string{"client", cryptoutilSharedMagic.CLIHelpFlag},
 		&stdout, &stderr,
-		func(_ []string, _, _ io.Writer) int { return 0 },
 	)
 	require.Equal(t, 0, exitCode)
 }
@@ -120,10 +125,9 @@ func TestRouteServiceFromIdentity_ClientUnknownArg(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 
 	exitCode := cryptoutilAppsFrameworkCli.RouteServiceFromIdentity(
-		testIdentity,
+		testIdentityBase,
 		[]string{"client", "some-arg"},
 		&stdout, &stderr,
-		func(_ []string, _, _ io.Writer) int { return 0 },
 	)
 	require.Equal(t, 1, exitCode)
 }
@@ -134,10 +138,9 @@ func TestRouteServiceFromIdentity_InitHelpSubcommand(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 
 	exitCode := cryptoutilAppsFrameworkCli.RouteServiceFromIdentity(
-		testIdentity,
+		testIdentityBase,
 		[]string{"init", cryptoutilSharedMagic.CLIHelpFlag},
 		&stdout, &stderr,
-		func(_ []string, _, _ io.Writer) int { return 0 },
 	)
 	require.Equal(t, 0, exitCode)
 }
@@ -148,10 +151,9 @@ func TestRouteServiceFromIdentity_UnknownSubcommand(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 
 	exitCode := cryptoutilAppsFrameworkCli.RouteServiceFromIdentity(
-		testIdentity,
+		testIdentityBase,
 		[]string{"unknown-subcommand"},
 		&stdout, &stderr,
-		func(_ []string, _, _ io.Writer) int { return 0 },
 	)
 	require.Equal(t, 1, exitCode)
 	require.Contains(t, stderr.String(), "Unknown subcommand")
@@ -163,17 +165,23 @@ func TestRouteServiceFromIdentity_EmptyArgsDefaultsToServer(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 
 	serverCalled := false
-	serverFn := func(_ []string, _, _ io.Writer) int {
-		serverCalled = true
+	id := cryptoutilAppsFrameworkCli.ServiceIdentity{
+		ServiceID:   testServiceID,
+		ProductName: testProductNameService,
+		ServiceName: testServiceNameConst,
+		DisplayName: "Test Service",
+		ServicePort: testDefaultPort,
+		ServerFn: func(_ []string, _, _ io.Writer) int {
+			serverCalled = true
 
-		return 0
+			return 0
+		},
 	}
 
 	exitCode := cryptoutilAppsFrameworkCli.RouteServiceFromIdentity(
-		testIdentity,
+		id,
 		nil,
 		&stdout, &stderr,
-		serverFn,
 	)
 	require.Equal(t, 0, exitCode)
 	require.True(t, serverCalled)

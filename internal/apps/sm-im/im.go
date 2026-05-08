@@ -12,7 +12,6 @@
 package im
 
 import (
-	"context"
 	"io"
 
 	_ "github.com/jackc/pgx/v5/stdlib" // PostgreSQL driver
@@ -27,35 +26,16 @@ import (
 // Im implements the sm-im service subcommand handler.
 // Handles subcommands: server, client, init, health, livez, readyz, shutdown.
 func Im(args []string, _ io.Reader, stdout, stderr io.Writer) int {
-	id := cryptoutilTemplateCli.ServiceIdentity{
-		ServiceID:   cryptoutilSharedMagic.IMServiceID,
-		ProductName: cryptoutilSharedMagic.IMProductName,
-		ServiceName: cryptoutilSharedMagic.IMServiceName,
-		DisplayName: cryptoutilSharedMagic.IMDisplayName,
-		ServicePort: uint16(cryptoutilSharedMagic.IMServicePort),
-	}
-
 	return cryptoutilTemplateCli.RouteServiceFromIdentity(
-		id,
+		cryptoutilTemplateCli.NewServiceIdentity(
+			cryptoutilSharedMagic.IMServiceID,
+			cryptoutilSharedMagic.IMProductName,
+			cryptoutilSharedMagic.IMServiceName,
+			cryptoutilSharedMagic.IMDisplayName,
+			uint16(cryptoutilSharedMagic.IMServicePort),
+			cryptoutilAppsServiceServerConfig.ParseWithFlagSet,
+			cryptoutilAppsServiceServer.NewIMServerFromConfig,
+		),
 		args, stdout, stderr,
-		func(serverArgs []string, serverStdout, serverStderr io.Writer) int {
-			return cryptoutilTemplateCli.StartServiceServer(
-				serverArgs,
-				serverStdout,
-				serverStderr,
-				cryptoutilTemplateCli.ServerStartOptions[*cryptoutilAppsServiceServerConfig.SmIMServerSettings]{
-					UsageServer:  cryptoutilTemplateCli.BuildServerUsage(id),
-					ServiceLabel: cryptoutilSharedMagic.IMServiceID,
-					FlagSetName:  cryptoutilTemplateCli.ServerFlagSetName(cryptoutilSharedMagic.IMServiceID),
-					ParseConfig:  cryptoutilAppsServiceServerConfig.ParseWithFlagSet,
-					NewServer: func(ctx context.Context, settings *cryptoutilAppsServiceServerConfig.SmIMServerSettings) (cryptoutilTemplateCli.ReadyStarter, error) {
-						return cryptoutilAppsServiceServer.NewIMServerFromConfig(ctx, settings)
-					},
-					BindAddresses: func(settings *cryptoutilAppsServiceServerConfig.SmIMServerSettings) (string, uint16, string, uint16) {
-						return settings.BindPublicAddress, settings.BindPublicPort, settings.BindPrivateAddress, settings.BindPrivatePort
-					},
-				},
-			)
-		},
 	)
 }

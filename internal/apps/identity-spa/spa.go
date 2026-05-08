@@ -12,7 +12,6 @@
 package spa
 
 import (
-	"context"
 	"io"
 
 	_ "github.com/jackc/pgx/v5/stdlib" // PostgreSQL driver
@@ -27,35 +26,16 @@ import (
 // Spa implements the identity-spa service subcommand handler.
 // Handles subcommands: server, client, init, health, livez, readyz, shutdown.
 func Spa(args []string, _ io.Reader, stdout, stderr io.Writer) int {
-	id := cryptoutilTemplateCli.ServiceIdentity{
-		ServiceID:   cryptoutilSharedMagic.IdentitySPAServiceID,
-		ProductName: cryptoutilSharedMagic.IdentityProductName,
-		ServiceName: cryptoutilSharedMagic.SPAServiceName,
-		DisplayName: cryptoutilSharedMagic.SPADisplayName,
-		ServicePort: uint16(cryptoutilSharedMagic.IdentitySPAServicePort),
-	}
-
 	return cryptoutilTemplateCli.RouteServiceFromIdentity(
-		id,
+		cryptoutilTemplateCli.NewServiceIdentity(
+			cryptoutilSharedMagic.IdentitySPAServiceID,
+			cryptoutilSharedMagic.IdentityProductName,
+			cryptoutilSharedMagic.SPAServiceName,
+			cryptoutilSharedMagic.SPADisplayName,
+			uint16(cryptoutilSharedMagic.IdentitySPAServicePort),
+			cryptoutilAppsServiceServerConfig.ParseWithFlagSet,
+			cryptoutilAppsServiceServer.NewFromConfig,
+		),
 		args, stdout, stderr,
-		func(serverArgs []string, serverStdout, serverStderr io.Writer) int {
-			return cryptoutilTemplateCli.StartServiceServer(
-				serverArgs,
-				serverStdout,
-				serverStderr,
-				cryptoutilTemplateCli.ServerStartOptions[*cryptoutilAppsServiceServerConfig.IdentitySPAServerSettings]{
-					UsageServer:  cryptoutilTemplateCli.BuildServerUsage(id),
-					ServiceLabel: cryptoutilSharedMagic.IdentitySPAServiceID,
-					FlagSetName:  cryptoutilTemplateCli.ServerFlagSetName(cryptoutilSharedMagic.IdentitySPAServiceID),
-					ParseConfig:  cryptoutilAppsServiceServerConfig.ParseWithFlagSet,
-					NewServer: func(ctx context.Context, settings *cryptoutilAppsServiceServerConfig.IdentitySPAServerSettings) (cryptoutilTemplateCli.ReadyStarter, error) {
-						return cryptoutilAppsServiceServer.NewFromConfig(ctx, settings)
-					},
-					BindAddresses: func(settings *cryptoutilAppsServiceServerConfig.IdentitySPAServerSettings) (string, uint16, string, uint16) {
-						return settings.BindPublicAddress, settings.BindPublicPort, settings.BindPrivateAddress, settings.BindPrivatePort
-					},
-				},
-			)
-		},
 	)
 }

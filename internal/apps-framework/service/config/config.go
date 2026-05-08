@@ -290,6 +290,13 @@ func (s *ServiceFrameworkServerSettings) PublicBaseURL() string {
 	return fmt.Sprintf("%s://%s:%d", s.BindPublicProtocol, s.BindPublicAddress, s.BindPublicPort)
 }
 
+// GetBindAddresses returns the public and private bind addresses and ports.
+// This implements the cli.BindAddresser interface, allowing all service settings types
+// that embed *ServiceFrameworkServerSettings to be used with NewServiceIdentity.
+func (s *ServiceFrameworkServerSettings) GetBindAddresses() (string, uint16, string, uint16) {
+	return s.BindPublicAddress, s.BindPublicPort, s.BindPrivateAddress, s.BindPrivatePort
+}
+
 // Setting Input values for pflag.*P(name, shortname, value, usage).
 type Setting struct {
 	Name        string // unique long name for the flag

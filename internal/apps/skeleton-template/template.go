@@ -12,7 +12,6 @@
 package template
 
 import (
-	"context"
 	"io"
 
 	_ "github.com/jackc/pgx/v5/stdlib" // PostgreSQL driver
@@ -27,35 +26,16 @@ import (
 // Template implements the skeleton-template service subcommand handler.
 // Handles subcommands: server, client, init, health, livez, readyz, shutdown.
 func Template(args []string, _ io.Reader, stdout, stderr io.Writer) int {
-	id := cryptoutilTemplateCli.ServiceIdentity{
-		ServiceID:   cryptoutilSharedMagic.SkeletonTemplateServiceID,
-		ProductName: cryptoutilSharedMagic.SkeletonProductName,
-		ServiceName: cryptoutilSharedMagic.SkeletonTemplateServiceName,
-		DisplayName: cryptoutilSharedMagic.TemplateDisplayName,
-		ServicePort: uint16(cryptoutilSharedMagic.SkeletonTemplateServicePort),
-	}
-
 	return cryptoutilTemplateCli.RouteServiceFromIdentity(
-		id,
+		cryptoutilTemplateCli.NewServiceIdentity(
+			cryptoutilSharedMagic.SkeletonTemplateServiceID,
+			cryptoutilSharedMagic.SkeletonProductName,
+			cryptoutilSharedMagic.SkeletonTemplateServiceName,
+			cryptoutilSharedMagic.TemplateDisplayName,
+			uint16(cryptoutilSharedMagic.SkeletonTemplateServicePort),
+			cryptoutilAppsServiceServerConfig.ParseWithFlagSet,
+			cryptoutilAppsServiceServer.NewFromConfig,
+		),
 		args, stdout, stderr,
-		func(serverArgs []string, serverStdout, serverStderr io.Writer) int {
-			return cryptoutilTemplateCli.StartServiceServer(
-				serverArgs,
-				serverStdout,
-				serverStderr,
-				cryptoutilTemplateCli.ServerStartOptions[*cryptoutilAppsServiceServerConfig.SkeletonTemplateServerSettings]{
-					UsageServer:  cryptoutilTemplateCli.BuildServerUsage(id),
-					ServiceLabel: cryptoutilSharedMagic.SkeletonTemplateServiceID,
-					FlagSetName:  cryptoutilTemplateCli.ServerFlagSetName(cryptoutilSharedMagic.SkeletonTemplateServiceID),
-					ParseConfig:  cryptoutilAppsServiceServerConfig.ParseWithFlagSet,
-					NewServer: func(ctx context.Context, settings *cryptoutilAppsServiceServerConfig.SkeletonTemplateServerSettings) (cryptoutilTemplateCli.ReadyStarter, error) {
-						return cryptoutilAppsServiceServer.NewFromConfig(ctx, settings)
-					},
-					BindAddresses: func(settings *cryptoutilAppsServiceServerConfig.SkeletonTemplateServerSettings) (string, uint16, string, uint16) {
-						return settings.BindPublicAddress, settings.BindPublicPort, settings.BindPrivateAddress, settings.BindPrivatePort
-					},
-				},
-			)
-		},
 	)
 }

@@ -4,6 +4,7 @@
 package cli
 
 import (
+	"context"
 	"fmt"
 	"io"
 
@@ -11,9 +12,15 @@ import (
 	cryptoutilAppsFrameworkTls "cryptoutil/internal/apps-framework/tls"
 )
 
-// ServiceIdentity holds the minimal service-identity constants for a PS-ID CLI entry point.
-// All 10 PS-ID services pass these five magic constants to RouteServiceFromIdentity, which
-// derives all usage strings and standard subcommand handlers internally.
+// BindAddresser is implemented by all service settings types via the embedded
+// *ServiceFrameworkServerSettings.GetBindAddresses() method.
+// It allows NewServiceIdentity to derive bind addresses without a per-service lambda.
+type BindAddresser interface {
+	GetBindAddresses() (publicAddress string, publicPort uint16, adminAddress string, adminPort uint16)
+}
+
+// ServiceIdentity holds all PS-ID-specific constants needed by RouteServiceFromIdentity.
+// Construct it with NewServiceIdentity, which wires the type-safe ServerFn automatically.
 type ServiceIdentity struct {
 	// ServiceID is the combined product-service identifier (e.g., "sm-kms").
 	ServiceID string
@@ -25,6 +32,48 @@ type ServiceIdentity struct {
 	DisplayName string
 	// ServicePort is the default public service port for health checks (e.g., 8000).
 	ServicePort uint16
+	// ServerFn is the "server" subcommand handler. Set by NewServiceIdentity.
+	ServerFn SubcommandFunc
+}
+
+// NewServiceIdentity creates a ServiceIdentity with a fully wired ServerFn.
+// The ServerFn calls StartServiceServer using parseConfig and newServer, deriving
+// bind addresses via the BindAddresser interface (all service settings embed
+// *ServiceFrameworkServerSettings which implements BindAddresser).
+//
+// Type parameters are inferred from the function arguments:
+//   - S: the service settings type (must embed *ServiceFrameworkServerSettings)
+//   - R: the concrete server type returned by newServer (must implement ReadyStarter)
+func NewServiceIdentity[S BindAddresser, R ReadyStarter](
+	serviceID, productName, serviceName, displayName string,
+	servicePort uint16,
+	parseConfig ParseWithFlagSetFunc[S],
+	newServer func(ctx context.Context, settings S) (R, error),
+) ServiceIdentity {
+	id := ServiceIdentity{
+		ServiceID:   serviceID,
+		ProductName: productName,
+		ServiceName: serviceName,
+		DisplayName: displayName,
+		ServicePort: servicePort,
+	}
+
+	id.ServerFn = func(serverArgs []string, serverStdout, serverStderr io.Writer) int {
+		return StartServiceServer(serverArgs, serverStdout, serverStderr, ServerStartOptions[S]{
+			UsageServer:  BuildServerUsage(id),
+			ServiceLabel: id.ServiceID,
+			FlagSetName:  ServerFlagSetName(id.ServiceID),
+			ParseConfig:  parseConfig,
+			NewServer: func(ctx context.Context, settings S) (ReadyStarter, error) {
+				return newServer(ctx, settings)
+			},
+			BindAddresses: func(settings S) (string, uint16, string, uint16) {
+				return settings.GetBindAddresses()
+			},
+		})
+	}
+
+	return id
 }
 
 // BuildServerUsage returns the server subcommand usage string for the given ServiceIdentity.
@@ -37,9 +86,9 @@ func BuildServerUsage(id ServiceIdentity) string {
 
 // RouteServiceFromIdentity is the single-call entry point for all PS-ID service CLIs.
 // It builds all 8 usage strings from the service identity, provides standard client and
-// init subcommand handlers, and delegates only the service-specific server subcommand to
-// serverFn. serverFn should call StartServiceServer with the service-specific settings type.
-func RouteServiceFromIdentity(id ServiceIdentity, args []string, stdout, stderr io.Writer, serverFn SubcommandFunc) int {
+// init subcommand handlers, and dispatches the "server" subcommand to id.ServerFn.
+// Construct id using NewServiceIdentity to wire all service-specific settings automatically.
+func RouteServiceFromIdentity(id ServiceIdentity, args []string, stdout, stderr io.Writer) int {
 	configFilePath := fmt.Sprintf("configs/%s/%s-framework.yml", id.ServiceID, id.ServiceID)
 	portStr := fmt.Sprintf("%d", id.ServicePort)
 
@@ -84,6 +133,6 @@ func RouteServiceFromIdentity(id ServiceIdentity, args []string, stdout, stderr 
 			UsageShutdown:     usageShutdown,
 		},
 		args, stdout, stderr,
-		serverFn, clientFn, initFn,
+		id.ServerFn, clientFn, initFn,
 	)
 }

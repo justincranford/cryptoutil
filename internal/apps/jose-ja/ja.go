@@ -12,7 +12,6 @@
 package ja
 
 import (
-	"context"
 	"io"
 
 	_ "github.com/jackc/pgx/v5/stdlib" // PostgreSQL driver
@@ -27,35 +26,16 @@ import (
 // Ja implements the jose-ja service subcommand handler.
 // Handles subcommands: server, client, init, health, livez, readyz, shutdown.
 func Ja(args []string, _ io.Reader, stdout, stderr io.Writer) int {
-	id := cryptoutilTemplateCli.ServiceIdentity{
-		ServiceID:   cryptoutilSharedMagic.JoseJAServiceID,
-		ProductName: cryptoutilSharedMagic.JoseProductName,
-		ServiceName: cryptoutilSharedMagic.JoseJAServiceName,
-		DisplayName: cryptoutilSharedMagic.JoseJADisplayName,
-		ServicePort: uint16(cryptoutilSharedMagic.JoseJAServicePort),
-	}
-
 	return cryptoutilTemplateCli.RouteServiceFromIdentity(
-		id,
+		cryptoutilTemplateCli.NewServiceIdentity(
+			cryptoutilSharedMagic.JoseJAServiceID,
+			cryptoutilSharedMagic.JoseProductName,
+			cryptoutilSharedMagic.JoseJAServiceName,
+			cryptoutilSharedMagic.JoseJADisplayName,
+			uint16(cryptoutilSharedMagic.JoseJAServicePort),
+			cryptoutilAppsServiceServerConfig.ParseWithFlagSet,
+			cryptoutilAppsServiceServer.NewFromConfig,
+		),
 		args, stdout, stderr,
-		func(serverArgs []string, serverStdout, serverStderr io.Writer) int {
-			return cryptoutilTemplateCli.StartServiceServer(
-				serverArgs,
-				serverStdout,
-				serverStderr,
-				cryptoutilTemplateCli.ServerStartOptions[*cryptoutilAppsServiceServerConfig.JoseJAServerSettings]{
-					UsageServer:  cryptoutilTemplateCli.BuildServerUsage(id),
-					ServiceLabel: cryptoutilSharedMagic.JoseJAServiceID,
-					FlagSetName:  cryptoutilTemplateCli.ServerFlagSetName(cryptoutilSharedMagic.JoseJAServiceID),
-					ParseConfig:  cryptoutilAppsServiceServerConfig.ParseWithFlagSet,
-					NewServer: func(ctx context.Context, settings *cryptoutilAppsServiceServerConfig.JoseJAServerSettings) (cryptoutilTemplateCli.ReadyStarter, error) {
-						return cryptoutilAppsServiceServer.NewFromConfig(ctx, settings)
-					},
-					BindAddresses: func(settings *cryptoutilAppsServiceServerConfig.JoseJAServerSettings) (string, uint16, string, uint16) {
-						return settings.BindPublicAddress, settings.BindPublicPort, settings.BindPrivateAddress, settings.BindPrivatePort
-					},
-				},
-			)
-		},
 	)
 }

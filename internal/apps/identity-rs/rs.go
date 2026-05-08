@@ -12,7 +12,6 @@
 package rs
 
 import (
-	"context"
 	"io"
 
 	_ "github.com/jackc/pgx/v5/stdlib" // PostgreSQL driver
@@ -27,35 +26,16 @@ import (
 // Rs implements the identity-rs service subcommand handler.
 // Handles subcommands: server, client, init, health, livez, readyz, shutdown.
 func Rs(args []string, _ io.Reader, stdout, stderr io.Writer) int {
-	id := cryptoutilTemplateCli.ServiceIdentity{
-		ServiceID:   cryptoutilSharedMagic.IdentityRSServiceID,
-		ProductName: cryptoutilSharedMagic.IdentityProductName,
-		ServiceName: cryptoutilSharedMagic.RSServiceName,
-		DisplayName: cryptoutilSharedMagic.RSDisplayName,
-		ServicePort: uint16(cryptoutilSharedMagic.IdentityRSServicePort),
-	}
-
 	return cryptoutilTemplateCli.RouteServiceFromIdentity(
-		id,
+		cryptoutilTemplateCli.NewServiceIdentity(
+			cryptoutilSharedMagic.IdentityRSServiceID,
+			cryptoutilSharedMagic.IdentityProductName,
+			cryptoutilSharedMagic.RSServiceName,
+			cryptoutilSharedMagic.RSDisplayName,
+			uint16(cryptoutilSharedMagic.IdentityRSServicePort),
+			cryptoutilAppsServiceServerConfig.ParseWithFlagSet,
+			cryptoutilAppsServiceServer.NewFromConfig,
+		),
 		args, stdout, stderr,
-		func(serverArgs []string, serverStdout, serverStderr io.Writer) int {
-			return cryptoutilTemplateCli.StartServiceServer(
-				serverArgs,
-				serverStdout,
-				serverStderr,
-				cryptoutilTemplateCli.ServerStartOptions[*cryptoutilAppsServiceServerConfig.IdentityRSServerSettings]{
-					UsageServer:  cryptoutilTemplateCli.BuildServerUsage(id),
-					ServiceLabel: cryptoutilSharedMagic.IdentityRSServiceID,
-					FlagSetName:  cryptoutilTemplateCli.ServerFlagSetName(cryptoutilSharedMagic.IdentityRSServiceID),
-					ParseConfig:  cryptoutilAppsServiceServerConfig.ParseWithFlagSet,
-					NewServer: func(ctx context.Context, settings *cryptoutilAppsServiceServerConfig.IdentityRSServerSettings) (cryptoutilTemplateCli.ReadyStarter, error) {
-						return cryptoutilAppsServiceServer.NewFromConfig(ctx, settings)
-					},
-					BindAddresses: func(settings *cryptoutilAppsServiceServerConfig.IdentityRSServerSettings) (string, uint16, string, uint16) {
-						return settings.BindPublicAddress, settings.BindPublicPort, settings.BindPrivateAddress, settings.BindPrivatePort
-					},
-				},
-			)
-		},
 	)
 }

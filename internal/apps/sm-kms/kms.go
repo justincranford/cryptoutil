@@ -12,7 +12,6 @@
 package kms
 
 import (
-	"context"
 	"io"
 
 	_ "github.com/jackc/pgx/v5/stdlib" // PostgreSQL driver
@@ -27,35 +26,16 @@ import (
 // Kms implements the sm-kms service subcommand handler.
 // Handles subcommands: server, client, init, health, livez, readyz, shutdown.
 func Kms(args []string, _ io.Reader, stdout, stderr io.Writer) int {
-	id := cryptoutilTemplateCli.ServiceIdentity{
-		ServiceID:   cryptoutilSharedMagic.KMSServiceID,
-		ProductName: cryptoutilSharedMagic.SMProductName,
-		ServiceName: cryptoutilSharedMagic.KMSServiceName,
-		DisplayName: cryptoutilSharedMagic.KMSDisplayName,
-		ServicePort: uint16(cryptoutilSharedMagic.KMSServicePort),
-	}
-
 	return cryptoutilTemplateCli.RouteServiceFromIdentity(
-		id,
+		cryptoutilTemplateCli.NewServiceIdentity(
+			cryptoutilSharedMagic.KMSServiceID,
+			cryptoutilSharedMagic.SMProductName,
+			cryptoutilSharedMagic.KMSServiceName,
+			cryptoutilSharedMagic.KMSDisplayName,
+			uint16(cryptoutilSharedMagic.KMSServicePort),
+			cryptoutilAppsFrameworkServiceConfig.ParseWithFlagSet,
+			cryptoutilAppsServiceServer.NewKMSServerFromConfig,
+		),
 		args, stdout, stderr,
-		func(serverArgs []string, serverStdout, serverStderr io.Writer) int {
-			return cryptoutilTemplateCli.StartServiceServer(
-				serverArgs,
-				serverStdout,
-				serverStderr,
-				cryptoutilTemplateCli.ServerStartOptions[*cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings]{
-					UsageServer:  cryptoutilTemplateCli.BuildServerUsage(id),
-					ServiceLabel: cryptoutilSharedMagic.KMSServiceID,
-					FlagSetName:  cryptoutilTemplateCli.ServerFlagSetName(cryptoutilSharedMagic.KMSServiceID),
-					ParseConfig:  cryptoutilAppsFrameworkServiceConfig.ParseWithFlagSet,
-					NewServer: func(ctx context.Context, settings *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings) (cryptoutilTemplateCli.ReadyStarter, error) {
-						return cryptoutilAppsServiceServer.NewKMSServerFromConfig(ctx, settings)
-					},
-					BindAddresses: func(settings *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings) (string, uint16, string, uint16) {
-						return settings.BindPublicAddress, settings.BindPublicPort, settings.BindPrivateAddress, settings.BindPrivatePort
-					},
-				},
-			)
-		},
 	)
 }
