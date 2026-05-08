@@ -17,15 +17,14 @@ const templateBaseDir = "api/cryptosuite-registry/templates/internal/apps/__PS_I
 
 // templateFileSpec maps one canonical template file to one concrete PS-ID file path.
 type templateFileSpec struct {
-	templatePath string
-	actualPath   string
-	displayName  string
+	relPath     string
+	displayName string
 }
 
 var canonicalTemplateFiles = []templateFileSpec{
-	{templatePath: "__SERVICE___test.go", actualPath: "__SERVICE___cli_test.go", displayName: "CLI tests"},
-	{templatePath: "server/__SERVICE___port_conflict_test.go", actualPath: "server/__SERVICE___port_conflict_test.go", displayName: "port conflict tests"},
-	{templatePath: "client/client.go", actualPath: "client/client.go", displayName: "typed client"},
+	{relPath: "__SERVICE___cli_test.go", displayName: "CLI tests"},
+	{relPath: "server/__SERVICE___port_conflict_test.go", displayName: "port conflict tests"},
+	{relPath: "client/client.go", displayName: "typed client"},
 }
 
 const (
@@ -46,7 +45,7 @@ func checkRootTemplates(rootDir, psDir string, ps cryptoutilFitnessRegistry.Prod
 	var violations []string
 
 	for _, spec := range canonicalTemplateFiles {
-		templatePath := filepath.Join(rootDir, filepath.FromSlash(templateBaseDir), filepath.FromSlash(spec.templatePath))
+		templatePath := filepath.Join(rootDir, filepath.FromSlash(templateBaseDir), filepath.FromSlash(spec.relPath))
 		violations = append(violations, checkSingleTemplateFile(templatePath, psDir, spec, ps, templateValues)...)
 	}
 
@@ -66,7 +65,7 @@ func checkSingleTemplateFile(
 	}
 
 	expectedContent := applyTemplateValues(string(templateContent), templateValues)
-	actualRelPath := applyTemplateValues(spec.actualPath, templateValues)
+	actualRelPath := applyTemplateValues(spec.relPath, templateValues)
 	actualPath := filepath.Join(psDir, filepath.FromSlash(actualRelPath))
 
 	actualContent, actualReadErr := os.ReadFile(actualPath)

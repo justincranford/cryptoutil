@@ -4,6 +4,7 @@ package apps_ps_id_template
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -12,6 +13,20 @@ import (
 	cryptoutilFitnessRegistry "cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/registry"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
+
+func TestCanonicalTemplateFilesUseActualCanonicalPaths(t *testing.T) {
+	t.Parallel()
+
+	for _, spec := range canonicalTemplateFiles {
+		require.NotContains(t, spec.relPath, "__SERVICE___test.go")
+
+		if strings.HasPrefix(spec.relPath, "server/") || strings.HasPrefix(spec.relPath, "client/") {
+			continue
+		}
+
+		require.True(t, strings.HasSuffix(spec.relPath, "_cli_test.go") || !strings.HasSuffix(spec.relPath, "_test.go"))
+	}
+}
 
 // findProjectRoot traverses up from the current directory to locate go.mod.
 func findProjectRoot() (string, error) {
