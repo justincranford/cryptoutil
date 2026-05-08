@@ -84,7 +84,6 @@ func createFullPSIDRoot(t *testing.T, realRoot, tmpDir string) {
 
 		canonicalFiles := []string{
 			ps.Service + "_cli_test.go",
-			"README.md",
 			filepath.Join("client", "client.go"),
 			filepath.Join("server", ps.Service+"_port_conflict_test.go"),
 		}
@@ -405,7 +404,7 @@ func TestCheckInDir_NoExclusions_AllValid(t *testing.T) {
 	require.NoError(t, err)
 }
 
-// TestCheckInDir_NoExclusions_MissingServerDir exercises the server subdirectory violation path.
+// TestCheckInDir_NoExclusions_MissingServerDir exercises the required directory violation path.
 func TestCheckInDir_NoExclusions_MissingServerDir(t *testing.T) {
 	t.Parallel()
 
@@ -442,10 +441,10 @@ func TestCheckInDir_NoExclusions_MissingServerDir(t *testing.T) {
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	err = ExportedCheckInDirNoExclusions(logger, tmpDir)
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "missing required server subdirectory")
+	require.Contains(t, err.Error(), "missing required directory: client")
 }
 
-// TestCheckInDir_NoExclusions_MissingServerConfigFile exercises the server config file violation path.
+// TestCheckInDir_NoExclusions_MissingServerConfigFile exercises the required directory violation path.
 func TestCheckInDir_NoExclusions_MissingServerConfigFile(t *testing.T) {
 	t.Parallel()
 
@@ -482,10 +481,10 @@ func TestCheckInDir_NoExclusions_MissingServerConfigFile(t *testing.T) {
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	err = ExportedCheckInDirNoExclusions(logger, tmpDir)
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "missing required server config file")
+	require.Contains(t, err.Error(), "missing required directory: client")
 }
 
-// TestCheckInDir_NoExclusions_MissingServerRepositoryFile exercises the server repository file violation path.
+// TestCheckInDir_NoExclusions_MissingServerRepositoryFile exercises the required directory violation path.
 func TestCheckInDir_NoExclusions_MissingServerRepositoryFile(t *testing.T) {
 	t.Parallel()
 
@@ -522,10 +521,10 @@ func TestCheckInDir_NoExclusions_MissingServerRepositoryFile(t *testing.T) {
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	err = ExportedCheckInDirNoExclusions(logger, tmpDir)
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "missing required server repository file")
+	require.Contains(t, err.Error(), "missing required directory: client")
 }
 
-// TestCheckInDir_NoExclusions_MissingServerRepositoryDir exercises the server repository subdirectory violation path.
+// TestCheckInDir_NoExclusions_MissingServerRepositoryDir exercises the required directory violation path.
 func TestCheckInDir_NoExclusions_MissingServerRepositoryDir(t *testing.T) {
 	t.Parallel()
 
@@ -563,7 +562,7 @@ func TestCheckInDir_NoExclusions_MissingServerRepositoryDir(t *testing.T) {
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	err = ExportedCheckInDirNoExclusions(logger, tmpDir)
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "missing required server repository subdirectory")
+	require.Contains(t, err.Error(), "missing required directory: client")
 }
 
 // TestCheckInDir_NoExclusions_MissingE2EFile exercises the e2e file violation path.
@@ -606,5 +605,5 @@ func TestCheckInDir_NoExclusions_MissingE2EFile(t *testing.T) {
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	err = ExportedCheckInDirNoExclusions(logger, tmpDir)
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "missing required e2e file")
+	require.Contains(t, err.Error(), "missing required directory: client")
 }
