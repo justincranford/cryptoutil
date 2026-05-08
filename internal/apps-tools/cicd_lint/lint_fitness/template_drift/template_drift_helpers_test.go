@@ -26,7 +26,7 @@ func TestIsStructuralMetaFile(t *testing.T) {
 		{name: "cmd main go is meta (non-usage internal)", relPath: "cmd/__PS_ID__/main.go", want: true},
 		{name: "internal service go is meta (non-usage internal)", relPath: "internal/apps/__PS_ID__/__SERVICE__.go", want: true},
 		{name: "internal client go is meta (non-usage)", relPath: "internal/apps/__PS_ID__/client/client.go", want: true},
-		{name: "internal test go is meta (non-usage)", relPath: "internal/apps/__PS_ID__/__SERVICE___cli_test.go", want: true},
+		{name: "internal test go is meta (non-usage)", relPath: "internal/apps/__PS_ID__/__SERVICE___test.go", want: true},
 	}
 
 	for _, tt := range tests {

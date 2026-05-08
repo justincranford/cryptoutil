@@ -18,13 +18,14 @@ func TestCanonicalTemplateFilesUseActualCanonicalPaths(t *testing.T) {
 	t.Parallel()
 
 	for _, spec := range canonicalTemplateFiles {
-		require.NotContains(t, spec.relPath, "__SERVICE___test.go")
+		require.NotContains(t, spec.templatePath, "__SERVICE___cli_test.go")
 
-		if strings.HasPrefix(spec.relPath, "server/") || strings.HasPrefix(spec.relPath, "client/") {
+		if strings.HasPrefix(spec.templatePath, "server/") || strings.HasPrefix(spec.templatePath, "client/") {
 			continue
 		}
 
-		require.True(t, strings.HasSuffix(spec.relPath, "_cli_test.go") || !strings.HasSuffix(spec.relPath, "_test.go"))
+		require.Equal(t, "__SERVICE___test.go", spec.templatePath)
+		require.Equal(t, "__SERVICE___cli_test.go", spec.actualPath)
 	}
 }
 
