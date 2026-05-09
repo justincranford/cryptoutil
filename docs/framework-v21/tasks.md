@@ -1,287 +1,447 @@
-# Tasks - Framework V21: Server Subdirectory Migration and Tooling Debt Closure
+# Tasks - Framework v22 TestMain Orchestration Consolidation
 
-**Status**: 0 of 28 tasks complete (0%)
-**Created**: 2026-04-30
-**Last Updated**: 2026-04-30
+Status: 4 of 77 tasks complete (5.2%)
+Created: 2026-05-09
+Last Updated: 2026-05-09
 
 ## Task Status Legend
 
-| Symbol | Meaning |
-|--------|---------|
-| ❌ | Not started |
-| 🔄 | In progress |
-| ✅ | Complete |
-| ⏳ | Blocked |
-
-## Decision Constraints
-
-1. `docs/ENG-HANDBOOK.md` is the source of truth for all architectural patterns.
-2. sm-kms migration must preserve all existing tests and business logic semantics.
-3. pki-ca migration must not touch the CA domain layers (bootstrap, compliance, issuer, etc.).
-4. Every exclusion removal must be validated by `lint-fitness` before marking complete.
-5. Mojibake sub-linter must not produce false positives on legitimate UTF-8 content.
-6. All phases complete only when `go test ./...` and `golangci-lint run` pass.
-7. Quizme Round 1 decisions are binding: `server/businesslogic/` is canonical for pure business
-  logic, lifecycle/port-conflict tests must move into `server/`, and pki-ca migration planning
-  must include repository-v2 SQL migration consolidation mapping.
-8. Quizme Round 2 must finalize canonical recursive directory structure to be enforced for all
-  10 PS-IDs before broad all-service refactor execution begins.
-
-## Phase 1: sm-kms Server Subdirectory Migration
-
-### Task 1.1: Audit sm-kms server/ layout and create migration plan
-
-- **Status**: ❌
-- **Acceptance Criteria**:
-  - [x] All files in `server/businesslogic/` and `server/handler/` categorized: OAS-handler, ORM-entity, pure-logic.
-  - [x] Target directories for each file identified: `server/apis/`, `server/model/`, or stays in `server/businesslogic/`.
-  - [x] Import graph checked for cycles that would arise from the split.
-  - [x] Evidence archived in `test-output/v21-phase1/`.
-
-### Task 1.2: Create server/model/ with GORM entity structs
-
-- **Status**: ❌
-- **Acceptance Criteria**:
-  - [x] `server/model/model.go` (and any additional model files) created from the ORM-entity files in `businesslogic/`.
-  - [x] All moved types compile with updated package name `model`.
-  - [x] `go build ./internal/apps/sm-kms/server/model/...` exits 0.
-
-### Task 1.3: Create server/apis/ with OAS handler files
-
-- **Status**: ❌
-- **Acceptance Criteria**:
-  - [x] All OAS handler files from `server/handler/` moved or copied into `server/apis/`.
-  - [x] Package name updated to `apis`.
-  - [x] `go build ./internal/apps/sm-kms/server/apis/...` exits 0.
-
-### Task 1.4: Create server/config/ with config wiring
-
-- **Status**: ❌
-- **Acceptance Criteria**:
-  - [x] `server/config/config.go`, `config_test.go`, `config_test_helper.go` created.
-  - [x] Config struct matches the canonical pattern used by other PS-IDs (identity-authz is the reference).
-  - [x] `go build ./internal/apps/sm-kms/server/config/...` exits 0.
-
-### Task 1.5: Update import paths and verify full sm-kms build
-
-- **Status**: ❌
-- **Acceptance Criteria**:
-  - [x] All files importing the old `businesslogic` and `handler` packages updated to new paths.
-  - [x] `go build ./internal/apps/sm-kms/...` exits 0.
-  - [x] `go test ./internal/apps/sm-kms/...` passes (zero failures, zero skips).
-  - [x] `golangci-lint run ./internal/apps/sm-kms/...` exits 0.
-
-### Task 1.6: Phase 1 verification
-
-- **Status**: ❌
-- **Acceptance Criteria**:
-  - [x] `go build ./...` exits 0.
-  - [x] `go test ./internal/apps/sm-kms/...` passes.
-  - [x] Evidence archived in `test-output/v21-phase1/`.
-
-## Phase 2: pki-ca Server Subdirectory Migration
-
-### Task 2.1: Audit pki-ca server/ layout and identify gaps
-
-- **Status**: ❌
-- **Acceptance Criteria**:
-  - [x] Existing pki-ca server/ layout documented: current cmd/, config/, middleware/ are non-canonical but accepted.
-  - [x] Three missing canonical dirs identified: apis/, model/, repository/.
-  - [x] Existing pki-ca SQL migration source paths identified (repository-v2/migrations).
-  - [x] Plan for thin handler wrappers in server/apis/ that delegate to existing domain layers documented.
-  - [x] Evidence archived in `test-output/v21-phase2/`.
-
-### Task 2.7: Produce pki-ca consolidation map to canonical structure
-
-- **Status**: ❌
-- **Acceptance Criteria**:
-  - [x] Current pki-ca recursive subdirectory set inventoried with evidence.
-  - [x] Each current pki-ca subdirectory is mapped to one of: keep, migrate, merge, or deprecate.
-  - [x] Mapping includes target canonical location under the selected all-10 PS-ID structure.
-  - [x] Migration order is documented to avoid import-cycle and runtime-risk regressions.
-
-### Task 2.8: Define all-10 PS-ID canonical directory rollout plan
-
-- **Status**: ❌
-- **Acceptance Criteria**:
-  - [x] Recursive directory supersets computed for focus PS-IDs and all 10 PS-IDs.
-  - [x] Canonical required/optional directory policy drafted for all 10 PS-IDs.
-  - [x] Linter/template update tasks listed to enforce allowed-only subdirectories.
-  - [x] Rollout sequencing documented with pki-ca as high-sprawl migration case.
-
-### Task 2.2: Create server/apis/ with thin handler wrappers
-
-- **Status**: ❌
-- **Acceptance Criteria**:
-  - [x] `server/apis/` directory created with at least a skeleton handler file.
-  - [x] Handlers delegate to existing pki-ca domain layers (not duplicating logic).
-  - [x] `go build ./internal/apps/pki-ca/server/apis/...` exits 0.
-
-### Task 2.3: Create server/model/ with GORM entity structs
-
-- **Status**: ❌
-- **Acceptance Criteria**:
-  - [x] `server/model/model.go` created with pki-ca GORM entity types.
-  - [x] Package name is `model`.
-  - [x] `go build ./internal/apps/pki-ca/server/model/...` exits 0.
-
-### Task 2.4: Create server/repository/ with migrations.go and migrations/
-
-- **Status**: ❌
-- **Acceptance Criteria**:
-  - [x] `server/repository/` directory created with `migrations.go` (//go:embed for migrations FS).
-  - [x] `server/repository/migrations/` directory created (may be empty initially, or contain existing SQL files).
-  - [x] `go build ./internal/apps/pki-ca/server/repository/...` exits 0.
-
-### Task 2.5: Create server/config/config_test_helper.go
-
-- **Status**: ❌
-- **Acceptance Criteria**:
-  - [x] `server/config/config_test_helper.go` created with canonical test helper pattern.
-  - [x] Compiles clean under `go build` and `go test`.
-
-### Task 2.6: Phase 2 verification
-
-- **Status**: ❌
-- **Acceptance Criteria**:
-  - [x] `go build ./internal/apps/pki-ca/...` exits 0.
-  - [x] `go test ./internal/apps/pki-ca/...` passes (zero failures, zero skips).
-  - [x] `golangci-lint run ./internal/apps/pki-ca/...` exits 0.
-  - [x] Evidence archived in `test-output/v21-phase2/`.
-
-## Phase 3: Linter Exclusion Cleanup
-
-### Task 3.1: Remove sm-kms exclusions from apps_ps_id_template.go
-
-- **Status**: ❌
-- **Acceptance Criteria**:
-  - [x] `knownServerFileExclusions["testmain_test.go"]` sm-kms entry removed.
-  - [x] `knownServerDirExclusions["apis"]` sm-kms entry removed.
-  - [x] `knownServerDirExclusions["model"]` sm-kms entry removed.
-  - [x] `knownServerConfigFileExclusions["config.go"]` sm-kms entry removed.
-  - [x] `knownServerConfigFileExclusions["config_test.go"]` sm-kms entry removed.
-  - [x] `knownServerConfigFileExclusions["config_test_helper.go"]` sm-kms entry removed.
-  - [x] `lint-fitness` passes after removals.
-
-### Task 3.2: Remove pki-ca exclusions from apps_ps_id_template.go
-
-- **Status**: ❌
-- **Acceptance Criteria**:
-  - [x] `knownServerDirExclusions["apis"]` pki-ca entry removed.
-  - [x] `knownServerDirExclusions["model"]` pki-ca entry removed.
-  - [x] `knownServerDirExclusions["repository"]` pki-ca entry removed.
-  - [x] `knownServerConfigFileExclusions["config_test_helper.go"]` pki-ca entry removed.
-  - [x] `knownServerRepositoryFileExclusions["migrations.go"]` pki-ca entry removed.
-  - [x] `knownServerRepositoryDirExclusions["migrations"]` pki-ca entry removed.
-  - [x] `lint-fitness` passes after removals.
-
-### Task 3.3: Remove stale swagger.go exclusion from apps_ps_id_template.go
-
-- **Status**: ❌
-- **Acceptance Criteria**:
-  - [x] `knownServerFileExclusions["swagger.go"]` entry removed (all 10 PS-IDs already have swagger.go in server/).
-  - [x] `knownServerFileExclusions["swagger_test.go"]` entry removed.
-  - [x] Verify `checkServerFiles` validates presence of swagger.go in server/ correctly after removal.
-  - [x] `lint-fitness` passes after removals.
-
-### Task 3.3a: Migrate remaining root lifecycle and port-conflict tests into server/
-
-- **Status**: ❌
-- **Acceptance Criteria**:
-  - [x] Move `__SERVICE___lifecycle_test.go` and `__SERVICE___port_conflict_test.go` into `server/` for sm-kms, jose-ja, pki-ca, and skeleton-template.
-  - [x] Remove now-stale exclusions from `knownServerFileExclusions` for those files.
-  - [x] `go test` and `lint-fitness` both pass after moves.
-
-### Task 3.4: Update MANIFEST.yaml to remove stale migration references
-
-- **Status**: ❌
-- **Acceptance Criteria**:
-  - [x] `required_server_dirs` comments in MANIFEST.yaml no longer reference "pending V20 migration" for sm-kms or pki-ca.
-  - [x] `optional_server_dirs` updated to reflect current reality.
-  - [x] `lint-fitness` passes after update.
-
-### Task 3.5: Phase 3 verification
-
-- **Status**: ❌
-- **Acceptance Criteria**:
-  - [x] `lint-fitness` passes with smaller/cleaner exclusion maps.
-  - [x] `go test ./internal/apps-tools/cicd_lint/lint_fitness/...` passes.
-  - [x] Evidence archived in `test-output/v21-phase3/`.
-
-## Phase 4: Tooling Quality Improvements
-
-### Task 4.1: Implement mojibake sub-linter
-
-- **Status**: ❌
-- **Acceptance Criteria**:
-  - [x] `internal/apps-tools/cicd_lint/lint_text/mojibake/mojibake.go` created.
-  - [x] Linter scans `.md` files under `docs/` for windows-1252 mojibake byte sequences.
-  - [x] Returns an error (not just warning) when mojibake markers are found.
-  - [x] Does NOT false-positive on legitimate emoji or non-ASCII language characters.
-  - [x] `mojibake_test.go` covers: clean file passes, mojibake file fails, empty file passes, non-md file skipped.
-
-### Task 4.2: Register mojibake sub-linter in lint_text.go
-
-- **Status**: ❌
-- **Acceptance Criteria**:
-  - [x] `mojibake.Check` added to the sub-linter table in `lint_text.go`.
-  - [x] `go run ./cmd/cicd-lint lint-text` runs mojibake check and passes on current repo.
-  - [x] `go test ./internal/apps-tools/cicd_lint/lint_text/...` passes.
-
-### Task 4.3: Fix createFullPSIDRoot to parse required_server_dirs from MANIFEST
-
-- **Status**: ❌
-- **Acceptance Criteria**:
-  - [x] `createFullPSIDRoot` in `apps_ps_id_template_test.go` reads `required_server_dirs` from the parsed MANIFEST.yaml struct.
-  - [x] The hardcoded `[]string{"apis", "model", "repository"}` slice is removed.
-  - [x] Test still creates exactly the dirs that MANIFEST specifies, respecting exclusion maps.
-  - [x] `go test ./internal/apps-tools/cicd_lint/lint_fitness/apps_ps_id_template/...` passes.
-
-### Task 4.4: Phase 4 verification
-
-- **Status**: ❌
-- **Acceptance Criteria**:
-  - [x] `go run ./cmd/cicd-lint lint-text` passes (mojibake sub-linter included and passes).
-  - [x] `go test ./internal/apps-tools/cicd_lint/...` passes.
-  - [x] Evidence archived in `test-output/v21-phase4/`.
-
-## Phase 5: Verification and Closure
-
-### Task 5.1: Full quality suite
-
-- **Status**: ❌
-- **Acceptance Criteria**:
-  - [x] `go build ./...` exits 0.
-  - [x] `go build -tags e2e,integration ./...` exits 0.
-  - [x] `go test ./...` exits 0.
-  - [x] `golangci-lint run ./...` exits 0.
-  - [x] `go run ./cmd/cicd-lint lint-go` exits 0.
-  - [x] `go run ./cmd/cicd-lint lint-text` exits 0 (includes mojibake).
-  - [x] `go run ./cmd/cicd-lint lint-fitness` exits 0.
-  - [x] `go run ./cmd/cicd-lint lint-docs` exits 0.
-
-### Task 5.2: Refresh inventory and contradiction review
-
-- **Status**: ❌
-- **Acceptance Criteria**:
-  - [x] Final inventory of changed surfaces archived under `test-output/v21-phase5/`.
-  - [x] `docs/framework-v21/plan.md`, `docs/framework-v21/tasks.md`, and repository state are consistent.
-  - [x] No linter exclusion remains that was originally tagged "pending V20 migration."
-  - [x] If any item remains uncertain, mark it unresolved instead of guessing.
-
-## Phase 6: Knowledge Propagation
-
-### Task 6.1: Review execution lessons for durable guidance updates
-
-- **Status**: ❌
-- **Acceptance Criteria**:
-  - [x] `docs/framework-v21/lessons.md` reviewed after all execution phases complete.
-  - [x] Any new durable guidance for handbook or instructions explicitly identified.
-
-### Task 6.2: Apply durable documentation/process updates
-
-- **Status**: ❌
-- **Acceptance Criteria**:
-  - [x] Durable doc/process updates from V21 applied to handbook or instructions.
-  - [x] `go run ./cmd/cicd-lint lint-docs` passes after any updates.
-  - [x] Evidence archived in `test-output/v21-phase6/`.
+1. Not started
+2. In progress
+3. Blocked
+4. Complete
+
+## Phase 1 - Research Freeze and Baseline Evidence
+
+### Task 1.1 - Inventory lock
+
+Status: Complete
+Owner: LLM Agent
+Description: Freeze all internal/apps TestMain paths and category counts.
+Acceptance Criteria:
+1. 28 TestMain files listed.
+2. Count breakdown by category and PS-ID recorded in plan.md.
+3. Evidence artifact created under test-output/completion-verification/.
+Files:
+4. docs/framework-v22/plan.md
+5. test-output/completion-verification/framework-v22-testmain-signals.csv
+
+### Task 1.2 - Pattern signal extraction
+
+Status: Complete
+Owner: LLM Agent
+Description: Extract behavior signals from each TestMain and persist evidence.
+Acceptance Criteria:
+1. CSV evidence exists with file + signal columns.
+2. Deep analysis appendix references findings.
+Files:
+3. test-output/completion-verification/framework-v22-testmain-signals.csv
+4. docs/framework-v22/plan.md
+
+### Task 1.3 - Distinct type taxonomy
+
+Status: Complete
+Owner: LLM Agent
+Description: Define canonical TestMain types and duplication findings.
+Acceptance Criteria:
+1. Appendix includes distinct types and rationale.
+2. Goal 2 list includes all TestMain files and purpose summaries.
+Files:
+3. docs/framework-v22/plan.md
+
+### Task 1.4 - Deep completeness audit of planning artifacts
+
+Status: Complete
+Owner: LLM Agent
+Description: Verify Goal 1/2/3 lists are complete and no PS-ID/TestMain was omitted.
+Acceptance Criteria:
+1. Goal 2 section includes all 28 TestMain files from internal/apps/**.
+2. Goal 3 section maps all 28 TestMain files to refactor outcomes.
+3. Audit evidence files created in test-output/completion-verification/.
+Files:
+4. docs/framework-v22/plan.md
+5. test-output/completion-verification/framework-v22-plan-completeness-check.txt
+6. test-output/completion-verification/framework-v22-goal2-goal3-coverage.txt
+
+## Phase 2 - Orchestration API Design
+
+### Task 2.1 - Design test_e2e package API
+
+Status: Not started
+Description: Define API contract for compose lifecycle + health wait + client setup.
+Acceptance Criteria:
+1. API draft reviewed.
+2. Supports PS-ID-specific config injection.
+
+### Task 2.2 - Design test_integration package API
+
+Status: Not started
+Description: Define integration startup contract for app+SQLite lifecycle.
+Acceptance Criteria:
+1. Supports constructor injection and dual-port wait.
+2. Supports client fixture return values.
+
+### Task 2.3 - Design test_db package API
+
+Status: Not started
+Description: Define DB fixture contract for SQLite/GORM/migrations.
+Acceptance Criteria:
+1. Supports migration callback injection.
+2. Supports teardown and closed-DB error fixture path.
+
+### Task 2.4 - Design test_api package API
+
+Status: Not started
+Description: Define API test orchestration for handler graph and request helpers.
+Acceptance Criteria:
+1. Supports in-memory app.Test path.
+2. Supports integration HTTP client path when needed.
+
+### Task 2.5 - Design test_cli package API
+
+Status: Not started
+Description: Define CLI harness orchestration.
+Acceptance Criteria:
+1. Argument and IO capture helpers defined.
+2. Exit-code and output assertion helpers defined.
+
+### Task 2.6 - Design additional candidate APIs
+
+Status: Not started
+Description: Define test_tls, test_barrier, test_compose, test_health, test_bootstrap.
+Acceptance Criteria:
+1. Candidate package list finalized.
+2. Scope boundaries documented.
+
+## Phase 3 - Implement Framework Orchestration Packages
+
+### Task 3.1 - Create test_orchestration directory tree
+
+Status: Not started
+Description: Add package skeletons for all approved test_* modules.
+Acceptance Criteria:
+1. All planned package directories exist.
+2. Each package has package docs and initial tests.
+
+### Task 3.2 - Implement test_bootstrap primitives
+
+Status: Not started
+Description: Lifecycle hooks, teardown ordering, timeout constants.
+
+### Task 3.3 - Implement test_db core
+
+Status: Not started
+Description: SQLite setup, PRAGMA, GORM wrapper, migration pipeline.
+
+### Task 3.4 - Implement test_barrier fixtures
+
+Status: Not started
+Description: Telemetry + JWK + barrier reusable fixture graph.
+
+### Task 3.5 - Implement test_tls fixtures
+
+Status: Not started
+Description: TLS pool and client builders for public/admin/mTLS test paths.
+
+### Task 3.6 - Implement test_health helpers
+
+Status: Not started
+Description: Unified readiness and endpoint assertion helpers.
+
+### Task 3.7 - Implement test_integration orchestration
+
+Status: Not started
+Description: Server startup, dual-port wait, ready gate, cleanup orchestration.
+
+### Task 3.8 - Implement test_compose orchestration
+
+Status: Not started
+Description: Compose manager abstraction and wait orchestration.
+
+### Task 3.9 - Implement test_e2e orchestration
+
+Status: Not started
+Description: PS-ID e2e TestMain factory facade built on test_compose and test_health.
+
+### Task 3.10 - Implement test_api orchestration
+
+Status: Not started
+Description: Handler graph fixture and request harness.
+
+### Task 3.11 - Implement test_cli orchestration
+
+Status: Not started
+Description: CLI invocation harness with deterministic assertions.
+
+### Task 3.12 - Add package-level tests and export_test seams
+
+Status: Not started
+Description: Ensure all orchestration packages have high coverage and robust tests.
+
+## Phase 4 - Migrate Existing Framework Callers
+
+### Task 4.1 - Add compatibility wrappers in existing framework testing packages
+
+Status: Not started
+
+### Task 4.2 - Repoint existing e2e_infra call sites to test_e2e facade
+
+Status: Not started
+
+### Task 4.3 - Repoint server helper call sites to test_integration facade
+
+Status: Not started
+
+### Task 4.4 - Validate no behavior regressions in framework package tests
+
+Status: Not started
+
+## Phase 5 - PS-ID Migration (All 10 PS-IDs)
+
+### Identity Family
+
+### Task 5.1 - identity-authz server TestMain migration
+
+Status: Not started
+
+### Task 5.2 - identity-authz e2e TestMain migration
+
+Status: Not started
+
+### Task 5.3 - identity-idp server TestMain migration
+
+Status: Not started
+
+### Task 5.4 - identity-idp e2e TestMain migration
+
+Status: Not started
+
+### Task 5.5 - identity-rp server TestMain migration
+
+Status: Not started
+
+### Task 5.6 - identity-rp e2e TestMain migration
+
+Status: Not started
+
+### Task 5.7 - identity-rs server TestMain migration
+
+Status: Not started
+
+### Task 5.8 - identity-rs e2e TestMain migration
+
+Status: Not started
+
+### Task 5.9 - identity-spa server TestMain migration
+
+Status: Not started
+
+### Task 5.10 - identity-spa e2e TestMain migration
+
+Status: Not started
+
+### JOSE
+
+### Task 5.11 - jose-ja e2e facade migration
+
+Status: Not started
+
+### Task 5.12 - jose-ja server TestMain migration
+
+Status: Not started
+
+### Task 5.13 - jose-ja repository TestMain migration to test_db
+
+Status: Not started
+
+### Task 5.14 - jose-ja service TestMain migration to test_db + test_barrier
+
+Status: Not started
+
+### PKI
+
+### Task 5.15 - pki-ca e2e custom compose migration to test_e2e
+
+Status: Not started
+
+### Task 5.16 - pki-ca server migration to test_integration + test_tls
+
+Status: Not started
+
+### Skeleton
+
+### Task 5.17 - skeleton-template e2e facade migration
+
+Status: Not started
+
+### Task 5.18 - skeleton-template server facade migration
+
+Status: Not started
+
+### SM-IM
+
+### Task 5.19 - sm-im server migration from local SetupTestServer to test_integration
+
+Status: Not started
+
+### Task 5.20 - sm-im e2e facade migration
+
+Status: Not started
+
+### Task 5.21 - sm-im client TestMain migration to framework orchestration
+
+Status: Not started
+
+### Task 5.22 - sm-im repository TestMain migration to test_db + test_barrier
+
+Status: Not started
+
+### Task 5.23 - sm-im API TestMain migration to test_api + test_barrier
+
+Status: Not started
+
+### SM-KMS
+
+### Task 5.24 - sm-kms server TestMain migration to test_integration
+
+Status: Not started
+
+### Task 5.25 - sm-kms e2e facade migration
+
+Status: Not started
+
+### Task 5.26 - sm-kms client TestMain migration to framework orchestration
+
+Status: Not started
+
+### Task 5.27 - sm-kms businesslogic sad-path orchestration migration to test_bootstrap
+
+Status: Not started
+
+### Task 5.28 - sm-kms orm transaction TestMain migration to test_db/test_api fixture
+
+Status: Not started
+
+## Phase 6 - Duplicate Fixture Removal and Cleanup
+
+### Task 6.1 - Remove duplicated SQLite fixture code from jose-ja packages
+
+Status: Not started
+
+### Task 6.2 - Remove duplicated SQLite+barrier fixture code from sm-im packages
+
+Status: Not started
+
+### Task 6.3 - Remove duplicated client-package happy-path server startup logic
+
+Status: Not started
+
+### Task 6.4 - Remove obsolete helper paths after migration
+
+Status: Not started
+
+## Phase 7 - Template and PS-ID Instantiation Alignment
+
+### Task 7.1 - Update __PS_ID__ template TestMain wrappers
+
+Status: Not started
+
+### Task 7.2 - Add integration_testing/e2e_testing wrapper strategy in template policy
+
+Status: Not started
+
+### Task 7.3 - Sync all 10 PS-ID instantiated files
+
+Status: Not started
+
+### Task 7.4 - Validate apps-ps-id-template exact-match compliance
+
+Status: Not started
+
+## Phase 8 - Linter Enforcement
+
+### Task 8.1 - Implement lint-fitness testmain-orchestration-policy
+
+Status: Not started
+
+### Task 8.2 - Implement lint-fitness testmain-location-policy
+
+Status: Not started
+
+### Task 8.3 - Implement lint-fitness testmain-sadpath-policy
+
+Status: Not started
+
+### Task 8.4 - Implement lint-fitness template-testmain-compliance check
+
+Status: Not started
+
+### Task 8.5 - Add linter tests for pass/fail scenarios
+
+Status: Not started
+
+### Task 8.6 - Integrate checks into standard cicd-lint flows
+
+Status: Not started
+
+## Phase 9 - Validation and Rollout
+
+### Task 9.1 - Build validation across all tags
+
+Status: Not started
+
+### Task 9.2 - Lint validation across all tags
+
+Status: Not started
+
+### Task 9.3 - Unit and integration test validation
+
+Status: Not started
+
+### Task 9.4 - E2E suite validation per PS-ID
+
+Status: Not started
+
+### Task 9.5 - Coverage and mutation target validation
+
+Status: Not started
+
+### Task 9.6 - Final policy conformance report
+
+Status: Not started
+
+## Cross-Cutting Quality Tasks
+
+### Task Q1 - Ensure no happy-path startup outside framework orchestration
+
+Status: Not started
+
+### Task Q2 - Ensure sad-path startup intent is explicit and lint-validated
+
+Status: Not started
+
+### Task Q3 - Ensure all wrappers are thin and deterministic
+
+Status: Not started
+
+### Task Q4 - Ensure all new framework orchestration packages meet >=98% coverage
+
+Status: Not started
+
+### Task Q5 - Ensure no new TODO/FIXME introduced untracked
+
+Status: Not started
+
+## Verification Checklist for Planning Completeness
+
+1. Goal 1 list complete with required modules and identified additional candidates.
+2. Goal 2 list includes all 28 internal/apps TestMain files.
+3. Goal 3 list maps all 28 files to migration outcomes.
+4. No PS-ID missing from any goal-level list.
+5. Enforcement path includes template updates and cicd lint-fitness checks.
+
+## Evidence Archive
+
+1. test-output/completion-verification/framework-v22-testmain-signals.csv
+2. test-output/completion-verification/framework-v22-testmain-signals.txt
+3. docs/framework-v22/plan.md
