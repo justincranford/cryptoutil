@@ -7,24 +7,52 @@ Purpose: Consolidate all TestMain orchestration to reusable apps-framework test_
 
 ## Overview
 
-This plan migrates TestMain orchestration for all 10 PS-IDs and all in-scope framework TestMain packages to framework-owned reusable orchestration modules under internal/apps-framework/service/test_orchestration/. The target is a single canonical category model implemented through two execution profiles.
+This plan migrates TestMain orchestration for all 10 PS-IDs and all in-scope framework TestMain packages to framework-owned reusable modules under internal/apps-framework/service/test_orchestration/. The target is one canonical module taxonomy with clear separation between lifecycle orchestration and reusable helpers.
+
+Planned directory creation under internal/apps-framework/service/test_orchestration/:
+
+1. test_e2e/
+2. test_integration/
+3. test_helpers/
+4. test_helpers/test_compose/
+5. test_helpers/test_bootstrap/
+6. test_helpers/test_db/
+7. test_helpers/test_api/
+8. test_helpers/test_cli/
+9. test_helpers/test_tls/
+10. test_helpers/test_barrier/
 
 Execution profiles:
 
 1. Integration profile: start one PS-ID server directly with SQLite and dynamic ports.
 2. E2E profile: start one PS-ID docker compose stack with four app instances (2 SQLite + 2 PostgreSQL) plus dependent services.
 
-Canonical orchestration categories (must all be represented in API design, migration mapping, and policy enforcement):
+Canonical module taxonomy (must all be represented in API design, migration mapping, and policy enforcement):
+
+Orchestration modules (lifecycle ownership — start/wait/shutdown):
 
 1. test_e2e
 2. test_integration
-3. test_db
-4. test_api (HTTP client helpers, assertions, health checks, and HTTP mocks)
-5. test_cli
-6. test_tls
-7. test_barrier
-8. test_compose
-9. test_bootstrap
+
+Helper modules (consumed by orchestration and suites; no lifecycle ownership):
+
+1. test_helpers/test_compose
+2. test_helpers/test_bootstrap
+3. test_helpers/test_db
+4. test_helpers/test_api
+5. test_helpers/test_cli
+6. test_helpers/test_tls
+7. test_helpers/test_barrier
+
+Helper consumer map:
+
+1. test_helpers/test_compose: consumed by test_e2e (docker compose orchestration, stack startup, health-wait coupling).
+2. test_helpers/test_bootstrap: consumed by test_e2e and test_integration (config/env setup, startup wiring).
+3. test_helpers/test_db: consumed by test_integration and repository-focused TestMain suites (for SQLite fixtures and DB fault-path setup).
+4. test_helpers/test_api: consumed by test_integration and test_e2e (HTTP clients, health checks, assertions, reusable HTTP mocks).
+5. test_helpers/test_cli: consumed by client and CLI entry-point test suites that need deterministic command execution/assertion wrappers.
+6. test_helpers/test_tls: consumed by test_integration and test_e2e for TLS client/certificate helpers and secure/insecure test-client wiring.
+7. test_helpers/test_barrier: consumed by integration/e2e plus barrier/repository fixture-heavy suites needing unseal/barrier composition helpers.
 
 Primary outcomes:
 
@@ -49,17 +77,9 @@ Findings requiring refactor in this plan revision:
 
 Correction applied in this revision:
 
-1. Promote the nine-category model to top-level plan scope.
-2. Keep integration/e2e as execution profiles, not the only categories.
-3. Thread category ownership through goals, migration mapping, phase plan, and completion criteria.
-
-## Mutual Exclusivity Guardrails
-
-This document is TestMain-only.
-
-1. Allowed: TestMain inventory, test orchestration APIs, integration/e2e startup patterns, TestMain migration sequencing, and TestMain lint policies.
-2. Not allowed: PS-ID template directory-shape convergence, server subdirectory migration plans, mojibake linter work, and template MANIFEST directory enforcement details.
-3. Any template-first planning content belongs under docs/framework-v22/ only.
+1. Promote a two-family module taxonomy (orchestration modules plus helper modules) to top-level plan scope.
+2. Keep integration/e2e as execution profiles, not taxonomy categories.
+3. Thread ownership boundaries through goals, migration mapping, phase plan, and completion criteria.
 
 ## Scope
 
@@ -100,58 +120,62 @@ Current framework testing package inventory:
 Observed canonical baselines from code:
 
 1. Canonical E2E orchestration baseline is e2e_infra.SetupE2ETestMain (already used by jose-ja, sm-im, sm-kms, skeleton-template).
-2. Canonical integration helper baseline should be testserver.StartAndWait semantics (TB-based cleanup, not panic-based) plus test_tls bundle.
+2. Canonical integration helper baseline should be testserver.StartAndWait semantics (TB-based cleanup, not panic-based) plus test_helpers/test_tls bundle.
 3. e2e_helpers.MustStartAndWaitForDualPorts is widely used but panic-based and should be migrated behind test_integration wrappers.
 
-## Goal 1 - Build test_orchestration Modules
+## Goal 1 - Build test_orchestration Module Families
 
 Build the following modules under internal/apps-framework/service/test_orchestration/:
 
+Orchestration modules:
 1. test_e2e
 2. test_integration
-3. test_db
-4. test_api
-5. test_cli
-6. test_tls
-7. test_barrier
-8. test_compose
-9. test_bootstrap
+
+Helper modules (under test_helpers/):
+3. test_helpers/test_compose
+4. test_helpers/test_bootstrap
+5. test_helpers/test_db
+6. test_helpers/test_api
+7. test_helpers/test_cli
+8. test_helpers/test_tls
+9. test_helpers/test_barrier
 
 ### Goal 1A - Category Dependency and Ownership Model
 
 Required dependency direction:
 
-1. test_compose and test_bootstrap provide foundational startup/config wiring.
-2. test_e2e composes test_compose + test_api + test_tls (+ test_db only when local fixture helpers are needed).
-3. test_integration composes test_db + test_tls + test_api.
-4. test_api and test_cli remain transport-level helpers, not lifecycle owners.
-5. test_barrier remains crypto/barrier fixture support consumed by integration/e2e and fixture-heavy repository suites.
+1. test_helpers/test_compose and test_helpers/test_bootstrap provide foundational compose/config wiring.
+2. test_e2e composes test_helpers/test_compose + test_helpers/test_bootstrap + test_helpers/test_api + test_helpers/test_tls (+ test_helpers/test_db only when local fixture helpers are needed).
+3. test_integration composes test_helpers/test_bootstrap + test_helpers/test_db + test_helpers/test_tls + test_helpers/test_api.
+4. test_helpers/test_api and test_helpers/test_cli remain transport-level helpers, not lifecycle owners.
+5. test_helpers/test_barrier remains crypto/barrier fixture support consumed by integration/e2e and fixture-heavy repository suites.
 
 Boundary rules:
 
-1. Lifecycle orchestration (start/wait/shutdown) belongs only to test_e2e/test_integration/test_compose.
-2. HTTP assertions/mocks/health checks belong to test_api.
-3. CLI entry-point execution/assertions belong to test_cli.
-4. Database fixture creation and DB failure-path helpers belong to test_db.
-5. TLS material/client construction helpers belong to test_tls.
-6. Barrier/unseal fixture helpers belong to test_barrier.
-7. Bootstrap/config helper wiring belongs to test_bootstrap.
+1. Lifecycle orchestration (start/wait/shutdown) belongs ONLY to test_e2e and test_integration.
+2. Docker Compose stack startup/teardown/health-wait helpers belong to test_helpers/test_compose.
+3. Config/env/startup wiring helpers belong to test_helpers/test_bootstrap.
+4. Database fixture creation and DB failure-path helpers belong to test_helpers/test_db.
+5. HTTP assertions/mocks/health checks belong to test_helpers/test_api.
+6. CLI entry-point execution/assertions belong to test_helpers/test_cli.
+7. TLS material/client construction helpers belong to test_helpers/test_tls.
+8. Barrier/unseal fixture helpers belong to test_helpers/test_barrier.
 
 ### Goal 1B - Package Consolidation Matrix
 
 Existing packages and target disposition:
 
-1. testing/e2e_infra -> consolidate into test_e2e + test_compose.
+1. testing/e2e_infra -> consolidate into test_e2e + test_helpers/test_compose.
 2. testing/e2e_helpers -> split by concern:
    - server_start_helpers -> test_integration
-   - http_helpers -> test_api + test_tls
-   - config_helpers/db_helpers/user_auth_helpers -> test_e2e or test_bootstrap depending on concern
-3. testing/testdb -> consolidate into test_db (keep temporary compatibility wrapper).
-4. testing/testserver -> consolidate into test_integration + test_tls.
-5. testing/healthclient -> move into test_api (as requested).
-6. testing/testcli -> move into test_cli (as requested).
-7. service/testutil (HTTP mock servers) -> move generic HTTP mocks to test_api/mocks.
-8. testing/assertions -> keep reusable beyond orchestration; import from test_api/test_e2e.
+   - http_helpers -> test_helpers/test_api + test_helpers/test_tls
+   - config_helpers/db_helpers/user_auth_helpers -> test_helpers/test_bootstrap depending on concern
+3. testing/testdb -> consolidate into test_helpers/test_db (keep temporary compatibility wrapper).
+4. testing/testserver -> consolidate into test_integration + test_helpers/test_tls.
+5. testing/healthclient -> move into test_helpers/test_api (as requested).
+6. testing/testcli -> move into test_helpers/test_cli (as requested).
+7. service/testutil (HTTP mock servers) -> move generic HTTP mocks to test_helpers/test_api/mocks.
+8. testing/assertions -> keep reusable beyond orchestration; import from test_helpers/test_api and test_e2e.
 9. testing/httpservertests -> keep reusable beyond orchestration; import from test_integration.
 10. testing/fixtures -> keep reusable beyond orchestration for seeded DB entities.
 11. testing/stubs -> keep reusable beyond orchestration for server/application seams.
@@ -223,7 +247,7 @@ Total TestMain functions in scope: 39
 
 1. sm-kms/server/repository/orm/orm_transaction_test.go is integration-tagged (`//go:build integration`) and should be classified as integration DB-core fixture, not sad-path/setup-only.
 2. sm-kms/server/businesslogic/businesslogic_crud_test.go currently uses TestMain only for env var setup while each test runs full setupTestStack. This requires refactor to shared TestMain integration fixture.
-3. sm-im/server/testmain_test.go mock infrastructure uses service/testutil mock servers. These mocks are useful and should be preserved as test_api/mocks, not discarded.
+3. sm-im/server/testmain_test.go mock infrastructure uses service/testutil mock servers. These mocks are useful and should be preserved as test_helpers/test_api/mocks, not discarded.
 4. pki-ca/e2e/testmain_e2e_test.go has compose-up without health-wait coupling and should migrate to test_e2e to remove readiness race risk.
 5. sm-kms/client/testmain_test.go currently uses e2e_helpers server startup helper; it should use test_integration instead.
 
@@ -231,19 +255,23 @@ Total TestMain functions in scope: 39
 
 1. All 39 in-scope TestMains are classified and mapped.
 2. Category assignments reflect build tags and real setup behavior.
-3. Classification maps each TestMain to one or more of the nine canonical categories.
+3. Classification maps each TestMain to one or more of the canonical module families.
 4. No PS-ID and no framework TestMain omitted.
 
 ## Goal 3 - Migration Mapping
 
 ### Goal 3A - Canonical Implementations by Category
 
-1. Integration canonical path: test_integration + test_db + test_tls + test_api/assertions.
-2. E2E canonical path: test_e2e (built on test_compose + test_api health checks + secure/insecure clients + bootstrap wiring).
-3. API category canonical path: test_api for health clients, HTTP assertions, and reusable HTTP mocks.
-4. CLI category canonical path: test_cli for deterministic command execution/assertions.
-5. Barrier category canonical path: test_barrier for barrier/unseal fixture composition in DB and API suites.
-6. No direct PS-ID ad-hoc startup loops outside wrappers.
+1. Integration canonical path: test_integration (consumes test_helpers/test_bootstrap + test_helpers/test_db + test_helpers/test_tls + test_helpers/test_api/assertions).
+2. E2E canonical path: test_e2e (consumes test_helpers/test_compose + test_helpers/test_bootstrap + test_helpers/test_api health checks + secure/insecure clients + test_helpers/test_tls).
+3. Compose helper canonical path: test_helpers/test_compose for docker compose stack operations.
+4. Bootstrap helper canonical path: test_helpers/test_bootstrap for config/env setup.
+5. Database helper canonical path: test_helpers/test_db for database fixtures and error-path setup.
+6. API helper canonical path: test_helpers/test_api for health clients, HTTP assertions, and reusable HTTP mocks.
+7. CLI helper canonical path: test_helpers/test_cli for deterministic command execution/assertions.
+8. TLS helper canonical path: test_helpers/test_tls for TLS certificate/client construction.
+9. Barrier helper canonical path: test_helpers/test_barrier for barrier/unseal fixture composition in DB and API suites.
+10. No direct PS-ID ad-hoc startup loops outside wrappers.
 
 ### Goal 3B - internal/apps Migration Summary
 
@@ -252,13 +280,13 @@ Total TestMain functions in scope: 39
 3. jose-ja, skeleton-template, sm-im, sm-kms, pki-ca e2e TestMain files converge on test_e2e facade.
 4. sm-im/server and sm-im/client stop using local sm-im/testing helper startup; migrate to test_integration.
 5. sm-kms/client moves from e2e_helpers helper to test_integration.
-6. sm-kms/businesslogic package moves from per-test setupTestStack to shared TestMain fixture via test_integration/test_db composite helper.
+6. sm-kms/businesslogic package moves from per-test setupTestStack to shared TestMain fixture via test_integration (with test_helpers/test_bootstrap + test_helpers/test_db composite).
 7. sm-kms/repository/orm integration-tagged TestMain migrates to test_integration_db fixture path (test_integration with DB-core fixture hooks).
-8. jose-ja/sm-im repository and API fixture TestMain files migrate to test_db/test_api/test_barrier compositions.
+8. jose-ja/sm-im repository and API fixture TestMain files migrate to test_helpers/test_db + test_helpers/test_api + test_helpers/test_barrier compositions.
 
 ### Goal 3C - internal/apps-framework Migration Summary
 
-1. service/server/* TestMain packages migrate to test_integration/test_db/test_barrier/test_api as appropriate.
+1. service/server/*TestMain packages migrate to test_integration or test_e2e, composing appropriate test_helpers/* modules.
 2. tls/e2e/otel_tls_e2e_test.go migrates to test_e2e facade.
 3. Existing framework test packages keep compatibility wrappers during transition, then old entry points are removed.
 
@@ -268,7 +296,7 @@ Total TestMain functions in scope: 39
 2. Client-package full-server startup duplication removed.
 3. Integration-tagged tests use integration orchestration and shared TestMain fixtures.
 4. pki-ca e2e readiness risk eliminated by test_e2e migration.
-5. HTTP API, CLI, DB, TLS, barrier, compose, and bootstrap categories are all consumed by at least one migrated caller path.
+5. All helper modules (test_helpers/test_compose, test_helpers/test_bootstrap, test_helpers/test_db, test_helpers/test_api, test_helpers/test_cli, test_helpers/test_tls, test_helpers/test_barrier) are consumed by at least one migrated orchestrator or suite.
 
 ## Enforcement Strategy
 
@@ -292,11 +320,11 @@ Phase 1: Research and alignment corrections
 1. Correct v21/v22 doc placement and metadata.
 2. Freeze 39-file TestMain inventory and classification.
 3. Freeze package consolidation matrix.
-4. Freeze canonical nine-category taxonomy and ownership boundaries.
+4. Freeze canonical module taxonomy and ownership boundaries.
 
 Phase 2: API design
 
-1. Finalize module API boundaries for all nine categories.
+1. Finalize module API boundaries for all orchestration/helper modules.
 2. Finalize moved-vs-reusable package boundaries.
 3. Finalize category dependency direction and no-overlap boundaries.
 
@@ -308,9 +336,9 @@ Phase 3: Implement orchestration modules
 
 Phase 4: Framework package migration
 
-1. Move testcli -> test_cli.
-2. Move healthclient -> test_api.
-3. Move service/testutil mocks -> test_api/mocks.
+1. Move testcli -> test_helpers/test_cli.
+2. Move healthclient -> test_helpers/test_api.
+3. Move service/testutil mocks -> test_helpers/test_api/mocks.
 4. Keep compatibility wrappers during migration.
 
 Phase 5: internal/apps PS-ID migration
@@ -342,7 +370,9 @@ Phase 8: Validation and rollout
 3. Risk: integration-tagged suites regress during refactor.
    - Mitigation: dedicated testmain-integration-tag-policy and targeted integration test gates.
 4. Risk: mock behavior regressions in sm-im/server tests.
-   - Mitigation: preserve and migrate service/testutil semantics into test_api/mocks.
+   - Mitigation: preserve and migrate service/testutil semantics into test_helpers/test_api/mocks.
+5. Risk: test_helpers/test_compose readiness coupling with test_e2e orchestration.
+   - Mitigation: mandate health-wait semantics at compose helper API layer (not optional).
 
 ## Quality Gates
 
@@ -355,9 +385,9 @@ Per phase gates:
 5. go test ./... -shuffle=on
 6. go run ./cmd/cicd-lint lint-fitness
 
-Category coverage gate (plan-level):
+Module coverage gate (plan-level):
 
-1. Evidence that each canonical category (test_e2e, test_integration, test_db, test_api, test_cli, test_tls, test_barrier, test_compose, test_bootstrap) is represented in API design artifacts, migration mappings, and linter/template policy.
+1. Evidence that each canonical module (test_e2e, test_integration, test_helpers/test_compose, test_helpers/test_bootstrap, test_helpers/test_db, test_helpers/test_api, test_helpers/test_cli, test_helpers/test_tls, test_helpers/test_barrier) is represented in API design artifacts, migration mappings, and linter/template policy.
 
 Coverage/mutation targets:
 
@@ -373,8 +403,8 @@ Planning evidence retained under test-output/completion-verification/ and test-o
 
 Second-pass validation checklist for omissions:
 
-1. Re-scan plan for category collapse language that implies only integration/e2e.
-2. Re-verify all nine categories appear in overview, goals, migration mapping, phases, and quality gates.
-3. Re-verify HTTP API, CLI, DB, TLS, barrier, compose, and bootstrap are explicitly called out as first-class categories.
-4. Re-verify TestMain migration coverage remains 39 in-scope entries with no category orphan.
-5. Re-run grep-based keyword audit before execution begins (test_api|test_cli|test_db|test_tls|test_barrier|test_compose|test_bootstrap|test_integration|test_e2e).
+1. Re-scan plan for module-collapse language that implies only integration/e2e.
+2. Re-verify all canonical modules appear in overview, goals, migration mapping, phases, and quality gates.
+3. Re-verify HTTP API, CLI, DB, TLS, barrier, compose, and bootstrap helpers are explicitly called out as first-class modules.
+4. Re-verify TestMain migration coverage remains 39 in-scope entries with no module orphan.
+5. Re-run grep-based keyword audit before execution begins (test_e2e|test_integration|test_helpers/test_compose|test_helpers/test_bootstrap|test_helpers/test_db|test_helpers/test_api|test_helpers/test_cli|test_helpers/test_tls|test_helpers/test_barrier).

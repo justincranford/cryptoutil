@@ -11,38 +11,30 @@ All items are carried-forward incomplete work from V16-V20.
 
 Framework V22 closes four categories of deferred work identified across V16-V20 plans:
 
-## Mutual Exclusivity Guardrails
-
-This document is template-and-structure-only.
-
-1. Allowed: PS-ID template directory-shape convergence, server subdirectory migration, template exclusion-map cleanup, MANIFEST alignment, and template-related tooling debt.
-2. Not allowed: TestMain orchestration module design, TestMain inventory/migration tracking, integration/e2e test harness API design, and TestMain policy-linter design.
-3. Any TestMain-first planning content belongs under docs/framework-v21/ only.
-
-4. **sm-kms server/ structural migration** — `businesslogic/` and `handler/` reorganized into
+1. **sm-kms server/ structural migration** — `businesslogic/` and `handler/` reorganized into
    `server/apis/`, `server/model/`, `server/config/`. Explicitly deferred from V18 to V20, then
    skipped in V20 (TLS-only scope). The `apps-ps-id-template` linter still carries sm-kms
    exclusions for `apis`, `model`, `server/config`, and `testmain_test.go`.
 
-5. **pki-ca server/ structural migration** — pki-ca lacks `server/apis/`, `server/model/`,
+2. **pki-ca server/ structural migration** — pki-ca lacks `server/apis/`, `server/model/`,
    `server/repository/`, `server/config/config_test_helper.go`. The linter carries matching
    exclusions. The pki-ca CA architecture is complex (bootstrap, compliance, intermediate,
    issuer, storage) and was deferred from V18 citing complexity.
 
-6. **Linter exclusion cleanup** — After migrations complete, `knownServerFileExclusions`,
+3. **Linter exclusion cleanup** — After migrations complete, `knownServerFileExclusions`,
    `knownServerDirExclusions`, `knownServerConfigFileExclusions`,
    `knownServerRepositoryFileExclusions`, and `knownServerRepositoryDirExclusions` entries
    for sm-kms and pki-ca can be removed. Additionally, `swagger.go`/`swagger_test.go` are
    already in `server/` for all 10 PS-IDs (the exclusion is stale since V18/V19),
    and the MANIFEST.yaml comments still reference "pending V20 migration."
 
-7. **Tooling quality debt** — Two items from V19 Action 2 and V18 Action 4:
+4. **Tooling quality debt** — Two items from V19 Action 2 and V18 Action 4:
    a. mojibake detection sub-linter in `lint_text` (V19 Action 2 — not implemented)
    b. `apps_ps_id_template` test fixture improvement: the hardcoded `[]string{"apis", "model",
       "repository"}` in `createFullPSIDRoot` should be parsed from MANIFEST.yaml `required_server_dirs`
       instead (V18 Action 4 — test still uses hardcoded list as of V21 start)
 
-8. **All-10 PS-ID directory-shape convergence planning** — Based on Quizme Round 1 Q2 answer,
+5. **All-10 PS-ID directory-shape convergence planning** — Based on Quizme Round 1 Q2 answer,
    V21 must produce a researched superset of recursive PS-ID directories and define the canonical
    recursive structure to be applied to all 10 PS-IDs. This includes explicit consolidation tasks
    for pki-ca package/subdirectory sprawl.
