@@ -1,279 +1,294 @@
-# Implementation Plan - Framework V21: Server Subdirectory Migration and Tooling Debt Closure
+# Implementation Plan - Framework v22 TestMain Orchestration Consolidation
 
-**Status**: Not started
-**Created**: 2026-04-30
-**Last Updated**: 2026-04-30
-**Purpose**: Complete deferred structural migration for sm-kms and pki-ca server/ subdirectories,
-clean up stale linter exclusions, add mojibake detection, and improve test fixture quality.
-All items are carried-forward incomplete work from V16-V20.
+Status: Planning
+Created: 2026-05-09
+Last Updated: 2026-05-09
+Purpose: Consolidate all TestMain orchestration to reusable apps-framework test_orchestration packages, remove duplicated startup logic, and enforce policy with templates and fitness linting.
 
 ## Overview
 
-Framework V21 closes four categories of deferred work identified across V16-V20 plans:
+This plan migrates TestMain orchestration for all 10 PS-IDs and all in-scope framework TestMain packages to framework-owned reusable orchestration modules under internal/apps-framework/service/test_orchestration/. The target is a single canonical approach for:
 
-1. **sm-kms server/ structural migration** — `businesslogic/` and `handler/` reorganized into
-   `server/apis/`, `server/model/`, `server/config/`. Explicitly deferred from V18 to V20, then
-   skipped in V20 (TLS-only scope). The `apps-ps-id-template` linter still carries sm-kms
-   exclusions for `apis`, `model`, `server/config`, and `testmain_test.go`.
+1. Integration tests: start one PS-ID server directly with SQLite and dynamic ports.
+2. E2E tests: start one PS-ID docker compose stack with four app instances (2 SQLite + 2 PostgreSQL) plus dependent services.
 
-2. **pki-ca server/ structural migration** — pki-ca lacks `server/apis/`, `server/model/`,
-   `server/repository/`, `server/config/config_test_helper.go`. The linter carries matching
-   exclusions. The pki-ca CA architecture is complex (bootstrap, compliance, intermediate,
-   issuer, storage) and was deferred from V18 citing complexity.
+Primary outcomes:
 
-3. **Linter exclusion cleanup** — After migrations complete, `knownServerFileExclusions`,
-   `knownServerDirExclusions`, `knownServerConfigFileExclusions`,
-   `knownServerRepositoryFileExclusions`, and `knownServerRepositoryDirExclusions` entries
-   for sm-kms and pki-ca can be removed. Additionally, `swagger.go`/`swagger_test.go` are
-   already in `server/` for all 10 PS-IDs (the exclusion is stale since V18/V19),
-   and the MANIFEST.yaml comments still reference "pending V20 migration."
+1. Build a complete test_orchestration module family.
+2. Migrate existing framework testing packages to those modules (or classify as cross-cutting reusable utilities).
+3. Migrate every TestMain in internal/apps and internal/apps-framework to the canonical orchestration APIs.
+4. Enforce with templates and lint-fitness policies.
 
-4. **Tooling quality debt** — Two items from V19 Action 2 and V18 Action 4:
-   a. mojibake detection sub-linter in `lint_text` (V19 Action 2 — not implemented)
-   b. `apps_ps_id_template` test fixture improvement: the hardcoded `[]string{"apis", "model",
-      "repository"}` in `createFullPSIDRoot` should be parsed from MANIFEST.yaml `required_server_dirs`
-      instead (V18 Action 4 — test still uses hardcoded list as of V21 start)
+## Scope
 
-5. **All-10 PS-ID directory-shape convergence planning** — Based on Quizme Round 1 Q2 answer,
-   V21 must produce a researched superset of recursive PS-ID directories and define the canonical
-   recursive structure to be applied to all 10 PS-IDs. This includes explicit consolidation tasks
-   for pki-ca package/subdirectory sprawl.
+In scope:
 
-## Source Evidence
+1. internal/apps-framework/service/test_orchestration/test_*/
+2. internal/apps-framework/service/testing/*and internal/apps-framework/service/testutil/*
+3. internal/apps/{10 PS-ID}/** files containing func TestMain
+4. internal/apps-framework/** files containing func TestMain
+5. api/cryptosuite-registry/templates/internal/apps/__PS_ID__/
+6. internal/apps-tools/cicd_lint/lint_fitness/
 
-Work carried forward from:
-- V18 lessons.md Actions 2, 4 (scaffolding tests, fixture improvement)
-- V18 plan.md Phase 4 (sm-kms server/ deferred), Phase 5 (pki-ca server/ deferred)
-- V19 lessons.md Actions 1 (stale exclusion audit), 2 (mojibake CI check)
-- V20 plan.md Non-Goals (explicitly excluded sm-kms/pki-ca server/ migration)
-- Current `apps_ps_id_template.go` exclusion maps (verified 2026-04-30)
+Out of scope:
 
-## Affected Files
+1. Business feature behavior unrelated to test orchestration.
+2. OpenAPI runtime behavior changes.
+3. Production startup architecture changes.
 
-**sm-kms migration (Phase 1)**:
-- `internal/apps/sm-kms/server/businesslogic/` — move contents to `server/apis/` + `server/model/`
-- `internal/apps/sm-kms/server/handler/` — merge into `server/apis/`
-- New: `internal/apps/sm-kms/server/config/config.go`, `config_test.go`, `config_test_helper.go`
-- New: `internal/apps/sm-kms/server/model/model.go` (GORM entity structs)
-- New/updated: `internal/apps/sm-kms/server/apis/` (handler files)
+## Technical Context
 
-**pki-ca migration + consolidation planning (Phase 2)**:
-- New: `internal/apps/pki-ca/server/apis/` (HTTP handler wrappers)
-- New: `internal/apps/pki-ca/server/model/model.go`
-- New: `internal/apps/pki-ca/server/repository/` + `migrations/`
-- New: `internal/apps/pki-ca/server/config/config_test_helper.go`
-- Existing sprawl to consolidate under canonical target:
-  - `internal/apps/pki-ca/{api,bootstrap,compliance,crypto,domain,domain-v2,intermediate,observability,profile,security,service,storage}/`
+Language: Go 1.26.1
 
-**all-10 PS-ID canonicalization planning (Phase 2/3)**:
-- `internal/apps/{sm-kms,sm-im,jose-ja,pki-ca,identity-authz,identity-idp,identity-rp,identity-rs,identity-spa,skeleton-template}/`
-- `api/cryptosuite-registry/templates/internal/apps/__PS_ID__/MANIFEST.yaml`
-- `internal/apps-tools/cicd_lint/lint_fitness/apps_ps_id_template/apps_ps_id_template.go`
+Current framework testing package inventory:
 
-**Exclusion cleanup (Phase 3)**:
-- `internal/apps-tools/cicd_lint/lint_fitness/apps_ps_id_template/apps_ps_id_template.go`
-- `api/cryptosuite-registry/templates/internal/apps/__PS_ID__/MANIFEST.yaml`
-- `internal/apps-tools/cicd_lint/lint_fitness/apps_ps_id_template/apps_ps_id_template_test.go`
+1. assertions
+2. contract (empty)
+3. e2e_helpers
+4. e2e_infra
+5. fixtures
+6. healthclient
+7. httpservertests
+8. stubs
+9. testcli
+10. testdb
+11. testserver
+12. service/testutil (outside service/testing, currently used by sm-im/server/testmain_test.go)
 
-**Tooling quality (Phase 4)**:
-- New: `internal/apps-tools/cicd_lint/lint_text/mojibake/mojibake.go` + `_test.go`
-- `internal/apps-tools/cicd_lint/lint_text/lint_text.go` (register mojibake sub-linter)
-- `internal/apps-tools/cicd_lint/lint_fitness/apps_ps_id_template/apps_ps_id_template_test.go`
-  (drive `createFullPSIDRoot` from parsed MANIFEST required_server_dirs)
+Observed canonical baselines from code:
 
-## Non-Goals
+1. Canonical E2E orchestration baseline is e2e_infra.SetupE2ETestMain (already used by jose-ja, sm-im, sm-kms, skeleton-template).
+2. Canonical integration helper baseline should be testserver.StartAndWait semantics (TB-based cleanup, not panic-based) plus test_tls bundle.
+3. e2e_helpers.MustStartAndWaitForDualPorts is widely used but panic-based and should be migrated behind test_integration wrappers.
 
-- Change sm-kms ORM/business logic semantics
-- Address const-redefine-numeric informational violations (215 in identity/mfa tests) — these
-  are informational and do not block CI
-- Implement behavioral test coverage for client/ stub packages (separate planning scope)
-- Race detector (Windows gcc toolchain gap — infrastructure blocker, not V21 scope)
+## Goal 1 - Build test_orchestration Modules
 
-## Key Decisions
+Build the following modules under internal/apps-framework/service/test_orchestration/:
 
-1. sm-kms migration uses the canonical `server/apis/` layout: move all OAS handlers from
-   `server/handler/` into `server/apis/`; move all GORM-entity structs from
-   `server/businesslogic/` (the `oam_orm_mapper*.go` files) into `server/model/`.
-   Pure business logic remains in `server/businesslogic/` and this subdirectory is treated as a
-   required canonical location for pure business logic across PS-IDs (Quizme Round 1 Q1 answer).
-2. pki-ca already has `server/cmd/`, `server/config/`, `server/middleware/` — these are
-   non-standard but have been accepted as-is by the linter exclusion strategy. V21 adds the
-   three missing canonical subdirs: `server/apis/`, `server/model/`, `server/repository/`.
-3. pki-ca SQL migrations currently live in `internal/apps/pki-ca/repository-v2/migrations/`
-   (`5001_ca_items.up.sql` and `5001_ca_items.down.sql` verified). V21 plans migration-path
-   consolidation into `server/repository/migrations/` with explicit verification gates.
-4. Quizme Round 1 Q4 selected active cleanup: move lifecycle/port-conflict tests into `server/`
-   for remaining PS-IDs and remove corresponding stale exclusions once migrated.
-5. The mojibake sub-linter checks `.md` files in `docs/` and `docs/framework-v*/` directories
-   for the Unicode replacement markers `\xc3`, `\xe2`, `\xc2` (UTF-8 encodings of Ã, â, Â).
-   It returns a lint error (not just a warning) when found outside of legitimate content.
-6. The MANIFEST-driven fixture change in `apps_ps_id_template_test.go` parses
-   `required_server_dirs` from MANIFEST.yaml and creates those directories in the synthetic
-   root rather than the hardcoded `[]string{"apis", "model", "repository"}` slice.
-7. Q2 remains open pending Quizme Round 2: canonical recursive directory structure for all 10
-   PS-IDs and allowed-only directory policy will be finalized before broad refactor execution.
+1. test_e2e
+2. test_integration
+3. test_db
+4. test_api
+5. test_cli
+6. test_tls
+7. test_barrier
+8. test_compose
+9. test_bootstrap
 
-## Phase Summary
+### Goal 1A - Package Consolidation Matrix
 
-### Phase 1: sm-kms Server Subdirectory Migration
+Existing packages and target disposition:
 
-**Objective**: Reorganize `internal/apps/sm-kms/server/` to match the canonical template.
+1. testing/e2e_infra -> consolidate into test_e2e + test_compose.
+2. testing/e2e_helpers -> split by concern:
+   - server_start_helpers -> test_integration
+   - http_helpers -> test_api + test_tls
+   - config_helpers/db_helpers/user_auth_helpers -> test_e2e or test_bootstrap depending on concern
+3. testing/testdb -> consolidate into test_db (keep temporary compatibility wrapper).
+4. testing/testserver -> consolidate into test_integration + test_tls.
+5. testing/healthclient -> move into test_api (as requested).
+6. testing/testcli -> move into test_cli (as requested).
+7. service/testutil (HTTP mock servers) -> move generic HTTP mocks to test_api/mocks.
+8. testing/assertions -> keep reusable beyond orchestration; import from test_api/test_e2e.
+9. testing/httpservertests -> keep reusable beyond orchestration; import from test_integration.
+10. testing/fixtures -> keep reusable beyond orchestration for seeded DB entities.
+11. testing/stubs -> keep reusable beyond orchestration for server/application seams.
+12. testing/contract -> empty package; remove or repurpose only with concrete contract tests.
 
-Move OAS handler files from `server/handler/` into `server/apis/`.
-Move ORM mapper (entity-layer) files from `server/businesslogic/` into `server/model/`.
-Create `server/config/` with framework config wiring.
-Update all import paths throughout sm-kms.
-Confirm `businesslogic.go` and related pure-logic files remain compilable.
+### Goal 1 Completion Criteria
 
-**Success**:
-- `go build ./internal/apps/sm-kms/...` clean.
-- `go test ./internal/apps/sm-kms/...` passes.
-- `lint-fitness` sm-kms exclusions for `apis`, `model`, `server/config`, `testmain_test.go` removed.
+1. All modules exist with package docs and tests.
+2. Consolidation matrix implemented and reflected in tasks.
+3. Cross-cutting reusable packages explicitly retained and documented.
+4. Infrastructure coverage target >=98%.
 
-### Phase 2: pki-ca Server Subdirectory Migration
+## Goal 2 - Deep Analysis Inventory and Classification
 
-**Objective**: Add the three missing canonical subdirs to `internal/apps/pki-ca/server/`.
+### Goal 2A - Full TestMain Scope
 
-Create `server/apis/` with thin handler wrappers (delegating to existing domain layers).
-Create `server/model/model.go` as the GORM entity struct home.
-Create `server/repository/` with `migrations.go` + `server/repository/migrations/` directory.
-Map existing `repository-v2/migrations/*.sql` into canonical `server/repository/migrations/`
-with compatibility validation for embedded migration FS paths.
-Create `server/config/config_test_helper.go`.
-Draft a pki-ca consolidation map from current package sprawl to canonical allowed directories.
+Total TestMain functions in scope: 39
 
-**Success**:
-- `go build ./internal/apps/pki-ca/...` clean.
-- `go test ./internal/apps/pki-ca/...` passes.
-- `lint-fitness` pki-ca exclusions for `apis`, `model`, `repository`, `config_test_helper.go`,
-  `migrations.go` removed.
-- pki-ca consolidation map is complete with explicit per-subdirectory move/deprecate targets.
+1. internal/apps: 28
+2. internal/apps-framework: 11
 
-### Phase 3: Linter Exclusion Cleanup
+### Goal 2B - internal/apps (28)
 
-**Objective**: Remove all stale exclusions from `apps_ps_id_template.go` after Phases 1-2.
+1. identity-authz/e2e/testmain_e2e_test.go
+2. identity-authz/server/testmain_test.go
+3. identity-idp/e2e/testmain_e2e_test.go
+4. identity-idp/server/testmain_test.go
+5. identity-rp/e2e/testmain_e2e_test.go
+6. identity-rp/server/testmain_test.go
+7. identity-rs/e2e/testmain_e2e_test.go
+8. identity-rs/server/testmain_test.go
+9. identity-spa/e2e/testmain_e2e_test.go
+10. identity-spa/server/testmain_test.go
+11. jose-ja/e2e/testmain_e2e_test.go
+12. jose-ja/server/repository/testmain_test.go
+13. jose-ja/server/service/testmain_test.go
+14. jose-ja/server/testmain_test.go
+15. pki-ca/e2e/testmain_e2e_test.go
+16. pki-ca/server/testmain_test.go
+17. skeleton-template/e2e/testmain_e2e_test.go
+18. skeleton-template/server/testmain_test.go
+19. sm-im/client/testmain_test.go
+20. sm-im/e2e/testmain_e2e_test.go
+21. sm-im/server/apis/messages_test.go
+22. sm-im/server/repository/testmain_test.go
+23. sm-im/server/testmain_test.go
+24. sm-kms/client/testmain_test.go
+25. sm-kms/e2e/testmain_e2e_test.go
+26. sm-kms/server/businesslogic/businesslogic_crud_test.go
+27. sm-kms/server/repository/orm/orm_transaction_test.go
+28. sm-kms/server/testmain_test.go
 
-Remove sm-kms and pki-ca entries from:
-- `knownServerFileExclusions` (testmain_test.go for sm-kms)
-- `knownServerDirExclusions` (apis, model for sm-kms and pki-ca; repository for pki-ca)
-- `knownServerConfigFileExclusions` (config.go, config_test.go for sm-kms; config_test_helper.go for pki-ca and sm-kms)
-- `knownServerRepositoryFileExclusions` (migrations.go for pki-ca)
-- `knownServerRepositoryDirExclusions` (migrations for pki-ca)
+### Goal 2C - internal/apps-framework (11)
 
-Remove stale `swagger.go`/`swagger_test.go` exclusions (all 10 PS-IDs already have these in
-`server/`; the exclusion map has been a no-op since at least V19).
+1. service/config/tls_generator/tls_generator_test.go
+2. service/server/test_main_test.go
+3. service/server/listener/testmain_test.go
+4. service/server/apis/test_main_test.go
+5. service/server/apis/registration_integration_test.go
+6. service/server/businesslogic/tenant_registration_service_test.go
+7. service/server/repository/test_main_test.go
+8. service/server/repository/orm/testmain_test.go
+9. service/server/barrier/barrier_service_test.go
+10. tls/e2e/otel_tls_e2e_test.go
+11. service/testing/testserver/testserver.go (commented example TestMain; documentation-only and excluded from migration)
 
-Move `__SERVICE___lifecycle_test.go` and `__SERVICE___port_conflict_test.go` to `server/` for
-remaining PS-IDs (sm-kms, jose-ja, pki-ca, skeleton-template), then remove stale exclusions.
+### Goal 2D - Corrected Classification Decisions
 
-Update MANIFEST.yaml comment to remove "pending V20 migration" references.
+1. sm-kms/server/repository/orm/orm_transaction_test.go is integration-tagged (`//go:build integration`) and should be classified as integration DB-core fixture, not sad-path/setup-only.
+2. sm-kms/server/businesslogic/businesslogic_crud_test.go currently uses TestMain only for env var setup while each test runs full setupTestStack. This requires refactor to shared TestMain integration fixture.
+3. sm-im/server/testmain_test.go mock infrastructure uses service/testutil mock servers. These mocks are useful and should be preserved as test_api/mocks, not discarded.
+4. pki-ca/e2e/testmain_e2e_test.go has compose-up without health-wait coupling and should migrate to test_e2e to remove readiness race risk.
+5. sm-kms/client/testmain_test.go currently uses e2e_helpers server startup helper; it should use test_integration instead.
 
-Update `apps_ps_id_template_test.go` `createFullPSIDRoot` to not hard-create the
-`swagger.go`/`swagger_test.go` exclusion that is now empty.
+### Goal 2 Completion Criteria
 
-**Success**:
-- `lint-fitness` passes with smaller exclusion maps.
-- `go test ./internal/apps-tools/...` passes.
+1. All 39 in-scope TestMains are classified and mapped.
+2. Category assignments reflect build tags and real setup behavior.
+3. No PS-ID and no framework TestMain omitted.
 
-### Phase 4: Tooling Quality Improvements
+## Goal 3 - Migration Mapping
 
-**Objective**: Implement mojibake detection sub-linter and fix MANIFEST-driven test fixture.
+### Goal 3A - Canonical Integration and E2E Implementations
 
-4a. Implement `lint_text/mojibake` sub-linter: scans `.md` files in `docs/` for byte sequences
-`\xc3\x83`, `\xe2\x80`, `\xc2\x82` (common UTF-8 mojibake markers). Returns an error listing
-offending files and line numbers.
+1. Integration canonical path: test_integration + test_tls + test_api/assertions.
+2. E2E canonical path: test_e2e (built on test_compose + health checks + secure/insecure clients).
+3. No direct PS-ID ad-hoc startup loops outside wrappers.
 
-4b. Register `mojibake` in `lint_text.go` alongside `utf8`.
+### Goal 3B - internal/apps Migration Summary
 
-4c. Update `apps_ps_id_template_test.go` `createFullPSIDRoot`: parse `required_server_dirs` from
-MANIFEST.yaml and iterate that list to create server subdirectories, replacing the hardcoded
-`[]string{"apis", "model", "repository"}` slice.
+1. Identity server TestMain files (authz/idp/rp/rs/spa) migrate from local wait loops to test_integration wrappers.
+2. Identity e2e pass-through TestMain files migrate to test_e2e wrappers.
+3. jose-ja, skeleton-template, sm-im, sm-kms, pki-ca e2e TestMain files converge on test_e2e facade.
+4. sm-im/server and sm-im/client stop using local sm-im/testing helper startup; migrate to test_integration.
+5. sm-kms/client moves from e2e_helpers helper to test_integration.
+6. sm-kms/businesslogic package moves from per-test setupTestStack to shared TestMain fixture via test_integration/test_db composite helper.
+7. sm-kms/repository/orm integration-tagged TestMain migrates to test_integration_db fixture path (test_integration with DB-core fixture hooks).
+8. jose-ja/sm-im repository and API fixture TestMain files migrate to test_db/test_api/test_barrier compositions.
 
-**Success**:
-- `go run ./cmd/cicd-lint lint-text` passes (mojibake sub-linter exists and runs).
-- `go test ./internal/apps-tools/cicd_lint/lint_text/...` passes with mojibake tests.
-- `go test ./internal/apps-tools/cicd_lint/lint_fitness/apps_ps_id_template/...` passes with
-  MANIFEST-driven fixture.
+### Goal 3C - internal/apps-framework Migration Summary
 
-### Phase 5: Verification and Closure
+1. service/server/* TestMain packages migrate to test_integration/test_db/test_barrier/test_api as appropriate.
+2. tls/e2e/otel_tls_e2e_test.go migrates to test_e2e facade.
+3. Existing framework test packages keep compatibility wrappers during transition, then old entry points are removed.
 
-**Objective**: Confirm all quality gates pass after V21 work.
+### Goal 3 Completion Criteria
 
-- `go build ./...` clean
-- `go build -tags e2e,integration ./...` clean
-- `go test ./...` passes
-- `golangci-lint run ./...` clean
-- `go run ./cmd/cicd-lint lint-fitness` passes
-- `go run ./cmd/cicd-lint lint-go` passes (no new blocking violations)
-- `go run ./cmd/cicd-lint lint-text` passes
-- `go run ./cmd/cicd-lint lint-docs` passes
+1. All 39 TestMains migrated or explicitly deprecated with replacement.
+2. Client-package full-server startup duplication removed.
+3. Integration-tagged tests use integration orchestration and shared TestMain fixtures.
+4. pki-ca e2e readiness risk eliminated by test_e2e migration.
 
-### Phase 6: Knowledge Propagation
+## Enforcement Strategy
 
-**Objective**: Capture V21 execution lessons and update durable guidance.
+Template enforcement:
 
-- Populate `docs/framework-v21/lessons.md` with per-phase post-mortems.
-- Update `docs/ENG-HANDBOOK.md` if new durable patterns emerge.
-- Re-run `lint-docs` after any handbook/instruction changes.
+1. Update __PS_ID__ templates so server and e2e TestMain wrappers call test_integration/test_e2e.
+2. Keep wrappers thin with PS-ID config injection only.
+
+lint-fitness enforcement:
+
+1. testmain-orchestration-policy
+2. testmain-location-policy
+3. testmain-integration-tag-policy
+4. testmain-sadpath-policy
+5. template-testmain-compliance
+
+## Multi-Phase Execution Plan
+
+Phase 1: Research and alignment corrections
+
+1. Correct v21/v22 doc placement and metadata.
+2. Freeze 39-file TestMain inventory and classification.
+3. Freeze package consolidation matrix.
+
+Phase 2: API design
+
+1. Finalize module API boundaries.
+2. Finalize moved-vs-reusable package boundaries.
+
+Phase 3: Implement orchestration modules
+
+1. Create all test_orchestration packages.
+2. Port code from existing framework testing packages.
+
+Phase 4: Framework package migration
+
+1. Move testcli -> test_cli.
+2. Move healthclient -> test_api.
+3. Move service/testutil mocks -> test_api/mocks.
+4. Keep compatibility wrappers during migration.
+
+Phase 5: internal/apps PS-ID migration
+
+1. Migrate all 28 PS-ID TestMain files to wrappers/composites.
+2. Enforce sm-im and sm-kms client migration to test_integration.
+3. Refactor sm-kms businesslogic and orm integration patterns.
+
+Phase 6: internal/apps-framework TestMain migration
+
+1. Migrate all framework TestMain files to same reusable orchestration modules.
+
+Phase 7: Template and linter policy lock
+
+1. Update templates.
+2. Add/adjust lint-fitness rules.
+
+Phase 8: Validation and rollout
+
+1. Build, lint, test, coverage, mutation, and e2e validation.
+
+## Risks and Mitigations
+
+1. Risk: helper API churn while moving packages.
+   - Mitigation: temporary wrappers with strict deprecation tasks.
+2. Risk: pki-ca e2e intermittent failures from compose readiness.
+   - Mitigation: mandatory migration to test_e2e health-wait orchestration.
+3. Risk: integration-tagged suites regress during refactor.
+   - Mitigation: dedicated testmain-integration-tag-policy and targeted integration test gates.
+4. Risk: mock behavior regressions in sm-im/server tests.
+   - Mitigation: preserve and migrate service/testutil semantics into test_api/mocks.
 
 ## Quality Gates
 
-- `go build ./...`
-- `go build -tags e2e,integration ./...`
-- `go test ./...`
-- `golangci-lint run ./...`
-- `go run ./cmd/cicd-lint lint-go`
-- `go run ./cmd/cicd-lint lint-text`
-- `go run ./cmd/cicd-lint lint-fitness`
-- `go run ./cmd/cicd-lint lint-docs`
+Per phase gates:
 
-## Evidence Strategy
+1. go build ./...
+2. go build -tags e2e,integration ./...
+3. golangci-lint run ./...
+4. golangci-lint run --build-tags e2e,integration ./...
+5. go test ./... -shuffle=on
+6. go run ./cmd/cicd-lint lint-fitness
 
-Archive V21 execution evidence under:
-- `test-output/v21-phase1/`
-- `test-output/v21-phase2/`
-- `test-output/v21-phase3/`
-- `test-output/v21-phase4/`
-- `test-output/v21-phase5/`
-- `test-output/v21-phase6/`
+Coverage/mutation targets:
 
-## Risks and Watchpoints
+1. Production >=95%
+2. Infrastructure utilities >=98%
+3. Mutation >=95% (infrastructure target >=98%)
 
-1. sm-kms `businesslogic/` is large (businesslogic.go 426 lines, businesslogic_crypto.go 429 lines,
-   multiple test files). Splitting into model + apis layers requires careful import-cycle checking.
-2. pki-ca server/ has non-canonical subdirectories (cmd/, middleware/) that are already accepted
-   by the linter. Creating apis/model/repository must not conflict with the existing flat layout.
-3. Removing swagger.go exclusions: if the linter `checkServerFiles` expects swagger.go to exist
-   in server/ AND it is now present, removing the exclusion may expose a validation gap where the
-   linter checks for the file name using the **SERVICE** template pattern — verify the check logic
-   before removing.
-4. mojibake sub-linter false positives: emoji, some language characters, and intentional UTF-8
-   content may trigger byte-sequence matches. The sub-linter must only flag the specific
-   replacement-character sequences that indicate windows-1252-into-UTF-8 mojibake.
-5. Canonical all-10 PS-ID directory-shape decision is not finalized until Quizme Round 2 closes.
+## Evidence
 
-## Quizme Round 1 (2026-04-30)
-
-### Q1: sm-kms businesslogic split strategy
-
-- **Question**: Should pure business logic stay in `server/businesslogic/`, move to `server/service/`, or another approach?
-- **Answer**: D
-- **Applied decision**: `server/businesslogic/` is the required canonical location for pure business logic; `server/service/` is not adopted.
-
-### Q2: pki-ca APIs layer design
-
-- **Question**: Should V21 use a placeholder `server/apis/`, full wrappers, or another approach?
-- **Answer**: D
-- **Applied decision**: Requires follow-up via Quizme Round 2 after researched superset of recursive PS-ID directory structures and canonical-all-10 proposal.
-
-### Q3: pki-ca repository and SQL migrations scope
-
-- **Question**: Where are current SQL migrations and how should V21 proceed?
-- **Answer**: D
-- **Applied decision**: Research confirmed SQL migration files at `internal/apps/pki-ca/repository-v2/migrations/5001_ca_items.up.sql` and `internal/apps/pki-ca/repository-v2/migrations/5001_ca_items.down.sql`; plan includes consolidation mapping into canonical `server/repository/migrations/`.
-
-### Q4: lifecycle_test and port_conflict_test cleanup
-
-- **Question**: Should V21 migrate these remaining root-level tests to `server/` now?
-- **Answer**: A
-- **Applied decision**: Include migration for remaining PS-IDs (sm-kms, jose-ja, pki-ca, skeleton-template) and remove stale linter exclusions after verification.
+Planning evidence retained under test-output/completion-verification/ and test-output/framework-docs-swap/.
