@@ -7,10 +7,24 @@ Purpose: Consolidate all TestMain orchestration to reusable apps-framework test_
 
 ## Overview
 
-This plan migrates TestMain orchestration for all 10 PS-IDs and all in-scope framework TestMain packages to framework-owned reusable orchestration modules under internal/apps-framework/service/test_orchestration/. The target is a single canonical approach for:
+This plan migrates TestMain orchestration for all 10 PS-IDs and all in-scope framework TestMain packages to framework-owned reusable orchestration modules under internal/apps-framework/service/test_orchestration/. The target is a single canonical category model implemented through two execution profiles.
 
-1. Integration tests: start one PS-ID server directly with SQLite and dynamic ports.
-2. E2E tests: start one PS-ID docker compose stack with four app instances (2 SQLite + 2 PostgreSQL) plus dependent services.
+Execution profiles:
+
+1. Integration profile: start one PS-ID server directly with SQLite and dynamic ports.
+2. E2E profile: start one PS-ID docker compose stack with four app instances (2 SQLite + 2 PostgreSQL) plus dependent services.
+
+Canonical orchestration categories (must all be represented in API design, migration mapping, and policy enforcement):
+
+1. test_e2e
+2. test_integration
+3. test_db
+4. test_api (HTTP client helpers, assertions, health checks, and HTTP mocks)
+5. test_cli
+6. test_tls
+7. test_barrier
+8. test_compose
+9. test_bootstrap
 
 Primary outcomes:
 
@@ -18,6 +32,26 @@ Primary outcomes:
 2. Migrate existing framework testing packages to those modules (or classify as cross-cutting reusable utilities).
 3. Migrate every TestMain in internal/apps and internal/apps-framework to the canonical orchestration APIs.
 4. Enforce with templates and lint-fitness policies.
+
+## Deep Research Summary (Last 24 Hours)
+
+Evidence reviewed:
+
+1. Same-day framework planning commits touching v21/v22 plan/task/lesson files.
+2. Current v21 plan and tasks inventory for category references and migration coverage.
+3. Current in-repo TestMain inventory and category references already captured in Goal 2 and tasks.
+
+Findings requiring refactor in this plan revision:
+
+1. The overview collapsed scope into only two categories (integration/e2e), which regressed intent from the expanded category model.
+2. Later sections already referenced expanded categories, but the plan lacked an explicit top-level taxonomy and dependency model tying all sections together.
+3. Category ownership for HTTP API, CLI, DB, TLS, barrier, compose, and bootstrap needed to be made explicit in canonical mapping and phase deliverables to avoid future drift.
+
+Correction applied in this revision:
+
+1. Promote the nine-category model to top-level plan scope.
+2. Keep integration/e2e as execution profiles, not the only categories.
+3. Thread category ownership through goals, migration mapping, phase plan, and completion criteria.
 
 ## Mutual Exclusivity Guardrails
 
@@ -83,7 +117,27 @@ Build the following modules under internal/apps-framework/service/test_orchestra
 8. test_compose
 9. test_bootstrap
 
-### Goal 1A - Package Consolidation Matrix
+### Goal 1A - Category Dependency and Ownership Model
+
+Required dependency direction:
+
+1. test_compose and test_bootstrap provide foundational startup/config wiring.
+2. test_e2e composes test_compose + test_api + test_tls (+ test_db only when local fixture helpers are needed).
+3. test_integration composes test_db + test_tls + test_api.
+4. test_api and test_cli remain transport-level helpers, not lifecycle owners.
+5. test_barrier remains crypto/barrier fixture support consumed by integration/e2e and fixture-heavy repository suites.
+
+Boundary rules:
+
+1. Lifecycle orchestration (start/wait/shutdown) belongs only to test_e2e/test_integration/test_compose.
+2. HTTP assertions/mocks/health checks belong to test_api.
+3. CLI entry-point execution/assertions belong to test_cli.
+4. Database fixture creation and DB failure-path helpers belong to test_db.
+5. TLS material/client construction helpers belong to test_tls.
+6. Barrier/unseal fixture helpers belong to test_barrier.
+7. Bootstrap/config helper wiring belongs to test_bootstrap.
+
+### Goal 1B - Package Consolidation Matrix
 
 Existing packages and target disposition:
 
@@ -109,6 +163,7 @@ Existing packages and target disposition:
 2. Consolidation matrix implemented and reflected in tasks.
 3. Cross-cutting reusable packages explicitly retained and documented.
 4. Infrastructure coverage target >=98%.
+5. Category ownership and dependency direction are validated in package docs and linter policy.
 
 ## Goal 2 - Deep Analysis Inventory and Classification
 
@@ -176,15 +231,19 @@ Total TestMain functions in scope: 39
 
 1. All 39 in-scope TestMains are classified and mapped.
 2. Category assignments reflect build tags and real setup behavior.
-3. No PS-ID and no framework TestMain omitted.
+3. Classification maps each TestMain to one or more of the nine canonical categories.
+4. No PS-ID and no framework TestMain omitted.
 
 ## Goal 3 - Migration Mapping
 
-### Goal 3A - Canonical Integration and E2E Implementations
+### Goal 3A - Canonical Implementations by Category
 
-1. Integration canonical path: test_integration + test_tls + test_api/assertions.
-2. E2E canonical path: test_e2e (built on test_compose + health checks + secure/insecure clients).
-3. No direct PS-ID ad-hoc startup loops outside wrappers.
+1. Integration canonical path: test_integration + test_db + test_tls + test_api/assertions.
+2. E2E canonical path: test_e2e (built on test_compose + test_api health checks + secure/insecure clients + bootstrap wiring).
+3. API category canonical path: test_api for health clients, HTTP assertions, and reusable HTTP mocks.
+4. CLI category canonical path: test_cli for deterministic command execution/assertions.
+5. Barrier category canonical path: test_barrier for barrier/unseal fixture composition in DB and API suites.
+6. No direct PS-ID ad-hoc startup loops outside wrappers.
 
 ### Goal 3B - internal/apps Migration Summary
 
@@ -209,6 +268,7 @@ Total TestMain functions in scope: 39
 2. Client-package full-server startup duplication removed.
 3. Integration-tagged tests use integration orchestration and shared TestMain fixtures.
 4. pki-ca e2e readiness risk eliminated by test_e2e migration.
+5. HTTP API, CLI, DB, TLS, barrier, compose, and bootstrap categories are all consumed by at least one migrated caller path.
 
 ## Enforcement Strategy
 
@@ -232,16 +292,19 @@ Phase 1: Research and alignment corrections
 1. Correct v21/v22 doc placement and metadata.
 2. Freeze 39-file TestMain inventory and classification.
 3. Freeze package consolidation matrix.
+4. Freeze canonical nine-category taxonomy and ownership boundaries.
 
 Phase 2: API design
 
-1. Finalize module API boundaries.
+1. Finalize module API boundaries for all nine categories.
 2. Finalize moved-vs-reusable package boundaries.
+3. Finalize category dependency direction and no-overlap boundaries.
 
 Phase 3: Implement orchestration modules
 
 1. Create all test_orchestration packages.
 2. Port code from existing framework testing packages.
+3. Validate category-level package docs and tests.
 
 Phase 4: Framework package migration
 
@@ -264,6 +327,7 @@ Phase 7: Template and linter policy lock
 
 1. Update templates.
 2. Add/adjust lint-fitness rules.
+3. Enforce canonical category ownership in policy checks.
 
 Phase 8: Validation and rollout
 
@@ -291,6 +355,10 @@ Per phase gates:
 5. go test ./... -shuffle=on
 6. go run ./cmd/cicd-lint lint-fitness
 
+Category coverage gate (plan-level):
+
+1. Evidence that each canonical category (test_e2e, test_integration, test_db, test_api, test_cli, test_tls, test_barrier, test_compose, test_bootstrap) is represented in API design artifacts, migration mappings, and linter/template policy.
+
 Coverage/mutation targets:
 
 1. Production >=95%
@@ -300,3 +368,13 @@ Coverage/mutation targets:
 ## Evidence
 
 Planning evidence retained under test-output/completion-verification/ and test-output/framework-docs-swap/.
+
+## Deep Re-Research Closure Pass
+
+Second-pass validation checklist for omissions:
+
+1. Re-scan plan for category collapse language that implies only integration/e2e.
+2. Re-verify all nine categories appear in overview, goals, migration mapping, phases, and quality gates.
+3. Re-verify HTTP API, CLI, DB, TLS, barrier, compose, and bootstrap are explicitly called out as first-class categories.
+4. Re-verify TestMain migration coverage remains 39 in-scope entries with no category orphan.
+5. Re-run grep-based keyword audit before execution begins (test_api|test_cli|test_db|test_tls|test_barrier|test_compose|test_bootstrap|test_integration|test_e2e).
