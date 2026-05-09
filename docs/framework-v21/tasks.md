@@ -42,8 +42,8 @@ Acceptance Criteria:
 Status: Complete
 Description: Determine canonical implementation for two generic use cases.
 Acceptance Criteria:
-1. Integration canonical path selected: test_integration-based.
-2. E2E canonical path selected: test_e2e built from SetupE2ETestMain behavior.
+1. Integration canonical path selected: test_orch_integration-based.
+2. E2E canonical path selected: test_orch_e2e built from SetupE2ETestMain behavior.
 
 ### Task 1.5 - Classify sm-kms orm transaction category
 
@@ -64,10 +64,10 @@ Acceptance Criteria:
 ### Task 1.7 - Package consolidation matrix deep analysis
 
 Status: Complete
-Description: Classify each existing framework testing package as move-to-test_orchestration or reusable utility.
+Description: Classify each existing framework testing package as move-to-test_orch/test_help directory or reusable utility.
 Acceptance Criteria:
 1. All service/testing packages and service/testutil accounted for.
-2. testcli->test_cli and healthclient->test_api explicitly captured.
+2. testcli->test_help_cli and healthclient->test_help_api explicitly captured.
 
 ### Task 1.8 - pki-ca e2e readiness risk analysis
 
@@ -75,85 +75,85 @@ Status: Complete
 Description: Document risk for compose startup without robust health orchestration and capture migration requirement.
 Acceptance Criteria:
 1. Risk documented in plan.
-2. Migration task to test_e2e is explicit.
+2. Migration task to test_orch_e2e is explicit.
 
-## Phase 2 - API Design for test_orchestration
+## Phase 2 - API Design for 9 Directory Families
 
-### Task 2.1 - Design test_e2e API
+### Task 2.1 - Design test_orch_e2e API
 
 Status: Not started
 Acceptance Criteria:
 1. Compose lifecycle + health wait + secure/insecure clients + logs + cleanup.
 2. Supports 4-instance app topology (2 SQLite + 2 PostgreSQL) plus dependencies.
 
-### Task 2.2 - Design test_integration API
+### Task 2.2 - Design test_orch_integration API
 
 Status: Not started
 Acceptance Criteria:
 1. One-server direct startup with SQLite and dynamic dual ports.
 2. TB-based startup/shutdown semantics (no panic-only API).
 
-### Task 2.3 - Design test_db API
+### Task 2.3 - Design test_help_db API
 
 Status: Not started
 Acceptance Criteria:
 1. SQLite setup + migrations + optional closed-DB fixtures.
 2. Replaces direct testdb call sites via wrapper or direct migration.
 
-### Task 2.4 - Design test_api API
+### Task 2.4 - Design test_help_api API
 
 Status: Not started
 Acceptance Criteria:
 1. Includes moved healthclient surface.
 2. Includes request/assertion helpers and HTTP mocks namespace.
 
-### Task 2.5 - Design test_cli API
+### Task 2.5 - Design test_help_cli API
 
 Status: Not started
 Acceptance Criteria:
 1. Includes moved testcli surface.
 2. Supports deterministic args/stdout/stderr/exit assertions.
 
-### Task 2.6 - Design supporting APIs (test_tls/test_barrier/test_compose/test_bootstrap)
+### Task 2.6 - Design supporting APIs (test_help_tls/test_help_barrier/test_help_compose/test_help_bootstrap)
 
 Status: Not started
 Acceptance Criteria:
 1. Clear package boundaries and dependency direction.
-2. No overlap ambiguity with test_api/test_integration/test_e2e.
+2. No overlap ambiguity with test_help_api/test_orch_integration/test_orch_e2e.
 
 ## Phase 3 - Implement and Consolidate Framework Packages
 
-### Task 3.1 - Create test_orchestration package tree
+### Task 3.1 - Create test_orch/test_help package tree
 
 Status: Not started
 
-### Task 3.2 - Implement test_e2e + test_compose from e2e_infra
+### Task 3.2 - Implement test_orch_e2e + test_help_compose from e2e_infra
 
 Status: Not started
 
-### Task 3.3 - Implement test_integration + test_tls from testserver/e2e_helpers
+### Task 3.3 - Implement test_orch_integration + test_help_tls from testserver/e2e_helpers
 
 Status: Not started
 
-### Task 3.4 - Implement test_db from testdb
+### Task 3.4 - Implement test_help_db from testdb
 
 Status: Not started
 
-### Task 3.5 - Implement test_api and move healthclient into test_api
-
-Status: Not started
-Acceptance Criteria:
-1. healthclient API relocated under test_api.
-2. Compatibility wrapper provided temporarily.
-
-### Task 3.6 - Implement test_cli and move testcli into test_cli
+### Task 3.5 - Implement test_help_api and move healthclient into test_help_api
 
 Status: Not started
 Acceptance Criteria:
-1. testcli API relocated under test_cli.
+1. healthclient API relocated under test_help_api.
 2. Compatibility wrapper provided temporarily.
 
-### Task 3.7 - Migrate service/testutil HTTP mocks into test_api/mocks
+### Task 3.6 - Implement test_help_cli and move testcli into test_help_cli
+
+Status: Not started
+Acceptance Criteria:
+1. testcli API relocated under test_help_cli.
+2. Compatibility wrapper provided temporarily.
+
+### Task 3.7 - Migrate service/testutil HTTP mocks into test_help_api/mocks
 
 Status: Not started
 
@@ -174,11 +174,11 @@ Status: Not started
 
 ## Phase 4 - Migrate internal/apps (28 TestMain files)
 
-### Task 4.1 - Identity server TestMain wrappers to test_integration (5 files)
+### Task 4.1 - Identity server TestMain wrappers to test_orch_integration (5 files)
 
 Status: Not started
 
-### Task 4.2 - Identity e2e TestMain wrappers to test_e2e (5 files)
+### Task 4.2 - Identity e2e TestMain wrappers to test_orch_e2e (5 files)
 
 Status: Not started
 
@@ -191,33 +191,33 @@ Status: Not started
 Status: Not started
 Acceptance Criteria:
 1. pki-ca e2e no longer uses custom compose start/stop flow.
-2. Health-wait orchestration is test_e2e-driven.
+2. Health-wait orchestration is test_orch_e2e-driven.
 
 ### Task 4.5 - skeleton-template migrations (e2e/server)
 
 Status: Not started
 
-### Task 4.6 - sm-im server migration from local SetupTestServer to test_integration
+### Task 4.6 - sm-im server migration from local SetupTestServer to test_orch_integration
 
 Status: Not started
 
-### Task 4.7 - sm-im client migration to test_integration
+### Task 4.7 - sm-im client migration to test_orch_integration
 
 Status: Not started
 
-### Task 4.8 - sm-im repository/apis fixture migration to test_db/test_api/test_barrier
+### Task 4.8 - sm-im repository/apis fixture migration to test_help_db/test_help_api/test_help_barrier
 
 Status: Not started
 
-### Task 4.9 - sm-kms server migration to test_integration
+### Task 4.9 - sm-kms server migration to test_orch_integration
 
 Status: Not started
 
-### Task 4.10 - sm-kms e2e migration to test_e2e facade
+### Task 4.10 - sm-kms e2e migration to test_orch_e2e facade
 
 Status: Not started
 
-### Task 4.11 - sm-kms client migration from e2e_helpers to test_integration
+### Task 4.11 - sm-kms client migration from e2e_helpers to test_orch_integration
 
 Status: Not started
 
@@ -233,15 +233,15 @@ Acceptance Criteria:
 Status: Not started
 Acceptance Criteria:
 1. Remains integration-tagged.
-2. Uses test_integration DB-core fixture hooks.
+2. Uses test_orch_integration DB-core fixture hooks.
 
 ## Phase 5 - Migrate internal/apps-framework TestMain files
 
-### Task 5.1 - Migrate service/server TestMain files to test_integration/test_db/test_api/test_barrier
+### Task 5.1 - Migrate service/server TestMain files to test_orch_integration/test_help_db/test_help_api/test_help_barrier
 
 Status: Not started
 
-### Task 5.2 - Migrate tls/e2e/otel_tls_e2e_test.go to test_e2e facade
+### Task 5.2 - Migrate tls/e2e/otel_tls_e2e_test.go to test_orch_e2e facade
 
 Status: Not started
 
@@ -255,7 +255,7 @@ Status: Not started
 
 ## Phase 6 - Template and Linter Policy Lock
 
-### Task 6.1 - Update __PS_ID__ templates to test_integration/test_e2e wrappers
+### Task 6.1 - Update __PS_ID__ templates to test_orch_integration/test_orch_e2e wrappers
 
 Status: Not started
 
@@ -303,7 +303,7 @@ Status: Not started
 
 ## Cross-Cutting Quality Tasks
 
-### Task Q1 - No happy-path startup outside test_orchestration wrappers
+### Task Q1 - No happy-path startup outside test_orch/test_help wrappers
 
 Status: Not started
 
