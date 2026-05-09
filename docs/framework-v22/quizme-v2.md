@@ -1,4 +1,4 @@
-# Quiz Me - Framework V21: Canonical PS-ID Recursive Structure (Round 2)
+# Quiz Me - Framework V22: Canonical PS-ID Recursive Structure (Round 2)
 
 **Created**: 2026-04-30
 **Purpose**: Close the remaining Q2 decision by selecting the canonical recursive directory structure that will be enforced for all 10 PS-IDs.
@@ -187,7 +187,7 @@
 
 ## Question 1: Canonical `server/**` recursive structure to enforce for all 10 PS-IDs
 
-**Question**: Which policy should V21 adopt as the target canonical recursive `server/**` structure across all 10 PS-IDs (with linter/template enforcement)?
+**Question**: Which policy should V22 adopt as the target canonical recursive `server/**` structure across all 10 PS-IDs (with linter/template enforcement)?
 
 **A)** Strict immediate canonical set:
 - Required everywhere: `server/apis`, `server/businesslogic`, `server/config`, `server/model`, `server/repository`, `server/repository/migrations`
@@ -215,18 +215,18 @@
 
 ## Question 2: pki-ca consolidation strategy under the selected canonical policy
 
-**Question**: For pki-ca package/subdirectory sprawl, which execution strategy should tasks implement?
+**Question**: For pki-ca package/subdirectory sprawl, which execution strategy should Framework V22 tasks implement?
 
-**A)** Full consolidation in V21:
+**A)** Full consolidation in V22:
 - Move/merge pki-ca subdirectories to canonical targets immediately
 - Migrate domain packages that sit outside canonical paths
 - Remove legacy directories in same phase
 
 **B)** Two-stage consolidation (recommended):
-- Stage 1 (V21): establish canonical `server/**` directories, introduce wrappers/adapters, migrate SQL paths from `repository-v2/migrations` to `server/repository/migrations`
+- Stage 1 (V22): establish canonical `server/**` directories, introduce wrappers/adapters, migrate SQL paths from `repository-v2/migrations` to `server/repository/migrations`
 - Stage 2 (next phase): move domain-heavy packages (`bootstrap`, `compliance`, `intermediate`, `profile`, `service`, `storage`, etc.) behind canonical boundaries and remove legacy paths after compatibility gates pass
 
-**C)** Structural-only for V21:
+**C)** Structural-only for V22:
 - Create canonical dirs and linter checks
 - Keep pki-ca legacy package sprawl untouched
 
@@ -243,7 +243,7 @@
 
 ## Question 3: Root-level PS-ID directory policy for all 10 services
 
-**Question**: Should V21 enforce a canonical root-level PS-ID directory policy in addition to `server/**` policy?
+**Question**: Should V22 enforce a canonical root-level PS-ID directory policy in addition to `server/**` policy?
 
 **A)** Yes, strict required-only root set for all 10 (recommended):
 - Required: `client`, `e2e`, `server`
@@ -255,7 +255,7 @@
 - pki-ca may keep additional PKI roots
 - SM/JOSE services follow strict root set
 
-**C)** No root-level policy in V21; enforce only `server/**`
+**C)** No root-level policy in V22; enforce only `server/**`
 
 **D)** Keep current root-level sprawl and rely on naming conventions only
 
