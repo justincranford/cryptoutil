@@ -317,7 +317,7 @@ Status: Not started
 
 Status: Not started
 
-## Phase 7 - Validation and Closure
+## Phase 7 - Validation and Rollout
 
 ### Task 7.1 - Build validation (regular and e2e/integration tags)
 
