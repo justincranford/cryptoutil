@@ -4,7 +4,6 @@ package apis
 import (
 	"bytes"
 	"context"
-	"database/sql"
 	json "encoding/json"
 	http "net/http"
 	"net/http/httptest"
@@ -16,21 +15,18 @@ import (
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 	openapi_types "github.com/oapi-codegen/runtime/types"
 	"github.com/stretchr/testify/require"
-	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
-
-	_ "modernc.org/sqlite" // CGO-free SQLite driver
 
 	cryptoutilApiSmImServer "cryptoutil/api/sm-im/server"
 	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps-framework/service/config"
 	cryptoutilAppsFrameworkServiceServerBarrier "cryptoutil/internal/apps-framework/service/server/barrier"
 	cryptoutilUnsealKeysService "cryptoutil/internal/apps-framework/service/server/barrier/unsealkeysservice"
+	cryptoutilTestDb "cryptoutil/internal/apps-framework/service/test_help_db"
 	cryptoutilAppsSmImModel "cryptoutil/internal/apps/sm-im/server/model"
 	cryptoutilAppsSmImRepository "cryptoutil/internal/apps/sm-im/server/repository"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
-	cryptoutilSharedUtilRandom "cryptoutil/internal/shared/util/random"
 )
 
 var (
@@ -46,42 +42,12 @@ func TestMain(m *testing.M) {
 	ctx := context.Background()
 
 	// Create in-memory SQLite database (avoid Docker requirement).
-	dbID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
-	dsn := "file:" + dbID.String() + "?mode=memory&cache=shared"
+	db := cryptoutilTestDb.NewInMemorySQLiteDB(&testing.T{})
 
-	var (
-		testSQLDB *sql.DB
-		err       error
-	)
-
-	testSQLDB, err = sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, dsn)
+	// Run migrations using underlying sql.DB.
+	testSQLDB, err := db.DB()
 	if err != nil {
-		panic("TestMain: failed to open SQLite: " + err.Error())
-	}
-
-	defer func() { _ = testSQLDB.Close() }()
-
-	// Configure SQLite.
-	if _, err := testSQLDB.ExecContext(ctx, "PRAGMA journal_mode=WAL;"); err != nil {
-		panic("TestMain: failed to enable WAL: " + err.Error())
-	}
-
-	if _, err := testSQLDB.ExecContext(ctx, "PRAGMA busy_timeout = 30000;"); err != nil {
-		panic("TestMain: failed to set busy timeout: " + err.Error())
-	}
-
-	testSQLDB.SetMaxOpenConns(cryptoutilSharedMagic.SQLiteMaxOpenConnections)
-	testSQLDB.SetMaxIdleConns(cryptoutilSharedMagic.SQLiteMaxOpenConnections)
-	testSQLDB.SetConnMaxLifetime(0)
-
-	// Wrap with GORM.
-	var db *gorm.DB
-
-	db, err = gorm.Open(sqlite.Dialector{Conn: testSQLDB}, &gorm.Config{
-		SkipDefaultTransaction: true,
-	})
-	if err != nil {
-		panic("TestMain: failed to create GORM DB: " + err.Error())
+		panic("TestMain: failed to get sql.DB: " + err.Error())
 	}
 
 	// Apply SM-IM migrations.

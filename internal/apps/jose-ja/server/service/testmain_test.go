@@ -10,26 +10,21 @@ import (
 	"testing"
 
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
-	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
-
-	_ "modernc.org/sqlite" // CGO-free SQLite driver.
 
 	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps-framework/service/config"
 	cryptoutilAppsFrameworkServiceServerBarrier "cryptoutil/internal/apps-framework/service/server/barrier"
 	cryptoutilUnsealKeysService "cryptoutil/internal/apps-framework/service/server/barrier/unsealkeysservice"
-	cryptoutilTestdb "cryptoutil/internal/apps-framework/service/testing/testdb"
+	cryptoutilTestDb "cryptoutil/internal/apps-framework/service/test_help_db"
 	cryptoutilAppsJoseJaRepository "cryptoutil/internal/apps/jose-ja/server/repository"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
-	cryptoutilSharedUtilRandom "cryptoutil/internal/shared/util/random"
 )
 
 var (
 	// Test database.
-	testDB    *gorm.DB
-	testSQLDB *sql.DB // CRITICAL: Keep reference to prevent GC - in-memory SQLite requires open connection.
+	testDB *gorm.DB
 
 	// Repositories.
 	testElasticRepo     cryptoutilAppsJoseJaRepository.ElasticJWKRepository
@@ -47,45 +42,14 @@ func TestMain(m *testing.M) {
 	ctx := context.Background()
 
 	// Setup: Create shared heavyweight resources ONCE.
-	dbID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
-	dsn := "file:" + dbID.String() + "?mode=memory&cache=shared"
+	testDB = cryptoutilTestDb.NewInMemorySQLiteDB(&testing.T{})
 
-	// CRITICAL: Store sql.DB reference in package variable.
-	var err error
-
-	testSQLDB, err = sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, dsn)
+	// Run migrations using underlying sql.DB.
+	testSQLDB, err := testDB.DB()
 	if err != nil {
-		panic("TestMain: failed to open SQLite: " + err.Error())
+		panic("TestMain: failed to get sql.DB: " + err.Error())
 	}
 
-	defer func() {
-		if err := testSQLDB.Close(); err != nil {
-			panic("TestMain: failed to close SQLite: " + err.Error())
-		}
-	}()
-
-	// Configure SQLite for concurrent operations.
-	if _, err := testSQLDB.ExecContext(ctx, "PRAGMA journal_mode=WAL;"); err != nil {
-		panic("TestMain: failed to enable WAL: " + err.Error())
-	}
-
-	if _, err := testSQLDB.ExecContext(ctx, "PRAGMA busy_timeout = 30000;"); err != nil {
-		panic("TestMain: failed to set busy timeout: " + err.Error())
-	}
-
-	testSQLDB.SetMaxOpenConns(cryptoutilSharedMagic.SQLiteMaxOpenConnections)
-	testSQLDB.SetMaxIdleConns(cryptoutilSharedMagic.SQLiteMaxOpenConnections)
-	testSQLDB.SetConnMaxLifetime(0)
-
-	// Wrap with GORM.
-	testDB, err = gorm.Open(sqlite.Dialector{Conn: testSQLDB}, &gorm.Config{
-		SkipDefaultTransaction: true,
-	})
-	if err != nil {
-		panic("TestMain: failed to create GORM DB: " + err.Error())
-	}
-
-	// Run migrations.
 	if err := cryptoutilAppsJoseJaRepository.ApplyJoseJAMigrations(testSQLDB, cryptoutilAppsJoseJaRepository.DatabaseTypeSQLite); err != nil {
 		panic("TestMain: failed to run migrations: " + err.Error())
 	}
@@ -147,7 +111,7 @@ func TestMain(m *testing.M) {
 func newClosedServiceDeps(t *testing.T) (cryptoutilAppsJoseJaRepository.ElasticJWKRepository, cryptoutilAppsJoseJaRepository.MaterialJWKRepository, cryptoutilAppsJoseJaRepository.AuditLogRepository, cryptoutilAppsJoseJaRepository.AuditConfigRepository) {
 	t.Helper()
 
-	closedDB := cryptoutilTestdb.NewClosedSQLiteDB(t, func(sqlDB *sql.DB) error {
+	closedDB := cryptoutilTestDb.NewClosedSQLiteDB(t, func(sqlDB *sql.DB) error {
 		return cryptoutilAppsJoseJaRepository.ApplyJoseJAMigrations(sqlDB, cryptoutilAppsJoseJaRepository.DatabaseTypeSQLite)
 	})
 
@@ -162,7 +126,7 @@ func newClosedServiceDeps(t *testing.T) (cryptoutilAppsJoseJaRepository.ElasticJ
 func closedDBMaterialRepo(t *testing.T) cryptoutilAppsJoseJaRepository.MaterialJWKRepository {
 	t.Helper()
 
-	closedDB := cryptoutilTestdb.NewClosedSQLiteDB(t, func(sqlDB *sql.DB) error {
+	closedDB := cryptoutilTestDb.NewClosedSQLiteDB(t, func(sqlDB *sql.DB) error {
 		return cryptoutilAppsJoseJaRepository.ApplyJoseJAMigrations(sqlDB, cryptoutilAppsJoseJaRepository.DatabaseTypeSQLite)
 	})
 

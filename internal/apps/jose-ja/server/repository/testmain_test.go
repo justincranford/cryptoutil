@@ -4,88 +4,43 @@
 package repository
 
 import (
-	"context"
 	"database/sql"
 	"os"
 	"testing"
 
-	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 
-	_ "modernc.org/sqlite" // CGO-free SQLite driver
-
-	cryptoutilTestdb "cryptoutil/internal/apps-framework/service/testing/testdb"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
-	cryptoutilSharedUtilRandom "cryptoutil/internal/shared/util/random"
+	cryptoutilTestDb "cryptoutil/internal/apps-framework/service/test_help_db"
 )
 
 var (
-	testDB    *gorm.DB
-	testSQLDB *sql.DB // CRITICAL: Keep reference to prevent GC - in-memory SQLite requires open connection.
+	testDB *gorm.DB
 )
 
 func TestMain(m *testing.M) {
-	ctx := context.Background()
-
 	// Setup: Create shared heavyweight resources ONCE.
-	dbID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
-	dsn := "file:" + dbID.String() + "?mode=memory&cache=shared"
+	testDB = cryptoutilTestDb.NewInMemorySQLiteDB(&testing.T{})
 
-	// CRITICAL: Store sql.DB reference in package variable.
-	// In-memory SQLite databases are destroyed when all connections close.
-	// Storing reference prevents GC from closing connection during parallel test execution.
-	var err error
-
-	testSQLDB, err = sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, dsn)
+	// Run migrations using underlying sql.DB.
+	testSQLDB, err := testDB.DB()
 	if err != nil {
-		panic("TestMain: failed to open SQLite: " + err.Error())
+		panic("TestMain: failed to get sql.DB: " + err.Error())
 	}
 
-	defer func() {
-		if err := testSQLDB.Close(); err != nil {
-			panic("TestMain: failed to close SQLite: " + err.Error())
-		}
-	}()
-
-	// Configure SQLite for concurrent operations.
-	if _, err := testSQLDB.ExecContext(ctx, "PRAGMA journal_mode=WAL;"); err != nil {
-		panic("TestMain: failed to enable WAL: " + err.Error())
-	}
-
-	if _, err := testSQLDB.ExecContext(ctx, "PRAGMA busy_timeout = 30000;"); err != nil {
-		panic("TestMain: failed to set busy timeout: " + err.Error())
-	}
-
-	testSQLDB.SetMaxOpenConns(cryptoutilSharedMagic.SQLiteMaxOpenConnections)
-	testSQLDB.SetMaxIdleConns(cryptoutilSharedMagic.SQLiteMaxOpenConnections)
-	testSQLDB.SetConnMaxLifetime(0)
-
-	// Wrap with GORM.
-	testDB, err = gorm.Open(sqlite.Dialector{Conn: testSQLDB}, &gorm.Config{
-		SkipDefaultTransaction: true,
-	})
-	if err != nil {
-		panic("TestMain: failed to create GORM DB: " + err.Error())
-	}
-
-	// Run migrations.
 	if err := ApplyJoseJAMigrations(testSQLDB, DatabaseTypeSQLite); err != nil {
 		panic("TestMain: failed to run migrations: " + err.Error())
 	}
 
 	// Run all tests.
-	exitCode := m.Run()
-
-	// Cleanup happens via defer.
-	os.Exit(exitCode)
+	os.Exit(m.Run())
 }
 
-// newClosedDB creates a closed SQLite DB using the shared testdb helper.
+// newClosedDB creates a closed SQLite DB using the shared test_help_db helper.
 // Used by error-path tests to force database errors.
 func newClosedDB(t *testing.T) *gorm.DB {
 	t.Helper()
 
-	return cryptoutilTestdb.NewClosedSQLiteDB(t, func(sqlDB *sql.DB) error {
+	return cryptoutilTestDb.NewClosedSQLiteDB(t, func(sqlDB *sql.DB) error {
 		return ApplyJoseJAMigrations(sqlDB, DatabaseTypeSQLite)
 	})
 }

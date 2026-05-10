@@ -12,19 +12,20 @@ import (
 	"testing"
 	"time"
 
-	cryptoutilAppsFrameworkServiceTestingE2eHelpers "cryptoutil/internal/apps-framework/service/testing/e2e_helpers"
-	cryptoutilTestingHealthclient "cryptoutil/internal/apps-framework/service/testing/healthclient"
+	cryptoutilTestHelpApi "cryptoutil/internal/apps-framework/service/test_help_api"
+	cryptoutilTestOrcIntegration "cryptoutil/internal/apps-framework/service/test_orch_integration"
 	cryptoutilAppsSkeletonTemplateServerConfig "cryptoutil/internal/apps/skeleton-template/server/config"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 var (
-	testServer           *SkeletonTemplateServer
-	testPublicHTTPClient *http.Client
-	testAdminHTTPClient  *http.Client
-	testHealthClient     *cryptoutilTestingHealthclient.HealthClient
-	testPublicBaseURL    string
-	testAdminBaseURL     string
+	testServer            *SkeletonTemplateServer
+	testIntegrationServer *cryptoutilTestOrcIntegration.IntegrationServer
+	testPublicHTTPClient  *http.Client
+	testAdminHTTPClient   *http.Client
+	testHealthClient      *cryptoutilTestHelpApi.HealthClient
+	testPublicBaseURL     string
+	testAdminBaseURL      string
 )
 
 func TestMain(m *testing.M) {
@@ -41,17 +42,16 @@ func TestMain(m *testing.M) {
 		panic(fmt.Sprintf("TestMain: failed to create server: %v", err))
 	}
 
-	// Use generic template helper for goroutine start + dual port polling + panic-on-failure.
-	cryptoutilAppsFrameworkServiceTestingE2eHelpers.MustStartAndWaitForDualPorts(testServer, func() error {
-		return testServer.Start(ctx)
-	})
-
-	// Mark server as ready.
-	testServer.SetReady(true)
+	// Start server and wait for both ports to bind.
+	testIntegrationServer, err = cryptoutilTestOrcIntegration.StartIntegrationServerForTestMain(ctx, testServer, nil)
+	if err != nil {
+		panic(fmt.Sprintf("TestMain: failed to start server: %v", err))
+	}
 
 	// Store base URLs for tests.
-	testPublicBaseURL, testAdminBaseURL = cryptoutilAppsFrameworkServiceTestingE2eHelpers.DualPortBaseURLs(testServer)
-	testHealthClient = cryptoutilTestingHealthclient.NewHealthClient(testPublicBaseURL, testAdminBaseURL)
+	testPublicBaseURL = testServer.PublicBaseURL()
+	testAdminBaseURL = testServer.AdminBaseURL()
+	testHealthClient = cryptoutilTestHelpApi.NewHealthClient(testPublicBaseURL, testAdminBaseURL)
 
 	// Create public and admin HTTPS clients.
 	testPublicHTTPClient = &http.Client{
@@ -83,7 +83,7 @@ func TestMain(m *testing.M) {
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultDataServerShutdownTimeout)
 	defer cancel()
 
-	_ = testServer.Shutdown(shutdownCtx)
+	_ = testIntegrationServer.Shutdown(shutdownCtx)
 
 	os.Exit(exitCode)
 }

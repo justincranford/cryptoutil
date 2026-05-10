@@ -5,33 +5,22 @@ package server_test
 
 import (
 	"context"
-	"database/sql"
 	"os"
 	"testing"
 	"time"
 
-	"gorm.io/gorm"
-
-	cryptoutilAppsFrameworkServiceConfigTlsGenerator "cryptoutil/internal/apps-framework/service/config/tls_generator"
+	cryptoutilTestOrcIntegration "cryptoutil/internal/apps-framework/service/test_orch_integration"
 	cryptoutilAppsFrameworkServiceTestutil "cryptoutil/internal/apps-framework/service/testutil"
 	cryptoutilAppsSmImServer "cryptoutil/internal/apps/sm-im/server"
-	cryptoutilAppsSmImTesting "cryptoutil/internal/apps/sm-im/testing"
-	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
-	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
+	cryptoutilAppsSmImServerConfig "cryptoutil/internal/apps/sm-im/server/config"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 var (
-	testDB    *gorm.DB
-	testSQLDB *sql.DB
-
-	testSmIMServer *cryptoutilAppsSmImServer.SmIMServer
-	baseURL        string
-	adminURL       string
-
-	testJWKGenService    *cryptoutilSharedCryptoJose.JWKGenService
-	testTelemetryService *cryptoutilSharedTelemetry.TelemetryService
-
-	testTLSCfg *cryptoutilAppsFrameworkServiceConfigTlsGenerator.TLSGeneratedSettings
+	testSmIMServer        *cryptoutilAppsSmImServer.SmIMServer
+	testIntegrationServer *cryptoutilTestOrcIntegration.IntegrationServer
+	baseURL               string
+	adminURL              string
 )
 
 var (
@@ -43,22 +32,26 @@ var (
 func TestMain(m *testing.M) {
 	ctx := context.Background()
 
-	// Setup: Create shared heavyweight resources ONCE using helper.
-	resources, err := cryptoutilAppsSmImTesting.SetupTestServer(ctx, false)
-	if err != nil {
-		panic("TestMain: failed to setup test server: " + err.Error())
-	}
-	defer resources.Shutdown(context.Background())
+	// Create test configuration.
+	cfg := cryptoutilAppsSmImServerConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
 
-	// Assign to package-level variables for backward compatibility with existing tests.
-	testDB = resources.DB
-	testSQLDB = resources.SQLDB
-	testSmIMServer = resources.SmIMServer
-	baseURL = resources.BaseURL
-	adminURL = resources.AdminURL
-	testJWKGenService = resources.JWKGenService
-	testTelemetryService = resources.TelemetryService
-	testTLSCfg = resources.TLSCfg
+	// Create server.
+	var err error
+
+	testSmIMServer, err = cryptoutilAppsSmImServer.NewIMServerFromConfig(ctx, cfg)
+	if err != nil {
+		panic("TestMain: failed to create server: " + err.Error())
+	}
+
+	// Start server and wait for both ports to bind.
+	testIntegrationServer, err = cryptoutilTestOrcIntegration.StartIntegrationServerForTestMain(ctx, testSmIMServer, nil)
+	if err != nil {
+		panic("TestMain: failed to start server: " + err.Error())
+	}
+
+	// Store base URLs for tests.
+	baseURL = testSmIMServer.PublicBaseURL()
+	adminURL = testSmIMServer.AdminBaseURL()
 
 	defer testMockServerOK.Close()
 	defer testMockServerError.Close()
@@ -76,6 +69,12 @@ func TestMain(m *testing.M) {
 	// IMPORTANT: This timing includes TestMain setup overhead, which is amortized across all tests.
 	// Individual test functions no longer pay setup cost - they reuse shared resources.
 	println("TestMain: All tests completed in", elapsed.String())
+
+	// Cleanup: Shutdown server.
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultDataServerShutdownTimeout)
+	defer cancel()
+
+	_ = testIntegrationServer.Shutdown(shutdownCtx)
 
 	os.Exit(exitCode)
 }

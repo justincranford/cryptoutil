@@ -12,16 +12,17 @@ import (
 	"testing"
 	"time"
 
-	cryptoutilE2EHelpers "cryptoutil/internal/apps-framework/service/testing/e2e_helpers"
+	cryptoutilTestOrcIntegration "cryptoutil/internal/apps-framework/service/test_orch_integration"
 	cryptoutilAppsCaServerConfig "cryptoutil/internal/apps/pki-ca/server/config"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 var (
-	testServer        *CAServer
-	testHTTPClient    *http.Client
-	testPublicBaseURL string
-	testAdminBaseURL  string
+	testServer            *CAServer
+	testIntegrationServer *cryptoutilTestOrcIntegration.IntegrationServer
+	testHTTPClient        *http.Client
+	testPublicBaseURL     string
+	testAdminBaseURL      string
 )
 
 func TestMain(m *testing.M) {
@@ -38,13 +39,11 @@ func TestMain(m *testing.M) {
 		panic(fmt.Sprintf("TestMain: failed to create server: %v", err))
 	}
 
-	// Start server in background and wait for both ports to bind.
-	cryptoutilE2EHelpers.MustStartAndWaitForDualPorts(testServer, func() error {
-		return testServer.Start(ctx)
-	})
-
-	// Mark server as ready.
-	testServer.SetReady(true)
+	// Start server and wait for both ports to bind.
+	testIntegrationServer, err = cryptoutilTestOrcIntegration.StartIntegrationServerForTestMain(ctx, testServer, nil)
+	if err != nil {
+		panic(fmt.Sprintf("TestMain: failed to start server: %v", err))
+	}
 
 	// Store base URLs for tests.
 	testPublicBaseURL = testServer.PublicBaseURL()
@@ -65,10 +64,10 @@ func TestMain(m *testing.M) {
 	exitCode := m.Run()
 
 	// Cleanup: Shutdown server.
-	shutdownCtx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.JoseJADefaultMaxMaterials*time.Second)
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultDataServerShutdownTimeout)
 	defer cancel()
 
-	_ = testServer.Shutdown(shutdownCtx)
+	_ = testIntegrationServer.Shutdown(shutdownCtx)
 
 	os.Exit(exitCode)
 }

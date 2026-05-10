@@ -12,19 +12,17 @@ import (
 	"testing"
 	"time"
 
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
-
-	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps-framework/service/config"
+	cryptoutilTestOrcIntegration "cryptoutil/internal/apps-framework/service/test_orch_integration"
 	cryptoutilAppsSmImServer "cryptoutil/internal/apps/sm-im/server"
 	cryptoutilAppsSmImServerConfig "cryptoutil/internal/apps/sm-im/server/config"
-	cryptoutilAppsSmImTesting "cryptoutil/internal/apps/sm-im/testing"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // Shared test resources (initialized once per package).
 var (
 	sharedHTTPClient     *http.Client
 	smIMServer           *cryptoutilAppsSmImServer.SmIMServer
-	testSmIMServer       *cryptoutilAppsSmImServerConfig.SmIMServerSettings
+	testIntegrationServer *cryptoutilTestOrcIntegration.IntegrationServer
 	publicBaseURL        string
 	adminBaseURL         string
 	sharedServiceBaseURL string // Deprecated: use publicBaseURL.
@@ -34,18 +32,21 @@ var (
 // Tests start the full application but use SQLite instead of PostgreSQL,
 // and exclude telemetry containers (otel-collector, grafana-lgtm).
 func TestMain(m *testing.M) {
-	settings := cryptoutilAppsFrameworkServiceConfig.RequireNewForTest("sm-im-integration-test")
-	settings.DatabaseURL = cryptoutilSharedMagic.SQLiteInMemoryDSN // SQLite in-memory for fast tests.
+	ctx := context.Background()
 
-	testSmIMServer = &cryptoutilAppsSmImServerConfig.SmIMServerSettings{
-		ServiceFrameworkServerSettings: settings,
+	cfg := cryptoutilAppsSmImServerConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
+
+	var err error
+
+	smIMServer, err = cryptoutilAppsSmImServer.NewIMServerFromConfig(ctx, cfg)
+	if err != nil {
+		panic("TestMain: failed to create server: " + err.Error())
 	}
 
-	smIMServer = cryptoutilAppsSmImTesting.StartSmIMService(testSmIMServer)
-
-	defer func() {
-		_ = smIMServer.Shutdown(context.Background())
-	}()
+	testIntegrationServer, err = cryptoutilTestOrcIntegration.StartIntegrationServerForTestMain(ctx, smIMServer, nil)
+	if err != nil {
+		panic("TestMain: failed to start server: " + err.Error())
+	}
 
 	publicBaseURL = smIMServer.PublicBaseURL()
 	adminBaseURL = smIMServer.AdminBaseURL()
@@ -63,6 +64,11 @@ func TestMain(m *testing.M) {
 	}
 
 	exitCode := m.Run()
+
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultDataServerShutdownTimeout)
+	defer cancel()
+
+	_ = testIntegrationServer.Shutdown(shutdownCtx)
 
 	os.Exit(exitCode)
 }
