@@ -346,8 +346,10 @@ Phase 2 unblock artifact:
 2. Round 2 handbook-backed defaults merged:
    - Readiness default: admin `/admin/api/v1/readyz` is the mandatory readiness gate for integration orchestration; optional extra probes may be added by suites.
    - Port policy default: both listeners use port 0 in tests, with resolved runtime URLs returned by orchestration handles.
-3. `docs/framework-v21/quizme-v3.md` captures only unresolved user-choice decisions (Q1/Q2) required to close Task 2.2 and downstream helper API design tasks (2.3-2.6).
-4. After answers are provided, merge decisions into plan/tasks and delete quizme-v3.md per lifecycle policy.
+3. Round 3 decisions merged:
+   - Q1 fixture scope default: per-package (`TestMain`) shared fixture by default with opt-in per-test isolation (aligned with handbook TestMain integration pattern).
+   - Q2 error-path fixture default: explicit factory APIs returning pre-broken fixtures.
+4. Quiz lifecycle complete for Phase 2 blocker inputs; no open quizme artifact remains.
 
 **Status**: ⚠️ PARTIAL (1/4 complete, 1 in progress on critical path)
 
@@ -469,3 +471,11 @@ Second-pass validation checklist for omissions:
 2. Question: Port allocation and concurrency safety contract?
    - Answer: E => A semantics (always bind both listeners to port 0; return resolved URLs)
    - Basis: handbook and propagated architecture instruction defaults.
+
+## Quizme Round 3 (2026-05-09)
+
+1. Question: Default fixture scope model for test_orch_integration?
+   - Answer: E => A semantics (per-package/TestMain shared fixture by default; opt-in per-test isolation)
+   - Basis: handbook integration TestMain/shared-instance pattern and propagated testing/data-infrastructure instructions plus Copilot/Claude agent/skill guidance.
+2. Question: Error-path fixture creation contract?
+   - Answer: A (explicit factory APIs returning pre-broken fixtures)

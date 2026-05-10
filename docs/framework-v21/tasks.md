@@ -102,7 +102,7 @@ Acceptance Criteria:
 Unblock Input:
 8. Round 1 decision merged: one-pass migration with no compatibility wrappers (Q5 = C).
 9. Round 2 decisions merged from handbook defaults: Q3 readiness = admin readyz default; Q4 port policy = mandatory port 0.
-10. `docs/framework-v21/quizme-v3.md` must be answered and merged to finalize only Q1-Q2 policies and close remaining design ambiguity.
+10. Round 3 decisions merged: Q1 fixture scope default = per-package shared fixture with opt-in per-test isolation; Q2 error-path contract = explicit pre-broken fixture factory APIs.
 
 ### Task 2.3 - Design test_help_db API
 
