@@ -6883,6 +6883,22 @@ See [Section 9.4.2 Docker Desktop and Testcontainers API Compatibility](#942-doc
 - `tasks.md` SHOULD track estimated vs actual hours per phase: `Phase N (est: Xh, actual: Yh)`. Without actuals, estimation calibration for future plans is impossible.
 - Documentation and verification phases consistently take ~50% of their estimated time (they verify existing state rather than producing new artifacts). Estimate doc/verification phases at 50% of implementation phase estimates unless the lessons explicitly identify new artifacts needed.
 
+**Plan Artifact Triad Consistency Gate** (MANDATORY): Before any claim that a plan is "ready for implementation" or "handoff-ready," the planning agent MUST run a synchronization pass across the plan artifact triad (`plan.md`, `tasks.md`, `lessons.md`) and reconcile ALL mismatches in the same invocation.
+
+Required checks (all mandatory):
+1. **Phase index consistency**: phase numbering is contiguous and aligned across all three files (no missing Phase N, no shifted numbering).
+2. **Phase title consistency**: each `## Phase N: <name>` in `plan.md` has a matching phase section in `tasks.md` and `lessons.md` with equivalent intent.
+3. **Status truthfulness**: top-level status text in `plan.md` MUST match real progress in `tasks.md`. A plan MUST NOT claim "ready" if implementation phases remain not started.
+4. **Metadata consistency**: `Created` and `Last Updated` values are synchronized or explicitly justified when intentionally different.
+5. **Lessons scaffold consistency**: `lessons.md` contains exactly one phase heading per active plan phase in the same order.
+
+Failure policy:
+1. Any mismatch blocks readiness claims.
+2. The agent MUST patch the triad immediately; deferring synchronization is forbidden.
+3. If synchronization cannot be completed, the agent MUST report unresolved blockers only and MUST NOT emit a ready/handoff claim.
+
+**Anti-Pattern** (FORBIDDEN): Reporting "no further research/design needed" while phase/status/numbering drift still exists between `plan.md`, `tasks.md`, and `lessons.md`.
+
 ### 14.7 Infrastructure Blocker Escalation
 
 <!-- @propagate to=".github/instructions/06-01.evidence-based.instructions.md, .github/instructions/01-02.beast-mode.instructions.md" as="infrastructure-blocker-escalation" -->

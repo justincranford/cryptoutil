@@ -21,6 +21,8 @@ Use when:
 - Claude agents at `.claude/agents/<NAME>.md` must match Copilot agents at `.github/agents/<NAME>.agent.md`
 - NEVER update only one file — always sync both in the same commit
 - The `lint-agent-drift` linter (in `lint-docs`) enforces agent pair identity automatically
+- When syncing planning agents, also verify planning-triad readiness safeguards are present in BOTH files: `plan.md` + `tasks.md` + `lessons.md` consistency gate and false-ready prohibition
+- If planning agents changed but triad safeguards are missing in either side, treat as drift and fix in the same commit
 
 ## Argument Meanings
 

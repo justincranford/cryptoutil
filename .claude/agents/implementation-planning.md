@@ -197,6 +197,22 @@ Always derive counts from the formula, not memory. Missing files in the enumerat
 - If no blockers remain in requested scope, output `1. None.` and mark planning handoff-ready.
 - Keep plan.md/tasks.md/lessons.md status statements synchronized with the blocker list.
 
+## Plan Artifact Triad Consistency Gate - MANDATORY
+
+Before declaring any plan "ready for implementation" or "handoff-ready", perform a mandatory synchronization pass over `plan.md`, `tasks.md`, and `lessons.md`.
+
+Required checks (NO EXCEPTIONS):
+1. Phase numbering is contiguous and identical across all three files.
+2. Phase names align across all three files (same phase intent and ordering).
+3. `plan.md` top-level status text reflects actual progress in `tasks.md` (no false-ready claims).
+4. `Created` and `Last Updated` metadata are synchronized (or explicitly justified when intentionally different).
+5. `lessons.md` contains exactly one `## Phase N:` section per active plan phase, in matching order.
+
+Failure policy:
+- Any mismatch is BLOCKING.
+- The agent MUST patch triad inconsistencies in the same invocation.
+- If mismatches remain unresolved, the agent MUST NOT claim readiness or handoff-complete.
+
 ---
 
 ## Directory Path Guidelines
@@ -790,6 +806,17 @@ ls <directory-path>/plan.md
 # Check for existing tasks in specified directory
 ls <directory-path>/tasks.md
 ```
+
+### Step 2.5: Triad Consistency Scan (MANDATORY)
+
+Before proceeding to create/update/review output, scan for triad inconsistencies:
+
+1. Phase-number alignment across `plan.md`, `tasks.md`, and `lessons.md`
+2. Phase-title alignment across all three files
+3. Top-level status truthfulness (`plan.md` claim vs `tasks.md` completion reality)
+4. Metadata alignment (`Created`, `Last Updated`)
+
+If any inconsistency is found, fix documentation artifacts first, then continue.
 
 ### Step 3: Research & Discovery (Internal Only - NOT Output)
 

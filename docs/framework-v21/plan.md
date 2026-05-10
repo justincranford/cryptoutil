@@ -1,6 +1,6 @@
 # Implementation Plan - Framework v21 TestMain Directory Consolidation
 
-Status: Planning Complete - Ready for Implementation Handoff
+Status: In Progress - Implementation Execution Ongoing
 Created: 2026-05-09
 Last Updated: 2026-05-10
 Purpose: Consolidate all TestMain orchestration to reusable apps-framework directories, remove duplicated startup logic, and enforce policy with templates and fitness linting.
@@ -362,7 +362,7 @@ Phase 2 design closure (implementation-ready contracts now fixed in planning doc
 
 **Status**: ✅ COMPLETE (4/4 tasks complete)
 
-Phase 3: Implement orchestration modules
+Phase 3: Implement and consolidate framework packages
 
 1. Task 3.1: Create all test_orch_*and test_help_* directories - ⚠️ PARTIAL (only test_orch_e2e created)
 2. Task 3.2: Implement test_orch_e2e from e2e_infra - ✅ COMPLETE (Commit 7d07de9c5)
@@ -374,42 +374,33 @@ Phase 3: Implement orchestration modules
 
 **Key Achievement**: Parameterized E2E orchestration for all 10 PS-IDs via NewTLSPSIDSpec factory in test_orch_e2e/tls_psid_spec_e2e.go. All 3 TLS E2E test files are physically relocated under internal/apps-framework/service/test_orch_e2e and TestMain now supports PS-ID selection via CRYPTOUTIL_TLS_E2E_PSID.
 
-Phase 4: Framework package migration
-
-1. Move testcli -> test_help_cli.
-2. Move healthclient -> test_help_api.
-3. Move service/testutil mocks -> test_help_api/mocks.
-4. Enforce one-pass direct migration with no compatibility wrappers.
-
-**Status**: ⏳ NOT STARTED (depends on Phase 3 completion)
-
-Phase 5: internal/apps PS-ID migration
+Phase 4: internal/apps PS-ID migration
 
 1. Migrate all 28 PS-ID TestMain files to wrappers/composites.
 2. Enforce sm-im and sm-kms client migration to test_orch_integration.
 3. Refactor sm-kms businesslogic and orm integration patterns.
 
-**Status**: ⏳ NOT STARTED (depends on Phase 4 completion, 37 TestMain files pending migration)
+**Status**: ⏳ NOT STARTED (depends on Phase 3 completion, 37 TestMain files pending migration)
 
-Phase 6: internal/apps-framework TestMain migration
+Phase 5: internal/apps-framework TestMain migration
 
 1. Migrate all framework TestMain files to same reusable orchestration directories.
 
-**Status**: ⏳ NOT STARTED (depends on Phase 4 completion)
+**Status**: ⏳ NOT STARTED (depends on Phase 3 completion)
 
-Phase 7: Template and linter policy lock
+Phase 6: Template and linter policy lock
 
 1. Update templates.
 2. Add/adjust lint-fitness rules.
 3. Enforce canonical directory ownership in policy checks.
 
-**Status**: ⏳ NOT STARTED (depends on Phase 5 completion)
+**Status**: ⏳ NOT STARTED (depends on Phase 4 completion)
 
-Phase 8: Validation and rollout
+Phase 7: Validation and rollout
 
 1. Build, lint, test, coverage, mutation, and e2e validation.
 
-**Status**: ⏳ NOT STARTED (depends on Phase 7 completion)
+**Status**: ⏳ NOT STARTED (depends on Phase 6 completion)
 
 ## Risks and Mitigations
 
