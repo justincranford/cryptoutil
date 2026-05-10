@@ -51,10 +51,10 @@ func TestOrmTransaction_AutoCommit_RollbackFailure(t *testing.T) {
 	require.NoError(t, err)
 }
 
+// Sequential: uses shared package-level SQLite fixture state via CleanupDatabase.
 // TestOrmTransaction_AutoCommit_Success tests successful AutoCommit transaction.
 func TestOrmTransaction_AutoCommit_Success(t *testing.T) {
-	t.Parallel()
-	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository, KMSCleanupTables) })
+	CleanupDatabase(t, testOrmRepository, KMSCleanupTables)
 
 	err := testOrmRepository.WithTransaction(testCtx, AutoCommit, func(tx *OrmTransaction) error {
 		require.NotNil(t, tx)

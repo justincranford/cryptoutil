@@ -16,10 +16,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// Sequential: uses shared package-level SQLite fixture state via CleanupDatabase.
 // TestOrmTransaction_GetElasticKeyMaterialKeyVersion tests getting a specific material key version.
 func TestOrmTransaction_GetElasticKeyMaterialKeyVersion(t *testing.T) {
-	t.Parallel()
-	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository, KMSCleanupTables) })
+	CleanupDatabase(t, testOrmRepository, KMSCleanupTables)
 
 	// Create elastic key and multiple material keys.
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
@@ -96,10 +96,10 @@ func TestOrmTransaction_GetElasticKeyMaterialKeyVersion(t *testing.T) {
 	require.NoError(t, err)
 }
 
+// Sequential: uses shared package-level SQLite fixture state via CleanupDatabase.
 // TestOrmTransaction_GetElasticKeyMaterialKeyLatest tests getting the latest material key.
 func TestOrmTransaction_GetElasticKeyMaterialKeyLatest(t *testing.T) {
-	t.Parallel()
-	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository, KMSCleanupTables) })
+	CleanupDatabase(t, testOrmRepository, KMSCleanupTables)
 
 	var ekID googleUuid.UUID
 

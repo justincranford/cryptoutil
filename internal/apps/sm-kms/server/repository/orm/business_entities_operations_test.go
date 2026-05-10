@@ -16,9 +16,9 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// Sequential: uses shared package-level SQLite fixture state via CleanupDatabase.
 // TestElasticKeyOperations tests CRUD operations for ElasticKey entity.
 func TestElasticKeyOperations(t *testing.T) {
-	t.Parallel()
 	CleanupDatabase(t, testOrmRepository, KMSCleanupTables)
 
 	t.Run("Add and retrieve single elastic key", func(t *testing.T) {
@@ -163,9 +163,9 @@ func TestElasticKeyOperations(t *testing.T) {
 	})
 }
 
+// Sequential: uses shared package-level SQLite fixture state via CleanupDatabase.
 // TestMaterialKeyOperations tests CRUD operations for MaterialKey entity.
 func TestMaterialKeyOperations(t *testing.T) {
-	t.Parallel()
 	CleanupDatabase(t, testOrmRepository, KMSCleanupTables)
 
 	t.Run("Add and retrieve material keys for elastic key", func(t *testing.T) {

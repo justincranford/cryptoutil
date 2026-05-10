@@ -14,9 +14,9 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// Sequential: uses shared package-level SQLite fixture state via CleanupDatabase.
 // TestGetElasticKeysWithVersioningAllowedFilter tests the VersioningAllowed filter path.
 func TestGetElasticKeysWithVersioningAllowedFilter(t *testing.T) {
-	t.Parallel()
 	CleanupDatabase(t, testOrmRepository, KMSCleanupTables)
 
 	// Create two elastic keys: one with versioning allowed, one without.
@@ -63,6 +63,7 @@ func TestGetElasticKeysWithVersioningAllowedFilter(t *testing.T) {
 	versioningAllowedTrue := true
 	err = testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 		filters := &GetElasticKeysFilters{
+			TenantID:          tenantID,
 			VersioningAllowed: &versioningAllowedTrue,
 		}
 		keys, err := GetElasticKeys(tx.GormTx(), testTelemetryService.Slogger, filters)
@@ -78,6 +79,7 @@ func TestGetElasticKeysWithVersioningAllowedFilter(t *testing.T) {
 	versioningAllowedFalse := false
 	err = testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 		filters := &GetElasticKeysFilters{
+			TenantID:          tenantID,
 			VersioningAllowed: &versioningAllowedFalse,
 		}
 		keys, err := GetElasticKeys(tx.GormTx(), testTelemetryService.Slogger, filters)

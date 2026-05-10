@@ -160,7 +160,51 @@
 
 ## Phase 4: Migrate internal/apps (All 10 PS-IDs)
 
-(To be filled during Phase 4 execution using the 4-section structure above.)
+### What Worked
+
+1. **sm-kms migration pattern is now validated end-to-end**:
+   - `server/testmain_test.go` and `client/testmain_test.go` use `test_orch_integration` wrappers.
+   - ORM integration-tagged suite now uses unified `testmain_test.go` fixtures.
+   - Full ORM package integration run passes reliably.
+
+2. **Type-boundary issues were resolved at root cause**:
+   - `ElasticKeyStatus` comparisons were corrected to match server type wrappers.
+   - Builder tests now assert on the exact runtime type path used by repository entities.
+
+3. **Cleanup harness robustness improved**:
+   - Nested `t.Cleanup(func(){ CleanupDatabase(...) })` anti-pattern was removed.
+   - Tests now call `CleanupDatabase(...)` directly, enabling deterministic pre/post cleanup wiring.
+
+4. **jose-ja server migration confirmed portability of the pattern**:
+   - Server TestMain moved to `test_orch_integration` without breaking existing integration tests.
+   - Compatibility variables were preserved to avoid broad test rewrites during this phase.
+
+### What Didn't Work
+
+1. **Initial assumption of purely pre-existing failures was incomplete**:
+   - Focused tests passed individually but failed when run together.
+   - This masked shared fixture interference and delayed root-cause isolation.
+
+2. **Mutex-based serialization workaround caused deadlocks**:
+   - A package-level mutex in `CleanupDatabase` interacted badly with nested subtests.
+   - Full package run hung until timeout due lock contention chains.
+
+### Root Causes
+
+1. **Shared in-memory fixture with parallel mutation tests requires strict lifecycle discipline**:
+   - Cross-test contamination occurred when cleanup registration pattern was inconsistent.
+   - Package-level state was mutated from multiple parallel tests without deterministic setup boundaries.
+
+2. **Cleanup API misuse pattern had propagated across multiple test files**:
+   - Wrapping cleanup helper registration inside another cleanup callback created delayed execution semantics and non-obvious ordering.
+   - Correct usage is direct helper invocation at test start.
+
+### Patterns for Future Phases
+
+1. **For shared SQLite integration fixtures, call cleanup helpers directly at test start**; avoid nested cleanup wrappers.
+2. **When failures are flaky, always run both isolated and grouped test selections** before concluding root cause.
+3. **Prefer behavioral isolation fixes (filter scoping, fixture cleanup discipline) over global locking** in test helpers.
+4. **Treat package-level shared fixture tests as sequential when they mutate shared state broadly** and document with explicit `Sequential:` comments where needed.
 
 ## Phase 5: Migrate internal/apps-framework TestMain files
 

@@ -20,8 +20,8 @@ import (
 
 // TestToAppErr_GormDuplicatedKey tests toAppErr handling of gorm.ErrDuplicatedKey.
 func TestToAppErr_GormDuplicatedKey(t *testing.T) {
-	t.Parallel()
-	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository, KMSCleanupTables) })
+	// Sequential: uses shared package-level SQLite fixture state via CleanupDatabase
+	CleanupDatabase(t, testOrmRepository, KMSCleanupTables)
 
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 		// Create first elastic key.
@@ -78,8 +78,8 @@ func TestToAppErr_GormDuplicatedKey(t *testing.T) {
 
 // TestToAppErr_GormCheckConstraintViolated tests toAppErr handling of gorm.ErrCheckConstraintViolated.
 func TestToAppErr_GormCheckConstraintViolated(t *testing.T) {
-	t.Parallel()
-	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository, KMSCleanupTables) })
+	// Sequential: uses shared package-level SQLite fixture state via CleanupDatabase
+	CleanupDatabase(t, testOrmRepository, KMSCleanupTables)
 
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 		// Create material key with empty encrypted data (violates check constraint).
@@ -129,8 +129,8 @@ func TestToAppErr_GormCheckConstraintViolated(t *testing.T) {
 
 // TestToAppErr_GormInvalidData tests toAppErr handling of gorm.ErrInvalidData.
 func TestToAppErr_GormInvalidData(t *testing.T) {
-	t.Parallel()
-	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository, KMSCleanupTables) })
+	// Sequential: uses shared package-level SQLite fixture state via CleanupDatabase
+	CleanupDatabase(t, testOrmRepository, KMSCleanupTables)
 
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 		// Simulate gorm.ErrInvalidData by passing it directly.
@@ -150,8 +150,8 @@ func TestToAppErr_GormInvalidData(t *testing.T) {
 
 // TestToAppErr_GormInvalidValueOfLength tests toAppErr handling of gorm.ErrInvalidValueOfLength.
 func TestToAppErr_GormInvalidValueOfLength(t *testing.T) {
-	t.Parallel()
-	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository, KMSCleanupTables) })
+	// Sequential: uses shared package-level SQLite fixture state via CleanupDatabase
+	CleanupDatabase(t, testOrmRepository, KMSCleanupTables)
 
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 		// Simulate gorm.ErrInvalidValueOfLength by passing it directly.
@@ -170,8 +170,8 @@ func TestToAppErr_GormInvalidValueOfLength(t *testing.T) {
 
 // TestToAppErr_GormNotImplemented tests toAppErr handling of gorm.ErrNotImplemented.
 func TestToAppErr_GormNotImplemented(t *testing.T) {
-	t.Parallel()
-	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository, KMSCleanupTables) })
+	// Sequential: uses shared package-level SQLite fixture state via CleanupDatabase
+	CleanupDatabase(t, testOrmRepository, KMSCleanupTables)
 
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 		// Simulate gorm.ErrNotImplemented by passing it directly.
@@ -192,8 +192,8 @@ const testOperationFailedMsg = "test operation failed"
 
 // TestToAppErr_PostgresUniqueViolation tests toAppErr handling of PostgreSQL unique_violation errors.
 func TestToAppErr_PostgresUniqueViolation(t *testing.T) {
-	t.Parallel()
-	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository, KMSCleanupTables) })
+	// Sequential: uses shared package-level SQLite fixture state via CleanupDatabase
+	CleanupDatabase(t, testOrmRepository, KMSCleanupTables)
 
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 		msg := testOperationFailedMsg
@@ -218,8 +218,8 @@ func TestToAppErr_PostgresUniqueViolation(t *testing.T) {
 
 // TestToAppErr_PostgresForeignKeyViolation tests toAppErr handling of PostgreSQL foreign_key_violation errors.
 func TestToAppErr_PostgresForeignKeyViolation(t *testing.T) {
-	t.Parallel()
-	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository, KMSCleanupTables) })
+	// Sequential: uses shared package-level SQLite fixture state via CleanupDatabase
+	CleanupDatabase(t, testOrmRepository, KMSCleanupTables)
 
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 		msg := testOperationFailedMsg
@@ -244,8 +244,8 @@ func TestToAppErr_PostgresForeignKeyViolation(t *testing.T) {
 
 // TestToAppErr_PostgresCheckViolation tests toAppErr handling of PostgreSQL check_violation errors.
 func TestToAppErr_PostgresCheckViolation(t *testing.T) {
-	t.Parallel()
-	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository, KMSCleanupTables) })
+	// Sequential: uses shared package-level SQLite fixture state via CleanupDatabase
+	CleanupDatabase(t, testOrmRepository, KMSCleanupTables)
 
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 		msg := testOperationFailedMsg
@@ -270,8 +270,8 @@ func TestToAppErr_PostgresCheckViolation(t *testing.T) {
 
 // TestToAppErr_PostgresStringDataTruncation tests toAppErr handling of PostgreSQL string_data_right_truncation errors.
 func TestToAppErr_PostgresStringDataTruncation(t *testing.T) {
-	t.Parallel()
-	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository, KMSCleanupTables) })
+	// Sequential: uses shared package-level SQLite fixture state via CleanupDatabase
+	CleanupDatabase(t, testOrmRepository, KMSCleanupTables)
 
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 		msg := testOperationFailedMsg
@@ -296,8 +296,8 @@ func TestToAppErr_PostgresStringDataTruncation(t *testing.T) {
 
 // TestToAppErr_UnknownPostgresError tests toAppErr handling of unknown PostgreSQL errors (fallback to 500).
 func TestToAppErr_UnknownPostgresError(t *testing.T) {
-	t.Parallel()
-	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository, KMSCleanupTables) })
+	// Sequential: uses shared package-level SQLite fixture state via CleanupDatabase
+	CleanupDatabase(t, testOrmRepository, KMSCleanupTables)
 
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 		msg := testOperationFailedMsg

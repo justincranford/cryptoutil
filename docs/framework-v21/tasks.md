@@ -1,6 +1,6 @@
 # Tasks - Framework v21 TestMain Orchestration Consolidation
 
-Status: 26 of 74 tasks complete (35.1%) - Phase 3 framework consolidation complete, Phase 4.1 sm-kms pilot migration complete, ready for Phase 4.2-4.14 service migrations
+Status: 29 of 74 tasks complete (39.2%) - Phase 3 framework consolidation complete, Phase 4.1-4.4 sm-kms and jose-ja server migrations complete, ready for Phase 4.5-4.14 service migrations
 Created: 2026-05-09
 Last Updated: 2026-05-11
 
@@ -269,7 +269,12 @@ Evidence:
 
 ### Task 4.2 - sm-kms businesslogic refactor (integration tests)
 
-Status: Not started
+Status: Complete
+
+Evidence:
+1. Businesslogic integration tests migrated to shared TestMain fixture pattern established in Phase 4.1.
+2. Shared fixture cleanup/isolation behavior validated via sm-kms ORM integration package run.
+3. Integration stability verified in current phase validation run.
 
 Acceptance Criteria:
 1. sm-kms businesslogic setupTestStack per-test pattern refactored to shared TestMain fixture
@@ -278,7 +283,14 @@ Acceptance Criteria:
 
 ### Task 4.3 - sm-kms orm integration-tagged migration
 
-Status: Not started
+Status: Complete
+
+Evidence:
+1. Unified `testmain_test.go` is active for orm integration-tagged tests.
+2. ElasticKeyStatus assertion mismatches fixed in builder tests.
+3. Cleanup harness corrected for direct invocation pattern and deterministic isolation behavior.
+4. Full ORM integration package now passes: `go test -tags integration ./internal/apps/sm-kms/server/repository/orm -count=1`.
+5. Integration-tag lint passes: `golangci-lint run --build-tags integration ./internal/apps/sm-kms/server/repository/orm/...`.
 
 Acceptance Criteria:
 1. orm_transaction_test.go remains integration-tagged
@@ -287,7 +299,14 @@ Acceptance Criteria:
 
 ### Task 4.4 - jose-ja server + client migrations
 
-Status: Not started
+Status: Complete
+
+Evidence:
+1. `internal/apps/jose-ja/server/testmain_test.go` migrated from legacy `testing/e2e_helpers` + `testing/healthclient` to `test_orch_integration` + `test_help_api` + `test_help_db`.
+2. Existing integration compatibility variables (`testServer`, `testPublicBaseURL`, `testAdminBaseURL`) preserved for current test suite.
+3. Validation pass: `go test ./internal/apps/jose-ja/server -count=1`.
+4. Lint pass: `golangci-lint run ./internal/apps/jose-ja/server/...`.
+5. No `internal/apps/jose-ja/client/` test package currently exists; server migration completed for in-scope TestMain entry.
 
 ### Task 4.5 - jose-ja repository/service migrations
 

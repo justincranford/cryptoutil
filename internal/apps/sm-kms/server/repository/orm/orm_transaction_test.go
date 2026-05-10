@@ -105,8 +105,9 @@ func TestSQLTransaction_RollbackOnError(t *testing.T) {
 	require.EqualError(t, err, "failed to execute transaction: intentional failure")
 }
 
+// Sequential: uses shared package-level SQLite fixture state via CleanupDatabase.
 func TestSQLTransaction_Success(t *testing.T) {
-	t.Parallel()
+	CleanupDatabase(t, testOrmRepository, KMSCleanupTables)
 
 	type happyPathTestCase struct {
 		txMode      TransactionMode

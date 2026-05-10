@@ -16,13 +16,13 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// Sequential: uses shared package-level SQLite fixture state via CleanupDatabase.
 // TestGetElasticKeysWithExportAllowedFilter tests the ExportAllowed filter path.
 // This filter field exists in GetElasticKeysFilters but the ElasticKey struct
 // does NOT have an ElasticKeyExportAllowed field, making this filter DEAD CODE.
 // This test exercises the filter application code path for coverage purposes,
 // and verifies that using this non-existent filter field results in a database error.
 func TestGetElasticKeysWithExportAllowedFilter(t *testing.T) {
-	t.Parallel()
 	CleanupDatabase(t, testOrmRepository, KMSCleanupTables)
 
 	// Create an elastic key for testing.
@@ -62,9 +62,9 @@ func TestGetElasticKeysWithExportAllowedFilter(t *testing.T) {
 	require.Contains(t, err.Error(), "no such column: elastic_key_export_allowed")
 }
 
+// Sequential: uses shared package-level SQLite fixture state via CleanupDatabase.
 // TestGetElasticKeysWithImportAllowedFilter tests the ImportAllowed filter path.
 func TestGetElasticKeysWithImportAllowedFilter(t *testing.T) {
-	t.Parallel()
 	CleanupDatabase(t, testOrmRepository, KMSCleanupTables)
 
 	// Create an elastic key with ImportAllowed=true.
@@ -92,6 +92,7 @@ func TestGetElasticKeysWithImportAllowedFilter(t *testing.T) {
 	importAllowed := true
 	err = testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 		filters := &GetElasticKeysFilters{
+			TenantID:      tenantID,
 			ImportAllowed: &importAllowed,
 		}
 		keys, err := GetElasticKeys(tx.GormTx(), testTelemetryService.Slogger, filters)
@@ -106,6 +107,7 @@ func TestGetElasticKeysWithImportAllowedFilter(t *testing.T) {
 	importAllowedFalse := false
 	err = testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 		filters := &GetElasticKeysFilters{
+			TenantID:      tenantID,
 			ImportAllowed: &importAllowedFalse,
 		}
 		keys, err := GetElasticKeys(tx.GormTx(), testTelemetryService.Slogger, filters)

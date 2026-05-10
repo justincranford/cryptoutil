@@ -34,10 +34,11 @@ var KMSCleanupTables = []string{
 
 // CleanupDatabase removes all data from the specified tables to ensure test isolation.
 // Tables are deleted in the order provided (caller must provide reverse FK order).
-// Should be called via t.Cleanup() at the start of each test that modifies database state.
+// Should be called at the start of each test that modifies database state.
 func CleanupDatabase(t *testing.T, repo *OrmRepository, tables []string) {
 	t.Helper()
-	t.Cleanup(func() {
+
+	cleanupFn := func() {
 		err := repo.WithTransaction(context.Background(), ReadWrite, func(tx *OrmTransaction) error {
 			for _, table := range tables {
 				if err := tx.GormTx().Exec("DELETE FROM " + table).Error; err != nil { //nolint:gosec // Table names are internal constants, not user input
@@ -48,5 +49,11 @@ func CleanupDatabase(t *testing.T, repo *OrmRepository, tables []string) {
 			return nil
 		})
 		cryptoutilSharedApperr.RequireNoError(err, "failed to cleanup database tables")
-	})
+	}
+
+	// Clean before test logic to avoid cross-test contamination from prior parallel tests.
+	cleanupFn()
+
+	// Clean after test logic to keep shared fixture state pristine.
+	t.Cleanup(cleanupFn)
 }
