@@ -10,9 +10,9 @@ Purpose: Resolve user-choice design decisions required to complete Task 2.2 and 
 **B)** Per-test isolated fixture by default, with opt-in shared fixture.
 **C)** Hybrid default: shared DB + per-test app instance.
 **D)** Hybrid default: shared app instance + per-test DB namespace.
-**E)**
+**E)** I HAVE NO IDEAL OR CONTEXT OF WHAT YOU ARE ASKING. PLEASE EXPLAIN IN MORE DETAIL OR PROVIDE EXAMPLES!
 
-**Answer**:
+**Answer**: E
 
 **Rationale**: This decides deterministic cleanup semantics, speed vs isolation, and API defaults for all integration migrations.
 
@@ -24,9 +24,9 @@ Purpose: Resolve user-choice design decisions required to complete Task 2.2 and 
 **B)** Generic hook injection callbacks that mutate a valid fixture before startup.
 **C)** Table-driven failure profile enum + framework-provided builders.
 **D)** Direct suite-managed setup (no framework-level error fixture contract).
-**E)**
+**E)** I HAVE NO IDEAL OR CONTEXT OF WHAT YOU ARE ASKING. PLEASE EXPLAIN IN MORE DETAIL OR PROVIDE EXAMPLES!
 
-**Answer**:
+**Answer**: E
 
 **Rationale**: Task 2.2 requires a clear mechanism for repeatable error-path tests without ad hoc suite code.
 
@@ -38,9 +38,9 @@ Purpose: Resolve user-choice design decisions required to complete Task 2.2 and 
 **B)** Require admin readyz + public browser/service health probes before returning ready.
 **C)** Require configurable probe list, with no fixed defaults.
 **D)** Skip probes and rely on startup return + bounded sleep policy.
-**E)**
+**E)** I HAVE NO IDEAL OR CONTEXT OF WHAT YOU ARE ASKING. PLEASE EXPLAIN IN MORE DETAIL OR PROVIDE EXAMPLES!
 
-**Answer**:
+**Answer**: E
 
 **Rationale**: This drives startup correctness, flake resistance, and consistency across 37 remaining migrations.
 
@@ -52,9 +52,9 @@ Purpose: Resolve user-choice design decisions required to complete Task 2.2 and 
 **B)** Allow explicit fixed ports only when caller requests; default port 0 otherwise.
 **C)** Reserve deterministic per-package port ranges to simplify debug reproducibility.
 **D)** Keep existing per-suite behavior and document conflict retries.
-**E)**
+**E)** I HAVE NO IDEAL OR CONTEXT OF WHAT YOU ARE ASKING. PLEASE EXPLAIN IN MORE DETAIL OR PROVIDE EXAMPLES!
 
-**Answer**:
+**Answer**: E
 
 **Rationale**: This controls concurrency reliability and Windows TIME_WAIT behavior during parallel tests.
 
@@ -68,6 +68,6 @@ Purpose: Resolve user-choice design decisions required to complete Task 2.2 and 
 **D)** Keep wrappers only for PS-ID templates, not framework/internal callers.
 **E)**
 
-**Answer**:
+**Answer**: C
 
 **Rationale**: This determines migration pacing, deprecation policy, and implementation sequencing in Phases 3-7.
