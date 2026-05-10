@@ -29,8 +29,16 @@ var (
 func TestMain(m *testing.M) {
 	ctx := context.Background()
 
-	// Setup: Create shared heavyweight resources ONCE.
-	testDB = cryptoutilTestDb.NewInMemorySQLiteDB(&testing.T{})
+	var (
+		dbCleanup func()
+		err       error
+	)
+
+	testDB, dbCleanup, err = cryptoutilTestDb.NewInMemorySQLiteDBForTestMain()
+	if err != nil {
+		panic("TestMain: failed to create test DB: " + err.Error())
+	}
+	defer dbCleanup()
 
 	// Run migrations using underlying sql.DB.
 	testSQLDB, err := testDB.DB()

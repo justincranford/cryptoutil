@@ -3,82 +3,50 @@ package server
 
 import (
 	"context"
-	"log"
 	"os"
 	"testing"
-	"time"
 
+	cryptoutilTestOrcIntegration "cryptoutil/internal/apps-framework/service/test_orch_integration"
 	cryptoutilAppsIdentityIdpServerConfig "cryptoutil/internal/apps/identity-idp/server/config"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
-	cryptoutilSharedUtilPoll "cryptoutil/internal/shared/util/poll"
 )
 
 var (
-	testServer  *IDPServer
-	testBaseURL string
-	testErr     error
+	testServer            *IDPServer
+	testBaseURL           string
+	testErr               error
+	testIntegrationServer *cryptoutilTestOrcIntegration.IntegrationServer
 )
 
 func TestMain(m *testing.M) {
 	ctx := context.Background()
 
-	// Create test configuration with dynamic port allocation.
 	cfg := cryptoutilAppsIdentityIdpServerConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
 
 	testServer, testErr = NewFromConfig(ctx, cfg)
 	if testErr != nil {
-		log.Printf("Failed to create test server: %v", testErr)
-		os.Exit(1)
+		panic("TestMain: failed to create test server: " + testErr.Error())
 	}
 
-	// Start server in background.
-	go func() {
-		if startErr := testServer.Start(ctx); startErr != nil {
-			log.Printf("Server start error: %v", startErr)
-		}
-	}()
+	var err error
 
-	// Wait for server to be ready.
-	if readyErr := waitForReady(ctx, testServer); readyErr != nil {
-		log.Printf("Server not ready: %v", readyErr)
-		os.Exit(1)
+	testIntegrationServer, err = cryptoutilTestOrcIntegration.StartIntegrationServerForTestMain(ctx, testServer, nil)
+	if err != nil {
+		panic("TestMain: failed to start test server: " + err.Error())
 	}
 
-	// Set base URL after server is running (dynamic port).
 	testBaseURL = testServer.PublicBaseURL()
 
-	// Mark server as ready.
-	testServer.SetReady(true)
+	exitCode := m.Run()
 
-	// Run tests.
-	code := m.Run()
-
-	// Shutdown server.
-	shutdownCtx, cancel := context.WithTimeout(context.Background(), shutdownTimeout)
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultDataServerShutdownTimeout)
 	defer cancel()
 
-	if shutdownErr := testServer.Shutdown(shutdownCtx); shutdownErr != nil {
-		log.Printf("Shutdown error: %v", shutdownErr)
-	}
+	_ = testIntegrationServer.Shutdown(shutdownCtx)
 
-	os.Exit(code)
+	os.Exit(exitCode)
 }
 
-// Timeout constants for test operations.
-const (
-	readyTimeout    = 10 * time.Second
-	checkInterval   = 100 * time.Millisecond
-	shutdownTimeout = 5 * time.Second
-)
-
-// waitForReady waits for the server to be ready.
-func waitForReady(ctx context.Context, server *IDPServer) error {
-	return cryptoutilSharedUtilPoll.Until(ctx, readyTimeout, checkInterval, func(_ context.Context) (bool, error) {
-		return server.PublicPort() > 0, nil
-	})
-}
-
-// Copyright (c) 2025-2026 Justin Cranford.
 func requireTestSetup(t *testing.T) {
 	t.Helper()
 

@@ -35,11 +35,11 @@ func TestMain(m *testing.M) {
 		panic(fmt.Sprintf("TestMain: failed to create KMS server: %v", err))
 	}
 
-	// Create test database (in-memory SQLite for fast tests)
-	testDB := cryptoutilTestDb.NewInMemorySQLiteDB(&testing.T{})
-	if testDB == nil {
-		panic("TestMain: failed to create test database")
+	testDB, dbCleanup, err := cryptoutilTestDb.NewInMemorySQLiteDBForTestMain()
+	if err != nil {
+		panic(fmt.Sprintf("TestMain: failed to create test database: %v", err))
 	}
+	defer dbCleanup()
 
 	// Start integration server and wait for ports
 	testIntegrationServer, err = cryptoutilAppsFrameworkServiceTestOrcIntegration.StartIntegrationServerForTestMain(
