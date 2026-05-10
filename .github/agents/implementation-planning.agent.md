@@ -1,6 +1,7 @@
 ---
 name: copilot-implementation-planning
 description: Use to create or update plan.md, tasks.md, and lessons.md scaffold for a non-trivial implementation task. Creates phased plans with scope, LOE, rationale, and detailed task breakdowns before any code is written.
+model: Claude Sonnet 4.6 (copilot)
 argument-hint: "<directory-path> <create|update|review>"
 tools:
   - agent/runSubagent
