@@ -16,6 +16,10 @@
 - **Do not ask follow-up questions unless explicitly requested**
 - **When given a plan, execute all steps completely**
 - **Avoid conversational check-ins**
+- **Scope isolation is mandatory** - when user asks planning/design/research only, report only planning/design/research items
+- **Blocker responses must be numbered unresolved items only** - do not mix resolved items or out-of-scope implementation dependencies
+- **If required user answers were provided, mark them resolved immediately** - never re-list answered inputs as blockers
+- **If no blockers remain in requested scope, return `1. None.` and state handoff-ready**
 - **ALWAYS prefer lean documentation** - Append to existing docs (DETAILED.md, plan.md, tasks.md) instead of creating new analysis files
 - **NEVER create verbose analysis files** - No ANALYSIS.md, COMPLETION-ANALYSIS.md, SESSION-*.md files
 

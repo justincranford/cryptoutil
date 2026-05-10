@@ -188,6 +188,15 @@ configs/{sm-kms,jose-ja,...}/config-common.yml  (10 files)
 
 Always derive counts from the formula, not memory. Missing files in the enumeration are the most common source of task underestimation.
 
+## Scope-Isolated Blocker Protocol - MANDATORY
+
+- If user asks for planning/design/research blockers, report only unresolved planning/design/research blockers.
+- Do NOT include implementation-phase dependencies in planning-only blocker lists.
+- If user already answered required decisions, mark them resolved immediately and do not re-list them.
+- Blocker responses MUST use a numbered list of unresolved blockers only.
+- If no blockers remain in requested scope, output `1. None.` and mark planning handoff-ready.
+- Keep plan.md/tasks.md/lessons.md status statements synchronized with the blocker list.
+
 ---
 
 ## Directory Path Guidelines

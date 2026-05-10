@@ -19,6 +19,9 @@ correctly in both VS Code Copilot (with tool whitelist) and Claude Code (inherit
 - `name:` prefix: `copilot-NAME` in Copilot file, `claude-NAME` in Claude file
 - MUST include ENG-HANDBOOK.md self-containment references (≥1 section reference)
 - MUST include Autonomous Execution Mode and Prohibited Stop Behaviors sections
+- Planning agents MUST include a scope-isolated blocker protocol section
+- Planning agents MUST treat user-answered decisions as resolved inputs (never re-list as blockers)
+- Planning agents MUST return blockers as numbered unresolved items only, and `1. None.` when no blockers remain
 
 ## Copilot Template (`.github/agents/NAME.agent.md`)
 
@@ -110,6 +113,7 @@ argument-hint: "<required-argument>"
 - [ ] Section for Quality Gates with ENG-HANDBOOK.md cross-reference
 - [ ] Section for Mandatory Review Passes (min 3, max 5)
 - [ ] `argument-hint` if agent takes an argument
+- [ ] For planning agents: section for scope-isolated blocker reporting and resolved-input handling
 
 ## Agent Self-Containment Rules
 

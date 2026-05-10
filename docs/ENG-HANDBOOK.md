@@ -7222,6 +7222,28 @@ When working in the framework package, always:
 
 **CLAUDE.md** and the `.claude/` directory are the primary configuration surface for Claude Code. Update CLAUDE.md whenever agents or skills are added or removed.
 
+#### 14.11.8 Planning/Design Scope Isolation and Blocker Accounting
+
+**CRITICAL: When user scope is planning/design/research-only, blocker reporting MUST exclude implementation tasks.**
+
+Mandatory rules for planning agents, planning workflows, and interactive planning support:
+
+1. **Scope isolation**: planning-only requests MUST report only unresolved planning/design/research items.
+2. **Explicit exclusions**: when implementation is out of scope, do NOT list implementation-phase blockers as current blockers.
+3. **Answered-input closure**: if the user provided required decisions/answers, those inputs MUST be marked resolved immediately and MUST NOT be re-listed as blockers.
+4. **Numbered blocker output**: blocker responses MUST be a numbered list of unresolved blockers only.
+5. **Zero-blocker response**: when no planning blockers remain, output `None.` as a numbered list item (`1. None.`) and explicitly state planning is handoff-ready.
+6. **Status-evidence synchronization**: plan.md/tasks.md/lessons.md status lines and blocker statements MUST stay synchronized; contradictory statuses are invalid.
+7. **No scope drift**: if asked for planning blockers, do not append implementation-phase dependencies unless explicitly requested.
+
+Verification checklist before replying with blockers:
+
+1. Confirm user-request scope (planning-only vs execution-inclusive).
+2. Enumerate unresolved items only within requested scope.
+3. Remove any item already resolved by explicit user answer or accepted decision artifact.
+4. Validate plan/tasks status text does not contradict the blocker list.
+5. Return final blocker list as numbered items only.
+
 **Enforcement**: All autonomous execution modes enforce the same quality gates as Section 11.2 and the same commit discipline as Section 14.2. Beast-mode and implementation-execution agents are held to identical standards as interactive chat — the difference is only in interruption behavior, not in quality requirements.
 
 **Cross-References**: Agent orchestration strategy in [Section 2.1](#21-agent-orchestration-strategy). Agent/skill catalog in [Appendix B.5](#b5-agentskill-catalog). Dual canonical file format in [Section 2.1.1](#211-agentskill-file-format-requirements).

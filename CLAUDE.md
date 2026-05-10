@@ -49,6 +49,14 @@ Copilot instruction files auto-apply to all Claude Code work in this repo.
 @.github/instructions/06-02.agent-format.instructions.md
 @.github/instructions/06-03.tool-efficiency.instructions.md
 
+## Planning Scope Guardrails
+
+- Planning/design/research-only requests MUST report only planning/design/research blockers.
+- Implementation-phase dependencies MUST NOT be listed as current blockers unless the user asks for implementation scope.
+- If the user already provided required decisions/answers, those inputs are resolved and MUST NOT be re-listed as blockers.
+- Blocker output MUST be a numbered list of unresolved blockers only.
+- If no blockers remain in requested scope, respond with `1. None.` and mark planning handoff-ready.
+
 ## Agents
 
 Custom sub-agents for Claude Code live in [.claude/agents/](.claude/agents/).
