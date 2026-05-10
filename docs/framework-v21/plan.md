@@ -1,8 +1,8 @@
 # Implementation Plan - Framework v21 TestMain Directory Consolidation
 
-Status: In Progress
+Status: Planning Complete - Ready for Implementation Handoff
 Created: 2026-05-09
-Last Updated: 2026-05-09
+Last Updated: 2026-05-10
 Purpose: Consolidate all TestMain orchestration to reusable apps-framework directories, remove duplicated startup logic, and enforce policy with templates and fitness linting.
 
 ## Overview
@@ -447,7 +447,7 @@ Coverage/mutation targets:
 
 ## Evidence
 
-Planning evidence retained under test-output/completion-verification/ and test-output/framework-docs-swap/.
+Planning evidence retained under test-output/plan-analysis/, test-output/phase0-research/, and test-output/tokens/.
 
 ## Deep Re-Research Closure Pass
 

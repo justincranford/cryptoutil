@@ -22,11 +22,11 @@
 
 (To be filled during Phase 2 execution using the 4-section structure above.)
 
-## Phase 3: Implement Framework Orchestration Packages
+## Phase 3: Implement Orchestration Modules
 
 (To be filled during Phase 3 execution using the 4-section structure above.)
 
-## Phase 4: Migrate Existing Framework Callers
+## Phase 4: Framework Package Migration
 
 (To be filled during Phase 4 execution using the 4-section structure above.)
 
@@ -34,18 +34,14 @@
 
 (To be filled during Phase 5 execution using the 4-section structure above.)
 
-## Phase 6: Duplicate Fixture Removal and Cleanup
+## Phase 6: internal/apps-framework TestMain Migration
 
 (To be filled during Phase 6 execution using the 4-section structure above.)
 
-## Phase 7: Template and PS-ID Instantiation Alignment
+## Phase 7: Template and Linter Policy Lock
 
 (To be filled during Phase 7 execution using the 4-section structure above.)
 
-## Phase 8: Linter Enforcement
+## Phase 8: Validation and Rollout
 
 (To be filled during Phase 8 execution using the 4-section structure above.)
-
-## Phase 9: Validation and Rollout
-
-(To be filled during Phase 9 execution using the 4-section structure above.)
