@@ -18,13 +18,14 @@ Orchestration directories:
 
 Helper directories:
 
-1. test_help_compose/ - provides docker compose stack startup/teardown/health-wait primitives.
-2. test_help_bootstrap/ - provides config/env/bootstrap wiring and startup scaffolding.
-3. test_help_barrier/ - provides barrier/unseal fixture composition for DB and API suites.
-4. test_help_db/ - provides SQLite/PostgreSQL fixture creation and DB failure-path helpers.
-5. test_help_api/ - provides health clients, HTTP assertions, reusable HTTP mocks, and request-level checks.
-6. test_help_cli/ - provides deterministic CLI argv/stdout/stderr/exit assertions.
-7. test_help_tls/ - provides TLS material, certificate/client construction, and secure/insecure client helpers.
+1. test_help_bootstrap/ - provides config/env/bootstrap wiring and startup scaffolding.
+2. test_help_barrier/ - provides barrier/unseal fixture composition for DB and API suites.
+3. test_help_db/ - provides SQLite/PostgreSQL fixture creation and DB failure-path helpers.
+4. test_help_api/ - provides health clients, HTTP assertions, reusable HTTP mocks, and request-level checks.
+5. test_help_cli/ - provides deterministic CLI argv/stdout/stderr/exit assertions.
+6. test_help_tls/ - provides TLS material, certificate/client construction, and secure/insecure client helpers.
+
+**NOTE: test_help_compose has been strategically consolidated into test_orch_e2e** - See "Architectural Notes" section below.
 
 Execution profiles:
 
@@ -94,7 +95,7 @@ In scope:
 3. internal/apps-framework/service/testing/*and internal/apps-framework/service/testutil/*
 4. internal/apps/{10 PS-ID}/** files containing func TestMain
 5. internal/apps-framework/** files containing func TestMain
-6. api/cryptosuite-registry/templates/internal/apps/__PS_ID__/
+6. api/cryptosuite-registry/templates/internal/apps/**PS_ID**/
 7. internal/apps-tools/cicd_lint/lint_fitness/
 
 Out of scope:
@@ -255,7 +256,7 @@ Total TestMain functions in scope: 39
 3. sm-im/server/testmain_test.go mock infrastructure uses service/testutil mock servers. These mocks are useful and should be preserved as test_help_api/mocks, not discarded.
 4. pki-ca/e2e/testmain_e2e_test.go has compose-up without health-wait coupling and should migrate to test_orch_e2e to remove readiness race risk.
 5. sm-kms/client/testmain_test.go currently uses e2e_helpers server startup helper; it should use test_orch_integration instead.
-6. api/cryptosuite-registry/templates/internal/apps/__PS_ID__/ is the registration point for the shared TestMain superset; every PS-ID template must expose the same wrapper superset and use the same helper directories in the same pattern.
+6. api/cryptosuite-registry/templates/internal/apps/**PS_ID**/ is the registration point for the shared TestMain superset; every PS-ID template must expose the same wrapper superset and use the same helper directories in the same pattern.
 
 ### Goal 2 Completion Criteria
 
@@ -263,7 +264,7 @@ Total TestMain functions in scope: 39
 2. Directory assignments reflect build tags and real setup behavior.
 3. Classification maps each TestMain to one or more of the canonical directory families.
 4. No PS-ID and no framework TestMain omitted.
-5. Every PS-ID template under api/cryptosuite-registry/templates/internal/apps/__PS_ID__/ exposes the same TestMain superset and calls the same apps-framework helpers in the same shape.
+5. Every PS-ID template under api/cryptosuite-registry/templates/internal/apps/**PS_ID**/ exposes the same TestMain superset and calls the same apps-framework helpers in the same shape.
 
 ## Goal 3 - Migration Mapping
 
@@ -304,13 +305,13 @@ Total TestMain functions in scope: 39
 3. Integration-tagged tests use test_orch_integration orchestration and shared TestMain fixtures.
 4. pki-ca e2e readiness risk eliminated by test_orch_e2e migration.
 5. All helper directories (test_help_compose, test_help_bootstrap, test_help_barrier, test_help_db, test_help_api, test_help_cli, test_help_tls) are consumed by at least one migrated orchestrator or suite.
-6. Every PS-ID template under api/cryptosuite-registry/templates/internal/apps/__PS_ID__/ exposes the same TestMain superset and calls the same apps-framework helpers in the same shape.
+6. Every PS-ID template under api/cryptosuite-registry/templates/internal/apps/**PS_ID**/ exposes the same TestMain superset and calls the same apps-framework helpers in the same shape.
 
 ## Enforcement Strategy
 
 Template enforcement:
 
-1. Update __PS_ID__ templates so server and e2e TestMain wrappers call test_orch_integration/test_orch_e2e.
+1. Update **PS_ID** templates so server and e2e TestMain wrappers call test_orch_integration/test_orch_e2e.
 2. Keep wrappers thin with PS-ID config injection only.
 
 lint-fitness enforcement:
@@ -330,17 +331,28 @@ Phase 1: Research and alignment corrections
 3. Freeze package consolidation matrix.
 4. Freeze canonical directory taxonomy and ownership boundaries.
 
+**Status**: ✅ COMPLETE (8/8 tasks)
+
 Phase 2: API design
 
-1. Finalize directory API boundaries for all orchestration/helper directories.
-2. Finalize moved-vs-reusable package boundaries.
-3. Finalize directory dependency direction and no-overlap boundaries.
+1. Task 2.1: Finalize test_orch_e2e API boundaries - ✅ COMPLETE (Implemented in Phase 3.2)
+2. Task 2.2: Finalize test_orch_integration API boundaries - ⏳ **CRITICAL BLOCKER** (2-3 hour LOE, blocks Phase 4+5)
+3. Finalize moved-vs-reusable package boundaries.
+4. Finalize directory dependency direction and no-overlap boundaries.
+
+**Status**: ⚠️ PARTIAL (1/4 complete, 1 blocked)
 
 Phase 3: Implement orchestration modules
 
-1. Create all test_orch_*and test_help_* directories.
-2. Port code from existing framework testing packages.
-3. Validate directory-level package docs and tests.
+1. Task 3.1: Create all test_orch_*and test_help_* directories - ⚠️ PARTIAL (only test_orch_e2e created)
+2. Task 3.2: Implement test_orch_e2e from e2e_infra - ✅ COMPLETE (Commit 7d07de9c5)
+3. Task 3.3: Implement test_orch_integration - ⏳ BLOCKED (Phase 2.2 design dependency)
+4. Port code from existing framework testing packages.
+5. Validate directory-level package docs and tests.
+
+**Status**: ⚠️ IN PROGRESS (1/5 complete, 1 blocked by Phase 2.2)
+
+**Key Achievement**: Parameterized E2E orchestration for all 10 PS-IDs via NewTLSPSIDSpec factory in test_orch_e2e/tls_psid_spec_e2e.go. All 3 TLS E2E test files migrated to test_orch_e2e orchestration.
 
 Phase 4: Framework package migration
 
@@ -349,15 +361,21 @@ Phase 4: Framework package migration
 3. Move service/testutil mocks -> test_help_api/mocks.
 4. Keep compatibility wrappers during migration.
 
+**Status**: ⏳ BLOCKED (depends on Phase 2.2 completion)
+
 Phase 5: internal/apps PS-ID migration
 
 1. Migrate all 28 PS-ID TestMain files to wrappers/composites.
 2. Enforce sm-im and sm-kms client migration to test_orch_integration.
 3. Refactor sm-kms businesslogic and orm integration patterns.
 
+**Status**: ⏳ BLOCKED (depends on Phase 2.2 completion, 37 TestMain files pending migration)
+
 Phase 6: internal/apps-framework TestMain migration
 
 1. Migrate all framework TestMain files to same reusable orchestration directories.
+
+**Status**: ⏳ NOT STARTED (depends on Phase 4 completion)
 
 Phase 7: Template and linter policy lock
 
@@ -365,9 +383,13 @@ Phase 7: Template and linter policy lock
 2. Add/adjust lint-fitness rules.
 3. Enforce canonical directory ownership in policy checks.
 
+**Status**: ⏳ NOT STARTED (depends on Phase 5 completion)
+
 Phase 8: Validation and rollout
 
 1. Build, lint, test, coverage, mutation, and e2e validation.
+
+**Status**: ⏳ NOT STARTED (depends on Phase 7 completion)
 
 ## Risks and Mitigations
 
