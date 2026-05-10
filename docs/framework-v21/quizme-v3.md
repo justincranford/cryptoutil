@@ -87,9 +87,9 @@ func TestA(t *testing.T) {
 **B)** Per-test isolated fixture by default; opt-in shared fixture.
 **C)** Shared DB + per-test app instance by default.
 **D)** Shared app + per-test DB namespace by default.
-**E)**
+**E)** Per-package (per `TestMain`) shared fixture by default; opt-in per-test isolation. THIS IS ALREADY COVERED IN DOCS/ENG-HANDBOOK.md, AND PROPAGATED TO COPILOT+CLAUDE INSTRUCTIONS/AGENTS/SKILLS!!!!!!!!!!!!!!!!!!!!
 
-**Answer**:
+**Answer**: E
 
 **Rationale**: This determines startup cost, parallel safety, and state-leak risk across 37 remaining migrations.
 
@@ -137,6 +137,6 @@ Meaning: "failure profile enum" = named constants representing supported failure
 **D)** Direct suite-managed setup (no framework-level error fixture contract).
 **E)**
 
-**Answer**:
+**Answer**: A
 
 **Rationale**: This determines readability, consistency, and maintenance overhead for all error-path integration tests.
