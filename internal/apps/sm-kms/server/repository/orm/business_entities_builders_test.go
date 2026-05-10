@@ -114,11 +114,11 @@ func TestElasticKeyStatusInitial(t *testing.T) {
 	t.Parallel()
 	t.Run("Import allowed returns PendingImport", func(t *testing.T) {
 		status := ElasticKeyStatusInitial(true)
-		require.Equal(t, cryptoutilOpenapiModel.PendingImport, status, "Status should be PendingImport when import allowed")
+		require.Equal(t, cryptoutilKmsServer.ElasticKeyStatus(cryptoutilOpenapiModel.PendingImport), status, "Status should be PendingImport when import allowed")
 	})
 
 	t.Run("Import not allowed returns PendingGenerate", func(t *testing.T) {
 		status := ElasticKeyStatusInitial(false)
-		require.Equal(t, cryptoutilOpenapiModel.PendingGenerate, status, "Status should be PendingGenerate when import not allowed")
+		require.Equal(t, cryptoutilKmsServer.ElasticKeyStatus(cryptoutilOpenapiModel.PendingGenerate), status, "Status should be PendingGenerate when import not allowed")
 	})
 }
