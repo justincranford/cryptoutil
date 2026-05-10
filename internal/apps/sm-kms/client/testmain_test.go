@@ -7,44 +7,59 @@ package client
 import (
 	"context"
 	"crypto/x509"
-	"log"
+	"fmt"
 	"os"
 	"testing"
 
 	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps-framework/service/config"
-	cryptoutilAppsFrameworkServiceTestingE2eHelpers "cryptoutil/internal/apps-framework/service/testing/e2e_helpers"
+	cryptoutilTestDb "cryptoutil/internal/apps-framework/service/test_help_db"
+	cryptoutilAppsFrameworkServiceTestOrcIntegration "cryptoutil/internal/apps-framework/service/test_orch_integration"
 	cryptoutilKmsServer "cryptoutil/internal/apps/sm-kms/server"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 var (
-	testSettings         = cryptoutilAppsFrameworkServiceConfig.RequireNewForTest("application_test")
-	testServerPublicURL  string
-	testServerPrivateURL string
-	testRootCAsPool      *x509.CertPool
+	testIntegrationServer *cryptoutilAppsFrameworkServiceTestOrcIntegration.IntegrationServer
+	testRootCAsPool       *x509.CertPool
 )
 
 func TestMain(m *testing.M) {
 	ctx := context.Background()
 
-	testSettings.DatabaseURL = cryptoutilSharedMagic.SQLiteInMemoryDSN // SQLite in-memory for fast tests.
+	cfg := cryptoutilAppsFrameworkServiceConfig.RequireNewForTest("application_test")
+	cfg.DatabaseURL = cryptoutilSharedMagic.SQLiteInMemoryDSN
 
-	testServer, err := cryptoutilKmsServer.NewKMSServerFromConfig(ctx, testSettings)
+	// Create test server
+	testServer, err := cryptoutilKmsServer.NewKMSServerFromConfig(ctx, cfg)
 	if err != nil {
-		log.Fatalf("failed to create server: %v", err)
+		panic(fmt.Sprintf("TestMain: failed to create server: %v", err))
 	}
 
-	cryptoutilAppsFrameworkServiceTestingE2eHelpers.MustStartAndWaitForDualPorts(testServer, func() error {
-		return testServer.Start(ctx)
-	})
+	// Create test database (in-memory SQLite for fast tests)
+	testDB := cryptoutilTestDb.NewInMemorySQLiteDB(&testing.T{})
+	if testDB == nil {
+		panic("TestMain: failed to create test database")
+	}
 
-	defer func() {
-		_ = testServer.Shutdown(ctx)
-	}()
+	// Start integration server and wait for ports
+	testIntegrationServer, err = cryptoutilAppsFrameworkServiceTestOrcIntegration.StartIntegrationServerForTestMain(
+		ctx,
+		testServer,
+		testDB,
+	)
+	if err != nil {
+		panic(fmt.Sprintf("TestMain: failed to start integration server: %v", err))
+	}
 
-	testServerPublicURL = testServer.PublicBaseURL()
-	testServerPrivateURL = testServer.AdminBaseURL()
+	// Extract TLS root CA pool from server
 	testRootCAsPool = testServer.TLSRootCAPool()
 
-	os.Exit(m.Run())
+	exitCode := m.Run()
+
+	// Cleanup
+	if err := testIntegrationServer.Shutdown(ctx); err != nil {
+		fmt.Fprintf(os.Stderr, "TestMain: failed to shutdown integration server: %v\n", err)
+	}
+
+	os.Exit(exitCode)
 }

@@ -10,16 +10,15 @@ import (
 	"testing"
 
 	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps-framework/service/config"
-	cryptoutilAppsFrameworkServiceTestingE2eHelpers "cryptoutil/internal/apps-framework/service/testing/e2e_helpers"
-	cryptoutilTestingHealthclient "cryptoutil/internal/apps-framework/service/testing/healthclient"
+	cryptoutilAppsFrameworkServiceTestHelperApi "cryptoutil/internal/apps-framework/service/test_help_api"
+	cryptoutilTestDb "cryptoutil/internal/apps-framework/service/test_help_db"
+	cryptoutilAppsFrameworkServiceTestOrcIntegration "cryptoutil/internal/apps-framework/service/test_orch_integration"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 var (
-	testServer       *KMSServer
-	testHealthClient *cryptoutilTestingHealthclient.HealthClient
-	testPublicURL    string
-	testAdminURL     string
+	testIntegrationServer *cryptoutilAppsFrameworkServiceTestOrcIntegration.IntegrationServer
+	testHealthClient      *cryptoutilAppsFrameworkServiceTestHelperApi.HealthClient
 )
 
 func TestMain(m *testing.M) {
@@ -30,23 +29,43 @@ func TestMain(m *testing.M) {
 
 	var err error
 
-	testServer, err = NewKMSServerFromConfig(ctx, cfg)
+	// Create test server
+	testServer, err := NewKMSServerFromConfig(ctx, cfg)
 	if err != nil {
 		panic(fmt.Sprintf("TestMain: failed to create KMS server: %v", err))
 	}
 
-	cryptoutilAppsFrameworkServiceTestingE2eHelpers.MustStartAndWaitForDualPorts(testServer, func() error {
-		return testServer.Start(ctx)
-	})
+	// Create test database (in-memory SQLite for fast tests)
+	testDB := cryptoutilTestDb.NewInMemorySQLiteDB(&testing.T{})
+	if testDB == nil {
+		panic("TestMain: failed to create test database")
+	}
 
+	// Start integration server and wait for ports
+	testIntegrationServer, err = cryptoutilAppsFrameworkServiceTestOrcIntegration.StartIntegrationServerForTestMain(
+		ctx,
+		testServer,
+		testDB,
+	)
+	if err != nil {
+		panic(fmt.Sprintf("TestMain: failed to start integration server: %v", err))
+	}
+
+	// Mark server ready
 	testServer.SetReady(true)
 
-	testPublicURL, testAdminURL = cryptoutilAppsFrameworkServiceTestingE2eHelpers.DualPortBaseURLs(testServer)
-	testHealthClient = cryptoutilTestingHealthclient.NewHealthClient(testPublicURL, testAdminURL)
+	// Create health client for use in tests
+	testHealthClient = cryptoutilAppsFrameworkServiceTestHelperApi.NewHealthClient(
+		testIntegrationServer.PublicBaseURL(),
+		testIntegrationServer.AdminBaseURL(),
+	)
 
 	exitCode := m.Run()
 
-	_ = testServer.Shutdown(ctx)
+	// Cleanup
+	if err := testIntegrationServer.Shutdown(ctx); err != nil {
+		fmt.Fprintf(os.Stderr, "TestMain: failed to shutdown integration server: %v\n", err)
+	}
 
 	os.Exit(exitCode)
 }

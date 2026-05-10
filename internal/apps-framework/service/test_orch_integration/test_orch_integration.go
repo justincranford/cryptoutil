@@ -7,6 +7,28 @@
 // The primary API is StartIntegrationServer() which returns an IntegrationServer handle
 // with public/admin URLs, database access, and registered cleanup callbacks.
 //
+// Usage patterns:
+//
+//  1. In TestMain (with manual cleanup via defer):
+//     func TestMain(m *testing.M) {
+//     ctx := context.Background()
+//     srv, err := NewMyServer(ctx, config)
+//     db := testdb.NewInMemorySQLiteDB(&testing.T{}) // simplified
+//     is, err := test_orch_integration.StartIntegrationServer(ctx, (*testing.T)(nil), srv, db)
+//     defer is.Shutdown(context.Background())
+//     os.Exit(m.Run())
+//     }
+//
+//  2. In individual test functions (with tb.Cleanup):
+//     func TestSomething(t *testing.T) {
+//     ctx := context.Background()
+//     srv, _ := NewMyServer(ctx, config)
+//     db := testdb.NewInMemorySQLiteDB(t)
+//     is, _ := test_orch_integration.StartIntegrationServer(ctx, t, srv, db)
+//     t.Cleanup(func() { is.Shutdown(context.Background()) })
+//     // Use is.PublicBaseURL(), is.AdminBaseURL(), is.DB()
+//     }
+//
 // Consumed by:
 //   - All 28 internal/apps TestMain files (for server integration tests)
 //   - Framework integration test suites
@@ -44,8 +66,8 @@ type IntegrationServer struct {
 }
 
 // StartIntegrationServer starts a new integration test server with the given ServiceServer.
-// Registers cleanup callback via tb.Cleanup() for automatic shutdown.
-// Returns an IntegrationServer handle with URLs and database access.
+// Intended for use in individual test functions where testing.TB.Cleanup() is available.
+// For TestMain usage, use StartIntegrationServerForTestMain instead.
 func StartIntegrationServer(ctx context.Context, tb testing.TB, srv cryptoutilAppsFrameworkServiceServer.ServiceServer, db *gorm.DB) (*IntegrationServer, error) {
 	if srv == nil {
 		return nil, fmt.Errorf("server cannot be nil")
@@ -83,23 +105,85 @@ func StartIntegrationServer(ctx context.Context, tb testing.TB, srv cryptoutilAp
 	// Mark server ready for health checks
 	srv.SetReady(true)
 
-	// Register cleanup callback
-	tb.Cleanup(func() {
-		shutdownCtx, cancel := context.WithTimeout(context.Background(), defaultShutdownTimeout)
-		defer cancel()
-
-		if shutdownErr := srv.Shutdown(shutdownCtx); shutdownErr != nil {
-			tb.Logf("integration server: failed to shut down server: %v", shutdownErr)
-		}
-
-		if is.cleanupFn != nil {
-			if err := is.cleanupFn(); err != nil {
-				tb.Logf("integration server: cleanup error: %v", err)
-			}
-		}
-	})
+	// Store cleanup function for manual or automatic cleanup
+	// Callers can choose: defer is.Shutdown() in TestMain, or tb.Cleanup(is.Shutdown) in individual tests
+	is.cleanupFn = nil
 
 	return is, nil
+}
+
+// StartIntegrationServerForTestMain starts a new integration test server specifically for use in TestMain.
+// Unlike StartIntegrationServer, this does not require testing.TB and does not use tb.Cleanup().
+// Callers must manually call is.Shutdown() in a defer statement before os.Exit().
+func StartIntegrationServerForTestMain(ctx context.Context, srv cryptoutilAppsFrameworkServiceServer.ServiceServer, db *gorm.DB) (*IntegrationServer, error) {
+	if srv == nil {
+		return nil, fmt.Errorf("server cannot be nil")
+	}
+
+	is := &IntegrationServer{
+		tb:  nil, // No testing.TB for TestMain usage
+		srv: srv,
+		db:  db,
+	}
+
+	// Start server in background
+	errChan := make(chan error, 1)
+
+	go func() {
+		if startErr := srv.Start(ctx); startErr != nil {
+			errChan <- startErr
+		}
+	}()
+
+	// Wait for both public and admin ports to be allocated
+	pollErr := cryptoutilSharedUtilPoll.Until(ctx, defaultStartupTimeout, defaultStartupInterval, func(_ context.Context) (bool, error) {
+		select {
+		case startErr := <-errChan:
+			return false, fmt.Errorf("server failed to start: %w", startErr)
+		default:
+		}
+
+		return srv.PublicPort() > 0 && srv.AdminPort() > 0, nil
+	})
+	if pollErr != nil {
+		return nil, fmt.Errorf("integration server: timed out waiting for server ports: %w", pollErr)
+	}
+
+	// Mark server ready for health checks
+	srv.SetReady(true)
+
+	// Store cleanup function for manual or automatic cleanup
+	is.cleanupFn = nil
+
+	return is, nil
+}
+
+// Shutdown gracefully shuts down the integration server and cleans up resources.
+// Can be called manually in TestMain via defer, or registered with tb.Cleanup() in individual tests.
+func (is *IntegrationServer) Shutdown(ctx context.Context) error {
+	if is.srv == nil {
+		return nil
+	}
+
+	if shutdownErr := is.srv.Shutdown(ctx); shutdownErr != nil {
+		if is.tb != nil {
+			is.tb.Logf("integration server: failed to shut down server: %v", shutdownErr)
+		}
+
+		return fmt.Errorf("integration server: shutdown failed: %w", shutdownErr)
+	}
+
+	if is.cleanupFn != nil {
+		if err := is.cleanupFn(); err != nil {
+			if is.tb != nil {
+				is.tb.Logf("integration server: cleanup error: %v", err)
+			}
+
+			return fmt.Errorf("integration server: cleanup failed: %w", err)
+		}
+	}
+
+	return nil
 }
 
 // PublicBaseURL returns the public HTTPS URL for the running server.
