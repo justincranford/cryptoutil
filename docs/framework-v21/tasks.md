@@ -1,6 +1,6 @@
 # Tasks - Framework v21 TestMain Orchestration Consolidation
 
-Status: 16 of 74 tasks complete (21.6%)
+Status: 18 of 74 tasks complete (24.3%) - Phase 3.1-3.3 core implementation underway
 Created: 2026-05-09
 Last Updated: 2026-05-10
 
@@ -179,7 +179,17 @@ Evidence:
 
 ### Task 3.3 - Implement test_orch_integration + test_help_tls from testserver/e2e_helpers
 
-Status: Not started
+Status: In Progress
+Evidence:
+1. Commit 5cafb2a7a - feat(test-framework): implement core test_orch_integration orchestration
+2. Created StartIntegrationServer() API wrapping ServiceServer pattern
+3. Supports DB handle, dual port URLs, health checks, and cleanup
+4. Supports error-path testing with BrokenDBFixture/BrokenAPIFixture
+Acceptance Criteria (Remaining):
+5. Move existing testserver.StartAndWait patterns into test_orch_integration
+6. Move test_help_tls helpers from e2e_helpers (certificate/client creation)
+7. Add package-level tests for both packages
+8. Verify existing framework TestMain files can be migrated with this API
 
 ### Task 3.4 - Implement test_help_db from testdb
 
