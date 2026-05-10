@@ -78,7 +78,7 @@ func waitForReady(ctx context.Context, server *IDPServer) error {
 	})
 }
 
-// requireTestSetup ensures test server is running before tests execute.
+// Copyright (c) 2025-2026 Justin Cranford.
 func requireTestSetup(t *testing.T) {
 	t.Helper()
 

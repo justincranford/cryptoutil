@@ -4,25 +4,17 @@ package server_test
 import (
 	"context"
 	"crypto/tls"
-	"fmt"
 	http "net/http"
 	"os"
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/require"
+
+	cryptoutilTestOrcIntegration "cryptoutil/internal/apps-framework/service/test_orch_integration"
 	cryptoutilAppsIdentityRpServer "cryptoutil/internal/apps/identity-rp/server"
 	cryptoutilAppsIdentityRpServerConfig "cryptoutil/internal/apps/identity-rp/server/config"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
-	cryptoutilSharedUtilPoll "cryptoutil/internal/shared/util/poll"
-
-	"github.com/stretchr/testify/require"
-)
-
-// Timeout constants for test operations.
-const (
-	readyTimeout    = 10 * time.Second
-	checkInterval   = 100 * time.Millisecond
-	shutdownTimeout = 5 * time.Second
 )
 
 // testServer is the shared server instance for all tests.
@@ -40,6 +32,9 @@ var testPublicBaseURL string //nolint:gochecknoglobals
 // testAdminBaseURL is the admin server base URL.
 var testAdminBaseURL string //nolint:gochecknoglobals
 
+// testIntegrationServer is the orchestration handle for cleanup.
+var testIntegrationServer *cryptoutilTestOrcIntegration.IntegrationServer //nolint:gochecknoglobals
+
 // TestMain sets up the test server once for all tests.
 func TestMain(m *testing.M) {
 	ctx := context.Background()
@@ -52,21 +47,13 @@ func TestMain(m *testing.M) {
 
 	testServer, err = cryptoutilAppsIdentityRpServer.NewFromConfig(ctx, cfg)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to create RP server: %v\n", err)
-		os.Exit(1)
+		panic("TestMain: failed to create server: " + err.Error())
 	}
 
-	// Start server in background.
-	go func() {
-		if startErr := testServer.Start(ctx); startErr != nil {
-			fmt.Fprintf(os.Stderr, "Server start error: %v\n", startErr)
-		}
-	}()
-
-	// Wait for server to be ready using polling pattern.
-	if readyErr := waitForReady(ctx, testServer); readyErr != nil {
-		fmt.Fprintf(os.Stderr, "Server not ready: %v\n", readyErr)
-		os.Exit(1)
+	// Start server and wait for both ports to bind.
+	testIntegrationServer, err = cryptoutilTestOrcIntegration.StartIntegrationServerForTestMain(ctx, testServer, nil)
+	if err != nil {
+		panic("TestMain: failed to start server: " + err.Error())
 	}
 
 	// Capture base URLs.
@@ -95,28 +82,16 @@ func TestMain(m *testing.M) {
 		},
 	}
 
-	// Mark server as ready.
-	testServer.SetReady(true)
-
 	// Run tests.
 	exitCode := m.Run()
 
 	// Shutdown server.
-	shutdownCtx, cancel := context.WithTimeout(context.Background(), shutdownTimeout)
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultDataServerShutdownTimeout)
 	defer cancel()
 
-	if shutdownErr := testServer.Shutdown(shutdownCtx); shutdownErr != nil {
-		fmt.Fprintf(os.Stderr, "Failed to shutdown server: %v\n", shutdownErr)
-	}
+	_ = testIntegrationServer.Shutdown(shutdownCtx)
 
 	os.Exit(exitCode)
-}
-
-// waitForReady waits for the server to be ready by polling port allocation.
-func waitForReady(ctx context.Context, srv *cryptoutilAppsIdentityRpServer.RPServer) error {
-	return cryptoutilSharedUtilPoll.Until(ctx, readyTimeout, checkInterval, func(_ context.Context) (bool, error) {
-		return srv.PublicPort() > 0, nil
-	})
 }
 
 // requireTestSetup verifies test infrastructure is available.
