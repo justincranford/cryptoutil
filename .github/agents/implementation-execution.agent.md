@@ -2,6 +2,7 @@
 name: copilot-implementation-execution
 description: Use to execute an existing plan.md/tasks.md autonomously. Continuously updates tasks.md, runs quality gates after each phase, and commits incrementally. Requires plan.md and tasks.md to already exist in the work directory.
 model:
+  - Auto
   - GPT-5.3-Codex (copilot)
   - Claude Sonnet 4.6 (copilot)
 skills:
