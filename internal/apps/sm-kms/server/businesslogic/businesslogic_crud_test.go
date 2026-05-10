@@ -3,20 +3,14 @@ package businesslogic
 import (
 	"context"
 	"io/fs"
-	"os"
 	"testing"
 	"time"
 
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
-
 	cryptoutilOpenapiModel "cryptoutil/api/sm-kms/models"
 	cryptoutilKmsServer "cryptoutil/api/sm-kms/server"
-	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps-framework/service/config"
 	cryptoutilAppsFrameworkServiceServerApplication "cryptoutil/internal/apps-framework/service/server/application"
 	cryptoutilAppsFrameworkServiceServerBarrier "cryptoutil/internal/apps-framework/service/server/barrier"
 	cryptoutilAppsFrameworkServiceServerMiddleware "cryptoutil/internal/apps-framework/service/server/middleware"
-	cryptoutilAppsFrameworkServiceServerRepository "cryptoutil/internal/apps-framework/service/server/repository"
-	cryptoutilKmsServerRepository "cryptoutil/internal/apps/sm-kms/server/repository"
 	cryptoutilOrmRepository "cryptoutil/internal/apps/sm-kms/server/repository/orm"
 
 	googleUuid "github.com/google/uuid"
@@ -109,44 +103,46 @@ func setupTestStack(tb testing.TB) *testStack {
 	tb.Helper()
 
 	ctx := context.Background()
-	settings := cryptoutilAppsFrameworkServiceConfig.RequireNewForTest("biz-crud-" + tb.Name())
 
-	templateCore, err := cryptoutilAppsFrameworkServiceServerApplication.StartCore(ctx, settings)
-	testify.NoError(tb, err)
-	tb.Cleanup(func() { templateCore.Shutdown() })
-
-	sqlDB, err := templateCore.DB.DB()
-	testify.NoError(tb, err)
-
-	mergedFS := &testMergedMigrations{
-		templateFS:   cryptoutilAppsFrameworkServiceServerRepository.MigrationsFS,
-		templatePath: "migrations",
-		domainFS:     cryptoutilKmsServerRepository.MigrationsFS,
-		domainPath:   "migrations",
+	// Use shared Core from TestMain - no expensive StartCore() per-test
+	if testCore == nil {
+		tb.Fatalf("testCore not initialized - TestMain may have failed")
 	}
 
-	err = cryptoutilAppsFrameworkServiceServerRepository.ApplyMigrationsFromFS(sqlDB, mergedFS, "", cryptoutilSharedMagic.TestDatabaseSQLite)
-	testify.NoError(tb, err)
+	// Cleanup function to reset test data
+	// Note: This truncates tables between tests to ensure isolation
+	// while reusing the shared Core and database connection
+	tb.Cleanup(func() {
+		// Truncate tables for clean slate in next test
+		if err := testCore.DB.Exec("DELETE FROM elastic_keys").Error; err != nil && err.Error() != "table elastic_keys does not exist" {
+			tb.Logf("cleanup error deleting elastic_keys: %v", err)
+		}
 
+		if err := testCore.DB.Exec("DELETE FROM material_keys").Error; err != nil && err.Error() != "table material_keys does not exist" {
+			tb.Logf("cleanup error deleting material_keys: %v", err)
+		}
+	})
+
+	// Create per-test repository and service for isolation
 	ormRepo, err := cryptoutilOrmRepository.NewOrmRepository(
-		ctx, templateCore.Basic.TelemetryService, templateCore.DB,
-		templateCore.Basic.JWKGenService, false,
+		ctx, testCore.Basic.TelemetryService, testCore.DB,
+		testCore.Basic.JWKGenService, false,
 	)
 	testify.NoError(tb, err)
 	tb.Cleanup(func() { ormRepo.Shutdown() })
 
-	gormRepo, err := cryptoutilAppsFrameworkServiceServerBarrier.NewGormRepository(templateCore.DB)
+	gormRepo, err := cryptoutilAppsFrameworkServiceServerBarrier.NewGormRepository(testCore.DB)
 	testify.NoError(tb, err)
 
 	barrierSvc, err := cryptoutilAppsFrameworkServiceServerBarrier.NewService(
-		ctx, templateCore.Basic.TelemetryService, templateCore.Basic.JWKGenService,
-		gormRepo, templateCore.Basic.UnsealKeysService,
+		ctx, testCore.Basic.TelemetryService, testCore.Basic.JWKGenService,
+		gormRepo, testCore.Basic.UnsealKeysService,
 	)
 	testify.NoError(tb, err)
 	tb.Cleanup(func() { barrierSvc.Shutdown() })
 
 	service, err := NewBusinessLogicService(
-		ctx, templateCore.Basic.TelemetryService, templateCore.Basic.JWKGenService,
+		ctx, testCore.Basic.TelemetryService, testCore.Basic.JWKGenService,
 		ormRepo, barrierSvc,
 	)
 	testify.NoError(tb, err)
@@ -155,7 +151,7 @@ func setupTestStack(tb testing.TB) *testStack {
 	rc := &cryptoutilAppsFrameworkServiceServerMiddleware.RealmContext{TenantID: tenantID}
 	testCtx := context.WithValue(ctx, cryptoutilAppsFrameworkServiceServerMiddleware.RealmContextKey{}, rc)
 
-	return &testStack{service: service, ctx: testCtx, core: templateCore}
+	return &testStack{service: service, ctx: testCtx, core: testCore}
 }
 
 func seedElasticKey(t *testing.T, stack *testStack, name string, alg cryptoutilOpenapiModel.ElasticKeyAlgorithm, status cryptoutilKmsServer.ElasticKeyStatus) googleUuid.UUID {
@@ -387,10 +383,4 @@ func TestDeleteMaterialKey_NotImplemented(t *testing.T) {
 	err := stack.service.DeleteMaterialKey(stack.ctx, &ekID, &mkID)
 	testify.Error(t, err)
 	testify.Contains(t, err.Error(), "not implemented")
-}
-
-func TestMain(m *testing.M) {
-	_ = os.Setenv("CRYPTOUTIL_DATABASE_URL", cryptoutilSharedMagic.SQLiteInMemoryDSN) //nolint:errcheck // TestMain cannot use t.Setenv
-
-	os.Exit(m.Run())
 }
