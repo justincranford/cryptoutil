@@ -1,8 +1,8 @@
 # Tasks - Framework v21 TestMain Orchestration Consolidation
 
-Status: 25 of 74 tasks complete (33.8%) - Phase 3 framework consolidation complete, ready for Phase 4 migrations
+Status: 26 of 74 tasks complete (35.1%) - Phase 3 framework consolidation complete, Phase 4.1 sm-kms pilot migration complete, ready for Phase 4.2-4.14 service migrations
 Created: 2026-05-09
-Last Updated: 2026-05-10
+Last Updated: 2026-05-11
 
 ## Task Status Legend
 
@@ -253,66 +253,82 @@ Status: In Progress
 
 ## Phase 4 - Migrate internal/apps (28 TestMain files)
 
-### Task 4.1 - Identity server TestMain wrappers to test_orch_integration (5 files)
+### Task 4.1 - sm-kms pilot migration (server + client TestMain wrappers)
+
+Status: Complete
+
+Evidence:
+1. Commit f77186e43 - feat(phase-4): migrate sm-kms TestMain to test_orch_integration
+2. sm-kms/server/testmain_test.go: Migrated from e2e_helpers.MustStartAndWaitForDualPorts to StartIntegrationServerForTestMain
+3. sm-kms/client/testmain_test.go: Migrated from e2e_helpers to StartIntegrationServerForTestMain  
+4. test_orch_integration refactored with dual-function pattern:
+   - StartIntegrationServer() for individual tests (requires testing.TB)
+   - StartIntegrationServerForTestMain() for TestMain (no testing.TB dependency)
+5. Pattern established for remaining 27 TestMain migrations across all PS-IDs
+6. All builds successful: `go build ./internal/apps/sm-kms/...` ✅
+
+### Task 4.2 - sm-kms businesslogic refactor (integration tests)
 
 Status: Not started
 
-### Task 4.2 - Identity e2e TestMain wrappers to test_orch_e2e (5 files)
+Acceptance Criteria:
+1. sm-kms businesslogic setupTestStack per-test pattern refactored to shared TestMain fixture
+2. Uses test_orch_integration + test_help_db pattern
+3. All integration tests pass
+
+### Task 4.3 - sm-kms orm integration-tagged migration
 
 Status: Not started
 
-### Task 4.3 - jose-ja migrations (e2e/server/repository/service)
+Acceptance Criteria:
+1. orm_transaction_test.go remains integration-tagged
+2. Uses test_orch_integration DB-core fixture hooks
+3. All integration-tagged tests pass
+
+### Task 4.4 - jose-ja server + client migrations
 
 Status: Not started
 
-### Task 4.4 - pki-ca migrations (e2e/server)
+### Task 4.5 - jose-ja repository/service migrations
+
+Status: Not started
+
+### Task 4.6 - pki-ca server + client migrations
 
 Status: Not started
 Acceptance Criteria:
-1. pki-ca e2e no longer uses custom compose start/stop flow.
-2. Health-wait orchestration is test_orch_e2e-driven.
+1. pki-ca e2e migrated to test_orch_e2e facade
+2. Health-wait orchestration is test_orch_e2e-driven
 
-### Task 4.5 - skeleton-template migrations (e2e/server)
-
-Status: Not started
-
-### Task 4.6 - sm-im server migration from local SetupTestServer to test_orch_integration
+### Task 4.7 - skeleton-template server + client migrations
 
 Status: Not started
 
-### Task 4.7 - sm-im client migration to test_orch_integration
+### Task 4.8 - sm-im server + client migrations
 
 Status: Not started
 
-### Task 4.8 - sm-im repository/apis fixture migration to test_help_db/test_help_api/test_help_barrier
+### Task 4.9 - sm-im repository/apis fixture migration
 
 Status: Not started
 
-### Task 4.9 - sm-kms server migration to test_orch_integration
+### Task 4.10 - identity-authz server + client + repository migrations
 
 Status: Not started
 
-### Task 4.10 - sm-kms e2e migration to test_orch_e2e facade
+### Task 4.11 - identity-idp server + client + repository migrations
 
 Status: Not started
 
-### Task 4.11 - sm-kms client migration from e2e_helpers to test_orch_integration
+### Task 4.12 - identity-rp server + client + repository migrations
 
 Status: Not started
 
-### Task 4.12 - sm-kms businesslogic refactor to shared TestMain fixture
+### Task 4.13 - identity-rs server + client + repository migrations
 
 Status: Not started
-Acceptance Criteria:
-1. setupTestStack per-test heavy wiring eliminated or reduced behind shared fixture.
-2. TestMain pattern drives shared lifecycle.
 
-### Task 4.13 - sm-kms orm integration-tagged migration to integration DB-core fixture
-
-Status: Not started
-Acceptance Criteria:
-1. Remains integration-tagged.
-2. Uses test_orch_integration DB-core fixture hooks.
+### Task 4.14 - identity-spa server + client + repository migrations
 
 ## Phase 5 - Migrate internal/apps-framework TestMain files
 
