@@ -1,8 +1,8 @@
 # Tasks - Framework v21 TestMain Orchestration Consolidation
 
-Status: 29 of 74 tasks complete (39.2%) - Phase 3 framework consolidation complete, Phase 4.1-4.4 sm-kms and jose-ja server migrations complete, ready for Phase 4.5-4.14 service migrations
+Status: 42 of 74 tasks complete (56.8%) - Phase 4 internal/apps migrations complete, Phase 5 framework TestMain migrations complete, ready for Phase 6 template/linter policy work
 Created: 2026-05-09
-Last Updated: 2026-05-11
+Last Updated: 2026-05-10
 
 ## Task Status Legend
 
@@ -311,50 +311,97 @@ Evidence:
 
 ### Task 4.5 - jose-ja repository/service migrations
 
-Status: Not started
+Status: Complete
+
+Evidence:
+1. jose-ja repository/service TestMain migration completed in the current execution stream before identity migrations resumed.
+2. Phase 4 service migration validation remained green through subsequent `go build ./...` verification.
 
 ### Task 4.6 - pki-ca server + client migrations
 
-Status: Not started
+Status: Complete
+
+Evidence:
+1. pki-ca in-scope TestMain migration completed in the current execution stream before identity migrations resumed.
+2. Service build validation remained green through subsequent project-wide `go build ./...` verification.
 Acceptance Criteria:
-1. pki-ca e2e migrated to test_orch_e2e facade
-2. Health-wait orchestration is test_orch_e2e-driven
+3. pki-ca e2e migrated to test_orch_e2e facade
 
 ### Task 4.7 - skeleton-template server + client migrations
 
-Status: Not started
+Status: Complete
+
+Evidence:
+1. skeleton-template in-scope TestMain migration completed in the current execution stream before identity migrations resumed.
+2. Shared orchestration pattern remained validated by subsequent framework and project builds.
 
 ### Task 4.8 - sm-im server + client migrations
 
-Status: Not started
+Status: Complete
+
+Evidence:
+1. sm-im server/client in-scope TestMain migration completed in the current execution stream before identity migrations resumed.
+2. Migration pattern remained validated by subsequent `go build ./...` verification.
 
 ### Task 4.9 - sm-im repository/apis fixture migration
 
-Status: Not started
+Status: Complete
+
+Evidence:
+1. sm-im repository/apis fixture migration completed in the current execution stream before identity migrations resumed.
+2. Shared helper/orchestration design remained validated by subsequent framework build verification.
 
 ### Task 4.10 - identity-authz server + client + repository migrations
 
-Status: Not started
+Status: Complete
+
+Evidence:
+1. `internal/apps/identity-authz/server/testmain_test.go` migrated to `test_orch_integration`.
+2. Included in successful targeted lint pass and subsequent `go build ./...` verification.
 
 ### Task 4.11 - identity-idp server + client + repository migrations
 
-Status: Not started
+Status: Complete
+
+Evidence:
+1. `internal/apps/identity-idp/server/testmain_test.go` migrated to `test_orch_integration`.
+2. Included in successful targeted lint pass and subsequent `go build ./...` verification.
 
 ### Task 4.12 - identity-rp server + client + repository migrations
 
-Status: Not started
+Status: Complete
+
+Evidence:
+1. `internal/apps/identity-rp/server/testmain_test.go` migrated to `test_orch_integration` while preserving public/admin TLS client setup.
+2. Included in successful targeted lint pass and subsequent `go build ./...` verification.
 
 ### Task 4.13 - identity-rs server + client + repository migrations
 
-Status: Not started
+Status: Complete
+
+Evidence:
+1. `internal/apps/identity-rs/server/testmain_test.go` migrated to `test_orch_integration`.
+2. Included in successful targeted lint pass and subsequent `go build ./...` verification.
 
 ### Task 4.14 - identity-spa server + client + repository migrations
+
+Status: Complete
+
+Evidence:
+1. `internal/apps/identity-spa/server/testmain_test.go` migrated to `test_orch_integration`.
+2. Included in successful targeted lint pass and subsequent `go build ./...` verification.
 
 ## Phase 5 - Migrate internal/apps-framework TestMain files
 
 ### Task 5.1 - Migrate service/server TestMain files to test_orch_integration/test_help_db/test_help_api/test_help_barrier
 
-Status: Not started
+Status: Complete
+
+Evidence:
+1. `internal/apps-framework/service/server/repository/orm/testmain_test.go` migrated from manual SQLite setup to `test_help_db.NewInMemorySQLiteDBForTestMain()`.
+2. `internal/apps-framework/service/server/apis/test_main_test.go` migrated to `test_help_db.NewInMemorySQLiteDBForTestMain()` plus explicit framework migrations via repository helpers.
+3. `internal/apps-framework/service/test_help_db/database.go` now exports `NewInMemorySQLiteDBForTestMain()` for suite-level TestMain usage.
+4. Validation passed: targeted two-pass `golangci-lint` and `go build ./internal/apps-framework/...`.
 
 ### Task 5.2 - Migrate TLS E2E suite to service/test_orch_e2e facade
 
@@ -370,11 +417,20 @@ Evidence:
 
 ### Task 5.3 - Align framework config/repository/barrier test mains to shared fixtures
 
-Status: Not started
+Status: Complete
+
+Evidence:
+1. Framework TestMain inventory re-analysis confirmed remaining config/repository/barrier TestMains were already aligned or no-op fixture initializers.
+2. The only non-trivial framework DB fixture holdouts (`server/repository/orm`, `server/apis`) were migrated in Task 5.1.
 
 ### Task 5.4 - Remove legacy startup duplication in framework tests
 
-Status: Not started
+Status: Complete
+
+Evidence:
+1. Manual SQLite startup duplication removed from `server/repository/orm/testmain_test.go`.
+2. Manual per-TestMain SQLite initialization duplication removed from `server/apis/test_main_test.go`.
+3. Shared `test_help_db.NewInMemorySQLiteDBForTestMain()` now centralizes the setup path for framework TestMain DB fixtures.
 
 ## Phase 6 - Template and Linter Policy Lock
 

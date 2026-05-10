@@ -179,6 +179,11 @@
    - Server TestMain moved to `test_orch_integration` without breaking existing integration tests.
    - Compatibility variables were preserved to avoid broad test rewrites during this phase.
 
+5. **Identity server migrations scaled the pattern without reopening design**:
+   - identity-authz, identity-idp, identity-rp, identity-rs, and identity-spa server TestMains all migrated using the same orchestration helper.
+   - The external-package case (`identity-rp/server_test`) proved the pattern still works when the concrete server type must stay qualified.
+   - TLS client setup for RP tests survived the migration cleanly because it was attached after orchestration startup, not folded into helper internals.
+
 ### What Didn't Work
 
 1. **Initial assumption of purely pre-existing failures was incomplete**:
@@ -188,6 +193,10 @@
 2. **Mutex-based serialization workaround caused deadlocks**:
    - A package-level mutex in `CleanupDatabase` interacted badly with nested subtests.
    - Full package run hung until timeout due lock contention chains.
+
+3. **Task tracking drifted behind real execution**:
+   - Multiple Phase 4 tasks were already complete in code, but `tasks.md` still showed them as not started.
+   - This increased the risk of duplicate investigation and false phase status reporting.
 
 ### Root Causes
 
@@ -199,16 +208,72 @@
    - Wrapping cleanup helper registration inside another cleanup callback created delayed execution semantics and non-obvious ordering.
    - Correct usage is direct helper invocation at test start.
 
+3. **Progress metadata was treated as secondary instead of a quality artifact**:
+   - Once the implementation stream accelerated, task evidence and phase status were not updated at the same cadence as code.
+   - That created an avoidable mismatch between repository truth and plan documentation truth.
+
 ### Patterns for Future Phases
 
 1. **For shared SQLite integration fixtures, call cleanup helpers directly at test start**; avoid nested cleanup wrappers.
 2. **When failures are flaky, always run both isolated and grouped test selections** before concluding root cause.
 3. **Prefer behavioral isolation fixes (filter scoping, fixture cleanup discipline) over global locking** in test helpers.
 4. **Treat package-level shared fixture tests as sequential when they mutate shared state broadly** and document with explicit `Sequential:` comments where needed.
+5. **Keep external-package and TLS-client variants inside the migration sample set early** so the orchestration API proves it handles both plain startup and post-start client wiring.
+6. **Update task evidence immediately after each migration cluster lands**; stale documentation becomes its own blocker in long-running plans.
 
 ## Phase 5: Migrate internal/apps-framework TestMain files
 
-(To be filled during Phase 5 execution using the 4-section structure above.)
+### What Worked
+
+1. **Framework inventory reduction avoided unnecessary edits**:
+   - Re-reading all in-scope framework TestMains showed most files were already clean fixture initializers or no-op `testutil.Initialize()` wrappers.
+   - That let the work focus narrowly on the two files that still owned manual SQLite lifecycle logic.
+
+2. **`test_help_db` gained the missing suite-level primitive cleanly**:
+   - `NewInMemorySQLiteDBForTestMain()` now exposes the same canonical SQLite setup path for `TestMain` callers that already existed for per-test helpers.
+   - This removed the need for framework packages to duplicate `sql.Open`, PRAGMA setup, and connection-pool tuning.
+
+3. **Framework TestMain migrations stayed local and low-risk**:
+   - `server/repository/orm/testmain_test.go` now uses the shared DB helper and preserves package globals used by the test suite.
+   - `server/apis/test_main_test.go` now uses the shared DB helper plus explicit migration application, preserving the package's database expectations without hand-rolled DSN assembly.
+
+4. **Narrow validation was effective**:
+   - Two-pass targeted `golangci-lint` plus `go build ./internal/apps-framework/...` and then `go build ./...` caught structural issues quickly without reopening unrelated packages.
+
+### What Didn't Work
+
+1. **The first `apply_patch` attempts failed due to local file drift**:
+   - The expected patch context no longer matched the real file contents.
+   - This is a recurring failure mode late in long execution sessions when files have already been partially modified.
+
+2. **A failed patch briefly corrupted `test_help_db/database.go`**:
+   - The file ended up with a stray import fragment embedded in a cleanup block.
+   - The corruption was cheap to detect because the next build failed immediately.
+
+3. **PowerShell whole-file rewrites reduced formatting fidelity until lint normalized them**:
+   - They were effective for recovery, but they temporarily dropped indentation formatting and increased the need for a cleanup pass.
+
+### Root Causes
+
+1. **The code path for suite-level SQLite setup existed conceptually but not as a reusable exported helper**:
+   - `buildInMemorySQLiteDB` already contained the correct logic.
+   - The missing seam was an exported wrapper for `TestMain` callers without a `*testing.T`.
+
+2. **Patch-based editing was fragile because the working copy had diverged from the earlier read window**:
+   - The patch failure was not a design problem; it was a stale-context problem.
+   - Rewriting the affected files was the fastest way to restore a known-good state and continue with focused validation.
+
+3. **Framework TestMain migration risk comes from hidden package-global dependencies, not from the DB helper itself**:
+   - `orm/testmain_test.go` needed `testGormDB` to remain global because other tests in the package read it directly.
+   - Confirming those references before finalizing the rewrite avoided a local regression.
+
+### Patterns for Future Phases
+
+1. **When only one abstraction seam is missing, add the seam instead of cloning setup logic into each caller**.
+2. **After a failed file edit, run the cheapest compile check immediately**; it is the fastest discriminator between harmless formatting drift and real file corruption.
+3. **Before rewriting a TestMain, grep for package globals consumed by sibling tests** so the rewrite preserves those shared anchors.
+4. **Use shared helper + explicit migration application when a package needs custom schema setup but not custom low-level DB construction**.
+5. **Treat documentation drift as a real regression after code migrations**; phase completion is not valid until tasks and lessons reflect the actual repository state.
 
 ## Phase 6: Template and Linter Policy Lock
 
