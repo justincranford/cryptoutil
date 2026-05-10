@@ -68,7 +68,7 @@ func seedBarrierEncryptedElasticKey(
 	materialKeyID, _, _, clearNonPublicBytes, clearPublicBytes, err := stack.service.generateJWK(&alg)
 	testify.NoError(t, err)
 
-	// Encrypt private material using barrier (standalone call â€” no outer transaction).
+	// Encrypt private material using barrier (standalone call ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â no outer transaction).
 	encryptedNonPublicBytes, err := stack.service.barrierService.EncryptContentWithContext(stack.ctx, clearNonPublicBytes)
 	testify.NoError(t, err)
 
@@ -88,9 +88,8 @@ func seedBarrierEncryptedElasticKey(
 	return *ekID
 }
 
+// Sequential: tests mutate shared testCore database with WAL write locks; parallel execution causes SQLite lock contention.
 func TestEncryptDecrypt_RoundTrip(t *testing.T) {
-	t.Parallel()
-
 	stack := setupCryptoTestStack(t)
 	ekID := seedBarrierEncryptedElasticKey(t, stack, "enc-dec-roundtrip", cryptoutilOpenapiModel.A256GCMDir)
 
@@ -107,9 +106,8 @@ func TestEncryptDecrypt_RoundTrip(t *testing.T) {
 	testify.Equal(t, plaintext, decrypted)
 }
 
+// Sequential: tests mutate shared testCore database with WAL write locks; parallel execution causes SQLite lock contention.
 func TestEncryptDecrypt_WithContext(t *testing.T) {
-	t.Parallel()
-
 	stack := setupCryptoTestStack(t)
 	ekID := seedBarrierEncryptedElasticKey(t, stack, "enc-dec-ctx", cryptoutilOpenapiModel.A256GCMDir)
 
@@ -127,9 +125,8 @@ func TestEncryptDecrypt_WithContext(t *testing.T) {
 	testify.Equal(t, plaintext, decrypted)
 }
 
+// Sequential: tests mutate shared testCore database with WAL write locks; parallel execution causes SQLite lock contention.
 func TestSignVerify_RoundTrip(t *testing.T) {
-	t.Parallel()
-
 	stack := setupCryptoTestStack(t)
 	ekID := seedBarrierEncryptedElasticKey(t, stack, "sign-verify", cryptoutilOpenapiModel.ES256)
 
@@ -146,9 +143,8 @@ func TestSignVerify_RoundTrip(t *testing.T) {
 	testify.Equal(t, payload, verified)
 }
 
+// Sequential: tests mutate shared testCore database with WAL write locks; parallel execution causes SQLite lock contention.
 func TestSignVerify_HMAC(t *testing.T) {
-	t.Parallel()
-
 	stack := setupCryptoTestStack(t)
 	ekID := seedBarrierEncryptedElasticKey(t, stack, "sign-verify-hmac", cryptoutilOpenapiModel.HS256)
 
@@ -165,9 +161,8 @@ func TestSignVerify_HMAC(t *testing.T) {
 	testify.Equal(t, payload, verified)
 }
 
+// Sequential: tests mutate shared testCore database with WAL write locks; parallel execution causes SQLite lock contention.
 func TestPostGenerate_SymmetricKey(t *testing.T) {
-	t.Parallel()
-
 	stack := setupCryptoTestStack(t)
 	ekID := seedBarrierEncryptedElasticKey(t, stack, "postgen-sym", cryptoutilOpenapiModel.A256GCMDir)
 
@@ -181,9 +176,8 @@ func TestPostGenerate_SymmetricKey(t *testing.T) {
 	testify.Nil(t, clearPublic)
 }
 
+// Sequential: tests mutate shared testCore database with WAL write locks; parallel execution causes SQLite lock contention.
 func TestPostGenerate_AsymmetricKey(t *testing.T) {
-	t.Parallel()
-
 	stack := setupCryptoTestStack(t)
 	ekID := seedBarrierEncryptedElasticKey(t, stack, "postgen-asym", cryptoutilOpenapiModel.A256GCMDir)
 
@@ -196,9 +190,8 @@ func TestPostGenerate_AsymmetricKey(t *testing.T) {
 	testify.NotEmpty(t, clearPublic)
 }
 
+// Sequential: tests mutate shared testCore database with WAL write locks; parallel execution causes SQLite lock contention.
 func TestEncryptDecrypt_AsymmetricKey(t *testing.T) {
-	t.Parallel()
-
 	stack := setupCryptoTestStack(t)
 
 	// Use ECDH-ES+A256KW which is asymmetric JWE.
@@ -217,9 +210,8 @@ func TestEncryptDecrypt_AsymmetricKey(t *testing.T) {
 	testify.Equal(t, plaintext, decrypted)
 }
 
+// Sequential: tests mutate shared testCore database with WAL write locks; parallel execution causes SQLite lock contention.
 func TestDecrypt_WrongElasticKey(t *testing.T) {
-	t.Parallel()
-
 	stack := setupCryptoTestStack(t)
 	ekID1 := seedBarrierEncryptedElasticKey(t, stack, "dec-wrong-ek1", cryptoutilOpenapiModel.A256GCMDir)
 	ekID2 := seedBarrierEncryptedElasticKey(t, stack, "dec-wrong-ek2", cryptoutilOpenapiModel.A256GCMDir)
@@ -230,14 +222,13 @@ func TestDecrypt_WrongElasticKey(t *testing.T) {
 	jweBytes, err := stack.service.PostEncryptByElasticKeyID(stack.ctx, &ekID1, &cryptoutilOpenapiModel.EncryptParams{}, plaintext)
 	testify.NoError(t, err)
 
-	// Attempt decrypt with second elastic key â€” kid mismatch should fail.
+	// Attempt decrypt with second elastic key ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â kid mismatch should fail.
 	_, err = stack.service.PostDecryptByElasticKeyID(stack.ctx, &ekID2, jweBytes)
 	testify.Error(t, err)
 }
 
+// Sequential: tests mutate shared testCore database with WAL write locks; parallel execution causes SQLite lock contention.
 func TestDecrypt_InvalidJWE(t *testing.T) {
-	t.Parallel()
-
 	stack := setupCryptoTestStack(t)
 	ekID := seedBarrierEncryptedElasticKey(t, stack, "dec-invalid-jwe", cryptoutilOpenapiModel.A256GCMDir)
 
@@ -247,9 +238,8 @@ func TestDecrypt_InvalidJWE(t *testing.T) {
 	testify.Contains(t, err.Error(), "failed to parse JWE message bytes")
 }
 
+// Sequential: tests mutate shared testCore database with WAL write locks; parallel execution causes SQLite lock contention.
 func TestVerify_InvalidJWS(t *testing.T) {
-	t.Parallel()
-
 	stack := setupCryptoTestStack(t)
 	ekID := seedBarrierEncryptedElasticKey(t, stack, "verify-invalid-jws", cryptoutilOpenapiModel.ES256)
 
@@ -259,25 +249,23 @@ func TestVerify_InvalidJWS(t *testing.T) {
 	testify.Contains(t, err.Error(), "failed to parse JWS message bytes")
 }
 
+// Sequential: tests mutate shared testCore database with WAL write locks; parallel execution causes SQLite lock contention.
 func TestEncrypt_UnsupportedAlgorithm(t *testing.T) {
-	t.Parallel()
-
 	stack := setupCryptoTestStack(t)
 
-	// ES256 is JWS, not JWE â€” encrypt should use it but decrypt should reject.
+	// ES256 is JWS, not JWE ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â encrypt should use it but decrypt should reject.
 	ekID := seedBarrierEncryptedElasticKey(t, stack, "enc-jws-alg", cryptoutilOpenapiModel.ES256)
 
 	plaintext := []byte("try to decrypt with JWS algorithm")
 
-	// PostEncryptByElasticKeyID attempts to encrypt â€” for JWS key it will try to use
+	// PostEncryptByElasticKeyID attempts to encrypt ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â for JWS key it will try to use
 	// the non-public key for JWE which should fail because ES256 is not a JWE algorithm.
 	_, err := stack.service.PostEncryptByElasticKeyID(stack.ctx, &ekID, &cryptoutilOpenapiModel.EncryptParams{}, plaintext)
 	testify.Error(t, err)
 }
 
+// Sequential: tests mutate shared testCore database with WAL write locks; parallel execution causes SQLite lock contention.
 func TestImportMaterialKey_NotAllowed(t *testing.T) {
-	t.Parallel()
-
 	stack := setupTestStack(t)
 	ekID := seedElasticKey(t, stack, "import-denied", cryptoutilOpenapiModel.A256GCMDir, cryptoutilKmsServer.Active)
 
@@ -286,9 +274,8 @@ func TestImportMaterialKey_NotAllowed(t *testing.T) {
 	testify.Contains(t, err.Error(), "import not allowed for ElasticKey")
 }
 
+// Sequential: tests mutate shared testCore database with WAL write locks; parallel execution causes SQLite lock contention.
 func TestEncryptDecrypt_MultipleVersions(t *testing.T) {
-	t.Parallel()
-
 	stack := setupCryptoTestStack(t)
 	ekID := seedBarrierEncryptedElasticKey(t, stack, "multi-ver", cryptoutilOpenapiModel.A256GCMDir)
 
@@ -324,7 +311,7 @@ func TestEncryptDecrypt_MultipleVersions(t *testing.T) {
 	jwe2, err := stack.service.PostEncryptByElasticKeyID(stack.ctx, &ekID, &cryptoutilOpenapiModel.EncryptParams{}, plaintext2)
 	testify.NoError(t, err)
 
-	// Decrypt both â€” key ID embedded in JWE header selects correct version.
+	// Decrypt both ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â key ID embedded in JWE header selects correct version.
 	dec1, err := stack.service.PostDecryptByElasticKeyID(stack.ctx, &ekID, jwe1)
 	testify.NoError(t, err)
 	testify.Equal(t, plaintext1, dec1)
@@ -334,9 +321,8 @@ func TestEncryptDecrypt_MultipleVersions(t *testing.T) {
 	testify.Equal(t, plaintext2, dec2)
 }
 
+// Sequential: tests mutate shared testCore database with WAL write locks; parallel execution causes SQLite lock contention.
 func TestDecryptByElasticKeyID_NonJWEAlgorithm(t *testing.T) {
-	t.Parallel()
-
 	stack := setupCryptoTestStack(t)
 
 	// Create a JWS elastic key (ES256).
@@ -350,17 +336,16 @@ func TestDecryptByElasticKeyID_NonJWEAlgorithm(t *testing.T) {
 	jweBytes, err := stack.service.PostEncryptByElasticKeyID(stack.ctx, &ekIDJWE, &cryptoutilOpenapiModel.EncryptParams{}, plaintext)
 	testify.NoError(t, err)
 
-	// Decrypt with JWS elastic key â€” should fail because ES256 is not JWE.
+	// Decrypt with JWS elastic key ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â should fail because ES256 is not JWE.
 	_, err = stack.service.PostDecryptByElasticKeyID(stack.ctx, &ekIDJWS, jweBytes)
 	testify.Error(t, err)
 }
 
+// Sequential: tests mutate shared testCore database with WAL write locks; parallel execution causes SQLite lock contention.
 func TestVerifyByElasticKeyID_NonJWSAlgorithm(t *testing.T) {
-	t.Parallel()
-
 	stack := setupCryptoTestStack(t)
 
-	// Create a JWE elastic key (A256GCM+Dir) â€” not a JWS algorithm.
+	// Create a JWE elastic key (A256GCM+Dir) ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â not a JWS algorithm.
 	ekID := seedBarrierEncryptedElasticKey(t, stack, "verify-jwe-reject", cryptoutilOpenapiModel.A256GCMDir)
 
 	// Create a JWS key to produce a valid JWS message.
@@ -371,33 +356,31 @@ func TestVerifyByElasticKeyID_NonJWSAlgorithm(t *testing.T) {
 	jwsBytes, err := stack.service.PostSignByElasticKeyID(stack.ctx, &ekIDJWS, payload)
 	testify.NoError(t, err)
 
-	// Verify with JWE elastic key â€” should fail because A256GCM+Dir is not JWS.
+	// Verify with JWE elastic key ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â should fail because A256GCM+Dir is not JWS.
 	_, err = stack.service.PostVerifyByElasticKeyID(stack.ctx, &ekID, jwsBytes)
 	testify.Error(t, err)
 }
 
+// Sequential: tests mutate shared testCore database with WAL write locks; parallel execution causes SQLite lock contention.
 func TestGetMaterialKeys_CachePath(t *testing.T) {
-	t.Parallel()
-
 	stack := setupTestStack(t)
 
-	// Seed two elastic keys with material keys â€” exercises the elastic key cache in GetMaterialKeys.
+	// Seed two elastic keys with material keys ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â exercises the elastic key cache in GetMaterialKeys.
 	ekID1 := seedElasticKey(t, stack, "cache-ek1", cryptoutilOpenapiModel.A256GCMDir, cryptoutilKmsServer.Active)
 	seedMaterialKey(t, stack, ekID1)
-	seedMaterialKey(t, stack, ekID1) // Second MK on same EK â€” cache hit.
+	seedMaterialKey(t, stack, ekID1) // Second MK on same EK ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â cache hit.
 
 	ekID2 := seedElasticKey(t, stack, "cache-ek2", cryptoutilOpenapiModel.ES256, cryptoutilKmsServer.Active)
 	seedMaterialKey(t, stack, ekID2)
 
-	// Get all material keys â€” this exercises the elasticKeyCache with multiple elastic keys.
+	// Get all material keys ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â this exercises the elasticKeyCache with multiple elastic keys.
 	mks, err := stack.service.GetMaterialKeys(stack.ctx, nil)
 	testify.NoError(t, err)
 	testify.GreaterOrEqual(t, len(mks), 3)
 }
 
+// Sequential: tests mutate shared testCore database with WAL write locks; parallel execution causes SQLite lock contention.
 func TestGetMaterialKeysForElasticKey_WithPagination(t *testing.T) {
-	t.Parallel()
-
 	stack := setupTestStack(t)
 
 	ekID := seedElasticKey(t, stack, "mk-paginated", cryptoutilOpenapiModel.A256GCMDir, cryptoutilKmsServer.Active)
@@ -414,9 +397,8 @@ func TestGetMaterialKeysForElasticKey_WithPagination(t *testing.T) {
 	testify.Len(t, mks, 2) // First page of 3 items with size 2.
 }
 
+// Sequential: tests mutate shared testCore database with WAL write locks; parallel execution causes SQLite lock contention.
 func TestGetElasticKeys_WithPagination(t *testing.T) {
-	t.Parallel()
-
 	stack := setupTestStack(t)
 
 	seedElasticKey(t, stack, "paginated-a", cryptoutilOpenapiModel.A256GCMDir, cryptoutilKmsServer.Active)
@@ -432,9 +414,8 @@ func TestGetElasticKeys_WithPagination(t *testing.T) {
 	testify.Len(t, eks, 2) // First page of 3 items with size 2.
 }
 
+// Sequential: tests mutate shared testCore database with WAL write locks; parallel execution causes SQLite lock contention.
 func TestGetMaterialKeys_WithPagination(t *testing.T) {
-	t.Parallel()
-
 	stack := setupTestStack(t)
 
 	ekID := seedElasticKey(t, stack, "mk-paged", cryptoutilOpenapiModel.A256GCMDir, cryptoutilKmsServer.Active)
@@ -451,9 +432,8 @@ func TestGetMaterialKeys_WithPagination(t *testing.T) {
 	testify.Len(t, mks, 2) // First page of 3 items with size 2.
 }
 
+// Sequential: tests mutate shared testCore database with WAL write locks; parallel execution causes SQLite lock contention.
 func TestGetElasticKeys_InvalidPageParam(t *testing.T) {
-	t.Parallel()
-
 	stack := setupTestStack(t)
 
 	negativePage := -1
@@ -464,9 +444,8 @@ func TestGetElasticKeys_InvalidPageParam(t *testing.T) {
 	testify.Contains(t, err.Error(), "invalid ElasticKeysQueryParams")
 }
 
+// Sequential: tests mutate shared testCore database with WAL write locks; parallel execution causes SQLite lock contention.
 func TestGetMaterialKeysForElasticKey_NonexistentElasticKey(t *testing.T) {
-	t.Parallel()
-
 	stack := setupTestStack(t)
 
 	nonexistentID := googleUuid.New()
@@ -475,9 +454,8 @@ func TestGetMaterialKeysForElasticKey_NonexistentElasticKey(t *testing.T) {
 	testify.Error(t, err)
 }
 
+// Sequential: tests mutate shared testCore database with WAL write locks; parallel execution causes SQLite lock contention.
 func TestGetMaterialKeys_InvalidPageParam(t *testing.T) {
-	t.Parallel()
-
 	stack := setupTestStack(t)
 
 	negativePage := -1

@@ -38,9 +38,8 @@ func seedImportableElasticKeyWithStatus(t *testing.T, stack *testStack, name str
 	return ekID
 }
 
+// Sequential: tests mutate shared testCore database with WAL write locks; parallel execution causes SQLite lock contention.
 func TestNoTenantContext(t *testing.T) {
-	t.Parallel()
-
 	stack := setupTestStack(t)
 	noTenant := context.Background()
 	id := googleUuid.New()
@@ -113,8 +112,6 @@ func TestNoTenantContext(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-
 			err := tc.fn()
 			testify.Error(t, err)
 			testify.Contains(t, err.Error(), "tenant context required")
@@ -122,9 +119,8 @@ func TestNoTenantContext(t *testing.T) {
 	}
 }
 
+// Sequential: tests mutate shared testCore database with WAL write locks; parallel execution causes SQLite lock contention.
 func TestAddElasticKey(t *testing.T) {
-	t.Parallel()
-
 	tests := []struct {
 		name     string
 		create   cryptoutilKmsServer.ElasticKeyCreate
@@ -151,8 +147,6 @@ func TestAddElasticKey(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-
 			stack := setupTestStack(t)
 			result, err := stack.service.AddElasticKey(stack.ctx, &tc.create)
 
@@ -171,9 +165,8 @@ func TestAddElasticKey(t *testing.T) {
 	}
 }
 
+// Sequential: tests mutate shared testCore database with WAL write locks; parallel execution causes SQLite lock contention.
 func TestGenerateMaterialKeyInElasticKey(t *testing.T) {
-	t.Parallel()
-
 	tests := []struct {
 		name   string
 		setup  func(t *testing.T, stack *testStack) googleUuid.UUID
@@ -209,8 +202,6 @@ func TestGenerateMaterialKeyInElasticKey(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-
 			stack := setupTestStack(t)
 			ekID := tc.setup(t, stack)
 			result, err := stack.service.GenerateMaterialKeyInElasticKey(stack.ctx, &ekID, nil)
@@ -229,9 +220,8 @@ func TestGenerateMaterialKeyInElasticKey(t *testing.T) {
 	}
 }
 
+// Sequential: tests mutate shared testCore database with WAL write locks; parallel execution causes SQLite lock contention.
 func TestImportMaterialKey(t *testing.T) {
-	t.Parallel()
-
 	tests := []struct {
 		name    string
 		setup   func(t *testing.T, stack *testStack) googleUuid.UUID
@@ -269,8 +259,6 @@ func TestImportMaterialKey(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-
 			stack := setupTestStack(t)
 			ekID := tc.setup(t, stack)
 			result, err := stack.service.ImportMaterialKey(stack.ctx, &ekID, &cryptoutilKmsServer.MaterialKeyImport{
@@ -295,9 +283,8 @@ func TestImportMaterialKey(t *testing.T) {
 	}
 }
 
+// Sequential: tests mutate shared testCore database with WAL write locks; parallel execution causes SQLite lock contention.
 func TestPostOperation_NoMaterialKey(t *testing.T) {
-	t.Parallel()
-
 	tests := []struct {
 		name string
 		fn   func(*testStack, googleUuid.UUID) error
@@ -322,8 +309,6 @@ func TestPostOperation_NoMaterialKey(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-
 			stack := setupTestStack(t)
 			ekID := seedElasticKey(t, stack, "op-nomk-"+tc.name, cryptoutilOpenapiModel.A256GCMDir, cryptoutilKmsServer.Active)
 			err := tc.fn(stack, ekID)
@@ -332,9 +317,8 @@ func TestPostOperation_NoMaterialKey(t *testing.T) {
 	}
 }
 
+// Sequential: tests mutate shared testCore database with WAL write locks; parallel execution causes SQLite lock contention.
 func TestPostOperation_InvalidInput(t *testing.T) {
-	t.Parallel()
-
 	tests := []struct {
 		name    string
 		fn      func(*testStack, googleUuid.UUID) error
@@ -360,8 +344,6 @@ func TestPostOperation_InvalidInput(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-
 			stack := setupTestStack(t)
 			ekID := googleUuid.New()
 			err := tc.fn(stack, ekID)

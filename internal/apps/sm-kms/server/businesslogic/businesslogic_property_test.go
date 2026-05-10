@@ -15,9 +15,8 @@ import (
 
 // TestEncryptDecryptProperty_RandomPayloads verifies the encrypt-then-decrypt identity property.
 // For any random payload, decrypt(encrypt(payload)) must equal the original payload.
+// Sequential: tests mutate shared testCore database with WAL write locks; parallel execution causes SQLite lock contention.
 func TestEncryptDecryptProperty_RandomPayloads(t *testing.T) {
-	t.Parallel()
-
 	stack := setupCryptoTestStack(t)
 	ekID := seedBarrierElasticKeyForCoverage(t, stack, "prop-enc-dec", cryptoutilOpenapiModel.A256GCMDir)
 
@@ -40,9 +39,8 @@ func TestEncryptDecryptProperty_RandomPayloads(t *testing.T) {
 
 // TestSignVerifyProperty_RandomPayloads verifies the sign-then-verify identity property.
 // For any random payload, verify(sign(payload)) must return the original payload.
+// Sequential: tests mutate shared testCore database with WAL write locks; parallel execution causes SQLite lock contention.
 func TestSignVerifyProperty_RandomPayloads(t *testing.T) {
-	t.Parallel()
-
 	stack := setupCryptoTestStack(t)
 	ekID := seedBarrierElasticKeyForCoverage(t, stack, "prop-sign-verify", cryptoutilOpenapiModel.ES256)
 
@@ -63,9 +61,8 @@ func TestSignVerifyProperty_RandomPayloads(t *testing.T) {
 }
 
 // TestEncryptProperty_OutputDiffersFromInput verifies semantic security: ciphertext must not equal plaintext.
+// Sequential: tests mutate shared testCore database with WAL write locks; parallel execution causes SQLite lock contention.
 func TestEncryptProperty_OutputDiffersFromInput(t *testing.T) {
-	t.Parallel()
-
 	stack := setupCryptoTestStack(t)
 	ekID := seedBarrierElasticKeyForCoverage(t, stack, "prop-semantic", cryptoutilOpenapiModel.A256GCMDir)
 

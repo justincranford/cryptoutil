@@ -194,11 +194,9 @@ func seedMaterialKey(t *testing.T, stack *testStack, ekID googleUuid.UUID) googl
 	return mkID
 }
 
+// Sequential: tests mutate shared testCore database with WAL write locks; parallel execution causes SQLite lock contention.
 func TestGetElasticKeyByID(t *testing.T) {
-	t.Parallel()
-
 	t.Run("found", func(t *testing.T) {
-		t.Parallel()
 		stack := setupTestStack(t)
 		ekID := seedElasticKey(t, stack, "get-by-id", cryptoutilOpenapiModel.A256GCMDir, cryptoutilKmsServer.Active)
 		ek, err := stack.service.GetElasticKeyByElasticKeyID(stack.ctx, &ekID)
@@ -208,7 +206,6 @@ func TestGetElasticKeyByID(t *testing.T) {
 	})
 
 	t.Run("not found", func(t *testing.T) {
-		t.Parallel()
 		stack := setupTestStack(t)
 		missingID := googleUuid.New()
 		_, err := stack.service.GetElasticKeyByElasticKeyID(stack.ctx, &missingID)
@@ -216,8 +213,8 @@ func TestGetElasticKeyByID(t *testing.T) {
 	})
 }
 
+// Sequential: tests mutate shared testCore database with WAL write locks; parallel execution causes SQLite lock contention.
 func TestGetElasticKeys(t *testing.T) {
-	t.Parallel()
 	stack := setupTestStack(t)
 	seedElasticKey(t, stack, "list-a", cryptoutilOpenapiModel.A256GCMDir, cryptoutilKmsServer.Active)
 	seedElasticKey(t, stack, "list-b", cryptoutilOpenapiModel.A256GCMDir, cryptoutilKmsServer.Active)
@@ -226,8 +223,8 @@ func TestGetElasticKeys(t *testing.T) {
 	testify.Len(t, all, 2)
 }
 
+// Sequential: tests mutate shared testCore database with WAL write locks; parallel execution causes SQLite lock contention.
 func TestGetMaterialKeysForElasticKey(t *testing.T) {
-	t.Parallel()
 	stack := setupTestStack(t)
 	ekID := seedElasticKey(t, stack, "mat-for-ek", cryptoutilOpenapiModel.A256GCMDir, cryptoutilKmsServer.Active)
 	seedMaterialKey(t, stack, ekID)
@@ -237,8 +234,8 @@ func TestGetMaterialKeysForElasticKey(t *testing.T) {
 	testify.Len(t, mks, 2)
 }
 
+// Sequential: tests mutate shared testCore database with WAL write locks; parallel execution causes SQLite lock contention.
 func TestGetMaterialKeys(t *testing.T) {
-	t.Parallel()
 	stack := setupTestStack(t)
 	ekID := seedElasticKey(t, stack, "mat-all", cryptoutilOpenapiModel.A256GCMDir, cryptoutilKmsServer.Active)
 	seedMaterialKey(t, stack, ekID)
@@ -247,11 +244,9 @@ func TestGetMaterialKeys(t *testing.T) {
 	testify.GreaterOrEqual(t, len(mks), 1)
 }
 
+// Sequential: tests mutate shared testCore database with WAL write locks; parallel execution causes SQLite lock contention.
 func TestGetMaterialKeyByIDs(t *testing.T) {
-	t.Parallel()
-
 	t.Run("found", func(t *testing.T) {
-		t.Parallel()
 		stack := setupTestStack(t)
 		ekID := seedElasticKey(t, stack, "mat-by-ids", cryptoutilOpenapiModel.A256GCMDir, cryptoutilKmsServer.Active)
 		mkID := seedMaterialKey(t, stack, ekID)
@@ -261,7 +256,6 @@ func TestGetMaterialKeyByIDs(t *testing.T) {
 	})
 
 	t.Run("not found", func(t *testing.T) {
-		t.Parallel()
 		stack := setupTestStack(t)
 		ekID := seedElasticKey(t, stack, "mat-nf", cryptoutilOpenapiModel.A256GCMDir, cryptoutilKmsServer.Active)
 		missingMK := googleUuid.New()
@@ -270,11 +264,9 @@ func TestGetMaterialKeyByIDs(t *testing.T) {
 	})
 }
 
+// Sequential: tests mutate shared testCore database with WAL write locks; parallel execution causes SQLite lock contention.
 func TestUpdateElasticKey(t *testing.T) {
-	t.Parallel()
-
 	t.Run("success", func(t *testing.T) {
-		t.Parallel()
 		stack := setupTestStack(t)
 		ekID := seedElasticKey(t, stack, "update-me", cryptoutilOpenapiModel.A256GCMDir, cryptoutilKmsServer.Active)
 		newDesc := "updated-desc"
@@ -287,7 +279,6 @@ func TestUpdateElasticKey(t *testing.T) {
 	})
 
 	t.Run("not found", func(t *testing.T) {
-		t.Parallel()
 		stack := setupTestStack(t)
 		missingID := googleUuid.New()
 		newDesc := "desc"
@@ -299,9 +290,8 @@ func TestUpdateElasticKey(t *testing.T) {
 	})
 }
 
+// Sequential: tests mutate shared testCore database with WAL write locks; parallel execution causes SQLite lock contention.
 func TestDeleteElasticKey(t *testing.T) {
-	t.Parallel()
-
 	tests := []struct {
 		name    string
 		status  cryptoutilKmsServer.ElasticKeyStatus
@@ -316,7 +306,6 @@ func TestDeleteElasticKey(t *testing.T) {
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
 			stack := setupTestStack(t)
 			ekID := seedElasticKey(t, stack, "del-"+tc.name, cryptoutilOpenapiModel.A256GCMDir, tc.status)
 
@@ -333,7 +322,6 @@ func TestDeleteElasticKey(t *testing.T) {
 	}
 
 	t.Run("not found", func(t *testing.T) {
-		t.Parallel()
 		stack := setupTestStack(t)
 		missingID := googleUuid.New()
 		err := stack.service.DeleteElasticKey(stack.ctx, &missingID)
@@ -341,11 +329,9 @@ func TestDeleteElasticKey(t *testing.T) {
 	})
 }
 
+// Sequential: tests mutate shared testCore database with WAL write locks; parallel execution causes SQLite lock contention.
 func TestRevokeMaterialKey(t *testing.T) {
-	t.Parallel()
-
 	t.Run("success", func(t *testing.T) {
-		t.Parallel()
 		stack := setupTestStack(t)
 		ekID := seedElasticKey(t, stack, "revoke-mk", cryptoutilOpenapiModel.A256GCMDir, cryptoutilKmsServer.Active)
 		mkID := seedMaterialKey(t, stack, ekID)
@@ -354,7 +340,6 @@ func TestRevokeMaterialKey(t *testing.T) {
 	})
 
 	t.Run("already revoked", func(t *testing.T) {
-		t.Parallel()
 		stack := setupTestStack(t)
 		ekID := seedElasticKey(t, stack, "revoke-dup", cryptoutilOpenapiModel.A256GCMDir, cryptoutilKmsServer.Active)
 		mkID := seedMaterialKey(t, stack, ekID)
@@ -366,7 +351,6 @@ func TestRevokeMaterialKey(t *testing.T) {
 	})
 
 	t.Run("not found", func(t *testing.T) {
-		t.Parallel()
 		stack := setupTestStack(t)
 		ekID := googleUuid.New()
 		mkID := googleUuid.New()
@@ -375,8 +359,8 @@ func TestRevokeMaterialKey(t *testing.T) {
 	})
 }
 
+// Sequential: tests mutate shared testCore database with WAL write locks; parallel execution causes SQLite lock contention.
 func TestDeleteMaterialKey_NotImplemented(t *testing.T) {
-	t.Parallel()
 	stack := setupTestStack(t)
 	ekID := googleUuid.New()
 	mkID := googleUuid.New()

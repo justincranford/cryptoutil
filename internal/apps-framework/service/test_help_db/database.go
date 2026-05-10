@@ -38,7 +38,7 @@ func NewInMemorySQLiteDBForTestMain() (*gorm.DB, func(), error) {
 		return nil, nil, fmt.Errorf("test_help_db: failed to generate UUID: %w", err)
 	}
 
-	dsn := "file:" + dbID.String() + "?mode=memory&cache=private"
+	dsn := "file:" + dbID.String() + "?mode=memory&cache=shared"
 
 	db, sqlDB, err := buildInMemorySQLiteDB(context.Background(), sql.Open, dsn)
 	if err != nil {
