@@ -1,6 +1,6 @@
 # Tasks - Framework v21 TestMain Orchestration Consolidation
 
-Status: 11 of 74 tasks complete (14.9%)
+Status: 16 of 74 tasks complete (21.6%)
 Created: 2026-05-09
 Last Updated: 2026-05-09
 
@@ -77,7 +77,7 @@ Acceptance Criteria:
 1. Risk documented in plan.
 2. Migration task to test_orch_e2e is explicit.
 
-## Phase 2 - API Design for 9 Directory Families
+## Phase 2 - API Design for 8 Directory Families
 
 Design boundary rule (mandatory): ALL Phase 2 design decisions MUST be complete in planning artifacts before execution proceeds. No design-on-the-fly is permitted during implementation.
 
@@ -90,7 +90,7 @@ Acceptance Criteria:
 
 ### Task 2.2 - Design test_orch_integration API
 
-Status: In progress
+Status: Complete
 Acceptance Criteria:
 1. One-server direct startup with SQLite and dynamic dual ports.
 2. TB-based startup/shutdown semantics (no panic-only API).
@@ -103,34 +103,55 @@ Unblock Input:
 8. Round 1 decision merged: one-pass migration with no compatibility wrappers (Q5 = C).
 9. Round 2 decisions merged from handbook defaults: Q3 readiness = admin readyz default; Q4 port policy = mandatory port 0.
 10. Round 3 decisions merged: Q1 fixture scope default = per-package shared fixture with opt-in per-test isolation; Q2 error-path contract = explicit pre-broken fixture factory APIs.
+Design Closure:
+11. Orchestration handle contract: StartIntegrationSuite(tb, spec) returns resolved PublicBaseURL/AdminBaseURL, DB handle, and deterministic cleanup callback registered via tb.Cleanup.
+12. Fixture scope contract: per-package shared fixture default, with explicit opt-in constructors for per-test isolated fixture instances.
+13. Error-path fixture contract: BuildBrokenDBFixture(reason) and BuildBrokenAPIClientFixture(reason) style factory surfaces for deterministic failure-path tests.
+14. Readiness contract: admin readyz is mandatory readiness gate; suites may append additional probes.
+15. Port contract: both public/admin listeners bind to port 0 in integration tests; orchestrator returns resolved runtime URLs.
+16. Startup/shutdown contract: startup must fail fast with wrapped error context; shutdown must always run through tb.Cleanup and aggregate cleanup errors.
 
 ### Task 2.3 - Design test_help_db API
 
-Status: Not started
+Status: Complete
 Acceptance Criteria:
 1. SQLite setup + migrations + optional closed-DB fixtures.
 2. Replaces direct testdb call sites via wrapper or direct migration.
+Design Closure:
+3. API exposes NewInMemorySQLiteDB, NewClosedSQLiteDB, and migration-first setup helpers used by integration orchestration.
+4. DB helper surface is lifecycle-neutral and consumed by test_orch_integration rather than owning startup/shutdown.
 
 ### Task 2.4 - Design test_help_api API
 
-Status: Not started
+Status: Complete
 Acceptance Criteria:
 1. Includes moved healthclient surface.
 2. Includes request/assertion helpers and HTTP mocks namespace.
+Design Closure:
+3. healthclient surface is designated to move under test_help_api with mock HTTP server helpers under test_help_api/mocks.
+4. API helper package remains transport-level and does not own service lifecycle.
 
 ### Task 2.5 - Design test_help_cli API
 
-Status: Not started
+Status: Complete
 Acceptance Criteria:
 1. Includes moved testcli surface.
 2. Supports deterministic args/stdout/stderr/exit assertions.
+Design Closure:
+3. CLI helper package standardizes argv/stdout/stderr/exit assertions and error wrapping across client and command tests.
+4. CLI helper package remains assertion-focused and does not own service lifecycle.
 
 ### Task 2.6 - Design supporting APIs (test_help_tls/test_help_barrier/test_help_compose/test_help_bootstrap)
 
-Status: Not started
+Status: Complete
 Acceptance Criteria:
 1. Clear package boundaries and dependency direction.
 2. No overlap ambiguity with test_help_api/test_orch_integration/test_orch_e2e.
+Design Closure:
+3. test_help_tls owns TLS material and client construction helpers only.
+4. test_help_barrier owns barrier/unseal fixture composition only.
+5. test_help_bootstrap owns config/env/bootstrap wiring only.
+6. Compose lifecycle helpers are consolidated into test_orch_e2e and are not a separate canonical directory.
 
 ## Phase 3 - Implement and Consolidate Framework Packages
 

@@ -328,9 +328,9 @@ Phase 2: API design (MANDATORY completion in planning phase)
 **Critical boundary rule**: No design deferral to execution. ALL design decisions for Phase 2 MUST be fully specified in planning artifacts before implementation continues.
 
 1. Task 2.1: Finalize test_orch_e2e API boundaries - ✅ COMPLETE (implemented in Phase 3.2)
-2. Task 2.2: Finalize test_orch_integration API boundaries - 🔄 IN PROGRESS (critical path, blocks Phases 4-8 until design is complete)
-3. Finalize moved-vs-reusable package boundaries.
-4. Finalize directory dependency direction and no-overlap boundaries.
+2. Task 2.2: Finalize test_orch_integration API boundaries - ✅ COMPLETE (design closure merged into planning artifacts)
+3. Finalize moved-vs-reusable package boundaries - ✅ COMPLETE.
+4. Finalize directory dependency direction and no-overlap boundaries - ✅ COMPLETE.
 
 Phase 2 acceptance gates (must all pass before implementation resumes):
 1. test_orch_integration API surface fully specified for all 37 remaining migrations.
@@ -351,17 +351,26 @@ Phase 2 unblock artifact:
    - Q2 error-path fixture default: explicit factory APIs returning pre-broken fixtures.
 4. Quiz lifecycle complete for Phase 2 blocker inputs; no open quizme artifact remains.
 
-**Status**: ⚠️ PARTIAL (1/4 complete, 1 in progress on critical path)
+Phase 2 design closure (implementation-ready contracts now fixed in planning docs):
+1. test_orch_integration startup contract fixed: one-server startup with SQLite and dynamic dual port binding, returning resolved runtime URLs.
+2. Lifecycle contract fixed: TB-based startup/shutdown with deterministic tb.Cleanup registration and wrapped error propagation.
+3. Fixture scope contract fixed: per-package shared fixture default, with explicit per-test isolation option.
+4. Error-path fixture contract fixed: explicit pre-broken fixture factory API surfaces for DB/API failure-path tests.
+5. Readiness contract fixed: admin readyz is mandatory; suites may append extra probes.
+6. Port isolation contract fixed: both listeners use port 0 in tests for concurrency-safe execution.
+7. Package boundary contract fixed: helper packages remain lifecycle-neutral; orchestration ownership remains only in test_orch_e2e and test_orch_integration.
+
+**Status**: ✅ COMPLETE (4/4 tasks complete)
 
 Phase 3: Implement orchestration modules
 
 1. Task 3.1: Create all test_orch_*and test_help_* directories - ⚠️ PARTIAL (only test_orch_e2e created)
 2. Task 3.2: Implement test_orch_e2e from e2e_infra - ✅ COMPLETE (Commit 7d07de9c5)
-3. Task 3.3: Implement test_orch_integration - ⏳ BLOCKED (Phase 2.2 design dependency)
+3. Task 3.3: Implement test_orch_integration - ⏳ NOT STARTED (design dependency resolved in Phase 2)
 4. Port code from existing framework testing packages.
 5. Validate directory-level package docs and tests.
 
-**Status**: ⚠️ IN PROGRESS (1/5 complete, 1 blocked by Phase 2.2)
+**Status**: ⚠️ IN PROGRESS (1/5 complete, 0 blocked by Phase 2.2)
 
 **Key Achievement**: Parameterized E2E orchestration for all 10 PS-IDs via NewTLSPSIDSpec factory in test_orch_e2e/tls_psid_spec_e2e.go. All 3 TLS E2E test files are physically relocated under internal/apps-framework/service/test_orch_e2e and TestMain now supports PS-ID selection via CRYPTOUTIL_TLS_E2E_PSID.
 
@@ -372,7 +381,7 @@ Phase 4: Framework package migration
 3. Move service/testutil mocks -> test_help_api/mocks.
 4. Enforce one-pass direct migration with no compatibility wrappers.
 
-**Status**: ⏳ BLOCKED (depends on Phase 2.2 completion)
+**Status**: ⏳ NOT STARTED (depends on Phase 3 completion)
 
 Phase 5: internal/apps PS-ID migration
 
@@ -380,7 +389,7 @@ Phase 5: internal/apps PS-ID migration
 2. Enforce sm-im and sm-kms client migration to test_orch_integration.
 3. Refactor sm-kms businesslogic and orm integration patterns.
 
-**Status**: ⏳ BLOCKED (depends on Phase 2.2 completion, 37 TestMain files pending migration)
+**Status**: ⏳ NOT STARTED (depends on Phase 4 completion, 37 TestMain files pending migration)
 
 Phase 6: internal/apps-framework TestMain migration
 
