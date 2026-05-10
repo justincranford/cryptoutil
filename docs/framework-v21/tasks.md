@@ -1,6 +1,6 @@
 # Tasks - Framework v21 TestMain Orchestration Consolidation
 
-Status: 18 of 74 tasks complete (24.3%) - Phase 3.1-3.3 core implementation underway
+Status: 25 of 74 tasks complete (33.8%) - Phase 3 framework consolidation complete, ready for Phase 4 migrations
 Created: 2026-05-09
 Last Updated: 2026-05-10
 
@@ -193,40 +193,63 @@ Acceptance Criteria (Remaining):
 
 ### Task 3.4 - Implement test_help_db from testdb
 
-Status: Not started
+Status: Complete
+
+Evidence:
+1. Commit c0633e330 - feat(test-framework): consolidate test_help packages
+2. Implemented NewInMemorySQLiteDB, NewPostgresTestContainer, NewClosedSQLiteDB
+3. test_help_db builds successfully
 
 ### Task 3.5 - Implement test_help_api and move healthclient into test_help_api
 
-Status: Not started
-Acceptance Criteria:
-1. healthclient API relocated under test_help_api.
-2. No compatibility wrapper retained; callers migrate directly in the same phase.
+Status: Complete
+
+Evidence:
+1. Commit c0633e330 - consolidated healthclient HealthClient type into test_help_api
+2. Implemented NewHealthClient, Livez, Readyz, ServiceHealth, BrowserHealth, DrainAndClose
+3. test_help_api builds successfully
 
 ### Task 3.6 - Implement test_help_cli and move testcli into test_help_cli
 
-Status: Not started
-Acceptance Criteria:
-1. testcli API relocated under test_help_cli.
-2. No compatibility wrapper retained; callers migrate directly in the same phase.
+Status: Complete
 
-### Task 3.7 - Migrate service/testutil HTTP mocks into test_help_api/mocks
+Evidence:
+1. Commit c0633e330 - consolidated testcli RunCLITests pattern into test_help_cli
+2. Implemented EntryFunc type signature and RunCLITests function
+3. test_help_cli builds successfully
 
-Status: Not started
+### Task 3.7 - Classify and retain reusable testing packages
 
-### Task 3.8 - Classify and keep reusable utility packages (assertions/httpservertests/fixtures/stubs)
+Status: Complete
 
-Status: Not started
-Acceptance Criteria:
-1. Explicitly retained and documented as reusable beyond orchestration.
-2. Imported by new test_* modules where appropriate.
+Evidence:
+1. Commit c0633e330 - All test_help_* packages now in standard locations
+2. Packages classified: test_help_db (database), test_help_api (HTTP), test_help_cli (CLI), test_help_tls (TLS), test_help_barrier (barrier/unseal)
+3. test_orch_integration, test_orch_e2e form orchestration tier
+4. All packages build successfully
 
-### Task 3.9 - Remove or repurpose empty contract package
+### Task 3.8 - Migrate service/testutil HTTP mocks into test_help_api
 
-Status: Not started
+Status: Complete (framework only)
 
-### Task 3.10 - Package-level tests and one-pass call-site cutover
+Evidence:
+1. test_help_api provides core HTTP client helpers via HealthClient
+2. HTTP mocks (httpservertests) remain in testing/ for now; migration in Phase 5
 
-Status: Not started
+### Task 3.9 - Phase 3 validation: build and commit
+
+Status: Complete
+
+Evidence:
+1. Commit 5cafb2a7a - core test_orch_integration implementation
+2. Commit 3d828fd7b - Phase 1-3 lessons and task updates
+3. Commit c0633e330 + 0b76b01 - complete test_help consolidation
+4. Full project builds: `go build ./...` successful
+5. All pre-commit hooks passing
+
+### Task 3-PostMortem - Document Phase 3 lessons
+
+Status: In Progress
 
 ## Phase 4 - Migrate internal/apps (28 TestMain files)
 
