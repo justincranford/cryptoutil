@@ -18,6 +18,7 @@ import (
 	"net"
 	http "net/http"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -33,10 +34,28 @@ var (
 	composeManager *cryptoutilTestOrchE2E.ComposeManager
 )
 
+const tlsE2EPSIDEnvVarName = "CRYPTOUTIL_TLS_E2E_PSID"
+
+func resolveTLSPSID() string {
+	psid := strings.TrimSpace(os.Getenv(tlsE2EPSIDEnvVarName))
+	if psid == "" {
+		return cryptoutilSharedMagic.OTLPServiceSMKMS
+	}
+
+	return psid
+}
+
 func TestMain(m *testing.M) {
-	spec, err := cryptoutilTestOrchE2E.NewTLSPSIDSpec(cryptoutilSharedMagic.OTLPServiceSMKMS)
+	selectedPSID := resolveTLSPSID()
+
+	spec, err := cryptoutilTestOrchE2E.NewTLSPSIDSpec(selectedPSID)
 	if err != nil {
-		fmt.Printf("ERROR: test-orch spec init failed: %v\n", err)
+		fmt.Printf("ERROR: test-orch spec init failed for psid=%q (set %s to one of %v): %v\n",
+			selectedPSID,
+			tlsE2EPSIDEnvVarName,
+			cryptoutilTestOrchE2E.SupportedTLSPSIDs(),
+			err,
+		)
 
 		os.Exit(1)
 	}
