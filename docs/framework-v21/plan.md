@@ -343,8 +343,11 @@ Phase 2 acceptance gates (must all pass before implementation resumes):
 
 Phase 2 unblock artifact:
 1. Round 1 answer merged: Migration compatibility strategy is one-pass direct migration with no compatibility wrappers.
-2. `docs/framework-v21/quizme-v2.md` captures unresolved user-choice decisions required to close Task 2.2 and downstream helper API design tasks (2.3-2.6).
-3. After answers are provided, merge decisions into plan/tasks and delete quizme-v2.md per lifecycle policy.
+2. Round 2 handbook-backed defaults merged:
+   - Readiness default: admin `/admin/api/v1/readyz` is the mandatory readiness gate for integration orchestration; optional extra probes may be added by suites.
+   - Port policy default: both listeners use port 0 in tests, with resolved runtime URLs returned by orchestration handles.
+3. `docs/framework-v21/quizme-v3.md` captures only unresolved user-choice decisions (Q1/Q2) required to close Task 2.2 and downstream helper API design tasks (2.3-2.6).
+4. After answers are provided, merge decisions into plan/tasks and delete quizme-v3.md per lifecycle policy.
 
 **Status**: ⚠️ PARTIAL (1/4 complete, 1 in progress on critical path)
 
@@ -457,3 +460,12 @@ Second-pass validation checklist for omissions:
    - Answer: E
 5. Question: Migration compatibility strategy?
    - Answer: C (remove wrappers immediately; require direct migration in one pass)
+
+## Quizme Round 2 (2026-05-09)
+
+1. Question: Readiness endpoint contract for integration orchestration?
+   - Answer: E => A semantics (require admin readyz `/admin/api/v1/readyz`, allow optional extra probes)
+   - Basis: handbook and propagated architecture instruction defaults.
+2. Question: Port allocation and concurrency safety contract?
+   - Answer: E => A semantics (always bind both listeners to port 0; return resolved URLs)
+   - Basis: handbook and propagated architecture instruction defaults.

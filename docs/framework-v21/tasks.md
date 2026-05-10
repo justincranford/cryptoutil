@@ -101,7 +101,8 @@ Acceptance Criteria:
 7. API design is implementation-ready with no deferred design decisions.
 Unblock Input:
 8. Round 1 decision merged: one-pass migration with no compatibility wrappers (Q5 = C).
-9. `docs/framework-v21/quizme-v2.md` must be answered and merged to finalize Q1-Q4 default policies and close remaining design ambiguity.
+9. Round 2 decisions merged from handbook defaults: Q3 readiness = admin readyz default; Q4 port policy = mandatory port 0.
+10. `docs/framework-v21/quizme-v3.md` must be answered and merged to finalize only Q1-Q2 policies and close remaining design ambiguity.
 
 ### Task 2.3 - Design test_help_db API
 
