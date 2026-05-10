@@ -100,7 +100,8 @@ Acceptance Criteria:
 6. Port 0 isolation and concurrent test safety rules explicitly documented.
 7. API design is implementation-ready with no deferred design decisions.
 Unblock Input:
-8. `docs/framework-v21/quizme-v1.md` must be answered and merged to finalize default policies and close remaining design ambiguity.
+8. Round 1 decision merged: one-pass migration with no compatibility wrappers (Q5 = C).
+9. `docs/framework-v21/quizme-v2.md` must be answered and merged to finalize Q1-Q4 default policies and close remaining design ambiguity.
 
 ### Task 2.3 - Design test_help_db API
 
@@ -155,14 +156,14 @@ Status: Not started
 Status: Not started
 Acceptance Criteria:
 1. healthclient API relocated under test_help_api.
-2. Compatibility wrapper provided temporarily.
+2. No compatibility wrapper retained; callers migrate directly in the same phase.
 
 ### Task 3.6 - Implement test_help_cli and move testcli into test_help_cli
 
 Status: Not started
 Acceptance Criteria:
 1. testcli API relocated under test_help_cli.
-2. Compatibility wrapper provided temporarily.
+2. No compatibility wrapper retained; callers migrate directly in the same phase.
 
 ### Task 3.7 - Migrate service/testutil HTTP mocks into test_help_api/mocks
 
@@ -179,7 +180,7 @@ Acceptance Criteria:
 
 Status: Not started
 
-### Task 3.10 - Package-level tests and compatibility wrappers
+### Task 3.10 - Package-level tests and one-pass call-site cutover
 
 Status: Not started
 

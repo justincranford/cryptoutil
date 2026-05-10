@@ -344,8 +344,9 @@ Phase 2 acceptance gates (must all pass before implementation resumes):
 7. Execution phase receives complete design artifacts with no TBD/TBD-later decisions.
 
 Phase 2 unblock artifact:
-1. `docs/framework-v21/quizme-v1.md` captures user-choice decisions required to close Task 2.2 and downstream helper API design tasks (2.3-2.6).
-2. After answers are provided, merge decisions into plan/tasks and delete quizme-v1.md per lifecycle policy.
+1. Round 1 answer merged: Migration compatibility strategy is one-pass direct migration with no compatibility wrappers.
+2. `docs/framework-v21/quizme-v2.md` captures unresolved user-choice decisions required to close Task 2.2 and downstream helper API design tasks (2.3-2.6).
+3. After answers are provided, merge decisions into plan/tasks and delete quizme-v2.md per lifecycle policy.
 
 **Status**: ⚠️ PARTIAL (1/4 complete, 1 in progress on critical path)
 
@@ -366,7 +367,7 @@ Phase 4: Framework package migration
 1. Move testcli -> test_help_cli.
 2. Move healthclient -> test_help_api.
 3. Move service/testutil mocks -> test_help_api/mocks.
-4. Keep compatibility wrappers during migration.
+4. Enforce one-pass direct migration with no compatibility wrappers.
 
 **Status**: ⏳ BLOCKED (depends on Phase 2.2 completion)
 
@@ -401,7 +402,7 @@ Phase 8: Validation and rollout
 ## Risks and Mitigations
 
 1. Risk: helper API churn while moving packages.
-   - Mitigation: temporary wrappers with strict deprecation tasks.
+   - Mitigation: one-pass migration playbook with explicit call-site cutover sequencing and package-level verification gates.
 2. Risk: pki-ca e2e intermittent failures from compose readiness.
    - Mitigation: mandatory migration to test_orch_e2e health-wait orchestration.
 3. Risk: integration-tagged suites regress during refactor.
@@ -445,3 +446,16 @@ Second-pass validation checklist for omissions:
 3. Re-verify HTTP API, CLI, DB, TLS, barrier, compose, and bootstrap helpers are explicitly called out as first-class directories.
 4. Re-verify TestMain migration coverage remains 39 in-scope entries with no directory orphan.
 5. Re-run grep-based keyword audit before execution begins (test_orch_e2e|test_orch_integration|test_help_compose|test_help_bootstrap|test_help_barrier|test_help_db|test_help_api|test_help_cli|test_help_tls).
+
+## Quizme Round 1 (2026-05-09)
+
+1. Question: Default fixture scope model for test_orch_integration?
+   - Answer: E
+2. Question: Error-path fixture creation contract?
+   - Answer: E
+3. Question: Readiness endpoint contract for integration orchestration?
+   - Answer: E
+4. Question: Port allocation and concurrency safety contract?
+   - Answer: E
+5. Question: Migration compatibility strategy?
+   - Answer: C (remove wrappers immediately; require direct migration in one pass)
