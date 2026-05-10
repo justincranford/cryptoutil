@@ -25,8 +25,8 @@ Helper directories:
 5. test_help_cli/ - provides deterministic CLI argv/stdout/stderr/exit assertions.
 6. test_help_tls/ - provides TLS material, certificate/client construction, and secure/insecure client helpers.
 
-**NOTE: Current implementation temporarily consolidated compose helpers into test_orch_e2e.**
-Target architecture remains a dedicated `test_help_compose` helper boundary as defined in the canonical taxonomy and Goal 1A ownership rules.
+**NOTE: Compose helpers are permanently consolidated into test_orch_e2e.**
+Target architecture keeps Docker compose lifecycle and health-wait helper ownership inside `test_orch_e2e`.
 
 Execution profiles:
 
@@ -42,17 +42,16 @@ Orchestration directories (lifecycle ownership — start/wait/shutdown):
 
 Helper directories (consumed by orchestration and suites; no lifecycle ownership):
 
-1. test_help_compose
-2. test_help_bootstrap
-3. test_help_barrier
-4. test_help_db
-5. test_help_api
-6. test_help_cli
-7. test_help_tls
+1. test_help_bootstrap
+2. test_help_barrier
+3. test_help_db
+4. test_help_api
+5. test_help_cli
+6. test_help_tls
 
 Helper consumer map:
 
-1. test_help_compose: consumed by test_orch_e2e (docker compose orchestration, stack startup, health-wait coupling).
+1. test_orch_e2e: owns docker compose orchestration, stack startup, and health-wait coupling.
 2. test_help_bootstrap: consumed by test_orch_e2e and test_orch_integration (config/env setup, startup wiring).
 3. test_help_barrier: consumed by test_orch_integration and fixture-heavy repository/API suites that need unseal/barrier composition helpers.
 4. test_help_db: consumed by test_orch_integration and repository-focused TestMain suites (for SQLite fixtures and DB fault-path setup).
@@ -62,7 +61,7 @@ Helper consumer map:
 
 Primary outcomes:
 
-1. Build a complete 9-directory test_orch/test_help family.
+1. Build a complete 8-directory test_orch/test_help family.
 2. Migrate existing framework testing packages to those modules (or classify as cross-cutting reusable utilities).
 3. Migrate every TestMain in internal/apps and internal/apps-framework to the canonical orchestration APIs.
 4. Enforce with templates and lint-fitness policies.
@@ -77,7 +76,7 @@ Evidence reviewed:
 
 Findings requiring refactor in this plan revision:
 
-1. The overview collapsed scope into only two directories (integration/e2e), which regressed intent from the expanded 9-directory model.
+1. The overview collapsed scope into only two directories (integration/e2e), which regressed intent from the expanded orchestration-plus-helpers model.
 2. Later sections already referenced expanded helper directories, but the plan lacked an explicit top-level taxonomy and dependency model tying all sections together.
 3. Directory ownership for HTTP API, CLI, DB, TLS, barrier, compose, and bootstrap needed to be made explicit in canonical mapping and phase deliverables to avoid future drift.
 
@@ -130,7 +129,7 @@ Observed canonical baselines from code:
 2. Canonical integration helper baseline should be testserver.StartAndWait semantics (TB-based cleanup, not panic-based) plus test_help_tls bundle.
 3. e2e_helpers.MustStartAndWaitForDualPorts is widely used but panic-based and should be migrated behind test_orch_integration wrappers.
 
-## Goal 1 - Build 9 Directory Families
+## Goal 1 - Build 8 Directory Families
 
 Build the following directories under internal/apps-framework/service/:
 
@@ -139,20 +138,19 @@ Orchestration directories:
 2. test_orch_integration
 
 Helper directories:
-3. test_help_compose
-4. test_help_bootstrap
-5. test_help_barrier
-6. test_help_db
-7. test_help_api
-8. test_help_cli
-9. test_help_tls
+3. test_help_bootstrap
+4. test_help_barrier
+5. test_help_db
+6. test_help_api
+7. test_help_cli
+8. test_help_tls
 
 ### Goal 1A - Directory Dependency and Ownership Model
 
 Required dependency direction:
 
-1. test_help_compose and test_help_bootstrap provide foundational compose/config wiring.
-2. test_orch_e2e composes test_help_compose + test_help_bootstrap + test_help_api + test_help_tls (+ test_help_db only when local fixture helpers are needed).
+1. test_orch_e2e provides foundational compose orchestration and config wiring by composing compose helper logic with test_help_bootstrap.
+2. test_orch_e2e composes compose lifecycle helpers + test_help_bootstrap + test_help_api + test_help_tls (+ test_help_db only when local fixture helpers are needed).
 3. test_orch_integration composes test_help_bootstrap + test_help_db + test_help_tls + test_help_api.
 4. test_help_api and test_help_cli remain transport-level helpers, not lifecycle owners.
 5. test_help_barrier remains crypto/barrier fixture support consumed by integration/e2e and fixture-heavy repository suites.
@@ -160,7 +158,7 @@ Required dependency direction:
 Boundary rules:
 
 1. Lifecycle orchestration (start/wait/shutdown) belongs ONLY to test_orch_e2e and test_orch_integration.
-2. Docker Compose stack startup/teardown/health-wait helpers belong to test_help_compose.
+2. Docker Compose stack startup/teardown/health-wait helpers belong to test_orch_e2e.
 3. Config/env/startup wiring helpers belong to test_help_bootstrap.
 4. Database fixture creation and DB failure-path helpers belong to test_help_db.
 5. HTTP assertions/mocks/health checks belong to test_help_api.
@@ -172,7 +170,7 @@ Boundary rules:
 
 Existing packages and target disposition:
 
-1. testing/e2e_infra -> consolidate into test_orch_e2e + test_help_compose.
+1. testing/e2e_infra -> consolidate into test_orch_e2e (including compose lifecycle helpers).
 2. testing/e2e_helpers -> split by concern:
    - server_start_helpers -> test_orch_integration
    - http_helpers -> test_help_api + test_help_tls
@@ -207,31 +205,31 @@ Total TestMain functions in scope: 39
 
 ### Goal 2B - internal/apps (28)
 
-1. identity-authz/e2e/testmain_e2e_test.go -> test_orch_e2e, test_help_compose, test_help_bootstrap, test_help_api, test_help_tls.
+1. identity-authz/e2e/testmain_e2e_test.go -> test_orch_e2e, test_help_bootstrap, test_help_api, test_help_tls.
 2. identity-authz/server/testmain_test.go -> test_orch_integration, test_help_bootstrap, test_help_db, test_help_api, test_help_tls.
-3. identity-idp/e2e/testmain_e2e_test.go -> test_orch_e2e, test_help_compose, test_help_bootstrap, test_help_api, test_help_tls.
+3. identity-idp/e2e/testmain_e2e_test.go -> test_orch_e2e, test_help_bootstrap, test_help_api, test_help_tls.
 4. identity-idp/server/testmain_test.go -> test_orch_integration, test_help_bootstrap, test_help_db, test_help_api, test_help_tls.
-5. identity-rp/e2e/testmain_e2e_test.go -> test_orch_e2e, test_help_compose, test_help_bootstrap, test_help_api, test_help_tls.
+5. identity-rp/e2e/testmain_e2e_test.go -> test_orch_e2e, test_help_bootstrap, test_help_api, test_help_tls.
 6. identity-rp/server/testmain_test.go -> test_orch_integration, test_help_bootstrap, test_help_db, test_help_api, test_help_tls.
-7. identity-rs/e2e/testmain_e2e_test.go -> test_orch_e2e, test_help_compose, test_help_bootstrap, test_help_api, test_help_tls.
+7. identity-rs/e2e/testmain_e2e_test.go -> test_orch_e2e, test_help_bootstrap, test_help_api, test_help_tls.
 8. identity-rs/server/testmain_test.go -> test_orch_integration, test_help_bootstrap, test_help_db, test_help_api, test_help_tls.
-9. identity-spa/e2e/testmain_e2e_test.go -> test_orch_e2e, test_help_compose, test_help_bootstrap, test_help_api, test_help_tls.
+9. identity-spa/e2e/testmain_e2e_test.go -> test_orch_e2e, test_help_bootstrap, test_help_api, test_help_tls.
 10. identity-spa/server/testmain_test.go -> test_orch_integration, test_help_bootstrap, test_help_db, test_help_api, test_help_tls.
-11. jose-ja/e2e/testmain_e2e_test.go -> test_orch_e2e, test_help_compose, test_help_bootstrap, test_help_api, test_help_tls.
+11. jose-ja/e2e/testmain_e2e_test.go -> test_orch_e2e, test_help_bootstrap, test_help_api, test_help_tls.
 12. jose-ja/server/repository/testmain_test.go -> test_orch_integration, test_help_bootstrap, test_help_db, test_help_barrier, test_help_api.
 13. jose-ja/server/service/testmain_test.go -> test_orch_integration, test_help_bootstrap, test_help_db, test_help_api, test_help_tls.
 14. jose-ja/server/testmain_test.go -> test_orch_integration, test_help_bootstrap, test_help_db, test_help_api, test_help_tls.
-15. pki-ca/e2e/testmain_e2e_test.go -> test_orch_e2e, test_help_compose, test_help_bootstrap, test_help_api, test_help_tls.
+15. pki-ca/e2e/testmain_e2e_test.go -> test_orch_e2e, test_help_bootstrap, test_help_api, test_help_tls.
 16. pki-ca/server/testmain_test.go -> test_orch_integration, test_help_bootstrap, test_help_db, test_help_barrier, test_help_api, test_help_tls.
-17. skeleton-template/e2e/testmain_e2e_test.go -> test_orch_e2e, test_help_compose, test_help_bootstrap, test_help_api, test_help_tls.
+17. skeleton-template/e2e/testmain_e2e_test.go -> test_orch_e2e, test_help_bootstrap, test_help_api, test_help_tls.
 18. skeleton-template/server/testmain_test.go -> test_orch_integration, test_help_bootstrap, test_help_db, test_help_api, test_help_tls.
 19. sm-im/client/testmain_test.go -> test_orch_integration, test_help_bootstrap, test_help_cli, test_help_api, test_help_tls.
-20. sm-im/e2e/testmain_e2e_test.go -> test_orch_e2e, test_help_compose, test_help_bootstrap, test_help_api, test_help_tls.
+20. sm-im/e2e/testmain_e2e_test.go -> test_orch_e2e, test_help_bootstrap, test_help_api, test_help_tls.
 21. sm-im/server/apis/messages_test.go -> test_orch_integration, test_help_bootstrap, test_help_db, test_help_api, test_help_tls, test_help_barrier.
 22. sm-im/server/repository/testmain_test.go -> test_orch_integration, test_help_bootstrap, test_help_db, test_help_barrier.
 23. sm-im/server/testmain_test.go -> test_orch_integration, test_help_bootstrap, test_help_db, test_help_api, test_help_tls, test_help_barrier.
 24. sm-kms/client/testmain_test.go -> test_orch_integration, test_help_bootstrap, test_help_cli, test_help_api, test_help_tls.
-25. sm-kms/e2e/testmain_e2e_test.go -> test_orch_e2e, test_help_compose, test_help_bootstrap, test_help_api, test_help_tls.
+25. sm-kms/e2e/testmain_e2e_test.go -> test_orch_e2e, test_help_bootstrap, test_help_api, test_help_tls.
 26. sm-kms/server/businesslogic/businesslogic_crud_test.go -> test_orch_integration, test_help_bootstrap, test_help_db.
 27. sm-kms/server/repository/orm/orm_transaction_test.go -> test_orch_integration, test_help_bootstrap, test_help_db.
 28. sm-kms/server/testmain_test.go -> test_orch_integration, test_help_bootstrap, test_help_db, test_help_api, test_help_tls.
@@ -247,7 +245,7 @@ Total TestMain functions in scope: 39
 7. service/server/repository/test_main_test.go -> test_orch_integration, test_help_bootstrap, test_help_db.
 8. service/server/repository/orm/testmain_test.go -> test_orch_integration, test_help_bootstrap, test_help_db.
 9. service/server/barrier/barrier_service_test.go -> test_orch_integration, test_help_bootstrap, test_help_db, test_help_barrier.
-10. service/test_orch_e2e/otel_tls_e2e_test.go -> test_orch_e2e, test_help_compose, test_help_bootstrap, test_help_api, test_help_tls.
+10. service/test_orch_e2e/otel_tls_e2e_test.go -> test_orch_e2e, test_help_bootstrap, test_help_api, test_help_tls.
 11. service/testing/testserver/testserver.go (commented example TestMain; documentation-only and excluded from migration) -> docs-only example of test_orch_integration + test_help_tls wiring.
 
 ### Goal 2D - Corrected Classification Decisions
@@ -296,7 +294,7 @@ Canonical implementation boundaries are defined by the "Canonical directory taxo
 2. Client-package full-server startup duplication removed.
 3. Integration-tagged tests use test_orch_integration orchestration and shared TestMain fixtures.
 4. pki-ca e2e readiness risk eliminated by test_orch_e2e migration.
-5. All helper directories (test_help_compose, test_help_bootstrap, test_help_barrier, test_help_db, test_help_api, test_help_cli, test_help_tls) are consumed by at least one migrated orchestrator or suite.
+5. All helper directories (test_help_bootstrap, test_help_barrier, test_help_db, test_help_api, test_help_cli, test_help_tls) are consumed by at least one migrated orchestrator or suite.
 6. Every PS-ID template under api/cryptosuite-registry/templates/internal/apps/**PS_ID**/ exposes the same TestMain superset and calls the same apps-framework helpers in the same shape.
 
 ## Enforcement Strategy
@@ -409,7 +407,7 @@ Phase 8: Validation and rollout
    - Mitigation: dedicated testmain-integration-tag-policy and targeted integration test gates.
 4. Risk: mock behavior regressions in sm-im/server tests.
    - Mitigation: preserve and migrate service/testutil semantics into test_help_api/mocks.
-5. Risk: test_help_compose readiness coupling with test_orch_e2e orchestration.
+5. Risk: compose helper readiness coupling inside test_orch_e2e orchestration.
    - Mitigation: mandate health-wait semantics at compose helper API layer (not optional).
 
 ## Quality Gates
@@ -425,7 +423,7 @@ Per phase gates:
 
 Module coverage gate (plan-level):
 
-1. Evidence that each canonical directory (test_orch_e2e, test_orch_integration, test_help_compose, test_help_bootstrap, test_help_barrier, test_help_db, test_help_api, test_help_cli, test_help_tls) is represented in API design artifacts, migration mappings, and linter/template policy.
+1. Evidence that each canonical directory (test_orch_e2e, test_orch_integration, test_help_bootstrap, test_help_barrier, test_help_db, test_help_api, test_help_cli, test_help_tls) is represented in API design artifacts, migration mappings, and linter/template policy.
 
 Coverage/mutation targets:
 
@@ -445,7 +443,7 @@ Second-pass validation checklist for omissions:
 2. Re-verify all canonical directories appear in overview, goals, migration mapping, phases, and quality gates.
 3. Re-verify HTTP API, CLI, DB, TLS, barrier, compose, and bootstrap helpers are explicitly called out as first-class directories.
 4. Re-verify TestMain migration coverage remains 39 in-scope entries with no directory orphan.
-5. Re-run grep-based keyword audit before execution begins (test_orch_e2e|test_orch_integration|test_help_compose|test_help_bootstrap|test_help_barrier|test_help_db|test_help_api|test_help_cli|test_help_tls).
+5. Re-run grep-based keyword audit before execution begins (test_orch_e2e|test_orch_integration|test_help_bootstrap|test_help_barrier|test_help_db|test_help_api|test_help_cli|test_help_tls).
 
 ## Quizme Round 1 (2026-05-09)
 
