@@ -3,98 +3,29 @@
 
 // Copyright (c) 2025-2026 Justin Cranford.
 //
-// NOTE: These tests require a PostgreSQL database and are skipped in CI without the integration tag.
+// ORM transaction tests using SQLite for integration testing.
 //
 
 package orm
 
 import (
-	"context"
 	"fmt"
-	"os"
 	"testing"
 	"time"
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
-	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps-framework/service/config"
-	cryptoutilAppsFrameworkServiceServerApplication "cryptoutil/internal/apps-framework/service/server/application"
-	cryptoutilAppsFrameworkServiceServerRepository "cryptoutil/internal/apps-framework/service/server/repository"
 	cryptoutilAppsFrameworkServiceServerRepositoryOrm "cryptoutil/internal/apps-framework/service/server/repository/orm"
 	cryptoutilSharedApperr "cryptoutil/internal/shared/apperr"
-	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
-	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 	cryptoutilSharedUtilRandom "cryptoutil/internal/shared/util/random"
 
 	cryptoutilOpenapiModel "cryptoutil/api/sm-kms/models"
 	cryptoutilKmsServer "cryptoutil/api/sm-kms/server"
 
 	googleUuid "github.com/google/uuid"
-	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/stretchr/testify/require"
 	_ "modernc.org/sqlite"
 )
-
-var (
-	testSettings         = cryptoutilAppsFrameworkServiceConfig.RequireNewForTest("orm_transaction_test")
-	testCtx              = context.Background()
-	testTelemetryService *cryptoutilSharedTelemetry.TelemetryService
-	testJWKGenService    *cryptoutilSharedCryptoJose.JWKGenService
-	testTemplateCore     *cryptoutilAppsFrameworkServiceServerApplication.Core
-	testOrmRepository    *OrmRepository
-	skipReadOnlyTxTests  = true // true for DBTypeSQLite, false for DBTypePostgres
-	numMaterialKeys      = cryptoutilSharedMagic.JoseJADefaultMaxMaterials
-)
-
-func TestMain(m *testing.M) {
-	var rc int
-
-	func() {
-		var err error
-
-		testTemplateCore, err = cryptoutilAppsFrameworkServiceServerApplication.StartCore(testCtx, testSettings)
-		if err != nil {
-			panic(fmt.Sprintf("failed to start template core: %v", err))
-		}
-
-		defer func() {
-			if testTemplateCore.ShutdownDBContainer != nil {
-				testTemplateCore.ShutdownDBContainer()
-			}
-
-			testTemplateCore.Basic.Shutdown()
-		}()
-
-		testTelemetryService = testTemplateCore.Basic.TelemetryService
-		testJWKGenService = testTemplateCore.Basic.JWKGenService
-
-		sqlDB, err := testTemplateCore.DB.DB()
-		if err != nil {
-			panic(fmt.Sprintf("failed to get sql.DB from GORM: %v", err))
-		}
-
-		err = cryptoutilAppsFrameworkServiceServerRepository.ApplyMigrationsFromFS(
-			sqlDB,
-			cryptoutilAppsFrameworkServiceServerRepository.MigrationsFS,
-			"migrations",
-			cryptoutilSharedMagic.TestDatabaseSQLite,
-		)
-		if err != nil {
-			panic(fmt.Sprintf("failed to apply template migrations: %v", err))
-		}
-
-		err = testTemplateCore.DB.AutoMigrate(&ElasticKey{}, &MaterialKey{})
-		if err != nil {
-			panic(fmt.Sprintf("failed to apply KMS domain tables: %v", err))
-		}
-
-		testOrmRepository = RequireNewForTest(testCtx, testTelemetryService, testTemplateCore.DB, testJWKGenService, testSettings.VerboseMode)
-		defer testOrmRepository.Shutdown()
-
-		rc = m.Run()
-	}()
-	os.Exit(rc)
-}
 
 func TestSQLTransaction_PanicRecovery(t *testing.T) {
 	t.Parallel()

@@ -20,7 +20,9 @@ import (
 // MapGormError maps a database error to an HTTP application error.
 // Priority: custom app errors → GORM sentinel errors → SQLite errors → PostgreSQL errors → HTTP 500.
 func MapGormError(slogger *slog.Logger, msg *string, err error) error {
-	slogger.Error(*msg, cryptoutilSharedMagic.StringError, err)
+	if slogger != nil {
+		slogger.Error(*msg, cryptoutilSharedMagic.StringError, err)
+	}
 
 	switch {
 	case IsAppErr(err):

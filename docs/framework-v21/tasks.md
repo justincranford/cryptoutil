@@ -260,7 +260,7 @@ Status: Complete
 Evidence:
 1. Commit f77186e43 - feat(phase-4): migrate sm-kms TestMain to test_orch_integration
 2. sm-kms/server/testmain_test.go: Migrated from e2e_helpers.MustStartAndWaitForDualPorts to StartIntegrationServerForTestMain
-3. sm-kms/client/testmain_test.go: Migrated from e2e_helpers to StartIntegrationServerForTestMain  
+3. sm-kms/client/testmain_test.go: Migrated from e2e_helpers to StartIntegrationServerForTestMain
 4. test_orch_integration refactored with dual-function pattern:
    - StartIntegrationServer() for individual tests (requires testing.TB)
    - StartIntegrationServerForTestMain() for TestMain (no testing.TB dependency)

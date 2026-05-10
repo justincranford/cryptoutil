@@ -11,6 +11,7 @@ import (
 	"testing"
 
 	cryptoutilOpenapiModel "cryptoutil/api/sm-kms/models"
+	cryptoutilKmsServer "cryptoutil/api/sm-kms/server"
 
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
@@ -44,7 +45,7 @@ func TestBuildElasticKey(t *testing.T) {
 		require.Equal(t, cryptoutilOpenapiModel.A256GCMA256KW, elasticKey.ElasticKeyAlgorithm, "Algorithm should match")
 		require.True(t, elasticKey.ElasticKeyVersioningAllowed, "Versioning should be allowed")
 		require.True(t, elasticKey.ElasticKeyImportAllowed, "Import should be allowed")
-		require.Equal(t, cryptoutilOpenapiModel.PendingImport, elasticKey.ElasticKeyStatus, "Status should be PendingImport when import allowed")
+		require.Equal(t, cryptoutilKmsServer.ElasticKeyStatus(cryptoutilOpenapiModel.PendingImport), elasticKey.ElasticKeyStatus, "Status should be PendingImport when import allowed")
 	})
 
 	t.Run("Build elastic key with import not allowed (pending generate status)", func(t *testing.T) {
@@ -72,7 +73,7 @@ func TestBuildElasticKey(t *testing.T) {
 		require.Equal(t, cryptoutilOpenapiModel.A128GCMA128KW, elasticKey.ElasticKeyAlgorithm, "Algorithm should match")
 		require.False(t, elasticKey.ElasticKeyVersioningAllowed, "Versioning should not be allowed")
 		require.False(t, elasticKey.ElasticKeyImportAllowed, "Import should not be allowed")
-		require.Equal(t, cryptoutilOpenapiModel.PendingGenerate, elasticKey.ElasticKeyStatus, "Status should be PendingGenerate when import not allowed")
+		require.Equal(t, cryptoutilKmsServer.ElasticKeyStatus(cryptoutilOpenapiModel.PendingGenerate), elasticKey.ElasticKeyStatus, "Status should be PendingGenerate when import not allowed")
 	})
 
 	t.Run("Build elastic key with various algorithm types", func(t *testing.T) {
