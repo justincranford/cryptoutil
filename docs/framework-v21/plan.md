@@ -343,6 +343,10 @@ Phase 2 acceptance gates (must all pass before implementation resumes):
 6. Package boundary and dependency direction rules finalized with no overlap ambiguity.
 7. Execution phase receives complete design artifacts with no TBD/TBD-later decisions.
 
+Phase 2 unblock artifact:
+1. `docs/framework-v21/quizme-v1.md` captures user-choice decisions required to close Task 2.2 and downstream helper API design tasks (2.3-2.6).
+2. After answers are provided, merge decisions into plan/tasks and delete quizme-v1.md per lifecycle policy.
+
 **Status**: ⚠️ PARTIAL (1/4 complete, 1 in progress on critical path)
 
 Phase 3: Implement orchestration modules

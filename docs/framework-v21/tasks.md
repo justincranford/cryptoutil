@@ -99,6 +99,8 @@ Acceptance Criteria:
 5. Health endpoint readiness parameterization specified for all PS-IDs.
 6. Port 0 isolation and concurrent test safety rules explicitly documented.
 7. API design is implementation-ready with no deferred design decisions.
+Unblock Input:
+8. `docs/framework-v21/quizme-v1.md` must be answered and merged to finalize default policies and close remaining design ambiguity.
 
 ### Task 2.3 - Design test_help_db API
 
