@@ -20,10 +20,10 @@ var (
 	composeManager         *cryptoutilAppsFrameworkTestingE2eInfra.ComposeManager
 
 	// Four pki-ca instances with different backends (actual compose service names).
-	sqlite1Container    = cryptoutilSharedMagic.PKICAE2ESQLiteContainer      // "pki-ca-app-sqlite-1"
-	sqlite2Container    = cryptoutilSharedMagic.PKICAE2ESQLite2Container     // "pki-ca-app-sqlite-2"
-	postgres1Container  = cryptoutilSharedMagic.PKICAE2EPostgreSQL1Container // "pki-ca-app-postgresql-1"
-	postgres2Container  = cryptoutilSharedMagic.PKICAE2EPostgreSQL2Container // "pki-ca-app-postgresql-2"
+	sqlite1Container   = cryptoutilSharedMagic.PKICAE2ESQLiteContainer      // "pki-ca-app-sqlite-1"
+	sqlite2Container   = cryptoutilSharedMagic.PKICAE2ESQLite2Container     // "pki-ca-app-sqlite-2"
+	postgres1Container = cryptoutilSharedMagic.PKICAE2EPostgreSQL1Container // "pki-ca-app-postgresql-1"
+	postgres2Container = cryptoutilSharedMagic.PKICAE2EPostgreSQL2Container // "pki-ca-app-postgresql-2"
 
 	// Service URLs (mapped from container ports to host ports).
 	sqlite1PublicURL   = cryptoutilSharedMagic.URLPrefixLocalhostHTTPS + fmt.Sprintf("%d", cryptoutilSharedMagic.PKICAE2ESQLitePublicPort)      // "https://127.0.0.1:8300"

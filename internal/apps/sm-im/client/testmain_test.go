@@ -20,12 +20,12 @@ import (
 
 // Shared test resources (initialized once per package).
 var (
-	sharedHTTPClient     *http.Client
-	smIMServer           *cryptoutilAppsSmImServer.SmIMServer
+	sharedHTTPClient      *http.Client
+	smIMServer            *cryptoutilAppsSmImServer.SmIMServer
 	testIntegrationServer *cryptoutilTestOrcIntegration.IntegrationServer
-	publicBaseURL        string
-	adminBaseURL         string
-	sharedServiceBaseURL string // Deprecated: use publicBaseURL.
+	publicBaseURL         string
+	adminBaseURL          string
+	sharedServiceBaseURL  string // Deprecated: use publicBaseURL.
 )
 
 // TestMain initializes sm-im server with SQLite in-memory for fast tests.

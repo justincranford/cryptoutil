@@ -13,9 +13,7 @@ import (
 	cryptoutilTestDb "cryptoutil/internal/apps-framework/service/test_help_db"
 )
 
-var (
-	testDB *gorm.DB
-)
+var testDB *gorm.DB
 
 func TestMain(m *testing.M) {
 	// Setup: Create shared heavyweight resources ONCE.
