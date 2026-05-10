@@ -4,12 +4,12 @@
 
 //go:build e2e
 
-// Package e2e_test provides E2E tests for Grafana HTTPS + OTLP ingest mTLS connectivity.
+// Package test_orch_e2e_test provides E2E tests for Grafana HTTPS + OTLP ingest mTLS connectivity.
 // These tests use the same compose stack started by TestMain in otel_tls_e2e_test.go.
 // Verification points:
 //  1. Grafana HTTPS UI: server cert is Cat 2 (public-https-server-entity-grafana-otel-lgtm)
 //  2. Grafana OTLP gRPC: Cat 9 infra client cert accepted; no-cert connection rejected
-package e2e_test
+package test_orch_e2e_test
 
 import (
 	"crypto/tls"

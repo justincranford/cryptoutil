@@ -4,7 +4,7 @@
 
 //go:build e2e
 
-// Package e2e_test provides E2E tests for the full telemetry and public HTTPS pipeline.
+// Package test_orch_e2e_test provides E2E tests for the full telemetry and public HTTPS pipeline.
 // These tests use the same compose stack started by TestMain in otel_tls_e2e_test.go,
 // which now starts all sm-kms variants (sqlite-1, sqlite-2, postgresql-1, postgresql-2)
 // alongside OTel Collector and Grafana LGTM.
@@ -13,7 +13,7 @@
 //  1. App→OTel→Grafana mTLS pipeline: Grafana HTTPS reachable; Grafana OTLP gRPC mTLS accepted/rejected
 //  2. App public HTTPS: each variant serves Cat 3 cert; Cat 4 mTLS enforcement active
 //  3. Health endpoints reachable over mTLS for all 4 sm-kms variants
-package e2e_test
+package test_orch_e2e_test
 
 import (
 	"crypto/tls"

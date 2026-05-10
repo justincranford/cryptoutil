@@ -250,9 +250,15 @@ Acceptance Criteria:
 
 Status: Not started
 
-### Task 5.2 - Migrate tls/e2e/otel_tls_e2e_test.go to test_orch_e2e facade
+### Task 5.2 - Migrate TLS E2E suite to service/test_orch_e2e facade
 
 Status: Complete
+Acceptance Criteria:
+1. TLS E2E tests use test_orch_e2e facade APIs (ComposeManager, NewTLSPSIDSpec, health wait helpers).
+2. TLS E2E tests are physically located under internal/apps-framework/service/test_orch_e2e.
+Evidence:
+3. Commit 7d07de9c5 - migrated framework TLS E2E tests to test_orch_e2e facade and PS-ID parameterization.
+4. Relocated files: otel_tls_e2e_test.go, grafana_tls_e2e_test.go, full_pipeline_test.go now in internal/apps-framework/service/test_orch_e2e.
 
 ### Task 5.3 - Align framework config/repository/barrier test mains to shared fixtures
 

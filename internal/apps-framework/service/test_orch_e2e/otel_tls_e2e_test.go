@@ -4,12 +4,12 @@
 
 //go:build e2e
 
-// Package e2e provides E2E tests for OTel Collector TLS connectivity.
+// Package test_orch_e2e_test provides E2E tests for OTel Collector TLS connectivity.
 // These tests start the sm-kms docker compose stack (pki-init + OTel Collector)
 // with a test override that exposes OTel OTLP ports to the host, then verify:
 //  1. OTel server TLS: server cert is Cat 2 (public-https-server-entity-otel-collector-contrib)
 //  2. App→OTel mTLS: Cat 9 app client cert accepted; no-cert connection rejected
-package e2e_test
+package test_orch_e2e_test
 
 import (
 	"context"
