@@ -89,9 +89,9 @@ Trade-off summary:
 **B)** Require admin readyz plus public browser/service health probes before returning ready.
 **C)** Require configurable probe list, with no fixed defaults.
 **D)** Skip probes and rely on startup return plus bounded sleep policy.
-**E)**
+**E)** Require admin readyz only (`/admin/api/v1/readyz`) with optional extra probes.; CHECK DOCS/ENG-HANDBOOK.MD, THIS IS ALREADY THE DEFAULT FOR INTEGRATION TESTS AND INCLUDES PROPAGATIONS TO ALL COPILOT+CLAUDE INSTRUCTIONS/AGNTS/SKILLS!!!!!!!!!!!!!!
 
-**Answer**:
+**Answer**: E
 
 **Rationale**: This determines startup determinism and flake resistance in integration suites.
 
@@ -117,8 +117,8 @@ Trade-off summary:
 **B)** Allow explicit fixed ports only when caller requests; default port 0 otherwise.
 **C)** Reserve deterministic per-package port ranges to simplify debug reproducibility.
 **D)** Keep existing per-suite behavior and document conflict retries.
-**E)**
+**E)** Always bind both listeners to port 0; expose resolved URLs via returned runtime handle; CHECK DOCS/ENG-HANDBOOK.MD, THIS IS ALREADY THE DEFAULT FOR INTEGRATION TESTS AND INCLUDES PROPAGATIONS TO ALL COPILOT+CLAUDE INSTRUCTIONS/AGNTS/SKILLS!!!!!!!!!!!!!!
 
-**Answer**:
+**Answer**: E
 
 **Rationale**: This controls parallel reliability and startup/shutdown stability across integration packages.
