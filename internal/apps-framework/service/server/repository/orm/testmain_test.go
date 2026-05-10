@@ -3,20 +3,16 @@ package orm
 
 import (
 	"context"
-	"database/sql"
 	"os"
 	"testing"
 
-	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 
-	_ "modernc.org/sqlite" // CGO-free SQLite driver
-
+	cryptoutilTestHelpDb "cryptoutil/internal/apps-framework/service/test_help_db"
 	cryptoutilSharedApperr "cryptoutil/internal/shared/apperr"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
-	cryptoutilSharedUtilRandom "cryptoutil/internal/shared/util/random"
 )
 
 var (
@@ -24,7 +20,6 @@ var (
 	testTelemetryService *cryptoutilSharedTelemetry.TelemetryService
 	testJWKGenService    *cryptoutilSharedCryptoJose.JWKGenService
 	testGormDB           *gorm.DB
-	testSQLDB            *sql.DB // CRITICAL: Keep reference to prevent GC — in-memory SQLite requires open connection
 	testOrmRepository    *OrmRepository
 )
 
@@ -52,23 +47,12 @@ func TestMain(m *testing.M) {
 
 	defer testJWKGenService.Shutdown()
 
-	dbID, err := cryptoutilSharedUtilRandom.GenerateUUIDv7()
-	cryptoutilSharedApperr.RequireNoError(err, "TestMain: failed to generate DB ID")
+	var dbCleanup func()
 
-	dsn := "file:" + dbID.String() + "?mode=memory&cache=shared"
+	testGormDB, dbCleanup, err = cryptoutilTestHelpDb.NewInMemorySQLiteDBForTestMain()
+	cryptoutilSharedApperr.RequireNoError(err, "TestMain: failed to create in-memory SQLite DB")
 
-	testSQLDB, err = sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, dsn)
-	cryptoutilSharedApperr.RequireNoError(err, "TestMain: failed to open SQLite")
-
-	defer func() { _ = testSQLDB.Close() }()
-
-	_, _ = testSQLDB.Exec("PRAGMA journal_mode=WAL;")
-	_, _ = testSQLDB.Exec("PRAGMA busy_timeout=30000;")
-	testSQLDB.SetMaxOpenConns(cryptoutilSharedMagic.DBMaxPingAttempts)
-	testSQLDB.SetMaxIdleConns(cryptoutilSharedMagic.DBMaxPingAttempts)
-
-	testGormDB, err = gorm.Open(sqlite.Dialector{Conn: testSQLDB}, &gorm.Config{SkipDefaultTransaction: true})
-	cryptoutilSharedApperr.RequireNoError(err, "TestMain: failed to open GORM")
+	defer dbCleanup()
 
 	testOrmRepository, err = NewOrmRepository(testCtx, testTelemetryService, testGormDB, testJWKGenService, false)
 	cryptoutilSharedApperr.RequireNoError(err, "TestMain: failed to create OrmRepository")

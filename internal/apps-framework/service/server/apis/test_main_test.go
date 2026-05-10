@@ -6,49 +6,43 @@
 package apis
 
 import (
-	"context"
-	"fmt"
 	"os"
 	"testing"
 
-	googleUuid "github.com/google/uuid"
 	"gorm.io/gorm"
 
 	cryptoutilAppsFrameworkServiceServerRepository "cryptoutil/internal/apps-framework/service/server/repository"
 	cryptoutilAppsFrameworkServiceServerTestutil "cryptoutil/internal/apps-framework/service/server/testutil"
+	cryptoutilTestHelpDb "cryptoutil/internal/apps-framework/service/test_help_db"
 )
 
 var testGormDB *gorm.DB
 
 func TestMain(m *testing.M) {
-	ctx := context.Background()
-
-	// Initialize shared test fixtures (TLS certificates).
 	if err := cryptoutilAppsFrameworkServiceServerTestutil.Initialize(); err != nil {
 		panic("failed to initialize test fixtures: " + err.Error())
 	}
 
-	// Create SQLite in-memory database URL with unique identifier to prevent test pollution.
-	databaseURL := fmt.Sprintf("file:%s?mode=memory&cache=shared", googleUuid.NewString())
+	var (
+		dbCleanup func()
+		dbErr     error
+	)
 
-	// Initialize GORM database with migrations.
-	var err error
+	testGormDB, dbCleanup, dbErr = cryptoutilTestHelpDb.NewInMemorySQLiteDBForTestMain()
+	if dbErr != nil {
+		panic("failed to create test database: " + dbErr.Error())
+	}
 
-	testGormDB, err = cryptoutilAppsFrameworkServiceServerRepository.InitSQLite(ctx, databaseURL, cryptoutilAppsFrameworkServiceServerRepository.MigrationsFS)
+	defer dbCleanup()
+
+	sqlDB, err := testGormDB.DB()
 	if err != nil {
-		panic("failed to create test database: " + err.Error())
+		panic("failed to get sql.DB for migrations: " + err.Error())
 	}
 
-	// Run all tests.
-	exitCode := m.Run()
-
-	// Cleanup: Close database connection.
-	if testGormDB != nil {
-		sqlDB, err := testGormDB.DB()
-		if err == nil {
-			_ = sqlDB.Close()
-		}
+	if migrateErr := cryptoutilAppsFrameworkServiceServerRepository.ApplyMigrations(sqlDB, cryptoutilAppsFrameworkServiceServerRepository.DatabaseTypeSQLite, cryptoutilAppsFrameworkServiceServerRepository.MigrationsFS); migrateErr != nil {
+		panic("failed to apply migrations: " + migrateErr.Error())
 	}
 
-	os.Exit(exitCode)
+	os.Exit(m.Run())
 }

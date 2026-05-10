@@ -28,6 +28,30 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
+// NewInMemorySQLiteDBForTestMain creates a unique in-memory SQLite database for use in TestMain functions.
+// Configures WAL mode, busy timeout, and connection pool.
+// Returns the db, a cleanup function, and any error.
+// Unlike NewInMemorySQLiteDB, this function does not require a *testing.T.
+func NewInMemorySQLiteDBForTestMain() (*gorm.DB, func(), error) {
+	dbID, err := googleUuid.NewV7()
+	if err != nil {
+		return nil, nil, fmt.Errorf("test_help_db: failed to generate UUID: %w", err)
+	}
+
+	dsn := "file:" + dbID.String() + "?mode=memory&cache=private"
+
+	db, sqlDB, err := buildInMemorySQLiteDB(context.Background(), sql.Open, dsn)
+	if err != nil {
+		return nil, nil, fmt.Errorf("test_help_db: %w", err)
+	}
+
+	cleanup := func() {
+		_ = sqlDB.Close()
+	}
+
+	return db, cleanup, nil
+}
+
 // NewInMemorySQLiteDB creates a unique in-memory SQLite database configured for testing.
 // Configures WAL mode, busy timeout, and connection pool.
 // Registers cleanup via t.Cleanup() to close the database after the test.
