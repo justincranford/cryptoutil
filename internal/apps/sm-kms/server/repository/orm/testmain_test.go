@@ -1,10 +1,8 @@
-//go:build integration
-// +build integration
-
 // Copyright (c) 2025-2026 Justin Cranford.
 //
 // Unified TestMain for orm package integration tests.
-//
+// No //go:build directive: TestMain must compile in all build modes so go test can
+// discover it alongside the integration-tagged test functions.
 
 package orm
 
@@ -31,8 +29,6 @@ var (
 	testJWKGenService    *cryptoutilSharedCryptoJose.JWKGenService
 	testTemplateCore     *cryptoutilAppsFrameworkServiceServerApplication.Core
 	testOrmRepository    *OrmRepository
-	skipReadOnlyTxTests  = true // true for DBTypeSQLite, false for DBTypePostgres
-	numMaterialKeys      = cryptoutilSharedMagic.JoseJADefaultMaxMaterials
 )
 
 func TestMain(m *testing.M) {

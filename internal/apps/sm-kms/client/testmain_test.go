@@ -21,6 +21,7 @@ import (
 var (
 	testIntegrationServer *cryptoutilAppsFrameworkServiceTestOrcIntegration.IntegrationServer
 	testRootCAsPool       *x509.CertPool
+	testServerPublicURL   string
 )
 
 func TestMain(m *testing.M) {
@@ -53,6 +54,7 @@ func TestMain(m *testing.M) {
 
 	// Extract TLS root CA pool from server
 	testRootCAsPool = testServer.TLSRootCAPool()
+	testServerPublicURL = testIntegrationServer.PublicBaseURL()
 
 	exitCode := m.Run()
 

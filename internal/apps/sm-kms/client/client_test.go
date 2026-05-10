@@ -194,7 +194,7 @@ func TestAllElasticKeyCipherAlgorithms(t *testing.T) {
 	t.Parallel() // PostgreSQL supports N concurrent writers, SQLite supports 1 concurrent writer; concurrent perf is better with PostgreSQL
 
 	context := context.Background()
-	testPublicServiceAPIUrl := testServerPublicURL + testSettings.PublicServiceAPIContextPath
+	testPublicServiceAPIUrl := testServerPublicURL + cryptoutilSharedMagic.DefaultPublicServiceAPIContextPath
 	openapiClient := RequireClientWithResponses(t, &testPublicServiceAPIUrl, testRootCAsPool)
 
 	testCases := generateHappyPathElasticKeyTestCasesEncrypt()
@@ -314,7 +314,7 @@ func TestAllElasticKeySignatureAlgorithms(t *testing.T) {
 	t.Parallel() // PostgreSQL supports N concurrent writers, SQLite supports 1 concurrent writer; concurrent perf is better with PostgreSQL
 
 	context := context.Background()
-	testPublicServiceAPIUrl := testServerPublicURL + testSettings.PublicServiceAPIContextPath
+	testPublicServiceAPIUrl := testServerPublicURL + cryptoutilSharedMagic.DefaultPublicServiceAPIContextPath
 	openapiClient := RequireClientWithResponses(t, &testPublicServiceAPIUrl, testRootCAsPool)
 
 	for i, testCase := range happyPathElasticKeyTestCasesSign {

@@ -486,3 +486,13 @@ sub_linters:
     directory: cmd_suite_template
     description: Verifies cmd/{SUITE}/main.go exists, declares package main, imports the correct internal/apps path, and uses os.Args (not os.Args[1:]).
     category: architecture
+
+  - name: testmain-orchestration-policy
+    directory: testmain_orchestration_policy
+    description: Ensures server/ and client/ testmain_test.go files in internal/apps/{PSID}/ import the canonical test_orch_integration package.
+    category: testing
+
+  - name: testmain-integration-tag-policy
+    directory: testmain_integration_tag_policy
+    description: Ensures testmain_test.go files under internal/ do not carry //go:build or // +build build tag directives.
+    category: testing

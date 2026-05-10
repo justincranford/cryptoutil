@@ -27,6 +27,11 @@ import (
 	_ "modernc.org/sqlite"
 )
 
+var (
+	skipReadOnlyTxTests = true // true for DBTypeSQLite, false for DBTypePostgres
+	numMaterialKeys     = cryptoutilSharedMagic.JoseJADefaultMaxMaterials
+)
+
 func TestSQLTransaction_PanicRecovery(t *testing.T) {
 	t.Parallel()
 
