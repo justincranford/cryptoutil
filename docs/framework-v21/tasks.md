@@ -256,9 +256,11 @@ Status: Complete
 Acceptance Criteria:
 1. TLS E2E tests use test_orch_e2e facade APIs (ComposeManager, NewTLSPSIDSpec, health wait helpers).
 2. TLS E2E tests are physically located under internal/apps-framework/service/test_orch_e2e.
+3. TestMain PS-ID selection is parameterized (CRYPTOUTIL_TLS_E2E_PSID) rather than hardcoded to a single PS-ID.
 Evidence:
-3. Commit 7d07de9c5 - migrated framework TLS E2E tests to test_orch_e2e facade and PS-ID parameterization.
-4. Relocated files: otel_tls_e2e_test.go, grafana_tls_e2e_test.go, full_pipeline_test.go now in internal/apps-framework/service/test_orch_e2e.
+4. Commit 7d07de9c5 - migrated framework TLS E2E tests to test_orch_e2e facade.
+5. Commit da01a9626 - relocated otel_tls_e2e_test.go, grafana_tls_e2e_test.go, and full_pipeline_test.go into internal/apps-framework/service/test_orch_e2e.
+6. Commit a83f5eb73 - parameterized TestMain PS-ID selection via CRYPTOUTIL_TLS_E2E_PSID.
 
 ### Task 5.3 - Align framework config/repository/barrier test mains to shared fixtures
 

@@ -247,7 +247,7 @@ Total TestMain functions in scope: 39
 7. service/server/repository/test_main_test.go -> test_orch_integration, test_help_bootstrap, test_help_db.
 8. service/server/repository/orm/testmain_test.go -> test_orch_integration, test_help_bootstrap, test_help_db.
 9. service/server/barrier/barrier_service_test.go -> test_orch_integration, test_help_bootstrap, test_help_db, test_help_barrier.
-10. tls/e2e/otel_tls_e2e_test.go -> test_orch_e2e, test_help_compose, test_help_bootstrap, test_help_api, test_help_tls.
+10. service/test_orch_e2e/otel_tls_e2e_test.go -> test_orch_e2e, test_help_compose, test_help_bootstrap, test_help_api, test_help_tls.
 11. service/testing/testserver/testserver.go (commented example TestMain; documentation-only and excluded from migration) -> docs-only example of test_orch_integration + test_help_tls wiring.
 
 ### Goal 2D - Corrected Classification Decisions
@@ -287,7 +287,7 @@ Canonical implementation boundaries are defined by the "Canonical directory taxo
 ### Goal 3C - internal/apps-framework Migration Summary
 
 1. service/server/*TestMain packages migrate to test_orch_integration or test_orch_e2e, composing appropriate test_help_* modules.
-2. tls/e2e/otel_tls_e2e_test.go migrates to test_orch_e2e facade.
+2. service/test_orch_e2e/otel_tls_e2e_test.go is migrated to test_orch_e2e facade and PS-ID parameterization.
 3. Existing framework test packages keep compatibility wrappers during transition, then old entry points are removed.
 
 ### Goal 3 Completion Criteria
@@ -355,7 +355,7 @@ Phase 3: Implement orchestration modules
 
 **Status**: ⚠️ IN PROGRESS (1/5 complete, 1 blocked by Phase 2.2)
 
-**Key Achievement**: Parameterized E2E orchestration for all 10 PS-IDs via NewTLSPSIDSpec factory in test_orch_e2e/tls_psid_spec_e2e.go. All 3 TLS E2E test files migrated to test_orch_e2e orchestration.
+**Key Achievement**: Parameterized E2E orchestration for all 10 PS-IDs via NewTLSPSIDSpec factory in test_orch_e2e/tls_psid_spec_e2e.go. All 3 TLS E2E test files are physically relocated under internal/apps-framework/service/test_orch_e2e and TestMain now supports PS-ID selection via CRYPTOUTIL_TLS_E2E_PSID.
 
 Phase 4: Framework package migration
 
