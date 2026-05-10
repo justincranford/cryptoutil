@@ -1,6 +1,6 @@
 # Tasks - Framework v21 TestMain Orchestration Consolidation
 
-Status: 10 of 74 tasks complete (13.5%)
+Status: 11 of 74 tasks complete (14.9%)
 Created: 2026-05-09
 Last Updated: 2026-05-09
 
@@ -79,6 +79,8 @@ Acceptance Criteria:
 
 ## Phase 2 - API Design for 9 Directory Families
 
+Design boundary rule (mandatory): ALL Phase 2 design decisions MUST be complete in planning artifacts before execution proceeds. No design-on-the-fly is permitted during implementation.
+
 ### Task 2.1 - Design test_orch_e2e API
 
 Status: Complete
@@ -88,10 +90,15 @@ Acceptance Criteria:
 
 ### Task 2.2 - Design test_orch_integration API
 
-Status: Not started
+Status: In progress
 Acceptance Criteria:
 1. One-server direct startup with SQLite and dynamic dual ports.
 2. TB-based startup/shutdown semantics (no panic-only API).
+3. Fixture scope model defined for per-test, per-suite, and shared fixtures.
+4. Error-path fixture creation contract defined for DB/API failure scenarios.
+5. Health endpoint readiness parameterization specified for all PS-IDs.
+6. Port 0 isolation and concurrent test safety rules explicitly documented.
+7. API design is implementation-ready with no deferred design decisions.
 
 ### Task 2.3 - Design test_help_db API
 
@@ -129,7 +136,9 @@ Status: Not started
 
 ### Task 3.2 - Implement test_orch_e2e + test_help_compose from e2e_infra
 
-Status: In progress
+Status: Complete
+Evidence:
+1. Commit 7d07de9c5 - refactor(tls-e2e): migrate framework tls tests to test_orch_e2e.
 
 ### Task 3.3 - Implement test_orch_integration + test_help_tls from testserver/e2e_helpers
 

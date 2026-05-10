@@ -1,6 +1,6 @@
 # Implementation Plan - Framework v21 TestMain Directory Consolidation
 
-Status: Planning
+Status: In Progress
 Created: 2026-05-09
 Last Updated: 2026-05-09
 Purpose: Consolidate all TestMain orchestration to reusable apps-framework directories, remove duplicated startup logic, and enforce policy with templates and fitness linting.
@@ -25,7 +25,8 @@ Helper directories:
 5. test_help_cli/ - provides deterministic CLI argv/stdout/stderr/exit assertions.
 6. test_help_tls/ - provides TLS material, certificate/client construction, and secure/insecure client helpers.
 
-**NOTE: test_help_compose has been strategically consolidated into test_orch_e2e** - See "Architectural Notes" section below.
+**NOTE: Current implementation temporarily consolidated compose helpers into test_orch_e2e.**
+Target architecture remains a dedicated `test_help_compose` helper boundary as defined in the canonical taxonomy and Goal 1A ownership rules.
 
 Execution profiles:
 
@@ -270,16 +271,7 @@ Total TestMain functions in scope: 39
 
 ### Goal 3A - Canonical Implementations by Directory
 
-1. Integration canonical path: test_orch_integration (consumes test_help_bootstrap + test_help_db + test_help_tls + test_help_api assertions).
-2. E2E canonical path: test_orch_e2e (consumes test_help_compose + test_help_bootstrap + test_help_api health checks + secure/insecure clients + test_help_tls).
-3. Compose helper canonical path: test_help_compose for docker compose stack operations.
-4. Bootstrap helper canonical path: test_help_bootstrap for config/env setup.
-5. Barrier helper canonical path: test_help_barrier for barrier/unseal fixture composition in DB and API suites.
-6. Database helper canonical path: test_help_db for database fixtures and error-path setup.
-7. API helper canonical path: test_help_api for health clients, HTTP assertions, and reusable HTTP mocks.
-8. CLI helper canonical path: test_help_cli for deterministic command execution/assertions.
-9. TLS helper canonical path: test_help_tls for TLS certificate/client construction.
-10. No direct PS-ID ad-hoc startup loops outside wrappers.
+Canonical implementation boundaries are defined by the "Canonical directory taxonomy" and "Goal 1A - Directory Dependency and Ownership Model" sections; Goal 3 applies those same boundaries across all 39 in-scope TestMain migrations with no PS-ID ad-hoc lifecycle loops outside orchestration wrappers.
 
 ### Goal 3B - internal/apps Migration Summary
 
@@ -333,14 +325,25 @@ Phase 1: Research and alignment corrections
 
 **Status**: ✅ COMPLETE (8/8 tasks)
 
-Phase 2: API design
+Phase 2: API design (MANDATORY completion in planning phase)
 
-1. Task 2.1: Finalize test_orch_e2e API boundaries - ✅ COMPLETE (Implemented in Phase 3.2)
-2. Task 2.2: Finalize test_orch_integration API boundaries - ⏳ **CRITICAL BLOCKER** (2-3 hour LOE, blocks Phase 4+5)
+**Critical boundary rule**: No design deferral to execution. ALL design decisions for Phase 2 MUST be fully specified in planning artifacts before implementation continues.
+
+1. Task 2.1: Finalize test_orch_e2e API boundaries - ✅ COMPLETE (implemented in Phase 3.2)
+2. Task 2.2: Finalize test_orch_integration API boundaries - 🔄 IN PROGRESS (critical path, blocks Phases 4-8 until design is complete)
 3. Finalize moved-vs-reusable package boundaries.
 4. Finalize directory dependency direction and no-overlap boundaries.
 
-**Status**: ⚠️ PARTIAL (1/4 complete, 1 blocked)
+Phase 2 acceptance gates (must all pass before implementation resumes):
+1. test_orch_integration API surface fully specified for all 37 remaining migrations.
+2. Fixture scope model defined (per-test vs per-suite vs shared) with deterministic cleanup semantics.
+3. Error-path fixture creation mechanism documented for DB/API failure tests.
+4. Health endpoint and readiness parameterization defined for all PS-IDs.
+5. Port-0 concurrent isolation and startup/shutdown contracts specified.
+6. Package boundary and dependency direction rules finalized with no overlap ambiguity.
+7. Execution phase receives complete design artifacts with no TBD/TBD-later decisions.
+
+**Status**: ⚠️ PARTIAL (1/4 complete, 1 in progress on critical path)
 
 Phase 3: Implement orchestration modules
 
