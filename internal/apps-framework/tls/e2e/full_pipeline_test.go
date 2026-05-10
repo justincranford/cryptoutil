@@ -22,102 +22,21 @@ import (
 	"net"
 	http "net/http"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/require"
 
+	cryptoutilTestOrchE2E "cryptoutil/internal/apps-framework/service/test_orch_e2e"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
-
-// waitForAppsHealthy waits for all 4 sm-kms app variants to become reachable over HTTPS.
-// Uses the Cat 1 CA pool (server cert verification) and Cat 5 service-user cert (client auth).
-// Returns when all 4 variants respond to the health endpoint, or fatals on timeout.
-func waitForAppsHealthy(t *testing.T) {
-	t.Helper()
-
-	type appVariant struct {
-		name     string
-		port     int
-		certPath string
-		keyPath  string
-	}
-
-	variants := []appVariant{
-		{
-			name:     cryptoutilSharedMagic.AppSMKMSSQLite1Container,
-			port:     cryptoutilSharedMagic.AppSMKMSSQLite1PublicPort,
-			certPath: cryptoutilSharedMagic.AppSMKMSSQLite1ClientCertPath,
-			keyPath:  cryptoutilSharedMagic.AppSMKMSSQLite1ClientKeyPath,
-		},
-		{
-			name:     cryptoutilSharedMagic.AppSMKMSSQLite2Container,
-			port:     cryptoutilSharedMagic.AppSMKMSSQLite2PublicPort,
-			certPath: cryptoutilSharedMagic.AppSMKMSSQLite2ClientCertPath,
-			keyPath:  cryptoutilSharedMagic.AppSMKMSSQLite2ClientKeyPath,
-		},
-		{
-			name:     cryptoutilSharedMagic.AppSMKMSPostgres1Container,
-			port:     cryptoutilSharedMagic.AppSMKMSPostgres1PublicPort,
-			certPath: cryptoutilSharedMagic.AppSMKMSPostgresClientCertPath,
-			keyPath:  cryptoutilSharedMagic.AppSMKMSPostgresClientKeyPath,
-		},
-		{
-			name:     cryptoutilSharedMagic.AppSMKMSPostgres2Container,
-			port:     cryptoutilSharedMagic.AppSMKMSPostgres2PublicPort,
-			certPath: cryptoutilSharedMagic.AppSMKMSPostgresClientCertPath,
-			keyPath:  cryptoutilSharedMagic.AppSMKMSPostgresClientKeyPath,
-		},
-	}
-
-	caPool := loadCACertPool(t, cryptoutilSharedMagic.OtelTLSE2ECACertPath)
-
-	for _, v := range variants {
-		clientCert := loadClientCert(t, v.certPath, v.keyPath)
-
-		transport := &http.Transport{
-			TLSClientConfig: &tls.Config{
-				MinVersion:   tls.VersionTLS13,
-				RootCAs:      caPool,
-				Certificates: []tls.Certificate{clientCert},
-			},
-			DisableKeepAlives: true,
-		}
-
-		client := &http.Client{
-			Transport: transport,
-			Timeout:   cryptoutilSharedMagic.OtelCollectorHealthCheckTimeout,
-		}
-
-		healthURL := fmt.Sprintf("https://127.0.0.1:%d%s", v.port, cryptoutilSharedMagic.IdentityE2EHealthEndpoint)
-		deadline := time.Now().UTC().Add(cryptoutilSharedMagic.FullPipelineTLSE2ETimeout)
-
-		for time.Now().UTC().Before(deadline) {
-			resp, err := client.Get(healthURL) //nolint:noctx // Simple health poll, no context needed.
-			if err == nil {
-				_ = resp.Body.Close()
-
-				if resp.StatusCode == http.StatusOK {
-					break
-				}
-			}
-
-			time.Sleep(cryptoutilSharedMagic.KMSE2EHealthPollInterval)
-		}
-
-		if time.Now().UTC().After(deadline) {
-			require.Failf(t, "app did not become healthy", "app %q did not become healthy within %s at %s", v.name, cryptoutilSharedMagic.FullPipelineTLSE2ETimeout, healthURL)
-		}
-	}
-}
 
 // TestFullPipeline_GrafanaHealth verifies Grafana HTTPS UI returns 200 from /api/health.
 // This confirms the OTel→Grafana mTLS pipeline is active (Grafana runs OTel internally).
 func TestFullPipeline_GrafanaHealth(t *testing.T) {
 	t.Parallel()
 
-	waitForGrafanaHealth(t)
+	cryptoutilTestOrchE2E.WaitForGrafanaHealth(t, tlsPSIDSpec, cryptoutilSharedMagic.GrafanaTLSE2EHealthTimeout)
 
-	caPool := loadCACertPool(t, cryptoutilSharedMagic.GrafanaTLSE2ECACertPath)
+	caPool := cryptoutilTestOrchE2E.LoadCACertPool(t, tlsPSIDSpec.PublicCACertPath)
 
 	transport := &http.Transport{
 		TLSClientConfig: &tls.Config{
@@ -131,7 +50,7 @@ func TestFullPipeline_GrafanaHealth(t *testing.T) {
 		Timeout:   cryptoutilSharedMagic.IMDefaultTimeout,
 	}
 
-	healthURL := fmt.Sprintf("https://127.0.0.1:%d/api/health", cryptoutilSharedMagic.GrafanaTLSE2EUIPort)
+	healthURL := fmt.Sprintf("https://127.0.0.1:%d/api/health", tlsPSIDSpec.GrafanaUIPort)
 
 	resp, err := client.Get(healthURL) //nolint:noctx // Simple health check in E2E context.
 	require.NoError(t, err, "GET %s must succeed over HTTPS with Cat 1 CA", healthURL)
@@ -150,12 +69,12 @@ func TestFullPipeline_GrafanaHealth(t *testing.T) {
 func TestFullPipeline_GrafanaOTLP_ServerCert(t *testing.T) {
 	t.Parallel()
 
-	waitForGrafanaHealth(t)
+	cryptoutilTestOrchE2E.WaitForGrafanaHealth(t, tlsPSIDSpec, cryptoutilSharedMagic.GrafanaTLSE2EHealthTimeout)
 
-	caPool := loadCACertPool(t, cryptoutilSharedMagic.GrafanaTLSE2ECACertPath)
-	clientCert := loadClientCert(t, cryptoutilSharedMagic.GrafanaTLSE2EInfraCertPath, cryptoutilSharedMagic.GrafanaTLSE2EInfraKeyPath)
+	caPool := cryptoutilTestOrchE2E.LoadCACertPool(t, tlsPSIDSpec.PublicCACertPath)
+	clientCert := cryptoutilTestOrchE2E.LoadClientCert(t, tlsPSIDSpec.GrafanaInfraCertPath, tlsPSIDSpec.GrafanaInfraKeyPath)
 
-	addr := fmt.Sprintf("127.0.0.1:%d", cryptoutilSharedMagic.GrafanaTLSE2EOTLPGRPCPort)
+	addr := fmt.Sprintf("127.0.0.1:%d", tlsPSIDSpec.GrafanaOTLPGRPCPort)
 	conn, err := tls.DialWithDialer(
 		&net.Dialer{Timeout: cryptoutilSharedMagic.IMDefaultTimeout},
 		"tcp", addr,
@@ -173,7 +92,7 @@ func TestFullPipeline_GrafanaOTLP_ServerCert(t *testing.T) {
 	require.NotEmpty(t, certs, "Grafana OTLP gRPC must present a server certificate")
 
 	cn := certs[0].Subject.CommonName
-	require.Equal(t, cryptoutilSharedMagic.GrafanaTLSE2EServerCertCN, cn,
+	require.Equal(t, tlsPSIDSpec.GrafanaServerCertCN, cn,
 		"Grafana OTLP gRPC server cert CN must be Cat 2 identity")
 }
 
@@ -182,11 +101,11 @@ func TestFullPipeline_GrafanaOTLP_ServerCert(t *testing.T) {
 func TestFullPipeline_GrafanaOTLP_MTLSRejected(t *testing.T) {
 	t.Parallel()
 
-	waitForGrafanaHealth(t)
+	cryptoutilTestOrchE2E.WaitForGrafanaHealth(t, tlsPSIDSpec, cryptoutilSharedMagic.GrafanaTLSE2EHealthTimeout)
 
-	caPool := loadCACertPool(t, cryptoutilSharedMagic.GrafanaTLSE2ECACertPath)
+	caPool := cryptoutilTestOrchE2E.LoadCACertPool(t, tlsPSIDSpec.PublicCACertPath)
 
-	addr := fmt.Sprintf("127.0.0.1:%d", cryptoutilSharedMagic.GrafanaTLSE2EOTLPGRPCPort)
+	addr := fmt.Sprintf("127.0.0.1:%d", tlsPSIDSpec.GrafanaOTLPGRPCPort)
 
 	// No client certificate — Grafana must reject connection (mTLS enforced by Cat 8 client CA).
 	conn, err := tls.DialWithDialer(
@@ -220,36 +139,18 @@ type appVariantTestCase struct {
 
 // allAppVariants returns the test cases for all 4 sm-kms app variants.
 func allAppVariants() []appVariantTestCase {
-	return []appVariantTestCase{
-		{
-			name:           cryptoutilSharedMagic.AppSMKMSSQLite1Container,
-			port:           cryptoutilSharedMagic.AppSMKMSSQLite1PublicPort,
-			serverCertCN:   cryptoutilSharedMagic.AppSMKMSSQLite1ServerCertCN,
-			clientCertPath: cryptoutilSharedMagic.AppSMKMSSQLite1ClientCertPath,
-			clientKeyPath:  cryptoutilSharedMagic.AppSMKMSSQLite1ClientKeyPath,
-		},
-		{
-			name:           cryptoutilSharedMagic.AppSMKMSSQLite2Container,
-			port:           cryptoutilSharedMagic.AppSMKMSSQLite2PublicPort,
-			serverCertCN:   cryptoutilSharedMagic.AppSMKMSSQLite2ServerCertCN,
-			clientCertPath: cryptoutilSharedMagic.AppSMKMSSQLite2ClientCertPath,
-			clientKeyPath:  cryptoutilSharedMagic.AppSMKMSSQLite2ClientKeyPath,
-		},
-		{
-			name:           cryptoutilSharedMagic.AppSMKMSPostgres1Container,
-			port:           cryptoutilSharedMagic.AppSMKMSPostgres1PublicPort,
-			serverCertCN:   cryptoutilSharedMagic.AppSMKMSPostgres1ServerCertCN,
-			clientCertPath: cryptoutilSharedMagic.AppSMKMSPostgresClientCertPath,
-			clientKeyPath:  cryptoutilSharedMagic.AppSMKMSPostgresClientKeyPath,
-		},
-		{
-			name:           cryptoutilSharedMagic.AppSMKMSPostgres2Container,
-			port:           cryptoutilSharedMagic.AppSMKMSPostgres2PublicPort,
-			serverCertCN:   cryptoutilSharedMagic.AppSMKMSPostgres2ServerCertCN,
-			clientCertPath: cryptoutilSharedMagic.AppSMKMSPostgresClientCertPath,
-			clientKeyPath:  cryptoutilSharedMagic.AppSMKMSPostgresClientKeyPath,
-		},
+	variants := make([]appVariantTestCase, 0, len(tlsPSIDSpec.AppVariants))
+	for _, variant := range tlsPSIDSpec.AppVariants {
+		variants = append(variants, appVariantTestCase{
+			name:           variant.Name,
+			port:           variant.PublicPort,
+			serverCertCN:   variant.ServerCertCN,
+			clientCertPath: variant.ClientCertPath,
+			clientKeyPath:  variant.ClientKeyPath,
+		})
 	}
+
+	return variants
 }
 
 // TestFullPipeline_AppPublicHTTPS_ServerCert verifies each sm-kms variant presents the correct Cat 3
@@ -258,15 +159,15 @@ func allAppVariants() []appVariantTestCase {
 func TestFullPipeline_AppPublicHTTPS_ServerCert(t *testing.T) {
 	t.Parallel()
 
-	waitForAppsHealthy(t)
+	cryptoutilTestOrchE2E.WaitForAppsHealthy(t, tlsPSIDSpec, cryptoutilSharedMagic.FullPipelineTLSE2ETimeout)
 
-	caPool := loadCACertPool(t, cryptoutilSharedMagic.OtelTLSE2ECACertPath) // Cat 1 CA
+	caPool := cryptoutilTestOrchE2E.LoadCACertPool(t, tlsPSIDSpec.PublicCACertPath) // Cat 1 CA
 
 	for _, tc := range allAppVariants() {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			clientCert := loadClientCert(t, tc.clientCertPath, tc.clientKeyPath)
+			clientCert := cryptoutilTestOrchE2E.LoadClientCert(t, tc.clientCertPath, tc.clientKeyPath)
 
 			addr := fmt.Sprintf("127.0.0.1:%d", tc.port)
 			conn, err := tls.DialWithDialer(
@@ -297,15 +198,15 @@ func TestFullPipeline_AppPublicHTTPS_ServerCert(t *testing.T) {
 func TestFullPipeline_AppPublicHTTPS_HealthEndpoint(t *testing.T) {
 	t.Parallel()
 
-	waitForAppsHealthy(t)
+	cryptoutilTestOrchE2E.WaitForAppsHealthy(t, tlsPSIDSpec, cryptoutilSharedMagic.FullPipelineTLSE2ETimeout)
 
-	caPool := loadCACertPool(t, cryptoutilSharedMagic.OtelTLSE2ECACertPath) // Cat 1 CA
+	caPool := cryptoutilTestOrchE2E.LoadCACertPool(t, tlsPSIDSpec.PublicCACertPath) // Cat 1 CA
 
 	for _, tc := range allAppVariants() {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			clientCert := loadClientCert(t, tc.clientCertPath, tc.clientKeyPath)
+			clientCert := cryptoutilTestOrchE2E.LoadClientCert(t, tc.clientCertPath, tc.clientKeyPath)
 
 			transport := &http.Transport{
 				TLSClientConfig: &tls.Config{
@@ -320,7 +221,7 @@ func TestFullPipeline_AppPublicHTTPS_HealthEndpoint(t *testing.T) {
 				Timeout:   cryptoutilSharedMagic.IMDefaultTimeout,
 			}
 
-			healthURL := fmt.Sprintf("https://127.0.0.1:%d%s", tc.port, cryptoutilSharedMagic.IdentityE2EHealthEndpoint)
+			healthURL := fmt.Sprintf("https://127.0.0.1:%d%s", tc.port, tlsPSIDSpec.AppHealthEndpoint)
 
 			resp, err := client.Get(healthURL) //nolint:noctx // Simple E2E health check.
 			require.NoError(t, err, "GET %s for app %q must succeed over HTTPS mTLS", healthURL, tc.name)
@@ -341,9 +242,9 @@ func TestFullPipeline_AppPublicHTTPS_HealthEndpoint(t *testing.T) {
 func TestFullPipeline_AppPublicHTTPS_MTLSRejected(t *testing.T) {
 	t.Parallel()
 
-	waitForAppsHealthy(t)
+	cryptoutilTestOrchE2E.WaitForAppsHealthy(t, tlsPSIDSpec, cryptoutilSharedMagic.FullPipelineTLSE2ETimeout)
 
-	caPool := loadCACertPool(t, cryptoutilSharedMagic.OtelTLSE2ECACertPath) // Cat 1 CA
+	caPool := cryptoutilTestOrchE2E.LoadCACertPool(t, tlsPSIDSpec.PublicCACertPath) // Cat 1 CA
 
 	for _, tc := range allAppVariants() {
 		t.Run(tc.name, func(t *testing.T) {

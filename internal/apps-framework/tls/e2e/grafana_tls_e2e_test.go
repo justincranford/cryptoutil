@@ -18,62 +18,24 @@ import (
 	"net"
 	http "net/http"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	cryptoutilTestOrchE2E "cryptoutil/internal/apps-framework/service/test_orch_e2e"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
-
-// waitForGrafanaHealth polls the Grafana HTTPS health endpoint until it returns 200.
-func waitForGrafanaHealth(t *testing.T) {
-	t.Helper()
-
-	caPool := loadCACertPool(t, cryptoutilSharedMagic.GrafanaTLSE2ECACertPath)
-
-	transport := &http.Transport{
-		TLSClientConfig: &tls.Config{
-			MinVersion: tls.VersionTLS13,
-			RootCAs:    caPool,
-		},
-		DisableKeepAlives: true,
-	}
-
-	client := &http.Client{
-		Transport: transport,
-		Timeout:   cryptoutilSharedMagic.OtelCollectorHealthCheckTimeout,
-	}
-
-	healthURL := fmt.Sprintf("https://127.0.0.1:%d/api/health", cryptoutilSharedMagic.GrafanaTLSE2EUIPort)
-	deadline := time.Now().UTC().Add(cryptoutilSharedMagic.GrafanaTLSE2EHealthTimeout)
-
-	for time.Now().UTC().Before(deadline) {
-		resp, err := client.Get(healthURL) //nolint:noctx // Simple health poll, no context needed.
-		if err == nil {
-			_ = resp.Body.Close()
-
-			if resp.StatusCode == http.StatusOK {
-				return
-			}
-		}
-
-		time.Sleep(cryptoutilSharedMagic.KMSE2EHealthPollInterval)
-	}
-
-	t.Fatalf("Grafana did not become healthy within %s at %s", cryptoutilSharedMagic.GrafanaTLSE2EHealthTimeout, healthURL)
-}
 
 // TestGrafanaHTTPS_ServerCert verifies Grafana HTTPS UI TLS handshake succeeds
 // and the server presents the expected Cat 2 cert CN.
 func TestGrafanaHTTPS_ServerCert(t *testing.T) {
 	t.Parallel()
 
-	waitForGrafanaHealth(t)
+	cryptoutilTestOrchE2E.WaitForGrafanaHealth(t, tlsPSIDSpec, cryptoutilSharedMagic.GrafanaTLSE2EHealthTimeout)
 
-	caPool := loadCACertPool(t, cryptoutilSharedMagic.GrafanaTLSE2ECACertPath)
+	caPool := cryptoutilTestOrchE2E.LoadCACertPool(t, tlsPSIDSpec.PublicCACertPath)
 
-	addr := fmt.Sprintf("127.0.0.1:%d", cryptoutilSharedMagic.GrafanaTLSE2EUIPort)
+	addr := fmt.Sprintf("127.0.0.1:%d", tlsPSIDSpec.GrafanaUIPort)
 	conn, err := tls.DialWithDialer(
 		&net.Dialer{Timeout: cryptoutilSharedMagic.IMDefaultTimeout},
 		"tcp", addr,
@@ -90,7 +52,7 @@ func TestGrafanaHTTPS_ServerCert(t *testing.T) {
 	require.NotEmpty(t, certs, "Grafana HTTPS must present a server certificate")
 
 	cn := certs[0].Subject.CommonName
-	assert.Equal(t, cryptoutilSharedMagic.GrafanaTLSE2EServerCertCN, cn,
+	assert.Equal(t, tlsPSIDSpec.GrafanaServerCertCN, cn,
 		"Grafana HTTPS server cert CN must be Cat 2 identity")
 }
 
@@ -98,9 +60,9 @@ func TestGrafanaHTTPS_ServerCert(t *testing.T) {
 func TestGrafanaHTTPS_APIHealth(t *testing.T) {
 	t.Parallel()
 
-	waitForGrafanaHealth(t)
+	cryptoutilTestOrchE2E.WaitForGrafanaHealth(t, tlsPSIDSpec, cryptoutilSharedMagic.GrafanaTLSE2EHealthTimeout)
 
-	caPool := loadCACertPool(t, cryptoutilSharedMagic.GrafanaTLSE2ECACertPath)
+	caPool := cryptoutilTestOrchE2E.LoadCACertPool(t, tlsPSIDSpec.PublicCACertPath)
 
 	transport := &http.Transport{
 		TLSClientConfig: &tls.Config{
@@ -114,7 +76,7 @@ func TestGrafanaHTTPS_APIHealth(t *testing.T) {
 		Timeout:   cryptoutilSharedMagic.IMDefaultTimeout,
 	}
 
-	healthURL := fmt.Sprintf("https://127.0.0.1:%d/api/health", cryptoutilSharedMagic.GrafanaTLSE2EUIPort)
+	healthURL := fmt.Sprintf("https://127.0.0.1:%d/api/health", tlsPSIDSpec.GrafanaUIPort)
 
 	resp, err := client.Get(healthURL) //nolint:noctx // Simple health check in E2E context.
 	require.NoError(t, err, "GET %s must succeed", healthURL)
@@ -132,12 +94,12 @@ func TestGrafanaHTTPS_APIHealth(t *testing.T) {
 func TestGrafanaOTLP_GRPC_mTLS_Accepted(t *testing.T) {
 	t.Parallel()
 
-	waitForGrafanaHealth(t)
+	cryptoutilTestOrchE2E.WaitForGrafanaHealth(t, tlsPSIDSpec, cryptoutilSharedMagic.GrafanaTLSE2EHealthTimeout)
 
-	caPool := loadCACertPool(t, cryptoutilSharedMagic.GrafanaTLSE2ECACertPath)
-	clientCert := loadClientCert(t, cryptoutilSharedMagic.GrafanaTLSE2EInfraCertPath, cryptoutilSharedMagic.GrafanaTLSE2EInfraKeyPath)
+	caPool := cryptoutilTestOrchE2E.LoadCACertPool(t, tlsPSIDSpec.PublicCACertPath)
+	clientCert := cryptoutilTestOrchE2E.LoadClientCert(t, tlsPSIDSpec.GrafanaInfraCertPath, tlsPSIDSpec.GrafanaInfraKeyPath)
 
-	addr := fmt.Sprintf("127.0.0.1:%d", cryptoutilSharedMagic.GrafanaTLSE2EOTLPGRPCPort)
+	addr := fmt.Sprintf("127.0.0.1:%d", tlsPSIDSpec.GrafanaOTLPGRPCPort)
 	conn, err := tls.DialWithDialer(
 		&net.Dialer{Timeout: cryptoutilSharedMagic.IMDefaultTimeout},
 		"tcp", addr,
@@ -155,7 +117,7 @@ func TestGrafanaOTLP_GRPC_mTLS_Accepted(t *testing.T) {
 	require.NotEmpty(t, certs, "Grafana OTLP gRPC must present a server certificate")
 
 	cn := certs[0].Subject.CommonName
-	assert.Equal(t, cryptoutilSharedMagic.GrafanaTLSE2EServerCertCN, cn,
+	assert.Equal(t, tlsPSIDSpec.GrafanaServerCertCN, cn,
 		"Grafana OTLP gRPC server cert CN must match Cat 2 identity")
 }
 
@@ -164,11 +126,11 @@ func TestGrafanaOTLP_GRPC_mTLS_Accepted(t *testing.T) {
 func TestGrafanaOTLP_GRPC_mTLS_Rejected(t *testing.T) {
 	t.Parallel()
 
-	waitForGrafanaHealth(t)
+	cryptoutilTestOrchE2E.WaitForGrafanaHealth(t, tlsPSIDSpec, cryptoutilSharedMagic.GrafanaTLSE2EHealthTimeout)
 
-	caPool := loadCACertPool(t, cryptoutilSharedMagic.GrafanaTLSE2ECACertPath)
+	caPool := cryptoutilTestOrchE2E.LoadCACertPool(t, tlsPSIDSpec.PublicCACertPath)
 
-	addr := fmt.Sprintf("127.0.0.1:%d", cryptoutilSharedMagic.GrafanaTLSE2EOTLPGRPCPort)
+	addr := fmt.Sprintf("127.0.0.1:%d", tlsPSIDSpec.GrafanaOTLPGRPCPort)
 
 	// No client certificate — Grafana must reject connection (mTLS enforced by Cat 8 client CA).
 	conn, err := tls.DialWithDialer(

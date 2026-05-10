@@ -1,6 +1,6 @@
 # Tasks - Framework v21 TestMain Orchestration Consolidation
 
-Status: 8 of 74 tasks complete (10.8%)
+Status: 10 of 74 tasks complete (13.5%)
 Created: 2026-05-09
 Last Updated: 2026-05-09
 
@@ -81,7 +81,7 @@ Acceptance Criteria:
 
 ### Task 2.1 - Design test_orch_e2e API
 
-Status: Not started
+Status: Complete
 Acceptance Criteria:
 1. Compose lifecycle + health wait + secure/insecure clients + logs + cleanup.
 2. Supports 4-instance app topology (2 SQLite + 2 PostgreSQL) plus dependencies.
@@ -129,7 +129,7 @@ Status: Not started
 
 ### Task 3.2 - Implement test_orch_e2e + test_help_compose from e2e_infra
 
-Status: Not started
+Status: In progress
 
 ### Task 3.3 - Implement test_orch_integration + test_help_tls from testserver/e2e_helpers
 
@@ -243,7 +243,7 @@ Status: Not started
 
 ### Task 5.2 - Migrate tls/e2e/otel_tls_e2e_test.go to test_orch_e2e facade
 
-Status: Not started
+Status: Complete
 
 ### Task 5.3 - Align framework config/repository/barrier test mains to shared fixtures
 
