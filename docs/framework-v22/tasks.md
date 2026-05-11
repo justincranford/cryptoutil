@@ -717,25 +717,25 @@ Fixes SUMMARY.md Issue 10.
 
 ### Testing
 
-- [ ] Unit tests ≥ 98% coverage (infrastructure packages: all 7 helpers + 3 linters)
-- [ ] Unit tests ≥ 95% coverage (production packages: businesslogic, orm)
-- [ ] Integration tests pass (`go test -tags integration ./...`)
-- [ ] E2E tests pass with Docker Desktop (Phase 9)
-- [ ] Mutation testing ≥ 98% for all infrastructure packages (Phase 4)
-- [ ] Race detector clean: `go test -race ./...`
+- [x] Unit tests ≥ 98% coverage (infrastructure packages: all 7 helpers + 3 linters) ← validated per-phase during Phases 2–5
+- [x] Unit tests ≥ 95% coverage (production packages: businesslogic, orm) ← validated per-phase during Phase 8
+- [ ] Integration tests pass (`go test -tags integration ./...`) — `server_integration` has pre-existing SQLite lock flakiness unrelated to V22 (reproduced on stash baseline)
+- [ ] E2E tests pass with Docker Desktop (Phase 9) — BLOCKED by Docker build daemon crash
+- [x] Mutation testing ≥ 98% for all infrastructure packages (Phase 4) ← validated in Phase 4
+- [ ] Race detector clean: `go test -race ./...` — BLOCKED (depends on Phase 9 E2E resolution for full coverage)
 
 ### Code Quality
 
-- [ ] `golangci-lint run ./...` passes
-- [ ] `golangci-lint run --build-tags e2e,integration ./...` passes
-- [ ] No new TODOs without tracking in tasks.md
-- [ ] `go run ./cmd/cicd-lint lint-fitness` exits 0
+- [x] `golangci-lint run ./...` passes — 0 issues confirmed
+- [x] `golangci-lint run --build-tags e2e,integration ./...` passes — 0 issues confirmed
+- [x] No new TODOs without tracking in tasks.md — confirmed via grep
+- [x] `go run ./cmd/cicd-lint lint-fitness` exits 0 — Passed: 1 Failed: 0
 
 ### Documentation
 
-- [ ] `go run ./cmd/cicd-lint lint-docs` passes
-- [ ] ENG-HANDBOOK.md updated (Phase 11)
-- [ ] Instruction files updated (Phase 11)
+- [x] `go run ./cmd/cicd-lint lint-docs` passes — all sub-linters ✅
+- [x] ENG-HANDBOOK.md updated (Phase 11) — section 10.3.6 completely replaced
+- [x] Instruction files updated (Phase 11) — Shared Test Infrastructure table corrected
 
 ---
 
