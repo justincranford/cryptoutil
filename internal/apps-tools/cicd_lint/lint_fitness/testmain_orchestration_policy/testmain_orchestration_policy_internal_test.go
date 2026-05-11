@@ -46,7 +46,7 @@ func TestCheckTestMainFile_Table(t *testing.T) {
 
 	tempDir := t.TempDir()
 	missingPath := filepath.Join(tempDir, "missing", testmainFileName)
-	dirPath := filepath.Join(tempDir, "dir", testmainFileName)
+	dirPath := filepath.Join(tempDir, cryptoutilSharedMagic.JoseAlgDir, testmainFileName)
 	require.NoError(t, os.MkdirAll(dirPath, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 	badFilePath := filepath.Join(tempDir, "bad", testmainFileName)

@@ -28,7 +28,7 @@ func TestFindViolationsWithReader_ReadError(t *testing.T) {
 	t.Parallel()
 
 	tempDir := t.TempDir()
-	serverDir := filepath.Join(tempDir, "internal", "apps", "sm-kms", "server")
+	serverDir := filepath.Join(tempDir, "internal", "apps", cryptoutilSharedMagic.OTLPServiceSMKMS, "server")
 	require.NoError(t, os.MkdirAll(serverDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 	require.NoError(t, os.WriteFile(filepath.Join(serverDir, testmainFileName), []byte("package server\n"), cryptoutilSharedMagic.FilePermissionsDefault))
 
