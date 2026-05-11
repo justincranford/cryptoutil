@@ -496,3 +496,8 @@ sub_linters:
     directory: testmain_integration_tag_policy
     description: Ensures testmain_test.go files under internal/ do not carry //go:build or // +build build tag directives.
     category: testing
+
+  - name: testmain-e2e-policy
+    directory: testmain_e2e_policy
+    description: Ensures internal/apps/*/e2e/testmain_e2e_test.go imports test_orch_e2e and does not import testing/e2e_infra.
+    category: testing

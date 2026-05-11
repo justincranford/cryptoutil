@@ -94,6 +94,7 @@ import (
 	lintFitnessTemplateDrift "cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/template_drift"
 	lintFitnessTestFileSuffixStructure "cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/test_file_suffix_structure"
 	lintFitnessTestPatterns "cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/test_patterns"
+	lintFitnessTestmainE2EPolicy "cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/testmain_e2e_policy"
 	lintFitnessTestmainIntegrationTagPolicy "cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/testmain_integration_tag_policy"
 	lintFitnessTestmainOrchestrationPolicy "cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/testmain_orchestration_policy"
 	lintFitnessTLSMinimumVersion "cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/tls_minimum_version"
@@ -228,6 +229,7 @@ var registeredLinters = []struct {
 	// New fitness checks (added in framework-v21: TestMain orchestration policy).
 	{"testmain-orchestration-policy", lintFitnessTestmainOrchestrationPolicy.Check},
 	{"testmain-integration-tag-policy", lintFitnessTestmainIntegrationTagPolicy.Check},
+	{"testmain-e2e-policy", lintFitnessTestmainE2EPolicy.Check},
 }
 
 // Lint runs all registered architecture fitness linters.

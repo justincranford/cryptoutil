@@ -9,7 +9,7 @@ import (
 	"os"
 	"testing"
 
-	cryptoutilAppsFrameworkTestingE2eInfra "cryptoutil/internal/apps-framework/service/testing/e2e_infra"
+	cryptoutilTestOrchE2e "cryptoutil/internal/apps-framework/service/test_orch_e2e"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
@@ -17,7 +17,7 @@ import (
 var (
 	sharedHTTPClient       *http.Client // InsecureSkipVerify — used for health checks / compose readiness.
 	sharedHTTPClientWithCA *http.Client // CA-validated — used for TLS chain verification tests.
-	composeManager         *cryptoutilAppsFrameworkTestingE2eInfra.ComposeManager
+	composeManager         *cryptoutilTestOrchE2e.E2EComposeManager
 
 	// Three skeleton-template instances with different backends (actual compose service names).
 	sqliteContainer    = cryptoutilSharedMagic.SkeletonTemplateE2ESQLiteContainer      // "skeleton-template-app-sqlite-1"
@@ -42,8 +42,8 @@ var (
 // ENVIRONMENTAL NOTE: These E2E tests require Docker Desktop to be running.
 // Without Docker Desktop, the tests will fail with compose errors.
 func TestMain(m *testing.M) {
-	os.Exit(cryptoutilAppsFrameworkTestingE2eInfra.SetupE2ETestMain(m,
-		cryptoutilAppsFrameworkTestingE2eInfra.E2ETestConfig{
+	os.Exit(cryptoutilTestOrchE2e.SetupE2ETestMain(m,
+		cryptoutilTestOrchE2e.E2ETestConfig{
 			ComposeFile:    cryptoutilSharedMagic.SkeletonTemplateE2EComposeFile,
 			Profiles:       []string{cryptoutilSharedMagic.DefaultOTLPEnvironmentDefault, cryptoutilSharedMagic.DockerServicePostgres},
 			HealthChecks:   healthChecks,
@@ -51,7 +51,7 @@ func TestMain(m *testing.M) {
 			CACertPath:     cryptoutilSharedMagic.SkeletonTemplateE2EPublicCACertPath,
 			ServiceLogName: cryptoutilSharedMagic.OTLPServiceSkeletonTemplate,
 		},
-		func(env *cryptoutilAppsFrameworkTestingE2eInfra.E2ETestEnv) {
+		func(env *cryptoutilTestOrchE2e.E2ETestEnv) {
 			sharedHTTPClient = env.InsecureClient
 			sharedHTTPClientWithCA = env.SecureClient
 			composeManager = env.ComposeManager

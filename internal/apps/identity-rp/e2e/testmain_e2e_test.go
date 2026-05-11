@@ -6,8 +6,10 @@ package e2e_test
 import (
 	"os"
 	"testing"
+
+	cryptoutilTestOrchE2e "cryptoutil/internal/apps-framework/service/test_orch_e2e"
 )
 
 func TestMain(m *testing.M) {
-	os.Exit(m.Run())
+	os.Exit(cryptoutilTestOrchE2e.SetupE2ETestMain(m, cryptoutilTestOrchE2e.E2ETestConfig{}, nil))
 }

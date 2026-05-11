@@ -12,7 +12,7 @@ import (
 	"os"
 	"testing"
 
-	cryptoutilAppsFrameworkTestingE2eInfra "cryptoutil/internal/apps-framework/service/testing/e2e_infra"
+	cryptoutilTestOrchE2e "cryptoutil/internal/apps-framework/service/test_orch_e2e"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
@@ -20,7 +20,7 @@ import (
 var (
 	sharedHTTPClient       *http.Client // InsecureSkipVerify — used for health checks / compose readiness.
 	sharedHTTPClientWithCA *http.Client // CA-validated — used for TLS chain verification tests.
-	composeManager         *cryptoutilAppsFrameworkTestingE2eInfra.ComposeManager
+	composeManager         *cryptoutilTestOrchE2e.E2EComposeManager
 
 	// Three sm-im instances with different backends (actual container names).
 	sqliteContainer    = cryptoutilSharedMagic.IME2ESQLiteContainer      // "sm-im-app-sqlite-1"
@@ -50,8 +50,8 @@ var (
 // This is an environmental requirement, not a code issue. The integration tests (in ../integration/)
 // provide sufficient coverage using SQLite in-memory and do not require Docker.
 func TestMain(m *testing.M) {
-	os.Exit(cryptoutilAppsFrameworkTestingE2eInfra.SetupE2ETestMain(m,
-		cryptoutilAppsFrameworkTestingE2eInfra.E2ETestConfig{
+	os.Exit(cryptoutilTestOrchE2e.SetupE2ETestMain(m,
+		cryptoutilTestOrchE2e.E2ETestConfig{
 			ComposeFile:    cryptoutilSharedMagic.IME2EComposeFile,
 			Profiles:       []string{cryptoutilSharedMagic.DefaultOTLPEnvironmentDefault, cryptoutilSharedMagic.DockerServicePostgres},
 			HealthChecks:   healthChecks,
@@ -59,7 +59,7 @@ func TestMain(m *testing.M) {
 			CACertPath:     cryptoutilSharedMagic.IME2EPublicCACertPath,
 			ServiceLogName: cryptoutilSharedMagic.OTLPServiceSMIM,
 		},
-		func(env *cryptoutilAppsFrameworkTestingE2eInfra.E2ETestEnv) {
+		func(env *cryptoutilTestOrchE2e.E2ETestEnv) {
 			sharedHTTPClient = env.InsecureClient
 			sharedHTTPClientWithCA = env.SecureClient
 			composeManager = env.ComposeManager

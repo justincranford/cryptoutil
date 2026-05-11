@@ -119,7 +119,27 @@
 
 ## Phase 5: test_orch_e2e Facade + 10 PS-ID E2E TestMain Migration + Linter
 
-*(To be filled during Phase 5 execution using the 4-section structure above)*
+**What Worked**:
+- Introducing a dedicated `test_orch_e2e` facade with pass-through mode allowed both legacy full-orchestration E2E TestMains and identity trivial TestMains to converge on one import path with minimal churn.
+- Adding a purpose-built `testmain-e2e-policy` fitness linter prevented regressions by enforcing both sides of the rule: required `test_orch_e2e` import and forbidden `testing/e2e_infra` import.
+- Central registration updates in `lint_fitness.go` plus `lint-fitness-registry.yaml` avoided registry drift and immediately satisfied `fitness-registry-completeness` checks.
+- Branch-focused tests (including injected walk/read seams) produced 100% coverage for the new policy package and made lint/error paths deterministic.
+
+**What Didn't Work**:
+- Early validation runs failed due temporary root artifacts (`coverage`, `coverage.out`) created during local coverage probing, which triggered `root-junk-detection` failures.
+- Initial policy implementation tripped `if-else-chain` and `gofumpt`/`wsl_v5` style gates, requiring follow-up cleanup before quality gates could pass.
+- Attempting `gofmt` on YAML during a combined command chain produced a non-Go parsing error and unnecessary rerun.
+
+**Root Causes**:
+- Coverage exploration commands were executed in root without immediate cleanup, and this repo treats root artifact hygiene as a blocking architecture gate.
+- New linter logic was functionally correct but initially not shaped to project-specific lint expectations (consecutive-if style and strict spacing/formatting).
+- Tool-chain batching mixed file types with Go-only formatters, causing avoidable command failure noise.
+
+**Patterns for Future Phases**:
+- After any ad hoc coverage investigation, immediately delete temporary root artifacts before running `lint-fitness`.
+- For new fitness linters, add seam-based internal tests at creation time and target explicit branch closure before phase-wide gate runs.
+- Keep registration synchronized across both execution registry (`lint_fitness.go`) and metadata registry (`lint-fitness-registry.yaml`) in the same change-set.
+- Restrict `gofmt` invocations to Go files only; use YAML-specific tooling for manifest files.
 
 ---
 
