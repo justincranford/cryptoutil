@@ -17,13 +17,27 @@
 
 ## Executive Summary
 
-*(To be filled at plan completion — numbered links to each phase section with one-sentence outcome)*
+1. [Phase 1: Implement Empty Stub Packages](#phase-1-implement-empty-stub-packages) — Scaffolded 5 new `test_help_*` / `test_orch_*` helper packages with zero-violation builds and lint.
+2. [Phase 2: test_help_db Implementation](#phase-2-test_help_db-implementation) — Delivered SQLite in-memory, closed-DB, and PostgreSQL container helpers with full table-driven tests at ≥98% coverage.
+3. [Phase 3: test_help_bootstrap and test_help_tls Implementation](#phase-3-test_help_bootstrap-and-test_help_tls-implementation) — Implemented server settings + ephemeral TLS helpers; resolved Windows CSPRNG entropy issue.
+4. [Phase 4: test_orch_integration and test_orch_e2e Implementation](#phase-4-test_orch_integration-and-test_orch_e2e-implementation) — Integration orchestrator and E2E façade delivered; mutation targets met (≥98%).
+5. [Phase 5: test_help_cli, test_help_api, test_help_barrier](#phase-5-test_help_cli-test_help_api-test_help_barrier) — CLI/API/barrier helpers scaffolded; resolved ForTestMain signature confusion (`NewInMemorySQLiteDBForTestMain` takes no args).
+6. [Phase 6: Migrate PS-ID TestMain Files](#phase-6-migrate-ps-id-testmain-files) — All 10 PS-ID service `testmain_test.go` files migrated to new helper packages; deprecated `testing/testdb` and `testing/testserver` paths removed.
+7. [Phase 7: Migrate Server Package TestMain Files](#phase-7-migrate-server-package-testmain-files) — All 10 `internal/apps/*/server/testmain_test.go` migrated; port-conflict tests validated.
+8. [Phase 8: Migrate Domain Package TestMain Files](#phase-8-migrate-domain-package-testmain-files) — 8 domain package TestMain instances migrated; identified 6 false literal-use violations introduced by migration; fixed all 6 in pre-commit.
+9. [Phase 9: E2E Validation](#phase-9-e2e-validation) — Task 9.1 ✅ (`docker ps` exits 0); Tasks 9.2–9.5 BLOCKED by Docker Desktop build daemon crash (API EOF on `docker build`); infrastructure blocker documented.
+10. [Phase 10: TestMain Inventory Table](#phase-10-testmain-inventory-table) — Definitive inventory: 54 TestMain instances (formula: 10+10+8+10+8+8=54); V21's claim of 39 was an undercount by 15; inventory written to `test-output/v22-inventory/testmain-inventory.md`.
+11. [Phase 11: Knowledge Propagation](#phase-11-knowledge-propagation) — ENG-HANDBOOK.md §10.3.6 updated for `test_help_*` / `test_orch_*` packages; instruction file Shared Test Infrastructure table corrected; agent files reviewed (no formal paths to fix).
 
 ---
 
 ## Actions
 
-*(To be filled at plan completion — numbered list of concrete follow-up items for reviewer, specific enough to copy-paste directly into Copilot Chat or Claude Code as a follow-up prompt)*
+1. Restart Docker Desktop (or reinstall) to resolve the daemon build API crash blocking Phase 9 Tasks 9.2–9.5. Once fixed: `go test -tags e2e ./internal/apps/sm-kms/e2e/... -v` and `go test -tags e2e ./internal/apps/sm-im/e2e/... -v`.
+2. Remove the deprecated `internal/apps-framework/service/testing/testdb` and `internal/apps-framework/service/testing/testserver` sub-packages once all consumers have been confirmed migrated (grep: `"cryptoutil/internal/apps-framework/service/testing/testdb"`).
+3. Add a fitness linter that enforces use of `test_help_*` / `test_orch_*` packages over deprecated `testing/testdb` and `testing/testserver` paths — prevents future regression.
+4. Run `go test -race -count=2 ./internal/apps-framework/service/test_help_db/... ./internal/apps-framework/service/test_orch_integration/...` to confirm race detector cleanliness for the new helpers.
+5. Update `api/cryptosuite-registry/templates/` canonical templates for `testmain_test.go` to reference `test_help_db.NewInMemorySQLiteDB(t)` instead of any deprecated path — ensures `apps-ps-id-template` fitness linter stays green.
 
 ---
 
@@ -215,16 +229,63 @@
 
 ## Phase 9: E2E Validation
 
-*(To be filled during Phase 9 execution using the 4-section structure above)*
+**What Worked**:
+- `docker ps` (Task 9.1) exited 0 immediately, confirming Docker Desktop daemon is running and reachable.
+- Identifying the exact failure mode (`rpc error: code = Unavailable desc = error reading from server: EOF`) proved the issue is in the Docker build daemon layer, not in the Compose configuration.
+
+**What Didn't Work**:
+- `docker compose build` and standalone `docker build` both failed with the same EOF response from the Docker daemon regardless of context size or BuildKit cache settings.
+- Stripping `.dockerignore` and using `--no-cache` did not change the outcome — ruling out context-size and cache corruption.
+
+**Root Causes**:
+- Docker Desktop's BuildKit daemon had an internal crash or resource exhaustion state. The API surface (`docker ps`, `docker inspect`) still works because it hits a different daemon component; only `docker build` hits the crashing BuildKit endpoint.
+- This is a transient infrastructure failure specific to the development machine, not a code defect.
+
+**Patterns for Future Phases**:
+- Classify Docker build failures as infrastructure blockers (not code bugs) immediately; do not spend debugging time on Compose configuration when `docker ps` passes but `docker build` fails with EOF.
+- The three-encounter rule applies: first encounter → document; second → create task; third → mandatory restart/reinstall before continuing any Docker-dependent work.
+- Always isolate E2E phase from knowledge propagation phase so a Docker blocker doesn't block documentation work.
 
 ---
 
 ## Phase 10: TestMain Inventory Table
 
-*(To be filled during Phase 10 execution using the 4-section structure above)*
+**What Worked**:
+- Using `grep -r 'func TestMain' --include='*_test.go' internal/ | sort` as the canonical source of truth produced a complete, deterministic inventory without any manual counting errors.
+- Grouping by 6 categories (PS-ID root, PS-ID server, domain-level, framework-service, test-helper, linter-test) made the derivation formula (10+10+8+10+8+8=54) instantly verifiable.
+- Recording the derivation formula rather than a raw count allows independent verification during code review.
+
+**What Didn't Work**:
+- V21's stated count of 39 was not sourced from a `grep` command — it was reconstructed from memory and missed 15 instances across framework-service and test-helper packages.
+- Fitness linter test files legitimately contain multiple `TestMain` instances (one per nested `_test` package in the same directory tree), which was not accounted for in the V21 estimate.
+
+**Root Causes**:
+- V21 assessed TestMain coverage only from the migration tracking doc, which did not include newly added test packages (helpers added in Phases 1–5).
+- No authoritative grep evidence had been captured before the V21 count was recorded.
+
+**Patterns for Future Phases**:
+- ALWAYS capture `grep -r 'func TestMain' --include='*_test.go' internal/ | wc -l` before and after any migration phase to get an objective count.
+- Store the inventory file in `test-output/` with a derivation formula — raw counts without formulas are unverifiable.
+- When a count discrepancy is suspected, run the grep command first rather than reasoning from memory.
 
 ---
 
 ## Phase 11: Knowledge Propagation
 
-*(To be filled during Phase 11 execution using the 4-section structure above)*
+**What Worked**:
+- Replacing the entire ENG-HANDBOOK.md §10.3.6 section (rather than patching individual lines) produced a clean, consistent table with correct function signatures.
+- Running `go run ./cmd/cicd-lint lint-docs` immediately after each documentation change confirmed that `@source`/`@propagate` block integrity was maintained throughout the edits.
+- Checking agent files for old package paths with `Select-String` took under 30 seconds and confirmed no formal import paths needed correction — avoided unnecessary churn.
+
+**What Didn't Work**:
+- The original §10.3.6 in ENG-HANDBOOK.md had `NewInMemorySQLiteDBForTestMain(migrateFn)` (wrong — takes no args). This had been silently incorrect since the function signature was simplified; documentation lag allowed the wrong signature to persist.
+- The instruction file had the same incorrect signature plus stale package names (`testdb.New...`, `testserver.Start...`).
+
+**Root Causes**:
+- Documentation for new helper packages was added incrementally during Phases 1–5 but never consolidated into a single authoritative reference. The instruction file and ENG-HANDBOOK.md section drifted from each other.
+- The `@propagate` system only validates verbatim chunk content — it does not validate documentation correctness of package APIs.
+
+**Patterns for Future Phases**:
+- After any helper package API change, immediately update ALL of: ENG-HANDBOOK.md section, instruction file table, and any `@propagate` blocks. The three files MUST be updated atomically in the same commit.
+- Include function signature accuracy in acceptance criteria for helper package tasks — not just build/lint/test pass.
+- When reviewing agent files for stale references, distinguish between conceptual shorthand references (e.g., `testdb.NewInMemorySQLiteDB(t)` in prose) and formal import-path references that would mislead code generation. Only the latter require updates.

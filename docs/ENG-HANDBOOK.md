@@ -4185,104 +4185,113 @@ ctx, cancel := context.WithTimeout(ctx, magic.DefaultDataServerShutdownTimeout) 
 
 #### 10.3.6 Shared Test Infrastructure
 
-Shared test packages in `internal/apps-framework/service/testing/` eliminate TestMain boilerplate by providing reusable setup helpers.
+Shared test packages in `internal/apps-framework/service/` eliminate TestMain boilerplate by providing reusable setup helpers. Use the `test_help_*` and `test_orch_*` packages (the older `testing/` sub-packages are **Deprecated**).
 
-**testdb** — Database setup helpers:
+**test_help_db** — Database setup helpers:
 
 ```go
-import cryptoutilTestdb "cryptoutil/internal/apps-framework/service/testing/testdb"
+import cryptoutilTestHelpDB "cryptoutil/internal/apps-framework/service/test_help_db"
 
-// In-memory SQLite (fast, no cleanup needed)
-db := cryptoutilTestdb.NewInMemorySQLiteDB(t)
+// In-memory SQLite for per-test use (registers t.Cleanup automatically)
+db := cryptoutilTestHelpDB.NewInMemorySQLiteDB(t)
 
-// With auto-migrate for given models
-db := cryptoutilTestdb.RequireNewInMemorySQLiteDB(t, &MyModel{})
+// In-memory SQLite for TestMain (no *testing.T available)
+// Returns (*gorm.DB, cleanupFn, error) — call cleanupFn in TestMain defer.
+db, cleanup, err := cryptoutilTestHelpDB.NewInMemorySQLiteDBForTestMain()
+defer cleanup()
 
-// Pre-closed SQLite DB for error-path testing (returns already-closed *gorm.DB)
-db := cryptoutilTestdb.NewClosedSQLiteDB(t, nil) // nil = no migrations
-db := cryptoutilTestdb.NewClosedSQLiteDB(t, func(sqlDB *sql.DB) error { return migrate(sqlDB) })
+// Pre-closed SQLite DB for error-path testing
+db := cryptoutilTestHelpDB.NewClosedSQLiteDB(t, nil) // nil = no migrations
+db := cryptoutilTestHelpDB.NewClosedSQLiteDB(t, func(sqlDB *sql.DB) error { return migrate(sqlDB) })
 
-// PostgreSQL test container (Docker required)
-db := cryptoutilTestdb.RequireNewPostgresTestContainer(ctx, t, &MyModel{})
+// PostgreSQL test container (Docker required — E2E only)
+db := cryptoutilTestHelpDB.NewPostgresTestContainer(ctx, t)
 ```
 
-**testserver** — Test server lifecycle:
+**test_help_bootstrap** — Server settings creation:
 
 ```go
-import cryptoutilTestserver "cryptoutil/internal/apps-framework/service/testing/testserver"
+import cryptoutilTestHelpBootstrap "cryptoutil/internal/apps-framework/service/test_help_bootstrap"
 
-// Start server with port 0 (dynamic), wait for ready, register cleanup
-srv := cryptoutilTestserver.StartAndWait(ctx, t, myServiceServer)
+// For use inside individual tests (has *testing.T)
+settings := cryptoutilTestHelpBootstrap.NewTestServerSettings(t)
+
+// For use inside TestMain (no *testing.T available)
+settings := cryptoutilTestHelpBootstrap.NewTestServerSettingsForTestMain()
 ```
 
-**fixtures** — Test data creation:
+**test_help_tls** — TLS material and client construction:
 
 ```go
-import cryptoutilFixtures "cryptoutil/internal/apps-framework/service/testing/fixtures"
+import cryptoutilTestHelpTLS "cryptoutil/internal/apps-framework/service/test_help_tls"
 
-tenant := cryptoutilFixtures.CreateTestTenant(t, db)
-realm  := cryptoutilFixtures.CreateTestRealm(t, db, tenant.ID)
-user   := cryptoutilFixtures.CreateTestUser(t, db, tenant.ID)
+// Auto-generated ephemeral TLS chain for individual tests
+tlsSettings := cryptoutilTestHelpTLS.NewTestTLSSettings(t)
+
+// Auto-generated ephemeral TLS chain for TestMain (no *testing.T available)
+tlsSettings := cryptoutilTestHelpTLS.NewTestTLSSettingsForTestMain()
+
+// Insecure HTTPS test client (InsecureSkipVerify — test-only, never gosec-safe in prod)
+client := cryptoutilTestHelpTLS.NewInsecureHTTPSClient(t)
+
+// mTLS client with cert, key, and CA pool
+client := cryptoutilTestHelpTLS.NewMTLSClient(t, certPath, keyPath, caPool)
 ```
 
-**assertions** — HTTP response assertions:
+**test_orch_integration** — Integration server orchestration:
 
 ```go
-import cryptoutilAssertions "cryptoutil/internal/apps-framework/service/testing/assertions"
+import cryptoutilTestOrchIntegration "cryptoutil/internal/apps-framework/service/test_orch_integration"
 
-cryptoutilAssertions.AssertHealthy(t, resp)                         // 200 OK
-cryptoutilAssertions.AssertErrorResponse(t, resp, http.StatusBadRequest)
-cryptoutilAssertions.AssertJSONContentType(t, resp)
-cryptoutilAssertions.AssertTraceID(t, resp)
+// Start integration server for individual tests (registers t.Cleanup)
+srv, err := cryptoutilTestOrchIntegration.StartIntegrationServer(ctx, t, myServiceServer, db)
+
+// Start integration server for TestMain (no *testing.T — caller manages shutdown)
+srv, err := cryptoutilTestOrchIntegration.StartIntegrationServerForTestMain(ctx, myServiceServer, db)
+defer srv.Shutdown(ctx)
+
+// Access server details
+publicURL  := srv.PublicBaseURL()
+adminURL   := srv.AdminBaseURL()
 ```
 
-**healthclient** — HTTPS health endpoint client:
+**test_orch_e2e** — E2E TestMain factory (thin pass-through over `testing/e2e_infra`):
 
 ```go
-import cryptoutilHealthclient "cryptoutil/internal/apps-framework/service/testing/healthclient"
-
-client := cryptoutilHealthclient.NewHealthClient(srv.PublicBaseURL(), srv.AdminBaseURL())
-livezResp, err  := client.Livez()
-readyzResp, err := client.Readyz()
-```
-
-**coverage ceiling**: `testdb` (57.5%) and `e2e_infra` (96.55% efficacy, 1 LIVED `make` capacity-hint mutation — structural ceiling) have documented ceilings due to Docker-dependent code paths unreachable in unit tests. All other packages: ≥95% production, ≥98% infrastructure.
-
-**e2e_infra** — E2E TestMain factory (eliminates PS-ID TestMain boilerplate):
-
-```go
-import cryptoutilE2eInfra "cryptoutil/internal/apps-framework/service/testing/e2e_infra"
+import cryptoutilTestOrchE2e "cryptoutil/internal/apps-framework/service/test_orch_e2e"
 
 // In testmain_e2e_test.go (with //go:build e2e build tag):
 func TestMain(m *testing.M) {
-    os.Exit(cryptoutilE2eInfra.SetupE2ETestMain(m, cryptoutilE2eInfra.E2ETestConfig{
-        ComposeFile:    cryptoutilMagic.DefaultSMKMSComposeFilePath,
-        CACertPath:     cryptoutilMagic.DefaultSMKMSCABundlePath,
-        ServiceLogName: cryptoutilMagic.OTLPServiceSMKMS,
-        HealthTimeout:  cryptoutilMagic.DefaultE2EHealthTimeout,
-        HealthChecks: map[string]string{
-            cryptoutilMagic.DefaultSMKMSAppSQLite1URL:  "/service/api/v1/health",
-            cryptoutilMagic.DefaultSMKMSAppSQLite2URL:  "/service/api/v1/health",
-            cryptoutilMagic.DefaultSMKMSPostgres1URL:   "/service/api/v1/health",
-            cryptoutilMagic.DefaultSMKMSPostgres2URL:   "/service/api/v1/health",
-        },
-    }, func(env *cryptoutilE2eInfra.E2ETestEnv) {
-        sharedHTTPClient      = env.InsecureClient  // InsecureSkipVerify — for readiness polls
-        sharedHTTPClientWithCA = env.SecureClient    // CA-validated — for TLS assertion tests
-        composeManager        = env.ComposeManager
-    }))
+    os.Exit(cryptoutilTestOrchE2e.SetupE2ETestMain(m,
+        cryptoutilTestOrchE2e.E2ETestConfig{
+            ComposeFile:    cryptoutilMagic.DefaultSMKMSComposeFilePath,
+            CACertPath:     cryptoutilMagic.DefaultSMKMSCABundlePath,
+            ServiceLogName: cryptoutilMagic.OTLPServiceSMKMS,
+            HealthChecks: map[string]string{
+                "sm-kms-app-sqlite-1": "https://127.0.0.1:8000/service/api/v1/health",
+            },
+        }, func(env *cryptoutilTestOrchE2e.E2ETestEnv) {
+            sharedHTTPClient      = env.InsecureClient  // InsecureSkipVerify — for readiness polls
+            sharedHTTPClientWithCA = env.SecureClient    // CA-validated — for TLS assertion tests
+        }))
 }
 ```
 
-**Why SecureClient is built AFTER WaitForMultipleServices**: The CA bundle (`issuing-ca.pem`) is
-written by pki-init during service startup. Building `SecureClient` before health checks pass
-would reference a non-existent file. The factory enforces the correct order automatically.
+**Deprecated packages** (still work, but new code MUST use `test_help_*`/`test_orch_*`):
+- `testing/testdb` → use `test_help_db`
+- `testing/testserver` → use `test_orch_integration`
+- `testing/e2e_infra` → use `test_orch_e2e`
 
-**Key rules**:
-- ALWAYS use `SetupE2ETestMain` for new PS-ID E2E suites — never copy-paste TestMain boilerplate
-- `InsecureClient` is for compose readiness polls only; NEVER use it for TLS assertion tests
-- `SecureClient` validates TLS against the CA cert generated by pki-init (admin CA bundle)
-- Populate `E2ETestConfig.HealthChecks` with all service health URLs (keyed by URL, value = path)
+**ForTestMain helper pattern** (MANDATORY for TestMain context):
+
+Helper functions that require `*testing.T` cannot be used inside `TestMain(m *testing.M)` because `*testing.T` is not available at that scope. Always use the `ForTestMain` variant:
+
+| Context | DB helper | TLS helper | Bootstrap helper | Integration server |
+|---------|-----------|-----------|-----------------|-------------------|
+| `TestMain` | `NewInMemorySQLiteDBForTestMain()` | `NewTestTLSSettingsForTestMain()` | `NewTestServerSettingsForTestMain()` | `StartIntegrationServerForTestMain(ctx, srv, db)` |
+| Individual test | `NewInMemorySQLiteDB(t)` | `NewTestTLSSettings(t)` | `NewTestServerSettings(t)` | `StartIntegrationServer(ctx, t, srv, db)` |
+
+**coverage ceiling**: `test_help_db` (Docker-dependent paths) and `testing/e2e_infra` (96.55% efficacy, 1 LIVED `make` capacity-hint mutation — structural ceiling) have documented ceilings. All other packages: ≥95% production, ≥98% infrastructure.
 
 #### 10.3.7 TLS Test Bundle Pattern
 
