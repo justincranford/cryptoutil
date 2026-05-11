@@ -655,14 +655,14 @@ Fixes SUMMARY.md Issue 10.
 
 ### Task 10.1: Generate complete TestMain inventory
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 1h
 - **Acceptance Criteria**:
-  - [ ] `grep -r "func TestMain" --include="*_test.go" internal/ | sort` output captured
-  - [ ] Each file classified by category and import pattern
-  - [ ] Written to `test-output/v22-inventory/testmain-inventory.md`
-  - [ ] Grand total with derivation formula documented
-  - [ ] V21's "39" claim assessed with evidence
+  - [x] `grep -r "func TestMain" --include="*_test.go" internal/ | sort` output captured
+  - [x] Each file classified by category and import pattern
+  - [x] Written to `test-output/v22-inventory/testmain-inventory.md`
+  - [x] Grand total with derivation formula documented: 10+10+8+10+8+8 = **54**
+  - [x] V21's "39" claim assessed with evidence: undercount by 15
 
 ---
 
