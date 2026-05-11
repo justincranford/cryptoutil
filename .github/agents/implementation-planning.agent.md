@@ -231,6 +231,10 @@ configs/{sm-kms,jose-ja,...}/config-common.yml  (10 files)
 
 Always derive counts from the formula, not memory. Missing files in the enumeration are the most common source of task underestimation.
 
+**Taxonomy-First Design for Large Migrations:**
+
+For large cross-cutting migrations (e.g., cross-service API changes, file family reorganizations): define the directory/API taxonomy and ownership BEFORE mapping concrete files. Sequence: **abstract model → concrete inventory → validation**. Prevents conflation of execution profiles with directory structure and avoids mid-migration redesigns that invalidate prior mapping work.
+
 ## Scope-Isolated Blocker Protocol - MANDATORY
 
 - If user asks for planning/design/research blockers, report only unresolved planning/design/research blockers.
@@ -1040,6 +1044,10 @@ Running frequent Unit + integration + E2E tests locally:
 
 ❌ NEVER mark task incomplete without GAP file
 ❌ NEVER defer work without documenting blocker
+
+**Task Documentation Lag is a Quality Regression:**
+
+Update task evidence immediately after each completed migration cluster — never batch task status updates for later. A stale `tasks.md` is a blocking quality artifact, not an administrative convenience. Deferred documentation creates invisible debt and false completion signals to subsequent phases.
 
 ### Quality Enforcement - MANDATORY
 

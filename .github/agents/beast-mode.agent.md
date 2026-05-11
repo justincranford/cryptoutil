@@ -476,6 +476,25 @@ git log --oneline -20
 - Make small, testable, incremental changes
 - Root cause analysis: Use `get_errors`, debug thoroughly, add logging/tests as needed
 
+**F9 — prefer replace_string_in_file over apply_patch for import block edits:**
+
+Prefer `replace_string_in_file` over `apply_patch` for import block edits. Import blocks in Go files have near-identical structure across files; patch context matching is unreliable for small edits in similar-looking import groups. Use `replace_string_in_file` with 3+ lines of surrounding context for reliable targeting.
+
+**Nested t.Cleanup Anti-Pattern:**
+
+NEVER call shared cleanup helpers inside `t.Cleanup`:
+- `t.Cleanup` runs AFTER the test body — cleanup from test N may run concurrently with setup of test N+1
+- Call cleanup helpers directly at test start (before test logic runs)
+- Shared SQLite fixtures are particularly susceptible — truncations delete rows being inserted by next test
+
+**Flaky Test Diagnosis:**
+
+When a failure appears intermittent, run BOTH before concluding root cause:
+1. **Isolated**: `go test -run TestName ./path/to/pkg` — passes alone? → shared fixture contamination likely
+2. **Full package**: `go test ./path/to/pkg` — fails in group? → confirms interaction with other tests
+
+**Isolated-pass + grouped-fail = shared fixture contamination**. Also: `git stash ; go test ./... ; git stash pop` — if the test fails before your changes, it is pre-existing (~30 seconds vs. hours of investigation).
+
 #### File Encoding - MANDATORY (PowerShell)
 
 When writing ANY file via PowerShell terminal commands, use UTF-8 without BOM. The `fix-byte-order-marker` pre-commit hook and `lint-text` (in `cicd-lint-all`) enforce this.

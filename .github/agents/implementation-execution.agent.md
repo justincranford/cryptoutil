@@ -510,6 +510,10 @@ CODE CHANGES & DEVELOPMENT
 - Always read 2000 lines of code at a time to ensure you have enough context
 - If a patch is not applied correctly, attempt to reapply it
 
+**F9 — prefer replace_string_in_file over apply_patch for import block edits:**
+
+Prefer `replace_string_in_file` over `apply_patch` for import block edits. Import blocks in Go files have near-identical structure across files; patch context matching is unreliable for small edits in similar-looking import groups. Use `replace_string_in_file` with 3+ lines of surrounding context for reliable targeting.
+
 **Incremental Changes:**
 
 - Make small, testable, incremental changes that logically follow from your investigation and plan
@@ -571,6 +575,30 @@ After tests pass, think about the original intent, write additional tests to ens
 - Add new table-driven tests to cover missed lines and branches
 - Re-run coverage to verify improvement
 - Iterate until coverage targets met (≥95% production, ≥98% infrastructure)
+
+**Nested t.Cleanup Anti-Pattern:**
+
+NEVER call shared cleanup helpers inside `t.Cleanup`:
+
+```go
+// WRONG: delayed execution, non-obvious ordering, cross-test contamination
+t.Cleanup(func() { testdb.CleanupDatabase(t, testDB) })
+
+// CORRECT: call directly at test start (before test logic runs)
+testdb.CleanupDatabase(t, testDB)
+```
+
+`t.Cleanup` runs AFTER the test body, so cleanup from test N may run concurrently with the setup of test N+1 in parallel suites. Shared SQLite fixtures are particularly susceptible — a cleanup that truncates tables can delete rows being inserted by the next test.
+
+**Flaky Test Diagnosis:**
+
+When a failure appears intermittent, run BOTH before concluding root cause:
+1. **Isolated**: `go test -run TestName ./path/to/pkg` — passes alone? → shared fixture contamination likely.
+2. **Full package**: `go test ./path/to/pkg` — fails in group? → confirms interaction with other tests.
+
+**Isolated-pass + grouped-fail = shared fixture contamination**. Check for `t.Cleanup`-wrapped cleanups, missing `CleanupDatabase` at test start, or parallel tests mutating shared SQLite state.
+
+**Also useful**: `git stash ; go test ./... ; git stash pop` — if the test fails before your changes, it is pre-existing, not caused by your work (~30 seconds vs. hours of investigation).
 
 --------------------------------------------
 
@@ -675,6 +703,10 @@ After completing each task:
 - Mark the task complete in tasks.md using `[x]` syntax
 - Commit the completed task with conventional commit format
 - Immediately begin the next task
+
+**Task Documentation Lag is a Quality Regression:**
+
+Update task evidence immediately after each completed migration cluster — never batch task status updates for later. A stale `tasks.md` is a blocking quality artifact, not an administrative convenience. Deferred documentation creates invisible debt and false completion signals to subsequent phases.
 
 Do NOT create:
 
