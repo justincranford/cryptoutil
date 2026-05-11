@@ -30,6 +30,20 @@ and the claimed TestMain count of 39 was unsupported (only 20 found). All 10 iss
 - ✅ **NEVER defer**: No "we'll fix later", no "non-critical", no "nice-to-have"
 - ✅ **NEVER skip**: Cannot mark phase or task or step complete with known issues
 
+## Codex Execution Guidance
+
+This plan is designed for execution by gpt-5.3-codex (or similar non-autonomous LLM agents). The following rules MUST be followed to avoid failure modes observed in framework-v21:
+
+**Bulk task anti-pattern**: Phase 5 originally had one task “Migrate 10 PS-ID E2E TestMains.” This has been expanded to 10 individual tasks (5.2a–5.2j) in tasks.md. NEVER collapse them back into a single task — bulk operations cause incomplete migrations where some PS-IDs are missed.
+
+**Verification discipline**: `go build ./...` passing does NOT mean migration succeeded — old imports still compile. Always run the `grep` verification command specified in each task’s acceptance criteria.
+
+**Quality gate non-negotiability**: Each phase has a quality gate task (N.4 or N.5 or N.7). Execute ALL commands in the quality gate. Only mark the phase complete after the quality gate task is ✅.
+
+**tasks.md as source of truth**: Update tasks.md status (❌ → ✅) immediately after each task completes. This is NOT optional documentation — it is the execution record.
+
+**Phase ordering matters**: Phases 5–8 have dependencies on Phase 1. Do not start Phase 5 or Phase 6 until Phase 1 is ✅ complete. See the Phase Dependency Map in tasks.md.
+
 ## Overview
 
 Framework V21 created the architectural foundation (8 new directories, 2 new linters, canonical

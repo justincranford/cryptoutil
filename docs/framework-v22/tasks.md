@@ -1,6 +1,6 @@
 # Tasks - Framework V22: V21 Audit Fix Campaign
 
-**Status**: 0 of 62 tasks complete (0%)
+**Status**: 0 of 71 tasks complete (0%) — Phase 5 Task 5.2 expanded to 10 individual PS-ID tasks for codex-model compatibility
 **Last Updated**: 2026-05-11
 **Created**: 2026-05-11
 
@@ -26,6 +26,43 @@
 | 🔄 | In progress | Currently being worked on |
 | ✅ | Complete | Task finished with evidence |
 | ⏳ | Blocked | Requires external dependency (MUST have resolution plan) |
+
+---
+
+## Codex Execution Protocol — MANDATORY
+
+This plan is optimized for execution by gpt-5.3-codex or similar models that need explicit step-by-step instructions rather than autonomous bulk operations.
+
+**Per-Task Rules — MANDATORY**:
+
+1. **Complete one task fully before starting the next** — Never start Task N+1 while Task N has outstanding acceptance criteria.
+2. **Run the exact quality gate commands listed** — Do NOT skip quality gates or assume they pass. Copy-paste the commands verbatim.
+3. **Update task status in tasks.md immediately** after the task's acceptance criteria are met — BEFORE moving to the next task.
+4. **One file per migration task** — Tasks that reference a single file have been split out individually. Migrate exactly the one file listed; verify with `grep` before marking complete.
+5. **If blocked for more than 30 minutes**: Mark task as ⏳, record the exact blocker in a Notes field below the task, and skip to the next independent task. Return to blocked task after other tasks in the phase are complete.
+6. **Anti-patterns to avoid** (lessons from framework-v21 that caused false completion claims):
+   - ❌ NEVER mark a task Complete based only on `go build` passing — build success does NOT verify migration; old import may still compile.
+   - ❌ NEVER skip Task 8.0 (consumer enumeration) — count may differ from estimate; use grep output, not the plan.
+   - ❌ NEVER claim coverage numbers for the WRONG package — verify exact package path matches the task file.
+   - ❌ NEVER use `apply_patch` for import block edits — use `replace_string_in_file` with 3+ lines of surrounding context.
+   - ❌ NEVER mark Phase 9 (E2E) as "Docker-deferred" — it must actually pass with Docker running.
+
+**Phase Dependency Map** (must be satisfied before starting a phase):
+
+| Phase | Depends On | Why |
+|-------|-----------|-----|
+| Phase 2 | Phase 1 complete | Tests need real implementations, not stubs |
+| Phase 3 | Phase 2 complete | Seam injection needs coverage baseline |
+| Phase 4 | Phase 3 complete | Mutation validates coverage quality |
+| Phase 5 | Phase 1 complete | E2E facade may use test_help_tls/barrier types |
+| Phase 6 | Phase 1 complete | Framework migrations use test_help_bootstrap |
+| Phase 7 | Phases 1+2 complete | sm-kms migration uses new helper packages |
+| Phase 8 | Phases 5+6+7 complete | Consumer migration after all new packages stable |
+| Phase 9 | Phase 5 complete | E2E tests use migrated TestMains |
+| Phase 10 | Phase 8 complete | Inventory reflects fully-migrated state |
+| Phase 11 | Phase 10 complete | Propagation covers all completed work |
+
+**When Docker is unavailable** (Phase 9 pre-condition `docker ps` fails): Continue with Phases 1–8, 10, 11. Phase 9 is a HARD BLOCKER — return to it when Docker is available. NEVER mark Phase 9 complete without Docker evidence.
 
 ---
 
@@ -273,15 +310,125 @@ add enforcement linter. Fixes SUMMARY.md Issue 3.
   - [ ] No circular imports
 - **Files**: `internal/apps-framework/service/test_orch_e2e/testmain_e2e.go`
 
-### Task 5.2: Migrate 10 PS-ID E2E TestMains
+### Task 5.2a: Migrate sm-kms E2E TestMain *(pilot — validate pattern here first)*
 
 - **Status**: ❌
-- **Estimated**: 2h
+- **Estimated**: 0.25h
+- **Dependencies**: Task 5.1 (facade exists and builds)
 - **Acceptance Criteria**:
-  - [ ] All 10 `internal/apps/*/e2e/testmain_e2e_test.go` import `test_orch_e2e`
+  - [ ] `internal/apps/sm-kms/e2e/testmain_e2e_test.go` imports `test_orch_e2e` (NOT `testing/e2e_infra`)
+  - [ ] `grep "testing/e2e_infra" internal/apps/sm-kms/e2e/testmain_e2e_test.go` returns 0 matches
+  - [ ] `go build -tags e2e ./internal/apps/sm-kms/e2e/...` exits 0
+- **Files**: `internal/apps/sm-kms/e2e/testmain_e2e_test.go`
+- **Pattern**: Replace `cryptoutilAppsFrameworkTestingE2eInfra.SetupE2ETestMain(m)` with `cryptoutilTestOrchE2e.SetupE2ETestMain(m, ...)`
+
+### Task 5.2b: Migrate sm-im E2E TestMain
+
+- **Status**: ❌
+- **Estimated**: 0.25h
+- **Dependencies**: Task 5.2a (pilot pattern confirmed working)
+- **Acceptance Criteria**:
+  - [ ] `internal/apps/sm-im/e2e/testmain_e2e_test.go` imports `test_orch_e2e`
+  - [ ] `grep "testing/e2e_infra" internal/apps/sm-im/e2e/testmain_e2e_test.go` returns 0 matches
+  - [ ] `go build -tags e2e ./internal/apps/sm-im/e2e/...` exits 0
+- **Files**: `internal/apps/sm-im/e2e/testmain_e2e_test.go`
+
+### Task 5.2c: Migrate jose-ja E2E TestMain
+
+- **Status**: ❌
+- **Estimated**: 0.25h
+- **Dependencies**: Task 5.2a
+- **Acceptance Criteria**:
+  - [ ] `internal/apps/jose-ja/e2e/testmain_e2e_test.go` imports `test_orch_e2e`
+  - [ ] `grep "testing/e2e_infra" internal/apps/jose-ja/e2e/testmain_e2e_test.go` returns 0 matches
+  - [ ] `go build -tags e2e ./internal/apps/jose-ja/e2e/...` exits 0
+- **Files**: `internal/apps/jose-ja/e2e/testmain_e2e_test.go`
+
+### Task 5.2d: Migrate pki-ca E2E TestMain
+
+- **Status**: ❌
+- **Estimated**: 0.25h
+- **Dependencies**: Task 5.2a
+- **Acceptance Criteria**:
+  - [ ] `internal/apps/pki-ca/e2e/testmain_e2e_test.go` imports `test_orch_e2e`
+  - [ ] `grep "testing/e2e_infra" internal/apps/pki-ca/e2e/testmain_e2e_test.go` returns 0 matches
+  - [ ] `go build -tags e2e ./internal/apps/pki-ca/e2e/...` exits 0
+- **Files**: `internal/apps/pki-ca/e2e/testmain_e2e_test.go`
+
+### Task 5.2e: Migrate identity-authz E2E TestMain
+
+- **Status**: ❌
+- **Estimated**: 0.25h
+- **Dependencies**: Task 5.2a
+- **Acceptance Criteria**:
+  - [ ] `internal/apps/identity-authz/e2e/testmain_e2e_test.go` imports `test_orch_e2e`
+  - [ ] `grep "testing/e2e_infra" internal/apps/identity-authz/e2e/testmain_e2e_test.go` returns 0 matches
+  - [ ] `go build -tags e2e ./internal/apps/identity-authz/e2e/...` exits 0
+- **Files**: `internal/apps/identity-authz/e2e/testmain_e2e_test.go`
+
+### Task 5.2f: Migrate identity-idp E2E TestMain
+
+- **Status**: ❌
+- **Estimated**: 0.25h
+- **Dependencies**: Task 5.2a
+- **Acceptance Criteria**:
+  - [ ] `internal/apps/identity-idp/e2e/testmain_e2e_test.go` imports `test_orch_e2e`
+  - [ ] `grep "testing/e2e_infra" internal/apps/identity-idp/e2e/testmain_e2e_test.go` returns 0 matches
+  - [ ] `go build -tags e2e ./internal/apps/identity-idp/e2e/...` exits 0
+- **Files**: `internal/apps/identity-idp/e2e/testmain_e2e_test.go`
+
+### Task 5.2g: Migrate identity-rp E2E TestMain
+
+- **Status**: ❌
+- **Estimated**: 0.25h
+- **Dependencies**: Task 5.2a
+- **Acceptance Criteria**:
+  - [ ] `internal/apps/identity-rp/e2e/testmain_e2e_test.go` imports `test_orch_e2e`
+  - [ ] `grep "testing/e2e_infra" internal/apps/identity-rp/e2e/testmain_e2e_test.go` returns 0 matches
+  - [ ] `go build -tags e2e ./internal/apps/identity-rp/e2e/...` exits 0
+- **Files**: `internal/apps/identity-rp/e2e/testmain_e2e_test.go`
+
+### Task 5.2h: Migrate identity-rs E2E TestMain
+
+- **Status**: ❌
+- **Estimated**: 0.25h
+- **Dependencies**: Task 5.2a
+- **Acceptance Criteria**:
+  - [ ] `internal/apps/identity-rs/e2e/testmain_e2e_test.go` imports `test_orch_e2e`
+  - [ ] `grep "testing/e2e_infra" internal/apps/identity-rs/e2e/testmain_e2e_test.go` returns 0 matches
+  - [ ] `go build -tags e2e ./internal/apps/identity-rs/e2e/...` exits 0
+- **Files**: `internal/apps/identity-rs/e2e/testmain_e2e_test.go`
+
+### Task 5.2i: Migrate identity-spa E2E TestMain
+
+- **Status**: ❌
+- **Estimated**: 0.25h
+- **Dependencies**: Task 5.2a
+- **Acceptance Criteria**:
+  - [ ] `internal/apps/identity-spa/e2e/testmain_e2e_test.go` imports `test_orch_e2e`
+  - [ ] `grep "testing/e2e_infra" internal/apps/identity-spa/e2e/testmain_e2e_test.go` returns 0 matches
+  - [ ] `go build -tags e2e ./internal/apps/identity-spa/e2e/...` exits 0
+- **Files**: `internal/apps/identity-spa/e2e/testmain_e2e_test.go`
+
+### Task 5.2j: Migrate skeleton-template E2E TestMain
+
+- **Status**: ❌
+- **Estimated**: 0.25h
+- **Dependencies**: Task 5.2a
+- **Acceptance Criteria**:
+  - [ ] `internal/apps/skeleton-template/e2e/testmain_e2e_test.go` imports `test_orch_e2e`
+  - [ ] `grep "testing/e2e_infra" internal/apps/skeleton-template/e2e/testmain_e2e_test.go` returns 0 matches
+  - [ ] `go build -tags e2e ./internal/apps/skeleton-template/e2e/...` exits 0
+- **Files**: `internal/apps/skeleton-template/e2e/testmain_e2e_test.go`
+
+### Task 5.2-verify: Cross-PS-ID verification
+
+- **Status**: ❌
+- **Estimated**: 0.1h
+- **Dependencies**: Tasks 5.2a through 5.2j
+- **Acceptance Criteria**:
   - [ ] `grep -r "testing/e2e_infra" --include="*testmain_e2e_test.go" internal/` returns 0 matches
   - [ ] `go build -tags e2e ./...` exits 0
-- **Files**: 10 × `internal/apps/{PSID}/e2e/testmain_e2e_test.go`
 
 ### Task 5.3: Create testmain_e2e_policy lint-fitness linter
 
@@ -301,6 +448,7 @@ add enforcement linter. Fixes SUMMARY.md Issue 3.
 ### Task 5.4: Phase 5 quality gate
 
 - **Status**: ❌
+- **Dependencies**: Tasks 5.2a through 5.2j and 5.2-verify all complete
 - **Acceptance Criteria**:
   - [ ] All 10 E2E TestMains use test_orch_e2e (confirmed by grep)
   - [ ] `go run ./cmd/cicd-lint lint-fitness` exits 0
