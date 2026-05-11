@@ -481,7 +481,6 @@ Here is current git status:
 
 **Four tool sources** — each requires a different discovery method.
 
-<!-- @propagate to=".github/instructions/06-02.agent-format.instructions.md" as="agent-tool-discovery" -->
 **Tool discovery by source type**:
 
 | Source | How to Discover | Tool ID Format in Agent `tools:` |
@@ -511,7 +510,6 @@ for d in sorted(ext_dir.iterdir()):
 **Category disambiguation**: `github.copilot-chat` extension tools use `category/toolReferenceName` (categories: `agent`, `browser`, `edit`, `execute`, `read`, `search`, `vscode`, `web`). All other extensions use bare `toolReferenceName`.
 
 **Maintenance**: Re-run the extension scan after any VS Code update, extension install/update, or MCP server change.
-<!-- @/propagate -->
 
 ### 2.2 Architecture Strategy
 
@@ -693,7 +691,7 @@ If `git status --porcelain` returns ANY output:
 
 #### Mandatory Review Passes
 
-<!-- @propagate to=".github/instructions/01-02.beast-mode.instructions.md, .github/instructions/06-01.evidence-based.instructions.md, .github/agents/beast-mode.agent.md, .github/agents/fix-workflows.agent.md, .github/agents/implementation-execution.agent.md, .github/agents/implementation-planning.agent.md, .claude/agents/beast-mode.md, .claude/agents/fix-workflows.md, .claude/agents/implementation-execution.md, .claude/agents/implementation-planning.md" as="mandatory-review-passes" -->
+<!-- @propagate to=".github/instructions/06-01.evidence-based.instructions.md, .github/agents/beast-mode.agent.md, .github/agents/fix-workflows.agent.md, .github/agents/implementation-execution.agent.md, .github/agents/implementation-planning.agent.md, .claude/agents/beast-mode.md, .claude/agents/fix-workflows.md, .claude/agents/implementation-execution.md, .claude/agents/implementation-planning.md" as="mandatory-review-passes" -->
 **MANDATORY: Minimum 3, maximum 5 review passes before marking any task complete.**
 
 Copilot and AI agents have a tendency to partially fulfill requested work, accidentally omitting or skipping items per request. To counter this, every task completion MUST include at least 3 review passes, each checking ALL 8 quality attributes:
@@ -4080,25 +4078,18 @@ var (
 func TestMain(m *testing.M) {
     ctx := context.Background()
 
-    // Create server with test configuration
-    cfg := config.NewTestSettings()
+    // Use SQLite in-memory for integration tests (NEVER PostgreSQL here)
+    testDB = testdb.NewInMemorySQLiteDBForTestMain(migrateFunc)
+
+    // Create server with in-memory DB
     var err error
-    testServer, err = NewFromConfig(ctx, cfg)
+    testServer, err = NewFromDB(ctx, testDB)
     if err != nil {
         log.Fatalf("Failed to create test server: %v", err)
     }
 
-    // Start server
-    go func() {
-        if err := testServer.Start(); err != nil {
-            log.Printf("Server error: %v", err)
-        }
-    }()
-
-    // Wait for ready
-    if err := testServer.WaitForReady(ctx, 10*time.Second); err != nil {
-        log.Fatalf("Server not ready: %v", err)
-    }
+    // Start server and wait for ready using shared test helper
+    testserver.StartAndWait(ctx, testServer)
 
     // Run tests
     exitCode := m.Run()
@@ -4109,11 +4100,11 @@ func TestMain(m *testing.M) {
 }
 ```
 
-**Benefits**:
-- Start heavyweight resources (PostgreSQL containers, servers) ONCE per package
-- Share testDB, testServer across all tests
-- Prevents repeated 10-30s startup overhead
-- Proper cleanup with defer statements
+**Key rules**:
+- Use `testdb.NewInMemorySQLiteDBForTestMain(migrateFunc)` for the shared DB (no `*testing.T` available in TestMain)
+- Use `testserver.StartAndWait(ctx, t, srv)` inside individual tests (with `*testing.T`)
+- NEVER use `postgres.RunContainer` in unit or integration tests — PostgreSQL is E2E only
+- Start heavyweight resources ONCE per package; share `testDB`, `testServer` across all tests
 
 #### 10.3.2 Test Isolation with t.Parallel()
 
@@ -6901,7 +6892,7 @@ Failure policy:
 
 ### 14.7 Infrastructure Blocker Escalation
 
-<!-- @propagate to=".github/instructions/06-01.evidence-based.instructions.md, .github/instructions/01-02.beast-mode.instructions.md" as="infrastructure-blocker-escalation" -->
+<!-- @propagate to=".github/instructions/06-01.evidence-based.instructions.md" as="infrastructure-blocker-escalation" -->
 **MANDATORY: ALL infrastructure issues are BLOCKING. NEVER defer, deprioritize, skip, or tag as "pre-existing."**
 
 Three-encounter rule: 1st → document, 2nd → create fix task, 3rd → MANDATORY Phase 0 fix (block ALL other work). Infrastructure blockers (OTel, Docker, testcontainers, CI/CD) take priority over feature work.

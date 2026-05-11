@@ -93,12 +93,6 @@ func chunkMappings() []ChunkMapping {
 		},
 		{
 			ArchSection: "2.5",
-			Description: "Mandatory Review Passes (beast-mode)",
-			DestFile:    ".github/instructions/01-02.beast-mode.instructions.md",
-			MarkerText:  "mandatory-review-passes",
-		},
-		{
-			ArchSection: "2.5",
 			Description: "Mandatory Review Passes (evidence-based)",
 			DestFile:    ".github/instructions/06-01.evidence-based.instructions.md",
 			MarkerText:  "mandatory-review-passes",
