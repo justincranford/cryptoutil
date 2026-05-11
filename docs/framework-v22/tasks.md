@@ -622,7 +622,7 @@ Fixes SUMMARY.md Issue 8.
 - **Status**: ❌ BLOCKED
 - **Acceptance Criteria**:
   - [ ] `docker compose -f deployments/cryptoutil/compose.yml build` exits 0
-- **Blocker**: Docker Desktop returns API 500 / EOF during image builds even after trimming `.dockerignore` and removing BuildKit cache mounts. Single-image `docker build` reproduces the same daemon failure. `docker ps` works but build daemon crashes. Requires Docker Desktop restart or reinstall.
+- **Blocker**: Retried after Docker restart. Build from repo root fails path resolution (`GetFileAttributesEx ..\sm-kms\.env.postgres`), build from `deployments/cryptoutil` starts then fails mid-build with `rpc error: ... error reading from server: EOF`, then Docker daemon degrades to `request returned 500 Internal Server Error` for `docker ps`/`docker version`. Service-level restart is not possible in this shell (`Start-Service com.docker.service` denied), so Docker Desktop must be recovered externally before E2E can proceed.
 
 ### Task 9.3: Run sm-kms E2E tests
 
@@ -719,10 +719,10 @@ Fixes SUMMARY.md Issue 10.
 
 - [x] Unit tests ≥ 98% coverage (infrastructure packages: all 7 helpers + 3 linters) ← validated per-phase during Phases 2–5
 - [x] Unit tests ≥ 95% coverage (production packages: businesslogic, orm) ← validated per-phase during Phase 8
-- [ ] Integration tests pass (`go test -tags integration ./...`) — `server_integration` has pre-existing SQLite lock flakiness unrelated to V22 (reproduced on stash baseline)
+- [ ] Integration tests pass (`go test -tags integration ./...`) — `server_integration` flakiness fixed in `internal/apps-framework/service/server_integration/integration_test.go` (isolated per-test DSN), but suite still fails in unrelated packages: `internal/apps/sm-im/client` (TLS unknown authority), `internal/apps/sm-kms/client` (missing Authorization header / timeout), `internal/apps/sm-kms/server/repository/orm` (cleanup references missing `barrier_content_keys` table)
 - [ ] E2E tests pass with Docker Desktop (Phase 9) — BLOCKED by Docker build daemon crash
 - [x] Mutation testing ≥ 98% for all infrastructure packages (Phase 4) ← validated in Phase 4
-- [ ] Race detector clean: `go test -race ./...` — BLOCKED (depends on Phase 9 E2E resolution for full coverage)
+- [ ] Race detector clean: `go test -race ./...` — BLOCKED by missing C toolchain on Windows host (`cgo: C compiler "gcc" not found`)
 
 ### Code Quality
 

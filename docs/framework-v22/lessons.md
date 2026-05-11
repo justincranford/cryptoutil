@@ -25,7 +25,7 @@
 6. [Phase 6: Migrate PS-ID TestMain Files](#phase-6-migrate-ps-id-testmain-files) — All 10 PS-ID service `testmain_test.go` files migrated to new helper packages; deprecated `testing/testdb` and `testing/testserver` paths removed.
 7. [Phase 7: Migrate Server Package TestMain Files](#phase-7-migrate-server-package-testmain-files) — All 10 `internal/apps/*/server/testmain_test.go` migrated; port-conflict tests validated.
 8. [Phase 8: Migrate Domain Package TestMain Files](#phase-8-migrate-domain-package-testmain-files) — 8 domain package TestMain instances migrated; identified 6 false literal-use violations introduced by migration; fixed all 6 in pre-commit.
-9. [Phase 9: E2E Validation](#phase-9-e2e-validation) — Task 9.1 ✅ (`docker ps` exits 0); Tasks 9.2–9.5 BLOCKED by Docker Desktop build daemon crash (API EOF on `docker build`); infrastructure blocker documented.
+9. [Phase 9: E2E Validation](#phase-9-e2e-validation) — Retried after Docker restart; compose builds still fail (path resolution at root, EOF mid-build in deployment dir), then daemon regresses to API 500 on `docker ps`; infrastructure blocker remains active.
 10. [Phase 10: TestMain Inventory Table](#phase-10-testmain-inventory-table) — Definitive inventory: 54 TestMain instances (formula: 10+10+8+10+8+8=54); V21's claim of 39 was an undercount by 15; inventory written to `test-output/v22-inventory/testmain-inventory.md`.
 11. [Phase 11: Knowledge Propagation](#phase-11-knowledge-propagation) — ENG-HANDBOOK.md §10.3.6 updated for `test_help_*` / `test_orch_*` packages; instruction file Shared Test Infrastructure table corrected; agent files reviewed (no formal paths to fix).
 
@@ -33,10 +33,10 @@
 
 ## Actions
 
-1. Restart Docker Desktop (or reinstall) to resolve the daemon build API crash blocking Phase 9 Tasks 9.2–9.5. Once fixed: `go test -tags e2e ./internal/apps/sm-kms/e2e/... -v` and `go test -tags e2e ./internal/apps/sm-im/e2e/... -v`.
+1. Recover Docker Desktop engine health (full restart/reinstall with service permissions) so `docker ps` and `docker compose -f deployments/cryptoutil/compose.yml build` both succeed, then run `go test -tags e2e ./internal/apps/sm-kms/e2e/... -v` and `go test -tags e2e ./internal/apps/sm-im/e2e/... -v`.
 2. Remove the deprecated `internal/apps-framework/service/testing/testdb` and `internal/apps-framework/service/testing/testserver` sub-packages once all consumers have been confirmed migrated (grep: `"cryptoutil/internal/apps-framework/service/testing/testdb"`).
 3. Add a fitness linter that enforces use of `test_help_*` / `test_orch_*` packages over deprecated `testing/testdb` and `testing/testserver` paths — prevents future regression.
-4. Run `go test -race -count=2 ./internal/apps-framework/service/test_help_db/... ./internal/apps-framework/service/test_orch_integration/...` to confirm race detector cleanliness for the new helpers.
+4. Install a Windows C toolchain (`gcc` in PATH) and rerun `go test -race ./...`; current race gate is blocked by `cgo: C compiler "gcc" not found`.
 5. Update `api/cryptosuite-registry/templates/` canonical templates for `testmain_test.go` to reference `test_help_db.NewInMemorySQLiteDB(t)` instead of any deprecated path — ensures `apps-ps-id-template` fitness linter stays green.
 
 ---
@@ -230,19 +230,23 @@
 ## Phase 9: E2E Validation
 
 **What Worked**:
-- `docker ps` (Task 9.1) exited 0 immediately, confirming Docker Desktop daemon is running and reachable.
-- Identifying the exact failure mode (`rpc error: code = Unavailable desc = error reading from server: EOF`) proved the issue is in the Docker build daemon layer, not in the Compose configuration.
+- Docker restart and rerun produced more precise diagnostics instead of generic failures.
+- Running compose from `deployments/cryptoutil` removed the false path error from root execution and confirmed the true failure point is Docker engine instability during build.
 
 **What Didn't Work**:
-- `docker compose build` and standalone `docker build` both failed with the same EOF response from the Docker daemon regardless of context size or BuildKit cache settings.
-- Stripping `.dockerignore` and using `--no-cache` did not change the outcome — ruling out context-size and cache corruption.
+- Build retry from repo root failed path resolution (`GetFileAttributesEx ..\sm-kms\.env.postgres`), which initially obscured the real blocker.
+- Build retry from deployment directory reached real image compilation, then failed with `rpc error: ... error reading from server: EOF`.
+- After the crash, Docker daemon degraded further to `request returned 500 Internal Server Error` for `docker ps` and `docker version` on both `desktop-linux` and `default` contexts.
+- Attempted local recovery via `Start-Service com.docker.service` was denied in this shell, preventing in-session service restart.
 
 **Root Causes**:
-- Docker Desktop's BuildKit daemon had an internal crash or resource exhaustion state. The API surface (`docker ps`, `docker inspect`) still works because it hits a different daemon component; only `docker build` hits the crashing BuildKit endpoint.
-- This is a transient infrastructure failure specific to the development machine, not a code defect.
+- Docker Desktop engine enters an unstable state under compose build load; after failure, API endpoints on named pipes return HTTP 500 even for simple container list/version calls.
+- Compose invocation directory matters for path resolution (`deployments/cryptoutil` works; repo root can fail relative `.env.*` includes).
+- Infrastructure permissions on this shell do not allow direct service restart (`com.docker.service`), so full daemon recovery cannot be completed from this session.
 
 **Patterns for Future Phases**:
-- Classify Docker build failures as infrastructure blockers (not code bugs) immediately; do not spend debugging time on Compose configuration when `docker ps` passes but `docker build` fails with EOF.
+- Run compose commands from the deployment directory first to avoid false blocker signals from path resolution.
+- If Docker returns EOF during build and then 500 on `docker ps`, treat it as a daemon health incident and escalate to host-level recovery immediately.
 - The three-encounter rule applies: first encounter → document; second → create task; third → mandatory restart/reinstall before continuing any Docker-dependent work.
 - Always isolate E2E phase from knowledge propagation phase so a Docker blocker doesn't block documentation work.
 
