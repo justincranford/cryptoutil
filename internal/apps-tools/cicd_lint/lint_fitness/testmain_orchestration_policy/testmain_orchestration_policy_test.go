@@ -279,6 +279,31 @@ func TestWalkTestMainFiles_ReturnsServerAndClientPaths(t *testing.T) {
 	require.True(t, hasClient, "expected client/testmain_test.go in walk results")
 }
 
+func TestWalkTestMainFiles_IgnoresNonServerClientSubdirs(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+
+	writePSIDServerTestMain(t, dir, cryptoutilSharedMagic.OTLPServiceSMKMS, compliantTestMain)
+
+	clientDir := filepath.Join(dir, "internal", "apps", cryptoutilSharedMagic.OTLPServiceSMKMS, testSubPkgClient)
+	require.NoError(t, os.MkdirAll(clientDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+	require.NoError(t, os.WriteFile(filepath.Join(clientDir, "testmain_test.go"), []byte(compliantTestMain), cryptoutilSharedMagic.FilePermissionsDefault))
+
+	ignoredDir := filepath.Join(dir, "internal", "apps", cryptoutilSharedMagic.OTLPServiceSMKMS, "misc")
+	require.NoError(t, os.MkdirAll(ignoredDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+	require.NoError(t, os.WriteFile(filepath.Join(ignoredDir, "testmain_test.go"), []byte(compliantTestMain), cryptoutilSharedMagic.FilePermissionsDefault))
+
+	paths, err := lintFitnessTestmainOrchestrationPolicy.WalkTestMainFiles(dir)
+
+	require.NoError(t, err)
+	require.Len(t, paths, 2, "only server/client testmain files should be returned")
+
+	for _, p := range paths {
+		require.NotContains(t, p, filepath.Join("apps", cryptoutilSharedMagic.OTLPServiceSMKMS, "misc"))
+	}
+}
+
 func TestWalkTestMainFiles_EmptyAppsDir_ReturnsError(t *testing.T) {
 	t.Parallel()
 

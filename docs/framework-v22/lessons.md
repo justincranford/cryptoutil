@@ -97,7 +97,23 @@
 
 ## Phase 4: Mutation Testing
 
-*(To be filled during Phase 4 execution using the 4-section structure above)*
+**What Worked**:
+- Running gremlins with `--workers=1` and higher timeout coefficient stabilized linter-package mutation runs enough to get deterministic efficacy results.
+- Adding mutation-targeted assertions (exact line number checks and branch-focused directory discovery tests) eliminated surviving linter mutants.
+- Centralizing all evidence under `test-output/v22-mutation/` made it straightforward to separate package-level passes from environment-driven failures.
+
+**What Didn't Work**:
+- Default Windows gremlins runs across helper packages produced frequent temp-folder unlink failures and large timeout clusters.
+- Initial wildcard package invocation (`...`) failed coverage discovery for linter paths on Windows PowerShell, requiring direct package path invocation.
+
+**Root Causes**:
+- Windows file locking against large copied worktrees (especially under `test-output/` and transient temp copies) caused cleanup failures and unreliable non-zero exits unrelated to mutation efficacy.
+- Some helper-package mutation scenarios are sensitive to process/runtime variability and require Linux CI execution for stable timeout behavior.
+
+**Patterns for Future Phases**:
+- For mutation work on Windows, always start with tuned gremlins flags: `--workers=1`, increased timeout coefficient, and explicit output artifacts.
+- Treat helper-package mutation instability as CI-deferred only when local evidence is captured and the exact workflow step is referenced (`.github/workflows/ci-mutation.yml`, `Run mutation tests (informational)`).
+- When a lived mutant appears, add the smallest assertion that validates the mutated semantic (for example, exact computed field values) before rerunning mutation.
 
 ---
 

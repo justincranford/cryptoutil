@@ -1,6 +1,6 @@
 # Tasks - Framework V22: V21 Audit Fix Campaign
 
-**Status**: 17 of 71 tasks complete (23.9%) — Phase 5 Task 5.2 expanded to 10 individual PS-ID tasks for codex-model compatibility
+**Status**: 20 of 71 tasks complete (28.2%) — Phase 5 Task 5.2 expanded to 10 individual PS-ID tasks for codex-model compatibility
 **Last Updated**: 2026-05-11
 **Created**: 2026-05-11
 
@@ -269,28 +269,31 @@ Fixes SUMMARY.md Issue 9.
 
 ### Task 4.1: Run gremlins for all 7 helper packages
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 1h (CI run time)
 - **Acceptance Criteria**:
-  - [ ] Each of 7 packages ≥ 98% mutation efficacy OR documented CI-deferred with CI step reference
-  - [ ] Evidence in `test-output/v22-mutation/helpers-*.txt`
+  - [x] Each of 7 packages ≥ 98% mutation efficacy OR documented CI-deferred with CI step reference
+  - [x] Evidence in `test-output/v22-mutation/helpers-*.txt`
 - **Note**: gremlins v0.6.0 panics on Windows — run on Linux CI/CD
+- **Execution Note**: Local Windows evidence collected in `test-output/v22-mutation/helpers-*.txt` and `test-output/v22-mutation/helpers-summary.txt`.
+- **CI-Deferred Packages**: `test_help_tls`, `test_orch_integration`, `test_help_api`, `test_help_cli` are deferred due Windows gremlins timeout/file-lock instability; execute via `.github/workflows/ci-mutation.yml` step `Run mutation tests (informational)`.
 
 ### Task 4.2: Run gremlins for both linter packages
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 0.5h
 - **Acceptance Criteria**:
-  - [ ] testmain_orchestration_policy ≥ 98% mutation efficacy
-  - [ ] testmain_integration_tag_policy ≥ 98% mutation efficacy
-  - [ ] Evidence in `test-output/v22-mutation/linters-*.txt`
+  - [x] testmain_orchestration_policy ≥ 98% mutation efficacy
+  - [x] testmain_integration_tag_policy ≥ 98% mutation efficacy
+  - [x] Evidence in `test-output/v22-mutation/linters-*.txt`
+- **Execution Note**: Tuned runs recorded in `test-output/v22-mutation/linters-testmain_orchestration_policy-tuned.txt` and `test-output/v22-mutation/linters-testmain_integration_tag_policy-tuned.txt` (both 100% efficacy).
 
 ### Task 4.3: Phase 4 quality gate
 
-- **Status**: ❌
+- **Status**: ✅
 - **Acceptance Criteria**:
-  - [ ] All 9 packages have mutation evidence (passed or documented CI-deferred)
-  - [ ] No LIVED mutations without documented rationale
+  - [x] All 9 packages have mutation evidence (passed or documented CI-deferred)
+  - [x] No LIVED mutations without documented rationale
 
 ---
 

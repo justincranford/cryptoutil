@@ -48,11 +48,12 @@ func TestCheckFile_Table(t *testing.T) {
 		content   string
 		wantCount int
 		wantTag   string
+		wantLine  int
 	}{
-		{name: "no tags", content: "package server\n", wantCount: 0},
-		{name: "integration go build tag", content: "//go:build integration\npackage server\n", wantCount: 1, wantTag: "//go:build integration"},
-		{name: "legacy build tag", content: "// +build integration\npackage server\n", wantCount: 1, wantTag: "// +build integration"},
-		{name: "e2e go build tag", content: "//go:build e2e\npackage server\n", wantCount: 1, wantTag: "//go:build e2e"},
+		{name: "no tags", content: "package server\n", wantCount: 0, wantLine: 0},
+		{name: "integration go build tag", content: "//go:build integration\npackage server\n", wantCount: 1, wantTag: "//go:build integration", wantLine: 1},
+		{name: "legacy build tag", content: "// +build integration\npackage server\n", wantCount: 1, wantTag: "// +build integration", wantLine: 1},
+		{name: "e2e go build tag", content: "//go:build e2e\npackage server\n", wantCount: 1, wantTag: "//go:build e2e", wantLine: 1},
 	}
 
 	for _, tc := range tests {
@@ -67,6 +68,7 @@ func TestCheckFile_Table(t *testing.T) {
 
 			if tc.wantTag != "" {
 				require.Equal(t, tc.wantTag, violations[0].Tag)
+				require.Equal(t, tc.wantLine, violations[0].Line)
 			}
 		})
 	}
