@@ -9,6 +9,10 @@ import (
 	"os"
 	"testing"
 
+	cryptoutilAppsFrameworkServiceConfigTlsGenerator "cryptoutil/internal/apps-framework/service/config/tls_generator"
+	cryptoutilAppsFrameworkServiceTestHelpBootstrap "cryptoutil/internal/apps-framework/service/test_help_bootstrap"
+	cryptoutilAppsFrameworkServiceTestHelpTLS "cryptoutil/internal/apps-framework/service/test_help_tls"
+
 	"gorm.io/gorm"
 
 	cryptoutilAppsFrameworkServiceServerRepository "cryptoutil/internal/apps-framework/service/server/repository"
@@ -19,9 +23,21 @@ import (
 var testGormDB *gorm.DB
 
 func TestMain(m *testing.M) {
-	if err := cryptoutilAppsFrameworkServiceServerTestutil.Initialize(); err != nil {
-		panic("failed to initialize test fixtures: " + err.Error())
+	settings := cryptoutilAppsFrameworkServiceTestHelpBootstrap.NewTestServerSettingsForTestMain()
+	publicTLS := cryptoutilAppsFrameworkServiceTestHelpTLS.NewTestTLSSettingsForTestMain()
+	privateTLS := cryptoutilAppsFrameworkServiceTestHelpTLS.NewTestTLSSettingsForTestMain()
+
+	publicMaterial, err := cryptoutilAppsFrameworkServiceConfigTlsGenerator.GenerateTLSMaterial(publicTLS)
+	if err != nil {
+		panic("failed to generate public TLS material: " + err.Error())
 	}
+
+	privateMaterial, err := cryptoutilAppsFrameworkServiceConfigTlsGenerator.GenerateTLSMaterial(privateTLS)
+	if err != nil {
+		panic("failed to generate private TLS material: " + err.Error())
+	}
+
+	cryptoutilAppsFrameworkServiceServerTestutil.ConfigureTestFixtures(settings, publicTLS, privateTLS, publicMaterial.RootCAPool, privateMaterial.RootCAPool)
 
 	var (
 		dbCleanup func()

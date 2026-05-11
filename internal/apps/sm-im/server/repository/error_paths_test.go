@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	cryptoutilAppsFrameworkServiceServerRepository "cryptoutil/internal/apps-framework/service/server/repository"
-	cryptoutilTestdb "cryptoutil/internal/apps-framework/service/testing/testdb"
+	cryptoutilTestdb "cryptoutil/internal/apps-framework/service/test_help_db"
 	cryptoutilAppsSmImModel "cryptoutil/internal/apps/sm-im/server/model"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )

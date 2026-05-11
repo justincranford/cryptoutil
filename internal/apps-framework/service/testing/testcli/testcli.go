@@ -1,5 +1,6 @@
 // Copyright (c) 2025-2026 Justin Cranford.
 // Package testcli provides shared test helpers for PS-ID service CLI entry point tests.
+// Deprecated: use cryptoutil/internal/apps-framework/service/test_help_cli instead.
 // All 10 PS-ID service packages call RunCLITests to reduce their *_test.go files
 // to a single function that delegates the standard three-case suite to this helper.
 package testcli

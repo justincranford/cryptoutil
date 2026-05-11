@@ -12,7 +12,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	cryptoutilTestingTestserver "cryptoutil/internal/apps-framework/service/testing/testserver"
+	cryptoutilAppsFrameworkServiceTestOrcIntegration "cryptoutil/internal/apps-framework/service/test_orch_integration"
 	cryptoutilAppsSmImServer "cryptoutil/internal/apps/sm-im/server"
 	cryptoutilAppsSmImServerConfig "cryptoutil/internal/apps/sm-im/server/config"
 )
@@ -157,9 +157,10 @@ func TestServer_Shutdown(t *testing.T) {
 	require.NoError(t, err, "Failed to create test server")
 	require.NotNil(t, testServer, "Server should not be nil")
 
-	// Start server and wait for both ports using shared helper.
-	// t.Cleanup will call server.Shutdown when test completes.
-	cryptoutilTestingTestserver.StartAndWait(startCtx, t, testServer)
+	// Start server and register cleanup through the shared integration helper.
+	integrationServer, err := cryptoutilAppsFrameworkServiceTestOrcIntegration.StartIntegrationServer(startCtx, t, testServer, nil)
+	require.NoError(t, err)
+	t.Cleanup(func() { _ = integrationServer.Shutdown(context.Background()) })
 
 	// Test graceful shutdown.
 	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.JoseJADefaultMaxMaterials*time.Second)

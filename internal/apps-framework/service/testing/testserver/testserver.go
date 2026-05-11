@@ -2,6 +2,7 @@
 //
 
 // Package testserver provides shared server startup helpers for cryptoutil service tests.
+// Deprecated: use cryptoutil/internal/apps-framework/service/test_orch_integration instead.
 // Centralizes the TestMain server startup boilerplate to eliminate duplication across services.
 package testserver
 

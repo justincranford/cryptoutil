@@ -1,5 +1,6 @@
 // Copyright (c) 2025-2026 Justin Cranford.
 // Package e2e_helpers provides reusable end-to-end testing helpers for all cryptoutil services.
+// Deprecated: use cryptoutil/internal/apps-framework/service/test_orch_e2e instead.
 // Extracted from sm-im implementation to support 9-service migration.
 package e2e_helpers
 

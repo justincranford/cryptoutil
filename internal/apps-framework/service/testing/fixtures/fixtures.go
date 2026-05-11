@@ -2,6 +2,7 @@
 //
 
 // Package fixtures provides test entity factories for cryptoutil service tests.
+// Deprecated: use direct test fixtures in the owning package or newer shared helpers instead.
 // Each factory creates a unique, persisted entity using UUIDv7 for deterministic test isolation.
 package fixtures
 

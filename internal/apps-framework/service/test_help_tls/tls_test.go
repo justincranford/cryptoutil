@@ -12,6 +12,7 @@ import (
 	"testing"
 
 	cryptoutilAppsFrameworkServiceConfigTlsGenerator "cryptoutil/internal/apps-framework/service/config/tls_generator"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/stretchr/testify/require"
 )
@@ -118,8 +119,8 @@ func TestNewMTLSClient_Table(t *testing.T) {
 	certPath := filepath.Join(tempDir, "client.crt")
 	keyPath := filepath.Join(tempDir, "client.key")
 
-	require.NoError(t, os.WriteFile(certPath, tlsSettings.StaticCertPEM, 0o600))
-	require.NoError(t, os.WriteFile(keyPath, tlsSettings.StaticKeyPEM, 0o600))
+	require.NoError(t, os.WriteFile(certPath, tlsSettings.StaticCertPEM, cryptoutilSharedMagic.CacheFilePermissions))
+	require.NoError(t, os.WriteFile(keyPath, tlsSettings.StaticKeyPEM, cryptoutilSharedMagic.CacheFilePermissions))
 
 	material, err := cryptoutilAppsFrameworkServiceConfigTlsGenerator.GenerateTLSMaterial(tlsSettings)
 	require.NoError(t, err)

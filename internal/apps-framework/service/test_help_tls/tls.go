@@ -33,6 +33,11 @@ func NewTestTLSSettings(t *testing.T) *cryptoutilAppsFrameworkServiceConfigTlsGe
 	return mustTestTLSSettings(cryptoutilAppsFrameworkServiceConfigTlsGenerator.GenerateAutoTLSGeneratedSettings)
 }
 
+// NewTestTLSSettingsForTestMain returns TLS settings without requiring *testing.T.
+func NewTestTLSSettingsForTestMain() *cryptoutilAppsFrameworkServiceConfigTlsGenerator.TLSGeneratedSettings {
+	return mustTestTLSSettings(cryptoutilAppsFrameworkServiceConfigTlsGenerator.GenerateAutoTLSGeneratedSettings)
+}
+
 func mustTestTLSSettings(generatorFn generateAutoTLSSettingsFn) *cryptoutilAppsFrameworkServiceConfigTlsGenerator.TLSGeneratedSettings {
 	tlsSettings, err := newTestTLSSettingsWithGenerator(generatorFn)
 	if err != nil {

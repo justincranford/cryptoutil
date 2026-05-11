@@ -42,7 +42,11 @@ func TestMain(m *testing.M) {
 	ctx := context.Background()
 
 	// Create in-memory SQLite database (avoid Docker requirement).
-	db := cryptoutilTestDb.NewInMemorySQLiteDB(&testing.T{})
+	db, dbCleanup, err := cryptoutilTestDb.NewInMemorySQLiteDBForTestMain()
+	if err != nil {
+		panic("TestMain: failed to create test database: " + err.Error())
+	}
+	defer dbCleanup()
 
 	// Run migrations using underlying sql.DB.
 	testSQLDB, err := db.DB()

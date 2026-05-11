@@ -1,5 +1,6 @@
 // Copyright (c) 2025-2026 Justin Cranford.
-// Package stubs provides exported IPublicServer and IAdminServer stub implementations
+// Package stubs provides exported IPublicServer and IAdminServer stub implementations.
+// Deprecated: use package-local test doubles or the newer shared helper packages instead.
 // for use in PS-ID unit tests. Centralises the stub definitions so each PS-ID does
 // not need to re-define identical local types.
 //

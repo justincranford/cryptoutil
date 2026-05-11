@@ -12,12 +12,10 @@ import (
 	"os"
 	"testing"
 
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
-
 	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps-framework/service/config"
-	cryptoutilAppsFrameworkServiceServerApplication "cryptoutil/internal/apps-framework/service/server/application"
-	cryptoutilAppsFrameworkServiceServerRepository "cryptoutil/internal/apps-framework/service/server/repository"
+	cryptoutilAppsFrameworkServiceTestHelpDb "cryptoutil/internal/apps-framework/service/test_help_db"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 
 	_ "modernc.org/sqlite"
@@ -27,7 +25,6 @@ var (
 	testCtx              = context.Background()
 	testTelemetryService *cryptoutilSharedTelemetry.TelemetryService
 	testJWKGenService    *cryptoutilSharedCryptoJose.JWKGenService
-	testTemplateCore     *cryptoutilAppsFrameworkServiceServerApplication.Core
 	testOrmRepository    *OrmRepository
 )
 
@@ -37,48 +34,34 @@ func TestMain(m *testing.M) {
 	func() {
 		var err error
 
-		// Initialize shared test fixture using SQLite for integration testing
-		// This runs ONCE for all tests in this package
+		// Initialize shared test fixture using SQLite for integration testing.
+		// This runs ONCE for all tests in this package.
+		testDB, dbCleanup, err := cryptoutilAppsFrameworkServiceTestHelpDb.NewInMemorySQLiteDBForTestMain()
+		if err != nil {
+			panic(fmt.Sprintf("failed to create test DB: %v", err))
+		}
+		defer dbCleanup()
+
 		settings := cryptoutilAppsFrameworkServiceConfig.RequireNewForTest("orm-integration-tests")
 		settings.DatabaseURL = cryptoutilSharedMagic.SQLiteInMemoryDSN
 
-		testTemplateCore, err = cryptoutilAppsFrameworkServiceServerApplication.StartCore(testCtx, settings)
+		testTelemetryService, err = cryptoutilSharedTelemetry.NewTelemetryService(testCtx, settings.ToTelemetrySettings())
 		if err != nil {
-			panic(fmt.Sprintf("failed to start template core: %v", err))
+			panic(fmt.Sprintf("failed to create telemetry service: %v", err))
 		}
+		defer testTelemetryService.Shutdown()
 
-		defer func() {
-			if testTemplateCore.ShutdownDBContainer != nil {
-				testTemplateCore.ShutdownDBContainer()
-			}
-
-			testTemplateCore.Basic.Shutdown()
-		}()
-
-		testTelemetryService = testTemplateCore.Basic.TelemetryService
-		testJWKGenService = testTemplateCore.Basic.JWKGenService
-
-		sqlDB, err := testTemplateCore.DB.DB()
+		testJWKGenService, err = cryptoutilSharedCryptoJose.NewJWKGenService(testCtx, testTelemetryService, false)
 		if err != nil {
-			panic(fmt.Sprintf("failed to get sql.DB from GORM: %v", err))
+			panic(fmt.Sprintf("failed to create JWK service: %v", err))
 		}
+		defer testJWKGenService.Shutdown()
 
-		err = cryptoutilAppsFrameworkServiceServerRepository.ApplyMigrationsFromFS(
-			sqlDB,
-			cryptoutilAppsFrameworkServiceServerRepository.MigrationsFS,
-			"migrations",
-			cryptoutilSharedMagic.TestDatabaseSQLite,
-		)
-		if err != nil {
-			panic(fmt.Sprintf("failed to apply template migrations: %v", err))
-		}
-
-		err = testTemplateCore.DB.AutoMigrate(&ElasticKey{}, &MaterialKey{})
-		if err != nil {
+		if err := testDB.AutoMigrate(&ElasticKey{}, &MaterialKey{}); err != nil {
 			panic(fmt.Sprintf("failed to apply KMS domain tables: %v", err))
 		}
 
-		testOrmRepository = RequireNewForTest(testCtx, testTelemetryService, testTemplateCore.DB, testJWKGenService, settings.VerboseMode)
+		testOrmRepository = RequireNewForTest(testCtx, testTelemetryService, testDB, testJWKGenService, settings.VerboseMode)
 		defer testOrmRepository.Shutdown()
 
 		rc = m.Run()

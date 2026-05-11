@@ -9,6 +9,8 @@ import (
 	"fmt"
 	"testing"
 
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 	postgresContainerModule "github.com/testcontainers/testcontainers-go/modules/postgres"
@@ -222,7 +224,7 @@ func TestNewClosedSQLiteDB_Table(t *testing.T) {
 
 				return deps
 			},
-			wantPanicText: "uuid",
+			wantPanicText: cryptoutilSharedMagic.IdentityTokenFormatUUID,
 		},
 		{
 			name:   "migration panic",
@@ -428,7 +430,7 @@ func TestNewPostgresTestContainer_WithDeps(t *testing.T) {
 	t.Run("success with cleanup error paths", func(t *testing.T) {
 		t.Parallel()
 
-		sqlDB, openErr := sql.Open("sqlite", "file:test-postgres-seam-db?mode=memory&cache=shared")
+		sqlDB, openErr := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, "file:test-postgres-seam-db?mode=memory&cache=shared")
 		require.NoError(t, openErr)
 
 		deps := defaultDBDeps()
@@ -475,7 +477,7 @@ func TestDefaultSeamFunctions_Coverage(t *testing.T) {
 	t.Parallel()
 
 	deps := defaultDBDeps()
-	sqlDB, err := deps.sqlOpenFn("sqlite", "file:test-default-seams?mode=memory&cache=shared")
+	sqlDB, err := deps.sqlOpenFn(cryptoutilSharedMagic.TestDatabaseSQLite, "file:test-default-seams?mode=memory&cache=shared")
 	require.NoError(t, err)
 	t.Cleanup(func() { _ = sqlDB.Close() })
 
@@ -492,7 +494,7 @@ func TestDefaultSeamFunctions_Coverage(t *testing.T) {
 	t.Run("default pragma error wrapping", func(t *testing.T) {
 		t.Parallel()
 
-		closedDB, openErr := sql.Open("sqlite", "file:test-default-seams-closed?mode=memory&cache=shared")
+		closedDB, openErr := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, "file:test-default-seams-closed?mode=memory&cache=shared")
 		require.NoError(t, openErr)
 		require.NoError(t, closedDB.Close())
 

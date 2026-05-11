@@ -3,6 +3,7 @@
 //
 
 // Package e2e_infra provides reusable helpers for E2E testing with docker compose.
+// Deprecated: use cryptoutil/internal/apps-framework/service/test_orch_e2e instead.
 package e2e_infra
 
 import (

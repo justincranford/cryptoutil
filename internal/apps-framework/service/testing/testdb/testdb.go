@@ -2,6 +2,7 @@
 //
 
 // Package testdb provides shared database test helpers for cryptoutil services.
+// Deprecated: use cryptoutil/internal/apps-framework/service/test_help_db instead.
 // Centralizes test DB setup patterns to eliminate boilerplate across TestMain functions.
 package testdb
 

@@ -2,14 +2,18 @@
 .dockerignore
 
 # Version control
-# .git  # Temporarily allow .git for metadata generation
+.git/
 .gitignore
 .worktree
 worktree/
 
 # CI/CD and development tools
+.claude/
 .github/
 .specify/
+.cicd/
+.cicd-lint/
+api/cryptosuite-registry/templates/
 .pre-commit-config.yaml
 .gitleaks.toml
 .gremlins.yaml
@@ -22,6 +26,7 @@ worktree/
 # Editor/IDE files
 .vscode/
 .idea/
+.air.toml
 
 # Build artifacts
 bin/

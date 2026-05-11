@@ -26,6 +26,21 @@ var (
 	privateRootCAPool *x509.CertPool
 )
 
+// ConfigureTestFixtures installs the shared server test fixtures used by this package.
+func ConfigureTestFixtures(
+	settings *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings,
+	publicTLSSettings *cryptoutilAppsFrameworkServiceConfigTlsGenerator.TLSGeneratedSettings,
+	privateTLSSettings *cryptoutilAppsFrameworkServiceConfigTlsGenerator.TLSGeneratedSettings,
+	publicRootPool *x509.CertPool,
+	privateRootPool *x509.CertPool,
+) {
+	serverSettings = settings
+	publicTLS = publicTLSSettings
+	privateTLS = privateTLSSettings
+	publicRootCAPool = publicRootPool
+	privateRootCAPool = privateRootPool
+}
+
 // Initialize is called from TestMain to setup shared test fixtures.
 func Initialize() error {
 	// Create shared ServiceFrameworkServerSettings fixture for tests (port 0 for dynamic allocation).

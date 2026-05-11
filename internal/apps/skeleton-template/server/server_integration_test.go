@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	cryptoutilTestingTestserver "cryptoutil/internal/apps-framework/service/testing/testserver"
+	cryptoutilAppsFrameworkServiceTestOrcIntegration "cryptoutil/internal/apps-framework/service/test_orch_integration"
 	cryptoutilAppsSkeletonTemplateServerConfig "cryptoutil/internal/apps/skeleton-template/server/config"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
@@ -121,9 +121,10 @@ func TestSkeletonTemplateServer_ShutdownIdempotent(t *testing.T) {
 	server, err := NewFromConfig(ctx, cfg)
 	require.NoError(t, err, "server creation should succeed")
 
-	// Start server and wait for both ports using shared helper.
-	// t.Cleanup will call server.Shutdown when test completes.
-	cryptoutilTestingTestserver.StartAndWait(ctx, t, server)
+	// Start server and register cleanup through the shared integration helper.
+	integrationServer, err := cryptoutilAppsFrameworkServiceTestOrcIntegration.StartIntegrationServer(ctx, t, server, nil)
+	require.NoError(t, err)
+	t.Cleanup(func() { _ = integrationServer.Shutdown(context.Background()) })
 
 	// Shutdown the server explicitly (covers Shutdown happy path).
 	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(),

@@ -145,19 +145,71 @@
 
 ## Phase 6: Framework-Internal TestMain Migration
 
-*(To be filled during Phase 6 execution using the 4-section structure above)*
+**What Worked**:
+- Adding `NewTestServerSettingsForTestMain()` and `NewTestTLSSettingsForTestMain()` kept TestMain setup deterministic without forcing `*testing.T` into a lifecycle that does not have one.
+- Introducing `ConfigureTestFixtures(...)` preserved the existing server test accessor surface, so the migration stayed localized to TestMain files instead of cascading into every test consumer.
+- Reusing the existing server subtree tests as the validation target made it easy to prove the new setup still supports the same fixture-driven expectations.
+
+**What Didn't Work**:
+- The first migration approach tried to reuse the `*testing.T`-based helper constructors directly from TestMain, which is not valid in that context.
+- The migration would have stalled if we had tried to rewrite all consumers away from the shared accessors in the same phase.
+
+**Root Causes**:
+- TestMain executes outside the normal `testing.T` helper lifecycle, so helper APIs that require `t` need explicit no-`testing.T` wrappers.
+- The server test fixture design still has some shared accessors, which means a compatibility setter is the lowest-risk bridge during a migration phase.
+
+**Patterns for Future Phases**:
+- When migrating TestMain setup, add explicit `ForTestMain` wrapper helpers rather than trying to adapt `*testing.T`-only helpers.
+- Preserve shared fixture accessors until the surrounding test subtree is ready for a broader refactor; use a setter to bridge the new initialization path.
+- Validate the migration with the narrowest relevant package tree first, then widen only if the focused subtree passes cleanly.
 
 ---
 
 ## Phase 7: sm-kms businesslogic + orm Migration
 
-*(To be filled during Phase 7 execution using the 4-section structure above)*
+**What Worked**:
+- Replacing `StartCore` with helper-driven setup kept the sm-kms test bootstrap aligned with the rest of the framework while removing the heavy core dependency.
+- Moving the businesslogic tests onto a shared fixture built from local telemetry, JWK, barrier, and SQLite helpers preserved the existing test semantics without needing to rewrite the test bodies.
+- The ORM package simplified cleanly to a shared in-memory SQLite DB plus local telemetry/JWK services, which made the migration small and easy to validate.
+
+**What Didn't Work**:
+- Trying to import the KMS server package from the businesslogic TestMain created an import cycle, so that path had to be abandoned.
+- The first businesslogic fixture pass missed the KMS schema tables and the barrier tables, which caused runtime failures even though the package built.
+- The ORM TestMain rewrite initially misread the helper return shape and tried to capture an error that does not exist.
+
+**Root Causes**:
+- Test package placement matters: code in `package businesslogic` cannot import the server package that itself imports businesslogic, so the migration had to stay self-contained.
+- Helper-based TestMain replacement still needs explicit schema initialization for every table family the tests touch; `StartCore` had been hiding that work.
+- Function signatures for test helpers are easy to misremember; the smallest safe fix is to read the local helper and adapt the call site, not infer the return contract.
+
+**Patterns for Future Phases**:
+- Prefer self-contained test fixtures inside the package when importing the production server would create a cycle.
+- After removing a framework bootstrap, immediately enumerate the schema tables the tests actually touch and migrate them explicitly in TestMain.
+- Verify helper signatures before editing call sites; if a helper is `Must`/single-return, keep the call site equally simple.
 
 ---
 
 ## Phase 8: Consumer Migration + Old testing/ Deprecation
 
-*(To be filled during Phase 8 execution using the 4-section structure above)*
+**What Worked**:
+- Building the consumer census first made it obvious that the phase was smaller and more concrete than the initial task text implied, which let the migration proceed file-by-file instead of guessing.
+- Swapping the direct helper consumers to `test_help_db`, `test_help_cli`, and `test_orch_integration` kept the changes localized and preserved the existing test behavior.
+- Using the real failing `sm-im/server/apis` package as a canary caught a hidden `TestMain` misuse early and prevented a false-green migration.
+- Adding package-level `Deprecated` docs made the remaining legacy helper packages intentionally transitional instead of silently kept forever.
+
+**What Didn't Work**:
+- The first broad app-tree validation exposed a hidden `NewInMemorySQLiteDB(&testing.T{})` misuse in `messages_test.go`, which looked unrelated until the TestMain helper semantics were rechecked.
+- A rough consumer estimate in the task text was too high; the actual census was lower, so the phase needed evidence rather than assumption to close cleanly.
+
+**Root Causes**:
+- `NewInMemorySQLiteDB` is the wrong helper for `TestMain`; it needs the TestMain-safe constructor so the database lifecycle matches the package scope.
+- The old `testing/` packages were not a single category of work: some had direct replacements, while others were still useful shared legacy utilities that needed explicit deprecation instead of migration.
+- Import swaps alone are insufficient when helper constructors differ subtly; lifecycle semantics matter as much as package names.
+
+**Patterns for Future Phases**:
+- Start consumer migrations with a census artifact and treat the count as evidence, not a planning guess.
+- When a package already has a TestMain, prefer `NewInMemorySQLiteDBForTestMain()` over the per-test helper and validate the lifecycle with the package's own tests before widening the scope.
+- If a legacy helper has no clean replacement, keep it only with explicit `Deprecated` documentation so the transition state is visible to future maintainers.
 
 ---
 

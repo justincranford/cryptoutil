@@ -2,6 +2,7 @@
 //
 
 // Package assertions provides reusable HTTP response assertion helpers for cryptoutil service tests.
+// Deprecated: use package-specific test assertions or the newer shared helper packages instead.
 // Each helper reads and closes the response body; do not call Body.Close() separately.
 package assertions
 

@@ -53,3 +53,21 @@ func NewTestServerSettings(t *testing.T) *cryptoutilAppsFrameworkServiceConfig.S
 
 	return settings
 }
+
+// NewTestServerSettingsForTestMain returns isolated server settings without requiring *testing.T.
+func NewTestServerSettingsForTestMain() *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings {
+	settings := cryptoutilAppsFrameworkServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
+	settings.BindPublicPort = 0
+	settings.BindPrivatePort = 0
+	settings.TLSPublicProvisionMode = cryptoutilAppsFrameworkServiceConfig.TLSProvisionModeAuto
+	settings.TLSPrivateProvisionMode = cryptoutilAppsFrameworkServiceConfig.TLSProvisionModeAuto
+	settings.TLSPublicDNSNames = cloneStringSlice(settings.TLSPublicDNSNames)
+	settings.TLSPublicIPAddresses = cloneStringSlice(settings.TLSPublicIPAddresses)
+	settings.TLSPrivateDNSNames = cloneStringSlice(settings.TLSPrivateDNSNames)
+	settings.TLSPrivateIPAddresses = cloneStringSlice(settings.TLSPrivateIPAddresses)
+	settings.CORSAllowedOrigins = cloneStringSlice(settings.CORSAllowedOrigins)
+	settings.CORSAllowedMethods = cloneStringSlice(settings.CORSAllowedMethods)
+	settings.CORSAllowedHeaders = cloneStringSlice(settings.CORSAllowedHeaders)
+
+	return settings
+}

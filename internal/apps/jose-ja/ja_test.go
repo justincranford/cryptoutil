@@ -4,7 +4,7 @@ package ja
 import (
 	"testing"
 
-	cryptoutilTestCli "cryptoutil/internal/apps-framework/service/testing/testcli"
+	cryptoutilTestCli "cryptoutil/internal/apps-framework/service/test_help_cli"
 )
 
 func TestJA(t *testing.T) {

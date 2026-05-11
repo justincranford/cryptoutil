@@ -1,5 +1,6 @@
 // Copyright (c) 2025-2026 Justin Cranford.
 // Package httpservertests provides reusable test cases for HTTP server implementations.
+// Deprecated: migrate to package-specific tests using the newer shared helper packages instead.
 // These generic tests verify shutdown behavior, double-shutdown handling, and health checks
 // during shutdown scenarios. Product services should use these tests instead of duplicating
 // shutdown test logic across multiple implementations.

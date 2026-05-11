@@ -2,14 +2,11 @@ package businesslogic
 
 import (
 	"context"
-	"io/fs"
 	"testing"
 	"time"
 
 	cryptoutilOpenapiModel "cryptoutil/api/sm-kms/models"
 	cryptoutilKmsServer "cryptoutil/api/sm-kms/server"
-	cryptoutilAppsFrameworkServiceServerApplication "cryptoutil/internal/apps-framework/service/server/application"
-	cryptoutilAppsFrameworkServiceServerBarrier "cryptoutil/internal/apps-framework/service/server/barrier"
 	cryptoutilAppsFrameworkServiceServerMiddleware "cryptoutil/internal/apps-framework/service/server/middleware"
 	cryptoutilOrmRepository "cryptoutil/internal/apps/sm-kms/server/repository/orm"
 
@@ -18,85 +15,10 @@ import (
 	_ "modernc.org/sqlite"
 )
 
-const currentDir = "."
-
-type testMergedMigrations struct {
-	templateFS   fs.FS
-	templatePath string
-	domainFS     fs.FS
-	domainPath   string
-}
-
-func (m *testMergedMigrations) Open(name string) (fs.File, error) {
-	if m.domainFS != nil {
-		p := m.domainPath
-		if name != currentDir && name != "" {
-			p = m.domainPath + "/" + name
-		}
-
-		if f, err := m.domainFS.Open(p); err == nil {
-			return f, nil
-		}
-	}
-
-	p := m.templatePath
-	if name != currentDir && name != "" {
-		p = m.templatePath + "/" + name
-	}
-
-	return m.templateFS.Open(p)
-}
-
-func (m *testMergedMigrations) ReadDir(name string) ([]fs.DirEntry, error) {
-	var entries []fs.DirEntry
-
-	tp := m.templatePath
-	if name != currentDir && name != "" {
-		tp = m.templatePath + "/" + name
-	}
-
-	if te, err := fs.ReadDir(m.templateFS, tp); err == nil {
-		entries = append(entries, te...)
-	}
-
-	if m.domainFS != nil {
-		dp := m.domainPath
-		if name != currentDir && name != "" {
-			dp = m.domainPath + "/" + name
-		}
-
-		if de, err := fs.ReadDir(m.domainFS, dp); err == nil {
-			entries = append(entries, de...)
-		}
-	}
-
-	return entries, nil
-}
-
-func (m *testMergedMigrations) ReadFile(name string) ([]byte, error) {
-	if m.domainFS != nil {
-		dp := m.domainPath
-		if name != currentDir && name != "" {
-			dp = m.domainPath + "/" + name
-		}
-
-		if data, err := fs.ReadFile(m.domainFS, dp); err == nil {
-			return data, nil
-		}
-	}
-
-	tp := m.templatePath
-	if name != currentDir && name != "" {
-		tp = m.templatePath + "/" + name
-	}
-
-	return fs.ReadFile(m.templateFS, tp)
-}
-
 type testStack struct {
 	service *BusinessLogicService
 	ctx     context.Context
-	core    *cryptoutilAppsFrameworkServiceServerApplication.Core
+	core    *testCoreFixture
 }
 
 func setupTestStack(tb testing.TB) *testStack {
@@ -104,14 +26,14 @@ func setupTestStack(tb testing.TB) *testStack {
 
 	ctx := context.Background()
 
-	// Use shared Core from TestMain - no expensive StartCore() per-test
-	if testCore == nil {
-		tb.Fatalf("testCore not initialized - TestMain may have failed")
+	// Use shared fixtures from TestMain.
+	if testCore == nil || testBarrierService == nil {
+		tb.Fatalf("test fixtures not initialized - TestMain may have failed")
 	}
 
 	// Cleanup function to reset test data
 	// Note: This truncates tables between tests to ensure isolation
-	// while reusing the shared Core and database connection
+	// while reusing the shared DB connection.
 	tb.Cleanup(func() {
 		// Truncate tables for clean slate in next test
 		if err := testCore.DB.Exec("DELETE FROM elastic_keys").Error; err != nil && err.Error() != "table elastic_keys does not exist" {
@@ -131,19 +53,9 @@ func setupTestStack(tb testing.TB) *testStack {
 	testify.NoError(tb, err)
 	tb.Cleanup(func() { ormRepo.Shutdown() })
 
-	gormRepo, err := cryptoutilAppsFrameworkServiceServerBarrier.NewGormRepository(testCore.DB)
-	testify.NoError(tb, err)
-
-	barrierSvc, err := cryptoutilAppsFrameworkServiceServerBarrier.NewService(
-		ctx, testCore.Basic.TelemetryService, testCore.Basic.JWKGenService,
-		gormRepo, testCore.Basic.UnsealKeysService,
-	)
-	testify.NoError(tb, err)
-	tb.Cleanup(func() { barrierSvc.Shutdown() })
-
 	service, err := NewBusinessLogicService(
 		ctx, testCore.Basic.TelemetryService, testCore.Basic.JWKGenService,
-		ormRepo, barrierSvc,
+		ormRepo, testBarrierService,
 	)
 	testify.NoError(tb, err)
 

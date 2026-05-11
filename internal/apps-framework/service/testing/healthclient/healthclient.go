@@ -2,6 +2,7 @@
 //
 
 // Package healthclient provides an HTTP client for testing service health endpoints.
+// Deprecated: use cryptoutil/internal/apps-framework/service/test_help_api instead.
 package healthclient
 
 import (
