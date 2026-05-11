@@ -75,7 +75,23 @@
 
 ## Phase 3: Linter Coverage to ≥98%
 
-*(To be filled during Phase 3 execution using the 4-section structure above)*
+**What Worked**:
+- Reader-function injection (`lintWithReader`, `checkInDirWithReader`, `findViolationsWithReader`) allowed deterministic error-path coverage without introducing package-level mutable seams.
+- Adding focused internal tests beside external behavior tests closed branch gaps quickly, especially around non-happy-path filesystem and reader failures.
+- Running package coverage first, then full fitness/build/lint gates, prevented broad validation cycles while branch-level gaps still existed.
+
+**What Didn't Work**:
+- Initial refactor left stale imports and style violations (`nlreturn`, `wsl_v5`), which blocked the global lint gate despite functional correctness.
+- A first-pass read-error test for orchestration policy only exercised the server path; client-path error propagation remained uncovered.
+
+**Root Causes**:
+- Structural changes in linter files were made before immediate compile checks, leaving dead imports until the first coverage run.
+- Branch targeting was initially coarse-grained (function-level), not path-granular (server/client + stat/read variants), causing repeated test iterations.
+
+**Patterns for Future Phases**:
+- For linter packages, design seam points as function parameters (not package vars) from the first change, and add direct internal tests for each decision branch.
+- After each new internal test file, run `gofmt` and `golangci-lint run` immediately to avoid end-of-phase style debt.
+- Use coverage evidence directories per phase (`test-output/v22-phase3/`) and require function-level reports before declaring ≥98% complete.
 
 ---
 

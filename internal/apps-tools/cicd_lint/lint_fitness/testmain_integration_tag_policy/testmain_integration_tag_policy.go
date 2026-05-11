@@ -14,7 +14,6 @@
 package testmain_integration_tag_policy
 
 import (
-	"bufio"
 	"fmt"
 	"io/fs"
 	"os"
@@ -43,16 +42,31 @@ type Violation struct {
 	Tag  string
 }
 
+type readFileFunc func(string) ([]byte, error)
+
+// Lint runs the linter from the current working directory.
+func Lint(logger *cryptoutilCmdCicdCommon.Logger) error {
+	return lintWithReader(logger, os.ReadFile)
+}
+
 // Check runs the linter from the current working directory.
 func Check(logger *cryptoutilCmdCicdCommon.Logger) error {
-	return CheckInDir(logger, ".")
+	return Lint(logger)
+}
+
+func lintWithReader(logger *cryptoutilCmdCicdCommon.Logger, readFileFn readFileFunc) error {
+	return checkInDirWithReader(logger, ".", readFileFn)
 }
 
 // CheckInDir scans rootDir for testmain_test.go files that contain build tags.
 func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
+	return checkInDirWithReader(logger, rootDir, os.ReadFile)
+}
+
+func checkInDirWithReader(logger *cryptoutilCmdCicdCommon.Logger, rootDir string, readFileFn readFileFunc) error {
 	logger.Log("Checking that testmain_test.go files do not carry //go:build directives...")
 
-	violations, err := FindViolations(rootDir)
+	violations, err := findViolationsWithReader(rootDir, readFileFn)
 	if err != nil {
 		return fmt.Errorf("testmain-integration-tag-policy: directory walk failed: %w", err)
 	}
@@ -73,6 +87,10 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 
 // FindViolations returns all policy violations found under rootDir.
 func FindViolations(rootDir string) ([]Violation, error) {
+	return findViolationsWithReader(rootDir, os.ReadFile)
+}
+
+func findViolationsWithReader(rootDir string, readFileFn readFileFunc) ([]Violation, error) {
 	var violations []Violation
 
 	internalDir := filepath.Join(rootDir, "internal")
@@ -99,7 +117,7 @@ func FindViolations(rootDir string) ([]Violation, error) {
 			return nil
 		}
 
-		fileViolations, err := checkFile(path)
+		fileViolations, err := checkFile(path, readFileFn)
 		if err != nil {
 			return err
 		}
@@ -116,35 +134,24 @@ func FindViolations(rootDir string) ([]Violation, error) {
 }
 
 // checkFile returns violations for a single testmain_test.go file.
-func checkFile(filePath string) ([]Violation, error) {
-	f, err := os.Open(filePath)
+func checkFile(filePath string, readFileFn readFileFunc) ([]Violation, error) {
+	content, err := readFileFn(filePath)
 	if err != nil {
-		return nil, fmt.Errorf("open %s: %w", filePath, err)
+		return nil, fmt.Errorf("read %s: %w", filePath, err)
 	}
-
-	defer func() { _ = f.Close() }()
 
 	var violations []Violation
 
-	lineNum := 0
-
-	scanner := bufio.NewScanner(f)
-	for scanner.Scan() {
-		lineNum++
-
-		line := strings.TrimSpace(scanner.Text())
-
+	lines := strings.Split(string(content), "\n")
+	for lineIndex, rawLine := range lines {
+		line := strings.TrimSpace(rawLine)
 		if strings.HasPrefix(line, buildTagPrefix) || strings.HasPrefix(line, legacyBuildTagPrefix) {
 			violations = append(violations, Violation{
 				File: filePath,
-				Line: lineNum,
+				Line: lineIndex + 1,
 				Tag:  line,
 			})
 		}
-	}
-
-	if err := scanner.Err(); err != nil {
-		return nil, fmt.Errorf("scan %s: %w", filePath, err)
 	}
 
 	return violations, nil

@@ -1,6 +1,6 @@
 # Tasks - Framework V22: V21 Audit Fix Campaign
 
-**Status**: 12 of 71 tasks complete (16.9%) — Phase 5 Task 5.2 expanded to 10 individual PS-ID tasks for codex-model compatibility
+**Status**: 17 of 71 tasks complete (23.9%) — Phase 5 Task 5.2 expanded to 10 individual PS-ID tasks for codex-model compatibility
 **Last Updated**: 2026-05-11
 **Created**: 2026-05-11
 
@@ -216,49 +216,49 @@ Fixes SUMMARY.md Issue 7.
 
 ### Task 3.1: Refactor testmain_orchestration_policy for injectable reader
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 1.5h
 - **Acceptance Criteria**:
-  - [ ] `lintWithReader(logger, readFileFn)` internal helper added
-  - [ ] Public `Lint(logger)` delegates to it with `os.ReadFile`
-  - [ ] `go run ./cmd/cicd-lint lint-fitness` exits 0 (no regression)
-  - [ ] `golangci-lint run` passes
+  - [x] `lintWithReader(logger, readFileFn)` internal helper added
+  - [x] Public `Lint(logger)` delegates to it with `os.ReadFile`
+  - [x] `go run ./cmd/cicd-lint lint-fitness` exits 0 (no regression)
+  - [x] `golangci-lint run` passes
 - **Files**: `internal/apps-tools/cicd_lint/lint_fitness/testmain_orchestration_policy/testmain_orchestration_policy.go`
 
 ### Task 3.2: Refactor testmain_integration_tag_policy for injectable reader
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 1.5h
 - **Acceptance Criteria**:
-  - [ ] Same pattern as 3.1
-  - [ ] `go run ./cmd/cicd-lint lint-fitness` exits 0
+  - [x] Same pattern as 3.1
+  - [x] `go run ./cmd/cicd-lint lint-fitness` exits 0
 - **Files**: `internal/apps-tools/cicd_lint/lint_fitness/testmain_integration_tag_policy/testmain_integration_tag_policy.go`
 
 ### Task 3.3: Update tests for testmain_orchestration_policy to reach ≥98%
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 1h
 - **Acceptance Criteria**:
-  - [ ] Error-returning stub injected for readFileFn to cover OS error path
-  - [ ] `go test -cover ./internal/apps-tools/cicd_lint/lint_fitness/testmain_orchestration_policy/...` ≥ 98%
+  - [x] Error-returning stub injected for readFileFn to cover OS error path
+  - [x] `go test -cover ./internal/apps-tools/cicd_lint/lint_fitness/testmain_orchestration_policy/...` ≥ 98%
 - **Files**: `internal/apps-tools/cicd_lint/lint_fitness/testmain_orchestration_policy/testmain_orchestration_policy_test.go`
 
 ### Task 3.4: Update tests for testmain_integration_tag_policy to reach ≥98%
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 1h
 - **Acceptance Criteria**:
-  - [ ] `go test -cover ./internal/apps-tools/cicd_lint/lint_fitness/testmain_integration_tag_policy/...` ≥ 98%
+  - [x] `go test -cover ./internal/apps-tools/cicd_lint/lint_fitness/testmain_integration_tag_policy/...` ≥ 98%
 - **Files**: `internal/apps-tools/cicd_lint/lint_fitness/testmain_integration_tag_policy/testmain_integration_tag_policy_test.go`
 
 ### Task 3.5: Phase 3 quality gate
 
-- **Status**: ❌
+- **Status**: ✅
 - **Acceptance Criteria**:
-  - [ ] Both linters ≥ 98% coverage
-  - [ ] `go run ./cmd/cicd-lint lint-fitness` exits 0
-  - [ ] `go build ./...` exits 0
-  - [ ] `golangci-lint run` exits 0
+  - [x] Both linters ≥ 98% coverage
+  - [x] `go run ./cmd/cicd-lint lint-fitness` exits 0
+  - [x] `go build ./...` exits 0
+  - [x] `golangci-lint run` exits 0
 
 ---
 

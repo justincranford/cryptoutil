@@ -13,7 +13,6 @@
 package testmain_orchestration_policy
 
 import (
-	"bufio"
 	"fmt"
 	"io/fs"
 	"os"
@@ -40,16 +39,31 @@ type Violation struct {
 	Reason string
 }
 
+type readFileFunc func(string) ([]byte, error)
+
+// Lint runs the linter from the current working directory.
+func Lint(logger *cryptoutilCmdCicdCommon.Logger) error {
+	return lintWithReader(logger, os.ReadFile)
+}
+
 // Check runs the linter from the current working directory.
 func Check(logger *cryptoutilCmdCicdCommon.Logger) error {
-	return CheckInDir(logger, ".")
+	return Lint(logger)
+}
+
+func lintWithReader(logger *cryptoutilCmdCicdCommon.Logger, readFileFn readFileFunc) error {
+	return checkInDirWithReader(logger, ".", readFileFn)
 }
 
 // CheckInDir scans PS-ID directories under rootDir for orchestration policy violations.
 func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
+	return checkInDirWithReader(logger, rootDir, os.ReadFile)
+}
+
+func checkInDirWithReader(logger *cryptoutilCmdCicdCommon.Logger, rootDir string, readFileFn readFileFunc) error {
 	logger.Log("Checking that server/client TestMain files import test_orch_integration...")
 
-	violations, err := FindViolations(rootDir)
+	violations, err := findViolationsWithReader(rootDir, readFileFn)
 	if err != nil {
 		return fmt.Errorf("testmain-orchestration-policy: directory walk failed: %w", err)
 	}
@@ -70,6 +84,10 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 
 // FindViolations returns all policy violations found under rootDir.
 func FindViolations(rootDir string) ([]Violation, error) {
+	return findViolationsWithReader(rootDir, os.ReadFile)
+}
+
+func findViolationsWithReader(rootDir string, readFileFn readFileFunc) ([]Violation, error) {
 	var violations []Violation
 
 	appsDir := filepath.Join(rootDir, "internal", "apps")
@@ -84,7 +102,7 @@ func FindViolations(rootDir string) ([]Violation, error) {
 		// Check server/testmain_test.go -- required for every PS-ID.
 		serverTestMain := filepath.Join(psDir, "server", testmainFileName)
 
-		serverViolations, err := checkTestMainFile(serverTestMain, ps.PSID, "server")
+		serverViolations, err := checkTestMainFile(serverTestMain, ps.PSID, "server", readFileFn)
 		if err != nil {
 			return nil, err
 		}
@@ -94,7 +112,7 @@ func FindViolations(rootDir string) ([]Violation, error) {
 		// Check client/testmain_test.go -- only if client/ directory exists.
 		clientTestMain := filepath.Join(psDir, "client", testmainFileName)
 		if _, err := os.Stat(clientTestMain); err == nil {
-			clientViolations, err := checkTestMainFile(clientTestMain, ps.PSID, "client")
+			clientViolations, err := checkTestMainFile(clientTestMain, ps.PSID, "client", readFileFn)
 			if err != nil {
 				return nil, err
 			}
@@ -108,7 +126,7 @@ func FindViolations(rootDir string) ([]Violation, error) {
 
 // checkTestMainFile verifies that a specific testmain_test.go file exists and imports
 // the required test_orch_integration package. Returns empty slice if the file passes.
-func checkTestMainFile(filePath, psID, subPkg string) ([]Violation, error) {
+func checkTestMainFile(filePath, psID, subPkg string, readFileFn readFileFunc) ([]Violation, error) {
 	info, err := os.Stat(filePath)
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -128,7 +146,7 @@ func checkTestMainFile(filePath, psID, subPkg string) ([]Violation, error) {
 		}}, nil
 	}
 
-	hasImport, err := fileContainsLine(filePath, requiredImportSubstring)
+	hasImport, err := fileContainsLine(filePath, requiredImportSubstring, readFileFn)
 	if err != nil {
 		return nil, fmt.Errorf("read %s: %w", filePath, err)
 	}
@@ -143,27 +161,14 @@ func checkTestMainFile(filePath, psID, subPkg string) ([]Violation, error) {
 	return nil, nil
 }
 
-// fileContainsLine returns true if any line in the file contains the given substring.
-func fileContainsLine(filePath, substring string) (bool, error) {
-	f, err := os.Open(filePath)
+// fileContainsLine returns true if file content contains the given substring.
+func fileContainsLine(filePath, substring string, readFileFn readFileFunc) (bool, error) {
+	content, err := readFileFn(filePath)
 	if err != nil {
-		return false, fmt.Errorf("open %s: %w", filePath, err)
+		return false, fmt.Errorf("read %s: %w", filePath, err)
 	}
 
-	defer func() { _ = f.Close() }()
-
-	scanner := bufio.NewScanner(f)
-	for scanner.Scan() {
-		if strings.Contains(scanner.Text(), substring) {
-			return true, nil
-		}
-	}
-
-	if err := scanner.Err(); err != nil {
-		return false, fmt.Errorf("scan %s: %w", filePath, err)
-	}
-
-	return false, nil
+	return strings.Contains(string(content), substring), nil
 }
 
 // WalkTestMainFiles walks rootDir and returns all testmain_test.go paths under internal/apps/{PS-ID}/server/
