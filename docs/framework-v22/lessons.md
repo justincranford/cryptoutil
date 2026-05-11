@@ -29,7 +29,23 @@
 
 ## Phase 1: Implement Empty Stub Packages
 
-*(To be filled during Phase 1 execution using the 4-section structure above)*
+**What Worked**:
+- Reusing existing framework patterns from server/testutil and service repository TestMain setup reduced design drift and avoided introducing new TLS/barrier abstractions.
+- Running targeted build/lint gates first, then the phase-wide quality gate, caught local formatting issues before full-repo validation.
+- Enforcing the file-length acceptance criterion explicitly prevented another false-positive "implemented" claim for near-empty stubs.
+
+**What Didn't Work**:
+- Initial implementation pass failed lint due to gofumpt and wsl_v5 spacing issues.
+- The first bootstrap helper implementation met behavior criteria but failed the explicit >50-line requirement.
+
+**Root Causes**:
+- Lint-first discipline was applied after code changes but before formatting auto-fixes, so style violations surfaced late in the task cycle.
+- Acceptance criteria included a structural threshold (>50 lines) that was not checked immediately after implementation.
+
+**Patterns for Future Phases**:
+- After each file implementation task, run an immediate three-check mini-gate: package build, package lint, and line-count/grep acceptance proof where required.
+- Keep helper implementations concrete and deterministic (no package-level mutable state) to preserve t.Parallel safety for upcoming high-coverage test phases.
+- Update tasks.md and lessons.md in the same execution window as quality-gate completion to prevent documentation lag.
 
 ---
 

@@ -1,6 +1,6 @@
 # Tasks - Framework V22: V21 Audit Fix Campaign
 
-**Status**: 0 of 71 tasks complete (0%) — Phase 5 Task 5.2 expanded to 10 individual PS-ID tasks for codex-model compatibility
+**Status**: 4 of 71 tasks complete (5.6%) — Phase 5 Task 5.2 expanded to 10 individual PS-ID tasks for codex-model compatibility
 **Last Updated**: 2026-05-11
 **Created**: 2026-05-11
 
@@ -73,55 +73,55 @@ Fixes SUMMARY.md Issue 2.
 
 ### Task 1.1: Implement test_help_tls/tls.go
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 1.5h
 - **Actual**: —
 - **Dependencies**: None
 - **Acceptance Criteria**:
-  - [ ] File > 50 lines (not a stub)
-  - [ ] `NewTestTLSSettings(t)` returns a TLSGeneratedSettings with auto-generated self-signed cert
-  - [ ] `NewInsecureHTTPSClient(t)` returns `*http.Client` with `InsecureSkipVerify: true`
-  - [ ] `NewMTLSClient(t, certPath, keyPath, caPool)` returns `*http.Client` with mTLS configured
-  - [ ] No package-level mutable state (all functions take `t *testing.T`, return values directly)
-  - [ ] `go build ./internal/apps-framework/service/test_help_tls/...` exits 0
-  - [ ] `golangci-lint run ./internal/apps-framework/service/test_help_tls/...` exits 0
+  - [x] File > 50 lines (not a stub)
+  - [x] `NewTestTLSSettings(t)` returns a TLSGeneratedSettings with auto-generated self-signed cert
+  - [x] `NewInsecureHTTPSClient(t)` returns `*http.Client` with `InsecureSkipVerify: true`
+  - [x] `NewMTLSClient(t, certPath, keyPath, caPool)` returns `*http.Client` with mTLS configured
+  - [x] No package-level mutable state (all functions take `t *testing.T`, return values directly)
+  - [x] `go build ./internal/apps-framework/service/test_help_tls/...` exits 0
+  - [x] `golangci-lint run ./internal/apps-framework/service/test_help_tls/...` exits 0
 - **Files**: `internal/apps-framework/service/test_help_tls/tls.go`
 
 ### Task 1.2: Implement test_help_barrier/barrier.go
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 1.5h
 - **Actual**: —
 - **Dependencies**: None
 - **Acceptance Criteria**:
-  - [ ] File > 50 lines (not a stub)
-  - [ ] `NewTestBarrierService(t, db *gorm.DB)` creates an in-memory barrier with auto-generated unseal keys
-  - [ ] Uses `shared/barrier/` package; no custom crypto
-  - [ ] `go build ./internal/apps-framework/service/test_help_barrier/...` exits 0
-  - [ ] `golangci-lint run` passes
+  - [x] File > 50 lines (not a stub)
+  - [x] `NewTestBarrierService(t, db *gorm.DB)` creates an in-memory barrier with auto-generated unseal keys
+  - [x] Uses `shared/barrier/` package; no custom crypto
+  - [x] `go build ./internal/apps-framework/service/test_help_barrier/...` exits 0
+  - [x] `golangci-lint run` passes
 - **Files**: `internal/apps-framework/service/test_help_barrier/barrier.go`
 
 ### Task 1.3: Implement test_help_bootstrap/bootstrap.go
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 1h
 - **Actual**: —
 - **Dependencies**: None
 - **Acceptance Criteria**:
-  - [ ] File > 50 lines (not a stub)
-  - [ ] `NewTestServerSettings(t)` returns `*ServiceFrameworkServerSettings` with port=0, auto-TLS
-  - [ ] Return values are safe for `t.Parallel()` (no shared state)
-  - [ ] `go build ./internal/apps-framework/service/test_help_bootstrap/...` exits 0
-  - [ ] `golangci-lint run` passes
+  - [x] File > 50 lines (not a stub)
+  - [x] `NewTestServerSettings(t)` returns `*ServiceFrameworkServerSettings` with port=0, auto-TLS
+  - [x] Return values are safe for `t.Parallel()` (no shared state)
+  - [x] `go build ./internal/apps-framework/service/test_help_bootstrap/...` exits 0
+  - [x] `golangci-lint run` passes
 - **Files**: `internal/apps-framework/service/test_help_bootstrap/bootstrap.go`
 
 ### Task 1.4: Phase 1 quality gate
 
-- **Status**: ❌
+- **Status**: ✅
 - **Acceptance Criteria**:
-  - [ ] `go build ./...` exits 0
-  - [ ] `golangci-lint run` exits 0
-  - [ ] All 3 files > 50 lines
+  - [x] `go build ./...` exits 0
+  - [x] `golangci-lint run` exits 0
+  - [x] All 3 files > 50 lines
 
 ---
 
