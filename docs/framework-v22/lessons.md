@@ -1,135 +1,92 @@
-# Lessons - Framework V22: Server Subdirectory Migration and Tooling Debt Closure
+# Lessons - Framework V22: V21 Audit Fix Campaign
 
-**Created**: 2026-04-30
-**Purpose**: Phase post-mortem lessons for Framework V22. Populate after each phase passes its quality gates.
+**Created**: 2026-05-11
+**Last Updated**: 2026-05-11
 
-> **MANDATORY per-phase structure** (4 sections per phase):
+> **Mandatory per-phase structure** (fill during each phase post-mortem after quality gates pass):
 >
-> **What Worked**: Patterns, tools, or decisions that accelerated the work or prevented issues.
+> **What Worked**: Techniques, patterns, or tools that produced good results
 >
-> **What Didn't Work**: Friction points, incorrect assumptions, or approaches that required rework.
+> **What Didn't Work**: Approaches that failed or caused rework
 >
-> **Root Causes**: Underlying causes of the "What Didn't Work" items.
+> **Root Causes**: Why failures occurred (not just symptoms)
 >
-> **Patterns for Future Phases**: Actionable takeaways for subsequent phases or future plans.
+> **Patterns for Future Phases**: Reusable guidance extracted from this phase's experience
+
+---
 
 ## Executive Summary
 
-1. [Phase 1: sm-kms Server Subdirectory Migration](#phase-1-sm-kms-server-subdirectory-migration) — To be filled after phase completes.
-2. [Phase 2: pki-ca Server Subdirectory Migration](#phase-2-pki-ca-server-subdirectory-migration) — To be filled after phase completes.
-3. [Phase 3: Linter Exclusion Cleanup](#phase-3-linter-exclusion-cleanup) — To be filled after phase completes.
-4. [Phase 4: Tooling Quality Improvements](#phase-4-tooling-quality-improvements) — To be filled after phase completes.
-5. [Phase 5: Verification and Closure](#phase-5-verification-and-closure) — To be filled after phase completes.
-6. [Phase 6: Knowledge Propagation](#phase-6-knowledge-propagation) — To be filled after phase completes.
+*(To be filled at plan completion — numbered links to each phase section with one-sentence outcome)*
+
+---
 
 ## Actions
 
-(Populated after execution phases complete.)
+*(To be filled at plan completion — numbered list of concrete follow-up items for reviewer, specific enough to copy-paste directly into Copilot Chat or Claude Code as a follow-up prompt)*
 
-## Phase 1: sm-kms Server Subdirectory Migration
+---
 
-**What Worked**
+## Phase 1: Implement Empty Stub Packages
 
-To be filled after phase completes.
+*(To be filled during Phase 1 execution using the 4-section structure above)*
 
-**What Didn't Work**
+---
 
-To be filled after phase completes.
+## Phase 2: Self-Tests for All 7 Helper Packages
 
-**Root Causes**
+*(To be filled during Phase 2 execution using the 4-section structure above)*
 
-To be filled after phase completes.
+---
 
-**Patterns for Future Phases**
+## Phase 3: Linter Coverage to ≥98%
 
-To be filled after phase completes.
+*(To be filled during Phase 3 execution using the 4-section structure above)*
 
-## Phase 2: pki-ca Server Subdirectory Migration
+---
 
-**What Worked**
+## Phase 4: Mutation Testing
 
-To be filled after phase completes.
+*(To be filled during Phase 4 execution using the 4-section structure above)*
 
-**What Didn't Work**
+---
 
-To be filled after phase completes.
+## Phase 5: test_orch_e2e Facade + 10 PS-ID E2E TestMain Migration + Linter
 
-**Root Causes**
+*(To be filled during Phase 5 execution using the 4-section structure above)*
 
-To be filled after phase completes.
+---
 
-**Patterns for Future Phases**
+## Phase 6: Framework-Internal TestMain Migration
 
-To be filled after phase completes.
+*(To be filled during Phase 6 execution using the 4-section structure above)*
 
-## Phase 3: Linter Exclusion Cleanup
+---
 
-**What Worked**
+## Phase 7: sm-kms businesslogic + orm Migration
 
-To be filled after phase completes.
+*(To be filled during Phase 7 execution using the 4-section structure above)*
 
-**What Didn't Work**
+---
 
-To be filled after phase completes.
+## Phase 8: Consumer Migration + Old testing/ Deprecation
 
-**Root Causes**
+*(To be filled during Phase 8 execution using the 4-section structure above)*
 
-To be filled after phase completes.
+---
 
-**Patterns for Future Phases**
+## Phase 9: E2E Validation
 
-To be filled after phase completes.
+*(To be filled during Phase 9 execution using the 4-section structure above)*
 
-## Phase 4: Tooling Quality Improvements
+---
 
-**What Worked**
+## Phase 10: TestMain Inventory Table
 
-To be filled after phase completes.
+*(To be filled during Phase 10 execution using the 4-section structure above)*
 
-**What Didn't Work**
+---
 
-To be filled after phase completes.
+## Phase 11: Knowledge Propagation
 
-**Root Causes**
-
-To be filled after phase completes.
-
-**Patterns for Future Phases**
-
-To be filled after phase completes.
-
-## Phase 5: Verification and Closure
-
-**What Worked**
-
-To be filled after phase completes.
-
-**What Didn't Work**
-
-To be filled after phase completes.
-
-**Root Causes**
-
-To be filled after phase completes.
-
-**Patterns for Future Phases**
-
-To be filled after phase completes.
-
-## Phase 6: Knowledge Propagation
-
-**What Worked**
-
-To be filled after phase completes.
-
-**What Didn't Work**
-
-To be filled after phase completes.
-
-**Root Causes**
-
-To be filled after phase completes.
-
-**Patterns for Future Phases**
-
-To be filled after phase completes.
+*(To be filled during Phase 11 execution using the 4-section structure above)*
