@@ -28,25 +28,110 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
+type dbDeps struct {
+	newUUIDv7Fn                   func() (googleUuid.UUID, error)
+	sqlOpenFn                     func(driver, dsn string) (*sql.DB, error)
+	newPostgresContainerFactoryFn func(context.Context) (*postgresContainerModule.PostgresContainer, error)
+	execSQLitePragmaFn            func(context.Context, *sql.DB, string) error
+	openGormSQLiteFn              func(*sql.DB) (*gorm.DB, error)
+	openGormPostgresFn            func(string) (*gorm.DB, error)
+	getSQLDBFn                    func(*gorm.DB) (*sql.DB, error)
+	containerConnectionStringFn   func(context.Context, *postgresContainerModule.PostgresContainer) (string, error)
+	containerTerminateFn          func(context.Context, *postgresContainerModule.PostgresContainer) error
+	closeSQLDBFn                  func(*sql.DB) error
+}
+
+func defaultExecSQLitePragma(ctx context.Context, sqlDB *sql.DB, query string) error {
+	_, err := sqlDB.ExecContext(ctx, query)
+	if err != nil {
+		return fmt.Errorf("ExecContext: %w", err)
+	}
+
+	return nil
+}
+
+func defaultOpenGormSQLite(sqlDB *sql.DB) (*gorm.DB, error) {
+	db, err := gorm.Open(sqlite.Dialector{Conn: sqlDB}, &gorm.Config{SkipDefaultTransaction: true})
+
+	return db, wrapIfErr("gorm.Open sqlite", err)
+}
+
+func defaultOpenGormPostgres(connStr string) (*gorm.DB, error) {
+	db, err := gorm.Open(postgresDriver.Open(connStr), &gorm.Config{})
+
+	return db, wrapIfErr("gorm.Open postgres", err)
+}
+
+func defaultGetSQLDB(db *gorm.DB) (*sql.DB, error) {
+	sqlDB, err := db.DB()
+
+	return sqlDB, wrapIfErr("db.DB", err)
+}
+
+func defaultContainerConnectionString(ctx context.Context, container *postgresContainerModule.PostgresContainer) (string, error) {
+	connStr, err := container.ConnectionString(ctx, "sslmode=disable")
+
+	return connStr, wrapIfErr("ConnectionString", err)
+}
+
+func defaultContainerTerminate(ctx context.Context, container *postgresContainerModule.PostgresContainer) error {
+	err := container.Terminate(ctx)
+
+	return wrapIfErr("terminate", err)
+}
+
+func defaultCloseSQLDB(sqlDB *sql.DB) error {
+	err := sqlDB.Close()
+
+	return wrapIfErr("close", err)
+}
+
+func wrapIfErr(op string, err error) error {
+	if err == nil {
+		return nil
+	}
+
+	return fmt.Errorf("%s: %w", op, err)
+}
+
+func defaultDBDeps() dbDeps {
+	return dbDeps{
+		newUUIDv7Fn:                   googleUuid.NewV7,
+		sqlOpenFn:                     sql.Open,
+		newPostgresContainerFactoryFn: cryptoutilSharedContainer.NewPostgresTestContainer,
+		execSQLitePragmaFn:            defaultExecSQLitePragma,
+		openGormSQLiteFn:              defaultOpenGormSQLite,
+		openGormPostgresFn:            defaultOpenGormPostgres,
+		getSQLDBFn:                    defaultGetSQLDB,
+		containerConnectionStringFn:   defaultContainerConnectionString,
+		containerTerminateFn:          defaultContainerTerminate,
+		closeSQLDBFn:                  defaultCloseSQLDB,
+	}
+}
+
 // NewInMemorySQLiteDBForTestMain creates a unique in-memory SQLite database for use in TestMain functions.
 // Configures WAL mode, busy timeout, and connection pool.
 // Returns the db, a cleanup function, and any error.
 // Unlike NewInMemorySQLiteDB, this function does not require a *testing.T.
 func NewInMemorySQLiteDBForTestMain() (*gorm.DB, func(), error) {
-	dbID, err := googleUuid.NewV7()
+	return newInMemorySQLiteDBForTestMainWithDeps(defaultDBDeps())
+}
+
+func newInMemorySQLiteDBForTestMainWithDeps(deps dbDeps) (*gorm.DB, func(), error) {
+	dbID, err := deps.newUUIDv7Fn()
 	if err != nil {
 		return nil, nil, fmt.Errorf("test_help_db: failed to generate UUID: %w", err)
 	}
 
 	dsn := "file:" + dbID.String() + "?mode=memory&cache=shared"
 
-	db, sqlDB, err := buildInMemorySQLiteDB(context.Background(), sql.Open, dsn)
+	db, sqlDB, err := buildInMemorySQLiteDB(context.Background(), deps, dsn)
 	if err != nil {
 		return nil, nil, fmt.Errorf("test_help_db: %w", err)
 	}
 
 	cleanup := func() {
-		_ = sqlDB.Close()
+		_ = deps.closeSQLDBFn(sqlDB)
 	}
 
 	return db, cleanup, nil
@@ -58,20 +143,26 @@ func NewInMemorySQLiteDBForTestMain() (*gorm.DB, func(), error) {
 func NewInMemorySQLiteDB(t *testing.T) *gorm.DB {
 	t.Helper()
 
-	dbID, err := googleUuid.NewV7()
+	return newInMemorySQLiteDBWithDeps(t, defaultDBDeps())
+}
+
+func newInMemorySQLiteDBWithDeps(t *testing.T, deps dbDeps) *gorm.DB {
+	t.Helper()
+
+	dbID, err := deps.newUUIDv7Fn()
 	if err != nil {
-		t.Fatalf("test_help_db: failed to generate UUID: %v", err)
+		panic(fmt.Sprintf("test_help_db: failed to generate UUID: %v", err))
 	}
 
 	dsn := "file:" + dbID.String() + "?mode=memory&cache=private"
 
-	db, sqlDB, err := buildInMemorySQLiteDB(context.Background(), sql.Open, dsn)
+	db, sqlDB, err := buildInMemorySQLiteDB(context.Background(), deps, dsn)
 	if err != nil {
-		t.Fatalf("test_help_db: %v", err)
+		panic(fmt.Sprintf("test_help_db: %v", err))
 	}
 
 	t.Cleanup(func() {
-		if closeErr := sqlDB.Close(); closeErr != nil {
+		if closeErr := deps.closeSQLDBFn(sqlDB); closeErr != nil {
 			t.Logf("test_help_db: failed to close SQLite DB: %v", closeErr)
 		}
 	})
@@ -80,20 +171,19 @@ func NewInMemorySQLiteDB(t *testing.T) *gorm.DB {
 }
 
 // buildInMemorySQLiteDB constructs a SQLite GORM database from a DSN with WAL mode configured.
-// openFn is injected to allow testing of all code paths including error scenarios.
-func buildInMemorySQLiteDB(ctx context.Context, openFn func(driver, dsn string) (*sql.DB, error), dsn string) (*gorm.DB, *sql.DB, error) {
-	sqlDB, err := openFn(cryptoutilSharedMagic.TestDatabaseSQLite, dsn)
+func buildInMemorySQLiteDB(ctx context.Context, deps dbDeps, dsn string) (*gorm.DB, *sql.DB, error) {
+	sqlDB, err := deps.sqlOpenFn(cryptoutilSharedMagic.TestDatabaseSQLite, dsn)
 	if err != nil {
 		return nil, nil, fmt.Errorf("sql.Open: %w", err)
 	}
 
-	if _, err = sqlDB.ExecContext(ctx, "PRAGMA journal_mode=WAL;"); err != nil {
+	if err = deps.execSQLitePragmaFn(ctx, sqlDB, "PRAGMA journal_mode=WAL;"); err != nil {
 		_ = sqlDB.Close()
 
 		return nil, nil, fmt.Errorf("WAL pragma: %w", err)
 	}
 
-	if _, err = sqlDB.ExecContext(ctx, "PRAGMA busy_timeout = 30000;"); err != nil {
+	if err = deps.execSQLitePragmaFn(ctx, sqlDB, "PRAGMA busy_timeout = 30000;"); err != nil {
 		_ = sqlDB.Close()
 
 		return nil, nil, fmt.Errorf("busy_timeout pragma: %w", err)
@@ -103,9 +193,7 @@ func buildInMemorySQLiteDB(ctx context.Context, openFn func(driver, dsn string) 
 	sqlDB.SetMaxIdleConns(cryptoutilSharedMagic.SQLiteMaxOpenConnectionsForGORM)
 	sqlDB.SetConnMaxLifetime(0)
 
-	db, err := gorm.Open(sqlite.Dialector{Conn: sqlDB}, &gorm.Config{
-		SkipDefaultTransaction: true,
-	})
+	db, err := deps.openGormSQLiteFn(sqlDB)
 	if err != nil {
 		_ = sqlDB.Close()
 
@@ -121,7 +209,13 @@ func buildInMemorySQLiteDB(ctx context.Context, openFn func(driver, dsn string) 
 func NewPostgresTestContainer(ctx context.Context, t *testing.T) *gorm.DB {
 	t.Helper()
 
-	container, err := safeNewPostgresTestContainer(ctx)
+	return newPostgresTestContainerWithDeps(ctx, t, defaultDBDeps())
+}
+
+func newPostgresTestContainerWithDeps(ctx context.Context, t *testing.T, deps dbDeps) *gorm.DB {
+	t.Helper()
+
+	container, err := safeNewPostgresTestContainer(ctx, deps.newPostgresContainerFactoryFn)
 	if err != nil {
 		t.Skipf("test_help_db: skipping PostgreSQL test - container unavailable: %v", err)
 
@@ -129,30 +223,30 @@ func NewPostgresTestContainer(ctx context.Context, t *testing.T) *gorm.DB {
 	}
 
 	t.Cleanup(func() {
-		if termErr := container.Terminate(ctx); termErr != nil {
+		if termErr := deps.containerTerminateFn(ctx, container); termErr != nil {
 			t.Logf("test_help_db: failed to terminate PostgreSQL container: %v", termErr)
 		}
 	})
 
-	connStr, err := container.ConnectionString(ctx, "sslmode=disable")
+	connStr, err := deps.containerConnectionStringFn(ctx, container)
 	if err != nil {
-		t.Fatalf("test_help_db: failed to get PostgreSQL connection string: %v", err)
+		panic(fmt.Sprintf("test_help_db: failed to get PostgreSQL connection string: %v", err))
 	}
 
-	db, err := gorm.Open(postgresDriver.Open(connStr), &gorm.Config{})
+	db, err := deps.openGormPostgresFn(connStr)
 	if err != nil {
-		t.Fatalf("test_help_db: failed to open GORM PostgreSQL DB: %v", err)
+		panic(fmt.Sprintf("test_help_db: failed to open GORM PostgreSQL DB: %v", err))
 	}
 
 	t.Cleanup(func() {
-		sqlDB, sqlErr := db.DB()
+		sqlDB, sqlErr := deps.getSQLDBFn(db)
 		if sqlErr != nil {
 			t.Logf("test_help_db: failed to get sql.DB for cleanup: %v", sqlErr)
 
 			return
 		}
 
-		if closeErr := sqlDB.Close(); closeErr != nil {
+		if closeErr := deps.closeSQLDBFn(sqlDB); closeErr != nil {
 			t.Logf("test_help_db: failed to close PostgreSQL DB: %v", closeErr)
 		}
 	})
@@ -167,37 +261,41 @@ func NewPostgresTestContainer(ctx context.Context, t *testing.T) *gorm.DB {
 func NewClosedSQLiteDB(t *testing.T, applyMigrations func(*sql.DB) error) *gorm.DB {
 	t.Helper()
 
-	dbID, err := googleUuid.NewV7()
+	return newClosedSQLiteDBWithDeps(t, applyMigrations, defaultDBDeps())
+}
+
+func newClosedSQLiteDBWithDeps(t *testing.T, applyMigrations func(*sql.DB) error, deps dbDeps) *gorm.DB {
+	t.Helper()
+
+	dbID, err := deps.newUUIDv7Fn()
 	if err != nil {
-		t.Fatalf("test_help_db: uuid: %v", err)
+		panic(fmt.Sprintf("test_help_db: uuid: %v", err))
 	}
 
 	dsn := "file:" + dbID.String() + "?mode=memory&cache=shared"
 
-	db, err := buildClosedSQLiteDB(context.Background(), sql.Open, dsn, applyMigrations)
+	db, err := buildClosedSQLiteDB(context.Background(), deps, dsn, applyMigrations)
 	if err != nil {
-		t.Fatalf("test_help_db: %v", err)
+		panic(fmt.Sprintf("test_help_db: %v", err))
 	}
 
 	return db
 }
 
 // buildClosedSQLiteDB creates then closes a DB for error-path testing.
-func buildClosedSQLiteDB(ctx context.Context, openFn func(driver, dsn string) (*sql.DB, error), dsn string, applyMigrations func(*sql.DB) error) (*gorm.DB, error) {
-	sqlDB, err := openFn(cryptoutilSharedMagic.TestDatabaseSQLite, dsn)
+func buildClosedSQLiteDB(ctx context.Context, deps dbDeps, dsn string, applyMigrations func(*sql.DB) error) (*gorm.DB, error) {
+	sqlDB, err := deps.sqlOpenFn(cryptoutilSharedMagic.TestDatabaseSQLite, dsn)
 	if err != nil {
 		return nil, fmt.Errorf("sql.Open: %w", err)
 	}
 
-	if _, err = sqlDB.ExecContext(ctx, "PRAGMA journal_mode=WAL;"); err != nil {
+	if err = deps.execSQLitePragmaFn(ctx, sqlDB, "PRAGMA journal_mode=WAL;"); err != nil {
 		_ = sqlDB.Close()
 
 		return nil, fmt.Errorf("WAL pragma: %w", err)
 	}
 
-	db, err := gorm.Open(sqlite.Dialector{Conn: sqlDB}, &gorm.Config{
-		SkipDefaultTransaction: true,
-	})
+	db, err := deps.openGormSQLiteFn(sqlDB)
 	if err != nil {
 		_ = sqlDB.Close()
 
@@ -212,23 +310,23 @@ func buildClosedSQLiteDB(ctx context.Context, openFn func(driver, dsn string) (*
 		}
 	}
 
-	if closeErr := sqlDB.Close(); closeErr != nil {
+	if closeErr := deps.closeSQLDBFn(sqlDB); closeErr != nil {
 		return nil, fmt.Errorf("close DB after migrations: %w", closeErr)
 	}
 
 	return db, nil
 }
 
-// safeNewPostgresTestContainer wraps NewPostgresTestContainer to recover from panics
+// safeNewPostgresTestContainer wraps container factory creation to recover from panics
 // that occur when Docker is unavailable (testcontainers panics on Windows with no Docker).
-func safeNewPostgresTestContainer(ctx context.Context) (c *postgresContainerModule.PostgresContainer, retErr error) {
+func safeNewPostgresTestContainer(ctx context.Context, factoryFn func(context.Context) (*postgresContainerModule.PostgresContainer, error)) (c *postgresContainerModule.PostgresContainer, retErr error) {
 	defer func() {
 		if r := recover(); r != nil {
 			retErr = fmt.Errorf("docker unavailable (panic): %v", r)
 		}
 	}()
 
-	c, err := cryptoutilSharedContainer.NewPostgresTestContainer(ctx)
+	c, err := factoryFn(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("postgres container: %w", err)
 	}

@@ -1,6 +1,6 @@
 # Tasks - Framework V22: V21 Audit Fix Campaign
 
-**Status**: 4 of 71 tasks complete (5.6%) — Phase 5 Task 5.2 expanded to 10 individual PS-ID tasks for codex-model compatibility
+**Status**: 12 of 71 tasks complete (16.9%) — Phase 5 Task 5.2 expanded to 10 individual PS-ID tasks for codex-model compatibility
 **Last Updated**: 2026-05-11
 **Created**: 2026-05-11
 
@@ -132,80 +132,80 @@ Fixes SUMMARY.md Issue 1.
 
 ### Task 2.1: Tests for test_help_tls
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 1h
 - **Acceptance Criteria**:
-  - [ ] `t.Parallel()` on all tests and subtests
-  - [ ] Table-driven tests for each function
-  - [ ] `go test -cover ./internal/apps-framework/service/test_help_tls/...` ≥ 98%
+  - [x] `t.Parallel()` on all tests and subtests
+  - [x] Table-driven tests for each function
+  - [x] `go test -cover ./internal/apps-framework/service/test_help_tls/...` ≥ 98%
 - **Files**: `internal/apps-framework/service/test_help_tls/tls_test.go`
 
 ### Task 2.2: Tests for test_help_barrier
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 1h
 - **Acceptance Criteria**:
-  - [ ] Happy path + error paths for NewTestBarrierService
-  - [ ] `go test -cover ./internal/apps-framework/service/test_help_barrier/...` ≥ 98%
+  - [x] Happy path + error paths for NewTestBarrierService
+  - [x] `go test -cover ./internal/apps-framework/service/test_help_barrier/...` ≥ 98%
 - **Files**: `internal/apps-framework/service/test_help_barrier/barrier_test.go`
 
 ### Task 2.3: Tests for test_help_bootstrap
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 0.5h
 - **Acceptance Criteria**:
-  - [ ] Happy path + error paths for NewTestServerSettings
-  - [ ] `go test -cover ./internal/apps-framework/service/test_help_bootstrap/...` ≥ 98%
+  - [x] Happy path + error paths for NewTestServerSettings
+  - [x] `go test -cover ./internal/apps-framework/service/test_help_bootstrap/...` ≥ 98%
 - **Files**: `internal/apps-framework/service/test_help_bootstrap/bootstrap_test.go`
 
 ### Task 2.4: Tests for test_orch_integration
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 2h
 - **Acceptance Criteria**:
-  - [ ] Tests for StartIntegrationServer, StartIntegrationServerForTestMain
-  - [ ] Dual-port URL accessor tests
-  - [ ] Health-poll timeout error path covered (seam injection or stub server)
-  - [ ] `go test -cover ./internal/apps-framework/service/test_orch_integration/...` ≥ 98%
+  - [x] Tests for StartIntegrationServer, StartIntegrationServerForTestMain
+  - [x] Dual-port URL accessor tests
+  - [x] Health-poll timeout error path covered (seam injection or stub server)
+  - [x] `go test -cover ./internal/apps-framework/service/test_orch_integration/...` ≥ 98%
 - **Files**: `internal/apps-framework/service/test_orch_integration/test_orch_integration_test.go`
 
 ### Task 2.5: Tests for test_help_db
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 1.5h
 - **Acceptance Criteria**:
-  - [ ] Tests for NewInMemorySQLiteDB, NewInMemorySQLiteDBForTestMain, NewClosedSQLiteDB (no container)
-  - [ ] NewPostgresTestContainer under `//go:build integration` tag
-  - [ ] `go test -cover ./internal/apps-framework/service/test_help_db/...` ≥ 98%
+  - [x] Tests for NewInMemorySQLiteDB, NewInMemorySQLiteDBForTestMain, NewClosedSQLiteDB (no container)
+  - [x] NewPostgresTestContainer under `//go:build integration` tag
+  - [x] `go test -cover ./internal/apps-framework/service/test_help_db/...` ≥ 98%
 - **Files**: `internal/apps-framework/service/test_help_db/database_test.go`
 
 ### Task 2.6: Tests for test_help_api
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 1h
 - **Acceptance Criteria**:
-  - [ ] HealthClient construction test
-  - [ ] Livez/Readyz/ServiceHealth/BrowserHealth tested with `app.Test()` (NO real listener)
-  - [ ] `go test -cover ./internal/apps-framework/service/test_help_api/...` ≥ 98%
+  - [x] HealthClient construction test
+  - [x] Livez/Readyz/ServiceHealth/BrowserHealth tested with `app.Test()` (NO real listener)
+  - [x] `go test -cover ./internal/apps-framework/service/test_help_api/...` ≥ 98%
 - **Files**: `internal/apps-framework/service/test_help_api/api_test.go`
 
 ### Task 2.7: Tests for test_help_cli
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 0.5h
 - **Acceptance Criteria**:
-  - [ ] RunCLITests with stub EntryFunc covering all 3 standard cases (nil args, help, version)
-  - [ ] `go test -cover ./internal/apps-framework/service/test_help_cli/...` ≥ 98%
+  - [x] RunCLITests with stub EntryFunc covering all 3 standard cases (nil args, help, version)
+  - [x] `go test -cover ./internal/apps-framework/service/test_help_cli/...` ≥ 98%
 - **Files**: `internal/apps-framework/service/test_help_cli/cli_test.go`
 
 ### Task 2.8: Phase 2 quality gate
 
-- **Status**: ❌
+- **Status**: ✅
 - **Acceptance Criteria**:
-  - [ ] All 7 packages ≥ 98% coverage (verified with `-coverprofile`)
-  - [ ] `go build ./...` exits 0
-  - [ ] `golangci-lint run` exits 0
-  - [ ] Evidence: `test-output/v22-phase2/coverage-*.txt`
+  - [x] All 7 packages ≥ 98% coverage (verified with `-coverprofile`)
+  - [x] `go build ./...` exits 0
+  - [x] `golangci-lint run` exits 0
+  - [x] Evidence: `test-output/v22-phase2/coverage-*.txt`
 
 ---
 

@@ -13,12 +13,15 @@ package test_help_tls
 import (
 	"crypto/tls"
 	"crypto/x509"
+	"fmt"
 	http "net/http"
 	"testing"
 
 	cryptoutilAppsFrameworkServiceConfigTlsGenerator "cryptoutil/internal/apps-framework/service/config/tls_generator"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
+
+type generateAutoTLSSettingsFn func([]string, []string, int) (*cryptoutilAppsFrameworkServiceConfigTlsGenerator.TLSGeneratedSettings, error)
 
 // NewTestTLSSettings generates ephemeral TLS settings for tests.
 //
@@ -27,16 +30,29 @@ import (
 func NewTestTLSSettings(t *testing.T) *cryptoutilAppsFrameworkServiceConfigTlsGenerator.TLSGeneratedSettings {
 	t.Helper()
 
-	tlsSettings, err := cryptoutilAppsFrameworkServiceConfigTlsGenerator.GenerateAutoTLSGeneratedSettings(
+	return mustTestTLSSettings(cryptoutilAppsFrameworkServiceConfigTlsGenerator.GenerateAutoTLSGeneratedSettings)
+}
+
+func mustTestTLSSettings(generatorFn generateAutoTLSSettingsFn) *cryptoutilAppsFrameworkServiceConfigTlsGenerator.TLSGeneratedSettings {
+	tlsSettings, err := newTestTLSSettingsWithGenerator(generatorFn)
+	if err != nil {
+		panic(fmt.Sprintf("test_help_tls: generate auto TLS settings: %v", err))
+	}
+
+	return tlsSettings
+}
+
+func newTestTLSSettingsWithGenerator(generatorFn generateAutoTLSSettingsFn) (*cryptoutilAppsFrameworkServiceConfigTlsGenerator.TLSGeneratedSettings, error) {
+	tlsSettings, err := generatorFn(
 		[]string{cryptoutilSharedMagic.DefaultOTLPHostnameDefault},
 		[]string{cryptoutilSharedMagic.IPv4Loopback, cryptoutilSharedMagic.IPv6Loopback},
 		cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year,
 	)
 	if err != nil {
-		t.Fatalf("test_help_tls: generate auto TLS settings: %v", err)
+		return nil, fmt.Errorf("generate auto TLS settings: %w", err)
 	}
 
-	return tlsSettings
+	return tlsSettings, nil
 }
 
 // NewInsecureHTTPSClient returns an HTTPS client configured for test-only insecure TLS.
@@ -58,17 +74,26 @@ func NewInsecureHTTPSClient(t *testing.T) *http.Client {
 func NewMTLSClient(t *testing.T, certPath, keyPath string, caPool *x509.CertPool) *http.Client {
 	t.Helper()
 
+	client, err := newMTLSClient(certPath, keyPath, caPool)
+	if err != nil {
+		panic(fmt.Sprintf("test_help_tls: create mTLS client: %v", err))
+	}
+
+	return client
+}
+
+func newMTLSClient(certPath, keyPath string, caPool *x509.CertPool) (*http.Client, error) {
 	if certPath == "" {
-		t.Fatal("test_help_tls: certPath must be non-empty")
+		return nil, fmt.Errorf("certPath must be non-empty")
 	}
 
 	if keyPath == "" {
-		t.Fatal("test_help_tls: keyPath must be non-empty")
+		return nil, fmt.Errorf("keyPath must be non-empty")
 	}
 
 	clientCert, err := tls.LoadX509KeyPair(certPath, keyPath)
 	if err != nil {
-		t.Fatalf("test_help_tls: load client certificate/key pair: %v", err)
+		return nil, fmt.Errorf("load client certificate/key pair: %w", err)
 	}
 
 	transport := &http.Transport{
@@ -80,5 +105,5 @@ func NewMTLSClient(t *testing.T, certPath, keyPath string, caPool *x509.CertPool
 		DisableKeepAlives: true,
 	}
 
-	return &http.Client{Transport: transport}
+	return &http.Client{Transport: transport}, nil
 }

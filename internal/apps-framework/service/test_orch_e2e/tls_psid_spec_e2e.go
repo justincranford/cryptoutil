@@ -16,13 +16,6 @@ import (
 )
 
 const (
-	publicHealthEndpointPath = cryptoutilSharedMagic.KMSE2EHealthEndpoint
-	pkiInitServiceName       = cryptoutilSharedMagic.PSIDPKIInit
-	otelServiceName          = cryptoutilSharedMagic.OtelTLSE2EContainer
-	grafanaServiceName       = cryptoutilSharedMagic.GrafanaTLSE2EContainer
-	otelServerCertCN         = cryptoutilSharedMagic.OtelTLSE2EOtelServerCertCN
-	grafanaServerCertCN      = cryptoutilSharedMagic.GrafanaTLSE2EServerCertCN
-
 	// App variant port offsets relative to the PS-ID base public port.
 	variantSQLiteOnePortOffset   = 0
 	variantSQLiteTwoPortOffset   = 1
@@ -160,19 +153,19 @@ func NewTLSPSIDSpec(psid string) (TLSPSIDSpec, error) {
 		ComposeOverrideFile: filepath.Join(deploymentDir, "compose-test-otel-expose.yml"),
 
 		PublicCACertPath:     publicCACertPath,
-		AppHealthEndpoint:    publicHealthEndpointPath,
-		PKIInitServiceName:   pkiInitServiceName,
-		OTelServiceName:      otelServiceName,
-		GrafanaServiceName:   grafanaServiceName,
+		AppHealthEndpoint:    cryptoutilSharedMagic.KMSE2EHealthEndpoint,
+		PKIInitServiceName:   cryptoutilSharedMagic.PSIDPKIInit,
+		OTelServiceName:      cryptoutilSharedMagic.OtelTLSE2EContainer,
+		GrafanaServiceName:   cryptoutilSharedMagic.GrafanaTLSE2EContainer,
 		OTelGRPCPort:         cryptoutilSharedMagic.OtelTLSE2EGRPCPort,
 		OTelHTTPPort:         cryptoutilSharedMagic.OtelTLSE2EHTTPPort,
 		OTelHealthPort:       cryptoutilSharedMagic.OtelTLSE2EHealthPort,
-		OTelServerCertCN:     otelServerCertCN,
+		OTelServerCertCN:     cryptoutilSharedMagic.OtelTLSE2EOtelServerCertCN,
 		OTelClientCertPath:   otelClientCertPath,
 		OTelClientKeyPath:    otelClientKeyPath,
 		GrafanaUIPort:        cryptoutilSharedMagic.GrafanaTLSE2EUIPort,
 		GrafanaOTLPGRPCPort:  cryptoutilSharedMagic.GrafanaTLSE2EOTLPGRPCPort,
-		GrafanaServerCertCN:  grafanaServerCertCN,
+		GrafanaServerCertCN:  cryptoutilSharedMagic.GrafanaTLSE2EServerCertCN,
 		GrafanaInfraCertPath: grafanaInfraCertPath,
 		GrafanaInfraKeyPath:  grafanaInfraKeyPath,
 		AppVariants:          appVariants,
