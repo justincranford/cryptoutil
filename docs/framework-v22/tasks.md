@@ -622,7 +622,7 @@ Fixes SUMMARY.md Issue 8.
 - **Status**: ❌ BLOCKED
 - **Acceptance Criteria**:
   - [ ] `docker compose -f deployments/cryptoutil/compose.yml build` exits 0
-- **Blocker**: Retried after Docker restart. Build from repo root fails path resolution (`GetFileAttributesEx ..\sm-kms\.env.postgres`), build from `deployments/cryptoutil` starts then fails mid-build with `rpc error: ... error reading from server: EOF`, then Docker daemon degrades to `request returned 500 Internal Server Error` for `docker ps`/`docker version`. Service-level restart is not possible in this shell (`Start-Service com.docker.service` denied), so Docker Desktop must be recovered externally before E2E can proceed.
+- **Blocker**: Build is now recoverable only with constrained Docker settings: must run from `deployments/cryptoutil` and set `COMPOSE_PARALLEL_LIMIT=1` (classic builder parallel compile was OOM-killed with `compile: signal: killed`). Subsequent E2E startup is still blocked by PKI/bootstrap issues (Task 9.3): `pki-init` intermittently fails with `mkdir /certs/sm-kms: file exists` on Windows bind mounts, and when `pki-init` succeeds, dependent services fail on telemetry/postgres TLS startup.
 
 ### Task 9.3: Run sm-kms E2E tests
 
@@ -630,6 +630,10 @@ Fixes SUMMARY.md Issue 8.
 - **Acceptance Criteria**:
   - [ ] `go test -tags e2e ./internal/apps/sm-kms/e2e/... -v` passes
   - [ ] Output archived in `test-output/v22-e2e/sm-kms.log`
+- **Blocker**: Current stack bootstrap is unstable in Docker-on-Windows environment:
+  1) `pki-init` fails with `failed to generate shared CAs ... mkdir /certs/sm-kms: file exists` after repeated compose cycles.
+  2) If `pki-init` passes, telemetry healthcheck can fail because OTel collector cannot read mTLS key unless run as root (`open ... otel-collector-contrib-https-client-entity-infra.key: permission denied`).
+  3) If telemetry is healthy, `sm-kms-app-postgresql-1` may still fail startup with postgres TLS chain mismatch (`x509: certificate signed by unknown authority` / `ECDSA verification failure`).
 
 ### Task 9.4: Run sm-im E2E tests
 

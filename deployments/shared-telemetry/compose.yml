@@ -36,6 +36,7 @@ services:
 
   opentelemetry-collector-contrib:
     image: otel/opentelemetry-collector-contrib:latest
+    user: "0:0"
     command: ["--config=/etc/otel-collector-config.yaml"]
     # CRITICAL: Ports NOT exposed to host to allow multiple deployments (CA, JOSE, etc.)
     # Services communicate via Docker network (telemetry-network) using container names

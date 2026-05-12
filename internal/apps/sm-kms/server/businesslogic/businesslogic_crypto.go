@@ -192,8 +192,11 @@ func (s *BusinessLogicService) getAndDecryptMaterialKeyInElasticKey(ctx context.
 
 	var ormMaterialKey *cryptoutilOrmRepository.MaterialKey
 
-	var materialKeyDecryptedNonPublicJWKBytes []byte
-
+	// DecryptContentWithContext MUST be called OUTSIDE WithTransaction scope.
+	// Calling it inside WithTransaction causes a SQLite deadlock: the barrier service
+	// opens its own DB transaction to read the barrier root key, creating nested
+	// transactions on the same SQLite connection pool, exhausting it and hanging indefinitely.
+	// See ENG-HANDBOOK.md §data-infrastructure and 03-04.data-infrastructure.instructions.md.
 	err = s.ormRepository.WithTransaction(ctx, cryptoutilOrmRepository.ReadOnly, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
 		var err error
 
@@ -212,15 +215,16 @@ func (s *BusinessLogicService) getAndDecryptMaterialKeyInElasticKey(ctx context.
 			return fmt.Errorf("failed to get MaterialKey in ElasticKey: %w", err)
 		}
 
-		materialKeyDecryptedNonPublicJWKBytes, err = s.barrierService.DecryptContentWithContext(ctx, ormMaterialKey.MaterialKeyEncryptedNonPublic)
-		if err != nil {
-			return fmt.Errorf("failed to decrypt MaterialKeyEncryptedNonPublic in ElasticKey: %w", err)
-		}
-
 		return nil
 	})
 	if err != nil {
-		return nil, nil, nil, nil, fmt.Errorf("failed to get and decrypt MaterialKeyEncryptedNonPublic in ElasticKey: %w", err)
+		return nil, nil, nil, nil, fmt.Errorf("failed to get MaterialKey in ElasticKey: %w", err)
+	}
+
+	// Decrypt OUTSIDE the transaction to avoid nested-transaction deadlock on SQLite.
+	materialKeyDecryptedNonPublicJWKBytes, err := s.barrierService.DecryptContentWithContext(ctx, ormMaterialKey.MaterialKeyEncryptedNonPublic)
+	if err != nil {
+		return nil, nil, nil, nil, fmt.Errorf("failed to decrypt MaterialKeyEncryptedNonPublic in ElasticKey: %w", err)
 	}
 
 	decryptedMaterialKeyNonPublicJWK, err := joseJwk.ParseKey(materialKeyDecryptedNonPublicJWKBytes)
