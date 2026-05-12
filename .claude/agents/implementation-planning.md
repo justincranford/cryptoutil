@@ -673,12 +673,12 @@ EOF
 **Phase Objective**: [What this phase will build]
 
 #### Task 1.1: Database Schema
-- **Status**: ❌
+- **Status**: ❌ Not Started
 - **Owner**: LLM Agent
 - **Estimated**: 3h
-- **Actual**: [Fill when complete]
-- **Dependencies**: None
-- **Description**: Design and implement database schema
+- **Actual**: `(Fill when complete)`
+- **Dependencies**: `(Task IDs)`
+- **Description**: `(Design and implement database schema)`
 - **Acceptance Criteria**:
   - [ ] Migrations created (up/down)
   - [ ] Schema documented
@@ -694,7 +694,7 @@ EOF
   - `test-output/phase1/task-1.1-findings.md` - Any blockers found
 
 #### Task 1.2: Domain Models
-- **Status**: ❌
+- **Status**: ❌ Not Started
 - **Owner**: LLM Agent
 - **Estimated**: 2h
 - **Actual**: [Fill when complete]
@@ -714,7 +714,7 @@ EOF
 **Phase Objective**: [What business logic will be implemented]
 
 #### Task 2.1: Service Implementation
-- **Status**: ❌
+- **Status**: ❌ Not Started
 - **Owner**: LLM Agent
 - **Estimated**: 4h
 - **Actual**: [Fill when complete]

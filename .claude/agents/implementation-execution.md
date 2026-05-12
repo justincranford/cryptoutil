@@ -715,9 +715,9 @@ Each task MUST include:
 - **Status**: ❌ Not Started | ⚠️ In Progress | ✅ Complete
 - **Owner**: LLM Agent
 - **Estimated**: Xh
-- **Actual**: [Fill when complete]
-- **Dependencies**: [Task IDs]
-- **Description**: [What needs doing]
+- **Actual**: `(Fill when complete)`
+- **Dependencies**: `(Task IDs)`
+- **Description**: `(What needs doing)`
 - **Acceptance Criteria**: Testable conditions with `[ ]`/`[x]` checkboxes
 - **Files**: List of files created/modified
 

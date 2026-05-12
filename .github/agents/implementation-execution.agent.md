@@ -51,11 +51,11 @@ tools:
   - vscode.mermaid-chat-features/renderMermaidDiagram
 handoffs:
   - label: Create/Update Plan
-    agent: implementation-planning
+    agent: copilot-implementation-planning
     prompt: Create or update plan.md and tasks.md in the specified directory.
     send: false
   - label: Fix GitHub Workflows
-    agent: fix-workflows
+    agent: copilot-fix-workflows
     prompt: Fix or update GitHub Actions workflows as required by implementation or plan or tasks.
     send: false
 ---
@@ -771,9 +771,9 @@ Each task MUST include:
 - **Status**: ❌ Not Started | ⚠️ In Progress | ✅ Complete
 - **Owner**: LLM Agent
 - **Estimated**: Xh
-- **Actual**: [Fill when complete]
-- **Dependencies**: [Task IDs]
-- **Description**: [What needs doing]
+- **Actual**: `(Fill when complete)`
+- **Dependencies**: `(Task IDs)`
+- **Description**: `(What needs doing)`
 - **Acceptance Criteria**: Testable conditions with `[ ]`/`[x]` checkboxes
 - **Files**: List of files created/modified
 
