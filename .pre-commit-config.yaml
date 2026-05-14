@@ -381,7 +381,7 @@ repos:
 
   # Conventional commit validation
   - repo: https://github.com/commitizen-tools/commitizen
-    rev: v4.15.1
+    rev: v4.16.0
     hooks:
       - id: commitizen
         name: Check conventional commit message
@@ -409,7 +409,7 @@ repos:
 
   # SQL migration linting (PostgreSQL dialect)
   - repo: https://github.com/sqlfluff/sqlfluff
-    rev: 4.1.0
+    rev: 4.2.0
     hooks:
       - id: sqlfluff-fix
         name: SQLFluff fix SQL migrations
