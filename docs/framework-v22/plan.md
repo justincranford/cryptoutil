@@ -158,7 +158,7 @@ Formula: 3 stub impl + 7 test files + 4 linter files + 15 e2e phase touches + 3 
 
 ---
 
-### Phase 1: Implement Empty Stub Packages (4h) [Status: ☐ TODO]
+### Phase 1: Implement Empty Stub Packages (4h) [Status: ✅ COMPLETE]
 
 **Objective**: Replace the 3 empty stub packages with substantive implementations.
 These are dependencies for Phases 2, 5, 6, and 7.
@@ -189,7 +189,7 @@ tasks immediately.
 
 ---
 
-### Phase 2: Self-Tests for All 7 Helper Packages (8h) [Status: ☐ TODO]
+### Phase 2: Self-Tests for All 7 Helper Packages (8h) [Status: ✅ COMPLETE]
 
 **Objective**: Write `_test.go` files for all 7 packages with 0.0% coverage; reach ≥98% each.
 
@@ -224,7 +224,7 @@ test_help_db, test_help_cli"
 
 ---
 
-### Phase 3: Linter Coverage to ≥98% (3h) [Status: ☐ TODO]
+### Phase 3: Linter Coverage to ≥98% (3h) [Status: ✅ COMPLETE]
 
 **Objective**: Raise testmain_orchestration_policy (91.2%) and testmain_integration_tag_policy
 (89.6%) to ≥98% by injecting OS error paths via a `readFileFn` parameter.
@@ -255,7 +255,7 @@ Apply the same pattern to both linters. Test with error-returning stubs to cover
 
 ---
 
-### Phase 4: Mutation Testing (2h) [Status: ☐ TODO]
+### Phase 4: Mutation Testing (2h) [Status: ✅ COMPLETE]
 
 **Objective**: Confirm test quality — not just coverage quantity — for all 9 newly-tested
 packages (7 helper + 2 linter).
@@ -289,7 +289,7 @@ specific CI workflow step reference. NEVER mark complete without mutation eviden
 
 ---
 
-### Phase 5: test_orch_e2e Facade + 10 PS-ID E2E TestMain Migration + Linter (8h) [Status: ☐ TODO]
+### Phase 5: test_orch_e2e Facade + 10 PS-ID E2E TestMain Migration + Linter (8h) [Status: ✅ COMPLETE]
 
 **Objective**: Add a `SetupE2ETestMain` facade to `test_orch_e2e`, migrate all 10 PS-ID E2E
 TestMains from the old `e2e_infra.SetupE2ETestMain`, and add a lint-fitness linter to prevent
@@ -330,7 +330,7 @@ NOT import `testing/e2e_infra`.
 
 ---
 
-### Phase 6: Framework-Internal TestMain Migration (2h) [Status: ☐ TODO]
+### Phase 6: Framework-Internal TestMain Migration (2h) [Status: ✅ COMPLETE]
 
 **Objective**: Migrate 3 framework-internal TestMains off `testutil.Initialize()`.
 
@@ -355,7 +355,7 @@ Phase 1. The framework packages test TLS-dependent behavior; use `test_help_tls`
 
 ---
 
-### Phase 7: sm-kms businesslogic + orm Migration (3h) [Status: ☐ TODO]
+### Phase 7: sm-kms businesslogic + orm Migration (3h) [Status: ✅ COMPLETE]
 
 **Objective**: Migrate sm-kms businesslogic and orm off `application.StartCore()` to use
 `test_orch_integration` / `test_help_db`; raise both packages to ≥95% coverage.
@@ -382,7 +382,7 @@ document structural ceiling with mitigation plan. NEVER accept as permanent with
 
 ---
 
-### Phase 8: Consumer Migration + Old testing/ Deprecation (4h) [Status: ☐ TODO]
+### Phase 8: Consumer Migration + Old testing/ Deprecation (4h) [Status: ✅ COMPLETE]
 
 **Objective**: Migrate the 17 consumer test files off old `testing/` import paths; add
 `//Deprecated:` markers to all old packages.
@@ -424,7 +424,7 @@ go build ./... && go test ./...
 
 ---
 
-### Phase 9: E2E Validation (3h) [Status: ☐ TODO]
+### Phase 9: E2E Validation (3h) [Status: ✅ COMPLETE]
 
 **Objective**: Run E2E tests with Docker Desktop. No "Docker-deferred" deferrals — this is
 a BLOCKER per instructions.
@@ -452,7 +452,7 @@ a BLOCKER per instructions.
 
 ---
 
-### Phase 10: TestMain Inventory Table (1h) [Status: ☐ TODO]
+### Phase 10: TestMain Inventory Table (1h) [Status: ✅ COMPLETE]
 
 **Objective**: Definitive per-file TestMain inventory resolving the 39-vs-20 count discrepancy.
 
@@ -474,7 +474,7 @@ Write to `test-output/v22-inventory/testmain-inventory.md`.
 
 ---
 
-### Phase 11: Knowledge Propagation (2h) [Status: ☐ TODO]
+### Phase 11: Knowledge Propagation (2h) [Status: ✅ COMPLETE]
 
 **Objective**: Apply all phase lessons to permanent artifacts. MANDATORY — never skipped.
 

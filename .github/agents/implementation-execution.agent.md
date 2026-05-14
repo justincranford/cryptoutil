@@ -165,6 +165,17 @@ After every phase post-mortem:
 
 **Root cause of stale pattern**: Session "Framework V3 Work Review" stopped after Phase 8 post-mortem without reading Phase 8B, 9, 10, 11 — all marked TODO. 43 of 86 tasks were left incomplete (50%).
 
+## Plan Artifact Reconciliation Gate - MANDATORY
+
+Before claiming plan completion, reconcile all four plan artifacts in the same execution pass:
+
+1. `tasks.md` checkboxes: all `[ ]` MUST be converted to `[x]` with objective evidence.
+2. `plan.md` phase headers: every `### Phase N ... [Status: ...]` MUST match completed reality (no stale `☐ TODO` markers when plan status is complete).
+3. `lessons.md` alignment: executive summary and phase lessons MUST reflect final blocker resolutions and root causes.
+4. `EXEC-SUMMARY.md` inclusion: MUST explicitly state that `lessons.md` was reviewed and incorporated into the final completion narrative.
+
+Completion is INVALID if any artifact contradicts another (for example: `tasks.md` complete but `plan.md` phase statuses still TODO).
+
 ## Quality Enforcement - MANDATORY
 
 **ALL issues are blockers - NO exceptions**:

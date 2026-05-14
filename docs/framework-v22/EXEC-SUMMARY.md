@@ -10,6 +10,8 @@ Reviewer model intent: objective post-implementation audit.
   - docs/framework-v22/plan.md
   - docs/framework-v22/tasks.md
   - docs/framework-v22/lessons.md
+- Lessons inclusion status:
+  - Included and reconciled: docs/framework-v22/lessons.md executive summary, per-phase root causes, and actions were reviewed and reflected in this EXEC-SUMMARY completion narrative.
 - Validation evidence from current execution:
   - `go build ./...` (pass)
   - `go build -tags e2e,integration ./...` (pass)
