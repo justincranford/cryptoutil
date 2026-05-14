@@ -228,6 +228,7 @@ services:
   # pki-ca server with PostgreSQL backend (instance 1).
   pki-ca-app-postgresql-1:
     image: cryptoutil-pki-ca:local
+    restart: "on-failure"
     command: /bin/sh -c "exec /app/pki-ca server --config=/certs/tls-config.yml --config=/app/config/pki-ca-app-framework-common.yml --config=/app/config/pki-ca-app-framework-postgresql-1.yml --config=/app/config/pki-ca-app-domain-common.yml --config=/app/config/pki-ca-app-domain-postgresql-1.yml --config=/app/otel/otel.yml --bind-public-port=8080 -u file:///run/secrets/postgres-url.secret $$SUITE_ARGS"
     working_dir: /tmp
     ports:
@@ -282,6 +283,7 @@ services:
   # pki-ca server with PostgreSQL backend (instance 2 - shared DB with instance 1).
   pki-ca-app-postgresql-2:
     image: cryptoutil-pki-ca:local
+    restart: "on-failure"
     command: /bin/sh -c "exec /app/pki-ca server --config=/certs/tls-config.yml --config=/app/config/pki-ca-app-framework-common.yml --config=/app/config/pki-ca-app-framework-postgresql-2.yml --config=/app/config/pki-ca-app-domain-common.yml --config=/app/config/pki-ca-app-domain-postgresql-2.yml --config=/app/otel/otel.yml --bind-public-port=8080 -u file:///run/secrets/postgres-url.secret $$SUITE_ARGS"
     working_dir: /tmp
     ports:

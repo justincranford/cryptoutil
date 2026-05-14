@@ -1,7 +1,7 @@
 # Lessons - Framework V22: V21 Audit Fix Campaign
 
 **Created**: 2026-05-11
-**Last Updated**: 2026-05-11
+**Last Updated**: 2026-05-14
 
 > **Mandatory per-phase structure** (fill during each phase post-mortem after quality gates pass):
 >
@@ -25,7 +25,7 @@
 6. [Phase 6: Migrate PS-ID TestMain Files](#phase-6-migrate-ps-id-testmain-files) — All 10 PS-ID service `testmain_test.go` files migrated to new helper packages; deprecated `testing/testdb` and `testing/testserver` paths removed.
 7. [Phase 7: Migrate Server Package TestMain Files](#phase-7-migrate-server-package-testmain-files) — All 10 `internal/apps/*/server/testmain_test.go` migrated; port-conflict tests validated.
 8. [Phase 8: Migrate Domain Package TestMain Files](#phase-8-migrate-domain-package-testmain-files) — 8 domain package TestMain instances migrated; identified 6 false literal-use violations introduced by migration; fixed all 6 in pre-commit.
-9. [Phase 9: E2E Validation](#phase-9-e2e-validation) — Retried after Docker restart; compose builds still fail (path resolution at root, EOF mid-build in deployment dir), then daemon regresses to API 500 on `docker ps`; infrastructure blocker remains active.
+9. [Phase 9: E2E Validation](#phase-9-e2e-validation) — Resolved Windows bind-mount and PostgreSQL startup/authentication blockers; both `sm-kms` and `sm-im` E2E suites pass with archived evidence in `test-output/v22-e2e/`.
 10. [Phase 10: TestMain Inventory Table](#phase-10-testmain-inventory-table) — Definitive inventory: 54 TestMain instances (formula: 10+10+8+10+8+8=54); V21's claim of 39 was an undercount by 15; inventory written to `test-output/v22-inventory/testmain-inventory.md`.
 11. [Phase 11: Knowledge Propagation](#phase-11-knowledge-propagation) — ENG-HANDBOOK.md §10.3.6 updated for `test_help_*` / `test_orch_*` packages; instruction file Shared Test Infrastructure table corrected; agent files reviewed (no formal paths to fix).
 
@@ -33,12 +33,10 @@
 
 ## Actions
 
-1. Recover Docker Desktop engine health (full restart/reinstall with service permissions) so `docker ps` and `docker compose -f deployments/cryptoutil/compose.yml build` both succeed, then run `go test -tags e2e ./internal/apps/sm-kms/e2e/... -v` and `go test -tags e2e ./internal/apps/sm-im/e2e/... -v`.
-2. Remove the deprecated `internal/apps-framework/service/testing/testdb` and `internal/apps-framework/service/testing/testserver` sub-packages once all consumers have been confirmed migrated (grep: `"cryptoutil/internal/apps-framework/service/testing/testdb"`).
-3. Add a fitness linter that enforces use of `test_help_*` / `test_orch_*` packages over deprecated `testing/testdb` and `testing/testserver` paths — prevents future regression.
-4. Treat the race gate as Linux-only CI work, not a Windows-host requirement; keep local Windows validation at build/lint/test levels and rely on `ci-race.yml` or a Linux runner for `go test -race ./...`.
-5. Update `api/cryptosuite-registry/templates/` canonical templates for `testmain_test.go` to reference `test_help_db.NewInMemorySQLiteDB(t)` instead of any deprecated path — ensures `apps-ps-id-template` fitness linter stays green.
-6. Add a final completion-state reconciliation step to the execution agent so blocked phases and open cross-cutting checks cannot be summarized as finished.
+1. Add a deployment fitness check that enforces LF line endings for `deployments/*/secrets/*.secret` files to prevent hidden `\r` credentials on Windows.
+2. Add an E2E orchestration check that always performs cert-dir writable cleanup before Compose startup on Windows bind mounts.
+3. Keep `POSTGRES_SECRETS_DIR` parameterization in sync across shared-postgres template and all PS-ID `.env.postgres` instantiations when adding new services.
+4. Track and reduce E2E test `SKIP` usage in `internal/apps/sm-im/e2e/...` so all critical-path checks execute in default runs.
 
 ---
 
@@ -231,30 +229,25 @@
 ## Phase 9: E2E Validation
 
 **What Worked**:
-- Docker restart and rerun produced more precise diagnostics instead of generic failures.
-- Running compose from `deployments/cryptoutil` removed the false path error from root execution and confirmed the true failure point is Docker engine instability during build.
+- Deep container log correlation across `pki-init`, app, and shared-postgres services exposed the real startup sequence faults quickly.
+- Hardening e2e orchestration (`certs` cleanup + start-failure teardown) removed non-deterministic Windows bind-mount failures.
+- Parameterizing shared-postgres secret source via `POSTGRES_SECRETS_DIR` aligned leader credentials with each PS-ID deployment.
+- Normalizing PostgreSQL secret files to LF removed hidden carriage-return credential corruption and resolved authn failures.
 
 **What Didn't Work**:
-- Build retry from repo root failed path resolution (`GetFileAttributesEx ..\sm-kms\.env.postgres`), which initially obscured the real blocker.
-- Build retry from deployment directory reached real image compilation, then failed with `rpc error: ... error reading from server: EOF`.
-- After the crash, Docker daemon degraded further to `request returned 500 Internal Server Error` for `docker ps` and `docker version` on both `desktop-linux` and `default` contexts.
-- Attempted local recovery via `Start-Service com.docker.service` was denied in this shell, preventing in-session service restart.
-- The Docker Desktop UI showed the WSL 2 backend, so the relevant resource limits are controlled by Windows/WSL config rather than the Docker UI sliders.
-- Resource Saver was enabled at the time of capture, which can make memory pressure and daemon churn harder to observe during large compose builds.
+- Initial analysis over-weighted Docker memory pressure; the persistent blockers were permission and credential format issues, not RAM limits.
+- Shared-postgres health checks initially reported healthy too early (during init phase), allowing app startup attempts before stable TCP readiness.
 
 **Root Causes**:
-- Docker Desktop engine enters an unstable state under compose build load; after failure, API endpoints on named pipes return HTTP 500 even for simple container list/version calls.
-- Compose invocation directory matters for path resolution (`deployments/cryptoutil` works; repo root can fail relative `.env.*` includes).
-- WSL 2 resource limits are controlled through `%UserProfile%\.wslconfig` and WSL/Docker restarts, not through the Docker Resources panel, so the effective memory cap can stay too low even when the UI looks normal.
-- Infrastructure permissions on this shell do not allow direct service restart (`com.docker.service`), so full daemon recovery cannot be completed from this session.
+- Windows host bind mounts preserved read-only attributes in `deployments/*/certs`, causing `pki-init` write failures.
+- Shared-postgres compose consumed credential files from `deployments/shared-postgres/secrets` by default, while PS-ID apps used PS-ID credentials, creating leader/app authn mismatch.
+- CRLF endings in PS-ID PostgreSQL secret files injected hidden `\r` characters into credentials; PostgreSQL treated these as different role names.
 
 **Patterns for Future Phases**:
-- Run compose commands from the deployment directory first to avoid false blocker signals from path resolution.
-- If Docker returns EOF during build and then 500 on `docker ps`, treat it as a daemon health incident and escalate to host-level recovery immediately.
-- The three-encounter rule applies: first encounter → document; second → create task; third → mandatory restart/reinstall before continuing any Docker-dependent work.
-- For WSL 2, edit `%UserProfile%\.wslconfig` to raise memory/CPU limits, then restart WSL and Docker Desktop; that is the actual control plane for backend resource limits.
-- Disable Resource Saver while debugging build-heavy compose stacks so the daemon does not reclaim memory mid-run.
-- Always isolate E2E phase from knowledge propagation phase so a Docker blocker doesn't block documentation work.
+- Enforce pre-start cert-dir sanitization and writable normalization for Windows Docker bind mounts.
+- Parameterize shared-postgres secret source (`POSTGRES_SECRETS_DIR`) and set it in each PS-ID `.env.postgres`.
+- Normalize all secret files used by container `_FILE` environment loading to LF endings.
+- Use leader health probes that validate stable process/TCP readiness, not transient init-socket readiness.
 
 ---
 

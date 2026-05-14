@@ -2,12 +2,55 @@
 package e2e_infra
 
 import (
+	"os"
+	"path/filepath"
 	"testing"
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/stretchr/testify/require"
 )
+
+func TestResetCertOutputDir_RemovesReadOnlyArtifacts(t *testing.T) {
+	t.Parallel()
+
+	tempDir := t.TempDir()
+	composePath := filepath.Join(tempDir, "compose.yml")
+
+	require.NoError(t, os.WriteFile(composePath, []byte("services: {}"), cryptoutilSharedMagic.CacheFilePermissions))
+
+	certsDir := filepath.Join(tempDir, "certs")
+	require.NoError(t, os.MkdirAll(filepath.Join(certsDir, "nested"), cryptoutilSharedMagic.CICDTempDirPermissions))
+	require.NoError(t, os.WriteFile(filepath.Join(certsDir, cryptoutilSharedMagic.PKIInitAdminCABundleFilename), []byte("stale"), 0o400))
+	require.NoError(t, os.WriteFile(filepath.Join(certsDir, "tls-config.yml"), []byte("stale"), 0o400))
+	require.NoError(t, os.WriteFile(filepath.Join(certsDir, "nested", "leaf.pem"), []byte("stale"), 0o400))
+	require.NoError(t, os.WriteFile(filepath.Join(certsDir, ".gitkeep"), []byte{}, cryptoutilSharedMagic.CacheFilePermissions))
+
+	cm := &ComposeManager{ComposeFile: composePath}
+	require.NoError(t, cm.resetCertOutputDir())
+
+	_, err := os.Stat(filepath.Join(certsDir, ".gitkeep"))
+	require.NoError(t, err)
+
+	_, err = os.Stat(filepath.Join(certsDir, cryptoutilSharedMagic.PKIInitAdminCABundleFilename))
+	require.Error(t, err)
+	require.True(t, os.IsNotExist(err))
+
+	_, err = os.Stat(filepath.Join(certsDir, "nested"))
+	require.Error(t, err)
+	require.True(t, os.IsNotExist(err))
+}
+
+func TestResetCertOutputDir_MissingDirectory(t *testing.T) {
+	t.Parallel()
+
+	tempDir := t.TempDir()
+	composePath := filepath.Join(tempDir, "compose.yml")
+	require.NoError(t, os.WriteFile(composePath, []byte("services: {}"), cryptoutilSharedMagic.CacheFilePermissions))
+
+	cm := &ComposeManager{ComposeFile: composePath}
+	require.NoError(t, cm.resetCertOutputDir())
+}
 
 func TestBuildDockerExecArgs(t *testing.T) {
 	t.Parallel()

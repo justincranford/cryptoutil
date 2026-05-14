@@ -96,6 +96,8 @@ func newE2ETestEnvWithDeps(ctx context.Context, cfg E2ETestConfig, deps testmain
 	}
 
 	if err := deps.startFn(ctx, env.ComposeManager); err != nil {
+		_ = deps.stopFn(ctx, env.ComposeManager)
+
 		return nil, fmt.Errorf("failed to start docker compose: %w", err)
 	}
 

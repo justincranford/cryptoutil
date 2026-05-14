@@ -8,13 +8,17 @@ package e2e_infra
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"io/fs"
 	http "net/http"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"time"
 
 	cryptoutilSharedCryptoTls "cryptoutil/internal/shared/crypto/tls"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // ComposeManager orchestrates docker compose lifecycle for E2E tests.
@@ -70,6 +74,10 @@ func (cm *ComposeManager) defaultPsOutput(ctx context.Context) ([]byte, error) {
 func (cm *ComposeManager) Start(ctx context.Context) error {
 	fmt.Println("Starting docker compose stack...")
 
+	if err := cm.resetCertOutputDir(); err != nil {
+		return fmt.Errorf("failed to prepare cert output dir: %w", err)
+	}
+
 	args := cm.buildComposeArgs("up", "-d", "--build")
 	startCmd := exec.CommandContext(ctx, "docker", args...)
 	startCmd.Stdout = os.Stdout
@@ -77,6 +85,70 @@ func (cm *ComposeManager) Start(ctx context.Context) error {
 
 	if err := startCmd.Run(); err != nil {
 		return fmt.Errorf("failed to start docker compose: %w", err)
+	}
+
+	return nil
+}
+
+// resetCertOutputDir makes the compose cert output directory writable and clears
+// stale artifacts from previous runs. On Windows, read-only attributes on files
+// (for example issuing-ca.pem) can prevent pki-init from regenerating certs.
+func (cm *ComposeManager) resetCertOutputDir() error {
+	composeDir := filepath.Dir(cm.ComposeFile)
+	certsDir := filepath.Join(composeDir, "certs")
+
+	if _, err := os.Stat(certsDir); errors.Is(err, fs.ErrNotExist) {
+		return nil
+	} else if err != nil {
+		return fmt.Errorf("stat certs dir %s: %w", certsDir, err)
+	}
+
+	entries, err := os.ReadDir(certsDir)
+	if err != nil {
+		return fmt.Errorf("read certs dir %s: %w", certsDir, err)
+	}
+
+	for _, entry := range entries {
+		if entry.Name() == ".gitkeep" {
+			continue
+		}
+
+		targetPath := filepath.Join(certsDir, entry.Name())
+		if err := makeWritableRecursive(targetPath); err != nil {
+			return fmt.Errorf("make writable %s: %w", targetPath, err)
+		}
+
+		if err := os.RemoveAll(targetPath); err != nil {
+			return fmt.Errorf("remove stale cert artifact %s: %w", targetPath, err)
+		}
+	}
+
+	return nil
+}
+
+// makeWritableRecursive clears read-only attributes recursively so cleanup can
+// remove stale cert output on Windows and Unix.
+func makeWritableRecursive(path string) error {
+	if err := filepath.WalkDir(path, func(walkPath string, d fs.DirEntry, walkErr error) error {
+		if walkErr != nil {
+			return fmt.Errorf("walk %s: %w", walkPath, walkErr)
+		}
+
+		if d.IsDir() {
+			if err := os.Chmod(walkPath, cryptoutilSharedMagic.CICDTempDirPermissions); err != nil {
+				return fmt.Errorf("chmod dir %s: %w", walkPath, err)
+			}
+
+			return nil
+		}
+
+		if err := os.Chmod(walkPath, cryptoutilSharedMagic.CacheFilePermissions); err != nil {
+			return fmt.Errorf("chmod file %s: %w", walkPath, err)
+		}
+
+		return nil
+	}); err != nil {
+		return fmt.Errorf("walk and normalize writable perms for %s: %w", path, err)
 	}
 
 	return nil

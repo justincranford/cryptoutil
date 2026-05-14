@@ -92,7 +92,7 @@ services:
       - postgres-username.secret
       - postgres-password.secret
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $(cat /run/secrets/postgres-username.secret) -d postgres"]
+      test: ["CMD-SHELL", "test \"$(ps -p 1 -o comm=)\" = \"postgres\" && pg_isready -h 127.0.0.1 -p 5432 -U \"$(cat /run/secrets/postgres-username.secret)\" -d postgres"]
       start_period: 30s
       interval: 10s
       timeout: 5s
@@ -166,8 +166,8 @@ volumes:
 
 secrets:
   postgres-username.secret:
-    file: ./secrets/postgres-username.secret
+    file: ${POSTGRES_SECRETS_DIR:-./secrets}/postgres-username.secret
   postgres-password.secret:
-    file: ./secrets/postgres-password.secret
+    file: ${POSTGRES_SECRETS_DIR:-./secrets}/postgres-password.secret
   postgres-database.secret:
-    file: ./secrets/postgres-database.secret
+    file: ${POSTGRES_SECRETS_DIR:-./secrets}/postgres-database.secret

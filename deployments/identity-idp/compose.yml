@@ -226,6 +226,7 @@ services:
   # identity-idp server with PostgreSQL backend (instance 1).
   identity-idp-app-postgresql-1:
     image: cryptoutil-identity-idp:local
+    restart: "on-failure"
     command: /bin/sh -c "exec /app/identity-idp server --config=/certs/tls-config.yml --config=/app/config/identity-idp-app-framework-common.yml --config=/app/config/identity-idp-app-framework-postgresql-1.yml --config=/app/config/identity-idp-app-domain-common.yml --config=/app/config/identity-idp-app-domain-postgresql-1.yml --config=/app/otel/otel.yml --bind-public-port=8080 -u file:///run/secrets/postgres-url.secret $$SUITE_ARGS"
     working_dir: /tmp
     ports:
@@ -279,6 +280,7 @@ services:
   # identity-idp server with PostgreSQL backend (instance 2 - shared DB with instance 1).
   identity-idp-app-postgresql-2:
     image: cryptoutil-identity-idp:local
+    restart: "on-failure"
     command: /bin/sh -c "exec /app/identity-idp server --config=/certs/tls-config.yml --config=/app/config/identity-idp-app-framework-common.yml --config=/app/config/identity-idp-app-framework-postgresql-2.yml --config=/app/config/identity-idp-app-domain-common.yml --config=/app/config/identity-idp-app-domain-postgresql-2.yml --config=/app/otel/otel.yml --bind-public-port=8080 -u file:///run/secrets/postgres-url.secret $$SUITE_ARGS"
     working_dir: /tmp
     ports:

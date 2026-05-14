@@ -62,9 +62,16 @@ func successDeps() testmainFactoryDeps {
 func TestNewE2ETestEnvWithDeps_StartFails(t *testing.T) {
 	t.Parallel()
 
+	var stopCalled bool
+
 	deps := successDeps()
 	deps.startFn = func(_ context.Context, _ *ComposeManager) error {
 		return errors.New("docker daemon unavailable")
+	}
+	deps.stopFn = func(_ context.Context, _ *ComposeManager) error {
+		stopCalled = true
+
+		return nil
 	}
 
 	cfg := E2ETestConfig{
@@ -79,6 +86,7 @@ func TestNewE2ETestEnvWithDeps_StartFails(t *testing.T) {
 	require.Nil(t, env)
 	require.ErrorContains(t, err, "failed to start docker compose")
 	require.ErrorContains(t, err, "docker daemon unavailable")
+	require.True(t, stopCalled, "Stop must be called when compose start fails to clean partial resources")
 }
 
 // TestNewE2ETestEnvWithDeps_WaitFails verifies cleanup and error propagation when health checks fail.
