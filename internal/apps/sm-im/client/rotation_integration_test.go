@@ -36,7 +36,7 @@ func TestE2E_RotateRootKey(t *testing.T) {
 	require.NotEmpty(t, messageID1, "baseline message ID should not be empty")
 
 	// Step 2: Get initial barrier keys status.
-	initialStatus := getBarrierKeysStatus(t, sharedHTTPClient, adminBaseURL)
+	initialStatus := getBarrierKeysStatus(t, sharedAdminHTTPClient, adminBaseURL)
 
 	initialRootKeyUUID, ok := initialStatus["root_key"].(map[string]any)[cryptoutilSharedMagic.IdentityTokenFormatUUID].(string)
 	require.True(t, ok, "initial root_key uuid should be string")
@@ -45,7 +45,7 @@ func TestE2E_RotateRootKey(t *testing.T) {
 	// Step 3: Rotate root key via admin API.
 	rotationReason := "E2E test: manual root key rotation"
 
-	rotateResponse := rotateKey(t, sharedHTTPClient, adminBaseURL, cryptoutilSharedMagic.DefaultPrivateAdminAPIContextPath+"/barrier/rotate/root", rotationReason)
+	rotateResponse := rotateKey(t, sharedAdminHTTPClient, adminBaseURL, cryptoutilSharedMagic.DefaultPrivateAdminAPIContextPath+"/barrier/rotate/root", rotationReason)
 
 	oldKeyUUID, ok := rotateResponse["old_key_uuid"].(string)
 	require.True(t, ok, "old_key_uuid should be string")
@@ -64,7 +64,7 @@ func TestE2E_RotateRootKey(t *testing.T) {
 	require.Greater(t, rotatedAt, float64(0), "rotated_at timestamp should be positive")
 
 	// Step 4: Verify status endpoint reflects new root key.
-	updatedStatus := getBarrierKeysStatus(t, sharedHTTPClient, adminBaseURL)
+	updatedStatus := getBarrierKeysStatus(t, sharedAdminHTTPClient, adminBaseURL)
 
 	updatedRootKeyUUID, ok := updatedStatus["root_key"].(map[string]any)[cryptoutilSharedMagic.IdentityTokenFormatUUID].(string)
 	require.True(t, ok, "updated root_key uuid should be string")
@@ -117,7 +117,7 @@ func TestE2E_RotateIntermediateKey(t *testing.T) {
 	require.NotEmpty(t, messageID1, "baseline message ID should not be empty")
 
 	// Step 2: Get initial intermediate key status.
-	initialStatus := getBarrierKeysStatus(t, sharedHTTPClient, adminBaseURL)
+	initialStatus := getBarrierKeysStatus(t, sharedAdminHTTPClient, adminBaseURL)
 
 	initialIntermediateKeyUUID, ok := initialStatus["intermediate_key"].(map[string]any)[cryptoutilSharedMagic.IdentityTokenFormatUUID].(string)
 	require.True(t, ok, "initial intermediate_key uuid should be string")
@@ -126,7 +126,7 @@ func TestE2E_RotateIntermediateKey(t *testing.T) {
 	// Step 3: Rotate intermediate key via admin API.
 	rotationReason := "E2E test: manual intermediate key rotation"
 
-	rotateResponse := rotateKey(t, sharedHTTPClient, adminBaseURL, cryptoutilSharedMagic.DefaultPrivateAdminAPIContextPath+"/barrier/rotate/intermediate", rotationReason)
+	rotateResponse := rotateKey(t, sharedAdminHTTPClient, adminBaseURL, cryptoutilSharedMagic.DefaultPrivateAdminAPIContextPath+"/barrier/rotate/intermediate", rotationReason)
 
 	oldKeyUUID, ok := rotateResponse["old_key_uuid"].(string)
 	require.True(t, ok, "old_key_uuid should be string")
@@ -137,7 +137,7 @@ func TestE2E_RotateIntermediateKey(t *testing.T) {
 	require.NotEqual(t, oldKeyUUID, newKeyUUID, "new intermediate key should be different from old key")
 
 	// Step 4: Verify status reflects new intermediate key.
-	updatedStatus := getBarrierKeysStatus(t, sharedHTTPClient, adminBaseURL)
+	updatedStatus := getBarrierKeysStatus(t, sharedAdminHTTPClient, adminBaseURL)
 
 	updatedIntermediateKeyUUID, ok := updatedStatus["intermediate_key"].(map[string]any)[cryptoutilSharedMagic.IdentityTokenFormatUUID].(string)
 	require.True(t, ok, "updated intermediate_key uuid should be string")
@@ -191,7 +191,7 @@ func TestE2E_RotateContentKey(t *testing.T) {
 	// Step 2: Rotate content key (elastic rotation - creates new key, keeps old).
 	rotationReason := "E2E test: manual content key rotation"
 
-	rotateResponse := rotateKey(t, sharedHTTPClient, adminBaseURL, cryptoutilSharedMagic.DefaultPrivateAdminAPIContextPath+"/barrier/rotate/content", rotationReason)
+	rotateResponse := rotateKey(t, sharedAdminHTTPClient, adminBaseURL, cryptoutilSharedMagic.DefaultPrivateAdminAPIContextPath+"/barrier/rotate/content", rotationReason)
 
 	// Content key rotation returns new_key_uuid only (no old_key_uuid - elastic rotation).
 	newKeyUUID, ok := rotateResponse["new_key_uuid"].(string)
@@ -241,7 +241,7 @@ func TestE2E_GetBarrierKeysStatus(t *testing.T) {
 	t.Parallel()
 
 	// Step 1: Get initial status (root + intermediate keys auto-initialized).
-	initialStatus := getBarrierKeysStatus(t, sharedHTTPClient, adminBaseURL)
+	initialStatus := getBarrierKeysStatus(t, sharedAdminHTTPClient, adminBaseURL)
 
 	// Verify root_key fields.
 	rootKey, ok := initialStatus["root_key"].(map[string]any)
@@ -272,10 +272,10 @@ func TestE2E_GetBarrierKeysStatus(t *testing.T) {
 	require.Greater(t, intermediateKeyCreatedAt, float64(0), "intermediate_key created_at should be positive timestamp")
 
 	// Step 2: Rotate root key.
-	rotateKey(t, sharedHTTPClient, adminBaseURL, cryptoutilSharedMagic.DefaultPrivateAdminAPIContextPath+"/barrier/rotate/root", "E2E test: verify status update after rotation")
+	rotateKey(t, sharedAdminHTTPClient, adminBaseURL, cryptoutilSharedMagic.DefaultPrivateAdminAPIContextPath+"/barrier/rotate/root", "E2E test: verify status update after rotation")
 
 	// Step 3: Get updated status.
-	updatedStatus := getBarrierKeysStatus(t, sharedHTTPClient, adminBaseURL)
+	updatedStatus := getBarrierKeysStatus(t, sharedAdminHTTPClient, adminBaseURL)
 
 	// Verify root_key UUID changed.
 	updatedRootKey, ok := updatedStatus["root_key"].(map[string]any)

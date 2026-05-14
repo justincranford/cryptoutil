@@ -21,6 +21,7 @@ import (
 // Shared test resources (initialized once per package).
 var (
 	sharedHTTPClient      *http.Client
+	sharedAdminHTTPClient *http.Client
 	smIMServer            *cryptoutilAppsSmImServer.SmIMServer
 	testIntegrationServer *cryptoutilTestOrcIntegration.IntegrationServer
 	publicBaseURL         string
@@ -57,6 +58,17 @@ func TestMain(m *testing.M) {
 			TLSClientConfig: &tls.Config{
 				MinVersion: tls.VersionTLS13,
 				RootCAs:    smIMServer.TLSRootCAPool(),
+			},
+			DisableKeepAlives: true,
+		},
+		Timeout: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Second,
+	}
+
+	sharedAdminHTTPClient = &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{
+				MinVersion: tls.VersionTLS13,
+				RootCAs:    smIMServer.AdminTLSRootCAPool(),
 			},
 			DisableKeepAlives: true,
 		},

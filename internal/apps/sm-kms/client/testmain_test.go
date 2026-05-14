@@ -48,6 +48,7 @@ func bootstrapTokens(testServer *cryptoutilKmsServer.KMSServer) (string, string,
 	sharedRealmID := googleUuid.New()
 
 	userID := googleUuid.New().String()
+
 	browserToken, err := resources.SessionManager.IssueBrowserSessionWithTenant(context.Background(), userID, sharedTenantID, sharedRealmID)
 	if err != nil {
 		return "", "", fmt.Errorf("issue browser session token: %w", err)
@@ -58,6 +59,7 @@ func bootstrapTokens(testServer *cryptoutilKmsServer.KMSServer) (string, string,
 	}
 
 	clientID := googleUuid.New().String()
+
 	serviceToken, err := resources.SessionManager.IssueServiceSessionWithTenant(context.Background(), clientID, sharedTenantID, sharedRealmID)
 	if err != nil {
 		return "", "", fmt.Errorf("issue service session token: %w", err)

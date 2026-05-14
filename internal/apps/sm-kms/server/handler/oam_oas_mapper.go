@@ -23,65 +23,65 @@ func NewOasOamMapper() *OamOasMapper {
 	return &OamOasMapper{}
 }
 
-func (m *OamOasMapper) toOasPostKeyResponse(err error, addedElasticKey *cryptoutilKmsServer.ElasticKey) (cryptoutilKmsServer.PostElastickeyResponseObject, error) {
+func (m *OamOasMapper) toOasPostElasticKeysResponse(err error, addedElasticKey *cryptoutilKmsServer.ElasticKey) (cryptoutilKmsServer.PostElasticKeysResponseObject, error) {
 	if err != nil {
 		var appErr *cryptoutilSharedApperr.Error
 		if errors.As(err, &appErr) {
 			switch appErr.HTTPStatusLineAndCode.StatusLine.StatusCode {
 			case http.StatusBadRequest:
-				return cryptoutilKmsServer.PostElastickey400JSONResponse{BadRequestJSONResponse: m.toOasHTTP400Response(appErr)}, nil
+				return cryptoutilKmsServer.PostElasticKeys400JSONResponse{BadRequestJSONResponse: m.toOasHTTP400Response(appErr)}, nil
 			case http.StatusInternalServerError:
-				return cryptoutilKmsServer.PostElastickey500JSONResponse{InternalServerErrorJSONResponse: m.toOasHTTP500Response(appErr)}, nil
+				return cryptoutilKmsServer.PostElasticKeys500JSONResponse{InternalServerErrorJSONResponse: m.toOasHTTP500Response(appErr)}, nil
 			}
 		}
 
 		return nil, fmt.Errorf("failed to add ElasticKey: %w", err)
 	}
 
-	return cryptoutilKmsServer.PostElastickey200JSONResponse(*addedElasticKey), nil
+	return cryptoutilKmsServer.PostElasticKeys200JSONResponse(*addedElasticKey), nil
 }
 
-func (m *OamOasMapper) toOasGetElastickeyElasticKeyIDResponse(err error, elasticKey *cryptoutilKmsServer.ElasticKey) (cryptoutilKmsServer.GetElastickeyElasticKeyIDResponseObject, error) {
+func (m *OamOasMapper) toOasGetElasticKeysElasticKeyIDResponse(err error, elasticKey *cryptoutilKmsServer.ElasticKey) (cryptoutilKmsServer.GetElasticKeysElasticKeyIDResponseObject, error) {
 	if err != nil {
 		var appErr *cryptoutilSharedApperr.Error
 		if errors.As(err, &appErr) {
 			switch appErr.HTTPStatusLineAndCode.StatusLine.StatusCode {
 			case http.StatusBadRequest:
-				return cryptoutilKmsServer.GetElastickeyElasticKeyID400JSONResponse{BadRequestJSONResponse: m.toOasHTTP400Response(appErr)}, nil
+				return cryptoutilKmsServer.GetElasticKeysElasticKeyID400JSONResponse{BadRequestJSONResponse: m.toOasHTTP400Response(appErr)}, nil
 			case http.StatusNotFound:
-				return cryptoutilKmsServer.GetElastickeyElasticKeyID404JSONResponse{NotFoundJSONResponse: m.toOasHTTP404Response(appErr)}, nil
+				return cryptoutilKmsServer.GetElasticKeysElasticKeyID404JSONResponse{NotFoundJSONResponse: m.toOasHTTP404Response(appErr)}, nil
 			case http.StatusInternalServerError:
-				return cryptoutilKmsServer.GetElastickeyElasticKeyID500JSONResponse{InternalServerErrorJSONResponse: m.toOasHTTP500Response(appErr)}, nil
+				return cryptoutilKmsServer.GetElasticKeysElasticKeyID500JSONResponse{InternalServerErrorJSONResponse: m.toOasHTTP500Response(appErr)}, nil
 			}
 		}
 
 		return nil, fmt.Errorf("failed to get ElasticKey by ElasticKeyID: %w", err)
 	}
 
-	return cryptoutilKmsServer.GetElastickeyElasticKeyID200JSONResponse(*elasticKey), err
+	return cryptoutilKmsServer.GetElasticKeysElasticKeyID200JSONResponse(*elasticKey), err
 }
 
-func (m *OamOasMapper) toOasPostDecryptResponse(err error, decryptedBytes []byte) (cryptoutilKmsServer.PostElastickeyElasticKeyIDDecryptResponseObject, error) {
+func (m *OamOasMapper) toOasPostElasticKeysElasticKeyIDDecryptResponse(err error, decryptedBytes []byte) (cryptoutilKmsServer.PostElasticKeysElasticKeyIDDecryptResponseObject, error) {
 	if err != nil {
 		var appErr *cryptoutilSharedApperr.Error
 		if errors.As(err, &appErr) {
 			switch appErr.HTTPStatusLineAndCode.StatusLine.StatusCode {
 			case http.StatusBadRequest:
-				return cryptoutilKmsServer.PostElastickeyElasticKeyIDDecrypt400JSONResponse{BadRequestJSONResponse: m.toOasHTTP400Response(appErr)}, nil
+				return cryptoutilKmsServer.PostElasticKeysElasticKeyIDDecrypt400JSONResponse{BadRequestJSONResponse: m.toOasHTTP400Response(appErr)}, nil
 			case http.StatusNotFound:
-				return cryptoutilKmsServer.PostElastickeyElasticKeyIDDecrypt404JSONResponse{NotFoundJSONResponse: m.toOasHTTP404Response(appErr)}, nil
+				return cryptoutilKmsServer.PostElasticKeysElasticKeyIDDecrypt404JSONResponse{NotFoundJSONResponse: m.toOasHTTP404Response(appErr)}, nil
 			case http.StatusInternalServerError:
-				return cryptoutilKmsServer.PostElastickeyElasticKeyIDDecrypt500JSONResponse{InternalServerErrorJSONResponse: m.toOasHTTP500Response(appErr)}, nil
+				return cryptoutilKmsServer.PostElasticKeysElasticKeyIDDecrypt500JSONResponse{InternalServerErrorJSONResponse: m.toOasHTTP500Response(appErr)}, nil
 			}
 		}
 
 		return nil, fmt.Errorf("failed to decrypt: %w", err)
 	}
 
-	return cryptoutilKmsServer.PostElastickeyElasticKeyIDDecrypt200TextResponse(decryptedBytes), err
+	return cryptoutilKmsServer.PostElasticKeysElasticKeyIDDecrypt200TextResponse(decryptedBytes), err
 }
 
-func (m *OamOasMapper) toOamPostGenerateQueryParams(openapiParams *cryptoutilKmsServer.PostElastickeyElasticKeyIDGenerateParams) *cryptoutilOpenapiModel.GenerateParams {
+func (m *OamOasMapper) toOamPostElasticKeysElasticKeyIDGenerateQueryParams(openapiParams *cryptoutilKmsServer.PostElasticKeysElasticKeyIDGenerateParams) *cryptoutilOpenapiModel.GenerateParams {
 	// Convert Alg (server *string) to model *GenerateAlgorithm.
 	var alg *cryptoutilOpenapiModel.GenerateAlgorithm
 
@@ -106,7 +106,7 @@ func (m *OamOasMapper) toOamPostGenerateQueryParams(openapiParams *cryptoutilKms
 	return &generateParams
 }
 
-func (m *OamOasMapper) toOasPostGenerateResponse(err error, encryptedNonPublicJWKBytes, clearPublicJWKBytes []byte) (cryptoutilKmsServer.PostElastickeyElasticKeyIDGenerateResponseObject, error) {
+func (m *OamOasMapper) toOasPostElasticKeysElasticKeyIDGenerateResponse(err error, encryptedNonPublicJWKBytes, clearPublicJWKBytes []byte) (cryptoutilKmsServer.PostElasticKeysElasticKeyIDGenerateResponseObject, error) {
 	// clearPublicJWKBytes is intentionally unused in current implementation
 	// but kept for potential future logging/debugging purposes
 	_ = clearPublicJWKBytes
@@ -116,21 +116,21 @@ func (m *OamOasMapper) toOasPostGenerateResponse(err error, encryptedNonPublicJW
 		if errors.As(err, &appErr) {
 			switch appErr.HTTPStatusLineAndCode.StatusLine.StatusCode {
 			case http.StatusBadRequest:
-				return cryptoutilKmsServer.PostElastickeyElasticKeyIDGenerate400JSONResponse{BadRequestJSONResponse: m.toOasHTTP400Response(appErr)}, nil
+				return cryptoutilKmsServer.PostElasticKeysElasticKeyIDGenerate400JSONResponse{BadRequestJSONResponse: m.toOasHTTP400Response(appErr)}, nil
 			case http.StatusNotFound:
-				return cryptoutilKmsServer.PostElastickeyElasticKeyIDGenerate404JSONResponse{NotFoundJSONResponse: m.toOasHTTP404Response(appErr)}, nil
+				return cryptoutilKmsServer.PostElasticKeysElasticKeyIDGenerate404JSONResponse{NotFoundJSONResponse: m.toOasHTTP404Response(appErr)}, nil
 			case http.StatusInternalServerError:
-				return cryptoutilKmsServer.PostElastickeyElasticKeyIDGenerate500JSONResponse{InternalServerErrorJSONResponse: m.toOasHTTP500Response(appErr)}, nil
+				return cryptoutilKmsServer.PostElasticKeysElasticKeyIDGenerate500JSONResponse{InternalServerErrorJSONResponse: m.toOasHTTP500Response(appErr)}, nil
 			}
 		}
 
 		return nil, fmt.Errorf("failed to encrypt: %w", err)
 	}
 
-	return cryptoutilKmsServer.PostElastickeyElasticKeyIDGenerate200TextResponse(encryptedNonPublicJWKBytes), err
+	return cryptoutilKmsServer.PostElasticKeysElasticKeyIDGenerate200TextResponse(encryptedNonPublicJWKBytes), err
 }
 
-func (m *OamOasMapper) toOamPostEncryptQueryParams(openapiParams *cryptoutilKmsServer.PostElastickeyElasticKeyIDEncryptParams) *cryptoutilOpenapiModel.EncryptParams {
+func (m *OamOasMapper) toOamPostElasticKeysElasticKeyIDEncryptQueryParams(openapiParams *cryptoutilKmsServer.PostElasticKeysElasticKeyIDEncryptParams) *cryptoutilOpenapiModel.EncryptParams {
 	encryptParams := cryptoutilOpenapiModel.EncryptParams{
 		Context: openapiParams.Context,
 	}
@@ -138,74 +138,74 @@ func (m *OamOasMapper) toOamPostEncryptQueryParams(openapiParams *cryptoutilKmsS
 	return &encryptParams
 }
 
-func (m *OamOasMapper) toOasPostEncryptResponse(err error, encryptedBytes []byte) (cryptoutilKmsServer.PostElastickeyElasticKeyIDEncryptResponseObject, error) {
+func (m *OamOasMapper) toOasPostElasticKeysElasticKeyIDEncryptResponse(err error, encryptedBytes []byte) (cryptoutilKmsServer.PostElasticKeysElasticKeyIDEncryptResponseObject, error) {
 	if err != nil {
 		var appErr *cryptoutilSharedApperr.Error
 		if errors.As(err, &appErr) {
 			switch appErr.HTTPStatusLineAndCode.StatusLine.StatusCode {
 			case http.StatusBadRequest:
-				return cryptoutilKmsServer.PostElastickeyElasticKeyIDEncrypt400JSONResponse{BadRequestJSONResponse: m.toOasHTTP400Response(appErr)}, nil
+				return cryptoutilKmsServer.PostElasticKeysElasticKeyIDEncrypt400JSONResponse{BadRequestJSONResponse: m.toOasHTTP400Response(appErr)}, nil
 			case http.StatusNotFound:
-				return cryptoutilKmsServer.PostElastickeyElasticKeyIDEncrypt404JSONResponse{NotFoundJSONResponse: m.toOasHTTP404Response(appErr)}, nil
+				return cryptoutilKmsServer.PostElasticKeysElasticKeyIDEncrypt404JSONResponse{NotFoundJSONResponse: m.toOasHTTP404Response(appErr)}, nil
 			case http.StatusInternalServerError:
-				return cryptoutilKmsServer.PostElastickeyElasticKeyIDEncrypt500JSONResponse{InternalServerErrorJSONResponse: m.toOasHTTP500Response(appErr)}, nil
+				return cryptoutilKmsServer.PostElasticKeysElasticKeyIDEncrypt500JSONResponse{InternalServerErrorJSONResponse: m.toOasHTTP500Response(appErr)}, nil
 			}
 		}
 
 		return nil, fmt.Errorf("failed to encrypt: %w", err)
 	}
 
-	return cryptoutilKmsServer.PostElastickeyElasticKeyIDEncrypt200TextResponse(encryptedBytes), err
+	return cryptoutilKmsServer.PostElasticKeysElasticKeyIDEncrypt200TextResponse(encryptedBytes), err
 }
 
-func (m *OamOasMapper) toOasPostElastickeyElasticKeyIDMaterialkeyResponse(err error, generateKeyInElasticKeyResponse *cryptoutilKmsServer.MaterialKey) (cryptoutilKmsServer.PostElastickeyElasticKeyIDMaterialkeyResponseObject, error) {
+func (m *OamOasMapper) toOasPostElasticKeysElasticKeyIDMaterialKeysResponse(err error, generateKeyInElasticKeyResponse *cryptoutilKmsServer.MaterialKey) (cryptoutilKmsServer.PostElasticKeysElasticKeyIDMaterialKeysResponseObject, error) {
 	if err != nil {
 		var appErr *cryptoutilSharedApperr.Error
 		if errors.As(err, &appErr) {
 			switch appErr.HTTPStatusLineAndCode.StatusLine.StatusCode {
 			case http.StatusBadRequest:
-				return cryptoutilKmsServer.PostElastickeyElasticKeyIDMaterialkey400JSONResponse{BadRequestJSONResponse: m.toOasHTTP400Response(appErr)}, nil
+				return cryptoutilKmsServer.PostElasticKeysElasticKeyIDMaterialKeys400JSONResponse{BadRequestJSONResponse: m.toOasHTTP400Response(appErr)}, nil
 			case http.StatusNotFound:
-				return cryptoutilKmsServer.PostElastickeyElasticKeyIDMaterialkey404JSONResponse{NotFoundJSONResponse: m.toOasHTTP404Response(appErr)}, nil
+				return cryptoutilKmsServer.PostElasticKeysElasticKeyIDMaterialKeys404JSONResponse{NotFoundJSONResponse: m.toOasHTTP404Response(appErr)}, nil
 			case http.StatusInternalServerError:
-				return cryptoutilKmsServer.PostElastickeyElasticKeyIDMaterialkey500JSONResponse{InternalServerErrorJSONResponse: m.toOasHTTP500Response(appErr)}, nil
+				return cryptoutilKmsServer.PostElasticKeysElasticKeyIDMaterialKeys500JSONResponse{InternalServerErrorJSONResponse: m.toOasHTTP500Response(appErr)}, nil
 			}
 		}
 
 		return nil, fmt.Errorf("failed to generate Key by ElasticKeyID: %w", err)
 	}
 
-	return cryptoutilKmsServer.PostElastickeyElasticKeyIDMaterialkey200JSONResponse(*generateKeyInElasticKeyResponse), err
+	return cryptoutilKmsServer.PostElasticKeysElasticKeyIDMaterialKeys200JSONResponse(*generateKeyInElasticKeyResponse), err
 }
 
-func (m *OamOasMapper) toOasGetElastickeyElasticKeyIDMaterialkeyMaterialKeyIDResponse(err error, key *cryptoutilKmsServer.MaterialKey) (cryptoutilKmsServer.GetElastickeyElasticKeyIDMaterialkeyMaterialKeyIDResponseObject, error) {
+func (m *OamOasMapper) toOasGetElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDResponse(err error, key *cryptoutilKmsServer.MaterialKey) (cryptoutilKmsServer.GetElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDResponseObject, error) {
 	if err != nil {
 		var appErr *cryptoutilSharedApperr.Error
 		if errors.As(err, &appErr) {
 			switch appErr.HTTPStatusLineAndCode.StatusLine.StatusCode {
 			case http.StatusBadRequest:
-				return cryptoutilKmsServer.GetElastickeyElasticKeyIDMaterialkeyMaterialKeyID400JSONResponse{BadRequestJSONResponse: m.toOasHTTP400Response(appErr)}, nil
+				return cryptoutilKmsServer.GetElasticKeysElasticKeyIDMaterialKeysMaterialKeyID400JSONResponse{BadRequestJSONResponse: m.toOasHTTP400Response(appErr)}, nil
 			case http.StatusNotFound:
-				return cryptoutilKmsServer.GetElastickeyElasticKeyIDMaterialkeyMaterialKeyID404JSONResponse{NotFoundJSONResponse: m.toOasHTTP404Response(appErr)}, nil
+				return cryptoutilKmsServer.GetElasticKeysElasticKeyIDMaterialKeysMaterialKeyID404JSONResponse{NotFoundJSONResponse: m.toOasHTTP404Response(appErr)}, nil
 			case http.StatusInternalServerError:
-				return cryptoutilKmsServer.GetElastickeyElasticKeyIDMaterialkeyMaterialKeyID500JSONResponse{InternalServerErrorJSONResponse: m.toOasHTTP500Response(appErr)}, nil
+				return cryptoutilKmsServer.GetElasticKeysElasticKeyIDMaterialKeysMaterialKeyID500JSONResponse{InternalServerErrorJSONResponse: m.toOasHTTP500Response(appErr)}, nil
 			}
 		}
 
 		return nil, fmt.Errorf("failed to list Keys by ElasticKeyID: %w", err)
 	}
 
-	return cryptoutilKmsServer.GetElastickeyElasticKeyIDMaterialkeyMaterialKeyID200JSONResponse(*key), err
+	return cryptoutilKmsServer.GetElasticKeysElasticKeyIDMaterialKeysMaterialKeyID200JSONResponse(*key), err
 }
 
-func (m *OamOasMapper) toOamGetElasticKeyMaterialKeysQueryParams(openapiParams *cryptoutilKmsServer.GetElastickeyElasticKeyIDMaterialkeysParams) *cryptoutilOpenapiModel.ElasticKeyMaterialKeysQueryParams {
+func (m *OamOasMapper) toOamGetElasticKeysElasticKeyIDMaterialKeysQueryParams(openapiParams *cryptoutilKmsServer.GetElasticKeysElasticKeyIDMaterialKeysParams) *cryptoutilOpenapiModel.ElasticKeyMaterialKeysQueryParams {
 	// Convert from server params to model query params
 	// Note: KMS server uses different field names than model
 	var materialKeyIDs *[]cryptoutilOpenapiModel.MaterialKeyID
 
-	if openapiParams.MaterialKeyIds != nil {
-		ids := make([]cryptoutilOpenapiModel.MaterialKeyID, len(*openapiParams.MaterialKeyIds))
-		for i, id := range *openapiParams.MaterialKeyIds {
+	if openapiParams.MaterialKeyIDS != nil {
+		ids := make([]cryptoutilOpenapiModel.MaterialKeyID, len(*openapiParams.MaterialKeyIDS))
+		for i, id := range *openapiParams.MaterialKeyIDS {
 			ids[i] = cryptoutilOpenapiModel.MaterialKeyID(id)
 		}
 
@@ -244,74 +244,74 @@ func (m *OamOasMapper) toOamGetElasticKeyMaterialKeysQueryParams(openapiParams *
 	return &filters
 }
 
-func (m *OamOasMapper) toOasGetElastickeyElasticKeyIDMaterialkeysResponse(err error, keys []cryptoutilKmsServer.MaterialKey) (cryptoutilKmsServer.GetElastickeyElasticKeyIDMaterialkeysResponseObject, error) {
+func (m *OamOasMapper) toOasGetElasticKeysElasticKeyIDMaterialKeysResponse(err error, keys []cryptoutilKmsServer.MaterialKey) (cryptoutilKmsServer.GetElasticKeysElasticKeyIDMaterialKeysResponseObject, error) {
 	if err != nil {
 		var appErr *cryptoutilSharedApperr.Error
 		if errors.As(err, &appErr) {
 			switch appErr.HTTPStatusLineAndCode.StatusLine.StatusCode {
 			case http.StatusBadRequest:
-				return cryptoutilKmsServer.GetElastickeyElasticKeyIDMaterialkeys400JSONResponse{BadRequestJSONResponse: m.toOasHTTP400Response(appErr)}, nil
+				return cryptoutilKmsServer.GetElasticKeysElasticKeyIDMaterialKeys400JSONResponse{BadRequestJSONResponse: m.toOasHTTP400Response(appErr)}, nil
 			case http.StatusNotFound:
-				return cryptoutilKmsServer.GetElastickeyElasticKeyIDMaterialkeys404JSONResponse{NotFoundJSONResponse: m.toOasHTTP404Response(appErr)}, nil
+				return cryptoutilKmsServer.GetElasticKeysElasticKeyIDMaterialKeys404JSONResponse{NotFoundJSONResponse: m.toOasHTTP404Response(appErr)}, nil
 			case http.StatusInternalServerError:
-				return cryptoutilKmsServer.GetElastickeyElasticKeyIDMaterialkeys500JSONResponse{InternalServerErrorJSONResponse: m.toOasHTTP500Response(appErr)}, nil
+				return cryptoutilKmsServer.GetElasticKeysElasticKeyIDMaterialKeys500JSONResponse{InternalServerErrorJSONResponse: m.toOasHTTP500Response(appErr)}, nil
 			}
 		}
 
 		return nil, fmt.Errorf("failed to list Keys by ElasticKeyID: %w", err)
 	}
 
-	return cryptoutilKmsServer.GetElastickeyElasticKeyIDMaterialkeys200JSONResponse(keys), err
+	return cryptoutilKmsServer.GetElasticKeysElasticKeyIDMaterialKeys200JSONResponse(keys), err
 }
 
-func (m *OamOasMapper) toOasPostSignResponse(err error, encryptedBytes []byte) (cryptoutilKmsServer.PostElastickeyElasticKeyIDSignResponseObject, error) {
+func (m *OamOasMapper) toOasPostElasticKeysElasticKeyIDSignResponse(err error, encryptedBytes []byte) (cryptoutilKmsServer.PostElasticKeysElasticKeyIDSignResponseObject, error) {
 	if err != nil {
 		var appErr *cryptoutilSharedApperr.Error
 		if errors.As(err, &appErr) {
 			switch appErr.HTTPStatusLineAndCode.StatusLine.StatusCode {
 			case http.StatusBadRequest:
-				return cryptoutilKmsServer.PostElastickeyElasticKeyIDSign400JSONResponse{BadRequestJSONResponse: m.toOasHTTP400Response(appErr)}, nil
+				return cryptoutilKmsServer.PostElasticKeysElasticKeyIDSign400JSONResponse{BadRequestJSONResponse: m.toOasHTTP400Response(appErr)}, nil
 			case http.StatusNotFound:
-				return cryptoutilKmsServer.PostElastickeyElasticKeyIDSign404JSONResponse{NotFoundJSONResponse: m.toOasHTTP404Response(appErr)}, nil
+				return cryptoutilKmsServer.PostElasticKeysElasticKeyIDSign404JSONResponse{NotFoundJSONResponse: m.toOasHTTP404Response(appErr)}, nil
 			case http.StatusInternalServerError:
-				return cryptoutilKmsServer.PostElastickeyElasticKeyIDSign500JSONResponse{InternalServerErrorJSONResponse: m.toOasHTTP500Response(appErr)}, nil
+				return cryptoutilKmsServer.PostElasticKeysElasticKeyIDSign500JSONResponse{InternalServerErrorJSONResponse: m.toOasHTTP500Response(appErr)}, nil
 			}
 		}
 
 		return nil, fmt.Errorf("failed to sign: %w", err)
 	}
 
-	return cryptoutilKmsServer.PostElastickeyElasticKeyIDSign200TextResponse(encryptedBytes), err
+	return cryptoutilKmsServer.PostElasticKeysElasticKeyIDSign200TextResponse(encryptedBytes), err
 }
 
-func (m *OamOasMapper) toOasPostVerifyResponse(err error) (cryptoutilKmsServer.PostElastickeyElasticKeyIDVerifyResponseObject, error) {
+func (m *OamOasMapper) toOasPostElasticKeysElasticKeyIDVerifyResponse(err error) (cryptoutilKmsServer.PostElasticKeysElasticKeyIDVerifyResponseObject, error) {
 	if err != nil {
 		var appErr *cryptoutilSharedApperr.Error
 		if errors.As(err, &appErr) {
 			switch appErr.HTTPStatusLineAndCode.StatusLine.StatusCode {
 			case http.StatusBadRequest:
-				return cryptoutilKmsServer.PostElastickeyElasticKeyIDVerify400JSONResponse{BadRequestJSONResponse: m.toOasHTTP400Response(appErr)}, nil
+				return cryptoutilKmsServer.PostElasticKeysElasticKeyIDVerify400JSONResponse{BadRequestJSONResponse: m.toOasHTTP400Response(appErr)}, nil
 			case http.StatusNotFound:
-				return cryptoutilKmsServer.PostElastickeyElasticKeyIDVerify404JSONResponse{NotFoundJSONResponse: m.toOasHTTP404Response(appErr)}, nil
+				return cryptoutilKmsServer.PostElasticKeysElasticKeyIDVerify404JSONResponse{NotFoundJSONResponse: m.toOasHTTP404Response(appErr)}, nil
 			case http.StatusInternalServerError:
-				return cryptoutilKmsServer.PostElastickeyElasticKeyIDVerify500JSONResponse{InternalServerErrorJSONResponse: m.toOasHTTP500Response(appErr)}, nil
+				return cryptoutilKmsServer.PostElasticKeysElasticKeyIDVerify500JSONResponse{InternalServerErrorJSONResponse: m.toOasHTTP500Response(appErr)}, nil
 			}
 		}
 
 		return nil, fmt.Errorf("failed to verify: %w", err)
 	}
 
-	return cryptoutilKmsServer.PostElastickeyElasticKeyIDVerify204Response{}, err
+	return cryptoutilKmsServer.PostElasticKeysElasticKeyIDVerify204Response{}, err
 }
 
-func (m *OamOasMapper) toOamGetElasticKeyQueryParams(openapiParams *cryptoutilKmsServer.GetElastickeysParams) *cryptoutilOpenapiModel.ElasticKeysQueryParams {
+func (m *OamOasMapper) toOamGetElasticKeyQueryParams(openapiParams *cryptoutilKmsServer.GetElasticKeysParams) *cryptoutilOpenapiModel.ElasticKeysQueryParams {
 	// Convert from server params to model query params
 	// Note: KMS server uses plural field names, model uses singular names for arrays
 	var elasticKeyIDs *[]cryptoutilOpenapiModel.ElasticKeyID
 
-	if openapiParams.ElasticKeyIds != nil {
-		ids := make([]cryptoutilOpenapiModel.ElasticKeyID, len(*openapiParams.ElasticKeyIds))
-		for i, id := range *openapiParams.ElasticKeyIds {
+	if openapiParams.ElasticKeyIDS != nil {
+		ids := make([]cryptoutilOpenapiModel.ElasticKeyID, len(*openapiParams.ElasticKeyIDS))
+		for i, id := range *openapiParams.ElasticKeyIDS {
 			ids[i] = cryptoutilOpenapiModel.ElasticKeyID(id)
 		}
 

@@ -152,8 +152,8 @@ type Algorithms = []string
 // ElasticKeyID defines model for ElasticKeyID.
 type ElasticKeyID = openapi_types.UUID
 
-// ElasticKeyIDs defines model for ElasticKeyIDs.
-type ElasticKeyIDs = []openapi_types.UUID
+// ElasticKeyIDS defines model for ElasticKeyIDs.
+type ElasticKeyIDS = []openapi_types.UUID
 
 // ImportAllowed defines model for ImportAllowed.
 type ImportAllowed = bool
@@ -161,8 +161,8 @@ type ImportAllowed = bool
 // MaterialKeyID defines model for MaterialKeyID.
 type MaterialKeyID = openapi_types.UUID
 
-// MaterialKeyIDs defines model for MaterialKeyIDs.
-type MaterialKeyIDs = []openapi_types.UUID
+// MaterialKeyIDS defines model for MaterialKeyIDs.
+type MaterialKeyIDS = []openapi_types.UUID
 
 // MaterialKeyPageNumber defines model for MaterialKeyPageNumber.
 type MaterialKeyPageNumber = int
@@ -233,73 +233,10 @@ type NotFound = Error
 // Unauthorized defines model for Unauthorized.
 type Unauthorized = Error
 
-// PostElastickeyElasticKeyIDDecryptTextBody defines parameters for PostElastickeyElasticKeyIDDecrypt.
-type PostElastickeyElasticKeyIDDecryptTextBody = string
-
-// PostElastickeyElasticKeyIDEncryptTextBody defines parameters for PostElastickeyElasticKeyIDEncrypt.
-type PostElastickeyElasticKeyIDEncryptTextBody = string
-
-// PostElastickeyElasticKeyIDEncryptParams defines parameters for PostElastickeyElasticKeyIDEncrypt.
-type PostElastickeyElasticKeyIDEncryptParams struct {
-	// Context Additional authenticated data for encryption context
-	Context *string `form:"context,omitempty" json:"context,omitempty"`
-}
-
-// PostElastickeyElasticKeyIDGenerateParams defines parameters for PostElastickeyElasticKeyIDGenerate.
-type PostElastickeyElasticKeyIDGenerateParams struct {
-	// Context Additional authenticated data for encryption context
-	Context *string `form:"context,omitempty" json:"context,omitempty"`
-
-	// Alg Algorithm for key generation
-	Alg *string `form:"alg,omitempty" json:"alg,omitempty"`
-}
-
-// GetElastickeyElasticKeyIDMaterialkeysParams defines parameters for GetElastickeyElasticKeyIDMaterialkeys.
-type GetElastickeyElasticKeyIDMaterialkeysParams struct {
-	// MaterialKeyIds Filter by material key IDs
-	MaterialKeyIds *MaterialKeyIDs `form:"material_key_ids,omitempty" json:"material_key_ids,omitempty"`
-
-	// MinGenerateDate Minimum generation date
-	MinGenerateDate *MinGenerateDate `form:"min_generate_date,omitempty" json:"min_generate_date,omitempty"`
-
-	// MaxGenerateDate Maximum generation date
-	MaxGenerateDate *MaxGenerateDate `form:"max_generate_date,omitempty" json:"max_generate_date,omitempty"`
-
-	// MinImportDate Minimum import date
-	MinImportDate *MinImportDate `form:"min_import_date,omitempty" json:"min_import_date,omitempty"`
-
-	// MaxImportDate Maximum import date
-	MaxImportDate *MaxImportDate `form:"max_import_date,omitempty" json:"max_import_date,omitempty"`
-
-	// MinExpirationDate Minimum expiration date
-	MinExpirationDate *MinExpirationDate `form:"min_expiration_date,omitempty" json:"min_expiration_date,omitempty"`
-
-	// MaxExpirationDate Maximum expiration date
-	MaxExpirationDate *MaxExpirationDate `form:"max_expiration_date,omitempty" json:"max_expiration_date,omitempty"`
-
-	// MinRevocationDate Minimum revocation date
-	MinRevocationDate *MinRevocationDate `form:"min_revocation_date,omitempty" json:"min_revocation_date,omitempty"`
-
-	// MaxRevocationDate Maximum revocation date
-	MaxRevocationDate *MaxRevocationDate `form:"max_revocation_date,omitempty" json:"max_revocation_date,omitempty"`
-
-	// PageNumber Page number for material keys pagination
-	PageNumber *MaterialKeyPageNumber `form:"page_number,omitempty" json:"page_number,omitempty"`
-
-	// PageSize Page size for material keys pagination
-	PageSize *MaterialKeyPageSize `form:"page_size,omitempty" json:"page_size,omitempty"`
-}
-
-// PostElastickeyElasticKeyIDSignTextBody defines parameters for PostElastickeyElasticKeyIDSign.
-type PostElastickeyElasticKeyIDSignTextBody = string
-
-// PostElastickeyElasticKeyIDVerifyTextBody defines parameters for PostElastickeyElasticKeyIDVerify.
-type PostElastickeyElasticKeyIDVerifyTextBody = string
-
-// GetElastickeysParams defines parameters for GetElastickeys.
-type GetElastickeysParams struct {
-	// ElasticKeyIds Filter by elastic key IDs
-	ElasticKeyIds *ElasticKeyIDs `form:"elastic_key_ids,omitempty" json:"elastic_key_ids,omitempty"`
+// GetElasticKeysParams defines parameters for GetElasticKeys.
+type GetElasticKeysParams struct {
+	// ElasticKeyIDS Filter by elastic key IDs
+	ElasticKeyIDS *ElasticKeyIDS `form:"elastic_key_ids,omitempty" json:"elastic_key_ids,omitempty"`
 
 	// Names Filter by elastic key names
 	Names *Names `form:"names,omitempty" json:"names,omitempty"`
@@ -329,13 +266,31 @@ type GetElastickeysParams struct {
 	PageSize *PageSize `form:"page_size,omitempty" json:"page_size,omitempty"`
 }
 
-// GetMaterialkeysParams defines parameters for GetMaterialkeys.
-type GetMaterialkeysParams struct {
-	// ElasticKeyIds Filter by elastic key IDs
-	ElasticKeyIds *ElasticKeyIDs `form:"elastic_key_ids,omitempty" json:"elastic_key_ids,omitempty"`
+// PostElasticKeysElasticKeyIDDecryptTextBody defines parameters for PostElasticKeysElasticKeyIDDecrypt.
+type PostElasticKeysElasticKeyIDDecryptTextBody = string
 
-	// MaterialKeyIds Filter by material key IDs
-	MaterialKeyIds *MaterialKeyIDs `form:"material_key_ids,omitempty" json:"material_key_ids,omitempty"`
+// PostElasticKeysElasticKeyIDEncryptTextBody defines parameters for PostElasticKeysElasticKeyIDEncrypt.
+type PostElasticKeysElasticKeyIDEncryptTextBody = string
+
+// PostElasticKeysElasticKeyIDEncryptParams defines parameters for PostElasticKeysElasticKeyIDEncrypt.
+type PostElasticKeysElasticKeyIDEncryptParams struct {
+	// Context Additional authenticated data for encryption context
+	Context *string `form:"context,omitempty" json:"context,omitempty"`
+}
+
+// PostElasticKeysElasticKeyIDGenerateParams defines parameters for PostElasticKeysElasticKeyIDGenerate.
+type PostElasticKeysElasticKeyIDGenerateParams struct {
+	// Context Additional authenticated data for encryption context
+	Context *string `form:"context,omitempty" json:"context,omitempty"`
+
+	// Alg Algorithm for key generation
+	Alg *string `form:"alg,omitempty" json:"alg,omitempty"`
+}
+
+// GetElasticKeysElasticKeyIDMaterialKeysParams defines parameters for GetElasticKeysElasticKeyIDMaterialKeys.
+type GetElasticKeysElasticKeyIDMaterialKeysParams struct {
+	// MaterialKeyIDS Filter by material key IDs
+	MaterialKeyIDS *MaterialKeyIDS `form:"material_key_ids,omitempty" json:"material_key_ids,omitempty"`
 
 	// MinGenerateDate Minimum generation date
 	MinGenerateDate *MinGenerateDate `form:"min_generate_date,omitempty" json:"min_generate_date,omitempty"`
@@ -368,83 +323,128 @@ type GetMaterialkeysParams struct {
 	PageSize *MaterialKeyPageSize `form:"page_size,omitempty" json:"page_size,omitempty"`
 }
 
-// PostElastickeyJSONRequestBody defines body for PostElastickey for application/json ContentType.
-type PostElastickeyJSONRequestBody = ElasticKeyCreate
+// PostElasticKeysElasticKeyIDSignTextBody defines parameters for PostElasticKeysElasticKeyIDSign.
+type PostElasticKeysElasticKeyIDSignTextBody = string
 
-// PutElastickeyElasticKeyIDJSONRequestBody defines body for PutElastickeyElasticKeyID for application/json ContentType.
-type PutElastickeyElasticKeyIDJSONRequestBody = ElasticKeyUpdate
+// PostElasticKeysElasticKeyIDVerifyTextBody defines parameters for PostElasticKeysElasticKeyIDVerify.
+type PostElasticKeysElasticKeyIDVerifyTextBody = string
 
-// PostElastickeyElasticKeyIDDecryptTextRequestBody defines body for PostElastickeyElasticKeyIDDecrypt for text/plain ContentType.
-type PostElastickeyElasticKeyIDDecryptTextRequestBody = PostElastickeyElasticKeyIDDecryptTextBody
+// GetMaterialKeysParams defines parameters for GetMaterialKeys.
+type GetMaterialKeysParams struct {
+	// ElasticKeyIDS Filter by elastic key IDs
+	ElasticKeyIDS *ElasticKeyIDS `form:"elastic_key_ids,omitempty" json:"elastic_key_ids,omitempty"`
 
-// PostElastickeyElasticKeyIDEncryptTextRequestBody defines body for PostElastickeyElasticKeyIDEncrypt for text/plain ContentType.
-type PostElastickeyElasticKeyIDEncryptTextRequestBody = PostElastickeyElasticKeyIDEncryptTextBody
+	// MaterialKeyIDS Filter by material key IDs
+	MaterialKeyIDS *MaterialKeyIDS `form:"material_key_ids,omitempty" json:"material_key_ids,omitempty"`
 
-// PostElastickeyElasticKeyIDImportJSONRequestBody defines body for PostElastickeyElasticKeyIDImport for application/json ContentType.
-type PostElastickeyElasticKeyIDImportJSONRequestBody = MaterialKeyImport
+	// MinGenerateDate Minimum generation date
+	MinGenerateDate *MinGenerateDate `form:"min_generate_date,omitempty" json:"min_generate_date,omitempty"`
 
-// PostElastickeyElasticKeyIDMaterialkeyJSONRequestBody defines body for PostElastickeyElasticKeyIDMaterialkey for application/json ContentType.
-type PostElastickeyElasticKeyIDMaterialkeyJSONRequestBody = MaterialKeyGenerate
+	// MaxGenerateDate Maximum generation date
+	MaxGenerateDate *MaxGenerateDate `form:"max_generate_date,omitempty" json:"max_generate_date,omitempty"`
 
-// PostElastickeyElasticKeyIDSignTextRequestBody defines body for PostElastickeyElasticKeyIDSign for text/plain ContentType.
-type PostElastickeyElasticKeyIDSignTextRequestBody = PostElastickeyElasticKeyIDSignTextBody
+	// MinImportDate Minimum import date
+	MinImportDate *MinImportDate `form:"min_import_date,omitempty" json:"min_import_date,omitempty"`
 
-// PostElastickeyElasticKeyIDVerifyTextRequestBody defines body for PostElastickeyElasticKeyIDVerify for text/plain ContentType.
-type PostElastickeyElasticKeyIDVerifyTextRequestBody = PostElastickeyElasticKeyIDVerifyTextBody
+	// MaxImportDate Maximum import date
+	MaxImportDate *MaxImportDate `form:"max_import_date,omitempty" json:"max_import_date,omitempty"`
+
+	// MinExpirationDate Minimum expiration date
+	MinExpirationDate *MinExpirationDate `form:"min_expiration_date,omitempty" json:"min_expiration_date,omitempty"`
+
+	// MaxExpirationDate Maximum expiration date
+	MaxExpirationDate *MaxExpirationDate `form:"max_expiration_date,omitempty" json:"max_expiration_date,omitempty"`
+
+	// MinRevocationDate Minimum revocation date
+	MinRevocationDate *MinRevocationDate `form:"min_revocation_date,omitempty" json:"min_revocation_date,omitempty"`
+
+	// MaxRevocationDate Maximum revocation date
+	MaxRevocationDate *MaxRevocationDate `form:"max_revocation_date,omitempty" json:"max_revocation_date,omitempty"`
+
+	// PageNumber Page number for material keys pagination
+	PageNumber *MaterialKeyPageNumber `form:"page_number,omitempty" json:"page_number,omitempty"`
+
+	// PageSize Page size for material keys pagination
+	PageSize *MaterialKeyPageSize `form:"page_size,omitempty" json:"page_size,omitempty"`
+}
+
+// PostElasticKeysJSONRequestBody defines body for PostElasticKeys for application/json ContentType.
+type PostElasticKeysJSONRequestBody = ElasticKeyCreate
+
+// PutElasticKeysElasticKeyIDJSONRequestBody defines body for PutElasticKeysElasticKeyID for application/json ContentType.
+type PutElasticKeysElasticKeyIDJSONRequestBody = ElasticKeyUpdate
+
+// PostElasticKeysElasticKeyIDDecryptTextRequestBody defines body for PostElasticKeysElasticKeyIDDecrypt for text/plain ContentType.
+type PostElasticKeysElasticKeyIDDecryptTextRequestBody = PostElasticKeysElasticKeyIDDecryptTextBody
+
+// PostElasticKeysElasticKeyIDEncryptTextRequestBody defines body for PostElasticKeysElasticKeyIDEncrypt for text/plain ContentType.
+type PostElasticKeysElasticKeyIDEncryptTextRequestBody = PostElasticKeysElasticKeyIDEncryptTextBody
+
+// PostElasticKeysElasticKeyIDImportJSONRequestBody defines body for PostElasticKeysElasticKeyIDImport for application/json ContentType.
+type PostElasticKeysElasticKeyIDImportJSONRequestBody = MaterialKeyImport
+
+// PostElasticKeysElasticKeyIDMaterialKeysJSONRequestBody defines body for PostElasticKeysElasticKeyIDMaterialKeys for application/json ContentType.
+type PostElasticKeysElasticKeyIDMaterialKeysJSONRequestBody = MaterialKeyGenerate
+
+// PostElasticKeysElasticKeyIDSignTextRequestBody defines body for PostElasticKeysElasticKeyIDSign for text/plain ContentType.
+type PostElasticKeysElasticKeyIDSignTextRequestBody = PostElasticKeysElasticKeyIDSignTextBody
+
+// PostElasticKeysElasticKeyIDVerifyTextRequestBody defines body for PostElasticKeysElasticKeyIDVerify for text/plain ContentType.
+type PostElasticKeysElasticKeyIDVerifyTextRequestBody = PostElasticKeysElasticKeyIDVerifyTextBody
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
-	// Create a new Elastic Key
-	// (POST /elastickey)
-	PostElastickey(c *fiber.Ctx) error
-	// Delete Elastic Key
-	// (DELETE /elastickey/{elasticKeyID})
-	DeleteElastickeyElasticKeyID(c *fiber.Ctx, elasticKeyID ElasticKeyID) error
-	// Get Elastic Key by ID
-	// (GET /elastickey/{elasticKeyID})
-	GetElastickeyElasticKeyID(c *fiber.Ctx, elasticKeyID ElasticKeyID) error
-	// Update Elastic Key
-	// (PUT /elastickey/{elasticKeyID})
-	PutElastickeyElasticKeyID(c *fiber.Ctx, elasticKeyID ElasticKeyID) error
-	// Decrypt ciphertext
-	// (POST /elastickey/{elasticKeyID}/decrypt)
-	PostElastickeyElasticKeyIDDecrypt(c *fiber.Ctx, elasticKeyID ElasticKeyID) error
-	// Encrypt plaintext
-	// (POST /elastickey/{elasticKeyID}/encrypt)
-	PostElastickeyElasticKeyIDEncrypt(c *fiber.Ctx, elasticKeyID ElasticKeyID, params PostElastickeyElasticKeyIDEncryptParams) error
-	// Generate random key material
-	// (POST /elastickey/{elasticKeyID}/generate)
-	PostElastickeyElasticKeyIDGenerate(c *fiber.Ctx, elasticKeyID ElasticKeyID, params PostElastickeyElasticKeyIDGenerateParams) error
-	// Import Material Key
-	// (POST /elastickey/{elasticKeyID}/import)
-	PostElastickeyElasticKeyIDImport(c *fiber.Ctx, elasticKeyID ElasticKeyID) error
-	// Generate new Material Key
-	// (POST /elastickey/{elasticKeyID}/materialkey)
-	PostElastickeyElasticKeyIDMaterialkey(c *fiber.Ctx, elasticKeyID ElasticKeyID) error
-	// Delete Material Key
-	// (DELETE /elastickey/{elasticKeyID}/materialkey/{materialKeyID})
-	DeleteElastickeyElasticKeyIDMaterialkeyMaterialKeyID(c *fiber.Ctx, elasticKeyID ElasticKeyID, materialKeyID MaterialKeyID) error
-	// Get Material Key
-	// (GET /elastickey/{elasticKeyID}/materialkey/{materialKeyID})
-	GetElastickeyElasticKeyIDMaterialkeyMaterialKeyID(c *fiber.Ctx, elasticKeyID ElasticKeyID, materialKeyID MaterialKeyID) error
-	// Revoke Material Key
-	// (POST /elastickey/{elasticKeyID}/materialkey/{materialKeyID}/revoke)
-	PostElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRevoke(c *fiber.Ctx, elasticKeyID ElasticKeyID, materialKeyID MaterialKeyID) error
-	// List Material Keys
-	// (GET /elastickey/{elasticKeyID}/materialkeys)
-	GetElastickeyElasticKeyIDMaterialkeys(c *fiber.Ctx, elasticKeyID ElasticKeyID, params GetElastickeyElasticKeyIDMaterialkeysParams) error
-	// Sign payload
-	// (POST /elastickey/{elasticKeyID}/sign)
-	PostElastickeyElasticKeyIDSign(c *fiber.Ctx, elasticKeyID ElasticKeyID) error
-	// Verify signature
-	// (POST /elastickey/{elasticKeyID}/verify)
-	PostElastickeyElasticKeyIDVerify(c *fiber.Ctx, elasticKeyID ElasticKeyID) error
 	// List Elastic Keys
-	// (GET /elastickeys)
-	GetElastickeys(c *fiber.Ctx, params GetElastickeysParams) error
+	// (GET /elastic-keys)
+	GetElasticKeys(c *fiber.Ctx, params GetElasticKeysParams) error
+	// Create a new Elastic Key
+	// (POST /elastic-keys)
+	PostElasticKeys(c *fiber.Ctx) error
+	// Delete Elastic Key
+	// (DELETE /elastic-keys/{elasticKeyID})
+	DeleteElasticKeysElasticKeyID(c *fiber.Ctx, elasticKeyID ElasticKeyID) error
+	// Get Elastic Key by ID
+	// (GET /elastic-keys/{elasticKeyID})
+	GetElasticKeysElasticKeyID(c *fiber.Ctx, elasticKeyID ElasticKeyID) error
+	// Update Elastic Key
+	// (PUT /elastic-keys/{elasticKeyID})
+	PutElasticKeysElasticKeyID(c *fiber.Ctx, elasticKeyID ElasticKeyID) error
+	// Decrypt ciphertext
+	// (POST /elastic-keys/{elasticKeyID}/decrypt)
+	PostElasticKeysElasticKeyIDDecrypt(c *fiber.Ctx, elasticKeyID ElasticKeyID) error
+	// Encrypt plaintext
+	// (POST /elastic-keys/{elasticKeyID}/encrypt)
+	PostElasticKeysElasticKeyIDEncrypt(c *fiber.Ctx, elasticKeyID ElasticKeyID, params PostElasticKeysElasticKeyIDEncryptParams) error
+	// Generate random key material
+	// (POST /elastic-keys/{elasticKeyID}/generate)
+	PostElasticKeysElasticKeyIDGenerate(c *fiber.Ctx, elasticKeyID ElasticKeyID, params PostElasticKeysElasticKeyIDGenerateParams) error
+	// Import Material Key
+	// (POST /elastic-keys/{elasticKeyID}/import)
+	PostElasticKeysElasticKeyIDImport(c *fiber.Ctx, elasticKeyID ElasticKeyID) error
+	// List Material Keys
+	// (GET /elastic-keys/{elasticKeyID}/material-keys)
+	GetElasticKeysElasticKeyIDMaterialKeys(c *fiber.Ctx, elasticKeyID ElasticKeyID, params GetElasticKeysElasticKeyIDMaterialKeysParams) error
+	// Generate new Material Key
+	// (POST /elastic-keys/{elasticKeyID}/material-keys)
+	PostElasticKeysElasticKeyIDMaterialKeys(c *fiber.Ctx, elasticKeyID ElasticKeyID) error
+	// Delete Material Key
+	// (DELETE /elastic-keys/{elasticKeyID}/material-keys/{materialKeyID})
+	DeleteElasticKeysElasticKeyIDMaterialKeysMaterialKeyID(c *fiber.Ctx, elasticKeyID ElasticKeyID, materialKeyID MaterialKeyID) error
+	// Get Material Key
+	// (GET /elastic-keys/{elasticKeyID}/material-keys/{materialKeyID})
+	GetElasticKeysElasticKeyIDMaterialKeysMaterialKeyID(c *fiber.Ctx, elasticKeyID ElasticKeyID, materialKeyID MaterialKeyID) error
+	// Revoke Material Key
+	// (POST /elastic-keys/{elasticKeyID}/material-keys/{materialKeyID}/revoke)
+	PostElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDRevoke(c *fiber.Ctx, elasticKeyID ElasticKeyID, materialKeyID MaterialKeyID) error
+	// Sign payload
+	// (POST /elastic-keys/{elasticKeyID}/sign)
+	PostElasticKeysElasticKeyIDSign(c *fiber.Ctx, elasticKeyID ElasticKeyID) error
+	// Verify signature
+	// (POST /elastic-keys/{elasticKeyID}/verify)
+	PostElasticKeysElasticKeyIDVerify(c *fiber.Ctx, elasticKeyID ElasticKeyID) error
 	// List all Material Keys
-	// (GET /materialkeys)
-	GetMaterialkeys(c *fiber.Ctx, params GetMaterialkeysParams) error
+	// (GET /material-keys)
+	GetMaterialKeys(c *fiber.Ctx, params GetMaterialKeysParams) error
 }
 
 // ServerInterfaceWrapper converts contexts to parameters.
@@ -454,447 +454,8 @@ type ServerInterfaceWrapper struct {
 
 type MiddlewareFunc fiber.Handler
 
-// PostElastickey operation middleware
-func (siw *ServerInterfaceWrapper) PostElastickey(c *fiber.Ctx) error {
-
-	c.Context().SetUserValue(BearerAuthScopes, []string{})
-
-	c.Context().SetUserValue(SessionAuthScopes, []string{})
-
-	return siw.Handler.PostElastickey(c)
-}
-
-// DeleteElastickeyElasticKeyID operation middleware
-func (siw *ServerInterfaceWrapper) DeleteElastickeyElasticKeyID(c *fiber.Ctx) error {
-
-	var err error
-
-	// ------------- Path parameter "elasticKeyID" -------------
-	var elasticKeyID ElasticKeyID
-
-	err = runtime.BindStyledParameterWithOptions("simple", "elasticKeyID", c.Params("elasticKeyID"), &elasticKeyID, runtime.BindStyledParameterOptions{Explode: false, Required: true})
-	if err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter elasticKeyID: %w", err).Error())
-	}
-
-	c.Context().SetUserValue(BearerAuthScopes, []string{})
-
-	c.Context().SetUserValue(SessionAuthScopes, []string{})
-
-	return siw.Handler.DeleteElastickeyElasticKeyID(c, elasticKeyID)
-}
-
-// GetElastickeyElasticKeyID operation middleware
-func (siw *ServerInterfaceWrapper) GetElastickeyElasticKeyID(c *fiber.Ctx) error {
-
-	var err error
-
-	// ------------- Path parameter "elasticKeyID" -------------
-	var elasticKeyID ElasticKeyID
-
-	err = runtime.BindStyledParameterWithOptions("simple", "elasticKeyID", c.Params("elasticKeyID"), &elasticKeyID, runtime.BindStyledParameterOptions{Explode: false, Required: true})
-	if err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter elasticKeyID: %w", err).Error())
-	}
-
-	c.Context().SetUserValue(BearerAuthScopes, []string{})
-
-	c.Context().SetUserValue(SessionAuthScopes, []string{})
-
-	return siw.Handler.GetElastickeyElasticKeyID(c, elasticKeyID)
-}
-
-// PutElastickeyElasticKeyID operation middleware
-func (siw *ServerInterfaceWrapper) PutElastickeyElasticKeyID(c *fiber.Ctx) error {
-
-	var err error
-
-	// ------------- Path parameter "elasticKeyID" -------------
-	var elasticKeyID ElasticKeyID
-
-	err = runtime.BindStyledParameterWithOptions("simple", "elasticKeyID", c.Params("elasticKeyID"), &elasticKeyID, runtime.BindStyledParameterOptions{Explode: false, Required: true})
-	if err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter elasticKeyID: %w", err).Error())
-	}
-
-	c.Context().SetUserValue(BearerAuthScopes, []string{})
-
-	c.Context().SetUserValue(SessionAuthScopes, []string{})
-
-	return siw.Handler.PutElastickeyElasticKeyID(c, elasticKeyID)
-}
-
-// PostElastickeyElasticKeyIDDecrypt operation middleware
-func (siw *ServerInterfaceWrapper) PostElastickeyElasticKeyIDDecrypt(c *fiber.Ctx) error {
-
-	var err error
-
-	// ------------- Path parameter "elasticKeyID" -------------
-	var elasticKeyID ElasticKeyID
-
-	err = runtime.BindStyledParameterWithOptions("simple", "elasticKeyID", c.Params("elasticKeyID"), &elasticKeyID, runtime.BindStyledParameterOptions{Explode: false, Required: true})
-	if err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter elasticKeyID: %w", err).Error())
-	}
-
-	c.Context().SetUserValue(BearerAuthScopes, []string{})
-
-	c.Context().SetUserValue(SessionAuthScopes, []string{})
-
-	return siw.Handler.PostElastickeyElasticKeyIDDecrypt(c, elasticKeyID)
-}
-
-// PostElastickeyElasticKeyIDEncrypt operation middleware
-func (siw *ServerInterfaceWrapper) PostElastickeyElasticKeyIDEncrypt(c *fiber.Ctx) error {
-
-	var err error
-
-	// ------------- Path parameter "elasticKeyID" -------------
-	var elasticKeyID ElasticKeyID
-
-	err = runtime.BindStyledParameterWithOptions("simple", "elasticKeyID", c.Params("elasticKeyID"), &elasticKeyID, runtime.BindStyledParameterOptions{Explode: false, Required: true})
-	if err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter elasticKeyID: %w", err).Error())
-	}
-
-	c.Context().SetUserValue(BearerAuthScopes, []string{})
-
-	c.Context().SetUserValue(SessionAuthScopes, []string{})
-
-	// Parameter object where we will unmarshal all parameters from the context
-	var params PostElastickeyElasticKeyIDEncryptParams
-
-	var query url.Values
-	query, err = url.ParseQuery(string(c.Request().URI().QueryString()))
-	if err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for query string: %w", err).Error())
-	}
-
-	// ------------- Optional query parameter "context" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "context", query, &params.Context)
-	if err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter context: %w", err).Error())
-	}
-
-	return siw.Handler.PostElastickeyElasticKeyIDEncrypt(c, elasticKeyID, params)
-}
-
-// PostElastickeyElasticKeyIDGenerate operation middleware
-func (siw *ServerInterfaceWrapper) PostElastickeyElasticKeyIDGenerate(c *fiber.Ctx) error {
-
-	var err error
-
-	// ------------- Path parameter "elasticKeyID" -------------
-	var elasticKeyID ElasticKeyID
-
-	err = runtime.BindStyledParameterWithOptions("simple", "elasticKeyID", c.Params("elasticKeyID"), &elasticKeyID, runtime.BindStyledParameterOptions{Explode: false, Required: true})
-	if err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter elasticKeyID: %w", err).Error())
-	}
-
-	c.Context().SetUserValue(BearerAuthScopes, []string{})
-
-	c.Context().SetUserValue(SessionAuthScopes, []string{})
-
-	// Parameter object where we will unmarshal all parameters from the context
-	var params PostElastickeyElasticKeyIDGenerateParams
-
-	var query url.Values
-	query, err = url.ParseQuery(string(c.Request().URI().QueryString()))
-	if err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for query string: %w", err).Error())
-	}
-
-	// ------------- Optional query parameter "context" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "context", query, &params.Context)
-	if err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter context: %w", err).Error())
-	}
-
-	// ------------- Optional query parameter "alg" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "alg", query, &params.Alg)
-	if err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter alg: %w", err).Error())
-	}
-
-	return siw.Handler.PostElastickeyElasticKeyIDGenerate(c, elasticKeyID, params)
-}
-
-// PostElastickeyElasticKeyIDImport operation middleware
-func (siw *ServerInterfaceWrapper) PostElastickeyElasticKeyIDImport(c *fiber.Ctx) error {
-
-	var err error
-
-	// ------------- Path parameter "elasticKeyID" -------------
-	var elasticKeyID ElasticKeyID
-
-	err = runtime.BindStyledParameterWithOptions("simple", "elasticKeyID", c.Params("elasticKeyID"), &elasticKeyID, runtime.BindStyledParameterOptions{Explode: false, Required: true})
-	if err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter elasticKeyID: %w", err).Error())
-	}
-
-	c.Context().SetUserValue(BearerAuthScopes, []string{})
-
-	c.Context().SetUserValue(SessionAuthScopes, []string{})
-
-	return siw.Handler.PostElastickeyElasticKeyIDImport(c, elasticKeyID)
-}
-
-// PostElastickeyElasticKeyIDMaterialkey operation middleware
-func (siw *ServerInterfaceWrapper) PostElastickeyElasticKeyIDMaterialkey(c *fiber.Ctx) error {
-
-	var err error
-
-	// ------------- Path parameter "elasticKeyID" -------------
-	var elasticKeyID ElasticKeyID
-
-	err = runtime.BindStyledParameterWithOptions("simple", "elasticKeyID", c.Params("elasticKeyID"), &elasticKeyID, runtime.BindStyledParameterOptions{Explode: false, Required: true})
-	if err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter elasticKeyID: %w", err).Error())
-	}
-
-	c.Context().SetUserValue(BearerAuthScopes, []string{})
-
-	c.Context().SetUserValue(SessionAuthScopes, []string{})
-
-	return siw.Handler.PostElastickeyElasticKeyIDMaterialkey(c, elasticKeyID)
-}
-
-// DeleteElastickeyElasticKeyIDMaterialkeyMaterialKeyID operation middleware
-func (siw *ServerInterfaceWrapper) DeleteElastickeyElasticKeyIDMaterialkeyMaterialKeyID(c *fiber.Ctx) error {
-
-	var err error
-
-	// ------------- Path parameter "elasticKeyID" -------------
-	var elasticKeyID ElasticKeyID
-
-	err = runtime.BindStyledParameterWithOptions("simple", "elasticKeyID", c.Params("elasticKeyID"), &elasticKeyID, runtime.BindStyledParameterOptions{Explode: false, Required: true})
-	if err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter elasticKeyID: %w", err).Error())
-	}
-
-	// ------------- Path parameter "materialKeyID" -------------
-	var materialKeyID MaterialKeyID
-
-	err = runtime.BindStyledParameterWithOptions("simple", "materialKeyID", c.Params("materialKeyID"), &materialKeyID, runtime.BindStyledParameterOptions{Explode: false, Required: true})
-	if err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter materialKeyID: %w", err).Error())
-	}
-
-	c.Context().SetUserValue(BearerAuthScopes, []string{})
-
-	c.Context().SetUserValue(SessionAuthScopes, []string{})
-
-	return siw.Handler.DeleteElastickeyElasticKeyIDMaterialkeyMaterialKeyID(c, elasticKeyID, materialKeyID)
-}
-
-// GetElastickeyElasticKeyIDMaterialkeyMaterialKeyID operation middleware
-func (siw *ServerInterfaceWrapper) GetElastickeyElasticKeyIDMaterialkeyMaterialKeyID(c *fiber.Ctx) error {
-
-	var err error
-
-	// ------------- Path parameter "elasticKeyID" -------------
-	var elasticKeyID ElasticKeyID
-
-	err = runtime.BindStyledParameterWithOptions("simple", "elasticKeyID", c.Params("elasticKeyID"), &elasticKeyID, runtime.BindStyledParameterOptions{Explode: false, Required: true})
-	if err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter elasticKeyID: %w", err).Error())
-	}
-
-	// ------------- Path parameter "materialKeyID" -------------
-	var materialKeyID MaterialKeyID
-
-	err = runtime.BindStyledParameterWithOptions("simple", "materialKeyID", c.Params("materialKeyID"), &materialKeyID, runtime.BindStyledParameterOptions{Explode: false, Required: true})
-	if err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter materialKeyID: %w", err).Error())
-	}
-
-	c.Context().SetUserValue(BearerAuthScopes, []string{})
-
-	c.Context().SetUserValue(SessionAuthScopes, []string{})
-
-	return siw.Handler.GetElastickeyElasticKeyIDMaterialkeyMaterialKeyID(c, elasticKeyID, materialKeyID)
-}
-
-// PostElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRevoke operation middleware
-func (siw *ServerInterfaceWrapper) PostElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRevoke(c *fiber.Ctx) error {
-
-	var err error
-
-	// ------------- Path parameter "elasticKeyID" -------------
-	var elasticKeyID ElasticKeyID
-
-	err = runtime.BindStyledParameterWithOptions("simple", "elasticKeyID", c.Params("elasticKeyID"), &elasticKeyID, runtime.BindStyledParameterOptions{Explode: false, Required: true})
-	if err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter elasticKeyID: %w", err).Error())
-	}
-
-	// ------------- Path parameter "materialKeyID" -------------
-	var materialKeyID MaterialKeyID
-
-	err = runtime.BindStyledParameterWithOptions("simple", "materialKeyID", c.Params("materialKeyID"), &materialKeyID, runtime.BindStyledParameterOptions{Explode: false, Required: true})
-	if err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter materialKeyID: %w", err).Error())
-	}
-
-	c.Context().SetUserValue(BearerAuthScopes, []string{})
-
-	c.Context().SetUserValue(SessionAuthScopes, []string{})
-
-	return siw.Handler.PostElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRevoke(c, elasticKeyID, materialKeyID)
-}
-
-// GetElastickeyElasticKeyIDMaterialkeys operation middleware
-func (siw *ServerInterfaceWrapper) GetElastickeyElasticKeyIDMaterialkeys(c *fiber.Ctx) error {
-
-	var err error
-
-	// ------------- Path parameter "elasticKeyID" -------------
-	var elasticKeyID ElasticKeyID
-
-	err = runtime.BindStyledParameterWithOptions("simple", "elasticKeyID", c.Params("elasticKeyID"), &elasticKeyID, runtime.BindStyledParameterOptions{Explode: false, Required: true})
-	if err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter elasticKeyID: %w", err).Error())
-	}
-
-	c.Context().SetUserValue(BearerAuthScopes, []string{})
-
-	c.Context().SetUserValue(SessionAuthScopes, []string{})
-
-	// Parameter object where we will unmarshal all parameters from the context
-	var params GetElastickeyElasticKeyIDMaterialkeysParams
-
-	var query url.Values
-	query, err = url.ParseQuery(string(c.Request().URI().QueryString()))
-	if err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for query string: %w", err).Error())
-	}
-
-	// ------------- Optional query parameter "material_key_ids" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "material_key_ids", query, &params.MaterialKeyIds)
-	if err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter material_key_ids: %w", err).Error())
-	}
-
-	// ------------- Optional query parameter "min_generate_date" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "min_generate_date", query, &params.MinGenerateDate)
-	if err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter min_generate_date: %w", err).Error())
-	}
-
-	// ------------- Optional query parameter "max_generate_date" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "max_generate_date", query, &params.MaxGenerateDate)
-	if err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter max_generate_date: %w", err).Error())
-	}
-
-	// ------------- Optional query parameter "min_import_date" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "min_import_date", query, &params.MinImportDate)
-	if err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter min_import_date: %w", err).Error())
-	}
-
-	// ------------- Optional query parameter "max_import_date" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "max_import_date", query, &params.MaxImportDate)
-	if err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter max_import_date: %w", err).Error())
-	}
-
-	// ------------- Optional query parameter "min_expiration_date" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "min_expiration_date", query, &params.MinExpirationDate)
-	if err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter min_expiration_date: %w", err).Error())
-	}
-
-	// ------------- Optional query parameter "max_expiration_date" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "max_expiration_date", query, &params.MaxExpirationDate)
-	if err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter max_expiration_date: %w", err).Error())
-	}
-
-	// ------------- Optional query parameter "min_revocation_date" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "min_revocation_date", query, &params.MinRevocationDate)
-	if err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter min_revocation_date: %w", err).Error())
-	}
-
-	// ------------- Optional query parameter "max_revocation_date" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "max_revocation_date", query, &params.MaxRevocationDate)
-	if err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter max_revocation_date: %w", err).Error())
-	}
-
-	// ------------- Optional query parameter "page_number" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "page_number", query, &params.PageNumber)
-	if err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter page_number: %w", err).Error())
-	}
-
-	// ------------- Optional query parameter "page_size" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "page_size", query, &params.PageSize)
-	if err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter page_size: %w", err).Error())
-	}
-
-	return siw.Handler.GetElastickeyElasticKeyIDMaterialkeys(c, elasticKeyID, params)
-}
-
-// PostElastickeyElasticKeyIDSign operation middleware
-func (siw *ServerInterfaceWrapper) PostElastickeyElasticKeyIDSign(c *fiber.Ctx) error {
-
-	var err error
-
-	// ------------- Path parameter "elasticKeyID" -------------
-	var elasticKeyID ElasticKeyID
-
-	err = runtime.BindStyledParameterWithOptions("simple", "elasticKeyID", c.Params("elasticKeyID"), &elasticKeyID, runtime.BindStyledParameterOptions{Explode: false, Required: true})
-	if err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter elasticKeyID: %w", err).Error())
-	}
-
-	c.Context().SetUserValue(BearerAuthScopes, []string{})
-
-	c.Context().SetUserValue(SessionAuthScopes, []string{})
-
-	return siw.Handler.PostElastickeyElasticKeyIDSign(c, elasticKeyID)
-}
-
-// PostElastickeyElasticKeyIDVerify operation middleware
-func (siw *ServerInterfaceWrapper) PostElastickeyElasticKeyIDVerify(c *fiber.Ctx) error {
-
-	var err error
-
-	// ------------- Path parameter "elasticKeyID" -------------
-	var elasticKeyID ElasticKeyID
-
-	err = runtime.BindStyledParameterWithOptions("simple", "elasticKeyID", c.Params("elasticKeyID"), &elasticKeyID, runtime.BindStyledParameterOptions{Explode: false, Required: true})
-	if err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter elasticKeyID: %w", err).Error())
-	}
-
-	c.Context().SetUserValue(BearerAuthScopes, []string{})
-
-	c.Context().SetUserValue(SessionAuthScopes, []string{})
-
-	return siw.Handler.PostElastickeyElasticKeyIDVerify(c, elasticKeyID)
-}
-
-// GetElastickeys operation middleware
-func (siw *ServerInterfaceWrapper) GetElastickeys(c *fiber.Ctx) error {
+// GetElasticKeys operation middleware
+func (siw *ServerInterfaceWrapper) GetElasticKeys(c *fiber.Ctx) error {
 
 	var err error
 
@@ -903,7 +464,7 @@ func (siw *ServerInterfaceWrapper) GetElastickeys(c *fiber.Ctx) error {
 	c.Context().SetUserValue(SessionAuthScopes, []string{})
 
 	// Parameter object where we will unmarshal all parameters from the context
-	var params GetElastickeysParams
+	var params GetElasticKeysParams
 
 	var query url.Values
 	query, err = url.ParseQuery(string(c.Request().URI().QueryString()))
@@ -913,7 +474,7 @@ func (siw *ServerInterfaceWrapper) GetElastickeys(c *fiber.Ctx) error {
 
 	// ------------- Optional query parameter "elastic_key_ids" -------------
 
-	err = runtime.BindQueryParameter("form", true, false, "elastic_key_ids", query, &params.ElasticKeyIds)
+	err = runtime.BindQueryParameter("form", true, false, "elastic_key_ids", query, &params.ElasticKeyIDS)
 	if err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter elastic_key_ids: %w", err).Error())
 	}
@@ -981,20 +542,118 @@ func (siw *ServerInterfaceWrapper) GetElastickeys(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter page_size: %w", err).Error())
 	}
 
-	return siw.Handler.GetElastickeys(c, params)
+	return siw.Handler.GetElasticKeys(c, params)
 }
 
-// GetMaterialkeys operation middleware
-func (siw *ServerInterfaceWrapper) GetMaterialkeys(c *fiber.Ctx) error {
+// PostElasticKeys operation middleware
+func (siw *ServerInterfaceWrapper) PostElasticKeys(c *fiber.Ctx) error {
+
+	c.Context().SetUserValue(BearerAuthScopes, []string{})
+
+	c.Context().SetUserValue(SessionAuthScopes, []string{})
+
+	return siw.Handler.PostElasticKeys(c)
+}
+
+// DeleteElasticKeysElasticKeyID operation middleware
+func (siw *ServerInterfaceWrapper) DeleteElasticKeysElasticKeyID(c *fiber.Ctx) error {
 
 	var err error
+
+	// ------------- Path parameter "elasticKeyID" -------------
+	var elasticKeyID ElasticKeyID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "elasticKeyID", c.Params("elasticKeyID"), &elasticKeyID, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter elasticKeyID: %w", err).Error())
+	}
+
+	c.Context().SetUserValue(BearerAuthScopes, []string{})
+
+	c.Context().SetUserValue(SessionAuthScopes, []string{})
+
+	return siw.Handler.DeleteElasticKeysElasticKeyID(c, elasticKeyID)
+}
+
+// GetElasticKeysElasticKeyID operation middleware
+func (siw *ServerInterfaceWrapper) GetElasticKeysElasticKeyID(c *fiber.Ctx) error {
+
+	var err error
+
+	// ------------- Path parameter "elasticKeyID" -------------
+	var elasticKeyID ElasticKeyID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "elasticKeyID", c.Params("elasticKeyID"), &elasticKeyID, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter elasticKeyID: %w", err).Error())
+	}
+
+	c.Context().SetUserValue(BearerAuthScopes, []string{})
+
+	c.Context().SetUserValue(SessionAuthScopes, []string{})
+
+	return siw.Handler.GetElasticKeysElasticKeyID(c, elasticKeyID)
+}
+
+// PutElasticKeysElasticKeyID operation middleware
+func (siw *ServerInterfaceWrapper) PutElasticKeysElasticKeyID(c *fiber.Ctx) error {
+
+	var err error
+
+	// ------------- Path parameter "elasticKeyID" -------------
+	var elasticKeyID ElasticKeyID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "elasticKeyID", c.Params("elasticKeyID"), &elasticKeyID, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter elasticKeyID: %w", err).Error())
+	}
+
+	c.Context().SetUserValue(BearerAuthScopes, []string{})
+
+	c.Context().SetUserValue(SessionAuthScopes, []string{})
+
+	return siw.Handler.PutElasticKeysElasticKeyID(c, elasticKeyID)
+}
+
+// PostElasticKeysElasticKeyIDDecrypt operation middleware
+func (siw *ServerInterfaceWrapper) PostElasticKeysElasticKeyIDDecrypt(c *fiber.Ctx) error {
+
+	var err error
+
+	// ------------- Path parameter "elasticKeyID" -------------
+	var elasticKeyID ElasticKeyID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "elasticKeyID", c.Params("elasticKeyID"), &elasticKeyID, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter elasticKeyID: %w", err).Error())
+	}
+
+	c.Context().SetUserValue(BearerAuthScopes, []string{})
+
+	c.Context().SetUserValue(SessionAuthScopes, []string{})
+
+	return siw.Handler.PostElasticKeysElasticKeyIDDecrypt(c, elasticKeyID)
+}
+
+// PostElasticKeysElasticKeyIDEncrypt operation middleware
+func (siw *ServerInterfaceWrapper) PostElasticKeysElasticKeyIDEncrypt(c *fiber.Ctx) error {
+
+	var err error
+
+	// ------------- Path parameter "elasticKeyID" -------------
+	var elasticKeyID ElasticKeyID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "elasticKeyID", c.Params("elasticKeyID"), &elasticKeyID, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter elasticKeyID: %w", err).Error())
+	}
 
 	c.Context().SetUserValue(BearerAuthScopes, []string{})
 
 	c.Context().SetUserValue(SessionAuthScopes, []string{})
 
 	// Parameter object where we will unmarshal all parameters from the context
-	var params GetMaterialkeysParams
+	var params PostElasticKeysElasticKeyIDEncryptParams
 
 	var query url.Values
 	query, err = url.ParseQuery(string(c.Request().URI().QueryString()))
@@ -1002,16 +661,108 @@ func (siw *ServerInterfaceWrapper) GetMaterialkeys(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for query string: %w", err).Error())
 	}
 
-	// ------------- Optional query parameter "elastic_key_ids" -------------
+	// ------------- Optional query parameter "context" -------------
 
-	err = runtime.BindQueryParameter("form", true, false, "elastic_key_ids", query, &params.ElasticKeyIds)
+	err = runtime.BindQueryParameter("form", true, false, "context", query, &params.Context)
 	if err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter elastic_key_ids: %w", err).Error())
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter context: %w", err).Error())
+	}
+
+	return siw.Handler.PostElasticKeysElasticKeyIDEncrypt(c, elasticKeyID, params)
+}
+
+// PostElasticKeysElasticKeyIDGenerate operation middleware
+func (siw *ServerInterfaceWrapper) PostElasticKeysElasticKeyIDGenerate(c *fiber.Ctx) error {
+
+	var err error
+
+	// ------------- Path parameter "elasticKeyID" -------------
+	var elasticKeyID ElasticKeyID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "elasticKeyID", c.Params("elasticKeyID"), &elasticKeyID, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter elasticKeyID: %w", err).Error())
+	}
+
+	c.Context().SetUserValue(BearerAuthScopes, []string{})
+
+	c.Context().SetUserValue(SessionAuthScopes, []string{})
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params PostElasticKeysElasticKeyIDGenerateParams
+
+	var query url.Values
+	query, err = url.ParseQuery(string(c.Request().URI().QueryString()))
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for query string: %w", err).Error())
+	}
+
+	// ------------- Optional query parameter "context" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "context", query, &params.Context)
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter context: %w", err).Error())
+	}
+
+	// ------------- Optional query parameter "alg" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "alg", query, &params.Alg)
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter alg: %w", err).Error())
+	}
+
+	return siw.Handler.PostElasticKeysElasticKeyIDGenerate(c, elasticKeyID, params)
+}
+
+// PostElasticKeysElasticKeyIDImport operation middleware
+func (siw *ServerInterfaceWrapper) PostElasticKeysElasticKeyIDImport(c *fiber.Ctx) error {
+
+	var err error
+
+	// ------------- Path parameter "elasticKeyID" -------------
+	var elasticKeyID ElasticKeyID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "elasticKeyID", c.Params("elasticKeyID"), &elasticKeyID, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter elasticKeyID: %w", err).Error())
+	}
+
+	c.Context().SetUserValue(BearerAuthScopes, []string{})
+
+	c.Context().SetUserValue(SessionAuthScopes, []string{})
+
+	return siw.Handler.PostElasticKeysElasticKeyIDImport(c, elasticKeyID)
+}
+
+// GetElasticKeysElasticKeyIDMaterialKeys operation middleware
+func (siw *ServerInterfaceWrapper) GetElasticKeysElasticKeyIDMaterialKeys(c *fiber.Ctx) error {
+
+	var err error
+
+	// ------------- Path parameter "elasticKeyID" -------------
+	var elasticKeyID ElasticKeyID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "elasticKeyID", c.Params("elasticKeyID"), &elasticKeyID, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter elasticKeyID: %w", err).Error())
+	}
+
+	c.Context().SetUserValue(BearerAuthScopes, []string{})
+
+	c.Context().SetUserValue(SessionAuthScopes, []string{})
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetElasticKeysElasticKeyIDMaterialKeysParams
+
+	var query url.Values
+	query, err = url.ParseQuery(string(c.Request().URI().QueryString()))
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for query string: %w", err).Error())
 	}
 
 	// ------------- Optional query parameter "material_key_ids" -------------
 
-	err = runtime.BindQueryParameter("form", true, false, "material_key_ids", query, &params.MaterialKeyIds)
+	err = runtime.BindQueryParameter("form", true, false, "material_key_ids", query, &params.MaterialKeyIDS)
 	if err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter material_key_ids: %w", err).Error())
 	}
@@ -1086,7 +837,256 @@ func (siw *ServerInterfaceWrapper) GetMaterialkeys(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter page_size: %w", err).Error())
 	}
 
-	return siw.Handler.GetMaterialkeys(c, params)
+	return siw.Handler.GetElasticKeysElasticKeyIDMaterialKeys(c, elasticKeyID, params)
+}
+
+// PostElasticKeysElasticKeyIDMaterialKeys operation middleware
+func (siw *ServerInterfaceWrapper) PostElasticKeysElasticKeyIDMaterialKeys(c *fiber.Ctx) error {
+
+	var err error
+
+	// ------------- Path parameter "elasticKeyID" -------------
+	var elasticKeyID ElasticKeyID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "elasticKeyID", c.Params("elasticKeyID"), &elasticKeyID, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter elasticKeyID: %w", err).Error())
+	}
+
+	c.Context().SetUserValue(BearerAuthScopes, []string{})
+
+	c.Context().SetUserValue(SessionAuthScopes, []string{})
+
+	return siw.Handler.PostElasticKeysElasticKeyIDMaterialKeys(c, elasticKeyID)
+}
+
+// DeleteElasticKeysElasticKeyIDMaterialKeysMaterialKeyID operation middleware
+func (siw *ServerInterfaceWrapper) DeleteElasticKeysElasticKeyIDMaterialKeysMaterialKeyID(c *fiber.Ctx) error {
+
+	var err error
+
+	// ------------- Path parameter "elasticKeyID" -------------
+	var elasticKeyID ElasticKeyID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "elasticKeyID", c.Params("elasticKeyID"), &elasticKeyID, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter elasticKeyID: %w", err).Error())
+	}
+
+	// ------------- Path parameter "materialKeyID" -------------
+	var materialKeyID MaterialKeyID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "materialKeyID", c.Params("materialKeyID"), &materialKeyID, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter materialKeyID: %w", err).Error())
+	}
+
+	c.Context().SetUserValue(BearerAuthScopes, []string{})
+
+	c.Context().SetUserValue(SessionAuthScopes, []string{})
+
+	return siw.Handler.DeleteElasticKeysElasticKeyIDMaterialKeysMaterialKeyID(c, elasticKeyID, materialKeyID)
+}
+
+// GetElasticKeysElasticKeyIDMaterialKeysMaterialKeyID operation middleware
+func (siw *ServerInterfaceWrapper) GetElasticKeysElasticKeyIDMaterialKeysMaterialKeyID(c *fiber.Ctx) error {
+
+	var err error
+
+	// ------------- Path parameter "elasticKeyID" -------------
+	var elasticKeyID ElasticKeyID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "elasticKeyID", c.Params("elasticKeyID"), &elasticKeyID, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter elasticKeyID: %w", err).Error())
+	}
+
+	// ------------- Path parameter "materialKeyID" -------------
+	var materialKeyID MaterialKeyID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "materialKeyID", c.Params("materialKeyID"), &materialKeyID, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter materialKeyID: %w", err).Error())
+	}
+
+	c.Context().SetUserValue(BearerAuthScopes, []string{})
+
+	c.Context().SetUserValue(SessionAuthScopes, []string{})
+
+	return siw.Handler.GetElasticKeysElasticKeyIDMaterialKeysMaterialKeyID(c, elasticKeyID, materialKeyID)
+}
+
+// PostElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDRevoke operation middleware
+func (siw *ServerInterfaceWrapper) PostElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDRevoke(c *fiber.Ctx) error {
+
+	var err error
+
+	// ------------- Path parameter "elasticKeyID" -------------
+	var elasticKeyID ElasticKeyID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "elasticKeyID", c.Params("elasticKeyID"), &elasticKeyID, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter elasticKeyID: %w", err).Error())
+	}
+
+	// ------------- Path parameter "materialKeyID" -------------
+	var materialKeyID MaterialKeyID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "materialKeyID", c.Params("materialKeyID"), &materialKeyID, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter materialKeyID: %w", err).Error())
+	}
+
+	c.Context().SetUserValue(BearerAuthScopes, []string{})
+
+	c.Context().SetUserValue(SessionAuthScopes, []string{})
+
+	return siw.Handler.PostElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDRevoke(c, elasticKeyID, materialKeyID)
+}
+
+// PostElasticKeysElasticKeyIDSign operation middleware
+func (siw *ServerInterfaceWrapper) PostElasticKeysElasticKeyIDSign(c *fiber.Ctx) error {
+
+	var err error
+
+	// ------------- Path parameter "elasticKeyID" -------------
+	var elasticKeyID ElasticKeyID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "elasticKeyID", c.Params("elasticKeyID"), &elasticKeyID, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter elasticKeyID: %w", err).Error())
+	}
+
+	c.Context().SetUserValue(BearerAuthScopes, []string{})
+
+	c.Context().SetUserValue(SessionAuthScopes, []string{})
+
+	return siw.Handler.PostElasticKeysElasticKeyIDSign(c, elasticKeyID)
+}
+
+// PostElasticKeysElasticKeyIDVerify operation middleware
+func (siw *ServerInterfaceWrapper) PostElasticKeysElasticKeyIDVerify(c *fiber.Ctx) error {
+
+	var err error
+
+	// ------------- Path parameter "elasticKeyID" -------------
+	var elasticKeyID ElasticKeyID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "elasticKeyID", c.Params("elasticKeyID"), &elasticKeyID, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter elasticKeyID: %w", err).Error())
+	}
+
+	c.Context().SetUserValue(BearerAuthScopes, []string{})
+
+	c.Context().SetUserValue(SessionAuthScopes, []string{})
+
+	return siw.Handler.PostElasticKeysElasticKeyIDVerify(c, elasticKeyID)
+}
+
+// GetMaterialKeys operation middleware
+func (siw *ServerInterfaceWrapper) GetMaterialKeys(c *fiber.Ctx) error {
+
+	var err error
+
+	c.Context().SetUserValue(BearerAuthScopes, []string{})
+
+	c.Context().SetUserValue(SessionAuthScopes, []string{})
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetMaterialKeysParams
+
+	var query url.Values
+	query, err = url.ParseQuery(string(c.Request().URI().QueryString()))
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for query string: %w", err).Error())
+	}
+
+	// ------------- Optional query parameter "elastic_key_ids" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "elastic_key_ids", query, &params.ElasticKeyIDS)
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter elastic_key_ids: %w", err).Error())
+	}
+
+	// ------------- Optional query parameter "material_key_ids" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "material_key_ids", query, &params.MaterialKeyIDS)
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter material_key_ids: %w", err).Error())
+	}
+
+	// ------------- Optional query parameter "min_generate_date" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "min_generate_date", query, &params.MinGenerateDate)
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter min_generate_date: %w", err).Error())
+	}
+
+	// ------------- Optional query parameter "max_generate_date" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "max_generate_date", query, &params.MaxGenerateDate)
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter max_generate_date: %w", err).Error())
+	}
+
+	// ------------- Optional query parameter "min_import_date" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "min_import_date", query, &params.MinImportDate)
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter min_import_date: %w", err).Error())
+	}
+
+	// ------------- Optional query parameter "max_import_date" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "max_import_date", query, &params.MaxImportDate)
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter max_import_date: %w", err).Error())
+	}
+
+	// ------------- Optional query parameter "min_expiration_date" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "min_expiration_date", query, &params.MinExpirationDate)
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter min_expiration_date: %w", err).Error())
+	}
+
+	// ------------- Optional query parameter "max_expiration_date" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "max_expiration_date", query, &params.MaxExpirationDate)
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter max_expiration_date: %w", err).Error())
+	}
+
+	// ------------- Optional query parameter "min_revocation_date" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "min_revocation_date", query, &params.MinRevocationDate)
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter min_revocation_date: %w", err).Error())
+	}
+
+	// ------------- Optional query parameter "max_revocation_date" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "max_revocation_date", query, &params.MaxRevocationDate)
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter max_revocation_date: %w", err).Error())
+	}
+
+	// ------------- Optional query parameter "page_number" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "page_number", query, &params.PageNumber)
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter page_number: %w", err).Error())
+	}
+
+	// ------------- Optional query parameter "page_size" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "page_size", query, &params.PageSize)
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter page_size: %w", err).Error())
+	}
+
+	return siw.Handler.GetMaterialKeys(c, params)
 }
 
 // FiberServerOptions provides options for the Fiber server.
@@ -1110,39 +1110,39 @@ func RegisterHandlersWithOptions(router fiber.Router, si ServerInterface, option
 		router.Use(fiber.Handler(m))
 	}
 
-	router.Post(options.BaseURL+"/elastickey", wrapper.PostElastickey)
+	router.Get(options.BaseURL+"/elastic-keys", wrapper.GetElasticKeys)
 
-	router.Delete(options.BaseURL+"/elastickey/:elasticKeyID", wrapper.DeleteElastickeyElasticKeyID)
+	router.Post(options.BaseURL+"/elastic-keys", wrapper.PostElasticKeys)
 
-	router.Get(options.BaseURL+"/elastickey/:elasticKeyID", wrapper.GetElastickeyElasticKeyID)
+	router.Delete(options.BaseURL+"/elastic-keys/:elasticKeyID", wrapper.DeleteElasticKeysElasticKeyID)
 
-	router.Put(options.BaseURL+"/elastickey/:elasticKeyID", wrapper.PutElastickeyElasticKeyID)
+	router.Get(options.BaseURL+"/elastic-keys/:elasticKeyID", wrapper.GetElasticKeysElasticKeyID)
 
-	router.Post(options.BaseURL+"/elastickey/:elasticKeyID/decrypt", wrapper.PostElastickeyElasticKeyIDDecrypt)
+	router.Put(options.BaseURL+"/elastic-keys/:elasticKeyID", wrapper.PutElasticKeysElasticKeyID)
 
-	router.Post(options.BaseURL+"/elastickey/:elasticKeyID/encrypt", wrapper.PostElastickeyElasticKeyIDEncrypt)
+	router.Post(options.BaseURL+"/elastic-keys/:elasticKeyID/decrypt", wrapper.PostElasticKeysElasticKeyIDDecrypt)
 
-	router.Post(options.BaseURL+"/elastickey/:elasticKeyID/generate", wrapper.PostElastickeyElasticKeyIDGenerate)
+	router.Post(options.BaseURL+"/elastic-keys/:elasticKeyID/encrypt", wrapper.PostElasticKeysElasticKeyIDEncrypt)
 
-	router.Post(options.BaseURL+"/elastickey/:elasticKeyID/import", wrapper.PostElastickeyElasticKeyIDImport)
+	router.Post(options.BaseURL+"/elastic-keys/:elasticKeyID/generate", wrapper.PostElasticKeysElasticKeyIDGenerate)
 
-	router.Post(options.BaseURL+"/elastickey/:elasticKeyID/materialkey", wrapper.PostElastickeyElasticKeyIDMaterialkey)
+	router.Post(options.BaseURL+"/elastic-keys/:elasticKeyID/import", wrapper.PostElasticKeysElasticKeyIDImport)
 
-	router.Delete(options.BaseURL+"/elastickey/:elasticKeyID/materialkey/:materialKeyID", wrapper.DeleteElastickeyElasticKeyIDMaterialkeyMaterialKeyID)
+	router.Get(options.BaseURL+"/elastic-keys/:elasticKeyID/material-keys", wrapper.GetElasticKeysElasticKeyIDMaterialKeys)
 
-	router.Get(options.BaseURL+"/elastickey/:elasticKeyID/materialkey/:materialKeyID", wrapper.GetElastickeyElasticKeyIDMaterialkeyMaterialKeyID)
+	router.Post(options.BaseURL+"/elastic-keys/:elasticKeyID/material-keys", wrapper.PostElasticKeysElasticKeyIDMaterialKeys)
 
-	router.Post(options.BaseURL+"/elastickey/:elasticKeyID/materialkey/:materialKeyID/revoke", wrapper.PostElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRevoke)
+	router.Delete(options.BaseURL+"/elastic-keys/:elasticKeyID/material-keys/:materialKeyID", wrapper.DeleteElasticKeysElasticKeyIDMaterialKeysMaterialKeyID)
 
-	router.Get(options.BaseURL+"/elastickey/:elasticKeyID/materialkeys", wrapper.GetElastickeyElasticKeyIDMaterialkeys)
+	router.Get(options.BaseURL+"/elastic-keys/:elasticKeyID/material-keys/:materialKeyID", wrapper.GetElasticKeysElasticKeyIDMaterialKeysMaterialKeyID)
 
-	router.Post(options.BaseURL+"/elastickey/:elasticKeyID/sign", wrapper.PostElastickeyElasticKeyIDSign)
+	router.Post(options.BaseURL+"/elastic-keys/:elasticKeyID/material-keys/:materialKeyID/revoke", wrapper.PostElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDRevoke)
 
-	router.Post(options.BaseURL+"/elastickey/:elasticKeyID/verify", wrapper.PostElastickeyElasticKeyIDVerify)
+	router.Post(options.BaseURL+"/elastic-keys/:elasticKeyID/sign", wrapper.PostElasticKeysElasticKeyIDSign)
 
-	router.Get(options.BaseURL+"/elastickeys", wrapper.GetElastickeys)
+	router.Post(options.BaseURL+"/elastic-keys/:elasticKeyID/verify", wrapper.PostElasticKeysElasticKeyIDVerify)
 
-	router.Get(options.BaseURL+"/materialkeys", wrapper.GetMaterialkeys)
+	router.Get(options.BaseURL+"/material-keys", wrapper.GetMaterialKeys)
 
 }
 
@@ -1158,220 +1158,257 @@ type NotFoundJSONResponse Error
 
 type UnauthorizedJSONResponse Error
 
-type PostElastickeyRequestObject struct {
-	Body *PostElastickeyJSONRequestBody
+type GetElasticKeysRequestObject struct {
+	Params GetElasticKeysParams
 }
 
-type PostElastickeyResponseObject interface {
-	VisitPostElastickeyResponse(ctx *fiber.Ctx) error
+type GetElasticKeysResponseObject interface {
+	VisitGetElasticKeysResponse(ctx *fiber.Ctx) error
 }
 
-type PostElastickey200JSONResponse ElasticKey
+type GetElasticKeys200JSONResponse []ElasticKey
 
-func (response PostElastickey200JSONResponse) VisitPostElastickeyResponse(ctx *fiber.Ctx) error {
+func (response GetElasticKeys200JSONResponse) VisitGetElasticKeysResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
 	ctx.Status(200)
 
 	return ctx.JSON(&response)
 }
 
-type PostElastickey400JSONResponse struct{ BadRequestJSONResponse }
+type GetElasticKeys400JSONResponse struct{ BadRequestJSONResponse }
 
-func (response PostElastickey400JSONResponse) VisitPostElastickeyResponse(ctx *fiber.Ctx) error {
+func (response GetElasticKeys400JSONResponse) VisitGetElasticKeysResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
 	ctx.Status(400)
 
 	return ctx.JSON(&response)
 }
 
-type PostElastickey401JSONResponse struct{ UnauthorizedJSONResponse }
+type GetElasticKeys500JSONResponse struct {
+	InternalServerErrorJSONResponse
+}
 
-func (response PostElastickey401JSONResponse) VisitPostElastickeyResponse(ctx *fiber.Ctx) error {
+func (response GetElasticKeys500JSONResponse) VisitGetElasticKeysResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/json")
+	ctx.Status(500)
+
+	return ctx.JSON(&response)
+}
+
+type PostElasticKeysRequestObject struct {
+	Body *PostElasticKeysJSONRequestBody
+}
+
+type PostElasticKeysResponseObject interface {
+	VisitPostElasticKeysResponse(ctx *fiber.Ctx) error
+}
+
+type PostElasticKeys200JSONResponse ElasticKey
+
+func (response PostElasticKeys200JSONResponse) VisitPostElasticKeysResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/json")
+	ctx.Status(200)
+
+	return ctx.JSON(&response)
+}
+
+type PostElasticKeys400JSONResponse struct{ BadRequestJSONResponse }
+
+func (response PostElasticKeys400JSONResponse) VisitPostElasticKeysResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/json")
+	ctx.Status(400)
+
+	return ctx.JSON(&response)
+}
+
+type PostElasticKeys401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response PostElasticKeys401JSONResponse) VisitPostElasticKeysResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
 	ctx.Status(401)
 
 	return ctx.JSON(&response)
 }
 
-type PostElastickey403JSONResponse struct{ ForbiddenJSONResponse }
+type PostElasticKeys403JSONResponse struct{ ForbiddenJSONResponse }
 
-func (response PostElastickey403JSONResponse) VisitPostElastickeyResponse(ctx *fiber.Ctx) error {
+func (response PostElasticKeys403JSONResponse) VisitPostElasticKeysResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
 	ctx.Status(403)
 
 	return ctx.JSON(&response)
 }
 
-type PostElastickey500JSONResponse struct {
+type PostElasticKeys500JSONResponse struct {
 	InternalServerErrorJSONResponse
 }
 
-func (response PostElastickey500JSONResponse) VisitPostElastickeyResponse(ctx *fiber.Ctx) error {
+func (response PostElasticKeys500JSONResponse) VisitPostElasticKeysResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
 	ctx.Status(500)
 
 	return ctx.JSON(&response)
 }
 
-type DeleteElastickeyElasticKeyIDRequestObject struct {
+type DeleteElasticKeysElasticKeyIDRequestObject struct {
 	ElasticKeyID ElasticKeyID `json:"elasticKeyID"`
 }
 
-type DeleteElastickeyElasticKeyIDResponseObject interface {
-	VisitDeleteElastickeyElasticKeyIDResponse(ctx *fiber.Ctx) error
+type DeleteElasticKeysElasticKeyIDResponseObject interface {
+	VisitDeleteElasticKeysElasticKeyIDResponse(ctx *fiber.Ctx) error
 }
 
-type DeleteElastickeyElasticKeyID204Response struct {
+type DeleteElasticKeysElasticKeyID204Response struct {
 }
 
-func (response DeleteElastickeyElasticKeyID204Response) VisitDeleteElastickeyElasticKeyIDResponse(ctx *fiber.Ctx) error {
+func (response DeleteElasticKeysElasticKeyID204Response) VisitDeleteElasticKeysElasticKeyIDResponse(ctx *fiber.Ctx) error {
 	ctx.Status(204)
 	return nil
 }
 
-type DeleteElastickeyElasticKeyID400JSONResponse struct{ BadRequestJSONResponse }
+type DeleteElasticKeysElasticKeyID400JSONResponse struct{ BadRequestJSONResponse }
 
-func (response DeleteElastickeyElasticKeyID400JSONResponse) VisitDeleteElastickeyElasticKeyIDResponse(ctx *fiber.Ctx) error {
+func (response DeleteElasticKeysElasticKeyID400JSONResponse) VisitDeleteElasticKeysElasticKeyIDResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
 	ctx.Status(400)
 
 	return ctx.JSON(&response)
 }
 
-type DeleteElastickeyElasticKeyID404JSONResponse struct{ NotFoundJSONResponse }
+type DeleteElasticKeysElasticKeyID404JSONResponse struct{ NotFoundJSONResponse }
 
-func (response DeleteElastickeyElasticKeyID404JSONResponse) VisitDeleteElastickeyElasticKeyIDResponse(ctx *fiber.Ctx) error {
+func (response DeleteElasticKeysElasticKeyID404JSONResponse) VisitDeleteElasticKeysElasticKeyIDResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
 	ctx.Status(404)
 
 	return ctx.JSON(&response)
 }
 
-type DeleteElastickeyElasticKeyID500JSONResponse struct {
+type DeleteElasticKeysElasticKeyID500JSONResponse struct {
 	InternalServerErrorJSONResponse
 }
 
-func (response DeleteElastickeyElasticKeyID500JSONResponse) VisitDeleteElastickeyElasticKeyIDResponse(ctx *fiber.Ctx) error {
+func (response DeleteElasticKeysElasticKeyID500JSONResponse) VisitDeleteElasticKeysElasticKeyIDResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
 	ctx.Status(500)
 
 	return ctx.JSON(&response)
 }
 
-type GetElastickeyElasticKeyIDRequestObject struct {
+type GetElasticKeysElasticKeyIDRequestObject struct {
 	ElasticKeyID ElasticKeyID `json:"elasticKeyID"`
 }
 
-type GetElastickeyElasticKeyIDResponseObject interface {
-	VisitGetElastickeyElasticKeyIDResponse(ctx *fiber.Ctx) error
+type GetElasticKeysElasticKeyIDResponseObject interface {
+	VisitGetElasticKeysElasticKeyIDResponse(ctx *fiber.Ctx) error
 }
 
-type GetElastickeyElasticKeyID200JSONResponse ElasticKey
+type GetElasticKeysElasticKeyID200JSONResponse ElasticKey
 
-func (response GetElastickeyElasticKeyID200JSONResponse) VisitGetElastickeyElasticKeyIDResponse(ctx *fiber.Ctx) error {
+func (response GetElasticKeysElasticKeyID200JSONResponse) VisitGetElasticKeysElasticKeyIDResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
 	ctx.Status(200)
 
 	return ctx.JSON(&response)
 }
 
-type GetElastickeyElasticKeyID400JSONResponse struct{ BadRequestJSONResponse }
+type GetElasticKeysElasticKeyID400JSONResponse struct{ BadRequestJSONResponse }
 
-func (response GetElastickeyElasticKeyID400JSONResponse) VisitGetElastickeyElasticKeyIDResponse(ctx *fiber.Ctx) error {
+func (response GetElasticKeysElasticKeyID400JSONResponse) VisitGetElasticKeysElasticKeyIDResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
 	ctx.Status(400)
 
 	return ctx.JSON(&response)
 }
 
-type GetElastickeyElasticKeyID404JSONResponse struct{ NotFoundJSONResponse }
+type GetElasticKeysElasticKeyID404JSONResponse struct{ NotFoundJSONResponse }
 
-func (response GetElastickeyElasticKeyID404JSONResponse) VisitGetElastickeyElasticKeyIDResponse(ctx *fiber.Ctx) error {
+func (response GetElasticKeysElasticKeyID404JSONResponse) VisitGetElasticKeysElasticKeyIDResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
 	ctx.Status(404)
 
 	return ctx.JSON(&response)
 }
 
-type GetElastickeyElasticKeyID500JSONResponse struct {
+type GetElasticKeysElasticKeyID500JSONResponse struct {
 	InternalServerErrorJSONResponse
 }
 
-func (response GetElastickeyElasticKeyID500JSONResponse) VisitGetElastickeyElasticKeyIDResponse(ctx *fiber.Ctx) error {
+func (response GetElasticKeysElasticKeyID500JSONResponse) VisitGetElasticKeysElasticKeyIDResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
 	ctx.Status(500)
 
 	return ctx.JSON(&response)
 }
 
-type PutElastickeyElasticKeyIDRequestObject struct {
+type PutElasticKeysElasticKeyIDRequestObject struct {
 	ElasticKeyID ElasticKeyID `json:"elasticKeyID"`
-	Body         *PutElastickeyElasticKeyIDJSONRequestBody
+	Body         *PutElasticKeysElasticKeyIDJSONRequestBody
 }
 
-type PutElastickeyElasticKeyIDResponseObject interface {
-	VisitPutElastickeyElasticKeyIDResponse(ctx *fiber.Ctx) error
+type PutElasticKeysElasticKeyIDResponseObject interface {
+	VisitPutElasticKeysElasticKeyIDResponse(ctx *fiber.Ctx) error
 }
 
-type PutElastickeyElasticKeyID200JSONResponse ElasticKey
+type PutElasticKeysElasticKeyID200JSONResponse ElasticKey
 
-func (response PutElastickeyElasticKeyID200JSONResponse) VisitPutElastickeyElasticKeyIDResponse(ctx *fiber.Ctx) error {
+func (response PutElasticKeysElasticKeyID200JSONResponse) VisitPutElasticKeysElasticKeyIDResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
 	ctx.Status(200)
 
 	return ctx.JSON(&response)
 }
 
-type PutElastickeyElasticKeyID400JSONResponse struct{ BadRequestJSONResponse }
+type PutElasticKeysElasticKeyID400JSONResponse struct{ BadRequestJSONResponse }
 
-func (response PutElastickeyElasticKeyID400JSONResponse) VisitPutElastickeyElasticKeyIDResponse(ctx *fiber.Ctx) error {
+func (response PutElasticKeysElasticKeyID400JSONResponse) VisitPutElasticKeysElasticKeyIDResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
 	ctx.Status(400)
 
 	return ctx.JSON(&response)
 }
 
-type PutElastickeyElasticKeyID404JSONResponse struct{ NotFoundJSONResponse }
+type PutElasticKeysElasticKeyID404JSONResponse struct{ NotFoundJSONResponse }
 
-func (response PutElastickeyElasticKeyID404JSONResponse) VisitPutElastickeyElasticKeyIDResponse(ctx *fiber.Ctx) error {
+func (response PutElasticKeysElasticKeyID404JSONResponse) VisitPutElasticKeysElasticKeyIDResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
 	ctx.Status(404)
 
 	return ctx.JSON(&response)
 }
 
-type PutElastickeyElasticKeyID409JSONResponse struct{ ConflictJSONResponse }
+type PutElasticKeysElasticKeyID409JSONResponse struct{ ConflictJSONResponse }
 
-func (response PutElastickeyElasticKeyID409JSONResponse) VisitPutElastickeyElasticKeyIDResponse(ctx *fiber.Ctx) error {
+func (response PutElasticKeysElasticKeyID409JSONResponse) VisitPutElasticKeysElasticKeyIDResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
 	ctx.Status(409)
 
 	return ctx.JSON(&response)
 }
 
-type PutElastickeyElasticKeyID500JSONResponse struct {
+type PutElasticKeysElasticKeyID500JSONResponse struct {
 	InternalServerErrorJSONResponse
 }
 
-func (response PutElastickeyElasticKeyID500JSONResponse) VisitPutElastickeyElasticKeyIDResponse(ctx *fiber.Ctx) error {
+func (response PutElasticKeysElasticKeyID500JSONResponse) VisitPutElasticKeysElasticKeyIDResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
 	ctx.Status(500)
 
 	return ctx.JSON(&response)
 }
 
-type PostElastickeyElasticKeyIDDecryptRequestObject struct {
+type PostElasticKeysElasticKeyIDDecryptRequestObject struct {
 	ElasticKeyID ElasticKeyID `json:"elasticKeyID"`
-	Body         *PostElastickeyElasticKeyIDDecryptTextRequestBody
+	Body         *PostElasticKeysElasticKeyIDDecryptTextRequestBody
 }
 
-type PostElastickeyElasticKeyIDDecryptResponseObject interface {
-	VisitPostElastickeyElasticKeyIDDecryptResponse(ctx *fiber.Ctx) error
+type PostElasticKeysElasticKeyIDDecryptResponseObject interface {
+	VisitPostElasticKeysElasticKeyIDDecryptResponse(ctx *fiber.Ctx) error
 }
 
-type PostElastickeyElasticKeyIDDecrypt200TextResponse string
+type PostElasticKeysElasticKeyIDDecrypt200TextResponse string
 
-func (response PostElastickeyElasticKeyIDDecrypt200TextResponse) VisitPostElastickeyElasticKeyIDDecryptResponse(ctx *fiber.Ctx) error {
+func (response PostElasticKeysElasticKeyIDDecrypt200TextResponse) VisitPostElasticKeysElasticKeyIDDecryptResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "text/plain")
 	ctx.Status(200)
 
@@ -1379,48 +1416,48 @@ func (response PostElastickeyElasticKeyIDDecrypt200TextResponse) VisitPostElasti
 	return err
 }
 
-type PostElastickeyElasticKeyIDDecrypt400JSONResponse struct{ BadRequestJSONResponse }
+type PostElasticKeysElasticKeyIDDecrypt400JSONResponse struct{ BadRequestJSONResponse }
 
-func (response PostElastickeyElasticKeyIDDecrypt400JSONResponse) VisitPostElastickeyElasticKeyIDDecryptResponse(ctx *fiber.Ctx) error {
+func (response PostElasticKeysElasticKeyIDDecrypt400JSONResponse) VisitPostElasticKeysElasticKeyIDDecryptResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
 	ctx.Status(400)
 
 	return ctx.JSON(&response)
 }
 
-type PostElastickeyElasticKeyIDDecrypt404JSONResponse struct{ NotFoundJSONResponse }
+type PostElasticKeysElasticKeyIDDecrypt404JSONResponse struct{ NotFoundJSONResponse }
 
-func (response PostElastickeyElasticKeyIDDecrypt404JSONResponse) VisitPostElastickeyElasticKeyIDDecryptResponse(ctx *fiber.Ctx) error {
+func (response PostElasticKeysElasticKeyIDDecrypt404JSONResponse) VisitPostElasticKeysElasticKeyIDDecryptResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
 	ctx.Status(404)
 
 	return ctx.JSON(&response)
 }
 
-type PostElastickeyElasticKeyIDDecrypt500JSONResponse struct {
+type PostElasticKeysElasticKeyIDDecrypt500JSONResponse struct {
 	InternalServerErrorJSONResponse
 }
 
-func (response PostElastickeyElasticKeyIDDecrypt500JSONResponse) VisitPostElastickeyElasticKeyIDDecryptResponse(ctx *fiber.Ctx) error {
+func (response PostElasticKeysElasticKeyIDDecrypt500JSONResponse) VisitPostElasticKeysElasticKeyIDDecryptResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
 	ctx.Status(500)
 
 	return ctx.JSON(&response)
 }
 
-type PostElastickeyElasticKeyIDEncryptRequestObject struct {
+type PostElasticKeysElasticKeyIDEncryptRequestObject struct {
 	ElasticKeyID ElasticKeyID `json:"elasticKeyID"`
-	Params       PostElastickeyElasticKeyIDEncryptParams
-	Body         *PostElastickeyElasticKeyIDEncryptTextRequestBody
+	Params       PostElasticKeysElasticKeyIDEncryptParams
+	Body         *PostElasticKeysElasticKeyIDEncryptTextRequestBody
 }
 
-type PostElastickeyElasticKeyIDEncryptResponseObject interface {
-	VisitPostElastickeyElasticKeyIDEncryptResponse(ctx *fiber.Ctx) error
+type PostElasticKeysElasticKeyIDEncryptResponseObject interface {
+	VisitPostElasticKeysElasticKeyIDEncryptResponse(ctx *fiber.Ctx) error
 }
 
-type PostElastickeyElasticKeyIDEncrypt200TextResponse string
+type PostElasticKeysElasticKeyIDEncrypt200TextResponse string
 
-func (response PostElastickeyElasticKeyIDEncrypt200TextResponse) VisitPostElastickeyElasticKeyIDEncryptResponse(ctx *fiber.Ctx) error {
+func (response PostElasticKeysElasticKeyIDEncrypt200TextResponse) VisitPostElasticKeysElasticKeyIDEncryptResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "text/plain")
 	ctx.Status(200)
 
@@ -1428,47 +1465,47 @@ func (response PostElastickeyElasticKeyIDEncrypt200TextResponse) VisitPostElasti
 	return err
 }
 
-type PostElastickeyElasticKeyIDEncrypt400JSONResponse struct{ BadRequestJSONResponse }
+type PostElasticKeysElasticKeyIDEncrypt400JSONResponse struct{ BadRequestJSONResponse }
 
-func (response PostElastickeyElasticKeyIDEncrypt400JSONResponse) VisitPostElastickeyElasticKeyIDEncryptResponse(ctx *fiber.Ctx) error {
+func (response PostElasticKeysElasticKeyIDEncrypt400JSONResponse) VisitPostElasticKeysElasticKeyIDEncryptResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
 	ctx.Status(400)
 
 	return ctx.JSON(&response)
 }
 
-type PostElastickeyElasticKeyIDEncrypt404JSONResponse struct{ NotFoundJSONResponse }
+type PostElasticKeysElasticKeyIDEncrypt404JSONResponse struct{ NotFoundJSONResponse }
 
-func (response PostElastickeyElasticKeyIDEncrypt404JSONResponse) VisitPostElastickeyElasticKeyIDEncryptResponse(ctx *fiber.Ctx) error {
+func (response PostElasticKeysElasticKeyIDEncrypt404JSONResponse) VisitPostElasticKeysElasticKeyIDEncryptResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
 	ctx.Status(404)
 
 	return ctx.JSON(&response)
 }
 
-type PostElastickeyElasticKeyIDEncrypt500JSONResponse struct {
+type PostElasticKeysElasticKeyIDEncrypt500JSONResponse struct {
 	InternalServerErrorJSONResponse
 }
 
-func (response PostElastickeyElasticKeyIDEncrypt500JSONResponse) VisitPostElastickeyElasticKeyIDEncryptResponse(ctx *fiber.Ctx) error {
+func (response PostElasticKeysElasticKeyIDEncrypt500JSONResponse) VisitPostElasticKeysElasticKeyIDEncryptResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
 	ctx.Status(500)
 
 	return ctx.JSON(&response)
 }
 
-type PostElastickeyElasticKeyIDGenerateRequestObject struct {
+type PostElasticKeysElasticKeyIDGenerateRequestObject struct {
 	ElasticKeyID ElasticKeyID `json:"elasticKeyID"`
-	Params       PostElastickeyElasticKeyIDGenerateParams
+	Params       PostElasticKeysElasticKeyIDGenerateParams
 }
 
-type PostElastickeyElasticKeyIDGenerateResponseObject interface {
-	VisitPostElastickeyElasticKeyIDGenerateResponse(ctx *fiber.Ctx) error
+type PostElasticKeysElasticKeyIDGenerateResponseObject interface {
+	VisitPostElasticKeysElasticKeyIDGenerateResponse(ctx *fiber.Ctx) error
 }
 
-type PostElastickeyElasticKeyIDGenerate200TextResponse string
+type PostElasticKeysElasticKeyIDGenerate200TextResponse string
 
-func (response PostElastickeyElasticKeyIDGenerate200TextResponse) VisitPostElastickeyElasticKeyIDGenerateResponse(ctx *fiber.Ctx) error {
+func (response PostElasticKeysElasticKeyIDGenerate200TextResponse) VisitPostElasticKeysElasticKeyIDGenerateResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "text/plain")
 	ctx.Status(200)
 
@@ -1476,327 +1513,327 @@ func (response PostElastickeyElasticKeyIDGenerate200TextResponse) VisitPostElast
 	return err
 }
 
-type PostElastickeyElasticKeyIDGenerate400JSONResponse struct{ BadRequestJSONResponse }
+type PostElasticKeysElasticKeyIDGenerate400JSONResponse struct{ BadRequestJSONResponse }
 
-func (response PostElastickeyElasticKeyIDGenerate400JSONResponse) VisitPostElastickeyElasticKeyIDGenerateResponse(ctx *fiber.Ctx) error {
+func (response PostElasticKeysElasticKeyIDGenerate400JSONResponse) VisitPostElasticKeysElasticKeyIDGenerateResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
 	ctx.Status(400)
 
 	return ctx.JSON(&response)
 }
 
-type PostElastickeyElasticKeyIDGenerate404JSONResponse struct{ NotFoundJSONResponse }
+type PostElasticKeysElasticKeyIDGenerate404JSONResponse struct{ NotFoundJSONResponse }
 
-func (response PostElastickeyElasticKeyIDGenerate404JSONResponse) VisitPostElastickeyElasticKeyIDGenerateResponse(ctx *fiber.Ctx) error {
+func (response PostElasticKeysElasticKeyIDGenerate404JSONResponse) VisitPostElasticKeysElasticKeyIDGenerateResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
 	ctx.Status(404)
 
 	return ctx.JSON(&response)
 }
 
-type PostElastickeyElasticKeyIDGenerate500JSONResponse struct {
+type PostElasticKeysElasticKeyIDGenerate500JSONResponse struct {
 	InternalServerErrorJSONResponse
 }
 
-func (response PostElastickeyElasticKeyIDGenerate500JSONResponse) VisitPostElastickeyElasticKeyIDGenerateResponse(ctx *fiber.Ctx) error {
+func (response PostElasticKeysElasticKeyIDGenerate500JSONResponse) VisitPostElasticKeysElasticKeyIDGenerateResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
 	ctx.Status(500)
 
 	return ctx.JSON(&response)
 }
 
-type PostElastickeyElasticKeyIDImportRequestObject struct {
+type PostElasticKeysElasticKeyIDImportRequestObject struct {
 	ElasticKeyID ElasticKeyID `json:"elasticKeyID"`
-	Body         *PostElastickeyElasticKeyIDImportJSONRequestBody
+	Body         *PostElasticKeysElasticKeyIDImportJSONRequestBody
 }
 
-type PostElastickeyElasticKeyIDImportResponseObject interface {
-	VisitPostElastickeyElasticKeyIDImportResponse(ctx *fiber.Ctx) error
+type PostElasticKeysElasticKeyIDImportResponseObject interface {
+	VisitPostElasticKeysElasticKeyIDImportResponse(ctx *fiber.Ctx) error
 }
 
-type PostElastickeyElasticKeyIDImport200JSONResponse MaterialKey
+type PostElasticKeysElasticKeyIDImport200JSONResponse MaterialKey
 
-func (response PostElastickeyElasticKeyIDImport200JSONResponse) VisitPostElastickeyElasticKeyIDImportResponse(ctx *fiber.Ctx) error {
+func (response PostElasticKeysElasticKeyIDImport200JSONResponse) VisitPostElasticKeysElasticKeyIDImportResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
 	ctx.Status(200)
 
 	return ctx.JSON(&response)
 }
 
-type PostElastickeyElasticKeyIDImport400JSONResponse struct{ BadRequestJSONResponse }
+type PostElasticKeysElasticKeyIDImport400JSONResponse struct{ BadRequestJSONResponse }
 
-func (response PostElastickeyElasticKeyIDImport400JSONResponse) VisitPostElastickeyElasticKeyIDImportResponse(ctx *fiber.Ctx) error {
+func (response PostElasticKeysElasticKeyIDImport400JSONResponse) VisitPostElasticKeysElasticKeyIDImportResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
 	ctx.Status(400)
 
 	return ctx.JSON(&response)
 }
 
-type PostElastickeyElasticKeyIDImport404JSONResponse struct{ NotFoundJSONResponse }
+type PostElasticKeysElasticKeyIDImport404JSONResponse struct{ NotFoundJSONResponse }
 
-func (response PostElastickeyElasticKeyIDImport404JSONResponse) VisitPostElastickeyElasticKeyIDImportResponse(ctx *fiber.Ctx) error {
+func (response PostElasticKeysElasticKeyIDImport404JSONResponse) VisitPostElasticKeysElasticKeyIDImportResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
 	ctx.Status(404)
 
 	return ctx.JSON(&response)
 }
 
-type PostElastickeyElasticKeyIDImport500JSONResponse struct {
+type PostElasticKeysElasticKeyIDImport500JSONResponse struct {
 	InternalServerErrorJSONResponse
 }
 
-func (response PostElastickeyElasticKeyIDImport500JSONResponse) VisitPostElastickeyElasticKeyIDImportResponse(ctx *fiber.Ctx) error {
+func (response PostElasticKeysElasticKeyIDImport500JSONResponse) VisitPostElasticKeysElasticKeyIDImportResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
 	ctx.Status(500)
 
 	return ctx.JSON(&response)
 }
 
-type PostElastickeyElasticKeyIDMaterialkeyRequestObject struct {
+type GetElasticKeysElasticKeyIDMaterialKeysRequestObject struct {
 	ElasticKeyID ElasticKeyID `json:"elasticKeyID"`
-	Body         *PostElastickeyElasticKeyIDMaterialkeyJSONRequestBody
+	Params       GetElasticKeysElasticKeyIDMaterialKeysParams
 }
 
-type PostElastickeyElasticKeyIDMaterialkeyResponseObject interface {
-	VisitPostElastickeyElasticKeyIDMaterialkeyResponse(ctx *fiber.Ctx) error
+type GetElasticKeysElasticKeyIDMaterialKeysResponseObject interface {
+	VisitGetElasticKeysElasticKeyIDMaterialKeysResponse(ctx *fiber.Ctx) error
 }
 
-type PostElastickeyElasticKeyIDMaterialkey200JSONResponse MaterialKey
+type GetElasticKeysElasticKeyIDMaterialKeys200JSONResponse []MaterialKey
 
-func (response PostElastickeyElasticKeyIDMaterialkey200JSONResponse) VisitPostElastickeyElasticKeyIDMaterialkeyResponse(ctx *fiber.Ctx) error {
+func (response GetElasticKeysElasticKeyIDMaterialKeys200JSONResponse) VisitGetElasticKeysElasticKeyIDMaterialKeysResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
 	ctx.Status(200)
 
 	return ctx.JSON(&response)
 }
 
-type PostElastickeyElasticKeyIDMaterialkey400JSONResponse struct{ BadRequestJSONResponse }
+type GetElasticKeysElasticKeyIDMaterialKeys400JSONResponse struct{ BadRequestJSONResponse }
 
-func (response PostElastickeyElasticKeyIDMaterialkey400JSONResponse) VisitPostElastickeyElasticKeyIDMaterialkeyResponse(ctx *fiber.Ctx) error {
+func (response GetElasticKeysElasticKeyIDMaterialKeys400JSONResponse) VisitGetElasticKeysElasticKeyIDMaterialKeysResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
 	ctx.Status(400)
 
 	return ctx.JSON(&response)
 }
 
-type PostElastickeyElasticKeyIDMaterialkey404JSONResponse struct{ NotFoundJSONResponse }
+type GetElasticKeysElasticKeyIDMaterialKeys404JSONResponse struct{ NotFoundJSONResponse }
 
-func (response PostElastickeyElasticKeyIDMaterialkey404JSONResponse) VisitPostElastickeyElasticKeyIDMaterialkeyResponse(ctx *fiber.Ctx) error {
+func (response GetElasticKeysElasticKeyIDMaterialKeys404JSONResponse) VisitGetElasticKeysElasticKeyIDMaterialKeysResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
 	ctx.Status(404)
 
 	return ctx.JSON(&response)
 }
 
-type PostElastickeyElasticKeyIDMaterialkey500JSONResponse struct {
+type GetElasticKeysElasticKeyIDMaterialKeys500JSONResponse struct {
 	InternalServerErrorJSONResponse
 }
 
-func (response PostElastickeyElasticKeyIDMaterialkey500JSONResponse) VisitPostElastickeyElasticKeyIDMaterialkeyResponse(ctx *fiber.Ctx) error {
+func (response GetElasticKeysElasticKeyIDMaterialKeys500JSONResponse) VisitGetElasticKeysElasticKeyIDMaterialKeysResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
 	ctx.Status(500)
 
 	return ctx.JSON(&response)
 }
 
-type DeleteElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRequestObject struct {
+type PostElasticKeysElasticKeyIDMaterialKeysRequestObject struct {
+	ElasticKeyID ElasticKeyID `json:"elasticKeyID"`
+	Body         *PostElasticKeysElasticKeyIDMaterialKeysJSONRequestBody
+}
+
+type PostElasticKeysElasticKeyIDMaterialKeysResponseObject interface {
+	VisitPostElasticKeysElasticKeyIDMaterialKeysResponse(ctx *fiber.Ctx) error
+}
+
+type PostElasticKeysElasticKeyIDMaterialKeys200JSONResponse MaterialKey
+
+func (response PostElasticKeysElasticKeyIDMaterialKeys200JSONResponse) VisitPostElasticKeysElasticKeyIDMaterialKeysResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/json")
+	ctx.Status(200)
+
+	return ctx.JSON(&response)
+}
+
+type PostElasticKeysElasticKeyIDMaterialKeys400JSONResponse struct{ BadRequestJSONResponse }
+
+func (response PostElasticKeysElasticKeyIDMaterialKeys400JSONResponse) VisitPostElasticKeysElasticKeyIDMaterialKeysResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/json")
+	ctx.Status(400)
+
+	return ctx.JSON(&response)
+}
+
+type PostElasticKeysElasticKeyIDMaterialKeys404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response PostElasticKeysElasticKeyIDMaterialKeys404JSONResponse) VisitPostElasticKeysElasticKeyIDMaterialKeysResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/json")
+	ctx.Status(404)
+
+	return ctx.JSON(&response)
+}
+
+type PostElasticKeysElasticKeyIDMaterialKeys500JSONResponse struct {
+	InternalServerErrorJSONResponse
+}
+
+func (response PostElasticKeysElasticKeyIDMaterialKeys500JSONResponse) VisitPostElasticKeysElasticKeyIDMaterialKeysResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/json")
+	ctx.Status(500)
+
+	return ctx.JSON(&response)
+}
+
+type DeleteElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDRequestObject struct {
 	ElasticKeyID  ElasticKeyID  `json:"elasticKeyID"`
 	MaterialKeyID MaterialKeyID `json:"materialKeyID"`
 }
 
-type DeleteElastickeyElasticKeyIDMaterialkeyMaterialKeyIDResponseObject interface {
-	VisitDeleteElastickeyElasticKeyIDMaterialkeyMaterialKeyIDResponse(ctx *fiber.Ctx) error
+type DeleteElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDResponseObject interface {
+	VisitDeleteElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDResponse(ctx *fiber.Ctx) error
 }
 
-type DeleteElastickeyElasticKeyIDMaterialkeyMaterialKeyID204Response struct {
+type DeleteElasticKeysElasticKeyIDMaterialKeysMaterialKeyID204Response struct {
 }
 
-func (response DeleteElastickeyElasticKeyIDMaterialkeyMaterialKeyID204Response) VisitDeleteElastickeyElasticKeyIDMaterialkeyMaterialKeyIDResponse(ctx *fiber.Ctx) error {
+func (response DeleteElasticKeysElasticKeyIDMaterialKeysMaterialKeyID204Response) VisitDeleteElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDResponse(ctx *fiber.Ctx) error {
 	ctx.Status(204)
 	return nil
 }
 
-type DeleteElastickeyElasticKeyIDMaterialkeyMaterialKeyID400JSONResponse struct{ BadRequestJSONResponse }
+type DeleteElasticKeysElasticKeyIDMaterialKeysMaterialKeyID400JSONResponse struct{ BadRequestJSONResponse }
 
-func (response DeleteElastickeyElasticKeyIDMaterialkeyMaterialKeyID400JSONResponse) VisitDeleteElastickeyElasticKeyIDMaterialkeyMaterialKeyIDResponse(ctx *fiber.Ctx) error {
+func (response DeleteElasticKeysElasticKeyIDMaterialKeysMaterialKeyID400JSONResponse) VisitDeleteElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
 	ctx.Status(400)
 
 	return ctx.JSON(&response)
 }
 
-type DeleteElastickeyElasticKeyIDMaterialkeyMaterialKeyID404JSONResponse struct{ NotFoundJSONResponse }
+type DeleteElasticKeysElasticKeyIDMaterialKeysMaterialKeyID404JSONResponse struct{ NotFoundJSONResponse }
 
-func (response DeleteElastickeyElasticKeyIDMaterialkeyMaterialKeyID404JSONResponse) VisitDeleteElastickeyElasticKeyIDMaterialkeyMaterialKeyIDResponse(ctx *fiber.Ctx) error {
+func (response DeleteElasticKeysElasticKeyIDMaterialKeysMaterialKeyID404JSONResponse) VisitDeleteElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
 	ctx.Status(404)
 
 	return ctx.JSON(&response)
 }
 
-type DeleteElastickeyElasticKeyIDMaterialkeyMaterialKeyID500JSONResponse struct {
+type DeleteElasticKeysElasticKeyIDMaterialKeysMaterialKeyID500JSONResponse struct {
 	InternalServerErrorJSONResponse
 }
 
-func (response DeleteElastickeyElasticKeyIDMaterialkeyMaterialKeyID500JSONResponse) VisitDeleteElastickeyElasticKeyIDMaterialkeyMaterialKeyIDResponse(ctx *fiber.Ctx) error {
+func (response DeleteElasticKeysElasticKeyIDMaterialKeysMaterialKeyID500JSONResponse) VisitDeleteElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
 	ctx.Status(500)
 
 	return ctx.JSON(&response)
 }
 
-type GetElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRequestObject struct {
+type GetElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDRequestObject struct {
 	ElasticKeyID  ElasticKeyID  `json:"elasticKeyID"`
 	MaterialKeyID MaterialKeyID `json:"materialKeyID"`
 }
 
-type GetElastickeyElasticKeyIDMaterialkeyMaterialKeyIDResponseObject interface {
-	VisitGetElastickeyElasticKeyIDMaterialkeyMaterialKeyIDResponse(ctx *fiber.Ctx) error
+type GetElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDResponseObject interface {
+	VisitGetElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDResponse(ctx *fiber.Ctx) error
 }
 
-type GetElastickeyElasticKeyIDMaterialkeyMaterialKeyID200JSONResponse MaterialKey
+type GetElasticKeysElasticKeyIDMaterialKeysMaterialKeyID200JSONResponse MaterialKey
 
-func (response GetElastickeyElasticKeyIDMaterialkeyMaterialKeyID200JSONResponse) VisitGetElastickeyElasticKeyIDMaterialkeyMaterialKeyIDResponse(ctx *fiber.Ctx) error {
+func (response GetElasticKeysElasticKeyIDMaterialKeysMaterialKeyID200JSONResponse) VisitGetElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
 	ctx.Status(200)
 
 	return ctx.JSON(&response)
 }
 
-type GetElastickeyElasticKeyIDMaterialkeyMaterialKeyID400JSONResponse struct{ BadRequestJSONResponse }
+type GetElasticKeysElasticKeyIDMaterialKeysMaterialKeyID400JSONResponse struct{ BadRequestJSONResponse }
 
-func (response GetElastickeyElasticKeyIDMaterialkeyMaterialKeyID400JSONResponse) VisitGetElastickeyElasticKeyIDMaterialkeyMaterialKeyIDResponse(ctx *fiber.Ctx) error {
+func (response GetElasticKeysElasticKeyIDMaterialKeysMaterialKeyID400JSONResponse) VisitGetElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
 	ctx.Status(400)
 
 	return ctx.JSON(&response)
 }
 
-type GetElastickeyElasticKeyIDMaterialkeyMaterialKeyID404JSONResponse struct{ NotFoundJSONResponse }
+type GetElasticKeysElasticKeyIDMaterialKeysMaterialKeyID404JSONResponse struct{ NotFoundJSONResponse }
 
-func (response GetElastickeyElasticKeyIDMaterialkeyMaterialKeyID404JSONResponse) VisitGetElastickeyElasticKeyIDMaterialkeyMaterialKeyIDResponse(ctx *fiber.Ctx) error {
+func (response GetElasticKeysElasticKeyIDMaterialKeysMaterialKeyID404JSONResponse) VisitGetElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
 	ctx.Status(404)
 
 	return ctx.JSON(&response)
 }
 
-type GetElastickeyElasticKeyIDMaterialkeyMaterialKeyID500JSONResponse struct {
+type GetElasticKeysElasticKeyIDMaterialKeysMaterialKeyID500JSONResponse struct {
 	InternalServerErrorJSONResponse
 }
 
-func (response GetElastickeyElasticKeyIDMaterialkeyMaterialKeyID500JSONResponse) VisitGetElastickeyElasticKeyIDMaterialkeyMaterialKeyIDResponse(ctx *fiber.Ctx) error {
+func (response GetElasticKeysElasticKeyIDMaterialKeysMaterialKeyID500JSONResponse) VisitGetElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
 	ctx.Status(500)
 
 	return ctx.JSON(&response)
 }
 
-type PostElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRevokeRequestObject struct {
+type PostElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDRevokeRequestObject struct {
 	ElasticKeyID  ElasticKeyID  `json:"elasticKeyID"`
 	MaterialKeyID MaterialKeyID `json:"materialKeyID"`
 }
 
-type PostElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRevokeResponseObject interface {
-	VisitPostElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRevokeResponse(ctx *fiber.Ctx) error
+type PostElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDRevokeResponseObject interface {
+	VisitPostElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDRevokeResponse(ctx *fiber.Ctx) error
 }
 
-type PostElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRevoke204Response struct {
+type PostElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDRevoke204Response struct {
 }
 
-func (response PostElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRevoke204Response) VisitPostElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRevokeResponse(ctx *fiber.Ctx) error {
+func (response PostElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDRevoke204Response) VisitPostElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDRevokeResponse(ctx *fiber.Ctx) error {
 	ctx.Status(204)
 	return nil
 }
 
-type PostElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRevoke400JSONResponse struct{ BadRequestJSONResponse }
+type PostElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDRevoke400JSONResponse struct{ BadRequestJSONResponse }
 
-func (response PostElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRevoke400JSONResponse) VisitPostElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRevokeResponse(ctx *fiber.Ctx) error {
+func (response PostElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDRevoke400JSONResponse) VisitPostElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDRevokeResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
 	ctx.Status(400)
 
 	return ctx.JSON(&response)
 }
 
-type PostElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRevoke404JSONResponse struct{ NotFoundJSONResponse }
+type PostElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDRevoke404JSONResponse struct{ NotFoundJSONResponse }
 
-func (response PostElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRevoke404JSONResponse) VisitPostElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRevokeResponse(ctx *fiber.Ctx) error {
+func (response PostElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDRevoke404JSONResponse) VisitPostElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDRevokeResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
 	ctx.Status(404)
 
 	return ctx.JSON(&response)
 }
 
-type PostElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRevoke500JSONResponse struct {
+type PostElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDRevoke500JSONResponse struct {
 	InternalServerErrorJSONResponse
 }
 
-func (response PostElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRevoke500JSONResponse) VisitPostElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRevokeResponse(ctx *fiber.Ctx) error {
+func (response PostElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDRevoke500JSONResponse) VisitPostElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDRevokeResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
 	ctx.Status(500)
 
 	return ctx.JSON(&response)
 }
 
-type GetElastickeyElasticKeyIDMaterialkeysRequestObject struct {
+type PostElasticKeysElasticKeyIDSignRequestObject struct {
 	ElasticKeyID ElasticKeyID `json:"elasticKeyID"`
-	Params       GetElastickeyElasticKeyIDMaterialkeysParams
+	Body         *PostElasticKeysElasticKeyIDSignTextRequestBody
 }
 
-type GetElastickeyElasticKeyIDMaterialkeysResponseObject interface {
-	VisitGetElastickeyElasticKeyIDMaterialkeysResponse(ctx *fiber.Ctx) error
+type PostElasticKeysElasticKeyIDSignResponseObject interface {
+	VisitPostElasticKeysElasticKeyIDSignResponse(ctx *fiber.Ctx) error
 }
 
-type GetElastickeyElasticKeyIDMaterialkeys200JSONResponse []MaterialKey
+type PostElasticKeysElasticKeyIDSign200TextResponse string
 
-func (response GetElastickeyElasticKeyIDMaterialkeys200JSONResponse) VisitGetElastickeyElasticKeyIDMaterialkeysResponse(ctx *fiber.Ctx) error {
-	ctx.Response().Header.Set("Content-Type", "application/json")
-	ctx.Status(200)
-
-	return ctx.JSON(&response)
-}
-
-type GetElastickeyElasticKeyIDMaterialkeys400JSONResponse struct{ BadRequestJSONResponse }
-
-func (response GetElastickeyElasticKeyIDMaterialkeys400JSONResponse) VisitGetElastickeyElasticKeyIDMaterialkeysResponse(ctx *fiber.Ctx) error {
-	ctx.Response().Header.Set("Content-Type", "application/json")
-	ctx.Status(400)
-
-	return ctx.JSON(&response)
-}
-
-type GetElastickeyElasticKeyIDMaterialkeys404JSONResponse struct{ NotFoundJSONResponse }
-
-func (response GetElastickeyElasticKeyIDMaterialkeys404JSONResponse) VisitGetElastickeyElasticKeyIDMaterialkeysResponse(ctx *fiber.Ctx) error {
-	ctx.Response().Header.Set("Content-Type", "application/json")
-	ctx.Status(404)
-
-	return ctx.JSON(&response)
-}
-
-type GetElastickeyElasticKeyIDMaterialkeys500JSONResponse struct {
-	InternalServerErrorJSONResponse
-}
-
-func (response GetElastickeyElasticKeyIDMaterialkeys500JSONResponse) VisitGetElastickeyElasticKeyIDMaterialkeysResponse(ctx *fiber.Ctx) error {
-	ctx.Response().Header.Set("Content-Type", "application/json")
-	ctx.Status(500)
-
-	return ctx.JSON(&response)
-}
-
-type PostElastickeyElasticKeyIDSignRequestObject struct {
-	ElasticKeyID ElasticKeyID `json:"elasticKeyID"`
-	Body         *PostElastickeyElasticKeyIDSignTextRequestBody
-}
-
-type PostElastickeyElasticKeyIDSignResponseObject interface {
-	VisitPostElastickeyElasticKeyIDSignResponse(ctx *fiber.Ctx) error
-}
-
-type PostElastickeyElasticKeyIDSign200TextResponse string
-
-func (response PostElastickeyElasticKeyIDSign200TextResponse) VisitPostElastickeyElasticKeyIDSignResponse(ctx *fiber.Ctx) error {
+func (response PostElasticKeysElasticKeyIDSign200TextResponse) VisitPostElasticKeysElasticKeyIDSignResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "text/plain")
 	ctx.Status(200)
 
@@ -1804,149 +1841,112 @@ func (response PostElastickeyElasticKeyIDSign200TextResponse) VisitPostElasticke
 	return err
 }
 
-type PostElastickeyElasticKeyIDSign400JSONResponse struct{ BadRequestJSONResponse }
+type PostElasticKeysElasticKeyIDSign400JSONResponse struct{ BadRequestJSONResponse }
 
-func (response PostElastickeyElasticKeyIDSign400JSONResponse) VisitPostElastickeyElasticKeyIDSignResponse(ctx *fiber.Ctx) error {
+func (response PostElasticKeysElasticKeyIDSign400JSONResponse) VisitPostElasticKeysElasticKeyIDSignResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
 	ctx.Status(400)
 
 	return ctx.JSON(&response)
 }
 
-type PostElastickeyElasticKeyIDSign404JSONResponse struct{ NotFoundJSONResponse }
+type PostElasticKeysElasticKeyIDSign404JSONResponse struct{ NotFoundJSONResponse }
 
-func (response PostElastickeyElasticKeyIDSign404JSONResponse) VisitPostElastickeyElasticKeyIDSignResponse(ctx *fiber.Ctx) error {
+func (response PostElasticKeysElasticKeyIDSign404JSONResponse) VisitPostElasticKeysElasticKeyIDSignResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
 	ctx.Status(404)
 
 	return ctx.JSON(&response)
 }
 
-type PostElastickeyElasticKeyIDSign500JSONResponse struct {
+type PostElasticKeysElasticKeyIDSign500JSONResponse struct {
 	InternalServerErrorJSONResponse
 }
 
-func (response PostElastickeyElasticKeyIDSign500JSONResponse) VisitPostElastickeyElasticKeyIDSignResponse(ctx *fiber.Ctx) error {
+func (response PostElasticKeysElasticKeyIDSign500JSONResponse) VisitPostElasticKeysElasticKeyIDSignResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
 	ctx.Status(500)
 
 	return ctx.JSON(&response)
 }
 
-type PostElastickeyElasticKeyIDVerifyRequestObject struct {
+type PostElasticKeysElasticKeyIDVerifyRequestObject struct {
 	ElasticKeyID ElasticKeyID `json:"elasticKeyID"`
-	Body         *PostElastickeyElasticKeyIDVerifyTextRequestBody
+	Body         *PostElasticKeysElasticKeyIDVerifyTextRequestBody
 }
 
-type PostElastickeyElasticKeyIDVerifyResponseObject interface {
-	VisitPostElastickeyElasticKeyIDVerifyResponse(ctx *fiber.Ctx) error
+type PostElasticKeysElasticKeyIDVerifyResponseObject interface {
+	VisitPostElasticKeysElasticKeyIDVerifyResponse(ctx *fiber.Ctx) error
 }
 
-type PostElastickeyElasticKeyIDVerify204Response struct {
+type PostElasticKeysElasticKeyIDVerify204Response struct {
 }
 
-func (response PostElastickeyElasticKeyIDVerify204Response) VisitPostElastickeyElasticKeyIDVerifyResponse(ctx *fiber.Ctx) error {
+func (response PostElasticKeysElasticKeyIDVerify204Response) VisitPostElasticKeysElasticKeyIDVerifyResponse(ctx *fiber.Ctx) error {
 	ctx.Status(204)
 	return nil
 }
 
-type PostElastickeyElasticKeyIDVerify400JSONResponse struct{ BadRequestJSONResponse }
+type PostElasticKeysElasticKeyIDVerify400JSONResponse struct{ BadRequestJSONResponse }
 
-func (response PostElastickeyElasticKeyIDVerify400JSONResponse) VisitPostElastickeyElasticKeyIDVerifyResponse(ctx *fiber.Ctx) error {
+func (response PostElasticKeysElasticKeyIDVerify400JSONResponse) VisitPostElasticKeysElasticKeyIDVerifyResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
 	ctx.Status(400)
 
 	return ctx.JSON(&response)
 }
 
-type PostElastickeyElasticKeyIDVerify404JSONResponse struct{ NotFoundJSONResponse }
+type PostElasticKeysElasticKeyIDVerify404JSONResponse struct{ NotFoundJSONResponse }
 
-func (response PostElastickeyElasticKeyIDVerify404JSONResponse) VisitPostElastickeyElasticKeyIDVerifyResponse(ctx *fiber.Ctx) error {
+func (response PostElasticKeysElasticKeyIDVerify404JSONResponse) VisitPostElasticKeysElasticKeyIDVerifyResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
 	ctx.Status(404)
 
 	return ctx.JSON(&response)
 }
 
-type PostElastickeyElasticKeyIDVerify500JSONResponse struct {
+type PostElasticKeysElasticKeyIDVerify500JSONResponse struct {
 	InternalServerErrorJSONResponse
 }
 
-func (response PostElastickeyElasticKeyIDVerify500JSONResponse) VisitPostElastickeyElasticKeyIDVerifyResponse(ctx *fiber.Ctx) error {
+func (response PostElasticKeysElasticKeyIDVerify500JSONResponse) VisitPostElasticKeysElasticKeyIDVerifyResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
 	ctx.Status(500)
 
 	return ctx.JSON(&response)
 }
 
-type GetElastickeysRequestObject struct {
-	Params GetElastickeysParams
+type GetMaterialKeysRequestObject struct {
+	Params GetMaterialKeysParams
 }
 
-type GetElastickeysResponseObject interface {
-	VisitGetElastickeysResponse(ctx *fiber.Ctx) error
+type GetMaterialKeysResponseObject interface {
+	VisitGetMaterialKeysResponse(ctx *fiber.Ctx) error
 }
 
-type GetElastickeys200JSONResponse []ElasticKey
+type GetMaterialKeys200JSONResponse []MaterialKey
 
-func (response GetElastickeys200JSONResponse) VisitGetElastickeysResponse(ctx *fiber.Ctx) error {
+func (response GetMaterialKeys200JSONResponse) VisitGetMaterialKeysResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
 	ctx.Status(200)
 
 	return ctx.JSON(&response)
 }
 
-type GetElastickeys400JSONResponse struct{ BadRequestJSONResponse }
+type GetMaterialKeys400JSONResponse struct{ BadRequestJSONResponse }
 
-func (response GetElastickeys400JSONResponse) VisitGetElastickeysResponse(ctx *fiber.Ctx) error {
+func (response GetMaterialKeys400JSONResponse) VisitGetMaterialKeysResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
 	ctx.Status(400)
 
 	return ctx.JSON(&response)
 }
 
-type GetElastickeys500JSONResponse struct {
+type GetMaterialKeys500JSONResponse struct {
 	InternalServerErrorJSONResponse
 }
 
-func (response GetElastickeys500JSONResponse) VisitGetElastickeysResponse(ctx *fiber.Ctx) error {
-	ctx.Response().Header.Set("Content-Type", "application/json")
-	ctx.Status(500)
-
-	return ctx.JSON(&response)
-}
-
-type GetMaterialkeysRequestObject struct {
-	Params GetMaterialkeysParams
-}
-
-type GetMaterialkeysResponseObject interface {
-	VisitGetMaterialkeysResponse(ctx *fiber.Ctx) error
-}
-
-type GetMaterialkeys200JSONResponse []MaterialKey
-
-func (response GetMaterialkeys200JSONResponse) VisitGetMaterialkeysResponse(ctx *fiber.Ctx) error {
-	ctx.Response().Header.Set("Content-Type", "application/json")
-	ctx.Status(200)
-
-	return ctx.JSON(&response)
-}
-
-type GetMaterialkeys400JSONResponse struct{ BadRequestJSONResponse }
-
-func (response GetMaterialkeys400JSONResponse) VisitGetMaterialkeysResponse(ctx *fiber.Ctx) error {
-	ctx.Response().Header.Set("Content-Type", "application/json")
-	ctx.Status(400)
-
-	return ctx.JSON(&response)
-}
-
-type GetMaterialkeys500JSONResponse struct {
-	InternalServerErrorJSONResponse
-}
-
-func (response GetMaterialkeys500JSONResponse) VisitGetMaterialkeysResponse(ctx *fiber.Ctx) error {
+func (response GetMaterialKeys500JSONResponse) VisitGetMaterialKeysResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
 	ctx.Status(500)
 
@@ -1955,57 +1955,57 @@ func (response GetMaterialkeys500JSONResponse) VisitGetMaterialkeysResponse(ctx 
 
 // StrictServerInterface represents all server handlers.
 type StrictServerInterface interface {
-	// Create a new Elastic Key
-	// (POST /elastickey)
-	PostElastickey(ctx context.Context, request PostElastickeyRequestObject) (PostElastickeyResponseObject, error)
-	// Delete Elastic Key
-	// (DELETE /elastickey/{elasticKeyID})
-	DeleteElastickeyElasticKeyID(ctx context.Context, request DeleteElastickeyElasticKeyIDRequestObject) (DeleteElastickeyElasticKeyIDResponseObject, error)
-	// Get Elastic Key by ID
-	// (GET /elastickey/{elasticKeyID})
-	GetElastickeyElasticKeyID(ctx context.Context, request GetElastickeyElasticKeyIDRequestObject) (GetElastickeyElasticKeyIDResponseObject, error)
-	// Update Elastic Key
-	// (PUT /elastickey/{elasticKeyID})
-	PutElastickeyElasticKeyID(ctx context.Context, request PutElastickeyElasticKeyIDRequestObject) (PutElastickeyElasticKeyIDResponseObject, error)
-	// Decrypt ciphertext
-	// (POST /elastickey/{elasticKeyID}/decrypt)
-	PostElastickeyElasticKeyIDDecrypt(ctx context.Context, request PostElastickeyElasticKeyIDDecryptRequestObject) (PostElastickeyElasticKeyIDDecryptResponseObject, error)
-	// Encrypt plaintext
-	// (POST /elastickey/{elasticKeyID}/encrypt)
-	PostElastickeyElasticKeyIDEncrypt(ctx context.Context, request PostElastickeyElasticKeyIDEncryptRequestObject) (PostElastickeyElasticKeyIDEncryptResponseObject, error)
-	// Generate random key material
-	// (POST /elastickey/{elasticKeyID}/generate)
-	PostElastickeyElasticKeyIDGenerate(ctx context.Context, request PostElastickeyElasticKeyIDGenerateRequestObject) (PostElastickeyElasticKeyIDGenerateResponseObject, error)
-	// Import Material Key
-	// (POST /elastickey/{elasticKeyID}/import)
-	PostElastickeyElasticKeyIDImport(ctx context.Context, request PostElastickeyElasticKeyIDImportRequestObject) (PostElastickeyElasticKeyIDImportResponseObject, error)
-	// Generate new Material Key
-	// (POST /elastickey/{elasticKeyID}/materialkey)
-	PostElastickeyElasticKeyIDMaterialkey(ctx context.Context, request PostElastickeyElasticKeyIDMaterialkeyRequestObject) (PostElastickeyElasticKeyIDMaterialkeyResponseObject, error)
-	// Delete Material Key
-	// (DELETE /elastickey/{elasticKeyID}/materialkey/{materialKeyID})
-	DeleteElastickeyElasticKeyIDMaterialkeyMaterialKeyID(ctx context.Context, request DeleteElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRequestObject) (DeleteElastickeyElasticKeyIDMaterialkeyMaterialKeyIDResponseObject, error)
-	// Get Material Key
-	// (GET /elastickey/{elasticKeyID}/materialkey/{materialKeyID})
-	GetElastickeyElasticKeyIDMaterialkeyMaterialKeyID(ctx context.Context, request GetElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRequestObject) (GetElastickeyElasticKeyIDMaterialkeyMaterialKeyIDResponseObject, error)
-	// Revoke Material Key
-	// (POST /elastickey/{elasticKeyID}/materialkey/{materialKeyID}/revoke)
-	PostElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRevoke(ctx context.Context, request PostElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRevokeRequestObject) (PostElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRevokeResponseObject, error)
-	// List Material Keys
-	// (GET /elastickey/{elasticKeyID}/materialkeys)
-	GetElastickeyElasticKeyIDMaterialkeys(ctx context.Context, request GetElastickeyElasticKeyIDMaterialkeysRequestObject) (GetElastickeyElasticKeyIDMaterialkeysResponseObject, error)
-	// Sign payload
-	// (POST /elastickey/{elasticKeyID}/sign)
-	PostElastickeyElasticKeyIDSign(ctx context.Context, request PostElastickeyElasticKeyIDSignRequestObject) (PostElastickeyElasticKeyIDSignResponseObject, error)
-	// Verify signature
-	// (POST /elastickey/{elasticKeyID}/verify)
-	PostElastickeyElasticKeyIDVerify(ctx context.Context, request PostElastickeyElasticKeyIDVerifyRequestObject) (PostElastickeyElasticKeyIDVerifyResponseObject, error)
 	// List Elastic Keys
-	// (GET /elastickeys)
-	GetElastickeys(ctx context.Context, request GetElastickeysRequestObject) (GetElastickeysResponseObject, error)
+	// (GET /elastic-keys)
+	GetElasticKeys(ctx context.Context, request GetElasticKeysRequestObject) (GetElasticKeysResponseObject, error)
+	// Create a new Elastic Key
+	// (POST /elastic-keys)
+	PostElasticKeys(ctx context.Context, request PostElasticKeysRequestObject) (PostElasticKeysResponseObject, error)
+	// Delete Elastic Key
+	// (DELETE /elastic-keys/{elasticKeyID})
+	DeleteElasticKeysElasticKeyID(ctx context.Context, request DeleteElasticKeysElasticKeyIDRequestObject) (DeleteElasticKeysElasticKeyIDResponseObject, error)
+	// Get Elastic Key by ID
+	// (GET /elastic-keys/{elasticKeyID})
+	GetElasticKeysElasticKeyID(ctx context.Context, request GetElasticKeysElasticKeyIDRequestObject) (GetElasticKeysElasticKeyIDResponseObject, error)
+	// Update Elastic Key
+	// (PUT /elastic-keys/{elasticKeyID})
+	PutElasticKeysElasticKeyID(ctx context.Context, request PutElasticKeysElasticKeyIDRequestObject) (PutElasticKeysElasticKeyIDResponseObject, error)
+	// Decrypt ciphertext
+	// (POST /elastic-keys/{elasticKeyID}/decrypt)
+	PostElasticKeysElasticKeyIDDecrypt(ctx context.Context, request PostElasticKeysElasticKeyIDDecryptRequestObject) (PostElasticKeysElasticKeyIDDecryptResponseObject, error)
+	// Encrypt plaintext
+	// (POST /elastic-keys/{elasticKeyID}/encrypt)
+	PostElasticKeysElasticKeyIDEncrypt(ctx context.Context, request PostElasticKeysElasticKeyIDEncryptRequestObject) (PostElasticKeysElasticKeyIDEncryptResponseObject, error)
+	// Generate random key material
+	// (POST /elastic-keys/{elasticKeyID}/generate)
+	PostElasticKeysElasticKeyIDGenerate(ctx context.Context, request PostElasticKeysElasticKeyIDGenerateRequestObject) (PostElasticKeysElasticKeyIDGenerateResponseObject, error)
+	// Import Material Key
+	// (POST /elastic-keys/{elasticKeyID}/import)
+	PostElasticKeysElasticKeyIDImport(ctx context.Context, request PostElasticKeysElasticKeyIDImportRequestObject) (PostElasticKeysElasticKeyIDImportResponseObject, error)
+	// List Material Keys
+	// (GET /elastic-keys/{elasticKeyID}/material-keys)
+	GetElasticKeysElasticKeyIDMaterialKeys(ctx context.Context, request GetElasticKeysElasticKeyIDMaterialKeysRequestObject) (GetElasticKeysElasticKeyIDMaterialKeysResponseObject, error)
+	// Generate new Material Key
+	// (POST /elastic-keys/{elasticKeyID}/material-keys)
+	PostElasticKeysElasticKeyIDMaterialKeys(ctx context.Context, request PostElasticKeysElasticKeyIDMaterialKeysRequestObject) (PostElasticKeysElasticKeyIDMaterialKeysResponseObject, error)
+	// Delete Material Key
+	// (DELETE /elastic-keys/{elasticKeyID}/material-keys/{materialKeyID})
+	DeleteElasticKeysElasticKeyIDMaterialKeysMaterialKeyID(ctx context.Context, request DeleteElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDRequestObject) (DeleteElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDResponseObject, error)
+	// Get Material Key
+	// (GET /elastic-keys/{elasticKeyID}/material-keys/{materialKeyID})
+	GetElasticKeysElasticKeyIDMaterialKeysMaterialKeyID(ctx context.Context, request GetElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDRequestObject) (GetElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDResponseObject, error)
+	// Revoke Material Key
+	// (POST /elastic-keys/{elasticKeyID}/material-keys/{materialKeyID}/revoke)
+	PostElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDRevoke(ctx context.Context, request PostElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDRevokeRequestObject) (PostElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDRevokeResponseObject, error)
+	// Sign payload
+	// (POST /elastic-keys/{elasticKeyID}/sign)
+	PostElasticKeysElasticKeyIDSign(ctx context.Context, request PostElasticKeysElasticKeyIDSignRequestObject) (PostElasticKeysElasticKeyIDSignResponseObject, error)
+	// Verify signature
+	// (POST /elastic-keys/{elasticKeyID}/verify)
+	PostElasticKeysElasticKeyIDVerify(ctx context.Context, request PostElasticKeysElasticKeyIDVerifyRequestObject) (PostElasticKeysElasticKeyIDVerifyResponseObject, error)
 	// List all Material Keys
-	// (GET /materialkeys)
-	GetMaterialkeys(ctx context.Context, request GetMaterialkeysRequestObject) (GetMaterialkeysResponseObject, error)
+	// (GET /material-keys)
+	GetMaterialKeys(ctx context.Context, request GetMaterialKeysRequestObject) (GetMaterialKeysResponseObject, error)
 }
 
 type StrictHandlerFunc func(ctx *fiber.Ctx, args any) (any, error)
@@ -2021,29 +2021,56 @@ type strictHandler struct {
 	middlewares []StrictMiddlewareFunc
 }
 
-// PostElastickey operation middleware
-func (sh *strictHandler) PostElastickey(ctx *fiber.Ctx) error {
-	var request PostElastickeyRequestObject
+// GetElasticKeys operation middleware
+func (sh *strictHandler) GetElasticKeys(ctx *fiber.Ctx, params GetElasticKeysParams) error {
+	var request GetElasticKeysRequestObject
 
-	var body PostElastickeyJSONRequestBody
+	request.Params = params
+
+	handler := func(ctx *fiber.Ctx, request any) (any, error) {
+		return sh.ssi.GetElasticKeys(ctx.UserContext(), request.(GetElasticKeysRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetElasticKeys")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+	} else if validResponse, ok := response.(GetElasticKeysResponseObject); ok {
+		if err := validResponse.VisitGetElasticKeysResponse(ctx); err != nil {
+			return fiber.NewError(fiber.StatusBadRequest, err.Error())
+		}
+	} else if response != nil {
+		return fmt.Errorf("unexpected response type: %T", response)
+	}
+	return nil
+}
+
+// PostElasticKeys operation middleware
+func (sh *strictHandler) PostElasticKeys(ctx *fiber.Ctx) error {
+	var request PostElasticKeysRequestObject
+
+	var body PostElasticKeysJSONRequestBody
 	if err := ctx.BodyParser(&body); err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
 	request.Body = &body
 
 	handler := func(ctx *fiber.Ctx, request any) (any, error) {
-		return sh.ssi.PostElastickey(ctx.UserContext(), request.(PostElastickeyRequestObject))
+		return sh.ssi.PostElasticKeys(ctx.UserContext(), request.(PostElasticKeysRequestObject))
 	}
 	for _, middleware := range sh.middlewares {
-		handler = middleware(handler, "PostElastickey")
+		handler = middleware(handler, "PostElasticKeys")
 	}
 
 	response, err := handler(ctx, request)
 
 	if err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
-	} else if validResponse, ok := response.(PostElastickeyResponseObject); ok {
-		if err := validResponse.VisitPostElastickeyResponse(ctx); err != nil {
+	} else if validResponse, ok := response.(PostElasticKeysResponseObject); ok {
+		if err := validResponse.VisitPostElasticKeysResponse(ctx); err != nil {
 			return fiber.NewError(fiber.StatusBadRequest, err.Error())
 		}
 	} else if response != nil {
@@ -2052,25 +2079,25 @@ func (sh *strictHandler) PostElastickey(ctx *fiber.Ctx) error {
 	return nil
 }
 
-// DeleteElastickeyElasticKeyID operation middleware
-func (sh *strictHandler) DeleteElastickeyElasticKeyID(ctx *fiber.Ctx, elasticKeyID ElasticKeyID) error {
-	var request DeleteElastickeyElasticKeyIDRequestObject
+// DeleteElasticKeysElasticKeyID operation middleware
+func (sh *strictHandler) DeleteElasticKeysElasticKeyID(ctx *fiber.Ctx, elasticKeyID ElasticKeyID) error {
+	var request DeleteElasticKeysElasticKeyIDRequestObject
 
 	request.ElasticKeyID = elasticKeyID
 
 	handler := func(ctx *fiber.Ctx, request any) (any, error) {
-		return sh.ssi.DeleteElastickeyElasticKeyID(ctx.UserContext(), request.(DeleteElastickeyElasticKeyIDRequestObject))
+		return sh.ssi.DeleteElasticKeysElasticKeyID(ctx.UserContext(), request.(DeleteElasticKeysElasticKeyIDRequestObject))
 	}
 	for _, middleware := range sh.middlewares {
-		handler = middleware(handler, "DeleteElastickeyElasticKeyID")
+		handler = middleware(handler, "DeleteElasticKeysElasticKeyID")
 	}
 
 	response, err := handler(ctx, request)
 
 	if err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
-	} else if validResponse, ok := response.(DeleteElastickeyElasticKeyIDResponseObject); ok {
-		if err := validResponse.VisitDeleteElastickeyElasticKeyIDResponse(ctx); err != nil {
+	} else if validResponse, ok := response.(DeleteElasticKeysElasticKeyIDResponseObject); ok {
+		if err := validResponse.VisitDeleteElasticKeysElasticKeyIDResponse(ctx); err != nil {
 			return fiber.NewError(fiber.StatusBadRequest, err.Error())
 		}
 	} else if response != nil {
@@ -2079,25 +2106,25 @@ func (sh *strictHandler) DeleteElastickeyElasticKeyID(ctx *fiber.Ctx, elasticKey
 	return nil
 }
 
-// GetElastickeyElasticKeyID operation middleware
-func (sh *strictHandler) GetElastickeyElasticKeyID(ctx *fiber.Ctx, elasticKeyID ElasticKeyID) error {
-	var request GetElastickeyElasticKeyIDRequestObject
+// GetElasticKeysElasticKeyID operation middleware
+func (sh *strictHandler) GetElasticKeysElasticKeyID(ctx *fiber.Ctx, elasticKeyID ElasticKeyID) error {
+	var request GetElasticKeysElasticKeyIDRequestObject
 
 	request.ElasticKeyID = elasticKeyID
 
 	handler := func(ctx *fiber.Ctx, request any) (any, error) {
-		return sh.ssi.GetElastickeyElasticKeyID(ctx.UserContext(), request.(GetElastickeyElasticKeyIDRequestObject))
+		return sh.ssi.GetElasticKeysElasticKeyID(ctx.UserContext(), request.(GetElasticKeysElasticKeyIDRequestObject))
 	}
 	for _, middleware := range sh.middlewares {
-		handler = middleware(handler, "GetElastickeyElasticKeyID")
+		handler = middleware(handler, "GetElasticKeysElasticKeyID")
 	}
 
 	response, err := handler(ctx, request)
 
 	if err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
-	} else if validResponse, ok := response.(GetElastickeyElasticKeyIDResponseObject); ok {
-		if err := validResponse.VisitGetElastickeyElasticKeyIDResponse(ctx); err != nil {
+	} else if validResponse, ok := response.(GetElasticKeysElasticKeyIDResponseObject); ok {
+		if err := validResponse.VisitGetElasticKeysElasticKeyIDResponse(ctx); err != nil {
 			return fiber.NewError(fiber.StatusBadRequest, err.Error())
 		}
 	} else if response != nil {
@@ -2106,31 +2133,31 @@ func (sh *strictHandler) GetElastickeyElasticKeyID(ctx *fiber.Ctx, elasticKeyID 
 	return nil
 }
 
-// PutElastickeyElasticKeyID operation middleware
-func (sh *strictHandler) PutElastickeyElasticKeyID(ctx *fiber.Ctx, elasticKeyID ElasticKeyID) error {
-	var request PutElastickeyElasticKeyIDRequestObject
+// PutElasticKeysElasticKeyID operation middleware
+func (sh *strictHandler) PutElasticKeysElasticKeyID(ctx *fiber.Ctx, elasticKeyID ElasticKeyID) error {
+	var request PutElasticKeysElasticKeyIDRequestObject
 
 	request.ElasticKeyID = elasticKeyID
 
-	var body PutElastickeyElasticKeyIDJSONRequestBody
+	var body PutElasticKeysElasticKeyIDJSONRequestBody
 	if err := ctx.BodyParser(&body); err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
 	request.Body = &body
 
 	handler := func(ctx *fiber.Ctx, request any) (any, error) {
-		return sh.ssi.PutElastickeyElasticKeyID(ctx.UserContext(), request.(PutElastickeyElasticKeyIDRequestObject))
+		return sh.ssi.PutElasticKeysElasticKeyID(ctx.UserContext(), request.(PutElasticKeysElasticKeyIDRequestObject))
 	}
 	for _, middleware := range sh.middlewares {
-		handler = middleware(handler, "PutElastickeyElasticKeyID")
+		handler = middleware(handler, "PutElasticKeysElasticKeyID")
 	}
 
 	response, err := handler(ctx, request)
 
 	if err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
-	} else if validResponse, ok := response.(PutElastickeyElasticKeyIDResponseObject); ok {
-		if err := validResponse.VisitPutElastickeyElasticKeyIDResponse(ctx); err != nil {
+	} else if validResponse, ok := response.(PutElasticKeysElasticKeyIDResponseObject); ok {
+		if err := validResponse.VisitPutElasticKeysElasticKeyIDResponse(ctx); err != nil {
 			return fiber.NewError(fiber.StatusBadRequest, err.Error())
 		}
 	} else if response != nil {
@@ -2139,29 +2166,29 @@ func (sh *strictHandler) PutElastickeyElasticKeyID(ctx *fiber.Ctx, elasticKeyID 
 	return nil
 }
 
-// PostElastickeyElasticKeyIDDecrypt operation middleware
-func (sh *strictHandler) PostElastickeyElasticKeyIDDecrypt(ctx *fiber.Ctx, elasticKeyID ElasticKeyID) error {
-	var request PostElastickeyElasticKeyIDDecryptRequestObject
+// PostElasticKeysElasticKeyIDDecrypt operation middleware
+func (sh *strictHandler) PostElasticKeysElasticKeyIDDecrypt(ctx *fiber.Ctx, elasticKeyID ElasticKeyID) error {
+	var request PostElasticKeysElasticKeyIDDecryptRequestObject
 
 	request.ElasticKeyID = elasticKeyID
 
 	data := ctx.Request().Body()
-	body := PostElastickeyElasticKeyIDDecryptTextRequestBody(data)
+	body := PostElasticKeysElasticKeyIDDecryptTextRequestBody(data)
 	request.Body = &body
 
 	handler := func(ctx *fiber.Ctx, request any) (any, error) {
-		return sh.ssi.PostElastickeyElasticKeyIDDecrypt(ctx.UserContext(), request.(PostElastickeyElasticKeyIDDecryptRequestObject))
+		return sh.ssi.PostElasticKeysElasticKeyIDDecrypt(ctx.UserContext(), request.(PostElasticKeysElasticKeyIDDecryptRequestObject))
 	}
 	for _, middleware := range sh.middlewares {
-		handler = middleware(handler, "PostElastickeyElasticKeyIDDecrypt")
+		handler = middleware(handler, "PostElasticKeysElasticKeyIDDecrypt")
 	}
 
 	response, err := handler(ctx, request)
 
 	if err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
-	} else if validResponse, ok := response.(PostElastickeyElasticKeyIDDecryptResponseObject); ok {
-		if err := validResponse.VisitPostElastickeyElasticKeyIDDecryptResponse(ctx); err != nil {
+	} else if validResponse, ok := response.(PostElasticKeysElasticKeyIDDecryptResponseObject); ok {
+		if err := validResponse.VisitPostElasticKeysElasticKeyIDDecryptResponse(ctx); err != nil {
 			return fiber.NewError(fiber.StatusBadRequest, err.Error())
 		}
 	} else if response != nil {
@@ -2170,30 +2197,30 @@ func (sh *strictHandler) PostElastickeyElasticKeyIDDecrypt(ctx *fiber.Ctx, elast
 	return nil
 }
 
-// PostElastickeyElasticKeyIDEncrypt operation middleware
-func (sh *strictHandler) PostElastickeyElasticKeyIDEncrypt(ctx *fiber.Ctx, elasticKeyID ElasticKeyID, params PostElastickeyElasticKeyIDEncryptParams) error {
-	var request PostElastickeyElasticKeyIDEncryptRequestObject
+// PostElasticKeysElasticKeyIDEncrypt operation middleware
+func (sh *strictHandler) PostElasticKeysElasticKeyIDEncrypt(ctx *fiber.Ctx, elasticKeyID ElasticKeyID, params PostElasticKeysElasticKeyIDEncryptParams) error {
+	var request PostElasticKeysElasticKeyIDEncryptRequestObject
 
 	request.ElasticKeyID = elasticKeyID
 	request.Params = params
 
 	data := ctx.Request().Body()
-	body := PostElastickeyElasticKeyIDEncryptTextRequestBody(data)
+	body := PostElasticKeysElasticKeyIDEncryptTextRequestBody(data)
 	request.Body = &body
 
 	handler := func(ctx *fiber.Ctx, request any) (any, error) {
-		return sh.ssi.PostElastickeyElasticKeyIDEncrypt(ctx.UserContext(), request.(PostElastickeyElasticKeyIDEncryptRequestObject))
+		return sh.ssi.PostElasticKeysElasticKeyIDEncrypt(ctx.UserContext(), request.(PostElasticKeysElasticKeyIDEncryptRequestObject))
 	}
 	for _, middleware := range sh.middlewares {
-		handler = middleware(handler, "PostElastickeyElasticKeyIDEncrypt")
+		handler = middleware(handler, "PostElasticKeysElasticKeyIDEncrypt")
 	}
 
 	response, err := handler(ctx, request)
 
 	if err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
-	} else if validResponse, ok := response.(PostElastickeyElasticKeyIDEncryptResponseObject); ok {
-		if err := validResponse.VisitPostElastickeyElasticKeyIDEncryptResponse(ctx); err != nil {
+	} else if validResponse, ok := response.(PostElasticKeysElasticKeyIDEncryptResponseObject); ok {
+		if err := validResponse.VisitPostElasticKeysElasticKeyIDEncryptResponse(ctx); err != nil {
 			return fiber.NewError(fiber.StatusBadRequest, err.Error())
 		}
 	} else if response != nil {
@@ -2202,26 +2229,26 @@ func (sh *strictHandler) PostElastickeyElasticKeyIDEncrypt(ctx *fiber.Ctx, elast
 	return nil
 }
 
-// PostElastickeyElasticKeyIDGenerate operation middleware
-func (sh *strictHandler) PostElastickeyElasticKeyIDGenerate(ctx *fiber.Ctx, elasticKeyID ElasticKeyID, params PostElastickeyElasticKeyIDGenerateParams) error {
-	var request PostElastickeyElasticKeyIDGenerateRequestObject
+// PostElasticKeysElasticKeyIDGenerate operation middleware
+func (sh *strictHandler) PostElasticKeysElasticKeyIDGenerate(ctx *fiber.Ctx, elasticKeyID ElasticKeyID, params PostElasticKeysElasticKeyIDGenerateParams) error {
+	var request PostElasticKeysElasticKeyIDGenerateRequestObject
 
 	request.ElasticKeyID = elasticKeyID
 	request.Params = params
 
 	handler := func(ctx *fiber.Ctx, request any) (any, error) {
-		return sh.ssi.PostElastickeyElasticKeyIDGenerate(ctx.UserContext(), request.(PostElastickeyElasticKeyIDGenerateRequestObject))
+		return sh.ssi.PostElasticKeysElasticKeyIDGenerate(ctx.UserContext(), request.(PostElasticKeysElasticKeyIDGenerateRequestObject))
 	}
 	for _, middleware := range sh.middlewares {
-		handler = middleware(handler, "PostElastickeyElasticKeyIDGenerate")
+		handler = middleware(handler, "PostElasticKeysElasticKeyIDGenerate")
 	}
 
 	response, err := handler(ctx, request)
 
 	if err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
-	} else if validResponse, ok := response.(PostElastickeyElasticKeyIDGenerateResponseObject); ok {
-		if err := validResponse.VisitPostElastickeyElasticKeyIDGenerateResponse(ctx); err != nil {
+	} else if validResponse, ok := response.(PostElasticKeysElasticKeyIDGenerateResponseObject); ok {
+		if err := validResponse.VisitPostElasticKeysElasticKeyIDGenerateResponse(ctx); err != nil {
 			return fiber.NewError(fiber.StatusBadRequest, err.Error())
 		}
 	} else if response != nil {
@@ -2230,31 +2257,31 @@ func (sh *strictHandler) PostElastickeyElasticKeyIDGenerate(ctx *fiber.Ctx, elas
 	return nil
 }
 
-// PostElastickeyElasticKeyIDImport operation middleware
-func (sh *strictHandler) PostElastickeyElasticKeyIDImport(ctx *fiber.Ctx, elasticKeyID ElasticKeyID) error {
-	var request PostElastickeyElasticKeyIDImportRequestObject
+// PostElasticKeysElasticKeyIDImport operation middleware
+func (sh *strictHandler) PostElasticKeysElasticKeyIDImport(ctx *fiber.Ctx, elasticKeyID ElasticKeyID) error {
+	var request PostElasticKeysElasticKeyIDImportRequestObject
 
 	request.ElasticKeyID = elasticKeyID
 
-	var body PostElastickeyElasticKeyIDImportJSONRequestBody
+	var body PostElasticKeysElasticKeyIDImportJSONRequestBody
 	if err := ctx.BodyParser(&body); err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
 	request.Body = &body
 
 	handler := func(ctx *fiber.Ctx, request any) (any, error) {
-		return sh.ssi.PostElastickeyElasticKeyIDImport(ctx.UserContext(), request.(PostElastickeyElasticKeyIDImportRequestObject))
+		return sh.ssi.PostElasticKeysElasticKeyIDImport(ctx.UserContext(), request.(PostElasticKeysElasticKeyIDImportRequestObject))
 	}
 	for _, middleware := range sh.middlewares {
-		handler = middleware(handler, "PostElastickeyElasticKeyIDImport")
+		handler = middleware(handler, "PostElasticKeysElasticKeyIDImport")
 	}
 
 	response, err := handler(ctx, request)
 
 	if err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
-	} else if validResponse, ok := response.(PostElastickeyElasticKeyIDImportResponseObject); ok {
-		if err := validResponse.VisitPostElastickeyElasticKeyIDImportResponse(ctx); err != nil {
+	} else if validResponse, ok := response.(PostElasticKeysElasticKeyIDImportResponseObject); ok {
+		if err := validResponse.VisitPostElasticKeysElasticKeyIDImportResponse(ctx); err != nil {
 			return fiber.NewError(fiber.StatusBadRequest, err.Error())
 		}
 	} else if response != nil {
@@ -2263,31 +2290,59 @@ func (sh *strictHandler) PostElastickeyElasticKeyIDImport(ctx *fiber.Ctx, elasti
 	return nil
 }
 
-// PostElastickeyElasticKeyIDMaterialkey operation middleware
-func (sh *strictHandler) PostElastickeyElasticKeyIDMaterialkey(ctx *fiber.Ctx, elasticKeyID ElasticKeyID) error {
-	var request PostElastickeyElasticKeyIDMaterialkeyRequestObject
+// GetElasticKeysElasticKeyIDMaterialKeys operation middleware
+func (sh *strictHandler) GetElasticKeysElasticKeyIDMaterialKeys(ctx *fiber.Ctx, elasticKeyID ElasticKeyID, params GetElasticKeysElasticKeyIDMaterialKeysParams) error {
+	var request GetElasticKeysElasticKeyIDMaterialKeysRequestObject
+
+	request.ElasticKeyID = elasticKeyID
+	request.Params = params
+
+	handler := func(ctx *fiber.Ctx, request any) (any, error) {
+		return sh.ssi.GetElasticKeysElasticKeyIDMaterialKeys(ctx.UserContext(), request.(GetElasticKeysElasticKeyIDMaterialKeysRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetElasticKeysElasticKeyIDMaterialKeys")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+	} else if validResponse, ok := response.(GetElasticKeysElasticKeyIDMaterialKeysResponseObject); ok {
+		if err := validResponse.VisitGetElasticKeysElasticKeyIDMaterialKeysResponse(ctx); err != nil {
+			return fiber.NewError(fiber.StatusBadRequest, err.Error())
+		}
+	} else if response != nil {
+		return fmt.Errorf("unexpected response type: %T", response)
+	}
+	return nil
+}
+
+// PostElasticKeysElasticKeyIDMaterialKeys operation middleware
+func (sh *strictHandler) PostElasticKeysElasticKeyIDMaterialKeys(ctx *fiber.Ctx, elasticKeyID ElasticKeyID) error {
+	var request PostElasticKeysElasticKeyIDMaterialKeysRequestObject
 
 	request.ElasticKeyID = elasticKeyID
 
-	var body PostElastickeyElasticKeyIDMaterialkeyJSONRequestBody
+	var body PostElasticKeysElasticKeyIDMaterialKeysJSONRequestBody
 	if err := ctx.BodyParser(&body); err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
 	request.Body = &body
 
 	handler := func(ctx *fiber.Ctx, request any) (any, error) {
-		return sh.ssi.PostElastickeyElasticKeyIDMaterialkey(ctx.UserContext(), request.(PostElastickeyElasticKeyIDMaterialkeyRequestObject))
+		return sh.ssi.PostElasticKeysElasticKeyIDMaterialKeys(ctx.UserContext(), request.(PostElasticKeysElasticKeyIDMaterialKeysRequestObject))
 	}
 	for _, middleware := range sh.middlewares {
-		handler = middleware(handler, "PostElastickeyElasticKeyIDMaterialkey")
+		handler = middleware(handler, "PostElasticKeysElasticKeyIDMaterialKeys")
 	}
 
 	response, err := handler(ctx, request)
 
 	if err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
-	} else if validResponse, ok := response.(PostElastickeyElasticKeyIDMaterialkeyResponseObject); ok {
-		if err := validResponse.VisitPostElastickeyElasticKeyIDMaterialkeyResponse(ctx); err != nil {
+	} else if validResponse, ok := response.(PostElasticKeysElasticKeyIDMaterialKeysResponseObject); ok {
+		if err := validResponse.VisitPostElasticKeysElasticKeyIDMaterialKeysResponse(ctx); err != nil {
 			return fiber.NewError(fiber.StatusBadRequest, err.Error())
 		}
 	} else if response != nil {
@@ -2296,26 +2351,26 @@ func (sh *strictHandler) PostElastickeyElasticKeyIDMaterialkey(ctx *fiber.Ctx, e
 	return nil
 }
 
-// DeleteElastickeyElasticKeyIDMaterialkeyMaterialKeyID operation middleware
-func (sh *strictHandler) DeleteElastickeyElasticKeyIDMaterialkeyMaterialKeyID(ctx *fiber.Ctx, elasticKeyID ElasticKeyID, materialKeyID MaterialKeyID) error {
-	var request DeleteElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRequestObject
+// DeleteElasticKeysElasticKeyIDMaterialKeysMaterialKeyID operation middleware
+func (sh *strictHandler) DeleteElasticKeysElasticKeyIDMaterialKeysMaterialKeyID(ctx *fiber.Ctx, elasticKeyID ElasticKeyID, materialKeyID MaterialKeyID) error {
+	var request DeleteElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDRequestObject
 
 	request.ElasticKeyID = elasticKeyID
 	request.MaterialKeyID = materialKeyID
 
 	handler := func(ctx *fiber.Ctx, request any) (any, error) {
-		return sh.ssi.DeleteElastickeyElasticKeyIDMaterialkeyMaterialKeyID(ctx.UserContext(), request.(DeleteElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRequestObject))
+		return sh.ssi.DeleteElasticKeysElasticKeyIDMaterialKeysMaterialKeyID(ctx.UserContext(), request.(DeleteElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDRequestObject))
 	}
 	for _, middleware := range sh.middlewares {
-		handler = middleware(handler, "DeleteElastickeyElasticKeyIDMaterialkeyMaterialKeyID")
+		handler = middleware(handler, "DeleteElasticKeysElasticKeyIDMaterialKeysMaterialKeyID")
 	}
 
 	response, err := handler(ctx, request)
 
 	if err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
-	} else if validResponse, ok := response.(DeleteElastickeyElasticKeyIDMaterialkeyMaterialKeyIDResponseObject); ok {
-		if err := validResponse.VisitDeleteElastickeyElasticKeyIDMaterialkeyMaterialKeyIDResponse(ctx); err != nil {
+	} else if validResponse, ok := response.(DeleteElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDResponseObject); ok {
+		if err := validResponse.VisitDeleteElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDResponse(ctx); err != nil {
 			return fiber.NewError(fiber.StatusBadRequest, err.Error())
 		}
 	} else if response != nil {
@@ -2324,26 +2379,26 @@ func (sh *strictHandler) DeleteElastickeyElasticKeyIDMaterialkeyMaterialKeyID(ct
 	return nil
 }
 
-// GetElastickeyElasticKeyIDMaterialkeyMaterialKeyID operation middleware
-func (sh *strictHandler) GetElastickeyElasticKeyIDMaterialkeyMaterialKeyID(ctx *fiber.Ctx, elasticKeyID ElasticKeyID, materialKeyID MaterialKeyID) error {
-	var request GetElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRequestObject
+// GetElasticKeysElasticKeyIDMaterialKeysMaterialKeyID operation middleware
+func (sh *strictHandler) GetElasticKeysElasticKeyIDMaterialKeysMaterialKeyID(ctx *fiber.Ctx, elasticKeyID ElasticKeyID, materialKeyID MaterialKeyID) error {
+	var request GetElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDRequestObject
 
 	request.ElasticKeyID = elasticKeyID
 	request.MaterialKeyID = materialKeyID
 
 	handler := func(ctx *fiber.Ctx, request any) (any, error) {
-		return sh.ssi.GetElastickeyElasticKeyIDMaterialkeyMaterialKeyID(ctx.UserContext(), request.(GetElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRequestObject))
+		return sh.ssi.GetElasticKeysElasticKeyIDMaterialKeysMaterialKeyID(ctx.UserContext(), request.(GetElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDRequestObject))
 	}
 	for _, middleware := range sh.middlewares {
-		handler = middleware(handler, "GetElastickeyElasticKeyIDMaterialkeyMaterialKeyID")
+		handler = middleware(handler, "GetElasticKeysElasticKeyIDMaterialKeysMaterialKeyID")
 	}
 
 	response, err := handler(ctx, request)
 
 	if err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
-	} else if validResponse, ok := response.(GetElastickeyElasticKeyIDMaterialkeyMaterialKeyIDResponseObject); ok {
-		if err := validResponse.VisitGetElastickeyElasticKeyIDMaterialkeyMaterialKeyIDResponse(ctx); err != nil {
+	} else if validResponse, ok := response.(GetElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDResponseObject); ok {
+		if err := validResponse.VisitGetElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDResponse(ctx); err != nil {
 			return fiber.NewError(fiber.StatusBadRequest, err.Error())
 		}
 	} else if response != nil {
@@ -2352,26 +2407,26 @@ func (sh *strictHandler) GetElastickeyElasticKeyIDMaterialkeyMaterialKeyID(ctx *
 	return nil
 }
 
-// PostElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRevoke operation middleware
-func (sh *strictHandler) PostElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRevoke(ctx *fiber.Ctx, elasticKeyID ElasticKeyID, materialKeyID MaterialKeyID) error {
-	var request PostElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRevokeRequestObject
+// PostElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDRevoke operation middleware
+func (sh *strictHandler) PostElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDRevoke(ctx *fiber.Ctx, elasticKeyID ElasticKeyID, materialKeyID MaterialKeyID) error {
+	var request PostElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDRevokeRequestObject
 
 	request.ElasticKeyID = elasticKeyID
 	request.MaterialKeyID = materialKeyID
 
 	handler := func(ctx *fiber.Ctx, request any) (any, error) {
-		return sh.ssi.PostElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRevoke(ctx.UserContext(), request.(PostElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRevokeRequestObject))
+		return sh.ssi.PostElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDRevoke(ctx.UserContext(), request.(PostElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDRevokeRequestObject))
 	}
 	for _, middleware := range sh.middlewares {
-		handler = middleware(handler, "PostElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRevoke")
+		handler = middleware(handler, "PostElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDRevoke")
 	}
 
 	response, err := handler(ctx, request)
 
 	if err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
-	} else if validResponse, ok := response.(PostElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRevokeResponseObject); ok {
-		if err := validResponse.VisitPostElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRevokeResponse(ctx); err != nil {
+	} else if validResponse, ok := response.(PostElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDRevokeResponseObject); ok {
+		if err := validResponse.VisitPostElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDRevokeResponse(ctx); err != nil {
 			return fiber.NewError(fiber.StatusBadRequest, err.Error())
 		}
 	} else if response != nil {
@@ -2380,57 +2435,29 @@ func (sh *strictHandler) PostElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRevok
 	return nil
 }
 
-// GetElastickeyElasticKeyIDMaterialkeys operation middleware
-func (sh *strictHandler) GetElastickeyElasticKeyIDMaterialkeys(ctx *fiber.Ctx, elasticKeyID ElasticKeyID, params GetElastickeyElasticKeyIDMaterialkeysParams) error {
-	var request GetElastickeyElasticKeyIDMaterialkeysRequestObject
-
-	request.ElasticKeyID = elasticKeyID
-	request.Params = params
-
-	handler := func(ctx *fiber.Ctx, request any) (any, error) {
-		return sh.ssi.GetElastickeyElasticKeyIDMaterialkeys(ctx.UserContext(), request.(GetElastickeyElasticKeyIDMaterialkeysRequestObject))
-	}
-	for _, middleware := range sh.middlewares {
-		handler = middleware(handler, "GetElastickeyElasticKeyIDMaterialkeys")
-	}
-
-	response, err := handler(ctx, request)
-
-	if err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, err.Error())
-	} else if validResponse, ok := response.(GetElastickeyElasticKeyIDMaterialkeysResponseObject); ok {
-		if err := validResponse.VisitGetElastickeyElasticKeyIDMaterialkeysResponse(ctx); err != nil {
-			return fiber.NewError(fiber.StatusBadRequest, err.Error())
-		}
-	} else if response != nil {
-		return fmt.Errorf("unexpected response type: %T", response)
-	}
-	return nil
-}
-
-// PostElastickeyElasticKeyIDSign operation middleware
-func (sh *strictHandler) PostElastickeyElasticKeyIDSign(ctx *fiber.Ctx, elasticKeyID ElasticKeyID) error {
-	var request PostElastickeyElasticKeyIDSignRequestObject
+// PostElasticKeysElasticKeyIDSign operation middleware
+func (sh *strictHandler) PostElasticKeysElasticKeyIDSign(ctx *fiber.Ctx, elasticKeyID ElasticKeyID) error {
+	var request PostElasticKeysElasticKeyIDSignRequestObject
 
 	request.ElasticKeyID = elasticKeyID
 
 	data := ctx.Request().Body()
-	body := PostElastickeyElasticKeyIDSignTextRequestBody(data)
+	body := PostElasticKeysElasticKeyIDSignTextRequestBody(data)
 	request.Body = &body
 
 	handler := func(ctx *fiber.Ctx, request any) (any, error) {
-		return sh.ssi.PostElastickeyElasticKeyIDSign(ctx.UserContext(), request.(PostElastickeyElasticKeyIDSignRequestObject))
+		return sh.ssi.PostElasticKeysElasticKeyIDSign(ctx.UserContext(), request.(PostElasticKeysElasticKeyIDSignRequestObject))
 	}
 	for _, middleware := range sh.middlewares {
-		handler = middleware(handler, "PostElastickeyElasticKeyIDSign")
+		handler = middleware(handler, "PostElasticKeysElasticKeyIDSign")
 	}
 
 	response, err := handler(ctx, request)
 
 	if err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
-	} else if validResponse, ok := response.(PostElastickeyElasticKeyIDSignResponseObject); ok {
-		if err := validResponse.VisitPostElastickeyElasticKeyIDSignResponse(ctx); err != nil {
+	} else if validResponse, ok := response.(PostElasticKeysElasticKeyIDSignResponseObject); ok {
+		if err := validResponse.VisitPostElasticKeysElasticKeyIDSignResponse(ctx); err != nil {
 			return fiber.NewError(fiber.StatusBadRequest, err.Error())
 		}
 	} else if response != nil {
@@ -2439,29 +2466,29 @@ func (sh *strictHandler) PostElastickeyElasticKeyIDSign(ctx *fiber.Ctx, elasticK
 	return nil
 }
 
-// PostElastickeyElasticKeyIDVerify operation middleware
-func (sh *strictHandler) PostElastickeyElasticKeyIDVerify(ctx *fiber.Ctx, elasticKeyID ElasticKeyID) error {
-	var request PostElastickeyElasticKeyIDVerifyRequestObject
+// PostElasticKeysElasticKeyIDVerify operation middleware
+func (sh *strictHandler) PostElasticKeysElasticKeyIDVerify(ctx *fiber.Ctx, elasticKeyID ElasticKeyID) error {
+	var request PostElasticKeysElasticKeyIDVerifyRequestObject
 
 	request.ElasticKeyID = elasticKeyID
 
 	data := ctx.Request().Body()
-	body := PostElastickeyElasticKeyIDVerifyTextRequestBody(data)
+	body := PostElasticKeysElasticKeyIDVerifyTextRequestBody(data)
 	request.Body = &body
 
 	handler := func(ctx *fiber.Ctx, request any) (any, error) {
-		return sh.ssi.PostElastickeyElasticKeyIDVerify(ctx.UserContext(), request.(PostElastickeyElasticKeyIDVerifyRequestObject))
+		return sh.ssi.PostElasticKeysElasticKeyIDVerify(ctx.UserContext(), request.(PostElasticKeysElasticKeyIDVerifyRequestObject))
 	}
 	for _, middleware := range sh.middlewares {
-		handler = middleware(handler, "PostElastickeyElasticKeyIDVerify")
+		handler = middleware(handler, "PostElasticKeysElasticKeyIDVerify")
 	}
 
 	response, err := handler(ctx, request)
 
 	if err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
-	} else if validResponse, ok := response.(PostElastickeyElasticKeyIDVerifyResponseObject); ok {
-		if err := validResponse.VisitPostElastickeyElasticKeyIDVerifyResponse(ctx); err != nil {
+	} else if validResponse, ok := response.(PostElasticKeysElasticKeyIDVerifyResponseObject); ok {
+		if err := validResponse.VisitPostElasticKeysElasticKeyIDVerifyResponse(ctx); err != nil {
 			return fiber.NewError(fiber.StatusBadRequest, err.Error())
 		}
 	} else if response != nil {
@@ -2470,52 +2497,25 @@ func (sh *strictHandler) PostElastickeyElasticKeyIDVerify(ctx *fiber.Ctx, elasti
 	return nil
 }
 
-// GetElastickeys operation middleware
-func (sh *strictHandler) GetElastickeys(ctx *fiber.Ctx, params GetElastickeysParams) error {
-	var request GetElastickeysRequestObject
+// GetMaterialKeys operation middleware
+func (sh *strictHandler) GetMaterialKeys(ctx *fiber.Ctx, params GetMaterialKeysParams) error {
+	var request GetMaterialKeysRequestObject
 
 	request.Params = params
 
 	handler := func(ctx *fiber.Ctx, request any) (any, error) {
-		return sh.ssi.GetElastickeys(ctx.UserContext(), request.(GetElastickeysRequestObject))
+		return sh.ssi.GetMaterialKeys(ctx.UserContext(), request.(GetMaterialKeysRequestObject))
 	}
 	for _, middleware := range sh.middlewares {
-		handler = middleware(handler, "GetElastickeys")
+		handler = middleware(handler, "GetMaterialKeys")
 	}
 
 	response, err := handler(ctx, request)
 
 	if err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
-	} else if validResponse, ok := response.(GetElastickeysResponseObject); ok {
-		if err := validResponse.VisitGetElastickeysResponse(ctx); err != nil {
-			return fiber.NewError(fiber.StatusBadRequest, err.Error())
-		}
-	} else if response != nil {
-		return fmt.Errorf("unexpected response type: %T", response)
-	}
-	return nil
-}
-
-// GetMaterialkeys operation middleware
-func (sh *strictHandler) GetMaterialkeys(ctx *fiber.Ctx, params GetMaterialkeysParams) error {
-	var request GetMaterialkeysRequestObject
-
-	request.Params = params
-
-	handler := func(ctx *fiber.Ctx, request any) (any, error) {
-		return sh.ssi.GetMaterialkeys(ctx.UserContext(), request.(GetMaterialkeysRequestObject))
-	}
-	for _, middleware := range sh.middlewares {
-		handler = middleware(handler, "GetMaterialkeys")
-	}
-
-	response, err := handler(ctx, request)
-
-	if err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, err.Error())
-	} else if validResponse, ok := response.(GetMaterialkeysResponseObject); ok {
-		if err := validResponse.VisitGetMaterialkeysResponse(ctx); err != nil {
+	} else if validResponse, ok := response.(GetMaterialKeysResponseObject); ok {
+		if err := validResponse.VisitGetMaterialKeysResponse(ctx); err != nil {
 			return fiber.NewError(fiber.StatusBadRequest, err.Error())
 		}
 	} else if response != nil {
@@ -2527,63 +2527,63 @@ func (sh *strictHandler) GetMaterialkeys(ctx *fiber.Ctx, params GetMaterialkeysP
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
+	"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",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

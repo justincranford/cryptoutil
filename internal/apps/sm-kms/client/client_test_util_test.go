@@ -29,21 +29,25 @@ var oamOacMapperInstance = NewOamOacMapper()
 
 // WaitUntilReady waits for the server at baseURL to become ready.
 func WaitUntilReady(baseURL *string, maxTime, retryTime time.Duration, rootCAsPool *x509.CertPool) {
-	giveUpTime := time.Now().UTC().Add(maxTime)
+	ctx, cancel := context.WithTimeout(context.Background(), maxTime)
+	defer cancel()
+
+	ticker := time.NewTicker(retryTime)
+	defer ticker.Stop()
 
 	for {
 		log.Printf("Checking if server is ready %s", *baseURL)
 
 		if err := CheckReadyz(baseURL, rootCAsPool); err == nil {
 			log.Printf("Server is ready")
-
-			break
+			return
 		}
 
-		time.Sleep(retryTime)
-
-		if !time.Now().UTC().Before(giveUpTime) {
+		select {
+		case <-ctx.Done():
 			log.Fatalf("server not ready after %v", maxTime)
+		case <-ticker.C:
+			// Continue waiting
 		}
 	}
 }
@@ -106,6 +110,8 @@ func httpGet(url *string, timeout time.Duration, rootCAsPool *x509.CertPool) err
 func RequireClientWithResponses(t *testing.T, baseURL *string, rootCAsPool *x509.CertPool) *cryptoutilOpenapiClient.ClientWithResponses {
 	t.Helper()
 
+	log.Printf("DEBUG RequireClientWithResponses: baseURL=%s serviceToken length=%d", *baseURL, len(testServiceToken))
+
 	var openapiClient *cryptoutilOpenapiClient.ClientWithResponses
 
 	var err error
@@ -117,15 +123,39 @@ func RequireClientWithResponses(t *testing.T, baseURL *string, rootCAsPool *x509
 			RootCAs:    rootCAsPool,
 		}
 
-		httpClient := &http.Client{
-			Transport: &http.Transport{
-				TLSClientConfig: tlsConfig,
-			},
+		baseTransport := &http.Transport{
+			TLSClientConfig: tlsConfig,
 		}
-		openapiClient, err = cryptoutilOpenapiClient.NewClientWithResponses(*baseURL, cryptoutilOpenapiClient.WithHTTPClient(httpClient))
+
+		httpClient := &http.Client{
+			Transport: baseTransport,
+		}
+		requestEditor := func(ctx context.Context, req *http.Request) error {
+			// /service/** endpoints require JWT bearer tokens (serviceToken)
+			authHeader := cryptoutilSharedMagic.HTTPAuthorizationBearerPrefix + testServiceToken
+			req.Header.Set("Authorization", authHeader)
+			log.Printf("DEBUG RequireClientWithResponses requestEditor: set Authorization header (length=%d) for path=%s", len(authHeader), req.URL.Path)
+			return nil
+		}
+		openapiClient, err = cryptoutilOpenapiClient.NewClientWithResponses(
+			*baseURL,
+			cryptoutilOpenapiClient.WithHTTPClient(httpClient),
+			cryptoutilOpenapiClient.WithRequestEditorFn(requestEditor),
+		)
 	} else {
 		// For HTTP URLs, use default client
-		openapiClient, err = cryptoutilOpenapiClient.NewClientWithResponses(*baseURL)
+		httpClient := &http.Client{}
+
+		requestEditor := func(_ context.Context, req *http.Request) error {
+			// /service/** endpoints require JWT bearer tokens (serviceToken)
+			req.Header.Set("Authorization", cryptoutilSharedMagic.HTTPAuthorizationBearerPrefix+testServiceToken)
+			return nil
+		}
+		openapiClient, err = cryptoutilOpenapiClient.NewClientWithResponses(
+			*baseURL,
+			cryptoutilOpenapiClient.WithHTTPClient(httpClient),
+			cryptoutilOpenapiClient.WithRequestEditorFn(requestEditor),
+		)
 	}
 
 	require.NoError(t, err)
@@ -149,7 +179,7 @@ func RequireCreateElasticKeyRequest(t *testing.T, name, description, algorithm, 
 func RequireCreateElasticKeyResponse(ctx context.Context, t *testing.T, openapiClient *cryptoutilOpenapiClient.ClientWithResponses, elasticKeyCreate *cryptoutilOpenapiModel.ElasticKeyCreate) *cryptoutilOpenapiModel.ElasticKey {
 	t.Helper()
 
-	openapiCreateElasticKeyResponse, err := openapiClient.PostElastickeyWithResponse(ctx, *elasticKeyCreate)
+	openapiCreateElasticKeyResponse, err := openapiClient.PostElasticKeysWithResponse(ctx, *elasticKeyCreate)
 	require.NoError(t, err)
 
 	elasticKey, err := oamOacMapperInstance.toOamElasticKey(openapiCreateElasticKeyResponse)
@@ -175,7 +205,7 @@ func RequireMaterialKeyGenerateRequest(t *testing.T) *cryptoutilOpenapiModel.Mat
 func RequireMaterialKeyGenerateResponse(ctx context.Context, t *testing.T, openapiClient *cryptoutilOpenapiClient.ClientWithResponses, elasticKeyID *cryptoutilOpenapiModel.ElasticKeyID, keyGenerate *cryptoutilOpenapiModel.MaterialKeyGenerate) *cryptoutilOpenapiModel.MaterialKey {
 	t.Helper()
 
-	openapiMaterialKeyGenerateResponse, err := openapiClient.PostElastickeyElasticKeyIDMaterialkeyWithResponse(ctx, *elasticKeyID, *keyGenerate)
+	openapiMaterialKeyGenerateResponse, err := openapiClient.PostElasticKeysElasticKeyIDMaterialKeysWithResponse(ctx, *elasticKeyID, *keyGenerate)
 	require.NoError(t, err)
 
 	key, err := oamOacMapperInstance.toOamMaterialKeyGenerate(openapiMaterialKeyGenerateResponse)
@@ -191,7 +221,7 @@ func RequireGenerateResponse(ctx context.Context, t *testing.T, openapiClient *c
 	elastickeyElasticKeyIDGenerateParams := oamOacMapperInstance.toOacGenerateParams(generateParams)
 	// failed to encrypt, nextElasticKeyName(), Status: 400, Message: 400 Bad Request, Body: error in openapi3filter.RequestError: request body has an error: value is required but missing
 
-	openapiGenerateResponse, err := openapiClient.PostElastickeyElasticKeyIDGenerateWithBodyWithResponse(ctx, *elasticKeyID, &elastickeyElasticKeyIDGenerateParams, "text/plain", nil)
+	openapiGenerateResponse, err := openapiClient.PostElasticKeysElasticKeyIDGenerateWithBodyWithResponse(ctx, *elasticKeyID, &elastickeyElasticKeyIDGenerateParams, "text/plain", nil)
 	require.NoError(t, err)
 
 	encrypted, err := oamOacMapperInstance.toPlainGenerateResponse(openapiGenerateResponse)
@@ -212,7 +242,7 @@ func RequireEncryptResponse(ctx context.Context, t *testing.T, openapiClient *cr
 	t.Helper()
 
 	elastickeyElasticKeyIDEncryptParams := oamOacMapperInstance.toOacEncryptParams(encryptParams)
-	openapiEncryptResponse, err := openapiClient.PostElastickeyElasticKeyIDEncryptWithTextBodyWithResponse(ctx, *elasticKeyID, &elastickeyElasticKeyIDEncryptParams, *encryptRequest)
+	openapiEncryptResponse, err := openapiClient.PostElasticKeysElasticKeyIDEncryptWithTextBodyWithResponse(ctx, *elasticKeyID, &elastickeyElasticKeyIDEncryptParams, *encryptRequest)
 	require.NoError(t, err)
 
 	encrypted, err := oamOacMapperInstance.toPlainEncryptResponse(openapiEncryptResponse)
@@ -232,7 +262,7 @@ func RequireDecryptRequest(t *testing.T, ciphertext *string) *cryptoutilOpenapiM
 func RequireDecryptResponse(ctx context.Context, t *testing.T, openapiClient *cryptoutilOpenapiClient.ClientWithResponses, elasticKeyID *cryptoutilOpenapiModel.ElasticKeyID, decryptRequest *cryptoutilOpenapiModel.DecryptRequest) *string {
 	t.Helper()
 
-	openapiDecryptResponse, err := openapiClient.PostElastickeyElasticKeyIDDecryptWithTextBodyWithResponse(ctx, *elasticKeyID, *decryptRequest)
+	openapiDecryptResponse, err := openapiClient.PostElasticKeysElasticKeyIDDecryptWithTextBodyWithResponse(ctx, *elasticKeyID, *decryptRequest)
 	require.NoError(t, err)
 
 	decrypted, err := oamOacMapperInstance.toPlainDecryptResponse(openapiDecryptResponse)
@@ -253,7 +283,7 @@ func RequireSignResponse(ctx context.Context, t *testing.T, openapiClient *crypt
 	t.Helper()
 
 	elastickeyElasticKeyIDSignParams := oamOacMapperInstance.toOacSignParams(signParams)
-	openapiSignResponse, err := openapiClient.PostElastickeyElasticKeyIDSignWithTextBodyWithResponse(ctx, *elasticKeyID, &elastickeyElasticKeyIDSignParams, *signRequest)
+	openapiSignResponse, err := openapiClient.PostElasticKeysElasticKeyIDSignWithTextBodyWithResponse(ctx, *elasticKeyID, &elastickeyElasticKeyIDSignParams, *signRequest)
 	require.NoError(t, err)
 
 	signed, err := oamOacMapperInstance.toPlainSignResponse(openapiSignResponse)
@@ -273,7 +303,7 @@ func RequireVerifyRequest(t *testing.T, signedtext *string) *cryptoutilOpenapiMo
 func RequireVerifyResponse(ctx context.Context, t *testing.T, openapiClient *cryptoutilOpenapiClient.ClientWithResponses, elasticKeyID *cryptoutilOpenapiModel.ElasticKeyID, verifyRequest *cryptoutilOpenapiModel.VerifyRequest) *string {
 	t.Helper()
 
-	openapiVerifyResponse, err := openapiClient.PostElastickeyElasticKeyIDVerifyWithTextBodyWithResponse(ctx, *elasticKeyID, *verifyRequest)
+	openapiVerifyResponse, err := openapiClient.PostElasticKeysElasticKeyIDVerifyWithTextBodyWithResponse(ctx, *elasticKeyID, *verifyRequest)
 	require.NoError(t, err)
 
 	verified, err := oamOacMapperInstance.toPlainVerifyResponse(openapiVerifyResponse)

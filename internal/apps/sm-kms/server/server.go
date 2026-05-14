@@ -109,37 +109,27 @@ func registerKMSRoutes(
 	openapiStrictServer := cryptoutilKmsServerHandler.NewOpenapiStrictServer(bizLogicService)
 	openapiStrictHandler := cryptoutilKmsServer.NewStrictHandler(openapiStrictServer, nil)
 
-	// Build middleware chains: session auth + tenant context bridge.
-	// When res is nil (unit tests), routes are registered without auth middleware.
-	bridgeMW := cryptoutilKmsServer.MiddlewareFunc(tenantContextBridgeMiddleware())
+	// Create route groups so middleware is scoped to each prefix.
+	// Using app.Use() would apply middleware globally to all routes on the app.
+	// Using group.Use() scopes middleware only to routes registered on that group.
+	browserGroup := app.Group(settings.PublicBrowserAPIContextPath)
+	serviceGroup := app.Group(settings.PublicServiceAPIContextPath)
 
-	var (
-		browserMiddlewares []cryptoutilKmsServer.MiddlewareFunc
-		serviceMiddlewares []cryptoutilKmsServer.MiddlewareFunc
-	)
+	bridgeMW := fiber.Handler(tenantContextBridgeMiddleware())
 
 	if res != nil && res.SessionManager != nil {
 		browserSessionMW := cryptoutilAppsFrameworkServiceServerMiddleware.BrowserSessionMiddleware(res.SessionManager)
 		serviceSessionMW := cryptoutilAppsFrameworkServiceServerMiddleware.ServiceSessionMiddleware(res.SessionManager)
-		browserMiddlewares = []cryptoutilKmsServer.MiddlewareFunc{cryptoutilKmsServer.MiddlewareFunc(browserSessionMW), bridgeMW}
-		serviceMiddlewares = []cryptoutilKmsServer.MiddlewareFunc{cryptoutilKmsServer.MiddlewareFunc(serviceSessionMW), bridgeMW}
+
+		browserGroup.Use(browserSessionMW, bridgeMW)
+		serviceGroup.Use(serviceSessionMW, bridgeMW)
 	}
 
-	// Configure browser API options.
-	publicBrowserFiberServerOptions := cryptoutilKmsServer.FiberServerOptions{
-		BaseURL:     settings.PublicBrowserAPIContextPath,
-		Middlewares: browserMiddlewares,
-	}
-
-	// Configure service API options.
-	publicServiceFiberServerOptions := cryptoutilKmsServer.FiberServerOptions{
-		BaseURL:     settings.PublicServiceAPIContextPath,
-		Middlewares: serviceMiddlewares,
-	}
-
-	// Register handlers on both browser and service paths.
-	cryptoutilKmsServer.RegisterHandlersWithOptions(app, openapiStrictHandler, publicBrowserFiberServerOptions)
-	cryptoutilKmsServer.RegisterHandlersWithOptions(app, openapiStrictHandler, publicServiceFiberServerOptions)
+	// Register handlers on browser and service groups with empty BaseURL
+	// (the group already carries the base path prefix).
+	groupOpts := cryptoutilKmsServer.FiberServerOptions{}
+	cryptoutilKmsServer.RegisterHandlersWithOptions(browserGroup, openapiStrictHandler, groupOpts)
+	cryptoutilKmsServer.RegisterHandlersWithOptions(serviceGroup, openapiStrictHandler, groupOpts)
 
 	return nil
 }

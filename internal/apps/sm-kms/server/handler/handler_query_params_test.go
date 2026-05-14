@@ -22,14 +22,14 @@ func TestOamOasMapper_ToOamGetElasticKeyMaterialKeysQueryParams_AllPopulated(t *
 
 	materialKeyID1 := openapiTypes.UUID(googleUuid.New())
 	materialKeyID2 := openapiTypes.UUID(googleUuid.New())
-	materialKeyIDs := cryptoutilKmsServer.MaterialKeyIDs{materialKeyID1, materialKeyID2}
+	materialKeyIDs := cryptoutilKmsServer.MaterialKeyIDS{materialKeyID1, materialKeyID2}
 
 	pageNum := 2
 	pageSize := cryptoutilSharedMagic.IMMaxUsernameLength
 	now := time.Now().UTC()
 
-	params := &cryptoutilKmsServer.GetElastickeyElasticKeyIDMaterialkeysParams{
-		MaterialKeyIds:    &materialKeyIDs,
+	params := &cryptoutilKmsServer.GetElasticKeysElasticKeyIDMaterialKeysParams{
+		MaterialKeyIDS:    &materialKeyIDs,
 		PageNumber:        &pageNum,
 		PageSize:          &pageSize,
 		MinGenerateDate:   &now,
@@ -42,7 +42,7 @@ func TestOamOasMapper_ToOamGetElasticKeyMaterialKeysQueryParams_AllPopulated(t *
 		MaxRevocationDate: &now,
 	}
 
-	result := mapper.toOamGetElasticKeyMaterialKeysQueryParams(params)
+	result := mapper.toOamGetElasticKeysElasticKeyIDMaterialKeysQueryParams(params)
 	require.NotNil(t, result)
 	require.NotNil(t, result.MaterialKeyID)
 	require.Len(t, *result.MaterialKeyID, 2)
@@ -68,7 +68,7 @@ func TestOamOasMapper_ToOamGetElasticKeyQueryParams_AllPopulated(t *testing.T) {
 	mapper := NewOasOamMapper()
 
 	elasticKeyID1 := openapiTypes.UUID(googleUuid.New())
-	elasticKeyIDs := cryptoutilKmsServer.ElasticKeyIDs{elasticKeyID1}
+	elasticKeyIDs := cryptoutilKmsServer.ElasticKeyIDS{elasticKeyID1}
 
 	names := cryptoutilKmsServer.Names{"key-1", "key-2"}
 	providers := cryptoutilKmsServer.Providers{cryptoutilSharedMagic.DefaultOTLPEnvironmentDefault, "hsm"}
@@ -81,8 +81,8 @@ func TestOamOasMapper_ToOamGetElasticKeyQueryParams_AllPopulated(t *testing.T) {
 	pageNum := 1
 	pageSize := cryptoutilSharedMagic.TLSMaxValidityCACertYears
 
-	params := &cryptoutilKmsServer.GetElastickeysParams{
-		ElasticKeyIds:     &elasticKeyIDs,
+	params := &cryptoutilKmsServer.GetElasticKeysParams{
+		ElasticKeyIDS:     &elasticKeyIDs,
 		Names:             &names,
 		Providers:         &providers,
 		Algorithms:        &algorithms,
@@ -125,18 +125,18 @@ func TestOamOasMapper_ToOamGetMaterialKeysQueryParams_AllPopulated(t *testing.T)
 	mapper := NewOasOamMapper()
 
 	elasticKeyID1 := openapiTypes.UUID(googleUuid.New())
-	elasticKeyIDs := cryptoutilKmsServer.ElasticKeyIDs{elasticKeyID1}
+	elasticKeyIDs := cryptoutilKmsServer.ElasticKeyIDS{elasticKeyID1}
 
 	materialKeyID1 := openapiTypes.UUID(googleUuid.New())
-	materialKeyIDs := cryptoutilKmsServer.MaterialKeyIDs{materialKeyID1}
+	materialKeyIDs := cryptoutilKmsServer.MaterialKeyIDS{materialKeyID1}
 
 	now := time.Now().UTC()
 	pageNum := 3
 	pageSize := cryptoutilSharedMagic.JoseJAMaxMaterials
 
-	params := &cryptoutilKmsServer.GetMaterialkeysParams{
-		ElasticKeyIds:     &elasticKeyIDs,
-		MaterialKeyIds:    &materialKeyIDs,
+	params := &cryptoutilKmsServer.GetMaterialKeysParams{
+		ElasticKeyIDS:     &elasticKeyIDs,
+		MaterialKeyIDS:    &materialKeyIDs,
 		MinGenerateDate:   &now,
 		MaxGenerateDate:   &now,
 		MinImportDate:     &now,

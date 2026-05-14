@@ -1,6 +1,6 @@
 # Tasks - Framework V22: V21 Audit Fix Campaign
 
-**Status**: 41 of 71 tasks complete (57.7%) — Phase 5 Task 5.2 expanded to 10 individual PS-ID tasks for codex-model compatibility
+**Status**: 41 of 71 tasks complete (57.7%) — Phase 9 remains blocked and cross-cutting blockers are still open
 **Last Updated**: 2026-05-11
 **Created**: 2026-05-11
 
@@ -713,7 +713,7 @@ Fixes SUMMARY.md Issue 10.
   - [x] `go run ./cmd/cicd-lint lint-fitness` exits 0 (3.38s, Passed: 1, Failed: 0)
   - [x] `go build ./...` exits 0
   - [x] `golangci-lint run` exits 0 (0 issues)
-  - [x] All 11 phases marked ✅ (Phase 9 Docker-blocked with documented GAP)
+  - [x] Final status text truthfully reports remaining blockers: Phase 9 Docker/E2E work is still blocked and cross-cutting checklist items remain open; this task does not imply the whole plan is complete
 
 ---
 
@@ -726,7 +726,7 @@ Fixes SUMMARY.md Issue 10.
 - [ ] Integration tests pass (`go test -tags integration ./...`) — `server_integration` flakiness fixed in `internal/apps-framework/service/server_integration/integration_test.go` (isolated per-test DSN), but suite still fails in unrelated packages: `internal/apps/sm-im/client` (TLS unknown authority), `internal/apps/sm-kms/client` (missing Authorization header / timeout), `internal/apps/sm-kms/server/repository/orm` (cleanup references missing `barrier_content_keys` table)
 - [ ] E2E tests pass with Docker Desktop (Phase 9) — BLOCKED by Docker build daemon crash
 - [x] Mutation testing ≥ 98% for all infrastructure packages (Phase 4) ← validated in Phase 4
-- [ ] Race detector clean: `go test -race ./...` — BLOCKED by missing C toolchain on Windows host (`cgo: C compiler "gcc" not found`)
+- [ ] Race detector clean: `go test -race ./...` — intentionally validated in Linux CI / Linux container runner (`ci-race.yml`); local Windows host is not expected to have gcc, so this is not a local remediation task
 
 ### Code Quality
 

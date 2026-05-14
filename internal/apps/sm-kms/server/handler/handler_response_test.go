@@ -21,7 +21,7 @@ func TestOamOasMapper_ToOasGetElastickeysResponse_Success(t *testing.T) {
 	mapper := NewOasOamMapper()
 	elasticKeys := []cryptoutilKmsServer.ElasticKey{}
 
-	resp, err := mapper.toOasGetElastickeysResponse(nil, elasticKeys)
+	resp, err := mapper.toOasGetElasticKeysResponse(nil, elasticKeys)
 	require.NoError(t, err)
 	require.NotNil(t, resp)
 }
@@ -63,7 +63,7 @@ func TestOamOasMapper_ToOasGetElastickeysResponse_Errors(t *testing.T) {
 
 			mapper := NewOasOamMapper()
 
-			resp, err := mapper.toOasGetElastickeysResponse(tc.err, nil)
+			resp, err := mapper.toOasGetElasticKeysResponse(tc.err, nil)
 			if tc.wantErr {
 				require.Error(t, err)
 				require.Nil(t, resp)
@@ -80,7 +80,7 @@ func TestOamOasMapper_ToOamGetMaterialKeysQueryParams(t *testing.T) {
 	t.Parallel()
 
 	mapper := NewOasOamMapper()
-	params := &cryptoutilKmsServer.GetMaterialkeysParams{}
+	params := &cryptoutilKmsServer.GetMaterialKeysParams{}
 
 	result := mapper.toOamGetMaterialKeysQueryParams(params)
 	require.NotNil(t, result)
@@ -202,7 +202,7 @@ func TestOamOasMapper_ToOasPutElastickeyElasticKeyIDResponse(t *testing.T) {
 				ElasticKeyID: &uuid,
 			}
 
-			resp, err := mapper.toOasPutElastickeyElasticKeyIDResponse(tc.err, elasticKey)
+			resp, err := mapper.toOasPutElasticKeysElasticKeyIDResponse(tc.err, elasticKey)
 			if tc.wantErr {
 				require.Error(t, err)
 				require.Nil(t, resp)
@@ -256,7 +256,7 @@ func TestOamOasMapper_ToOasDeleteElastickeyElasticKeyIDResponse(t *testing.T) {
 
 			mapper := NewOasOamMapper()
 
-			resp, err := mapper.toOasDeleteElastickeyElasticKeyIDResponse(tc.err)
+			resp, err := mapper.toOasDeleteElasticKeysElasticKeyIDResponse(tc.err)
 			if tc.wantErr {
 				require.Error(t, err)
 				require.Nil(t, resp)
@@ -318,7 +318,7 @@ func TestOamOasMapper_ToOasPostElastickeyElasticKeyIDImportResponse(t *testing.T
 				MaterialKeyID: &uuid,
 			}
 
-			resp, err := mapper.toOasPostElastickeyElasticKeyIDImportResponse(tc.err, materialKey)
+			resp, err := mapper.toOasPostElasticKeysElasticKeyIDImportResponse(tc.err, materialKey)
 			if tc.wantErr {
 				require.Error(t, err)
 				require.Nil(t, resp)
@@ -372,7 +372,7 @@ func TestOamOasMapper_ToOasPostElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRev
 
 			mapper := NewOasOamMapper()
 
-			resp, err := mapper.toOasPostElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRevokeResponse(tc.err)
+			resp, err := mapper.toOasPostElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDRevokeResponse(tc.err)
 			if tc.wantErr {
 				require.Error(t, err)
 				require.Nil(t, resp)
@@ -426,7 +426,7 @@ func TestOamOasMapper_ToOasDeleteElastickeyElasticKeyIDMaterialkeyMaterialKeyIDR
 
 			mapper := NewOasOamMapper()
 
-			resp, err := mapper.toOasDeleteElastickeyElasticKeyIDMaterialkeyMaterialKeyIDResponse(tc.err)
+			resp, err := mapper.toOasDeleteElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDResponse(tc.err)
 			if tc.wantErr {
 				require.Error(t, err)
 				require.Nil(t, resp)

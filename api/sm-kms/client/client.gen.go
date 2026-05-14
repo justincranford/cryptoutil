@@ -22,44 +22,8 @@ import (
 	"github.com/oapi-codegen/runtime"
 )
 
-// PostElastickeyElasticKeyIDEncryptParams defines parameters for PostElastickeyElasticKeyIDEncrypt.
-type PostElastickeyElasticKeyIDEncryptParams struct {
-	Context *externalRef0.EncryptContext `form:"context,omitempty" json:"context,omitempty"`
-}
-
-// PostElastickeyElasticKeyIDGenerateTextBody defines parameters for PostElastickeyElasticKeyIDGenerate.
-type PostElastickeyElasticKeyIDGenerateTextBody = string
-
-// PostElastickeyElasticKeyIDGenerateParams defines parameters for PostElastickeyElasticKeyIDGenerate.
-type PostElastickeyElasticKeyIDGenerateParams struct {
-	Context *externalRef0.EncryptContext    `form:"context,omitempty" json:"context,omitempty"`
-	Alg     *externalRef0.GenerateAlgorithm `form:"alg,omitempty" json:"alg,omitempty"`
-}
-
-// GetElastickeyElasticKeyIDMaterialkeysParams defines parameters for GetElastickeyElasticKeyIDMaterialkeys.
-type GetElastickeyElasticKeyIDMaterialkeysParams struct {
-	// MaterialKeyID Filter by the Material Key ID.
-	MaterialKeyID *externalRef0.MaterialKeyQueryParamMaterialKeyIDS `form:"material_key_id,omitempty" json:"material_key_id,omitempty"`
-
-	// MinGenerateDate Filter by the Material Key minimum generate date (inclusive).
-	MinGenerateDate *externalRef0.MaterialKeyQueryParamMinimumGenerateDate `form:"min_generate_date,omitempty" json:"min_generate_date,omitempty"`
-
-	// MaxGenerateDate Filter by the Material Key maximum generate date (inclusive).
-	MaxGenerateDate *externalRef0.MaterialKeyQueryParamMaximumGenerateDate `form:"max_generate_date,omitempty" json:"max_generate_date,omitempty"`
-
-	// Sort Specify sorting as `fieldName:direction` (e.g., `material_key_id:asc`). Repeat parameter for multiple sort fields.
-	Sort *externalRef0.MaterialKeyQueryParamSorts      `form:"sort,omitempty" json:"sort,omitempty"`
-	Page *externalRef0.MaterialKeyQueryParamPageNumber `form:"page,omitempty" json:"page,omitempty"`
-	Size *externalRef0.MaterialKeyQueryParamPageSize   `form:"size,omitempty" json:"size,omitempty"`
-}
-
-// PostElastickeyElasticKeyIDSignParams defines parameters for PostElastickeyElasticKeyIDSign.
-type PostElastickeyElasticKeyIDSignParams struct {
-	Context *externalRef0.SignContext `form:"context,omitempty" json:"context,omitempty"`
-}
-
-// GetElastickeysParams defines parameters for GetElastickeys.
-type GetElastickeysParams struct {
+// GetElasticKeysParams defines parameters for GetElasticKeys.
+type GetElasticKeysParams struct {
 	// ElasticKeyID Filter by the Elastic Key ID (UUID).
 	ElasticKeyID *externalRef0.ElasticKeyQueryParamElasticKeyIDS `form:"elastic_key_id,omitempty" json:"elastic_key_id,omitempty"`
 
@@ -87,8 +51,44 @@ type GetElastickeysParams struct {
 	Size *externalRef0.ElasticKeyQueryParamPageSize   `form:"size,omitempty" json:"size,omitempty"`
 }
 
-// GetMaterialkeysParams defines parameters for GetMaterialkeys.
-type GetMaterialkeysParams struct {
+// PostElasticKeysElasticKeyIDEncryptParams defines parameters for PostElasticKeysElasticKeyIDEncrypt.
+type PostElasticKeysElasticKeyIDEncryptParams struct {
+	Context *externalRef0.EncryptContext `form:"context,omitempty" json:"context,omitempty"`
+}
+
+// PostElasticKeysElasticKeyIDGenerateTextBody defines parameters for PostElasticKeysElasticKeyIDGenerate.
+type PostElasticKeysElasticKeyIDGenerateTextBody = string
+
+// PostElasticKeysElasticKeyIDGenerateParams defines parameters for PostElasticKeysElasticKeyIDGenerate.
+type PostElasticKeysElasticKeyIDGenerateParams struct {
+	Context *externalRef0.EncryptContext    `form:"context,omitempty" json:"context,omitempty"`
+	Alg     *externalRef0.GenerateAlgorithm `form:"alg,omitempty" json:"alg,omitempty"`
+}
+
+// GetElasticKeysElasticKeyIDMaterialKeysParams defines parameters for GetElasticKeysElasticKeyIDMaterialKeys.
+type GetElasticKeysElasticKeyIDMaterialKeysParams struct {
+	// MaterialKeyID Filter by the Material Key ID.
+	MaterialKeyID *externalRef0.MaterialKeyQueryParamMaterialKeyIDS `form:"material_key_id,omitempty" json:"material_key_id,omitempty"`
+
+	// MinGenerateDate Filter by the Material Key minimum generate date (inclusive).
+	MinGenerateDate *externalRef0.MaterialKeyQueryParamMinimumGenerateDate `form:"min_generate_date,omitempty" json:"min_generate_date,omitempty"`
+
+	// MaxGenerateDate Filter by the Material Key maximum generate date (inclusive).
+	MaxGenerateDate *externalRef0.MaterialKeyQueryParamMaximumGenerateDate `form:"max_generate_date,omitempty" json:"max_generate_date,omitempty"`
+
+	// Sort Specify sorting as `fieldName:direction` (e.g., `material_key_id:asc`). Repeat parameter for multiple sort fields.
+	Sort *externalRef0.MaterialKeyQueryParamSorts      `form:"sort,omitempty" json:"sort,omitempty"`
+	Page *externalRef0.MaterialKeyQueryParamPageNumber `form:"page,omitempty" json:"page,omitempty"`
+	Size *externalRef0.MaterialKeyQueryParamPageSize   `form:"size,omitempty" json:"size,omitempty"`
+}
+
+// PostElasticKeysElasticKeyIDSignParams defines parameters for PostElasticKeysElasticKeyIDSign.
+type PostElasticKeysElasticKeyIDSignParams struct {
+	Context *externalRef0.SignContext `form:"context,omitempty" json:"context,omitempty"`
+}
+
+// GetMaterialKeysParams defines parameters for GetMaterialKeys.
+type GetMaterialKeysParams struct {
 	// ElasticKeyID Filter by the Elastic Key ID (uuid).
 	ElasticKeyID *externalRef0.MaterialKeyQueryParamElasticKeyIDS `form:"elastic_key_id,omitempty" json:"elastic_key_id,omitempty"`
 
@@ -107,32 +107,32 @@ type GetMaterialkeysParams struct {
 	Size *externalRef0.MaterialKeyQueryParamPageSize   `form:"size,omitempty" json:"size,omitempty"`
 }
 
-// PostElastickeyJSONRequestBody defines body for PostElastickey for application/json ContentType.
-type PostElastickeyJSONRequestBody = externalRef0.ElasticKeyCreate
+// PostElasticKeysJSONRequestBody defines body for PostElasticKeys for application/json ContentType.
+type PostElasticKeysJSONRequestBody = externalRef0.ElasticKeyCreate
 
-// PutElastickeyElasticKeyIDJSONRequestBody defines body for PutElastickeyElasticKeyID for application/json ContentType.
-type PutElastickeyElasticKeyIDJSONRequestBody = externalRef0.ElasticKeyUpdate
+// PutElasticKeysElasticKeyIDJSONRequestBody defines body for PutElasticKeysElasticKeyID for application/json ContentType.
+type PutElasticKeysElasticKeyIDJSONRequestBody = externalRef0.ElasticKeyUpdate
 
-// PostElastickeyElasticKeyIDDecryptTextRequestBody defines body for PostElastickeyElasticKeyIDDecrypt for text/plain ContentType.
-type PostElastickeyElasticKeyIDDecryptTextRequestBody = externalRef0.DecryptRequest
+// PostElasticKeysElasticKeyIDDecryptTextRequestBody defines body for PostElasticKeysElasticKeyIDDecrypt for text/plain ContentType.
+type PostElasticKeysElasticKeyIDDecryptTextRequestBody = externalRef0.DecryptRequest
 
-// PostElastickeyElasticKeyIDEncryptTextRequestBody defines body for PostElastickeyElasticKeyIDEncrypt for text/plain ContentType.
-type PostElastickeyElasticKeyIDEncryptTextRequestBody = externalRef0.EncryptRequest
+// PostElasticKeysElasticKeyIDEncryptTextRequestBody defines body for PostElasticKeysElasticKeyIDEncrypt for text/plain ContentType.
+type PostElasticKeysElasticKeyIDEncryptTextRequestBody = externalRef0.EncryptRequest
 
-// PostElastickeyElasticKeyIDGenerateTextRequestBody defines body for PostElastickeyElasticKeyIDGenerate for text/plain ContentType.
-type PostElastickeyElasticKeyIDGenerateTextRequestBody = PostElastickeyElasticKeyIDGenerateTextBody
+// PostElasticKeysElasticKeyIDGenerateTextRequestBody defines body for PostElasticKeysElasticKeyIDGenerate for text/plain ContentType.
+type PostElasticKeysElasticKeyIDGenerateTextRequestBody = PostElasticKeysElasticKeyIDGenerateTextBody
 
-// PostElastickeyElasticKeyIDImportJSONRequestBody defines body for PostElastickeyElasticKeyIDImport for application/json ContentType.
-type PostElastickeyElasticKeyIDImportJSONRequestBody = externalRef0.MaterialKeyImport
+// PostElasticKeysElasticKeyIDImportJSONRequestBody defines body for PostElasticKeysElasticKeyIDImport for application/json ContentType.
+type PostElasticKeysElasticKeyIDImportJSONRequestBody = externalRef0.MaterialKeyImport
 
-// PostElastickeyElasticKeyIDMaterialkeyJSONRequestBody defines body for PostElastickeyElasticKeyIDMaterialkey for application/json ContentType.
-type PostElastickeyElasticKeyIDMaterialkeyJSONRequestBody = externalRef0.MaterialKeyGenerate
+// PostElasticKeysElasticKeyIDMaterialKeysJSONRequestBody defines body for PostElasticKeysElasticKeyIDMaterialKeys for application/json ContentType.
+type PostElasticKeysElasticKeyIDMaterialKeysJSONRequestBody = externalRef0.MaterialKeyGenerate
 
-// PostElastickeyElasticKeyIDSignTextRequestBody defines body for PostElastickeyElasticKeyIDSign for text/plain ContentType.
-type PostElastickeyElasticKeyIDSignTextRequestBody = externalRef0.SignRequest
+// PostElasticKeysElasticKeyIDSignTextRequestBody defines body for PostElasticKeysElasticKeyIDSign for text/plain ContentType.
+type PostElasticKeysElasticKeyIDSignTextRequestBody = externalRef0.SignRequest
 
-// PostElastickeyElasticKeyIDVerifyTextRequestBody defines body for PostElastickeyElasticKeyIDVerify for text/plain ContentType.
-type PostElastickeyElasticKeyIDVerifyTextRequestBody = externalRef0.VerifyRequest
+// PostElasticKeysElasticKeyIDVerifyTextRequestBody defines body for PostElasticKeysElasticKeyIDVerify for text/plain ContentType.
+type PostElasticKeysElasticKeyIDVerifyTextRequestBody = externalRef0.VerifyRequest
 
 // RequestEditorFn  is the function signature for the RequestEditor callback function
 type RequestEditorFn func(ctx context.Context, req *http.Request) error
@@ -207,75 +207,75 @@ func WithRequestEditorFn(fn RequestEditorFn) ClientOption {
 
 // The interface specification for the client above.
 type ClientInterface interface {
-	// PostElastickeyWithBody request with any body
-	PostElastickeyWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// GetElasticKeys request
+	GetElasticKeys(ctx context.Context, params *GetElasticKeysParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	PostElastickey(ctx context.Context, body PostElastickeyJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// PostElasticKeysWithBody request with any body
+	PostElasticKeysWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// DeleteElastickeyElasticKeyID request
-	DeleteElastickeyElasticKeyID(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, reqEditors ...RequestEditorFn) (*http.Response, error)
+	PostElasticKeys(ctx context.Context, body PostElasticKeysJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// GetElastickeyElasticKeyID request
-	GetElastickeyElasticKeyID(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// DeleteElasticKeysElasticKeyID request
+	DeleteElasticKeysElasticKeyID(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// PutElastickeyElasticKeyIDWithBody request with any body
-	PutElastickeyElasticKeyIDWithBody(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// GetElasticKeysElasticKeyID request
+	GetElasticKeysElasticKeyID(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	PutElastickeyElasticKeyID(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, body PutElastickeyElasticKeyIDJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// PutElasticKeysElasticKeyIDWithBody request with any body
+	PutElasticKeysElasticKeyIDWithBody(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// PostElastickeyElasticKeyIDDecryptWithBody request with any body
-	PostElastickeyElasticKeyIDDecryptWithBody(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+	PutElasticKeysElasticKeyID(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, body PutElasticKeysElasticKeyIDJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	PostElastickeyElasticKeyIDDecryptWithTextBody(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, body PostElastickeyElasticKeyIDDecryptTextRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// PostElasticKeysElasticKeyIDDecryptWithBody request with any body
+	PostElasticKeysElasticKeyIDDecryptWithBody(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// PostElastickeyElasticKeyIDEncryptWithBody request with any body
-	PostElastickeyElasticKeyIDEncryptWithBody(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, params *PostElastickeyElasticKeyIDEncryptParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+	PostElasticKeysElasticKeyIDDecryptWithTextBody(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, body PostElasticKeysElasticKeyIDDecryptTextRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	PostElastickeyElasticKeyIDEncryptWithTextBody(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, params *PostElastickeyElasticKeyIDEncryptParams, body PostElastickeyElasticKeyIDEncryptTextRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// PostElasticKeysElasticKeyIDEncryptWithBody request with any body
+	PostElasticKeysElasticKeyIDEncryptWithBody(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, params *PostElasticKeysElasticKeyIDEncryptParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// PostElastickeyElasticKeyIDGenerateWithBody request with any body
-	PostElastickeyElasticKeyIDGenerateWithBody(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, params *PostElastickeyElasticKeyIDGenerateParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+	PostElasticKeysElasticKeyIDEncryptWithTextBody(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, params *PostElasticKeysElasticKeyIDEncryptParams, body PostElasticKeysElasticKeyIDEncryptTextRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	PostElastickeyElasticKeyIDGenerateWithTextBody(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, params *PostElastickeyElasticKeyIDGenerateParams, body PostElastickeyElasticKeyIDGenerateTextRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// PostElasticKeysElasticKeyIDGenerateWithBody request with any body
+	PostElasticKeysElasticKeyIDGenerateWithBody(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, params *PostElasticKeysElasticKeyIDGenerateParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// PostElastickeyElasticKeyIDImportWithBody request with any body
-	PostElastickeyElasticKeyIDImportWithBody(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+	PostElasticKeysElasticKeyIDGenerateWithTextBody(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, params *PostElasticKeysElasticKeyIDGenerateParams, body PostElasticKeysElasticKeyIDGenerateTextRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	PostElastickeyElasticKeyIDImport(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, body PostElastickeyElasticKeyIDImportJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// PostElasticKeysElasticKeyIDImportWithBody request with any body
+	PostElasticKeysElasticKeyIDImportWithBody(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// PostElastickeyElasticKeyIDMaterialkeyWithBody request with any body
-	PostElastickeyElasticKeyIDMaterialkeyWithBody(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+	PostElasticKeysElasticKeyIDImport(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, body PostElasticKeysElasticKeyIDImportJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	PostElastickeyElasticKeyIDMaterialkey(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, body PostElastickeyElasticKeyIDMaterialkeyJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// GetElasticKeysElasticKeyIDMaterialKeys request
+	GetElasticKeysElasticKeyIDMaterialKeys(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, params *GetElasticKeysElasticKeyIDMaterialKeysParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// GetElastickeyElasticKeyIDMaterialkeyMaterialKeyID request
-	GetElastickeyElasticKeyIDMaterialkeyMaterialKeyID(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, materialKeyID externalRef0.MaterialKeyID, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// PostElasticKeysElasticKeyIDMaterialKeysWithBody request with any body
+	PostElasticKeysElasticKeyIDMaterialKeysWithBody(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// PostElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRevoke request
-	PostElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRevoke(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, materialKeyID externalRef0.MaterialKeyID, reqEditors ...RequestEditorFn) (*http.Response, error)
+	PostElasticKeysElasticKeyIDMaterialKeys(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, body PostElasticKeysElasticKeyIDMaterialKeysJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// GetElastickeyElasticKeyIDMaterialkeys request
-	GetElastickeyElasticKeyIDMaterialkeys(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, params *GetElastickeyElasticKeyIDMaterialkeysParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// GetElasticKeysElasticKeyIDMaterialKeysMaterialKeyID request
+	GetElasticKeysElasticKeyIDMaterialKeysMaterialKeyID(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, materialKeyID externalRef0.MaterialKeyID, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// PostElastickeyElasticKeyIDSignWithBody request with any body
-	PostElastickeyElasticKeyIDSignWithBody(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, params *PostElastickeyElasticKeyIDSignParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// PostElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDRevoke request
+	PostElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDRevoke(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, materialKeyID externalRef0.MaterialKeyID, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	PostElastickeyElasticKeyIDSignWithTextBody(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, params *PostElastickeyElasticKeyIDSignParams, body PostElastickeyElasticKeyIDSignTextRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// PostElasticKeysElasticKeyIDSignWithBody request with any body
+	PostElasticKeysElasticKeyIDSignWithBody(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, params *PostElasticKeysElasticKeyIDSignParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// PostElastickeyElasticKeyIDVerifyWithBody request with any body
-	PostElastickeyElasticKeyIDVerifyWithBody(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+	PostElasticKeysElasticKeyIDSignWithTextBody(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, params *PostElasticKeysElasticKeyIDSignParams, body PostElasticKeysElasticKeyIDSignTextRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	PostElastickeyElasticKeyIDVerifyWithTextBody(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, body PostElastickeyElasticKeyIDVerifyTextRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// PostElasticKeysElasticKeyIDVerifyWithBody request with any body
+	PostElasticKeysElasticKeyIDVerifyWithBody(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// GetElastickeys request
-	GetElastickeys(ctx context.Context, params *GetElastickeysParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+	PostElasticKeysElasticKeyIDVerifyWithTextBody(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, body PostElasticKeysElasticKeyIDVerifyTextRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// GetMaterialkeys request
-	GetMaterialkeys(ctx context.Context, params *GetMaterialkeysParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// GetMaterialKeys request
+	GetMaterialKeys(ctx context.Context, params *GetMaterialKeysParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 }
 
-func (c *Client) PostElastickeyWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostElastickeyRequestWithBody(c.Server, contentType, body)
+func (c *Client) GetElasticKeys(ctx context.Context, params *GetElasticKeysParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetElasticKeysRequest(c.Server, params)
 	if err != nil {
 		return nil, err
 	}
@@ -286,8 +286,8 @@ func (c *Client) PostElastickeyWithBody(ctx context.Context, contentType string,
 	return c.Client.Do(req)
 }
 
-func (c *Client) PostElastickey(ctx context.Context, body PostElastickeyJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostElastickeyRequest(c.Server, body)
+func (c *Client) PostElasticKeysWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostElasticKeysRequestWithBody(c.Server, contentType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -298,8 +298,8 @@ func (c *Client) PostElastickey(ctx context.Context, body PostElastickeyJSONRequ
 	return c.Client.Do(req)
 }
 
-func (c *Client) DeleteElastickeyElasticKeyID(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewDeleteElastickeyElasticKeyIDRequest(c.Server, elasticKeyID)
+func (c *Client) PostElasticKeys(ctx context.Context, body PostElasticKeysJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostElasticKeysRequest(c.Server, body)
 	if err != nil {
 		return nil, err
 	}
@@ -310,8 +310,8 @@ func (c *Client) DeleteElastickeyElasticKeyID(ctx context.Context, elasticKeyID 
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetElastickeyElasticKeyID(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetElastickeyElasticKeyIDRequest(c.Server, elasticKeyID)
+func (c *Client) DeleteElasticKeysElasticKeyID(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDeleteElasticKeysElasticKeyIDRequest(c.Server, elasticKeyID)
 	if err != nil {
 		return nil, err
 	}
@@ -322,8 +322,8 @@ func (c *Client) GetElastickeyElasticKeyID(ctx context.Context, elasticKeyID ext
 	return c.Client.Do(req)
 }
 
-func (c *Client) PutElastickeyElasticKeyIDWithBody(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPutElastickeyElasticKeyIDRequestWithBody(c.Server, elasticKeyID, contentType, body)
+func (c *Client) GetElasticKeysElasticKeyID(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetElasticKeysElasticKeyIDRequest(c.Server, elasticKeyID)
 	if err != nil {
 		return nil, err
 	}
@@ -334,8 +334,8 @@ func (c *Client) PutElastickeyElasticKeyIDWithBody(ctx context.Context, elasticK
 	return c.Client.Do(req)
 }
 
-func (c *Client) PutElastickeyElasticKeyID(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, body PutElastickeyElasticKeyIDJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPutElastickeyElasticKeyIDRequest(c.Server, elasticKeyID, body)
+func (c *Client) PutElasticKeysElasticKeyIDWithBody(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPutElasticKeysElasticKeyIDRequestWithBody(c.Server, elasticKeyID, contentType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -346,8 +346,8 @@ func (c *Client) PutElastickeyElasticKeyID(ctx context.Context, elasticKeyID ext
 	return c.Client.Do(req)
 }
 
-func (c *Client) PostElastickeyElasticKeyIDDecryptWithBody(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostElastickeyElasticKeyIDDecryptRequestWithBody(c.Server, elasticKeyID, contentType, body)
+func (c *Client) PutElasticKeysElasticKeyID(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, body PutElasticKeysElasticKeyIDJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPutElasticKeysElasticKeyIDRequest(c.Server, elasticKeyID, body)
 	if err != nil {
 		return nil, err
 	}
@@ -358,8 +358,8 @@ func (c *Client) PostElastickeyElasticKeyIDDecryptWithBody(ctx context.Context, 
 	return c.Client.Do(req)
 }
 
-func (c *Client) PostElastickeyElasticKeyIDDecryptWithTextBody(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, body PostElastickeyElasticKeyIDDecryptTextRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostElastickeyElasticKeyIDDecryptRequestWithTextBody(c.Server, elasticKeyID, body)
+func (c *Client) PostElasticKeysElasticKeyIDDecryptWithBody(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostElasticKeysElasticKeyIDDecryptRequestWithBody(c.Server, elasticKeyID, contentType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -370,8 +370,8 @@ func (c *Client) PostElastickeyElasticKeyIDDecryptWithTextBody(ctx context.Conte
 	return c.Client.Do(req)
 }
 
-func (c *Client) PostElastickeyElasticKeyIDEncryptWithBody(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, params *PostElastickeyElasticKeyIDEncryptParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostElastickeyElasticKeyIDEncryptRequestWithBody(c.Server, elasticKeyID, params, contentType, body)
+func (c *Client) PostElasticKeysElasticKeyIDDecryptWithTextBody(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, body PostElasticKeysElasticKeyIDDecryptTextRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostElasticKeysElasticKeyIDDecryptRequestWithTextBody(c.Server, elasticKeyID, body)
 	if err != nil {
 		return nil, err
 	}
@@ -382,8 +382,8 @@ func (c *Client) PostElastickeyElasticKeyIDEncryptWithBody(ctx context.Context, 
 	return c.Client.Do(req)
 }
 
-func (c *Client) PostElastickeyElasticKeyIDEncryptWithTextBody(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, params *PostElastickeyElasticKeyIDEncryptParams, body PostElastickeyElasticKeyIDEncryptTextRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostElastickeyElasticKeyIDEncryptRequestWithTextBody(c.Server, elasticKeyID, params, body)
+func (c *Client) PostElasticKeysElasticKeyIDEncryptWithBody(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, params *PostElasticKeysElasticKeyIDEncryptParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostElasticKeysElasticKeyIDEncryptRequestWithBody(c.Server, elasticKeyID, params, contentType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -394,8 +394,8 @@ func (c *Client) PostElastickeyElasticKeyIDEncryptWithTextBody(ctx context.Conte
 	return c.Client.Do(req)
 }
 
-func (c *Client) PostElastickeyElasticKeyIDGenerateWithBody(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, params *PostElastickeyElasticKeyIDGenerateParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostElastickeyElasticKeyIDGenerateRequestWithBody(c.Server, elasticKeyID, params, contentType, body)
+func (c *Client) PostElasticKeysElasticKeyIDEncryptWithTextBody(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, params *PostElasticKeysElasticKeyIDEncryptParams, body PostElasticKeysElasticKeyIDEncryptTextRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostElasticKeysElasticKeyIDEncryptRequestWithTextBody(c.Server, elasticKeyID, params, body)
 	if err != nil {
 		return nil, err
 	}
@@ -406,8 +406,8 @@ func (c *Client) PostElastickeyElasticKeyIDGenerateWithBody(ctx context.Context,
 	return c.Client.Do(req)
 }
 
-func (c *Client) PostElastickeyElasticKeyIDGenerateWithTextBody(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, params *PostElastickeyElasticKeyIDGenerateParams, body PostElastickeyElasticKeyIDGenerateTextRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostElastickeyElasticKeyIDGenerateRequestWithTextBody(c.Server, elasticKeyID, params, body)
+func (c *Client) PostElasticKeysElasticKeyIDGenerateWithBody(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, params *PostElasticKeysElasticKeyIDGenerateParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostElasticKeysElasticKeyIDGenerateRequestWithBody(c.Server, elasticKeyID, params, contentType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -418,8 +418,8 @@ func (c *Client) PostElastickeyElasticKeyIDGenerateWithTextBody(ctx context.Cont
 	return c.Client.Do(req)
 }
 
-func (c *Client) PostElastickeyElasticKeyIDImportWithBody(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostElastickeyElasticKeyIDImportRequestWithBody(c.Server, elasticKeyID, contentType, body)
+func (c *Client) PostElasticKeysElasticKeyIDGenerateWithTextBody(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, params *PostElasticKeysElasticKeyIDGenerateParams, body PostElasticKeysElasticKeyIDGenerateTextRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostElasticKeysElasticKeyIDGenerateRequestWithTextBody(c.Server, elasticKeyID, params, body)
 	if err != nil {
 		return nil, err
 	}
@@ -430,8 +430,8 @@ func (c *Client) PostElastickeyElasticKeyIDImportWithBody(ctx context.Context, e
 	return c.Client.Do(req)
 }
 
-func (c *Client) PostElastickeyElasticKeyIDImport(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, body PostElastickeyElasticKeyIDImportJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostElastickeyElasticKeyIDImportRequest(c.Server, elasticKeyID, body)
+func (c *Client) PostElasticKeysElasticKeyIDImportWithBody(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostElasticKeysElasticKeyIDImportRequestWithBody(c.Server, elasticKeyID, contentType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -442,8 +442,8 @@ func (c *Client) PostElastickeyElasticKeyIDImport(ctx context.Context, elasticKe
 	return c.Client.Do(req)
 }
 
-func (c *Client) PostElastickeyElasticKeyIDMaterialkeyWithBody(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostElastickeyElasticKeyIDMaterialkeyRequestWithBody(c.Server, elasticKeyID, contentType, body)
+func (c *Client) PostElasticKeysElasticKeyIDImport(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, body PostElasticKeysElasticKeyIDImportJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostElasticKeysElasticKeyIDImportRequest(c.Server, elasticKeyID, body)
 	if err != nil {
 		return nil, err
 	}
@@ -454,8 +454,8 @@ func (c *Client) PostElastickeyElasticKeyIDMaterialkeyWithBody(ctx context.Conte
 	return c.Client.Do(req)
 }
 
-func (c *Client) PostElastickeyElasticKeyIDMaterialkey(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, body PostElastickeyElasticKeyIDMaterialkeyJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostElastickeyElasticKeyIDMaterialkeyRequest(c.Server, elasticKeyID, body)
+func (c *Client) GetElasticKeysElasticKeyIDMaterialKeys(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, params *GetElasticKeysElasticKeyIDMaterialKeysParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetElasticKeysElasticKeyIDMaterialKeysRequest(c.Server, elasticKeyID, params)
 	if err != nil {
 		return nil, err
 	}
@@ -466,8 +466,8 @@ func (c *Client) PostElastickeyElasticKeyIDMaterialkey(ctx context.Context, elas
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetElastickeyElasticKeyIDMaterialkeyMaterialKeyID(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, materialKeyID externalRef0.MaterialKeyID, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRequest(c.Server, elasticKeyID, materialKeyID)
+func (c *Client) PostElasticKeysElasticKeyIDMaterialKeysWithBody(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostElasticKeysElasticKeyIDMaterialKeysRequestWithBody(c.Server, elasticKeyID, contentType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -478,8 +478,8 @@ func (c *Client) GetElastickeyElasticKeyIDMaterialkeyMaterialKeyID(ctx context.C
 	return c.Client.Do(req)
 }
 
-func (c *Client) PostElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRevoke(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, materialKeyID externalRef0.MaterialKeyID, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRevokeRequest(c.Server, elasticKeyID, materialKeyID)
+func (c *Client) PostElasticKeysElasticKeyIDMaterialKeys(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, body PostElasticKeysElasticKeyIDMaterialKeysJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostElasticKeysElasticKeyIDMaterialKeysRequest(c.Server, elasticKeyID, body)
 	if err != nil {
 		return nil, err
 	}
@@ -490,8 +490,8 @@ func (c *Client) PostElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRevoke(ctx co
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetElastickeyElasticKeyIDMaterialkeys(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, params *GetElastickeyElasticKeyIDMaterialkeysParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetElastickeyElasticKeyIDMaterialkeysRequest(c.Server, elasticKeyID, params)
+func (c *Client) GetElasticKeysElasticKeyIDMaterialKeysMaterialKeyID(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, materialKeyID externalRef0.MaterialKeyID, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDRequest(c.Server, elasticKeyID, materialKeyID)
 	if err != nil {
 		return nil, err
 	}
@@ -502,8 +502,8 @@ func (c *Client) GetElastickeyElasticKeyIDMaterialkeys(ctx context.Context, elas
 	return c.Client.Do(req)
 }
 
-func (c *Client) PostElastickeyElasticKeyIDSignWithBody(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, params *PostElastickeyElasticKeyIDSignParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostElastickeyElasticKeyIDSignRequestWithBody(c.Server, elasticKeyID, params, contentType, body)
+func (c *Client) PostElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDRevoke(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, materialKeyID externalRef0.MaterialKeyID, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDRevokeRequest(c.Server, elasticKeyID, materialKeyID)
 	if err != nil {
 		return nil, err
 	}
@@ -514,8 +514,8 @@ func (c *Client) PostElastickeyElasticKeyIDSignWithBody(ctx context.Context, ela
 	return c.Client.Do(req)
 }
 
-func (c *Client) PostElastickeyElasticKeyIDSignWithTextBody(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, params *PostElastickeyElasticKeyIDSignParams, body PostElastickeyElasticKeyIDSignTextRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostElastickeyElasticKeyIDSignRequestWithTextBody(c.Server, elasticKeyID, params, body)
+func (c *Client) PostElasticKeysElasticKeyIDSignWithBody(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, params *PostElasticKeysElasticKeyIDSignParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostElasticKeysElasticKeyIDSignRequestWithBody(c.Server, elasticKeyID, params, contentType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -526,8 +526,8 @@ func (c *Client) PostElastickeyElasticKeyIDSignWithTextBody(ctx context.Context,
 	return c.Client.Do(req)
 }
 
-func (c *Client) PostElastickeyElasticKeyIDVerifyWithBody(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostElastickeyElasticKeyIDVerifyRequestWithBody(c.Server, elasticKeyID, contentType, body)
+func (c *Client) PostElasticKeysElasticKeyIDSignWithTextBody(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, params *PostElasticKeysElasticKeyIDSignParams, body PostElasticKeysElasticKeyIDSignTextRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostElasticKeysElasticKeyIDSignRequestWithTextBody(c.Server, elasticKeyID, params, body)
 	if err != nil {
 		return nil, err
 	}
@@ -538,8 +538,8 @@ func (c *Client) PostElastickeyElasticKeyIDVerifyWithBody(ctx context.Context, e
 	return c.Client.Do(req)
 }
 
-func (c *Client) PostElastickeyElasticKeyIDVerifyWithTextBody(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, body PostElastickeyElasticKeyIDVerifyTextRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostElastickeyElasticKeyIDVerifyRequestWithTextBody(c.Server, elasticKeyID, body)
+func (c *Client) PostElasticKeysElasticKeyIDVerifyWithBody(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostElasticKeysElasticKeyIDVerifyRequestWithBody(c.Server, elasticKeyID, contentType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -550,8 +550,8 @@ func (c *Client) PostElastickeyElasticKeyIDVerifyWithTextBody(ctx context.Contex
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetElastickeys(ctx context.Context, params *GetElastickeysParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetElastickeysRequest(c.Server, params)
+func (c *Client) PostElasticKeysElasticKeyIDVerifyWithTextBody(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, body PostElasticKeysElasticKeyIDVerifyTextRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostElasticKeysElasticKeyIDVerifyRequestWithTextBody(c.Server, elasticKeyID, body)
 	if err != nil {
 		return nil, err
 	}
@@ -562,8 +562,8 @@ func (c *Client) GetElastickeys(ctx context.Context, params *GetElastickeysParam
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetMaterialkeys(ctx context.Context, params *GetMaterialkeysParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetMaterialkeysRequest(c.Server, params)
+func (c *Client) GetMaterialKeys(ctx context.Context, params *GetMaterialKeysParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetMaterialKeysRequest(c.Server, params)
 	if err != nil {
 		return nil, err
 	}
@@ -574,19 +574,8 @@ func (c *Client) GetMaterialkeys(ctx context.Context, params *GetMaterialkeysPar
 	return c.Client.Do(req)
 }
 
-// NewPostElastickeyRequest calls the generic PostElastickey builder with application/json body
-func NewPostElastickeyRequest(server string, body PostElastickeyJSONRequestBody) (*http.Request, error) {
-	var bodyReader io.Reader
-	buf, err := json.Marshal(body)
-	if err != nil {
-		return nil, err
-	}
-	bodyReader = bytes.NewReader(buf)
-	return NewPostElastickeyRequestWithBody(server, "application/json", bodyReader)
-}
-
-// NewPostElastickeyRequestWithBody generates requests for PostElastickey with any type of body
-func NewPostElastickeyRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+// NewGetElasticKeysRequest generates requests for GetElasticKeys
+func NewGetElasticKeysRequest(server string, params *GetElasticKeysParams) (*http.Request, error) {
 	var err error
 
 	serverURL, err := url.Parse(server)
@@ -594,760 +583,7 @@ func NewPostElastickeyRequestWithBody(server string, contentType string, body io
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/elastickey")
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("POST", queryURL.String(), body)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Add("Content-Type", contentType)
-
-	return req, nil
-}
-
-// NewDeleteElastickeyElasticKeyIDRequest generates requests for DeleteElastickeyElasticKeyID
-func NewDeleteElastickeyElasticKeyIDRequest(server string, elasticKeyID externalRef0.ElasticKeyID) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "elasticKeyID", runtime.ParamLocationPath, elasticKeyID)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/elastickey/%s", pathParam0)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
-// NewGetElastickeyElasticKeyIDRequest generates requests for GetElastickeyElasticKeyID
-func NewGetElastickeyElasticKeyIDRequest(server string, elasticKeyID externalRef0.ElasticKeyID) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "elasticKeyID", runtime.ParamLocationPath, elasticKeyID)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/elastickey/%s", pathParam0)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
-// NewPutElastickeyElasticKeyIDRequest calls the generic PutElastickeyElasticKeyID builder with application/json body
-func NewPutElastickeyElasticKeyIDRequest(server string, elasticKeyID externalRef0.ElasticKeyID, body PutElastickeyElasticKeyIDJSONRequestBody) (*http.Request, error) {
-	var bodyReader io.Reader
-	buf, err := json.Marshal(body)
-	if err != nil {
-		return nil, err
-	}
-	bodyReader = bytes.NewReader(buf)
-	return NewPutElastickeyElasticKeyIDRequestWithBody(server, elasticKeyID, "application/json", bodyReader)
-}
-
-// NewPutElastickeyElasticKeyIDRequestWithBody generates requests for PutElastickeyElasticKeyID with any type of body
-func NewPutElastickeyElasticKeyIDRequestWithBody(server string, elasticKeyID externalRef0.ElasticKeyID, contentType string, body io.Reader) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "elasticKeyID", runtime.ParamLocationPath, elasticKeyID)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/elastickey/%s", pathParam0)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("PUT", queryURL.String(), body)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Add("Content-Type", contentType)
-
-	return req, nil
-}
-
-// NewPostElastickeyElasticKeyIDDecryptRequestWithTextBody calls the generic PostElastickeyElasticKeyIDDecrypt builder with text/plain body
-func NewPostElastickeyElasticKeyIDDecryptRequestWithTextBody(server string, elasticKeyID externalRef0.ElasticKeyID, body PostElastickeyElasticKeyIDDecryptTextRequestBody) (*http.Request, error) {
-	var bodyReader io.Reader
-	bodyReader = strings.NewReader(string(body))
-	return NewPostElastickeyElasticKeyIDDecryptRequestWithBody(server, elasticKeyID, "text/plain", bodyReader)
-}
-
-// NewPostElastickeyElasticKeyIDDecryptRequestWithBody generates requests for PostElastickeyElasticKeyIDDecrypt with any type of body
-func NewPostElastickeyElasticKeyIDDecryptRequestWithBody(server string, elasticKeyID externalRef0.ElasticKeyID, contentType string, body io.Reader) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "elasticKeyID", runtime.ParamLocationPath, elasticKeyID)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/elastickey/%s/decrypt", pathParam0)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("POST", queryURL.String(), body)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Add("Content-Type", contentType)
-
-	return req, nil
-}
-
-// NewPostElastickeyElasticKeyIDEncryptRequestWithTextBody calls the generic PostElastickeyElasticKeyIDEncrypt builder with text/plain body
-func NewPostElastickeyElasticKeyIDEncryptRequestWithTextBody(server string, elasticKeyID externalRef0.ElasticKeyID, params *PostElastickeyElasticKeyIDEncryptParams, body PostElastickeyElasticKeyIDEncryptTextRequestBody) (*http.Request, error) {
-	var bodyReader io.Reader
-	bodyReader = strings.NewReader(string(body))
-	return NewPostElastickeyElasticKeyIDEncryptRequestWithBody(server, elasticKeyID, params, "text/plain", bodyReader)
-}
-
-// NewPostElastickeyElasticKeyIDEncryptRequestWithBody generates requests for PostElastickeyElasticKeyIDEncrypt with any type of body
-func NewPostElastickeyElasticKeyIDEncryptRequestWithBody(server string, elasticKeyID externalRef0.ElasticKeyID, params *PostElastickeyElasticKeyIDEncryptParams, contentType string, body io.Reader) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "elasticKeyID", runtime.ParamLocationPath, elasticKeyID)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/elastickey/%s/encrypt", pathParam0)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	if params != nil {
-		queryValues := queryURL.Query()
-
-		if params.Context != nil {
-
-			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "context", runtime.ParamLocationQuery, *params.Context); err != nil {
-				return nil, err
-			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-				return nil, err
-			} else {
-				for k, v := range parsed {
-					for _, v2 := range v {
-						queryValues.Add(k, v2)
-					}
-				}
-			}
-
-		}
-
-		queryURL.RawQuery = queryValues.Encode()
-	}
-
-	req, err := http.NewRequest("POST", queryURL.String(), body)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Add("Content-Type", contentType)
-
-	return req, nil
-}
-
-// NewPostElastickeyElasticKeyIDGenerateRequestWithTextBody calls the generic PostElastickeyElasticKeyIDGenerate builder with text/plain body
-func NewPostElastickeyElasticKeyIDGenerateRequestWithTextBody(server string, elasticKeyID externalRef0.ElasticKeyID, params *PostElastickeyElasticKeyIDGenerateParams, body PostElastickeyElasticKeyIDGenerateTextRequestBody) (*http.Request, error) {
-	var bodyReader io.Reader
-	bodyReader = strings.NewReader(string(body))
-	return NewPostElastickeyElasticKeyIDGenerateRequestWithBody(server, elasticKeyID, params, "text/plain", bodyReader)
-}
-
-// NewPostElastickeyElasticKeyIDGenerateRequestWithBody generates requests for PostElastickeyElasticKeyIDGenerate with any type of body
-func NewPostElastickeyElasticKeyIDGenerateRequestWithBody(server string, elasticKeyID externalRef0.ElasticKeyID, params *PostElastickeyElasticKeyIDGenerateParams, contentType string, body io.Reader) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "elasticKeyID", runtime.ParamLocationPath, elasticKeyID)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/elastickey/%s/generate", pathParam0)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	if params != nil {
-		queryValues := queryURL.Query()
-
-		if params.Context != nil {
-
-			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "context", runtime.ParamLocationQuery, *params.Context); err != nil {
-				return nil, err
-			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-				return nil, err
-			} else {
-				for k, v := range parsed {
-					for _, v2 := range v {
-						queryValues.Add(k, v2)
-					}
-				}
-			}
-
-		}
-
-		if params.Alg != nil {
-
-			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "alg", runtime.ParamLocationQuery, *params.Alg); err != nil {
-				return nil, err
-			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-				return nil, err
-			} else {
-				for k, v := range parsed {
-					for _, v2 := range v {
-						queryValues.Add(k, v2)
-					}
-				}
-			}
-
-		}
-
-		queryURL.RawQuery = queryValues.Encode()
-	}
-
-	req, err := http.NewRequest("POST", queryURL.String(), body)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Add("Content-Type", contentType)
-
-	return req, nil
-}
-
-// NewPostElastickeyElasticKeyIDImportRequest calls the generic PostElastickeyElasticKeyIDImport builder with application/json body
-func NewPostElastickeyElasticKeyIDImportRequest(server string, elasticKeyID externalRef0.ElasticKeyID, body PostElastickeyElasticKeyIDImportJSONRequestBody) (*http.Request, error) {
-	var bodyReader io.Reader
-	buf, err := json.Marshal(body)
-	if err != nil {
-		return nil, err
-	}
-	bodyReader = bytes.NewReader(buf)
-	return NewPostElastickeyElasticKeyIDImportRequestWithBody(server, elasticKeyID, "application/json", bodyReader)
-}
-
-// NewPostElastickeyElasticKeyIDImportRequestWithBody generates requests for PostElastickeyElasticKeyIDImport with any type of body
-func NewPostElastickeyElasticKeyIDImportRequestWithBody(server string, elasticKeyID externalRef0.ElasticKeyID, contentType string, body io.Reader) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "elasticKeyID", runtime.ParamLocationPath, elasticKeyID)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/elastickey/%s/import", pathParam0)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("POST", queryURL.String(), body)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Add("Content-Type", contentType)
-
-	return req, nil
-}
-
-// NewPostElastickeyElasticKeyIDMaterialkeyRequest calls the generic PostElastickeyElasticKeyIDMaterialkey builder with application/json body
-func NewPostElastickeyElasticKeyIDMaterialkeyRequest(server string, elasticKeyID externalRef0.ElasticKeyID, body PostElastickeyElasticKeyIDMaterialkeyJSONRequestBody) (*http.Request, error) {
-	var bodyReader io.Reader
-	buf, err := json.Marshal(body)
-	if err != nil {
-		return nil, err
-	}
-	bodyReader = bytes.NewReader(buf)
-	return NewPostElastickeyElasticKeyIDMaterialkeyRequestWithBody(server, elasticKeyID, "application/json", bodyReader)
-}
-
-// NewPostElastickeyElasticKeyIDMaterialkeyRequestWithBody generates requests for PostElastickeyElasticKeyIDMaterialkey with any type of body
-func NewPostElastickeyElasticKeyIDMaterialkeyRequestWithBody(server string, elasticKeyID externalRef0.ElasticKeyID, contentType string, body io.Reader) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "elasticKeyID", runtime.ParamLocationPath, elasticKeyID)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/elastickey/%s/materialkey", pathParam0)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("POST", queryURL.String(), body)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Add("Content-Type", contentType)
-
-	return req, nil
-}
-
-// NewGetElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRequest generates requests for GetElastickeyElasticKeyIDMaterialkeyMaterialKeyID
-func NewGetElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRequest(server string, elasticKeyID externalRef0.ElasticKeyID, materialKeyID externalRef0.MaterialKeyID) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "elasticKeyID", runtime.ParamLocationPath, elasticKeyID)
-	if err != nil {
-		return nil, err
-	}
-
-	var pathParam1 string
-
-	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "materialKeyID", runtime.ParamLocationPath, materialKeyID)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/elastickey/%s/materialkey/%s", pathParam0, pathParam1)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
-// NewPostElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRevokeRequest generates requests for PostElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRevoke
-func NewPostElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRevokeRequest(server string, elasticKeyID externalRef0.ElasticKeyID, materialKeyID externalRef0.MaterialKeyID) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "elasticKeyID", runtime.ParamLocationPath, elasticKeyID)
-	if err != nil {
-		return nil, err
-	}
-
-	var pathParam1 string
-
-	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "materialKeyID", runtime.ParamLocationPath, materialKeyID)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/elastickey/%s/materialkey/%s/revoke", pathParam0, pathParam1)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("POST", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
-// NewGetElastickeyElasticKeyIDMaterialkeysRequest generates requests for GetElastickeyElasticKeyIDMaterialkeys
-func NewGetElastickeyElasticKeyIDMaterialkeysRequest(server string, elasticKeyID externalRef0.ElasticKeyID, params *GetElastickeyElasticKeyIDMaterialkeysParams) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "elasticKeyID", runtime.ParamLocationPath, elasticKeyID)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/elastickey/%s/materialkeys", pathParam0)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	if params != nil {
-		queryValues := queryURL.Query()
-
-		if params.MaterialKeyID != nil {
-
-			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "material_key_id", runtime.ParamLocationQuery, *params.MaterialKeyID); err != nil {
-				return nil, err
-			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-				return nil, err
-			} else {
-				for k, v := range parsed {
-					for _, v2 := range v {
-						queryValues.Add(k, v2)
-					}
-				}
-			}
-
-		}
-
-		if params.MinGenerateDate != nil {
-
-			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "min_generate_date", runtime.ParamLocationQuery, *params.MinGenerateDate); err != nil {
-				return nil, err
-			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-				return nil, err
-			} else {
-				for k, v := range parsed {
-					for _, v2 := range v {
-						queryValues.Add(k, v2)
-					}
-				}
-			}
-
-		}
-
-		if params.MaxGenerateDate != nil {
-
-			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "max_generate_date", runtime.ParamLocationQuery, *params.MaxGenerateDate); err != nil {
-				return nil, err
-			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-				return nil, err
-			} else {
-				for k, v := range parsed {
-					for _, v2 := range v {
-						queryValues.Add(k, v2)
-					}
-				}
-			}
-
-		}
-
-		if params.Sort != nil {
-
-			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "sort", runtime.ParamLocationQuery, *params.Sort); err != nil {
-				return nil, err
-			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-				return nil, err
-			} else {
-				for k, v := range parsed {
-					for _, v2 := range v {
-						queryValues.Add(k, v2)
-					}
-				}
-			}
-
-		}
-
-		if params.Page != nil {
-
-			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "page", runtime.ParamLocationQuery, *params.Page); err != nil {
-				return nil, err
-			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-				return nil, err
-			} else {
-				for k, v := range parsed {
-					for _, v2 := range v {
-						queryValues.Add(k, v2)
-					}
-				}
-			}
-
-		}
-
-		if params.Size != nil {
-
-			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "size", runtime.ParamLocationQuery, *params.Size); err != nil {
-				return nil, err
-			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-				return nil, err
-			} else {
-				for k, v := range parsed {
-					for _, v2 := range v {
-						queryValues.Add(k, v2)
-					}
-				}
-			}
-
-		}
-
-		queryURL.RawQuery = queryValues.Encode()
-	}
-
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
-// NewPostElastickeyElasticKeyIDSignRequestWithTextBody calls the generic PostElastickeyElasticKeyIDSign builder with text/plain body
-func NewPostElastickeyElasticKeyIDSignRequestWithTextBody(server string, elasticKeyID externalRef0.ElasticKeyID, params *PostElastickeyElasticKeyIDSignParams, body PostElastickeyElasticKeyIDSignTextRequestBody) (*http.Request, error) {
-	var bodyReader io.Reader
-	bodyReader = strings.NewReader(string(body))
-	return NewPostElastickeyElasticKeyIDSignRequestWithBody(server, elasticKeyID, params, "text/plain", bodyReader)
-}
-
-// NewPostElastickeyElasticKeyIDSignRequestWithBody generates requests for PostElastickeyElasticKeyIDSign with any type of body
-func NewPostElastickeyElasticKeyIDSignRequestWithBody(server string, elasticKeyID externalRef0.ElasticKeyID, params *PostElastickeyElasticKeyIDSignParams, contentType string, body io.Reader) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "elasticKeyID", runtime.ParamLocationPath, elasticKeyID)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/elastickey/%s/sign", pathParam0)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	if params != nil {
-		queryValues := queryURL.Query()
-
-		if params.Context != nil {
-
-			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "context", runtime.ParamLocationQuery, *params.Context); err != nil {
-				return nil, err
-			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-				return nil, err
-			} else {
-				for k, v := range parsed {
-					for _, v2 := range v {
-						queryValues.Add(k, v2)
-					}
-				}
-			}
-
-		}
-
-		queryURL.RawQuery = queryValues.Encode()
-	}
-
-	req, err := http.NewRequest("POST", queryURL.String(), body)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Add("Content-Type", contentType)
-
-	return req, nil
-}
-
-// NewPostElastickeyElasticKeyIDVerifyRequestWithTextBody calls the generic PostElastickeyElasticKeyIDVerify builder with text/plain body
-func NewPostElastickeyElasticKeyIDVerifyRequestWithTextBody(server string, elasticKeyID externalRef0.ElasticKeyID, body PostElastickeyElasticKeyIDVerifyTextRequestBody) (*http.Request, error) {
-	var bodyReader io.Reader
-	bodyReader = strings.NewReader(string(body))
-	return NewPostElastickeyElasticKeyIDVerifyRequestWithBody(server, elasticKeyID, "text/plain", bodyReader)
-}
-
-// NewPostElastickeyElasticKeyIDVerifyRequestWithBody generates requests for PostElastickeyElasticKeyIDVerify with any type of body
-func NewPostElastickeyElasticKeyIDVerifyRequestWithBody(server string, elasticKeyID externalRef0.ElasticKeyID, contentType string, body io.Reader) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "elasticKeyID", runtime.ParamLocationPath, elasticKeyID)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/elastickey/%s/verify", pathParam0)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("POST", queryURL.String(), body)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Add("Content-Type", contentType)
-
-	return req, nil
-}
-
-// NewGetElastickeysRequest generates requests for GetElastickeys
-func NewGetElastickeysRequest(server string, params *GetElastickeysParams) (*http.Request, error) {
-	var err error
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/elastickeys")
+	operationPath := fmt.Sprintf("/elastic-keys")
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -1531,8 +767,19 @@ func NewGetElastickeysRequest(server string, params *GetElastickeysParams) (*htt
 	return req, nil
 }
 
-// NewGetMaterialkeysRequest generates requests for GetMaterialkeys
-func NewGetMaterialkeysRequest(server string, params *GetMaterialkeysParams) (*http.Request, error) {
+// NewPostElasticKeysRequest calls the generic PostElasticKeys builder with application/json body
+func NewPostElasticKeysRequest(server string, body PostElasticKeysJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewPostElasticKeysRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewPostElasticKeysRequestWithBody generates requests for PostElasticKeys with any type of body
+func NewPostElasticKeysRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
 
 	serverURL, err := url.Parse(server)
@@ -1540,7 +787,760 @@ func NewGetMaterialkeysRequest(server string, params *GetMaterialkeysParams) (*h
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/materialkeys")
+	operationPath := fmt.Sprintf("/elastic-keys")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewDeleteElasticKeysElasticKeyIDRequest generates requests for DeleteElasticKeysElasticKeyID
+func NewDeleteElasticKeysElasticKeyIDRequest(server string, elasticKeyID externalRef0.ElasticKeyID) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "elasticKeyID", runtime.ParamLocationPath, elasticKeyID)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/elastic-keys/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetElasticKeysElasticKeyIDRequest generates requests for GetElasticKeysElasticKeyID
+func NewGetElasticKeysElasticKeyIDRequest(server string, elasticKeyID externalRef0.ElasticKeyID) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "elasticKeyID", runtime.ParamLocationPath, elasticKeyID)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/elastic-keys/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewPutElasticKeysElasticKeyIDRequest calls the generic PutElasticKeysElasticKeyID builder with application/json body
+func NewPutElasticKeysElasticKeyIDRequest(server string, elasticKeyID externalRef0.ElasticKeyID, body PutElasticKeysElasticKeyIDJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewPutElasticKeysElasticKeyIDRequestWithBody(server, elasticKeyID, "application/json", bodyReader)
+}
+
+// NewPutElasticKeysElasticKeyIDRequestWithBody generates requests for PutElasticKeysElasticKeyID with any type of body
+func NewPutElasticKeysElasticKeyIDRequestWithBody(server string, elasticKeyID externalRef0.ElasticKeyID, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "elasticKeyID", runtime.ParamLocationPath, elasticKeyID)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/elastic-keys/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("PUT", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewPostElasticKeysElasticKeyIDDecryptRequestWithTextBody calls the generic PostElasticKeysElasticKeyIDDecrypt builder with text/plain body
+func NewPostElasticKeysElasticKeyIDDecryptRequestWithTextBody(server string, elasticKeyID externalRef0.ElasticKeyID, body PostElasticKeysElasticKeyIDDecryptTextRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	bodyReader = strings.NewReader(string(body))
+	return NewPostElasticKeysElasticKeyIDDecryptRequestWithBody(server, elasticKeyID, "text/plain", bodyReader)
+}
+
+// NewPostElasticKeysElasticKeyIDDecryptRequestWithBody generates requests for PostElasticKeysElasticKeyIDDecrypt with any type of body
+func NewPostElasticKeysElasticKeyIDDecryptRequestWithBody(server string, elasticKeyID externalRef0.ElasticKeyID, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "elasticKeyID", runtime.ParamLocationPath, elasticKeyID)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/elastic-keys/%s/decrypt", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewPostElasticKeysElasticKeyIDEncryptRequestWithTextBody calls the generic PostElasticKeysElasticKeyIDEncrypt builder with text/plain body
+func NewPostElasticKeysElasticKeyIDEncryptRequestWithTextBody(server string, elasticKeyID externalRef0.ElasticKeyID, params *PostElasticKeysElasticKeyIDEncryptParams, body PostElasticKeysElasticKeyIDEncryptTextRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	bodyReader = strings.NewReader(string(body))
+	return NewPostElasticKeysElasticKeyIDEncryptRequestWithBody(server, elasticKeyID, params, "text/plain", bodyReader)
+}
+
+// NewPostElasticKeysElasticKeyIDEncryptRequestWithBody generates requests for PostElasticKeysElasticKeyIDEncrypt with any type of body
+func NewPostElasticKeysElasticKeyIDEncryptRequestWithBody(server string, elasticKeyID externalRef0.ElasticKeyID, params *PostElasticKeysElasticKeyIDEncryptParams, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "elasticKeyID", runtime.ParamLocationPath, elasticKeyID)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/elastic-keys/%s/encrypt", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.Context != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "context", runtime.ParamLocationQuery, *params.Context); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewPostElasticKeysElasticKeyIDGenerateRequestWithTextBody calls the generic PostElasticKeysElasticKeyIDGenerate builder with text/plain body
+func NewPostElasticKeysElasticKeyIDGenerateRequestWithTextBody(server string, elasticKeyID externalRef0.ElasticKeyID, params *PostElasticKeysElasticKeyIDGenerateParams, body PostElasticKeysElasticKeyIDGenerateTextRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	bodyReader = strings.NewReader(string(body))
+	return NewPostElasticKeysElasticKeyIDGenerateRequestWithBody(server, elasticKeyID, params, "text/plain", bodyReader)
+}
+
+// NewPostElasticKeysElasticKeyIDGenerateRequestWithBody generates requests for PostElasticKeysElasticKeyIDGenerate with any type of body
+func NewPostElasticKeysElasticKeyIDGenerateRequestWithBody(server string, elasticKeyID externalRef0.ElasticKeyID, params *PostElasticKeysElasticKeyIDGenerateParams, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "elasticKeyID", runtime.ParamLocationPath, elasticKeyID)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/elastic-keys/%s/generate", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.Context != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "context", runtime.ParamLocationQuery, *params.Context); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Alg != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "alg", runtime.ParamLocationQuery, *params.Alg); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewPostElasticKeysElasticKeyIDImportRequest calls the generic PostElasticKeysElasticKeyIDImport builder with application/json body
+func NewPostElasticKeysElasticKeyIDImportRequest(server string, elasticKeyID externalRef0.ElasticKeyID, body PostElasticKeysElasticKeyIDImportJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewPostElasticKeysElasticKeyIDImportRequestWithBody(server, elasticKeyID, "application/json", bodyReader)
+}
+
+// NewPostElasticKeysElasticKeyIDImportRequestWithBody generates requests for PostElasticKeysElasticKeyIDImport with any type of body
+func NewPostElasticKeysElasticKeyIDImportRequestWithBody(server string, elasticKeyID externalRef0.ElasticKeyID, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "elasticKeyID", runtime.ParamLocationPath, elasticKeyID)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/elastic-keys/%s/import", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewGetElasticKeysElasticKeyIDMaterialKeysRequest generates requests for GetElasticKeysElasticKeyIDMaterialKeys
+func NewGetElasticKeysElasticKeyIDMaterialKeysRequest(server string, elasticKeyID externalRef0.ElasticKeyID, params *GetElasticKeysElasticKeyIDMaterialKeysParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "elasticKeyID", runtime.ParamLocationPath, elasticKeyID)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/elastic-keys/%s/material-keys", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.MaterialKeyID != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "material_key_id", runtime.ParamLocationQuery, *params.MaterialKeyID); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.MinGenerateDate != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "min_generate_date", runtime.ParamLocationQuery, *params.MinGenerateDate); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.MaxGenerateDate != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "max_generate_date", runtime.ParamLocationQuery, *params.MaxGenerateDate); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Sort != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "sort", runtime.ParamLocationQuery, *params.Sort); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Page != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "page", runtime.ParamLocationQuery, *params.Page); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Size != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "size", runtime.ParamLocationQuery, *params.Size); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewPostElasticKeysElasticKeyIDMaterialKeysRequest calls the generic PostElasticKeysElasticKeyIDMaterialKeys builder with application/json body
+func NewPostElasticKeysElasticKeyIDMaterialKeysRequest(server string, elasticKeyID externalRef0.ElasticKeyID, body PostElasticKeysElasticKeyIDMaterialKeysJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewPostElasticKeysElasticKeyIDMaterialKeysRequestWithBody(server, elasticKeyID, "application/json", bodyReader)
+}
+
+// NewPostElasticKeysElasticKeyIDMaterialKeysRequestWithBody generates requests for PostElasticKeysElasticKeyIDMaterialKeys with any type of body
+func NewPostElasticKeysElasticKeyIDMaterialKeysRequestWithBody(server string, elasticKeyID externalRef0.ElasticKeyID, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "elasticKeyID", runtime.ParamLocationPath, elasticKeyID)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/elastic-keys/%s/material-keys", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewGetElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDRequest generates requests for GetElasticKeysElasticKeyIDMaterialKeysMaterialKeyID
+func NewGetElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDRequest(server string, elasticKeyID externalRef0.ElasticKeyID, materialKeyID externalRef0.MaterialKeyID) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "elasticKeyID", runtime.ParamLocationPath, elasticKeyID)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "materialKeyID", runtime.ParamLocationPath, materialKeyID)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/elastic-keys/%s/material-keys/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewPostElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDRevokeRequest generates requests for PostElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDRevoke
+func NewPostElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDRevokeRequest(server string, elasticKeyID externalRef0.ElasticKeyID, materialKeyID externalRef0.MaterialKeyID) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "elasticKeyID", runtime.ParamLocationPath, elasticKeyID)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "materialKeyID", runtime.ParamLocationPath, materialKeyID)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/elastic-keys/%s/material-keys/%s/revoke", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewPostElasticKeysElasticKeyIDSignRequestWithTextBody calls the generic PostElasticKeysElasticKeyIDSign builder with text/plain body
+func NewPostElasticKeysElasticKeyIDSignRequestWithTextBody(server string, elasticKeyID externalRef0.ElasticKeyID, params *PostElasticKeysElasticKeyIDSignParams, body PostElasticKeysElasticKeyIDSignTextRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	bodyReader = strings.NewReader(string(body))
+	return NewPostElasticKeysElasticKeyIDSignRequestWithBody(server, elasticKeyID, params, "text/plain", bodyReader)
+}
+
+// NewPostElasticKeysElasticKeyIDSignRequestWithBody generates requests for PostElasticKeysElasticKeyIDSign with any type of body
+func NewPostElasticKeysElasticKeyIDSignRequestWithBody(server string, elasticKeyID externalRef0.ElasticKeyID, params *PostElasticKeysElasticKeyIDSignParams, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "elasticKeyID", runtime.ParamLocationPath, elasticKeyID)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/elastic-keys/%s/sign", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.Context != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "context", runtime.ParamLocationQuery, *params.Context); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewPostElasticKeysElasticKeyIDVerifyRequestWithTextBody calls the generic PostElasticKeysElasticKeyIDVerify builder with text/plain body
+func NewPostElasticKeysElasticKeyIDVerifyRequestWithTextBody(server string, elasticKeyID externalRef0.ElasticKeyID, body PostElasticKeysElasticKeyIDVerifyTextRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	bodyReader = strings.NewReader(string(body))
+	return NewPostElasticKeysElasticKeyIDVerifyRequestWithBody(server, elasticKeyID, "text/plain", bodyReader)
+}
+
+// NewPostElasticKeysElasticKeyIDVerifyRequestWithBody generates requests for PostElasticKeysElasticKeyIDVerify with any type of body
+func NewPostElasticKeysElasticKeyIDVerifyRequestWithBody(server string, elasticKeyID externalRef0.ElasticKeyID, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "elasticKeyID", runtime.ParamLocationPath, elasticKeyID)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/elastic-keys/%s/verify", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewGetMaterialKeysRequest generates requests for GetMaterialKeys
+func NewGetMaterialKeysRequest(server string, params *GetMaterialKeysParams) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/material-keys")
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -1719,74 +1719,105 @@ func WithBaseURL(baseURL string) ClientOption {
 
 // ClientWithResponsesInterface is the interface specification for the client with responses above.
 type ClientWithResponsesInterface interface {
-	// PostElastickeyWithBodyWithResponse request with any body
-	PostElastickeyWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostElastickeyResponse, error)
+	// GetElasticKeysWithResponse request
+	GetElasticKeysWithResponse(ctx context.Context, params *GetElasticKeysParams, reqEditors ...RequestEditorFn) (*GetElasticKeysResponse, error)
 
-	PostElastickeyWithResponse(ctx context.Context, body PostElastickeyJSONRequestBody, reqEditors ...RequestEditorFn) (*PostElastickeyResponse, error)
+	// PostElasticKeysWithBodyWithResponse request with any body
+	PostElasticKeysWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostElasticKeysResponse, error)
 
-	// DeleteElastickeyElasticKeyIDWithResponse request
-	DeleteElastickeyElasticKeyIDWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, reqEditors ...RequestEditorFn) (*DeleteElastickeyElasticKeyIDResponse, error)
+	PostElasticKeysWithResponse(ctx context.Context, body PostElasticKeysJSONRequestBody, reqEditors ...RequestEditorFn) (*PostElasticKeysResponse, error)
 
-	// GetElastickeyElasticKeyIDWithResponse request
-	GetElastickeyElasticKeyIDWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, reqEditors ...RequestEditorFn) (*GetElastickeyElasticKeyIDResponse, error)
+	// DeleteElasticKeysElasticKeyIDWithResponse request
+	DeleteElasticKeysElasticKeyIDWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, reqEditors ...RequestEditorFn) (*DeleteElasticKeysElasticKeyIDResponse, error)
 
-	// PutElastickeyElasticKeyIDWithBodyWithResponse request with any body
-	PutElastickeyElasticKeyIDWithBodyWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PutElastickeyElasticKeyIDResponse, error)
+	// GetElasticKeysElasticKeyIDWithResponse request
+	GetElasticKeysElasticKeyIDWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, reqEditors ...RequestEditorFn) (*GetElasticKeysElasticKeyIDResponse, error)
 
-	PutElastickeyElasticKeyIDWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, body PutElastickeyElasticKeyIDJSONRequestBody, reqEditors ...RequestEditorFn) (*PutElastickeyElasticKeyIDResponse, error)
+	// PutElasticKeysElasticKeyIDWithBodyWithResponse request with any body
+	PutElasticKeysElasticKeyIDWithBodyWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PutElasticKeysElasticKeyIDResponse, error)
 
-	// PostElastickeyElasticKeyIDDecryptWithBodyWithResponse request with any body
-	PostElastickeyElasticKeyIDDecryptWithBodyWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostElastickeyElasticKeyIDDecryptResponse, error)
+	PutElasticKeysElasticKeyIDWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, body PutElasticKeysElasticKeyIDJSONRequestBody, reqEditors ...RequestEditorFn) (*PutElasticKeysElasticKeyIDResponse, error)
 
-	PostElastickeyElasticKeyIDDecryptWithTextBodyWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, body PostElastickeyElasticKeyIDDecryptTextRequestBody, reqEditors ...RequestEditorFn) (*PostElastickeyElasticKeyIDDecryptResponse, error)
+	// PostElasticKeysElasticKeyIDDecryptWithBodyWithResponse request with any body
+	PostElasticKeysElasticKeyIDDecryptWithBodyWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostElasticKeysElasticKeyIDDecryptResponse, error)
 
-	// PostElastickeyElasticKeyIDEncryptWithBodyWithResponse request with any body
-	PostElastickeyElasticKeyIDEncryptWithBodyWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, params *PostElastickeyElasticKeyIDEncryptParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostElastickeyElasticKeyIDEncryptResponse, error)
+	PostElasticKeysElasticKeyIDDecryptWithTextBodyWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, body PostElasticKeysElasticKeyIDDecryptTextRequestBody, reqEditors ...RequestEditorFn) (*PostElasticKeysElasticKeyIDDecryptResponse, error)
 
-	PostElastickeyElasticKeyIDEncryptWithTextBodyWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, params *PostElastickeyElasticKeyIDEncryptParams, body PostElastickeyElasticKeyIDEncryptTextRequestBody, reqEditors ...RequestEditorFn) (*PostElastickeyElasticKeyIDEncryptResponse, error)
+	// PostElasticKeysElasticKeyIDEncryptWithBodyWithResponse request with any body
+	PostElasticKeysElasticKeyIDEncryptWithBodyWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, params *PostElasticKeysElasticKeyIDEncryptParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostElasticKeysElasticKeyIDEncryptResponse, error)
 
-	// PostElastickeyElasticKeyIDGenerateWithBodyWithResponse request with any body
-	PostElastickeyElasticKeyIDGenerateWithBodyWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, params *PostElastickeyElasticKeyIDGenerateParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostElastickeyElasticKeyIDGenerateResponse, error)
+	PostElasticKeysElasticKeyIDEncryptWithTextBodyWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, params *PostElasticKeysElasticKeyIDEncryptParams, body PostElasticKeysElasticKeyIDEncryptTextRequestBody, reqEditors ...RequestEditorFn) (*PostElasticKeysElasticKeyIDEncryptResponse, error)
 
-	PostElastickeyElasticKeyIDGenerateWithTextBodyWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, params *PostElastickeyElasticKeyIDGenerateParams, body PostElastickeyElasticKeyIDGenerateTextRequestBody, reqEditors ...RequestEditorFn) (*PostElastickeyElasticKeyIDGenerateResponse, error)
+	// PostElasticKeysElasticKeyIDGenerateWithBodyWithResponse request with any body
+	PostElasticKeysElasticKeyIDGenerateWithBodyWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, params *PostElasticKeysElasticKeyIDGenerateParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostElasticKeysElasticKeyIDGenerateResponse, error)
 
-	// PostElastickeyElasticKeyIDImportWithBodyWithResponse request with any body
-	PostElastickeyElasticKeyIDImportWithBodyWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostElastickeyElasticKeyIDImportResponse, error)
+	PostElasticKeysElasticKeyIDGenerateWithTextBodyWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, params *PostElasticKeysElasticKeyIDGenerateParams, body PostElasticKeysElasticKeyIDGenerateTextRequestBody, reqEditors ...RequestEditorFn) (*PostElasticKeysElasticKeyIDGenerateResponse, error)
 
-	PostElastickeyElasticKeyIDImportWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, body PostElastickeyElasticKeyIDImportJSONRequestBody, reqEditors ...RequestEditorFn) (*PostElastickeyElasticKeyIDImportResponse, error)
+	// PostElasticKeysElasticKeyIDImportWithBodyWithResponse request with any body
+	PostElasticKeysElasticKeyIDImportWithBodyWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostElasticKeysElasticKeyIDImportResponse, error)
 
-	// PostElastickeyElasticKeyIDMaterialkeyWithBodyWithResponse request with any body
-	PostElastickeyElasticKeyIDMaterialkeyWithBodyWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostElastickeyElasticKeyIDMaterialkeyResponse, error)
+	PostElasticKeysElasticKeyIDImportWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, body PostElasticKeysElasticKeyIDImportJSONRequestBody, reqEditors ...RequestEditorFn) (*PostElasticKeysElasticKeyIDImportResponse, error)
 
-	PostElastickeyElasticKeyIDMaterialkeyWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, body PostElastickeyElasticKeyIDMaterialkeyJSONRequestBody, reqEditors ...RequestEditorFn) (*PostElastickeyElasticKeyIDMaterialkeyResponse, error)
+	// GetElasticKeysElasticKeyIDMaterialKeysWithResponse request
+	GetElasticKeysElasticKeyIDMaterialKeysWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, params *GetElasticKeysElasticKeyIDMaterialKeysParams, reqEditors ...RequestEditorFn) (*GetElasticKeysElasticKeyIDMaterialKeysResponse, error)
 
-	// GetElastickeyElasticKeyIDMaterialkeyMaterialKeyIDWithResponse request
-	GetElastickeyElasticKeyIDMaterialkeyMaterialKeyIDWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, materialKeyID externalRef0.MaterialKeyID, reqEditors ...RequestEditorFn) (*GetElastickeyElasticKeyIDMaterialkeyMaterialKeyIDResponse, error)
+	// PostElasticKeysElasticKeyIDMaterialKeysWithBodyWithResponse request with any body
+	PostElasticKeysElasticKeyIDMaterialKeysWithBodyWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostElasticKeysElasticKeyIDMaterialKeysResponse, error)
 
-	// PostElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRevokeWithResponse request
-	PostElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRevokeWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, materialKeyID externalRef0.MaterialKeyID, reqEditors ...RequestEditorFn) (*PostElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRevokeResponse, error)
+	PostElasticKeysElasticKeyIDMaterialKeysWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, body PostElasticKeysElasticKeyIDMaterialKeysJSONRequestBody, reqEditors ...RequestEditorFn) (*PostElasticKeysElasticKeyIDMaterialKeysResponse, error)
 
-	// GetElastickeyElasticKeyIDMaterialkeysWithResponse request
-	GetElastickeyElasticKeyIDMaterialkeysWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, params *GetElastickeyElasticKeyIDMaterialkeysParams, reqEditors ...RequestEditorFn) (*GetElastickeyElasticKeyIDMaterialkeysResponse, error)
+	// GetElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDWithResponse request
+	GetElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, materialKeyID externalRef0.MaterialKeyID, reqEditors ...RequestEditorFn) (*GetElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDResponse, error)
 
-	// PostElastickeyElasticKeyIDSignWithBodyWithResponse request with any body
-	PostElastickeyElasticKeyIDSignWithBodyWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, params *PostElastickeyElasticKeyIDSignParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostElastickeyElasticKeyIDSignResponse, error)
+	// PostElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDRevokeWithResponse request
+	PostElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDRevokeWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, materialKeyID externalRef0.MaterialKeyID, reqEditors ...RequestEditorFn) (*PostElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDRevokeResponse, error)
 
-	PostElastickeyElasticKeyIDSignWithTextBodyWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, params *PostElastickeyElasticKeyIDSignParams, body PostElastickeyElasticKeyIDSignTextRequestBody, reqEditors ...RequestEditorFn) (*PostElastickeyElasticKeyIDSignResponse, error)
+	// PostElasticKeysElasticKeyIDSignWithBodyWithResponse request with any body
+	PostElasticKeysElasticKeyIDSignWithBodyWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, params *PostElasticKeysElasticKeyIDSignParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostElasticKeysElasticKeyIDSignResponse, error)
 
-	// PostElastickeyElasticKeyIDVerifyWithBodyWithResponse request with any body
-	PostElastickeyElasticKeyIDVerifyWithBodyWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostElastickeyElasticKeyIDVerifyResponse, error)
+	PostElasticKeysElasticKeyIDSignWithTextBodyWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, params *PostElasticKeysElasticKeyIDSignParams, body PostElasticKeysElasticKeyIDSignTextRequestBody, reqEditors ...RequestEditorFn) (*PostElasticKeysElasticKeyIDSignResponse, error)
 
-	PostElastickeyElasticKeyIDVerifyWithTextBodyWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, body PostElastickeyElasticKeyIDVerifyTextRequestBody, reqEditors ...RequestEditorFn) (*PostElastickeyElasticKeyIDVerifyResponse, error)
+	// PostElasticKeysElasticKeyIDVerifyWithBodyWithResponse request with any body
+	PostElasticKeysElasticKeyIDVerifyWithBodyWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostElasticKeysElasticKeyIDVerifyResponse, error)
 
-	// GetElastickeysWithResponse request
-	GetElastickeysWithResponse(ctx context.Context, params *GetElastickeysParams, reqEditors ...RequestEditorFn) (*GetElastickeysResponse, error)
+	PostElasticKeysElasticKeyIDVerifyWithTextBodyWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, body PostElasticKeysElasticKeyIDVerifyTextRequestBody, reqEditors ...RequestEditorFn) (*PostElasticKeysElasticKeyIDVerifyResponse, error)
 
-	// GetMaterialkeysWithResponse request
-	GetMaterialkeysWithResponse(ctx context.Context, params *GetMaterialkeysParams, reqEditors ...RequestEditorFn) (*GetMaterialkeysResponse, error)
+	// GetMaterialKeysWithResponse request
+	GetMaterialKeysWithResponse(ctx context.Context, params *GetMaterialKeysParams, reqEditors ...RequestEditorFn) (*GetMaterialKeysResponse, error)
 }
 
-type PostElastickeyResponse struct {
+type GetElasticKeysResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]externalRef0.ElasticKey
+	JSON400      *externalRef0.HTTP400BadRequest
+	JSON401      *externalRef0.HTTP401Unauthorized
+	JSON403      *externalRef0.HTTP403Forbidden
+	JSON404      *externalRef0.HTTP404NotFound
+	JSON429      *externalRef0.HTTP429TooManyRequests
+	JSON500      *externalRef0.HTTP500InternalServerError
+	JSON502      *externalRef0.HTTP502BadGateway
+	JSON503      *externalRef0.HTTP503ServiceUnavailable
+	JSON504      *externalRef0.HTTP504GatewayTimeout
+}
+
+// Status returns HTTPResponse.Status
+func (r GetElasticKeysResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetElasticKeysResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type PostElasticKeysResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *externalRef0.ElasticKey
@@ -1802,7 +1833,7 @@ type PostElastickeyResponse struct {
 }
 
 // Status returns HTTPResponse.Status
-func (r PostElastickeyResponse) Status() string {
+func (r PostElasticKeysResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -1810,14 +1841,14 @@ func (r PostElastickeyResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r PostElastickeyResponse) StatusCode() int {
+func (r PostElasticKeysResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
 	return 0
 }
 
-type DeleteElastickeyElasticKeyIDResponse struct {
+type DeleteElasticKeysElasticKeyIDResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON400      *externalRef0.HTTP400BadRequest
@@ -1832,7 +1863,7 @@ type DeleteElastickeyElasticKeyIDResponse struct {
 }
 
 // Status returns HTTPResponse.Status
-func (r DeleteElastickeyElasticKeyIDResponse) Status() string {
+func (r DeleteElasticKeysElasticKeyIDResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -1840,14 +1871,14 @@ func (r DeleteElastickeyElasticKeyIDResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r DeleteElastickeyElasticKeyIDResponse) StatusCode() int {
+func (r DeleteElasticKeysElasticKeyIDResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
 	return 0
 }
 
-type GetElastickeyElasticKeyIDResponse struct {
+type GetElasticKeysElasticKeyIDResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *externalRef0.ElasticKey
@@ -1863,7 +1894,7 @@ type GetElastickeyElasticKeyIDResponse struct {
 }
 
 // Status returns HTTPResponse.Status
-func (r GetElastickeyElasticKeyIDResponse) Status() string {
+func (r GetElasticKeysElasticKeyIDResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -1871,14 +1902,14 @@ func (r GetElastickeyElasticKeyIDResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r GetElastickeyElasticKeyIDResponse) StatusCode() int {
+func (r GetElasticKeysElasticKeyIDResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
 	return 0
 }
 
-type PutElastickeyElasticKeyIDResponse struct {
+type PutElasticKeysElasticKeyIDResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *externalRef0.ElasticKey
@@ -1895,7 +1926,7 @@ type PutElastickeyElasticKeyIDResponse struct {
 }
 
 // Status returns HTTPResponse.Status
-func (r PutElastickeyElasticKeyIDResponse) Status() string {
+func (r PutElasticKeysElasticKeyIDResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -1903,14 +1934,14 @@ func (r PutElastickeyElasticKeyIDResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r PutElastickeyElasticKeyIDResponse) StatusCode() int {
+func (r PutElasticKeysElasticKeyIDResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
 	return 0
 }
 
-type PostElastickeyElasticKeyIDDecryptResponse struct {
+type PostElasticKeysElasticKeyIDDecryptResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON400      *externalRef0.HTTP400BadRequest
@@ -1925,7 +1956,7 @@ type PostElastickeyElasticKeyIDDecryptResponse struct {
 }
 
 // Status returns HTTPResponse.Status
-func (r PostElastickeyElasticKeyIDDecryptResponse) Status() string {
+func (r PostElasticKeysElasticKeyIDDecryptResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -1933,14 +1964,14 @@ func (r PostElastickeyElasticKeyIDDecryptResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r PostElastickeyElasticKeyIDDecryptResponse) StatusCode() int {
+func (r PostElasticKeysElasticKeyIDDecryptResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
 	return 0
 }
 
-type PostElastickeyElasticKeyIDEncryptResponse struct {
+type PostElasticKeysElasticKeyIDEncryptResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON400      *externalRef0.HTTP400BadRequest
@@ -1955,7 +1986,7 @@ type PostElastickeyElasticKeyIDEncryptResponse struct {
 }
 
 // Status returns HTTPResponse.Status
-func (r PostElastickeyElasticKeyIDEncryptResponse) Status() string {
+func (r PostElasticKeysElasticKeyIDEncryptResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -1963,14 +1994,14 @@ func (r PostElastickeyElasticKeyIDEncryptResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r PostElastickeyElasticKeyIDEncryptResponse) StatusCode() int {
+func (r PostElasticKeysElasticKeyIDEncryptResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
 	return 0
 }
 
-type PostElastickeyElasticKeyIDGenerateResponse struct {
+type PostElasticKeysElasticKeyIDGenerateResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON400      *externalRef0.HTTP400BadRequest
@@ -1985,7 +2016,7 @@ type PostElastickeyElasticKeyIDGenerateResponse struct {
 }
 
 // Status returns HTTPResponse.Status
-func (r PostElastickeyElasticKeyIDGenerateResponse) Status() string {
+func (r PostElasticKeysElasticKeyIDGenerateResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -1993,45 +2024,14 @@ func (r PostElastickeyElasticKeyIDGenerateResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r PostElastickeyElasticKeyIDGenerateResponse) StatusCode() int {
+func (r PostElasticKeysElasticKeyIDGenerateResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
 	return 0
 }
 
-type PostElastickeyElasticKeyIDImportResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *externalRef0.MaterialKey
-	JSON400      *externalRef0.HTTP400BadRequest
-	JSON401      *externalRef0.HTTP401Unauthorized
-	JSON403      *externalRef0.HTTP403Forbidden
-	JSON404      *externalRef0.HTTP404NotFound
-	JSON429      *externalRef0.HTTP429TooManyRequests
-	JSON500      *externalRef0.HTTP500InternalServerError
-	JSON502      *externalRef0.HTTP502BadGateway
-	JSON503      *externalRef0.HTTP503ServiceUnavailable
-	JSON504      *externalRef0.HTTP504GatewayTimeout
-}
-
-// Status returns HTTPResponse.Status
-func (r PostElastickeyElasticKeyIDImportResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r PostElastickeyElasticKeyIDImportResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type PostElastickeyElasticKeyIDMaterialkeyResponse struct {
+type PostElasticKeysElasticKeyIDImportResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *externalRef0.MaterialKey
@@ -2047,7 +2047,7 @@ type PostElastickeyElasticKeyIDMaterialkeyResponse struct {
 }
 
 // Status returns HTTPResponse.Status
-func (r PostElastickeyElasticKeyIDMaterialkeyResponse) Status() string {
+func (r PostElasticKeysElasticKeyIDImportResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -2055,75 +2055,14 @@ func (r PostElastickeyElasticKeyIDMaterialkeyResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r PostElastickeyElasticKeyIDMaterialkeyResponse) StatusCode() int {
+func (r PostElasticKeysElasticKeyIDImportResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
 	return 0
 }
 
-type GetElastickeyElasticKeyIDMaterialkeyMaterialKeyIDResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *externalRef0.MaterialKey
-	JSON400      *externalRef0.HTTP400BadRequest
-	JSON401      *externalRef0.HTTP401Unauthorized
-	JSON403      *externalRef0.HTTP403Forbidden
-	JSON404      *externalRef0.HTTP404NotFound
-	JSON429      *externalRef0.HTTP429TooManyRequests
-	JSON500      *externalRef0.HTTP500InternalServerError
-	JSON502      *externalRef0.HTTP502BadGateway
-	JSON503      *externalRef0.HTTP503ServiceUnavailable
-	JSON504      *externalRef0.HTTP504GatewayTimeout
-}
-
-// Status returns HTTPResponse.Status
-func (r GetElastickeyElasticKeyIDMaterialkeyMaterialKeyIDResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r GetElastickeyElasticKeyIDMaterialkeyMaterialKeyIDResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type PostElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRevokeResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON400      *externalRef0.HTTP400BadRequest
-	JSON401      *externalRef0.HTTP401Unauthorized
-	JSON403      *externalRef0.HTTP403Forbidden
-	JSON404      *externalRef0.HTTP404NotFound
-	JSON429      *externalRef0.HTTP429TooManyRequests
-	JSON500      *externalRef0.HTTP500InternalServerError
-	JSON502      *externalRef0.HTTP502BadGateway
-	JSON503      *externalRef0.HTTP503ServiceUnavailable
-	JSON504      *externalRef0.HTTP504GatewayTimeout
-}
-
-// Status returns HTTPResponse.Status
-func (r PostElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRevokeResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r PostElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRevokeResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type GetElastickeyElasticKeyIDMaterialkeysResponse struct {
+type GetElasticKeysElasticKeyIDMaterialKeysResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *[]externalRef0.MaterialKey
@@ -2139,7 +2078,7 @@ type GetElastickeyElasticKeyIDMaterialkeysResponse struct {
 }
 
 // Status returns HTTPResponse.Status
-func (r GetElastickeyElasticKeyIDMaterialkeysResponse) Status() string {
+func (r GetElasticKeysElasticKeyIDMaterialKeysResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -2147,14 +2086,76 @@ func (r GetElastickeyElasticKeyIDMaterialkeysResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r GetElastickeyElasticKeyIDMaterialkeysResponse) StatusCode() int {
+func (r GetElasticKeysElasticKeyIDMaterialKeysResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
 	return 0
 }
 
-type PostElastickeyElasticKeyIDSignResponse struct {
+type PostElasticKeysElasticKeyIDMaterialKeysResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *externalRef0.MaterialKey
+	JSON400      *externalRef0.HTTP400BadRequest
+	JSON401      *externalRef0.HTTP401Unauthorized
+	JSON403      *externalRef0.HTTP403Forbidden
+	JSON404      *externalRef0.HTTP404NotFound
+	JSON429      *externalRef0.HTTP429TooManyRequests
+	JSON500      *externalRef0.HTTP500InternalServerError
+	JSON502      *externalRef0.HTTP502BadGateway
+	JSON503      *externalRef0.HTTP503ServiceUnavailable
+	JSON504      *externalRef0.HTTP504GatewayTimeout
+}
+
+// Status returns HTTPResponse.Status
+func (r PostElasticKeysElasticKeyIDMaterialKeysResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r PostElasticKeysElasticKeyIDMaterialKeysResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *externalRef0.MaterialKey
+	JSON400      *externalRef0.HTTP400BadRequest
+	JSON401      *externalRef0.HTTP401Unauthorized
+	JSON403      *externalRef0.HTTP403Forbidden
+	JSON404      *externalRef0.HTTP404NotFound
+	JSON429      *externalRef0.HTTP429TooManyRequests
+	JSON500      *externalRef0.HTTP500InternalServerError
+	JSON502      *externalRef0.HTTP502BadGateway
+	JSON503      *externalRef0.HTTP503ServiceUnavailable
+	JSON504      *externalRef0.HTTP504GatewayTimeout
+}
+
+// Status returns HTTPResponse.Status
+func (r GetElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type PostElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDRevokeResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON400      *externalRef0.HTTP400BadRequest
@@ -2169,7 +2170,7 @@ type PostElastickeyElasticKeyIDSignResponse struct {
 }
 
 // Status returns HTTPResponse.Status
-func (r PostElastickeyElasticKeyIDSignResponse) Status() string {
+func (r PostElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDRevokeResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -2177,14 +2178,14 @@ func (r PostElastickeyElasticKeyIDSignResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r PostElastickeyElasticKeyIDSignResponse) StatusCode() int {
+func (r PostElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDRevokeResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
 	return 0
 }
 
-type PostElastickeyElasticKeyIDVerifyResponse struct {
+type PostElasticKeysElasticKeyIDSignResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON400      *externalRef0.HTTP400BadRequest
@@ -2199,7 +2200,7 @@ type PostElastickeyElasticKeyIDVerifyResponse struct {
 }
 
 // Status returns HTTPResponse.Status
-func (r PostElastickeyElasticKeyIDVerifyResponse) Status() string {
+func (r PostElasticKeysElasticKeyIDSignResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -2207,17 +2208,16 @@ func (r PostElastickeyElasticKeyIDVerifyResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r PostElastickeyElasticKeyIDVerifyResponse) StatusCode() int {
+func (r PostElasticKeysElasticKeyIDSignResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
 	return 0
 }
 
-type GetElastickeysResponse struct {
+type PostElasticKeysElasticKeyIDVerifyResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *[]externalRef0.ElasticKey
 	JSON400      *externalRef0.HTTP400BadRequest
 	JSON401      *externalRef0.HTTP401Unauthorized
 	JSON403      *externalRef0.HTTP403Forbidden
@@ -2230,7 +2230,7 @@ type GetElastickeysResponse struct {
 }
 
 // Status returns HTTPResponse.Status
-func (r GetElastickeysResponse) Status() string {
+func (r PostElasticKeysElasticKeyIDVerifyResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -2238,14 +2238,14 @@ func (r GetElastickeysResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r GetElastickeysResponse) StatusCode() int {
+func (r PostElasticKeysElasticKeyIDVerifyResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
 	return 0
 }
 
-type GetMaterialkeysResponse struct {
+type GetMaterialKeysResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *[]externalRef0.MaterialKey
@@ -2261,7 +2261,7 @@ type GetMaterialkeysResponse struct {
 }
 
 // Status returns HTTPResponse.Status
-func (r GetMaterialkeysResponse) Status() string {
+func (r GetMaterialKeysResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -2269,238 +2269,327 @@ func (r GetMaterialkeysResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r GetMaterialkeysResponse) StatusCode() int {
+func (r GetMaterialKeysResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
 	return 0
 }
 
-// PostElastickeyWithBodyWithResponse request with arbitrary body returning *PostElastickeyResponse
-func (c *ClientWithResponses) PostElastickeyWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostElastickeyResponse, error) {
-	rsp, err := c.PostElastickeyWithBody(ctx, contentType, body, reqEditors...)
+// GetElasticKeysWithResponse request returning *GetElasticKeysResponse
+func (c *ClientWithResponses) GetElasticKeysWithResponse(ctx context.Context, params *GetElasticKeysParams, reqEditors ...RequestEditorFn) (*GetElasticKeysResponse, error) {
+	rsp, err := c.GetElasticKeys(ctx, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParsePostElastickeyResponse(rsp)
+	return ParseGetElasticKeysResponse(rsp)
 }
 
-func (c *ClientWithResponses) PostElastickeyWithResponse(ctx context.Context, body PostElastickeyJSONRequestBody, reqEditors ...RequestEditorFn) (*PostElastickeyResponse, error) {
-	rsp, err := c.PostElastickey(ctx, body, reqEditors...)
+// PostElasticKeysWithBodyWithResponse request with arbitrary body returning *PostElasticKeysResponse
+func (c *ClientWithResponses) PostElasticKeysWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostElasticKeysResponse, error) {
+	rsp, err := c.PostElasticKeysWithBody(ctx, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParsePostElastickeyResponse(rsp)
+	return ParsePostElasticKeysResponse(rsp)
 }
 
-// DeleteElastickeyElasticKeyIDWithResponse request returning *DeleteElastickeyElasticKeyIDResponse
-func (c *ClientWithResponses) DeleteElastickeyElasticKeyIDWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, reqEditors ...RequestEditorFn) (*DeleteElastickeyElasticKeyIDResponse, error) {
-	rsp, err := c.DeleteElastickeyElasticKeyID(ctx, elasticKeyID, reqEditors...)
+func (c *ClientWithResponses) PostElasticKeysWithResponse(ctx context.Context, body PostElasticKeysJSONRequestBody, reqEditors ...RequestEditorFn) (*PostElasticKeysResponse, error) {
+	rsp, err := c.PostElasticKeys(ctx, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseDeleteElastickeyElasticKeyIDResponse(rsp)
+	return ParsePostElasticKeysResponse(rsp)
 }
 
-// GetElastickeyElasticKeyIDWithResponse request returning *GetElastickeyElasticKeyIDResponse
-func (c *ClientWithResponses) GetElastickeyElasticKeyIDWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, reqEditors ...RequestEditorFn) (*GetElastickeyElasticKeyIDResponse, error) {
-	rsp, err := c.GetElastickeyElasticKeyID(ctx, elasticKeyID, reqEditors...)
+// DeleteElasticKeysElasticKeyIDWithResponse request returning *DeleteElasticKeysElasticKeyIDResponse
+func (c *ClientWithResponses) DeleteElasticKeysElasticKeyIDWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, reqEditors ...RequestEditorFn) (*DeleteElasticKeysElasticKeyIDResponse, error) {
+	rsp, err := c.DeleteElasticKeysElasticKeyID(ctx, elasticKeyID, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseGetElastickeyElasticKeyIDResponse(rsp)
+	return ParseDeleteElasticKeysElasticKeyIDResponse(rsp)
 }
 
-// PutElastickeyElasticKeyIDWithBodyWithResponse request with arbitrary body returning *PutElastickeyElasticKeyIDResponse
-func (c *ClientWithResponses) PutElastickeyElasticKeyIDWithBodyWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PutElastickeyElasticKeyIDResponse, error) {
-	rsp, err := c.PutElastickeyElasticKeyIDWithBody(ctx, elasticKeyID, contentType, body, reqEditors...)
+// GetElasticKeysElasticKeyIDWithResponse request returning *GetElasticKeysElasticKeyIDResponse
+func (c *ClientWithResponses) GetElasticKeysElasticKeyIDWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, reqEditors ...RequestEditorFn) (*GetElasticKeysElasticKeyIDResponse, error) {
+	rsp, err := c.GetElasticKeysElasticKeyID(ctx, elasticKeyID, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParsePutElastickeyElasticKeyIDResponse(rsp)
+	return ParseGetElasticKeysElasticKeyIDResponse(rsp)
 }
 
-func (c *ClientWithResponses) PutElastickeyElasticKeyIDWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, body PutElastickeyElasticKeyIDJSONRequestBody, reqEditors ...RequestEditorFn) (*PutElastickeyElasticKeyIDResponse, error) {
-	rsp, err := c.PutElastickeyElasticKeyID(ctx, elasticKeyID, body, reqEditors...)
+// PutElasticKeysElasticKeyIDWithBodyWithResponse request with arbitrary body returning *PutElasticKeysElasticKeyIDResponse
+func (c *ClientWithResponses) PutElasticKeysElasticKeyIDWithBodyWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PutElasticKeysElasticKeyIDResponse, error) {
+	rsp, err := c.PutElasticKeysElasticKeyIDWithBody(ctx, elasticKeyID, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParsePutElastickeyElasticKeyIDResponse(rsp)
+	return ParsePutElasticKeysElasticKeyIDResponse(rsp)
 }
 
-// PostElastickeyElasticKeyIDDecryptWithBodyWithResponse request with arbitrary body returning *PostElastickeyElasticKeyIDDecryptResponse
-func (c *ClientWithResponses) PostElastickeyElasticKeyIDDecryptWithBodyWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostElastickeyElasticKeyIDDecryptResponse, error) {
-	rsp, err := c.PostElastickeyElasticKeyIDDecryptWithBody(ctx, elasticKeyID, contentType, body, reqEditors...)
+func (c *ClientWithResponses) PutElasticKeysElasticKeyIDWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, body PutElasticKeysElasticKeyIDJSONRequestBody, reqEditors ...RequestEditorFn) (*PutElasticKeysElasticKeyIDResponse, error) {
+	rsp, err := c.PutElasticKeysElasticKeyID(ctx, elasticKeyID, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParsePostElastickeyElasticKeyIDDecryptResponse(rsp)
+	return ParsePutElasticKeysElasticKeyIDResponse(rsp)
 }
 
-func (c *ClientWithResponses) PostElastickeyElasticKeyIDDecryptWithTextBodyWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, body PostElastickeyElasticKeyIDDecryptTextRequestBody, reqEditors ...RequestEditorFn) (*PostElastickeyElasticKeyIDDecryptResponse, error) {
-	rsp, err := c.PostElastickeyElasticKeyIDDecryptWithTextBody(ctx, elasticKeyID, body, reqEditors...)
+// PostElasticKeysElasticKeyIDDecryptWithBodyWithResponse request with arbitrary body returning *PostElasticKeysElasticKeyIDDecryptResponse
+func (c *ClientWithResponses) PostElasticKeysElasticKeyIDDecryptWithBodyWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostElasticKeysElasticKeyIDDecryptResponse, error) {
+	rsp, err := c.PostElasticKeysElasticKeyIDDecryptWithBody(ctx, elasticKeyID, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParsePostElastickeyElasticKeyIDDecryptResponse(rsp)
+	return ParsePostElasticKeysElasticKeyIDDecryptResponse(rsp)
 }
 
-// PostElastickeyElasticKeyIDEncryptWithBodyWithResponse request with arbitrary body returning *PostElastickeyElasticKeyIDEncryptResponse
-func (c *ClientWithResponses) PostElastickeyElasticKeyIDEncryptWithBodyWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, params *PostElastickeyElasticKeyIDEncryptParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostElastickeyElasticKeyIDEncryptResponse, error) {
-	rsp, err := c.PostElastickeyElasticKeyIDEncryptWithBody(ctx, elasticKeyID, params, contentType, body, reqEditors...)
+func (c *ClientWithResponses) PostElasticKeysElasticKeyIDDecryptWithTextBodyWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, body PostElasticKeysElasticKeyIDDecryptTextRequestBody, reqEditors ...RequestEditorFn) (*PostElasticKeysElasticKeyIDDecryptResponse, error) {
+	rsp, err := c.PostElasticKeysElasticKeyIDDecryptWithTextBody(ctx, elasticKeyID, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParsePostElastickeyElasticKeyIDEncryptResponse(rsp)
+	return ParsePostElasticKeysElasticKeyIDDecryptResponse(rsp)
 }
 
-func (c *ClientWithResponses) PostElastickeyElasticKeyIDEncryptWithTextBodyWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, params *PostElastickeyElasticKeyIDEncryptParams, body PostElastickeyElasticKeyIDEncryptTextRequestBody, reqEditors ...RequestEditorFn) (*PostElastickeyElasticKeyIDEncryptResponse, error) {
-	rsp, err := c.PostElastickeyElasticKeyIDEncryptWithTextBody(ctx, elasticKeyID, params, body, reqEditors...)
+// PostElasticKeysElasticKeyIDEncryptWithBodyWithResponse request with arbitrary body returning *PostElasticKeysElasticKeyIDEncryptResponse
+func (c *ClientWithResponses) PostElasticKeysElasticKeyIDEncryptWithBodyWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, params *PostElasticKeysElasticKeyIDEncryptParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostElasticKeysElasticKeyIDEncryptResponse, error) {
+	rsp, err := c.PostElasticKeysElasticKeyIDEncryptWithBody(ctx, elasticKeyID, params, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParsePostElastickeyElasticKeyIDEncryptResponse(rsp)
+	return ParsePostElasticKeysElasticKeyIDEncryptResponse(rsp)
 }
 
-// PostElastickeyElasticKeyIDGenerateWithBodyWithResponse request with arbitrary body returning *PostElastickeyElasticKeyIDGenerateResponse
-func (c *ClientWithResponses) PostElastickeyElasticKeyIDGenerateWithBodyWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, params *PostElastickeyElasticKeyIDGenerateParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostElastickeyElasticKeyIDGenerateResponse, error) {
-	rsp, err := c.PostElastickeyElasticKeyIDGenerateWithBody(ctx, elasticKeyID, params, contentType, body, reqEditors...)
+func (c *ClientWithResponses) PostElasticKeysElasticKeyIDEncryptWithTextBodyWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, params *PostElasticKeysElasticKeyIDEncryptParams, body PostElasticKeysElasticKeyIDEncryptTextRequestBody, reqEditors ...RequestEditorFn) (*PostElasticKeysElasticKeyIDEncryptResponse, error) {
+	rsp, err := c.PostElasticKeysElasticKeyIDEncryptWithTextBody(ctx, elasticKeyID, params, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParsePostElastickeyElasticKeyIDGenerateResponse(rsp)
+	return ParsePostElasticKeysElasticKeyIDEncryptResponse(rsp)
 }
 
-func (c *ClientWithResponses) PostElastickeyElasticKeyIDGenerateWithTextBodyWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, params *PostElastickeyElasticKeyIDGenerateParams, body PostElastickeyElasticKeyIDGenerateTextRequestBody, reqEditors ...RequestEditorFn) (*PostElastickeyElasticKeyIDGenerateResponse, error) {
-	rsp, err := c.PostElastickeyElasticKeyIDGenerateWithTextBody(ctx, elasticKeyID, params, body, reqEditors...)
+// PostElasticKeysElasticKeyIDGenerateWithBodyWithResponse request with arbitrary body returning *PostElasticKeysElasticKeyIDGenerateResponse
+func (c *ClientWithResponses) PostElasticKeysElasticKeyIDGenerateWithBodyWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, params *PostElasticKeysElasticKeyIDGenerateParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostElasticKeysElasticKeyIDGenerateResponse, error) {
+	rsp, err := c.PostElasticKeysElasticKeyIDGenerateWithBody(ctx, elasticKeyID, params, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParsePostElastickeyElasticKeyIDGenerateResponse(rsp)
+	return ParsePostElasticKeysElasticKeyIDGenerateResponse(rsp)
 }
 
-// PostElastickeyElasticKeyIDImportWithBodyWithResponse request with arbitrary body returning *PostElastickeyElasticKeyIDImportResponse
-func (c *ClientWithResponses) PostElastickeyElasticKeyIDImportWithBodyWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostElastickeyElasticKeyIDImportResponse, error) {
-	rsp, err := c.PostElastickeyElasticKeyIDImportWithBody(ctx, elasticKeyID, contentType, body, reqEditors...)
+func (c *ClientWithResponses) PostElasticKeysElasticKeyIDGenerateWithTextBodyWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, params *PostElasticKeysElasticKeyIDGenerateParams, body PostElasticKeysElasticKeyIDGenerateTextRequestBody, reqEditors ...RequestEditorFn) (*PostElasticKeysElasticKeyIDGenerateResponse, error) {
+	rsp, err := c.PostElasticKeysElasticKeyIDGenerateWithTextBody(ctx, elasticKeyID, params, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParsePostElastickeyElasticKeyIDImportResponse(rsp)
+	return ParsePostElasticKeysElasticKeyIDGenerateResponse(rsp)
 }
 
-func (c *ClientWithResponses) PostElastickeyElasticKeyIDImportWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, body PostElastickeyElasticKeyIDImportJSONRequestBody, reqEditors ...RequestEditorFn) (*PostElastickeyElasticKeyIDImportResponse, error) {
-	rsp, err := c.PostElastickeyElasticKeyIDImport(ctx, elasticKeyID, body, reqEditors...)
+// PostElasticKeysElasticKeyIDImportWithBodyWithResponse request with arbitrary body returning *PostElasticKeysElasticKeyIDImportResponse
+func (c *ClientWithResponses) PostElasticKeysElasticKeyIDImportWithBodyWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostElasticKeysElasticKeyIDImportResponse, error) {
+	rsp, err := c.PostElasticKeysElasticKeyIDImportWithBody(ctx, elasticKeyID, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParsePostElastickeyElasticKeyIDImportResponse(rsp)
+	return ParsePostElasticKeysElasticKeyIDImportResponse(rsp)
 }
 
-// PostElastickeyElasticKeyIDMaterialkeyWithBodyWithResponse request with arbitrary body returning *PostElastickeyElasticKeyIDMaterialkeyResponse
-func (c *ClientWithResponses) PostElastickeyElasticKeyIDMaterialkeyWithBodyWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostElastickeyElasticKeyIDMaterialkeyResponse, error) {
-	rsp, err := c.PostElastickeyElasticKeyIDMaterialkeyWithBody(ctx, elasticKeyID, contentType, body, reqEditors...)
+func (c *ClientWithResponses) PostElasticKeysElasticKeyIDImportWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, body PostElasticKeysElasticKeyIDImportJSONRequestBody, reqEditors ...RequestEditorFn) (*PostElasticKeysElasticKeyIDImportResponse, error) {
+	rsp, err := c.PostElasticKeysElasticKeyIDImport(ctx, elasticKeyID, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParsePostElastickeyElasticKeyIDMaterialkeyResponse(rsp)
+	return ParsePostElasticKeysElasticKeyIDImportResponse(rsp)
 }
 
-func (c *ClientWithResponses) PostElastickeyElasticKeyIDMaterialkeyWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, body PostElastickeyElasticKeyIDMaterialkeyJSONRequestBody, reqEditors ...RequestEditorFn) (*PostElastickeyElasticKeyIDMaterialkeyResponse, error) {
-	rsp, err := c.PostElastickeyElasticKeyIDMaterialkey(ctx, elasticKeyID, body, reqEditors...)
+// GetElasticKeysElasticKeyIDMaterialKeysWithResponse request returning *GetElasticKeysElasticKeyIDMaterialKeysResponse
+func (c *ClientWithResponses) GetElasticKeysElasticKeyIDMaterialKeysWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, params *GetElasticKeysElasticKeyIDMaterialKeysParams, reqEditors ...RequestEditorFn) (*GetElasticKeysElasticKeyIDMaterialKeysResponse, error) {
+	rsp, err := c.GetElasticKeysElasticKeyIDMaterialKeys(ctx, elasticKeyID, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParsePostElastickeyElasticKeyIDMaterialkeyResponse(rsp)
+	return ParseGetElasticKeysElasticKeyIDMaterialKeysResponse(rsp)
 }
 
-// GetElastickeyElasticKeyIDMaterialkeyMaterialKeyIDWithResponse request returning *GetElastickeyElasticKeyIDMaterialkeyMaterialKeyIDResponse
-func (c *ClientWithResponses) GetElastickeyElasticKeyIDMaterialkeyMaterialKeyIDWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, materialKeyID externalRef0.MaterialKeyID, reqEditors ...RequestEditorFn) (*GetElastickeyElasticKeyIDMaterialkeyMaterialKeyIDResponse, error) {
-	rsp, err := c.GetElastickeyElasticKeyIDMaterialkeyMaterialKeyID(ctx, elasticKeyID, materialKeyID, reqEditors...)
+// PostElasticKeysElasticKeyIDMaterialKeysWithBodyWithResponse request with arbitrary body returning *PostElasticKeysElasticKeyIDMaterialKeysResponse
+func (c *ClientWithResponses) PostElasticKeysElasticKeyIDMaterialKeysWithBodyWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostElasticKeysElasticKeyIDMaterialKeysResponse, error) {
+	rsp, err := c.PostElasticKeysElasticKeyIDMaterialKeysWithBody(ctx, elasticKeyID, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseGetElastickeyElasticKeyIDMaterialkeyMaterialKeyIDResponse(rsp)
+	return ParsePostElasticKeysElasticKeyIDMaterialKeysResponse(rsp)
 }
 
-// PostElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRevokeWithResponse request returning *PostElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRevokeResponse
-func (c *ClientWithResponses) PostElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRevokeWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, materialKeyID externalRef0.MaterialKeyID, reqEditors ...RequestEditorFn) (*PostElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRevokeResponse, error) {
-	rsp, err := c.PostElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRevoke(ctx, elasticKeyID, materialKeyID, reqEditors...)
+func (c *ClientWithResponses) PostElasticKeysElasticKeyIDMaterialKeysWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, body PostElasticKeysElasticKeyIDMaterialKeysJSONRequestBody, reqEditors ...RequestEditorFn) (*PostElasticKeysElasticKeyIDMaterialKeysResponse, error) {
+	rsp, err := c.PostElasticKeysElasticKeyIDMaterialKeys(ctx, elasticKeyID, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParsePostElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRevokeResponse(rsp)
+	return ParsePostElasticKeysElasticKeyIDMaterialKeysResponse(rsp)
 }
 
-// GetElastickeyElasticKeyIDMaterialkeysWithResponse request returning *GetElastickeyElasticKeyIDMaterialkeysResponse
-func (c *ClientWithResponses) GetElastickeyElasticKeyIDMaterialkeysWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, params *GetElastickeyElasticKeyIDMaterialkeysParams, reqEditors ...RequestEditorFn) (*GetElastickeyElasticKeyIDMaterialkeysResponse, error) {
-	rsp, err := c.GetElastickeyElasticKeyIDMaterialkeys(ctx, elasticKeyID, params, reqEditors...)
+// GetElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDWithResponse request returning *GetElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDResponse
+func (c *ClientWithResponses) GetElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, materialKeyID externalRef0.MaterialKeyID, reqEditors ...RequestEditorFn) (*GetElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDResponse, error) {
+	rsp, err := c.GetElasticKeysElasticKeyIDMaterialKeysMaterialKeyID(ctx, elasticKeyID, materialKeyID, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseGetElastickeyElasticKeyIDMaterialkeysResponse(rsp)
+	return ParseGetElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDResponse(rsp)
 }
 
-// PostElastickeyElasticKeyIDSignWithBodyWithResponse request with arbitrary body returning *PostElastickeyElasticKeyIDSignResponse
-func (c *ClientWithResponses) PostElastickeyElasticKeyIDSignWithBodyWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, params *PostElastickeyElasticKeyIDSignParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostElastickeyElasticKeyIDSignResponse, error) {
-	rsp, err := c.PostElastickeyElasticKeyIDSignWithBody(ctx, elasticKeyID, params, contentType, body, reqEditors...)
+// PostElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDRevokeWithResponse request returning *PostElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDRevokeResponse
+func (c *ClientWithResponses) PostElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDRevokeWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, materialKeyID externalRef0.MaterialKeyID, reqEditors ...RequestEditorFn) (*PostElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDRevokeResponse, error) {
+	rsp, err := c.PostElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDRevoke(ctx, elasticKeyID, materialKeyID, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParsePostElastickeyElasticKeyIDSignResponse(rsp)
+	return ParsePostElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDRevokeResponse(rsp)
 }
 
-func (c *ClientWithResponses) PostElastickeyElasticKeyIDSignWithTextBodyWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, params *PostElastickeyElasticKeyIDSignParams, body PostElastickeyElasticKeyIDSignTextRequestBody, reqEditors ...RequestEditorFn) (*PostElastickeyElasticKeyIDSignResponse, error) {
-	rsp, err := c.PostElastickeyElasticKeyIDSignWithTextBody(ctx, elasticKeyID, params, body, reqEditors...)
+// PostElasticKeysElasticKeyIDSignWithBodyWithResponse request with arbitrary body returning *PostElasticKeysElasticKeyIDSignResponse
+func (c *ClientWithResponses) PostElasticKeysElasticKeyIDSignWithBodyWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, params *PostElasticKeysElasticKeyIDSignParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostElasticKeysElasticKeyIDSignResponse, error) {
+	rsp, err := c.PostElasticKeysElasticKeyIDSignWithBody(ctx, elasticKeyID, params, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParsePostElastickeyElasticKeyIDSignResponse(rsp)
+	return ParsePostElasticKeysElasticKeyIDSignResponse(rsp)
 }
 
-// PostElastickeyElasticKeyIDVerifyWithBodyWithResponse request with arbitrary body returning *PostElastickeyElasticKeyIDVerifyResponse
-func (c *ClientWithResponses) PostElastickeyElasticKeyIDVerifyWithBodyWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostElastickeyElasticKeyIDVerifyResponse, error) {
-	rsp, err := c.PostElastickeyElasticKeyIDVerifyWithBody(ctx, elasticKeyID, contentType, body, reqEditors...)
+func (c *ClientWithResponses) PostElasticKeysElasticKeyIDSignWithTextBodyWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, params *PostElasticKeysElasticKeyIDSignParams, body PostElasticKeysElasticKeyIDSignTextRequestBody, reqEditors ...RequestEditorFn) (*PostElasticKeysElasticKeyIDSignResponse, error) {
+	rsp, err := c.PostElasticKeysElasticKeyIDSignWithTextBody(ctx, elasticKeyID, params, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParsePostElastickeyElasticKeyIDVerifyResponse(rsp)
+	return ParsePostElasticKeysElasticKeyIDSignResponse(rsp)
 }
 
-func (c *ClientWithResponses) PostElastickeyElasticKeyIDVerifyWithTextBodyWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, body PostElastickeyElasticKeyIDVerifyTextRequestBody, reqEditors ...RequestEditorFn) (*PostElastickeyElasticKeyIDVerifyResponse, error) {
-	rsp, err := c.PostElastickeyElasticKeyIDVerifyWithTextBody(ctx, elasticKeyID, body, reqEditors...)
+// PostElasticKeysElasticKeyIDVerifyWithBodyWithResponse request with arbitrary body returning *PostElasticKeysElasticKeyIDVerifyResponse
+func (c *ClientWithResponses) PostElasticKeysElasticKeyIDVerifyWithBodyWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostElasticKeysElasticKeyIDVerifyResponse, error) {
+	rsp, err := c.PostElasticKeysElasticKeyIDVerifyWithBody(ctx, elasticKeyID, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParsePostElastickeyElasticKeyIDVerifyResponse(rsp)
+	return ParsePostElasticKeysElasticKeyIDVerifyResponse(rsp)
 }
 
-// GetElastickeysWithResponse request returning *GetElastickeysResponse
-func (c *ClientWithResponses) GetElastickeysWithResponse(ctx context.Context, params *GetElastickeysParams, reqEditors ...RequestEditorFn) (*GetElastickeysResponse, error) {
-	rsp, err := c.GetElastickeys(ctx, params, reqEditors...)
+func (c *ClientWithResponses) PostElasticKeysElasticKeyIDVerifyWithTextBodyWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, body PostElasticKeysElasticKeyIDVerifyTextRequestBody, reqEditors ...RequestEditorFn) (*PostElasticKeysElasticKeyIDVerifyResponse, error) {
+	rsp, err := c.PostElasticKeysElasticKeyIDVerifyWithTextBody(ctx, elasticKeyID, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseGetElastickeysResponse(rsp)
+	return ParsePostElasticKeysElasticKeyIDVerifyResponse(rsp)
 }
 
-// GetMaterialkeysWithResponse request returning *GetMaterialkeysResponse
-func (c *ClientWithResponses) GetMaterialkeysWithResponse(ctx context.Context, params *GetMaterialkeysParams, reqEditors ...RequestEditorFn) (*GetMaterialkeysResponse, error) {
-	rsp, err := c.GetMaterialkeys(ctx, params, reqEditors...)
+// GetMaterialKeysWithResponse request returning *GetMaterialKeysResponse
+func (c *ClientWithResponses) GetMaterialKeysWithResponse(ctx context.Context, params *GetMaterialKeysParams, reqEditors ...RequestEditorFn) (*GetMaterialKeysResponse, error) {
+	rsp, err := c.GetMaterialKeys(ctx, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseGetMaterialkeysResponse(rsp)
+	return ParseGetMaterialKeysResponse(rsp)
 }
 
-// ParsePostElastickeyResponse parses an HTTP response from a PostElastickeyWithResponse call
-func ParsePostElastickeyResponse(rsp *http.Response) (*PostElastickeyResponse, error) {
+// ParseGetElasticKeysResponse parses an HTTP response from a GetElasticKeysWithResponse call
+func ParseGetElasticKeysResponse(rsp *http.Response) (*GetElasticKeysResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &PostElastickeyResponse{
+	response := &GetElasticKeysResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []externalRef0.ElasticKey
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest externalRef0.HTTP400BadRequest
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest externalRef0.HTTP401Unauthorized
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest externalRef0.HTTP403Forbidden
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest externalRef0.HTTP404NotFound
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 429:
+		var dest externalRef0.HTTP429TooManyRequests
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON429 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest externalRef0.HTTP500InternalServerError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 502:
+		var dest externalRef0.HTTP502BadGateway
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON502 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 503:
+		var dest externalRef0.HTTP503ServiceUnavailable
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON503 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 504:
+		var dest externalRef0.HTTP504GatewayTimeout
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON504 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParsePostElasticKeysResponse parses an HTTP response from a PostElasticKeysWithResponse call
+func ParsePostElasticKeysResponse(rsp *http.Response) (*PostElasticKeysResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &PostElasticKeysResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -2581,15 +2670,15 @@ func ParsePostElastickeyResponse(rsp *http.Response) (*PostElastickeyResponse, e
 	return response, nil
 }
 
-// ParseDeleteElastickeyElasticKeyIDResponse parses an HTTP response from a DeleteElastickeyElasticKeyIDWithResponse call
-func ParseDeleteElastickeyElasticKeyIDResponse(rsp *http.Response) (*DeleteElastickeyElasticKeyIDResponse, error) {
+// ParseDeleteElasticKeysElasticKeyIDResponse parses an HTTP response from a DeleteElasticKeysElasticKeyIDWithResponse call
+func ParseDeleteElasticKeysElasticKeyIDResponse(rsp *http.Response) (*DeleteElasticKeysElasticKeyIDResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &DeleteElastickeyElasticKeyIDResponse{
+	response := &DeleteElasticKeysElasticKeyIDResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -2663,15 +2752,15 @@ func ParseDeleteElastickeyElasticKeyIDResponse(rsp *http.Response) (*DeleteElast
 	return response, nil
 }
 
-// ParseGetElastickeyElasticKeyIDResponse parses an HTTP response from a GetElastickeyElasticKeyIDWithResponse call
-func ParseGetElastickeyElasticKeyIDResponse(rsp *http.Response) (*GetElastickeyElasticKeyIDResponse, error) {
+// ParseGetElasticKeysElasticKeyIDResponse parses an HTTP response from a GetElasticKeysElasticKeyIDWithResponse call
+func ParseGetElasticKeysElasticKeyIDResponse(rsp *http.Response) (*GetElasticKeysElasticKeyIDResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &GetElastickeyElasticKeyIDResponse{
+	response := &GetElasticKeysElasticKeyIDResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -2752,15 +2841,15 @@ func ParseGetElastickeyElasticKeyIDResponse(rsp *http.Response) (*GetElastickeyE
 	return response, nil
 }
 
-// ParsePutElastickeyElasticKeyIDResponse parses an HTTP response from a PutElastickeyElasticKeyIDWithResponse call
-func ParsePutElastickeyElasticKeyIDResponse(rsp *http.Response) (*PutElastickeyElasticKeyIDResponse, error) {
+// ParsePutElasticKeysElasticKeyIDResponse parses an HTTP response from a PutElasticKeysElasticKeyIDWithResponse call
+func ParsePutElasticKeysElasticKeyIDResponse(rsp *http.Response) (*PutElasticKeysElasticKeyIDResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &PutElastickeyElasticKeyIDResponse{
+	response := &PutElasticKeysElasticKeyIDResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -2848,15 +2937,15 @@ func ParsePutElastickeyElasticKeyIDResponse(rsp *http.Response) (*PutElastickeyE
 	return response, nil
 }
 
-// ParsePostElastickeyElasticKeyIDDecryptResponse parses an HTTP response from a PostElastickeyElasticKeyIDDecryptWithResponse call
-func ParsePostElastickeyElasticKeyIDDecryptResponse(rsp *http.Response) (*PostElastickeyElasticKeyIDDecryptResponse, error) {
+// ParsePostElasticKeysElasticKeyIDDecryptResponse parses an HTTP response from a PostElasticKeysElasticKeyIDDecryptWithResponse call
+func ParsePostElasticKeysElasticKeyIDDecryptResponse(rsp *http.Response) (*PostElasticKeysElasticKeyIDDecryptResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &PostElastickeyElasticKeyIDDecryptResponse{
+	response := &PostElasticKeysElasticKeyIDDecryptResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -2930,15 +3019,15 @@ func ParsePostElastickeyElasticKeyIDDecryptResponse(rsp *http.Response) (*PostEl
 	return response, nil
 }
 
-// ParsePostElastickeyElasticKeyIDEncryptResponse parses an HTTP response from a PostElastickeyElasticKeyIDEncryptWithResponse call
-func ParsePostElastickeyElasticKeyIDEncryptResponse(rsp *http.Response) (*PostElastickeyElasticKeyIDEncryptResponse, error) {
+// ParsePostElasticKeysElasticKeyIDEncryptResponse parses an HTTP response from a PostElasticKeysElasticKeyIDEncryptWithResponse call
+func ParsePostElasticKeysElasticKeyIDEncryptResponse(rsp *http.Response) (*PostElasticKeysElasticKeyIDEncryptResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &PostElastickeyElasticKeyIDEncryptResponse{
+	response := &PostElasticKeysElasticKeyIDEncryptResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -3012,15 +3101,15 @@ func ParsePostElastickeyElasticKeyIDEncryptResponse(rsp *http.Response) (*PostEl
 	return response, nil
 }
 
-// ParsePostElastickeyElasticKeyIDGenerateResponse parses an HTTP response from a PostElastickeyElasticKeyIDGenerateWithResponse call
-func ParsePostElastickeyElasticKeyIDGenerateResponse(rsp *http.Response) (*PostElastickeyElasticKeyIDGenerateResponse, error) {
+// ParsePostElasticKeysElasticKeyIDGenerateResponse parses an HTTP response from a PostElasticKeysElasticKeyIDGenerateWithResponse call
+func ParsePostElasticKeysElasticKeyIDGenerateResponse(rsp *http.Response) (*PostElasticKeysElasticKeyIDGenerateResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &PostElastickeyElasticKeyIDGenerateResponse{
+	response := &PostElasticKeysElasticKeyIDGenerateResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -3094,104 +3183,15 @@ func ParsePostElastickeyElasticKeyIDGenerateResponse(rsp *http.Response) (*PostE
 	return response, nil
 }
 
-// ParsePostElastickeyElasticKeyIDImportResponse parses an HTTP response from a PostElastickeyElasticKeyIDImportWithResponse call
-func ParsePostElastickeyElasticKeyIDImportResponse(rsp *http.Response) (*PostElastickeyElasticKeyIDImportResponse, error) {
+// ParsePostElasticKeysElasticKeyIDImportResponse parses an HTTP response from a PostElasticKeysElasticKeyIDImportWithResponse call
+func ParsePostElasticKeysElasticKeyIDImportResponse(rsp *http.Response) (*PostElasticKeysElasticKeyIDImportResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &PostElastickeyElasticKeyIDImportResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest externalRef0.MaterialKey
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
-		var dest externalRef0.HTTP400BadRequest
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON400 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest externalRef0.HTTP401Unauthorized
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON401 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest externalRef0.HTTP403Forbidden
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON403 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
-		var dest externalRef0.HTTP404NotFound
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON404 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 429:
-		var dest externalRef0.HTTP429TooManyRequests
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON429 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest externalRef0.HTTP500InternalServerError
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON500 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 502:
-		var dest externalRef0.HTTP502BadGateway
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON502 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 503:
-		var dest externalRef0.HTTP503ServiceUnavailable
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON503 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 504:
-		var dest externalRef0.HTTP504GatewayTimeout
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON504 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParsePostElastickeyElasticKeyIDMaterialkeyResponse parses an HTTP response from a PostElastickeyElasticKeyIDMaterialkeyWithResponse call
-func ParsePostElastickeyElasticKeyIDMaterialkeyResponse(rsp *http.Response) (*PostElastickeyElasticKeyIDMaterialkeyResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &PostElastickeyElasticKeyIDMaterialkeyResponse{
+	response := &PostElasticKeysElasticKeyIDImportResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -3272,186 +3272,15 @@ func ParsePostElastickeyElasticKeyIDMaterialkeyResponse(rsp *http.Response) (*Po
 	return response, nil
 }
 
-// ParseGetElastickeyElasticKeyIDMaterialkeyMaterialKeyIDResponse parses an HTTP response from a GetElastickeyElasticKeyIDMaterialkeyMaterialKeyIDWithResponse call
-func ParseGetElastickeyElasticKeyIDMaterialkeyMaterialKeyIDResponse(rsp *http.Response) (*GetElastickeyElasticKeyIDMaterialkeyMaterialKeyIDResponse, error) {
+// ParseGetElasticKeysElasticKeyIDMaterialKeysResponse parses an HTTP response from a GetElasticKeysElasticKeyIDMaterialKeysWithResponse call
+func ParseGetElasticKeysElasticKeyIDMaterialKeysResponse(rsp *http.Response) (*GetElasticKeysElasticKeyIDMaterialKeysResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &GetElastickeyElasticKeyIDMaterialkeyMaterialKeyIDResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest externalRef0.MaterialKey
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
-		var dest externalRef0.HTTP400BadRequest
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON400 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest externalRef0.HTTP401Unauthorized
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON401 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest externalRef0.HTTP403Forbidden
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON403 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
-		var dest externalRef0.HTTP404NotFound
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON404 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 429:
-		var dest externalRef0.HTTP429TooManyRequests
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON429 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest externalRef0.HTTP500InternalServerError
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON500 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 502:
-		var dest externalRef0.HTTP502BadGateway
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON502 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 503:
-		var dest externalRef0.HTTP503ServiceUnavailable
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON503 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 504:
-		var dest externalRef0.HTTP504GatewayTimeout
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON504 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParsePostElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRevokeResponse parses an HTTP response from a PostElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRevokeWithResponse call
-func ParsePostElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRevokeResponse(rsp *http.Response) (*PostElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRevokeResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &PostElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRevokeResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
-		var dest externalRef0.HTTP400BadRequest
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON400 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest externalRef0.HTTP401Unauthorized
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON401 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest externalRef0.HTTP403Forbidden
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON403 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
-		var dest externalRef0.HTTP404NotFound
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON404 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 429:
-		var dest externalRef0.HTTP429TooManyRequests
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON429 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest externalRef0.HTTP500InternalServerError
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON500 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 502:
-		var dest externalRef0.HTTP502BadGateway
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON502 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 503:
-		var dest externalRef0.HTTP503ServiceUnavailable
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON503 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 504:
-		var dest externalRef0.HTTP504GatewayTimeout
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON504 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParseGetElastickeyElasticKeyIDMaterialkeysResponse parses an HTTP response from a GetElastickeyElasticKeyIDMaterialkeysWithResponse call
-func ParseGetElastickeyElasticKeyIDMaterialkeysResponse(rsp *http.Response) (*GetElastickeyElasticKeyIDMaterialkeysResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &GetElastickeyElasticKeyIDMaterialkeysResponse{
+	response := &GetElasticKeysElasticKeyIDMaterialKeysResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -3532,186 +3361,22 @@ func ParseGetElastickeyElasticKeyIDMaterialkeysResponse(rsp *http.Response) (*Ge
 	return response, nil
 }
 
-// ParsePostElastickeyElasticKeyIDSignResponse parses an HTTP response from a PostElastickeyElasticKeyIDSignWithResponse call
-func ParsePostElastickeyElasticKeyIDSignResponse(rsp *http.Response) (*PostElastickeyElasticKeyIDSignResponse, error) {
+// ParsePostElasticKeysElasticKeyIDMaterialKeysResponse parses an HTTP response from a PostElasticKeysElasticKeyIDMaterialKeysWithResponse call
+func ParsePostElasticKeysElasticKeyIDMaterialKeysResponse(rsp *http.Response) (*PostElasticKeysElasticKeyIDMaterialKeysResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &PostElastickeyElasticKeyIDSignResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
-		var dest externalRef0.HTTP400BadRequest
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON400 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest externalRef0.HTTP401Unauthorized
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON401 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest externalRef0.HTTP403Forbidden
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON403 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
-		var dest externalRef0.HTTP404NotFound
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON404 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 429:
-		var dest externalRef0.HTTP429TooManyRequests
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON429 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest externalRef0.HTTP500InternalServerError
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON500 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 502:
-		var dest externalRef0.HTTP502BadGateway
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON502 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 503:
-		var dest externalRef0.HTTP503ServiceUnavailable
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON503 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 504:
-		var dest externalRef0.HTTP504GatewayTimeout
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON504 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParsePostElastickeyElasticKeyIDVerifyResponse parses an HTTP response from a PostElastickeyElasticKeyIDVerifyWithResponse call
-func ParsePostElastickeyElasticKeyIDVerifyResponse(rsp *http.Response) (*PostElastickeyElasticKeyIDVerifyResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &PostElastickeyElasticKeyIDVerifyResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
-		var dest externalRef0.HTTP400BadRequest
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON400 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest externalRef0.HTTP401Unauthorized
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON401 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest externalRef0.HTTP403Forbidden
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON403 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
-		var dest externalRef0.HTTP404NotFound
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON404 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 429:
-		var dest externalRef0.HTTP429TooManyRequests
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON429 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest externalRef0.HTTP500InternalServerError
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON500 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 502:
-		var dest externalRef0.HTTP502BadGateway
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON502 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 503:
-		var dest externalRef0.HTTP503ServiceUnavailable
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON503 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 504:
-		var dest externalRef0.HTTP504GatewayTimeout
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON504 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParseGetElastickeysResponse parses an HTTP response from a GetElastickeysWithResponse call
-func ParseGetElastickeysResponse(rsp *http.Response) (*GetElastickeysResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &GetElastickeysResponse{
+	response := &PostElasticKeysElasticKeyIDMaterialKeysResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest []externalRef0.ElasticKey
+		var dest externalRef0.MaterialKey
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -3785,15 +3450,350 @@ func ParseGetElastickeysResponse(rsp *http.Response) (*GetElastickeysResponse, e
 	return response, nil
 }
 
-// ParseGetMaterialkeysResponse parses an HTTP response from a GetMaterialkeysWithResponse call
-func ParseGetMaterialkeysResponse(rsp *http.Response) (*GetMaterialkeysResponse, error) {
+// ParseGetElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDResponse parses an HTTP response from a GetElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDWithResponse call
+func ParseGetElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDResponse(rsp *http.Response) (*GetElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &GetMaterialkeysResponse{
+	response := &GetElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest externalRef0.MaterialKey
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest externalRef0.HTTP400BadRequest
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest externalRef0.HTTP401Unauthorized
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest externalRef0.HTTP403Forbidden
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest externalRef0.HTTP404NotFound
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 429:
+		var dest externalRef0.HTTP429TooManyRequests
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON429 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest externalRef0.HTTP500InternalServerError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 502:
+		var dest externalRef0.HTTP502BadGateway
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON502 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 503:
+		var dest externalRef0.HTTP503ServiceUnavailable
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON503 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 504:
+		var dest externalRef0.HTTP504GatewayTimeout
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON504 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParsePostElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDRevokeResponse parses an HTTP response from a PostElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDRevokeWithResponse call
+func ParsePostElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDRevokeResponse(rsp *http.Response) (*PostElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDRevokeResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &PostElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDRevokeResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest externalRef0.HTTP400BadRequest
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest externalRef0.HTTP401Unauthorized
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest externalRef0.HTTP403Forbidden
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest externalRef0.HTTP404NotFound
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 429:
+		var dest externalRef0.HTTP429TooManyRequests
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON429 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest externalRef0.HTTP500InternalServerError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 502:
+		var dest externalRef0.HTTP502BadGateway
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON502 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 503:
+		var dest externalRef0.HTTP503ServiceUnavailable
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON503 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 504:
+		var dest externalRef0.HTTP504GatewayTimeout
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON504 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParsePostElasticKeysElasticKeyIDSignResponse parses an HTTP response from a PostElasticKeysElasticKeyIDSignWithResponse call
+func ParsePostElasticKeysElasticKeyIDSignResponse(rsp *http.Response) (*PostElasticKeysElasticKeyIDSignResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &PostElasticKeysElasticKeyIDSignResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest externalRef0.HTTP400BadRequest
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest externalRef0.HTTP401Unauthorized
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest externalRef0.HTTP403Forbidden
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest externalRef0.HTTP404NotFound
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 429:
+		var dest externalRef0.HTTP429TooManyRequests
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON429 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest externalRef0.HTTP500InternalServerError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 502:
+		var dest externalRef0.HTTP502BadGateway
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON502 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 503:
+		var dest externalRef0.HTTP503ServiceUnavailable
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON503 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 504:
+		var dest externalRef0.HTTP504GatewayTimeout
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON504 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParsePostElasticKeysElasticKeyIDVerifyResponse parses an HTTP response from a PostElasticKeysElasticKeyIDVerifyWithResponse call
+func ParsePostElasticKeysElasticKeyIDVerifyResponse(rsp *http.Response) (*PostElasticKeysElasticKeyIDVerifyResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &PostElasticKeysElasticKeyIDVerifyResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest externalRef0.HTTP400BadRequest
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest externalRef0.HTTP401Unauthorized
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest externalRef0.HTTP403Forbidden
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest externalRef0.HTTP404NotFound
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 429:
+		var dest externalRef0.HTTP429TooManyRequests
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON429 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest externalRef0.HTTP500InternalServerError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 502:
+		var dest externalRef0.HTTP502BadGateway
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON502 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 503:
+		var dest externalRef0.HTTP503ServiceUnavailable
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON503 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 504:
+		var dest externalRef0.HTTP504GatewayTimeout
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON504 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetMaterialKeysResponse parses an HTTP response from a GetMaterialKeysWithResponse call
+func ParseGetMaterialKeysResponse(rsp *http.Response) (*GetMaterialKeysResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetMaterialKeysResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -3877,101 +3877,101 @@ func ParseGetMaterialkeysResponse(rsp *http.Response) (*GetMaterialkeysResponse,
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
+	"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",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

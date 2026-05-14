@@ -24,103 +24,103 @@ func NewOpenapiStrictServer(service *cryptoutilKmsServerBusinesslogic.BusinessLo
 
 // PostElastickey creates a new Elastic Key.
 // (POST /elastickey).
-func (s *StrictServer) PostElastickey(ctx context.Context, request cryptoutilKmsServer.PostElastickeyRequestObject) (cryptoutilKmsServer.PostElastickeyResponseObject, error) {
+func (s *StrictServer) PostElasticKeys(ctx context.Context, request cryptoutilKmsServer.PostElasticKeysRequestObject) (cryptoutilKmsServer.PostElasticKeysResponseObject, error) {
 	addedElasticKey, err := s.businessLogicService.AddElasticKey(ctx, request.Body)
 
-	return s.oasOamMapper.toOasPostKeyResponse(err, addedElasticKey)
+	return s.oasOamMapper.toOasPostElasticKeysResponse(err, addedElasticKey)
 }
 
 // GetElastickeyElasticKeyID gets an Elastic Key.
 // (GET /elastickey/{elasticKeyID}).
-func (s *StrictServer) GetElastickeyElasticKeyID(ctx context.Context, request cryptoutilKmsServer.GetElastickeyElasticKeyIDRequestObject) (cryptoutilKmsServer.GetElastickeyElasticKeyIDResponseObject, error) {
+func (s *StrictServer) GetElasticKeysElasticKeyID(ctx context.Context, request cryptoutilKmsServer.GetElasticKeysElasticKeyIDRequestObject) (cryptoutilKmsServer.GetElasticKeysElasticKeyIDResponseObject, error) {
 	elasticKey, err := s.businessLogicService.GetElasticKeyByElasticKeyID(ctx, &request.ElasticKeyID)
 
-	return s.oasOamMapper.toOasGetElastickeyElasticKeyIDResponse(err, elasticKey)
+	return s.oasOamMapper.toOasGetElasticKeysElasticKeyIDResponse(err, elasticKey)
 }
 
 // PostElastickeyElasticKeyIDDecrypt decrypts ciphertext using a specific Elastic Key. The Material Key in the Elastic Key is identified by the JWE message kid header.
 // (POST /elastickey/{elasticKeyID}/decrypt).
-func (s *StrictServer) PostElastickeyElasticKeyIDDecrypt(ctx context.Context, request cryptoutilKmsServer.PostElastickeyElasticKeyIDDecryptRequestObject) (cryptoutilKmsServer.PostElastickeyElasticKeyIDDecryptResponseObject, error) {
+func (s *StrictServer) PostElasticKeysElasticKeyIDDecrypt(ctx context.Context, request cryptoutilKmsServer.PostElasticKeysElasticKeyIDDecryptRequestObject) (cryptoutilKmsServer.PostElasticKeysElasticKeyIDDecryptResponseObject, error) {
 	encryptedBytes := []byte(*request.Body)
 	decryptedBytes, err := s.businessLogicService.PostDecryptByElasticKeyID(ctx, &request.ElasticKeyID, encryptedBytes)
 
-	return s.oasOamMapper.toOasPostDecryptResponse(err, decryptedBytes)
+	return s.oasOamMapper.toOasPostElasticKeysElasticKeyIDDecryptResponse(err, decryptedBytes)
 }
 
 // PostElastickeyElasticKeyIDEncrypt encrypts clear text data using a specific Elastic Key. The Material Key in the Elastic Key is identified by the JWE message kid header.
 // (POST /elastickey/{elasticKeyID}/encrypt).
-func (s *StrictServer) PostElastickeyElasticKeyIDEncrypt(ctx context.Context, request cryptoutilKmsServer.PostElastickeyElasticKeyIDEncryptRequestObject) (cryptoutilKmsServer.PostElastickeyElasticKeyIDEncryptResponseObject, error) {
-	encryptParams := s.oasOamMapper.toOamPostEncryptQueryParams(&request.Params)
+func (s *StrictServer) PostElasticKeysElasticKeyIDEncrypt(ctx context.Context, request cryptoutilKmsServer.PostElasticKeysElasticKeyIDEncryptRequestObject) (cryptoutilKmsServer.PostElasticKeysElasticKeyIDEncryptResponseObject, error) {
+	encryptParams := s.oasOamMapper.toOamPostElasticKeysElasticKeyIDEncryptQueryParams(&request.Params)
 	clearBytes := []byte(*request.Body)
 	encryptedBytes, err := s.businessLogicService.PostEncryptByElasticKeyID(ctx, &request.ElasticKeyID, encryptParams, clearBytes)
 
-	return s.oasOamMapper.toOasPostEncryptResponse(err, encryptedBytes)
+	return s.oasOamMapper.toOasPostElasticKeysElasticKeyIDEncryptResponse(err, encryptedBytes)
 }
 
 // PostElastickeyElasticKeyIDGenerate generates a random Secret Key, Key Pair, or other algorithm. It will be in JWK format, returned in encrypted form as a JWE message.
 // (POST /elastickey/{elasticKeyID}/generate).
-func (s *StrictServer) PostElastickeyElasticKeyIDGenerate(ctx context.Context, request cryptoutilKmsServer.PostElastickeyElasticKeyIDGenerateRequestObject) (cryptoutilKmsServer.PostElastickeyElasticKeyIDGenerateResponseObject, error) {
-	generateParams := s.oasOamMapper.toOamPostGenerateQueryParams(&request.Params)
+func (s *StrictServer) PostElasticKeysElasticKeyIDGenerate(ctx context.Context, request cryptoutilKmsServer.PostElasticKeysElasticKeyIDGenerateRequestObject) (cryptoutilKmsServer.PostElasticKeysElasticKeyIDGenerateResponseObject, error) {
+	generateParams := s.oasOamMapper.toOamPostElasticKeysElasticKeyIDGenerateQueryParams(&request.Params)
 	encryptedNonPublicJWKBytes, _, clearPublicJWKBytes, err := s.businessLogicService.PostGenerateByElasticKeyID(ctx, &request.ElasticKeyID, generateParams)
 
-	return s.oasOamMapper.toOasPostGenerateResponse(err, encryptedNonPublicJWKBytes, clearPublicJWKBytes)
+	return s.oasOamMapper.toOasPostElasticKeysElasticKeyIDGenerateResponse(err, encryptedNonPublicJWKBytes, clearPublicJWKBytes)
 }
 
 // PostElastickeyElasticKeyIDMaterialkey generates a new Material Key in an Elastic Key.
 // (POST /elastickey/{elasticKeyID}/materialkey).
-func (s *StrictServer) PostElastickeyElasticKeyIDMaterialkey(ctx context.Context, request cryptoutilKmsServer.PostElastickeyElasticKeyIDMaterialkeyRequestObject) (cryptoutilKmsServer.PostElastickeyElasticKeyIDMaterialkeyResponseObject, error) {
+func (s *StrictServer) PostElasticKeysElasticKeyIDMaterialKeys(ctx context.Context, request cryptoutilKmsServer.PostElasticKeysElasticKeyIDMaterialKeysRequestObject) (cryptoutilKmsServer.PostElasticKeysElasticKeyIDMaterialKeysResponseObject, error) {
 	key, err := s.businessLogicService.GenerateMaterialKeyInElasticKey(ctx, &request.ElasticKeyID, request.Body)
 
-	return s.oasOamMapper.toOasPostElastickeyElasticKeyIDMaterialkeyResponse(err, key)
+	return s.oasOamMapper.toOasPostElasticKeysElasticKeyIDMaterialKeysResponse(err, key)
 }
 
 // GetElastickeyElasticKeyIDMaterialkeyMaterialKeyID gets Material Key in Elastic Key.
 // (GET /elastickey/{elasticKeyID}/materialkey/{materialKeyID}).
-func (s *StrictServer) GetElastickeyElasticKeyIDMaterialkeyMaterialKeyID(ctx context.Context, request cryptoutilKmsServer.GetElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRequestObject) (cryptoutilKmsServer.GetElastickeyElasticKeyIDMaterialkeyMaterialKeyIDResponseObject, error) {
+func (s *StrictServer) GetElasticKeysElasticKeyIDMaterialKeysMaterialKeyID(ctx context.Context, request cryptoutilKmsServer.GetElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDRequestObject) (cryptoutilKmsServer.GetElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDResponseObject, error) {
 	key, err := s.businessLogicService.GetMaterialKeyByElasticKeyAndMaterialKeyID(ctx, &request.ElasticKeyID, &request.MaterialKeyID)
 
-	return s.oasOamMapper.toOasGetElastickeyElasticKeyIDMaterialkeyMaterialKeyIDResponse(err, key)
+	return s.oasOamMapper.toOasGetElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDResponse(err, key)
 }
 
 // GetElastickeyElasticKeyIDMaterialkeys finds Material Keys in Elastic Key. Supports optional filtering, sorting, and paging.
 // (GET /elastickey/{elasticKeyID}/materialkeys).
-func (s *StrictServer) GetElastickeyElasticKeyIDMaterialkeys(ctx context.Context, request cryptoutilKmsServer.GetElastickeyElasticKeyIDMaterialkeysRequestObject) (cryptoutilKmsServer.GetElastickeyElasticKeyIDMaterialkeysResponseObject, error) {
-	elasticKeyMaterialKeysQueryParams := s.oasOamMapper.toOamGetElasticKeyMaterialKeysQueryParams(&request.Params)
+func (s *StrictServer) GetElasticKeysElasticKeyIDMaterialKeys(ctx context.Context, request cryptoutilKmsServer.GetElasticKeysElasticKeyIDMaterialKeysRequestObject) (cryptoutilKmsServer.GetElasticKeysElasticKeyIDMaterialKeysResponseObject, error) {
+	elasticKeyMaterialKeysQueryParams := s.oasOamMapper.toOamGetElasticKeysElasticKeyIDMaterialKeysQueryParams(&request.Params)
 	keys, err := s.businessLogicService.GetMaterialKeysForElasticKey(ctx, &request.ElasticKeyID, elasticKeyMaterialKeysQueryParams)
 
-	return s.oasOamMapper.toOasGetElastickeyElasticKeyIDMaterialkeysResponse(err, keys)
+	return s.oasOamMapper.toOasGetElasticKeysElasticKeyIDMaterialKeysResponse(err, keys)
 }
 
 // PostElastickeyElasticKeyIDSign signs clear text using a specific Elastic Key. The Material Key in the Elastic Key is identified by the JWS message kid header.
 // (POST /elastickey/{elasticKeyID}/sign).
-func (s *StrictServer) PostElastickeyElasticKeyIDSign(ctx context.Context, request cryptoutilKmsServer.PostElastickeyElasticKeyIDSignRequestObject) (cryptoutilKmsServer.PostElastickeyElasticKeyIDSignResponseObject, error) {
+func (s *StrictServer) PostElasticKeysElasticKeyIDSign(ctx context.Context, request cryptoutilKmsServer.PostElasticKeysElasticKeyIDSignRequestObject) (cryptoutilKmsServer.PostElasticKeysElasticKeyIDSignResponseObject, error) {
 	clearBytes := []byte(*request.Body)
 	signedBytes, err := s.businessLogicService.PostSignByElasticKeyID(ctx, &request.ElasticKeyID, clearBytes)
 
-	return s.oasOamMapper.toOasPostSignResponse(err, signedBytes)
+	return s.oasOamMapper.toOasPostElasticKeysElasticKeyIDSignResponse(err, signedBytes)
 }
 
 // PostElastickeyElasticKeyIDVerify verifies JWS message using a specific Elastic Key. The Material Key in the Elastic Key is identified by the JWS message kid header.
 // (POST /elastickey/{elasticKeyID}/verify).
-func (s *StrictServer) PostElastickeyElasticKeyIDVerify(ctx context.Context, request cryptoutilKmsServer.PostElastickeyElasticKeyIDVerifyRequestObject) (cryptoutilKmsServer.PostElastickeyElasticKeyIDVerifyResponseObject, error) {
+func (s *StrictServer) PostElasticKeysElasticKeyIDVerify(ctx context.Context, request cryptoutilKmsServer.PostElasticKeysElasticKeyIDVerifyRequestObject) (cryptoutilKmsServer.PostElasticKeysElasticKeyIDVerifyResponseObject, error) {
 	signedBytes := []byte(*request.Body)
 	_, err := s.businessLogicService.PostVerifyByElasticKeyID(ctx, &request.ElasticKeyID, signedBytes)
 
-	return s.oasOamMapper.toOasPostVerifyResponse(err)
+	return s.oasOamMapper.toOasPostElasticKeysElasticKeyIDVerifyResponse(err)
 }
 
 // GetElastickeys finds Elastic Keys. Supports optional filtering, sorting, and paging.
 // (GET /elastickeys).
-func (s *StrictServer) GetElastickeys(ctx context.Context, request cryptoutilKmsServer.GetElastickeysRequestObject) (cryptoutilKmsServer.GetElastickeysResponseObject, error) {
+func (s *StrictServer) GetElasticKeys(ctx context.Context, request cryptoutilKmsServer.GetElasticKeysRequestObject) (cryptoutilKmsServer.GetElasticKeysResponseObject, error) {
 	elasticMaterialKeysQueryParams := s.oasOamMapper.toOamGetElasticKeyQueryParams(&request.Params)
 	elasticKeys, err := s.businessLogicService.GetElasticKeys(ctx, elasticMaterialKeysQueryParams)
 
-	return s.oasOamMapper.toOasGetElastickeysResponse(err, elasticKeys)
+	return s.oasOamMapper.toOasGetElasticKeysResponse(err, elasticKeys)
 }
 
 // GetMaterialkeys finds Material Keys. Supports optional filtering, sorting, and paging.
 // (GET /materialkeys).
-func (s *StrictServer) GetMaterialkeys(ctx context.Context, request cryptoutilKmsServer.GetMaterialkeysRequestObject) (cryptoutilKmsServer.GetMaterialkeysResponseObject, error) {
+func (s *StrictServer) GetMaterialKeys(ctx context.Context, request cryptoutilKmsServer.GetMaterialKeysRequestObject) (cryptoutilKmsServer.GetMaterialKeysResponseObject, error) {
 	keysQueryParams := s.oasOamMapper.toOamGetMaterialKeysQueryParams(&request.Params)
 	keys, err := s.businessLogicService.GetMaterialKeys(ctx, keysQueryParams)
 
@@ -129,40 +129,40 @@ func (s *StrictServer) GetMaterialkeys(ctx context.Context, request cryptoutilKm
 
 // PutElastickeyElasticKeyID updates an Elastic Key.
 // (PUT /elastickey/{elasticKeyID}).
-func (s *StrictServer) PutElastickeyElasticKeyID(ctx context.Context, request cryptoutilKmsServer.PutElastickeyElasticKeyIDRequestObject) (cryptoutilKmsServer.PutElastickeyElasticKeyIDResponseObject, error) {
+func (s *StrictServer) PutElasticKeysElasticKeyID(ctx context.Context, request cryptoutilKmsServer.PutElasticKeysElasticKeyIDRequestObject) (cryptoutilKmsServer.PutElasticKeysElasticKeyIDResponseObject, error) {
 	updatedElasticKey, err := s.businessLogicService.UpdateElasticKey(ctx, &request.ElasticKeyID, request.Body)
 
-	return s.oasOamMapper.toOasPutElastickeyElasticKeyIDResponse(err, updatedElasticKey)
+	return s.oasOamMapper.toOasPutElasticKeysElasticKeyIDResponse(err, updatedElasticKey)
 }
 
 // DeleteElastickeyElasticKeyID deletes an Elastic Key (soft delete).
 // (DELETE /elastickey/{elasticKeyID}).
-func (s *StrictServer) DeleteElastickeyElasticKeyID(ctx context.Context, request cryptoutilKmsServer.DeleteElastickeyElasticKeyIDRequestObject) (cryptoutilKmsServer.DeleteElastickeyElasticKeyIDResponseObject, error) {
+func (s *StrictServer) DeleteElasticKeysElasticKeyID(ctx context.Context, request cryptoutilKmsServer.DeleteElasticKeysElasticKeyIDRequestObject) (cryptoutilKmsServer.DeleteElasticKeysElasticKeyIDResponseObject, error) {
 	err := s.businessLogicService.DeleteElasticKey(ctx, &request.ElasticKeyID)
 
-	return s.oasOamMapper.toOasDeleteElastickeyElasticKeyIDResponse(err)
+	return s.oasOamMapper.toOasDeleteElasticKeysElasticKeyIDResponse(err)
 }
 
 // PostElastickeyElasticKeyIDImport imports a Material Key into an Elastic Key.
 // (POST /elastickey/{elasticKeyID}/import).
-func (s *StrictServer) PostElastickeyElasticKeyIDImport(ctx context.Context, request cryptoutilKmsServer.PostElastickeyElasticKeyIDImportRequestObject) (cryptoutilKmsServer.PostElastickeyElasticKeyIDImportResponseObject, error) {
+func (s *StrictServer) PostElasticKeysElasticKeyIDImport(ctx context.Context, request cryptoutilKmsServer.PostElasticKeysElasticKeyIDImportRequestObject) (cryptoutilKmsServer.PostElasticKeysElasticKeyIDImportResponseObject, error) {
 	importedMaterialKey, err := s.businessLogicService.ImportMaterialKey(ctx, &request.ElasticKeyID, request.Body)
 
-	return s.oasOamMapper.toOasPostElastickeyElasticKeyIDImportResponse(err, importedMaterialKey)
+	return s.oasOamMapper.toOasPostElasticKeysElasticKeyIDImportResponse(err, importedMaterialKey)
 }
 
 // PostElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRevoke revokes a Material Key in an Elastic Key.
 // (POST /elastickey/{elasticKeyID}/materialkey/{materialKeyID}/revoke).
-func (s *StrictServer) PostElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRevoke(ctx context.Context, request cryptoutilKmsServer.PostElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRevokeRequestObject) (cryptoutilKmsServer.PostElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRevokeResponseObject, error) {
+func (s *StrictServer) PostElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDRevoke(ctx context.Context, request cryptoutilKmsServer.PostElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDRevokeRequestObject) (cryptoutilKmsServer.PostElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDRevokeResponseObject, error) {
 	err := s.businessLogicService.RevokeMaterialKey(ctx, &request.ElasticKeyID, &request.MaterialKeyID)
 
-	return s.oasOamMapper.toOasPostElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRevokeResponse(err)
+	return s.oasOamMapper.toOasPostElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDRevokeResponse(err)
 }
 
 // DeleteElastickeyElasticKeyIDMaterialkeyMaterialKeyID deletes a Material Key from an Elastic Key.
 // (DELETE /elastickey/{elasticKeyID}/materialkey/{materialKeyID}).
-func (s *StrictServer) DeleteElastickeyElasticKeyIDMaterialkeyMaterialKeyID(ctx context.Context, request cryptoutilKmsServer.DeleteElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRequestObject) (cryptoutilKmsServer.DeleteElastickeyElasticKeyIDMaterialkeyMaterialKeyIDResponseObject, error) {
+func (s *StrictServer) DeleteElasticKeysElasticKeyIDMaterialKeysMaterialKeyID(ctx context.Context, request cryptoutilKmsServer.DeleteElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDRequestObject) (cryptoutilKmsServer.DeleteElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDResponseObject, error) {
 	err := s.businessLogicService.DeleteMaterialKey(ctx, &request.ElasticKeyID, &request.MaterialKeyID)
 
-	return s.oasOamMapper.toOasDeleteElastickeyElasticKeyIDMaterialkeyMaterialKeyIDResponse(err)
+	return s.oasOamMapper.toOasDeleteElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDResponse(err)
 }

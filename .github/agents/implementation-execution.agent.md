@@ -1,6 +1,6 @@
 ---
 name: copilot-implementation-execution
-description: Use to execute an existing plan.md/tasks.md autonomously. Continuously updates tasks.md, runs quality gates after each phase, and commits incrementally. Requires plan.md and tasks.md to already exist in the work directory.
+description: Use to execute an existing plan.md/tasks.md autonomously. Continuously updates tasks.md, runs quality gates after each phase, and produces EXEC-SUMMARY.md at plan completion. Requires plan.md and tasks.md to already exist in the work directory.
 model:
   - Auto
   - GPT-5.3-Codex (copilot)
@@ -364,7 +364,7 @@ You are a highly capable and autonomous agent, and you can definitely solve this
 SCOPE OF WORK
 --------------------------------------------
 
-## The 2 Files (Custom Plan Documentation)
+## The 4 Plan Files (Custom Plan Documentation)
 
 You must fully execute the plan and tasks defined in:
 
@@ -386,6 +386,7 @@ This includes:
 - All implied subtasks
 - All refactors, migrations, tests, docs, and validation
 - Post-mortem analysis at end of EVERY phase
+- Final objective implementation audit in `<work-dir>/EXEC-SUMMARY.md`
 
 Sequential dependencies MUST be respected.
 No task or phase may be skipped, reordered, deferred, de-prioritized.
@@ -850,7 +851,7 @@ Always tell the user what you are going to do before making a tool call with a s
 
 11. **Reflect and Validate**: After tests pass, think about the original intent, write additional tests to ensure correctness, and remember there are hidden tests that must also pass before the solution is truly complete.
 
-12. **Post-Completion Analysis**: ALWAYS finalize the 5 documentation files after ALL tasks in tasks.md are marked `[x]` (see The 5 Docs section below).
+12. **Post-Completion Analysis**: ALWAYS finalize the 4 plan documentation files after ALL tasks in tasks.md are marked `[x]` (see The 4 Plan Files section below).
 
 --------------------------------------------
 
@@ -889,7 +890,7 @@ This will:
 
 **CRITICAL: Implementation Plan File Structure**
 
-Implementation plans are composed of **3 files in `<work-dir>/`**:
+Implementation plans are composed of **4 files in `<work-dir>/`**:
 
 1. **`<work-dir>/quizme-v#.md`** - NOT used by this agent
    - Ephemeral, ONLY during implementation-planning.agent.md
@@ -904,6 +905,12 @@ Implementation plans are composed of **3 files in `<work-dir>/`**:
    - Created by implementation-planning.agent.md
    - YOU update task checkboxes continuously as you complete work
    - Contains detailed acceptance criteria per task
+
+4. **`<work-dir>/EXEC-SUMMARY.md`** - Objective post-implementation audit
+   - Created by implementation-execution agent ONLY after all tasks and quality gates are complete
+   - Contains independent completion validation against `plan.md`, `tasks.md`, and `lessons.md`
+   - Contains numbered post-implementation issues where each item has `Symptoms`, `Root Cause`, and `Fix`
+   - Contains prioritized recommendations for handbook/instruction/agent/skill improvements
 
 **Writing Prompts:**
 
@@ -929,14 +936,16 @@ Do not pause.
 
 Execute continuously until finished.
 
-## The 2 Files - MANDATORY
+## The 4 Plan Files - MANDATORY
 
-**Focus ONLY on these 2 documentation files:**
+**Focus ONLY on these 4 plan documentation files:**
 
 **INPUT FILES** (must exist before start):
 
 1. **`<work-dir>/plan.md`**: High-level session plan with goals, phases, success criteria
 2. **`<work-dir>/tasks.md`**: Comprehensive actionable checklist grouped by phase, with priorities (P0/P1/P2/P3), acceptance criteria, verification commands - tasks marked `[ ]` initially, then `[x]` when complete
+3. **`<work-dir>/lessons.md`**: Per-phase post-mortems plus top-level Executive Summary and Actions
+4. **`<work-dir>/EXEC-SUMMARY.md`**: Final objective implementation audit report produced at completion
 
 **IGNORED FILES**:
 
@@ -947,6 +956,19 @@ Execute continuously until finished.
 - tasks.md contains checkboxes `[ ]` → `[x]` which are ALWAYS updated to be up-to-date
 - Checkboxes are sufficient for tracking progress
 - NO additional "Session Tracking System" or separate tracking mechanisms
+
+**Final Audit (MANDATORY):**
+
+- At end of execution, implementation-execution MUST create/update `<work-dir>/EXEC-SUMMARY.md`
+- `EXEC-SUMMARY.md` MUST be evidence-based and objective, not celebratory
+- `EXEC-SUMMARY.md` MUST reconcile every phase status, every cross-cutting checkbox, and every blocker before any completion claim is written; if anything remains open, the audit must say `Incomplete` or `Complete with unresolved blockers`, never `Complete`
+- `EXEC-SUMMARY.md` MUST contain these sections in order:
+   1. `## Scope and Evidence`
+   2. `## Completion Validation`
+   3. `## Post-Implementation Issues` (numbered; each item includes `Symptoms`, `Root Cause`, `Fix`)
+   4. `## Auto-Mode Quality Gate Evaluation`
+   5. `## Recommended Improvements (Highest to Lowest Priority)`
+   6. `## Propagation Candidates`
 
 **File Encoding - MANDATORY (PowerShell):**
 
@@ -1034,9 +1056,9 @@ If a task cannot be completed due to architectural limitations, missing infrastr
 **Document Sprawl Prevention:**
 
 - NEVER create standalone session docs (SESSION-*.md, session-*.md, analysis-*.md, work-log-*.md)
-- NEVER create additional tracking files beyond the 5 docs
+- NEVER create additional tracking files beyond the 4 plan files (`plan.md`, `tasks.md`, `lessons.md`, `EXEC-SUMMARY.md`)
 - NEVER create summary documents or completion analyses
-- The 5 docs are the ONLY documentation artifacts
+- The 4 plan files are the ONLY plan-scoped documentation artifacts
 
 ## Analysis Phase - POST-EXECUTION ONLY
 
@@ -1049,7 +1071,8 @@ If a task cannot be completed due to architectural limitations, missing infrastr
 **Analysis Deliverables:**
 
 1. **Finalize Docs**: Ensure lessons.md is complete and committed. plan.md and tasks.md should already exist with all tasks marked `[x]`. Fill the `## Executive Summary` section (numbered links to each phase + one-sentence outcome) and the `## Actions` section (numbered list of concrete follow-up items) at the top of lessons.md — see §14.8.2 of ENG-HANDBOOK.md for the required structure.
-2. **Extract Lessons to Permanent Homes**: From lessons.md, update permanent artifacts as warranted:
+2. **Generate EXEC-SUMMARY.md**: Create/update `<work-dir>/EXEC-SUMMARY.md` as an objective completion audit. It MUST validate completed work against `plan.md`, `tasks.md`, and `lessons.md`; MUST include numbered post-implementation issue entries with `Symptoms`, `Root Cause`, and `Fix`; and MUST include explicit Auto-mode quality-gate evaluation plus prioritized improvement recommendations.
+3. **Extract Lessons to Permanent Homes**: From lessons.md and EXEC-SUMMARY.md, update permanent artifacts as warranted:
    - `docs/ENG-HANDBOOK.md` — Add/update patterns, strategies, and architectural decisions
    - `.github/agents/*.agent.md` — Improve agent guidance and workflows
    - `.github/skills/*/SKILL.md` — Add/update skill templates for new patterns
@@ -1058,10 +1081,10 @@ If a task cannot be completed due to architectural limitations, missing infrastr
      - Tests — Improve test suites for coverage or assertion gaps identified during plan
      - CI/CD workflows — Add new quality gates or tooling; fix incorrect steps discovered
      - `README.md`, `docs/DEV-SETUP.md`, inline comments — Developer-facing documentation
-3. **Artifact Self-Evaluation**: Review ALL of the following for contradictions or omissions introduced by this plan:
+4. **Artifact Self-Evaluation**: Review ALL of the following for contradictions or omissions introduced by this plan:
    - Every `@source` block in instruction files must match its `@propagate` block in ENG-HANDBOOK.md
    - Run `go run ./cmd/cicd-lint lint-docs validate-propagation` to verify propagation integrity
-4. **Commit with Audit Trail**: Use separate semantic commits per artifact type: (1) ENG-HANDBOOK.md, (2) agents, (3) skills, (4) instructions
+5. **Commit with Audit Trail**: Use separate semantic commits per artifact type: (1) ENG-HANDBOOK.md, (2) agents, (3) skills, (4) instructions
 
 **Anti-Patterns:**
 
@@ -1069,11 +1092,12 @@ If a task cannot be completed due to architectural limitations, missing infrastr
 - ❌ **NEVER create plan.md/tasks.md during execution**: These MUST exist before you start
 - ❌ **NEVER stop to ask about analysis**: Execute work → complete all tasks → THEN analyze automatically
 - ❌ **NEVER skip phase-based post-mortems**: EVERY phase MUST end with post-mortem analysis
-- ❌ **NEVER create extraneous docs**: Only plan.md, tasks.md, and lessons.md
+- ❌ **NEVER create extraneous docs**: Only plan.md, tasks.md, lessons.md, and EXEC-SUMMARY.md for plan-scoped docs
 - ✅ **ALWAYS complete all work first**: Every task in tasks.md marked `[x]`, every quality gate passed
 - ✅ **ALWAYS update lessons.md as needed**: When first lesson/pattern emerges
 - ✅ **ALWAYS conduct phase-based post-mortems**: Update lessons.md, identify new phases/tasks
-- ✅ **ALWAYS extract lessons immediately**: From lessons.md to permanent homes before ending session
+- ✅ **ALWAYS generate EXEC-SUMMARY.md at completion**: Include completion validation, issue audit, and prioritized improvements
+- ✅ **ALWAYS extract lessons immediately**: From lessons.md and EXEC-SUMMARY.md to permanent homes before ending session
 - ✅ **ALWAYS commit docs**: With detailed audit trail listing all task completions
 
 ---

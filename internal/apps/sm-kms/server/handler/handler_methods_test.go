@@ -42,7 +42,7 @@ func TestOamOasMapper_ToOasGetElastickeyElasticKeyIDResponse_Success(t *testing.
 		ElasticKeyID: &uuid,
 	}
 
-	resp, err := mapper.toOasGetElastickeyElasticKeyIDResponse(nil, elasticKey)
+	resp, err := mapper.toOasGetElasticKeysElasticKeyIDResponse(nil, elasticKey)
 	require.NoError(t, err)
 	require.NotNil(t, resp)
 }
@@ -55,7 +55,7 @@ func TestOamOasMapper_ToOasGetElastickeyElasticKeyIDResponse_BadRequest(t *testi
 	summary := testInvalidRequest
 	appErr := cryptoutilSharedApperr.NewHTTP400BadRequest(&summary, nil)
 
-	resp, err := mapper.toOasGetElastickeyElasticKeyIDResponse(appErr, nil)
+	resp, err := mapper.toOasGetElasticKeysElasticKeyIDResponse(appErr, nil)
 	require.NoError(t, err)
 	require.NotNil(t, resp)
 }
@@ -68,7 +68,7 @@ func TestOamOasMapper_ToOasGetElastickeyElasticKeyIDResponse_NotFound(t *testing
 	summary := testKeyNotFound
 	appErr := cryptoutilSharedApperr.NewHTTP404NotFound(&summary, nil)
 
-	resp, err := mapper.toOasGetElastickeyElasticKeyIDResponse(appErr, nil)
+	resp, err := mapper.toOasGetElasticKeysElasticKeyIDResponse(appErr, nil)
 	require.NoError(t, err)
 	require.NotNil(t, resp)
 }
@@ -81,7 +81,7 @@ func TestOamOasMapper_ToOasGetElastickeyElasticKeyIDResponse_InternalServerError
 	summary := testInternalError
 	appErr := cryptoutilSharedApperr.NewHTTP500InternalServerError(&summary, nil)
 
-	resp, err := mapper.toOasGetElastickeyElasticKeyIDResponse(appErr, nil)
+	resp, err := mapper.toOasGetElasticKeysElasticKeyIDResponse(appErr, nil)
 	require.NoError(t, err)
 	require.NotNil(t, resp)
 }
@@ -93,7 +93,7 @@ func TestOamOasMapper_ToOasGetElastickeyElasticKeyIDResponse_UnknownError(t *tes
 	mapper := NewOasOamMapper()
 	unknownErr := errors.New("unknown error")
 
-	resp, err := mapper.toOasGetElastickeyElasticKeyIDResponse(unknownErr, nil)
+	resp, err := mapper.toOasGetElasticKeysElasticKeyIDResponse(unknownErr, nil)
 	require.Error(t, err)
 	require.Nil(t, resp)
 }
@@ -105,7 +105,7 @@ func TestOamOasMapper_ToOasPostDecryptResponse_UnknownError(t *testing.T) {
 	mapper := NewOasOamMapper()
 	unknownErr := errors.New("unknown error")
 
-	resp, err := mapper.toOasPostDecryptResponse(unknownErr, nil)
+	resp, err := mapper.toOasPostElasticKeysElasticKeyIDDecryptResponse(unknownErr, nil)
 	require.Error(t, err)
 	require.Nil(t, resp)
 }
@@ -117,7 +117,7 @@ func TestOamOasMapper_ToOasPostEncryptResponse_UnknownError(t *testing.T) {
 	mapper := NewOasOamMapper()
 	unknownErr := errors.New("unknown error")
 
-	resp, err := mapper.toOasPostEncryptResponse(unknownErr, nil)
+	resp, err := mapper.toOasPostElasticKeysElasticKeyIDEncryptResponse(unknownErr, nil)
 	require.Error(t, err)
 	require.Nil(t, resp)
 }
@@ -129,7 +129,7 @@ func TestOamOasMapper_ToOasPostGenerateResponse_UnknownError(t *testing.T) {
 	mapper := NewOasOamMapper()
 	unknownErr := errors.New("unknown error")
 
-	resp, err := mapper.toOasPostGenerateResponse(unknownErr, nil, nil)
+	resp, err := mapper.toOasPostElasticKeysElasticKeyIDGenerateResponse(unknownErr, nil, nil)
 	require.Error(t, err)
 	require.Nil(t, resp)
 }
@@ -148,7 +148,7 @@ func TestOamOasMapper_ToOasPostElastickeyElasticKeyIDMaterialkeyResponse_Success
 		ElasticKeyID:  &uuid,
 	}
 
-	resp, err := mapper.toOasPostElastickeyElasticKeyIDMaterialkeyResponse(nil, materialKey)
+	resp, err := mapper.toOasPostElasticKeysElasticKeyIDMaterialKeysResponse(nil, materialKey)
 	require.NoError(t, err)
 	require.NotNil(t, resp)
 }
@@ -161,7 +161,7 @@ func TestOamOasMapper_ToOasPostElastickeyElasticKeyIDMaterialkeyResponse_BadRequ
 	summary := testInvalidRequest
 	appErr := cryptoutilSharedApperr.NewHTTP400BadRequest(&summary, nil)
 
-	resp, err := mapper.toOasPostElastickeyElasticKeyIDMaterialkeyResponse(appErr, nil)
+	resp, err := mapper.toOasPostElasticKeysElasticKeyIDMaterialKeysResponse(appErr, nil)
 	require.NoError(t, err)
 	require.NotNil(t, resp)
 }
@@ -174,7 +174,7 @@ func TestOamOasMapper_ToOasPostElastickeyElasticKeyIDMaterialkeyResponse_NotFoun
 	summary := testKeyNotFound
 	appErr := cryptoutilSharedApperr.NewHTTP404NotFound(&summary, nil)
 
-	resp, err := mapper.toOasPostElastickeyElasticKeyIDMaterialkeyResponse(appErr, nil)
+	resp, err := mapper.toOasPostElasticKeysElasticKeyIDMaterialKeysResponse(appErr, nil)
 	require.NoError(t, err)
 	require.NotNil(t, resp)
 }
@@ -187,7 +187,7 @@ func TestOamOasMapper_ToOasPostElastickeyElasticKeyIDMaterialkeyResponse_Interna
 	summary := testInternalError
 	appErr := cryptoutilSharedApperr.NewHTTP500InternalServerError(&summary, nil)
 
-	resp, err := mapper.toOasPostElastickeyElasticKeyIDMaterialkeyResponse(appErr, nil)
+	resp, err := mapper.toOasPostElasticKeysElasticKeyIDMaterialKeysResponse(appErr, nil)
 	require.NoError(t, err)
 	require.NotNil(t, resp)
 }
@@ -199,7 +199,7 @@ func TestOamOasMapper_ToOasPostElastickeyElasticKeyIDMaterialkeyResponse_Unknown
 	mapper := NewOasOamMapper()
 	unknownErr := errors.New("unknown error")
 
-	resp, err := mapper.toOasPostElastickeyElasticKeyIDMaterialkeyResponse(unknownErr, nil)
+	resp, err := mapper.toOasPostElasticKeysElasticKeyIDMaterialKeysResponse(unknownErr, nil)
 	require.Error(t, err)
 	require.Nil(t, resp)
 }
@@ -218,7 +218,7 @@ func TestOamOasMapper_ToOasGetElastickeyElasticKeyIDMaterialkeyMaterialKeyIDResp
 		ElasticKeyID:  &uuid,
 	}
 
-	resp, err := mapper.toOasGetElastickeyElasticKeyIDMaterialkeyMaterialKeyIDResponse(nil, materialKey)
+	resp, err := mapper.toOasGetElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDResponse(nil, materialKey)
 	require.NoError(t, err)
 	require.NotNil(t, resp)
 }
@@ -260,7 +260,7 @@ func TestOamOasMapper_ToOasGetElastickeyElasticKeyIDMaterialkeyMaterialKeyIDResp
 
 			mapper := NewOasOamMapper()
 
-			resp, err := mapper.toOasGetElastickeyElasticKeyIDMaterialkeyMaterialKeyIDResponse(tc.err, nil)
+			resp, err := mapper.toOasGetElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDResponse(tc.err, nil)
 			if tc.wantErr {
 				require.Error(t, err)
 				require.Nil(t, resp)
@@ -282,9 +282,9 @@ func TestOamOasMapper_ToOamGetElasticKeyMaterialKeysQueryParams(t *testing.T) {
 	t.Parallel()
 
 	mapper := NewOasOamMapper()
-	params := &cryptoutilKmsServer.GetElastickeyElasticKeyIDMaterialkeysParams{}
+	params := &cryptoutilKmsServer.GetElasticKeysElasticKeyIDMaterialKeysParams{}
 
-	result := mapper.toOamGetElasticKeyMaterialKeysQueryParams(params)
+	result := mapper.toOamGetElasticKeysElasticKeyIDMaterialKeysQueryParams(params)
 	require.NotNil(t, result)
 }
 
@@ -295,7 +295,7 @@ func TestOamOasMapper_ToOasGetElastickeyElasticKeyIDMaterialkeysResponse_Success
 	mapper := NewOasOamMapper()
 	keys := []cryptoutilKmsServer.MaterialKey{}
 
-	resp, err := mapper.toOasGetElastickeyElasticKeyIDMaterialkeysResponse(nil, keys)
+	resp, err := mapper.toOasGetElasticKeysElasticKeyIDMaterialKeysResponse(nil, keys)
 	require.NoError(t, err)
 	require.NotNil(t, resp)
 }
@@ -337,7 +337,7 @@ func TestOamOasMapper_ToOasGetElastickeyElasticKeyIDMaterialkeysResponse_Errors(
 
 			mapper := NewOasOamMapper()
 
-			resp, err := mapper.toOasGetElastickeyElasticKeyIDMaterialkeysResponse(tc.err, nil)
+			resp, err := mapper.toOasGetElasticKeysElasticKeyIDMaterialKeysResponse(tc.err, nil)
 			if tc.wantErr {
 				require.Error(t, err)
 				require.Nil(t, resp)
@@ -356,7 +356,7 @@ func TestOamOasMapper_ToOasPostSignResponse_Success(t *testing.T) {
 	mapper := NewOasOamMapper()
 	signedData := []byte("signed-data")
 
-	resp, err := mapper.toOasPostSignResponse(nil, signedData)
+	resp, err := mapper.toOasPostElasticKeysElasticKeyIDSignResponse(nil, signedData)
 	require.NoError(t, err)
 	require.NotNil(t, resp)
 }
@@ -398,7 +398,7 @@ func TestOamOasMapper_ToOasPostSignResponse_Errors(t *testing.T) {
 
 			mapper := NewOasOamMapper()
 
-			resp, err := mapper.toOasPostSignResponse(tc.err, nil)
+			resp, err := mapper.toOasPostElasticKeysElasticKeyIDSignResponse(tc.err, nil)
 			if tc.wantErr {
 				require.Error(t, err)
 				require.Nil(t, resp)
@@ -416,7 +416,7 @@ func TestOamOasMapper_ToOasPostVerifyResponse_Success(t *testing.T) {
 
 	mapper := NewOasOamMapper()
 
-	resp, err := mapper.toOasPostVerifyResponse(nil)
+	resp, err := mapper.toOasPostElasticKeysElasticKeyIDVerifyResponse(nil)
 	require.NoError(t, err)
 	require.NotNil(t, resp)
 }
@@ -458,7 +458,7 @@ func TestOamOasMapper_ToOasPostVerifyResponse_Errors(t *testing.T) {
 
 			mapper := NewOasOamMapper()
 
-			resp, err := mapper.toOasPostVerifyResponse(tc.err)
+			resp, err := mapper.toOasPostElasticKeysElasticKeyIDVerifyResponse(tc.err)
 			if tc.wantErr {
 				require.Error(t, err)
 				require.Nil(t, resp)
@@ -475,7 +475,7 @@ func TestOamOasMapper_ToOamGetElasticKeyQueryParams(t *testing.T) {
 	t.Parallel()
 
 	mapper := NewOasOamMapper()
-	params := &cryptoutilKmsServer.GetElastickeysParams{}
+	params := &cryptoutilKmsServer.GetElasticKeysParams{}
 
 	result := mapper.toOamGetElasticKeyQueryParams(params)
 	require.NotNil(t, result)

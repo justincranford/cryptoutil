@@ -6,6 +6,7 @@ package orm
 
 import (
 	"context"
+	"strings"
 	"testing"
 
 	cryptoutilSharedApperr "cryptoutil/internal/shared/apperr"
@@ -41,8 +42,12 @@ func CleanupDatabase(t *testing.T, repo *OrmRepository, tables []string) {
 	cleanupFn := func() {
 		err := repo.WithTransaction(context.Background(), ReadWrite, func(tx *OrmTransaction) error {
 			for _, table := range tables {
-				if err := tx.GormTx().Exec("DELETE FROM " + table).Error; err != nil { //nolint:gosec // Table names are internal constants, not user input
-					return err
+				if execErr := tx.GormTx().Exec("DELETE FROM " + table).Error; execErr != nil { //nolint:gosec // Table names are internal constants, not user input
+					if strings.Contains(execErr.Error(), "no such table") {
+						continue
+					}
+
+					return execErr
 				}
 			}
 

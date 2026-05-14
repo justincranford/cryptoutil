@@ -36,8 +36,9 @@
 1. Recover Docker Desktop engine health (full restart/reinstall with service permissions) so `docker ps` and `docker compose -f deployments/cryptoutil/compose.yml build` both succeed, then run `go test -tags e2e ./internal/apps/sm-kms/e2e/... -v` and `go test -tags e2e ./internal/apps/sm-im/e2e/... -v`.
 2. Remove the deprecated `internal/apps-framework/service/testing/testdb` and `internal/apps-framework/service/testing/testserver` sub-packages once all consumers have been confirmed migrated (grep: `"cryptoutil/internal/apps-framework/service/testing/testdb"`).
 3. Add a fitness linter that enforces use of `test_help_*` / `test_orch_*` packages over deprecated `testing/testdb` and `testing/testserver` paths — prevents future regression.
-4. Install a Windows C toolchain (`gcc` in PATH) and rerun `go test -race ./...`; current race gate is blocked by `cgo: C compiler "gcc" not found`.
+4. Treat the race gate as Linux-only CI work, not a Windows-host requirement; keep local Windows validation at build/lint/test levels and rely on `ci-race.yml` or a Linux runner for `go test -race ./...`.
 5. Update `api/cryptosuite-registry/templates/` canonical templates for `testmain_test.go` to reference `test_help_db.NewInMemorySQLiteDB(t)` instead of any deprecated path — ensures `apps-ps-id-template` fitness linter stays green.
+6. Add a final completion-state reconciliation step to the execution agent so blocked phases and open cross-cutting checks cannot be summarized as finished.
 
 ---
 
@@ -238,16 +239,21 @@
 - Build retry from deployment directory reached real image compilation, then failed with `rpc error: ... error reading from server: EOF`.
 - After the crash, Docker daemon degraded further to `request returned 500 Internal Server Error` for `docker ps` and `docker version` on both `desktop-linux` and `default` contexts.
 - Attempted local recovery via `Start-Service com.docker.service` was denied in this shell, preventing in-session service restart.
+- The Docker Desktop UI showed the WSL 2 backend, so the relevant resource limits are controlled by Windows/WSL config rather than the Docker UI sliders.
+- Resource Saver was enabled at the time of capture, which can make memory pressure and daemon churn harder to observe during large compose builds.
 
 **Root Causes**:
 - Docker Desktop engine enters an unstable state under compose build load; after failure, API endpoints on named pipes return HTTP 500 even for simple container list/version calls.
 - Compose invocation directory matters for path resolution (`deployments/cryptoutil` works; repo root can fail relative `.env.*` includes).
+- WSL 2 resource limits are controlled through `%UserProfile%\.wslconfig` and WSL/Docker restarts, not through the Docker Resources panel, so the effective memory cap can stay too low even when the UI looks normal.
 - Infrastructure permissions on this shell do not allow direct service restart (`com.docker.service`), so full daemon recovery cannot be completed from this session.
 
 **Patterns for Future Phases**:
 - Run compose commands from the deployment directory first to avoid false blocker signals from path resolution.
 - If Docker returns EOF during build and then 500 on `docker ps`, treat it as a daemon health incident and escalate to host-level recovery immediately.
 - The three-encounter rule applies: first encounter → document; second → create task; third → mandatory restart/reinstall before continuing any Docker-dependent work.
+- For WSL 2, edit `%UserProfile%\.wslconfig` to raise memory/CPU limits, then restart WSL and Docker Desktop; that is the actual control plane for backend resource limits.
+- Disable Resource Saver while debugging build-heavy compose stacks so the daemon does not reclaim memory mid-run.
 - Always isolate E2E phase from knowledge propagation phase so a Docker blocker doesn't block documentation work.
 
 ---
