@@ -45,6 +45,28 @@ You MUST keep working until the problem is completely solved, and all items in t
 
 ---
 
+## Quick Start Checklist - MANDATORY
+
+Use this checklist before reading the full specification details:
+
+1. Run pre-flight checks: `git status --porcelain`, `go version`, `go build ./...`, `go build -tags e2e,integration ./...`, and `docker ps` when Docker-dependent tasks exist.
+2. Record session baseline: `mkdir -p docs/<PLAN_DIR>/.meta ; git rev-parse HEAD > docs/<PLAN_DIR>/.meta/base-commit.txt`.
+3. Read full `tasks.md`, count all `[ ]`, and enumerate all `### Phase N` headings.
+4. Execute tasks in phase order: implement -> validate quality gates -> update tasks artifacts -> commit.
+5. After all tasks are `[x]`, run last-turn post-completion analysis and artifact reconciliation before yielding.
+
+## Implementation Priority Order - MANDATORY
+
+When a plan defines priority buckets or phased criticality, apply strict execution order:
+
+1. Complete **P0** tasks first (quick wins or blocking foundations).
+2. Complete **P1** tasks after P0 is fully done and validated.
+3. Defer **P2** tasks unless explicitly included in current scope or required to unblock P0/P1.
+
+Never mix P2 into active P0/P1 implementation unless a blocker requires it.
+
+---
+
 ## Pre-Flight Checks - MANDATORY
 
 ## Workspace Baseline Gate - MANDATORY
@@ -127,6 +149,46 @@ Completion is INVALID if any artifact contradicts another (for example: `tasks.m
 - Re-run reconciliation gate until zero contradictions remain
 - DO NOT claim completion until gate PASSES with zero contradictions
 
+## Lessons.md Template and Timing - MANDATORY
+
+`lessons.md` MUST be updated during execution, not batched only at the end.
+
+Use this minimum structure:
+
+```markdown
+# Execution Lessons — <Plan Title>
+
+## Session Overview
+- Focus
+- Execution pattern
+- Key metrics
+
+## Phase N: <Phase Name>
+### Blockers Encountered
+- blocker -> root cause -> resolution
+
+### Root Causes Identified
+- issue -> why it happened -> prevention
+
+### Process Improvements
+- improvement -> rationale
+
+### Tests Added or Updated
+- test scope -> reason
+
+## Cross-Phase Patterns
+- recurring issue patterns
+
+## Framework Improvements
+- improvements suggested for agent/process
+```
+
+Timing rules:
+
+1. Update lessons immediately after each blocker is resolved.
+2. Add phase-level synthesis at the end of each completed phase.
+3. Do not postpone all lesson entries to final reconciliation.
+
 ## First-Turn Baseline Recording - MANDATORY
 
 **Execute FIRST in every implementation-execution session, BEFORE any code changes:**
@@ -163,8 +225,28 @@ test -f docs/<PLAN_DIR>/.meta/base-commit.txt && echo "Baseline recorded" || ech
 
 **2a. Retrieve Baseline Commit**:
 ```bash
-BASE_COMMIT=$(cat docs/<PLAN_DIR>/.meta/base-commit.txt)
 FINAL_COMMIT=$(git rev-parse HEAD)
+BASELINE_FILE=docs/<PLAN_DIR>/.meta/base-commit.txt
+
+# Validate baseline file exists; recover if missing.
+if [ ! -f "$BASELINE_FILE" ]; then
+   echo "WARNING: Baseline file missing: $BASELINE_FILE"
+   FIRST_PHASE_COMMIT=$(git log --oneline --grep="Phase 1" | head -1 | awk '{print $1}')
+
+   if [ -n "$FIRST_PHASE_COMMIT" ]; then
+      BASE_COMMIT=$(git rev-parse "$FIRST_PHASE_COMMIT^")
+      echo "Recovered baseline from first phase commit ancestor: $BASE_COMMIT"
+   else
+      BASE_COMMIT=$(git merge-base main HEAD)
+      echo "Fallback baseline via merge-base(main, HEAD): $BASE_COMMIT"
+   fi
+
+   mkdir -p docs/<PLAN_DIR>/.meta
+   echo "$BASE_COMMIT" > "$BASELINE_FILE"
+else
+   BASE_COMMIT=$(cat "$BASELINE_FILE")
+fi
+
 echo "Analyzing commits from $BASE_COMMIT to $FINAL_COMMIT"
 ```
 
@@ -296,6 +378,28 @@ go run ./cmd/cicd-lint lint-docs | grep -i "lint-agent-drift"
 - ❌ NEVER treat E2E timeouts as "non-blocking"
 
 **Rationale**: Maximum quality paramount. Example: sm-im E2E timeouts treated as non-blocking was WRONG.
+
+## Quality Gate Failure Recovery - MANDATORY
+
+If a phase fails quality gates and cannot be fixed immediately in-place, use one of these recovery paths.
+
+### Single-Commit Recovery
+
+1. If commit is local and safe to amend: `git add -A ; git commit --amend`.
+2. If amend is not appropriate: `git revert HEAD`, then recommit corrected state.
+3. Re-run all required quality gates before marking the task or phase complete.
+
+### Multi-Commit Recovery
+
+1. Selective rollback: `git revert <bad-commit-hash>` for isolated faulty commits.
+2. Full phase restart when drift is broad: reset to commit before phase start, then re-execute phase.
+3. If work is uncommitted and unstable: `git stash`, repair baseline branch state, then reapply and fix incrementally.
+
+### Recovery Safety Rules
+
+1. Prefer non-destructive recovery (`git revert`) for shared history.
+2. Use destructive reset only when commit scope is local/unshared and explicitly safe.
+3. Always re-run build, lint, and tests after recovery before resuming next tasks.
 
 **Docker-Dependent Work — NEVER Defer Indefinitely**:
 
