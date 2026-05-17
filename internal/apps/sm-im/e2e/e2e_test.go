@@ -71,12 +71,13 @@ func TestE2E_OtelCollectorHealth(t *testing.T) {
 
 // TestE2E_GrafanaHealth validates Grafana LGTM container is running and API is accessible.
 func TestE2E_GrafanaHealth(t *testing.T) {
-	t.Skip("Grafana health endpoint has reliability issues (EOF errors) - not critical for sm-im core functionality")
+	t.Skip("Grafana host endpoint currently returns HTTP on :3000 in this stack; E2E check remains HTTPS and will be re-enabled when stack serves TLS consistently")
 
 	t.Parallel()
 
-	// Grafana HTTP API health check with retries (Grafana can be slow to start).
-	client := &http.Client{Timeout: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Second}
+	// Grafana HTTPS API health check with retries (Grafana can be slow to start).
+	// Use sharedHTTPClient because Grafana is served by test PKI certs.
+	client := sharedHTTPClient
 
 	var lastErr error
 

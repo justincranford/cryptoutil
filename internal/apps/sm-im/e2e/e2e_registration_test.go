@@ -82,11 +82,11 @@ func TestE2E_RegistrationFlowWithTenantCreation(t *testing.T) {
 // TestE2E_RegistrationFlowWithJoinRequest validates user registration with join request to existing tenant.
 // This tests the Phase 0 join request authorization workflow.
 //
-// SKIPPED: The join_tenant_id field is not yet implemented in the registration handler.
-// The current RegisterUserRequest only supports create_tenant=true workflow.
-// When join request feature is implemented, re-enable this test and update the request format.
+// SKIPPED: The framework tenant registration handler does not yet accept join_tenant_id.
+// RegisterUserRequest currently supports create_tenant=true and tenant_name for tenant creation.
+// Re-enable when framework registration request model adds a join-by-tenant-ID path.
 func TestE2E_RegistrationFlowWithJoinRequest(t *testing.T) {
-	t.Skip("join_tenant_id field not yet implemented in registration handler - requires Phase 0 join request feature")
+	t.Skip("framework registration handler does not accept join_tenant_id yet (create_tenant flow only)")
 
 	tests := []struct {
 		name       string
@@ -178,17 +178,16 @@ func TestE2E_RegistrationFlowWithJoinRequest(t *testing.T) {
 // TestE2E_AdminJoinRequestManagement validates listing and managing join requests.
 // This tests the Phase 0 admin endpoints for join request approval/rejection.
 //
-// SKIPPED: Sm-im is a reference service without admin server infrastructure.
-// Admin join request routes are registered on ADMIN server (/admin/api/v1/join-requests),
-// NOT on PUBLIC server with /service or /browser prefixes.
-// Template infrastructure provides RegisterJoinRequestManagementRoutes() for services
-// that implement admin servers, but sm-im uses only PublicServer.
+// SKIPPED: Admin join request routes are on the private admin listener (/admin/api/v1/join-requests).
+// The admin listener is intentionally not exposed to host ports in E2E compose, so host-based
+// E2E tests cannot call these endpoints directly without an in-container exec path.
+// Sm-im DOES use framework admin server infrastructure; this skip is about reachability from host tests.
 //
 // If admin functionality is needed for sm-im:
-// 1. Create internal/apps/sm-im/server/admin_server.go
-// 2. Call RegisterJoinRequestManagementRoutes() in admin server setup
-// 3. Re-enable this test and update URLs to use adminURL (port 9090).
+// 1. Add an E2E helper that executes requests from inside the app container or test sidecar
+// 2. Authenticate and call /admin/api/v1/join-requests via the private admin listener
+// 3. Re-enable this test with private-plane assertions.
 func TestE2E_AdminJoinRequestManagement(t *testing.T) {
 	t.Parallel()
-	t.Skip("Sm-im service does not implement admin server (admin routes registered on separate admin server, not public server with /service or /browser prefixes)")
+	t.Skip("admin join-request routes are on private admin listener and are not host-reachable in current E2E topology")
 }
