@@ -15,6 +15,10 @@
 *.crt text eol=lf
 *.key text eol=lf
 
+# Secret files — ALWAYS LF (CRLF corrupts credentials when loaded via _FILE environment variables)
+# Example: POSTGRES_PASSWORD_FILE=/run/secrets/postgres-password.secret with CRLF content → PostgreSQL auth fails
+*.secret text eol=lf
+
 # Binary files — do not attempt line ending conversion
 *.exe binary
 *.dll binary
