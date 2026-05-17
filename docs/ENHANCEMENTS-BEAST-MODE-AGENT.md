@@ -21,6 +21,8 @@ Because all 10 PS-IDs are supposed to reuse framework code heavily, the document
 
 The rewrite should also account for concurrency-heavy test execution. Unit, integration, and e2e tests are expected to run with high concurrency, packages reuse TestMain to amortize expensive setup, and tests are supposed to stay independent by using non-conflicting data and other isolated resources. In that environment, one failing test may be the first visible symptom of shared-state conflicts, non-unique test data, port collisions, hostname collisions, noisy-neighbour effects, or other concurrency defects. The draft should therefore avoid implying that the first failing test is automatically the best or only place to look.
 
+The handbook adds several related strategies that should also shape the rewrite. Tests are expected to run with `t.Parallel()`, shuffle, and race detection, so some failures are schedule-sensitive rather than input-sensitive. A small number of tests are allowed to be sequential, but only when they intentionally mutate package-level state and are marked with a `// Sequential:` reason. Integration tests rely on dynamic ports, localhost-only bindings, `TLSProvisionMode=auto`, and `DisableKeepAlives: true` for real-server clients, which means some apparent feature failures are actually setup, teardown, transport, or environment-parity defects. E2E coverage also validates cross-database behavior, so a failing path may be specific to shared PostgreSQL versus isolated SQLite instances rather than the API logic itself.
+
 ### 3. Add A First-Edit Hypothesis Rule
 
 This should be reframed so that "local" means the nearest controlling abstraction, not necessarily the nearest file, the package where the failure surfaced, or the individual test case that failed first. In a framework-heavy and concurrency-heavy codebase, the first useful hypothesis may point at shared code, shared fixtures, or conflicting test data rather than PS-ID code.
@@ -38,6 +40,10 @@ Example: if a PS-ID test fails in a handler package, the agent should not assume
 Example: if a compile error points at a type mismatch in a service package, the agent may reasonably hypothesize that a shared framework signature changed and that the local package is only the first visible breakage. The cheap check is then the shared interface or constructor, not a broad scan of every PS-ID caller.
 
 Example: if one integration test fails under concurrent package execution and the package uses TestMain to share a server or database, the first hypothesis may be, "This is a shared-fixture collision caused by non-orthogonal test data," not "this single test's logic is wrong." The cheap check may be to rerun the package, inspect whether multiple tests touch the same logical records, or verify that ports and hostnames are uniquely allocated before drilling into one assertion.
+
+Example: if a failure appears only under `-shuffle=on` or `-race`, the first hypothesis may be that the defect is schedule-sensitive. The cheap check is then one that preserves ordering or concurrency pressure rather than an isolated rerun that removes it.
+
+Example: if an integration binary hangs in teardown, the first hypothesis may be transport misuse such as missing `DisableKeepAlives: true`, not application logic. The cheap check should target teardown and client transport behavior before changing business code.
 
 ### 4. Reduce The Weight Of Global Checklists
 
@@ -61,6 +67,10 @@ Example: if a failure appears in one PS-ID but the same path is instantiated acr
 
 Example: if a failure occurs in a package that uses TestMain and heavy parallel execution, the efficient first focused check may be a package-level rerun under the same concurrency conditions, or a targeted review of shared test data and fixture allocation, instead of immediately zooming into one failing test function. That is still a focused check because it is aimed at the most plausible failure class.
 
+Example: if the failure only occurs in integration or e2e tests, the first focused check may need to preserve dynamic ports, TLS auto-provisioning, localhost binding, or the shared TestMain server. Replacing that with a simpler unit-style rerun may answer a different question than the one the failing test exposed.
+
+Example: if the path is supposed to be cross-database compatible, the focused check may need to compare SQLite and PostgreSQL behavior rather than validating only the first backend that failed.
+
 ### 5. Make The Validation Order Explicit
 
 This would make the post-edit workflow deterministic without hard-coding a package-local bias. After the first substantive edit, the very next step must be the cheapest executable validation that can falsify the current hypothesis. That hypothesis may be local to a framework abstraction, a shared fixture pattern, or a concurrency failure mode rather than local to the package where the failure appeared.
@@ -72,6 +82,10 @@ Example: if the first edit changes validation branching in code reused by all se
 Example: if architecture strongly suggests the bug is in shared test infrastructure, a broader early validation step can be more efficient than repeatedly rerunning one surface-level PS-ID test. The rule should be "cheapest discriminating check," not "smallest file-local check."
 
 Example: if the first edit changes test data generation, fixture allocation, port assignment, or hostname isolation, the next step should preserve the concurrency conditions that exposed the problem. A single isolated rerun that removes the conflict may hide the bug rather than falsify the hypothesis.
+
+Example: if the hypothesis is that a test should actually be marked `// Sequential:` because it mutates package-level state, the next validation step should check that specific global-state interaction. The agent should not force a parallel-first assumption when the handbook explicitly allows a documented sequential exemption.
+
+Example: if the hypothesis is that a race-only or shuffle-only failure was fixed, the next validation step should include the same stress mode that exposed it. A plain happy-path rerun is weaker evidence than a targeted probabilistic check.
 
 ## What To Remove Or De-Emphasize
 
@@ -92,6 +106,8 @@ This is a blueprint for the rewrite, not an instruction to the current agent. It
 4. One compact quality gate ladder. Example: "build -> focused, architecture-scoped, or concurrency-scoped check -> broad test -> commit -> final clean status."
 5. One compact anti-pattern list. Example: "Do not broaden scope before the narrow check fails or passes."
 6. Links to the handbook for anything longer than a paragraph. Example: put full coverage, mutation, and CI policy in the handbook instead of repeating them here.
+
+The anti-pattern examples should explicitly include: treating the first failing test as the owner by default, converting a concurrency failure into a sequential rerun too early, stripping away TestMain or environment-parity conditions before validating a hypothesis, and ignoring cross-database or transport-specific failure modes.
 
 ## Net Effect
 
