@@ -120,6 +120,79 @@ Before claiming plan completion, reconcile all four plan artifacts in the same e
 
 Completion is INVALID if any artifact contradicts another (for example: `tasks.md` complete but `plan.md` phase statuses still TODO).
 
+## First-Turn Baseline Recording - MANDATORY
+
+**Execute FIRST in every implementation-execution session, BEFORE any code changes:**
+
+1. Run `git status --porcelain` → must return empty (clean workspace baseline)
+2. Run `git rev-parse HEAD` → record the output (e.g., `a1b2c3d4e5f6...`)
+3. **Store this commit ID** in a variable or document for later use (e.g., `$BASE_COMMIT`)
+4. This commit will be EXCLUDED from the later commit-range analysis
+
+**Purpose**: Establishes the baseline so the post-completion DETAIL-SUMMARY can analyze only commits created during THIS execution session.
+
+**Root cause**: Without a baseline, post-completion analysis cannot distinguish work done in current session from pre-existing commits.
+
+## Last-Turn Post-Completion Analysis - MANDATORY
+
+**Execute LAST in every implementation-execution session, AFTER all work is confirmed complete and committed:**
+
+### Step 1: Record Final Commit
+
+1. Ensure `git status --porcelain` returns empty (no uncommitted files)
+2. Run `git rev-parse HEAD` → record the output (e.g., `z9y8x7w6v5u4...`)
+3. **Store this commit ID** (e.g., `$FINAL_COMMIT`)
+
+### Step 2: Generate Commit-Range DETAIL-SUMMARY
+
+1. Compute the commit range: `$BASE_COMMIT^..$FINAL_COMMIT` (inclusive)
+2. Generate `docs/<PLAN_DIR>/DETAIL-SUMMARY.md` with ALL 141-file-ledger format:
+   - Per-file operation type (Create/Update/Delete/Rename)
+   - Markdown link to each file
+   - Cumulative +/- line delta in range
+   - Per-file per-commit change instances (commit short hash, subject, status, individual delta)
+3. Include a "Deep Analysis Findings" section documenting:
+   - Scope coverage check (total commits, files changed, operation breakdown)
+   - Plan/task alignment check (commits cover all phases/tasks from plan.md)
+   - Quality-gate consistency check (remediation commits align with no-deferral policy)
+   - Any contradictions FOUND between plan.md/tasks.md/lessons.md/EXEC-SUMMARY.md
+   - Any contradictions that were FIXED (with before/after details)
+   - Any agent process gaps discovered
+   - Current post-fix state (no contradictions remain, all artifacts aligned)
+
+### Step 3: Perform Deep Analysis Fixes
+
+1. Read plan.md, tasks.md, lessons.md, EXEC-SUMMARY.md
+2. Check for contradictions (stale TODO markers, missing lessons references, unsync'd phase statuses)
+3. Fix ALL contradictions found (update phase headers, add explicit lessons inclusion, etc.)
+4. Update EXEC-SUMMARY.md to include explicit lessons reconciliation statement
+5. Document all fixes in DETAIL-SUMMARY.md "Deep Analysis Findings" section
+
+### Step 4: Harden Agent Process Gates
+
+1. Review implementation-execution agent prompts in both `.github/agents/` and `.claude/agents/` variants
+2. If any process gaps were discovered (e.g., missing reconciliation gate, incomplete first-turn instructions):
+   - Add/update the mandatory gate section in BOTH agent files (keep them synchronized)
+   - Commit with semantic message documenting the process improvement
+3. Examples of process gaps (fix if found):
+   - Missing baseline commit recording instruction
+   - Missing final-turn analysis requirement
+   - Missing deep-analysis or contradiction-detection guidance
+   - Incomplete DETAIL-SUMMARY format specification
+
+### Step 5: Final Validation
+
+1. Run `go run ./cmd/cicd-lint lint-docs` → must PASS
+2. Run `go build ./... && go build -tags e2e,integration ./...` → must PASS
+3. Run `golangci-lint run` → must PASS
+4. Verify all commits are pushed: `git status --porcelain` must return empty
+
+**Integration into Standard Execution**:
+- This entire "Last-Turn Post-Completion Analysis" section MUST execute as the final phase of every implementation plan
+- It is NOT optional, NOT deferrable, and NOT skippable
+- It runs AFTER all user-requested tasks are complete but BEFORE turning control back to the user
+- If any contradiction is found and fixed, it generates an additional commit (e.g., `docs(plan): reconcile artifacts after analysis`)
+
 ## Quality Enforcement - MANDATORY
 
 **ALL issues are blockers - NO exceptions**:
