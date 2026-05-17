@@ -157,6 +157,28 @@ This prevents pre-commit from stashing unrelated unstaged edits and returning to
 
 ---
 
+## First-Edit Hypothesis Rule - MANDATORY
+
+Before the first substantive edit, name:
+
+1. **One falsifiable local hypothesis** — what most directly controls the failing or requested behavior.
+2. **One cheap disconfirming check** — the smallest executable or nearby check that could prove the hypothesis wrong.
+
+**"Local" means the nearest controlling abstraction**, not necessarily the nearest file, package, or first failing test. In this repository, control may live in shared framework code, shared test infrastructure, or shared fixture setup rather than the surface package where the failure first appears.
+
+**Routing rule:**
+- Prefer the nearest code that computes, mutates, or decides the behavior.
+- If the visible package mostly wires framework resources, step once to the owning framework or shared-fixture path.
+- If concurrency, shared TestMain infrastructure, or environment parity are plausible failure classes, the cheap check may be package-scoped or framework-scoped rather than a single isolated test rerun.
+- Once you can state the hypothesis and the disconfirming check, the next action must be a grounded edit.
+
+**Examples:**
+- Handler test fails but handler mostly wires shared middleware -> hypothesis targets shared builder or middleware stack; check that path first.
+- Integration test fails only under parallel or shuffled execution -> hypothesis targets shared-fixture collision or schedule-sensitive behavior; preserve those conditions in the first check.
+- Compile error appears in a service package after a shared interface change -> hypothesis targets the shared interface or constructor, not every caller.
+
+---
+
 ## Completion Verification Checklist - MANDATORY
 
 **BEFORE marking ANY task complete, verify ALL criteria**:
@@ -416,7 +438,7 @@ git log --oneline -20
 
 ## Implementation Guidelines
 
-- Read 2000+ lines for context before editing
+- Read enough nearby context to identify the controlling abstraction, the first falsifiable hypothesis, and the cheapest disconfirming check before editing
 - Make small, testable, incremental changes
 - Root cause analysis: Use `get_errors`, debug thoroughly, add logging/tests as needed
 

@@ -33,37 +33,13 @@ Before the specific proposed edits below, the rewrite should explicitly separate
 
 Without that separation, improvements to sections 3-5 will help, but the file will still feel overloaded and internally competitive.
 
-Items 3-5 are independent proposals, not a required implementation order. They can be applied in a different sequence if that produces a cleaner rewrite. The important constraint is conceptual consistency: the pre-edit rule, validation rule, and checklist shape should not contradict each other.
+Items 4-5 are independent proposals, not a required implementation order. They can be applied in a different sequence if that produces a cleaner rewrite. The important constraint is conceptual consistency: the validation rule and checklist shape should not contradict each other. Item 3 is complete and documented in [docs/ENHANCEMENTS-BEAST-MODE-AGENT-COMPLETED.md](docs/ENHANCEMENTS-BEAST-MODE-AGENT-COMPLETED.md).
 
 Because all 10 PS-IDs are supposed to reuse framework code heavily, the document should also avoid implying that the owning logic is usually in the package where a failure first appears. In this repo, a failing PS-ID test may be exposing a bug in shared framework code, shared test infrastructure, or a common builder path. The rewrite should therefore distinguish broad search from broad validation. It is still useful to avoid aimless searching, but it may be correct to validate at a broader scope earlier when the architecture strongly suggests shared ownership.
 
 The rewrite should also account for concurrency-heavy test execution. Unit, integration, and e2e tests are expected to run with high concurrency, packages reuse TestMain to amortize expensive setup, and tests are supposed to stay independent by using non-conflicting data and other isolated resources. In that environment, one failing test may be the first visible symptom of shared-state conflicts, non-unique test data, port collisions, hostname collisions, noisy-neighbour effects, or other concurrency defects. The draft should therefore avoid implying that the first failing test is automatically the best or only place to look.
 
 The handbook adds several related strategies that should also shape the rewrite. Tests are expected to run with `t.Parallel()`, shuffle, and race detection, so some failures are schedule-sensitive rather than input-sensitive. A small number of tests are allowed to be sequential, but only when they intentionally mutate package-level state and are marked with a `// Sequential:` reason. Integration tests rely on dynamic ports, localhost-only bindings, `TLSProvisionMode=auto`, and `DisableKeepAlives: true` for real-server clients, which means some apparent feature failures are actually setup, teardown, transport, or environment-parity defects. E2E coverage also validates cross-database behavior, so a failing path may be specific to shared PostgreSQL versus isolated SQLite instances rather than the API logic itself.
-
-### 3. Add A First-Edit Hypothesis Rule
-
-This should be reframed so that "local" means the nearest controlling abstraction, not necessarily the nearest file, the package where the failure surfaced, or the individual test case that failed first. In a framework-heavy and concurrency-heavy codebase, the first useful hypothesis may point at shared code, shared fixtures, or conflicting test data rather than PS-ID code.
-
-This proposal should also explicitly replace or narrow the current "Read 2000+ lines before editing" style of instruction. If the broad-read mandate stays unchanged, the first-edit hypothesis rule will be undermined by a conflicting instruction that rewards over-exploration before action.
-
-That would change the agent from broad exploratory searching to a focused, testable first move. Before the first edit, the agent would have to name one falsifiable hypothesis about where the behavior is actually controlled and one cheap check that could disconfirm it.
-
-That changes behavior in three ways:
-
-- stop broad searching sooner
-- choose the nearest controlling abstraction, even if it is in the framework
-- validate the smallest meaningful slice first, which may be a shared-fixture or concurrency check rather than a single-test rerun
-
-Example: if a PS-ID test fails in a handler package, the agent should not assume the handler owns the bug. It should ask which abstraction actually decides the behavior. If the handler mostly wires framework resources, the first hypothesis may be, "The shared builder or middleware stack is producing this behavior," and the first check may target that framework path rather than the handler file.
-
-Example: if a compile error points at a type mismatch in a service package, the agent may reasonably hypothesize that a shared framework signature changed and that the local package is only the first visible breakage. The cheap check is then the shared interface or constructor, not a broad scan of every PS-ID caller.
-
-Example: if one integration test fails under concurrent package execution and the package uses TestMain to share a server or database, the first hypothesis may be, "This is a shared-fixture collision caused by non-orthogonal test data," not "this single test's logic is wrong." The cheap check may be to rerun the package, inspect whether multiple tests touch the same logical records, or verify that ports and hostnames are uniquely allocated before drilling into one assertion.
-
-Example: if a failure appears only under `-shuffle=on` or `-race`, the first hypothesis may be that the defect is schedule-sensitive. The cheap check is then one that preserves ordering or concurrency pressure rather than an isolated rerun that removes it.
-
-Example: if an integration binary hangs in teardown, the first hypothesis may be transport misuse such as missing `DisableKeepAlives: true`, not application logic. The cheap check should target teardown and client transport behavior before changing business code.
 
 ### 4. Reduce The Weight Of Global Checklists
 

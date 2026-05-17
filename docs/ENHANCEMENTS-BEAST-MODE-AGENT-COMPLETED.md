@@ -2,7 +2,7 @@
 
 **Created:** 2026-05-17
 **Last Updated:** 2026-05-17
-**Status:** In Progress (1/5 complete, 2 in progress)
+**Status:** In Progress (3/5 complete, 0 in progress)
 
 ---
 
@@ -13,11 +13,11 @@ The beast-mode agent is being systematically refactored from a **repetitive, pol
 **Progress:**
 - ✅ **Item 1: Compress Repeated Warnings** — COMPLETE (word count -15%, behavioral equivalence 100%)
 - ✅ **Item 2: Separate Contract From Policy** — COMPLETE (repository policy extraction, core contract -20 lines)
-- ⚪ **Item 3: Add First-Edit Hypothesis Rule** — Not started
+- ✅ **Item 3: Add First-Edit Hypothesis Rule** — COMPLETE (new routing rule added, broad-read conflict resolved)
 - ⚪ **Item 4: Reduce Weight Of Global Checklists** — Not started
 - ⚪ **Item 5: Make Validation Order Explicit** — Not started
 
-**Cumulative Impact (projected after all 5):** 30-40% word count reduction, 100% behavioral equivalence maintained, faster reading time, sharper execution rules.
+**Cumulative Impact (current):** Items 1-3 complete. The agent now has a clearer pre-edit routing rule, less repetition, and cleaner separation between core autonomy and repository policy, while preserving the original autonomy contract and quality expectations.
 
 ---
 
@@ -320,20 +320,110 @@ Forces agent to:
 - Choose nearest controlling abstraction
 - Validate smallest meaningful slice first
 
-### Skeleton for Detailed Implementation
+### Analysis
 
-**When implemented:**
-- [ ] Add "First-Edit Hypothesis Pattern" section after Pre-Flight Checks
-- [ ] Define format: "Hypothesis: [action] will [outcome]. Check: [cheap validation]."
-- [ ] Add examples showing narrow vs. broad hypotheses
-- [ ] Cross-reference from Implementation Guidelines
-- [ ] Validate both agents have identical section
+**Problem in the original agent:**
 
-**Estimated Changes:**
-- New section: ~20 lines
-- 2-3 examples: ~15 lines
-- Cross-references: ~5 lines
-- Total: ~40 lines added
+The beast-mode contract pushed the model toward action, but it did not define a precise routing rule for the moment before the first substantive edit. In practice, that left two competing tendencies:
+
+1. Broad exploratory reading, reinforced by the `Read 2000+ lines for context before editing` instruction.
+2. Immediate momentum, reinforced by the no-stopping and zero-text style rules.
+
+That combination made the agent vulnerable to one specific failure mode: over-reading without a clear falsification target. The agent could spend too long gathering context, especially in a framework-heavy repository where the first failing test often does not own the behavior.
+
+**Why item 3 mattered:**
+
+The missing rule was not just "think before editing." The missing rule was "form one falsifiable local hypothesis and one cheap disconfirming check before editing." That is a more operational instruction because it tells the agent when it has enough context and what the next action must be.
+
+**Repository-specific constraints accounted for in the implementation:**
+
+- Shared framework ownership across all 10 PS-IDs means the nearest controlling abstraction may be outside the failing package.
+- Shared TestMain infrastructure and concurrent execution mean the first visible failure may be a fixture collision rather than a local logic bug.
+- Shuffle, race, transport, and teardown issues mean the cheap check must preserve the failure class that exposed the issue.
+
+### Changes Implemented
+
+#### 3.1 Added New Canonical Section
+
+**Location:** Immediately after `## Pre-Flight Checks - MANDATORY`
+
+**New section title:** `## First-Edit Hypothesis Rule - MANDATORY`
+
+**Core rule added:**
+- Before the first substantive edit, name one falsifiable local hypothesis.
+- Before the first substantive edit, name one cheap disconfirming check.
+
+**Clarification added:**
+- "Local" now means nearest controlling abstraction, not nearest file or first failing test.
+- The agent is explicitly allowed to step into shared framework code or shared test infrastructure when that is where control lives.
+
+#### 3.2 Added Routing Guidance
+
+The new section added an explicit routing rule:
+
+- Prefer the nearest code that computes, mutates, or decides the behavior.
+- If the visible package mostly wires framework resources, step once to the owning framework or shared-fixture path.
+- If concurrency, shared TestMain infrastructure, or environment parity are plausible failure classes, the cheap check may be package-scoped or framework-scoped rather than a single isolated test rerun.
+- Once the hypothesis and disconfirming check are named, the next action must be a grounded edit.
+
+This is the functional improvement over the prior version. It gives the agent a stopping condition for exploration and an action trigger for the first edit.
+
+#### 3.3 Added Concrete Examples
+
+Three examples were added to keep the rule operational rather than abstract:
+
+- handler failure that is actually controlled by shared middleware or builder code
+- integration failure under parallel or shuffled execution that points at shared-fixture collision or schedule-sensitive behavior
+- compile failure in a service package caused by a shared interface or constructor change
+
+These examples were chosen to preserve the original beast-mode goal while making the new rule fit this repository's actual control paths.
+
+#### 3.4 Narrowed the Conflicting Broad-Read Rule
+
+**Before:**
+`Read 2000+ lines for context before editing`
+
+**After:**
+`Read enough nearby context to identify the controlling abstraction, the first falsifiable hypothesis, and the cheapest disconfirming check before editing`
+
+This was the key conflict resolution required to make item 3 real. Without changing this line, the new section would have existed only as advisory prose while the older blanket reading rule still controlled behavior.
+
+### Behavioral Equivalence Verification
+
+| Scenario | Before | After | Equivalent? |
+|------|--------|-------|------------|
+| Agent keeps working without asking permission | Required | Required | ✅ Same |
+| Agent must validate work before completion | Required | Required | ✅ Same |
+| Agent can step into framework-owned control paths | Implicit only | Explicit | ✅ Same intent, clearer rule |
+| Agent commits work and leaves clean tree | Required | Required | ✅ Same |
+| Agent explores before first edit | Broad, underspecified | Focused by falsifiable hypothesis rule | ✅ Same purpose, better routing |
+
+**Result:** The autonomy contract is materially clearer, but its core behavior is preserved. The new rule constrains the pre-edit routing phase; it does not change the no-interruptions contract, the validation requirement, the clean-worktree requirement, or the quality gates.
+
+### Goal Verification
+
+**Goal:** Ensure the agent behaves the same as before, but better.
+
+**Assessment:** Achieved.
+
+- The agent still remains autonomous, continuous, and validation-heavy.
+- The agent still prefers local evidence and incremental changes.
+- The new rule does not add new completion obligations or weaken any existing guardrail.
+- The main change is improved decision quality before the first edit: less aimless exploration, better identification of the controlling abstraction, and a clearer path from context gathering to action.
+
+### Cross-Dual-Canonical Consistency
+
+**Applied identically to both agents simultaneously:**
+- ✅ `.claude/agents/beast-mode.md` — added first-edit hypothesis rule, narrowed broad-read instruction
+- ✅ `.github/agents/beast-mode.agent.md` — added first-edit hypothesis rule, narrowed broad-read instruction
+- ✅ Body content remains synchronized between Copilot and Claude canonical files
+
+### Files Modified
+
+- ✅ `.claude/agents/beast-mode.md` — implemented item 3
+- ✅ `.github/agents/beast-mode.agent.md` — implemented item 3 (dual canonical)
+- ✅ `docs/ENHANCEMENTS-BEAST-MODE-AGENT.md` — removed completed item 3 from active draft
+- ✅ Commit: `refactor(agents): add first-edit hypothesis rule to beast mode`
 
 ---
 
@@ -393,8 +483,8 @@ Explicit rule defends against:
 | Item | Status | Lines Affected | Target Completion |
 |------|--------|-----------------|------------------|
 | 1. Compress Repeated Warnings | ✅ DONE | -42 | 2026-05-17 |
-| 2. Separate Contract From Policy | 🔄 IN PROGRESS | ~20-30 moves | 2026-05-17 (today) |
-| 3. Add First-Edit Hypothesis Rule | ⚪ TODO | +40 | 2026-05-17 |
+| 2. Separate Contract From Policy | ✅ DONE | ~20-30 moves | 2026-05-17 |
+| 3. Add First-Edit Hypothesis Rule | ✅ DONE | +30 net | 2026-05-17 |
 | 4. Reduce Weight Of Checklists | ⚪ TODO | -35 | 2026-05-17 |
 | 5. Make Validation Order Explicit | ⚪ TODO | +40 | 2026-05-17 |
 | **Totals** | | **-27 to +30 net** | |
