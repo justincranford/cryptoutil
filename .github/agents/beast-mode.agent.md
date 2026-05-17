@@ -211,26 +211,7 @@ This prevents pre-commit from stashing unrelated unstaged edits and returning to
 - ❌ NEVER continue with issues
 - ❌ NEVER treat as "non-blocking"
 
-<!-- @source from="docs/ENG-HANDBOOK.md" as="cicd-bulk-hook-architecture" -->
-`cicd-lint` command execution and `.pre-commit-config.yaml` wiring MUST follow this architecture:
-
-1. **Four bulk cicd hooks only** in `.pre-commit-config.yaml`:
-- `pre-commit` lint-only bulk call
-- `pre-commit` format-only bulk call
-- `pre-push` lint-only bulk call
-- `pre-push` format-only bulk call
-1. **Mutual exclusivity**: lint bulk calls MUST include only `lint-*` commands; format bulk calls MUST include only `format-*` commands.
-2. **Coverage**: Every `lint-*` and `format-*` command in `ValidCommands` MUST appear in at least one corresponding bulk hook.
-3. **Concurrency model**:
-- `lint-*` commands are read-only and MUST execute concurrently.
-- `format-*` commands are read-write and MUST execute serially.
-1. **Pre-commit hook flags**:
-- lint bulk hooks MUST use `require_serial: false`
-- format bulk hooks MUST use `require_serial: true`
-1. **Enforcement**: `lint-fitness` sub-linter `precommit-cicd-architecture` is authoritative and MUST fail on any drift.
-
-**Rationale**: This prevents cross-category races (read-only lint vs mutating format), preserves deterministic developer workflows, and ensures new cicd subcommands cannot be added without being wired into bulk hooks.
-<!-- @/source -->
+**See Repository Policy References** (at end of agent) for cryptoutil-specific CI pipeline architecture (bulk-hook organization, lint command registry, etc.).
 
 ---
 
@@ -272,18 +253,6 @@ fix(tooling): fix config file padding violations
 **Anti-Pattern** (NEVER): One 155-file commit mixing CRLF fixes, Dockerfile tabs, .editorconfig changes, shell padding, and YAML continuation lines.
 
 <!-- @source from="docs/ENG-HANDBOOK.md" as="platform-line-ending-operations" -->
-**Policy** (MANDATORY):
-
-- **Repository storage**: Always LF (`\n`). Git normalizes on commit.
-- **Windows developers**: `git config --global core.autocrlf true` — git converts LF→CRLF on checkout, CRLF→LF on commit. Working tree is CRLF for most files; LF for Go and crypto files (see below).
-- **Linux/macOS developers**: `git config --global core.autocrlf input` — git converts CRLF→LF on commit; no conversion on checkout. Working tree has LF.
-- **Local repo override BANNED**: `git config core.autocrlf` in `.git/config` overrides per-developer global settings. On Linux a `true` override causes CRLF checkout; on Windows a `false` override breaks CRLF checkout. NEVER set any local repo override — always use the global (`--global`) setting.
-- **Go files always LF — everywhere**: `.gitattributes` pins `*.go text eol=lf` and `*.go.tmpl text eol=lf`. Go formatters (`gofmt`, `gofumpt`, `goimports`) write LF exclusively — Go's internal AST printer (`go/format`) uses `\n` for byte-stable, deterministic output. Without this pin, Windows CRLF checkout + gofumpt LF rewrite = perpetual dirty working tree on every formatter run. The `eol=lf` override forces LF checkout for Go files so gofumpt never creates a working-tree mismatch.
-- **Crypto files always LF**: `.gitattributes` pins `*.pem`, `*.crt`, `*.key` to `eol=lf`. OpenSSL and crypto tooling generate LF; some strict TLS parsers reject CRLF.
-- **JS formatter behavior (expected)**: Prettier defaults `endOfLine=lf` (since v2.0.0) for the same cross-platform reproducibility reason.
-- **Git mediation principle**: `* text=auto` handles CRLF/LF for most text files (platform-native). Per-type `eol=lf` overrides in `.gitattributes` (Go, PEM, crypto) force LF even on Windows for file types where tools enforce LF internally.
-- **`mixed-line-ending` hook**: MUST NOT have `--fix lf` arg. Keep default "auto" mode.
-
 **To fix if local override was set**:
 
 ```bash
@@ -616,15 +585,63 @@ A response that leaves uncommitted changes is incomplete by definition. The Work
 
 ---
 
-## Summary
+## Repository Policy References
 
-This agent implements continuous work with ZERO stopping behaviors. The agent:
-1. Works autonomously until ALL tasks complete
-2. NEVER asks permission between tasks
-3. NEVER gives status updates mid-work
-4. Documents blockers and continues on other work
-5. Finds more work when todo list empty
-6. Runs `git status --porcelain` as the ABSOLUTE LAST TOOL CALL before EVERY turn end; commits if dirty
-7. ONLY stops when literally nothing left to do AND `git status --porcelain` is clean
+**Note:** The sections below reference cryptoutil-specific handbook policies and CI infrastructure. These are implementation details required for this repository but are NOT part of the core autonomy contract. The core contract (AUTONOMOUS EXECUTION MODE through End-of-Turn Protocol) contains no repository-specific details.
 
-Quality over speed. Completeness over convenience. Evidence over claims.
+### Bulk-Hook Architecture (CI/CD Infrastructure)
+
+<!-- @source from="docs/ENG-HANDBOOK.md" as="cicd-bulk-hook-architecture" -->
+`cicd-lint` command execution and `.pre-commit-config.yaml` wiring MUST follow this architecture:
+
+1. **Four bulk cicd hooks only** in `.pre-commit-config.yaml`:
+- `pre-commit` lint-only bulk call
+- `pre-commit` format-only bulk call
+- `pre-push` lint-only bulk call
+- `pre-push` format-only bulk call
+1. **Mutual exclusivity**: lint bulk calls MUST include only `lint-*` commands; format bulk calls MUST include only `format-*` commands.
+2. **Coverage**: Every `lint-*` and `format-*` command in `ValidCommands` MUST appear in at least one corresponding bulk hook.
+3. **Concurrency model**:
+- `lint-*` commands are read-only and MUST execute concurrently.
+- `format-*` commands are read-write and MUST execute serially.
+1. **Pre-commit hook flags**:
+- lint bulk hooks MUST use `require_serial: false`
+- format bulk hooks MUST use `require_serial: true`
+1. **Enforcement**: `lint-fitness` sub-linter `precommit-cicd-architecture` is authoritative and MUST fail on any drift.
+
+**Rationale**: This prevents cross-category races (read-only lint vs mutating format), preserves deterministic developer workflows, and ensures new cicd subcommands cannot be added without being wired into bulk hooks.
+<!-- @/source -->
+
+### Line Ending Policy (Repository Convention)
+
+<!-- @source from="docs/ENG-HANDBOOK.md" as="platform-line-ending-operations" -->
+**Policy** (MANDATORY):
+
+- **Repository storage**: Always LF (`\n`). Git normalizes on commit.
+- **Windows developers**: `git config --global core.autocrlf true` — git converts LF→CRLF on checkout, CRLF→LF on commit. Working tree is CRLF for most files; LF for Go and crypto files (see below).
+- **Linux/macOS developers**: `git config --global core.autocrlf input` — git converts CRLF→LF on commit; no conversion on checkout. Working tree has LF.
+- **Local repo override BANNED**: `git config core.autocrlf` in `.git/config` overrides per-developer global settings. On Linux a `true` override causes CRLF checkout; on Windows a `false` override breaks CRLF checkout. NEVER set any local repo override — always use the global (`--global`) setting.
+- **Go files always LF — everywhere**: `.gitattributes` pins `*.go text eol=lf` and `*.go.tmpl text eol=lf`. Go formatters (`gofmt`, `gofumpt`, `goimports`) write LF exclusively — Go's internal AST printer (`go/format`) uses `\n` for byte-stable, deterministic output. Without this pin, Windows CRLF checkout + gofumpt LF rewrite = perpetual dirty working tree on every formatter run. The `eol=lf` override forces LF checkout for Go files so gofumpt never creates a working-tree mismatch.
+- **Crypto files always LF**: `.gitattributes` pins `*.pem`, `*.crt`, `*.key` to `eol=lf`. OpenSSL and crypto tooling generate LF; some strict TLS parsers reject CRLF.
+- **JS formatter behavior (expected)**: Prettier defaults `endOfLine=lf` (since v2.0.0) for the same cross-platform reproducibility reason.
+- **Git mediation principle**: `* text=auto` handles CRLF/LF for most text files (platform-native). Per-type `eol=lf` overrides in `.gitattributes` (Go, PEM, crypto) force LF even on Windows for file types where tools enforce LF internally.
+- **`mixed-line-ending` hook**: MUST NOT have `--fix lf` arg. Keep default "auto" mode.
+
+**To fix if local override was set**:
+
+```bash
+git config --unset core.autocrlf          # remove local override
+git config core.autocrlf                  # verify: empty = global takes effect
+git config --global core.autocrlf         # verify: true (Windows) or input (Linux)
+```
+
+**Emergency recovery for a large line-ending dirty tree**:
+
+```bash
+git add --renormalize .
+```
+
+Use this when `git status` shows a large set of text files as modified after formatter runs, checkout switches, or stash/apply cycles. `--renormalize` reapplies `.gitattributes` clean rules to index entries without manual byte conversion.
+<!-- @/source -->
+
+**Repository-Specific Details**: See Repository Policy References section at end for cryptoutil-specific CI infrastructure and conventions.

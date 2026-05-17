@@ -15,16 +15,6 @@ The current beast-mode agent is directionally correct, but it is too repetitive 
 
 ## What To Modify
 
-### 2. Separate Contract From Policy
-
-The agent currently mixes three different layers:
-
-- execution behavior
-- quality gates
-- repository-specific CI policy
-
-Those should be separated more cleanly. The agent should define the contract, then link to the repo handbook for the details. The current bulk-hook architecture block is a good example of content that belongs in the handbook or a dedicated CI reference, not in the main autonomy file.
-
 ### 3. Add A First-Edit Hypothesis Rule
 
 The strongest missing rule is the one already implied by the developer instructions: before the first edit, state one falsifiable local hypothesis and one cheap check that could disconfirm it.
