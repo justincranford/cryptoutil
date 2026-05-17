@@ -71,8 +71,6 @@ func TestE2E_OtelCollectorHealth(t *testing.T) {
 
 // TestE2E_GrafanaHealth validates Grafana LGTM container is running and API is accessible.
 func TestE2E_GrafanaHealth(t *testing.T) {
-	t.Skip("Grafana host endpoint currently returns HTTP on :3000 in this stack; E2E check remains HTTPS and will be re-enabled when stack serves TLS consistently")
-
 	t.Parallel()
 
 	// Grafana HTTPS API health check with retries (Grafana can be slow to start).

@@ -172,7 +172,7 @@ func TestHTTPPost(t *testing.T) {
 			},
 			DisableKeepAlives: true,
 		},
-		Timeout: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Second,
+		Timeout: 3 * cryptoutilSharedMagic.DefaultServerShutdownTimeout,
 	}
 
 	// Test admin shutdown endpoint (triggers async shutdown).

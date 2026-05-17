@@ -73,6 +73,11 @@ services:
     environment:
       GF_SECURITY_ADMIN_PASSWORD: admin # pragma: allowlist secret
       GF_USERS_ALLOW_SIGN_UP: "false"
+      # Explicitly force HTTPS listener; image defaults can override grafana.ini when env is present.
+      GF_SERVER_PROTOCOL: https
+      GF_SERVER_HTTP_PORT: 3000
+      GF_SERVER_CERT_FILE: /etc/pki-init/certs/public-https-server-entity-grafana-otel-lgtm/public-https-server-entity-grafana-otel-lgtm.crt
+      GF_SERVER_CERT_KEY: /etc/pki-init/certs/public-https-server-entity-grafana-otel-lgtm/public-https-server-entity-grafana-otel-lgtm.key
       # OTLP ingest mTLS: override the bundled OTel collector config with TLS receiver settings.
       # Cat 2 server cert + Cat 8 client CA — mounted by each PS-ID compose from its cert dir.
       # OTELCOL_EXTRA_ARGS appends --config=file:... to the internal OTel collector startup command.

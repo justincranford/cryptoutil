@@ -386,6 +386,13 @@ func TestPublicServerBase_ErrChanPath(t *testing.T) {
 	base, err := NewPublicServerBase(config)
 	require.NoError(t, err)
 
+	listenerClosed := make(chan struct{})
+	base.appListenerFn = func(_ *fiber.App, _ net.Listener) error {
+		<-listenerClosed
+
+		return nil
+	}
+
 	// Start server in background with a non-cancellable context.
 	startErr := make(chan error, 1)
 
@@ -398,12 +405,16 @@ func TestPublicServerBase_ErrChanPath(t *testing.T) {
 		return base.ActualPort() != 0
 	}, cryptoutilSharedMagic.JoseJADefaultMaxMaterials*time.Second, cryptoutilSharedMagic.JoseJADefaultMaxMaterials*time.Millisecond)
 
-	// Directly shutdown the Fiber app (NOT base.Shutdown which also cancels context).
-	// This causes app.Listener to return, firing errChan, without serverCtx.Done().
-	_ = base.app.Shutdown()
+	// Release the listener stub so Start returns through the errChan branch.
+	close(listenerClosed)
 
 	// Start returns via errChan path.
-	err = <-startErr
+	select {
+	case err = <-startErr:
+		require.NoError(t, err)
+	case <-time.After(cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Second):
+		t.Fatal("server did not return from errChan path within timeout")
+	}
 
 	// Fiber returns nil on clean shutdown — coverage of errChan path is the goal.
 	_ = err

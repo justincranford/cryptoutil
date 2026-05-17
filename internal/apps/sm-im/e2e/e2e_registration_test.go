@@ -6,8 +6,12 @@ package e2e_test
 import (
 	"bytes"
 	"context"
+	json "encoding/json"
 	"fmt"
 	http "net/http"
+	"os/exec"
+	"slices"
+	"strings"
 	"testing"
 	"time"
 
@@ -189,5 +193,126 @@ func TestE2E_RegistrationFlowWithJoinRequest(t *testing.T) {
 // 3. Re-enable this test with private-plane assertions.
 func TestE2E_AdminJoinRequestManagement(t *testing.T) {
 	t.Parallel()
-	t.Skip("admin join-request routes are on private admin listener and are not host-reachable in current E2E topology")
+
+	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.E2EHTTPClientTimeout)
+	defer cancel()
+
+	// Step 1: Create a tenant owner through the public browser path.
+	uniqueSuffix := time.Now().UTC().UnixNano()
+	username := fmt.Sprintf("admin_join_owner_%d", uniqueSuffix)
+	email := fmt.Sprintf("admin_join_owner_%d@test.local", uniqueSuffix)
+	tenantName := fmt.Sprintf("admin_join_tenant_%d", uniqueSuffix)
+	password := generateTestPassword(t)
+
+	registerURL := sqlitePublicURL + cryptoutilSharedMagic.PathPrefixBrowser + cryptoutilSharedMagic.IMAPV1AuthRegister
+	registerBody := fmt.Sprintf(`{
+		"username": "%s",
+		"email": "%s",
+		"password": "%s",
+		"tenant_name": "%s",
+		"create_tenant": true
+	}`, username, email, password, tenantName)
+
+	registerReq, err := http.NewRequestWithContext(ctx, http.MethodPost, registerURL, bytes.NewBufferString(registerBody))
+	require.NoError(t, err, "Creating registration request should succeed")
+	registerReq.Header.Set("Content-Type", "application/json")
+
+	registerResp, err := sharedHTTPClient.Do(registerReq)
+	require.NoError(t, err, "Owner registration should succeed")
+
+	defer func() { _ = registerResp.Body.Close() }()
+
+	require.Equal(t, http.StatusCreated, registerResp.StatusCode, "Owner registration should return 201")
+
+	var registerResult map[string]any
+	require.NoError(t, json.NewDecoder(registerResp.Body).Decode(&registerResult), "Registration response JSON should decode")
+
+	userID, ok := registerResult["user_id"].(string)
+	require.True(t, ok && userID != "", "Registration response should include user_id")
+
+	tenantID, ok := registerResult["tenant_id"].(string)
+	require.True(t, ok && tenantID != "", "Registration response should include tenant_id")
+
+	// Step 2: Issue a browser session token for admin route authentication.
+	realmID := googleUuid.NewString()
+	sessionIssueURL := sqlitePublicURL + "/browser/api/v1/sessions/issue"
+	sessionIssueBody := fmt.Sprintf(`{
+		"user_id": "%s",
+		"tenant_id": "%s",
+		"realm_id": "%s",
+		"session_type": "browser"
+	}`, userID, tenantID, realmID)
+
+	sessionReq, err := http.NewRequestWithContext(ctx, http.MethodPost, sessionIssueURL, bytes.NewBufferString(sessionIssueBody))
+	require.NoError(t, err, "Creating session issue request should succeed")
+	sessionReq.Header.Set("Content-Type", "application/json")
+
+	sessionResp, err := sharedHTTPClient.Do(sessionReq)
+	require.NoError(t, err, "Session issue request should succeed")
+
+	defer func() { _ = sessionResp.Body.Close() }()
+
+	require.Equal(t, http.StatusOK, sessionResp.StatusCode, "Session issue should return 200")
+
+	var sessionIssueResult map[string]any
+	require.NoError(t, json.NewDecoder(sessionResp.Body).Decode(&sessionIssueResult), "Session response JSON should decode")
+
+	token, ok := sessionIssueResult[cryptoutilSharedMagic.ParamToken].(string)
+	require.True(t, ok && token != "", "Session issue response should include token")
+
+	// Step 3: Call admin join-request route from inside app container (private admin listener).
+	// BusyBox wget in the runtime image does not support client cert flags; install curl once as root for this E2E probe.
+	_ = execComposeInContainerAsUser(t, sqliteContainer, "0", "apk", "add", "--no-cache", "curl")
+
+	adminBody := execComposeInContainer(t,
+		sqliteContainer,
+		"curl",
+		"--silent",
+		"--show-error",
+		"--fail",
+		cryptoutilSharedMagic.CLICACertFlag,
+		"/certs/issuing-ca.pem",
+		cryptoutilSharedMagic.CLICertFlag,
+		"/certs/sm-im/private-https-mutual-entity-sm-im-sqlite-1/private-https-mutual-entity-sm-im-sqlite-1.crt",
+		cryptoutilSharedMagic.CLIKeyFlag,
+		"/certs/sm-im/private-https-mutual-entity-sm-im-sqlite-1/private-https-mutual-entity-sm-im-sqlite-1.key",
+		"--header",
+		"Authorization: Bearer "+token,
+		"https://127.0.0.1:9090/admin/api/v1/join-requests",
+	)
+
+	var adminResult map[string]any
+	require.NoError(t, json.Unmarshal([]byte(adminBody), &adminResult), "Admin response should be valid JSON")
+
+	requests, exists := adminResult["requests"]
+	require.True(t, exists, "Admin response should include requests field")
+
+	_, ok = requests.([]any)
+	require.True(t, ok, "requests field should be an array")
+}
+
+func execComposeInContainer(t *testing.T, service string, command ...string) string {
+	t.Helper()
+
+	return execComposeInContainerAsUser(t, service, "", command...)
+}
+
+func execComposeInContainerAsUser(t *testing.T, service, user string, command ...string) string {
+	t.Helper()
+
+	require.NotNil(t, composeManager, "compose manager must be initialized")
+
+	args := composeManager.BuildDockerExecArgs(service, command...)
+	if user != "" {
+		execIndex := slices.Index(args, "exec")
+		require.NotEqual(t, -1, execIndex, "docker compose exec command must contain exec subcommand")
+		args = append(args[:execIndex+1], append([]string{"-u", user}, args[execIndex+1:]...)...)
+	}
+
+	cmd := exec.Command("docker", args...)
+
+	output, err := cmd.CombinedOutput()
+	require.NoError(t, err, "docker compose exec failed: %s", strings.TrimSpace(string(output)))
+
+	return strings.TrimSpace(string(output))
 }
