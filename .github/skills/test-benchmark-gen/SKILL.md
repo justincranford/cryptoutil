@@ -19,8 +19,9 @@ Benchmarks go in a separate `_bench_test.go` file.
 - `b.StopTimer()` / `b.StartTimer()` when per-iteration setup is needed inside the loop
 - `b.ReportAllocs()` for allocation-sensitive code
 - `b.SetBytes(n)` for throughput measurement on crypto operations (AES, HMAC, etc.)
-- Use `UUIDv7` for unique test identifiers per iteration
+- Benchmark only the code under test; keep fixture creation, UUID generation, TLS setup, and other harness work outside the timed region unless that work is part of the behavior being measured
 - Run benchmarks: `go test -bench=. -benchmem ./pkg/crypto/...`
+- Compare baseline versus current output using the same package path, benchmark filter, and `-benchmem` settings
 
 ## Template
 
@@ -42,8 +43,7 @@ b.ReportAllocs()
 b.ResetTimer()
 
 for i := 0; i < b.N; i++ {
-id := googleUuid.NewV7().String() // unique per iteration
-_, err := svc.DoOperation(ctx, id)
+_, err := svc.DoOperation(ctx, staticID)
 if err != nil {
 b.Fatal(err)
 }
@@ -91,6 +91,21 @@ _ = generateKey(tc.bits)
 }
 }
 ```
+
+## Reading Regressions
+
+Use the same command before and after a change so the comparison is meaningful:
+
+```bash
+go test -run '^$' -bench BenchmarkOperationName -benchmem ./path/to/pkg
+```
+
+Treat these as common noise sources before concluding there is a real regression:
+
+- TLS handshake or listener startup happening inside the timed loop
+- Fixture generation or random identifier creation inside the timed loop
+- Garbage-collection pressure caused by avoidable allocations in the benchmark harness
+- Comparing runs with different package scopes, CPU load, or benchmark filters
 
 ## References
 

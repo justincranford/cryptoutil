@@ -183,22 +183,21 @@ artifacts that must never be committed.
 └── 06-02.agent-format.instructions.md
 ```
 
-### B.4 Skills (14 skills + README)
+### B.4 Skills (13 skills + README)
 
 ```
 .github/skills/
 ├── README.md
-├── agent-scaffold/SKILL.md
 ├── psid-template-sync/SKILL.md
 ├── coverage-analysis/SKILL.md
+├── customization-scaffold/SKILL.md
 ├── fips-audit/SKILL.md
 ├── fitness-function-gen/SKILL.md
-├── instruction-scaffold/SKILL.md
 ├── migration-create/SKILL.md
 ├── new-service/SKILL.md
 ├── openapi-codegen/SKILL.md
 ├── propagation-check/SKILL.md
-├── skill-scaffold/SKILL.md
+├── sync-copilot-claude/SKILL.md
 ├── test-benchmark-gen/SKILL.md
 ├── test-fuzz-gen/SKILL.md
 └── test-table-driven/SKILL.md
@@ -241,18 +240,16 @@ for the dual canonical file strategy and drift linting (`lint-agent-drift`, `lin
 │   ├── fix-workflows.md
 │   ├── implementation-execution.md
 │   └── implementation-planning.md
-└── skills/                                # Claude skills (15 — mirrors .github/skills/)
-    ├── agent-scaffold/SKILL.md
+└── skills/                                # Claude skills (13 — mirrors .github/skills/)
     ├── psid-template-sync/SKILL.md
     ├── coverage-analysis/SKILL.md
+    ├── customization-scaffold/SKILL.md
     ├── fips-audit/SKILL.md
     ├── fitness-function-gen/SKILL.md
-    ├── instruction-scaffold/SKILL.md
     ├── migration-create/SKILL.md
     ├── new-service/SKILL.md
     ├── openapi-codegen/SKILL.md
     ├── propagation-check/SKILL.md
-    ├── skill-scaffold/SKILL.md
     ├── sync-copilot-claude/SKILL.md
     ├── test-benchmark-gen/SKILL.md
     ├── test-fuzz-gen/SKILL.md

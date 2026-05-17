@@ -2,7 +2,6 @@
 package lint_architecture_links
 
 import (
-	"errors"
 	"fmt"
 	"io/fs"
 	"os"
@@ -351,7 +350,7 @@ func TestCheckWithFS_SkipsNonMdFiles(t *testing.T) {
 	require.Len(t, readCalled, 2)
 }
 
-func TestCheckWithFS_SkipsExcludedScaffoldDirs(t *testing.T) {
+func TestCheckWithFS_ContinuesPastSiblingDirs(t *testing.T) {
 	t.Parallel()
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
@@ -372,15 +371,12 @@ func TestCheckWithFS_SkipsExcludedScaffoldDirs(t *testing.T) {
 	walkCallCount := 0
 	walkFn := func(absDir string, fn fs.WalkDirFunc) error {
 		walkCallCount++
-		// Simulate a scaffold dir entry â€” fn returns fs.SkipDir for excluded dirs.
-		scaffoldDir := filepath.Join(absDir, "instruction-scaffold")
+		siblingDir := filepath.Join(absDir, "other-skill")
 
-		err := fn(scaffoldDir, &fakeDirEntry{name: "instruction-scaffold", isDir: true}, nil)
-		if err != nil && !errors.Is(err, fs.SkipDir) {
+		err := fn(siblingDir, &fakeDirEntry{name: "other-skill", isDir: true}, nil)
+		if err != nil {
 			return err
 		}
-		// In real WalkDir, fs.SkipDir just skips that directory's children â€”
-		// the walk continues with the next sibling entry.
 		// Only emit the instruction file on the first walk call.
 		if walkCallCount == 1 {
 			name := testInstructionFileName
@@ -394,7 +390,7 @@ func TestCheckWithFS_SkipsExcludedScaffoldDirs(t *testing.T) {
 	err := checkWithFS(logger, getwdFn, walkFn, readFileFn)
 
 	require.NoError(t, err)
-	// Only ENG-HANDBOOK.md and the instruction file should be read (not scaffold files).
+	// Only ENG-HANDBOOK.md and the instruction file should be read.
 	require.Len(t, filesRead, 2)
 }
 

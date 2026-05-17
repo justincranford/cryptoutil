@@ -21,6 +21,9 @@ Use when:
 - Claude agents at `.claude/agents/<NAME>.md` must match Copilot agents at `.github/agents/<NAME>.agent.md`
 - NEVER update only one file — always sync both in the same commit
 - The `lint-agent-drift` linter (in `lint-docs`) enforces agent pair identity automatically
+- Verify discoverability after sync: update `.github/skills/README.md`, `.github/copilot-instructions.md`, `CLAUDE.md`, and `docs/ENG-HANDBOOK.md` when a new skill or agent should appear there
+- Flag overlap explicitly: if two skills now describe the same creation or audit workflow, merge or narrow them in the same change instead of preserving redundant catalog entries
+- If a skill becomes redundant after a merge, remove the dead catalog entries and orphaned directories in the same commit
 - When syncing planning agents, also verify planning-triad readiness safeguards are present in BOTH files: `plan.md` + `tasks.md` + `lessons.md` consistency gate and false-ready prohibition
 - If planning agents changed but triad safeguards are missing in either side, treat as drift and fix in the same commit
 
@@ -36,58 +39,28 @@ Use when:
 ## Workflow: Audit All Pairs
 
 ```bash
-# Run lint-agent-drift to check agent drift
+# Run the canonical drift validator
 go run ./cmd/cicd-lint lint-docs
-
-# Manual skill audit
-python3 - << 'EOF'
-import os, pathlib
-
-gh_skills = sorted(pathlib.Path(".github/skills").glob("*/SKILL.md"))
-claude_skills = sorted(pathlib.Path(".claude/skills").glob("*/SKILL.md"))
-
-gh_names = {p.parent.name for p in gh_skills}
-claude_names = {p.parent.name for p in claude_skills}
-
-print("=== Missing Claude skills (exist in Copilot, not Claude) ===")
-for name in sorted(gh_names - claude_names):
-    print(f"  MISSING: .claude/skills/{name}/SKILL.md")
-
-print("\n=== Orphaned Claude skills (exist in Claude, not Copilot) ===")
-for name in sorted(claude_names - gh_names):
-    print(f"  ORPHAN: .claude/skills/{name}/SKILL.md")
-
-print("\n=== Body drift check ===")
-for name in sorted(gh_names & claude_names):
-    gh = pathlib.Path(f".github/skills/{name}/SKILL.md").read_text(encoding="utf-8")
-    cl = pathlib.Path(f".claude/skills/{name}/SKILL.md").read_text(encoding="utf-8")
-    # Strip frontmatter (everything up to and including second ---)
-    def strip_fm(text):
-        parts = text.split("---", 2)
-        return parts[2].strip() if len(parts) == 3 else text.strip()
-    if strip_fm(gh) != strip_fm(cl):
-        print(f"  DRIFT: {name}")
-    else:
-        print(f"  OK: {name}")
-EOF
 ```
 
 ## Workflow: Create Missing Claude Skill
 
 ```bash
-# For skill NAME that exists in .github/skills/NAME/ but not .claude/skills/NAME/
-mkdir -p .claude/skills/NAME
-
-# Copy Copilot skill as base
-cp .github/skills/NAME/SKILL.md .claude/skills/NAME/SKILL.md
-
-# Adapt frontmatter if needed (Claude uses allowed-tools:, Copilot uses tools:)
-# Body stays IDENTICAL
-
-# Verify
-diff <(tail -n +4 .github/skills/NAME/SKILL.md | sed '1,/^---$/d') \
-     <(tail -n +4 .claude/skills/NAME/SKILL.md | sed '1,/^---$/d')
+# Create the missing .claude/skills/NAME/SKILL.md pair in the same change
+# Keep description and argument-hint identical to the Copilot skill
+# Keep the body byte-identical
+# Omit Copilot-only frontmatter fields from the Claude file
+# Re-run go run ./cmd/cicd-lint lint-docs until lint-skill-command-drift passes
 ```
+
+## Catalog Review After Sync
+
+After the pair is in sync, verify the surrounding catalog stays coherent:
+
+- README entry exists and points at the correct skill path
+- Copilot and Claude command tables describe the same artifact consistently
+- Merged or retired skills no longer appear in handbook tables or target-structure docs
+- The synced skill does not duplicate the purpose of an adjacent skill without a clear scope boundary
 
 ## References
 
@@ -95,5 +68,4 @@ Copilot ↔ Claude dual canonical pairs are enforced by:
 - `lint-agent-drift` (via `go run ./cmd/cicd-lint lint-docs`) — enforces agent pairs
 - `lint-skill-command-drift` — enforces skill pairs
 
-See `docs/framework-v8/claude.md` for the full Claude Code file structure reference
-and frontmatter options for both skills and agents.
+See [ENG-HANDBOOK.md Section 2.1.5 Copilot Skills](../../../docs/ENG-HANDBOOK.md#215-copilot-skills) for the active skill catalogue and [ENG-HANDBOOK.md Section 13.4 Documentation Propagation Strategy](../../../docs/ENG-HANDBOOK.md#134-documentation-propagation-strategy) for same-commit documentation update expectations.

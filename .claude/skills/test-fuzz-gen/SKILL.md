@@ -9,14 +9,16 @@ Generate `_fuzz_test.go` fuzz tests conforming to cryptoutil project standards.
 ## Purpose
 
 Use when creating fuzz tests for functions that parse or process external input.
-Fuzz tests go in a separate `_fuzz_test.go` file (ONLY fuzz functions).
+Fuzz tests go in a separate `_fuzz_test.go` file (ONLY fuzz functions). Use
+`test-table-driven` for deterministic example coverage and this skill for
+mutation-style input exploration.
 
 ## Key Rules
 
 - File suffix: `_fuzz_test.go` (ONLY fuzz functions, never mixed with unit tests)
 - Minimum fuzz time: `15s` per test
 - **CRITICAL: Function names MUST NOT be substrings of other fuzz function names** — e.g. use `FuzzHKDFAllVariants`, NEVER `FuzzHKDF` if `FuzzHKDFAllVariants` exists in the same package
-- Build tag: `//go:build fuzz` (optional marker — run with `-tags fuzz` or `-fuzz=FuzzXxx` without tag)
+- Omit `//go:build fuzz` by default; only add a fuzz build tag when the package has fuzz-only helpers that must stay out of normal test builds
 - Property tests that MUST NOT run during fuzzing: add `//go:build !fuzz` at top of `_property_test.go` file
 - Corpus: provide seed entries covering edge cases (empty, nil, boundary values)
 - Run from project root: `go test -fuzz=FuzzXxx -fuzztime=15s ./path/to/pkg`
@@ -24,8 +26,6 @@ Fuzz tests go in a separate `_fuzz_test.go` file (ONLY fuzz functions).
 ## Template
 
 ```go
-//go:build fuzz
-
 package mypkg_test
 
 import (

@@ -9,7 +9,8 @@ Analyze Go test coverage profiles to identify gaps and generate targeted test su
 ## Purpose
 
 Use after running `go test -coverprofile` to systematically categorize uncovered
-lines and prioritize which tests to write.
+lines and prioritize which tests to write. This skill analyzes gaps; use
+`test-table-driven` to author the follow-on tests.
 
 ## Key Rules
 
@@ -24,16 +25,12 @@ lines and prioritize which tests to write.
 
 ```bash
 # 1. Generate coverage profile
-mkdir -p test-output/coverage-analysis/
 go test -coverprofile=test-output/coverage-analysis/coverage.out ./...
 
 # 2. Generate HTML report
 go tool cover -html=test-output/coverage-analysis/coverage.out -o test-output/coverage-analysis/coverage.html
 
-# 3. Show function-level breakdown
-go tool cover -func=test-output/coverage-analysis/coverage.out | sort -k3 -n | head -30
-
-# 4. Show total
+# 3. Show function-level breakdown and total
 go tool cover -func=test-output/coverage-analysis/coverage.out | tail -1
 ```
 
@@ -62,8 +59,8 @@ When analyzing uncovered (RED) lines:
 ## Test Seam Pattern (for unreachable paths)
 
 ```go
-// Production code
-var osExit = os.Exit  // seam replaceable in tests
+// Production code: os.Exit is the restricted package-level exception.
+var osExit = os.Exit
 
 // Test code
 func TestShutdownError(t *testing.T) {
@@ -76,7 +73,7 @@ func TestShutdownError(t *testing.T) {
 }
 ```
 
-For packages with multiple seams, use a `saveRestoreSeams(t)` helper to save and restore all seam variables automatically via `t.Cleanup()`, preventing test pollution across parallel tests.
+Outside the `osExit` exception, prefer function-parameter injection or `export_test.go` seams instead of adding new package-level seam variables.
 
 ## Probability-Based Execution (when suggesting tests to write)
 

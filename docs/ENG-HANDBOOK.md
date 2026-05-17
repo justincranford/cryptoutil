@@ -303,7 +303,7 @@ VS Code Copilot supports exactly 3 customization file types:
 | **Agents (Claude Code)** | `.claude/agents/*.md` | `/agent-name` invocation | Same agents, Claude Code canonical — omits `tools:` (inherits all tools) |
 | **Skills** | `.github/skills/NAME/SKILL.md` | `/skill-name` slash command or auto-loaded | On-demand templates, code generation, analysis |
 
-**Dual Canonical Strategy**: `.github/agents/*.agent.md` is the Copilot-authoritative source (with `tools:` whitelist, `handoffs:`, `skills:`). `.claude/agents/*.md` is the Claude Code-authoritative source (omits `tools:` — Claude inherits all tools). Both files must be kept in sync when agent content changes. Use `/agent-scaffold` to create both simultaneously.
+**Dual Canonical Strategy**: `.github/agents/*.agent.md` is the Copilot-authoritative source (with `tools:` whitelist, `handoffs:`, `skills:`). `.claude/agents/*.md` is the Claude Code-authoritative source (omits `tools:` — Claude inherits all tools). Both files must be kept in sync when agent content changes. Use `/customization-scaffold` to create new agents, instructions, or skills with the correct mirrored files.
 
 See [Section 2.1.5 Copilot Skills](#215-copilot-skills) for skill catalogue and `.github/skills/` organization.
 
@@ -473,9 +473,7 @@ Here is current git status:
 | `propagation-check` | docs | Detect @propagate/@source drift, generate corrected @source blocks | [SKILL.md](.github/skills/propagation-check/SKILL.md) |
 | `psid-template-sync` | testing | Keep stable PS-ID template-instantiated files synchronized across all 10 services via exact template-drift enforcement | [SKILL.md](.github/skills/psid-template-sync/SKILL.md) |
 | `fitness-function-gen` | tooling | Create new architecture fitness function (linter) for lint-fitness framework | [SKILL.md](.github/skills/fitness-function-gen/SKILL.md) |
-| `agent-scaffold` | tooling | Create both `.github/agents/NAME.agent.md` (Copilot, with `tools:`) and `.claude/agents/NAME.md` (Claude Code, without `tools:`) with all mandatory sections | [SKILL.md](.github/skills/agent-scaffold/SKILL.md) |
-| `instruction-scaffold` | tooling | Create conformant `.github/instructions/NN-NN.name.instructions.md` | [SKILL.md](.github/skills/instruction-scaffold/SKILL.md) |
-| `skill-scaffold` | tooling | Create conformant `.github/skills/NAME/SKILL.md` with proper YAML frontmatter | [SKILL.md](.github/skills/skill-scaffold/SKILL.md) |
+| `customization-scaffold` | tooling | Create a new repo-local agent, instruction, or skill and any required Claude counterpart without splitting the workflow across three scaffold skills | [SKILL.md](.github/skills/customization-scaffold/SKILL.md) |
 | `sync-copilot-claude` | tooling | Audit and sync Copilot skills/agents with Claude skills/agents | [SKILL.md](.github/skills/sync-copilot-claude/SKILL.md) |
 
 #### 2.1.6 Agent Tool Discovery

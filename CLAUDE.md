@@ -87,7 +87,5 @@ Full Copilot originals: [.github/skills/](.github/skills/).
 | `/propagation-check` | Detect `@propagate`/`@source` drift between ENG-HANDBOOK.md and instruction files |
 | `/psid-template-sync` | Keep stable PS-ID template-instantiated files synchronized across all 10 services |
 | `/fitness-function-gen` | New architecture fitness function linter in cicd_lint/lint_fitness/ |
-| `/agent-scaffold` | New `.github/agents/NAME.agent.md` + `.claude/agents/NAME.md` dual canonical pair |
-| `/instruction-scaffold` | New `.github/instructions/NN-NN.name.instructions.md` |
-| `/skill-scaffold` | New `.github/skills/NAME/SKILL.md` with proper YAML frontmatter |
+| `/customization-scaffold` | New repo-local agent, instruction, or skill, including required Claude counterparts for dual-canonical artifacts |
 | `/sync-copilot-claude` | Audit/sync Copilot skills+agents with Claude skills+agents |

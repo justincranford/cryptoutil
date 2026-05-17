@@ -9,84 +9,67 @@ Guide service creation from skeleton-template: copy, rename, register, migrate, 
 ## Purpose
 
 Use when creating a new cryptoutil service from the template. Covers all steps
-from copying the skeleton to registering with CI/CD.
+from cloning the skeleton to registering the service in validation and documentation.
+
+Use `migration-create` for the migration file details, `openapi-codegen` for API scaffolding, and `customization-scaffold` for new repo-local agent or skill artifacts created during the service rollout.
 
 ## Key Rules
 
 - ALWAYS copy from `skeleton-template` — NEVER create from scratch
-- Port block: assign from registry.yaml (4 ports per PS-ID: sqlite-1=+0, sqlite-2=+1, postgresql-1=+2, postgresql-2=+3)
+- Port block: assign from `api/cryptosuite-registry/registry.yaml` and the service catalog in `docs/ENG-HANDBOOK.md`
 - Register PS-ID in `internal/apps-tools/cicd_lint/lint_fitness/registry/registry.go`
 - Add magic constants to `internal/shared/magic/magic_psids.go`
 - Compose.yml MUST have 4 service instances (2 SQLite + 2 PostgreSQL)
 - Migration numbers MUST use PS-ID range from `api/cryptosuite-registry/registry.yaml`
 - TLS client policy: ALWAYS add `server-*-tls-client-policy` alongside any `server-*-tls-ca-file` in deployment overlays
+- Prefer repo-aware file operations and targeted edits; do not rely on Bash-only copy or mass-replace snippets
 
 ## Service Catalog
 
 | Product | Service ID | Host Port Range |
 |---------|-----------|----------------|
 | SM | sm-kms | 8000-8099 |
-| PKI | pki-ca | 8100-8199 |
-| Identity | identity-authz | 8200-8299 |
+| JOSE | jose-ja | 8200-8299 |
+| PKI | pki-ca | 8300-8399 |
+| Identity | identity-authz | 8400-8499 |
 | ... | ... | ... |
 | Skeleton | skeleton-template | 8900-8999 |
 
 ## Step-by-Step Process
 
-### Step 1: Copy skeleton-template
+### Step 1: Clone the skeleton surfaces
 
-```bash
-# Copy entire skeleton app directory and cmd entry point
-cp -r internal/apps/skeleton-template internal/apps/PS-ID
-
-# Copy skeleton cmd/
-cp cmd/skeleton-template/main.go cmd/PS-ID/main.go
-```
+- Copy `internal/apps/skeleton-template/` to the new PS-ID location under `internal/apps/`
+- Copy `cmd/skeleton-template/` to the new PS-ID entry-point directory under `cmd/`
+- Copy the deployment and config directories from `configs/skeleton-template/` and `deployments/skeleton-template/`
 
 ### Step 2: Rename identifiers
 
-```bash
-# Replace all skeleton-template identifiers
-find internal/apps/PS-ID cmd/PS-ID -type f -name "*.go" | xargs sed -i 's/skeleton-template/PS-ID/g'
-find internal/apps/PS-ID cmd/PS-ID -type f -name "*.go" | xargs sed -i 's/skeletonTemplate/PSIDCamelCase/g'
-```
+- Replace `skeleton-template` and the template-specific Go identifiers with the new PS-ID consistently across copied files
+- Re-check usage strings, generated-code config, module-local README files, and deployment filenames after the rename
 
 ### Step 3: Assign port range
 
-- Service: `PRODUCT-SERVICE` → host ports 8XX0-8XX9 (see service catalog)
-- Public: `0.0.0.0:8080` (container) / `127.0.0.1:8XX0` (dev)
-- Admin: `127.0.0.1:9090` (container) / `127.0.0.1:8XX1` (dev)
-- PostgreSQL: `localhost:5432X` (container) / `localhost:5432X` (dev)
+- Reserve the next available service host-port block from the registry and handbook catalog
+- Keep container bindings on `0.0.0.0:8080` (public) and `127.0.0.1:9090` (admin)
+- Keep deployment formulas aligned across service, product, and suite overlays
 
 ### Step 4: Create domain migrations
 
-```bash
-# Start from 2001 (template uses 1001-1999)
-touch internal/apps/PS-ID/repository/migrations/2001_init.up.sql
-touch internal/apps/PS-ID/repository/migrations/2001_init.down.sql
-```
+- Start domain migrations at the service range defined in `api/cryptosuite-registry/registry.yaml`
+- Create paired `.up.sql` and `.down.sql` files and register them via `WithDomainMigrations`
+- Use `migration-create` if the main task in front of you is the migration content itself
 
 ### Step 5: Add config files
 
-```bash
-# Copy domain config from skeleton-template and rename
-cp -r configs/skeleton-template configs/PS-ID
-mv configs/PS-ID/skeleton-template.yml configs/PS-ID/PS-ID.yml
-
-# Copy deployment variant configs and rename
-cp -r deployments/skeleton-template/config deployments/PS-ID/config
-for f in deployments/PS-ID/config/skeleton-template-*.yml; do
-  mv "$f" "${f/skeleton-template/PS-ID}"
-done
-# Update port numbers, service name, database config
-```
+- Rename the standalone service config in `configs/PS-ID/`
+- Rename the deployment overlay files in `deployments/PS-ID/config/`
+- Update PS-ID-specific names, port values, OTLP service names, and database settings in every variant file
 
 ### Step 6: Add Docker Compose deployment
 
-```bash
-cp -r deployments/skeleton-template deployments/PRODUCT-SERVICE
-# Update port bindings, service name, secrets references
-```
+- Update the copied compose deployment with the new service name, secrets, cert mount references, and four-instance topology
+- Keep the `/certs:/certs:ro` bind mount and admin healthcheck conventions intact
 
 ### TLS Configuration (Two-Axis Model)
 
@@ -126,8 +109,8 @@ For a transitional rollout where some clients don't yet present certificates, us
 ### Step 7: Register in CI/CD
 
 - Add service to `.github/workflows/ci-*.yml` matrix
-- Add service to `docker-compose.yml` (root-level if suite)
 - Run `go run ./cmd/cicd-lint lint-deployments` to validate
+- Run `go run ./cmd/cicd-lint lint-fitness` when registry or template-instantiated files changed
 
 ### Step 8: Test
 
@@ -138,11 +121,6 @@ go run ./cmd/cicd-lint lint-deployments
 ```
 
 ### Step 9: Update Documentation
-
-```bash
-# Update ENG-HANDBOOK.md Section 3.4 Service Catalog table
-# Add row: | PRODUCT | SERVICE | PRODUCT-SERVICE | HOST_PORT_RANGE | 0.0.0.0:8080 | 127.0.0.1:9090 |
-```
 
 - Update service catalog in `docs/ENG-HANDBOOK.md` Section 3.4 Port Assignments & Networking
 - Update service catalog table in `.github/instructions/02-01.architecture.instructions.md`

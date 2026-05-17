@@ -14,7 +14,7 @@ Use when ENG-HANDBOOK.md sections have changed and you need to update downstream
 ## Key Rules
 
 - `@source` content MUST be byte-for-byte identical to `@propagate` content in ENG-HANDBOOK.md
-- Run `go run ./cmd/cicd-lint lint-docs validate-propagation` to detect drift
+- Run `go run ./cmd/cicd-lint lint-docs` to detect drift
 - Copilot and Claude agent files MUST have identical body content (only frontmatter differs)
 - Add both Copilot file AND Claude file to `@propagate to=` attribute (comma-separated)
 - Update `docs/required-propagations.yaml` `required_targets` when adding new targets
@@ -43,17 +43,6 @@ content here (MUST be byte-for-byte identical)
 ```bash
 # Run the automated validator
 go run ./cmd/cicd-lint lint-docs
-
-# Manual: extract @propagate block content
-python3 - <<'EOF'
-import re
-with open('docs/ENG-HANDBOOK.md') as f: content = f.read()
-# Find all propagate blocks
-for m in re.finditer(r'<!-- @propagate to="([^"]+)" as="([^"]+)" -->(.*?)<!-- @/propagate -->', content, re.DOTALL):
-    print(f"Target: {m.group(1)}, ID: {m.group(2)}")
-    print(f"Content: {m.group(3)[:100]}...")
-    print()
-EOF
 ```
 
 ## Fix Workflow
@@ -74,4 +63,4 @@ EOF
 
 Read [ENG-HANDBOOK.md Section 13.4 Documentation Propagation Strategy](../../../docs/ENG-HANDBOOK.md#134-documentation-propagation-strategy) for full marker system documentation — apply all marker system rules (byte-for-byte match, no headings inside markers, same-commit propagation) when checking and fixing drift.
 
-For orchestrating full documentation synchronization across ENG-HANDBOOK.md, instruction files, and agent files, use the `beast-mode` agent.
+Use `sync-copilot-claude` when the propagation change also affects dual-canonical skill or agent pairs outside the propagation markers themselves.

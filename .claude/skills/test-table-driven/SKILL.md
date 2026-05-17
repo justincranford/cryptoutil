@@ -9,7 +9,8 @@ Generate table-driven Go tests conforming to cryptoutil project standards.
 ## Purpose
 
 Use this skill when writing or reviewing Go tests. Ensures correct patterns:
-`t.Parallel()`, `UUIDv7` test data, `require` over `assert`, proper subtests.
+`t.Parallel()`, `UUIDv7` test data, `require` over `assert`, proper subtests,
+and faster, less flaky test setup.
 
 ## Key Rules
 
@@ -20,8 +21,10 @@ Use this skill when writing or reviewing Go tests. Ensures correct patterns:
 - TestMain for heavyweight resources (DB, servers, containers) — one per package
 - Use exactly one `testmain_test.go` per package; never split into `testmain_*_test.go` variants
 - `testmain_test.go` must not use `//go:build` or `// +build` directives
-- Fiber `app.Test()` for ALL HTTP handler tests (no real network listeners)
+- Prefer Fiber `app.Test()` for handler-only coverage; use real listeners only when lifecycle, TLS, shutdown, or transport behavior is the subject under test
 - SQLite DateTime: ALWAYS use `time.Now().UTC()` when comparing timestamps
+- For lifecycle tests, use bounded timeouts and preserve the stress mode that exposed the issue (`-shuffle=on`, package-scoped rerun, or parallel execution)
+- If a test passes alone but fails in the full package, suspect shared fixture contamination before changing production logic
 - Timing: unit tests MUST complete in <15s per package; full suite <180s
 - Probability-based execution: use `TestProbAlways=100`, `TestProbQuarter=25`, `TestProbTenth=10` for expensive algorithm variant tests (RSA sizes, ECDSA curves)
 
@@ -80,27 +83,44 @@ func TestListMessages_Handler(t *testing.T) {
 
 Benefits: no port conflicts, no Windows Firewall popups, tests run in <1ms.
 
+Only step up to a real listener when the test is specifically validating listener lifecycle, TLS handshake behavior, graceful shutdown, or another transport-level concern that `app.Test()` cannot exercise.
+
 ## TestMain Pattern (heavyweight resources)
 
-Use one untagged `testmain_test.go` file per package so the same TestMain works for both tagged and untagged test runs.
+Use one untagged `testmain_test.go` file per package so the same TestMain works for both tagged and untagged test runs. For unit and integration tests, use the shared in-memory SQLite helpers rather than PostgreSQL containers.
 
 ```go
 var (
-testDB     *gorm.DB
-testServer *Server
+testDB *gorm.DB
 )
 
 func TestMain(m *testing.M) {
-ctx := context.Background()
-container, _ := postgres.RunContainer(ctx,
-postgres.WithDatabase(fmt.Sprintf("test_%s", googleUuid.NewV7())),
-postgres.WithUsername(fmt.Sprintf("user_%s", googleUuid.NewV7())),
-)
-defer container.Terminate(ctx)
-// initialize testDB, testServer...
+var cleanup func()
+var err error
+
+testDB, cleanup, err = testdb.NewInMemorySQLiteDBForTestMain()
+if err != nil {
+    panic(err)
+}
+defer cleanup()
+
 os.Exit(m.Run())
 }
 ```
+
+## Suite Flake Triage
+
+When a failure appears only in the full suite, keep the validation narrow but preserve the conditions that exposed it:
+
+```bash
+# Isolated: does it pass alone?
+go test -run TestName ./path/to/pkg
+
+# Full package: does it fail with neighboring tests?
+go test -shuffle=on ./path/to/pkg
+```
+
+If the test passes alone and fails in the package, inspect shared fixtures, `t.Cleanup()` ordering, and shared SQLite state before changing product code.
 
 ## Error Path Testing via Function-Param Injection
 

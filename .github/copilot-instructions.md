@@ -44,9 +44,7 @@ See [.github/skills/README.md](.github/skills/README.md) for the full catalogue.
 | `/fips-audit` | Auditing Go code for FIPS 140-3 compliance |
 | `/propagation-check` | Checking @propagate/@source drift before committing docs |
 | `/openapi-codegen` | Creating or extending service APIs |
-| `/agent-scaffold` | Creating a new `.github/agents/NAME.agent.md` + `.claude/agents/NAME.md` dual canonical pair |
-| `/instruction-scaffold` | Creating a new `.github/instructions/NN-NN.name.instructions.md` |
-| `/skill-scaffold` | Creating a new `.github/skills/NAME/SKILL.md` |
+| `/customization-scaffold` | Creating a new repo-local agent, instruction, or skill, including required Claude counterparts for dual-canonical artifacts |
 | `/sync-copilot-claude` | Auditing/syncing Copilot skills and agents with their Claude counterparts |
 | `/new-service` | Creating a new service from skeleton-template |
 | `/psid-template-sync` | Updating stable PS-ID template-instantiated files and keeping all 10 services exact-match lint clean |

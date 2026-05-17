@@ -31,14 +31,6 @@ var targetRelDirs = []string{
 	cryptoutilSharedMagic.CICDGithubSkillsDir,
 }
 
-// excludedRelPaths lists path components (relative to targetRelDirs) to skip.
-// Scaffold templates use placeholder anchors like #xy-anchor that are never real.
-var excludedSkillDirNames = map[string]struct{}{
-	"instruction-scaffold": {},
-	"skill-scaffold":       {},
-	"agent-scaffold":       {},
-}
-
 // architectureMdRelPath is the path to ENG-HANDBOOK.md relative to the project root.
 const architectureMdRelPath = "docs/ENG-HANDBOOK.md"
 
@@ -110,12 +102,7 @@ func checkDir(
 			return fmt.Errorf("failed to access %s: %w", path, walkErr)
 		}
 
-		// Skip excluded scaffold directories (they contain placeholder anchors).
 		if d.IsDir() {
-			if _, excluded := excludedSkillDirNames[d.Name()]; excluded {
-				return fs.SkipDir
-			}
-
 			return nil
 		}
 
