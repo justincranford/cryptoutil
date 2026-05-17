@@ -33,41 +33,13 @@ Before the specific proposed edits below, the rewrite should explicitly separate
 
 Without that separation, improvements to sections 3-5 will help, but the file will still feel overloaded and internally competitive.
 
-Items 4-5 are independent proposals, not a required implementation order. They can be applied in a different sequence if that produces a cleaner rewrite. The important constraint is conceptual consistency: the validation rule and checklist shape should not contradict each other. Item 3 is complete and documented in [docs/ENHANCEMENTS-BEAST-MODE-AGENT-COMPLETED.md](docs/ENHANCEMENTS-BEAST-MODE-AGENT-COMPLETED.md).
+Item 5 remains the active proposal. Items 3-4 are complete and documented in [docs/ENHANCEMENTS-BEAST-MODE-AGENT-COMPLETED.md](docs/ENHANCEMENTS-BEAST-MODE-AGENT-COMPLETED.md).
 
 Because all 10 PS-IDs are supposed to reuse framework code heavily, the document should also avoid implying that the owning logic is usually in the package where a failure first appears. In this repo, a failing PS-ID test may be exposing a bug in shared framework code, shared test infrastructure, or a common builder path. The rewrite should therefore distinguish broad search from broad validation. It is still useful to avoid aimless searching, but it may be correct to validate at a broader scope earlier when the architecture strongly suggests shared ownership.
 
 The rewrite should also account for concurrency-heavy test execution. Unit, integration, and e2e tests are expected to run with high concurrency, packages reuse TestMain to amortize expensive setup, and tests are supposed to stay independent by using non-conflicting data and other isolated resources. In that environment, one failing test may be the first visible symptom of shared-state conflicts, non-unique test data, port collisions, hostname collisions, noisy-neighbour effects, or other concurrency defects. The draft should therefore avoid implying that the first failing test is automatically the best or only place to look.
 
 The handbook adds several related strategies that should also shape the rewrite. Tests are expected to run with `t.Parallel()`, shuffle, and race detection, so some failures are schedule-sensitive rather than input-sensitive. A small number of tests are allowed to be sequential, but only when they intentionally mutate package-level state and are marked with a `// Sequential:` reason. Integration tests rely on dynamic ports, localhost-only bindings, `TLSProvisionMode=auto`, and `DisableKeepAlives: true` for real-server clients, which means some apparent feature failures are actually setup, teardown, transport, or environment-parity defects. E2E coverage also validates cross-database behavior, so a failing path may be specific to shared PostgreSQL versus isolated SQLite instances rather than the API logic itself.
-
-### 4. Reduce The Weight Of Global Checklists
-
-This would replace a long, repetitive quality checklist with a compact execution ladder that the agent can actually follow while working. The intent is not to remove quality gates; it is to move the exhaustive detail out of the main contract and keep only the steps the agent must actively execute.
-
-After reviewing the actual beast-mode file, this proposal should be broadened. The problem is not only the formal checklist section. The agent repeats checklist behavior across pre-flight rules, completion checklists, quality gates, blocker handling, work discovery, and review-pass language. The rewrite should therefore collapse duplicate validation obligations across the whole file, not just shorten one local checklist block.
-
-The ladder should also be flexible enough to support framework-heavy and concurrency-heavy validation. It should not imply that a narrow per-package test or a single-test rerun is always the correct first executable check.
-
-The shorter ladder would be:
-
-- build
-- focused test or architecture-scoped check
-- broad test
-- commit
-- final clean status
-
-Example: instead of repeating full coverage and mutation rules inside the agent body, the agent would say "run the cheapest meaningful executable check first; if the owning logic is probably shared, that first check may be framework-scoped rather than package-scoped." The detailed coverage and mutation targets would live in the handbook, not in the high-pressure prose.
-
-Example: if the agent has already proven a local fix, the checklist should not force rereading the same full validation block in multiple places. The compact ladder keeps the order obvious without repeating the same requirement in several forms.
-
-Example: if a failure appears in one PS-ID but the same path is instantiated across all 10 PS-IDs, the efficient first broad check may be a framework package test, a shared builder test, or a compile pass across all affected services. That is still consistent with a compact ladder, because the ladder is about validation order, not about forcing package-local tests.
-
-Example: if a failure occurs in a package that uses TestMain and heavy parallel execution, the efficient first focused check may be a package-level rerun under the same concurrency conditions, or a targeted review of shared test data and fixture allocation, instead of immediately zooming into one failing test function. That is still a focused check because it is aimed at the most plausible failure class.
-
-Example: if the failure only occurs in integration or e2e tests, the first focused check may need to preserve dynamic ports, TLS auto-provisioning, localhost binding, or the shared TestMain server. Replacing that with a simpler unit-style rerun may answer a different question than the one the failing test exposed.
-
-Example: if the path is supposed to be cross-database compatible, the focused check may need to compare SQLite and PostgreSQL behavior rather than validating only the first backend that failed.
 
 ### 5. Make The Validation Order Explicit
 

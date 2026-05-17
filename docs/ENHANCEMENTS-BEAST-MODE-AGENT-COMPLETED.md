@@ -2,7 +2,7 @@
 
 **Created:** 2026-05-17
 **Last Updated:** 2026-05-17
-**Status:** In Progress (3/5 complete, 0 in progress)
+**Status:** In Progress (4/5 complete, 0 in progress)
 
 ---
 
@@ -14,10 +14,10 @@ The beast-mode agent is being systematically refactored from a **repetitive, pol
 - ✅ **Item 1: Compress Repeated Warnings** — COMPLETE (word count -15%, behavioral equivalence 100%)
 - ✅ **Item 2: Separate Contract From Policy** — COMPLETE (repository policy extraction, core contract -20 lines)
 - ✅ **Item 3: Add First-Edit Hypothesis Rule** — COMPLETE (new routing rule added, broad-read conflict resolved)
-- ⚪ **Item 4: Reduce Weight Of Global Checklists** — Not started
+- ✅ **Item 4: Reduce Weight Of Global Checklists** — COMPLETE (validation ladder added, duplicate checklist weight reduced)
 - ⚪ **Item 5: Make Validation Order Explicit** — Not started
 
-**Cumulative Impact (current):** Items 1-3 complete. The agent now has a clearer pre-edit routing rule, less repetition, and cleaner separation between core autonomy and repository policy, while preserving the original autonomy contract and quality expectations.
+**Cumulative Impact (current):** Items 1-4 complete. The agent now has less repetition, a cleaner separation between autonomy and repository policy, a sharper pre-edit routing rule, and a lighter validation structure that preserves the original quality expectations without forcing the model through the same checklist language multiple times.
 
 ---
 
@@ -435,19 +435,96 @@ Current "Completion Verification Checklist" is very large and becomes noise. Rep
 1. Short ladder: build → narrow test → broad test → commit → final clean
 2. Link to handbook for full coverage/mutation rules
 
-### Skeleton for Detailed Implementation
+### Analysis
 
-**When implemented:**
-- [ ] Replace mega-checklist with 5-step ladder
-- [ ] Each step gets 1-2 line description
-- [ ] Link to "Handbook §11 Quality Strategy" for full rules
-- [ ] Remove 20+ line checklist section
-- [ ] Add brief tool commands for each step
+**Problem in the original agent:**
 
-**Estimated Changes:**
-- Remove: ~50 lines (current checklist)
-- Add: ~15 lines (ladder + links)
-- Net: -35 lines
+The beast-mode contract carried validation obligations in multiple places:
+
+1. `## Completion Verification Checklist - MANDATORY`
+2. `## Quality Gates (Per Task)`
+3. repeated completion bullets in the Go-specific quality-gate section
+4. End-of-turn cleanliness rules
+
+The intent was correct, but the same ideas were being restated in slightly different forms. That increased reading cost without materially changing the behavior the agent was supposed to follow.
+
+**Why item 4 mattered:**
+
+The problem was not merely that one checklist was long. The problem was that the file repeated the same completion logic in several sections. That creates two risks:
+
+- the important rule gets buried under repetition
+- the repeated versions drift slightly and create ambiguity about which one is authoritative
+
+The better shape was a compact validation ladder that preserves the same obligations while making the order easier to scan.
+
+### Changes Implemented
+
+#### 4.1 Replaced the Mega-Checklist With a Validation Ladder
+
+**Before:** `## Completion Verification Checklist - MANDATORY`
+
+The old section split completion into multiple sub-checklists covering build, workspace cleanliness, test quality, and requirements validation.
+
+**After:** `## Validation Ladder - MANDATORY`
+
+The new section compresses those obligations into five ordered steps:
+
+1. Build clean
+2. Focused executable check
+3. Broad validation
+4. Requirements and consistency
+5. Commit and clean status
+
+This keeps the same essential requirements but replaces a large checklist surface with a shorter and more usable structure.
+
+#### 4.2 Preserved Go-Specific Command Requirements Without Repeating Them
+
+The `## Quality Gates (Per Task)` section now explicitly says that the ladder defines the order, while the quality-gates section defines the default Go-project command set and context-specific gates.
+
+This keeps the commands and environment-specific requirements available without repeating the same "before marking task complete" obligations in both places.
+
+#### 4.3 Removed Redundant Completion Bullets
+
+The duplicate Go-specific completion bullet list under `## Quality Gates (Per Task)` was removed because it restated the same obligations already covered by the new ladder plus the command blocks.
+
+That was the main weight reduction. The behavior stayed the same, but the agent no longer has to parse the same completion standard twice.
+
+### Behavioral Equivalence Verification
+
+| Scenario | Before | After | Equivalent? |
+|------|--------|-------|------------|
+| Agent must build clean before completion | Required in checklist + gates | Required in ladder + gates | ✅ Same |
+| Agent must run focused and broad validation | Required implicitly through checklist and commands | Required explicitly through ladder and commands | ✅ Same intent, clearer order |
+| Agent must keep docs/config/deployments consistent | Required in checklist | Required in ladder | ✅ Same |
+| Agent must commit and end with clean status | Required in checklist + end-of-turn protocol | Required in ladder + end-of-turn protocol | ✅ Same |
+| Agent must satisfy Go-specific gates | Required | Required | ✅ Same |
+
+**Result:** The contract now says the same thing with less repeated checklist language. No quality gates were removed; they were reorganized.
+
+### Goal Verification
+
+**Goal:** Ensure the agent behaves the same as before, but better.
+
+**Assessment:** Achieved.
+
+- The agent still has the same quality obligations before completion.
+- The Go-specific command requirements are still present.
+- The clean-worktree and commit requirements are unchanged.
+- The improvement is structural: the agent now presents completion as an ordered ladder rather than as several overlapping checklist surfaces.
+
+### Cross-Dual-Canonical Consistency
+
+**Applied identically to both agents simultaneously:**
+- ✅ `.claude/agents/beast-mode.md` — replaced completion checklist with validation ladder, removed duplicate completion bullets
+- ✅ `.github/agents/beast-mode.agent.md` — replaced completion checklist with validation ladder, removed duplicate completion bullets
+- ✅ Body content remains synchronized between Copilot and Claude canonical files
+
+### Files Modified
+
+- ✅ `.claude/agents/beast-mode.md` — implemented item 4
+- ✅ `.github/agents/beast-mode.agent.md` — implemented item 4 (dual canonical)
+- ✅ `docs/ENHANCEMENTS-BEAST-MODE-AGENT.md` — removed completed item 4 from active draft
+- ✅ Commit: `refactor(agents): reduce beast mode checklist weight`
 
 ---
 
@@ -485,7 +562,7 @@ Explicit rule defends against:
 | 1. Compress Repeated Warnings | ✅ DONE | -42 | 2026-05-17 |
 | 2. Separate Contract From Policy | ✅ DONE | ~20-30 moves | 2026-05-17 |
 | 3. Add First-Edit Hypothesis Rule | ✅ DONE | +30 net | 2026-05-17 |
-| 4. Reduce Weight Of Checklists | ⚪ TODO | -35 | 2026-05-17 |
+| 4. Reduce Weight Of Checklists | ✅ DONE | -20 net | 2026-05-17 |
 | 5. Make Validation Order Explicit | ⚪ TODO | +40 | 2026-05-17 |
 | **Totals** | | **-27 to +30 net** | |
 

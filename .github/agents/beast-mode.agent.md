@@ -179,47 +179,21 @@ Before the first substantive edit, name:
 
 ---
 
-## Completion Verification Checklist - MANDATORY
+## Validation Ladder - MANDATORY
 
-**BEFORE marking ANY task complete, verify ALL criteria**:
+**BEFORE marking ANY task complete, run this ladder in order:**
 
-### Build & Code Quality
-
-- [ ] `go build ./...` exits 0 (clean build)
-- [ ] `go build -tags e2e,integration ./...` exits 0 (build-tagged files clean)
-- [ ] `golangci-lint run --fix` exits 0 (zero linting errors)
-- [ ] `golangci-lint run --build-tags e2e,integration` exits 0 (build-tagged files lint-clean)
-- [ ] No new TODO/FIXME comments added vs baseline
-
-### Workspace Cleanliness
-
-- [ ] `git status --porcelain` returns empty (no unstaged files)
-- [ ] All changes committed with conventional commit messages
-- [ ] Working tree clean, no untracked files requiring commit
-
-### Test Quality
-
-- [ ] `go test ./...` exits 0 (all tests pass)
-- [ ] Zero NEW test failures vs baseline (pre-existing failures documented separately)
-- [ ] Zero EXISTING test failures; always fix existing failures before marking new work complete
-- [ ] No skipped tests without explicit tracking
-- [ ] Coverage maintained or improved vs baseline
-
-### Requirements Validation
-
-- [ ] ALL explicit requirements from task description implemented
-- [ ] ALL quality gates implemented
-- [ ] Edge cases identified and handled
-- [ ] Documentation updated (if applicable): README, docs/, inline comments
-- [ ] Config files updated (if applicable): `configs/*/config-*.yml`, `validate_schema.go`
-- [ ] Deployment files updated (if applicable): `deployments/*/compose.yml`, Dockerfiles
-- [ ] Cross-artifact consistency verified: docs, skills, agents, instructions not contradicted by changes
+1. **Build clean** — run the relevant build or typecheck path first. For Go work, completion still requires clean `go build ./...` and `go build -tags e2e,integration ./...`.
+2. **Focused executable check** — run the cheapest meaningful check that can falsify the current work. This may be package-scoped, framework-scoped, or concurrency-scoped depending on where control actually lives.
+3. **Broad validation** — run the broader tests and linters required for the touched slice. For Go work, the default command set lives in `## Quality Gates (Per Task)` below.
+4. **Requirements and consistency** — confirm explicit requirements are implemented, no new TODO/FIXME debt was introduced, edge cases were handled, and docs/config/deployment changes are consistent with the touched work.
+5. **Commit and clean status** — commit with a conventional message and end only with an empty `git status --porcelain` per the End-of-Turn Protocol.
 
 **Definition of Done**: "It works" ≠ "It's done"
 - **Works**: Code is functionally correct
-- **Done**: Code meets ALL quality criteria above + committed + tested
+- **Done**: Code passes the ladder above, remains evidence-backed, and is committed cleanly
 
-**Enforcement**: If ANY checkbox unchecked → Task is NOT complete
+**Enforcement**: If any step in the ladder is incomplete, the task is NOT complete
 
 ---
 
@@ -477,7 +451,7 @@ Set-Content -Path $path -Value $content -Encoding UTF8  # ❌ BOM
 
 ## Quality Gates (Per Task)
 
-**Generic Principle**: Before marking any task complete, verify: build is clean, linting reports zero issues, all tests pass, coverage is maintained, and objective evidence exists.
+**Generic Principle**: The validation ladder above defines the order. This section defines the default Go-project command set and context-specific gates used to satisfy that ladder.
 
 #### Quality Gate Commands (Go Projects)
 
@@ -513,16 +487,6 @@ go test -race -count=3 ./...              # Race detection
 - **Unit tests**: SQLite in-memory only. NEVER PostgreSQL.
 - **Integration tests**: ONE shared SQLite in-memory instance per package via TestMain. NEVER PostgreSQL.
 - **E2E tests**: Docker Compose with PostgreSQL. PostgreSQL tested ONLY here.
-
-**Before marking task complete (Go Projects):**
-- Build clean (`go build ./...` AND `go build -tags e2e,integration ./...`)
-- Linting clean (`golangci-lint run` AND `golangci-lint run --build-tags e2e,integration`)
-- Tests pass (100%, zero skips, `go test ./... -shuffle=on`)
-- Integration tests pass (included in go test ./...)
-- Deployment validators pass (`cicd lint-deployments` - when deployments/ or configs/ changed)
-- E2E tests pass (`go run ./cmd/cicd-workflow -workflows=e2e` - when E2E code/tests changed, requires Docker Desktop)
-- Coverage maintained
-- Git commit with conventional commit message
 
 **Context-Specific Requirements:**
 - **E2E Changes**: Docker Desktop must be running; E2E workflow must pass
