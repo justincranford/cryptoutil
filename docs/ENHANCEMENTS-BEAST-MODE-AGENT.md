@@ -4,7 +4,9 @@ Created: 2026-05-17
 
 ## Summary
 
-The current beast-mode agent is directionally correct, but it is too repetitive and too expansive for the amount of decision support it actually adds. The best improvements are to compress the contract, reduce duplication, and replace broad pressure statements with a smaller number of sharp execution rules.
+The current beast-mode agent is directionally correct, but it is too repetitive and too expansive for the amount of decision support it actually adds. After reviewing the actual `copilot-beast-mode` file, the deeper problem is not only repetition. The contract also mixes core autonomy rules, repository policy, language-specific implementation details, testing doctrine, and tool-behavior commands into one very large body. Some of those instructions reinforce each other, but others compete or create ambiguity about what the agent should optimize for first.
+
+The best improvements are to compress the contract, reduce duplication, separate core execution rules from repository-specific detail, and replace broad pressure statements with a smaller number of sharp execution rules that resolve conflicts instead of adding more prose.
 
 ## What To Keep
 
@@ -13,7 +15,23 @@ The current beast-mode agent is directionally correct, but it is too repetitive 
 - The insistence on evidence-based validation is correct.
 - The commit-after-task pattern is a good default for autonomous work.
 
+## What The Current Draft Missed
+
+- The actual agent already separates some repository-specific material into a trailing reference section, so the problem is broader than CI hook policy alone. Repo-specific and Go-specific execution detail still appears throughout the main body.
+- The agent tells the model both to plan extensively and to keep zero text between tools. Those instructions compete with each other and should be reconciled, not merely shortened.
+- The agent tells the model to read 2000+ lines before editing, which directly weakens any proposed first-edit hypothesis rule unless the rewrite explicitly narrows or replaces that mandate.
+- The agent contains several absolute workflow slogans such as "every discrete work unit -> commit" and "zero text between tools" that are stronger than the surrounding execution logic and may be counterproductive in practice.
+- The current enhancement draft over-focuses on sections 3-5. Those sections still matter, but they are not the only places where the agent needs restructuring.
+
 ## What To Modify
+
+Before the specific proposed edits below, the rewrite should explicitly separate three layers that are currently blended together:
+
+1. Core autonomy contract.
+2. Default execution heuristics.
+3. Repository-specific validation and policy references.
+
+Without that separation, improvements to sections 3-5 will help, but the file will still feel overloaded and internally competitive.
 
 Items 3-5 are independent proposals, not a required implementation order. They can be applied in a different sequence if that produces a cleaner rewrite. The important constraint is conceptual consistency: the pre-edit rule, validation rule, and checklist shape should not contradict each other.
 
@@ -26,6 +44,8 @@ The handbook adds several related strategies that should also shape the rewrite.
 ### 3. Add A First-Edit Hypothesis Rule
 
 This should be reframed so that "local" means the nearest controlling abstraction, not necessarily the nearest file, the package where the failure surfaced, or the individual test case that failed first. In a framework-heavy and concurrency-heavy codebase, the first useful hypothesis may point at shared code, shared fixtures, or conflicting test data rather than PS-ID code.
+
+This proposal should also explicitly replace or narrow the current "Read 2000+ lines before editing" style of instruction. If the broad-read mandate stays unchanged, the first-edit hypothesis rule will be undermined by a conflicting instruction that rewards over-exploration before action.
 
 That would change the agent from broad exploratory searching to a focused, testable first move. Before the first edit, the agent would have to name one falsifiable hypothesis about where the behavior is actually controlled and one cheap check that could disconfirm it.
 
@@ -48,6 +68,8 @@ Example: if an integration binary hangs in teardown, the first hypothesis may be
 ### 4. Reduce The Weight Of Global Checklists
 
 This would replace a long, repetitive quality checklist with a compact execution ladder that the agent can actually follow while working. The intent is not to remove quality gates; it is to move the exhaustive detail out of the main contract and keep only the steps the agent must actively execute.
+
+After reviewing the actual beast-mode file, this proposal should be broadened. The problem is not only the formal checklist section. The agent repeats checklist behavior across pre-flight rules, completion checklists, quality gates, blocker handling, work discovery, and review-pass language. The rewrite should therefore collapse duplicate validation obligations across the whole file, not just shorten one local checklist block.
 
 The ladder should also be flexible enough to support framework-heavy and concurrency-heavy validation. It should not imply that a narrow per-package test or a single-test rerun is always the correct first executable check.
 
@@ -75,6 +97,8 @@ Example: if the path is supposed to be cross-database compatible, the focused ch
 
 This would make the post-edit workflow deterministic without hard-coding a package-local bias. After the first substantive edit, the very next step must be the cheapest executable validation that can falsify the current hypothesis. That hypothesis may be local to a framework abstraction, a shared fixture pattern, or a concurrency failure mode rather than local to the package where the failure appeared.
 
+This proposal should also explicitly overrule weaker or competing slogans in the current agent, especially instructions like "zero text between tools" and "commit after each discrete work unit" when those would interrupt a tighter edit-then-validate loop. The validation-order rule is only useful if it is clearly higher priority than generic momentum rules.
+
 Example: if the first edit changes a shared framework parser or builder, the next step should be the smallest framework-scoped test or compile target that can falsify that change. It may be broader than a single PS-ID package and still be the cheapest correct check.
 
 Example: if the first edit changes validation branching in code reused by all services, the next step should be a focused test that exercises the shared branch, not necessarily the first failing PS-ID test. If that test passes, the agent can widen to the next level of confidence; if it fails, the agent should repair that same slice before moving on.
@@ -94,7 +118,9 @@ This section is a cleanup summary, not the final agent contract. It names the ki
 - Remove repeated prose that says the same thing in different wording. Example: if the agent says "keep working" in four different ways, collapse that into one rule.
 - De-emphasize token-budget style commentary. Example: lines about rate limits or token pressure should not compete with the execution rules the agent actually needs.
 - Trim the giant pre-flight section to the pieces that are truly universal. Example: keep the baseline check and validation order, but move repo-specific policy references out of the main body.
-- Move repository-specific CI hook policy out of the main agent body unless the task is actually about CI. Example: bulk-hook architecture belongs in the handbook or a CI-focused agent, not in a general autonomous-work contract.
+- Remove or downgrade overly rigid slogans that compete with better local judgment. Example: "zero text between tools" and "commit after each discrete work unit" are too absolute compared with the more useful goal of maintaining momentum with evidence.
+- Move repository-specific operational detail out of the core contract unless it directly changes autonomous behavior. Example: bulk-hook architecture, line-ending recovery, and detailed Go command matrices belong in handbook references or task-specific addenda, not in the main autonomy rules.
+- De-emphasize broad mandatory-reading language when a narrower routing rule would do better. Example: a local hypothesis rule is more actionable than a blanket "read 2000+ lines before editing" directive.
 
 ## Suggested Shape For A Better Version
 
@@ -104,11 +130,12 @@ This is a blueprint for the rewrite, not an instruction to the current agent. It
 2. One short pre-edit hypothesis rule. Example: "Before editing, name one controlling-abstraction or shared-fixture hypothesis and one cheap disconfirming check."
 3. One short post-edit validation rule. Example: "After the first substantive edit, run the cheapest check that can falsify the hypothesis, whether that check is package-scoped, framework-scoped, or concurrency-scoped."
 4. One compact quality gate ladder. Example: "build -> focused, architecture-scoped, or concurrency-scoped check -> broad test -> commit -> final clean status."
-5. One compact anti-pattern list. Example: "Do not broaden scope before the narrow check fails or passes."
-6. Links to the handbook for anything longer than a paragraph. Example: put full coverage, mutation, and CI policy in the handbook instead of repeating them here.
+5. One short precedence rule for conflicts. Example: "When momentum rules conflict with falsification or validation rules, validation wins."
+6. One compact anti-pattern list. Example: "Do not broaden scope before the narrow check fails or passes."
+7. Links to the handbook for anything longer than a paragraph. Example: put full coverage, mutation, and CI policy in the handbook instead of repeating them here.
 
-The anti-pattern examples should explicitly include: treating the first failing test as the owner by default, converting a concurrency failure into a sequential rerun too early, stripping away TestMain or environment-parity conditions before validating a hypothesis, and ignoring cross-database or transport-specific failure modes.
+The anti-pattern examples should explicitly include: treating the first failing test as the owner by default, converting a concurrency failure into a sequential rerun too early, stripping away TestMain or environment-parity conditions before validating a hypothesis, ignoring cross-database or transport-specific failure modes, and letting generic workflow slogans outrank better local falsification logic.
 
 ## Net Effect
 
-The agent would become faster to read, easier to follow, and less likely to bury the important instruction under repeated emphasis.
+The agent would become faster to read, easier to follow, and less likely to bury the important instruction under repeated emphasis. More importantly, it would stop forcing the model to choose between competing absolutes such as broad reading, zero-text momentum, immediate commits, exhaustive checklists, and local validation. The rewrite would give the agent a clearer order of operations instead of more volume.
