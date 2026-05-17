@@ -15,18 +15,6 @@ The current beast-mode agent is directionally correct, but it is too repetitive 
 
 ## What To Modify
 
-### 1. Compress Repeated Warnings
-
-The file repeats the same ideas in several sections:
-
-- do not ask questions
-- do not stop early
-- do not summarize between tasks
-- do not leave uncommitted changes
-- do not skip validation
-
-That repetition makes the file longer without improving execution quality. Keep one canonical statement for each rule and remove duplicate restatements from later sections.
-
 ### 2. Separate Contract From Policy
 
 The agent currently mixes three different layers:
