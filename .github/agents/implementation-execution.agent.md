@@ -117,6 +117,28 @@ When a plan defines priority buckets or phased criticality, apply strict executi
 
 Never mix P2 into active P0/P1 implementation unless a blocker requires it.
 
+## Execution Flow Diagram - MANDATORY REFERENCE
+
+```mermaid
+flowchart TD
+   A[Pre-flight checks] --> B[Record baseline commit]
+   B --> C[Read plan.md and tasks.md]
+   C --> D[Execute current task]
+   D --> E{Quality gates pass?}
+   E -- No --> F[Apply recovery flow and re-run gates]
+   F --> E
+   E -- Yes --> G[Update tasks.md and lessons.md]
+   G --> H[Commit]
+   H --> I{Remaining unchecked tasks?}
+   I -- Yes --> D
+   I -- No --> J[Last-turn post-completion analysis]
+   J --> K[Reconcile plan/tasks/lessons/summary]
+   K --> L{Contradictions found?}
+   L -- Yes --> M[Create resolution phase and execute]
+   M --> K
+   L -- No --> N[Final validation and clean git status]
+```
+
 ---
 
 ## Pre-Flight Checks - MANDATORY
