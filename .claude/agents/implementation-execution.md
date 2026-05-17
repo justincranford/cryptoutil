@@ -120,18 +120,34 @@ Before claiming plan completion, reconcile all four plan artifacts in the same e
 
 Completion is INVALID if any artifact contradicts another (for example: `tasks.md` complete but `plan.md` phase statuses still TODO).
 
+**IF CONTRADICTIONS ARE FOUND**:
+- Create new phase(s) in plan.md to resolve each contradiction
+- Update tasks.md with resolution tasks
+- Execute new phases completely (read all tasks, mark all [x])
+- Re-run reconciliation gate until zero contradictions remain
+- DO NOT claim completion until gate PASSES with zero contradictions
+
 ## First-Turn Baseline Recording - MANDATORY
 
 **Execute FIRST in every implementation-execution session, BEFORE any code changes:**
 
 1. Run `git status --porcelain` → must return empty (clean workspace baseline)
 2. Run `git rev-parse HEAD` → record the output (e.g., `a1b2c3d4e5f6...`)
-3. **Store this commit ID** in a variable or document for later use (e.g., `$BASE_COMMIT`)
+3. **Store this commit ID in `.execution-metadata` file**:
+   ```bash
+   mkdir -p docs/<PLAN_DIR>/.meta
+   git rev-parse HEAD > docs/<PLAN_DIR>/.meta/base-commit.txt
+   ```
 4. This commit will be EXCLUDED from the later commit-range analysis
 
 **Purpose**: Establishes the baseline so the post-completion DETAIL-SUMMARY can analyze only commits created during THIS execution session.
 
-**Root cause**: Without a baseline, post-completion analysis cannot distinguish work done in current session from pre-existing commits.
+**Root cause**: Without a persisted baseline, post-completion analysis cannot distinguish work done in current session from pre-existing commits. Storage in git-ignored `.meta/` directory survives session interruptions and agent restarts.
+
+**Validation**: Before proceeding with implementation, verify the file exists:
+```bash
+test -f docs/<PLAN_DIR>/.meta/base-commit.txt && echo "Baseline recorded" || echo "ERROR: Baseline not recorded"
+```
 
 ## Last-Turn Post-Completion Analysis - MANDATORY
 
@@ -145,20 +161,80 @@ Completion is INVALID if any artifact contradicts another (for example: `tasks.m
 
 ### Step 2: Generate Commit-Range DETAIL-SUMMARY
 
-1. Compute the commit range: `$BASE_COMMIT^..$FINAL_COMMIT` (inclusive)
-2. Generate `docs/<PLAN_DIR>/DETAIL-SUMMARY.md` with ALL 141-file-ledger format:
-   - Per-file operation type (Create/Update/Delete/Rename)
-   - Markdown link to each file
-   - Cumulative +/- line delta in range
-   - Per-file per-commit change instances (commit short hash, subject, status, individual delta)
-3. Include a "Deep Analysis Findings" section documenting:
-   - Scope coverage check (total commits, files changed, operation breakdown)
-   - Plan/task alignment check (commits cover all phases/tasks from plan.md)
-   - Quality-gate consistency check (remediation commits align with no-deferral policy)
-   - Any contradictions FOUND between plan.md/tasks.md/lessons.md/EXEC-SUMMARY.md
-   - Any contradictions that were FIXED (with before/after details)
-   - Any agent process gaps discovered
-   - Current post-fix state (no contradictions remain, all artifacts aligned)
+**2a. Retrieve Baseline Commit**:
+```bash
+BASE_COMMIT=$(cat docs/<PLAN_DIR>/.meta/base-commit.txt)
+FINAL_COMMIT=$(git rev-parse HEAD)
+echo "Analyzing commits from $BASE_COMMIT to $FINAL_COMMIT"
+```
+
+**2b. Validate Commit Range**:
+```bash
+# Verify BASE_COMMIT is ancestor of FINAL_COMMIT
+git merge-base --is-ancestor $BASE_COMMIT $FINAL_COMMIT || {
+  echo "ERROR: BASE_COMMIT ($BASE_COMMIT) is not ancestor of FINAL_COMMIT ($FINAL_COMMIT)"
+  exit 1
+}
+
+# Verify commits exist in range
+COMMIT_COUNT=$(git log --oneline $BASE_COMMIT^..$FINAL_COMMIT | wc -l)
+echo "Found $COMMIT_COUNT commits in range"
+[ $COMMIT_COUNT -gt 0 ] || echo "WARNING: Empty commit range (no new commits)"
+```
+
+**2c. Generate File Ledger**:
+```bash
+# Create docs/<PLAN_DIR>/DETAIL-SUMMARY.md with ordered list of all files:
+# Format: 1. [operation] path (cumulative delta +X/-Y lines) with per-commit instances
+
+git diff --name-status $BASE_COMMIT^..$FINAL_COMMIT | sort | awk '{print $2}' | nl | while read num file; do
+  OPERATION=$(git diff --name-status $BASE_COMMIT^..$FINAL_COMMIT -- "$file" | head -1 | awk '{print $1}')
+  CUMULATIVE=$(git diff --stat $BASE_COMMIT^..$FINAL_COMMIT -- "$file" | tail -1 | grep -oE '[0-9]+ insertions?|[0-9]+ deletions?')
+  echo "$num. [$OPERATION] [$file]($file) — $CUMULATIVE"
+
+  # Per-commit instances
+  git log --oneline $BASE_COMMIT^..$FINAL_COMMIT -- "$file" | while read hash subject; do
+    DELTA=$(git show --numstat $hash -- "$file" | awk '{print $1 " inserted, " $2 " deleted"}')
+    echo "   - $hash $subject [$DELTA]"
+  done
+done > docs/<PLAN_DIR>/DETAIL-SUMMARY.md.tmp
+```
+
+**2d. Deep Analysis Findings Section** - Add to DETAIL-SUMMARY.md after file ledger:
+```markdown
+## Deep Analysis Findings
+
+### 1. Scope Coverage
+- Total commits in range: N
+- Files changed: N creates, N updates, N deletes, N renames
+- Total lines added: +X, removed: -Y
+- Commits align with plan.md phases: [YES/NO]
+
+### 2. Plan/Task Alignment
+- Phase coverage: Does commit range cover all phases from plan.md? [YES/NO]
+- Task coverage: Does commit range cover all tasks from tasks.md? [YES/NO]
+- Phase sequence: Are commits in logical order matching plan.md phase order? [YES/NO]
+
+### 3. Quality-Gate Consistency
+- Build/lint commits: Identified in range? [YES/NO - list hashes]
+- Test commits: Identified in range? [YES/NO - list hashes]
+- Remediation commits: Identified in range? [YES/NO - list hashes]
+- No-deferral policy: Were all blockers resolved in-range? [YES/NO]
+
+### 4. Contradictions Found
+- [List each contradiction: artifact, description, impact]
+
+### 5. Contradictions Fixed
+- [List each fix: what was found, what was changed, commit reference]
+
+### 6. Agent Process Gaps Discovered
+- [List gaps: description, severity, how to prevent]
+
+### 7. Post-Fix State
+- All artifacts reconciled: [YES/NO]
+- No contradictions remain: [YES/NO]
+- All quality gates passing: [YES/NO]
+```
 
 ### Step 3: Perform Deep Analysis Fixes
 
@@ -168,17 +244,32 @@ Completion is INVALID if any artifact contradicts another (for example: `tasks.m
 4. Update EXEC-SUMMARY.md to include explicit lessons reconciliation statement
 5. Document all fixes in DETAIL-SUMMARY.md "Deep Analysis Findings" section
 
+**ERROR RECOVERY** - If contradictions require NEW TASKS:
+- Do NOT claim completion when contradictions are found
+- Create new phase(s) in plan.md and tasks.md to resolve contradictions
+- Document in plan.md the root cause of contradictions
+- Execute new phase(s) before attempting reconciliation gate again
+- Repeat deep analysis after new phases complete
+
 ### Step 4: Harden Agent Process Gates
 
-1. Review implementation-execution agent prompts in both `.github/agents/` and `.claude/agents/` variants
-2. If any process gaps were discovered (e.g., missing reconciliation gate, incomplete first-turn instructions):
-   - Add/update the mandatory gate section in BOTH agent files (keep them synchronized)
-   - Commit with semantic message documenting the process improvement
-3. Examples of process gaps (fix if found):
-   - Missing baseline commit recording instruction
-   - Missing final-turn analysis requirement
-   - Missing deep-analysis or contradiction-detection guidance
-   - Incomplete DETAIL-SUMMARY format specification
+**4a. Identify Process Gaps** - Compare discovered gaps (from Step 3 Deep Analysis section 6) against agent spec:
+- Did execution discover missing guidance? → Agent gap
+- Did execution fail due to unclear instruction? → Agent gap
+- Did execution workaround missing step? → Agent gap
+- Examples: missing baseline storage, missing error handling, missing DETAIL-SUMMARY algorithm, etc.
+
+**4b. Update Both Agent Files** - For each identified gap:
+1. Update `.github/agents/implementation-execution.agent.md`
+2. Update `.claude/agents/implementation-execution.md` (canonical pair - must stay synchronized)
+3. Verify lint-agent-drift passes: `go run ./cmd/cicd-lint lint-docs`
+4. Commit with semantic message: `docs(agents): add <gap-description> to implementation-execution spec`
+
+**4c. Validate Synchronization** - Run canonical pair validation:
+```bash
+go run ./cmd/cicd-lint lint-docs | grep -i "lint-agent-drift"
+# Output must show both agent files PASS with identical body content (frontmatter differences are OK: tools, skills fields)
+```
 
 ### Step 5: Final Validation
 
@@ -686,7 +777,12 @@ You MUST verify these conditions BEFORE marking any task complete:
    - ≥98% infrastructure
 7. Objective evidence exists
 8. Conventional git commit exists with evidence
-9. lessons.md updated for completed phases (BLOCKING — phase section MUST NOT be empty placeholder)
+9. Canonical pair synchronization (Copilot & Claude agents) - BLOCKING:
+   - Run `go run ./cmd/cicd-lint lint-docs` → MUST PASS lint-agent-drift for implementation-execution agents
+10. lessons.md updated DURING phase (not only after reconciliation) - BLOCKING:
+    - Each completed task MUST have corresponding entry in lessons.md for its phase
+    - Phase section MUST NOT be empty placeholder
+    - Timing: lessons.md updated incrementally as tasks complete, not batched at end
 
 If any gate fails:
 
@@ -880,6 +976,25 @@ Always tell the user what you are going to do before making a tool call with a s
 11. **Reflect and Validate**: After tests pass, think about the original intent, write additional tests to ensure correctness, and remember there are hidden tests that must also pass before the solution is truly complete.
 
 12. **Post-Completion Analysis**: ALWAYS finalize the 4 plan documentation files after ALL tasks in tasks.md are marked `[x]` (see The 4 Plan Files section below).
+
+--------------------------------------------
+
+## Handoff Timing Guidance
+
+When plan modifications become necessary during execution:
+
+1. **Create/Update Plan** (use implementation-planning agent or claude-implementation-planning sub-agent):
+   - When: Plan.md or tasks.md contradictions are discovered DURING execution AND cannot be resolved with local updates
+   - When: Plan needs substantial restructuring that affects multiple phases
+   - When: Tasks require re-scoping or re-prioritization
+   - NOT used: For simple documentation updates, contradiction fixes that don't require replanning
+
+2. **Fix GitHub Workflows** (Copilot: use fix-workflows agent; Claude: document workflow fixes in plan.md):
+   - When: Plan explicitly includes workflow repair tasks
+   - When: CI/CD failures are discovered that block plan completion
+   - When: Workflow changes are needed for plan quality gates to pass
+
+**Default Behavior**: Only invoke handoff/sub-agents if planning modifications become necessary. Document the reason in plan.md before invoking.
 
 --------------------------------------------
 
