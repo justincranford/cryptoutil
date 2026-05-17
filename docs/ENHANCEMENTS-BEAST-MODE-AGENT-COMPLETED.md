@@ -2,7 +2,7 @@
 
 **Created:** 2026-05-17
 **Last Updated:** 2026-05-17
-**Status:** In Progress (4/5 complete, 0 in progress)
+**Status:** Complete (5/5 complete)
 
 ---
 
@@ -15,9 +15,9 @@ The beast-mode agent is being systematically refactored from a **repetitive, pol
 - ✅ **Item 2: Separate Contract From Policy** — COMPLETE (repository policy extraction, core contract -20 lines)
 - ✅ **Item 3: Add First-Edit Hypothesis Rule** — COMPLETE (new routing rule added, broad-read conflict resolved)
 - ✅ **Item 4: Reduce Weight Of Global Checklists** — COMPLETE (validation ladder added, duplicate checklist weight reduced)
-- ⚪ **Item 5: Make Validation Order Explicit** — Not started
+- ✅ **Item 5: Make Validation Order Explicit** — COMPLETE (post-edit order rule added, precedence over momentum slogans made explicit)
 
-**Cumulative Impact (current):** Items 1-4 complete. The agent now has less repetition, a cleaner separation between autonomy and repository policy, a sharper pre-edit routing rule, and a lighter validation structure that preserves the original quality expectations without forcing the model through the same checklist language multiple times.
+**Cumulative Impact (final):** All five items complete. The agent now has a clearer hierarchy of execution rules: less repetition, cleaner separation between autonomy and repository policy, sharper pre-edit routing, lighter completion structure, and explicit post-edit falsification order with precedence over competing momentum slogans. The contract remains autonomous and quality-heavy while being more deterministic and easier to follow.
 
 ---
 
@@ -539,19 +539,104 @@ Explicit rule defends against:
 - Unnecessary reruns (retesting things already validated)
 - Analysis paralysis (planning but not validating)
 
-### Skeleton for Detailed Implementation
+### Analysis
 
-**When implemented:**
-- [ ] Add "Validation Order After First Edit" section
-- [ ] Define 3 validation tiers: cheapest, medium, comprehensive
-- [ ] Give examples of tier assignment
-- [ ] Cross-reference from First-Edit Hypothesis Pattern
-- [ ] Connect to Quality Gate ladder
+**Problem in the original agent:**
 
-**Estimated Changes:**
-- New section: ~25 lines
-- Examples: ~15 lines
-- Total: ~40 lines added
+The agent already emphasized validation and quality, but the exact post-edit sequencing was not explicit enough. The contract had strong momentum language (for example, "zero text between tools" and "commit after each discrete work unit") and strong quality language, but it did not explicitly define priority when those forces conflicted.
+
+That gap made one failure mode likely: widening scope or committing momentum actions before performing the cheapest falsifying check for the current hypothesis.
+
+**Why item 5 mattered:**
+
+The missing piece was a deterministic post-edit order with clear precedence. Without that, the model could follow the spirit of autonomy but still do unnecessary broad reruns or speculative expansions.
+
+### Changes Implemented
+
+#### 5.1 Added New Canonical Section
+
+**Location:** Between `## First-Edit Hypothesis Rule - MANDATORY` and `## Validation Ladder - MANDATORY`
+
+**New section title:** `## Validation Order After First Edit - MANDATORY`
+
+**Core rule added:**
+- Immediately after the first substantive edit, run the cheapest executable check that can falsify the current hypothesis.
+
+#### 5.2 Added Explicit Tier Model
+
+The new section defines three validation tiers:
+
+1. Tier 1: cheapest discriminating check
+2. Tier 2: broader slice check
+3. Tier 3: comprehensive gates
+
+This tiering gives the model a deterministic escalation path and discourages jumping directly from edit to comprehensive validation.
+
+#### 5.3 Added Order and Failure Handling Rule
+
+The section now explicitly states:
+
+- Run Tier 1 immediately after first substantive edit.
+- If Tier 1 fails, fix the same slice before widening scope.
+- Widen to Tier 2 only after Tier 1 passes.
+- Run Tier 3 before claiming completion.
+
+This closes the sequencing gap that existed before item 5.
+
+#### 5.4 Added Precedence Rule Over Competing Momentum Slogans
+
+The section explicitly resolves conflicts:
+
+- When momentum rules conflict with falsification order, falsification order wins.
+- Momentum slogans (including "zero text between tools" and "commit after each discrete work unit") must not cause skipping Tier 1 or jumping straight to broad validation.
+
+This was the most important behavioral clarification in item 5.
+
+#### 5.5 Added Operational Examples
+
+Three examples were added so the rule can be followed under real repository conditions:
+
+- shared framework parser edits
+- concurrency-sensitive failures under shuffle/race
+- shared TestMain fixture suspicions
+
+These examples align item 5 with the same framework-heavy and concurrency-sensitive assumptions already adopted in items 3 and 4.
+
+### Behavioral Equivalence Verification
+
+| Scenario | Before | After | Equivalent? |
+|------|--------|-------|------------|
+| Agent must validate before completion | Required | Required | ✅ Same |
+| Agent may use focused then broad validation | Implied | Explicit tier order | ✅ Same intent, clearer sequencing |
+| Agent keeps autonomy/no-interruption behavior | Required | Required | ✅ Same |
+| Agent can validate framework/shared-fixture paths | Allowed implicitly | Allowed explicitly | ✅ Same intent, clearer routing |
+| Agent handles momentum vs validation conflicts | Underspecified | Explicit precedence rule | ✅ Stronger determinism, same quality goal |
+
+**Result:** Core behavior is preserved, but post-edit sequencing is now explicit and deterministic.
+
+### Goal Verification
+
+**Goal:** Ensure the agent behaves the same as before, but better.
+
+**Assessment:** Achieved.
+
+- The agent remains autonomous, continuous, and quality-gated.
+- No core safety or cleanliness constraints were removed.
+- The change is structural and ordering-focused: it clarifies what must happen immediately after the first edit and which rule wins when momentum and validation compete.
+
+### Cross-Dual-Canonical Consistency
+
+**Applied identically to both agents simultaneously:**
+- ✅ `.claude/agents/beast-mode.md` — added validation-order section with tiers, order rule, and precedence rule
+- ✅ `.github/agents/beast-mode.agent.md` — added validation-order section with tiers, order rule, and precedence rule
+- ✅ Body content remains synchronized between Copilot and Claude canonical files
+
+### Files Modified
+
+- ✅ `.claude/agents/beast-mode.md` — implemented item 5
+- ✅ `.github/agents/beast-mode.agent.md` — implemented item 5 (dual canonical)
+- ✅ `docs/ENHANCEMENTS-BEAST-MODE-AGENT.md` — removed completed item 5 from active draft
+- ✅ Commit: `refactor(agents): make beast mode post-edit validation order explicit`
 
 ---
 
@@ -563,7 +648,7 @@ Explicit rule defends against:
 | 2. Separate Contract From Policy | ✅ DONE | ~20-30 moves | 2026-05-17 |
 | 3. Add First-Edit Hypothesis Rule | ✅ DONE | +30 net | 2026-05-17 |
 | 4. Reduce Weight Of Checklists | ✅ DONE | -20 net | 2026-05-17 |
-| 5. Make Validation Order Explicit | ⚪ TODO | +40 | 2026-05-17 |
+| 5. Make Validation Order Explicit | ✅ DONE | +30 net | 2026-05-17 |
 | **Totals** | | **-27 to +30 net** | |
 
-**Final agent shape:** Leaner, more readable, same behavioral guarantees, clearer separation of concerns.
+**Final agent shape:** Leaner, more readable, same behavioral guarantees, clearer separation of concerns, and deterministic post-edit validation sequencing.

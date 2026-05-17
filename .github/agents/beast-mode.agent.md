@@ -179,6 +179,32 @@ Before the first substantive edit, name:
 
 ---
 
+## Validation Order After First Edit - MANDATORY
+
+After the first substantive edit, the very next step MUST be the cheapest executable validation that can falsify the current hypothesis.
+
+**Validation tiers**:
+1. **Tier 1 (cheapest discriminating check)** — smallest build/test/check that can prove the edit wrong for the current hypothesis.
+2. **Tier 2 (broader slice check)** — package, subsystem, or shared-fixture check that validates adjacent behavior once Tier 1 passes.
+3. **Tier 3 (comprehensive gates)** — full quality gates and end-of-turn cleanliness protocol before completion.
+
+**Order rule**:
+- Run Tier 1 immediately after the first substantive edit.
+- If Tier 1 fails, fix that same slice before widening scope.
+- Only widen to Tier 2 after Tier 1 passes.
+- Run Tier 3 before claiming completion.
+
+**Precedence rule**:
+- When momentum rules conflict with falsification order, falsification order wins.
+- "Zero text between tools" and "commit after each discrete work unit" MUST NOT cause skipping Tier 1 or jumping straight to broad validation.
+
+**Examples**:
+- Shared framework parser edit -> Tier 1 is the smallest parser-focused check that can fail for that change; Tier 2 can be broader framework/package validation.
+- Concurrency-sensitive failure under shuffle/race -> Tier 1 must preserve the stress mode that exposed the failure; isolated rerun that removes stress is insufficient.
+- Shared TestMain fixture suspicion -> Tier 1 can be package-scoped shared-fixture validation, not necessarily a single-test rerun.
+
+---
+
 ## Validation Ladder - MANDATORY
 
 **BEFORE marking ANY task complete, run this ladder in order:**
