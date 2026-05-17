@@ -5,10 +5,6 @@ model:
   - Auto
   - GPT-5.3-Codex (copilot)
   - Claude Sonnet 4.6 (copilot)
-skills:
-  - test-table-driven
-  - coverage-analysis
-  - migration-create
 argument-hint: "<directory-path>"
 tools:
   - agent/runSubagent
@@ -120,7 +116,7 @@ This prevents pre-commit from stashing unrelated unstaged edits and restoring a 
 2. **Module Cache**: `go list -m all` (dependencies resolved)
 3. **Go Version**: `go version` (verify 1.26.1+)
 4. **Docker**: `docker ps` (if tasks require Docker)
-   - If Docker not running, see [ENG-HANDBOOK.md Section 14.5.5](../../docs/ENG-HANDBOOK.md#1455-docker-desktop-startup---critical) for cross-platform startup instructions
+   - If Docker not running, start it:
    - Windows: `Start-Process "C:\Program Files\Docker\Docker\Docker Desktop.exe"`
    - macOS: `open -a Docker`
    - Linux: `sudo systemctl start docker` or `systemctl --user start docker-desktop`
@@ -149,7 +145,7 @@ NEVER ask speculative clarification questions before attempting investigation.
 3. **Verify task pre-completion**: Before beginning any task, read the relevant source files to check whether the task was already completed in a previous session. Prevents wasted analysis and re-implementation of already-done work.
 4. **Substitute evidence for deleted files**: When a task.md references a file path that no longer exists (e.g., a deleted intermediate output), substitute with equivalent evidence from the current run (e.g., current `go test` output, current `golangci-lint` output) rather than failing the task. Deleted files are expected in long-running plans.
 
-**Root cause**: Framework V14 Phase 1 — resuming mid-plan without linting surfaced 7 blocking `literal-use` violations that caused `TestLint_Integration` to fail throughout the remaining phases, requiring costly mid-stream fixes.
+**Root cause**: Resuming mid-plan without linting surfaced 7 blocking `literal-use` violations that caused `TestLint_Integration` to fail throughout the remaining phases, requiring costly mid-stream fixes.
 
 ## Mandatory Phase Continuation Check — CRITICAL
 
@@ -163,7 +159,7 @@ After every phase post-mortem:
 3. Count remaining `[ ]` checkboxes → must be 0 before stopping
 4. A phase named `8B` after phase `8` is a CONTINUATION, not an optional extension
 
-**Root cause of stale pattern**: Session "Framework V3 Work Review" stopped after Phase 8 post-mortem without reading Phase 8B, 9, 10, 11 — all marked TODO. 43 of 86 tasks were left incomplete (50%).
+**Root cause of stale pattern**: Session stopped after Phase 8 post-mortem without reading Phase 8B, 9, 10 — all marked TODO. 43 of 86 tasks left incomplete (50%).
 
 ## Plan Artifact Reconciliation Gate - MANDATORY
 
@@ -357,7 +353,7 @@ go run ./cmd/cicd-lint lint-docs | grep -i "lint-agent-drift"
 
 - If a task requires Docker and Docker is unavailable, it is BLOCKED (not completed, not deferred)
 - BLOCKED tasks MUST have a concrete resolution plan: which version, which phase, what prerequisites
-- **Anti-pattern (v12)**: 5 Docker-dependent tasks marked "⏳ DEFERRED (requires Docker)" with no next-version assignment, no deadline, no backlog entry — they became permanently unresolved
+- **Anti-pattern**: 5 Docker-dependent tasks marked "⏳ DEFERRED (requires Docker)" with no next-version assignment, no deadline, no backlog entry — they became permanently unresolved
 - **Correct pattern**: Mark blocked, create follow-up phase in current plan OR create explicit next-version task with acceptance criteria
 
 ## GAP Task Creation - MANDATORY
@@ -437,7 +433,7 @@ test-output/<analysis-type>/
 - ✅ **Referenced in docs**: Documentation links to subdirectory for complete evidence
 - ✅ **Descriptive names**: Clear purpose from subdirectory name
 
-**Example - Coverage Analysis** (Demonstrated in V4 Plan Phase 4):
+**Example - Coverage Analysis**:
 
 ```bash
 # Create subdirectory
@@ -488,7 +484,7 @@ CONTEXT
 --------------------------------------------
 
 Project: cryptoutil
-Agent: GitHub Copilot (Claude Sonnet 4.5)
+Agent: GitHub Copilot (Claude Sonnet 4.6)
 Mode: Autonomous long-running execution
 Token Budget: Unlimited
 Time Budget: Unlimited (hours/days acceptable)
