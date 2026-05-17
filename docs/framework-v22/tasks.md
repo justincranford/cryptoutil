@@ -1,8 +1,8 @@
 # Tasks - Framework V22: V21 Audit Fix Campaign
 
-**Status**: 70 of 71 tasks complete (98.6%) — Phase 9 now complete; one cross-cutting integration test issue remains  
-**Last Updated**: 2026-05-15  
-**Created**: 2026-05-11  
+**Status**: 70 of 71 tasks complete (98.6%) — Phase 9 now complete; one cross-cutting integration test issue remains
+**Last Updated**: 2026-05-15
+**Created**: 2026-05-11
 **Note**: tasks.md was not updated when Phase 9 completed on 2026-05-14. This update reconciles documented completion with actual evidence.
 
 ## Quality Mandate - MANDATORY
