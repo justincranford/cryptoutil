@@ -770,6 +770,29 @@ permissions:
 
 ---
 
+## Cross-Platform File & Command Conventions
+
+<!-- @source from="docs/ENG-HANDBOOK.md" as="platform-line-ending-operations" -->
+**Policy** (MANDATORY):
+
+- **Repository storage**: Always LF (`\n`). Git normalizes on commit.
+- **All text files use LF**: `.gitattributes` pins `* text=auto eol=lf`, which overrides `core.autocrlf` for all text files. Windows developers get LF in the working tree — not CRLF.
+- **`core.autocrlf` irrelevant for this repo**: The `.gitattributes eol=lf` override takes precedence. No need to set or change your global `core.autocrlf`.
+- **Why LF everywhere**: gofumpt, gofmt, goimports always output LF. YAML/Markdown/SQL/text tooling defaults to LF. CI/CD pipelines run on Linux. LF-everywhere eliminates CRLF/LF working-tree dirty-state issues on Windows.
+- **JS formatter behavior (expected)**: Prettier defaults `endOfLine=lf` (since v2.0.0) for the same cross-platform reproducibility reason.
+- **`mixed-line-ending` hook**: MUST NOT have `--fix lf` arg. Keep default "auto" mode (auto-detects the prevalent line ending per file).
+
+**Emergency recovery for a large line-ending dirty tree**:
+
+```bash
+git add --renormalize .
+```
+
+Use this when `git status` shows a large set of text files as modified after formatter runs, checkout switches, or stash/apply cycles. `--renormalize` reapplies `.gitattributes` clean rules to index entries without manual byte conversion.
+<!-- @/source -->
+
+---
+
 ## Mandatory Review Passes
 
 <!-- @source from="docs/ENG-HANDBOOK.md" as="mandatory-review-passes" -->

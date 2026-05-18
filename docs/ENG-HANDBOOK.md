@@ -3309,7 +3309,7 @@ core.safecrlf=false     # Let .gitattributes handle all line-ending policy
 
 These settings ensure `.gitattributes * text=auto eol=lf` has full control without `core.autocrlf` interference.
 
-<!-- @propagate to=".github/instructions/05-02.git.instructions.md, .github/agents/beast-mode.agent.md, .claude/agents/beast-mode.md" as="platform-line-ending-operations" -->
+<!-- @propagate to=".github/instructions/05-02.git.instructions.md, .github/agents/beast-mode.agent.md, .github/agents/implementation-planning.agent.md, .github/agents/implementation-execution.agent.md, .github/agents/fix-workflows.agent.md, .claude/agents/beast-mode.md, .claude/agents/implementation-planning.md, .claude/agents/implementation-execution.md, .claude/agents/fix-workflows.md" as="platform-line-ending-operations" -->
 **Policy** (MANDATORY):
 
 - **Repository storage**: Always LF (`\n`). Git normalizes on commit.

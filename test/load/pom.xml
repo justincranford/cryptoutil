@@ -146,6 +146,8 @@
           <artifactId>spotless-maven-plugin</artifactId>
           <version>${spotless.version}</version>
           <configuration>
+            <!-- Enforce Unix line endings (LF) per .gitattributes policy -->
+            <lineEndings>UNIX</lineEndings>
             <java>
               <googleJavaFormat>
                 <version>${google-java-format.version}</version>
