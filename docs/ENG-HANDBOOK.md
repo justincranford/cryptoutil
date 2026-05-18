@@ -473,8 +473,7 @@ Here is current git status:
 | `propagation-check` | docs | Detect @propagate/@source drift, generate corrected @source blocks | [SKILL.md](.github/skills/propagation-check/SKILL.md) |
 | `psid-template-sync` | testing | Keep stable PS-ID template-instantiated files synchronized across all 10 services via exact template-drift enforcement | [SKILL.md](.github/skills/psid-template-sync/SKILL.md) |
 | `fitness-function-gen` | tooling | Create new architecture fitness function (linter) for lint-fitness framework | [SKILL.md](.github/skills/fitness-function-gen/SKILL.md) |
-| `customization-scaffold` | tooling | Create a new repo-local agent, instruction, or skill and any required Claude counterpart without splitting the workflow across three scaffold skills | [SKILL.md](.github/skills/customization-scaffold/SKILL.md) |
-| `agent-tools-maintenance` | tooling | Audit and refresh Copilot agent tool allowlists across built-in, bundled extension, marketplace extension, and MCP sources | [SKILL.md](.github/skills/agent-tools-maintenance/SKILL.md) |
+| `customization-scaffold` | tooling | Create a new repo-local agent, instruction, or skill and any required Claude counterpart, including Copilot agent tool allowlist maintenance | [SKILL.md](.github/skills/customization-scaffold/SKILL.md) |
 | `sync-copilot-claude` | tooling | Audit and sync Copilot skills/agents with Claude skills/agents | [SKILL.md](.github/skills/sync-copilot-claude/SKILL.md) |
 
 #### 2.1.6 Agent Tool Discovery
@@ -511,7 +510,7 @@ for d in sorted(ext_dir.iterdir()):
 
 **Maintenance**: Re-run the extension scan after any VS Code update, extension install/update, or MCP server change.
 
-Use `/agent-tools-maintenance` for the end-to-end operational workflow (inventory, source mapping, refresh, and post-change verification).
+Use `/customization-scaffold` for the end-to-end operational workflow (inventory, source mapping, refresh, and post-change verification) when Copilot agent tool allowlists need maintenance.
 
 ### 2.2 Architecture Strategy
 
