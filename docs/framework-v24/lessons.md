@@ -1,135 +1,36 @@
-# Lessons - Framework V22: Server Subdirectory Migration and Tooling Debt Closure
+# Lessons - Framework V24: PS-ID Convergence
 
-**Created**: 2026-04-30
-**Purpose**: Phase post-mortem lessons for Framework V22. Populate after each phase passes its quality gates.
+**Created**: 2026-05-17
+**Last Updated**: 2026-05-17
 
-> **MANDATORY per-phase structure** (4 sections per phase):
->
-> **What Worked**: Patterns, tools, or decisions that accelerated the work or prevented issues.
->
-> **What Didn't Work**: Friction points, incorrect assumptions, or approaches that required rework.
->
-> **Root Causes**: Underlying causes of the "What Didn't Work" items.
->
-> **Patterns for Future Phases**: Actionable takeaways for subsequent phases or future plans.
+## Phase 1: sm-kms Pilot — Canonical Server Structure
 
-## Executive Summary
+_Populate after Phase 1 execution complete._
 
-1. [Phase 1: sm-kms Server Subdirectory Migration](#phase-1-sm-kms-server-subdirectory-migration) — To be filled after phase completes.
-2. [Phase 2: pki-ca Server Subdirectory Migration](#phase-2-pki-ca-server-subdirectory-migration) — To be filled after phase completes.
-3. [Phase 3: Linter Exclusion Cleanup](#phase-3-linter-exclusion-cleanup) — To be filled after phase completes.
-4. [Phase 4: Tooling Quality Improvements](#phase-4-tooling-quality-improvements) — To be filled after phase completes.
-5. [Phase 5: Verification and Closure](#phase-5-verification-and-closure) — To be filled after phase completes.
-6. [Phase 6: Knowledge Propagation](#phase-6-knowledge-propagation) — To be filled after phase completes.
+## Phase 2: pki-ca Pilot — High-Sprawl Migration
 
-## Actions
-
-(Populated after execution phases complete.)
-
-## Phase 1: sm-kms Server Subdirectory Migration
-
-**What Worked**
-
-To be filled after phase completes.
-
-**What Didn't Work**
-
-To be filled after phase completes.
-
-**Root Causes**
-
-To be filled after phase completes.
-
-**Patterns for Future Phases**
-
-To be filled after phase completes.
-
-## Phase 2: pki-ca Server Subdirectory Migration
-
-**What Worked**
-
-To be filled after phase completes.
-
-**What Didn't Work**
-
-To be filled after phase completes.
-
-**Root Causes**
-
-To be filled after phase completes.
-
-**Patterns for Future Phases**
-
-To be filled after phase completes.
+_Populate after Phase 2 execution complete._
 
 ## Phase 3: Linter Exclusion Cleanup
 
-**What Worked**
-
-To be filled after phase completes.
-
-**What Didn't Work**
-
-To be filled after phase completes.
-
-**Root Causes**
-
-To be filled after phase completes.
-
-**Patterns for Future Phases**
-
-To be filled after phase completes.
+_Populate after Phase 3 execution complete._
 
 ## Phase 4: Tooling Quality Improvements
 
-**What Worked**
+_Populate after Phase 4 execution complete._
 
-To be filled after phase completes.
+## Phase 5: All-10 PS-ID Convergence Audit
 
-**What Didn't Work**
+_Populate after Phase 5 execution complete._
 
-To be filled after phase completes.
+## Phase 6: Framework Duplication Audit
 
-**Root Causes**
+_Populate after Phase 6 execution complete._
 
-To be filled after phase completes.
+## Phase 7: Final Verification
 
-**Patterns for Future Phases**
+_Populate after Phase 7 execution complete._
 
-To be filled after phase completes.
+## Phase 8: Knowledge Propagation
 
-## Phase 5: Verification and Closure
-
-**What Worked**
-
-To be filled after phase completes.
-
-**What Didn't Work**
-
-To be filled after phase completes.
-
-**Root Causes**
-
-To be filled after phase completes.
-
-**Patterns for Future Phases**
-
-To be filled after phase completes.
-
-## Phase 6: Knowledge Propagation
-
-**What Worked**
-
-To be filled after phase completes.
-
-**What Didn't Work**
-
-To be filled after phase completes.
-
-**Root Causes**
-
-To be filled after phase completes.
-
-**Patterns for Future Phases**
-
-To be filled after phase completes.
+_Populate after Phase 8 execution complete._
