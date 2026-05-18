@@ -3299,28 +3299,17 @@ Set-Content -Path $path -Value $content -Encoding UTF8  # ❌ BOM
 
 #### 9.9.4 Platform Line-Ending Policy
 
-The repository stores files with LF line endings (`\n`). Working-tree line endings are platform-native for most text files. Go source files (`.go`, `.go.tmpl`) and crypto files (`.pem`, `.crt`, `.key`) are always LF in the working tree, even on Windows — because the tooling that processes these files (gofumpt, goimports, OpenSSL) writes LF exclusively and would otherwise create a perpetual working-tree dirty state.
+The repository uses LF line endings (`\n`) everywhere. The `.gitattributes` file pins `* text=auto eol=lf`, which overrides `core.autocrlf` for all text files — Windows developers get LF in the working tree, not CRLF. No per-developer configuration is required.
 
 <!-- @propagate to=".github/instructions/05-02.git.instructions.md, .github/agents/beast-mode.agent.md, .claude/agents/beast-mode.md" as="platform-line-ending-operations" -->
 **Policy** (MANDATORY):
 
 - **Repository storage**: Always LF (`\n`). Git normalizes on commit.
-- **Windows developers**: `git config --global core.autocrlf true` — git converts LF→CRLF on checkout, CRLF→LF on commit. Working tree is CRLF for most files; LF for Go and crypto files (see below).
-- **Linux/macOS developers**: `git config --global core.autocrlf input` — git converts CRLF→LF on commit; no conversion on checkout. Working tree has LF.
-- **Local repo override BANNED**: `git config core.autocrlf` in `.git/config` overrides per-developer global settings. On Linux a `true` override causes CRLF checkout; on Windows a `false` override breaks CRLF checkout. NEVER set any local repo override — always use the global (`--global`) setting.
-- **Go files always LF — everywhere**: `.gitattributes` pins `*.go text eol=lf` and `*.go.tmpl text eol=lf`. Go formatters (`gofmt`, `gofumpt`, `goimports`) write LF exclusively — Go's internal AST printer (`go/format`) uses `\n` for byte-stable, deterministic output. Without this pin, Windows CRLF checkout + gofumpt LF rewrite = perpetual dirty working tree on every formatter run. The `eol=lf` override forces LF checkout for Go files so gofumpt never creates a working-tree mismatch.
-- **Crypto files always LF**: `.gitattributes` pins `*.pem`, `*.crt`, `*.key` to `eol=lf`. OpenSSL and crypto tooling generate LF; some strict TLS parsers reject CRLF.
+- **All text files use LF**: `.gitattributes` pins `* text=auto eol=lf`, which overrides `core.autocrlf` for all text files. Windows developers get LF in the working tree — not CRLF.
+- **`core.autocrlf` irrelevant for this repo**: The `.gitattributes eol=lf` override takes precedence. No need to set or change your global `core.autocrlf`.
+- **Why LF everywhere**: gofumpt, gofmt, goimports always output LF. YAML/Markdown/SQL/text tooling defaults to LF. CI/CD pipelines run on Linux. LF-everywhere eliminates CRLF/LF working-tree dirty-state issues on Windows.
 - **JS formatter behavior (expected)**: Prettier defaults `endOfLine=lf` (since v2.0.0) for the same cross-platform reproducibility reason.
-- **Git mediation principle**: `* text=auto` handles CRLF/LF for most text files (platform-native). Per-type `eol=lf` overrides in `.gitattributes` (Go, PEM, crypto) force LF even on Windows for file types where tools enforce LF internally.
-- **`mixed-line-ending` hook**: MUST NOT have `--fix lf` arg. Keep default "auto" mode.
-
-**To fix if local override was set**:
-
-```bash
-git config --unset core.autocrlf          # remove local override
-git config core.autocrlf                  # verify: empty = global takes effect
-git config --global core.autocrlf         # verify: true (Windows) or input (Linux)
-```
+- **`mixed-line-ending` hook**: MUST NOT have `--fix lf` arg. Keep default "auto" mode (auto-detects the prevalent line ending per file).
 
 **Emergency recovery for a large line-ending dirty tree**:
 

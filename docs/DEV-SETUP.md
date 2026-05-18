@@ -606,30 +606,16 @@ git clone https://github.com/justincranford/cryptoutil.git
 cd cryptoutil
 ```
 
-### 2. Configure Git Line Endings (one-time, per machine)
+### 2. Configure Git Line Endings (not required for this repo)
 
-This repo uses `.gitattributes * text=auto` — objects are stored as LF; working-tree
-line endings follow your platform setting.
+This repo uses `.gitattributes * text=auto eol=lf` — the `eol=lf` attribute overrides
+`core.autocrlf` for all text files. Windows developers get LF checkouts automatically.
+No `core.autocrlf` configuration is required.
 
-**Windows** (CRLF working tree):
-
-```bash
-git config core.autocrlf true
-```
-
-**Linux / macOS** (LF working tree):
-
-```bash
-git config core.autocrlf input
-```
-
-> **Why `input` on Linux?** `input` means "normalize CRLF → LF on commit, but never convert
-> on checkout". Combined with `text=auto`, this keeps object blobs as LF and leaves your
-> working tree as LF. Using `false` disables all conversion and can push CRLF blobs.
->
-> **Go tooling writes LF everywhere.** `gofmt`, `gofumpt`, and `goimports` always output LF
-> regardless of platform. This is intentional and works correctly with the setup above:
-> `text=auto` normalizes the index entry to LF so `git status` stays clean after tool runs.
+> **Why LF everywhere?** gofumpt, gofmt, and goimports always output LF regardless of
+> platform. YAML, Markdown, SQL, and other text tooling also default to LF. CI/CD runs on
+> Linux. LF-everywhere eliminates the CRLF/LF working-tree dirty-state issues that occur
+> when `core.autocrlf=true` and a formatter rewrites files with LF.
 >
 > **If `git status` ever shows a large dirty tree** after running `golangci-lint --fix`,
 > the index has stale line-ending metadata. Fix with:

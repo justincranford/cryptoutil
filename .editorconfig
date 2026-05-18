@@ -6,6 +6,7 @@ root = true
 # Default settings for all files
 [*]
 charset = utf-8
+end_of_line = lf
 trim_trailing_whitespace = true
 insert_final_newline = true
 indent_style = space
@@ -18,13 +19,11 @@ indent_size = 4
 # exclusively by gofmt/golangci-lint pre-commit hooks.
 [*.go]
 indent_size = 4
-end_of_line = lf
 
 # Go template files
 [*.go.tpl]
 indent_style = tab
 indent_size = 4
-end_of_line = lf
 
 # YAML configuration files (2-space indent)
 [*.{yml,yaml}]

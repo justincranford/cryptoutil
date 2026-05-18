@@ -236,13 +236,14 @@ fix(tooling): fix config file padding violations
 **Anti-Pattern** (NEVER): One 155-file commit mixing CRLF fixes, Dockerfile tabs, .editorconfig changes, shell padding, and YAML continuation lines.
 
 <!-- @source from="docs/ENG-HANDBOOK.md" as="platform-line-ending-operations" -->
-**To fix if local override was set**:
+**Policy** (MANDATORY):
 
-```bash
-git config --unset core.autocrlf          # remove local override
-git config core.autocrlf                  # verify: empty = global takes effect
-git config --global core.autocrlf         # verify: true (Windows) or input (Linux)
-```
+- **Repository storage**: Always LF (`\n`). Git normalizes on commit.
+- **All text files use LF**: `.gitattributes` pins `* text=auto eol=lf`, which overrides `core.autocrlf` for all text files. Windows developers get LF in the working tree — not CRLF.
+- **`core.autocrlf` irrelevant for this repo**: The `.gitattributes eol=lf` override takes precedence. No need to set or change your global `core.autocrlf`.
+- **Why LF everywhere**: gofumpt, gofmt, goimports always output LF. YAML/Markdown/SQL/text tooling defaults to LF. CI/CD pipelines run on Linux. LF-everywhere eliminates CRLF/LF working-tree dirty-state issues on Windows.
+- **JS formatter behavior (expected)**: Prettier defaults `endOfLine=lf` (since v2.0.0) for the same cross-platform reproducibility reason.
+- **`mixed-line-ending` hook**: MUST NOT have `--fix lf` arg. Keep default "auto" mode (auto-detects the prevalent line ending per file).
 
 **Emergency recovery for a large line-ending dirty tree**:
 
@@ -591,22 +592,11 @@ A response that leaves uncommitted changes is incomplete by definition. The Work
 **Policy** (MANDATORY):
 
 - **Repository storage**: Always LF (`\n`). Git normalizes on commit.
-- **Windows developers**: `git config --global core.autocrlf true` — git converts LF→CRLF on checkout, CRLF→LF on commit. Working tree is CRLF for most files; LF for Go and crypto files (see below).
-- **Linux/macOS developers**: `git config --global core.autocrlf input` — git converts CRLF→LF on commit; no conversion on checkout. Working tree has LF.
-- **Local repo override BANNED**: `git config core.autocrlf` in `.git/config` overrides per-developer global settings. On Linux a `true` override causes CRLF checkout; on Windows a `false` override breaks CRLF checkout. NEVER set any local repo override — always use the global (`--global`) setting.
-- **Go files always LF — everywhere**: `.gitattributes` pins `*.go text eol=lf` and `*.go.tmpl text eol=lf`. Go formatters (`gofmt`, `gofumpt`, `goimports`) write LF exclusively — Go's internal AST printer (`go/format`) uses `\n` for byte-stable, deterministic output. Without this pin, Windows CRLF checkout + gofumpt LF rewrite = perpetual dirty working tree on every formatter run. The `eol=lf` override forces LF checkout for Go files so gofumpt never creates a working-tree mismatch.
-- **Crypto files always LF**: `.gitattributes` pins `*.pem`, `*.crt`, `*.key` to `eol=lf`. OpenSSL and crypto tooling generate LF; some strict TLS parsers reject CRLF.
+- **All text files use LF**: `.gitattributes` pins `* text=auto eol=lf`, which overrides `core.autocrlf` for all text files. Windows developers get LF in the working tree — not CRLF.
+- **`core.autocrlf` irrelevant for this repo**: The `.gitattributes eol=lf` override takes precedence. No need to set or change your global `core.autocrlf`.
+- **Why LF everywhere**: gofumpt, gofmt, goimports always output LF. YAML/Markdown/SQL/text tooling defaults to LF. CI/CD pipelines run on Linux. LF-everywhere eliminates CRLF/LF working-tree dirty-state issues on Windows.
 - **JS formatter behavior (expected)**: Prettier defaults `endOfLine=lf` (since v2.0.0) for the same cross-platform reproducibility reason.
-- **Git mediation principle**: `* text=auto` handles CRLF/LF for most text files (platform-native). Per-type `eol=lf` overrides in `.gitattributes` (Go, PEM, crypto) force LF even on Windows for file types where tools enforce LF internally.
-- **`mixed-line-ending` hook**: MUST NOT have `--fix lf` arg. Keep default "auto" mode.
-
-**To fix if local override was set**:
-
-```bash
-git config --unset core.autocrlf          # remove local override
-git config core.autocrlf                  # verify: empty = global takes effect
-git config --global core.autocrlf         # verify: true (Windows) or input (Linux)
-```
+- **`mixed-line-ending` hook**: MUST NOT have `--fix lf` arg. Keep default "auto" mode (auto-detects the prevalent line ending per file).
 
 **Emergency recovery for a large line-ending dirty tree**:
 

@@ -1,23 +1,7 @@
-# Normalize all text files in the repository; working-tree line endings follow core.autocrlf
-* text=auto
-
-# Windows-specific files that must remain CRLF
-*.bat text eol=crlf
-*.cmd text eol=crlf
-
-# Go source files — always LF (gofmt/gofumpt/goimports write LF by design)
-*.go text eol=lf
-*.go.tmpl text eol=lf
-
-# Crypto text files — PEM is text (RFC 7468 §2: eol = CRLF / CR / LF, parsers MUST handle all)
-# Pinned to LF: openssl and crypto tooling generates LF; some strict TLS parsers reject CRLF
-*.pem text eol=lf
-*.crt text eol=lf
-*.key text eol=lf
-
-# Secret files — ALWAYS LF (CRLF corrupts credentials when loaded via _FILE environment variables)
-# Example: POSTGRES_PASSWORD_FILE=/run/secrets/postgres-password.secret with CRLF content → PostgreSQL auth fails
-*.secret text eol=lf
+# LF everywhere: all text files use LF in both repository storage and working tree.
+# .gitattributes eol=lf overrides core.autocrlf for all matched files — Windows developers
+# get LF checkouts, not CRLF. No need to set or change core.autocrlf globally.
+* text=auto eol=lf
 
 # Binary files — do not attempt line ending conversion
 *.exe binary
