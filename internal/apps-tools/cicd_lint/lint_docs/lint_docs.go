@@ -12,6 +12,7 @@ import (
 	cryptoutilLintAgentDrift "cryptoutil/internal/apps-tools/cicd_lint/lint_docs/lint_agent_drift"
 	cryptoutilLintAgentSelfContainment "cryptoutil/internal/apps-tools/cicd_lint/lint_docs/lint_agent_self_containment"
 	cryptoutilLintArchitectureLinks "cryptoutil/internal/apps-tools/cicd_lint/lint_docs/lint_architecture_links"
+	cryptoutilLintDeprecatedCRLFPhrasing "cryptoutil/internal/apps-tools/cicd_lint/lint_docs/lint_deprecated_crlf_phrasing"
 	cryptoutilLintSkillCommandDrift "cryptoutil/internal/apps-tools/cicd_lint/lint_docs/lint_skill_command_drift"
 	cryptoutilPropagationCoverage "cryptoutil/internal/apps-tools/cicd_lint/lint_docs/propagation_coverage"
 	cryptoutilValidateChunks "cryptoutil/internal/apps-tools/cicd_lint/lint_docs/validate_chunks"
@@ -35,6 +36,7 @@ var registeredLinters = []struct {
 	{"lint-agent-drift", cryptoutilLintAgentDrift.Check},
 	{"lint-skill-command-drift", cryptoutilLintSkillCommandDrift.Check},
 	{"lint-agent-self-containment", cryptoutilLintAgentSelfContainment.Check},
+	{"lint-deprecated-crlf-phrasing", cryptoutilLintDeprecatedCRLFPhrasing.Check},
 	{"lint-architecture-links", cryptoutilLintArchitectureLinks.Check},
 }
 

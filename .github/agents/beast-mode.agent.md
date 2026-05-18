@@ -267,12 +267,12 @@ After the first substantive edit, the very next step MUST be the cheapest execut
 **Correct Example** (user asks "fix all pre-commit violations"):
 ```
 fix(tooling): add .gitattributes LF normalization policy
-fix(tooling): renormalize CRLF files to LF
+fix(tooling): renormalize line endings to LF
 fix(tooling): fix Dockerfile tab indentation
 fix(tooling): fix config file padding violations
 ```
 
-**Anti-Pattern** (NEVER): One 155-file commit mixing CRLF fixes, Dockerfile tabs, .editorconfig changes, shell padding, and YAML continuation lines.
+**Anti-Pattern** (NEVER): One 155-file commit mixing line-ending fixes, Dockerfile tabs, .editorconfig changes, shell padding, and YAML continuation lines.
 
 <!-- @source from="docs/ENG-HANDBOOK.md" as="platform-line-ending-operations" -->
 **Policy** (MANDATORY): All text files use LF (`\n`). Repository storage: LF. Checkout: LF. `.gitattributes` pin: `* text=auto eol=lf` (overrides `core.autocrlf`). `core.autocrlf` irrelevant for this repo. Windows developers get LF in working tree, not CRLF. `mixed-line-ending` hook: MUST NOT have `--fix lf` arg — keep auto-detect mode.
