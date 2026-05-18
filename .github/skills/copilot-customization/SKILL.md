@@ -1,27 +1,29 @@
 ---
 name: copilot-customization
-description: "Create repo-local customization files for agents, instructions, or skills, including required Claude counterparts for dual-canonical artifacts. Use when adding a new .github/.claude customization so file format, catalog registration, and drift rules stay compliant."
+description: "Create, update, or delete repo-local customization files for agents, instructions, or skills, including required Claude counterparts and catalog updates. Use when changing .github/.claude customization artifacts so file format, discoverability, and drift rules stay compliant."
 argument-hint: "[agent NAME | instruction NN-NN.name | skill NAME]"
 disable-model-invocation: true
 ---
 
-Create the correct repo-local customization artifact and its required mirrored files.
+Create, update, or remove the correct repo-local customization artifacts and their required mirrored files.
 
 ## Purpose
 
-Use when adding a new repository customization artifact under `.github/` or `.claude/`.
+Use when creating, updating, or deleting repository customization artifacts under `.github/` or `.claude/`.
 This single skill replaces the separate scaffold-only helpers for agents,
 instructions, and skills.
 
 ## Key Rules
 
 - Pick one artifact type per invocation: `agent`, `instruction`, or `skill`
+- Decide the operation up front: create, update, or delete
 - Agents are dual-canonical: create BOTH `.github/agents/NAME.agent.md` and `.claude/agents/NAME.md`
 - Skills are dual-canonical: create BOTH `.github/skills/NAME/SKILL.md` and `.claude/skills/NAME/SKILL.md`
-- Instructions are Copilot-only: create `.github/instructions/NN-NN.name.instructions.md`
+- Instruction files live in `.github/instructions/`, and Claude consumes them through the `## Instruction Files` list in `CLAUDE.md`
 - Agent and skill body content MUST stay identical across Copilot and Claude pairs; only permitted frontmatter differences may differ
+- Keep `CLAUDE.md` synchronized: update the `Instruction Files`, `Agents`, and `Skills` sections when their inventories change
 - Update the relevant catalog surfaces in the same change: `.github/skills/README.md`, `.github/copilot-instructions.md`, `CLAUDE.md`, and `docs/ENG-HANDBOOK.md` when the artifact should be discoverable there
-- Run `go run ./cmd/cicd-lint lint-docs` after creating or updating any customization artifact
+- Run `go run ./cmd/cicd-lint lint-docs` after creating, updating, or deleting any customization artifact
 - Use `sync-copilot-claude` to audit or repair existing drift; use this skill to create new artifacts with the correct structure from the start
 - Maintain Copilot agent `tools:` allowlists here when VS Code, Copilot, extensions, or MCP servers change tool availability
 
@@ -40,7 +42,8 @@ instructions, and skills.
 - YAML frontmatter MUST contain `description:` and `applyTo:`
 - Use `@source` blocks for propagated handbook content
 - `@source` content MUST match the corresponding handbook `@propagate` block byte-for-byte
-- Add the new instruction to `.github/copilot-instructions.md` when it is part of the active instruction catalogue
+- Keep the `## Instruction Files` section in `CLAUDE.md` aligned with `.github/copilot-instructions.md`
+- Add or remove the instruction in `.github/copilot-instructions.md` when it is part of the active instruction catalogue
 
 ## Skill Scaffold Rules
 
@@ -49,54 +52,15 @@ instructions, and skills.
 - Skill directory name MUST match the `name:` field exactly
 - Both files MUST contain a `## Key Rules` section
 - Claude skills MUST omit Copilot-only frontmatter such as `disable-model-invocation`
-- Add the skill to `.github/skills/README.md`, `.github/copilot-instructions.md`, `CLAUDE.md`, and `docs/ENG-HANDBOOK.md`
+- Add or remove the skill in `.github/skills/README.md`, `.github/copilot-instructions.md`, `CLAUDE.md`, and `docs/ENG-HANDBOOK.md`
 
 ## Agent Tool Maintenance Rules
 
-- Copilot agent tool maintenance belongs in this skill; do not create a separate Claude-oriented tool-maintenance skill for it
-- Treat `.github/agents/*.agent.md` `tools:` lists as a Copilot allowlist contract
-- Keep tool IDs in provider-native format:
-  - Copilot built-in categories: `category/toolReferenceName`
-  - Non-Copilot extension tools: `toolReferenceName` (or `name` if no `toolReferenceName`)
-  - Explicit extension-prefixed tools: `publisher.extension/toolReferenceName`
-- Claude agent files omit `tools:` and therefore do not need a tool-list maintenance workflow beyond normal body sync
-- Validate tool sources before adding or removing any tool
-- Prefer source-of-truth evidence over memory:
-  - bundled VS Code extension manifests
-  - installed marketplace extension manifests under `~/.vscode/extensions/*/package.json`
-  - MCP config files (`.vscode/mcp.json` and user-profile `mcp.json`)
-  - runtime tool picker or deferred-tool visibility in active agent sessions
-
-## Agent Tool Source Types
-
-Tool availability in Copilot agent mode comes from four source families:
-
-1. Built-in tools (core + Copilot-provided categories)
-2. Bundled VS Code extensions shipped with the VS Code install
-3. Marketplace extensions under `~/.vscode/extensions/`
-4. MCP servers configured in workspace or user-profile `mcp.json`
-
-## Agent Tool Maintenance Workflow
-
-1. Inventory all unique tools used in `.github/agents/*.agent.md`.
-2. Resolve each tool to a real provider source.
-3. Detect missing, renamed, or newly available tools after environment churn.
-4. Patch the affected Copilot agent `tools:` lists.
-5. Leave `.claude/agents/*.md` unchanged for tools; Claude omits the field.
-6. Re-run `go run ./cmd/cicd-lint lint-docs`.
-
-## Cryptoutil Agent Tool Baseline
-
-Use this repository baseline as a quick sanity check:
-
-- `agent/*`, `edit/*`, `execute/*`, `read/*`, `search/*`, `vscode/*`, `web/*`:
-  source is GitHub Copilot Chat built-in tool categories
-- `vscode.mermaid-chat-features/renderMermaidDiagram`:
-  source is bundled VS Code extension `mermaid-chat-features`
-- `selection`, `todo`:
-  source is Copilot runtime/built-in tool surface
-
-If any of these disappear or rename after an update, refresh the mapping from manifests and runtime visibility before editing agent files.
+- Keep Copilot agent tool maintenance in this skill; do not split it into a separate tool-maintenance skill
+- Treat `.github/agents/*.agent.md` `tools:` lists as a Copilot allowlist contract; Claude agent files omit `tools:`
+- Validate tool IDs against real sources before changing them: built-in Copilot categories, bundled VS Code extensions, installed marketplace extensions, or MCP servers
+- Use provider-native IDs: `category/toolReferenceName` for Copilot built-ins, `toolReferenceName` or `name` for extension tools, and `publisher.extension/toolReferenceName` when explicitly namespaced
+- After any tool-list change, rerun `go run ./cmd/cicd-lint lint-docs`
 
 ## Minimal Templates
 
@@ -159,12 +123,12 @@ When to use this skill.
 
 ## Checklist
 
-- [ ] Correct file path and naming convention for the selected artifact type
+- [ ] Correct file path and naming convention for the selected artifact type and operation
 - [ ] Required Copilot and Claude pair created for agents or skills
 - [ ] Frontmatter fields valid for the selected file type
 - [ ] `## Key Rules` present where required
 - [ ] Handbook references added where the artifact relies on repo-specific standards
-- [ ] Discovery/catalog entries updated in the relevant index files
+- [ ] Discovery/catalog entries updated or removed in the relevant index files
 - [ ] `go run ./cmd/cicd-lint lint-docs` passes
 
 ## References
