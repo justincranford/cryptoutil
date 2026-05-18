@@ -190,7 +190,7 @@ artifacts that must never be committed.
 ├── README.md
 ├── psid-template-sync/SKILL.md
 ├── coverage-analysis/SKILL.md
-├── customization-scaffold/SKILL.md
+├── copilot-customization/SKILL.md
 ├── fips-audit/SKILL.md
 ├── fitness-function-gen/SKILL.md
 ├── migration-create/SKILL.md
@@ -243,7 +243,7 @@ for the dual canonical file strategy and drift linting (`lint-agent-drift`, `lin
 └── skills/                                # Claude skills (13 — mirrors .github/skills/)
     ├── psid-template-sync/SKILL.md
     ├── coverage-analysis/SKILL.md
-    ├── customization-scaffold/SKILL.md
+    ├── copilot-customization/SKILL.md
     ├── fips-audit/SKILL.md
     ├── fitness-function-gen/SKILL.md
     ├── migration-create/SKILL.md

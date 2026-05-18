@@ -1,5 +1,5 @@
 ---
-name: customization-scaffold
+name: copilot-customization
 description: "Create repo-local customization files for agents, instructions, or skills, including required Claude counterparts for dual-canonical artifacts. Use when adding a new .github/.claude customization so file format, catalog registration, and drift rules stay compliant."
 argument-hint: "[agent NAME | instruction NN-NN.name | skill NAME]"
 ---

@@ -303,7 +303,7 @@ VS Code Copilot supports exactly 3 customization file types:
 | **Agents (Claude Code)** | `.claude/agents/*.md` | `/agent-name` invocation | Same agents, Claude Code canonical — omits `tools:` (inherits all tools) |
 | **Skills** | `.github/skills/NAME/SKILL.md` | `/skill-name` slash command or auto-loaded | On-demand templates, code generation, analysis |
 
-**Dual Canonical Strategy**: `.github/agents/*.agent.md` is the Copilot-authoritative source (with `tools:` whitelist, `handoffs:`, `skills:`). `.claude/agents/*.md` is the Claude Code-authoritative source (omits `tools:` — Claude inherits all tools). Both files must be kept in sync when agent content changes. Use `/customization-scaffold` to create new agents, instructions, or skills with the correct mirrored files.
+**Dual Canonical Strategy**: `.github/agents/*.agent.md` is the Copilot-authoritative source (with `tools:` whitelist, `handoffs:`, `skills:`). `.claude/agents/*.md` is the Claude Code-authoritative source (omits `tools:` — Claude inherits all tools). Both files must be kept in sync when agent content changes. Use `/copilot-customization` to create new agents, instructions, or skills with the correct mirrored files.
 
 See [Section 2.1.5 Copilot Skills](#215-copilot-skills) for skill catalogue and `.github/skills/` organization.
 
@@ -473,7 +473,7 @@ Here is current git status:
 | `propagation-check` | docs | Detect @propagate/@source drift, generate corrected @source blocks | [SKILL.md](.github/skills/propagation-check/SKILL.md) |
 | `psid-template-sync` | testing | Keep stable PS-ID template-instantiated files synchronized across all 10 services via exact template-drift enforcement | [SKILL.md](.github/skills/psid-template-sync/SKILL.md) |
 | `fitness-function-gen` | tooling | Create new architecture fitness function (linter) for lint-fitness framework | [SKILL.md](.github/skills/fitness-function-gen/SKILL.md) |
-| `customization-scaffold` | tooling | Create a new repo-local agent, instruction, or skill and any required Claude counterpart, including Copilot agent tool allowlist maintenance | [SKILL.md](.github/skills/customization-scaffold/SKILL.md) |
+| `copilot-customization` | tooling | Create a new repo-local agent, instruction, or skill and any required Claude counterpart, including Copilot agent tool allowlist maintenance | [SKILL.md](.github/skills/copilot-customization/SKILL.md) |
 | `sync-copilot-claude` | tooling | Audit and sync Copilot skills/agents with Claude skills/agents | [SKILL.md](.github/skills/sync-copilot-claude/SKILL.md) |
 
 #### 2.1.6 Agent Tool Discovery
@@ -510,7 +510,7 @@ for d in sorted(ext_dir.iterdir()):
 
 **Maintenance**: Re-run the extension scan after any VS Code update, extension install/update, or MCP server change.
 
-Use `/customization-scaffold` for the end-to-end operational workflow (inventory, source mapping, refresh, and post-change verification) when Copilot agent tool allowlists need maintenance.
+Use `/copilot-customization` for the end-to-end operational workflow (inventory, source mapping, refresh, and post-change verification) when Copilot agent tool allowlists need maintenance.
 
 ### 2.2 Architecture Strategy
 

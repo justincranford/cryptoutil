@@ -5,7 +5,7 @@ Last Updated: 2026-05-17
 
 ## Executive Summary
 
-1. [Customization Scaffold](#customization-scaffold): merged `agent-scaffold`, `instruction-scaffold`, and `skill-scaffold` into one repo-local customization workflow and removed the redundant legacy directories.
+1. [Copilot Customization](#copilot-customization): merged `agent-scaffold`, `instruction-scaffold`, and `skill-scaffold` into one repo-local customization workflow and removed the redundant legacy directories.
 2. [Test Table Driven](#test-table-driven): tightened the handler-versus-lifecycle boundary, added suite-flake triage guidance, and corrected the heavyweight `TestMain` example toward shared SQLite helpers.
 3. [Test Benchmark Gen](#test-benchmark-gen): removed benchmark-harness noise from the timed example and added baseline-versus-current regression reading guidance.
 4. [Propagation Check](#propagation-check): replaced an invalid `lint-docs validate-propagation` command with the real `lint-docs` entrypoint and removed Python-specific inspection guidance.
@@ -19,13 +19,13 @@ Last Updated: 2026-05-17
 12. [OpenAPI Codegen](#openapi-codegen): reviewed for handbook compliance and overlap; no edits were required because the skill remains a focused OpenAPI/config generation helper.
 13. [PSID Template Sync](#psid-template-sync): reviewed for handbook compliance and overlap; no edits were required because the skill already has a tight boundary around exact-match template families.
 
-## Customization Scaffold
+## Copilot Customization
 
 - Compliance review: The old scaffold family was structurally correct in isolation, but the catalog violated the repo's own simplification goal because three near-identical creation helpers fragmented one workflow.
 - Overlap review: `agent-scaffold`, `instruction-scaffold`, and `skill-scaffold` all scaffolded repo-local customization artifacts and competed with `sync-copilot-claude` on when to create mirrored Claude files.
 - Issues found: redundant catalog entries, duplicated creation logic, and unnecessary decision overhead in the README and command tables.
-- Fixes applied: created `customization-scaffold`, removed the three legacy skill pairs, updated the README, `CLAUDE.md`, `.github/copilot-instructions.md`, `docs/ENG-HANDBOOK.md`, and `docs/target-structure.md`, and added a "most-used skills" section to de-emphasize long flat indexes.
-- Final scope boundary: `customization-scaffold` creates new repo-local customization artifacts; `sync-copilot-claude` audits or repairs existing dual-canonical drift.
+- Fixes applied: created `copilot-customization`, removed the three legacy skill pairs, updated the README, `CLAUDE.md`, `.github/copilot-instructions.md`, `docs/ENG-HANDBOOK.md`, and `docs/target-structure.md`, and added a "most-used skills" section to de-emphasize long flat indexes.
+- Final scope boundary: `copilot-customization` creates new repo-local customization artifacts; `sync-copilot-claude` audits or repairs existing dual-canonical drift.
 
 ## Test Table Driven
 
@@ -57,7 +57,7 @@ Last Updated: 2026-05-17
 - Overlap review: Before the merge, it overlapped weakly with the scaffold skills by partly describing missing-file creation without describing when catalog entries or redundant skills had to be removed.
 - Issues found: shell- and Python-heavy examples, no explicit catalog discoverability review, and no instruction to retire redundant skills in the same change after a merge.
 - Fixes applied: removed the platform-specific audit snippets, added catalog review requirements, added overlap-retirement guidance, and made same-commit cleanup explicit.
-- Final scope boundary: use this skill to synchronize existing pairs and surrounding catalog references after edits; use `customization-scaffold` to create a new skill or agent pair from scratch.
+- Final scope boundary: use this skill to synchronize existing pairs and surrounding catalog references after edits; use `copilot-customization` to create a new skill or agent pair from scratch.
 
 ## Coverage Analysis
 
@@ -88,7 +88,7 @@ Last Updated: 2026-05-17
 - Compliance review: The skill contained stale service-port examples and several Bash-only copy or rename snippets that were a poor fit for the repo's cross-platform guidance.
 - Overlap review: The skill mixed whole-service rollout steps with migration, OpenAPI, and customization work that each already has a focused adjacent skill.
 - Issues found: incorrect service-catalog rows, shell-centric cloning instructions, and weak routing to adjacent specialist skills.
-- Fixes applied: corrected the JOSE, PKI, and Identity port examples, removed Bash-only command blocks in favor of repo-aware procedural steps, and explicitly routed migration, OpenAPI, and customization work to `migration-create`, `openapi-codegen`, and `customization-scaffold`.
+- Fixes applied: corrected the JOSE, PKI, and Identity port examples, removed Bash-only command blocks in favor of repo-aware procedural steps, and explicitly routed migration, OpenAPI, and customization work to `migration-create`, `openapi-codegen`, and `copilot-customization`.
 - Final scope boundary: use this skill for end-to-end service instantiation from `skeleton-template`; use the narrower skills when the task is only one slice of that rollout.
 
 ## FIPS Audit

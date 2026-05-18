@@ -11,7 +11,7 @@ Guide service creation from skeleton-template: copy, rename, register, migrate, 
 Use when creating a new cryptoutil service from the template. Covers all steps
 from cloning the skeleton to registering the service in validation and documentation.
 
-Use `migration-create` for the migration file details, `openapi-codegen` for API scaffolding, and `customization-scaffold` for new repo-local agent or skill artifacts created during the service rollout.
+Use `migration-create` for the migration file details, `openapi-codegen` for API scaffolding, and `copilot-customization` for new repo-local agent or skill artifacts created during the service rollout.
 
 ## Key Rules
 
