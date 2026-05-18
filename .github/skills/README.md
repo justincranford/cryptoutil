@@ -23,6 +23,7 @@ Copilot auto-load it when your request matches the skill description.
 
 - `/test-table-driven` for day-to-day Go test authoring and review
 - `/coverage-analysis` for targeted coverage closure after a focused test run
+- `/agent-tools-maintenance` for validating and refreshing Copilot agent tool allowlists after tool churn
 - `/sync-copilot-claude` when you edited an existing agent or skill pair
 - `/customization-scaffold` when you need a new repo-local agent, instruction, or skill
 - `/openapi-codegen` when a service API surface or codegen config changes
@@ -41,6 +42,7 @@ Copilot auto-load it when your request matches the skill description.
 | `new-service` | architecture | Guide service creation from skeleton-template: copy, rename, register, migrate, test | [SKILL.md](new-service/SKILL.md) |
 | `propagation-check` | docs | Detect @propagate/@source drift, generate corrected @source blocks | [SKILL.md](propagation-check/SKILL.md) |
 | `customization-scaffold` | tooling | Create a new repo-local agent, instruction, or skill and any required Claude counterpart without splitting the workflow across three scaffold skills | [SKILL.md](customization-scaffold/SKILL.md) |
+| `agent-tools-maintenance` | tooling | Audit and refresh Copilot agent tool allowlists across built-in, bundled extension, marketplace extension, and MCP sources | [SKILL.md](agent-tools-maintenance/SKILL.md) |
 | `sync-copilot-claude` | tooling | Audit/sync Copilot skills+agents with Claude skills+agents; migration status for legacy commands | [SKILL.md](sync-copilot-claude/SKILL.md) |
 | `psid-template-sync` | testing | Keep stable PS-ID template-instantiated files synchronized across all 10 services via template-drift | [SKILL.md](psid-template-sync/SKILL.md) |
 | `fitness-function-gen` | testing | Generate architecture fitness functions for lint-fitness (Check, CheckInDir, registration) | [SKILL.md](fitness-function-gen/SKILL.md) |

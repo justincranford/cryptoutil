@@ -474,6 +474,7 @@ Here is current git status:
 | `psid-template-sync` | testing | Keep stable PS-ID template-instantiated files synchronized across all 10 services via exact template-drift enforcement | [SKILL.md](.github/skills/psid-template-sync/SKILL.md) |
 | `fitness-function-gen` | tooling | Create new architecture fitness function (linter) for lint-fitness framework | [SKILL.md](.github/skills/fitness-function-gen/SKILL.md) |
 | `customization-scaffold` | tooling | Create a new repo-local agent, instruction, or skill and any required Claude counterpart without splitting the workflow across three scaffold skills | [SKILL.md](.github/skills/customization-scaffold/SKILL.md) |
+| `agent-tools-maintenance` | tooling | Audit and refresh Copilot agent tool allowlists across built-in, bundled extension, marketplace extension, and MCP sources | [SKILL.md](.github/skills/agent-tools-maintenance/SKILL.md) |
 | `sync-copilot-claude` | tooling | Audit and sync Copilot skills/agents with Claude skills/agents | [SKILL.md](.github/skills/sync-copilot-claude/SKILL.md) |
 
 #### 2.1.6 Agent Tool Discovery
@@ -509,6 +510,8 @@ for d in sorted(ext_dir.iterdir()):
 **Category disambiguation**: `github.copilot-chat` extension tools use `category/toolReferenceName` (categories: `agent`, `browser`, `edit`, `execute`, `read`, `search`, `vscode`, `web`). All other extensions use bare `toolReferenceName`.
 
 **Maintenance**: Re-run the extension scan after any VS Code update, extension install/update, or MCP server change.
+
+Use `/agent-tools-maintenance` for the end-to-end operational workflow (inventory, source mapping, refresh, and post-change verification).
 
 ### 2.2 Architecture Strategy
 

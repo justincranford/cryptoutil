@@ -45,6 +45,7 @@ See [.github/skills/README.md](.github/skills/README.md) for the full catalogue.
 | `/propagation-check` | Checking @propagate/@source drift before committing docs |
 | `/openapi-codegen` | Creating or extending service APIs |
 | `/customization-scaffold` | Creating a new repo-local agent, instruction, or skill, including required Claude counterparts for dual-canonical artifacts |
+| `/agent-tools-maintenance` | Auditing and updating Copilot agent tool lists across built-in, extension, and MCP sources |
 | `/sync-copilot-claude` | Auditing/syncing Copilot skills and agents with their Claude counterparts |
 | `/new-service` | Creating a new service from skeleton-template |
 | `/psid-template-sync` | Updating stable PS-ID template-instantiated files and keeping all 10 services exact-match lint clean |

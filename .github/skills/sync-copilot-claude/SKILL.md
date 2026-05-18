@@ -26,6 +26,7 @@ Use when:
 - If a skill becomes redundant after a merge, remove the dead catalog entries and orphaned directories in the same commit
 - When syncing planning agents, also verify planning-triad readiness safeguards are present in BOTH files: `plan.md` + `tasks.md` + `lessons.md` consistency gate and false-ready prohibition
 - If planning agents changed but triad safeguards are missing in either side, treat as drift and fix in the same commit
+- Use `agent-tools-maintenance` first when the change scope includes Copilot agent `tools:` allowlist updates
 
 ## Argument Meanings
 

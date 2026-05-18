@@ -22,6 +22,7 @@ instructions, and skills.
 - Update the relevant catalog surfaces in the same change: `.github/skills/README.md`, `.github/copilot-instructions.md`, `CLAUDE.md`, and `docs/ENG-HANDBOOK.md` when the artifact should be discoverable there
 - Run `go run ./cmd/cicd-lint lint-docs` after creating or updating any customization artifact
 - Use `sync-copilot-claude` to audit or repair existing drift; use this skill to create new artifacts with the correct structure from the start
+- Use `agent-tools-maintenance` when maintaining or refreshing Copilot agent `tools:` allowlists after VS Code or extension updates
 
 ## Agent Scaffold Rules
 

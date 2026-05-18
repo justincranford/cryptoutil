@@ -88,4 +88,5 @@ Full Copilot originals: [.github/skills/](.github/skills/).
 | `/psid-template-sync` | Keep stable PS-ID template-instantiated files synchronized across all 10 services |
 | `/fitness-function-gen` | New architecture fitness function linter in cicd_lint/lint_fitness/ |
 | `/customization-scaffold` | New repo-local agent, instruction, or skill, including required Claude counterparts for dual-canonical artifacts |
+| `/agent-tools-maintenance` | Audit/refresh Copilot agent tools against built-in, extension, and MCP sources |
 | `/sync-copilot-claude` | Audit/sync Copilot skills+agents with Claude skills+agents |
