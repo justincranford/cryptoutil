@@ -612,6 +612,14 @@ This repo uses `.gitattributes * text=auto eol=lf` — the `eol=lf` attribute ov
 `core.autocrlf` for all text files. Windows developers get LF checkouts automatically.
 No `core.autocrlf` configuration is required.
 
+**Local git config** (verify with `git config list --local`):
+```
+core.autocrlf=input          # Convert CRLF→LF on commit, no conversion on checkout
+core.safecrlf=false          # Allow .gitattributes to handle all line-ending logic
+```
+
+These settings (already set) ensure `.gitattributes` has full control without interference.
+
 > **Why LF everywhere?** gofumpt, gofmt, and goimports always output LF regardless of
 > platform. YAML, Markdown, SQL, and other text tooling also default to LF. CI/CD runs on
 > Linux. LF-everywhere eliminates the CRLF/LF working-tree dirty-state issues that occur

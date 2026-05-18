@@ -3301,6 +3301,14 @@ Set-Content -Path $path -Value $content -Encoding UTF8  # ❌ BOM
 
 The repository uses LF line endings (`\n`) everywhere. The `.gitattributes` file pins `* text=auto eol=lf`, which overrides `core.autocrlf` for all text files — Windows developers get LF in the working tree, not CRLF. No per-developer configuration is required.
 
+**Local git config** (repo-specific, already set via `git config --local`):
+```
+core.autocrlf=input     # Convert CRLF→LF on commit, no conversion on checkout
+core.safecrlf=false     # Let .gitattributes handle all line-ending policy
+```
+
+These settings ensure `.gitattributes * text=auto eol=lf` has full control without `core.autocrlf` interference.
+
 <!-- @propagate to=".github/instructions/05-02.git.instructions.md, .github/agents/beast-mode.agent.md, .claude/agents/beast-mode.md" as="platform-line-ending-operations" -->
 **Policy** (MANDATORY):
 
