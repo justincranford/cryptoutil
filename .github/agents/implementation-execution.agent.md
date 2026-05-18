@@ -128,25 +128,19 @@ flowchart TD
    E -- No --> F[Apply recovery flow and re-run gates]
    F --> E
    E -- Yes --> G[Update tasks.md and lessons.md]
-   G --> H[Commit]
-   H --> I{Remaining unchecked tasks?}
-   I -- Yes --> D
-   I -- No --> J[Last-turn post-completion analysis]
-   J --> K[Reconcile plan/tasks/lessons/summary]
-   K --> L{Contradictions found?}
-   L -- Yes --> M[Create resolution phase and execute]
-   M --> K
-   L -- No --> N[Final validation and clean git status]
-```
+   **Policy** (MANDATORY): All text files use LF (`\n`). Repository storage: LF. Checkout: LF. `.gitattributes` pin: `* text=auto eol=lf` (overrides `core.autocrlf`). `core.autocrlf` irrelevant for this repo. Windows developers get LF in working tree, not CRLF. `mixed-line-ending` hook: MUST NOT have `--fix lf` arg — keep auto-detect mode.
 
----
+   **Rationale**: gofumpt, gofmt, goimports output LF. YAML/Markdown/SQL/text tools default LF. CI/CD runs Linux. LF-everywhere eliminates CRLF/LF dirty-state issues on Windows. Prettier defaults `endOfLine=lf` (v2.0.0+).
 
-## Pre-Flight Checks - MANDATORY
+   **Emergency recovery** (when `git status` shows large text file modifications after formatter runs, checkout switches, or stash/apply cycles):
 
-## Workspace Baseline Gate - MANDATORY
+   ```bash
+   git add --renormalize .
+   ```
+
+   This reapplies `.gitattributes` clean rules to index entries without manual byte conversion.
 
 Before any implementation work, run `git status --porcelain`.
-
 - If output is non-empty: stage and commit all baseline changes immediately before continuing.
 - Baseline checkpoint commit format: `chore(workspace): checkpoint baseline before agent execution`.
 - After every commit: run `git status --porcelain` again and require empty output.
@@ -1454,22 +1448,10 @@ Example entries:
 ## Cross-Platform File & Command Conventions
 
 <!-- @source from="docs/ENG-HANDBOOK.md" as="platform-line-ending-operations" -->
-**Policy** (MANDATORY):
+<!-- @source from="docs/ENG-HANDBOOK.md" as="platform-line-ending-operations" -->
+**Policy** (MANDATORY): All text files use LF (`\n`). Repository storage: LF. Checkout: LF. `.gitattributes` pin: `* text=auto eol=lf` (overrides `core.autocrlf`). `core.autocrlf` irrelevant for this repo. Windows developers get LF in working tree, not CRLF. `mixed-line-ending` hook: MUST NOT have `--fix lf` arg — keep auto-detect mode.
 
-- **Repository storage**: Always LF (`\n`). Git normalizes on commit.
-- **All text files use LF**: `.gitattributes` pins `* text=auto eol=lf`, which overrides `core.autocrlf` for all text files. Windows developers get LF in the working tree — not CRLF.
-- **`core.autocrlf` irrelevant for this repo**: The `.gitattributes eol=lf` override takes precedence. No need to set or change your global `core.autocrlf`.
-- **Why LF everywhere**: gofumpt, gofmt, goimports always output LF. YAML/Markdown/SQL/text tooling defaults to LF. CI/CD pipelines run on Linux. LF-everywhere eliminates CRLF/LF working-tree dirty-state issues on Windows.
-- **JS formatter behavior (expected)**: Prettier defaults `endOfLine=lf` (since v2.0.0) for the same cross-platform reproducibility reason.
-- **`mixed-line-ending` hook**: MUST NOT have `--fix lf` arg. Keep default "auto" mode (auto-detects the prevalent line ending per file).
-
-**Emergency recovery for a large line-ending dirty tree**:
-
-```bash
-git add --renormalize .
-```
-
-Use this when `git status` shows a large set of text files as modified after formatter runs, checkout switches, or stash/apply cycles. `--renormalize` reapplies `.gitattributes` clean rules to index entries without manual byte conversion.
+**Rationale**: gofumpt, gofmt, goimports output LF. YAML/Markdown/SQL/text tools default LF. CI/CD runs Linux. LF-everywhere eliminates CRLF/LF dirty-state issues on Windows. Prettier defaults `endOfLine=lf` (v2.0.0+).
 <!-- @/source -->
 
 ---

@@ -275,48 +275,18 @@ fix(tooling): fix config file padding violations
 **Anti-Pattern** (NEVER): One 155-file commit mixing CRLF fixes, Dockerfile tabs, .editorconfig changes, shell padding, and YAML continuation lines.
 
 <!-- @source from="docs/ENG-HANDBOOK.md" as="platform-line-ending-operations" -->
-**Policy** (MANDATORY):
+**Policy** (MANDATORY): All text files use LF (`\n`). Repository storage: LF. Checkout: LF. `.gitattributes` pin: `* text=auto eol=lf` (overrides `core.autocrlf`). `core.autocrlf` irrelevant for this repo. Windows developers get LF in working tree, not CRLF. `mixed-line-ending` hook: MUST NOT have `--fix lf` arg — keep auto-detect mode.
 
-- **Repository storage**: Always LF (`\n`). Git normalizes on commit.
-- **All text files use LF**: `.gitattributes` pins `* text=auto eol=lf`, which overrides `core.autocrlf` for all text files. Windows developers get LF in the working tree — not CRLF.
-- **`core.autocrlf` irrelevant for this repo**: The `.gitattributes eol=lf` override takes precedence. No need to set or change your global `core.autocrlf`.
-- **Why LF everywhere**: gofumpt, gofmt, goimports always output LF. YAML/Markdown/SQL/text tooling defaults to LF. CI/CD pipelines run on Linux. LF-everywhere eliminates CRLF/LF working-tree dirty-state issues on Windows.
-- **JS formatter behavior (expected)**: Prettier defaults `endOfLine=lf` (since v2.0.0) for the same cross-platform reproducibility reason.
-- **`mixed-line-ending` hook**: MUST NOT have `--fix lf` arg. Keep default "auto" mode (auto-detects the prevalent line ending per file).
-
-**Emergency recovery for a large line-ending dirty tree**:
-
-```bash
-git add --renormalize .
-```
-
-Use this when `git status` shows a large set of text files as modified after formatter runs, checkout switches, or stash/apply cycles. `--renormalize` reapplies `.gitattributes` clean rules to index entries without manual byte conversion.
+**Rationale**: gofumpt, gofmt, goimports output LF. YAML/Markdown/SQL/text tools default LF. CI/CD runs Linux. LF-everywhere eliminates CRLF/LF dirty-state issues on Windows. Prettier defaults `endOfLine=lf` (v2.0.0+).
 <!-- @/source -->
 
 **Todo List Empty?**
-- ✅ Read tracking documents
-- ✅ Find next incomplete task
-- ✅ Start task immediately
-- ❌ No asking permission
-- ❌ No summary of completed tasks
 
-**All Tasks Done?**
-- ✅ Check tracking docs
-- ✅ Find improvements
-- ✅ Check TODOs
-- ✅ ONLY if nothing exists: Ask user
-
----
-
-## Execution Workflow
-
-```
-1. Complete task → 2. Commit → 3. Next tool (zero text)
-4. Next task in list? YES → step 1
-5. Check tracking docs → Found task → step 1
-6. Find improvements → Found → step 1
-7. Check TODOs → Found → step 1
-8. Literally nothing left? → Ask user
+1. Next task in list? YES → step 1
+2. Check tracking docs → Found task → step 1
+3. Find improvements → Found → step 1
+4. Check TODOs → Found → step 1
+5. Literally nothing left? → Ask user
 ```
 
 **Rule**: Steps 1-7 execute continuously. ONLY step 8 allows stopping.
@@ -352,7 +322,9 @@ Waiting for you to provide the key before proceeding."
 Task 1: Implement feature X → BLOCKED (needs external API key)
 
 [Document in tracking document]:
+
 ### 2025-12-24: Task 1 Blocked
+
 - Blocker: External API key required for Task 1
 - Next steps: Waiting for user to provide API key
 
@@ -628,22 +600,9 @@ A response that leaves uncommitted changes is incomplete by definition. The Work
 ### Line Ending Policy (Repository Convention)
 
 <!-- @source from="docs/ENG-HANDBOOK.md" as="platform-line-ending-operations" -->
-**Policy** (MANDATORY):
+**Policy** (MANDATORY): All text files use LF (`\n`). Repository storage: LF. Checkout: LF. `.gitattributes` pin: `* text=auto eol=lf` (overrides `core.autocrlf`). `core.autocrlf` irrelevant for this repo. Windows developers get LF in working tree, not CRLF. `mixed-line-ending` hook: MUST NOT have `--fix lf` arg — keep auto-detect mode.
 
-- **Repository storage**: Always LF (`\n`). Git normalizes on commit.
-- **All text files use LF**: `.gitattributes` pins `* text=auto eol=lf`, which overrides `core.autocrlf` for all text files. Windows developers get LF in the working tree — not CRLF.
-- **`core.autocrlf` irrelevant for this repo**: The `.gitattributes eol=lf` override takes precedence. No need to set or change your global `core.autocrlf`.
-- **Why LF everywhere**: gofumpt, gofmt, goimports always output LF. YAML/Markdown/SQL/text tooling defaults to LF. CI/CD pipelines run on Linux. LF-everywhere eliminates CRLF/LF working-tree dirty-state issues on Windows.
-- **JS formatter behavior (expected)**: Prettier defaults `endOfLine=lf` (since v2.0.0) for the same cross-platform reproducibility reason.
-- **`mixed-line-ending` hook**: MUST NOT have `--fix lf` arg. Keep default "auto" mode (auto-detects the prevalent line ending per file).
-
-**Emergency recovery for a large line-ending dirty tree**:
-
-```bash
-git add --renormalize .
-```
-
-Use this when `git status` shows a large set of text files as modified after formatter runs, checkout switches, or stash/apply cycles. `--renormalize` reapplies `.gitattributes` clean rules to index entries without manual byte conversion.
+**Rationale**: gofumpt, gofmt, goimports output LF. YAML/Markdown/SQL/text tools default LF. CI/CD runs Linux. LF-everywhere eliminates CRLF/LF dirty-state issues on Windows. Prettier defaults `endOfLine=lf` (v2.0.0+).
 <!-- @/source -->
 
 **Repository-Specific Details**: See Repository Policy References section at end for cryptoutil-specific CI infrastructure and conventions.
