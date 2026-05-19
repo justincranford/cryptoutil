@@ -10,6 +10,10 @@
 *.dylib binary
 *.der binary
 *.bin binary
+*.jar binary
+*.war binary
+*.ear binary
+*.sar binary
 *.p12 binary
 *.pfx binary
 *.zip binary

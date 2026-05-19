@@ -57,6 +57,7 @@ mvnw.cmd
 *.jar
 *.war
 *.ear
+*.sar
 .settings/
 .project
 .classpath
