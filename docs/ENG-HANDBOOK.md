@@ -3309,6 +3309,27 @@ core.safecrlf=false     # Let .gitattributes handle all line-ending policy
 **Rationale**: gofumpt, gofmt, and goimports emit LF; YAML/Markdown/SQL/text tools default to LF; CI/CD runs on Linux; LF everywhere prevents CRLF/LF churn on Windows. Prettier also defaults `endOfLine=lf` (v2.0.0+).
 <!-- @/propagate -->
 
+#### 9.9.5 Policy Enforcement Surface Inventory
+
+Use this inventory to decide which checks to keep, remove, or consolidate. The list is intentionally broader than the current hard failure set so the policy envelope is explicit.
+
+1. UTF-8 without BOM. Enforced by `fix-byte-order-marker`, `lint-text`, `.editorconfig` (`charset = utf-8`), `.vscode/settings.json` (`files.encoding = "utf8"`), and pre-commit file filters.
+  Exclusions: binary and certificate material (`*.exe`, `*.dll`, `*.so`, `*.dylib`, `*.key`, `*.crt`, `*.pem`, `*.der`, `*.bin`, `*.dat`, `*.db`, `*.sqlite`, `*.pdf`, `*.jpg`, `*.jpeg`, `*.png`, `*.gif`, `*.bmp`, `*.ico`, `*.mp4`, `*.avi`, `*.mov`, `*.zip`, `*.tar`, `*.gz`, `*.bz2`, `*.7z`, `*.rar`), VS Code JSONC settings (`.vscode/*.json`), CI/CD cache JSON (`.cicd-lint/*.json`), generated API trees, `test-output/**`, `workflow-reports/**`, `**/*.secret`, `**/*.gen.go`, `**/openapi_gen_*.go`, `vendor/`, `node_modules/`, `.cache/`, `.pytest_cache/`, and `__pycache__/`.
+1. LF line endings. Enforced by `mixed-line-ending`, `end-of-file-fixer`, `.gitattributes`, `.editorconfig`, and repo-local `core.autocrlf=input`.
+  Exclusions: the same binary/generated paths as item 1, plus YAML checker skips for `.github/workflows/**` and `api/cryptosuite-registry/templates/**`, and JSON checks that skip `.vscode/*.json`.
+1. Indentation and line length. Enforced by `.editorconfig`, `gofmt`/`golangci-lint`, `yamlfmt`, `sqlfluff`, `ruff`, and the VS Code rulers.
+  Exclusions: Go source tabs are intentionally delegated to `gofmt`; Markdown uses `indent_size = 1`; Makefiles require tabs; shell scripts use 4 spaces; Python uses 4 spaces and 200 columns; SQL currently uses 200 columns after normalization; template files have separate tab/space rules depending on file family.
+1. GitHub Actions path suppression. Enforced by `paths-ignore` in workflow triggers and `if-no-files-found: ignore` on artifact uploads.
+  Exclusions: `docs/**`, `**/*.md`, `.github/copilot-instructions.md`, `.github/instructions/**`, `workflow-reports/**`, `nohup.out`, `LICENSE`, `.editorconfig`, `.gitignore`, `.gitattributes`, `.github/ISSUE_TEMPLATE/**`, `.github/pull_request_template.md`, `.github/dependabot.yml`, `**/*.log`, and `**/*.sarif`.
+1. Search, watch, and explorer suppression. Enforced by `.vscode/settings.json` `files.exclude`, `search.exclude`, and `files.watcherExclude`.
+  Exclusions: `.git/**`, `node_modules/**`, `vendor/**`, build outputs (`bin`, `build`, `dist`, `out`, `target`, `lib`, `lib64`, `downloads`, `tmp`), test artifacts (`test-output`, `workflow-reports`, `load-reports`, `e2e-reports`, `dast-reports`, `test-results`, `coverage*`), caches (`.cspellcache`, `.cache`, `.mypy_cache`, `.ruff_cache`, `.pytest_cache`, `.nox`, `.tox`, `.semgrep`, `.zap`), Python envs (`venv`, `.venv`, `env`, `ENV`, `.Python`), worktrees (`.worktree`, `worktree`), and binary artifacts (`*.exe`, `*.dll`, `*.so`, `*.dylib`, `*.jar`, `*.war`, `*.ear`).
+1. Lint suppressions. Enforced by `.golangci.yml`, `.gremlins.yaml`, `.gitleaks.toml`, `.air.toml`, `.sqlfluff`, `.nuclei-ignore`, `.yamlfmt`, and `pyproject.toml`.
+  Exclusions: generated Go/OpenAPI trees, `vendor/`, test packages, intentionally noisy symbols (`nilnil`, `nilerr`, `wrapcheck`, `noctx`, `gosec G402`), mutation-testing generated code, live-reload test files, SQL rule RF04/RF05, Gitleaks allowlists for generated API packages, and Nuclei ignores for known false positives.
+1. Spell-check exclusions. Enforced by `.vscode/cspell.json`.
+  Exclusions: `.cspellcache`, docs dictionaries, `htmlcov`, `coverage.*`, `tests/`, `.git/`, `node_modules/`, `.cache/`, `.pytest_cache/`, `go.sum`, `test-output/**`, `workflow-reports/**`, `**/*.secret`, `**/*.gen.go`, and `**/openapi_gen_*.go`.
+
+The combined exclusion superset is: generated artifacts, vendor and dependency trees, caches, worktrees, build outputs, test reports, binary and certificate material, IDE metadata, scanner outputs, and local environment files.
+
 **Emergency Recovery** (ENG-HANDBOOK.md only — do NOT propagate):
 
 When `git status` shows large numbers of text files as modified after formatter runs, checkout switches, or stash/apply cycles, use:

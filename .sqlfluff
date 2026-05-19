@@ -6,7 +6,7 @@ dialect = postgres
 templater = raw
 
 # Maximum line length
-max_line_length = 120
+max_line_length = 200
 
 # Indentation: 4 spaces
 indent_unit = space
