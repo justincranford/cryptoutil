@@ -3,6 +3,7 @@ doublestar: true
 exclude:
   - ".github/**"
   - ".pre-commit-config.yaml"
+  - "api/cryptosuite-registry/templates/**"
 formatter:
   type: basic
   indent: 2

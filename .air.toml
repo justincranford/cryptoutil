@@ -32,7 +32,7 @@ tmp_dir = "tmp"
   # Exclude test files and generated code from triggering rebuilds
   exclude_regex = ["_test\\.go$"]
   # Exclude directories that don't affect service binaries
-  exclude_dir = ["tmp", "test-output", "docs", ".git", "node_modules", "vendor"]
+  exclude_dir = ["tmp", "test-output", "workflow-reports", "load-reports", "e2e-reports", "dast-reports", "docs", ".git", ".worktree", "node_modules", "vendor"]
   follow_symlinks = false
   log = "build-errors.log"
   poll = false

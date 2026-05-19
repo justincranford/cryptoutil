@@ -20,8 +20,11 @@ api/cryptosuite-registry/templates/
 .nuclei-ignore
 .zap/
 .editorconfig
-.markdownlint.json
+.markdownlint.jsonc
 .gofumpt.toml
+.yamllint.yaml
+.yamlfmt
+.sqlfluff
 
 # Editor/IDE files
 .vscode/

@@ -10,3 +10,8 @@
 *.dylib binary
 *.der binary
 *.bin binary
+*.p12 binary
+*.pfx binary
+*.zip binary
+*.tar binary
+*.gz binary

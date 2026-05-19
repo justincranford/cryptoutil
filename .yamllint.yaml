@@ -4,6 +4,9 @@
 # Run: yamllint .
 extends: relaxed
 
+ignore: |
+  api/cryptosuite-registry/templates/
+
 rules:
   line-length:
     max: 200
