@@ -13,7 +13,9 @@ indent_unit = space
 tab_space_size = 4
 
 # Exclude: down migrations from some rules (they are intentionally brief)
-exclude_rules = RF04
+exclude_rules = RF04,RF05
+
+# RF05 remains excluded globally because shared-postgres uses hyphenated database names.
 
 [sqlfluff:rules:capitalisation.keywords]
 capitalisation_policy = upper
