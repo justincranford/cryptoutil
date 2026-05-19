@@ -419,7 +419,7 @@ repos:
         require_serial: true  # sqlfluff writes files; parallel instances crash on Windows (file locking)
         stages: [pre-commit]
 
-  # TOML file formatting (pyproject.toml, .gofumpt.toml, .gitleaks.toml)
+  # TOML file formatting (.air.toml, .gofumpt.toml, .gitleaks.toml, pyproject.toml)
   - repo: local
     hooks:
       - id: taplo-format
@@ -427,7 +427,7 @@ repos:
         entry: taplo
         args: [fmt]
         language: system
-        files: '\.toml$'
+        files: '^(\.air\.toml|\.gofumpt\.toml|\.gitleaks\.toml|pyproject\.toml)$'
         require_serial: false
         stages: [pre-commit]
 

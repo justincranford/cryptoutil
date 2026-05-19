@@ -49,10 +49,6 @@
   "files.insertFinalNewline": true, // Ensure files end with a newline - Recommended to align with project policy
   "files.trimFinalNewlines": true, // Trim extra final newlines - Recommended for consistent file endings
   "files.associations": { "*.py": "python" },
-  "evenBetterToml.schema.catalogs": [], // Avoid catalog collisions; use explicit workspace associations only.
-  "evenBetterToml.schema.associations": {
-    ".*/\\.air\\.toml$": "https://json.schemastore.org/any.json"
-  },
   "files.trimTrailingWhitespace": true, // Trim trailing whitespace on save - Default: false, Recommended: true (aligns with linting standards)
   "files.exclude": {
     // Git internal files
@@ -465,6 +461,15 @@
     { "fileMatch": ["renovate.json", "renovate.json5"], "url": "https://docs.renovatebot.com/renovate-schema.json" },
     { "fileMatch": ["golangci.json"], "url": "https://golangci-lint.run/jsonschema/golangci.jsonschema.json" }
   ],
+
+  // TOML Schema Validation (using evenBetterToml extension)
+  "evenBetterToml.schema.catalogs": [], // Avoid catalog collisions; use explicit workspace associations only.
+  "evenBetterToml.schema.associations": {
+    ".*/\\.air\\.toml$": "https://json.schemastore.org/any.json",
+    ".*/\\.gofumpt\\.toml$": "https://json.schemastore.org/any.json",
+    ".*/\\.gitleaks\\.toml$": "https://json.schemastore.org/any.json",
+    ".*/pyproject\\.toml$": "https://www.schemastore.org/pyproject.json"
+  },
 
   // VS Code Editor Settings https://code.visualstudio.com/docs/getstarted/settings
   "editor.fontSize": 14, // Increase editor font size for all code editors (default 14); does NOT affect chat input textarea
