@@ -3286,22 +3286,16 @@ the root cause of any pre-commit failure before committing. NEVER bypass with `-
 #### 9.9.3 UTF-8 Without BOM Enforcement
 
 <!-- @propagate to=".github/instructions/03-05.linting.instructions.md" as="utf8-without-bom" -->
-**MANDATORY**: UTF-8 without BOM for ALL text files. Enforcement via pre-commit hook `fix-byte-order-marker` (auto-fix) and `lint-text` sub-linter (in `cicd-lint-all` hook).
+**MANDATORY**: UTF-8 without BOM for all text files. The repository text baseline is UTF-8, LF, 4-space indentation for text-heavy formats, and a 200-column ceiling unless a language-specific rule overrides it.
 
-**PowerShell file writing MUST use UTF-8 without BOM — `Set-Content -Encoding UTF8` adds BOM in PowerShell 5.1:**
+**Enforcement**: `fix-byte-order-marker` auto-fixes BOMs; `lint-text` rejects BOM-prefixed files; `.editorconfig` mirrors `charset = utf-8`, `end_of_line = lf`, and the formatting defaults; PowerShell file writes must use `[System.Text.UTF8Encoding]::new($false)`.
 
-```powershell
-# CORRECT — UTF-8 without BOM
-[System.IO.File]::WriteAllText($path, $content, [System.Text.UTF8Encoding]::new($false))
-
-# WRONG — adds BOM in PowerShell 5.1
-Set-Content -Path $path -Value $content -Encoding UTF8  # ❌ BOM
-```
+**Skip list**: generated code, vendored dependencies, build/test artifacts, caches, worktrees, binaries, archives, secrets/cert material, IDE metadata, and other machine-owned files are excluded from text-format checks. Prefer narrowing the exclusion to the smallest machine-owned path rather than exempting an entire language.
 <!-- @/propagate -->
 
 #### 9.9.4 Platform Line-Ending Policy
 
-The repository uses LF line endings (`\n`) everywhere. The `.gitattributes` file pins `* text=auto eol=lf`, which overrides `core.autocrlf` for all text files — Windows developers get LF in the working tree, not CRLF. No per-developer configuration is required.
+The repository uses LF line endings (`\n`) everywhere. The `.gitattributes` file pins `* text=auto eol=lf`, `.editorconfig` mirrors `end_of_line = lf`, and repo-local `core.autocrlf=input` keeps Git from reintroducing CRLF on checkout. No per-developer configuration is required.
 
 **Local git config** (repo-specific, already set via `git config --local`):
 ```
@@ -3309,12 +3303,10 @@ core.autocrlf=input     # Convert CRLF→LF on commit, no conversion on checkout
 core.safecrlf=false     # Let .gitattributes handle all line-ending policy
 ```
 
-These settings ensure `.gitattributes * text=auto eol=lf` has full control without `core.autocrlf` interference.
-
 <!-- @propagate to=".github/instructions/05-02.git.instructions.md, .github/agents/beast-mode.agent.md, .github/agents/implementation-planning.agent.md, .github/agents/implementation-execution.agent.md, .github/agents/fix-workflows.agent.md, .claude/agents/beast-mode.md, .claude/agents/implementation-planning.md, .claude/agents/implementation-execution.md, .claude/agents/fix-workflows.md" as="platform-line-ending-operations" -->
-**Policy** (MANDATORY): All text files use LF (`\n`). Repository storage: LF. Checkout: LF. `.gitattributes` pin: `* text=auto eol=lf` (overrides `core.autocrlf`). `core.autocrlf` irrelevant for this repo. Windows developers get LF in working tree, not CRLF. `mixed-line-ending` hook: MUST NOT have `--fix lf` arg — keep auto-detect mode.
+**Policy** (MANDATORY): All text files use LF (`\n`). `mixed-line-ending`, `end-of-file-fixer`, and `editorconfig-checker` enforce the policy. Exclusions cover generated code, vendored dependencies, build/test outputs, caches, worktrees, binaries, archives, secrets/cert material, and IDE metadata.
 
-**Rationale**: gofumpt, gofmt, goimports output LF. YAML/Markdown/SQL/text tools default LF. CI/CD runs Linux. LF-everywhere eliminates CRLF/LF dirty-state issues on Windows. Prettier defaults `endOfLine=lf` (v2.0.0+).
+**Rationale**: gofumpt, gofmt, and goimports emit LF; YAML/Markdown/SQL/text tools default to LF; CI/CD runs on Linux; LF everywhere prevents CRLF/LF churn on Windows. Prettier also defaults `endOfLine=lf` (v2.0.0+).
 <!-- @/propagate -->
 
 **Emergency Recovery** (ENG-HANDBOOK.md only — do NOT propagate):

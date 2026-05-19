@@ -105,4 +105,4 @@ insert_final_newline = false
 
 # Batch files (Windows line endings)
 [*.{bat,cmd}]
-end_of_line = crlf
+end_of_line = lf

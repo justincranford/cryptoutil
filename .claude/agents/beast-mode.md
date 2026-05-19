@@ -236,9 +236,9 @@ fix(tooling): fix config file padding violations
 **Anti-Pattern** (NEVER): One 155-file commit mixing line-ending fixes, Dockerfile tabs, .editorconfig changes, shell padding, and YAML continuation lines.
 
 <!-- @source from="docs/ENG-HANDBOOK.md" as="platform-line-ending-operations" -->
-**Policy** (MANDATORY): All text files use LF (`\n`). Repository storage: LF. Checkout: LF. `.gitattributes` pin: `* text=auto eol=lf` (overrides `core.autocrlf`). `core.autocrlf` irrelevant for this repo. Windows developers get LF in working tree, not CRLF. `mixed-line-ending` hook: MUST NOT have `--fix lf` arg — keep auto-detect mode.
+**Policy** (MANDATORY): All text files use LF (`\n`). `mixed-line-ending`, `end-of-file-fixer`, and `editorconfig-checker` enforce the policy. Exclusions cover generated code, vendored dependencies, build/test outputs, caches, worktrees, binaries, archives, secrets/cert material, and IDE metadata.
 
-**Rationale**: gofumpt, gofmt, goimports output LF. YAML/Markdown/SQL/text tools default LF. CI/CD runs Linux. LF-everywhere eliminates CRLF/LF dirty-state issues on Windows. Prettier defaults `endOfLine=lf` (v2.0.0+).
+**Rationale**: gofumpt, gofmt, and goimports emit LF; YAML/Markdown/SQL/text tools default to LF; CI/CD runs on Linux; LF everywhere prevents CRLF/LF churn on Windows. Prettier also defaults `endOfLine=lf` (v2.0.0+).
 <!-- @/source -->
 
 **Todo List Empty?**
@@ -397,15 +397,11 @@ When a failure appears intermittent, run BOTH before concluding root cause:
 
 #### File Encoding - MANDATORY (PowerShell)
 
-When writing ANY file via PowerShell terminal commands, use UTF-8 without BOM. The `fix-byte-order-marker` pre-commit hook and `lint-text` (in `cicd-lint-all`) enforce this.
+UTF-8 without BOM is mandatory for all text files. The repository text baseline is UTF-8, LF, 4-space indentation for text-heavy formats, and a 200-column ceiling unless a language-specific rule overrides it.
 
-```powershell
-# CORRECT — UTF-8 without BOM
-[System.IO.File]::WriteAllText($path, $content, [System.Text.UTF8Encoding]::new($false))
+**Enforcement**: `fix-byte-order-marker` auto-fixes BOMs; `lint-text` rejects BOM-prefixed files; `.editorconfig` mirrors `charset = utf-8`, `end_of_line = lf`, and the formatting defaults; PowerShell file writes must use `[System.Text.UTF8Encoding]::new($false)`.
 
-# WRONG — adds BOM in PowerShell 5.1
-Set-Content -Path $path -Value $content -Encoding UTF8  # ❌ BOM
-```
+**Skip list**: generated code, vendored dependencies, build/test artifacts, caches, worktrees, binaries, archives, secrets/cert material, IDE metadata, and other machine-owned files are excluded from text-format checks. Prefer narrowing the exclusion to the smallest machine-owned path rather than exempting an entire language.
 
 ---
 
