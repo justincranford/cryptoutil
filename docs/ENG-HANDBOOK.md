@@ -4758,11 +4758,48 @@ func BenchmarkWithSetup(b *testing.B) {
 
 ### 10.9 Race Detection Strategy
 
-**Probabilistic Execution**: go test -race -count=2 ./... (requires CGO_ENABLED=1)
+**Probabilistic Execution**: `go test -race -count=2 ./...` (requires CGO_ENABLED=1)
 
 **Why count=2+**: Race detector uses randomization, single execution may miss races
 
-**CI/CD**: go test -race -count=5 ./... for more coverage
+**CI/CD**: `go test -race -count=5 ./...` for more coverage
+
+**Platform Support**:
+
+| Platform | Race Detection | Method |
+|----------|---------------|--------|
+| Linux / macOS (local dev) | ✅ Supported | `go test -race ./...` natively (CGO available) |
+| Windows (local dev) | ❌ Not available | CGO prerequisites NEVER installed on Windows dev machines — see §11.1.2 |
+| All platforms (CI/CD) | ✅ Enforced | `ci-race.yml` workflow on `ubuntu-latest` (authoritative) |
+
+**Windows Note**: The Go race detector requires `CGO_ENABLED=1` and a C compiler (gcc). Per the
+CGO Ban policy (§11.1.2), CGO prerequisites are NEVER installed on Windows development machines.
+Race detection on Windows is therefore deferred entirely to CI/CD. The `ci-race.yml` GitHub
+Actions workflow running on `ubuntu-latest` is the authoritative race detection gate for all
+developers regardless of platform.
+
+**Docker Container Option (evaluated, deferred)**: Race detection could run on Windows via a
+Docker container:
+
+```bash
+docker run --rm -v ${PWD}:/workspace golang:1.26.1 \
+  sh -c "cd /workspace && go test -race -count=2 ./..."
+```
+
+This is technically viable but adds Docker startup overhead for a check that is already
+authoritative in `ci-race.yml`. Standardising all three platforms on a container-based approach
+adds complexity without practical gain. Deferred until the community identifies Windows-only race
+conditions that CI/CD cannot catch.
+
+**Where race checks are triggered in this repository**:
+
+| Trigger | Details |
+|---------|---------|
+| `ci-race.yml` (GitHub Actions) | `ubuntu-latest`, `CGO_ENABLED=1`, `go test -race -count=5 ./...` — authoritative gate |
+| Beast-mode agent quality gates | Listed in RECOMMENDED pre-push gates — Linux/macOS only |
+| Implementation-planning agent | Per-phase quality gates and cross-cutting tasks template — Linux/macOS only |
+| `03-02.testing.instructions.md` | Test execution reference — Linux/macOS only |
+| Pre-commit / pre-push hooks | NOT present (would fail on Windows; correctly excluded) |
 
 ### 10.10 SAST Strategy
 

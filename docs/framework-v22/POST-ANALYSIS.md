@@ -44,44 +44,77 @@ met. Framework-V23 must include fixes for these three packages as Task 1.
 
 **Description**: The cross-cutting task `[ ] Race detector clean: go test -race ./...` is
 explicitly unchecked. The lessons.md and tasks.md both note this as scoped to Linux CI because
-the race detector requires CGO (`CGO_ENABLED=1`) and gcc, which are not present on the local
-Windows development machine.
+the race detector requires CGO (`CGO_ENABLED=1`) and a C toolchain (gcc), which are not present
+on the local Windows development machine. Per the CGO Ban policy (ENG-HANDBOOK §11.1.2), CGO
+prerequisites are NEVER installed on Windows dev machines — race detection on Windows is
+therefore deferred entirely to CI/CD.
+
+**Where race checks are triggered in the repository**:
+
+| Trigger Location | Details |
+|------------------|---------|
+| `ci-race.yml` (GitHub Actions) | `ubuntu-latest`, `CGO_ENABLED=1`, `go test -race -count=5 ./...` — authoritative gate |
+| `beast-mode.agent.md` | Listed in "RECOMMENDED Pre-Push Quality Gates" — Linux/macOS only, no platform caveat |
+| `implementation-planning.agent.md` | Listed in Per-Phase Quality Gates and Cross-Cutting Tasks template — Linux/macOS only |
+| `03-02.testing.instructions.md` | Listed in Test Execution section as reference — Linux/macOS only |
+| Pre-commit / pre-push hooks | NOT present (would fail on Windows; correctly excluded) |
+
+**Docker container option (evaluated, deferred)**: Race detection could run on Windows inside a
+Docker container (`docker run --rm -v ${PWD}:/workspace golang:1.26.1 sh -c "cd /workspace &&
+go test -race -count=2 ./..."`). This is technically viable but adds Docker startup overhead
+for a check already enforced authoritatively in `ci-race.yml`. Standardising all three platforms
+(Windows, Linux, macOS) on a container-based approach would add complexity for no practical gain.
+Deferred until the community identifies Windows-only race conditions that CI/CD cannot catch.
+
+**ENG-HANDBOOK update**: §10.9 has been updated with a platform support matrix, Windows note,
+Docker container option evaluation, and a trigger inventory. See that section for the canonical
+documentation.
 
 **Disposition**: This is an explicit, documented deferral — not a gap. The `ci-race.yml` workflow
-runs this check. It is not a follow-up task for framework-V23.
+runs this check. It is not a follow-up task for framework-V23. The agent/instruction files that
+list race detection in quality gates without a platform caveat are a minor documentation gap;
+they are low priority compared to Phase 1–5 V23 work and can be addressed as a V24 editorial
+task if desired.
 
-**Action required**: None. Documented here for completeness.
+**Action required**: None for V23. ENG-HANDBOOK §10.9 has been updated. Documented here for
+completeness.
 
 ---
 
-### ISSUE-3 — UNTRACKED FOLLOW-UP: Four Action Items From lessons.md Not In Any Plan
+### ISSUE-3 — UNTRACKED FOLLOW-UP: Three Action Items From lessons.md Not In Any Plan
 
 **Category**: UNTRACKED FOLLOW-UP  
 **Severity**: Medium
 
-**Description**: lessons.md records four action items that are not tracked in any plan or
-tasks document. These were identified during implementation and recorded as lessons but were
-never promoted to tasks:
+**Description**: lessons.md recorded four action items that were not tracked in any plan. Item 1
+(LF line endings) has since been resolved: LF line endings are now enforced in ALL text files
+including `*.secret` files via `.gitattributes * text=auto eol=lf` and the `mixed-line-ending`
+pre-commit hook. The remaining three are tracked in Framework-V23.
 
-1. **LF line endings in secrets files** — Add a deployment fitness check for LF line endings in
-   `deployments/*/secrets/*.secret` files. CRLF line endings in secret files caused the Windows
-   PostgreSQL credential failure that required one of the 5 post-implementation Docker fixes.
+1. **pki-init E2E: switch to Docker named volumes for cert storage** — All 10 PS-ID compose
+   files and the canonical template in `api/cryptosuite-registry/templates/` use OS filesystem
+   bind mounts (`./certs:/certs:rw`) for cert delivery. This is non-compliant with deployment
+   rules CO-21/CO-22 (see `docs/deployment-templates.md`) and ENG-HANDBOOK §6.11.3 which
+   mandates named Docker volumes (`{ps-id}-certs:/certs`). On Windows, bind-mounted host
+   directories can be locked from a prior run, causing `pki-init` cert generation to fail.
+   The correct fix is to use named Docker volumes, eliminating the host filesystem dependency
+   entirely. This affects all 10 `deployments/{ps-id}/compose.yml` files and the canonical
+   template.
 
-2. **E2E cert-dir writable cleanup** — Add E2E orchestration check for cert-dir writable status
-   before Compose startup on Windows. The `pki-init` container cannot write certificates if the
-   `certs/` directory is owned or locked from a previous run.
+   _(Previously recorded as "E2E cert-dir writable cleanup" with the wrong fix approach of
+   adding a writable-check in `test_orch_e2e`. The root cause is bind mounts, not test
+   orchestration. Named volumes are the correct solution.)_
 
-3. **POSTGRES_SECRETS_DIR parameterization sync** — Keep the `POSTGRES_SECRETS_DIR` variable
+2. **POSTGRES_SECRETS_DIR parameterization sync** — Keep the `POSTGRES_SECRETS_DIR` variable
    in sync across the shared-postgres template (`deployments/shared-postgres/`) and per-PS-ID
    `.env.postgres` instantiations. A drift here caused the PostgreSQL container to look in the
    wrong secrets directory.
 
-4. **sm-im E2E SKIP reduction** — Track and reduce E2E test SKIP usage in
+3. **sm-im E2E SKIP reduction** — Track and reduce E2E test SKIP usage in
    `internal/apps/sm-im/e2e/`. The 2026-05-17 reconciliation commit documented at least 4 SKIP
    cases. These were analyzed but not resolved.
 
-**Action required**: Framework-V23 should include tasks for all four items. They are
-straightforward but were left out of scope during V22.
+**Action required**: Framework-V23 includes tasks for all three remaining items.
 
 ---
 
@@ -167,8 +200,8 @@ the convergence problem open.
 | Issue | Category | Severity | Framework-V23 Task? | Framework-V24 Task? |
 |-------|----------|----------|--------------------|--------------------|
 | ISSUE-1: Integration tests failing | INCOMPLETE | Blocking | Yes — Task 1 | No |
-| ISSUE-2: Race detector deferred | INTENTIONAL DEFERRAL | Low | No | No |
-| ISSUE-3: 4 untracked follow-ups | UNTRACKED FOLLOW-UP | Medium | Yes — Tasks 2-5 | No |
+| ISSUE-2: Race detector deferred | INTENTIONAL DEFERRAL | Low | No (ENG-HANDBOOK §10.9 updated) | No |
+| ISSUE-3: 3 untracked follow-ups (item 1 resolved) | UNTRACKED FOLLOW-UP | Medium | Yes — Tasks 2-4 | No |
 | ISSUE-4: tasks.md documentation lag | PROCESS VIOLATION | Low | Lessons note only | No |
 | ISSUE-5: 5 post-impl Docker fixes | PROCESS VIOLATION | Medium | Lessons note only | Yes — phase gate |
 | ISSUE-6: No convergence progress | STRUCTURAL GAP | High | No | Yes — primary scope |
