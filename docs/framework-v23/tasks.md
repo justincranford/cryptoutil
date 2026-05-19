@@ -1,8 +1,8 @@
 # Tasks - Framework V23: Follow-Up Work from Framework-V22
 
-**Status**: 0 of 18 tasks complete (0%)
+**Status**: 0 of 16 tasks complete (0%)
 **Created**: 2026-05-17
-**Last Updated**: 2026-05-17
+**Last Updated**: 2026-05-22
 
 ## Task Status Legend
 
@@ -16,10 +16,15 @@
 ## Decision Constraints
 
 1. All fixes must not introduce new test skips.
-2. The LF fitness check must not produce false positives on non-secret text files.
-3. E2E cert-dir cleanup must not regress Linux CI behavior.
-4. POSTGRES_SECRETS_DIR validator must be additive to existing lint-deployments checks.
-5. sm-im E2E SKIP reduction requires each skip to be either resolved or explicitly tracked.
+2. E2E compose named-volume change must not regress Linux CI behavior.
+3. POSTGRES_SECRETS_DIR validator must be additive to existing lint-deployments checks.
+4. sm-im E2E SKIP reduction requires each skip to be either resolved or explicitly tracked.
+
+## Pre-Execution Enforcement
+
+Before starting Phase 1, re-read `plan.md` Pre-Execution section. Per V22 lessons:
+- Update `tasks.md` after EVERY completed task (not in batch).
+- Any phase touching Compose files MUST include Docker Compose verification within the same phase.
 
 ## Phase 1: Fix Integration Test Failures
 
@@ -73,54 +78,59 @@
   - [ ] `go test -tags integration ./...` exits 0.
   - [ ] Evidence archived in `test-output/v23-phase1/final-integration.txt`.
 
-## Phase 2: LF Line-Ending Fitness Check for Secrets Files
+## Phase 2: pki-init E2E Compose — Switch to Docker Named Volumes for Cert Storage
 
-### Task 2.1: Implement LF fitness check in lint_deployments
-
-- **Status**: ❌
-- **Acceptance Criteria**:
-  - [ ] New sub-validator in `lint_deployments` scans `deployments/*/secrets/*.secret`.
-  - [ ] Returns an error with file path and line number for any CRLF content found.
-  - [ ] `_test.go` covers: clean LF file passes, CRLF file fails, empty file passes.
-
-### Task 2.2: Wire and verify LF fitness check
+### Task 2.1: Audit all 11 compose files for bind mount cert usage
 
 - **Status**: ❌
 - **Acceptance Criteria**:
-  - [ ] Validator registered in `lint_deployments` main validator table.
-  - [ ] `go run ./cmd/cicd-lint lint-deployments` passes on current repository.
-  - [ ] `go test ./internal/apps-tools/cicd_lint/lint_deployments/...` passes.
+  - [ ] All occurrences of `./certs:/certs` in `deployments/*/compose.yml` (10 PS-IDs) and
+        `api/cryptosuite-registry/templates/deployments/__PS_ID__/compose.yml` enumerated.
+  - [ ] Current violation count confirmed (expected: pki-init rw + 4 app services ro = 5 per file × 10 + 5 template = 55 bind mounts total).
+  - [ ] Evidence archived in `test-output/v23-phase2/audit.txt`.
+
+### Task 2.2: Update canonical template to use named volume
+
+- **Status**: ❌
+- **Acceptance Criteria**:
+  - [ ] `api/cryptosuite-registry/templates/deployments/__PS_ID__/compose.yml`:
+        - pki-init: `./certs:/certs:rw` → `__PS_ID__-certs:/certs`
+        - App services: `./certs:/certs:ro` → `__PS_ID__-certs:/certs:ro`
+        - Top-level `volumes:` section declares `__PS_ID__-certs:`.
+  - [ ] Template still parses as valid YAML.
+
+### Task 2.3: Update all 10 PS-ID compose files to named volumes
+
+- **Status**: ❌
+- **Acceptance Criteria**:
+  - [ ] For each PS-ID in {identity-authz, identity-idp, identity-rp, identity-rs, identity-spa,
+        jose-ja, pki-ca, skeleton-template, sm-im, sm-kms}:
+        - pki-init volume: `./certs:/certs:rw` → `{ps-id}-certs:/certs`
+        - All app-service cert volumes: `./certs:/certs:ro` → `{ps-id}-certs:/certs:ro`
+        - Top-level `volumes:` section added with `{ps-id}-certs:`.
+  - [ ] All 10 files parse as valid Docker Compose YAML (`docker compose config` passes).
+
+### Task 2.4: Verify CO-21/CO-22 compliance via lint-deployments
+
+- **Status**: ❌
+- **Acceptance Criteria**:
+  - [ ] `go run ./cmd/cicd-lint lint-deployments` exits 0.
+  - [ ] `docker compose -f deployments/sm-kms/compose.yml config` exits 0 (smoke-test one PS-ID).
+  - [ ] Docker Compose `up --wait` passes on at least one PS-ID (e.g., sm-kms) to confirm cert
+        volume works end-to-end.
   - [ ] Evidence archived in `test-output/v23-phase2/`.
 
-## Phase 3: E2E Cert-Dir Writable Cleanup on Windows
+## Phase 3: POSTGRES_SECRETS_DIR Sync
 
-### Task 3.1: Implement cert-dir writable check in test_orch_e2e
-
-- **Status**: ❌
-- **Acceptance Criteria**:
-  - [ ] `SetupE2ETestMain` (or equivalent) checks if cert-dir is writable before Compose starts.
-  - [ ] If not writable, attempts `os.RemoveAll` + re-create with warning log.
-  - [ ] `go test ./internal/apps-framework/service/test_orch_e2e/...` passes.
-
-### Task 3.2: Verify E2E behavior on second local run
-
-- **Status**: ❌
-- **Acceptance Criteria**:
-  - [ ] Two sequential local E2E runs succeed without manual cert-dir cleanup.
-  - [ ] Linux CI behavior unaffected (cert dirs already writable, no-op code path).
-  - [ ] Evidence archived in `test-output/v23-phase3/`.
-
-## Phase 4: POSTGRES_SECRETS_DIR Sync
-
-### Task 4.1: Audit POSTGRES_SECRETS_DIR occurrences
+### Task 3.1: Audit POSTGRES_SECRETS_DIR occurrences
 
 - **Status**: ❌
 - **Acceptance Criteria**:
   - [ ] All occurrences of `POSTGRES_SECRETS_DIR` in `deployments/` catalogued.
   - [ ] Any current mismatches between `shared-postgres` template and per-PS-ID `.env.postgres` identified.
-  - [ ] Evidence archived in `test-output/v23-phase4/audit.txt`.
+  - [ ] Evidence archived in `test-output/v23-phase3/audit.txt`.
 
-### Task 4.2: Implement POSTGRES_SECRETS_DIR sync validator
+### Task 3.2: Implement POSTGRES_SECRETS_DIR sync validator
 
 - **Status**: ❌
 - **Acceptance Criteria**:
@@ -128,36 +138,36 @@
   - [ ] `go run ./cmd/cicd-lint lint-deployments` passes on current (consistent) repo.
   - [ ] `go test ./internal/apps-tools/cicd_lint/lint_deployments/...` passes.
 
-### Task 4.3: Fix any current mismatches
+### Task 3.3: Fix any current mismatches
 
 - **Status**: ❌
 - **Acceptance Criteria**:
   - [ ] Zero current violations after fixes.
   - [ ] `go run ./cmd/cicd-lint lint-deployments` exits 0.
-  - [ ] Evidence archived in `test-output/v23-phase4/`.
+  - [ ] Evidence archived in `test-output/v23-phase3/`.
 
-## Phase 5: Reduce sm-im E2E SKIP Cases
+## Phase 4: Reduce sm-im E2E SKIP Cases
 
-### Task 5.1: Audit sm-im E2E t.Skip instances
+### Task 4.1: Audit sm-im E2E t.Skip instances
 
 - **Status**: ❌
 - **Acceptance Criteria**:
   - [ ] All `t.Skip` calls in `internal/apps/sm-im/e2e/` enumerated.
   - [ ] For each: root cause documented (blocker or deferred).
-  - [ ] Evidence archived in `test-output/v23-phase5/audit.txt`.
+  - [ ] Evidence archived in `test-output/v23-phase4/audit.txt`.
 
-### Task 5.2: Resolve or track all sm-im E2E skips
+### Task 4.2: Resolve or track all sm-im E2E skips
 
 - **Status**: ❌
 - **Acceptance Criteria**:
   - [ ] All skips either resolved (test runs) or converted to tracked non-skip stubs.
   - [ ] `grep -n 't.Skip' internal/apps/sm-im/e2e/` returns 0 matches.
   - [ ] `go test -tags e2e ./internal/apps/sm-im/e2e/...` passes (with Docker infra running).
-  - [ ] Evidence archived in `test-output/v23-phase5/`.
+  - [ ] Evidence archived in `test-output/v23-phase4/`.
 
-## Phase 6: Verification and Closure
+## Phase 5: Verification and Closure
 
-### Task 6.1: Full quality suite
+### Task 5.1: Full quality suite
 
 - **Status**: ❌
 - **Acceptance Criteria**:
@@ -170,4 +180,4 @@
   - [ ] `go run ./cmd/cicd-lint lint-deployments` exits 0.
   - [ ] `go run ./cmd/cicd-lint lint-fitness` exits 0.
   - [ ] `go run ./cmd/cicd-lint lint-docs` exits 0.
-  - [ ] Evidence archived in `test-output/v23-phase6/`.
+  - [ ] Evidence archived in `test-output/v23-phase5/`.
