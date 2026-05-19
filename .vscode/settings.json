@@ -49,6 +49,10 @@
   "files.insertFinalNewline": true, // Ensure files end with a newline - Recommended to align with project policy
   "files.trimFinalNewlines": true, // Trim extra final newlines - Recommended for consistent file endings
   "files.associations": { "*.py": "python" },
+  "evenBetterToml.schema.catalogs": [], // Avoid catalog collisions; use explicit workspace associations only.
+  "evenBetterToml.schema.associations": {
+    ".*/\\.air\\.toml$": "https://json.schemastore.org/any.json"
+  },
   "files.trimTrailingWhitespace": true, // Trim trailing whitespace on save - Default: false, Recommended: true (aligns with linting standards)
   "files.exclude": {
     // Git internal files
