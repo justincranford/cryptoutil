@@ -53,8 +53,16 @@ linters:
       - api/.*/client
       - api/.*/models
       - api/.*/server
-      - api/identity-idp
       - api/identity-authz
+      - api/identity-idp
+      - api/identity-rp
+      - api/identity-rs
+      - api/identity-spa
+      - api/jose-ja
+      - api/pki-ca
+      - api/skeleton-template
+      - api/sm-im
+      - api/sm-kms
       - test-output
       - workflow-reports
       - vendor

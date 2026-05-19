@@ -6,6 +6,8 @@ title = "cryptoutil"
     "api/.*/client/",
     "api/.*/models/",
     "api/.*/server/",
+    "api/.*/openapi_gen_.*\\.go",
+    "api/.*/generate\\.go",
     "api/cryptosuite-registry/templates/"
   ]
   regexes = [
