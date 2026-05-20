@@ -13,6 +13,7 @@ const (
 	certBindMountPattern            = "./certs:/certs"
 	templateCertVolumeName          = "__PS_ID__-certs"
 	certVolumeMountPathPrefix       = ":/certs"
+	certVolumeInfraMountPathPrefix  = ":/mnt/ps-certs-src"
 	certVolumePolicyHandbookSection = "ENG-HANDBOOK.md Section 12.1"
 )
 
@@ -81,13 +82,18 @@ func expectedCertVolumeName(deploymentName string) string {
 }
 
 func hasCertVolumeMountReference(compose *composeFile, expectedVolumeName string) bool {
-	expectedPrefix := expectedVolumeName + certVolumeMountPathPrefix
+	expectedPrefixes := []string{
+		expectedVolumeName + certVolumeMountPathPrefix,
+		expectedVolumeName + certVolumeInfraMountPathPrefix,
+	}
 
 	for _, serviceName := range sortedServiceNames(compose) {
 		svc := compose.Services[serviceName]
 		for _, volume := range svc.Volumes {
-			if strings.Contains(volume, expectedPrefix) {
-				return true
+			for _, expectedPrefix := range expectedPrefixes {
+				if strings.Contains(volume, expectedPrefix) {
+					return true
+				}
 			}
 		}
 	}

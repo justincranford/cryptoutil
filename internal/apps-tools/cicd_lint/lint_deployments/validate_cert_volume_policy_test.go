@@ -46,6 +46,12 @@ func TestValidateCertVolumePolicy(t *testing.T) {
 			composeContent: "services:\n  pki-init:\n    volumes:\n      - __PS_ID__-certs:/certs\n  app:\n    volumes:\n      - __PS_ID__-certs:/certs:ro\nvolumes:\n  __PS_ID__-certs:\n",
 			wantValid:      true,
 		},
+		{
+			name:           "valid infrastructure mount path",
+			deploymentName: cryptoutilSharedMagic.OTLPServiceSMIM,
+			composeContent: "services:\n  pki-init:\n    volumes:\n      - sm-im-certs:/mnt/ps-certs-src\n  grafana-otel-lgtm:\n    volumes:\n      - sm-im-certs:/mnt/ps-certs-src:ro\nvolumes:\n  sm-im-certs:\n",
+			wantValid:      true,
+		},
 	}
 
 	for _, tc := range tests {

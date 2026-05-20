@@ -343,14 +343,17 @@ services:
       pki-init:
         condition: service_completed_successfully
     volumes:
-      # Cat 2: OTel server cert + key (OTel presents to apps as its server identity)
-      - ./certs/identity-rs/public-https-server-entity-otel-collector-contrib:/etc/pki-init/certs/public-https-server-entity-otel-collector-contrib:ro
-      # Cat 8: Appâ†’OTel client issuing CA truststore (OTel verifies app client certs)
-      - ./certs/identity-rs/otel-collector-contrib-https-client-issuing-ca:/etc/pki-init/certs/otel-collector-contrib-https-client-issuing-ca:ro
-      # Cat 1: Public HTTPS server issuing CA truststore (OTel verifies Grafana server cert)
-      - ./certs/identity-rs/public-https-server-issuing-ca:/etc/pki-init/certs/public-https-server-issuing-ca:ro
-      # Cat 9 infra: OTelâ†’Grafana client cert (OTel presents to Grafana as its client identity)
-      - ./certs/identity-rs/otel-collector-contrib-https-client-entity-infra:/etc/pki-init/certs/otel-collector-contrib-https-client-entity-infra:ro
+      - identity-rs-certs:/mnt/ps-certs-src:ro
+    entrypoint: /bin/bash
+    command:
+      - -c
+      - |
+        mkdir -p /etc/pki-init/certs
+        ln -sf /mnt/ps-certs-src/identity-rs/public-https-server-entity-otel-collector-contrib /etc/pki-init/certs/public-https-server-entity-otel-collector-contrib 2>/dev/null || true
+        ln -sf /mnt/ps-certs-src/identity-rs/otel-collector-contrib-https-client-issuing-ca /etc/pki-init/certs/otel-collector-contrib-https-client-issuing-ca 2>/dev/null || true
+        ln -sf /mnt/ps-certs-src/identity-rs/public-https-server-issuing-ca /etc/pki-init/certs/public-https-server-issuing-ca 2>/dev/null || true
+        ln -sf /mnt/ps-certs-src/identity-rs/otel-collector-contrib-https-client-entity-infra /etc/pki-init/certs/otel-collector-contrib-https-client-entity-infra 2>/dev/null || true
+        exec /otelcontribcol --config=/etc/otel-collector-config.yaml
 
   # Grafana HTTPS and OTLP ingest mTLS cert setup.
   # Extends the shared-telemetry Grafana service with PS-ID-specific cert mounts.
@@ -359,10 +362,10 @@ services:
       pki-init:
         condition: service_completed_successfully
     volumes:
-      # Cat 2: Grafana server cert + key (Grafana presents to browsers/OTel as its server identity)
-      - ./certs/identity-rs/public-https-server-entity-grafana-otel-lgtm:/etc/pki-init/certs/public-https-server-entity-grafana-otel-lgtm:ro
-      # Cat 8: OTelâ†’Grafana client issuing CA truststore (Grafana verifies OTel client certs)
-      - ./certs/identity-rs/grafana-otel-lgtm-https-client-issuing-ca:/etc/pki-init/certs/grafana-otel-lgtm-https-client-issuing-ca:ro
+      - identity-rs-certs:/mnt/ps-certs-src:ro
+    environment:
+      GF_SERVER_CERT_FILE: /mnt/ps-certs-src/identity-rs/public-https-server-entity-grafana-otel-lgtm/public-https-server-entity-grafana-otel-lgtm.crt
+      GF_SERVER_CERT_KEY: /mnt/ps-certs-src/identity-rs/public-https-server-entity-grafana-otel-lgtm/public-https-server-entity-grafana-otel-lgtm.key
 
   # postgres-leader SSL setup â€” extends shared-postgres service with mTLS cert setup.
   # Runs as root to copy certs into a writable directory, chown to postgres (uid 999),
@@ -375,9 +378,9 @@ services:
       - |
         SSL=/var/lib/postgresql/ssl
         mkdir -p "$$SSL"
-        cp /ssl-in/server.crt "$$SSL/server.crt" 2>/dev/null || true
-        cp /ssl-in/server.key "$$SSL/server.key" 2>/dev/null || true
-        cp /ssl-in/client-ca.crt "$$SSL/client-ca.crt" 2>/dev/null || true
+        cp /mnt/ps-certs-src/identity-rs/postgres-tls-server-entity-leader/postgres-tls-server-entity-leader.crt "$$SSL/server.crt" 2>/dev/null || true
+        cp /mnt/ps-certs-src/identity-rs/postgres-tls-server-entity-leader/postgres-tls-server-entity-leader.key "$$SSL/server.key" 2>/dev/null || true
+        cp /mnt/ps-certs-src/identity-rs/postgres-tls-client-issuing-ca/truststore/postgres-tls-client-issuing-ca.crt "$$SSL/client-ca.crt" 2>/dev/null || true
         chown 999:999 "$$SSL/server.crt" "$$SSL/server.key" "$$SSL/client-ca.crt" 2>/dev/null || true
         chmod 600 "$$SSL/server.key" 2>/dev/null || true
         chmod 644 "$$SSL/server.crt" "$$SSL/client-ca.crt" 2>/dev/null || true
@@ -386,9 +389,7 @@ services:
       pki-init:
         condition: service_completed_successfully
     volumes:
-      - ./certs/identity-rs/postgres-tls-server-entity-leader/postgres-tls-server-entity-leader.crt:/ssl-in/server.crt:ro
-      - ./certs/identity-rs/postgres-tls-server-entity-leader/postgres-tls-server-entity-leader.key:/ssl-in/server.key:ro
-      - ./certs/identity-rs/postgres-tls-client-issuing-ca/truststore/postgres-tls-client-issuing-ca.crt:/ssl-in/client-ca.crt:ro
+      - identity-rs-certs:/mnt/ps-certs-src:ro
 
 volumes:
   identity-rs-certs:
