@@ -1,8 +1,8 @@
 # Tasks - Framework V23
 
-**Status**: 0 of 16 tasks complete (0%)
+**Status**: 0 of 13 tasks complete (0%)
 **Created**: 2026-05-17
-**Last Updated**: 2026-05-22
+**Last Updated**: 2026-05-20
 
 ## Task Status Legend
 
@@ -26,57 +26,17 @@ Before starting Phase 1, re-read `plan.md` Pre-Execution section. Per prior fram
 - Update `tasks.md` after EVERY completed task (not in batch).
 - Any phase touching Compose files MUST include Docker Compose verification within the same phase.
 
-## Phase 1: Fix Integration Test Failures
+## Phase 1: Verify ISSUE-1 Resolved
 
-### Task 1.1: Diagnose sm-im/client TLS integration failure
-
-- **Status**: ❌
-- **Acceptance Criteria**:
-  - [ ] Root cause of TLS handshake failure identified and documented.
-  - [ ] Evidence archived in `test-output/v23-phase1/sm-im-client-tls.txt`.
-
-### Task 1.2: Fix sm-im/client TLS failure
+### Task 1.1: Pre-flight integration test verification
 
 - **Status**: ❌
 - **Acceptance Criteria**:
   - [ ] `go test -tags integration ./internal/apps/sm-im/client/...` exits 0.
-  - [ ] No new skips introduced.
-  - [ ] `golangci-lint run ./internal/apps/sm-im/client/...` exits 0.
-
-### Task 1.3: Diagnose sm-kms/client authorization failure
-
-- **Status**: ❌
-- **Acceptance Criteria**:
-  - [ ] Root cause of authorization test failure identified (scope validation logic).
-  - [ ] Evidence archived in `test-output/v23-phase1/sm-kms-client-authz.txt`.
-
-### Task 1.4: Fix sm-kms/client authorization failure
-
-- **Status**: ❌
-- **Acceptance Criteria**:
   - [ ] `go test -tags integration ./internal/apps/sm-kms/client/...` exits 0.
-  - [ ] No new skips introduced.
-
-### Task 1.5: Diagnose sm-kms/server/repository/orm barrier_content_keys failure
-
-- **Status**: ❌
-- **Acceptance Criteria**:
-  - [ ] Root cause identified: migration not applied before test execution, or missing table.
-  - [ ] Evidence archived in `test-output/v23-phase1/sm-kms-barrier.txt`.
-
-### Task 1.6: Fix sm-kms/server/repository/orm barrier_content_keys failure
-
-- **Status**: ❌
-- **Acceptance Criteria**:
   - [ ] `go test -tags integration ./internal/apps/sm-kms/server/repository/orm/...` exits 0.
-  - [ ] No new skips introduced.
-
-### Task 1.7: Phase 1 integration test verification
-
-- **Status**: ❌
-- **Acceptance Criteria**:
-  - [ ] `go test -tags integration ./...` exits 0.
-  - [ ] Evidence archived in `test-output/v23-phase1/final-integration.txt`.
+  - [ ] `go test -tags integration ./...` exits 0 (full suite, zero failures).
+  - [ ] Evidence archived in `test-output/v23-phase1/`.
 
 ## Phase 2: pki-init E2E Compose — Switch to Docker Named Volumes for Cert Storage
 
@@ -110,11 +70,22 @@ Before starting Phase 1, re-read `plan.md` Pre-Execution section. Per prior fram
         - Top-level `volumes:` section added with `{ps-id}-certs:`.
   - [ ] All 10 files parse as valid Docker Compose YAML (`docker compose config` passes).
 
-### Task 2.4: Verify CO-21/CO-22 compliance via lint-deployments
+### Task 2.4: Implement CO-21/CO-22 validators in lint_deployments
 
 - **Status**: ❌
 - **Acceptance Criteria**:
-  - [ ] `go run ./cmd/cicd-lint lint-deployments` exits 0.
+  - [ ] New validator in `lint_deployments` detects `./certs:/certs` bind mounts in
+        `deployments/*/compose.yml` (CO-21 violation).
+  - [ ] New validator detects missing top-level named volume declaration `{ps-id}-certs:` (CO-22).
+  - [ ] `go run ./cmd/cicd-lint lint-deployments` FAILS on current repo (pre-change bind mounts).
+  - [ ] `go test ./internal/apps-tools/cicd_lint/lint_deployments/...` passes.
+  - [ ] Evidence archived in `test-output/v23-phase2/validators.txt`.
+
+### Task 2.5: Verify CO-21/CO-22 compliance via lint-deployments
+
+- **Status**: ❌
+- **Acceptance Criteria**:
+  - [ ] `go run ./cmd/cicd-lint lint-deployments` exits 0 (zero CO-21/CO-22 violations after migration).
   - [ ] `docker compose -f deployments/sm-kms/compose.yml config` exits 0 (smoke-test one PS-ID).
   - [ ] Docker Compose `up --wait` passes on at least one PS-ID (e.g., sm-kms) to confirm cert
         volume works end-to-end.
@@ -152,16 +123,20 @@ Before starting Phase 1, re-read `plan.md` Pre-Execution section. Per prior fram
 
 - **Status**: ❌
 - **Acceptance Criteria**:
-  - [ ] All `t.Skip` calls in `internal/apps/sm-im/e2e/` enumerated.
-  - [ ] For each: root cause documented (blocker or deferred).
+  - [ ] Both `t.Skip` calls in `internal/apps/sm-im/e2e/` enumerated and root causes documented:
+        - `e2e_registration_test.go:93`: `join_tenant_id` not yet supported.
+        - `e2e_test.go:67`: intentional OTEL port isolation.
   - [ ] Evidence archived in `test-output/v23-phase4/audit.txt`.
 
-### Task 4.2: Resolve or track all sm-im E2E skips
+### Task 4.2: Convert t.Skip calls to named constants
 
 - **Status**: ❌
 - **Acceptance Criteria**:
-  - [ ] All skips either resolved (test runs) or converted to tracked non-skip stubs.
-  - [ ] `grep -n 't.Skip' internal/apps/sm-im/e2e/` returns 0 matches.
+  - [ ] Skip 1 (`join_tenant_id`): either fix the framework registration handler, or replace
+        inline `t.Skip` string with `skipReasonJoinTenantIDNotSupported` named constant.
+  - [ ] Skip 2 (OTEL port): replace inline `t.Skip` string with `skipReasonOtelPortNotExposed`
+        named constant. This skip MUST remain — intentional design, not a defect.
+  - [ ] `golangci-lint run --build-tags e2e ./internal/apps/sm-im/e2e/...` exits 0.
   - [ ] `go test -tags e2e ./internal/apps/sm-im/e2e/...` passes (with Docker infra running).
   - [ ] Evidence archived in `test-output/v23-phase4/`.
 
@@ -176,8 +151,23 @@ Before starting Phase 1, re-read `plan.md` Pre-Execution section. Per prior fram
   - [ ] `go test ./...` exits 0.
   - [ ] `go test -tags integration ./...` exits 0.
   - [ ] `golangci-lint run ./...` exits 0.
+  - [ ] `golangci-lint run --build-tags e2e,integration ./...` exits 0.
   - [ ] `go run ./cmd/cicd-lint lint-go` exits 0.
   - [ ] `go run ./cmd/cicd-lint lint-deployments` exits 0.
   - [ ] `go run ./cmd/cicd-lint lint-fitness` exits 0.
   - [ ] `go run ./cmd/cicd-lint lint-docs` exits 0.
   - [ ] Evidence archived in `test-output/v23-phase5/`.
+
+## Phase 6: Knowledge Propagation
+
+### Task 6.1: Review lessons and update permanent artifacts
+
+- **Status**: ❌
+- **Acceptance Criteria**:
+  - [ ] All phase post-mortems in `lessons.md` reviewed.
+  - [ ] `docs/ENG-HANDBOOK.md` updated where new patterns or architectural decisions discovered.
+  - [ ] `.github/instructions/*.instructions.md` updated where new coding/testing patterns apply.
+  - [ ] `.github/agents/*.agent.md` and/or `.github/skills/*/SKILL.md` updated if guidance improved.
+  - [ ] `go run ./cmd/cicd-lint lint-docs` exits 0.
+  - [ ] All artifact updates committed with separate semantic commits per artifact type.
+  - [ ] Evidence archived in `test-output/v23-phase6/`.

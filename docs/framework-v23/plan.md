@@ -2,7 +2,7 @@
 
 **Status**: Not started
 **Created**: 2026-05-17
-**Last Updated**: 2026-05-22
+**Last Updated**: 2026-05-20
 **Purpose**: Close open items identified in post-analysis from the prior framework execution.
 These are items that were incomplete or untracked at the time of the prior framework declaration.
 
@@ -10,7 +10,8 @@ These are items that were incomplete or untracked at the time of the prior frame
 
 The prior framework executed successfully but left open issues captured in the post-analysis:
 
-- ISSUE-1: Integration test failures in 3 packages.
+- ISSUE-1: Integration test failures in 3 packages — all 3 confirmed passing at V23 plan
+  creation (2026-05-17); Phase 1 provides explicit pre-flight verification before Phase 2.
 - ISSUE-3: Three lessons.md action items never promoted to tasks (item 1 — LF line endings —
   resolved separately via `.gitattributes * text=auto eol=lf`).
 
@@ -31,20 +32,21 @@ Before starting implementation, the executor MUST enforce these lessons:
 
 ## Scope
 
-### Phase 1: Fix Integration Test Failures
+### Phase 1: Verify ISSUE-1 Resolved
 
-Three test packages are currently failing under `go test -tags integration ./...`:
+Three test packages were reported failing when ISSUE-1 was filed. All three were confirmed
+passing at V23 plan creation (2026-05-17). Phase 1 provides an explicit pre-flight
+confirmation run before Phase 2 begins.
 
-1. `internal/apps/sm-im/client/` — TLS handshake failures (likely server cert trust issue).
-2. `internal/apps/sm-kms/client/` — Authorization test failure (scope validation).
-3. `internal/apps/sm-kms/server/repository/orm/` — Missing `barrier_content_keys` table
-   (migration not applied before test execution).
+1. `internal/apps/sm-im/client/` — verified passing at plan creation.
+2. `internal/apps/sm-kms/client/` — verified passing at plan creation.
+3. `internal/apps/sm-kms/server/repository/orm/` — verified passing at plan creation.
 
 **Acceptance**:
-- `go test -tags integration ./internal/apps/sm-im/client/...` passes.
-- `go test -tags integration ./internal/apps/sm-kms/client/...` passes.
-- `go test -tags integration ./internal/apps/sm-kms/server/repository/orm/...` passes.
-- Zero new test skips introduced.
+- `go test -tags integration ./internal/apps/sm-im/client/...` exits 0.
+- `go test -tags integration ./internal/apps/sm-kms/client/...` exits 0.
+- `go test -tags integration ./internal/apps/sm-kms/server/repository/orm/...` exits 0.
+- Evidence archived in `test-output/v23-phase1/`.
 
 ### Phase 2: pki-init E2E Compose — Switch to Docker Named Volumes for Cert Storage
 
@@ -84,9 +86,11 @@ Affected files (11 total):
 - `deployments/sm-kms/compose.yml`
 
 **Acceptance**:
+- CO-21/CO-22 validators implemented in `lint_deployments`; `lint-deployments` fails on
+  pre-change compose files (bind mounts) and passes on post-change files (named volumes).
 - All 10 PS-ID compose files use `{ps-id}-certs:/certs` named volumes (zero bind mounts for certs).
 - Canonical template uses `__PS_ID__-certs:/certs` named volume.
-- `go run ./cmd/cicd-lint lint-deployments` passes (CO-21/CO-22 compliance).
+- `go run ./cmd/cicd-lint lint-deployments` exits 0 (zero CO-21/CO-22 violations after migration).
 - E2E tests succeed on sequential local runs without manual cert directory cleanup.
 - No regression on Linux CI.
 - Docker Compose verification run within this phase (`docker compose up --wait` + health check
@@ -110,20 +114,25 @@ This phase:
 
 ### Phase 4: Reduce sm-im E2E SKIP Cases
 
-At least 4 E2E test cases in `internal/apps/sm-im/e2e/` are currently skipped with `t.Skip`.
-Each skip should be resolved to a real test or a tracked issue with a rationale.
+Exactly 2 E2E test cases in `internal/apps/sm-im/e2e/` are currently skipped with `t.Skip`:
+
+1. `e2e_registration_test.go:93` — framework limitation: `join_tenant_id` not yet supported
+   by the registration handler (create_tenant flow only).
+2. `e2e_test.go:67` — explicitly intentional: OTEL Collector health port 13133 not exposed
+   to the host (intentional — prevents port conflicts across deployments).
 
 This phase:
-- Audits all `t.Skip` in `internal/apps/sm-im/e2e/`.
-- For each skip: either fix the underlying blocker and re-enable the test, or file a
-  tracking issue and convert the `t.Skip` to a clear `t.Log` + explicit skipped-reason
-  constant.
-- Reduces skip count from ≥4 to 0 active skips.
+- Audits both `t.Skip` calls and documents their root cause.
+- Skip 1 (`join_tenant_id`): either fix the framework registration handler or convert to a
+  named constant (`skipReasonJoinTenantIDNotSupported`) for explicit tracking.
+- Skip 2 (OTEL port): convert to a named constant (`skipReasonOtelPortNotExposed`) to make
+  the intentional design decision self-documenting. This skip MUST NOT be removed.
 
 **Acceptance**:
-- `grep -n 't.Skip' internal/apps/sm-im/e2e/` returns 0 matches.
-- Any former-skip scenarios now run (even as empty stubs asserting "not yet implemented")
-  with explicit tracking.
+- All `t.Skip` calls reference a named constant (not inline strings).
+- Skip 2 (OTEL port) remains as a named-constant skip — intentional, must not be removed.
+- `go test -tags e2e ./internal/apps/sm-im/e2e/...` passes (with Docker infra running).
+- Evidence archived in `test-output/v23-phase4/`.
 
 ### Phase 5: Verification and Closure
 
@@ -132,6 +141,22 @@ This phase:
 - `go run ./cmd/cicd-lint lint-fitness` passes.
 - `go run ./cmd/cicd-lint lint-docs` passes.
 - `git status --porcelain` returns empty.
+
+### Phase 6: Knowledge Propagation
+
+Review `lessons.md` populated during Phases 1–5 and apply insights to permanent artifacts.
+
+This phase:
+- Reviews all phase post-mortems in `lessons.md`.
+- Updates `docs/ENG-HANDBOOK.md` with new patterns or architectural decisions discovered.
+- Updates `.github/instructions/*.instructions.md` where new coding/testing patterns apply.
+- Updates `.github/agents/*.agent.md` and `.github/skills/*/SKILL.md` where guidance improved.
+- Verifies propagation: `go run ./cmd/cicd-lint lint-docs` exits 0.
+
+**Acceptance**:
+- All artifact updates committed with separate semantic commits per artifact type.
+- `go run ./cmd/cicd-lint lint-docs` exits 0.
+- Evidence archived in `test-output/v23-phase6/`.
 
 ## Non-Goals
 
@@ -147,10 +172,25 @@ This phase:
 - `go test ./...`
 - `go test -tags integration ./...`
 - `golangci-lint run ./...`
+- `golangci-lint run --build-tags e2e,integration ./...`
 - `go run ./cmd/cicd-lint lint-go`
 - `go run ./cmd/cicd-lint lint-deployments`
 - `go run ./cmd/cicd-lint lint-fitness`
 - `go run ./cmd/cicd-lint lint-docs`
+
+## ENG-HANDBOOK.md Cross-References
+
+| Topic | ENG-HANDBOOK.md Section | When to Reference |
+|-------|------------------------|-------------------|
+| Integration Testing | [Section 10.3](../../docs/ENG-HANDBOOK.md#103-integration-testing-strategy) | Phase 1 verification |
+| E2E Testing | [Section 10.4](../../docs/ENG-HANDBOOK.md#104-e2e-testing-strategy) | Phase 4 skip reduction |
+| Quality Gates | [Section 11.2](../../docs/ENG-HANDBOOK.md#112-quality-gates) | ALL phases |
+| Code Quality | [Section 11.3](../../docs/ENG-HANDBOOK.md#113-code-quality-standards) | ALL phases |
+| Deployment Architecture | [Section 12](../../docs/ENG-HANDBOOK.md#12-deployment-architecture) | Phase 2 named volumes |
+| Docker Compose Rules | [Section 12.1](../../docs/ENG-HANDBOOK.md#121-docker-compose-rules) | Phase 2 CO-21/CO-22 |
+| Coding Standards | [Section 14.1](../../docs/ENG-HANDBOOK.md#141-coding-standards) | Phases 1-4 code changes |
+| Version Control | [Section 14.2](../../docs/ENG-HANDBOOK.md#142-version-control) | ALL phases |
+| Knowledge Propagation | [Section 14.8](../../docs/ENG-HANDBOOK.md#148-phase-post-mortem--knowledge-propagation) | Phase 6 |
 
 ## Evidence Strategy
 
@@ -159,3 +199,4 @@ This phase:
 - `test-output/v23-phase3/` — POSTGRES_SECRETS_DIR audit evidence.
 - `test-output/v23-phase4/` — sm-im E2E skip reduction evidence.
 - `test-output/v23-phase5/` — final verification evidence.
+- `test-output/v23-phase6/` — knowledge propagation evidence.

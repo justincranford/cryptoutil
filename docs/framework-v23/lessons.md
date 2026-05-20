@@ -1,7 +1,7 @@
 # Lessons - Framework V23
 
 **Created**: 2026-05-17
-**Last Updated**: 2026-05-22
+**Last Updated**: 2026-05-20
 
 ## Pre-Execution: Lessons to Enforce
 
@@ -16,11 +16,11 @@ Before starting implementation, the executor MUST enforce these lessons:
    verification step (`docker compose up --wait` + health endpoint check) within the SAME phase.
    Phases declared complete without Compose verification are incomplete.
 
-## Phase 1: Integration Test Failures
+## Phase 1: Verify ISSUE-1 Resolved
 
 _Populate after Phase 1 execution complete._
 
-## Phase 2: pki-init E2E Compose — Docker Named Volumes for Cert Storage
+## Phase 2: pki-init E2E Compose — Switch to Docker Named Volumes for Cert Storage
 
 _Populate after Phase 2 execution complete._
 
@@ -28,10 +28,14 @@ _Populate after Phase 2 execution complete._
 
 _Populate after Phase 3 execution complete._
 
-## Phase 4: sm-im E2E SKIP Reduction
+## Phase 4: Reduce sm-im E2E SKIP Cases
 
 _Populate after Phase 4 execution complete._
 
 ## Phase 5: Verification and Closure
 
 _Populate after Phase 5 execution complete._
+
+## Phase 6: Knowledge Propagation
+
+_Populate after Phase 6 execution complete._
