@@ -149,6 +149,41 @@ func TestRunSecretsValidation_ErrorPath(t *testing.T) {
 	require.Equal(t, validatorNameSecrets, result.Results[0].Name)
 }
 
+func TestRunCertVolumePolicyValidation(t *testing.T) {
+	t.Parallel()
+
+	t.Run("runs for product-service and template only", func(t *testing.T) {
+		t.Parallel()
+
+		deployments := []deploymentEntry{
+			{path: "/nonexistent/path/service", name: cryptoutilSharedMagic.OTLPServiceSMKMS, level: DeploymentTypeProductService},
+			{path: "/nonexistent/path/template", name: cryptoutilSharedMagic.SkeletonTemplateServiceName, level: DeploymentTypeTemplate},
+			{path: "/nonexistent/path/product", name: cryptoutilSharedMagic.SMProductName, level: DeploymentTypeProduct},
+			{path: "/nonexistent/path/infra", name: "shared-postgres", level: DeploymentTypeInfrastructure},
+		}
+
+		result := &AllValidationResult{}
+		runCertVolumePolicyValidation(deployments, result)
+
+		require.Len(t, result.Results, 2)
+
+		for _, vr := range result.Results {
+			require.Equal(t, validatorNameCertVolumes, vr.Name)
+		}
+	})
+}
+
+func TestRunPostgresSecretsDirSyncValidation_ErrorPath(t *testing.T) {
+	t.Parallel()
+
+	result := &AllValidationResult{}
+	runPostgresSecretsDirSyncValidation("/nonexistent/path/abc123", result)
+
+	require.Len(t, result.Results, 1)
+	require.Equal(t, validatorNamePostgresSync, result.Results[0].Name)
+	require.False(t, result.Results[0].Passed)
+}
+
 func TestIsServiceFrameworkConfig(t *testing.T) {
 	t.Parallel()
 

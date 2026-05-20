@@ -20,6 +20,8 @@ const (
 	validatorNameTelemetry       = "telemetry"
 	validatorNameAdmin           = "admin"
 	validatorNameSecrets         = "secrets"
+	validatorNameCertVolumes     = "cert-volumes"
+	validatorNamePostgresSync    = "postgres-secrets-dir-sync"
 )
 
 // ValidatorResult holds the outcome of a single validator run.
@@ -99,6 +101,12 @@ func ValidateAll(deploymentsDir, configsDir string) *AllValidationResult {
 
 	// 9. Secrets validation on each deployment.
 	runSecretsValidation(deployments, result)
+
+	// 10. Cert volume policy validation for PS-ID and template deployments.
+	runCertVolumePolicyValidation(deployments, result)
+
+	// 11. shared-postgres POSTGRES_SECRETS_DIR sync validation.
+	runPostgresSecretsDirSyncValidation(deploymentsDir, result)
 
 	result.TotalDuration = time.Since(start)
 
@@ -269,6 +277,31 @@ func runSecretsValidation(deployments []deploymentEntry, result *AllValidationRe
 
 		result.addResult(validatorNameSecrets, d.path, sr.Valid, FormatSecretValidationResult(sr), dur)
 	}
+}
+
+// runCertVolumePolicyValidation runs cert volume policy checks for PS-ID and template deployments.
+func runCertVolumePolicyValidation(deployments []deploymentEntry, result *AllValidationResult) {
+	for _, d := range deployments {
+		switch d.level {
+		case DeploymentTypeProductService, DeploymentTypeTemplate:
+			start := time.Now().UTC()
+			cv, _ := ValidateCertVolumePolicy(d.path, d.name)
+			dur := time.Since(start)
+
+			result.addResult(validatorNameCertVolumes, d.path, cv.Valid, FormatCertVolumePolicyResult(cv), dur)
+		default:
+			continue
+		}
+	}
+}
+
+// runPostgresSecretsDirSyncValidation runs POSTGRES_SECRETS_DIR consistency checks.
+func runPostgresSecretsDirSyncValidation(deploymentsDir string, result *AllValidationResult) {
+	start := time.Now().UTC()
+	ps, _ := ValidatePostgresSecretsDirSync(deploymentsDir)
+	dur := time.Since(start)
+
+	result.addResult(validatorNamePostgresSync, deploymentsDir, ps.Valid, FormatPostgresSecretsDirSyncResult(ps), dur)
 }
 
 // discoverDeploymentDirs finds and classifies all deployment subdirectories.
