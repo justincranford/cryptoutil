@@ -40,6 +40,7 @@ func WaitUntilReady(baseURL *string, maxTime, retryTime time.Duration, rootCAsPo
 
 		if err := CheckReadyz(baseURL, rootCAsPool); err == nil {
 			log.Printf("Server is ready")
+
 			return
 		}
 
@@ -135,6 +136,7 @@ func RequireClientWithResponses(t *testing.T, baseURL *string, rootCAsPool *x509
 			authHeader := cryptoutilSharedMagic.HTTPAuthorizationBearerPrefix + testServiceToken
 			req.Header.Set("Authorization", authHeader)
 			log.Printf("DEBUG RequireClientWithResponses requestEditor: set Authorization header (length=%d) for path=%s", len(authHeader), req.URL.Path)
+
 			return nil
 		}
 		openapiClient, err = cryptoutilOpenapiClient.NewClientWithResponses(
@@ -149,6 +151,7 @@ func RequireClientWithResponses(t *testing.T, baseURL *string, rootCAsPool *x509
 		requestEditor := func(_ context.Context, req *http.Request) error {
 			// /service/** endpoints require JWT bearer tokens (serviceToken)
 			req.Header.Set("Authorization", cryptoutilSharedMagic.HTTPAuthorizationBearerPrefix+testServiceToken)
+
 			return nil
 		}
 		openapiClient, err = cryptoutilOpenapiClient.NewClientWithResponses(

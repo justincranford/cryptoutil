@@ -22,6 +22,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const skipReasonJoinTenantIDNotSupported = "framework registration handler does not accept join_tenant_id yet (create_tenant flow only)"
+
 func TestE2E_RegistrationFlowWithTenantCreation(t *testing.T) {
 	t.Parallel()
 
@@ -90,7 +92,7 @@ func TestE2E_RegistrationFlowWithTenantCreation(t *testing.T) {
 // RegisterUserRequest currently supports create_tenant=true and tenant_name for tenant creation.
 // Re-enable when framework registration request model adds a join-by-tenant-ID path.
 func TestE2E_RegistrationFlowWithJoinRequest(t *testing.T) {
-	t.Skip("framework registration handler does not accept join_tenant_id yet (create_tenant flow only)")
+	t.Skip(skipReasonJoinTenantIDNotSupported)
 
 	tests := []struct {
 		name       string

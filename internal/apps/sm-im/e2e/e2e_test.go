@@ -17,6 +17,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const skipReasonOtelPortNotExposed = "OTEL Collector health port 13133 not exposed to host (intentional - prevents port conflicts across deployments)"
+
 // generateTestPassword creates a cryptographically secure random password for testing.
 // Uses shared utility to ensure consistency across all services.
 func generateTestPassword(t *testing.T) string {
@@ -64,7 +66,7 @@ func TestE2E_HealthChecks(t *testing.T) {
 
 // TestE2E_OtelCollectorHealth validates OpenTelemetry Collector is running and accepting telemetry.
 func TestE2E_OtelCollectorHealth(t *testing.T) {
-	t.Skip("OTEL Collector health port 13133 not exposed to host (intentional - prevents port conflicts across deployments)")
+	t.Skip(skipReasonOtelPortNotExposed)
 	// Alternative: Verify OTEL is working by checking sm-im services successfully send telemetry
 	// without connection refused errors in their logs
 }
