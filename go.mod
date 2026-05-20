@@ -19,7 +19,7 @@ require (
 	github.com/lib/pq v1.12.3
 	github.com/moby/moby/api v1.54.2
 	github.com/oapi-codegen/fiber-middleware v1.0.2
-	github.com/oapi-codegen/runtime v1.4.0
+	github.com/oapi-codegen/runtime v1.4.1
 	github.com/pquerna/otp v1.5.0
 	github.com/samber/slog-multi v1.8.0
 	github.com/shirou/gopsutil v3.21.11+incompatible
