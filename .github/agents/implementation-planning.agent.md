@@ -1364,6 +1364,22 @@ Example entries:
 
 ---
 
+## Per-Task Status Updates
+
+<!-- @source from="docs/ENG-HANDBOOK.md" as="per-task-status-updates" -->
+**Per-Task Status Updates** (MANDATORY): Update `tasks.md` immediately after each task completes. NEVER accumulate multiple task completions before updating documentation. A `tasks.md` that does not reflect actual state is a blocking artifact inconsistency. Deferred documentation creates invisible debt and false completion signals to subsequent phases.
+<!-- @/source -->
+
+## Docker Compose Verification
+
+<!-- @source from="docs/ENG-HANDBOOK.md" as="docker-compose-verification-in-scope" -->
+**Docker Verification Must Be In-Scope** (MANDATORY): Phases that modify Docker Compose files, config files consumed by containers, cert mount paths, or any artifact that affects runtime behavior MUST include a Docker Compose verification step **within the same phase** (`docker compose up --wait` + health endpoint check). If Docker Desktop is unavailable, the phase is **BLOCKED — not complete**. Configuration-only changes without Docker verification are untested hypotheses.
+
+**Multi-File Config Changes Need Integration Verification**: Any change spanning multiple interrelated configuration files (e.g., `postgresql.conf` + `pg_hba.conf` + GORM DSN + Docker volume mounts) MUST include an integration verification step that exercises the full configuration chain in a running environment — within the same phase. Common failure modes: wrong cert paths after mounting, permission errors inside containers, HBA rule ordering, DSN parameter mismatches.
+<!-- @/source -->
+
+---
+
 ## Mandatory Review Passes
 
 <!-- @source from="docs/ENG-HANDBOOK.md" as="mandatory-review-passes" -->

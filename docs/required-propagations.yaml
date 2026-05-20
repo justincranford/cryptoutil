@@ -270,3 +270,21 @@ required_propagations:
     source_file: docs/ENG-HANDBOOK.md
     required_targets:
       - .github/instructions/06-03.tool-efficiency.instructions.md
+
+  - chunk_id: per-task-status-updates
+    source_file: docs/ENG-HANDBOOK.md
+    required_targets:
+      - .github/instructions/06-01.evidence-based.instructions.md
+      - .github/agents/implementation-execution.agent.md
+      - .github/agents/implementation-planning.agent.md
+      - .claude/agents/implementation-execution.md
+      - .claude/agents/implementation-planning.md
+
+  - chunk_id: docker-compose-verification-in-scope
+    source_file: docs/ENG-HANDBOOK.md
+    required_targets:
+      - .github/instructions/04-01.deployment.instructions.md
+      - .github/agents/implementation-execution.agent.md
+      - .github/agents/implementation-planning.agent.md
+      - .claude/agents/implementation-execution.md
+      - .claude/agents/implementation-planning.md
