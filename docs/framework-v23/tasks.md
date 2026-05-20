@@ -1,4 +1,4 @@
-# Tasks - Framework V23: Follow-Up Work from Framework-V22
+# Tasks - Framework V23
 
 **Status**: 0 of 16 tasks complete (0%)
 **Created**: 2026-05-17
@@ -22,7 +22,7 @@
 
 ## Pre-Execution Enforcement
 
-Before starting Phase 1, re-read `plan.md` Pre-Execution section. Per V22 lessons:
+Before starting Phase 1, re-read `plan.md` Pre-Execution section. Per prior framework lessons:
 - Update `tasks.md` after EVERY completed task (not in batch).
 - Any phase touching Compose files MUST include Docker Compose verification within the same phase.
 

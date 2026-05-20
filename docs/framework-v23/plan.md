@@ -1,14 +1,14 @@
-# Framework V23: Follow-Up Work from Framework-V22
+# Framework V23
 
 **Status**: Not started
 **Created**: 2026-05-17
 **Last Updated**: 2026-05-22
-**Purpose**: Close the open items identified in `docs/framework-v22/POST-ANALYSIS.md`.
-These are items that were incomplete or untracked at the time of Framework-V22 declaration.
+**Purpose**: Close open items identified in post-analysis from the prior framework execution.
+These are items that were incomplete or untracked at the time of the prior framework declaration.
 
 ## Background
 
-Framework-V22 executed successfully but left open issues captured in the post-analysis:
+The prior framework executed successfully but left open issues captured in the post-analysis:
 
 - ISSUE-1: Integration test failures in 3 packages.
 - ISSUE-3: Three lessons.md action items never promoted to tasks (item 1 — LF line endings —
@@ -16,9 +16,9 @@ Framework-V22 executed successfully but left open issues captured in the post-an
 
 This plan promotes those items to tracked, executable tasks.
 
-## Pre-Execution: V22 Lessons to Enforce
+## Pre-Execution: Lessons to Enforce
 
-Before starting implementation, the executor MUST enforce these lessons from framework-V22:
+Before starting implementation, the executor MUST enforce these lessons:
 
 1. **Per-task status updates are MANDATORY**: Update `tasks.md` immediately after each task
    completes. NEVER accumulate multiple task completions before updating documentation. A

@@ -1,20 +1,20 @@
-# Lessons - Framework V23: Follow-Up Work from Framework-V22
+# Lessons - Framework V23
 
 **Created**: 2026-05-17
 **Last Updated**: 2026-05-22
 
-## Pre-Execution: V22 Lessons to Enforce
+## Pre-Execution: Lessons to Enforce
 
-Before starting implementation, the executor MUST enforce these lessons from framework-V22:
+Before starting implementation, the executor MUST enforce these lessons:
 
 1. **Per-task status updates are MANDATORY**: Update `tasks.md` immediately after each task
    completes. NEVER accumulate multiple task completions before updating documentation. A
-   `tasks.md` that does not reflect actual state is a blocking artifact inconsistency (V22 ISSUE-4).
+   `tasks.md` that does not reflect actual state is a blocking artifact inconsistency.
 
 2. **Docker Compose verification is MANDATORY within the same phase**: Any phase that modifies
    Compose files, configs consumed by containers, or cert paths MUST include a Docker Compose
    verification step (`docker compose up --wait` + health endpoint check) within the SAME phase.
-   Phases declared complete without Compose verification are incomplete (V22 ISSUE-5).
+   Phases declared complete without Compose verification are incomplete.
 
 ## Phase 1: Integration Test Failures
 
