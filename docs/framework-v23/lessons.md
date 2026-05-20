@@ -18,7 +18,22 @@ Before starting implementation, the executor MUST enforce these lessons:
 
 ## Phase 1: Verify ISSUE-1 Resolved
 
-_Populate after Phase 1 execution complete._
+### What Worked
+
+- Running the three originally reported failing integration packages first gave a fast and reliable signal before the full suite run.
+- Capturing each command output into dedicated files under `test-output/v23-phase1/` made verification and audit traceability straightforward.
+
+### What Didn't Work
+
+- None observed in this phase. All expected integration commands passed on the first execution.
+
+### Root Causes
+
+- The prior issue appears to have been transient or previously remediated; no current functional regression remains in the targeted integration paths.
+
+### Patterns
+
+- Keep explicit pre-flight package-level verification as the first task in follow-up framework plans when prior reports mention broad integration instability.
 
 ## Phase 2: pki-init E2E Compose — Switch to Docker Named Volumes for Cert Storage
 

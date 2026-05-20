@@ -1,6 +1,6 @@
 # Tasks - Framework V23
 
-**Status**: 0 of 13 tasks complete (0%)
+**Status**: 1 of 13 tasks complete (8%)
 **Created**: 2026-05-17
 **Last Updated**: 2026-05-20
 
@@ -30,13 +30,13 @@ Before starting Phase 1, re-read `plan.md` Pre-Execution section. Per prior fram
 
 ### Task 1.1: Pre-flight integration test verification
 
-- **Status**: ❌
+- **Status**: ✅
 - **Acceptance Criteria**:
-  - [ ] `go test -tags integration ./internal/apps/sm-im/client/...` exits 0.
-  - [ ] `go test -tags integration ./internal/apps/sm-kms/client/...` exits 0.
-  - [ ] `go test -tags integration ./internal/apps/sm-kms/server/repository/orm/...` exits 0.
-  - [ ] `go test -tags integration ./...` exits 0 (full suite, zero failures).
-  - [ ] Evidence archived in `test-output/v23-phase1/`.
+  - [x] `go test -tags integration ./internal/apps/sm-im/client/...` exits 0.
+  - [x] `go test -tags integration ./internal/apps/sm-kms/client/...` exits 0.
+  - [x] `go test -tags integration ./internal/apps/sm-kms/server/repository/orm/...` exits 0.
+  - [x] `go test -tags integration ./...` exits 0 (full suite, zero failures).
+  - [x] Evidence archived in `test-output/v23-phase1/`.
 
 ## Phase 2: pki-init E2E Compose — Switch to Docker Named Volumes for Cert Storage
 
