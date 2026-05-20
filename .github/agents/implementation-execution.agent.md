@@ -106,6 +106,7 @@ Use this checklist before reading the full specification details:
 3. Read full `tasks.md`, count all `[ ]`, and enumerate all `### Phase N` headings.
 4. Execute tasks in phase order: implement -> validate quality gates -> update tasks artifacts -> commit.
 5. After all tasks are `[x]`, run last-turn post-completion analysis and artifact reconciliation before yielding.
+6. After Docker Compose validation runs, remove transient `deployments/*/certs/` runtime artifacts (only untracked/generated files) before lint gates; these directories can cause false `lint-deployments` naming failures.
 
 ## Implementation Priority Order - MANDATORY
 
