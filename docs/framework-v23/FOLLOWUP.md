@@ -1,18 +1,56 @@
 # Framework V23 — Followup Items
 
-All Framework V23 code changes are **complete and committed** (12/13 tasks). One task
-remains open with a runtime blocker. All other V23 work is done: named Docker volumes for
-certs (replacing bind mounts across all 10 PS-IDs), two new deployment validators
-(`validate_cert_volume_policy.go` and `validate_postgres_secrets_dir_sync.go`), and
-skip-constant refactors in sm-im e2e tests.
+All Framework V23 code changes are **complete and committed**. All 10 PS-ID e2e test
+stacks were fixed for a post-V23 regression (distroless bash error) in a follow-up commit.
+One item remains open: the `postgres-leader` crash in sm-im and other services that still
+needs root-cause evidence from a live container run.
 
 ---
 
 ## Numbered Followup Items
 
+### 0. Post-V23 Regression: All 10 PS-ID e2e Tests Fail — Bash in Distroless Container
+
+**Status**: **FIXED** (committed `fix(deployments): replace bash entrypoint in distroless
+otel-collector-contrib with Alpine init container`)
+
+**Origin**: V23 named-volume cert architecture change introduced a bash entrypoint override
+in the distroless `otel/opentelemetry-collector-contrib` container to symlink certs from
+the new `{PS-ID}-certs` named volume into `/etc/pki-init/certs`.
+
+**All 5 tested services failed with identical error**:
+```
+Error response from daemon: failed to create task for container: failed to create shim task:
+OCI runtime create failed: runc create failed: unable to start container process:
+error during container init: exec: "/bin/bash": stat /bin/bash: no such file or directory
+```
+(Verified: skeleton-template, sm-kms, jose-ja, pki-ca, sm-im — all same root cause.
+The sm-im postgres error documented in item #1 below is a *separate* secondary issue
+that was obscured by this bash error.)
+
+**Root cause**: `otel/opentelemetry-collector-contrib` is a distroless image with no shell.
+The V23 change added `entrypoint: /bin/bash` with a symlink setup script — this fails on
+every container start.
+
+**Fix applied** (all 10 PS-ID compose files + canonical template):
+- Added `otel-certs-init` Alpine init container per PS-ID that:
+  1. Runs after `pki-init` completes (`depends_on: service_completed_successfully`)
+  2. Mounts `{PS-ID}-certs` volume read-only at `/mnt/ps-certs-src`
+  3. Copies (via `cp -r`) 4 cert directories into new `{PS-ID}-otel-certs` volume (writable)
+  4. Exits 0
+- `opentelemetry-collector-contrib` now depends on `otel-certs-init` and mounts
+  `{PS-ID}-otel-certs` read-only — no bash, no entrypoint override needed
+- `cp -r` used instead of `ln -sf` because symlinks pointing to `/mnt/ps-certs-src/` would
+  be dangling in the distroless container (that volume is only mounted in the init container)
+- New `{PS-ID}-otel-certs:` volume added to volumes section in each compose file
+
+**Validation**: `lint-deployments` 65/65 validators pass. `lint-fitness` passes.
+
+---
+
 ### 1. sm-im E2E Test Fails: `cryptoutil-postgres-leader exited (1)` During Stack Startup
 
-**Current status**: Open blocker (runtime, infrastructure)
+**Current status**: Open blocker (runtime, infrastructure). **Now unmasked** — the bash/distroless error (item #0) was previously hiding this failure for sm-im. With item #0 fixed, this postgres-leader crash is the next blocker for sm-im e2e.
 
 **Origin**: Task 4.2 runtime pass criterion (V23 tasks.md)
 
@@ -68,6 +106,11 @@ FAIL cryptoutil/internal/apps/sm-im/e2e 182.652s
      argv to the bash `-c` script, potentially causing argument collision
 - d) Volume timing: pki-init completes (exit 0) but certs not yet flushed to shared named
      volume before postgres-leader reads them
+
+**NOTE**: This error was previously obscured by the bash/distroless error (item #0). Now
+that item #0 is fixed, the sm-im e2e test may reveal a *new* error message for the postgres
+failure that supersedes theories (a)–(d) above. Capture fresh container logs before
+assuming one of the above theories.
 
 **Diagnostic steps for the next session**:
 1. Manually start the stack:
