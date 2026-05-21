@@ -338,22 +338,41 @@ services:
   # Extends the shared-telemetry service with PS-ID-specific cert mounts so the
   # collector can present its server cert and verify app client certs (Cat 2 + Cat 8).
   # Also adds Cat 1 CA truststore and Cat 9 infra client cert for OTelâ†’Grafana mTLS.
-  opentelemetry-collector-contrib:
+  # OTel Collector cert init: copies PS-ID certs from the named cert volume into a
+  # writable volume at /etc/pki-init/certs so the distroless otel-collector-contrib
+  # image can read them without requiring a shell. Alpine sh is used here (NOT in
+  # the distroless image). NEVER use /bin/bash in otel/opentelemetry-collector-contrib.
+  otel-certs-init:
+    image: alpine:latest
     depends_on:
       pki-init:
         condition: service_completed_successfully
     volumes:
       - identity-rp-certs:/mnt/ps-certs-src:ro
-    entrypoint: /bin/bash
+      - identity-rp-otel-certs:/etc/pki-init/certs:rw
     command:
+      - sh
       - -c
       - |
+        set -e
         mkdir -p /etc/pki-init/certs
-        ln -sf /mnt/ps-certs-src/identity-rp/public-https-server-entity-otel-collector-contrib /etc/pki-init/certs/public-https-server-entity-otel-collector-contrib 2>/dev/null || true
-        ln -sf /mnt/ps-certs-src/identity-rp/otel-collector-contrib-https-client-issuing-ca /etc/pki-init/certs/otel-collector-contrib-https-client-issuing-ca 2>/dev/null || true
-        ln -sf /mnt/ps-certs-src/identity-rp/public-https-server-issuing-ca /etc/pki-init/certs/public-https-server-issuing-ca 2>/dev/null || true
-        ln -sf /mnt/ps-certs-src/identity-rp/otel-collector-contrib-https-client-entity-infra /etc/pki-init/certs/otel-collector-contrib-https-client-entity-infra 2>/dev/null || true
-        exec /otelcontribcol --config=/etc/otel-collector-config.yaml
+        cp -r /mnt/ps-certs-src/identity-rp/public-https-server-entity-otel-collector-contrib /etc/pki-init/certs/
+        cp -r /mnt/ps-certs-src/identity-rp/otel-collector-contrib-https-client-issuing-ca /etc/pki-init/certs/
+        cp -r /mnt/ps-certs-src/identity-rp/public-https-server-issuing-ca /etc/pki-init/certs/
+        cp -r /mnt/ps-certs-src/identity-rp/otel-collector-contrib-https-client-entity-infra /etc/pki-init/certs/
+        echo "OTel certs prepared in /etc/pki-init/certs"
+
+  # OTel Collector mTLS cert setup: Cat 2 server cert + Cat 8 client issuing CA.
+  # Extends the shared-telemetry service with PS-ID-specific cert mounts so the
+  # collector can present its server cert and verify app client certs (Cat 2 + Cat 8).
+  # CRITICAL: otel/opentelemetry-collector-contrib is distroless (no bash/sh).
+  # Certs are prepared by otel-certs-init (Alpine) into the identity-rp-otel-certs volume.
+  opentelemetry-collector-contrib:
+    depends_on:
+      otel-certs-init:
+        condition: service_completed_successfully
+    volumes:
+      - identity-rp-otel-certs:/etc/pki-init/certs:ro
 
   # Grafana HTTPS and OTLP ingest mTLS cert setup.
   # Extends the shared-telemetry Grafana service with PS-ID-specific cert mounts.
@@ -393,6 +412,7 @@ services:
 
 volumes:
   identity-rp-certs:
+  identity-rp-otel-certs:
 
 networks:
   identity-rp-network:
