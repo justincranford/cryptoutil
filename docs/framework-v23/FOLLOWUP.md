@@ -12,6 +12,8 @@ skip-constant refactors in sm-im e2e tests.
 
 ### 1. sm-im E2E Test Fails: `cryptoutil-postgres-leader exited (1)` During Stack Startup
 
+**Current status**: Open blocker (runtime, infrastructure)
+
 **Origin**: Task 4.2 runtime pass criterion (V23 tasks.md)
 
 **Failing command**:
@@ -19,7 +21,7 @@ skip-constant refactors in sm-im e2e tests.
 go test -tags e2e ./internal/apps/sm-im/e2e/...
 ```
 
-**Failure message** (from `test-output/v23-phase4/go-test-sm-im-e2e.txt` ~line 250):
+**Failure message** (from `test-output/v23-phase4/go-test-sm-im-e2e.txt`, around line 250):
 ```
 dependency failed to start: container cryptoutil-postgres-leader exited (1)
 E2E setup failed: failed to start docker compose: exit status 1
@@ -54,9 +56,9 @@ FAIL cryptoutil/internal/apps/sm-im/e2e 182.652s
   - `sm-im/postgres-tls-client-issuing-ca/truststore/postgres-tls-client-issuing-ca.crt` ✓
 - All secrets files exist in `deployments/sm-im/secrets/`.
 - The cert path filenames in the entrypoint MATCH what pki-init generates.
-- Despite correct cert paths and secrets, `cryptoutil-postgres-leader` exits(1) at runtime.
+- Despite correct cert paths and secrets, `cryptoutil-postgres-leader` still exits with code 1 at runtime.
 
-**Root cause still unknown** — possible theories:
+**Root cause still unknown**. Working theories:
 - a) PostgreSQL SSL setup error (cert file permissions inside container, ownership issue)
 - b) `init-leader-databases.sql` initdb script fails (creates 10+ databases; may exceed
      `start_period: 30s` + 5 retries × 10s = 80s healthcheck window)
@@ -76,16 +78,25 @@ FAIL cryptoutil/internal/apps/sm-im/e2e 182.652s
    ```
    docker logs cryptoutil-postgres-leader 2>&1
    ```
-3. The exact PostgreSQL error will appear (e.g., "could not open certificate file",
+3. Capture compose event context if needed:
+  ```
+  docker compose -f deployments/sm-im/compose.yml logs --no-color postgres-leader pki-init
+  ```
+1. The exact PostgreSQL error should appear (for example, "could not open certificate file",
    "FATAL:  SSL error", initdb failure, etc.)
-4. Cross-reference the error against theories (a)–(d) above
+2. Cross-reference the error against theories (a)–(d) above
+
+**Closure criteria for this followup item**:
+- Root cause identified with concrete error output saved under `test-output/v23-phase4/`.
+- Corrective change implemented in deployment/runtime configuration.
+- `go test -tags e2e ./internal/apps/sm-im/e2e/...` passes.
 
 **Code location**: `deployments/sm-im/compose.yml` postgres-leader service override
 (search for `exec docker-entrypoint.sh`)
 
-**Why this is NOT a V23 code regression**: The skip-constant refactor (the actual V23 Task 4.2
-code change) is complete and correct. The e2e infrastructure issue pre-dates V23 or was
-introduced by the named-volume migration in V23 Tasks 2.x. All V23 code is committed.
+**Scope note**: The skip-constant refactor (the actual V23 Task 4.2 code change) is complete and
+correct. The remaining failure is in e2e runtime/deployment behavior and must be resolved with
+container-level evidence from the failing `postgres-leader` startup path.
 
 ---
 
@@ -100,5 +111,6 @@ All of the following are **done and committed**:
   constant replaces inline string literal
 - `internal/apps/sm-im/e2e/e2e_test.go`: `skipReasonOtelPortNotExposed` constant replaces
   inline string literal
-- All quality gates pass: `go build ./...`, `lint-deployments` (65/65), `lint-fitness`,
-  `lint-docs`
+- Build and static quality gates pass: `go build ./...`, `lint-deployments` (65/65),
+  `lint-fitness`, `lint-docs`
+- Runtime e2e gate still open: `go test -tags e2e ./internal/apps/sm-im/e2e/...`
