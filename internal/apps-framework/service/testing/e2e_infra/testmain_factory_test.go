@@ -55,9 +55,9 @@ func successDeps() testmainFactoryDeps {
 		syncCertsFn: func(context.Context, *ComposeManager, string) error {
 			return nil
 		},
-		startFn:             stubStart,
-		waitForServicesFn:   stubWait,
-		stopFn:              stubStop,
+		startFn:           stubStart,
+		waitForServicesFn: stubWait,
+		stopFn:            stubStop,
 	}
 }
 

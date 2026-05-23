@@ -117,8 +117,9 @@ services:
     user: "0:0"
     command:
       - /bin/sh
-      - -ec
+      - -c
       - |
+        set -e
         /app/identity-authz init --domain=identity-authz --output-dir=/certs
         chown -R 65532:65532 /certs
     volumes:
@@ -342,7 +343,7 @@ services:
   # OTel Collector mTLS cert setup: Cat 2 server cert + Cat 8 client issuing CA.
   # Extends the shared-telemetry service with PS-ID-specific cert mounts so the
   # collector can present its server cert and verify app client certs (Cat 2 + Cat 8).
-  # Also adds Cat 1 CA truststore and Cat 9 infra client cert for OTelâ†’Grafana mTLS.
+  # Also adds Cat 1 CA truststore and Cat 9 infra client cert for OTel-Grafana mTLS.
   # OTel Collector cert init: copies PS-ID certs from the named cert volume into a
   # writable volume at /etc/pki-init/certs so the distroless otel-collector-contrib
   # image can read them without requiring a shell. Alpine sh is used here (NOT in
@@ -391,7 +392,7 @@ services:
       GF_SERVER_CERT_FILE: /mnt/ps-certs-src/identity-authz/public-https-server-entity-grafana-otel-lgtm/public-https-server-entity-grafana-otel-lgtm.crt
       GF_SERVER_CERT_KEY: /mnt/ps-certs-src/identity-authz/public-https-server-entity-grafana-otel-lgtm/public-https-server-entity-grafana-otel-lgtm.key
 
-  # postgres-leader SSL setup â€” extends shared-postgres service with mTLS cert setup.
+  # postgres-leader SSL setup - extends shared-postgres service with mTLS cert setup.
   # Runs as root to copy certs into a writable directory, chown to postgres (uid 999),
   # then drops to postgres user via docker-entrypoint.sh.
   postgres-leader:
