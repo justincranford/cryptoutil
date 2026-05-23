@@ -115,7 +115,12 @@ services:
   pki-init:
     image: cryptoutil-identity-spa:local
     user: "0:0"
-    command: ["/app/identity-spa", "init", "--domain=identity-spa", "--output-dir=/certs"]
+    command:
+      - /bin/sh
+      - -ec
+      - |
+        /app/identity-spa init --domain=identity-spa --output-dir=/certs
+        chown -R 65532:65532 /certs
     volumes:
       - identity-spa-certs:/certs
     depends_on:

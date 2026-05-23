@@ -115,7 +115,12 @@ services:
   pki-init:
     image: cryptoutil-sm-kms:local
     user: "0:0"
-    command: ["/app/sm-kms", "init", "--domain=sm-kms", "--output-dir=/certs"]
+    command:
+      - /bin/sh
+      - -ec
+      - |
+        /app/sm-kms init --domain=sm-kms --output-dir=/certs
+        chown -R 65532:65532 /certs
     volumes:
       - sm-kms-certs:/certs
     depends_on:

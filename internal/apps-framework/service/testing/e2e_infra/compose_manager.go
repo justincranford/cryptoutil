@@ -90,9 +90,35 @@ func (cm *ComposeManager) Start(ctx context.Context) error {
 	return nil
 }
 
-// resetCertOutputDir makes the compose cert output directory writable and clears
-// stale artifacts from previous runs. On Windows, read-only attributes on files
-// (for example issuing-ca.pem) can prevent pki-init from regenerating certs.
+// SyncCertOutputDirFromPkiInit copies the runtime-generated cert tree from the
+// pki-init container into the host deployment cert directory used by e2e tests.
+func (cm *ComposeManager) SyncCertOutputDirFromPkiInit(ctx context.Context, hostCACertPath string) error {
+	composeDir := filepath.Dir(cm.ComposeFile)
+	hostCertsDir := filepath.Clean(filepath.Join(hostCACertPath, "..", "..", "..", ".."))
+	containerName := fmt.Sprintf("%s-pki-init-1", filepath.Base(composeDir))
+
+	if err := os.RemoveAll(hostCertsDir); err != nil {
+		return fmt.Errorf("remove host certs dir %s: %w", hostCertsDir, err)
+	}
+
+	if err := os.MkdirAll(hostCertsDir, cryptoutilSharedMagic.PKIInitCertsDirMode); err != nil {
+		return fmt.Errorf("mkdir host certs dir %s: %w", hostCertsDir, err)
+	}
+
+	copyCmd := exec.CommandContext(ctx, "docker", "cp", containerName+":/certs/.", hostCertsDir)
+	copyCmd.Stdout = os.Stdout
+	copyCmd.Stderr = os.Stderr
+
+	if err := copyCmd.Run(); err != nil {
+		return fmt.Errorf("copy certs from %s to %s: %w", containerName, hostCertsDir, err)
+	}
+
+	return nil
+}
+
+// resetCertOutputDir makes the compose cert output directory writable.
+// On Windows, read-only attributes on files (for example issuing-ca.pem)
+// can prevent pki-init from regenerating certs.
 func (cm *ComposeManager) resetCertOutputDir() error {
 	composeDir := filepath.Dir(cm.ComposeFile)
 	certsDir := filepath.Join(composeDir, "certs")
@@ -103,31 +129,15 @@ func (cm *ComposeManager) resetCertOutputDir() error {
 		return fmt.Errorf("stat certs dir %s: %w", certsDir, err)
 	}
 
-	entries, err := os.ReadDir(certsDir)
-	if err != nil {
-		return fmt.Errorf("read certs dir %s: %w", certsDir, err)
-	}
-
-	for _, entry := range entries {
-		if entry.Name() == ".gitkeep" {
-			continue
-		}
-
-		targetPath := filepath.Join(certsDir, entry.Name())
-		if err := makeWritableRecursive(targetPath); err != nil {
-			return fmt.Errorf("make writable %s: %w", targetPath, err)
-		}
-
-		if err := os.RemoveAll(targetPath); err != nil {
-			return fmt.Errorf("remove stale cert artifact %s: %w", targetPath, err)
-		}
+	if err := makeWritableRecursive(certsDir); err != nil {
+		return fmt.Errorf("make writable certs dir %s: %w", certsDir, err)
 	}
 
 	return nil
 }
 
-// makeWritableRecursive clears read-only attributes recursively so cleanup can
-// remove stale cert output on Windows and Unix.
+// makeWritableRecursive clears read-only attributes recursively so pki-init can
+// rewrite cert output on Windows and Unix.
 func makeWritableRecursive(path string) error {
 	if err := filepath.WalkDir(path, func(walkPath string, d fs.DirEntry, walkErr error) error {
 		if walkErr != nil {

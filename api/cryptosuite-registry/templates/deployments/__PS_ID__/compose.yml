@@ -115,7 +115,13 @@ services:
   pki-init:
     image: __SUITE__-__PS_ID__:__IMAGE_TAG__
     user: "0:0"
-    command: ["/app/__PS_ID__", "init", "--domain=__PS_ID__", "--output-dir=/certs"]
+    command:
+      - /bin/sh
+      - -c
+      - |
+        set -e
+        /app/__PS_ID__ init --domain=__PS_ID__ --output-dir=/certs
+        chown -R 65532:65532 /certs
     volumes:
       - __PS_ID__-certs:/certs
     depends_on:

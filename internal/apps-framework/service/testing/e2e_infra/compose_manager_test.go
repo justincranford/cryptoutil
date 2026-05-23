@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestResetCertOutputDir_RemovesReadOnlyArtifacts(t *testing.T) {
+func TestResetCertOutputDir_MakesArtifactsWritable(t *testing.T) {
 	t.Parallel()
 
 	tempDir := t.TempDir()
@@ -33,12 +33,10 @@ func TestResetCertOutputDir_RemovesReadOnlyArtifacts(t *testing.T) {
 	require.NoError(t, err)
 
 	_, err = os.Stat(filepath.Join(certsDir, cryptoutilSharedMagic.PKIInitAdminCABundleFilename))
-	require.Error(t, err)
-	require.True(t, os.IsNotExist(err))
+	require.NoError(t, err)
 
 	_, err = os.Stat(filepath.Join(certsDir, "nested"))
-	require.Error(t, err)
-	require.True(t, os.IsNotExist(err))
+	require.NoError(t, err)
 }
 
 func TestResetCertOutputDir_MissingDirectory(t *testing.T) {

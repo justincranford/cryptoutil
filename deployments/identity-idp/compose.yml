@@ -115,7 +115,12 @@ services:
   pki-init:
     image: cryptoutil-identity-idp:local
     user: "0:0"
-    command: ["/app/identity-idp", "init", "--domain=identity-idp", "--output-dir=/certs"]
+    command:
+      - /bin/sh
+      - -ec
+      - |
+        /app/identity-idp init --domain=identity-idp --output-dir=/certs
+        chown -R 65532:65532 /certs
     volumes:
       - identity-idp-certs:/certs
     depends_on:

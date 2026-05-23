@@ -115,7 +115,12 @@ services:
   pki-init:
     image: cryptoutil-identity-rp:local
     user: "0:0"
-    command: ["/app/identity-rp", "init", "--domain=identity-rp", "--output-dir=/certs"]
+    command:
+      - /bin/sh
+      - -ec
+      - |
+        /app/identity-rp init --domain=identity-rp --output-dir=/certs
+        chown -R 65532:65532 /certs
     volumes:
       - identity-rp-certs:/certs
     depends_on:

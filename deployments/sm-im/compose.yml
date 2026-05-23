@@ -115,7 +115,12 @@ services:
   pki-init:
     image: cryptoutil-sm-im:local
     user: "0:0"
-    command: ["/app/sm-im", "init", "--domain=sm-im", "--output-dir=/certs"]
+    command:
+      - /bin/sh
+      - -ec
+      - |
+        /app/sm-im init --domain=sm-im --output-dir=/certs
+        chown -R 65532:65532 /certs
     volumes:
       - sm-im-certs:/certs
     depends_on:

@@ -63,6 +63,7 @@ type testmainFactoryDeps struct {
 	newComposeManagerFn func(composeFile string, profiles ...string) *ComposeManager
 	newInsecureClientFn func() *http.Client
 	newSecureClientFn   func(caCertPath string) *http.Client
+	syncCertsFn         func(ctx context.Context, cm *ComposeManager, hostCACertPath string) error
 	startFn             func(ctx context.Context, cm *ComposeManager) error
 	waitForServicesFn   func(cm *ComposeManager, services map[string]string, timeout time.Duration) error
 	stopFn              func(ctx context.Context, cm *ComposeManager) error
@@ -74,6 +75,9 @@ func defaultTestmainFactoryDeps() testmainFactoryDeps {
 		newComposeManagerFn: NewComposeManager,
 		newInsecureClientFn: cryptoutilSharedCryptoTls.NewClientForTest,
 		newSecureClientFn:   cryptoutilSharedCryptoTls.NewClientForTestWithCA,
+		syncCertsFn: func(ctx context.Context, cm *ComposeManager, hostCACertPath string) error {
+			return cm.SyncCertOutputDirFromPkiInit(ctx, hostCACertPath)
+		},
 		startFn: func(ctx context.Context, cm *ComposeManager) error {
 			return cm.Start(ctx)
 		},
@@ -107,6 +111,12 @@ func newE2ETestEnvWithDeps(ctx context.Context, cfg E2ETestConfig, deps testmain
 		_ = deps.stopFn(ctx, env.ComposeManager)
 
 		return nil, fmt.Errorf("service health checks failed: %w", err)
+	}
+
+	if err := deps.syncCertsFn(ctx, env.ComposeManager, cfg.CACertPath); err != nil {
+		_ = deps.stopFn(ctx, env.ComposeManager)
+
+		return nil, fmt.Errorf("failed to sync cert tree: %w", err)
 	}
 
 	env.SecureClient = deps.newSecureClientFn(cfg.CACertPath)

@@ -52,6 +52,9 @@ func successDeps() testmainFactoryDeps {
 		newComposeManagerFn: stubComposeManager,
 		newInsecureClientFn: stubHTTPClient,
 		newSecureClientFn:   stubHTTPClientWithCA,
+		syncCertsFn: func(context.Context, *ComposeManager, string) error {
+			return nil
+		},
 		startFn:             stubStart,
 		waitForServicesFn:   stubWait,
 		stopFn:              stubStop,
@@ -118,6 +121,38 @@ func TestNewE2ETestEnvWithDeps_WaitFails(t *testing.T) {
 	require.ErrorContains(t, err, "service health checks failed")
 	require.ErrorContains(t, err, "service timeout")
 	require.True(t, stopCalled, "Stop must be called on health check failure to clean up compose stack")
+}
+
+// TestNewE2ETestEnvWithDeps_SyncFails verifies cleanup and error propagation when cert sync fails.
+func TestNewE2ETestEnvWithDeps_SyncFails(t *testing.T) {
+	t.Parallel()
+
+	var stopCalled bool
+
+	deps := successDeps()
+	deps.syncCertsFn = func(_ context.Context, _ *ComposeManager, _ string) error {
+		return errors.New("docker cp failed")
+	}
+	deps.stopFn = func(_ context.Context, _ *ComposeManager) error {
+		stopCalled = true
+
+		return nil
+	}
+
+	cfg := E2ETestConfig{
+		ComposeFile:    "nonexistent/compose.yml",
+		HealthChecks:   map[string]string{"svc": "http://localhost:9999/health"},
+		HealthTimeout:  cryptoutilSharedMagic.TestTLSClientRetryWait,
+		CACertPath:     "/tmp/certs/public-https-server-issuing-ca/truststore/public-https-server-issuing-ca.crt",
+		ServiceLogName: "test-service",
+	}
+
+	env, err := newE2ETestEnvWithDeps(context.Background(), cfg, deps)
+	require.Error(t, err)
+	require.Nil(t, env)
+	require.ErrorContains(t, err, "failed to sync cert tree")
+	require.ErrorContains(t, err, "docker cp failed")
+	require.True(t, stopCalled, "Stop must be called when cert sync fails to clean up compose stack")
 }
 
 // TestNewE2ETestEnvWithDeps_Success verifies all fields are populated on success.
@@ -210,6 +245,7 @@ func TestSetupE2ETestMainWithDeps_Success(t *testing.T) {
 		ComposeFile:    "deployments/sm-kms/compose.yml",
 		HealthChecks:   map[string]string{},
 		HealthTimeout:  cryptoutilSharedMagic.DefaultTestRetryDelay,
+		CACertPath:     "/tmp/certs/public-https-server-issuing-ca/truststore/public-https-server-issuing-ca.crt",
 		ServiceLogName: cryptoutilSharedMagic.OTLPServiceSMKMS,
 	}
 
