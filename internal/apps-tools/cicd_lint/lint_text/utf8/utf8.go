@@ -3,15 +3,16 @@
 package utf8
 
 import (
-	"errors"
 	"fmt"
-	"io"
 	"os"
 	"sync"
+	"unicode/utf8"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps-tools/cicd_lint/common"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
+
+var nullByte byte
 
 // Check enforces UTF-8 encoding without BOM for all text files.
 func Check(logger *cryptoutilCmdCicdCommon.Logger, filesByExtension map[string][]string) error {
@@ -117,27 +118,54 @@ func checkFilesEncoding(finalFiles []string) []string {
 func CheckFileEncoding(filePath string) []string {
 	var issues []string
 
-	file, err := os.Open(filePath)
+	data, err := os.ReadFile(filePath)
 	if err != nil {
 		return []string{fmt.Sprintf("failed to open file: %v", err)}
 	}
-	defer file.Close() //nolint:errcheck // Defer close is best-effort.
 
-	// Read first 3 bytes to check for BOM.
-	header := make([]byte, 3)
+	if len(data) == 0 {
+		return issues
+	}
 
-	n, err := file.Read(header)
-	if err != nil && !errors.Is(err, io.EOF) {
-		return []string{fmt.Sprintf("failed to read file: %v", err)}
+	// Check for UTF-16 BOM markers before UTF-8 validity checks.
+	if len(data) >= 2 {
+		if (data[0] == 0xFF && data[1] == 0xFE) || (data[0] == 0xFE && data[1] == 0xFF) {
+			issues = append(issues, "file has UTF-16 BOM marker (UTF-16 is prohibited)")
+		}
 	}
 
 	// Check for UTF-8 BOM (EF BB BF).
-	// #nosec G602 -- bounds explicitly checked: n >= 3 ensures header[0], header[1], header[2] are valid.
-	if n >= 3 && header[0] == 0xEF && header[1] == 0xBB && header[2] == 0xBF {
+	if len(data) >= 3 && data[0] == 0xEF && data[1] == 0xBB && data[2] == 0xBF {
 		issues = append(issues, "file has UTF-8 BOM marker")
 	}
 
+	if !utf8.Valid(data) {
+		issues = append(issues, "file is not valid UTF-8")
+	}
+
+	for i, b := range data {
+		if b == nullByte {
+			issues = append(issues, fmt.Sprintf("file contains NUL byte at offset %d (likely UTF-16 or binary data)", i))
+
+			break
+		}
+	}
+
+	if containsCRLF(data) {
+		issues = append(issues, "file contains CRLF line endings (LF-only policy)")
+	}
+
 	return issues
+}
+
+func containsCRLF(data []byte) bool {
+	for i := 0; i < len(data)-1; i++ {
+		if data[i] == '\r' && data[i+1] == '\n' {
+			return true
+		}
+	}
+
+	return false
 }
 
 // flattenFileMap converts a map of extension -> files to a flat slice of all files.

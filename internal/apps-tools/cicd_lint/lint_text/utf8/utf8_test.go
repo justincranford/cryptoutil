@@ -77,6 +77,26 @@ func TestCheckFileEncoding(t *testing.T) {
 			expectIssue: true,
 		},
 		{
+			name:        "UTF-16 little endian BOM",
+			content:     []byte{0xFF, 0xFE, 0x48, 0x00, 0x69, 0x00},
+			expectIssue: true,
+		},
+		{
+			name:        "invalid UTF-8 bytes",
+			content:     []byte{0xff, 0xfe, 0xfd},
+			expectIssue: true,
+		},
+		{
+			name:        "contains NUL byte",
+			content:     []byte{'H', 'i', 0x00, '!'},
+			expectIssue: true,
+		},
+		{
+			name:        "contains CRLF",
+			content:     []byte("line1\r\nline2\n"),
+			expectIssue: true,
+		},
+		{
 			name:        "empty file",
 			content:     []byte{},
 			expectIssue: false,
@@ -220,4 +240,11 @@ func TestCheckFilesEncoding_MultipleFiles(t *testing.T) {
 
 	violations := checkFilesEncoding([]string{validFile, bomFile})
 	require.Len(t, violations, 1, "Only BOM file should be a violation")
+}
+
+func TestContainsCRLF(t *testing.T) {
+	t.Parallel()
+
+	require.True(t, containsCRLF([]byte("a\r\nb\n")))
+	require.False(t, containsCRLF([]byte("a\nb\n")))
 }
