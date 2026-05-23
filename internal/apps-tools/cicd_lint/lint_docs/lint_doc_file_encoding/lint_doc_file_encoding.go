@@ -4,7 +4,9 @@
 package lint_doc_file_encoding
 
 import (
+	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"sort"
@@ -12,24 +14,29 @@ import (
 	"unicode/utf8"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps-tools/cicd_lint/common"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 const (
 	handbookPath = "docs/ENG-HANDBOOK.md"
+	claudeFile   = "CLAUDE.md"
+	claudeLocal  = ".claude/settings.local.json"
+	skillsReadme = ".github/skills/README.md"
 )
 
 var nullByte byte
 
-var policyGlobPatterns = []string{
-	".github/instructions/*.instructions.md",
-	".github/agents/*.agent.md",
-	".claude/agents/*.md",
-	".github/skills/*/SKILL.md",
-	".claude/skills/*/SKILL.md",
+var policyDirectories = []string{
+	cryptoutilSharedMagic.CICDGithubInstructionsDir,
+	cryptoutilSharedMagic.CICDGithubAgentsDir,
+	cryptoutilSharedMagic.CICDGithubSkillsDir,
+	cryptoutilSharedMagic.CICDClaudeAgentsDir,
+	cryptoutilSharedMagic.CICDClaudeSkillsDir,
 }
 
-// Check enforces UTF-8 without BOM and LF-only line endings for handbook,
-// instructions, agents, and skills.
+// Check enforces UTF-8 without BOM and LF-only line endings for all agent
+// tooling policy artifacts (handbook, instructions, agents, skills, and root
+// control files).
 func Check(logger *cryptoutilCmdCicdCommon.Logger) error {
 	rootDir, err := findProjectRoot()
 	if err != nil {
@@ -39,10 +46,10 @@ func Check(logger *cryptoutilCmdCicdCommon.Logger) error {
 	return CheckInDir(logger, rootDir)
 }
 
-// CheckInDir enforces UTF-8 without BOM and LF-only line endings for handbook,
-// instructions, agents, and skills in rootDir.
+// CheckInDir enforces UTF-8 without BOM and LF-only line endings for all agent
+// tooling policy artifacts in rootDir.
 func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
-	logger.Log("Checking handbook/instruction/agent/skill file encoding and line endings...")
+	logger.Log("Checking agent-tooling policy file encoding and line endings...")
 
 	files, err := collectPolicyFiles(rootDir)
 	if err != nil {
@@ -67,26 +74,50 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 	if len(violations) > 0 {
 		sort.Strings(violations)
 
-		return fmt.Errorf("doc encoding policy violations:\n%s", strings.Join(violations, "\n"))
+		return fmt.Errorf("agent tooling encoding policy violations:\n%s", strings.Join(violations, "\n"))
 	}
 
-	logger.Log("lint-doc-file-encoding: all policy artifacts are UTF-8 without BOM and LF-only")
+	logger.Log("lint-doc-file-encoding: all agent-tooling artifacts are UTF-8 without BOM and LF-only")
 
 	return nil
 }
 
 func collectPolicyFiles(rootDir string) ([]string, error) {
-	files := []string{filepath.Join(rootDir, handbookPath)}
+	files := []string{
+		filepath.Join(rootDir, handbookPath),
+		filepath.Join(rootDir, cryptoutilSharedMagic.CICDCopilotInstructionsFile),
+		filepath.Join(rootDir, claudeFile),
+		filepath.Join(rootDir, claudeLocal),
+		filepath.Join(rootDir, skillsReadme),
+	}
 
-	for _, pattern := range policyGlobPatterns {
-		fullPattern := filepath.Join(rootDir, pattern)
+	for _, relativeDir := range policyDirectories {
+		dirPath := filepath.Join(rootDir, relativeDir)
 
-		matches, err := filepath.Glob(fullPattern)
-		if err != nil {
-			return nil, fmt.Errorf("glob %q: %w", pattern, err)
+		if _, err := os.Stat(dirPath); err != nil {
+			if errors.Is(err, fs.ErrNotExist) {
+				continue
+			}
+
+			return nil, fmt.Errorf("stat %q: %w", relativeDir, err)
 		}
 
-		files = append(files, matches...)
+		walkErr := filepath.WalkDir(dirPath, func(path string, entry fs.DirEntry, walkErr error) error {
+			if walkErr != nil {
+				return walkErr
+			}
+
+			if entry.IsDir() {
+				return nil
+			}
+
+			files = append(files, path)
+
+			return nil
+		})
+		if walkErr != nil {
+			return nil, fmt.Errorf("walk %q: %w", relativeDir, walkErr)
+		}
 	}
 
 	seen := make(map[string]struct{}, len(files))
