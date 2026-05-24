@@ -6,25 +6,26 @@ package server_test
 
 import (
 	"context"
-	"crypto/tls"
 	"fmt"
 	http "net/http"
 	"testing"
-	"time"
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/stretchr/testify/require"
 
 	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps-framework/service/config"
+	cryptoutilAppsFrameworkServiceServerTestutil "cryptoutil/internal/apps-framework/service/server/testutil"
 	cryptoutilAppsSmImServer "cryptoutil/internal/apps/sm-im/server"
 	cryptoutilAppsSmImServerConfig "cryptoutil/internal/apps/sm-im/server/config"
 )
 
 // initTestConfig returns an SmIMServerSettings with all required settings for tests.
-func initTestConfig() *cryptoutilAppsSmImServerConfig.SmIMServerSettings {
+func initTestConfig(t testing.TB) *cryptoutilAppsSmImServerConfig.SmIMServerSettings {
+	t.Helper()
+
 	settings := cryptoutilAppsFrameworkServiceConfig.RequireNewForTest("sm-im-http-test")
-	settings.DatabaseURL = fmt.Sprintf("file:sm-im-http-test-%d?mode=memory&cache=shared", time.Now().UTC().UnixNano())
+	settings.DatabaseURL = cryptoutilAppsFrameworkServiceServerTestutil.NewUniqueSQLiteMemoryURL(t, "sm-im-http-test")
 
 	return &cryptoutilAppsSmImServerConfig.SmIMServerSettings{
 		ServiceFrameworkServerSettings: settings,
@@ -38,52 +39,16 @@ func TestHTTPGet(t *testing.T) {
 	ctx := context.Background()
 
 	// Create server with dynamic ports.
-	cfg := initTestConfig()
+	cfg := initTestConfig(t)
 
 	srv, err := cryptoutilAppsSmImServer.NewIMServerFromConfig(ctx, cfg)
 	require.NoError(t, err)
 
-	// Mark server as ready after successful initialization.
-	// This enables /admin/v1/readyz to return 200 OK instead of 503 Service Unavailable.
-	srv.SetReady(true)
-
-	// Start server.
-	errChan := make(chan error, 1)
-
-	go func() {
-		errChan <- srv.Start(ctx)
-	}()
-
-	// Wait for server to be ready using polling pattern.
-	require.Eventually(t, func() bool {
-		return srv.PublicPort() > 0 && srv.AdminPort() > 0
-	}, cryptoutilSharedMagic.JoseJADefaultMaxMaterials*time.Second, cryptoutilSharedMagic.JoseJAMaxMaterials*time.Millisecond, "server should allocate port")
+	harness := cryptoutilAppsFrameworkServiceServerTestutil.StartHTTPServer(t, ctx, srv)
 
 	// Get actual ports.
 	publicPort := srv.PublicPort()
 	adminPort := srv.AdminPort()
-
-	// Create secure HTTP clients: one for the public endpoint, one for the admin endpoint.
-	publicClient := &http.Client{
-		Transport: &http.Transport{
-			TLSClientConfig: &tls.Config{
-				MinVersion: tls.VersionTLS13,
-				RootCAs:    srv.TLSRootCAPool(),
-			},
-			DisableKeepAlives: true,
-		},
-		Timeout: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Second,
-	}
-	adminClient := &http.Client{
-		Transport: &http.Transport{
-			TLSClientConfig: &tls.Config{
-				MinVersion: tls.VersionTLS13,
-				RootCAs:    srv.AdminTLSRootCAPool(),
-			},
-			DisableKeepAlives: true,
-		},
-		Timeout: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Second,
-	}
 
 	// Test public health endpoint.
 	t.Run("public_health_endpoint", func(t *testing.T) {
@@ -91,7 +56,7 @@ func TestHTTPGet(t *testing.T) {
 		req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 		require.NoError(t, err)
 
-		resp, err := publicClient.Do(req)
+		resp, err := harness.PublicClient.Do(req)
 		require.NoError(t, err)
 
 		defer func() { _ = resp.Body.Close() }()
@@ -105,7 +70,7 @@ func TestHTTPGet(t *testing.T) {
 		req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 		require.NoError(t, err)
 
-		resp, err := adminClient.Do(req)
+		resp, err := harness.AdminClient.Do(req)
 		require.NoError(t, err)
 
 		defer func() { _ = resp.Body.Close() }()
@@ -119,7 +84,7 @@ func TestHTTPGet(t *testing.T) {
 		req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 		require.NoError(t, err)
 
-		resp, err := adminClient.Do(req)
+		resp, err := harness.AdminClient.Do(req)
 		require.NoError(t, err)
 
 		defer func() { _ = resp.Body.Close() }()
@@ -127,12 +92,6 @@ func TestHTTPGet(t *testing.T) {
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 	})
 
-	// Shutdown server.
-	shutdownCtx, cancel := context.WithTimeout(ctx, 2*time.Second)
-	defer cancel()
-
-	err = srv.Shutdown(shutdownCtx)
-	require.NoError(t, err)
 }
 
 // TestHTTPPost tests the httpPost helper function (used by shutdown CLI wrapper).
@@ -143,37 +102,15 @@ func TestHTTPPost(t *testing.T) {
 	defer cancel()
 
 	// Create server with dynamic ports.
-	cfg := initTestConfig()
+	cfg := initTestConfig(t)
 
 	srv, err := cryptoutilAppsSmImServer.NewIMServerFromConfig(ctx, cfg)
 	require.NoError(t, err)
 
-	// Start server in background with cancellable context.
-	errChan := make(chan error, 1)
-
-	go func() {
-		errChan <- srv.Start(ctx)
-	}()
-
-	// Wait for server to be ready using polling pattern.
-	require.Eventually(t, func() bool {
-		return srv.AdminPort() > 0
-	}, cryptoutilSharedMagic.JoseJADefaultMaxMaterials*time.Second, cryptoutilSharedMagic.JoseJAMaxMaterials*time.Millisecond, "server should allocate port")
+	harness := cryptoutilAppsFrameworkServiceServerTestutil.StartHTTPServer(t, ctx, srv)
 
 	// Get actual ports.
 	adminPort := srv.AdminPort()
-
-	// Create secure HTTP client for admin endpoint.
-	client := &http.Client{
-		Transport: &http.Transport{
-			TLSClientConfig: &tls.Config{
-				MinVersion: tls.VersionTLS13,
-				RootCAs:    srv.AdminTLSRootCAPool(),
-			},
-			DisableKeepAlives: true,
-		},
-		Timeout: 3 * cryptoutilSharedMagic.DefaultServerShutdownTimeout,
-	}
 
 	// Test admin shutdown endpoint (triggers async shutdown).
 	t.Run("admin_shutdown_endpoint", func(t *testing.T) {
@@ -181,7 +118,7 @@ func TestHTTPPost(t *testing.T) {
 		req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, nil)
 		require.NoError(t, err)
 
-		resp, err := client.Do(req)
+		resp, err := harness.AdminClient.Do(req)
 		require.NoError(t, err)
 
 		defer func() { _ = resp.Body.Close() }()
@@ -191,24 +128,6 @@ func TestHTTPPost(t *testing.T) {
 
 	// Cancel context to trigger server shutdown (shutdown endpoint starts async shutdown).
 	cancel()
-
-	// Wait for server to finish shutting down.
-	select {
-	case err := <-errChan:
-		// Server shutdown returns context.Canceled error which is expected.
-		// After wrapping, the error message will include the wrapper prefix.
-		const (
-			adminStoppedErr     = "admin server stopped: context canceled"
-			appCancelledErr     = "application startup cancelled: context canceled"
-			wrappedAppCancelled = "failed to start application: application startup cancelled: context canceled"
-		)
-
-		if err != nil && err.Error() != adminStoppedErr && err.Error() != appCancelledErr && err.Error() != wrappedAppCancelled {
-			require.FailNowf(t, "Unexpected server error", "%v", err)
-		}
-	case <-time.After(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Second):
-		require.FailNow(t, "Server did not shutdown within timeout")
-	}
 }
 
 // TestIMServer tests the imServer function.
