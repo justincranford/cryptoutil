@@ -3,7 +3,6 @@ package docs_validation
 
 import (
 	"fmt"
-	"io"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -14,6 +13,8 @@ import (
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
+
+const sectionToAppendixMatchLen = 3
 
 // PropagationEntry describes a single required @propagate chunk from the manifest.
 type PropagationEntry struct {
@@ -43,6 +44,25 @@ type CoverageResult struct {
 	ArchitectureChunks int
 }
 
+type sectionContribution struct {
+	AppendixID string
+	ChunkID    string
+	LineNumber int
+}
+
+type appendixPropagation struct {
+	AppendixID string
+	ChunkID    string
+	TargetFile string
+	LineNumber int
+}
+
+type directPropagation struct {
+	ChunkID    string
+	TargetFile string
+	LineNumber int
+}
+
 // sourceBlockRegex matches <!-- @source from="..." as="CHUNK_ID" --> on a single line.
 var sourceBlockRegex = regexp.MustCompile(`<!--\s+@source\s+from="[^"]+"\s+as="([^"]+)"\s+-->`)
 
@@ -54,6 +74,14 @@ var appendixPropagateMarkerRegex = regexp.MustCompile(`<!--\s+@appendix-propagat
 
 // sectionToAppendixMarkerRegex matches <!-- @section-to-appendix to="..." as="CHUNK_ID" -->.
 var sectionToAppendixMarkerRegex = regexp.MustCompile(`<!--\s+@section-to-appendix\s+to="([^"]+)"\s+as="([^"]+)"\s+-->`)
+
+// appendixWhyMarkerRegex matches <!-- @appendix-why from="..." why-this-exists="..." -->.
+var appendixWhyMarkerRegex = regexp.MustCompile(`<!--\s+@appendix-why\s+from="([^"]+)"\s+why-this-exists="([^"]+)"\s+-->`)
+
+// unstableChunkIDRegex catches likely section-number-driven IDs (e.g., section-13-4-rules).
+// A single numeric token (e.g., rfc-2119-keywords) is allowed; two adjacent numeric
+// tokens joined by hyphen indicate section-number coupling.
+var unstableChunkIDRegex = regexp.MustCompile(`[0-9]+-[0-9]+`)
 
 // chunkIDRegex validates that a captured chunk ID matches the grammar: [a-z][a-z0-9-]*.
 // This filters out false positives from code-block grammar examples in ENG-HANDBOOK.md.
@@ -118,46 +146,122 @@ func ExtractPropagateChunks(readFile func(string) ([]byte, error)) ([]string, er
 	return chunks, nil
 }
 
-func extractSectionAppendixMappings(readFile func(string) ([]byte, error)) (map[string]map[string]bool, map[string]map[string]bool, error) {
+func extractSectionAppendixMappings(readFile func(string) ([]byte, error)) (
+	map[string]map[string]bool,
+	map[string]map[string]bool,
+	[]sectionContribution,
+	[]appendixPropagation,
+	[]directPropagation,
+	[]string,
+	error,
+) {
 	data, err := readFile("docs/ENG-HANDBOOK.md")
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to read docs/ENG-HANDBOOK.md: %w", err)
+		return nil, nil, nil, nil, nil, nil, fmt.Errorf("failed to read docs/ENG-HANDBOOK.md: %w", err)
 	}
 
 	sectionMappings := make(map[string]map[string]bool)
 	appendixMappings := make(map[string]map[string]bool)
 
-	for _, line := range strings.Split(string(data), "\n") {
+	var sectionEdges []sectionContribution
+
+	var appendixEdges []appendixPropagation
+
+	var directEdges []directPropagation
+
+	var issues []string
+
+	lines := strings.Split(string(data), "\n")
+
+	for idx, line := range lines {
+		lineNumber := idx + 1
+
 		sectionMatch := sectionToAppendixMarkerRegex.FindStringSubmatch(line)
-		if len(sectionMatch) == 3 { //nolint:mnd // full match plus two capture groups
+		if len(sectionMatch) == sectionToAppendixMatchLen {
 			appendixID := sectionMatch[1]
 
 			chunkID := sectionMatch[2]
+			if unstableChunkIDRegex.MatchString(chunkID) {
+				issues = append(issues, fmt.Sprintf("unstable semantic chunk id %q at line %d uses section-like numerics", chunkID, lineNumber))
+			}
+
 			if chunkIDRegex.MatchString(chunkID) {
 				if sectionMappings[chunkID] == nil {
 					sectionMappings[chunkID] = make(map[string]bool)
 				}
 
 				sectionMappings[chunkID][appendixID] = true
+				sectionEdges = append(sectionEdges, sectionContribution{
+					AppendixID: appendixID,
+					ChunkID:    chunkID,
+					LineNumber: lineNumber,
+				})
+			}
+		}
+
+		directMatch := propagateMarkerRegex.FindStringSubmatch(line)
+		if len(directMatch) >= cryptoutilSharedMagic.PropagateMarkerMatchGroups {
+			targetCSV := directMatch[1]
+			chunkID := directMatch[2]
+
+			if chunkIDRegex.MatchString(chunkID) {
+				targets := strings.Split(targetCSV, ", ")
+				for _, target := range targets {
+					directEdges = append(directEdges, directPropagation{
+						ChunkID:    chunkID,
+						TargetFile: target,
+						LineNumber: lineNumber,
+					})
+				}
 			}
 		}
 
 		appendixMatch := appendixPropagateMarkerRegex.FindStringSubmatch(line)
 		if len(appendixMatch) == 4 { //nolint:mnd // full match plus three capture groups
 			appendixID := appendixMatch[1]
+			targetCSV := appendixMatch[2]
 
 			chunkID := appendixMatch[3]
+			if unstableChunkIDRegex.MatchString(chunkID) {
+				issues = append(issues, fmt.Sprintf("unstable semantic chunk id %q at line %d uses section-like numerics", chunkID, lineNumber))
+			}
+
+			hasWhy := false
+
+			if idx > 0 {
+				prev := strings.TrimSpace(lines[idx-1])
+
+				whyMatch := appendixWhyMarkerRegex.FindStringSubmatch(prev)
+				if len(whyMatch) == 3 && whyMatch[1] == appendixID && len(strings.TrimSpace(whyMatch[2])) >= cryptoutilSharedMagic.IdentityDefaultMaxIdleConns {
+					hasWhy = true
+				}
+			}
+
+			if !hasWhy {
+				issues = append(issues, fmt.Sprintf("appendix-propagate block at line %d for appendix %q must have adjacent @appendix-why note with why-this-exists text", lineNumber, appendixID))
+			}
+
 			if chunkIDRegex.MatchString(chunkID) {
 				if appendixMappings[chunkID] == nil {
 					appendixMappings[chunkID] = make(map[string]bool)
 				}
 
 				appendixMappings[chunkID][appendixID] = true
+
+				targets := strings.Split(targetCSV, ", ")
+				for _, target := range targets {
+					appendixEdges = append(appendixEdges, appendixPropagation{
+						AppendixID: appendixID,
+						ChunkID:    chunkID,
+						TargetFile: target,
+						LineNumber: lineNumber,
+					})
+				}
 			}
 		}
 	}
 
-	return sectionMappings, appendixMappings, nil
+	return sectionMappings, appendixMappings, sectionEdges, appendixEdges, directEdges, issues, nil
 }
 
 // ExtractSourceChunks scans all instruction/agent files and returns a map of
@@ -208,27 +312,42 @@ func ExtractSourceChunks(rootDir string, readFile func(string) ([]byte, error)) 
 		}
 	}
 
+	// Scan skill pairs recursively: .github/skills/*/SKILL.md and .claude/skills/*/SKILL.md.
+	skillDirs := []string{
+		cryptoutilSharedMagic.CICDGithubSkillsDir,
+		cryptoutilSharedMagic.CICDClaudeSkillsDir,
+	}
+
+	for _, skillsDir := range skillDirs {
+		skillsDirPath := filepath.Join(rootDir, skillsDir)
+
+		skillEntries, skillsErr := os.ReadDir(skillsDirPath)
+		if skillsErr != nil {
+			continue
+		}
+
+		for _, skillEntry := range skillEntries {
+			if !skillEntry.IsDir() {
+				continue
+			}
+
+			relPath := filepath.ToSlash(filepath.Join(skillsDir, skillEntry.Name(), cryptoutilSharedMagic.CICDSkillFileName))
+
+			content, readErr := readFile(relPath)
+			if readErr != nil {
+				continue
+			}
+
+			extractSourceChunksFromContent(relPath, string(content), result)
+		}
+	}
+
 	// Sort the file lists for deterministic output.
 	for k := range result {
 		sort.Strings(result[k])
 	}
 
 	return result, nil
-}
-
-// extractSourceChunksFromContent scans a single file's content for @source blocks.
-func extractSourceChunksFromContent(relPath, content string, result map[string][]string) {
-	for _, line := range strings.Split(content, "\n") {
-		match := sourceBlockRegex.FindStringSubmatch(line)
-		if len(match) >= 2 { //nolint:mnd // match[1] requires at least 2 elements (full + group)
-			chunkID := match[1]
-			if !chunkIDRegex.MatchString(chunkID) {
-				continue // skip grammar examples and other non-conforming captures
-			}
-
-			result[chunkID] = append(result[chunkID], relPath)
-		}
-	}
 }
 
 // ValidateCoverage runs the full coverage validation:
@@ -256,7 +375,7 @@ func validateCoverage(rootDir string, readFile func(string) ([]byte, error), ext
 		return nil, err
 	}
 
-	sectionMappings, appendixMappings, err := extractSectionAppendixMappings(readFile)
+	sectionMappings, appendixMappings, sectionEdges, appendixEdges, directEdges, additionalIssues, err := extractSectionAppendixMappings(readFile)
 	if err != nil {
 		return nil, err
 	}
@@ -265,12 +384,6 @@ func validateCoverage(rootDir string, readFile func(string) ([]byte, error), ext
 	manifestSet := make(map[string]bool, len(manifest.RequiredPropagations))
 	for _, entry := range manifest.RequiredPropagations {
 		manifestSet[entry.ChunkID] = true
-	}
-
-	// Build a set of chunk IDs from ENG-HANDBOOK.md.
-	archSet := make(map[string]bool, len(archChunks))
-	for _, id := range archChunks {
-		archSet[id] = true
 	}
 
 	result := &CoverageResult{
@@ -310,6 +423,59 @@ func validateCoverage(rootDir string, readFile func(string) ([]byte, error), ext
 		}
 	}
 
+	// Item 1: reject orphan appendix blocks with no downstream appendix-propagate targets.
+	appendixHasDownstream := make(map[string]bool)
+
+	for _, edge := range appendixEdges {
+		if edge.TargetFile != "" {
+			appendixHasDownstream[edge.AppendixID] = true
+		}
+	}
+
+	seenAppendix := make(map[string]bool)
+	for _, edge := range sectionEdges {
+		if seenAppendix[edge.AppendixID] {
+			continue
+		}
+
+		seenAppendix[edge.AppendixID] = true
+		if !appendixHasDownstream[edge.AppendixID] {
+			result.CompositionIssues = append(result.CompositionIssues,
+				fmt.Sprintf("orphan appendix %q has semantic contributions but no appendix-propagate downstream target", edge.AppendixID),
+			)
+		}
+	}
+
+	// Item 2: reject semantic contribution blocks that do not feed any appendix block.
+	for _, edge := range sectionEdges {
+		if appendixMappings[edge.ChunkID] == nil || !appendixMappings[edge.ChunkID][edge.AppendixID] {
+			result.CompositionIssues = append(result.CompositionIssues,
+				fmt.Sprintf("section-to-appendix chunk %q to %q at line %d does not feed any appendix-propagate block", edge.ChunkID, edge.AppendixID, edge.LineNumber),
+			)
+		}
+	}
+
+	// Reverse mapping check: appendix-propagate must map back to semantic contribution.
+	for _, edge := range appendixEdges {
+		if sectionMappings[edge.ChunkID] == nil || !sectionMappings[edge.ChunkID][edge.AppendixID] {
+			result.CompositionIssues = append(result.CompositionIssues,
+				fmt.Sprintf("appendix-propagate chunk %q from %q at line %d has no matching @section-to-appendix mapping", edge.ChunkID, edge.AppendixID, edge.LineNumber),
+			)
+		}
+	}
+
+	// Item 3: reject direct downstream propagation for semantic chunks.
+	for _, edge := range directEdges {
+		if sectionMappings[edge.ChunkID] != nil {
+			result.CompositionIssues = append(result.CompositionIssues,
+				fmt.Sprintf("direct @propagate for semantic chunk %q to %s at line %d is not allowed; use appendix-propagate", edge.ChunkID, edge.TargetFile, edge.LineNumber),
+			)
+		}
+	}
+
+	// Item 4 + 5: include parse-time issues (unstable IDs + missing why-this-exists notes).
+	result.CompositionIssues = append(result.CompositionIssues, additionalIssues...)
+
 	sort.Slice(result.Violations, func(i, j int) bool {
 		if result.Violations[i].ChunkID != result.Violations[j].ChunkID {
 			return result.Violations[i].ChunkID < result.Violations[j].ChunkID
@@ -320,97 +486,5 @@ func validateCoverage(rootDir string, readFile func(string) ([]byte, error), ext
 
 	sort.Strings(result.OrphanedChunks)
 
-	for chunkID, appendixSet := range appendixMappings {
-		for appendixID := range appendixSet {
-			if sectionMappings[chunkID] == nil || !sectionMappings[chunkID][appendixID] {
-				result.CompositionIssues = append(
-					result.CompositionIssues,
-					fmt.Sprintf("appendix-propagate chunk %q from %q has no matching @section-to-appendix mapping", chunkID, appendixID),
-				)
-			}
-		}
-	}
-
-	sort.Strings(result.CompositionIssues)
-
 	return result, nil
-}
-
-// FormatCoverageValidationResults formats the validate-coverage results.
-func FormatCoverageValidationResults(result *CoverageResult) string {
-	var sb strings.Builder
-
-	sb.WriteString("=== Propagation Coverage Validation ===\n\n")
-	fmt.Fprintf(&sb, "Manifest chunks:      %d\n", result.ManifestChunks)
-	fmt.Fprintf(&sb, "Architecture chunks:  %d\n", result.ArchitectureChunks)
-
-	if len(result.OrphanedChunks) > 0 {
-		fmt.Fprintf(&sb, "\nORPHANED CHUNKS (%d) — in ENG-HANDBOOK.md but missing from manifest:\n", len(result.OrphanedChunks))
-
-		for _, id := range result.OrphanedChunks {
-			fmt.Fprintf(&sb, "  - %s\n", id)
-		}
-	}
-
-	if len(result.CompositionIssues) > 0 {
-		fmt.Fprintf(&sb, "\nSECTION/APPENDIX COMPOSITION ISSUES (%d):\n", len(result.CompositionIssues))
-
-		for _, issue := range result.CompositionIssues {
-			fmt.Fprintf(&sb, "  - %s\n", issue)
-		}
-	}
-
-	if len(result.Violations) > 0 {
-		fmt.Fprintf(&sb, "\nMISSING @SOURCE BLOCKS (%d):\n", len(result.Violations))
-
-		for _, v := range result.Violations {
-			fmt.Fprintf(&sb, "  - chunk=%s file=%s\n", v.ChunkID, v.File)
-		}
-
-		sb.WriteString("\nCoverage validation FAILED. Add missing @source blocks or update the manifest.\n")
-	} else if len(result.OrphanedChunks) > 0 {
-		sb.WriteString("\nCoverage validation FAILED. Add orphaned chunks to docs/required-propagations.yaml.\n")
-	} else if len(result.CompositionIssues) > 0 {
-		sb.WriteString("\nCoverage validation FAILED. Fix section-to-appendix mappings for appendix-propagate chunks.\n")
-	} else {
-		sb.WriteString("\nAll required @propagate chunks are covered by @source blocks.\n")
-	}
-
-	return sb.String()
-}
-
-// ValidateCoverageCommand is the CLI entry point for validate-coverage.
-// Returns exit code: 0 if all chunks covered, 1 on any failure.
-func ValidateCoverageCommand(stdout, stderr io.Writer) int {
-	return validateCoverageCommand(stdout, stderr, findProjectRoot)
-}
-
-func validateCoverageCommand(stdout, stderr io.Writer, rootFn func() (string, error)) int {
-	rootDir, err := rootFn()
-	if err != nil {
-		_, _ = fmt.Fprintf(stderr, "Error: %s\n", err)
-
-		return 1
-	}
-
-	return validateCoverageWithRoot(rootDir, stdout, stderr)
-}
-
-// validateCoverageWithRoot runs validate-coverage using a specified root directory.
-func validateCoverageWithRoot(rootDir string, stdout, stderr io.Writer) int {
-	result, err := ValidateCoverage(rootDir, rootedReadFile(rootDir))
-	if err != nil {
-		_, _ = fmt.Fprintf(stderr, "Error: %s\n", err)
-
-		return 1
-	}
-
-	report := FormatCoverageValidationResults(result)
-	_, _ = fmt.Fprint(stdout, report)
-
-	if len(result.Violations) > 0 || len(result.OrphanedChunks) > 0 || len(result.CompositionIssues) > 0 {
-		return 1
-	}
-
-	return 0
 }

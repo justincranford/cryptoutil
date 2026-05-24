@@ -14,15 +14,17 @@ instructions, and skills.
 
 ## Key Rules
 
+<!-- @source from="docs/ENG-HANDBOOK.md" as="skill-copilot-customization-core-rules" -->
 - Pick one artifact type per invocation: `agent`, `instruction`, or `skill`
 - Decide the operation up front: create, update, or delete
 - Agents are dual-canonical: create BOTH `.github/agents/NAME.agent.md` and `.claude/agents/NAME.md`
 - Skills are dual-canonical: create BOTH `.github/skills/NAME/SKILL.md` and `.claude/skills/NAME/SKILL.md`
-- Instruction files live in `.github/instructions/`, and Claude consumes them through the `## Instruction Files` list in `CLAUDE.md`
 - Agent and skill body content MUST stay identical across Copilot and Claude pairs; only permitted frontmatter differences may differ
+- Run `go run ./cmd/cicd-lint lint-docs` after creating, updating, or deleting any customization artifact
+<!-- @/source -->
+- Instruction files live in `.github/instructions/`, and Claude consumes them through the `## Instruction Files` list in `CLAUDE.md`
 - Keep `CLAUDE.md` synchronized: update the `Instruction Files`, `Agents`, and `Skills` sections when their inventories change
 - Update the relevant catalog surfaces in the same change: `.github/skills/README.md`, `.github/copilot-instructions.md`, `CLAUDE.md`, and `docs/ENG-HANDBOOK.md` when the artifact should be discoverable there
-- Run `go run ./cmd/cicd-lint lint-docs` after creating, updating, or deleting any customization artifact
 - Use `sync-copilot-claude` to audit or repair existing drift; use this skill to create new artifacts with the correct structure from the start
 - Maintain Copilot agent `tools:` allowlists here when VS Code, Copilot, extensions, or MCP servers change tool availability
 

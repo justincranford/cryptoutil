@@ -180,6 +180,36 @@ required_propagations:
     required_targets:
       - .github/instructions/05-02.git.instructions.md
 
+  - chunk_id: skill-copilot-customization-core-rules
+    source_file: docs/ENG-HANDBOOK.md
+    required_targets:
+      - .github/skills/copilot-customization/SKILL.md
+      - .claude/skills/copilot-customization/SKILL.md
+
+  - chunk_id: skill-openapi-codegen-core-rules
+    source_file: docs/ENG-HANDBOOK.md
+    required_targets:
+      - .github/skills/openapi-codegen/SKILL.md
+      - .claude/skills/openapi-codegen/SKILL.md
+
+  - chunk_id: skill-propagation-check-core-rules
+    source_file: docs/ENG-HANDBOOK.md
+    required_targets:
+      - .github/skills/propagation-check/SKILL.md
+      - .claude/skills/propagation-check/SKILL.md
+
+  - chunk_id: skill-sync-copilot-claude-core-rules
+    source_file: docs/ENG-HANDBOOK.md
+    required_targets:
+      - .github/skills/sync-copilot-claude/SKILL.md
+      - .claude/skills/sync-copilot-claude/SKILL.md
+
+  - chunk_id: skill-test-table-driven-core-rules
+    source_file: docs/ENG-HANDBOOK.md
+    required_targets:
+      - .github/skills/test-table-driven/SKILL.md
+      - .claude/skills/test-table-driven/SKILL.md
+
   - chunk_id: rfc-2119-keywords
     source_file: docs/ENG-HANDBOOK.md
     required_targets:

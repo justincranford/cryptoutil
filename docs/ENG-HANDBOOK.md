@@ -124,6 +124,7 @@ This document is structured to serve multiple audiences:
 
 #### Terminology Appendix Propagation (Pilot)
 
+<!-- @appendix-why from="terminology-instruction-body" why-this-exists="RFC 2119 keyword guidance reused in terminology instruction artifact" -->
 <!-- @appendix-propagate from="terminology-instruction-body" to=".github/instructions/01-01.terminology.instructions.md" as="rfc-2119-keywords" -->
 - **MUST** = **REQUIRED** = **MANDATORY** = **SHALL** - Absolute requirement
 - **MUST NOT** = **SHALL NOT** - Absolute prohibition
@@ -132,11 +133,13 @@ This document is structured to serve multiple audiences:
 - **MAY** = **OPTIONAL** - Truly optional (implementer decides)
 <!-- @/appendix-propagate -->
 
+<!-- @appendix-why from="terminology-instruction-body" why-this-exists="emphasis keyword guidance reused in terminology instruction artifact" -->
 <!-- @appendix-propagate from="terminology-instruction-body" to=".github/instructions/01-01.terminology.instructions.md" as="emphasis-keywords" -->
 - **CRITICAL** - Historically regression-prone areas requiring extra attention
 - **ALWAYS** / **NEVER** - Emphatic MUST / MUST NOT (no exceptions)
 <!-- @/appendix-propagate -->
 
+<!-- @appendix-why from="terminology-instruction-body" why-this-exists="abbreviation disambiguation guidance reused in terminology instruction artifact" -->
 <!-- @appendix-propagate from="terminology-instruction-body" to=".github/instructions/01-01.terminology.instructions.md" as="abbreviations" -->
 **CRITICAL: NEVER use ambiguous `auth` abbreviation to mean either authentication or authorization**
 
@@ -499,6 +502,101 @@ Here is current git status:
 | `fitness-function-gen` | tooling | Create new architecture fitness function (linter) for lint-fitness framework | [SKILL.md](.github/skills/fitness-function-gen/SKILL.md) |
 | `copilot-customization` | tooling | Create, update, or delete repo-local agents, instructions, or skills and any required Claude counterpart, including Copilot agent tool allowlist maintenance | [SKILL.md](.github/skills/copilot-customization/SKILL.md) |
 | `sync-copilot-claude` | tooling | Audit and sync Copilot skills/agents with Claude skills/agents | [SKILL.md](.github/skills/sync-copilot-claude/SKILL.md) |
+
+#### Skill Body Fragments (Appendix Pilot)
+
+<!-- @section-to-appendix to="skills-handbook-coupled-body" as="skill-propagation-check-core-rules" -->
+- `@source` content MUST be byte-for-byte identical to `@propagate` content in ENG-HANDBOOK.md
+- Run `go run ./cmd/cicd-lint lint-docs` to detect drift
+- Add both Copilot file AND Claude file to `@propagate to=` attribute (comma-separated)
+- Update `docs/required-propagations.yaml` `required_targets` when adding new targets
+- When ENG-HANDBOOK.md chunk changes, ALL downstream `@source` blocks must be updated
+<!-- @/section-to-appendix -->
+
+<!-- @section-to-appendix to="skills-handbook-coupled-body" as="skill-sync-copilot-claude-core-rules" -->
+- Copilot skills live at `.github/skills/<NAME>/SKILL.md`; Claude skills at `.claude/skills/<NAME>/SKILL.md`
+- Body content MUST be identical between Copilot and Claude skill files
+- Claude agents at `.claude/agents/<NAME>.md` must match Copilot agents at `.github/agents/<NAME>.agent.md`
+- NEVER update only one file — always sync both in the same commit
+- The `lint-agent-drift` linter (in `lint-docs`) enforces agent pair identity automatically
+<!-- @/section-to-appendix -->
+
+<!-- @section-to-appendix to="skills-handbook-coupled-body" as="skill-copilot-customization-core-rules" -->
+- Pick one artifact type per invocation: `agent`, `instruction`, or `skill`
+- Decide the operation up front: create, update, or delete
+- Agents are dual-canonical: create BOTH `.github/agents/NAME.agent.md` and `.claude/agents/NAME.md`
+- Skills are dual-canonical: create BOTH `.github/skills/NAME/SKILL.md` and `.claude/skills/NAME/SKILL.md`
+- Agent and skill body content MUST stay identical across Copilot and Claude pairs; only permitted frontmatter differences may differ
+- Run `go run ./cmd/cicd-lint lint-docs` after creating, updating, or deleting any customization artifact
+<!-- @/section-to-appendix -->
+
+<!-- @section-to-appendix to="skills-handbook-coupled-body" as="skill-test-table-driven-core-rules" -->
+- `t.Parallel()` MANDATORY on parent and ALL subtests
+- Use `googleUuid.NewV7()` for test data IDs (thread-safe, unique, no conflicts)
+- `require` package (fail-fast) over `assert` (continue-on-failure)
+- Table-driven for ALL multi-case tests (happy path AND sad path)
+- TestMain for heavyweight resources (DB, servers, containers) — one per package
+- Use exactly one `testmain_test.go` per package; never split into `testmain_*_test.go` variants
+- `testmain_test.go` must not use `//go:build` or `// +build` directives
+<!-- @/section-to-appendix -->
+
+<!-- @section-to-appendix to="skills-handbook-coupled-body" as="skill-openapi-codegen-core-rules" -->
+- OpenAPI version MUST be 3.0.3 (NOT 2.0/Swagger, NOT 3.1.x)
+- Generate THREE config files: server (`strict-server: true`), model, client
+- API MUST duplicate under BOTH `/service/` and `/browser/` paths
+- Content type: `application/json` ONLY (no form, multipart, or other types)
+- `strict-server: true` is MANDATORY in server config
+- All `openapi-gen_config*.yaml` MUST include the full base initialisms list from ENG-HANDBOOK.md §8
+<!-- @/section-to-appendix -->
+
+<!-- @appendix-why from="skills-handbook-coupled-body" why-this-exists="semantic skill rules reused across Copilot and Claude skill pairs" -->
+<!-- @appendix-propagate from="skills-handbook-coupled-body" to=".github/skills/propagation-check/SKILL.md, .claude/skills/propagation-check/SKILL.md" as="skill-propagation-check-core-rules" -->
+- `@source` content MUST be byte-for-byte identical to `@propagate` content in ENG-HANDBOOK.md
+- Run `go run ./cmd/cicd-lint lint-docs` to detect drift
+- Add both Copilot file AND Claude file to `@propagate to=` attribute (comma-separated)
+- Update `docs/required-propagations.yaml` `required_targets` when adding new targets
+- When ENG-HANDBOOK.md chunk changes, ALL downstream `@source` blocks must be updated
+<!-- @/appendix-propagate -->
+
+<!-- @appendix-why from="skills-handbook-coupled-body" why-this-exists="sync rules shared across dual-canonical skill and agent tooling" -->
+<!-- @appendix-propagate from="skills-handbook-coupled-body" to=".github/skills/sync-copilot-claude/SKILL.md, .claude/skills/sync-copilot-claude/SKILL.md" as="skill-sync-copilot-claude-core-rules" -->
+- Copilot skills live at `.github/skills/<NAME>/SKILL.md`; Claude skills at `.claude/skills/<NAME>/SKILL.md`
+- Body content MUST be identical between Copilot and Claude skill files
+- Claude agents at `.claude/agents/<NAME>.md` must match Copilot agents at `.github/agents/<NAME>.agent.md`
+- NEVER update only one file — always sync both in the same commit
+- The `lint-agent-drift` linter (in `lint-docs`) enforces agent pair identity automatically
+<!-- @/appendix-propagate -->
+
+<!-- @appendix-why from="skills-handbook-coupled-body" why-this-exists="customization workflow constraints reused in both skill targets" -->
+<!-- @appendix-propagate from="skills-handbook-coupled-body" to=".github/skills/copilot-customization/SKILL.md, .claude/skills/copilot-customization/SKILL.md" as="skill-copilot-customization-core-rules" -->
+- Pick one artifact type per invocation: `agent`, `instruction`, or `skill`
+- Decide the operation up front: create, update, or delete
+- Agents are dual-canonical: create BOTH `.github/agents/NAME.agent.md` and `.claude/agents/NAME.md`
+- Skills are dual-canonical: create BOTH `.github/skills/NAME/SKILL.md` and `.claude/skills/NAME/SKILL.md`
+- Agent and skill body content MUST stay identical across Copilot and Claude pairs; only permitted frontmatter differences may differ
+- Run `go run ./cmd/cicd-lint lint-docs` after creating, updating, or deleting any customization artifact
+<!-- @/appendix-propagate -->
+
+<!-- @appendix-why from="skills-handbook-coupled-body" why-this-exists="testing rule baseline kept identical for both test-table-driven skill files" -->
+<!-- @appendix-propagate from="skills-handbook-coupled-body" to=".github/skills/test-table-driven/SKILL.md, .claude/skills/test-table-driven/SKILL.md" as="skill-test-table-driven-core-rules" -->
+- `t.Parallel()` MANDATORY on parent and ALL subtests
+- Use `googleUuid.NewV7()` for test data IDs (thread-safe, unique, no conflicts)
+- `require` package (fail-fast) over `assert` (continue-on-failure)
+- Table-driven for ALL multi-case tests (happy path AND sad path)
+- TestMain for heavyweight resources (DB, servers, containers) — one per package
+- Use exactly one `testmain_test.go` per package; never split into `testmain_*_test.go` variants
+- `testmain_test.go` must not use `//go:build` or `// +build` directives
+<!-- @/appendix-propagate -->
+
+<!-- @appendix-why from="skills-handbook-coupled-body" why-this-exists="OpenAPI generation invariants reused for Copilot and Claude openapi-codegen skills" -->
+<!-- @appendix-propagate from="skills-handbook-coupled-body" to=".github/skills/openapi-codegen/SKILL.md, .claude/skills/openapi-codegen/SKILL.md" as="skill-openapi-codegen-core-rules" -->
+- OpenAPI version MUST be 3.0.3 (NOT 2.0/Swagger, NOT 3.1.x)
+- Generate THREE config files: server (`strict-server: true`), model, client
+- API MUST duplicate under BOTH `/service/` and `/browser/` paths
+- Content type: `application/json` ONLY (no form, multipart, or other types)
+- `strict-server: true` is MANDATORY in server config
+- All `openapi-gen_config*.yaml` MUST include the full base initialisms list from ENG-HANDBOOK.md §8
+<!-- @/appendix-propagate -->
 
 #### 2.1.6 Agent Tool Discovery
 

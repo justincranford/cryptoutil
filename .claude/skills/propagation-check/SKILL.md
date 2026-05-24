@@ -13,12 +13,14 @@ Use when ENG-HANDBOOK.md sections have changed and you need to update downstream
 
 ## Key Rules
 
+<!-- @source from="docs/ENG-HANDBOOK.md" as="skill-propagation-check-core-rules" -->
 - `@source` content MUST be byte-for-byte identical to `@propagate` content in ENG-HANDBOOK.md
 - Run `go run ./cmd/cicd-lint lint-docs` to detect drift
-- Copilot and Claude agent files MUST have identical body content (only frontmatter differs)
 - Add both Copilot file AND Claude file to `@propagate to=` attribute (comma-separated)
 - Update `docs/required-propagations.yaml` `required_targets` when adding new targets
 - When ENG-HANDBOOK.md chunk changes, ALL downstream `@source` blocks must be updated
+<!-- @/source -->
+- Copilot and Claude agent files MUST have identical body content (only frontmatter differs)
 
 ## Marker System
 

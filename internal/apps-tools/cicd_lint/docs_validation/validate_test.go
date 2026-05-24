@@ -4,6 +4,7 @@ package docs_validation
 import (
 	"fmt"
 	"os"
+	"strings"
 	"testing"
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
@@ -52,6 +53,7 @@ func minimalArchitectureWithAppendixContent() string {
 <!-- @section-to-appendix to="terminology-instruction-body" as="rfc-2119-keywords" -->
 some content
 <!-- @/section-to-appendix -->
+<!-- @appendix-why from="terminology-instruction-body" why-this-exists="semantic contribution reuse" -->
 <!-- @appendix-propagate from="terminology-instruction-body" to=".github/instructions/01-01.terminology.instructions.md" as="rfc-2119-keywords" -->
 some content
 <!-- @/appendix-propagate -->
@@ -315,6 +317,35 @@ b
 	}
 }
 
+func TestExtractSourceChunks_IncludesSkills(t *testing.T) {
+	t.Parallel()
+
+	rootDir := t.TempDir()
+
+	docsDir := rootDir + "/docs"
+	require.NoError(t, os.MkdirAll(docsDir, 0o700))
+	require.NoError(t, os.WriteFile(docsDir+"/ENG-HANDBOOK.md", []byte("# Architecture\n"), cryptoutilSharedMagic.FilePermissionsDefault))
+
+	ghSkillDir := rootDir + "/.github/skills/sample-skill"
+	claudeSkillDir := rootDir + "/.claude/skills/sample-skill"
+
+	require.NoError(t, os.MkdirAll(ghSkillDir, 0o700))
+	require.NoError(t, os.MkdirAll(claudeSkillDir, 0o700))
+
+	skillContent := `<!-- @source from="docs/ENG-HANDBOOK.md" as="sample-skill-chunk" -->
+sample
+<!-- @/source -->
+`
+	require.NoError(t, os.WriteFile(ghSkillDir+"/SKILL.md", []byte(skillContent), cryptoutilSharedMagic.FilePermissionsDefault))
+	require.NoError(t, os.WriteFile(claudeSkillDir+"/SKILL.md", []byte(skillContent), cryptoutilSharedMagic.FilePermissionsDefault))
+
+	chunks, err := ExtractSourceChunks(rootDir, rootedReadFile(rootDir))
+	require.NoError(t, err)
+	require.Contains(t, chunks, "sample-skill-chunk")
+	require.Contains(t, chunks["sample-skill-chunk"], ".github/skills/sample-skill/SKILL.md")
+	require.Contains(t, chunks["sample-skill-chunk"], ".claude/skills/sample-skill/SKILL.md")
+}
+
 // --- ValidateCoverage ---
 
 func TestValidateCoverage(t *testing.T) {
@@ -391,6 +422,7 @@ func TestValidateCoverage(t *testing.T) {
 			name:            "appendix mapping missing section contribution",
 			manifestContent: minimalManifestYAML(),
 			archContent: `# Architecture
+<!-- @appendix-why from="terminology-instruction-body" why-this-exists="compatibility bridge" -->
 <!-- @appendix-propagate from="terminology-instruction-body" to=".github/instructions/01-01.terminology.instructions.md" as="rfc-2119-keywords" -->
 some content
 <!-- @/appendix-propagate -->
@@ -398,8 +430,74 @@ some content
 			instructionFiles: map[string]string{"01-01.terminology.instructions.md": rfcOnlySourceContent()},
 			validate: func(t *testing.T, result *CoverageResult) {
 				t.Helper()
-				require.Len(t, result.CompositionIssues, 1)
-				require.Contains(t, result.CompositionIssues[0], "rfc-2119-keywords")
+				require.NotEmpty(t, result.CompositionIssues)
+				require.Contains(t, strings.Join(result.CompositionIssues, "\n"), "rfc-2119-keywords")
+			},
+		},
+		{
+			name:            "orphan appendix has no downstream targets",
+			manifestContent: minimalManifestYAML(),
+			archContent: `# Architecture
+<!-- @section-to-appendix to="orphan-appendix" as="rfc-2119-keywords" -->
+some content
+<!-- @/section-to-appendix -->
+`,
+			instructionFiles: map[string]string{"01-01.terminology.instructions.md": rfcOnlySourceContent()},
+			validate: func(t *testing.T, result *CoverageResult) {
+				t.Helper()
+				require.NotEmpty(t, result.CompositionIssues)
+				require.Contains(t, strings.Join(result.CompositionIssues, "\n"), "orphan appendix")
+			},
+		},
+		{
+			name:            "semantic chunk cannot use direct propagate",
+			manifestContent: minimalManifestYAML(),
+			archContent: `# Architecture
+<!-- @section-to-appendix to="terminology-instruction-body" as="rfc-2119-keywords" -->
+some content
+<!-- @/section-to-appendix -->
+<!-- @propagate to=".github/instructions/01-01.terminology.instructions.md" as="rfc-2119-keywords" -->
+some content
+<!-- @/propagate -->
+`,
+			instructionFiles: map[string]string{"01-01.terminology.instructions.md": rfcOnlySourceContent()},
+			validate: func(t *testing.T, result *CoverageResult) {
+				t.Helper()
+				require.NotEmpty(t, result.CompositionIssues)
+				require.Contains(t, strings.Join(result.CompositionIssues, "\n"), "direct @propagate")
+			},
+		},
+		{
+			name:            "unstable numeric semantic chunk ids are rejected",
+			manifestContent: minimalManifestYAML(),
+			archContent: `# Architecture
+<!-- @section-to-appendix to="terminology-instruction-body" as="section-13-4-rules" -->
+some content
+<!-- @/section-to-appendix -->
+`,
+			instructionFiles: map[string]string{"01-01.terminology.instructions.md": rfcOnlySourceContent()},
+			validate: func(t *testing.T, result *CoverageResult) {
+				t.Helper()
+				require.NotEmpty(t, result.CompositionIssues)
+				require.Contains(t, strings.Join(result.CompositionIssues, "\n"), "unstable semantic chunk id")
+			},
+		},
+		{
+			name:            "appendix-propagate requires why note",
+			manifestContent: minimalManifestYAML(),
+			archContent: `# Architecture
+<!-- @section-to-appendix to="terminology-instruction-body" as="rfc-2119-keywords" -->
+some content
+<!-- @/section-to-appendix -->
+<!-- @appendix-propagate from="terminology-instruction-body" to=".github/instructions/01-01.terminology.instructions.md" as="rfc-2119-keywords" -->
+some content
+<!-- @/appendix-propagate -->
+`,
+			instructionFiles: map[string]string{"01-01.terminology.instructions.md": rfcOnlySourceContent()},
+			validate: func(t *testing.T, result *CoverageResult) {
+				t.Helper()
+				require.NotEmpty(t, result.CompositionIssues)
+				require.Contains(t, strings.Join(result.CompositionIssues, "\n"), "@appendix-why")
 			},
 		},
 	}
