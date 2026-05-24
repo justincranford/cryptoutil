@@ -1,4 +1,4 @@
-## Implemented Now
+## Yes (IMPLEMENT NOW)
 
 1. Pilot migration selected: the terminology instruction is the first concrete migration target before converting the entire handbook to the new two-layer enforcement model.
 2. Introduce a distinct section-to-appendix marker family so the linter can validate semantic composition separately from downstream propagation.
