@@ -24,7 +24,7 @@ import (
 // initTestConfig returns an SmIMServerSettings with all required settings for tests.
 func initTestConfig() *cryptoutilAppsSmImServerConfig.SmIMServerSettings {
 	settings := cryptoutilAppsFrameworkServiceConfig.RequireNewForTest("sm-im-http-test")
-	settings.DatabaseURL = cryptoutilSharedMagic.SQLiteInMemoryDSN // SQLite in-memory for fast tests.
+	settings.DatabaseURL = fmt.Sprintf("file:sm-im-http-test-%d?mode=memory&cache=shared", time.Now().UTC().UnixNano())
 
 	return &cryptoutilAppsSmImServerConfig.SmIMServerSettings{
 		ServiceFrameworkServerSettings: settings,
@@ -56,7 +56,7 @@ func TestHTTPGet(t *testing.T) {
 
 	// Wait for server to be ready using polling pattern.
 	require.Eventually(t, func() bool {
-		return srv.PublicPort() > 0
+		return srv.PublicPort() > 0 && srv.AdminPort() > 0
 	}, cryptoutilSharedMagic.JoseJADefaultMaxMaterials*time.Second, cryptoutilSharedMagic.JoseJAMaxMaterials*time.Millisecond, "server should allocate port")
 
 	// Get actual ports.

@@ -308,7 +308,7 @@ func (sm *SessionManager) StartCleanupTask(ctx context.Context) {
 				return
 			}
 
-			if err := sm.CleanupExpiredSessions(context.Background()); err != nil {
+			if err := sm.CleanupExpiredSessions(ctx); err != nil {
 				// Log error but continue cleanup task
 				// Planned: Use proper logger from context
 				fmt.Printf("Session cleanup error: %v\n", err)
