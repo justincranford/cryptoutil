@@ -1,6 +1,6 @@
-## Doing Now
+## Implemented Now
 
-1. Create one small pilot migration first, likely the terminology instruction or the `propagation-check` skill pair, before converting the entire handbook to the new two-layer enforcement model.
+1. Pilot migration selected: the terminology instruction is the first concrete migration target before converting the entire handbook to the new two-layer enforcement model.
 2. Introduce a distinct section-to-appendix marker family so the linter can validate semantic composition separately from downstream propagation.
 3. Split downstream files into `handbook-derived body` and `local glue` so only the handbook-derived body participates in strict appendix propagation.
 4. Treat Copilot and Claude agent pairs as `shared body plus per-target frontmatter metadata`, not as whole-file mirrors, because the bodies are identical but frontmatter is intentionally different.
