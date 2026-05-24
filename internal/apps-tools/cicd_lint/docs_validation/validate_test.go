@@ -46,6 +46,18 @@ more content
 `
 }
 
+// minimalArchitectureWithAppendixContent returns ENG-HANDBOOK.md content using the two-layer markers.
+func minimalArchitectureWithAppendixContent() string {
+	return `# Architecture
+<!-- @section-to-appendix to="terminology-instruction-body" as="rfc-2119-keywords" -->
+some content
+<!-- @/section-to-appendix -->
+<!-- @appendix-propagate from="terminology-instruction-body" to=".github/instructions/01-01.terminology.instructions.md" as="rfc-2119-keywords" -->
+some content
+<!-- @/appendix-propagate -->
+`
+}
+
 // sourceInstructionContent returns instruction file content with @source blocks.
 func sourceInstructionContent() string {
 	return `# Instruction File
@@ -363,6 +375,31 @@ func TestValidateCoverage(t *testing.T) {
 				t.Helper()
 				require.Len(t, result.Violations, 1)
 				require.Len(t, result.OrphanedChunks, 1)
+			},
+		},
+		{
+			name:             "appendix mapping happy path",
+			manifestContent:  minimalManifestYAML(),
+			archContent:      minimalArchitectureWithAppendixContent(),
+			instructionFiles: map[string]string{"01-01.terminology.instructions.md": rfcOnlySourceContent()},
+			validate: func(t *testing.T, result *CoverageResult) {
+				t.Helper()
+				require.Empty(t, result.CompositionIssues)
+			},
+		},
+		{
+			name:            "appendix mapping missing section contribution",
+			manifestContent: minimalManifestYAML(),
+			archContent: `# Architecture
+<!-- @appendix-propagate from="terminology-instruction-body" to=".github/instructions/01-01.terminology.instructions.md" as="rfc-2119-keywords" -->
+some content
+<!-- @/appendix-propagate -->
+`,
+			instructionFiles: map[string]string{"01-01.terminology.instructions.md": rfcOnlySourceContent()},
+			validate: func(t *testing.T, result *CoverageResult) {
+				t.Helper()
+				require.Len(t, result.CompositionIssues, 1)
+				require.Contains(t, result.CompositionIssues[0], "rfc-2119-keywords")
 			},
 		},
 	}

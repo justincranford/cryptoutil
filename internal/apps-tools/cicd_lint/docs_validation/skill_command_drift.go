@@ -26,47 +26,6 @@ type SkillCommandDriftResult struct {
 	Checked    int
 }
 
-// extractFrontmatterField extracts the value of a named field from a YAML
-// frontmatter block delimited by `---` markers. Returns an empty string if the
-// field is absent or the file has no frontmatter.
-func extractFrontmatterField(content, field string) string {
-	lines := strings.SplitAfter(content, "\n")
-	inFrontmatter := false
-
-	for _, rawLine := range lines {
-		line := strings.TrimRight(rawLine, "\r\n")
-
-		if line == cryptoutilSharedMagic.CICDYAMLFrontmatterDelimiter {
-			if !inFrontmatter {
-				inFrontmatter = true
-
-				continue
-			}
-
-			break
-		}
-
-		if !inFrontmatter {
-			return ""
-		}
-
-		prefix := field + ":"
-		if !strings.HasPrefix(line, prefix) {
-			continue
-		}
-
-		val := strings.TrimSpace(strings.TrimPrefix(line, prefix))
-		// Strip surrounding double-quotes if present.
-		if len(val) >= 2 && val[0] == '"' && val[len(val)-1] == '"' {
-			val = val[1 : len(val)-1]
-		}
-
-		return val
-	}
-
-	return ""
-}
-
 // hasFrontmatter reports whether a file content begins with a YAML frontmatter block.
 func hasFrontmatter(content string) bool {
 	lines := strings.SplitN(content, "\n", cryptoutilSharedMagic.CICDFrontmatterFirstNLines)
@@ -114,8 +73,9 @@ func extractBody(content string) string {
 
 // CheckSkillCommandDrift validates that every Copilot skill in .github/skills/NAME/
 // has a matching Claude Code skill at .claude/skills/NAME/SKILL.md, and that
-// frontmatter fields and body content are identical between the two files.
-// It also validates that both files contain a ## Key Rules section.
+// shared body content is identical between the two files. Frontmatter metadata
+// may differ by target. It also validates that both files contain a ## Key Rules
+// section.
 func CheckSkillCommandDrift(rootDir string, readFileFn func(string) ([]byte, error)) (*SkillCommandDriftResult, error) {
 	result := &SkillCommandDriftResult{}
 
@@ -192,33 +152,6 @@ func CheckSkillCommandDrift(rootDir string, readFileFn func(string) ([]byte, err
 				Field:           "missing-frontmatter",
 				Detail:          fmt.Sprintf("Claude Code skill %s is missing YAML frontmatter (must begin with ---)", claudeSkillRelPath),
 			})
-		} else {
-			// Validate description field matches.
-			skillDesc := extractFrontmatterField(skillStr, "description")
-			claudeDesc := extractFrontmatterField(claudeStr, "description")
-
-			if skillDesc != "" && claudeDesc != skillDesc {
-				result.Violations = append(result.Violations, SkillCommandDriftViolation{
-					SkillFile:       skillFilePath,
-					ClaudeSkillFile: claudeSkillRelPath,
-					Field:           "description-mismatch",
-					Detail:          fmt.Sprintf("Claude Code skill %s description does not match Copilot skill: claude=%q copilot=%q", claudeSkillRelPath, claudeDesc, skillDesc),
-				})
-			}
-
-			// Validate argument-hint field matches (only when skill has one).
-			skillHint := extractFrontmatterField(skillStr, "argument-hint")
-			if skillHint != "" {
-				claudeHint := extractFrontmatterField(claudeStr, "argument-hint")
-				if claudeHint != skillHint {
-					result.Violations = append(result.Violations, SkillCommandDriftViolation{
-						SkillFile:       skillFilePath,
-						ClaudeSkillFile: claudeSkillRelPath,
-						Field:           "argument-hint-mismatch",
-						Detail:          fmt.Sprintf("Claude Code skill %s argument-hint does not match Copilot skill: claude=%q copilot=%q", claudeSkillRelPath, claudeHint, skillHint),
-					})
-				}
-			}
 		}
 
 		// Validate body content is identical between Copilot and Claude skills.

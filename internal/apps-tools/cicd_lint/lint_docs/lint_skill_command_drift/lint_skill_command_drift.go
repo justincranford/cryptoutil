@@ -1,8 +1,8 @@
 // Copyright (c) 2025-2026 Justin Cranford.
 // Package lint_skill_command_drift validates that every Copilot skill in
 // .github/skills/NAME/ has a matching Claude Code skill at
-// .claude/skills/NAME/SKILL.md and that frontmatter fields and body content
-// are identical between each Copilot and Claude skill pair.
+// .claude/skills/NAME/SKILL.md and that shared body content is identical
+// between each Copilot and Claude skill pair.
 package lint_skill_command_drift
 
 import (
@@ -15,7 +15,7 @@ import (
 )
 
 // Check validates that all Copilot skills have matching Claude Code skills and
-// that frontmatter fields and body content are identical between each pair.
+// that shared body content is identical between each pair.
 func Check(logger *cryptoutilCmdCicdCommon.Logger) error {
 	return check(logger, func(stdout, stderr io.Writer) int {
 		return cryptoutilDocsValidation.SkillCommandDriftCommand(stdout, stderr)

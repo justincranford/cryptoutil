@@ -14,6 +14,7 @@ import (
 // PropagateBlock represents a @propagate block extracted from ENG-HANDBOOK.md.
 type PropagateBlock struct {
 	TargetFile string // e.g., ".github/instructions/02-06.authn.instructions.md"
+	AppendixID string // e.g., "terminology-instruction-body" (appendix-propagate only)
 	ChunkID    string // e.g., "key-principles"
 	Content    string // verbatim body text between markers
 	LineNumber int    // 1-based line number of the @propagate marker
@@ -60,6 +61,9 @@ type ChunkValidationResult struct {
 
 // propagateRegex matches the @propagate opening marker.
 var propagateRegex = regexp.MustCompile(`^<!-- @propagate to="([^"]+)" as="([^"]+)" -->$`)
+
+// appendixPropagateRegex matches the @appendix-propagate opening marker.
+var appendixPropagateRegex = regexp.MustCompile(`^<!-- @appendix-propagate from="([^"]+)" to="([^"]+)" as="([^"]+)" -->$`)
 
 // sourceRegex matches the @source opening marker.
 var sourceRegex = regexp.MustCompile(`<!-- @source from="([^"]+)" as="([^"]+)" -->`)
@@ -110,11 +114,25 @@ func extractPropagateBlocks(content string) []PropagateBlock {
 				continue
 			}
 
+			if match := appendixPropagateRegex.FindStringSubmatch(line); len(match) == 4 { //nolint:mnd // full match plus three capture groups
+				targets := strings.Split(match[2], ", ")
+				current = &PropagateBlock{
+					TargetFile: targets[0],
+					AppendixID: match[1],
+					ChunkID:    match[3],
+					LineNumber: lineNum,
+				}
+				pendingTargets = targets[1:]
+				contentLines = nil
+
+				continue
+			}
+
 			continue
 		}
 
-		// Check for @/propagate end.
-		if strings.Contains(line, "<!-- @/propagate -->") {
+		// Check for propagate block end marker.
+		if strings.Contains(line, "<!-- @/propagate -->") || strings.Contains(line, "<!-- @/appendix-propagate -->") {
 			current.Content = strings.Join(contentLines, "\n") + "\n"
 			blocks = append(blocks, *current)
 
@@ -122,6 +140,7 @@ func extractPropagateBlocks(content string) []PropagateBlock {
 			for _, extraTarget := range pendingTargets {
 				blocks = append(blocks, PropagateBlock{
 					TargetFile: extraTarget,
+					AppendixID: current.AppendixID,
 					ChunkID:    current.ChunkID,
 					Content:    current.Content,
 					LineNumber: current.LineNumber,
@@ -147,6 +166,9 @@ func extractSourceBlocks(content string) []SourceBlock {
 	var blocks []SourceBlock
 
 	lines := strings.Split(content, "\n")
+	hasBodyMarkers := strings.Contains(content, "<!-- @handbook-derived-body:start -->") &&
+		strings.Contains(content, "<!-- @handbook-derived-body:end -->")
+	inBody := !hasBodyMarkers
 
 	var current *SourceBlock
 
@@ -154,6 +176,22 @@ func extractSourceBlocks(content string) []SourceBlock {
 
 	for i, line := range lines {
 		lineNum := i + 1
+
+		if strings.Contains(line, "<!-- @handbook-derived-body:start -->") {
+			inBody = true
+
+			continue
+		}
+
+		if strings.Contains(line, "<!-- @handbook-derived-body:end -->") {
+			inBody = false
+
+			continue
+		}
+
+		if !inBody {
+			continue
+		}
 
 		// Check for @source start.
 		if match := sourceRegex.FindStringSubmatch(line); len(match) == cryptoutilSharedMagic.PropagateMarkerMatchGroups {

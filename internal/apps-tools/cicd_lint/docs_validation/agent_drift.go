@@ -95,9 +95,9 @@ const copilotPrefixStr = "copilot-"
 const claudePrefixStr = "claude-"
 
 // CheckAgentDrift validates that every Copilot agent file in .github/agents/
-// has a matching Claude Code agent in .claude/agents/ with identical description,
-// argument-hint, and body. Only the name prefix and Copilot-specific fields
-// (tools:, handoffs:, skills:) may differ.
+// has a matching Claude Code agent in .claude/agents/. Drift enforcement treats
+// body text as shared and frontmatter metadata as target-specific, except name
+// prefix rules which remain strict.
 func CheckAgentDrift(rootDir string, readFileFn func(string) ([]byte, error)) (*AgentDriftResult, error) {
 	result := &AgentDriftResult{}
 
@@ -201,28 +201,6 @@ func CheckAgentDrift(rootDir string, readFileFn func(string) ([]byte, error)) (*
 				ClaudeFile:  claudeRelPath,
 				Field:       cryptoutilSharedMagic.CICDAgentFrontMatterNameField,
 				Detail:      fmt.Sprintf("Claude Code agent name %q does not match expected %q", claudeFM.Name, expectedClaudeName),
-			})
-		}
-
-		// Validate description: must be verbatim identical.
-		if copilotFM.Description != claudeFM.Description {
-			result.Violations = append(result.Violations, AgentDriftViolation{
-				CopilotFile: copilotRelPath,
-				ClaudeFile:  claudeRelPath,
-				Field:       "description",
-				Detail: fmt.Sprintf("description mismatch:\n  copilot: %q\n  claude:  %q",
-					copilotFM.Description, claudeFM.Description),
-			})
-		}
-
-		// Validate argument-hint: must be verbatim identical when present.
-		if copilotFM.ArgumentHint != claudeFM.ArgumentHint {
-			result.Violations = append(result.Violations, AgentDriftViolation{
-				CopilotFile: copilotRelPath,
-				ClaudeFile:  claudeRelPath,
-				Field:       "argument-hint",
-				Detail: fmt.Sprintf("argument-hint mismatch:\n  copilot: %q\n  claude:  %q",
-					copilotFM.ArgumentHint, claudeFM.ArgumentHint),
 			})
 		}
 

@@ -186,7 +186,7 @@ func TestCheckAgentDrift_AllPairsMatch(t *testing.T) {
 	require.Equal(t, 2, result.Checked)
 }
 
-func TestCheckAgentDrift_DescriptionMismatch(t *testing.T) {
+func TestCheckAgentDrift_DescriptionMismatchAllowed(t *testing.T) {
 	t.Parallel()
 
 	rootDir := t.TempDir()
@@ -196,10 +196,7 @@ func TestCheckAgentDrift_DescriptionMismatch(t *testing.T) {
 	result, err := CheckAgentDrift(rootDir, rootedReadFile(rootDir))
 
 	require.NoError(t, err)
-	require.Len(t, result.Violations, 1)
-	require.Equal(t, "description", result.Violations[0].Field)
-	require.Contains(t, result.Violations[0].Detail, "Short description")
-	require.Contains(t, result.Violations[0].Detail, "Long informative description")
+	require.Empty(t, result.Violations)
 }
 
 func TestCheckAgentDrift_MissingClaudeFile(t *testing.T) {
@@ -225,7 +222,7 @@ func TestCheckAgentDrift_MissingClaudeFile(t *testing.T) {
 	require.Contains(t, result.Violations[0].Detail, ".claude/agents/orphan.md")
 }
 
-func TestCheckAgentDrift_ArgumentHintMismatch(t *testing.T) {
+func TestCheckAgentDrift_ArgumentHintMismatchAllowed(t *testing.T) {
 	t.Parallel()
 
 	rootDir := t.TempDir()
@@ -235,10 +232,7 @@ func TestCheckAgentDrift_ArgumentHintMismatch(t *testing.T) {
 	result, err := CheckAgentDrift(rootDir, rootedReadFile(rootDir))
 
 	require.NoError(t, err)
-	require.Len(t, result.Violations, 1)
-	require.Equal(t, "argument-hint", result.Violations[0].Field)
-	require.Contains(t, result.Violations[0].Detail, "<dir>")
-	require.Contains(t, result.Violations[0].Detail, "<path>")
+	require.Empty(t, result.Violations)
 }
 
 func TestCheckAgentDrift_BodyMismatch(t *testing.T) {
@@ -362,7 +356,7 @@ func TestCheckAgentDrift_MultipleViolations(t *testing.T) {
 
 	rootDir := t.TempDir()
 
-	// Two pairs: one clean, one with description + body drift.
+	// Two pairs: one clean, one with body drift.
 	makeAgentFiles(t, rootDir, "clean", testCopilotDescription, testCopilotDescription, "", "", testBody, testBody)
 
 	driftedBody := testBody + "extra line only in Claude\n"
@@ -372,11 +366,8 @@ func TestCheckAgentDrift_MultipleViolations(t *testing.T) {
 
 	require.NoError(t, err)
 	require.Equal(t, 2, result.Checked)
-	require.Len(t, result.Violations, 2)
-
-	fields := []string{result.Violations[0].Field, result.Violations[1].Field}
-	require.Contains(t, fields, "description")
-	require.Contains(t, fields, "body")
+	require.Len(t, result.Violations, 1)
+	require.Equal(t, "body", result.Violations[0].Field)
 }
 
 func TestAgentDriftCommand_NoPairsDir(t *testing.T) {
@@ -415,7 +406,8 @@ func TestAgentDriftCommand_WithViolation(t *testing.T) {
 
 	tmpDir := t.TempDir()
 
-	makeAgentFiles(t, tmpDir, "drifted", "Copilot desc.", "Claude desc.", "", "", testBody, testBody)
+	driftedBody := testBody + "extra body line only in Claude\n"
+	makeAgentFiles(t, tmpDir, "drifted", "Copilot desc.", "Claude desc.", "", "", testBody, driftedBody)
 
 	var stdout, stderr bytes.Buffer
 

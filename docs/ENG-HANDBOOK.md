@@ -96,31 +96,55 @@ This document is structured to serve multiple audiences:
 
 #### RFC 2119 Keywords
 
-<!-- @propagate to=".github/instructions/01-01.terminology.instructions.md" as="rfc-2119-keywords" -->
+<!-- @section-to-appendix to="terminology-instruction-body" as="rfc-2119-keywords" -->
 - **MUST** = **REQUIRED** = **MANDATORY** = **SHALL** - Absolute requirement
 - **MUST NOT** = **SHALL NOT** - Absolute prohibition
 - **SHOULD** = **RECOMMENDED** - Highly desirable (may ignore with justification)
 - **SHOULD NOT** = **NOT RECOMMENDED** - Not advisable (may do with justification)
 - **MAY** = **OPTIONAL** - Truly optional (implementer decides)
-<!-- @/propagate -->
+<!-- @/section-to-appendix -->
 
 #### Emphasis Keywords
 
-<!-- @propagate to=".github/instructions/01-01.terminology.instructions.md" as="emphasis-keywords" -->
+<!-- @section-to-appendix to="terminology-instruction-body" as="emphasis-keywords" -->
 - **CRITICAL** - Historically regression-prone areas requiring extra attention
 - **ALWAYS** / **NEVER** - Emphatic MUST / MUST NOT (no exceptions)
-<!-- @/propagate -->
+<!-- @/section-to-appendix -->
 
 #### Abbreviations
 
-<!-- @propagate to=".github/instructions/01-01.terminology.instructions.md" as="abbreviations" -->
+<!-- @section-to-appendix to="terminology-instruction-body" as="abbreviations" -->
 **CRITICAL: NEVER use ambiguous `auth` abbreviation to mean either authentication or authorization**
 
 - **authn** = Authentication
 - **authz** = Authorization
 
 **Rationale**: Prevents confusion filenames, variable names, and documentation.
-<!-- @/propagate -->
+<!-- @/section-to-appendix -->
+
+#### Terminology Appendix Propagation (Pilot)
+
+<!-- @appendix-propagate from="terminology-instruction-body" to=".github/instructions/01-01.terminology.instructions.md" as="rfc-2119-keywords" -->
+- **MUST** = **REQUIRED** = **MANDATORY** = **SHALL** - Absolute requirement
+- **MUST NOT** = **SHALL NOT** - Absolute prohibition
+- **SHOULD** = **RECOMMENDED** - Highly desirable (may ignore with justification)
+- **SHOULD NOT** = **NOT RECOMMENDED** - Not advisable (may do with justification)
+- **MAY** = **OPTIONAL** - Truly optional (implementer decides)
+<!-- @/appendix-propagate -->
+
+<!-- @appendix-propagate from="terminology-instruction-body" to=".github/instructions/01-01.terminology.instructions.md" as="emphasis-keywords" -->
+- **CRITICAL** - Historically regression-prone areas requiring extra attention
+- **ALWAYS** / **NEVER** - Emphatic MUST / MUST NOT (no exceptions)
+<!-- @/appendix-propagate -->
+
+<!-- @appendix-propagate from="terminology-instruction-body" to=".github/instructions/01-01.terminology.instructions.md" as="abbreviations" -->
+**CRITICAL: NEVER use ambiguous `auth` abbreviation to mean either authentication or authorization**
+
+- **authn** = Authentication
+- **authz** = Authorization
+
+**Rationale**: Prevents confusion filenames, variable names, and documentation.
+<!-- @/appendix-propagate -->
 
 ---
 

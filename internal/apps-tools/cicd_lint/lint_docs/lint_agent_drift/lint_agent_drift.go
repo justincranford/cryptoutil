@@ -1,9 +1,8 @@
 // Copyright (c) 2025-2026 Justin Cranford.
 // Package lint_agent_drift validates that every Copilot agent file in
 // .github/agents/ has a matching Claude Code agent in .claude/agents/ with
-// identical description, argument-hint, and body. Only the name prefix
-// (copilot- vs claude-) and Copilot-only fields (tools:, handoffs:, skills:)
-// may differ.
+// identical shared body content. Frontmatter metadata may differ by target,
+// but name prefix conventions (copilot- vs claude-) remain enforced.
 package lint_agent_drift
 
 import (
@@ -16,7 +15,7 @@ import (
 )
 
 // Check validates that all Copilot agents have matching Claude Code counterparts with
-// identical description, argument-hint, and body content.
+// identical shared body content.
 func Check(logger *cryptoutilCmdCicdCommon.Logger) error {
 	return check(logger, func(stdout, stderr io.Writer) int {
 		return cryptoutilDocsValidation.AgentDriftCommand(stdout, stderr)

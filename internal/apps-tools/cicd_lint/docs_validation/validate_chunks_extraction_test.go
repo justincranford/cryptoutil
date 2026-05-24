@@ -3,6 +3,8 @@ package docs_validation
 import (
 	"testing"
 
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+
 	"github.com/stretchr/testify/require"
 )
 
@@ -104,6 +106,22 @@ func TestExtractPropagateBlocks(t *testing.T) {
 			wantFirst:  &PropagateBlock{TargetFile: "a.md", ChunkID: "shared", Content: "Shared content\n", LineNumber: 1},
 			wantSecond: &PropagateBlock{TargetFile: "b.md", ChunkID: "shared", Content: "Shared content\n", LineNumber: 1},
 		},
+		{
+			name: "appendix-propagate marker",
+			content: join(
+				`<!-- @appendix-propagate from="terminology-instruction-body" to="target.md" as="rfc-2119-keywords" -->`,
+				"Terminology content",
+				"<!-- @/appendix-propagate -->",
+			),
+			wantCount: 1,
+			wantFirst: &PropagateBlock{
+				TargetFile: "target.md",
+				AppendixID: "terminology-instruction-body",
+				ChunkID:    "rfc-2119-keywords",
+				Content:    "Terminology content\n",
+				LineNumber: 1,
+			},
+		},
 	}
 
 	for _, tc := range tests {
@@ -183,6 +201,21 @@ func TestExtractSourceBlocks(t *testing.T) {
 			),
 			wantCount: 1,
 			wantFirst: &SourceBlock{ChunkID: "empty", Content: "\n"},
+		},
+		{
+			name: "only handbook-derived-body is strict scope",
+			content: join(
+				"<!-- @source from=\"docs/ENG-HANDBOOK.md\" as=\"outside\" -->",
+				"Outside",
+				"<!-- @/source -->",
+				"<!-- @handbook-derived-body:start -->",
+				"<!-- @source from=\"docs/ENG-HANDBOOK.md\" as=\"inside\" -->",
+				"Inside",
+				"<!-- @/source -->",
+				"<!-- @handbook-derived-body:end -->",
+			),
+			wantCount: 1,
+			wantFirst: &SourceBlock{ChunkID: "inside", Content: "Inside\n", LineNumber: cryptoutilSharedMagic.IdentityDefaultMaxIdleConns},
 		},
 	}
 

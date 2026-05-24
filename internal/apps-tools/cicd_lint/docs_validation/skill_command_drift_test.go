@@ -182,22 +182,24 @@ func TestCheckSkillCommandDrift(t *testing.T) {
 			wantDetailSubstr: []string{".claude/skills/no-fm/SKILL.md"},
 		},
 		{
-			name: "description mismatch",
+			name: "description mismatch allowed",
 			setup: func(t *testing.T, root string) {
 				t.Helper()
 				writeSkillFile(t, ghSkills(root, "desc-mismatch"), fmt.Sprintf(validSkillWithHint, "desc-mismatch", "Original description.", "[arg]"))
 				writeSkillFile(t, clSkills(root, "desc-mismatch"), fmt.Sprintf(validSkillWithHint, "desc-mismatch", "Different description.", "[arg]"))
 			},
-			wantFields: []string{"description-mismatch"},
+			checkChecked: true,
+			wantChecked:  1,
 		},
 		{
-			name: "argument hint mismatch",
+			name: "argument hint mismatch allowed",
 			setup: func(t *testing.T, root string) {
 				t.Helper()
 				writeSkillFile(t, ghSkills(root, "hint-mismatch"), fmt.Sprintf(validSkillWithHint, "hint-mismatch", "A skill.", "[correct-arg]"))
 				writeSkillFile(t, clSkills(root, "hint-mismatch"), fmt.Sprintf(validSkillWithHint, "hint-mismatch", "A skill.", "[wrong-arg]"))
 			},
-			wantFields: []string{"argument-hint-mismatch"},
+			checkChecked: true,
+			wantChecked:  1,
 		},
 		{
 			name: "copilot skill missing key rules",

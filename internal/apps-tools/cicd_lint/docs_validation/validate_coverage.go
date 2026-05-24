@@ -38,6 +38,7 @@ type CoverageViolation struct {
 type CoverageResult struct {
 	Violations         []CoverageViolation
 	OrphanedChunks     []string // @propagate in ENG-HANDBOOK.md but missing from manifest
+	CompositionIssues  []string // appendix-propagate missing a matching section-to-appendix mapping
 	ManifestChunks     int
 	ArchitectureChunks int
 }
@@ -47,6 +48,12 @@ var sourceBlockRegex = regexp.MustCompile(`<!--\s+@source\s+from="[^"]+"\s+as="(
 
 // propagateMarkerRegex matches <!-- @propagate to="..." as="CHUNK_ID" --> (single-line form).
 var propagateMarkerRegex = regexp.MustCompile(`<!--\s+@propagate\s+to="([^"]+)"\s+as="([^"]+)"\s+-->`)
+
+// appendixPropagateMarkerRegex matches <!-- @appendix-propagate from="..." to="..." as="CHUNK_ID" -->.
+var appendixPropagateMarkerRegex = regexp.MustCompile(`<!--\s+@appendix-propagate\s+from="([^"]+)"\s+to="([^"]+)"\s+as="([^"]+)"\s+-->`)
+
+// sectionToAppendixMarkerRegex matches <!-- @section-to-appendix to="..." as="CHUNK_ID" -->.
+var sectionToAppendixMarkerRegex = regexp.MustCompile(`<!--\s+@section-to-appendix\s+to="([^"]+)"\s+as="([^"]+)"\s+-->`)
 
 // chunkIDRegex validates that a captured chunk ID matches the grammar: [a-z][a-z0-9-]*.
 // This filters out false positives from code-block grammar examples in ENG-HANDBOOK.md.
@@ -91,11 +98,66 @@ func ExtractPropagateChunks(readFile func(string) ([]byte, error)) ([]string, er
 				chunks = append(chunks, chunkID)
 			}
 		}
+
+		appendixMatch := appendixPropagateMarkerRegex.FindStringSubmatch(line)
+		if len(appendixMatch) == 4 { //nolint:mnd // full match plus three capture groups
+			chunkID := appendixMatch[3]
+			if !chunkIDRegex.MatchString(chunkID) {
+				continue
+			}
+
+			if !seen[chunkID] {
+				seen[chunkID] = true
+				chunks = append(chunks, chunkID)
+			}
+		}
 	}
 
 	sort.Strings(chunks)
 
 	return chunks, nil
+}
+
+func extractSectionAppendixMappings(readFile func(string) ([]byte, error)) (map[string]map[string]bool, map[string]map[string]bool, error) {
+	data, err := readFile("docs/ENG-HANDBOOK.md")
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to read docs/ENG-HANDBOOK.md: %w", err)
+	}
+
+	sectionMappings := make(map[string]map[string]bool)
+	appendixMappings := make(map[string]map[string]bool)
+
+	for _, line := range strings.Split(string(data), "\n") {
+		sectionMatch := sectionToAppendixMarkerRegex.FindStringSubmatch(line)
+		if len(sectionMatch) == 3 { //nolint:mnd // full match plus two capture groups
+			appendixID := sectionMatch[1]
+
+			chunkID := sectionMatch[2]
+			if chunkIDRegex.MatchString(chunkID) {
+				if sectionMappings[chunkID] == nil {
+					sectionMappings[chunkID] = make(map[string]bool)
+				}
+
+				sectionMappings[chunkID][appendixID] = true
+			}
+		}
+
+		appendixMatch := appendixPropagateMarkerRegex.FindStringSubmatch(line)
+		if len(appendixMatch) == 4 { //nolint:mnd // full match plus three capture groups
+			appendixID := appendixMatch[1]
+
+			chunkID := appendixMatch[3]
+			if chunkIDRegex.MatchString(chunkID) {
+				if appendixMappings[chunkID] == nil {
+					appendixMappings[chunkID] = make(map[string]bool)
+				}
+
+				appendixMappings[chunkID][appendixID] = true
+			}
+		}
+	}
+
+	return sectionMappings, appendixMappings, nil
 }
 
 // ExtractSourceChunks scans all instruction/agent files and returns a map of
@@ -194,6 +256,11 @@ func validateCoverage(rootDir string, readFile func(string) ([]byte, error), ext
 		return nil, err
 	}
 
+	sectionMappings, appendixMappings, err := extractSectionAppendixMappings(readFile)
+	if err != nil {
+		return nil, err
+	}
+
 	// Build a set of chunk IDs declared in the manifest.
 	manifestSet := make(map[string]bool, len(manifest.RequiredPropagations))
 	for _, entry := range manifest.RequiredPropagations {
@@ -253,6 +320,19 @@ func validateCoverage(rootDir string, readFile func(string) ([]byte, error), ext
 
 	sort.Strings(result.OrphanedChunks)
 
+	for chunkID, appendixSet := range appendixMappings {
+		for appendixID := range appendixSet {
+			if sectionMappings[chunkID] == nil || !sectionMappings[chunkID][appendixID] {
+				result.CompositionIssues = append(
+					result.CompositionIssues,
+					fmt.Sprintf("appendix-propagate chunk %q from %q has no matching @section-to-appendix mapping", chunkID, appendixID),
+				)
+			}
+		}
+	}
+
+	sort.Strings(result.CompositionIssues)
+
 	return result, nil
 }
 
@@ -272,6 +352,14 @@ func FormatCoverageValidationResults(result *CoverageResult) string {
 		}
 	}
 
+	if len(result.CompositionIssues) > 0 {
+		fmt.Fprintf(&sb, "\nSECTION/APPENDIX COMPOSITION ISSUES (%d):\n", len(result.CompositionIssues))
+
+		for _, issue := range result.CompositionIssues {
+			fmt.Fprintf(&sb, "  - %s\n", issue)
+		}
+	}
+
 	if len(result.Violations) > 0 {
 		fmt.Fprintf(&sb, "\nMISSING @SOURCE BLOCKS (%d):\n", len(result.Violations))
 
@@ -282,6 +370,8 @@ func FormatCoverageValidationResults(result *CoverageResult) string {
 		sb.WriteString("\nCoverage validation FAILED. Add missing @source blocks or update the manifest.\n")
 	} else if len(result.OrphanedChunks) > 0 {
 		sb.WriteString("\nCoverage validation FAILED. Add orphaned chunks to docs/required-propagations.yaml.\n")
+	} else if len(result.CompositionIssues) > 0 {
+		sb.WriteString("\nCoverage validation FAILED. Fix section-to-appendix mappings for appendix-propagate chunks.\n")
 	} else {
 		sb.WriteString("\nAll required @propagate chunks are covered by @source blocks.\n")
 	}
@@ -318,7 +408,7 @@ func validateCoverageWithRoot(rootDir string, stdout, stderr io.Writer) int {
 	report := FormatCoverageValidationResults(result)
 	_, _ = fmt.Fprint(stdout, report)
 
-	if len(result.Violations) > 0 || len(result.OrphanedChunks) > 0 {
+	if len(result.Violations) > 0 || len(result.OrphanedChunks) > 0 || len(result.CompositionIssues) > 0 {
 		return 1
 	}
 
