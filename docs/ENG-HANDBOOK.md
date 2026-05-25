@@ -1670,14 +1670,14 @@ See [Section 9.10 CICD Command Architecture](#910-cicd-command-architecture) for
 
 #### 5.1.1 Framework Components
 
-<!-- @propagate to=".github/instructions/02-01.architecture.instructions.md" as="service-framework-components" -->
+<!-- @section-to-appendix to="architecture-service-template" as="service-framework-components" -->
 - Two HTTPS Listeners: Public (business APIs) + Admin (health checks)
 - Two Public Paths: `/browser/**` (session cookies) vs `/service/**` (session tokens)
 - Three Admin APIs: /admin/api/v1/livez, /admin/api/v1/readyz, /admin/api/v1/shutdown
 - Database: PostgreSQL || SQLite with GORM
 - Telemetry: OTLP → otel-collector-contrib → Grafana LGTM
 - Config Priority: Docker secrets > YAML > CLI parameters (NO environment variables)
-<!-- @/propagate -->
+<!-- @/section-to-appendix -->
 
 #### 5.1.2 Framework Benefits
 
@@ -1737,7 +1737,7 @@ sqlDB.SetMaxOpenConns(5)                     // GORM transactions need multiple
 
 ##### SQLite + Barrier Outside Transactions (CRITICAL)
 
-<!-- @propagate to=".github/instructions/03-04.data-infrastructure.instructions.md" as="sqlite-barrier-outside-tx" -->
+<!-- @section-to-appendix to="architecture-service-template" as="sqlite-barrier-outside-tx" -->
 **MANDATORY**: ALL calls to `barrier.EncryptContentWithContext` or `barrier.DecryptContentWithContext` MUST be outside any ORM `WithTransaction` scope.
 
 **Root cause**: The barrier service opens its own internal read/write transaction. SQLite WAL mode allows only one writer at a time. Nesting two write transactions on the same connection pool causes deadlock: all connections are held by the outer ORM transaction, so the inner barrier transaction cannot acquire one.
@@ -1748,7 +1748,7 @@ ORM.Create(plainRecord) → commit → (outside tx) barrier.Encrypt → ORM.Upda
 ```
 
 This is a **correctness requirement**, not a performance concern. Barrier calls inside ORM transactions are a guaranteed SQLite deadlock.
-<!-- @/propagate -->
+<!-- @/section-to-appendix -->
 
 ##### SQLite DateTime (CRITICAL)
 
@@ -2386,7 +2386,7 @@ Each realm gets its own directory under `Cat-5-{PS-ID}-realm-{realm-id}-{variant
 
 `TLSProvisionMode` is about certificate sourcing. `TLSClientPolicy` is about runtime client-auth behavior. A CA bundle path is trust material input only; it MUST NOT implicitly select the runtime policy.
 
-<!-- @propagate to=".github/instructions/02-01.architecture.instructions.md" as="tls-provision-mode" -->
+<!-- @section-to-appendix to="architecture-service-template" as="tls-provision-mode" -->
 **Service template server certificates use `TLSProvisionMode`** based on credentials provided at startup:
 
 | Environment | Cert Chain | TLS Key | Issuing CA Key | TLS Provision Mode | Outcome |
@@ -2404,7 +2404,7 @@ The `GenerateTLSMaterial()` function in `internal/apps-framework/service/config/
 - `auto`: no server TLS material is supplied; the framework generates an ephemeral CA hierarchy and server leaf in memory.
 
 **Detection logic**: `StaticCertPEM + StaticKeyPEM` provided → `static`. `MixedCACertPEM + MixedCAKeyPEM` provided → generate server cert then use `static` material for the running process. Nothing provided → `auto`.
-<!-- @/propagate -->
+<!-- @/section-to-appendix -->
 
 #### 6.11.2 Test TLS Bundle
 
@@ -3844,7 +3844,7 @@ The majority pattern (`os.IsNotExist(err) → return nil`) silently hides compli
 - **Integration Tests**: TestMain pattern, shared resources, GORM repositories
 - **E2E Tests**: Docker Compose, production-like, cross-service validation
 
-<!-- @propagate to=".github/instructions/03-02.testing.instructions.md, .github/instructions/03-04.data-infrastructure.instructions.md" as="three-tier-database-strategy" -->
+<!-- @section-to-appendix to="architecture-service-template" as="three-tier-database-strategy" -->
 **3-Tier Database Strategy (MANDATORY)**:
 
 | Tier | Database | Pattern | PostgreSQL? |
@@ -3858,7 +3858,7 @@ The majority pattern (`os.IsNotExist(err) → return nil`) silently hides compli
 - NEVER create DB per-test in integration tests (use TestMain shared instance).
 - NEVER start real servers in unit tests (use Fiber app.Test()).
 - E2E tests use Docker Compose with 4 service instances: 2 sharing a PostgreSQL container, 2 using in-memory SQLite, validating cross-database compatibility.
-<!-- @/propagate -->
+<!-- @/section-to-appendix -->
 
 **Coverage Requirements**:
 
@@ -7889,6 +7889,70 @@ Example entries:
 - `implementation-execution`: At plan completion, fill `## Executive Summary` with phase links and one-sentence outcomes, fill `## Actions` with concrete copy-paste follow-up items, and populate each `## Phase N:` section with the 4-section post-mortem content.
 
 **Rationale**: Without top-level sections, reviewers must read all phase sections linearly to understand plan scope and identify follow-up work. `## Executive Summary` enables rapid navigation; `## Actions` enables copy-paste follow-up without re-reading all phases — eliminating the manual extraction step that slows reviewer triage.
+<!-- @/appendix-propagate -->
+
+### D.2 Architecture and Service Template
+
+<!-- @appendix-why from="architecture-service-template" why-this-exists="service framework component list consumed by the service architecture instruction file" -->
+<!-- @appendix-propagate from="architecture-service-template" to=".github/instructions/02-01.architecture.instructions.md" as="service-framework-components" -->
+- Two HTTPS Listeners: Public (business APIs) + Admin (health checks)
+- Two Public Paths: `/browser/**` (session cookies) vs `/service/**` (session tokens)
+- Three Admin APIs: /admin/api/v1/livez, /admin/api/v1/readyz, /admin/api/v1/shutdown
+- Database: PostgreSQL || SQLite with GORM
+- Telemetry: OTLP → otel-collector-contrib → Grafana LGTM
+- Config Priority: Docker secrets > YAML > CLI parameters (NO environment variables)
+<!-- @/appendix-propagate -->
+
+<!-- @appendix-why from="architecture-service-template" why-this-exists="SQLite barrier transaction isolation requirement consumed by the data infrastructure instruction file" -->
+<!-- @appendix-propagate from="architecture-service-template" to=".github/instructions/03-04.data-infrastructure.instructions.md" as="sqlite-barrier-outside-tx" -->
+**MANDATORY**: ALL calls to `barrier.EncryptContentWithContext` or `barrier.DecryptContentWithContext` MUST be outside any ORM `WithTransaction` scope.
+
+**Root cause**: The barrier service opens its own internal read/write transaction. SQLite WAL mode allows only one writer at a time. Nesting two write transactions on the same connection pool causes deadlock: all connections are held by the outer ORM transaction, so the inner barrier transaction cannot acquire one.
+
+**Correct pattern** — barrier after ORM commit:
+```
+ORM.Create(plainRecord) → commit → (outside tx) barrier.Encrypt → ORM.Update(encryptedRecord)
+```
+
+This is a **correctness requirement**, not a performance concern. Barrier calls inside ORM transactions are a guaranteed SQLite deadlock.
+<!-- @/appendix-propagate -->
+
+<!-- @appendix-why from="architecture-service-template" why-this-exists="TLS provisioning mode taxonomy consumed by the service architecture instruction file" -->
+<!-- @appendix-propagate from="architecture-service-template" to=".github/instructions/02-01.architecture.instructions.md" as="tls-provision-mode" -->
+**Service template server certificates use `TLSProvisionMode`** based on credentials provided at startup:
+
+| Environment | Cert Chain | TLS Key | Issuing CA Key | TLS Provision Mode | Outcome |
+|-------------|-----------|---------|----------------|--------------------|---------|
+| Production | Provided | Docker Secret | Not provided | `static` | Use as-is |
+| E2E Dev | Provided | Not provided | Docker Secret | `mixed` | Generate + sign TLS cert |
+| Unit/Integration | Not provided | Not provided | Not provided | `auto` | Auto-create all certs |
+
+#### 6.11.1 `TLSProvisionMode` Taxonomy (`static` / `mixed` / `auto`)
+
+The `GenerateTLSMaterial()` function in `internal/apps-framework/service/config/tls_generator.go` selects one of three provisioning modes based on available credentials:
+
+- `static`: pre-generated certificate chain + private key are supplied via Docker secrets. No runtime key generation occurs.
+- `mixed`: issuing CA certificate + issuing CA private key are supplied; the server leaf certificate is generated at startup and then used as static material for the running process.
+- `auto`: no server TLS material is supplied; the framework generates an ephemeral CA hierarchy and server leaf in memory.
+
+**Detection logic**: `StaticCertPEM + StaticKeyPEM` provided → `static`. `MixedCACertPEM + MixedCAKeyPEM` provided → generate server cert then use `static` material for the running process. Nothing provided → `auto`.
+<!-- @/appendix-propagate -->
+
+<!-- @appendix-why from="architecture-service-template" why-this-exists="3-tier database testing strategy consumed by the testing and data infrastructure instruction files" -->
+<!-- @appendix-propagate from="architecture-service-template" to=".github/instructions/03-02.testing.instructions.md, .github/instructions/03-04.data-infrastructure.instructions.md" as="three-tier-database-strategy" -->
+**3-Tier Database Strategy (MANDATORY)**:
+
+| Tier | Database | Pattern | PostgreSQL? |
+|------|----------|---------|-------------|
+| Unit | SQLite in-memory | `testdb.NewInMemorySQLiteDB(t)` | NEVER |
+| Integration | SQLite in-memory via TestMain | ONE shared instance per package | NEVER |
+| E2E | Docker Compose PostgreSQL | 4 app instances (2 PostgreSQL + 2 SQLite) | YES (only here) |
+
+**Key Rules**:
+- NEVER use PostgreSQL in unit or integration tests — PostgreSQL tested ONLY in E2E.
+- NEVER create DB per-test in integration tests (use TestMain shared instance).
+- NEVER start real servers in unit tests (use Fiber app.Test()).
+- E2E tests use Docker Compose with 4 service instances: 2 sharing a PostgreSQL container, 2 using in-memory SQLite, validating cross-database compatibility.
 <!-- @/appendix-propagate -->
 
 ---
