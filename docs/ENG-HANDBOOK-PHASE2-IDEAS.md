@@ -1,4 +1,4 @@
-## Yes (IMPLEMENT NOW) — All 5 Implemented
+## Yes (IMPLEMENTED) — All 5 Implemented
 
 1. **✅ IMPLEMENTED (2026-05-23 pilot + 2026-05-25 documented)**: Pilot migration complete.
    `docs/ENG-HANDBOOK.md` lines 99–155 contain three `@section-to-appendix` blocks for the
@@ -29,7 +29,7 @@
    pairs. Copilot skills may have `disable-model-invocation: true`; Claude files must not.
    Documented in NEW.md §7.4.
 
-## Yes
+## Yes (IMPLEMENT NOW)
 
 1. Add a linter rule that rejects orphan appendix blocks that do not propagate to any downstream target.
 2. Add a linter rule that rejects semantic contribution blocks that do not feed any appendix block.
