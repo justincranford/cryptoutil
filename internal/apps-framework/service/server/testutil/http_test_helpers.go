@@ -31,6 +31,9 @@ type HTTPTestServer struct {
 	AdminClient  *http.Client
 }
 
+// ServiceServerFactory creates a service server instance for HTTP tests.
+type ServiceServerFactory func(ctx context.Context) (cryptoutilAppsFrameworkServiceServer.ServiceServer, error)
+
 // NewUniqueSQLiteMemoryURL returns a unique in-memory SQLite URL for a test instance.
 func NewUniqueSQLiteMemoryURL(t testing.TB, serviceName string) string {
 	t.Helper()
@@ -92,6 +95,17 @@ func StartHTTPServer(t testing.TB, ctx context.Context, srv cryptoutilAppsFramew
 	})
 
 	return server
+}
+
+// NewStartedHTTPServer constructs a service server via factory and starts it with HTTP test clients.
+func NewStartedHTTPServer(t testing.TB, ctx context.Context, factory ServiceServerFactory) *HTTPTestServer {
+	t.Helper()
+	require.NotNil(t, factory)
+
+	srv, err := factory(ctx)
+	require.NoError(t, err)
+
+	return StartHTTPServer(t, ctx, srv)
 }
 
 func waitForHTTPServerPorts(ctx context.Context, srv cryptoutilAppsFrameworkServiceServer.ServiceServer, errChan <-chan error) error {

@@ -15,6 +15,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps-framework/service/config"
+	cryptoutilAppsFrameworkServiceServer "cryptoutil/internal/apps-framework/service/server"
 	cryptoutilAppsFrameworkServiceServerTestutil "cryptoutil/internal/apps-framework/service/server/testutil"
 	cryptoutilAppsSmImServer "cryptoutil/internal/apps/sm-im/server"
 	cryptoutilAppsSmImServerConfig "cryptoutil/internal/apps/sm-im/server/config"
@@ -39,16 +40,15 @@ func TestHTTPGet(t *testing.T) {
 	ctx := context.Background()
 
 	// Create server with dynamic ports.
-	cfg := initTestConfig(t)
+	harness := cryptoutilAppsFrameworkServiceServerTestutil.NewStartedHTTPServer(t, ctx, func(ctx context.Context) (cryptoutilAppsFrameworkServiceServer.ServiceServer, error) {
+		cfg := initTestConfig(t)
 
-	srv, err := cryptoutilAppsSmImServer.NewIMServerFromConfig(ctx, cfg)
-	require.NoError(t, err)
-
-	harness := cryptoutilAppsFrameworkServiceServerTestutil.StartHTTPServer(t, ctx, srv)
+		return cryptoutilAppsSmImServer.NewIMServerFromConfig(ctx, cfg)
+	})
 
 	// Get actual ports.
-	publicPort := srv.PublicPort()
-	adminPort := srv.AdminPort()
+	publicPort := harness.Server.PublicPort()
+	adminPort := harness.Server.AdminPort()
 
 	// Test public health endpoint.
 	t.Run("public_health_endpoint", func(t *testing.T) {
@@ -91,7 +91,6 @@ func TestHTTPGet(t *testing.T) {
 
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 	})
-
 }
 
 // TestHTTPPost tests the httpPost helper function (used by shutdown CLI wrapper).
@@ -102,15 +101,14 @@ func TestHTTPPost(t *testing.T) {
 	defer cancel()
 
 	// Create server with dynamic ports.
-	cfg := initTestConfig(t)
+	harness := cryptoutilAppsFrameworkServiceServerTestutil.NewStartedHTTPServer(t, ctx, func(ctx context.Context) (cryptoutilAppsFrameworkServiceServer.ServiceServer, error) {
+		cfg := initTestConfig(t)
 
-	srv, err := cryptoutilAppsSmImServer.NewIMServerFromConfig(ctx, cfg)
-	require.NoError(t, err)
-
-	harness := cryptoutilAppsFrameworkServiceServerTestutil.StartHTTPServer(t, ctx, srv)
+		return cryptoutilAppsSmImServer.NewIMServerFromConfig(ctx, cfg)
+	})
 
 	// Get actual ports.
-	adminPort := srv.AdminPort()
+	adminPort := harness.Server.AdminPort()
 
 	// Test admin shutdown endpoint (triggers async shutdown).
 	t.Run("admin_shutdown_endpoint", func(t *testing.T) {
