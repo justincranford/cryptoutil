@@ -3018,7 +3018,7 @@ log.Info("operation completed",
 
 #### 9.4.1 OTel Collector Processor Constraints
 
-<!-- @propagate to=".github/instructions/02-03.observability.instructions.md" as="otel-collector-constraints" -->
+<!-- @section-to-appendix to="observability-deployment-tooling" as="otel-collector-constraints" -->
 | Processor | Requirement | Dev/CI | Production |
 |-----------|------------|--------|------------|
 | resourcedetection/docker | Docker socket `/var/run/docker.sock` | NEVER use | Use when socket available |
@@ -3028,7 +3028,7 @@ log.Info("operation completed",
 **MANDATORY for dev/CI**: Use `detectors: [env, system]`. NEVER include `docker` detector without verified socket access.
 
 **CRITICAL**: NEVER defer OTel or infrastructure configuration issues as "pre-existing." Infrastructure blockers are ALWAYS MANDATORY BLOCKING.
-<!-- @/propagate -->
+<!-- @/section-to-appendix -->
 
 **Anti-Pattern**: NEVER defer OTel or infrastructure configuration issues as "pre-existing." Infrastructure blockers that prevent E2E validation MUST be fixed immediately — they are BLOCKING, not "nice-to-have."
 
@@ -3407,7 +3407,7 @@ the root cause of any pre-commit failure before committing. NEVER bypass with `-
 
 #### 9.9.3 UTF-8 Without BOM Enforcement
 
-<!-- @propagate to=".github/instructions/03-05.linting.instructions.md" as="utf8-without-bom" -->
+<!-- @section-to-appendix to="observability-deployment-tooling" as="utf8-without-bom" -->
 **MANDATORY**: UTF-8 without BOM for all text files. The repository text baseline is UTF-8, LF, 4-space indentation for text-heavy formats, and a 200-column ceiling unless a language-specific rule overrides it.
 
 **PERMANENT BAN (NO EXCEPTIONS)**: UTF-16 is prohibited. This ban explicitly applies to `docs/ENG-HANDBOOK.md` and all Copilot/Claude instruction artifacts under `.github/instructions/`, `.github/agents/`, `.claude/agents/`, `.github/skills/`, and `.claude/skills/`.
@@ -3415,7 +3415,7 @@ the root cause of any pre-commit failure before committing. NEVER bypass with `-
 **Enforcement**: `fix-byte-order-marker` auto-fixes BOMs; `lint-text` rejects BOM-prefixed files; `.editorconfig` mirrors `charset = utf-8`, `end_of_line = lf`, and the formatting defaults; PowerShell file writes must use `[System.Text.UTF8Encoding]::new($false)`.
 
 **Skip list**: generated code, vendored dependencies, build/test artifacts, caches, worktrees, binaries, archives, secrets/cert material, IDE metadata, and other machine-owned files are excluded from text-format checks. Prefer narrowing the exclusion to the smallest machine-owned path rather than exempting an entire language.
-<!-- @/propagate -->
+<!-- @/section-to-appendix -->
 
 #### 9.9.4 Platform Line-Ending Policy
 
@@ -3489,7 +3489,7 @@ cmd/cicd-lint/main.go                          # Layer 1: Thin main(), os.Exit(C
 
 #### 9.10.2 Command Naming Patterns
 
-<!-- @propagate to=".github/instructions/04-01.deployment.instructions.md" as="cicd-command-naming" -->
+<!-- @section-to-appendix to="observability-deployment-tooling" as="cicd-command-naming" -->
 **Three command categories** with strict naming and directory conventions:
 
 | Category | Naming Pattern | Directory Pattern | Entry Function | Registration |
@@ -3501,7 +3501,7 @@ cmd/cicd-lint/main.go                          # Layer 1: Thin main(), os.Exit(C
 **Linter commands** (14): `lint-text`, `lint-go`, `lint-go-test`, `lint-go-mod`, `lint-golangci`, `lint-compose`, `lint-ports`, `lint-workflow`, `lint-deployments`, `lint-docs`, `lint-fitness`, `lint-openapi`, `lint-java-test`, `lint-python-test`
 **Formatter commands** (2): `format-go`, `format-go-test`
 **Script commands** (1): `github-cleanup`
-<!-- @/propagate -->
+<!-- @/section-to-appendix -->
 
 #### 9.10.3 Registered Sub-Command Pattern
 
@@ -3625,7 +3625,7 @@ internal/apps-tools/cicd_lint/
 
 #### 9.10.6 cicd-lint Command Constraints — MANDATORY
 
-<!-- @propagate to=".github/instructions/04-01.deployment.instructions.md" as="cicd-lint-constraints" -->
+<!-- @section-to-appendix to="observability-deployment-tooling" as="cicd-lint-constraints" -->
 **Purpose**: `cicd-lint` is exclusively for linting, formatting, and operational cleanup. It NEVER generates files, scaffolds content, or transforms the repository.
 
 **Constraints** (NO EXCEPTIONS):
@@ -3635,13 +3635,13 @@ internal/apps-tools/cicd_lint/
 3. **No content generation**: cicd-lint NEVER creates Dockerfiles, compose files, config overlays, secrets, migration files, or any other repository artifacts. The strategy is detect-and-error, not generate-and-apply.
 4. **No Python under cicd_lint**: `internal/apps-tools/cicd_lint/` is pure Go. No Python scripts, modules, or helpers.
 5. **Codify as validators**: When a new invariant is identified, implement it as a fitness linter that validates the actual state against expected state and returns descriptive errors. NEVER implement it as a generator that creates the expected state.
-<!-- @/propagate -->
+<!-- @/section-to-appendix -->
 
 **Rationale**: The single source of truth is `docs/ENG-HANDBOOK.md` (prose). Its invariants are codified by a combination of pre-commit and pre-push hooks, including many `cicd-lint` subcommands. This strategy means ENG-HANDBOOK.md drives the repository, not generated files that can drift from the prose.
 
 #### 9.10.7 Bulk Hook Execution Model (MANDATORY)
 
-<!-- @propagate to=".github/instructions/03-05.linting.instructions.md, .github/agents/beast-mode.agent.md, .claude/agents/beast-mode.md" as="cicd-bulk-hook-architecture" -->
+<!-- @section-to-appendix to="observability-deployment-tooling" as="cicd-bulk-hook-architecture" -->
 `cicd-lint` command execution and `.pre-commit-config.yaml` wiring MUST follow this architecture:
 
 1. **Four bulk cicd hooks only** in `.pre-commit-config.yaml`:
@@ -3660,7 +3660,7 @@ internal/apps-tools/cicd_lint/
 1. **Enforcement**: `lint-fitness` sub-linter `precommit-cicd-architecture` is authoritative and MUST fail on any drift.
 
 **Rationale**: This prevents cross-category races (read-only lint vs mutating format), preserves deterministic developer workflows, and ensures new cicd subcommands cannot be added without being wired into bulk hooks.
-<!-- @/propagate -->
+<!-- @/section-to-appendix -->
 
 ---
 
@@ -5494,7 +5494,7 @@ FROM alpine:latest AS runtime
 
 #### 12.3.1 Docker Compose Deployment
 
-<!-- @propagate to=".github/instructions/04-01.deployment.instructions.md" as="docker-compose-rules" -->
+<!-- @section-to-appendix to="observability-deployment-tooling" as="docker-compose-rules" -->
 - Use `docker compose` (NOT `docker-compose`)
 - ALWAYS relative paths in compose.yml (NEVER absolute)
 - ALWAYS `127.0.0.1` in containers (NOT `localhost` - Alpine resolves to IPv6)
@@ -5505,7 +5505,7 @@ FROM alpine:latest AS runtime
 - **`docker-entrypoint-initdb.d/` scripts**: PostgreSQL initdb runs with Unix socket only (no TCP). ALL `psql` commands MUST omit `-h localhost`/`-h 127.0.0.1`; using `-h` causes `SASL auth` failures inside initdb
 - **Stack volume isolation**: Named volumes (e.g. `cryptoutil_postgres_leader_volume`) are shared across PS-ID stacks. Always run `docker compose down -v` before switching stacks to ensure fresh PostgreSQL initdb
 - **Canonical template sync**: When modifying ANY file in `deployments/*/` that has a counterpart in `api/cryptosuite-registry/templates/`, update the canonical template in the SAME commit
-<!-- @/propagate -->
+<!-- @/section-to-appendix -->
 
 - Secret management via Docker secrets (MANDATORY)
 - Health check configuration (interval, timeout, retries, start_period)
@@ -6940,7 +6940,7 @@ Use `air` for live-reload development of individual services. Air watches Go sou
 
 #### 14.5.5 Docker Desktop Startup - CRITICAL
 
-<!-- @propagate to=".github/instructions/05-01.cross-platform.instructions.md" as="docker-desktop-startup" -->
+<!-- @section-to-appendix to="observability-deployment-tooling" as="docker-desktop-startup" -->
 **MANDATORY**: Docker Desktop MUST be running before executing any Docker-dependent operations (E2E tests, Docker Compose, container builds).
 
 **Cross-Platform Verification**:
@@ -6999,7 +6999,7 @@ systemctl --user start docker-desktop
 - `docker compose up` fails with pipe/socket errors
 - E2E tests skip with environmental warnings
 - Integration test containers cannot start
-<!-- @/propagate -->
+<!-- @/section-to-appendix -->
 
 See: [Section 11.2.5 CI/CD](#1125-cicd) for local workflow testing commands that require Docker.
 
@@ -7073,11 +7073,11 @@ Failure policy:
 
 ### 14.7 Infrastructure Blocker Escalation
 
-<!-- @propagate to=".github/instructions/06-01.evidence-based.instructions.md" as="infrastructure-blocker-escalation" -->
+<!-- @section-to-appendix to="observability-deployment-tooling" as="infrastructure-blocker-escalation" -->
 **MANDATORY: ALL infrastructure issues are BLOCKING. NEVER defer, deprioritize, skip, or tag as "pre-existing."**
 
 Three-encounter rule: 1st → document, 2nd → create fix task, 3rd → MANDATORY Phase 0 fix (block ALL other work). Infrastructure blockers (OTel, Docker, testcontainers, CI/CD) take priority over feature work.
-<!-- @/propagate -->
+<!-- @/section-to-appendix -->
 
 **Three-Encounter Escalation Rule**:
 
@@ -7128,11 +7128,11 @@ At the end of EVERY phase's quality gates, conduct a post-mortem **before starti
 **Per-Task Status Updates** (MANDATORY): Update `tasks.md` immediately after each task completes. NEVER accumulate multiple task completions before updating documentation. A `tasks.md` that does not reflect actual state is a blocking artifact inconsistency. Deferred documentation creates invisible debt and false completion signals to subsequent phases.
 <!-- @/section-to-appendix -->
 
-<!-- @propagate to=".github/instructions/04-01.deployment.instructions.md, .github/agents/implementation-execution.agent.md, .github/agents/implementation-planning.agent.md, .claude/agents/implementation-execution.md, .claude/agents/implementation-planning.md" as="docker-compose-verification-in-scope" -->
+<!-- @section-to-appendix to="observability-deployment-tooling" as="docker-compose-verification-in-scope" -->
 **Docker Verification Must Be In-Scope** (MANDATORY): Phases that modify Docker Compose files, config files consumed by containers, cert mount paths, or any artifact that affects runtime behavior MUST include a Docker Compose verification step **within the same phase** (`docker compose up --wait` + health endpoint check). If Docker Desktop is unavailable, the phase is **BLOCKED — not complete**. Configuration-only changes without Docker verification are untested hypotheses.
 
 **Multi-File Config Changes Need Integration Verification**: Any change spanning multiple interrelated configuration files (e.g., `postgresql.conf` + `pg_hba.conf` + GORM DSN + Docker volume mounts) MUST include an integration verification step that exercises the full configuration chain in a running environment — within the same phase. Common failure modes: wrong cert paths after mounting, permission errors inside containers, HBA rule ordering, DSN parameter mismatches.
-<!-- @/propagate -->
+<!-- @/section-to-appendix -->
 
 Skipping post-mortems is FORBIDDEN. This is continuous self-improvement.
 
@@ -8098,6 +8098,172 @@ All `openapi-gen_config*.yaml` files MUST include the full base initialisms list
 | 422 | Semantic validation error |
 | 500 | Unhandled server error |
 | 503 | Temporary unavailability |
+<!-- @/appendix-propagate -->
+
+### D.5 Observability, Deployment, and Tooling
+
+<!-- @appendix-why from="observability-deployment-tooling" why-this-exists="OTel collector detector constraints consumed by the observability instruction file" -->
+<!-- @appendix-propagate from="observability-deployment-tooling" to=".github/instructions/02-03.observability.instructions.md" as="otel-collector-constraints" -->
+| Processor | Requirement | Dev/CI | Production |
+|-----------|------------|--------|------------|
+| resourcedetection/docker | Docker socket `/var/run/docker.sock` | NEVER use | Use when socket available |
+| resourcedetection/env | Environment variables | ALWAYS | ALWAYS |
+| resourcedetection/system | OS hostname, IP | ALWAYS | ALWAYS |
+
+**MANDATORY for dev/CI**: Use `detectors: [env, system]`. NEVER include `docker` detector without verified socket access.
+
+**CRITICAL**: NEVER defer OTel or infrastructure configuration issues as "pre-existing." Infrastructure blockers are ALWAYS MANDATORY BLOCKING.
+<!-- @/appendix-propagate -->
+
+<!-- @appendix-why from="observability-deployment-tooling" why-this-exists="UTF-8 without BOM encoding policy consumed by the linting instruction file" -->
+<!-- @appendix-propagate from="observability-deployment-tooling" to=".github/instructions/03-05.linting.instructions.md" as="utf8-without-bom" -->
+**MANDATORY**: UTF-8 without BOM for all text files. The repository text baseline is UTF-8, LF, 4-space indentation for text-heavy formats, and a 200-column ceiling unless a language-specific rule overrides it.
+
+**PERMANENT BAN (NO EXCEPTIONS)**: UTF-16 is prohibited. This ban explicitly applies to `docs/ENG-HANDBOOK.md` and all Copilot/Claude instruction artifacts under `.github/instructions/`, `.github/agents/`, `.claude/agents/`, `.github/skills/`, and `.claude/skills/`.
+
+**Enforcement**: `fix-byte-order-marker` auto-fixes BOMs; `lint-text` rejects BOM-prefixed files; `.editorconfig` mirrors `charset = utf-8`, `end_of_line = lf`, and the formatting defaults; PowerShell file writes must use `[System.Text.UTF8Encoding]::new($false)`.
+
+**Skip list**: generated code, vendored dependencies, build/test artifacts, caches, worktrees, binaries, archives, secrets/cert material, IDE metadata, and other machine-owned files are excluded from text-format checks. Prefer narrowing the exclusion to the smallest machine-owned path rather than exempting an entire language.
+<!-- @/appendix-propagate -->
+
+<!-- @appendix-why from="observability-deployment-tooling" why-this-exists="cicd-lint command naming and category conventions consumed by the deployment instruction file" -->
+<!-- @appendix-propagate from="observability-deployment-tooling" to=".github/instructions/04-01.deployment.instructions.md" as="cicd-command-naming" -->
+**Three command categories** with strict naming and directory conventions:
+
+| Category | Naming Pattern | Directory Pattern | Entry Function | Registration |
+|----------|---------------|-------------------|----------------|-------------|
+| **Linters** | `lint-<target>` | `lint_<target>/` | `Lint(logger)` | `registeredLinters` |
+| **Formatters** | `format-<target>` | `format_<target>/` | `Format(logger, ...)` | `registeredFormatters` |
+| **Scripts** | `<action>-<target>` | `<action>_<target>/` | Script-specific | `registeredCleaners` etc. |
+
+**Linter commands** (14): `lint-text`, `lint-go`, `lint-go-test`, `lint-go-mod`, `lint-golangci`, `lint-compose`, `lint-ports`, `lint-workflow`, `lint-deployments`, `lint-docs`, `lint-fitness`, `lint-openapi`, `lint-java-test`, `lint-python-test`
+**Formatter commands** (2): `format-go`, `format-go-test`
+**Script commands** (1): `github-cleanup`
+<!-- @/appendix-propagate -->
+
+<!-- @appendix-why from="observability-deployment-tooling" why-this-exists="cicd-lint scope constraints consumed by the deployment instruction file" -->
+<!-- @appendix-propagate from="observability-deployment-tooling" to=".github/instructions/04-01.deployment.instructions.md" as="cicd-lint-constraints" -->
+**Purpose**: `cicd-lint` is exclusively for linting, formatting, and operational cleanup. It NEVER generates files, scaffolds content, or transforms the repository.
+
+**Constraints** (NO EXCEPTIONS):
+
+1. **Subcommands only**: `go run ./cmd/cicd-lint <subcommand> [<subcommand2> ...]` — the ONLY accepted arguments are subcommand names. No `--flags`, no `--ps-id=`, no customization parameters of any kind.
+2. **Linting and formatting only**: Linter commands detect deviations from expected structure and return errors. Formatter commands auto-fix style issues. Neither generates new content.
+3. **No content generation**: cicd-lint NEVER creates Dockerfiles, compose files, config overlays, secrets, migration files, or any other repository artifacts. The strategy is detect-and-error, not generate-and-apply.
+4. **No Python under cicd_lint**: `internal/apps-tools/cicd_lint/` is pure Go. No Python scripts, modules, or helpers.
+5. **Codify as validators**: When a new invariant is identified, implement it as a fitness linter that validates the actual state against expected state and returns descriptive errors. NEVER implement it as a generator that creates the expected state.
+<!-- @/appendix-propagate -->
+
+<!-- @appendix-why from="observability-deployment-tooling" why-this-exists="cicd bulk hook architecture constraints consumed by the linting instruction file and beast-mode agent files" -->
+<!-- @appendix-propagate from="observability-deployment-tooling" to=".github/instructions/03-05.linting.instructions.md, .github/agents/beast-mode.agent.md, .claude/agents/beast-mode.md" as="cicd-bulk-hook-architecture" -->
+`cicd-lint` command execution and `.pre-commit-config.yaml` wiring MUST follow this architecture:
+
+1. **Four bulk cicd hooks only** in `.pre-commit-config.yaml`:
+- `pre-commit` lint-only bulk call
+- `pre-commit` format-only bulk call
+- `pre-push` lint-only bulk call
+- `pre-push` format-only bulk call
+1. **Mutual exclusivity**: lint bulk calls MUST include only `lint-*` commands; format bulk calls MUST include only `format-*` commands.
+2. **Coverage**: Every `lint-*` and `format-*` command in `ValidCommands` MUST appear in at least one corresponding bulk hook.
+3. **Concurrency model**:
+- `lint-*` commands are read-only and MUST execute concurrently.
+- `format-*` commands are read-write and MUST execute serially.
+1. **Pre-commit hook flags**:
+- lint bulk hooks MUST use `require_serial: false`
+- format bulk hooks MUST use `require_serial: true`
+1. **Enforcement**: `lint-fitness` sub-linter `precommit-cicd-architecture` is authoritative and MUST fail on any drift.
+
+**Rationale**: This prevents cross-category races (read-only lint vs mutating format), preserves deterministic developer workflows, and ensures new cicd subcommands cannot be added without being wired into bulk hooks.
+<!-- @/appendix-propagate -->
+
+<!-- @appendix-why from="observability-deployment-tooling" why-this-exists="Docker Compose rules consumed by the deployment instruction file" -->
+<!-- @appendix-propagate from="observability-deployment-tooling" to=".github/instructions/04-01.deployment.instructions.md" as="docker-compose-rules" -->
+- Use `docker compose` (NOT `docker-compose`)
+- ALWAYS relative paths in compose.yml (NEVER absolute)
+- ALWAYS `127.0.0.1` in containers (NOT `localhost` - Alpine resolves to IPv6)
+- Dockerfile HEALTHCHECK: Use built-in PS-ID `livez` CLI targeting admin port 9090 (NEVER the `health` CLI on public port 8080, NEVER wget/curl)
+- **Admin mTLS via `livez` healthcheck**: `livez` connects to `127.0.0.1:9090` as an mTLS client — when admin mTLS is active, `livez` MUST present the admin client cert (`--cert`/`--key`); a **passing Docker healthcheck is the canonical proof of admin mTLS end-to-end connectivity** inside the container
+- Healthcheck fields use underscores in Docker Compose YAML: `start_period` (NOT `start-period`); the Dockerfile `HEALTHCHECK` instruction uses `--start-period` (hyphen) — these are different syntaxes
+- **Distroless images** (e.g. `otel/opentelemetry-collector-contrib`): NEVER use `wget`/`curl` healthchecks — set `disable: true` and use a sidecar Alpine container with wget for readiness signaling
+- **`docker-entrypoint-initdb.d/` scripts**: PostgreSQL initdb runs with Unix socket only (no TCP). ALL `psql` commands MUST omit `-h localhost`/`-h 127.0.0.1`; using `-h` causes `SASL auth` failures inside initdb
+- **Stack volume isolation**: Named volumes (e.g. `cryptoutil_postgres_leader_volume`) are shared across PS-ID stacks. Always run `docker compose down -v` before switching stacks to ensure fresh PostgreSQL initdb
+- **Canonical template sync**: When modifying ANY file in `deployments/*/` that has a counterpart in `api/cryptosuite-registry/templates/`, update the canonical template in the SAME commit
+<!-- @/appendix-propagate -->
+
+<!-- @appendix-why from="observability-deployment-tooling" why-this-exists="Docker Desktop startup procedure consumed by the cross-platform instruction file" -->
+<!-- @appendix-propagate from="observability-deployment-tooling" to=".github/instructions/05-01.cross-platform.instructions.md" as="docker-desktop-startup" -->
+**MANDATORY**: Docker Desktop MUST be running before executing any Docker-dependent operations (E2E tests, Docker Compose, container builds).
+
+**Cross-Platform Verification**:
+
+```bash
+# Check if Docker is running (all platforms)
+docker ps
+
+# Expected: list of containers or empty table
+# Error: "Cannot connect to the Docker daemon" = Docker not running
+```
+
+**Platform-Specific Startup**:
+
+**Windows**:
+```powershell
+# Start Docker Desktop
+Start-Process -FilePath "C:\Program Files\Docker\Docker\Docker Desktop.exe"
+
+# Wait for initialization (30-60 seconds)
+Start-Sleep -Seconds 45
+
+# Verify Docker is ready
+docker ps
+```
+
+**macOS**:
+```bash
+# Start Docker Desktop
+open -a Docker
+
+# Wait for initialization (30-60 seconds)
+sleep 45
+
+# Verify Docker is ready
+docker ps
+```
+
+**Linux**:
+```bash
+# Start Docker service (systemd)
+sudo systemctl start docker
+
+# Enable Docker to start on boot
+sudo systemctl enable docker
+
+# Verify Docker is ready
+docker ps
+
+# Alternative: Docker Desktop for Linux (if installed)
+systemctl --user start docker-desktop
+```
+
+**Why Critical**: All workflow testing infrastructure, E2E tests, and Docker Compose operations require Docker daemon. Without Docker running:
+- `docker ps` fails with "Cannot connect to the Docker daemon" error
+- `docker compose up` fails with pipe/socket errors
+- E2E tests skip with environmental warnings
+- Integration test containers cannot start
+<!-- @/appendix-propagate -->
+
+<!-- @appendix-why from="observability-deployment-tooling" why-this-exists="infrastructure blocker escalation rules consumed by the evidence-based instruction file" -->
+<!-- @appendix-propagate from="observability-deployment-tooling" to=".github/instructions/06-01.evidence-based.instructions.md" as="infrastructure-blocker-escalation" -->
+**MANDATORY: ALL infrastructure issues are BLOCKING. NEVER defer, deprioritize, skip, or tag as "pre-existing."**
+
+Three-encounter rule: 1st → document, 2nd → create fix task, 3rd → MANDATORY Phase 0 fix (block ALL other work). Infrastructure blockers (OTel, Docker, testcontainers, CI/CD) take priority over feature work.
+<!-- @/appendix-propagate -->
+
+<!-- @appendix-why from="observability-deployment-tooling" why-this-exists="Docker Compose in-scope verification requirement consumed by the deployment instruction file and implementation agent files" -->
+<!-- @appendix-propagate from="observability-deployment-tooling" to=".github/instructions/04-01.deployment.instructions.md, .github/agents/implementation-execution.agent.md, .github/agents/implementation-planning.agent.md, .claude/agents/implementation-execution.md, .claude/agents/implementation-planning.md" as="docker-compose-verification-in-scope" -->
+**Docker Verification Must Be In-Scope** (MANDATORY): Phases that modify Docker Compose files, config files consumed by containers, cert mount paths, or any artifact that affects runtime behavior MUST include a Docker Compose verification step **within the same phase** (`docker compose up --wait` + health endpoint check). If Docker Desktop is unavailable, the phase is **BLOCKED — not complete**. Configuration-only changes without Docker verification are untested hypotheses.
+
+**Multi-File Config Changes Need Integration Verification**: Any change spanning multiple interrelated configuration files (e.g., `postgresql.conf` + `pg_hba.conf` + GORM DSN + Docker volume mounts) MUST include an integration verification step that exercises the full configuration chain in a running environment — within the same phase. Common failure modes: wrong cert paths after mounting, permission errors inside containers, HBA rule ordering, DSN parameter mismatches.
 <!-- @/appendix-propagate -->
 
 ---
