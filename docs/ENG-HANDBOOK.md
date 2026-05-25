@@ -2738,7 +2738,7 @@ cryptoutil follows an OpenAPI-first design approach, ensuring all APIs are defin
 
 #### 8.1.4 Canonical Base Initialisms List
 
-<!-- @propagate to=".github/instructions/02-04.openapi.instructions.md" as="base-initialisms" -->
+<!-- @section-to-appendix to="api-openapi-contracts" as="base-initialisms" -->
 All `openapi-gen_config*.yaml` files MUST include the full base initialisms list in their `additional-initialisms` section. Domain-specific additions follow the base list.
 
 **Base initialisms (mandatory in every gen config)**:
@@ -2778,7 +2778,7 @@ All `openapi-gen_config*.yaml` files MUST include the full base initialisms list
 | `sm-im` | IM, SM, URI |
 | `sm-kms` | URI |
 | `skeleton-template` | (none — base list only) |
-<!-- @/propagate -->
+<!-- @/section-to-appendix -->
 
 **Enforcement**: `lint-fitness gen-config-initialisms` verifies every `openapi-gen_config_server.yaml` contains the full base list.
 
@@ -2829,7 +2829,7 @@ All `openapi-gen_config*.yaml` files MUST include the full base initialisms list
 
 ### 8.4 Error Handling
 
-<!-- @propagate to=".github/instructions/02-04.openapi.instructions.md" as="http-status-codes" -->
+<!-- @section-to-appendix to="api-openapi-contracts" as="http-status-codes" -->
 | Code | Usage |
 |------|-------|
 | 200 | GET, PUT, PATCH successful |
@@ -2843,7 +2843,7 @@ All `openapi-gen_config*.yaml` files MUST include the full base initialisms list
 | 422 | Semantic validation error |
 | 500 | Unhandled server error |
 | 503 | Temporary unavailability |
-<!-- @/propagate -->
+<!-- @/section-to-appendix -->
 
 #### 8.4.1 Error Schema Format
 
@@ -8036,6 +8036,68 @@ public:
 ```
 
 Once all clients present certificates, flip `client-policy` to `require-and-verify`.
+<!-- @/appendix-propagate -->
+
+### D.4 API and OpenAPI Contracts
+
+<!-- @appendix-why from="api-openapi-contracts" why-this-exists="mandatory base initialisms list for OpenAPI code generation configs consumed by the OpenAPI instruction file" -->
+<!-- @appendix-propagate from="api-openapi-contracts" to=".github/instructions/02-04.openapi.instructions.md" as="base-initialisms" -->
+All `openapi-gen_config*.yaml` files MUST include the full base initialisms list in their `additional-initialisms` section. Domain-specific additions follow the base list.
+
+**Base initialisms (mandatory in every gen config)**:
+
+| Initialism | Meaning |
+|------------|---------|
+| IDS | Intrusion Detection System |
+| JWT | JSON Web Token |
+| JWK | JSON Web Key |
+| JWE | JSON Web Encryption |
+| JWS | JSON Web Signature |
+| OIDC | OpenID Connect |
+| SAML | Security Assertion Markup Language |
+| AES | Advanced Encryption Standard |
+| GCM | Galois/Counter Mode |
+| CBC | Cipher Block Chaining |
+| RSA | Rivest-Shamir-Adleman |
+| EC | Elliptic Curve |
+| HMAC | Hash-based Message Authentication Code |
+| SHA | Secure Hash Algorithm |
+| TLS | Transport Layer Security |
+| IP | Internet Protocol |
+| AI | Artificial Intelligence |
+| ML | Machine Learning |
+| KEM | Key Encapsulation Mechanism |
+| PEM | Privacy Enhanced Mail |
+| DER | Distinguished Encoding Rules |
+| DSA | Digital Signature Algorithm |
+| IKM | Input Keying Material |
+
+**Domain-specific additions by service**:
+
+| Service | Domain Additions |
+|---------|----------------|
+| `jose-ja` | JWKS, OKP, URI |
+| `pki-ca` | CSR, CA, CRL, OCSP, URI, SAN, DN, CN, OU |
+| `sm-im` | IM, SM, URI |
+| `sm-kms` | URI |
+| `skeleton-template` | (none — base list only) |
+<!-- @/appendix-propagate -->
+
+<!-- @appendix-why from="api-openapi-contracts" why-this-exists="standard HTTP status code mapping consumed by the OpenAPI instruction file" -->
+<!-- @appendix-propagate from="api-openapi-contracts" to=".github/instructions/02-04.openapi.instructions.md" as="http-status-codes" -->
+| Code | Usage |
+|------|-------|
+| 200 | GET, PUT, PATCH successful |
+| 201 | POST (resource created) |
+| 204 | DELETE successful |
+| 400 | Validation error |
+| 401 | Missing/invalid auth |
+| 403 | Insufficient permissions |
+| 404 | Resource not found |
+| 409 | Duplicate/conflict |
+| 422 | Semantic validation error |
+| 500 | Unhandled server error |
+| 503 | Temporary unavailability |
 <!-- @/appendix-propagate -->
 
 ---
