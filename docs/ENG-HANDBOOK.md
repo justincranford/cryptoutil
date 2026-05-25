@@ -2296,18 +2296,18 @@ Each realm gets its own directory under `Cat-5-{PS-ID}-realm-{realm-id}-{variant
 **Authentication Methods**: 41 total (13 headless + 28 browser)
 **Authorization**: Scope-based, RBAC, resource-level ACLs, zero-trust (no caching)
 
-<!-- @propagate to=".github/instructions/02-06.authn.instructions.md" as="key-principles" -->
+<!-- @section-to-appendix to="security-authn-authz" as="key-principles" -->
 - **Zero Trust**: NO caching of authorization decisions. Re-evaluate every request.
 - **MFA Step-Up**: Re-authentication MANDATORY every 30 minutes for high-sensitivity operations.
 - **Session Storage**: SQL databases ONLY (PostgreSQL or SQLite with ACID). NEVER Redis/Memcached.
 - **mTLS Revocation**: MUST check BOTH CRLDP and OCSP. Fail if BOTH unreachable.
-<!-- @/propagate -->
+<!-- @/section-to-appendix -->
 
 #### 6.9.1 Authentication Realm Architecture
 
-<!-- @propagate to=".github/instructions/02-06.authn.instructions.md" as="session-token-formats" -->
+<!-- @section-to-appendix to="security-authn-authz" as="session-token-formats" -->
 **Opaque** (UUID), **JWE** (encrypted JWT), **JWS** (signed JWT). Storage: PostgreSQL (distributed) or SQLite (single-node). NO Redis/Memcached.
-<!-- @/propagate -->
+<!-- @/section-to-appendix -->
 
 - Realm types and purposes
 - Credential validators (File, Database, Federated)
@@ -2316,17 +2316,17 @@ Each realm gets its own directory under `Cat-5-{PS-ID}-realm-{realm-id}-{variant
 
 #### 6.9.2 Headless Authentication Methods (13 Total)
 
-<!-- @propagate to=".github/instructions/02-06.authn.instructions.md" as="headless-authn" -->
+<!-- @section-to-appendix to="security-authn-authz" as="headless-authn" -->
 **Non-Federated (6)**: JWE Session Token, JWS Session Token, Opaque Session Token, Basic (Client ID/Secret), Bearer (API Token), HTTPS Client Certificate.
 
 **Federated (7)**: Basic/Bearer/ClientCert via OAuth 2.1, JWE/JWS/Opaque Access Token, Opaque Refresh Token.
 
 **Storage**: YAML + SQL (Config > DB priority) for all methods.
-<!-- @/propagate -->
+<!-- @/section-to-appendix -->
 
 #### 6.9.3 Browser Authentication Methods (28 Total)
 
-<!-- @propagate to=".github/instructions/02-06.authn.instructions.md" as="browser-authn" -->
+<!-- @section-to-appendix to="security-authn-authz" as="browser-authn" -->
 **Non-Federated (6)**: JWE/JWS/Opaque Session Cookie, Basic (Username/Password), Bearer (API Token), HTTPS Client Certificate.
 
 **Federated (22)**: All non-federated methods PLUS:
@@ -2336,14 +2336,14 @@ Each realm gets its own directory under `Cat-5-{PS-ID}-realm-{realm-id}-{variant
 - **Enterprise**: SAML 2.0
 
 **Storage**: YAML + SQL (Config > DB) for static credentials. SQL ONLY for dynamic user data (OTPs, enrollments, magic links).
-<!-- @/propagate -->
+<!-- @/section-to-appendix -->
 
 #### 6.9.4 Multi-Factor Authentication (MFA)
 
-<!-- @propagate to=".github/instructions/02-06.authn.instructions.md" as="mfa-combinations" -->
+<!-- @section-to-appendix to="security-authn-authz" as="mfa-combinations" -->
 **Browser**: Password + TOTP/WebAuthn/Push/OTP.
 **Headless**: Client ID/Secret + mTLS/Bearer.
-<!-- @/propagate -->
+<!-- @/section-to-appendix -->
 
 - Step-up authentication (re-auth every 30min for high-sensitivity operations)
 - Factor enrollment workflows
@@ -2351,10 +2351,10 @@ Each realm gets its own directory under `Cat-5-{PS-ID}-realm-{realm-id}-{variant
 
 #### 6.9.5 Authorization Patterns
 
-<!-- @propagate to=".github/instructions/02-06.authn.instructions.md" as="authz-methods" -->
+<!-- @section-to-appendix to="security-authn-authz" as="authz-methods" -->
 **Headless**: Scope-based, RBAC.
 **Browser**: Scope-based, RBAC, resource-level ACLs, consent tracking (scope+resource granularity).
-<!-- @/propagate -->
+<!-- @/section-to-appendix -->
 
 - Zero trust: NO caching of authorization decisions
 - Scope-based authorization (headless)
@@ -2363,9 +2363,9 @@ Each realm gets its own directory under `Cat-5-{PS-ID}-realm-{realm-id}-{variant
 
 ### 6.10 Secrets Detection Strategy
 
-<!-- @propagate to=".github/instructions/02-05.security.instructions.md" as="secrets-detection-strategy" -->
+<!-- @section-to-appendix to="security-authn-authz" as="secrets-detection-strategy" -->
 **Detection**: Length-based threshold (≥32 bytes / ≥43 base64 chars) for inline secrets in compose files. NO entropy calculation (too many false positives). Safe references (`/run/secrets/`, short dev defaults) excluded. Infrastructure deployments excluded.
-<!-- @/propagate -->
+<!-- @/section-to-appendix -->
 
 **Detection Approach**: Length-based threshold (≥32 bytes raw, ≥43 characters base64-encoded) identifies high-entropy inline values in environment variables matching secret-pattern names (PASSWORD, SECRET, TOKEN, KEY, API_KEY). No entropy calculation is used - it produces too many false positives on non-secret configuration values.
 
@@ -2526,7 +2526,7 @@ server-admin-tls-client-policy: require-and-verify
 
 #### 6.11.6 `TLSClientPolicy` Runtime Modes
 
-<!-- @propagate to=".github/instructions/02-05.security.instructions.md" as="tls-client-policy" -->
+<!-- @section-to-appendix to="security-authn-authz" as="tls-client-policy" -->
 Services support five **runtime `TLSClientPolicy` states**. These are distinct from the
 certificate-provisioning modes in §6.11.1 and map directly to Go's `tls.ClientAuthType` behavior:
 
@@ -2552,7 +2552,7 @@ public:
 ```
 
 Once all clients present certificates, flip `client-policy` to `require-and-verify`.
-<!-- @/propagate -->
+<!-- @/section-to-appendix -->
 
 **Directory Count Formula Derivation** (Category 5, per PS-ID with 2 realms):
 
@@ -6400,15 +6400,15 @@ configs/
 **Marker Format in ENG-HANDBOOK.md** (source):
 
 ```html
-<!-- @propagate to=".github/instructions/02-06.authn.instructions.md" as="key-principles" -->
+<!-- @section-to-appendix to='{appendix-group-id}' as='{chunk-id}' -->
 content here (verbatim body text)
-<!-- @/propagate -->
+<!-- @/section-to-appendix -->
 ```
 
 **Marker Format in Instruction Files** (target):
 
 ```html
-<!-- @source from="docs/ENG-HANDBOOK.md" as="key-principles" -->
+<!-- @source from='docs/ENG-HANDBOOK.md' as='{chunk-id}' -->
 content here (verbatim copy of source)
 <!-- @/source -->
 ```
@@ -7953,6 +7953,89 @@ The `GenerateTLSMaterial()` function in `internal/apps-framework/service/config/
 - NEVER create DB per-test in integration tests (use TestMain shared instance).
 - NEVER start real servers in unit tests (use Fiber app.Test()).
 - E2E tests use Docker Compose with 4 service instances: 2 sharing a PostgreSQL container, 2 using in-memory SQLite, validating cross-database compatibility.
+<!-- @/appendix-propagate -->
+
+### D.3 Security, Authentication, and Authorization
+
+<!-- @appendix-why from="security-authn-authz" why-this-exists="authentication key principles consumed by the authentication and authorization instruction file" -->
+<!-- @appendix-propagate from="security-authn-authz" to=".github/instructions/02-06.authn.instructions.md" as="key-principles" -->
+- **Zero Trust**: NO caching of authorization decisions. Re-evaluate every request.
+- **MFA Step-Up**: Re-authentication MANDATORY every 30 minutes for high-sensitivity operations.
+- **Session Storage**: SQL databases ONLY (PostgreSQL or SQLite with ACID). NEVER Redis/Memcached.
+- **mTLS Revocation**: MUST check BOTH CRLDP and OCSP. Fail if BOTH unreachable.
+<!-- @/appendix-propagate -->
+
+<!-- @appendix-why from="security-authn-authz" why-this-exists="session token format requirements consumed by the authentication and authorization instruction file" -->
+<!-- @appendix-propagate from="security-authn-authz" to=".github/instructions/02-06.authn.instructions.md" as="session-token-formats" -->
+**Opaque** (UUID), **JWE** (encrypted JWT), **JWS** (signed JWT). Storage: PostgreSQL (distributed) or SQLite (single-node). NO Redis/Memcached.
+<!-- @/appendix-propagate -->
+
+<!-- @appendix-why from="security-authn-authz" why-this-exists="headless authentication method catalog consumed by the authentication and authorization instruction file" -->
+<!-- @appendix-propagate from="security-authn-authz" to=".github/instructions/02-06.authn.instructions.md" as="headless-authn" -->
+**Non-Federated (6)**: JWE Session Token, JWS Session Token, Opaque Session Token, Basic (Client ID/Secret), Bearer (API Token), HTTPS Client Certificate.
+
+**Federated (7)**: Basic/Bearer/ClientCert via OAuth 2.1, JWE/JWS/Opaque Access Token, Opaque Refresh Token.
+
+**Storage**: YAML + SQL (Config > DB priority) for all methods.
+<!-- @/appendix-propagate -->
+
+<!-- @appendix-why from="security-authn-authz" why-this-exists="browser authentication method catalog consumed by the authentication and authorization instruction file" -->
+<!-- @appendix-propagate from="security-authn-authz" to=".github/instructions/02-06.authn.instructions.md" as="browser-authn" -->
+**Non-Federated (6)**: JWE/JWS/Opaque Session Cookie, Basic (Username/Password), Bearer (API Token), HTTPS Client Certificate.
+
+**Federated (22)**: All non-federated methods PLUS:
+- **MFA Factors**: TOTP, HOTP, Recovery Codes, WebAuthn (with/without Passkeys), Push Notification
+- **Passwordless**: Email/Password, Magic Link (Email/SMS), Random OTP (Email/SMS/Phone)
+- **Social Login**: Google, Microsoft, GitHub, Facebook, Apple, LinkedIn, Twitter/X, Amazon, Okta
+- **Enterprise**: SAML 2.0
+
+**Storage**: YAML + SQL (Config > DB) for static credentials. SQL ONLY for dynamic user data (OTPs, enrollments, magic links).
+<!-- @/appendix-propagate -->
+
+<!-- @appendix-why from="security-authn-authz" why-this-exists="MFA combination requirements consumed by the authentication and authorization instruction file" -->
+<!-- @appendix-propagate from="security-authn-authz" to=".github/instructions/02-06.authn.instructions.md" as="mfa-combinations" -->
+**Browser**: Password + TOTP/WebAuthn/Push/OTP.
+**Headless**: Client ID/Secret + mTLS/Bearer.
+<!-- @/appendix-propagate -->
+
+<!-- @appendix-why from="security-authn-authz" why-this-exists="authorization method catalog consumed by the authentication and authorization instruction file" -->
+<!-- @appendix-propagate from="security-authn-authz" to=".github/instructions/02-06.authn.instructions.md" as="authz-methods" -->
+**Headless**: Scope-based, RBAC.
+**Browser**: Scope-based, RBAC, resource-level ACLs, consent tracking (scope+resource granularity).
+<!-- @/appendix-propagate -->
+
+<!-- @appendix-why from="security-authn-authz" why-this-exists="secrets detection strategy consumed by the security instruction file" -->
+<!-- @appendix-propagate from="security-authn-authz" to=".github/instructions/02-05.security.instructions.md" as="secrets-detection-strategy" -->
+**Detection**: Length-based threshold (≥32 bytes / ≥43 base64 chars) for inline secrets in compose files. NO entropy calculation (too many false positives). Safe references (`/run/secrets/`, short dev defaults) excluded. Infrastructure deployments excluded.
+<!-- @/appendix-propagate -->
+
+<!-- @appendix-why from="security-authn-authz" why-this-exists="TLS client policy taxonomy consumed by the security instruction file" -->
+<!-- @appendix-propagate from="security-authn-authz" to=".github/instructions/02-05.security.instructions.md" as="tls-client-policy" -->
+Services support five **runtime `TLSClientPolicy` states**. These are distinct from the
+certificate-provisioning modes in §6.11.1 and map directly to Go's `tls.ClientAuthType` behavior:
+
+| Client Policy | Go TLS Mapping | Meaning |
+|---------------|----------------|---------|
+| `none` | `tls.NoClientCert` | Do not request client certificates. |
+| `request` | `tls.RequestClientCert` | Request a client certificate but do not require or verify it. |
+| `require-any` | `tls.RequireAnyClientCert` | Require a client certificate but do not verify it against a CA bundle. |
+| `verify-if-given` | `tls.VerifyClientCertIfGiven` | Verify client certificates when presented; allow clients without certificates. |
+| `require-and-verify` | `tls.RequireAndVerifyClientCert` | Require a client certificate and verify it against the configured CA bundle. |
+
+**Policy rule**: `*-tls-ca-file` fields supply trust material only. They MUST NOT implicitly switch the listener into a verification policy. If a listener uses `verify-if-given` or `require-and-verify`, a CA bundle must be configured explicitly.
+
+**Transitional pattern**: use `verify-if-given` when rolling clients onto mTLS gradually. The server presents its certificate in all cases; only the client-certificate requirement changes:
+
+```yaml
+# tls-config.yml for transitional client-certificate rollout
+public:
+  client-policy: verify-if-given
+  cert: /run/secrets/public-https-server-entity-{PS-ID}-{instance}.crt
+  key:  /run/secrets/public-https-server-entity-{PS-ID}-{instance}.key
+  ca:   /run/secrets/public-https-client-issuing-ca-{PS-ID}-{instance}.crt
+```
+
+Once all clients present certificates, flip `client-policy` to `require-and-verify`.
 <!-- @/appendix-propagate -->
 
 ---
