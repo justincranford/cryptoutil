@@ -1,10 +1,33 @@
-## Yes (IMPLEMENT NOW)
+## Yes (IMPLEMENT NOW) — All 5 Implemented
 
-1. Pilot migration selected: the terminology instruction is the first concrete migration target before converting the entire handbook to the new two-layer enforcement model.
-2. Introduce a distinct section-to-appendix marker family so the linter can validate semantic composition separately from downstream propagation.
-3. Split downstream files into `handbook-derived body` and `local glue` so only the handbook-derived body participates in strict appendix propagation.
-4. Treat Copilot and Claude agent pairs as `shared body plus per-target frontmatter metadata`, not as whole-file mirrors, because the bodies are identical but frontmatter is intentionally different.
-5. Apply the same `shared body plus per-target frontmatter metadata` pattern to skill pairs, which should be even easier because their bodies already match exactly.
+1. **✅ IMPLEMENTED (2026-05-23 pilot + 2026-05-25 documented)**: Pilot migration complete.
+   `docs/ENG-HANDBOOK.md` lines 99–155 contain three `@section-to-appendix` blocks for the
+   terminology chunks (`rfc-2119-keywords`, `emphasis-keywords`, `abbreviations`) and matching
+   `@appendix-why` + `@appendix-propagate` blocks in the "Terminology Appendix Propagation (Pilot)"
+   subsection. Appendix ID: `terminology-instruction-body`. Target: `01-01.terminology.instructions.md`.
+
+2. **✅ IMPLEMENTED (already present in linter, documented 2026-05-25)**: The distinct
+   section-to-appendix marker family is fully implemented in `validate_chunks.go` and
+   `validate_coverage.go`. Four bidirectional validation rules are enforced: (a) every
+   `@section-to-appendix` chunk must have a matching `@appendix-propagate` block, (b) reverse,
+   (c) every `@appendix-propagate` must have an adjacent `@appendix-why`, (d) a chunk with
+   `@section-to-appendix` cannot also have a direct `@propagate`. Unstable chunk IDs are rejected.
+
+3. **✅ IMPLEMENTED (2026-05-25)**: All 19 instruction files under `.github/instructions/` now
+   have `<!-- @local-glue:start/end -->` wrapping the title heading and
+   `<!-- @handbook-derived-body:start/end -->` wrapping all body content. Pilot file
+   (`01-01.terminology.instructions.md`) had the markers already; remaining 18 were applied in
+   this session. Confirmed with `go run ./cmd/cicd-lint lint-docs` — all 11 sub-linters pass.
+
+4. **✅ ALREADY ENFORCED (documented 2026-05-25)**: Agent pairs already use the shared-body plus
+   per-target frontmatter model. `lint-agent-drift` validates body identity for all four pairs
+   (`beast-mode`, `fix-workflows`, `implementation-execution`, `implementation-planning`).
+   Copilot files require `tools:` (whitelist); Claude files omit it. Documented in NEW.md §7.3.
+
+5. **✅ ALREADY ENFORCED (documented 2026-05-25)**: Skill pairs already use the same shared-body
+   model. `lint-skill-command-drift` validates body identity + `## Key Rules` presence for all 13
+   pairs. Copilot skills may have `disable-model-invocation: true`; Claude files must not.
+   Documented in NEW.md §7.4.
 
 ## Yes
 
