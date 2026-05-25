@@ -1,8 +1,8 @@
 ---
 title: cryptoutil Architecture - Proposed Structured Handbook
-version: 0.1
-date: 2026-05-23
-status: Phase 1 Working Draft
+version: 0.2
+date: 2026-05-25
+status: Phase 2 Pilot Implementation
 purpose: New handbook structure that separates semantic sections from downstream appendix mirrors.
 ---
 
@@ -223,30 +223,50 @@ This model creates three benefits.
 2. Downstream audits become local to the appendixes.
 3. The linter can prove both semantic completeness and downstream completeness separately.
 
-### 6.3 Suggested Marker Taxonomy
+### 6.3 Implemented Marker Taxonomy
 
-The current markers are sufficient for one layer but not expressive enough for the new chain.
-The future validator can evolve with a second marker family.
+> **Status as of 2026-05-25**: All four marker families are fully implemented in the linter
+> (`validate_chunks.go`, `validate_coverage.go`) and in `docs/ENG-HANDBOOK.md`.
+> The terminology instruction is the pilot migration target.
 
-Suggested conceptual model:
+The marker system has two layers: semantic contribution and downstream propagation.
 
-1. `@contribute` from semantic sections into an appendix block id.
-2. `@appendix-propagate` from an appendix block to downstream targets.
+**Layer 1 — Semantic contribution** (narrative section → appendix).
 
-Illustrative shape:
+In the handbook narrative section where content originates:
 
 ```html
-<!-- @contribute to-appendix="copilot-instruction-01-01" as="terminology-rfc-2119" -->
-... semantic content ...
-<!-- @/contribute -->
+<!-- @section-to-appendix to="APPENDIX_ID" as="CHUNK_ID" -->
+... semantic content (readable in-place) ...
+<!-- @/section-to-appendix -->
+```
 
-<!-- @appendix-propagate to=".github/instructions/01-01.terminology.instructions.md" as="copilot-instruction-01-01" -->
-... assembled appendix block ...
+**Layer 2 — Appendix propagation** (appendix → downstream file).
+
+In the handbook appendix section:
+
+```html
+<!-- @appendix-why from="APPENDIX_ID" why-this-exists="brief rationale" -->
+<!-- @appendix-propagate from="APPENDIX_ID" to="TARGET_FILE" as="CHUNK_ID" -->
+... verbatim content for downstream use ...
 <!-- @/appendix-propagate -->
 ```
 
-Phase 1 does not implement this validator change yet.
-It defines the target shape so the linter can be upgraded intentionally instead of implicitly.
+**Legacy one-layer** (still supported for direct propagation without appendix composition):
+
+```html
+<!-- @propagate to="TARGET_FILE" as="CHUNK_ID" -->
+... content ...
+<!-- @/propagate -->
+```
+
+**Linter enforcement** (all checks live in `validate_coverage.go`):
+
+1. Every `@section-to-appendix` chunk must feed a matching `@appendix-propagate` block.
+2. Every `@appendix-propagate` block must have a matching `@section-to-appendix` source.
+3. Every `@appendix-propagate` block must have an adjacent `@appendix-why` note.
+4. A chunk with a `@section-to-appendix` marker cannot also have a direct `@propagate`.
+5. Chunk IDs must follow `[a-z][a-z0-9-]*` and must not embed section numbers.
 
 ## 7. Reverse-Engineered Downstream Appendix Plan
 
@@ -258,6 +278,102 @@ This handbook should end with exactly three downstream-facing appendix families 
 2. Copilot and Claude agent-pair appendix
 3. Copilot and Claude skill-pair appendix
 4. CLAUDE loader subsection within the instruction appendix family
+
+### 7.2 Instruction File Split Model
+
+Each instruction file is split into two regions using HTML comment markers.
+
+**Region 1 — Local glue** (title heading only):
+
+```html
+<!-- @local-glue:start -->
+# File Title
+<!-- @local-glue:end -->
+```
+
+This region contains the top-level `# Title` heading. It is the only content that is
+specific to the instruction file and not derivable from the handbook.
+
+**Region 2 — Handbook-derived body** (all remaining content):
+
+```html
+<!-- @handbook-derived-body:start -->
+[all subsequent content including @source blocks]
+<!-- @handbook-derived-body:end -->
+```
+
+This region contains all `@source` blocks (verbatim chunks from handbook appendixes) and
+any local bridge sections between them.
+
+**Current status**: All 19 instruction files under `.github/instructions/` now have both
+markers applied. The pilot file (`01-01.terminology.instructions.md`) was migrated first;
+the remaining 18 were migrated as part of the Phase 2 implementation.
+
+**Linter status**: These markers are structural annotations only. They are not currently
+validated by the `lint-docs` linter. Future enforcement is planned once the two-layer
+appendix model matures.
+
+### 7.3 Agent Pair Model
+
+The four Copilot/Claude agent pairs implement the shared-body model already.
+
+**File locations**:
+- Copilot: `.github/agents/NAME.agent.md`
+- Claude: `.claude/agents/NAME.md`
+
+**Shared body**: Both files carry identical body content — everything after the closing
+`---` frontmatter delimiter.
+
+**Frontmatter differences**:
+- Copilot frontmatter includes a `tools:` whitelist array. Omitting it restricts tool access.
+- Claude frontmatter omits `tools:`. Claude inherits all tools when the field is absent.
+- Both files use a `name:` prefix: `copilot-NAME` vs `claude-NAME`.
+
+**Enforcement**: `lint-agent-drift` in `cicd-lint lint-docs` validates body identity for all
+four pairs. Permitted frontmatter differences are: `name:`, `tools:`, `handoffs:`, `model:`,
+and `argument-hint:`.
+
+**Example frontmatter split**:
+
+Copilot (`.github/agents/beast-mode.agent.md`):
+```yaml
+---
+name: copilot-beast-mode
+description: Activate for continuous autonomous execution ...
+tools: [read_file, write_file, ...]
+---
+```
+
+Claude (`.claude/agents/beast-mode.md`):
+```yaml
+---
+name: claude-beast-mode
+description: Activate for continuous autonomous execution ...
+---
+```
+
+Body: identical in both files.
+
+### 7.4 Skill Pair Model
+
+The 13 Copilot/Claude skill pairs implement the same shared-body model.
+
+**File locations**:
+- Copilot: `.github/skills/NAME/SKILL.md`
+- Claude: `.claude/skills/NAME/SKILL.md`
+
+**Shared body**: Both files carry identical body content.
+
+**Frontmatter differences**:
+- Copilot skills may include `disable-model-invocation: true`. Claude skills must not.
+- `name:` field uses the bare skill name in both files (no `copilot-`/`claude-` prefix).
+
+**Enforcement**: `lint-skill-command-drift` in `cicd-lint lint-docs` validates:
+1. Body identity for all 13 pairs.
+2. Presence of a `## Key Rules` section in both Copilot and Claude files.
+
+**Future extension**: Skill files may receive `@local-glue` / `@handbook-derived-body`
+markers in a future phase when skills contain significant handbook-derived content.
 
 ### 7.2 Why CLAUDE.md Lives With Instructions
 
