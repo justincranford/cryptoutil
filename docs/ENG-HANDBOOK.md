@@ -380,7 +380,7 @@ Implementation plans use the following files in `<work-dir>/`:
 
 **Quizme Q&A Persistence** (MANDATORY): After each quizme round, ALL question+answer tuples from that round MUST be appended as a section at the END of `plan.md` under heading `## Quizme Round N (YYYY-MM-DD)`. The section is append-only — never deleted or edited. This lets the implementation-planning agent skip already-answered questions on subsequent invocations, and allows reviewers to update answers in a later round section if new information changes their perspective.
 
-<!-- @propagate to=".github/instructions/06-02.agent-format.instructions.md" as="agent-self-containment" -->
+<!-- @section-to-appendix to="execution-agent-behavior" as="agent-self-containment" -->
 **Agent Self-Containment Checklist** (MANDATORY):
 - Agents generating implementation plans MUST reference ENG-HANDBOOK.md testing (Section 10), quality gates (Section 11), coding standards (Section 14)
 - Agents modifying code MUST reference coding standards (Sections 11, 14)
@@ -389,7 +389,7 @@ Implementation plans use the following files in `<work-dir>/`:
 - Agents modifying documentation or copilot artifacts (skills, instructions, agents) MUST reference Section 2.1 (Agent/Skill/Instruction catalog) and Section 13.4 (Documentation Propagation)
 - ALL agents MUST reference Section 2.5 (Quality Strategy) for coverage and mutation targets
 - Agents with ZERO ENG-HANDBOOK.md references are NON-COMPLIANT and MUST be updated
-<!-- @/propagate -->
+<!-- @/section-to-appendix -->
 
 #### 2.1.2 Agent Catalog
 
@@ -757,7 +757,7 @@ See the [beast-mode agent](.github/agents/beast-mode.agent.md) for the full auto
 ##### End-of-Turn Commit Protocol
 
 <!-- NOTE: This @propagate target is the beast-mode instruction file, which is injected as modeInstructions at runtime (not via the standard instructions directory scan). This means the chunk is consumed in the mode prompt, not in the standard instructions context — a different injection path than all other @propagate targets. -->
-<!-- @propagate to=".github/instructions/01-02.beast-mode.instructions.md" as="end-of-turn-commit-protocol" -->
+<!-- @section-to-appendix to="execution-agent-behavior" as="end-of-turn-commit-protocol" -->
 **MANDATORY: NEVER end a turn with uncommitted changes. Your ABSOLUTE LAST TOOL INVOCATION before yielding to the user MUST be running `git status --porcelain`. NEVER assume the worktree is clean — always RUN the command as a tool call.**
 
 If `git status --porcelain` returns ANY output:
@@ -776,7 +776,7 @@ If `git status --porcelain` returns ANY output:
 - Assuming the worktree is clean without running the command as a tool call
 
 **Pattern**: `git status --porcelain` returns empty → End turn. Any output → Commit first.
-<!-- @/propagate -->
+<!-- @/section-to-appendix -->
 
 ### 2.5 Quality Strategy
 
@@ -814,7 +814,7 @@ If `git status --porcelain` returns ANY output:
 
 #### Mandatory Review Passes
 
-<!-- @propagate to=".github/instructions/06-01.evidence-based.instructions.md, .github/agents/beast-mode.agent.md, .github/agents/fix-workflows.agent.md, .github/agents/implementation-execution.agent.md, .github/agents/implementation-planning.agent.md, .claude/agents/beast-mode.md, .claude/agents/fix-workflows.md, .claude/agents/implementation-execution.md, .claude/agents/implementation-planning.md" as="mandatory-review-passes" -->
+<!-- @section-to-appendix to="execution-agent-behavior" as="mandatory-review-passes" -->
 **MANDATORY: Minimum 3, maximum 5 review passes before marking any task complete.**
 
 Copilot and AI agents have a tendency to partially fulfill requested work, accidentally omitting or skipping items per request. To counter this, every task completion MUST include at least 3 review passes, each checking ALL 8 quality attributes:
@@ -832,7 +832,7 @@ Copilot and AI agents have a tendency to partially fulfill requested work, accid
 **Continuation rule**: If pass 3 finds ANY issue, continue to pass 4. If pass 4 still finds issues, continue to pass 5. Diminishing returns = done.
 
 **Scope**: ALL work types — code, docs, config, tests, infrastructure, deployments.
-<!-- @/propagate -->
+<!-- @/section-to-appendix -->
 
 ---
 
@@ -5080,7 +5080,7 @@ def test_health_check(api_client):
 
 ### 11.1 Maximum Quality Strategy - MANDATORY
 
-<!-- @propagate to=".github/instructions/01-02.beast-mode.instructions.md" as="quality-attributes" -->
+<!-- @section-to-appendix to="execution-agent-behavior" as="quality-attributes" -->
 **Quality Attributes (NO EXCEPTIONS)**:
 - ✅ Correctness: ALL code functionally correct with comprehensive tests
 - ✅ Completeness: NO phases or tasks or steps skipped, NO features de-prioritized, NO shortcuts
@@ -5090,7 +5090,7 @@ def test_health_check(api_client):
 - ✅ Accuracy: Changes must address root cause, not just symptoms
 - ❌ Time Pressure: NEVER rush, NEVER skip validation, NEVER defer quality checks
 - ❌ Premature Completion: NEVER mark phases or tasks or steps complete without objective evidence
-<!-- @/propagate -->
+<!-- @/section-to-appendix -->
 
 **ALL issues are blockers - NO exceptions:**
 
@@ -7124,9 +7124,9 @@ At the end of EVERY phase's quality gates, conduct a post-mortem **before starti
 3. **Create Fix Tasks**: If contradictions or omissions are found, create new phase tasks to fix them — NEVER defer artifact updates.
 4. **Identify new phases**: Create follow-up phases for any blockers, gaps, or artifact fixes discovered.
 
-<!-- @propagate to=".github/instructions/06-01.evidence-based.instructions.md, .github/agents/implementation-execution.agent.md, .github/agents/implementation-planning.agent.md, .claude/agents/implementation-execution.md, .claude/agents/implementation-planning.md" as="per-task-status-updates" -->
+<!-- @section-to-appendix to="execution-agent-behavior" as="per-task-status-updates" -->
 **Per-Task Status Updates** (MANDATORY): Update `tasks.md` immediately after each task completes. NEVER accumulate multiple task completions before updating documentation. A `tasks.md` that does not reflect actual state is a blocking artifact inconsistency. Deferred documentation creates invisible debt and false completion signals to subsequent phases.
-<!-- @/propagate -->
+<!-- @/section-to-appendix -->
 
 <!-- @propagate to=".github/instructions/04-01.deployment.instructions.md, .github/agents/implementation-execution.agent.md, .github/agents/implementation-planning.agent.md, .claude/agents/implementation-execution.md, .claude/agents/implementation-planning.md" as="docker-compose-verification-in-scope" -->
 **Docker Verification Must Be In-Scope** (MANDATORY): Phases that modify Docker Compose files, config files consumed by containers, cert mount paths, or any artifact that affects runtime behavior MUST include a Docker Compose verification step **within the same phase** (`docker compose up --wait` + health endpoint check). If Docker Desktop is unavailable, the phase is **BLOCKED — not complete**. Configuration-only changes without Docker verification are untested hypotheses.
@@ -7138,7 +7138,7 @@ Skipping post-mortems is FORBIDDEN. This is continuous self-improvement.
 
 #### 14.8.2 lessons.md Document Structure — MANDATORY
 
-<!-- @propagate to=".github/agents/implementation-execution.agent.md, .github/agents/implementation-planning.agent.md, .claude/agents/implementation-execution.md, .claude/agents/implementation-planning.md" as="lessons-md-structure" -->
+<!-- @section-to-appendix to="execution-agent-behavior" as="lessons-md-structure" -->
 A completed `lessons.md` MUST contain three top-level sections **in this order**:
 
 **1. `## Executive Summary`** — Written at plan completion. A numbered list where each entry is a markdown link to a `## Phase N:` section followed by a one-sentence description of the key outcome. Enables reviewers to scan the entire plan scope at a glance and navigate directly to relevant phases.
@@ -7160,7 +7160,7 @@ Example entries:
 - `implementation-execution`: At plan completion, fill `## Executive Summary` with phase links and one-sentence outcomes, fill `## Actions` with concrete copy-paste follow-up items, and populate each `## Phase N:` section with the 4-section post-mortem content.
 
 **Rationale**: Without top-level sections, reviewers must read all phase sections linearly to understand plan scope and identify follow-up work. `## Executive Summary` enables rapid navigation; `## Actions` enables copy-paste follow-up without re-reading all phases — eliminating the manual extraction step that slows reviewer triage.
-<!-- @/propagate -->
+<!-- @/section-to-appendix -->
 
 #### 14.8.3 Plan Completion Knowledge Propagation — MANDATORY
 
@@ -7784,6 +7784,112 @@ See `.golangci.yml` for the authoritative linter configuration with all 30+ acti
 **OWASP**: Password Storage Cheat Sheet (peppering, PBKDF2), Top 10
 **NIST**: FIPS 140-3 (crypto), SP 800-63 (digital identity)
 **Zero Trust**: No caching authz, mTLS, least privilege, audit logging (90-day retention)
+
+---
+
+## Appendix D: Propagation Index
+
+The sections below collect the verbatim chunk bodies propagated to instruction and agent files. Each subsection corresponds to one semantic propagation group. The `@appendix-propagate` blocks define what is injected into downstream files.
+
+### D.1 Execution and Agent Behavior
+
+<!-- @appendix-why from="execution-agent-behavior" why-this-exists="quality and execution behavioral constraints consumed by beast-mode instruction and implementation planning/execution agents" -->
+<!-- @appendix-propagate from="execution-agent-behavior" to=".github/instructions/01-02.beast-mode.instructions.md" as="quality-attributes" -->
+**Quality Attributes (NO EXCEPTIONS)**:
+- ✅ Correctness: ALL code functionally correct with comprehensive tests
+- ✅ Completeness: NO phases or tasks or steps skipped, NO features de-prioritized, NO shortcuts
+- ✅ Thoroughness: Evidence-based validation at every step
+- ✅ Reliability: Quality gates enforced (≥95%/98% coverage/mutation)
+- ✅ Efficiency: Optimized for maintainability and performance NOT implementation speed
+- ✅ Accuracy: Changes must address root cause, not just symptoms
+- ❌ Time Pressure: NEVER rush, NEVER skip validation, NEVER defer quality checks
+- ❌ Premature Completion: NEVER mark phases or tasks or steps complete without objective evidence
+<!-- @/appendix-propagate -->
+
+<!-- @appendix-why from="execution-agent-behavior" why-this-exists="end-of-turn git cleanliness protocol consumed by the beast-mode instruction file via modeInstructions runtime injection" -->
+<!-- @appendix-propagate from="execution-agent-behavior" to=".github/instructions/01-02.beast-mode.instructions.md" as="end-of-turn-commit-protocol" -->
+**MANDATORY: NEVER end a turn with uncommitted changes. Your ABSOLUTE LAST TOOL INVOCATION before yielding to the user MUST be running `git status --porcelain`. NEVER assume the worktree is clean — always RUN the command as a tool call.**
+
+If `git status --porcelain` returns ANY output:
+
+1. Stage all changes: `git add -A`
+2. Commit with a conventional commit message: `git commit -m "type(scope): description"`
+3. Verify clean: `git status --porcelain` MUST return empty
+4. Only then end the turn
+
+**Critical violations** (any one = turn is NOT complete):
+
+- Ending a turn with `M`, `A`, `D`, or `?` in `git status --porcelain` output
+- Stopping after analysis without committing changes
+- Marking work "done" with unstaged or uncommitted files
+- Responding to the user without committing work in progress
+- Assuming the worktree is clean without running the command as a tool call
+
+**Pattern**: `git status --porcelain` returns empty → End turn. Any output → Commit first.
+<!-- @/appendix-propagate -->
+
+<!-- @appendix-why from="execution-agent-behavior" why-this-exists="mandatory review pass requirements consumed by evidence-based instructions and all beast-mode and implementation agent files" -->
+<!-- @appendix-propagate from="execution-agent-behavior" to=".github/instructions/06-01.evidence-based.instructions.md, .github/agents/beast-mode.agent.md, .github/agents/fix-workflows.agent.md, .github/agents/implementation-execution.agent.md, .github/agents/implementation-planning.agent.md, .claude/agents/beast-mode.md, .claude/agents/fix-workflows.md, .claude/agents/implementation-execution.md, .claude/agents/implementation-planning.md" as="mandatory-review-passes" -->
+**MANDATORY: Minimum 3, maximum 5 review passes before marking any task complete.**
+
+Copilot and AI agents have a tendency to partially fulfill requested work, accidentally omitting or skipping items per request. To counter this, every task completion MUST include at least 3 review passes, each checking ALL 8 quality attributes:
+
+**Each pass checks ALL 8 attributes** (fresh perspective per pass):
+1. ✅ **Correctness** — code/docs correct, no regressions
+2. ✅ **Completeness** — all tasks/steps/items addressed, nothing skipped
+3. ✅ **Thoroughness** — evidence-based validation, all edge cases covered
+4. ✅ **Reliability** — build, lint, test, coverage, mutation all pass
+5. ✅ **Efficiency** — optimized for maintainability, not implementation speed
+6. ✅ **Accuracy** — root cause addressed, not just symptoms
+7. ❌ **NO Time Pressure** — NEVER rushed, NEVER cutting corners
+8. ❌ **NO Premature Completion** — objective evidence required before marking complete
+
+**Continuation rule**: If pass 3 finds ANY issue, continue to pass 4. If pass 4 still finds issues, continue to pass 5. Diminishing returns = done.
+
+**Scope**: ALL work types — code, docs, config, tests, infrastructure, deployments.
+<!-- @/appendix-propagate -->
+
+<!-- @appendix-why from="execution-agent-behavior" why-this-exists="agent self-containment checklist consumed by the agent format instruction file" -->
+<!-- @appendix-propagate from="execution-agent-behavior" to=".github/instructions/06-02.agent-format.instructions.md" as="agent-self-containment" -->
+**Agent Self-Containment Checklist** (MANDATORY):
+- Agents generating implementation plans MUST reference ENG-HANDBOOK.md testing (Section 10), quality gates (Section 11), coding standards (Section 14)
+- Agents modifying code MUST reference coding standards (Sections 11, 14)
+- Agents modifying deployments MUST reference deployment architecture (Sections 12, 13)
+- Agents modifying CI/CD workflows or infrastructure MUST reference infrastructure architecture (Section 9)
+- Agents modifying documentation or copilot artifacts (skills, instructions, agents) MUST reference Section 2.1 (Agent/Skill/Instruction catalog) and Section 13.4 (Documentation Propagation)
+- ALL agents MUST reference Section 2.5 (Quality Strategy) for coverage and mutation targets
+- Agents with ZERO ENG-HANDBOOK.md references are NON-COMPLIANT and MUST be updated
+<!-- @/appendix-propagate -->
+
+<!-- @appendix-why from="execution-agent-behavior" why-this-exists="per-task documentation update discipline consumed by evidence-based instructions and implementation agent files" -->
+<!-- @appendix-propagate from="execution-agent-behavior" to=".github/instructions/06-01.evidence-based.instructions.md, .github/agents/implementation-execution.agent.md, .github/agents/implementation-planning.agent.md, .claude/agents/implementation-execution.md, .claude/agents/implementation-planning.md" as="per-task-status-updates" -->
+**Per-Task Status Updates** (MANDATORY): Update `tasks.md` immediately after each task completes. NEVER accumulate multiple task completions before updating documentation. A `tasks.md` that does not reflect actual state is a blocking artifact inconsistency. Deferred documentation creates invisible debt and false completion signals to subsequent phases.
+<!-- @/appendix-propagate -->
+
+<!-- @appendix-why from="execution-agent-behavior" why-this-exists="lessons.md document structure requirements consumed by implementation planning and execution agents" -->
+<!-- @appendix-propagate from="execution-agent-behavior" to=".github/agents/implementation-execution.agent.md, .github/agents/implementation-planning.agent.md, .claude/agents/implementation-execution.md, .claude/agents/implementation-planning.md" as="lessons-md-structure" -->
+A completed `lessons.md` MUST contain three top-level sections **in this order**:
+
+**1. `## Executive Summary`** — Written at plan completion. A numbered list where each entry is a markdown link to a `## Phase N:` section followed by a one-sentence description of the key outcome. Enables reviewers to scan the entire plan scope at a glance and navigate directly to relevant phases.
+
+Example entries:
+- `1. [Phase 1: Framework Migration](#phase-1-framework-migration) — Migrated 10 PS-ID entry points; no API breakage.`
+- `2. [Phase 2: Knowledge Propagation](#phase-2-knowledge-propagation) — Added 12 ENG-HANDBOOK sections and updated 4 instruction files.`
+
+**2. `## Actions`** — Written at plan completion, directly below Executive Summary. A numbered list of concrete follow-up tasks for the reviewer, each specific enough to copy-paste directly into Copilot Chat or Claude Code as a follow-up prompt.
+
+Example entries:
+- `1. Migrate sm-kms application_basic.go to use framework's Basic struct directly.`
+- `2. Apply lifecycle.RunService() pattern to identity-authz (only remaining service).`
+
+**3. `## Phase N: <name>`** — One section per plan phase, written during each phase post-mortem using the 4-section structure (What Worked, What Didn't Work, Root Causes, Patterns). See §14.8.1.
+
+**Agent responsibilities**:
+- `implementation-planning`: Scaffold `## Executive Summary` (empty placeholder), `## Actions` (empty placeholder), and one `## Phase N:` stub per phase.
+- `implementation-execution`: At plan completion, fill `## Executive Summary` with phase links and one-sentence outcomes, fill `## Actions` with concrete copy-paste follow-up items, and populate each `## Phase N:` section with the 4-section post-mortem content.
+
+**Rationale**: Without top-level sections, reviewers must read all phase sections linearly to understand plan scope and identify follow-up work. `## Executive Summary` enables rapid navigation; `## Actions` enables copy-paste follow-up without re-reading all phases — eliminating the manual extraction step that slows reviewer triage.
+<!-- @/appendix-propagate -->
 
 ---
 
