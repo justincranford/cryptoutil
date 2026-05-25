@@ -3427,13 +3427,13 @@ core.autocrlf=input     # Convert CRLF→LF on commit, no conversion on checkout
 core.safecrlf=false     # Let .gitattributes handle all line-ending policy
 ```
 
-<!-- @propagate to=".github/instructions/05-02.git.instructions.md, .github/agents/beast-mode.agent.md, .github/agents/implementation-planning.agent.md, .github/agents/implementation-execution.agent.md, .github/agents/fix-workflows.agent.md, .claude/agents/beast-mode.md, .claude/agents/implementation-planning.md, .claude/agents/implementation-execution.md, .claude/agents/fix-workflows.md" as="platform-line-ending-operations" -->
+<!-- @section-to-appendix to="testing-quality-golang" as="platform-line-ending-operations" -->
 **Policy** (MANDATORY): All text files use LF (`\n`). `mixed-line-ending`, `end-of-file-fixer`, and `editorconfig-checker` enforce the policy. Exclusions cover generated code, vendored dependencies, build/test outputs, caches, worktrees, binaries, archives, secrets/cert material, and IDE metadata.
 
 **PERMANENT BAN (NO EXCEPTIONS)**: CRLF line endings are prohibited. This ban explicitly applies to `docs/ENG-HANDBOOK.md` and all Copilot/Claude instruction artifacts under `.github/instructions/`, `.github/agents/`, `.claude/agents/`, `.github/skills/`, and `.claude/skills/`.
 
 **Rationale**: gofumpt, gofmt, and goimports emit LF; YAML/Markdown/SQL/text tools default to LF; CI/CD runs on Linux; LF everywhere prevents CRLF/LF churn on Windows. Prettier also defaults `endOfLine=lf` (v2.0.0+).
-<!-- @/propagate -->
+<!-- @/section-to-appendix -->
 
 #### 9.9.5 Policy Enforcement Surface Inventory
 
@@ -3828,7 +3828,7 @@ The majority pattern (`os.IsNotExist(err) → return nil`) silently hides compli
 
 ### 10.1 Testing Strategy Overview
 
-<!-- @propagate to=".github/instructions/03-02.testing.instructions.md" as="test-file-suffixes" -->
+<!-- @section-to-appendix to="testing-quality-golang" as="test-file-suffixes" -->
 | Type | Suffix |
 |------|--------|
 | Unit | `_test.go` |
@@ -3836,7 +3836,7 @@ The majority pattern (`os.IsNotExist(err) → return nil`) silently hides compli
 | Fuzz | `_fuzz_test.go` |
 | Property | `_property_test.go` |
 | Integration | `_integration_test.go` |
-<!-- @/propagate -->
+<!-- @/section-to-appendix -->
 
 **Testing Pyramid**:
 
@@ -3995,7 +3995,7 @@ func TestListMessages_Handler(t *testing.T) {
 
 **Anti-pattern (v11 pki-init)**: Coverage ceiling of ~93% accepted at 92.4% with no mitigation plan — `productionNew*` functions remained permanently untested because no E2E CI/CD or `internalMain` refactoring was planned. **Resolved in v14** by applying the Production Closure Body Coverage pattern (see below).
 
-<!-- @propagate to=".github/instructions/03-02.testing.instructions.md" as="production-closure-body-coverage" -->
+<!-- @section-to-appendix to="testing-quality-golang" as="production-closure-body-coverage" -->
 **Production Closure Body Coverage Pattern**: When a factory function (`NewXxx`) defines anonymous
 closures in its return struct, the closure bodies are separate coverage blocks — creating the struct
 does NOT cover the closure bodies. Only INVOKING the closures covers their bodies.
@@ -4027,7 +4027,7 @@ production files and follows the established project convention for test seams.
 **Structural ceiling for production wiring errors**: `productionNewTelemetryService` error paths
 and OS-level faults (`RemoveAll` failures, non-ENOENT `Stat` errors) remain uncoverable via unit
 tests. Document these as structural ceilings and cover via E2E CI/CD smoke tests instead.
-<!-- @/propagate -->
+<!-- @/section-to-appendix -->
 
 #### 10.2.4 Test Seam Injection Pattern
 
@@ -4135,7 +4135,7 @@ This verifies "function called exactly N times" without mockery or `testify/mock
 
 #### 10.2.5 Sequential Test Exemption
 
-<!-- @propagate to=".github/instructions/03-02.testing.instructions.md" as="sequential-test-exemption" -->
+<!-- @section-to-appendix to="testing-quality-golang" as="sequential-test-exemption" -->
 Tests that mutate **package-level state** (e.g., `os.Chdir()`, global registries) MUST NOT call `t.Parallel()`. Add a `// Sequential:` comment within 10 lines before the function to exempt it from the `parallel_tests` linter:
 
 ```go
@@ -4153,7 +4153,7 @@ func TestRegisterHandler_Duplicate(t *testing.T) {
 ```
 
 **Rule**: Comment MUST be within 10 lines before function declaration. Include a reason after the colon.
-<!-- @/propagate -->
+<!-- @/section-to-appendix -->
 
 Seam variables (see §10.2.4) are a common cause of sequential tests.
 
@@ -4256,7 +4256,7 @@ func TestMain(m *testing.M) {
 
 #### 10.3.4 Test HTTP Client Patterns
 
-<!-- @propagate to=".github/instructions/03-02.testing.instructions.md" as="disable-keep-alives-test-transport" -->
+<!-- @section-to-appendix to="testing-quality-golang" as="disable-keep-alives-test-transport" -->
 NEVER use a default `http.Transport` in integration tests calling a real server. ALWAYS set `DisableKeepAlives: true`:
 
 ```go
@@ -4270,11 +4270,11 @@ client := &http.Client{
 ```
 
 **Why**: Fasthttp (Fiber) keeps an `open` counter > 0 while keep-alive connections remain open. `ShutdownWithContext` hangs for 90 seconds waiting for the counter to reach zero.
-<!-- @/propagate -->
+<!-- @/section-to-appendix -->
 
 **Symptom**: Tests pass but teardown is extremely slow (≥90s per test binary); `TestMain` never completes in a reasonable time.
 
-<!-- @propagate to=".github/instructions/03-02.testing.instructions.md" as="timeout-double-multiplication-antipattern" -->
+<!-- @section-to-appendix to="testing-quality-golang" as="timeout-double-multiplication-antipattern" -->
 NEVER multiply a `time.Duration` constant by `time.Second`. Magic constants that are already `time.Duration` (e.g., `DefaultDataServerShutdownTimeout = 5 * time.Second`) produce ~158-year values when multiplied again:
 
 ```go
@@ -4284,7 +4284,7 @@ ctx, cancel := context.WithTimeout(ctx, magic.DefaultDataServerShutdownTimeout *
 // CORRECT: use directly
 ctx, cancel := context.WithTimeout(ctx, magic.DefaultDataServerShutdownTimeout) // 5 seconds
 ```
-<!-- @/propagate -->
+<!-- @/section-to-appendix -->
 
 #### 10.3.5 Cross-Service PS-ID Template Instantiation Pattern
 
@@ -4499,7 +4499,7 @@ NEVER use `docker exec curl` — curl is unavailable in Alpine-based images by d
 verified to use the correct cert paths. NEVER use the `health` subcommand (public port 8080) as a
 proxy for admin TLS verification.
 
-<!-- @propagate to=".github/instructions/03-02.testing.instructions.md" as="postgres-mtls-client-identity" -->
+<!-- @section-to-appendix to="testing-quality-golang" as="postgres-mtls-client-identity" -->
 **PostgreSQL mTLS Client Identity in E2E**: Use `client_dn` (from the mTLS certificate CN) to
 identify a GORM service's mTLS connection in `pg_stat_ssl`, NOT `application_name`. GORM does not
 set `application_name` by default — it is always empty. Pattern:
@@ -4510,7 +4510,7 @@ JOIN pg_stat_activity ON pg_stat_ssl.pid = pg_stat_activity.pid
 WHERE pg_stat_ssl.ssl = true
   AND pg_stat_ssl.client_dn LIKE '%-sm-kms-%'
 ```
-<!-- @/propagate -->
+<!-- @/section-to-appendix -->
 
 **Docker image rebuild before E2E**: `docker compose build` is MANDATORY before running E2E when
 production code changes (especially init/startup code). A stale Docker image silently hides new
@@ -4806,7 +4806,7 @@ golangci-lint run ./...                    # Step 2: verify no new violations we
 
 #### 10.5.3 Common Surviving Mutations and Fixes
 
-<!-- @propagate to=".github/instructions/03-02.testing.instructions.md" as="mutation-common-survivors" -->
+<!-- @section-to-appendix to="testing-quality-golang" as="mutation-common-survivors" -->
 **`attempts++` in retry loops**: The `attempts` increment is mutated to a no-op. Fix: include
 `attempts` in the timeout error message and assert the error string does NOT contain `"after 0 attempts"`:
 
@@ -4827,7 +4827,7 @@ Document as a structural ceiling; do NOT spend time trying to kill this mutation
 like `KILLED` — both mean the mutation was detected. Only `LIVED` mutations are failures. Packages
 with blocking operations (polling loops, network waits) produce more TIMEOUTs; budget ~30s per
 TIMED OUT mutation when estimating gremlins run time.
-<!-- @/propagate -->
+<!-- @/section-to-appendix -->
 
 ### 10.6 Load Testing Strategy
 
@@ -5127,9 +5127,9 @@ def test_health_check(api_client):
 - Configuration: .golangci.yml importas section enforces consistency
 - Rationale: Avoids naming conflicts, improves readability
 
-<!-- @propagate to=".github/instructions/03-03.golang.instructions.md" as="crypto-acronyms-caps" -->
+<!-- @section-to-appendix to="testing-quality-golang" as="crypto-acronyms-caps" -->
 **Crypto Acronyms**: ALWAYS ALL CAPS: RSA, EC, ECDSA, ECDH, HMAC, AES, JWA, JWK, JWS, JWE, ED25519, PKCS8, PEM, DER.
-<!-- @/propagate -->
+<!-- @/section-to-appendix -->
 
 **Import Safety When Replacing Function Bodies**: When replacing function bodies, imports used by the OLD body may be accidentally removed even though they are still needed elsewhere in the file. ALWAYS run `go vet` after import changes to catch missing or unused imports.
 
@@ -5248,12 +5248,12 @@ Here are local convenience commands to run the workflows locally for Development
 
 #### 11.2.8 format_go Self-Modification Protection - CRITICAL
 
-<!-- @propagate to=".github/instructions/03-01.coding.instructions.md" as="format-go-protection" -->
+<!-- @section-to-appendix to="testing-quality-golang" as="format-go-protection" -->
 **MANDATORY Prevention Rules**:
 - NEVER change ` +""+interface{}+""+ ` to ` +""+ny+""+ ` in format_go package
 - NEVER simplify CRITICAL/SELF-MODIFICATION comments
 - ALWAYS read complete package context (enforce_any.go, filter.go, magic_cicd.go, format_go_test.go, self_modification_test.go) before modifying
-<!-- @/propagate -->
+<!-- @/section-to-appendix -->
 
 **Root Cause**: LLM agents lose exclusion context during narrow-focus refactoring
 - NEVER DO:
@@ -6576,9 +6576,9 @@ Propagation markers are added incrementally:
 
 ### 13.5 Validator Error Aggregation Pattern
 
-<!-- @propagate to=".github/instructions/03-01.coding.instructions.md" as="validator-error-aggregation" -->
+<!-- @section-to-appendix to="testing-quality-golang" as="validator-error-aggregation" -->
 All validators run to completion (never short-circuit) and aggregate errors for a single unified report. Sequential execution ensures deterministic output ordering. Aggregated errors (not fail-fast) show ALL problems in one run, reducing fix-test-fix cycles. `validate-all` returns exit code 0 if all pass, exit code 1 if any fail.
-<!-- @/propagate -->
+<!-- @/section-to-appendix -->
 
 **Execution Model**: Sequential execution of all 8 validators. Each validator produces a `ValidationResult` containing: valid/invalid status, error list, and execution duration. The orchestrator (`ValidateAll`) collects all results and produces a summary with pass/fail counts and total duration.
 
@@ -6840,7 +6840,7 @@ execution). See §5.6.2 for the health path comment block pattern.
 
 #### 14.2.1 Conventional Commits
 
-<!-- @propagate to=".github/instructions/05-02.git.instructions.md" as="conventional-commits" -->
+<!-- @section-to-appendix to="testing-quality-golang" as="conventional-commits" -->
 **Format**: `<type>[optional scope]: <description>`
 
 **Types**: feat, fix, docs, style, refactor, perf, test, build, ci, chore, revert
@@ -6852,21 +6852,21 @@ feat(auth): add OAuth2 client credentials flow
 fix(database): prevent connection pool exhaustion
 feat(api)!: remove deprecated v1 endpoints  # Breaking change
 ```
-<!-- @/propagate -->
+<!-- @/section-to-appendix -->
 
 #### 14.2.2 Incremental Commit Strategy
 
-<!-- @propagate to=".github/instructions/05-02.git.instructions.md" as="incremental-commits" -->
+<!-- @section-to-appendix to="testing-quality-golang" as="incremental-commits" -->
 - ALWAYS commit incrementally (NOT amend) - preserves history for bisect, selective revert.
 - NEVER repeatedly amend - loses context, hard to bisect.
 - Amend ONLY for immediate typo fixes (<1 min, before push).
 - **Semantic Grouping**: Commit each semantically coherent unit of work as it completes. NEVER accumulate changes for different semantic groups into a bulk commit. Semantic boundaries: one feature, one bug fix, one refactor, one test suite, one doc update = each gets its own commit.
 - **Periodic Commits**: Prefer frequent small commits over rare large commits. A completed task = a commit. Push every 5-10 commits.
-<!-- @/propagate -->
+<!-- @/section-to-appendix -->
 
 #### 14.2.3 Restore from Clean Baseline Pattern
 
-<!-- @propagate to=".github/instructions/05-02.git.instructions.md" as="restore-from-baseline" -->
+<!-- @section-to-appendix to="testing-quality-golang" as="restore-from-baseline" -->
 **When fixing regressions, ALWAYS restore clean baseline FIRST**:
 
 1. Find last known-good commit (`git log --oneline --grep="baseline"`)
@@ -6876,7 +6876,7 @@ feat(api)!: remove deprecated v1 endpoints  # Breaking change
 5. Commit as NEW commit (NOT amend)
 
 **Why**: HEAD may be corrupted from previous failed attempts. Start from known-good state.
-<!-- @/propagate -->
+<!-- @/section-to-appendix -->
 
 ### 14.3 Branching Strategy
 
@@ -7003,9 +7003,9 @@ systemctl --user start docker-desktop
 
 See: [Section 11.2.5 CI/CD](#1125-cicd) for local workflow testing commands that require Docker.
 
-<!-- @propagate to=".github/instructions/05-01.cross-platform.instructions.md" as="docker-desktop-upgrade" -->
+<!-- @section-to-appendix to="testing-quality-golang" as="docker-desktop-upgrade" -->
 **Docker Desktop Upgrade Warning**: After ANY Docker Desktop or testcontainers upgrade, run the full E2E test suite. Upgrades MAY break API compatibility between testcontainers-go and Docker Desktop — symptoms may include socket errors, container startup failures, and general Docker API issues.
-<!-- @/propagate -->
+<!-- @/section-to-appendix -->
 
 See [Section 9.4.2 Docker Desktop and Testcontainers API Compatibility](#942-docker-desktop-and-testcontainers-api-compatibility) for diagnosis checklist and resolution guidance.
 
@@ -7209,7 +7209,7 @@ Policy rules:
 
 ### 14.9 Scripting Language Policy — MANDATORY
 
-<!-- @propagate to=".github/instructions/05-01.cross-platform.instructions.md" as="scripting-language-policy" -->
+<!-- @section-to-appendix to="testing-quality-golang" as="scripting-language-policy" -->
 **MANDATORY: Choose scripting language in priority order. Lower-priority choices require justification.**
 
 | Priority | Language | When to Use |
@@ -7225,7 +7225,7 @@ Policy rules:
 **Docker container init exception**: The official PostgreSQL Docker image's `docker-entrypoint-initdb.d/` mechanism runs shell scripts natively. Shell scripts in this specific directory are the only permitted Bash exception. Minimize logic in these scripts; prefer `.sql` files where possible.
 
 **NO Python under `internal/apps-tools/cicd_lint/`**: The `cicd_lint` tool is pure Go. No Python scripts, generation helpers, or utility modules belong here. If a capability requires Python (rare), it belongs outside the Go module.
-<!-- @/propagate -->
+<!-- @/section-to-appendix -->
 
 ### 14.10 Archive and Dead Code Policy
 
@@ -7478,7 +7478,7 @@ Verification checklist before replying with blockers:
 
 Use the least expensive tool that satisfies the requirement:
 
-<!-- @propagate to=".github/instructions/06-03.tool-efficiency.instructions.md" as="tool-preference-order" -->
+<!-- @section-to-appendix to="testing-quality-golang" as="tool-preference-order" -->
 | Priority | Tool | When to Use |
 |----------|------|-------------|
 | 1 (cheapest) | `grep_search` / `text_search` | Exact string or regex match in known files |
@@ -7487,7 +7487,7 @@ Use the least expensive tool that satisfies the requirement:
 | 4 | `read_file` (targeted) | Read a specific 50–200 line window of a known file |
 | 5 | `read_file` (full) | Full file read only when entire context required |
 | 6 (costliest) | `semantic_search` | ONLY when query cannot be expressed as regex/literal |
-<!-- @/propagate -->
+<!-- @/section-to-appendix -->
 
 **Never** use `semantic_search` to find a function name, constant, import path, or error string —
 these are all expressible as regex. `semantic_search` scans the entire workspace; `grep_search`
@@ -7636,7 +7636,7 @@ and evidence artifacts. Any mismatch blocks completion.
 
 ### B.1 Technology Stack
 
-<!-- @propagate to=".github/instructions/02-02.versions.instructions.md" as="minimum-versions" -->
+<!-- @section-to-appendix to="testing-quality-golang" as="minimum-versions" -->
 **CRITICAL: ALWAYS use the same version everywhere** (dev, CI/CD, Docker, workflows, docs)
 
 - Go: 1.26.1+
@@ -7648,7 +7648,7 @@ and evidence artifacts. Any mismatch blocks completion.
 - pre-commit: 2.20.0+
 - Docker: 27+
 - Docker Compose: v5+
-<!-- @/propagate -->
+<!-- @/section-to-appendix -->
 
 **Languages**: Go 1.26.1 (services), Python 3.14+ (utilities), Node v24.11.1+ (CLI tools)
 **Databases**: PostgreSQL 18, SQLite (modernc.org/sqlite, CGO-free)
@@ -8264,6 +8264,258 @@ Three-encounter rule: 1st → document, 2nd → create fix task, 3rd → MANDATO
 **Docker Verification Must Be In-Scope** (MANDATORY): Phases that modify Docker Compose files, config files consumed by containers, cert mount paths, or any artifact that affects runtime behavior MUST include a Docker Compose verification step **within the same phase** (`docker compose up --wait` + health endpoint check). If Docker Desktop is unavailable, the phase is **BLOCKED — not complete**. Configuration-only changes without Docker verification are untested hypotheses.
 
 **Multi-File Config Changes Need Integration Verification**: Any change spanning multiple interrelated configuration files (e.g., `postgresql.conf` + `pg_hba.conf` + GORM DSN + Docker volume mounts) MUST include an integration verification step that exercises the full configuration chain in a running environment — within the same phase. Common failure modes: wrong cert paths after mounting, permission errors inside containers, HBA rule ordering, DSN parameter mismatches.
+<!-- @/appendix-propagate -->
+
+### D.6 Testing, Quality, and Go Standards
+
+<!-- @appendix-why from="testing-quality-golang" why-this-exists="LF line-ending policy consumed by git instruction file and all agent files" -->
+<!-- @appendix-propagate from="testing-quality-golang" to=".github/instructions/05-02.git.instructions.md, .github/agents/beast-mode.agent.md, .github/agents/implementation-planning.agent.md, .github/agents/implementation-execution.agent.md, .github/agents/fix-workflows.agent.md, .claude/agents/beast-mode.md, .claude/agents/implementation-planning.md, .claude/agents/implementation-execution.md, .claude/agents/fix-workflows.md" as="platform-line-ending-operations" -->
+**Policy** (MANDATORY): All text files use LF (`\n`). `mixed-line-ending`, `end-of-file-fixer`, and `editorconfig-checker` enforce the policy. Exclusions cover generated code, vendored dependencies, build/test outputs, caches, worktrees, binaries, archives, secrets/cert material, and IDE metadata.
+
+**PERMANENT BAN (NO EXCEPTIONS)**: CRLF line endings are prohibited. This ban explicitly applies to `docs/ENG-HANDBOOK.md` and all Copilot/Claude instruction artifacts under `.github/instructions/`, `.github/agents/`, `.claude/agents/`, `.github/skills/`, and `.claude/skills/`.
+
+**Rationale**: gofumpt, gofmt, and goimports emit LF; YAML/Markdown/SQL/text tools default to LF; CI/CD runs on Linux; LF everywhere prevents CRLF/LF churn on Windows. Prettier also defaults `endOfLine=lf` (v2.0.0+).
+<!-- @/appendix-propagate -->
+
+<!-- @appendix-why from="testing-quality-golang" why-this-exists="test file type suffixes table consumed by the testing instruction file" -->
+<!-- @appendix-propagate from="testing-quality-golang" to=".github/instructions/03-02.testing.instructions.md" as="test-file-suffixes" -->
+| Type | Suffix |
+|------|--------|
+| Unit | `_test.go` |
+| Bench | `_bench_test.go` |
+| Fuzz | `_fuzz_test.go` |
+| Property | `_property_test.go` |
+| Integration | `_integration_test.go` |
+<!-- @/appendix-propagate -->
+
+<!-- @appendix-why from="testing-quality-golang" why-this-exists="production closure body coverage pattern consumed by the testing instruction file" -->
+<!-- @appendix-propagate from="testing-quality-golang" to=".github/instructions/03-02.testing.instructions.md" as="production-closure-body-coverage" -->
+**Production Closure Body Coverage Pattern**: When a factory function (`NewXxx`) defines anonymous
+closures in its return struct, the closure bodies are separate coverage blocks — creating the struct
+does NOT cover the closure bodies. Only INVOKING the closures covers their bodies.
+
+Two test paths are required:
+
+1. **Stub tests** — use `ExportedNewTestXxx` or equivalent seam to test control flow (error paths, ordering, etc.)
+2. **Production wiring tests** — use `ExportedProductionNewXxx` and invoke the real closures to cover closure bodies
+
+```go
+// Generator defines 5 anonymous closures inside its return struct:
+//   return &Generator{createCAFn: func(...) {...}, encodePKCS12Fn: func(...) {...}, ...}
+// Creating a test Generator does NOT cover these closure bodies.
+
+// Test pattern: get a production Generator and invoke its closures with valid inputs.
+func TestProductionGenerator_WriteClosures(t *testing.T) {
+    t.Parallel()
+    gen := ExportedProductionNewGenerator(t)   // real factory, real closures
+    key, cert := makeTestCert(t)               // minimal valid inputs (e.g. P-256)
+    err := ExportedWriteKeystore(gen, key, cert, t.TempDir())
+    require.NoError(t, err)                    // this line covers encodePKCS12Fn closure body
+}
+```
+
+**`export_test.go` seam additions**: Add `ExportedXxx` wrappers to `export_test.go` for
+`productionNew*` functions and unexported helpers that block coverage. This avoids touching
+production files and follows the established project convention for test seams.
+
+**Structural ceiling for production wiring errors**: `productionNewTelemetryService` error paths
+and OS-level faults (`RemoveAll` failures, non-ENOENT `Stat` errors) remain uncoverable via unit
+tests. Document these as structural ceilings and cover via E2E CI/CD smoke tests instead.
+<!-- @/appendix-propagate -->
+
+<!-- @appendix-why from="testing-quality-golang" why-this-exists="sequential test exemption pattern consumed by the testing instruction file" -->
+<!-- @appendix-propagate from="testing-quality-golang" to=".github/instructions/03-02.testing.instructions.md" as="sequential-test-exemption" -->
+Tests that mutate **package-level state** (e.g., `os.Chdir()`, global registries) MUST NOT call `t.Parallel()`. Add a `// Sequential:` comment within 10 lines before the function to exempt it from the `parallel_tests` linter:
+
+```go
+// Sequential: uses os.Chdir (global process state, cannot run in parallel).
+func TestMyFunction_ChangeDir(t *testing.T) {
+    // no t.Parallel() here
+}
+```
+
+```go
+// Sequential: mutates registeredHandlers package-level state.
+func TestRegisterHandler_Duplicate(t *testing.T) {
+    // no t.Parallel() here
+}
+```
+
+**Rule**: Comment MUST be within 10 lines before function declaration. Include a reason after the colon.
+<!-- @/appendix-propagate -->
+
+<!-- @appendix-why from="testing-quality-golang" why-this-exists="disable keep-alives on test HTTP transport rule consumed by the testing instruction file" -->
+<!-- @appendix-propagate from="testing-quality-golang" to=".github/instructions/03-02.testing.instructions.md" as="disable-keep-alives-test-transport" -->
+NEVER use a default `http.Transport` in integration tests calling a real server. ALWAYS set `DisableKeepAlives: true`:
+
+```go
+client := &http.Client{
+    Transport: &http.Transport{
+        TLSClientConfig:   &tls.Config{InsecureSkipVerify: true}, // test certs only
+        DisableKeepAlives: true, // REQUIRED: prevents 90-second shutdown hang
+    },
+    Timeout: 5 * time.Second,
+}
+```
+
+**Why**: Fasthttp (Fiber) keeps an `open` counter > 0 while keep-alive connections remain open. `ShutdownWithContext` hangs for 90 seconds waiting for the counter to reach zero.
+<!-- @/appendix-propagate -->
+
+<!-- @appendix-why from="testing-quality-golang" why-this-exists="timeout double-multiplication anti-pattern consumed by the testing instruction file" -->
+<!-- @appendix-propagate from="testing-quality-golang" to=".github/instructions/03-02.testing.instructions.md" as="timeout-double-multiplication-antipattern" -->
+NEVER multiply a `time.Duration` constant by `time.Second`. Magic constants that are already `time.Duration` (e.g., `DefaultDataServerShutdownTimeout = 5 * time.Second`) produce ~158-year values when multiplied again:
+
+```go
+// WRONG: DefaultDataServerShutdownTimeout is already time.Duration
+ctx, cancel := context.WithTimeout(ctx, magic.DefaultDataServerShutdownTimeout * time.Second) // ~158 years!
+
+// CORRECT: use directly
+ctx, cancel := context.WithTimeout(ctx, magic.DefaultDataServerShutdownTimeout) // 5 seconds
+```
+<!-- @/appendix-propagate -->
+
+<!-- @appendix-why from="testing-quality-golang" why-this-exists="PostgreSQL mTLS client identity pattern consumed by the testing instruction file" -->
+<!-- @appendix-propagate from="testing-quality-golang" to=".github/instructions/03-02.testing.instructions.md" as="postgres-mtls-client-identity" -->
+**PostgreSQL mTLS Client Identity in E2E**: Use `client_dn` (from the mTLS certificate CN) to
+identify a GORM service's mTLS connection in `pg_stat_ssl`, NOT `application_name`. GORM does not
+set `application_name` by default — it is always empty. Pattern:
+
+```sql
+SELECT COUNT(*) FROM pg_stat_ssl
+JOIN pg_stat_activity ON pg_stat_ssl.pid = pg_stat_activity.pid
+WHERE pg_stat_ssl.ssl = true
+  AND pg_stat_ssl.client_dn LIKE '%-sm-kms-%'
+```
+<!-- @/appendix-propagate -->
+
+<!-- @appendix-why from="testing-quality-golang" why-this-exists="mutation testing common survivors patterns consumed by the testing instruction file" -->
+<!-- @appendix-propagate from="testing-quality-golang" to=".github/instructions/03-02.testing.instructions.md" as="mutation-common-survivors" -->
+**`attempts++` in retry loops**: The `attempts` increment is mutated to a no-op. Fix: include
+`attempts` in the timeout error message and assert the error string does NOT contain `"after 0 attempts"`:
+
+```go
+// Production
+return fmt.Errorf("timed out after %d attempts waiting for %s: %w", attempts, name, lastErr)
+
+// Test
+require.ErrorContains(t, err, "timed out")
+require.NotContains(t, err.Error(), "after 0 attempts") // kills attempts++ mutation
+```
+
+**`make` capacity hints**: `make(map[K]V, len(xs))` capacity mutations (`len(xs)` → `0`) cannot be
+killed via black-box tests — the capacity hint is an internal optimization invisible to callers.
+Document as a structural ceiling; do NOT spend time trying to kill this mutation.
+
+**`TIMED OUT` ≠ `LIVED`**: In gremlins output, `TIMED OUT` mutations count toward efficacy just
+like `KILLED` — both mean the mutation was detected. Only `LIVED` mutations are failures. Packages
+with blocking operations (polling loops, network waits) produce more TIMEOUTs; budget ~30s per
+TIMED OUT mutation when estimating gremlins run time.
+<!-- @/appendix-propagate -->
+
+<!-- @appendix-why from="testing-quality-golang" why-this-exists="crypto acronym capitalization rule consumed by the Go standards instruction file" -->
+<!-- @appendix-propagate from="testing-quality-golang" to=".github/instructions/03-03.golang.instructions.md" as="crypto-acronyms-caps" -->
+**Crypto Acronyms**: ALWAYS ALL CAPS: RSA, EC, ECDSA, ECDH, HMAC, AES, JWA, JWK, JWS, JWE, ED25519, PKCS8, PEM, DER.
+<!-- @/appendix-propagate -->
+
+<!-- @appendix-why from="testing-quality-golang" why-this-exists="format-go self-modification protection rules consumed by the coding instruction file" -->
+<!-- @appendix-propagate from="testing-quality-golang" to=".github/instructions/03-01.coding.instructions.md" as="format-go-protection" -->
+**MANDATORY Prevention Rules**:
+- NEVER change ` +""+interface{}+""+ ` to ` +""+ny+""+ ` in format_go package
+- NEVER simplify CRITICAL/SELF-MODIFICATION comments
+- ALWAYS read complete package context (enforce_any.go, filter.go, magic_cicd.go, format_go_test.go, self_modification_test.go) before modifying
+<!-- @/appendix-propagate -->
+
+<!-- @appendix-why from="testing-quality-golang" why-this-exists="validator error aggregation pattern consumed by the coding instruction file" -->
+<!-- @appendix-propagate from="testing-quality-golang" to=".github/instructions/03-01.coding.instructions.md" as="validator-error-aggregation" -->
+All validators run to completion (never short-circuit) and aggregate errors for a single unified report. Sequential execution ensures deterministic output ordering. Aggregated errors (not fail-fast) show ALL problems in one run, reducing fix-test-fix cycles. `validate-all` returns exit code 0 if all pass, exit code 1 if any fail.
+<!-- @/appendix-propagate -->
+
+<!-- @appendix-why from="testing-quality-golang" why-this-exists="conventional commits format consumed by the git instruction file" -->
+<!-- @appendix-propagate from="testing-quality-golang" to=".github/instructions/05-02.git.instructions.md" as="conventional-commits" -->
+**Format**: `<type>[optional scope]: <description>`
+
+**Types**: feat, fix, docs, style, refactor, perf, test, build, ci, chore, revert
+
+**Examples**:
+
+```bash
+feat(auth): add OAuth2 client credentials flow
+fix(database): prevent connection pool exhaustion
+feat(api)!: remove deprecated v1 endpoints  # Breaking change
+```
+<!-- @/appendix-propagate -->
+
+<!-- @appendix-why from="testing-quality-golang" why-this-exists="incremental commits strategy consumed by the git instruction file" -->
+<!-- @appendix-propagate from="testing-quality-golang" to=".github/instructions/05-02.git.instructions.md" as="incremental-commits" -->
+- ALWAYS commit incrementally (NOT amend) - preserves history for bisect, selective revert.
+- NEVER repeatedly amend - loses context, hard to bisect.
+- Amend ONLY for immediate typo fixes (<1 min, before push).
+- **Semantic Grouping**: Commit each semantically coherent unit of work as it completes. NEVER accumulate changes for different semantic groups into a bulk commit. Semantic boundaries: one feature, one bug fix, one refactor, one test suite, one doc update = each gets its own commit.
+- **Periodic Commits**: Prefer frequent small commits over rare large commits. A completed task = a commit. Push every 5-10 commits.
+<!-- @/appendix-propagate -->
+
+<!-- @appendix-why from="testing-quality-golang" why-this-exists="restore from clean baseline pattern consumed by the git instruction file" -->
+<!-- @appendix-propagate from="testing-quality-golang" to=".github/instructions/05-02.git.instructions.md" as="restore-from-baseline" -->
+**When fixing regressions, ALWAYS restore clean baseline FIRST**:
+
+1. Find last known-good commit (`git log --oneline --grep="baseline"`)
+2. Restore package (`git checkout <hash> -- path/to/package/`)
+3. Verify baseline works (`go test`)
+4. Apply ONLY the new fix (minimal change)
+5. Commit as NEW commit (NOT amend)
+
+**Why**: HEAD may be corrupted from previous failed attempts. Start from known-good state.
+<!-- @/appendix-propagate -->
+
+<!-- @appendix-why from="testing-quality-golang" why-this-exists="Docker Desktop upgrade warning consumed by the cross-platform instruction file" -->
+<!-- @appendix-propagate from="testing-quality-golang" to=".github/instructions/05-01.cross-platform.instructions.md" as="docker-desktop-upgrade" -->
+**Docker Desktop Upgrade Warning**: After ANY Docker Desktop or testcontainers upgrade, run the full E2E test suite. Upgrades MAY break API compatibility between testcontainers-go and Docker Desktop — symptoms may include socket errors, container startup failures, and general Docker API issues.
+<!-- @/appendix-propagate -->
+
+<!-- @appendix-why from="testing-quality-golang" why-this-exists="scripting language priority policy consumed by the cross-platform instruction file" -->
+<!-- @appendix-propagate from="testing-quality-golang" to=".github/instructions/05-01.cross-platform.instructions.md" as="scripting-language-policy" -->
+**MANDATORY: Choose scripting language in priority order. Lower-priority choices require justification.**
+
+| Priority | Language | When to Use |
+|----------|----------|-------------|
+| 1 (primary) | **Go** | ALL tooling, automation, scripts — compiled, cross-platform, static binary |
+| 2 (exception) | **Java** | Gatling load tests in `test/load/` ONLY |
+| 3 (last resort) | **Python** | Quick one-offs where Go is not suitable; one file, no maintenance burden |
+| ❌ (BANNED) | **Bash** | BANNED everywhere except Docker container init scripts (`docker-entrypoint-initdb.d/`) |
+| ❌ (BANNED) | **PowerShell** | BANNED everywhere, no exceptions |
+
+**Rationale**: Go and Java are compiled languages that produce cross-platform static binaries with proper type safety and testability. Python scripts tend to accumulate without lifecycle management. Bash/PowerShell are platform-specific and error-prone.
+
+**Docker container init exception**: The official PostgreSQL Docker image's `docker-entrypoint-initdb.d/` mechanism runs shell scripts natively. Shell scripts in this specific directory are the only permitted Bash exception. Minimize logic in these scripts; prefer `.sql` files where possible.
+
+**NO Python under `internal/apps-tools/cicd_lint/`**: The `cicd_lint` tool is pure Go. No Python scripts, generation helpers, or utility modules belong here. If a capability requires Python (rare), it belongs outside the Go module.
+<!-- @/appendix-propagate -->
+
+<!-- @appendix-why from="testing-quality-golang" why-this-exists="LLM tool preference order consumed by the tool-efficiency instruction file" -->
+<!-- @appendix-propagate from="testing-quality-golang" to=".github/instructions/06-03.tool-efficiency.instructions.md" as="tool-preference-order" -->
+| Priority | Tool | When to Use |
+|----------|------|-------------|
+| 1 (cheapest) | `grep_search` / `text_search` | Exact string or regex match in known files |
+| 2 | `file_search` | Confirm file existence or locate by name pattern |
+| 3 | `list_dir` | Enumerate directory contents (unknown structure) |
+| 4 | `read_file` (targeted) | Read a specific 50–200 line window of a known file |
+| 5 | `read_file` (full) | Full file read only when entire context required |
+| 6 (costliest) | `semantic_search` | ONLY when query cannot be expressed as regex/literal |
+<!-- @/appendix-propagate -->
+
+<!-- @appendix-why from="testing-quality-golang" why-this-exists="minimum version requirements consumed by the versions instruction file" -->
+<!-- @appendix-propagate from="testing-quality-golang" to=".github/instructions/02-02.versions.instructions.md" as="minimum-versions" -->
+**CRITICAL: ALWAYS use the same version everywhere** (dev, CI/CD, Docker, workflows, docs)
+
+- Go: 1.26.1+
+- Python: 3.14+
+- golangci-lint: v2.7.2+
+- Node: v24.11.1+ LTS
+- Java: 21 LTS (Gatling load tests)
+- Maven: 3.9+
+- pre-commit: 2.20.0+
+- Docker: 27+
+- Docker Compose: v5+
 <!-- @/appendix-propagate -->
 
 ---
