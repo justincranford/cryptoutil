@@ -8467,6 +8467,1481 @@ feat(api)!: remove deprecated v1 endpoints  # Breaking change
 
 ---
 
+## Appendix E: Per-Artifact Propagation Index
+
+This appendix assembles handbook-derived content for each downstream artifact in one place.
+A reviewer can jump here to see exactly what a given file receives without scanning all of Appendix D.
+Content is kept in sync with `@appendix-propagate` blocks in Appendix D, which are validated by
+`go run ./cmd/cicd-lint lint-docs validate-chunks`.
+
+### E.1 beast-mode.md (.claude)
+
+**Target**: `.claude/agents/beast-mode.md`
+
+Chunks: `mandatory-review-passes`, `cicd-bulk-hook-architecture`, `platform-line-ending-operations`
+
+#### mandatory-review-passes
+
+**MANDATORY: Minimum 3, maximum 5 review passes before marking any task complete.**
+
+Copilot and AI agents have a tendency to partially fulfill requested work, accidentally omitting or skipping items per request. To counter this, every task completion MUST include at least 3 review passes, each checking ALL 8 quality attributes:
+
+**Each pass checks ALL 8 attributes** (fresh perspective per pass):
+1. ✅ **Correctness** — code/docs correct, no regressions
+2. ✅ **Completeness** — all tasks/steps/items addressed, nothing skipped
+3. ✅ **Thoroughness** — evidence-based validation, all edge cases covered
+4. ✅ **Reliability** — build, lint, test, coverage, mutation all pass
+5. ✅ **Efficiency** — optimized for maintainability, not implementation speed
+6. ✅ **Accuracy** — root cause addressed, not just symptoms
+7. ❌ **NO Time Pressure** — NEVER rushed, NEVER cutting corners
+8. ❌ **NO Premature Completion** — objective evidence required before marking complete
+
+**Continuation rule**: If pass 3 finds ANY issue, continue to pass 4. If pass 4 still finds issues, continue to pass 5. Diminishing returns = done.
+
+**Scope**: ALL work types — code, docs, config, tests, infrastructure, deployments.
+
+#### cicd-bulk-hook-architecture
+
+`cicd-lint` command execution and `.pre-commit-config.yaml` wiring MUST follow this architecture:
+
+1. **Four bulk cicd hooks only** in `.pre-commit-config.yaml`:
+- `pre-commit` lint-only bulk call
+- `pre-commit` format-only bulk call
+- `pre-push` lint-only bulk call
+- `pre-push` format-only bulk call
+1. **Mutual exclusivity**: lint bulk calls MUST include only `lint-*` commands; format bulk calls MUST include only `format-*` commands.
+2. **Coverage**: Every `lint-*` and `format-*` command in `ValidCommands` MUST appear in at least one corresponding bulk hook.
+3. **Concurrency model**:
+- `lint-*` commands are read-only and MUST execute concurrently.
+- `format-*` commands are read-write and MUST execute serially.
+1. **Pre-commit hook flags**:
+- lint bulk hooks MUST use `require_serial: false`
+- format bulk hooks MUST use `require_serial: true`
+1. **Enforcement**: `lint-fitness` sub-linter `precommit-cicd-architecture` is authoritative and MUST fail on any drift.
+
+**Rationale**: This prevents cross-category races (read-only lint vs mutating format), preserves deterministic developer workflows, and ensures new cicd subcommands cannot be added without being wired into bulk hooks.
+
+#### platform-line-ending-operations
+
+**Policy** (MANDATORY): All text files use LF (`\n`). `mixed-line-ending`, `end-of-file-fixer`, and `editorconfig-checker` enforce the policy. Exclusions cover generated code, vendored dependencies, build/test outputs, caches, worktrees, binaries, archives, secrets/cert material, and IDE metadata.
+
+**PERMANENT BAN (NO EXCEPTIONS)**: CRLF line endings are prohibited. This ban explicitly applies to `docs/ENG-HANDBOOK.md` and all Copilot/Claude instruction artifacts under `.github/instructions/`, `.github/agents/`, `.claude/agents/`, `.github/skills/`, and `.claude/skills/`.
+
+**Rationale**: gofumpt, gofmt, and goimports emit LF; YAML/Markdown/SQL/text tools default to LF; CI/CD runs on Linux; LF everywhere prevents CRLF/LF churn on Windows. Prettier also defaults `endOfLine=lf` (v2.0.0+).
+
+---
+
+### E.2 fix-workflows.md (.claude)
+
+**Target**: `.claude/agents/fix-workflows.md`
+
+Chunks: `mandatory-review-passes`, `platform-line-ending-operations`
+
+#### mandatory-review-passes
+
+**MANDATORY: Minimum 3, maximum 5 review passes before marking any task complete.**
+
+Copilot and AI agents have a tendency to partially fulfill requested work, accidentally omitting or skipping items per request. To counter this, every task completion MUST include at least 3 review passes, each checking ALL 8 quality attributes:
+
+**Each pass checks ALL 8 attributes** (fresh perspective per pass):
+1. ✅ **Correctness** — code/docs correct, no regressions
+2. ✅ **Completeness** — all tasks/steps/items addressed, nothing skipped
+3. ✅ **Thoroughness** — evidence-based validation, all edge cases covered
+4. ✅ **Reliability** — build, lint, test, coverage, mutation all pass
+5. ✅ **Efficiency** — optimized for maintainability, not implementation speed
+6. ✅ **Accuracy** — root cause addressed, not just symptoms
+7. ❌ **NO Time Pressure** — NEVER rushed, NEVER cutting corners
+8. ❌ **NO Premature Completion** — objective evidence required before marking complete
+
+**Continuation rule**: If pass 3 finds ANY issue, continue to pass 4. If pass 4 still finds issues, continue to pass 5. Diminishing returns = done.
+
+**Scope**: ALL work types — code, docs, config, tests, infrastructure, deployments.
+
+#### platform-line-ending-operations
+
+**Policy** (MANDATORY): All text files use LF (`\n`). `mixed-line-ending`, `end-of-file-fixer`, and `editorconfig-checker` enforce the policy. Exclusions cover generated code, vendored dependencies, build/test outputs, caches, worktrees, binaries, archives, secrets/cert material, and IDE metadata.
+
+**PERMANENT BAN (NO EXCEPTIONS)**: CRLF line endings are prohibited. This ban explicitly applies to `docs/ENG-HANDBOOK.md` and all Copilot/Claude instruction artifacts under `.github/instructions/`, `.github/agents/`, `.claude/agents/`, `.github/skills/`, and `.claude/skills/`.
+
+**Rationale**: gofumpt, gofmt, and goimports emit LF; YAML/Markdown/SQL/text tools default to LF; CI/CD runs on Linux; LF everywhere prevents CRLF/LF churn on Windows. Prettier also defaults `endOfLine=lf` (v2.0.0+).
+
+---
+
+### E.3 implementation-execution.md (.claude)
+
+**Target**: `.claude/agents/implementation-execution.md`
+
+Chunks: `mandatory-review-passes`, `per-task-status-updates`, `lessons-md-structure`, `docker-compose-verification-in-scope`, `platform-line-ending-operations`
+
+#### mandatory-review-passes
+
+**MANDATORY: Minimum 3, maximum 5 review passes before marking any task complete.**
+
+Copilot and AI agents have a tendency to partially fulfill requested work, accidentally omitting or skipping items per request. To counter this, every task completion MUST include at least 3 review passes, each checking ALL 8 quality attributes:
+
+**Each pass checks ALL 8 attributes** (fresh perspective per pass):
+1. ✅ **Correctness** — code/docs correct, no regressions
+2. ✅ **Completeness** — all tasks/steps/items addressed, nothing skipped
+3. ✅ **Thoroughness** — evidence-based validation, all edge cases covered
+4. ✅ **Reliability** — build, lint, test, coverage, mutation all pass
+5. ✅ **Efficiency** — optimized for maintainability, not implementation speed
+6. ✅ **Accuracy** — root cause addressed, not just symptoms
+7. ❌ **NO Time Pressure** — NEVER rushed, NEVER cutting corners
+8. ❌ **NO Premature Completion** — objective evidence required before marking complete
+
+**Continuation rule**: If pass 3 finds ANY issue, continue to pass 4. If pass 4 still finds issues, continue to pass 5. Diminishing returns = done.
+
+**Scope**: ALL work types — code, docs, config, tests, infrastructure, deployments.
+
+#### per-task-status-updates
+
+**Per-Task Status Updates** (MANDATORY): Update `tasks.md` immediately after each task completes. NEVER accumulate multiple task completions before updating documentation. A `tasks.md` that does not reflect actual state is a blocking artifact inconsistency. Deferred documentation creates invisible debt and false completion signals to subsequent phases.
+
+#### lessons-md-structure
+
+A completed `lessons.md` MUST contain three top-level sections **in this order**:
+
+**1. `## Executive Summary`** — Written at plan completion. A numbered list where each entry is a markdown link to a `## Phase N:` section followed by a one-sentence description of the key outcome. Enables reviewers to scan the entire plan scope at a glance and navigate directly to relevant phases.
+
+Example entries:
+- `1. [Phase 1: Framework Migration](#phase-1-framework-migration) — Migrated 10 PS-ID entry points; no API breakage.`
+- `2. [Phase 2: Knowledge Propagation](#phase-2-knowledge-propagation) — Added 12 ENG-HANDBOOK sections and updated 4 instruction files.`
+
+**2. `## Actions`** — Written at plan completion, directly below Executive Summary. A numbered list of concrete follow-up tasks for the reviewer, each specific enough to copy-paste directly into Copilot Chat or Claude Code as a follow-up prompt.
+
+Example entries:
+- `1. Migrate sm-kms application_basic.go to use framework's Basic struct directly.`
+- `2. Apply lifecycle.RunService() pattern to identity-authz (only remaining service).`
+
+**3. `## Phase N: <name>`** — One section per plan phase, written during each phase post-mortem using the 4-section structure (What Worked, What Didn't Work, Root Causes, Patterns). See §14.8.1.
+
+**Agent responsibilities**:
+- `implementation-planning`: Scaffold `## Executive Summary` (empty placeholder), `## Actions` (empty placeholder), and one `## Phase N:` stub per phase.
+- `implementation-execution`: At plan completion, fill `## Executive Summary` with phase links and one-sentence outcomes, fill `## Actions` with concrete copy-paste follow-up items, and populate each `## Phase N:` section with the 4-section post-mortem content.
+
+**Rationale**: Without top-level sections, reviewers must read all phase sections linearly to understand plan scope and identify follow-up work. `## Executive Summary` enables rapid navigation; `## Actions` enables copy-paste follow-up without re-reading all phases — eliminating the manual extraction step that slows reviewer triage.
+
+#### docker-compose-verification-in-scope
+
+**Docker Verification Must Be In-Scope** (MANDATORY): Phases that modify Docker Compose files, config files consumed by containers, cert mount paths, or any artifact that affects runtime behavior MUST include a Docker Compose verification step **within the same phase** (`docker compose up --wait` + health endpoint check). If Docker Desktop is unavailable, the phase is **BLOCKED — not complete**. Configuration-only changes without Docker verification are untested hypotheses.
+
+**Multi-File Config Changes Need Integration Verification**: Any change spanning multiple interrelated configuration files (e.g., `postgresql.conf` + `pg_hba.conf` + GORM DSN + Docker volume mounts) MUST include an integration verification step that exercises the full configuration chain in a running environment — within the same phase. Common failure modes: wrong cert paths after mounting, permission errors inside containers, HBA rule ordering, DSN parameter mismatches.
+
+#### platform-line-ending-operations
+
+**Policy** (MANDATORY): All text files use LF (`\n`). `mixed-line-ending`, `end-of-file-fixer`, and `editorconfig-checker` enforce the policy. Exclusions cover generated code, vendored dependencies, build/test outputs, caches, worktrees, binaries, archives, secrets/cert material, and IDE metadata.
+
+**PERMANENT BAN (NO EXCEPTIONS)**: CRLF line endings are prohibited. This ban explicitly applies to `docs/ENG-HANDBOOK.md` and all Copilot/Claude instruction artifacts under `.github/instructions/`, `.github/agents/`, `.claude/agents/`, `.github/skills/`, and `.claude/skills/`.
+
+**Rationale**: gofumpt, gofmt, and goimports emit LF; YAML/Markdown/SQL/text tools default to LF; CI/CD runs on Linux; LF everywhere prevents CRLF/LF churn on Windows. Prettier also defaults `endOfLine=lf` (v2.0.0+).
+
+---
+
+### E.4 implementation-planning.md (.claude)
+
+**Target**: `.claude/agents/implementation-planning.md`
+
+Chunks: `mandatory-review-passes`, `per-task-status-updates`, `lessons-md-structure`, `docker-compose-verification-in-scope`, `platform-line-ending-operations`
+
+#### mandatory-review-passes
+
+**MANDATORY: Minimum 3, maximum 5 review passes before marking any task complete.**
+
+Copilot and AI agents have a tendency to partially fulfill requested work, accidentally omitting or skipping items per request. To counter this, every task completion MUST include at least 3 review passes, each checking ALL 8 quality attributes:
+
+**Each pass checks ALL 8 attributes** (fresh perspective per pass):
+1. ✅ **Correctness** — code/docs correct, no regressions
+2. ✅ **Completeness** — all tasks/steps/items addressed, nothing skipped
+3. ✅ **Thoroughness** — evidence-based validation, all edge cases covered
+4. ✅ **Reliability** — build, lint, test, coverage, mutation all pass
+5. ✅ **Efficiency** — optimized for maintainability, not implementation speed
+6. ✅ **Accuracy** — root cause addressed, not just symptoms
+7. ❌ **NO Time Pressure** — NEVER rushed, NEVER cutting corners
+8. ❌ **NO Premature Completion** — objective evidence required before marking complete
+
+**Continuation rule**: If pass 3 finds ANY issue, continue to pass 4. If pass 4 still finds issues, continue to pass 5. Diminishing returns = done.
+
+**Scope**: ALL work types — code, docs, config, tests, infrastructure, deployments.
+
+#### per-task-status-updates
+
+**Per-Task Status Updates** (MANDATORY): Update `tasks.md` immediately after each task completes. NEVER accumulate multiple task completions before updating documentation. A `tasks.md` that does not reflect actual state is a blocking artifact inconsistency. Deferred documentation creates invisible debt and false completion signals to subsequent phases.
+
+#### lessons-md-structure
+
+A completed `lessons.md` MUST contain three top-level sections **in this order**:
+
+**1. `## Executive Summary`** — Written at plan completion. A numbered list where each entry is a markdown link to a `## Phase N:` section followed by a one-sentence description of the key outcome. Enables reviewers to scan the entire plan scope at a glance and navigate directly to relevant phases.
+
+Example entries:
+- `1. [Phase 1: Framework Migration](#phase-1-framework-migration) — Migrated 10 PS-ID entry points; no API breakage.`
+- `2. [Phase 2: Knowledge Propagation](#phase-2-knowledge-propagation) — Added 12 ENG-HANDBOOK sections and updated 4 instruction files.`
+
+**2. `## Actions`** — Written at plan completion, directly below Executive Summary. A numbered list of concrete follow-up tasks for the reviewer, each specific enough to copy-paste directly into Copilot Chat or Claude Code as a follow-up prompt.
+
+Example entries:
+- `1. Migrate sm-kms application_basic.go to use framework's Basic struct directly.`
+- `2. Apply lifecycle.RunService() pattern to identity-authz (only remaining service).`
+
+**3. `## Phase N: <name>`** — One section per plan phase, written during each phase post-mortem using the 4-section structure (What Worked, What Didn't Work, Root Causes, Patterns). See §14.8.1.
+
+**Agent responsibilities**:
+- `implementation-planning`: Scaffold `## Executive Summary` (empty placeholder), `## Actions` (empty placeholder), and one `## Phase N:` stub per phase.
+- `implementation-execution`: At plan completion, fill `## Executive Summary` with phase links and one-sentence outcomes, fill `## Actions` with concrete copy-paste follow-up items, and populate each `## Phase N:` section with the 4-section post-mortem content.
+
+**Rationale**: Without top-level sections, reviewers must read all phase sections linearly to understand plan scope and identify follow-up work. `## Executive Summary` enables rapid navigation; `## Actions` enables copy-paste follow-up without re-reading all phases — eliminating the manual extraction step that slows reviewer triage.
+
+#### docker-compose-verification-in-scope
+
+**Docker Verification Must Be In-Scope** (MANDATORY): Phases that modify Docker Compose files, config files consumed by containers, cert mount paths, or any artifact that affects runtime behavior MUST include a Docker Compose verification step **within the same phase** (`docker compose up --wait` + health endpoint check). If Docker Desktop is unavailable, the phase is **BLOCKED — not complete**. Configuration-only changes without Docker verification are untested hypotheses.
+
+**Multi-File Config Changes Need Integration Verification**: Any change spanning multiple interrelated configuration files (e.g., `postgresql.conf` + `pg_hba.conf` + GORM DSN + Docker volume mounts) MUST include an integration verification step that exercises the full configuration chain in a running environment — within the same phase. Common failure modes: wrong cert paths after mounting, permission errors inside containers, HBA rule ordering, DSN parameter mismatches.
+
+#### platform-line-ending-operations
+
+**Policy** (MANDATORY): All text files use LF (`\n`). `mixed-line-ending`, `end-of-file-fixer`, and `editorconfig-checker` enforce the policy. Exclusions cover generated code, vendored dependencies, build/test outputs, caches, worktrees, binaries, archives, secrets/cert material, and IDE metadata.
+
+**PERMANENT BAN (NO EXCEPTIONS)**: CRLF line endings are prohibited. This ban explicitly applies to `docs/ENG-HANDBOOK.md` and all Copilot/Claude instruction artifacts under `.github/instructions/`, `.github/agents/`, `.claude/agents/`, `.github/skills/`, and `.claude/skills/`.
+
+**Rationale**: gofumpt, gofmt, and goimports emit LF; YAML/Markdown/SQL/text tools default to LF; CI/CD runs on Linux; LF everywhere prevents CRLF/LF churn on Windows. Prettier also defaults `endOfLine=lf` (v2.0.0+).
+
+---
+
+### E.5 .claude copilot-customization/SKILL.md
+
+**Target**: `.claude/skills/copilot-customization/SKILL.md`
+
+Chunks: `skill-copilot-customization-core-rules`
+
+#### skill-copilot-customization-core-rules
+
+- Pick one artifact type per invocation: `agent`, `instruction`, or `skill`
+- Decide the operation up front: create, update, or delete
+- Agents are dual-canonical: create BOTH `.github/agents/NAME.agent.md` and `.claude/agents/NAME.md`
+- Skills are dual-canonical: create BOTH `.github/skills/NAME/SKILL.md` and `.claude/skills/NAME/SKILL.md`
+- Agent and skill body content MUST stay identical across Copilot and Claude pairs; only permitted frontmatter differences may differ
+- Run `go run ./cmd/cicd-lint lint-docs` after creating, updating, or deleting any customization artifact
+
+---
+
+### E.6 .claude openapi-codegen/SKILL.md
+
+**Target**: `.claude/skills/openapi-codegen/SKILL.md`
+
+Chunks: `skill-openapi-codegen-core-rules`
+
+#### skill-openapi-codegen-core-rules
+
+- OpenAPI version MUST be 3.0.3 (NOT 2.0/Swagger, NOT 3.1.x)
+- Generate THREE config files: server (`strict-server: true`), model, client
+- API MUST duplicate under BOTH `/service/` and `/browser/` paths
+- Content type: `application/json` ONLY (no form, multipart, or other types)
+- `strict-server: true` is MANDATORY in server config
+- All `openapi-gen_config*.yaml` MUST include the full base initialisms list from ENG-HANDBOOK.md §8
+
+---
+
+### E.7 .claude propagation-check/SKILL.md
+
+**Target**: `.claude/skills/propagation-check/SKILL.md`
+
+Chunks: `skill-propagation-check-core-rules`
+
+#### skill-propagation-check-core-rules
+
+- `@source` content MUST be byte-for-byte identical to `@propagate` content in ENG-HANDBOOK.md
+- Run `go run ./cmd/cicd-lint lint-docs` to detect drift
+- Add both Copilot file AND Claude file to `@propagate to=` attribute (comma-separated)
+- Update `docs/required-propagations.yaml` `required_targets` when adding new targets
+- When ENG-HANDBOOK.md chunk changes, ALL downstream `@source` blocks must be updated
+
+---
+
+### E.8 .claude sync-copilot-claude/SKILL.md
+
+**Target**: `.claude/skills/sync-copilot-claude/SKILL.md`
+
+Chunks: `skill-sync-copilot-claude-core-rules`
+
+#### skill-sync-copilot-claude-core-rules
+
+- Copilot skills live at `.github/skills/<NAME>/SKILL.md`; Claude skills at `.claude/skills/<NAME>/SKILL.md`
+- Body content MUST be identical between Copilot and Claude skill files
+- Claude agents at `.claude/agents/<NAME>.md` must match Copilot agents at `.github/agents/<NAME>.agent.md`
+- NEVER update only one file — always sync both in the same commit
+- The `lint-agent-drift` linter (in `lint-docs`) enforces agent pair identity automatically
+
+---
+
+### E.9 .claude test-table-driven/SKILL.md
+
+**Target**: `.claude/skills/test-table-driven/SKILL.md`
+
+Chunks: `skill-test-table-driven-core-rules`
+
+#### skill-test-table-driven-core-rules
+
+- `t.Parallel()` MANDATORY on parent and ALL subtests
+- Use `googleUuid.NewV7()` for test data IDs (thread-safe, unique, no conflicts)
+- `require` package (fail-fast) over `assert` (continue-on-failure)
+- Table-driven for ALL multi-case tests (happy path AND sad path)
+- TestMain for heavyweight resources (DB, servers, containers) — one per package
+- Use exactly one `testmain_test.go` per package; never split into `testmain_*_test.go` variants
+- `testmain_test.go` must not use `//go:build` or `// +build` directives
+
+---
+
+### E.10 beast-mode.agent.md
+
+**Target**: `.github/agents/beast-mode.agent.md`
+
+Chunks: `mandatory-review-passes`, `cicd-bulk-hook-architecture`, `platform-line-ending-operations`
+
+#### mandatory-review-passes
+
+**MANDATORY: Minimum 3, maximum 5 review passes before marking any task complete.**
+
+Copilot and AI agents have a tendency to partially fulfill requested work, accidentally omitting or skipping items per request. To counter this, every task completion MUST include at least 3 review passes, each checking ALL 8 quality attributes:
+
+**Each pass checks ALL 8 attributes** (fresh perspective per pass):
+1. ✅ **Correctness** — code/docs correct, no regressions
+2. ✅ **Completeness** — all tasks/steps/items addressed, nothing skipped
+3. ✅ **Thoroughness** — evidence-based validation, all edge cases covered
+4. ✅ **Reliability** — build, lint, test, coverage, mutation all pass
+5. ✅ **Efficiency** — optimized for maintainability, not implementation speed
+6. ✅ **Accuracy** — root cause addressed, not just symptoms
+7. ❌ **NO Time Pressure** — NEVER rushed, NEVER cutting corners
+8. ❌ **NO Premature Completion** — objective evidence required before marking complete
+
+**Continuation rule**: If pass 3 finds ANY issue, continue to pass 4. If pass 4 still finds issues, continue to pass 5. Diminishing returns = done.
+
+**Scope**: ALL work types — code, docs, config, tests, infrastructure, deployments.
+
+#### cicd-bulk-hook-architecture
+
+`cicd-lint` command execution and `.pre-commit-config.yaml` wiring MUST follow this architecture:
+
+1. **Four bulk cicd hooks only** in `.pre-commit-config.yaml`:
+- `pre-commit` lint-only bulk call
+- `pre-commit` format-only bulk call
+- `pre-push` lint-only bulk call
+- `pre-push` format-only bulk call
+1. **Mutual exclusivity**: lint bulk calls MUST include only `lint-*` commands; format bulk calls MUST include only `format-*` commands.
+2. **Coverage**: Every `lint-*` and `format-*` command in `ValidCommands` MUST appear in at least one corresponding bulk hook.
+3. **Concurrency model**:
+- `lint-*` commands are read-only and MUST execute concurrently.
+- `format-*` commands are read-write and MUST execute serially.
+1. **Pre-commit hook flags**:
+- lint bulk hooks MUST use `require_serial: false`
+- format bulk hooks MUST use `require_serial: true`
+1. **Enforcement**: `lint-fitness` sub-linter `precommit-cicd-architecture` is authoritative and MUST fail on any drift.
+
+**Rationale**: This prevents cross-category races (read-only lint vs mutating format), preserves deterministic developer workflows, and ensures new cicd subcommands cannot be added without being wired into bulk hooks.
+
+#### platform-line-ending-operations
+
+**Policy** (MANDATORY): All text files use LF (`\n`). `mixed-line-ending`, `end-of-file-fixer`, and `editorconfig-checker` enforce the policy. Exclusions cover generated code, vendored dependencies, build/test outputs, caches, worktrees, binaries, archives, secrets/cert material, and IDE metadata.
+
+**PERMANENT BAN (NO EXCEPTIONS)**: CRLF line endings are prohibited. This ban explicitly applies to `docs/ENG-HANDBOOK.md` and all Copilot/Claude instruction artifacts under `.github/instructions/`, `.github/agents/`, `.claude/agents/`, `.github/skills/`, and `.claude/skills/`.
+
+**Rationale**: gofumpt, gofmt, and goimports emit LF; YAML/Markdown/SQL/text tools default to LF; CI/CD runs on Linux; LF everywhere prevents CRLF/LF churn on Windows. Prettier also defaults `endOfLine=lf` (v2.0.0+).
+
+---
+
+### E.11 fix-workflows.agent.md
+
+**Target**: `.github/agents/fix-workflows.agent.md`
+
+Chunks: `mandatory-review-passes`, `platform-line-ending-operations`
+
+#### mandatory-review-passes
+
+**MANDATORY: Minimum 3, maximum 5 review passes before marking any task complete.**
+
+Copilot and AI agents have a tendency to partially fulfill requested work, accidentally omitting or skipping items per request. To counter this, every task completion MUST include at least 3 review passes, each checking ALL 8 quality attributes:
+
+**Each pass checks ALL 8 attributes** (fresh perspective per pass):
+1. ✅ **Correctness** — code/docs correct, no regressions
+2. ✅ **Completeness** — all tasks/steps/items addressed, nothing skipped
+3. ✅ **Thoroughness** — evidence-based validation, all edge cases covered
+4. ✅ **Reliability** — build, lint, test, coverage, mutation all pass
+5. ✅ **Efficiency** — optimized for maintainability, not implementation speed
+6. ✅ **Accuracy** — root cause addressed, not just symptoms
+7. ❌ **NO Time Pressure** — NEVER rushed, NEVER cutting corners
+8. ❌ **NO Premature Completion** — objective evidence required before marking complete
+
+**Continuation rule**: If pass 3 finds ANY issue, continue to pass 4. If pass 4 still finds issues, continue to pass 5. Diminishing returns = done.
+
+**Scope**: ALL work types — code, docs, config, tests, infrastructure, deployments.
+
+#### platform-line-ending-operations
+
+**Policy** (MANDATORY): All text files use LF (`\n`). `mixed-line-ending`, `end-of-file-fixer`, and `editorconfig-checker` enforce the policy. Exclusions cover generated code, vendored dependencies, build/test outputs, caches, worktrees, binaries, archives, secrets/cert material, and IDE metadata.
+
+**PERMANENT BAN (NO EXCEPTIONS)**: CRLF line endings are prohibited. This ban explicitly applies to `docs/ENG-HANDBOOK.md` and all Copilot/Claude instruction artifacts under `.github/instructions/`, `.github/agents/`, `.claude/agents/`, `.github/skills/`, and `.claude/skills/`.
+
+**Rationale**: gofumpt, gofmt, and goimports emit LF; YAML/Markdown/SQL/text tools default to LF; CI/CD runs on Linux; LF everywhere prevents CRLF/LF churn on Windows. Prettier also defaults `endOfLine=lf` (v2.0.0+).
+
+---
+
+### E.12 implementation-execution.agent.md
+
+**Target**: `.github/agents/implementation-execution.agent.md`
+
+Chunks: `mandatory-review-passes`, `per-task-status-updates`, `lessons-md-structure`, `docker-compose-verification-in-scope`, `platform-line-ending-operations`
+
+#### mandatory-review-passes
+
+**MANDATORY: Minimum 3, maximum 5 review passes before marking any task complete.**
+
+Copilot and AI agents have a tendency to partially fulfill requested work, accidentally omitting or skipping items per request. To counter this, every task completion MUST include at least 3 review passes, each checking ALL 8 quality attributes:
+
+**Each pass checks ALL 8 attributes** (fresh perspective per pass):
+1. ✅ **Correctness** — code/docs correct, no regressions
+2. ✅ **Completeness** — all tasks/steps/items addressed, nothing skipped
+3. ✅ **Thoroughness** — evidence-based validation, all edge cases covered
+4. ✅ **Reliability** — build, lint, test, coverage, mutation all pass
+5. ✅ **Efficiency** — optimized for maintainability, not implementation speed
+6. ✅ **Accuracy** — root cause addressed, not just symptoms
+7. ❌ **NO Time Pressure** — NEVER rushed, NEVER cutting corners
+8. ❌ **NO Premature Completion** — objective evidence required before marking complete
+
+**Continuation rule**: If pass 3 finds ANY issue, continue to pass 4. If pass 4 still finds issues, continue to pass 5. Diminishing returns = done.
+
+**Scope**: ALL work types — code, docs, config, tests, infrastructure, deployments.
+
+#### per-task-status-updates
+
+**Per-Task Status Updates** (MANDATORY): Update `tasks.md` immediately after each task completes. NEVER accumulate multiple task completions before updating documentation. A `tasks.md` that does not reflect actual state is a blocking artifact inconsistency. Deferred documentation creates invisible debt and false completion signals to subsequent phases.
+
+#### lessons-md-structure
+
+A completed `lessons.md` MUST contain three top-level sections **in this order**:
+
+**1. `## Executive Summary`** — Written at plan completion. A numbered list where each entry is a markdown link to a `## Phase N:` section followed by a one-sentence description of the key outcome. Enables reviewers to scan the entire plan scope at a glance and navigate directly to relevant phases.
+
+Example entries:
+- `1. [Phase 1: Framework Migration](#phase-1-framework-migration) — Migrated 10 PS-ID entry points; no API breakage.`
+- `2. [Phase 2: Knowledge Propagation](#phase-2-knowledge-propagation) — Added 12 ENG-HANDBOOK sections and updated 4 instruction files.`
+
+**2. `## Actions`** — Written at plan completion, directly below Executive Summary. A numbered list of concrete follow-up tasks for the reviewer, each specific enough to copy-paste directly into Copilot Chat or Claude Code as a follow-up prompt.
+
+Example entries:
+- `1. Migrate sm-kms application_basic.go to use framework's Basic struct directly.`
+- `2. Apply lifecycle.RunService() pattern to identity-authz (only remaining service).`
+
+**3. `## Phase N: <name>`** — One section per plan phase, written during each phase post-mortem using the 4-section structure (What Worked, What Didn't Work, Root Causes, Patterns). See §14.8.1.
+
+**Agent responsibilities**:
+- `implementation-planning`: Scaffold `## Executive Summary` (empty placeholder), `## Actions` (empty placeholder), and one `## Phase N:` stub per phase.
+- `implementation-execution`: At plan completion, fill `## Executive Summary` with phase links and one-sentence outcomes, fill `## Actions` with concrete copy-paste follow-up items, and populate each `## Phase N:` section with the 4-section post-mortem content.
+
+**Rationale**: Without top-level sections, reviewers must read all phase sections linearly to understand plan scope and identify follow-up work. `## Executive Summary` enables rapid navigation; `## Actions` enables copy-paste follow-up without re-reading all phases — eliminating the manual extraction step that slows reviewer triage.
+
+#### docker-compose-verification-in-scope
+
+**Docker Verification Must Be In-Scope** (MANDATORY): Phases that modify Docker Compose files, config files consumed by containers, cert mount paths, or any artifact that affects runtime behavior MUST include a Docker Compose verification step **within the same phase** (`docker compose up --wait` + health endpoint check). If Docker Desktop is unavailable, the phase is **BLOCKED — not complete**. Configuration-only changes without Docker verification are untested hypotheses.
+
+**Multi-File Config Changes Need Integration Verification**: Any change spanning multiple interrelated configuration files (e.g., `postgresql.conf` + `pg_hba.conf` + GORM DSN + Docker volume mounts) MUST include an integration verification step that exercises the full configuration chain in a running environment — within the same phase. Common failure modes: wrong cert paths after mounting, permission errors inside containers, HBA rule ordering, DSN parameter mismatches.
+
+#### platform-line-ending-operations
+
+**Policy** (MANDATORY): All text files use LF (`\n`). `mixed-line-ending`, `end-of-file-fixer`, and `editorconfig-checker` enforce the policy. Exclusions cover generated code, vendored dependencies, build/test outputs, caches, worktrees, binaries, archives, secrets/cert material, and IDE metadata.
+
+**PERMANENT BAN (NO EXCEPTIONS)**: CRLF line endings are prohibited. This ban explicitly applies to `docs/ENG-HANDBOOK.md` and all Copilot/Claude instruction artifacts under `.github/instructions/`, `.github/agents/`, `.claude/agents/`, `.github/skills/`, and `.claude/skills/`.
+
+**Rationale**: gofumpt, gofmt, and goimports emit LF; YAML/Markdown/SQL/text tools default to LF; CI/CD runs on Linux; LF everywhere prevents CRLF/LF churn on Windows. Prettier also defaults `endOfLine=lf` (v2.0.0+).
+
+---
+
+### E.13 implementation-planning.agent.md
+
+**Target**: `.github/agents/implementation-planning.agent.md`
+
+Chunks: `mandatory-review-passes`, `per-task-status-updates`, `lessons-md-structure`, `docker-compose-verification-in-scope`, `platform-line-ending-operations`
+
+#### mandatory-review-passes
+
+**MANDATORY: Minimum 3, maximum 5 review passes before marking any task complete.**
+
+Copilot and AI agents have a tendency to partially fulfill requested work, accidentally omitting or skipping items per request. To counter this, every task completion MUST include at least 3 review passes, each checking ALL 8 quality attributes:
+
+**Each pass checks ALL 8 attributes** (fresh perspective per pass):
+1. ✅ **Correctness** — code/docs correct, no regressions
+2. ✅ **Completeness** — all tasks/steps/items addressed, nothing skipped
+3. ✅ **Thoroughness** — evidence-based validation, all edge cases covered
+4. ✅ **Reliability** — build, lint, test, coverage, mutation all pass
+5. ✅ **Efficiency** — optimized for maintainability, not implementation speed
+6. ✅ **Accuracy** — root cause addressed, not just symptoms
+7. ❌ **NO Time Pressure** — NEVER rushed, NEVER cutting corners
+8. ❌ **NO Premature Completion** — objective evidence required before marking complete
+
+**Continuation rule**: If pass 3 finds ANY issue, continue to pass 4. If pass 4 still finds issues, continue to pass 5. Diminishing returns = done.
+
+**Scope**: ALL work types — code, docs, config, tests, infrastructure, deployments.
+
+#### per-task-status-updates
+
+**Per-Task Status Updates** (MANDATORY): Update `tasks.md` immediately after each task completes. NEVER accumulate multiple task completions before updating documentation. A `tasks.md` that does not reflect actual state is a blocking artifact inconsistency. Deferred documentation creates invisible debt and false completion signals to subsequent phases.
+
+#### lessons-md-structure
+
+A completed `lessons.md` MUST contain three top-level sections **in this order**:
+
+**1. `## Executive Summary`** — Written at plan completion. A numbered list where each entry is a markdown link to a `## Phase N:` section followed by a one-sentence description of the key outcome. Enables reviewers to scan the entire plan scope at a glance and navigate directly to relevant phases.
+
+Example entries:
+- `1. [Phase 1: Framework Migration](#phase-1-framework-migration) — Migrated 10 PS-ID entry points; no API breakage.`
+- `2. [Phase 2: Knowledge Propagation](#phase-2-knowledge-propagation) — Added 12 ENG-HANDBOOK sections and updated 4 instruction files.`
+
+**2. `## Actions`** — Written at plan completion, directly below Executive Summary. A numbered list of concrete follow-up tasks for the reviewer, each specific enough to copy-paste directly into Copilot Chat or Claude Code as a follow-up prompt.
+
+Example entries:
+- `1. Migrate sm-kms application_basic.go to use framework's Basic struct directly.`
+- `2. Apply lifecycle.RunService() pattern to identity-authz (only remaining service).`
+
+**3. `## Phase N: <name>`** — One section per plan phase, written during each phase post-mortem using the 4-section structure (What Worked, What Didn't Work, Root Causes, Patterns). See §14.8.1.
+
+**Agent responsibilities**:
+- `implementation-planning`: Scaffold `## Executive Summary` (empty placeholder), `## Actions` (empty placeholder), and one `## Phase N:` stub per phase.
+- `implementation-execution`: At plan completion, fill `## Executive Summary` with phase links and one-sentence outcomes, fill `## Actions` with concrete copy-paste follow-up items, and populate each `## Phase N:` section with the 4-section post-mortem content.
+
+**Rationale**: Without top-level sections, reviewers must read all phase sections linearly to understand plan scope and identify follow-up work. `## Executive Summary` enables rapid navigation; `## Actions` enables copy-paste follow-up without re-reading all phases — eliminating the manual extraction step that slows reviewer triage.
+
+#### docker-compose-verification-in-scope
+
+**Docker Verification Must Be In-Scope** (MANDATORY): Phases that modify Docker Compose files, config files consumed by containers, cert mount paths, or any artifact that affects runtime behavior MUST include a Docker Compose verification step **within the same phase** (`docker compose up --wait` + health endpoint check). If Docker Desktop is unavailable, the phase is **BLOCKED — not complete**. Configuration-only changes without Docker verification are untested hypotheses.
+
+**Multi-File Config Changes Need Integration Verification**: Any change spanning multiple interrelated configuration files (e.g., `postgresql.conf` + `pg_hba.conf` + GORM DSN + Docker volume mounts) MUST include an integration verification step that exercises the full configuration chain in a running environment — within the same phase. Common failure modes: wrong cert paths after mounting, permission errors inside containers, HBA rule ordering, DSN parameter mismatches.
+
+#### platform-line-ending-operations
+
+**Policy** (MANDATORY): All text files use LF (`\n`). `mixed-line-ending`, `end-of-file-fixer`, and `editorconfig-checker` enforce the policy. Exclusions cover generated code, vendored dependencies, build/test outputs, caches, worktrees, binaries, archives, secrets/cert material, and IDE metadata.
+
+**PERMANENT BAN (NO EXCEPTIONS)**: CRLF line endings are prohibited. This ban explicitly applies to `docs/ENG-HANDBOOK.md` and all Copilot/Claude instruction artifacts under `.github/instructions/`, `.github/agents/`, `.claude/agents/`, `.github/skills/`, and `.claude/skills/`.
+
+**Rationale**: gofumpt, gofmt, and goimports emit LF; YAML/Markdown/SQL/text tools default to LF; CI/CD runs on Linux; LF everywhere prevents CRLF/LF churn on Windows. Prettier also defaults `endOfLine=lf` (v2.0.0+).
+
+---
+
+### E.14 01-01.terminology.instructions.md
+
+**Target**: `.github/instructions/01-01.terminology.instructions.md`
+
+Chunks: `rfc-2119-keywords`, `emphasis-keywords`, `abbreviations`
+
+#### rfc-2119-keywords
+
+- **MUST** = **REQUIRED** = **MANDATORY** = **SHALL** - Absolute requirement
+- **MUST NOT** = **SHALL NOT** - Absolute prohibition
+- **SHOULD** = **RECOMMENDED** - Highly desirable (may ignore with justification)
+- **SHOULD NOT** = **NOT RECOMMENDED** - Not advisable (may do with justification)
+- **MAY** = **OPTIONAL** - Truly optional (implementer decides)
+
+#### emphasis-keywords
+
+- **CRITICAL** - Historically regression-prone areas requiring extra attention
+- **ALWAYS** / **NEVER** - Emphatic MUST / MUST NOT (no exceptions)
+
+#### abbreviations
+
+**CRITICAL: NEVER use ambiguous `auth` abbreviation to mean either authentication or authorization**
+
+- **authn** = Authentication
+- **authz** = Authorization
+
+**Rationale**: Prevents confusion filenames, variable names, and documentation.
+
+---
+
+### E.15 01-02.beast-mode.instructions.md
+
+**Target**: `.github/instructions/01-02.beast-mode.instructions.md`
+
+Chunks: `quality-attributes`, `end-of-turn-commit-protocol`
+
+#### quality-attributes
+
+**Quality Attributes (NO EXCEPTIONS)**:
+- ✅ Correctness: ALL code functionally correct with comprehensive tests
+- ✅ Completeness: NO phases or tasks or steps skipped, NO features de-prioritized, NO shortcuts
+- ✅ Thoroughness: Evidence-based validation at every step
+- ✅ Reliability: Quality gates enforced (≥95%/98% coverage/mutation)
+- ✅ Efficiency: Optimized for maintainability and performance NOT implementation speed
+- ✅ Accuracy: Changes must address root cause, not just symptoms
+- ❌ Time Pressure: NEVER rush, NEVER skip validation, NEVER defer quality checks
+- ❌ Premature Completion: NEVER mark phases or tasks or steps complete without objective evidence
+
+#### end-of-turn-commit-protocol
+
+**MANDATORY: NEVER end a turn with uncommitted changes. Your ABSOLUTE LAST TOOL INVOCATION before yielding to the user MUST be running `git status --porcelain`. NEVER assume the worktree is clean — always RUN the command as a tool call.**
+
+If `git status --porcelain` returns ANY output:
+
+1. Stage all changes: `git add -A`
+2. Commit with a conventional commit message: `git commit -m "type(scope): description"`
+3. Verify clean: `git status --porcelain` MUST return empty
+4. Only then end the turn
+
+**Critical violations** (any one = turn is NOT complete):
+
+- Ending a turn with `M`, `A`, `D`, or `?` in `git status --porcelain` output
+- Stopping after analysis without committing changes
+- Marking work "done" with unstaged or uncommitted files
+- Responding to the user without committing work in progress
+- Assuming the worktree is clean without running the command as a tool call
+
+**Pattern**: `git status --porcelain` returns empty → End turn. Any output → Commit first.
+
+---
+
+### E.16 02-01.architecture.instructions.md
+
+**Target**: `.github/instructions/02-01.architecture.instructions.md`
+
+Chunks: `service-framework-components`, `tls-provision-mode`
+
+#### service-framework-components
+
+- Two HTTPS Listeners: Public (business APIs) + Admin (health checks)
+- Two Public Paths: `/browser/**` (session cookies) vs `/service/**` (session tokens)
+- Three Admin APIs: /admin/api/v1/livez, /admin/api/v1/readyz, /admin/api/v1/shutdown
+- Database: PostgreSQL || SQLite with GORM
+- Telemetry: OTLP → otel-collector-contrib → Grafana LGTM
+- Config Priority: Docker secrets > YAML > CLI parameters (NO environment variables)
+
+#### tls-provision-mode
+
+**Service template server certificates use `TLSProvisionMode`** based on credentials provided at startup:
+
+| Environment | Cert Chain | TLS Key | Issuing CA Key | TLS Provision Mode | Outcome |
+|-------------|-----------|---------|----------------|--------------------|---------|
+| Production | Provided | Docker Secret | Not provided | `static` | Use as-is |
+| E2E Dev | Provided | Not provided | Docker Secret | `mixed` | Generate + sign TLS cert |
+| Unit/Integration | Not provided | Not provided | Not provided | `auto` | Auto-create all certs |
+
+#### 6.11.1 `TLSProvisionMode` Taxonomy (`static` / `mixed` / `auto`)
+
+The `GenerateTLSMaterial()` function in `internal/apps-framework/service/config/tls_generator.go` selects one of three provisioning modes based on available credentials:
+
+- `static`: pre-generated certificate chain + private key are supplied via Docker secrets. No runtime key generation occurs.
+- `mixed`: issuing CA certificate + issuing CA private key are supplied; the server leaf certificate is generated at startup and then used as static material for the running process.
+- `auto`: no server TLS material is supplied; the framework generates an ephemeral CA hierarchy and server leaf in memory.
+
+**Detection logic**: `StaticCertPEM + StaticKeyPEM` provided → `static`. `MixedCACertPEM + MixedCAKeyPEM` provided → generate server cert then use `static` material for the running process. Nothing provided → `auto`.
+
+---
+
+### E.17 02-02.versions.instructions.md
+
+**Target**: `.github/instructions/02-02.versions.instructions.md`
+
+Chunks: `minimum-versions`
+
+#### minimum-versions
+
+**CRITICAL: ALWAYS use the same version everywhere** (dev, CI/CD, Docker, workflows, docs)
+
+- Go: 1.26.1+
+- Python: 3.14+
+- golangci-lint: v2.7.2+
+- Node: v24.11.1+ LTS
+- Java: 21 LTS (Gatling load tests)
+- Maven: 3.9+
+- pre-commit: 2.20.0+
+- Docker: 27+
+- Docker Compose: v5+
+
+---
+
+### E.18 02-03.observability.instructions.md
+
+**Target**: `.github/instructions/02-03.observability.instructions.md`
+
+Chunks: `otel-collector-constraints`
+
+#### otel-collector-constraints
+
+| Processor | Requirement | Dev/CI | Production |
+|-----------|------------|--------|------------|
+| resourcedetection/docker | Docker socket `/var/run/docker.sock` | NEVER use | Use when socket available |
+| resourcedetection/env | Environment variables | ALWAYS | ALWAYS |
+| resourcedetection/system | OS hostname, IP | ALWAYS | ALWAYS |
+
+**MANDATORY for dev/CI**: Use `detectors: [env, system]`. NEVER include `docker` detector without verified socket access.
+
+**CRITICAL**: NEVER defer OTel or infrastructure configuration issues as "pre-existing." Infrastructure blockers are ALWAYS MANDATORY BLOCKING.
+
+---
+
+### E.19 02-04.openapi.instructions.md
+
+**Target**: `.github/instructions/02-04.openapi.instructions.md`
+
+Chunks: `base-initialisms`, `http-status-codes`
+
+#### base-initialisms
+
+All `openapi-gen_config*.yaml` files MUST include the full base initialisms list in their `additional-initialisms` section. Domain-specific additions follow the base list.
+
+**Base initialisms (mandatory in every gen config)**:
+
+| Initialism | Meaning |
+|------------|---------|
+| IDS | Intrusion Detection System |
+| JWT | JSON Web Token |
+| JWK | JSON Web Key |
+| JWE | JSON Web Encryption |
+| JWS | JSON Web Signature |
+| OIDC | OpenID Connect |
+| SAML | Security Assertion Markup Language |
+| AES | Advanced Encryption Standard |
+| GCM | Galois/Counter Mode |
+| CBC | Cipher Block Chaining |
+| RSA | Rivest-Shamir-Adleman |
+| EC | Elliptic Curve |
+| HMAC | Hash-based Message Authentication Code |
+| SHA | Secure Hash Algorithm |
+| TLS | Transport Layer Security |
+| IP | Internet Protocol |
+| AI | Artificial Intelligence |
+| ML | Machine Learning |
+| KEM | Key Encapsulation Mechanism |
+| PEM | Privacy Enhanced Mail |
+| DER | Distinguished Encoding Rules |
+| DSA | Digital Signature Algorithm |
+| IKM | Input Keying Material |
+
+**Domain-specific additions by service**:
+
+| Service | Domain Additions |
+|---------|----------------|
+| `jose-ja` | JWKS, OKP, URI |
+| `pki-ca` | CSR, CA, CRL, OCSP, URI, SAN, DN, CN, OU |
+| `sm-im` | IM, SM, URI |
+| `sm-kms` | URI |
+| `skeleton-template` | (none — base list only) |
+
+#### http-status-codes
+
+| Code | Usage |
+|------|-------|
+| 200 | GET, PUT, PATCH successful |
+| 201 | POST (resource created) |
+| 204 | DELETE successful |
+| 400 | Validation error |
+| 401 | Missing/invalid auth |
+| 403 | Insufficient permissions |
+| 404 | Resource not found |
+| 409 | Duplicate/conflict |
+| 422 | Semantic validation error |
+| 500 | Unhandled server error |
+| 503 | Temporary unavailability |
+
+---
+
+### E.20 02-05.security.instructions.md
+
+**Target**: `.github/instructions/02-05.security.instructions.md`
+
+Chunks: `secrets-detection-strategy`, `tls-client-policy`
+
+#### secrets-detection-strategy
+
+**Detection**: Length-based threshold (≥32 bytes / ≥43 base64 chars) for inline secrets in compose files. NO entropy calculation (too many false positives). Safe references (`/run/secrets/`, short dev defaults) excluded. Infrastructure deployments excluded.
+
+#### tls-client-policy
+
+Services support five **runtime `TLSClientPolicy` states**. These are distinct from the
+certificate-provisioning modes in §6.11.1 and map directly to Go's `tls.ClientAuthType` behavior:
+
+| Client Policy | Go TLS Mapping | Meaning |
+|---------------|----------------|---------|
+| `none` | `tls.NoClientCert` | Do not request client certificates. |
+| `request` | `tls.RequestClientCert` | Request a client certificate but do not require or verify it. |
+| `require-any` | `tls.RequireAnyClientCert` | Require a client certificate but do not verify it against a CA bundle. |
+| `verify-if-given` | `tls.VerifyClientCertIfGiven` | Verify client certificates when presented; allow clients without certificates. |
+| `require-and-verify` | `tls.RequireAndVerifyClientCert` | Require a client certificate and verify it against the configured CA bundle. |
+
+**Policy rule**: `*-tls-ca-file` fields supply trust material only. They MUST NOT implicitly switch the listener into a verification policy. If a listener uses `verify-if-given` or `require-and-verify`, a CA bundle must be configured explicitly.
+
+**Transitional pattern**: use `verify-if-given` when rolling clients onto mTLS gradually. The server presents its certificate in all cases; only the client-certificate requirement changes:
+
+```yaml
+# tls-config.yml for transitional client-certificate rollout
+public:
+  client-policy: verify-if-given
+  cert: /run/secrets/public-https-server-entity-{PS-ID}-{instance}.crt
+  key:  /run/secrets/public-https-server-entity-{PS-ID}-{instance}.key
+  ca:   /run/secrets/public-https-client-issuing-ca-{PS-ID}-{instance}.crt
+```
+
+Once all clients present certificates, flip `client-policy` to `require-and-verify`.
+
+---
+
+### E.21 02-06.authn.instructions.md
+
+**Target**: `.github/instructions/02-06.authn.instructions.md`
+
+Chunks: `key-principles`, `session-token-formats`, `headless-authn`, `browser-authn`, `mfa-combinations`, `authz-methods`
+
+#### key-principles
+
+- **Zero Trust**: NO caching of authorization decisions. Re-evaluate every request.
+- **MFA Step-Up**: Re-authentication MANDATORY every 30 minutes for high-sensitivity operations.
+- **Session Storage**: SQL databases ONLY (PostgreSQL or SQLite with ACID). NEVER Redis/Memcached.
+- **mTLS Revocation**: MUST check BOTH CRLDP and OCSP. Fail if BOTH unreachable.
+
+#### session-token-formats
+
+**Opaque** (UUID), **JWE** (encrypted JWT), **JWS** (signed JWT). Storage: PostgreSQL (distributed) or SQLite (single-node). NO Redis/Memcached.
+
+#### headless-authn
+
+**Non-Federated (6)**: JWE Session Token, JWS Session Token, Opaque Session Token, Basic (Client ID/Secret), Bearer (API Token), HTTPS Client Certificate.
+
+**Federated (7)**: Basic/Bearer/ClientCert via OAuth 2.1, JWE/JWS/Opaque Access Token, Opaque Refresh Token.
+
+**Storage**: YAML + SQL (Config > DB priority) for all methods.
+
+#### browser-authn
+
+**Non-Federated (6)**: JWE/JWS/Opaque Session Cookie, Basic (Username/Password), Bearer (API Token), HTTPS Client Certificate.
+
+**Federated (22)**: All non-federated methods PLUS:
+- **MFA Factors**: TOTP, HOTP, Recovery Codes, WebAuthn (with/without Passkeys), Push Notification
+- **Passwordless**: Email/Password, Magic Link (Email/SMS), Random OTP (Email/SMS/Phone)
+- **Social Login**: Google, Microsoft, GitHub, Facebook, Apple, LinkedIn, Twitter/X, Amazon, Okta
+- **Enterprise**: SAML 2.0
+
+**Storage**: YAML + SQL (Config > DB) for static credentials. SQL ONLY for dynamic user data (OTPs, enrollments, magic links).
+
+#### mfa-combinations
+
+**Browser**: Password + TOTP/WebAuthn/Push/OTP.
+**Headless**: Client ID/Secret + mTLS/Bearer.
+
+#### authz-methods
+
+**Headless**: Scope-based, RBAC.
+**Browser**: Scope-based, RBAC, resource-level ACLs, consent tracking (scope+resource granularity).
+
+---
+
+### E.22 03-01.coding.instructions.md
+
+**Target**: `.github/instructions/03-01.coding.instructions.md`
+
+Chunks: `format-go-protection`, `validator-error-aggregation`
+
+#### format-go-protection
+
+**MANDATORY Prevention Rules**:
+- NEVER change ` +""+interface{}+""+ ` to ` +""+ny+""+ ` in format_go package
+- NEVER simplify CRITICAL/SELF-MODIFICATION comments
+- ALWAYS read complete package context (enforce_any.go, filter.go, magic_cicd.go, format_go_test.go, self_modification_test.go) before modifying
+
+#### validator-error-aggregation
+
+All validators run to completion (never short-circuit) and aggregate errors for a single unified report. Sequential execution ensures deterministic output ordering. Aggregated errors (not fail-fast) show ALL problems in one run, reducing fix-test-fix cycles. `validate-all` returns exit code 0 if all pass, exit code 1 if any fail.
+
+---
+
+### E.23 03-02.testing.instructions.md
+
+**Target**: `.github/instructions/03-02.testing.instructions.md`
+
+Chunks: `three-tier-database-strategy`, `test-file-suffixes`, `production-closure-body-coverage`, `sequential-test-exemption`, `disable-keep-alives-test-transport`, `timeout-double-multiplication-antipattern`, `postgres-mtls-client-identity`, `mutation-common-survivors`
+
+#### three-tier-database-strategy
+
+**3-Tier Database Strategy (MANDATORY)**:
+
+| Tier | Database | Pattern | PostgreSQL? |
+|------|----------|---------|-------------|
+| Unit | SQLite in-memory | `testdb.NewInMemorySQLiteDB(t)` | NEVER |
+| Integration | SQLite in-memory via TestMain | ONE shared instance per package | NEVER |
+| E2E | Docker Compose PostgreSQL | 4 app instances (2 PostgreSQL + 2 SQLite) | YES (only here) |
+
+**Key Rules**:
+- NEVER use PostgreSQL in unit or integration tests — PostgreSQL tested ONLY in E2E.
+- NEVER create DB per-test in integration tests (use TestMain shared instance).
+- NEVER start real servers in unit tests (use Fiber app.Test()).
+- E2E tests use Docker Compose with 4 service instances: 2 sharing a PostgreSQL container, 2 using in-memory SQLite, validating cross-database compatibility.
+
+#### test-file-suffixes
+
+| Type | Suffix |
+|------|--------|
+| Unit | `_test.go` |
+| Bench | `_bench_test.go` |
+| Fuzz | `_fuzz_test.go` |
+| Property | `_property_test.go` |
+| Integration | `_integration_test.go` |
+
+#### production-closure-body-coverage
+
+**Production Closure Body Coverage Pattern**: When a factory function (`NewXxx`) defines anonymous
+closures in its return struct, the closure bodies are separate coverage blocks — creating the struct
+does NOT cover the closure bodies. Only INVOKING the closures covers their bodies.
+
+Two test paths are required:
+
+1. **Stub tests** — use `ExportedNewTestXxx` or equivalent seam to test control flow (error paths, ordering, etc.)
+2. **Production wiring tests** — use `ExportedProductionNewXxx` and invoke the real closures to cover closure bodies
+
+```go
+// Generator defines 5 anonymous closures inside its return struct:
+//   return &Generator{createCAFn: func(...) {...}, encodePKCS12Fn: func(...) {...}, ...}
+// Creating a test Generator does NOT cover these closure bodies.
+
+// Test pattern: get a production Generator and invoke its closures with valid inputs.
+func TestProductionGenerator_WriteClosures(t *testing.T) {
+    t.Parallel()
+    gen := ExportedProductionNewGenerator(t)   // real factory, real closures
+    key, cert := makeTestCert(t)               // minimal valid inputs (e.g. P-256)
+    err := ExportedWriteKeystore(gen, key, cert, t.TempDir())
+    require.NoError(t, err)                    // this line covers encodePKCS12Fn closure body
+}
+```
+
+**`export_test.go` seam additions**: Add `ExportedXxx` wrappers to `export_test.go` for
+`productionNew*` functions and unexported helpers that block coverage. This avoids touching
+production files and follows the established project convention for test seams.
+
+**Structural ceiling for production wiring errors**: `productionNewTelemetryService` error paths
+and OS-level faults (`RemoveAll` failures, non-ENOENT `Stat` errors) remain uncoverable via unit
+tests. Document these as structural ceilings and cover via E2E CI/CD smoke tests instead.
+
+#### sequential-test-exemption
+
+Tests that mutate **package-level state** (e.g., `os.Chdir()`, global registries) MUST NOT call `t.Parallel()`. Add a `// Sequential:` comment within 10 lines before the function to exempt it from the `parallel_tests` linter:
+
+```go
+// Sequential: uses os.Chdir (global process state, cannot run in parallel).
+func TestMyFunction_ChangeDir(t *testing.T) {
+    // no t.Parallel() here
+}
+```
+
+```go
+// Sequential: mutates registeredHandlers package-level state.
+func TestRegisterHandler_Duplicate(t *testing.T) {
+    // no t.Parallel() here
+}
+```
+
+**Rule**: Comment MUST be within 10 lines before function declaration. Include a reason after the colon.
+
+#### disable-keep-alives-test-transport
+
+NEVER use a default `http.Transport` in integration tests calling a real server. ALWAYS set `DisableKeepAlives: true`:
+
+```go
+client := &http.Client{
+    Transport: &http.Transport{
+        TLSClientConfig:   &tls.Config{InsecureSkipVerify: true}, // test certs only
+        DisableKeepAlives: true, // REQUIRED: prevents 90-second shutdown hang
+    },
+    Timeout: 5 * time.Second,
+}
+```
+
+**Why**: Fasthttp (Fiber) keeps an `open` counter > 0 while keep-alive connections remain open. `ShutdownWithContext` hangs for 90 seconds waiting for the counter to reach zero.
+
+#### timeout-double-multiplication-antipattern
+
+NEVER multiply a `time.Duration` constant by `time.Second`. Magic constants that are already `time.Duration` (e.g., `DefaultDataServerShutdownTimeout = 5 * time.Second`) produce ~158-year values when multiplied again:
+
+```go
+// WRONG: DefaultDataServerShutdownTimeout is already time.Duration
+ctx, cancel := context.WithTimeout(ctx, magic.DefaultDataServerShutdownTimeout * time.Second) // ~158 years!
+
+// CORRECT: use directly
+ctx, cancel := context.WithTimeout(ctx, magic.DefaultDataServerShutdownTimeout) // 5 seconds
+```
+
+#### postgres-mtls-client-identity
+
+**PostgreSQL mTLS Client Identity in E2E**: Use `client_dn` (from the mTLS certificate CN) to
+identify a GORM service's mTLS connection in `pg_stat_ssl`, NOT `application_name`. GORM does not
+set `application_name` by default — it is always empty. Pattern:
+
+```sql
+SELECT COUNT(*) FROM pg_stat_ssl
+JOIN pg_stat_activity ON pg_stat_ssl.pid = pg_stat_activity.pid
+WHERE pg_stat_ssl.ssl = true
+  AND pg_stat_ssl.client_dn LIKE '%-sm-kms-%'
+```
+
+#### mutation-common-survivors
+
+**`attempts++` in retry loops**: The `attempts` increment is mutated to a no-op. Fix: include
+`attempts` in the timeout error message and assert the error string does NOT contain `"after 0 attempts"`:
+
+```go
+// Production
+return fmt.Errorf("timed out after %d attempts waiting for %s: %w", attempts, name, lastErr)
+
+// Test
+require.ErrorContains(t, err, "timed out")
+require.NotContains(t, err.Error(), "after 0 attempts") // kills attempts++ mutation
+```
+
+**`make` capacity hints**: `make(map[K]V, len(xs))` capacity mutations (`len(xs)` → `0`) cannot be
+killed via black-box tests — the capacity hint is an internal optimization invisible to callers.
+Document as a structural ceiling; do NOT spend time trying to kill this mutation.
+
+**`TIMED OUT` ≠ `LIVED`**: In gremlins output, `TIMED OUT` mutations count toward efficacy just
+like `KILLED` — both mean the mutation was detected. Only `LIVED` mutations are failures. Packages
+with blocking operations (polling loops, network waits) produce more TIMEOUTs; budget ~30s per
+TIMED OUT mutation when estimating gremlins run time.
+
+---
+
+### E.24 03-03.golang.instructions.md
+
+**Target**: `.github/instructions/03-03.golang.instructions.md`
+
+Chunks: `crypto-acronyms-caps`
+
+#### crypto-acronyms-caps
+
+**Crypto Acronyms**: ALWAYS ALL CAPS: RSA, EC, ECDSA, ECDH, HMAC, AES, JWA, JWK, JWS, JWE, ED25519, PKCS8, PEM, DER.
+
+---
+
+### E.25 03-04.data-infrastructure.instructions.md
+
+**Target**: `.github/instructions/03-04.data-infrastructure.instructions.md`
+
+Chunks: `sqlite-barrier-outside-tx`, `three-tier-database-strategy`
+
+#### sqlite-barrier-outside-tx
+
+**MANDATORY**: ALL calls to `barrier.EncryptContentWithContext` or `barrier.DecryptContentWithContext` MUST be outside any ORM `WithTransaction` scope.
+
+**Root cause**: The barrier service opens its own internal read/write transaction. SQLite WAL mode allows only one writer at a time. Nesting two write transactions on the same connection pool causes deadlock: all connections are held by the outer ORM transaction, so the inner barrier transaction cannot acquire one.
+
+**Correct pattern** — barrier after ORM commit:
+```
+ORM.Create(plainRecord) → commit → (outside tx) barrier.Encrypt → ORM.Update(encryptedRecord)
+```
+
+This is a **correctness requirement**, not a performance concern. Barrier calls inside ORM transactions are a guaranteed SQLite deadlock.
+
+#### three-tier-database-strategy
+
+**3-Tier Database Strategy (MANDATORY)**:
+
+| Tier | Database | Pattern | PostgreSQL? |
+|------|----------|---------|-------------|
+| Unit | SQLite in-memory | `testdb.NewInMemorySQLiteDB(t)` | NEVER |
+| Integration | SQLite in-memory via TestMain | ONE shared instance per package | NEVER |
+| E2E | Docker Compose PostgreSQL | 4 app instances (2 PostgreSQL + 2 SQLite) | YES (only here) |
+
+**Key Rules**:
+- NEVER use PostgreSQL in unit or integration tests — PostgreSQL tested ONLY in E2E.
+- NEVER create DB per-test in integration tests (use TestMain shared instance).
+- NEVER start real servers in unit tests (use Fiber app.Test()).
+- E2E tests use Docker Compose with 4 service instances: 2 sharing a PostgreSQL container, 2 using in-memory SQLite, validating cross-database compatibility.
+
+---
+
+### E.26 03-05.linting.instructions.md
+
+**Target**: `.github/instructions/03-05.linting.instructions.md`
+
+Chunks: `utf8-without-bom`, `cicd-bulk-hook-architecture`
+
+#### utf8-without-bom
+
+**MANDATORY**: UTF-8 without BOM for all text files. The repository text baseline is UTF-8, LF, 4-space indentation for text-heavy formats, and a 200-column ceiling unless a language-specific rule overrides it.
+
+**PERMANENT BAN (NO EXCEPTIONS)**: UTF-16 is prohibited. This ban explicitly applies to `docs/ENG-HANDBOOK.md` and all Copilot/Claude instruction artifacts under `.github/instructions/`, `.github/agents/`, `.claude/agents/`, `.github/skills/`, and `.claude/skills/`.
+
+**Enforcement**: `fix-byte-order-marker` auto-fixes BOMs; `lint-text` rejects BOM-prefixed files; `.editorconfig` mirrors `charset = utf-8`, `end_of_line = lf`, and the formatting defaults; PowerShell file writes must use `[System.Text.UTF8Encoding]::new($false)`.
+
+**Skip list**: generated code, vendored dependencies, build/test artifacts, caches, worktrees, binaries, archives, secrets/cert material, IDE metadata, and other machine-owned files are excluded from text-format checks. Prefer narrowing the exclusion to the smallest machine-owned path rather than exempting an entire language.
+
+#### cicd-bulk-hook-architecture
+
+`cicd-lint` command execution and `.pre-commit-config.yaml` wiring MUST follow this architecture:
+
+1. **Four bulk cicd hooks only** in `.pre-commit-config.yaml`:
+- `pre-commit` lint-only bulk call
+- `pre-commit` format-only bulk call
+- `pre-push` lint-only bulk call
+- `pre-push` format-only bulk call
+1. **Mutual exclusivity**: lint bulk calls MUST include only `lint-*` commands; format bulk calls MUST include only `format-*` commands.
+2. **Coverage**: Every `lint-*` and `format-*` command in `ValidCommands` MUST appear in at least one corresponding bulk hook.
+3. **Concurrency model**:
+- `lint-*` commands are read-only and MUST execute concurrently.
+- `format-*` commands are read-write and MUST execute serially.
+1. **Pre-commit hook flags**:
+- lint bulk hooks MUST use `require_serial: false`
+- format bulk hooks MUST use `require_serial: true`
+1. **Enforcement**: `lint-fitness` sub-linter `precommit-cicd-architecture` is authoritative and MUST fail on any drift.
+
+**Rationale**: This prevents cross-category races (read-only lint vs mutating format), preserves deterministic developer workflows, and ensures new cicd subcommands cannot be added without being wired into bulk hooks.
+
+---
+
+### E.27 04-01.deployment.instructions.md
+
+**Target**: `.github/instructions/04-01.deployment.instructions.md`
+
+Chunks: `cicd-command-naming`, `cicd-lint-constraints`, `docker-compose-rules`, `docker-compose-verification-in-scope`
+
+#### cicd-command-naming
+
+**Three command categories** with strict naming and directory conventions:
+
+| Category | Naming Pattern | Directory Pattern | Entry Function | Registration |
+|----------|---------------|-------------------|----------------|-------------|
+| **Linters** | `lint-<target>` | `lint_<target>/` | `Lint(logger)` | `registeredLinters` |
+| **Formatters** | `format-<target>` | `format_<target>/` | `Format(logger, ...)` | `registeredFormatters` |
+| **Scripts** | `<action>-<target>` | `<action>_<target>/` | Script-specific | `registeredCleaners` etc. |
+
+**Linter commands** (14): `lint-text`, `lint-go`, `lint-go-test`, `lint-go-mod`, `lint-golangci`, `lint-compose`, `lint-ports`, `lint-workflow`, `lint-deployments`, `lint-docs`, `lint-fitness`, `lint-openapi`, `lint-java-test`, `lint-python-test`
+**Formatter commands** (2): `format-go`, `format-go-test`
+**Script commands** (1): `github-cleanup`
+
+#### cicd-lint-constraints
+
+**Purpose**: `cicd-lint` is exclusively for linting, formatting, and operational cleanup. It NEVER generates files, scaffolds content, or transforms the repository.
+
+**Constraints** (NO EXCEPTIONS):
+
+1. **Subcommands only**: `go run ./cmd/cicd-lint <subcommand> [<subcommand2> ...]` — the ONLY accepted arguments are subcommand names. No `--flags`, no `--ps-id=`, no customization parameters of any kind.
+2. **Linting and formatting only**: Linter commands detect deviations from expected structure and return errors. Formatter commands auto-fix style issues. Neither generates new content.
+3. **No content generation**: cicd-lint NEVER creates Dockerfiles, compose files, config overlays, secrets, migration files, or any other repository artifacts. The strategy is detect-and-error, not generate-and-apply.
+4. **No Python under cicd_lint**: `internal/apps-tools/cicd_lint/` is pure Go. No Python scripts, modules, or helpers.
+5. **Codify as validators**: When a new invariant is identified, implement it as a fitness linter that validates the actual state against expected state and returns descriptive errors. NEVER implement it as a generator that creates the expected state.
+
+#### docker-compose-rules
+
+- Use `docker compose` (NOT `docker-compose`)
+- ALWAYS relative paths in compose.yml (NEVER absolute)
+- ALWAYS `127.0.0.1` in containers (NOT `localhost` - Alpine resolves to IPv6)
+- Dockerfile HEALTHCHECK: Use built-in PS-ID `livez` CLI targeting admin port 9090 (NEVER the `health` CLI on public port 8080, NEVER wget/curl)
+- **Admin mTLS via `livez` healthcheck**: `livez` connects to `127.0.0.1:9090` as an mTLS client — when admin mTLS is active, `livez` MUST present the admin client cert (`--cert`/`--key`); a **passing Docker healthcheck is the canonical proof of admin mTLS end-to-end connectivity** inside the container
+- Healthcheck fields use underscores in Docker Compose YAML: `start_period` (NOT `start-period`); the Dockerfile `HEALTHCHECK` instruction uses `--start-period` (hyphen) — these are different syntaxes
+- **Distroless images** (e.g. `otel/opentelemetry-collector-contrib`): NEVER use `wget`/`curl` healthchecks — set `disable: true` and use a sidecar Alpine container with wget for readiness signaling
+- **`docker-entrypoint-initdb.d/` scripts**: PostgreSQL initdb runs with Unix socket only (no TCP). ALL `psql` commands MUST omit `-h localhost`/`-h 127.0.0.1`; using `-h` causes `SASL auth` failures inside initdb
+- **Stack volume isolation**: Named volumes (e.g. `cryptoutil_postgres_leader_volume`) are shared across PS-ID stacks. Always run `docker compose down -v` before switching stacks to ensure fresh PostgreSQL initdb
+- **Canonical template sync**: When modifying ANY file in `deployments/*/` that has a counterpart in `api/cryptosuite-registry/templates/`, update the canonical template in the SAME commit
+
+#### docker-compose-verification-in-scope
+
+**Docker Verification Must Be In-Scope** (MANDATORY): Phases that modify Docker Compose files, config files consumed by containers, cert mount paths, or any artifact that affects runtime behavior MUST include a Docker Compose verification step **within the same phase** (`docker compose up --wait` + health endpoint check). If Docker Desktop is unavailable, the phase is **BLOCKED — not complete**. Configuration-only changes without Docker verification are untested hypotheses.
+
+**Multi-File Config Changes Need Integration Verification**: Any change spanning multiple interrelated configuration files (e.g., `postgresql.conf` + `pg_hba.conf` + GORM DSN + Docker volume mounts) MUST include an integration verification step that exercises the full configuration chain in a running environment — within the same phase. Common failure modes: wrong cert paths after mounting, permission errors inside containers, HBA rule ordering, DSN parameter mismatches.
+
+---
+
+### E.28 05-01.cross-platform.instructions.md
+
+**Target**: `.github/instructions/05-01.cross-platform.instructions.md`
+
+Chunks: `docker-desktop-startup`, `docker-desktop-upgrade`, `scripting-language-policy`
+
+#### docker-desktop-startup
+
+**MANDATORY**: Docker Desktop MUST be running before executing any Docker-dependent operations (E2E tests, Docker Compose, container builds).
+
+**Cross-Platform Verification**:
+
+```bash
+# Check if Docker is running (all platforms)
+docker ps
+
+# Expected: list of containers or empty table
+# Error: "Cannot connect to the Docker daemon" = Docker not running
+```
+
+**Platform-Specific Startup**:
+
+**Windows**:
+```powershell
+# Start Docker Desktop
+Start-Process -FilePath "C:\Program Files\Docker\Docker\Docker Desktop.exe"
+
+# Wait for initialization (30-60 seconds)
+Start-Sleep -Seconds 45
+
+# Verify Docker is ready
+docker ps
+```
+
+**macOS**:
+```bash
+# Start Docker Desktop
+open -a Docker
+
+# Wait for initialization (30-60 seconds)
+sleep 45
+
+# Verify Docker is ready
+docker ps
+```
+
+**Linux**:
+```bash
+# Start Docker service (systemd)
+sudo systemctl start docker
+
+# Enable Docker to start on boot
+sudo systemctl enable docker
+
+# Verify Docker is ready
+docker ps
+
+# Alternative: Docker Desktop for Linux (if installed)
+systemctl --user start docker-desktop
+```
+
+**Why Critical**: All workflow testing infrastructure, E2E tests, and Docker Compose operations require Docker daemon. Without Docker running:
+- `docker ps` fails with "Cannot connect to the Docker daemon" error
+- `docker compose up` fails with pipe/socket errors
+- E2E tests skip with environmental warnings
+- Integration test containers cannot start
+
+#### docker-desktop-upgrade
+
+**Docker Desktop Upgrade Warning**: After ANY Docker Desktop or testcontainers upgrade, run the full E2E test suite. Upgrades MAY break API compatibility between testcontainers-go and Docker Desktop — symptoms may include socket errors, container startup failures, and general Docker API issues.
+
+#### scripting-language-policy
+
+**MANDATORY: Choose scripting language in priority order. Lower-priority choices require justification.**
+
+| Priority | Language | When to Use |
+|----------|----------|-------------|
+| 1 (primary) | **Go** | ALL tooling, automation, scripts — compiled, cross-platform, static binary |
+| 2 (exception) | **Java** | Gatling load tests in `test/load/` ONLY |
+| 3 (last resort) | **Python** | Quick one-offs where Go is not suitable; one file, no maintenance burden |
+| ❌ (BANNED) | **Bash** | BANNED everywhere except Docker container init scripts (`docker-entrypoint-initdb.d/`) |
+| ❌ (BANNED) | **PowerShell** | BANNED everywhere, no exceptions |
+
+**Rationale**: Go and Java are compiled languages that produce cross-platform static binaries with proper type safety and testability. Python scripts tend to accumulate without lifecycle management. Bash/PowerShell are platform-specific and error-prone.
+
+**Docker container init exception**: The official PostgreSQL Docker image's `docker-entrypoint-initdb.d/` mechanism runs shell scripts natively. Shell scripts in this specific directory are the only permitted Bash exception. Minimize logic in these scripts; prefer `.sql` files where possible.
+
+**NO Python under `internal/apps-tools/cicd_lint/`**: The `cicd_lint` tool is pure Go. No Python scripts, generation helpers, or utility modules belong here. If a capability requires Python (rare), it belongs outside the Go module.
+
+---
+
+### E.29 05-02.git.instructions.md
+
+**Target**: `.github/instructions/05-02.git.instructions.md`
+
+Chunks: `platform-line-ending-operations`, `conventional-commits`, `incremental-commits`, `restore-from-baseline`
+
+#### platform-line-ending-operations
+
+**Policy** (MANDATORY): All text files use LF (`\n`). `mixed-line-ending`, `end-of-file-fixer`, and `editorconfig-checker` enforce the policy. Exclusions cover generated code, vendored dependencies, build/test outputs, caches, worktrees, binaries, archives, secrets/cert material, and IDE metadata.
+
+**PERMANENT BAN (NO EXCEPTIONS)**: CRLF line endings are prohibited. This ban explicitly applies to `docs/ENG-HANDBOOK.md` and all Copilot/Claude instruction artifacts under `.github/instructions/`, `.github/agents/`, `.claude/agents/`, `.github/skills/`, and `.claude/skills/`.
+
+**Rationale**: gofumpt, gofmt, and goimports emit LF; YAML/Markdown/SQL/text tools default to LF; CI/CD runs on Linux; LF everywhere prevents CRLF/LF churn on Windows. Prettier also defaults `endOfLine=lf` (v2.0.0+).
+
+#### conventional-commits
+
+**Format**: `<type>[optional scope]: <description>`
+
+**Types**: feat, fix, docs, style, refactor, perf, test, build, ci, chore, revert
+
+**Examples**:
+
+```bash
+feat(auth): add OAuth2 client credentials flow
+fix(database): prevent connection pool exhaustion
+feat(api)!: remove deprecated v1 endpoints  # Breaking change
+```
+
+#### incremental-commits
+
+- ALWAYS commit incrementally (NOT amend) - preserves history for bisect, selective revert.
+- NEVER repeatedly amend - loses context, hard to bisect.
+- Amend ONLY for immediate typo fixes (<1 min, before push).
+- **Semantic Grouping**: Commit each semantically coherent unit of work as it completes. NEVER accumulate changes for different semantic groups into a bulk commit. Semantic boundaries: one feature, one bug fix, one refactor, one test suite, one doc update = each gets its own commit.
+- **Periodic Commits**: Prefer frequent small commits over rare large commits. A completed task = a commit. Push every 5-10 commits.
+
+#### restore-from-baseline
+
+**When fixing regressions, ALWAYS restore clean baseline FIRST**:
+
+1. Find last known-good commit (`git log --oneline --grep="baseline"`)
+2. Restore package (`git checkout <hash> -- path/to/package/`)
+3. Verify baseline works (`go test`)
+4. Apply ONLY the new fix (minimal change)
+5. Commit as NEW commit (NOT amend)
+
+**Why**: HEAD may be corrupted from previous failed attempts. Start from known-good state.
+
+---
+
+### E.30 06-01.evidence-based.instructions.md
+
+**Target**: `.github/instructions/06-01.evidence-based.instructions.md`
+
+Chunks: `mandatory-review-passes`, `per-task-status-updates`, `infrastructure-blocker-escalation`
+
+#### mandatory-review-passes
+
+**MANDATORY: Minimum 3, maximum 5 review passes before marking any task complete.**
+
+Copilot and AI agents have a tendency to partially fulfill requested work, accidentally omitting or skipping items per request. To counter this, every task completion MUST include at least 3 review passes, each checking ALL 8 quality attributes:
+
+**Each pass checks ALL 8 attributes** (fresh perspective per pass):
+1. ✅ **Correctness** — code/docs correct, no regressions
+2. ✅ **Completeness** — all tasks/steps/items addressed, nothing skipped
+3. ✅ **Thoroughness** — evidence-based validation, all edge cases covered
+4. ✅ **Reliability** — build, lint, test, coverage, mutation all pass
+5. ✅ **Efficiency** — optimized for maintainability, not implementation speed
+6. ✅ **Accuracy** — root cause addressed, not just symptoms
+7. ❌ **NO Time Pressure** — NEVER rushed, NEVER cutting corners
+8. ❌ **NO Premature Completion** — objective evidence required before marking complete
+
+**Continuation rule**: If pass 3 finds ANY issue, continue to pass 4. If pass 4 still finds issues, continue to pass 5. Diminishing returns = done.
+
+**Scope**: ALL work types — code, docs, config, tests, infrastructure, deployments.
+
+#### per-task-status-updates
+
+**Per-Task Status Updates** (MANDATORY): Update `tasks.md` immediately after each task completes. NEVER accumulate multiple task completions before updating documentation. A `tasks.md` that does not reflect actual state is a blocking artifact inconsistency. Deferred documentation creates invisible debt and false completion signals to subsequent phases.
+
+#### infrastructure-blocker-escalation
+
+**MANDATORY: ALL infrastructure issues are BLOCKING. NEVER defer, deprioritize, skip, or tag as "pre-existing."**
+
+Three-encounter rule: 1st → document, 2nd → create fix task, 3rd → MANDATORY Phase 0 fix (block ALL other work). Infrastructure blockers (OTel, Docker, testcontainers, CI/CD) take priority over feature work.
+
+---
+
+### E.31 06-02.agent-format.instructions.md
+
+**Target**: `.github/instructions/06-02.agent-format.instructions.md`
+
+Chunks: `agent-self-containment`
+
+#### agent-self-containment
+
+**Agent Self-Containment Checklist** (MANDATORY):
+- Agents generating implementation plans MUST reference ENG-HANDBOOK.md testing (Section 10), quality gates (Section 11), coding standards (Section 14)
+- Agents modifying code MUST reference coding standards (Sections 11, 14)
+- Agents modifying deployments MUST reference deployment architecture (Sections 12, 13)
+- Agents modifying CI/CD workflows or infrastructure MUST reference infrastructure architecture (Section 9)
+- Agents modifying documentation or copilot artifacts (skills, instructions, agents) MUST reference Section 2.1 (Agent/Skill/Instruction catalog) and Section 13.4 (Documentation Propagation)
+- ALL agents MUST reference Section 2.5 (Quality Strategy) for coverage and mutation targets
+- Agents with ZERO ENG-HANDBOOK.md references are NON-COMPLIANT and MUST be updated
+
+---
+
+### E.32 06-03.tool-efficiency.instructions.md
+
+**Target**: `.github/instructions/06-03.tool-efficiency.instructions.md`
+
+Chunks: `tool-preference-order`
+
+#### tool-preference-order
+
+| Priority | Tool | When to Use |
+|----------|------|-------------|
+| 1 (cheapest) | `grep_search` / `text_search` | Exact string or regex match in known files |
+| 2 | `file_search` | Confirm file existence or locate by name pattern |
+| 3 | `list_dir` | Enumerate directory contents (unknown structure) |
+| 4 | `read_file` (targeted) | Read a specific 50–200 line window of a known file |
+| 5 | `read_file` (full) | Full file read only when entire context required |
+| 6 (costliest) | `semantic_search` | ONLY when query cannot be expressed as regex/literal |
+
+---
+
+### E.33 copilot-customization/SKILL.md
+
+**Target**: `.github/skills/copilot-customization/SKILL.md`
+
+Chunks: `skill-copilot-customization-core-rules`
+
+#### skill-copilot-customization-core-rules
+
+- Pick one artifact type per invocation: `agent`, `instruction`, or `skill`
+- Decide the operation up front: create, update, or delete
+- Agents are dual-canonical: create BOTH `.github/agents/NAME.agent.md` and `.claude/agents/NAME.md`
+- Skills are dual-canonical: create BOTH `.github/skills/NAME/SKILL.md` and `.claude/skills/NAME/SKILL.md`
+- Agent and skill body content MUST stay identical across Copilot and Claude pairs; only permitted frontmatter differences may differ
+- Run `go run ./cmd/cicd-lint lint-docs` after creating, updating, or deleting any customization artifact
+
+---
+
+### E.34 openapi-codegen/SKILL.md
+
+**Target**: `.github/skills/openapi-codegen/SKILL.md`
+
+Chunks: `skill-openapi-codegen-core-rules`
+
+#### skill-openapi-codegen-core-rules
+
+- OpenAPI version MUST be 3.0.3 (NOT 2.0/Swagger, NOT 3.1.x)
+- Generate THREE config files: server (`strict-server: true`), model, client
+- API MUST duplicate under BOTH `/service/` and `/browser/` paths
+- Content type: `application/json` ONLY (no form, multipart, or other types)
+- `strict-server: true` is MANDATORY in server config
+- All `openapi-gen_config*.yaml` MUST include the full base initialisms list from ENG-HANDBOOK.md §8
+
+---
+
+### E.35 propagation-check/SKILL.md
+
+**Target**: `.github/skills/propagation-check/SKILL.md`
+
+Chunks: `skill-propagation-check-core-rules`
+
+#### skill-propagation-check-core-rules
+
+- `@source` content MUST be byte-for-byte identical to `@propagate` content in ENG-HANDBOOK.md
+- Run `go run ./cmd/cicd-lint lint-docs` to detect drift
+- Add both Copilot file AND Claude file to `@propagate to=` attribute (comma-separated)
+- Update `docs/required-propagations.yaml` `required_targets` when adding new targets
+- When ENG-HANDBOOK.md chunk changes, ALL downstream `@source` blocks must be updated
+
+---
+
+### E.36 sync-copilot-claude/SKILL.md
+
+**Target**: `.github/skills/sync-copilot-claude/SKILL.md`
+
+Chunks: `skill-sync-copilot-claude-core-rules`
+
+#### skill-sync-copilot-claude-core-rules
+
+- Copilot skills live at `.github/skills/<NAME>/SKILL.md`; Claude skills at `.claude/skills/<NAME>/SKILL.md`
+- Body content MUST be identical between Copilot and Claude skill files
+- Claude agents at `.claude/agents/<NAME>.md` must match Copilot agents at `.github/agents/<NAME>.agent.md`
+- NEVER update only one file — always sync both in the same commit
+- The `lint-agent-drift` linter (in `lint-docs`) enforces agent pair identity automatically
+
+---
+
+### E.37 test-table-driven/SKILL.md
+
+**Target**: `.github/skills/test-table-driven/SKILL.md`
+
+Chunks: `skill-test-table-driven-core-rules`
+
+#### skill-test-table-driven-core-rules
+
+- `t.Parallel()` MANDATORY on parent and ALL subtests
+- Use `googleUuid.NewV7()` for test data IDs (thread-safe, unique, no conflicts)
+- `require` package (fail-fast) over `assert` (continue-on-failure)
+- Table-driven for ALL multi-case tests (happy path AND sad path)
+- TestMain for heavyweight resources (DB, servers, containers) — one per package
+- Use exactly one `testmain_test.go` per package; never split into `testmain_*_test.go` variants
+- `testmain_test.go` must not use `//go:build` or `// +build` directives
+
+---
+
 ## Document Metadata
 
 **Related Documents**:

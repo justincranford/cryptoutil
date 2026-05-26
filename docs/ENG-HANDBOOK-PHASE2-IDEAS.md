@@ -21,7 +21,7 @@ Appendix D semantic group → assembled into Appendix E per-artifact section →
 The defining property of Tier 2: **a human reviewer jumps to the end of the handbook and sees
 exactly what content each downstream artifact receives, assembled in one section per file.**
 
-**Current status: Tier 1 is done. Tier 2 is not started.**
+**Current status: Tier 1 is done. Appendix E (human-readable index) is done. Live Tier 2 propagation (Appendix E → actual files) is not started.**
 
 ---
 
@@ -88,40 +88,56 @@ pairs.
 
 ---
 
-## 2. Not Implemented (Tier 2 — Not Started)
+## 2. Implemented Since Tier 1 (Appendix E — Human-Readable Index)
 
 ### 2.1 Appendix E: Per-Artifact Sections
 
-**Appendix E does not exist.**
+**Appendix E now exists.** Added 2026-05-26.
 
-This is the primary unachieved goal. Appendix E would contain one section per downstream
-artifact (or one section per dual-canonical pair). Each section would assemble all chunks for
-that artifact in one place and propagate them via `@propagate to="TARGET_FILE"`.
+Appendix E is a **human-readable per-artifact index** (37 sections). It assembles all chunks
+for each downstream artifact in one place so a reviewer can see exactly what a given file
+receives without scanning all of Appendix D. Sections are sorted alphabetically by target path.
 
-The planned structure (28 sections):
-- E.1–E.19: One section per instruction file.
-- E.20–E.23: One section per agent pair (4 pairs).
-- E.24–E.28: One section per handbook-coupled skill pair (5 pairs).
+Actual section count: 37 (individual files rather than agent/skill pairs):
+- E.1–E.4: `.claude/agents/` files.
+- E.5–E.9: `.claude/skills/` files.
+- E.10–E.13: `.github/agents/` files.
+- E.14–E.32: `.github/instructions/` files (19 files).
+- E.33–E.37: `.github/skills/` files.
 
-See `ENG-HANDBOOK-NEW.md` §6 for the complete per-section breakdown.
+**Important**: Appendix E is a **display view only** — it contains no `@propagate` markers.
+Content is kept in sync with `@appendix-propagate` blocks in Appendix D (validated by
+`lint-docs validate-chunks`). Live distribution to actual files is not yet implemented.
 
-### 2.2 Redirecting Appendix D `to=` Attributes
+### 2.2 validate_chunks.go Regex Fix
+
+The `appendixPropagateRegex` in `validate_chunks.go` was fixed to accept the optional
+`why-this-exists="..."` attribute in `@appendix-propagate` markers. Before this fix,
+0 Appendix D blocks were validated. After: 90 (chunk, target) pairs validated.
+
+---
+
+## 3. Not Implemented (Tier 2 — Live Distribution)
+
+### 3.1 Redirecting Appendix D `to=` Attributes (Optional)
 
 Currently, `@appendix-propagate` blocks in Appendix D have `to=` values pointing to actual
-downstream files. In the two-tier model, these must change to reference Appendix E section
-anchors, making Appendix D a semantic index only.
+downstream files directly (Tier 1 only). In the full two-tier model, these would change to
+reference Appendix E section anchors, making Appendix D a semantic index only.
 
-### 2.3 Tier 2 Linter Rules
+This is optional since Appendix E is already an accurate per-artifact view.
+
+### 3.2 Tier 2 Linter Rules
 
 No linter rules exist yet for the two-hop chain (Appendix D → Appendix E → actual file).
-Required rules:
+Required rules when live distribution is implemented:
 1. Every Appendix D chunk must appear in the correct Appendix E section.
 2. Every Appendix E section must propagate to exactly the file(s) listed in its header.
 3. Chunk content in Appendix E must match chunk content in Appendix D exactly.
 
 ---
 
-## 3. Future Candidates (Post Tier 2)
+## 4. Future Candidates (Post Tier 2)
 
 These are valid improvements but must wait until Tier 2 is complete.
 
@@ -138,7 +154,7 @@ These are valid improvements but must wait until Tier 2 is complete.
 
 ---
 
-## 4. Rejected / Out of Scope
+## 5. Rejected / Out of Scope
 
 1. Appendix ownership index as a separate generated document (superseded by Appendix E itself).
 2. Domain-family grouping of instruction subsections inside Appendix E (E.1–E.19 ordered by
