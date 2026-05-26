@@ -122,33 +122,6 @@ This document is structured to serve multiple audiences:
 **Rationale**: Prevents confusion filenames, variable names, and documentation.
 <!-- @/section-to-appendix -->
 
-#### Terminology Appendix Propagation (Pilot)
-
-<!-- @appendix-why from="terminology-instruction-body" why-this-exists="RFC 2119 keyword guidance reused in terminology instruction artifact" -->
-<!-- @appendix-propagate from="terminology-instruction-body" to=".github/instructions/01-01.terminology.instructions.md" as="rfc-2119-keywords" -->
-- **MUST** = **REQUIRED** = **MANDATORY** = **SHALL** - Absolute requirement
-- **MUST NOT** = **SHALL NOT** - Absolute prohibition
-- **SHOULD** = **RECOMMENDED** - Highly desirable (may ignore with justification)
-- **SHOULD NOT** = **NOT RECOMMENDED** - Not advisable (may do with justification)
-- **MAY** = **OPTIONAL** - Truly optional (implementer decides)
-<!-- @/appendix-propagate -->
-
-<!-- @appendix-why from="terminology-instruction-body" why-this-exists="emphasis keyword guidance reused in terminology instruction artifact" -->
-<!-- @appendix-propagate from="terminology-instruction-body" to=".github/instructions/01-01.terminology.instructions.md" as="emphasis-keywords" -->
-- **CRITICAL** - Historically regression-prone areas requiring extra attention
-- **ALWAYS** / **NEVER** - Emphatic MUST / MUST NOT (no exceptions)
-<!-- @/appendix-propagate -->
-
-<!-- @appendix-why from="terminology-instruction-body" why-this-exists="abbreviation disambiguation guidance reused in terminology instruction artifact" -->
-<!-- @appendix-propagate from="terminology-instruction-body" to=".github/instructions/01-01.terminology.instructions.md" as="abbreviations" -->
-**CRITICAL: NEVER use ambiguous `auth` abbreviation to mean either authentication or authorization**
-
-- **authn** = Authentication
-- **authz** = Authorization
-
-**Rationale**: Prevents confusion filenames, variable names, and documentation.
-<!-- @/appendix-propagate -->
-
 ---
 
 ## 1. Executive Summary
@@ -503,7 +476,7 @@ Here is current git status:
 | `copilot-customization` | tooling | Create, update, or delete repo-local agents, instructions, or skills and any required Claude counterpart, including Copilot agent tool allowlist maintenance | [SKILL.md](.github/skills/copilot-customization/SKILL.md) |
 | `sync-copilot-claude` | tooling | Audit and sync Copilot skills/agents with Claude skills/agents | [SKILL.md](.github/skills/sync-copilot-claude/SKILL.md) |
 
-#### Skill Body Fragments (Appendix Pilot)
+#### Skill Body Fragments
 
 <!-- @section-to-appendix to="skills-handbook-coupled-body" as="skill-propagation-check-core-rules" -->
 - `@source` content MUST be byte-for-byte identical to `@propagate` content in ENG-HANDBOOK.md
@@ -548,55 +521,6 @@ Here is current git status:
 - `strict-server: true` is MANDATORY in server config
 - All `openapi-gen_config*.yaml` MUST include the full base initialisms list from ENG-HANDBOOK.md §8
 <!-- @/section-to-appendix -->
-
-<!-- @appendix-why from="skills-handbook-coupled-body" why-this-exists="semantic skill rules reused across Copilot and Claude skill pairs" -->
-<!-- @appendix-propagate from="skills-handbook-coupled-body" to=".github/skills/propagation-check/SKILL.md, .claude/skills/propagation-check/SKILL.md" as="skill-propagation-check-core-rules" -->
-- `@source` content MUST be byte-for-byte identical to `@propagate` content in ENG-HANDBOOK.md
-- Run `go run ./cmd/cicd-lint lint-docs` to detect drift
-- Add both Copilot file AND Claude file to `@propagate to=` attribute (comma-separated)
-- Update `docs/required-propagations.yaml` `required_targets` when adding new targets
-- When ENG-HANDBOOK.md chunk changes, ALL downstream `@source` blocks must be updated
-<!-- @/appendix-propagate -->
-
-<!-- @appendix-why from="skills-handbook-coupled-body" why-this-exists="sync rules shared across dual-canonical skill and agent tooling" -->
-<!-- @appendix-propagate from="skills-handbook-coupled-body" to=".github/skills/sync-copilot-claude/SKILL.md, .claude/skills/sync-copilot-claude/SKILL.md" as="skill-sync-copilot-claude-core-rules" -->
-- Copilot skills live at `.github/skills/<NAME>/SKILL.md`; Claude skills at `.claude/skills/<NAME>/SKILL.md`
-- Body content MUST be identical between Copilot and Claude skill files
-- Claude agents at `.claude/agents/<NAME>.md` must match Copilot agents at `.github/agents/<NAME>.agent.md`
-- NEVER update only one file — always sync both in the same commit
-- The `lint-agent-drift` linter (in `lint-docs`) enforces agent pair identity automatically
-<!-- @/appendix-propagate -->
-
-<!-- @appendix-why from="skills-handbook-coupled-body" why-this-exists="customization workflow constraints reused in both skill targets" -->
-<!-- @appendix-propagate from="skills-handbook-coupled-body" to=".github/skills/copilot-customization/SKILL.md, .claude/skills/copilot-customization/SKILL.md" as="skill-copilot-customization-core-rules" -->
-- Pick one artifact type per invocation: `agent`, `instruction`, or `skill`
-- Decide the operation up front: create, update, or delete
-- Agents are dual-canonical: create BOTH `.github/agents/NAME.agent.md` and `.claude/agents/NAME.md`
-- Skills are dual-canonical: create BOTH `.github/skills/NAME/SKILL.md` and `.claude/skills/NAME/SKILL.md`
-- Agent and skill body content MUST stay identical across Copilot and Claude pairs; only permitted frontmatter differences may differ
-- Run `go run ./cmd/cicd-lint lint-docs` after creating, updating, or deleting any customization artifact
-<!-- @/appendix-propagate -->
-
-<!-- @appendix-why from="skills-handbook-coupled-body" why-this-exists="testing rule baseline kept identical for both test-table-driven skill files" -->
-<!-- @appendix-propagate from="skills-handbook-coupled-body" to=".github/skills/test-table-driven/SKILL.md, .claude/skills/test-table-driven/SKILL.md" as="skill-test-table-driven-core-rules" -->
-- `t.Parallel()` MANDATORY on parent and ALL subtests
-- Use `googleUuid.NewV7()` for test data IDs (thread-safe, unique, no conflicts)
-- `require` package (fail-fast) over `assert` (continue-on-failure)
-- Table-driven for ALL multi-case tests (happy path AND sad path)
-- TestMain for heavyweight resources (DB, servers, containers) — one per package
-- Use exactly one `testmain_test.go` per package; never split into `testmain_*_test.go` variants
-- `testmain_test.go` must not use `//go:build` or `// +build` directives
-<!-- @/appendix-propagate -->
-
-<!-- @appendix-why from="skills-handbook-coupled-body" why-this-exists="OpenAPI generation invariants reused for Copilot and Claude openapi-codegen skills" -->
-<!-- @appendix-propagate from="skills-handbook-coupled-body" to=".github/skills/openapi-codegen/SKILL.md, .claude/skills/openapi-codegen/SKILL.md" as="skill-openapi-codegen-core-rules" -->
-- OpenAPI version MUST be 3.0.3 (NOT 2.0/Swagger, NOT 3.1.x)
-- Generate THREE config files: server (`strict-server: true`), model, client
-- API MUST duplicate under BOTH `/service/` and `/browser/` paths
-- Content type: `application/json` ONLY (no form, multipart, or other types)
-- `strict-server: true` is MANDATORY in server config
-- All `openapi-gen_config*.yaml` MUST include the full base initialisms list from ENG-HANDBOOK.md §8
-<!-- @/appendix-propagate -->
 
 #### 2.1.6 Agent Tool Discovery
 
@@ -7793,8 +7717,7 @@ The sections below collect the verbatim chunk bodies propagated to instruction a
 
 ### D.1 Execution and Agent Behavior
 
-<!-- @appendix-why from="execution-agent-behavior" why-this-exists="quality and execution behavioral constraints consumed by beast-mode instruction and implementation planning/execution agents" -->
-<!-- @appendix-propagate from="execution-agent-behavior" to=".github/instructions/01-02.beast-mode.instructions.md" as="quality-attributes" -->
+<!-- @appendix-propagate from="execution-agent-behavior" to=".github/instructions/01-02.beast-mode.instructions.md" as="quality-attributes" why-this-exists="quality and execution behavioral constraints consumed by beast-mode instruction and implementation planning/execution agents" -->
 **Quality Attributes (NO EXCEPTIONS)**:
 - ✅ Correctness: ALL code functionally correct with comprehensive tests
 - ✅ Completeness: NO phases or tasks or steps skipped, NO features de-prioritized, NO shortcuts
@@ -7806,8 +7729,7 @@ The sections below collect the verbatim chunk bodies propagated to instruction a
 - ❌ Premature Completion: NEVER mark phases or tasks or steps complete without objective evidence
 <!-- @/appendix-propagate -->
 
-<!-- @appendix-why from="execution-agent-behavior" why-this-exists="end-of-turn git cleanliness protocol consumed by the beast-mode instruction file via modeInstructions runtime injection" -->
-<!-- @appendix-propagate from="execution-agent-behavior" to=".github/instructions/01-02.beast-mode.instructions.md" as="end-of-turn-commit-protocol" -->
+<!-- @appendix-propagate from="execution-agent-behavior" to=".github/instructions/01-02.beast-mode.instructions.md" as="end-of-turn-commit-protocol" why-this-exists="end-of-turn git cleanliness protocol consumed by the beast-mode instruction file via modeInstructions runtime injection" -->
 **MANDATORY: NEVER end a turn with uncommitted changes. Your ABSOLUTE LAST TOOL INVOCATION before yielding to the user MUST be running `git status --porcelain`. NEVER assume the worktree is clean — always RUN the command as a tool call.**
 
 If `git status --porcelain` returns ANY output:
@@ -7828,8 +7750,7 @@ If `git status --porcelain` returns ANY output:
 **Pattern**: `git status --porcelain` returns empty → End turn. Any output → Commit first.
 <!-- @/appendix-propagate -->
 
-<!-- @appendix-why from="execution-agent-behavior" why-this-exists="mandatory review pass requirements consumed by evidence-based instructions and all beast-mode and implementation agent files" -->
-<!-- @appendix-propagate from="execution-agent-behavior" to=".github/instructions/06-01.evidence-based.instructions.md, .github/agents/beast-mode.agent.md, .github/agents/fix-workflows.agent.md, .github/agents/implementation-execution.agent.md, .github/agents/implementation-planning.agent.md, .claude/agents/beast-mode.md, .claude/agents/fix-workflows.md, .claude/agents/implementation-execution.md, .claude/agents/implementation-planning.md" as="mandatory-review-passes" -->
+<!-- @appendix-propagate from="execution-agent-behavior" to=".github/instructions/06-01.evidence-based.instructions.md, .github/agents/beast-mode.agent.md, .github/agents/fix-workflows.agent.md, .github/agents/implementation-execution.agent.md, .github/agents/implementation-planning.agent.md, .claude/agents/beast-mode.md, .claude/agents/fix-workflows.md, .claude/agents/implementation-execution.md, .claude/agents/implementation-planning.md" as="mandatory-review-passes" why-this-exists="mandatory review pass requirements consumed by evidence-based instructions and all beast-mode and implementation agent files" -->
 **MANDATORY: Minimum 3, maximum 5 review passes before marking any task complete.**
 
 Copilot and AI agents have a tendency to partially fulfill requested work, accidentally omitting or skipping items per request. To counter this, every task completion MUST include at least 3 review passes, each checking ALL 8 quality attributes:
@@ -7849,8 +7770,7 @@ Copilot and AI agents have a tendency to partially fulfill requested work, accid
 **Scope**: ALL work types — code, docs, config, tests, infrastructure, deployments.
 <!-- @/appendix-propagate -->
 
-<!-- @appendix-why from="execution-agent-behavior" why-this-exists="agent self-containment checklist consumed by the agent format instruction file" -->
-<!-- @appendix-propagate from="execution-agent-behavior" to=".github/instructions/06-02.agent-format.instructions.md" as="agent-self-containment" -->
+<!-- @appendix-propagate from="execution-agent-behavior" to=".github/instructions/06-02.agent-format.instructions.md" as="agent-self-containment" why-this-exists="agent self-containment checklist consumed by the agent format instruction file" -->
 **Agent Self-Containment Checklist** (MANDATORY):
 - Agents generating implementation plans MUST reference ENG-HANDBOOK.md testing (Section 10), quality gates (Section 11), coding standards (Section 14)
 - Agents modifying code MUST reference coding standards (Sections 11, 14)
@@ -7861,13 +7781,11 @@ Copilot and AI agents have a tendency to partially fulfill requested work, accid
 - Agents with ZERO ENG-HANDBOOK.md references are NON-COMPLIANT and MUST be updated
 <!-- @/appendix-propagate -->
 
-<!-- @appendix-why from="execution-agent-behavior" why-this-exists="per-task documentation update discipline consumed by evidence-based instructions and implementation agent files" -->
-<!-- @appendix-propagate from="execution-agent-behavior" to=".github/instructions/06-01.evidence-based.instructions.md, .github/agents/implementation-execution.agent.md, .github/agents/implementation-planning.agent.md, .claude/agents/implementation-execution.md, .claude/agents/implementation-planning.md" as="per-task-status-updates" -->
+<!-- @appendix-propagate from="execution-agent-behavior" to=".github/instructions/06-01.evidence-based.instructions.md, .github/agents/implementation-execution.agent.md, .github/agents/implementation-planning.agent.md, .claude/agents/implementation-execution.md, .claude/agents/implementation-planning.md" as="per-task-status-updates" why-this-exists="per-task documentation update discipline consumed by evidence-based instructions and implementation agent files" -->
 **Per-Task Status Updates** (MANDATORY): Update `tasks.md` immediately after each task completes. NEVER accumulate multiple task completions before updating documentation. A `tasks.md` that does not reflect actual state is a blocking artifact inconsistency. Deferred documentation creates invisible debt and false completion signals to subsequent phases.
 <!-- @/appendix-propagate -->
 
-<!-- @appendix-why from="execution-agent-behavior" why-this-exists="lessons.md document structure requirements consumed by implementation planning and execution agents" -->
-<!-- @appendix-propagate from="execution-agent-behavior" to=".github/agents/implementation-execution.agent.md, .github/agents/implementation-planning.agent.md, .claude/agents/implementation-execution.md, .claude/agents/implementation-planning.md" as="lessons-md-structure" -->
+<!-- @appendix-propagate from="execution-agent-behavior" to=".github/agents/implementation-execution.agent.md, .github/agents/implementation-planning.agent.md, .claude/agents/implementation-execution.md, .claude/agents/implementation-planning.md" as="lessons-md-structure" why-this-exists="lessons.md document structure requirements consumed by implementation planning and execution agents" -->
 A completed `lessons.md` MUST contain three top-level sections **in this order**:
 
 **1. `## Executive Summary`** — Written at plan completion. A numbered list where each entry is a markdown link to a `## Phase N:` section followed by a one-sentence description of the key outcome. Enables reviewers to scan the entire plan scope at a glance and navigate directly to relevant phases.
@@ -7893,8 +7811,7 @@ Example entries:
 
 ### D.2 Architecture and Service Template
 
-<!-- @appendix-why from="architecture-service-template" why-this-exists="service framework component list consumed by the service architecture instruction file" -->
-<!-- @appendix-propagate from="architecture-service-template" to=".github/instructions/02-01.architecture.instructions.md" as="service-framework-components" -->
+<!-- @appendix-propagate from="architecture-service-template" to=".github/instructions/02-01.architecture.instructions.md" as="service-framework-components" why-this-exists="service framework component list consumed by the service architecture instruction file" -->
 - Two HTTPS Listeners: Public (business APIs) + Admin (health checks)
 - Two Public Paths: `/browser/**` (session cookies) vs `/service/**` (session tokens)
 - Three Admin APIs: /admin/api/v1/livez, /admin/api/v1/readyz, /admin/api/v1/shutdown
@@ -7903,8 +7820,7 @@ Example entries:
 - Config Priority: Docker secrets > YAML > CLI parameters (NO environment variables)
 <!-- @/appendix-propagate -->
 
-<!-- @appendix-why from="architecture-service-template" why-this-exists="SQLite barrier transaction isolation requirement consumed by the data infrastructure instruction file" -->
-<!-- @appendix-propagate from="architecture-service-template" to=".github/instructions/03-04.data-infrastructure.instructions.md" as="sqlite-barrier-outside-tx" -->
+<!-- @appendix-propagate from="architecture-service-template" to=".github/instructions/03-04.data-infrastructure.instructions.md" as="sqlite-barrier-outside-tx" why-this-exists="SQLite barrier transaction isolation requirement consumed by the data infrastructure instruction file" -->
 **MANDATORY**: ALL calls to `barrier.EncryptContentWithContext` or `barrier.DecryptContentWithContext` MUST be outside any ORM `WithTransaction` scope.
 
 **Root cause**: The barrier service opens its own internal read/write transaction. SQLite WAL mode allows only one writer at a time. Nesting two write transactions on the same connection pool causes deadlock: all connections are held by the outer ORM transaction, so the inner barrier transaction cannot acquire one.
@@ -7917,8 +7833,7 @@ ORM.Create(plainRecord) → commit → (outside tx) barrier.Encrypt → ORM.Upda
 This is a **correctness requirement**, not a performance concern. Barrier calls inside ORM transactions are a guaranteed SQLite deadlock.
 <!-- @/appendix-propagate -->
 
-<!-- @appendix-why from="architecture-service-template" why-this-exists="TLS provisioning mode taxonomy consumed by the service architecture instruction file" -->
-<!-- @appendix-propagate from="architecture-service-template" to=".github/instructions/02-01.architecture.instructions.md" as="tls-provision-mode" -->
+<!-- @appendix-propagate from="architecture-service-template" to=".github/instructions/02-01.architecture.instructions.md" as="tls-provision-mode" why-this-exists="TLS provisioning mode taxonomy consumed by the service architecture instruction file" -->
 **Service template server certificates use `TLSProvisionMode`** based on credentials provided at startup:
 
 | Environment | Cert Chain | TLS Key | Issuing CA Key | TLS Provision Mode | Outcome |
@@ -7938,8 +7853,7 @@ The `GenerateTLSMaterial()` function in `internal/apps-framework/service/config/
 **Detection logic**: `StaticCertPEM + StaticKeyPEM` provided → `static`. `MixedCACertPEM + MixedCAKeyPEM` provided → generate server cert then use `static` material for the running process. Nothing provided → `auto`.
 <!-- @/appendix-propagate -->
 
-<!-- @appendix-why from="architecture-service-template" why-this-exists="3-tier database testing strategy consumed by the testing and data infrastructure instruction files" -->
-<!-- @appendix-propagate from="architecture-service-template" to=".github/instructions/03-02.testing.instructions.md, .github/instructions/03-04.data-infrastructure.instructions.md" as="three-tier-database-strategy" -->
+<!-- @appendix-propagate from="architecture-service-template" to=".github/instructions/03-02.testing.instructions.md, .github/instructions/03-04.data-infrastructure.instructions.md" as="three-tier-database-strategy" why-this-exists="3-tier database testing strategy consumed by the testing and data infrastructure instruction files" -->
 **3-Tier Database Strategy (MANDATORY)**:
 
 | Tier | Database | Pattern | PostgreSQL? |
@@ -7957,21 +7871,18 @@ The `GenerateTLSMaterial()` function in `internal/apps-framework/service/config/
 
 ### D.3 Security, Authentication, and Authorization
 
-<!-- @appendix-why from="security-authn-authz" why-this-exists="authentication key principles consumed by the authentication and authorization instruction file" -->
-<!-- @appendix-propagate from="security-authn-authz" to=".github/instructions/02-06.authn.instructions.md" as="key-principles" -->
+<!-- @appendix-propagate from="security-authn-authz" to=".github/instructions/02-06.authn.instructions.md" as="key-principles" why-this-exists="authentication key principles consumed by the authentication and authorization instruction file" -->
 - **Zero Trust**: NO caching of authorization decisions. Re-evaluate every request.
 - **MFA Step-Up**: Re-authentication MANDATORY every 30 minutes for high-sensitivity operations.
 - **Session Storage**: SQL databases ONLY (PostgreSQL or SQLite with ACID). NEVER Redis/Memcached.
 - **mTLS Revocation**: MUST check BOTH CRLDP and OCSP. Fail if BOTH unreachable.
 <!-- @/appendix-propagate -->
 
-<!-- @appendix-why from="security-authn-authz" why-this-exists="session token format requirements consumed by the authentication and authorization instruction file" -->
-<!-- @appendix-propagate from="security-authn-authz" to=".github/instructions/02-06.authn.instructions.md" as="session-token-formats" -->
+<!-- @appendix-propagate from="security-authn-authz" to=".github/instructions/02-06.authn.instructions.md" as="session-token-formats" why-this-exists="session token format requirements consumed by the authentication and authorization instruction file" -->
 **Opaque** (UUID), **JWE** (encrypted JWT), **JWS** (signed JWT). Storage: PostgreSQL (distributed) or SQLite (single-node). NO Redis/Memcached.
 <!-- @/appendix-propagate -->
 
-<!-- @appendix-why from="security-authn-authz" why-this-exists="headless authentication method catalog consumed by the authentication and authorization instruction file" -->
-<!-- @appendix-propagate from="security-authn-authz" to=".github/instructions/02-06.authn.instructions.md" as="headless-authn" -->
+<!-- @appendix-propagate from="security-authn-authz" to=".github/instructions/02-06.authn.instructions.md" as="headless-authn" why-this-exists="headless authentication method catalog consumed by the authentication and authorization instruction file" -->
 **Non-Federated (6)**: JWE Session Token, JWS Session Token, Opaque Session Token, Basic (Client ID/Secret), Bearer (API Token), HTTPS Client Certificate.
 
 **Federated (7)**: Basic/Bearer/ClientCert via OAuth 2.1, JWE/JWS/Opaque Access Token, Opaque Refresh Token.
@@ -7979,8 +7890,7 @@ The `GenerateTLSMaterial()` function in `internal/apps-framework/service/config/
 **Storage**: YAML + SQL (Config > DB priority) for all methods.
 <!-- @/appendix-propagate -->
 
-<!-- @appendix-why from="security-authn-authz" why-this-exists="browser authentication method catalog consumed by the authentication and authorization instruction file" -->
-<!-- @appendix-propagate from="security-authn-authz" to=".github/instructions/02-06.authn.instructions.md" as="browser-authn" -->
+<!-- @appendix-propagate from="security-authn-authz" to=".github/instructions/02-06.authn.instructions.md" as="browser-authn" why-this-exists="browser authentication method catalog consumed by the authentication and authorization instruction file" -->
 **Non-Federated (6)**: JWE/JWS/Opaque Session Cookie, Basic (Username/Password), Bearer (API Token), HTTPS Client Certificate.
 
 **Federated (22)**: All non-federated methods PLUS:
@@ -7992,25 +7902,21 @@ The `GenerateTLSMaterial()` function in `internal/apps-framework/service/config/
 **Storage**: YAML + SQL (Config > DB) for static credentials. SQL ONLY for dynamic user data (OTPs, enrollments, magic links).
 <!-- @/appendix-propagate -->
 
-<!-- @appendix-why from="security-authn-authz" why-this-exists="MFA combination requirements consumed by the authentication and authorization instruction file" -->
-<!-- @appendix-propagate from="security-authn-authz" to=".github/instructions/02-06.authn.instructions.md" as="mfa-combinations" -->
+<!-- @appendix-propagate from="security-authn-authz" to=".github/instructions/02-06.authn.instructions.md" as="mfa-combinations" why-this-exists="MFA combination requirements consumed by the authentication and authorization instruction file" -->
 **Browser**: Password + TOTP/WebAuthn/Push/OTP.
 **Headless**: Client ID/Secret + mTLS/Bearer.
 <!-- @/appendix-propagate -->
 
-<!-- @appendix-why from="security-authn-authz" why-this-exists="authorization method catalog consumed by the authentication and authorization instruction file" -->
-<!-- @appendix-propagate from="security-authn-authz" to=".github/instructions/02-06.authn.instructions.md" as="authz-methods" -->
+<!-- @appendix-propagate from="security-authn-authz" to=".github/instructions/02-06.authn.instructions.md" as="authz-methods" why-this-exists="authorization method catalog consumed by the authentication and authorization instruction file" -->
 **Headless**: Scope-based, RBAC.
 **Browser**: Scope-based, RBAC, resource-level ACLs, consent tracking (scope+resource granularity).
 <!-- @/appendix-propagate -->
 
-<!-- @appendix-why from="security-authn-authz" why-this-exists="secrets detection strategy consumed by the security instruction file" -->
-<!-- @appendix-propagate from="security-authn-authz" to=".github/instructions/02-05.security.instructions.md" as="secrets-detection-strategy" -->
+<!-- @appendix-propagate from="security-authn-authz" to=".github/instructions/02-05.security.instructions.md" as="secrets-detection-strategy" why-this-exists="secrets detection strategy consumed by the security instruction file" -->
 **Detection**: Length-based threshold (≥32 bytes / ≥43 base64 chars) for inline secrets in compose files. NO entropy calculation (too many false positives). Safe references (`/run/secrets/`, short dev defaults) excluded. Infrastructure deployments excluded.
 <!-- @/appendix-propagate -->
 
-<!-- @appendix-why from="security-authn-authz" why-this-exists="TLS client policy taxonomy consumed by the security instruction file" -->
-<!-- @appendix-propagate from="security-authn-authz" to=".github/instructions/02-05.security.instructions.md" as="tls-client-policy" -->
+<!-- @appendix-propagate from="security-authn-authz" to=".github/instructions/02-05.security.instructions.md" as="tls-client-policy" why-this-exists="TLS client policy taxonomy consumed by the security instruction file" -->
 Services support five **runtime `TLSClientPolicy` states**. These are distinct from the
 certificate-provisioning modes in §6.11.1 and map directly to Go's `tls.ClientAuthType` behavior:
 
@@ -8040,8 +7946,7 @@ Once all clients present certificates, flip `client-policy` to `require-and-veri
 
 ### D.4 API and OpenAPI Contracts
 
-<!-- @appendix-why from="api-openapi-contracts" why-this-exists="mandatory base initialisms list for OpenAPI code generation configs consumed by the OpenAPI instruction file" -->
-<!-- @appendix-propagate from="api-openapi-contracts" to=".github/instructions/02-04.openapi.instructions.md" as="base-initialisms" -->
+<!-- @appendix-propagate from="api-openapi-contracts" to=".github/instructions/02-04.openapi.instructions.md" as="base-initialisms" why-this-exists="mandatory base initialisms list for OpenAPI code generation configs consumed by the OpenAPI instruction file" -->
 All `openapi-gen_config*.yaml` files MUST include the full base initialisms list in their `additional-initialisms` section. Domain-specific additions follow the base list.
 
 **Base initialisms (mandatory in every gen config)**:
@@ -8083,8 +7988,7 @@ All `openapi-gen_config*.yaml` files MUST include the full base initialisms list
 | `skeleton-template` | (none — base list only) |
 <!-- @/appendix-propagate -->
 
-<!-- @appendix-why from="api-openapi-contracts" why-this-exists="standard HTTP status code mapping consumed by the OpenAPI instruction file" -->
-<!-- @appendix-propagate from="api-openapi-contracts" to=".github/instructions/02-04.openapi.instructions.md" as="http-status-codes" -->
+<!-- @appendix-propagate from="api-openapi-contracts" to=".github/instructions/02-04.openapi.instructions.md" as="http-status-codes" why-this-exists="standard HTTP status code mapping consumed by the OpenAPI instruction file" -->
 | Code | Usage |
 |------|-------|
 | 200 | GET, PUT, PATCH successful |
@@ -8102,8 +8006,7 @@ All `openapi-gen_config*.yaml` files MUST include the full base initialisms list
 
 ### D.5 Observability, Deployment, and Tooling
 
-<!-- @appendix-why from="observability-deployment-tooling" why-this-exists="OTel collector detector constraints consumed by the observability instruction file" -->
-<!-- @appendix-propagate from="observability-deployment-tooling" to=".github/instructions/02-03.observability.instructions.md" as="otel-collector-constraints" -->
+<!-- @appendix-propagate from="observability-deployment-tooling" to=".github/instructions/02-03.observability.instructions.md" as="otel-collector-constraints" why-this-exists="OTel collector detector constraints consumed by the observability instruction file" -->
 | Processor | Requirement | Dev/CI | Production |
 |-----------|------------|--------|------------|
 | resourcedetection/docker | Docker socket `/var/run/docker.sock` | NEVER use | Use when socket available |
@@ -8115,8 +8018,7 @@ All `openapi-gen_config*.yaml` files MUST include the full base initialisms list
 **CRITICAL**: NEVER defer OTel or infrastructure configuration issues as "pre-existing." Infrastructure blockers are ALWAYS MANDATORY BLOCKING.
 <!-- @/appendix-propagate -->
 
-<!-- @appendix-why from="observability-deployment-tooling" why-this-exists="UTF-8 without BOM encoding policy consumed by the linting instruction file" -->
-<!-- @appendix-propagate from="observability-deployment-tooling" to=".github/instructions/03-05.linting.instructions.md" as="utf8-without-bom" -->
+<!-- @appendix-propagate from="observability-deployment-tooling" to=".github/instructions/03-05.linting.instructions.md" as="utf8-without-bom" why-this-exists="UTF-8 without BOM encoding policy consumed by the linting instruction file" -->
 **MANDATORY**: UTF-8 without BOM for all text files. The repository text baseline is UTF-8, LF, 4-space indentation for text-heavy formats, and a 200-column ceiling unless a language-specific rule overrides it.
 
 **PERMANENT BAN (NO EXCEPTIONS)**: UTF-16 is prohibited. This ban explicitly applies to `docs/ENG-HANDBOOK.md` and all Copilot/Claude instruction artifacts under `.github/instructions/`, `.github/agents/`, `.claude/agents/`, `.github/skills/`, and `.claude/skills/`.
@@ -8126,8 +8028,7 @@ All `openapi-gen_config*.yaml` files MUST include the full base initialisms list
 **Skip list**: generated code, vendored dependencies, build/test artifacts, caches, worktrees, binaries, archives, secrets/cert material, IDE metadata, and other machine-owned files are excluded from text-format checks. Prefer narrowing the exclusion to the smallest machine-owned path rather than exempting an entire language.
 <!-- @/appendix-propagate -->
 
-<!-- @appendix-why from="observability-deployment-tooling" why-this-exists="cicd-lint command naming and category conventions consumed by the deployment instruction file" -->
-<!-- @appendix-propagate from="observability-deployment-tooling" to=".github/instructions/04-01.deployment.instructions.md" as="cicd-command-naming" -->
+<!-- @appendix-propagate from="observability-deployment-tooling" to=".github/instructions/04-01.deployment.instructions.md" as="cicd-command-naming" why-this-exists="cicd-lint command naming and category conventions consumed by the deployment instruction file" -->
 **Three command categories** with strict naming and directory conventions:
 
 | Category | Naming Pattern | Directory Pattern | Entry Function | Registration |
@@ -8141,8 +8042,7 @@ All `openapi-gen_config*.yaml` files MUST include the full base initialisms list
 **Script commands** (1): `github-cleanup`
 <!-- @/appendix-propagate -->
 
-<!-- @appendix-why from="observability-deployment-tooling" why-this-exists="cicd-lint scope constraints consumed by the deployment instruction file" -->
-<!-- @appendix-propagate from="observability-deployment-tooling" to=".github/instructions/04-01.deployment.instructions.md" as="cicd-lint-constraints" -->
+<!-- @appendix-propagate from="observability-deployment-tooling" to=".github/instructions/04-01.deployment.instructions.md" as="cicd-lint-constraints" why-this-exists="cicd-lint scope constraints consumed by the deployment instruction file" -->
 **Purpose**: `cicd-lint` is exclusively for linting, formatting, and operational cleanup. It NEVER generates files, scaffolds content, or transforms the repository.
 
 **Constraints** (NO EXCEPTIONS):
@@ -8154,8 +8054,7 @@ All `openapi-gen_config*.yaml` files MUST include the full base initialisms list
 5. **Codify as validators**: When a new invariant is identified, implement it as a fitness linter that validates the actual state against expected state and returns descriptive errors. NEVER implement it as a generator that creates the expected state.
 <!-- @/appendix-propagate -->
 
-<!-- @appendix-why from="observability-deployment-tooling" why-this-exists="cicd bulk hook architecture constraints consumed by the linting instruction file and beast-mode agent files" -->
-<!-- @appendix-propagate from="observability-deployment-tooling" to=".github/instructions/03-05.linting.instructions.md, .github/agents/beast-mode.agent.md, .claude/agents/beast-mode.md" as="cicd-bulk-hook-architecture" -->
+<!-- @appendix-propagate from="observability-deployment-tooling" to=".github/instructions/03-05.linting.instructions.md, .github/agents/beast-mode.agent.md, .claude/agents/beast-mode.md" as="cicd-bulk-hook-architecture" why-this-exists="cicd bulk hook architecture constraints consumed by the linting instruction file and beast-mode agent files" -->
 `cicd-lint` command execution and `.pre-commit-config.yaml` wiring MUST follow this architecture:
 
 1. **Four bulk cicd hooks only** in `.pre-commit-config.yaml`:
@@ -8176,8 +8075,7 @@ All `openapi-gen_config*.yaml` files MUST include the full base initialisms list
 **Rationale**: This prevents cross-category races (read-only lint vs mutating format), preserves deterministic developer workflows, and ensures new cicd subcommands cannot be added without being wired into bulk hooks.
 <!-- @/appendix-propagate -->
 
-<!-- @appendix-why from="observability-deployment-tooling" why-this-exists="Docker Compose rules consumed by the deployment instruction file" -->
-<!-- @appendix-propagate from="observability-deployment-tooling" to=".github/instructions/04-01.deployment.instructions.md" as="docker-compose-rules" -->
+<!-- @appendix-propagate from="observability-deployment-tooling" to=".github/instructions/04-01.deployment.instructions.md" as="docker-compose-rules" why-this-exists="Docker Compose rules consumed by the deployment instruction file" -->
 - Use `docker compose` (NOT `docker-compose`)
 - ALWAYS relative paths in compose.yml (NEVER absolute)
 - ALWAYS `127.0.0.1` in containers (NOT `localhost` - Alpine resolves to IPv6)
@@ -8190,8 +8088,7 @@ All `openapi-gen_config*.yaml` files MUST include the full base initialisms list
 - **Canonical template sync**: When modifying ANY file in `deployments/*/` that has a counterpart in `api/cryptosuite-registry/templates/`, update the canonical template in the SAME commit
 <!-- @/appendix-propagate -->
 
-<!-- @appendix-why from="observability-deployment-tooling" why-this-exists="Docker Desktop startup procedure consumed by the cross-platform instruction file" -->
-<!-- @appendix-propagate from="observability-deployment-tooling" to=".github/instructions/05-01.cross-platform.instructions.md" as="docker-desktop-startup" -->
+<!-- @appendix-propagate from="observability-deployment-tooling" to=".github/instructions/05-01.cross-platform.instructions.md" as="docker-desktop-startup" why-this-exists="Docker Desktop startup procedure consumed by the cross-platform instruction file" -->
 **MANDATORY**: Docker Desktop MUST be running before executing any Docker-dependent operations (E2E tests, Docker Compose, container builds).
 
 **Cross-Platform Verification**:
@@ -8252,15 +8149,13 @@ systemctl --user start docker-desktop
 - Integration test containers cannot start
 <!-- @/appendix-propagate -->
 
-<!-- @appendix-why from="observability-deployment-tooling" why-this-exists="infrastructure blocker escalation rules consumed by the evidence-based instruction file" -->
-<!-- @appendix-propagate from="observability-deployment-tooling" to=".github/instructions/06-01.evidence-based.instructions.md" as="infrastructure-blocker-escalation" -->
+<!-- @appendix-propagate from="observability-deployment-tooling" to=".github/instructions/06-01.evidence-based.instructions.md" as="infrastructure-blocker-escalation" why-this-exists="infrastructure blocker escalation rules consumed by the evidence-based instruction file" -->
 **MANDATORY: ALL infrastructure issues are BLOCKING. NEVER defer, deprioritize, skip, or tag as "pre-existing."**
 
 Three-encounter rule: 1st → document, 2nd → create fix task, 3rd → MANDATORY Phase 0 fix (block ALL other work). Infrastructure blockers (OTel, Docker, testcontainers, CI/CD) take priority over feature work.
 <!-- @/appendix-propagate -->
 
-<!-- @appendix-why from="observability-deployment-tooling" why-this-exists="Docker Compose in-scope verification requirement consumed by the deployment instruction file and implementation agent files" -->
-<!-- @appendix-propagate from="observability-deployment-tooling" to=".github/instructions/04-01.deployment.instructions.md, .github/agents/implementation-execution.agent.md, .github/agents/implementation-planning.agent.md, .claude/agents/implementation-execution.md, .claude/agents/implementation-planning.md" as="docker-compose-verification-in-scope" -->
+<!-- @appendix-propagate from="observability-deployment-tooling" to=".github/instructions/04-01.deployment.instructions.md, .github/agents/implementation-execution.agent.md, .github/agents/implementation-planning.agent.md, .claude/agents/implementation-execution.md, .claude/agents/implementation-planning.md" as="docker-compose-verification-in-scope" why-this-exists="Docker Compose in-scope verification requirement consumed by the deployment instruction file and implementation agent files" -->
 **Docker Verification Must Be In-Scope** (MANDATORY): Phases that modify Docker Compose files, config files consumed by containers, cert mount paths, or any artifact that affects runtime behavior MUST include a Docker Compose verification step **within the same phase** (`docker compose up --wait` + health endpoint check). If Docker Desktop is unavailable, the phase is **BLOCKED — not complete**. Configuration-only changes without Docker verification are untested hypotheses.
 
 **Multi-File Config Changes Need Integration Verification**: Any change spanning multiple interrelated configuration files (e.g., `postgresql.conf` + `pg_hba.conf` + GORM DSN + Docker volume mounts) MUST include an integration verification step that exercises the full configuration chain in a running environment — within the same phase. Common failure modes: wrong cert paths after mounting, permission errors inside containers, HBA rule ordering, DSN parameter mismatches.
@@ -8268,8 +8163,7 @@ Three-encounter rule: 1st → document, 2nd → create fix task, 3rd → MANDATO
 
 ### D.6 Testing, Quality, and Go Standards
 
-<!-- @appendix-why from="testing-quality-golang" why-this-exists="LF line-ending policy consumed by git instruction file and all agent files" -->
-<!-- @appendix-propagate from="testing-quality-golang" to=".github/instructions/05-02.git.instructions.md, .github/agents/beast-mode.agent.md, .github/agents/implementation-planning.agent.md, .github/agents/implementation-execution.agent.md, .github/agents/fix-workflows.agent.md, .claude/agents/beast-mode.md, .claude/agents/implementation-planning.md, .claude/agents/implementation-execution.md, .claude/agents/fix-workflows.md" as="platform-line-ending-operations" -->
+<!-- @appendix-propagate from="testing-quality-golang" to=".github/instructions/05-02.git.instructions.md, .github/agents/beast-mode.agent.md, .github/agents/implementation-planning.agent.md, .github/agents/implementation-execution.agent.md, .github/agents/fix-workflows.agent.md, .claude/agents/beast-mode.md, .claude/agents/implementation-planning.md, .claude/agents/implementation-execution.md, .claude/agents/fix-workflows.md" as="platform-line-ending-operations" why-this-exists="LF line-ending policy consumed by git instruction file and all agent files" -->
 **Policy** (MANDATORY): All text files use LF (`\n`). `mixed-line-ending`, `end-of-file-fixer`, and `editorconfig-checker` enforce the policy. Exclusions cover generated code, vendored dependencies, build/test outputs, caches, worktrees, binaries, archives, secrets/cert material, and IDE metadata.
 
 **PERMANENT BAN (NO EXCEPTIONS)**: CRLF line endings are prohibited. This ban explicitly applies to `docs/ENG-HANDBOOK.md` and all Copilot/Claude instruction artifacts under `.github/instructions/`, `.github/agents/`, `.claude/agents/`, `.github/skills/`, and `.claude/skills/`.
@@ -8277,8 +8171,7 @@ Three-encounter rule: 1st → document, 2nd → create fix task, 3rd → MANDATO
 **Rationale**: gofumpt, gofmt, and goimports emit LF; YAML/Markdown/SQL/text tools default to LF; CI/CD runs on Linux; LF everywhere prevents CRLF/LF churn on Windows. Prettier also defaults `endOfLine=lf` (v2.0.0+).
 <!-- @/appendix-propagate -->
 
-<!-- @appendix-why from="testing-quality-golang" why-this-exists="test file type suffixes table consumed by the testing instruction file" -->
-<!-- @appendix-propagate from="testing-quality-golang" to=".github/instructions/03-02.testing.instructions.md" as="test-file-suffixes" -->
+<!-- @appendix-propagate from="testing-quality-golang" to=".github/instructions/03-02.testing.instructions.md" as="test-file-suffixes" why-this-exists="test file type suffixes table consumed by the testing instruction file" -->
 | Type | Suffix |
 |------|--------|
 | Unit | `_test.go` |
@@ -8288,8 +8181,7 @@ Three-encounter rule: 1st → document, 2nd → create fix task, 3rd → MANDATO
 | Integration | `_integration_test.go` |
 <!-- @/appendix-propagate -->
 
-<!-- @appendix-why from="testing-quality-golang" why-this-exists="production closure body coverage pattern consumed by the testing instruction file" -->
-<!-- @appendix-propagate from="testing-quality-golang" to=".github/instructions/03-02.testing.instructions.md" as="production-closure-body-coverage" -->
+<!-- @appendix-propagate from="testing-quality-golang" to=".github/instructions/03-02.testing.instructions.md" as="production-closure-body-coverage" why-this-exists="production closure body coverage pattern consumed by the testing instruction file" -->
 **Production Closure Body Coverage Pattern**: When a factory function (`NewXxx`) defines anonymous
 closures in its return struct, the closure bodies are separate coverage blocks — creating the struct
 does NOT cover the closure bodies. Only INVOKING the closures covers their bodies.
@@ -8323,8 +8215,7 @@ and OS-level faults (`RemoveAll` failures, non-ENOENT `Stat` errors) remain unco
 tests. Document these as structural ceilings and cover via E2E CI/CD smoke tests instead.
 <!-- @/appendix-propagate -->
 
-<!-- @appendix-why from="testing-quality-golang" why-this-exists="sequential test exemption pattern consumed by the testing instruction file" -->
-<!-- @appendix-propagate from="testing-quality-golang" to=".github/instructions/03-02.testing.instructions.md" as="sequential-test-exemption" -->
+<!-- @appendix-propagate from="testing-quality-golang" to=".github/instructions/03-02.testing.instructions.md" as="sequential-test-exemption" why-this-exists="sequential test exemption pattern consumed by the testing instruction file" -->
 Tests that mutate **package-level state** (e.g., `os.Chdir()`, global registries) MUST NOT call `t.Parallel()`. Add a `// Sequential:` comment within 10 lines before the function to exempt it from the `parallel_tests` linter:
 
 ```go
@@ -8344,8 +8235,7 @@ func TestRegisterHandler_Duplicate(t *testing.T) {
 **Rule**: Comment MUST be within 10 lines before function declaration. Include a reason after the colon.
 <!-- @/appendix-propagate -->
 
-<!-- @appendix-why from="testing-quality-golang" why-this-exists="disable keep-alives on test HTTP transport rule consumed by the testing instruction file" -->
-<!-- @appendix-propagate from="testing-quality-golang" to=".github/instructions/03-02.testing.instructions.md" as="disable-keep-alives-test-transport" -->
+<!-- @appendix-propagate from="testing-quality-golang" to=".github/instructions/03-02.testing.instructions.md" as="disable-keep-alives-test-transport" why-this-exists="disable keep-alives on test HTTP transport rule consumed by the testing instruction file" -->
 NEVER use a default `http.Transport` in integration tests calling a real server. ALWAYS set `DisableKeepAlives: true`:
 
 ```go
@@ -8361,8 +8251,7 @@ client := &http.Client{
 **Why**: Fasthttp (Fiber) keeps an `open` counter > 0 while keep-alive connections remain open. `ShutdownWithContext` hangs for 90 seconds waiting for the counter to reach zero.
 <!-- @/appendix-propagate -->
 
-<!-- @appendix-why from="testing-quality-golang" why-this-exists="timeout double-multiplication anti-pattern consumed by the testing instruction file" -->
-<!-- @appendix-propagate from="testing-quality-golang" to=".github/instructions/03-02.testing.instructions.md" as="timeout-double-multiplication-antipattern" -->
+<!-- @appendix-propagate from="testing-quality-golang" to=".github/instructions/03-02.testing.instructions.md" as="timeout-double-multiplication-antipattern" why-this-exists="timeout double-multiplication anti-pattern consumed by the testing instruction file" -->
 NEVER multiply a `time.Duration` constant by `time.Second`. Magic constants that are already `time.Duration` (e.g., `DefaultDataServerShutdownTimeout = 5 * time.Second`) produce ~158-year values when multiplied again:
 
 ```go
@@ -8374,8 +8263,7 @@ ctx, cancel := context.WithTimeout(ctx, magic.DefaultDataServerShutdownTimeout) 
 ```
 <!-- @/appendix-propagate -->
 
-<!-- @appendix-why from="testing-quality-golang" why-this-exists="PostgreSQL mTLS client identity pattern consumed by the testing instruction file" -->
-<!-- @appendix-propagate from="testing-quality-golang" to=".github/instructions/03-02.testing.instructions.md" as="postgres-mtls-client-identity" -->
+<!-- @appendix-propagate from="testing-quality-golang" to=".github/instructions/03-02.testing.instructions.md" as="postgres-mtls-client-identity" why-this-exists="PostgreSQL mTLS client identity pattern consumed by the testing instruction file" -->
 **PostgreSQL mTLS Client Identity in E2E**: Use `client_dn` (from the mTLS certificate CN) to
 identify a GORM service's mTLS connection in `pg_stat_ssl`, NOT `application_name`. GORM does not
 set `application_name` by default — it is always empty. Pattern:
@@ -8388,8 +8276,7 @@ WHERE pg_stat_ssl.ssl = true
 ```
 <!-- @/appendix-propagate -->
 
-<!-- @appendix-why from="testing-quality-golang" why-this-exists="mutation testing common survivors patterns consumed by the testing instruction file" -->
-<!-- @appendix-propagate from="testing-quality-golang" to=".github/instructions/03-02.testing.instructions.md" as="mutation-common-survivors" -->
+<!-- @appendix-propagate from="testing-quality-golang" to=".github/instructions/03-02.testing.instructions.md" as="mutation-common-survivors" why-this-exists="mutation testing common survivors patterns consumed by the testing instruction file" -->
 **`attempts++` in retry loops**: The `attempts` increment is mutated to a no-op. Fix: include
 `attempts` in the timeout error message and assert the error string does NOT contain `"after 0 attempts"`:
 
@@ -8412,26 +8299,22 @@ with blocking operations (polling loops, network waits) produce more TIMEOUTs; b
 TIMED OUT mutation when estimating gremlins run time.
 <!-- @/appendix-propagate -->
 
-<!-- @appendix-why from="testing-quality-golang" why-this-exists="crypto acronym capitalization rule consumed by the Go standards instruction file" -->
-<!-- @appendix-propagate from="testing-quality-golang" to=".github/instructions/03-03.golang.instructions.md" as="crypto-acronyms-caps" -->
+<!-- @appendix-propagate from="testing-quality-golang" to=".github/instructions/03-03.golang.instructions.md" as="crypto-acronyms-caps" why-this-exists="crypto acronym capitalization rule consumed by the Go standards instruction file" -->
 **Crypto Acronyms**: ALWAYS ALL CAPS: RSA, EC, ECDSA, ECDH, HMAC, AES, JWA, JWK, JWS, JWE, ED25519, PKCS8, PEM, DER.
 <!-- @/appendix-propagate -->
 
-<!-- @appendix-why from="testing-quality-golang" why-this-exists="format-go self-modification protection rules consumed by the coding instruction file" -->
-<!-- @appendix-propagate from="testing-quality-golang" to=".github/instructions/03-01.coding.instructions.md" as="format-go-protection" -->
+<!-- @appendix-propagate from="testing-quality-golang" to=".github/instructions/03-01.coding.instructions.md" as="format-go-protection" why-this-exists="format-go self-modification protection rules consumed by the coding instruction file" -->
 **MANDATORY Prevention Rules**:
 - NEVER change ` +""+interface{}+""+ ` to ` +""+ny+""+ ` in format_go package
 - NEVER simplify CRITICAL/SELF-MODIFICATION comments
 - ALWAYS read complete package context (enforce_any.go, filter.go, magic_cicd.go, format_go_test.go, self_modification_test.go) before modifying
 <!-- @/appendix-propagate -->
 
-<!-- @appendix-why from="testing-quality-golang" why-this-exists="validator error aggregation pattern consumed by the coding instruction file" -->
-<!-- @appendix-propagate from="testing-quality-golang" to=".github/instructions/03-01.coding.instructions.md" as="validator-error-aggregation" -->
+<!-- @appendix-propagate from="testing-quality-golang" to=".github/instructions/03-01.coding.instructions.md" as="validator-error-aggregation" why-this-exists="validator error aggregation pattern consumed by the coding instruction file" -->
 All validators run to completion (never short-circuit) and aggregate errors for a single unified report. Sequential execution ensures deterministic output ordering. Aggregated errors (not fail-fast) show ALL problems in one run, reducing fix-test-fix cycles. `validate-all` returns exit code 0 if all pass, exit code 1 if any fail.
 <!-- @/appendix-propagate -->
 
-<!-- @appendix-why from="testing-quality-golang" why-this-exists="conventional commits format consumed by the git instruction file" -->
-<!-- @appendix-propagate from="testing-quality-golang" to=".github/instructions/05-02.git.instructions.md" as="conventional-commits" -->
+<!-- @appendix-propagate from="testing-quality-golang" to=".github/instructions/05-02.git.instructions.md" as="conventional-commits" why-this-exists="conventional commits format consumed by the git instruction file" -->
 **Format**: `<type>[optional scope]: <description>`
 
 **Types**: feat, fix, docs, style, refactor, perf, test, build, ci, chore, revert
@@ -8445,8 +8328,7 @@ feat(api)!: remove deprecated v1 endpoints  # Breaking change
 ```
 <!-- @/appendix-propagate -->
 
-<!-- @appendix-why from="testing-quality-golang" why-this-exists="incremental commits strategy consumed by the git instruction file" -->
-<!-- @appendix-propagate from="testing-quality-golang" to=".github/instructions/05-02.git.instructions.md" as="incremental-commits" -->
+<!-- @appendix-propagate from="testing-quality-golang" to=".github/instructions/05-02.git.instructions.md" as="incremental-commits" why-this-exists="incremental commits strategy consumed by the git instruction file" -->
 - ALWAYS commit incrementally (NOT amend) - preserves history for bisect, selective revert.
 - NEVER repeatedly amend - loses context, hard to bisect.
 - Amend ONLY for immediate typo fixes (<1 min, before push).
@@ -8454,8 +8336,7 @@ feat(api)!: remove deprecated v1 endpoints  # Breaking change
 - **Periodic Commits**: Prefer frequent small commits over rare large commits. A completed task = a commit. Push every 5-10 commits.
 <!-- @/appendix-propagate -->
 
-<!-- @appendix-why from="testing-quality-golang" why-this-exists="restore from clean baseline pattern consumed by the git instruction file" -->
-<!-- @appendix-propagate from="testing-quality-golang" to=".github/instructions/05-02.git.instructions.md" as="restore-from-baseline" -->
+<!-- @appendix-propagate from="testing-quality-golang" to=".github/instructions/05-02.git.instructions.md" as="restore-from-baseline" why-this-exists="restore from clean baseline pattern consumed by the git instruction file" -->
 **When fixing regressions, ALWAYS restore clean baseline FIRST**:
 
 1. Find last known-good commit (`git log --oneline --grep="baseline"`)
@@ -8467,13 +8348,11 @@ feat(api)!: remove deprecated v1 endpoints  # Breaking change
 **Why**: HEAD may be corrupted from previous failed attempts. Start from known-good state.
 <!-- @/appendix-propagate -->
 
-<!-- @appendix-why from="testing-quality-golang" why-this-exists="Docker Desktop upgrade warning consumed by the cross-platform instruction file" -->
-<!-- @appendix-propagate from="testing-quality-golang" to=".github/instructions/05-01.cross-platform.instructions.md" as="docker-desktop-upgrade" -->
+<!-- @appendix-propagate from="testing-quality-golang" to=".github/instructions/05-01.cross-platform.instructions.md" as="docker-desktop-upgrade" why-this-exists="Docker Desktop upgrade warning consumed by the cross-platform instruction file" -->
 **Docker Desktop Upgrade Warning**: After ANY Docker Desktop or testcontainers upgrade, run the full E2E test suite. Upgrades MAY break API compatibility between testcontainers-go and Docker Desktop — symptoms may include socket errors, container startup failures, and general Docker API issues.
 <!-- @/appendix-propagate -->
 
-<!-- @appendix-why from="testing-quality-golang" why-this-exists="scripting language priority policy consumed by the cross-platform instruction file" -->
-<!-- @appendix-propagate from="testing-quality-golang" to=".github/instructions/05-01.cross-platform.instructions.md" as="scripting-language-policy" -->
+<!-- @appendix-propagate from="testing-quality-golang" to=".github/instructions/05-01.cross-platform.instructions.md" as="scripting-language-policy" why-this-exists="scripting language priority policy consumed by the cross-platform instruction file" -->
 **MANDATORY: Choose scripting language in priority order. Lower-priority choices require justification.**
 
 | Priority | Language | When to Use |
@@ -8491,8 +8370,7 @@ feat(api)!: remove deprecated v1 endpoints  # Breaking change
 **NO Python under `internal/apps-tools/cicd_lint/`**: The `cicd_lint` tool is pure Go. No Python scripts, generation helpers, or utility modules belong here. If a capability requires Python (rare), it belongs outside the Go module.
 <!-- @/appendix-propagate -->
 
-<!-- @appendix-why from="testing-quality-golang" why-this-exists="LLM tool preference order consumed by the tool-efficiency instruction file" -->
-<!-- @appendix-propagate from="testing-quality-golang" to=".github/instructions/06-03.tool-efficiency.instructions.md" as="tool-preference-order" -->
+<!-- @appendix-propagate from="testing-quality-golang" to=".github/instructions/06-03.tool-efficiency.instructions.md" as="tool-preference-order" why-this-exists="LLM tool preference order consumed by the tool-efficiency instruction file" -->
 | Priority | Tool | When to Use |
 |----------|------|-------------|
 | 1 (cheapest) | `grep_search` / `text_search` | Exact string or regex match in known files |
@@ -8503,8 +8381,7 @@ feat(api)!: remove deprecated v1 endpoints  # Breaking change
 | 6 (costliest) | `semantic_search` | ONLY when query cannot be expressed as regex/literal |
 <!-- @/appendix-propagate -->
 
-<!-- @appendix-why from="testing-quality-golang" why-this-exists="minimum version requirements consumed by the versions instruction file" -->
-<!-- @appendix-propagate from="testing-quality-golang" to=".github/instructions/02-02.versions.instructions.md" as="minimum-versions" -->
+<!-- @appendix-propagate from="testing-quality-golang" to=".github/instructions/02-02.versions.instructions.md" as="minimum-versions" why-this-exists="minimum version requirements consumed by the versions instruction file" -->
 **CRITICAL: ALWAYS use the same version everywhere** (dev, CI/CD, Docker, workflows, docs)
 
 - Go: 1.26.1+
@@ -8516,6 +8393,76 @@ feat(api)!: remove deprecated v1 endpoints  # Breaking change
 - pre-commit: 2.20.0+
 - Docker: 27+
 - Docker Compose: v5+
+<!-- @/appendix-propagate -->
+
+### D.7 Terminology and Normative Language
+
+<!-- @appendix-propagate from="terminology-instruction-body" to=".github/instructions/01-01.terminology.instructions.md" as="rfc-2119-keywords" why-this-exists="RFC 2119 keyword guidance reused in terminology instruction artifact" -->
+- **MUST** = **REQUIRED** = **MANDATORY** = **SHALL** - Absolute requirement
+- **MUST NOT** = **SHALL NOT** - Absolute prohibition
+- **SHOULD** = **RECOMMENDED** - Highly desirable (may ignore with justification)
+- **SHOULD NOT** = **NOT RECOMMENDED** - Not advisable (may do with justification)
+- **MAY** = **OPTIONAL** - Truly optional (implementer decides)
+<!-- @/appendix-propagate -->
+
+<!-- @appendix-propagate from="terminology-instruction-body" to=".github/instructions/01-01.terminology.instructions.md" as="emphasis-keywords" why-this-exists="emphasis keyword guidance reused in terminology instruction artifact" -->
+- **CRITICAL** - Historically regression-prone areas requiring extra attention
+- **ALWAYS** / **NEVER** - Emphatic MUST / MUST NOT (no exceptions)
+<!-- @/appendix-propagate -->
+
+<!-- @appendix-propagate from="terminology-instruction-body" to=".github/instructions/01-01.terminology.instructions.md" as="abbreviations" why-this-exists="abbreviation disambiguation guidance reused in terminology instruction artifact" -->
+**CRITICAL: NEVER use ambiguous `auth` abbreviation to mean either authentication or authorization**
+
+- **authn** = Authentication
+- **authz** = Authorization
+
+**Rationale**: Prevents confusion filenames, variable names, and documentation.
+<!-- @/appendix-propagate -->
+
+### D.8 Skills and Handbook Coupling
+
+<!-- @appendix-propagate from="skills-handbook-coupled-body" to=".github/skills/propagation-check/SKILL.md, .claude/skills/propagation-check/SKILL.md" as="skill-propagation-check-core-rules" why-this-exists="semantic skill rules reused across Copilot and Claude skill pairs" -->
+- `@source` content MUST be byte-for-byte identical to `@propagate` content in ENG-HANDBOOK.md
+- Run `go run ./cmd/cicd-lint lint-docs` to detect drift
+- Add both Copilot file AND Claude file to `@propagate to=` attribute (comma-separated)
+- Update `docs/required-propagations.yaml` `required_targets` when adding new targets
+- When ENG-HANDBOOK.md chunk changes, ALL downstream `@source` blocks must be updated
+<!-- @/appendix-propagate -->
+
+<!-- @appendix-propagate from="skills-handbook-coupled-body" to=".github/skills/sync-copilot-claude/SKILL.md, .claude/skills/sync-copilot-claude/SKILL.md" as="skill-sync-copilot-claude-core-rules" why-this-exists="sync rules shared across dual-canonical skill and agent tooling" -->
+- Copilot skills live at `.github/skills/<NAME>/SKILL.md`; Claude skills at `.claude/skills/<NAME>/SKILL.md`
+- Body content MUST be identical between Copilot and Claude skill files
+- Claude agents at `.claude/agents/<NAME>.md` must match Copilot agents at `.github/agents/<NAME>.agent.md`
+- NEVER update only one file — always sync both in the same commit
+- The `lint-agent-drift` linter (in `lint-docs`) enforces agent pair identity automatically
+<!-- @/appendix-propagate -->
+
+<!-- @appendix-propagate from="skills-handbook-coupled-body" to=".github/skills/copilot-customization/SKILL.md, .claude/skills/copilot-customization/SKILL.md" as="skill-copilot-customization-core-rules" why-this-exists="customization workflow constraints reused in both skill targets" -->
+- Pick one artifact type per invocation: `agent`, `instruction`, or `skill`
+- Decide the operation up front: create, update, or delete
+- Agents are dual-canonical: create BOTH `.github/agents/NAME.agent.md` and `.claude/agents/NAME.md`
+- Skills are dual-canonical: create BOTH `.github/skills/NAME/SKILL.md` and `.claude/skills/NAME/SKILL.md`
+- Agent and skill body content MUST stay identical across Copilot and Claude pairs; only permitted frontmatter differences may differ
+- Run `go run ./cmd/cicd-lint lint-docs` after creating, updating, or deleting any customization artifact
+<!-- @/appendix-propagate -->
+
+<!-- @appendix-propagate from="skills-handbook-coupled-body" to=".github/skills/test-table-driven/SKILL.md, .claude/skills/test-table-driven/SKILL.md" as="skill-test-table-driven-core-rules" why-this-exists="testing rule baseline kept identical for both test-table-driven skill files" -->
+- `t.Parallel()` MANDATORY on parent and ALL subtests
+- Use `googleUuid.NewV7()` for test data IDs (thread-safe, unique, no conflicts)
+- `require` package (fail-fast) over `assert` (continue-on-failure)
+- Table-driven for ALL multi-case tests (happy path AND sad path)
+- TestMain for heavyweight resources (DB, servers, containers) — one per package
+- Use exactly one `testmain_test.go` per package; never split into `testmain_*_test.go` variants
+- `testmain_test.go` must not use `//go:build` or `// +build` directives
+<!-- @/appendix-propagate -->
+
+<!-- @appendix-propagate from="skills-handbook-coupled-body" to=".github/skills/openapi-codegen/SKILL.md, .claude/skills/openapi-codegen/SKILL.md" as="skill-openapi-codegen-core-rules" why-this-exists="OpenAPI generation invariants reused for Copilot and Claude openapi-codegen skills" -->
+- OpenAPI version MUST be 3.0.3 (NOT 2.0/Swagger, NOT 3.1.x)
+- Generate THREE config files: server (`strict-server: true`), model, client
+- API MUST duplicate under BOTH `/service/` and `/browser/` paths
+- Content type: `application/json` ONLY (no form, multipart, or other types)
+- `strict-server: true` is MANDATORY in server config
+- All `openapi-gen_config*.yaml` MUST include the full base initialisms list from ENG-HANDBOOK.md §8
 <!-- @/appendix-propagate -->
 
 ---

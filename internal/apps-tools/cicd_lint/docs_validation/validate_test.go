@@ -53,8 +53,7 @@ func minimalArchitectureWithAppendixContent() string {
 <!-- @section-to-appendix to="terminology-instruction-body" as="rfc-2119-keywords" -->
 some content
 <!-- @/section-to-appendix -->
-<!-- @appendix-why from="terminology-instruction-body" why-this-exists="semantic contribution reuse" -->
-<!-- @appendix-propagate from="terminology-instruction-body" to=".github/instructions/01-01.terminology.instructions.md" as="rfc-2119-keywords" -->
+<!-- @appendix-propagate from="terminology-instruction-body" to=".github/instructions/01-01.terminology.instructions.md" as="rfc-2119-keywords" why-this-exists="semantic contribution reuse" -->
 some content
 <!-- @/appendix-propagate -->
 `
@@ -422,8 +421,7 @@ func TestValidateCoverage(t *testing.T) {
 			name:            "appendix mapping missing section contribution",
 			manifestContent: minimalManifestYAML(),
 			archContent: `# Architecture
-<!-- @appendix-why from="terminology-instruction-body" why-this-exists="compatibility bridge" -->
-<!-- @appendix-propagate from="terminology-instruction-body" to=".github/instructions/01-01.terminology.instructions.md" as="rfc-2119-keywords" -->
+<!-- @appendix-propagate from="terminology-instruction-body" to=".github/instructions/01-01.terminology.instructions.md" as="rfc-2119-keywords" why-this-exists="compatibility bridge" -->
 some content
 <!-- @/appendix-propagate -->
 `,
@@ -497,7 +495,7 @@ some content
 			validate: func(t *testing.T, result *CoverageResult) {
 				t.Helper()
 				require.NotEmpty(t, result.CompositionIssues)
-				require.Contains(t, strings.Join(result.CompositionIssues, "\n"), "@appendix-why")
+				require.Contains(t, strings.Join(result.CompositionIssues, "\n"), "why-this-exists attribute")
 			},
 		},
 	}
@@ -613,13 +611,11 @@ func TestValidateCoverage_ViolationsSortedByAppendixReadingOrder(t *testing.T) {
 
 	archContent := `# Handbook
 <!-- @section-to-appendix to="early-group" as="zzz-early" -->text<!-- @/section-to-appendix -->
-<!-- @appendix-why from="early-group" why-this-exists="early section" -->
-<!-- @appendix-propagate from="early-group" to=".github/instructions/a.instructions.md" as="zzz-early" -->
+<!-- @appendix-propagate from="early-group" to=".github/instructions/a.instructions.md" as="zzz-early" why-this-exists="early section" -->
 early content
 <!-- @/appendix-propagate -->
 <!-- @section-to-appendix to="late-group" as="aaa-late" -->text<!-- @/section-to-appendix -->
-<!-- @appendix-why from="late-group" why-this-exists="late section" -->
-<!-- @appendix-propagate from="late-group" to=".github/instructions/a.instructions.md" as="aaa-late" -->
+<!-- @appendix-propagate from="late-group" to=".github/instructions/a.instructions.md" as="aaa-late" why-this-exists="late section" -->
 late content
 <!-- @/appendix-propagate -->
 `

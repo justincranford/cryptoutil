@@ -246,8 +246,7 @@ In the handbook narrative section where content originates:
 In the handbook appendix section:
 
 ```html
-<!-- @appendix-why from="APPENDIX_ID" why-this-exists="brief rationale" -->
-<!-- @appendix-propagate from="APPENDIX_ID" to="TARGET_FILE" as="CHUNK_ID" -->
+<!-- @appendix-propagate from="APPENDIX_ID" to="TARGET_FILE" as="CHUNK_ID" why-this-exists="brief rationale" -->
 ... verbatim content for downstream use ...
 <!-- @/appendix-propagate -->
 ```
@@ -264,7 +263,7 @@ In the handbook appendix section:
 
 1. Every `@section-to-appendix` chunk must feed a matching `@appendix-propagate` block.
 2. Every `@appendix-propagate` block must have a matching `@section-to-appendix` source.
-3. Every `@appendix-propagate` block must have an adjacent `@appendix-why` note.
+3. Every `@appendix-propagate` block must have a `why-this-exists` inline attribute with descriptive text.
 4. A chunk with a `@section-to-appendix` marker cannot also have a direct `@propagate`.
 5. Chunk IDs must follow `[a-z][a-z0-9-]*` and must not embed section numbers.
 

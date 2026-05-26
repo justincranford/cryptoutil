@@ -89,6 +89,11 @@ const (
 	// CICDQuietFailFormat is the format string for a quiet-mode FAIL line.
 	// Arguments: command name.
 	CICDQuietFailFormat = "%s: FAIL\n"
+
+	// CICDDocsAppendixPropagateMatchLen is the number of elements in a FindStringSubmatch
+	// result for appendixPropagateMarkerRegex: 1 full match + 4 capture groups
+	// (appendix-id, target-file, chunk-id, why-this-exists).
+	CICDDocsAppendixPropagateMatchLen = 5
 )
 
 // getProjectRoot finds the project root by walking up the directory tree to find .git directory.

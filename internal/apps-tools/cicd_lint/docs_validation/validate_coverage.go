@@ -67,14 +67,13 @@ var sourceBlockRegex = regexp.MustCompile(`<!--\s+@source\s+from="[^"]+"\s+as="(
 // propagateMarkerRegex matches <!-- @propagate to="..." as="CHUNK_ID" --> (single-line form).
 var propagateMarkerRegex = regexp.MustCompile(`<!--\s+@propagate\s+to="([^"]+)"\s+as="([^"]+)"\s+-->`)
 
-// appendixPropagateMarkerRegex matches <!-- @appendix-propagate from="..." to="..." as="CHUNK_ID" -->.
-var appendixPropagateMarkerRegex = regexp.MustCompile(`<!--\s+@appendix-propagate\s+from="([^"]+)"\s+to="([^"]+)"\s+as="([^"]+)"\s+-->`)
+// appendixPropagateMarkerRegex matches <!-- @appendix-propagate from="..." to="..." as="CHUNK_ID" why-this-exists="..." -->.
+// Group 4 (why-this-exists) is required by the linter; the regex treats it as optional so the
+// match still succeeds when it is absent, allowing a targeted error message.
+var appendixPropagateMarkerRegex = regexp.MustCompile(`<!--\s+@appendix-propagate\s+from="([^"]+)"\s+to="([^"]+)"\s+as="([^"]+)"(?:\s+why-this-exists="([^"]+)")?\s+-->`)
 
 // sectionToAppendixMarkerRegex matches <!-- @section-to-appendix to="..." as="CHUNK_ID" -->.
 var sectionToAppendixMarkerRegex = regexp.MustCompile(`<!--\s+@section-to-appendix\s+to="([^"]+)"\s+as="([^"]+)"\s+-->`)
-
-// appendixWhyMarkerRegex matches <!-- @appendix-why from="..." why-this-exists="..." -->.
-var appendixWhyMarkerRegex = regexp.MustCompile(`<!--\s+@appendix-why\s+from="([^"]+)"\s+why-this-exists="([^"]+)"\s+-->`)
 
 // unstableChunkIDRegex catches likely section-number-driven IDs (e.g., section-13-4-rules).
 // A single numeric token (e.g., rfc-2119-keywords) is allowed; two adjacent numeric
@@ -126,7 +125,7 @@ func ExtractPropagateChunks(readFile func(string) ([]byte, error)) ([]string, er
 		}
 
 		appendixMatch := appendixPropagateMarkerRegex.FindStringSubmatch(line)
-		if len(appendixMatch) == 4 { //nolint:mnd // full match plus three capture groups
+		if len(appendixMatch) == cryptoutilSharedMagic.CICDDocsAppendixPropagateMatchLen {
 			chunkID := appendixMatch[3]
 			if !chunkIDRegex.MatchString(chunkID) {
 				continue
@@ -215,7 +214,7 @@ func extractSectionAppendixMappings(readFile func(string) ([]byte, error)) (
 		}
 
 		appendixMatch := appendixPropagateMarkerRegex.FindStringSubmatch(line)
-		if len(appendixMatch) == 4 { //nolint:mnd // full match plus three capture groups
+		if len(appendixMatch) == cryptoutilSharedMagic.CICDDocsAppendixPropagateMatchLen {
 			appendixID := appendixMatch[1]
 			targetCSV := appendixMatch[2]
 
@@ -224,19 +223,9 @@ func extractSectionAppendixMappings(readFile func(string) ([]byte, error)) (
 				issues = append(issues, fmt.Sprintf("unstable semantic chunk id %q at line %d uses section-like numerics", chunkID, lineNumber))
 			}
 
-			hasWhy := false
-
-			if idx > 0 {
-				prev := strings.TrimSpace(lines[idx-1])
-
-				whyMatch := appendixWhyMarkerRegex.FindStringSubmatch(prev)
-				if len(whyMatch) == 3 && whyMatch[1] == appendixID && len(strings.TrimSpace(whyMatch[2])) >= cryptoutilSharedMagic.IdentityDefaultMaxIdleConns {
-					hasWhy = true
-				}
-			}
-
-			if !hasWhy {
-				issues = append(issues, fmt.Sprintf("appendix-propagate block at line %d for appendix %q must have adjacent @appendix-why note with why-this-exists text", lineNumber, appendixID))
+			whyText := appendixMatch[4]
+			if len(strings.TrimSpace(whyText)) < cryptoutilSharedMagic.IdentityDefaultMaxIdleConns {
+				issues = append(issues, fmt.Sprintf("appendix-propagate block at line %d for appendix %q must have why-this-exists attribute with descriptive text", lineNumber, appendixID))
 			}
 
 			if chunkIDRegex.MatchString(chunkID) {
