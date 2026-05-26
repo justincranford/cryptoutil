@@ -63,7 +63,8 @@ type ChunkValidationResult struct {
 var propagateRegex = regexp.MustCompile(`^<!-- @propagate to="([^"]+)" as="([^"]+)" -->$`)
 
 // appendixPropagateRegex matches the @appendix-propagate opening marker.
-var appendixPropagateRegex = regexp.MustCompile(`^<!-- @appendix-propagate from="([^"]+)" to="([^"]+)" as="([^"]+)" -->$`)
+// The why-this-exists attribute is optional but encouraged; the regex accepts both forms.
+var appendixPropagateRegex = regexp.MustCompile(`^<!-- @appendix-propagate from="([^"]+)" to="([^"]+)" as="([^"]+)"(?:\s+why-this-exists="[^"]+")? -->$`)
 
 // sourceRegex matches the @source opening marker.
 var sourceRegex = regexp.MustCompile(`<!-- @source from="([^"]+)" as="([^"]+)" -->`)
