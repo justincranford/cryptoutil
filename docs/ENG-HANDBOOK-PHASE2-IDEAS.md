@@ -31,14 +31,19 @@
 
 ## Yes (IMPLEMENT NOW)
 
-1. Add a linter rule that rejects orphan appendix blocks that do not propagate to any downstream target.
-2. Add a linter rule that rejects semantic contribution blocks that do not feed any appendix block.
-3. Add a linter rule that rejects downstream targets that are populated directly from semantic sections instead of from appendix blocks.
-4. Prefer stable semantic chunk ids based on meaning, not section numbers, so handbook renumbering does not force downstream id churn.
-5. Consider requiring every appendix block to declare a short `why-this-exists` note outside the propagated text so reviewers can tell whether the block is semantic, structural, or compatibility glue.
-6. Introduce an appendix review order in the linter output so failures surface in the same order humans read the appendixes.
-7. Move duplicated handbook prose out of skills and agents into appendix-backed body fragments so the same rule text is reused consistently across more downstream surfaces.
-8. Treat extremely handbook-coupled skills as early migration candidates: `propagation-check`, `sync-copilot-claude`, `copilot-customization`, `test-table-driven`, and `openapi-codegen`.
+**✅ IMPLEMENTED (2026-05-25) — items 1–6 below are already in `validate_coverage.go`:**
+
+1. ✅ Add a linter rule that rejects orphan appendix blocks that do not propagate to any downstream target.
+2. ✅ Add a linter rule that rejects semantic contribution blocks that do not feed any appendix block.
+3. ✅ Add a linter rule that rejects downstream targets that are populated directly from semantic sections instead of from appendix blocks.
+4. ✅ Prefer stable semantic chunk ids based on meaning, not section numbers, so handbook renumbering does not force downstream id churn.
+5. ✅ Consider requiring every appendix block to declare a short `why-this-exists` note outside the propagated text so reviewers can tell whether the block is semantic, structural, or compatibility glue.
+6. ✅ Introduce an appendix review order in the linter output so failures surface in the same order humans read the appendixes. (`TestValidateCoverage_ViolationsSortedByAppendixReadingOrder` added to kill the mutation.)
+
+**⬜ NOT YET IMPLEMENTED — items 7–8 are future Phase 2+ enhancements:**
+
+1. Move duplicated handbook prose out of skills and agents into appendix-backed body fragments so the same rule text is reused consistently across more downstream surfaces.
+2. Treat extremely handbook-coupled skills as early migration candidates: `propagation-check`, `sync-copilot-claude`, `copilot-customization`, `test-table-driven`, and `openapi-codegen`.
 
 ## Unsure
 
