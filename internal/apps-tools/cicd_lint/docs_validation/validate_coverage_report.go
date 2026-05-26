@@ -4,7 +4,12 @@ package docs_validation
 import (
 	"fmt"
 	"io"
+	"os"
+	"path/filepath"
+	"sort"
 	"strings"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // extractSourceChunksFromContent scans a single file's content for @source blocks.
@@ -63,6 +68,92 @@ func FormatCoverageValidationResults(result *CoverageResult) string {
 	}
 
 	return sb.String()
+}
+
+// ExtractSourceChunks scans all instruction/agent files and returns a map of
+// chunk_id → sorted list of files that contain <!-- @source ... as="chunk_id" -->.
+func ExtractSourceChunks(rootDir string, readFile func(string) ([]byte, error)) (map[string][]string, error) {
+	scanDirs := []struct {
+		dir     string
+		pattern string
+	}{
+		{dir: cryptoutilSharedMagic.CICDGithubInstructionsDir, pattern: cryptoutilSharedMagic.CICDInstructionsPattern},
+		{dir: cryptoutilSharedMagic.CICDGithubAgentsDir, pattern: cryptoutilSharedMagic.CICDAgentsPattern},
+		{dir: cryptoutilSharedMagic.CICDClaudeAgentsDir, pattern: cryptoutilSharedMagic.CICDClaudeAgentsPattern},
+	}
+
+	result := make(map[string][]string)
+
+	// Scan copilot-instructions.md directly.
+	if content, err := readFile(cryptoutilSharedMagic.CICDCopilotInstructionsFile); err == nil {
+		extractSourceChunksFromContent(cryptoutilSharedMagic.CICDCopilotInstructionsFile, string(content), result)
+	}
+
+	for _, sd := range scanDirs {
+		dirPath := filepath.Join(rootDir, sd.dir)
+
+		entries, dirErr := os.ReadDir(dirPath)
+		if dirErr != nil {
+			continue
+		}
+
+		for _, entry := range entries {
+			if entry.IsDir() {
+				continue
+			}
+
+			matched, matchErr := filepath.Match(sd.pattern, entry.Name())
+			if matchErr != nil || !matched {
+				continue
+			}
+
+			relPath := filepath.ToSlash(filepath.Join(sd.dir, entry.Name()))
+
+			content, readErr := readFile(relPath)
+			if readErr != nil {
+				continue
+			}
+
+			extractSourceChunksFromContent(relPath, string(content), result)
+		}
+	}
+
+	// Scan skill pairs recursively: .github/skills/*/SKILL.md and .claude/skills/*/SKILL.md.
+	skillDirs := []string{
+		cryptoutilSharedMagic.CICDGithubSkillsDir,
+		cryptoutilSharedMagic.CICDClaudeSkillsDir,
+	}
+
+	for _, skillsDir := range skillDirs {
+		skillsDirPath := filepath.Join(rootDir, skillsDir)
+
+		skillEntries, skillsErr := os.ReadDir(skillsDirPath)
+		if skillsErr != nil {
+			continue
+		}
+
+		for _, skillEntry := range skillEntries {
+			if !skillEntry.IsDir() {
+				continue
+			}
+
+			relPath := filepath.ToSlash(filepath.Join(skillsDir, skillEntry.Name(), cryptoutilSharedMagic.CICDSkillFileName))
+
+			content, readErr := readFile(relPath)
+			if readErr != nil {
+				continue
+			}
+
+			extractSourceChunksFromContent(relPath, string(content), result)
+		}
+	}
+
+	// Sort the file lists for deterministic output.
+	for k := range result {
+		sort.Strings(result[k])
+	}
+
+	return result, nil
 }
 
 // ValidateCoverageCommand is the CLI entry point for validate-coverage.

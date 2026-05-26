@@ -588,3 +588,50 @@ func TestValidateCoverage_ViolationsSortedByChunkAndFile(t *testing.T) {
 	require.Contains(t, result.Violations[0].File, "a.instructions.md")
 	require.Contains(t, result.Violations[1].File, "b.instructions.md")
 }
+
+// TestValidateCoverage_ViolationsSortedByAppendixReadingOrder verifies that violations from
+// an appendix section that appears LATER in the file sort AFTER violations from an earlier
+// appendix section, even when chunk ID alphabetical order would produce the opposite result.
+// This exercises Item 6: violations surface in the same order humans read Appendix D.
+func TestValidateCoverage_ViolationsSortedByAppendixReadingOrder(t *testing.T) {
+	t.Parallel()
+
+	// zzz-early is in appendix group "early-group" which appears on line 2 of the fixture.
+	// aaa-late is in appendix group "late-group" which appears on line 12 of the fixture.
+	// Without appendix-order sort, aaa-late would appear before zzz-early (alpha order).
+	// With appendix-order sort, zzz-early must appear first (it is in the earlier appendix).
+	manifestYAML := `required_propagations:
+  - chunk_id: zzz-early
+    source_file: docs/ENG-HANDBOOK.md
+    required_targets:
+      - .github/instructions/a.instructions.md
+  - chunk_id: aaa-late
+    source_file: docs/ENG-HANDBOOK.md
+    required_targets:
+      - .github/instructions/a.instructions.md
+`
+
+	archContent := `# Handbook
+<!-- @section-to-appendix to="early-group" as="zzz-early" -->text<!-- @/section-to-appendix -->
+<!-- @appendix-why from="early-group" why-this-exists="early section" -->
+<!-- @appendix-propagate from="early-group" to=".github/instructions/a.instructions.md" as="zzz-early" -->
+early content
+<!-- @/appendix-propagate -->
+<!-- @section-to-appendix to="late-group" as="aaa-late" -->text<!-- @/section-to-appendix -->
+<!-- @appendix-why from="late-group" why-this-exists="late section" -->
+<!-- @appendix-propagate from="late-group" to=".github/instructions/a.instructions.md" as="aaa-late" -->
+late content
+<!-- @/appendix-propagate -->
+`
+
+	rootDir, readFile := buildValidateRoot(t, manifestYAML, archContent, map[string]string{})
+
+	result, err := ValidateCoverage(rootDir, readFile)
+
+	require.NoError(t, err)
+	require.Len(t, result.Violations, 2)
+	// zzz-early must come BEFORE aaa-late because its appendix section appears first in the
+	// file, even though "aaa" < "zzz" alphabetically (kills primary-key appendix-order mutation).
+	require.Equal(t, "zzz-early", result.Violations[0].ChunkID)
+	require.Equal(t, "aaa-late", result.Violations[1].ChunkID)
+}
