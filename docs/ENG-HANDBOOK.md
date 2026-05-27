@@ -68,6 +68,8 @@ This document is structured to serve multiple audiences:
 - [Appendix A: Decision Records](#appendix-a-decision-records)
 - [Appendix B: Reference Tables](#appendix-b-reference-tables)
 - [Appendix C: Compliance Matrix](#appendix-c-compliance-matrix)
+- [Appendix D: Propagation Index](#appendix-d-propagation-index)
+- [Appendix E: Per-Artifact Propagation Index](#appendix-e-per-artifact-propagation-index)
 
 ### Cross-Reference Index
 
