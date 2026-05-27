@@ -19,7 +19,6 @@ import (
 
 const (
 	handbookPath = "docs/ENG-HANDBOOK.md"
-	claudeFile   = "CLAUDE.md"
 	claudeLocal  = ".claude/settings.local.json"
 	skillsReadme = ".github/skills/README.md"
 )
@@ -86,7 +85,7 @@ func collectPolicyFiles(rootDir string) ([]string, error) {
 	files := []string{
 		filepath.Join(rootDir, handbookPath),
 		filepath.Join(rootDir, cryptoutilSharedMagic.CICDCopilotInstructionsFile),
-		filepath.Join(rootDir, claudeFile),
+		filepath.Join(rootDir, cryptoutilSharedMagic.CICDClaudeMdFile),
 		filepath.Join(rootDir, claudeLocal),
 		filepath.Join(rootDir, skillsReadme),
 	}

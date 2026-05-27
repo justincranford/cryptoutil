@@ -63,7 +63,7 @@ func TestCheckInDir(t *testing.T) {
 	valid := []byte("ok\n")
 	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, cryptoutilSharedMagic.CICDExcludeDirDocs, "ENG-HANDBOOK.md"), valid, cryptoutilSharedMagic.KeyFilePermissions))
 	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, cryptoutilSharedMagic.CICDCopilotInstructionsFile), valid, cryptoutilSharedMagic.KeyFilePermissions))
-	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, claudeFile), valid, cryptoutilSharedMagic.KeyFilePermissions))
+	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, cryptoutilSharedMagic.CICDClaudeMdFile), valid, cryptoutilSharedMagic.KeyFilePermissions))
 	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, claudeLocal), []byte("{}\n"), cryptoutilSharedMagic.KeyFilePermissions))
 	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, skillsReadme), valid, cryptoutilSharedMagic.KeyFilePermissions))
 	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, cryptoutilSharedMagic.CICDExcludeDirGithubInstructions, "instructions", "a.instructions.md"), valid, cryptoutilSharedMagic.KeyFilePermissions))

@@ -228,6 +228,56 @@ const (
 	// CICDYAMLFrontmatterDelimiter is the YAML front-matter boundary marker used in Markdown files.
 	CICDYAMLFrontmatterDelimiter = "---"
 
+	// CICDClaudeMdFile is the relative path to the CLAUDE.md file.
+	CICDClaudeMdFile = "CLAUDE.md"
+
+	// CICDFileCatalogStartMarker is the opening HTML comment marker for a @file-catalog single-file catalog entry.
+	// Attribute: path="<repo-relative-path>".
+	CICDFileCatalogStartMarker = "<!-- @file-catalog"
+
+	// CICDFileCatalogEndMarker is the closing HTML comment marker for a @file-catalog entry.
+	CICDFileCatalogEndMarker = "<!-- @/file-catalog -->"
+
+	// CICDFileCatalogPairStartMarker is the opening HTML comment marker for a @file-catalog-pair entry.
+	// Attributes: copilot="<copilot-path>" claude="<claude-path>".
+	CICDFileCatalogPairStartMarker = "<!-- @file-catalog-pair"
+
+	// CICDFileCatalogPairEndMarker is the closing HTML comment marker for a @file-catalog-pair entry.
+	CICDFileCatalogPairEndMarker = "<!-- @/file-catalog-pair -->"
+
+	// CICDFileCatalogCopilotFMStartMarker is the opening marker for the Copilot frontmatter section within a pair entry.
+	CICDFileCatalogCopilotFMStartMarker = "<!-- @copilot-frontmatter:start -->"
+
+	// CICDFileCatalogCopilotFMEndMarker is the closing marker for the Copilot frontmatter section within a pair entry.
+	CICDFileCatalogCopilotFMEndMarker = "<!-- @copilot-frontmatter:end -->"
+
+	// CICDFileCatalogClaudeFMStartMarker is the opening marker for the Claude frontmatter section within a pair entry.
+	CICDFileCatalogClaudeFMStartMarker = "<!-- @claude-frontmatter:start -->"
+
+	// CICDFileCatalogClaudeFMEndMarker is the closing marker for the Claude frontmatter section within a pair entry.
+	CICDFileCatalogClaudeFMEndMarker = "<!-- @claude-frontmatter:end -->"
+
+	// CICDFileCatalogBodyStartMarker is the opening marker for the shared body section within a pair entry.
+	CICDFileCatalogBodyStartMarker = "<!-- @file-body:start -->"
+
+	// CICDFileCatalogBodyEndMarker is the closing marker for the shared body section within a pair entry.
+	CICDFileCatalogBodyEndMarker = "<!-- @/file-body -->"
+
+	// CICDFileCatalogPathAttr is the path attribute name used in @file-catalog markers.
+	CICDFileCatalogPathAttr = `path="`
+
+	// CICDFileCatalogCopilotAttr is the copilot attribute name used in @file-catalog-pair markers.
+	CICDFileCatalogCopilotAttr = `copilot="`
+
+	// CICDFileCatalogClaudeAttr is the claude attribute name used in @file-catalog-pair markers.
+	CICDFileCatalogClaudeAttr = `claude="`
+
+	// FileCatalogSingleMatchGroups is the number of regex match groups for @file-catalog markers (full match + 1 capture group).
+	FileCatalogSingleMatchGroups = 2
+
+	// FileCatalogPairMatchGroups is the number of regex match groups for @file-catalog-pair markers (full match + 2 capture groups).
+	FileCatalogPairMatchGroups = 3
+
 	// CICDFrontmatterFirstNLines is the number of lines inspected to detect YAML front-matter presence.
 	CICDFrontmatterFirstNLines = 3
 

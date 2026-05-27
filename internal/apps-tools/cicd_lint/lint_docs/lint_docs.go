@@ -12,6 +12,8 @@ import (
 	cryptoutilLintAgentDrift "cryptoutil/internal/apps-tools/cicd_lint/lint_docs/lint_agent_drift"
 	cryptoutilLintAgentSelfContainment "cryptoutil/internal/apps-tools/cicd_lint/lint_docs/lint_agent_self_containment"
 	cryptoutilLintArchitectureLinks "cryptoutil/internal/apps-tools/cicd_lint/lint_docs/lint_architecture_links"
+	cryptoutilLintCatalogFiles "cryptoutil/internal/apps-tools/cicd_lint/lint_docs/lint_catalog_files"
+	cryptoutilLintCatalogPropagation "cryptoutil/internal/apps-tools/cicd_lint/lint_docs/lint_catalog_propagation"
 	cryptoutilLintDocFileEncoding "cryptoutil/internal/apps-tools/cicd_lint/lint_docs/lint_doc_file_encoding"
 	cryptoutilLintSkillCommandDrift "cryptoutil/internal/apps-tools/cicd_lint/lint_docs/lint_skill_command_drift"
 	cryptoutilPropagationCoverage "cryptoutil/internal/apps-tools/cicd_lint/lint_docs/propagation_coverage"
@@ -38,6 +40,8 @@ var registeredLinters = []struct {
 	{"lint-agent-self-containment", cryptoutilLintAgentSelfContainment.Check},
 	{"lint-architecture-links", cryptoutilLintArchitectureLinks.Check},
 	{"lint-doc-file-encoding", cryptoutilLintDocFileEncoding.Check},
+	{"lint-catalog-propagation", cryptoutilLintCatalogPropagation.Check},
+	{"lint-catalog-files", cryptoutilLintCatalogFiles.Check},
 }
 
 // Lint runs all registered documentation linters sequentially.

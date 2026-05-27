@@ -110,7 +110,29 @@ func ExtractPropagateChunks(readFile func(string) ([]byte, error)) ([]string, er
 
 	var chunks []string
 
+	var insideCatalog bool
+
 	for _, line := range strings.Split(string(data), "\n") {
+		trimmedLine := strings.TrimSpace(line)
+		// Skip content inside @file-catalog blocks: it is embedded file content, not handbook markers.
+		if strings.HasPrefix(trimmedLine, cryptoutilSharedMagic.CICDFileCatalogStartMarker) &&
+			!strings.Contains(trimmedLine, cryptoutilSharedMagic.CICDFileCatalogEndMarker) {
+			insideCatalog = true
+
+			continue
+		}
+
+		if trimmedLine == cryptoutilSharedMagic.CICDFileCatalogEndMarker ||
+			trimmedLine == cryptoutilSharedMagic.CICDFileCatalogPairEndMarker {
+			insideCatalog = false
+
+			continue
+		}
+
+		if insideCatalog {
+			continue
+		}
+
 		match := propagateMarkerRegex.FindStringSubmatch(line)
 		if len(match) >= cryptoutilSharedMagic.PropagateMarkerMatchGroups {
 			chunkID := match[2] // group 2 = as="CHUNK_ID"
@@ -170,8 +192,30 @@ func extractSectionAppendixMappings(readFile func(string) ([]byte, error)) (
 
 	lines := strings.Split(string(data), "\n")
 
+	var insideCatalog bool
+
 	for idx, line := range lines {
 		lineNumber := idx + 1
+
+		trimmedLine := strings.TrimSpace(line)
+		// Skip content inside @file-catalog blocks: it is embedded file content, not handbook markers.
+		if strings.HasPrefix(trimmedLine, cryptoutilSharedMagic.CICDFileCatalogStartMarker) &&
+			!strings.Contains(trimmedLine, cryptoutilSharedMagic.CICDFileCatalogEndMarker) {
+			insideCatalog = true
+
+			continue
+		}
+
+		if trimmedLine == cryptoutilSharedMagic.CICDFileCatalogEndMarker ||
+			trimmedLine == cryptoutilSharedMagic.CICDFileCatalogPairEndMarker {
+			insideCatalog = false
+
+			continue
+		}
+
+		if insideCatalog {
+			continue
+		}
 
 		sectionMatch := sectionToAppendixMarkerRegex.FindStringSubmatch(line)
 		if len(sectionMatch) == sectionToAppendixMatchLen {
