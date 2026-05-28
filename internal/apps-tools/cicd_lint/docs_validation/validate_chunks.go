@@ -43,7 +43,7 @@ const (
 	ChunkStatusMatch ChunkStatus = iota
 	// ChunkStatusMismatch means content differs between propagate and source.
 	ChunkStatusMismatch
-	// ChunkStatusMissing means the @source block was not found in the target file.
+	// ChunkStatusMissing means the @from-eng-handbook block was not found in the target file.
 	ChunkStatusMissing
 	// ChunkStatusFileNotFound means the target file does not exist.
 	ChunkStatusFileNotFound

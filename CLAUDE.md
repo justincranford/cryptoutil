@@ -21,7 +21,7 @@
 | §8 | API architecture, OpenAPI-first, dual path prefixes |
 | §10 | Testing architecture: unit/integration/e2e/fuzz/benchmark/load/mutation |
 | §11 | Quality strategy: ≥95% coverage production, ≥98% infrastructure |
-| §13 | Deployment, @propagate documentation system |
+| §13 | Deployment, handbook propagation system |
 | §14 | Development practices, Go patterns, import aliases |
 | §14.11 | Claude Code autonomous execution modes (beast-mode, plan+execute, standard chat) |
 
@@ -76,7 +76,7 @@ Full Copilot originals: [.github/skills/](.github/skills/).
 | `/openapi-codegen` | Generate oapi-codegen configs (server/model/client) + OpenAPI spec skeleton |
 | `/migration-create` | Create numbered SQL migration files per registry.yaml ranges |
 | `/new-service` | Create new PS-ID service from skeleton-template (9-step guide) |
-| `/propagation-check` | Detect `@propagate`/`@source` drift between ENG-HANDBOOK.md and instruction files |
+| `/propagation-check` | Detect `@to-appendix`/`@from-eng-handbook` drift between ENG-HANDBOOK.md and instruction files |
 | `/psid-template-sync` | Keep stable PS-ID template-instantiated files synchronized across all 10 services |
 | `/fitness-function-gen` | New architecture fitness function linter in cicd_lint/lint_fitness/ |
 | `/copilot-customization` | Create, update, or delete repo-local agents, instructions, or skills, including required Claude counterparts and Copilot agent tool allowlist maintenance |

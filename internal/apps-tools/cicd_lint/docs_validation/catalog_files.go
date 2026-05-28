@@ -1,5 +1,5 @@
 // Copyright (c) 2025-2026 Justin Cranford.
-// Package docs_validation provides catalog-file linters for Appendix E of ENG-HANDBOOK.md.
+// Package docs_validation provides catalog-file linters for Appendix D of ENG-HANDBOOK.md.
 //
 // Two linters are provided:
 //

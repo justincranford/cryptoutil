@@ -1,8 +1,8 @@
 // Copyright (c) 2025-2026 Justin Cranford.
-// Package lint_catalog_propagation verifies that every @appendix-propagate chunk in
-// ENG-HANDBOOK.md Appendix D that targets a catalogued file (one with a @file-catalog or
-// @file-catalog-pair entry in Appendix E) also has a matching @source block with identical
-// content inside that catalog entry's body.
+// Package lint_catalog_propagation verifies that every @to-appendix chunk in
+// ENG-HANDBOOK.md that targets a catalogued file (one with a @file-catalog or
+// @file-catalog-pair entry in Appendix D) also has a matching @from-eng-handbook
+// block with identical content inside that catalog entry's body.
 package lint_catalog_propagation
 
 import (
@@ -14,7 +14,7 @@ import (
 	cryptoutilDocsValidation "cryptoutil/internal/apps-tools/cicd_lint/docs_validation"
 )
 
-// Check verifies that @appendix-propagate chunk content is reflected verbatim inside the
+// Check verifies that @to-appendix chunk content is reflected verbatim inside the
 // @file-catalog / @file-catalog-pair body for each target file that is catalogued.
 func Check(logger *cryptoutilCmdCicdCommon.Logger) error {
 	return check(logger, func(stdout, stderr io.Writer) int {

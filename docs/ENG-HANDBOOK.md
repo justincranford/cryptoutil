@@ -68,8 +68,7 @@ This document is structured to serve multiple audiences:
 - [Appendix A: Decision Records](#appendix-a-decision-records)
 - [Appendix B: Reference Tables](#appendix-b-reference-tables)
 - [Appendix C: Compliance Matrix](#appendix-c-compliance-matrix)
-- [Appendix D: Propagation Index](#appendix-d-propagation-index)
-- [Appendix E: Per-Artifact Propagation Index](#appendix-e-per-artifact-propagation-index)
+- [Appendix D: File Catalog](#appendix-d-file-catalog)
 
 ### Cross-Reference Index
 
@@ -80,7 +79,7 @@ This document is structured to serve multiple audiences:
 | Port assignments | [3.4](#34-port-assignments--networking) | [3.4.1](#341-port-design-principles), [12.3.4](#1234-multi-level-deployment-hierarchy) |
 | Health checks | [5.5](#55-health-check-patterns) | [10.3.5](#1035-cross-service-ps-id-template-instantiation-pattern) |
 | Testing database tiers | [10.1](#101-testing-strategy-overview) | [7.3](#73-dual-database-strategy) |
-| @propagate system | [13.4](#134-documentation-propagation-strategy) | [13.4.7](#1347-propagation-coverage-accounting) |
+| Handbook propagation system | [13.4](#134-documentation-propagation-strategy) | [13.4.7](#1347-propagation-coverage-accounting) |
 | Key rotation | [6.4.2](#642-key-hierarchy-barrier-service) | [6.7](#67-key-management-system-architecture) |
 | Multi-tenancy | [7.2](#72-multi-tenancy-architecture--strategy) | [2.2](#22-architecture-strategy) |
 | FIPS 140-3 | [6.1](#61-fips-140-3-compliance-strategy) | [6.4.1](#641-fips-140-3-compliance-always-enabled) |
@@ -142,20 +141,20 @@ This document is structured to serve multiple audiences:
 
 ### 1.2 Key Architectural Characteristics
 
-#### 🔐 Cryptographic Standards
+#### Cryptographic Standards
 
 - **FIPS 140-3 Compliance**: Only NIST-approved algorithms (RSA ≥2048, AES ≥128, NIST curves, EdDSA)
 - **Key Generation**: RSA, ECDSA, ECDH, EdDSA, AES, HMAC, UUIDv7 with concurrent key pools
 - **JWE/JWS Support**: Full JSON Web Encryption and Signature implementation
 - **Hierarchical Key Management**: Multi-tier barrier system (unseal → root → intermediate → content keys)
 
-#### 🌐 API Architecture
+#### API Architecture
 
 - **Dual Context Design**: Browser API (`/browser/api/v1/*`) with CORS/CSRF/CSP vs Service API (`/service/api/v1/*`) for service-to-service
 - **Management Interface** (`127.0.0.1:9090`): Private health checks and graceful shutdown
 - **OpenAPI-Driven**: Auto-generated handlers, models, and interactive Swagger UI
 
-#### 🛡️ Security Features
+#### Security Features
 
 - **Multi-layered IP allowlisting**: Individual IPs + CIDR blocks
 - **Per-IP rate limiting**: Separate thresholds for browser (100 req/sec) vs service (25 req/sec) APIs
@@ -163,7 +162,7 @@ This document is structured to serve multiple audiences:
 - **Content Security Policy (CSP)** for XSS prevention
 - **Encrypted key storage** with barrier system protection
 
-#### 📊 Observability & Monitoring
+#### Observability & Monitoring
 
 - **OpenTelemetry integration**: Traces, metrics, logs via OTLP
 - **Structured logging** with slog
@@ -182,7 +181,7 @@ This document is structured to serve multiple audiences:
 - **Agent orchestration**: Copilot agents, Claude Code agents, dual canonical format, handoff flows, lint-agent-drift enforcement (see [Section 2.1](#21-agent-orchestration-strategy))
 - **Service framework & builder**: Shared HTTPS, TLS, database, barrier, session, and realm subsystems — eliminates 48,000+ lines of boilerplate per service (see [Section 5.1](#51-service-framework-pattern))
 - **Architecture fitness functions**: Programmatic invariant enforcement via 58+ fitness sub-linters (parallel-tests, file-size, test-patterns, entity-registry-completeness, and more — see [Section 9.11](#911-architecture-fitness-functions))
-- **Documentation propagation system**: `@source`/`@propagate` markers keep instruction files, agent files, and `ENG-HANDBOOK.md` byte-for-byte in sync; drift detected by `lint-docs` (see [Section 13.4](#134-documentation-propagation-strategy))
+- **Documentation propagation system**: `@from-eng-handbook`/`@to-appendix` markers keep instruction files, agent files, and `ENG-HANDBOOK.md` byte-for-byte in sync; drift detected by `lint-docs` (see [Section 13.4](#134-documentation-propagation-strategy))
 - **Developer inner-loop tooling**: `cicd-lint` with 14 linters, 2 formatters, and 1 operational script enforces project invariants locally before every commit (see [Section 9.10](#910-cicd-command-architecture))
 - **Autonomous execution protocol**: Beast-mode agents and pre-commit quality gates enforce continuous-work, evidence-based completion, and end-of-turn commit discipline (see [Section 14.11](#1411-claude-code-autonomous-execution))
 
@@ -472,7 +471,7 @@ Here is current git status:
 | `openapi-codegen` | api | Generate three oapi-codegen configs (server/model/client) + OpenAPI spec skeleton | [SKILL.md](.github/skills/openapi-codegen/SKILL.md) |
 | `migration-create` | data | Create numbered golang-migrate SQL files (template 1001-1999, domain 2001+) | [SKILL.md](.github/skills/migration-create/SKILL.md) |
 | `new-service` | architecture | Guide service creation from skeleton-template: copy, rename, register, migrate, test | [SKILL.md](.github/skills/new-service/SKILL.md) |
-| `propagation-check` | docs | Detect @propagate/@source drift, generate corrected @source blocks | [SKILL.md](.github/skills/propagation-check/SKILL.md) |
+| `propagation-check` | docs | Detect @to-appendix/@from-eng-handbook drift, generate corrected @from-eng-handbook blocks | [SKILL.md](.github/skills/propagation-check/SKILL.md) |
 | `psid-template-sync` | testing | Keep stable PS-ID template-instantiated files synchronized across all 10 services via exact template-drift enforcement | [SKILL.md](.github/skills/psid-template-sync/SKILL.md) |
 | `fitness-function-gen` | tooling | Create new architecture fitness function (linter) for lint-fitness framework | [SKILL.md](.github/skills/fitness-function-gen/SKILL.md) |
 | `copilot-customization` | tooling | Create, update, or delete repo-local agents, instructions, or skills and any required Claude counterpart, including Copilot agent tool allowlist maintenance | [SKILL.md](.github/skills/copilot-customization/SKILL.md) |
@@ -682,7 +681,7 @@ See the [beast-mode agent](.github/agents/beast-mode.agent.md) for the full auto
 
 ##### End-of-Turn Commit Protocol
 
-<!-- NOTE: This @propagate target is the beast-mode instruction file, which is injected as modeInstructions at runtime (not via the standard instructions directory scan). This means the chunk is consumed in the mode prompt, not in the standard instructions context — a different injection path than all other @propagate targets. -->
+<!-- NOTE: This @to-appendix target is the beast-mode instruction file, which is injected as modeInstructions at runtime (not via the standard instructions directory scan). This means the chunk is consumed in the mode prompt, not in the standard instructions context — a different injection path than all other @to-appendix targets. -->
 <!-- @to-appendix as="end-of-turn-commit-protocol" appendixes=".github/instructions/01-02.beast-mode.instructions.md" -->
 **MANDATORY: NEVER end a turn with uncommitted changes. Your ABSOLUTE LAST TOOL INVOCATION before yielding to the user MUST be running `git status --porcelain`. NEVER assume the worktree is clean — always RUN the command as a tool call.**
 
@@ -5099,7 +5098,7 @@ Note: `magic_cicd_test.go` is the single test file for this package (tests the `
 **Context-Specific MANDATORY Gates**:
 
 - After ANY change to `deployments/**`, `configs/**`, or deployment validator source: `go run ./cmd/cicd-lint lint-deployments` (runs 8 deployment validators; unrelated-looking validators can fail from any deployment change — always run all of them)
-- After ANY edit to `docs/ENG-HANDBOOK.md`: `go run ./cmd/cicd-lint lint-docs` (`replace_string_in_file` can silently delete section headings if `oldString` includes the heading but `newString` omits it; `lint-docs` catches broken @propagate anchors and section drift)
+- After ANY edit to `docs/ENG-HANDBOOK.md`: `go run ./cmd/cicd-lint lint-docs` (`replace_string_in_file` can silently delete section headings if `oldString` includes the heading but `newString` omits it; `lint-docs` catches broken handbook anchors, propagation drift, and section drift)
 
 #### 11.2.2 RECOMMENDED Pre-Commit Quality Gates
 
@@ -6319,7 +6318,7 @@ configs/
 
 **MANDATORY**: Changes to ENG-HANDBOOK.md MUST be propagated to ALL downstream files in the SAME commit. Infrastructure changes (Docker, OTel, testcontainers, CI/CD) are ALWAYS BLOCKING — NEVER deferred.
 
-**Propagation integrity check**: Run `go run ./cmd/cicd-lint lint-docs` immediately after every ENG-HANDBOOK.md update, BEFORE committing. `replace_string_in_file` can silently delete section headings or break `@propagate` anchors when `oldString` includes the heading but `newString` omits it. `lint-docs` catches all such drift in a single pass.
+**Propagation integrity check**: Run `go run ./cmd/cicd-lint lint-docs` immediately after every ENG-HANDBOOK.md update, BEFORE committing. `replace_string_in_file` can silently delete section headings or break handbook anchors when `oldString` includes the heading but `newString` omits it. `lint-docs` catches all such drift in a single pass.
 
 #### 13.4.2 Propagation Marker System
 
@@ -6371,7 +6370,7 @@ Any variant not matching the above grammar (e.g., `@to-appendix from=...`, `@fro
 
 #### 13.4.3 Propagation Rules
 
-**One-to-many**: One ENG-HANDBOOK.md chunk MAY propagate to multiple target files. Use a comma-separated `to` attribute: `to="file-a.md, file-b.md"`. The validator splits on comma-space and creates one propagation block per target with identical content. Avoid separate duplicate blocks.
+**One-to-many**: One ENG-HANDBOOK.md chunk MAY propagate to multiple target files. Use a comma-separated `appendixes` attribute: `appendixes="file-a.md, file-b.md"`. The validator splits on comma-space and creates one propagation block per target with identical content. Avoid separate duplicate blocks.
 
 **Chunk granularity**: Propagate the smallest self-contained unit. Prefer one chunk per logical concept (a table, a rule set, a code block with explanation). Do NOT wrap entire sections in a single marker.
 
@@ -6414,8 +6413,8 @@ Any variant not matching the above grammar (e.g., `@to-appendix from=...`, `@fro
 **Command**: `cicd-lint lint-docs`
 
 **Algorithm**:
-1. Parse all `@propagate` markers in ENG-HANDBOOK.md → extract (target_file, chunk_id, content)
-2. For each target, parse `@source` markers → extract (source_file, chunk_id, content)
+1. Parse all `@to-appendix` markers in ENG-HANDBOOK.md → extract (target_file, chunk_id, content)
+2. For each target, parse `@from-eng-handbook` markers → extract (source_file, chunk_id, content)
 3. Normalize whitespace (trim leading/trailing blank lines, LF line endings)
 4. Compare source content with target content byte-for-byte
 5. Report mismatches with diff output showing exact divergence
@@ -6445,8 +6444,8 @@ Any variant not matching the above grammar (e.g., `@to-appendix from=...`, `@fro
 Propagation markers are added incrementally:
 1. Start with highest-value instruction files (most-referenced, most-divergent)
 2. For each section: reconcile content direction (ENG-HANDBOOK.md → instruction file)
-3. Add `@propagate` markers in ENG-HANDBOOK.md
-4. Add `@source` markers in instruction files with verbatim copy
+3. Add `@to-appendix` markers in ENG-HANDBOOK.md
+4. Add `@from-eng-handbook` markers in instruction files with verbatim copy
 5. Run `validate-propagation` to confirm match
 6. Repeat for remaining sections
 
@@ -7099,7 +7098,7 @@ After ALL plan tasks are complete, apply accumulated lessons to permanent artifa
 6. **Tests**: Improve test suites where plan work exposed incomplete coverage or weak assertions.
 7. **Workflows**: Update CI/CD workflows to reflect any new quality gates or tooling discovered.
 8. **Documentation**: Update README, inline comments, and docs/ to reflect new patterns.
-9. **Verify propagation**: Run `go run ./cmd/cicd-lint lint-docs validate-propagation` to ensure `@source` blocks are in sync with `@propagate` blocks.
+9. **Verify propagation**: Run `go run ./cmd/cicd-lint lint-docs` to ensure `@from-eng-handbook` blocks are in sync with `@to-appendix` blocks.
 10. Commit all artifact updates with separate semantic commits per artifact type.
 
 **Every plan MUST include a final "Knowledge Propagation" phase** that executes these steps. This phase is NOT optional.
@@ -7421,8 +7420,8 @@ returns targeted matches in milliseconds.
 #### 14.12.2 Instruction File Efficiency
 
 **Cross-Reference Pruning**: Remove trailing `See [ENG-HANDBOOK.md Section X.Y...]` cross-reference
-lines that appear OUTSIDE `@source` blocks. These glue references add tokens without adding
-information — readers can follow `@source` blocks directly to the canonical location. Removing
+lines that appear OUTSIDE `@from-eng-handbook` blocks. These glue references add tokens without adding
+information — readers can follow `@from-eng-handbook` blocks directly to the canonical location. Removing
 redundant cross-references from instruction files reduces per-session token load without losing
 content.
 
@@ -7712,7 +7711,7 @@ See `.golangci.yml` for the authoritative linter configuration with all 30+ acti
 
 ---
 
-## Appendix E: File Catalog
+## Appendix D: File Catalog
 
 This appendix is the **single source of truth** for all downstream configuration files.
 Each entry contains the complete verbatim content of the corresponding file, using
@@ -7725,7 +7724,7 @@ Two linters enforce integrity:
 
 ---
 
-### E.1 CLAUDE.md
+### D.1 CLAUDE.md
 
 <!-- markdownlint-disable -->
 <!-- @file-catalog path="CLAUDE.md" -->
@@ -7752,7 +7751,7 @@ Two linters enforce integrity:
 | §8 | API architecture, OpenAPI-first, dual path prefixes |
 | §10 | Testing architecture: unit/integration/e2e/fuzz/benchmark/load/mutation |
 | §11 | Quality strategy: ≥95% coverage production, ≥98% infrastructure |
-| §13 | Deployment, @propagate documentation system |
+| §13 | Deployment, handbook propagation system |
 | §14 | Development practices, Go patterns, import aliases |
 | §14.11 | Claude Code autonomous execution modes (beast-mode, plan+execute, standard chat) |
 
@@ -7807,7 +7806,7 @@ Full Copilot originals: [.github/skills/](.github/skills/).
 | `/openapi-codegen` | Generate oapi-codegen configs (server/model/client) + OpenAPI spec skeleton |
 | `/migration-create` | Create numbered SQL migration files per registry.yaml ranges |
 | `/new-service` | Create new PS-ID service from skeleton-template (9-step guide) |
-| `/propagation-check` | Detect `@propagate`/`@source` drift between ENG-HANDBOOK.md and instruction files |
+| `/propagation-check` | Detect `@to-appendix`/`@from-eng-handbook` drift between ENG-HANDBOOK.md and instruction files |
 | `/psid-template-sync` | Keep stable PS-ID template-instantiated files synchronized across all 10 services |
 | `/fitness-function-gen` | New architecture fitness function linter in cicd_lint/lint_fitness/ |
 | `/copilot-customization` | Create, update, or delete repo-local agents, instructions, or skills, including required Claude counterparts and Copilot agent tool allowlist maintenance |
@@ -7817,7 +7816,7 @@ Full Copilot originals: [.github/skills/](.github/skills/).
 
 ---
 
-### E.2 .github/copilot-instructions.md
+### D.2 .github/copilot-instructions.md
 
 <!-- markdownlint-disable -->
 <!-- @file-catalog path=".github/copilot-instructions.md" -->
@@ -7848,7 +7847,7 @@ Full Copilot originals: [.github/skills/](.github/skills/).
 
 ## Documentation Propagation
 
-**ENG-HANDBOOK.md is the single source of truth**. Instruction files contain verbatim copies of ENG-HANDBOOK.md content chunks delimited by `<!-- @propagate -->` / `<!-- @source -->` HTML comment markers. Non-propagated glue (section headings, `See` cross-references, transitions) connects the verbatim chunks. When ENG-HANDBOOK.md chunks change, corresponding `@source` blocks in instruction files MUST be updated to match byte-for-byte. CI/CD validates propagation integrity via `cicd lint-docs validate-propagation`.
+**ENG-HANDBOOK.md is the single source of truth**. Instruction files contain verbatim copies of ENG-HANDBOOK.md content chunks delimited by `<!-- @to-appendix ... -->` / `<!-- @from-eng-handbook ... -->` HTML comment markers. Non-propagated glue (section headings, `See` cross-references, transitions) connects the verbatim chunks. When ENG-HANDBOOK.md chunks change, corresponding `@from-eng-handbook` blocks in instruction files MUST be updated to match byte-for-byte. CI/CD validates propagation integrity via `cicd lint-docs validate-propagation`.
 
 See [ENG-HANDBOOK.md Section 13.4 Documentation Propagation Strategy](docs/ENG-HANDBOOK.md#134-documentation-propagation-strategy) for marker system design, rules, and CI/CD validation.
 
@@ -7865,7 +7864,7 @@ See [.github/skills/README.md](.github/skills/README.md) for the full catalogue.
 | `/coverage-analysis` | Identifying coverage gaps after `go test -coverprofile` |
 | `/migration-create` | Adding database schema changes |
 | `/fips-audit` | Auditing Go code for FIPS 140-3 compliance |
-| `/propagation-check` | Checking @propagate/@source drift before committing docs |
+| `/propagation-check` | Checking @to-appendix/@from-eng-handbook drift before committing docs |
 | `/openapi-codegen` | Creating or extending service APIs |
 | `/copilot-customization` | Creating, updating, or deleting repo-local agents, instructions, or skills, including required Claude counterparts and Copilot agent tool allowlist maintenance |
 | `/sync-copilot-claude` | Auditing/syncing Copilot skills and agents with their Claude counterparts |
@@ -7903,7 +7902,7 @@ See [.github/skills/README.md](.github/skills/README.md) for the full catalogue.
 
 ---
 
-### E.3 01-01.terminology.instructions.md
+### D.3 01-01.terminology.instructions.md
 
 <!-- markdownlint-disable -->
 <!-- @file-catalog path=".github/instructions/01-01.terminology.instructions.md" -->
@@ -7949,7 +7948,7 @@ applyTo: "**"
 
 ---
 
-### E.4 01-02.beast-mode.instructions.md
+### D.4 01-02.beast-mode.instructions.md
 
 <!-- markdownlint-disable -->
 <!-- @file-catalog path=".github/instructions/01-02.beast-mode.instructions.md" -->
@@ -8079,7 +8078,7 @@ See [05-02.git.instructions.md](05-02.git.instructions.md) for the Multi-Categor
 
 ---
 
-### E.5 02-01.architecture.instructions.md
+### D.5 02-01.architecture.instructions.md
 
 <!-- markdownlint-disable -->
 <!-- @file-catalog path=".github/instructions/02-01.architecture.instructions.md" -->
@@ -8277,7 +8276,7 @@ The `docs/` directory is excluded from scanning (plans may reference old names f
 
 ---
 
-### E.6 02-02.versions.instructions.md
+### D.6 02-02.versions.instructions.md
 
 <!-- markdownlint-disable -->
 <!-- @file-catalog path=".github/instructions/02-02.versions.instructions.md" -->
@@ -8322,7 +8321,7 @@ applyTo: "**"
 
 ---
 
-### E.7 02-03.observability.instructions.md
+### D.7 02-03.observability.instructions.md
 
 <!-- markdownlint-disable -->
 <!-- @file-catalog path=".github/instructions/02-03.observability.instructions.md" -->
@@ -8451,7 +8450,7 @@ Docker Desktop upgrades MAY introduce API version mismatches with testcontainers
 
 ---
 
-### E.8 02-04.openapi.instructions.md
+### D.8 02-04.openapi.instructions.md
 
 <!-- markdownlint-disable -->
 <!-- @file-catalog path=".github/instructions/02-04.openapi.instructions.md" -->
@@ -8589,7 +8588,7 @@ Error:
 
 ---
 
-### E.9 02-05.security.instructions.md
+### D.9 02-05.security.instructions.md
 
 <!-- markdownlint-disable -->
 <!-- @file-catalog path=".github/instructions/02-05.security.instructions.md" -->
@@ -8775,7 +8774,7 @@ MUST check BOTH CRLDP and OCSP. Fail if BOTH unreachable. Cache CRLs with TTL.
 
 ---
 
-### E.10 02-06.authn.instructions.md
+### D.10 02-06.authn.instructions.md
 
 <!-- markdownlint-disable -->
 <!-- @file-catalog path=".github/instructions/02-06.authn.instructions.md" -->
@@ -8846,7 +8845,7 @@ applyTo: "**"
 
 ---
 
-### E.11 03-01.coding.instructions.md
+### D.11 03-01.coding.instructions.md
 
 <!-- markdownlint-disable -->
 <!-- @file-catalog path=".github/instructions/03-01.coding.instructions.md" -->
@@ -8943,7 +8942,7 @@ entries, err := os.ReadDir(dir)
 
 ---
 
-### E.12 03-02.testing.instructions.md
+### D.12 03-02.testing.instructions.md
 
 <!-- markdownlint-disable -->
 <!-- @file-catalog path=".github/instructions/03-02.testing.instructions.md" -->
@@ -9539,7 +9538,7 @@ golangci-lint run ./...                    # Step 2: verify no new violations we
 
 ---
 
-### E.13 03-03.golang.instructions.md
+### D.13 03-03.golang.instructions.md
 
 <!-- markdownlint-disable -->
 <!-- @file-catalog path=".github/instructions/03-03.golang.instructions.md" -->
@@ -9667,7 +9666,7 @@ import (
 
 ---
 
-### E.14 03-04.data-infrastructure.instructions.md
+### D.14 03-04.data-infrastructure.instructions.md
 
 <!-- markdownlint-disable -->
 <!-- @file-catalog path=".github/instructions/03-04.data-infrastructure.instructions.md" -->
@@ -9904,7 +9903,7 @@ The `internal/apps-framework/service/` package provides reusable types shared ac
 
 ---
 
-### E.15 03-05.linting.instructions.md
+### D.15 03-05.linting.instructions.md
 
 <!-- markdownlint-disable -->
 <!-- @file-catalog path=".github/instructions/03-05.linting.instructions.md" -->
@@ -10051,7 +10050,7 @@ After registering a new linter in `lint_fitness/`, immediately run `go run ./cmd
 
 ---
 
-### E.16 04-01.deployment.instructions.md
+### D.16 04-01.deployment.instructions.md
 
 <!-- markdownlint-disable -->
 <!-- @file-catalog path=".github/instructions/04-01.deployment.instructions.md" -->
@@ -10397,7 +10396,7 @@ Run from project root: `go run ./cmd/cicd-lint <command> [command2...]`
 
 ---
 
-### E.17 05-01.cross-platform.instructions.md
+### D.17 05-01.cross-platform.instructions.md
 
 <!-- markdownlint-disable -->
 <!-- @file-catalog path=".github/instructions/05-01.cross-platform.instructions.md" -->
@@ -10549,7 +10548,7 @@ Use `.github/actions/docker-images-pull` for parallel image downloads:
 
 ---
 
-### E.18 05-02.git.instructions.md
+### D.18 05-02.git.instructions.md
 
 <!-- markdownlint-disable -->
 <!-- @file-catalog path=".github/instructions/05-02.git.instructions.md" -->
@@ -10662,7 +10661,7 @@ This repo uses LF everywhere. The `.gitattributes` file pins `* text=auto eol=lf
 
 ---
 
-### E.19 06-01.evidence-based.instructions.md
+### D.19 06-01.evidence-based.instructions.md
 
 <!-- markdownlint-disable -->
 <!-- @file-catalog path=".github/instructions/06-01.evidence-based.instructions.md" -->
@@ -10789,7 +10788,7 @@ Copilot and AI agents have a tendency to partially fulfill requested work, accid
 
 ---
 
-### E.20 06-02.agent-format.instructions.md
+### D.20 06-02.agent-format.instructions.md
 
 <!-- markdownlint-disable -->
 <!-- @file-catalog path=".github/instructions/06-02.agent-format.instructions.md" -->
@@ -10970,7 +10969,7 @@ Use `/copilot-customization` for the end-to-end operational workflow (inventory,
 
 ---
 
-### E.21 06-03.tool-efficiency.instructions.md
+### D.21 06-03.tool-efficiency.instructions.md
 
 <!-- markdownlint-disable -->
 <!-- @file-catalog path=".github/instructions/06-03.tool-efficiency.instructions.md" -->
@@ -11078,7 +11077,7 @@ This collapses passing steps in the GitHub Actions UI, reducing log noise in age
 
 ---
 
-### E.22 beast-mode (agent pair)
+### D.22 beast-mode (agent pair)
 
 <!-- markdownlint-disable -->
 <!-- @file-catalog-pair copilot=".github/agents/beast-mode.agent.md" claude=".claude/agents/beast-mode.md" -->
@@ -11709,7 +11708,7 @@ A response that leaves uncommitted changes is incomplete by definition. The Work
 
 ---
 
-### E.23 fix-workflows (agent pair)
+### D.23 fix-workflows (agent pair)
 
 <!-- markdownlint-disable -->
 <!-- @file-catalog-pair copilot=".github/agents/fix-workflows.agent.md" claude=".claude/agents/fix-workflows.md" -->
@@ -12594,7 +12593,7 @@ A response that leaves uncommitted changes is incomplete by definition.
 
 ---
 
-### E.24 implementation-execution (agent pair)
+### D.24 implementation-execution (agent pair)
 
 <!-- markdownlint-disable -->
 <!-- @file-catalog-pair copilot=".github/agents/implementation-execution.agent.md" claude=".claude/agents/implementation-execution.md" -->
@@ -14011,8 +14010,8 @@ If a task cannot be completed due to architectural limitations, missing infrastr
      - CI/CD workflows — Add new quality gates or tooling; fix incorrect steps discovered
      - `README.md`, `docs/DEV-SETUP.md`, inline comments — Developer-facing documentation
 4. **Artifact Self-Evaluation**: Review ALL of the following for contradictions or omissions introduced by this plan:
-   - Every `@source` block in instruction files must match its `@propagate` block in ENG-HANDBOOK.md
-   - Run `go run ./cmd/cicd-lint lint-docs validate-propagation` to verify propagation integrity
+   - Every `@from-eng-handbook` block in instruction files must match its `@to-appendix` block in ENG-HANDBOOK.md
+   - Run `go run ./cmd/cicd-lint lint-docs` to verify propagation integrity
 5. **Commit with Audit Trail**: Use separate semantic commits per artifact type: (1) ENG-HANDBOOK.md, (2) agents, (3) skills, (4) instructions
 
 **Anti-Patterns:**
@@ -14139,7 +14138,7 @@ A response that leaves uncommitted changes is incomplete by definition.
 
 ---
 
-### E.25 implementation-planning (agent pair)
+### D.25 implementation-planning (agent pair)
 
 <!-- markdownlint-disable -->
 <!-- @file-catalog-pair copilot=".github/agents/implementation-planning.agent.md" claude=".claude/agents/implementation-planning.md" -->
@@ -15593,7 +15592,7 @@ A response that leaves uncommitted changes is incomplete by definition.
 
 ---
 
-### E.26 copilot-customization (skill pair)
+### D.26 copilot-customization (skill pair)
 
 <!-- markdownlint-disable -->
 <!-- @file-catalog-pair copilot=".github/skills/copilot-customization/SKILL.md" claude=".claude/skills/copilot-customization/SKILL.md" -->
@@ -15654,8 +15653,8 @@ instructions, and skills.
 
 - Filename pattern: `.github/instructions/NN-NN.name.instructions.md`
 - YAML frontmatter MUST contain `description:` and `applyTo:`
-- Use `@source` blocks for propagated handbook content
-- `@source` content MUST match the corresponding handbook `@propagate` block byte-for-byte
+- Use `@from-eng-handbook` blocks for propagated handbook content
+- `@from-eng-handbook` content MUST match the corresponding handbook `@to-appendix` block byte-for-byte
 - Keep the `## Instruction Files` section in `CLAUDE.md` aligned with `.github/copilot-instructions.md`
 - Add or remove the instruction in `.github/copilot-instructions.md` when it is part of the active instruction catalogue
 
@@ -15749,7 +15748,7 @@ When to use this skill.
 
 Read [ENG-HANDBOOK.md Section 2.1.5 Copilot Skills](../../../docs/ENG-HANDBOOK.md#215-copilot-skills) for the project's customization taxonomy and catalogue expectations.
 
-Read [ENG-HANDBOOK.md Section 13.4 Documentation Propagation Strategy](../../../docs/ENG-HANDBOOK.md#134-documentation-propagation-strategy) for `@propagate` and `@source` rules when the new artifact embeds propagated handbook content.
+Read [ENG-HANDBOOK.md Section 13.4 Documentation Propagation Strategy](../../../docs/ENG-HANDBOOK.md#134-documentation-propagation-strategy) for `@to-appendix` and `@from-eng-handbook` rules when the new artifact embeds propagated handbook content.
 
 Read [.github/instructions/06-02.agent-format.instructions.md](../../../.github/instructions/06-02.agent-format.instructions.md) for dual-canonical agent and skill file requirements.
 <!-- @file-body:end -->
@@ -15759,7 +15758,7 @@ Read [.github/instructions/06-02.agent-format.instructions.md](../../../.github/
 
 ---
 
-### E.27 coverage-analysis (skill pair)
+### D.27 coverage-analysis (skill pair)
 
 <!-- markdownlint-disable -->
 <!-- @file-catalog-pair copilot=".github/skills/coverage-analysis/SKILL.md" claude=".claude/skills/coverage-analysis/SKILL.md" -->
@@ -15883,7 +15882,7 @@ Read [ENG-HANDBOOK.md Section 10.2 Unit Testing Strategy](../../../docs/ENG-HAND
 
 ---
 
-### E.28 fips-audit (skill pair)
+### D.28 fips-audit (skill pair)
 
 <!-- markdownlint-disable -->
 <!-- @file-catalog-pair copilot=".github/skills/fips-audit/SKILL.md" claude=".claude/skills/fips-audit/SKILL.md" -->
@@ -15997,7 +15996,7 @@ Read [ENG-HANDBOOK.md Section 6.4 Cryptographic Architecture](../../../docs/ENG-
 
 ---
 
-### E.29 fitness-function-gen (skill pair)
+### D.29 fitness-function-gen (skill pair)
 
 <!-- markdownlint-disable -->
 <!-- @file-catalog-pair copilot=".github/skills/fitness-function-gen/SKILL.md" claude=".claude/skills/fitness-function-gen/SKILL.md" -->
@@ -16232,7 +16231,7 @@ Read [ENG-HANDBOOK.md Section 11.3 Code Quality Standards](../../../docs/ENG-HAN
 
 ---
 
-### E.30 migration-create (skill pair)
+### D.30 migration-create (skill pair)
 
 <!-- markdownlint-disable -->
 <!-- @file-catalog-pair copilot=".github/skills/migration-create/SKILL.md" claude=".claude/skills/migration-create/SKILL.md" -->
@@ -16344,7 +16343,7 @@ Read [ENG-HANDBOOK.md Section 5.2 Service Builder Pattern](../../../docs/ENG-HAN
 
 ---
 
-### E.31 new-service (skill pair)
+### D.31 new-service (skill pair)
 
 <!-- markdownlint-disable -->
 <!-- @file-catalog-pair copilot=".github/skills/new-service/SKILL.md" claude=".claude/skills/new-service/SKILL.md" -->
@@ -16509,7 +16508,7 @@ Read [ENG-HANDBOOK.md Section 5.6 PS-ID Entry Point Patterns](../../../docs/ENG-
 
 ---
 
-### E.32 openapi-codegen (skill pair)
+### D.32 openapi-codegen (skill pair)
 
 <!-- markdownlint-disable -->
 <!-- @file-catalog-pair copilot=".github/skills/openapi-codegen/SKILL.md" claude=".claude/skills/openapi-codegen/SKILL.md" -->
@@ -16679,7 +16678,7 @@ Read [ENG-HANDBOOK.md Section 8.4 Error Handling](../../../docs/ENG-HANDBOOK.md#
 
 ---
 
-### E.33 propagation-check (skill pair)
+### D.33 propagation-check (skill pair)
 
 <!-- markdownlint-disable -->
 <!-- @file-catalog-pair copilot=".github/skills/propagation-check/SKILL.md" claude=".claude/skills/propagation-check/SKILL.md" -->
@@ -16771,7 +16770,7 @@ Use `sync-copilot-claude` when the propagation change also affects dual-canonica
 
 ---
 
-### E.34 psid-template-sync (skill pair)
+### D.34 psid-template-sync (skill pair)
 
 <!-- markdownlint-disable -->
 <!-- @file-catalog-pair copilot=".github/skills/psid-template-sync/SKILL.md" claude=".claude/skills/psid-template-sync/SKILL.md" -->
@@ -16855,7 +16854,7 @@ Read [apps_ps_id_template_service_template.go](../../../internal/apps-tools/cicd
 
 ---
 
-### E.35 sync-copilot-claude (skill pair)
+### D.35 sync-copilot-claude (skill pair)
 
 <!-- markdownlint-disable -->
 <!-- @file-catalog-pair copilot=".github/skills/sync-copilot-claude/SKILL.md" claude=".claude/skills/sync-copilot-claude/SKILL.md" -->
@@ -16953,7 +16952,7 @@ See [ENG-HANDBOOK.md Section 2.1.5 Copilot Skills](../../../docs/ENG-HANDBOOK.md
 
 ---
 
-### E.36 test-benchmark-gen (skill pair)
+### D.36 test-benchmark-gen (skill pair)
 
 <!-- markdownlint-disable -->
 <!-- @file-catalog-pair copilot=".github/skills/test-benchmark-gen/SKILL.md" claude=".claude/skills/test-benchmark-gen/SKILL.md" -->
@@ -17089,7 +17088,7 @@ Read [ENG-HANDBOOK.md Section 10.8 Benchmark Testing Strategy](../../../docs/ENG
 
 ---
 
-### E.37 test-fuzz-gen (skill pair)
+### D.37 test-fuzz-gen (skill pair)
 
 <!-- markdownlint-disable -->
 <!-- @file-catalog-pair copilot=".github/skills/test-fuzz-gen/SKILL.md" claude=".claude/skills/test-fuzz-gen/SKILL.md" -->
@@ -17170,7 +17169,7 @@ Read [ENG-HANDBOOK.md Section 10.1 Testing Strategy Overview](../../../docs/ENG-
 
 ---
 
-### E.38 test-table-driven (skill pair)
+### D.38 test-table-driven (skill pair)
 
 <!-- markdownlint-disable -->
 <!-- @file-catalog-pair copilot=".github/skills/test-table-driven/SKILL.md" claude=".claude/skills/test-table-driven/SKILL.md" -->

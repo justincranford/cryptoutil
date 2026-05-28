@@ -25,7 +25,7 @@
 
 ## Documentation Propagation
 
-**ENG-HANDBOOK.md is the single source of truth**. Instruction files contain verbatim copies of ENG-HANDBOOK.md content chunks delimited by `<!-- @propagate -->` / `<!-- @source -->` HTML comment markers. Non-propagated glue (section headings, `See` cross-references, transitions) connects the verbatim chunks. When ENG-HANDBOOK.md chunks change, corresponding `@source` blocks in instruction files MUST be updated to match byte-for-byte. CI/CD validates propagation integrity via `cicd lint-docs validate-propagation`.
+**ENG-HANDBOOK.md is the single source of truth**. Instruction files contain verbatim copies of ENG-HANDBOOK.md content chunks delimited by `<!-- @to-appendix ... -->` / `<!-- @from-eng-handbook ... -->` HTML comment markers. Non-propagated glue (section headings, `See` cross-references, transitions) connects the verbatim chunks. When ENG-HANDBOOK.md chunks change, corresponding `@from-eng-handbook` blocks in instruction files MUST be updated to match byte-for-byte. CI/CD validates propagation integrity via `cicd lint-docs validate-propagation`.
 
 See [ENG-HANDBOOK.md Section 13.4 Documentation Propagation Strategy](docs/ENG-HANDBOOK.md#134-documentation-propagation-strategy) for marker system design, rules, and CI/CD validation.
 
@@ -42,7 +42,7 @@ See [.github/skills/README.md](.github/skills/README.md) for the full catalogue.
 | `/coverage-analysis` | Identifying coverage gaps after `go test -coverprofile` |
 | `/migration-create` | Adding database schema changes |
 | `/fips-audit` | Auditing Go code for FIPS 140-3 compliance |
-| `/propagation-check` | Checking @propagate/@source drift before committing docs |
+| `/propagation-check` | Checking @to-appendix/@from-eng-handbook drift before committing docs |
 | `/openapi-codegen` | Creating or extending service APIs |
 | `/copilot-customization` | Creating, updating, or deleting repo-local agents, instructions, or skills, including required Claude counterparts and Copilot agent tool allowlist maintenance |
 | `/sync-copilot-claude` | Auditing/syncing Copilot skills and agents with their Claude counterparts |

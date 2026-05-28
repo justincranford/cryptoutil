@@ -14,7 +14,7 @@ import (
 
 const toAppendixCoverageMatchGroups = 3
 
-// PropagationEntry describes a single required @propagate chunk from the manifest.
+// PropagationEntry describes a single required handbook chunk from the manifest.
 type PropagationEntry struct {
 	ChunkID         string   `yaml:"chunk_id"`
 	SourceFile      string   `yaml:"source_file"`
@@ -36,7 +36,7 @@ type CoverageViolation struct {
 // CoverageResult holds the result of validate-coverage.
 type CoverageResult struct {
 	Violations         []CoverageViolation
-	OrphanedChunks     []string // @propagate in ENG-HANDBOOK.md but missing from manifest
+	OrphanedChunks     []string // @to-appendix in ENG-HANDBOOK.md but missing from manifest
 	CompositionIssues  []string // structural issues in @to-appendix marker declarations
 	ManifestChunks     int
 	ArchitectureChunks int
@@ -197,8 +197,8 @@ func extractToAppendixMappings(readFile func(string) ([]byte, error)) (map[strin
 
 // ValidateCoverage runs the full coverage validation:
 //  1. Loads the required-propagations manifest.
-//  2. Extracts @propagate chunk IDs from ENG-HANDBOOK.md.
-//  3. Scans instruction/agent files for @source chunk IDs.
+//  2. Extracts @to-appendix chunk IDs from ENG-HANDBOOK.md.
+//  3. Scans instruction/agent files for @from-eng-handbook chunk IDs.
 //  4. Returns violations and orphaned chunks.
 func ValidateCoverage(rootDir string, readFile func(string) ([]byte, error)) (*CoverageResult, error) {
 	return validateCoverage(rootDir, readFile, ExtractSourceChunks)
@@ -274,13 +274,13 @@ func validateCoverage(rootDir string, readFile func(string) ([]byte, error), ext
 				result.Violations = append(result.Violations, CoverageViolation{
 					ChunkID:     entry.ChunkID,
 					File:        target,
-					Description: fmt.Sprintf("@source block for chunk %q not found in %s", entry.ChunkID, target),
+					Description: fmt.Sprintf("@from-eng-handbook block for chunk %q not found in %s", entry.ChunkID, target),
 				})
 			}
 		}
 	}
 
-	// Find orphaned: @propagate in ENG-HANDBOOK.md but not in manifest.
+	// Find orphaned: @to-appendix in ENG-HANDBOOK.md but not in manifest.
 	for _, id := range archChunks {
 		if !manifestSet[id] {
 			result.OrphanedChunks = append(result.OrphanedChunks, id)

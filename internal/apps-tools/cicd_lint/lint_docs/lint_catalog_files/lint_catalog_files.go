@@ -1,6 +1,6 @@
 // Copyright (c) 2025-2026 Justin Cranford.
 // Package lint_catalog_files verifies that every @file-catalog and @file-catalog-pair
-// entry in ENG-HANDBOOK.md Appendix E matches the corresponding file(s) on disk exactly.
+// entry in ENG-HANDBOOK.md Appendix D matches the corresponding file(s) on disk exactly.
 // Frontmatter + body concatenation must produce the verbatim file content.
 package lint_catalog_files
 
@@ -13,7 +13,7 @@ import (
 	cryptoutilDocsValidation "cryptoutil/internal/apps-tools/cicd_lint/docs_validation"
 )
 
-// Check verifies that all catalog entries in ENG-HANDBOOK.md Appendix E match the actual
+// Check verifies that all catalog entries in ENG-HANDBOOK.md Appendix D match the actual
 // files on disk. Each @file-catalog entry must contain the complete verbatim file content;
 // each @file-catalog-pair entry's reconstructed Copilot and Claude files must match disk.
 func Check(logger *cryptoutilCmdCicdCommon.Logger) error {

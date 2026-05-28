@@ -1346,8 +1346,8 @@ If a task cannot be completed due to architectural limitations, missing infrastr
      - CI/CD workflows — Add new quality gates or tooling; fix incorrect steps discovered
      - `README.md`, `docs/DEV-SETUP.md`, inline comments — Developer-facing documentation
 4. **Artifact Self-Evaluation**: Review ALL of the following for contradictions or omissions introduced by this plan:
-   - Every `@source` block in instruction files must match its `@propagate` block in ENG-HANDBOOK.md
-   - Run `go run ./cmd/cicd-lint lint-docs validate-propagation` to verify propagation integrity
+   - Every `@from-eng-handbook` block in instruction files must match its `@to-appendix` block in ENG-HANDBOOK.md
+   - Run `go run ./cmd/cicd-lint lint-docs` to verify propagation integrity
 5. **Commit with Audit Trail**: Use separate semantic commits per artifact type: (1) ENG-HANDBOOK.md, (2) agents, (3) skills, (4) instructions
 
 **Anti-Patterns:**

@@ -49,5 +49,5 @@ func TestCheck_ErrorWithoutStderr(t *testing.T) {
 	err := check(logger, stubFn)
 
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "broken @source references")
+	require.Contains(t, err.Error(), "broken ENG-HANDBOOK cross-references")
 }

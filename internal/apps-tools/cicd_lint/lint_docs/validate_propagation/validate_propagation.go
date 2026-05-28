@@ -1,6 +1,6 @@
 // Copyright (c) 2025-2026 Justin Cranford.
-// Package validate_propagation validates that @source references in instruction
-// files correspond to valid @propagate marker blocks.
+// Package validate_propagation validates that ENG-HANDBOOK cross-references in
+// instruction and agent files resolve to valid handbook anchors.
 package validate_propagation
 
 import (
@@ -12,7 +12,7 @@ import (
 	cryptoutilDocsValidation "cryptoutil/internal/apps-tools/cicd_lint/docs_validation"
 )
 
-// Check validates that all @source references have corresponding @propagate blocks.
+// Check validates that handbook cross-references resolve to existing anchors.
 // Returns an error if any broken references are found.
 func Check(logger *cryptoutilCmdCicdCommon.Logger) error {
 	return check(logger, func(stdout, stderr io.Writer) int {
@@ -34,7 +34,7 @@ func check(logger *cryptoutilCmdCicdCommon.Logger, fn func(io.Writer, io.Writer)
 			return fmt.Errorf("validate-propagation failed: %s", stderr.String())
 		}
 
-		return fmt.Errorf("validate-propagation failed: broken @source references found")
+		return fmt.Errorf("validate-propagation failed: broken ENG-HANDBOOK cross-references found")
 	}
 
 	return nil

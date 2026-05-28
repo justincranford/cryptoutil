@@ -29,7 +29,7 @@ type FileCoverage struct {
 	HasSource    bool
 }
 
-// ComputeCoverage analyzes instruction and agent files for @source block coverage.
+// ComputeCoverage analyzes instruction and agent files for @from-eng-handbook block coverage.
 func ComputeCoverage(rootDir string, readFile func(string) ([]byte, error)) (*PropagationCoverageResult, error) {
 	scanDirs := []struct {
 		dir     string

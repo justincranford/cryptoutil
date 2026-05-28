@@ -39,7 +39,7 @@ Copilot auto-load it when your request matches the skill description.
 | `openapi-codegen` | api | Generate three oapi-codegen configs (server/model/client) + OpenAPI spec skeleton | [SKILL.md](openapi-codegen/SKILL.md) |
 | `migration-create` | data | Create numbered golang-migrate SQL files (template 1001-1999, domain 2001+) | [SKILL.md](migration-create/SKILL.md) |
 | `new-service` | architecture | Guide service creation from skeleton-template: copy, rename, register, migrate, test | [SKILL.md](new-service/SKILL.md) |
-| `propagation-check` | docs | Detect @propagate/@source drift, generate corrected @source blocks | [SKILL.md](propagation-check/SKILL.md) |
+| `propagation-check` | docs | Detect @to-appendix/@from-eng-handbook drift, generate corrected @from-eng-handbook blocks | [SKILL.md](propagation-check/SKILL.md) |
 | `copilot-customization` | tooling | Create, update, or delete repo-local agents, instructions, or skills and any required Claude counterpart, including Copilot agent tool allowlist maintenance | [SKILL.md](copilot-customization/SKILL.md) |
 | `sync-copilot-claude` | tooling | Audit/sync Copilot skills+agents with Claude skills+agents; migration status for legacy commands | [SKILL.md](sync-copilot-claude/SKILL.md) |
 | `psid-template-sync` | testing | Keep stable PS-ID template-instantiated files synchronized across all 10 services via template-drift | [SKILL.md](psid-template-sync/SKILL.md) |

@@ -42,8 +42,8 @@ instructions, and skills.
 
 - Filename pattern: `.github/instructions/NN-NN.name.instructions.md`
 - YAML frontmatter MUST contain `description:` and `applyTo:`
-- Use `@source` blocks for propagated handbook content
-- `@source` content MUST match the corresponding handbook `@propagate` block byte-for-byte
+- Use `@from-eng-handbook` blocks for propagated handbook content
+- `@from-eng-handbook` content MUST match the corresponding handbook `@to-appendix` block byte-for-byte
 - Keep the `## Instruction Files` section in `CLAUDE.md` aligned with `.github/copilot-instructions.md`
 - Add or remove the instruction in `.github/copilot-instructions.md` when it is part of the active instruction catalogue
 
@@ -137,6 +137,6 @@ When to use this skill.
 
 Read [ENG-HANDBOOK.md Section 2.1.5 Copilot Skills](../../../docs/ENG-HANDBOOK.md#215-copilot-skills) for the project's customization taxonomy and catalogue expectations.
 
-Read [ENG-HANDBOOK.md Section 13.4 Documentation Propagation Strategy](../../../docs/ENG-HANDBOOK.md#134-documentation-propagation-strategy) for `@propagate` and `@source` rules when the new artifact embeds propagated handbook content.
+Read [ENG-HANDBOOK.md Section 13.4 Documentation Propagation Strategy](../../../docs/ENG-HANDBOOK.md#134-documentation-propagation-strategy) for `@to-appendix` and `@from-eng-handbook` rules when the new artifact embeds propagated handbook content.
 
 Read [.github/instructions/06-02.agent-format.instructions.md](../../../.github/instructions/06-02.agent-format.instructions.md) for dual-canonical agent and skill file requirements.
