@@ -39,9 +39,9 @@ func TestExtractSourceChunks_CopilotInstructionsFile(t *testing.T) {
 	copilotDir := rootDir + "/.github"
 	require.NoError(t, os.MkdirAll(copilotDir, 0o700))
 
-	copilotContent := `<!-- @source from="docs/ENG-HANDBOOK.md" as="copilot-chunk" -->
+	copilotContent := `<!-- @from-eng-handbook as="copilot-chunk" -->
 content
-<!-- @/source -->
+<!-- @/from-eng-handbook -->
 `
 	require.NoError(t, os.WriteFile(copilotDir+"/copilot-instructions.md", []byte(copilotContent), cryptoutilSharedMagic.FilePermissionsDefault))
 
@@ -91,7 +91,7 @@ func TestExtractSourceChunks_SortsFileLists(t *testing.T) {
 	instrDir := rootDir + "/.github/instructions"
 	require.NoError(t, os.MkdirAll(instrDir, 0o700))
 
-	chunk := `<!-- @source from="docs/ENG-HANDBOOK.md" as="shared-chunk" -->`
+	chunk := `<!-- @from-eng-handbook as="shared-chunk" -->`
 
 	require.NoError(t, os.WriteFile(instrDir+"/z.instructions.md", []byte(chunk), cryptoutilSharedMagic.FilePermissionsDefault))
 	require.NoError(t, os.WriteFile(instrDir+"/a.instructions.md", []byte(chunk), cryptoutilSharedMagic.FilePermissionsDefault))
@@ -114,7 +114,7 @@ func TestExtractSourceChunks_ClaudeAgentsDir(t *testing.T) {
 	claudeDir := rootDir + "/.claude/agents"
 	require.NoError(t, os.MkdirAll(claudeDir, 0o700))
 
-	agentContent := "# Agent\n\n<!-- @source from=\"docs/ENG-HANDBOOK.md\" as=\"claude-chunk\" -->\nchunk content\n<!-- @/source -->\n"
+	agentContent := "# Agent\n\n<!-- @from-eng-handbook as=\"claude-chunk\" -->\nchunk content\n<!-- @/from-eng-handbook -->\n"
 	require.NoError(t, os.WriteFile(claudeDir+"/myagent.md", []byte(agentContent), cryptoutilSharedMagic.FilePermissionsDefault))
 
 	result, err := ExtractSourceChunks(rootDir, rootedReadFile(rootDir))
@@ -178,16 +178,16 @@ func TestFormatCoverageValidationResults(t *testing.T) {
 		{
 			name:        "clean result",
 			result:      &CoverageResult{ManifestChunks: 40, ArchitectureChunks: 40},
-			wantContain: []string{"Manifest chunks:      40", "Architecture chunks:  40", "All required @propagate chunks are covered"},
-			wantAbsent:  []string{"ORPHANED CHUNKS", "MISSING @SOURCE BLOCKS"},
+			wantContain: []string{"Manifest chunks:      40", "Architecture chunks:  40", "All required @to-appendix chunks are covered"},
+			wantAbsent:  []string{"ORPHANED CHUNKS", "MISSING @from-eng-handbook BLOCKS"},
 		},
 		{
 			name: "with violations",
 			result: &CoverageResult{
-				Violations:     []CoverageViolation{{ChunkID: "my-chunk", File: "instructions/a.md", Description: `@source block for chunk "my-chunk" not found in instructions/a.md`}},
+				Violations:     []CoverageViolation{{ChunkID: "my-chunk", File: "instructions/a.md", Description: `@from-eng-handbook block for chunk "my-chunk" not found in instructions/a.md`}},
 				ManifestChunks: 1, ArchitectureChunks: 1,
 			},
-			wantContain: []string{"MISSING @SOURCE BLOCKS (1)", "my-chunk", "instructions/a.md", "Coverage validation FAILED"},
+			wantContain: []string{"MISSING @from-eng-handbook BLOCKS (1)", "my-chunk", "instructions/a.md", "Coverage validation FAILED"},
 		},
 		{
 			name:        "with orphans",
@@ -200,7 +200,7 @@ func TestFormatCoverageValidationResults(t *testing.T) {
 				Violations:     []CoverageViolation{{ChunkID: "missing-chunk", File: "a.md"}},
 				OrphanedChunks: []string{"orphan-chunk"}, ManifestChunks: 1, ArchitectureChunks: 2,
 			},
-			wantContain: []string{"ORPHANED CHUNKS (1)", "MISSING @SOURCE BLOCKS (1)", "Coverage validation FAILED"},
+			wantContain: []string{"ORPHANED CHUNKS (1)", "MISSING @from-eng-handbook BLOCKS (1)", "Coverage validation FAILED"},
 		},
 	}
 
@@ -254,7 +254,7 @@ func TestValidateCoverageCommand_CleanProject(t *testing.T) {
 	})
 
 	require.Equal(t, 0, code)
-	require.Contains(t, stdout.String(), "All required @propagate chunks are covered")
+	require.Contains(t, stdout.String(), "All required @to-appendix chunks are covered")
 }
 
 // --- validateCoverageWithRoot ---
@@ -262,7 +262,9 @@ func TestValidateCoverageCommand_CleanProject(t *testing.T) {
 func TestValidateCoverageWithRoot(t *testing.T) {
 	t.Parallel()
 
-	archWithExtra := minimalArchitectureContent() + `<!-- @propagate to=".github/instructions/x.md" as="extra-chunk" -->
+	archWithExtra := minimalArchitectureContent() + `<!-- @to-appendix as="extra-chunk" appendixes=".github/instructions/x.md" -->
+extra content
+<!-- @/to-appendix -->
 `
 
 	tests := []struct {
@@ -282,7 +284,7 @@ func TestValidateCoverageWithRoot(t *testing.T) {
 				return rootDir
 			},
 			wantCode:   0,
-			wantStdout: "All required @propagate chunks are covered",
+			wantStdout: "All required @to-appendix chunks are covered",
 		},
 		{
 			name: "manifest error",
@@ -304,7 +306,7 @@ func TestValidateCoverageWithRoot(t *testing.T) {
 				return rootDir
 			},
 			wantCode:   1,
-			wantStdout: "MISSING @SOURCE BLOCKS",
+			wantStdout: "MISSING @from-eng-handbook BLOCKS",
 		},
 		{
 			name: "orphans",

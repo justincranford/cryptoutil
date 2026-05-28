@@ -1,44 +1,44 @@
 ---
 name: propagation-check
-description: "Detect @propagate/@source drift between ENG-HANDBOOK.md and instruction files, and generate corrected @source block content. Use before committing instruction file changes to ensure lint-docs passes and verbatim doc chunks stay synchronized."
+description: "Detect @to-appendix/@from-eng-handbook drift between ENG-HANDBOOK.md and instruction files, and generate corrected @from-eng-handbook block content. Use before committing instruction file changes to ensure lint-docs passes and verbatim doc chunks stay synchronized."
 argument-hint: "[instruction file or omit for full project check]"
 ---
 
-Detect @propagate/@source drift and generate corrected @source block content.
+Detect @to-appendix/@from-eng-handbook drift and generate corrected @from-eng-handbook block content.
 
 ## Purpose
 
 Use when ENG-HANDBOOK.md sections have changed and you need to update downstream
-`@source` blocks in instruction files or agents. Prevents copy-paste errors.
+`@from-eng-handbook` blocks in instruction files or agents. Prevents copy-paste errors.
 
 ## Key Rules
 
-<!-- @source from="docs/ENG-HANDBOOK.md" as="skill-propagation-check-core-rules" -->
-- `@source` content MUST be byte-for-byte identical to `@propagate` content in ENG-HANDBOOK.md
+<!-- @from-eng-handbook as="skill-propagation-check-core-rules" -->
+- `@from-eng-handbook` content MUST be byte-for-byte identical to `@to-appendix` content in ENG-HANDBOOK.md
 - Run `go run ./cmd/cicd-lint lint-docs` to detect drift
-- Add both Copilot file AND Claude file to `@propagate to=` attribute (comma-separated)
+- Add both Copilot file AND Claude file to `appendixes=` attribute (comma-separated)
 - Update `docs/required-propagations.yaml` `required_targets` when adding new targets
-- When ENG-HANDBOOK.md chunk changes, ALL downstream `@source` blocks must be updated
-<!-- @/source -->
+- When ENG-HANDBOOK.md chunk changes, ALL downstream `@from-eng-handbook` blocks must be updated
+<!-- @/from-eng-handbook -->
 - Copilot and Claude agent files MUST have identical body content (only frontmatter differs)
 
 ## Marker System
 
 **Source (ENG-HANDBOOK.md)**:
 ```html
-<!-- @propagate to=".github/instructions/FILE.md" as="chunk-id" -->
+<!-- @to-appendix as="chunk-id" appendixes=".github/instructions/FILE.md" -->
 content here
-<!-- @/propagate -->
+<!-- @/to-appendix -->
 ```
 
 **Target (instruction file OR agent file)**:
 ```html
-<!-- @source from="docs/ENG-HANDBOOK.md" as="chunk-id" -->
+<!-- @from-eng-handbook as="chunk-id" -->
 content here (MUST be byte-for-byte identical)
-<!-- @/source -->
+<!-- @/from-eng-handbook -->
 ```
 
-> Note: Both `.github/instructions/*.instructions.md` files AND `.github/agents/*.agent.md` files can contain `@source` blocks. Agents do not inherit instruction files, so propagated content must be embedded directly in the agent file.
+> Note: Both `.github/instructions/*.instructions.md` files AND `.github/agents/*.agent.md` files can contain `@from-eng-handbook` blocks. Agents do not inherit instruction files, so propagated content must be embedded directly in the agent file.
 
 ## Checking for Drift
 
@@ -49,9 +49,9 @@ go run ./cmd/cicd-lint lint-docs
 
 ## Fix Workflow
 
-1. Find the @propagate block in ENG-HANDBOOK.md
+1. Find the @to-appendix block in ENG-HANDBOOK.md
 2. Copy its content verbatim
-3. Paste between @source markers in the target file
+3. Paste between @from-eng-handbook markers in the target file
 4. Run `go run ./cmd/cicd-lint lint-docs` to verify match
 
 ## Rules

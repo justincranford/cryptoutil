@@ -12,7 +12,7 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
-// PropagationCoverageResult holds coverage metrics for @source block propagation.
+// PropagationCoverageResult holds coverage metrics for @from-eng-handbook block propagation.
 type PropagationCoverageResult struct {
 	TotalFiles        int
 	CoveredFiles      int
@@ -21,7 +21,7 @@ type PropagationCoverageResult struct {
 	CoveredLines      int
 }
 
-// FileCoverage describes the source block coverage of a single instruction/agent file.
+// FileCoverage describes the from-eng-handbook block coverage of a single instruction/agent file.
 type FileCoverage struct {
 	RelPath      string
 	TotalLines   int
@@ -108,11 +108,11 @@ func computeFileCoverage(relPath, content string) FileCoverage {
 
 	for _, line := range lines {
 		switch {
-		case strings.Contains(line, "<!-- @source ") && strings.Contains(line, " as=\""):
+		case strings.Contains(line, "<!-- @from-eng-handbook ") && strings.Contains(line, " as=\""):
 			inSource = true
 			fc.HasSource = true
-			fc.CoveredLines++ // The @source marker itself counts as covered.
-		case strings.Contains(line, "<!-- @/source -->"):
+			fc.CoveredLines++ // The @from-eng-handbook marker itself counts as covered.
+		case strings.Contains(line, "<!-- @/from-eng-handbook -->"):
 			inSource = false
 			fc.CoveredLines++ // The close marker counts as covered.
 		case inSource:
@@ -131,11 +131,11 @@ func FormatCoverageResults(result *PropagationCoverageResult) string {
 
 	// File coverage.
 	filePct := percentage(result.CoveredFiles, result.TotalFiles)
-	fmt.Fprintf(&sb, "FILE COVERAGE: %d/%d files have @source blocks (%.0f%%)\n", result.CoveredFiles, result.TotalFiles, filePct)
+	fmt.Fprintf(&sb, "FILE COVERAGE: %d/%d files have @from-eng-handbook blocks (%.0f%%)\n", result.CoveredFiles, result.TotalFiles, filePct)
 
 	// Line coverage.
 	linePct := percentage(result.CoveredLines, result.TotalLines)
-	fmt.Fprintf(&sb, "LINE COVERAGE: %d/%d lines inside @source blocks (%.0f%%)\n", result.CoveredLines, result.TotalLines, linePct)
+	fmt.Fprintf(&sb, "LINE COVERAGE: %d/%d lines inside @from-eng-handbook blocks (%.0f%%)\n", result.CoveredLines, result.TotalLines, linePct)
 
 	// Zero coverage files.
 	if len(result.ZeroCoverageFiles) > 0 {

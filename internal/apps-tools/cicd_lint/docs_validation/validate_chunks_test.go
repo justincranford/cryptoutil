@@ -30,16 +30,16 @@ func TestValidateChunks(t *testing.T) {
 			name: "all match",
 			archContent: join(
 				"# Arch",
-				`<!-- @propagate to="target.md" as="chunk-a" -->`,
+				`<!-- @to-appendix as="chunk-a" appendixes="target.md" -->`,
 				"Line alpha",
-				"<!-- @/propagate -->",
+				"<!-- @/to-appendix -->",
 			),
 			files: map[string]string{
 				"target.md": join(
 					"# Target",
-					`<!-- @source from="docs/ENG-HANDBOOK.md" as="chunk-a" -->`,
+					`<!-- @from-eng-handbook as="chunk-a" -->`,
 					"Line alpha",
-					"<!-- @/source -->",
+					"<!-- @/from-eng-handbook -->",
 				),
 			},
 			wantMatched: 1,
@@ -47,15 +47,15 @@ func TestValidateChunks(t *testing.T) {
 		{
 			name: "mismatch",
 			archContent: join(
-				`<!-- @propagate to="target.md" as="chunk-b" -->`,
+				`<!-- @to-appendix as="chunk-b" appendixes="target.md" -->`,
 				"New content",
-				"<!-- @/propagate -->",
+				"<!-- @/to-appendix -->",
 			),
 			files: map[string]string{
 				"target.md": join(
-					`<!-- @source from="docs/ENG-HANDBOOK.md" as="chunk-b" -->`,
+					`<!-- @from-eng-handbook as="chunk-b" -->`,
 					"Old content",
-					"<!-- @/source -->",
+					"<!-- @/from-eng-handbook -->",
 				),
 			},
 			wantMismatched: 1,
@@ -63,9 +63,9 @@ func TestValidateChunks(t *testing.T) {
 		{
 			name: "missing source block",
 			archContent: join(
-				`<!-- @propagate to="target.md" as="chunk-c" -->`,
+				`<!-- @to-appendix as="chunk-c" appendixes="target.md" -->`,
 				"Content here",
-				"<!-- @/propagate -->",
+				"<!-- @/to-appendix -->",
 			),
 			files:       map[string]string{"target.md": "# Just a heading\n"},
 			wantMissing: 1,
@@ -73,9 +73,9 @@ func TestValidateChunks(t *testing.T) {
 		{
 			name: "file not found",
 			archContent: join(
-				`<!-- @propagate to="nonexistent.md" as="chunk-d" -->`,
+				`<!-- @to-appendix as="chunk-d" appendixes="nonexistent.md" -->`,
 				"Some content",
-				"<!-- @/propagate -->",
+				"<!-- @/to-appendix -->",
 			),
 			wantFileErrors: 1,
 		},
@@ -86,22 +86,22 @@ func TestValidateChunks(t *testing.T) {
 		{
 			name: "multiple blocks same file",
 			archContent: join(
-				`<!-- @propagate to="multi.md" as="first" -->`,
+				`<!-- @to-appendix as="first" appendixes="multi.md" -->`,
 				"First block",
-				"<!-- @/propagate -->",
+				"<!-- @/to-appendix -->",
 				"",
-				`<!-- @propagate to="multi.md" as="second" -->`,
+				`<!-- @to-appendix as="second" appendixes="multi.md" -->`,
 				"Second block",
-				"<!-- @/propagate -->",
+				"<!-- @/to-appendix -->",
 			),
 			files: map[string]string{
 				"multi.md": join(
-					`<!-- @source from="docs/ENG-HANDBOOK.md" as="first" -->`,
+					`<!-- @from-eng-handbook as="first" -->`,
 					"First block",
-					"<!-- @/source -->",
-					`<!-- @source from="docs/ENG-HANDBOOK.md" as="second" -->`,
+					"<!-- @/from-eng-handbook -->",
+					`<!-- @from-eng-handbook as="second" -->`,
 					"Second block",
-					"<!-- @/source -->",
+					"<!-- @/from-eng-handbook -->",
 				),
 			},
 			wantMatched: 2,
@@ -109,32 +109,32 @@ func TestValidateChunks(t *testing.T) {
 		{
 			name: "duplicate file not found counted per block",
 			archContent: join(
-				`<!-- @propagate to="gone.md" as="aaa" -->`,
+				`<!-- @to-appendix as="aaa" appendixes="gone.md" -->`,
 				"A content",
-				"<!-- @/propagate -->",
-				`<!-- @propagate to="gone.md" as="bbb" -->`,
+				"<!-- @/to-appendix -->",
+				`<!-- @to-appendix as="bbb" appendixes="gone.md" -->`,
 				"B content",
-				"<!-- @/propagate -->",
+				"<!-- @/to-appendix -->",
 			),
 			wantFileErrors: 2,
 		},
 		{
 			name: "multi-target matches both files",
 			archContent: join(
-				`<!-- @propagate to="first.md, second.md" as="multi" -->`,
+				`<!-- @to-appendix as="multi" appendixes="first.md, second.md" -->`,
 				"Multi content",
-				"<!-- @/propagate -->",
+				"<!-- @/to-appendix -->",
 			),
 			files: map[string]string{
 				"first.md": join(
-					`<!-- @source from="docs/ENG-HANDBOOK.md" as="multi" -->`,
+					`<!-- @from-eng-handbook as="multi" -->`,
 					"Multi content",
-					"<!-- @/source -->",
+					"<!-- @/from-eng-handbook -->",
 				),
 				"second.md": join(
-					`<!-- @source from="docs/ENG-HANDBOOK.md" as="multi" -->`,
+					`<!-- @from-eng-handbook as="multi" -->`,
 					"Multi content",
-					"<!-- @/source -->",
+					"<!-- @/from-eng-handbook -->",
 				),
 			},
 			wantMatched: 2,
@@ -195,7 +195,7 @@ func TestFormatChunkResults(t *testing.T) {
 				Matched: 2,
 			},
 			wantContains: []string{"2 chunks, 2 matched, 0 mismatched", "All propagated chunks are in sync."},
-			wantExcludes: []string{"STALE", cryptoutilSharedMagic.TestStatusFail, "FILE NOT FOUND", "MISSING @source BLOCKS", "CONTENT MISMATCHES"},
+			wantExcludes: []string{"STALE", cryptoutilSharedMagic.TestStatusFail, "FILE NOT FOUND", "MISSING @from-eng-handbook BLOCKS", "CONTENT MISMATCHES"},
 		},
 		{
 			name: "with mismatch",
@@ -217,7 +217,7 @@ func TestFormatChunkResults(t *testing.T) {
 				}},
 				Missing: 1,
 			},
-			wantContains: []string{"MISSING @source BLOCKS (1)", cryptoutilSharedMagic.TestStatusFail + " [absent]"},
+			wantContains: []string{"MISSING @from-eng-handbook BLOCKS (1)", cryptoutilSharedMagic.TestStatusFail + " [absent]"},
 		},
 		{
 			name: "with file not found",

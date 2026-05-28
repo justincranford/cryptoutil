@@ -804,20 +804,20 @@ permissions:
 
 ## Cross-Platform File & Command Conventions
 
-<!-- @source from="docs/ENG-HANDBOOK.md" as="platform-line-ending-operations" -->
-<!-- @source from="docs/ENG-HANDBOOK.md" as="platform-line-ending-operations" -->
+<!-- @from-eng-handbook as="platform-line-ending-operations" -->
+<!-- @from-eng-handbook as="platform-line-ending-operations" -->
 **Policy** (MANDATORY): All text files use LF (`\n`). `mixed-line-ending`, `end-of-file-fixer`, and `editorconfig-checker` enforce the policy. Exclusions cover generated code, vendored dependencies, build/test outputs, caches, worktrees, binaries, archives, secrets/cert material, and IDE metadata.
 
 **PERMANENT BAN (NO EXCEPTIONS)**: CRLF line endings are prohibited. This ban explicitly applies to `docs/ENG-HANDBOOK.md` and all Copilot/Claude instruction artifacts under `.github/instructions/`, `.github/agents/`, `.claude/agents/`, `.github/skills/`, and `.claude/skills/`.
 
 **Rationale**: gofumpt, gofmt, and goimports emit LF; YAML/Markdown/SQL/text tools default to LF; CI/CD runs on Linux; LF everywhere prevents CRLF/LF churn on Windows. Prettier also defaults `endOfLine=lf` (v2.0.0+).
-<!-- @/source -->
+<!-- @/from-eng-handbook -->
 
 ---
 
 ## Mandatory Review Passes
 
-<!-- @source from="docs/ENG-HANDBOOK.md" as="mandatory-review-passes" -->
+<!-- @from-eng-handbook as="mandatory-review-passes" -->
 **MANDATORY: Minimum 3, maximum 5 review passes before marking any task complete.**
 
 Copilot and AI agents have a tendency to partially fulfill requested work, accidentally omitting or skipping items per request. To counter this, every task completion MUST include at least 3 review passes, each checking ALL 8 quality attributes:
@@ -835,7 +835,7 @@ Copilot and AI agents have a tendency to partially fulfill requested work, accid
 **Continuation rule**: If pass 3 finds ANY issue, continue to pass 4. If pass 4 still finds issues, continue to pass 5. Diminishing returns = done.
 
 **Scope**: ALL work types — code, docs, config, tests, infrastructure, deployments.
-<!-- @/source -->
+<!-- @/from-eng-handbook -->
 
 ---
 

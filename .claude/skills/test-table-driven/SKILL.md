@@ -14,7 +14,7 @@ and faster, less flaky test setup.
 
 ## Key Rules
 
-<!-- @source from="docs/ENG-HANDBOOK.md" as="skill-test-table-driven-core-rules" -->
+<!-- @from-eng-handbook as="skill-test-table-driven-core-rules" -->
 - `t.Parallel()` MANDATORY on parent and ALL subtests
 - Use `googleUuid.NewV7()` for test data IDs (thread-safe, unique, no conflicts)
 - `require` package (fail-fast) over `assert` (continue-on-failure)
@@ -22,7 +22,7 @@ and faster, less flaky test setup.
 - TestMain for heavyweight resources (DB, servers, containers) — one per package
 - Use exactly one `testmain_test.go` per package; never split into `testmain_*_test.go` variants
 - `testmain_test.go` must not use `//go:build` or `// +build` directives
-<!-- @/source -->
+<!-- @/from-eng-handbook -->
 - Prefer Fiber `app.Test()` for handler-only coverage; use real listeners only when lifecycle, TLS, shutdown, or transport behavior is the subject under test
 - SQLite DateTime: ALWAYS use `time.Now().UTC()` when comparing timestamps
 - For lifecycle tests, use bounded timeouts and preserve the stress mode that exposed the issue (`-shuffle=on`, package-scoped rerun, or parallel execution)

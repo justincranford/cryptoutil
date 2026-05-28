@@ -12,12 +12,12 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// rfcOnlySourceContent returns instruction file content with ONLY the rfc-2119-keywords @source block.
+// rfcOnlySourceContent returns instruction file content with ONLY the rfc-2119-keywords @from-eng-handbook block.
 // Used in tests where emphasis-keywords is intentionally missing.
 func rfcOnlySourceContent() string {
-	return `<!-- @source from="docs/ENG-HANDBOOK.md" as="rfc-2119-keywords" -->
+	return `<!-- @from-eng-handbook as="rfc-2119-keywords" -->
 content
-<!-- @/source -->
+<!-- @/from-eng-handbook -->
 `
 }
 
@@ -35,39 +35,36 @@ func minimalManifestYAML() string {
 `
 }
 
-// minimalArchitectureContent returns ENG-HANDBOOK.md content with two @propagate markers.
+// minimalArchitectureContent returns ENG-HANDBOOK.md content with two @to-appendix markers.
 func minimalArchitectureContent() string {
 	return `# Architecture
-<!-- @propagate to=".github/instructions/01-01.terminology.instructions.md" as="rfc-2119-keywords" -->
+<!-- @to-appendix as="rfc-2119-keywords" appendixes=".github/instructions/01-01.terminology.instructions.md" -->
 some content
-<!-- @/propagate -->
-<!-- @propagate to=".github/instructions/01-01.terminology.instructions.md" as="emphasis-keywords" -->
+<!-- @/to-appendix -->
+<!-- @to-appendix as="emphasis-keywords" appendixes=".github/instructions/01-01.terminology.instructions.md" -->
 more content
-<!-- @/propagate -->
+<!-- @/to-appendix -->
 `
 }
 
-// minimalArchitectureWithAppendixContent returns ENG-HANDBOOK.md content using the two-layer markers.
-func minimalArchitectureWithAppendixContent() string {
+// minimalArchitectureWithTargetMismatchContent returns ENG-HANDBOOK.md content with a target list mismatch.
+func minimalArchitectureWithTargetMismatchContent() string {
 	return `# Architecture
-<!-- @section-to-appendix to="terminology-instruction-body" as="rfc-2119-keywords" -->
+<!-- @to-appendix as="rfc-2119-keywords" appendixes=".github/instructions/other.instructions.md" -->
 some content
-<!-- @/section-to-appendix -->
-<!-- @appendix-propagate from="terminology-instruction-body" to=".github/instructions/01-01.terminology.instructions.md" as="rfc-2119-keywords" why-this-exists="semantic contribution reuse" -->
-some content
-<!-- @/appendix-propagate -->
+<!-- @/to-appendix -->
 `
 }
 
-// sourceInstructionContent returns instruction file content with @source blocks.
+// sourceInstructionContent returns instruction file content with @from-eng-handbook blocks.
 func sourceInstructionContent() string {
 	return `# Instruction File
-<!-- @source from="docs/ENG-HANDBOOK.md" as="rfc-2119-keywords" -->
+<!-- @from-eng-handbook as="rfc-2119-keywords" -->
 RFC keyword content
-<!-- @/source -->
-<!-- @source from="docs/ENG-HANDBOOK.md" as="emphasis-keywords" -->
+<!-- @/from-eng-handbook -->
+<!-- @from-eng-handbook as="emphasis-keywords" -->
 Emphasis content
-<!-- @/source -->
+<!-- @/from-eng-handbook -->
 `
 }
 
@@ -164,11 +161,17 @@ func TestLoadPropagationsManifest(t *testing.T) {
 func TestExtractPropagateChunks(t *testing.T) {
 	t.Parallel()
 
-	deduplicatedContent := `<!-- @propagate to=".github/instructions/a.md" as="my-chunk" -->
-<!-- @propagate to=".github/instructions/b.md" as="my-chunk" -->
+	deduplicatedContent := `<!-- @to-appendix as="my-chunk" appendixes=".github/instructions/a.md" -->
+some content
+<!-- @/to-appendix -->
+<!-- @to-appendix as="my-chunk" appendixes=".github/instructions/b.md" -->
+some content
+<!-- @/to-appendix -->
 `
-	grammarFilterContent := `@propagate-open  ::= '<!-- @propagate to="' PATH_LIST '" as="' CHUNK_ID '" -->'
-<!-- @propagate to=".github/instructions/a.md" as="valid-chunk" -->
+	grammarFilterContent := `@to-appendix-open  ::= '<!-- @to-appendix as="' CHUNK_ID '" appendixes="' PATH_LIST '" -->'
+<!-- @to-appendix as="valid-chunk" appendixes=".github/instructions/a.md" -->
+some content
+<!-- @/to-appendix -->
 `
 
 	tests := []struct {
@@ -232,19 +235,19 @@ func TestExtractPropagateChunks(t *testing.T) {
 func TestExtractSourceChunksFromContent(t *testing.T) {
 	t.Parallel()
 
-	singleContent := `<!-- @source from="docs/ENG-HANDBOOK.md" as="my-chunk" -->
+	singleContent := `<!-- @from-eng-handbook as="my-chunk" -->
 content
-<!-- @/source -->
+<!-- @/from-eng-handbook -->
 `
-	multiContent := `<!-- @source from="docs/ENG-HANDBOOK.md" as="chunk-a" -->
+	multiContent := `<!-- @from-eng-handbook as="chunk-a" -->
 a
-<!-- @/source -->
-<!-- @source from="docs/ENG-HANDBOOK.md" as="chunk-b" -->
+<!-- @/from-eng-handbook -->
+<!-- @from-eng-handbook as="chunk-b" -->
 b
-<!-- @/source -->
+<!-- @/from-eng-handbook -->
 `
-	grammarContent := `@source-open     ::= '<!-- @source from="' PATH '" as="' CHUNK_ID '" -->'
-<!-- @source from="docs/ENG-HANDBOOK.md" as="valid-chunk" -->
+	grammarContent := `@from-eng-handbook-open     ::= '<!-- @from-eng-handbook as="' CHUNK_ID '" -->'
+<!-- @from-eng-handbook as="valid-chunk" -->
 `
 
 	tests := []struct {
@@ -272,7 +275,7 @@ b
 			},
 		},
 		{
-			name: "no matches", filePath: "file.md", content: "no @source blocks here",
+			name: "no matches", filePath: "file.md", content: "no @from-eng-handbook blocks here",
 			validate: func(t *testing.T, result map[string][]string) {
 				t.Helper()
 				require.Empty(t, result)
@@ -289,7 +292,7 @@ b
 		},
 		{
 			name: "appends to prior entries", filePath: "second.md",
-			content:       `<!-- @source from="docs/ENG-HANDBOOK.md" as="my-chunk" -->`,
+			content:       `<!-- @from-eng-handbook as="my-chunk" -->`,
 			initialResult: map[string][]string{"my-chunk": {"already-there.md"}},
 			validate: func(t *testing.T, result map[string][]string) {
 				t.Helper()
@@ -331,9 +334,9 @@ func TestExtractSourceChunks_IncludesSkills(t *testing.T) {
 	require.NoError(t, os.MkdirAll(ghSkillDir, 0o700))
 	require.NoError(t, os.MkdirAll(claudeSkillDir, 0o700))
 
-	skillContent := `<!-- @source from="docs/ENG-HANDBOOK.md" as="sample-skill-chunk" -->
+	skillContent := `<!-- @from-eng-handbook as="sample-skill-chunk" -->
 sample
-<!-- @/source -->
+<!-- @/from-eng-handbook -->
 `
 	require.NoError(t, os.WriteFile(ghSkillDir+"/SKILL.md", []byte(skillContent), cryptoutilSharedMagic.FilePermissionsDefault))
 	require.NoError(t, os.WriteFile(claudeSkillDir+"/SKILL.md", []byte(skillContent), cryptoutilSharedMagic.FilePermissionsDefault))
@@ -350,7 +353,9 @@ sample
 func TestValidateCoverage(t *testing.T) {
 	t.Parallel()
 
-	archWithExtra := minimalArchitectureContent() + `<!-- @propagate to=".github/instructions/x.md" as="extra-chunk" -->
+	archWithExtra := minimalArchitectureContent() + `<!-- @to-appendix as="extra-chunk" appendixes=".github/instructions/x.md" -->
+extra content
+<!-- @/to-appendix -->
 `
 
 	tests := []struct {
@@ -374,7 +379,7 @@ func TestValidateCoverage(t *testing.T) {
 			},
 		},
 		{
-			name:             "missing source block",
+			name:             "missing from-eng-handbook block",
 			manifestContent:  minimalManifestYAML(),
 			archContent:      minimalArchitectureContent(),
 			instructionFiles: map[string]string{"01-01.terminology.instructions.md": rfcOnlySourceContent()},
@@ -408,70 +413,23 @@ func TestValidateCoverage(t *testing.T) {
 			},
 		},
 		{
-			name:             "appendix mapping happy path",
+			name:             "to-appendix target mismatch against manifest",
 			manifestContent:  minimalManifestYAML(),
-			archContent:      minimalArchitectureWithAppendixContent(),
-			instructionFiles: map[string]string{"01-01.terminology.instructions.md": rfcOnlySourceContent()},
-			validate: func(t *testing.T, result *CoverageResult) {
-				t.Helper()
-				require.Empty(t, result.CompositionIssues)
-			},
-		},
-		{
-			name:            "appendix mapping missing section contribution",
-			manifestContent: minimalManifestYAML(),
-			archContent: `# Architecture
-<!-- @appendix-propagate from="terminology-instruction-body" to=".github/instructions/01-01.terminology.instructions.md" as="rfc-2119-keywords" why-this-exists="compatibility bridge" -->
-some content
-<!-- @/appendix-propagate -->
-`,
+			archContent:      minimalArchitectureWithTargetMismatchContent(),
 			instructionFiles: map[string]string{"01-01.terminology.instructions.md": rfcOnlySourceContent()},
 			validate: func(t *testing.T, result *CoverageResult) {
 				t.Helper()
 				require.NotEmpty(t, result.CompositionIssues)
-				require.Contains(t, strings.Join(result.CompositionIssues, "\n"), "rfc-2119-keywords")
-			},
-		},
-		{
-			name:            "orphan appendix has no downstream targets",
-			manifestContent: minimalManifestYAML(),
-			archContent: `# Architecture
-<!-- @section-to-appendix to="orphan-appendix" as="rfc-2119-keywords" -->
-some content
-<!-- @/section-to-appendix -->
-`,
-			instructionFiles: map[string]string{"01-01.terminology.instructions.md": rfcOnlySourceContent()},
-			validate: func(t *testing.T, result *CoverageResult) {
-				t.Helper()
-				require.NotEmpty(t, result.CompositionIssues)
-				require.Contains(t, strings.Join(result.CompositionIssues, "\n"), "orphan appendix")
-			},
-		},
-		{
-			name:            "semantic chunk cannot use direct propagate",
-			manifestContent: minimalManifestYAML(),
-			archContent: `# Architecture
-<!-- @section-to-appendix to="terminology-instruction-body" as="rfc-2119-keywords" -->
-some content
-<!-- @/section-to-appendix -->
-<!-- @propagate to=".github/instructions/01-01.terminology.instructions.md" as="rfc-2119-keywords" -->
-some content
-<!-- @/propagate -->
-`,
-			instructionFiles: map[string]string{"01-01.terminology.instructions.md": rfcOnlySourceContent()},
-			validate: func(t *testing.T, result *CoverageResult) {
-				t.Helper()
-				require.NotEmpty(t, result.CompositionIssues)
-				require.Contains(t, strings.Join(result.CompositionIssues, "\n"), "direct @propagate")
+				require.Contains(t, strings.Join(result.CompositionIssues, "\n"), "manifest target")
 			},
 		},
 		{
 			name:            "unstable numeric semantic chunk ids are rejected",
 			manifestContent: minimalManifestYAML(),
 			archContent: `# Architecture
-<!-- @section-to-appendix to="terminology-instruction-body" as="section-13-4-rules" -->
+<!-- @to-appendix as="section-13-4-rules" appendixes=".github/instructions/01-01.terminology.instructions.md" -->
 some content
-<!-- @/section-to-appendix -->
+<!-- @/to-appendix -->
 `,
 			instructionFiles: map[string]string{"01-01.terminology.instructions.md": rfcOnlySourceContent()},
 			validate: func(t *testing.T, result *CoverageResult) {
@@ -481,21 +439,18 @@ some content
 			},
 		},
 		{
-			name:            "appendix-propagate requires why note",
+			name:            "empty appendix target rejected",
 			manifestContent: minimalManifestYAML(),
 			archContent: `# Architecture
-<!-- @section-to-appendix to="terminology-instruction-body" as="rfc-2119-keywords" -->
+<!-- @to-appendix as="rfc-2119-keywords" appendixes=".github/instructions/01-01.terminology.instructions.md, " -->
 some content
-<!-- @/section-to-appendix -->
-<!-- @appendix-propagate from="terminology-instruction-body" to=".github/instructions/01-01.terminology.instructions.md" as="rfc-2119-keywords" -->
-some content
-<!-- @/appendix-propagate -->
+<!-- @/to-appendix -->
 `,
 			instructionFiles: map[string]string{"01-01.terminology.instructions.md": rfcOnlySourceContent()},
 			validate: func(t *testing.T, result *CoverageResult) {
 				t.Helper()
 				require.NotEmpty(t, result.CompositionIssues)
-				require.Contains(t, strings.Join(result.CompositionIssues, "\n"), "why-this-exists attribute")
+				require.Contains(t, strings.Join(result.CompositionIssues, "\n"), "empty appendix target")
 			},
 		},
 	}
@@ -568,8 +523,12 @@ func TestValidateCoverage_ViolationsSortedByChunkAndFile(t *testing.T) {
       - .github/instructions/a.instructions.md
       - .github/instructions/b.instructions.md
 `
-	archContent := `<!-- @propagate to=".github/instructions/a.md" as="aaa-first" -->
-<!-- @propagate to=".github/instructions/b.md" as="zzz-last" -->
+	archContent := `<!-- @to-appendix as="aaa-first" appendixes=".github/instructions/a.md" -->
+aaa
+<!-- @/to-appendix -->
+<!-- @to-appendix as="zzz-last" appendixes=".github/instructions/b.md" -->
+zzz
+<!-- @/to-appendix -->
 `
 	rootDir, readFile := buildValidateRoot(t, manifestYAML, archContent, map[string]string{})
 
@@ -587,17 +546,11 @@ func TestValidateCoverage_ViolationsSortedByChunkAndFile(t *testing.T) {
 	require.Contains(t, result.Violations[1].File, "b.instructions.md")
 }
 
-// TestValidateCoverage_ViolationsSortedByAppendixReadingOrder verifies that violations from
-// an appendix section that appears LATER in the file sort AFTER violations from an earlier
-// appendix section, even when chunk ID alphabetical order would produce the opposite result.
-// This exercises Item 6: violations surface in the same order humans read Appendix D.
-func TestValidateCoverage_ViolationsSortedByAppendixReadingOrder(t *testing.T) {
+// TestValidateCoverage_ViolationsSortedByHandbookOrder verifies that violations sort by the
+// @to-appendix marker line order in ENG-HANDBOOK.md before chunk alphabetical order.
+func TestValidateCoverage_ViolationsSortedByHandbookOrder(t *testing.T) {
 	t.Parallel()
 
-	// zzz-early is in appendix group "early-group" which appears on line 2 of the fixture.
-	// aaa-late is in appendix group "late-group" which appears on line 12 of the fixture.
-	// Without appendix-order sort, aaa-late would appear before zzz-early (alpha order).
-	// With appendix-order sort, zzz-early must appear first (it is in the earlier appendix).
 	manifestYAML := `required_propagations:
   - chunk_id: zzz-early
     source_file: docs/ENG-HANDBOOK.md
@@ -610,14 +563,13 @@ func TestValidateCoverage_ViolationsSortedByAppendixReadingOrder(t *testing.T) {
 `
 
 	archContent := `# Handbook
-<!-- @section-to-appendix to="early-group" as="zzz-early" -->text<!-- @/section-to-appendix -->
-<!-- @appendix-propagate from="early-group" to=".github/instructions/a.instructions.md" as="zzz-early" why-this-exists="early section" -->
+<!-- @to-appendix as="zzz-early" appendixes=".github/instructions/a.instructions.md" -->
 early content
-<!-- @/appendix-propagate -->
-<!-- @section-to-appendix to="late-group" as="aaa-late" -->text<!-- @/section-to-appendix -->
-<!-- @appendix-propagate from="late-group" to=".github/instructions/a.instructions.md" as="aaa-late" why-this-exists="late section" -->
+<!-- @/to-appendix -->
+
+<!-- @to-appendix as="aaa-late" appendixes=".github/instructions/a.instructions.md" -->
 late content
-<!-- @/appendix-propagate -->
+<!-- @/to-appendix -->
 `
 
 	rootDir, readFile := buildValidateRoot(t, manifestYAML, archContent, map[string]string{})
@@ -626,8 +578,7 @@ late content
 
 	require.NoError(t, err)
 	require.Len(t, result.Violations, 2)
-	// zzz-early must come BEFORE aaa-late because its appendix section appears first in the
-	// file, even though "aaa" < "zzz" alphabetically (kills primary-key appendix-order mutation).
+	// zzz-early must come BEFORE aaa-late because its marker appears first in the handbook.
 	require.Equal(t, "zzz-early", result.Violations[0].ChunkID)
 	require.Equal(t, "aaa-late", result.Violations[1].ChunkID)
 }

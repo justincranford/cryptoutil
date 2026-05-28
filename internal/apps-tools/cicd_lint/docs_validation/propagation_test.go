@@ -32,14 +32,14 @@ func TestComputeFileCoverage(t *testing.T) {
 		},
 		{
 			name:          "single source block",
-			content:       "<!-- @source from=\"docs/ENG-HANDBOOK.md\" as=\"chunk\" -->\ncontent\n<!-- @/source -->",
+			content:       "<!-- @from-eng-handbook as=\"chunk\" -->\ncontent\n<!-- @/from-eng-handbook -->",
 			wantTotal:     3,
 			wantCovered:   3,
 			wantHasSource: true,
 		},
 		{
 			name:          "multiple source blocks",
-			content:       "<!-- @source from=\"docs/ENG-HANDBOOK.md\" as=\"a\" -->\n<!-- @/source -->\n<!-- @source from=\"docs/ENG-HANDBOOK.md\" as=\"b\" -->\n<!-- @/source -->",
+			content:       "<!-- @from-eng-handbook as=\"a\" -->\n<!-- @/from-eng-handbook -->\n<!-- @from-eng-handbook as=\"b\" -->\n<!-- @/from-eng-handbook -->",
 			wantTotal:     4,
 			wantCovered:   4,
 			wantHasSource: true,
@@ -80,7 +80,7 @@ func TestComputeCoverage(t *testing.T) {
 			name: "mixed coverage",
 			files: map[string]string{
 				cryptoutilSharedMagic.CICDCopilotInstructionsFile: "plain text only\nno source blocks",
-				".github/instructions/01.instructions.md":         "before\n<!-- @source from=\"docs/ENG-HANDBOOK.md\" as=\"x\" -->\ncontent\n<!-- @/source -->\nafter",
+				".github/instructions/01.instructions.md":         "before\n<!-- @from-eng-handbook as=\"x\" -->\ncontent\n<!-- @/from-eng-handbook -->\nafter",
 			},
 			wantTotalFiles: 2,
 			wantCovered:    1,
@@ -89,7 +89,7 @@ func TestComputeCoverage(t *testing.T) {
 		{
 			name: "all covered",
 			files: map[string]string{
-				".github/instructions/01.instructions.md": "<!-- @source from=\"docs/ENG-HANDBOOK.md\" as=\"x\" -->\nline\n<!-- @/source -->",
+				".github/instructions/01.instructions.md": "<!-- @from-eng-handbook as=\"x\" -->\nline\n<!-- @/from-eng-handbook -->",
 			},
 			wantTotalFiles: 1,
 			wantCovered:    1,
@@ -135,8 +135,8 @@ func TestFormatCoverageResults(t *testing.T) {
 
 	report := FormatCoverageResults(result)
 
-	require.Contains(t, report, "FILE COVERAGE: 2/3 files have @source blocks (67%)")
-	require.Contains(t, report, "LINE COVERAGE: 1/4 lines inside @source blocks (25%)")
+	require.Contains(t, report, "FILE COVERAGE: 2/3 files have @from-eng-handbook blocks (67%)")
+	require.Contains(t, report, "LINE COVERAGE: 1/4 lines inside @from-eng-handbook blocks (25%)")
 	require.Contains(t, report, "ZERO COVERAGE FILES (1)")
 	require.Contains(t, report, ".github/agents/test.agent.md")
 	require.Contains(t, report, "67% file coverage")
@@ -156,8 +156,8 @@ func TestFormatCoverageResults_NoCoverage(t *testing.T) {
 
 	report := FormatCoverageResults(result)
 
-	require.Contains(t, report, "FILE COVERAGE: 0/2 files have @source blocks (0%)")
-	require.Contains(t, report, "LINE COVERAGE: 0/4 lines inside @source blocks (0%)")
+	require.Contains(t, report, "FILE COVERAGE: 0/2 files have @from-eng-handbook blocks (0%)")
+	require.Contains(t, report, "LINE COVERAGE: 0/4 lines inside @from-eng-handbook blocks (0%)")
 	require.Contains(t, report, "ZERO COVERAGE FILES (2)")
 }
 
@@ -215,10 +215,10 @@ func TestPropagationCoverageCommand_Integration(t *testing.T) {
 
 	rootDir := t.TempDir()
 
-	// Create instruction file with @source block.
+	// Create instruction file with @from-eng-handbook block.
 	instrDir := rootDir + "/.github/instructions"
 	require.NoError(t, os.MkdirAll(instrDir, 0o700))
-	require.NoError(t, os.WriteFile(instrDir+"/01.instructions.md", []byte("before\n<!-- @source from=\"docs/ENG-HANDBOOK.md\" as=\"chunk\" -->\nline\n<!-- @/source -->\nafter"), cryptoutilSharedMagic.FilePermissionsDefault))
+	require.NoError(t, os.WriteFile(instrDir+"/01.instructions.md", []byte("before\n<!-- @from-eng-handbook as=\"chunk\" -->\nline\n<!-- @/from-eng-handbook -->\nafter"), cryptoutilSharedMagic.FilePermissionsDefault))
 
 	var stdout, stderr bytes.Buffer
 

@@ -1420,7 +1420,7 @@ If a task cannot be completed due to architectural limitations, missing infrastr
 
 ## lessons.md Document Structure
 
-<!-- @source from="docs/ENG-HANDBOOK.md" as="lessons-md-structure" -->
+<!-- @from-eng-handbook as="lessons-md-structure" -->
 A completed `lessons.md` MUST contain three top-level sections **in this order**:
 
 **1. `## Executive Summary`** — Written at plan completion. A numbered list where each entry is a markdown link to a `## Phase N:` section followed by a one-sentence description of the key outcome. Enables reviewers to scan the entire plan scope at a glance and navigate directly to relevant phases.
@@ -1442,42 +1442,42 @@ Example entries:
 - `implementation-execution`: At plan completion, fill `## Executive Summary` with phase links and one-sentence outcomes, fill `## Actions` with concrete copy-paste follow-up items, and populate each `## Phase N:` section with the 4-section post-mortem content.
 
 **Rationale**: Without top-level sections, reviewers must read all phase sections linearly to understand plan scope and identify follow-up work. `## Executive Summary` enables rapid navigation; `## Actions` enables copy-paste follow-up without re-reading all phases — eliminating the manual extraction step that slows reviewer triage.
-<!-- @/source -->
+<!-- @/from-eng-handbook -->
 
 ---
 
 ## Cross-Platform File & Command Conventions
 
-<!-- @source from="docs/ENG-HANDBOOK.md" as="platform-line-ending-operations" -->
-<!-- @source from="docs/ENG-HANDBOOK.md" as="platform-line-ending-operations" -->
+<!-- @from-eng-handbook as="platform-line-ending-operations" -->
+<!-- @from-eng-handbook as="platform-line-ending-operations" -->
 **Policy** (MANDATORY): All text files use LF (`\n`). `mixed-line-ending`, `end-of-file-fixer`, and `editorconfig-checker` enforce the policy. Exclusions cover generated code, vendored dependencies, build/test outputs, caches, worktrees, binaries, archives, secrets/cert material, and IDE metadata.
 
 **PERMANENT BAN (NO EXCEPTIONS)**: CRLF line endings are prohibited. This ban explicitly applies to `docs/ENG-HANDBOOK.md` and all Copilot/Claude instruction artifacts under `.github/instructions/`, `.github/agents/`, `.claude/agents/`, `.github/skills/`, and `.claude/skills/`.
 
 **Rationale**: gofumpt, gofmt, and goimports emit LF; YAML/Markdown/SQL/text tools default to LF; CI/CD runs on Linux; LF everywhere prevents CRLF/LF churn on Windows. Prettier also defaults `endOfLine=lf` (v2.0.0+).
-<!-- @/source -->
+<!-- @/from-eng-handbook -->
 
 ---
 
 ## Per-Task Status Updates
 
-<!-- @source from="docs/ENG-HANDBOOK.md" as="per-task-status-updates" -->
+<!-- @from-eng-handbook as="per-task-status-updates" -->
 **Per-Task Status Updates** (MANDATORY): Update `tasks.md` immediately after each task completes. NEVER accumulate multiple task completions before updating documentation. A `tasks.md` that does not reflect actual state is a blocking artifact inconsistency. Deferred documentation creates invisible debt and false completion signals to subsequent phases.
-<!-- @/source -->
+<!-- @/from-eng-handbook -->
 
 ## Docker Compose Verification
 
-<!-- @source from="docs/ENG-HANDBOOK.md" as="docker-compose-verification-in-scope" -->
+<!-- @from-eng-handbook as="docker-compose-verification-in-scope" -->
 **Docker Verification Must Be In-Scope** (MANDATORY): Phases that modify Docker Compose files, config files consumed by containers, cert mount paths, or any artifact that affects runtime behavior MUST include a Docker Compose verification step **within the same phase** (`docker compose up --wait` + health endpoint check). If Docker Desktop is unavailable, the phase is **BLOCKED — not complete**. Configuration-only changes without Docker verification are untested hypotheses.
 
 **Multi-File Config Changes Need Integration Verification**: Any change spanning multiple interrelated configuration files (e.g., `postgresql.conf` + `pg_hba.conf` + GORM DSN + Docker volume mounts) MUST include an integration verification step that exercises the full configuration chain in a running environment — within the same phase. Common failure modes: wrong cert paths after mounting, permission errors inside containers, HBA rule ordering, DSN parameter mismatches.
-<!-- @/source -->
+<!-- @/from-eng-handbook -->
 
 ---
 
 ## Mandatory Review Passes
 
-<!-- @source from="docs/ENG-HANDBOOK.md" as="mandatory-review-passes" -->
+<!-- @from-eng-handbook as="mandatory-review-passes" -->
 **MANDATORY: Minimum 3, maximum 5 review passes before marking any task complete.**
 
 Copilot and AI agents have a tendency to partially fulfill requested work, accidentally omitting or skipping items per request. To counter this, every task completion MUST include at least 3 review passes, each checking ALL 8 quality attributes:
@@ -1495,7 +1495,7 @@ Copilot and AI agents have a tendency to partially fulfill requested work, accid
 **Continuation rule**: If pass 3 finds ANY issue, continue to pass 4. If pass 4 still finds issues, continue to pass 5. Diminishing returns = done.
 
 **Scope**: ALL work types — code, docs, config, tests, infrastructure, deployments.
-<!-- @/source -->
+<!-- @/from-eng-handbook -->
 
 ---
 

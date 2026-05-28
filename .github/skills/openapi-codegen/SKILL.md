@@ -13,14 +13,14 @@ oapi-codegen config files and a baseline OpenAPI 3.0.3 spec.
 
 ## Key Rules
 
-<!-- @source from="docs/ENG-HANDBOOK.md" as="skill-openapi-codegen-core-rules" -->
+<!-- @from-eng-handbook as="skill-openapi-codegen-core-rules" -->
 - OpenAPI version MUST be 3.0.3 (NOT 2.0/Swagger, NOT 3.1.x)
 - Generate THREE config files: server (`strict-server: true`), model, client
 - API MUST duplicate under BOTH `/service/` and `/browser/` paths
 - Content type: `application/json` ONLY (no form, multipart, or other types)
 - `strict-server: true` is MANDATORY in server config
 - All `openapi-gen_config*.yaml` MUST include the full base initialisms list from ENG-HANDBOOK.md §8
-<!-- @/source -->
+<!-- @/from-eng-handbook -->
 
 ## Three Config Files Per Service
 

@@ -103,8 +103,8 @@ func catalogFilesCommand(stdout, stderr io.Writer, rootFn func() (string, error)
 }
 
 // CatalogPropagationCommand is the entry point for the lint-catalog-propagation linter.
-// It verifies that every @appendix-propagate chunk targeting a catalogued file has a
-// matching @source block inside that catalog entry's body.
+// It verifies that every @to-appendix chunk targeting a catalogued file has a
+// matching @from-eng-handbook block with identical content inside the corresponding catalog body.
 // Returns 0 on success, 1 on violations.
 func CatalogPropagationCommand(stdout, stderr io.Writer) int {
 	return catalogPropagationCommand(stdout, stderr, findProjectRoot)

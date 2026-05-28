@@ -6,8 +6,8 @@
 //  1. CheckCatalogFiles: verifies that each @file-catalog / @file-catalog-pair entry in
 //     ENG-HANDBOOK.md contains content that exactly matches the corresponding file(s) on disk.
 //
-//  2. CheckCatalogPropagation: verifies that every @appendix-propagate chunk whose target file
-//     has a catalog entry contains a matching @source block inside that catalog entry's body.
+//  2. CheckCatalogPropagation: verifies that every @to-appendix chunk whose target file
+//     has a catalog entry contains a matching @from-eng-handbook block inside that catalog entry's body.
 package docs_validation
 
 import (
@@ -329,9 +329,9 @@ func CheckCatalogFiles(rootDir string, readFileFn func(string) ([]byte, error)) 
 // catalogPairFilesCount is the number of files represented by each @file-catalog-pair entry.
 const catalogPairFilesCount = 2
 
-// CheckCatalogPropagation verifies that every @appendix-propagate chunk whose target file
+// CheckCatalogPropagation verifies that every @to-appendix chunk whose target file
 // has a @file-catalog or @file-catalog-pair entry in ENG-HANDBOOK.md also has a matching
-// @source block inside that catalog entry's body with identical content.
+// @from-eng-handbook block inside that catalog entry's body with identical content.
 func CheckCatalogPropagation(rootDir string, readFileFn func(string) ([]byte, error)) (*CatalogPropagationResult, error) {
 	result := &CatalogPropagationResult{}
 
@@ -342,7 +342,7 @@ func CheckCatalogPropagation(rootDir string, readFileFn func(string) ([]byte, er
 
 	normalizedHandbook := strings.ReplaceAll(string(handbookContent), "\r\n", "\n")
 
-	// Extract all @appendix-propagate blocks.
+	// Extract all @to-appendix blocks.
 	propagateBlocks := extractPropagateBlocks(normalizedHandbook)
 
 	// Build a map from file path to catalog body content.
@@ -350,63 +350,52 @@ func CheckCatalogPropagation(rootDir string, readFileFn func(string) ([]byte, er
 	// For pair entries the body is the shared body section.
 	catalogBodies := buildCatalogBodies(normalizedHandbook)
 
-	// For each appendix-propagate block, split the comma-separated target files list and
-	// check each file that appears in the catalog.
+	// For each to-appendix block, check each target file that appears in the catalog.
 	for _, pb := range propagateBlocks {
-		// Only check blocks that are appendix-propagate (not plain @propagate).
-		if pb.AppendixID == "" {
+		targetFile := strings.TrimSpace(pb.TargetFile)
+		if targetFile == "" {
 			continue
 		}
 
-		// TargetFile may be a comma-separated list of file paths (e.g., multiple files share a chunk).
-		rawTargets := strings.Split(pb.TargetFile, ",")
+		body, hasCatalog := catalogBodies[targetFile]
+		if !hasCatalog {
+			// Target file not in catalog — not our concern for this linter.
+			continue
+		}
 
-		for _, rawTarget := range rawTargets {
-			targetFile := strings.TrimSpace(rawTarget)
-			if targetFile == "" {
-				continue
+		result.Checked++
+
+		// Extract @from-eng-handbook blocks from the catalog body.
+		sourceBlocks := extractSourceBlocks(body)
+
+		// Find a matching @from-eng-handbook block by chunk ID.
+		var found *SourceBlock
+
+		for idx := range sourceBlocks {
+			if sourceBlocks[idx].ChunkID == pb.ChunkID {
+				sb := sourceBlocks[idx]
+				found = &sb
+
+				break
 			}
+		}
 
-			body, hasCatalog := catalogBodies[targetFile]
-			if !hasCatalog {
-				// Target file not in catalog — not our concern for this linter.
-				continue
-			}
+		if found == nil {
+			result.Violations = append(result.Violations, CatalogViolation{
+				File:   targetFile,
+				Field:  "source-missing",
+				Detail: fmt.Sprintf("chunk %q: no @from-eng-handbook block found in catalog body for file %q", pb.ChunkID, targetFile),
+			})
 
-			result.Checked++
+			continue
+		}
 
-			// Extract @source blocks from the catalog body.
-			sourceBlocks := extractSourceBlocks(body)
-
-			// Find a matching @source block by chunk ID.
-			var found *SourceBlock
-
-			for idx := range sourceBlocks {
-				if sourceBlocks[idx].ChunkID == pb.ChunkID {
-					sb := sourceBlocks[idx]
-					found = &sb
-
-					break
-				}
-			}
-
-			if found == nil {
-				result.Violations = append(result.Violations, CatalogViolation{
-					File:   targetFile,
-					Field:  "source-missing",
-					Detail: fmt.Sprintf("chunk %q: no @source block found in catalog body for file %q", pb.ChunkID, targetFile),
-				})
-
-				continue
-			}
-
-			if found.Content != pb.Content {
-				result.Violations = append(result.Violations, CatalogViolation{
-					File:   targetFile,
-					Field:  "source-mismatch",
-					Detail: fmt.Sprintf("chunk %q: catalog @source content differs from @appendix-propagate content in file %q", pb.ChunkID, targetFile),
-				})
-			}
+		if found.Content != pb.Content {
+			result.Violations = append(result.Violations, CatalogViolation{
+				File:   targetFile,
+				Field:  "source-mismatch",
+				Detail: fmt.Sprintf("chunk %q: catalog @from-eng-handbook content differs from @to-appendix content in file %q", pb.ChunkID, targetFile),
+			})
 		}
 	}
 

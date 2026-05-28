@@ -12,7 +12,7 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
-// extractSourceChunksFromContent scans a single file's content for @source blocks.
+// extractSourceChunksFromContent scans a single file's content for @from-eng-handbook blocks.
 func extractSourceChunksFromContent(relPath, content string, result map[string][]string) {
 	for _, line := range strings.Split(content, "\n") {
 		match := sourceBlockRegex.FindStringSubmatch(line)
@@ -52,26 +52,26 @@ func FormatCoverageValidationResults(result *CoverageResult) string {
 	}
 
 	if len(result.Violations) > 0 {
-		fmt.Fprintf(&sb, "\nMISSING @SOURCE BLOCKS (%d):\n", len(result.Violations))
+		fmt.Fprintf(&sb, "\nMISSING @from-eng-handbook BLOCKS (%d):\n", len(result.Violations))
 
 		for _, v := range result.Violations {
 			fmt.Fprintf(&sb, "  - chunk=%s file=%s\n", v.ChunkID, v.File)
 		}
 
-		sb.WriteString("\nCoverage validation FAILED. Add missing @source blocks or update the manifest.\n")
+		sb.WriteString("\nCoverage validation FAILED. Add missing @from-eng-handbook blocks or update the manifest.\n")
 	} else if len(result.OrphanedChunks) > 0 {
 		sb.WriteString("\nCoverage validation FAILED. Add orphaned chunks to docs/required-propagations.yaml.\n")
 	} else if len(result.CompositionIssues) > 0 {
-		sb.WriteString("\nCoverage validation FAILED. Fix section-to-appendix mappings for appendix-propagate chunks.\n")
+		sb.WriteString("\nCoverage validation FAILED. Fix @to-appendix marker composition issues.\n")
 	} else {
-		sb.WriteString("\nAll required @propagate chunks are covered by @source blocks.\n")
+		sb.WriteString("\nAll required @to-appendix chunks are covered by @from-eng-handbook blocks.\n")
 	}
 
 	return sb.String()
 }
 
 // ExtractSourceChunks scans all instruction/agent files and returns a map of
-// chunk_id → sorted list of files that contain <!-- @source ... as="chunk_id" -->.
+// chunk_id → sorted list of files that contain <!-- @from-eng-handbook as="chunk_id" -->.
 func ExtractSourceChunks(rootDir string, readFile func(string) ([]byte, error)) (map[string][]string, error) {
 	scanDirs := []struct {
 		dir     string

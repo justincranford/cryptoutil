@@ -7,25 +7,22 @@ import (
 	"regexp"
 	"sort"
 	"strings"
-
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
-// PropagateBlock represents a @propagate block extracted from ENG-HANDBOOK.md.
+// PropagateBlock represents a @to-appendix block extracted from ENG-HANDBOOK.md.
 type PropagateBlock struct {
 	TargetFile string // e.g., ".github/instructions/02-06.authn.instructions.md"
-	AppendixID string // e.g., "terminology-instruction-body" (appendix-propagate only)
 	ChunkID    string // e.g., "key-principles"
 	Content    string // verbatim body text between markers
-	LineNumber int    // 1-based line number of the @propagate marker
+	LineNumber int    // 1-based line number of the @to-appendix marker
 }
 
-// SourceBlock represents a @source block extracted from an instruction/agent file.
+// SourceBlock represents a @from-eng-handbook block extracted from an instruction/agent file.
 type SourceBlock struct {
 	SourceFile string // e.g., ".github/instructions/02-06.authn.instructions.md"
 	ChunkID    string // e.g., "key-principles"
 	Content    string // verbatim body text between markers
-	LineNumber int    // 1-based line number of the @source marker
+	LineNumber int    // 1-based line number of the @from-eng-handbook marker
 }
 
 // ChunkResult represents the validation result for a single chunk.
@@ -40,6 +37,8 @@ type ChunkResult struct {
 type ChunkStatus int
 
 const (
+	toAppendixMatchGroups = 3
+
 	// ChunkStatusMatch means propagate and source content are identical.
 	ChunkStatusMatch ChunkStatus = iota
 	// ChunkStatusMismatch means content differs between propagate and source.
@@ -59,17 +58,13 @@ type ChunkValidationResult struct {
 	FileErrors int
 }
 
-// propagateRegex matches the @propagate opening marker.
-var propagateRegex = regexp.MustCompile(`^<!-- @propagate to="([^"]+)" as="([^"]+)" -->$`)
+// toAppendixRegex matches the @to-appendix opening marker.
+var toAppendixRegex = regexp.MustCompile(`^<!-- @to-appendix as="([^"]+)" appendixes="([^"]+)" -->$`)
 
-// appendixPropagateRegex matches the @appendix-propagate opening marker.
-// The why-this-exists attribute is optional but encouraged; the regex accepts both forms.
-var appendixPropagateRegex = regexp.MustCompile(`^<!-- @appendix-propagate from="([^"]+)" to="([^"]+)" as="([^"]+)"(?:\s+why-this-exists="[^"]+")? -->$`)
+// fromEngHandbookRegex matches the @from-eng-handbook opening marker.
+var fromEngHandbookRegex = regexp.MustCompile(`<!-- @from-eng-handbook as="([^"]+)" -->`)
 
-// sourceRegex matches the @source opening marker.
-var sourceRegex = regexp.MustCompile(`<!-- @source from="([^"]+)" as="([^"]+)" -->`)
-
-// extractPropagateBlocks extracts all @propagate blocks from ENG-HANDBOOK.md content,
+// extractPropagateBlocks extracts all @to-appendix blocks from ENG-HANDBOOK.md content,
 // skipping markers inside code fences but preserving code fences within propagated content.
 func extractPropagateBlocks(content string) []PropagateBlock {
 	var blocks []PropagateBlock
@@ -98,29 +93,13 @@ func extractPropagateBlocks(content string) []PropagateBlock {
 			continue
 		}
 
-		// Check for @propagate start (only when not already in a block).
+		// Check for @to-appendix start (only when not already in a block).
 		if current == nil {
-			if match := propagateRegex.FindStringSubmatch(line); len(match) == cryptoutilSharedMagic.PropagateMarkerMatchGroups {
-				// Support comma-separated targets: to="a.md, b.md" expands to multiple blocks.
-				targets := strings.Split(match[1], ", ")
-				current = &PropagateBlock{
-					TargetFile: targets[0],
-					ChunkID:    match[2],
-					LineNumber: lineNum,
-				}
-				// Store additional targets for expansion after content is captured.
-				pendingTargets = targets[1:]
-				contentLines = nil
-
-				continue
-			}
-
-			if match := appendixPropagateRegex.FindStringSubmatch(line); len(match) == 4 { //nolint:mnd // full match plus three capture groups
+			if match := toAppendixRegex.FindStringSubmatch(line); len(match) == toAppendixMatchGroups {
 				targets := strings.Split(match[2], ", ")
 				current = &PropagateBlock{
 					TargetFile: targets[0],
-					AppendixID: match[1],
-					ChunkID:    match[3],
+					ChunkID:    match[1],
 					LineNumber: lineNum,
 				}
 				pendingTargets = targets[1:]
@@ -132,8 +111,8 @@ func extractPropagateBlocks(content string) []PropagateBlock {
 			continue
 		}
 
-		// Check for propagate block end marker.
-		if strings.Contains(line, "<!-- @/propagate -->") || strings.Contains(line, "<!-- @/appendix-propagate -->") {
+		// Check for to-appendix block end marker.
+		if strings.Contains(line, "<!-- @/to-appendix -->") {
 			current.Content = strings.Join(contentLines, "\n") + "\n"
 			blocks = append(blocks, *current)
 
@@ -141,7 +120,6 @@ func extractPropagateBlocks(content string) []PropagateBlock {
 			for _, extraTarget := range pendingTargets {
 				blocks = append(blocks, PropagateBlock{
 					TargetFile: extraTarget,
-					AppendixID: current.AppendixID,
 					ChunkID:    current.ChunkID,
 					Content:    current.Content,
 					LineNumber: current.LineNumber,
@@ -162,7 +140,7 @@ func extractPropagateBlocks(content string) []PropagateBlock {
 	return blocks
 }
 
-// extractSourceBlocks extracts all @source blocks from a file's content.
+// extractSourceBlocks extracts all @from-eng-handbook blocks from a file's content.
 func extractSourceBlocks(content string) []SourceBlock {
 	var blocks []SourceBlock
 
@@ -194,10 +172,10 @@ func extractSourceBlocks(content string) []SourceBlock {
 			continue
 		}
 
-		// Check for @source start.
-		if match := sourceRegex.FindStringSubmatch(line); len(match) == cryptoutilSharedMagic.PropagateMarkerMatchGroups {
+		// Check for @from-eng-handbook start.
+		if match := fromEngHandbookRegex.FindStringSubmatch(line); len(match) == 2 { //nolint:mnd // full match plus one capture group
 			current = &SourceBlock{
-				ChunkID:    match[2],
+				ChunkID:    match[1],
 				LineNumber: lineNum,
 			}
 			contentLines = nil
@@ -205,8 +183,8 @@ func extractSourceBlocks(content string) []SourceBlock {
 			continue
 		}
 
-		// Check for @/source end.
-		if strings.Contains(line, "<!-- @/source -->") && current != nil {
+		// Check for @/from-eng-handbook end.
+		if strings.Contains(line, "<!-- @/from-eng-handbook -->") && current != nil {
 			current.Content = strings.Join(contentLines, "\n") + "\n"
 			blocks = append(blocks, *current)
 			current = nil
@@ -224,7 +202,7 @@ func extractSourceBlocks(content string) []SourceBlock {
 	return blocks
 }
 
-// ValidateChunks compares all @propagate blocks against their @source counterparts.
+// ValidateChunks compares all @to-appendix blocks against their @from-eng-handbook counterparts.
 func ValidateChunks(rootDir string, readFile func(string) ([]byte, error)) (*ChunkValidationResult, error) {
 	archContent, err := readFile("docs/ENG-HANDBOOK.md")
 	if err != nil {
@@ -275,7 +253,7 @@ func ValidateChunks(rootDir string, readFile func(string) ([]byte, error)) (*Chu
 			continue
 		}
 
-		// Find matching @source block.
+		// Find matching @from-eng-handbook block.
 		sourceBlocks := fileSourceBlocks[pb.TargetFile]
 
 		var matched *SourceBlock
@@ -357,7 +335,7 @@ func FormatChunkResults(result *ChunkValidationResult) string {
 	}
 
 	if len(missing) > 0 {
-		fmt.Fprintf(&sb, "MISSING @source BLOCKS (%d):\n", len(missing))
+		fmt.Fprintf(&sb, "MISSING @from-eng-handbook BLOCKS (%d):\n", len(missing))
 
 		sort.Slice(missing, func(i, j int) bool { return missing[i].ChunkID < missing[j].ChunkID })
 

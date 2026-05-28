@@ -235,13 +235,13 @@ fix(tooling): fix config file padding violations
 
 **Anti-Pattern** (NEVER): One 155-file commit mixing line-ending fixes, Dockerfile tabs, .editorconfig changes, shell padding, and YAML continuation lines.
 
-<!-- @source from="docs/ENG-HANDBOOK.md" as="platform-line-ending-operations" -->
+<!-- @from-eng-handbook as="platform-line-ending-operations" -->
 **Policy** (MANDATORY): All text files use LF (`\n`). `mixed-line-ending`, `end-of-file-fixer`, and `editorconfig-checker` enforce the policy. Exclusions cover generated code, vendored dependencies, build/test outputs, caches, worktrees, binaries, archives, secrets/cert material, and IDE metadata.
 
 **PERMANENT BAN (NO EXCEPTIONS)**: CRLF line endings are prohibited. This ban explicitly applies to `docs/ENG-HANDBOOK.md` and all Copilot/Claude instruction artifacts under `.github/instructions/`, `.github/agents/`, `.claude/agents/`, `.github/skills/`, and `.claude/skills/`.
 
 **Rationale**: gofumpt, gofmt, and goimports emit LF; YAML/Markdown/SQL/text tools default to LF; CI/CD runs on Linux; LF everywhere prevents CRLF/LF churn on Windows. Prettier also defaults `endOfLine=lf` (v2.0.0+).
-<!-- @/source -->
+<!-- @/from-eng-handbook -->
 
 **Todo List Empty?**
 
@@ -453,7 +453,7 @@ go test -race -count=3 ./...              # Race detection
 
 ## Mandatory Review Passes
 
-<!-- @source from="docs/ENG-HANDBOOK.md" as="mandatory-review-passes" -->
+<!-- @from-eng-handbook as="mandatory-review-passes" -->
 **MANDATORY: Minimum 3, maximum 5 review passes before marking any task complete.**
 
 Copilot and AI agents have a tendency to partially fulfill requested work, accidentally omitting or skipping items per request. To counter this, every task completion MUST include at least 3 review passes, each checking ALL 8 quality attributes:
@@ -471,7 +471,7 @@ Copilot and AI agents have a tendency to partially fulfill requested work, accid
 **Continuation rule**: If pass 3 finds ANY issue, continue to pass 4. If pass 4 still finds issues, continue to pass 5. Diminishing returns = done.
 
 **Scope**: ALL work types — code, docs, config, tests, infrastructure, deployments.
-<!-- @/source -->
+<!-- @/from-eng-handbook -->
 
 ---
 
@@ -535,7 +535,7 @@ A response that leaves uncommitted changes is incomplete by definition. The Work
 
 ### Bulk-Hook Architecture (CI/CD Infrastructure)
 
-<!-- @source from="docs/ENG-HANDBOOK.md" as="cicd-bulk-hook-architecture" -->
+<!-- @from-eng-handbook as="cicd-bulk-hook-architecture" -->
 `cicd-lint` command execution and `.pre-commit-config.yaml` wiring MUST follow this architecture:
 
 1. **Four bulk cicd hooks only** in `.pre-commit-config.yaml`:
@@ -554,16 +554,16 @@ A response that leaves uncommitted changes is incomplete by definition. The Work
 1. **Enforcement**: `lint-fitness` sub-linter `precommit-cicd-architecture` is authoritative and MUST fail on any drift.
 
 **Rationale**: This prevents cross-category races (read-only lint vs mutating format), preserves deterministic developer workflows, and ensures new cicd subcommands cannot be added without being wired into bulk hooks.
-<!-- @/source -->
+<!-- @/from-eng-handbook -->
 
 ### Line Ending Policy (Repository Convention)
 
-<!-- @source from="docs/ENG-HANDBOOK.md" as="platform-line-ending-operations" -->
+<!-- @from-eng-handbook as="platform-line-ending-operations" -->
 **Policy** (MANDATORY): All text files use LF (`\n`). `mixed-line-ending`, `end-of-file-fixer`, and `editorconfig-checker` enforce the policy. Exclusions cover generated code, vendored dependencies, build/test outputs, caches, worktrees, binaries, archives, secrets/cert material, and IDE metadata.
 
 **PERMANENT BAN (NO EXCEPTIONS)**: CRLF line endings are prohibited. This ban explicitly applies to `docs/ENG-HANDBOOK.md` and all Copilot/Claude instruction artifacts under `.github/instructions/`, `.github/agents/`, `.claude/agents/`, `.github/skills/`, and `.claude/skills/`.
 
 **Rationale**: gofumpt, gofmt, and goimports emit LF; YAML/Markdown/SQL/text tools default to LF; CI/CD runs on Linux; LF everywhere prevents CRLF/LF churn on Windows. Prettier also defaults `endOfLine=lf` (v2.0.0+).
-<!-- @/source -->
+<!-- @/from-eng-handbook -->
 
 **Repository-Specific Details**: See Repository Policy References section at end for cryptoutil-specific CI infrastructure and conventions.

@@ -15,13 +15,13 @@ Use when:
 
 ## Key Rules
 
-<!-- @source from="docs/ENG-HANDBOOK.md" as="skill-sync-copilot-claude-core-rules" -->
+<!-- @from-eng-handbook as="skill-sync-copilot-claude-core-rules" -->
 - Copilot skills live at `.github/skills/<NAME>/SKILL.md`; Claude skills at `.claude/skills/<NAME>/SKILL.md`
 - Body content MUST be identical between Copilot and Claude skill files
 - Claude agents at `.claude/agents/<NAME>.md` must match Copilot agents at `.github/agents/<NAME>.agent.md`
 - NEVER update only one file — always sync both in the same commit
 - The `lint-agent-drift` linter (in `lint-docs`) enforces agent pair identity automatically
-<!-- @/source -->
+<!-- @/from-eng-handbook -->
 - Only allowed frontmatter differences: `tools:` / `allowed-tools:` field naming (Copilot vs Claude)
 - Verify discoverability after sync: update `.github/skills/README.md`, `.github/copilot-instructions.md`, `CLAUDE.md`, and `docs/ENG-HANDBOOK.md` when a new skill or agent should appear there
 - Flag overlap explicitly: if two skills now describe the same creation or audit workflow, merge or narrow them in the same change instead of preserving redundant catalog entries

@@ -98,31 +98,31 @@ This document is structured to serve multiple audiences:
 
 #### RFC 2119 Keywords
 
-<!-- @section-to-appendix to="terminology-instruction-body" as="rfc-2119-keywords" -->
+<!-- @to-appendix as="rfc-2119-keywords" appendixes=".github/instructions/01-01.terminology.instructions.md" -->
 - **MUST** = **REQUIRED** = **MANDATORY** = **SHALL** - Absolute requirement
 - **MUST NOT** = **SHALL NOT** - Absolute prohibition
 - **SHOULD** = **RECOMMENDED** - Highly desirable (may ignore with justification)
 - **SHOULD NOT** = **NOT RECOMMENDED** - Not advisable (may do with justification)
 - **MAY** = **OPTIONAL** - Truly optional (implementer decides)
-<!-- @/section-to-appendix -->
+<!-- @/to-appendix -->
 
 #### Emphasis Keywords
 
-<!-- @section-to-appendix to="terminology-instruction-body" as="emphasis-keywords" -->
+<!-- @to-appendix as="emphasis-keywords" appendixes=".github/instructions/01-01.terminology.instructions.md" -->
 - **CRITICAL** - Historically regression-prone areas requiring extra attention
 - **ALWAYS** / **NEVER** - Emphatic MUST / MUST NOT (no exceptions)
-<!-- @/section-to-appendix -->
+<!-- @/to-appendix -->
 
 #### Abbreviations
 
-<!-- @section-to-appendix to="terminology-instruction-body" as="abbreviations" -->
+<!-- @to-appendix as="abbreviations" appendixes=".github/instructions/01-01.terminology.instructions.md" -->
 **CRITICAL: NEVER use ambiguous `auth` abbreviation to mean either authentication or authorization**
 
 - **authn** = Authentication
 - **authz** = Authorization
 
 **Rationale**: Prevents confusion filenames, variable names, and documentation.
-<!-- @/section-to-appendix -->
+<!-- @/to-appendix -->
 
 ---
 
@@ -355,7 +355,7 @@ Implementation plans use the following files in `<work-dir>/`:
 
 **Quizme Q&A Persistence** (MANDATORY): After each quizme round, ALL question+answer tuples from that round MUST be appended as a section at the END of `plan.md` under heading `## Quizme Round N (YYYY-MM-DD)`. The section is append-only — never deleted or edited. This lets the implementation-planning agent skip already-answered questions on subsequent invocations, and allows reviewers to update answers in a later round section if new information changes their perspective.
 
-<!-- @section-to-appendix to="execution-agent-behavior" as="agent-self-containment" -->
+<!-- @to-appendix as="agent-self-containment" appendixes=".github/instructions/06-02.agent-format.instructions.md" -->
 **Agent Self-Containment Checklist** (MANDATORY):
 - Agents generating implementation plans MUST reference ENG-HANDBOOK.md testing (Section 10), quality gates (Section 11), coding standards (Section 14)
 - Agents modifying code MUST reference coding standards (Sections 11, 14)
@@ -364,7 +364,7 @@ Implementation plans use the following files in `<work-dir>/`:
 - Agents modifying documentation or copilot artifacts (skills, instructions, agents) MUST reference Section 2.1 (Agent/Skill/Instruction catalog) and Section 13.4 (Documentation Propagation)
 - ALL agents MUST reference Section 2.5 (Quality Strategy) for coverage and mutation targets
 - Agents with ZERO ENG-HANDBOOK.md references are NON-COMPLIANT and MUST be updated
-<!-- @/section-to-appendix -->
+<!-- @/to-appendix -->
 
 #### 2.1.2 Agent Catalog
 
@@ -480,32 +480,32 @@ Here is current git status:
 
 #### Skill Body Fragments
 
-<!-- @section-to-appendix to="skills-handbook-coupled-body" as="skill-propagation-check-core-rules" -->
-- `@source` content MUST be byte-for-byte identical to `@propagate` content in ENG-HANDBOOK.md
+<!-- @to-appendix as="skill-propagation-check-core-rules" appendixes=".github/skills/propagation-check/SKILL.md, .claude/skills/propagation-check/SKILL.md" -->
+- `@from-eng-handbook` content MUST be byte-for-byte identical to `@to-appendix` content in ENG-HANDBOOK.md
 - Run `go run ./cmd/cicd-lint lint-docs` to detect drift
-- Add both Copilot file AND Claude file to `@propagate to=` attribute (comma-separated)
+- Add both Copilot file AND Claude file to `appendixes=` attribute (comma-separated)
 - Update `docs/required-propagations.yaml` `required_targets` when adding new targets
-- When ENG-HANDBOOK.md chunk changes, ALL downstream `@source` blocks must be updated
-<!-- @/section-to-appendix -->
+- When ENG-HANDBOOK.md chunk changes, ALL downstream `@from-eng-handbook` blocks must be updated
+<!-- @/to-appendix -->
 
-<!-- @section-to-appendix to="skills-handbook-coupled-body" as="skill-sync-copilot-claude-core-rules" -->
+<!-- @to-appendix as="skill-sync-copilot-claude-core-rules" appendixes=".github/skills/sync-copilot-claude/SKILL.md, .claude/skills/sync-copilot-claude/SKILL.md" -->
 - Copilot skills live at `.github/skills/<NAME>/SKILL.md`; Claude skills at `.claude/skills/<NAME>/SKILL.md`
 - Body content MUST be identical between Copilot and Claude skill files
 - Claude agents at `.claude/agents/<NAME>.md` must match Copilot agents at `.github/agents/<NAME>.agent.md`
 - NEVER update only one file — always sync both in the same commit
 - The `lint-agent-drift` linter (in `lint-docs`) enforces agent pair identity automatically
-<!-- @/section-to-appendix -->
+<!-- @/to-appendix -->
 
-<!-- @section-to-appendix to="skills-handbook-coupled-body" as="skill-copilot-customization-core-rules" -->
+<!-- @to-appendix as="skill-copilot-customization-core-rules" appendixes=".github/skills/copilot-customization/SKILL.md, .claude/skills/copilot-customization/SKILL.md" -->
 - Pick one artifact type per invocation: `agent`, `instruction`, or `skill`
 - Decide the operation up front: create, update, or delete
 - Agents are dual-canonical: create BOTH `.github/agents/NAME.agent.md` and `.claude/agents/NAME.md`
 - Skills are dual-canonical: create BOTH `.github/skills/NAME/SKILL.md` and `.claude/skills/NAME/SKILL.md`
 - Agent and skill body content MUST stay identical across Copilot and Claude pairs; only permitted frontmatter differences may differ
 - Run `go run ./cmd/cicd-lint lint-docs` after creating, updating, or deleting any customization artifact
-<!-- @/section-to-appendix -->
+<!-- @/to-appendix -->
 
-<!-- @section-to-appendix to="skills-handbook-coupled-body" as="skill-test-table-driven-core-rules" -->
+<!-- @to-appendix as="skill-test-table-driven-core-rules" appendixes=".github/skills/test-table-driven/SKILL.md, .claude/skills/test-table-driven/SKILL.md" -->
 - `t.Parallel()` MANDATORY on parent and ALL subtests
 - Use `googleUuid.NewV7()` for test data IDs (thread-safe, unique, no conflicts)
 - `require` package (fail-fast) over `assert` (continue-on-failure)
@@ -513,16 +513,16 @@ Here is current git status:
 - TestMain for heavyweight resources (DB, servers, containers) — one per package
 - Use exactly one `testmain_test.go` per package; never split into `testmain_*_test.go` variants
 - `testmain_test.go` must not use `//go:build` or `// +build` directives
-<!-- @/section-to-appendix -->
+<!-- @/to-appendix -->
 
-<!-- @section-to-appendix to="skills-handbook-coupled-body" as="skill-openapi-codegen-core-rules" -->
+<!-- @to-appendix as="skill-openapi-codegen-core-rules" appendixes=".github/skills/openapi-codegen/SKILL.md, .claude/skills/openapi-codegen/SKILL.md" -->
 - OpenAPI version MUST be 3.0.3 (NOT 2.0/Swagger, NOT 3.1.x)
 - Generate THREE config files: server (`strict-server: true`), model, client
 - API MUST duplicate under BOTH `/service/` and `/browser/` paths
 - Content type: `application/json` ONLY (no form, multipart, or other types)
 - `strict-server: true` is MANDATORY in server config
 - All `openapi-gen_config*.yaml` MUST include the full base initialisms list from ENG-HANDBOOK.md §8
-<!-- @/section-to-appendix -->
+<!-- @/to-appendix -->
 
 #### 2.1.6 Agent Tool Discovery
 
@@ -683,7 +683,7 @@ See the [beast-mode agent](.github/agents/beast-mode.agent.md) for the full auto
 ##### End-of-Turn Commit Protocol
 
 <!-- NOTE: This @propagate target is the beast-mode instruction file, which is injected as modeInstructions at runtime (not via the standard instructions directory scan). This means the chunk is consumed in the mode prompt, not in the standard instructions context — a different injection path than all other @propagate targets. -->
-<!-- @section-to-appendix to="execution-agent-behavior" as="end-of-turn-commit-protocol" -->
+<!-- @to-appendix as="end-of-turn-commit-protocol" appendixes=".github/instructions/01-02.beast-mode.instructions.md" -->
 **MANDATORY: NEVER end a turn with uncommitted changes. Your ABSOLUTE LAST TOOL INVOCATION before yielding to the user MUST be running `git status --porcelain`. NEVER assume the worktree is clean — always RUN the command as a tool call.**
 
 If `git status --porcelain` returns ANY output:
@@ -702,7 +702,7 @@ If `git status --porcelain` returns ANY output:
 - Assuming the worktree is clean without running the command as a tool call
 
 **Pattern**: `git status --porcelain` returns empty → End turn. Any output → Commit first.
-<!-- @/section-to-appendix -->
+<!-- @/to-appendix -->
 
 ### 2.5 Quality Strategy
 
@@ -740,7 +740,7 @@ If `git status --porcelain` returns ANY output:
 
 #### Mandatory Review Passes
 
-<!-- @section-to-appendix to="execution-agent-behavior" as="mandatory-review-passes" -->
+<!-- @to-appendix as="mandatory-review-passes" appendixes=".github/instructions/06-01.evidence-based.instructions.md, .github/agents/beast-mode.agent.md, .github/agents/fix-workflows.agent.md, .github/agents/implementation-execution.agent.md, .github/agents/implementation-planning.agent.md, .claude/agents/beast-mode.md, .claude/agents/fix-workflows.md, .claude/agents/implementation-execution.md, .claude/agents/implementation-planning.md" -->
 **MANDATORY: Minimum 3, maximum 5 review passes before marking any task complete.**
 
 Copilot and AI agents have a tendency to partially fulfill requested work, accidentally omitting or skipping items per request. To counter this, every task completion MUST include at least 3 review passes, each checking ALL 8 quality attributes:
@@ -758,7 +758,7 @@ Copilot and AI agents have a tendency to partially fulfill requested work, accid
 **Continuation rule**: If pass 3 finds ANY issue, continue to pass 4. If pass 4 still finds issues, continue to pass 5. Diminishing returns = done.
 
 **Scope**: ALL work types — code, docs, config, tests, infrastructure, deployments.
-<!-- @/section-to-appendix -->
+<!-- @/to-appendix -->
 
 ---
 
@@ -1596,14 +1596,14 @@ See [Section 9.10 CICD Command Architecture](#910-cicd-command-architecture) for
 
 #### 5.1.1 Framework Components
 
-<!-- @section-to-appendix to="architecture-service-template" as="service-framework-components" -->
+<!-- @to-appendix as="service-framework-components" appendixes=".github/instructions/02-01.architecture.instructions.md" -->
 - Two HTTPS Listeners: Public (business APIs) + Admin (health checks)
 - Two Public Paths: `/browser/**` (session cookies) vs `/service/**` (session tokens)
 - Three Admin APIs: /admin/api/v1/livez, /admin/api/v1/readyz, /admin/api/v1/shutdown
 - Database: PostgreSQL || SQLite with GORM
 - Telemetry: OTLP → otel-collector-contrib → Grafana LGTM
 - Config Priority: Docker secrets > YAML > CLI parameters (NO environment variables)
-<!-- @/section-to-appendix -->
+<!-- @/to-appendix -->
 
 #### 5.1.2 Framework Benefits
 
@@ -1663,7 +1663,7 @@ sqlDB.SetMaxOpenConns(5)                     // GORM transactions need multiple
 
 ##### SQLite + Barrier Outside Transactions (CRITICAL)
 
-<!-- @section-to-appendix to="architecture-service-template" as="sqlite-barrier-outside-tx" -->
+<!-- @to-appendix as="sqlite-barrier-outside-tx" appendixes=".github/instructions/03-04.data-infrastructure.instructions.md" -->
 **MANDATORY**: ALL calls to `barrier.EncryptContentWithContext` or `barrier.DecryptContentWithContext` MUST be outside any ORM `WithTransaction` scope.
 
 **Root cause**: The barrier service opens its own internal read/write transaction. SQLite WAL mode allows only one writer at a time. Nesting two write transactions on the same connection pool causes deadlock: all connections are held by the outer ORM transaction, so the inner barrier transaction cannot acquire one.
@@ -1674,7 +1674,7 @@ ORM.Create(plainRecord) → commit → (outside tx) barrier.Encrypt → ORM.Upda
 ```
 
 This is a **correctness requirement**, not a performance concern. Barrier calls inside ORM transactions are a guaranteed SQLite deadlock.
-<!-- @/section-to-appendix -->
+<!-- @/to-appendix -->
 
 ##### SQLite DateTime (CRITICAL)
 
@@ -2222,18 +2222,18 @@ Each realm gets its own directory under `Cat-5-{PS-ID}-realm-{realm-id}-{variant
 **Authentication Methods**: 41 total (13 headless + 28 browser)
 **Authorization**: Scope-based, RBAC, resource-level ACLs, zero-trust (no caching)
 
-<!-- @section-to-appendix to="security-authn-authz" as="key-principles" -->
+<!-- @to-appendix as="key-principles" appendixes=".github/instructions/02-06.authn.instructions.md" -->
 - **Zero Trust**: NO caching of authorization decisions. Re-evaluate every request.
 - **MFA Step-Up**: Re-authentication MANDATORY every 30 minutes for high-sensitivity operations.
 - **Session Storage**: SQL databases ONLY (PostgreSQL or SQLite with ACID). NEVER Redis/Memcached.
 - **mTLS Revocation**: MUST check BOTH CRLDP and OCSP. Fail if BOTH unreachable.
-<!-- @/section-to-appendix -->
+<!-- @/to-appendix -->
 
 #### 6.9.1 Authentication Realm Architecture
 
-<!-- @section-to-appendix to="security-authn-authz" as="session-token-formats" -->
+<!-- @to-appendix as="session-token-formats" appendixes=".github/instructions/02-06.authn.instructions.md" -->
 **Opaque** (UUID), **JWE** (encrypted JWT), **JWS** (signed JWT). Storage: PostgreSQL (distributed) or SQLite (single-node). NO Redis/Memcached.
-<!-- @/section-to-appendix -->
+<!-- @/to-appendix -->
 
 - Realm types and purposes
 - Credential validators (File, Database, Federated)
@@ -2242,17 +2242,17 @@ Each realm gets its own directory under `Cat-5-{PS-ID}-realm-{realm-id}-{variant
 
 #### 6.9.2 Headless Authentication Methods (13 Total)
 
-<!-- @section-to-appendix to="security-authn-authz" as="headless-authn" -->
+<!-- @to-appendix as="headless-authn" appendixes=".github/instructions/02-06.authn.instructions.md" -->
 **Non-Federated (6)**: JWE Session Token, JWS Session Token, Opaque Session Token, Basic (Client ID/Secret), Bearer (API Token), HTTPS Client Certificate.
 
 **Federated (7)**: Basic/Bearer/ClientCert via OAuth 2.1, JWE/JWS/Opaque Access Token, Opaque Refresh Token.
 
 **Storage**: YAML + SQL (Config > DB priority) for all methods.
-<!-- @/section-to-appendix -->
+<!-- @/to-appendix -->
 
 #### 6.9.3 Browser Authentication Methods (28 Total)
 
-<!-- @section-to-appendix to="security-authn-authz" as="browser-authn" -->
+<!-- @to-appendix as="browser-authn" appendixes=".github/instructions/02-06.authn.instructions.md" -->
 **Non-Federated (6)**: JWE/JWS/Opaque Session Cookie, Basic (Username/Password), Bearer (API Token), HTTPS Client Certificate.
 
 **Federated (22)**: All non-federated methods PLUS:
@@ -2262,14 +2262,14 @@ Each realm gets its own directory under `Cat-5-{PS-ID}-realm-{realm-id}-{variant
 - **Enterprise**: SAML 2.0
 
 **Storage**: YAML + SQL (Config > DB) for static credentials. SQL ONLY for dynamic user data (OTPs, enrollments, magic links).
-<!-- @/section-to-appendix -->
+<!-- @/to-appendix -->
 
 #### 6.9.4 Multi-Factor Authentication (MFA)
 
-<!-- @section-to-appendix to="security-authn-authz" as="mfa-combinations" -->
+<!-- @to-appendix as="mfa-combinations" appendixes=".github/instructions/02-06.authn.instructions.md" -->
 **Browser**: Password + TOTP/WebAuthn/Push/OTP.
 **Headless**: Client ID/Secret + mTLS/Bearer.
-<!-- @/section-to-appendix -->
+<!-- @/to-appendix -->
 
 - Step-up authentication (re-auth every 30min for high-sensitivity operations)
 - Factor enrollment workflows
@@ -2277,10 +2277,10 @@ Each realm gets its own directory under `Cat-5-{PS-ID}-realm-{realm-id}-{variant
 
 #### 6.9.5 Authorization Patterns
 
-<!-- @section-to-appendix to="security-authn-authz" as="authz-methods" -->
+<!-- @to-appendix as="authz-methods" appendixes=".github/instructions/02-06.authn.instructions.md" -->
 **Headless**: Scope-based, RBAC.
 **Browser**: Scope-based, RBAC, resource-level ACLs, consent tracking (scope+resource granularity).
-<!-- @/section-to-appendix -->
+<!-- @/to-appendix -->
 
 - Zero trust: NO caching of authorization decisions
 - Scope-based authorization (headless)
@@ -2289,9 +2289,9 @@ Each realm gets its own directory under `Cat-5-{PS-ID}-realm-{realm-id}-{variant
 
 ### 6.10 Secrets Detection Strategy
 
-<!-- @section-to-appendix to="security-authn-authz" as="secrets-detection-strategy" -->
+<!-- @to-appendix as="secrets-detection-strategy" appendixes=".github/instructions/02-05.security.instructions.md" -->
 **Detection**: Length-based threshold (≥32 bytes / ≥43 base64 chars) for inline secrets in compose files. NO entropy calculation (too many false positives). Safe references (`/run/secrets/`, short dev defaults) excluded. Infrastructure deployments excluded.
-<!-- @/section-to-appendix -->
+<!-- @/to-appendix -->
 
 **Detection Approach**: Length-based threshold (≥32 bytes raw, ≥43 characters base64-encoded) identifies high-entropy inline values in environment variables matching secret-pattern names (PASSWORD, SECRET, TOKEN, KEY, API_KEY). No entropy calculation is used - it produces too many false positives on non-secret configuration values.
 
@@ -2312,7 +2312,7 @@ Each realm gets its own directory under `Cat-5-{PS-ID}-realm-{realm-id}-{variant
 
 `TLSProvisionMode` is about certificate sourcing. `TLSClientPolicy` is about runtime client-auth behavior. A CA bundle path is trust material input only; it MUST NOT implicitly select the runtime policy.
 
-<!-- @section-to-appendix to="architecture-service-template" as="tls-provision-mode" -->
+<!-- @to-appendix as="tls-provision-mode" appendixes=".github/instructions/02-01.architecture.instructions.md" -->
 **Service template server certificates use `TLSProvisionMode`** based on credentials provided at startup:
 
 | Environment | Cert Chain | TLS Key | Issuing CA Key | TLS Provision Mode | Outcome |
@@ -2330,7 +2330,7 @@ The `GenerateTLSMaterial()` function in `internal/apps-framework/service/config/
 - `auto`: no server TLS material is supplied; the framework generates an ephemeral CA hierarchy and server leaf in memory.
 
 **Detection logic**: `StaticCertPEM + StaticKeyPEM` provided → `static`. `MixedCACertPEM + MixedCAKeyPEM` provided → generate server cert then use `static` material for the running process. Nothing provided → `auto`.
-<!-- @/section-to-appendix -->
+<!-- @/to-appendix -->
 
 #### 6.11.2 Test TLS Bundle
 
@@ -2452,7 +2452,7 @@ server-admin-tls-client-policy: require-and-verify
 
 #### 6.11.6 `TLSClientPolicy` Runtime Modes
 
-<!-- @section-to-appendix to="security-authn-authz" as="tls-client-policy" -->
+<!-- @to-appendix as="tls-client-policy" appendixes=".github/instructions/02-05.security.instructions.md" -->
 Services support five **runtime `TLSClientPolicy` states**. These are distinct from the
 certificate-provisioning modes in §6.11.1 and map directly to Go's `tls.ClientAuthType` behavior:
 
@@ -2478,7 +2478,7 @@ public:
 ```
 
 Once all clients present certificates, flip `client-policy` to `require-and-verify`.
-<!-- @/section-to-appendix -->
+<!-- @/to-appendix -->
 
 **Directory Count Formula Derivation** (Category 5, per PS-ID with 2 realms):
 
@@ -2664,7 +2664,7 @@ cryptoutil follows an OpenAPI-first design approach, ensuring all APIs are defin
 
 #### 8.1.4 Canonical Base Initialisms List
 
-<!-- @section-to-appendix to="api-openapi-contracts" as="base-initialisms" -->
+<!-- @to-appendix as="base-initialisms" appendixes=".github/instructions/02-04.openapi.instructions.md" -->
 All `openapi-gen_config*.yaml` files MUST include the full base initialisms list in their `additional-initialisms` section. Domain-specific additions follow the base list.
 
 **Base initialisms (mandatory in every gen config)**:
@@ -2704,7 +2704,7 @@ All `openapi-gen_config*.yaml` files MUST include the full base initialisms list
 | `sm-im` | IM, SM, URI |
 | `sm-kms` | URI |
 | `skeleton-template` | (none — base list only) |
-<!-- @/section-to-appendix -->
+<!-- @/to-appendix -->
 
 **Enforcement**: `lint-fitness gen-config-initialisms` verifies every `openapi-gen_config_server.yaml` contains the full base list.
 
@@ -2755,7 +2755,7 @@ All `openapi-gen_config*.yaml` files MUST include the full base initialisms list
 
 ### 8.4 Error Handling
 
-<!-- @section-to-appendix to="api-openapi-contracts" as="http-status-codes" -->
+<!-- @to-appendix as="http-status-codes" appendixes=".github/instructions/02-04.openapi.instructions.md" -->
 | Code | Usage |
 |------|-------|
 | 200 | GET, PUT, PATCH successful |
@@ -2769,7 +2769,7 @@ All `openapi-gen_config*.yaml` files MUST include the full base initialisms list
 | 422 | Semantic validation error |
 | 500 | Unhandled server error |
 | 503 | Temporary unavailability |
-<!-- @/section-to-appendix -->
+<!-- @/to-appendix -->
 
 #### 8.4.1 Error Schema Format
 
@@ -2944,7 +2944,7 @@ log.Info("operation completed",
 
 #### 9.4.1 OTel Collector Processor Constraints
 
-<!-- @section-to-appendix to="observability-deployment-tooling" as="otel-collector-constraints" -->
+<!-- @to-appendix as="otel-collector-constraints" appendixes=".github/instructions/02-03.observability.instructions.md" -->
 | Processor | Requirement | Dev/CI | Production |
 |-----------|------------|--------|------------|
 | resourcedetection/docker | Docker socket `/var/run/docker.sock` | NEVER use | Use when socket available |
@@ -2954,7 +2954,7 @@ log.Info("operation completed",
 **MANDATORY for dev/CI**: Use `detectors: [env, system]`. NEVER include `docker` detector without verified socket access.
 
 **CRITICAL**: NEVER defer OTel or infrastructure configuration issues as "pre-existing." Infrastructure blockers are ALWAYS MANDATORY BLOCKING.
-<!-- @/section-to-appendix -->
+<!-- @/to-appendix -->
 
 **Anti-Pattern**: NEVER defer OTel or infrastructure configuration issues as "pre-existing." Infrastructure blockers that prevent E2E validation MUST be fixed immediately — they are BLOCKING, not "nice-to-have."
 
@@ -3333,7 +3333,7 @@ the root cause of any pre-commit failure before committing. NEVER bypass with `-
 
 #### 9.9.3 UTF-8 Without BOM Enforcement
 
-<!-- @section-to-appendix to="observability-deployment-tooling" as="utf8-without-bom" -->
+<!-- @to-appendix as="utf8-without-bom" appendixes=".github/instructions/03-05.linting.instructions.md" -->
 **MANDATORY**: UTF-8 without BOM for all text files. The repository text baseline is UTF-8, LF, 4-space indentation for text-heavy formats, and a 200-column ceiling unless a language-specific rule overrides it.
 
 **PERMANENT BAN (NO EXCEPTIONS)**: UTF-16 is prohibited. This ban explicitly applies to `docs/ENG-HANDBOOK.md` and all Copilot/Claude instruction artifacts under `.github/instructions/`, `.github/agents/`, `.claude/agents/`, `.github/skills/`, and `.claude/skills/`.
@@ -3341,7 +3341,7 @@ the root cause of any pre-commit failure before committing. NEVER bypass with `-
 **Enforcement**: `fix-byte-order-marker` auto-fixes BOMs; `lint-text` rejects BOM-prefixed files; `.editorconfig` mirrors `charset = utf-8`, `end_of_line = lf`, and the formatting defaults; PowerShell file writes must use `[System.Text.UTF8Encoding]::new($false)`.
 
 **Skip list**: generated code, vendored dependencies, build/test artifacts, caches, worktrees, binaries, archives, secrets/cert material, IDE metadata, and other machine-owned files are excluded from text-format checks. Prefer narrowing the exclusion to the smallest machine-owned path rather than exempting an entire language.
-<!-- @/section-to-appendix -->
+<!-- @/to-appendix -->
 
 #### 9.9.4 Platform Line-Ending Policy
 
@@ -3353,13 +3353,13 @@ core.autocrlf=input     # Convert CRLF→LF on commit, no conversion on checkout
 core.safecrlf=false     # Let .gitattributes handle all line-ending policy
 ```
 
-<!-- @section-to-appendix to="testing-quality-golang" as="platform-line-ending-operations" -->
+<!-- @to-appendix as="platform-line-ending-operations" appendixes=".github/instructions/05-02.git.instructions.md, .github/agents/beast-mode.agent.md, .github/agents/implementation-planning.agent.md, .github/agents/implementation-execution.agent.md, .github/agents/fix-workflows.agent.md, .claude/agents/beast-mode.md, .claude/agents/implementation-planning.md, .claude/agents/implementation-execution.md, .claude/agents/fix-workflows.md" -->
 **Policy** (MANDATORY): All text files use LF (`\n`). `mixed-line-ending`, `end-of-file-fixer`, and `editorconfig-checker` enforce the policy. Exclusions cover generated code, vendored dependencies, build/test outputs, caches, worktrees, binaries, archives, secrets/cert material, and IDE metadata.
 
 **PERMANENT BAN (NO EXCEPTIONS)**: CRLF line endings are prohibited. This ban explicitly applies to `docs/ENG-HANDBOOK.md` and all Copilot/Claude instruction artifacts under `.github/instructions/`, `.github/agents/`, `.claude/agents/`, `.github/skills/`, and `.claude/skills/`.
 
 **Rationale**: gofumpt, gofmt, and goimports emit LF; YAML/Markdown/SQL/text tools default to LF; CI/CD runs on Linux; LF everywhere prevents CRLF/LF churn on Windows. Prettier also defaults `endOfLine=lf` (v2.0.0+).
-<!-- @/section-to-appendix -->
+<!-- @/to-appendix -->
 
 #### 9.9.5 Policy Enforcement Surface Inventory
 
@@ -3415,7 +3415,7 @@ cmd/cicd-lint/main.go                          # Layer 1: Thin main(), os.Exit(C
 
 #### 9.10.2 Command Naming Patterns
 
-<!-- @section-to-appendix to="observability-deployment-tooling" as="cicd-command-naming" -->
+<!-- @to-appendix as="cicd-command-naming" appendixes=".github/instructions/04-01.deployment.instructions.md" -->
 **Three command categories** with strict naming and directory conventions:
 
 | Category | Naming Pattern | Directory Pattern | Entry Function | Registration |
@@ -3427,7 +3427,7 @@ cmd/cicd-lint/main.go                          # Layer 1: Thin main(), os.Exit(C
 **Linter commands** (14): `lint-text`, `lint-go`, `lint-go-test`, `lint-go-mod`, `lint-golangci`, `lint-compose`, `lint-ports`, `lint-workflow`, `lint-deployments`, `lint-docs`, `lint-fitness`, `lint-openapi`, `lint-java-test`, `lint-python-test`
 **Formatter commands** (2): `format-go`, `format-go-test`
 **Script commands** (1): `github-cleanup`
-<!-- @/section-to-appendix -->
+<!-- @/to-appendix -->
 
 #### 9.10.3 Registered Sub-Command Pattern
 
@@ -3551,7 +3551,7 @@ internal/apps-tools/cicd_lint/
 
 #### 9.10.6 cicd-lint Command Constraints — MANDATORY
 
-<!-- @section-to-appendix to="observability-deployment-tooling" as="cicd-lint-constraints" -->
+<!-- @to-appendix as="cicd-lint-constraints" appendixes=".github/instructions/04-01.deployment.instructions.md" -->
 **Purpose**: `cicd-lint` is exclusively for linting, formatting, and operational cleanup. It NEVER generates files, scaffolds content, or transforms the repository.
 
 **Constraints** (NO EXCEPTIONS):
@@ -3561,13 +3561,13 @@ internal/apps-tools/cicd_lint/
 3. **No content generation**: cicd-lint NEVER creates Dockerfiles, compose files, config overlays, secrets, migration files, or any other repository artifacts. The strategy is detect-and-error, not generate-and-apply.
 4. **No Python under cicd_lint**: `internal/apps-tools/cicd_lint/` is pure Go. No Python scripts, modules, or helpers.
 5. **Codify as validators**: When a new invariant is identified, implement it as a fitness linter that validates the actual state against expected state and returns descriptive errors. NEVER implement it as a generator that creates the expected state.
-<!-- @/section-to-appendix -->
+<!-- @/to-appendix -->
 
 **Rationale**: The single source of truth is `docs/ENG-HANDBOOK.md` (prose). Its invariants are codified by a combination of pre-commit and pre-push hooks, including many `cicd-lint` subcommands. This strategy means ENG-HANDBOOK.md drives the repository, not generated files that can drift from the prose.
 
 #### 9.10.7 Bulk Hook Execution Model (MANDATORY)
 
-<!-- @section-to-appendix to="observability-deployment-tooling" as="cicd-bulk-hook-architecture" -->
+<!-- @to-appendix as="cicd-bulk-hook-architecture" appendixes=".github/instructions/03-05.linting.instructions.md, .github/agents/beast-mode.agent.md, .claude/agents/beast-mode.md" -->
 `cicd-lint` command execution and `.pre-commit-config.yaml` wiring MUST follow this architecture:
 
 1. **Four bulk cicd hooks only** in `.pre-commit-config.yaml`:
@@ -3586,7 +3586,7 @@ internal/apps-tools/cicd_lint/
 1. **Enforcement**: `lint-fitness` sub-linter `precommit-cicd-architecture` is authoritative and MUST fail on any drift.
 
 **Rationale**: This prevents cross-category races (read-only lint vs mutating format), preserves deterministic developer workflows, and ensures new cicd subcommands cannot be added without being wired into bulk hooks.
-<!-- @/section-to-appendix -->
+<!-- @/to-appendix -->
 
 ---
 
@@ -3754,7 +3754,7 @@ The majority pattern (`os.IsNotExist(err) → return nil`) silently hides compli
 
 ### 10.1 Testing Strategy Overview
 
-<!-- @section-to-appendix to="testing-quality-golang" as="test-file-suffixes" -->
+<!-- @to-appendix as="test-file-suffixes" appendixes=".github/instructions/03-02.testing.instructions.md" -->
 | Type | Suffix |
 |------|--------|
 | Unit | `_test.go` |
@@ -3762,7 +3762,7 @@ The majority pattern (`os.IsNotExist(err) → return nil`) silently hides compli
 | Fuzz | `_fuzz_test.go` |
 | Property | `_property_test.go` |
 | Integration | `_integration_test.go` |
-<!-- @/section-to-appendix -->
+<!-- @/to-appendix -->
 
 **Testing Pyramid**:
 
@@ -3770,7 +3770,7 @@ The majority pattern (`os.IsNotExist(err) → return nil`) silently hides compli
 - **Integration Tests**: TestMain pattern, shared resources, GORM repositories
 - **E2E Tests**: Docker Compose, production-like, cross-service validation
 
-<!-- @section-to-appendix to="architecture-service-template" as="three-tier-database-strategy" -->
+<!-- @to-appendix as="three-tier-database-strategy" appendixes=".github/instructions/03-02.testing.instructions.md, .github/instructions/03-04.data-infrastructure.instructions.md" -->
 **3-Tier Database Strategy (MANDATORY)**:
 
 | Tier | Database | Pattern | PostgreSQL? |
@@ -3784,7 +3784,7 @@ The majority pattern (`os.IsNotExist(err) → return nil`) silently hides compli
 - NEVER create DB per-test in integration tests (use TestMain shared instance).
 - NEVER start real servers in unit tests (use Fiber app.Test()).
 - E2E tests use Docker Compose with 4 service instances: 2 sharing a PostgreSQL container, 2 using in-memory SQLite, validating cross-database compatibility.
-<!-- @/section-to-appendix -->
+<!-- @/to-appendix -->
 
 **Coverage Requirements**:
 
@@ -3921,7 +3921,7 @@ func TestListMessages_Handler(t *testing.T) {
 
 **Anti-pattern (v11 pki-init)**: Coverage ceiling of ~93% accepted at 92.4% with no mitigation plan — `productionNew*` functions remained permanently untested because no E2E CI/CD or `internalMain` refactoring was planned. **Resolved in v14** by applying the Production Closure Body Coverage pattern (see below).
 
-<!-- @section-to-appendix to="testing-quality-golang" as="production-closure-body-coverage" -->
+<!-- @to-appendix as="production-closure-body-coverage" appendixes=".github/instructions/03-02.testing.instructions.md" -->
 **Production Closure Body Coverage Pattern**: When a factory function (`NewXxx`) defines anonymous
 closures in its return struct, the closure bodies are separate coverage blocks — creating the struct
 does NOT cover the closure bodies. Only INVOKING the closures covers their bodies.
@@ -3953,7 +3953,7 @@ production files and follows the established project convention for test seams.
 **Structural ceiling for production wiring errors**: `productionNewTelemetryService` error paths
 and OS-level faults (`RemoveAll` failures, non-ENOENT `Stat` errors) remain uncoverable via unit
 tests. Document these as structural ceilings and cover via E2E CI/CD smoke tests instead.
-<!-- @/section-to-appendix -->
+<!-- @/to-appendix -->
 
 #### 10.2.4 Test Seam Injection Pattern
 
@@ -4061,7 +4061,7 @@ This verifies "function called exactly N times" without mockery or `testify/mock
 
 #### 10.2.5 Sequential Test Exemption
 
-<!-- @section-to-appendix to="testing-quality-golang" as="sequential-test-exemption" -->
+<!-- @to-appendix as="sequential-test-exemption" appendixes=".github/instructions/03-02.testing.instructions.md" -->
 Tests that mutate **package-level state** (e.g., `os.Chdir()`, global registries) MUST NOT call `t.Parallel()`. Add a `// Sequential:` comment within 10 lines before the function to exempt it from the `parallel_tests` linter:
 
 ```go
@@ -4079,7 +4079,7 @@ func TestRegisterHandler_Duplicate(t *testing.T) {
 ```
 
 **Rule**: Comment MUST be within 10 lines before function declaration. Include a reason after the colon.
-<!-- @/section-to-appendix -->
+<!-- @/to-appendix -->
 
 Seam variables (see §10.2.4) are a common cause of sequential tests.
 
@@ -4182,7 +4182,7 @@ func TestMain(m *testing.M) {
 
 #### 10.3.4 Test HTTP Client Patterns
 
-<!-- @section-to-appendix to="testing-quality-golang" as="disable-keep-alives-test-transport" -->
+<!-- @to-appendix as="disable-keep-alives-test-transport" appendixes=".github/instructions/03-02.testing.instructions.md" -->
 NEVER use a default `http.Transport` in integration tests calling a real server. ALWAYS set `DisableKeepAlives: true`:
 
 ```go
@@ -4196,11 +4196,11 @@ client := &http.Client{
 ```
 
 **Why**: Fasthttp (Fiber) keeps an `open` counter > 0 while keep-alive connections remain open. `ShutdownWithContext` hangs for 90 seconds waiting for the counter to reach zero.
-<!-- @/section-to-appendix -->
+<!-- @/to-appendix -->
 
 **Symptom**: Tests pass but teardown is extremely slow (≥90s per test binary); `TestMain` never completes in a reasonable time.
 
-<!-- @section-to-appendix to="testing-quality-golang" as="timeout-double-multiplication-antipattern" -->
+<!-- @to-appendix as="timeout-double-multiplication-antipattern" appendixes=".github/instructions/03-02.testing.instructions.md" -->
 NEVER multiply a `time.Duration` constant by `time.Second`. Magic constants that are already `time.Duration` (e.g., `DefaultDataServerShutdownTimeout = 5 * time.Second`) produce ~158-year values when multiplied again:
 
 ```go
@@ -4210,7 +4210,7 @@ ctx, cancel := context.WithTimeout(ctx, magic.DefaultDataServerShutdownTimeout *
 // CORRECT: use directly
 ctx, cancel := context.WithTimeout(ctx, magic.DefaultDataServerShutdownTimeout) // 5 seconds
 ```
-<!-- @/section-to-appendix -->
+<!-- @/to-appendix -->
 
 #### 10.3.5 Cross-Service PS-ID Template Instantiation Pattern
 
@@ -4425,7 +4425,7 @@ NEVER use `docker exec curl` — curl is unavailable in Alpine-based images by d
 verified to use the correct cert paths. NEVER use the `health` subcommand (public port 8080) as a
 proxy for admin TLS verification.
 
-<!-- @section-to-appendix to="testing-quality-golang" as="postgres-mtls-client-identity" -->
+<!-- @to-appendix as="postgres-mtls-client-identity" appendixes=".github/instructions/03-02.testing.instructions.md" -->
 **PostgreSQL mTLS Client Identity in E2E**: Use `client_dn` (from the mTLS certificate CN) to
 identify a GORM service's mTLS connection in `pg_stat_ssl`, NOT `application_name`. GORM does not
 set `application_name` by default — it is always empty. Pattern:
@@ -4436,7 +4436,7 @@ JOIN pg_stat_activity ON pg_stat_ssl.pid = pg_stat_activity.pid
 WHERE pg_stat_ssl.ssl = true
   AND pg_stat_ssl.client_dn LIKE '%-sm-kms-%'
 ```
-<!-- @/section-to-appendix -->
+<!-- @/to-appendix -->
 
 **Docker image rebuild before E2E**: `docker compose build` is MANDATORY before running E2E when
 production code changes (especially init/startup code). A stale Docker image silently hides new
@@ -4732,7 +4732,7 @@ golangci-lint run ./...                    # Step 2: verify no new violations we
 
 #### 10.5.3 Common Surviving Mutations and Fixes
 
-<!-- @section-to-appendix to="testing-quality-golang" as="mutation-common-survivors" -->
+<!-- @to-appendix as="mutation-common-survivors" appendixes=".github/instructions/03-02.testing.instructions.md" -->
 **`attempts++` in retry loops**: The `attempts` increment is mutated to a no-op. Fix: include
 `attempts` in the timeout error message and assert the error string does NOT contain `"after 0 attempts"`:
 
@@ -4753,7 +4753,7 @@ Document as a structural ceiling; do NOT spend time trying to kill this mutation
 like `KILLED` — both mean the mutation was detected. Only `LIVED` mutations are failures. Packages
 with blocking operations (polling loops, network waits) produce more TIMEOUTs; budget ~30s per
 TIMED OUT mutation when estimating gremlins run time.
-<!-- @/section-to-appendix -->
+<!-- @/to-appendix -->
 
 ### 10.6 Load Testing Strategy
 
@@ -5006,7 +5006,7 @@ def test_health_check(api_client):
 
 ### 11.1 Maximum Quality Strategy - MANDATORY
 
-<!-- @section-to-appendix to="execution-agent-behavior" as="quality-attributes" -->
+<!-- @to-appendix as="quality-attributes" appendixes=".github/instructions/01-02.beast-mode.instructions.md" -->
 **Quality Attributes (NO EXCEPTIONS)**:
 - ✅ Correctness: ALL code functionally correct with comprehensive tests
 - ✅ Completeness: NO phases or tasks or steps skipped, NO features de-prioritized, NO shortcuts
@@ -5016,7 +5016,7 @@ def test_health_check(api_client):
 - ✅ Accuracy: Changes must address root cause, not just symptoms
 - ❌ Time Pressure: NEVER rush, NEVER skip validation, NEVER defer quality checks
 - ❌ Premature Completion: NEVER mark phases or tasks or steps complete without objective evidence
-<!-- @/section-to-appendix -->
+<!-- @/to-appendix -->
 
 **ALL issues are blockers - NO exceptions:**
 
@@ -5053,9 +5053,9 @@ def test_health_check(api_client):
 - Configuration: .golangci.yml importas section enforces consistency
 - Rationale: Avoids naming conflicts, improves readability
 
-<!-- @section-to-appendix to="testing-quality-golang" as="crypto-acronyms-caps" -->
+<!-- @to-appendix as="crypto-acronyms-caps" appendixes=".github/instructions/03-03.golang.instructions.md" -->
 **Crypto Acronyms**: ALWAYS ALL CAPS: RSA, EC, ECDSA, ECDH, HMAC, AES, JWA, JWK, JWS, JWE, ED25519, PKCS8, PEM, DER.
-<!-- @/section-to-appendix -->
+<!-- @/to-appendix -->
 
 **Import Safety When Replacing Function Bodies**: When replacing function bodies, imports used by the OLD body may be accidentally removed even though they are still needed elsewhere in the file. ALWAYS run `go vet` after import changes to catch missing or unused imports.
 
@@ -5174,12 +5174,12 @@ Here are local convenience commands to run the workflows locally for Development
 
 #### 11.2.8 format_go Self-Modification Protection - CRITICAL
 
-<!-- @section-to-appendix to="testing-quality-golang" as="format-go-protection" -->
+<!-- @to-appendix as="format-go-protection" appendixes=".github/instructions/03-01.coding.instructions.md" -->
 **MANDATORY Prevention Rules**:
 - NEVER change ` +""+interface{}+""+ ` to ` +""+ny+""+ ` in format_go package
 - NEVER simplify CRITICAL/SELF-MODIFICATION comments
 - ALWAYS read complete package context (enforce_any.go, filter.go, magic_cicd.go, format_go_test.go, self_modification_test.go) before modifying
-<!-- @/section-to-appendix -->
+<!-- @/to-appendix -->
 
 **Root Cause**: LLM agents lose exclusion context during narrow-focus refactoring
 - NEVER DO:
@@ -5420,7 +5420,7 @@ FROM alpine:latest AS runtime
 
 #### 12.3.1 Docker Compose Deployment
 
-<!-- @section-to-appendix to="observability-deployment-tooling" as="docker-compose-rules" -->
+<!-- @to-appendix as="docker-compose-rules" appendixes=".github/instructions/04-01.deployment.instructions.md" -->
 - Use `docker compose` (NOT `docker-compose`)
 - ALWAYS relative paths in compose.yml (NEVER absolute)
 - ALWAYS `127.0.0.1` in containers (NOT `localhost` - Alpine resolves to IPv6)
@@ -5431,7 +5431,7 @@ FROM alpine:latest AS runtime
 - **`docker-entrypoint-initdb.d/` scripts**: PostgreSQL initdb runs with Unix socket only (no TCP). ALL `psql` commands MUST omit `-h localhost`/`-h 127.0.0.1`; using `-h` causes `SASL auth` failures inside initdb
 - **Stack volume isolation**: Named volumes (e.g. `cryptoutil_postgres_leader_volume`) are shared across PS-ID stacks. Always run `docker compose down -v` before switching stacks to ensure fresh PostgreSQL initdb
 - **Canonical template sync**: When modifying ANY file in `deployments/*/` that has a counterpart in `api/cryptosuite-registry/templates/`, update the canonical template in the SAME commit
-<!-- @/section-to-appendix -->
+<!-- @/to-appendix -->
 
 - Secret management via Docker secrets (MANDATORY)
 - Health check configuration (interval, timeout, retries, start_period)
@@ -6326,22 +6326,21 @@ configs/
 **Marker Format in ENG-HANDBOOK.md** (source):
 
 ```html
-<!-- @section-to-appendix to='{appendix-group-id}' as='{chunk-id}' -->
+<!-- @to-appendix as='{chunk-id}' appendixes='{path-list}' -->
 content here (verbatim body text)
-<!-- @/section-to-appendix -->
+<!-- @/to-appendix -->
 ```
 
 **Marker Format in Instruction Files** (target):
 
 ```html
-<!-- @source from='docs/ENG-HANDBOOK.md' as='{chunk-id}' -->
+<!-- @from-eng-handbook as='{chunk-id}' -->
 content here (verbatim copy of source)
-<!-- @/source -->
+<!-- @/from-eng-handbook -->
 ```
 
 **Attributes**:
-- `to`: Relative path from repository root to the target file (ENG-HANDBOOK.md markers only)
-- `from`: Relative path from repository root to the source file (target file markers only)
+- `appendixes`: Comma-separated relative paths from repository root to target files (ENG-HANDBOOK.md markers only)
 - `as`: Unique chunk identifier within the source-target pair (kebab-case)
 
 **Content Between Markers**:
@@ -6359,16 +6358,16 @@ content here (verbatim copy of source)
 **Formal Grammar** (BNF-like, for validator implementors):
 
 ```
-@propagate-open  ::= '<!-- @propagate to="' PATH_LIST '" as="' CHUNK_ID '" -->'
-@propagate-close ::= '<!-- @/propagate -->'
-@source-open     ::= '<!-- @source from="' PATH '" as="' CHUNK_ID '" -->'
-@source-close    ::= '<!-- @/source -->'
+@to-appendix-open  ::= '<!-- @to-appendix as="' CHUNK_ID '" appendixes="' PATH_LIST '" -->'
+@to-appendix-close ::= '<!-- @/to-appendix -->'
+@from-open         ::= '<!-- @from-eng-handbook as="' CHUNK_ID '" -->'
+@from-close        ::= '<!-- @/from-eng-handbook -->'
 PATH_LIST        ::= PATH ( ', ' PATH )*
 PATH             ::= [a-zA-Z0-9_./-]+
 CHUNK_ID         ::= [a-z0-9-]+
 ```
 
-Any variant not matching the above grammar (e.g., `@propagate from=...`, `@source to=...`, alternative quoting) will be silently missed by the validator — this grammar defines the enforced contract.
+Any variant not matching the above grammar (e.g., `@to-appendix from=...`, `@from-eng-handbook to=...`, alternative quoting) will be silently missed by the validator — this grammar defines the enforced contract.
 
 #### 13.4.3 Propagation Rules
 
@@ -6502,9 +6501,9 @@ Propagation markers are added incrementally:
 
 ### 13.5 Validator Error Aggregation Pattern
 
-<!-- @section-to-appendix to="testing-quality-golang" as="validator-error-aggregation" -->
+<!-- @to-appendix as="validator-error-aggregation" appendixes=".github/instructions/03-01.coding.instructions.md" -->
 All validators run to completion (never short-circuit) and aggregate errors for a single unified report. Sequential execution ensures deterministic output ordering. Aggregated errors (not fail-fast) show ALL problems in one run, reducing fix-test-fix cycles. `validate-all` returns exit code 0 if all pass, exit code 1 if any fail.
-<!-- @/section-to-appendix -->
+<!-- @/to-appendix -->
 
 **Execution Model**: Sequential execution of all 8 validators. Each validator produces a `ValidationResult` containing: valid/invalid status, error list, and execution duration. The orchestrator (`ValidateAll`) collects all results and produces a summary with pass/fail counts and total duration.
 
@@ -6766,7 +6765,7 @@ execution). See §5.6.2 for the health path comment block pattern.
 
 #### 14.2.1 Conventional Commits
 
-<!-- @section-to-appendix to="testing-quality-golang" as="conventional-commits" -->
+<!-- @to-appendix as="conventional-commits" appendixes=".github/instructions/05-02.git.instructions.md" -->
 **Format**: `<type>[optional scope]: <description>`
 
 **Types**: feat, fix, docs, style, refactor, perf, test, build, ci, chore, revert
@@ -6778,21 +6777,21 @@ feat(auth): add OAuth2 client credentials flow
 fix(database): prevent connection pool exhaustion
 feat(api)!: remove deprecated v1 endpoints  # Breaking change
 ```
-<!-- @/section-to-appendix -->
+<!-- @/to-appendix -->
 
 #### 14.2.2 Incremental Commit Strategy
 
-<!-- @section-to-appendix to="testing-quality-golang" as="incremental-commits" -->
+<!-- @to-appendix as="incremental-commits" appendixes=".github/instructions/05-02.git.instructions.md" -->
 - ALWAYS commit incrementally (NOT amend) - preserves history for bisect, selective revert.
 - NEVER repeatedly amend - loses context, hard to bisect.
 - Amend ONLY for immediate typo fixes (<1 min, before push).
 - **Semantic Grouping**: Commit each semantically coherent unit of work as it completes. NEVER accumulate changes for different semantic groups into a bulk commit. Semantic boundaries: one feature, one bug fix, one refactor, one test suite, one doc update = each gets its own commit.
 - **Periodic Commits**: Prefer frequent small commits over rare large commits. A completed task = a commit. Push every 5-10 commits.
-<!-- @/section-to-appendix -->
+<!-- @/to-appendix -->
 
 #### 14.2.3 Restore from Clean Baseline Pattern
 
-<!-- @section-to-appendix to="testing-quality-golang" as="restore-from-baseline" -->
+<!-- @to-appendix as="restore-from-baseline" appendixes=".github/instructions/05-02.git.instructions.md" -->
 **When fixing regressions, ALWAYS restore clean baseline FIRST**:
 
 1. Find last known-good commit (`git log --oneline --grep="baseline"`)
@@ -6802,7 +6801,7 @@ feat(api)!: remove deprecated v1 endpoints  # Breaking change
 5. Commit as NEW commit (NOT amend)
 
 **Why**: HEAD may be corrupted from previous failed attempts. Start from known-good state.
-<!-- @/section-to-appendix -->
+<!-- @/to-appendix -->
 
 ### 14.3 Branching Strategy
 
@@ -6866,7 +6865,7 @@ Use `air` for live-reload development of individual services. Air watches Go sou
 
 #### 14.5.5 Docker Desktop Startup - CRITICAL
 
-<!-- @section-to-appendix to="observability-deployment-tooling" as="docker-desktop-startup" -->
+<!-- @to-appendix as="docker-desktop-startup" appendixes=".github/instructions/05-01.cross-platform.instructions.md" -->
 **MANDATORY**: Docker Desktop MUST be running before executing any Docker-dependent operations (E2E tests, Docker Compose, container builds).
 
 **Cross-Platform Verification**:
@@ -6925,13 +6924,13 @@ systemctl --user start docker-desktop
 - `docker compose up` fails with pipe/socket errors
 - E2E tests skip with environmental warnings
 - Integration test containers cannot start
-<!-- @/section-to-appendix -->
+<!-- @/to-appendix -->
 
 See: [Section 11.2.5 CI/CD](#1125-cicd) for local workflow testing commands that require Docker.
 
-<!-- @section-to-appendix to="testing-quality-golang" as="docker-desktop-upgrade" -->
+<!-- @to-appendix as="docker-desktop-upgrade" appendixes=".github/instructions/05-01.cross-platform.instructions.md" -->
 **Docker Desktop Upgrade Warning**: After ANY Docker Desktop or testcontainers upgrade, run the full E2E test suite. Upgrades MAY break API compatibility between testcontainers-go and Docker Desktop — symptoms may include socket errors, container startup failures, and general Docker API issues.
-<!-- @/section-to-appendix -->
+<!-- @/to-appendix -->
 
 See [Section 9.4.2 Docker Desktop and Testcontainers API Compatibility](#942-docker-desktop-and-testcontainers-api-compatibility) for diagnosis checklist and resolution guidance.
 
@@ -6999,11 +6998,11 @@ Failure policy:
 
 ### 14.7 Infrastructure Blocker Escalation
 
-<!-- @section-to-appendix to="observability-deployment-tooling" as="infrastructure-blocker-escalation" -->
+<!-- @to-appendix as="infrastructure-blocker-escalation" appendixes=".github/instructions/06-01.evidence-based.instructions.md" -->
 **MANDATORY: ALL infrastructure issues are BLOCKING. NEVER defer, deprioritize, skip, or tag as "pre-existing."**
 
 Three-encounter rule: 1st → document, 2nd → create fix task, 3rd → MANDATORY Phase 0 fix (block ALL other work). Infrastructure blockers (OTel, Docker, testcontainers, CI/CD) take priority over feature work.
-<!-- @/section-to-appendix -->
+<!-- @/to-appendix -->
 
 **Three-Encounter Escalation Rule**:
 
@@ -7050,21 +7049,21 @@ At the end of EVERY phase's quality gates, conduct a post-mortem **before starti
 3. **Create Fix Tasks**: If contradictions or omissions are found, create new phase tasks to fix them — NEVER defer artifact updates.
 4. **Identify new phases**: Create follow-up phases for any blockers, gaps, or artifact fixes discovered.
 
-<!-- @section-to-appendix to="execution-agent-behavior" as="per-task-status-updates" -->
+<!-- @to-appendix as="per-task-status-updates" appendixes=".github/instructions/06-01.evidence-based.instructions.md, .github/agents/implementation-execution.agent.md, .github/agents/implementation-planning.agent.md, .claude/agents/implementation-execution.md, .claude/agents/implementation-planning.md" -->
 **Per-Task Status Updates** (MANDATORY): Update `tasks.md` immediately after each task completes. NEVER accumulate multiple task completions before updating documentation. A `tasks.md` that does not reflect actual state is a blocking artifact inconsistency. Deferred documentation creates invisible debt and false completion signals to subsequent phases.
-<!-- @/section-to-appendix -->
+<!-- @/to-appendix -->
 
-<!-- @section-to-appendix to="observability-deployment-tooling" as="docker-compose-verification-in-scope" -->
+<!-- @to-appendix as="docker-compose-verification-in-scope" appendixes=".github/instructions/04-01.deployment.instructions.md, .github/agents/implementation-execution.agent.md, .github/agents/implementation-planning.agent.md, .claude/agents/implementation-execution.md, .claude/agents/implementation-planning.md" -->
 **Docker Verification Must Be In-Scope** (MANDATORY): Phases that modify Docker Compose files, config files consumed by containers, cert mount paths, or any artifact that affects runtime behavior MUST include a Docker Compose verification step **within the same phase** (`docker compose up --wait` + health endpoint check). If Docker Desktop is unavailable, the phase is **BLOCKED — not complete**. Configuration-only changes without Docker verification are untested hypotheses.
 
 **Multi-File Config Changes Need Integration Verification**: Any change spanning multiple interrelated configuration files (e.g., `postgresql.conf` + `pg_hba.conf` + GORM DSN + Docker volume mounts) MUST include an integration verification step that exercises the full configuration chain in a running environment — within the same phase. Common failure modes: wrong cert paths after mounting, permission errors inside containers, HBA rule ordering, DSN parameter mismatches.
-<!-- @/section-to-appendix -->
+<!-- @/to-appendix -->
 
 Skipping post-mortems is FORBIDDEN. This is continuous self-improvement.
 
 #### 14.8.2 lessons.md Document Structure — MANDATORY
 
-<!-- @section-to-appendix to="execution-agent-behavior" as="lessons-md-structure" -->
+<!-- @to-appendix as="lessons-md-structure" appendixes=".github/agents/implementation-execution.agent.md, .github/agents/implementation-planning.agent.md, .claude/agents/implementation-execution.md, .claude/agents/implementation-planning.md" -->
 A completed `lessons.md` MUST contain three top-level sections **in this order**:
 
 **1. `## Executive Summary`** — Written at plan completion. A numbered list where each entry is a markdown link to a `## Phase N:` section followed by a one-sentence description of the key outcome. Enables reviewers to scan the entire plan scope at a glance and navigate directly to relevant phases.
@@ -7086,7 +7085,7 @@ Example entries:
 - `implementation-execution`: At plan completion, fill `## Executive Summary` with phase links and one-sentence outcomes, fill `## Actions` with concrete copy-paste follow-up items, and populate each `## Phase N:` section with the 4-section post-mortem content.
 
 **Rationale**: Without top-level sections, reviewers must read all phase sections linearly to understand plan scope and identify follow-up work. `## Executive Summary` enables rapid navigation; `## Actions` enables copy-paste follow-up without re-reading all phases — eliminating the manual extraction step that slows reviewer triage.
-<!-- @/section-to-appendix -->
+<!-- @/to-appendix -->
 
 #### 14.8.3 Plan Completion Knowledge Propagation — MANDATORY
 
@@ -7135,7 +7134,7 @@ Policy rules:
 
 ### 14.9 Scripting Language Policy — MANDATORY
 
-<!-- @section-to-appendix to="testing-quality-golang" as="scripting-language-policy" -->
+<!-- @to-appendix as="scripting-language-policy" appendixes=".github/instructions/05-01.cross-platform.instructions.md" -->
 **MANDATORY: Choose scripting language in priority order. Lower-priority choices require justification.**
 
 | Priority | Language | When to Use |
@@ -7151,7 +7150,7 @@ Policy rules:
 **Docker container init exception**: The official PostgreSQL Docker image's `docker-entrypoint-initdb.d/` mechanism runs shell scripts natively. Shell scripts in this specific directory are the only permitted Bash exception. Minimize logic in these scripts; prefer `.sql` files where possible.
 
 **NO Python under `internal/apps-tools/cicd_lint/`**: The `cicd_lint` tool is pure Go. No Python scripts, generation helpers, or utility modules belong here. If a capability requires Python (rare), it belongs outside the Go module.
-<!-- @/section-to-appendix -->
+<!-- @/to-appendix -->
 
 ### 14.10 Archive and Dead Code Policy
 
@@ -7404,7 +7403,7 @@ Verification checklist before replying with blockers:
 
 Use the least expensive tool that satisfies the requirement:
 
-<!-- @section-to-appendix to="testing-quality-golang" as="tool-preference-order" -->
+<!-- @to-appendix as="tool-preference-order" appendixes=".github/instructions/06-03.tool-efficiency.instructions.md" -->
 | Priority | Tool | When to Use |
 |----------|------|-------------|
 | 1 (cheapest) | `grep_search` / `text_search` | Exact string or regex match in known files |
@@ -7413,7 +7412,7 @@ Use the least expensive tool that satisfies the requirement:
 | 4 | `read_file` (targeted) | Read a specific 50–200 line window of a known file |
 | 5 | `read_file` (full) | Full file read only when entire context required |
 | 6 (costliest) | `semantic_search` | ONLY when query cannot be expressed as regex/literal |
-<!-- @/section-to-appendix -->
+<!-- @/to-appendix -->
 
 **Never** use `semantic_search` to find a function name, constant, import path, or error string —
 these are all expressible as regex. `semantic_search` scans the entire workspace; `grep_search`
@@ -7562,7 +7561,7 @@ and evidence artifacts. Any mismatch blocks completion.
 
 ### B.1 Technology Stack
 
-<!-- @section-to-appendix to="testing-quality-golang" as="minimum-versions" -->
+<!-- @to-appendix as="minimum-versions" appendixes=".github/instructions/02-02.versions.instructions.md" -->
 **CRITICAL: ALWAYS use the same version everywhere** (dev, CI/CD, Docker, workflows, docs)
 
 - Go: 1.26.1+
@@ -7574,7 +7573,7 @@ and evidence artifacts. Any mismatch blocks completion.
 - pre-commit: 2.20.0+
 - Docker: 27+
 - Docker Compose: v5+
-<!-- @/section-to-appendix -->
+<!-- @/to-appendix -->
 
 **Languages**: Go 1.26.1 (services), Python 3.14+ (utilities), Node v24.11.1+ (CLI tools)
 **Databases**: PostgreSQL 18, SQLite (modernc.org/sqlite, CGO-free)
@@ -7713,762 +7712,6 @@ See `.golangci.yml` for the authoritative linter configuration with all 30+ acti
 
 ---
 
-## Appendix D: Propagation Index
-
-The sections below collect the verbatim chunk bodies propagated to instruction and agent files. Each subsection corresponds to one semantic propagation group. The `@appendix-propagate` blocks define what is injected into downstream files.
-
-### D.1 Execution and Agent Behavior
-
-<!-- @appendix-propagate from="execution-agent-behavior" to=".github/instructions/01-02.beast-mode.instructions.md" as="quality-attributes" why-this-exists="quality and execution behavioral constraints consumed by beast-mode instruction and implementation planning/execution agents" -->
-**Quality Attributes (NO EXCEPTIONS)**:
-- ✅ Correctness: ALL code functionally correct with comprehensive tests
-- ✅ Completeness: NO phases or tasks or steps skipped, NO features de-prioritized, NO shortcuts
-- ✅ Thoroughness: Evidence-based validation at every step
-- ✅ Reliability: Quality gates enforced (≥95%/98% coverage/mutation)
-- ✅ Efficiency: Optimized for maintainability and performance NOT implementation speed
-- ✅ Accuracy: Changes must address root cause, not just symptoms
-- ❌ Time Pressure: NEVER rush, NEVER skip validation, NEVER defer quality checks
-- ❌ Premature Completion: NEVER mark phases or tasks or steps complete without objective evidence
-<!-- @/appendix-propagate -->
-
-<!-- @appendix-propagate from="execution-agent-behavior" to=".github/instructions/01-02.beast-mode.instructions.md" as="end-of-turn-commit-protocol" why-this-exists="end-of-turn git cleanliness protocol consumed by the beast-mode instruction file via modeInstructions runtime injection" -->
-**MANDATORY: NEVER end a turn with uncommitted changes. Your ABSOLUTE LAST TOOL INVOCATION before yielding to the user MUST be running `git status --porcelain`. NEVER assume the worktree is clean — always RUN the command as a tool call.**
-
-If `git status --porcelain` returns ANY output:
-
-1. Stage all changes: `git add -A`
-2. Commit with a conventional commit message: `git commit -m "type(scope): description"`
-3. Verify clean: `git status --porcelain` MUST return empty
-4. Only then end the turn
-
-**Critical violations** (any one = turn is NOT complete):
-
-- Ending a turn with `M`, `A`, `D`, or `?` in `git status --porcelain` output
-- Stopping after analysis without committing changes
-- Marking work "done" with unstaged or uncommitted files
-- Responding to the user without committing work in progress
-- Assuming the worktree is clean without running the command as a tool call
-
-**Pattern**: `git status --porcelain` returns empty → End turn. Any output → Commit first.
-<!-- @/appendix-propagate -->
-
-<!-- @appendix-propagate from="execution-agent-behavior" to=".github/instructions/06-01.evidence-based.instructions.md, .github/agents/beast-mode.agent.md, .github/agents/fix-workflows.agent.md, .github/agents/implementation-execution.agent.md, .github/agents/implementation-planning.agent.md, .claude/agents/beast-mode.md, .claude/agents/fix-workflows.md, .claude/agents/implementation-execution.md, .claude/agents/implementation-planning.md" as="mandatory-review-passes" why-this-exists="mandatory review pass requirements consumed by evidence-based instructions and all beast-mode and implementation agent files" -->
-**MANDATORY: Minimum 3, maximum 5 review passes before marking any task complete.**
-
-Copilot and AI agents have a tendency to partially fulfill requested work, accidentally omitting or skipping items per request. To counter this, every task completion MUST include at least 3 review passes, each checking ALL 8 quality attributes:
-
-**Each pass checks ALL 8 attributes** (fresh perspective per pass):
-1. ✅ **Correctness** — code/docs correct, no regressions
-2. ✅ **Completeness** — all tasks/steps/items addressed, nothing skipped
-3. ✅ **Thoroughness** — evidence-based validation, all edge cases covered
-4. ✅ **Reliability** — build, lint, test, coverage, mutation all pass
-5. ✅ **Efficiency** — optimized for maintainability, not implementation speed
-6. ✅ **Accuracy** — root cause addressed, not just symptoms
-7. ❌ **NO Time Pressure** — NEVER rushed, NEVER cutting corners
-8. ❌ **NO Premature Completion** — objective evidence required before marking complete
-
-**Continuation rule**: If pass 3 finds ANY issue, continue to pass 4. If pass 4 still finds issues, continue to pass 5. Diminishing returns = done.
-
-**Scope**: ALL work types — code, docs, config, tests, infrastructure, deployments.
-<!-- @/appendix-propagate -->
-
-<!-- @appendix-propagate from="execution-agent-behavior" to=".github/instructions/06-02.agent-format.instructions.md" as="agent-self-containment" why-this-exists="agent self-containment checklist consumed by the agent format instruction file" -->
-**Agent Self-Containment Checklist** (MANDATORY):
-- Agents generating implementation plans MUST reference ENG-HANDBOOK.md testing (Section 10), quality gates (Section 11), coding standards (Section 14)
-- Agents modifying code MUST reference coding standards (Sections 11, 14)
-- Agents modifying deployments MUST reference deployment architecture (Sections 12, 13)
-- Agents modifying CI/CD workflows or infrastructure MUST reference infrastructure architecture (Section 9)
-- Agents modifying documentation or copilot artifacts (skills, instructions, agents) MUST reference Section 2.1 (Agent/Skill/Instruction catalog) and Section 13.4 (Documentation Propagation)
-- ALL agents MUST reference Section 2.5 (Quality Strategy) for coverage and mutation targets
-- Agents with ZERO ENG-HANDBOOK.md references are NON-COMPLIANT and MUST be updated
-<!-- @/appendix-propagate -->
-
-<!-- @appendix-propagate from="execution-agent-behavior" to=".github/instructions/06-01.evidence-based.instructions.md, .github/agents/implementation-execution.agent.md, .github/agents/implementation-planning.agent.md, .claude/agents/implementation-execution.md, .claude/agents/implementation-planning.md" as="per-task-status-updates" why-this-exists="per-task documentation update discipline consumed by evidence-based instructions and implementation agent files" -->
-**Per-Task Status Updates** (MANDATORY): Update `tasks.md` immediately after each task completes. NEVER accumulate multiple task completions before updating documentation. A `tasks.md` that does not reflect actual state is a blocking artifact inconsistency. Deferred documentation creates invisible debt and false completion signals to subsequent phases.
-<!-- @/appendix-propagate -->
-
-<!-- @appendix-propagate from="execution-agent-behavior" to=".github/agents/implementation-execution.agent.md, .github/agents/implementation-planning.agent.md, .claude/agents/implementation-execution.md, .claude/agents/implementation-planning.md" as="lessons-md-structure" why-this-exists="lessons.md document structure requirements consumed by implementation planning and execution agents" -->
-A completed `lessons.md` MUST contain three top-level sections **in this order**:
-
-**1. `## Executive Summary`** — Written at plan completion. A numbered list where each entry is a markdown link to a `## Phase N:` section followed by a one-sentence description of the key outcome. Enables reviewers to scan the entire plan scope at a glance and navigate directly to relevant phases.
-
-Example entries:
-- `1. [Phase 1: Framework Migration](#phase-1-framework-migration) — Migrated 10 PS-ID entry points; no API breakage.`
-- `2. [Phase 2: Knowledge Propagation](#phase-2-knowledge-propagation) — Added 12 ENG-HANDBOOK sections and updated 4 instruction files.`
-
-**2. `## Actions`** — Written at plan completion, directly below Executive Summary. A numbered list of concrete follow-up tasks for the reviewer, each specific enough to copy-paste directly into Copilot Chat or Claude Code as a follow-up prompt.
-
-Example entries:
-- `1. Migrate sm-kms application_basic.go to use framework's Basic struct directly.`
-- `2. Apply lifecycle.RunService() pattern to identity-authz (only remaining service).`
-
-**3. `## Phase N: <name>`** — One section per plan phase, written during each phase post-mortem using the 4-section structure (What Worked, What Didn't Work, Root Causes, Patterns). See §14.8.1.
-
-**Agent responsibilities**:
-- `implementation-planning`: Scaffold `## Executive Summary` (empty placeholder), `## Actions` (empty placeholder), and one `## Phase N:` stub per phase.
-- `implementation-execution`: At plan completion, fill `## Executive Summary` with phase links and one-sentence outcomes, fill `## Actions` with concrete copy-paste follow-up items, and populate each `## Phase N:` section with the 4-section post-mortem content.
-
-**Rationale**: Without top-level sections, reviewers must read all phase sections linearly to understand plan scope and identify follow-up work. `## Executive Summary` enables rapid navigation; `## Actions` enables copy-paste follow-up without re-reading all phases — eliminating the manual extraction step that slows reviewer triage.
-<!-- @/appendix-propagate -->
-
-### D.2 Architecture and Service Template
-
-<!-- @appendix-propagate from="architecture-service-template" to=".github/instructions/02-01.architecture.instructions.md" as="service-framework-components" why-this-exists="service framework component list consumed by the service architecture instruction file" -->
-- Two HTTPS Listeners: Public (business APIs) + Admin (health checks)
-- Two Public Paths: `/browser/**` (session cookies) vs `/service/**` (session tokens)
-- Three Admin APIs: /admin/api/v1/livez, /admin/api/v1/readyz, /admin/api/v1/shutdown
-- Database: PostgreSQL || SQLite with GORM
-- Telemetry: OTLP → otel-collector-contrib → Grafana LGTM
-- Config Priority: Docker secrets > YAML > CLI parameters (NO environment variables)
-<!-- @/appendix-propagate -->
-
-<!-- @appendix-propagate from="architecture-service-template" to=".github/instructions/03-04.data-infrastructure.instructions.md" as="sqlite-barrier-outside-tx" why-this-exists="SQLite barrier transaction isolation requirement consumed by the data infrastructure instruction file" -->
-**MANDATORY**: ALL calls to `barrier.EncryptContentWithContext` or `barrier.DecryptContentWithContext` MUST be outside any ORM `WithTransaction` scope.
-
-**Root cause**: The barrier service opens its own internal read/write transaction. SQLite WAL mode allows only one writer at a time. Nesting two write transactions on the same connection pool causes deadlock: all connections are held by the outer ORM transaction, so the inner barrier transaction cannot acquire one.
-
-**Correct pattern** — barrier after ORM commit:
-```
-ORM.Create(plainRecord) → commit → (outside tx) barrier.Encrypt → ORM.Update(encryptedRecord)
-```
-
-This is a **correctness requirement**, not a performance concern. Barrier calls inside ORM transactions are a guaranteed SQLite deadlock.
-<!-- @/appendix-propagate -->
-
-<!-- @appendix-propagate from="architecture-service-template" to=".github/instructions/02-01.architecture.instructions.md" as="tls-provision-mode" why-this-exists="TLS provisioning mode taxonomy consumed by the service architecture instruction file" -->
-**Service template server certificates use `TLSProvisionMode`** based on credentials provided at startup:
-
-| Environment | Cert Chain | TLS Key | Issuing CA Key | TLS Provision Mode | Outcome |
-|-------------|-----------|---------|----------------|--------------------|---------|
-| Production | Provided | Docker Secret | Not provided | `static` | Use as-is |
-| E2E Dev | Provided | Not provided | Docker Secret | `mixed` | Generate + sign TLS cert |
-| Unit/Integration | Not provided | Not provided | Not provided | `auto` | Auto-create all certs |
-
-#### 6.11.1 `TLSProvisionMode` Taxonomy (`static` / `mixed` / `auto`)
-
-The `GenerateTLSMaterial()` function in `internal/apps-framework/service/config/tls_generator.go` selects one of three provisioning modes based on available credentials:
-
-- `static`: pre-generated certificate chain + private key are supplied via Docker secrets. No runtime key generation occurs.
-- `mixed`: issuing CA certificate + issuing CA private key are supplied; the server leaf certificate is generated at startup and then used as static material for the running process.
-- `auto`: no server TLS material is supplied; the framework generates an ephemeral CA hierarchy and server leaf in memory.
-
-**Detection logic**: `StaticCertPEM + StaticKeyPEM` provided → `static`. `MixedCACertPEM + MixedCAKeyPEM` provided → generate server cert then use `static` material for the running process. Nothing provided → `auto`.
-<!-- @/appendix-propagate -->
-
-<!-- @appendix-propagate from="architecture-service-template" to=".github/instructions/03-02.testing.instructions.md, .github/instructions/03-04.data-infrastructure.instructions.md" as="three-tier-database-strategy" why-this-exists="3-tier database testing strategy consumed by the testing and data infrastructure instruction files" -->
-**3-Tier Database Strategy (MANDATORY)**:
-
-| Tier | Database | Pattern | PostgreSQL? |
-|------|----------|---------|-------------|
-| Unit | SQLite in-memory | `testdb.NewInMemorySQLiteDB(t)` | NEVER |
-| Integration | SQLite in-memory via TestMain | ONE shared instance per package | NEVER |
-| E2E | Docker Compose PostgreSQL | 4 app instances (2 PostgreSQL + 2 SQLite) | YES (only here) |
-
-**Key Rules**:
-- NEVER use PostgreSQL in unit or integration tests — PostgreSQL tested ONLY in E2E.
-- NEVER create DB per-test in integration tests (use TestMain shared instance).
-- NEVER start real servers in unit tests (use Fiber app.Test()).
-- E2E tests use Docker Compose with 4 service instances: 2 sharing a PostgreSQL container, 2 using in-memory SQLite, validating cross-database compatibility.
-<!-- @/appendix-propagate -->
-
-### D.3 Security, Authentication, and Authorization
-
-<!-- @appendix-propagate from="security-authn-authz" to=".github/instructions/02-06.authn.instructions.md" as="key-principles" why-this-exists="authentication key principles consumed by the authentication and authorization instruction file" -->
-- **Zero Trust**: NO caching of authorization decisions. Re-evaluate every request.
-- **MFA Step-Up**: Re-authentication MANDATORY every 30 minutes for high-sensitivity operations.
-- **Session Storage**: SQL databases ONLY (PostgreSQL or SQLite with ACID). NEVER Redis/Memcached.
-- **mTLS Revocation**: MUST check BOTH CRLDP and OCSP. Fail if BOTH unreachable.
-<!-- @/appendix-propagate -->
-
-<!-- @appendix-propagate from="security-authn-authz" to=".github/instructions/02-06.authn.instructions.md" as="session-token-formats" why-this-exists="session token format requirements consumed by the authentication and authorization instruction file" -->
-**Opaque** (UUID), **JWE** (encrypted JWT), **JWS** (signed JWT). Storage: PostgreSQL (distributed) or SQLite (single-node). NO Redis/Memcached.
-<!-- @/appendix-propagate -->
-
-<!-- @appendix-propagate from="security-authn-authz" to=".github/instructions/02-06.authn.instructions.md" as="headless-authn" why-this-exists="headless authentication method catalog consumed by the authentication and authorization instruction file" -->
-**Non-Federated (6)**: JWE Session Token, JWS Session Token, Opaque Session Token, Basic (Client ID/Secret), Bearer (API Token), HTTPS Client Certificate.
-
-**Federated (7)**: Basic/Bearer/ClientCert via OAuth 2.1, JWE/JWS/Opaque Access Token, Opaque Refresh Token.
-
-**Storage**: YAML + SQL (Config > DB priority) for all methods.
-<!-- @/appendix-propagate -->
-
-<!-- @appendix-propagate from="security-authn-authz" to=".github/instructions/02-06.authn.instructions.md" as="browser-authn" why-this-exists="browser authentication method catalog consumed by the authentication and authorization instruction file" -->
-**Non-Federated (6)**: JWE/JWS/Opaque Session Cookie, Basic (Username/Password), Bearer (API Token), HTTPS Client Certificate.
-
-**Federated (22)**: All non-federated methods PLUS:
-- **MFA Factors**: TOTP, HOTP, Recovery Codes, WebAuthn (with/without Passkeys), Push Notification
-- **Passwordless**: Email/Password, Magic Link (Email/SMS), Random OTP (Email/SMS/Phone)
-- **Social Login**: Google, Microsoft, GitHub, Facebook, Apple, LinkedIn, Twitter/X, Amazon, Okta
-- **Enterprise**: SAML 2.0
-
-**Storage**: YAML + SQL (Config > DB) for static credentials. SQL ONLY for dynamic user data (OTPs, enrollments, magic links).
-<!-- @/appendix-propagate -->
-
-<!-- @appendix-propagate from="security-authn-authz" to=".github/instructions/02-06.authn.instructions.md" as="mfa-combinations" why-this-exists="MFA combination requirements consumed by the authentication and authorization instruction file" -->
-**Browser**: Password + TOTP/WebAuthn/Push/OTP.
-**Headless**: Client ID/Secret + mTLS/Bearer.
-<!-- @/appendix-propagate -->
-
-<!-- @appendix-propagate from="security-authn-authz" to=".github/instructions/02-06.authn.instructions.md" as="authz-methods" why-this-exists="authorization method catalog consumed by the authentication and authorization instruction file" -->
-**Headless**: Scope-based, RBAC.
-**Browser**: Scope-based, RBAC, resource-level ACLs, consent tracking (scope+resource granularity).
-<!-- @/appendix-propagate -->
-
-<!-- @appendix-propagate from="security-authn-authz" to=".github/instructions/02-05.security.instructions.md" as="secrets-detection-strategy" why-this-exists="secrets detection strategy consumed by the security instruction file" -->
-**Detection**: Length-based threshold (≥32 bytes / ≥43 base64 chars) for inline secrets in compose files. NO entropy calculation (too many false positives). Safe references (`/run/secrets/`, short dev defaults) excluded. Infrastructure deployments excluded.
-<!-- @/appendix-propagate -->
-
-<!-- @appendix-propagate from="security-authn-authz" to=".github/instructions/02-05.security.instructions.md" as="tls-client-policy" why-this-exists="TLS client policy taxonomy consumed by the security instruction file" -->
-Services support five **runtime `TLSClientPolicy` states**. These are distinct from the
-certificate-provisioning modes in §6.11.1 and map directly to Go's `tls.ClientAuthType` behavior:
-
-| Client Policy | Go TLS Mapping | Meaning |
-|---------------|----------------|---------|
-| `none` | `tls.NoClientCert` | Do not request client certificates. |
-| `request` | `tls.RequestClientCert` | Request a client certificate but do not require or verify it. |
-| `require-any` | `tls.RequireAnyClientCert` | Require a client certificate but do not verify it against a CA bundle. |
-| `verify-if-given` | `tls.VerifyClientCertIfGiven` | Verify client certificates when presented; allow clients without certificates. |
-| `require-and-verify` | `tls.RequireAndVerifyClientCert` | Require a client certificate and verify it against the configured CA bundle. |
-
-**Policy rule**: `*-tls-ca-file` fields supply trust material only. They MUST NOT implicitly switch the listener into a verification policy. If a listener uses `verify-if-given` or `require-and-verify`, a CA bundle must be configured explicitly.
-
-**Transitional pattern**: use `verify-if-given` when rolling clients onto mTLS gradually. The server presents its certificate in all cases; only the client-certificate requirement changes:
-
-```yaml
-# tls-config.yml for transitional client-certificate rollout
-public:
-  client-policy: verify-if-given
-  cert: /run/secrets/public-https-server-entity-{PS-ID}-{instance}.crt
-  key:  /run/secrets/public-https-server-entity-{PS-ID}-{instance}.key
-  ca:   /run/secrets/public-https-client-issuing-ca-{PS-ID}-{instance}.crt
-```
-
-Once all clients present certificates, flip `client-policy` to `require-and-verify`.
-<!-- @/appendix-propagate -->
-
-### D.4 API and OpenAPI Contracts
-
-<!-- @appendix-propagate from="api-openapi-contracts" to=".github/instructions/02-04.openapi.instructions.md" as="base-initialisms" why-this-exists="mandatory base initialisms list for OpenAPI code generation configs consumed by the OpenAPI instruction file" -->
-All `openapi-gen_config*.yaml` files MUST include the full base initialisms list in their `additional-initialisms` section. Domain-specific additions follow the base list.
-
-**Base initialisms (mandatory in every gen config)**:
-
-| Initialism | Meaning |
-|------------|---------|
-| IDS | Intrusion Detection System |
-| JWT | JSON Web Token |
-| JWK | JSON Web Key |
-| JWE | JSON Web Encryption |
-| JWS | JSON Web Signature |
-| OIDC | OpenID Connect |
-| SAML | Security Assertion Markup Language |
-| AES | Advanced Encryption Standard |
-| GCM | Galois/Counter Mode |
-| CBC | Cipher Block Chaining |
-| RSA | Rivest-Shamir-Adleman |
-| EC | Elliptic Curve |
-| HMAC | Hash-based Message Authentication Code |
-| SHA | Secure Hash Algorithm |
-| TLS | Transport Layer Security |
-| IP | Internet Protocol |
-| AI | Artificial Intelligence |
-| ML | Machine Learning |
-| KEM | Key Encapsulation Mechanism |
-| PEM | Privacy Enhanced Mail |
-| DER | Distinguished Encoding Rules |
-| DSA | Digital Signature Algorithm |
-| IKM | Input Keying Material |
-
-**Domain-specific additions by service**:
-
-| Service | Domain Additions |
-|---------|----------------|
-| `jose-ja` | JWKS, OKP, URI |
-| `pki-ca` | CSR, CA, CRL, OCSP, URI, SAN, DN, CN, OU |
-| `sm-im` | IM, SM, URI |
-| `sm-kms` | URI |
-| `skeleton-template` | (none — base list only) |
-<!-- @/appendix-propagate -->
-
-<!-- @appendix-propagate from="api-openapi-contracts" to=".github/instructions/02-04.openapi.instructions.md" as="http-status-codes" why-this-exists="standard HTTP status code mapping consumed by the OpenAPI instruction file" -->
-| Code | Usage |
-|------|-------|
-| 200 | GET, PUT, PATCH successful |
-| 201 | POST (resource created) |
-| 204 | DELETE successful |
-| 400 | Validation error |
-| 401 | Missing/invalid auth |
-| 403 | Insufficient permissions |
-| 404 | Resource not found |
-| 409 | Duplicate/conflict |
-| 422 | Semantic validation error |
-| 500 | Unhandled server error |
-| 503 | Temporary unavailability |
-<!-- @/appendix-propagate -->
-
-### D.5 Observability, Deployment, and Tooling
-
-<!-- @appendix-propagate from="observability-deployment-tooling" to=".github/instructions/02-03.observability.instructions.md" as="otel-collector-constraints" why-this-exists="OTel collector detector constraints consumed by the observability instruction file" -->
-| Processor | Requirement | Dev/CI | Production |
-|-----------|------------|--------|------------|
-| resourcedetection/docker | Docker socket `/var/run/docker.sock` | NEVER use | Use when socket available |
-| resourcedetection/env | Environment variables | ALWAYS | ALWAYS |
-| resourcedetection/system | OS hostname, IP | ALWAYS | ALWAYS |
-
-**MANDATORY for dev/CI**: Use `detectors: [env, system]`. NEVER include `docker` detector without verified socket access.
-
-**CRITICAL**: NEVER defer OTel or infrastructure configuration issues as "pre-existing." Infrastructure blockers are ALWAYS MANDATORY BLOCKING.
-<!-- @/appendix-propagate -->
-
-<!-- @appendix-propagate from="observability-deployment-tooling" to=".github/instructions/03-05.linting.instructions.md" as="utf8-without-bom" why-this-exists="UTF-8 without BOM encoding policy consumed by the linting instruction file" -->
-**MANDATORY**: UTF-8 without BOM for all text files. The repository text baseline is UTF-8, LF, 4-space indentation for text-heavy formats, and a 200-column ceiling unless a language-specific rule overrides it.
-
-**PERMANENT BAN (NO EXCEPTIONS)**: UTF-16 is prohibited. This ban explicitly applies to `docs/ENG-HANDBOOK.md` and all Copilot/Claude instruction artifacts under `.github/instructions/`, `.github/agents/`, `.claude/agents/`, `.github/skills/`, and `.claude/skills/`.
-
-**Enforcement**: `fix-byte-order-marker` auto-fixes BOMs; `lint-text` rejects BOM-prefixed files; `.editorconfig` mirrors `charset = utf-8`, `end_of_line = lf`, and the formatting defaults; PowerShell file writes must use `[System.Text.UTF8Encoding]::new($false)`.
-
-**Skip list**: generated code, vendored dependencies, build/test artifacts, caches, worktrees, binaries, archives, secrets/cert material, IDE metadata, and other machine-owned files are excluded from text-format checks. Prefer narrowing the exclusion to the smallest machine-owned path rather than exempting an entire language.
-<!-- @/appendix-propagate -->
-
-<!-- @appendix-propagate from="observability-deployment-tooling" to=".github/instructions/04-01.deployment.instructions.md" as="cicd-command-naming" why-this-exists="cicd-lint command naming and category conventions consumed by the deployment instruction file" -->
-**Three command categories** with strict naming and directory conventions:
-
-| Category | Naming Pattern | Directory Pattern | Entry Function | Registration |
-|----------|---------------|-------------------|----------------|-------------|
-| **Linters** | `lint-<target>` | `lint_<target>/` | `Lint(logger)` | `registeredLinters` |
-| **Formatters** | `format-<target>` | `format_<target>/` | `Format(logger, ...)` | `registeredFormatters` |
-| **Scripts** | `<action>-<target>` | `<action>_<target>/` | Script-specific | `registeredCleaners` etc. |
-
-**Linter commands** (14): `lint-text`, `lint-go`, `lint-go-test`, `lint-go-mod`, `lint-golangci`, `lint-compose`, `lint-ports`, `lint-workflow`, `lint-deployments`, `lint-docs`, `lint-fitness`, `lint-openapi`, `lint-java-test`, `lint-python-test`
-**Formatter commands** (2): `format-go`, `format-go-test`
-**Script commands** (1): `github-cleanup`
-<!-- @/appendix-propagate -->
-
-<!-- @appendix-propagate from="observability-deployment-tooling" to=".github/instructions/04-01.deployment.instructions.md" as="cicd-lint-constraints" why-this-exists="cicd-lint scope constraints consumed by the deployment instruction file" -->
-**Purpose**: `cicd-lint` is exclusively for linting, formatting, and operational cleanup. It NEVER generates files, scaffolds content, or transforms the repository.
-
-**Constraints** (NO EXCEPTIONS):
-
-1. **Subcommands only**: `go run ./cmd/cicd-lint <subcommand> [<subcommand2> ...]` — the ONLY accepted arguments are subcommand names. No `--flags`, no `--ps-id=`, no customization parameters of any kind.
-2. **Linting and formatting only**: Linter commands detect deviations from expected structure and return errors. Formatter commands auto-fix style issues. Neither generates new content.
-3. **No content generation**: cicd-lint NEVER creates Dockerfiles, compose files, config overlays, secrets, migration files, or any other repository artifacts. The strategy is detect-and-error, not generate-and-apply.
-4. **No Python under cicd_lint**: `internal/apps-tools/cicd_lint/` is pure Go. No Python scripts, modules, or helpers.
-5. **Codify as validators**: When a new invariant is identified, implement it as a fitness linter that validates the actual state against expected state and returns descriptive errors. NEVER implement it as a generator that creates the expected state.
-<!-- @/appendix-propagate -->
-
-<!-- @appendix-propagate from="observability-deployment-tooling" to=".github/instructions/03-05.linting.instructions.md, .github/agents/beast-mode.agent.md, .claude/agents/beast-mode.md" as="cicd-bulk-hook-architecture" why-this-exists="cicd bulk hook architecture constraints consumed by the linting instruction file and beast-mode agent files" -->
-`cicd-lint` command execution and `.pre-commit-config.yaml` wiring MUST follow this architecture:
-
-1. **Four bulk cicd hooks only** in `.pre-commit-config.yaml`:
-- `pre-commit` lint-only bulk call
-- `pre-commit` format-only bulk call
-- `pre-push` lint-only bulk call
-- `pre-push` format-only bulk call
-1. **Mutual exclusivity**: lint bulk calls MUST include only `lint-*` commands; format bulk calls MUST include only `format-*` commands.
-2. **Coverage**: Every `lint-*` and `format-*` command in `ValidCommands` MUST appear in at least one corresponding bulk hook.
-3. **Concurrency model**:
-- `lint-*` commands are read-only and MUST execute concurrently.
-- `format-*` commands are read-write and MUST execute serially.
-1. **Pre-commit hook flags**:
-- lint bulk hooks MUST use `require_serial: false`
-- format bulk hooks MUST use `require_serial: true`
-1. **Enforcement**: `lint-fitness` sub-linter `precommit-cicd-architecture` is authoritative and MUST fail on any drift.
-
-**Rationale**: This prevents cross-category races (read-only lint vs mutating format), preserves deterministic developer workflows, and ensures new cicd subcommands cannot be added without being wired into bulk hooks.
-<!-- @/appendix-propagate -->
-
-<!-- @appendix-propagate from="observability-deployment-tooling" to=".github/instructions/04-01.deployment.instructions.md" as="docker-compose-rules" why-this-exists="Docker Compose rules consumed by the deployment instruction file" -->
-- Use `docker compose` (NOT `docker-compose`)
-- ALWAYS relative paths in compose.yml (NEVER absolute)
-- ALWAYS `127.0.0.1` in containers (NOT `localhost` - Alpine resolves to IPv6)
-- Dockerfile HEALTHCHECK: Use built-in PS-ID `livez` CLI targeting admin port 9090 (NEVER the `health` CLI on public port 8080, NEVER wget/curl)
-- **Admin mTLS via `livez` healthcheck**: `livez` connects to `127.0.0.1:9090` as an mTLS client — when admin mTLS is active, `livez` MUST present the admin client cert (`--cert`/`--key`); a **passing Docker healthcheck is the canonical proof of admin mTLS end-to-end connectivity** inside the container
-- Healthcheck fields use underscores in Docker Compose YAML: `start_period` (NOT `start-period`); the Dockerfile `HEALTHCHECK` instruction uses `--start-period` (hyphen) — these are different syntaxes
-- **Distroless images** (e.g. `otel/opentelemetry-collector-contrib`): NEVER use `wget`/`curl` healthchecks — set `disable: true` and use a sidecar Alpine container with wget for readiness signaling
-- **`docker-entrypoint-initdb.d/` scripts**: PostgreSQL initdb runs with Unix socket only (no TCP). ALL `psql` commands MUST omit `-h localhost`/`-h 127.0.0.1`; using `-h` causes `SASL auth` failures inside initdb
-- **Stack volume isolation**: Named volumes (e.g. `cryptoutil_postgres_leader_volume`) are shared across PS-ID stacks. Always run `docker compose down -v` before switching stacks to ensure fresh PostgreSQL initdb
-- **Canonical template sync**: When modifying ANY file in `deployments/*/` that has a counterpart in `api/cryptosuite-registry/templates/`, update the canonical template in the SAME commit
-<!-- @/appendix-propagate -->
-
-<!-- @appendix-propagate from="observability-deployment-tooling" to=".github/instructions/05-01.cross-platform.instructions.md" as="docker-desktop-startup" why-this-exists="Docker Desktop startup procedure consumed by the cross-platform instruction file" -->
-**MANDATORY**: Docker Desktop MUST be running before executing any Docker-dependent operations (E2E tests, Docker Compose, container builds).
-
-**Cross-Platform Verification**:
-
-```bash
-# Check if Docker is running (all platforms)
-docker ps
-
-# Expected: list of containers or empty table
-# Error: "Cannot connect to the Docker daemon" = Docker not running
-```
-
-**Platform-Specific Startup**:
-
-**Windows**:
-```powershell
-# Start Docker Desktop
-Start-Process -FilePath "C:\Program Files\Docker\Docker\Docker Desktop.exe"
-
-# Wait for initialization (30-60 seconds)
-Start-Sleep -Seconds 45
-
-# Verify Docker is ready
-docker ps
-```
-
-**macOS**:
-```bash
-# Start Docker Desktop
-open -a Docker
-
-# Wait for initialization (30-60 seconds)
-sleep 45
-
-# Verify Docker is ready
-docker ps
-```
-
-**Linux**:
-```bash
-# Start Docker service (systemd)
-sudo systemctl start docker
-
-# Enable Docker to start on boot
-sudo systemctl enable docker
-
-# Verify Docker is ready
-docker ps
-
-# Alternative: Docker Desktop for Linux (if installed)
-systemctl --user start docker-desktop
-```
-
-**Why Critical**: All workflow testing infrastructure, E2E tests, and Docker Compose operations require Docker daemon. Without Docker running:
-- `docker ps` fails with "Cannot connect to the Docker daemon" error
-- `docker compose up` fails with pipe/socket errors
-- E2E tests skip with environmental warnings
-- Integration test containers cannot start
-<!-- @/appendix-propagate -->
-
-<!-- @appendix-propagate from="observability-deployment-tooling" to=".github/instructions/06-01.evidence-based.instructions.md" as="infrastructure-blocker-escalation" why-this-exists="infrastructure blocker escalation rules consumed by the evidence-based instruction file" -->
-**MANDATORY: ALL infrastructure issues are BLOCKING. NEVER defer, deprioritize, skip, or tag as "pre-existing."**
-
-Three-encounter rule: 1st → document, 2nd → create fix task, 3rd → MANDATORY Phase 0 fix (block ALL other work). Infrastructure blockers (OTel, Docker, testcontainers, CI/CD) take priority over feature work.
-<!-- @/appendix-propagate -->
-
-<!-- @appendix-propagate from="observability-deployment-tooling" to=".github/instructions/04-01.deployment.instructions.md, .github/agents/implementation-execution.agent.md, .github/agents/implementation-planning.agent.md, .claude/agents/implementation-execution.md, .claude/agents/implementation-planning.md" as="docker-compose-verification-in-scope" why-this-exists="Docker Compose in-scope verification requirement consumed by the deployment instruction file and implementation agent files" -->
-**Docker Verification Must Be In-Scope** (MANDATORY): Phases that modify Docker Compose files, config files consumed by containers, cert mount paths, or any artifact that affects runtime behavior MUST include a Docker Compose verification step **within the same phase** (`docker compose up --wait` + health endpoint check). If Docker Desktop is unavailable, the phase is **BLOCKED — not complete**. Configuration-only changes without Docker verification are untested hypotheses.
-
-**Multi-File Config Changes Need Integration Verification**: Any change spanning multiple interrelated configuration files (e.g., `postgresql.conf` + `pg_hba.conf` + GORM DSN + Docker volume mounts) MUST include an integration verification step that exercises the full configuration chain in a running environment — within the same phase. Common failure modes: wrong cert paths after mounting, permission errors inside containers, HBA rule ordering, DSN parameter mismatches.
-<!-- @/appendix-propagate -->
-
-### D.6 Testing, Quality, and Go Standards
-
-<!-- @appendix-propagate from="testing-quality-golang" to=".github/instructions/05-02.git.instructions.md, .github/agents/beast-mode.agent.md, .github/agents/implementation-planning.agent.md, .github/agents/implementation-execution.agent.md, .github/agents/fix-workflows.agent.md, .claude/agents/beast-mode.md, .claude/agents/implementation-planning.md, .claude/agents/implementation-execution.md, .claude/agents/fix-workflows.md" as="platform-line-ending-operations" why-this-exists="LF line-ending policy consumed by git instruction file and all agent files" -->
-**Policy** (MANDATORY): All text files use LF (`\n`). `mixed-line-ending`, `end-of-file-fixer`, and `editorconfig-checker` enforce the policy. Exclusions cover generated code, vendored dependencies, build/test outputs, caches, worktrees, binaries, archives, secrets/cert material, and IDE metadata.
-
-**PERMANENT BAN (NO EXCEPTIONS)**: CRLF line endings are prohibited. This ban explicitly applies to `docs/ENG-HANDBOOK.md` and all Copilot/Claude instruction artifacts under `.github/instructions/`, `.github/agents/`, `.claude/agents/`, `.github/skills/`, and `.claude/skills/`.
-
-**Rationale**: gofumpt, gofmt, and goimports emit LF; YAML/Markdown/SQL/text tools default to LF; CI/CD runs on Linux; LF everywhere prevents CRLF/LF churn on Windows. Prettier also defaults `endOfLine=lf` (v2.0.0+).
-<!-- @/appendix-propagate -->
-
-<!-- @appendix-propagate from="testing-quality-golang" to=".github/instructions/03-02.testing.instructions.md" as="test-file-suffixes" why-this-exists="test file type suffixes table consumed by the testing instruction file" -->
-| Type | Suffix |
-|------|--------|
-| Unit | `_test.go` |
-| Bench | `_bench_test.go` |
-| Fuzz | `_fuzz_test.go` |
-| Property | `_property_test.go` |
-| Integration | `_integration_test.go` |
-<!-- @/appendix-propagate -->
-
-<!-- @appendix-propagate from="testing-quality-golang" to=".github/instructions/03-02.testing.instructions.md" as="production-closure-body-coverage" why-this-exists="production closure body coverage pattern consumed by the testing instruction file" -->
-**Production Closure Body Coverage Pattern**: When a factory function (`NewXxx`) defines anonymous
-closures in its return struct, the closure bodies are separate coverage blocks — creating the struct
-does NOT cover the closure bodies. Only INVOKING the closures covers their bodies.
-
-Two test paths are required:
-
-1. **Stub tests** — use `ExportedNewTestXxx` or equivalent seam to test control flow (error paths, ordering, etc.)
-2. **Production wiring tests** — use `ExportedProductionNewXxx` and invoke the real closures to cover closure bodies
-
-```go
-// Generator defines 5 anonymous closures inside its return struct:
-//   return &Generator{createCAFn: func(...) {...}, encodePKCS12Fn: func(...) {...}, ...}
-// Creating a test Generator does NOT cover these closure bodies.
-
-// Test pattern: get a production Generator and invoke its closures with valid inputs.
-func TestProductionGenerator_WriteClosures(t *testing.T) {
-    t.Parallel()
-    gen := ExportedProductionNewGenerator(t)   // real factory, real closures
-    key, cert := makeTestCert(t)               // minimal valid inputs (e.g. P-256)
-    err := ExportedWriteKeystore(gen, key, cert, t.TempDir())
-    require.NoError(t, err)                    // this line covers encodePKCS12Fn closure body
-}
-```
-
-**`export_test.go` seam additions**: Add `ExportedXxx` wrappers to `export_test.go` for
-`productionNew*` functions and unexported helpers that block coverage. This avoids touching
-production files and follows the established project convention for test seams.
-
-**Structural ceiling for production wiring errors**: `productionNewTelemetryService` error paths
-and OS-level faults (`RemoveAll` failures, non-ENOENT `Stat` errors) remain uncoverable via unit
-tests. Document these as structural ceilings and cover via E2E CI/CD smoke tests instead.
-<!-- @/appendix-propagate -->
-
-<!-- @appendix-propagate from="testing-quality-golang" to=".github/instructions/03-02.testing.instructions.md" as="sequential-test-exemption" why-this-exists="sequential test exemption pattern consumed by the testing instruction file" -->
-Tests that mutate **package-level state** (e.g., `os.Chdir()`, global registries) MUST NOT call `t.Parallel()`. Add a `// Sequential:` comment within 10 lines before the function to exempt it from the `parallel_tests` linter:
-
-```go
-// Sequential: uses os.Chdir (global process state, cannot run in parallel).
-func TestMyFunction_ChangeDir(t *testing.T) {
-    // no t.Parallel() here
-}
-```
-
-```go
-// Sequential: mutates registeredHandlers package-level state.
-func TestRegisterHandler_Duplicate(t *testing.T) {
-    // no t.Parallel() here
-}
-```
-
-**Rule**: Comment MUST be within 10 lines before function declaration. Include a reason after the colon.
-<!-- @/appendix-propagate -->
-
-<!-- @appendix-propagate from="testing-quality-golang" to=".github/instructions/03-02.testing.instructions.md" as="disable-keep-alives-test-transport" why-this-exists="disable keep-alives on test HTTP transport rule consumed by the testing instruction file" -->
-NEVER use a default `http.Transport` in integration tests calling a real server. ALWAYS set `DisableKeepAlives: true`:
-
-```go
-client := &http.Client{
-    Transport: &http.Transport{
-        TLSClientConfig:   &tls.Config{InsecureSkipVerify: true}, // test certs only
-        DisableKeepAlives: true, // REQUIRED: prevents 90-second shutdown hang
-    },
-    Timeout: 5 * time.Second,
-}
-```
-
-**Why**: Fasthttp (Fiber) keeps an `open` counter > 0 while keep-alive connections remain open. `ShutdownWithContext` hangs for 90 seconds waiting for the counter to reach zero.
-<!-- @/appendix-propagate -->
-
-<!-- @appendix-propagate from="testing-quality-golang" to=".github/instructions/03-02.testing.instructions.md" as="timeout-double-multiplication-antipattern" why-this-exists="timeout double-multiplication anti-pattern consumed by the testing instruction file" -->
-NEVER multiply a `time.Duration` constant by `time.Second`. Magic constants that are already `time.Duration` (e.g., `DefaultDataServerShutdownTimeout = 5 * time.Second`) produce ~158-year values when multiplied again:
-
-```go
-// WRONG: DefaultDataServerShutdownTimeout is already time.Duration
-ctx, cancel := context.WithTimeout(ctx, magic.DefaultDataServerShutdownTimeout * time.Second) // ~158 years!
-
-// CORRECT: use directly
-ctx, cancel := context.WithTimeout(ctx, magic.DefaultDataServerShutdownTimeout) // 5 seconds
-```
-<!-- @/appendix-propagate -->
-
-<!-- @appendix-propagate from="testing-quality-golang" to=".github/instructions/03-02.testing.instructions.md" as="postgres-mtls-client-identity" why-this-exists="PostgreSQL mTLS client identity pattern consumed by the testing instruction file" -->
-**PostgreSQL mTLS Client Identity in E2E**: Use `client_dn` (from the mTLS certificate CN) to
-identify a GORM service's mTLS connection in `pg_stat_ssl`, NOT `application_name`. GORM does not
-set `application_name` by default — it is always empty. Pattern:
-
-```sql
-SELECT COUNT(*) FROM pg_stat_ssl
-JOIN pg_stat_activity ON pg_stat_ssl.pid = pg_stat_activity.pid
-WHERE pg_stat_ssl.ssl = true
-  AND pg_stat_ssl.client_dn LIKE '%-sm-kms-%'
-```
-<!-- @/appendix-propagate -->
-
-<!-- @appendix-propagate from="testing-quality-golang" to=".github/instructions/03-02.testing.instructions.md" as="mutation-common-survivors" why-this-exists="mutation testing common survivors patterns consumed by the testing instruction file" -->
-**`attempts++` in retry loops**: The `attempts` increment is mutated to a no-op. Fix: include
-`attempts` in the timeout error message and assert the error string does NOT contain `"after 0 attempts"`:
-
-```go
-// Production
-return fmt.Errorf("timed out after %d attempts waiting for %s: %w", attempts, name, lastErr)
-
-// Test
-require.ErrorContains(t, err, "timed out")
-require.NotContains(t, err.Error(), "after 0 attempts") // kills attempts++ mutation
-```
-
-**`make` capacity hints**: `make(map[K]V, len(xs))` capacity mutations (`len(xs)` → `0`) cannot be
-killed via black-box tests — the capacity hint is an internal optimization invisible to callers.
-Document as a structural ceiling; do NOT spend time trying to kill this mutation.
-
-**`TIMED OUT` ≠ `LIVED`**: In gremlins output, `TIMED OUT` mutations count toward efficacy just
-like `KILLED` — both mean the mutation was detected. Only `LIVED` mutations are failures. Packages
-with blocking operations (polling loops, network waits) produce more TIMEOUTs; budget ~30s per
-TIMED OUT mutation when estimating gremlins run time.
-<!-- @/appendix-propagate -->
-
-<!-- @appendix-propagate from="testing-quality-golang" to=".github/instructions/03-03.golang.instructions.md" as="crypto-acronyms-caps" why-this-exists="crypto acronym capitalization rule consumed by the Go standards instruction file" -->
-**Crypto Acronyms**: ALWAYS ALL CAPS: RSA, EC, ECDSA, ECDH, HMAC, AES, JWA, JWK, JWS, JWE, ED25519, PKCS8, PEM, DER.
-<!-- @/appendix-propagate -->
-
-<!-- @appendix-propagate from="testing-quality-golang" to=".github/instructions/03-01.coding.instructions.md" as="format-go-protection" why-this-exists="format-go self-modification protection rules consumed by the coding instruction file" -->
-**MANDATORY Prevention Rules**:
-- NEVER change ` +""+interface{}+""+ ` to ` +""+ny+""+ ` in format_go package
-- NEVER simplify CRITICAL/SELF-MODIFICATION comments
-- ALWAYS read complete package context (enforce_any.go, filter.go, magic_cicd.go, format_go_test.go, self_modification_test.go) before modifying
-<!-- @/appendix-propagate -->
-
-<!-- @appendix-propagate from="testing-quality-golang" to=".github/instructions/03-01.coding.instructions.md" as="validator-error-aggregation" why-this-exists="validator error aggregation pattern consumed by the coding instruction file" -->
-All validators run to completion (never short-circuit) and aggregate errors for a single unified report. Sequential execution ensures deterministic output ordering. Aggregated errors (not fail-fast) show ALL problems in one run, reducing fix-test-fix cycles. `validate-all` returns exit code 0 if all pass, exit code 1 if any fail.
-<!-- @/appendix-propagate -->
-
-<!-- @appendix-propagate from="testing-quality-golang" to=".github/instructions/05-02.git.instructions.md" as="conventional-commits" why-this-exists="conventional commits format consumed by the git instruction file" -->
-**Format**: `<type>[optional scope]: <description>`
-
-**Types**: feat, fix, docs, style, refactor, perf, test, build, ci, chore, revert
-
-**Examples**:
-
-```bash
-feat(auth): add OAuth2 client credentials flow
-fix(database): prevent connection pool exhaustion
-feat(api)!: remove deprecated v1 endpoints  # Breaking change
-```
-<!-- @/appendix-propagate -->
-
-<!-- @appendix-propagate from="testing-quality-golang" to=".github/instructions/05-02.git.instructions.md" as="incremental-commits" why-this-exists="incremental commits strategy consumed by the git instruction file" -->
-- ALWAYS commit incrementally (NOT amend) - preserves history for bisect, selective revert.
-- NEVER repeatedly amend - loses context, hard to bisect.
-- Amend ONLY for immediate typo fixes (<1 min, before push).
-- **Semantic Grouping**: Commit each semantically coherent unit of work as it completes. NEVER accumulate changes for different semantic groups into a bulk commit. Semantic boundaries: one feature, one bug fix, one refactor, one test suite, one doc update = each gets its own commit.
-- **Periodic Commits**: Prefer frequent small commits over rare large commits. A completed task = a commit. Push every 5-10 commits.
-<!-- @/appendix-propagate -->
-
-<!-- @appendix-propagate from="testing-quality-golang" to=".github/instructions/05-02.git.instructions.md" as="restore-from-baseline" why-this-exists="restore from clean baseline pattern consumed by the git instruction file" -->
-**When fixing regressions, ALWAYS restore clean baseline FIRST**:
-
-1. Find last known-good commit (`git log --oneline --grep="baseline"`)
-2. Restore package (`git checkout <hash> -- path/to/package/`)
-3. Verify baseline works (`go test`)
-4. Apply ONLY the new fix (minimal change)
-5. Commit as NEW commit (NOT amend)
-
-**Why**: HEAD may be corrupted from previous failed attempts. Start from known-good state.
-<!-- @/appendix-propagate -->
-
-<!-- @appendix-propagate from="testing-quality-golang" to=".github/instructions/05-01.cross-platform.instructions.md" as="docker-desktop-upgrade" why-this-exists="Docker Desktop upgrade warning consumed by the cross-platform instruction file" -->
-**Docker Desktop Upgrade Warning**: After ANY Docker Desktop or testcontainers upgrade, run the full E2E test suite. Upgrades MAY break API compatibility between testcontainers-go and Docker Desktop — symptoms may include socket errors, container startup failures, and general Docker API issues.
-<!-- @/appendix-propagate -->
-
-<!-- @appendix-propagate from="testing-quality-golang" to=".github/instructions/05-01.cross-platform.instructions.md" as="scripting-language-policy" why-this-exists="scripting language priority policy consumed by the cross-platform instruction file" -->
-**MANDATORY: Choose scripting language in priority order. Lower-priority choices require justification.**
-
-| Priority | Language | When to Use |
-|----------|----------|-------------|
-| 1 (primary) | **Go** | ALL tooling, automation, scripts — compiled, cross-platform, static binary |
-| 2 (exception) | **Java** | Gatling load tests in `test/load/` ONLY |
-| 3 (last resort) | **Python** | Quick one-offs where Go is not suitable; one file, no maintenance burden |
-| ❌ (BANNED) | **Bash** | BANNED everywhere except Docker container init scripts (`docker-entrypoint-initdb.d/`) |
-| ❌ (BANNED) | **PowerShell** | BANNED everywhere, no exceptions |
-
-**Rationale**: Go and Java are compiled languages that produce cross-platform static binaries with proper type safety and testability. Python scripts tend to accumulate without lifecycle management. Bash/PowerShell are platform-specific and error-prone.
-
-**Docker container init exception**: The official PostgreSQL Docker image's `docker-entrypoint-initdb.d/` mechanism runs shell scripts natively. Shell scripts in this specific directory are the only permitted Bash exception. Minimize logic in these scripts; prefer `.sql` files where possible.
-
-**NO Python under `internal/apps-tools/cicd_lint/`**: The `cicd_lint` tool is pure Go. No Python scripts, generation helpers, or utility modules belong here. If a capability requires Python (rare), it belongs outside the Go module.
-<!-- @/appendix-propagate -->
-
-<!-- @appendix-propagate from="testing-quality-golang" to=".github/instructions/06-03.tool-efficiency.instructions.md" as="tool-preference-order" why-this-exists="LLM tool preference order consumed by the tool-efficiency instruction file" -->
-| Priority | Tool | When to Use |
-|----------|------|-------------|
-| 1 (cheapest) | `grep_search` / `text_search` | Exact string or regex match in known files |
-| 2 | `file_search` | Confirm file existence or locate by name pattern |
-| 3 | `list_dir` | Enumerate directory contents (unknown structure) |
-| 4 | `read_file` (targeted) | Read a specific 50–200 line window of a known file |
-| 5 | `read_file` (full) | Full file read only when entire context required |
-| 6 (costliest) | `semantic_search` | ONLY when query cannot be expressed as regex/literal |
-<!-- @/appendix-propagate -->
-
-<!-- @appendix-propagate from="testing-quality-golang" to=".github/instructions/02-02.versions.instructions.md" as="minimum-versions" why-this-exists="minimum version requirements consumed by the versions instruction file" -->
-**CRITICAL: ALWAYS use the same version everywhere** (dev, CI/CD, Docker, workflows, docs)
-
-- Go: 1.26.1+
-- Python: 3.14+
-- golangci-lint: v2.7.2+
-- Node: v24.11.1+ LTS
-- Java: 21 LTS (Gatling load tests)
-- Maven: 3.9+
-- pre-commit: 2.20.0+
-- Docker: 27+
-- Docker Compose: v5+
-<!-- @/appendix-propagate -->
-
-### D.7 Terminology and Normative Language
-
-<!-- @appendix-propagate from="terminology-instruction-body" to=".github/instructions/01-01.terminology.instructions.md" as="rfc-2119-keywords" why-this-exists="RFC 2119 keyword guidance reused in terminology instruction artifact" -->
-- **MUST** = **REQUIRED** = **MANDATORY** = **SHALL** - Absolute requirement
-- **MUST NOT** = **SHALL NOT** - Absolute prohibition
-- **SHOULD** = **RECOMMENDED** - Highly desirable (may ignore with justification)
-- **SHOULD NOT** = **NOT RECOMMENDED** - Not advisable (may do with justification)
-- **MAY** = **OPTIONAL** - Truly optional (implementer decides)
-<!-- @/appendix-propagate -->
-
-<!-- @appendix-propagate from="terminology-instruction-body" to=".github/instructions/01-01.terminology.instructions.md" as="emphasis-keywords" why-this-exists="emphasis keyword guidance reused in terminology instruction artifact" -->
-- **CRITICAL** - Historically regression-prone areas requiring extra attention
-- **ALWAYS** / **NEVER** - Emphatic MUST / MUST NOT (no exceptions)
-<!-- @/appendix-propagate -->
-
-<!-- @appendix-propagate from="terminology-instruction-body" to=".github/instructions/01-01.terminology.instructions.md" as="abbreviations" why-this-exists="abbreviation disambiguation guidance reused in terminology instruction artifact" -->
-**CRITICAL: NEVER use ambiguous `auth` abbreviation to mean either authentication or authorization**
-
-- **authn** = Authentication
-- **authz** = Authorization
-
-**Rationale**: Prevents confusion filenames, variable names, and documentation.
-<!-- @/appendix-propagate -->
-
-### D.8 Skills and Handbook Coupling
-
-<!-- @appendix-propagate from="skills-handbook-coupled-body" to=".github/skills/propagation-check/SKILL.md, .claude/skills/propagation-check/SKILL.md" as="skill-propagation-check-core-rules" why-this-exists="semantic skill rules reused across Copilot and Claude skill pairs" -->
-- `@source` content MUST be byte-for-byte identical to `@propagate` content in ENG-HANDBOOK.md
-- Run `go run ./cmd/cicd-lint lint-docs` to detect drift
-- Add both Copilot file AND Claude file to `@propagate to=` attribute (comma-separated)
-- Update `docs/required-propagations.yaml` `required_targets` when adding new targets
-- When ENG-HANDBOOK.md chunk changes, ALL downstream `@source` blocks must be updated
-<!-- @/appendix-propagate -->
-
-<!-- @appendix-propagate from="skills-handbook-coupled-body" to=".github/skills/sync-copilot-claude/SKILL.md, .claude/skills/sync-copilot-claude/SKILL.md" as="skill-sync-copilot-claude-core-rules" why-this-exists="sync rules shared across dual-canonical skill and agent tooling" -->
-- Copilot skills live at `.github/skills/<NAME>/SKILL.md`; Claude skills at `.claude/skills/<NAME>/SKILL.md`
-- Body content MUST be identical between Copilot and Claude skill files
-- Claude agents at `.claude/agents/<NAME>.md` must match Copilot agents at `.github/agents/<NAME>.agent.md`
-- NEVER update only one file — always sync both in the same commit
-- The `lint-agent-drift` linter (in `lint-docs`) enforces agent pair identity automatically
-<!-- @/appendix-propagate -->
-
-<!-- @appendix-propagate from="skills-handbook-coupled-body" to=".github/skills/copilot-customization/SKILL.md, .claude/skills/copilot-customization/SKILL.md" as="skill-copilot-customization-core-rules" why-this-exists="customization workflow constraints reused in both skill targets" -->
-- Pick one artifact type per invocation: `agent`, `instruction`, or `skill`
-- Decide the operation up front: create, update, or delete
-- Agents are dual-canonical: create BOTH `.github/agents/NAME.agent.md` and `.claude/agents/NAME.md`
-- Skills are dual-canonical: create BOTH `.github/skills/NAME/SKILL.md` and `.claude/skills/NAME/SKILL.md`
-- Agent and skill body content MUST stay identical across Copilot and Claude pairs; only permitted frontmatter differences may differ
-- Run `go run ./cmd/cicd-lint lint-docs` after creating, updating, or deleting any customization artifact
-<!-- @/appendix-propagate -->
-
-<!-- @appendix-propagate from="skills-handbook-coupled-body" to=".github/skills/test-table-driven/SKILL.md, .claude/skills/test-table-driven/SKILL.md" as="skill-test-table-driven-core-rules" why-this-exists="testing rule baseline kept identical for both test-table-driven skill files" -->
-- `t.Parallel()` MANDATORY on parent and ALL subtests
-- Use `googleUuid.NewV7()` for test data IDs (thread-safe, unique, no conflicts)
-- `require` package (fail-fast) over `assert` (continue-on-failure)
-- Table-driven for ALL multi-case tests (happy path AND sad path)
-- TestMain for heavyweight resources (DB, servers, containers) — one per package
-- Use exactly one `testmain_test.go` per package; never split into `testmain_*_test.go` variants
-- `testmain_test.go` must not use `//go:build` or `// +build` directives
-<!-- @/appendix-propagate -->
-
-<!-- @appendix-propagate from="skills-handbook-coupled-body" to=".github/skills/openapi-codegen/SKILL.md, .claude/skills/openapi-codegen/SKILL.md" as="skill-openapi-codegen-core-rules" why-this-exists="OpenAPI generation invariants reused for Copilot and Claude openapi-codegen skills" -->
-- OpenAPI version MUST be 3.0.3 (NOT 2.0/Swagger, NOT 3.1.x)
-- Generate THREE config files: server (`strict-server: true`), model, client
-- API MUST duplicate under BOTH `/service/` and `/browser/` paths
-- Content type: `application/json` ONLY (no form, multipart, or other types)
-- `strict-server: true` is MANDATORY in server config
-- All `openapi-gen_config*.yaml` MUST include the full base initialisms list from ENG-HANDBOOK.md §8
-<!-- @/appendix-propagate -->
-
----
-
 ## Appendix E: File Catalog
 
 This appendix is the **single source of truth** for all downstream configuration files.
@@ -8477,8 +7720,8 @@ Each entry contains the complete verbatim content of the corresponding file, usi
 
 Two linters enforce integrity:
 - `lint-catalog-files` — verifies that each catalog entry's reconstructed content matches the file on disk.
-- `lint-catalog-propagation` — verifies that every `@appendix-propagate` chunk targeting a catalogued file
-  appears as a matching `@source` block inside that catalog entry's body.
+- `lint-catalog-propagation` — verifies that every `@to-appendix` chunk targeting a catalogued file
+  appears as a matching `@from-eng-handbook` block inside that catalog entry's body.
 
 ---
 
@@ -8675,31 +7918,31 @@ applyTo: "**"
 
 ## RFC 2119 Keywords
 
-<!-- @source from="docs/ENG-HANDBOOK.md" as="rfc-2119-keywords" -->
+<!-- @from-eng-handbook as="rfc-2119-keywords" -->
 - **MUST** = **REQUIRED** = **MANDATORY** = **SHALL** - Absolute requirement
 - **MUST NOT** = **SHALL NOT** - Absolute prohibition
 - **SHOULD** = **RECOMMENDED** - Highly desirable (may ignore with justification)
 - **SHOULD NOT** = **NOT RECOMMENDED** - Not advisable (may do with justification)
 - **MAY** = **OPTIONAL** - Truly optional (implementer decides)
-<!-- @/source -->
+<!-- @/from-eng-handbook -->
 
 ## Emphasis Keywords
 
-<!-- @source from="docs/ENG-HANDBOOK.md" as="emphasis-keywords" -->
+<!-- @from-eng-handbook as="emphasis-keywords" -->
 - **CRITICAL** - Historically regression-prone areas requiring extra attention
 - **ALWAYS** / **NEVER** - Emphatic MUST / MUST NOT (no exceptions)
-<!-- @/source -->
+<!-- @/from-eng-handbook -->
 
 ## Abbreviations
 
-<!-- @source from="docs/ENG-HANDBOOK.md" as="abbreviations" -->
+<!-- @from-eng-handbook as="abbreviations" -->
 **CRITICAL: NEVER use ambiguous `auth` abbreviation to mean either authentication or authorization**
 
 - **authn** = Authentication
 - **authz** = Authorization
 
 **Rationale**: Prevents confusion filenames, variable names, and documentation.
-<!-- @/source -->
+<!-- @/from-eng-handbook -->
 <!-- @handbook-derived-body:end -->
 <!-- @/file-catalog -->
 <!-- markdownlint-enable -->
@@ -8731,7 +7974,7 @@ Work autonomously until problem completely solved. ONLY valid stop: user clicks 
 
 ## Maximum Quality Strategy - MANDATORY
 
-<!-- @source from="docs/ENG-HANDBOOK.md" as="quality-attributes" -->
+<!-- @from-eng-handbook as="quality-attributes" -->
 **Quality Attributes (NO EXCEPTIONS)**:
 - ✅ Correctness: ALL code functionally correct with comprehensive tests
 - ✅ Completeness: NO phases or tasks or steps skipped, NO features de-prioritized, NO shortcuts
@@ -8741,7 +7984,7 @@ Work autonomously until problem completely solved. ONLY valid stop: user clicks 
 - ✅ Accuracy: Changes must address root cause, not just symptoms
 - ❌ Time Pressure: NEVER rush, NEVER skip validation, NEVER defer quality checks
 - ❌ Premature Completion: NEVER mark phases or tasks or steps complete without objective evidence
-<!-- @/source -->
+<!-- @/from-eng-handbook -->
 
 **ALL issues are blockers**: Fix immediately. NEVER defer ("fix later"). NEVER skip validation.
 
@@ -8762,7 +8005,7 @@ Work autonomously until problem completely solved. ONLY valid stop: user clicks 
 
 ## End-of-Turn Commit Protocol
 
-<!-- @source from="docs/ENG-HANDBOOK.md" as="end-of-turn-commit-protocol" -->
+<!-- @from-eng-handbook as="end-of-turn-commit-protocol" -->
 **MANDATORY: NEVER end a turn with uncommitted changes. Your ABSOLUTE LAST TOOL INVOCATION before yielding to the user MUST be running `git status --porcelain`. NEVER assume the worktree is clean — always RUN the command as a tool call.**
 
 If `git status --porcelain` returns ANY output:
@@ -8781,7 +8024,7 @@ If `git status --porcelain` returns ANY output:
 - Assuming the worktree is clean without running the command as a tool call
 
 **Pattern**: `git status --porcelain` returns empty → End turn. Any output → Commit first.
-<!-- @/source -->
+<!-- @/from-eng-handbook -->
 
 ---
 
@@ -8889,14 +8132,14 @@ applyTo: "**"
 
 ## Service Template Components
 
-<!-- @source from="docs/ENG-HANDBOOK.md" as="service-framework-components" -->
+<!-- @from-eng-handbook as="service-framework-components" -->
 - Two HTTPS Listeners: Public (business APIs) + Admin (health checks)
 - Two Public Paths: `/browser/**` (session cookies) vs `/service/**` (session tokens)
 - Three Admin APIs: /admin/api/v1/livez, /admin/api/v1/readyz, /admin/api/v1/shutdown
 - Database: PostgreSQL || SQLite with GORM
 - Telemetry: OTLP → otel-collector-contrib → Grafana LGTM
 - Config Priority: Docker secrets > YAML > CLI parameters (NO environment variables)
-<!-- @/source -->
+<!-- @/from-eng-handbook -->
 
 **Eliminates 48,000+ lines boilerplate per service**. Constructor injection for OpenAPI specs, handlers, middleware.
 
@@ -8967,7 +8210,7 @@ type ServerSettings struct {
 
 ## TLS Certificate Configuration
 
-<!-- @source from="docs/ENG-HANDBOOK.md" as="tls-provision-mode" -->
+<!-- @from-eng-handbook as="tls-provision-mode" -->
 **Service template server certificates use `TLSProvisionMode`** based on credentials provided at startup:
 
 | Environment | Cert Chain | TLS Key | Issuing CA Key | TLS Provision Mode | Outcome |
@@ -8985,7 +8228,7 @@ The `GenerateTLSMaterial()` function in `internal/apps-framework/service/config/
 - `auto`: no server TLS material is supplied; the framework generates an ephemeral CA hierarchy and server leaf in memory.
 
 **Detection logic**: `StaticCertPEM + StaticKeyPEM` provided → `static`. `MixedCACertPEM + MixedCAKeyPEM` provided → generate server cert then use `static` material for the running process. Nothing provided → `auto`.
-<!-- @/source -->
+<!-- @/from-eng-handbook -->
 
 ## Migration Versioning
 
@@ -9049,7 +8292,7 @@ applyTo: "**"
 
 ## Minimum Versions - Quick Reference
 
-<!-- @source from="docs/ENG-HANDBOOK.md" as="minimum-versions" -->
+<!-- @from-eng-handbook as="minimum-versions" -->
 **CRITICAL: ALWAYS use the same version everywhere** (dev, CI/CD, Docker, workflows, docs)
 
 - Go: 1.26.1+
@@ -9061,7 +8304,7 @@ applyTo: "**"
 - pre-commit: 2.20.0+
 - Docker: 27+
 - Docker Compose: v5+
-<!-- @/source -->
+<!-- @/from-eng-handbook -->
 
 **Update Locations** (when changing versions):
 
@@ -9145,7 +8388,7 @@ Configurable (default: probabilistic 10% sampling rate). Pattern: `sampling_rate
 
 ## OTel Collector Processor Constraints
 
-<!-- @source from="docs/ENG-HANDBOOK.md" as="otel-collector-constraints" -->
+<!-- @from-eng-handbook as="otel-collector-constraints" -->
 | Processor | Requirement | Dev/CI | Production |
 |-----------|------------|--------|------------|
 | resourcedetection/docker | Docker socket `/var/run/docker.sock` | NEVER use | Use when socket available |
@@ -9155,7 +8398,7 @@ Configurable (default: probabilistic 10% sampling rate). Pattern: `sampling_rate
 **MANDATORY for dev/CI**: Use `detectors: [env, system]`. NEVER include `docker` detector without verified socket access.
 
 **CRITICAL**: NEVER defer OTel or infrastructure configuration issues as "pre-existing." Infrastructure blockers are ALWAYS MANDATORY BLOCKING.
-<!-- @/source -->
+<!-- @/from-eng-handbook -->
 
 ## OTel Collector mTLS — `client_ca_file`
 
@@ -9258,7 +8501,7 @@ type StrictServerInterface interface {
 
 ## Base Initialisms
 
-<!-- @source from="docs/ENG-HANDBOOK.md" as="base-initialisms" -->
+<!-- @from-eng-handbook as="base-initialisms" -->
 All `openapi-gen_config*.yaml` files MUST include the full base initialisms list in their `additional-initialisms` section. Domain-specific additions follow the base list.
 
 **Base initialisms (mandatory in every gen config)**:
@@ -9298,11 +8541,11 @@ All `openapi-gen_config*.yaml` files MUST include the full base initialisms list
 | `sm-im` | IM, SM, URI |
 | `sm-kms` | URI |
 | `skeleton-template` | (none — base list only) |
-<!-- @/source -->
+<!-- @/from-eng-handbook -->
 
 ## HTTP Status Codes
 
-<!-- @source from="docs/ENG-HANDBOOK.md" as="http-status-codes" -->
+<!-- @from-eng-handbook as="http-status-codes" -->
 | Code | Usage |
 |------|-------|
 | 200 | GET, PUT, PATCH successful |
@@ -9316,7 +8559,7 @@ All `openapi-gen_config*.yaml` files MUST include the full base initialisms list
 | 422 | Semantic validation error |
 | 500 | Unhandled server error |
 | 503 | Temporary unavailability |
-<!-- @/source -->
+<!-- @/from-eng-handbook -->
 
 ## REST Conventions
 
@@ -9447,7 +8690,7 @@ tlsConfig := &tls.Config{
 
 ## TLS Client Policy
 
-<!-- @source from="docs/ENG-HANDBOOK.md" as="tls-client-policy" -->
+<!-- @from-eng-handbook as="tls-client-policy" -->
 Services support five **runtime `TLSClientPolicy` states**. These are distinct from the
 certificate-provisioning modes in §6.11.1 and map directly to Go's `tls.ClientAuthType` behavior:
 
@@ -9473,7 +8716,7 @@ public:
 ```
 
 Once all clients present certificates, flip `client-policy` to `require-and-verify`.
-<!-- @/source -->
+<!-- @/from-eng-handbook -->
 
 ### CA Architecture Tiers
 
@@ -9523,9 +8766,9 @@ MUST check BOTH CRLDP and OCSP. Fail if BOTH unreachable. Cache CRLs with TTL.
 
 ## Secrets Detection Strategy
 
-<!-- @source from="docs/ENG-HANDBOOK.md" as="secrets-detection-strategy" -->
+<!-- @from-eng-handbook as="secrets-detection-strategy" -->
 **Detection**: Length-based threshold (≥32 bytes / ≥43 base64 chars) for inline secrets in compose files. NO entropy calculation (too many false positives). Safe references (`/run/secrets/`, short dev defaults) excluded. Infrastructure deployments excluded.
-<!-- @/source -->
+<!-- @/from-eng-handbook -->
 <!-- @handbook-derived-body:end -->
 <!-- @/file-catalog -->
 <!-- markdownlint-enable -->
@@ -9547,26 +8790,26 @@ applyTo: "**"
 
 ## Key Principles
 
-<!-- @source from="docs/ENG-HANDBOOK.md" as="key-principles" -->
+<!-- @from-eng-handbook as="key-principles" -->
 - **Zero Trust**: NO caching of authorization decisions. Re-evaluate every request.
 - **MFA Step-Up**: Re-authentication MANDATORY every 30 minutes for high-sensitivity operations.
 - **Session Storage**: SQL databases ONLY (PostgreSQL or SQLite with ACID). NEVER Redis/Memcached.
 - **mTLS Revocation**: MUST check BOTH CRLDP and OCSP. Fail if BOTH unreachable.
-<!-- @/source -->
+<!-- @/from-eng-handbook -->
 
 ## Headless Authentication (13 Methods, `/service/**` only)
 
-<!-- @source from="docs/ENG-HANDBOOK.md" as="headless-authn" -->
+<!-- @from-eng-handbook as="headless-authn" -->
 **Non-Federated (6)**: JWE Session Token, JWS Session Token, Opaque Session Token, Basic (Client ID/Secret), Bearer (API Token), HTTPS Client Certificate.
 
 **Federated (7)**: Basic/Bearer/ClientCert via OAuth 2.1, JWE/JWS/Opaque Access Token, Opaque Refresh Token.
 
 **Storage**: YAML + SQL (Config > DB priority) for all methods.
-<!-- @/source -->
+<!-- @/from-eng-handbook -->
 
 ## Browser Authentication (28 Methods, `/browser/**` only)
 
-<!-- @source from="docs/ENG-HANDBOOK.md" as="browser-authn" -->
+<!-- @from-eng-handbook as="browser-authn" -->
 **Non-Federated (6)**: JWE/JWS/Opaque Session Cookie, Basic (Username/Password), Bearer (API Token), HTTPS Client Certificate.
 
 **Federated (22)**: All non-federated methods PLUS:
@@ -9576,27 +8819,27 @@ applyTo: "**"
 - **Enterprise**: SAML 2.0
 
 **Storage**: YAML + SQL (Config > DB) for static credentials. SQL ONLY for dynamic user data (OTPs, enrollments, magic links).
-<!-- @/source -->
+<!-- @/from-eng-handbook -->
 
 ## Session Token Formats
 
-<!-- @source from="docs/ENG-HANDBOOK.md" as="session-token-formats" -->
+<!-- @from-eng-handbook as="session-token-formats" -->
 **Opaque** (UUID), **JWE** (encrypted JWT), **JWS** (signed JWT). Storage: PostgreSQL (distributed) or SQLite (single-node). NO Redis/Memcached.
-<!-- @/source -->
+<!-- @/from-eng-handbook -->
 
 ## Authorization Methods
 
-<!-- @source from="docs/ENG-HANDBOOK.md" as="authz-methods" -->
+<!-- @from-eng-handbook as="authz-methods" -->
 **Headless**: Scope-based, RBAC.
 **Browser**: Scope-based, RBAC, resource-level ACLs, consent tracking (scope+resource granularity).
-<!-- @/source -->
+<!-- @/from-eng-handbook -->
 
 ## MFA Combinations
 
-<!-- @source from="docs/ENG-HANDBOOK.md" as="mfa-combinations" -->
+<!-- @from-eng-handbook as="mfa-combinations" -->
 **Browser**: Password + TOTP/WebAuthn/Push/OTP.
 **Headless**: Client ID/Secret + mTLS/Bearer.
-<!-- @/source -->
+<!-- @/from-eng-handbook -->
 <!-- @handbook-derived-body:end -->
 <!-- @/file-catalog -->
 <!-- markdownlint-enable -->
@@ -9667,18 +8910,18 @@ default:
 
 ## Validator Error Aggregation Pattern
 
-<!-- @source from="docs/ENG-HANDBOOK.md" as="validator-error-aggregation" -->
+<!-- @from-eng-handbook as="validator-error-aggregation" -->
 All validators run to completion (never short-circuit) and aggregate errors for a single unified report. Sequential execution ensures deterministic output ordering. Aggregated errors (not fail-fast) show ALL problems in one run, reducing fix-test-fix cycles. `validate-all` returns exit code 0 if all pass, exit code 1 if any fail.
-<!-- @/source -->
+<!-- @/from-eng-handbook -->
 
 ## Format_go Self-Modification Protection - CRITICAL
 
-<!-- @source from="docs/ENG-HANDBOOK.md" as="format-go-protection" -->
+<!-- @from-eng-handbook as="format-go-protection" -->
 **MANDATORY Prevention Rules**:
 - NEVER change ` +""+interface{}+""+ ` to ` +""+ny+""+ ` in format_go package
 - NEVER simplify CRITICAL/SELF-MODIFICATION comments
 - ALWAYS read complete package context (enforce_any.go, filter.go, magic_cicd.go, format_go_test.go, self_modification_test.go) before modifying
-<!-- @/source -->
+<!-- @/from-eng-handbook -->
 
 ## Cross-Platform File/Directory Access
 
@@ -9725,7 +8968,7 @@ applyTo: "**"
 
 ## 3-Tier Database Strategy - MANDATORY
 
-<!-- @source from="docs/ENG-HANDBOOK.md" as="three-tier-database-strategy" -->
+<!-- @from-eng-handbook as="three-tier-database-strategy" -->
 **3-Tier Database Strategy (MANDATORY)**:
 
 | Tier | Database | Pattern | PostgreSQL? |
@@ -9739,7 +8982,7 @@ applyTo: "**"
 - NEVER create DB per-test in integration tests (use TestMain shared instance).
 - NEVER start real servers in unit tests (use Fiber app.Test()).
 - E2E tests use Docker Compose with 4 service instances: 2 sharing a PostgreSQL container, 2 using in-memory SQLite, validating cross-database compatibility.
-<!-- @/source -->
+<!-- @/from-eng-handbook -->
 
 ## FORBIDDEN Patterns
 
@@ -9801,7 +9044,7 @@ ALWAYS add t.Parallel() to both parent test and subtests.
 
 ### 6. Missing DisableKeepAlives on Test HTTP Transports
 
-<!-- @source from="docs/ENG-HANDBOOK.md" as="disable-keep-alives-test-transport" -->
+<!-- @from-eng-handbook as="disable-keep-alives-test-transport" -->
 NEVER use a default `http.Transport` in integration tests calling a real server. ALWAYS set `DisableKeepAlives: true`:
 
 ```go
@@ -9815,11 +9058,11 @@ client := &http.Client{
 ```
 
 **Why**: Fasthttp (Fiber) keeps an `open` counter > 0 while keep-alive connections remain open. `ShutdownWithContext` hangs for 90 seconds waiting for the counter to reach zero.
-<!-- @/source -->
+<!-- @/from-eng-handbook -->
 
 ### 7. Timeout Double-Multiplication
 
-<!-- @source from="docs/ENG-HANDBOOK.md" as="timeout-double-multiplication-antipattern" -->
+<!-- @from-eng-handbook as="timeout-double-multiplication-antipattern" -->
 NEVER multiply a `time.Duration` constant by `time.Second`. Magic constants that are already `time.Duration` (e.g., `DefaultDataServerShutdownTimeout = 5 * time.Second`) produce ~158-year values when multiplied again:
 
 ```go
@@ -9829,7 +9072,7 @@ ctx, cancel := context.WithTimeout(ctx, magic.DefaultDataServerShutdownTimeout *
 // CORRECT: use directly
 ctx, cancel := context.WithTimeout(ctx, magic.DefaultDataServerShutdownTimeout) // 5 seconds
 ```
-<!-- @/source -->
+<!-- @/from-eng-handbook -->
 
 ### 8. Nested t.Cleanup Anti-Pattern
 
@@ -9847,7 +9090,7 @@ testdb.CleanupDatabase(t, testDB)
 
 ## Sequential Test Exemption
 
-<!-- @source from="docs/ENG-HANDBOOK.md" as="sequential-test-exemption" -->
+<!-- @from-eng-handbook as="sequential-test-exemption" -->
 Tests that mutate **package-level state** (e.g., `os.Chdir()`, global registries) MUST NOT call `t.Parallel()`. Add a `// Sequential:` comment within 10 lines before the function to exempt it from the `parallel_tests` linter:
 
 ```go
@@ -9865,7 +9108,7 @@ func TestRegisterHandler_Duplicate(t *testing.T) {
 ```
 
 **Rule**: Comment MUST be within 10 lines before function declaration. Include a reason after the colon.
-<!-- @/source -->
+<!-- @/from-eng-handbook -->
 
 ## TestMain Integration Pattern
 
@@ -10022,7 +9265,7 @@ defer cancel()
 
 **Scope**: ALL `cmd/cicd-lint/` packages (including `lint_deployments/`) require >=98% mutation testing efficacy. This includes test infrastructure, CLI wiring, and validator implementations. Mutation testing validates test quality, not just test coverage.
 
-<!-- @source from="docs/ENG-HANDBOOK.md" as="mutation-common-survivors" -->
+<!-- @from-eng-handbook as="mutation-common-survivors" -->
 **`attempts++` in retry loops**: The `attempts` increment is mutated to a no-op. Fix: include
 `attempts` in the timeout error message and assert the error string does NOT contain `"after 0 attempts"`:
 
@@ -10043,7 +9286,7 @@ Document as a structural ceiling; do NOT spend time trying to kill this mutation
 like `KILLED` — both mean the mutation was detected. Only `LIVED` mutations are failures. Packages
 with blocking operations (polling loops, network waits) produce more TIMEOUTs; budget ~30s per
 TIMED OUT mutation when estimating gremlins run time.
-<!-- @/source -->
+<!-- @/from-eng-handbook -->
 
 ## Fuzz Testing
 
@@ -10065,7 +9308,7 @@ File suffix: `_bench_test.go`. Mandatory for crypto operations.
 
 ## Test File Organization
 
-<!-- @source from="docs/ENG-HANDBOOK.md" as="test-file-suffixes" -->
+<!-- @from-eng-handbook as="test-file-suffixes" -->
 | Type | Suffix |
 |------|--------|
 | Unit | `_test.go` |
@@ -10073,7 +9316,7 @@ File suffix: `_bench_test.go`. Mandatory for crypto operations.
 | Fuzz | `_fuzz_test.go` |
 | Property | `_property_test.go` |
 | Integration | `_integration_test.go` |
-<!-- @/source -->
+<!-- @/from-eng-handbook -->
 
 ## Test File Naming - MANDATORY
 
@@ -10132,7 +9375,7 @@ When a package cannot reach the mandatory coverage minimum due to structural bar
 4. Document exception with justification
 5. **Include a mitigation plan** describing how the ceiling will be raised (e.g., `internalMain` refactoring, E2E CI/CD integration, seam injection). "Accept as permanent" is NOT a valid mitigation.
 
-<!-- @source from="docs/ENG-HANDBOOK.md" as="production-closure-body-coverage" -->
+<!-- @from-eng-handbook as="production-closure-body-coverage" -->
 **Production Closure Body Coverage Pattern**: When a factory function (`NewXxx`) defines anonymous
 closures in its return struct, the closure bodies are separate coverage blocks — creating the struct
 does NOT cover the closure bodies. Only INVOKING the closures covers their bodies.
@@ -10164,7 +9407,7 @@ production files and follows the established project convention for test seams.
 **Structural ceiling for production wiring errors**: `productionNewTelemetryService` error paths
 and OS-level faults (`RemoveAll` failures, non-ENOENT `Stat` errors) remain uncoverable via unit
 tests. Document these as structural ceilings and cover via E2E CI/CD smoke tests instead.
-<!-- @/source -->
+<!-- @/from-eng-handbook -->
 
 ## E2E for CLI Entry Points — MANDATORY
 
@@ -10226,7 +9469,7 @@ require.Equal(t, int32(expectedCalls), atomic.LoadInt32(&callCount))
 
 ## PostgreSQL mTLS Client Identity
 
-<!-- @source from="docs/ENG-HANDBOOK.md" as="postgres-mtls-client-identity" -->
+<!-- @from-eng-handbook as="postgres-mtls-client-identity" -->
 **PostgreSQL mTLS Client Identity in E2E**: Use `client_dn` (from the mTLS certificate CN) to
 identify a GORM service's mTLS connection in `pg_stat_ssl`, NOT `application_name`. GORM does not
 set `application_name` by default — it is always empty. Pattern:
@@ -10237,7 +9480,7 @@ JOIN pg_stat_activity ON pg_stat_ssl.pid = pg_stat_activity.pid
 WHERE pg_stat_ssl.ssl = true
   AND pg_stat_ssl.client_dn LIKE '%-sm-kms-%'
 ```
-<!-- @/source -->
+<!-- @/from-eng-handbook -->
 
 ## TLS Rejection Test Assertions
 
@@ -10415,9 +9658,9 @@ import (
 )
 ```
 
-<!-- @source from="docs/ENG-HANDBOOK.md" as="crypto-acronyms-caps" -->
+<!-- @from-eng-handbook as="crypto-acronyms-caps" -->
 **Crypto Acronyms**: ALWAYS ALL CAPS: RSA, EC, ECDSA, ECDH, HMAC, AES, JWA, JWK, JWS, JWE, ED25519, PKCS8, PEM, DER.
-<!-- @/source -->
+<!-- @/from-eng-handbook -->
 <!-- @handbook-derived-body:end -->
 <!-- @/file-catalog -->
 <!-- markdownlint-enable -->
@@ -10448,7 +9691,7 @@ applyTo: "**"
 
 ## 3-Tier Database Strategy - MANDATORY
 
-<!-- @source from="docs/ENG-HANDBOOK.md" as="three-tier-database-strategy" -->
+<!-- @from-eng-handbook as="three-tier-database-strategy" -->
 **3-Tier Database Strategy (MANDATORY)**:
 
 | Tier | Database | Pattern | PostgreSQL? |
@@ -10462,7 +9705,7 @@ applyTo: "**"
 - NEVER create DB per-test in integration tests (use TestMain shared instance).
 - NEVER start real servers in unit tests (use Fiber app.Test()).
 - E2E tests use Docker Compose with 4 service instances: 2 sharing a PostgreSQL container, 2 using in-memory SQLite, validating cross-database compatibility.
-<!-- @/source -->
+<!-- @/from-eng-handbook -->
 
 ## Core GORM Patterns
 
@@ -10541,7 +9784,7 @@ func getDB(ctx context.Context, baseDB *gorm.DB) *gorm.DB {
 
 ### SQLite + Barrier Outside Transactions (CRITICAL)
 
-<!-- @source from="docs/ENG-HANDBOOK.md" as="sqlite-barrier-outside-tx" -->
+<!-- @from-eng-handbook as="sqlite-barrier-outside-tx" -->
 **MANDATORY**: ALL calls to `barrier.EncryptContentWithContext` or `barrier.DecryptContentWithContext` MUST be outside any ORM `WithTransaction` scope.
 
 **Root cause**: The barrier service opens its own internal read/write transaction. SQLite WAL mode allows only one writer at a time. Nesting two write transactions on the same connection pool causes deadlock: all connections are held by the outer ORM transaction, so the inner barrier transaction cannot acquire one.
@@ -10552,7 +9795,7 @@ ORM.Create(plainRecord) → commit → (outside tx) barrier.Encrypt → ORM.Upda
 ```
 
 This is a **correctness requirement**, not a performance concern. Barrier calls inside ORM transactions are a guaranteed SQLite deadlock.
-<!-- @/source -->
+<!-- @/from-eng-handbook -->
 
 ## Multi-Tenancy - MANDATORY
 
@@ -10685,7 +9928,7 @@ applyTo: "**"
 
 **Pre-Commit Hooks**: Run same linters and formatters as CI/CD workflows (golangci-lint, gofumpt, goimports). See `.pre-commit-config.yaml` for complete hook configuration.
 
-<!-- @source from="docs/ENG-HANDBOOK.md" as="cicd-bulk-hook-architecture" -->
+<!-- @from-eng-handbook as="cicd-bulk-hook-architecture" -->
 `cicd-lint` command execution and `.pre-commit-config.yaml` wiring MUST follow this architecture:
 
 1. **Four bulk cicd hooks only** in `.pre-commit-config.yaml`:
@@ -10704,7 +9947,7 @@ applyTo: "**"
 1. **Enforcement**: `lint-fitness` sub-linter `precommit-cicd-architecture` is authoritative and MUST fail on any drift.
 
 **Rationale**: This prevents cross-category races (read-only lint vs mutating format), preserves deterministic developer workflows, and ensures new cicd subcommands cannot be added without being wired into bulk hooks.
-<!-- @/source -->
+<!-- @/from-eng-handbook -->
 
 ## Quick Reference: golangci-lint v2
 
@@ -10762,7 +10005,7 @@ Use `multi_replace_string_in_file` for efficiency (up to 10 similar fixes per ba
 
 ## UTF-8 BOM
 
-<!-- @source from="docs/ENG-HANDBOOK.md" as="utf8-without-bom" -->
+<!-- @from-eng-handbook as="utf8-without-bom" -->
 **MANDATORY**: UTF-8 without BOM for all text files. The repository text baseline is UTF-8, LF, 4-space indentation for text-heavy formats, and a 200-column ceiling unless a language-specific rule overrides it.
 
 **PERMANENT BAN (NO EXCEPTIONS)**: UTF-16 is prohibited. This ban explicitly applies to `docs/ENG-HANDBOOK.md` and all Copilot/Claude instruction artifacts under `.github/instructions/`, `.github/agents/`, `.claude/agents/`, `.github/skills/`, and `.claude/skills/`.
@@ -10770,7 +10013,7 @@ Use `multi_replace_string_in_file` for efficiency (up to 10 similar fixes per ba
 **Enforcement**: `fix-byte-order-marker` auto-fixes BOMs; `lint-text` rejects BOM-prefixed files; `.editorconfig` mirrors `charset = utf-8`, `end_of_line = lf`, and the formatting defaults; PowerShell file writes must use `[System.Text.UTF8Encoding]::new($false)`.
 
 **Skip list**: generated code, vendored dependencies, build/test artifacts, caches, worktrees, binaries, archives, secrets/cert material, IDE metadata, and other machine-owned files are excluded from text-format checks. Prefer narrowing the exclusion to the smallest machine-owned path rather than exempting an entire language.
-<!-- @/source -->
+<!-- @/from-eng-handbook -->
 
 ## golangci-lint Two-Pass Rule
 
@@ -10823,7 +10066,7 @@ applyTo: "**"
 
 ## Docker Compose Rules
 
-<!-- @source from="docs/ENG-HANDBOOK.md" as="docker-compose-rules" -->
+<!-- @from-eng-handbook as="docker-compose-rules" -->
 - Use `docker compose` (NOT `docker-compose`)
 - ALWAYS relative paths in compose.yml (NEVER absolute)
 - ALWAYS `127.0.0.1` in containers (NOT `localhost` - Alpine resolves to IPv6)
@@ -10834,7 +10077,7 @@ applyTo: "**"
 - **`docker-entrypoint-initdb.d/` scripts**: PostgreSQL initdb runs with Unix socket only (no TCP). ALL `psql` commands MUST omit `-h localhost`/`-h 127.0.0.1`; using `-h` causes `SASL auth` failures inside initdb
 - **Stack volume isolation**: Named volumes (e.g. `cryptoutil_postgres_leader_volume`) are shared across PS-ID stacks. Always run `docker compose down -v` before switching stacks to ensure fresh PostgreSQL initdb
 - **Canonical template sync**: When modifying ANY file in `deployments/*/` that has a counterpart in `api/cryptosuite-registry/templates/`, update the canonical template in the SAME commit
-<!-- @/source -->
+<!-- @/from-eng-handbook -->
 
 ## TLS Certificate Bind Mount (MANDATORY)
 
@@ -11003,11 +10246,11 @@ container, _ := postgres.RunContainer(ctx,
 
 ## Docker Verification Must Be In-Scope
 
-<!-- @source from="docs/ENG-HANDBOOK.md" as="docker-compose-verification-in-scope" -->
+<!-- @from-eng-handbook as="docker-compose-verification-in-scope" -->
 **Docker Verification Must Be In-Scope** (MANDATORY): Phases that modify Docker Compose files, config files consumed by containers, cert mount paths, or any artifact that affects runtime behavior MUST include a Docker Compose verification step **within the same phase** (`docker compose up --wait` + health endpoint check). If Docker Desktop is unavailable, the phase is **BLOCKED — not complete**. Configuration-only changes without Docker verification are untested hypotheses.
 
 **Multi-File Config Changes Need Integration Verification**: Any change spanning multiple interrelated configuration files (e.g., `postgresql.conf` + `pg_hba.conf` + GORM DSN + Docker volume mounts) MUST include an integration verification step that exercises the full configuration chain in a running environment — within the same phase. Common failure modes: wrong cert paths after mounting, permission errors inside containers, HBA rule ordering, DSN parameter mismatches.
-<!-- @/source -->
+<!-- @/from-eng-handbook -->
 
 ## Artifact Management
 
@@ -11033,7 +10276,7 @@ ALWAYS exclude dev/test artifacts. Build context should be <10MB.
 
 ## CICD Command Architecture
 
-<!-- @source from="docs/ENG-HANDBOOK.md" as="cicd-command-naming" -->
+<!-- @from-eng-handbook as="cicd-command-naming" -->
 **Three command categories** with strict naming and directory conventions:
 
 | Category | Naming Pattern | Directory Pattern | Entry Function | Registration |
@@ -11045,11 +10288,11 @@ ALWAYS exclude dev/test artifacts. Build context should be <10MB.
 **Linter commands** (14): `lint-text`, `lint-go`, `lint-go-test`, `lint-go-mod`, `lint-golangci`, `lint-compose`, `lint-ports`, `lint-workflow`, `lint-deployments`, `lint-docs`, `lint-fitness`, `lint-openapi`, `lint-java-test`, `lint-python-test`
 **Formatter commands** (2): `format-go`, `format-go-test`
 **Script commands** (1): `github-cleanup`
-<!-- @/source -->
+<!-- @/from-eng-handbook -->
 
 ## cicd-lint Command Constraints
 
-<!-- @source from="docs/ENG-HANDBOOK.md" as="cicd-lint-constraints" -->
+<!-- @from-eng-handbook as="cicd-lint-constraints" -->
 **Purpose**: `cicd-lint` is exclusively for linting, formatting, and operational cleanup. It NEVER generates files, scaffolds content, or transforms the repository.
 
 **Constraints** (NO EXCEPTIONS):
@@ -11059,7 +10302,7 @@ ALWAYS exclude dev/test artifacts. Build context should be <10MB.
 3. **No content generation**: cicd-lint NEVER creates Dockerfiles, compose files, config overlays, secrets, migration files, or any other repository artifacts. The strategy is detect-and-error, not generate-and-apply.
 4. **No Python under cicd_lint**: `internal/apps-tools/cicd_lint/` is pure Go. No Python scripts, modules, or helpers.
 5. **Codify as validators**: When a new invariant is identified, implement it as a fitness linter that validates the actual state against expected state and returns descriptive errors. NEVER implement it as a generator that creates the expected state.
-<!-- @/source -->
+<!-- @/from-eng-handbook -->
 
 ## Deployment Validation Pipeline (ENG-HANDBOOK Section 13.1.11)
 
@@ -11188,7 +10431,7 @@ autoapprove go test ./...
 
 ## Cross-Platform Scripts
 
-<!-- @source from="docs/ENG-HANDBOOK.md" as="scripting-language-policy" -->
+<!-- @from-eng-handbook as="scripting-language-policy" -->
 **MANDATORY: Choose scripting language in priority order. Lower-priority choices require justification.**
 
 | Priority | Language | When to Use |
@@ -11204,7 +10447,7 @@ autoapprove go test ./...
 **Docker container init exception**: The official PostgreSQL Docker image's `docker-entrypoint-initdb.d/` mechanism runs shell scripts natively. Shell scripts in this specific directory are the only permitted Bash exception. Minimize logic in these scripts; prefer `.sql` files where possible.
 
 **NO Python under `internal/apps-tools/cicd_lint/`**: The `cicd_lint` tool is pure Go. No Python scripts, generation helpers, or utility modules belong here. If a capability requires Python (rare), it belongs outside the Go module.
-<!-- @/source -->
+<!-- @/from-eng-handbook -->
 
 ## Authorized Chat Session Commands
 
@@ -11217,7 +10460,7 @@ autoapprove go test ./...
 
 ## Docker Desktop Startup - CRITICAL
 
-<!-- @source from="docs/ENG-HANDBOOK.md" as="docker-desktop-startup" -->
+<!-- @from-eng-handbook as="docker-desktop-startup" -->
 **MANDATORY**: Docker Desktop MUST be running before executing any Docker-dependent operations (E2E tests, Docker Compose, container builds).
 
 **Cross-Platform Verification**:
@@ -11276,11 +10519,11 @@ systemctl --user start docker-desktop
 - `docker compose up` fails with pipe/socket errors
 - E2E tests skip with environmental warnings
 - Integration test containers cannot start
-<!-- @/source -->
+<!-- @/from-eng-handbook -->
 
-<!-- @source from="docs/ENG-HANDBOOK.md" as="docker-desktop-upgrade" -->
+<!-- @from-eng-handbook as="docker-desktop-upgrade" -->
 **Docker Desktop Upgrade Warning**: After ANY Docker Desktop or testcontainers upgrade, run the full E2E test suite. Upgrades MAY break API compatibility between testcontainers-go and Docker Desktop — symptoms may include socket errors, container startup failures, and general Docker API issues.
-<!-- @/source -->
+<!-- @/from-eng-handbook -->
 
 **Infrastructure blockers from Docker version mismatches are ALWAYS MANDATORY BLOCKING.** NEVER defer as "pre-existing."
 
@@ -11321,7 +10564,7 @@ applyTo: "**"
 
 ## Conventional Commits Format
 
-<!-- @source from="docs/ENG-HANDBOOK.md" as="conventional-commits" -->
+<!-- @from-eng-handbook as="conventional-commits" -->
 **Format**: `<type>[optional scope]: <description>`
 
 **Types**: feat, fix, docs, style, refactor, perf, test, build, ci, chore, revert
@@ -11333,17 +10576,17 @@ feat(auth): add OAuth2 client credentials flow
 fix(database): prevent connection pool exhaustion
 feat(api)!: remove deprecated v1 endpoints  # Breaking change
 ```
-<!-- @/source -->
+<!-- @/from-eng-handbook -->
 
 ## Incremental Commits - CRITICAL
 
-<!-- @source from="docs/ENG-HANDBOOK.md" as="incremental-commits" -->
+<!-- @from-eng-handbook as="incremental-commits" -->
 - ALWAYS commit incrementally (NOT amend) - preserves history for bisect, selective revert.
 - NEVER repeatedly amend - loses context, hard to bisect.
 - Amend ONLY for immediate typo fixes (<1 min, before push).
 - **Semantic Grouping**: Commit each semantically coherent unit of work as it completes. NEVER accumulate changes for different semantic groups into a bulk commit. Semantic boundaries: one feature, one bug fix, one refactor, one test suite, one doc update = each gets its own commit.
 - **Periodic Commits**: Prefer frequent small commits over rare large commits. A completed task = a commit. Push every 5-10 commits.
-<!-- @/source -->
+<!-- @/from-eng-handbook -->
 
 ### Multi-Category Fix Commit Rule - CRITICAL
 
@@ -11361,7 +10604,7 @@ fix(tooling): fix config file padding violations           # independent root ca
 
 ## Restore from Clean Baseline Pattern
 
-<!-- @source from="docs/ENG-HANDBOOK.md" as="restore-from-baseline" -->
+<!-- @from-eng-handbook as="restore-from-baseline" -->
 **When fixing regressions, ALWAYS restore clean baseline FIRST**:
 
 1. Find last known-good commit (`git log --oneline --grep="baseline"`)
@@ -11371,7 +10614,7 @@ fix(tooling): fix config file padding violations           # independent root ca
 5. Commit as NEW commit (NOT amend)
 
 **Why**: HEAD may be corrupted from previous failed attempts. Start from known-good state.
-<!-- @/source -->
+<!-- @/from-eng-handbook -->
 
 ## Session Documentation Strategy
 
@@ -11400,14 +10643,14 @@ When unexpected test failures appear during a work session, run `git stash ; go 
 This repo uses LF everywhere. The `.gitattributes` file pins `* text=auto eol=lf`, which overrides
 `core.autocrlf` for all text files — no per-developer configuration is needed.
 
-<!-- @source from="docs/ENG-HANDBOOK.md" as="platform-line-ending-operations" -->
-<!-- @source from="docs/ENG-HANDBOOK.md" as="platform-line-ending-operations" -->
+<!-- @from-eng-handbook as="platform-line-ending-operations" -->
+<!-- @from-eng-handbook as="platform-line-ending-operations" -->
 **Policy** (MANDATORY): All text files use LF (`\n`). `mixed-line-ending`, `end-of-file-fixer`, and `editorconfig-checker` enforce the policy. Exclusions cover generated code, vendored dependencies, build/test outputs, caches, worktrees, binaries, archives, secrets/cert material, and IDE metadata.
 
 **PERMANENT BAN (NO EXCEPTIONS)**: CRLF line endings are prohibited. This ban explicitly applies to `docs/ENG-HANDBOOK.md` and all Copilot/Claude instruction artifacts under `.github/instructions/`, `.github/agents/`, `.claude/agents/`, `.github/skills/`, and `.claude/skills/`.
 
 **Rationale**: gofumpt, gofmt, and goimports emit LF; YAML/Markdown/SQL/text tools default to LF; CI/CD runs on Linux; LF everywhere prevents CRLF/LF churn on Windows. Prettier also defaults `endOfLine=lf` (v2.0.0+).
-<!-- @/source -->
+<!-- @/from-eng-handbook -->
 
 ## PowerShell Notes
 
@@ -11491,9 +10734,9 @@ Every gap -> Immediate fix OR new task doc (`##.##-GAP_NAME.md`)
 
 ## Per-Task Status Updates
 
-<!-- @source from="docs/ENG-HANDBOOK.md" as="per-task-status-updates" -->
+<!-- @from-eng-handbook as="per-task-status-updates" -->
 **Per-Task Status Updates** (MANDATORY): Update `tasks.md` immediately after each task completes. NEVER accumulate multiple task completions before updating documentation. A `tasks.md` that does not reflect actual state is a blocking artifact inconsistency. Deferred documentation creates invisible debt and false completion signals to subsequent phases.
-<!-- @/source -->
+<!-- @/from-eng-handbook -->
 
 ## Taxonomy-First Design for Large Migrations
 
@@ -11505,11 +10748,11 @@ When a package structurally cannot reach the mandatory coverage minimum, documen
 
 ## Infrastructure Blocker Escalation
 
-<!-- @source from="docs/ENG-HANDBOOK.md" as="infrastructure-blocker-escalation" -->
+<!-- @from-eng-handbook as="infrastructure-blocker-escalation" -->
 **MANDATORY: ALL infrastructure issues are BLOCKING. NEVER defer, deprioritize, skip, or tag as "pre-existing."**
 
 Three-encounter rule: 1st → document, 2nd → create fix task, 3rd → MANDATORY Phase 0 fix (block ALL other work). Infrastructure blockers (OTel, Docker, testcontainers, CI/CD) take priority over feature work.
-<!-- @/source -->
+<!-- @/from-eng-handbook -->
 
 ## Common Violations
 
@@ -11521,7 +10764,7 @@ Three-encounter rule: 1st → document, 2nd → create fix task, 3rd → MANDATO
 
 ## Mandatory Review Passes
 
-<!-- @source from="docs/ENG-HANDBOOK.md" as="mandatory-review-passes" -->
+<!-- @from-eng-handbook as="mandatory-review-passes" -->
 **MANDATORY: Minimum 3, maximum 5 review passes before marking any task complete.**
 
 Copilot and AI agents have a tendency to partially fulfill requested work, accidentally omitting or skipping items per request. To counter this, every task completion MUST include at least 3 review passes, each checking ALL 8 quality attributes:
@@ -11539,7 +10782,7 @@ Copilot and AI agents have a tendency to partially fulfill requested work, accid
 **Continuation rule**: If pass 3 finds ANY issue, continue to pass 4. If pass 4 still finds issues, continue to pass 5. Diminishing returns = done.
 
 **Scope**: ALL work types — code, docs, config, tests, infrastructure, deployments.
-<!-- @/source -->
+<!-- @/from-eng-handbook -->
 <!-- @handbook-derived-body:end -->
 <!-- @/file-catalog -->
 <!-- markdownlint-enable -->
@@ -11624,19 +10867,19 @@ Detects:
 
 **Legacy commands** (`.claude/commands/NAME.md`): Removed — all migrated to `.claude/skills/NAME/SKILL.md`. The `lint-skill-command-drift` linter now checks `.claude/skills/` exclusively.
 
-## @propagate Chunks in Agent Files
+## @to-appendix Chunks in Agent Files
 
-Content shared between agent files and `docs/ENG-HANDBOOK.md` MUST use the `@source`/`@propagate` system—identical to instruction files.
+Content shared between agent files and `docs/ENG-HANDBOOK.md` MUST use the `@from-eng-handbook`/`@to-appendix` system—identical to instruction files.
 
 **Adding a propagated chunk to an agent:**
-1. Identify the `<!-- @propagate ... as="CHUNK_ID" -->` block in ENG-HANDBOOK.md
-2. Add `<!-- @source from="docs/ENG-HANDBOOK.md" as="CHUNK_ID" -->` before the content
-3. Add `<!-- @/source -->` after the content (must be verbatim identical to ENG-HANDBOOK.md)
-4. Add the agent file to ENG-HANDBOOK.md's `@propagate to=` attribute (comma-separated)
+1. Identify the `<!-- @to-appendix ... as="CHUNK_ID" -->` block in ENG-HANDBOOK.md
+2. Add `<!-- @from-eng-handbook as="CHUNK_ID" -->` before the content
+3. Add `<!-- @/from-eng-handbook -->` after the content (must be verbatim identical to ENG-HANDBOOK.md)
+4. Add the agent file to ENG-HANDBOOK.md's `appendixes=` attribute (comma-separated)
 5. Add the agent file to `docs/required-propagations.yaml` `required_targets` for the chunk
 6. Run `go run ./cmd/cicd-lint lint-docs` → `validate-coverage` and `validate-chunks` must pass
 
-**ALWAYS add @source to both Copilot AND Claude files simultaneously** (lint-agent-drift enforces body identity).
+**ALWAYS add @from-eng-handbook to both Copilot AND Claude files simultaneously** (lint-agent-drift enforces body identity).
 
 ## YAML Frontmatter - MANDATORY
 
@@ -11674,7 +10917,7 @@ When `/agent-name` invoked (Claude Code):
 
 **Implication**: Agents MUST be self-contained.
 
-<!-- @source from="docs/ENG-HANDBOOK.md" as="agent-self-containment" -->
+<!-- @from-eng-handbook as="agent-self-containment" -->
 **Agent Self-Containment Checklist** (MANDATORY):
 - Agents generating implementation plans MUST reference ENG-HANDBOOK.md testing (Section 10), quality gates (Section 11), coding standards (Section 14)
 - Agents modifying code MUST reference coding standards (Sections 11, 14)
@@ -11683,7 +10926,7 @@ When `/agent-name` invoked (Claude Code):
 - Agents modifying documentation or copilot artifacts (skills, instructions, agents) MUST reference Section 2.1 (Agent/Skill/Instruction catalog) and Section 13.4 (Documentation Propagation)
 - ALL agents MUST reference Section 2.5 (Quality Strategy) for coverage and mutation targets
 - Agents with ZERO ENG-HANDBOOK.md references are NON-COMPLIANT and MUST be updated
-<!-- @/source -->
+<!-- @/from-eng-handbook -->
 
 ## Continuous Execution Agents
 
@@ -11749,7 +10992,7 @@ rate limits are based on tokens per hour. Inefficient tool use compounds across 
 
 Use the least expensive tool that satisfies the requirement:
 
-<!-- @source from="docs/ENG-HANDBOOK.md" as="tool-preference-order" -->
+<!-- @from-eng-handbook as="tool-preference-order" -->
 | Priority | Tool | When to Use |
 |----------|------|-------------|
 | 1 (cheapest) | `grep_search` / `text_search` | Exact string or regex match in known files |
@@ -11758,7 +11001,7 @@ Use the least expensive tool that satisfies the requirement:
 | 4 | `read_file` (targeted) | Read a specific 50–200 line window of a known file |
 | 5 | `read_file` (full) | Full file read only when entire context required |
 | 6 (costliest) | `semantic_search` | ONLY when query cannot be expressed as regex/literal |
-<!-- @/source -->
+<!-- @/from-eng-handbook -->
 
 ## F1: Prefer grep_search Over semantic_search
 
@@ -12127,13 +11370,13 @@ fix(tooling): fix config file padding violations
 
 **Anti-Pattern** (NEVER): One 155-file commit mixing line-ending fixes, Dockerfile tabs, .editorconfig changes, shell padding, and YAML continuation lines.
 
-<!-- @source from="docs/ENG-HANDBOOK.md" as="platform-line-ending-operations" -->
+<!-- @from-eng-handbook as="platform-line-ending-operations" -->
 **Policy** (MANDATORY): All text files use LF (`\n`). `mixed-line-ending`, `end-of-file-fixer`, and `editorconfig-checker` enforce the policy. Exclusions cover generated code, vendored dependencies, build/test outputs, caches, worktrees, binaries, archives, secrets/cert material, and IDE metadata.
 
 **PERMANENT BAN (NO EXCEPTIONS)**: CRLF line endings are prohibited. This ban explicitly applies to `docs/ENG-HANDBOOK.md` and all Copilot/Claude instruction artifacts under `.github/instructions/`, `.github/agents/`, `.claude/agents/`, `.github/skills/`, and `.claude/skills/`.
 
 **Rationale**: gofumpt, gofmt, and goimports emit LF; YAML/Markdown/SQL/text tools default to LF; CI/CD runs on Linux; LF everywhere prevents CRLF/LF churn on Windows. Prettier also defaults `endOfLine=lf` (v2.0.0+).
-<!-- @/source -->
+<!-- @/from-eng-handbook -->
 
 **Todo List Empty?**
 
@@ -12345,7 +11588,7 @@ go test -race -count=3 ./...              # Race detection
 
 ## Mandatory Review Passes
 
-<!-- @source from="docs/ENG-HANDBOOK.md" as="mandatory-review-passes" -->
+<!-- @from-eng-handbook as="mandatory-review-passes" -->
 **MANDATORY: Minimum 3, maximum 5 review passes before marking any task complete.**
 
 Copilot and AI agents have a tendency to partially fulfill requested work, accidentally omitting or skipping items per request. To counter this, every task completion MUST include at least 3 review passes, each checking ALL 8 quality attributes:
@@ -12363,7 +11606,7 @@ Copilot and AI agents have a tendency to partially fulfill requested work, accid
 **Continuation rule**: If pass 3 finds ANY issue, continue to pass 4. If pass 4 still finds issues, continue to pass 5. Diminishing returns = done.
 
 **Scope**: ALL work types — code, docs, config, tests, infrastructure, deployments.
-<!-- @/source -->
+<!-- @/from-eng-handbook -->
 
 ---
 
@@ -12427,7 +11670,7 @@ A response that leaves uncommitted changes is incomplete by definition. The Work
 
 ### Bulk-Hook Architecture (CI/CD Infrastructure)
 
-<!-- @source from="docs/ENG-HANDBOOK.md" as="cicd-bulk-hook-architecture" -->
+<!-- @from-eng-handbook as="cicd-bulk-hook-architecture" -->
 `cicd-lint` command execution and `.pre-commit-config.yaml` wiring MUST follow this architecture:
 
 1. **Four bulk cicd hooks only** in `.pre-commit-config.yaml`:
@@ -12446,17 +11689,17 @@ A response that leaves uncommitted changes is incomplete by definition. The Work
 1. **Enforcement**: `lint-fitness` sub-linter `precommit-cicd-architecture` is authoritative and MUST fail on any drift.
 
 **Rationale**: This prevents cross-category races (read-only lint vs mutating format), preserves deterministic developer workflows, and ensures new cicd subcommands cannot be added without being wired into bulk hooks.
-<!-- @/source -->
+<!-- @/from-eng-handbook -->
 
 ### Line Ending Policy (Repository Convention)
 
-<!-- @source from="docs/ENG-HANDBOOK.md" as="platform-line-ending-operations" -->
+<!-- @from-eng-handbook as="platform-line-ending-operations" -->
 **Policy** (MANDATORY): All text files use LF (`\n`). `mixed-line-ending`, `end-of-file-fixer`, and `editorconfig-checker` enforce the policy. Exclusions cover generated code, vendored dependencies, build/test outputs, caches, worktrees, binaries, archives, secrets/cert material, and IDE metadata.
 
 **PERMANENT BAN (NO EXCEPTIONS)**: CRLF line endings are prohibited. This ban explicitly applies to `docs/ENG-HANDBOOK.md` and all Copilot/Claude instruction artifacts under `.github/instructions/`, `.github/agents/`, `.claude/agents/`, `.github/skills/`, and `.claude/skills/`.
 
 **Rationale**: gofumpt, gofmt, and goimports emit LF; YAML/Markdown/SQL/text tools default to LF; CI/CD runs on Linux; LF everywhere prevents CRLF/LF churn on Windows. Prettier also defaults `endOfLine=lf` (v2.0.0+).
-<!-- @/source -->
+<!-- @/from-eng-handbook -->
 
 **Repository-Specific Details**: See Repository Policy References section at end for cryptoutil-specific CI infrastructure and conventions.
 <!-- @file-body:end -->
@@ -13289,20 +12532,20 @@ permissions:
 
 ## Cross-Platform File & Command Conventions
 
-<!-- @source from="docs/ENG-HANDBOOK.md" as="platform-line-ending-operations" -->
-<!-- @source from="docs/ENG-HANDBOOK.md" as="platform-line-ending-operations" -->
+<!-- @from-eng-handbook as="platform-line-ending-operations" -->
+<!-- @from-eng-handbook as="platform-line-ending-operations" -->
 **Policy** (MANDATORY): All text files use LF (`\n`). `mixed-line-ending`, `end-of-file-fixer`, and `editorconfig-checker` enforce the policy. Exclusions cover generated code, vendored dependencies, build/test outputs, caches, worktrees, binaries, archives, secrets/cert material, and IDE metadata.
 
 **PERMANENT BAN (NO EXCEPTIONS)**: CRLF line endings are prohibited. This ban explicitly applies to `docs/ENG-HANDBOOK.md` and all Copilot/Claude instruction artifacts under `.github/instructions/`, `.github/agents/`, `.claude/agents/`, `.github/skills/`, and `.claude/skills/`.
 
 **Rationale**: gofumpt, gofmt, and goimports emit LF; YAML/Markdown/SQL/text tools default to LF; CI/CD runs on Linux; LF everywhere prevents CRLF/LF churn on Windows. Prettier also defaults `endOfLine=lf` (v2.0.0+).
-<!-- @/source -->
+<!-- @/from-eng-handbook -->
 
 ---
 
 ## Mandatory Review Passes
 
-<!-- @source from="docs/ENG-HANDBOOK.md" as="mandatory-review-passes" -->
+<!-- @from-eng-handbook as="mandatory-review-passes" -->
 **MANDATORY: Minimum 3, maximum 5 review passes before marking any task complete.**
 
 Copilot and AI agents have a tendency to partially fulfill requested work, accidentally omitting or skipping items per request. To counter this, every task completion MUST include at least 3 review passes, each checking ALL 8 quality attributes:
@@ -13320,7 +12563,7 @@ Copilot and AI agents have a tendency to partially fulfill requested work, accid
 **Continuation rule**: If pass 3 finds ANY issue, continue to pass 4. If pass 4 still finds issues, continue to pass 5. Diminishing returns = done.
 
 **Scope**: ALL work types — code, docs, config, tests, infrastructure, deployments.
-<!-- @/source -->
+<!-- @/from-eng-handbook -->
 
 ---
 
@@ -14790,7 +14033,7 @@ If a task cannot be completed due to architectural limitations, missing infrastr
 
 ## lessons.md Document Structure
 
-<!-- @source from="docs/ENG-HANDBOOK.md" as="lessons-md-structure" -->
+<!-- @from-eng-handbook as="lessons-md-structure" -->
 A completed `lessons.md` MUST contain three top-level sections **in this order**:
 
 **1. `## Executive Summary`** — Written at plan completion. A numbered list where each entry is a markdown link to a `## Phase N:` section followed by a one-sentence description of the key outcome. Enables reviewers to scan the entire plan scope at a glance and navigate directly to relevant phases.
@@ -14812,42 +14055,42 @@ Example entries:
 - `implementation-execution`: At plan completion, fill `## Executive Summary` with phase links and one-sentence outcomes, fill `## Actions` with concrete copy-paste follow-up items, and populate each `## Phase N:` section with the 4-section post-mortem content.
 
 **Rationale**: Without top-level sections, reviewers must read all phase sections linearly to understand plan scope and identify follow-up work. `## Executive Summary` enables rapid navigation; `## Actions` enables copy-paste follow-up without re-reading all phases — eliminating the manual extraction step that slows reviewer triage.
-<!-- @/source -->
+<!-- @/from-eng-handbook -->
 
 ---
 
 ## Cross-Platform File & Command Conventions
 
-<!-- @source from="docs/ENG-HANDBOOK.md" as="platform-line-ending-operations" -->
-<!-- @source from="docs/ENG-HANDBOOK.md" as="platform-line-ending-operations" -->
+<!-- @from-eng-handbook as="platform-line-ending-operations" -->
+<!-- @from-eng-handbook as="platform-line-ending-operations" -->
 **Policy** (MANDATORY): All text files use LF (`\n`). `mixed-line-ending`, `end-of-file-fixer`, and `editorconfig-checker` enforce the policy. Exclusions cover generated code, vendored dependencies, build/test outputs, caches, worktrees, binaries, archives, secrets/cert material, and IDE metadata.
 
 **PERMANENT BAN (NO EXCEPTIONS)**: CRLF line endings are prohibited. This ban explicitly applies to `docs/ENG-HANDBOOK.md` and all Copilot/Claude instruction artifacts under `.github/instructions/`, `.github/agents/`, `.claude/agents/`, `.github/skills/`, and `.claude/skills/`.
 
 **Rationale**: gofumpt, gofmt, and goimports emit LF; YAML/Markdown/SQL/text tools default to LF; CI/CD runs on Linux; LF everywhere prevents CRLF/LF churn on Windows. Prettier also defaults `endOfLine=lf` (v2.0.0+).
-<!-- @/source -->
+<!-- @/from-eng-handbook -->
 
 ---
 
 ## Per-Task Status Updates
 
-<!-- @source from="docs/ENG-HANDBOOK.md" as="per-task-status-updates" -->
+<!-- @from-eng-handbook as="per-task-status-updates" -->
 **Per-Task Status Updates** (MANDATORY): Update `tasks.md` immediately after each task completes. NEVER accumulate multiple task completions before updating documentation. A `tasks.md` that does not reflect actual state is a blocking artifact inconsistency. Deferred documentation creates invisible debt and false completion signals to subsequent phases.
-<!-- @/source -->
+<!-- @/from-eng-handbook -->
 
 ## Docker Compose Verification
 
-<!-- @source from="docs/ENG-HANDBOOK.md" as="docker-compose-verification-in-scope" -->
+<!-- @from-eng-handbook as="docker-compose-verification-in-scope" -->
 **Docker Verification Must Be In-Scope** (MANDATORY): Phases that modify Docker Compose files, config files consumed by containers, cert mount paths, or any artifact that affects runtime behavior MUST include a Docker Compose verification step **within the same phase** (`docker compose up --wait` + health endpoint check). If Docker Desktop is unavailable, the phase is **BLOCKED — not complete**. Configuration-only changes without Docker verification are untested hypotheses.
 
 **Multi-File Config Changes Need Integration Verification**: Any change spanning multiple interrelated configuration files (e.g., `postgresql.conf` + `pg_hba.conf` + GORM DSN + Docker volume mounts) MUST include an integration verification step that exercises the full configuration chain in a running environment — within the same phase. Common failure modes: wrong cert paths after mounting, permission errors inside containers, HBA rule ordering, DSN parameter mismatches.
-<!-- @/source -->
+<!-- @/from-eng-handbook -->
 
 ---
 
 ## Mandatory Review Passes
 
-<!-- @source from="docs/ENG-HANDBOOK.md" as="mandatory-review-passes" -->
+<!-- @from-eng-handbook as="mandatory-review-passes" -->
 **MANDATORY: Minimum 3, maximum 5 review passes before marking any task complete.**
 
 Copilot and AI agents have a tendency to partially fulfill requested work, accidentally omitting or skipping items per request. To counter this, every task completion MUST include at least 3 review passes, each checking ALL 8 quality attributes:
@@ -14865,7 +14108,7 @@ Copilot and AI agents have a tendency to partially fulfill requested work, accid
 **Continuation rule**: If pass 3 finds ANY issue, continue to pass 4. If pass 4 still finds issues, continue to pass 5. Diminishing returns = done.
 
 **Scope**: ALL work types — code, docs, config, tests, infrastructure, deployments.
-<!-- @/source -->
+<!-- @/from-eng-handbook -->
 
 ---
 
@@ -16244,7 +15487,7 @@ Would you like me to...?  ❌ FORBIDDEN
 
 ## lessons.md Document Structure
 
-<!-- @source from="docs/ENG-HANDBOOK.md" as="lessons-md-structure" -->
+<!-- @from-eng-handbook as="lessons-md-structure" -->
 A completed `lessons.md` MUST contain three top-level sections **in this order**:
 
 **1. `## Executive Summary`** — Written at plan completion. A numbered list where each entry is a markdown link to a `## Phase N:` section followed by a one-sentence description of the key outcome. Enables reviewers to scan the entire plan scope at a glance and navigate directly to relevant phases.
@@ -16266,42 +15509,42 @@ Example entries:
 - `implementation-execution`: At plan completion, fill `## Executive Summary` with phase links and one-sentence outcomes, fill `## Actions` with concrete copy-paste follow-up items, and populate each `## Phase N:` section with the 4-section post-mortem content.
 
 **Rationale**: Without top-level sections, reviewers must read all phase sections linearly to understand plan scope and identify follow-up work. `## Executive Summary` enables rapid navigation; `## Actions` enables copy-paste follow-up without re-reading all phases — eliminating the manual extraction step that slows reviewer triage.
-<!-- @/source -->
+<!-- @/from-eng-handbook -->
 
 ---
 
 ## Cross-Platform File & Command Conventions
 
-<!-- @source from="docs/ENG-HANDBOOK.md" as="platform-line-ending-operations" -->
-<!-- @source from="docs/ENG-HANDBOOK.md" as="platform-line-ending-operations" -->
+<!-- @from-eng-handbook as="platform-line-ending-operations" -->
+<!-- @from-eng-handbook as="platform-line-ending-operations" -->
 **Policy** (MANDATORY): All text files use LF (`\n`). `mixed-line-ending`, `end-of-file-fixer`, and `editorconfig-checker` enforce the policy. Exclusions cover generated code, vendored dependencies, build/test outputs, caches, worktrees, binaries, archives, secrets/cert material, and IDE metadata.
 
 **PERMANENT BAN (NO EXCEPTIONS)**: CRLF line endings are prohibited. This ban explicitly applies to `docs/ENG-HANDBOOK.md` and all Copilot/Claude instruction artifacts under `.github/instructions/`, `.github/agents/`, `.claude/agents/`, `.github/skills/`, and `.claude/skills/`.
 
 **Rationale**: gofumpt, gofmt, and goimports emit LF; YAML/Markdown/SQL/text tools default to LF; CI/CD runs on Linux; LF everywhere prevents CRLF/LF churn on Windows. Prettier also defaults `endOfLine=lf` (v2.0.0+).
-<!-- @/source -->
+<!-- @/from-eng-handbook -->
 
 ---
 
 ## Per-Task Status Updates
 
-<!-- @source from="docs/ENG-HANDBOOK.md" as="per-task-status-updates" -->
+<!-- @from-eng-handbook as="per-task-status-updates" -->
 **Per-Task Status Updates** (MANDATORY): Update `tasks.md` immediately after each task completes. NEVER accumulate multiple task completions before updating documentation. A `tasks.md` that does not reflect actual state is a blocking artifact inconsistency. Deferred documentation creates invisible debt and false completion signals to subsequent phases.
-<!-- @/source -->
+<!-- @/from-eng-handbook -->
 
 ## Docker Compose Verification
 
-<!-- @source from="docs/ENG-HANDBOOK.md" as="docker-compose-verification-in-scope" -->
+<!-- @from-eng-handbook as="docker-compose-verification-in-scope" -->
 **Docker Verification Must Be In-Scope** (MANDATORY): Phases that modify Docker Compose files, config files consumed by containers, cert mount paths, or any artifact that affects runtime behavior MUST include a Docker Compose verification step **within the same phase** (`docker compose up --wait` + health endpoint check). If Docker Desktop is unavailable, the phase is **BLOCKED — not complete**. Configuration-only changes without Docker verification are untested hypotheses.
 
 **Multi-File Config Changes Need Integration Verification**: Any change spanning multiple interrelated configuration files (e.g., `postgresql.conf` + `pg_hba.conf` + GORM DSN + Docker volume mounts) MUST include an integration verification step that exercises the full configuration chain in a running environment — within the same phase. Common failure modes: wrong cert paths after mounting, permission errors inside containers, HBA rule ordering, DSN parameter mismatches.
-<!-- @/source -->
+<!-- @/from-eng-handbook -->
 
 ---
 
 ## Mandatory Review Passes
 
-<!-- @source from="docs/ENG-HANDBOOK.md" as="mandatory-review-passes" -->
+<!-- @from-eng-handbook as="mandatory-review-passes" -->
 **MANDATORY: Minimum 3, maximum 5 review passes before marking any task complete.**
 
 Copilot and AI agents have a tendency to partially fulfill requested work, accidentally omitting or skipping items per request. To counter this, every task completion MUST include at least 3 review passes, each checking ALL 8 quality attributes:
@@ -16319,7 +15562,7 @@ Copilot and AI agents have a tendency to partially fulfill requested work, accid
 **Continuation rule**: If pass 3 finds ANY issue, continue to pass 4. If pass 4 still finds issues, continue to pass 5. Diminishing returns = done.
 
 **Scope**: ALL work types — code, docs, config, tests, infrastructure, deployments.
-<!-- @/source -->
+<!-- @/from-eng-handbook -->
 
 ---
 
@@ -16384,14 +15627,14 @@ instructions, and skills.
 
 ## Key Rules
 
-<!-- @source from="docs/ENG-HANDBOOK.md" as="skill-copilot-customization-core-rules" -->
+<!-- @from-eng-handbook as="skill-copilot-customization-core-rules" -->
 - Pick one artifact type per invocation: `agent`, `instruction`, or `skill`
 - Decide the operation up front: create, update, or delete
 - Agents are dual-canonical: create BOTH `.github/agents/NAME.agent.md` and `.claude/agents/NAME.md`
 - Skills are dual-canonical: create BOTH `.github/skills/NAME/SKILL.md` and `.claude/skills/NAME/SKILL.md`
 - Agent and skill body content MUST stay identical across Copilot and Claude pairs; only permitted frontmatter differences may differ
 - Run `go run ./cmd/cicd-lint lint-docs` after creating, updating, or deleting any customization artifact
-<!-- @/source -->
+<!-- @/from-eng-handbook -->
 - Instruction files live in `.github/instructions/`, and Claude consumes them through the `## Instruction Files` list in `CLAUDE.md`
 - Keep `CLAUDE.md` synchronized: update the `Instruction Files`, `Agents`, and `Skills` sections when their inventories change
 - Update the relevant catalog surfaces in the same change: `.github/skills/README.md`, `.github/copilot-instructions.md`, `CLAUDE.md`, and `docs/ENG-HANDBOOK.md` when the artifact should be discoverable there
@@ -17298,14 +16541,14 @@ oapi-codegen config files and a baseline OpenAPI 3.0.3 spec.
 
 ## Key Rules
 
-<!-- @source from="docs/ENG-HANDBOOK.md" as="skill-openapi-codegen-core-rules" -->
+<!-- @from-eng-handbook as="skill-openapi-codegen-core-rules" -->
 - OpenAPI version MUST be 3.0.3 (NOT 2.0/Swagger, NOT 3.1.x)
 - Generate THREE config files: server (`strict-server: true`), model, client
 - API MUST duplicate under BOTH `/service/` and `/browser/` paths
 - Content type: `application/json` ONLY (no form, multipart, or other types)
 - `strict-server: true` is MANDATORY in server config
 - All `openapi-gen_config*.yaml` MUST include the full base initialisms list from ENG-HANDBOOK.md §8
-<!-- @/source -->
+<!-- @/from-eng-handbook -->
 
 ## Three Config Files Per Service
 
@@ -17444,7 +16687,7 @@ Read [ENG-HANDBOOK.md Section 8.4 Error Handling](../../../docs/ENG-HANDBOOK.md#
 <!-- @copilot-frontmatter:start -->
 ---
 name: propagation-check
-description: "Detect @propagate/@source drift between ENG-HANDBOOK.md and instruction files, and generate corrected @source block content. Use before committing instruction file changes to ensure lint-docs passes and verbatim doc chunks stay synchronized."
+description: "Detect @to-appendix/@from-eng-handbook drift between ENG-HANDBOOK.md and instruction files, and generate corrected @from-eng-handbook block content. Use before committing instruction file changes to ensure lint-docs passes and verbatim doc chunks stay synchronized."
 argument-hint: "[instruction file or omit for full project check]"
 ---
 <!-- @copilot-frontmatter:end -->
@@ -17452,48 +16695,48 @@ argument-hint: "[instruction file or omit for full project check]"
 <!-- @claude-frontmatter:start -->
 ---
 name: propagation-check
-description: "Detect @propagate/@source drift between ENG-HANDBOOK.md and instruction files, and generate corrected @source block content. Use before committing instruction file changes to ensure lint-docs passes and verbatim doc chunks stay synchronized."
+description: "Detect @to-appendix/@from-eng-handbook drift between ENG-HANDBOOK.md and instruction files, and generate corrected @from-eng-handbook block content. Use before committing instruction file changes to ensure lint-docs passes and verbatim doc chunks stay synchronized."
 argument-hint: "[instruction file or omit for full project check]"
 ---
 <!-- @claude-frontmatter:end -->
 
 <!-- @file-body:start -->
 
-Detect @propagate/@source drift and generate corrected @source block content.
+Detect @to-appendix/@from-eng-handbook drift and generate corrected @from-eng-handbook block content.
 
 ## Purpose
 
 Use when ENG-HANDBOOK.md sections have changed and you need to update downstream
-`@source` blocks in instruction files or agents. Prevents copy-paste errors.
+`@from-eng-handbook` blocks in instruction files or agents. Prevents copy-paste errors.
 
 ## Key Rules
 
-<!-- @source from="docs/ENG-HANDBOOK.md" as="skill-propagation-check-core-rules" -->
-- `@source` content MUST be byte-for-byte identical to `@propagate` content in ENG-HANDBOOK.md
+<!-- @from-eng-handbook as="skill-propagation-check-core-rules" -->
+- `@from-eng-handbook` content MUST be byte-for-byte identical to `@to-appendix` content in ENG-HANDBOOK.md
 - Run `go run ./cmd/cicd-lint lint-docs` to detect drift
-- Add both Copilot file AND Claude file to `@propagate to=` attribute (comma-separated)
+- Add both Copilot file AND Claude file to `appendixes=` attribute (comma-separated)
 - Update `docs/required-propagations.yaml` `required_targets` when adding new targets
-- When ENG-HANDBOOK.md chunk changes, ALL downstream `@source` blocks must be updated
-<!-- @/source -->
+- When ENG-HANDBOOK.md chunk changes, ALL downstream `@from-eng-handbook` blocks must be updated
+<!-- @/from-eng-handbook -->
 - Copilot and Claude agent files MUST have identical body content (only frontmatter differs)
 
 ## Marker System
 
 **Source (ENG-HANDBOOK.md)**:
 ```html
-<!-- @propagate to=".github/instructions/FILE.md" as="chunk-id" -->
+<!-- @to-appendix as="chunk-id" appendixes=".github/instructions/FILE.md" -->
 content here
-<!-- @/propagate -->
+<!-- @/to-appendix -->
 ```
 
 **Target (instruction file OR agent file)**:
 ```html
-<!-- @source from="docs/ENG-HANDBOOK.md" as="chunk-id" -->
+<!-- @from-eng-handbook as="chunk-id" -->
 content here (MUST be byte-for-byte identical)
-<!-- @/source -->
+<!-- @/from-eng-handbook -->
 ```
 
-> Note: Both `.github/instructions/*.instructions.md` files AND `.github/agents/*.agent.md` files can contain `@source` blocks. Agents do not inherit instruction files, so propagated content must be embedded directly in the agent file.
+> Note: Both `.github/instructions/*.instructions.md` files AND `.github/agents/*.agent.md` files can contain `@from-eng-handbook` blocks. Agents do not inherit instruction files, so propagated content must be embedded directly in the agent file.
 
 ## Checking for Drift
 
@@ -17504,9 +16747,9 @@ go run ./cmd/cicd-lint lint-docs
 
 ## Fix Workflow
 
-1. Find the @propagate block in ENG-HANDBOOK.md
+1. Find the @to-appendix block in ENG-HANDBOOK.md
 2. Copy its content verbatim
-3. Paste between @source markers in the target file
+3. Paste between @from-eng-handbook markers in the target file
 4. Run `go run ./cmd/cicd-lint lint-docs` to verify match
 
 ## Rules
@@ -17646,13 +16889,13 @@ Use when:
 
 ## Key Rules
 
-<!-- @source from="docs/ENG-HANDBOOK.md" as="skill-sync-copilot-claude-core-rules" -->
+<!-- @from-eng-handbook as="skill-sync-copilot-claude-core-rules" -->
 - Copilot skills live at `.github/skills/<NAME>/SKILL.md`; Claude skills at `.claude/skills/<NAME>/SKILL.md`
 - Body content MUST be identical between Copilot and Claude skill files
 - Claude agents at `.claude/agents/<NAME>.md` must match Copilot agents at `.github/agents/<NAME>.agent.md`
 - NEVER update only one file — always sync both in the same commit
 - The `lint-agent-drift` linter (in `lint-docs`) enforces agent pair identity automatically
-<!-- @/source -->
+<!-- @/from-eng-handbook -->
 - Only allowed frontmatter differences: `tools:` / `allowed-tools:` field naming (Copilot vs Claude)
 - Verify discoverability after sync: update `.github/skills/README.md`, `.github/copilot-instructions.md`, `CLAUDE.md`, and `docs/ENG-HANDBOOK.md` when a new skill or agent should appear there
 - Flag overlap explicitly: if two skills now describe the same creation or audit workflow, merge or narrow them in the same change instead of preserving redundant catalog entries
@@ -17960,7 +17203,7 @@ and faster, less flaky test setup.
 
 ## Key Rules
 
-<!-- @source from="docs/ENG-HANDBOOK.md" as="skill-test-table-driven-core-rules" -->
+<!-- @from-eng-handbook as="skill-test-table-driven-core-rules" -->
 - `t.Parallel()` MANDATORY on parent and ALL subtests
 - Use `googleUuid.NewV7()` for test data IDs (thread-safe, unique, no conflicts)
 - `require` package (fail-fast) over `assert` (continue-on-failure)
@@ -17968,7 +17211,7 @@ and faster, less flaky test setup.
 - TestMain for heavyweight resources (DB, servers, containers) — one per package
 - Use exactly one `testmain_test.go` per package; never split into `testmain_*_test.go` variants
 - `testmain_test.go` must not use `//go:build` or `// +build` directives
-<!-- @/source -->
+<!-- @/from-eng-handbook -->
 - Prefer Fiber `app.Test()` for handler-only coverage; use real listeners only when lifecycle, TLS, shutdown, or transport behavior is the subject under test
 - SQLite DateTime: ALWAYS use `time.Now().UTC()` when comparing timestamps
 - For lifecycle tests, use bounded timeouts and preserve the stress mode that exposed the issue (`-shuffle=on`, package-scoped rerun, or parallel execution)
