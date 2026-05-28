@@ -261,7 +261,7 @@ const (
 	CICDFileCatalogBodyStartMarker = "<!-- @file-body:start -->"
 
 	// CICDFileCatalogBodyEndMarker is the closing marker for the shared body section within a pair entry.
-	CICDFileCatalogBodyEndMarker = "<!-- @/file-body -->"
+	CICDFileCatalogBodyEndMarker = "<!-- @file-body:end -->"
 
 	// CICDFileCatalogPathAttr is the path attribute name used in @file-catalog markers.
 	CICDFileCatalogPathAttr = `path="`
