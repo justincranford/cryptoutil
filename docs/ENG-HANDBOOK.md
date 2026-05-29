@@ -88,7 +88,6 @@ This document is structured to serve multiple audiences:
 | Service framework / builder | [5.1](#51-service-framework-pattern) | [5.2](#52-service-builder-pattern), [9.10](#910-cicd-command-architecture) |
 | CGO-free compilation | [11.1.2](#1112-cgo-ban---critical) | [3.1](#31-product-overview) |
 | Autonomous execution | [14.11](#1411-claude-code-autonomous-execution) | [2.4](#24-implementation-strategy) |
-| Spec-Driven Development (SDD) | [1.1](#11-vision-statement) | [2.3](#23-design-strategy) |
 | Elastic key ring | [6.6](#66-jose-architecture--strategy) | [6.4.5](#645-key-rotation-strategies) |
 | Barrier / encryption-at-rest | [6.4.2](#642-key-hierarchy-barrier-service) | [6.7](#67-key-management-system-architecture) |
 | CA/Browser Forum compliance | [6.5](#65-pki-architecture--strategy) | [C.2](#c2-pki-standards-compliance) |
@@ -137,7 +136,7 @@ This document is structured to serve multiple audiences:
 4. **Identity** - OAuth 2.1, OIDC 1.0, WebAuthn, and Passkeys authentication and authorization
 5. **Skeleton** - Best-practice stereotype product-service template for service-framework usage reference
 
-**Purpose**: This project is **for fun** while providing a comprehensive learning experience with LLM agents for Spec-Driven Development (SDD) and delivering modern, enterprise-ready security products.
+**Purpose**: This project is **for fun** while providing a comprehensive learning experience with LLM agents and delivering modern, enterprise-ready security products.
 
 ### 1.2 Key Architectural Characteristics
 
@@ -169,18 +168,18 @@ This document is structured to serve multiple audiences:
 - **Kubernetes-ready health endpoints**: `/admin/api/v1/livez`, `/admin/api/v1/readyz`
 - **Grafana-OTEL-LGTM stack**: Integrated Grafana, Loki, Tempo, and Prometheus
 
-#### 🏗️ Production Ready
+#### Production Ready
 
-- **Database support**: PostgreSQL (production), SQLite (development/testing)
+- **Database support**: PostgreSQL (production, e2e testing), SQLite (development/integration testing)
 - **Container deployment**: Docker Compose with secret management
 - **Configuration management**: YAML files + CLI parameters
 - **Graceful shutdown**: Signal handling and connection draining
 
-#### 🤖 AI-Augmented Platform Engineering
+#### AI-Augmented Platform Engineering
 
 - **Agent orchestration**: Copilot agents, Claude Code agents, dual canonical format, handoff flows, lint-agent-drift enforcement (see [Section 2.1](#21-agent-orchestration-strategy))
 - **Service framework & builder**: Shared HTTPS, TLS, database, barrier, session, and realm subsystems — eliminates 48,000+ lines of boilerplate per service (see [Section 5.1](#51-service-framework-pattern))
-- **Architecture fitness functions**: Programmatic invariant enforcement via 58+ fitness sub-linters (parallel-tests, file-size, test-patterns, entity-registry-completeness, and more — see [Section 9.11](#911-architecture-fitness-functions))
+- **Architecture fitness functions**: Programmatic invariant enforcement via fitness sub-linters (parallel-tests, file-size, test-patterns, entity-registry-completeness, and more — see [Section 9.11](#911-architecture-fitness-functions))
 - **Documentation propagation system**: `@from-eng-handbook`/`@to-appendix` markers keep instruction files, agent files, and `ENG-HANDBOOK.md` byte-for-byte in sync; drift detected by `lint-docs` (see [Section 13.4](#134-documentation-propagation-strategy))
 - **Developer inner-loop tooling**: `cicd-lint` with 14 linters, 2 formatters, and 1 operational script enforces project invariants locally before every commit (see [Section 9.10](#910-cicd-command-architecture))
 - **Autonomous execution protocol**: Beast-mode agents and pre-commit quality gates enforce continuous-work, evidence-based completion, and end-of-turn commit discipline (see [Section 14.11](#1411-claude-code-autonomous-execution))
