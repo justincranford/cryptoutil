@@ -255,7 +255,7 @@ See [Section 11.1 Maximum Quality Strategy](#111-maximum-quality-strategy---mand
 |-----------|---------|-------|--------|
 | `{SUITE}` | Suite name | 1 | `cryptoutil` |
 | `{PRODUCT}` | Product name | 5 | `identity`, `jose`, `pki`, `skeleton`, `sm` |
-| `{PS-ID}` | Product-Service Identifier | 10 | `identity-authz`, `identity-idp`, `identity-rp`, `identity-rs`, `identity-spa`, `sm-kms`, `pki-ca`, `skeleton-template`, `sm-kms`, `sm-kms` |
+| `{PS-ID}` | Product-Service Identifier | 8 | `identity-authz`, `identity-idp`, `identity-rp`, `identity-rs`, `identity-spa`, `sm-kms`, `pki-ca`, `skeleton-template` |
 | `{PS_ID}` | Underscore variant (SQL, secrets) | 10 | Same as `{PS-ID}` with `_` replacing `-` |
 | `{INFRA-TOOL}` | Infrastructure tooling | 2 | `cicd-lint`, `cicd-workflow` |
 
@@ -265,7 +265,7 @@ See [Section 11.1 Maximum Quality Strategy](#111-maximum-quality-strategy---mand
 cryptoutil (suite)
 ├── PKI           → pki-ca
 ├── JOSE          → sm-kms
-├── SM            → sm-kms, sm-kms
+├── SM            → sm-kms
 ├── Identity      → identity-authz, identity-idp, identity-rs, identity-rp, identity-spa
 └── Skeleton      → skeleton-template
 ```
@@ -282,7 +282,7 @@ cryptoutil (suite)
 
 **Product & Suite Convenience**: Each `{PRODUCT}` product and `{SUITE}` suite are also available as all-in-one binaries for optional, alternate packaging for ease of distribution. They also come with convenience `{PRODUCT}` product and `{SUITE}` suite Docker Compose files for ease of e2e testing.
 
-**Migration Priority** (to service framework — see [Section 5.1.3](#513-mandatory-usage)): sm-kms → sm-kms → sm-kms → pki-ca → identity services. SM services (sm-kms/sm-kms/sm-kms) migrate first; pki-ca second; identity last.
+**Migration Priority** (to service framework — see [Section 5.1.3](#513-mandatory-usage)): sm-kms → pki-ca → identity services. SM services (sm-kms) migrate first; pki-ca second; identity last.
 
 **Federation**: Services fail over through FEDERATED → DATABASE → FILE realms with no retry logic or circuit breakers. FILE realms (local, always available) are the last-resort failsafe.
 
@@ -1454,7 +1454,7 @@ deployments/{PS-ID}/
 └── secrets/                       # 14 secret files (see table below)
 ```
 
-**All 10 PS-IDs**: `identity-authz`, `identity-idp`, `identity-rp`, `identity-rs`, `identity-spa`, `sm-kms`, `pki-ca`, `skeleton-template`, `sm-kms`, `sm-kms`.
+**All 8 PS-IDs**: `identity-authz`, `identity-idp`, `identity-rp`, `identity-rs`, `identity-spa`, `sm-kms`, `pki-ca`, `skeleton-template`.
 
 ##### Tier Differences (Product ×5 / Suite ×1)
 
@@ -1611,8 +1611,8 @@ See [Section 9.10 CICD Command Architecture](#910-cicd-command-architecture) for
 
 - ALL new services MUST use `internal/apps-framework/service/` (consistency, reduced duplication)
 - ALL existing services MUST be refactored to use `internal/apps-framework/service/` (iterative migration)
-- Migration priority: sm-kms → sm-kms → sm-kms → pki-ca → identity services
-  - sm-kms/sm-kms/sm-kms migrate first (SM product); pki-ca second; identity last
+- Migration priority: sm-kms → pki-ca → identity services
+  - sm-kms migrates first (SM product); pki-ca second; identity last
 
 ### 5.2 Service Builder Pattern
 
@@ -2483,7 +2483,7 @@ Once all clients present certificates, flip `client-policy` to `require-and-veri
 | Cat 6 CA dirs | `2 (root+issuing) × 4 instances` | 8 | Each of 4 instances has its own admin mTLS CA chain |
 | Cat 7 leaf dirs | `4 instances` | 4 | One admin mTLS leaf per instance |
 | Total per PS-ID | `30 global + 60 PS-ID-specific` | 90 | Fixed count assuming 2 realms |
-| PRODUCT (2 PS-IDs) | `30 + 60 × 2` | 150 | SM product: sm-kms + sm-kms |
+| PRODUCT (1 PS-ID) | `30 + 60 × 1` | 90 | SM product: sm-kms |
 | SUITE (10 PS-IDs) | `30 + 60 × 10` | 630 | Full cryptoutil suite |
 
 **PostgreSQL mTLS Certificate Ownership** (Category 10–14):
@@ -5963,7 +5963,7 @@ Detection heuristic: `svc.Image == "" && svc.Build == nil && len(svc.Ports) > 0`
   - Rationale: Browser and service credentials are service-level only
 - Validation function: `validateProductSecrets()` in lint_deployments.go
 
-**PRODUCT-SERVICE** (e.g., sm-kms, sm-kms, pki-ca, sm-kms, identity-authz/idp/rp/rs/spa, skeleton-template):
+**PRODUCT-SERVICE** (e.g., sm-kms, pki-ca, identity-authz/idp/rp/rs/spa, skeleton-template):
 - Required directories: `secrets/`, `config/`
 - Required files: `compose.yml`, `Dockerfile`
 - Optional files: `otel-collector-config.yaml`, `README.md`
@@ -6081,7 +6081,7 @@ deployments/{PS-ID}/config/         # e.g., {PS-ID}=sm-kms
 
 **Rationale**:
 
-- Demo orchestration remains deferred; the E2E orchestration foundation is now established (sm-kms, sm-kms, sm-kms, and skeleton-template have full E2E test suites). Demo support will be designed to reuse E2E patterns when prioritized.
+- Demo orchestration remains deferred; the E2E orchestration foundation is now established (sm-kms and skeleton-template have full E2E test suites). Demo support will be designed to reuse E2E patterns when prioritized.
 - Integration test data belongs in Go test code (TestMain + test-containers), not Docker Compose config files.
 
 **Linter Enforcement**: Strict mode. Presence of any deprecated file is an ERROR that blocks CI/CD.
@@ -6098,7 +6098,7 @@ deployments/{PS-ID}/config/         # e.g., {PS-ID}=sm-kms
 - Missing required secrets (14 secret files for service tier).
 - Missing required directories (`secrets/`, `config/`).
 - Missing required compose/Dockerfile files.
-- Single-part deployment names (must be `{PS-ID}` format, e.g., `sm-kms`, `sm-kms`).
+- Single-part deployment names (must be `{PS-ID}` format, e.g., `sm-kms`).
 - Wrong PS-ID prefix in config file names.
 
 #### 13.1.8 Config File Content Validation
@@ -6232,14 +6232,14 @@ configs/
 **Key Rules**:
 
 - **Flat {PS-ID} directories**: `configs/{PS-ID}/` (e.g., `configs/sm-kms/`, `configs/sm-kms/`). NOT nested `configs/{PRODUCT}/{SERVICE}/`.
-- **Domain config naming**: `{PS-ID}.yml` (e.g., `sm-kms.yml`, `sm-kms.yml`).
+- **Domain config naming**: `{PS-ID}.yml` (e.g., `sm-kms.yml`).
 - **Special subdirectories**: `configs/pki-ca/profiles/` for X.509 profiles, `configs/identity-authz/domain/policies/` for auth policies.
 
 **Config File Naming Conventions**:
 
 | Type | Naming Pattern | Schema Format | Examples |
 |------|---------------|---------------|----------|
-| Domain config | `{PS-ID}.yml` | Nested YAML, service-specific | `sm-kms.yml`, `sm-kms.yml` |
+| Domain config | `{PS-ID}.yml` | Nested YAML, service-specific | `sm-kms.yml` |
 | Suite config | `cryptoutil.yml` | Suite-level settings | `configs/cryptoutil/cryptoutil.yml` |
 | Certificate profile | `profiles/*.yaml` | X.509 certificate definitions | `tls-server.yaml` |
 | Auth policy | `domain/policies/*.yml` | Authentication/authorization rules | `adaptive-authorization.yml` |
@@ -6685,7 +6685,7 @@ otlp-tls-ca-file:   /certs/{PS-ID}/otel-collector-contrib-https-client-issuing-c
 | Dockerfile pattern (Pattern C) | sm-kms | 2-stage (no `validation`): user `1000:1000` (wrong UID), no BuildKit caches, no static link check |
 | Skeleton-template identity | skeleton-template | Header says "JOSE Authority Server", username is `jose`, dirs are `/etc/jose` |
 | identity-spa COPY bug | identity-spa | Builder builds `/app/identity-spa` but runtime COPY copies `/app/cryptoutil` — **runtime failure** |
-| Config key naming | sm-kms, sm-kms, identity-* (7 services) | Uses snake_case keys (`bind_address`, `max_open_conns`) instead of kebab-case |
+| Config key naming | sm-kms, identity-* (6 services) | Uses snake_case keys (`bind_address`, `max_open_conns`) instead of kebab-case |
 | Admin port | sm-kms, skeleton-template | `bind-admin-port: 9092` (should be `9090`) |
 | Deployment common config | sm-kms | Missing TLS cert paths and unseal config |
 
@@ -6842,7 +6842,7 @@ Use `air` for live-reload development of individual services. Air watches Go sou
 **Usage**: `SERVICE=<service-name> air`
 
 - Example: `SERVICE=sm-kms air` — starts the sm-kms service with live reload
-- Valid SERVICE values: `sm-kms`, `sm-kms`, `sm-kms`, `pki-ca`, `skeleton-template`, `identity-authz`, `identity-idp`, `identity-rp`, `identity-rs`, `identity-spa`
+- Valid SERVICE values: `sm-kms`, `pki-ca`, `skeleton-template`, `identity-authz`, `identity-idp`, `identity-rp`, `identity-rs`, `identity-spa`
 
 **Configuration** (`.air.toml` at repo root):
 
@@ -8094,8 +8094,8 @@ applyTo: "**"
 - **Dual Paths**: `/service/**` (headless) + `/browser/**` (browser)
 - **Config Priority**: Docker secrets > YAML > CLI (NO environment variables)
 - **Template**: ALL services MUST use `internal/apps-framework/service/`
-- **Migration priority**: sm-kms -> sm-kms -> sm-kms -> pki-ca -> identity services
-  - SM services (sm-kms/sm-kms/sm-kms) migrate first; pki-ca second; identity last
+- **Migration priority**: sm-kms -> pki-ca -> identity services
+  - SM services (sm-kms) migrate first; pki-ca second; identity last
 
 ## Service Catalog
 
@@ -8112,7 +8112,7 @@ applyTo: "**"
 | JOSE | JWK Authority | sm-kms | 8200-8299 | 0.0.0.0:8080 | 127.0.0.1:9090 |
 | Skeleton | Template | skeleton-template | 8900-8999 | 0.0.0.0:8080 | 127.0.0.1:9090 |
 
-**PostgreSQL Ports**: sm-kms:54320, sm-kms:54321, sm-kms:54322, pki-ca:54323, identity-authz:54324, identity-idp:54325, identity-rs:54326, identity-rp:54327, identity-spa:54328, skeleton-template:54329 (all container 0.0.0.0:5432)
+**PostgreSQL Ports**: sm-kms:{54320,54321,54322}, pki-ca:54323, identity-authz:54324, identity-idp:54325, identity-rs:54326, identity-rp:54327, identity-spa:54328, skeleton-template:54329 (all container 0.0.0.0:5432)
 
 **Telemetry**: otel-collector-contrib (4317 gRPC, 4318 HTTP), grafana-otel-lgtm (3000 UI, 4317/4318 OTLP)
 
@@ -14374,8 +14374,8 @@ You are explicitly instructed NOT to:
 "Approximately 30 compose files across all services"
 
 # CORRECT: parameterized paths with derivation formula
-deployments/{sm-kms,sm-kms,sm-kms,pki-ca,identity-authz,identity-idp,identity-rp,identity-rs,identity-spa,skeleton-template}/compose.yml  (10 files)
-configs/{sm-kms,sm-kms,...}/config-common.yml  (10 files)
+deployments/{sm-kms,pki-ca,identity-authz,identity-idp,identity-rp,identity-rs,identity-spa,skeleton-template}/compose.yml  (8 files)
+configs/{sm-kms,pki-ca,...}/config-common.yml  (8 files)
 # Total: 20 files = 2 per PS-ID × 10 PS-IDs
 ```
 
@@ -14645,7 +14645,7 @@ EOF
 - **Framework**: [Framework if applicable]
 - **Database**: PostgreSQL OR SQLite with GORM
 - **Dependencies**: [Key dependencies]
-- **Affected Files**: [MANDATORY: enumerate relative paths of ALL files expected to change, using parameterization and pattern matching to condense sets. Example: `deployments/{sm-kms,sm-kms,sm-kms,pki-ca,identity-authz,identity-idp,identity-rp,identity-rs,identity-spa,skeleton-template}/compose.yml` (10 files). Always show the derivation formula: `30 global + 60 per-PS-ID × 10 = 630`. Raw counts without formulas are unverifiable during review.]
+- **Affected Files**: [MANDATORY: enumerate relative paths of ALL files expected to change, using parameterization and pattern matching to condense sets. Example: `deployments/{sm-kms,pki-ca,identity-authz,identity-idp,identity-rp,identity-rs,identity-spa,skeleton-template}/compose.yml` (8 files). Always show the derivation formula: `30 global + 60 per-PS-ID × 8 = 510`. Raw counts without formulas are unverifiable during review.]
 
 ## Phases
 

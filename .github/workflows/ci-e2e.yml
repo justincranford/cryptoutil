@@ -94,7 +94,7 @@ jobs:
       uses: ./.github/actions/docker-compose-build
 
     # TODO: pki-ca not yet migrated to service-framework pattern
-    # Migration status: sm-kms ✅, sm-kms ✅, sm-kms ✅, skeleton-template ✅ | pki-ca ❌, identity-* ❌
+    # Migration status: sm-kms ✅, skeleton-template ✅ | pki-ca ❌, identity-* ❌
     # CA deployment needed for E2E test infrastructure (certificate dependencies)
     - name: Deploy CA services
       run: |
@@ -170,7 +170,7 @@ jobs:
 
         # TODO: Enable identity E2E tests after identity services migrated to service-framework pattern
         # Currently DISABLED - identity-authz, identity-idp, identity-rp, identity-rs, identity-spa not yet migrated
-        # Migration status: sm-kms ✅, sm-kms ✅, sm-kms ✅, skeleton-template ✅ | pki-ca ❌, identity-* ❌
+        # Migration status: sm-kms ✅, skeleton-template ✅ | pki-ca ❌, identity-* ❌
         # Test identity E2E
         # if go test -tags=e2e -v -timeout=30m ./internal/apps/identity/e2e/... 2>&1; then
         #   echo "✅ identity E2E tests completed successfully"

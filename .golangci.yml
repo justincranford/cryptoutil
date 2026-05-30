@@ -61,8 +61,6 @@ linters:
       - api/sm-kms
       - api/pki-ca
       - api/skeleton-template
-      - api/sm-kms
-      - api/sm-kms
       - test-output
       - workflow-reports
       - vendor

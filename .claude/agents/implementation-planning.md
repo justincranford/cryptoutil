@@ -181,8 +181,8 @@ You are explicitly instructed NOT to:
 "Approximately 30 compose files across all services"
 
 # CORRECT: parameterized paths with derivation formula
-deployments/{sm-kms,sm-kms,sm-kms,pki-ca,identity-authz,identity-idp,identity-rp,identity-rs,identity-spa,skeleton-template}/compose.yml  (10 files)
-configs/{sm-kms,sm-kms,...}/config-common.yml  (10 files)
+deployments/{sm-kms,pki-ca,identity-authz,identity-idp,identity-rp,identity-rs,identity-spa,skeleton-template}/compose.yml  (8 files)
+configs/{sm-kms,pki-ca,...}/config-common.yml  (8 files)
 # Total: 20 files = 2 per PS-ID × 10 PS-IDs
 ```
 
@@ -452,7 +452,7 @@ EOF
 - **Framework**: [Framework if applicable]
 - **Database**: PostgreSQL OR SQLite with GORM
 - **Dependencies**: [Key dependencies]
-- **Affected Files**: [MANDATORY: enumerate relative paths of ALL files expected to change, using parameterization and pattern matching to condense sets. Example: `deployments/{sm-kms,sm-kms,sm-kms,pki-ca,identity-authz,identity-idp,identity-rp,identity-rs,identity-spa,skeleton-template}/compose.yml` (10 files). Always show the derivation formula: `30 global + 60 per-PS-ID × 10 = 630`. Raw counts without formulas are unverifiable during review.]
+- **Affected Files**: [MANDATORY: enumerate relative paths of ALL files expected to change, using parameterization and pattern matching to condense sets. Example: `deployments/{sm-kms,pki-ca,identity-authz,identity-idp,identity-rp,identity-rs,identity-spa,skeleton-template}/compose.yml` (8 files). Always show the derivation formula: `30 global + 60 per-PS-ID × 8 = 510`. Raw counts without formulas are unverifiable during review.]
 
 ## Phases
 

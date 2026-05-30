@@ -382,7 +382,7 @@ api/                                                  # drwxr-x---
 ```
 
 **All 10 PS-IDs**: `identity-authz`, `identity-idp`, `identity-rp`, `identity-rs`,
-`identity-spa`, `sm-kms`, `pki-ca`, `skeleton-template`, `sm-kms`, `sm-kms`.
+`identity-spa`, `sm-kms`, `pki-ca`, `skeleton-template`.
 
 ---
 
@@ -490,7 +490,7 @@ deployments/{PS-ID}/                                  # drwxr-x---
 ```
 
 **All 10 services** (`identity-authz`, `identity-idp`, `identity-rp`, `identity-rs`,
-`identity-spa`, `sm-kms`, `pki-ca`, `skeleton-template`, `sm-kms`, `sm-kms`) follow
+`identity-spa`, `sm-kms`, `pki-ca`, `skeleton-template`) follow
 this identical structure.
 
 ### F.2 Per-Product Deployment (5 products)
@@ -667,7 +667,7 @@ The root contains ONLY CLI integration code — no server logic, no HTTP handler
 | `{SERVICE}_test.go` | **REQUIRED** | CLI integration tests (help, version, unknown-subcommand) |
 | `server/` | **REQUIRED** | All server implementation, swagger, and integration tests |
 | `e2e/` | OPTIONAL | Docker Compose E2E tests |
-| `client/` | OPTIONAL | Typed HTTP client (sm-kms, sm-kms only) |
+| `client/` | OPTIONAL | Typed HTTP client (sm-kms only) |
 | `testing/` | OPTIONAL | Test helpers shared across packages |
 
 **`server/` rigid structure** (all server code lives here, NOT at PS-ID root):
@@ -684,7 +684,7 @@ The root contains ONLY CLI integration code — no server logic, no HTTP handler
 
 **Current gap matrix** (✓ = correct location · MOVE = exists at PS-ID root, must migrate to `server/` · MISS = does not exist anywhere):
 
-| Invariant | sm-kms | sm-kms | sm-kms | pki-ca | id-authz | id-idp | id-rs | id-rp | id-spa | skel-tmpl |
+| Invariant | sm-kms | pki-ca | id-authz | id-idp | id-rs | id-rp | id-spa | skel-tmpl |
 |-----------|:------:|:-----:|:-------:|:------:|:--------:|:------:|:-----:|:-----:|:------:|:---------:|
 | root `{SVC}.go` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | root `{SVC}_usage.go` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |

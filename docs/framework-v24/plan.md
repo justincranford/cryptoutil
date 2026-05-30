@@ -4,7 +4,7 @@
 **Created**: 2026-05-25
 **Last Updated**: 2026-05-30
 **Purpose**: Consolidate from 10 PS-IDs (5 products) to 8 PS-IDs (4 products) by merging
-jose-ja APIs into sm-kms and sm-im APIs into sm-kms, then deleting jose-ja, sm-im, and the jose product.
+sm-kms APIs into sm-kms and sm-kms APIs into sm-kms, then deleting sm-kms, sm-kms, and the jose product.
 
 ---
 
@@ -33,11 +33,11 @@ Consolidate the Cryptoutil suite from:
 - **Before**: 5 products (sm, jose, pki, identity, skeleton), 10 PS-IDs
 - **After**: 4 products (sm, pki, identity, skeleton), 8 PS-IDs
 
-**Removed PS-IDs**: `jose-ja` (merged into `sm-kms`), `sm-im` (merged into `sm-kms`)
-**Removed Product**: `jose` (no remaining PS-IDs after removing jose-ja)
+**Removed PS-IDs**: `sm-kms` (merged into `sm-kms`), `sm-kms` (merged into `sm-kms`)
+**Removed Product**: `jose` (no remaining PS-IDs after removing sm-kms)
 
 The consolidation preserves 100% of existing API surface. Every endpoint that existed in
-jose-ja or sm-im becomes a new endpoint group in sm-kms. No API functionality is deleted.
+sm-kms or sm-kms becomes a new endpoint group in sm-kms. No API functionality is deleted.
 
 ---
 
@@ -48,8 +48,8 @@ jose-ja or sm-im becomes a new endpoint group in sm-kms. No API functionality is
 | PS-ID | Product | Port | Migration Range | Kept/Merged |
 |-------|---------|------|-----------------|-------------|
 | sm-kms | sm | 8000 | 2001–2999 | ✅ Kept (receives merges) |
-| sm-im | sm | 8100 | 3001–3999 | ❌ Merged → sm-kms |
-| jose-ja | jose | 8200 | 4001–4999 | ❌ Merged → sm-kms |
+| sm-kms | sm | 8100 | 3001–3999 | ❌ Merged → sm-kms |
+| sm-kms | jose | 8200 | 4001–4999 | ❌ Merged → sm-kms |
 | pki-ca | pki | 8300 | 5001–5999 | ✅ Kept |
 | identity-authz | identity | 8400 | 6001–6999 | ✅ Kept |
 | identity-idp | identity | 8500 | 7001–7999 | ✅ Kept |
@@ -58,24 +58,24 @@ jose-ja or sm-im becomes a new endpoint group in sm-kms. No API functionality is
 | identity-spa | identity | 8800 | 10001–10999 | ✅ Kept |
 | skeleton-template | skeleton | 8900 | 11001–11999 | ✅ Kept |
 
-### What jose-ja Provides
+### What sm-kms Provides
 
-jose-ja operates as a JWK Authority: JOSE-format key management (JWK containers keyed by `kid`,
+sm-kms operates as a JWK Authority: JOSE-format key management (JWK containers keyed by `kid`,
 `kty`, `alg`, `use`), JWKS endpoint for public key distribution, JWS sign/verify, JWE
 encrypt/decrypt, JWT create/verify, material key rotation, and audit logging.
 
-**jose-ja API endpoints unique vs sm-kms** (must be added to sm-kms):
+**sm-kms API endpoints unique vs sm-kms** (must be added to sm-kms):
 - `GET /elastic-keys/{elasticKeyID}/material-keys/active` — get currently active material key
 - `POST /elastic-keys/{elasticKeyID}/rotate` — rotate (retire active, generate new active) material key
 - `GET /jwks` — public JWKS endpoint for key distribution
 
-**jose-ja domain objects** (must be ported as new sm-kms DB tables):
+**sm-kms domain objects** (must be ported as new sm-kms DB tables):
 - `elastic_jwks` — JOSE-format elastic key containers (kid, kty, alg, use)
 - `material_jwks` — versioned JOSE material keys (JWK-encrypted, active flag, barrier version)
 - `tenant_audit_config` — per-tenant operation audit settings
 - `audit_log` — operation audit log entries
 
-**jose-ja services** (must be ported to sm-kms):
+**sm-kms services** (must be ported to sm-kms):
 - `ElasticJWKService` (CRUD for JWK containers)
 - `MaterialRotationService` (rotate/manage material key versions)
 - `JWKSService` (generate JWKS from active public keys)
@@ -84,23 +84,23 @@ encrypt/decrypt, JWT create/verify, material key rotation, and audit logging.
 - `JWTService` (create/verify JWTs)
 - `AuditLogService` (record operation audit events)
 
-### What sm-im Provides
+### What sm-kms Provides
 
-sm-im is an Encrypted Instant Messenger: end-to-end encrypted messaging with JWE key wrapping
+sm-kms is an Encrypted Instant Messenger: end-to-end encrypted messaging with JWE key wrapping
 per recipient. Messages are stored as JWE multi-recipient ciphertext with per-recipient key material.
 
-**sm-im API endpoints** (all new for sm-kms):
+**sm-kms API endpoints** (all new for sm-kms):
 - `GET /messages` — list messages (paginated)
 - `GET /messages/{messageID}` — get a message
 - `DELETE /messages/{messageID}` — delete a message (sender only)
 - `POST /messages/send` — send encrypted message to one or more recipients
 - `GET /messages/receive` — receive (list unread) messages for the caller
 
-**sm-im domain objects** (must be ported as new sm-kms DB tables):
+**sm-kms domain objects** (must be ported as new sm-kms DB tables):
 - `messages` — encrypted message records (JWE JSON, sender, created_at, read_at)
 - `messages_recipient_jwks` — per-recipient encrypted JWK for message decryption
 
-**sm-im services** (must be ported to sm-kms):
+**sm-kms services** (must be ported to sm-kms):
 - `MessageHandler` (send, receive, get, delete, list messages)
 
 ---
@@ -116,9 +116,9 @@ per recipient. Messages are stored as JWE multi-recipient ciphertext with per-re
 
 ### Affected Files — Complete Enumeration
 
-#### Phase 1: jose-ja → sm-kms API merge
+#### Phase 1: sm-kms → sm-kms API merge
 
-**New files (sm-kms receives jose-ja domain)**:
+**New files (sm-kms receives sm-kms domain)**:
 ```
 internal/apps/sm-kms/server/repository/migrations/
   2003_jwk_elastic_jwks.up.sql
@@ -174,7 +174,7 @@ internal/apps/sm-kms/server/repository/migrations.go  (embed new migration files
 internal/apps/sm-kms/kms.go               (update usage docs)
 ```
 
-#### Phase 2: sm-im → sm-kms API merge
+#### Phase 2: sm-kms → sm-kms API merge
 
 **New files**:
 ```
@@ -207,31 +207,31 @@ internal/apps/sm-kms/server/server.go      (register message routes)
 internal/apps/sm-kms/server/repository/migrations.go  (embed new migrations)
 ```
 
-#### Phase 3: Delete jose-ja and sm-im
+#### Phase 3: Delete sm-kms and sm-kms
 
 **Deleted (entire directories)**:
 ```
-api/jose-ja/                       (7 files)
-api/sm-im/                         (7 files)
-internal/apps/jose-ja/             (75 files)
-internal/apps/sm-im/               (60 files)
-cmd/jose-ja/                       (1 file: main.go)
+api/sm-kms/                       (7 files)
+api/sm-kms/                         (7 files)
+internal/apps/sm-kms/             (75 files)
+internal/apps/sm-kms/               (60 files)
+cmd/sm-kms/                       (1 file: main.go)
 cmd/jose/                          (1 file: main.go)
-cmd/sm-im/                         (1 file: main.go)
-configs/jose-ja/                   (~5 files)
-configs/sm-im/                     (~5 files)
-deployments/jose-ja/               (~10 files)
+cmd/sm-kms/                         (1 file: main.go)
+configs/sm-kms/                   (~5 files)
+configs/sm-kms/                     (~5 files)
+deployments/sm-kms/               (~10 files)
 deployments/jose/                  (~3 files)
-deployments/sm-im/                 (~10 files)
+deployments/sm-kms/                 (~10 files)
 internal/shared/magic/magic_jose.go
 internal/shared/magic/magic_sm_im.go
 ```
 
 **Updated (references removed)**:
 ```
-deployments/sm/compose.yml                  (remove sm-im service)
+deployments/sm/compose.yml                  (remove sm-kms service)
 deployments/cryptoutil/compose.yml          (remove jose service block)
-cmd/sm/main.go                              (remove sm-im subcommand routing)
+cmd/sm/main.go                              (remove sm-kms subcommand routing)
 cmd/cryptoutil/main.go                      (remove jose routing)
 internal/apps/sm/sm.go                      (remove im references)
 internal/apps/jose/ja.go → DELETE entirely
@@ -242,14 +242,14 @@ internal/apps/jose/ja.go → DELETE entirely
 #### Phase 4: Registry, magic constants, fitness linters
 
 ```
-api/cryptosuite-registry/registry.yaml     (remove jose-ja, sm-im entries; remove jose product)
+api/cryptosuite-registry/registry.yaml     (remove sm-kms, sm-kms entries; remove jose product)
 internal/shared/magic/magic_tier.go        (remove JoseProductName tier, remove SMIM from SM tier)
 internal/shared/magic/magic_cicd.go        (update service counts: 10→8, 5→4 products)
 internal/shared/magic/magic_pki_tls.go     (remove AppJoseJA* TLS cert constants)
 internal/shared/magic/magic_sm.go          (remove IM*-prefixed constants if any)
-internal/apps-tools/cicd_lint/lint_ports/host_port_ranges/*.go  (remove jose-ja port range 8200s)
-internal/apps-tools/cicd_lint/lint_ports/legacy_ports/*.go      (remove jose-ja/sm-im legacy ports)
-internal/apps-tools/cicd_lint/lint_fitness/registry/registry.go (remove jose-ja, sm-im, jose product)
+internal/apps-tools/cicd_lint/lint_ports/host_port_ranges/*.go  (remove sm-kms port range 8200s)
+internal/apps-tools/cicd_lint/lint_ports/legacy_ports/*.go      (remove sm-kms/sm-kms legacy ports)
+internal/apps-tools/cicd_lint/lint_fitness/registry/registry.go (remove sm-kms, sm-kms, jose product)
 ```
 
 **Count**: ~8 files updated
@@ -265,69 +265,69 @@ internal/apps-tools/cicd_lint/lint_fitness/registry/registry.go (remove jose-ja,
 
 ---
 
-### Phase 1: jose-ja Domain → sm-kms (4d) [Status: ☐ TODO]
+### Phase 1: sm-kms Domain → sm-kms (4d) [Status: ☐ TODO]
 
-**Objective**: Port all jose-ja domain models, repositories, services, and API handlers into
-sm-kms without deleting jose-ja yet. sm-kms and jose-ja both run; jose-ja is now redundant.
+**Objective**: Port all sm-kms domain models, repositories, services, and API handlers into
+sm-kms without deleting sm-kms yet. sm-kms and sm-kms both run; sm-kms is now redundant.
 
 1. Add DB migrations 2003–2006 to sm-kms (elastic_jwks, material_jwks, audit_config, audit_log)
-2. Port jose-ja domain models to `internal/apps/sm-kms/server/model/jwk_models.go`
-3. Port jose-ja repositories to `internal/apps/sm-kms/server/repository/` (elastic_jwk_repo, material_jwk_repo, audit_repo)
-4. Port jose-ja services to `internal/apps/sm-kms/server/jwkservice/` (elastic, rotation, JWKS, JWS, JWE, JWT, audit)
+2. Port sm-kms domain models to `internal/apps/sm-kms/server/model/jwk_models.go`
+3. Port sm-kms repositories to `internal/apps/sm-kms/server/repository/` (elastic_jwk_repo, material_jwk_repo, audit_repo)
+4. Port sm-kms services to `internal/apps/sm-kms/server/jwkservice/` (elastic, rotation, JWKS, JWS, JWE, JWT, audit)
 5. Add JWK handlers to `internal/apps/sm-kms/server/handler/` (JWK CRUD + rotate + active + JWKS endpoint)
-6. Extend sm-kms OpenAPI spec (paths + components) with jose-ja API surface
+6. Extend sm-kms OpenAPI spec (paths + components) with sm-kms API surface
 7. Regenerate oapi-codegen outputs for sm-kms
 8. Register JWK routes in sm-kms `server.go`
 9. Update sm-kms repository `migrations.go` to embed new files
-10. Port jose-ja tests (adapted to sm-kms package structure)
+10. Port sm-kms tests (adapted to sm-kms package structure)
 
-- **Success**: `go build ./...` clean; all sm-kms tests pass; jose-ja tests still pass (both
+- **Success**: `go build ./...` clean; all sm-kms tests pass; sm-kms tests still pass (both
   services work simultaneously); sm-kms API now includes JWK endpoints; coverage ≥95%
 - **Post-Mortem**: After quality gates pass, update lessons.md with lessons learned.
 
 ---
 
-### Phase 2: sm-im Domain → sm-kms (2d) [Status: ☐ TODO]
+### Phase 2: sm-kms Domain → sm-kms (2d) [Status: ☐ TODO]
 
-**Objective**: Port all sm-im domain models, repository, and handler into sm-kms. sm-kms can
+**Objective**: Port all sm-kms domain models, repository, and handler into sm-kms. sm-kms can
 now send/receive encrypted messages.
 
 1. Add DB migrations 2007–2008 to sm-kms (messages, messages_recipient_jwks)
-2. Port sm-im domain models to `internal/apps/sm-kms/server/model/message_models.go`
-3. Port sm-im repositories to `internal/apps/sm-kms/server/repository/` (message_repo, message_recipient_jwk_repo)
-4. Port sm-im message handler to `internal/apps/sm-kms/server/handler/message_handler.go`
+2. Port sm-kms domain models to `internal/apps/sm-kms/server/model/message_models.go`
+3. Port sm-kms repositories to `internal/apps/sm-kms/server/repository/` (message_repo, message_recipient_jwk_repo)
+4. Port sm-kms message handler to `internal/apps/sm-kms/server/handler/message_handler.go`
 5. Extend sm-kms OpenAPI spec with messaging endpoints (send, receive, get, list, delete)
 6. Regenerate oapi-codegen outputs for sm-kms
 7. Register message routes in sm-kms `server.go`
-8. Port sm-im tests (adapted to sm-kms package structure)
+8. Port sm-kms tests (adapted to sm-kms package structure)
 
-- **Success**: `go build ./...` clean; all sm-kms tests pass (including messaging); sm-im tests
+- **Success**: `go build ./...` clean; all sm-kms tests pass (including messaging); sm-kms tests
   still pass; sm-kms API includes messaging endpoints; coverage ≥95%
 - **Post-Mortem**: After quality gates pass, update lessons.md with lessons learned.
 
 ---
 
-### Phase 3: Delete jose-ja, sm-im, jose Product (1d) [Status: ☐ TODO]
+### Phase 3: Delete sm-kms, sm-kms, jose Product (1d) [Status: ☐ TODO]
 
-**Objective**: Remove all jose-ja and sm-im artifacts from the codebase. The jose product
+**Objective**: Remove all sm-kms and sm-kms artifacts from the codebase. The jose product
 disappears because it has no remaining PS-IDs.
 
-1. Delete `api/jose-ja/` entirely
-2. Delete `api/sm-im/` entirely
-3. Delete `internal/apps/jose-ja/` entirely
-4. Delete `internal/apps/sm-im/` entirely
-5. Delete `cmd/jose-ja/`, `cmd/jose/`, `cmd/sm-im/`
-6. Delete `configs/jose-ja/`, `configs/sm-im/`
-7. Delete `deployments/jose-ja/`, `deployments/jose/`, `deployments/sm-im/`
+1. Delete `api/sm-kms/` entirely
+2. Delete `api/sm-kms/` entirely
+3. Delete `internal/apps/sm-kms/` entirely
+4. Delete `internal/apps/sm-kms/` entirely
+5. Delete `cmd/sm-kms/`, `cmd/jose/`, `cmd/sm-kms/`
+6. Delete `configs/sm-kms/`, `configs/sm-kms/`
+7. Delete `deployments/sm-kms/`, `deployments/jose/`, `deployments/sm-kms/`
 8. Delete `internal/shared/magic/magic_jose.go`, `magic_sm_im.go`
-9. Update `deployments/sm/compose.yml` — remove sm-im service
+9. Update `deployments/sm/compose.yml` — remove sm-kms service
 10. Update `deployments/cryptoutil/compose.yml` — remove jose service block
-11. Update `cmd/sm/main.go` — remove sm-im routing
+11. Update `cmd/sm/main.go` — remove sm-kms routing
 12. Update `cmd/cryptoutil/main.go` — remove jose routing
 13. Update `internal/apps/sm/sm.go` — remove im references
 14. Delete `internal/apps/jose/` (product-level coordinator; jose product is gone)
 
-- **Success**: `go build ./...` clean; no references to jose-ja or sm-im anywhere; all remaining
+- **Success**: `go build ./...` clean; no references to sm-kms or sm-kms anywhere; all remaining
   8 PS-ID services build and test successfully
 - **Post-Mortem**: After quality gates pass, update lessons.md with lessons learned.
 
@@ -339,8 +339,8 @@ disappears because it has no remaining PS-IDs.
 and 8 PS-IDs. Fitness linters must pass with zero errors.
 
 1. Update `api/cryptosuite-registry/registry.yaml`:
-   - Remove `jose-ja` from `product_services`
-   - Remove `sm-im` from `product_services`
+   - Remove `sm-kms` from `product_services`
+   - Remove `sm-kms` from `product_services`
    - Remove `jose` from `products`
    - Renumber migration ranges if needed (sk-kms now absorbs 2003–2008 from the merged services)
 2. Update `internal/shared/magic/magic_tier.go`:
@@ -350,8 +350,8 @@ and 8 PS-IDs. Fitness linters must pass with zero errors.
 3. Update `internal/shared/magic/magic_cicd.go`: update service count comments (10→8, 5→4)
 4. Update `internal/shared/magic/magic_pki_tls.go`: remove `AppJoseJA*` constants
 5. Update `internal/shared/magic/magic_sm.go`: remove any IM-specific SM constants
-6. Update `internal/apps-tools/cicd_lint/lint_ports/host_port_ranges/`: remove jose-ja range (8200s)
-7. Update `internal/apps-tools/cicd_lint/lint_ports/legacy_ports/`: remove jose-ja/sm-im entries
+6. Update `internal/apps-tools/cicd_lint/lint_ports/host_port_ranges/`: remove sm-kms range (8200s)
+7. Update `internal/apps-tools/cicd_lint/lint_ports/legacy_ports/`: remove sm-kms/sm-kms entries
 8. Verify `go run ./cmd/cicd-lint lint-fitness` passes (entity-registry-completeness checks)
 9. Verify `go run ./cmd/cicd-lint lint-deployments` passes
 
@@ -390,7 +390,7 @@ and 8 PS-IDs. Fitness linters must pass with zero errors.
    counts in §3 (product suite architecture)
 3. Update `api/cryptosuite-registry/registry.yaml` doc comments
 4. Update `README.md` service table (8 services instead of 10)
-5. Update `docs/DEV-SETUP.md` if any setup steps referenced jose-ja or sm-im
+5. Update `docs/DEV-SETUP.md` if any setup steps referenced sm-kms or sm-kms
 6. Verify propagation: `go run ./cmd/cicd-lint lint-docs` — zero violations
 7. Commit each artifact type separately (ENG-HANDBOOK, README, DEV-SETUP as separate commits)
 
@@ -413,8 +413,8 @@ and 8 PS-IDs. Fitness linters must pass with zero errors.
 **Decision**: Option A — use sm-kms domain range (2001–2999) for all new tables added to sm-kms.
 sm-kms already has 2001 and 2002; new migrations start at 2003.
 
-**Rationale**: The migration range policy assigns ranges per PS-ID domain ownership. Once jose-ja
-and sm-im are merged into sm-kms, their tables become sm-kms domain tables. Using 2003–2008
+**Rationale**: The migration range policy assigns ranges per PS-ID domain ownership. Once sm-kms
+and sm-kms are merged into sm-kms, their tables become sm-kms domain tables. Using 2003–2008
 maintains sequential numbering within the sm-kms range without gaps or conflicts.
 
 **Alternatives Rejected**:
@@ -425,13 +425,13 @@ maintains sequential numbering within the sm-kms range without gaps or conflicts
 
 ---
 
-### Decision 2: jose-ja JWK Model vs sm-kms ElasticKey Model
+### Decision 2: sm-kms JWK Model vs sm-kms ElasticKey Model
 
 **Options**:
-- A: Add jose-ja's `elastic_jwks`/`material_jwks` tables alongside sm-kms's existing `elastic_keys`/`material_keys` ✓ **SELECTED**
+- A: Add sm-kms's `elastic_jwks`/`material_jwks` tables alongside sm-kms's existing `elastic_keys`/`material_keys` ✓ **SELECTED**
 - B: Unify into a single `elastic_keys` table by extending the schema with JWK-specific columns
-- C: Replace sm-kms model with jose-ja's JWK model
-- D: Wrap jose-ja JWK operations via sm-kms's existing elastic key APIs
+- C: Replace sm-kms model with sm-kms's JWK model
+- D: Wrap sm-kms JWK operations via sm-kms's existing elastic key APIs
 - E:
 
 **Decision**: Option A — keep both domain models as separate table families in sm-kms.
@@ -439,7 +439,7 @@ maintains sequential numbering within the sm-kms range without gaps or conflicts
 **Rationale**: The two models serve different purposes:
 - `elastic_keys` / `material_keys` (sm-kms): generic KMS with status state machine, provider,
   versioning control, import control — used for raw symmetric/asymmetric key operations
-- `elastic_jwks` / `material_jwks` (jose-ja): JOSE-format key management with kid, kty, alg, use
+- `elastic_jwks` / `material_jwks` (sm-kms): JOSE-format key management with kid, kty, alg, use
   — used for JWK distribution, signing, encryption, JWT operations
 
 Merging into one schema requires nullable columns or discriminator fields, violating database
@@ -454,7 +454,7 @@ normalization and making the state machine more complex. Two clean, focused sche
 **Options**:
 - A: Place new JWK and message handlers in existing `server/handler/` alongside current OAS handlers ✓ **SELECTED**
 - B: Create `server/jwk_handler/` and `server/message_handler/` subdirectories
-- C: Create a single `server/apis/` directory (mimicking sm-im/jose-ja structure)
+- C: Create a single `server/apis/` directory (mimicking sm-kms/sm-kms structure)
 - D:
 - E:
 
@@ -466,12 +466,12 @@ Each domain gets a separate file (`jwk_handler.go`, `jwks_handler.go`, `message_
 
 ---
 
-### Decision 4: jose-ja Service Package Location in sm-kms
+### Decision 4: sm-kms Service Package Location in sm-kms
 
 **Options**:
 - A: Create `internal/apps/sm-kms/server/jwkservice/` package for JOSE business logic ✓ **SELECTED**
 - B: Extend existing `internal/apps/sm-kms/server/businesslogic/` with JWK functions
-- C: Create `internal/apps/sm-kms/server/service/` (matches jose-ja's original package name)
+- C: Create `internal/apps/sm-kms/server/service/` (matches sm-kms's original package name)
 - D:
 - E:
 
@@ -491,8 +491,8 @@ for KMS operations and into `jwkservice/` for JWK operations.
 |------|-------------|--------|------------|
 | Migration number collision with existing sm-kms migrations | Low | High | Use 2003–2008; verify no existing files in that range before starting |
 | sm-kms openapi spec grows very large (>500 lines) | Medium | Medium | Split into multiple path files; keep components.yaml as shared file |
-| Deleted jose-ja import still referenced in shared packages | Medium | High | Run `grep -r jose-ja ./internal` after deletion before committing |
-| Fitness linter tests reference jose-ja/sm-im by name | High | Medium | Phase 4 explicitly updates lint_ports and lint_fitness; run `lint-fitness` immediately after |
+| Deleted sm-kms import still referenced in shared packages | Medium | High | Run `grep -r sm-kms ./internal` after deletion before committing |
+| Fitness linter tests reference sm-kms/sm-kms by name | High | Medium | Phase 4 explicitly updates lint_ports and lint_fitness; run `lint-fitness` immediately after |
 | sm-kms test coverage drops below 95% during merge | Medium | High | Port all existing tests; add coverage for new code paths before closing phase |
 | Import aliases conflict between merged packages | Low | Medium | Use distinct aliases; follow existing `cryptoutilApps*` pattern |
 | Race conditions in shared SQLite during large test suites | Low | Medium | Each test package uses isolated in-memory SQLite (standard pattern) |
@@ -522,8 +522,8 @@ for KMS operations and into `jwkservice/` for JWK operations.
 - [ ] All 6 phases complete with evidence
 - [ ] Build clean: `go build ./...` zero errors
 - [ ] All tests pass: `go test ./...` 100% passing, zero skips
-- [ ] No jose-ja or sm-im references anywhere in non-documentation code
-- [ ] sm-kms OpenAPI spec includes all jose-ja and sm-im endpoints
+- [ ] No sm-kms or sm-kms references anywhere in non-documentation code
+- [ ] sm-kms OpenAPI spec includes all sm-kms and sm-kms endpoints
 - [ ] Registry shows 4 products and 8 PS-IDs
 - [ ] `go run ./cmd/cicd-lint lint-fitness` passes
 - [ ] `go run ./cmd/cicd-lint lint-deployments` passes
