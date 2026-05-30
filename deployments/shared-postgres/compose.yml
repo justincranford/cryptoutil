@@ -4,13 +4,12 @@
 # Include this file from product-specific compose files using Docker Compose includes.
 #
 # Architecture:
-#   - postgres-leader:   PostgreSQL 18 OLTP (read-write, 30 logical databases, 3-tiers x 10 PS-IDs)
-#   - postgres-follower: PostgreSQL 18 OLAP (read-only replica, 16 logical databases with schemas grouped by domain)
+#   - postgres-leader:   PostgreSQL 18 OLTP (read-write, 24 logical databases, 3-tiers x 8 PS-IDs)
+#   - postgres-follower: PostgreSQL 18 OLAP (read-only replica, logical databases with schemas grouped by domain)
 #
 # Logical Database Architecture (Leader - OLTP):
-#   Suite-level (10 databases):
+#   Suite-level (8 databases):
 #     - suitedeployment-pki-ca
-#     - suitedeployment-sm-kms
 #     - suitedeployment-sm-kms
 #     - suitedeployment-sm-kms
 #     - suitedeployment-identity-authz
@@ -20,9 +19,8 @@
 #     - suitedeployment-identity-spa
 #     - suitedeployment-skeleton-template
 #
-#   Product-level (10 databases):
+#   Product-level (8 databases):
 #     - productdeployment-pki-ca
-#     - productdeployment-sm-kms
 #     - productdeployment-sm-kms
 #     - productdeployment-sm-kms
 #     - productdeployment-identity-authz
@@ -32,9 +30,8 @@
 #     - productdeployment-identity-spa
 #     - productdeployment-skeleton-template
 #
-#   Service-level (10 databases):
+#   Service-level (8 databases):
 #     - servicedeployment-pki-ca
-#     - servicedeployment-sm-kms
 #     - servicedeployment-sm-kms
 #     - servicedeployment-sm-kms
 #     - servicedeployment-identity-authz
@@ -45,20 +42,17 @@
 #     - servicedeployment-skeleton-template
 #
 # Logical Database Architecture (Follower - OLAP):
-#   Suite-level (1 database with 10 schemas):
-#     - cryptoutil (schemas: pki_ca, jose_ja, sm_im, sm_kms, identity_authz, identity_idp, identity_rs, identity_rp, identity_spa, skeleton_template)
+#   Suite-level (1 database with 8 schemas):
+#     - cryptoutil (schemas: pki_ca, sm_kms, identity_authz, identity_idp, identity_rs, identity_rp, identity_spa, skeleton_template)
 #
-#   Product-level (5 product databases with schemas):
+#   Product-level (4 product databases with schemas):
 #     - pki (schemas: ca)
-#     - jose (schemas: ja)
-#     - sm (schemas: kms, im)
+#     - sm (schemas: kms)
 #     - identity (schemas: authz, idp, rs, rp, spa)
 #     - skeleton (schemas: template)
 #
-#   Service-level (10 databases with 1 schema each):
+#   Service-level (8 databases with 1 schema each):
 #     - pki-ca (schema: ca)
-#     - sm-kms (schema: ja)
-#     - sm-kms (schema: im)
 #     - sm-kms (schema: kms)
 #     - identity-authz (schema: authz)
 #     - identity-idp (schema: idp)
@@ -73,7 +67,7 @@
 #
 services:
   # PostgreSQL Leader (OLTP - Read/Write)
-  # Hosts 30 logical databases (10 services × 3 deployment types)
+  # Hosts 24 logical databases (8 services × 3 deployment types)
   postgres-leader:
     image: postgres:18
     container_name: cryptoutil-postgres-leader

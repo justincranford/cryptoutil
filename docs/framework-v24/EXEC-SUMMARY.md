@@ -2,21 +2,21 @@
 
 ## Scope
 
-This execution migrated runtime topology from 10 PS-IDs / 5 products to 8 PS-IDs / 4 products by consolidating sm-kms and sm-kms into sm-kms and removing the retired top-level product.
+This execution migrated runtime topology from 10 PS-IDs / 5 products to 8 PS-IDs / 4 products by consolidating jose-ja and sm-im into sm-kms and removing jose as a top-level product.
 
 ## Implemented
 
-1. sm-kms compatibility domain implemented for former sm-kms and sm-kms APIs:
+1. sm-kms compatibility domain implemented for former jose-ja and sm-im APIs:
 - Added JWK and message migrations in `internal/apps/sm-kms/server/repository/migrations/2003..2008`.
 - Added compatibility handlers/routes in `internal/apps/sm-kms/server/handler/` and `internal/apps/sm-kms/server/server.go`.
 - Extended sm-kms OpenAPI paths and regenerated codegen artifacts.
 
 1. Removed runtime surfaces for retired services/products:
-- Deleted `api/sm-kms`, `api/sm-kms`.
-- Deleted `internal/apps/sm-kms`, `internal/apps/sm-kms`, `internal/apps/sm`.
-- Deleted `cmd/sm-kms`, `cmd/sm-kms`, `cmd/sm`.
-- Deleted `configs/sm-kms`, `configs/sm-kms`.
-- Deleted `deployments/sm-kms`, `deployments/sm`, `deployments/sm-kms`.
+- Deleted `api/jose-ja`, `api/sm-im`.
+- Deleted `internal/apps/jose-ja`, `internal/apps/sm-im`, `internal/apps/jose`.
+- Deleted `cmd/jose-ja`, `cmd/sm-im`, `cmd/jose`.
+- Deleted `configs/jose-ja`, `configs/sm-im`.
+- Deleted `deployments/jose-ja`, `deployments/jose`, `deployments/sm-im`.
 
 1. Topology and lint wiring updated:
 - Updated `api/cryptosuite-registry/registry.yaml` to 4 products / 8 PS-IDs.
@@ -35,7 +35,7 @@ Passed gates:
 
 ## Remaining Blocker
 
-`go test ./... -shuffle=on` still fails in multiple packages due legacy 10-PS-ID test assumptions (jose/sm-kms fixture and expectation references). This is the remaining blocker to close full Phase 5 quality gate completion.
+`go test ./... -shuffle=on` still fails in multiple packages due legacy 10-PS-ID test assumptions (jose/sm-im fixture and expectation references). This is the remaining blocker to close full Phase 5 quality gate completion.
 
 ## Recommended Next Work Unit
 

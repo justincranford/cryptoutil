@@ -24,22 +24,12 @@ done
 
 echo "Setting up logical replication subscriptions..."
 
-# Suite-level subscriptions (__SUITE__ database, 10 schemas)
+# Suite-level subscriptions (__SUITE__ database, 8 schemas)
 psql -U "$LEADER_USER" -d __SUITE__ <<EOF
 CREATE SUBSCRIPTION suite_pki_ca_sub
     CONNECTION 'host=$LEADER_HOST port=$LEADER_PORT user=$LEADER_USER password=$(cat /run/secrets/postgres-password.secret) dbname=suitedeployment-pki-ca'
     PUBLICATION suite_pki_ca_pub
     WITH (copy_data = true, create_slot = true, enabled = true, slot_name = 'suite_pki_ca_slot');
-
-CREATE SUBSCRIPTION suite_jose_ja_sub
-    CONNECTION 'host=$LEADER_HOST port=$LEADER_PORT user=$LEADER_USER password=$(cat /run/secrets/postgres-password.secret) dbname=suitedeployment-sm-kms'
-    PUBLICATION suite_jose_ja_pub
-    WITH (copy_data = true, create_slot = true, enabled = true, slot_name = 'suite_jose_ja_slot');
-
-CREATE SUBSCRIPTION suite_sm_im_sub
-    CONNECTION 'host=$LEADER_HOST port=$LEADER_PORT user=$LEADER_USER password=$(cat /run/secrets/postgres-password.secret) dbname=suitedeployment-sm-im'
-    PUBLICATION suite_sm_im_pub
-    WITH (copy_data = true, create_slot = true, enabled = true, slot_name = 'suite_sm_im_slot');
 
 CREATE SUBSCRIPTION suite_sm_kms_sub
     CONNECTION 'host=$LEADER_HOST port=$LEADER_PORT user=$LEADER_USER password=$(cat /run/secrets/postgres-password.secret) dbname=suitedeployment-sm-kms'
@@ -77,7 +67,7 @@ CREATE SUBSCRIPTION suite_skeleton_template_sub
     WITH (copy_data = true, create_slot = true, enabled = true, slot_name = 'suite_skeleton_template_slot');
 EOF
 
-# Product-level subscriptions (5 product databases)
+# Product-level subscriptions (4 product databases)
 psql -U "$LEADER_USER" -d pki <<EOF
 CREATE SUBSCRIPTION product_pki_ca_sub
     CONNECTION 'host=$LEADER_HOST port=$LEADER_PORT user=$LEADER_USER password=$(cat /run/secrets/postgres-password.secret) dbname=productdeployment-pki-ca'
@@ -85,19 +75,7 @@ CREATE SUBSCRIPTION product_pki_ca_sub
     WITH (copy_data = true, create_slot = true, enabled = true, slot_name = 'product_pki_ca_slot');
 EOF
 
-psql -U "$LEADER_USER" -d jose <<EOF
-CREATE SUBSCRIPTION product_jose_ja_sub
-    CONNECTION 'host=$LEADER_HOST port=$LEADER_PORT user=$LEADER_USER password=$(cat /run/secrets/postgres-password.secret) dbname=productdeployment-sm-kms'
-    PUBLICATION product_jose_ja_pub
-    WITH (copy_data = true, create_slot = true, enabled = true, slot_name = 'product_jose_ja_slot');
-EOF
-
 psql -U "$LEADER_USER" -d sm <<EOF
-CREATE SUBSCRIPTION product_sm_im_sub
-    CONNECTION 'host=$LEADER_HOST port=$LEADER_PORT user=$LEADER_USER password=$(cat /run/secrets/postgres-password.secret) dbname=productdeployment-sm-im'
-    PUBLICATION product_sm_im_pub
-    WITH (copy_data = true, create_slot = true, enabled = true, slot_name = 'product_sm_im_slot');
-
 CREATE SUBSCRIPTION product_sm_kms_sub
     CONNECTION 'host=$LEADER_HOST port=$LEADER_PORT user=$LEADER_USER password=$(cat /run/secrets/postgres-password.secret) dbname=productdeployment-sm-kms'
     PUBLICATION product_sm_kms_pub
@@ -138,26 +116,12 @@ CREATE SUBSCRIPTION product_skeleton_template_sub
     WITH (copy_data = true, create_slot = true, enabled = true, slot_name = 'product_skeleton_template_slot');
 EOF
 
-# Service-level subscriptions (10 service databases)
+# Service-level subscriptions (8 service databases)
 psql -U "$LEADER_USER" -d "pki-ca" <<EOF
 CREATE SUBSCRIPTION service_pki_ca_sub
     CONNECTION 'host=$LEADER_HOST port=$LEADER_PORT user=$LEADER_USER password=$(cat /run/secrets/postgres-password.secret) dbname=servicedeployment-pki-ca'
     PUBLICATION service_pki_ca_pub
     WITH (copy_data = true, create_slot = true, enabled = true, slot_name = 'service_pki_ca_slot');
-EOF
-
-psql -U "$LEADER_USER" -d "sm-kms" <<EOF
-CREATE SUBSCRIPTION service_jose_ja_sub
-    CONNECTION 'host=$LEADER_HOST port=$LEADER_PORT user=$LEADER_USER password=$(cat /run/secrets/postgres-password.secret) dbname=servicedeployment-sm-kms'
-    PUBLICATION service_jose_ja_pub
-    WITH (copy_data = true, create_slot = true, enabled = true, slot_name = 'service_jose_ja_slot');
-EOF
-
-psql -U "$LEADER_USER" -d "sm-im" <<EOF
-CREATE SUBSCRIPTION service_sm_im_sub
-    CONNECTION 'host=$LEADER_HOST port=$LEADER_PORT user=$LEADER_USER password=$(cat /run/secrets/postgres-password.secret) dbname=servicedeployment-sm-im'
-    PUBLICATION service_sm_im_pub
-    WITH (copy_data = true, create_slot = true, enabled = true, slot_name = 'service_sm_im_slot');
 EOF
 
 psql -U "$LEADER_USER" -d "sm-kms" <<EOF

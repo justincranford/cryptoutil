@@ -2,12 +2,10 @@
 -- Creates grouped databases for OLAP analytics with schemas
 -- Read-only replica with logical replication from leader
 
--- Suite-level: 1 database with 10 schemas (all services across all products)
+-- Suite-level: 1 database with 8 schemas (all active services across all products)
 CREATE DATABASE cryptoutil;
 \c cryptoutil
 CREATE SCHEMA pki_ca;
-CREATE SCHEMA jose_ja;
-CREATE SCHEMA sm_im;
 CREATE SCHEMA sm_kms;
 CREATE SCHEMA identity_authz;
 CREATE SCHEMA identity_idp;
@@ -16,18 +14,13 @@ CREATE SCHEMA identity_rp;
 CREATE SCHEMA identity_spa;
 CREATE SCHEMA skeleton_template;
 
--- Product-level: 5 product databases with schemas grouped by product
+-- Product-level: 4 product databases with schemas grouped by product
 CREATE DATABASE pki;
 \c pki
 CREATE SCHEMA ca;
 
-CREATE DATABASE jose;
-\c jose
-CREATE SCHEMA ja;
-
 CREATE DATABASE sm;
 \c sm
-CREATE SCHEMA im;
 CREATE SCHEMA kms;
 
 CREATE DATABASE identity;
@@ -42,21 +35,13 @@ CREATE DATABASE skeleton;
 \c skeleton
 CREATE SCHEMA template;
 
--- Service-level: 10 databases with 1:1 schema mapping
+-- Service-level: 8 databases with 1:1 schema mapping
 CREATE DATABASE "pki-ca";
 \c "pki-ca"
 CREATE SCHEMA ca;
 
 CREATE DATABASE "sm-kms";
 \c "sm-kms"
-CREATE SCHEMA ja;
-
-CREATE DATABASE "sm-im";
-\c "sm-im"
-CREATE SCHEMA im;
-
-CREATE DATABASE "jose-ja";
-\c "jose-ja"
 CREATE SCHEMA kms;
 
 CREATE DATABASE "identity-authz";
