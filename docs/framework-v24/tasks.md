@@ -6,8 +6,8 @@
 
 ## Execution Checkpoint (2026-05-29)
 
-- Implemented merged sm-kms compatibility routes/handlers/repositories/migrations for former sm-kms and sm-kms APIs.
-- Removed sm-kms/sm-kms/jose runtime directories from api, cmd, internal/apps, configs, and deployments.
+- Implemented merged compatibility routes/handlers/repositories/migrations in sm-kms for former jose-ja and sm-im APIs.
+- Removed jose-ja/sm-im/jose runtime directories from api, cmd, internal/apps, configs, and deployments.
 - Updated topology artifacts to 4 products / 8 PS-IDs in registry/config/deployment wiring and lint tooling.
 - Verified clean compile gates: `go build ./...` and `go build -tags e2e,integration ./...`.
 - Verified lint gates: `golangci-lint run --fix`, `golangci-lint run`, `go run ./cmd/cicd-lint lint-fitness`, `go run ./cmd/cicd-lint lint-deployments lint-openapi lint-docs`.
@@ -45,7 +45,7 @@
 
 ---
 
-## Phase 1: sm-kms Domain -> sm-kms
+## Phase 1: jose-ja Domain -> sm-kms
 
 **Phase Objective**: Port all sm-kms domain models, repositories, services, and API handlers
 into sm-kms. After this phase, sm-kms can serve all sm-kms API endpoints AND all existing
@@ -252,7 +252,7 @@ sm-kms endpoints simultaneously.
 
 ---
 
-## Phase 2: sm-kms Domain -> sm-kms
+## Phase 2: sm-im Domain -> sm-kms
 
 **Phase Objective**: Port all sm-kms domain models, repository, and handler into sm-kms.
 After this phase, sm-kms can send and receive encrypted messages.
@@ -396,9 +396,9 @@ After this phase, sm-kms can send and receive encrypted messages.
 
 ---
 
-## Phase 3: Delete sm-kms, sm-kms, jose Product
+## Phase 3: Delete jose-ja, sm-im, jose Product
 
-**Phase Objective**: Remove all sm-kms and sm-kms artifacts from the codebase. The jose product
+**Phase Objective**: Remove all jose-ja and sm-im artifacts from the codebase. The jose product
 is deleted because it has no remaining PS-IDs after sm-kms is removed.
 
 ---
@@ -543,7 +543,7 @@ and 8 PS-IDs. All fitness linters and deployment linters pass with zero errors.
 - **Status**: [ ] Not Started
 - **Estimated**: 0.5h
 - **Dependencies**: Task 3.9 (Phase 3 must be complete)
-- **Description**: Remove sm-kms, sm-kms, and jose entries from the registry.
+- **Description**: Remove jose-ja, sm-im, and jose entries from the registry.
 - **Acceptance Criteria**:
   - [ ] `sm-kms` removed from `product_services`
   - [ ] `sm-kms` removed from `product_services`
@@ -574,7 +574,7 @@ and 8 PS-IDs. All fitness linters and deployment linters pass with zero errors.
 - **Status**: [ ] Not Started
 - **Estimated**: 0.5h
 - **Dependencies**: Task 4.2
-- **Description**: Remove sm-kms and sm-kms references from remaining magic files.
+- **Description**: Remove jose-ja and sm-im references from remaining magic files.
 - **Acceptance Criteria**:
   - [ ] `magic_cicd.go`: service count comments updated (10->8, "sm, jose, pki, identity, skeleton"->"sm, pki, identity, skeleton")
   - [ ] `magic_pki_tls.go`: `AppJoseJASQLite1ServerCertCN`, `AppJoseJASQLite2ServerCertCN`, `AppJoseJAPostgres1ServerCertCN`, `AppJoseJAPostgres2ServerCertCN` constants removed
@@ -594,7 +594,7 @@ and 8 PS-IDs. All fitness linters and deployment linters pass with zero errors.
   - [ ] `lint_ports/host_port_ranges/*.go`: sm-kms range (8100-8199) removed or marked inactive
   - [ ] `lint_ports/legacy_ports/*.go`: sm-kms legacy port entries removed
   - [ ] `lint_ports/legacy_ports/*.go`: sm-kms legacy port entries removed
-  - [ ] Associated tests updated to remove sm-kms and sm-kms test cases
+  - [ ] Associated tests updated to remove jose-ja and sm-im test cases
   - [ ] `go test ./internal/apps-tools/cicd_lint/lint_ports/...` passes
 
 ---
@@ -717,7 +717,7 @@ and 8 PS-IDs. All fitness linters and deployment linters pass with zero errors.
   - [ ] Section 3 (product suite architecture) updated: 5 products -> 4 products, 10 PS-IDs -> 8 PS-IDs
   - [ ] Service table updated
   - [ ] Migration range documentation updated (sm-kms now 2001-2999 inclusive of merged tables)
-  - [ ] Decision record added: why sm-kms and sm-kms were merged into sm-kms
+  - [ ] Decision record added: why jose-ja and sm-im were merged into sm-kms
   - [ ] `go run ./cmd/cicd-lint lint-docs` passes after update
 
 ---
@@ -727,10 +727,10 @@ and 8 PS-IDs. All fitness linters and deployment linters pass with zero errors.
 - **Status**: [ ] Not Started
 - **Estimated**: 0.5h
 - **Dependencies**: Task 6.1
-- **Description**: Update user-facing documentation to remove sm-kms and sm-kms references.
+- **Description**: Update user-facing documentation to remove jose-ja and sm-im references.
 - **Acceptance Criteria**:
   - [ ] `README.md` service table shows 8 services not 10
-  - [ ] `docs/DEV-SETUP.md` no longer references sm-kms or sm-kms setup steps
+  - [ ] `docs/DEV-SETUP.md` no longer references jose-ja or sm-im setup steps
   - [ ] No dead links to deleted services in docs
 
 ---
@@ -783,7 +783,7 @@ and 8 PS-IDs. All fitness linters and deployment linters pass with zero errors.
 
 - [ ] README.md service count updated (8 instead of 10)
 - [ ] ENG-HANDBOOK.md architecture section updated
-- [ ] Instruction files reviewed for sm-kms/sm-kms references
+- [ ] Instruction files reviewed for jose-ja/sm-im references
 
 ### Deployment
 
