@@ -17,7 +17,7 @@ import (
 )
 
 // ServiceServer defines the contract that all cryptoutil services must satisfy.
-// All 10 services (sm-im, sm-kms, sm-kms, pki-ca, skeleton-template, identity-authz/idp/rp/rs/spa)
+// All 10 services (sm-kms, sm-kms, sm-kms, pki-ca, skeleton-template, identity-authz/idp/rp/rs/spa)
 // must implement this interface for compile-time framework conformance.
 //
 // Usage: var _ ServiceServer = (*XxxServer)(nil).

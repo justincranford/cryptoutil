@@ -446,7 +446,7 @@ go run ./cmd/cicd-lint lint-docs | grep -i "lint-agent-drift"
 - ❌ NEVER continue with known issues
 - ❌ NEVER treat E2E timeouts as "non-blocking"
 
-**Rationale**: Maximum quality paramount. Example: sm-im E2E timeouts treated as non-blocking was WRONG.
+**Rationale**: Maximum quality paramount. Example: sm-kms E2E timeouts treated as non-blocking was WRONG.
 
 ## Quality Gate Failure Recovery - MANDATORY
 

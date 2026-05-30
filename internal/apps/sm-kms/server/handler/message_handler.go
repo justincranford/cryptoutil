@@ -11,7 +11,7 @@ import (
 	googleUuid "github.com/google/uuid"
 )
 
-// MessageHandler exposes legacy sm-im messaging endpoints in sm-kms.
+// MessageHandler exposes legacy sm-kms messaging endpoints in sm-kms.
 type MessageHandler struct {
 	messageRepo             *cryptoutilAppsSmKmsRepository.MessageRepository
 	messageRecipientJWKRepo *cryptoutilAppsSmKmsRepository.MessageRecipientJWKRepository

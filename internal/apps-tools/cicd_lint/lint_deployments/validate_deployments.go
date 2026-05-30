@@ -158,7 +158,7 @@ func checkDelegationPattern(basePath string, deploymentName string, structType s
 		// Suite MUST include product-level compose files, NOT service-level
 		invalidPatterns := []string{
 			"../sm-kms/compose.yml",
-			"../sm-im/compose.yml",
+			"../sm-kms/compose.yml",
 			"../pki-ca/compose.yml",
 			"../sm-kms/compose.yml",
 			"../identity-authz/compose.yml",

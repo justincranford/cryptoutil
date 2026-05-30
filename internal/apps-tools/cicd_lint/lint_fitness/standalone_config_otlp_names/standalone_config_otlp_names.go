@@ -2,7 +2,7 @@
 // Package standalone_config_otlp_names validates that the otlp-service value in
 // each deployment config file matches the canonical naming convention.
 //
-// For each product-service in the allowlist (sm-im, sm-kms), each required
+// For each product-service in the allowlist (sm-kms, sm-kms), each required
 // config file under deployments/{PS-ID}/config/ must have an otlp-service value
 // following the pattern:
 //   - {PS-ID}-app-sqlite-1.yml       -> {PS-ID}-sqlite-1

@@ -250,7 +250,7 @@ src/test/java/
 │   ├── GatlingHttpUtil.java             # HTTP protocol configuration helpers
 │   ├── ServiceApiSimulation.java        # Service API tests: sm-kms crypto operations
 │   ├── BrowserApiSimulation.java        # Browser API tests: OAuth 2.1 PKCE, certificate requests
-│   ├── SmProductSimulation.java         # SM product: sm-kms + sm-im combined
+│   ├── SmProductSimulation.java         # SM product: sm-kms + sm-kms combined
 │   ├── JoseProductSimulation.java       # JOSE product: sm-kms JWK lifecycle
 │   ├── PkiProductSimulation.java        # PKI product: pki-ca certificate lifecycle
 │   ├── IdentityProductSimulation.java   # Identity product: all 5 identity services
@@ -264,7 +264,7 @@ src/test/java/
 |-------|-----------------|-----------------|---------------|
 | Service | `ServiceApiSimulation` | sm-kms | 8080 |
 | Service | `BrowserApiSimulation` | identity-authz | 8180 |
-| Product | `SmProductSimulation` | sm-kms, sm-im | 8000, 8100 |
+| Product | `SmProductSimulation` | sm-kms, sm-kms | 8000, 8100 |
 | Product | `JoseProductSimulation` | sm-kms | 8200 |
 | Product | `PkiProductSimulation` | pki-ca | 8300 |
 | Product | `IdentityProductSimulation` | identity-authz/idp/rs/rp/spa | 8400-8800 |

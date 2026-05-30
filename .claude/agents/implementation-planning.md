@@ -181,7 +181,7 @@ You are explicitly instructed NOT to:
 "Approximately 30 compose files across all services"
 
 # CORRECT: parameterized paths with derivation formula
-deployments/{sm-kms,sm-kms,sm-im,pki-ca,identity-authz,identity-idp,identity-rp,identity-rs,identity-spa,skeleton-template}/compose.yml  (10 files)
+deployments/{sm-kms,sm-kms,sm-kms,pki-ca,identity-authz,identity-idp,identity-rp,identity-rs,identity-spa,skeleton-template}/compose.yml  (10 files)
 configs/{sm-kms,sm-kms,...}/config-common.yml  (10 files)
 # Total: 20 files = 2 per PS-ID × 10 PS-IDs
 ```
@@ -452,7 +452,7 @@ EOF
 - **Framework**: [Framework if applicable]
 - **Database**: PostgreSQL OR SQLite with GORM
 - **Dependencies**: [Key dependencies]
-- **Affected Files**: [MANDATORY: enumerate relative paths of ALL files expected to change, using parameterization and pattern matching to condense sets. Example: `deployments/{sm-kms,sm-kms,sm-im,pki-ca,identity-authz,identity-idp,identity-rp,identity-rs,identity-spa,skeleton-template}/compose.yml` (10 files). Always show the derivation formula: `30 global + 60 per-PS-ID × 10 = 630`. Raw counts without formulas are unverifiable during review.]
+- **Affected Files**: [MANDATORY: enumerate relative paths of ALL files expected to change, using parameterization and pattern matching to condense sets. Example: `deployments/{sm-kms,sm-kms,sm-kms,pki-ca,identity-authz,identity-idp,identity-rp,identity-rs,identity-spa,skeleton-template}/compose.yml` (10 files). Always show the derivation formula: `30 global + 60 per-PS-ID × 10 = 630`. Raw counts without formulas are unverifiable during review.]
 
 ## Phases
 
@@ -1012,7 +1012,7 @@ Update task evidence immediately after each completed migration cluster — neve
 - ❌ NEVER treat issues as "non-blocking" or "minor"
 - ❌ NEVER continue to next task with known issues
 
-**Rationale**: Maintaining maximum quality is absolutely paramount. Example: Treating sm-im E2E timeouts as non-blocking was WRONG.
+**Rationale**: Maintaining maximum quality is absolutely paramount. Example: Treating sm-kms E2E timeouts as non-blocking was WRONG.
 
 ### Knowledge Propagation Phase — MANDATORY
 

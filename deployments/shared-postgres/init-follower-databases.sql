@@ -51,8 +51,8 @@ CREATE DATABASE "sm-kms";
 \c "sm-kms"
 CREATE SCHEMA ja;
 
-CREATE DATABASE "sm-im";
-\c "sm-im"
+CREATE DATABASE "sm-kms";
+\c "sm-kms"
 CREATE SCHEMA im;
 
 CREATE DATABASE "sm-kms";

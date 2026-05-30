@@ -2,7 +2,7 @@
 //
 //
 
-// Package model provides domain models for the sm-im service.
+// Package model provides domain models for the sm-kms service.
 package model
 
 import (
@@ -11,7 +11,7 @@ import (
 	googleUuid "github.com/google/uuid"
 )
 
-// Message represents an encrypted message in the sm-im system.
+// Message represents an encrypted message in the sm-kms system.
 //
 // Uses JWE JSON format (NOT Compact Serialization):
 // - Multi-recipient encryption: N recipient AES256 JWKs (one per RecipientUserID)

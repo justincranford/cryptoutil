@@ -96,7 +96,7 @@ func TestCheckInDir_NonCipherPrefixNotDetected(t *testing.T) {
 		dir  string
 	}{
 		{
-			name: "sm-im in deployments",
+			name: "sm-kms in deployments",
 			dir:  filepath.Join("deployments", cryptoutilSharedMagic.OTLPServiceSMIM),
 		},
 		{

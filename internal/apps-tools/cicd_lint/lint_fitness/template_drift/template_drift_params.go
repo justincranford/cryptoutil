@@ -112,7 +112,7 @@ func buildStaticParams() map[string]string {
 }
 
 // buildProductPSIDListDisplay builds the display string for product compose header comment.
-// Format for SM (2 services): "sm-kms and sm-im"
+// Format for SM (2 services): "sm-kms and sm-kms"
 // Format for Identity (5 services): "all 5 identity PS-IDs".
 func buildProductPSIDListDisplay(productID string, psIDs []string) string {
 	serviceCount := len(psIDs)
@@ -147,7 +147,7 @@ func pluralS(n int) string {
 //
 //	include:
 //	  - path: ../sm-kms/compose.yml
-//	  - path: ../sm-im/compose.yml
+//	  - path: ../sm-kms/compose.yml
 func buildProductIncludeList(psIDs []string) string {
 	var sb strings.Builder
 

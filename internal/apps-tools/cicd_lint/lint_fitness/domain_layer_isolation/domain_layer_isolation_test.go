@@ -49,7 +49,7 @@ func TestCheckInDir_DomainImportsServer_Fails(t *testing.T) {
 	writeFile(t, filepath.Join(tmp, "internal", "apps", "sm", "im", "domain", "bad.go"), `package domain
 
 import (
-"cryptoutil/internal/apps/sm-im/server/repository"
+"cryptoutil/internal/apps/sm-kms/server/repository"
 )
 
 var _ = repository.User{}
@@ -65,7 +65,7 @@ func TestCheckInDir_DomainImportsClient_Fails(t *testing.T) {
 	writeFile(t, filepath.Join(tmp, "internal", "apps", "sm", "im", "domain", "bad.go"), `package domain
 
 import (
-"cryptoutil/internal/apps/sm-im/client"
+"cryptoutil/internal/apps/sm-kms/client"
 )
 
 var _ = client.Client{}
@@ -80,7 +80,7 @@ func TestCheckInDir_DomainImportsAPI_Fails(t *testing.T) {
 	writeFile(t, filepath.Join(tmp, "internal", "apps", "sm", "im", "domain", "bad.go"), `package domain
 
 import (
-"cryptoutil/internal/apps/sm-im/api/model"
+"cryptoutil/internal/apps/sm-kms/api/model"
 )
 
 var _ = model.Message{}
@@ -95,7 +95,7 @@ func TestCheckInDir_ImportContainsServerPath_Fails(t *testing.T) {
 	writeFile(t, filepath.Join(tmp, "internal", "apps", "sm", "im", "domain", "bad.go"), `package domain
 
 import (
-"cryptoutil/internal/apps/sm-im/server/internal/sub"
+"cryptoutil/internal/apps/sm-kms/server/internal/sub"
 )
 
 var _ = sub.X
@@ -110,7 +110,7 @@ func TestCheckInDir_TestFileInDomain_Skipped(t *testing.T) {
 	writeFile(t, filepath.Join(tmp, "internal", "apps", "sm", "im", "domain", "message_test.go"), `package domain
 
 import (
-"cryptoutil/internal/apps/sm-im/server/repository"
+"cryptoutil/internal/apps/sm-kms/server/repository"
 "testing"
 )
 
@@ -201,7 +201,7 @@ func TestScanDomainFile_WithViolation(t *testing.T) {
 	require.NoError(t, os.WriteFile(goFile, []byte(`package domain
 
 import (
-"cryptoutil/internal/apps/sm-im/server/repository"
+"cryptoutil/internal/apps/sm-kms/server/repository"
 )
 
 var _ = repository.User{}

@@ -20,7 +20,7 @@ type ClientNotImplementedMessageConfig struct {
 // ServiceConfig holds configuration for a service CLI entrypoint.
 // All SERVICE CLI entrypoints (product-service combinations) use this.
 type ServiceConfig struct {
-	// ServiceID is the combined product-service identifier (e.g., "sm-im").
+	// ServiceID is the combined product-service identifier (e.g., "sm-kms").
 	ServiceID string
 	// ProductName is the product name (e.g., "sm").
 	ProductName string

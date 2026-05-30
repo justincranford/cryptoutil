@@ -11,7 +11,7 @@ import (
 
 // ServicePortConfig defines the expected port configuration for a service.
 type ServicePortConfig struct {
-	Name          string   // Service name (e.g., "sm-im", "sm-kms").
+	Name          string   // Service name (e.g., "sm-kms", "sm-kms").
 	PublicPorts   []uint16 // Expected public ports (can have multiple for SQLite/PG variants).
 	AdminPort     uint16   // Expected admin port (always 9090).
 	LegacyPorts   []uint16 // Old ports that should be flagged as violations.

@@ -9,7 +9,7 @@ This report summarizes the full-suite Go test run, the suite-only failures that 
 Validation inputs used:
 
 - `go test ./... -shuffle=on`
-- Targeted reruns of `internal/apps-framework/service/server`, `internal/apps/sm-im/server`, and `internal/shared/telemetry`
+- Targeted reruns of `internal/apps-framework/service/server`, `internal/apps/sm-kms/server`, and `internal/shared/telemetry`
 - Isolated reruns of the previously failing tests
 
 ## Executive Result
@@ -17,7 +17,7 @@ Validation inputs used:
 The full Go test suite passes after two suite-stability fixes:
 
 - `internal/apps-framework/service/server` had a suite-only timeout in `TestPublicServerBase_StartAndMakeRequest` and a hang-prone `TestPublicServerBase_ErrChanPath`.
-- `internal/apps/sm-im/server` had a suite-only timeout in `TestHTTPPost/admin_shutdown_endpoint`.
+- `internal/apps/sm-kms/server` had a suite-only timeout in `TestHTTPPost/admin_shutdown_endpoint`.
 
 Both failures reproduced only under suite load. Each test passed in isolation, which points to contention, startup delay, or an overly brittle lifecycle test rather than a deterministic functional bug.
 
@@ -31,7 +31,7 @@ The slowest packages in the post-fix suite run were:
 | `cryptoutil/internal/apps-tools/cicd_lint/lint_deployments` | 78.053s | Large lint pass over deployment artifacts |
 | `cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/circular_deps` | 73.169s | Fitness checks are expensive by design |
 | `cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/cgo_free_sqlite` | 67.360s | Static analysis plus broad project scanning |
-| `cryptoutil/internal/apps/sm-im/server` | 66.732s | Full service bootstrap, TLS, DB, barrier, and shutdown tests |
+| `cryptoutil/internal/apps/sm-kms/server` | 66.732s | Full service bootstrap, TLS, DB, barrier, and shutdown tests |
 | `cryptoutil/internal/apps-framework/service/server/barrier` | 65.807s | Crypto-heavy barrier setup and teardown |
 | `cryptoutil/internal/apps-framework/tls` | 58.143s | TLS generation and validation work |
 | `cryptoutil/internal/apps/identity/mfa` | 50.773s | Integration-heavy auth flows |
@@ -60,7 +60,7 @@ These are the groups that most strongly influenced runtime.
 | Telemetry retry/failure paths | `cryptoutil/internal/shared/telemetry` | `TestCheckSidecarHealthWithRetry_AllRetriesFail` ran at 10.00s; `TestTelemetryService_InvalidEndpoint` ran at 10.00s | The retry budget is the runtime, not the code path itself |
 | Public server lifecycle | `cryptoutil/internal/apps-framework/service/server` | `TestPublicServerBase_StartAndMakeRequest` passed in isolation in 0.21s but failed in-suite at 11.90s before the fix | The test was brittle under suite contention |
 | Err-channel coverage | `cryptoutil/internal/apps-framework/service/server` | `TestPublicServerBase_ErrChanPath` was the test still running when the 10-minute package timeout hit | The real shutdown path was too race-prone for a coverage test |
-| SM-IM shutdown helper | `cryptoutil/internal/apps/sm-im/server` | `TestHTTPPost/admin_shutdown_endpoint` failed in-suite after 5.04s but passed in isolation in 0.16s | The request timeout was too tight for suite load |
+| SM-IM shutdown helper | `cryptoutil/internal/apps/sm-kms/server` | `TestHTTPPost/admin_shutdown_endpoint` failed in-suite after 5.04s but passed in isolation in 0.16s | The request timeout was too tight for suite load |
 
 ## Test-Level Notes
 
@@ -69,14 +69,14 @@ Observed behavior from the targeted reruns:
 - `internal/shared/telemetry`: `TestParseLogLevel_AllLevels` is not the problem. It passed 10/10 times in a repeat run and completed in 0.023s when isolated.
 - `internal/shared/telemetry`: the expensive tests are the ones that start exporters or wait out retry budgets. The reported log noise is a side effect of exercising failure and flush paths, not a correctness issue.
 - `internal/apps-framework/service/server`: the err-channel test should not depend on the real Fiber shutdown sequence. The suite-only hang came from a coverage test that was too close to production shutdown timing.
-- `internal/apps/sm-im/server`: the shutdown endpoint is functionally correct, but the test allowed only 5 seconds for a path that can stretch under parallel suite load.
+- `internal/apps/sm-kms/server`: the shutdown endpoint is functionally correct, but the test allowed only 5 seconds for a path that can stretch under parallel suite load.
 
 ## Why The Suite Was Slow
 
 The suite had three main cost centers:
 
 1. Real server startup and TLS setup.
-   Packages such as `internal/apps-framework/service/server/application`, `internal/apps-framework/service/server/barrier`, and `internal/apps/sm-im/server` start real listeners, build TLS material, and initialize application state. Those tests are correct, but they are expensive.
+   Packages such as `internal/apps-framework/service/server/application`, `internal/apps-framework/service/server/barrier`, and `internal/apps/sm-kms/server` start real listeners, build TLS material, and initialize application state. Those tests are correct, but they are expensive.
 
 2. Lint-fitness scans over large file sets.
    `lint_fitness` packages are repo-wide by design. They provide strong guardrails, but they are not good candidates for fast inner-loop feedback.

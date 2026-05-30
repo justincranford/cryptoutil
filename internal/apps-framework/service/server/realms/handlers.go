@@ -266,7 +266,7 @@ func (s *UserServiceImpl) HandleLoginUserWithSession(sessionManager any, isBrows
 		)
 
 		// Extract tenant ID from authenticated user model.
-		// For services using dynamic tenant creation (sm-im), this is populated from user.TenantID.
+		// For services using dynamic tenant creation (sm-kms), this is populated from user.TenantID.
 		// For multi-tenant deployments, the realm lookup would query tenant_realms table.
 		type tenantAware interface {
 			GetTenantID() googleUuid.UUID
@@ -344,7 +344,7 @@ func (s *UserServiceImpl) HandleLoginUserWithSession(sessionManager any, isBrows
 // Security Notes:
 // - Algorithm: HMAC-SHA256 (HS256) - symmetric key signing
 // - Expiration: 15 minutes (configurable via cryptoutilMagic.IMJWTExpiration)
-// - Issuer: "sm-im" (configurable via cryptoutilMagic.IMJWTIssuer)
+// - Issuer: "sm-kms" (configurable via cryptoutilMagic.IMJWTIssuer)
 // - Claims: user_id (string), username (string), iat, exp, iss.
 func GenerateJWT(userID googleUuid.UUID, username, secret string) (string, time.Time, error) {
 	expirationTime := time.Now().UTC().Add(cryptoutilSharedMagic.IMJWTExpiration)

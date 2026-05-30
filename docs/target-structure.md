@@ -21,7 +21,7 @@ This document supersedes framework-v5/target-structure.md (deleted — git histo
 | Product | `{PRODUCT}` | `sm`, `jose`, `pki`, `identity`, `skeleton` | 5 |
 | Service | `{SERVICE}` | varies per product (see below) | 10 total |
 | PS-ID | `{PS-ID}` = `{PRODUCT}-{SERVICE}` | see table below | 10 |
-| PS_ID | `{PS_ID}` = `{PRODUCT}_{SERVICE}` | underscore variant for SQL/secrets | 10 |
+| PS_ID | `{PS_ID}` = `{PRODUCT}_{SERVICE}` | underscore variant for SQL/secrets | 8 |
 | Infra Tool | N/A | `cicd-lint`, `cicd-workflow` | 2 |
 | Framework | N/A | `framework` | 1 |
 
@@ -30,8 +30,6 @@ This document supersedes framework-v5/target-structure.md (deleted — git histo
 | PS-ID | PS_ID | Product | Service | Display Name |
 |-------|-------|---------|---------|-------------|
 | `sm-kms` | `sm_kms` | sm | kms | Secrets Manager Key Management |
-| `sm-im` | `sm_im` | sm | im | Secrets Manager Instant Messenger |
-| `sm-kms` | `jose_ja` | jose | ja | JOSE JWK Authority |
 | `pki-ca` | `pki_ca` | pki | ca | PKI Certificate Authority |
 | `identity-authz` | `identity_authz` | identity | authz | Identity Authorization Server |
 | `identity-idp` | `identity_idp` | identity | idp | Identity Provider |
@@ -296,7 +294,7 @@ cmd/                                                  # drwxr-x---  (18 flat ent
 ├── sm-kms/main.go                                   # {PS-ID}=sm-kms
 ├── pki-ca/main.go                                    # {PS-ID}=pki-ca
 ├── skeleton-template/main.go                         # {PS-ID}=skeleton-template
-├── sm-im/main.go                                     # {PS-ID}=sm-im
+├── sm-kms/main.go                                     # {PS-ID}=sm-kms
 ├── sm-kms/main.go                                    # {PS-ID}=sm-kms
 │
 │   # {INFRA-TOOL}/main.go — Infrastructure tools (×2)
@@ -384,7 +382,7 @@ api/                                                  # drwxr-x---
 ```
 
 **All 10 PS-IDs**: `identity-authz`, `identity-idp`, `identity-rp`, `identity-rs`,
-`identity-spa`, `sm-kms`, `pki-ca`, `skeleton-template`, `sm-im`, `sm-kms`.
+`identity-spa`, `sm-kms`, `pki-ca`, `skeleton-template`, `sm-kms`, `sm-kms`.
 
 ---
 
@@ -411,16 +409,16 @@ configs/
 ### E.2 Product Configs — NOT APPLICABLE
 
 Product-level config directories (`configs/{PRODUCT}/{PRODUCT}.yml`) are NOT used.
-Products (cmd/identity, cmd/jose, etc.) are CLI dispatchers that recurse to their
+Products (cmd/identity, cmd/sm, etc.) are CLI dispatchers that recurse to their
 constituent service binaries — they do not have their own config files. All config
 is at the service level (E.3) or suite level (E.1).
 
-### E.3 Service Configs (10 services — FLAT `configs/{PS-ID}/`)
+### E.3 Service Configs (8 services — FLAT `configs/{PS-ID}/`)
 
 Each service has its own flat directory at `configs/{PS-ID}/` containing exactly
 one config file named `{PS-ID}.yml`. NO nested product subdirectories.
 
-Config file name pattern: `{PS-ID}.yml` (e.g., `sm-im.yml`, NOT `im.yml`).
+Config file name pattern: `{PS-ID}.yml` (e.g., `sm-kms.yml`, NOT `im.yml`).
 
 ```
 configs/
@@ -450,8 +448,8 @@ configs/
 │       └── (25 *.yaml profile files)      # e.g. root-ca.yaml, tls-server.yaml, etc.
 ├── skeleton-template/
 │   └── skeleton-template.yml
-├── sm-im/
-│   └── sm-im.yml
+├── sm-kms/
+│   └── sm-kms.yml
 └── sm-kms/
     └── sm-kms.yml
 ```
@@ -492,7 +490,7 @@ deployments/{PS-ID}/                                  # drwxr-x---
 ```
 
 **All 10 services** (`identity-authz`, `identity-idp`, `identity-rp`, `identity-rs`,
-`identity-spa`, `sm-kms`, `pki-ca`, `skeleton-template`, `sm-im`, `sm-kms`) follow
+`identity-spa`, `sm-kms`, `pki-ca`, `skeleton-template`, `sm-kms`, `sm-kms`) follow
 this identical structure.
 
 ### F.2 Per-Product Deployment (5 products)
@@ -630,7 +628,7 @@ enforced by lint-fitness `apps-suite-template`, `apps-product-template`.
 
 | Product | Forbidden dirs | Correct location |
 |---------|---------------|-----------------|
-| `sm/` | `im/`, `kms/` | `internal/apps/sm-im/`, `internal/apps/sm-kms/` |
+| `sm/` | `im/`, `kms/` | `internal/apps/sm-kms/`, `internal/apps/sm-kms/` |
 | `jose/` | `ja/` | `internal/apps/sm-kms/` |
 | `pki/` | `ca/` | `internal/apps/pki-ca/` |
 | `skeleton/` | `template/` | `internal/apps/skeleton-template/` |
@@ -669,7 +667,7 @@ The root contains ONLY CLI integration code — no server logic, no HTTP handler
 | `{SERVICE}_test.go` | **REQUIRED** | CLI integration tests (help, version, unknown-subcommand) |
 | `server/` | **REQUIRED** | All server implementation, swagger, and integration tests |
 | `e2e/` | OPTIONAL | Docker Compose E2E tests |
-| `client/` | OPTIONAL | Typed HTTP client (sm-kms, sm-im only) |
+| `client/` | OPTIONAL | Typed HTTP client (sm-kms, sm-kms only) |
 | `testing/` | OPTIONAL | Test helpers shared across packages |
 
 **`server/` rigid structure** (all server code lives here, NOT at PS-ID root):
@@ -686,7 +684,7 @@ The root contains ONLY CLI integration code — no server logic, no HTTP handler
 
 **Current gap matrix** (✓ = correct location · MOVE = exists at PS-ID root, must migrate to `server/` · MISS = does not exist anywhere):
 
-| Invariant | sm-kms | sm-im | sm-kms | pki-ca | id-authz | id-idp | id-rs | id-rp | id-spa | skel-tmpl |
+| Invariant | sm-kms | sm-kms | sm-kms | pki-ca | id-authz | id-idp | id-rs | id-rp | id-spa | skel-tmpl |
 |-----------|:------:|:-----:|:-------:|:------:|:--------:|:------:|:-----:|:-----:|:------:|:---------:|
 | root `{SVC}.go` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | root `{SVC}_usage.go` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
@@ -734,7 +732,7 @@ The root contains ONLY CLI integration code — no server logic, no HTTP handler
 | `sm-kms` | `client/`, `e2e/`, `model/`, `repository/`, `server/`, `service/` |
 | `pki-ca` | `api/`, `bootstrap/`, `cli/`, `compliance/`, `config/`, `crypto/`, `domain/`, `domain-v2/`, `intermediate/`, `observability/`, `profile/`, `repository-v2/`, `security/`, `server/`, `service/`, `storage/` |
 | `skeleton-template` | `client/`, `domain/`, `e2e/`, `repository/`, `server/` |
-| `sm-im` | `client/`, `e2e/`, `integration/`, `model/`, `repository/`, `server/`, `testing/` |
+| `sm-kms` | `client/`, `e2e/`, `integration/`, `model/`, `repository/`, `server/`, `testing/` |
 | `sm-kms` | `client/`, `e2e/`, `server/` |
 
 **Identity shared packages** (at `internal/apps/identity/`, shared across identity services):
@@ -1141,7 +1139,7 @@ See framework-v17/ plan.md Phase 5 and the gap matrix in G.1.2 for per-PS-ID det
 | `testmain_test.go` at root | 9 PS-IDs have at root (sm-kms missing) | All in `server/` | MOVE (+ CREATE for sm-kms) |
 | `{SVC}_lifecycle_test.go` at root | 7 PS-IDs have at root | All in `server/` | MOVE (+ CREATE for id-rs, id-rp, id-spa) |
 | `{SVC}_port_conflict_test.go` at root | 5 PS-IDs have at root | All in `server/` | MOVE (+ CREATE for id-authz, id-idp, id-rs, id-rp, id-spa) |
-| Non-`{SERVICE}_`-prefixed files at root | sm-im, id-authz, id-idp, id-rs have extra root files | None | MOVE to `server/` or appropriate subpackage |
+| Non-`{SERVICE}_`-prefixed files at root | sm-kms, id-authz, id-idp, id-rs have extra root files | None | MOVE to `server/` or appropriate subpackage |
 | `swagger.go`/`swagger_test.go` creation | identity-rp, identity-spa missing entirely | Present in `server/` | CREATE in `server/` |
 
 ### N.2 Product Service-Dir Cleanup (V17 Phase 5)
@@ -1150,7 +1148,7 @@ Service-named subdirectories inside product directories violate the flat PS-ID l
 
 | Product | Forbidden dirs | Correct location | Action |
 |---------|---------------|-----------------|--------|
-| `sm/` | `im/`, `kms/` | `internal/apps/sm-im/`, `internal/apps/sm-kms/` | Audit + DELETE if redundant |
+| `sm/` | `im/`, `kms/` | `internal/apps/sm-kms/`, `internal/apps/sm-kms/` | Audit + DELETE if redundant |
 | `jose/` | `ja/` | `internal/apps/sm-kms/` | Audit + DELETE if redundant |
 | `pki/` | `ca/` | `internal/apps/pki-ca/` | Audit + DELETE if redundant |
 | `skeleton/` | `template/` | `internal/apps/skeleton-template/` | Audit + DELETE if redundant |

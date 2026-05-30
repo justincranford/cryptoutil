@@ -11,7 +11,7 @@
 #   Suite-level (10 databases):
 #     - suitedeployment-pki-ca
 #     - suitedeployment-sm-kms
-#     - suitedeployment-sm-im
+#     - suitedeployment-sm-kms
 #     - suitedeployment-sm-kms
 #     - suitedeployment-identity-authz
 #     - suitedeployment-identity-idp
@@ -23,7 +23,7 @@
 #   Product-level (10 databases):
 #     - productdeployment-pki-ca
 #     - productdeployment-sm-kms
-#     - productdeployment-sm-im
+#     - productdeployment-sm-kms
 #     - productdeployment-sm-kms
 #     - productdeployment-identity-authz
 #     - productdeployment-identity-idp
@@ -35,7 +35,7 @@
 #   Service-level (10 databases):
 #     - servicedeployment-pki-ca
 #     - servicedeployment-sm-kms
-#     - servicedeployment-sm-im
+#     - servicedeployment-sm-kms
 #     - servicedeployment-sm-kms
 #     - servicedeployment-identity-authz
 #     - servicedeployment-identity-idp
@@ -58,7 +58,7 @@
 #   Service-level (10 databases with 1 schema each):
 #     - pki-ca (schema: ca)
 #     - sm-kms (schema: ja)
-#     - sm-im (schema: im)
+#     - sm-kms (schema: im)
 #     - sm-kms (schema: kms)
 #     - identity-authz (schema: authz)
 #     - identity-idp (schema: idp)

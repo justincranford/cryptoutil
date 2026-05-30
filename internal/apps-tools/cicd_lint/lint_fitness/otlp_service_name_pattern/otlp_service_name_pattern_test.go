@@ -102,14 +102,14 @@ func TestCheckOTLPServiceValue_IncorrectNames(t *testing.T) {
 			psID:           cryptoutilSharedMagic.OTLPServiceSMIM,
 			expectedSuffix: "-sqlite-1",
 			otlpService:    cryptoutilSharedMagic.OTLPServiceSMIM + "-sqlite",
-			wantErrContain: `got "sm-im-sqlite", want "sm-im-sqlite-1"`,
+			wantErrContain: `got "sm-kms-sqlite", want "sm-kms-sqlite-1"`,
 		},
 		{
 			name:           "wrong ps-id",
 			psID:           cryptoutilSharedMagic.OTLPServiceSMIM,
 			expectedSuffix: "-postgres-1",
 			otlpService:    "cipher-im-postgres-1",
-			wantErrContain: `got "cipher-im-postgres-1", want "sm-im-postgres-1"`,
+			wantErrContain: `got "cipher-im-postgres-1", want "sm-kms-postgres-1"`,
 		},
 	}
 
@@ -139,7 +139,7 @@ func TestCheckInDir_NoOTLPServiceKey(t *testing.T) {
 	require.NoError(t, os.MkdirAll(productDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 	configContent := "bind-public-port: 8080\n"
-	require.NoError(t, os.WriteFile(filepath.Join(productDir, "sm-im-sqlite.yml"), []byte(configContent), cryptoutilSharedMagic.FilePermissionsDefault))
+	require.NoError(t, os.WriteFile(filepath.Join(productDir, "sm-kms-sqlite.yml"), []byte(configContent), cryptoutilSharedMagic.FilePermissionsDefault))
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test-otlp-no-key")
 

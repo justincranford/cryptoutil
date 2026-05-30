@@ -755,7 +755,7 @@ Run a service with live reload — air rebuilds and restarts on every `.go` file
 # SERVICE must match a directory under cmd/
 
 # SM Instant Messenger
-SERVICE=sm-im air
+SERVICE=sm-kms air
 
 # JOSE JWK Authority
 SERVICE=sm-kms air
@@ -779,7 +779,7 @@ Build output goes to `tmp/main` (excluded from git).
 The server automatically runs with `--dev` flag (SQLite in-memory, debug logging).
 
 > **Note**: air requires the `SERVICE` environment variable to be set.
-> On Windows PowerShell use: `$env:SERVICE="sm-im"; air`
+> On Windows PowerShell use: `$env:SERVICE="sm-kms"; air`
 
 ### Access the Application
 

@@ -35,7 +35,7 @@ func TestServiceServer_InterfaceIsDefinedInServerPackage(t *testing.T) {
 // would cause a build failure — documented here for clarity.
 //
 // Services with compile-time assertions (var _ ServiceServer = (*XxxServer)(nil)):
-// - SmIMServer          (internal/apps/sm-im/server)
+// - SmIMServer          (internal/apps/sm-kms/server)
 // - KMSServer           (internal/apps/sm-kms/server)
 // - JoseJAServer        (internal/apps/sm-kms/server)
 // - PKICAServer         (internal/apps/pki-ca/server)

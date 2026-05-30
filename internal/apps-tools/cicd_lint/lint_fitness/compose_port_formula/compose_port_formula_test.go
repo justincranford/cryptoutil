@@ -108,7 +108,7 @@ func TestCheckInDir_ValidServiceTierPorts(t *testing.T) {
 			variantOffset:  3,
 		},
 		{
-			name:           "sm-im sqlite-1 service tier",
+			name:           "sm-kms sqlite-1 service tier",
 			psID:           cryptoutilSharedMagic.OTLPServiceSMIM,
 			serviceVariant: lintFitnessRegistry.ComposeVariantSQLite1,
 			variantOffset:  0,
@@ -280,13 +280,13 @@ func TestCheckInDir_ReadFileError(t *testing.T) {
 func TestCheckTierPorts_ValidProductTierAllVariants(t *testing.T) {
 	t.Parallel()
 
-	// Verify all 3 variants for sm-im at PRODUCT tier.
+	// Verify all 3 variants for sm-kms at PRODUCT tier.
 	psID := cryptoutilSharedMagic.OTLPServiceSMIM
 	basePort := lintFitnessRegistry.PublicPort(psID)
 
 	tmpDir := t.TempDir()
 
-	// Build compose.yml with all 3 services for sm-im at PRODUCT tier.
+	// Build compose.yml with all 3 services for sm-kms at PRODUCT tier.
 	var portEntries string
 
 	for _, vm := range variantMappings {

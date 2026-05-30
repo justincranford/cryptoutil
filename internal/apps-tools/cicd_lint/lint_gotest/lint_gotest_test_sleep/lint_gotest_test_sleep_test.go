@@ -229,17 +229,17 @@ func TestIsExemptedFile(t *testing.T) {
 		},
 		{
 			name:     "exempt_listener_suffix",
-			filePath: "/internal/apps/sm-im/server_listener_test.go",
+			filePath: "/internal/apps/sm-kms/server_listener_test.go",
 			want:     true,
 		},
 		{
 			name:     "exempt_listener_db_suffix",
-			filePath: "/internal/apps/sm-im/server_listener_db_test.go",
+			filePath: "/internal/apps/sm-kms/server_listener_db_test.go",
 			want:     true,
 		},
 		{
 			name:     "exempt_listener_send_suffix",
-			filePath: "/internal/apps/sm-im/server_listener_send_test.go",
+			filePath: "/internal/apps/sm-kms/server_listener_send_test.go",
 			want:     true,
 		},
 		{
@@ -334,7 +334,7 @@ func TestIsExemptedFile(t *testing.T) {
 		},
 		{
 			name:     "exempt_http_errors",
-			filePath: "/internal/apps/sm-im/http_errors_test.go",
+			filePath: "/internal/apps/sm-kms/http_errors_test.go",
 			want:     true,
 		},
 		{

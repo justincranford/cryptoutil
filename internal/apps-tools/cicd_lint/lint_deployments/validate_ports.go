@@ -31,7 +31,7 @@ type PortValidationResult struct {
 // SERVICE/PRODUCT/SUITE deployment level pattern.
 //
 // deploymentLevel MUST be one of: "PRODUCT-SERVICE", "PRODUCT", "SUITE".
-// deploymentName is the directory name (e.g., "sm-im", "sm-im", "cryptoutil").
+// deploymentName is the directory name (e.g., "sm-kms", "sm-kms", "cryptoutil").
 func ValidatePorts(deploymentPath, deploymentName, deploymentLevel string) (*PortValidationResult, error) {
 	result := &PortValidationResult{
 		Path:  deploymentPath,

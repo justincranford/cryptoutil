@@ -4,9 +4,9 @@
 
 ## Executive Summary
 
-1. Phase 1 established working jose-ja compatibility inside sm-kms (routes, handlers, repos, migrations, and generated API artifacts).
-2. Phase 2 established working sm-im compatibility inside sm-kms (message schema and endpoints), including dual path route registration.
-3. Phase 3 removed jose-ja, sm-im, and jose product runtime surfaces from code/config/deployments.
+1. Phase 1 established working sm-kms compatibility inside sm-kms (routes, handlers, repos, migrations, and generated API artifacts).
+2. Phase 2 established working sm-kms compatibility inside sm-kms (message schema and endpoints), including dual path route registration.
+3. Phase 3 removed sm-kms, sm-kms, and retired product runtime surfaces from code/config/deployments.
 4. Phase 4 reconciled registry, constants, deployment lint rules, and fitness validations to 4 products/8 PS-IDs.
 5. Phase 5 quality gates are partially complete: build and lint gates pass, but full repository test migration is still in progress due broad legacy topology assumptions in test suites.
 
@@ -14,8 +14,8 @@
 
 ## Actions
 
-1. Migrate remaining tests that still encode jose/sm-im expectations to 8-PS-ID topology.
-2. Replace lingering jose/sm-im fixture references in lint_fitness and framework/tls test packages with active PS-IDs.
+1. Migrate remaining tests that still encode jose/sm-kms expectations to 8-PS-ID topology.
+2. Replace lingering jose/sm-kms fixture references in lint_fitness and framework/tls test packages with active PS-IDs.
 3. Re-run full `go test ./... -shuffle=on` and close Phase 5 once legacy-topology test failures are eliminated.
 4. Complete Phase 6 documentation propagation updates after test migration completion.
 
@@ -41,11 +41,11 @@
 
 ---
 
-## Phase 1: jose-ja Domain -> sm-kms
+## Phase 1: sm-kms Domain -> sm-kms
 
 ### What Worked
 
-- Porting jose-ja repository/service/handler logic directly into sm-kms with constructor injection preserved most behavior.
+- Porting sm-kms repository/service/handler logic directly into sm-kms with constructor injection preserved most behavior.
 - Adding compatibility routes in both `/browser` and `/service` groups preserved dual-path behavior.
 
 ### What Didn't Work
@@ -62,7 +62,7 @@
 
 ---
 
-## Phase 2: sm-im Domain -> sm-kms
+## Phase 2: sm-kms Domain -> sm-kms
 
 ### What Worked
 
@@ -82,7 +82,7 @@
 
 ---
 
-## Phase 3: Delete jose-ja, sm-im, jose Product
+## Phase 3: Delete sm-kms, sm-kms, jose Product
 
 ### What Worked
 
@@ -134,7 +134,7 @@
 
 ### Root Causes
 
-- Large portions of the test suite still encode 10-PS-ID assumptions (jose/sm-im existence, expected registry counts, deployment fixtures).
+- Large portions of the test suite still encode 10-PS-ID assumptions (jose/sm-kms existence, expected registry counts, deployment fixtures).
 
 ### Patterns for Future Phases
 

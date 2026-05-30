@@ -36,7 +36,7 @@ func resolveTierInternal(tierID string) (TierType, []string, error) {
 	case cryptoutilSharedMagic.PSIDSet[tierID]:
 		return TierService, []string{tierID}, nil
 	default:
-		return 0, nil, fmt.Errorf("unknown tier ID %q: must be %q, a product (sm, jose, pki, identity, skeleton), or a PS-ID", tierID, cryptoutilSharedMagic.DefaultOTLPServiceDefault)
+		return 0, nil, fmt.Errorf("unknown tier ID %q: must be %q, a product (sm, pki, identity, skeleton), or a PS-ID", tierID, cryptoutilSharedMagic.DefaultOTLPServiceDefault)
 	}
 }
 

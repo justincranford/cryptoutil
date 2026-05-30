@@ -94,7 +94,7 @@ jobs:
       uses: ./.github/actions/docker-compose-build
 
     # TODO: pki-ca not yet migrated to service-framework pattern
-    # Migration status: sm-im ✅, sm-kms ✅, sm-kms ✅, skeleton-template ✅ | pki-ca ❌, identity-* ❌
+    # Migration status: sm-kms ✅, sm-kms ✅, sm-kms ✅, skeleton-template ✅ | pki-ca ❌, identity-* ❌
     # CA deployment needed for E2E test infrastructure (certificate dependencies)
     - name: Deploy CA services
       run: |
@@ -110,19 +110,19 @@ jobs:
         echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
         echo "⏱️ CA deployment completed in: ${DURATION}s"
 
-    - name: Deploy JOSE services
+    - name: Deploy SM services
       run: |
-        echo "🚀 Deploying JOSE services..."
+        echo "🚀 Deploying SM services..."
         START_TIME=$(date +%s)
         echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-        docker compose -f ./deployments/jose/compose.yml --profile dev up -d
-        echo "⏱️ Waiting for JOSE services to be healthy..."
+        docker compose -f ./deployments/sm/compose.yml --profile dev up -d
+        echo "⏱️ Waiting for SM services to be healthy..."
         sleep 35
-        echo "✅ JOSE services deployed"
+        echo "✅ SM services deployed"
         END_TIME=$(date +%s)
         DURATION=$((END_TIME - START_TIME))
         echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-        echo "⏱️ JOSE deployment completed in: ${DURATION}s"
+        echo "⏱️ SM deployment completed in: ${DURATION}s"
 
     - name: Verify CA services
       run: |
@@ -130,11 +130,11 @@ jobs:
         curl -k https://localhost:9090/admin/api/v1/livez || echo "CA SQLite not ready"
         docker compose -f ./deployments/pki-ca/compose.yml ps
 
-    - name: Verify JOSE services
+    - name: Verify SM services
       run: |
-        echo "🔍 Verifying JOSE services..."
-        curl -k https://localhost:9090/admin/api/v1/livez || echo "JOSE server not ready"
-        docker compose -f ./deployments/jose/compose.yml ps
+        echo "🔍 Verifying SM services..."
+        curl -k https://localhost:9090/admin/api/v1/livez || echo "SM server not ready"
+        docker compose -f ./deployments/sm/compose.yml ps
 
     - name: Run E2E tests
       run: |
@@ -142,34 +142,18 @@ jobs:
         START_TIME=$(date +%s)
         echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
 
-        # Stop CA and JOSE services to free ports for E2E tests
-        echo "🛑 Stopping CA and JOSE services to free ports..."
+        # Stop CA and SM services to free ports for E2E tests
+        echo "🛑 Stopping CA and SM services to free ports..."
         docker compose -f ./deployments/pki-ca/compose.yml down -v || true
-        docker compose -f ./deployments/jose/compose.yml down -v || true
+        docker compose -f ./deployments/sm/compose.yml down -v || true
         sleep 5
 
         # Set environment variable to help with debugging
         export E2E_DEBUG=1
 
         # Run the tests and capture output
-        # Test sm-im E2E
-        if go test -tags=e2e -v -timeout=30m ./internal/apps/sm/im/e2e/... 2>&1; then
-          echo "✅ sm-im E2E tests completed successfully"
-        else
-          echo "❌ sm-im E2E tests failed"
-          exit 1
-        fi
-
         # Test sm-kms E2E
-        if go test -tags=e2e -v -timeout=30m ./internal/apps/jose/ja/e2e/... 2>&1; then
-          echo "✅ sm-kms E2E tests completed successfully"
-        else
-          echo "❌ sm-kms E2E tests failed"
-          exit 1
-        fi
-
-        # Test sm-kms E2E
-        if go test -tags=e2e -v -timeout=30m ./internal/apps/sm/kms/e2e/... 2>&1; then
+        if go test -tags=e2e -v -timeout=30m ./internal/apps/sm-kms/e2e/... 2>&1; then
           echo "✅ sm-kms E2E tests completed successfully"
         else
           echo "❌ sm-kms E2E tests failed"
@@ -177,7 +161,7 @@ jobs:
         fi
 
         # Test skeleton-template E2E
-        if go test -tags=e2e -v -timeout=30m ./internal/apps/skeleton/template/e2e/... 2>&1; then
+        if go test -tags=e2e -v -timeout=30m ./internal/apps/skeleton-template/e2e/... 2>&1; then
           echo "✅ skeleton-template E2E tests completed successfully"
         else
           echo "❌ skeleton-template E2E tests failed"
@@ -186,7 +170,7 @@ jobs:
 
         # TODO: Enable identity E2E tests after identity services migrated to service-framework pattern
         # Currently DISABLED - identity-authz, identity-idp, identity-rp, identity-rs, identity-spa not yet migrated
-        # Migration status: sm-im ✅, sm-kms ✅, sm-kms ✅, skeleton-template ✅ | pki-ca ❌, identity-* ❌
+        # Migration status: sm-kms ✅, sm-kms ✅, sm-kms ✅, skeleton-template ✅ | pki-ca ❌, identity-* ❌
         # Test identity E2E
         # if go test -tags=e2e -v -timeout=30m ./internal/apps/identity/e2e/... 2>&1; then
         #   echo "✅ identity E2E tests completed successfully"
@@ -219,8 +203,8 @@ jobs:
 
         # Collect CA service logs
           docker compose -f ./deployments/pki-ca/compose.yml logs pki-ca-app-sqlite-1 > ./workflow-reports/e2e/pki-ca-sqlite.log 2>&1 || true
-        # Collect JOSE service logs
-          docker compose -f ./deployments/jose/compose.yml logs sm-kms-app-sqlite-1 > ./workflow-reports/e2e/sm-kms.log 2>&1 || true
+        # Collect SM service logs
+          docker compose -f ./deployments/sm/compose.yml logs sm-kms-app-sqlite-1 > ./workflow-reports/e2e/sm-kms.log 2>&1 || true
         echo "✅ Service logs collected"
         END_TIME=$(date +%s)
         DURATION=$((END_TIME - START_TIME))
@@ -253,5 +237,5 @@ jobs:
         echo "🛑 Stopping all services..."
           docker compose -f ./deployments/sm-kms/compose.yml down -v --remove-orphans || true
           docker compose -f ./deployments/pki-ca/compose.yml down -v --remove-orphans || true
-          docker compose -f ./deployments/jose/compose.yml down -v --remove-orphans || true
+          docker compose -f ./deployments/sm/compose.yml down -v --remove-orphans || true
           echo "✅ All services stopped"

@@ -2,7 +2,7 @@
 //
 //
 
-// WIP(sm-im-migration): This SessionManager implementation is work-in-progress.
+// WIP(sm-kms-migration): This SessionManager implementation is work-in-progress.
 // Current status:
 // - ✅ OPAQUE session issuance and validation (uses hash package directly)
 // - ✅ JWS/JWE session issuance and validation (complete implementation)
@@ -12,7 +12,7 @@
 // Next steps:
 // - Write integration tests
 // - Verify quality gates (coverage ≥95%, mutations ≥85%)
-// - Integrate with sm-im service
+// - Integrate with sm-kms service
 
 // Package businesslogic provides business logic services for the template service.
 package businesslogic

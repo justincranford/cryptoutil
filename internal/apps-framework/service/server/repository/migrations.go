@@ -27,7 +27,7 @@ import (
 //
 // Migration version numbering convention:
 //   - 1001-1004: Service-framework base infrastructure (session mgmt, barrier, realms template, multi-tenancy)
-//   - 1005+: App-specific tables (sm-im users/messages, identity accounts, etc.)
+//   - 1005+: App-specific tables (sm-kms users/messages, identity accounts, etc.)
 //
 //go:embed migrations/*.sql
 var MigrationsFS embed.FS

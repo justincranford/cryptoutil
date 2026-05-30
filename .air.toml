@@ -1,9 +1,9 @@
 # Air - Live Reload Configuration
-# Usage: SERVICE=sm-im air
+# Usage: SERVICE=sm-kms air
 # Prerequisites: go install github.com/air-verse/air@latest
 #
 # SERVICE env var must match a directory under cmd/, e.g.:
-#   sm-kms, sm-im, sm-kms, pki-ca,
+#   sm-kms, sm-kms, sm-kms, pki-ca,
 #   identity-authz, identity-idp, identity-rs, identity-rp, identity-spa,
 #   skeleton-template
 root = "."

@@ -204,7 +204,7 @@ func TestCheckFile_MagicDirectorySkipped(t *testing.T) {
 func TestCheckFile_TestFileSkipped(t *testing.T) {
 	t.Parallel()
 
-	violations := CheckFile("/project/internal/apps/sm-im/server_test.go", lintPortsCommon.AllLegacyPorts(), legacyPortPattern.FindAllStringSubmatch)
+	violations := CheckFile("/project/internal/apps/sm-kms/server_test.go", lintPortsCommon.AllLegacyPorts(), legacyPortPattern.FindAllStringSubmatch)
 	require.Nil(t, violations, "Test files should be skipped")
 }
 

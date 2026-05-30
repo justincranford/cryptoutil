@@ -118,7 +118,7 @@ func TestMainBefore(m *testing.M) {
 	// Create shared SmIMServer (includes barrier service, repositories, both public and admin servers).
 	testSmIMServer, baseURL, adminURL, err = createTestSmIMServer(testDB)
 	if err != nil {
-		panic("TestMain: failed to create test sm-im server: " + err.Error())
+		panic("TestMain: failed to create test sm-kms server: " + err.Error())
 	}
 
 	// Defer database close and server shutdown (LIFO: executes AFTER m.Run() completes).
@@ -207,7 +207,7 @@ func _testMainAfter(m *testing.M) {
 // _createInMemoryDB creates an in-memory SQLite database configured for concurrent operations.
 // Returns GORM DB, sql.DB (for migrations), and error.
 //
-// This helper is REUSABLE across all services (sm-im, sm-kms, identity-*, sm-kms, pki-ca, skeleton-template).
+// This helper is REUSABLE across all services (sm-kms, sm-kms, identity-*, sm-kms, pki-ca, skeleton-template).
 // Extract to internal/template/testing/database/ for shared usage.
 //
 //nolint:unused // Example function for documentation

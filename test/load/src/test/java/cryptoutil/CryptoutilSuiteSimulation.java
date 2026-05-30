@@ -32,7 +32,7 @@ import io.gatling.javaapi.http.HttpProtocolBuilder;
  * <p>Port assignments follow the service catalog:
  * <ul>
  *   <li>sm-kms: 8000</li>
- *   <li>sm-im: 8100</li>
+ *   <li>sm-kms: 8100</li>
  *   <li>sm-kms: 8200</li>
  *   <li>pki-ca: 8300</li>
  *   <li>identity-authz: 8400</li>

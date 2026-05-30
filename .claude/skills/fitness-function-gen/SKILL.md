@@ -179,7 +179,7 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 }
 ```
 
-**Registry fields**: `ps.PSID` (e.g. `sm-im`), `ps.Product`, `ps.Service`, `ps.DisplayName` (e.g. `Secrets Manager Instant Messenger`), `ps.InternalAppsDir` (e.g. `sm/im/`), `ps.MagicFile`.
+**Registry fields**: `ps.PSID` (e.g. `sm-kms`), `ps.Product`, `ps.Service`, `ps.DisplayName` (e.g. `Secrets Manager Instant Messenger`), `ps.InternalAppsDir` (e.g. `sm/im/`), `ps.MagicFile`.
 
 **When to use registry-driven**: When the rule applies to all product-services (naming patterns, config presence, migration headers, compose structure). When the rule is service-specific or cross-cutting, use the simpler `rootDir` walk pattern.
 

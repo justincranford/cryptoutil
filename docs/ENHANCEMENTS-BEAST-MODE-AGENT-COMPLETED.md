@@ -167,12 +167,12 @@ sessions. The Validation Ladder is equivalent to the old checklist for docs-only
 
 ### Session B — Framework-V22 Phase 9 Reconciliation (2026-05-17 02:51–03:43)
 
-**Work**: Reconciled framework-v22 Phase 9 completion status. Deep analysis of sm-im E2E SKIP
+**Work**: Reconciled framework-v22 Phase 9 completion status. Deep analysis of sm-kms E2E SKIP
 cases. Updated implementation-execution agent docs. Commits:
 `fix(docs): reconcile framework-v22 Phase 9 with actual E2E completion evidence`,
 `docs(agents): add execution flow diagram to implementation-execution`.
 
-**What would have been done differently with new contract**: The sm-im SKIP case analysis was
+**What would have been done differently with new contract**: The sm-kms SKIP case analysis was
 documentation-mode work (no code edits). The First-Edit Hypothesis Rule would not have changed
 the approach. However, if the agent had attempted to verify E2E SKIP case causes via code reads,
 the 3-tier Validation Order would have directed it to identify the controlling abstraction first
@@ -329,7 +329,7 @@ edits. The First-Edit Hypothesis Rule does not apply. No delta.
 ### Session J — Framework-V21 Migrations Completion (2026-05-10 13:20–18:38)
 
 **Work**: Completed remaining TestMain migrations for framework-v21 across multiple PS-IDs
-(sm-kms, pki-ca, skeleton-template, sm-im, all identity-* services).
+(sm-kms, pki-ca, skeleton-template, sm-kms, all identity-* services).
 
 **What would have been done differently with new contract**: Each TestMain migration is a
 mechanical file edit. The First-Edit Hypothesis Rule would have been redundant for known-good

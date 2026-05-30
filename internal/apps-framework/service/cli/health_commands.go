@@ -15,7 +15,7 @@ import (
 // HealthCommand implements the health subcommand.
 // Calls GET /service/api/v1/health on the public server.
 // usageText is shown when --help is passed.
-// defaultPublicPort is the service's default public port (e.g., 8700 for sm-im).
+// defaultPublicPort is the service's default public port (e.g., 8700 for sm-kms).
 func HealthCommand(args []string, stdout, stderr io.Writer, usageText string, defaultPublicPort uint16) int {
 	defaultURL := fmt.Sprintf("https://127.0.0.1:%d%s", defaultPublicPort, cryptoutilSharedMagic.DefaultPublicServiceAPIContextPath)
 

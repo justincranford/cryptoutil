@@ -30,7 +30,7 @@ forbidden_dir_patterns:
   # that predates the flat PS-ID pattern. All service code must live at internal/apps/{PS-ID}/.
   #
   # Known violations (tracked as GAP tasks in docs/framework-v17/tasks.md):
-  #   sm/:       im/, kms/        (service code should be at internal/apps/sm-im/, sm-kms/)
+  #   sm/:       im/, kms/        (service code should be at internal/apps/sm-kms/, sm-kms/)
   #   jose/:     ja/              (service code should be at internal/apps/sm-kms/)
   #   pki/:      ca/              (service code should be at internal/apps/pki-ca/)
   #   skeleton/: template/        (service code should be at internal/apps/skeleton-template/)

@@ -102,7 +102,7 @@ production).
 | PS-ID | PRODUCT | SERVICE | SERVICE_APP_PORT_BASE | SERVICE_PG_HOST_PORT | PRODUCT_DISPLAY_NAME | SERVICE_DISPLAY_NAME | PRODUCT_APP_PORT_OFFSET | SUITE_APP_PORT_OFFSET |
 |-------|---------|---------|---------------------|--------------------|--------------------|--------------------|-----------------------|---------------------|
 | `sm-kms` | `sm` | `kms` | `8000` | `54320` | Secrets Manager | Key Management | `18000` | `28000` |
-| `sm-im` | `sm` | `im` | `8100` | `54321` | Secrets Manager | Instant Messenger | `18100` | `28100` |
+| `sm-kms` | `sm` | `im` | `8100` | `54321` | Secrets Manager | Instant Messenger | `18100` | `28100` |
 | `sm-kms` | `jose` | `ja` | `8200` | `54322` | JOSE | JWK Authority | `18200` | `28200` |
 | `pki-ca` | `pki` | `ca` | `8300` | `54323` | PKI | Certificate Authority | `18300` | `28300` |
 | `identity-authz` | `identity` | `authz` | `8400` | `54324` | Identity | Authorization Server | `18400` | `28400` |
@@ -164,7 +164,7 @@ Section B.2 below.
 | PS-ID | Binary Path | HEALTHCHECK Path | ENTRYPOINT | LABEL title |
 |-------|-------------|------------------|------------|-------------|
 | `sm-kms` | `/app/sm-kms` | `/app/sm-kms livez` | `["/sbin/tini", "--", "/app/sm-kms"]` | `{SUITE}-sm-kms` |
-| `sm-im` | `/app/sm-im` | `/app/sm-im livez` | `["/sbin/tini", "--", "/app/sm-im"]` | `{SUITE}-sm-im` |
+| `sm-kms` | `/app/sm-kms` | `/app/sm-kms livez` | `["/sbin/tini", "--", "/app/sm-kms"]` | `{SUITE}-sm-kms` |
 | `sm-kms` | `/app/sm-kms` | `/app/sm-kms livez` | `["/sbin/tini", "--", "/app/sm-kms"]` | `{SUITE}-sm-kms` |
 | `pki-ca` | `/app/pki-ca` | `/app/pki-ca livez` | `["/sbin/tini", "--", "/app/pki-ca"]` | `{SUITE}-pki-ca` |
 | `identity-authz` | `/app/identity-authz` | `/app/identity-authz livez` | `["/sbin/tini", "--", "/app/identity-authz"]` | `{SUITE}-identity-authz` |
@@ -462,7 +462,7 @@ Three fundamentally different Dockerfile patterns exist where there MUST be exac
 |----------|----------------|------------------------|
 | **Pattern A** (sm-kms style) | sm-kms, identity-authz, identity-idp, identity-rp, identity-rs | 4-stage but: `WORKDIR /app/run`, `GOMODCACHE`/`GOCACHE` env vars, `curl` installed in final, `USER` commented out, individual `LABEL` lines |
 | **Pattern B** (sm-kms style) | sm-kms, pki-ca, skeleton-template | 3-stage (no `runtime-deps`): `adduser`-based user creation, compact `LABEL`, `CMD` with config path |
-| **Pattern C** (sm-im) | sm-im | 2-stage (no `validation`): user `1000:1000` (WRONG), no BuildKit caches, no static link check |
+| **Pattern C** (sm-kms) | sm-kms | 2-stage (no `validation`): user `1000:1000` (WRONG), no BuildKit caches, no static link check |
 
 ### M.2 Specific Bugs
 
@@ -472,10 +472,10 @@ Three fundamentally different Dockerfile patterns exist where there MUST be exac
 | `skeleton-template` | Username is `jose`, dirs are `/etc/jose` | Wrong identity |
 | `skeleton-template` | CMD uses `--config=/etc/jose/jose.yml` | Wrong config path |
 | `identity-spa` | Builder builds `/app/identity-spa` but runtime COPY copies `/app/cryptoutil` | **Runtime failure** |
-| `sm-im` | User UID:GID is `1000:1000` (should be `65532:65532`) | Security deviation |
-| `sm-im` | No validation stage | Missing build arg validation |
-| `sm-im` | No BuildKit cache mounts | Slow builds |
-| `sm-im` | No static linking verification | Portability risk |
+| `sm-kms` | User UID:GID is `1000:1000` (should be `65532:65532`) | Security deviation |
+| `sm-kms` | No validation stage | Missing build arg validation |
+| `sm-kms` | No BuildKit cache mounts | Slow builds |
+| `sm-kms` | No static linking verification | Portability risk |
 | All Pattern A | `USER 65532:65532` commented out | Running as root |
 | All Pattern A | `curl` installed in final stage | Unnecessary attack surface |
 | `cryptoutil` (suite) | No tini installed/copied | Missing signal handling |
@@ -485,17 +485,17 @@ Three fundamentally different Dockerfile patterns exist where there MUST be exac
 | Convention | PS-IDs | Status |
 |------------|--------|--------|
 | **kebab-case** (CORRECT) | sm-kms, pki-ca, skeleton-template | Correct |
-| **snake_case** (WRONG) | sm-kms, sm-im, identity-authz, identity-idp, identity-rp, identity-rs, identity-spa | Needs migration |
+| **snake_case** (WRONG) | sm-kms, sm-kms, identity-authz, identity-idp, identity-rp, identity-rs, identity-spa | Needs migration |
 
 ### M.4 Config Content Inconsistencies
 
 | Category | PS-IDs Affected | Issue |
 |----------|----------------|-------|
-| Deployment common config structure | sm-im | Missing TLS cert paths, missing unseal config, only has bind + credentials |
-| Deployment instance config structure | sm-im | Missing `cors-origins`, missing `otlp-hostname`, only has `otlp-service` |
+| Deployment common config structure | sm-kms | Missing TLS cert paths, missing unseal config, only has bind + credentials |
+| Deployment instance config structure | sm-kms | Missing `cors-origins`, missing `otlp-hostname`, only has `otlp-service` |
 | Deployment instance config structure | sm-kms, skeleton-template | Duplicates common settings (security-headers, rate-limiting) in every instance file |
 | Standalone config content | skeleton-template | Header says "JOSE Authority Server", OTLP service says "skeleton-template-ja" |
-| Standalone config content | sm-kms, sm-im | Uses snake_case keys (bind_address, max_open_conns, etc.) |
+| Standalone config content | sm-kms, sm-kms | Uses snake_case keys (bind_address, max_open_conns, etc.) |
 | Standalone config admin port | sm-kms, skeleton-template | Uses `bind-admin-port: 9092` (should be `9090`) |
 
 ### M.5 Compose Inconsistencies

@@ -731,7 +731,7 @@ docker compose -f ./deployments/pki-ca/compose.yml up -d
 docker compose -f ./deployments/sm-kms/compose.yml up -d
 
 # Run service-specific E2E tests (new pattern - uses service template)
-# Example: sm-im service
+# Example: sm-kms service
 cd internal/apps/sm/im
 go test -tags=e2e -v -timeout=30m ./...
 

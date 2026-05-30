@@ -19,7 +19,7 @@ Canonical PS-ID app instance names:
 Canonical tier IDs:
 - SUITE: `cryptoutil`
 - PRODUCT: `sm`, `jose`, `pki`, `identity`, `skeleton`
-- PS-ID: `sm-kms`, `sm-im`, `sm-kms`, `pki-ca`, `identity-authz`, `identity-idp`, `identity-rs`, `identity-rp`, `identity-spa`, `skeleton-template`
+- PS-ID: `sm-kms`, `sm-kms`, `sm-kms`, `pki-ca`, `identity-authz`, `identity-idp`, `identity-rs`, `identity-rp`, `identity-spa`, `skeleton-template`
 
 ## PKI INIT
 
@@ -35,7 +35,7 @@ All output files are created under `TARGET-DIRECTORY/PKI-INIT-DOMAIN/`. If that 
 |------|--------|
 | Suite | `cryptoutil` |
 | Product | `sm`, `jose`, `pki`, `identity`, `skeleton` |
-| PS-ID | `sm-kms`, `sm-im`, `sm-kms`, `pki-ca`, `identity-authz`, `identity-idp`, `identity-rs`, `identity-rp`, `identity-spa`, `skeleton-template` |
+| PS-ID | `sm-kms`, `sm-kms`, `sm-kms`, `pki-ca`, `identity-authz`, `identity-idp`, `identity-rs`, `identity-rp`, `identity-spa`, `skeleton-template` |
 
 Examples:
 1. `pki-init cryptoutil        /certs`   → output: `/certs/cryptoutil/` (suite scope, 630 dirs)
@@ -442,7 +442,7 @@ Realm values assumed: `file`, `db` (2 realms).
 
 Command: `pki-init sm /tmp`
 
-PS-IDs in product: `sm-kms`, `sm-im`. Realm values assumed: `file`, `db`.
+PS-IDs in product: `sm-kms`, `sm-kms`. Realm values assumed: `file`, `db`.
 
 Global directories (categories 1, 2, 8, 10-13) are identical to the skeleton-template example. Only PS-ID-specific and product-scoped directories differ.
 
@@ -465,11 +465,11 @@ Global directories (categories 1, 2, 8, 10-13) are identical to the skeleton-tem
   public-https-server-entity-sm-kms-sqlite-2/
   public-https-server-entity-sm-kms-postgres-1/
   public-https-server-entity-sm-kms-postgres-2/
-  # --- sm-im ---
-  public-https-server-entity-sm-im-sqlite-1/
-  public-https-server-entity-sm-im-sqlite-2/
-  public-https-server-entity-sm-im-postgres-1/
-  public-https-server-entity-sm-im-postgres-2/
+  # --- sm-kms ---
+  public-https-server-entity-sm-kms-sqlite-1/
+  public-https-server-entity-sm-kms-sqlite-2/
+  public-https-server-entity-sm-kms-postgres-1/
+  public-https-server-entity-sm-kms-postgres-2/
 
   # Category 4: PS-ID HTTPS Client CAs (24 dirs = 12 × 2 PS-IDs)
   # --- sm-kms (12 dirs: {root,issuing} × {sqlite-1,sqlite-2,postgres} × {keystore,truststore/}) ---
@@ -485,19 +485,19 @@ Global directories (categories 1, 2, 8, 10-13) are identical to the skeleton-tem
   public-https-client-issuing-ca-sm-kms-sqlite-2/truststore/
   public-https-client-issuing-ca-sm-kms-postgres/
   public-https-client-issuing-ca-sm-kms-postgres/truststore/
-  # --- sm-im (12 dirs: same pattern) ---
-  public-https-client-root-ca-sm-im-sqlite-1/
-  public-https-client-root-ca-sm-im-sqlite-1/truststore/
-  public-https-client-root-ca-sm-im-sqlite-2/
-  public-https-client-root-ca-sm-im-sqlite-2/truststore/
-  public-https-client-root-ca-sm-im-postgres/
-  public-https-client-root-ca-sm-im-postgres/truststore/
-  public-https-client-issuing-ca-sm-im-sqlite-1/
-  public-https-client-issuing-ca-sm-im-sqlite-1/truststore/
-  public-https-client-issuing-ca-sm-im-sqlite-2/
-  public-https-client-issuing-ca-sm-im-sqlite-2/truststore/
-  public-https-client-issuing-ca-sm-im-postgres/
-  public-https-client-issuing-ca-sm-im-postgres/truststore/
+  # --- sm-kms (12 dirs: same pattern) ---
+  public-https-client-root-ca-sm-kms-sqlite-1/
+  public-https-client-root-ca-sm-kms-sqlite-1/truststore/
+  public-https-client-root-ca-sm-kms-sqlite-2/
+  public-https-client-root-ca-sm-kms-sqlite-2/truststore/
+  public-https-client-root-ca-sm-kms-postgres/
+  public-https-client-root-ca-sm-kms-postgres/truststore/
+  public-https-client-issuing-ca-sm-kms-sqlite-1/
+  public-https-client-issuing-ca-sm-kms-sqlite-1/truststore/
+  public-https-client-issuing-ca-sm-kms-sqlite-2/
+  public-https-client-issuing-ca-sm-kms-sqlite-2/truststore/
+  public-https-client-issuing-ca-sm-kms-postgres/
+  public-https-client-issuing-ca-sm-kms-postgres/truststore/
 
   # Category 5: PS-ID HTTPS Client Certs (24 dirs = 12 × 2 PS-IDs)
   # --- sm-kms (12 dirs: {sqlite-1,sqlite-2,postgres} × {browseruser,serviceuser} × {file,db}) ---
@@ -513,19 +513,19 @@ Global directories (categories 1, 2, 8, 10-13) are identical to the skeleton-tem
   public-https-client-entity-sm-kms-postgres-browseruser-db/
   public-https-client-entity-sm-kms-postgres-serviceuser-file/
   public-https-client-entity-sm-kms-postgres-serviceuser-db/
-  # --- sm-im (12 dirs: same pattern) ---
-  public-https-client-entity-sm-im-sqlite-1-browseruser-file/
-  public-https-client-entity-sm-im-sqlite-1-browseruser-db/
-  public-https-client-entity-sm-im-sqlite-1-serviceuser-file/
-  public-https-client-entity-sm-im-sqlite-1-serviceuser-db/
-  public-https-client-entity-sm-im-sqlite-2-browseruser-file/
-  public-https-client-entity-sm-im-sqlite-2-browseruser-db/
-  public-https-client-entity-sm-im-sqlite-2-serviceuser-file/
-  public-https-client-entity-sm-im-sqlite-2-serviceuser-db/
-  public-https-client-entity-sm-im-postgres-browseruser-file/
-  public-https-client-entity-sm-im-postgres-browseruser-db/
-  public-https-client-entity-sm-im-postgres-serviceuser-file/
-  public-https-client-entity-sm-im-postgres-serviceuser-db/
+  # --- sm-kms (12 dirs: same pattern) ---
+  public-https-client-entity-sm-kms-sqlite-1-browseruser-file/
+  public-https-client-entity-sm-kms-sqlite-1-browseruser-db/
+  public-https-client-entity-sm-kms-sqlite-1-serviceuser-file/
+  public-https-client-entity-sm-kms-sqlite-1-serviceuser-db/
+  public-https-client-entity-sm-kms-sqlite-2-browseruser-file/
+  public-https-client-entity-sm-kms-sqlite-2-browseruser-db/
+  public-https-client-entity-sm-kms-sqlite-2-serviceuser-file/
+  public-https-client-entity-sm-kms-sqlite-2-serviceuser-db/
+  public-https-client-entity-sm-kms-postgres-browseruser-file/
+  public-https-client-entity-sm-kms-postgres-browseruser-db/
+  public-https-client-entity-sm-kms-postgres-serviceuser-file/
+  public-https-client-entity-sm-kms-postgres-serviceuser-db/
 
   # Category 6: Private mTLS CAs - Admin Channel (32 dirs = 16 × 2 PS-IDs)
   # --- sm-kms (16 dirs) ---
@@ -545,23 +545,23 @@ Global directories (categories 1, 2, 8, 10-13) are identical to the skeleton-tem
   private-https-mutual-issuing-ca-sm-kms-postgres-1/truststore/
   private-https-mutual-issuing-ca-sm-kms-postgres-2/
   private-https-mutual-issuing-ca-sm-kms-postgres-2/truststore/
-  # --- sm-im (16 dirs) ---
-  private-https-mutual-root-ca-sm-im-sqlite-1/
-  private-https-mutual-root-ca-sm-im-sqlite-1/truststore/
-  private-https-mutual-root-ca-sm-im-sqlite-2/
-  private-https-mutual-root-ca-sm-im-sqlite-2/truststore/
-  private-https-mutual-root-ca-sm-im-postgres-1/
-  private-https-mutual-root-ca-sm-im-postgres-1/truststore/
-  private-https-mutual-root-ca-sm-im-postgres-2/
-  private-https-mutual-root-ca-sm-im-postgres-2/truststore/
-  private-https-mutual-issuing-ca-sm-im-sqlite-1/
-  private-https-mutual-issuing-ca-sm-im-sqlite-1/truststore/
-  private-https-mutual-issuing-ca-sm-im-sqlite-2/
-  private-https-mutual-issuing-ca-sm-im-sqlite-2/truststore/
-  private-https-mutual-issuing-ca-sm-im-postgres-1/
-  private-https-mutual-issuing-ca-sm-im-postgres-1/truststore/
-  private-https-mutual-issuing-ca-sm-im-postgres-2/
-  private-https-mutual-issuing-ca-sm-im-postgres-2/truststore/
+  # --- sm-kms (16 dirs) ---
+  private-https-mutual-root-ca-sm-kms-sqlite-1/
+  private-https-mutual-root-ca-sm-kms-sqlite-1/truststore/
+  private-https-mutual-root-ca-sm-kms-sqlite-2/
+  private-https-mutual-root-ca-sm-kms-sqlite-2/truststore/
+  private-https-mutual-root-ca-sm-kms-postgres-1/
+  private-https-mutual-root-ca-sm-kms-postgres-1/truststore/
+  private-https-mutual-root-ca-sm-kms-postgres-2/
+  private-https-mutual-root-ca-sm-kms-postgres-2/truststore/
+  private-https-mutual-issuing-ca-sm-kms-sqlite-1/
+  private-https-mutual-issuing-ca-sm-kms-sqlite-1/truststore/
+  private-https-mutual-issuing-ca-sm-kms-sqlite-2/
+  private-https-mutual-issuing-ca-sm-kms-sqlite-2/truststore/
+  private-https-mutual-issuing-ca-sm-kms-postgres-1/
+  private-https-mutual-issuing-ca-sm-kms-postgres-1/truststore/
+  private-https-mutual-issuing-ca-sm-kms-postgres-2/
+  private-https-mutual-issuing-ca-sm-kms-postgres-2/truststore/
 
   # Category 7: Private mTLS Leaves - Admin Channel (8 dirs = 4 × 2 PS-IDs)
   # --- sm-kms (4 dirs) ---
@@ -569,11 +569,11 @@ Global directories (categories 1, 2, 8, 10-13) are identical to the skeleton-tem
   private-https-mutual-entity-sm-kms-sqlite-2/
   private-https-mutual-entity-sm-kms-postgres-1/
   private-https-mutual-entity-sm-kms-postgres-2/
-  # --- sm-im (4 dirs) ---
-  private-https-mutual-entity-sm-im-sqlite-1/
-  private-https-mutual-entity-sm-im-sqlite-2/
-  private-https-mutual-entity-sm-im-postgres-1/
-  private-https-mutual-entity-sm-im-postgres-2/
+  # --- sm-kms (4 dirs) ---
+  private-https-mutual-entity-sm-kms-sqlite-1/
+  private-https-mutual-entity-sm-kms-sqlite-2/
+  private-https-mutual-entity-sm-kms-postgres-1/
+  private-https-mutual-entity-sm-kms-postgres-2/
 
   # Category 8: Grafana/OTel Client CAs (8 dirs = 4 keystore + 4 truststore subdirs) — same as PS-ID level
   grafana-otel-lgtm-https-client-root-ca/
@@ -590,20 +590,20 @@ Global directories (categories 1, 2, 8, 10-13) are identical to the skeleton-tem
   grafana-otel-lgtm-https-client-entity-sm-kms-sqlite-2/
   grafana-otel-lgtm-https-client-entity-sm-kms-postgres-1/
   grafana-otel-lgtm-https-client-entity-sm-kms-postgres-2/
-  grafana-otel-lgtm-https-client-entity-sm-im-sqlite-1/
-  grafana-otel-lgtm-https-client-entity-sm-im-sqlite-2/
-  grafana-otel-lgtm-https-client-entity-sm-im-postgres-1/
-  grafana-otel-lgtm-https-client-entity-sm-im-postgres-2/
+  grafana-otel-lgtm-https-client-entity-sm-kms-sqlite-1/
+  grafana-otel-lgtm-https-client-entity-sm-kms-sqlite-2/
+  grafana-otel-lgtm-https-client-entity-sm-kms-postgres-1/
+  grafana-otel-lgtm-https-client-entity-sm-kms-postgres-2/
   grafana-otel-lgtm-https-client-entity-admin/
   grafana-otel-lgtm-https-client-entity-infra/
   otel-collector-contrib-https-client-entity-sm-kms-sqlite-1/
   otel-collector-contrib-https-client-entity-sm-kms-sqlite-2/
   otel-collector-contrib-https-client-entity-sm-kms-postgres-1/
   otel-collector-contrib-https-client-entity-sm-kms-postgres-2/
-  otel-collector-contrib-https-client-entity-sm-im-sqlite-1/
-  otel-collector-contrib-https-client-entity-sm-im-sqlite-2/
-  otel-collector-contrib-https-client-entity-sm-im-postgres-1/
-  otel-collector-contrib-https-client-entity-sm-im-postgres-2/
+  otel-collector-contrib-https-client-entity-sm-kms-sqlite-1/
+  otel-collector-contrib-https-client-entity-sm-kms-sqlite-2/
+  otel-collector-contrib-https-client-entity-sm-kms-postgres-1/
+  otel-collector-contrib-https-client-entity-sm-kms-postgres-2/
   otel-collector-contrib-https-client-entity-admin/
   otel-collector-contrib-https-client-entity-infra/
 
@@ -633,11 +633,11 @@ Global directories (categories 1, 2, 8, 10-13) are identical to the skeleton-tem
   postgres-tls-client-entity-leader-sm-kms-postgres-2/
   postgres-tls-client-entity-follower-sm-kms-postgres-1/
   postgres-tls-client-entity-follower-sm-kms-postgres-2/
-  # --- sm-im (4 dirs) ---
-  postgres-tls-client-entity-leader-sm-im-postgres-1/
-  postgres-tls-client-entity-leader-sm-im-postgres-2/
-  postgres-tls-client-entity-follower-sm-im-postgres-1/
-  postgres-tls-client-entity-follower-sm-im-postgres-2/
+  # --- sm-kms (4 dirs) ---
+  postgres-tls-client-entity-leader-sm-kms-postgres-1/
+  postgres-tls-client-entity-leader-sm-kms-postgres-2/
+  postgres-tls-client-entity-follower-sm-kms-postgres-1/
+  postgres-tls-client-entity-follower-sm-kms-postgres-2/
 ```
 
 **Total: 150 directories** (30 global + 120 PS-ID-specific across 2 PS-IDs).

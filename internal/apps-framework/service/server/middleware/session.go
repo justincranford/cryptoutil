@@ -122,7 +122,7 @@ func sessionMiddleware(sessionValidator SessionValidator, isBrowser bool, splitN
 			c.Locals(ContextKeySession, session)
 
 			if session.ClientID != nil {
-				// For sm-im, ClientID actually contains the UserID
+				// For sm-kms, ClientID actually contains the UserID
 				// because we're using service sessions for user authentication
 				c.Locals(ContextKeyClientID, *session.ClientID)
 

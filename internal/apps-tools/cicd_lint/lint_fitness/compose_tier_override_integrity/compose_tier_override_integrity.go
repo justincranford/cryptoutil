@@ -46,7 +46,7 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 		forbiddenServices []string
 	}{
 		{tierID: cryptoutilSharedMagic.DefaultOTLPServiceDefault, forbiddenServices: []string{cryptoutilSharedMagic.DockerJobBuilderCryptoutil}},
-		{tierID: "sm", forbiddenServices: []string{"builder-sm-kms", "builder-sm-im"}},
+		{tierID: "sm", forbiddenServices: []string{"builder-sm-kms", "builder-sm-kms"}},
 	}
 
 	for _, rule := range tierRules {

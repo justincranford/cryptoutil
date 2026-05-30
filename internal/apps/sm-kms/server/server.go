@@ -20,8 +20,8 @@ import (
 	cryptoutilAppsFrameworkServiceServerBuilder "cryptoutil/internal/apps-framework/service/server/builder"
 	cryptoutilAppsFrameworkServiceServerMiddleware "cryptoutil/internal/apps-framework/service/server/middleware"
 	cryptoutilKmsServerBusinesslogic "cryptoutil/internal/apps/sm-kms/server/businesslogic"
-	cryptoutilKmsServerHandler "cryptoutil/internal/apps/sm-kms/server/handler"
-	cryptoutilAppsSmKmsServerRepository "cryptoutil/internal/apps/sm-kms/server/repository"
+	cryptoutilAppsSmKmsServerHandler "cryptoutil/internal/apps/sm-kms/server/handler"
+	cryptoutilAppsSmKmsRepository "cryptoutil/internal/apps/sm-kms/server/repository"
 	cryptoutilOrmRepository "cryptoutil/internal/apps/sm-kms/server/repository/orm"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
@@ -52,7 +52,7 @@ func NewKMSServerFromConfig(
 	}
 
 	resources, err := cryptoutilAppsFrameworkServiceServerBuilder.Build(ctx, settings, &cryptoutilAppsFrameworkServiceServerBuilder.DomainConfig{
-		MigrationsFS:   cryptoutilAppsSmKmsServerRepository.MigrationsFS,
+		MigrationsFS:   cryptoutilAppsSmKmsRepository.MigrationsFS,
 		MigrationsPath: "migrations",
 		RouteRegistration: func(publicServerBase *cryptoutilAppsFrameworkServiceServer.PublicServerBase, res *cryptoutilAppsFrameworkServiceServerBuilder.ServiceResources) error {
 			ormRepo, err := cryptoutilOrmRepository.NewOrmRepository(ctx, res.TelemetryService, res.DB, res.JWKGenService, settings.VerboseMode)
@@ -106,7 +106,7 @@ func registerKMSRoutes(
 	res *cryptoutilAppsFrameworkServiceServerBuilder.ServiceResources,
 ) error {
 	// Create the OpenAPI strict server handler.
-	openapiStrictServer := cryptoutilKmsServerHandler.NewOpenapiStrictServer(bizLogicService)
+	openapiStrictServer := cryptoutilAppsSmKmsServerHandler.NewOpenapiStrictServer(bizLogicService)
 	openapiStrictHandler := cryptoutilKmsServer.NewStrictHandler(openapiStrictServer, nil)
 
 	// Create route groups so middleware is scoped to each prefix.
@@ -131,16 +131,16 @@ func registerKMSRoutes(
 	cryptoutilKmsServer.RegisterHandlersWithOptions(browserGroup, openapiStrictHandler, groupOpts)
 	cryptoutilKmsServer.RegisterHandlersWithOptions(serviceGroup, openapiStrictHandler, groupOpts)
 
-	// Compatibility routes for consolidated sm-kms and sm-im APIs.
+	// Compatibility routes for consolidated sm-kms and sm-kms APIs.
 	if res != nil && res.DB != nil && res.BarrierService != nil {
-		elasticRepo := cryptoutilAppsSmKmsServerRepository.NewElasticJWKRepository(res.DB)
-		materialRepo := cryptoutilAppsSmKmsServerRepository.NewMaterialJWKRepository(res.DB)
-		messageRepo := cryptoutilAppsSmKmsServerRepository.NewMessageRepository(res.DB)
-		messageRecipientRepo := cryptoutilAppsSmKmsServerRepository.NewMessageRecipientJWKRepository(res.DB, res.BarrierService)
+		elasticRepo := cryptoutilAppsSmKmsRepository.NewElasticJWKRepository(res.DB)
+		materialRepo := cryptoutilAppsSmKmsRepository.NewMaterialJWKRepository(res.DB)
+		messageRepo := cryptoutilAppsSmKmsRepository.NewMessageRepository(res.DB)
+		messageRecipientRepo := cryptoutilAppsSmKmsRepository.NewMessageRecipientJWKRepository(res.DB, res.BarrierService)
 
-		jwkCompatHandler := cryptoutilKmsServerHandler.NewJWKCompatHandler(elasticRepo, materialRepo)
-		jwksCompatHandler := cryptoutilKmsServerHandler.NewJWKSCompatHandler(elasticRepo, materialRepo)
-		messageCompatHandler := cryptoutilKmsServerHandler.NewMessageHandler(messageRepo, messageRecipientRepo)
+		jwkCompatHandler := cryptoutilAppsSmKmsServerHandler.NewJWKCompatHandler(elasticRepo, materialRepo)
+		jwksCompatHandler := cryptoutilAppsSmKmsServerHandler.NewJWKSCompatHandler(elasticRepo, materialRepo)
+		messageCompatHandler := cryptoutilAppsSmKmsServerHandler.NewMessageHandler(messageRepo, messageRecipientRepo)
 
 		registerCompatRoutes := func(group fiber.Router) {
 			group.Get("/jwks", jwksCompatHandler.HandleGetJWKS())

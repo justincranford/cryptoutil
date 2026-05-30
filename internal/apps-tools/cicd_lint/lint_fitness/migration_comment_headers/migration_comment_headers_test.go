@@ -183,7 +183,7 @@ func TestCheckInDir_NoMigrationsDir_NoError(t *testing.T) {
 	tmpDir := t.TempDir()
 	createAllPSDirStubs(t, tmpDir)
 
-	// sm-im apps dir already created by createAllPSDirStubs; no migrations subdir added.
+	// sm-kms apps dir already created by createAllPSDirStubs; no migrations subdir added.
 
 	err := lintFitnessMigrationCommentHeaders.CheckInDir(newTestLogger(), tmpDir)
 	require.NoError(t, err)

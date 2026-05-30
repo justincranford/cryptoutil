@@ -5,7 +5,7 @@
 // argument passing, and stdout/stderr/exit code assertions.
 //
 // Consumed by:
-//   - Client test suites: sm-im/client, sm-kms/client
+//   - Client test suites: sm-kms/client, sm-kms/client
 //   - CLI integration tests: command execution validation
 package test_help_cli
 

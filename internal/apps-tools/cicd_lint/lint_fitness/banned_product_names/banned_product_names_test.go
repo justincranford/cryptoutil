@@ -42,7 +42,7 @@ func TestCheckInDir_NoBannedPhrases_Passes(t *testing.T) {
 
 	tmp := t.TempDir()
 	writeFile(t, tmp, "types.go", "package sm\n\ntype IMService struct{}\n")
-	writeFile(t, tmp, "config.yml", "service-name: sm-im\n")
+	writeFile(t, tmp, "config.yml", "service-name: sm-kms\n")
 
 	err := CheckInDir(newTestLogger(), tmp)
 	require.NoError(t, err)

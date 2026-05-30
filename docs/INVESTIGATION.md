@@ -25,7 +25,7 @@ to an Ubuntu desktop to validate exposed 17 distinct bugs — none detectable wi
 | [12](#12-stale-tls-config-keys-in-framework-common-configs) | Deployment validator: unrecognised config keys `tls-cert-file`, `tls-key-file` in config files; E2E config parse error | Two keys left over from an earlier design iteration were present in all 10 PS-ID `*-app-framework-common.yml` files but are not parsed by `ServiceFrameworkServerSettings` | `d45d935a3` |
 | [13](#13-docker-compose-v5-field-name-violation-start_period) | `docker compose config` / `lint-compose` validation failure | `start_period:` is a Docker Compose v5 lint error; the correct key is `start-period:` (hyphenated) | `fc7827567`, `64f00d719` |
 | [14](#14-sm-kms-and-skeleton-template-e2e-env_file-path-resolution-failure) | sm-kms and skeleton-template E2E: `env_file .env.postgres: no such file or directory` | E2E compose file pointed at the PRODUCT-level compose (`jose/compose.yml`) which includes `shared-postgres/compose.yml` with `env_file: .env.postgres`; Docker Compose resolves `env_file` relative to the working directory (E2E test dir), not relative to the compose file's location | `bfdcbd5ea`, `8f7b4242f` |
-| [15](#15-sm-im-e2e-postgresql-direct-connection-test-used-wrong-credentials) | `TestE2E_PostgreSQLSharedState` failed: authentication failure, DSN parse error | Test hardcoded wrong credentials (`sm_im_user:sm_im_pass` vs actual secret-derived `sm_im_database_user`), wrong database name, `sslmode=disable` (incompatible with mTLS `pg_hba.conf`), and port 5432 not exposed to host | `ad263f7f8` |
+| [15](#15-sm-kms-e2e-postgresql-direct-connection-test-used-wrong-credentials) | `TestE2E_PostgreSQLSharedState` failed: authentication failure, DSN parse error | Test hardcoded wrong credentials (`sm_im_user:sm_im_pass` vs actual secret-derived `sm_im_database_user`), wrong database name, `sslmode=disable` (incompatible with mTLS `pg_hba.conf`), and port 5432 not exposed to host | `ad263f7f8` |
 | [16](#16-testproductpublicport_allpsids-used-wrong-port-constants) | `TestProductPublicPort_AllPSIDs` test failed with wrong expected port values | After refactoring, `E2EJoseJAPublicPort` and `E2ESkeletonTemplatePublicPort` were changed to PS-ID-level values (8200, 8900) but the test used them as proxies for PRODUCT-level ports (18200, 18900) | `4c7154c55` |
 | [17](#17-accumulated-code-quality-violations-25-golangci-lint-errors) | `golangci-lint run` reported 25 violations; CI quality gate blocked | Accumulation of gosec, noctx, and staticcheck violations introduced by new code — 11 `httptest.NewRequest` calls (noctx), deprecated ECDSA key coordinate access (staticcheck SA1019), and 13 miscellaneous gosec findings | `6e2f0b803`, `9ca3b4713` + 3 smaller fix commits |
 
@@ -103,7 +103,7 @@ syntax. `$SSL` was therefore expanded to an empty string before the shell ever r
 
 ### 3. Missing `shared-postgres-leader` Network Alias
 
-**Symptom**: All app containers (sm-kms, sm-im, sm-kms, etc.) failed to start with PostgreSQL
+**Symptom**: All app containers (sm-kms, sm-kms, sm-kms, etc.) failed to start with PostgreSQL
 connection errors. Docker networking logs showed the hostname `shared-postgres-leader` was
 unresolvable.
 
@@ -254,7 +254,7 @@ accidental overwrites.
 
 ### 9. E2E HTTP Client TLS Verification Failure
 
-**Symptom**: E2E test suites (sm-kms, sm-im, sm-kms, skeleton-template) failed in `TestMain`
+**Symptom**: E2E test suites (sm-kms, sm-kms, sm-kms, skeleton-template) failed in `TestMain`
 when establishing the HTTPS client used for all subsequent test requests.
 
 **Root Cause**: The E2E `TestMain` functions called `NewClientForTestWithCA(caCertPath)`, which
@@ -384,7 +384,7 @@ env_file .env.postgres: no such file or directory
 ```
 
 **Root Cause**: The E2E compose files for both services originally pointed at the PRODUCT-level
-compose file (e.g., `deployments/jose/compose.yml`). The PRODUCT-level compose `include:`s the
+compose file (e.g., `deployments/sm/compose.yml`). The PRODUCT-level compose `include:`s the
 PS-ID compose, which `include:`s `shared-postgres/compose.yml`. The shared-postgres compose
 contains:
 ```yaml
@@ -433,7 +433,7 @@ HTTP API verification that proves shared state across two postgres instances:
 
 Also removed unused imports `database/sql` and `github.com/lib/pq`.
 
-**Files changed**: `internal/apps/sm-im/e2e/sm_im_postgres_e2e_test.go`
+**Files changed**: `internal/apps/sm-kms/e2e/sm_im_postgres_e2e_test.go`
 
 ---
 

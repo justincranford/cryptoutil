@@ -33,14 +33,14 @@ import io.gatling.javaapi.http.HttpProtocolBuilder;
 
 /**
  * SM Product Load Testing Simulation.
- * Combines sm-kms (Key Management Service) and sm-im (Instant Messenger) load tests.
+ * Combines sm-kms (Key Management Service) and sm-kms (Instant Messenger) load tests.
  *
  * <p>Example Commands:
  * <pre>
  * # Quick validation (health checks only)
  * .\mvnw.cmd gatling:test -Dgatling.simulationClass=cryptoutil.SmProductSimulation -Dprofile=quick
  *
- * # Standard load test (sm-kms crypto + sm-im health)
+ * # Standard load test (sm-kms crypto + sm-kms health)
  * .\mvnw.cmd gatling:test -Dgatling.simulationClass=cryptoutil.SmProductSimulation -Dprofile=standard -Dvirtualclients=5
  *
  * # Stress test (all algorithms)
@@ -80,7 +80,7 @@ public class SmProductSimulation extends Simulation {
                             .protocols(kmsProtocol)
                     );
                 }
-                // sm-im: health check scenario
+                // sm-kms: health check scenario
                 populations.add(
                     scenario("SM-IM Health Check")
                         .exec(http("SM-IM Service Health")
@@ -107,7 +107,7 @@ public class SmProductSimulation extends Simulation {
                             .protocols(kmsProtocol)
                     );
                 }
-                // sm-im: health check under load
+                // sm-kms: health check under load
                 populations.add(
                     scenario("SM-IM Health Check Stress")
                         .exec(http("SM-IM Service Health")

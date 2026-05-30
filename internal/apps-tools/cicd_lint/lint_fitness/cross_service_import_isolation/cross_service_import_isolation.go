@@ -85,7 +85,7 @@ type serviceRef struct {
 }
 
 // knownProducts lists all product names used to extract product from PS-ID.
-// PS-IDs follow the pattern "<product>-<service>" (e.g., "sm-im", "pki-ca").
+// PS-IDs follow the pattern "<product>-<service>" (e.g., "sm-kms", "pki-ca").
 var knownProducts = []string{
 	cryptoutilSharedMagic.IdentityProductName,
 	cryptoutilSharedMagic.PKIProductName,

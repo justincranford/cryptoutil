@@ -5,7 +5,7 @@
 -- Suite-level deployment databases (10)
 CREATE DATABASE "suitedeployment-pki-ca";
 CREATE DATABASE "suitedeployment-sm-kms";
-CREATE DATABASE "suitedeployment-sm-im";
+CREATE DATABASE "suitedeployment-sm-kms";
 CREATE DATABASE "suitedeployment-sm-kms";
 CREATE DATABASE "suitedeployment-identity-authz";
 CREATE DATABASE "suitedeployment-identity-idp";
@@ -17,7 +17,7 @@ CREATE DATABASE "suitedeployment-skeleton-template";
 -- Product-level deployment databases (10)
 CREATE DATABASE "productdeployment-pki-ca";
 CREATE DATABASE "productdeployment-sm-kms";
-CREATE DATABASE "productdeployment-sm-im";
+CREATE DATABASE "productdeployment-sm-kms";
 CREATE DATABASE "productdeployment-sm-kms";
 CREATE DATABASE "productdeployment-identity-authz";
 CREATE DATABASE "productdeployment-identity-idp";
@@ -29,7 +29,7 @@ CREATE DATABASE "productdeployment-skeleton-template";
 -- Service-level deployment databases (10)
 CREATE DATABASE "servicedeployment-pki-ca";
 CREATE DATABASE "servicedeployment-sm-kms";
-CREATE DATABASE "servicedeployment-sm-im";
+CREATE DATABASE "servicedeployment-sm-kms";
 CREATE DATABASE "servicedeployment-sm-kms";
 CREATE DATABASE "servicedeployment-identity-authz";
 CREATE DATABASE "servicedeployment-identity-idp";
@@ -46,7 +46,7 @@ CREATE PUBLICATION suite_pki_ca_pub FOR ALL TABLES;
 \c "suitedeployment-sm-kms"
 CREATE PUBLICATION suite_jose_ja_pub FOR ALL TABLES;
 
-\c "suitedeployment-sm-im"
+\c "suitedeployment-sm-kms"
 CREATE PUBLICATION suite_sm_im_pub FOR ALL TABLES;
 
 \c "suitedeployment-sm-kms"
@@ -76,7 +76,7 @@ CREATE PUBLICATION product_pki_ca_pub FOR ALL TABLES;
 \c "productdeployment-sm-kms"
 CREATE PUBLICATION product_jose_ja_pub FOR ALL TABLES;
 
-\c "productdeployment-sm-im"
+\c "productdeployment-sm-kms"
 CREATE PUBLICATION product_sm_im_pub FOR ALL TABLES;
 
 \c "productdeployment-sm-kms"
@@ -106,7 +106,7 @@ CREATE PUBLICATION service_pki_ca_pub FOR ALL TABLES;
 \c "servicedeployment-sm-kms"
 CREATE PUBLICATION service_jose_ja_pub FOR ALL TABLES;
 
-\c "servicedeployment-sm-im"
+\c "servicedeployment-sm-kms"
 CREATE PUBLICATION service_sm_im_pub FOR ALL TABLES;
 
 \c "servicedeployment-sm-kms"

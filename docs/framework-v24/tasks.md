@@ -6,8 +6,8 @@
 
 ## Execution Checkpoint (2026-05-29)
 
-- Implemented merged sm-kms compatibility routes/handlers/repositories/migrations for former jose-ja and sm-im APIs.
-- Removed jose-ja/sm-im/jose runtime directories from api, cmd, internal/apps, configs, and deployments.
+- Implemented merged sm-kms compatibility routes/handlers/repositories/migrations for former sm-kms and sm-kms APIs.
+- Removed sm-kms/sm-kms/jose runtime directories from api, cmd, internal/apps, configs, and deployments.
 - Updated topology artifacts to 4 products / 8 PS-IDs in registry/config/deployment wiring and lint tooling.
 - Verified clean compile gates: `go build ./...` and `go build -tags e2e,integration ./...`.
 - Verified lint gates: `golangci-lint run --fix`, `golangci-lint run`, `go run ./cmd/cicd-lint lint-fitness`, `go run ./cmd/cicd-lint lint-deployments lint-openapi lint-docs`.
@@ -45,10 +45,10 @@
 
 ---
 
-## Phase 1: jose-ja Domain -> sm-kms
+## Phase 1: sm-kms Domain -> sm-kms
 
-**Phase Objective**: Port all jose-ja domain models, repositories, services, and API handlers
-into sm-kms. After this phase, sm-kms can serve all jose-ja API endpoints AND all existing
+**Phase Objective**: Port all sm-kms domain models, repositories, services, and API handlers
+into sm-kms. After this phase, sm-kms can serve all sm-kms API endpoints AND all existing
 sm-kms endpoints simultaneously.
 
 ---
@@ -58,13 +58,13 @@ sm-kms endpoints simultaneously.
 - **Status**: [ ] Not Started
 - **Estimated**: 1h
 - **Dependencies**: None
-- **Description**: Create SQL migration files for the four jose-ja tables in the sm-kms migration range (2003-2006). Copy and adapt from `internal/apps/jose-ja/server/repository/migrations/4001-4004`.
+- **Description**: Create SQL migration files for the four sm-kms tables in the sm-kms migration range (2003-2006). Copy and adapt from `internal/apps/sm-kms/server/repository/migrations/4001-4004`.
 - **Acceptance Criteria**:
   - [ ] `2003_jwk_elastic_jwks.up.sql` and `.down.sql` created
   - [ ] `2004_jwk_material_jwks.up.sql` and `.down.sql` created
   - [ ] `2005_jwk_audit_config.up.sql` and `.down.sql` created
   - [ ] `2006_jwk_audit_log.up.sql` and `.down.sql` created
-  - [ ] Table names match jose-ja originals (`elastic_jwks`, `material_jwks`, `tenant_audit_config`, `audit_log`)
+  - [ ] Table names match sm-kms originals (`elastic_jwks`, `material_jwks`, `tenant_audit_config`, `audit_log`)
   - [ ] Migrations embed correctly in `migrations.go`
 - **Files**:
   - `internal/apps/sm-kms/server/repository/migrations/2003_jwk_elastic_jwks.up.sql`
@@ -84,7 +84,7 @@ sm-kms endpoints simultaneously.
 - **Status**: [ ] Not Started
 - **Estimated**: 1h
 - **Dependencies**: Task 1.1
-- **Description**: Create `jwk_models.go` in sm-kms model package with `ElasticJWK`, `MaterialJWK`, `AuditConfig`, `AuditLogEntry` structs (ported from jose-ja).
+- **Description**: Create `jwk_models.go` in sm-kms model package with `ElasticJWK`, `MaterialJWK`, `AuditConfig`, `AuditLogEntry` structs (ported from sm-kms).
 - **Acceptance Criteria**:
   - [ ] `ElasticJWK` struct with GORM tags (`elastic_jwks` table)
   - [ ] `MaterialJWK` struct with GORM tags (`material_jwks` table)
@@ -104,7 +104,7 @@ sm-kms endpoints simultaneously.
 - **Status**: [ ] Not Started
 - **Estimated**: 2h
 - **Dependencies**: Task 1.2
-- **Description**: Port the three jose-ja repositories (elastic JWK, material JWK, audit) to sm-kms.
+- **Description**: Port the three sm-kms repositories (elastic JWK, material JWK, audit) to sm-kms.
 - **Acceptance Criteria**:
   - [ ] `ElasticJWKRepository` interface + impl (CRUD with tenant filtering)
   - [ ] `MaterialJWKRepository` interface + impl (CRUD + active key query)
@@ -129,7 +129,7 @@ sm-kms endpoints simultaneously.
 - **Status**: [ ] Not Started
 - **Estimated**: 3h
 - **Dependencies**: Task 1.3
-- **Description**: Create `server/jwkservice/` package with all jose-ja services ported to sm-kms.
+- **Description**: Create `server/jwkservice/` package with all sm-kms services ported to sm-kms.
 - **Acceptance Criteria**:
   - [ ] `ElasticJWKService` interface + impl (create, get, list, delete)
   - [ ] `MaterialRotationService` interface + impl (rotate, get active, list)
@@ -166,7 +166,7 @@ sm-kms endpoints simultaneously.
 - **Status**: [ ] Not Started
 - **Estimated**: 2h
 - **Dependencies**: Task 1.4
-- **Description**: Port jose-ja API handlers into sm-kms `server/handler/` package.
+- **Description**: Port sm-kms API handlers into sm-kms `server/handler/` package.
 - **Acceptance Criteria**:
   - [ ] `jwk_handler.go` with elastic JWK CRUD + rotate + active material key handlers
   - [ ] `jwks_handler.go` with `GET /jwks` handler
@@ -186,10 +186,10 @@ sm-kms endpoints simultaneously.
 - **Status**: [ ] Not Started
 - **Estimated**: 1.5h
 - **Dependencies**: Task 1.5
-- **Description**: Add jose-ja endpoint paths and component schemas to sm-kms OpenAPI spec.
+- **Description**: Add sm-kms endpoint paths and component schemas to sm-kms OpenAPI spec.
 - **Acceptance Criteria**:
   - [ ] `openapi_spec_paths.yaml` gains JWK paths (at minimum: active material key, rotate, JWKS)
-  - [ ] All jose-ja `/elastic-keys/` paths present (review against `api/jose-ja/openapi_spec.yaml`)
+  - [ ] All sm-kms `/elastic-keys/` paths present (review against `api/sm-kms/openapi_spec.yaml`)
   - [ ] `openapi_spec_components.yaml` gains ElasticJWK, MaterialJWK, JWKS, AuditConfig schemas
   - [ ] `oapi-codegen` gen configs updated with JWK+JWKS+OKP+URI initialisms if missing
   - [ ] Spec validates: `go run ./cmd/cicd-lint lint-openapi`
@@ -246,15 +246,15 @@ sm-kms endpoints simultaneously.
   - [ ] `go build ./...` zero errors
   - [ ] `golangci-lint run ./...` zero warnings
   - [ ] `go test ./internal/apps/sm-kms/...` 100% pass
-  - [ ] `go test ./internal/apps/jose-ja/...` still passes (jose-ja not deleted yet)
+  - [ ] `go test ./internal/apps/sm-kms/...` still passes (sm-kms not deleted yet)
   - [ ] sm-kms coverage >=95%
   - [ ] `go run ./cmd/cicd-lint lint-openapi` passes
 
 ---
 
-## Phase 2: sm-im Domain -> sm-kms
+## Phase 2: sm-kms Domain -> sm-kms
 
-**Phase Objective**: Port all sm-im domain models, repository, and handler into sm-kms.
+**Phase Objective**: Port all sm-kms domain models, repository, and handler into sm-kms.
 After this phase, sm-kms can send and receive encrypted messages.
 
 ---
@@ -264,11 +264,11 @@ After this phase, sm-kms can send and receive encrypted messages.
 - **Status**: [ ] Not Started
 - **Estimated**: 0.5h
 - **Dependencies**: Task 1.9 (Phase 1 must be complete)
-- **Description**: Create SQL migration files for sm-im tables in sm-kms migration range.
+- **Description**: Create SQL migration files for sm-kms tables in sm-kms migration range.
 - **Acceptance Criteria**:
   - [ ] `2007_im_messages.up.sql` and `.down.sql` created
   - [ ] `2008_im_recipient_jwks.up.sql` and `.down.sql` created
-  - [ ] Table names match sm-im originals (`messages`, `messages_recipient_jwks`)
+  - [ ] Table names match sm-kms originals (`messages`, `messages_recipient_jwks`)
   - [ ] Migrations embed correctly in updated `migrations.go`
 - **Files**:
   - `internal/apps/sm-kms/server/repository/migrations/2007_im_messages.up.sql`
@@ -301,7 +301,7 @@ After this phase, sm-kms can send and receive encrypted messages.
 - **Status**: [ ] Not Started
 - **Estimated**: 1h
 - **Dependencies**: Task 2.2
-- **Description**: Port the sm-im message repositories to sm-kms.
+- **Description**: Port the sm-kms message repositories to sm-kms.
 - **Acceptance Criteria**:
   - [ ] `MessageRepository` interface + impl (CRUD with sender/recipient filtering)
   - [ ] `MessageRecipientJWKRepository` interface + impl
@@ -321,7 +321,7 @@ After this phase, sm-kms can send and receive encrypted messages.
 - **Status**: [ ] Not Started
 - **Estimated**: 2h
 - **Dependencies**: Task 2.3
-- **Description**: Port sm-im message handler into `internal/apps/sm-kms/server/handler/message_handler.go`.
+- **Description**: Port sm-kms message handler into `internal/apps/sm-kms/server/handler/message_handler.go`.
 - **Acceptance Criteria**:
   - [ ] `MessageHandler` struct with constructor injection
   - [ ] `HandleSendMessage`, `HandleReceiveMessages`, `HandleGetMessage`, `HandleDeleteMessage`, `HandleListMessages` handlers
@@ -339,7 +339,7 @@ After this phase, sm-kms can send and receive encrypted messages.
 - **Status**: [ ] Not Started
 - **Estimated**: 1h
 - **Dependencies**: Task 2.4
-- **Description**: Add sm-im messaging paths and component schemas to sm-kms OpenAPI spec.
+- **Description**: Add sm-kms messaging paths and component schemas to sm-kms OpenAPI spec.
 - **Acceptance Criteria**:
   - [ ] `openapi_spec_paths.yaml` gains message paths (send, receive, get, list, delete)
   - [ ] `openapi_spec_components.yaml` gains Message, SendMessageRequest, MessageRecipient schemas
@@ -391,112 +391,112 @@ After this phase, sm-kms can send and receive encrypted messages.
   - [ ] `go build ./...` zero errors
   - [ ] `golangci-lint run ./...` zero warnings
   - [ ] `go test ./internal/apps/sm-kms/...` 100% pass (incl. message tests)
-  - [ ] `go test ./internal/apps/sm-im/...` still passes
+  - [ ] `go test ./internal/apps/sm-kms/...` still passes
   - [ ] sm-kms coverage >=95%
 
 ---
 
-## Phase 3: Delete jose-ja, sm-im, jose Product
+## Phase 3: Delete sm-kms, sm-kms, jose Product
 
-**Phase Objective**: Remove all jose-ja and sm-im artifacts from the codebase. The jose product
-is deleted because it has no remaining PS-IDs after jose-ja is removed.
+**Phase Objective**: Remove all sm-kms and sm-kms artifacts from the codebase. The retired product
+is deleted because it has no remaining PS-IDs after sm-kms is removed.
 
 ---
 
-#### Task 3.1: Delete jose-ja API Directory
+#### Task 3.1: Delete sm-kms API Directory
 
 - **Status**: [ ] Not Started
 - **Estimated**: 0.25h
 - **Dependencies**: Task 2.8 (Phase 2 must be complete)
-- **Description**: Delete `api/jose-ja/` entirely.
+- **Description**: Delete `api/sm-kms/` entirely.
 - **Acceptance Criteria**:
-  - [ ] `api/jose-ja/` directory and all contents removed
-  - [ ] No import of `cryptoutil/api/jose-ja/...` exists in any Go file
+  - [ ] `api/sm-kms/` directory and all contents removed
+  - [ ] No import of `cryptoutil/api/sm-kms/...` exists in any Go file
   - [ ] `go build ./...` clean
 
 ---
 
-#### Task 3.2: Delete sm-im API Directory
+#### Task 3.2: Delete sm-kms API Directory
 
 - **Status**: [ ] Not Started
 - **Estimated**: 0.25h
 - **Dependencies**: Task 3.1
-- **Description**: Delete `api/sm-im/` entirely.
+- **Description**: Delete `api/sm-kms/` entirely.
 - **Acceptance Criteria**:
-  - [ ] `api/sm-im/` directory and all contents removed
-  - [ ] No import of `cryptoutil/api/sm-im/...` exists in any Go file
+  - [ ] `api/sm-kms/` directory and all contents removed
+  - [ ] No import of `cryptoutil/api/sm-kms/...` exists in any Go file
   - [ ] `go build ./...` clean
 
 ---
 
-#### Task 3.3: Delete jose-ja Internal App Directory
+#### Task 3.3: Delete sm-kms Internal App Directory
 
 - **Status**: [ ] Not Started
 - **Estimated**: 0.25h
 - **Dependencies**: Task 3.2
-- **Description**: Delete `internal/apps/jose-ja/` entirely (75 Go files).
+- **Description**: Delete `internal/apps/sm-kms/` entirely (75 Go files).
 - **Acceptance Criteria**:
-  - [ ] `internal/apps/jose-ja/` and all contents removed
-  - [ ] No import of `cryptoutil/internal/apps/jose-ja/...` in any Go file
+  - [ ] `internal/apps/sm-kms/` and all contents removed
+  - [ ] No import of `cryptoutil/internal/apps/sm-kms/...` in any Go file
   - [ ] `go build ./...` clean
 
 ---
 
-#### Task 3.4: Delete sm-im Internal App Directory
+#### Task 3.4: Delete sm-kms Internal App Directory
 
 - **Status**: [ ] Not Started
 - **Estimated**: 0.25h
 - **Dependencies**: Task 3.3
-- **Description**: Delete `internal/apps/sm-im/` entirely (60 Go files).
+- **Description**: Delete `internal/apps/sm-kms/` entirely (60 Go files).
 - **Acceptance Criteria**:
-  - [ ] `internal/apps/sm-im/` and all contents removed
-  - [ ] No import of `cryptoutil/internal/apps/sm-im/...` in any Go file
+  - [ ] `internal/apps/sm-kms/` and all contents removed
+  - [ ] No import of `cryptoutil/internal/apps/sm-kms/...` in any Go file
   - [ ] `go build ./...` clean
 
 ---
 
-#### Task 3.5: Delete cmd and internal/apps/jose (product coordinator)
+#### Task 3.5: Delete cmd and internal/apps/sm (product coordinator)
 
 - **Status**: [ ] Not Started
 - **Estimated**: 0.5h
 - **Dependencies**: Task 3.4
-- **Description**: Delete `cmd/jose-ja/`, `cmd/jose/`, and `internal/apps/jose/` (the product-level jose coordinator). Update `cmd/cryptoutil/main.go` to remove jose routing.
+- **Description**: Delete `cmd/sm-kms/`, `cmd/sm/`, and `internal/apps/sm/` (the retired product coordinator). Update `cmd/cryptoutil/main.go` to remove legacy routing.
 - **Acceptance Criteria**:
-  - [ ] `cmd/jose-ja/` removed
-  - [ ] `cmd/jose/` removed
-  - [ ] `internal/apps/jose/` removed (if it exists as a product coordinator)
+  - [ ] `cmd/sm-kms/` removed
+  - [ ] `cmd/sm/` removed
+  - [ ] `internal/apps/sm/` removed (if it exists as a product coordinator)
   - [ ] `cmd/cryptoutil/main.go` no longer routes to jose
   - [ ] `go build ./...` clean
 
 ---
 
-#### Task 3.6: Delete cmd/sm-im and update cmd/sm
+#### Task 3.6: Delete cmd/sm-kms and update cmd/sm
 
 - **Status**: [ ] Not Started
 - **Estimated**: 0.5h
 - **Dependencies**: Task 3.5
-- **Description**: Delete `cmd/sm-im/` and remove sm-im routing from `cmd/sm/main.go` and `internal/apps/sm/sm.go`.
+- **Description**: Delete `cmd/sm-kms/` and remove sm-kms routing from `cmd/sm/main.go` and `internal/apps/sm/sm.go`.
 - **Acceptance Criteria**:
-  - [ ] `cmd/sm-im/` removed
-  - [ ] `cmd/sm/main.go` no longer routes to sm-im
-  - [ ] `internal/apps/sm/sm.go` no longer references sm-im
+  - [ ] `cmd/sm-kms/` removed
+  - [ ] `cmd/sm/main.go` no longer routes to sm-kms
+  - [ ] `internal/apps/sm/sm.go` no longer references sm-kms
   - [ ] `go build ./...` clean
 
 ---
 
-#### Task 3.7: Delete configs and deployments for jose-ja, jose, sm-im
+#### Task 3.7: Delete configs and deployments for sm-kms, jose, sm-kms
 
 - **Status**: [ ] Not Started
 - **Estimated**: 0.5h
 - **Dependencies**: Task 3.6
 - **Description**: Delete deployment and config directories for removed services.
 - **Acceptance Criteria**:
-  - [ ] `configs/jose-ja/` removed
-  - [ ] `configs/sm-im/` removed
-  - [ ] `deployments/jose-ja/` removed
-  - [ ] `deployments/jose/` removed
-  - [ ] `deployments/sm-im/` removed
-  - [ ] `deployments/sm/compose.yml` no longer includes or references sm-im service
+  - [ ] `configs/sm-kms/` removed
+  - [ ] `configs/sm-kms/` removed
+  - [ ] `deployments/sm-kms/` removed
+  - [ ] `deployments/sm/` removed
+  - [ ] `deployments/sm-kms/` removed
+  - [ ] `deployments/sm/compose.yml` no longer includes or references sm-kms service
   - [ ] `deployments/cryptoutil/compose.yml` no longer includes or references jose service block
   - [ ] `go run ./cmd/cicd-lint lint-deployments` passes
 
@@ -526,7 +526,7 @@ is deleted because it has no remaining PS-IDs after jose-ja is removed.
 - **Acceptance Criteria**:
   - [ ] `go build ./...` zero errors
   - [ ] `golangci-lint run ./...` zero warnings
-  - [ ] `grep -r "jose-ja\|sm-im\|jose_ja\|OTLPServiceJoseJA\|OTLPServiceSMIM" internal/ api/ cmd/ configs/ deployments/` returns zero results (excluding docs/)
+  - [ ] `grep -r "sm-kms\|sm-kms\|jose_ja\|OTLPServiceJoseJA\|OTLPServiceSMIM" internal/ api/ cmd/ configs/ deployments/` returns zero results (excluding docs/)
   - [ ] `go test ./...` 100% pass
 
 ---
@@ -543,13 +543,13 @@ and 8 PS-IDs. All fitness linters and deployment linters pass with zero errors.
 - **Status**: [ ] Not Started
 - **Estimated**: 0.5h
 - **Dependencies**: Task 3.9 (Phase 3 must be complete)
-- **Description**: Remove jose-ja, sm-im, and jose entries from the registry.
+- **Description**: Remove sm-kms, sm-kms, and jose entries from the registry.
 - **Acceptance Criteria**:
-  - [ ] `jose-ja` removed from `product_services`
-  - [ ] `sm-im` removed from `product_services`
+  - [ ] `sm-kms` removed from `product_services`
+  - [ ] `sm-kms` removed from `product_services`
   - [ ] `jose` removed from `products`
   - [ ] sm-kms `migration_range_end` updated to reflect 2001-2999 range (unchanged since new migrations are within range)
-  - [ ] PostgreSQL ports 54321 (sm-im) and 54322 (jose-ja) noted as freed
+  - [ ] PostgreSQL ports 54321 (sm-kms) and 54322 (sm-kms) noted as freed
   - [ ] Registry count comments updated (10 PS-IDs -> 8, 5 products -> 4)
 
 ---
@@ -559,7 +559,7 @@ and 8 PS-IDs. All fitness linters and deployment linters pass with zero errors.
 - **Status**: [ ] Not Started
 - **Estimated**: 0.5h
 - **Dependencies**: Task 4.1
-- **Description**: Remove jose product tier and sm-im from SM tier.
+- **Description**: Remove retired product tier and sm-kms from SM tier.
 - **Acceptance Criteria**:
   - [ ] `JoseProductName` entry and its `{OTLPServiceJoseJA}` slice removed from tier map
   - [ ] `OTLPServiceSMIM` removed from `SMProductName` entry in tier map
@@ -574,7 +574,7 @@ and 8 PS-IDs. All fitness linters and deployment linters pass with zero errors.
 - **Status**: [ ] Not Started
 - **Estimated**: 0.5h
 - **Dependencies**: Task 4.2
-- **Description**: Remove jose-ja and sm-im references from remaining magic files.
+- **Description**: Remove sm-kms and sm-kms references from remaining magic files.
 - **Acceptance Criteria**:
   - [ ] `magic_cicd.go`: service count comments updated (10->8, "sm, jose, pki, identity, skeleton"->"sm, pki, identity, skeleton")
   - [ ] `magic_pki_tls.go`: `AppJoseJASQLite1ServerCertCN`, `AppJoseJASQLite2ServerCertCN`, `AppJoseJAPostgres1ServerCertCN`, `AppJoseJAPostgres2ServerCertCN` constants removed
@@ -588,13 +588,13 @@ and 8 PS-IDs. All fitness linters and deployment linters pass with zero errors.
 - **Status**: [ ] Not Started
 - **Estimated**: 0.75h
 - **Dependencies**: Task 4.3
-- **Description**: Remove jose-ja (8200 range) and sm-im (8100 range) from port range definitions and legacy port lists.
+- **Description**: Remove sm-kms (8200 range) and sm-kms (8100 range) from port range definitions and legacy port lists.
 - **Acceptance Criteria**:
-  - [ ] `lint_ports/host_port_ranges/*.go`: jose-ja range (8200-8299) removed or marked inactive
-  - [ ] `lint_ports/host_port_ranges/*.go`: sm-im range (8100-8199) removed or marked inactive
-  - [ ] `lint_ports/legacy_ports/*.go`: jose-ja legacy port entries removed
-  - [ ] `lint_ports/legacy_ports/*.go`: sm-im legacy port entries removed
-  - [ ] Associated tests updated to remove jose-ja and sm-im test cases
+  - [ ] `lint_ports/host_port_ranges/*.go`: sm-kms range (8200-8299) removed or marked inactive
+  - [ ] `lint_ports/host_port_ranges/*.go`: sm-kms range (8100-8199) removed or marked inactive
+  - [ ] `lint_ports/legacy_ports/*.go`: sm-kms legacy port entries removed
+  - [ ] `lint_ports/legacy_ports/*.go`: sm-kms legacy port entries removed
+  - [ ] Associated tests updated to remove sm-kms and sm-kms test cases
   - [ ] `go test ./internal/apps-tools/cicd_lint/lint_ports/...` passes
 
 ---
@@ -717,7 +717,7 @@ and 8 PS-IDs. All fitness linters and deployment linters pass with zero errors.
   - [ ] Section 3 (product suite architecture) updated: 5 products -> 4 products, 10 PS-IDs -> 8 PS-IDs
   - [ ] Service table updated
   - [ ] Migration range documentation updated (sm-kms now 2001-2999 inclusive of merged tables)
-  - [ ] Decision record added: why jose-ja and sm-im were merged into sm-kms
+  - [ ] Decision record added: why sm-kms and sm-kms were merged into sm-kms
   - [ ] `go run ./cmd/cicd-lint lint-docs` passes after update
 
 ---
@@ -727,10 +727,10 @@ and 8 PS-IDs. All fitness linters and deployment linters pass with zero errors.
 - **Status**: [ ] Not Started
 - **Estimated**: 0.5h
 - **Dependencies**: Task 6.1
-- **Description**: Update user-facing documentation to remove jose-ja and sm-im references.
+- **Description**: Update user-facing documentation to remove sm-kms and sm-kms references.
 - **Acceptance Criteria**:
   - [ ] `README.md` service table shows 8 services not 10
-  - [ ] `docs/DEV-SETUP.md` no longer references jose-ja or sm-im setup steps
+  - [ ] `docs/DEV-SETUP.md` no longer references sm-kms or sm-kms setup steps
   - [ ] No dead links to deleted services in docs
 
 ---
@@ -783,12 +783,12 @@ and 8 PS-IDs. All fitness linters and deployment linters pass with zero errors.
 
 - [ ] README.md service count updated (8 instead of 10)
 - [ ] ENG-HANDBOOK.md architecture section updated
-- [ ] Instruction files reviewed for jose-ja/sm-im references
+- [ ] Instruction files reviewed for sm-kms/sm-kms references
 
 ### Deployment
 
 - [ ] `go run ./cmd/cicd-lint lint-deployments` passes
-- [ ] deployments/sm/ no longer includes sm-im
+- [ ] deployments/sm/ no longer includes sm-kms
 - [ ] deployments/cryptoutil/ no longer includes jose
 
 ---

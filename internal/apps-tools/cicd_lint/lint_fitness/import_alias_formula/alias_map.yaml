@@ -265,7 +265,7 @@ internal_aliases:
   # Cryptoutil template
   - import_path: "cryptoutil/internal/template/server"
     alias: cryptoutilTemplateServer
-  # Cryptoutil sm-im
+  # Cryptoutil sm-kms
   - import_path: "cryptoutil/internal/sm/crypto"
     alias: cryptoutilSmCrypto
   - import_path: "cryptoutil/internal/sm/domain"
@@ -293,8 +293,8 @@ internal_aliases:
     alias: cryptoutilAppsSmImServer
   - import_path: "cryptoutil/internal/apps/sm/im/server/apis"
     alias: cryptoutilAppsSmImServerApis
-  - import_path: "cryptoutil/internal/apps/sm/im/server/config"
-    alias: cryptoutilAppsSmImServerConfig
+  - import_path: "cryptoutil/internal/apps/sm-kms/server/middleware"
+    alias: cryptoutilAppsSmKmsServerMiddleware
   - import_path: "cryptoutil/internal/apps/identity/authz/server/config"
     alias: cryptoutilAppsIdentityAuthzServerConfig
   - import_path: "cryptoutil/internal/apps/identity/idp/server/config"
@@ -305,22 +305,22 @@ internal_aliases:
     alias: cryptoutilAppsIdentityRpServerConfig
   - import_path: "cryptoutil/internal/apps/identity/rs/server/config"
     alias: cryptoutilAppsIdentityRsServerConfig
-  - import_path: "cryptoutil/internal/apps/jose/ja/repository"
-    alias: cryptoutilAppsJoseJaRepository
-  - import_path: "cryptoutil/internal/apps/jose/ja/server/apis"
-    alias: cryptoutilAppsJoseJaServerApis
-  - import_path: "cryptoutil/internal/apps/jose/ja/server/config"
-    alias: cryptoutilAppsJoseJaServerConfig
+  - import_path: "cryptoutil/internal/apps/sm-kms/server/repository"
+    alias: cryptoutilAppsSmKmsRepository
+  - import_path: "cryptoutil/internal/apps/sm-kms/server/handler"
+    alias: cryptoutilAppsSmKmsServerHandler
+  - import_path: "cryptoutil/internal/apps/sm-kms/server/jwkservice"
+    alias: cryptoutilAppsSmKmsServerJWKService
   - import_path: "cryptoutil/internal/apps/framework/service/server"
     alias: cryptoutilAppsFrameworkServiceServer
   - import_path: "cryptoutil/internal/apps/framework/service/server/repository"
     alias: cryptoutilAppsFrameworkServiceServerRepository
   - import_path: "cryptoutil/internal/apps/pki/ca/server"
     alias: cryptoutilAppsCaServer
-  - import_path: "cryptoutil/internal/apps/sm/im/client"
-    alias: cryptoutilAppsSmImClient
-  - import_path: "cryptoutil/internal/apps/sm/im/testing"
-    alias: cryptoutilAppsSmImTesting
+  - import_path: "cryptoutil/internal/apps/sm-kms/client"
+    alias: cryptoutilAppsSmKmsClient
+  - import_path: "cryptoutil/internal/apps/sm-kms/e2e"
+    alias: cryptoutilAppsSmKmsE2E
   - import_path: "cryptoutil/internal/apps/identity/authz/server"
     alias: cryptoutilAppsIdentityAuthzServer
   - import_path: "cryptoutil/internal/apps/identity/idp/server"
@@ -331,8 +331,8 @@ internal_aliases:
     alias: cryptoutilAppsIdentitySpaServer
   - import_path: "cryptoutil/internal/apps/identity/spa/server/config"
     alias: cryptoutilAppsIdentitySpaServerConfig
-  - import_path: "cryptoutil/internal/apps/jose/ja/domain"
-    alias: cryptoutilAppsJoseJaDomain
+  - import_path: "cryptoutil/internal/apps/sm-kms/server/model"
+    alias: cryptoutilAppsSmKmsModel
   - import_path: "cryptoutil/internal/apps/framework/service/client"
     alias: cryptoutilAppsFrameworkServiceClient
   - import_path: "cryptoutil/internal/apps/framework/service/config"

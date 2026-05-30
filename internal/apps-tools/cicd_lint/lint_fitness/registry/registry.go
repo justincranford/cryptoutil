@@ -7,7 +7,7 @@
 // The YAML file is the machine-readable SSOT; this package exposes Go-typed accessors.
 package registry
 
-// Product represents a cryptoutil product (e.g. "sm", "jose").
+// Product represents a cryptoutil product (e.g. "sm", "pki").
 type Product struct {
 	// ID is the canonical product identifier (e.g. "sm").
 	ID string
@@ -55,14 +55,14 @@ type Suite struct {
 // allRegistryFile holds the parsed registry YAML loaded once at init time.
 var allRegistryFile *RegistryFile
 
-// allProducts is the canonical registry of all 5 cryptoutil products.
-// Canonical order: sm, jose, pki, identity, skeleton.
+// allProducts is the canonical registry of all 4 cryptoutil products.
+// Canonical order: sm, pki, identity, skeleton.
 // Populated by init() from api/cryptosuite-registry/registry.yaml.
 var allProducts []Product
 
-// allProductServices is the canonical registry of all 10 cryptoutil product-services.
-// Canonical order: sm-kms, sm-im, sm-kms, pki-ca, identity-authz, identity-idp,
-// identity-rs, identity-rp, identity-spa, skeleton-template.
+// allProductServices is the canonical registry of all 8 cryptoutil product-services.
+// Canonical order: sm-kms, pki-ca, identity-authz, identity-idp, identity-rs,
+// identity-rp, identity-spa, skeleton-template.
 // Populated by init() from api/cryptosuite-registry/registry.yaml.
 var allProductServices []ProductService
 
@@ -87,7 +87,7 @@ func init() {
 	allSuites = r.ToSuites()
 }
 
-// AllProducts returns the canonical list of all 5 products.
+// AllProducts returns the canonical list of all 4 products.
 func AllProducts() []Product {
 	result := make([]Product, len(allProducts))
 	copy(result, allProducts)
@@ -95,7 +95,7 @@ func AllProducts() []Product {
 	return result
 }
 
-// AllProductServices returns the canonical list of all 10 product-services.
+// AllProductServices returns the canonical list of all 8 product-services.
 func AllProductServices() []ProductService {
 	result := make([]ProductService, len(allProductServices))
 	copy(result, allProductServices)

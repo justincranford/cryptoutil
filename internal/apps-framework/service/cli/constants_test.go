@@ -85,12 +85,12 @@ func TestIsHelpRequest_WithUsageText_HelpRequest(t *testing.T) {
 		cryptoutilAppsFrameworkCli.ClientNotImplementedMessageConfig{
 			Stderr:    &stderr,
 			ServiceID: cryptoutilSharedMagic.IMServiceID,
-			UsageText: "usage: sm-im client [flags]",
+			UsageText: "usage: sm-kms client [flags]",
 		},
 	)
 
 	require.True(t, result)
-	require.Contains(t, stderr.String(), "usage: sm-im client [flags]")
+	require.Contains(t, stderr.String(), "usage: sm-kms client [flags]")
 }
 
 func TestIsHelpRequest_WithUsageTextOnly_HelpRequest(t *testing.T) {
@@ -102,12 +102,12 @@ func TestIsHelpRequest_WithUsageTextOnly_HelpRequest(t *testing.T) {
 		[]string{cryptoutilSharedMagic.CLIHelpFlag},
 		cryptoutilAppsFrameworkCli.ClientNotImplementedMessageConfig{
 			Stderr:    &stderr,
-			UsageText: "usage: sm-im init [flags]",
+			UsageText: "usage: sm-kms init [flags]",
 		},
 	)
 
 	require.True(t, result)
-	require.Contains(t, stderr.String(), "usage: sm-im init [flags]")
+	require.Contains(t, stderr.String(), "usage: sm-kms init [flags]")
 	require.NotContains(t, stderr.String(), "not yet implemented")
 }
 
@@ -120,7 +120,7 @@ func TestIsHelpRequest_WithUsageTextOnly_NotHelpRequest(t *testing.T) {
 		[]string{"some-arg"},
 		cryptoutilAppsFrameworkCli.ClientNotImplementedMessageConfig{
 			Stderr:    &stderr,
-			UsageText: "usage: sm-im init [flags]",
+			UsageText: "usage: sm-kms init [flags]",
 		},
 	)
 

@@ -163,7 +163,7 @@ func TestCheckInDir_WrongPath(t *testing.T) {
 
 	tmpDir := t.TempDir()
 
-	// Provide wrong paths (like original sm-im had).
+	// Provide wrong paths (like original sm-kms had).
 	wrongPaths := []string{
 		"/health",            // wrong: should be /service/api/v1/health or /browser/api/v1/health
 		"/admin/v1/livez",    // wrong: should be /admin/api/v1/livez

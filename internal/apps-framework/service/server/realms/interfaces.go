@@ -3,7 +3,7 @@
 
 // Package realms provides generic authentication and authorization services.
 // This package is part of the service template infrastructure and is designed
-// to be reusable across all cryptoutil services (sm-im, sm-kms, identity-*, sm-kms, pki-ca, skeleton-template).
+// to be reusable across all cryptoutil services (sm-kms, sm-kms, identity-*, sm-kms, pki-ca, skeleton-template).
 //
 // Domain-Agnostic Design:
 // - UserModel interface abstracts different User entities (sm.User, jose.User, identity.User)
@@ -16,7 +16,7 @@
 // - User login with credential validation
 // - JWT middleware for protecting authenticated routes
 //
-// Usage Pattern (Example for sm-im):
+// Usage Pattern (Example for sm-kms):
 //
 //	// 1. Domain model implements UserModel interface
 //	type User struct {
