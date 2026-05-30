@@ -2,21 +2,21 @@
 
 ## Scope
 
-This execution migrated runtime topology from 10 PS-IDs / 5 products to 8 PS-IDs / 4 products by consolidating jose-ja and sm-im into sm-kms and removing jose as a top-level product.
+This execution migrated runtime topology from 10 PS-IDs / 5 products to 8 PS-IDs / 4 products by consolidating jose-jwk-authority and sm-messaging into sm-kms and removing jose as a top-level product.
 
 ## Implemented
 
-1. Compatibility domains implemented in sm-kms for former jose-ja and sm-im APIs:
+1. Compatibility domains implemented in sm-kms for former jose-jwk-authority and sm-messaging APIs:
 - Added JWK and message migrations in `internal/apps/sm-kms/server/repository/migrations/2003..2008`.
 - Added compatibility handlers/routes in `internal/apps/sm-kms/server/handler/` and `internal/apps/sm-kms/server/server.go`.
 - Extended sm-kms OpenAPI paths and regenerated codegen artifacts.
 
 1. Removed runtime surfaces for retired services/products:
-- Deleted `api/jose-ja`, `api/sm-im`.
-- Deleted `internal/apps/jose-ja`, `internal/apps/sm-im`, `internal/apps/jose`.
-- Deleted `cmd/jose-ja`, `cmd/sm-im`, `cmd/jose`.
-- Deleted `configs/jose-ja`, `configs/sm-im`.
-- Deleted `deployments/jose-ja`, `deployments/jose`, `deployments/sm-im`.
+- Deleted `api/jose-jwk-authority`, `api/sm-messaging`.
+- Deleted `internal/apps/jose-jwk-authority`, `internal/apps/sm-messaging`, `internal/apps/jose`.
+- Deleted `cmd/jose-jwk-authority`, `cmd/sm-messaging`, `cmd/jose`.
+- Deleted `configs/jose-jwk-authority`, `configs/sm-messaging`.
+- Deleted `deployments/jose-jwk-authority`, `deployments/jose`, `deployments/sm-messaging`.
 
 1. Topology and lint wiring updated:
 - Updated `api/cryptosuite-registry/registry.yaml` to 4 products / 8 PS-IDs.

@@ -8089,7 +8089,7 @@ applyTo: "**"
 
 ## Quick Reference
 
-- **5 products, 10 services**: PKI (CA), JOSE (JA), SM (KMS, IM), Identity (Authz, IdP, RS, RP, SPA), Skeleton (Template)
+- **5 products, 10 services**: PKI (CA), JOSE (JWK Authority), SM (KMS, Messaging), Identity (Authz, IdP, RS, RP, SPA), Skeleton (Template)
 - **Dual HTTPS**: Public (:8080) + Admin (:9090) per service
 - **Dual Paths**: `/service/**` (headless) + `/browser/**` (browser)
 - **Config Priority**: Docker secrets > YAML > CLI (NO environment variables)

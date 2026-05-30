@@ -49,7 +49,7 @@ All templates use parameterized placeholders. Values for each PS-ID are defined 
 |-----------|-------------|-------------------|----------------------------|
 | `{SUITE}` | Suite name (always `cryptoutil`) | `cryptoutil` | `cryptoutil` |
 | `{PS-ID}` | Product-Service identifier (kebab-case) | `sm-kms` | `sm-kms` |
-| `{PS_ID}` | Underscore variant (PostgreSQL naming) | `sm_kms` | `jose_ja` |
+| `{PS_ID}` | Underscore variant (PostgreSQL naming) | `sm_kms` | `jose_jwk_authority` |
 | `{PRODUCT}` | Product name (kebab-case) | `sm` | `jose` |
 | `{SERVICE}` | Service name within product | `kms` | `ja` |
 | `{PRODUCT_DISPLAY_NAME}` | Human-readable product name | `Secrets Manager` | `JOSE` |

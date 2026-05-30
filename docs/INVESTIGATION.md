@@ -25,7 +25,7 @@ to an Ubuntu desktop to validate exposed 17 distinct bugs — none detectable wi
 | [12](#12-stale-tls-config-keys-in-framework-common-configs) | Deployment validator: unrecognised config keys `tls-cert-file`, `tls-key-file` in config files; E2E config parse error | Two keys left over from an earlier design iteration were present in all 10 PS-ID `*-app-framework-common.yml` files but are not parsed by `ServiceFrameworkServerSettings` | `d45d935a3` |
 | [13](#13-docker-compose-v5-field-name-violation-start_period) | `docker compose config` / `lint-compose` validation failure | `start_period:` is a Docker Compose v5 lint error; the correct key is `start-period:` (hyphenated) | `fc7827567`, `64f00d719` |
 | [14](#14-sm-kms-and-skeleton-template-e2e-env_file-path-resolution-failure) | sm-kms and skeleton-template E2E: `env_file .env.postgres: no such file or directory` | E2E compose file pointed at the PRODUCT-level compose (`jose/compose.yml`) which includes `shared-postgres/compose.yml` with `env_file: .env.postgres`; Docker Compose resolves `env_file` relative to the working directory (E2E test dir), not relative to the compose file's location | `bfdcbd5ea`, `8f7b4242f` |
-| [15](#15-sm-kms-e2e-postgresql-direct-connection-test-used-wrong-credentials) | `TestE2E_PostgreSQLSharedState` failed: authentication failure, DSN parse error | Test hardcoded wrong credentials (`sm_im_user:sm_im_pass` vs actual secret-derived `sm_im_database_user`), wrong database name, `sslmode=disable` (incompatible with mTLS `pg_hba.conf`), and port 5432 not exposed to host | `ad263f7f8` |
+| [15](#15-sm-kms-e2e-postgresql-direct-connection-test-used-wrong-credentials) | `TestE2E_PostgreSQLSharedState` failed: authentication failure, DSN parse error | Test hardcoded wrong credentials (`sm_messaging_user:sm_messaging_pass` vs actual secret-derived `sm_messaging_database_user`), wrong database name, `sslmode=disable` (incompatible with mTLS `pg_hba.conf`), and port 5432 not exposed to host | `ad263f7f8` |
 | [16](#16-testproductpublicport_allpsids-used-wrong-port-constants) | `TestProductPublicPort_AllPSIDs` test failed with wrong expected port values | After refactoring, `E2EJoseJAPublicPort` and `E2ESkeletonTemplatePublicPort` were changed to PS-ID-level values (8200, 8900) but the test used them as proxies for PRODUCT-level ports (18200, 18900) | `4c7154c55` |
 | [17](#17-accumulated-code-quality-violations-25-golangci-lint-errors) | `golangci-lint run` reported 25 violations; CI quality gate blocked | Accumulation of gosec, noctx, and staticcheck violations introduced by new code — 11 `httptest.NewRequest` calls (noctx), deprecated ECDSA key coordinate access (staticcheck SA1019), and 13 miscellaneous gosec findings | `6e2f0b803`, `9ca3b4713` + 3 smaller fix commits |
 
@@ -160,7 +160,7 @@ immediately with: `FATAL: database "sm_kms_database" does not exist`.
 **Root Cause**: `deployments/shared-postgres/init-leader-databases.sql` (and equivalents) only
 created deployment-tier databases for testing (`servicedeployment_*`, `productdeployment_*`,
 `suitedeployment_*`). The 10 per-PS-ID application databases (e.g., `sm_kms_database`,
-`sm_im_database`, `jose_ja_database`, …) were never included in the init script.
+`sm_messaging_database`, `jose_jwk_authority_database`, …) were never included in the init script.
 
 The `DatabaseName` derivation function in the framework produces `{ps_id_underscored}_database`
 (e.g., `sm_kms` → `sm_kms_database`), and the `secret-content` fitness linter validates this
@@ -265,7 +265,7 @@ restart. The CA cert from any previous session was therefore stale and did not m
 ephemeral cert.
 
 Additionally, magic constants `E2ECACertPath` were defined in all four service magic files
-(`magic_sm.go`, `magic_jose.go`, `magic_skeleton.go`, `magic_sm_im.go`) but served no valid
+(`magic_sm.go`, `magic_jose.go`, `magic_skeleton.go`, `magic_sm_messaging.go`) but served no valid
 purpose under `TLSProvisionModeAuto`.
 
 **Fix** (`d45d935a3`): Replaced `NewClientForTestWithCA` with `NewClientForTest` (which sets
@@ -400,28 +400,28 @@ the PRODUCT-level compose. Updated port constants from PRODUCT-level values (182
 18900–18903) to PS-ID-level values (8200–8203, 8900–8903).
 
 **Files changed**:
-- `internal/apps/sm-kms/e2e/testmain_jose_ja_e2e_test.go`
+- `internal/apps/sm-kms/e2e/testmain_jose_jwk_authority_e2e_test.go`
 - `internal/shared/magic/magic_jose.go`
 - `internal/apps/skeleton-template/e2e/testmain_skeleton_template_e2e_test.go`
 - `internal/shared/magic/magic_skeleton.go`
 
 ---
 
-### 15. SM-IM E2E Direct PostgreSQL Connection Test Used Wrong Credentials
+### 15. SM-MESSAGING E2E Direct PostgreSQL Connection Test Used Wrong Credentials
 
-**Symptom**: `TestE2E_PostgreSQLSharedState` in the SM-IM E2E suite failed with:
+**Symptom**: `TestE2E_PostgreSQLSharedState` in the SM-MESSAGING E2E suite failed with:
 ```
-pq: password authentication failed for user "sm_im_user"
+pq: password authentication failed for user "sm_messaging_user"
 ```
 and subsequently with `dial tcp: connect refused` when the password was corrected.
 
 **Root Cause**: The test constructed a DSN directly:
 ```go
-dsn := "postgres://sm_im_user:sm_im_pass@localhost:5432/sm_im?sslmode=disable"
+dsn := "postgres://sm_messaging_user:sm_messaging_pass@localhost:5432/sm_messaging?sslmode=disable"
 ```
 Four separate bugs:
-1. Wrong username: actual secret uses `sm_im_database_user` (not `sm_im_user`)
-2. Wrong database: actual database name is `sm_im_database` (not `sm_im`)
+1. Wrong username: actual secret uses `sm_messaging_database_user` (not `sm_messaging_user`)
+2. Wrong database: actual database name is `sm_messaging_database` (not `sm_messaging`)
 3. Wrong SSL mode: `sslmode=disable` is rejected by `pg_hba.conf` which requires `hostssl` + `clientcert=verify-full`
 4. Port not exposed: PostgreSQL port 5432 is not mapped to the host in E2E compose
 
@@ -433,7 +433,7 @@ HTTP API verification that proves shared state across two postgres instances:
 
 Also removed unused imports `database/sql` and `github.com/lib/pq`.
 
-**Files changed**: `internal/apps/sm-kms/e2e/sm_im_postgres_e2e_test.go`
+**Files changed**: `internal/apps/sm-kms/e2e/sm_messaging_postgres_e2e_test.go`
 
 ---
 

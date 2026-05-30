@@ -6,8 +6,8 @@
 
 ## Execution Checkpoint (2026-05-29)
 
-- Implemented merged compatibility routes/handlers/repositories/migrations in sm-kms for former jose-ja and sm-im APIs.
-- Removed jose-ja/sm-im/jose runtime directories from api, cmd, internal/apps, configs, and deployments.
+- Implemented merged compatibility routes/handlers/repositories/migrations in sm-kms for former jose-jwk-authority and sm-messaging APIs.
+- Removed jose-jwk-authority/sm-messaging/jose runtime directories from api, cmd, internal/apps, configs, and deployments.
 - Updated topology artifacts to 4 products / 8 PS-IDs in registry/config/deployment wiring and lint tooling.
 - Verified clean compile gates: `go build ./...` and `go build -tags e2e,integration ./...`.
 - Verified lint gates: `golangci-lint run --fix`, `golangci-lint run`, `go run ./cmd/cicd-lint lint-fitness`, `go run ./cmd/cicd-lint lint-deployments lint-openapi lint-docs`.
@@ -45,7 +45,7 @@
 
 ---
 
-## Phase 1: jose-ja Domain -> sm-kms
+## Phase 1: jose-jwk-authority Domain -> sm-kms
 
 **Phase Objective**: Port all sm-kms domain models, repositories, services, and API handlers
 into sm-kms. After this phase, sm-kms can serve all sm-kms API endpoints AND all existing
@@ -252,7 +252,7 @@ sm-kms endpoints simultaneously.
 
 ---
 
-## Phase 2: sm-im Domain -> sm-kms
+## Phase 2: sm-messaging Domain -> sm-kms
 
 **Phase Objective**: Port all sm-kms domain models, repository, and handler into sm-kms.
 After this phase, sm-kms can send and receive encrypted messages.
@@ -396,9 +396,9 @@ After this phase, sm-kms can send and receive encrypted messages.
 
 ---
 
-## Phase 3: Delete jose-ja, sm-im, jose Product
+## Phase 3: Delete jose-jwk-authority, sm-messaging, jose Product
 
-**Phase Objective**: Remove all jose-ja and sm-im artifacts from the codebase. The jose product
+**Phase Objective**: Remove all jose-jwk-authority and sm-messaging artifacts from the codebase. The jose product
 is deleted because it has no remaining PS-IDs after sm-kms is removed.
 
 ---
@@ -502,7 +502,7 @@ is deleted because it has no remaining PS-IDs after sm-kms is removed.
 
 ---
 
-#### Task 3.8: Delete magic_jose.go and magic_sm_im.go
+#### Task 3.8: Delete magic_jose.go and magic_sm_messaging.go
 
 - **Status**: [ ] Not Started
 - **Estimated**: 0.5h
@@ -510,7 +510,7 @@ is deleted because it has no remaining PS-IDs after sm-kms is removed.
 - **Description**: Delete the magic constant files for removed services. Clean up any residual references.
 - **Acceptance Criteria**:
   - [ ] `internal/shared/magic/magic_jose.go` deleted
-  - [ ] `internal/shared/magic/magic_sm_im.go` deleted
+  - [ ] `internal/shared/magic/magic_sm_messaging.go` deleted
   - [ ] No remaining references to `OTLPServiceJoseJA`, `OTLPServiceSMIM`, `JoseProductName`, `JoseJAServiceID` in production code
   - [ ] `go build ./...` clean
   - [ ] `golangci-lint run ./...` clean
@@ -526,7 +526,7 @@ is deleted because it has no remaining PS-IDs after sm-kms is removed.
 - **Acceptance Criteria**:
   - [ ] `go build ./...` zero errors
   - [ ] `golangci-lint run ./...` zero warnings
-  - [ ] `grep -r "sm-kms\|sm-kms\|jose_ja\|OTLPServiceJoseJA\|OTLPServiceSMIM" internal/ api/ cmd/ configs/ deployments/` returns zero results (excluding docs/)
+  - [ ] `grep -r "sm-kms\|sm-kms\|jose_jwk_authority\|OTLPServiceJoseJA\|OTLPServiceSMIM" internal/ api/ cmd/ configs/ deployments/` returns zero results (excluding docs/)
   - [ ] `go test ./...` 100% pass
 
 ---
@@ -543,7 +543,7 @@ and 8 PS-IDs. All fitness linters and deployment linters pass with zero errors.
 - **Status**: [ ] Not Started
 - **Estimated**: 0.5h
 - **Dependencies**: Task 3.9 (Phase 3 must be complete)
-- **Description**: Remove jose-ja, sm-im, and jose entries from the registry.
+- **Description**: Remove jose-jwk-authority, sm-messaging, and jose entries from the registry.
 - **Acceptance Criteria**:
   - [ ] `sm-kms` removed from `product_services`
   - [ ] `sm-kms` removed from `product_services`
@@ -574,7 +574,7 @@ and 8 PS-IDs. All fitness linters and deployment linters pass with zero errors.
 - **Status**: [ ] Not Started
 - **Estimated**: 0.5h
 - **Dependencies**: Task 4.2
-- **Description**: Remove jose-ja and sm-im references from remaining magic files.
+- **Description**: Remove jose-jwk-authority and sm-messaging references from remaining magic files.
 - **Acceptance Criteria**:
   - [ ] `magic_cicd.go`: service count comments updated (10->8, "sm, jose, pki, identity, skeleton"->"sm, pki, identity, skeleton")
   - [ ] `magic_pki_tls.go`: `AppJoseJASQLite1ServerCertCN`, `AppJoseJASQLite2ServerCertCN`, `AppJoseJAPostgres1ServerCertCN`, `AppJoseJAPostgres2ServerCertCN` constants removed
@@ -594,7 +594,7 @@ and 8 PS-IDs. All fitness linters and deployment linters pass with zero errors.
   - [ ] `lint_ports/host_port_ranges/*.go`: sm-kms range (8100-8199) removed or marked inactive
   - [ ] `lint_ports/legacy_ports/*.go`: sm-kms legacy port entries removed
   - [ ] `lint_ports/legacy_ports/*.go`: sm-kms legacy port entries removed
-  - [ ] Associated tests updated to remove jose-ja and sm-im test cases
+  - [ ] Associated tests updated to remove jose-jwk-authority and sm-messaging test cases
   - [ ] `go test ./internal/apps-tools/cicd_lint/lint_ports/...` passes
 
 ---
@@ -717,7 +717,7 @@ and 8 PS-IDs. All fitness linters and deployment linters pass with zero errors.
   - [ ] Section 3 (product suite architecture) updated: 5 products -> 4 products, 10 PS-IDs -> 8 PS-IDs
   - [ ] Service table updated
   - [ ] Migration range documentation updated (sm-kms now 2001-2999 inclusive of merged tables)
-  - [ ] Decision record added: why jose-ja and sm-im were merged into sm-kms
+  - [ ] Decision record added: why jose-jwk-authority and sm-messaging were merged into sm-kms
   - [ ] `go run ./cmd/cicd-lint lint-docs` passes after update
 
 ---
@@ -727,10 +727,10 @@ and 8 PS-IDs. All fitness linters and deployment linters pass with zero errors.
 - **Status**: [ ] Not Started
 - **Estimated**: 0.5h
 - **Dependencies**: Task 6.1
-- **Description**: Update user-facing documentation to remove jose-ja and sm-im references.
+- **Description**: Update user-facing documentation to remove jose-jwk-authority and sm-messaging references.
 - **Acceptance Criteria**:
   - [ ] `README.md` service table shows 8 services not 10
-  - [ ] `docs/DEV-SETUP.md` no longer references jose-ja or sm-im setup steps
+  - [ ] `docs/DEV-SETUP.md` no longer references jose-jwk-authority or sm-messaging setup steps
   - [ ] No dead links to deleted services in docs
 
 ---
@@ -783,7 +783,7 @@ and 8 PS-IDs. All fitness linters and deployment linters pass with zero errors.
 
 - [ ] README.md service count updated (8 instead of 10)
 - [ ] ENG-HANDBOOK.md architecture section updated
-- [ ] Instruction files reviewed for jose-ja/sm-im references
+- [ ] Instruction files reviewed for jose-jwk-authority/sm-messaging references
 
 ### Deployment
 

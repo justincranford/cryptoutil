@@ -82,8 +82,8 @@ public class SmProductSimulation extends Simulation {
                 }
                 // sm-kms: health check scenario
                 populations.add(
-                    scenario("SM-IM Health Check")
-                        .exec(http("SM-IM Service Health")
+                    scenario("SM-Messaging Health Check")
+                        .exec(http("SM-Messaging Service Health")
                             .get("/health")
                             .check(status().in(200, 503)))
                         .injectOpen(rampUsers(VIRTUAL_CLIENTS).during(DURATION_SECONDS))
@@ -109,8 +109,8 @@ public class SmProductSimulation extends Simulation {
                 }
                 // sm-kms: health check under load
                 populations.add(
-                    scenario("SM-IM Health Check Stress")
-                        .exec(http("SM-IM Service Health")
+                    scenario("SM-Messaging Health Check Stress")
+                        .exec(http("SM-Messaging Service Health")
                             .get("/health")
                             .check(status().in(200, 503)))
                         .injectOpen(rampUsers(VIRTUAL_CLIENTS * 2).during(DURATION_SECONDS))
@@ -135,8 +135,8 @@ public class SmProductSimulation extends Simulation {
                         .protocols(kmsProtocol)
                 );
                 populations.add(
-                    scenario("SM-IM Health Check")
-                        .exec(http("SM-IM Service Health")
+                    scenario("SM-Messaging Health Check")
+                        .exec(http("SM-Messaging Service Health")
                             .get("/health")
                             .check(status().in(200, 503)))
                         .injectOpen(rampUsers(VIRTUAL_CLIENTS).during(DURATION_SECONDS))

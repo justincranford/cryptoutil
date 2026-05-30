@@ -2,7 +2,7 @@
 //
 //
 
-// Package repository provides data access layer implementations for JOSE-JA service.
+// Package repository provides data access layer implementations for the SM-KMS JWK service.
 package repository
 
 import (

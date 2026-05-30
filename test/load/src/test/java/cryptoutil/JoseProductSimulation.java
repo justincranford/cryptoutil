@@ -101,7 +101,7 @@ public class JoseProductSimulation extends Simulation {
             case "standard":
                 // JWK lifecycle: create, get, rotate
                 populations.add(
-                    scenario("JOSE-JA JWK Lifecycle")
+                    scenario("JOSE-JWK-AUTHORITY JWK Lifecycle")
                         .feed(UUID_FEEDER)
                         .exec(createElasticJwks("jwksId"))
                         .pause(1)
@@ -118,7 +118,7 @@ public class JoseProductSimulation extends Simulation {
             case "stress":
                 // Concurrent JWKS operations
                 populations.add(
-                    scenario("JOSE-JA JWKS Stress")
+                    scenario("JOSE-JWK-AUTHORITY JWKS Stress")
                         .feed(UUID_FEEDER)
                         .exec(createElasticJwks("jwksId"))
                         .repeat(5).on(
@@ -135,8 +135,8 @@ public class JoseProductSimulation extends Simulation {
             default:
                 // Health check + basic JWKS read
                 populations.add(
-                    scenario("JOSE-JA Quick Validation")
-                        .exec(http("JOSE-JA Service Health")
+                    scenario("JOSE-JWK-AUTHORITY Quick Validation")
+                        .exec(http("JOSE-JWK-AUTHORITY Service Health")
                             .get("/health")
                             .check(status().in(200, 503)))
                         .injectOpen(rampUsers(VIRTUAL_CLIENTS).during(DURATION_SECONDS))

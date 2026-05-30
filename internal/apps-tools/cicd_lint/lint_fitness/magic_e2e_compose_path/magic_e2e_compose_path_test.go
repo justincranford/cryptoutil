@@ -83,7 +83,7 @@ func TestCheckInDir_AllCorrect(t *testing.T) {
 
 	tmpDir := t.TempDir()
 
-	// Use sm-kms as representative: magic_sm_im.go with E2EComposeFile pointing 5 levels up.
+	// Use sm-kms as representative: magic_sm.go with E2EComposeFile pointing 5 levels up.
 	// e2e dir: tmpDir/internal/apps/sm-kms/e2e
 	// compose:  tmpDir/deployments/sm-kms/compose.yml
 	// relative: ../../../../../deployments/sm-kms/compose.yml

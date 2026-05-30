@@ -53,7 +53,7 @@ type deploymentInfo struct {
 	tier     tierKind
 	tierName string // "service", "product", or "suite" — matches schema tier values
 	prefix   string // Hyphenated prefix (e.g., "sm-kms").
-	prefixUS string // Underscored prefix for PostgreSQL identifiers (e.g., "jose_ja").
+	prefixUS string // Underscored prefix for PostgreSQL identifiers (e.g., "sm_kms").
 }
 
 // Check validates non-unseal secret content from the workspace root.

@@ -4,9 +4,9 @@
 
 ## Executive Summary
 
-1. Phase 1 established working jose-ja compatibility inside sm-kms (routes, handlers, repos, migrations, and generated API artifacts).
-2. Phase 2 established working sm-im compatibility inside sm-kms (message schema and endpoints), including dual path route registration.
-3. Phase 3 removed jose-ja, sm-im, and jose product runtime surfaces from code/config/deployments.
+1. Phase 1 established working jose-jwk-authority compatibility inside sm-kms (routes, handlers, repos, migrations, and generated API artifacts).
+2. Phase 2 established working sm-messaging compatibility inside sm-kms (message schema and endpoints), including dual path route registration.
+3. Phase 3 removed jose-jwk-authority, sm-messaging, and jose product runtime surfaces from code/config/deployments.
 4. Phase 4 reconciled registry, constants, deployment lint rules, and fitness validations to 4 products/8 PS-IDs.
 5. Phase 5 quality gates are partially complete: build and lint gates pass, but full repository test migration is still in progress due broad legacy topology assumptions in test suites.
 
@@ -41,7 +41,7 @@
 
 ---
 
-## Phase 1: jose-ja Domain -> sm-kms
+## Phase 1: jose-jwk-authority Domain -> sm-kms
 
 ### What Worked
 
@@ -62,7 +62,7 @@
 
 ---
 
-## Phase 2: sm-im Domain -> sm-kms
+## Phase 2: sm-messaging Domain -> sm-kms
 
 ### What Worked
 
@@ -82,7 +82,7 @@
 
 ---
 
-## Phase 3: Delete jose-ja, sm-im, jose Product
+## Phase 3: Delete jose-jwk-authority, sm-messaging, jose Product
 
 ### What Worked
 

@@ -96,8 +96,8 @@ public class CryptoutilSuiteSimulation extends Simulation {
         // All 10 services.
         String[][] services = {
             {"SM-KMS", SM_KMS_PORT},
-            {"SM-IM", SM_IM_PORT},
-            {"JOSE-JA", JOSE_JA_PORT},
+            {"SM-Messaging", SM_IM_PORT},
+            {"JOSE-JWK-AUTHORITY", JOSE_JA_PORT},
             {"PKI-CA", PKI_CA_PORT},
             {"Identity-AuthZ", AUTHZ_PORT},
             {"Identity-IdP", IDP_PORT},

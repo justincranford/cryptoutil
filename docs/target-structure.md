@@ -891,7 +891,7 @@ internal/shared/                                      # drwxr-x---
 │   ├── magic_session.go
 │   ├── magic_skeleton.go                             # Skeleton product constants
 │   ├── magic_sm.go                                   # SM product constants
-│   ├── magic_sm_im.go                                # SM-IM service constants
+│   ├── magic_sm_messaging.go                                # SM-MESSAGING service constants
 │   ├── magic_telemetry.go
 │   ├── magic_testing.go
 │   ├── magic_test_fixtures.go                        # Test fixture constants

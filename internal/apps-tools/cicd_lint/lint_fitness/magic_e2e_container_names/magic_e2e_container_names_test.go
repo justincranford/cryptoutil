@@ -77,7 +77,7 @@ func TestCheckInDir_AllCorrect(t *testing.T) {
 	// by specifying the MagicFile name that the checker will scan.
 	// Because the checker iterates the real registry, fake magic files must match one of the
 	// MagicFile names in the registry and contain valid constants.
-	// We only write magic_sm_im.go containing sm-kms constants; all other PS will either find no
+	// We only write magic_sm.go containing sm-kms constants; all other PS will either find no
 	// *E2ESQLiteContainer constant (identity, pki-ca) or their magic file won't exist, causing an error.
 	// Instead, write all required magic files with NO E2ESQLiteContainer to pass cleanly.
 	for _, mf := range []string{"magic_identity.go", "magic_jose.go", "magic_skeleton.go", "magic_pki.go"} {

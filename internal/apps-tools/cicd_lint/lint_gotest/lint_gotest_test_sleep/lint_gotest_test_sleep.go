@@ -157,7 +157,7 @@ func isExemptedFile(filePath string) bool {
 		return true
 	}
 
-	// SM-IM HTTP error tests and E2E tests.
+	// SM messaging HTTP error tests and E2E tests.
 	if strings.HasSuffix(filePath, "http_errors_test.go") {
 		return true
 	}

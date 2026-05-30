@@ -2,7 +2,7 @@
 //
 //
 
-// Package domain provides domain models for the JOSE-JA service.
+// Package domain provides domain models for the SM-KMS JWK service.
 // These models represent Elastic JWKs (key containers) and Material JWKs (key versions).
 package model
 

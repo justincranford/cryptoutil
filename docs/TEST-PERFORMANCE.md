@@ -60,7 +60,7 @@ These are the groups that most strongly influenced runtime.
 | Telemetry retry/failure paths | `cryptoutil/internal/shared/telemetry` | `TestCheckSidecarHealthWithRetry_AllRetriesFail` ran at 10.00s; `TestTelemetryService_InvalidEndpoint` ran at 10.00s | The retry budget is the runtime, not the code path itself |
 | Public server lifecycle | `cryptoutil/internal/apps-framework/service/server` | `TestPublicServerBase_StartAndMakeRequest` passed in isolation in 0.21s but failed in-suite at 11.90s before the fix | The test was brittle under suite contention |
 | Err-channel coverage | `cryptoutil/internal/apps-framework/service/server` | `TestPublicServerBase_ErrChanPath` was the test still running when the 10-minute package timeout hit | The real shutdown path was too race-prone for a coverage test |
-| SM-IM shutdown helper | `cryptoutil/internal/apps/sm-kms/server` | `TestHTTPPost/admin_shutdown_endpoint` failed in-suite after 5.04s but passed in isolation in 0.16s | The request timeout was too tight for suite load |
+| SM-MESSAGING shutdown helper | `cryptoutil/internal/apps/sm-kms/server` | `TestHTTPPost/admin_shutdown_endpoint` failed in-suite after 5.04s but passed in isolation in 0.16s | The request timeout was too tight for suite load |
 
 ## Test-Level Notes
 

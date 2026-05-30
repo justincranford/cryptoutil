@@ -49,8 +49,8 @@ No API functionality is deleted â€” only the deployment unit changes.
 
 This plan assumes framework-v24 has been fully executed:
 - `sm-kms` APIs merged into `sm-kms` (JOSE operations)
-- `sm-im` APIs merged into `sm-kms` (encrypted messaging)
-- `sm-kms`, `sm-im` PS-IDs deleted
+- `sm-messaging` APIs merged into `sm-kms` (encrypted messaging)
+- `sm-kms`, `sm-messaging` PS-IDs deleted
 - `jose` product deleted
 - sm-kms domain migrations 2001â€“2008 in use
 

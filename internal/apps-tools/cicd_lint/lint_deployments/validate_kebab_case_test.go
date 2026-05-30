@@ -124,8 +124,8 @@ func TestValidateKebabCase_InvalidServiceName(t *testing.T) {
 		wantErr     string
 	}{
 		{name: "PascalCase", serviceName: "SmIM", wantErr: "SmIM"},
-		{name: "snake_case", serviceName: "sm_im", wantErr: "sm_im"},
-		{name: "UPPERCASE", serviceName: "SM-IM", wantErr: "SM-IM"},
+			{name: "snake_case", serviceName: "sm_kms_service", wantErr: "sm_kms_service"},
+			{name: "UPPERCASE", serviceName: "SM-KMS-SERVICE", wantErr: "SM-KMS-SERVICE"},
 		{name: "spaces", serviceName: "sm im", wantErr: "sm im"},
 		{name: "leading hyphen", serviceName: "-sm-kms", wantErr: "-sm-kms"},
 	}
