@@ -43,7 +43,14 @@ func copyManifest(t *testing.T, realRoot, tmpDir string) {
 	data, err := os.ReadFile(srcPath)
 	require.NoError(t, err)
 
-	require.NoError(t, os.WriteFile(filepath.Join(destDir, "MANIFEST.yaml"), data, cryptoutilSharedMagic.CacheFilePermissions))
+	root, err := os.OpenRoot(destDir)
+	require.NoError(t, err)
+
+	defer func() {
+		require.NoError(t, root.Close())
+	}()
+
+	require.NoError(t, root.WriteFile("MANIFEST.yaml", data, cryptoutilSharedMagic.CacheFilePermissions))
 }
 
 // TestCheck_RealWorkspace verifies the linter passes against the actual workspace.

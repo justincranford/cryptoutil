@@ -44,7 +44,7 @@ func checkRootTemplates(rootDir, psDir string, ps cryptoutilFitnessRegistry.Prod
 		return []string{fmt.Sprintf("%s: %v", ps.PSID, valuesErr)}
 	}
 
-	var violations []string
+	violations := make([]string, 0, len(canonicalTemplateFiles))
 
 	for _, spec := range canonicalTemplateFiles {
 		templatePath := filepath.Join(rootDir, filepath.FromSlash(templateBaseDir), filepath.FromSlash(spec.templatePath))
@@ -58,7 +58,7 @@ func checkRootTemplates(rootDir, psDir string, ps cryptoutilFitnessRegistry.Prod
 // server/ must have exactly one testmain_test.go and no split variants.
 // client/ may omit testmain_test.go, but if present it must be untagged and unique.
 func checkTestmainConformance(psDir string, ps cryptoutilFitnessRegistry.ProductService) []string {
-	var violations []string
+	violations := make([]string, 0, 2)
 
 	violations = append(violations, checkPackageTestmainConformance(psDir, ps, "server", true)...)
 	violations = append(violations, checkPackageTestmainConformance(psDir, ps, "client", false)...)

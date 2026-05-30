@@ -1,4 +1,4 @@
-# Lessons â€” Framework v24: 10-to-8 PS-ID Consolidation
+# Lessons - Framework v24: 10-to-8 PS-ID Consolidation
 
 ---
 
@@ -41,7 +41,7 @@
 
 ---
 
-## Phase 1: jose-ja Domain â†’ sm-kms
+## Phase 1: jose-ja Domain -> sm-kms
 
 ### What Worked
 
@@ -62,7 +62,7 @@
 
 ---
 
-## Phase 2: sm-im Domain â†’ sm-kms
+## Phase 2: sm-im Domain -> sm-kms
 
 ### What Worked
 

@@ -241,7 +241,7 @@ linters:
         - {pkg: "cryptoutil/api/identity-authz", alias: cryptoutilApiIdentityAuthz}
         - {pkg: "cryptoutil/api/identity-idp", alias: cryptoutilApiIdentityIdp}
         - {pkg: "cryptoutil/api/identity-rs", alias: cryptoutilApiIdentityRs}
-        - {pkg: "cryptoutil/api/sm-kms/client", alias: cryptoutilApiJoseClient}
+        - {pkg: "cryptoutil/api/sm-kms/client", alias: cryptoutilOpenapiClient}
         # Cryptoutil cmd
         - pkg: "cryptoutil/internal/cmd"
           alias: cryptoutilCmd

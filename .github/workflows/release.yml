@@ -16,6 +16,7 @@ on:
     tags:
       - 'v[0-9]+.[0-9]+.[0-9]+'  # Matches v1.0.0, v2.3.4, etc.
       - 'v[0-9]+.[0-9]+.[0-9]+-*'  # Matches v1.0.0-alpha.1, v1.0.0-beta.2, etc.
+  # checkov:skip=CKV_GHA_7:workflow_dispatch inputs are intentional for controlled release operations
   workflow_dispatch:
     inputs:
       version:

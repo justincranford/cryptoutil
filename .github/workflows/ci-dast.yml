@@ -72,6 +72,7 @@ on:
   schedule:
     # Run DAST weekly on Sundays at 2 AM UTC
     - cron: '0 2 * * 0'
+  # checkov:skip=CKV_GHA_7:workflow_dispatch inputs are intentional for DAST target/profile selection
   workflow_dispatch:
     inputs:
       target_url:

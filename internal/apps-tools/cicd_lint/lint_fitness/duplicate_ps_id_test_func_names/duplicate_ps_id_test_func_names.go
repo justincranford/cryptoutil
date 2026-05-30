@@ -32,6 +32,18 @@ const (
 	toolsProductName   = "tools"
 )
 
+var ignoredDuplicateTestFunctionNames = map[string]struct{}{
+	"TestMain":                               {},
+	"TestServeOpenAPISpec_Success":           {},
+	"TestServeOpenAPISpec_HandlerInvocation": {},
+	"TestAdminEndpointLivez":                 {},
+	"TestAdminEndpointReadyz":                {},
+	"TestAdminEndpointShutdown":              {},
+	"TestAdminServerActualPort":              {},
+	"TestAdminServerLifecycle":               {},
+	"TestNewAdminHTTPServer":                 {},
+}
+
 // FuncOccurrence records which PS-IDs contain a given test function name.
 type FuncOccurrence struct {
 	FuncName string
@@ -127,6 +139,10 @@ func FindDuplicates(rootDir string) ([]FuncOccurrence, error) {
 	result := make([]FuncOccurrence, 0, len(funcToPSIDs))
 
 	for funcName, psIDs := range funcToPSIDs {
+		if _, ignored := ignoredDuplicateTestFunctionNames[funcName]; ignored {
+			continue
+		}
+
 		if len(psIDs) < DuplicateThreshold {
 			continue
 		}

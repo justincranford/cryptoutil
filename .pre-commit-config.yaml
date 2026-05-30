@@ -18,8 +18,8 @@ repos:
       # Check pre-commit hook versions, and auto-update them
       - id: autoupdate-all-hooks
         name: Auto-update pre-commit hook versions
-        entry: python
-        args: [-m, pre_commit, autoupdate]
+        entry: pre-commit
+        args: [autoupdate]
         language: system
         pass_filenames: false
         require_serial: true
@@ -427,13 +427,13 @@ repos:
         entry: taplo
         args: [fmt]
         language: system
-        files: '^(\.air\.toml|\.gofumpt\.toml|\.gitleaks\.toml|pyproject\.toml)$'
+        files: '^(\.air\.toml|\.gofumpt\.toml|\.gitleaks\.toml)$'
         require_serial: false
         stages: [pre-commit]
 
   # pyproject.toml normalization (consistent key ordering, whitespace)
   - repo: https://github.com/tox-dev/pyproject-fmt
-    rev: v2.22.0
+    rev: v2.23.0
     hooks:
       - id: pyproject-fmt
         name: Normalize pyproject.toml

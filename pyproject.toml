@@ -44,8 +44,8 @@ lint.mccabe.max-complexity = 12
 
 [tool.pytest]
 ini_options.minversion = "7.0"
-ini_options.addopts = "-ra -q -strict-markers --cov=. --cov-report=term-missing --cov-report=xml --cov-fail-under=96"
 ini_options.testpaths = [ "tests" ]
+ini_options.addopts = "-ra -q -strict-markers --cov=. --cov-report=term-missing --cov-report=xml --cov-fail-under=96"
 
 [tool.coverage]
 run.omit = [ "*/__pycache__/*", "*/test_*.py", "*/tests/*", "*/venv/*" ]
@@ -53,8 +53,4 @@ run.precision = 2
 run.source = [ "." ]
 
 [tool.node]
-dependencies = [
-  "nvm-windows>=1.2.2",
-  "node>=24.11.1",
-  "cspell>=9.0.0",
-]
+dependencies = [ "nvm-windows>=1.2.2", "node>=24.11.1", "cspell>=9.0.0" ]

@@ -66,7 +66,9 @@ func (spec TLSPSIDSpec) OTelHealthURL() string {
 
 // StartupServices returns the compose services needed by TLS E2E tests.
 func (spec TLSPSIDSpec) StartupServices() []string {
-	services := []string{spec.PKIInitServiceName, spec.OTelServiceName, spec.GrafanaServiceName}
+	services := make([]string, 0, 3+len(spec.AppVariants))
+	services = append(services, spec.PKIInitServiceName, spec.OTelServiceName, spec.GrafanaServiceName)
+
 	for _, variant := range spec.AppVariants {
 		services = append(services, variant.Name)
 	}

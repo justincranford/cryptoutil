@@ -27,13 +27,17 @@ func NewComposeManager(spec TLSPSIDSpec) *ComposeManager {
 // Start brings up the compose stack services needed for TLS E2E tests.
 // It runs pki-init, OTel Collector, Grafana LGTM, and all app variants.
 func (m *ComposeManager) Start(ctx context.Context) error {
-	args := []string{
+	startupServices := m.spec.StartupServices()
+	baseArgs := []string{
 		"compose",
 		"-f", m.spec.ComposeFile,
 		"-f", m.spec.ComposeOverrideFile,
 		"up", "-d", "--build",
 	}
-	args = append(args, m.spec.StartupServices()...)
+
+	args := make([]string, 0, len(baseArgs)+len(startupServices))
+	args = append(args, baseArgs...)
+	args = append(args, startupServices...)
 
 	cmd := exec.CommandContext(ctx, "docker", args...)
 	cmd.Stdout = os.Stdout

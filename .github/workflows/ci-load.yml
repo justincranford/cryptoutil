@@ -53,6 +53,7 @@ on:
       - '.github/dependabot.yml'
       - '**/*.log'
       - '**/*.sarif'
+  # checkov:skip=CKV_GHA_7:workflow_dispatch inputs are intentional for load-test parameterization
   workflow_dispatch:
     inputs:
       load_profile:

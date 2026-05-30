@@ -159,17 +159,19 @@ func TestCheckInDir_MissingPublicServerGo(t *testing.T) {
 	t.Parallel()
 
 	// Find a PS-ID that is NOT excluded from public_server.go check.
-	var target *cryptoutilFitnessRegistry.ProductService
+	targetPSID := ""
 
-	for _, ps := range cryptoutilFitnessRegistry.AllProductServices() {
+	services := cryptoutilFitnessRegistry.AllProductServices()
+	for idx := range services {
+		ps := services[idx]
 		if !knownExclusionsPublicServer[ps.PSID] {
-			target = &ps
+			targetPSID = services[idx].PSID
 
 			break
 		}
 	}
 
-	if target == nil {
+	if targetPSID == "" {
 		t.Skip("no non-excluded PS-IDs found")
 	}
 
@@ -177,7 +179,7 @@ func TestCheckInDir_MissingPublicServerGo(t *testing.T) {
 	createAllPSIDsWithServerFiles(t, tmpDir)
 
 	// Remove public_server.go for the target PS-ID.
-	require.NoError(t, os.Remove(filepath.Join(tmpDir, "internal", "apps", target.PSID, "server", "public_server.go")))
+	require.NoError(t, os.Remove(filepath.Join(tmpDir, "internal", "apps", targetPSID, "server", "public_server.go")))
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	err := CheckInDir(logger, tmpDir)

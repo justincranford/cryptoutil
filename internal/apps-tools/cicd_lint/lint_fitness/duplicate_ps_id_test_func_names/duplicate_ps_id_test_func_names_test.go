@@ -74,6 +74,21 @@ func TestFindDuplicates_AtThreshold_Reported(t *testing.T) {
 	require.Len(t, results[0].PSIDs, 3)
 }
 
+func TestFindDuplicates_IgnoresKnownBoilerplateNames(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+
+	for _, psID := range []string{cryptoutilSharedMagic.OTLPServiceSMKMS, cryptoutilSharedMagic.OTLPServiceIdentityAuthz, cryptoutilSharedMagic.OTLPServicePKICA} {
+		writeTestFile(t, dir, psID, "server_test.go", []string{"TestMain", "TestServeOpenAPISpec_Success"})
+	}
+
+	results, err := lintFitnessDuplicatePSIDTestFuncNames.FindDuplicates(dir)
+
+	require.NoError(t, err)
+	require.Empty(t, results)
+}
+
 func TestFindDuplicates_RankedWorstFirst(t *testing.T) {
 	t.Parallel()
 

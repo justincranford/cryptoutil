@@ -139,20 +139,34 @@ func (cm *ComposeManager) resetCertOutputDir() error {
 // makeWritableRecursive clears read-only attributes recursively so pki-init can
 // rewrite cert output on Windows and Unix.
 func makeWritableRecursive(path string) error {
+	root, err := os.OpenRoot(path)
+	if err != nil {
+		return fmt.Errorf("open root %s: %w", path, err)
+	}
+
+	defer func() {
+		_ = root.Close()
+	}()
+
 	if err := filepath.WalkDir(path, func(walkPath string, d fs.DirEntry, walkErr error) error {
 		if walkErr != nil {
 			return fmt.Errorf("walk %s: %w", walkPath, walkErr)
 		}
 
+		relPath, relErr := filepath.Rel(path, walkPath)
+		if relErr != nil {
+			return fmt.Errorf("rel path %s: %w", walkPath, relErr)
+		}
+
 		if d.IsDir() {
-			if err := os.Chmod(walkPath, cryptoutilSharedMagic.CICDTempDirPermissions); err != nil {
+			if err := root.Chmod(relPath, cryptoutilSharedMagic.CICDTempDirPermissions); err != nil {
 				return fmt.Errorf("chmod dir %s: %w", walkPath, err)
 			}
 
 			return nil
 		}
 
-		if err := os.Chmod(walkPath, cryptoutilSharedMagic.CacheFilePermissions); err != nil {
+		if err := root.Chmod(relPath, cryptoutilSharedMagic.CacheFilePermissions); err != nil {
 			return fmt.Errorf("chmod file %s: %w", walkPath, err)
 		}
 

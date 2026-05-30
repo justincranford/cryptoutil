@@ -1,4 +1,4 @@
-# Tasks â€” Framework v24: 10-to-8 PS-ID Consolidation
+# Tasks - Framework v24: 10-to-8 PS-ID Consolidation
 
 **Status**: Execution in progress (major Phases 1-4 implementation completed; Phase 5 full-suite migration validation still in progress)
 **Last Updated**: 2026-05-29
@@ -18,19 +18,19 @@
 ## Quality Mandate - MANDATORY
 
 **Quality Attributes (NO EXCEPTIONS)**:
-- âœ… **Correctness**: ALL code must be functionally correct with comprehensive tests
-- âœ… **Completeness**: NO phases or tasks or steps skipped, NO features de-prioritized, NO shortcuts
-- âœ… **Thoroughness**: Evidence-based validation at every step
-- âœ… **Reliability**: Quality gates enforced (â‰¥95%/98% coverage/mutation)
-- âœ… **Efficiency**: Optimized for maintainability and performance, NOT implementation speed
-- âœ… **Accuracy**: Changes must address root cause, not just symptoms
-- âŒ **Time Pressure**: NEVER rush, NEVER skip validation, NEVER defer quality checks
-- âŒ **Premature Completion**: NEVER mark phases or tasks or steps complete without objective evidence
+- [x] **Correctness**: ALL code must be functionally correct with comprehensive tests
+- [x] **Completeness**: NO phases or tasks or steps skipped, NO features de-prioritized, NO shortcuts
+- [x] **Thoroughness**: Evidence-based validation at every step
+- [x] **Reliability**: Quality gates enforced (>=95%/98% coverage/mutation)
+- [x] **Efficiency**: Optimized for maintainability and performance, NOT implementation speed
+- [x] **Accuracy**: Changes must address root cause, not just symptoms
+- [ ] **Time Pressure**: NEVER rush, NEVER skip validation, NEVER defer quality checks
+- [ ] **Premature Completion**: NEVER mark phases or tasks or steps complete without objective evidence
 
 **ALL issues are blockers - NO exceptions:**
-- âœ… **Fix issues immediately** â€” blockers must be resolved before advancing
-- âœ… **NEVER defer**: No "we'll fix later", no "non-critical", no "nice-to-have"
-- âœ… **NEVER skip**: Cannot mark phase or task or step complete with known issues
+- [x] **Fix issues immediately** - blockers must be resolved before advancing
+- [x] **NEVER defer**: No "we'll fix later", no "non-critical", no "nice-to-have"
+- [x] **NEVER skip**: Cannot mark phase or task or step complete with known issues
 
 ---
 
@@ -38,14 +38,14 @@
 
 | Symbol | Meaning | When to Use |
 |--------|---------|-------------|
-| âŒ | Not started | Task not yet begun |
-| ðŸ”„ | In progress | Currently being worked on |
-| âœ… | Complete | Task finished with evidence |
-| â³ | Blocked | Requires external dependency (MUST have resolution plan) |
+| [ ] | Not started | Task not yet begun |
+| [~] | In progress | Currently being worked on |
+| [x] | Complete | Task finished with evidence |
+| [!] | Blocked | Requires external dependency (MUST have resolution plan) |
 
 ---
 
-## Phase 1: jose-ja Domain â†’ sm-kms
+## Phase 1: jose-ja Domain -> sm-kms
 
 **Phase Objective**: Port all jose-ja domain models, repositories, services, and API handlers
 into sm-kms. After this phase, sm-kms can serve all jose-ja API endpoints AND all existing
@@ -53,12 +53,12 @@ sm-kms endpoints simultaneously.
 
 ---
 
-#### Task 1.1: sm-kms DB Migrations for JWK Domain (2003â€“2006)
+#### Task 1.1: sm-kms DB Migrations for JWK Domain (2003-2006)
 
-- **Status**: âŒ Not Started
+- **Status**: [ ] Not Started
 - **Estimated**: 1h
 - **Dependencies**: None
-- **Description**: Create SQL migration files for the four jose-ja tables in the sm-kms migration range (2003â€“2006). Copy and adapt from `internal/apps/jose-ja/server/repository/migrations/4001â€“4004`.
+- **Description**: Create SQL migration files for the four jose-ja tables in the sm-kms migration range (2003-2006). Copy and adapt from `internal/apps/jose-ja/server/repository/migrations/4001-4004`.
 - **Acceptance Criteria**:
   - [ ] `2003_jwk_elastic_jwks.up.sql` and `.down.sql` created
   - [ ] `2004_jwk_material_jwks.up.sql` and `.down.sql` created
@@ -81,7 +81,7 @@ sm-kms endpoints simultaneously.
 
 #### Task 1.2: JWK Domain Models in sm-kms
 
-- **Status**: âŒ Not Started
+- **Status**: [ ] Not Started
 - **Estimated**: 1h
 - **Dependencies**: Task 1.1
 - **Description**: Create `jwk_models.go` in sm-kms model package with `ElasticJWK`, `MaterialJWK`, `AuditConfig`, `AuditLogEntry` structs (ported from jose-ja).
@@ -101,7 +101,7 @@ sm-kms endpoints simultaneously.
 
 #### Task 1.3: JWK Repositories in sm-kms
 
-- **Status**: âŒ Not Started
+- **Status**: [ ] Not Started
 - **Estimated**: 2h
 - **Dependencies**: Task 1.2
 - **Description**: Port the three jose-ja repositories (elastic JWK, material JWK, audit) to sm-kms.
@@ -113,7 +113,7 @@ sm-kms endpoints simultaneously.
   - [ ] All fields use `type:text` for UUID columns
   - [ ] Unit tests with in-memory SQLite (`testdb.NewInMemorySQLiteDB(t)`)
   - [ ] Tests use `t.Parallel()` throughout
-  - [ ] Coverage â‰¥95%
+  - [ ] Coverage >=95%
 - **Files**:
   - `internal/apps/sm-kms/server/repository/elastic_jwk_repository.go`
   - `internal/apps/sm-kms/server/repository/elastic_jwk_repository_test.go`
@@ -126,7 +126,7 @@ sm-kms endpoints simultaneously.
 
 #### Task 1.4: JWK Business Logic Services in sm-kms
 
-- **Status**: âŒ Not Started
+- **Status**: [ ] Not Started
 - **Estimated**: 3h
 - **Dependencies**: Task 1.3
 - **Description**: Create `server/jwkservice/` package with all jose-ja services ported to sm-kms.
@@ -141,7 +141,7 @@ sm-kms endpoints simultaneously.
   - [ ] Services use constructor injection (no package-level vars)
   - [ ] `testmain_test.go` for shared test setup
   - [ ] All service unit tests with in-memory SQLite + table-driven cases
-  - [ ] Coverage â‰¥95%
+  - [ ] Coverage >=95%
 - **Files**:
   - `internal/apps/sm-kms/server/jwkservice/elastic_jwk_service.go`
   - `internal/apps/sm-kms/server/jwkservice/elastic_jwk_service_test.go`
@@ -163,7 +163,7 @@ sm-kms endpoints simultaneously.
 
 #### Task 1.5: JWK API Handlers in sm-kms
 
-- **Status**: âŒ Not Started
+- **Status**: [ ] Not Started
 - **Estimated**: 2h
 - **Dependencies**: Task 1.4
 - **Description**: Port jose-ja API handlers into sm-kms `server/handler/` package.
@@ -172,7 +172,7 @@ sm-kms endpoints simultaneously.
   - [ ] `jwks_handler.go` with `GET /jwks` handler
   - [ ] All handlers use Fiber `app.Test()` in tests (no real listeners)
   - [ ] Handler tests are table-driven
-  - [ ] Coverage â‰¥95%
+  - [ ] Coverage >=95%
 - **Files**:
   - `internal/apps/sm-kms/server/handler/jwk_handler.go`
   - `internal/apps/sm-kms/server/handler/jwk_handler_test.go`
@@ -183,7 +183,7 @@ sm-kms endpoints simultaneously.
 
 #### Task 1.6: Extend sm-kms OpenAPI Spec (JWK Endpoints)
 
-- **Status**: âŒ Not Started
+- **Status**: [ ] Not Started
 - **Estimated**: 1.5h
 - **Dependencies**: Task 1.5
 - **Description**: Add jose-ja endpoint paths and component schemas to sm-kms OpenAPI spec.
@@ -204,7 +204,7 @@ sm-kms endpoints simultaneously.
 
 #### Task 1.7: Regenerate sm-kms oapi-codegen Outputs (Post JWK)
 
-- **Status**: âŒ Not Started
+- **Status**: [ ] Not Started
 - **Estimated**: 0.5h
 - **Dependencies**: Task 1.6
 - **Description**: Run oapi-codegen to regenerate server, model, and client stubs for sm-kms.
@@ -222,7 +222,7 @@ sm-kms endpoints simultaneously.
 
 #### Task 1.8: Register JWK Routes in sm-kms server.go
 
-- **Status**: âŒ Not Started
+- **Status**: [ ] Not Started
 - **Estimated**: 0.5h
 - **Dependencies**: Task 1.7
 - **Description**: Wire JWK handlers and JWKS handler into sm-kms server routing.
@@ -238,30 +238,30 @@ sm-kms endpoints simultaneously.
 
 #### Task 1.9: Phase 1 Quality Gate
 
-- **Status**: âŒ Not Started
+- **Status**: [ ] Not Started
 - **Estimated**: 0.5h
-- **Dependencies**: Tasks 1.1â€“1.8
+- **Dependencies**: Tasks 1.1-1.8
 - **Description**: Verify Phase 1 quality gates all pass.
 - **Acceptance Criteria**:
   - [ ] `go build ./...` zero errors
   - [ ] `golangci-lint run ./...` zero warnings
   - [ ] `go test ./internal/apps/sm-kms/...` 100% pass
   - [ ] `go test ./internal/apps/jose-ja/...` still passes (jose-ja not deleted yet)
-  - [ ] sm-kms coverage â‰¥95%
+  - [ ] sm-kms coverage >=95%
   - [ ] `go run ./cmd/cicd-lint lint-openapi` passes
 
 ---
 
-## Phase 2: sm-im Domain â†’ sm-kms
+## Phase 2: sm-im Domain -> sm-kms
 
 **Phase Objective**: Port all sm-im domain models, repository, and handler into sm-kms.
 After this phase, sm-kms can send and receive encrypted messages.
 
 ---
 
-#### Task 2.1: sm-kms DB Migrations for Message Domain (2007â€“2008)
+#### Task 2.1: sm-kms DB Migrations for Message Domain (2007-2008)
 
-- **Status**: âŒ Not Started
+- **Status**: [ ] Not Started
 - **Estimated**: 0.5h
 - **Dependencies**: Task 1.9 (Phase 1 must be complete)
 - **Description**: Create SQL migration files for sm-im tables in sm-kms migration range.
@@ -281,7 +281,7 @@ After this phase, sm-kms can send and receive encrypted messages.
 
 #### Task 2.2: Message Domain Models in sm-kms
 
-- **Status**: âŒ Not Started
+- **Status**: [ ] Not Started
 - **Estimated**: 0.5h
 - **Dependencies**: Task 2.1
 - **Description**: Create `message_models.go` in sm-kms model package with `Message` and `MessageRecipientJWK` structs.
@@ -298,7 +298,7 @@ After this phase, sm-kms can send and receive encrypted messages.
 
 #### Task 2.3: Message Repositories in sm-kms
 
-- **Status**: âŒ Not Started
+- **Status**: [ ] Not Started
 - **Estimated**: 1h
 - **Dependencies**: Task 2.2
 - **Description**: Port the sm-im message repositories to sm-kms.
@@ -307,7 +307,7 @@ After this phase, sm-kms can send and receive encrypted messages.
   - [ ] `MessageRecipientJWKRepository` interface + impl
   - [ ] Context transaction pattern used (`getDB(ctx, r.db)`)
   - [ ] Unit tests with in-memory SQLite
-  - [ ] Coverage â‰¥95%
+  - [ ] Coverage >=95%
 - **Files**:
   - `internal/apps/sm-kms/server/repository/message_repository.go`
   - `internal/apps/sm-kms/server/repository/message_repository_test.go`
@@ -318,7 +318,7 @@ After this phase, sm-kms can send and receive encrypted messages.
 
 #### Task 2.4: Message Handler in sm-kms
 
-- **Status**: âŒ Not Started
+- **Status**: [ ] Not Started
 - **Estimated**: 2h
 - **Dependencies**: Task 2.3
 - **Description**: Port sm-im message handler into `internal/apps/sm-kms/server/handler/message_handler.go`.
@@ -327,7 +327,7 @@ After this phase, sm-kms can send and receive encrypted messages.
   - [ ] `HandleSendMessage`, `HandleReceiveMessages`, `HandleGetMessage`, `HandleDeleteMessage`, `HandleListMessages` handlers
   - [ ] All handlers tested using Fiber `app.Test()`
   - [ ] Table-driven tests
-  - [ ] Coverage â‰¥95%
+  - [ ] Coverage >=95%
 - **Files**:
   - `internal/apps/sm-kms/server/handler/message_handler.go`
   - `internal/apps/sm-kms/server/handler/message_handler_test.go`
@@ -336,7 +336,7 @@ After this phase, sm-kms can send and receive encrypted messages.
 
 #### Task 2.5: Extend sm-kms OpenAPI Spec (Messaging Endpoints)
 
-- **Status**: âŒ Not Started
+- **Status**: [ ] Not Started
 - **Estimated**: 1h
 - **Dependencies**: Task 2.4
 - **Description**: Add sm-im messaging paths and component schemas to sm-kms OpenAPI spec.
@@ -352,7 +352,7 @@ After this phase, sm-kms can send and receive encrypted messages.
 
 #### Task 2.6: Regenerate sm-kms oapi-codegen Outputs (Post Messaging)
 
-- **Status**: âŒ Not Started
+- **Status**: [ ] Not Started
 - **Estimated**: 0.5h
 - **Dependencies**: Task 2.5
 - **Description**: Regenerate sm-kms server/model/client stubs after messaging spec additions.
@@ -368,7 +368,7 @@ After this phase, sm-kms can send and receive encrypted messages.
 
 #### Task 2.7: Register Message Routes in sm-kms server.go
 
-- **Status**: âŒ Not Started
+- **Status**: [ ] Not Started
 - **Estimated**: 0.5h
 - **Dependencies**: Task 2.6
 - **Description**: Wire message handler into sm-kms server routing.
@@ -383,16 +383,16 @@ After this phase, sm-kms can send and receive encrypted messages.
 
 #### Task 2.8: Phase 2 Quality Gate
 
-- **Status**: âŒ Not Started
+- **Status**: [ ] Not Started
 - **Estimated**: 0.5h
-- **Dependencies**: Tasks 2.1â€“2.7
+- **Dependencies**: Tasks 2.1-2.7
 - **Description**: Verify Phase 2 quality gates all pass.
 - **Acceptance Criteria**:
   - [ ] `go build ./...` zero errors
   - [ ] `golangci-lint run ./...` zero warnings
   - [ ] `go test ./internal/apps/sm-kms/...` 100% pass (incl. message tests)
   - [ ] `go test ./internal/apps/sm-im/...` still passes
-  - [ ] sm-kms coverage â‰¥95%
+  - [ ] sm-kms coverage >=95%
 
 ---
 
@@ -405,7 +405,7 @@ is deleted because it has no remaining PS-IDs after jose-ja is removed.
 
 #### Task 3.1: Delete jose-ja API Directory
 
-- **Status**: âŒ Not Started
+- **Status**: [ ] Not Started
 - **Estimated**: 0.25h
 - **Dependencies**: Task 2.8 (Phase 2 must be complete)
 - **Description**: Delete `api/jose-ja/` entirely.
@@ -418,7 +418,7 @@ is deleted because it has no remaining PS-IDs after jose-ja is removed.
 
 #### Task 3.2: Delete sm-im API Directory
 
-- **Status**: âŒ Not Started
+- **Status**: [ ] Not Started
 - **Estimated**: 0.25h
 - **Dependencies**: Task 3.1
 - **Description**: Delete `api/sm-im/` entirely.
@@ -431,7 +431,7 @@ is deleted because it has no remaining PS-IDs after jose-ja is removed.
 
 #### Task 3.3: Delete jose-ja Internal App Directory
 
-- **Status**: âŒ Not Started
+- **Status**: [ ] Not Started
 - **Estimated**: 0.25h
 - **Dependencies**: Task 3.2
 - **Description**: Delete `internal/apps/jose-ja/` entirely (75 Go files).
@@ -444,7 +444,7 @@ is deleted because it has no remaining PS-IDs after jose-ja is removed.
 
 #### Task 3.4: Delete sm-im Internal App Directory
 
-- **Status**: âŒ Not Started
+- **Status**: [ ] Not Started
 - **Estimated**: 0.25h
 - **Dependencies**: Task 3.3
 - **Description**: Delete `internal/apps/sm-im/` entirely (60 Go files).
@@ -457,7 +457,7 @@ is deleted because it has no remaining PS-IDs after jose-ja is removed.
 
 #### Task 3.5: Delete cmd and internal/apps/jose (product coordinator)
 
-- **Status**: âŒ Not Started
+- **Status**: [ ] Not Started
 - **Estimated**: 0.5h
 - **Dependencies**: Task 3.4
 - **Description**: Delete `cmd/jose-ja/`, `cmd/jose/`, and `internal/apps/jose/` (the product-level jose coordinator). Update `cmd/cryptoutil/main.go` to remove jose routing.
@@ -472,7 +472,7 @@ is deleted because it has no remaining PS-IDs after jose-ja is removed.
 
 #### Task 3.6: Delete cmd/sm-im and update cmd/sm
 
-- **Status**: âŒ Not Started
+- **Status**: [ ] Not Started
 - **Estimated**: 0.5h
 - **Dependencies**: Task 3.5
 - **Description**: Delete `cmd/sm-im/` and remove sm-im routing from `cmd/sm/main.go` and `internal/apps/sm/sm.go`.
@@ -486,7 +486,7 @@ is deleted because it has no remaining PS-IDs after jose-ja is removed.
 
 #### Task 3.7: Delete configs and deployments for jose-ja, jose, sm-im
 
-- **Status**: âŒ Not Started
+- **Status**: [ ] Not Started
 - **Estimated**: 0.5h
 - **Dependencies**: Task 3.6
 - **Description**: Delete deployment and config directories for removed services.
@@ -504,7 +504,7 @@ is deleted because it has no remaining PS-IDs after jose-ja is removed.
 
 #### Task 3.8: Delete magic_jose.go and magic_sm_im.go
 
-- **Status**: âŒ Not Started
+- **Status**: [ ] Not Started
 - **Estimated**: 0.5h
 - **Dependencies**: Task 3.7
 - **Description**: Delete the magic constant files for removed services. Clean up any residual references.
@@ -519,9 +519,9 @@ is deleted because it has no remaining PS-IDs after jose-ja is removed.
 
 #### Task 3.9: Phase 3 Quality Gate
 
-- **Status**: âŒ Not Started
+- **Status**: [ ] Not Started
 - **Estimated**: 0.5h
-- **Dependencies**: Tasks 3.1â€“3.8
+- **Dependencies**: Tasks 3.1-3.8
 - **Description**: Verify Phase 3 quality gates all pass and no stale references remain.
 - **Acceptance Criteria**:
   - [ ] `go build ./...` zero errors
@@ -540,7 +540,7 @@ and 8 PS-IDs. All fitness linters and deployment linters pass with zero errors.
 
 #### Task 4.1: Update api/cryptosuite-registry/registry.yaml
 
-- **Status**: âŒ Not Started
+- **Status**: [ ] Not Started
 - **Estimated**: 0.5h
 - **Dependencies**: Task 3.9 (Phase 3 must be complete)
 - **Description**: Remove jose-ja, sm-im, and jose entries from the registry.
@@ -548,15 +548,15 @@ and 8 PS-IDs. All fitness linters and deployment linters pass with zero errors.
   - [ ] `jose-ja` removed from `product_services`
   - [ ] `sm-im` removed from `product_services`
   - [ ] `jose` removed from `products`
-  - [ ] sm-kms `migration_range_end` updated to reflect 2001â€“2999 range (unchanged since new migrations are within range)
+  - [ ] sm-kms `migration_range_end` updated to reflect 2001-2999 range (unchanged since new migrations are within range)
   - [ ] PostgreSQL ports 54321 (sm-im) and 54322 (jose-ja) noted as freed
-  - [ ] Registry count comments updated (10 PS-IDs â†’ 8, 5 products â†’ 4)
+  - [ ] Registry count comments updated (10 PS-IDs -> 8, 5 products -> 4)
 
 ---
 
 #### Task 4.2: Update magic_tier.go
 
-- **Status**: âŒ Not Started
+- **Status**: [ ] Not Started
 - **Estimated**: 0.5h
 - **Dependencies**: Task 4.1
 - **Description**: Remove jose product tier and sm-im from SM tier.
@@ -571,12 +571,12 @@ and 8 PS-IDs. All fitness linters and deployment linters pass with zero errors.
 
 #### Task 4.3: Update magic_cicd.go, magic_pki_tls.go, magic_sm.go
 
-- **Status**: âŒ Not Started
+- **Status**: [ ] Not Started
 - **Estimated**: 0.5h
 - **Dependencies**: Task 4.2
 - **Description**: Remove jose-ja and sm-im references from remaining magic files.
 - **Acceptance Criteria**:
-  - [ ] `magic_cicd.go`: service count comments updated (10â†’8, "sm, jose, pki, identity, skeleton"â†’"sm, pki, identity, skeleton")
+  - [ ] `magic_cicd.go`: service count comments updated (10->8, "sm, jose, pki, identity, skeleton"->"sm, pki, identity, skeleton")
   - [ ] `magic_pki_tls.go`: `AppJoseJASQLite1ServerCertCN`, `AppJoseJASQLite2ServerCertCN`, `AppJoseJAPostgres1ServerCertCN`, `AppJoseJAPostgres2ServerCertCN` constants removed
   - [ ] `magic_sm.go`: IM-specific constants removed if any
   - [ ] `go build ./...` clean
@@ -585,13 +585,13 @@ and 8 PS-IDs. All fitness linters and deployment linters pass with zero errors.
 
 #### Task 4.4: Update cicd_lint port range and legacy port files
 
-- **Status**: âŒ Not Started
+- **Status**: [ ] Not Started
 - **Estimated**: 0.75h
 - **Dependencies**: Task 4.3
 - **Description**: Remove jose-ja (8200 range) and sm-im (8100 range) from port range definitions and legacy port lists.
 - **Acceptance Criteria**:
-  - [ ] `lint_ports/host_port_ranges/*.go`: jose-ja range (8200â€“8299) removed or marked inactive
-  - [ ] `lint_ports/host_port_ranges/*.go`: sm-im range (8100â€“8199) removed or marked inactive
+  - [ ] `lint_ports/host_port_ranges/*.go`: jose-ja range (8200-8299) removed or marked inactive
+  - [ ] `lint_ports/host_port_ranges/*.go`: sm-im range (8100-8199) removed or marked inactive
   - [ ] `lint_ports/legacy_ports/*.go`: jose-ja legacy port entries removed
   - [ ] `lint_ports/legacy_ports/*.go`: sm-im legacy port entries removed
   - [ ] Associated tests updated to remove jose-ja and sm-im test cases
@@ -601,7 +601,7 @@ and 8 PS-IDs. All fitness linters and deployment linters pass with zero errors.
 
 #### Task 4.5: Run lint-fitness and lint-deployments
 
-- **Status**: âŒ Not Started
+- **Status**: [ ] Not Started
 - **Estimated**: 0.5h
 - **Dependencies**: Task 4.4
 - **Description**: Run all cicd-lint commands to verify registry-driven fitness linters pass.
@@ -616,9 +616,9 @@ and 8 PS-IDs. All fitness linters and deployment linters pass with zero errors.
 
 #### Task 4.6: Phase 4 Quality Gate
 
-- **Status**: âŒ Not Started
+- **Status**: [ ] Not Started
 - **Estimated**: 0.5h
-- **Dependencies**: Tasks 4.1â€“4.5
+- **Dependencies**: Tasks 4.1-4.5
 - **Description**: Full quality gate verification after registry updates.
 - **Acceptance Criteria**:
   - [ ] `go build ./...` zero errors
@@ -637,7 +637,7 @@ and 8 PS-IDs. All fitness linters and deployment linters pass with zero errors.
 
 #### Task 5.1: Build Verification
 
-- **Status**: âŒ Not Started
+- **Status**: [ ] Not Started
 - **Estimated**: 0.25h
 - **Dependencies**: Task 4.6
 - **Description**: Verify both tagged and untagged builds are clean.
@@ -650,7 +650,7 @@ and 8 PS-IDs. All fitness linters and deployment linters pass with zero errors.
 
 #### Task 5.2: Lint Verification
 
-- **Status**: âŒ Not Started
+- **Status**: [ ] Not Started
 - **Estimated**: 0.5h
 - **Dependencies**: Task 5.1
 - **Description**: Full linting pass across all packages.
@@ -663,7 +663,7 @@ and 8 PS-IDs. All fitness linters and deployment linters pass with zero errors.
 
 #### Task 5.3: Test Suite Verification
 
-- **Status**: âŒ Not Started
+- **Status**: [ ] Not Started
 - **Estimated**: 0.5h
 - **Dependencies**: Task 5.2
 - **Description**: Full test pass including shuffle and race detection.
@@ -676,21 +676,21 @@ and 8 PS-IDs. All fitness linters and deployment linters pass with zero errors.
 
 #### Task 5.4: Coverage Verification
 
-- **Status**: âŒ Not Started
+- **Status**: [ ] Not Started
 - **Estimated**: 0.5h
 - **Dependencies**: Task 5.3
 - **Description**: Verify coverage targets met for all packages.
 - **Acceptance Criteria**:
   - [ ] `go test -coverprofile=test-output/coverage-v24/coverage.out ./...`
-  - [ ] sm-kms coverage â‰¥95%
-  - [ ] cicd_lint/* coverage â‰¥98%
+  - [ ] sm-kms coverage >=95%
+  - [ ] cicd_lint/* coverage >=98%
   - [ ] No production packages below 95%
 
 ---
 
 #### Task 5.5: cicd-lint Verification
 
-- **Status**: âŒ Not Started
+- **Status**: [ ] Not Started
 - **Estimated**: 0.25h
 - **Dependencies**: Task 5.4
 - **Description**: All cicd-lint commands pass.
@@ -709,14 +709,14 @@ and 8 PS-IDs. All fitness linters and deployment linters pass with zero errors.
 
 #### Task 6.1: Update docs/ENG-HANDBOOK.md
 
-- **Status**: âŒ Not Started
+- **Status**: [ ] Not Started
 - **Estimated**: 1h
 - **Dependencies**: Task 5.5
 - **Description**: Update ENG-HANDBOOK.md to reflect the 4-product, 8-PS-ID architecture.
 - **Acceptance Criteria**:
-  - [ ] Â§3 (product suite architecture) updated: 5 products â†’ 4 products, 10 PS-IDs â†’ 8 PS-IDs
+  - [ ] Section 3 (product suite architecture) updated: 5 products -> 4 products, 10 PS-IDs -> 8 PS-IDs
   - [ ] Service table updated
-  - [ ] Migration range documentation updated (sm-kms now 2001â€“2999 inclusive of merged tables)
+  - [ ] Migration range documentation updated (sm-kms now 2001-2999 inclusive of merged tables)
   - [ ] Decision record added: why jose-ja and sm-im were merged into sm-kms
   - [ ] `go run ./cmd/cicd-lint lint-docs` passes after update
 
@@ -724,7 +724,7 @@ and 8 PS-IDs. All fitness linters and deployment linters pass with zero errors.
 
 #### Task 6.2: Update README.md and docs/DEV-SETUP.md
 
-- **Status**: âŒ Not Started
+- **Status**: [ ] Not Started
 - **Estimated**: 0.5h
 - **Dependencies**: Task 6.1
 - **Description**: Update user-facing documentation to remove jose-ja and sm-im references.
@@ -737,7 +737,7 @@ and 8 PS-IDs. All fitness linters and deployment linters pass with zero errors.
 
 #### Task 6.3: Propagation Check
 
-- **Status**: âŒ Not Started
+- **Status**: [ ] Not Started
 - **Estimated**: 0.25h
 - **Dependencies**: Task 6.2
 - **Description**: Verify propagation integrity between ENG-HANDBOOK.md and instruction files.
@@ -748,7 +748,7 @@ and 8 PS-IDs. All fitness linters and deployment linters pass with zero errors.
 
 #### Task 6.4: Final Commit and Tag
 
-- **Status**: âŒ Not Started
+- **Status**: [ ] Not Started
 - **Estimated**: 0.25h
 - **Dependencies**: Task 6.3
 - **Description**: All changes committed. git status clean. Final review.
@@ -763,11 +763,11 @@ and 8 PS-IDs. All fitness linters and deployment linters pass with zero errors.
 
 ### Testing
 
-- [ ] Unit tests â‰¥95% coverage (production), â‰¥98% (infrastructure/utility)
+- [ ] Unit tests >=95% coverage (production), >=98% (infrastructure/utility)
 - [ ] Integration tests pass
 - [ ] Table-driven test pattern for all multi-case tests
 - [ ] `t.Parallel()` on all tests and subtests
-- [ ] No hardcoded UUIDs â€” use `googleUuid.NewV7()`
+- [ ] No hardcoded UUIDs - use `googleUuid.NewV7()`
 - [ ] Fiber `app.Test()` for all handler tests (no real network listeners)
 - [ ] Race detector clean: `go test -race -count=2 ./...`
 - [ ] No skipped tests without documented exceptions
@@ -795,5 +795,5 @@ and 8 PS-IDs. All fitness linters and deployment linters pass with zero errors.
 
 ## Evidence Archive
 
-- `test-output/tokens/` â€” token usage logs for this agent invocation
-- `test-output/coverage-v24/` â€” coverage profiles generated during Phase 5
+- `test-output/tokens/` - token usage logs for this agent invocation
+- `test-output/coverage-v24/` - coverage profiles generated during Phase 5

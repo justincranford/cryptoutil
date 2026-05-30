@@ -135,7 +135,7 @@ func RequireClientWithResponses(t *testing.T, baseURL *string, rootCAsPool *x509
 			// /service/** endpoints require JWT bearer tokens (serviceToken)
 			authHeader := cryptoutilSharedMagic.HTTPAuthorizationBearerPrefix + testServiceToken
 			req.Header.Set("Authorization", authHeader)
-			log.Printf("DEBUG RequireClientWithResponses requestEditor: set Authorization header (length=%d) for path=%s", len(authHeader), req.URL.Path)
+			log.Printf("DEBUG RequireClientWithResponses requestEditor: set Authorization header (length=%d)", len(authHeader))
 
 			return nil
 		}
