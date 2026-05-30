@@ -2015,7 +2015,7 @@ Unseal Key (Docker secrets, NEVER stored)
     └── Root Key (encrypted-at-rest with unseal key(s), rotated manually or automatically annually)
         └── Intermediate Key (encrypted-at-rest with root key, rotated manually or automatically quarterly)
             └── Content Key (encrypted-at-rest with intermediate key, rotated manually or automatically monthly)
-                └── Domain Data (encrypted-at-rest with content key) - Examples: SM-IM messages, SM-KMS JWKs, JOSE-JA JWKs, PKI-CA private keys, Identity user credentials
+                └── Domain Data (encrypted-at-rest with content key) - Examples: SM messages, SM-KMS JWKs, JOSE JWK authority keys, PKI-CA private keys, Identity user credentials
 ```
 
 Design Intent: Unseal secret(s) or unseal key(s) are loaded by service instances at startup. To decrypt and reuse existing, sealed root keys in a database, each service instance MUST use unseal credentials to unseal the root keys. This is design intent for barrier service.
@@ -2531,9 +2531,9 @@ db.Where("tenant_id = ? AND user_id = ?", tenantID, userID).Find(&messages)
 
 **Requirements** (enforced by linter):
 - **Unique Database Name**: Each of 10 services MUST have unique `postgres-database.secret`
-  - Example: `identity_authz_database`, `identity_idp_database`, `jose_ja_database` (NOT shared `identity_database`)
+  - Example: `identity_authz_database`, `identity_idp_database`, `sm_kms_database` (NOT shared `identity_database`)
 - **Unique Username**: Each service MUST have unique `postgres-username.secret`
-  - Example: `identity_authz_database_user`, `identity_idp_database_user`, `jose_ja_database_user`
+  - Example: `identity_authz_database_user`, `identity_idp_database_user`, `sm_kms_database_user`
 - **Unique Password**: Each service MUST have unique `postgres-password.secret`
 - **Unique Connection URL**: Each service MUST have unique `postgres-url.secret`
 
@@ -2867,8 +2867,8 @@ Every service config should have a test settings factory:
 
 ```go
 // NewTestSettings returns configuration suitable for testing
-func NewTestSettings() *SMImServerSettings {
-    return &SMImServerSettings{
+func NewTestSettings() *SMKMSServerSettings {
+  return &SMKMSServerSettings{
         ServiceFrameworkServerSettings: cryptoutilFrameworkTestutil.NewTestSettings(),
         MaxMessageSize:                65536,
     }
@@ -5074,7 +5074,7 @@ def test_health_check(api_client):
 | Data/Sessions | `magic_database.go`, `magic_session.go` |
 | JOSE/PKI | `magic_jose.go` |
 | Identity (14 files) | `magic_identity.go`, `magic_identity_adaptive.go`, `magic_identity_config.go`, `magic_identity_http.go`, `magic_identity_keys.go`, `magic_identity_metrics.go`, `magic_identity_mfa.go`, `magic_identity_oauth.go`, `magic_identity_oidc.go`, `magic_identity_pbkdf2.go`, `magic_identity_scopes.go`, `magic_identity_testing.go`, `magic_identity_timeouts.go`, `magic_identity_uris.go` |
-| SM/JOSE | `magic_sm.go`, `magic_sm_im.go` |
+| SM/JOSE | `magic_sm.go`, `magic_im_shared.go` |
 | Infrastructure | `magic_telemetry.go`, `magic_otel_e2e.go`, `magic_workflows.go` |
 | Services | `magic_skeleton.go`, `magic_template.go` |
 | Testing | `magic_testing.go`, `magic_test_fixtures.go` |
@@ -5610,7 +5610,7 @@ See [Section 4.4.6](#446-deployments) for the complete secret file listing at ea
 
 **`.secret.never` Marker Content**: Product-level markers contain `MUST NEVER be used at product level. Use service-specific secrets.` Suite-level markers contain `MUST NEVER be used at suite level. Use service-specific secrets.`
 
-**Note**: `{PS_ID}` uses underscores (e.g., `jose_ja`) for PostgreSQL identifiers; `{PS-ID}` uses hyphens (e.g., `sm-kms`) for all other contexts.
+**Note**: `{PS_ID}` uses underscores (e.g., `sm_kms`) for PostgreSQL identifiers; `{PS-ID}` uses hyphens (e.g., `sm-kms`) for all other contexts.
 
 ##### SUITE-Level Deployment (cryptoutil)
 
