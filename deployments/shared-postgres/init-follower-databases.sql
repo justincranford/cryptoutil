@@ -51,12 +51,12 @@ CREATE DATABASE "sm-kms";
 \c "sm-kms"
 CREATE SCHEMA ja;
 
-CREATE DATABASE "sm-kms";
-\c "sm-kms"
+CREATE DATABASE "sm-im";
+\c "sm-im"
 CREATE SCHEMA im;
 
-CREATE DATABASE "sm-kms";
-\c "sm-kms"
+CREATE DATABASE "jose-ja";
+\c "jose-ja"
 CREATE SCHEMA kms;
 
 CREATE DATABASE "identity-authz";
