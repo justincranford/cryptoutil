@@ -53,7 +53,7 @@ func TestCheckDelegationPattern_SuiteInvalidServiceLevel(t *testing.T) {
 	checkDelegationPattern(dir, cryptoutilSharedMagic.DefaultOTLPServiceDefault, DeploymentTypeSuite, result)
 
 	require.False(t, result.Valid, "expected invalid for service-level delegation")
-	require.Len(t, result.Errors, 9, "expected 9 errors for invalid service-level include patterns")
+	require.Len(t, result.Errors, int(cryptoutilSharedMagic.RateLimitDefaultRequestsPerMin), "expected invalid service-level include patterns to match include count")
 }
 
 func TestCheckDelegationPattern_SuiteMissingProducts(t *testing.T) {

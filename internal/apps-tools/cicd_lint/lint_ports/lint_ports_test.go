@@ -202,8 +202,8 @@ func TestLint(t *testing.T) {
 				d := t.TempDir()
 
 				return map[string][]string{
-					"go":         {writeTestFile(t, d, "main.go", "package main\n\nconst port = 8100\n")},
-					"yml":        {writeTestFile(t, d, "compose.yml", "services:\n  sm-kms:\n    ports:\n      - \"8100:8100\"\n    healthcheck:\n      test: [\"CMD\", \"wget\", \"-q\", \"-O\", \"/dev/null\", \"https://127.0.0.1:9090/admin/api/v1/livez\"]\n")},
+					"go":         {writeTestFile(t, d, "main.go", "package main\n\nconst port = 8000\n")},
+					"yml":        {writeTestFile(t, d, "compose.yml", "services:\n  sm-kms:\n    ports:\n      - \"8000:8000\"\n    healthcheck:\n      test: [\"CMD\", \"wget\", \"-q\", \"-O\", \"/dev/null\", \"https://127.0.0.1:9090/admin/api/v1/livez\"]\n")},
 					"dockerfile": {writeTestFile(t, d, "Dockerfile", "FROM alpine:latest\nHEALTHCHECK CMD wget -q -O /dev/null https://127.0.0.1:9090/admin/api/v1/livez\n")},
 				}
 			},

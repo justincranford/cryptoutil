@@ -414,6 +414,7 @@ func TestCheckInDir_NoExclusions_AllValid(t *testing.T) {
 
 	for _, ps := range cryptoutilFitnessRegistry.AllProductServices() {
 		psDir := filepath.Join(tmpDir, "internal", "apps", ps.PSID)
+		require.NoError(t, os.MkdirAll(psDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 		psRoot, openErr := os.OpenRoot(psDir)
 		require.NoError(t, openErr)
 
