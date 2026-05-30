@@ -109,8 +109,6 @@ CREATE PUBLICATION service_skeleton_template_pub FOR ALL TABLES;
 -- PS-ID application databases (one per PS-ID, named by DatabaseName derivation)
 -- These are the databases that app containers connect to via postgres-url.secret.
 CREATE DATABASE sm_kms_database;
-CREATE DATABASE sm_im_database;
-CREATE DATABASE jose_ja_database;
 CREATE DATABASE pki_ca_database;
 CREATE DATABASE identity_authz_database;
 CREATE DATABASE identity_idp_database;

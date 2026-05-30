@@ -45,30 +45,30 @@ All templates use parameterized placeholders. Values for each PS-ID are defined 
 
 ### A.1 Entity Parameters
 
-| Parameter | Description | Example (sm-kms) | Example (sm-kms) |
+| Parameter | Description | Example (sm-kms) | Example (pki-ca) |
 |-----------|-------------|-------------------|----------------------------|
 | `{SUITE}` | Suite name (always `cryptoutil`) | `cryptoutil` | `cryptoutil` |
 | `{PS-ID}` | Product-Service identifier (kebab-case) | `sm-kms` | `sm-kms` |
-| `{PS_ID}` | Underscore variant (PostgreSQL naming) | `sm_kms` | `jose_jwk_authority` |
-| `{PRODUCT}` | Product name (kebab-case) | `sm` | `jose` |
-| `{SERVICE}` | Service name within product | `kms` | `ja` |
-| `{PRODUCT_DISPLAY_NAME}` | Human-readable product name | `Secrets Manager` | `JOSE` |
-| `{SERVICE_DISPLAY_NAME}` | Human-readable service name | `Key Management Service` | `JWK Authority` |
+| `{PS_ID}` | Underscore variant (PostgreSQL naming) | `sm_kms` | `pki_ca` |
+| `{PRODUCT}` | Product name (kebab-case) | `sm` | `pki` |
+| `{SERVICE}` | Service name within product | `kms` | `ca` |
+| `{PRODUCT_DISPLAY_NAME}` | Human-readable product name | `Secrets Manager` | `PKI` |
+| `{SERVICE_DISPLAY_NAME}` | Human-readable service name | `Key Management Service` | `Certificate Authority` |
 | `{GITHUB_REPOSITORY_URL}` | Source repository URL | `https://github.com/justincranford/cryptoutil` | (same) |
 | `{AUTHORS}` | Image authors | `Justin Cranford` | (same) |
 
 ### A.2 Port Parameters
 
-| Parameter | Description | Formula | Example (sm-kms) | Example (sm-kms) |
+| Parameter | Description | Formula | Example (sm-kms) | Example (pki-ca) |
 |-----------|-------------|---------|-------------------|--------------------|
-| `{SERVICE_APP_PORT_BASE}` | SERVICE-tier port block start | Per registry | `8000` | `8200` |
+| `{SERVICE_APP_PORT_BASE}` | SERVICE-tier port block start | Per registry | `8000` | `8300` |
 | `{SERVICE_APP_PORT_SQLITE_1}` | SQLite instance 1 host port | `{SERVICE_APP_PORT_BASE} + 0` | `8000` | `8200` |
-| `{SERVICE_APP_PORT_SQLITE_2}` | SQLite instance 2 host port | `{SERVICE_APP_PORT_BASE} + 1` | `8001` | `8201` |
-| `{SERVICE_APP_PORT_PG_1}` | PostgreSQL instance 1 host port | `{SERVICE_APP_PORT_BASE} + 2` | `8002` | `8202` |
-| `{SERVICE_APP_PORT_PG_2}` | PostgreSQL instance 2 host port | `{SERVICE_APP_PORT_BASE} + 3` | `8003` | `8203` |
-| `{SERVICE_PG_HOST_PORT}` | PostgreSQL container host port | Per registry | `54320` | `54322` |
-| `{PRODUCT_APP_PORT_OFFSET}` | PRODUCT tier formula | `{SERVICE_APP_PORT_BASE} + 10000` | `18000` | `18200` |
-| `{SUITE_APP_PORT_OFFSET}` | SUITE tier formula | `{SERVICE_APP_PORT_BASE} + 20000` | `28000` | `28200` |
+| `{SERVICE_APP_PORT_SQLITE_2}` | SQLite instance 2 host port | `{SERVICE_APP_PORT_BASE} + 1` | `8001` | `8301` |
+| `{SERVICE_APP_PORT_PG_1}` | PostgreSQL instance 1 host port | `{SERVICE_APP_PORT_BASE} + 2` | `8002` | `8302` |
+| `{SERVICE_APP_PORT_PG_2}` | PostgreSQL instance 2 host port | `{SERVICE_APP_PORT_BASE} + 3` | `8003` | `8303` |
+| `{SERVICE_PG_HOST_PORT}` | PostgreSQL container host port | Per registry | `54320` | `54323` |
+| `{PRODUCT_APP_PORT_OFFSET}` | PRODUCT tier formula | `{SERVICE_APP_PORT_BASE} + 10000` | `18000` | `18300` |
+| `{SUITE_APP_PORT_OFFSET}` | SUITE tier formula | `{SERVICE_APP_PORT_BASE} + 20000` | `28000` | `28300` |
 
 ### A.3 Build & Container Parameters
 
@@ -102,8 +102,6 @@ production).
 | PS-ID | PRODUCT | SERVICE | SERVICE_APP_PORT_BASE | SERVICE_PG_HOST_PORT | PRODUCT_DISPLAY_NAME | SERVICE_DISPLAY_NAME | PRODUCT_APP_PORT_OFFSET | SUITE_APP_PORT_OFFSET |
 |-------|---------|---------|---------------------|--------------------|--------------------|--------------------|-----------------------|---------------------|
 | `sm-kms` | `sm` | `kms` | `8000` | `54320` | Secrets Manager | Key Management | `18000` | `28000` |
-| `sm-kms` | `sm` | `im` | `8100` | `54321` | Secrets Manager | Instant Messenger | `18100` | `28100` |
-| `sm-kms` | `jose` | `ja` | `8200` | `54322` | JOSE | JWK Authority | `18200` | `28200` |
 | `pki-ca` | `pki` | `ca` | `8300` | `54323` | PKI | Certificate Authority | `18300` | `28300` |
 | `identity-authz` | `identity` | `authz` | `8400` | `54324` | Identity | Authorization Server | `18400` | `28400` |
 | `identity-idp` | `identity` | `idp` | `8500` | `54325` | Identity | Provider | `18500` | `28500` |
@@ -468,9 +466,9 @@ Three fundamentally different Dockerfile patterns exist where there MUST be exac
 
 | PS-ID | Bug | Impact |
 |-------|-----|--------|
-| `skeleton-template` | Header says "JOSE Authority Server" | Documentation error |
-| `skeleton-template` | Username is `jose`, dirs are `/etc/jose` | Wrong identity |
-| `skeleton-template` | CMD uses `--config=/etc/jose/jose.yml` | Wrong config path |
+| `skeleton-template` | Header says another service name | Documentation error |
+| `skeleton-template` | Username and dirs use another service identity | Wrong identity |
+| `skeleton-template` | CMD uses another service config path | Wrong config path |
 | `identity-spa` | Builder builds `/app/identity-spa` but runtime COPY copies `/app/cryptoutil` | **Runtime failure** |
 | `sm-kms` | User UID:GID is `1000:1000` (should be `65532:65532`) | Security deviation |
 | `sm-kms` | No validation stage | Missing build arg validation |
@@ -494,7 +492,7 @@ Three fundamentally different Dockerfile patterns exist where there MUST be exac
 | Deployment common config structure | sm-kms | Missing TLS cert paths, missing unseal config, only has bind + credentials |
 | Deployment instance config structure | sm-kms | Missing `cors-origins`, missing `otlp-hostname`, only has `otlp-service` |
 | Deployment instance config structure | sm-kms, skeleton-template | Duplicates common settings (security-headers, rate-limiting) in every instance file |
-| Standalone config content | skeleton-template | Header says "JOSE Authority Server", OTLP service says "skeleton-template-ja" |
+| Standalone config content | skeleton-template | Header says another service name, OTLP service uses a stale template suffix |
 | Standalone config content | sm-kms, sm-kms | Uses snake_case keys (bind_address, max_open_conns, etc.) |
 | Standalone config admin port | sm-kms, skeleton-template | Uses `bind-admin-port: 9092` (should be `9090`) |
 
@@ -619,11 +617,11 @@ LABEL org.opencontainers.image.title="__SUITE__-__PS_ID__" \
       org.opencontainers.image.authors="__AUTHORS__" \
       org.opencontainers.image.description="__PRODUCT_DISPLAY_NAME__ __SERVICE_DISPLAY_NAME__"
 
-# After instantiation for sm-kms:
-LABEL org.opencontainers.image.title="cryptoutil-sm-kms" \
+# After instantiation for pki-ca:
+LABEL org.opencontainers.image.title="cryptoutil-pki-ca" \
       org.opencontainers.image.source="https://github.com/justincranford/cryptoutil" \
       org.opencontainers.image.authors="Justin Cranford" \
-      org.opencontainers.image.description="JOSE JWK Authority"
+  org.opencontainers.image.description="PKI Certificate Authority"
 ```
 
 ### O.4 Relationship Between Documents

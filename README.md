@@ -7,24 +7,23 @@
 **cryptoutil** is a production-ready suite of four cryptographic products, designed with enterprise-grade security, **FIPS 140-3** standards compliance, and Zero-Trust principles:
 
 1. **Private Key Infrastructure (PKI)** - X.509 certificate management with EST, SCEP, OCSP, and CRL support
-2. **JSON Object Signing and Encryption (JOSE)** - JWK/JWS/JWE/JWT cryptographic operations
-3. **Secrets Manager (SM)** - Elastic key management service with hierarchical key barriers; includes Instant Messenger (IM) with encryption-at-rest
+2. **JSON Web Key and Token Operations** - JWK/JWS/JWE/JWT cryptographic operations
+3. **Secrets Manager (SM)** - Elastic key management service with hierarchical key barriers, encrypted messaging, and encryption-at-rest
 4. **Identity** - OAuth 2.1, OIDC 1.0, WebAuthn, and Passkeys authentication and authorization
 
 ### Project Background
 
-The project began as a standalone **Key Management Service (KMS)**. As part of that design, I implemented **CA** and **JOSE** components, and the next logical step was to add an **Identity** component.
+The project began as a standalone **Key Management Service (KMS)**. As part of that design, I implemented **CA** and **JSON cryptography** components, and the next logical step was to add an **Identity** component.
 
 - **CA** => Issue TLS certificates to protect **data-in-transit**.
-- **JOSE** => Issue JSON (JWEs) to protect **data-at-rest**.
+- **JSON cryptography** => Issue JWEs and JWSs to protect **data-at-rest**.
 - **Identity** => Provide multi-tenant **authentication** (AuthN) and flexible **authorization** (AuthZ).
-**
 
 ### Evolution of the Architecture
 
 Instead of keeping Identity internal, I chose to build it as an **independent external service**. It wanted to run on its own, not just as a dependency of the KMS.
 
-I also decided to refactor the **CA** and **JOSE** components into external services. Both the KMS and Identity depend on them, but those components are widely useful on their own.
+I also decided to refactor the **CA** and **JSON cryptography** components into external services. Both the KMS and Identity depend on them, but those components are widely useful on their own.
 
 ### Why This Exists
 
@@ -172,7 +171,7 @@ Grafana-OTEL-LGTM (Prometheus) → OpenTelemetry Collector Contrib (HTTP:8888/me
 - **5432**: PostgreSQL database
 - **8000**: sm-kms public API (HTTPS)
 - **8001-8002**: Additional sm-kms instances in Docker Compose (HTTPS)
-- **8200**: JOSE Authority Server (HTTPS)
+- **8200**: sm-kms JWK/JWS/JWE/JWT API (HTTPS)
 - **8300**: Certificate Authority Server (HTTPS)
 - **9090**: cryptoutil private admin API (health checks, graceful shutdown) on all instances
 - **14317**: Grafana OTLP gRPC receiver (telemetry ingress)
@@ -185,7 +184,7 @@ Grafana-OTEL-LGTM (Prometheus) → OpenTelemetry Collector Contrib (HTTP:8888/me
 - **Loki**: Integrated log aggregation
 - **Tempo**: Integrated trace storage
 - **OpenTelemetry Collector**: Receives telemetry from cryptoutil services
-- **JOSE Authority Server**: <https://localhost:8200> (cryptographic operations)
+- **sm-kms JWK/JWS/JWE/JWT API**: <https://localhost:8200> (cryptographic operations)
 - **Certificate Authority**: <https://localhost:8300> (X.509 certificate management)
 
 ### 🏗️ Production Ready
@@ -352,9 +351,9 @@ go run main.go --dev --config=./configs/sm/config-sqlite-1.yml
   - **Health**: `/api/v1/public/health`
   - **Documentation**: See [OpenAPI Guide](docs/02-identityV2/historical/openapi-guide.md) for detailed API documentation
 
-#### JOSE Authority Server APIs
+#### Cryptographic JSON APIs
 
-- **JOSE Authority Service** (JOSE Cryptographic Operations):
+- **sm-kms JWK/JWS/JWE/JWT API** (cryptographic JSON operations):
   - **Base URL**: <https://localhost:8200>
   - **Swagger UI**: <https://localhost:8200/ui/swagger>
   - **OpenAPI Spec**: <https://localhost:8200/ui/swagger/doc.json>

@@ -139,7 +139,7 @@ const (
 	// DefaultPublicPortCryptoutilCompose2 - Port for cryptoutil PostgreSQL instance 2.
 	DefaultPublicPortCryptoutilCompose2 uint16 = 8002
 
-	// DefaultPublicPortJOSEServer - Port for JOSE Authority Server.
+	// DefaultPublicPortJOSEServer - Port for the cryptographic JSON API listener.
 	DefaultPublicPortJOSEServer uint16 = 8200
 
 	// DefaultPublicPortCAServer - Port for CA Server.

@@ -105,7 +105,7 @@ func TestCheckInDir_WrongLine3_Lowercase(t *testing.T) {
 	// Overwrite sm-kms compose with lowercase line 3.
 	createComposeFile(t, tmpDir, cryptoutilSharedMagic.OTLPServiceSMKMS,
 		"# "+cryptoutilSharedMagic.OTLPServiceSMKMS+" Docker Compose Configuration",
-		"# SERVICE-level deployment for Secrets Manager Instant Messenger.",
+		"# SERVICE-level deployment for Wrong Service Name.",
 	)
 
 	err := lintFitnessComposeHeaderFormat.CheckInDir(newTestLogger(), tmpDir)

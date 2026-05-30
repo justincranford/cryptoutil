@@ -375,7 +375,7 @@ func resolveFileURL(value string) string {
 	return strings.TrimSpace(string(content))
 }
 
-// NewForJOSEServer creates settings suitable for the JOSE Authority Server.
+// NewForJOSEServer creates settings suitable for the cryptographic JSON API listener.
 func NewForJOSEServer(bindAddr string, bindPort uint16, devMode bool) *ServiceFrameworkServerSettings {
 	// Build args for Parse()
 	args := []string{

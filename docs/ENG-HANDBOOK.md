@@ -6683,7 +6683,7 @@ otlp-tls-ca-file:   /certs/{PS-ID}/otel-collector-contrib-https-client-issuing-c
 | Dockerfile pattern (Pattern A) | sm-kms, identity-authz, identity-idp, identity-rp, identity-rs | 4-stage but: `WORKDIR /app/run`, `GOMODCACHE`/`GOCACHE` env vars, `curl` installed in final, `USER` commented out, individual `LABEL` lines |
 | Dockerfile pattern (Pattern B) | sm-kms, pki-ca, skeleton-template | 3-stage (no `runtime-deps`): `adduser`-based user creation, compact `LABEL`, `CMD` with config path |
 | Dockerfile pattern (Pattern C) | sm-kms | 2-stage (no `validation`): user `1000:1000` (wrong UID), no BuildKit caches, no static link check |
-| Skeleton-template identity | skeleton-template | Header says "JOSE Authority Server", username is `jose`, dirs are `/etc/jose` |
+| Skeleton-template identity | skeleton-template | Header, username, and directory layout use another service identity |
 | identity-spa COPY bug | identity-spa | Builder builds `/app/identity-spa` but runtime COPY copies `/app/cryptoutil` — **runtime failure** |
 | Config key naming | sm-kms, identity-* (6 services) | Uses snake_case keys (`bind_address`, `max_open_conns`) instead of kebab-case |
 | Admin port | sm-kms, skeleton-template | `bind-admin-port: 9092` (should be `9090`) |
@@ -8261,7 +8261,7 @@ All products and product-services are defined in a single canonical registry: `i
 The `banned-product-names` fitness check enforces that legacy product names do not re-appear in any source file (`.go`, `.yml`, `.yaml`, `.sql`, `.md`).
 
 **Banned phrases** (exact match):
-- `Cipher IM` — old IM product name (now: Secrets Manager Instant Messenger)
+- `Cipher IM` — old IM product name (now: the Secrets Manager messaging capability)
 - `cipher-im`, `cipher_im`, `CipherIM` — slug/id/code variants
 - `cryptoutilCmdCipher` — old package prefix
 
@@ -16187,7 +16187,7 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 }
 ```
 
-**Registry fields**: `ps.PSID` (e.g. `sm-kms`), `ps.Product`, `ps.Service`, `ps.DisplayName` (e.g. `Secrets Manager Instant Messenger`), `ps.InternalAppsDir` (e.g. `sm/im/`), `ps.MagicFile`.
+**Registry fields**: `ps.PSID` (e.g. `sm-kms`), `ps.Product`, `ps.Service`, `ps.DisplayName` (e.g. `Secrets Manager Key Management`), `ps.InternalAppsDir` (e.g. `sm-kms/`), `ps.MagicFile`.
 
 **When to use registry-driven**: When the rule applies to all product-services (naming patterns, config presence, migration headers, compose structure). When the rule is service-specific or cross-cutting, use the simpler `rootDir` walk pattern.
 
@@ -16385,7 +16385,6 @@ Use `migration-create` for the migration file details, `openapi-codegen` for API
 | Product | Service ID | Host Port Range |
 |---------|-----------|----------------|
 | SM | sm-kms | 8000-8099 |
-| JOSE | sm-kms | 8200-8299 |
 | PKI | pki-ca | 8300-8399 |
 | Identity | identity-authz | 8400-8499 |
 | ... | ... | ... |
