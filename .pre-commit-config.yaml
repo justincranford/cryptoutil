@@ -355,7 +355,7 @@ repos:
 
   # Python linting and formatting with ruff (replaces black, isort, flake8)
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.15.14
+    rev: v0.15.15
     hooks:
       - id: ruff
         name: Ruff Python linter (auto-fix)
@@ -390,7 +390,7 @@ repos:
 
   # IaC / Container security scanning (Dockerfiles, Docker Compose, Kubernetes)
   - repo: https://github.com/bridgecrewio/checkov
-    rev: 3.2.529
+    rev: 3.2.530
     hooks:
       - id: checkov
         name: Checkov IaC security scan
@@ -433,7 +433,7 @@ repos:
 
   # pyproject.toml normalization (consistent key ordering, whitespace)
   - repo: https://github.com/tox-dev/pyproject-fmt
-    rev: v2.21.2
+    rev: v2.22.0
     hooks:
       - id: pyproject-fmt
         name: Normalize pyproject.toml
