@@ -144,7 +144,7 @@ func NewTLSPSIDSpec(psid string) (TLSPSIDSpec, error) {
 		},
 	}
 
-	publicCACertPath := filepath.Join(certRootDir, "public-https-server-issuing-ca", "truststore", "public-https-server-issuing-ca.crt")
+	publicCACertPath := filepath.Join(deploymentDir, "certs", cryptoutilSharedMagic.PKIInitAdminCABundleFilename)
 
 	return TLSPSIDSpec{
 		PSID: psid,

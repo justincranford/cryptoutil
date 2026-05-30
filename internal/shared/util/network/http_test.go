@@ -121,7 +121,6 @@ func TestHTTPResponse_HappyPaths(t *testing.T) {
 		{name: "follow redirects", method: http.MethodGet, url: testRedirectServer.URL, timeout: time.Second, followRedirects: true, wantStatus: http.StatusOK, wantBody: []byte("Final")},
 		{name: "HTTPS insecure skip verify", method: http.MethodGet, url: testHTTPSServer.URL, timeout: time.Second, followRedirects: true, insecureSkipVerify: true, wantStatus: http.StatusOK, wantBody: []byte("HTTPS OK")},
 		{name: "HTTPS with root CA", method: http.MethodGet, url: testHTTPSServer.URL, timeout: time.Second, followRedirects: true, rootCAs: httpsRootCAs, wantStatus: http.StatusOK, wantBody: []byte("HTTPS OK")},
-		{name: "HTTPS system defaults", method: http.MethodGet, url: "https://dns.google", timeout: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Second, followRedirects: true, wantStatus: http.StatusOK},
 		{name: "no timeout", method: http.MethodGet, url: testHTTPServer.URL, timeout: 0, followRedirects: true, wantStatus: http.StatusOK, wantBody: []byte("OK")},
 		{name: "body close exercises defer", method: http.MethodGet, url: testHTTPServer.URL, timeout: time.Second, followRedirects: true, wantStatus: http.StatusOK, wantBody: []byte("OK")},
 	}
