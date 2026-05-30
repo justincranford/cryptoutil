@@ -3,7 +3,7 @@
 // the canonical flat hierarchy:
 //
 //   - configs/{suite}/                  - suite-level configs (e.g. cryptoutil/)
-//   - configs/{PS-ID}/                  - service-level configs (e.g. sm-kms/, jose-ja/)
+//   - configs/{PS-ID}/                  - service-level configs (e.g. sm-kms/, sm-kms/)
 //
 // Top-level directories must be a known suite ID or PS-ID from the entity registry.
 // Subdirectories within PS-ID dirs (e.g. profiles/, domain/) are allowed.

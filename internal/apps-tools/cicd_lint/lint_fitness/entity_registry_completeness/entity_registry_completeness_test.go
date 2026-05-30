@@ -83,8 +83,8 @@ func TestCheckInDir_MissingDeploymentDir(t *testing.T) {
 		name string
 		psID string
 	}{
-		{name: cryptoutilSharedMagic.OTLPServiceSMIM, psID: cryptoutilSharedMagic.OTLPServiceSMIM},
 		{name: cryptoutilSharedMagic.OTLPServiceSMKMS, psID: cryptoutilSharedMagic.OTLPServiceSMKMS},
+		{name: cryptoutilSharedMagic.OTLPServicePKICA, psID: cryptoutilSharedMagic.OTLPServicePKICA},
 	}
 
 	for _, tc := range tests {
@@ -113,8 +113,8 @@ func TestCheckInDir_MissingConfigsDir(t *testing.T) {
 		name string
 		psID string
 	}{
-		{name: cryptoutilSharedMagic.OTLPServiceSMIM, psID: cryptoutilSharedMagic.OTLPServiceSMIM},
-		{name: cryptoutilSharedMagic.OTLPServiceJoseJA, psID: cryptoutilSharedMagic.OTLPServiceJoseJA},
+		{name: cryptoutilSharedMagic.OTLPServiceSMKMS, psID: cryptoutilSharedMagic.OTLPServiceSMKMS},
+		{name: cryptoutilSharedMagic.OTLPServicePKICA, psID: cryptoutilSharedMagic.OTLPServicePKICA},
 	}
 
 	for _, tc := range tests {

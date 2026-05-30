@@ -220,10 +220,10 @@ func TestCheckInDir_NonExistentRoot_ReturnsError(t *testing.T) {
 func TestAllowedCount_ReturnsExpectedCount(t *testing.T) {
 	t.Parallel()
 
-	// 1 suite + 5 products + 10 PS-IDs + 2 infra tools = 18.
+	// 1 suite + 4 products + 8 PS-IDs + 2 infra tools = 15.
 	count := lintFitnessCmdEntryWhitelist.AllowedCount()
 
-	assert.Equal(t, 18, count)
+	assert.Equal(t, 15, count)
 }
 
 func TestAllowedEntries_ReturnsSortedList(t *testing.T) {

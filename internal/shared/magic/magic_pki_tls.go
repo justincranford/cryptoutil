@@ -15,34 +15,6 @@ package magic
 //
 // Note: sm-kms Cat 3 CNs are defined in magic_otel_e2e.go (AppSMKMS*ServerCertCN).
 const (
-	// --- sm-im ---.
-
-	// AppSMIMSQLite1ServerCertCN is the Cat 3 server cert CN for sm-im-app-sqlite-1.
-	AppSMIMSQLite1ServerCertCN = "public-https-server-entity-sm-im-sqlite-1"
-
-	// AppSMIMSQLite2ServerCertCN is the Cat 3 server cert CN for sm-im-app-sqlite-2.
-	AppSMIMSQLite2ServerCertCN = "public-https-server-entity-sm-im-sqlite-2"
-
-	// AppSMIMPostgres1ServerCertCN is the Cat 3 server cert CN for sm-im-app-postgres-1.
-	AppSMIMPostgres1ServerCertCN = "public-https-server-entity-sm-im-postgres-1"
-
-	// AppSMIMPostgres2ServerCertCN is the Cat 3 server cert CN for sm-im-app-postgres-2.
-	AppSMIMPostgres2ServerCertCN = "public-https-server-entity-sm-im-postgres-2"
-
-	// --- jose-ja ---.
-
-	// AppJoseJASQLite1ServerCertCN is the Cat 3 server cert CN for jose-ja-app-sqlite-1.
-	AppJoseJASQLite1ServerCertCN = "public-https-server-entity-jose-ja-sqlite-1"
-
-	// AppJoseJASQLite2ServerCertCN is the Cat 3 server cert CN for jose-ja-app-sqlite-2.
-	AppJoseJASQLite2ServerCertCN = "public-https-server-entity-jose-ja-sqlite-2"
-
-	// AppJoseJAPostgres1ServerCertCN is the Cat 3 server cert CN for jose-ja-app-postgres-1.
-	AppJoseJAPostgres1ServerCertCN = "public-https-server-entity-jose-ja-postgres-1"
-
-	// AppJoseJAPostgres2ServerCertCN is the Cat 3 server cert CN for jose-ja-app-postgres-2.
-	AppJoseJAPostgres2ServerCertCN = "public-https-server-entity-jose-ja-postgres-2"
-
 	// --- pki-ca ---.
 
 	// AppPKICASQLite1ServerCertCN is the Cat 3 server cert CN for pki-ca-app-sqlite-1.

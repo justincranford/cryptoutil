@@ -39,7 +39,7 @@ func TestValidatePorts_ValidCases(t *testing.T) {
 
 				return createDeploymentWithCompose(t, "services:\n  my-service:\n    ports:\n      - \"8700:8080\"\n      - \"8701:8080\"\n")
 			},
-			psID:  cryptoutilSharedMagic.OTLPServiceSMIM,
+			psID:  cryptoutilSharedMagic.OTLPServiceSMKMS,
 			level: DeploymentTypeProductService,
 		},
 		{
@@ -47,7 +47,7 @@ func TestValidatePorts_ValidCases(t *testing.T) {
 			setupFn: func(t *testing.T) string {
 				t.Helper()
 
-				return createDeploymentWithCompose(t, "services:\n  sm-im-sqlite:\n    ports:\n      - \"18700:8080\"\n  sm-im-pg-1:\n    ports:\n      - \"18701:8080\"\n")
+				return createDeploymentWithCompose(t, "services:\n  sm-kms-sqlite:\n    ports:\n      - \"18700:8080\"\n  sm-kms-pg-1:\n    ports:\n      - \"18701:8080\"\n")
 			},
 			psID:  "sm",
 			level: DeploymentTypeProduct,
@@ -67,9 +67,9 @@ func TestValidatePorts_ValidCases(t *testing.T) {
 			setupFn: func(t *testing.T) string {
 				t.Helper()
 
-				return createDeploymentWithCompose(t, "services:\n  postgres:\n    ports:\n      - \"5432:5432\"\n  grafana:\n    ports:\n      - \"3000:3000\"\n  otel:\n    ports:\n      - \"4317:4317\"\n      - \"4318:4318\"\n      - \"14317:4317\"\n      - \"14318:4318\"\n      - \"13133:13133\"\n")
+				return createDeploymentWithCompose(t, "services:\n  postgres:\n    ports:\n      - \"5432:5432\"\n  grafana:\n    ports:\n      - \"3000:3000\"\n      - \"14317:4317\"\n      - \"14318:4318\"\n  otel:\n    ports:\n      - \"8888:8888\"\n      - \"8889:8889\"\n      - \"13133:13133\"\n")
 			},
-			psID:  cryptoutilSharedMagic.OTLPServiceSMIM,
+			psID:  cryptoutilSharedMagic.OTLPServiceSMKMS,
 			level: DeploymentTypeProductService,
 		},
 		{
@@ -85,7 +85,7 @@ func TestValidatePorts_ValidCases(t *testing.T) {
 
 				return dir
 			},
-			psID:  cryptoutilSharedMagic.OTLPServiceSMIM,
+			psID:  cryptoutilSharedMagic.OTLPServiceSMKMS,
 			level: DeploymentTypeProductService,
 		},
 		{
@@ -95,7 +95,7 @@ func TestValidatePorts_ValidCases(t *testing.T) {
 
 				return t.TempDir()
 			},
-			psID:  cryptoutilSharedMagic.OTLPServiceSMIM,
+			psID:  cryptoutilSharedMagic.OTLPServiceSMKMS,
 			level: DeploymentTypeProductService,
 		},
 		{
@@ -105,7 +105,7 @@ func TestValidatePorts_ValidCases(t *testing.T) {
 
 				return createDeploymentWithCompose(t, "services:\n  my-service:\n    ports:\n      - \"abc:8080\"\n      - \"8700:8080\"\n")
 			},
-			psID:  cryptoutilSharedMagic.OTLPServiceSMIM,
+			psID:  cryptoutilSharedMagic.OTLPServiceSMKMS,
 			level: DeploymentTypeProductService,
 		},
 		{
@@ -115,7 +115,7 @@ func TestValidatePorts_ValidCases(t *testing.T) {
 
 				return createDeploymentWithCompose(t, "services:\n  my-service:\n    ports:\n      - \"8080\"\n      - \"8700:8080\"\n")
 			},
-			psID:  cryptoutilSharedMagic.OTLPServiceSMIM,
+			psID:  cryptoutilSharedMagic.OTLPServiceSMKMS,
 			level: DeploymentTypeProductService,
 		},
 		{
@@ -131,7 +131,7 @@ func TestValidatePorts_ValidCases(t *testing.T) {
 
 				return dir
 			},
-			psID:  cryptoutilSharedMagic.OTLPServiceSMIM,
+			psID:  cryptoutilSharedMagic.OTLPServiceSMKMS,
 			level: DeploymentTypeProductService,
 		},
 		{
@@ -147,7 +147,7 @@ func TestValidatePorts_ValidCases(t *testing.T) {
 
 				return dir
 			},
-			psID:  cryptoutilSharedMagic.OTLPServiceSMIM,
+			psID:  cryptoutilSharedMagic.OTLPServiceSMKMS,
 			level: DeploymentTypeProductService,
 		},
 		{
@@ -163,7 +163,7 @@ func TestValidatePorts_ValidCases(t *testing.T) {
 
 				return dir
 			},
-			psID:  cryptoutilSharedMagic.OTLPServiceSMIM,
+			psID:  cryptoutilSharedMagic.OTLPServiceSMKMS,
 			level: DeploymentTypeProductService,
 		},
 		{
@@ -179,7 +179,7 @@ func TestValidatePorts_ValidCases(t *testing.T) {
 
 				return dir
 			},
-			psID:  cryptoutilSharedMagic.OTLPServiceSMIM,
+			psID:  cryptoutilSharedMagic.OTLPServiceSMKMS,
 			level: DeploymentTypeProductService,
 		},
 	}
@@ -213,7 +213,7 @@ func TestValidatePorts_Violations(t *testing.T) {
 
 				return createDeploymentWithCompose(t, "services:\n  my-service:\n    ports:\n      - \"18700:8080\"\n")
 			},
-			psID:         cryptoutilSharedMagic.OTLPServiceSMIM,
+			psID:         cryptoutilSharedMagic.OTLPServiceSMKMS,
 			level:        DeploymentTypeProductService,
 			wantContains: []string{"[ValidatePorts]", "outside PRODUCT-SERVICE range", "ENG-HANDBOOK.md Section 3.4"},
 		},
@@ -277,7 +277,7 @@ func TestValidatePorts_Violations(t *testing.T) {
 
 				return dir
 			},
-			psID:         cryptoutilSharedMagic.OTLPServiceSMIM,
+			psID:         cryptoutilSharedMagic.OTLPServiceSMKMS,
 			level:        DeploymentTypeProductService,
 			wantContains: []string{"[ValidatePorts]", "bind-public-port", "ENG-HANDBOOK.md Section 3.4"},
 		},
@@ -304,7 +304,7 @@ func TestValidatePorts_InvalidComposeYAML(t *testing.T) {
 
 	dir := createDeploymentWithCompose(t, "invalid: [yaml: {broken")
 
-	result, err := ValidatePorts(dir, cryptoutilSharedMagic.OTLPServiceSMIM, DeploymentTypeProductService)
+	result, err := ValidatePorts(dir, cryptoutilSharedMagic.OTLPServiceSMKMS, DeploymentTypeProductService)
 	require.NoError(t, err)
 	require.NotNil(t, result)
 	require.True(t, result.Valid)
@@ -324,7 +324,7 @@ func TestValidatePorts_ConfigUnreadableFile(t *testing.T) {
 	require.NoError(t, os.MkdirAll(configDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 	require.NoError(t, os.Symlink("/nonexistent/file.yml", filepath.Join(configDir, "broken.yml")))
 
-	result, err := ValidatePorts(dir, cryptoutilSharedMagic.OTLPServiceSMIM, DeploymentTypeProductService)
+	result, err := ValidatePorts(dir, cryptoutilSharedMagic.OTLPServiceSMKMS, DeploymentTypeProductService)
 	require.NoError(t, err)
 	require.NotNil(t, result)
 	require.True(t, result.Valid)
@@ -334,7 +334,7 @@ func TestValidateConfigPortRanges_UnreadableDir(t *testing.T) {
 	t.Parallel()
 
 	result := &PortValidationResult{Valid: true}
-	validateConfigPortRanges(filepath.Join(t.TempDir(), "nonexistent"), cryptoutilSharedMagic.OTLPServiceSMIM, DeploymentTypeProductService, result)
+	validateConfigPortRanges(filepath.Join(t.TempDir(), "nonexistent"), cryptoutilSharedMagic.OTLPServiceSMKMS, DeploymentTypeProductService, result)
 	require.True(t, result.Valid)
 }
 
@@ -374,12 +374,12 @@ func TestIsInfrastructurePort(t *testing.T) {
 	}{
 		{name: cryptoutilSharedMagic.DockerServicePostgres, port: int(cryptoutilSharedMagic.DefaultPublicPortPostgres), want: true},
 		{name: "grafana", port: cryptoutilSharedMagic.JoseJAE2EGrafanaPort, want: true},
-		{name: "otlp-grpc", port: cryptoutilSharedMagic.JoseJAE2EOtelCollectorGRPCPort, want: true},
-		{name: "otlp-http", port: cryptoutilSharedMagic.JoseJAE2EOtelCollectorHTTPPort, want: true},
+		{name: "otlp-grpc", port: int(cryptoutilSharedMagic.DefaultPublicPortInternalMetrics), want: true},
+		{name: "otlp-http", port: int(cryptoutilSharedMagic.PortOtelCollectorReceivedMetrics), want: true},
 		{name: "otel-health", port: int(cryptoutilSharedMagic.DefaultPublicPortOtelCollectorHealth), want: true},
 		{name: "otlp-grpc-fwd", port: int(cryptoutilSharedMagic.PortGrafanaOTLPGRPC), want: true},
 		{name: "otlp-http-fwd", port: int(cryptoutilSharedMagic.PortGrafanaOTLPHTTP), want: true},
-		{name: "service-port", port: cryptoutilSharedMagic.IMServicePort, want: false},
+		{name: "service-port", port: cryptoutilSharedMagic.KMSServicePort, want: false},
 		{name: "zero", port: 0, want: false},
 	}
 
@@ -431,15 +431,15 @@ func TestFormatPortValidationResult(t *testing.T) {
 func TestValidatePorts_RealSmIM(t *testing.T) {
 	t.Parallel()
 
-	deplPath := filepath.Join(".", "..", "..", "..", "..", "deployments", cryptoutilSharedMagic.OTLPServiceSMIM)
+	deplPath := filepath.Join(".", "..", "..", "..", "..", "deployments", cryptoutilSharedMagic.OTLPServiceSMKMS)
 	info, err := os.Stat(deplPath)
 
 	if err != nil || !info.IsDir() {
-		t.Skip("Real sm-im deployment not found - skipping integration test")
+		t.Skip("Real sm-kms deployment not found - skipping integration test")
 	}
 
-	result, err := ValidatePorts(deplPath, cryptoutilSharedMagic.OTLPServiceSMIM, DeploymentTypeProductService)
+	result, err := ValidatePorts(deplPath, cryptoutilSharedMagic.OTLPServiceSMKMS, DeploymentTypeProductService)
 	require.NoError(t, err)
 	require.NotNil(t, result)
-	require.True(t, result.Valid, "Real sm-im should pass port validation. Errors: %v", result.Errors)
+	require.True(t, result.Valid, "Real sm-kms should pass port validation. Errors: %v", result.Errors)
 }

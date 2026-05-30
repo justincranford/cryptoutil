@@ -171,10 +171,10 @@ func TestBuildExpectedFS_ContentSubstitution(t *testing.T) {
 
 	expected := BuildExpectedFS(templates)
 
-	content, ok := expected["deployments/jose-ja/config/jose-ja-app.yml"]
+	content, ok := expected["deployments/sm-kms/config/sm-kms-app.yml"]
 	require.True(t, ok)
-	require.Contains(t, content, "psid: jose-ja")
-	require.Contains(t, content, "upper: JOSE-JA")
+	require.Contains(t, content, "psid: sm-kms")
+	require.Contains(t, content, "upper: SM-KMS")
 }
 
 func TestBuildExpectedFS_SecretsExpansion(t *testing.T) {

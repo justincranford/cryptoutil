@@ -29,9 +29,9 @@ func TestValidateAllDeployments(t *testing.T) {
 				t.Helper()
 
 				// Create a valid PRODUCT-SERVICE deployment.
-				svcDir := filepath.Join(rootDir, cryptoutilSharedMagic.OTLPServiceJoseJA)
+				svcDir := filepath.Join(rootDir, cryptoutilSharedMagic.OTLPServiceSMKMS)
 				require.NoError(t, os.MkdirAll(svcDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
-				createValidProductServiceDeployment(t, svcDir, cryptoutilSharedMagic.OTLPServiceJoseJA)
+				createValidProductServiceDeployment(t, svcDir, cryptoutilSharedMagic.OTLPServiceSMKMS)
 
 				// Create a valid template deployment.
 				tmplDir := filepath.Join(rootDir, cryptoutilSharedMagic.SkeletonTemplateServiceName)
@@ -48,12 +48,12 @@ func TestValidateAllDeployments(t *testing.T) {
 				t.Helper()
 
 				// Create a valid PRODUCT-SERVICE deployment.
-				validDir := filepath.Join(rootDir, cryptoutilSharedMagic.OTLPServiceSMIM)
+				validDir := filepath.Join(rootDir, cryptoutilSharedMagic.OTLPServiceSMKMS)
 				require.NoError(t, os.MkdirAll(validDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
-				createValidProductServiceDeployment(t, validDir, cryptoutilSharedMagic.OTLPServiceSMIM)
+				createValidProductServiceDeployment(t, validDir, cryptoutilSharedMagic.OTLPServiceSMKMS)
 
 				// Create an invalid deployment (missing secrets and config files).
-				invalidDir := filepath.Join(rootDir, cryptoutilSharedMagic.OTLPServiceSMKMS)
+				invalidDir := filepath.Join(rootDir, cryptoutilSharedMagic.OTLPServicePKICA)
 				require.NoError(t, os.MkdirAll(filepath.Join(invalidDir, "config"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 				require.NoError(t, os.WriteFile(filepath.Join(invalidDir, "compose.yml"), []byte("v"), cryptoutilSharedMagic.CacheFilePermissions))
 				require.NoError(t, os.WriteFile(filepath.Join(invalidDir, "Dockerfile"), []byte("F"), cryptoutilSharedMagic.CacheFilePermissions))
@@ -102,12 +102,12 @@ func TestFormatResults(t *testing.T) {
 			name: "valid result no optional sections",
 			results: []ValidationResult{
 				{
-					Path:  "/deploy/jose-ja",
+					Path:  "/deploy/pki-ca",
 					Type:  "PRODUCT-SERVICE",
 					Valid: true,
 				},
 			},
-			contains:    []string{"✅ VALID", cryptoutilSharedMagic.OTLPServiceJoseJA, "1 valid"},
+			contains:    []string{"✅ VALID", cryptoutilSharedMagic.OTLPServicePKICA, "1 valid"},
 			notContains: []string{"Missing directories", "Missing files", "Missing secrets", "ERROR:", "WARN:"},
 		},
 		{
@@ -129,7 +129,7 @@ func TestFormatResults(t *testing.T) {
 			name: "result with warnings",
 			results: []ValidationResult{
 				{
-					Path:     "/deploy/jose-ja",
+					Path:     "/deploy/sm-kms",
 					Type:     "PRODUCT-SERVICE",
 					Valid:    true,
 					Warnings: []string{"Optional file missing"},
@@ -141,9 +141,9 @@ func TestFormatResults(t *testing.T) {
 		{
 			name: "mixed valid and invalid sorted correctly",
 			results: []ValidationResult{
-				{Path: "/deploy/jose-ja", Type: "PRODUCT-SERVICE", Valid: true},
-				{Path: "/deploy/sm-kms", Type: "PRODUCT-SERVICE", Valid: false, MissingDirs: []string{"secrets"}},
-				{Path: "/deploy/sm-im", Type: "PRODUCT-SERVICE", Valid: true},
+				{Path: "/deploy/sm-kms", Type: "PRODUCT-SERVICE", Valid: true},
+				{Path: "/deploy/pki-ca", Type: "PRODUCT-SERVICE", Valid: false, MissingDirs: []string{"secrets"}},
+				{Path: "/deploy/identity-authz", Type: "PRODUCT-SERVICE", Valid: true},
 			},
 			contains: []string{"3 deployments", "2 valid", "1 with issues"},
 		},
@@ -261,9 +261,9 @@ func TestMain_ValidDeployments(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	// Create a valid PRODUCT-SERVICE deployment.
-	svcDir := filepath.Join(tmpDir, cryptoutilSharedMagic.OTLPServiceJoseJA)
+	svcDir := filepath.Join(tmpDir, cryptoutilSharedMagic.OTLPServicePKICA)
 	require.NoError(t, os.MkdirAll(svcDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
-	createValidProductServiceDeployment(t, svcDir, cryptoutilSharedMagic.OTLPServiceJoseJA)
+	createValidProductServiceDeployment(t, svcDir, cryptoutilSharedMagic.OTLPServicePKICA)
 
 	exitCode := Main([]string{tmpDir})
 	require.Equal(t, 0, exitCode, "should exit 0 for valid deployments")

@@ -18,7 +18,6 @@ func TestCheckDelegationPattern_SuiteValid(t *testing.T) {
 	compose := `include:
   - path: ../sm/compose.yml
   - path: ../pki/compose.yml
-  - path: ../jose/compose.yml
   - path: ../identity/compose.yml
   - path: ../skeleton/compose.yml
 `
@@ -39,8 +38,8 @@ func TestCheckDelegationPattern_SuiteInvalidServiceLevel(t *testing.T) {
 	compose := `include:
   - path: ../sm-kms/compose.yml
   - path: ../pki-ca/compose.yml
-  - path: ../sm-im/compose.yml
-  - path: ../jose-ja/compose.yml
+  - path: ../sm-kms/compose.yml
+  - path: ../pki-ca/compose.yml
   - path: ../identity-authz/compose.yml
   - path: ../identity-idp/compose.yml
   - path: ../identity-rp/compose.yml
@@ -54,7 +53,7 @@ func TestCheckDelegationPattern_SuiteInvalidServiceLevel(t *testing.T) {
 	checkDelegationPattern(dir, cryptoutilSharedMagic.DefaultOTLPServiceDefault, DeploymentTypeSuite, result)
 
 	require.False(t, result.Valid, "expected invalid for service-level delegation")
-	require.Len(t, result.Errors, cryptoutilSharedMagic.SuiteServiceCount, "expected 10 errors for 10 invalid patterns")
+	require.Len(t, result.Errors, 9, "expected 9 errors for invalid service-level include patterns")
 }
 
 func TestCheckDelegationPattern_SuiteMissingProducts(t *testing.T) {
@@ -82,19 +81,14 @@ func TestCheckDelegationPattern_ProductValid(t *testing.T) {
 		composeContent string
 	}{
 		{
-			name:           "sm includes sm-kms and sm-im",
+			name:           "sm includes sm-kms",
 			deploymentName: "sm",
-			composeContent: "include:\n  - path: ../sm-kms/compose.yml\n  - path: ../sm-im/compose.yml\n",
+			composeContent: "include:\n  - path: ../sm-kms/compose.yml\n",
 		},
 		{
 			name:           "pki includes pki-ca",
 			deploymentName: cryptoutilSharedMagic.PKIProductName,
 			composeContent: "include:\n  - path: ../pki-ca/compose.yml\n",
-		},
-		{
-			name:           "jose includes jose-ja",
-			deploymentName: cryptoutilSharedMagic.JoseProductName,
-			composeContent: "include:\n  - path: ../jose-ja/compose.yml\n",
 		},
 		{
 			name:           "identity includes all identity services",
@@ -133,9 +127,7 @@ func TestCheckDelegationPattern_ProductMissingService(t *testing.T) {
 		wantError      string
 	}{
 		{name: "sm missing sm-kms", deploymentName: "sm", wantError: cryptoutilSharedMagic.OTLPServiceSMKMS},
-		{name: "sm missing sm-im", deploymentName: "sm", wantError: cryptoutilSharedMagic.OTLPServiceSMIM},
 		{name: "pki missing pki-ca", deploymentName: cryptoutilSharedMagic.PKIProductName, wantError: cryptoutilSharedMagic.OTLPServicePKICA},
-		{name: "jose missing jose-ja", deploymentName: cryptoutilSharedMagic.JoseProductName, wantError: cryptoutilSharedMagic.OTLPServiceJoseJA},
 		{name: "identity missing identity-authz", deploymentName: cryptoutilSharedMagic.IdentityProductName, wantError: cryptoutilSharedMagic.OTLPServiceIdentityAuthz},
 		{name: "identity missing identity-idp", deploymentName: cryptoutilSharedMagic.IdentityProductName, wantError: cryptoutilSharedMagic.OTLPServiceIdentityIDP},
 		{name: "identity missing identity-rp", deploymentName: cryptoutilSharedMagic.IdentityProductName, wantError: cryptoutilSharedMagic.OTLPServiceIdentityRP},
@@ -176,7 +168,7 @@ func TestCheckDelegationPattern_SkipsNonSuiteProduct(t *testing.T) {
 	t.Parallel()
 
 	result := &ValidationResult{Valid: true}
-	checkDelegationPattern(t.TempDir(), cryptoutilSharedMagic.OTLPServiceJoseJA, DeploymentTypeProductService, result)
+	checkDelegationPattern(t.TempDir(), cryptoutilSharedMagic.OTLPServiceSMKMS, DeploymentTypeProductService, result)
 
 	require.True(t, result.Valid, "should skip non-suite/product types")
 	require.Empty(t, result.Errors)
@@ -215,7 +207,7 @@ func TestCheckOTLPProtocolOverride_WithProtocolPrefix(t *testing.T) {
 	))
 
 	result := &ValidationResult{Valid: true}
-	checkOTLPProtocolOverride(dir, cryptoutilSharedMagic.OTLPServiceJoseJA, DeploymentTypeProductService, result)
+	checkOTLPProtocolOverride(dir, cryptoutilSharedMagic.OTLPServiceSMKMS, DeploymentTypeProductService, result)
 
 	require.NotEmpty(t, result.Warnings, "expected warning about protocol prefix")
 }
@@ -233,7 +225,7 @@ func TestCheckOTLPProtocolOverride_NoProtocolPrefix(t *testing.T) {
 	))
 
 	result := &ValidationResult{Valid: true}
-	checkOTLPProtocolOverride(dir, cryptoutilSharedMagic.OTLPServiceJoseJA, DeploymentTypeProductService, result)
+	checkOTLPProtocolOverride(dir, cryptoutilSharedMagic.OTLPServiceSMKMS, DeploymentTypeProductService, result)
 
 	require.Empty(t, result.Warnings, "should not warn when no protocol prefix")
 }
@@ -242,7 +234,7 @@ func TestCheckOTLPProtocolOverride_NoConfigDir(t *testing.T) {
 	t.Parallel()
 
 	result := &ValidationResult{Valid: true}
-	checkOTLPProtocolOverride(t.TempDir(), cryptoutilSharedMagic.OTLPServiceJoseJA, DeploymentTypeProductService, result)
+	checkOTLPProtocolOverride(t.TempDir(), cryptoutilSharedMagic.OTLPServicePKICA, DeploymentTypeProductService, result)
 
 	require.True(t, result.Valid)
 	require.Empty(t, result.Warnings)
@@ -264,7 +256,7 @@ func TestCheckBrowserServiceCredentials_AllPresent(t *testing.T) {
 	}
 
 	result := &ValidationResult{Valid: true}
-	checkBrowserServiceCredentials(dir, cryptoutilSharedMagic.OTLPServiceJoseJA, DeploymentTypeProductService, result)
+	checkBrowserServiceCredentials(dir, cryptoutilSharedMagic.OTLPServicePKICA, DeploymentTypeProductService, result)
 
 	require.True(t, result.Valid)
 	require.Empty(t, result.Errors)
@@ -277,7 +269,7 @@ func TestCheckBrowserServiceCredentials_Missing(t *testing.T) {
 	require.NoError(t, os.MkdirAll(filepath.Join(dir, "secrets"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupReadExecute))
 
 	result := &ValidationResult{Valid: true}
-	checkBrowserServiceCredentials(dir, cryptoutilSharedMagic.OTLPServiceJoseJA, DeploymentTypeProductService, result)
+	checkBrowserServiceCredentials(dir, cryptoutilSharedMagic.OTLPServicePKICA, DeploymentTypeProductService, result)
 
 	require.False(t, result.Valid)
 	require.Len(t, result.Errors, 4, "expected 4 missing credential files")

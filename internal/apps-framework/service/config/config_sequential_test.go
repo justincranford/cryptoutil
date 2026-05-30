@@ -178,7 +178,7 @@ func TestParse_HappyPath_Overrides(t *testing.T) {
 	require.Equal(t, false, s.CSRFTokenCookieHTTPOnly)
 	require.Equal(t, false, s.CSRFTokenCookieSessionOnly)
 	require.Equal(t, true, s.CSRFTokenSingleUseToken)
-	require.Equal(t, uint16(cryptoutilSharedMagic.JoseJAMaxMaterials), s.BrowserIPRateLimit)
+	require.EqualValues(t, cryptoutilSharedMagic.JoseJAMaxMaterials, s.BrowserIPRateLimit)
 	require.Equal(t, uint16(cryptoutilSharedMagic.IMMaxUsernameLength), s.ServiceIPRateLimit)
 	require.Equal(t, []string{"192.168.1.100", "192.168.1.101"}, s.AllowedIPs)
 	require.Equal(t, []string{cryptoutilSharedMagic.PrivateLANClassACIDRv4, "192.168.1.0/24"}, s.AllowedCIDRs)

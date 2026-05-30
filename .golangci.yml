@@ -58,7 +58,7 @@ linters:
       - api/identity-rp
       - api/identity-rs
       - api/identity-spa
-      - api/jose-ja
+      - api/sm-kms
       - api/pki-ca
       - api/skeleton-template
       - api/sm-im
@@ -241,7 +241,7 @@ linters:
         - {pkg: "cryptoutil/api/identity-authz", alias: cryptoutilApiIdentityAuthz}
         - {pkg: "cryptoutil/api/identity-idp", alias: cryptoutilApiIdentityIdp}
         - {pkg: "cryptoutil/api/identity-rs", alias: cryptoutilApiIdentityRs}
-        - {pkg: "cryptoutil/api/jose-ja/client", alias: cryptoutilApiJoseClient}
+        - {pkg: "cryptoutil/api/sm-kms/client", alias: cryptoutilApiJoseClient}
         # Cryptoutil cmd
         - pkg: "cryptoutil/internal/cmd"
           alias: cryptoutilCmd

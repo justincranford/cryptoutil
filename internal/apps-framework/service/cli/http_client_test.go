@@ -247,7 +247,7 @@ func TestHealthCommand_WithCACert(t *testing.T) {
 		[]string{cryptoutilSharedMagic.CLIURLFlag, srv.URL, cryptoutilSharedMagic.CLICACertFlag, certPath},
 		&stdout, &stderr,
 		"Usage: health",
-		cryptoutilSharedMagic.JoseJAServicePort,
+		uint16(cryptoutilSharedMagic.KMSServicePort),
 	)
 	require.Equal(t, 0, exitCode)
 	require.Contains(t, stdout.String(), "\u2705")
@@ -323,7 +323,7 @@ func TestHealthCommand_URLAlreadyHasHealthPath(t *testing.T) {
 		[]string{cryptoutilSharedMagic.CLIURLFlag, srv.URL + "/health"},
 		&stdout, &stderr,
 		"Usage: health",
-		cryptoutilSharedMagic.JoseJAServicePort,
+		uint16(cryptoutilSharedMagic.KMSServicePort),
 	)
 	// Connection succeeds but response shape may differ
 	// The key check is that it doesn't double-append /health

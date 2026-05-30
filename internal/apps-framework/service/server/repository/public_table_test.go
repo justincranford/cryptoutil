@@ -113,7 +113,7 @@ func TestPublicHTTPServer_TableDriven_HappyPath(t *testing.T) {
 						DisableKeepAlives: true,
 					},
 				}
-				url := "https://" + net.JoinHostPort(cryptoutilSharedMagic.IPv4Loopback, strconv.Itoa(port)) + cryptoutilSharedMagic.IME2EHealthEndpoint
+				url := "https://" + net.JoinHostPort(cryptoutilSharedMagic.IPv4Loopback, strconv.Itoa(port)) + cryptoutilSharedMagic.KMSE2EHealthEndpoint
 				req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
 				require.NoError(t, err)
 				resp, err := client.Do(req)

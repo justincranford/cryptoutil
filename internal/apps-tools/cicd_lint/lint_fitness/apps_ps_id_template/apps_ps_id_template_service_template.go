@@ -265,19 +265,6 @@ func serviceRootTemplateValues(ps cryptoutilFitnessRegistry.ProductService) (map
 	}
 
 	switch ps.PSID {
-	case cryptoutilSharedMagic.OTLPServiceSMIM:
-		serviceConfigImportPath = "cryptoutil/internal/apps/sm-im/server/config"
-		serviceServerImportPath = "cryptoutil/internal/apps/sm-im/server"
-		values["__ENTRY_FUNC__"] = "Im"
-		values["__SERVICE_DISPLAY_NAME_CONST__"] = "IMDisplayName"
-		values["__SERVICE_ID_CONST__"] = "IMServiceID"
-		values["__PRODUCT_NAME_CONST__"] = "IMProductName"
-		values["__SERVICE_NAME_CONST__"] = "IMServiceName"
-		values["__SERVICE_PORT_CONST__"] = "IMServicePort"
-		values["__USAGE_PREFIX__"] = "IM"
-		values["__SERVER_SETTINGS_TYPE__"] = "SmIMServerSettings"
-		values["__PARSE_CONFIG_FUNC__"] = templateParseWithFlagSet
-		values["__NEW_SERVER_CONSTRUCTOR__"] = "NewIMServerFromConfig"
 	case cryptoutilSharedMagic.OTLPServiceSMKMS:
 		serviceConfigImportPath = "cryptoutil/internal/apps-framework/service/config"
 		serviceServerImportPath = "cryptoutil/internal/apps/sm-kms/server"
@@ -293,19 +280,6 @@ func serviceRootTemplateValues(ps cryptoutilFitnessRegistry.ProductService) (map
 		values["__SERVER_SETTINGS_TYPE__"] = "ServiceFrameworkServerSettings"
 		values["__PARSE_CONFIG_FUNC__"] = templateParseWithFlagSet
 		values["__NEW_SERVER_CONSTRUCTOR__"] = "NewKMSServerFromConfig"
-	case cryptoutilSharedMagic.OTLPServiceJoseJA:
-		serviceConfigImportPath = "cryptoutil/internal/apps/jose-ja/server/config"
-		serviceServerImportPath = "cryptoutil/internal/apps/jose-ja/server"
-		values["__ENTRY_FUNC__"] = "Ja"
-		values["__SERVICE_DISPLAY_NAME_CONST__"] = "JoseJADisplayName"
-		values["__SERVICE_ID_CONST__"] = "JoseJAServiceID"
-		values["__PRODUCT_NAME_CONST__"] = "JoseProductName"
-		values["__SERVICE_NAME_CONST__"] = "JoseJAServiceName"
-		values["__SERVICE_PORT_CONST__"] = "JoseJAServicePort"
-		values["__USAGE_PREFIX__"] = "JA"
-		values["__SERVER_SETTINGS_TYPE__"] = "JoseJAServerSettings"
-		values["__PARSE_CONFIG_FUNC__"] = templateParseWithFlagSet
-		values["__NEW_SERVER_CONSTRUCTOR__"] = templateNewFromConfig
 	case cryptoutilSharedMagic.OTLPServicePKICA:
 		serviceConfigImportPath = "cryptoutil/internal/apps/pki-ca/server/config"
 		serviceServerImportPath = "cryptoutil/internal/apps/pki-ca/server"

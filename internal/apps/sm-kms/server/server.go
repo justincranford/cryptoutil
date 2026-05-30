@@ -131,6 +131,33 @@ func registerKMSRoutes(
 	cryptoutilKmsServer.RegisterHandlersWithOptions(browserGroup, openapiStrictHandler, groupOpts)
 	cryptoutilKmsServer.RegisterHandlersWithOptions(serviceGroup, openapiStrictHandler, groupOpts)
 
+	// Compatibility routes for consolidated sm-kms and sm-im APIs.
+	if res != nil && res.DB != nil && res.BarrierService != nil {
+		elasticRepo := cryptoutilAppsSmKmsServerRepository.NewElasticJWKRepository(res.DB)
+		materialRepo := cryptoutilAppsSmKmsServerRepository.NewMaterialJWKRepository(res.DB)
+		messageRepo := cryptoutilAppsSmKmsServerRepository.NewMessageRepository(res.DB)
+		messageRecipientRepo := cryptoutilAppsSmKmsServerRepository.NewMessageRecipientJWKRepository(res.DB, res.BarrierService)
+
+		jwkCompatHandler := cryptoutilKmsServerHandler.NewJWKCompatHandler(elasticRepo, materialRepo)
+		jwksCompatHandler := cryptoutilKmsServerHandler.NewJWKSCompatHandler(elasticRepo, materialRepo)
+		messageCompatHandler := cryptoutilKmsServerHandler.NewMessageHandler(messageRepo, messageRecipientRepo)
+
+		registerCompatRoutes := func(group fiber.Router) {
+			group.Get("/jwks", jwksCompatHandler.HandleGetJWKS())
+			group.Get("/elastic-keys/:elasticKeyID/material-keys/active", jwkCompatHandler.HandleGetActiveMaterialJWK())
+			group.Post("/elastic-keys/:elasticKeyID/rotate", jwkCompatHandler.HandleRotateMaterialJWK())
+
+			group.Get("/messages", messageCompatHandler.HandleListMessages())
+			group.Get("/messages/:messageID", messageCompatHandler.HandleGetMessage())
+			group.Delete("/messages/:messageID", messageCompatHandler.HandleDeleteMessage())
+			group.Post("/messages/send", messageCompatHandler.HandleSendMessage())
+			group.Get("/messages/receive", messageCompatHandler.HandleReceiveMessages())
+		}
+
+		registerCompatRoutes(browserGroup)
+		registerCompatRoutes(serviceGroup)
+	}
+
 	return nil
 }
 

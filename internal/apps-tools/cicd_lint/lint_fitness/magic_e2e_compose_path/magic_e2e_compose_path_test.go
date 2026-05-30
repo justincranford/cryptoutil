@@ -14,8 +14,8 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
-// smIME2EMagicSrc is the magic Go source fragment for sm-im with a correct E2EComposeFile constant.
-const smIME2EMagicSrc = "package magic\nconst (\n\tIME2EComposeFile = \"../../../../deployments/sm-im/compose.yml\"\n)\n"
+// smIME2EMagicSrc is the magic Go source fragment for sm-kms with a correct E2EComposeFile constant.
+const smIME2EMagicSrc = "package magic\nconst (\n\tIME2EComposeFile = \"../../../../deployments/sm-kms/compose.yml\"\n)\n"
 
 func newTestLogger() *cryptoutilCmdCicdCommon.Logger {
 	return cryptoutilCmdCicdCommon.NewLogger("test")
@@ -83,17 +83,17 @@ func TestCheckInDir_AllCorrect(t *testing.T) {
 
 	tmpDir := t.TempDir()
 
-	// Use sm-im as representative: magic_sm_im.go with E2EComposeFile pointing 5 levels up.
-	// e2e dir: tmpDir/internal/apps/sm-im/e2e
-	// compose:  tmpDir/deployments/sm-im/compose.yml
-	// relative: ../../../../../deployments/sm-im/compose.yml
-	createE2EDir(t, tmpDir, "sm-im/")
-	createComposeFile(t, tmpDir, cryptoutilSharedMagic.OTLPServiceSMIM)
+	// Use sm-kms as representative: magic_sm_im.go with E2EComposeFile pointing 5 levels up.
+	// e2e dir: tmpDir/internal/apps/sm-kms/e2e
+	// compose:  tmpDir/deployments/sm-kms/compose.yml
+	// relative: ../../../../../deployments/sm-kms/compose.yml
+	createE2EDir(t, tmpDir, "sm-kms/")
+	createComposeFile(t, tmpDir, cryptoutilSharedMagic.OTLPServiceSMKMS)
 
-	writeMagicFile(t, tmpDir, "magic_sm_im.go", smIME2EMagicSrc)
+	writeMagicFile(t, tmpDir, "magic_sm.go", smIME2EMagicSrc)
 
 	// All other magic files: no E2EComposeFile constant.
-	for _, mf := range []string{"magic_identity.go", "magic_jose.go", "magic_skeleton.go", "magic_sm.go", "magic_pki.go"} {
+	for _, mf := range []string{"magic_identity.go", "magic_jose.go", "magic_skeleton.go", "magic_pki.go"} {
 		writeMagicFile(t, tmpDir, mf, "package magic\nconst (\n)\n")
 	}
 
@@ -106,19 +106,19 @@ func TestCheckInDir_NonExistentComposePath(t *testing.T) {
 
 	tmpDir := t.TempDir()
 
-	// Write sm-im magic file pointing to a compose file that doesn't exist.
-	createE2EDir(t, tmpDir, "sm-im/")
+	// Write sm-kms magic file pointing to a compose file that doesn't exist.
+	createE2EDir(t, tmpDir, "sm-kms/")
 	// Do NOT create the compose file.
 
-	writeMagicFile(t, tmpDir, "magic_sm_im.go", smIME2EMagicSrc)
+	writeMagicFile(t, tmpDir, "magic_sm.go", smIME2EMagicSrc)
 
-	for _, mf := range []string{"magic_identity.go", "magic_jose.go", "magic_skeleton.go", "magic_sm.go", "magic_pki.go"} {
+	for _, mf := range []string{"magic_identity.go", "magic_jose.go", "magic_skeleton.go", "magic_pki.go"} {
 		writeMagicFile(t, tmpDir, mf, "package magic\nconst (\n)\n")
 	}
 
 	err := lintFitnessMagicE2EComposePath.CheckInDir(newTestLogger(), tmpDir)
 	require.Error(t, err)
-	assert.Contains(t, err.Error(), cryptoutilSharedMagic.OTLPServiceSMIM)
+	assert.Contains(t, err.Error(), cryptoutilSharedMagic.OTLPServiceSMKMS)
 	assert.Contains(t, err.Error(), "non-existent")
 }
 
@@ -128,7 +128,7 @@ func TestCheckInDir_NoE2EComposeFile_Skipped(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	// All magic files have no E2EComposeFile constant — all should be skipped.
-	for _, mf := range []string{"magic_identity.go", "magic_jose.go", "magic_skeleton.go", "magic_sm.go", "magic_pki.go", "magic_sm_im.go"} {
+	for _, mf := range []string{"magic_identity.go", "magic_jose.go", "magic_skeleton.go", "magic_sm.go", "magic_pki.go"} {
 		writeMagicFile(t, tmpDir, mf, "package magic\nconst (\n)\n")
 	}
 

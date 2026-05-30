@@ -105,7 +105,7 @@ func TestCheckInDir_MissingDockerfile(t *testing.T) {
 		name string
 		psID string
 	}{
-		{name: cryptoutilSharedMagic.OTLPServiceSMIM, psID: cryptoutilSharedMagic.OTLPServiceSMIM},
+		{name: cryptoutilSharedMagic.OTLPServiceSMKMS, psID: cryptoutilSharedMagic.OTLPServiceSMKMS},
 		{name: cryptoutilSharedMagic.OTLPServiceSMKMS, psID: cryptoutilSharedMagic.OTLPServiceSMKMS},
 	}
 
@@ -132,7 +132,7 @@ func TestCheckInDir_MissingComposeYML(t *testing.T) {
 	tmpDir := t.TempDir()
 	setupAllDeploymentDirs(t, tmpDir)
 
-	require.NoError(t, os.Remove(filepath.Join(tmpDir, "deployments", cryptoutilSharedMagic.OTLPServiceSMIM, "compose.yml")))
+	require.NoError(t, os.Remove(filepath.Join(tmpDir, "deployments", cryptoutilSharedMagic.OTLPServiceSMKMS, "compose.yml")))
 
 	err := lintFitnessDeploymentDirCompleteness.CheckInDir(newTestLogger(), tmpDir)
 	require.Error(t, err)
@@ -145,7 +145,7 @@ func TestCheckInDir_MissingSecretsDir(t *testing.T) {
 	tmpDir := t.TempDir()
 	setupAllDeploymentDirs(t, tmpDir)
 
-	require.NoError(t, os.RemoveAll(filepath.Join(tmpDir, "deployments", cryptoutilSharedMagic.OTLPServiceJoseJA, "secrets")))
+	require.NoError(t, os.RemoveAll(filepath.Join(tmpDir, "deployments", cryptoutilSharedMagic.OTLPServicePKICA, "secrets")))
 
 	err := lintFitnessDeploymentDirCompleteness.CheckInDir(newTestLogger(), tmpDir)
 	require.Error(t, err)
@@ -168,7 +168,7 @@ func TestCheckInDir_MissingConfigDir(t *testing.T) {
 func TestCheckInDir_MissingConfigFile(t *testing.T) {
 	t.Parallel()
 
-	psID := cryptoutilSharedMagic.OTLPServiceSMIM
+	psID := cryptoutilSharedMagic.OTLPServiceSMKMS
 	suffixes := []string{
 		"-app-framework-common.yml",
 		"-app-framework-sqlite-1.yml",

@@ -76,8 +76,6 @@ func (spec TLSPSIDSpec) StartupServices() []string {
 
 var psidPublicBasePorts = map[string]int{
 	cryptoutilSharedMagic.OTLPServiceSMKMS:            cryptoutilSharedMagic.KMSServicePort,
-	cryptoutilSharedMagic.OTLPServiceSMIM:             cryptoutilSharedMagic.IMServicePort,
-	cryptoutilSharedMagic.OTLPServiceJoseJA:           cryptoutilSharedMagic.JoseJAServicePort,
 	cryptoutilSharedMagic.OTLPServicePKICA:            cryptoutilSharedMagic.PKICAServicePort,
 	cryptoutilSharedMagic.OTLPServiceIdentityAuthz:    int(cryptoutilSharedMagic.IdentityAuthzServicePort),
 	cryptoutilSharedMagic.OTLPServiceIdentityIDP:      int(cryptoutilSharedMagic.IdentityIDPServicePort),

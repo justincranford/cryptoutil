@@ -20,7 +20,7 @@ func validBaseSettings() *ServiceFrameworkServerSettings {
 		BindPublicAddress:   cryptoutilSharedMagic.IPv4Loopback,
 		BindPublicPort:      cryptoutilSharedMagic.TestServerPort,
 		BindPrivateAddress:  cryptoutilSharedMagic.IPv4Loopback,
-		BindPrivatePort:     cryptoutilSharedMagic.JoseJAAdminPort,
+		BindPrivatePort:     cryptoutilSharedMagic.TestAdminPort,
 		BindPublicProtocol:  cryptoutilSharedMagic.ProtocolHTTPS,
 		BindPrivateProtocol: cryptoutilSharedMagic.ProtocolHTTPS,
 		LogLevel:            cryptoutilSharedMagic.DefaultLogLevelInfo,
@@ -143,7 +143,7 @@ func TestValidateConfiguration(t *testing.T) {
 			name: "public port 0 with non-zero private port is valid",
 			modify: func(s *ServiceFrameworkServerSettings) {
 				s.BindPublicPort = 0
-				s.BindPrivatePort = cryptoutilSharedMagic.JoseJAAdminPort
+				s.BindPrivatePort = cryptoutilSharedMagic.TestAdminPort
 			},
 			wantErrorMessage: "",
 		},

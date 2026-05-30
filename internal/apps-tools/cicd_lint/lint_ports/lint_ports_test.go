@@ -51,7 +51,7 @@ func TestLint(t *testing.T) {
 				t.Helper()
 				d := t.TempDir()
 
-				return map[string][]string{"go": {writeTestFile(t, d, "main.go", "package main\n\nconst port = 8888 // legacy sm-im port\n")}}
+				return map[string][]string{"go": {writeTestFile(t, d, "main.go", "package main\n\nconst port = 8081 // legacy sm-kms port\n")}}
 			},
 			wantErr: "legacy port violations",
 		},
@@ -61,7 +61,7 @@ func TestLint(t *testing.T) {
 				t.Helper()
 				d := t.TempDir()
 
-				return map[string][]string{"go": {writeTestFile(t, d, "main.go", "package main\n\nconst smIMPort = 8888 // legacy\nconst josePort = 9443  // legacy\n")}}
+				return map[string][]string{"go": {writeTestFile(t, d, "main.go", "package main\n\nconst smKMSPort = 8081 // legacy\nconst pkiPort = 9443  // legacy\n")}}
 			},
 			wantErr: "2 legacy port violations",
 		},
@@ -75,21 +75,21 @@ func TestLint(t *testing.T) {
 			},
 		},
 		{
-			name: "detects legacy port 8890 in regular file",
+			name: "detects legacy port 8082 in regular file",
 			setup: func(t *testing.T) map[string][]string {
 				t.Helper()
 				d := t.TempDir()
 
-				return map[string][]string{"go": {writeTestFile(t, d, "config.go", "package main\n\nconst port = 8890 // legacy sm-im port\n")}}
+				return map[string][]string{"go": {writeTestFile(t, d, "config.go", "package main\n\nconst port = 8082 // legacy sm-kms port\n")}}
 			},
 			wantErr: "legacy port",
 		},
 		{
-			name: "detects 8888 in regular file",
+			name: "detects 8081 in regular file",
 			setup: func(t *testing.T) map[string][]string {
 				t.Helper()
 				d := t.TempDir()
-				f := writeTestFile(t, d, "main.go", "package main\n\nconst port = 8888\n")
+				f := writeTestFile(t, d, "main.go", "package main\n\nconst port = 8081\n")
 				require.False(t, lintPortsCommon.IsOtelRelatedFile(f), "test file path should NOT be collector-related")
 
 				return map[string][]string{"go": {f}}
@@ -167,10 +167,10 @@ func TestLint(t *testing.T) {
 				d := t.TempDir()
 
 				return map[string][]string{
-					"go":   {writeTestFile(t, d, "main.go", "package main\nconst port = 8888\n")},
+					"go":   {writeTestFile(t, d, "main.go", "package main\nconst port = 8081\n")},
 					"yml":  {writeTestFile(t, d, "config.yml", "port: 9443\n")},
 					"yaml": {writeTestFile(t, d, "config.yaml", "port: 8443\n")},
-					"md":   {writeTestFile(t, d, "README.md", "# Docs\nPort 8890 is used.\n")},
+					"md":   {writeTestFile(t, d, "README.md", "# Docs\nPort 8082 is used.\n")},
 				}
 			},
 			wantErr: "legacy port violations",

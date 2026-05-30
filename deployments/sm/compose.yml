@@ -3,7 +3,7 @@
 # SM Product Docker Compose Configuration
 #
 # PRODUCT-level deployment for Secrets Manager.
-# Recursive includes: SM product (2 services: kms, im) (which include shared-postgres and shared-telemetry).
+# Recursive includes: SM product (1 service: kms) (which include shared-postgres and shared-telemetry).
 #
 # Port allocation (PRODUCT level: SERVICE + 10000).
 #
@@ -15,7 +15,6 @@
 
 include:
   - path: ../sm-kms/compose.yml
-  - path: ../sm-im/compose.yml
 
 services:
   # PRODUCT-level port overrides: SERVICE ports + 10000.
@@ -46,22 +45,6 @@ services:
   sm-kms-app-postgresql-2:
     ports: !override
       - "18003:8080"
-
-  sm-im-app-sqlite-1:
-    ports: !override
-      - "18100:8080"
-
-  sm-im-app-sqlite-2:
-    ports: !override
-      - "18101:8080"
-
-  sm-im-app-postgresql-1:
-    ports: !override
-      - "18102:8080"
-
-  sm-im-app-postgresql-2:
-    ports: !override
-      - "18103:8080"
 
 secrets:
   # PRODUCT-level secrets override PS-ID secrets (paths resolve relative to this file).

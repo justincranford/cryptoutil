@@ -70,8 +70,6 @@ func TestNewForServer(t *testing.T) {
 		devMode     bool
 		wantService string
 	}{
-		{name: "JOSE dev mode", factory: NewForJOSEServer, address: cryptoutilSharedMagic.IPv4Loopback, port: 8060, devMode: true, wantService: cryptoutilSharedMagic.OTLPServiceJoseJA},
-		{name: "JOSE production", factory: NewForJOSEServer, address: cryptoutilSharedMagic.IPv4Loopback, port: 8061, devMode: false, wantService: cryptoutilSharedMagic.OTLPServiceJoseJA},
 		{name: "CA dev mode", factory: NewForCAServer, address: cryptoutilSharedMagic.IPv4Loopback, port: 8050, devMode: true, wantService: cryptoutilSharedMagic.OTLPServicePKICA},
 		{name: "CA production", factory: NewForCAServer, address: cryptoutilSharedMagic.IPv4Loopback, port: 8051, devMode: false, wantService: cryptoutilSharedMagic.OTLPServicePKICA},
 	}

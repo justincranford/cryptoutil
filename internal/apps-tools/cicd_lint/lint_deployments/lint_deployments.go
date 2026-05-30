@@ -40,7 +40,7 @@ func GetExpectedStructures() map[string]DeploymentStructure {
 			AllowedExtensions: []string{".yml", ".yaml", cryptoutilSharedMagic.CICDTemplateSecretFileSuffix, ".md"},
 		},
 		DeploymentTypeProductService: {
-			Name:          "PRODUCT-SERVICE deployment (e.g., jose-ja, sm-im)",
+			Name:          "PRODUCT-SERVICE deployment (e.g., sm-kms, sm-im)",
 			RequiredDirs:  []string{"secrets", "config"},
 			RequiredFiles: []string{"compose.yml", "Dockerfile"},
 			OptionalFiles: []string{}, // no optional files

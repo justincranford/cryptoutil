@@ -17,9 +17,9 @@ import (
 func TestBuildParams(t *testing.T) {
 	t.Parallel()
 
-	params := buildParams(cryptoutilSharedMagic.OTLPServiceJoseJA)
-	require.Equal(t, cryptoutilSharedMagic.OTLPServiceJoseJA, params[cryptoutilSharedMagic.CICDTemplateExpansionKeyPSID])
-	require.Equal(t, "JOSE-JA", params["__PS_ID_UPPER__"])
+	params := buildParams(cryptoutilSharedMagic.OTLPServiceSMKMS)
+	require.Equal(t, cryptoutilSharedMagic.OTLPServiceSMKMS, params[cryptoutilSharedMagic.CICDTemplateExpansionKeyPSID])
+	require.Equal(t, "SM-KMS", params["__PS_ID_UPPER__"])
 	require.Equal(t, cryptoutilSharedMagic.DefaultOTLPServiceDefault, params[cryptoutilSharedMagic.CICDTemplateExpansionKeySuite])
 	require.Equal(t, cryptoutilSharedMagic.CICDTemplateGoVersion, params["__GO_VERSION__"])
 	require.Equal(t, cryptoutilSharedMagic.CICDTemplateContainerUID, params["__CONTAINER_UID__"])
@@ -42,8 +42,8 @@ func TestBuildInstanceParams(t *testing.T) {
 func TestBuildProductParams(t *testing.T) {
 	t.Parallel()
 
-	params := buildProductParams("sm")
-	require.Equal(t, "sm", params[cryptoutilSharedMagic.CICDTemplateExpansionKeyProduct])
+	params := buildProductParams(cryptoutilSharedMagic.SMProductName)
+	require.Equal(t, cryptoutilSharedMagic.SMProductName, params[cryptoutilSharedMagic.CICDTemplateExpansionKeyProduct])
 	require.Equal(t, "SM", params["__PRODUCT_UPPER__"])
 	require.NotEmpty(t, params["__PRODUCT_INCLUDE_LIST__"])
 	require.NotEmpty(t, params["__PRODUCT_SERVICE_OVERRIDES__"])
@@ -116,10 +116,9 @@ func TestSubstituteParams(t *testing.T) {
 func TestBuildProductIncludeList(t *testing.T) {
 	t.Parallel()
 
-	list := buildProductIncludeList([]string{cryptoutilSharedMagic.OTLPServiceSMKMS, cryptoutilSharedMagic.OTLPServiceSMIM})
+	list := buildProductIncludeList([]string{cryptoutilSharedMagic.OTLPServiceSMKMS})
 	require.Contains(t, list, "include:")
 	require.Contains(t, list, "- path: ../"+cryptoutilSharedMagic.OTLPServiceSMKMS+"/compose.yml")
-	require.Contains(t, list, "- path: ../"+cryptoutilSharedMagic.OTLPServiceSMIM+"/compose.yml")
 }
 
 func TestBuildProductServiceOverrides(t *testing.T) {
@@ -135,13 +134,13 @@ func TestBuildSuiteIncludeList(t *testing.T) {
 
 	products := []cryptoutilRegistry.Product{
 		{ID: cryptoutilSharedMagic.SMProductName},
-		{ID: cryptoutilSharedMagic.JoseProductName},
+		{ID: cryptoutilSharedMagic.PKIProductName},
 	}
 
 	list := buildSuiteIncludeList(products)
 	require.Contains(t, list, "include:")
 	require.Contains(t, list, "- path: ../"+cryptoutilSharedMagic.SMProductName+"/compose.yml")
-	require.Contains(t, list, "- path: ../"+cryptoutilSharedMagic.JoseProductName+"/compose.yml")
+	require.Contains(t, list, "- path: ../"+cryptoutilSharedMagic.PKIProductName+"/compose.yml")
 }
 
 func TestBuildSuiteServiceOverrides(t *testing.T) {
@@ -162,16 +161,16 @@ func TestBuildProductPSIDListDisplay(t *testing.T) {
 		want      string
 	}{
 		{
-			name:      "two services",
+			name:      "single service",
 			productID: cryptoutilSharedMagic.SMProductName,
-			psIDs:     []string{cryptoutilSharedMagic.OTLPServiceSMKMS, cryptoutilSharedMagic.OTLPServiceSMIM},
-			want:      "SM product (2 services: kms, im)",
+			psIDs:     []string{cryptoutilSharedMagic.OTLPServiceSMKMS},
+			want:      "SM product (1 service: kms)",
 		},
 		{
-			name:      "single service",
-			productID: cryptoutilSharedMagic.JoseProductName,
-			psIDs:     []string{cryptoutilSharedMagic.OTLPServiceJoseJA},
-			want:      "JOSE product (1 service: ja)",
+			name:      "pki single service",
+			productID: cryptoutilSharedMagic.PKIProductName,
+			psIDs:     []string{cryptoutilSharedMagic.OTLPServicePKICA},
+			want:      "PKI product (1 service: ca)",
 		},
 		{
 			name:      "empty",

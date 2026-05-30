@@ -20,6 +20,7 @@ import (
 
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/oapi-codegen/runtime"
+	openapi_types "github.com/oapi-codegen/runtime/types"
 )
 
 // GetElasticKeysParams defines parameters for GetElasticKeys.
@@ -107,6 +108,14 @@ type GetMaterialKeysParams struct {
 	Size *externalRef0.MaterialKeyQueryParamPageSize   `form:"size,omitempty" json:"size,omitempty"`
 }
 
+// GetMessagesParams defines parameters for GetMessages.
+type GetMessagesParams struct {
+	RecipientID openapi_types.UUID `form:"recipient_id" json:"recipient_id"`
+}
+
+// PostMessagesSendJSONBody defines parameters for PostMessagesSend.
+type PostMessagesSendJSONBody map[string]any
+
 // PostElasticKeysJSONRequestBody defines body for PostElasticKeys for application/json ContentType.
 type PostElasticKeysJSONRequestBody = externalRef0.ElasticKeyCreate
 
@@ -133,6 +142,9 @@ type PostElasticKeysElasticKeyIDSignTextRequestBody = externalRef0.SignRequest
 
 // PostElasticKeysElasticKeyIDVerifyTextRequestBody defines body for PostElasticKeysElasticKeyIDVerify for text/plain ContentType.
 type PostElasticKeysElasticKeyIDVerifyTextRequestBody = externalRef0.VerifyRequest
+
+// PostMessagesSendJSONRequestBody defines body for PostMessagesSend for application/json ContentType.
+type PostMessagesSendJSONRequestBody PostMessagesSendJSONBody
 
 // RequestEditorFn  is the function signature for the RequestEditor callback function
 type RequestEditorFn func(ctx context.Context, req *http.Request) error
@@ -254,11 +266,17 @@ type ClientInterface interface {
 
 	PostElasticKeysElasticKeyIDMaterialKeys(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, body PostElasticKeysElasticKeyIDMaterialKeysJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetElasticKeysElasticKeyIDMaterialKeysActive request
+	GetElasticKeysElasticKeyIDMaterialKeysActive(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetElasticKeysElasticKeyIDMaterialKeysMaterialKeyID request
 	GetElasticKeysElasticKeyIDMaterialKeysMaterialKeyID(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, materialKeyID externalRef0.MaterialKeyID, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// PostElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDRevoke request
 	PostElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDRevoke(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, materialKeyID externalRef0.MaterialKeyID, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// PostElasticKeysElasticKeyIDRotate request
+	PostElasticKeysElasticKeyIDRotate(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// PostElasticKeysElasticKeyIDSignWithBody request with any body
 	PostElasticKeysElasticKeyIDSignWithBody(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, params *PostElasticKeysElasticKeyIDSignParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -270,8 +288,28 @@ type ClientInterface interface {
 
 	PostElasticKeysElasticKeyIDVerifyWithTextBody(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, body PostElasticKeysElasticKeyIDVerifyTextRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetJwks request
+	GetJwks(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetMaterialKeys request
 	GetMaterialKeys(ctx context.Context, params *GetMaterialKeysParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetMessages request
+	GetMessages(ctx context.Context, params *GetMessagesParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetMessagesReceive request
+	GetMessagesReceive(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// PostMessagesSendWithBody request with any body
+	PostMessagesSendWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	PostMessagesSend(ctx context.Context, body PostMessagesSendJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// DeleteMessagesMessageID request
+	DeleteMessagesMessageID(ctx context.Context, messageID openapi_types.UUID, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetMessagesMessageID request
+	GetMessagesMessageID(ctx context.Context, messageID openapi_types.UUID, reqEditors ...RequestEditorFn) (*http.Response, error)
 }
 
 func (c *Client) GetElasticKeys(ctx context.Context, params *GetElasticKeysParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -490,6 +528,18 @@ func (c *Client) PostElasticKeysElasticKeyIDMaterialKeys(ctx context.Context, el
 	return c.Client.Do(req)
 }
 
+func (c *Client) GetElasticKeysElasticKeyIDMaterialKeysActive(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetElasticKeysElasticKeyIDMaterialKeysActiveRequest(c.Server, elasticKeyID)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) GetElasticKeysElasticKeyIDMaterialKeysMaterialKeyID(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, materialKeyID externalRef0.MaterialKeyID, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDRequest(c.Server, elasticKeyID, materialKeyID)
 	if err != nil {
@@ -504,6 +554,18 @@ func (c *Client) GetElasticKeysElasticKeyIDMaterialKeysMaterialKeyID(ctx context
 
 func (c *Client) PostElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDRevoke(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, materialKeyID externalRef0.MaterialKeyID, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewPostElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDRevokeRequest(c.Server, elasticKeyID, materialKeyID)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) PostElasticKeysElasticKeyIDRotate(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostElasticKeysElasticKeyIDRotateRequest(c.Server, elasticKeyID)
 	if err != nil {
 		return nil, err
 	}
@@ -562,8 +624,92 @@ func (c *Client) PostElasticKeysElasticKeyIDVerifyWithTextBody(ctx context.Conte
 	return c.Client.Do(req)
 }
 
+func (c *Client) GetJwks(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetJwksRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) GetMaterialKeys(ctx context.Context, params *GetMaterialKeysParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetMaterialKeysRequest(c.Server, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetMessages(ctx context.Context, params *GetMessagesParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetMessagesRequest(c.Server, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetMessagesReceive(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetMessagesReceiveRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) PostMessagesSendWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostMessagesSendRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) PostMessagesSend(ctx context.Context, body PostMessagesSendJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostMessagesSendRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) DeleteMessagesMessageID(ctx context.Context, messageID openapi_types.UUID, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDeleteMessagesMessageIDRequest(c.Server, messageID)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetMessagesMessageID(ctx context.Context, messageID openapi_types.UUID, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetMessagesMessageIDRequest(c.Server, messageID)
 	if err != nil {
 		return nil, err
 	}
@@ -1341,6 +1487,40 @@ func NewPostElasticKeysElasticKeyIDMaterialKeysRequestWithBody(server string, el
 	return req, nil
 }
 
+// NewGetElasticKeysElasticKeyIDMaterialKeysActiveRequest generates requests for GetElasticKeysElasticKeyIDMaterialKeysActive
+func NewGetElasticKeysElasticKeyIDMaterialKeysActiveRequest(server string, elasticKeyID externalRef0.ElasticKeyID) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "elasticKeyID", runtime.ParamLocationPath, elasticKeyID)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/elastic-keys/%s/material-keys/active", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewGetElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDRequest generates requests for GetElasticKeysElasticKeyIDMaterialKeysMaterialKeyID
 func NewGetElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDRequest(server string, elasticKeyID externalRef0.ElasticKeyID, materialKeyID externalRef0.MaterialKeyID) (*http.Request, error) {
 	var err error
@@ -1406,6 +1586,40 @@ func NewPostElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDRevokeRequest(server
 	}
 
 	operationPath := fmt.Sprintf("/elastic-keys/%s/material-keys/%s/revoke", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewPostElasticKeysElasticKeyIDRotateRequest generates requests for PostElasticKeysElasticKeyIDRotate
+func NewPostElasticKeysElasticKeyIDRotateRequest(server string, elasticKeyID externalRef0.ElasticKeyID) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "elasticKeyID", runtime.ParamLocationPath, elasticKeyID)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/elastic-keys/%s/rotate", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -1527,6 +1741,33 @@ func NewPostElasticKeysElasticKeyIDVerifyRequestWithBody(server string, elasticK
 	}
 
 	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewGetJwksRequest generates requests for GetJwks
+func NewGetJwksRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/jwks")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
 
 	return req, nil
 }
@@ -1676,6 +1917,186 @@ func NewGetMaterialKeysRequest(server string, params *GetMaterialKeysParams) (*h
 	return req, nil
 }
 
+// NewGetMessagesRequest generates requests for GetMessages
+func NewGetMessagesRequest(server string, params *GetMessagesParams) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/messages")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "recipient_id", runtime.ParamLocationQuery, params.RecipientID); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetMessagesReceiveRequest generates requests for GetMessagesReceive
+func NewGetMessagesReceiveRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/messages/receive")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewPostMessagesSendRequest calls the generic PostMessagesSend builder with application/json body
+func NewPostMessagesSendRequest(server string, body PostMessagesSendJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewPostMessagesSendRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewPostMessagesSendRequestWithBody generates requests for PostMessagesSend with any type of body
+func NewPostMessagesSendRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/messages/send")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewDeleteMessagesMessageIDRequest generates requests for DeleteMessagesMessageID
+func NewDeleteMessagesMessageIDRequest(server string, messageID openapi_types.UUID) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "messageID", runtime.ParamLocationPath, messageID)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/messages/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetMessagesMessageIDRequest generates requests for GetMessagesMessageID
+func NewGetMessagesMessageIDRequest(server string, messageID openapi_types.UUID) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "messageID", runtime.ParamLocationPath, messageID)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/messages/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 func (c *Client) applyEditors(ctx context.Context, req *http.Request, additionalEditors []RequestEditorFn) error {
 	for _, r := range c.RequestEditors {
 		if err := r(ctx, req); err != nil {
@@ -1766,11 +2187,17 @@ type ClientWithResponsesInterface interface {
 
 	PostElasticKeysElasticKeyIDMaterialKeysWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, body PostElasticKeysElasticKeyIDMaterialKeysJSONRequestBody, reqEditors ...RequestEditorFn) (*PostElasticKeysElasticKeyIDMaterialKeysResponse, error)
 
+	// GetElasticKeysElasticKeyIDMaterialKeysActiveWithResponse request
+	GetElasticKeysElasticKeyIDMaterialKeysActiveWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, reqEditors ...RequestEditorFn) (*GetElasticKeysElasticKeyIDMaterialKeysActiveResponse, error)
+
 	// GetElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDWithResponse request
 	GetElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, materialKeyID externalRef0.MaterialKeyID, reqEditors ...RequestEditorFn) (*GetElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDResponse, error)
 
 	// PostElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDRevokeWithResponse request
 	PostElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDRevokeWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, materialKeyID externalRef0.MaterialKeyID, reqEditors ...RequestEditorFn) (*PostElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDRevokeResponse, error)
+
+	// PostElasticKeysElasticKeyIDRotateWithResponse request
+	PostElasticKeysElasticKeyIDRotateWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, reqEditors ...RequestEditorFn) (*PostElasticKeysElasticKeyIDRotateResponse, error)
 
 	// PostElasticKeysElasticKeyIDSignWithBodyWithResponse request with any body
 	PostElasticKeysElasticKeyIDSignWithBodyWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, params *PostElasticKeysElasticKeyIDSignParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostElasticKeysElasticKeyIDSignResponse, error)
@@ -1782,8 +2209,28 @@ type ClientWithResponsesInterface interface {
 
 	PostElasticKeysElasticKeyIDVerifyWithTextBodyWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, body PostElasticKeysElasticKeyIDVerifyTextRequestBody, reqEditors ...RequestEditorFn) (*PostElasticKeysElasticKeyIDVerifyResponse, error)
 
+	// GetJwksWithResponse request
+	GetJwksWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetJwksResponse, error)
+
 	// GetMaterialKeysWithResponse request
 	GetMaterialKeysWithResponse(ctx context.Context, params *GetMaterialKeysParams, reqEditors ...RequestEditorFn) (*GetMaterialKeysResponse, error)
+
+	// GetMessagesWithResponse request
+	GetMessagesWithResponse(ctx context.Context, params *GetMessagesParams, reqEditors ...RequestEditorFn) (*GetMessagesResponse, error)
+
+	// GetMessagesReceiveWithResponse request
+	GetMessagesReceiveWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetMessagesReceiveResponse, error)
+
+	// PostMessagesSendWithBodyWithResponse request with any body
+	PostMessagesSendWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostMessagesSendResponse, error)
+
+	PostMessagesSendWithResponse(ctx context.Context, body PostMessagesSendJSONRequestBody, reqEditors ...RequestEditorFn) (*PostMessagesSendResponse, error)
+
+	// DeleteMessagesMessageIDWithResponse request
+	DeleteMessagesMessageIDWithResponse(ctx context.Context, messageID openapi_types.UUID, reqEditors ...RequestEditorFn) (*DeleteMessagesMessageIDResponse, error)
+
+	// GetMessagesMessageIDWithResponse request
+	GetMessagesMessageIDWithResponse(ctx context.Context, messageID openapi_types.UUID, reqEditors ...RequestEditorFn) (*GetMessagesMessageIDResponse, error)
 }
 
 type GetElasticKeysResponse struct {
@@ -2124,6 +2571,30 @@ func (r PostElasticKeysElasticKeyIDMaterialKeysResponse) StatusCode() int {
 	return 0
 }
 
+type GetElasticKeysElasticKeyIDMaterialKeysActiveResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *externalRef0.MaterialKey
+	JSON404      *externalRef0.HTTP404NotFound
+	JSON500      *externalRef0.HTTP500InternalServerError
+}
+
+// Status returns HTTPResponse.Status
+func (r GetElasticKeysElasticKeyIDMaterialKeysActiveResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetElasticKeysElasticKeyIDMaterialKeysActiveResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type GetElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -2179,6 +2650,33 @@ func (r PostElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDRevokeResponse) Stat
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r PostElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDRevokeResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type PostElasticKeysElasticKeyIDRotateResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON202      *struct {
+		ElasticKeyID *openapi_types.UUID `json:"elasticKeyID,omitempty"`
+		Status       *string             `json:"status,omitempty"`
+	}
+	JSON404 *externalRef0.HTTP404NotFound
+	JSON500 *externalRef0.HTTP500InternalServerError
+}
+
+// Status returns HTTPResponse.Status
+func (r PostElasticKeysElasticKeyIDRotateResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r PostElasticKeysElasticKeyIDRotateResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -2245,6 +2743,31 @@ func (r PostElasticKeysElasticKeyIDVerifyResponse) StatusCode() int {
 	return 0
 }
 
+type GetJwksResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		Keys *[]map[string]any `json:"keys,omitempty"`
+	}
+	JSON500 *externalRef0.HTTP500InternalServerError
+}
+
+// Status returns HTTPResponse.Status
+func (r GetJwksResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetJwksResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type GetMaterialKeysResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -2270,6 +2793,118 @@ func (r GetMaterialKeysResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r GetMaterialKeysResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetMessagesResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]map[string]any
+	JSON400      *externalRef0.HTTP400BadRequest
+	JSON500      *externalRef0.HTTP500InternalServerError
+}
+
+// Status returns HTTPResponse.Status
+func (r GetMessagesResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetMessagesResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetMessagesReceiveResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r GetMessagesReceiveResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetMessagesReceiveResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type PostMessagesSendResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r PostMessagesSendResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r PostMessagesSendResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type DeleteMessagesMessageIDResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON400      *externalRef0.HTTP400BadRequest
+	JSON500      *externalRef0.HTTP500InternalServerError
+}
+
+// Status returns HTTPResponse.Status
+func (r DeleteMessagesMessageIDResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r DeleteMessagesMessageIDResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetMessagesMessageIDResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *map[string]any
+	JSON404      *externalRef0.HTTP404NotFound
+}
+
+// Status returns HTTPResponse.Status
+func (r GetMessagesMessageIDResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetMessagesMessageIDResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -2431,6 +3066,15 @@ func (c *ClientWithResponses) PostElasticKeysElasticKeyIDMaterialKeysWithRespons
 	return ParsePostElasticKeysElasticKeyIDMaterialKeysResponse(rsp)
 }
 
+// GetElasticKeysElasticKeyIDMaterialKeysActiveWithResponse request returning *GetElasticKeysElasticKeyIDMaterialKeysActiveResponse
+func (c *ClientWithResponses) GetElasticKeysElasticKeyIDMaterialKeysActiveWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, reqEditors ...RequestEditorFn) (*GetElasticKeysElasticKeyIDMaterialKeysActiveResponse, error) {
+	rsp, err := c.GetElasticKeysElasticKeyIDMaterialKeysActive(ctx, elasticKeyID, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetElasticKeysElasticKeyIDMaterialKeysActiveResponse(rsp)
+}
+
 // GetElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDWithResponse request returning *GetElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDResponse
 func (c *ClientWithResponses) GetElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, materialKeyID externalRef0.MaterialKeyID, reqEditors ...RequestEditorFn) (*GetElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDResponse, error) {
 	rsp, err := c.GetElasticKeysElasticKeyIDMaterialKeysMaterialKeyID(ctx, elasticKeyID, materialKeyID, reqEditors...)
@@ -2447,6 +3091,15 @@ func (c *ClientWithResponses) PostElasticKeysElasticKeyIDMaterialKeysMaterialKey
 		return nil, err
 	}
 	return ParsePostElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDRevokeResponse(rsp)
+}
+
+// PostElasticKeysElasticKeyIDRotateWithResponse request returning *PostElasticKeysElasticKeyIDRotateResponse
+func (c *ClientWithResponses) PostElasticKeysElasticKeyIDRotateWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyID, reqEditors ...RequestEditorFn) (*PostElasticKeysElasticKeyIDRotateResponse, error) {
+	rsp, err := c.PostElasticKeysElasticKeyIDRotate(ctx, elasticKeyID, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePostElasticKeysElasticKeyIDRotateResponse(rsp)
 }
 
 // PostElasticKeysElasticKeyIDSignWithBodyWithResponse request with arbitrary body returning *PostElasticKeysElasticKeyIDSignResponse
@@ -2483,6 +3136,15 @@ func (c *ClientWithResponses) PostElasticKeysElasticKeyIDVerifyWithTextBodyWithR
 	return ParsePostElasticKeysElasticKeyIDVerifyResponse(rsp)
 }
 
+// GetJwksWithResponse request returning *GetJwksResponse
+func (c *ClientWithResponses) GetJwksWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetJwksResponse, error) {
+	rsp, err := c.GetJwks(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetJwksResponse(rsp)
+}
+
 // GetMaterialKeysWithResponse request returning *GetMaterialKeysResponse
 func (c *ClientWithResponses) GetMaterialKeysWithResponse(ctx context.Context, params *GetMaterialKeysParams, reqEditors ...RequestEditorFn) (*GetMaterialKeysResponse, error) {
 	rsp, err := c.GetMaterialKeys(ctx, params, reqEditors...)
@@ -2490,6 +3152,59 @@ func (c *ClientWithResponses) GetMaterialKeysWithResponse(ctx context.Context, p
 		return nil, err
 	}
 	return ParseGetMaterialKeysResponse(rsp)
+}
+
+// GetMessagesWithResponse request returning *GetMessagesResponse
+func (c *ClientWithResponses) GetMessagesWithResponse(ctx context.Context, params *GetMessagesParams, reqEditors ...RequestEditorFn) (*GetMessagesResponse, error) {
+	rsp, err := c.GetMessages(ctx, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetMessagesResponse(rsp)
+}
+
+// GetMessagesReceiveWithResponse request returning *GetMessagesReceiveResponse
+func (c *ClientWithResponses) GetMessagesReceiveWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetMessagesReceiveResponse, error) {
+	rsp, err := c.GetMessagesReceive(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetMessagesReceiveResponse(rsp)
+}
+
+// PostMessagesSendWithBodyWithResponse request with arbitrary body returning *PostMessagesSendResponse
+func (c *ClientWithResponses) PostMessagesSendWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostMessagesSendResponse, error) {
+	rsp, err := c.PostMessagesSendWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePostMessagesSendResponse(rsp)
+}
+
+func (c *ClientWithResponses) PostMessagesSendWithResponse(ctx context.Context, body PostMessagesSendJSONRequestBody, reqEditors ...RequestEditorFn) (*PostMessagesSendResponse, error) {
+	rsp, err := c.PostMessagesSend(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePostMessagesSendResponse(rsp)
+}
+
+// DeleteMessagesMessageIDWithResponse request returning *DeleteMessagesMessageIDResponse
+func (c *ClientWithResponses) DeleteMessagesMessageIDWithResponse(ctx context.Context, messageID openapi_types.UUID, reqEditors ...RequestEditorFn) (*DeleteMessagesMessageIDResponse, error) {
+	rsp, err := c.DeleteMessagesMessageID(ctx, messageID, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDeleteMessagesMessageIDResponse(rsp)
+}
+
+// GetMessagesMessageIDWithResponse request returning *GetMessagesMessageIDResponse
+func (c *ClientWithResponses) GetMessagesMessageIDWithResponse(ctx context.Context, messageID openapi_types.UUID, reqEditors ...RequestEditorFn) (*GetMessagesMessageIDResponse, error) {
+	rsp, err := c.GetMessagesMessageID(ctx, messageID, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetMessagesMessageIDResponse(rsp)
 }
 
 // ParseGetElasticKeysResponse parses an HTTP response from a GetElasticKeysWithResponse call
@@ -3450,6 +4165,46 @@ func ParsePostElasticKeysElasticKeyIDMaterialKeysResponse(rsp *http.Response) (*
 	return response, nil
 }
 
+// ParseGetElasticKeysElasticKeyIDMaterialKeysActiveResponse parses an HTTP response from a GetElasticKeysElasticKeyIDMaterialKeysActiveWithResponse call
+func ParseGetElasticKeysElasticKeyIDMaterialKeysActiveResponse(rsp *http.Response) (*GetElasticKeysElasticKeyIDMaterialKeysActiveResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetElasticKeysElasticKeyIDMaterialKeysActiveResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest externalRef0.MaterialKey
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest externalRef0.HTTP404NotFound
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest externalRef0.HTTP500InternalServerError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseGetElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDResponse parses an HTTP response from a GetElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDWithResponse call
 func ParseGetElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDResponse(rsp *http.Response) (*GetElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -3621,6 +4376,49 @@ func ParsePostElasticKeysElasticKeyIDMaterialKeysMaterialKeyIDRevokeResponse(rsp
 	return response, nil
 }
 
+// ParsePostElasticKeysElasticKeyIDRotateResponse parses an HTTP response from a PostElasticKeysElasticKeyIDRotateWithResponse call
+func ParsePostElasticKeysElasticKeyIDRotateResponse(rsp *http.Response) (*PostElasticKeysElasticKeyIDRotateResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &PostElasticKeysElasticKeyIDRotateResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 202:
+		var dest struct {
+			ElasticKeyID *openapi_types.UUID `json:"elasticKeyID,omitempty"`
+			Status       *string             `json:"status,omitempty"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON202 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest externalRef0.HTTP404NotFound
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest externalRef0.HTTP500InternalServerError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParsePostElasticKeysElasticKeyIDSignResponse parses an HTTP response from a PostElasticKeysElasticKeyIDSignWithResponse call
 func ParsePostElasticKeysElasticKeyIDSignResponse(rsp *http.Response) (*PostElasticKeysElasticKeyIDSignResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -3785,6 +4583,41 @@ func ParsePostElasticKeysElasticKeyIDVerifyResponse(rsp *http.Response) (*PostEl
 	return response, nil
 }
 
+// ParseGetJwksResponse parses an HTTP response from a GetJwksWithResponse call
+func ParseGetJwksResponse(rsp *http.Response) (*GetJwksResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetJwksResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Keys *[]map[string]any `json:"keys,omitempty"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest externalRef0.HTTP500InternalServerError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseGetMaterialKeysResponse parses an HTTP response from a GetMaterialKeysWithResponse call
 func ParseGetMaterialKeysResponse(rsp *http.Response) (*GetMaterialKeysResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -3874,104 +4707,250 @@ func ParseGetMaterialKeysResponse(rsp *http.Response) (*GetMaterialKeysResponse,
 	return response, nil
 }
 
+// ParseGetMessagesResponse parses an HTTP response from a GetMessagesWithResponse call
+func ParseGetMessagesResponse(rsp *http.Response) (*GetMessagesResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetMessagesResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []map[string]any
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest externalRef0.HTTP400BadRequest
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest externalRef0.HTTP500InternalServerError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetMessagesReceiveResponse parses an HTTP response from a GetMessagesReceiveWithResponse call
+func ParseGetMessagesReceiveResponse(rsp *http.Response) (*GetMessagesReceiveResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetMessagesReceiveResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParsePostMessagesSendResponse parses an HTTP response from a PostMessagesSendWithResponse call
+func ParsePostMessagesSendResponse(rsp *http.Response) (*PostMessagesSendResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &PostMessagesSendResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseDeleteMessagesMessageIDResponse parses an HTTP response from a DeleteMessagesMessageIDWithResponse call
+func ParseDeleteMessagesMessageIDResponse(rsp *http.Response) (*DeleteMessagesMessageIDResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &DeleteMessagesMessageIDResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest externalRef0.HTTP400BadRequest
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest externalRef0.HTTP500InternalServerError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetMessagesMessageIDResponse parses an HTTP response from a GetMessagesMessageIDWithResponse call
+func ParseGetMessagesMessageIDResponse(rsp *http.Response) (*GetMessagesMessageIDResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetMessagesMessageIDResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest map[string]any
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest externalRef0.HTTP404NotFound
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	}
+
+	return response, nil
+}
+
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
+	"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",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

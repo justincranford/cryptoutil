@@ -19,8 +19,6 @@ func TestClassifyDeployment(t *testing.T) {
 		input    string
 		expected string
 	}{
-		{name: "service jose-ja", input: cryptoutilSharedMagic.OTLPServiceJoseJA, expected: DeploymentTypeProductService},
-		{name: "service sm-im", input: cryptoutilSharedMagic.OTLPServiceSMIM, expected: DeploymentTypeProductService},
 		{name: "service pki-ca", input: cryptoutilSharedMagic.OTLPServicePKICA, expected: DeploymentTypeProductService},
 		{name: "service sm-kms", input: cryptoutilSharedMagic.OTLPServiceSMKMS, expected: DeploymentTypeProductService},
 		{name: "service identity-authz", input: cryptoutilSharedMagic.OTLPServiceIdentityAuthz, expected: DeploymentTypeProductService},
@@ -32,7 +30,6 @@ func TestClassifyDeployment(t *testing.T) {
 		{name: "product identity", input: cryptoutilSharedMagic.IdentityProductName, expected: DeploymentTypeProduct},
 		{name: "product sm", input: cryptoutilSharedMagic.SMProductName, expected: DeploymentTypeProduct},
 		{name: "product pki", input: cryptoutilSharedMagic.PKIProductName, expected: DeploymentTypeProduct},
-		{name: "product jose", input: cryptoutilSharedMagic.JoseProductName, expected: DeploymentTypeProduct},
 		{name: "product skeleton", input: cryptoutilSharedMagic.SkeletonProductName, expected: DeploymentTypeProduct},
 		{name: "suite cryptoutil", input: cryptoutilSharedMagic.DefaultOTLPServiceDefault, expected: DeploymentTypeSuite},
 		{name: cryptoutilSharedMagic.SkeletonTemplateServiceName, input: cryptoutilSharedMagic.SkeletonTemplateServiceName, expected: DeploymentTypeTemplate},
@@ -58,7 +55,7 @@ func TestDiscoverDeploymentDirs(t *testing.T) {
 		t.Parallel()
 
 		dir := t.TempDir()
-		require.NoError(t, os.MkdirAll(filepath.Join(dir, cryptoutilSharedMagic.OTLPServiceJoseJA), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+		require.NoError(t, os.MkdirAll(filepath.Join(dir, cryptoutilSharedMagic.OTLPServiceSMKMS), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 		require.NoError(t, os.MkdirAll(filepath.Join(dir, cryptoutilSharedMagic.IdentityProductName), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 		require.NoError(t, os.MkdirAll(filepath.Join(dir, cryptoutilSharedMagic.DefaultOTLPServiceDefault), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 		require.NoError(t, os.MkdirAll(filepath.Join(dir, "shared-postgres"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
@@ -72,7 +69,7 @@ func TestDiscoverDeploymentDirs(t *testing.T) {
 			nameMap[d.name] = d.level
 		}
 
-		require.Equal(t, DeploymentTypeProductService, nameMap[cryptoutilSharedMagic.OTLPServiceJoseJA])
+		require.Equal(t, DeploymentTypeProductService, nameMap[cryptoutilSharedMagic.OTLPServiceSMKMS])
 		require.Equal(t, DeploymentTypeProduct, nameMap[cryptoutilSharedMagic.IdentityProductName])
 		require.Equal(t, DeploymentTypeSuite, nameMap[cryptoutilSharedMagic.DefaultOTLPServiceDefault])
 		require.Equal(t, DeploymentTypeInfrastructure, nameMap["shared-postgres"])
@@ -219,8 +216,8 @@ func TestFormatAllValidationResult(t *testing.T) {
 		r := &AllValidationResult{
 			Results: []ValidatorResult{
 				{Name: "naming", Target: "deployments", Passed: true, Duration: cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Millisecond},
-				{Name: "ports", Target: "deployments/jose-ja", Passed: false, Duration: cryptoutilSharedMagic.MaxErrorDisplay * time.Millisecond},
-				{Name: "admin", Target: "deployments/sm-im", Passed: false, Duration: 15 * time.Millisecond},
+				{Name: "ports", Target: "deployments/pki-ca", Passed: false, Duration: cryptoutilSharedMagic.MaxErrorDisplay * time.Millisecond},
+				{Name: "admin", Target: "deployments/sm-kms", Passed: false, Duration: 15 * time.Millisecond},
 			},
 			TotalDuration: 45 * time.Millisecond,
 		}
@@ -233,8 +230,8 @@ func TestFormatAllValidationResult(t *testing.T) {
 		require.Contains(t, output, "Failed:   2")
 		require.Contains(t, output, "VALIDATION FAILED")
 		require.Contains(t, output, "Failed validators:")
-		require.Contains(t, output, "- ports (deployments/jose-ja)")
-		require.Contains(t, output, "- admin (deployments/sm-im)")
+		require.Contains(t, output, "- ports (deployments/pki-ca)")
+		require.Contains(t, output, "- admin (deployments/sm-kms)")
 		require.NotContains(t, output, "ALL VALIDATORS PASSED")
 	})
 
@@ -270,10 +267,10 @@ func TestValidateAll_WithDeployments(t *testing.T) {
 	configsDir := t.TempDir()
 
 	// Create a service deployment with compose.yml.
-	svcDir := filepath.Join(deploymentsDir, cryptoutilSharedMagic.OTLPServiceJoseJA)
+	svcDir := filepath.Join(deploymentsDir, cryptoutilSharedMagic.OTLPServicePKICA)
 	require.NoError(t, os.MkdirAll(filepath.Join(svcDir, "secrets"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 	require.NoError(t, os.MkdirAll(filepath.Join(svcDir, "config"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
-	require.NoError(t, os.WriteFile(filepath.Join(svcDir, "compose.yml"), []byte("services:\n  jose-ja:\n    image: test\n"), cryptoutilSharedMagic.CacheFilePermissions))
+	require.NoError(t, os.WriteFile(filepath.Join(svcDir, "compose.yml"), []byte("services:\n  pki-ca:\n    image: test\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
 	// Create a config file.
 	require.NoError(t, os.WriteFile(filepath.Join(configsDir, "test.yml"), []byte("bind-public-port: 8080\n"), cryptoutilSharedMagic.CacheFilePermissions))

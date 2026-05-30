@@ -292,19 +292,19 @@ func TestValidateAdmin_ConfigUnreadableFile(t *testing.T) {
 func TestValidateAdmin_RealSmIM(t *testing.T) {
 	t.Parallel()
 
-	deploymentDir := filepath.Join("testdata", "deployments", cryptoutilSharedMagic.OTLPServiceSMIM)
+	deploymentDir := filepath.Join("testdata", "deployments", cryptoutilSharedMagic.OTLPServiceSMKMS)
 	if _, err := os.Stat(deploymentDir); err != nil {
-		deploymentDir = filepath.Join("..", "..", "..", "..", "deployments", cryptoutilSharedMagic.OTLPServiceSMIM)
+		deploymentDir = filepath.Join("..", "..", "..", "..", "deployments", cryptoutilSharedMagic.OTLPServiceSMKMS)
 	}
 
 	if _, err := os.Stat(deploymentDir); err != nil {
-		t.Skip("Real sm-im deployment not found")
+		t.Skip("Real sm-kms deployment not found")
 	}
 
 	result, err := ValidateAdmin(deploymentDir)
 	require.NoError(t, err)
 	require.NotNil(t, result)
-	assert.True(t, result.Valid, "Real sm-im admin validation failed: %v", result.Errors)
+	assert.True(t, result.Valid, "Real sm-kms admin validation failed: %v", result.Errors)
 }
 
 func TestFormatAdminValidationResult(t *testing.T) {

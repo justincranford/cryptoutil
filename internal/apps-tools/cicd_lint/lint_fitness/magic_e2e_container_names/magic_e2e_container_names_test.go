@@ -70,22 +70,22 @@ func TestCheckInDir_AllCorrect(t *testing.T) {
 
 	tmpDir := t.TempDir()
 
-	// Write magic_sm_im.go with correct container constants for sm-im.
-	writeMagicFile(t, tmpDir, "magic_sm_im.go", correctMagicSource(cryptoutilSharedMagic.OTLPServiceSMIM))
+	// Write magic_sm.go with correct container constants for sm-kms.
+	writeMagicFile(t, tmpDir, "magic_sm.go", correctMagicSource(cryptoutilSharedMagic.OTLPServiceSMKMS))
 
 	// The test uses only the magic files referenced by the registry — inject a minimal registry
 	// by specifying the MagicFile name that the checker will scan.
 	// Because the checker iterates the real registry, fake magic files must match one of the
 	// MagicFile names in the registry and contain valid constants.
-	// We only write magic_sm_im.go containing sm-im constants; all other PS will either find no
+	// We only write magic_sm_im.go containing sm-kms constants; all other PS will either find no
 	// *E2ESQLiteContainer constant (identity, pki-ca) or their magic file won't exist, causing an error.
 	// Instead, write all required magic files with NO E2ESQLiteContainer to pass cleanly.
-	for _, mf := range []string{"magic_identity.go", "magic_jose.go", "magic_skeleton.go", "magic_sm.go", "magic_pki.go"} {
+	for _, mf := range []string{"magic_identity.go", "magic_jose.go", "magic_skeleton.go", "magic_pki.go"} {
 		writeMagicFile(t, tmpDir, mf, "package magic\nconst (\n)\n")
 	}
 
-	// Replace magic_sm_im.go with correct content.
-	writeMagicFile(t, tmpDir, "magic_sm_im.go", correctMagicSource(cryptoutilSharedMagic.OTLPServiceSMIM))
+	// Replace magic_sm.go with correct content.
+	writeMagicFile(t, tmpDir, "magic_sm.go", correctMagicSource(cryptoutilSharedMagic.OTLPServiceSMKMS))
 
 	err := lintFitnessMagicE2EContainerNames.CheckInDir(newTestLogger(), tmpDir)
 	require.NoError(t, err)
@@ -97,21 +97,21 @@ func TestCheckInDir_WrongSQLiteContainer(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	// Write all magic files with no E2E constants.
-	for _, mf := range []string{"magic_identity.go", "magic_jose.go", "magic_skeleton.go", "magic_sm.go", "magic_pki.go", "magic_sm_im.go"} {
+	for _, mf := range []string{"magic_identity.go", "magic_jose.go", "magic_skeleton.go", "magic_sm.go", "magic_pki.go"} {
 		writeMagicFile(t, tmpDir, mf, "package magic\nconst (\n)\n")
 	}
 
-	// Write sm-im with wrong SQLite container name.
+	// Write sm-kms with wrong SQLite container name.
 	wrongSrc := "package magic\nconst (\n" +
 		"	IME2ESQLiteContainer = \"wrong-value\"\n" +
-		"\tIME2EPostgreSQL1Container = \"sm-im-app-postgresql-1\"\n" +
-		"\tIME2EPostgreSQL2Container = \"sm-im-app-postgresql-2\"\n" +
+		"\tIME2EPostgreSQL1Container = \"sm-kms-app-postgresql-1\"\n" +
+		"\tIME2EPostgreSQL2Container = \"sm-kms-app-postgresql-2\"\n" +
 		")\n"
-	writeMagicFile(t, tmpDir, "magic_sm_im.go", wrongSrc)
+	writeMagicFile(t, tmpDir, "magic_sm.go", wrongSrc)
 
 	err := lintFitnessMagicE2EContainerNames.CheckInDir(newTestLogger(), tmpDir)
 	require.Error(t, err)
-	assert.Contains(t, err.Error(), cryptoutilSharedMagic.OTLPServiceSMIM)
+	assert.Contains(t, err.Error(), cryptoutilSharedMagic.OTLPServiceSMKMS)
 	assert.Contains(t, err.Error(), "wrong-value")
 }
 
@@ -121,16 +121,16 @@ func TestCheckInDir_MissingPostgreSQL1Container(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	// Write all magic files with no E2E constants.
-	for _, mf := range []string{"magic_identity.go", "magic_jose.go", "magic_skeleton.go", "magic_sm.go", "magic_pki.go", "magic_sm_im.go"} {
+	for _, mf := range []string{"magic_identity.go", "magic_jose.go", "magic_skeleton.go", "magic_sm.go", "magic_pki.go"} {
 		writeMagicFile(t, tmpDir, mf, "package magic\nconst (\n)\n")
 	}
 
-	// Write sm-im with SQLite present but PostgreSQL1 missing.
+	// Write sm-kms with SQLite present but PostgreSQL1 missing.
 	partialSrc := "package magic\nconst (\n" +
-		"	IME2ESQLiteContainer = \"sm-im-app-sqlite-1\"\n" +
-		"\tIME2EPostgreSQL2Container = \"sm-im-app-postgresql-2\"\n" +
+		"	IME2ESQLiteContainer = \"sm-kms-app-sqlite-1\"\n" +
+		"\tIME2EPostgreSQL2Container = \"sm-kms-app-postgresql-2\"\n" +
 		")\n"
-	writeMagicFile(t, tmpDir, "magic_sm_im.go", partialSrc)
+	writeMagicFile(t, tmpDir, "magic_sm.go", partialSrc)
 
 	err := lintFitnessMagicE2EContainerNames.CheckInDir(newTestLogger(), tmpDir)
 	require.Error(t, err)
@@ -143,7 +143,7 @@ func TestCheckInDir_NoE2EConstants_Skipped(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	// Write all magic files with no E2E constants — all should be skipped.
-	for _, mf := range []string{"magic_identity.go", "magic_jose.go", "magic_skeleton.go", "magic_sm.go", "magic_pki.go", "magic_sm_im.go"} {
+	for _, mf := range []string{"magic_identity.go", "magic_jose.go", "magic_skeleton.go", "magic_sm.go", "magic_pki.go"} {
 		writeMagicFile(t, tmpDir, mf, "package magic\nconst (\n)\n")
 	}
 

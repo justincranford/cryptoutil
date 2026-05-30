@@ -24,7 +24,7 @@ to an Ubuntu desktop to validate exposed 17 distinct bugs — none detectable wi
 | [11](#11-named-docker-volumes-for-certs-prevented-e2e-host-access) | E2E test host could not read generated TLS certs | PS-ID compose files used named Docker volumes (`sm-kms-certs`) for cert mounts; named volumes are internal to Docker and not accessible from the host test process | `64f00d719` |
 | [12](#12-stale-tls-config-keys-in-framework-common-configs) | Deployment validator: unrecognised config keys `tls-cert-file`, `tls-key-file` in config files; E2E config parse error | Two keys left over from an earlier design iteration were present in all 10 PS-ID `*-app-framework-common.yml` files but are not parsed by `ServiceFrameworkServerSettings` | `d45d935a3` |
 | [13](#13-docker-compose-v5-field-name-violation-start_period) | `docker compose config` / `lint-compose` validation failure | `start_period:` is a Docker Compose v5 lint error; the correct key is `start-period:` (hyphenated) | `fc7827567`, `64f00d719` |
-| [14](#14-jose-ja-and-skeleton-template-e2e-env_file-path-resolution-failure) | jose-ja and skeleton-template E2E: `env_file .env.postgres: no such file or directory` | E2E compose file pointed at the PRODUCT-level compose (`jose/compose.yml`) which includes `shared-postgres/compose.yml` with `env_file: .env.postgres`; Docker Compose resolves `env_file` relative to the working directory (E2E test dir), not relative to the compose file's location | `bfdcbd5ea`, `8f7b4242f` |
+| [14](#14-sm-kms-and-skeleton-template-e2e-env_file-path-resolution-failure) | sm-kms and skeleton-template E2E: `env_file .env.postgres: no such file or directory` | E2E compose file pointed at the PRODUCT-level compose (`jose/compose.yml`) which includes `shared-postgres/compose.yml` with `env_file: .env.postgres`; Docker Compose resolves `env_file` relative to the working directory (E2E test dir), not relative to the compose file's location | `bfdcbd5ea`, `8f7b4242f` |
 | [15](#15-sm-im-e2e-postgresql-direct-connection-test-used-wrong-credentials) | `TestE2E_PostgreSQLSharedState` failed: authentication failure, DSN parse error | Test hardcoded wrong credentials (`sm_im_user:sm_im_pass` vs actual secret-derived `sm_im_database_user`), wrong database name, `sslmode=disable` (incompatible with mTLS `pg_hba.conf`), and port 5432 not exposed to host | `ad263f7f8` |
 | [16](#16-testproductpublicport_allpsids-used-wrong-port-constants) | `TestProductPublicPort_AllPSIDs` test failed with wrong expected port values | After refactoring, `E2EJoseJAPublicPort` and `E2ESkeletonTemplatePublicPort` were changed to PS-ID-level values (8200, 8900) but the test used them as proxies for PRODUCT-level ports (18200, 18900) | `4c7154c55` |
 | [17](#17-accumulated-code-quality-violations-25-golangci-lint-errors) | `golangci-lint run` reported 25 violations; CI quality gate blocked | Accumulation of gosec, noctx, and staticcheck violations introduced by new code — 11 `httptest.NewRequest` calls (noctx), deprecated ECDSA key coordinate access (staticcheck SA1019), and 13 miscellaneous gosec findings | `6e2f0b803`, `9ca3b4713` + 3 smaller fix commits |
@@ -103,7 +103,7 @@ syntax. `$SSL` was therefore expanded to an empty string before the shell ever r
 
 ### 3. Missing `shared-postgres-leader` Network Alias
 
-**Symptom**: All app containers (sm-kms, sm-im, jose-ja, etc.) failed to start with PostgreSQL
+**Symptom**: All app containers (sm-kms, sm-im, sm-kms, etc.) failed to start with PostgreSQL
 connection errors. Docker networking logs showed the hostname `shared-postgres-leader` was
 unresolvable.
 
@@ -254,7 +254,7 @@ accidental overwrites.
 
 ### 9. E2E HTTP Client TLS Verification Failure
 
-**Symptom**: E2E test suites (sm-kms, sm-im, jose-ja, skeleton-template) failed in `TestMain`
+**Symptom**: E2E test suites (sm-kms, sm-im, sm-kms, skeleton-template) failed in `TestMain`
 when establishing the HTTPS client used for all subsequent test requests.
 
 **Root Cause**: The E2E `TestMain` functions called `NewClientForTestWithCA(caCertPath)`, which
@@ -376,9 +376,9 @@ SSL removal) in the same pass.
 
 ---
 
-### 14. jose-ja and skeleton-template E2E: `env_file` Path Resolution Failure
+### 14. sm-kms and skeleton-template E2E: `env_file` Path Resolution Failure
 
-**Symptom**: `jose-ja` and `skeleton-template` E2E test suites failed at Docker Compose startup:
+**Symptom**: `sm-kms` and `skeleton-template` E2E test suites failed at Docker Compose startup:
 ```
 env_file .env.postgres: no such file or directory
 ```
@@ -392,15 +392,15 @@ env_file: .env.postgres
 ```
 Docker Compose resolves `env_file` paths **relative to the process working directory** (the E2E
 test's temp dir), NOT relative to the compose file's directory. The working directory when running
-these E2E tests was `internal/apps/jose-ja/e2e/`, where `.env.postgres` does not exist.
+these E2E tests was `internal/apps/sm-kms/e2e/`, where `.env.postgres` does not exist.
 
-**Fix** (`bfdcbd5ea` for jose-ja, `8f7b4242f` for skeleton-template): Changed the E2E compose
-file constant to point at the PS-ID-level compose (`deployments/jose-ja/compose.yml`) instead of
+**Fix** (`bfdcbd5ea` for sm-kms, `8f7b4242f` for skeleton-template): Changed the E2E compose
+file constant to point at the PS-ID-level compose (`deployments/sm-kms/compose.yml`) instead of
 the PRODUCT-level compose. Updated port constants from PRODUCT-level values (18200–18203,
 18900–18903) to PS-ID-level values (8200–8203, 8900–8903).
 
 **Files changed**:
-- `internal/apps/jose-ja/e2e/testmain_jose_ja_e2e_test.go`
+- `internal/apps/sm-kms/e2e/testmain_jose_ja_e2e_test.go`
 - `internal/shared/magic/magic_jose.go`
 - `internal/apps/skeleton-template/e2e/testmain_skeleton_template_e2e_test.go`
 - `internal/shared/magic/magic_skeleton.go`
@@ -440,7 +440,7 @@ Also removed unused imports `database/sql` and `github.com/lib/pq`.
 ### 16. `TestProductPublicPort_AllPSIDs` Used Wrong Port Constants
 
 **Symptom**: The unit test `TestProductPublicPort_AllPSIDs` in the port validation package failed
-with wrong expected values for jose-ja and skeleton-template product ports.
+with wrong expected values for sm-kms and skeleton-template product ports.
 
 **Root Cause**: After the E2E compose file fixes (issue 14), the constants
 `E2EJoseJAPublicPort` and `E2ESkeletonTemplatePublicPort` were updated to PS-ID-level port values
@@ -493,7 +493,7 @@ Additionally resolved 3 smaller pre-existing violations discovered in the same p
   constant
 - `03b2a0e05`: Stale extra blank line in framework-common config files
 
-**Files changed**: 21 files across framework, identity-idp, jose-ja, pki-ca, shared/crypto,
+**Files changed**: 21 files across framework, identity-idp, sm-kms, pki-ca, shared/crypto,
 shared/pool, and cicd_lint packages.
 
 ---

@@ -10,7 +10,7 @@
 //   - {PS-ID}-app-postgresql-1.yml   -> {PS-ID}-postgresql-1
 //   - {PS-ID}-app-postgresql-2.yml   -> {PS-ID}-postgresql-2
 //
-// Only sm-im and sm-kms are in the allowlist.
+// Only sm-kms is in the allowlist.
 // The check is registry-driven: it uses the canonical PS registry to determine
 // which product-services to validate, rather than scanning the filesystem.
 package standalone_config_otlp_names
@@ -46,7 +46,6 @@ var otlpConfigRules = []configRule{
 
 // configAllowlist is the set of PS IDs whose standalone configs are validated.
 var configAllowlist = map[string]bool{
-	cryptoutilSharedMagic.OTLPServiceSMIM:  true,
 	cryptoutilSharedMagic.OTLPServiceSMKMS: true,
 }
 

@@ -28,15 +28,15 @@ func TestCheckHostPortRangesInFile_InvalidPorts(t *testing.T) {
 
 	composeFile := filepath.Join(tempDir, "compose.yml")
 	err := os.WriteFile(composeFile, []byte(`services:
-  sm-im:
+  sm-kms:
     ports:
-      - "8070:8700"
+      - "8443:8000"
 `), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	violations := CheckHostPortRangesInFile(composeFile)
 	require.Len(t, violations, 1)
-	require.Equal(t, uint16(8070), violations[0].Port)
+	require.Equal(t, uint16(8443), violations[0].Port)
 	require.Contains(t, violations[0].Reason, "outside valid range")
 }
 
@@ -47,9 +47,9 @@ func TestCheckHostPortRangesInFile_TopLevelReset(t *testing.T) {
 
 	composeFile := filepath.Join(tempDir, "compose.yml")
 	err := os.WriteFile(composeFile, []byte(`services:
-  sm-im:
+	sm-kms:
     ports:
-      - "8100:8100"
+			- "8000:8000"
 networks:
   default:
     driver: bridge
@@ -85,9 +85,9 @@ func TestCheckHostPortRangesInFile_ValidPorts(t *testing.T) {
 
 	composeFile := filepath.Join(tempDir, "compose.yml")
 	err := os.WriteFile(composeFile, []byte(`services:
-  sm-im:
+  sm-kms:
     ports:
-      - "8100:8100"
+      - "8000:8000"
       - "9090:9090"
 `), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
@@ -105,11 +105,9 @@ func TestGetServiceConfig(t *testing.T) {
 		wantNil     bool
 		wantName    string
 	}{
-		{name: "exact match sm-im", serviceName: cryptoutilSharedMagic.OTLPServiceSMIM, wantNil: false, wantName: cryptoutilSharedMagic.OTLPServiceSMIM},
-		{name: "exact match jose-ja", serviceName: cryptoutilSharedMagic.OTLPServiceJoseJA, wantNil: false, wantName: cryptoutilSharedMagic.OTLPServiceJoseJA},
 		{name: "exact match sm-kms", serviceName: cryptoutilSharedMagic.OTLPServiceSMKMS, wantNil: false, wantName: cryptoutilSharedMagic.OTLPServiceSMKMS},
-		{name: "prefix match sm-im-postgres", serviceName: "sm-im-postgres", wantNil: false, wantName: cryptoutilSharedMagic.OTLPServiceSMIM},
-		{name: "prefix match jose-ja-sqlite", serviceName: "jose-ja-sqlite", wantNil: false, wantName: cryptoutilSharedMagic.OTLPServiceJoseJA},
+		{name: "prefix match sm-kms-postgres", serviceName: "sm-kms-postgres", wantNil: false, wantName: cryptoutilSharedMagic.OTLPServiceSMKMS},
+		{name: "prefix match pki-ca-sqlite", serviceName: "pki-ca-sqlite", wantNil: false, wantName: cryptoutilSharedMagic.OTLPServicePKICA},
 		{name: "unknown service", serviceName: "unknown-service", wantNil: true, wantName: ""},
 		{name: "empty string", serviceName: "", wantNil: true, wantName: ""},
 	}
@@ -133,9 +131,9 @@ func TestIsPortInValidRange(t *testing.T) {
 	t.Parallel()
 
 	smIMConfig := &lintPortsCommon.ServicePortConfig{
-		Name:        cryptoutilSharedMagic.OTLPServiceSMIM,
-		PublicPorts: []uint16{cryptoutilSharedMagic.IMServicePort, cryptoutilSharedMagic.IME2EPostgreSQL1PublicPort, cryptoutilSharedMagic.IME2EPostgreSQL2PublicPort},
-		AdminPort:   cryptoutilSharedMagic.JoseJAAdminPort,
+		Name:        cryptoutilSharedMagic.OTLPServiceSMKMS,
+		PublicPorts: []uint16{cryptoutilSharedMagic.KMSServicePort, cryptoutilSharedMagic.KMSE2EPostgreSQL1PublicPort, cryptoutilSharedMagic.KMSE2EPostgreSQL2PublicPort},
+		AdminPort:   cryptoutilSharedMagic.DefaultPrivatePortCryptoutil,
 	}
 
 	tests := []struct {
@@ -144,14 +142,14 @@ func TestIsPortInValidRange(t *testing.T) {
 		cfg  *lintPortsCommon.ServicePortConfig
 		want bool
 	}{
-		{name: "public port cryptoutilSharedMagic.IMServicePort", port: cryptoutilSharedMagic.IMServicePort, cfg: smIMConfig, want: true},
-		{name: "public port cryptoutilSharedMagic.IME2EPostgreSQL1PublicPort", port: cryptoutilSharedMagic.IME2EPostgreSQL1PublicPort, cfg: smIMConfig, want: true},
-		{name: "public port cryptoutilSharedMagic.IME2EPostgreSQL2PublicPort", port: cryptoutilSharedMagic.IME2EPostgreSQL2PublicPort, cfg: smIMConfig, want: true},
+		{name: "public port cryptoutilSharedMagic.KMSServicePort", port: cryptoutilSharedMagic.KMSServicePort, cfg: smIMConfig, want: true},
+		{name: "public port cryptoutilSharedMagic.KMSE2EPostgreSQL1PublicPort", port: cryptoutilSharedMagic.KMSE2EPostgreSQL1PublicPort, cfg: smIMConfig, want: true},
+		{name: "public port cryptoutilSharedMagic.KMSE2EPostgreSQL2PublicPort", port: cryptoutilSharedMagic.KMSE2EPostgreSQL2PublicPort, cfg: smIMConfig, want: true},
 		{name: "admin port cryptoutilSharedMagic.JoseJAAdminPort", port: cryptoutilSharedMagic.IdentityDefaultAuthZAdminPort, cfg: smIMConfig, want: true},
-		{name: "range port 8150", port: 8150, cfg: smIMConfig, want: true},                                                                                                       // In range 8100-8199
-		{name: "range port 8199", port: 8199, cfg: smIMConfig, want: true},                                                                                                       // Last in range
-		{name: "out of range cryptoutilSharedMagic.JoseJAServicePort", port: cryptoutilSharedMagic.JoseJAServicePort, cfg: smIMConfig, want: false},                              // Out of range (jose-ja territory)
-		{name: "out of range 8060", port: 8060, cfg: smIMConfig, want: false},                                                                                                    // Legacy jose-ja port
+		{name: "range port 8050", port: 8050, cfg: smIMConfig, want: true},                                                                                                       // In range 8000-8099
+		{name: "range port 8099", port: 8099, cfg: smIMConfig, want: true},                                                                                                       // Last in range
+		{name: "out of range cryptoutilSharedMagic.PKICAServicePort", port: cryptoutilSharedMagic.PKICAServicePort, cfg: smIMConfig, want: false},                                // Out of range (pki-ca territory)
+		{name: "range port 8060", port: 8060, cfg: smIMConfig, want: true},                                                                                                       // In range 8000-8099
 		{name: "legacy port cryptoutilSharedMagic.DefaultPublicPortInternalMetrics", port: cryptoutilSharedMagic.DefaultPublicPortInternalMetrics, cfg: smIMConfig, want: false}, // Legacy
 	}
 
@@ -172,9 +170,9 @@ func TestLintHostPortRanges_NoViolations(t *testing.T) {
 
 	composeFile := filepath.Join(tempDir, "compose.yml")
 	err := os.WriteFile(composeFile, []byte(`services:
-  jose-ja:
+  sm-kms:
     ports:
-      - "8200:8200"
+      - "8000:8000"
       - "9090:9090"
 `), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
@@ -195,7 +193,7 @@ func TestLintHostPortRanges_WithViolations(t *testing.T) {
 
 	composeFile := filepath.Join(tempDir, "compose.yml")
 	err := os.WriteFile(composeFile, []byte(`services:
-  jose-ja:
+  sm-kms:
     ports:
       - "9443:8800"
 `), cryptoutilSharedMagic.CacheFilePermissions)
@@ -239,9 +237,9 @@ func TestCheckHostPortRangesInFile_PortParseUintError(t *testing.T) {
 	// Port 99999 exceeds uint16 max (65535), so ParseUint with bitSize=16 will fail.
 	composeFile := filepath.Join(tempDir, "compose.yml")
 	err := os.WriteFile(composeFile, []byte(`services:
-  sm-im:
+  sm-kms:
     ports:
-      - "99999:8700"
+			- "99999:8000"
 `), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 

@@ -19,7 +19,7 @@ Canonical PS-ID app instance names:
 Canonical tier IDs:
 - SUITE: `cryptoutil`
 - PRODUCT: `sm`, `jose`, `pki`, `identity`, `skeleton`
-- PS-ID: `sm-kms`, `sm-im`, `jose-ja`, `pki-ca`, `identity-authz`, `identity-idp`, `identity-rs`, `identity-rp`, `identity-spa`, `skeleton-template`
+- PS-ID: `sm-kms`, `sm-im`, `sm-kms`, `pki-ca`, `identity-authz`, `identity-idp`, `identity-rs`, `identity-rp`, `identity-spa`, `skeleton-template`
 
 ## PKI INIT
 
@@ -35,7 +35,7 @@ All output files are created under `TARGET-DIRECTORY/PKI-INIT-DOMAIN/`. If that 
 |------|--------|
 | Suite | `cryptoutil` |
 | Product | `sm`, `jose`, `pki`, `identity`, `skeleton` |
-| PS-ID | `sm-kms`, `sm-im`, `jose-ja`, `pki-ca`, `identity-authz`, `identity-idp`, `identity-rs`, `identity-rp`, `identity-spa`, `skeleton-template` |
+| PS-ID | `sm-kms`, `sm-im`, `sm-kms`, `pki-ca`, `identity-authz`, `identity-idp`, `identity-rs`, `identity-rp`, `identity-spa`, `skeleton-template` |
 
 Examples:
 1. `pki-init cryptoutil        /certs`   → output: `/certs/cryptoutil/` (suite scope, 630 dirs)

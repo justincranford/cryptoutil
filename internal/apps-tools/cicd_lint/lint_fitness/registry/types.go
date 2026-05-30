@@ -64,7 +64,7 @@ type RegistryProductService struct {
 	// APIResources lists the canonical OpenAPI path strings for this service's API.
 	APIResources []string `yaml:"api_resources"`
 	// Entrypoint is the canonical Dockerfile ENTRYPOINT arguments for this PS-ID.
-	// Example: ["/app/jose-ja"] or ["/sbin/tini", "--", "/app/cryptoutil", "identity-authz", "start"].
+	// Example: ["/app/sm-kms"] or ["/sbin/tini", "--", "/app/cryptoutil", "identity-authz", "start"].
 	Entrypoint []string `yaml:"entrypoint"`
 	// GoTemplateParams holds Go source-code-specific placeholder values used to compare
 	// internal/apps/__PS_ID__/ source files against their canonical templates.

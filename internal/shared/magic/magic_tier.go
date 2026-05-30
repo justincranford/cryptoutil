@@ -6,16 +6,15 @@ package magic
 
 // ProductToPSIDs maps product IDs to their constituent PS-IDs.
 var ProductToPSIDs = map[string][]string{
-	SMProductName:       {OTLPServiceSMKMS, OTLPServiceSMIM},
-	JoseProductName:     {OTLPServiceJoseJA},
+	SMProductName:       {OTLPServiceSMKMS},
 	PKIProductName:      {OTLPServicePKICA},
 	IdentityProductName: {OTLPServiceIdentityAuthz, OTLPServiceIdentityIDP, OTLPServiceIdentityRS, OTLPServiceIdentityRP, OTLPServiceIdentitySPA},
 	SkeletonProductName: {OTLPServiceSkeletonTemplate},
 }
 
-// AllPSIDs is the ordered list of all 10 PS-IDs in the suite.
+// AllPSIDs is the ordered list of all 8 PS-IDs in the suite.
 var AllPSIDs = []string{
-	OTLPServiceSMKMS, OTLPServiceSMIM, OTLPServiceJoseJA, OTLPServicePKICA,
+	OTLPServiceSMKMS, OTLPServicePKICA,
 	OTLPServiceIdentityAuthz, OTLPServiceIdentityIDP, OTLPServiceIdentityRS, OTLPServiceIdentityRP, OTLPServiceIdentitySPA,
 	OTLPServiceSkeletonTemplate,
 }

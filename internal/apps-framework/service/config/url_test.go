@@ -23,7 +23,7 @@ func TestPrivateBaseURL(t *testing.T) {
 			settings: ServiceFrameworkServerSettings{
 				BindPrivateProtocol: cryptoutilSharedMagic.ProtocolHTTPS,
 				BindPrivateAddress:  cryptoutilSharedMagic.DefaultOTLPHostnameDefault,
-				BindPrivatePort:     cryptoutilSharedMagic.JoseJAAdminPort,
+				BindPrivatePort:     cryptoutilSharedMagic.TestAdminPort,
 			},
 			expected: "https://localhost:9090",
 		},
@@ -80,7 +80,7 @@ func TestPublicBaseURL(t *testing.T) {
 			settings: ServiceFrameworkServerSettings{
 				BindPublicProtocol: cryptoutilSharedMagic.ProtocolHTTP,
 				BindPublicAddress:  cryptoutilSharedMagic.IPv4AnyAddress,
-				BindPublicPort:     cryptoutilSharedMagic.JoseJAE2EGrafanaPort,
+				BindPublicPort:     cryptoutilSharedMagic.DefaultPublicPortGrafana,
 			},
 			expected: "http://0.0.0.0:3000",
 		},

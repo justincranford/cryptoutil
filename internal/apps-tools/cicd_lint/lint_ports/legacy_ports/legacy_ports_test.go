@@ -22,11 +22,10 @@ func TestGetServiceForLegacyPort(t *testing.T) {
 		port uint16
 		want string
 	}{
-		{name: "sm-im cryptoutilSharedMagic.DefaultPublicPortInternalMetrics", port: cryptoutilSharedMagic.DefaultPublicPortInternalMetrics, want: cryptoutilSharedMagic.OTLPServiceSMIM},
-		{name: "sm-im cryptoutilSharedMagic.PortOtelCollectorReceivedMetrics", port: cryptoutilSharedMagic.PortOtelCollectorReceivedMetrics, want: cryptoutilSharedMagic.OTLPServiceSMIM},
-		{name: "sm-im 8890", port: 8890, want: cryptoutilSharedMagic.OTLPServiceSMIM},
-		{name: "jose-ja 9443", port: 9443, want: cryptoutilSharedMagic.OTLPServiceJoseJA},
-		{name: "jose-ja 8092", port: 8092, want: cryptoutilSharedMagic.OTLPServiceJoseJA},
+		{name: "sm-kms 8081", port: cryptoutilSharedMagic.TestIDPServerPort, want: cryptoutilSharedMagic.OTLPServiceSMKMS},
+		{name: "sm-kms 8082", port: cryptoutilSharedMagic.TestResourceServerPort, want: cryptoutilSharedMagic.OTLPServiceSMKMS},
+		{name: "pki-ca 9443", port: 9443, want: cryptoutilSharedMagic.OTLPServicePKICA},
+		{name: "pki-ca 8092", port: 8092, want: cryptoutilSharedMagic.OTLPServicePKICA},
 		{name: "pki-ca 8443", port: 8443, want: cryptoutilSharedMagic.OTLPServicePKICA},
 		{name: "unknown port", port: 12345, want: "unknown"},
 	}
@@ -57,8 +56,8 @@ func TestCheck_WithGoFileContainingLegacyPort(t *testing.T) {
 	tmpDir := t.TempDir()
 	goFile := filepath.Join(tmpDir, "server.go")
 
-	// Write a Go file that contains a legacy port number (8888 used by sm-im).
-	content := "package main\nconst port = 8888\n"
+	// Write a Go file that contains a legacy port number (8081 used by sm-kms).
+	content := "package main\nconst port = 8081\n"
 	require.NoError(t, os.WriteFile(goFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions))
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
@@ -97,7 +96,7 @@ func TestCheckFile_WithLegacyPort(t *testing.T) {
 	tmpDir := t.TempDir()
 	goFile := filepath.Join(tmpDir, "handler.go")
 
-	// Port 9443 belongs to jose-ja range.
+	// Port 9443 belongs to pki-ca legacy range.
 	content := "package main\nconst tlsPort = 9443\n"
 	require.NoError(t, os.WriteFile(goFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions))
 
@@ -175,7 +174,7 @@ func TestCheckFile_OtelPortInOtelContext(t *testing.T) {
 
 	tmpDir := t.TempDir()
 	// OtelCollectorPorts are {8888, 8889}. Use 8888 in an OTEL-related path
-	// to trigger the OTEL continue (prevents false positive for 8888).
+	// to verify OTEL collector ports are tolerated in OTEL context.
 	otelDir := filepath.Join(tmpDir, "otel-collector-config")
 	require.NoError(t, os.MkdirAll(otelDir, 0o700))
 	otelFile := filepath.Join(otelDir, "config.yml")
@@ -184,8 +183,7 @@ func TestCheckFile_OtelPortInOtelContext(t *testing.T) {
 	require.NoError(t, os.WriteFile(otelFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions))
 
 	violations := CheckFile(otelFile, lintPortsCommon.AllLegacyPorts(), legacyPortPattern.FindAllStringSubmatch)
-	// 8888 is both an OTEL collector port AND a legacy sm-im port.
-	// In an OTEL-related file, the OTEL continue fires and no violation is flagged.
+	// 8888 is an OTEL collector port and should never be flagged in OTEL context.
 	require.Empty(t, violations, "8888 in OTEL context should be skipped")
 }
 

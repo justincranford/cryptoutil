@@ -15,7 +15,7 @@
 //   - {PS-ID}-app-domain-postgresql-1.yml
 //   - {PS-ID}-app-domain-postgresql-2.yml
 //
-// Only sm-im and sm-kms are in the allowlist.
+// Only sm-kms is in the allowlist.
 // Other product-services do not use the standardized standalone config layout.
 package standalone_config_presence
 
@@ -46,7 +46,6 @@ var configFileSuffixes = []string{
 
 // configAllowlist is the set of PS IDs that must have the required config files.
 var configAllowlist = map[string]bool{
-	cryptoutilSharedMagic.OTLPServiceSMIM:  true,
 	cryptoutilSharedMagic.OTLPServiceSMKMS: true,
 }
 

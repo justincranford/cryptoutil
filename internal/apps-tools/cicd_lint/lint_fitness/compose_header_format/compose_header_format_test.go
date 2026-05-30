@@ -89,11 +89,11 @@ func TestCheckInDir_MissingFile(t *testing.T) {
 	setupAllComposeFiles(t, tmpDir)
 
 	// Remove one compose file.
-	require.NoError(t, os.Remove(filepath.Join(tmpDir, "deployments", cryptoutilSharedMagic.OTLPServiceSMIM, "compose.yml")))
+	require.NoError(t, os.Remove(filepath.Join(tmpDir, "deployments", cryptoutilSharedMagic.OTLPServiceSMKMS, "compose.yml")))
 
 	err := lintFitnessComposeHeaderFormat.CheckInDir(newTestLogger(), tmpDir)
 	require.Error(t, err)
-	assert.Contains(t, err.Error(), cryptoutilSharedMagic.OTLPServiceSMIM)
+	assert.Contains(t, err.Error(), cryptoutilSharedMagic.OTLPServiceSMKMS)
 }
 
 func TestCheckInDir_WrongLine3_Lowercase(t *testing.T) {
@@ -102,15 +102,15 @@ func TestCheckInDir_WrongLine3_Lowercase(t *testing.T) {
 	tmpDir := t.TempDir()
 	setupAllComposeFiles(t, tmpDir)
 
-	// Overwrite sm-im compose with lowercase line 3.
-	createComposeFile(t, tmpDir, cryptoutilSharedMagic.OTLPServiceSMIM,
-		"# "+cryptoutilSharedMagic.OTLPServiceSMIM+" Docker Compose Configuration",
+	// Overwrite sm-kms compose with lowercase line 3.
+	createComposeFile(t, tmpDir, cryptoutilSharedMagic.OTLPServiceSMKMS,
+		"# "+cryptoutilSharedMagic.OTLPServiceSMKMS+" Docker Compose Configuration",
 		"# SERVICE-level deployment for Secrets Manager Instant Messenger.",
 	)
 
 	err := lintFitnessComposeHeaderFormat.CheckInDir(newTestLogger(), tmpDir)
 	require.Error(t, err)
-	assert.Contains(t, err.Error(), cryptoutilSharedMagic.OTLPServiceSMIM)
+	assert.Contains(t, err.Error(), cryptoutilSharedMagic.OTLPServiceSMKMS)
 	assert.Contains(t, err.Error(), "line 3")
 }
 
@@ -138,8 +138,8 @@ func TestCheckInDir_TooFewLines(t *testing.T) {
 	tmpDir := t.TempDir()
 	setupAllComposeFiles(t, tmpDir)
 
-	// Write a compose file with only 3 lines for jose-ja.
-	deployDir := filepath.Join(tmpDir, "deployments", cryptoutilSharedMagic.OTLPServiceJoseJA)
+	// Write a compose file with only 3 lines for sm-kms.
+	deployDir := filepath.Join(tmpDir, "deployments", cryptoutilSharedMagic.OTLPServiceSMKMS)
 	require.NoError(t, os.MkdirAll(deployDir, cryptoutilSharedMagic.CICDTempDirPermissions))
 	require.NoError(t, os.WriteFile(
 		filepath.Join(deployDir, "compose.yml"),
@@ -149,5 +149,5 @@ func TestCheckInDir_TooFewLines(t *testing.T) {
 
 	err := lintFitnessComposeHeaderFormat.CheckInDir(newTestLogger(), tmpDir)
 	require.Error(t, err)
-	assert.Contains(t, err.Error(), cryptoutilSharedMagic.OTLPServiceJoseJA)
+	assert.Contains(t, err.Error(), cryptoutilSharedMagic.OTLPServiceSMKMS)
 }

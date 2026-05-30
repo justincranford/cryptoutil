@@ -208,6 +208,6 @@ func printViolations(violations []lintPortsCommon.Violation) {
 	fmt.Println("   identity-rp: 8500 (was 8130-8132, 18300)")
 	fmt.Println("   identity-spa: 8600 (was 8140-8142, 18400)")
 	fmt.Println("   sm-im: 8700-8702 (was 8070-8072, 8888-8890)")
-	fmt.Println("   jose-ja: 8800 (was 8060, 9443, 8092)")
+	fmt.Println("   sm-kms: 8800 (was 8060, 9443, 8092)")
 	fmt.Println()
 }

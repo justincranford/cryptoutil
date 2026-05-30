@@ -45,10 +45,10 @@ All templates use parameterized placeholders. Values for each PS-ID are defined 
 
 ### A.1 Entity Parameters
 
-| Parameter | Description | Example (sm-kms) | Example (jose-ja) |
+| Parameter | Description | Example (sm-kms) | Example (sm-kms) |
 |-----------|-------------|-------------------|----------------------------|
 | `{SUITE}` | Suite name (always `cryptoutil`) | `cryptoutil` | `cryptoutil` |
-| `{PS-ID}` | Product-Service identifier (kebab-case) | `sm-kms` | `jose-ja` |
+| `{PS-ID}` | Product-Service identifier (kebab-case) | `sm-kms` | `sm-kms` |
 | `{PS_ID}` | Underscore variant (PostgreSQL naming) | `sm_kms` | `jose_ja` |
 | `{PRODUCT}` | Product name (kebab-case) | `sm` | `jose` |
 | `{SERVICE}` | Service name within product | `kms` | `ja` |
@@ -59,7 +59,7 @@ All templates use parameterized placeholders. Values for each PS-ID are defined 
 
 ### A.2 Port Parameters
 
-| Parameter | Description | Formula | Example (sm-kms) | Example (jose-ja) |
+| Parameter | Description | Formula | Example (sm-kms) | Example (sm-kms) |
 |-----------|-------------|---------|-------------------|--------------------|
 | `{SERVICE_APP_PORT_BASE}` | SERVICE-tier port block start | Per registry | `8000` | `8200` |
 | `{SERVICE_APP_PORT_SQLITE_1}` | SQLite instance 1 host port | `{SERVICE_APP_PORT_BASE} + 0` | `8000` | `8200` |
@@ -103,7 +103,7 @@ production).
 |-------|---------|---------|---------------------|--------------------|--------------------|--------------------|-----------------------|---------------------|
 | `sm-kms` | `sm` | `kms` | `8000` | `54320` | Secrets Manager | Key Management | `18000` | `28000` |
 | `sm-im` | `sm` | `im` | `8100` | `54321` | Secrets Manager | Instant Messenger | `18100` | `28100` |
-| `jose-ja` | `jose` | `ja` | `8200` | `54322` | JOSE | JWK Authority | `18200` | `28200` |
+| `sm-kms` | `jose` | `ja` | `8200` | `54322` | JOSE | JWK Authority | `18200` | `28200` |
 | `pki-ca` | `pki` | `ca` | `8300` | `54323` | PKI | Certificate Authority | `18300` | `28300` |
 | `identity-authz` | `identity` | `authz` | `8400` | `54324` | Identity | Authorization Server | `18400` | `28400` |
 | `identity-idp` | `identity` | `idp` | `8500` | `54325` | Identity | Provider | `18500` | `28500` |
@@ -165,7 +165,7 @@ Section B.2 below.
 |-------|-------------|------------------|------------|-------------|
 | `sm-kms` | `/app/sm-kms` | `/app/sm-kms livez` | `["/sbin/tini", "--", "/app/sm-kms"]` | `{SUITE}-sm-kms` |
 | `sm-im` | `/app/sm-im` | `/app/sm-im livez` | `["/sbin/tini", "--", "/app/sm-im"]` | `{SUITE}-sm-im` |
-| `jose-ja` | `/app/jose-ja` | `/app/jose-ja livez` | `["/sbin/tini", "--", "/app/jose-ja"]` | `{SUITE}-jose-ja` |
+| `sm-kms` | `/app/sm-kms` | `/app/sm-kms livez` | `["/sbin/tini", "--", "/app/sm-kms"]` | `{SUITE}-sm-kms` |
 | `pki-ca` | `/app/pki-ca` | `/app/pki-ca livez` | `["/sbin/tini", "--", "/app/pki-ca"]` | `{SUITE}-pki-ca` |
 | `identity-authz` | `/app/identity-authz` | `/app/identity-authz livez` | `["/sbin/tini", "--", "/app/identity-authz"]` | `{SUITE}-identity-authz` |
 | `identity-idp` | `/app/identity-idp` | `/app/identity-idp livez` | `["/sbin/tini", "--", "/app/identity-idp"]` | `{SUITE}-identity-idp` |
@@ -461,7 +461,7 @@ Three fundamentally different Dockerfile patterns exist where there MUST be exac
 | Category | Affected PS-IDs | Deviation from Template |
 |----------|----------------|------------------------|
 | **Pattern A** (sm-kms style) | sm-kms, identity-authz, identity-idp, identity-rp, identity-rs | 4-stage but: `WORKDIR /app/run`, `GOMODCACHE`/`GOCACHE` env vars, `curl` installed in final, `USER` commented out, individual `LABEL` lines |
-| **Pattern B** (jose-ja style) | jose-ja, pki-ca, skeleton-template | 3-stage (no `runtime-deps`): `adduser`-based user creation, compact `LABEL`, `CMD` with config path |
+| **Pattern B** (sm-kms style) | sm-kms, pki-ca, skeleton-template | 3-stage (no `runtime-deps`): `adduser`-based user creation, compact `LABEL`, `CMD` with config path |
 | **Pattern C** (sm-im) | sm-im | 2-stage (no `validation`): user `1000:1000` (WRONG), no BuildKit caches, no static link check |
 
 ### M.2 Specific Bugs
@@ -484,7 +484,7 @@ Three fundamentally different Dockerfile patterns exist where there MUST be exac
 
 | Convention | PS-IDs | Status |
 |------------|--------|--------|
-| **kebab-case** (CORRECT) | jose-ja, pki-ca, skeleton-template | Correct |
+| **kebab-case** (CORRECT) | sm-kms, pki-ca, skeleton-template | Correct |
 | **snake_case** (WRONG) | sm-kms, sm-im, identity-authz, identity-idp, identity-rp, identity-rs, identity-spa | Needs migration |
 
 ### M.4 Config Content Inconsistencies
@@ -493,10 +493,10 @@ Three fundamentally different Dockerfile patterns exist where there MUST be exac
 |----------|----------------|-------|
 | Deployment common config structure | sm-im | Missing TLS cert paths, missing unseal config, only has bind + credentials |
 | Deployment instance config structure | sm-im | Missing `cors-origins`, missing `otlp-hostname`, only has `otlp-service` |
-| Deployment instance config structure | jose-ja, skeleton-template | Duplicates common settings (security-headers, rate-limiting) in every instance file |
+| Deployment instance config structure | sm-kms, skeleton-template | Duplicates common settings (security-headers, rate-limiting) in every instance file |
 | Standalone config content | skeleton-template | Header says "JOSE Authority Server", OTLP service says "skeleton-template-ja" |
 | Standalone config content | sm-kms, sm-im | Uses snake_case keys (bind_address, max_open_conns, etc.) |
-| Standalone config admin port | jose-ja, skeleton-template | Uses `bind-admin-port: 9092` (should be `9090`) |
+| Standalone config admin port | sm-kms, skeleton-template | Uses `bind-admin-port: 9092` (should be `9090`) |
 
 ### M.5 Compose Inconsistencies
 
@@ -568,7 +568,7 @@ template-comparison linter is the authoritative enforcement mechanism.
 ### N.4 Enforcement Priority
 
 1. **P0 (BLOCKING)**: Fix identity-spa COPY bug (runtime failure)
-2. **P0 (BLOCKING)**: Fix skeleton-template Dockerfile (copy-paste from jose-ja)
+2. **P0 (BLOCKING)**: Fix skeleton-template Dockerfile (copy-paste from sm-kms)
 3. **P1 (HIGH)**: Create canonical template files in `api/cryptosuite-registry/templates/`
 4. **P1 (HIGH)**: Standardize all 10 Dockerfiles to canonical template
 5. **P1 (HIGH)**: Enable `USER ${CONTAINER_UID}:${CONTAINER_GID}` in all Dockerfiles (currently commented out in 5)
@@ -619,8 +619,8 @@ LABEL org.opencontainers.image.title="__SUITE__-__PS_ID__" \
       org.opencontainers.image.authors="__AUTHORS__" \
       org.opencontainers.image.description="__PRODUCT_DISPLAY_NAME__ __SERVICE_DISPLAY_NAME__"
 
-# After instantiation for jose-ja:
-LABEL org.opencontainers.image.title="cryptoutil-jose-ja" \
+# After instantiation for sm-kms:
+LABEL org.opencontainers.image.title="cryptoutil-sm-kms" \
       org.opencontainers.image.source="https://github.com/justincranford/cryptoutil" \
       org.opencontainers.image.authors="Justin Cranford" \
       org.opencontainers.image.description="JOSE JWK Authority"

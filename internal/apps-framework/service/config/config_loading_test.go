@@ -60,7 +60,7 @@ tls-private-ip-addresses:
 	require.Equal(t, cryptoutilSharedMagic.IPv4Loopback, settings.BindPublicAddress, "bind-public-address should map to BindPublicAddress")
 	require.Equal(t, uint16(cryptoutilSharedMagic.TestServerPort), settings.BindPublicPort, "bind-public-port should map to BindPublicPort")
 	require.Equal(t, cryptoutilSharedMagic.IPv4Loopback, settings.BindPrivateAddress, "bind-private-address should map to BindPrivateAddress")
-	require.Equal(t, uint16(cryptoutilSharedMagic.JoseJAAdminPort), settings.BindPrivatePort, "bind-private-port should map to BindPrivatePort")
+	require.EqualValues(t, cryptoutilSharedMagic.TestAdminPort, settings.BindPrivatePort, "bind-private-port should map to BindPrivatePort")
 }
 
 // TestYAMLFieldMapping_CamelCase tests that camelCase YAML field names (devMode, bindPublicAddress)
@@ -167,5 +167,5 @@ tls-private-ip-addresses:
 	require.Equal(t, cryptoutilSharedMagic.IPv4AnyAddress, settings.BindPublicAddress)
 	require.Equal(t, uint16(cryptoutilSharedMagic.TestServerPort), settings.BindPublicPort)
 	require.Equal(t, cryptoutilSharedMagic.IPv4Loopback, settings.BindPrivateAddress)
-	require.Equal(t, uint16(cryptoutilSharedMagic.JoseJAAdminPort), settings.BindPrivatePort)
+	require.EqualValues(t, cryptoutilSharedMagic.TestAdminPort, settings.BindPrivatePort)
 }

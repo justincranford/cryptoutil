@@ -20,11 +20,9 @@ type apiServiceDef struct {
 }
 
 // knownAPIServices lists all product-service pairs that must have a corresponding api/ directory.
-// Canonical order: sm-kms, sm-im, jose-ja, pki-ca, identity-authz, identity-idp, identity-rs, identity-rp, identity-spa, skeleton-template.
+// Canonical order: sm-kms, pki-ca, identity-authz, identity-idp, identity-rs, identity-rp, identity-spa, skeleton-template.
 var knownAPIServices = []apiServiceDef{
 	{Product: cryptoutilSharedMagic.SMProductName, Service: cryptoutilSharedMagic.KMSServiceName},
-	{Product: cryptoutilSharedMagic.SMProductName, Service: cryptoutilSharedMagic.IMServiceName},
-	{Product: cryptoutilSharedMagic.JoseProductName, Service: cryptoutilSharedMagic.JoseJAServiceName},
 	{Product: cryptoutilSharedMagic.PKIProductName, Service: cryptoutilSharedMagic.PKICAServiceName},
 	{Product: cryptoutilSharedMagic.IdentityProductName, Service: cryptoutilSharedMagic.AuthzServiceName},
 	{Product: cryptoutilSharedMagic.IdentityProductName, Service: cryptoutilSharedMagic.IDPServiceName},

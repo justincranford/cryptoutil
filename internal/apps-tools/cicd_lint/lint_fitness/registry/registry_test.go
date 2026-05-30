@@ -16,14 +16,14 @@ func TestAllProducts_Count(t *testing.T) {
 	t.Parallel()
 
 	products := lintFitnessRegistry.AllProducts()
-	require.Len(t, products, cryptoutilSharedMagic.SuiteProductCount, "expected exactly 5 products in registry")
+	require.Len(t, products, cryptoutilSharedMagic.SuiteProductCount, "expected exactly 4 products in registry")
 }
 
 func TestAllProductServices_Count(t *testing.T) {
 	t.Parallel()
 
 	services := lintFitnessRegistry.AllProductServices()
-	require.Len(t, services, cryptoutilSharedMagic.SuiteServiceCount, "expected exactly 10 product-services in registry")
+	require.Len(t, services, cryptoutilSharedMagic.SuiteServiceCount, "expected exactly 8 product-services in registry")
 }
 
 func TestAllSuites_Count(t *testing.T) {
@@ -121,10 +121,8 @@ func TestAllProductServices_ContainsExpectedPSIDs(t *testing.T) {
 		cryptoutilSharedMagic.OTLPServiceIdentityRP,
 		cryptoutilSharedMagic.OTLPServiceIdentityRS,
 		cryptoutilSharedMagic.OTLPServiceIdentitySPA,
-		cryptoutilSharedMagic.OTLPServiceJoseJA,
 		cryptoutilSharedMagic.OTLPServicePKICA,
 		cryptoutilSharedMagic.OTLPServiceSkeletonTemplate,
-		cryptoutilSharedMagic.OTLPServiceSMIM,
 		cryptoutilSharedMagic.OTLPServiceSMKMS,
 	}
 
@@ -145,7 +143,6 @@ func TestAllProducts_ContainsExpectedProductIDs(t *testing.T) {
 
 	expectedProductIDs := []string{
 		cryptoutilSharedMagic.IdentityProductName,
-		cryptoutilSharedMagic.JoseProductName,
 		cryptoutilSharedMagic.PKIProductName,
 		cryptoutilSharedMagic.SkeletonProductName,
 		cryptoutilSharedMagic.SMProductName,
@@ -175,7 +172,7 @@ func TestAllPorts_Count(t *testing.T) {
 	t.Parallel()
 
 	ports := lintFitnessRegistry.AllPorts()
-	require.Len(t, ports, cryptoutilSharedMagic.SuiteServiceCount, "expected exactly 10 port entries")
+	require.Len(t, ports, cryptoutilSharedMagic.SuiteServiceCount, "expected exactly 8 port entries")
 }
 
 func TestAllPorts_FieldsNonZero(t *testing.T) {
@@ -203,7 +200,7 @@ func TestAllPorts_ContainsExpectedPSIDs(t *testing.T) {
 	}
 
 	assert.True(t, psIDs[cryptoutilSharedMagic.OTLPServiceSMKMS], "AllPorts must contain sm-kms")
-	assert.True(t, psIDs[cryptoutilSharedMagic.OTLPServiceSMIM], "AllPorts must contain sm-im")
+	assert.True(t, psIDs[cryptoutilSharedMagic.OTLPServicePKICA], "AllPorts must contain pki-ca")
 }
 
 func TestAllPorts_NoDuplicatePSIDsOrPorts(t *testing.T) {
@@ -228,7 +225,7 @@ func TestAllMigrationRanges_Count(t *testing.T) {
 	t.Parallel()
 
 	ranges := lintFitnessRegistry.AllMigrationRanges()
-	require.Len(t, ranges, cryptoutilSharedMagic.SuiteServiceCount, "expected exactly 10 migration range entries")
+	require.Len(t, ranges, cryptoutilSharedMagic.SuiteServiceCount, "expected exactly 8 migration range entries")
 }
 
 func TestAllMigrationRanges_FieldsValid(t *testing.T) {
@@ -266,7 +263,7 @@ func TestAllAPIResources_Count(t *testing.T) {
 	t.Parallel()
 
 	resources := lintFitnessRegistry.AllAPIResources()
-	require.Len(t, resources, cryptoutilSharedMagic.SuiteServiceCount, "expected exactly 10 API resource entries")
+	require.Len(t, resources, cryptoutilSharedMagic.SuiteServiceCount, "expected exactly 8 API resource entries")
 }
 
 func TestAllAPIResources_FieldsNonEmpty(t *testing.T) {

@@ -25,12 +25,6 @@ products:
     cmd_dir: sm/
     init_ps_id: sm-kms
 
-  - id: jose
-    display_name: JOSE
-    internal_apps_dir: jose/
-    cmd_dir: jose/
-    init_ps_id: jose-ja
-
   - id: pki
     display_name: PKI
     internal_apps_dir: pki/
@@ -79,8 +73,10 @@ product_services:
       - /elastic-keys
       - /elastic-keys/{elasticKeyID}
       - /elastic-keys/{elasticKeyID}/material-keys
+      - /elastic-keys/{elasticKeyID}/material-keys/active
       - /elastic-keys/{elasticKeyID}/material-keys/{materialKeyID}
       - /elastic-keys/{elasticKeyID}/material-keys/{materialKeyID}/revoke
+      - /elastic-keys/{elasticKeyID}/rotate
       - /material-keys
       - /elastic-keys/{elasticKeyID}/generate
       - /elastic-keys/{elasticKeyID}/encrypt
@@ -88,77 +84,11 @@ product_services:
       - /elastic-keys/{elasticKeyID}/sign
       - /elastic-keys/{elasticKeyID}/verify
       - /elastic-keys/{elasticKeyID}/import
-
-  - ps_id: sm-im
-    product: sm
-    service: im
-    display_name: "Instant Messenger"
-    internal_apps_dir: sm-im/
-    magic_file: magic_sm_im.go
-    base_port: 8100
-    entrypoint: ["/sbin/tini", "--"]
-    pg_host_port: 54321
-    migration_range_start: 3001
-    migration_range_end: 3999
-    go_template_params:
-      usage_prefix: IM
-      product_name_const: IMProductName
-      service_name_const: IMServiceName
-      service_id_const: IMServiceID
-      service_port_const: IMServicePort
-      service_display_name_const: IMDisplayName
-    realms:
-      - name: file
-        location: file
-        type: user-pass
-      - name: db
-        location: db
-        type: user-pass
-    api_resources:
+      - /jwks
       - /messages
       - /messages/{messageID}
       - /messages/send
       - /messages/receive
-
-  - ps_id: jose-ja
-    product: jose
-    service: ja
-    display_name: "JWK Authority"
-    internal_apps_dir: jose-ja/
-    magic_file: magic_jose.go
-    base_port: 8200
-    entrypoint: ["/sbin/tini", "--"]
-    pg_host_port: 54322
-    migration_range_start: 4001
-    migration_range_end: 4999
-    go_template_params:
-      usage_prefix: JA
-      product_name_const: JoseProductName
-      service_name_const: JoseJAServiceName
-      service_id_const: JoseJAServiceID
-      service_port_const: JoseJAServicePort
-      service_display_name_const: JoseJADisplayName
-    realms:
-      - name: file
-        location: file
-        type: user-pass
-      - name: db
-        location: db
-        type: user-pass
-    api_resources:
-      - /elastic-keys
-      - /elastic-keys/{elasticKeyID}
-      - /elastic-keys/{elasticKeyID}/material-keys
-      - /elastic-keys/{elasticKeyID}/material-keys/active
-      - /elastic-keys/{elasticKeyID}/material-keys/{materialKeyID}
-      - /material-keys
-      - /elastic-keys/{elasticKeyID}/rotate
-      - /elastic-keys/{elasticKeyID}/generate
-      - /elastic-keys/{elasticKeyID}/encrypt
-      - /elastic-keys/{elasticKeyID}/decrypt
-      - /elastic-keys/{elasticKeyID}/sign
-      - /elastic-keys/{elasticKeyID}/verify
-      - /jwks
 
   - ps_id: pki-ca
     product: pki

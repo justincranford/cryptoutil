@@ -329,7 +329,7 @@ edits. The First-Edit Hypothesis Rule does not apply. No delta.
 ### Session J — Framework-V21 Migrations Completion (2026-05-10 13:20–18:38)
 
 **Work**: Completed remaining TestMain migrations for framework-v21 across multiple PS-IDs
-(jose-ja, pki-ca, skeleton-template, sm-im, all identity-* services).
+(sm-kms, pki-ca, skeleton-template, sm-im, all identity-* services).
 
 **What would have been done differently with new contract**: Each TestMain migration is a
 mechanical file edit. The First-Edit Hypothesis Rule would have been redundant for known-good

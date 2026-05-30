@@ -114,7 +114,7 @@ func TestCheckInDir_ValidServiceTierPorts(t *testing.T) {
 			variantOffset:  0,
 		},
 		{
-			name:           "jose-ja postgresql-2 service tier",
+			name:           "sm-kms postgresql-2 service tier",
 			psID:           cryptoutilSharedMagic.OTLPServiceJoseJA,
 			serviceVariant: lintFitnessRegistry.ComposeVariantPostgres2,
 			variantOffset:  3,

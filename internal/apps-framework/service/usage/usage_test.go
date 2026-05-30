@@ -104,7 +104,7 @@ func TestBuildUsageServer(t *testing.T) {
 			wantContains: []string{
 				"Usage: jose ja server [options]",
 				cryptoutilSharedMagic.JoseJADisplayName,
-				"configs/jose-ja/jose-ja-framework.yml",
+				"configs/sm-kms/sm-kms-framework.yml",
 			},
 		},
 	}
@@ -216,17 +216,6 @@ func TestBuildUsageHealth(t *testing.T) {
 				"https://127.0.0.1:8000",
 				"https://localhost:8000",
 				"/browser/api/v1/health",
-			},
-		},
-		{
-			name:              "jose ja health",
-			productName:       cryptoutilSharedMagic.JoseProductName,
-			serviceName:       cryptoutilSharedMagic.JoseJAServiceName,
-			defaultPublicPort: fmt.Sprintf("%d", cryptoutilSharedMagic.JoseJAServicePort),
-			wantContains: []string{
-				"Usage: jose ja health [options]",
-				"https://127.0.0.1:8200",
-				"https://localhost:8200",
 			},
 		},
 	}

@@ -9,7 +9,7 @@
 
 -- Suite-level databases
 GRANT ALL PRIVILEGES ON DATABASE "suitedeployment-pki-ca" TO current_user;
-GRANT ALL PRIVILEGES ON DATABASE "suitedeployment-jose-ja" TO current_user;
+GRANT ALL PRIVILEGES ON DATABASE "suitedeployment-sm-kms" TO current_user;
 GRANT ALL PRIVILEGES ON DATABASE "suitedeployment-sm-im" TO current_user;
 GRANT ALL PRIVILEGES ON DATABASE "suitedeployment-sm-kms" TO current_user;
 GRANT ALL PRIVILEGES ON DATABASE "suitedeployment-identity-authz" TO current_user;
@@ -21,7 +21,7 @@ GRANT ALL PRIVILEGES ON DATABASE "suitedeployment-skeleton-template" TO current_
 
 -- Product-level databases
 GRANT ALL PRIVILEGES ON DATABASE "productdeployment-pki-ca" TO current_user;
-GRANT ALL PRIVILEGES ON DATABASE "productdeployment-jose-ja" TO current_user;
+GRANT ALL PRIVILEGES ON DATABASE "productdeployment-sm-kms" TO current_user;
 GRANT ALL PRIVILEGES ON DATABASE "productdeployment-sm-im" TO current_user;
 GRANT ALL PRIVILEGES ON DATABASE "productdeployment-sm-kms" TO current_user;
 GRANT ALL PRIVILEGES ON DATABASE "productdeployment-identity-authz" TO current_user;
@@ -33,7 +33,7 @@ GRANT ALL PRIVILEGES ON DATABASE "productdeployment-skeleton-template" TO curren
 
 -- Service-level databases
 GRANT ALL PRIVILEGES ON DATABASE "servicedeployment-pki-ca" TO current_user;
-GRANT ALL PRIVILEGES ON DATABASE "servicedeployment-jose-ja" TO current_user;
+GRANT ALL PRIVILEGES ON DATABASE "servicedeployment-sm-kms" TO current_user;
 GRANT ALL PRIVILEGES ON DATABASE "servicedeployment-sm-im" TO current_user;
 GRANT ALL PRIVILEGES ON DATABASE "servicedeployment-sm-kms" TO current_user;
 GRANT ALL PRIVILEGES ON DATABASE "servicedeployment-identity-authz" TO current_user;

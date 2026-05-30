@@ -4,7 +4,7 @@
 
 -- Suite-level deployment databases (10)
 CREATE DATABASE "suitedeployment-pki-ca";
-CREATE DATABASE "suitedeployment-jose-ja";
+CREATE DATABASE "suitedeployment-sm-kms";
 CREATE DATABASE "suitedeployment-sm-im";
 CREATE DATABASE "suitedeployment-sm-kms";
 CREATE DATABASE "suitedeployment-identity-authz";
@@ -16,7 +16,7 @@ CREATE DATABASE "suitedeployment-skeleton-template";
 
 -- Product-level deployment databases (10)
 CREATE DATABASE "productdeployment-pki-ca";
-CREATE DATABASE "productdeployment-jose-ja";
+CREATE DATABASE "productdeployment-sm-kms";
 CREATE DATABASE "productdeployment-sm-im";
 CREATE DATABASE "productdeployment-sm-kms";
 CREATE DATABASE "productdeployment-identity-authz";
@@ -28,7 +28,7 @@ CREATE DATABASE "productdeployment-skeleton-template";
 
 -- Service-level deployment databases (10)
 CREATE DATABASE "servicedeployment-pki-ca";
-CREATE DATABASE "servicedeployment-jose-ja";
+CREATE DATABASE "servicedeployment-sm-kms";
 CREATE DATABASE "servicedeployment-sm-im";
 CREATE DATABASE "servicedeployment-sm-kms";
 CREATE DATABASE "servicedeployment-identity-authz";
@@ -43,7 +43,7 @@ CREATE DATABASE "servicedeployment-skeleton-template";
 ALTER SYSTEM SET wal_level = 'logical';
 CREATE PUBLICATION suite_pki_ca_pub FOR ALL TABLES;
 
-\c "suitedeployment-jose-ja"
+\c "suitedeployment-sm-kms"
 CREATE PUBLICATION suite_jose_ja_pub FOR ALL TABLES;
 
 \c "suitedeployment-sm-im"
@@ -73,7 +73,7 @@ CREATE PUBLICATION suite_skeleton_template_pub FOR ALL TABLES;
 \c "productdeployment-pki-ca"
 CREATE PUBLICATION product_pki_ca_pub FOR ALL TABLES;
 
-\c "productdeployment-jose-ja"
+\c "productdeployment-sm-kms"
 CREATE PUBLICATION product_jose_ja_pub FOR ALL TABLES;
 
 \c "productdeployment-sm-im"
@@ -103,7 +103,7 @@ CREATE PUBLICATION product_skeleton_template_pub FOR ALL TABLES;
 \c "servicedeployment-pki-ca"
 CREATE PUBLICATION service_pki_ca_pub FOR ALL TABLES;
 
-\c "servicedeployment-jose-ja"
+\c "servicedeployment-sm-kms"
 CREATE PUBLICATION service_jose_ja_pub FOR ALL TABLES;
 
 \c "servicedeployment-sm-im"

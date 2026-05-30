@@ -382,7 +382,7 @@ func NewForJOSEServer(bindAddr string, bindPort uint16, devMode bool) *ServiceFr
 		"start", // Subcommand required
 		"--bind-public-address", bindAddr,
 		"--bind-public-port", fmt.Sprintf("%d", bindPort),
-		"--otlp-service", cryptoutilSharedMagic.OTLPServiceJoseJA,
+		"--otlp-service", cryptoutilSharedMagic.OTLPServiceSMKMS,
 	}
 
 	if devMode {

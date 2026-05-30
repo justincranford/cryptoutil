@@ -28,8 +28,8 @@ func TestValidateCertVolumePolicy(t *testing.T) {
 		},
 		{
 			name:           "forbidden cert bind mount",
-			deploymentName: cryptoutilSharedMagic.OTLPServiceSMIM,
-			composeContent: "services:\n  pki-init:\n    volumes:\n      - ./certs:/certs:rw\n  sm-im-app:\n    volumes:\n      - sm-im-certs:/certs:ro\nvolumes:\n  sm-im-certs:\n",
+			deploymentName: cryptoutilSharedMagic.OTLPServiceSMKMS,
+			composeContent: "services:\n  pki-init:\n    volumes:\n      - ./certs:/certs:rw\n  sm-kms-app:\n    volumes:\n      - sm-kms-certs:/certs:ro\nvolumes:\n  sm-kms-certs:\n",
 			wantValid:      false,
 			wantErrText:    "forbidden cert bind mount",
 		},
@@ -48,8 +48,8 @@ func TestValidateCertVolumePolicy(t *testing.T) {
 		},
 		{
 			name:           "valid infrastructure mount path",
-			deploymentName: cryptoutilSharedMagic.OTLPServiceSMIM,
-			composeContent: "services:\n  pki-init:\n    volumes:\n      - sm-im-certs:/mnt/ps-certs-src\n  grafana-otel-lgtm:\n    volumes:\n      - sm-im-certs:/mnt/ps-certs-src:ro\nvolumes:\n  sm-im-certs:\n",
+			deploymentName: cryptoutilSharedMagic.OTLPServiceSMKMS,
+			composeContent: "services:\n  pki-init:\n    volumes:\n      - sm-kms-certs:/mnt/ps-certs-src\n  grafana-otel-lgtm:\n    volumes:\n      - sm-kms-certs:/mnt/ps-certs-src:ro\nvolumes:\n  sm-kms-certs:\n",
 			wantValid:      true,
 		},
 	}

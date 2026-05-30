@@ -23,7 +23,7 @@ import io.gatling.javaapi.http.HttpProtocolBuilder;
 
 /**
  * JOSE Product Load Testing Simulation.
- * Tests jose-ja (JWK Authority) service: elastic JWK management, key rotation, JWKS endpoints.
+ * Tests sm-kms (JWK Authority) service: elastic JWK management, key rotation, JWKS endpoints.
  *
  * <p>Example Commands:
  * <pre>

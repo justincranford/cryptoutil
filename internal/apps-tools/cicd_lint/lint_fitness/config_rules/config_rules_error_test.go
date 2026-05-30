@@ -57,7 +57,7 @@ func TestCheckHeaderIdentity_WrongPSID(t *testing.T) {
 
 	writeFile(t, filepath.Join(tmp, "deployments", cryptoutilSharedMagic.OTLPServiceSMKMS,
 		"config", cryptoutilSharedMagic.OTLPServiceSMKMS+"-app-common.yml"),
-		"# jose-ja Common Configuration\nbind-public-address: 0.0.0.0\n")
+		"# wrong-service Common Configuration\nbind-public-address: 0.0.0.0\n")
 
 	logger := newTestLogger()
 

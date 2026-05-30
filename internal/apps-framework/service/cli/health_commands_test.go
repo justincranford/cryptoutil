@@ -59,7 +59,7 @@ func TestHealthCommand_HelpFlag(t *testing.T) {
 
 			var stdout, stderr bytes.Buffer
 
-			exitCode := cryptoutilAppsFrameworkCli.HealthCommand([]string{tt.arg}, &stdout, &stderr, "Usage: health", cryptoutilSharedMagic.JoseJAServicePort)
+			exitCode := cryptoutilAppsFrameworkCli.HealthCommand([]string{tt.arg}, &stdout, &stderr, "Usage: health", uint16(cryptoutilSharedMagic.KMSServicePort))
 			require.Equal(t, 0, exitCode)
 			require.Contains(t, stderr.String(), "Usage: health")
 		})
@@ -77,7 +77,7 @@ func TestHealthCommand_Success(t *testing.T) {
 		[]string{cryptoutilSharedMagic.CLIURLFlag, srv.URL},
 		&stdout, &stderr,
 		"Usage: health",
-		cryptoutilSharedMagic.JoseJAServicePort,
+		uint16(cryptoutilSharedMagic.KMSServicePort),
 	)
 	require.Equal(t, 0, exitCode)
 	require.Contains(t, stdout.String(), cryptoutilSharedMagic.TestStatusEmojiPass)
@@ -94,7 +94,7 @@ func TestHealthCommand_ServiceUnavailable(t *testing.T) {
 		[]string{cryptoutilSharedMagic.CLIURLFlag, srv.URL},
 		&stdout, &stderr,
 		"Usage: health",
-		cryptoutilSharedMagic.JoseJAServicePort,
+		uint16(cryptoutilSharedMagic.KMSServicePort),
 	)
 	require.Equal(t, 1, exitCode)
 	require.Contains(t, stderr.String(), cryptoutilSharedMagic.TestStatusEmojiFail)
@@ -109,7 +109,7 @@ func TestHealthCommand_ConnectionRefused(t *testing.T) {
 		[]string{cryptoutilSharedMagic.CLIURLFlag, "https://127.0.0.1:1"},
 		&stdout, &stderr,
 		"Usage: health",
-		cryptoutilSharedMagic.JoseJAServicePort,
+		uint16(cryptoutilSharedMagic.KMSServicePort),
 	)
 	require.Equal(t, 1, exitCode)
 	require.Contains(t, stderr.String(), cryptoutilSharedMagic.TestStatusEmojiFail)
@@ -451,7 +451,7 @@ func TestHealthCommand_DuplicateURLFlag(t *testing.T) {
 		[]string{cryptoutilSharedMagic.CLIURLFlag, srv.URL, cryptoutilSharedMagic.CLIURLFlag, "https://127.0.0.1:1"},
 		&stdout, &stderr,
 		"Usage: health",
-		cryptoutilSharedMagic.JoseJAServicePort,
+		uint16(cryptoutilSharedMagic.KMSServicePort),
 	)
 	require.Equal(t, 0, exitCode)
 	require.Contains(t, stdout.String(), cryptoutilSharedMagic.TestStatusEmojiPass)
@@ -468,7 +468,7 @@ func TestHealthCommand_URLWithFragment(t *testing.T) {
 		[]string{cryptoutilSharedMagic.CLIURLFlag, srv.URL + "/health#section"},
 		&stdout, &stderr,
 		"Usage: health",
-		cryptoutilSharedMagic.JoseJAServicePort,
+		uint16(cryptoutilSharedMagic.KMSServicePort),
 	)
 	require.Equal(t, 0, exitCode)
 	require.Contains(t, stdout.String(), cryptoutilSharedMagic.TestStatusEmojiPass)

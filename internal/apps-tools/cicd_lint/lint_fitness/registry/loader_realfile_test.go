@@ -16,9 +16,9 @@ import (
 
 const (
 	// numExpectedProducts is the number of products declared in registry.yaml.
-	numExpectedProducts = 5
+	numExpectedProducts = 4
 	// numExpectedProductServices is the number of product-services declared in registry.yaml.
-	numExpectedProductServices = 10
+	numExpectedProductServices = 8
 	// migrationRangeTestEnd is a migration range end value used in validation test cases.
 	migrationRangeTestEnd = 3000
 	// migrationRangeTestBelowMinStart is a migration start value below the required minimum.
@@ -101,8 +101,8 @@ func TestLoadRegistry_RealFile(t *testing.T) {
 	require.NoError(t, err, "LoadRegistry must succeed on the real registry.yaml")
 
 	require.Len(t, r.Suites, 1, "expect exactly 1 suite")
-	require.Len(t, r.Products, numExpectedProducts, "expect exactly 5 products")
-	require.Len(t, r.ProductServices, numExpectedProductServices, "expect exactly 10 product-services")
+	require.Len(t, r.Products, numExpectedProducts, "expect exactly 4 products")
+	require.Len(t, r.ProductServices, numExpectedProductServices, "expect exactly 8 product-services")
 }
 
 func TestLoadRegistry_ValidMinimal(t *testing.T) {
@@ -158,7 +158,6 @@ func TestLoadRegistry_ToProducts(t *testing.T) {
 	}
 
 	require.Contains(t, productIDs, "sm")
-	require.Contains(t, productIDs, cryptoutilSharedMagic.JoseProductName)
 	require.Contains(t, productIDs, cryptoutilSharedMagic.PKIProductName)
 	require.Contains(t, productIDs, cryptoutilSharedMagic.IdentityProductName)
 	require.Contains(t, productIDs, cryptoutilSharedMagic.SkeletonProductName)

@@ -447,13 +447,13 @@ func TestValidateTelemetry_RealSmIM(t *testing.T) {
 	}
 
 	if _, err := os.Stat(configDir); err != nil {
-		t.Skip("Real sm-im configs not found")
+		t.Skip("Real sm-kms configs not found")
 	}
 
 	result, err := ValidateTelemetry(configDir)
 	require.NoError(t, err)
 	require.NotNil(t, result)
-	require.True(t, result.Valid, "Real sm-im OTLP config validation failed: %v", result.Errors)
+	require.True(t, result.Valid, "Real sm-kms OTLP config validation failed: %v", result.Errors)
 }
 
 // writeConfig creates a YAML config file from key-value pairs.

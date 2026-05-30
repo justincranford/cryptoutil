@@ -36,8 +36,8 @@ func TestSuiteCountConstants(t *testing.T) {
 		got      int
 		expected int
 	}{
-		{name: "SuiteProductCount", got: cryptoutilSharedMagic.SuiteProductCount, expected: 5},
-		{name: "SuiteServiceCount", got: cryptoutilSharedMagic.SuiteServiceCount, expected: 10},
+		{name: "SuiteProductCount", got: cryptoutilSharedMagic.SuiteProductCount, expected: 4},
+		{name: "SuiteServiceCount", got: cryptoutilSharedMagic.SuiteServiceCount, expected: 8},
 		{name: "RequiredConfigOverlayCount", got: cryptoutilSharedMagic.RequiredConfigOverlayCount, expected: 10},
 	}
 

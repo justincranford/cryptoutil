@@ -758,7 +758,7 @@ Run a service with live reload — air rebuilds and restarts on every `.go` file
 SERVICE=sm-im air
 
 # JOSE JWK Authority
-SERVICE=jose-ja air
+SERVICE=sm-kms air
 
 # SM Key Management Service
 SERVICE=sm-kms air

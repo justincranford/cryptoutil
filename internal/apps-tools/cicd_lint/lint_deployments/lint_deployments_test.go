@@ -376,7 +376,7 @@ func TestValidateAllDeployments_SharedDatabaseIsolation(t *testing.T) {
 	tmpDir := t.TempDir()
 	// Create two service directories with identical database name and username — this
 	// violates the isolation requirement that every service uses a unique database/user.
-	for _, svc := range []string{cryptoutilSharedMagic.OTLPServiceSMKMS, cryptoutilSharedMagic.OTLPServiceSMIM} {
+	for _, svc := range []string{cryptoutilSharedMagic.OTLPServiceSMKMS, cryptoutilSharedMagic.OTLPServicePKICA} {
 		secretsDir := filepath.Join(tmpDir, svc, "secrets")
 		require.NoError(t, os.MkdirAll(secretsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupReadExecute))
 		require.NoError(t, os.WriteFile(

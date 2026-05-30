@@ -231,7 +231,7 @@ func extractLabelsAndEntrypoint(dockerfilePath string) (map[string]string, []str
 	return labels, entrypoint, nil
 }
 
-// parseEntrypointLine parses a JSON-array ENTRYPOINT value like ["/app/jose-ja"] or
+// parseEntrypointLine parses a JSON-array ENTRYPOINT value like ["/app/sm-kms"] or
 // ["/sbin/tini", "--", "/app/cryptoutil", "identity-authz", "start"].
 // Returns the parsed string slice, or nil if the format is not recognized.
 func parseEntrypointLine(value string) []string {

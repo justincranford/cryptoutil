@@ -53,7 +53,7 @@ service-rate-limit: 200
 	require.Equal(t, "DEBUG", s.LogLevel, "second config should override log-level")
 	require.Equal(t, uint16(9080), s.BindPublicPort, "second config should override bind-public-port")
 	require.Equal(t, uint16(200), s.ServiceIPRateLimit, "second config should set service-rate-limit")
-	require.Equal(t, uint16(cryptoutilSharedMagic.JoseJAMaxMaterials), s.BrowserIPRateLimit, "first config browser-ip-rate-limit should remain")
+	require.EqualValues(t, cryptoutilSharedMagic.JoseJAMaxMaterials, s.BrowserIPRateLimit, "first config browser-ip-rate-limit should remain")
 }
 
 // TestFormatDefault_EmptyStringSlice tests formatDefault with empty []string.

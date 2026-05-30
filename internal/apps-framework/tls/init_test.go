@@ -177,19 +177,6 @@ func TestInit_SeamInjection(t *testing.T) {
 		require.Empty(t, stderr.String())
 	})
 
-	t.Run("happy path product jose", func(t *testing.T) {
-		t.Parallel()
-
-		telemetryFn, generatorFn := buildStubSeams(t, stubMkdirAll, stubWriteFile, stubCreateCA, stubCreateLeaf, stubGetKeyPair)
-
-		var stdout, stderr bytes.Buffer
-
-		code := cryptoutilAppsFrameworkTls.ExportedInitRun([]string{"--domain=" + cryptoutilSharedMagic.JoseProductName, "--output-dir=" + t.TempDir()}, nil, &stdout, &stderr, telemetryFn, generatorFn)
-		require.Equal(t, 0, code, "stderr=%s", stderr.String())
-		require.Contains(t, stdout.String(), "certificates written")
-		require.Empty(t, stderr.String())
-	})
-
 	t.Run("happy path service sm-kms", func(t *testing.T) {
 		t.Parallel()
 
@@ -198,19 +185,6 @@ func TestInit_SeamInjection(t *testing.T) {
 		var stdout, stderr bytes.Buffer
 
 		code := cryptoutilAppsFrameworkTls.ExportedInitRun([]string{"--domain=" + cryptoutilSharedMagic.OTLPServiceSMKMS, "--output-dir=" + t.TempDir()}, nil, &stdout, &stderr, telemetryFn, generatorFn)
-		require.Equal(t, 0, code, "stderr=%s", stderr.String())
-		require.Contains(t, stdout.String(), "certificates written")
-		require.Empty(t, stderr.String())
-	})
-
-	t.Run("happy path service jose-ja", func(t *testing.T) {
-		t.Parallel()
-
-		telemetryFn, generatorFn := buildStubSeams(t, stubMkdirAll, stubWriteFile, stubCreateCA, stubCreateLeaf, stubGetKeyPair)
-
-		var stdout, stderr bytes.Buffer
-
-		code := cryptoutilAppsFrameworkTls.ExportedInitRun([]string{"--domain=" + cryptoutilSharedMagic.OTLPServiceJoseJA, "--output-dir=" + t.TempDir()}, nil, &stdout, &stderr, telemetryFn, generatorFn)
 		require.Equal(t, 0, code, "stderr=%s", stderr.String())
 		require.Contains(t, stdout.String(), "certificates written")
 		require.Empty(t, stderr.String())
@@ -236,7 +210,7 @@ func TestInitForProduct_HappyPath(t *testing.T) {
 
 	var stdout, stderr bytes.Buffer
 
-	code := cryptoutilAppsFrameworkTls.ExportedInitRun([]string{"--domain=" + cryptoutilSharedMagic.JoseProductName, "--output-dir=" + t.TempDir()}, nil, &stdout, &stderr, telemetryFn, generatorFn)
+	code := cryptoutilAppsFrameworkTls.ExportedInitRun([]string{"--domain=" + cryptoutilSharedMagic.SMProductName, "--output-dir=" + t.TempDir()}, nil, &stdout, &stderr, telemetryFn, generatorFn)
 	require.Equal(t, 0, code, "stderr=%s", stderr.String())
 	require.Contains(t, stdout.String(), "certificates written")
 }

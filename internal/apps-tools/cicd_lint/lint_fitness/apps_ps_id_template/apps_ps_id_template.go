@@ -35,12 +35,10 @@ type psIDManifest struct {
 	RequiredE2EFiles              []string `yaml:"required_e2e_files"`
 }
 
-// allTenPSIDs is a convenience set containing all 10 known PS-IDs used in exclusion maps.
+// allEightPSIDs is a convenience set containing all 8 known PS-IDs used in exclusion maps.
 // Update when PS-IDs are added or removed from the registry.
-var allTenPSIDs = map[string]bool{
+var allEightPSIDs = map[string]bool{
 	cryptoutilSharedMagic.OTLPServiceSMKMS:            true,
-	cryptoutilSharedMagic.OTLPServiceSMIM:             true,
-	cryptoutilSharedMagic.OTLPServiceJoseJA:           true,
 	cryptoutilSharedMagic.OTLPServicePKICA:            true,
 	cryptoutilSharedMagic.OTLPServiceIdentityAuthz:    true,
 	cryptoutilSharedMagic.OTLPServiceIdentityIDP:      true,
@@ -73,11 +71,10 @@ var knownRootFileExclusions = map[string]map[string]bool{}
 // Remove entries as each PS-ID migrates swagger/test files to server/.
 var knownServerFileExclusions = map[string]map[string]bool{
 	// swagger files live at PS-ID root, not server/ yet; all 10 excluded during migration.
-	"swagger.go":      allTenPSIDs,
-	"swagger_test.go": allTenPSIDs,
+	"swagger.go":      allEightPSIDs,
+	"swagger_test.go": allEightPSIDs,
 	// Lifecycle tests are still non-canonical for these services.
 	"__SERVICE___lifecycle_test.go": {
-		cryptoutilSharedMagic.OTLPServiceJoseJA:           true,
 		cryptoutilSharedMagic.OTLPServicePKICA:            true,
 		cryptoutilSharedMagic.OTLPServiceSkeletonTemplate: true,
 	},
@@ -147,8 +144,6 @@ var knownE2EFileExclusions = map[string]map[string]bool{
 	// Services listed here still use non-canonical smoke test filenames.
 	"__SERVICE___e2e_test.go": {
 		cryptoutilSharedMagic.OTLPServiceSMKMS:            true,
-		cryptoutilSharedMagic.OTLPServiceSMIM:             true,
-		cryptoutilSharedMagic.OTLPServiceJoseJA:           true,
 		cryptoutilSharedMagic.OTLPServiceSkeletonTemplate: true,
 	},
 }

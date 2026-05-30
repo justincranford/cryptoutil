@@ -15,7 +15,7 @@ func ValidateAllDeployments(deploymentsRoot string) ([]ValidationResult, error) 
 	var results []ValidationResult
 	// Service deployments (PRODUCT-SERVICE pattern)
 	serviceNames := []string{
-		cryptoutilSharedMagic.OTLPServiceSMKMS, cryptoutilSharedMagic.OTLPServiceSMIM, cryptoutilSharedMagic.OTLPServiceJoseJA, cryptoutilSharedMagic.OTLPServicePKICA,
+		cryptoutilSharedMagic.OTLPServiceSMKMS, cryptoutilSharedMagic.OTLPServicePKICA,
 		cryptoutilSharedMagic.OTLPServiceIdentityAuthz, cryptoutilSharedMagic.OTLPServiceIdentityIDP, cryptoutilSharedMagic.OTLPServiceIdentityRS, cryptoutilSharedMagic.OTLPServiceIdentityRP, cryptoutilSharedMagic.OTLPServiceIdentitySPA,
 		cryptoutilSharedMagic.OTLPServiceSkeletonTemplate,
 	}
@@ -29,7 +29,7 @@ func ValidateAllDeployments(deploymentsRoot string) ([]ValidationResult, error) 
 	}
 
 	// PRODUCT-level deployments
-	productNames := []string{cryptoutilSharedMagic.SMProductName, cryptoutilSharedMagic.JoseProductName, cryptoutilSharedMagic.PKIProductName, cryptoutilSharedMagic.IdentityProductName, cryptoutilSharedMagic.SkeletonProductName}
+	productNames := []string{cryptoutilSharedMagic.SMProductName, cryptoutilSharedMagic.PKIProductName, cryptoutilSharedMagic.IdentityProductName, cryptoutilSharedMagic.SkeletonProductName}
 	for _, product := range productNames {
 		productPath := filepath.Join(deploymentsRoot, product)
 		if _, err := os.Stat(productPath); err == nil {
@@ -160,7 +160,7 @@ func checkDelegationPattern(basePath string, deploymentName string, structType s
 			"../sm-kms/compose.yml",
 			"../sm-im/compose.yml",
 			"../pki-ca/compose.yml",
-			"../jose-ja/compose.yml",
+			"../sm-kms/compose.yml",
 			"../identity-authz/compose.yml",
 			"../identity-idp/compose.yml",
 			"../identity-rp/compose.yml",
@@ -171,7 +171,6 @@ func checkDelegationPattern(basePath string, deploymentName string, structType s
 		validPatterns := []string{
 			"../sm/compose.yml",
 			"../pki/compose.yml",
-			"../jose/compose.yml",
 			"../identity/compose.yml",
 			"../skeleton/compose.yml",
 		}
@@ -197,7 +196,7 @@ func checkDelegationPattern(basePath string, deploymentName string, structType s
 
 		if foundProducts < cryptoutilSharedMagic.SuiteProductCount {
 			result.Warnings = append(result.Warnings,
-				"Suite should include all 5 products (sm, pki, jose, identity, skeleton) via PRODUCT-level compose")
+				"Suite should include all 4 products (sm, pki, identity, skeleton) via PRODUCT-level compose")
 		}
 	case DeploymentTypeProduct:
 		// Product MUST include service-level compose files
@@ -207,18 +206,8 @@ func checkDelegationPattern(basePath string, deploymentName string, structType s
 			result.Valid = false
 		}
 
-		if deploymentName == smProduct && !strings.Contains(text, "../sm-im/compose.yml") {
-			result.Errors = append(result.Errors, "Product sm/compose.yml MUST include ../sm-im/compose.yml")
-			result.Valid = false
-		}
-
 		if deploymentName == cryptoutilSharedMagic.PKIProductName && !strings.Contains(text, "../pki-ca/compose.yml") {
 			result.Errors = append(result.Errors, "Product pki/compose.yml MUST include ../pki-ca/compose.yml")
-			result.Valid = false
-		}
-
-		if deploymentName == cryptoutilSharedMagic.JoseProductName && !strings.Contains(text, "../jose-ja/compose.yml") {
-			result.Errors = append(result.Errors, "Product jose/compose.yml MUST include ../jose-ja/compose.yml")
 			result.Valid = false
 		}
 
@@ -246,7 +235,7 @@ func checkDelegationPattern(basePath string, deploymentName string, structType s
 // CRITICAL: ALL services MUST have isolated database storage (unique db/username/password).
 func checkDatabaseIsolation(deploymentsList []string, deploymentsRoot string) []string {
 	serviceNames := []string{
-		cryptoutilSharedMagic.OTLPServiceSMKMS, cryptoutilSharedMagic.OTLPServiceSMIM, cryptoutilSharedMagic.OTLPServiceJoseJA, cryptoutilSharedMagic.OTLPServicePKICA,
+		cryptoutilSharedMagic.OTLPServiceSMKMS, cryptoutilSharedMagic.OTLPServicePKICA,
 		cryptoutilSharedMagic.OTLPServiceIdentityAuthz, cryptoutilSharedMagic.OTLPServiceIdentityIDP, cryptoutilSharedMagic.OTLPServiceIdentityRS, cryptoutilSharedMagic.OTLPServiceIdentityRP, cryptoutilSharedMagic.OTLPServiceIdentitySPA,
 		cryptoutilSharedMagic.OTLPServiceSkeletonTemplate,
 	}

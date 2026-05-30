@@ -71,8 +71,8 @@ internal_aliases:
     alias: cryptoutilApiIdentityIdp
   - import_path: "cryptoutil/api/identity-rs"
     alias: cryptoutilApiIdentityRs
-  - import_path: "cryptoutil/api/jose-ja/client"
-    alias: cryptoutilApiJoseClient
+  - import_path: "cryptoutil/api/sm-kms/client"
+    alias: cryptoutilOpenapiClient
   # Cryptoutil cmd
   - import_path: "cryptoutil/internal/cmd"
     alias: cryptoutilCmd

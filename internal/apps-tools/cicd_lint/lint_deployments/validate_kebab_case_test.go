@@ -25,7 +25,7 @@ func TestValidateKebabCase_ValidCases(t *testing.T) {
 
 				dir := t.TempDir()
 				require.NoError(t, os.WriteFile(filepath.Join(dir, "config.yml"),
-					[]byte("service:\n  name: \"sm-im\"\n  version: \"1.0.0\"\n"), cryptoutilSharedMagic.CacheFilePermissions))
+					[]byte("service:\n  name: \"sm-kms\"\n  version: \"1.0.0\"\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
 				return dir
 			},
@@ -127,7 +127,7 @@ func TestValidateKebabCase_InvalidServiceName(t *testing.T) {
 		{name: "snake_case", serviceName: "sm_im", wantErr: "sm_im"},
 		{name: "UPPERCASE", serviceName: "SM-IM", wantErr: "SM-IM"},
 		{name: "spaces", serviceName: "sm im", wantErr: "sm im"},
-		{name: "leading hyphen", serviceName: "-sm-im", wantErr: "-sm-im"},
+		{name: "leading hyphen", serviceName: "-sm-kms", wantErr: "-sm-kms"},
 	}
 
 	for _, tc := range tests {

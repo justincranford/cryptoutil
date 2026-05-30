@@ -593,7 +593,7 @@ func TestGenerate_SharedCAs_ErrorBranches(t *testing.T) {
 		{"cat11 follower leaf error", 0, cryptoutilSharedMagic.GitShortHashLength, "cat11 postgres follower server leaf"},
 		{"cat12 postgres client CA error", 9, 0, "cat12 postgres client CA"},
 		{"cat13 leader client error", 0, 9, "cat13 postgres leader replication client"},
-		{"cat13 follower client error", 0, cryptoutilSharedMagic.SuiteServiceCount, "cat13 postgres follower replication client"},
+		{"cat13 follower client error", 0, cryptoutilSharedMagic.MaxWarningDisplay, "cat13 postgres follower replication client"},
 	}
 
 	for _, tc := range tests {

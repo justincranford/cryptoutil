@@ -40,9 +40,9 @@ func TestValidateSecrets_NoComposeFile(t *testing.T) {
 func TestValidateSecrets_RealSmIM(t *testing.T) {
 	t.Parallel()
 
-	deploymentPath := findRealDeploymentPath(cryptoutilSharedMagic.OTLPServiceSMIM)
+	deploymentPath := findRealDeploymentPath(cryptoutilSharedMagic.OTLPServiceSMKMS)
 	if deploymentPath == "" {
-		t.Skip("sm-im deployment not found")
+		t.Skip("sm-kms deployment not found")
 	}
 
 	result, err := ValidateSecrets(deploymentPath)

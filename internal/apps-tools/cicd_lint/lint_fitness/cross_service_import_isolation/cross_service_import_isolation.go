@@ -88,7 +88,6 @@ type serviceRef struct {
 // PS-IDs follow the pattern "<product>-<service>" (e.g., "sm-im", "pki-ca").
 var knownProducts = []string{
 	cryptoutilSharedMagic.IdentityProductName,
-	cryptoutilSharedMagic.JoseProductName,
 	cryptoutilSharedMagic.PKIProductName,
 	cryptoutilSharedMagic.SkeletonProductName,
 	cryptoutilSharedMagic.SMProductName,
@@ -231,7 +230,7 @@ func extractImports(filePath string) ([]string, error) {
 // isViolation returns true if importPath crosses a PRODUCT boundary.
 // Same-product cross-service imports are permitted: services within a product
 // may share packages (e.g., identity-idp importing identity-authz/clientauth).
-// Cross-product imports are forbidden: e.g., jose-ja importing pki-ca internals.
+// Cross-product imports are forbidden: e.g., sm-kms importing pki-ca internals.
 // Imports of internal/apps-framework/ and internal/apps-tools/ are always allowed
 // (they don't start with the appsPrefix so they're excluded by the prefix check).
 func isViolation(importPath string, self serviceRef, allServices []serviceRef) bool {

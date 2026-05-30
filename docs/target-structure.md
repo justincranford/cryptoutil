@@ -31,7 +31,7 @@ This document supersedes framework-v5/target-structure.md (deleted — git histo
 |-------|-------|---------|---------|-------------|
 | `sm-kms` | `sm_kms` | sm | kms | Secrets Manager Key Management |
 | `sm-im` | `sm_im` | sm | im | Secrets Manager Instant Messenger |
-| `jose-ja` | `jose_ja` | jose | ja | JOSE JWK Authority |
+| `sm-kms` | `jose_ja` | jose | ja | JOSE JWK Authority |
 | `pki-ca` | `pki_ca` | pki | ca | PKI Certificate Authority |
 | `identity-authz` | `identity_authz` | identity | authz | Identity Authorization Server |
 | `identity-idp` | `identity_idp` | identity | idp | Identity Provider |
@@ -293,7 +293,7 @@ cmd/                                                  # drwxr-x---  (18 flat ent
 ├── identity-rp/main.go                               # {PS-ID}=identity-rp
 ├── identity-rs/main.go                               # {PS-ID}=identity-rs
 ├── identity-spa/main.go                              # {PS-ID}=identity-spa
-├── jose-ja/main.go                                   # {PS-ID}=jose-ja
+├── sm-kms/main.go                                   # {PS-ID}=sm-kms
 ├── pki-ca/main.go                                    # {PS-ID}=pki-ca
 ├── skeleton-template/main.go                         # {PS-ID}=skeleton-template
 ├── sm-im/main.go                                     # {PS-ID}=sm-im
@@ -384,7 +384,7 @@ api/                                                  # drwxr-x---
 ```
 
 **All 10 PS-IDs**: `identity-authz`, `identity-idp`, `identity-rp`, `identity-rs`,
-`identity-spa`, `jose-ja`, `pki-ca`, `skeleton-template`, `sm-im`, `sm-kms`.
+`identity-spa`, `sm-kms`, `pki-ca`, `skeleton-template`, `sm-im`, `sm-kms`.
 
 ---
 
@@ -439,8 +439,8 @@ configs/
 │   └── identity-rs.yml
 ├── identity-spa/
 │   └── identity-spa.yml
-├── jose-ja/
-│   └── jose-ja.yml
+├── sm-kms/
+│   └── sm-kms.yml
 ├── pki-ca/
 │   ├── pki-ca.yml
 │   └── profiles/                          # Exception: certificate profiles (Decision 3=B)
@@ -492,7 +492,7 @@ deployments/{PS-ID}/                                  # drwxr-x---
 ```
 
 **All 10 services** (`identity-authz`, `identity-idp`, `identity-rp`, `identity-rs`,
-`identity-spa`, `jose-ja`, `pki-ca`, `skeleton-template`, `sm-im`, `sm-kms`) follow
+`identity-spa`, `sm-kms`, `pki-ca`, `skeleton-template`, `sm-im`, `sm-kms`) follow
 this identical structure.
 
 ### F.2 Per-Product Deployment (5 products)
@@ -631,7 +631,7 @@ enforced by lint-fitness `apps-suite-template`, `apps-product-template`.
 | Product | Forbidden dirs | Correct location |
 |---------|---------------|-----------------|
 | `sm/` | `im/`, `kms/` | `internal/apps/sm-im/`, `internal/apps/sm-kms/` |
-| `jose/` | `ja/` | `internal/apps/jose-ja/` |
+| `jose/` | `ja/` | `internal/apps/sm-kms/` |
 | `pki/` | `ca/` | `internal/apps/pki-ca/` |
 | `skeleton/` | `template/` | `internal/apps/skeleton-template/` |
 
@@ -686,7 +686,7 @@ The root contains ONLY CLI integration code — no server logic, no HTTP handler
 
 **Current gap matrix** (✓ = correct location · MOVE = exists at PS-ID root, must migrate to `server/` · MISS = does not exist anywhere):
 
-| Invariant | sm-kms | sm-im | jose-ja | pki-ca | id-authz | id-idp | id-rs | id-rp | id-spa | skel-tmpl |
+| Invariant | sm-kms | sm-im | sm-kms | pki-ca | id-authz | id-idp | id-rs | id-rp | id-spa | skel-tmpl |
 |-----------|:------:|:-----:|:-------:|:------:|:--------:|:------:|:-----:|:-----:|:------:|:---------:|
 | root `{SVC}.go` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | root `{SVC}_usage.go` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
@@ -731,7 +731,7 @@ The root contains ONLY CLI integration code — no server logic, no HTTP handler
 | `identity-rp` | `client/`, `e2e/`, `server/`, `unified/` |
 | `identity-rs` | `client/`, `e2e/`, `server/`, `unified/` |
 | `identity-spa` | `client/`, `e2e/`, `server/`, `unified/` |
-| `jose-ja` | `client/`, `e2e/`, `model/`, `repository/`, `server/`, `service/` |
+| `sm-kms` | `client/`, `e2e/`, `model/`, `repository/`, `server/`, `service/` |
 | `pki-ca` | `api/`, `bootstrap/`, `cli/`, `compliance/`, `config/`, `crypto/`, `domain/`, `domain-v2/`, `intermediate/`, `observability/`, `profile/`, `repository-v2/`, `security/`, `server/`, `service/`, `storage/` |
 | `skeleton-template` | `client/`, `domain/`, `e2e/`, `repository/`, `server/` |
 | `sm-im` | `client/`, `e2e/`, `integration/`, `model/`, `repository/`, `server/`, `testing/` |
@@ -1151,7 +1151,7 @@ Service-named subdirectories inside product directories violate the flat PS-ID l
 | Product | Forbidden dirs | Correct location | Action |
 |---------|---------------|-----------------|--------|
 | `sm/` | `im/`, `kms/` | `internal/apps/sm-im/`, `internal/apps/sm-kms/` | Audit + DELETE if redundant |
-| `jose/` | `ja/` | `internal/apps/jose-ja/` | Audit + DELETE if redundant |
+| `jose/` | `ja/` | `internal/apps/sm-kms/` | Audit + DELETE if redundant |
 | `pki/` | `ca/` | `internal/apps/pki-ca/` | Audit + DELETE if redundant |
 | `skeleton/` | `template/` | `internal/apps/skeleton-template/` | Audit + DELETE if redundant |
 

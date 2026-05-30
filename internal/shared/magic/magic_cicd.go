@@ -346,13 +346,13 @@ const (
 	ModeNameAll = "all"
 
 	// SuiteProductCount is the total number of products in the cryptoutil suite.
-	// Products: sm, pki, jose, identity, skeleton.
-	SuiteProductCount = 5
+	// Products: sm, pki, identity, skeleton.
+	SuiteProductCount = 4
 
 	// SuiteServiceCount is the total number of individual services in the cryptoutil suite.
-	// Services: sm-kms, sm-im, jose-ja, pki-ca, identity-authz, identity-idp,
+	// Services: sm-kms, pki-ca, identity-authz, identity-idp,
 	// identity-rp, identity-rs, identity-spa, skeleton-template.
-	SuiteServiceCount = 10
+	SuiteServiceCount = 8
 
 	// RequiredConfigOverlayCount is the number of required config overlay files per service.
 	// Framework variants: common, sqlite-1, sqlite-2, postgresql-1, postgresql-2 (5)

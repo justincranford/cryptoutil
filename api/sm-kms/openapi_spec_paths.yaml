@@ -643,3 +643,150 @@ paths:
           $ref: './openapi_spec_components.yaml#/components/responses/HTTP503ServiceUnavailable'
         '504':
           $ref: './openapi_spec_components.yaml#/components/responses/HTTP504GatewayTimeout'
+
+  /elastic-keys/{elasticKeyID}/material-keys/active:
+    parameters:
+      - name: elasticKeyID
+        in: path
+        required: true
+        schema:
+          $ref: './openapi_spec_components.yaml#/components/schemas/ElasticKeyID'
+    get:
+      summary: Get the active material key for an elastic key.
+      description: Returns the currently active material key for sign/encrypt operations.
+      responses:
+        '200':
+          description: Active material key.
+          content:
+            application/json:
+              schema:
+                $ref: './openapi_spec_components.yaml#/components/schemas/MaterialKey'
+        '404':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP404NotFound'
+        '500':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP500InternalServerError'
+
+  /elastic-keys/{elasticKeyID}/rotate:
+    parameters:
+      - name: elasticKeyID
+        in: path
+        required: true
+        schema:
+          $ref: './openapi_spec_components.yaml#/components/schemas/ElasticKeyID'
+    post:
+      summary: Rotate the active material key for an elastic key.
+      description: Retires the current active material and generates a new active material key.
+      responses:
+        '202':
+          description: Rotation accepted.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  elasticKeyID:
+                    type: string
+                    format: uuid
+        '404':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP404NotFound'
+        '500':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP500InternalServerError'
+
+  /jwks:
+    get:
+      summary: Get active public keys in JWKS format.
+      description: Returns a JWKS projection of active key materials.
+      responses:
+        '200':
+          description: JWKS response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  keys:
+                    type: array
+                    items:
+                      type: object
+                      additionalProperties: true
+        '500':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP500InternalServerError'
+
+  /messages:
+    get:
+      summary: List messages.
+      description: Lists messages for a recipient.
+      parameters:
+        - name: recipient_id
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Message list.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  additionalProperties: true
+        '400':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP400BadRequest'
+        '500':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP500InternalServerError'
+
+  /messages/{messageID}:
+    parameters:
+      - name: messageID
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      summary: Get one message.
+      responses:
+        '200':
+          description: Message details.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '404':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP404NotFound'
+    delete:
+      summary: Delete one message.
+      responses:
+        '204':
+          description: Deleted.
+        '400':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP400BadRequest'
+        '500':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP500InternalServerError'
+
+  /messages/send:
+    post:
+      summary: Send a message.
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '501':
+          description: Endpoint scaffolded and pending business logic wiring.
+
+  /messages/receive:
+    get:
+      summary: Receive messages.
+      responses:
+        '501':
+          description: Endpoint scaffolded and pending business logic wiring.

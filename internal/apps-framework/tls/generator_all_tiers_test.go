@@ -13,28 +13,25 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
-// TestGenerate_AllSixteenTiers verifies that Generate succeeds for all 16 valid tier IDs:
-// 1 suite, 5 products, and 10 PS-IDs. Uses stub crypto (no real key generation) so the
+// TestGenerate_AllThirteenTiers verifies that Generate succeeds for all 13 valid tier IDs:
+// 1 suite, 4 products, and 8 PS-IDs. Uses stub crypto (no real key generation) so the
 // test runs fast enough for t.Parallel() on all subtests.
-func TestGenerate_AllSixteenTiers(t *testing.T) {
+func TestGenerate_AllThirteenTiers(t *testing.T) {
 	t.Parallel()
 
-	// All 16 valid tier IDs: 1 suite + 5 products + 10 PS-IDs.
+	// All 13 valid tier IDs: 1 suite + 4 products + 8 PS-IDs.
 	tiers := []string{
 		// Suite (1)
 		cryptoutilSharedMagic.DefaultOTLPServiceDefault,
 
-		// Products (5)
+		// Products (4)
 		cryptoutilSharedMagic.SMProductName,
-		cryptoutilSharedMagic.JoseProductName,
 		cryptoutilSharedMagic.PKIProductName,
 		cryptoutilSharedMagic.IdentityProductName,
 		cryptoutilSharedMagic.SkeletonProductName,
 
-		// PS-IDs (10)
+		// PS-IDs (8)
 		cryptoutilSharedMagic.OTLPServiceSMKMS,
-		cryptoutilSharedMagic.OTLPServiceSMIM,
-		cryptoutilSharedMagic.OTLPServiceJoseJA,
 		cryptoutilSharedMagic.OTLPServicePKICA,
 		cryptoutilSharedMagic.OTLPServiceIdentityAuthz,
 		cryptoutilSharedMagic.OTLPServiceIdentityIDP,

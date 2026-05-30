@@ -54,7 +54,7 @@ func correctDBCompose(psID string) string {
 	return "services:\n  " + psID + "-app-sqlite-1: {}\n"
 }
 
-// setupAllComposeFiles creates correct compose files for all 10 PS.
+// setupAllComposeFiles creates correct compose files for all active PS-IDs.
 func setupAllComposeFiles(t *testing.T, tmpDir string) {
 	t.Helper()
 
@@ -103,11 +103,11 @@ func TestCheckInDir_MissingComposeFile(t *testing.T) {
 	tmpDir := t.TempDir()
 	setupAllComposeFiles(t, tmpDir)
 
-	require.NoError(t, os.Remove(filepath.Join(tmpDir, "deployments", cryptoutilSharedMagic.OTLPServiceSMIM, "compose.yml")))
+	require.NoError(t, os.Remove(filepath.Join(tmpDir, "deployments", cryptoutilSharedMagic.OTLPServiceSMKMS, "compose.yml")))
 
 	err := lintFitnessComposeDBNaming.CheckInDir(newTestLogger(), tmpDir)
 	require.Error(t, err)
-	assert.Contains(t, err.Error(), cryptoutilSharedMagic.OTLPServiceSMIM)
+	assert.Contains(t, err.Error(), cryptoutilSharedMagic.OTLPServiceSMKMS)
 }
 
 func TestCheckInDir_DBServicePresent_Fails(t *testing.T) {
@@ -116,30 +116,26 @@ func TestCheckInDir_DBServicePresent_Fails(t *testing.T) {
 	tmpDir := t.TempDir()
 	setupAllComposeFiles(t, tmpDir)
 
-	// Write sm-im compose WITH the legacy per-PS-ID DB service — must be rejected.
-	writeComposeYML(t, tmpDir, cryptoutilSharedMagic.OTLPServiceSMIM, `services:
-  sm-im-app-sqlite-1: {}
-  sm-im-db-postgres-1:
-    container_name: sm-im-postgres
-    hostname: sm-im-postgres
-`)
+	// Write sm-kms compose WITH the legacy per-PS-ID DB service — must be rejected.
+	writeComposeYML(t, tmpDir, cryptoutilSharedMagic.OTLPServiceSMKMS,
+		"services:\n  sm-kms-app-sqlite-1: {}\n  sm-kms-db-postgres-1:\n    container_name: sm-kms-postgres\n    hostname: sm-kms-postgres\n")
 
 	err := lintFitnessComposeDBNaming.CheckInDir(newTestLogger(), tmpDir)
 	require.Error(t, err)
-	assert.Contains(t, err.Error(), cryptoutilSharedMagic.OTLPServiceSMIM)
-	assert.Contains(t, err.Error(), "sm-im-db-postgres-1")
+	assert.Contains(t, err.Error(), cryptoutilSharedMagic.OTLPServiceSMKMS)
+	assert.Contains(t, err.Error(), "sm-kms-db-postgres-1")
 	assert.Contains(t, err.Error(), "shared-postgres tier")
 }
 
 func TestCheckInDir_InvalidYAML(t *testing.T) {
 	t.Parallel()
 
-	psID := cryptoutilSharedMagic.OTLPServiceSMIM
+	psID := cryptoutilSharedMagic.OTLPServiceSMKMS
 
 	tmpDir := t.TempDir()
 	setupAllComposeFiles(t, tmpDir)
 
-	// Overwrite sm-im compose.yml with invalid YAML.
+	// Overwrite sm-kms compose.yml with invalid YAML.
 	deployDir := filepath.Join(tmpDir, "deployments", psID)
 	require.NoError(t, os.WriteFile(filepath.Join(deployDir, "compose.yml"), []byte("services: [\ninvalid yaml"), cryptoutilSharedMagic.FilePermissions))
 

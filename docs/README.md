@@ -728,7 +728,7 @@ docker compose -f ./deployments/cryptoutil/compose.yml up -d
 
 # Or deploy individual services (SERVICE-level)
 docker compose -f ./deployments/pki-ca/compose.yml up -d
-docker compose -f ./deployments/jose-ja/compose.yml up -d
+docker compose -f ./deployments/sm-kms/compose.yml up -d
 
 # Run service-specific E2E tests (new pattern - uses service template)
 # Example: sm-im service

@@ -62,9 +62,6 @@ func setupAllCorrectOTLPConfigs(t *testing.T, tmpDir string) {
 		filename string
 		suffix   string
 	}{
-		{cryptoutilSharedMagic.OTLPServiceSMIM, "sm-im-app-sqlite-1.yml", "-sqlite-1"},
-		{cryptoutilSharedMagic.OTLPServiceSMIM, "sm-im-app-postgresql-1.yml", "-postgresql-1"},
-		{cryptoutilSharedMagic.OTLPServiceSMIM, "sm-im-app-postgresql-2.yml", "-postgresql-2"},
 		{cryptoutilSharedMagic.OTLPServiceSMKMS, "sm-kms-app-sqlite-1.yml", "-sqlite-1"},
 		{cryptoutilSharedMagic.OTLPServiceSMKMS, "sm-kms-app-postgresql-1.yml", "-postgresql-1"},
 		{cryptoutilSharedMagic.OTLPServiceSMKMS, "sm-kms-app-postgresql-2.yml", "-postgresql-2"},
@@ -118,14 +115,14 @@ func TestCheckInDir_MissingOTLPServiceKey(t *testing.T) {
 	tmpDir := t.TempDir()
 	setupAllCorrectOTLPConfigs(t, tmpDir)
 
-	// Overwrite sm-im sm-im-app-postgresql-1.yml with no otlp-service key.
-	writeDeploymentConfigFile(t, tmpDir, cryptoutilSharedMagic.OTLPServiceSMIM, "sm-im-app-postgresql-1.yml",
+	// Overwrite sm-kms sm-kms-app-postgresql-1.yml with no otlp-service key.
+	writeDeploymentConfigFile(t, tmpDir, cryptoutilSharedMagic.OTLPServiceSMKMS, "sm-kms-app-postgresql-1.yml",
 		"bind-public-port: 8700\n",
 	)
 
 	err := lintFitnessStandaloneConfigOTLPNames.CheckInDir(newTestLogger(), tmpDir)
 	require.Error(t, err)
-	assert.Contains(t, err.Error(), cryptoutilSharedMagic.OTLPServiceSMIM)
+	assert.Contains(t, err.Error(), cryptoutilSharedMagic.OTLPServiceSMKMS)
 	assert.Contains(t, err.Error(), "missing required otlp-service key")
 }
 

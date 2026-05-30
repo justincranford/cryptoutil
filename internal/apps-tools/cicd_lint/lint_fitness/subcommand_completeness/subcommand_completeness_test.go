@@ -136,13 +136,13 @@ func TestCheckInDir_OnlyTestFiles(t *testing.T) {
 
 	tmpDir := t.TempDir()
 
-	// Set up all services except sm-im which gets only _test.go files (no RouteService in production code).
+	// Set up all services except sm-kms which gets only _test.go files (no RouteService in production code).
 	setupAllValidServices(t, tmpDir)
 
-	smImDir := filepath.Join(tmpDir, "internal", "apps", cryptoutilSharedMagic.OTLPServiceSMIM)
+	smImDir := filepath.Join(tmpDir, "internal", "apps", cryptoutilSharedMagic.OTLPServiceSMKMS)
 
 	// Remove the valid Go file.
-	require.NoError(t, os.Remove(filepath.Join(smImDir, cryptoutilSharedMagic.OTLPServiceSMIM+".go")))
+	require.NoError(t, os.Remove(filepath.Join(smImDir, cryptoutilSharedMagic.OTLPServiceSMKMS+".go")))
 
 	// Replace with only a test file that has RouteService (should NOT satisfy the check).
 	testContent := "package im_test\n\nfunc TestRouteService() { _ = \"RouteService\" }\n"
@@ -150,7 +150,7 @@ func TestCheckInDir_OnlyTestFiles(t *testing.T) {
 
 	err := CheckInDir(newTestLogger(), tmpDir, os.ReadDir, os.ReadFile)
 	require.Error(t, err)
-	assert.Contains(t, err.Error(), cryptoutilSharedMagic.OTLPServiceSMIM)
+	assert.Contains(t, err.Error(), cryptoutilSharedMagic.OTLPServiceSMKMS)
 }
 
 func TestCheckInDir_MultipleViolations(t *testing.T) {
@@ -158,13 +158,13 @@ func TestCheckInDir_MultipleViolations(t *testing.T) {
 
 	tmpDir := t.TempDir()
 
-	// Only create service dirs WITHOUT RouteService for sm-kms and sm-im.
+	// Only create service dirs WITHOUT RouteService for sm-kms and pki-ca.
 	for _, ps := range lintFitnessRegistry.AllProductServices() {
 		serviceDir := filepath.Join(tmpDir, "internal", "apps", ps.PSID)
 		require.NoError(t, os.MkdirAll(serviceDir, cryptoutilSharedMagic.CICDTempDirPermissions))
 
 		var content string
-		if ps.PSID == cryptoutilSharedMagic.OTLPServiceSMKMS || ps.PSID == cryptoutilSharedMagic.OTLPServiceSMIM {
+		if ps.PSID == cryptoutilSharedMagic.OTLPServiceSMKMS || ps.PSID == cryptoutilSharedMagic.OTLPServicePKICA {
 			content = "package " + ps.PSID + "\n\nfunc Handler() {}\n"
 		} else {
 			content = "package " + ps.PSID + "\n\nfunc Handler() { _ = \"RouteService\" }\n"
@@ -176,7 +176,7 @@ func TestCheckInDir_MultipleViolations(t *testing.T) {
 	err := CheckInDir(newTestLogger(), tmpDir, os.ReadDir, os.ReadFile)
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), cryptoutilSharedMagic.OTLPServiceSMKMS)
-	assert.Contains(t, err.Error(), cryptoutilSharedMagic.OTLPServiceSMIM)
+	assert.Contains(t, err.Error(), cryptoutilSharedMagic.OTLPServicePKICA)
 }
 
 func TestCheckInDir_ReadFileError(t *testing.T) {

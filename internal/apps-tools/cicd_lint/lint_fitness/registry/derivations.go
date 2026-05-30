@@ -141,31 +141,31 @@ func SuitePublicPort(psID string) int {
 // -----------------------------------------------------------------------
 
 // PSIDToSQLID converts a PS-ID (kebab-case) to a SQL identifier (snake_case).
-// Example: "jose-ja" → "jose_ja".
+// Example: "sm-kms" → "jose_ja".
 func PSIDToSQLID(psID string) string {
 	return strings.ReplaceAll(psID, "-", "_")
 }
 
 // DatabaseName returns the PostgreSQL database name for the given PS-ID.
-// Example: "jose-ja" → "jose_ja_database".
+// Example: "sm-kms" → "jose_ja_database".
 func DatabaseName(psID string) string {
 	return PSIDToSQLID(psID) + DatabaseSuffix
 }
 
 // DatabaseUser returns the PostgreSQL database user for the given PS-ID.
-// Example: "jose-ja" → "jose_ja_database_user".
+// Example: "sm-kms" → "jose_ja_database_user".
 func DatabaseUser(psID string) string {
 	return PSIDToSQLID(psID) + DatabaseUserSuffix
 }
 
 // PostgresServiceName returns the compose PostgreSQL service/container name for the given PS-ID.
-// Example: "jose-ja" → "jose-ja-postgres".
+// Example: "sm-kms" → "sm-kms-postgres".
 func PostgresServiceName(psID string) string {
 	return psID + PostgresServiceSuffix
 }
 
 // DBServiceName returns the compose database service name for the given PS-ID.
-// Example: "jose-ja" → "jose-ja-db-postgres-1".
+// Example: "sm-kms" → "sm-kms-db-postgres-1".
 func DBServiceName(psID string) string {
 	return psID + DBServiceSuffix
 }

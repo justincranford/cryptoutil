@@ -61,7 +61,7 @@ var allRegistryFile *RegistryFile
 var allProducts []Product
 
 // allProductServices is the canonical registry of all 10 cryptoutil product-services.
-// Canonical order: sm-kms, sm-im, jose-ja, pki-ca, identity-authz, identity-idp,
+// Canonical order: sm-kms, sm-im, sm-kms, pki-ca, identity-authz, identity-idp,
 // identity-rs, identity-rp, identity-spa, skeleton-template.
 // Populated by init() from api/cryptosuite-registry/registry.yaml.
 var allProductServices []ProductService

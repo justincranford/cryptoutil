@@ -48,9 +48,9 @@ No API functionality is deleted â€” only the deployment unit changes.
 ### Assumption: framework-v24 Already Complete
 
 This plan assumes framework-v24 has been fully executed:
-- `jose-ja` APIs merged into `sm-kms` (JOSE operations)
+- `sm-kms` APIs merged into `sm-kms` (JOSE operations)
 - `sm-im` APIs merged into `sm-kms` (encrypted messaging)
-- `jose-ja`, `sm-im` PS-IDs deleted
+- `sm-kms`, `sm-im` PS-IDs deleted
 - `jose` product deleted
 - sm-kms domain migrations 2001â€“2008 in use
 

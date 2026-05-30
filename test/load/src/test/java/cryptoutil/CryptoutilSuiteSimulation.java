@@ -33,7 +33,7 @@ import io.gatling.javaapi.http.HttpProtocolBuilder;
  * <ul>
  *   <li>sm-kms: 8000</li>
  *   <li>sm-im: 8100</li>
- *   <li>jose-ja: 8200</li>
+ *   <li>sm-kms: 8200</li>
  *   <li>pki-ca: 8300</li>
  *   <li>identity-authz: 8400</li>
  *   <li>identity-idp: 8500</li>

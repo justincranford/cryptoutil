@@ -24,8 +24,8 @@ func TestValidatePostgresSecretsDirSync(t *testing.T) {
 			name:          "all service env files in sync",
 			sharedCompose: "secrets:\n  postgres-username.secret:\n    file: ${POSTGRES_SECRETS_DIR:-./secrets}/postgres-username.secret\n",
 			envContentByService: map[string]string{
-				cryptoutilSharedMagic.OTLPServiceSMKMS:  "POSTGRES_SECRETS_DIR=../sm-kms/secrets\n",
-				cryptoutilSharedMagic.OTLPServiceJoseJA: "POSTGRES_SECRETS_DIR=../jose-ja/secrets\n",
+				cryptoutilSharedMagic.OTLPServiceSMKMS: "POSTGRES_SECRETS_DIR=../sm-kms/secrets\n",
+				cryptoutilSharedMagic.OTLPServicePKICA: "POSTGRES_SECRETS_DIR=../pki-ca/secrets\n",
 			},
 			wantValid: true,
 		},
@@ -33,7 +33,7 @@ func TestValidatePostgresSecretsDirSync(t *testing.T) {
 			name:          "service env value mismatch",
 			sharedCompose: "secrets:\n  postgres-username.secret:\n    file: ${POSTGRES_SECRETS_DIR:-./secrets}/postgres-username.secret\n",
 			envContentByService: map[string]string{
-				cryptoutilSharedMagic.OTLPServiceSMIM: "POSTGRES_SECRETS_DIR=../wrong/secrets\n",
+				cryptoutilSharedMagic.OTLPServiceSMKMS: "POSTGRES_SECRETS_DIR=../wrong/secrets\n",
 			},
 			wantValid:   false,
 			wantErrText: "mismatch",

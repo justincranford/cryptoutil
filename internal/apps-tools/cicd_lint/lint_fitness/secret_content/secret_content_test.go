@@ -31,15 +31,15 @@ func TestFindViolationsInDir_ValidDeployments(t *testing.T) {
 		{
 			name: "valid service deployment",
 			setupFiles: map[string]string{
-				"deployments/jose-ja/secrets/hash-pepper-v3.secret":    "jose-ja-hash-pepper-v3-" + base64url43A(),
-				"deployments/jose-ja/secrets/browser-username.secret":  "jose-ja-browser-user",
-				"deployments/jose-ja/secrets/browser-password.secret":  "jose-ja-browser-pass-" + base64url43B(),
-				"deployments/jose-ja/secrets/service-username.secret":  "jose-ja-service-user",
-				"deployments/jose-ja/secrets/service-password.secret":  "jose-ja-service-pass-" + base64url43C(),
-				"deployments/jose-ja/secrets/postgres-database.secret": "jose_ja_database",
-				"deployments/jose-ja/secrets/postgres-username.secret": "jose_ja_database_user",
-				"deployments/jose-ja/secrets/postgres-password.secret": "jose_ja_database_pass-" + base64url43D(),
-				"deployments/jose-ja/secrets/postgres-url.secret":      "postgres://jose_ja_database_user:jose_ja_database_pass-" + base64url43D() + "@shared-postgres-leader:5432/jose_ja_database",
+				"deployments/sm-kms/secrets/hash-pepper-v3.secret":    "sm-kms-hash-pepper-v3-" + base64url43A(),
+				"deployments/sm-kms/secrets/browser-username.secret":  "sm-kms-browser-user",
+				"deployments/sm-kms/secrets/browser-password.secret":  "sm-kms-browser-pass-" + base64url43B(),
+				"deployments/sm-kms/secrets/service-username.secret":  "sm-kms-service-user",
+				"deployments/sm-kms/secrets/service-password.secret":  "sm-kms-service-pass-" + base64url43C(),
+				"deployments/sm-kms/secrets/postgres-database.secret": "sm_kms_database",
+				"deployments/sm-kms/secrets/postgres-username.secret": "sm_kms_database_user",
+				"deployments/sm-kms/secrets/postgres-password.secret": "sm_kms_database_pass-" + base64url43D(),
+				"deployments/sm-kms/secrets/postgres-url.secret":      "postgres://sm_kms_database_user:sm_kms_database_pass-" + base64url43D() + "@shared-postgres-leader:5432/sm_kms_database",
 			},
 		},
 		{
@@ -87,7 +87,7 @@ func TestFindViolationsInDir_ValidDeployments(t *testing.T) {
 		{
 			name: "content with trailing newline is valid",
 			setupFiles: map[string]string{
-				"deployments/jose-ja/secrets/hash-pepper-v3.secret": "jose-ja-hash-pepper-v3-" + base64url43A() + "\n",
+				"deployments/sm-kms/secrets/hash-pepper-v3.secret": "sm-kms-hash-pepper-v3-" + base64url43A() + "\n",
 			},
 		},
 	}
@@ -122,7 +122,7 @@ func TestFindViolationsInDir_InvalidContent(t *testing.T) {
 		{
 			name: "wrong prefix in hash pepper",
 			setupFiles: map[string]string{
-				"deployments/jose-ja/secrets/hash-pepper-v3.secret": "wrong-hash-pepper-v3-" + base64url43A(),
+				"deployments/sm-kms/secrets/hash-pepper-v3.secret": "wrong-hash-pepper-v3-" + base64url43A(),
 			},
 			wantViolations: 1,
 			wantSubstring:  "does not match expected pattern",
@@ -130,7 +130,7 @@ func TestFindViolationsInDir_InvalidContent(t *testing.T) {
 		{
 			name: "empty hash pepper file",
 			setupFiles: map[string]string{
-				"deployments/jose-ja/secrets/hash-pepper-v3.secret": "",
+				"deployments/sm-kms/secrets/hash-pepper-v3.secret": "",
 			},
 			wantViolations: 1,
 			wantSubstring:  "empty",
@@ -138,7 +138,7 @@ func TestFindViolationsInDir_InvalidContent(t *testing.T) {
 		{
 			name: "wrong browser username",
 			setupFiles: map[string]string{
-				"deployments/jose-ja/secrets/browser-username.secret": "wrong-browser-user",
+				"deployments/sm-kms/secrets/browser-username.secret": "wrong-browser-user",
 			},
 			wantViolations: 1,
 			wantSubstring:  "does not match expected pattern",
@@ -146,7 +146,7 @@ func TestFindViolationsInDir_InvalidContent(t *testing.T) {
 		{
 			name: "wrong browser password prefix",
 			setupFiles: map[string]string{
-				"deployments/jose-ja/secrets/browser-password.secret": "wrong-browser-pass-" + base64url43A(),
+				"deployments/sm-kms/secrets/browser-password.secret": "wrong-browser-pass-" + base64url43A(),
 			},
 			wantViolations: 1,
 			wantSubstring:  "does not match expected pattern",
@@ -154,7 +154,7 @@ func TestFindViolationsInDir_InvalidContent(t *testing.T) {
 		{
 			name: "browser password too short base64url",
 			setupFiles: map[string]string{
-				"deployments/jose-ja/secrets/browser-password.secret": "jose-ja-browser-pass-abc123",
+				"deployments/sm-kms/secrets/browser-password.secret": "sm-kms-browser-pass-abc123",
 			},
 			wantViolations: 1,
 			wantSubstring:  "does not match expected pattern",
@@ -162,7 +162,7 @@ func TestFindViolationsInDir_InvalidContent(t *testing.T) {
 		{
 			name: "wrong service username",
 			setupFiles: map[string]string{
-				"deployments/jose-ja/secrets/service-username.secret": "wrong-service-user",
+				"deployments/sm-kms/secrets/service-username.secret": "wrong-service-user",
 			},
 			wantViolations: 1,
 			wantSubstring:  "does not match expected pattern",
@@ -170,7 +170,7 @@ func TestFindViolationsInDir_InvalidContent(t *testing.T) {
 		{
 			name: "wrong service password prefix",
 			setupFiles: map[string]string{
-				"deployments/jose-ja/secrets/service-password.secret": "wrong-service-pass-" + base64url43A(),
+				"deployments/sm-kms/secrets/service-password.secret": "wrong-service-pass-" + base64url43A(),
 			},
 			wantViolations: 1,
 			wantSubstring:  "does not match expected pattern",
@@ -178,7 +178,7 @@ func TestFindViolationsInDir_InvalidContent(t *testing.T) {
 		{
 			name: "wrong postgres database prefix",
 			setupFiles: map[string]string{
-				"deployments/jose-ja/secrets/postgres-database.secret": "wrong_database",
+				"deployments/sm-kms/secrets/postgres-database.secret": "wrong_database",
 			},
 			wantViolations: 1,
 			wantSubstring:  "does not match expected pattern",
@@ -186,7 +186,7 @@ func TestFindViolationsInDir_InvalidContent(t *testing.T) {
 		{
 			name: "wrong postgres username prefix",
 			setupFiles: map[string]string{
-				"deployments/jose-ja/secrets/postgres-username.secret": "wrong_database_user",
+				"deployments/sm-kms/secrets/postgres-username.secret": "wrong_database_user",
 			},
 			wantViolations: 1,
 			wantSubstring:  "does not match expected pattern",
@@ -194,7 +194,7 @@ func TestFindViolationsInDir_InvalidContent(t *testing.T) {
 		{
 			name: "wrong postgres password prefix",
 			setupFiles: map[string]string{
-				"deployments/jose-ja/secrets/postgres-password.secret": "wrong_database_pass-" + base64url43A(),
+				"deployments/sm-kms/secrets/postgres-password.secret": "wrong_database_pass-" + base64url43A(),
 			},
 			wantViolations: 1,
 			wantSubstring:  "does not match expected pattern",
@@ -202,7 +202,7 @@ func TestFindViolationsInDir_InvalidContent(t *testing.T) {
 		{
 			name: "wrong postgres url host",
 			setupFiles: map[string]string{
-				"deployments/jose-ja/secrets/postgres-url.secret": "postgres://jose_ja_database_user:jose_ja_database_pass-" + base64url43A() + "@wrong-postgres:5432/jose_ja_database",
+				"deployments/sm-kms/secrets/postgres-url.secret": "postgres://sm_kms_database_user:sm_kms_database_pass-" + base64url43A() + "@wrong-postgres:5432/sm_kms_database",
 			},
 			wantViolations: 1,
 			wantSubstring:  "does not match expected pattern",
@@ -210,7 +210,7 @@ func TestFindViolationsInDir_InvalidContent(t *testing.T) {
 		{
 			name: "empty postgres url",
 			setupFiles: map[string]string{
-				"deployments/jose-ja/secrets/postgres-url.secret": "",
+				"deployments/sm-kms/secrets/postgres-url.secret": "",
 			},
 			wantViolations: 1,
 			wantSubstring:  "empty",
@@ -250,9 +250,9 @@ func TestFindViolationsInDir_InvalidContent(t *testing.T) {
 		{
 			name: "multiple violations in one deployment",
 			setupFiles: map[string]string{
-				"deployments/jose-ja/secrets/hash-pepper-v3.secret":    "",
-				"deployments/jose-ja/secrets/browser-username.secret":  "wrong-browser-user",
-				"deployments/jose-ja/secrets/postgres-database.secret": "wrong_database",
+				"deployments/sm-kms/secrets/hash-pepper-v3.secret":    "",
+				"deployments/sm-kms/secrets/browser-username.secret":  "wrong-browser-user",
+				"deployments/sm-kms/secrets/postgres-database.secret": "wrong_database",
 			},
 			wantViolations: 3,
 			wantSubstring:  "",
@@ -308,7 +308,7 @@ func TestCheckInDir_WithViolation(t *testing.T) {
 	t.Parallel()
 
 	files := map[string]string{
-		"deployments/jose-ja/secrets/hash-pepper-v3.secret": "wrong-hash-pepper-v3-" + base64url43A(),
+		"deployments/sm-kms/secrets/hash-pepper-v3.secret": "wrong-hash-pepper-v3-" + base64url43A(),
 	}
 	rootDir := setupTempDir(t, files)
 
@@ -324,7 +324,7 @@ func TestCheckInDir_NoViolation(t *testing.T) {
 	t.Parallel()
 
 	files := map[string]string{
-		"deployments/jose-ja/secrets/hash-pepper-v3.secret": "jose-ja-hash-pepper-v3-" + base64url43A(),
+		"deployments/sm-kms/secrets/hash-pepper-v3.secret": "sm-kms-hash-pepper-v3-" + base64url43A(),
 	}
 	rootDir := setupTempDir(t, files)
 
@@ -379,7 +379,7 @@ func TestFindViolationsInDir_ReadError(t *testing.T) {
 	// Create a directory where the secret file is expected, so ReadFile returns
 	// a non-NotExist error (is-a-directory error).
 	rootDir := t.TempDir()
-	secretsDir := filepath.Join(rootDir, "deployments", cryptoutilSharedMagic.JoseJAServiceID, "secrets")
+	secretsDir := filepath.Join(rootDir, "deployments", cryptoutilSharedMagic.KMSServiceID, "secrets")
 
 	if err := os.MkdirAll(secretsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupReadExecute); err != nil {
 		t.Fatalf("failed to create secrets dir: %v", err)

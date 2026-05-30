@@ -52,7 +52,7 @@ const (
 type deploymentInfo struct {
 	tier     tierKind
 	tierName string // "service", "product", or "suite" — matches schema tier values
-	prefix   string // Hyphenated prefix (e.g., "jose-ja").
+	prefix   string // Hyphenated prefix (e.g., "sm-kms").
 	prefixUS string // Underscored prefix for PostgreSQL identifiers (e.g., "jose_ja").
 }
 

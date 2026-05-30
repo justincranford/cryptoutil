@@ -183,9 +183,9 @@ func getPortRange(deploymentLevel string) (int, int) {
 // should be excluded from deployment level range checks.
 func isInfrastructurePort(port int) bool {
 	infraPorts := map[int]bool{
-		cryptoutilSharedMagic.JoseJAE2EGrafanaPort:                      true, // Grafana UI.
-		cryptoutilSharedMagic.JoseJAE2EOtelCollectorGRPCPort:            true, // OTLP gRPC (collector).
-		cryptoutilSharedMagic.JoseJAE2EOtelCollectorHTTPPort:            true, // OTLP HTTP (collector).
+		int(cryptoutilSharedMagic.DefaultPublicPortGrafana):             true, // Grafana UI.
+		int(cryptoutilSharedMagic.DefaultPublicPortInternalMetrics):     true, // OTLP gRPC (collector).
+		int(cryptoutilSharedMagic.PortOtelCollectorReceivedMetrics):     true, // OTLP HTTP (collector).
 		int(cryptoutilSharedMagic.DefaultPublicPortPostgres):            true, // PostgreSQL.
 		int(cryptoutilSharedMagic.DefaultPublicPortOtelCollectorHealth): true, // OTel collector health.
 		int(cryptoutilSharedMagic.PortGrafanaOTLPGRPC):                  true, // OTLP gRPC (forwarded).

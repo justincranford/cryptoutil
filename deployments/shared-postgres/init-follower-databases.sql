@@ -47,8 +47,8 @@ CREATE DATABASE "pki-ca";
 \c "pki-ca"
 CREATE SCHEMA ca;
 
-CREATE DATABASE "jose-ja";
-\c "jose-ja"
+CREATE DATABASE "sm-kms";
+\c "sm-kms"
 CREATE SCHEMA ja;
 
 CREATE DATABASE "sm-im";

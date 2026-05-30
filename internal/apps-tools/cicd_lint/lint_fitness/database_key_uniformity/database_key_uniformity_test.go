@@ -159,7 +159,7 @@ func TestCheckInDir_NestedDatabaseMapping(t *testing.T) {
 			t.Parallel()
 
 			tmpDir := t.TempDir()
-			psID := cryptoutilSharedMagic.OTLPServiceSMIM
+			psID := cryptoutilSharedMagic.OTLPServiceSMKMS
 			filename := psID + "-domain.yml"
 
 			setupConfigDir(t, tmpDir, psID, map[string]string{filename: tc.content})
@@ -303,7 +303,7 @@ func TestCheckInDir_MultipleViolations(t *testing.T) {
 
 	badContent := "database:\n  type: postgres\n  dsn: \"${DSN}\"\n"
 
-	for _, psID := range []string{cryptoutilSharedMagic.KMSServiceID, cryptoutilSharedMagic.IMServiceID} {
+	for _, psID := range []string{cryptoutilSharedMagic.KMSServiceID, cryptoutilSharedMagic.OTLPServicePKICA} {
 		filename := fmt.Sprintf("%s-domain.yml", psID)
 		setupConfigDir(t, tmpDir, psID, map[string]string{filename: badContent})
 	}
@@ -312,8 +312,8 @@ func TestCheckInDir_MultipleViolations(t *testing.T) {
 	require.Error(t, err)
 
 	// Both PS-IDs should be reported.
-	assert.True(t, strings.Contains(err.Error(), cryptoutilSharedMagic.KMSServiceID) && strings.Contains(err.Error(), cryptoutilSharedMagic.IMServiceID),
-		"expected both %s and %s in error: %s", cryptoutilSharedMagic.KMSServiceID, cryptoutilSharedMagic.IMServiceID, err)
+	assert.True(t, strings.Contains(err.Error(), cryptoutilSharedMagic.KMSServiceID) && strings.Contains(err.Error(), cryptoutilSharedMagic.OTLPServicePKICA),
+		"expected both %s and %s in error: %s", cryptoutilSharedMagic.KMSServiceID, cryptoutilSharedMagic.OTLPServicePKICA, err)
 }
 
 // TestCheck_DelegatesToCheckInDir verifies Check() delegates to CheckInDir(".").

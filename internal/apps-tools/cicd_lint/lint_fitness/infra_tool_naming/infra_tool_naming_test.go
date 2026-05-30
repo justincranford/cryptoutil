@@ -95,8 +95,8 @@ func TestFindViolationsInDir_RegistryEntries_Ignored(t *testing.T) {
 	tmpDir := t.TempDir()
 	// Registry entries should be skipped (not flagged as infra tools).
 	mkdir(t, filepath.Join(tmpDir, "cmd", cryptoutilSharedMagic.DefaultOTLPServiceDefault))
-	mkdir(t, filepath.Join(tmpDir, "cmd", cryptoutilSharedMagic.JoseProductName))
-	mkdir(t, filepath.Join(tmpDir, "cmd", cryptoutilSharedMagic.OTLPServiceJoseJA))
+	mkdir(t, filepath.Join(tmpDir, "cmd", cryptoutilSharedMagic.PKIProductName))
+	mkdir(t, filepath.Join(tmpDir, "cmd", cryptoutilSharedMagic.OTLPServicePKICA))
 
 	violations, err := lintFitnessInfraToolNaming.FindViolationsInDir(tmpDir)
 

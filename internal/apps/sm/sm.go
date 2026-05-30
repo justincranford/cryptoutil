@@ -11,12 +11,11 @@ import (
 
 	cryptoutilAppsFrameworkProductCli "cryptoutil/internal/apps-framework/product/cli"
 	cryptoutilAppsFrameworkTls "cryptoutil/internal/apps-framework/tls"
-	cryptoutilAppsSmIm "cryptoutil/internal/apps/sm-im"
 	cryptoutilAppsSmKms "cryptoutil/internal/apps/sm-kms"
 )
 
 const (
-	usageText   = "Usage: sm <service> <subcommand> [options]\n\nAvailable services:\n  kms         Key Management Service\n  im          Instant messaging service\n\nUse \"sm <service> help\" for service-specific help.\nUse \"sm version\" for version information."
+	usageText   = "Usage: sm <service> <subcommand> [options]\n\nAvailable services:\n  kms         Key Management Service\n\nUse \"sm <service> help\" for service-specific help.\nUse \"sm version\" for version information."
 	versionText = "sm product (cryptoutil)"
 )
 
@@ -37,7 +36,6 @@ func Sm(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		args, stdin, stdout, stderr,
 		[]cryptoutilAppsFrameworkProductCli.ServiceEntry{
 			{Name: cryptoutilSharedMagic.KMSServiceName, Handler: cryptoutilAppsSmKms.Kms},
-			{Name: cryptoutilSharedMagic.IMServiceName, Handler: cryptoutilAppsSmIm.Im},
 			{Name: cryptoutilSharedMagic.PSIDPKIInit, Handler: func(args []string, _ io.Reader, stdout, stderr io.Writer) int {
 				return cryptoutilAppsFrameworkTls.InitForProduct(cryptoutilSharedMagic.SMProductName, args, stdout, stderr)
 			}},

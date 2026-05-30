@@ -58,7 +58,7 @@ func correctServicesBlock(psID string) string {
 		psID, psID, psID, psID)
 }
 
-// setupAllComposeFiles creates correct compose files for all 10 PS.
+// setupAllComposeFiles creates correct compose files for all product-services.
 func setupAllComposeFiles(t *testing.T, tmpDir string) {
 	t.Helper()
 
@@ -107,26 +107,26 @@ func TestCheckInDir_MissingComposeFile(t *testing.T) {
 	tmpDir := t.TempDir()
 	setupAllComposeFiles(t, tmpDir)
 
-	require.NoError(t, os.Remove(filepath.Join(tmpDir, "deployments", cryptoutilSharedMagic.OTLPServiceSMIM, "compose.yml")))
+	require.NoError(t, os.Remove(filepath.Join(tmpDir, "deployments", cryptoutilSharedMagic.OTLPServiceSMKMS, "compose.yml")))
 
 	err := lintFitnessComposeServiceNames.CheckInDir(newTestLogger(), tmpDir)
 	require.Error(t, err)
-	assert.Contains(t, err.Error(), cryptoutilSharedMagic.OTLPServiceSMIM)
+	assert.Contains(t, err.Error(), cryptoutilSharedMagic.OTLPServiceSMKMS)
 }
 
 func TestCheckInDir_MissingRequiredService(t *testing.T) {
 	t.Parallel()
 
-	psID := cryptoutilSharedMagic.OTLPServiceSMIM
+	psID := cryptoutilSharedMagic.OTLPServiceSMKMS
 
 	missingServiceTests := []struct {
 		name           string
 		missingService string
 	}{
-		{"missing sqlite service", cryptoutilSharedMagic.IME2ESQLiteContainer},
+		{"missing sqlite service", cryptoutilSharedMagic.KMSE2ESQLiteContainer},
 		{"missing sqlite-2 service", psID + "-app-sqlite-2"},
-		{"missing postgres-1 service", cryptoutilSharedMagic.IME2EPostgreSQL1Container},
-		{"missing postgres-2 service", cryptoutilSharedMagic.IME2EPostgreSQL2Container},
+		{"missing postgres-1 service", cryptoutilSharedMagic.KMSE2EPostgreSQL1Container},
+		{"missing postgres-2 service", cryptoutilSharedMagic.KMSE2EPostgreSQL2Container},
 	}
 
 	for _, tc := range missingServiceTests {
@@ -136,7 +136,7 @@ func TestCheckInDir_MissingRequiredService(t *testing.T) {
 			tmpDir := t.TempDir()
 			setupAllComposeFiles(t, tmpDir)
 
-			// Overwrite sm-im compose without the missing service.
+			// Overwrite sm-kms compose without the missing service.
 			allServices := []string{
 				psID + "-app-sqlite-1",
 				psID + "-app-sqlite-2",
@@ -163,7 +163,7 @@ func TestCheckInDir_MissingRequiredService(t *testing.T) {
 func TestCheckInDir_DBServiceFlaggedAsUnrecognised(t *testing.T) {
 	t.Parallel()
 
-	psID := cryptoutilSharedMagic.OTLPServiceSMIM
+	psID := cryptoutilSharedMagic.OTLPServiceSMKMS
 
 	tmpDir := t.TempDir()
 	setupAllComposeFiles(t, tmpDir)
@@ -182,13 +182,13 @@ func TestCheckInDir_DBServiceFlaggedAsUnrecognised(t *testing.T) {
 func TestCheckInDir_UnrecognisedPSIDService(t *testing.T) {
 	t.Parallel()
 
-	psID := cryptoutilSharedMagic.OTLPServiceSMIM
+	psID := cryptoutilSharedMagic.OTLPServiceSMKMS
 
 	tmpDir := t.TempDir()
 	setupAllComposeFiles(t, tmpDir)
 
 	// Add a service with the PS-ID prefix but an unrecognised variant name.
-	// e.g., "sm-im-app-sqlite-99" -- has prefix "sm-im-" but is not in valid set.
+	// e.g., "sm-kms-app-sqlite-99" -- has prefix "sm-kms-" but is not in valid set.
 	bogusServiceBlock := correctServicesBlock(psID) + "  " + psID + "-app-bogus-variant: {}\n"
 	writeComposeYML(t, tmpDir, psID, bogusServiceBlock)
 
@@ -201,12 +201,12 @@ func TestCheckInDir_UnrecognisedPSIDService(t *testing.T) {
 func TestCheckInDir_InvalidYAML(t *testing.T) {
 	t.Parallel()
 
-	psID := cryptoutilSharedMagic.OTLPServiceSMIM
+	psID := cryptoutilSharedMagic.OTLPServiceSMKMS
 
 	tmpDir := t.TempDir()
 	setupAllComposeFiles(t, tmpDir)
 
-	// Overwrite sm-im compose.yml with invalid YAML.
+	// Overwrite sm-kms compose.yml with invalid YAML.
 	deployDir := filepath.Join(tmpDir, "deployments", psID)
 	require.NoError(t, os.WriteFile(filepath.Join(deployDir, "compose.yml"), []byte("services: [\ninvalid yaml"), cryptoutilSharedMagic.FilePermissions))
 

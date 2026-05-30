@@ -17,8 +17,8 @@ func TestParseEntrypointLine(t *testing.T) {
 	}{
 		{
 			name:  "single binary",
-			input: `["/app/jose-ja"]`,
-			want:  []string{"/app/jose-ja"},
+			input: `["/app/sm-kms"]`,
+			want:  []string{"/app/sm-kms"},
 		},
 		{
 			name:  "tini with suite binary no args",
@@ -32,7 +32,7 @@ func TestParseEntrypointLine(t *testing.T) {
 		},
 		{
 			name:  "not json array returns nil",
-			input: `/app/jose-ja`,
+			input: `/app/sm-kms`,
 			want:  nil,
 		},
 		{
@@ -80,7 +80,7 @@ func TestEntrypointEqual(t *testing.T) {
 		b    []string
 		want bool
 	}{
-		{name: "equal single", a: []string{"/app/jose-ja"}, b: []string{"/app/jose-ja"}, want: true},
+		{name: "equal single", a: []string{"/app/sm-kms"}, b: []string{"/app/sm-kms"}, want: true},
 		{name: "equal multi", a: []string{"/sbin/tini", "--", "/app/cryptoutil"}, b: []string{"/sbin/tini", "--", "/app/cryptoutil"}, want: true},
 		{name: "different length", a: []string{"/app/a"}, b: []string{"/app/a", "extra"}, want: false},
 		{name: "different element", a: []string{"/app/a"}, b: []string{"/app/b"}, want: false},

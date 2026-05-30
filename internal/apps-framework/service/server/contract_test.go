@@ -37,7 +37,7 @@ func TestServiceServer_InterfaceIsDefinedInServerPackage(t *testing.T) {
 // Services with compile-time assertions (var _ ServiceServer = (*XxxServer)(nil)):
 // - SmIMServer          (internal/apps/sm-im/server)
 // - KMSServer           (internal/apps/sm-kms/server)
-// - JoseJAServer        (internal/apps/jose-ja/server)
+// - JoseJAServer        (internal/apps/sm-kms/server)
 // - PKICAServer         (internal/apps/pki-ca/server)
 // - SkeletonTemplateServer (internal/apps/skeleton-template/server)
 // - AuthzServer         (internal/apps/identity-authz/server)

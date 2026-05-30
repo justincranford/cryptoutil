@@ -192,7 +192,7 @@ func TestHashPasswordWithIterations(t *testing.T) {
 		{
 			name:        "recommended iterations (600000)",
 			password:    "Password123!",
-			iterations:  cryptoutilSharedMagic.IMPBKDF2Iterations,
+			iterations:  cryptoutilSharedMagic.PBKDF2DefaultIterations,
 			expectError: false,
 		},
 		{

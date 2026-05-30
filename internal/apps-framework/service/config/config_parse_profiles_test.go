@@ -199,7 +199,7 @@ func TestNewForJOSEServer_HappyPath(t *testing.T) {
 	require.NotNil(t, settings)
 	require.Equal(t, cryptoutilSharedMagic.IPv4Loopback, settings.BindPublicAddress)
 	require.Equal(t, uint16(cryptoutilSharedMagic.TestServerPort), settings.BindPublicPort)
-	require.Equal(t, cryptoutilSharedMagic.OTLPServiceJoseJA, settings.OTLPService)
+	require.Equal(t, cryptoutilSharedMagic.OTLPServiceSMKMS, settings.OTLPService)
 }
 
 // TestParseWithFlagSet_ValidationError tests that validation errors propagate correctly.

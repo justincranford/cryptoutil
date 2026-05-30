@@ -255,7 +255,7 @@ See [Section 11.1 Maximum Quality Strategy](#111-maximum-quality-strategy---mand
 |-----------|---------|-------|--------|
 | `{SUITE}` | Suite name | 1 | `cryptoutil` |
 | `{PRODUCT}` | Product name | 5 | `identity`, `jose`, `pki`, `skeleton`, `sm` |
-| `{PS-ID}` | Product-Service Identifier | 10 | `identity-authz`, `identity-idp`, `identity-rp`, `identity-rs`, `identity-spa`, `jose-ja`, `pki-ca`, `skeleton-template`, `sm-im`, `sm-kms` |
+| `{PS-ID}` | Product-Service Identifier | 10 | `identity-authz`, `identity-idp`, `identity-rp`, `identity-rs`, `identity-spa`, `sm-kms`, `pki-ca`, `skeleton-template`, `sm-im`, `sm-kms` |
 | `{PS_ID}` | Underscore variant (SQL, secrets) | 10 | Same as `{PS-ID}` with `_` replacing `-` |
 | `{INFRA-TOOL}` | Infrastructure tooling | 2 | `cicd-lint`, `cicd-workflow` |
 
@@ -264,7 +264,7 @@ See [Section 11.1 Maximum Quality Strategy](#111-maximum-quality-strategy---mand
 ```
 cryptoutil (suite)
 ├── PKI           → pki-ca
-├── JOSE          → jose-ja
+├── JOSE          → sm-kms
 ├── SM            → sm-kms, sm-im
 ├── Identity      → identity-authz, identity-idp, identity-rs, identity-rp, identity-spa
 └── Skeleton      → skeleton-template
@@ -282,7 +282,7 @@ cryptoutil (suite)
 
 **Product & Suite Convenience**: Each `{PRODUCT}` product and `{SUITE}` suite are also available as all-in-one binaries for optional, alternate packaging for ease of distribution. They also come with convenience `{PRODUCT}` product and `{SUITE}` suite Docker Compose files for ease of e2e testing.
 
-**Migration Priority** (to service framework — see [Section 5.1.3](#513-mandatory-usage)): sm-im → jose-ja → sm-kms → pki-ca → identity services. SM services (sm-im/jose-ja/sm-kms) migrate first; pki-ca second; identity last.
+**Migration Priority** (to service framework — see [Section 5.1.3](#513-mandatory-usage)): sm-im → sm-kms → sm-kms → pki-ca → identity services. SM services (sm-im/sm-kms/sm-kms) migrate first; pki-ca second; identity last.
 
 **Federation**: Services fail over through FEDERATED → DATABASE → FILE realms with no retry logic or circuit breakers. FILE realms (local, always available) are the last-resort failsafe.
 
@@ -819,7 +819,7 @@ Copilot and AI agents have a tendency to partially fulfill requested work, accid
 |---------|---------|----------------------------|-----------------------------|-----------------------------|-------------------------|--------------------------------|---------------------------------|----------------------------------------|----------------------------------------|--------------------------------------|-------------|
 | **Secrets Manager (SM)** | **Key Management Service (KMS)** | **sm-kms** | 127.0.0.1 | 0.0.0.0 | 127.0.0.1 | 9090 | 8080 | 8000-8099 | 18000-18099 | 28000-28099 | Elastic key management, encryption-at-rest |
 | **Secrets Manager (SM)** | **Instant Messenger (IM)** | **sm-im** | 127.0.0.1 | 0.0.0.0 | 127.0.0.1 | 9090 | 8080 | 8100-8199 | 18100-18199 | 28100-28199 | E2E encrypted messaging, encryption-at-rest |
-| **JSON Object Signing and Encryption (JOSE)** | **JWK Authority (JA)** | **jose-ja** | 127.0.0.1 | 0.0.0.0 | 127.0.0.1 | 9090 | 8080 | 8200-8299 | 18200-18299 | 28200-28299 | JWK/JWS/JWE/JWT operations |
+| **JSON Object Signing and Encryption (JOSE)** | **JWK Authority (JA)** | **sm-kms** | 127.0.0.1 | 0.0.0.0 | 127.0.0.1 | 9090 | 8080 | 8200-8299 | 18200-18299 | 28200-28299 | JWK/JWS/JWE/JWT operations |
 | **Private Key Infrastructure (PKI)** | **Certificate Authority (CA)** | **pki-ca** | 127.0.0.1 | 0.0.0.0 | 127.0.0.1 | 9090 | 8080 | 8300-8399 | 18300-18399 | 28300-28399 | X.509 certificates, EST, SCEP, OCSP, CRL |
 | **Identity** | **Authorization Server (Authz)** | **identity-authz** | 127.0.0.1 | 0.0.0.0 | 127.0.0.1 | 9090 | 8080 | 8400-8499 | 18400-18499 | 28400-28499 | OAuth 2.1 authorization server |
 | **Identity** | **Identity Provider (IdP)** | **identity-idp** | 127.0.0.1 | 0.0.0.0 | 127.0.0.1 | 9090 | 8080 | 8500-8599 | 18500-18599 | 28500-28599 | OIDC 1.0 Identity Provider |
@@ -834,7 +834,7 @@ Copilot and AI agents have a tendency to partially fulfill requested work, accid
 |----------------------------|--------|------------|-------|
 | **sm-kms** | ✅ Complete | 100% | Reference implementation with dual servers, Docker Compose |
 | **sm-im** | ✅ Complete | 100% | E2E encrypted messaging, Docker Compose working |
-| **jose-ja** | ✅ Complete | ~95% | Dual HTTPS servers, Docker Compose, E2E tests |
+| **sm-kms** | ✅ Complete | ~95% | Dual HTTPS servers, Docker Compose, E2E tests |
 | **pki-ca** | ⚠️ Partial | ~40% | Domain under active development; E2E tests pending |
 | **identity-authz** | ⚠️ Partial | ~50% | Domain under active development; partial E2E tests |
 | **identity-idp** | ⚠️ Partial | ~50% | Domain under active development; partial E2E tests |
@@ -879,7 +879,7 @@ Copilot and AI agents have a tendency to partially fulfill requested work, accid
 
 ##### 3.2.2.1 JWK Authority (JA) Service
 
-- Product-Service (Unique Identifier): jose-ja
+- Product-Service (Unique Identifier): sm-kms
 - Service Name: JWK Authority (JA)
 - Service Description: JWK/JWS/JWE/JWT operations
 - Address (Container): Private Admin Compose+K8s APIs: 127.0.0.1 (container loopback only, IPv4 only)
@@ -1310,7 +1310,7 @@ cmd/
 ├── identity-rp/main.go                # Service CLI → internal/apps/identity-rp/identity-rp.go
 ├── identity-rs/main.go                # Service CLI → internal/apps/identity-rs/identity-rs.go
 ├── identity-spa/main.go               # Service CLI → internal/apps/identity-spa/identity-spa.go
-├── jose-ja/main.go                     # Service CLI → internal/apps/jose-ja/jose-ja.go
+├── sm-kms/main.go                     # Service CLI → internal/apps/sm-kms/sm-kms.go
 ├── pki-ca/main.go                      # Service CLI → internal/apps/pki-ca/pki-ca.go
 ├── skeleton-template/main.go           # Service CLI → internal/apps/skeleton-template/skeleton-template.go
 ├── sm-im/main.go                       # Service CLI → internal/apps/sm-im/sm-im.go
@@ -1378,8 +1378,8 @@ internal/apps/
 │   └── identity-rs.go
 ├── identity-spa/
 │   └── identity-spa.go
-├── jose-ja/
-│   └── jose-ja.go
+├── sm-kms/
+│   └── sm-kms.go
 ├── pki-ca/
 │   └── pki-ca.go
 ├── skeleton-template/
@@ -1403,7 +1403,7 @@ internal/apps/
 | `identity-rp` | `client/`, `e2e/`, `server/`, `unified/` |
 | `identity-rs` | `client/`, `e2e/`, `server/`, `unified/` |
 | `identity-spa` | `client/`, `e2e/`, `server/`, `unified/` |
-| `jose-ja` | `client/`, `e2e/`, `model/`, `repository/`, `server/`, `service/` |
+| `sm-kms` | `client/`, `e2e/`, `model/`, `repository/`, `server/`, `service/` |
 | `pki-ca` | `api/`, `bootstrap/`, `cli/`, `compliance/`, `config/`, `crypto/`, `domain/`, `domain-v2/`, `intermediate/`, `observability/`, `profile/`, `repository-v2/`, `security/`, `server/`, `service/`, `storage/` |
 | `skeleton-template` | `client/`, `domain/`, `e2e/`, `repository/`, `server/` |
 | `sm-im` | `client/`, `e2e/`, `integration/`, `model/`, `repository/`, `server/`, `testing/` |
@@ -1457,7 +1457,7 @@ deployments/{PS-ID}/
 └── secrets/                       # 14 secret files (see table below)
 ```
 
-**All 10 PS-IDs**: `identity-authz`, `identity-idp`, `identity-rp`, `identity-rs`, `identity-spa`, `jose-ja`, `pki-ca`, `skeleton-template`, `sm-im`, `sm-kms`.
+**All 10 PS-IDs**: `identity-authz`, `identity-idp`, `identity-rp`, `identity-rs`, `identity-spa`, `sm-kms`, `pki-ca`, `skeleton-template`, `sm-im`, `sm-kms`.
 
 ##### Tier Differences (Product ×5 / Suite ×1)
 
@@ -1614,8 +1614,8 @@ See [Section 9.10 CICD Command Architecture](#910-cicd-command-architecture) for
 
 - ALL new services MUST use `internal/apps-framework/service/` (consistency, reduced duplication)
 - ALL existing services MUST be refactored to use `internal/apps-framework/service/` (iterative migration)
-- Migration priority: sm-im → jose-ja → sm-kms → pki-ca → identity services
-  - sm-im/jose-ja/sm-kms migrate first (SM product); pki-ca second; identity last
+- Migration priority: sm-im → sm-kms → sm-kms → pki-ca → identity services
+  - sm-im/sm-kms/sm-kms migrate first (SM product); pki-ca second; identity last
 
 ### 5.2 Service Builder Pattern
 
@@ -2697,7 +2697,7 @@ All `openapi-gen_config*.yaml` files MUST include the full base initialisms list
 
 | Service | Domain Additions |
 |---------|----------------|
-| `jose-ja` | JWKS, OKP, URI |
+| `sm-kms` | JWKS, OKP, URI |
 | `pki-ca` | CSR, CA, CRL, OCSP, URI, SAN, DN, CN, OU |
 | `sm-im` | IM, SM, URI |
 | `sm-kms` | URI |
@@ -5613,7 +5613,7 @@ See [Section 4.4.6](#446-deployments) for the complete secret file listing at ea
 
 **`.secret.never` Marker Content**: Product-level markers contain `MUST NEVER be used at product level. Use service-specific secrets.` Suite-level markers contain `MUST NEVER be used at suite level. Use service-specific secrets.`
 
-**Note**: `{PS_ID}` uses underscores (e.g., `jose_ja`) for PostgreSQL identifiers; `{PS-ID}` uses hyphens (e.g., `jose-ja`) for all other contexts.
+**Note**: `{PS_ID}` uses underscores (e.g., `jose_ja`) for PostgreSQL identifiers; `{PS-ID}` uses hyphens (e.g., `sm-kms`) for all other contexts.
 
 ##### SUITE-Level Deployment (cryptoutil)
 
@@ -5641,7 +5641,7 @@ See [Section 4.4.6](#446-deployments) for the complete secret file listing at ea
 
 ##### SERVICE-Level Deployment (single service)
 
-**Location**: `deployments/{PS-ID}/secrets/` (e.g., `deployments/jose-ja/secrets/`)
+**Location**: `deployments/{PS-ID}/secrets/` (e.g., `deployments/sm-kms/secrets/`)
 
 **Consistency Requirements**:
 
@@ -5966,7 +5966,7 @@ Detection heuristic: `svc.Image == "" && svc.Build == nil && len(svc.Ports) > 0`
   - Rationale: Browser and service credentials are service-level only
 - Validation function: `validateProductSecrets()` in lint_deployments.go
 
-**PRODUCT-SERVICE** (e.g., sm-im, jose-ja, pki-ca, sm-kms, identity-authz/idp/rp/rs/spa, skeleton-template):
+**PRODUCT-SERVICE** (e.g., sm-im, sm-kms, pki-ca, sm-kms, identity-authz/idp/rp/rs/spa, skeleton-template):
 - Required directories: `secrets/`, `config/`
 - Required files: `compose.yml`, `Dockerfile`
 - Optional files: `otel-collector-config.yaml`, `README.md`
@@ -6084,7 +6084,7 @@ deployments/{PS-ID}/config/         # e.g., {PS-ID}=sm-kms
 
 **Rationale**:
 
-- Demo orchestration remains deferred; the E2E orchestration foundation is now established (sm-im, sm-kms, jose-ja, and skeleton-template have full E2E test suites). Demo support will be designed to reuse E2E patterns when prioritized.
+- Demo orchestration remains deferred; the E2E orchestration foundation is now established (sm-im, sm-kms, sm-kms, and skeleton-template have full E2E test suites). Demo support will be designed to reuse E2E patterns when prioritized.
 - Integration test data belongs in Go test code (TestMain + test-containers), not Docker Compose config files.
 
 **Linter Enforcement**: Strict mode. Presence of any deprecated file is an ERROR that blocks CI/CD.
@@ -6101,7 +6101,7 @@ deployments/{PS-ID}/config/         # e.g., {PS-ID}=sm-kms
 - Missing required secrets (14 secret files for service tier).
 - Missing required directories (`secrets/`, `config/`).
 - Missing required compose/Dockerfile files.
-- Single-part deployment names (must be `{PS-ID}` format, e.g., `sm-kms`, `jose-ja`).
+- Single-part deployment names (must be `{PS-ID}` format, e.g., `sm-kms`, `sm-kms`).
 - Wrong PS-ID prefix in config file names.
 
 #### 13.1.8 Config File Content Validation
@@ -6216,8 +6216,8 @@ configs/
 │   └── identity-rs.yml                         # Domain config (nested YAML)
 ├── identity-spa/
 │   └── identity-spa.yml                        # Domain config (nested YAML)
-├── jose-ja/
-│   └── jose-ja.yml                             # Domain config (nested YAML)
+├── sm-kms/
+│   └── sm-kms.yml                             # Domain config (nested YAML)
 ├── pki-ca/
 │   ├── pki-ca.yml                              # Domain config (nested YAML)
 │   └── profiles/                               # X.509 certificate profiles (25 files)
@@ -6234,15 +6234,15 @@ configs/
 
 **Key Rules**:
 
-- **Flat {PS-ID} directories**: `configs/{PS-ID}/` (e.g., `configs/jose-ja/`, `configs/sm-kms/`). NOT nested `configs/{PRODUCT}/{SERVICE}/`.
-- **Domain config naming**: `{PS-ID}.yml` (e.g., `jose-ja.yml`, `sm-im.yml`).
+- **Flat {PS-ID} directories**: `configs/{PS-ID}/` (e.g., `configs/sm-kms/`, `configs/sm-kms/`). NOT nested `configs/{PRODUCT}/{SERVICE}/`.
+- **Domain config naming**: `{PS-ID}.yml` (e.g., `sm-kms.yml`, `sm-im.yml`).
 - **Special subdirectories**: `configs/pki-ca/profiles/` for X.509 profiles, `configs/identity-authz/domain/policies/` for auth policies.
 
 **Config File Naming Conventions**:
 
 | Type | Naming Pattern | Schema Format | Examples |
 |------|---------------|---------------|----------|
-| Domain config | `{PS-ID}.yml` | Nested YAML, service-specific | `jose-ja.yml`, `sm-im.yml` |
+| Domain config | `{PS-ID}.yml` | Nested YAML, service-specific | `sm-kms.yml`, `sm-im.yml` |
 | Suite config | `cryptoutil.yml` | Suite-level settings | `configs/cryptoutil/cryptoutil.yml` |
 | Certificate profile | `profiles/*.yaml` | X.509 certificate definitions | `tls-server.yaml` |
 | Auth policy | `domain/policies/*.yml` | Authentication/authorization rules | `adaptive-authorization.yml` |
@@ -6646,7 +6646,7 @@ otlp-tls-ca-file:   /certs/{PS-ID}/otel-collector-contrib-https-client-issuing-c
 |-------|---------|---------|---------------------|--------------------|-----------------------|---------------------|
 | `sm-kms` | `sm` | `kms` | `8000` | `54320` | `18000` | `28000` |
 | `sm-im` | `sm` | `im` | `8100` | `54321` | `18100` | `28100` |
-| `jose-ja` | `jose` | `ja` | `8200` | `54322` | `18200` | `28200` |
+| `sm-kms` | `jose` | `ja` | `8200` | `54322` | `18200` | `28200` |
 | `pki-ca` | `pki` | `ca` | `8300` | `54323` | `18300` | `28300` |
 | `identity-authz` | `identity` | `authz` | `8400` | `54324` | `18400` | `28400` |
 | `identity-idp` | `identity` | `idp` | `8500` | `54325` | `18500` | `28500` |
@@ -6684,12 +6684,12 @@ otlp-tls-ca-file:   /certs/{PS-ID}/otel-collector-contrib-https-client-issuing-c
 | Category | Affected PS-IDs | Deviation |
 |----------|----------------|-----------|
 | Dockerfile pattern (Pattern A) | sm-kms, identity-authz, identity-idp, identity-rp, identity-rs | 4-stage but: `WORKDIR /app/run`, `GOMODCACHE`/`GOCACHE` env vars, `curl` installed in final, `USER` commented out, individual `LABEL` lines |
-| Dockerfile pattern (Pattern B) | jose-ja, pki-ca, skeleton-template | 3-stage (no `runtime-deps`): `adduser`-based user creation, compact `LABEL`, `CMD` with config path |
+| Dockerfile pattern (Pattern B) | sm-kms, pki-ca, skeleton-template | 3-stage (no `runtime-deps`): `adduser`-based user creation, compact `LABEL`, `CMD` with config path |
 | Dockerfile pattern (Pattern C) | sm-im | 2-stage (no `validation`): user `1000:1000` (wrong UID), no BuildKit caches, no static link check |
 | Skeleton-template identity | skeleton-template | Header says "JOSE Authority Server", username is `jose`, dirs are `/etc/jose` |
 | identity-spa COPY bug | identity-spa | Builder builds `/app/identity-spa` but runtime COPY copies `/app/cryptoutil` — **runtime failure** |
 | Config key naming | sm-kms, sm-im, identity-* (7 services) | Uses snake_case keys (`bind_address`, `max_open_conns`) instead of kebab-case |
-| Admin port | jose-ja, skeleton-template | `bind-admin-port: 9092` (should be `9090`) |
+| Admin port | sm-kms, skeleton-template | `bind-admin-port: 9092` (should be `9090`) |
 | Deployment common config | sm-im | Missing TLS cert paths and unseal config |
 
 Note: Items marked **runtime failure** are P0 blockers. All others are scheduled for cleanup via template-compliance enforcement.
@@ -6845,7 +6845,7 @@ Use `air` for live-reload development of individual services. Air watches Go sou
 **Usage**: `SERVICE=<service-name> air`
 
 - Example: `SERVICE=sm-im air` — starts the sm-im service with live reload
-- Valid SERVICE values: `sm-im`, `sm-kms`, `jose-ja`, `pki-ca`, `skeleton-template`, `identity-authz`, `identity-idp`, `identity-rp`, `identity-rs`, `identity-spa`
+- Valid SERVICE values: `sm-im`, `sm-kms`, `sm-kms`, `pki-ca`, `skeleton-template`, `identity-authz`, `identity-idp`, `identity-rp`, `identity-rs`, `identity-spa`
 
 **Configuration** (`.air.toml` at repo root):
 
@@ -8097,8 +8097,8 @@ applyTo: "**"
 - **Dual Paths**: `/service/**` (headless) + `/browser/**` (browser)
 - **Config Priority**: Docker secrets > YAML > CLI (NO environment variables)
 - **Template**: ALL services MUST use `internal/apps-framework/service/`
-- **Migration priority**: sm-im -> jose-ja -> sm-kms -> pki-ca -> identity services
-  - SM services (sm-im/jose-ja/sm-kms) migrate first; pki-ca second; identity last
+- **Migration priority**: sm-im -> sm-kms -> sm-kms -> pki-ca -> identity services
+  - SM services (sm-im/sm-kms/sm-kms) migrate first; pki-ca second; identity last
 
 ## Service Catalog
 
@@ -8112,10 +8112,10 @@ applyTo: "**"
 | Identity | Resource Server | identity-rs | 8600-8699 | 0.0.0.0:8080 | 127.0.0.1:9090 |
 | Identity | Relying Party | identity-rp | 8700-8799 | 0.0.0.0:8080 | 127.0.0.1:9090 |
 | Identity | Single Page App | identity-spa | 8800-8899 | 0.0.0.0:8080 | 127.0.0.1:9090 |
-| JOSE | JWK Authority | jose-ja | 8200-8299 | 0.0.0.0:8080 | 127.0.0.1:9090 |
+| JOSE | JWK Authority | sm-kms | 8200-8299 | 0.0.0.0:8080 | 127.0.0.1:9090 |
 | Skeleton | Template | skeleton-template | 8900-8999 | 0.0.0.0:8080 | 127.0.0.1:9090 |
 
-**PostgreSQL Ports**: sm-kms:54320, sm-im:54321, jose-ja:54322, pki-ca:54323, identity-authz:54324, identity-idp:54325, identity-rs:54326, identity-rp:54327, identity-spa:54328, skeleton-template:54329 (all container 0.0.0.0:5432)
+**PostgreSQL Ports**: sm-kms:54320, sm-im:54321, sm-kms:54322, pki-ca:54323, identity-authz:54324, identity-idp:54325, identity-rs:54326, identity-rp:54327, identity-spa:54328, skeleton-template:54329 (all container 0.0.0.0:5432)
 
 **Telemetry**: otel-collector-contrib (4317 gRPC, 4318 HTTP), grafana-otel-lgtm (3000 UI, 4317/4318 OTLP)
 
@@ -8243,7 +8243,7 @@ The `GenerateTLSMaterial()` function in `internal/apps-framework/service/config/
 
 **Schema Strategy**: Config file schema is HARDCODED in Go (`validate_schema.go`). No external schema files.
 
-**Directory Structure**: Flat `configs/{PS-ID}/` pattern (e.g., `configs/jose-ja/`, `configs/sm-kms/`). NOT nested `configs/{PRODUCT}/{SERVICE}/`. Each service has one `{PS-ID}.yml` domain config. Special subdirectories: `configs/pki-ca/profiles/` for X.509 profiles, `configs/identity-authz/domain/policies/` for authorization policies.
+**Directory Structure**: Flat `configs/{PS-ID}/` pattern (e.g., `configs/sm-kms/`, `configs/sm-kms/`). NOT nested `configs/{PRODUCT}/{SERVICE}/`. Each service has one `{PS-ID}.yml` domain config. Special subdirectories: `configs/pki-ca/profiles/` for X.509 profiles, `configs/identity-authz/domain/policies/` for authorization policies.
 
 **Deployment Variant Configs**: `deployments/{PS-ID}/config/` holds Docker Compose deployment configs (`{PS-ID}-app-{variant}.yml`) with 5 required variants: common, sqlite-1, sqlite-2, postgresql-1, postgresql-2. These are separate from the standalone `configs/{PS-ID}/{PS-ID}.yml` dev configs.
 
@@ -8534,7 +8534,7 @@ All `openapi-gen_config*.yaml` files MUST include the full base initialisms list
 
 | Service | Domain Additions |
 |---------|----------------|
-| `jose-ja` | JWKS, OKP, URI |
+| `sm-kms` | JWKS, OKP, URI |
 | `pki-ca` | CSR, CA, CRL, OCSP, URI, SAN, DN, CN, OU |
 | `sm-im` | IM, SM, URI |
 | `sm-kms` | URI |
@@ -9588,7 +9588,7 @@ cryptoutil/
 +-- cmd/                                   # Binary entry points
 |   +-- cryptoutil/main.go                 # Suite: -> internal/apps/cryptoutil/
 |   +-- sm-im/main.go                      # Service: -> internal/apps/sm-im/
-|   +-- jose-ja/main.go                    # Service: -> internal/apps/jose-ja/
+|   +-- sm-kms/main.go                    # Service: -> internal/apps/sm-kms/
 |   +-- pki-ca/main.go                     # Service: -> internal/apps/pki-ca/
 |   +-- identity-{authz,idp,rp,rs,spa}/    # Service: -> internal/apps/identity-{authz,idp,rp,rs,spa}/
 |   +-- sm-kms/main.go                     # Service: -> internal/apps/sm-kms/
@@ -14380,8 +14380,8 @@ You are explicitly instructed NOT to:
 "Approximately 30 compose files across all services"
 
 # CORRECT: parameterized paths with derivation formula
-deployments/{sm-kms,jose-ja,sm-im,pki-ca,identity-authz,identity-idp,identity-rp,identity-rs,identity-spa,skeleton-template}/compose.yml  (10 files)
-configs/{sm-kms,jose-ja,...}/config-common.yml  (10 files)
+deployments/{sm-kms,sm-kms,sm-im,pki-ca,identity-authz,identity-idp,identity-rp,identity-rs,identity-spa,skeleton-template}/compose.yml  (10 files)
+configs/{sm-kms,sm-kms,...}/config-common.yml  (10 files)
 # Total: 20 files = 2 per PS-ID × 10 PS-IDs
 ```
 
@@ -14651,7 +14651,7 @@ EOF
 - **Framework**: [Framework if applicable]
 - **Database**: PostgreSQL OR SQLite with GORM
 - **Dependencies**: [Key dependencies]
-- **Affected Files**: [MANDATORY: enumerate relative paths of ALL files expected to change, using parameterization and pattern matching to condense sets. Example: `deployments/{sm-kms,jose-ja,sm-im,pki-ca,identity-authz,identity-idp,identity-rp,identity-rs,identity-spa,skeleton-template}/compose.yml` (10 files). Always show the derivation formula: `30 global + 60 per-PS-ID × 10 = 630`. Raw counts without formulas are unverifiable during review.]
+- **Affected Files**: [MANDATORY: enumerate relative paths of ALL files expected to change, using parameterization and pattern matching to condense sets. Example: `deployments/{sm-kms,sm-kms,sm-im,pki-ca,identity-authz,identity-idp,identity-rp,identity-rs,identity-spa,skeleton-template}/compose.yml` (10 files). Always show the derivation formula: `30 global + 60 per-PS-ID × 10 = 630`. Raw counts without formulas are unverifiable during review.]
 
 ## Phases
 
@@ -16391,7 +16391,7 @@ Use `migration-create` for the migration file details, `openapi-codegen` for API
 | Product | Service ID | Host Port Range |
 |---------|-----------|----------------|
 | SM | sm-kms | 8000-8099 |
-| JOSE | jose-ja | 8200-8299 |
+| JOSE | sm-kms | 8200-8299 |
 | PKI | pki-ca | 8300-8399 |
 | Identity | identity-authz | 8400-8499 |
 | ... | ... | ... |

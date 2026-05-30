@@ -18,7 +18,6 @@
 
 include:
   - path: ../sm/compose.yml
-  - path: ../jose/compose.yml
   - path: ../pki/compose.yml
   - path: ../identity/compose.yml
   - path: ../skeleton/compose.yml
@@ -40,18 +39,6 @@ services:
   sm-kms-app-sqlite-2: {ports: !override ["28001:8080"]}
   sm-kms-app-postgresql-1: {ports: !override ["28002:8080"]}
   sm-kms-app-postgresql-2: {ports: !override ["28003:8080"]}
-
-  # SM-IM: PS-PUBLIC 8100-8103 -> SUITE 28100-28103
-  sm-im-app-sqlite-1: {ports: !override ["28100:8080"]}
-  sm-im-app-sqlite-2: {ports: !override ["28101:8080"]}
-  sm-im-app-postgresql-1: {ports: !override ["28102:8080"]}
-  sm-im-app-postgresql-2: {ports: !override ["28103:8080"]}
-
-  # JOSE-JA: PS-PUBLIC 8200-8203 -> SUITE 28200-28203
-  jose-ja-app-sqlite-1: {ports: !override ["28200:8080"]}
-  jose-ja-app-sqlite-2: {ports: !override ["28201:8080"]}
-  jose-ja-app-postgresql-1: {ports: !override ["28202:8080"]}
-  jose-ja-app-postgresql-2: {ports: !override ["28203:8080"]}
 
   # PKI-CA: PS-PUBLIC 8300-8303 -> SUITE 28300-28303
   pki-ca-app-sqlite-1: {ports: !override ["28300:8080"]}

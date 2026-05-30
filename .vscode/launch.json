@@ -36,11 +36,11 @@
             "args": ["server", "--dev=true"]
         },
         {
-            "name": "jose-ja: SQLite (dev mode)",
+            "name": "sm-kms: SQLite (dev mode)",
             "type": "go",
             "request": "launch",
             "mode": "auto",
-            "program": "${workspaceFolder}/cmd/jose-ja",
+            "program": "${workspaceFolder}/cmd/sm-kms",
             "args": ["server", "--dev=true"]
         },
         {

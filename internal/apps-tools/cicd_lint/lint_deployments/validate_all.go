@@ -333,14 +333,14 @@ func discoverDeploymentDirs(deploymentsDir string) []deploymentEntry {
 // classifyDeployment determines the deployment type from the directory name.
 func classifyDeployment(name string) string {
 	serviceNames := map[string]bool{
-		cryptoutilSharedMagic.OTLPServiceJoseJA: true, cryptoutilSharedMagic.OTLPServiceSMIM: true, cryptoutilSharedMagic.OTLPServicePKICA: true, cryptoutilSharedMagic.OTLPServiceSMKMS: true,
+		cryptoutilSharedMagic.OTLPServicePKICA: true, cryptoutilSharedMagic.OTLPServiceSMKMS: true,
 		cryptoutilSharedMagic.OTLPServiceIdentityAuthz: true, cryptoutilSharedMagic.OTLPServiceIdentityIDP: true, cryptoutilSharedMagic.OTLPServiceIdentityRP: true,
 		cryptoutilSharedMagic.OTLPServiceIdentityRS: true, cryptoutilSharedMagic.OTLPServiceIdentitySPA: true,
 		cryptoutilSharedMagic.OTLPServiceSkeletonTemplate: true,
 	}
 
 	productNames := map[string]bool{
-		cryptoutilSharedMagic.IdentityProductName: true, cryptoutilSharedMagic.SMProductName: true, cryptoutilSharedMagic.PKIProductName: true, cryptoutilSharedMagic.JoseProductName: true,
+		cryptoutilSharedMagic.IdentityProductName: true, cryptoutilSharedMagic.SMProductName: true, cryptoutilSharedMagic.PKIProductName: true,
 		cryptoutilSharedMagic.SkeletonProductName: true,
 	}
 

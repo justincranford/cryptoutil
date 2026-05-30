@@ -16,7 +16,7 @@ const (
 	// CICDTemplateExpansionKeySuite is the placeholder for a suite ID in template paths.
 	CICDTemplateExpansionKeySuite = "__SUITE__"
 	// CICDTemplateExpansionKeyService is the placeholder for the service component of a PS-ID
-	// in template file names. For "sm-kms" the service component is "kms"; for "jose-ja" it is
+	// in template file names. For "sm-kms" the service component is "kms"; for "sm-kms" it is
 	// "ja". Used in internal/apps/__PS_ID__/ MANIFEST files where per-service file names are
 	// derived from the service component (e.g., "__SERVICE__.go" → "kms.go").
 	CICDTemplateExpansionKeyService = "__SERVICE__"

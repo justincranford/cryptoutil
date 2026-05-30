@@ -111,7 +111,7 @@ func TestCheckInDir_AllCorrect(t *testing.T) {
 func TestCheckInDir_MissingComposeFile(t *testing.T) {
 	t.Parallel()
 
-	psID := cryptoutilSharedMagic.OTLPServiceSMIM
+	psID := cryptoutilSharedMagic.OTLPServiceSMKMS
 
 	tmpDir := t.TempDir()
 	setupAllComposeFiles(t, tmpDir)
@@ -127,7 +127,7 @@ func TestCheckInDir_MissingComposeFile(t *testing.T) {
 func TestCheckInDir_InvalidYAML(t *testing.T) {
 	t.Parallel()
 
-	psID := cryptoutilSharedMagic.OTLPServiceSMIM
+	psID := cryptoutilSharedMagic.OTLPServiceSMKMS
 
 	tmpDir := t.TempDir()
 	setupAllComposeFiles(t, tmpDir)
@@ -144,7 +144,7 @@ func TestCheckInDir_InvalidYAML(t *testing.T) {
 func TestCheckInDir_MissingService(t *testing.T) {
 	t.Parallel()
 
-	psID := cryptoutilSharedMagic.OTLPServiceSMIM
+	psID := cryptoutilSharedMagic.OTLPServiceSMKMS
 	missingVariant := lintFitnessRegistry.ComposeVariantSQLite1
 	missingSvc := lintFitnessRegistry.ComposeServiceName(psID, missingVariant)
 
@@ -175,7 +175,7 @@ func TestCheckInDir_MissingService(t *testing.T) {
 func TestCheckInDir_CommandMismatch(t *testing.T) {
 	t.Parallel()
 
-	psID := cryptoutilSharedMagic.OTLPServiceSMIM
+	psID := cryptoutilSharedMagic.OTLPServiceSMKMS
 	variant := lintFitnessRegistry.ComposeVariantSQLite1
 	svcName := lintFitnessRegistry.ComposeServiceName(psID, variant)
 
@@ -204,7 +204,7 @@ func TestCheckInDir_CommandMismatch(t *testing.T) {
 			tmpDir := t.TempDir()
 			setupAllComposeFiles(t, tmpDir)
 
-			// Overwrite sm-im/sqlite-1 with the wrong command.
+			// Overwrite sm-kms/sqlite-1 with the wrong command.
 			goodBlock := buildComposeBlock(psID)
 			goodEntry := fmt.Sprintf("  %s:\n    command: %s\n", svcName, expectedCommand(psID, variant))
 			badEntry := fmt.Sprintf("  %s:\n    command: %s\n", svcName, tc.command)

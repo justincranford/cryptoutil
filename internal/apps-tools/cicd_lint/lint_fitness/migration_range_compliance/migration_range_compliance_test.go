@@ -47,8 +47,8 @@ func createTemplateMigrationsDirStub(t *testing.T, rootDir string) {
 
 const (
 	templateMigRelDir = "internal/apps-framework/service/server/repository/migrations"
-	joseMigRelDir     = "internal/apps/jose-ja/repository/migrations"
-	smImMigRelDir     = "internal/apps/sm-im/repository/migrations"
+	pkiMigRelDir      = "internal/apps/pki-ca/repository/migrations"
+	smKmsMigRelDir    = "internal/apps/sm-kms/repository/migrations"
 	identityMigRelDir = "internal/apps/identity-idp/repository/migrations"
 	unknownSvcMigDir  = "internal/apps/unknown-service/repository/migrations"
 )
@@ -96,10 +96,10 @@ func TestCheckInDir_DomainMigrations(t *testing.T) {
 		wantErr     bool
 		errContains string
 	}{
-		{name: "jose-ja valid range passes", migRelDir: joseMigRelDir, fileNumbers: []int{4001, 4002}},
-		{name: "jose-ja below min fails", migRelDir: joseMigRelDir, fileNumbers: []int{4001, 1}, wantErr: true, errContains: "migration range compliance"},
-		{name: "jose-ja above max fails", migRelDir: joseMigRelDir, fileNumbers: []int{4001, 5001}, wantErr: true, errContains: "migration range compliance"},
-		{name: "sm-im valid range passes", migRelDir: smImMigRelDir, fileNumbers: []int{3001, 3002}},
+		{name: "sm-kms valid range passes", migRelDir: smKmsMigRelDir, fileNumbers: []int{2001, 2002}},
+		{name: "sm-kms below min fails", migRelDir: smKmsMigRelDir, fileNumbers: []int{2001, 1}, wantErr: true, errContains: "migration range compliance"},
+		{name: "sm-kms above max fails", migRelDir: smKmsMigRelDir, fileNumbers: []int{2001, 3001}, wantErr: true, errContains: "migration range compliance"},
+		{name: "pki-ca valid range passes", migRelDir: pkiMigRelDir, fileNumbers: []int{5001, 5002}},
 		{name: "identity skipped", migRelDir: identityMigRelDir, fileNumbers: []int{1, 2, 3, 11}},
 		{name: "empty dir passes", migRelDir: "", fileNumbers: nil},
 		{name: "unknown psid valid loose bound", migRelDir: unknownSvcMigDir, fileNumbers: []int{2001, 9999}},
@@ -152,10 +152,10 @@ func TestFindDomainMigrationDirs(t *testing.T) {
 			wantEmpty: true,
 		},
 		{
-			name: "jose included",
+			name: "pki-ca included",
 			setup: func(t *testing.T, tmp string) {
 				t.Helper()
-				makeMigrationDir(t, tmp, joseMigRelDir, []int{4001})
+				makeMigrationDir(t, tmp, pkiMigRelDir, []int{5001})
 			},
 			wantEmpty: false,
 		},
@@ -358,14 +358,14 @@ func TestBuildPSIDRangeMap(t *testing.T) {
 			},
 		},
 		{
-			name: "jose-ja has correct range",
+			name: "sm-kms has correct range",
 			check: func(t *testing.T, rangeMap map[string]lintFitnessRegistry.MigrationRangeInfo) {
 				t.Helper()
 
-				joseRange, ok := rangeMap[cryptoutilSharedMagic.OTLPServiceJoseJA]
+				smKmsRange, ok := rangeMap[cryptoutilSharedMagic.OTLPServiceSMKMS]
 				require.True(t, ok)
-				require.Equal(t, 4001, joseRange.Start)
-				require.Equal(t, 4999, joseRange.End)
+				require.Equal(t, 2001, smKmsRange.Start)
+				require.Equal(t, 2999, smKmsRange.End)
 			},
 		},
 	}

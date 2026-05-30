@@ -1,6 +1,6 @@
 // Copyright (c) 2025-2026 Justin Cranford.
 // Package cmd_entry_whitelist enforces that the cmd/ directory contains only the
-// 18 allowed entry points: 1 suite, 5 products, 10 product-services, and 2
+// 15 allowed entry points: 1 suite, 4 products, 8 product-services, and 2
 // infrastructure tools. Any extra or unknown cmd/ directory is a violation
 // (ENG-HANDBOOK.md Section 4.4.7 CLI Patterns).
 package cmd_entry_whitelist
@@ -28,7 +28,7 @@ func Check(logger *cryptoutilCmdCicdCommon.Logger) error {
 	return CheckInDir(logger, ".")
 }
 
-// CheckInDir checks that cmd/ under rootDir contains only the 18 allowed entries.
+// CheckInDir checks that cmd/ under rootDir contains only the 15 allowed entries.
 func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 	logger.Log("Checking cmd/ entry whitelist...")
 

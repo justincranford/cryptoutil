@@ -84,7 +84,7 @@ func TestRunPortsValidation_ErrorPath(t *testing.T) {
 	t.Parallel()
 
 	deployments := []deploymentEntry{
-		{path: "/nonexistent/path/abc123", name: cryptoutilSharedMagic.OTLPServiceJoseJA, level: DeploymentTypeProductService},
+		{path: "/nonexistent/path/abc123", name: cryptoutilSharedMagic.OTLPServicePKICA, level: DeploymentTypeProductService},
 	}
 
 	result := &AllValidationResult{}
@@ -125,7 +125,7 @@ func TestRunAdminValidation_ErrorPath(t *testing.T) {
 	t.Parallel()
 
 	deployments := []deploymentEntry{
-		{path: "/nonexistent/path/abc123", name: cryptoutilSharedMagic.OTLPServiceJoseJA, level: DeploymentTypeProductService},
+		{path: "/nonexistent/path/abc123", name: cryptoutilSharedMagic.OTLPServicePKICA, level: DeploymentTypeProductService},
 	}
 
 	result := &AllValidationResult{}
@@ -139,7 +139,7 @@ func TestRunSecretsValidation_ErrorPath(t *testing.T) {
 	t.Parallel()
 
 	deployments := []deploymentEntry{
-		{path: "/nonexistent/path/abc123", name: cryptoutilSharedMagic.OTLPServiceJoseJA, level: DeploymentTypeProductService},
+		{path: "/nonexistent/path/abc123", name: cryptoutilSharedMagic.OTLPServicePKICA, level: DeploymentTypeProductService},
 	}
 
 	result := &AllValidationResult{}
@@ -192,13 +192,13 @@ func TestIsServiceFrameworkConfig(t *testing.T) {
 		path     string
 		expected bool
 	}{
-		{name: "sm-im-app-framework-postgresql-1.yml", path: "deployments/sm-im/config/sm-im-app-framework-postgresql-1.yml", expected: true},
-		{name: "sm-im-app-framework-sqlite-1.yml", path: "deployments/sm-im/config/sm-im-app-framework-sqlite-1.yml", expected: true},
+		{name: "sm-kms-app-framework-postgresql-1.yml", path: "deployments/sm-kms/config/sm-kms-app-framework-postgresql-1.yml", expected: true},
+		{name: "sm-kms-app-framework-sqlite-1.yml", path: "deployments/sm-kms/config/sm-kms-app-framework-sqlite-1.yml", expected: true},
 		{name: "sm-kms-app-framework-postgresql-2.yml", path: "deployments/sm-kms/config/sm-kms-app-framework-postgresql-2.yml", expected: true},
 		{name: "sm-kms-app-framework-common.yml", path: "configs/sm-kms/sm-kms-app-framework-common.yml", expected: true},
 		{name: "config-pg-2.yaml", path: "/tmp/config-pg-2.yaml", expected: true},
 		{name: "pki-ca-server.yml", path: "configs/pki-ca/pki-ca-server.yml", expected: false},
-		{name: "jose-ja-server.yml", path: "configs/jose-ja/jose-ja-server.yml", expected: false},
+		{name: "pki-ca-server.yml", path: "configs/pki-ca/pki-ca-server.yml", expected: false},
 		{name: "ca-config-schema.yaml", path: "configs/pki-ca/pki-ca-config-schema.yaml", expected: false},
 		{name: "adaptive-auth.yml", path: "configs/identity-authz/domain/policies/adaptive-auth.yml", expected: false},
 		{name: "authz-docker.yml", path: "configs/identity-authz/authz-docker.yml", expected: false},

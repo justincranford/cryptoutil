@@ -29,7 +29,7 @@ Use `migration-create` for the migration file details, `openapi-codegen` for API
 | Product | Service ID | Host Port Range |
 |---------|-----------|----------------|
 | SM | sm-kms | 8000-8099 |
-| JOSE | jose-ja | 8200-8299 |
+| JOSE | sm-kms | 8200-8299 |
 | PKI | pki-ca | 8300-8399 |
 | Identity | identity-authz | 8400-8499 |
 | ... | ... | ... |

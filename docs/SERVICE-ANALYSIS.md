@@ -6,7 +6,7 @@ Date: 2026-05-24
 
 - [Bottom line](#bottom-line)
 - [sm-im vs sm-kms](#sm-im-vs-sm-kms-deep-analysis)
-- [jose-ja vs sm-kms](#jose-ja-vs-sm-kms-deep-analysis)
+- [sm-kms vs sm-kms](#sm-kms-vs-sm-kms-deep-analysis)
 - [pki-ca vs sm-kms](#pki-ca-vs-sm-kms-deep-analysis)
 - [Maintenance cost reality](#maintenance-cost-reality)
 - [Recommendation and path forward](#recommendation-and-path-forward)
@@ -14,11 +14,11 @@ Date: 2026-05-24
 ## Bottom line
 
 1. `sm-kms` is **not** a superset of `sm-im` today.
-2. `sm-kms` is **close to** a superset of `jose-ja`, but not complete.
+2. `sm-kms` is **close to** a superset of `sm-kms`, but not complete.
 3. `sm-kms` is **not** a superset of `pki-ca` and should not replace PKI CA responsibilities.
 4. If your primary goal is reducing alignment/lint drift pain, the highest ROI is likely:
    - Keep `pki-ca` separate.
-   - Strongly evaluate folding `jose-ja` into `sm-kms`.
+   - Strongly evaluate folding `sm-kms` into `sm-kms`.
    - Treat `sm-im` as a product/API decision (messaging semantics), not as a pure crypto overlap question.
 
 ## Scope and method
@@ -27,12 +27,12 @@ This analysis uses exact OpenAPI method+path comparison and service code/test fo
 
 - `sm-kms`: [api/sm-kms/openapi_spec.yaml](../api/sm-kms/openapi_spec.yaml)
 - `sm-im`: [api/sm-im/openapi_spec.yaml](../api/sm-im/openapi_spec.yaml)
-- `jose-ja`: [api/jose-ja/openapi_spec.yaml](../api/jose-ja/openapi_spec.yaml)
+- `sm-kms`: [api/sm-kms/openapi_spec.yaml](../api/sm-kms/openapi_spec.yaml)
 - `pki-ca`: [api/pki-ca/openapi_spec_enrollment.yaml](../api/pki-ca/openapi_spec_enrollment.yaml)
 - Service code roots:
   - [internal/apps/sm-kms](../internal/apps/sm-kms)
   - [internal/apps/sm-im](../internal/apps/sm-im)
-  - [internal/apps/jose-ja](../internal/apps/jose-ja)
+  - [internal/apps/sm-kms](../internal/apps/sm-kms)
   - [internal/apps/pki-ca](../internal/apps/pki-ca)
 
 Comparison rule: exact HTTP method + path equality within each service's declared server base path.
@@ -63,21 +63,21 @@ Comparison rule: exact HTTP method + path equality within each service's declare
 - You can consolidate only by **building a messaging facade/domain in sm-kms** (or another service) that recreates these message APIs and behaviors.
 - This is not just endpoint renaming; it is domain relocation.
 
-## jose-ja vs sm-kms (Deep Analysis)
+## sm-kms vs sm-kms (Deep Analysis)
 
 ### API overlap result
 
-- `jose-ja` operations: 16
+- `sm-kms` operations: 16
 - Shared with `sm-kms`: 13
-- Unique in `jose-ja` (not in `sm-kms`): 3
+- Unique in `sm-kms` (not in `sm-kms`): 3
 
-### APIs unique to jose-ja (not in sm-kms)
+### APIs unique to sm-kms (not in sm-kms)
 
 - `GET /elastic-keys/{elasticKeyID}/material-keys/active`
 - `POST /elastic-keys/{elasticKeyID}/rotate`
 - `GET /jwks`
 
-### Additional notable delta (where sm-kms has APIs jose-ja does not)
+### Additional notable delta (where sm-kms has APIs sm-kms does not)
 
 - `PUT /elastic-keys/{elasticKeyID}`
 - `POST /elastic-keys/{elasticKeyID}/import`
@@ -86,7 +86,7 @@ Comparison rule: exact HTTP method + path equality within each service's declare
 
 ### Interpretation
 
-`jose-ja` and `sm-kms` substantially overlap on elastic/material key and crypto operations. `jose-ja` adds explicit JWKS publication and rotation/active-key convenience endpoints.
+`sm-kms` and `sm-kms` substantially overlap on elastic/material key and crypto operations. `sm-kms` adds explicit JWKS publication and rotation/active-key convenience endpoints.
 
 ### Consolidation implication
 
@@ -140,7 +140,7 @@ Code and test footprint under `internal/apps/*`:
 |---|---:|---:|---:|---:|---:|---:|
 | sm-kms | 71 | 20 | 51 | 12059 | 2853 | 9206 |
 | sm-im | 60 | 18 | 42 | 7934 | 1580 | 6354 |
-| jose-ja | 75 | 22 | 53 | 14112 | 3424 | 10688 |
+| sm-kms | 75 | 22 | 53 | 14112 | 3424 | 10688 |
 | pki-ca | 119 | 37 | 82 | 25841 | 9169 | 16672 |
 
 Observations:
@@ -153,7 +153,7 @@ Observations:
 
 ### Recommended consolidation strategy
 
-1. **Phase 1 (highest ROI):** Merge `jose-ja` capability into `sm-kms` first.
+1. **Phase 1 (highest ROI):** Merge `sm-kms` capability into `sm-kms` first.
 2. **Phase 2 (optional):** Reassess `sm-im` based on product need for message lifecycle APIs.
 3. **Do not collapse `pki-ca` into `sm-kms`** unless you explicitly want `sm-kms` to become a full CA protocol service.
 
@@ -162,13 +162,13 @@ Observations:
 If your goal is reducing drift and duplicated maintenance quickly:
 
 1. Add the 3 missing JOSE endpoints to `sm-kms` (`/jwks`, `/rotate`, `/material-keys/active`).
-2. Provide a compatibility shim/deprecation layer for `jose-ja` clients.
+2. Provide a compatibility shim/deprecation layer for `sm-kms` clients.
 3. Keep `sm-im` and `pki-ca` separate until there is a deliberate domain migration plan (not just code alignment pressure).
 
 ### Direct answer to your core question
 
 - Is `sm-kms` currently a superset of `sm-im`? **No.**
-- Is `sm-kms` currently a superset of `jose-ja`? **Almost, but not yet.**
+- Is `sm-kms` currently a superset of `sm-kms`? **Almost, but not yet.**
 - Is `sm-kms` currently a superset of `pki-ca`? **No.**
 
-Your instinct that maintaining separate services is expensive is accurate. The evidence supports starting consolidation with `jose-ja`, not with `sm-im` or `pki-ca`.
+Your instinct that maintaining separate services is expensive is accurate. The evidence supports starting consolidation with `sm-kms`, not with `sm-im` or `pki-ca`.
