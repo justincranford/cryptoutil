@@ -42,7 +42,7 @@ Copilot auto-load it when your request matches the skill description.
 | `propagation-check` | docs | Detect @to-appendix/@from-eng-handbook drift, generate corrected @from-eng-handbook blocks | [SKILL.md](propagation-check/SKILL.md) |
 | `copilot-customization` | tooling | Create, update, or delete repo-local agents, instructions, or skills and any required Claude counterpart, including Copilot agent tool allowlist maintenance | [SKILL.md](copilot-customization/SKILL.md) |
 | `sync-copilot-claude` | tooling | Audit/sync Copilot skills+agents with Claude skills+agents; migration status for legacy commands | [SKILL.md](sync-copilot-claude/SKILL.md) |
-| `psid-template-sync` | testing | Keep stable PS-ID template-instantiated files synchronized across all 10 services via template-drift | [SKILL.md](psid-template-sync/SKILL.md) |
+| `psid-template-sync` | testing | Keep stable PS-ID template-instantiated files synchronized across all 8 services via template-drift | [SKILL.md](psid-template-sync/SKILL.md) |
 | `fitness-function-gen` | testing | Generate architecture fitness functions for lint-fitness (Check, CheckInDir, registration) | [SKILL.md](fitness-function-gen/SKILL.md) |
 
 ## Skills vs Custom Instructions vs Agents

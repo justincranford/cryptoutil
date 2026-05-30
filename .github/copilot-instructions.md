@@ -47,7 +47,7 @@ See [.github/skills/README.md](.github/skills/README.md) for the full catalogue.
 | `/copilot-customization` | Creating, updating, or deleting repo-local agents, instructions, or skills, including required Claude counterparts and Copilot agent tool allowlist maintenance |
 | `/sync-copilot-claude` | Auditing/syncing Copilot skills and agents with their Claude counterparts |
 | `/new-service` | Creating a new service from skeleton-template |
-| `/psid-template-sync` | Updating stable PS-ID template-instantiated files and keeping all 10 services exact-match lint clean |
+| `/psid-template-sync` | Updating stable PS-ID template-instantiated files and keeping all 8 services exact-match lint clean |
 | `/fitness-function-gen` | Creating a new architecture fitness function (linter) |
 
 ## Instruction Files Reference

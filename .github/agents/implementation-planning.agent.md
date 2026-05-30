@@ -226,7 +226,7 @@ You are explicitly instructed NOT to:
 # CORRECT: parameterized paths with derivation formula
 deployments/{sm-kms,pki-ca,identity-authz,identity-idp,identity-rp,identity-rs,identity-spa,skeleton-template}/compose.yml  (8 files)
 configs/{sm-kms,pki-ca,...}/config-common.yml  (8 files)
-# Total: 20 files = 2 per PS-ID × 10 PS-IDs
+# Total: 16 files = 2 per PS-ID × 8 PS-IDs
 ```
 
 Always derive counts from the formula, not memory. Missing files in the enumeration are the most common source of task underestimation.
@@ -1335,7 +1335,7 @@ A completed `lessons.md` MUST contain three top-level sections **in this order**
 **1. `## Executive Summary`** — Written at plan completion. A numbered list where each entry is a markdown link to a `## Phase N:` section followed by a one-sentence description of the key outcome. Enables reviewers to scan the entire plan scope at a glance and navigate directly to relevant phases.
 
 Example entries:
-- `1. [Phase 1: Framework Migration](#phase-1-framework-migration) — Migrated 10 PS-ID entry points; no API breakage.`
+- `1. [Phase 1: Framework Migration](#phase-1-framework-migration) — Migrated 8 PS-ID entry points; no API breakage.`
 - `2. [Phase 2: Knowledge Propagation](#phase-2-knowledge-propagation) — Added 12 ENG-HANDBOOK sections and updated 4 instruction files.`
 
 **2. `## Actions`** — Written at plan completion, directly below Executive Summary. A numbered list of concrete follow-up tasks for the reviewer, each specific enough to copy-paste directly into Copilot Chat or Claude Code as a follow-up prompt.

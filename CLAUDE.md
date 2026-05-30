@@ -5,14 +5,14 @@
 | Resource | Purpose |
 |----------|---------|
 | [docs/ENG-HANDBOOK.md](docs/ENG-HANDBOOK.md) | Canonical source for ALL architectural decisions, patterns, security, testing, deployment, and implementation guidelines (v2.0). Read relevant sections before making decisions. |
-| [api/cryptosuite-registry/registry.yaml](api/cryptosuite-registry/registry.yaml) | Machine-readable registry: 10 PS-IDs, port assignments, migration number ranges per PS-ID. |
+| [api/cryptosuite-registry/registry.yaml](api/cryptosuite-registry/registry.yaml) | Machine-readable registry: 8 PS-IDs, port assignments, migration number ranges per PS-ID. |
 | [.github/copilot-instructions.md](.github/copilot-instructions.md) | Copilot instructions summary — Claude Code uses this file too. |
 
 ### Key ENG-HANDBOOK.md Sections
 
 | Section | Topic |
 |---------|-------|
-| §1 | Executive summary, entity hierarchy (1 suite → 5 products → 10 PS-IDs) |
+| §1 | Executive summary, entity hierarchy (1 suite → 4 products → 8 PS-IDs) |
 | §2 | Agent/skill catalog, architecture strategy, quality principles |
 | §3 | Product suite architecture, port assignments |
 | §5 | Service architecture, dual HTTPS endpoint pattern, builder pattern |
@@ -77,7 +77,7 @@ Full Copilot originals: [.github/skills/](.github/skills/).
 | `/migration-create` | Create numbered SQL migration files per registry.yaml ranges |
 | `/new-service` | Create new PS-ID service from skeleton-template (9-step guide) |
 | `/propagation-check` | Detect `@to-appendix`/`@from-eng-handbook` drift between ENG-HANDBOOK.md and instruction files |
-| `/psid-template-sync` | Keep stable PS-ID template-instantiated files synchronized across all 10 services |
+| `/psid-template-sync` | Keep stable PS-ID template-instantiated files synchronized across all 8 services |
 | `/fitness-function-gen` | New architecture fitness function linter in cicd_lint/lint_fitness/ |
 | `/copilot-customization` | Create, update, or delete repo-local agents, instructions, or skills, including required Claude counterparts and Copilot agent tool allowlist maintenance |
 | `/sync-copilot-claude` | Audit/sync Copilot skills+agents with Claude skills+agents |
