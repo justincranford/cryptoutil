@@ -7,9 +7,9 @@
 **cryptoutil** is a production-ready suite of four cryptographic products, designed with enterprise-grade security, **FIPS 140-3** standards compliance, and Zero-Trust principles:
 
 1. **Private Key Infrastructure (PKI)** - X.509 certificate management with EST, SCEP, OCSP, and CRL support
-2. **JSON Web Key and Token Operations** - JWK/JWS/JWE/JWT cryptographic operations
-3. **Secrets Manager (SM)** - Elastic key management service with hierarchical key barriers, encrypted messaging, and encryption-at-rest
-4. **Identity** - OAuth 2.1, OIDC 1.0, WebAuthn, and Passkeys authentication and authorization
+2. **Secrets Manager (SM)** - Elastic key management service with hierarchical key barriers, JWK/JWE/JWS cryptographic operations, encrypted messaging, and encryption-at-rest
+3. **Identity** - OAuth 2.1, OIDC 1.0, WebAuthn, and Passkeys authentication and authorization
+4. **Skeleton** - Template product for new service development
 
 ### Project Background
 
@@ -169,9 +169,8 @@ Grafana-OTEL-LGTM (Prometheus) → OpenTelemetry Collector Contrib (HTTP:8888/me
 
 - **3000**: Grafana UI
 - **5432**: PostgreSQL database
-- **8000**: sm-kms public API (HTTPS)
+- **8000**: sm-kms public API — elastic keys, material keys, JWK/JWKS operations, messaging (HTTPS)
 - **8001-8002**: Additional sm-kms instances in Docker Compose (HTTPS)
-- **8200**: sm-kms JWK/JWS/JWE/JWT API (HTTPS)
 - **8300**: Certificate Authority Server (HTTPS)
 - **9090**: cryptoutil private admin API (health checks, graceful shutdown) on all instances
 - **14317**: Grafana OTLP gRPC receiver (telemetry ingress)
@@ -184,7 +183,7 @@ Grafana-OTEL-LGTM (Prometheus) → OpenTelemetry Collector Contrib (HTTP:8888/me
 - **Loki**: Integrated log aggregation
 - **Tempo**: Integrated trace storage
 - **OpenTelemetry Collector**: Receives telemetry from cryptoutil services
-- **sm-kms JWK/JWS/JWE/JWT API**: <https://localhost:8200> (cryptographic operations)
+- **sm-kms**: <https://localhost:8000> (elastic keys, JWK/JWKS, messaging)
 - **Certificate Authority**: <https://localhost:8300> (X.509 certificate management)
 
 ### 🏗️ Production Ready
@@ -353,17 +352,18 @@ go run main.go --dev --config=./configs/sm/config-sqlite-1.yml
 
 #### Cryptographic JSON APIs
 
-- **sm-kms JWK/JWS/JWE/JWT API** (cryptographic JSON operations):
-  - **Base URL**: <https://localhost:8200>
-  - **Swagger UI**: <https://localhost:8200/ui/swagger>
-  - **OpenAPI Spec**: <https://localhost:8200/ui/swagger/doc.json>
-  - **API Endpoints**:
-    - `/jose/v1/sign` - Sign data with JWS
-    - `/jose/v1/verify` - Verify JWS signatures
-    - `/jose/v1/encrypt` - Encrypt data with JWE
-    - `/jose/v1/decrypt` - Decrypt JWE data
-    - `/jose/v1/keys` - JWKS key management
-  - **Health**: `/health`
+- **sm-kms JWK/JWKS and Messaging API** (consolidated into sm-kms at port 8000):
+  - **Base URL**: <https://localhost:8000>
+  - **Swagger UI**: <https://localhost:8000/ui/swagger>
+  - **OpenAPI Spec**: <https://localhost:8000/ui/swagger/doc.json>
+  - **API Endpoints** (compat routes served at `/service/api/v1/` and `/browser/api/v1/`):
+    - `/jwks` - JWKS key set
+    - `/elastic-keys/:id/material-keys/active` - Active material key for elastic key
+    - `/elastic-keys/:id/rotate` - Rotate material key
+    - `/messages/send` - Send encrypted message
+    - `/messages/receive` - Receive encrypted messages
+    - `/messages/:messageID` - Get or delete a message
+  - **Health**: `/browser/api/v1/health`
 
 #### Certificate Authority APIs
 

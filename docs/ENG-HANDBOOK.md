@@ -1101,6 +1101,17 @@ host ports in product/suite compose files also use +10000 offset. CI/CD integrat
 call OTel endpoints from the host (Go test code) MUST use the `14317`/`14318` host ports when
 running against a product or suite stack.
 
+### 3.5 Architecture Evolution
+
+#### 3.5.1 Consolidation: 10-to-8 PS-ID (framework-v24)
+
+**Decision Record** (implemented 2026-05-29):
+
+- **What changed**: Removed `jose-jwk-authority` and `sm-messaging` as independent product-services. Their domain logic and APIs were merged into `sm-kms`. The `jose` product was removed. The topology contracted from 10 PS-IDs / 5 products to 8 PS-IDs / 4 products.
+- **Why merged**: `jose-jwk-authority` provided JWK/JWE/JWS operations exclusively consumed by `sm-kms`. Running it as a separate service added a network hop, a separate PostgreSQL schema, and separate deployment/ops burden with no benefit. `sm-messaging` was similarly dependent on `sm-kms` key material and offered no value as an independent service boundary.
+- **Migration strategy**: New sm-kms domain migrations 2003-2008 added JWK elastic/material and signing-key tables. All former `jose-jwk-authority` and `sm-messaging` API routes are now served from `sm-kms` via compatibility handlers at the same URL paths.
+- **Port ranges vacated**: `8100-8199` (sm-messaging) and `8200-8299` (jose-jwk-authority) are now unassigned at the SERVICE tier.
+
 ---
 
 ## 4. System Architecture
@@ -2489,7 +2500,7 @@ db.Where("tenant_id = ? AND user_id = ?", tenantID, userID).Find(&messages)
 - **Unique Connection URL**: Each service MUST have unique `postgres-url.secret`
 
 **Linter Enforcement** (`cicd-lint lint-deployments`):
-- Scans ALL 10 service directories for database credential secrets
+- Scans ALL 8 service directories for database credential secrets
 - ERRORS on duplicate database names or usernames across services
 - Validates credentials are isolated regardless of deployment level (SUITE/PRODUCT/SERVICE)
 
@@ -2556,7 +2567,7 @@ Caveat: End-to-End Docker Compose tests use both PostgreSQL and SQLite, for isol
 | Range | Owner | Examples |
 |-------|-------|----------|
 | 1001-1999 | Service Template | Sessions (1001), Barrier (1002), Realms (1003), Tenants (1004), PendingUsers (1005) |
-| 2001+ | Domain | sm-kms messages (2001), jose JWKs (2001) |
+| 2001+ | Domain | sm-kms messages (2001-2002), JWK elastic/material/audit tables (2003-2008) |
 
 - mergedMigrations type: Implements fs.FS interface, unifies both for golang-migrate validation
 - Prevention: Solves "no migration found for version X" validation errors
@@ -5015,7 +5026,7 @@ def test_health_check(api_client):
 - **`time.Duration` constants MUST NOT have unit suffixes** (e.g., `Ms`, `Ns`, `Sec`, `Min` — violates staticcheck ST1011). The `time.Duration` type already encodes the unit. Correct: `DefaultPollInterval = 5 * time.Second`. Wrong: `DefaultPollIntervalMs = 5000`.
 - **ALWAYS check `internal/shared/magic/` before writing any literal**: Search for an existing named constant before adding any string or numeric literal in test or production code. Bare literals violate `literal-use` (blocked by `TestLint_Integration`). Discovering these violations mid-plan is costly.
 
-**Magic File Inventory** (46 production files as of this writing):
+**Magic File Inventory** (47 production files as of this writing):
 
 | Domain | Files |
 |--------|-------|
@@ -5023,9 +5034,9 @@ def test_health_check(api_client):
 | Networking | `magic_network.go`, `magic_docker.go`, `magic_framework.go`, `magic_orchestration.go` |
 | Crypto/Security | `magic_crypto.go`, `magic_security.go`, `magic_unseal.go`, `magic_pki.go`, `magic_pki_ca.go`, `magic_pki_tls.go`, `magic_pkiinit.go`, `magic_pkix.go` |
 | Data/Sessions | `magic_database.go`, `magic_session.go` |
-| JOSE/PKI | `magic_jose.go` |
+| JOSE/PKI | `magic_jose_shared.go` |
 | Identity (14 files) | `magic_identity.go`, `magic_identity_adaptive.go`, `magic_identity_config.go`, `magic_identity_http.go`, `magic_identity_keys.go`, `magic_identity_metrics.go`, `magic_identity_mfa.go`, `magic_identity_oauth.go`, `magic_identity_oidc.go`, `magic_identity_pbkdf2.go`, `magic_identity_scopes.go`, `magic_identity_testing.go`, `magic_identity_timeouts.go`, `magic_identity_uris.go` |
-| SM/JOSE | `magic_sm.go`, `magic_im_shared.go` |
+| SM | `magic_sm.go`, `magic_im_shared.go`, `magic_legacy_removed_services.go` |
 | Infrastructure | `magic_telemetry.go`, `magic_otel_e2e.go`, `magic_workflows.go` |
 | Services | `magic_skeleton.go`, `magic_template.go` |
 | Testing | `magic_testing.go`, `magic_test_fixtures.go` |
@@ -5514,7 +5525,7 @@ healthcheck-otel-collector:
 
 | Rule ID | Rule | Rationale |
 |---------|------|-----------|
-| SU-01 | MUST include all 5 product compose files via `include:` (NOT service-level compose files) | Complete suite, correct delegation |
+| SU-01 | MUST include all 4 product compose files via `include:` (NOT service-level compose files) | Complete suite, correct delegation |
 | SU-02 | Host port formula: `{SERVICE_APP_PORT_BASE} + 20000` | Suite tier offset |
 | SU-03 | Compact inline port override syntax for all 40 service instances | Readability |
 | SU-04 | Unseal secret values MUST use `cryptoutil-unseal-key-N-of-5-...` prefix | Suite-scoped encryption |
@@ -5745,7 +5756,7 @@ All tiers use the identical filename `hash-pepper-v3.secret` — the tier is sel
 ✅ Forbidden: unseal-*.secret MUST NOT exist (service-level only)
 ```
 
-**Coverage**: Linter validates ALL deployments (10 SERVICE, 5 PRODUCT, 1 SUITE, 2 shared infrastructure).
+**Coverage**: Linter validates ALL deployments (8 SERVICE, 4 PRODUCT, 1 SUITE, 2 shared infrastructure).
 
 **Implementation**: [internal/apps-tools/cicd_lint/lint_deployments/lint_deployments.go](/internal/apps-tools/cicd_lint/lint_deployments/) with `validateProductSecrets()` and `validateSuiteSecrets()` functions.
 
@@ -5905,7 +5916,7 @@ Detection heuristic: `svc.Image == "" && svc.Build == nil && len(svc.Ports) > 0`
   - Rationale: Browser and service credentials are service-level only
 - Validation function: `validateSuiteSecrets()` in lint_deployments.go
 
-**PRODUCT** (e.g., identity, sm, pki, jose, skeleton):
+**PRODUCT** (e.g., identity, sm, pki, skeleton):
 - Required directories: `secrets/`
 - Required files: `compose.yml`, `Dockerfile`
 - Optional files: `README.md`
@@ -6593,8 +6604,6 @@ otlp-tls-ca-file:   /certs/{PS-ID}/otel-collector-contrib-https-client-issuing-c
 | PS-ID | PRODUCT | SERVICE | SERVICE_APP_PORT_BASE | SERVICE_PG_HOST_PORT | PRODUCT_APP_PORT_OFFSET | SUITE_APP_PORT_OFFSET |
 |-------|---------|---------|---------------------|--------------------|-----------------------|---------------------|
 | `sm-kms` | `sm` | `kms` | `8000` | `54320` | `18000` | `28000` |
-| `sm-kms` | `sm` | `im` | `8100` | `54321` | `18100` | `28100` |
-| `sm-kms` | `jose` | `ja` | `8200` | `54322` | `18200` | `28200` |
 | `pki-ca` | `pki` | `ca` | `8300` | `54323` | `18300` | `28300` |
 | `identity-authz` | `identity` | `authz` | `8400` | `54324` | `18400` | `28400` |
 | `identity-idp` | `identity` | `idp` | `8500` | `54325` | `18500` | `28500` |
