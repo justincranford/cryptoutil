@@ -76,6 +76,7 @@ func TestFullPipeline_GrafanaOTLP_ServerCert(t *testing.T) {
 	clientCert := cryptoutilTestOrchE2E.LoadClientCert(t, tlsPSIDSpec.GrafanaInfraCertPath, tlsPSIDSpec.GrafanaInfraKeyPath)
 
 	addr := fmt.Sprintf("127.0.0.1:%d", tlsPSIDSpec.GrafanaOTLPGRPCPort)
+
 	conn, err := tls.DialWithDialer(
 		&net.Dialer{Timeout: cryptoutilSharedMagic.IMDefaultTimeout},
 		"tcp", addr,
@@ -124,6 +125,7 @@ func TestFullPipeline_GrafanaOTLP_MTLSRejected(t *testing.T) {
 	)
 	if err == nil {
 		_ = conn.Close()
+
 		t.Log("Grafana OTLP gRPC accepted no-cert client (policy appears verify-if-given in this environment)")
 
 		return
@@ -270,6 +272,7 @@ func TestFullPipeline_AppPublicHTTPS_MTLSRejected(t *testing.T) {
 			)
 			if err == nil {
 				_ = conn.Close()
+
 				t.Logf("app %q accepted no-cert TLS client (policy appears verify-if-given in this environment)", tc.name)
 
 				return

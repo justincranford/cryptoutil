@@ -86,6 +86,7 @@ func TestMain(m *testing.M) {
 	}
 
 	tlsPSIDSpec.PublicCACertPath = runtimeCAPath
+
 	defer func() {
 		_ = os.Remove(runtimeCAPath)
 	}()
@@ -159,7 +160,7 @@ func TestOtelServerTLS_GRPC(t *testing.T) {
 		MinVersion:         tls.VersionTLS13,
 		RootCAs:            caPool,
 		Certificates:       []tls.Certificate{clientCert},
-		InsecureSkipVerify: true,
+		InsecureSkipVerify: true, //nolint:gosec // E2E test intentionally skips verify to inspect server cert CN via PeerCertificates
 	}
 
 	addr := fmt.Sprintf("127.0.0.1:%d", tlsPSIDSpec.OTelGRPCPort)
@@ -191,7 +192,7 @@ func TestOtelServerTLS_HTTP(t *testing.T) {
 		MinVersion:         tls.VersionTLS13,
 		RootCAs:            caPool,
 		Certificates:       []tls.Certificate{clientCert},
-		InsecureSkipVerify: true,
+		InsecureSkipVerify: true, //nolint:gosec // E2E test intentionally skips verify to inspect server cert CN via response
 	}
 
 	transport := &http.Transport{
@@ -237,7 +238,7 @@ func TestOtelMTLS_Rejection(t *testing.T) {
 	tlsCfg := &tls.Config{
 		MinVersion:         tls.VersionTLS13,
 		RootCAs:            caPool,
-		InsecureSkipVerify: true,
+		InsecureSkipVerify: true, //nolint:gosec // E2E test intentionally skips verify to test mTLS rejection behavior
 		// Deliberately NO Certificates — tests Cat 8 client CA enforcement.
 	}
 
@@ -246,6 +247,7 @@ func TestOtelMTLS_Rejection(t *testing.T) {
 	conn, err := tls.DialWithDialer(&net.Dialer{Timeout: cryptoutilSharedMagic.IMDefaultTimeout}, "tcp", addr, tlsCfg)
 	if err == nil {
 		_ = conn.Close()
+
 		t.Log("OTel gRPC accepted no-cert client (policy appears verify-if-given in this environment)")
 
 		return

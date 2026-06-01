@@ -101,6 +101,7 @@ func TestGrafanaOTLP_GRPC_mTLS_Accepted(t *testing.T) {
 	clientCert := cryptoutilTestOrchE2E.LoadClientCert(t, tlsPSIDSpec.GrafanaInfraCertPath, tlsPSIDSpec.GrafanaInfraKeyPath)
 
 	addr := fmt.Sprintf("127.0.0.1:%d", tlsPSIDSpec.GrafanaOTLPGRPCPort)
+
 	conn, err := tls.DialWithDialer(
 		&net.Dialer{Timeout: cryptoutilSharedMagic.IMDefaultTimeout},
 		"tcp", addr,
@@ -149,6 +150,7 @@ func TestGrafanaOTLP_GRPC_mTLS_Rejected(t *testing.T) {
 	)
 	if err == nil {
 		_ = conn.Close()
+
 		t.Log("Grafana OTLP gRPC accepted no-cert client (policy appears verify-if-given in this environment)")
 
 		return
