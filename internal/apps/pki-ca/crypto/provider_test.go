@@ -70,7 +70,7 @@ func TestSoftwareProvider_GenerateKeyPair(t *testing.T) {
 
 				_, ok := kp.PrivateKey.(*ecdsa.PrivateKey)
 				require.True(t, ok, "expected ECDSA private key")
-				require.Equal(t, cryptoutilSharedMagic.ECDSA, kp.Type)
+				require.Equal(t, KeyTypeECDSA, kp.Type)
 				require.Equal(t, "ECDSA-P-256", kp.Algorithm)
 			},
 		},
@@ -83,7 +83,7 @@ func TestSoftwareProvider_GenerateKeyPair(t *testing.T) {
 
 				_, ok := kp.PrivateKey.(*ecdsa.PrivateKey)
 				require.True(t, ok, "expected ECDSA private key")
-				require.Equal(t, cryptoutilSharedMagic.ECDSA, kp.Type)
+				require.Equal(t, KeyTypeECDSA, kp.Type)
 				require.Equal(t, "ECDSA-P-384", kp.Algorithm)
 			},
 		},
@@ -96,7 +96,7 @@ func TestSoftwareProvider_GenerateKeyPair(t *testing.T) {
 
 				_, ok := kp.PrivateKey.(*ecdsa.PrivateKey)
 				require.True(t, ok, "expected ECDSA private key")
-				require.Equal(t, cryptoutilSharedMagic.ECDSA, kp.Type)
+				require.Equal(t, KeyTypeECDSA, kp.Type)
 				require.Equal(t, "ECDSA-P-521", kp.Algorithm)
 			},
 		},
@@ -115,7 +115,7 @@ func TestSoftwareProvider_GenerateKeyPair(t *testing.T) {
 
 				_, ok := kp.PrivateKey.(ed25519.PrivateKey)
 				require.True(t, ok, "expected Ed25519 private key")
-				require.Equal(t, cryptoutilSharedMagic.JoseAlgEdDSA, kp.Type)
+				require.Equal(t, KeyTypeEdDSA, kp.Type)
 				require.Equal(t, cryptoutilSharedMagic.EdCurveEd25519, kp.Algorithm)
 			},
 		},
@@ -377,7 +377,7 @@ func TestParseKeySpecFromConfig(t *testing.T) {
 			wantErr:     false,
 			checkSpec: func(t *testing.T, spec KeySpec) {
 				t.Helper()
-				require.Equal(t, cryptoutilSharedMagic.JoseAlgEdDSA, spec.Type)
+				require.Equal(t, KeyTypeEdDSA, spec.Type)
 				require.Equal(t, cryptoutilSharedMagic.EdCurveEd25519, spec.EdDSACurve)
 			},
 		},

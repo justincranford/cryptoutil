@@ -242,7 +242,7 @@ func TestGenerateECDSAKeyPairCurves(t *testing.T) {
 
 			require.NoError(t, err)
 			require.NotNil(t, kp)
-			require.Equal(t, cryptoutilSharedMagic.ECDSA, kp.Type)
+			require.Equal(t, KeyTypeECDSA, kp.Type)
 		})
 	}
 }
