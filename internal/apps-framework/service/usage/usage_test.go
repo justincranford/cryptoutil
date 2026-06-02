@@ -34,14 +34,14 @@ func TestBuildUsageMain(t *testing.T) {
 			},
 		},
 		{
-			name:               "jose ja",
-			productName:        cryptoutilSharedMagic.JoseProductName,
-			serviceName:        cryptoutilSharedMagic.JoseJAServiceName,
-			serviceDisplayName: cryptoutilSharedMagic.JoseJADisplayName,
+			name:               "skeleton template",
+			productName:        cryptoutilSharedMagic.SkeletonProductName,
+			serviceName:        cryptoutilSharedMagic.SkeletonTemplateServiceName,
+			serviceDisplayName: cryptoutilSharedMagic.SkeletonTemplateDisplayName,
 			wantContains: []string{
-				"Usage: jose ja <subcommand> [options]",
-				cryptoutilSharedMagic.JoseJADisplayName,
-				"Use \"jose ja <subcommand> help\"",
+				"Usage: skeleton template <subcommand> [options]",
+				cryptoutilSharedMagic.SkeletonTemplateDisplayName,
+				"Use \"skeleton template <subcommand> help\"",
 			},
 		},
 		{
@@ -96,15 +96,15 @@ func TestBuildUsageServer(t *testing.T) {
 			},
 		},
 		{
-			name:               "jose ja server",
-			productName:        cryptoutilSharedMagic.JoseProductName,
-			serviceName:        cryptoutilSharedMagic.JoseJAServiceName,
-			serviceDisplayName: cryptoutilSharedMagic.JoseJADisplayName,
-			configFilePath:     fmt.Sprintf("configs/%s/%s-framework.yml", cryptoutilSharedMagic.JoseJAServiceID, cryptoutilSharedMagic.JoseJAServiceID),
+			name:               "skeleton template server",
+			productName:        cryptoutilSharedMagic.SkeletonProductName,
+			serviceName:        cryptoutilSharedMagic.SkeletonTemplateServiceName,
+			serviceDisplayName: cryptoutilSharedMagic.SkeletonTemplateDisplayName,
+			configFilePath:     fmt.Sprintf("configs/%s/%s-framework.yml", cryptoutilSharedMagic.SkeletonTemplateServiceID, cryptoutilSharedMagic.SkeletonTemplateServiceID),
 			wantContains: []string{
-				"Usage: jose ja server [options]",
-				cryptoutilSharedMagic.JoseJADisplayName,
-				"configs/sm-kms/sm-kms-framework.yml",
+				"Usage: skeleton template server [options]",
+				cryptoutilSharedMagic.SkeletonTemplateDisplayName,
+				"configs/skeleton-template/skeleton-template-framework.yml",
 			},
 		},
 	}
@@ -253,6 +253,16 @@ func TestBuildUsageLivez(t *testing.T) {
 			},
 		},
 		{
+			name:        "skeleton template livez",
+			productName: cryptoutilSharedMagic.SkeletonProductName,
+			serviceName: cryptoutilSharedMagic.SkeletonTemplateServiceName,
+			wantContains: []string{
+				"Usage: skeleton template livez [options]",
+				"https://127.0.0.1:9090",
+				"/admin/api/v1/livez",
+			},
+		},
+		{
 			name:        "pki ca livez",
 			productName: cryptoutilSharedMagic.PKIProductName,
 			serviceName: cryptoutilSharedMagic.PKICAServiceName,
@@ -295,6 +305,26 @@ func TestBuildUsageReadyz(t *testing.T) {
 				"/admin/api/v1/readyz",
 			},
 		},
+		{
+			name:        "skeleton template readyz",
+			productName: cryptoutilSharedMagic.SkeletonProductName,
+			serviceName: cryptoutilSharedMagic.SkeletonTemplateServiceName,
+			wantContains: []string{
+				"Usage: skeleton template readyz [options]",
+				"https://127.0.0.1:9090",
+				"/admin/api/v1/readyz",
+			},
+		},
+		{
+			name:        "pki ca readyz",
+			productName: cryptoutilSharedMagic.PKIProductName,
+			serviceName: cryptoutilSharedMagic.PKICAServiceName,
+			wantContains: []string{
+				"Usage: pki ca readyz [options]",
+				"https://127.0.0.1:9090",
+				"/admin/api/v1/readyz",
+			},
+		},
 	}
 
 	for _, tt := range tests {
@@ -325,6 +355,28 @@ func TestBuildUsageShutdown(t *testing.T) {
 			serviceName: cryptoutilSharedMagic.KMSServiceName,
 			wantContains: []string{
 				"Usage: sm kms shutdown [options]",
+				"https://127.0.0.1:9090",
+				"/admin/api/v1/shutdown",
+				"--force",
+			},
+		},
+		{
+			name:        "skeleton template shutdown",
+			productName: cryptoutilSharedMagic.SkeletonProductName,
+			serviceName: cryptoutilSharedMagic.SkeletonTemplateServiceName,
+			wantContains: []string{
+				"Usage: skeleton template shutdown [options]",
+				"https://127.0.0.1:9090",
+				"/admin/api/v1/shutdown",
+				"--force",
+			},
+		},
+		{
+			name:        "pki ca shutdown",
+			productName: cryptoutilSharedMagic.PKIProductName,
+			serviceName: cryptoutilSharedMagic.PKICAServiceName,
+			wantContains: []string{
+				"Usage: pki ca shutdown [options]",
 				"https://127.0.0.1:9090",
 				"/admin/api/v1/shutdown",
 				"--force",

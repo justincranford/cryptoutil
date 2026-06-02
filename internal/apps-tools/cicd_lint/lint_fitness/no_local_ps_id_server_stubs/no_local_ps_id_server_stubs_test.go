@@ -77,7 +77,7 @@ func TestFindViolations_Violation_LocalAdminStub(t *testing.T) {
 	t.Parallel()
 
 	dir := t.TempDir()
-	psDir := filepath.Join(dir, "internal", "apps", cryptoutilSharedMagic.OTLPServiceJoseJA, "server")
+	psDir := filepath.Join(dir, "internal", "apps", cryptoutilSharedMagic.OTLPServiceSkeletonTemplate, "server")
 	require.NoError(t, os.MkdirAll(psDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 	content := `package server

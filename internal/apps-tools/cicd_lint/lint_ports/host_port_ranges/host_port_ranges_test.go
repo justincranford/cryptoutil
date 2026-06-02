@@ -145,7 +145,7 @@ func TestIsPortInValidRange(t *testing.T) {
 		{name: "public port cryptoutilSharedMagic.KMSServicePort", port: cryptoutilSharedMagic.KMSServicePort, cfg: smIMConfig, want: true},
 		{name: "public port cryptoutilSharedMagic.KMSE2EPostgreSQL1PublicPort", port: cryptoutilSharedMagic.KMSE2EPostgreSQL1PublicPort, cfg: smIMConfig, want: true},
 		{name: "public port cryptoutilSharedMagic.KMSE2EPostgreSQL2PublicPort", port: cryptoutilSharedMagic.KMSE2EPostgreSQL2PublicPort, cfg: smIMConfig, want: true},
-		{name: "admin port cryptoutilSharedMagic.JoseJAAdminPort", port: cryptoutilSharedMagic.IdentityDefaultAuthZAdminPort, cfg: smIMConfig, want: true},
+		{name: "admin port cryptoutilSharedMagic.TestAdminPort", port: cryptoutilSharedMagic.IdentityDefaultAuthZAdminPort, cfg: smIMConfig, want: true},
 		{name: "range port 8050", port: 8050, cfg: smIMConfig, want: true},                                                                                                       // In range 8000-8099
 		{name: "range port 8099", port: 8099, cfg: smIMConfig, want: true},                                                                                                       // Last in range
 		{name: "out of range cryptoutilSharedMagic.PKICAServicePort", port: cryptoutilSharedMagic.PKICAServicePort, cfg: smIMConfig, want: false},                                // Out of range (pki-ca territory)

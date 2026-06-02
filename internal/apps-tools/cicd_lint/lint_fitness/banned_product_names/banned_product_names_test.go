@@ -58,30 +58,6 @@ func TestCheckInDir_DetectsBannedPhrase(t *testing.T) {
 		content string
 	}{
 		{
-			name:    cryptoutilSharedMagic.OTLPServiceSMIM,
-			phrase:  "cipher-im",
-			file:    "config.yml",
-			content: "service-name: cipher-im\n",
-		},
-		{
-			name:    "CipherIM",
-			phrase:  "CipherIM",
-			file:    "types.go",
-			content: "package foo\n\ntype CipherIM struct{}\n",
-		},
-		{
-			name:    "cipher_im",
-			phrase:  "cipher_im",
-			file:    "schema.sql",
-			content: "CREATE TABLE cipher_im_messages (id TEXT PRIMARY KEY);\n",
-		},
-		{
-			name:    "Cipher IM",
-			phrase:  "Cipher IM",
-			file:    "README.md",
-			content: "# Cipher IM Service\n",
-		},
-		{
 			name:    "cryptoutilCmdCipher",
 			phrase:  "cryptoutilCmdCipher",
 			file:    "main.go",

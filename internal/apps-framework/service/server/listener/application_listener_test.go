@@ -323,7 +323,7 @@ type mockAdminServerImpl struct{}
 
 func (m *mockAdminServerImpl) Start(_ context.Context) error      { return nil }
 func (m *mockAdminServerImpl) Shutdown(_ context.Context) error   { return nil }
-func (m *mockAdminServerImpl) ActualPort() int                    { return cryptoutilSharedMagic.JoseJAAdminPort }
+func (m *mockAdminServerImpl) ActualPort() int                    { return cryptoutilSharedMagic.TestAdminPort }
 func (m *mockAdminServerImpl) SetReady(_ bool)                    {}
 func (m *mockAdminServerImpl) AdminBaseURL() string               { return "https://127.0.0.1:9090" }
 func (m *mockAdminServerImpl) AdminTLSRootCAPool() *x509.CertPool { return nil }

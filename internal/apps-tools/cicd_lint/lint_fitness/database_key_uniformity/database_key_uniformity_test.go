@@ -179,7 +179,7 @@ func TestCheckInDir_ScalarDatabaseKeyAllowed(t *testing.T) {
 	t.Parallel()
 
 	tmpDir := t.TempDir()
-	psID := cryptoutilSharedMagic.OTLPServiceJoseJA
+	psID := cryptoutilSharedMagic.OTLPServiceSkeletonTemplate
 
 	// Stub all PS-ID config dirs so the hard-error-on-absent-dir check passes for all of them.
 	createAllConfigDirStubs(t, tmpDir)

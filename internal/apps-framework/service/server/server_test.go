@@ -325,7 +325,7 @@ func (m *mockAdminServerForCoverage) Shutdown(ctx context.Context) error {
 }
 
 func (m *mockAdminServerForCoverage) ActualPort() int {
-	return cryptoutilSharedMagic.JoseJAAdminPort
+	return cryptoutilSharedMagic.TestAdminPort
 }
 
 func (m *mockAdminServerForCoverage) SetReady(_ bool) {}

@@ -109,13 +109,13 @@ func TestCheckInDir_ValidServiceTierPorts(t *testing.T) {
 		},
 		{
 			name:           "sm-kms sqlite-1 service tier",
-			psID:           cryptoutilSharedMagic.OTLPServiceSMIM,
+			psID:           cryptoutilSharedMagic.OTLPServiceSMKMS,
 			serviceVariant: lintFitnessRegistry.ComposeVariantSQLite1,
 			variantOffset:  0,
 		},
 		{
 			name:           "sm-kms postgresql-2 service tier",
-			psID:           cryptoutilSharedMagic.OTLPServiceJoseJA,
+			psID:           cryptoutilSharedMagic.OTLPServiceSkeletonTemplate,
 			serviceVariant: lintFitnessRegistry.ComposeVariantPostgres2,
 			variantOffset:  3,
 		},
@@ -281,7 +281,7 @@ func TestCheckTierPorts_ValidProductTierAllVariants(t *testing.T) {
 	t.Parallel()
 
 	// Verify all 3 variants for sm-kms at PRODUCT tier.
-	psID := cryptoutilSharedMagic.OTLPServiceSMIM
+	psID := cryptoutilSharedMagic.OTLPServiceSMKMS
 	basePort := lintFitnessRegistry.PublicPort(psID)
 
 	tmpDir := t.TempDir()

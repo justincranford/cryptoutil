@@ -147,7 +147,7 @@ func TestCheckInDir_SkipsGitAndVendor(t *testing.T) {
 func TestCheckInDir_MultipleServices(t *testing.T) {
 	t.Parallel()
 	rootDir, apiDir := makeTestAPIDir(t)
-	svc1Dir := filepath.Join(apiDir, cryptoutilSharedMagic.OTLPServiceJoseJA)
+	svc1Dir := filepath.Join(apiDir, cryptoutilSharedMagic.OTLPServiceSkeletonTemplate)
 	require.NoError(t, os.MkdirAll(svc1Dir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 	writeTestFile(t, svc1Dir, genConfigServerFileName, fullBaseList+"    - JWKS\n")
 

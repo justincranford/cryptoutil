@@ -38,7 +38,7 @@ func TestAuthenticator_VerifyPasswordErrors(t *testing.T) {
 
 	policy := &PasswordPolicyConfig{
 		Algorithm:  cryptoutilSharedMagic.PBKDF2DefaultAlgorithm,
-		Iterations: cryptoutilSharedMagic.IMPBKDF2Iterations,
+		Iterations: cryptoutilSharedMagic.PBKDF2Iterations,
 		SaltBytes:  cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes,
 		HashBytes:  cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes,
 	}

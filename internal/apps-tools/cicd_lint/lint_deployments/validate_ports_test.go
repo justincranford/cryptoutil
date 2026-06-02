@@ -373,7 +373,7 @@ func TestIsInfrastructurePort(t *testing.T) {
 		want bool
 	}{
 		{name: cryptoutilSharedMagic.DockerServicePostgres, port: int(cryptoutilSharedMagic.DefaultPublicPortPostgres), want: true},
-		{name: "grafana", port: cryptoutilSharedMagic.JoseJAE2EGrafanaPort, want: true},
+		{name: "grafana", port: cryptoutilSharedMagic.SkeletonTemplateE2EGrafanaPort, want: true},
 		{name: "otlp-grpc", port: int(cryptoutilSharedMagic.DefaultPublicPortInternalMetrics), want: true},
 		{name: "otlp-http", port: int(cryptoutilSharedMagic.PortOtelCollectorReceivedMetrics), want: true},
 		{name: "otel-health", port: int(cryptoutilSharedMagic.DefaultPublicPortOtelCollectorHealth), want: true},

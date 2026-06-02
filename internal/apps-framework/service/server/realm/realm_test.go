@@ -42,7 +42,7 @@ func TestDefaultPasswordPolicy(t *testing.T) {
 	policy := DefaultPasswordPolicy()
 
 	require.Equal(t, cryptoutilSharedMagic.PBKDF2DefaultAlgorithm, policy.Algorithm)
-	require.Equal(t, cryptoutilSharedMagic.IMPBKDF2Iterations, policy.Iterations)
+	require.Equal(t, cryptoutilSharedMagic.PBKDF2DefaultIterations, policy.Iterations)
 	require.Equal(t, cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes, policy.SaltBytes)
 	require.Equal(t, cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes, policy.HashBytes)
 }

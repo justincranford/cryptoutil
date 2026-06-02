@@ -202,7 +202,7 @@ func TestCheckInDir_ReturnsError_WhenViolationsExist(t *testing.T) {
 	dir := t.TempDir()
 
 	// Create server/ dir without testmain.
-	makeServerDir(t, dir, cryptoutilSharedMagic.OTLPServiceJoseJA)
+	makeServerDir(t, dir, cryptoutilSharedMagic.OTLPServiceSkeletonTemplate)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("testmain-orchestration-policy-test")
 	err := lintFitnessTestmainOrchestrationPolicy.CheckInDir(logger, dir)
@@ -217,8 +217,8 @@ func TestCheckInDir_NoViolations_ReturnsNil(t *testing.T) {
 
 	for _, psid := range []string{
 		cryptoutilSharedMagic.OTLPServiceSMKMS,
-		cryptoutilSharedMagic.OTLPServiceSMIM,
-		cryptoutilSharedMagic.OTLPServiceJoseJA,
+		cryptoutilSharedMagic.OTLPServiceSMKMS,
+		cryptoutilSharedMagic.OTLPServiceSkeletonTemplate,
 		cryptoutilSharedMagic.OTLPServicePKICA,
 		cryptoutilSharedMagic.OTLPServiceSkeletonTemplate,
 		cryptoutilSharedMagic.OTLPServiceIdentityAuthz,

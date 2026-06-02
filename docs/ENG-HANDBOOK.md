@@ -1101,17 +1101,6 @@ host ports in product/suite compose files also use +10000 offset. CI/CD integrat
 call OTel endpoints from the host (Go test code) MUST use the `14317`/`14318` host ports when
 running against a product or suite stack.
 
-### 3.5 Architecture Evolution
-
-#### 3.5.1 Consolidation: 10-to-8 PS-ID (framework-v24)
-
-**Decision Record** (implemented 2026-05-29):
-
-- **What changed**: Removed `jose-jwk-authority` and `sm-messaging` as independent product-services. Their domain logic and APIs were merged into `sm-kms`. The `jose` product was removed. The topology contracted from 10 PS-IDs / 5 products to 8 PS-IDs / 4 products.
-- **Why merged**: `jose-jwk-authority` provided JWK/JWE/JWS operations exclusively consumed by `sm-kms`. Running it as a separate service added a network hop, a separate PostgreSQL schema, and separate deployment/ops burden with no benefit. `sm-messaging` was similarly dependent on `sm-kms` key material and offered no value as an independent service boundary.
-- **Migration strategy**: New sm-kms domain migrations 2003-2008 added JWK elastic/material and signing-key tables. All former `jose-jwk-authority` and `sm-messaging` API routes are now served from `sm-kms` via compatibility handlers at the same URL paths.
-- **Port ranges vacated**: `8100-8199` (sm-messaging) and `8200-8299` (jose-jwk-authority) are now unassigned at the SERVICE tier.
-
 ---
 
 ## 4. System Architecture

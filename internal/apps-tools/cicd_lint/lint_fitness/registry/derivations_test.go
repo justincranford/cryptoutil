@@ -344,10 +344,10 @@ func TestComposeServiceName(t *testing.T) {
 			want:    cryptoutilSharedMagic.OTLPServiceSMKMS + ComposeAppSuffix + ComposeVariantPostgres2,
 		},
 		{
-			name:    cryptoutilSharedMagic.OTLPServiceJoseJA + "-" + ComposeVariantSQLite1,
-			psID:    cryptoutilSharedMagic.OTLPServiceJoseJA,
+			name:    cryptoutilSharedMagic.OTLPServiceSkeletonTemplate + "-" + ComposeVariantSQLite1,
+			psID:    cryptoutilSharedMagic.OTLPServiceSkeletonTemplate,
 			variant: ComposeVariantSQLite1,
-			want:    cryptoutilSharedMagic.OTLPServiceJoseJA + ComposeAppSuffix + ComposeVariantSQLite1,
+			want:    cryptoutilSharedMagic.OTLPServiceSkeletonTemplate + ComposeAppSuffix + ComposeVariantSQLite1,
 		},
 	}
 

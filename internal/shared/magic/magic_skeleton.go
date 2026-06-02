@@ -31,6 +31,9 @@ const (
 
 	// SkeletonTemplatePostgresPort is the host PostgreSQL port for skeleton-template.
 	SkeletonTemplatePostgresPort = 54329
+
+	// SkeletonTemplateDisplayName is the human-readable display name for the skeleton-template service.
+	SkeletonTemplateDisplayName = "Skeleton Template"
 )
 
 // Skeleton-Template E2E Test Configuration.

@@ -60,10 +60,10 @@ func TestCheckInDir_NoServices_Passes(t *testing.T) {
 func TestCheckInDir_CleanImports_Passes(t *testing.T) {
 	t.Parallel()
 	tmp := t.TempDir()
-	mkServiceDir(t, tmp, cryptoutilSharedMagic.OTLPServiceSMIM)
+	mkServiceDir(t, tmp, cryptoutilSharedMagic.OTLPServiceSMKMS)
 	// Imports of shared/ and framework/ are always allowed.
 	goFileWithImports(t,
-		filepath.Join(tmp, "internal", "apps", cryptoutilSharedMagic.OTLPServiceSMIM, "handler.go"),
+		filepath.Join(tmp, "internal", "apps", cryptoutilSharedMagic.OTLPServiceSMKMS, "handler.go"),
 		"smim",
 		[]string{
 			`"fmt"`,
@@ -92,10 +92,10 @@ func TestCheckInDir_SameProductImport_Passes(t *testing.T) {
 func TestCheckInDir_CrossProductImport_Fails(t *testing.T) {
 	t.Parallel()
 	tmp := t.TempDir()
-	mkServiceDir(t, tmp, cryptoutilSharedMagic.OTLPServiceSMIM)
+	mkServiceDir(t, tmp, cryptoutilSharedMagic.OTLPServiceSMKMS)
 	mkServiceDir(t, tmp, cryptoutilSharedMagic.OTLPServicePKICA)
 	goFileWithImports(t,
-		filepath.Join(tmp, "internal", "apps", cryptoutilSharedMagic.OTLPServiceSMIM, "handler.go"),
+		filepath.Join(tmp, "internal", "apps", cryptoutilSharedMagic.OTLPServiceSMKMS, "handler.go"),
 		"smim",
 		[]string{`"cryptoutil/internal/apps/pki-ca/somepkg"`},
 	)
@@ -144,7 +144,7 @@ func TestCollectServices_EmptyAppsDir(t *testing.T) {
 func TestIsViolation_AllowedImports(t *testing.T) {
 	t.Parallel()
 
-	self := serviceRef{psid: cryptoutilSharedMagic.OTLPServiceSMIM, product: cryptoutilSharedMagic.SMProductName}
+	self := serviceRef{psid: cryptoutilSharedMagic.OTLPServiceSMKMS, product: cryptoutilSharedMagic.SMProductName}
 	allServices := []serviceRef{{psid: cryptoutilSharedMagic.OTLPServicePKICA, product: cryptoutilSharedMagic.PKIProductName}}
 
 	tests := []struct {
@@ -206,7 +206,7 @@ func TestExtractImports_EmptyFile(t *testing.T) {
 func TestIsViolation_NonAppsImport_ReturnsFalse(t *testing.T) {
 	t.Parallel()
 
-	self := serviceRef{psid: cryptoutilSharedMagic.OTLPServiceSMIM, product: cryptoutilSharedMagic.SMProductName}
+	self := serviceRef{psid: cryptoutilSharedMagic.OTLPServiceSMKMS, product: cryptoutilSharedMagic.SMProductName}
 	result := isViolation("github.com/some/external/lib", self, nil)
 	require.False(t, result)
 }
@@ -214,7 +214,7 @@ func TestIsViolation_NonAppsImport_ReturnsFalse(t *testing.T) {
 func TestIsViolation_InsufficientPathParts_ReturnsFalse(t *testing.T) {
 	t.Parallel()
 
-	self := serviceRef{psid: cryptoutilSharedMagic.OTLPServiceSMIM, product: cryptoutilSharedMagic.SMProductName}
+	self := serviceRef{psid: cryptoutilSharedMagic.OTLPServiceSMKMS, product: cryptoutilSharedMagic.SMProductName}
 	// Only one part after apps/ prefix (no subpackage) — not a service import.
 	result := isViolation("cryptoutil/internal/apps/pki-ca", self, nil)
 	require.False(t, result)
@@ -223,7 +223,7 @@ func TestIsViolation_InsufficientPathParts_ReturnsFalse(t *testing.T) {
 func TestIsViolation_CrossProductNotInServices_ReturnsFalse(t *testing.T) {
 	t.Parallel()
 
-	self := serviceRef{psid: cryptoutilSharedMagic.OTLPServiceSMIM, product: cryptoutilSharedMagic.SMProductName}
+	self := serviceRef{psid: cryptoutilSharedMagic.OTLPServiceSMKMS, product: cryptoutilSharedMagic.SMProductName}
 	// pki-ca is not in allServices list, so not a service-to-service violation.
 	result := isViolation("cryptoutil/internal/apps/pki-ca/something", self, []serviceRef{})
 	require.False(t, result)
@@ -253,7 +253,7 @@ func TestCheckInDir_WalkError(t *testing.T) {
 	}
 
 	tmp := t.TempDir()
-	mkServiceDir(t, tmp, cryptoutilSharedMagic.OTLPServiceSMIM)
+	mkServiceDir(t, tmp, cryptoutilSharedMagic.OTLPServiceSMKMS)
 
 	err := checkInDir(newTestLogger(), tmp, stubWalkFn)
 	require.Error(t, err)
@@ -268,7 +268,7 @@ func TestCheckInDir_WalkCallbackError(t *testing.T) {
 	}
 
 	tmp := t.TempDir()
-	mkServiceDir(t, tmp, cryptoutilSharedMagic.OTLPServiceSMIM)
+	mkServiceDir(t, tmp, cryptoutilSharedMagic.OTLPServiceSMKMS)
 
 	err := checkInDir(newTestLogger(), tmp, stubWalkFn)
 	require.Error(t, err)

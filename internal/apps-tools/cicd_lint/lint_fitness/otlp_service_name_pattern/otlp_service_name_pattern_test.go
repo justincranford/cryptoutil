@@ -46,9 +46,9 @@ func TestCheckOTLPServiceValue_CorrectNames(t *testing.T) {
 	}{
 		{
 			name:           "sqlite config correct",
-			psID:           cryptoutilSharedMagic.OTLPServiceSMIM,
+			psID:           cryptoutilSharedMagic.OTLPServiceSMKMS,
 			expectedSuffix: "-sqlite-1",
-			otlpService:    cryptoutilSharedMagic.OTLPServiceSMIM + "-sqlite-1",
+			otlpService:    cryptoutilSharedMagic.OTLPServiceSMKMS + "-sqlite-1",
 		},
 		{
 			name:           "postgres-1 config correct",
@@ -58,9 +58,9 @@ func TestCheckOTLPServiceValue_CorrectNames(t *testing.T) {
 		},
 		{
 			name:           "postgres-2 config correct",
-			psID:           cryptoutilSharedMagic.OTLPServiceJoseJA,
+			psID:           cryptoutilSharedMagic.OTLPServiceSkeletonTemplate,
 			expectedSuffix: "-postgres-2",
-			otlpService:    cryptoutilSharedMagic.OTLPServiceJoseJA + "-postgres-2",
+			otlpService:    cryptoutilSharedMagic.OTLPServiceSkeletonTemplate + "-postgres-2",
 		},
 	}
 
@@ -99,14 +99,14 @@ func TestCheckOTLPServiceValue_IncorrectNames(t *testing.T) {
 		},
 		{
 			name:           "missing trailing number",
-			psID:           cryptoutilSharedMagic.OTLPServiceSMIM,
+			psID:           cryptoutilSharedMagic.OTLPServiceSMKMS,
 			expectedSuffix: "-sqlite-1",
-			otlpService:    cryptoutilSharedMagic.OTLPServiceSMIM + "-sqlite",
+			otlpService:    cryptoutilSharedMagic.OTLPServiceSMKMS + "-sqlite",
 			wantErrContain: `got "sm-kms-sqlite", want "sm-kms-sqlite-1"`,
 		},
 		{
 			name:           "wrong ps-id",
-			psID:           cryptoutilSharedMagic.OTLPServiceSMIM,
+			psID:           cryptoutilSharedMagic.OTLPServiceSMKMS,
 			expectedSuffix: "-postgres-1",
 			otlpService:    "cipher-im-postgres-1",
 			wantErrContain: `got "cipher-im-postgres-1", want "sm-kms-postgres-1"`,
@@ -135,7 +135,7 @@ func TestCheckInDir_NoOTLPServiceKey(t *testing.T) {
 
 	// A config file without an otlp-service key should not be flagged.
 	tmpDir := t.TempDir()
-	productDir := filepath.Join(tmpDir, cryptoutilSharedMagic.CICDConfigsDir, cryptoutilSharedMagic.SMProductName, cryptoutilSharedMagic.IMServiceName)
+	productDir := filepath.Join(tmpDir, cryptoutilSharedMagic.CICDConfigsDir, cryptoutilSharedMagic.SMProductName, cryptoutilSharedMagic.KMSServiceName)
 	require.NoError(t, os.MkdirAll(productDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 	configContent := "bind-public-port: 8080\n"

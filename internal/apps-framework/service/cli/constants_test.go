@@ -49,13 +49,13 @@ func TestIsHelpRequest_WithClientNotImplementedMessage(t *testing.T) {
 		[]string{"client"},
 		cryptoutilAppsFrameworkCli.ClientNotImplementedMessageConfig{
 			Stderr:    &stderr,
-			ServiceID: cryptoutilSharedMagic.IMServiceID,
+			ServiceID: cryptoutilSharedMagic.SkeletonTemplateServiceID,
 		},
 	)
 
 	require.False(t, result)
 	require.Contains(t, stderr.String(), "Client subcommand not yet implemented")
-	require.Contains(t, stderr.String(), "interacting with the "+cryptoutilSharedMagic.IMServiceID)
+	require.Contains(t, stderr.String(), "interacting with the "+cryptoutilSharedMagic.SkeletonTemplateServiceID)
 }
 
 func TestIsHelpRequest_WithClientNotImplementedMessage_HelpRequest(t *testing.T) {
@@ -67,7 +67,7 @@ func TestIsHelpRequest_WithClientNotImplementedMessage_HelpRequest(t *testing.T)
 		[]string{cryptoutilSharedMagic.CLIHelpFlag},
 		cryptoutilAppsFrameworkCli.ClientNotImplementedMessageConfig{
 			Stderr:    &stderr,
-			ServiceID: cryptoutilSharedMagic.IMServiceID,
+			ServiceID: cryptoutilSharedMagic.SkeletonTemplateServiceID,
 		},
 	)
 
@@ -84,7 +84,7 @@ func TestIsHelpRequest_WithUsageText_HelpRequest(t *testing.T) {
 		[]string{cryptoutilSharedMagic.CLIHelpFlag},
 		cryptoutilAppsFrameworkCli.ClientNotImplementedMessageConfig{
 			Stderr:    &stderr,
-			ServiceID: cryptoutilSharedMagic.IMServiceID,
+			ServiceID: cryptoutilSharedMagic.SkeletonTemplateServiceID,
 			UsageText: "usage: sm-kms client [flags]",
 		},
 	)

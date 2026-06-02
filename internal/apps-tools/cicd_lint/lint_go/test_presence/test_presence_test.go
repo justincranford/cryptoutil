@@ -93,7 +93,7 @@ func TestCheckInDir_ExcludedUnifiedDir(t *testing.T) {
 	t.Parallel()
 
 	tmpDir := t.TempDir()
-	unifiedDir := filepath.Join(tmpDir, "internal", "apps", cryptoutilSharedMagic.JoseProductName, "ja", "unified")
+	unifiedDir := filepath.Join(tmpDir, "internal", "apps", cryptoutilSharedMagic.SkeletonProductName, "ja", "unified")
 	require.NoError(t, os.MkdirAll(unifiedDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 	require.NoError(t, os.WriteFile(filepath.Join(unifiedDir, "server.go"), []byte("package unified\nfunc X() {}"), cryptoutilSharedMagic.CacheFilePermissions))
 

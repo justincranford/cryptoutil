@@ -36,9 +36,9 @@ func TestCheckInDir_NoLegacyDirs_Passes(t *testing.T) {
 
 	tmp := t.TempDir()
 	mkdir(t, filepath.Join(tmp, "internal", "apps", "sm"))
-	mkdir(t, filepath.Join(tmp, "deployments", cryptoutilSharedMagic.OTLPServiceSMIM))
+	mkdir(t, filepath.Join(tmp, "deployments", cryptoutilSharedMagic.OTLPServiceSMKMS))
 	mkdir(t, filepath.Join(tmp, cryptoutilSharedMagic.CICDConfigsDir, "sm", "im"))
-	mkdir(t, filepath.Join(tmp, "cmd", cryptoutilSharedMagic.OTLPServiceSMIM))
+	mkdir(t, filepath.Join(tmp, "cmd", cryptoutilSharedMagic.OTLPServiceSMKMS))
 
 	err := CheckInDir(newTestLogger(), tmp)
 	require.NoError(t, err)
@@ -97,7 +97,7 @@ func TestCheckInDir_NonCipherPrefixNotDetected(t *testing.T) {
 	}{
 		{
 			name: "sm-kms in deployments",
-			dir:  filepath.Join("deployments", cryptoutilSharedMagic.OTLPServiceSMIM),
+			dir:  filepath.Join("deployments", cryptoutilSharedMagic.OTLPServiceSMKMS),
 		},
 		{
 			name: "cipher-less name in cmd",

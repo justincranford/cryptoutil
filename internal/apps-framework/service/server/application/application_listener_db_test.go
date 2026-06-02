@@ -36,7 +36,7 @@ func TestListener_Start_NilContext(t *testing.T) {
 	t.Parallel()
 
 	publicServer := &mockPublicServer{port: cryptoutilSharedMagic.TestServerPort}
-	adminServer := &mockAdminServer{port: cryptoutilSharedMagic.JoseJAAdminPort}
+	adminServer := &mockAdminServer{port: cryptoutilSharedMagic.TestAdminPort}
 
 	listener := &Listener{
 		PublicServer: publicServer,
@@ -69,7 +69,7 @@ func TestListener_Start_PublicServerError(t *testing.T) {
 		port:     cryptoutilSharedMagic.TestServerPort,
 		startErr: fmt.Errorf("mock public server error"),
 	}
-	adminServer := &mockAdminServer{port: cryptoutilSharedMagic.JoseJAAdminPort}
+	adminServer := &mockAdminServer{port: cryptoutilSharedMagic.TestAdminPort}
 
 	config := &ListenerConfig{
 		Settings:     settings,
@@ -107,7 +107,7 @@ func TestListener_Start_AdminServerError(t *testing.T) {
 	publicServer := &mockPublicServer{port: cryptoutilSharedMagic.TestServerPort}
 	// Create mock server that fails immediately.
 	adminServer := &mockAdminServer{
-		port:     cryptoutilSharedMagic.JoseJAAdminPort,
+		port:     cryptoutilSharedMagic.TestAdminPort,
 		startErr: fmt.Errorf("mock admin server error"),
 	}
 
@@ -150,7 +150,7 @@ func TestListener_Start_ContextCancelled(t *testing.T) {
 		startDone: startDone,
 	}
 	adminServer := &mockAdminServer{
-		port:      cryptoutilSharedMagic.JoseJAAdminPort,
+		port:      cryptoutilSharedMagic.TestAdminPort,
 		startDone: startDone,
 	}
 

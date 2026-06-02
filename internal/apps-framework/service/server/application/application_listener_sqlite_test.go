@@ -255,7 +255,7 @@ func TestShutdown_AdminServerError(t *testing.T) {
 	ctx := context.Background()
 
 	adminServer := &mockAdminServer{
-		port:        cryptoutilSharedMagic.JoseJAAdminPort,
+		port:        cryptoutilSharedMagic.TestAdminPort,
 		shutdownErr: fmt.Errorf("admin server shutdown failed"),
 	}
 
@@ -299,7 +299,7 @@ func TestShutdown_BothServersShutdownError(t *testing.T) {
 	ctx := context.Background()
 
 	adminServer := &mockAdminServer{
-		port:        cryptoutilSharedMagic.JoseJAAdminPort,
+		port:        cryptoutilSharedMagic.TestAdminPort,
 		shutdownErr: fmt.Errorf("admin server shutdown failed"),
 	}
 

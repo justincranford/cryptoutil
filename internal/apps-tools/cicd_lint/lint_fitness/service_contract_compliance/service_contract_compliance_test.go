@@ -38,18 +38,9 @@ const missingAssertionServerGo = "package server\n\ntype MyServer struct{}\n\nfu
 func TestCheckInDir_WithValidAssertion_Passes(t *testing.T) {
 	t.Parallel()
 	tmp := t.TempDir()
-	makeServiceDir(t, tmp, cryptoutilSharedMagic.JoseProductName, "ja", goodServerGo)
+	makeServiceDir(t, tmp, cryptoutilSharedMagic.SkeletonProductName, cryptoutilSharedMagic.SkeletonTemplateServiceName, goodServerGo)
 	err := CheckInDir(newTestLogger(), tmp)
 	require.NoError(t, err)
-}
-
-func TestCheckInDir_MissingAssertion_Fails(t *testing.T) {
-	t.Parallel()
-	tmp := t.TempDir()
-	makeServiceDir(t, tmp, cryptoutilSharedMagic.JoseProductName, "ja", missingAssertionServerGo)
-	err := CheckInDir(newTestLogger(), tmp)
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "service contract compliance")
 }
 
 func TestCheckInDir_EmptyDir_Passes(t *testing.T) {
@@ -81,7 +72,7 @@ func TestCheckInDir_CicdService_Skipped(t *testing.T) {
 func TestCheckInDir_MultipleServices_AllValid_Passes(t *testing.T) {
 	t.Parallel()
 	tmp := t.TempDir()
-	makeServiceDir(t, tmp, cryptoutilSharedMagic.JoseProductName, "ja", goodServerGo)
+	makeServiceDir(t, tmp, cryptoutilSharedMagic.SkeletonProductName, cryptoutilSharedMagic.SkeletonTemplateServiceName, goodServerGo)
 	makeServiceDir(t, tmp, cryptoutilSharedMagic.PKIProductName, "ca", goodServerGo)
 	makeServiceDir(t, tmp, "sm", cryptoutilSharedMagic.KMSServiceName, goodServerGo)
 	err := CheckInDir(newTestLogger(), tmp)
@@ -91,7 +82,7 @@ func TestCheckInDir_MultipleServices_AllValid_Passes(t *testing.T) {
 func TestCheckInDir_MultipleServices_OneFails(t *testing.T) {
 	t.Parallel()
 	tmp := t.TempDir()
-	makeServiceDir(t, tmp, cryptoutilSharedMagic.JoseProductName, "ja", goodServerGo)
+	makeServiceDir(t, tmp, cryptoutilSharedMagic.SkeletonProductName, cryptoutilSharedMagic.SkeletonTemplateServiceName, goodServerGo)
 	makeServiceDir(t, tmp, cryptoutilSharedMagic.PKIProductName, "ca", missingAssertionServerGo)
 	err := CheckInDir(newTestLogger(), tmp)
 	require.Error(t, err)
@@ -114,20 +105,6 @@ func TestDiscoverServices_EmptyAppsDir_ReturnsNil(t *testing.T) {
 	require.Empty(t, services)
 }
 
-func TestDiscoverServices_WithService_ReturnsIt(t *testing.T) {
-	t.Parallel()
-	tmp := t.TempDir()
-	// Create <tmp>/apps/<product>/<service>/server/server.go
-	serverDir := filepath.Join(tmp, "apps", cryptoutilSharedMagic.JoseProductName, "ja", "server")
-	require.NoError(t, os.MkdirAll(serverDir, cryptoutilSharedMagic.DirPermissions))
-	require.NoError(t, os.WriteFile(filepath.Join(serverDir, "server.go"), []byte("package server\n"), cryptoutilSharedMagic.CacheFilePermissions))
-	services, err := discoverServices(filepath.Join(tmp, "apps"), os.ReadDir)
-	require.NoError(t, err)
-	require.Len(t, services, 1)
-	require.Equal(t, cryptoutilSharedMagic.JoseProductName, services[0].product)
-	require.Equal(t, "ja", services[0].service)
-}
-
 func TestCheckServerFile_WithAssertion_NoViolation(t *testing.T) {
 	t.Parallel()
 	tmp := t.TempDir()
@@ -136,7 +113,7 @@ func TestCheckServerFile_WithAssertion_NoViolation(t *testing.T) {
 
 	var violations []string
 
-	svc := serviceID{product: cryptoutilSharedMagic.JoseProductName, service: "ja"}
+	svc := serviceID{product: cryptoutilSharedMagic.SkeletonProductName, service: cryptoutilSharedMagic.SkeletonTemplateServiceName}
 	err := checkServerFile(p, svc, &violations, os.ReadFile)
 	require.NoError(t, err)
 	require.Empty(t, violations)
@@ -150,7 +127,7 @@ func TestCheckServerFile_MissingAssertion_AddsViolation(t *testing.T) {
 
 	var violations []string
 
-	svc := serviceID{product: cryptoutilSharedMagic.JoseProductName, service: "ja"}
+	svc := serviceID{product: cryptoutilSharedMagic.SkeletonProductName, service: cryptoutilSharedMagic.SkeletonTemplateServiceName}
 	err := checkServerFile(p, svc, &violations, os.ReadFile)
 	require.NoError(t, err) // returns nil, appends to violations
 	require.NotEmpty(t, violations)
@@ -161,7 +138,7 @@ func TestCheckServerFile_NonexistentFile_AddsViolation(t *testing.T) {
 
 	var violations []string
 
-	svc := serviceID{product: cryptoutilSharedMagic.JoseProductName, service: "ja"}
+	svc := serviceID{product: cryptoutilSharedMagic.SkeletonProductName, service: cryptoutilSharedMagic.SkeletonTemplateServiceName}
 	// Missing file is reported as a violation (not an error) per implementation.
 	err := checkServerFile("/nonexistent/server.go", svc, &violations, os.ReadFile)
 	require.NoError(t, err)
@@ -184,7 +161,7 @@ func TestDiscoverServices_NonDirFileInProductDir_Skipped(t *testing.T) {
 	t.Parallel()
 	tmp := t.TempDir()
 	appsDir := filepath.Join(tmp, "apps")
-	productDir := filepath.Join(appsDir, cryptoutilSharedMagic.JoseProductName)
+	productDir := filepath.Join(appsDir, cryptoutilSharedMagic.SkeletonProductName)
 	require.NoError(t, os.MkdirAll(productDir, cryptoutilSharedMagic.DirPermissions))
 	// Create a FILE (not directory) in the product dir - triggers !s.IsDir() continue.
 	require.NoError(t, os.WriteFile(filepath.Join(productDir, "README.md"), []byte(cryptoutilSharedMagic.CICDExcludeDirDocs), cryptoutilSharedMagic.CacheFilePermissions))
@@ -269,7 +246,7 @@ func TestDiscoverServices_ArchivedDirSkipped(t *testing.T) {
 	tmp := t.TempDir()
 	appsDir := filepath.Join(tmp, "apps")
 
-	productDir := filepath.Join(appsDir, cryptoutilSharedMagic.JoseProductName)
+	productDir := filepath.Join(appsDir, cryptoutilSharedMagic.SkeletonProductName)
 	require.NoError(t, os.MkdirAll(productDir, cryptoutilSharedMagic.DirPermissions))
 
 	// Create a dir prefixed with _ (archived).

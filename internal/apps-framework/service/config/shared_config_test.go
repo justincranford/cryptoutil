@@ -49,7 +49,7 @@ func TestServerConfig_Validate(t *testing.T) {
 				Port:             int(cryptoutilSharedMagic.TestServerPort),
 				AdminEnabled:     true,
 				AdminBindAddress: cryptoutilSharedMagic.IPv4Loopback,
-				AdminPort:        cryptoutilSharedMagic.JoseJAAdminPort,
+				AdminPort:        cryptoutilSharedMagic.TestAdminPort,
 			},
 		},
 		{
@@ -101,7 +101,7 @@ func TestServerConfig_Validate(t *testing.T) {
 				BindAddress:  cryptoutilSharedMagic.IPv4Loopback,
 				Port:         int(cryptoutilSharedMagic.TestServerPort),
 				AdminEnabled: true,
-				AdminPort:    cryptoutilSharedMagic.JoseJAAdminPort,
+				AdminPort:    cryptoutilSharedMagic.TestAdminPort,
 			},
 			wantError: "admin bind address is required when admin is enabled",
 		},

@@ -23,7 +23,7 @@ func TestPBKDF2WithParams_ErrorPaths(t *testing.T) {
 	validParams := &PBKDF2Params{
 		Version:    "1",
 		HashName:   cryptoutilSharedMagic.PBKDF2Prefix,
-		Iterations: cryptoutilSharedMagic.IMPBKDF2Iterations,
+		Iterations: cryptoutilSharedMagic.PBKDF2Iterations,
 		SaltLength: cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes,
 		KeyLength:  cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes,
 		HashFunc:   func() hash.Hash { return sha256.New() }, // Required for PBKDF2
@@ -256,7 +256,7 @@ func TestPBKDF2WithParams_RandReadError(t *testing.T) {
 	params := &PBKDF2Params{
 		Version:    "1",
 		HashName:   cryptoutilSharedMagic.PBKDF2Prefix,
-		Iterations: cryptoutilSharedMagic.IMPBKDF2Iterations,
+		Iterations: cryptoutilSharedMagic.PBKDF2Iterations,
 		SaltLength: cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes,
 		KeyLength:  cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes,
 		HashFunc:   func() hash.Hash { return sha256.New() },

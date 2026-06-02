@@ -78,7 +78,7 @@ func TestRouteSuite_RoutesToProduct(t *testing.T) {
 
 	products := []cryptoutilAppsFrameworkSuiteCli.ProductEntry{
 		makeTestProductEntry(cryptoutilSharedMagic.SMProductName, 0),
-		makeTestProductEntry(cryptoutilSharedMagic.JoseProductName, cryptoutilSharedMagic.AnswerToLifeUniverseEverything),
+		makeTestProductEntry(cryptoutilSharedMagic.SkeletonProductName, 1),
 	}
 
 	t.Run("routes_to_sm", func(t *testing.T) {
@@ -90,13 +90,13 @@ func TestRouteSuite_RoutesToProduct(t *testing.T) {
 		require.Equal(t, 0, exitCode)
 	})
 
-	t.Run("routes_to_jose", func(t *testing.T) {
+	t.Run("routes_to_skeleton", func(t *testing.T) {
 		t.Parallel()
 
 		var stdout, stderr bytes.Buffer
 
-		exitCode := cryptoutilAppsFrameworkSuiteCli.RouteSuite(testSuiteCfg, []string{cryptoutilSharedMagic.JoseProductName}, nil, &stdout, &stderr, products)
-		require.Equal(t, cryptoutilSharedMagic.AnswerToLifeUniverseEverything, exitCode)
+		exitCode := cryptoutilAppsFrameworkSuiteCli.RouteSuite(testSuiteCfg, []string{cryptoutilSharedMagic.SkeletonProductName}, nil, &stdout, &stderr, products)
+		require.Equal(t, 1, exitCode)
 	})
 }
 
@@ -108,9 +108,8 @@ func TestRouteSuite_MultipleProducts(t *testing.T) {
 		expectedCode int
 	}{
 		{productName: cryptoutilSharedMagic.IdentityProductName, expectedCode: 1},
-		{productName: cryptoutilSharedMagic.JoseProductName, expectedCode: 2},
+		{productName: cryptoutilSharedMagic.SkeletonProductName, expectedCode: 2},
 		{productName: cryptoutilSharedMagic.PKIProductName, expectedCode: 3},
-		{productName: cryptoutilSharedMagic.SkeletonProductName, expectedCode: 4},
 		{productName: cryptoutilSharedMagic.SMProductName, expectedCode: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries},
 	}
 

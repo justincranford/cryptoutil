@@ -125,7 +125,7 @@ func TestPBKDF2ParameterSetVariants(t *testing.T) {
 		require.NotNil(t, params)
 		require.Equal(t, "1", params.Version)
 		require.Equal(t, cryptoutilSharedMagic.PBKDF2SHA384HashName, params.HashName)
-		require.Equal(t, cryptoutilSharedMagic.IMPBKDF2Iterations, params.Iterations)
+		require.Equal(t, cryptoutilSharedMagic.PBKDF2DefaultIterations, params.Iterations)
 		require.Equal(t, cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes, params.SaltLength)
 		require.Equal(t, cryptoutilSharedMagic.HMACSHA384KeySize, params.KeyLength) // SHA-384 = 48 bytes
 		require.NotNil(t, params.HashFunc)
@@ -164,7 +164,7 @@ func TestPBKDF2ParameterSetVariants(t *testing.T) {
 		require.NotNil(t, params)
 		require.Equal(t, "1", params.Version)
 		require.Equal(t, cryptoutilSharedMagic.PBKDF2SHA512HashName, params.HashName)
-		require.Equal(t, cryptoutilSharedMagic.IMPBKDF2Iterations, params.Iterations)
+		require.Equal(t, cryptoutilSharedMagic.PBKDF2DefaultIterations, params.Iterations)
 		require.Equal(t, cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes, params.SaltLength)
 		require.Equal(t, cryptoutilSharedMagic.MinSerialNumberBits, params.KeyLength) // SHA-512 = 64 bytes
 		require.NotNil(t, params.HashFunc)
@@ -207,7 +207,7 @@ func TestGetDefaultParameterSet(t *testing.T) {
 	params := registry.GetDefaultParameterSet()
 	require.NotNil(t, params)
 	require.Equal(t, "1", params.Version)
-	require.Equal(t, cryptoutilSharedMagic.IMPBKDF2Iterations, params.Iterations)
+	require.Equal(t, cryptoutilSharedMagic.PBKDF2DefaultIterations, params.Iterations)
 
 	// Test getting default version string
 	defaultVersion := registry.GetDefaultVersion()
