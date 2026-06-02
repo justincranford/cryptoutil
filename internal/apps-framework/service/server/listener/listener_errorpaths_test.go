@@ -21,7 +21,10 @@ import (
 
 var errForcedTLSMaterialFailure = errors.New("forced TLS material failure")
 
-const testInvalidBindAddress = "999.999.999.999"
+const (
+	testInvalidBindAddress = "999.999.999.999"
+	invalidIPAddress       = "not-a-valid-ip"
+)
 
 func validAutoTLSSettings(t *testing.T) *cryptoutilAppsFrameworkServiceConfigTlsGenerator.TLSGeneratedSettings {
 	t.Helper()
@@ -242,7 +245,7 @@ func TestNewHTTPServers_AutoMode_InvalidPublicIPAutoGeneration(t *testing.T) {
 
 	settings := cryptoutilAppsFrameworkServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
 	settings.TLSPublicProvisionMode = cryptoutilAppsFrameworkServiceConfig.TLSProvisionModeAuto
-	settings.TLSPublicIPAddresses = []string{"not-a-valid-ip"}
+	settings.TLSPublicIPAddresses = []string{invalidIPAddress}
 
 	h, err := NewHTTPServers(context.Background(), settings)
 	require.Error(t, err)
@@ -257,7 +260,7 @@ func TestNewHTTPServers_AutoMode_InvalidPrivateIPAutoGeneration(t *testing.T) {
 	settings.TLSPublicProvisionMode = cryptoutilAppsFrameworkServiceConfig.TLSProvisionModeAuto
 	settings.TLSPublicIPAddresses = []string{cryptoutilSharedMagic.IPv4Loopback}
 	settings.TLSPrivateProvisionMode = cryptoutilAppsFrameworkServiceConfig.TLSProvisionModeAuto
-	settings.TLSPrivateIPAddresses = []string{"not-a-valid-ip"}
+	settings.TLSPrivateIPAddresses = []string{invalidIPAddress}
 
 	h, err := NewHTTPServers(context.Background(), settings)
 	require.Error(t, err)

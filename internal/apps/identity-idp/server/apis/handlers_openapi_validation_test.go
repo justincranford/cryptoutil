@@ -24,6 +24,8 @@ import (
 	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
 )
 
+const testPasswordHash = "$2a$10$test"
+
 // TestOpenAPISchemaValidation validates OpenAPI schema matches actual endpoint responses.
 // Ensures all required fields are present and correctly typed. Satisfies R08-05: OpenAPI
 // specification accurately reflects API behavior.
@@ -68,7 +70,7 @@ func TestOpenAPISchemaValidation(t *testing.T) {
 					FamilyName:    "User",
 					Locale:        "en-US",
 					Zoneinfo:      "America/New_York",
-					PasswordHash:  "$2a$10$test",
+					PasswordHash:  testPasswordHash,
 				}
 
 				err = db.Create(user).Error
@@ -205,7 +207,7 @@ func TestOpenAPISchemaValidation(t *testing.T) {
 					ID:           userID,
 					Sub:          userID.String(),
 					Email:        "test@example.com",
-					PasswordHash: "$2a$10$test",
+					PasswordHash: testPasswordHash,
 				}
 
 				err = db.Create(user).Error

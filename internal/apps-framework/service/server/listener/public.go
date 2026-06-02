@@ -137,7 +137,7 @@ func (s *PublicHTTPServer) handleServiceHealth(c *fiber.Ctx) error {
 
 	if s.shutdown {
 		if err := c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{
-			cryptoutilSharedMagic.StringStatus: "shutting down",
+			cryptoutilSharedMagic.StringStatus: statusShuttingDown,
 		}); err != nil {
 			return fmt.Errorf("failed to send service health shutdown response: %w", err)
 		}
@@ -161,7 +161,7 @@ func (s *PublicHTTPServer) handleBrowserHealth(c *fiber.Ctx) error {
 
 	if s.shutdown {
 		if err := c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{
-			cryptoutilSharedMagic.StringStatus: "shutting down",
+			cryptoutilSharedMagic.StringStatus: statusShuttingDown,
 		}); err != nil {
 			return fmt.Errorf("failed to send browser health shutdown response: %w", err)
 		}

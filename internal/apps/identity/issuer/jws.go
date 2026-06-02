@@ -380,8 +380,8 @@ func (i *JWSIssuer) buildJWS(claims map[string]any) (string, error) {
 
 	// Create JWS header.
 	header := map[string]any{
-		"alg": signingAlg,
-		"typ": "JWT",
+		jwkFieldAlgorithm: signingAlg,
+		"typ":             "JWT",
 	}
 
 	// Add key ID if available.

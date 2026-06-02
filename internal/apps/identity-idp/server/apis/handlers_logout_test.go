@@ -128,8 +128,11 @@ func TestHandleLogout_POST(t *testing.T) {
 
 			if sessionCookie != "" {
 				req.AddCookie(&http.Cookie{
-					Name:  "session_id",
-					Value: sessionCookie,
+					Name:     "session_id",
+					Value:    sessionCookie,
+					Secure:   true,
+					HttpOnly: true,
+					SameSite: http.SameSiteLaxMode,
 				})
 			}
 

@@ -15,6 +15,15 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const (
+	nilKeyCaseNameValidate = "nil key"
+	testCommonName         = "test"
+	testExampleDomain      = "test.example.com"
+	filenameSimple         = "simple"
+	filenameDotsDashes     = "dots.and-dashes_ok"
+	filenameMixedCase      = "MixedCase123"
+)
+
 func TestCLI_GenerateEndEntityCert(t *testing.T) {
 	t.Parallel()
 
@@ -41,11 +50,11 @@ func TestCLI_GenerateEndEntityCert(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name:    "nil key",
+			name:    nilKeyCaseNameValidate,
 			key:     nil,
 			caCert:  caCert,
 			caKey:   caKey,
-			opts:    &CertGenOptions{Subject: pkix.Name{CommonName: "test"}},
+			opts:    &CertGenOptions{Subject: pkix.Name{CommonName: testCommonName}},
 			wantErr: true,
 		},
 		{
@@ -53,7 +62,7 @@ func TestCLI_GenerateEndEntityCert(t *testing.T) {
 			key:     eeKey,
 			caCert:  nil,
 			caKey:   caKey,
-			opts:    &CertGenOptions{Subject: pkix.Name{CommonName: "test"}},
+			opts:    &CertGenOptions{Subject: pkix.Name{CommonName: testCommonName}},
 			wantErr: true,
 		},
 		{
@@ -61,7 +70,7 @@ func TestCLI_GenerateEndEntityCert(t *testing.T) {
 			key:     eeKey,
 			caCert:  caCert,
 			caKey:   nil,
-			opts:    &CertGenOptions{Subject: pkix.Name{CommonName: "test"}},
+			opts:    &CertGenOptions{Subject: pkix.Name{CommonName: testCommonName}},
 			wantErr: true,
 		},
 		{
@@ -78,8 +87,8 @@ func TestCLI_GenerateEndEntityCert(t *testing.T) {
 			caCert: caCert,
 			caKey:  caKey,
 			opts: &CertGenOptions{
-				Subject:      pkix.Name{CommonName: "test.example.com"},
-				DNSNames:     []string{"test.example.com"},
+				Subject:      pkix.Name{CommonName: testExampleDomain},
+				DNSNames:     []string{testExampleDomain},
 				ValidityDays: cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year,
 				ExtKeyUsage:  []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
 			},
@@ -123,8 +132,8 @@ func TestCLI_ValidateCertificate(t *testing.T) {
 	require.NoError(t, err)
 
 	eeCert, err := cli.GenerateEndEntityCert(ctx, eeKey, caCert, caKey, &CertGenOptions{
-		Subject:  pkix.Name{CommonName: "test.example.com"},
-		DNSNames: []string{"test.example.com"},
+		Subject:  pkix.Name{CommonName: testExampleDomain},
+		DNSNames: []string{testExampleDomain},
 	}, nil)
 	require.NoError(t, err)
 
@@ -200,13 +209,13 @@ func TestSanitizeFilename(t *testing.T) {
 		input    string
 		expected string
 	}{
-		{"simple", "simple"},
+		{filenameSimple, filenameSimple},
 		{"with spaces", "with_spaces"},
 		{"with/slash", "with_slash"},
 		{"with\\backslash", "with_backslash"},
 		{"special!@#$chars", "specialchars"},
-		{"dots.and-dashes_ok", "dots.and-dashes_ok"},
-		{"MixedCase123", "MixedCase123"},
+		{filenameDotsDashes, filenameDotsDashes},
+		{filenameMixedCase, filenameMixedCase},
 	}
 
 	for _, tc := range tests {

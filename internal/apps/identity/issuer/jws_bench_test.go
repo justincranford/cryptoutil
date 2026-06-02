@@ -9,6 +9,11 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
+const (
+	benchmarkSubject  = "user123"
+	benchmarkAudience = "test-audience"
+)
+
 // BenchmarkJWSIssueAccessToken benchmarks JWS access token generation.
 func BenchmarkJWSIssueAccessToken(b *testing.B) {
 	ctx := context.Background()
@@ -34,8 +39,8 @@ func BenchmarkJWSIssueAccessToken(b *testing.B) {
 	}
 
 	claims := map[string]any{
-		cryptoutilSharedMagic.ClaimSub:   "user123",
-		cryptoutilSharedMagic.ClaimAud:   "test-audience",
+		cryptoutilSharedMagic.ClaimSub:   benchmarkSubject,
+		cryptoutilSharedMagic.ClaimAud:   benchmarkAudience,
 		cryptoutilSharedMagic.ClaimScope: "read write",
 		cryptoutilSharedMagic.ClaimExp:   1234567890,
 		cryptoutilSharedMagic.ClaimIat:   1234567800,
@@ -118,8 +123,8 @@ func BenchmarkJWSValidateToken(b *testing.B) {
 	}
 
 	claims := map[string]any{
-		cryptoutilSharedMagic.ClaimSub: "user123",
-		cryptoutilSharedMagic.ClaimAud: "test-audience",
+		cryptoutilSharedMagic.ClaimSub: benchmarkSubject,
+		cryptoutilSharedMagic.ClaimAud: benchmarkAudience,
 		cryptoutilSharedMagic.ClaimExp: 9999999999,
 		cryptoutilSharedMagic.ClaimIat: 1234567800,
 	}

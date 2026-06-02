@@ -17,6 +17,25 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
+const (
+	testCertPath                          = "/certs/cert.crt"
+	testKeyPath                           = "/certs/cert.key"
+	testCAPath                            = "/certs/ca.crt"
+	requestPolicyNoCAName                 = "request policy without CA file"
+	requireAnyPolicyNoCAName              = "require-any policy without CA file"
+	verifyIfGivenNoCAName                 = "verify-if-given without CA file fails"
+	requireAndVerifyNoCAName              = "require-and-verify without CA file fails"
+	requiresCAFileError                   = "requires a CA file"
+	certReadErrorName                     = "cert file read error"
+	keyReadErrorName                      = "key file read error"
+	invalidCertKeyPairName                = "invalid cert+key pair"
+	caReadErrorName                       = "CA file read error"
+	caTrustOnlyName                       = "only CA file set - trust material only"
+	certKeyOverrideAppliedName            = "cert+key override applied"
+	verifyIfGivenPolicyEnforcementName    = "CA cert with verify-if-given policy enables verification when presented"
+	requireAndVerifyPolicyEnforcementName = "CA cert with require-and-verify policy enforces verification"
+)
+
 // stubReadFile returns predefined file contents by filename.
 type stubReadFile map[string][]byte
 
@@ -80,80 +99,80 @@ func TestApplyAdminMTLS(t *testing.T) {
 			wantClientAuth: tls.NoClientCert,
 		},
 		{
-			name: "request policy without CA file",
+			name: requestPolicyNoCAName,
 			settings: &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{
 				AdminTLSClientPolicy: cryptoutilAppsFrameworkServiceConfig.TLSClientPolicyRequest,
 			},
 			wantClientAuth: tls.RequestClientCert,
 		},
 		{
-			name: "require-any policy without CA file",
+			name: requireAnyPolicyNoCAName,
 			settings: &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{
 				AdminTLSClientPolicy: cryptoutilAppsFrameworkServiceConfig.TLSClientPolicyRequireAny,
 			},
 			wantClientAuth: tls.RequireAnyClientCert,
 		},
 		{
-			name: "verify-if-given without CA file fails",
+			name: verifyIfGivenNoCAName,
 			settings: &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{
 				AdminTLSClientPolicy: cryptoutilAppsFrameworkServiceConfig.TLSClientPolicyVerifyIfGiven,
 			},
-			wantErr: "requires a CA file",
+			wantErr: requiresCAFileError,
 		},
 		{
-			name: "require-and-verify without CA file fails",
+			name: requireAndVerifyNoCAName,
 			settings: &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{
 				AdminTLSClientPolicy: cryptoutilAppsFrameworkServiceConfig.TLSClientPolicyRequireAndVerify,
 			},
-			wantErr: "requires a CA file",
+			wantErr: requiresCAFileError,
 		},
 		{
-			name: "cert file read error",
+			name: certReadErrorName,
 			settings: &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{
-				AdminTLSCertFile: "/certs/cert.crt",
-				AdminTLSKeyFile:  "/certs/cert.key",
+				AdminTLSCertFile: testCertPath,
+				AdminTLSKeyFile:  testKeyPath,
 			},
 			stubFiles: stubReadFile{},
 			wantErr:   "failed to read admin TLS cert file",
 		},
 		{
-			name: "key file read error",
+			name: keyReadErrorName,
 			settings: &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{
-				AdminTLSCertFile: "/certs/cert.crt",
-				AdminTLSKeyFile:  "/certs/cert.key",
+				AdminTLSCertFile: testCertPath,
+				AdminTLSKeyFile:  testKeyPath,
 			},
 			stubFiles: stubReadFile{
-				"/certs/cert.crt": []byte("fake-cert"),
+				testCertPath: []byte("fake-cert"),
 			},
 			wantErr: "failed to read admin TLS key file",
 		},
 		{
-			name: "invalid cert+key pair",
+			name: invalidCertKeyPairName,
 			settings: &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{
-				AdminTLSCertFile: "/certs/cert.crt",
-				AdminTLSKeyFile:  "/certs/cert.key",
+				AdminTLSCertFile: testCertPath,
+				AdminTLSKeyFile:  testKeyPath,
 			},
 			stubFiles: stubReadFile{
-				"/certs/cert.crt": []byte("not-valid-cert-pem"),
-				"/certs/cert.key": []byte("not-valid-key-pem"),
+				testCertPath: []byte("not-valid-cert-pem"),
+				testKeyPath:  []byte("not-valid-key-pem"),
 			},
 			wantErr: "failed to parse admin TLS cert+key pair",
 		},
 		{
-			name: "CA file read error",
+			name: caReadErrorName,
 			settings: &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{
-				AdminTLSCAFile: "/certs/ca.crt",
+				AdminTLSCAFile: testCAPath,
 			},
 			stubFiles: stubReadFile{},
 			wantErr:   "failed to read admin TLS CA file",
 		},
 		{
-			name: "only CA file set - trust material only",
+			name: caTrustOnlyName,
 			settings: &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{
-				AdminTLSCAFile: "/certs/ca.crt",
+				AdminTLSCAFile: testCAPath,
 			},
 			stubFiles: stubReadFile{
-				"/certs/ca.crt": []byte("not-a-valid-cert-pem-but-decoded-ok"),
+				testCAPath: []byte("not-a-valid-cert-pem-but-decoded-ok"),
 			},
 			wantClientCA:   true,
 			wantClientAuth: tls.NoClientCert,
@@ -169,14 +188,14 @@ func TestApplyAdminMTLS(t *testing.T) {
 			wantClientCA   bool
 			wantClientAuth tls.ClientAuthType
 		}{
-			name: "cert+key override applied",
+			name: certKeyOverrideAppliedName,
 			settings: &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{
-				AdminTLSCertFile: "/certs/cert.crt",
-				AdminTLSKeyFile:  "/certs/cert.key",
+				AdminTLSCertFile: testCertPath,
+				AdminTLSKeyFile:  testKeyPath,
 			},
 			stubFiles: stubReadFile{
-				"/certs/cert.crt": certPEM,
-				"/certs/cert.key": keyPEM,
+				testCertPath: certPEM,
+				testKeyPath:  keyPEM,
 			},
 		})
 	}
@@ -190,13 +209,13 @@ func TestApplyAdminMTLS(t *testing.T) {
 			wantClientCA   bool
 			wantClientAuth tls.ClientAuthType
 		}{
-			name: "CA cert with verify-if-given policy enables verification when presented",
+			name: verifyIfGivenPolicyEnforcementName,
 			settings: &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{
-				AdminTLSCAFile:       "/certs/ca.crt",
+				AdminTLSCAFile:       testCAPath,
 				AdminTLSClientPolicy: cryptoutilAppsFrameworkServiceConfig.TLSClientPolicyVerifyIfGiven,
 			},
 			stubFiles: stubReadFile{
-				"/certs/ca.crt": caPEM,
+				testCAPath: caPEM,
 			},
 			wantClientCA:   true,
 			wantClientAuth: tls.VerifyClientCertIfGiven,
@@ -209,13 +228,13 @@ func TestApplyAdminMTLS(t *testing.T) {
 			wantClientCA   bool
 			wantClientAuth tls.ClientAuthType
 		}{
-			name: "CA cert with require-and-verify policy enforces verification",
+			name: requireAndVerifyPolicyEnforcementName,
 			settings: &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{
-				AdminTLSCAFile:       "/certs/ca.crt",
+				AdminTLSCAFile:       testCAPath,
 				AdminTLSClientPolicy: cryptoutilAppsFrameworkServiceConfig.TLSClientPolicyRequireAndVerify,
 			},
 			stubFiles: stubReadFile{
-				"/certs/ca.crt": caPEM,
+				testCAPath: caPEM,
 			},
 			wantClientCA:   true,
 			wantClientAuth: tls.RequireAndVerifyClientCert,

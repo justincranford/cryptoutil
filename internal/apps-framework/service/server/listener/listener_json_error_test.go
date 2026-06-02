@@ -17,6 +17,12 @@ import (
 
 var errTestJSONFailure = errors.New("forced JSON failure")
 
+const (
+	adminLivezPath    = "/admin/api/v1/livez"
+	adminReadyzPath   = "/admin/api/v1/readyz"
+	browserHealthPath = "/browser/api/v1/health"
+)
+
 func failingJSONEncoder(_ any) ([]byte, error) {
 	return nil, errTestJSONFailure
 }
@@ -67,7 +73,7 @@ func TestAdminServer_HealthEndpoints_JSONSerializationErrors(t *testing.T) {
 	}{
 		{
 			name: "livez alive JSON error",
-			path: "/admin/api/v1/livez",
+			path: adminLivezPath,
 			setup: func(_ *AdminServer) {
 				// Default: not shutdown, returns alive.
 			},
@@ -75,7 +81,7 @@ func TestAdminServer_HealthEndpoints_JSONSerializationErrors(t *testing.T) {
 		},
 		{
 			name: "livez shutdown JSON error",
-			path: "/admin/api/v1/livez",
+			path: adminLivezPath,
 			setup: func(s *AdminServer) {
 				s.shutdown = true
 			},
@@ -83,7 +89,7 @@ func TestAdminServer_HealthEndpoints_JSONSerializationErrors(t *testing.T) {
 		},
 		{
 			name: "readyz ready JSON error",
-			path: "/admin/api/v1/readyz",
+			path: adminReadyzPath,
 			setup: func(s *AdminServer) {
 				s.ready = true
 			},
@@ -91,7 +97,7 @@ func TestAdminServer_HealthEndpoints_JSONSerializationErrors(t *testing.T) {
 		},
 		{
 			name: "readyz not-ready JSON error",
-			path: "/admin/api/v1/readyz",
+			path: adminReadyzPath,
 			setup: func(_ *AdminServer) {
 				// Default: not ready, not shutdown.
 			},
@@ -99,7 +105,7 @@ func TestAdminServer_HealthEndpoints_JSONSerializationErrors(t *testing.T) {
 		},
 		{
 			name: "readyz shutdown JSON error",
-			path: "/admin/api/v1/readyz",
+			path: adminReadyzPath,
 			setup: func(s *AdminServer) {
 				s.shutdown = true
 			},
@@ -154,7 +160,7 @@ func TestPublicHTTPServer_HealthEndpoints_JSONSerializationErrors(t *testing.T) 
 		},
 		{
 			name: "browser health healthy JSON error",
-			path: "/browser/api/v1/health",
+			path: browserHealthPath,
 			setup: func(_ *PublicHTTPServer) {
 				// Default: not shutdown.
 			},
@@ -162,7 +168,7 @@ func TestPublicHTTPServer_HealthEndpoints_JSONSerializationErrors(t *testing.T) 
 		},
 		{
 			name: "browser health shutdown JSON error",
-			path: "/browser/api/v1/health",
+			path: browserHealthPath,
 			setup: func(s *PublicHTTPServer) {
 				s.shutdown = true
 			},

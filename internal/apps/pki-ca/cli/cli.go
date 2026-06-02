@@ -86,7 +86,7 @@ func (c *CLI) GenerateKey(_ context.Context, opts *KeyGenOptions, cmdOpts *Comma
 	)
 
 	switch opts.Algorithm {
-	case cryptoutilSharedMagic.KeyTypeRSA, "rsa":
+	case cryptoutilSharedMagic.KeyTypeRSA, algorithmRSA:
 		keySize := opts.KeySize
 		if keySize == 0 {
 			keySize = defaultRSAKeySize
@@ -105,7 +105,7 @@ func (c *CLI) GenerateKey(_ context.Context, opts *KeyGenOptions, cmdOpts *Comma
 			return nil, fmt.Errorf("failed to generate ECDSA key: %w", err)
 		}
 
-	case cryptoutilSharedMagic.EdCurveEd25519, "ed25519", cryptoutilSharedMagic.JoseAlgEdDSA, "eddsa":
+	case cryptoutilSharedMagic.EdCurveEd25519, algorithmEd25519, cryptoutilSharedMagic.JoseAlgEdDSA, algorithmEdDSA:
 		_, key, err = ed25519.GenerateKey(crand.Reader)
 		if err != nil {
 			return nil, fmt.Errorf("failed to generate Ed25519 key: %w", err)
@@ -136,7 +136,7 @@ func (c *CLI) GenerateSelfSignedCA(_ context.Context, key any, opts *CertGenOpti
 		opts = &CertGenOptions{
 			Subject: pkix.Name{
 				CommonName:   "Test CA",
-				Organization: []string{"Test"},
+				Organization: []string{organizationTest},
 			},
 			ValidityDays: defaultCAValidityDays,
 			IsCA:         true,
@@ -208,7 +208,7 @@ func (c *CLI) GenerateIntermediateCA(_ context.Context, key any, parentCert *x50
 		opts = &CertGenOptions{
 			Subject: pkix.Name{
 				CommonName:   "Intermediate CA",
-				Organization: []string{"Test"},
+				Organization: []string{organizationTest},
 			},
 			ValidityDays: defaultIntermediateValidityDays,
 			IsCA:         true,
@@ -361,9 +361,9 @@ func (c *CLI) ValidateCertificate(_ context.Context, cert *x509.Certificate, roo
 // getCurve returns the elliptic curve for the given name.
 func (c *CLI) getCurve(name string) elliptic.Curve {
 	switch name {
-	case "P-384", "p384", "384":
+	case cryptoutilSharedMagic.P384, curveP384Lower, curveP384Short:
 		return elliptic.P384()
-	case "P-521", "p521", "521":
+	case cryptoutilSharedMagic.P521, curveP521Lower, curveP521Short:
 		return elliptic.P521()
 	default:
 		return elliptic.P256()
@@ -433,9 +433,17 @@ const (
 
 // Output format constants.
 const (
-	algorithmEC = "ec"
-	formatDER = "der"
-	formatPEM = "pem"
+	algorithmRSA     = "rsa"
+	algorithmEC      = "ec"
+	algorithmEdDSA   = "eddsa"
+	algorithmEd25519 = "ed25519"
+	organizationTest = "Test"
+	curveP384Lower   = "p384"
+	curveP384Short   = "384"
+	curveP521Lower   = "p521"
+	curveP521Short   = "521"
+	formatDER        = "der"
+	formatPEM        = "pem"
 )
 
 // Validity constants.

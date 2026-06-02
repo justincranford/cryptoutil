@@ -26,6 +26,8 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
+const statusShuttingDown = "shutting down"
+
 // AdminServer represents the private admin API server for health checks and graceful shutdown.
 // Binds to address and port from ServiceFrameworkServerSettings.
 type AdminServer struct {
@@ -135,7 +137,7 @@ func (s *AdminServer) handleLivez(c *fiber.Ctx) error {
 
 	if s.shutdown {
 		if err := c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{
-			cryptoutilSharedMagic.StringStatus: "shutting down",
+			cryptoutilSharedMagic.StringStatus: statusShuttingDown,
 		}); err != nil {
 			return fmt.Errorf("failed to send livez shutdown response: %w", err)
 		}
@@ -160,7 +162,7 @@ func (s *AdminServer) handleReadyz(c *fiber.Ctx) error {
 
 	if s.shutdown {
 		if err := c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{
-			cryptoutilSharedMagic.StringStatus: "shutting down",
+			cryptoutilSharedMagic.StringStatus: statusShuttingDown,
 		}); err != nil {
 			return fmt.Errorf("failed to send readyz shutdown response: %w", err)
 		}

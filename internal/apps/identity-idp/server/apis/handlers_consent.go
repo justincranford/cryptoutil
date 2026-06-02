@@ -23,6 +23,13 @@ type ScopeDescription struct {
 	Description string
 }
 
+const (
+	scopeDescriptionOpenID  = "Access your basic identity information"
+	scopeDescriptionEmail   = "Access your email address"
+	scopeDescriptionAddress = "Access your address information"
+	scopeDescriptionPhone   = "Access your phone number"
+)
+
 // parseScopeDescriptions parses space-separated scope string into ScopeDescription structs.
 func parseScopeDescriptions(scopeStr string) []ScopeDescription {
 	scopeNames := strings.Split(scopeStr, " ")
@@ -45,11 +52,11 @@ func parseScopeDescriptions(scopeStr string) []ScopeDescription {
 // getScopeDescription returns human-readable description for standard OIDC scopes.
 func getScopeDescription(scope string) string {
 	descriptions := map[string]string{
-		cryptoutilSharedMagic.ScopeOpenID:        "Access your basic identity information",
+		cryptoutilSharedMagic.ScopeOpenID:        scopeDescriptionOpenID,
 		cryptoutilSharedMagic.ClaimProfile:       "Access your profile information (name, picture, etc.)",
-		cryptoutilSharedMagic.ClaimEmail:         "Access your email address",
-		cryptoutilSharedMagic.ClaimAddress:       "Access your address information",
-		cryptoutilSharedMagic.ScopePhone:         "Access your phone number",
+		cryptoutilSharedMagic.ClaimEmail:         scopeDescriptionEmail,
+		cryptoutilSharedMagic.ClaimAddress:       scopeDescriptionAddress,
+		cryptoutilSharedMagic.ScopePhone:         scopeDescriptionPhone,
 		cryptoutilSharedMagic.ScopeOfflineAccess: "Maintain access when you're offline (refresh token)",
 	}
 

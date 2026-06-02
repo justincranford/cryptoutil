@@ -19,8 +19,20 @@ import (
 )
 
 const (
-	invalidKeyString    = "not_a_key"
-	testSigningInputJWT = "eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiIxMjM0In0"
+	invalidKeyString               = "not_a_key"
+	testSigningInputJWT            = "eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiIxMjM0In0"
+	errExpectedRSAPriv             = "expected RSA private key"
+	errExpectedECDSAPriv           = "expected ECDSA private key"
+	errExpectedRSAPub              = "expected RSA public key"
+	errExpectedECDSAPub            = "expected ECDSA public key"
+	errUnsupportedVerify           = "unsupported verification algorithm"
+	unsupportedAlgorithmName       = "unsupported_algorithm"
+	invalidES256SignatureCase      = "ES256_invalid_signature_length"
+	invalidSignatureThirdByte byte = 3
+	testRSAKeyID                   = "test-rsa-kid"
+	testRSAPublicKeyID             = "test-rsa-pub-kid"
+	testECKeyID                    = "test-ec-kid"
+	testECPublicKeyID              = "test-ec-pub-kid"
 )
 
 func TestSignJWT(t *testing.T) {
@@ -60,17 +72,17 @@ func TestSignJWT(t *testing.T) {
 			algorithm:   cryptoutilSharedMagic.AlgorithmRS256,
 			keyGen:      func() any { return invalidKeyString },
 			wantErr:     true,
-			errContains: "expected RSA private key",
+			errContains: errExpectedRSAPriv,
 		},
 		{
 			name:        "ES256_wrong_key_type",
 			algorithm:   cryptoutilSharedMagic.AlgorithmES256,
 			keyGen:      func() any { return invalidKeyString },
 			wantErr:     true,
-			errContains: "expected ECDSA private key",
+			errContains: errExpectedECDSAPriv,
 		},
 		{
-			name:        "unsupported_algorithm",
+			name:        unsupportedAlgorithmName,
 			algorithm:   cryptoutilSharedMagic.JoseAlgHS256,
 			keyGen:      func() any { return []byte("secret") },
 			wantErr:     true,
@@ -142,7 +154,7 @@ func TestVerifyJWTSignature(t *testing.T) {
 				return key, invalidKeyString
 			},
 			wantErr:     true,
-			errContains: "expected RSA public key",
+			errContains: errExpectedRSAPub,
 		},
 		{
 			name:      "ES256_wrong_public_key_type",
@@ -154,10 +166,10 @@ func TestVerifyJWTSignature(t *testing.T) {
 				return key, invalidKeyString
 			},
 			wantErr:     true,
-			errContains: "expected ECDSA public key",
+			errContains: errExpectedECDSAPub,
 		},
 		{
-			name:      "ES256_invalid_signature_length",
+			name:      invalidES256SignatureCase,
 			algorithm: cryptoutilSharedMagic.AlgorithmES256,
 			setupKeys: func(_ *testing.T) (any, any) {
 				key, err := ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
@@ -169,11 +181,11 @@ func TestVerifyJWTSignature(t *testing.T) {
 			errContains: "invalid ECDSA signature length",
 		},
 		{
-			name:        "unsupported_algorithm",
+			name:        unsupportedAlgorithmName,
 			algorithm:   cryptoutilSharedMagic.JoseAlgHS256,
 			setupKeys:   func(_ *testing.T) (any, any) { return []byte("secret"), []byte("secret") },
 			wantErr:     true,
-			errContains: "unsupported verification algorithm",
+			errContains: errUnsupportedVerify,
 		},
 	}
 
@@ -186,9 +198,9 @@ func TestVerifyJWTSignature(t *testing.T) {
 			// Sign the input.
 			var signatureBytes []byte
 
-			if tc.name == "ES256_invalid_signature_length" {
+			if tc.name == invalidES256SignatureCase {
 				// Use invalid signature for this test case.
-				signatureBytes = []byte{1, 2, 3} // Too short.
+				signatureBytes = []byte{1, 2, invalidSignatureThirdByte} // Too short.
 			} else {
 				signatureStr, err := signJWT(testSigningInputJWT, tc.algorithm, privateKey)
 				if err != nil && !tc.wantErr {
@@ -227,7 +239,7 @@ func TestConvertToJWK(t *testing.T) {
 		{
 			name: "RSA_private_key",
 			key: &SigningKey{
-				KeyID:     "test-rsa-kid",
+				KeyID:     testRSAKeyID,
 				Algorithm: cryptoutilSharedMagic.AlgorithmRS256,
 				Key: func() any {
 					key, err := rsa.GenerateKey(crand.Reader, cryptoutilSharedMagic.DefaultMetricsBatchSize)
@@ -237,16 +249,16 @@ func TestConvertToJWK(t *testing.T) {
 				}(),
 			},
 			expected: map[string]any{
-				"kid": "test-rsa-kid",
-				"use": cryptoutilSharedMagic.JoseKeyUseSig,
-				"alg": cryptoutilSharedMagic.AlgorithmRS256,
-				"kty": cryptoutilSharedMagic.KeyTypeRSA,
+				jwkFieldKeyID:     testRSAKeyID,
+				jwkFieldUse:       cryptoutilSharedMagic.JoseKeyUseSig,
+				jwkFieldAlgorithm: cryptoutilSharedMagic.AlgorithmRS256,
+				jwkFieldKeyType:   cryptoutilSharedMagic.KeyTypeRSA,
 			},
 		},
 		{
 			name: "RSA_public_key",
 			key: &SigningKey{
-				KeyID:     "test-rsa-pub-kid",
+				KeyID:     testRSAPublicKeyID,
 				Algorithm: cryptoutilSharedMagic.AlgorithmRS256,
 				Key: func() any {
 					key, err := rsa.GenerateKey(crand.Reader, cryptoutilSharedMagic.DefaultMetricsBatchSize)
@@ -256,16 +268,16 @@ func TestConvertToJWK(t *testing.T) {
 				}(),
 			},
 			expected: map[string]any{
-				"kid": "test-rsa-pub-kid",
-				"use": cryptoutilSharedMagic.JoseKeyUseSig,
-				"alg": cryptoutilSharedMagic.AlgorithmRS256,
-				"kty": cryptoutilSharedMagic.KeyTypeRSA,
+				jwkFieldKeyID:     testRSAPublicKeyID,
+				jwkFieldUse:       cryptoutilSharedMagic.JoseKeyUseSig,
+				jwkFieldAlgorithm: cryptoutilSharedMagic.AlgorithmRS256,
+				jwkFieldKeyType:   cryptoutilSharedMagic.KeyTypeRSA,
 			},
 		},
 		{
 			name: "ECDSA_private_key",
 			key: &SigningKey{
-				KeyID:     "test-ec-kid",
+				KeyID:     testECKeyID,
 				Algorithm: cryptoutilSharedMagic.AlgorithmES256,
 				Key: func() any {
 					key, err := ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
@@ -275,17 +287,17 @@ func TestConvertToJWK(t *testing.T) {
 				}(),
 			},
 			expected: map[string]any{
-				"kid": "test-ec-kid",
-				"use": cryptoutilSharedMagic.JoseKeyUseSig,
-				"alg": cryptoutilSharedMagic.AlgorithmES256,
-				"kty": cryptoutilSharedMagic.KeyTypeEC,
-				"crv": "P-256",
+				jwkFieldKeyID:     testECKeyID,
+				jwkFieldUse:       cryptoutilSharedMagic.JoseKeyUseSig,
+				jwkFieldAlgorithm: cryptoutilSharedMagic.AlgorithmES256,
+				jwkFieldKeyType:   cryptoutilSharedMagic.KeyTypeEC,
+				jwkFieldCurve:     cryptoutilSharedMagic.ECCurveP256,
 			},
 		},
 		{
 			name: "ECDSA_public_key",
 			key: &SigningKey{
-				KeyID:     "test-ec-pub-kid",
+				KeyID:     testECPublicKeyID,
 				Algorithm: cryptoutilSharedMagic.AlgorithmES256,
 				Key: func() any {
 					key, err := ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
@@ -295,11 +307,11 @@ func TestConvertToJWK(t *testing.T) {
 				}(),
 			},
 			expected: map[string]any{
-				"kid": "test-ec-pub-kid",
-				"use": cryptoutilSharedMagic.JoseKeyUseSig,
-				"alg": cryptoutilSharedMagic.AlgorithmES256,
-				"kty": cryptoutilSharedMagic.KeyTypeEC,
-				"crv": "P-256",
+				jwkFieldKeyID:     testECPublicKeyID,
+				jwkFieldUse:       cryptoutilSharedMagic.JoseKeyUseSig,
+				jwkFieldAlgorithm: cryptoutilSharedMagic.AlgorithmES256,
+				jwkFieldKeyType:   cryptoutilSharedMagic.KeyTypeEC,
+				jwkFieldCurve:     cryptoutilSharedMagic.ECCurveP256,
 			},
 		},
 		{
@@ -340,22 +352,22 @@ func TestConvertToJWK(t *testing.T) {
 			}
 
 			require.NotNil(t, jwk)
-			require.Equal(t, tc.expected["kid"], jwk["kid"])
-			require.Equal(t, tc.expected["use"], jwk["use"])
-			require.Equal(t, tc.expected["alg"], jwk["alg"])
-			require.Equal(t, tc.expected["kty"], jwk["kty"])
+			require.Equal(t, tc.expected[jwkFieldKeyID], jwk[jwkFieldKeyID])
+			require.Equal(t, tc.expected[jwkFieldUse], jwk[jwkFieldUse])
+			require.Equal(t, tc.expected[jwkFieldAlgorithm], jwk[jwkFieldAlgorithm])
+			require.Equal(t, tc.expected[jwkFieldKeyType], jwk[jwkFieldKeyType])
 
-			if tc.expected["crv"] != nil {
-				require.Equal(t, tc.expected["crv"], jwk["crv"])
+			if tc.expected[jwkFieldCurve] != nil {
+				require.Equal(t, tc.expected[jwkFieldCurve], jwk[jwkFieldCurve])
 			}
 
 			// Verify RSA/ECDSA specific fields exist.
-			if tc.expected["kty"] == cryptoutilSharedMagic.KeyTypeRSA {
+			if tc.expected[jwkFieldKeyType] == cryptoutilSharedMagic.KeyTypeRSA {
 				require.NotNil(t, jwk["n"])
 				require.NotNil(t, jwk["e"])
 			}
 
-			if tc.expected["kty"] == cryptoutilSharedMagic.KeyTypeEC {
+			if tc.expected[jwkFieldKeyType] == cryptoutilSharedMagic.KeyTypeEC {
 				require.NotNil(t, jwk["x"])
 				require.NotNil(t, jwk["y"])
 			}

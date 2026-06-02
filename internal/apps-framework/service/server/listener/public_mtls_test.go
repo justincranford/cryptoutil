@@ -47,80 +47,80 @@ func TestApplyPublicMTLS(t *testing.T) {
 			wantClientAuth: tls.NoClientCert,
 		},
 		{
-			name: "request policy without CA file",
+			name: requestPolicyNoCAName,
 			settings: &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{
 				PublicTLSClientPolicy: cryptoutilAppsFrameworkServiceConfig.TLSClientPolicyRequest,
 			},
 			wantClientAuth: tls.RequestClientCert,
 		},
 		{
-			name: "require-any policy without CA file",
+			name: requireAnyPolicyNoCAName,
 			settings: &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{
 				PublicTLSClientPolicy: cryptoutilAppsFrameworkServiceConfig.TLSClientPolicyRequireAny,
 			},
 			wantClientAuth: tls.RequireAnyClientCert,
 		},
 		{
-			name: "verify-if-given without CA file fails",
+			name: verifyIfGivenNoCAName,
 			settings: &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{
 				PublicTLSClientPolicy: cryptoutilAppsFrameworkServiceConfig.TLSClientPolicyVerifyIfGiven,
 			},
-			wantErr: "requires a CA file",
+			wantErr: requiresCAFileError,
 		},
 		{
-			name: "require-and-verify without CA file fails",
+			name: requireAndVerifyNoCAName,
 			settings: &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{
 				PublicTLSClientPolicy: cryptoutilAppsFrameworkServiceConfig.TLSClientPolicyRequireAndVerify,
 			},
-			wantErr: "requires a CA file",
+			wantErr: requiresCAFileError,
 		},
 		{
-			name: "cert file read error",
+			name: certReadErrorName,
 			settings: &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{
-				PublicTLSCertFile: "/certs/cert.crt",
-				PublicTLSKeyFile:  "/certs/cert.key",
+				PublicTLSCertFile: testCertPath,
+				PublicTLSKeyFile:  testKeyPath,
 			},
 			stubFiles: stubReadFile{},
 			wantErr:   "failed to read public TLS cert file",
 		},
 		{
-			name: "key file read error",
+			name: keyReadErrorName,
 			settings: &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{
-				PublicTLSCertFile: "/certs/cert.crt",
-				PublicTLSKeyFile:  "/certs/cert.key",
+				PublicTLSCertFile: testCertPath,
+				PublicTLSKeyFile:  testKeyPath,
 			},
 			stubFiles: stubReadFile{
-				"/certs/cert.crt": []byte("fake-cert"),
+				testCertPath: []byte("fake-cert"),
 			},
 			wantErr: "failed to read public TLS key file",
 		},
 		{
-			name: "invalid cert+key pair",
+			name: invalidCertKeyPairName,
 			settings: &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{
-				PublicTLSCertFile: "/certs/cert.crt",
-				PublicTLSKeyFile:  "/certs/cert.key",
+				PublicTLSCertFile: testCertPath,
+				PublicTLSKeyFile:  testKeyPath,
 			},
 			stubFiles: stubReadFile{
-				"/certs/cert.crt": []byte("not-valid-cert-pem"),
-				"/certs/cert.key": []byte("not-valid-key-pem"),
+				testCertPath: []byte("not-valid-cert-pem"),
+				testKeyPath:  []byte("not-valid-key-pem"),
 			},
 			wantErr: "failed to parse public TLS cert+key pair",
 		},
 		{
-			name: "CA file read error",
+			name: caReadErrorName,
 			settings: &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{
-				PublicTLSCAFile: "/certs/ca.crt",
+				PublicTLSCAFile: testCAPath,
 			},
 			stubFiles: stubReadFile{},
 			wantErr:   "failed to read public TLS CA file",
 		},
 		{
-			name: "only CA file set - trust material only",
+			name: caTrustOnlyName,
 			settings: &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{
-				PublicTLSCAFile: "/certs/ca.crt",
+				PublicTLSCAFile: testCAPath,
 			},
 			stubFiles: stubReadFile{
-				"/certs/ca.crt": []byte("not-a-valid-cert-pem-but-decoded-ok"),
+				testCAPath: []byte("not-a-valid-cert-pem-but-decoded-ok"),
 			},
 			wantClientCA:   true,
 			wantClientAuth: tls.NoClientCert,
@@ -136,14 +136,14 @@ func TestApplyPublicMTLS(t *testing.T) {
 			wantClientCA   bool
 			wantClientAuth tls.ClientAuthType
 		}{
-			name: "cert+key override applied",
+			name: certKeyOverrideAppliedName,
 			settings: &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{
-				PublicTLSCertFile: "/certs/cert.crt",
-				PublicTLSKeyFile:  "/certs/cert.key",
+				PublicTLSCertFile: testCertPath,
+				PublicTLSKeyFile:  testKeyPath,
 			},
 			stubFiles: stubReadFile{
-				"/certs/cert.crt": certPEM,
-				"/certs/cert.key": keyPEM,
+				testCertPath: certPEM,
+				testKeyPath:  keyPEM,
 			},
 		})
 	}
@@ -157,13 +157,13 @@ func TestApplyPublicMTLS(t *testing.T) {
 			wantClientCA   bool
 			wantClientAuth tls.ClientAuthType
 		}{
-			name: "CA cert with verify-if-given policy enables verification when presented",
+			name: verifyIfGivenPolicyEnforcementName,
 			settings: &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{
-				PublicTLSCAFile:       "/certs/ca.crt",
+				PublicTLSCAFile:       testCAPath,
 				PublicTLSClientPolicy: cryptoutilAppsFrameworkServiceConfig.TLSClientPolicyVerifyIfGiven,
 			},
 			stubFiles: stubReadFile{
-				"/certs/ca.crt": caPEM,
+				testCAPath: caPEM,
 			},
 			wantClientCA:   true,
 			wantClientAuth: tls.VerifyClientCertIfGiven,
@@ -176,13 +176,13 @@ func TestApplyPublicMTLS(t *testing.T) {
 			wantClientCA   bool
 			wantClientAuth tls.ClientAuthType
 		}{
-			name: "CA cert with require-and-verify policy enforces verification",
+			name: requireAndVerifyPolicyEnforcementName,
 			settings: &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{
-				PublicTLSCAFile:       "/certs/ca.crt",
+				PublicTLSCAFile:       testCAPath,
 				PublicTLSClientPolicy: cryptoutilAppsFrameworkServiceConfig.TLSClientPolicyRequireAndVerify,
 			},
 			stubFiles: stubReadFile{
-				"/certs/ca.crt": caPEM,
+				testCAPath: caPEM,
 			},
 			wantClientCA:   true,
 			wantClientAuth: tls.RequireAndVerifyClientCert,

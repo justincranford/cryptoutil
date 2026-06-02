@@ -16,6 +16,10 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
+const (
+	testMaxActiveKeysThree = 3
+)
+
 // mockKeyGenerator implements KeyGenerator for testing.
 type mockKeyGenerator struct {
 	signingKeyCount    int
@@ -423,7 +427,7 @@ func TestStartAutoRotation(t *testing.T) {
 
 			policy := &KeyRotationPolicy{
 				RotationInterval:    cryptoutilSharedMagic.JoseJAMaxMaterials * time.Millisecond,
-				MaxActiveKeys:       3,
+				MaxActiveKeys:       testMaxActiveKeysThree,
 				AutoRotationEnabled: tc.autoRotationEnabled,
 			}
 
@@ -464,17 +468,17 @@ func TestEcdsaCurveName(t *testing.T) {
 		{
 			name:     cryptoutilSharedMagic.ECCurveP256,
 			curve:    elliptic.P256(),
-			expected: "P-256",
+			expected: cryptoutilSharedMagic.ECCurveP256,
 		},
 		{
 			name:     cryptoutilSharedMagic.ECCurveP384,
 			curve:    elliptic.P384(),
-			expected: "P-384",
+			expected: cryptoutilSharedMagic.ECCurveP384,
 		},
 		{
 			name:     cryptoutilSharedMagic.ECCurveP521,
 			curve:    elliptic.P521(),
-			expected: "P-521",
+			expected: cryptoutilSharedMagic.ECCurveP521,
 		},
 	}
 

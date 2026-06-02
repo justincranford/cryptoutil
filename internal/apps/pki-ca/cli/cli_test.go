@@ -58,6 +58,7 @@ const (
 	keyTypeRSA     = "rsa"
 	keyTypeECDSA   = "ecdsa"
 	keyTypeEd25519 = "ed25519"
+	nilKeyCaseName = "nil key"
 )
 
 func TestCLI_GenerateKey(t *testing.T) {
@@ -86,7 +87,7 @@ func TestCLI_GenerateKey(t *testing.T) {
 		},
 		{
 			name:     "RSA default size",
-			opts:     &KeyGenOptions{Algorithm: "rsa"},
+			opts:     &KeyGenOptions{Algorithm: keyTypeRSA},
 			wantType: keyTypeRSA,
 			wantErr:  false,
 		},
@@ -98,7 +99,7 @@ func TestCLI_GenerateKey(t *testing.T) {
 		},
 		{
 			name:     "ECDSA P-384",
-			opts:     &KeyGenOptions{Algorithm: "ec", Curve: "P-384"},
+			opts:     &KeyGenOptions{Algorithm: algorithmEC, Curve: cryptoutilSharedMagic.P384},
 			wantType: keyTypeECDSA,
 			wantErr:  false,
 		},
@@ -116,7 +117,7 @@ func TestCLI_GenerateKey(t *testing.T) {
 		},
 		{
 			name:     "ed25519 lowercase",
-			opts:     &KeyGenOptions{Algorithm: "ed25519"},
+			opts:     &KeyGenOptions{Algorithm: keyTypeEd25519},
 			wantType: keyTypeEd25519,
 			wantErr:  false,
 		},
@@ -174,7 +175,7 @@ func TestCLI_GenerateKey_WriteToFile(t *testing.T) {
 		format string
 		ext    string
 	}{
-		{"PEM format", "pem", ".pem"},
+		{"PEM format", formatPEM, ".pem"},
 		{"DER format", "der", ".der"},
 	}
 
@@ -215,7 +216,7 @@ func TestCLI_GenerateSelfSignedCA(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name:    "nil key",
+			name:    nilKeyCaseName,
 			opts:    nil,
 			wantErr: true,
 		},

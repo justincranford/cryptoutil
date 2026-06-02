@@ -19,6 +19,14 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
+const (
+	jwkFieldKeyID     = "kid"
+	jwkFieldUse       = "use"
+	jwkFieldAlgorithm = "alg"
+	jwkFieldKeyType   = "kty"
+	jwkFieldCurve     = "crv"
+)
+
 // KeyRotationPolicy defines key rotation behavior.
 type KeyRotationPolicy struct {
 	RotationInterval    time.Duration // How often to rotate keys.
@@ -409,23 +417,23 @@ func convertToJWK(key *SigningKey) map[string]any {
 	}
 
 	jwk := map[string]any{
-		"kid": key.KeyID,
-		"use": cryptoutilSharedMagic.JoseKeyUseSig,
-		"alg": key.Algorithm,
+		jwkFieldKeyID:     key.KeyID,
+		jwkFieldUse:       cryptoutilSharedMagic.JoseKeyUseSig,
+		jwkFieldAlgorithm: key.Algorithm,
 	}
 
 	switch k := key.Key.(type) {
 	case *rsa.PrivateKey:
-		jwk["kty"] = cryptoutilSharedMagic.KeyTypeRSA
+		jwk[jwkFieldKeyType] = cryptoutilSharedMagic.KeyTypeRSA
 		jwk["n"] = base64URLEncode(k.N.Bytes())
 		jwk["e"] = base64URLEncode(big.NewInt(int64(k.E)).Bytes())
 	case *rsa.PublicKey:
-		jwk["kty"] = cryptoutilSharedMagic.KeyTypeRSA
+		jwk[jwkFieldKeyType] = cryptoutilSharedMagic.KeyTypeRSA
 		jwk["n"] = base64URLEncode(k.N.Bytes())
 		jwk["e"] = base64URLEncode(big.NewInt(int64(k.E)).Bytes())
 	case *ecdsa.PrivateKey:
-		jwk["kty"] = cryptoutilSharedMagic.KeyTypeEC
-		jwk["crv"] = ecdsaCurveName(k.Curve)
+		jwk[jwkFieldKeyType] = cryptoutilSharedMagic.KeyTypeEC
+		jwk[jwkFieldCurve] = ecdsaCurveName(k.Curve)
 		// k.PublicKey.Bytes() returns 04 || X || Y (uncompressed, zero-padded per RFC 7518 §6.2.1.2)
 		pubBytes, pubErr := k.PublicKey.Bytes()
 		if pubErr != nil {
@@ -436,8 +444,8 @@ func convertToJWK(key *SigningKey) map[string]any {
 		jwk["x"] = base64URLEncode(pubBytes[1 : 1+coordLen])
 		jwk["y"] = base64URLEncode(pubBytes[1+coordLen:])
 	case *ecdsa.PublicKey:
-		jwk["kty"] = cryptoutilSharedMagic.KeyTypeEC
-		jwk["crv"] = ecdsaCurveName(k.Curve)
+		jwk[jwkFieldKeyType] = cryptoutilSharedMagic.KeyTypeEC
+		jwk[jwkFieldCurve] = ecdsaCurveName(k.Curve)
 		// k.Bytes() returns 04 || X || Y (uncompressed, zero-padded per RFC 7518 §6.2.1.2)
 		pubBytes, pubErr := k.Bytes()
 		if pubErr != nil {
@@ -466,11 +474,11 @@ func base64URLEncode(data []byte) string {
 func ecdsaCurveName(curve elliptic.Curve) string {
 	switch curve {
 	case elliptic.P256():
-		return "P-256"
+		return cryptoutilSharedMagic.ECCurveP256
 	case elliptic.P384():
-		return "P-384"
+		return cryptoutilSharedMagic.ECCurveP384
 	case elliptic.P521():
-		return "P-521"
+		return cryptoutilSharedMagic.ECCurveP521
 	default:
 		return ""
 	}

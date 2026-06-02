@@ -87,7 +87,7 @@ func TestGetScopeDescription(t *testing.T) {
 		{
 			name:                "openid scope",
 			scope:               cryptoutilSharedMagic.ScopeOpenID,
-			expectedDescription: "Access your basic identity information",
+			expectedDescription: scopeDescriptionOpenID,
 		},
 		{
 			name:                "profile scope",
@@ -97,12 +97,12 @@ func TestGetScopeDescription(t *testing.T) {
 		{
 			name:                "email scope",
 			scope:               cryptoutilSharedMagic.ClaimEmail,
-			expectedDescription: "Access your email address",
+			expectedDescription: scopeDescriptionEmail,
 		},
 		{
 			name:                "address scope",
 			scope:               cryptoutilSharedMagic.ClaimAddress,
-			expectedDescription: "Access your address information",
+			expectedDescription: scopeDescriptionAddress,
 		},
 		{
 			name:                "phone scope",

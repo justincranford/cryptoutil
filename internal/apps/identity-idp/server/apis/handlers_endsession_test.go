@@ -199,8 +199,11 @@ func TestHandleEndSession_GET(t *testing.T) {
 
 			if tc.sessionCookie != "" {
 				req.AddCookie(&http.Cookie{
-					Name:  "session_id",
-					Value: tc.sessionCookie,
+					Name:     "session_id",
+					Value:    tc.sessionCookie,
+					Secure:   true,
+					HttpOnly: true,
+					SameSite: http.SameSiteLaxMode,
 				})
 			}
 
