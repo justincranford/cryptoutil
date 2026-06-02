@@ -183,10 +183,9 @@ func IsOtelRelatedContent(line string) bool {
 func IsComposeFile(filePath string) bool {
 	base := filepath.Base(filePath)
 
-	return base == "docker-compose.yml" ||
-		base == "docker-compose.yaml" ||
-		base == "compose.yml" ||
-		base == "compose.yaml" ||
+	return base == cryptoutilSharedMagic.DOCKER_COMPOSE_YML ||
+		base == cryptoutilSharedMagic.COMPOSE_YML ||
+		base == cryptoutilSharedMagic.COMPOSE_YAML ||
 		strings.HasPrefix(base, "compose.") && strings.HasSuffix(base, ".yml") ||
 		strings.HasPrefix(base, "compose.") && strings.HasSuffix(base, ".yaml") ||
 		strings.HasPrefix(base, "docker-compose.") && strings.HasSuffix(base, ".yml") ||

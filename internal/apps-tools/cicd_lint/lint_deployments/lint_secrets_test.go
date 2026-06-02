@@ -243,7 +243,7 @@ services:
 			t.Parallel()
 
 			tmpDir := t.TempDir()
-			composePath := filepath.Join(tmpDir, "compose.yml")
+			composePath := filepath.Join(tmpDir, cryptoutilSharedMagic.COMPOSE_YML)
 			require.NoError(t, os.WriteFile(composePath, []byte(tc.content), filePermissions))
 
 			result := &ValidationResult{Valid: true}

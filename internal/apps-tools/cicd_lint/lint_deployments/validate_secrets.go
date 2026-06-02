@@ -266,7 +266,7 @@ func isSafeReference(value string) bool {
 
 // findComposeFile locates the compose file in a deployment directory.
 func findComposeFile(deploymentPath string) string {
-	candidates := []string{"compose.yml", "compose.yaml", "docker-compose.yml", "docker-compose.yaml"}
+	candidates := []string{cryptoutilSharedMagic.COMPOSE_YML, cryptoutilSharedMagic.COMPOSE_YAML, cryptoutilSharedMagic.DOCKER_COMPOSE_YML}
 
 	for _, name := range candidates {
 		path := filepath.Join(deploymentPath, name)

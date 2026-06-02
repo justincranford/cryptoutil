@@ -25,7 +25,7 @@ func createTestIssuingCA(t *testing.T, provider cryptoutilCACrypto.Provider) *cr
 	rootConfig := &cryptoutilCABootstrap.RootCAConfig{
 		Name: "Test Root CA",
 		KeySpec: cryptoutilCACrypto.KeySpec{
-			Type:       cryptoutilCACrypto.KeyTypeECDSA,
+			Type:       cryptoutilSharedMagic.ECDSA,
 			ECDSACurve: "P-256",
 		},
 		ValidityDuration:  cryptoutilSharedMagic.MaxErrorDisplay * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour,
@@ -40,7 +40,7 @@ func createTestIssuingCA(t *testing.T, provider cryptoutilCACrypto.Provider) *cr
 	intermediateConfig := &cryptoutilCAIntermediate.IntermediateCAConfig{
 		Name: "Test Issuing CA",
 		KeySpec: cryptoutilCACrypto.KeySpec{
-			Type:       cryptoutilCACrypto.KeyTypeECDSA,
+			Type:       cryptoutilSharedMagic.ECDSA,
 			ECDSACurve: "P-256",
 		},
 		ValidityDuration:  cryptoutilSharedMagic.JoseJADefaultMaxMaterials * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour,
@@ -143,7 +143,7 @@ func TestIssuer_Issue_TLSServer(t *testing.T) {
 
 	// Generate subscriber key.
 	keyPair, err := provider.GenerateKeyPair(cryptoutilCACrypto.KeySpec{
-		Type:       cryptoutilCACrypto.KeyTypeECDSA,
+		Type:       cryptoutilSharedMagic.ECDSA,
 		ECDSACurve: "P-256",
 	})
 	require.NoError(t, err)
@@ -178,7 +178,7 @@ func TestIssuer_Issue_TLSServer(t *testing.T) {
 	// Verify audit entry.
 	require.Equal(t, "certificate_issuance", audit.Operation)
 	require.NotEmpty(t, audit.SANs)
-	require.Equal(t, "ECDSA", audit.KeyAlgorithm)
+	require.Equal(t, cryptoutilSharedMagic.ECDSA, audit.KeyAlgorithm)
 }
 
 func TestIssuer_Issue_WithIPAddresses(t *testing.T) {
@@ -197,7 +197,7 @@ func TestIssuer_Issue_WithIPAddresses(t *testing.T) {
 	require.NoError(t, err)
 
 	keyPair, err := provider.GenerateKeyPair(cryptoutilCACrypto.KeySpec{
-		Type:       cryptoutilCACrypto.KeyTypeECDSA,
+		Type:       cryptoutilSharedMagic.ECDSA,
 		ECDSACurve: "P-256",
 	})
 	require.NoError(t, err)
@@ -241,7 +241,7 @@ func TestIssuer_Issue_WithEmail(t *testing.T) {
 	require.NoError(t, err)
 
 	keyPair, err := provider.GenerateKeyPair(cryptoutilCACrypto.KeySpec{
-		Type:       cryptoutilCACrypto.KeyTypeECDSA,
+		Type:       cryptoutilSharedMagic.ECDSA,
 		ECDSACurve: "P-256",
 	})
 	require.NoError(t, err)
@@ -312,7 +312,7 @@ func TestIssuer_Issue_WithProfile(t *testing.T) {
 	require.NoError(t, err)
 
 	keyPair, err := provider.GenerateKeyPair(cryptoutilCACrypto.KeySpec{
-		Type:       cryptoutilCACrypto.KeyTypeECDSA,
+		Type:       cryptoutilSharedMagic.ECDSA,
 		ECDSACurve: "P-256",
 	})
 	require.NoError(t, err)

@@ -61,8 +61,8 @@ func TestValidateKebabCase_ValidCases(t *testing.T) {
 
 				dir := t.TempDir()
 				content := []byte("services:\n  Invalid_Name:\n    image: nginx\n")
-				require.NoError(t, os.WriteFile(filepath.Join(dir, "compose.yml"), content, cryptoutilSharedMagic.CacheFilePermissions))
-				require.NoError(t, os.WriteFile(filepath.Join(dir, "docker-compose.yml"), content, cryptoutilSharedMagic.CacheFilePermissions))
+				require.NoError(t, os.WriteFile(filepath.Join(dir, cryptoutilSharedMagic.COMPOSE_YML), content, cryptoutilSharedMagic.CacheFilePermissions))
+				require.NoError(t, os.WriteFile(filepath.Join(dir, cryptoutilSharedMagic.DOCKER_COMPOSE_YML), content, cryptoutilSharedMagic.CacheFilePermissions))
 
 				return dir
 			},

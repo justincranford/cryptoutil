@@ -48,7 +48,7 @@ func TestIssuer_Issue_ValidityValidationFailure(t *testing.T) {
 	require.NoError(t, err)
 
 	keyPair, genErr := provider.GenerateKeyPair(cryptoutilCACrypto.KeySpec{
-		Type:       cryptoutilCACrypto.KeyTypeECDSA,
+		Type:       cryptoutilSharedMagic.ECDSA,
 		ECDSACurve: "P-256",
 	})
 	require.NoError(t, genErr)
@@ -94,7 +94,7 @@ func TestIssuer_Issue_SubjectProfileResolveError(t *testing.T) {
 	require.NoError(t, err)
 
 	keyPair, genErr := provider.GenerateKeyPair(cryptoutilCACrypto.KeySpec{
-		Type:       cryptoutilCACrypto.KeyTypeECDSA,
+		Type:       cryptoutilSharedMagic.ECDSA,
 		ECDSACurve: "P-256",
 	})
 	require.NoError(t, genErr)
@@ -129,7 +129,7 @@ func TestIssuer_Issue_InvalidURI(t *testing.T) {
 	require.NoError(t, err)
 
 	keyPair, genErr := provider.GenerateKeyPair(cryptoutilCACrypto.KeySpec{
-		Type:       cryptoutilCACrypto.KeyTypeECDSA,
+		Type:       cryptoutilSharedMagic.ECDSA,
 		ECDSACurve: "P-256",
 	})
 	require.NoError(t, genErr)
@@ -193,7 +193,7 @@ func TestIssuer_Issue_WithRSACA(t *testing.T) {
 
 	// Subscriber with ECDSA key.
 	keyPair, genErr := provider.GenerateKeyPair(cryptoutilCACrypto.KeySpec{
-		Type:       cryptoutilCACrypto.KeyTypeECDSA,
+		Type:       cryptoutilSharedMagic.ECDSA,
 		ECDSACurve: "P-256",
 	})
 	require.NoError(t, genErr)

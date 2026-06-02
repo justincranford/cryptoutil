@@ -201,7 +201,7 @@ services:
   myapp:
     image: myapp:latest
 `
-	composePath := filepath.Join(dir, "compose.yml")
+	composePath := filepath.Join(dir, cryptoutilSharedMagic.COMPOSE_YML)
 	require.NoError(t, os.WriteFile(composePath, []byte(content), filePermissions))
 
 	compose, err := parseComposeWithIncludes(composePath)
@@ -217,7 +217,7 @@ func TestParseComposeWithIncludes_InvalidIncludeYAML(t *testing.T) {
 
 	includeDir := filepath.Join(dir, "shared")
 	require.NoError(t, os.MkdirAll(includeDir, dirPermissions))
-	require.NoError(t, os.WriteFile(filepath.Join(includeDir, "compose.yml"),
+	require.NoError(t, os.WriteFile(filepath.Join(includeDir, cryptoutilSharedMagic.COMPOSE_YML),
 		[]byte("invalid: [yaml"), filePermissions))
 
 	content := `include:
@@ -226,7 +226,7 @@ services:
   myapp:
     image: myapp:latest
 `
-	composePath := filepath.Join(dir, "compose.yml")
+	composePath := filepath.Join(dir, cryptoutilSharedMagic.COMPOSE_YML)
 	require.NoError(t, os.WriteFile(composePath, []byte(content), filePermissions))
 
 	compose, err := parseComposeWithIncludes(composePath)
@@ -314,7 +314,7 @@ func TestValidateComposeFile_ContainerOnlyPort(t *testing.T) {
     healthcheck:
       test: ["CMD", "true"]
 `
-	composePath := filepath.Join(dir, "compose.yml")
+	composePath := filepath.Join(dir, cryptoutilSharedMagic.COMPOSE_YML)
 	require.NoError(t, os.WriteFile(composePath, []byte(content), filePermissions))
 
 	result, err := ValidateComposeFile(composePath)
@@ -337,7 +337,7 @@ secrets:
   real.secret:
     file: ./secrets/real.secret
 `
-	composePath := filepath.Join(dir, "compose.yml")
+	composePath := filepath.Join(dir, cryptoutilSharedMagic.COMPOSE_YML)
 	require.NoError(t, os.WriteFile(composePath, []byte(content), filePermissions))
 
 	result, err := ValidateComposeFile(composePath)

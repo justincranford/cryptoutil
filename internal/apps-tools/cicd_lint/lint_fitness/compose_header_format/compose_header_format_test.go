@@ -49,7 +49,7 @@ func createComposeFile(t *testing.T, tmpDir, psID, line3, line5 string) {
 	require.NoError(t, os.MkdirAll(deployDir, cryptoutilSharedMagic.CICDTempDirPermissions))
 
 	content := fmt.Sprintf("# $schema: ...\n#\n%s\n#\n%s\n", line3, line5)
-	require.NoError(t, os.WriteFile(filepath.Join(deployDir, "compose.yml"), []byte(content), cryptoutilSharedMagic.FilePermissions))
+	require.NoError(t, os.WriteFile(filepath.Join(deployDir, cryptoutilSharedMagic.COMPOSE_YML), []byte(content), cryptoutilSharedMagic.FilePermissions))
 }
 
 // setupAllComposeFiles creates complete minimal compose.yml files for all PS.
@@ -89,7 +89,7 @@ func TestCheckInDir_MissingFile(t *testing.T) {
 	setupAllComposeFiles(t, tmpDir)
 
 	// Remove one compose file.
-	require.NoError(t, os.Remove(filepath.Join(tmpDir, "deployments", cryptoutilSharedMagic.OTLPServiceSMKMS, "compose.yml")))
+	require.NoError(t, os.Remove(filepath.Join(tmpDir, "deployments", cryptoutilSharedMagic.OTLPServiceSMKMS, cryptoutilSharedMagic.COMPOSE_YML)))
 
 	err := lintFitnessComposeHeaderFormat.CheckInDir(newTestLogger(), tmpDir)
 	require.Error(t, err)
@@ -142,7 +142,7 @@ func TestCheckInDir_TooFewLines(t *testing.T) {
 	deployDir := filepath.Join(tmpDir, "deployments", cryptoutilSharedMagic.OTLPServiceSMKMS)
 	require.NoError(t, os.MkdirAll(deployDir, cryptoutilSharedMagic.CICDTempDirPermissions))
 	require.NoError(t, os.WriteFile(
-		filepath.Join(deployDir, "compose.yml"),
+		filepath.Join(deployDir, cryptoutilSharedMagic.COMPOSE_YML),
 		[]byte("line1\nline2\nline3\n"),
 		cryptoutilSharedMagic.FilePermissions,
 	))

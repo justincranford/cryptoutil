@@ -50,7 +50,7 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 func checkComposeHeader(rootDir string, ps lintFitnessRegistry.ProductService) []string {
 	var violations []string
 
-	composePath := filepath.Join(rootDir, "deployments", ps.PSID, "compose.yml")
+	composePath := filepath.Join(rootDir, "deployments", ps.PSID, cryptoutilSharedMagic.COMPOSE_YML)
 
 	lines, err := readFirstNLines(composePath, cryptoutilSharedMagic.CICDComposeHeaderLinesToCheck)
 	if err != nil {

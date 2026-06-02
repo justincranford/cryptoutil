@@ -723,7 +723,7 @@ If `git status --porcelain` returns ANY output:
 #### Linting Standards
 
 - **Zero Exceptions**: ALL code must pass linting (production, tests, examples, utilities)
-- **golangci-lint v2**: v2.7.2+ with wsl_v5, built-in formatters
+- **golangci-lint v2**: v2.12.2+ with wsl_v5, built-in formatters
 - **Auto-Fixable**: Run `--fix` first (gofumpt, goimports, wsl, godot, importas)
 - **Critical Rules**: wsl (no suppression), godot (periods required), mnd (magic constants)
 
@@ -7510,7 +7510,7 @@ and evidence artifacts. Any mismatch blocks completion.
 
 - Go: 1.26.1+
 - Python: 3.14+
-- golangci-lint: v2.7.2+
+- golangci-lint: v2.12.2+
 - Node: v24.11.1+ LTS
 - Java: 21 LTS (Gatling load tests)
 - Maven: 3.9+
@@ -8239,7 +8239,7 @@ applyTo: "**"
 
 - Go: 1.26.1+
 - Python: 3.14+
-- golangci-lint: v2.7.2+
+- golangci-lint: v2.12.2+
 - Node: v24.11.1+ LTS
 - Java: 21 LTS (Gatling load tests)
 - Maven: 3.9+
@@ -9890,7 +9890,7 @@ applyTo: "**"
 
 ## Quick Reference: golangci-lint v2
 
-**Current Version**: v2.7.2 (minimum)
+**Current Version**: v2.12.2 (minimum)
 
 **v2 Changes**:
 
@@ -9910,7 +9910,7 @@ applyTo: "**"
 ## Linter Categories
 
 **Auto-Fixable** (--fix): wsl, gofmt, gofumpt, goimports, godot, goconst, importas, copyloopvar, testpackage, revive
-**Manual-Fix**: errcheck, gosimple, govet, ineffassign, staticcheck, unused, gosec, noctx, wrapcheck, thelper, tparallel, gomodguard, prealloc, bodyclose, errorlint, stylecheck
+**Manual-Fix**: errcheck, gosimple, govet, ineffassign, staticcheck, unused, gosec, noctx, wrapcheck, thelper, tparallel, gomodguard_v2, prealloc, bodyclose, errorlint, stylecheck
 
 ## Domain Isolation Check
 

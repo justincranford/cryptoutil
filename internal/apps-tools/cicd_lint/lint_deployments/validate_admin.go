@@ -44,7 +44,7 @@ func ValidateAdmin(deploymentPath string) (*AdminValidationResult, error) {
 		return result, nil
 	}
 
-	composePath := filepath.Join(deploymentPath, "compose.yml")
+	composePath := filepath.Join(deploymentPath, cryptoutilSharedMagic.COMPOSE_YML)
 	if _, statErr := os.Stat(composePath); statErr == nil {
 		validateAdminNotExposed(composePath, result)
 	}

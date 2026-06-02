@@ -23,7 +23,7 @@ optional-dependencies.dependencies = [
   "types-requests>=2.32",
 ]
 optional-dependencies.dev = [
-  "golangci-lint>=2.7.2", # Minimum version enforced - always use latest
+  "golangci-lint>=2.12.2", # Minimum version enforced - always use latest
 ]
 
 [tool.ruff]

@@ -10,6 +10,8 @@ import (
 	"time"
 
 	googleUuid "github.com/google/uuid"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // TemplateItem represents a minimal domain entity for the skeleton-template service.
@@ -26,7 +28,7 @@ type TemplateItem struct {
 
 // TableName specifies the database table name for TemplateItem.
 func (TemplateItem) TableName() string {
-	return "template_items"
+	return cryptoutilSharedMagic.TEMPLATE_ITEMS
 }
 
 // =============================================================================

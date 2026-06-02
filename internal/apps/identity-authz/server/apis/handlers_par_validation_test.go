@@ -39,7 +39,7 @@ func TestHandlePAR_InvalidClient(t *testing.T) {
 		cryptoutilSharedMagic.ParamClientID:            []string{"nonexistent-client-id"},
 		cryptoutilSharedMagic.ParamResponseType:        []string{cryptoutilSharedMagic.ResponseTypeCode},
 		cryptoutilSharedMagic.ParamRedirectURI:         []string{cryptoutilSharedMagic.TestRedirectURI},
-		cryptoutilSharedMagic.ParamCodeChallenge:       []string{"test-code-challenge"},
+		cryptoutilSharedMagic.ParamCodeChallenge:       []string{cryptoutilSharedMagic.TEST_CODE_CHALLENGE},
 		cryptoutilSharedMagic.ParamCodeChallengeMethod: []string{cryptoutilSharedMagic.PKCEMethodS256},
 	}
 
@@ -82,7 +82,7 @@ func TestHandlePAR_InvalidRedirectURI(t *testing.T) {
 		cryptoutilSharedMagic.ParamClientID:            []string{testClient.ClientID},
 		cryptoutilSharedMagic.ParamResponseType:        []string{cryptoutilSharedMagic.ResponseTypeCode},
 		cryptoutilSharedMagic.ParamRedirectURI:         []string{"https://malicious.com/callback"},
-		cryptoutilSharedMagic.ParamCodeChallenge:       []string{"test-code-challenge"},
+		cryptoutilSharedMagic.ParamCodeChallenge:       []string{cryptoutilSharedMagic.TEST_CODE_CHALLENGE},
 		cryptoutilSharedMagic.ParamCodeChallengeMethod: []string{cryptoutilSharedMagic.PKCEMethodS256},
 	}
 
@@ -129,7 +129,7 @@ func TestHandlePAR_UnsupportedResponseType(t *testing.T) {
 		cryptoutilSharedMagic.ParamClientID:            []string{testClient.ClientID},
 		cryptoutilSharedMagic.ParamResponseType:        []string{cryptoutilSharedMagic.ParamToken}, // Only "code" is supported.
 		cryptoutilSharedMagic.ParamRedirectURI:         []string{cryptoutilSharedMagic.TestRedirectURI},
-		cryptoutilSharedMagic.ParamCodeChallenge:       []string{"test-code-challenge"},
+		cryptoutilSharedMagic.ParamCodeChallenge:       []string{cryptoutilSharedMagic.TEST_CODE_CHALLENGE},
 		cryptoutilSharedMagic.ParamCodeChallengeMethod: []string{cryptoutilSharedMagic.PKCEMethodS256},
 	}
 
@@ -172,7 +172,7 @@ func TestHandlePAR_UnsupportedCodeChallengeMethod(t *testing.T) {
 		cryptoutilSharedMagic.ParamClientID:            []string{testClient.ClientID},
 		cryptoutilSharedMagic.ParamResponseType:        []string{cryptoutilSharedMagic.ResponseTypeCode},
 		cryptoutilSharedMagic.ParamRedirectURI:         []string{cryptoutilSharedMagic.TestRedirectURI},
-		cryptoutilSharedMagic.ParamCodeChallenge:       []string{"test-code-challenge"},
+		cryptoutilSharedMagic.ParamCodeChallenge:       []string{cryptoutilSharedMagic.TEST_CODE_CHALLENGE},
 		cryptoutilSharedMagic.ParamCodeChallengeMethod: []string{cryptoutilSharedMagic.PKCEMethodPlain}, // Only S256 is supported.
 	}
 

@@ -436,7 +436,7 @@
     "gomock",
     "gomod",
     "gomoddirectives",
-    "gomodguard",
+    "gomodguard_v2",
     "gonum",
     "goodtls",
     "Googlebot",

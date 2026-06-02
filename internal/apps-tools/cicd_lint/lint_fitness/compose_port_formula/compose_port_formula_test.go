@@ -45,7 +45,7 @@ func buildComposeWithPorts(t *testing.T, dir, serviceName, portMapping string) s
 		"    ports:\n" +
 		"      - \"" + portMapping + "\"\n"
 
-	path := filepath.Join(dir, "compose.yml")
+	path := filepath.Join(dir, cryptoutilSharedMagic.COMPOSE_YML)
 	require.NoError(t, os.WriteFile(path, []byte(content), cryptoutilSharedMagic.FilePermissionsDefault))
 
 	return path
@@ -240,7 +240,7 @@ func TestCheckInDir_NonMatchingServicesIgnored(t *testing.T) {
 
 	content := "services:\n  unrelated-service:\n    ports:\n      - \"9999:8080\"\n"
 	require.NoError(t, os.WriteFile(
-		filepath.Join(svcDir, "compose.yml"),
+		filepath.Join(svcDir, cryptoutilSharedMagic.COMPOSE_YML),
 		[]byte(content),
 		cryptoutilSharedMagic.FilePermissionsDefault,
 	))
@@ -263,7 +263,7 @@ func TestCheckInDir_ReadFileError(t *testing.T) {
 
 	// Write a real file so os.IsNotExist returns false → triggers the read error path.
 	require.NoError(t, os.WriteFile(
-		filepath.Join(svcDir, "compose.yml"),
+		filepath.Join(svcDir, cryptoutilSharedMagic.COMPOSE_YML),
 		[]byte("services: {}"),
 		cryptoutilSharedMagic.FilePermissionsDefault,
 	))
@@ -296,9 +296,9 @@ func TestCheckTierPorts_ValidProductTierAllVariants(t *testing.T) {
 	}
 
 	content := "services:\n" + portEntries
-	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "compose.yml"), []byte(content), cryptoutilSharedMagic.FilePermissionsDefault))
+	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, cryptoutilSharedMagic.COMPOSE_YML), []byte(content), cryptoutilSharedMagic.FilePermissionsDefault))
 
-	violations := checkTierPorts(tmpDir, psID, "compose.yml", basePort, lintFitnessRegistry.PortTierOffsetProduct, os.ReadFile)
+	violations := checkTierPorts(tmpDir, psID, cryptoutilSharedMagic.COMPOSE_YML, basePort, lintFitnessRegistry.PortTierOffsetProduct, os.ReadFile)
 	require.Empty(t, violations, "All 3 product-tier variants correct should produce no violations")
 }
 
@@ -324,8 +324,8 @@ func TestCheckTierPorts_TwoCharLineNotPanic(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	content := "services:\n  \n  " + lintFitnessRegistry.ComposeServiceName(psID, lintFitnessRegistry.ComposeVariantSQLite1) + ":\n    ports:\n      - \"" + strconv.Itoa(basePort) + ":8080\"\n"
-	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "compose.yml"), []byte(content), cryptoutilSharedMagic.FilePermissionsDefault))
+	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, cryptoutilSharedMagic.COMPOSE_YML), []byte(content), cryptoutilSharedMagic.FilePermissionsDefault))
 
-	violations := checkTierPorts(tmpDir, psID, "compose.yml", basePort, lintFitnessRegistry.PortTierOffsetService, os.ReadFile)
+	violations := checkTierPorts(tmpDir, psID, cryptoutilSharedMagic.COMPOSE_YML, basePort, lintFitnessRegistry.PortTierOffsetService, os.ReadFile)
 	require.Empty(t, violations, "Two-char line must not cause panic or violation")
 }

@@ -929,4 +929,4 @@ See [docs/DEV-SETUP.md](docs/DEV-SETUP.md) for comprehensive pre-commit setup in
 - **Security**: Large file prevention, merge conflict detection
 - **Linting**: `golangci-lint` with automatic fixes for supported linters (e.g., WSL whitespace consistency: `golangci-lint run --enable-only=wsl --fix`)
   - **Auto-fixable linters**: wsl, gofmt, goimports, godot, goconst, importas, copyloopvar, testpackage, revive
-  - **Manual-only linters**: errcheck, gosimple, govet, ineffassign, staticcheck, unused, gosec, noctx, wrapcheck, thelper, tparallel, gomodguard, prealloc, bodyclose, errorlint, stylecheck
+  - **Manual-only linters**: errcheck, gosimple, govet, ineffassign, staticcheck, unused, gosec, noctx, wrapcheck, thelper, tparallel, gomodguard_v2, prealloc, bodyclose, errorlint, stylecheck

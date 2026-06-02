@@ -55,7 +55,7 @@ func TestValidateAdmin_ValidCases(t *testing.T) {
 				t.Helper()
 
 				dir := t.TempDir()
-				require.NoError(t, os.WriteFile(filepath.Join(dir, "compose.yml"),
+				require.NoError(t, os.WriteFile(filepath.Join(dir, cryptoutilSharedMagic.COMPOSE_YML),
 					[]byte("services:\n  app:\n    ports:\n      - \"8080:8080\"\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
 				return dir
@@ -67,7 +67,7 @@ func TestValidateAdmin_ValidCases(t *testing.T) {
 				t.Helper()
 
 				dir := t.TempDir()
-				require.NoError(t, os.WriteFile(filepath.Join(dir, "compose.yml"),
+				require.NoError(t, os.WriteFile(filepath.Join(dir, cryptoutilSharedMagic.COMPOSE_YML),
 					[]byte("{{invalid yaml"), cryptoutilSharedMagic.CacheFilePermissions))
 
 				return dir
@@ -355,7 +355,7 @@ func createAdminTestDeployment(t *testing.T, composeContent string, configFields
 	dir := t.TempDir()
 
 	if composeContent != "" {
-		require.NoError(t, os.WriteFile(filepath.Join(dir, "compose.yml"),
+		require.NoError(t, os.WriteFile(filepath.Join(dir, cryptoutilSharedMagic.COMPOSE_YML),
 			[]byte(composeContent), cryptoutilSharedMagic.CacheFilePermissions))
 	}
 

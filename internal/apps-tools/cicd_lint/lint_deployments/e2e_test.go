@@ -31,7 +31,7 @@ func TestMainGenerateListings(t *testing.T) {
 				require.NoError(t, os.MkdirAll(filepath.Join(deploymentsDir, cryptoutilSharedMagic.OTLPServicePKICA), cryptoutilSharedMagic.CICDTempDirPermissions))
 				require.NoError(t, os.MkdirAll(configsDir, cryptoutilSharedMagic.CICDTempDirPermissions))
 				require.NoError(t, os.WriteFile(
-					filepath.Join(deploymentsDir, cryptoutilSharedMagic.OTLPServicePKICA, "compose.yml"),
+					filepath.Join(deploymentsDir, cryptoutilSharedMagic.OTLPServicePKICA, cryptoutilSharedMagic.COMPOSE_YML),
 					[]byte("name: pki-ca\n"), cryptoutilSharedMagic.FilePermissions))
 
 				return deploymentsDir, configsDir
@@ -142,7 +142,7 @@ func TestMainValidateCompose(t *testing.T) {
 				t.Helper()
 
 				tmpDir := t.TempDir()
-				composePath := filepath.Join(tmpDir, "compose.yml")
+				composePath := filepath.Join(tmpDir, cryptoutilSharedMagic.COMPOSE_YML)
 				content := "name: test\nservices:\n  web:\n    image: nginx\n    healthcheck:\n      test: [\"CMD\", \"curl\", \"-f\", \"http://localhost\"]\n      interval: 30s\n      timeout: 10s\n      retries: 3\n"
 				require.NoError(t, os.WriteFile(composePath, []byte(content), cryptoutilSharedMagic.FilePermissions))
 
@@ -215,7 +215,7 @@ func TestMainSubcommandRouting(t *testing.T) {
 				require.NoError(t, os.MkdirAll(filepath.Join(deploymentsDir, cryptoutilSharedMagic.OTLPServicePKICA), cryptoutilSharedMagic.CICDTempDirPermissions))
 				require.NoError(t, os.MkdirAll(configsDir, cryptoutilSharedMagic.CICDTempDirPermissions))
 				require.NoError(t, os.WriteFile(
-					filepath.Join(deploymentsDir, cryptoutilSharedMagic.OTLPServicePKICA, "compose.yml"),
+					filepath.Join(deploymentsDir, cryptoutilSharedMagic.OTLPServicePKICA, cryptoutilSharedMagic.COMPOSE_YML),
 					[]byte("name: pki-ca\n"), cryptoutilSharedMagic.FilePermissions))
 
 				return []string{"generate-listings", deploymentsDir, configsDir}

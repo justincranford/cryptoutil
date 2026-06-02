@@ -56,7 +56,7 @@ secrets:
   test_secret.secret:
     file: ./secrets/test_secret.secret
 `
-	require.NoError(t, os.WriteFile(filepath.Join(svcDeployDir, "compose.yml"),
+	require.NoError(t, os.WriteFile(filepath.Join(svcDeployDir, cryptoutilSharedMagic.COMPOSE_YML),
 		[]byte(composeContent), cryptoutilSharedMagic.CacheFilePermissions))
 
 	// Write config file.
@@ -101,7 +101,7 @@ database-url: "file:///run/secrets/db_url"
 	require.True(t, mirrorResult.Valid, "mirror should be valid: %v", mirrorResult.Errors)
 
 	// Step 3: Validate compose.
-	composePath := filepath.Join(svcDeployDir, "compose.yml")
+	composePath := filepath.Join(svcDeployDir, cryptoutilSharedMagic.COMPOSE_YML)
 	composeResult, err := ValidateComposeFile(composePath)
 	require.NoError(t, err, "validate compose")
 	require.True(t, composeResult.Valid,
@@ -125,7 +125,7 @@ func TestIntegrationFullPipeline_DetectsErrors(t *testing.T) {
 		t.Parallel()
 
 		tmpDir := t.TempDir()
-		composePath := filepath.Join(tmpDir, "compose.yml")
+		composePath := filepath.Join(tmpDir, cryptoutilSharedMagic.COMPOSE_YML)
 
 		badCompose := `services:
   app:
@@ -171,7 +171,7 @@ database-url: "postgres://user:pass@db:5432/mydb"
 		// Create deployment without matching config.
 		require.NoError(t, os.MkdirAll(filepath.Join(deploymentsDir, "svc-a", "config"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 		require.NoError(t, os.WriteFile(
-			filepath.Join(deploymentsDir, "svc-a", "compose.yml"),
+			filepath.Join(deploymentsDir, "svc-a", cryptoutilSharedMagic.COMPOSE_YML),
 			[]byte("services: {}"), cryptoutilSharedMagic.CacheFilePermissions))
 		require.NoError(t, os.MkdirAll(configsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 

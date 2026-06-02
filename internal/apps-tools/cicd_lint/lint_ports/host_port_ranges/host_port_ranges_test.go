@@ -26,7 +26,7 @@ func TestCheckHostPortRangesInFile_InvalidPorts(t *testing.T) {
 
 	tempDir := t.TempDir()
 
-	composeFile := filepath.Join(tempDir, "compose.yml")
+	composeFile := filepath.Join(tempDir, cryptoutilSharedMagic.COMPOSE_YML)
 	err := os.WriteFile(composeFile, []byte(`services:
   sm-kms:
     ports:
@@ -45,7 +45,7 @@ func TestCheckHostPortRangesInFile_TopLevelReset(t *testing.T) {
 
 	tempDir := t.TempDir()
 
-	composeFile := filepath.Join(tempDir, "compose.yml")
+	composeFile := filepath.Join(tempDir, cryptoutilSharedMagic.COMPOSE_YML)
 	err := os.WriteFile(composeFile, []byte(`services:
 	sm-kms:
     ports:
@@ -65,7 +65,7 @@ func TestCheckHostPortRangesInFile_UnknownService(t *testing.T) {
 
 	tempDir := t.TempDir()
 
-	composeFile := filepath.Join(tempDir, "compose.yml")
+	composeFile := filepath.Join(tempDir, cryptoutilSharedMagic.COMPOSE_YML)
 	err := os.WriteFile(composeFile, []byte(`services:
   unknown-service:
     ports:
@@ -83,7 +83,7 @@ func TestCheckHostPortRangesInFile_ValidPorts(t *testing.T) {
 
 	tempDir := t.TempDir()
 
-	composeFile := filepath.Join(tempDir, "compose.yml")
+	composeFile := filepath.Join(tempDir, cryptoutilSharedMagic.COMPOSE_YML)
 	err := os.WriteFile(composeFile, []byte(`services:
   sm-kms:
     ports:
@@ -168,7 +168,7 @@ func TestLintHostPortRanges_NoViolations(t *testing.T) {
 
 	tempDir := t.TempDir()
 
-	composeFile := filepath.Join(tempDir, "compose.yml")
+	composeFile := filepath.Join(tempDir, cryptoutilSharedMagic.COMPOSE_YML)
 	err := os.WriteFile(composeFile, []byte(`services:
   sm-kms:
     ports:
@@ -191,7 +191,7 @@ func TestLintHostPortRanges_WithViolations(t *testing.T) {
 
 	tempDir := t.TempDir()
 
-	composeFile := filepath.Join(tempDir, "compose.yml")
+	composeFile := filepath.Join(tempDir, cryptoutilSharedMagic.COMPOSE_YML)
 	err := os.WriteFile(composeFile, []byte(`services:
   sm-kms:
     ports:
@@ -235,7 +235,7 @@ func TestCheckHostPortRangesInFile_PortParseUintError(t *testing.T) {
 	tempDir := t.TempDir()
 
 	// Port 99999 exceeds uint16 max (65535), so ParseUint with bitSize=16 will fail.
-	composeFile := filepath.Join(tempDir, "compose.yml")
+	composeFile := filepath.Join(tempDir, cryptoutilSharedMagic.COMPOSE_YML)
 	err := os.WriteFile(composeFile, []byte(`services:
   sm-kms:
     ports:

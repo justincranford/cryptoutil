@@ -27,7 +27,7 @@ linters:
     - errorlint
     # testpackage: Removed. skip-regexp matched all test files, making it a no-op.
     # Migration to external test packages is too large-scope; honest to remove.
-    - gomodguard
+    - gomodguard_v2
     - gomoddirectives
     - bodyclose
     - mnd

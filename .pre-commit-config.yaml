@@ -50,10 +50,10 @@ repos:
       #       stages: [pre-push]
 
       - id: golangci-lint-full
-        name: golangci-lint v2.7.2 (full validation)
+        name: golangci-lint v2.12.2 (full validation)
         entry: golangci-lint
         args: [run, --timeout=30m]
-        language: system  # Requires golangci-lint v2.7.2 installed: go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.7.2
+        language: system  # Requires golangci-lint v2.12.2 installed: go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.12.2
         pass_filenames: false
         files: '\.go$'
         stages: [pre-push]  # Slow full check before push
@@ -63,10 +63,10 @@ repos:
       # Go linting with auto-fix (runs gofumpt+goimports formatters + all enabled linters)
       # NOTE: gofumpt and goimports are enabled in formatters: section of .golangci.yml
       - id: golangci-lint
-        name: golangci-lint v2.7.2 (incremental auto-fix)
+        name: golangci-lint v2.12.2 (incremental auto-fix)
         entry: golangci-lint
         args: [run, --fix, --timeout=30m, --new-from-rev=HEAD~1]
-        language: system  # Requires golangci-lint v2.7.2 installed: go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.7.2
+        language: system  # Requires golangci-lint v2.12.2 installed: go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.12.2
         files: '\.go$'
         pass_filenames: false
         require_serial: false

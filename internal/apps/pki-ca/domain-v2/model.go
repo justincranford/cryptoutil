@@ -7,6 +7,8 @@ import (
 	"time"
 
 	googleUuid "github.com/google/uuid"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // CAItem represents a minimal domain entity for the pki-ca service.
@@ -20,5 +22,5 @@ type CAItem struct {
 
 // TableName specifies the database table name for CAItem.
 func (CAItem) TableName() string {
-	return "ca_items"
+	return cryptoutilSharedMagic.CA_ITEMS
 }

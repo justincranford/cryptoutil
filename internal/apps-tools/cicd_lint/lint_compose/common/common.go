@@ -5,10 +5,14 @@ package common
 import (
 	"path/filepath"
 	"strings"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // LineSeparatorLength defines the length of line separators in output.
-const LineSeparatorLength = 60
+const (
+	LineSeparatorLength = 60
+)
 
 // FindComposeFiles returns all Docker Compose files from the file map.
 func FindComposeFiles(filesByExtension map[string][]string) []string {
@@ -16,7 +20,7 @@ func FindComposeFiles(filesByExtension map[string][]string) []string {
 
 	// Check yml and yaml files for compose files.
 	// NOTE: filesByExtension keys are WITHOUT dots (e.g., "yml" not ".yml").
-	for _, ext := range []string{"yml", "yaml"} {
+	for _, ext := range []string{cryptoutilSharedMagic.YML, cryptoutilSharedMagic.YAML} {
 		files, ok := filesByExtension[ext]
 		if !ok {
 			continue

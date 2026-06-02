@@ -33,7 +33,7 @@ type ElasticJWK struct {
 
 // TableName specifies the database table name for ElasticJWK.
 func (ElasticJWK) TableName() string {
-	return "elastic_jwks"
+	return cryptoutilSharedMagic.ELASTIC_JWKS
 }
 
 // MaterialJWK represents a specific key version within an ElasticJWK.
@@ -55,7 +55,7 @@ type MaterialJWK struct {
 
 // TableName specifies the database table name for MaterialJWK.
 func (MaterialJWK) TableName() string {
-	return "material_jwks"
+	return cryptoutilSharedMagic.MATERIAL_JWKS
 }
 
 // AuditConfig represents per-tenant audit settings for operations.
@@ -68,7 +68,7 @@ type AuditConfig struct {
 
 // TableName specifies the database table name for AuditConfig.
 func (AuditConfig) TableName() string {
-	return "tenant_audit_config"
+	return cryptoutilSharedMagic.TENANT_AUDIT_CONFIG
 }
 
 // AuditLogEntry represents a single audit log entry for cryptographic operations.
@@ -93,7 +93,7 @@ type AuditLogEntry struct {
 
 // TableName specifies the database table name for AuditLogEntry.
 func (AuditLogEntry) TableName() string {
-	return "audit_log"
+	return cryptoutilSharedMagic.AUDIT_LOG
 }
 
 // Operation constants for audit logging.

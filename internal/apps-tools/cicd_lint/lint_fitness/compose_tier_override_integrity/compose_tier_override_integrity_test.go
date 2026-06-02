@@ -37,7 +37,7 @@ secrets:
 `
 
 	for _, tier := range []string{cryptoutilSharedMagic.DefaultOTLPServiceDefault, "sm"} {
-		writeFile(t, filepath.Join(root, "deployments", tier, "compose.yml"), composeTemplate)
+		writeFile(t, filepath.Join(root, "deployments", tier, cryptoutilSharedMagic.COMPOSE_YML), composeTemplate)
 		writeFile(t, filepath.Join(root, "deployments", tier, "secrets", "postgres-username.secret"), tier+"_user")
 		writeFile(t, filepath.Join(root, "deployments", tier, "secrets", "postgres-password.secret"), tier+"_pass")
 		writeFile(t, filepath.Join(root, "deployments", tier, "secrets", "postgres-database.secret"), tier+"_db")
@@ -61,7 +61,7 @@ func TestCheckInDir_ForbiddenBuilderService(t *testing.T) {
 	root := t.TempDir()
 	setupTierFixture(t, root)
 
-	writeFile(t, filepath.Join(root, "deployments", cryptoutilSharedMagic.DefaultOTLPServiceDefault, "compose.yml"),
+	writeFile(t, filepath.Join(root, "deployments", cryptoutilSharedMagic.DefaultOTLPServiceDefault, cryptoutilSharedMagic.COMPOSE_YML),
 		fmt.Sprintf("services:\n  %s: {}\nsecrets:\n  postgres-url.secret: {file: ./secrets/postgres-url.secret}\n  postgres-username.secret: {file: ./secrets/postgres-username.secret}\n  postgres-password.secret: {file: ./secrets/postgres-password.secret}\n  postgres-database.secret: {file: ./secrets/postgres-database.secret}\n", cryptoutilSharedMagic.DockerJobBuilderCryptoutil))
 
 	err := lintFitnessComposeTierOverrideIntegrity.CheckInDir(testLogger(), root)
@@ -75,7 +75,7 @@ func TestCheckInDir_MissingPostgresSecretOverride(t *testing.T) {
 	root := t.TempDir()
 	setupTierFixture(t, root)
 
-	writeFile(t, filepath.Join(root, "deployments", "sm", "compose.yml"), `services:
+	writeFile(t, filepath.Join(root, "deployments", "sm", cryptoutilSharedMagic.COMPOSE_YML), `services:
   app: {}
 secrets:
   postgres-url.secret: {file: ./secrets/postgres-url.secret}

@@ -144,7 +144,7 @@ func checkDelegationPattern(basePath string, deploymentName string, structType s
 		return
 	}
 
-	composePath := filepath.Join(basePath, "compose.yml")
+	composePath := filepath.Join(basePath, cryptoutilSharedMagic.COMPOSE_YML)
 
 	content, err := os.ReadFile(composePath)
 	if err != nil {

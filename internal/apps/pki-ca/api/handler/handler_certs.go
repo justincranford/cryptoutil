@@ -191,7 +191,7 @@ func (h *Handler) GetCRL(c *fiber.Ctx, caID string, params cryptoutilApiCaServer
 func getKeyInfo(cert *x509.Certificate) (string, int) {
 	switch pub := cert.PublicKey.(type) {
 	case *ecdsa.PublicKey:
-		return "ECDSA", pub.Curve.Params().BitSize
+		return cryptoutilSharedMagic.ECDSA, pub.Curve.Params().BitSize
 	case *rsa.PublicKey:
 		return cryptoutilSharedMagic.KeyTypeRSA, pub.N.BitLen()
 	case ed25519.PublicKey:

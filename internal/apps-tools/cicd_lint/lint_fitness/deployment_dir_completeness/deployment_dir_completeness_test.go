@@ -60,7 +60,7 @@ func createDeploymentDir(t *testing.T, tmpDir, psID string) {
 	require.NoError(t, os.MkdirAll(secretsDir, cryptoutilSharedMagic.DirPermissions))
 
 	require.NoError(t, os.WriteFile(filepath.Join(deployDir, "Dockerfile"), []byte("FROM scratch\n"), cryptoutilSharedMagic.CacheFilePermissions))
-	require.NoError(t, os.WriteFile(filepath.Join(deployDir, "compose.yml"), []byte("services: {}\n"), cryptoutilSharedMagic.CacheFilePermissions))
+	require.NoError(t, os.WriteFile(filepath.Join(deployDir, cryptoutilSharedMagic.COMPOSE_YML), []byte("services: {}\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
 	for _, suffix := range []string{
 		"-app-framework-common.yml",
@@ -132,11 +132,11 @@ func TestCheckInDir_MissingComposeYML(t *testing.T) {
 	tmpDir := t.TempDir()
 	setupAllDeploymentDirs(t, tmpDir)
 
-	require.NoError(t, os.Remove(filepath.Join(tmpDir, "deployments", cryptoutilSharedMagic.OTLPServiceSMKMS, "compose.yml")))
+	require.NoError(t, os.Remove(filepath.Join(tmpDir, "deployments", cryptoutilSharedMagic.OTLPServiceSMKMS, cryptoutilSharedMagic.COMPOSE_YML)))
 
 	err := lintFitnessDeploymentDirCompleteness.CheckInDir(newTestLogger(), tmpDir)
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "compose.yml")
+	require.Contains(t, err.Error(), cryptoutilSharedMagic.COMPOSE_YML)
 }
 
 func TestCheckInDir_MissingSecretsDir(t *testing.T) {

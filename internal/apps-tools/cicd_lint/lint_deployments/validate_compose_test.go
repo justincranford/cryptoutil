@@ -7,6 +7,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 func TestValidateComposeFile(t *testing.T) {
@@ -267,7 +269,7 @@ secrets:
 			t.Parallel()
 
 			dir := t.TempDir()
-			composePath := filepath.Join(dir, "compose.yml")
+			composePath := filepath.Join(dir, cryptoutilSharedMagic.COMPOSE_YML)
 			require.NoError(t, os.WriteFile(composePath, []byte(tc.content), filePermissions))
 
 			result, err := ValidateComposeFile(composePath)
@@ -315,7 +317,7 @@ services:
     healthcheck:
       test: ["CMD", "true"]
 `
-	require.NoError(t, os.WriteFile(filepath.Join(includeDir, "compose.yml"),
+	require.NoError(t, os.WriteFile(filepath.Join(includeDir, cryptoutilSharedMagic.COMPOSE_YML),
 		[]byte(includeContent), filePermissions))
 
 	mainContent := `include:
@@ -328,7 +330,7 @@ services:
     healthcheck:
       test: ["CMD", "true"]
 `
-	mainPath := filepath.Join(dir, "compose.yml")
+	mainPath := filepath.Join(dir, cryptoutilSharedMagic.COMPOSE_YML)
 	require.NoError(t, os.WriteFile(mainPath, []byte(mainContent), filePermissions))
 
 	result, err := ValidateComposeFile(mainPath)

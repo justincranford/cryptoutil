@@ -117,7 +117,7 @@ func DefaultRAConfig() *RAConfig {
 			ValidateEmailOwnership:  true,
 			ValidateOrganization:    false,
 			ValidateKeyStrength:     true,
-			AllowedKeyAlgorithms:    []string{cryptoutilSharedMagic.KeyTypeRSA, "ECDSA", cryptoutilSharedMagic.EdCurveEd25519},
+			AllowedKeyAlgorithms:    []string{cryptoutilSharedMagic.KeyTypeRSA, cryptoutilSharedMagic.ECDSA, cryptoutilSharedMagic.EdCurveEd25519},
 			MinRSAKeySize:           minRSAKeyBits,
 			MinECKeySize:            minECKeyBits,
 			BlocklistedDomains:      []string{},

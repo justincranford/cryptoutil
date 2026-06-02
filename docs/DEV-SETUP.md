@@ -39,7 +39,7 @@ See [ENG-HANDBOOK.md Section 2.2 Architecture Strategy](ENG-HANDBOOK.md#22-archi
 
 | Tool | Installation | Purpose |
 |------|-------------|---------|
-| **golangci-lint** | `go install github.com/golangci/golangci-lint/cmd/golangci-lint@v2.7.2` | Comprehensive linting (includes 50+ linters) |
+| **golangci-lint** | `go install github.com/golangci/golangci-lint/cmd/golangci-lint@v2.12.2` | Comprehensive linting (includes 50+ linters) |
 | **gofumpt** | `go install mvdan.cc/gofumpt@latest` | Strict Go formatting (gofmt superset) |
 | **goimports** | `go install golang.org/x/tools/cmd/goimports@latest` | Auto-import organization |
 | **gopls** | `go install golang.org/x/tools/gopls@latest` | Go language server for VS Code |
@@ -130,7 +130,7 @@ See [ENG-HANDBOOK.md Section 12 Deployment Architecture](ENG-HANDBOOK.md#12-depl
 
 **Skip if:** Not running performance/load tests.
 
-### golangci-lint v2.7.2+
+### golangci-lint v2.12.2+
 
 **Why this specific tool and version?**
 
@@ -270,7 +270,7 @@ git --version
 
 ```powershell
 # Install golangci-lint (comprehensive linting)
-go install github.com/golangci/golangci-lint/cmd/golangci-lint@v2.7.2
+go install github.com/golangci/golangci-lint/cmd/golangci-lint@v2.12.2
 
 # Install gofumpt (strict Go formatting)
 go install mvdan.cc/gofumpt@latest
@@ -486,7 +486,7 @@ sudo dnf install -y java-21-openjdk-devel
 
 ```bash
 # Install all Go tools
-go install github.com/golangci/golangci-lint/cmd/golangci-lint@v2.7.2
+go install github.com/golangci/golangci-lint/cmd/golangci-lint@v2.12.2
 go install mvdan.cc/gofumpt@latest
 go install golang.org/x/tools/cmd/goimports@latest
 go install golang.org/x/tools/gopls@latest
@@ -572,7 +572,7 @@ java -version  # if installed
 #### 2. Install Go Development Tools
 
 ```bash
-go install github.com/golangci/golangci-lint/cmd/golangci-lint@v2.7.2
+go install github.com/golangci/golangci-lint/cmd/golangci-lint@v2.12.2
 go install mvdan.cc/gofumpt@latest
 go install golang.org/x/tools/cmd/goimports@latest
 go install golang.org/x/tools/gopls@latest

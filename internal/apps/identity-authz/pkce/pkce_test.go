@@ -71,8 +71,8 @@ func TestGenerateCodeChallenge(t *testing.T) {
 		verifyFn        func(t *testing.T, verifier string, challenge string, method string)
 	}{
 		{
-			name:     "s256_method",
-			verifier: "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk",
+			name:     cryptoutilSharedMagic.S256_METHOD,
+			verifier: cryptoutilSharedMagic.S256_CODE_CHALLENGE,
 			method:   cryptoutilSharedMagic.PKCEMethodS256,
 			verifyFn: func(t *testing.T, verifier string, challenge string, _ string) {
 				t.Helper()
@@ -84,8 +84,8 @@ func TestGenerateCodeChallenge(t *testing.T) {
 			},
 		},
 		{
-			name:     "plain_method",
-			verifier: "test-code-verifier",
+			name:     cryptoutilSharedMagic.PLAIN_METHOD,
+			verifier: cryptoutilSharedMagic.TEST_CODE_VERIFIER,
 			method:   cryptoutilSharedMagic.PKCEMethodPlain,
 			verifyFn: func(t *testing.T, verifier string, challenge string, _ string) {
 				t.Helper()
@@ -93,8 +93,8 @@ func TestGenerateCodeChallenge(t *testing.T) {
 			},
 		},
 		{
-			name:     "default_method_s256",
-			verifier: "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk",
+			name:     cryptoutilSharedMagic.DEFAULT_METHOD_S256,
+			verifier: cryptoutilSharedMagic.S256_CODE_CHALLENGE,
 			method:   "",
 			verifyFn: func(t *testing.T, verifier string, challenge string, _ string) {
 				t.Helper()
@@ -105,9 +105,9 @@ func TestGenerateCodeChallenge(t *testing.T) {
 			},
 		},
 		{
-			name:            "invalid_method",
-			verifier:        "test-code-verifier",
-			method:          "invalid-method",
+			name:            cryptoutilSharedMagic.INVALID_METHOD,
+			verifier:        cryptoutilSharedMagic.TEST_CODE_VERIFIER,
+			method:          cryptoutilSharedMagic.INVALID_METHOD,
 			wantEmptyResult: true,
 			verifyFn: func(t *testing.T, _ string, challenge string, _ string) {
 				t.Helper()
@@ -137,19 +137,19 @@ func TestGenerateS256Challenge(t *testing.T) {
 		verifier string
 	}{
 		{
-			name:     "standard_verifier",
-			verifier: "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk",
+			name:     cryptoutilSharedMagic.S256_METHOD,
+			verifier: cryptoutilSharedMagic.S256_CODE_CHALLENGE,
 		},
 		{
-			name:     "short_verifier",
+			name:     cryptoutilSharedMagic.SHORT_VERIFIER,
 			verifier: "abc",
 		},
 		{
-			name:     "long_verifier",
-			verifier: "very-long-code-verifier-with-many-characters-for-testing-purposes",
+			name:     cryptoutilSharedMagic.LONG_VERIFIER,
+			verifier: cryptoutilSharedMagic.VERY_LONG_VERIFIER,
 		},
 		{
-			name:     "empty_verifier",
+			name:     cryptoutilSharedMagic.EMPTY_VERIFIER,
 			verifier: "",
 		},
 	}
@@ -181,45 +181,45 @@ func TestValidateCodeVerifier(t *testing.T) {
 		wantValid bool
 	}{
 		{
-			name:      "s256_valid",
-			verifier:  "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk",
-			challenge: GenerateS256Challenge("dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk"),
+			name:      cryptoutilSharedMagic.S256_METHOD,
+			verifier:  cryptoutilSharedMagic.S256_CODE_CHALLENGE,
+			challenge: GenerateS256Challenge(cryptoutilSharedMagic.S256_CODE_CHALLENGE),
 			method:    cryptoutilSharedMagic.PKCEMethodS256,
 			wantValid: true,
 		},
 		{
-			name:      "s256_invalid",
-			verifier:  "wrong-verifier",
-			challenge: GenerateS256Challenge("correct-verifier"),
+			name:      cryptoutilSharedMagic.S256_METHOD,
+			verifier:  cryptoutilSharedMagic.WRONG_VERIFIER,
+			challenge: GenerateS256Challenge(cryptoutilSharedMagic.S256_CODE_CHALLENGE),
 			method:    cryptoutilSharedMagic.PKCEMethodS256,
 			wantValid: false,
 		},
 		{
-			name:      "plain_valid",
-			verifier:  "test-code-verifier",
-			challenge: "test-code-verifier",
+			name:      cryptoutilSharedMagic.PLAIN_METHOD,
+			verifier:  cryptoutilSharedMagic.TEST_CODE_VERIFIER,
+			challenge: cryptoutilSharedMagic.TEST_CODE_VERIFIER,
 			method:    cryptoutilSharedMagic.PKCEMethodPlain,
 			wantValid: true,
 		},
 		{
-			name:      "plain_invalid",
-			verifier:  "correct-verifier",
-			challenge: "wrong-verifier",
+			name:      cryptoutilSharedMagic.PLAIN_METHOD,
+			verifier:  cryptoutilSharedMagic.TEST_CODE_VERIFIER,
+			challenge: cryptoutilSharedMagic.WRONG_VERIFIER,
 			method:    cryptoutilSharedMagic.PKCEMethodPlain,
 			wantValid: false,
 		},
 		{
-			name:      "default_method_s256",
-			verifier:  "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk",
-			challenge: GenerateS256Challenge("dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk"),
+			name:      cryptoutilSharedMagic.DEFAULT_METHOD_S256,
+			verifier:  cryptoutilSharedMagic.S256_CODE_CHALLENGE,
+			challenge: GenerateS256Challenge(cryptoutilSharedMagic.S256_CODE_CHALLENGE),
 			method:    "",
 			wantValid: true,
 		},
 		{
-			name:      "invalid_method",
-			verifier:  "test-verifier",
-			challenge: "test-challenge",
-			method:    "invalid-method",
+			name:      cryptoutilSharedMagic.INVALID_METHOD,
+			verifier:  cryptoutilSharedMagic.TEST_CODE_VERIFIER,
+			challenge: cryptoutilSharedMagic.TEST_CODE_CHALLENGE,
+			method:    cryptoutilSharedMagic.INVALID_METHOD,
 			wantValid: false,
 		},
 	}
@@ -245,32 +245,32 @@ func TestValidateS256(t *testing.T) {
 		expected  bool
 	}{
 		{
-			name:      "valid_verifier_and_challenge",
-			verifier:  "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk",
-			challenge: GenerateS256Challenge("dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk"),
+			name:      cryptoutilSharedMagic.S256_METHOD,
+			verifier:  cryptoutilSharedMagic.S256_CODE_CHALLENGE,
+			challenge: GenerateS256Challenge(cryptoutilSharedMagic.S256_CODE_CHALLENGE),
 			expected:  true,
 		},
 		{
-			name:      "invalid_verifier",
-			verifier:  "wrong-verifier",
-			challenge: GenerateS256Challenge("correct-verifier"),
+			name:      cryptoutilSharedMagic.S256_METHOD,
+			verifier:  cryptoutilSharedMagic.WRONG_VERIFIER,
+			challenge: GenerateS256Challenge(cryptoutilSharedMagic.S256_CODE_CHALLENGE),
 			expected:  false,
 		},
 		{
-			name:      "empty_verifier",
+			name:      cryptoutilSharedMagic.EMPTY_VERIFIER,
 			verifier:  "",
 			challenge: GenerateS256Challenge(""),
 			expected:  true,
 		},
 		{
-			name:      "empty_verifier_with_non_empty_challenge",
+			name:      cryptoutilSharedMagic.EMPTY_VERIFIER_WITH_NON_EMPTY_CHALLENGE,
 			verifier:  "",
-			challenge: GenerateS256Challenge("non-empty"),
+			challenge: GenerateS256Challenge(cryptoutilSharedMagic.NON_EMPTY),
 			expected:  false,
 		},
 		{
-			name:      "non_empty_verifier_with_empty_challenge",
-			verifier:  "non-empty",
+			name:      cryptoutilSharedMagic.NON_EMPTY_VERIFIER_WITH_EMPTY_CHALLENGE,
+			verifier:  cryptoutilSharedMagic.NON_EMPTY,
 			challenge: "",
 			expected:  false,
 		},
@@ -295,15 +295,15 @@ func TestPKCERoundtrip(t *testing.T) {
 		method string
 	}{
 		{
-			name:   "s256_method",
+			name:   cryptoutilSharedMagic.S256_METHOD,
 			method: cryptoutilSharedMagic.PKCEMethodS256,
 		},
 		{
-			name:   "plain_method",
+			name:   cryptoutilSharedMagic.PLAIN_METHOD,
 			method: cryptoutilSharedMagic.PKCEMethodPlain,
 		},
 		{
-			name:   "default_method_s256",
+			name:   cryptoutilSharedMagic.DEFAULT_METHOD_S256,
 			method: "",
 		},
 	}

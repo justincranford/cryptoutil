@@ -20,9 +20,9 @@ func TestClassifyFileType(t *testing.T) {
 		filename string
 		want     string
 	}{
-		{name: "compose yaml", filename: "compose.yml", want: fileTypeCompose},
+		{name: "compose yaml", filename: cryptoutilSharedMagic.COMPOSE_YML, want: fileTypeCompose},
 		{name: "compose yaml variant", filename: "compose-cryptoutil.yml", want: fileTypeCompose},
-		{name: "compose yaml extension", filename: "compose.yaml", want: fileTypeCompose},
+		{name: "compose yaml extension", filename: cryptoutilSharedMagic.COMPOSE_YAML, want: fileTypeCompose},
 		{name: "secret file", filename: "postgres_password.secret", want: fileTypeSecret},
 		{name: "never file", filename: "postgres_url.secret.never", want: fileTypeSecret},
 		{name: "dockerfile", filename: "Dockerfile", want: fileTypeDocker},
@@ -98,7 +98,7 @@ func TestGenerateDirectoryListing(t *testing.T) {
 		tmpDir := t.TempDir()
 
 		// Create test files.
-		createTestFile(t, tmpDir, "compose.yml", "")
+		createTestFile(t, tmpDir, cryptoutilSharedMagic.COMPOSE_YML, "")
 		createTestFile(t, tmpDir, "Dockerfile", "")
 		createTestDir(t, tmpDir, "secrets")
 		createTestFile(t, tmpDir, "secrets/db.secret", "")
@@ -111,7 +111,7 @@ func TestGenerateDirectoryListing(t *testing.T) {
 		require.Len(t, listing, 4)
 
 		// Verify compose.yml classification.
-		entry, ok := listing["compose.yml"]
+		entry, ok := listing[cryptoutilSharedMagic.COMPOSE_YML]
 		if !ok {
 			t.Error("missing compose.yml in listing")
 		} else {
@@ -141,7 +141,7 @@ func TestGenerateDirectoryListing(t *testing.T) {
 		t.Parallel()
 
 		tmpDir := t.TempDir()
-		createTestFile(t, tmpDir, "compose.yml", "")
+		createTestFile(t, tmpDir, cryptoutilSharedMagic.COMPOSE_YML, "")
 		createTestFile(t, tmpDir, "deployments-all-files.json", "{}")
 
 		listing, err := GenerateDirectoryListing(tmpDir)
@@ -162,7 +162,7 @@ func TestGenerateDeploymentsListing(t *testing.T) {
 		t.Parallel()
 
 		tmpDir := t.TempDir()
-		createTestFile(t, tmpDir, "compose.yml", "")
+		createTestFile(t, tmpDir, cryptoutilSharedMagic.COMPOSE_YML, "")
 		createTestDir(t, tmpDir, "secrets")
 		createTestFile(t, tmpDir, "secrets/db.secret", "")
 
@@ -262,7 +262,7 @@ func TestWriteListingFile(t *testing.T) {
 		t.Parallel()
 
 		tmpDir := t.TempDir()
-		createTestFile(t, tmpDir, "compose.yml", "")
+		createTestFile(t, tmpDir, cryptoutilSharedMagic.COMPOSE_YML, "")
 
 		outputPath := filepath.Join(tmpDir, "listing.json")
 

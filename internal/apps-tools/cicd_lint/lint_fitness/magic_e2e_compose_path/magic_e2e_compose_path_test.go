@@ -56,7 +56,7 @@ func createComposeFile(t *testing.T, tmpDir, psID string) {
 
 	deployDir := filepath.Join(tmpDir, "deployments", psID)
 	require.NoError(t, os.MkdirAll(deployDir, cryptoutilSharedMagic.CICDTempDirPermissions))
-	require.NoError(t, os.WriteFile(filepath.Join(deployDir, "compose.yml"), []byte("services: {}\n"), cryptoutilSharedMagic.FilePermissions))
+	require.NoError(t, os.WriteFile(filepath.Join(deployDir, cryptoutilSharedMagic.COMPOSE_YML), []byte("services: {}\n"), cryptoutilSharedMagic.FilePermissions))
 }
 
 // createE2EDir creates an empty e2e directory for a PS.

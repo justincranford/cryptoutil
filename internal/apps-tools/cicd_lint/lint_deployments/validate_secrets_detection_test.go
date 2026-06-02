@@ -75,7 +75,7 @@ func TestValidateSecrets_ComposeDockerComposeYml(t *testing.T) {
     environment:
       MY_SECRET: "inline-value"
 `
-	require.NoError(t, os.WriteFile(filepath.Join(dir, "docker-compose.yml"), []byte(compose), cryptoutilSharedMagic.CacheFilePermissions))
+	require.NoError(t, os.WriteFile(filepath.Join(dir, cryptoutilSharedMagic.DOCKER_COMPOSE_YML), []byte(compose), cryptoutilSharedMagic.CacheFilePermissions))
 
 	result, err := ValidateSecrets(dir)
 	require.NoError(t, err)
@@ -262,10 +262,9 @@ func TestFindComposeFile(t *testing.T) {
 		filename string
 		found    bool
 	}{
-		{"compose.yml", "compose.yml", true},
-		{"compose.yaml", "compose.yaml", true},
-		{"docker-compose.yml", "docker-compose.yml", true},
-		{"docker-compose.yaml", "docker-compose.yaml", true},
+		{cryptoutilSharedMagic.COMPOSE_YML, cryptoutilSharedMagic.COMPOSE_YML, true},
+		{cryptoutilSharedMagic.COMPOSE_YAML, cryptoutilSharedMagic.COMPOSE_YAML, true},
+		{cryptoutilSharedMagic.DOCKER_COMPOSE_YML, cryptoutilSharedMagic.DOCKER_COMPOSE_YML, true},
 		{"no compose", "", false},
 	}
 
@@ -341,7 +340,7 @@ func TestValidateSecrets_ComposeEnvNonStringValue(t *testing.T) {
     environment:
       DB_PASSWORD: 12345
 `
-	require.NoError(t, os.WriteFile(filepath.Join(dir, "compose.yml"), []byte(compose), cryptoutilSharedMagic.CacheFilePermissions))
+	require.NoError(t, os.WriteFile(filepath.Join(dir, cryptoutilSharedMagic.COMPOSE_YML), []byte(compose), cryptoutilSharedMagic.CacheFilePermissions))
 
 	result, err := ValidateSecrets(dir)
 	require.NoError(t, err)
@@ -352,7 +351,7 @@ func TestValidateSecrets_ComposeInvalidYAMLSilentSkip(t *testing.T) {
 	t.Parallel()
 	dir := t.TempDir()
 	invalidYAML := []byte("services:\n  - [invalid: yaml: {broken")
-	require.NoError(t, os.WriteFile(filepath.Join(dir, "compose.yml"), invalidYAML, cryptoutilSharedMagic.CacheFilePermissions))
+	require.NoError(t, os.WriteFile(filepath.Join(dir, cryptoutilSharedMagic.COMPOSE_YML), invalidYAML, cryptoutilSharedMagic.CacheFilePermissions))
 
 	result, err := ValidateSecrets(dir)
 	require.NoError(t, err)
@@ -370,7 +369,7 @@ func TestValidateSecrets_ComposeEnvSafeFileRef(t *testing.T) {
     environment:
       DB_SECRET: "file:///run/secrets/db_secret"
 `
-	require.NoError(t, os.WriteFile(filepath.Join(dir, "compose.yml"), []byte(compose), cryptoutilSharedMagic.CacheFilePermissions))
+	require.NoError(t, os.WriteFile(filepath.Join(dir, cryptoutilSharedMagic.COMPOSE_YML), []byte(compose), cryptoutilSharedMagic.CacheFilePermissions))
 
 	result, err := ValidateSecrets(dir)
 	require.NoError(t, err)
@@ -386,7 +385,7 @@ func TestValidateSecrets_ComposeEnvRunSecretsRef(t *testing.T) {
     environment:
       SOME_TOKEN_FILE: "/run/secrets/my_token"
 `
-	require.NoError(t, os.WriteFile(filepath.Join(dir, "compose.yml"), []byte(compose), cryptoutilSharedMagic.CacheFilePermissions))
+	require.NoError(t, os.WriteFile(filepath.Join(dir, cryptoutilSharedMagic.COMPOSE_YML), []byte(compose), cryptoutilSharedMagic.CacheFilePermissions))
 
 	result, err := ValidateSecrets(dir)
 	require.NoError(t, err)
@@ -402,7 +401,7 @@ func TestValidateSecrets_ComposeEnvNonSecretKey(t *testing.T) {
     environment:
       APP_PORT: "8080"
 `
-	require.NoError(t, os.WriteFile(filepath.Join(dir, "compose.yml"), []byte(compose), cryptoutilSharedMagic.CacheFilePermissions))
+	require.NoError(t, os.WriteFile(filepath.Join(dir, cryptoutilSharedMagic.COMPOSE_YML), []byte(compose), cryptoutilSharedMagic.CacheFilePermissions))
 
 	result, err := ValidateSecrets(dir)
 	require.NoError(t, err)

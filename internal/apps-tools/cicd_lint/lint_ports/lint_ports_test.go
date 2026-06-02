@@ -203,7 +203,7 @@ func TestLint(t *testing.T) {
 
 				return map[string][]string{
 					"go":         {writeTestFile(t, d, "main.go", "package main\n\nconst port = 8000\n")},
-					"yml":        {writeTestFile(t, d, "compose.yml", "services:\n  sm-kms:\n    ports:\n      - \"8000:8000\"\n    healthcheck:\n      test: [\"CMD\", \"wget\", \"-q\", \"-O\", \"/dev/null\", \"https://127.0.0.1:9090/admin/api/v1/livez\"]\n")},
+					"yml":        {writeTestFile(t, d, cryptoutilSharedMagic.COMPOSE_YML, "services:\n  sm-kms:\n    ports:\n      - \"8000:8000\"\n    healthcheck:\n      test: [\"CMD\", \"wget\", \"-q\", \"-O\", \"/dev/null\", \"https://127.0.0.1:9090/admin/api/v1/livez\"]\n")},
 					"dockerfile": {writeTestFile(t, d, "Dockerfile", "FROM alpine:latest\nHEALTHCHECK CMD wget -q -O /dev/null https://127.0.0.1:9090/admin/api/v1/livez\n")},
 				}
 			},

@@ -50,7 +50,7 @@ func TestBootstrapper_Bootstrap_PersistMaterialsError(t *testing.T) {
 
 	_, _, err := bootstrapper.Bootstrap(&RootCAConfig{
 		Name:              "Persist Fail Root",
-		KeySpec:           cryptoutilCACrypto.KeySpec{Type: cryptoutilCACrypto.KeyTypeECDSA, ECDSACurve: "P-256"},
+		KeySpec:           cryptoutilCACrypto.KeySpec{Type: cryptoutilSharedMagic.ECDSA, ECDSACurve: cryptoutilSharedMagic.P256},
 		ValidityDuration:  cryptoutilSharedMagic.JoseJADefaultMaxMaterials * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour,
 		PathLenConstraint: 1,
 		OutputDir:         filepath.Join(conflictFile, "subdir"),
@@ -98,7 +98,7 @@ func TestPersistMaterials_Bootstrap_MkdirError(t *testing.T) {
 
 	rootCA, _, err := b.Bootstrap(&RootCAConfig{
 		Name:              "Root CA Mkdir Error",
-		KeySpec:           cryptoutilCACrypto.KeySpec{Type: cryptoutilCACrypto.KeyTypeECDSA, ECDSACurve: "P-256"},
+		KeySpec:           cryptoutilCACrypto.KeySpec{Type: cryptoutilSharedMagic.ECDSA, ECDSACurve: cryptoutilSharedMagic.P256},
 		ValidityDuration:  cryptoutilSharedMagic.JoseJADefaultMaxMaterials * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour,
 		PathLenConstraint: 1,
 	})
@@ -127,7 +127,7 @@ func TestPersistMaterials_Bootstrap_CertWriteError(t *testing.T) {
 
 	rootCA, _, err := b.Bootstrap(&RootCAConfig{
 		Name:              "Root CA Cert Error",
-		KeySpec:           cryptoutilCACrypto.KeySpec{Type: cryptoutilCACrypto.KeyTypeECDSA, ECDSACurve: "P-256"},
+		KeySpec:           cryptoutilCACrypto.KeySpec{Type: cryptoutilSharedMagic.ECDSA, ECDSACurve: cryptoutilSharedMagic.P256},
 		ValidityDuration:  cryptoutilSharedMagic.JoseJADefaultMaxMaterials * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour,
 		PathLenConstraint: 1,
 	})
@@ -156,7 +156,7 @@ func TestPersistMaterials_Bootstrap_KeyWriteError(t *testing.T) {
 
 	rootCA, _, err := b.Bootstrap(&RootCAConfig{
 		Name:              "Key Write Error Root",
-		KeySpec:           cryptoutilCACrypto.KeySpec{Type: cryptoutilCACrypto.KeyTypeECDSA, ECDSACurve: "P-256"},
+		KeySpec:           cryptoutilCACrypto.KeySpec{Type: cryptoutilSharedMagic.ECDSA, ECDSACurve: cryptoutilSharedMagic.P256},
 		ValidityDuration:  cryptoutilSharedMagic.JoseJADefaultMaxMaterials * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour,
 		PathLenConstraint: 1,
 	})

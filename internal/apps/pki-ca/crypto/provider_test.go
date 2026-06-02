@@ -63,56 +63,59 @@ func TestSoftwareProvider_GenerateKeyPair(t *testing.T) {
 		},
 		{
 			name:    "ECDSA-P256",
-			spec:    KeySpec{Type: KeyTypeECDSA, ECDSACurve: "P-256"},
+			spec:    KeySpec{Type: cryptoutilSharedMagic.ECDSA, ECDSACurve: cryptoutilSharedMagic.P256},
 			wantErr: false,
 			checkType: func(t *testing.T, kp *KeyPair) {
 				t.Helper()
 
 				_, ok := kp.PrivateKey.(*ecdsa.PrivateKey)
 				require.True(t, ok, "expected ECDSA private key")
-				require.Equal(t, KeyTypeECDSA, kp.Type)
+				require.Equal(t, cryptoutilSharedMagic.ECDSA, kp.Type)
 				require.Equal(t, "ECDSA-P-256", kp.Algorithm)
 			},
 		},
 		{
 			name:    "ECDSA-P384",
-			spec:    KeySpec{Type: KeyTypeECDSA, ECDSACurve: "P-384"},
+			spec:    KeySpec{Type: cryptoutilSharedMagic.ECDSA, ECDSACurve: cryptoutilSharedMagic.P384},
 			wantErr: false,
 			checkType: func(t *testing.T, kp *KeyPair) {
 				t.Helper()
 
 				_, ok := kp.PrivateKey.(*ecdsa.PrivateKey)
 				require.True(t, ok, "expected ECDSA private key")
+				require.Equal(t, cryptoutilSharedMagic.ECDSA, kp.Type)
 				require.Equal(t, "ECDSA-P-384", kp.Algorithm)
 			},
 		},
 		{
 			name:    "ECDSA-P521",
-			spec:    KeySpec{Type: KeyTypeECDSA, ECDSACurve: "P-521"},
+			spec:    KeySpec{Type: cryptoutilSharedMagic.ECDSA, ECDSACurve: cryptoutilSharedMagic.P521},
 			wantErr: false,
 			checkType: func(t *testing.T, kp *KeyPair) {
 				t.Helper()
 
 				_, ok := kp.PrivateKey.(*ecdsa.PrivateKey)
 				require.True(t, ok, "expected ECDSA private key")
+				require.Equal(t, cryptoutilSharedMagic.ECDSA, kp.Type)
+				require.Equal(t, "ECDSA-P-521", kp.Algorithm)
 			},
 		},
 		{
 			name:        "ECDSA-invalid-curve",
-			spec:        KeySpec{Type: KeyTypeECDSA, ECDSACurve: "P-128"},
+			spec:        KeySpec{Type: cryptoutilSharedMagic.ECDSA, ECDSACurve: "P-128"},
 			wantErr:     true,
 			errContains: "unsupported ECDSA curve",
 		},
 		{
 			name:    "EdDSA-Ed25519",
-			spec:    KeySpec{Type: KeyTypeEdDSA, EdDSACurve: cryptoutilSharedMagic.EdCurveEd25519},
+			spec:    KeySpec{Type: cryptoutilSharedMagic.JoseAlgEdDSA, EdDSACurve: cryptoutilSharedMagic.EdCurveEd25519},
 			wantErr: false,
 			checkType: func(t *testing.T, kp *KeyPair) {
 				t.Helper()
 
 				_, ok := kp.PrivateKey.(ed25519.PrivateKey)
 				require.True(t, ok, "expected Ed25519 private key")
-				require.Equal(t, KeyTypeEdDSA, kp.Type)
+				require.Equal(t, cryptoutilSharedMagic.JoseAlgEdDSA, kp.Type)
 				require.Equal(t, cryptoutilSharedMagic.EdCurveEd25519, kp.Algorithm)
 			},
 		},
@@ -167,7 +170,7 @@ func TestSoftwareProvider_SignAndVerify(t *testing.T) {
 		},
 		{
 			name: "ECDSA-P256",
-			spec: KeySpec{Type: KeyTypeECDSA, ECDSACurve: "P-256"},
+			spec: KeySpec{Type: cryptoutilSharedMagic.ECDSA, ECDSACurve: cryptoutilSharedMagic.P256},
 			opts: crypto.SHA256,
 		},
 	}
@@ -222,13 +225,13 @@ func TestSoftwareProvider_VerifyInvalidSignature(t *testing.T) {
 			opts: crypto.SHA256,
 		},
 		{
-			name: "ECDSA",
-			spec: KeySpec{Type: KeyTypeECDSA, ECDSACurve: "P-256"},
+			name: cryptoutilSharedMagic.ECDSA,
+			spec: KeySpec{Type: cryptoutilSharedMagic.ECDSA, ECDSACurve: cryptoutilSharedMagic.P256},
 			opts: crypto.SHA256,
 		},
 		{
 			name: cryptoutilSharedMagic.JoseAlgEdDSA,
-			spec: KeySpec{Type: KeyTypeEdDSA, EdDSACurve: cryptoutilSharedMagic.EdCurveEd25519},
+			spec: KeySpec{Type: cryptoutilSharedMagic.JoseAlgEdDSA, EdDSACurve: cryptoutilSharedMagic.EdCurveEd25519},
 			opts: nil, // EdDSA uses pre-hashed, but for this test we pass the full message.
 		},
 	}
@@ -283,22 +286,22 @@ func TestSoftwareProvider_GetSignatureAlgorithm(t *testing.T) {
 		},
 		{
 			name:     "ECDSA-P256",
-			spec:     KeySpec{Type: KeyTypeECDSA, ECDSACurve: "P-256"},
+			spec:     KeySpec{Type: cryptoutilSharedMagic.ECDSA, ECDSACurve: cryptoutilSharedMagic.P256},
 			expected: x509.ECDSAWithSHA256,
 		},
 		{
 			name:     "ECDSA-P384",
-			spec:     KeySpec{Type: KeyTypeECDSA, ECDSACurve: "P-384"},
+			spec:     KeySpec{Type: cryptoutilSharedMagic.ECDSA, ECDSACurve: cryptoutilSharedMagic.P384},
 			expected: x509.ECDSAWithSHA384,
 		},
 		{
 			name:     "ECDSA-P521",
-			spec:     KeySpec{Type: KeyTypeECDSA, ECDSACurve: "P-521"},
+			spec:     KeySpec{Type: cryptoutilSharedMagic.ECDSA, ECDSACurve: cryptoutilSharedMagic.P521},
 			expected: x509.ECDSAWithSHA512,
 		},
 		{
 			name:     "EdDSA-Ed25519",
-			spec:     KeySpec{Type: KeyTypeEdDSA, EdDSACurve: cryptoutilSharedMagic.EdCurveEd25519},
+			spec:     KeySpec{Type: cryptoutilSharedMagic.JoseAlgEdDSA, EdDSACurve: cryptoutilSharedMagic.EdCurveEd25519},
 			expected: x509.PureEd25519,
 		},
 	}
@@ -358,13 +361,13 @@ func TestParseKeySpecFromConfig(t *testing.T) {
 		},
 		{
 			name:        "ECDSA-P256",
-			algorithm:   "ECDSA",
-			curveOrSize: "P-256",
+			algorithm:   cryptoutilSharedMagic.ECDSA,
+			curveOrSize: cryptoutilSharedMagic.P256,
 			wantErr:     false,
 			checkSpec: func(t *testing.T, spec KeySpec) {
 				t.Helper()
 				require.Equal(t, KeyTypeECDSA, spec.Type)
-				require.Equal(t, "P-256", spec.ECDSACurve)
+				require.Equal(t, cryptoutilSharedMagic.P256, spec.ECDSACurve)
 			},
 		},
 		{
@@ -374,7 +377,7 @@ func TestParseKeySpecFromConfig(t *testing.T) {
 			wantErr:     false,
 			checkSpec: func(t *testing.T, spec KeySpec) {
 				t.Helper()
-				require.Equal(t, KeyTypeEdDSA, spec.Type)
+				require.Equal(t, cryptoutilSharedMagic.JoseAlgEdDSA, spec.Type)
 				require.Equal(t, cryptoutilSharedMagic.EdCurveEd25519, spec.EdDSACurve)
 			},
 		},

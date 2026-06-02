@@ -125,7 +125,7 @@ func TestGetKeyInfo(t *testing.T) {
 
 				return &x509.Certificate{PublicKey: &key.PublicKey}
 			},
-			expectedAlgo:    "ECDSA",
+			expectedAlgo:    cryptoutilSharedMagic.ECDSA,
 			expectedMinSize: cryptoutilSharedMagic.MaxUnsealSharedSecrets,
 			expectedMaxSize: cryptoutilSharedMagic.MaxUnsealSharedSecrets,
 		},
@@ -136,7 +136,7 @@ func TestGetKeyInfo(t *testing.T) {
 
 				return &x509.Certificate{PublicKey: &key.PublicKey}
 			},
-			expectedAlgo:    "ECDSA",
+			expectedAlgo:    cryptoutilSharedMagic.ECDSA,
 			expectedMinSize: cryptoutilSharedMagic.SymmetricKeySize384,
 			expectedMaxSize: cryptoutilSharedMagic.SymmetricKeySize384,
 		},

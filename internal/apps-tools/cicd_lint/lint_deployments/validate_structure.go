@@ -5,6 +5,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // ValidateDeploymentStructure validates a deployment directory against expected structure.
@@ -252,7 +254,7 @@ func validateSuiteSecrets(basePath string, result *ValidationResult) {
 // checkHardcodedCredentials scans compose.yml files for hardcoded database credentials.
 // CRITICAL: ALL database credentials MUST use Docker secrets, NEVER hardcoded values.
 func checkHardcodedCredentials(basePath string, result *ValidationResult) {
-	composeFiles := []string{"compose.yml", "compose.yaml"}
+	composeFiles := []string{cryptoutilSharedMagic.COMPOSE_YML, cryptoutilSharedMagic.COMPOSE_YAML}
 
 	for _, filename := range composeFiles {
 		composePath := filepath.Join(basePath, filename)

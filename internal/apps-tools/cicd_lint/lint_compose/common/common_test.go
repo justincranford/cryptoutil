@@ -5,7 +5,11 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
+
+const testConfigYML = "config.yml"
 
 func TestFindComposeFiles(t *testing.T) {
 	t.Parallel()
@@ -21,45 +25,45 @@ func TestFindComposeFiles(t *testing.T) {
 			expected: 0,
 		},
 		{
-			name: "compose.yml",
+			name: cryptoutilSharedMagic.COMPOSE_YML,
 			files: map[string][]string{
-				"yml": {"compose.yml"},
+				cryptoutilSharedMagic.YML: {cryptoutilSharedMagic.COMPOSE_YML},
 			},
 			expected: 1,
 		},
 		{
-			name: "docker-compose.yml",
+			name: cryptoutilSharedMagic.DOCKER_COMPOSE_YML,
 			files: map[string][]string{
-				"yml": {"docker-compose.yml"},
+				cryptoutilSharedMagic.YML: {cryptoutilSharedMagic.DOCKER_COMPOSE_YML},
 			},
 			expected: 1,
 		},
 		{
-			name: "compose.yaml",
+			name: cryptoutilSharedMagic.COMPOSE_YAML,
 			files: map[string][]string{
-				"yaml": {"compose.yaml"},
+				cryptoutilSharedMagic.YAML: {cryptoutilSharedMagic.COMPOSE_YAML},
 			},
 			expected: 1,
 		},
 		{
 			name: "multiple compose files",
 			files: map[string][]string{
-				"yml":  {"compose.yml", "docker-compose.yml", "compose.demo.yml"},
-				"yaml": {"compose.yaml"},
+				cryptoutilSharedMagic.YML:  {cryptoutilSharedMagic.COMPOSE_YML, cryptoutilSharedMagic.DOCKER_COMPOSE_YML, "compose.demo.yml"},
+				cryptoutilSharedMagic.YAML: {cryptoutilSharedMagic.COMPOSE_YAML},
 			},
 			expected: 4,
 		},
 		{
 			name: "non-compose yml files",
 			files: map[string][]string{
-				"yml": {"config.yml", "settings.yml"},
+				cryptoutilSharedMagic.YML: {testConfigYML, "settings.yml"},
 			},
 			expected: 0,
 		},
 		{
 			name: "mixed files",
 			files: map[string][]string{
-				"yml": {"compose.yml", "config.yml"},
+				cryptoutilSharedMagic.YML: {cryptoutilSharedMagic.COMPOSE_YML, testConfigYML},
 			},
 			expected: 1,
 		},

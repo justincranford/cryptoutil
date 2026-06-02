@@ -82,7 +82,7 @@ func TestHandleAuthorizationCodeGrant_ErrorPaths(t *testing.T) {
 				err = authReqRepo.Create(ctx, authReq)
 				require.NoError(t, err, "Failed to create authorization request")
 
-				verifier := "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk" // Valid verifier for challenge above
+				verifier := cryptoutilSharedMagic.S256_CODE_CHALLENGE // Valid verifier for challenge above
 
 				return clientID, authCode, cryptoutilSharedMagic.TestRedirectURI, verifier
 			},

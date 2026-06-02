@@ -10,6 +10,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const templateServiceComposeFile = "compose-cryptoutil-PRODUCT-SERVICE.yml"
+
 // createValidTemplateDir sets up a minimal valid template directory structure.
 func createValidTemplateDir(t *testing.T) string {
 	t.Helper()
@@ -26,10 +28,10 @@ func createValidTemplateDir(t *testing.T) string {
 	suiteContent := "name: cryptoutil\nservices:\n  sm-kms-sqlite:\n    ports:\n      - \"28000:8080\"\n"
 	baseContent := "name: PRODUCT-SERVICE\nservices:\n  PRODUCT-SERVICE-sqlite:\n    image: local\n"
 
-	require.NoError(t, os.WriteFile(filepath.Join(dir, "compose-cryptoutil-PRODUCT-SERVICE.yml"), []byte(serviceContent), cryptoutilSharedMagic.CacheFilePermissions))
+	require.NoError(t, os.WriteFile(filepath.Join(dir, templateServiceComposeFile), []byte(serviceContent), cryptoutilSharedMagic.CacheFilePermissions))
 	require.NoError(t, os.WriteFile(filepath.Join(dir, "compose-cryptoutil-PRODUCT.yml"), []byte(productContent), cryptoutilSharedMagic.CacheFilePermissions))
 	require.NoError(t, os.WriteFile(filepath.Join(dir, "compose-cryptoutil.yml"), []byte(suiteContent), cryptoutilSharedMagic.CacheFilePermissions))
-	require.NoError(t, os.WriteFile(filepath.Join(dir, "compose.yml"), []byte(baseContent), cryptoutilSharedMagic.CacheFilePermissions))
+	require.NoError(t, os.WriteFile(filepath.Join(dir, cryptoutilSharedMagic.COMPOSE_YML), []byte(baseContent), cryptoutilSharedMagic.CacheFilePermissions))
 
 	// Config files.
 	for _, f := range requiredTemplateConfigFiles {
@@ -130,12 +132,12 @@ func TestValidateTemplatePattern_Violations(t *testing.T) {
 				t.Helper()
 
 				dir := createValidTemplateDir(t)
-				require.NoError(t, os.Remove(filepath.Join(dir, "compose.yml")))
-				require.NoError(t, os.Remove(filepath.Join(dir, "compose-cryptoutil-PRODUCT-SERVICE.yml")))
+				require.NoError(t, os.Remove(filepath.Join(dir, cryptoutilSharedMagic.COMPOSE_YML)))
+				require.NoError(t, os.Remove(filepath.Join(dir, templateServiceComposeFile)))
 
 				return dir
 			},
-			wantContains: []string{"compose.yml", "compose-cryptoutil-PRODUCT-SERVICE.yml"},
+			wantContains: []string{cryptoutilSharedMagic.COMPOSE_YML, templateServiceComposeFile},
 		},
 		{
 			name: "missing config dir",
@@ -192,7 +194,7 @@ func TestValidateTemplatePattern_Violations(t *testing.T) {
 
 				dir := createValidTemplateDir(t)
 				content := "name: my-service\nservices:\n  PRODUCT-SERVICE-sqlite:\n    ports:\n      - \"8080:8080\"\n"
-				require.NoError(t, os.WriteFile(filepath.Join(dir, "compose-cryptoutil-PRODUCT-SERVICE.yml"), []byte(content), cryptoutilSharedMagic.CacheFilePermissions))
+				require.NoError(t, os.WriteFile(filepath.Join(dir, templateServiceComposeFile), []byte(content), cryptoutilSharedMagic.CacheFilePermissions))
 
 				return dir
 			},
@@ -229,11 +231,11 @@ func TestValidateTemplatePattern_Violations(t *testing.T) {
 				t.Helper()
 
 				dir := createValidTemplateDir(t)
-				require.NoError(t, os.Remove(filepath.Join(dir, "compose-cryptoutil-PRODUCT-SERVICE.yml")))
+				require.NoError(t, os.Remove(filepath.Join(dir, templateServiceComposeFile)))
 
 				return dir
 			},
-			wantContains: []string{"compose-cryptoutil-PRODUCT-SERVICE.yml"},
+			wantContains: []string{templateServiceComposeFile},
 		},
 	}
 	for _, tc := range tests {

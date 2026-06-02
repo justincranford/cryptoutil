@@ -23,7 +23,7 @@ func TestBootstrapper_Bootstrap_ECDSA(t *testing.T) {
 	config := &RootCAConfig{
 		Name: "Test Root CA",
 		KeySpec: cryptoutilCACrypto.KeySpec{
-			Type:       cryptoutilCACrypto.KeyTypeECDSA,
+			Type:       cryptoutilSharedMagic.ECDSA,
 			ECDSACurve: "P-256",
 		},
 		ValidityDuration:  cryptoutilSharedMagic.JoseJADefaultMaxMaterials * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour, // 10 years.
@@ -53,7 +53,7 @@ func TestBootstrapper_Bootstrap_ECDSA(t *testing.T) {
 	require.Equal(t, "Test Root CA", audit.CAName)
 	require.NotEmpty(t, audit.SerialNumber)
 	require.NotEmpty(t, audit.Fingerprint)
-	require.Equal(t, "ECDSA", audit.KeyAlgorithm)
+	require.Equal(t, cryptoutilSharedMagic.ECDSA, audit.KeyAlgorithm)
 }
 
 func TestBootstrapper_Bootstrap_RSA(t *testing.T) {
@@ -65,7 +65,7 @@ func TestBootstrapper_Bootstrap_RSA(t *testing.T) {
 	config := &RootCAConfig{
 		Name: "RSA Root CA",
 		KeySpec: cryptoutilCACrypto.KeySpec{
-			Type:    cryptoutilCACrypto.KeyTypeRSA,
+			Type:    cryptoutilSharedMagic.KeyTypeRSA,
 			RSABits: cryptoutilCACrypto.MinRSAKeyBits,
 		},
 		ValidityDuration:  cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour,
@@ -92,7 +92,7 @@ func TestBootstrapper_Bootstrap_EdDSA(t *testing.T) {
 	config := &RootCAConfig{
 		Name: "EdDSA Root CA",
 		KeySpec: cryptoutilCACrypto.KeySpec{
-			Type:       cryptoutilCACrypto.KeyTypeEdDSA,
+			Type:       cryptoutilSharedMagic.JoseAlgEdDSA,
 			EdDSACurve: cryptoutilSharedMagic.EdCurveEd25519,
 		},
 		ValidityDuration:  3 * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour,
@@ -131,7 +131,7 @@ func TestBootstrapper_Bootstrap_WithSubjectProfile(t *testing.T) {
 		Name:           "Enterprise Root CA",
 		SubjectProfile: subjectProfile,
 		KeySpec: cryptoutilCACrypto.KeySpec{
-			Type:       cryptoutilCACrypto.KeyTypeECDSA,
+			Type:       cryptoutilSharedMagic.ECDSA,
 			ECDSACurve: "P-384",
 		},
 		ValidityDuration:  cryptoutilSharedMagic.MaxErrorDisplay * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour,
@@ -165,7 +165,7 @@ func TestBootstrapper_Bootstrap_WithPersistence(t *testing.T) {
 	config := &RootCAConfig{
 		Name: "Persisted Root CA",
 		KeySpec: cryptoutilCACrypto.KeySpec{
-			Type:       cryptoutilCACrypto.KeyTypeECDSA,
+			Type:       cryptoutilSharedMagic.ECDSA,
 			ECDSACurve: "P-256",
 		},
 		ValidityDuration:  1 * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour,
@@ -217,7 +217,7 @@ func TestBootstrapper_Bootstrap_InvalidConfig(t *testing.T) {
 			name: "empty-name",
 			config: &RootCAConfig{
 				KeySpec: cryptoutilCACrypto.KeySpec{
-					Type:       cryptoutilCACrypto.KeyTypeECDSA,
+					Type:       cryptoutilSharedMagic.ECDSA,
 					ECDSACurve: "P-256",
 				},
 				ValidityDuration: 1 * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour,
@@ -229,7 +229,7 @@ func TestBootstrapper_Bootstrap_InvalidConfig(t *testing.T) {
 			config: &RootCAConfig{
 				Name: "Test CA",
 				KeySpec: cryptoutilCACrypto.KeySpec{
-					Type:       cryptoutilCACrypto.KeyTypeECDSA,
+					Type:       cryptoutilSharedMagic.ECDSA,
 					ECDSACurve: "P-256",
 				},
 				ValidityDuration: 0,
@@ -241,7 +241,7 @@ func TestBootstrapper_Bootstrap_InvalidConfig(t *testing.T) {
 			config: &RootCAConfig{
 				Name: "Test CA",
 				KeySpec: cryptoutilCACrypto.KeySpec{
-					Type:       cryptoutilCACrypto.KeyTypeECDSA,
+					Type:       cryptoutilSharedMagic.ECDSA,
 					ECDSACurve: "P-256",
 				},
 				ValidityDuration:  1 * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour,
@@ -275,7 +275,7 @@ func TestBootstrapper_Bootstrap_CertificateValidity(t *testing.T) {
 	config := &RootCAConfig{
 		Name: "Validity Test CA",
 		KeySpec: cryptoutilCACrypto.KeySpec{
-			Type:       cryptoutilCACrypto.KeyTypeECDSA,
+			Type:       cryptoutilSharedMagic.ECDSA,
 			ECDSACurve: "P-256",
 		},
 		ValidityDuration:  validityDuration,

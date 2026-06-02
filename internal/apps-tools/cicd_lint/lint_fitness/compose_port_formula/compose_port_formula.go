@@ -24,6 +24,8 @@ import (
 	"strconv"
 	"strings"
 
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps-tools/cicd_lint/common"
 	lintFitnessRegistry "cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/registry"
 )
@@ -66,11 +68,11 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string, allSuite
 	for _, ps := range lintFitnessRegistry.AllProductServices() {
 		tiers := []tierConfig{
 			{
-				composePath: filepath.Join("deployments", ps.PSID, "compose.yml"),
+				composePath: filepath.Join("deployments", ps.PSID, cryptoutilSharedMagic.COMPOSE_YML),
 				tierOffset:  lintFitnessRegistry.PortTierOffsetService,
 			},
 			{
-				composePath: filepath.Join("deployments", ps.Product, "compose.yml"),
+				composePath: filepath.Join("deployments", ps.Product, cryptoutilSharedMagic.COMPOSE_YML),
 				tierOffset:  lintFitnessRegistry.PortTierOffsetProduct,
 			},
 		}
@@ -78,7 +80,7 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string, allSuite
 		// Add suite tier if registry defines at least one suite.
 		if suites := allSuitesFn(); len(suites) > 0 {
 			tiers = append(tiers, tierConfig{
-				composePath: filepath.Join("deployments", suites[0].ID, "compose.yml"),
+				composePath: filepath.Join("deployments", suites[0].ID, cryptoutilSharedMagic.COMPOSE_YML),
 				tierOffset:  lintFitnessRegistry.PortTierOffsetSuite,
 			})
 		}

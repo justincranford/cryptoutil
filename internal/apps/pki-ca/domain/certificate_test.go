@@ -8,6 +8,8 @@ import (
 	"testing"
 
 	testify "github.com/stretchr/testify/require"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 func TestCAType_Constants(t *testing.T) {
@@ -18,9 +20,9 @@ func TestCAType_Constants(t *testing.T) {
 		caType   CAType
 		expected string
 	}{
-		{name: "root", caType: CATypeRoot, expected: "root"},
-		{name: "intermediate", caType: CATypeIntermediate, expected: "intermediate"},
-		{name: "issuing", caType: CATypeIssuing, expected: "issuing"},
+		{name: cryptoutilSharedMagic.ROOT, caType: CATypeRoot, expected: cryptoutilSharedMagic.ROOT},
+		{name: cryptoutilSharedMagic.INTERMEDIATE, caType: CATypeIntermediate, expected: cryptoutilSharedMagic.INTERMEDIATE},
+		{name: cryptoutilSharedMagic.ISSUING, caType: CATypeIssuing, expected: cryptoutilSharedMagic.ISSUING},
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
@@ -38,11 +40,11 @@ func TestCAStatus_Constants(t *testing.T) {
 		status   CAStatus
 		expected string
 	}{
-		{name: "active", status: CAStatusActive, expected: "active"},
-		{name: "pending", status: CAStatusPending, expected: "pending"},
-		{name: "suspended", status: CAStatusSuspended, expected: "suspended"},
-		{name: "revoked", status: CAStatusRevoked, expected: "revoked"},
-		{name: "expired", status: CAStatusExpired, expected: "expired"},
+		{name: cryptoutilSharedMagic.ACTIVE, status: CAStatusActive, expected: cryptoutilSharedMagic.ACTIVE},
+		{name: cryptoutilSharedMagic.PENDING, status: CAStatusPending, expected: cryptoutilSharedMagic.PENDING},
+		{name: cryptoutilSharedMagic.SUSPENDED, status: CAStatusSuspended, expected: cryptoutilSharedMagic.SUSPENDED},
+		{name: cryptoutilSharedMagic.REVOKED, status: CAStatusRevoked, expected: cryptoutilSharedMagic.REVOKED},
+		{name: cryptoutilSharedMagic.EXPIRED, status: CAStatusExpired, expected: cryptoutilSharedMagic.EXPIRED},
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
@@ -56,13 +58,13 @@ func TestCertificateAuthority_Struct(t *testing.T) {
 	t.Parallel()
 
 	ca := CertificateAuthority{
-		Name:      "test-ca",
+		Name:      cryptoutilSharedMagic.TEST_CA_NAME,
 		Type:      CATypeRoot,
 		Status:    CAStatusPending,
-		SubjectCN: "Test CA",
-		IssuerCN:  "Test CA",
+		SubjectCN: cryptoutilSharedMagic.TEST_CA_CN,
+		IssuerCN:  cryptoutilSharedMagic.TEST_CA_CN,
 	}
-	testify.Equal(t, "test-ca", ca.Name)
+	testify.Equal(t, cryptoutilSharedMagic.TEST_CA_NAME, ca.Name)
 	testify.Equal(t, CATypeRoot, ca.Type)
 	testify.Equal(t, CAStatusPending, ca.Status)
 	testify.Nil(t, ca.ParentID)

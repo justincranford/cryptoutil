@@ -28,6 +28,8 @@ import (
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps-tools/cicd_lint/common"
 	lintFitnessRegistry "cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/registry"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // Check validates deployment directory completeness from the workspace root.
@@ -67,7 +69,7 @@ func checkDeploymentDir(rootDir, psID string) []string {
 	}
 
 	// 2. compose.yml
-	if _, err := os.Stat(filepath.Join(deployDir, "compose.yml")); os.IsNotExist(err) {
+	if _, err := os.Stat(filepath.Join(deployDir, cryptoutilSharedMagic.COMPOSE_YML)); os.IsNotExist(err) {
 		violations = append(violations, fmt.Sprintf("%s: missing deployments/%s/compose.yml", psID, psID))
 	}
 

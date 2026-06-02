@@ -11,6 +11,7 @@ const (
 	DeploymentTypeProductService = "PRODUCT-SERVICE"
 	DeploymentTypeInfrastructure = "infrastructure"
 	DeploymentTypeTemplate       = cryptoutilSharedMagic.SkeletonTemplateServiceName
+	deploymentDockerfileName     = "Dockerfile"
 )
 
 // DeploymentStructure defines expected directory structure for each deployment type.
@@ -30,7 +31,7 @@ func GetExpectedStructures() map[string]DeploymentStructure {
 		cryptoutilSharedMagic.SkeletonTemplateServiceName: {
 			Name:          "Template deployment (deployments/template/)",
 			RequiredDirs:  []string{"secrets"},
-			RequiredFiles: []string{"compose.yml"},
+			RequiredFiles: []string{cryptoutilSharedMagic.COMPOSE_YML},
 			RequiredSecrets: []string{
 				"hash_pepper_v3.secret", "unseal_1of5.secret", "unseal_2of5.secret",
 				"unseal_3of5.secret", "unseal_4of5.secret", "unseal_5of5.secret",
@@ -42,7 +43,7 @@ func GetExpectedStructures() map[string]DeploymentStructure {
 		DeploymentTypeProductService: {
 			Name:          "PRODUCT-SERVICE deployment (e.g., sm-kms, sm-kms)",
 			RequiredDirs:  []string{"secrets", "config"},
-			RequiredFiles: []string{"compose.yml", "Dockerfile"},
+			RequiredFiles: []string{cryptoutilSharedMagic.COMPOSE_YML, deploymentDockerfileName},
 			OptionalFiles: []string{}, // no optional files
 			RequiredSecrets: []string{
 				"hash_pepper_v3.secret", "unseal_1of5.secret", "unseal_2of5.secret",
@@ -55,7 +56,7 @@ func GetExpectedStructures() map[string]DeploymentStructure {
 		DeploymentTypeProduct: {
 			Name:              "PRODUCT-level deployment (e.g., identity, sm, pki, jose, skeleton)",
 			RequiredDirs:      []string{"secrets"},
-			RequiredFiles:     []string{"compose.yml"},
+			RequiredFiles:     []string{cryptoutilSharedMagic.COMPOSE_YML},
 			OptionalFiles:     []string{}, // no optional files
 			RequiredSecrets:   []string{}, // Validated by validateProductSecrets() with product-specific prefixes
 			AllowedExtensions: []string{".yml", ".yaml", cryptoutilSharedMagic.CICDTemplateSecretFileSuffix, cryptoutilSharedMagic.CICDTemplateSecretFileNeverSuffix, ".md"},
@@ -63,7 +64,7 @@ func GetExpectedStructures() map[string]DeploymentStructure {
 		DeploymentTypeSuite: {
 			Name:              "SUITE-level deployment (cryptoutil - all 10 services)",
 			RequiredDirs:      []string{"secrets"},
-			RequiredFiles:     []string{"compose.yml", "Dockerfile"},
+			RequiredFiles:     []string{cryptoutilSharedMagic.COMPOSE_YML, deploymentDockerfileName},
 			OptionalFiles:     []string{}, // no optional files
 			RequiredSecrets:   []string{}, // Validated by validateSuiteSecrets() with suite-specific prefixes
 			AllowedExtensions: []string{".yml", ".yaml", cryptoutilSharedMagic.CICDTemplateSecretFileSuffix, cryptoutilSharedMagic.CICDTemplateSecretFileNeverSuffix, ".md"},
@@ -71,7 +72,7 @@ func GetExpectedStructures() map[string]DeploymentStructure {
 		"infrastructure": {
 			Name:              "Infrastructure deployment (postgres, telemetry)",
 			RequiredDirs:      []string{},
-			RequiredFiles:     []string{"compose.yml"},
+			RequiredFiles:     []string{cryptoutilSharedMagic.COMPOSE_YML},
 			OptionalFiles:     []string{"init-db.sql", "README.md"},
 			RequiredSecrets:   []string{}, // Infrastructure secrets are optional
 			AllowedExtensions: []string{".yml", ".yaml", ".sql", ".md"},

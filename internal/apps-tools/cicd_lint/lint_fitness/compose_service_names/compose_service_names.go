@@ -20,6 +20,8 @@ import (
 
 	"gopkg.in/yaml.v3"
 
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps-tools/cicd_lint/common"
 	lintFitnessRegistry "cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/registry"
 )
@@ -81,7 +83,7 @@ func buildValidServiceSet() map[string]struct{} {
 func checkServiceNames(rootDir, psID string, validSet map[string]struct{}) []string {
 	var violations []string
 
-	composePath := filepath.Join(rootDir, "deployments", psID, "compose.yml")
+	composePath := filepath.Join(rootDir, "deployments", psID, cryptoutilSharedMagic.COMPOSE_YML)
 
 	data, err := os.ReadFile(composePath)
 	if err != nil {

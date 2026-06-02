@@ -107,7 +107,7 @@ func TestValidateNaming_ValidCases(t *testing.T) {
 
 				dir := t.TempDir()
 				content := "services:\n  my-service:\n    image: nginx\n  another-service-123:\n    image: postgres\n"
-				require.NoError(t, os.WriteFile(filepath.Join(dir, "compose.yml"), []byte(content), cryptoutilSharedMagic.CacheFilePermissions))
+				require.NoError(t, os.WriteFile(filepath.Join(dir, cryptoutilSharedMagic.COMPOSE_YML), []byte(content), cryptoutilSharedMagic.CacheFilePermissions))
 
 				return dir
 			},
@@ -152,7 +152,7 @@ func TestValidateNaming_ValidCases(t *testing.T) {
 				t.Helper()
 
 				dir := t.TempDir()
-				require.NoError(t, os.WriteFile(filepath.Join(dir, "compose.yml"), []byte("services:\n"), cryptoutilSharedMagic.CacheFilePermissions))
+				require.NoError(t, os.WriteFile(filepath.Join(dir, cryptoutilSharedMagic.COMPOSE_YML), []byte("services:\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
 				return dir
 			},
@@ -227,7 +227,7 @@ func TestValidateNaming_Violations(t *testing.T) {
 
 				dir := t.TempDir()
 				content := "services:\n  my_service:\n    image: nginx\n  AnotherService:\n    image: postgres\n"
-				require.NoError(t, os.WriteFile(filepath.Join(dir, "docker-compose.yml"), []byte(content), cryptoutilSharedMagic.CacheFilePermissions))
+				require.NoError(t, os.WriteFile(filepath.Join(dir, cryptoutilSharedMagic.DOCKER_COMPOSE_YML), []byte(content), cryptoutilSharedMagic.CacheFilePermissions))
 
 				return dir
 			},
@@ -261,7 +261,7 @@ func TestValidateNaming_Violations(t *testing.T) {
 				t.Helper()
 
 				dir := t.TempDir()
-				require.NoError(t, os.MkdirAll(filepath.Join(dir, "compose.yml"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+				require.NoError(t, os.MkdirAll(filepath.Join(dir, cryptoutilSharedMagic.COMPOSE_YML), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 				return dir
 			},
@@ -427,7 +427,7 @@ func TestValidateNaming_ComposeInvalidYAML(t *testing.T) {
 
 	dir := t.TempDir()
 	invalidYAML := []byte("services:\n  - invalid: [yaml: {broken")
-	require.NoError(t, os.WriteFile(filepath.Join(dir, "compose.yml"), invalidYAML, cryptoutilSharedMagic.CacheFilePermissions))
+	require.NoError(t, os.WriteFile(filepath.Join(dir, cryptoutilSharedMagic.COMPOSE_YML), invalidYAML, cryptoutilSharedMagic.CacheFilePermissions))
 
 	result, err := ValidateNaming(dir)
 	require.NoError(t, err)
@@ -444,7 +444,7 @@ func TestValidateNaming_ComposeReadableFileError(t *testing.T) {
 	}
 
 	dir := t.TempDir()
-	composePath := filepath.Join(dir, "compose.yml")
+	composePath := filepath.Join(dir, cryptoutilSharedMagic.COMPOSE_YML)
 	require.NoError(t, os.WriteFile(composePath, []byte("services:\n  web: {}\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
 	require.NoError(t, os.Chmod(composePath, 0o000))

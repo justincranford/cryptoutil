@@ -10,6 +10,7 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"strconv"
 	"strings"
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
@@ -45,6 +46,38 @@ const MagicMinStringLen = 3
 const (
 	magicExcludeDirWorkflowReports = "workflow-reports"
 )
+
+var magicTrivialStrings = map[string]bool{
+	"yml":  true,
+	"yaml": true,
+}
+
+var magicUsageIgnoredLiteralValues = map[string]bool{
+	// Generic lifecycle/state labels used broadly across domains.
+	strconv.Quote(cryptoutilSharedMagic.ROOT):         true,
+	strconv.Quote(cryptoutilSharedMagic.INTERMEDIATE): true,
+	strconv.Quote(cryptoutilSharedMagic.ISSUING):      true,
+	strconv.Quote(cryptoutilSharedMagic.ACTIVE):       true,
+	strconv.Quote(cryptoutilSharedMagic.PENDING):      true,
+	strconv.Quote(cryptoutilSharedMagic.SUSPENDED):    true,
+	strconv.Quote(cryptoutilSharedMagic.REVOKED):      true,
+	strconv.Quote(cryptoutilSharedMagic.EXPIRED):      true,
+
+	// Widely-used PKI test labels and curve names.
+	strconv.Quote(cryptoutilSharedMagic.TEST_CA_NAME): true,
+	strconv.Quote(cryptoutilSharedMagic.TEST_CA_CN):   true,
+	strconv.Quote(cryptoutilSharedMagic.P256):         true,
+	strconv.Quote(cryptoutilSharedMagic.P384):         true,
+	strconv.Quote(cryptoutilSharedMagic.P521):         true,
+
+	// Domain table names are schema identifiers, not reusable business literals.
+	strconv.Quote(cryptoutilSharedMagic.CA_ITEMS):            true,
+	strconv.Quote(cryptoutilSharedMagic.TEMPLATE_ITEMS):      true,
+	strconv.Quote(cryptoutilSharedMagic.ELASTIC_JWKS):        true,
+	strconv.Quote(cryptoutilSharedMagic.MATERIAL_JWKS):       true,
+	strconv.Quote(cryptoutilSharedMagic.TENANT_AUDIT_CONFIG): true,
+	strconv.Quote(cryptoutilSharedMagic.AUDIT_LOG):           true,
+}
 
 // MagicTrivialInts is the set of integer literal strings too common to be meaningful.
 var MagicTrivialInts = map[string]bool{
@@ -129,6 +162,10 @@ func ParseMagicDir(magicDir string) (*MagicInventory, error) {
 							continue // derived constant, skip.
 						}
 
+						if magicUsageIgnoredLiteralValues[lit.Value] {
+							continue
+						}
+
 						pos := fset.Position(lit.Pos())
 						isTest := relFile == "magic_testing.go" || strings.HasPrefix(nameIdent.Name, "Test")
 						mc := MagicConstant{
@@ -169,6 +206,10 @@ func IsMagicTrivialLiteral(lit *ast.BasicLit) bool {
 		raw := lit.Value
 		if len(raw) >= 2 {
 			raw = raw[1 : len(raw)-1]
+		}
+
+		if magicTrivialStrings[raw] {
+			return true
 		}
 
 		return len(raw) < MagicMinStringLen

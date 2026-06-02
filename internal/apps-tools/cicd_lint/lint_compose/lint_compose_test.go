@@ -28,7 +28,7 @@ func TestLint_ValidComposeFile(t *testing.T) {
 
 	// Create temp dir with valid compose file.
 	tempDir := t.TempDir()
-	composeFile := filepath.Join(tempDir, "docker-compose.yml")
+	composeFile := filepath.Join(tempDir, cryptoutilSharedMagic.DOCKER_COMPOSE_YML)
 
 	validContent := `version: '3.8'
 services:
@@ -57,7 +57,7 @@ func TestLint_AdminPortExposed(t *testing.T) {
 
 	// Create temp dir with violating compose file.
 	tempDir := t.TempDir()
-	composeFile := filepath.Join(tempDir, "compose.yml")
+	composeFile := filepath.Join(tempDir, cryptoutilSharedMagic.COMPOSE_YML)
 
 	violatingContent := `version: '3.8'
 services:
@@ -85,7 +85,7 @@ func TestLint_AdminPortMappedToDifferentHost(t *testing.T) {
 
 	// Create temp dir with violating compose file.
 	tempDir := t.TempDir()
-	composeFile := filepath.Join(tempDir, "compose.yml")
+	composeFile := filepath.Join(tempDir, cryptoutilSharedMagic.COMPOSE_YML)
 
 	violatingContent := `version: '3.8'
 services:
@@ -111,7 +111,7 @@ func TestLint_PortRangeToAdmin(t *testing.T) {
 
 	// Create temp dir with violating compose file.
 	tempDir := t.TempDir()
-	composeFile := filepath.Join(tempDir, "compose.yml")
+	composeFile := filepath.Join(tempDir, cryptoutilSharedMagic.COMPOSE_YML)
 
 	violatingContent := `version: '3.8'
 services:
@@ -137,7 +137,7 @@ func TestLint_CommentedOutAdminPort(t *testing.T) {
 
 	// Create temp dir with valid compose file (commented out violation).
 	tempDir := t.TempDir()
-	composeFile := filepath.Join(tempDir, "compose.yml")
+	composeFile := filepath.Join(tempDir, cryptoutilSharedMagic.COMPOSE_YML)
 
 	validContent := `version: '3.8'
 services:
@@ -164,7 +164,7 @@ func TestLint_QuotedPortMapping(t *testing.T) {
 
 	// Create temp dir with violating compose file using quoted port.
 	tempDir := t.TempDir()
-	composeFile := filepath.Join(tempDir, "compose.yml")
+	composeFile := filepath.Join(tempDir, cryptoutilSharedMagic.COMPOSE_YML)
 
 	violatingContent := `version: '3.8'
 services:
@@ -190,8 +190,8 @@ func TestLint_MultipleViolations(t *testing.T) {
 
 	// Create temp dir with multiple violating compose files.
 	tempDir := t.TempDir()
-	composeFile1 := filepath.Join(tempDir, "compose.yml")
-	composeFile2 := filepath.Join(tempDir, "docker-compose.yml")
+	composeFile1 := filepath.Join(tempDir, cryptoutilSharedMagic.COMPOSE_YML)
+	composeFile2 := filepath.Join(tempDir, cryptoutilSharedMagic.DOCKER_COMPOSE_YML)
 
 	violating1 := `version: '3.8'
 services:
@@ -227,7 +227,7 @@ func TestLint_FileOpenErrorContinues(t *testing.T) {
 
 	// Create temp dir with one valid compose file.
 	tempDir := t.TempDir()
-	composeFile := filepath.Join(tempDir, "compose.yml")
+	composeFile := filepath.Join(tempDir, cryptoutilSharedMagic.COMPOSE_YML)
 
 	validContent := `version: '3.8'
 services:

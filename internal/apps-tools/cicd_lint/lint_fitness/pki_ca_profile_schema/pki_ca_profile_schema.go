@@ -43,7 +43,7 @@ var knownKeyUsages = map[string]bool{
 // known key algorithms.
 var knownAlgorithms = map[string]bool{
 	cryptoutilSharedMagic.KeyTypeRSA:     true,
-	"ECDSA":                              true,
+	cryptoutilSharedMagic.ECDSA:          true,
 	cryptoutilSharedMagic.EdCurveEd25519: true,
 }
 

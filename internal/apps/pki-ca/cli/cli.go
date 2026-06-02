@@ -77,7 +77,7 @@ func NewCLI(out, errOut io.Writer) *CLI {
 // GenerateKey generates a new private key.
 func (c *CLI) GenerateKey(_ context.Context, opts *KeyGenOptions, cmdOpts *CommandOptions) (any, error) {
 	if opts == nil {
-		opts = &KeyGenOptions{Algorithm: "ECDSA", Curve: "P-256"}
+		opts = &KeyGenOptions{Algorithm: cryptoutilSharedMagic.ECDSA, Curve: cryptoutilSharedMagic.P256}
 	}
 
 	var (
@@ -97,7 +97,7 @@ func (c *CLI) GenerateKey(_ context.Context, opts *KeyGenOptions, cmdOpts *Comma
 			return nil, fmt.Errorf("failed to generate RSA key: %w", err)
 		}
 
-	case "ECDSA", "ecdsa", "EC", "ec":
+	case cryptoutilSharedMagic.ECDSA, "ecdsa", cryptoutilSharedMagic.KeyTypeEC, algorithmEC:
 		curve := c.getCurve(opts.Curve)
 
 		key, err = ecdsa.GenerateKey(curve, crand.Reader)
@@ -433,6 +433,7 @@ const (
 
 // Output format constants.
 const (
+	algorithmEC = "ec"
 	formatDER = "der"
 	formatPEM = "pem"
 )

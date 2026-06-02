@@ -45,7 +45,7 @@ func writeComposeYML(t *testing.T, tmpDir, psID string, content string) {
 
 	deployDir := filepath.Join(tmpDir, "deployments", psID)
 	require.NoError(t, os.MkdirAll(deployDir, cryptoutilSharedMagic.CICDTempDirPermissions))
-	require.NoError(t, os.WriteFile(filepath.Join(deployDir, "compose.yml"), []byte(content), cryptoutilSharedMagic.FilePermissions))
+	require.NoError(t, os.WriteFile(filepath.Join(deployDir, cryptoutilSharedMagic.COMPOSE_YML), []byte(content), cryptoutilSharedMagic.FilePermissions))
 }
 
 // correctDBCompose generates a minimal compose.yml without a per-PS-ID DB service.
@@ -103,7 +103,7 @@ func TestCheckInDir_MissingComposeFile(t *testing.T) {
 	tmpDir := t.TempDir()
 	setupAllComposeFiles(t, tmpDir)
 
-	require.NoError(t, os.Remove(filepath.Join(tmpDir, "deployments", cryptoutilSharedMagic.OTLPServiceSMKMS, "compose.yml")))
+	require.NoError(t, os.Remove(filepath.Join(tmpDir, "deployments", cryptoutilSharedMagic.OTLPServiceSMKMS, cryptoutilSharedMagic.COMPOSE_YML)))
 
 	err := lintFitnessComposeDBNaming.CheckInDir(newTestLogger(), tmpDir)
 	require.Error(t, err)
@@ -137,7 +137,7 @@ func TestCheckInDir_InvalidYAML(t *testing.T) {
 
 	// Overwrite sm-kms compose.yml with invalid YAML.
 	deployDir := filepath.Join(tmpDir, "deployments", psID)
-	require.NoError(t, os.WriteFile(filepath.Join(deployDir, "compose.yml"), []byte("services: [\ninvalid yaml"), cryptoutilSharedMagic.FilePermissions))
+	require.NoError(t, os.WriteFile(filepath.Join(deployDir, cryptoutilSharedMagic.COMPOSE_YML), []byte("services: [\ninvalid yaml"), cryptoutilSharedMagic.FilePermissions))
 
 	err := lintFitnessComposeDBNaming.CheckInDir(newTestLogger(), tmpDir)
 	require.Error(t, err)

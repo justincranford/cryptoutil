@@ -37,7 +37,7 @@ func createTestIssuer(t *testing.T) *testIssuerSetup {
 	rootConfig := &cryptoutilCABootstrap.RootCAConfig{
 		Name: "Test Root CA",
 		KeySpec: cryptoutilCACrypto.KeySpec{
-			Type:       cryptoutilCACrypto.KeyTypeECDSA,
+			Type:       cryptoutilSharedMagic.ECDSA,
 			ECDSACurve: "P-256",
 		},
 		ValidityDuration:  cryptoutilSharedMagic.MaxErrorDisplay * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour,
@@ -52,7 +52,7 @@ func createTestIssuer(t *testing.T) *testIssuerSetup {
 	intermediateConfig := &cryptoutilCAIntermediate.IntermediateCAConfig{
 		Name: "Test Issuing CA",
 		KeySpec: cryptoutilCACrypto.KeySpec{
-			Type:       cryptoutilCACrypto.KeyTypeECDSA,
+			Type:       cryptoutilSharedMagic.ECDSA,
 			ECDSACurve: "P-256",
 		},
 		ValidityDuration:  cryptoutilSharedMagic.JoseJADefaultMaxMaterials * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour,

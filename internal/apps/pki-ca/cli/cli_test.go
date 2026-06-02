@@ -92,7 +92,7 @@ func TestCLI_GenerateKey(t *testing.T) {
 		},
 		{
 			name:     "ECDSA P-256",
-			opts:     &KeyGenOptions{Algorithm: "ECDSA", Curve: "P-256"},
+			opts:     &KeyGenOptions{Algorithm: cryptoutilSharedMagic.ECDSA, Curve: cryptoutilSharedMagic.P256},
 			wantType: keyTypeECDSA,
 			wantErr:  false,
 		},
@@ -104,7 +104,7 @@ func TestCLI_GenerateKey(t *testing.T) {
 		},
 		{
 			name:     "ECDSA P-521",
-			opts:     &KeyGenOptions{Algorithm: "EC", Curve: "P-521"},
+			opts:     &KeyGenOptions{Algorithm: cryptoutilSharedMagic.KeyTypeEC, Curve: cryptoutilSharedMagic.P521},
 			wantType: keyTypeECDSA,
 			wantErr:  false,
 		},
@@ -191,7 +191,7 @@ func TestCLI_GenerateKey_WriteToFile(t *testing.T) {
 				OutputFormat: tc.format,
 			}
 
-			key, err := cli.GenerateKey(ctx, &KeyGenOptions{Algorithm: "ECDSA", Curve: "P-256"}, cmdOpts)
+			key, err := cli.GenerateKey(ctx, &KeyGenOptions{Algorithm: cryptoutilSharedMagic.ECDSA, Curve: cryptoutilSharedMagic.P256}, cmdOpts)
 			require.NoError(t, err)
 			require.NotNil(t, key)
 
@@ -243,7 +243,7 @@ func TestCLI_GenerateSelfSignedCA_Success(t *testing.T) {
 	ctx := context.Background()
 	cli := NewCLI(nil, nil)
 
-	key, err := cli.GenerateKey(ctx, &KeyGenOptions{Algorithm: "ECDSA", Curve: "P-256"}, nil)
+	key, err := cli.GenerateKey(ctx, &KeyGenOptions{Algorithm: cryptoutilSharedMagic.ECDSA, Curve: cryptoutilSharedMagic.P256}, nil)
 	require.NoError(t, err)
 
 	tests := []struct {
@@ -288,7 +288,7 @@ func TestCLI_GenerateSelfSignedCA_WriteToFile(t *testing.T) {
 	cli := NewCLI(nil, nil)
 	tmpDir := t.TempDir()
 
-	key, err := cli.GenerateKey(ctx, &KeyGenOptions{Algorithm: "ECDSA", Curve: "P-256"}, nil)
+	key, err := cli.GenerateKey(ctx, &KeyGenOptions{Algorithm: cryptoutilSharedMagic.ECDSA, Curve: cryptoutilSharedMagic.P256}, nil)
 	require.NoError(t, err)
 
 	cmdOpts := &CommandOptions{
@@ -313,14 +313,14 @@ func TestCLI_GenerateIntermediateCA(t *testing.T) {
 	cli := NewCLI(nil, nil)
 
 	// Generate root CA.
-	rootKey, err := cli.GenerateKey(ctx, &KeyGenOptions{Algorithm: "ECDSA", Curve: "P-256"}, nil)
+	rootKey, err := cli.GenerateKey(ctx, &KeyGenOptions{Algorithm: cryptoutilSharedMagic.ECDSA, Curve: cryptoutilSharedMagic.P256}, nil)
 	require.NoError(t, err)
 
 	rootCert, err := cli.GenerateSelfSignedCA(ctx, rootKey, nil, nil)
 	require.NoError(t, err)
 
 	// Generate intermediate key.
-	intermediateKey, err := cli.GenerateKey(ctx, &KeyGenOptions{Algorithm: "ECDSA", Curve: "P-256"}, nil)
+	intermediateKey, err := cli.GenerateKey(ctx, &KeyGenOptions{Algorithm: cryptoutilSharedMagic.ECDSA, Curve: cryptoutilSharedMagic.P256}, nil)
 	require.NoError(t, err)
 
 	tests := []struct {

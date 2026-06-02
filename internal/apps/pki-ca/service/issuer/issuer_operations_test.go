@@ -73,7 +73,7 @@ func TestNewIssuer_NonCACert(t *testing.T) {
 	rootConfig := &cryptoutilCABootstrap.RootCAConfig{
 		Name: "Root CA",
 		KeySpec: cryptoutilCACrypto.KeySpec{
-			Type:       cryptoutilCACrypto.KeyTypeECDSA,
+			Type:       cryptoutilSharedMagic.ECDSA,
 			ECDSACurve: "P-256",
 		},
 		ValidityDuration:  cryptoutilSharedMagic.JoseJADefaultMaxMaterials * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour,
@@ -239,7 +239,7 @@ func TestIssuer_Issue_WithURIs(t *testing.T) {
 	require.NoError(t, err)
 
 	keyPair, genErr := provider.GenerateKeyPair(cryptoutilCACrypto.KeySpec{
-		Type:       cryptoutilCACrypto.KeyTypeECDSA,
+		Type:       cryptoutilSharedMagic.ECDSA,
 		ECDSACurve: "P-256",
 	})
 	require.NoError(t, genErr)
@@ -281,7 +281,7 @@ func TestIssuer_Issue_InvalidIPAddress(t *testing.T) {
 	require.NoError(t, err)
 
 	keyPair, genErr := provider.GenerateKeyPair(cryptoutilCACrypto.KeySpec{
-		Type:       cryptoutilCACrypto.KeyTypeECDSA,
+		Type:       cryptoutilSharedMagic.ECDSA,
 		ECDSACurve: "P-256",
 	})
 	require.NoError(t, genErr)

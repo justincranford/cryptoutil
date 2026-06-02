@@ -202,7 +202,7 @@ func TestIsServiceFrameworkConfig(t *testing.T) {
 		{name: "ca-config-schema.yaml", path: "configs/pki-ca/pki-ca-config-schema.yaml", expected: false},
 		{name: "adaptive-auth.yml", path: "configs/identity-authz/domain/policies/adaptive-auth.yml", expected: false},
 		{name: "authz-docker.yml", path: "configs/identity-authz/authz-docker.yml", expected: false},
-		{name: "compose.yml", path: "deployments/compose/compose.yml", expected: false},
+		{name: cryptoutilSharedMagic.COMPOSE_YML, path: "deployments/compose/compose.yml", expected: false},
 		{name: "random.yml", path: "/tmp/random.yml", expected: false},
 		{name: "non-yaml readme.md", path: "/tmp/readme.md", expected: false},
 	}

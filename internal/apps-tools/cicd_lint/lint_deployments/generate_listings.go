@@ -60,7 +60,7 @@ func classifyFileStatus(relPath string) string {
 	lower := strings.ToLower(relPath)
 
 	switch {
-	case strings.Contains(lower, "compose.yml"):
+	case strings.Contains(lower, cryptoutilSharedMagic.COMPOSE_YML):
 		return RequiredFileStatus
 	case strings.HasSuffix(lower, cryptoutilSharedMagic.CICDTemplateSecretFileSuffix):
 		return RequiredFileStatus

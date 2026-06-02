@@ -27,6 +27,8 @@ import (
 
 	"gopkg.in/yaml.v3"
 
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps-tools/cicd_lint/common"
 	lintFitnessRegistry "cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/registry"
 )
@@ -131,7 +133,7 @@ func expectedCommand(psID, variant string) string {
 
 // checkCompose validates all 4 app-service command strings in one PS-ID compose file.
 func checkCompose(rootDir, psID string, readFileFn func(string) ([]byte, error)) []string {
-	composePath := filepath.Join(rootDir, "deployments", psID, "compose.yml")
+	composePath := filepath.Join(rootDir, "deployments", psID, cryptoutilSharedMagic.COMPOSE_YML)
 
 	data, err := readFileFn(composePath)
 	if err != nil {

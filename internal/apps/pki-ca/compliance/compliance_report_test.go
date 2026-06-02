@@ -120,7 +120,7 @@ func TestEvidenceCollector(t *testing.T) {
 	// Collect evidence.
 	collector.Collect(Evidence{
 		ID:          "EV-001",
-		Type:        "audit_log",
+		Type:        cryptoutilSharedMagic.AUDIT_LOG,
 		Description: "CA audit log for Q1",
 		Source:      "siem",
 	})
@@ -142,7 +142,7 @@ func TestEvidenceCollector(t *testing.T) {
 	require.Len(t, all, 3)
 
 	// Get evidence by type (case-insensitive).
-	auditLogs := collector.GetEvidenceByType("audit_log")
+	auditLogs := collector.GetEvidenceByType(cryptoutilSharedMagic.AUDIT_LOG)
 	require.Len(t, auditLogs, 2)
 
 	configs := collector.GetEvidenceByType("configuration")

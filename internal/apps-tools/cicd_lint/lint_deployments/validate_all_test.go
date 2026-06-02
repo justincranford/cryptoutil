@@ -270,7 +270,7 @@ func TestValidateAll_WithDeployments(t *testing.T) {
 	svcDir := filepath.Join(deploymentsDir, cryptoutilSharedMagic.OTLPServicePKICA)
 	require.NoError(t, os.MkdirAll(filepath.Join(svcDir, "secrets"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 	require.NoError(t, os.MkdirAll(filepath.Join(svcDir, "config"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
-	require.NoError(t, os.WriteFile(filepath.Join(svcDir, "compose.yml"), []byte("services:\n  pki-ca:\n    image: test\n"), cryptoutilSharedMagic.CacheFilePermissions))
+	require.NoError(t, os.WriteFile(filepath.Join(svcDir, cryptoutilSharedMagic.COMPOSE_YML), []byte("services:\n  pki-ca:\n    image: test\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
 	// Create a config file.
 	require.NoError(t, os.WriteFile(filepath.Join(configsDir, "test.yml"), []byte("bind-public-port: 8080\n"), cryptoutilSharedMagic.CacheFilePermissions))

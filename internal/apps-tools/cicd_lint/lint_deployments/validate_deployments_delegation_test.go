@@ -21,7 +21,7 @@ func TestCheckDelegationPattern_SuiteValid(t *testing.T) {
   - path: ../identity/compose.yml
   - path: ../skeleton/compose.yml
 `
-	require.NoError(t, os.WriteFile(filepath.Join(dir, "compose.yml"), []byte(compose), cryptoutilSharedMagic.CacheFilePermissions))
+	require.NoError(t, os.WriteFile(filepath.Join(dir, cryptoutilSharedMagic.COMPOSE_YML), []byte(compose), cryptoutilSharedMagic.CacheFilePermissions))
 
 	result := &ValidationResult{Valid: true}
 	checkDelegationPattern(dir, cryptoutilSharedMagic.DefaultOTLPServiceDefault, DeploymentTypeSuite, result)
@@ -47,7 +47,7 @@ func TestCheckDelegationPattern_SuiteInvalidServiceLevel(t *testing.T) {
   - path: ../identity-spa/compose.yml
   - path: ../skeleton-template/compose.yml
 `
-	require.NoError(t, os.WriteFile(filepath.Join(dir, "compose.yml"), []byte(compose), cryptoutilSharedMagic.CacheFilePermissions))
+	require.NoError(t, os.WriteFile(filepath.Join(dir, cryptoutilSharedMagic.COMPOSE_YML), []byte(compose), cryptoutilSharedMagic.CacheFilePermissions))
 
 	result := &ValidationResult{Valid: true}
 	checkDelegationPattern(dir, cryptoutilSharedMagic.DefaultOTLPServiceDefault, DeploymentTypeSuite, result)
@@ -63,7 +63,7 @@ func TestCheckDelegationPattern_SuiteMissingProducts(t *testing.T) {
 	compose := `include:
   - path: ../sm/compose.yml
 `
-	require.NoError(t, os.WriteFile(filepath.Join(dir, "compose.yml"), []byte(compose), cryptoutilSharedMagic.CacheFilePermissions))
+	require.NoError(t, os.WriteFile(filepath.Join(dir, cryptoutilSharedMagic.COMPOSE_YML), []byte(compose), cryptoutilSharedMagic.CacheFilePermissions))
 
 	result := &ValidationResult{Valid: true}
 	checkDelegationPattern(dir, cryptoutilSharedMagic.DefaultOTLPServiceDefault, DeploymentTypeSuite, result)
@@ -107,7 +107,7 @@ func TestCheckDelegationPattern_ProductValid(t *testing.T) {
 			t.Parallel()
 
 			dir := t.TempDir()
-			require.NoError(t, os.WriteFile(filepath.Join(dir, "compose.yml"), []byte(tc.composeContent), cryptoutilSharedMagic.CacheFilePermissions))
+			require.NoError(t, os.WriteFile(filepath.Join(dir, cryptoutilSharedMagic.COMPOSE_YML), []byte(tc.composeContent), cryptoutilSharedMagic.CacheFilePermissions))
 
 			result := &ValidationResult{Valid: true}
 			checkDelegationPattern(dir, tc.deploymentName, DeploymentTypeProduct, result)
@@ -141,7 +141,7 @@ func TestCheckDelegationPattern_ProductMissingService(t *testing.T) {
 			t.Parallel()
 
 			dir := t.TempDir()
-			require.NoError(t, os.WriteFile(filepath.Join(dir, "compose.yml"), []byte("name: empty\n"), cryptoutilSharedMagic.CacheFilePermissions))
+			require.NoError(t, os.WriteFile(filepath.Join(dir, cryptoutilSharedMagic.COMPOSE_YML), []byte("name: empty\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
 			result := &ValidationResult{Valid: true}
 			checkDelegationPattern(dir, tc.deploymentName, DeploymentTypeProduct, result)

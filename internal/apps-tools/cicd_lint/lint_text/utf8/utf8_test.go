@@ -210,7 +210,7 @@ func TestFlattenFileMap(t *testing.T) {
 			name: "multiple extensions",
 			input: map[string][]string{
 				"go":  {"file1.go"},
-				"yml": {"config.yml", "compose.yml"},
+				"yml": {"config.yml", cryptoutilSharedMagic.COMPOSE_YML},
 				"md":  {"README.md"},
 			},
 			expected: 4,

@@ -149,7 +149,7 @@ func NewTLSPSIDSpec(psid string) (TLSPSIDSpec, error) {
 	return TLSPSIDSpec{
 		PSID: psid,
 
-		ComposeFile:         filepath.Join(deploymentDir, "compose.yml"),
+		ComposeFile:         filepath.Join(deploymentDir, cryptoutilSharedMagic.COMPOSE_YML),
 		ComposeOverrideFile: filepath.Join(deploymentDir, "compose-test-otel-expose.yml"),
 
 		PublicCACertPath:     publicCACertPath,

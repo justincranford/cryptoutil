@@ -230,7 +230,7 @@ func validateKeyConfig(key *KeyConfig) error {
 	switch key.Algorithm {
 	case cryptoutilSharedMagic.KeyTypeRSA:
 		// CurveOrSize should be a number (2048, 3072, 4096).
-	case "ECDSA":
+	case cryptoutilSharedMagic.ECDSA:
 		switch key.CurveOrSize {
 		case "P-256", "P-384", "P-521":
 			// Valid.

@@ -27,7 +27,7 @@ func TestLint_HappyPaths(t *testing.T) {
 		{
 			name: "no python files",
 			setupFn: func(_ *testing.T) map[string][]string {
-				return map[string][]string{"go": {"main.go"}, "yml": {"config.yml"}}
+				return map[string][]string{"go": {"main.go"}, cryptoutilSharedMagic.YML: {"config.yml"}}
 			},
 		},
 		{

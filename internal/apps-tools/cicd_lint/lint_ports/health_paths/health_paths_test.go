@@ -80,7 +80,7 @@ func TestCheckHealthPathsInCompose_ValidPath(t *testing.T) {
 
 	tempDir := t.TempDir()
 
-	composeFile := filepath.Join(tempDir, "compose.yml")
+	composeFile := filepath.Join(tempDir, cryptoutilSharedMagic.COMPOSE_YML)
 	err := os.WriteFile(composeFile, []byte(`services:
   app:
     healthcheck:
@@ -99,7 +99,7 @@ func TestCheckHealthPathsInCompose_InvalidPath(t *testing.T) {
 
 	tempDir := t.TempDir()
 
-	composeFile := filepath.Join(tempDir, "compose.yml")
+	composeFile := filepath.Join(tempDir, cryptoutilSharedMagic.COMPOSE_YML)
 	err := os.WriteFile(composeFile, []byte(`services:
   app:
     healthcheck:
@@ -173,7 +173,7 @@ func TestCheckHealthPathsInCompose_NoHealthcheck(t *testing.T) {
 
 	tempDir := t.TempDir()
 
-	composeFile := filepath.Join(tempDir, "compose.yml")
+	composeFile := filepath.Join(tempDir, cryptoutilSharedMagic.COMPOSE_YML)
 	err := os.WriteFile(composeFile, []byte(`services:
   app:
     image: nginx
@@ -208,7 +208,7 @@ func TestCheckHealthPathsInCompose_CorrectPathStandardPort(t *testing.T) {
 
 	tempDir := t.TempDir()
 
-	composeFile := filepath.Join(tempDir, "compose.yml")
+	composeFile := filepath.Join(tempDir, cryptoutilSharedMagic.COMPOSE_YML)
 	err := os.WriteFile(composeFile, []byte(`services:
   app:
     healthcheck:
@@ -231,7 +231,7 @@ func TestCheck_WithYamlFiles(t *testing.T) {
 	require.NoError(t, os.WriteFile(configFile, []byte("key: value\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
 	// Valid compose file with correct health path.
-	composeFile := filepath.Join(tmpDir, "compose.yml")
+	composeFile := filepath.Join(tmpDir, cryptoutilSharedMagic.COMPOSE_YML)
 	composeContent := `services:
   myapp:
     image: alpine:latest
@@ -271,7 +271,7 @@ func TestCheckHealthPathsInCompose_HealthcheckSectionExit(t *testing.T) {
 	t.Parallel()
 
 	tmpDir := t.TempDir()
-	composeFile := filepath.Join(tmpDir, "compose.yml")
+	composeFile := filepath.Join(tmpDir, cryptoutilSharedMagic.COMPOSE_YML)
 
 	// Compose file where healthcheck section is followed by a non-indented top-level key.
 	// This triggers the inHealthcheck = false branch.

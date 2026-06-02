@@ -151,10 +151,9 @@ func TestIsComposeFile(t *testing.T) {
 		filePath string
 		want     bool
 	}{
-		{name: "compose.yml", filePath: "deployments/compose.yml", want: true},
-		{name: "compose.yaml", filePath: "deployments/compose.yaml", want: true},
-		{name: "docker-compose.yml", filePath: "docker-compose.yml", want: true},
-		{name: "docker-compose.yaml", filePath: "docker-compose.yaml", want: true},
+		{name: cryptoutilSharedMagic.COMPOSE_YML, filePath: "deployments/compose.yml", want: true},
+		{name: cryptoutilSharedMagic.COMPOSE_YAML, filePath: "deployments/compose.yaml", want: true},
+		{name: cryptoutilSharedMagic.DOCKER_COMPOSE_YML, filePath: cryptoutilSharedMagic.DOCKER_COMPOSE_YML, want: true},
 		{name: "compose.e2e.yml", filePath: "deployments/identity/compose.e2e.yml", want: true},
 		{name: "compose.advanced.yml", filePath: "compose.advanced.yml", want: true},
 		{name: "regular yaml", filePath: "config/settings.yml", want: false},

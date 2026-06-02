@@ -22,14 +22,14 @@ func TestCLI_GenerateEndEntityCert(t *testing.T) {
 	cli := NewCLI(nil, nil)
 
 	// Generate CA.
-	caKey, err := cli.GenerateKey(ctx, &KeyGenOptions{Algorithm: "ECDSA", Curve: "P-256"}, nil)
+	caKey, err := cli.GenerateKey(ctx, &KeyGenOptions{Algorithm: cryptoutilSharedMagic.ECDSA, Curve: cryptoutilSharedMagic.P256}, nil)
 	require.NoError(t, err)
 
 	caCert, err := cli.GenerateSelfSignedCA(ctx, caKey, nil, nil)
 	require.NoError(t, err)
 
 	// Generate end-entity key.
-	eeKey, err := cli.GenerateKey(ctx, &KeyGenOptions{Algorithm: "ECDSA", Curve: "P-256"}, nil)
+	eeKey, err := cli.GenerateKey(ctx, &KeyGenOptions{Algorithm: cryptoutilSharedMagic.ECDSA, Curve: cryptoutilSharedMagic.P256}, nil)
 	require.NoError(t, err)
 
 	tests := []struct {
@@ -113,13 +113,13 @@ func TestCLI_ValidateCertificate(t *testing.T) {
 	cli := NewCLI(nil, nil)
 
 	// Generate CA and certificate.
-	caKey, err := cli.GenerateKey(ctx, &KeyGenOptions{Algorithm: "ECDSA", Curve: "P-256"}, nil)
+	caKey, err := cli.GenerateKey(ctx, &KeyGenOptions{Algorithm: cryptoutilSharedMagic.ECDSA, Curve: cryptoutilSharedMagic.P256}, nil)
 	require.NoError(t, err)
 
 	caCert, err := cli.GenerateSelfSignedCA(ctx, caKey, nil, nil)
 	require.NoError(t, err)
 
-	eeKey, err := cli.GenerateKey(ctx, &KeyGenOptions{Algorithm: "ECDSA", Curve: "P-256"}, nil)
+	eeKey, err := cli.GenerateKey(ctx, &KeyGenOptions{Algorithm: cryptoutilSharedMagic.ECDSA, Curve: cryptoutilSharedMagic.P256}, nil)
 	require.NoError(t, err)
 
 	eeCert, err := cli.GenerateEndEntityCert(ctx, eeKey, caCert, caKey, &CertGenOptions{
@@ -234,7 +234,7 @@ func TestPublicKey(t *testing.T) {
 	require.True(t, ok)
 
 	// Test ECDSA.
-	ecKey, err := cli.GenerateKey(ctx, &KeyGenOptions{Algorithm: "ECDSA", Curve: "P-256"}, nil)
+	ecKey, err := cli.GenerateKey(ctx, &KeyGenOptions{Algorithm: cryptoutilSharedMagic.ECDSA, Curve: cryptoutilSharedMagic.P256}, nil)
 	require.NoError(t, err)
 
 	ecPub := publicKey(ecKey)

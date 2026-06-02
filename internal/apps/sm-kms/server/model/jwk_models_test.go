@@ -4,6 +4,8 @@ package model
 import (
 	"testing"
 
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+
 	"github.com/stretchr/testify/require"
 )
 
@@ -19,10 +21,10 @@ func TestTableNames(t *testing.T) {
 		model     tableNamer
 		wantTable string
 	}{
-		{name: "ElasticJWK", model: &ElasticJWK{}, wantTable: "elastic_jwks"},
-		{name: "MaterialJWK", model: &MaterialJWK{}, wantTable: "material_jwks"},
-		{name: "AuditConfig", model: &AuditConfig{}, wantTable: "tenant_audit_config"},
-		{name: "AuditLogEntry", model: &AuditLogEntry{}, wantTable: "audit_log"},
+		{name: "ElasticJWK", model: &ElasticJWK{}, wantTable: cryptoutilSharedMagic.ELASTIC_JWKS},
+		{name: "MaterialJWK", model: &MaterialJWK{}, wantTable: cryptoutilSharedMagic.MATERIAL_JWKS},
+		{name: "AuditConfig", model: &AuditConfig{}, wantTable: cryptoutilSharedMagic.TENANT_AUDIT_CONFIG},
+		{name: "AuditLogEntry", model: &AuditLogEntry{}, wantTable: cryptoutilSharedMagic.AUDIT_LOG},
 	}
 
 	for _, tc := range tests {

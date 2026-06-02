@@ -315,7 +315,7 @@ var _ cryptoutilAppsFrameworkServiceServer.ServiceServer = (*CAServer)(nil)
 func createSelfSignedCA(provider cryptoutilCACrypto.Provider) (*x509.Certificate, crypto.PrivateKey, error) {
 	// Generate ECDSA P-384 key for the CA.
 	keySpec := cryptoutilCACrypto.KeySpec{
-		Type:       cryptoutilCACrypto.KeyTypeECDSA,
+		Type:       cryptoutilSharedMagic.ECDSA,
 		ECDSACurve: "P-384",
 	}
 

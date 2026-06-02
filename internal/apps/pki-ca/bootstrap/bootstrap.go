@@ -308,7 +308,7 @@ func keyAlgorithmName(pub crypto.PublicKey) string {
 	case *rsa.PublicKey:
 		return cryptoutilSharedMagic.KeyTypeRSA
 	case *ecdsa.PublicKey:
-		return "ECDSA"
+		return cryptoutilSharedMagic.ECDSA
 	case ed25519.PublicKey:
 		return cryptoutilSharedMagic.EdCurveEd25519
 	default:

@@ -18,7 +18,7 @@ func createDeploymentWithCompose(t *testing.T, composeContent string) string {
 	t.Helper()
 
 	dir := t.TempDir()
-	require.NoError(t, os.WriteFile(filepath.Join(dir, "compose.yml"), []byte(composeContent), cryptoutilSharedMagic.CacheFilePermissions))
+	require.NoError(t, os.WriteFile(filepath.Join(dir, cryptoutilSharedMagic.COMPOSE_YML), []byte(composeContent), cryptoutilSharedMagic.CacheFilePermissions))
 
 	return dir
 }

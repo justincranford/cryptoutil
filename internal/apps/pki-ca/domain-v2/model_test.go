@@ -9,6 +9,8 @@ import (
 
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 type tableNamer interface {
@@ -23,7 +25,7 @@ func TestTableNames(t *testing.T) {
 		model     tableNamer
 		wantTable string
 	}{
-		{name: "CAItem", model: &CAItem{}, wantTable: "ca_items"},
+		{name: "CAItem", model: &CAItem{}, wantTable: cryptoutilSharedMagic.CA_ITEMS},
 	}
 
 	for _, tc := range tests {

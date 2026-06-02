@@ -194,7 +194,7 @@ func TestValidateSecrets_UnreadablePaths(t *testing.T) {
 			setup: func(t *testing.T) string {
 				t.Helper()
 				dir := t.TempDir()
-				f := filepath.Join(dir, "compose.yml")
+				f := filepath.Join(dir, cryptoutilSharedMagic.COMPOSE_YML)
 				require.NoError(t, os.WriteFile(f, []byte("data"), cryptoutilSharedMagic.CacheFilePermissions))
 				require.NoError(t, os.Chmod(f, 0o000))
 				t.Cleanup(func() { _ = os.Chmod(f, cryptoutilSharedMagic.CacheFilePermissions) })
@@ -289,7 +289,7 @@ func TestValidateSecrets_ComposeFiles(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			dir := t.TempDir()
-			require.NoError(t, os.WriteFile(filepath.Join(dir, "compose.yml"), []byte(tc.compose), cryptoutilSharedMagic.CacheFilePermissions))
+			require.NoError(t, os.WriteFile(filepath.Join(dir, cryptoutilSharedMagic.COMPOSE_YML), []byte(tc.compose), cryptoutilSharedMagic.CacheFilePermissions))
 
 			result, err := ValidateSecrets(dir)
 			require.NoError(t, err)

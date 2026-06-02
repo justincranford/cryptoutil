@@ -103,7 +103,7 @@ func TestMergedFS_ReadFile(t *testing.T) {
 	// Test reading pki-ca migration.
 	data, err := mergedFS.ReadFile("migrations/5001_ca_items.up.sql")
 	require.NoError(t, err)
-	require.Contains(t, string(data), "ca_items")
+	require.Contains(t, string(data), cryptoutilSharedMagic.CA_ITEMS)
 
 	// Test reading template migration (fallback).
 	data, err = mergedFS.ReadFile("migrations/1001_session_management.up.sql")
@@ -180,7 +180,7 @@ func TestApplyPKICAMigrations(t *testing.T) {
 
 	err = sqlDB.QueryRowContext(ctx, "SELECT name FROM sqlite_master WHERE type='table' AND name='ca_items'").Scan(&tableName)
 	require.NoError(t, err, "ca_items table should exist")
-	require.Equal(t, "ca_items", tableName)
+	require.Equal(t, cryptoutilSharedMagic.CA_ITEMS, tableName)
 }
 
 func TestApplyPKICAMigrations_Error(t *testing.T) {

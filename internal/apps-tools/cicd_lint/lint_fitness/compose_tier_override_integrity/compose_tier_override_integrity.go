@@ -50,7 +50,7 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 	}
 
 	for _, rule := range tierRules {
-		composePath := filepath.Join(rootDir, "deployments", rule.tierID, "compose.yml")
+		composePath := filepath.Join(rootDir, "deployments", rule.tierID, cryptoutilSharedMagic.COMPOSE_YML)
 
 		cf, err := readComposeFile(composePath)
 		if err != nil {

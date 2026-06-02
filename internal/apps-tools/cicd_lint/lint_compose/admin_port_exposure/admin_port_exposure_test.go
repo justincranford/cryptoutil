@@ -47,7 +47,7 @@ func TestCheck_WithCleanComposeFile(t *testing.T) {
 	t.Parallel()
 
 	tmpDir := t.TempDir()
-	composeFile := filepath.Join(tmpDir, "compose.yml")
+	composeFile := filepath.Join(tmpDir, cryptoutilSharedMagic.COMPOSE_YML)
 	content := "services:\n  app:\n    ports:\n      - 8080:8080\n"
 	require.NoError(t, os.WriteFile(composeFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions))
 
@@ -64,7 +64,7 @@ func TestCheck_WithAdminPortExposure(t *testing.T) {
 	t.Parallel()
 
 	tmpDir := t.TempDir()
-	composeFile := filepath.Join(tmpDir, "compose.yml")
+	composeFile := filepath.Join(tmpDir, cryptoutilSharedMagic.COMPOSE_YML)
 	content := "services:\n  admin:\n    ports:\n      - 9090:9090\n"
 	require.NoError(t, os.WriteFile(composeFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions))
 
@@ -97,7 +97,7 @@ func TestCheckComposeFile_NoPortsSection(t *testing.T) {
 	t.Parallel()
 
 	tmpDir := t.TempDir()
-	composeFile := filepath.Join(tmpDir, "compose.yml")
+	composeFile := filepath.Join(tmpDir, cryptoutilSharedMagic.COMPOSE_YML)
 	content := "services:\n  app:\n    image: alpine\n"
 	require.NoError(t, os.WriteFile(composeFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions))
 
@@ -110,7 +110,7 @@ func TestCheckComposeFile_PortRangeToAdmin(t *testing.T) {
 	t.Parallel()
 
 	tmpDir := t.TempDir()
-	composeFile := filepath.Join(tmpDir, "compose.yml")
+	composeFile := filepath.Join(tmpDir, cryptoutilSharedMagic.COMPOSE_YML)
 	content := "services:\n  admin:\n    ports:\n      - 9080-9089:9090\n"
 	require.NoError(t, os.WriteFile(composeFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions))
 
@@ -123,7 +123,7 @@ func TestCheckComposeFile_CommentedPortLine(t *testing.T) {
 	t.Parallel()
 
 	tmpDir := t.TempDir()
-	composeFile := filepath.Join(tmpDir, "compose.yml")
+	composeFile := filepath.Join(tmpDir, cryptoutilSharedMagic.COMPOSE_YML)
 	content := "services:\n  app:\n    ports:\n      # - 9090:9090\n"
 	require.NoError(t, os.WriteFile(composeFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions))
 
@@ -136,7 +136,7 @@ func TestCheckComposeFile_ExitsPortsSection(t *testing.T) {
 	t.Parallel()
 
 	tmpDir := t.TempDir()
-	composeFile := filepath.Join(tmpDir, "compose.yml")
+	composeFile := filepath.Join(tmpDir, cryptoutilSharedMagic.COMPOSE_YML)
 	// After "volumes:", we are no longer in a ports section.
 	content := "services:\n  app:\n    ports:\n      - 8080:8080\n    volumes:\n      - ./data:/data\n"
 	require.NoError(t, os.WriteFile(composeFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions))
@@ -150,7 +150,7 @@ func TestCheckComposeFile_DifferentHostPort(t *testing.T) {
 	t.Parallel()
 
 	tmpDir := t.TempDir()
-	composeFile := filepath.Join(tmpDir, "compose.yml")
+	composeFile := filepath.Join(tmpDir, cryptoutilSharedMagic.COMPOSE_YML)
 	content := "services:\n  admin:\n    ports:\n      - 19090:9090\n"
 	require.NoError(t, os.WriteFile(composeFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions))
 

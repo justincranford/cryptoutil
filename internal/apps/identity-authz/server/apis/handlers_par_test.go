@@ -105,7 +105,7 @@ func TestHandlePAR_MissingClientID(t *testing.T) {
 	formData := url.Values{
 		cryptoutilSharedMagic.ParamResponseType:        []string{cryptoutilSharedMagic.ResponseTypeCode},
 		cryptoutilSharedMagic.ParamRedirectURI:         []string{cryptoutilSharedMagic.TestRedirectURI},
-		cryptoutilSharedMagic.ParamCodeChallenge:       []string{"test-code-challenge"},
+		cryptoutilSharedMagic.ParamCodeChallenge:       []string{cryptoutilSharedMagic.TEST_CODE_CHALLENGE},
 		cryptoutilSharedMagic.ParamCodeChallengeMethod: []string{cryptoutilSharedMagic.PKCEMethodS256},
 	}
 
@@ -151,7 +151,7 @@ func TestHandlePAR_MissingResponseType(t *testing.T) {
 	formData := url.Values{
 		cryptoutilSharedMagic.ParamClientID:            []string{testClient.ClientID},
 		cryptoutilSharedMagic.ParamRedirectURI:         []string{cryptoutilSharedMagic.TestRedirectURI},
-		cryptoutilSharedMagic.ParamCodeChallenge:       []string{"test-code-challenge"},
+		cryptoutilSharedMagic.ParamCodeChallenge:       []string{cryptoutilSharedMagic.TEST_CODE_CHALLENGE},
 		cryptoutilSharedMagic.ParamCodeChallengeMethod: []string{cryptoutilSharedMagic.PKCEMethodS256},
 	}
 
@@ -197,7 +197,7 @@ func TestHandlePAR_MissingRedirectURI(t *testing.T) {
 	formData := url.Values{
 		cryptoutilSharedMagic.ParamClientID:            []string{testClient.ClientID},
 		cryptoutilSharedMagic.ParamResponseType:        []string{cryptoutilSharedMagic.ResponseTypeCode},
-		cryptoutilSharedMagic.ParamCodeChallenge:       []string{"test-code-challenge"},
+		cryptoutilSharedMagic.ParamCodeChallenge:       []string{cryptoutilSharedMagic.TEST_CODE_CHALLENGE},
 		cryptoutilSharedMagic.ParamCodeChallengeMethod: []string{cryptoutilSharedMagic.PKCEMethodS256},
 	}
 

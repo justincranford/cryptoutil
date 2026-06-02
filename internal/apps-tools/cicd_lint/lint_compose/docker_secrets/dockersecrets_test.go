@@ -29,7 +29,7 @@ func TestLintDockerSecrets_ValidComposeFile(t *testing.T) {
 
 	// Create temp dir with valid compose file using Docker secrets.
 	tempDir := t.TempDir()
-	composeFile := filepath.Join(tempDir, "docker-compose.yml")
+	composeFile := filepath.Join(tempDir, cryptoutilSharedMagic.DOCKER_COMPOSE_YML)
 
 	validContent := `version: '3.8'
 services:
@@ -189,7 +189,7 @@ services:
 			t.Parallel()
 
 			tempDir := t.TempDir()
-			composeFile := filepath.Join(tempDir, "docker-compose.yml")
+			composeFile := filepath.Join(tempDir, cryptoutilSharedMagic.DOCKER_COMPOSE_YML)
 
 			err := os.WriteFile(composeFile, []byte(tt.content), cryptoutilSharedMagic.CacheFilePermissions)
 			require.NoError(t, err)
@@ -223,7 +223,7 @@ func TestCheckComposeFileSecrets_MultipleViolations(t *testing.T) {
 	t.Parallel()
 
 	tempDir := t.TempDir()
-	composeFile := filepath.Join(tempDir, "docker-compose.yml")
+	composeFile := filepath.Join(tempDir, cryptoutilSharedMagic.DOCKER_COMPOSE_YML)
 
 	content := `version: '3.8'
 services:
@@ -246,7 +246,7 @@ func TestCheckComposeFileSecrets_MixedValidInvalid(t *testing.T) {
 	t.Parallel()
 
 	tempDir := t.TempDir()
-	composeFile := filepath.Join(tempDir, "docker-compose.yml")
+	composeFile := filepath.Join(tempDir, cryptoutilSharedMagic.DOCKER_COMPOSE_YML)
 
 	content := `version: '3.8'
 services:
@@ -289,7 +289,7 @@ func TestCheckComposeFileSecrets_EnvironmentSectionExit(t *testing.T) {
 	t.Parallel()
 
 	tmpDir := t.TempDir()
-	composeFile := filepath.Join(tmpDir, "compose.yml")
+	composeFile := filepath.Join(tmpDir, cryptoutilSharedMagic.COMPOSE_YML)
 
 	// Compose file where environment section is followed by a top-level key.
 	// This triggers the inEnvironmentSection = false branch when seeing networks:.
@@ -313,7 +313,7 @@ func TestCheckComposeFileSecrets_EnvironmentSectionExitNonKeyLine(t *testing.T) 
 	t.Parallel()
 
 	tmpDir := t.TempDir()
-	composeFile := filepath.Join(tmpDir, "compose.yml")
+	composeFile := filepath.Join(tmpDir, cryptoutilSharedMagic.COMPOSE_YML)
 
 	// Environment section followed by a continuation line that is not a key, comment, or list.
 	content := `services:
@@ -334,7 +334,7 @@ func TestCheckComposeFileSecrets_ScannerError(t *testing.T) {
 	t.Parallel()
 
 	tmpDir := t.TempDir()
-	composeFile := filepath.Join(tmpDir, "compose.yml")
+	composeFile := filepath.Join(tmpDir, cryptoutilSharedMagic.COMPOSE_YML)
 
 	// Create a file with a line exceeding bufio.MaxScanTokenSize to trigger scanner.Err().
 	longLine := "services:\n  myapp:\n    environment:\n      - " + strings.Repeat("x", 70000) + "\n"

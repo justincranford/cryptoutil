@@ -32,7 +32,7 @@ func TestIssuer_Issue_InvalidRequest(t *testing.T) {
 	require.NoError(t, err)
 
 	keyPair, err := provider.GenerateKeyPair(cryptoutilCACrypto.KeySpec{
-		Type:       cryptoutilCACrypto.KeyTypeECDSA,
+		Type:       cryptoutilSharedMagic.ECDSA,
 		ECDSACurve: "P-256",
 	})
 	require.NoError(t, err)
@@ -101,7 +101,7 @@ func TestIssuer_Issue_ValidityTruncation(t *testing.T) {
 	rootConfig := &cryptoutilCABootstrap.RootCAConfig{
 		Name: "Short Root CA",
 		KeySpec: cryptoutilCACrypto.KeySpec{
-			Type:       cryptoutilCACrypto.KeyTypeECDSA,
+			Type:       cryptoutilSharedMagic.ECDSA,
 			ECDSACurve: "P-256",
 		},
 		ValidityDuration:  180 * cryptoutilSharedMagic.HoursPerDay * time.Hour, // 180 days.
@@ -116,7 +116,7 @@ func TestIssuer_Issue_ValidityTruncation(t *testing.T) {
 	intermediateConfig := &cryptoutilCAIntermediate.IntermediateCAConfig{
 		Name: "Short Issuing CA",
 		KeySpec: cryptoutilCACrypto.KeySpec{
-			Type:       cryptoutilCACrypto.KeyTypeECDSA,
+			Type:       cryptoutilSharedMagic.ECDSA,
 			ECDSACurve: "P-256",
 		},
 		ValidityDuration:  cryptoutilSharedMagic.StrictCertificateMaxAgeDays * cryptoutilSharedMagic.HoursPerDay * time.Hour, // 90 days.
@@ -138,7 +138,7 @@ func TestIssuer_Issue_ValidityTruncation(t *testing.T) {
 	require.NoError(t, err)
 
 	keyPair, err := provider.GenerateKeyPair(cryptoutilCACrypto.KeySpec{
-		Type:       cryptoutilCACrypto.KeyTypeECDSA,
+		Type:       cryptoutilSharedMagic.ECDSA,
 		ECDSACurve: "P-256",
 	})
 	require.NoError(t, err)
@@ -169,7 +169,7 @@ func TestIssuer_Issue_ChainVerification(t *testing.T) {
 	rootConfig := &cryptoutilCABootstrap.RootCAConfig{
 		Name: "Chain Root CA",
 		KeySpec: cryptoutilCACrypto.KeySpec{
-			Type:       cryptoutilCACrypto.KeyTypeECDSA,
+			Type:       cryptoutilSharedMagic.ECDSA,
 			ECDSACurve: "P-256",
 		},
 		ValidityDuration:  cryptoutilSharedMagic.MaxErrorDisplay * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour,
@@ -183,7 +183,7 @@ func TestIssuer_Issue_ChainVerification(t *testing.T) {
 	intermediateConfig := &cryptoutilCAIntermediate.IntermediateCAConfig{
 		Name: "Chain Issuing CA",
 		KeySpec: cryptoutilCACrypto.KeySpec{
-			Type:       cryptoutilCACrypto.KeyTypeECDSA,
+			Type:       cryptoutilSharedMagic.ECDSA,
 			ECDSACurve: "P-256",
 		},
 		ValidityDuration:  cryptoutilSharedMagic.JoseJADefaultMaxMaterials * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour,
@@ -205,7 +205,7 @@ func TestIssuer_Issue_ChainVerification(t *testing.T) {
 	require.NoError(t, err)
 
 	keyPair, err := provider.GenerateKeyPair(cryptoutilCACrypto.KeySpec{
-		Type:       cryptoutilCACrypto.KeyTypeECDSA,
+		Type:       cryptoutilSharedMagic.ECDSA,
 		ECDSACurve: "P-256",
 	})
 	require.NoError(t, err)

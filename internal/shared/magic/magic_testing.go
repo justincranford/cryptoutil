@@ -217,6 +217,14 @@ const (
 	MockCPUCount = 4
 	// MockRAMMB - Mock RAM size in MB for testing (8GB).
 	MockRAMMB = 8192
+
+	// Shared filename/extension constants currently used by tooling packages.
+	YML                = "yml"
+	YAML               = "yaml"
+	COMPOSE_YML        = "compose.yml"
+	COMPOSE_YAML       = "compose.yaml"
+	DOCKER_COMPOSE_YML = "docker-compose.yml"
+	ECDSA              = "ECDSA"
 )
 
 // Test cryptographic algorithm constants for E2E tests.

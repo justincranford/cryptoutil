@@ -24,6 +24,12 @@ const (
 
 	// KMSServerFlagSetName is the pflag set name for the sm-kms server subcommand.
 	KMSServerFlagSetName = "sm-kms-server"
+
+	// SM-KMS persistence table names.
+	ELASTIC_JWKS        = "elastic_jwks"
+	MATERIAL_JWKS       = "material_jwks"
+	TENANT_AUDIT_CONFIG = "tenant_audit_config"
+	AUDIT_LOG           = "audit_log"
 )
 
 // SM-KMS E2E Test Configuration.

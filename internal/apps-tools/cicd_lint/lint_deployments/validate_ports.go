@@ -56,7 +56,7 @@ func ValidatePorts(deploymentPath, deploymentName, deploymentLevel string) (*Por
 	}
 
 	// Validate compose file ports.
-	composePath := filepath.Join(deploymentPath, "compose.yml")
+	composePath := filepath.Join(deploymentPath, cryptoutilSharedMagic.COMPOSE_YML)
 	validateComposePortRanges(composePath, deploymentLevel, result)
 
 	// Validate config file ports.

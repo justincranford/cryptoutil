@@ -5,6 +5,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // TemplatePatternResult holds template pattern validation results.
@@ -21,7 +23,7 @@ type TemplatePatternResult struct {
 
 // Required compose template files that MUST exist in deployments/template/.
 var requiredTemplateComposeFiles = []string{
-	"compose.yml",
+	cryptoutilSharedMagic.COMPOSE_YML,
 	"compose-cryptoutil-PRODUCT-SERVICE.yml",
 	"compose-cryptoutil-PRODUCT.yml",
 	"compose-cryptoutil.yml",

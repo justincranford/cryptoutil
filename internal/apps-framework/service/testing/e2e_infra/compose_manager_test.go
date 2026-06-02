@@ -15,7 +15,7 @@ func TestResetCertOutputDir_MakesArtifactsWritable(t *testing.T) {
 	t.Parallel()
 
 	tempDir := t.TempDir()
-	composePath := filepath.Join(tempDir, "compose.yml")
+	composePath := filepath.Join(tempDir, cryptoutilSharedMagic.COMPOSE_YML)
 
 	require.NoError(t, os.WriteFile(composePath, []byte("services: {}"), cryptoutilSharedMagic.CacheFilePermissions))
 
@@ -43,7 +43,7 @@ func TestResetCertOutputDir_MissingDirectory(t *testing.T) {
 	t.Parallel()
 
 	tempDir := t.TempDir()
-	composePath := filepath.Join(tempDir, "compose.yml")
+	composePath := filepath.Join(tempDir, cryptoutilSharedMagic.COMPOSE_YML)
 	require.NoError(t, os.WriteFile(composePath, []byte("services: {}"), cryptoutilSharedMagic.CacheFilePermissions))
 
 	cm := &ComposeManager{ComposeFile: composePath}

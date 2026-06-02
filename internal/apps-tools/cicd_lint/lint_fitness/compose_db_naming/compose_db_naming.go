@@ -16,6 +16,8 @@ import (
 
 	"gopkg.in/yaml.v3"
 
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps-tools/cicd_lint/common"
 	lintFitnessRegistry "cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/registry"
 )
@@ -54,7 +56,7 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 // the legacy "{PS-ID}-db-postgres-1" service.  PostgreSQL is now provided by
 // the shared-postgres tier and included via include: directives.
 func checkNoPerPSIDDB(rootDir, psID string) []string {
-	composePath := filepath.Join(rootDir, "deployments", psID, "compose.yml")
+	composePath := filepath.Join(rootDir, "deployments", psID, cryptoutilSharedMagic.COMPOSE_YML)
 
 	data, err := os.ReadFile(composePath)
 	if err != nil {

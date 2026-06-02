@@ -34,6 +34,9 @@ const (
 
 	// SkeletonTemplateDisplayName is the human-readable display name for the skeleton-template service.
 	SkeletonTemplateDisplayName = "Skeleton Template"
+
+	// TEMPLATE_ITEMS is the skeleton-template table name for TemplateItem persistence model.
+	TEMPLATE_ITEMS = "template_items"
 )
 
 // Skeleton-Template E2E Test Configuration.
