@@ -156,7 +156,7 @@ func TestGetKeyInfo(t *testing.T) {
 			generateCert: func() *x509.Certificate {
 				return &x509.Certificate{PublicKey: "unknown_key_type"}
 			},
-			expectedAlgo:    "unknown",
+			expectedAlgo:    cryptoutilSharedMagic.UNKNOWN,
 			expectedMinSize: 0,
 			expectedMaxSize: 0,
 		},

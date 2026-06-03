@@ -197,7 +197,7 @@ func getKeyInfo(cert *x509.Certificate) (string, int) {
 	case ed25519.PublicKey:
 		return cryptoutilSharedMagic.JoseAlgEdDSA, ed25519.PublicKeySize * cryptoutilSharedMagic.BitsPerByte
 	default:
-		return "unknown", 0
+		return cryptoutilSharedMagic.UNKNOWN, 0
 	}
 }
 

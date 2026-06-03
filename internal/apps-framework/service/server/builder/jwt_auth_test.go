@@ -124,8 +124,8 @@ func TestJWTClaims_Scopes(t *testing.T) {
 	t.Run("HasAnyScope", func(t *testing.T) {
 		t.Parallel()
 
-		require.True(t, claims.HasAnyScope(cryptoutilSharedMagic.ScopeRead, "unknown"))
-		require.True(t, claims.HasAnyScope("unknown", cryptoutilSharedMagic.ScopeWrite))
+		require.True(t, claims.HasAnyScope(cryptoutilSharedMagic.ScopeRead, cryptoutilSharedMagic.UNKNOWN))
+		require.True(t, claims.HasAnyScope(cryptoutilSharedMagic.UNKNOWN, cryptoutilSharedMagic.ScopeWrite))
 		require.False(t, claims.HasAnyScope("unknown1", "unknown2"))
 	})
 

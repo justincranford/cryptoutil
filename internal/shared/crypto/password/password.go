@@ -52,7 +52,7 @@ func VerifyPassword(password, storedHash string) (bool, bool, error) {
 }
 
 // DetectHashType returns the hash algorithm type from the hash string.
-// Supports: "pbkdf2", "unknown".
+// Supports: "pbkdf2", UNKNOWN.
 func DetectHashType(hash string) string {
 	return cryptoutilSharedCryptoPbkdf2.DetectHashType(hash)
 }

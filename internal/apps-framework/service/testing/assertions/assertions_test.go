@@ -12,6 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	cryptoutilTestingAssertions "cryptoutil/internal/apps-framework/service/testing/assertions"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // newTestResponse builds a minimal *http.Response for assertion tests.
@@ -55,7 +56,7 @@ func TestAssertHealthy_WrongStatus(t *testing.T) {
 func TestAssertErrorResponse_MatchingCode(t *testing.T) {
 	t.Parallel()
 
-	resp := newTestResponse(http.StatusBadRequest, "application/json", `{"code":"INVALID","message":"bad request"}`)
+	resp := newTestResponse(http.StatusBadRequest, "application/json", `{"code":"`+cryptoutilSharedMagic.ERR_CODE_INVALID_REQUEST+`","message":"bad request"}`)
 
 	t.Cleanup(func() { _ = resp.Body.Close() })
 
@@ -66,7 +67,7 @@ func TestAssertErrorResponse_WrongCode(t *testing.T) {
 	t.Parallel()
 
 	mockT := &mockTB{}
-	resp := newTestResponse(http.StatusNotFound, "application/json", `{"code":"NOT_FOUND","message":"not found"}`)
+	resp := newTestResponse(http.StatusNotFound, "application/json", `{"code":"`+cryptoutilSharedMagic.ERR_CODE_NOT_FOUND+`","message":"not found"}`)
 
 	t.Cleanup(func() { _ = resp.Body.Close() })
 

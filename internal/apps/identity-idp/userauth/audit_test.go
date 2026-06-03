@@ -117,12 +117,12 @@ func TestExtractDomain(t *testing.T) {
 		{
 			name:     "No @ symbol",
 			email:    "notanemail",
-			expected: "unknown",
+			expected: cryptoutilSharedMagic.UNKNOWN,
 		},
 		{
 			name:     "Empty string",
 			email:    "",
-			expected: "unknown",
+			expected: cryptoutilSharedMagic.UNKNOWN,
 		},
 	}
 

@@ -123,11 +123,11 @@ func VerifyPassword(password, storedHash string) (bool, error) {
 }
 
 // DetectHashType returns the hash algorithm type from the hash string.
-// Supports: "pbkdf2", "unknown".
+// Supports: "pbkdf2", UNKNOWN.
 func DetectHashType(hash string) string {
 	if strings.HasPrefix(hash, "$pbkdf2-sha256$") {
-		return "pbkdf2"
+		return cryptoutilSharedMagic.PBKDF2
 	}
 
-	return "unknown"
+	return cryptoutilSharedMagic.UNKNOWN
 }

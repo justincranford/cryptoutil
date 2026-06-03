@@ -336,10 +336,10 @@ func TestShardStrategyString(t *testing.T) {
 		strategy ShardStrategy
 		expected string
 	}{
-		{StrategyRowLevel, "row-level"},
-		{StrategySchemaLevel, "schema-level"},
-		{StrategyDatabaseLevel, "database-level"},
-		{ShardStrategy(99), "unknown"},
+		{StrategyRowLevel, cryptoutilSharedMagic.STRATEGY_ROW_LEVEL},
+		{StrategySchemaLevel, cryptoutilSharedMagic.STRATEGY_SCHEMA_LEVEL},
+		{StrategyDatabaseLevel, cryptoutilSharedMagic.STRATEGY_DATABASE_LEVEL},
+		{ShardStrategy(99), cryptoutilSharedMagic.STRATEGY_UNKNOWN},
 	}
 
 	for _, tt := range tests {

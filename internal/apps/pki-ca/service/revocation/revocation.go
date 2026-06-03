@@ -55,7 +55,7 @@ func (r RevocationReason) String() string {
 		return str
 	}
 
-	return "unknown"
+	return cryptoutilSharedMagic.UNKNOWN
 }
 
 // RevokedCertificate represents a revoked certificate entry.

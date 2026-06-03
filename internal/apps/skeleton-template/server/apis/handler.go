@@ -82,8 +82,8 @@ func (s *StrictServer) ListItems(_ context.Context, request cryptoutilSkeletonTe
 func (s *StrictServer) CreateItem(_ context.Context, request cryptoutilSkeletonTemplateServer.CreateItemRequestObject) (cryptoutilSkeletonTemplateServer.CreateItemResponseObject, error) {
 	if request.Body == nil {
 		return cryptoutilSkeletonTemplateServer.CreateItem400JSONResponse{BadRequestJSONResponse: cryptoutilSkeletonTemplateServer.BadRequestJSONResponse{
-			Code:    "INVALID_REQUEST",
-			Message: "Request body is required",
+			Code:    cryptoutilSharedMagic.ERR_CODE_INVALID_REQUEST,
+			Message: cryptoutilSharedMagic.ERR_MSG_REQUEST_BODY_REQUIRED,
 		}}, nil
 	}
 
@@ -111,7 +111,7 @@ func (s *StrictServer) GetItem(_ context.Context, request cryptoutilSkeletonTemp
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return cryptoutilSkeletonTemplateServer.GetItem404JSONResponse{NotFoundJSONResponse: cryptoutilSkeletonTemplateServer.NotFoundJSONResponse{
-				Code:    "NOT_FOUND",
+				Code:    cryptoutilSharedMagic.ERR_CODE_NOT_FOUND,
 				Message: fmt.Sprintf("Item %s not found", request.ItemID),
 			}}, nil
 		}
@@ -127,8 +127,8 @@ func (s *StrictServer) GetItem(_ context.Context, request cryptoutilSkeletonTemp
 func (s *StrictServer) UpdateItem(_ context.Context, request cryptoutilSkeletonTemplateServer.UpdateItemRequestObject) (cryptoutilSkeletonTemplateServer.UpdateItemResponseObject, error) {
 	if request.Body == nil {
 		return cryptoutilSkeletonTemplateServer.UpdateItem400JSONResponse{BadRequestJSONResponse: cryptoutilSkeletonTemplateServer.BadRequestJSONResponse{
-			Code:    "INVALID_REQUEST",
-			Message: "Request body is required",
+			Code:    cryptoutilSharedMagic.ERR_CODE_INVALID_REQUEST,
+			Message: cryptoutilSharedMagic.ERR_MSG_REQUEST_BODY_REQUIRED,
 		}}, nil
 	}
 
@@ -136,7 +136,7 @@ func (s *StrictServer) UpdateItem(_ context.Context, request cryptoutilSkeletonT
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return cryptoutilSkeletonTemplateServer.UpdateItem404JSONResponse{NotFoundJSONResponse: cryptoutilSkeletonTemplateServer.NotFoundJSONResponse{
-				Code:    "NOT_FOUND",
+				Code:    cryptoutilSharedMagic.ERR_CODE_NOT_FOUND,
 				Message: fmt.Sprintf("Item %s not found", request.ItemID),
 			}}, nil
 		}
@@ -160,7 +160,7 @@ func (s *StrictServer) DeleteItem(_ context.Context, request cryptoutilSkeletonT
 	if err := s.itemRepo.Delete(context.Background(), defaultTenantID, googleUuid.UUID(request.ItemID)); err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return cryptoutilSkeletonTemplateServer.DeleteItem404JSONResponse{NotFoundJSONResponse: cryptoutilSkeletonTemplateServer.NotFoundJSONResponse{
-				Code:    "NOT_FOUND",
+				Code:    cryptoutilSharedMagic.ERR_CODE_NOT_FOUND,
 				Message: fmt.Sprintf("Item %s not found", request.ItemID),
 			}}, nil
 		}
@@ -197,7 +197,7 @@ func derefString(s *string) string {
 // listItems500 builds a ListItems 500 response.
 func listItems500(message string) (cryptoutilSkeletonTemplateServer.ListItemsResponseObject, error) {
 	return cryptoutilSkeletonTemplateServer.ListItems500JSONResponse{InternalServerErrorJSONResponse: cryptoutilSkeletonTemplateServer.InternalServerErrorJSONResponse{
-		Code:    "INTERNAL_ERROR",
+		Code:    cryptoutilSharedMagic.ERR_CODE_INTERNAL_ERROR,
 		Message: message,
 	}}, nil
 }
@@ -205,7 +205,7 @@ func listItems500(message string) (cryptoutilSkeletonTemplateServer.ListItemsRes
 // createItem500 builds a CreateItem 500 response.
 func createItem500(message string) (cryptoutilSkeletonTemplateServer.CreateItemResponseObject, error) {
 	return cryptoutilSkeletonTemplateServer.CreateItem500JSONResponse{InternalServerErrorJSONResponse: cryptoutilSkeletonTemplateServer.InternalServerErrorJSONResponse{
-		Code:    "INTERNAL_ERROR",
+		Code:    cryptoutilSharedMagic.ERR_CODE_INTERNAL_ERROR,
 		Message: message,
 	}}, nil
 }
@@ -213,7 +213,7 @@ func createItem500(message string) (cryptoutilSkeletonTemplateServer.CreateItemR
 // getItem500 builds a GetItem 500 response.
 func getItem500(message string) (cryptoutilSkeletonTemplateServer.GetItemResponseObject, error) {
 	return cryptoutilSkeletonTemplateServer.GetItem500JSONResponse{InternalServerErrorJSONResponse: cryptoutilSkeletonTemplateServer.InternalServerErrorJSONResponse{
-		Code:    "INTERNAL_ERROR",
+		Code:    cryptoutilSharedMagic.ERR_CODE_INTERNAL_ERROR,
 		Message: message,
 	}}, nil
 }
@@ -221,7 +221,7 @@ func getItem500(message string) (cryptoutilSkeletonTemplateServer.GetItemRespons
 // updateItem500 builds an UpdateItem 500 response.
 func updateItem500(message string) (cryptoutilSkeletonTemplateServer.UpdateItemResponseObject, error) {
 	return cryptoutilSkeletonTemplateServer.UpdateItem500JSONResponse{InternalServerErrorJSONResponse: cryptoutilSkeletonTemplateServer.InternalServerErrorJSONResponse{
-		Code:    "INTERNAL_ERROR",
+		Code:    cryptoutilSharedMagic.ERR_CODE_INTERNAL_ERROR,
 		Message: message,
 	}}, nil
 }
@@ -229,7 +229,7 @@ func updateItem500(message string) (cryptoutilSkeletonTemplateServer.UpdateItemR
 // deleteItem500 builds a DeleteItem 500 response.
 func deleteItem500(message string) (cryptoutilSkeletonTemplateServer.DeleteItemResponseObject, error) {
 	return cryptoutilSkeletonTemplateServer.DeleteItem500JSONResponse{InternalServerErrorJSONResponse: cryptoutilSkeletonTemplateServer.InternalServerErrorJSONResponse{
-		Code:    "INTERNAL_ERROR",
+		Code:    cryptoutilSharedMagic.ERR_CODE_INTERNAL_ERROR,
 		Message: message,
 	}}, nil
 }

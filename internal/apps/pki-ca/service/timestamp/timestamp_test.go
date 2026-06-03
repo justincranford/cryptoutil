@@ -29,7 +29,7 @@ func TestPKIStatus_String(t *testing.T) {
 		{"waiting", PKIStatusWaiting, "waiting"},
 		{"revocationWarning", PKIStatusRevocationWarning, "revocationWarning"},
 		{"revocationNotification", PKIStatusRevocationNotification, "revocationNotification"},
-		{"unknown", PKIStatus(cryptoutilSharedMagic.JoseJAMaxMaterials), "unknown"},
+		{cryptoutilSharedMagic.UNKNOWN, PKIStatus(cryptoutilSharedMagic.JoseJAMaxMaterials), cryptoutilSharedMagic.UNKNOWN},
 	}
 
 	for _, tc := range tests {
@@ -58,7 +58,7 @@ func TestPKIFailureInfo_String(t *testing.T) {
 		{"unacceptedExtension", PKIFailureUnacceptedExtension, "unacceptedExtension"},
 		{"addInfoNotAvailable", PKIFailureAddInfoNotAvailable, "addInfoNotAvailable"},
 		{"systemFailure", PKIFailureSystemFailure, "systemFailure"},
-		{"unknown", PKIFailureInfo(cryptoutilSharedMagic.JoseJAMaxMaterials), "unknown"},
+		{cryptoutilSharedMagic.UNKNOWN, PKIFailureInfo(cryptoutilSharedMagic.JoseJAMaxMaterials), cryptoutilSharedMagic.UNKNOWN},
 	}
 
 	for _, tc := range tests {
@@ -80,9 +80,9 @@ func TestHashAlgorithm_OID(t *testing.T) {
 		want asn1.ObjectIdentifier
 	}{
 		{cryptoutilSharedMagic.PBKDF2DefaultAlgorithm, HashAlgorithmSHA256, asn1.ObjectIdentifier{2, cryptoutilSharedMagic.RealmMinTokenLengthBytes, 840, 1, 101, 3, 4, 2, 1}},
-		{"SHA-384", HashAlgorithmSHA384, asn1.ObjectIdentifier{2, cryptoutilSharedMagic.RealmMinTokenLengthBytes, 840, 1, 101, 3, 4, 2, 2}},
-		{"SHA-512", HashAlgorithmSHA512, asn1.ObjectIdentifier{2, cryptoutilSharedMagic.RealmMinTokenLengthBytes, 840, 1, 101, 3, 4, 2, 3}},
-		{"unknown", HashAlgorithm("unknown"), nil},
+		{cryptoutilSharedMagic.SHA_384, HashAlgorithmSHA384, asn1.ObjectIdentifier{2, cryptoutilSharedMagic.RealmMinTokenLengthBytes, 840, 1, 101, 3, 4, 2, 2}},
+		{cryptoutilSharedMagic.SHA_512, HashAlgorithmSHA512, asn1.ObjectIdentifier{2, cryptoutilSharedMagic.RealmMinTokenLengthBytes, 840, 1, 101, 3, 4, 2, 3}},
+		{cryptoutilSharedMagic.UNKNOWN, HashAlgorithm(cryptoutilSharedMagic.UNKNOWN), nil},
 	}
 
 	for _, tc := range tests {
@@ -105,9 +105,9 @@ func TestHashAlgorithm_CryptoHash(t *testing.T) {
 		isZero bool
 	}{
 		{cryptoutilSharedMagic.PBKDF2DefaultAlgorithm, HashAlgorithmSHA256, cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes, false},
-		{"SHA-384", HashAlgorithmSHA384, cryptoutilSharedMagic.HMACSHA384KeySize, false},
-		{"SHA-512", HashAlgorithmSHA512, cryptoutilSharedMagic.MinSerialNumberBits, false},
-		{"unknown", HashAlgorithm("unknown"), 0, true},
+		{cryptoutilSharedMagic.SHA_384, HashAlgorithmSHA384, cryptoutilSharedMagic.HMACSHA384KeySize, false},
+		{cryptoutilSharedMagic.SHA_512, HashAlgorithmSHA512, cryptoutilSharedMagic.MinSerialNumberBits, false},
+		{cryptoutilSharedMagic.UNKNOWN, HashAlgorithm(cryptoutilSharedMagic.UNKNOWN), 0, true},
 	}
 
 	for _, tc := range tests {

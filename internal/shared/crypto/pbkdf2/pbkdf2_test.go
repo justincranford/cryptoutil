@@ -145,22 +145,22 @@ func TestDetectHashType(t *testing.T) {
 		{
 			name:         "non-fips140-hash 2a",
 			hash:         "$2a$12$abcdefghijklmnopqrstuv",
-			expectedType: "unknown",
+			expectedType: cryptoutilSharedMagic.UNKNOWN,
 		},
 		{
-			name:         "pbkdf2",
+			name:         cryptoutilSharedMagic.PBKDF2,
 			hash:         "$pbkdf2-sha256$600000$salt$hash",
-			expectedType: "pbkdf2",
+			expectedType: cryptoutilSharedMagic.PBKDF2,
 		},
 		{
-			name:         "unknown",
+			name:         cryptoutilSharedMagic.UNKNOWN,
 			hash:         "plain-text-password",
-			expectedType: "unknown",
+			expectedType: cryptoutilSharedMagic.UNKNOWN,
 		},
 		{
-			name:         "empty",
+			name:         cryptoutilSharedMagic.EMPTY,
 			hash:         "",
-			expectedType: "unknown",
+			expectedType: cryptoutilSharedMagic.UNKNOWN,
 		},
 	}
 
@@ -185,19 +185,19 @@ func TestHashPasswordWithIterations(t *testing.T) {
 	}{
 		{
 			name:        "minimum iterations (210000)",
-			password:    "Password123!",
+			password:    cryptoutilSharedMagic.PASSWORD123BANG,
 			iterations:  cryptoutilSharedMagic.PBKDF2MinIterations,
 			expectError: false,
 		},
 		{
 			name:        "recommended iterations (600000)",
-			password:    "Password123!",
+			password:    cryptoutilSharedMagic.PASSWORD123BANG,
 			iterations:  cryptoutilSharedMagic.PBKDF2DefaultIterations,
 			expectError: false,
 		},
 		{
 			name:        "too few iterations",
-			password:    "Password123!",
+			password:    cryptoutilSharedMagic.PASSWORD123BANG,
 			iterations:  cryptoutilSharedMagic.PBKDF2Iterations,
 			expectError: true,
 		},

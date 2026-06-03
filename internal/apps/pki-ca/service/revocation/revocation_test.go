@@ -33,7 +33,7 @@ func TestRevocationReason_String(t *testing.T) {
 		{"removeFromCRL", ReasonRemoveFromCRL, "removeFromCRL"},
 		{"privilegeWithdrawn", ReasonPrivilegeWithdrawn, "privilegeWithdrawn"},
 		{"aaCompromise", ReasonAACompromise, "aaCompromise"},
-		{"unknown", RevocationReason(cryptoutilSharedMagic.JoseJAMaxMaterials), "unknown"},
+		{cryptoutilSharedMagic.UNKNOWN, RevocationReason(cryptoutilSharedMagic.JoseJAMaxMaterials), cryptoutilSharedMagic.UNKNOWN},
 	}
 
 	for _, tc := range tests {

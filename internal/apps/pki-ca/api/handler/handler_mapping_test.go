@@ -95,7 +95,7 @@ func TestMapCategory(t *testing.T) {
 		{"code_signing", "code_signing", cryptoutilApiCaServer.CodeSigning},
 		{"document_signing", "document_signing", cryptoutilApiCaServer.DocumentSigning},
 		{"ca", "ca", cryptoutilApiCaServer.CA},
-		{"unknown_returns_other", "unknown", cryptoutilApiCaServer.Other},
+		{"unknown_returns_other", cryptoutilSharedMagic.UNKNOWN, cryptoutilApiCaServer.Other},
 		{"empty_returns_other", "", cryptoutilApiCaServer.Other},
 		{"random_returns_other", "random_category", cryptoutilApiCaServer.Other},
 	}

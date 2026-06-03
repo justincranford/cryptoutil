@@ -7,6 +7,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 func TestHashPassword(t *testing.T) {
@@ -108,17 +110,17 @@ func TestDetectHashType(t *testing.T) {
 		{
 			name:         "non-fips140-hash 2a",
 			hash:         "$2a$12$abcdefghijklmnopqrstuv",
-			expectedType: "unknown",
+			expectedType: cryptoutilSharedMagic.UNKNOWN,
 		},
 		{
 			name:         "pbkdf2",
 			hash:         "$pbkdf2-sha256$600000$salt$hash",
-			expectedType: "pbkdf2",
+			expectedType: cryptoutilSharedMagic.PBKDF2,
 		},
 		{
-			name:         "unknown",
+			name:         cryptoutilSharedMagic.UNKNOWN,
 			hash:         "plain-text-password",
-			expectedType: "unknown",
+			expectedType: cryptoutilSharedMagic.UNKNOWN,
 		},
 	}
 

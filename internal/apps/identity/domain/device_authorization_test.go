@@ -108,7 +108,7 @@ func TestDeviceAuthorization_StatusChecks(t *testing.T) {
 		},
 		{
 			name:           "unknown status",
-			status:         "unknown",
+			status:         cryptoutilSharedMagic.UNKNOWN,
 			wantPending:    false,
 			wantAuthorized: false,
 			wantDenied:     false,

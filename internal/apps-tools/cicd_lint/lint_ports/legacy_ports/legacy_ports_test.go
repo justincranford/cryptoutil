@@ -27,7 +27,7 @@ func TestGetServiceForLegacyPort(t *testing.T) {
 		{name: "pki-ca 9443", port: 9443, want: cryptoutilSharedMagic.OTLPServicePKICA},
 		{name: "pki-ca 8092", port: 8092, want: cryptoutilSharedMagic.OTLPServicePKICA},
 		{name: "pki-ca 8443", port: 8443, want: cryptoutilSharedMagic.OTLPServicePKICA},
-		{name: "unknown port", port: 12345, want: "unknown"},
+		{name: "unknown port", port: 12345, want: cryptoutilSharedMagic.UNKNOWN},
 	}
 
 	for _, tt := range tests {

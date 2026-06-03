@@ -52,7 +52,7 @@ func TestOamOasMapper_ToOasGetElastickeysResponse_Errors(t *testing.T) {
 		},
 		{
 			name:    "unknown error",
-			err:     errors.New("unknown"),
+			err:     errors.New(cryptoutilSharedMagic.UNKNOWN),
 			wantErr: true,
 		},
 	}
@@ -124,7 +124,7 @@ func TestOamOasMapper_ToOasGetMaterialKeysResponse_Errors(t *testing.T) {
 		},
 		{
 			name:    "unknown error",
-			err:     errors.New("unknown"),
+			err:     errors.New(cryptoutilSharedMagic.UNKNOWN),
 			wantErr: true,
 		},
 	}
@@ -183,7 +183,7 @@ func TestOamOasMapper_ToOasPutElastickeyElasticKeyIDResponse(t *testing.T) {
 		},
 		{
 			name:    "unknown error",
-			err:     errors.New("unknown"),
+			err:     errors.New(cryptoutilSharedMagic.UNKNOWN),
 			wantErr: true,
 		},
 	}
@@ -245,7 +245,7 @@ func TestOamOasMapper_ToOasDeleteElastickeyElasticKeyIDResponse(t *testing.T) {
 		},
 		{
 			name:    "unknown error",
-			err:     errors.New("unknown"),
+			err:     errors.New(cryptoutilSharedMagic.UNKNOWN),
 			wantErr: true,
 		},
 	}
@@ -299,7 +299,7 @@ func TestOamOasMapper_ToOasPostElastickeyElasticKeyIDImportResponse(t *testing.T
 		},
 		{
 			name:    "unknown error",
-			err:     errors.New("unknown"),
+			err:     errors.New(cryptoutilSharedMagic.UNKNOWN),
 			wantErr: true,
 		},
 	}
@@ -361,7 +361,7 @@ func TestOamOasMapper_ToOasPostElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRev
 		},
 		{
 			name:    "unknown error",
-			err:     errors.New("unknown"),
+			err:     errors.New(cryptoutilSharedMagic.UNKNOWN),
 			wantErr: true,
 		},
 	}
@@ -415,7 +415,7 @@ func TestOamOasMapper_ToOasDeleteElastickeyElasticKeyIDMaterialkeyMaterialKeyIDR
 		},
 		{
 			name:    "unknown error",
-			err:     errors.New("unknown"),
+			err:     errors.New(cryptoutilSharedMagic.UNKNOWN),
 			wantErr: true,
 		},
 	}

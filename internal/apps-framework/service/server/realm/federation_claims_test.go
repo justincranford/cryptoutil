@@ -156,13 +156,13 @@ func TestFederationManager_ValidateAudience(t *testing.T) {
 		{
 			name:       "multiple audiences with one valid",
 			providerID: "aud-provider",
-			audience:   []string{"unknown", "client2"},
+			audience:   []string{cryptoutilSharedMagic.UNKNOWN, "client2"},
 			wantErr:    false,
 		},
 		{
 			name:       "invalid audience",
 			providerID: "aud-provider",
-			audience:   []string{"unknown"},
+			audience:   []string{cryptoutilSharedMagic.UNKNOWN},
 			wantErr:    true,
 		},
 	}

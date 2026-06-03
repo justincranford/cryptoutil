@@ -36,13 +36,13 @@ const (
 func (s ShardStrategy) String() string {
 	switch s {
 	case StrategyRowLevel:
-		return "row-level"
+		return cryptoutilSharedMagic.STRATEGY_ROW_LEVEL
 	case StrategySchemaLevel:
-		return "schema-level"
+		return cryptoutilSharedMagic.STRATEGY_SCHEMA_LEVEL
 	case StrategyDatabaseLevel:
-		return "database-level"
+		return cryptoutilSharedMagic.STRATEGY_DATABASE_LEVEL
 	default:
-		return "unknown"
+		return cryptoutilSharedMagic.STRATEGY_UNKNOWN
 	}
 }
 

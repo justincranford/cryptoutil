@@ -179,7 +179,7 @@ func extractDomain(email string) string {
 		}
 	}
 
-	return "unknown"
+	return cryptoutilSharedMagic.UNKNOWN
 }
 
 // maskIPAddress masks the last octet of an IPv4 address for privacy.

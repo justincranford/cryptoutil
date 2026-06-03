@@ -44,7 +44,7 @@ func (s PKIStatus) String() string {
 		return str
 	}
 
-	return unknownStatus
+	return cryptoutilSharedMagic.UNKNOWN
 }
 
 // PKIFailureInfo represents failure information in a timestamp response.
@@ -79,7 +79,7 @@ func (f PKIFailureInfo) String() string {
 		return str
 	}
 
-	return unknownStatus
+	return cryptoutilSharedMagic.UNKNOWN
 }
 
 // HashAlgorithm represents supported hash algorithms for timestamping.
@@ -87,9 +87,9 @@ type HashAlgorithm string
 
 // Supported hash algorithms.
 const (
-	HashAlgorithmSHA256 HashAlgorithm = cryptoutilSharedMagic.PBKDF2DefaultAlgorithm
-	HashAlgorithmSHA384 HashAlgorithm = "SHA-384"
-	HashAlgorithmSHA512 HashAlgorithm = "SHA-512"
+	HashAlgorithmSHA256 HashAlgorithm = cryptoutilSharedMagic.SHA_256
+	HashAlgorithmSHA384 HashAlgorithm = cryptoutilSharedMagic.SHA_384
+	HashAlgorithmSHA512 HashAlgorithm = cryptoutilSharedMagic.SHA_512
 )
 
 // OID returns the ASN.1 OID for the hash algorithm.

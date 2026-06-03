@@ -265,7 +265,7 @@ realms:
         permissions: ["kms:admin", "kms:read", "kms:write"]
 defaults:
   password_policy:
-    algorithm: "SHA-256"
+    algorithm: SHA_256
     iterations: 600000
     salt_bytes: 32
     hash_bytes: 32

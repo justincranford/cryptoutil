@@ -332,7 +332,7 @@ func TestConvertToJWK(t *testing.T) {
 			name: "unsupported_key_type",
 			key: &SigningKey{
 				KeyID:     "test-unsupported-kid",
-				Algorithm: "unknown",
+				Algorithm: cryptoutilSharedMagic.UNKNOWN,
 				Key:       "not_a_crypto_key",
 			},
 			expected: nil,

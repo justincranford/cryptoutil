@@ -239,7 +239,7 @@ func TestStepUpAuthenticator_ParseAuthLevel(t *testing.T) {
 		{cryptoutilSharedMagic.AMRMultiFactor, AuthLevelMFA},
 		{"step_up", AuthLevelStepUp},
 		{"strong_mfa", AuthLevelStrongMFA},
-		{"unknown", AuthLevelBasic}, // Default to basic for unknown.
+		{cryptoutilSharedMagic.UNKNOWN, AuthLevelBasic}, // Default to basic for unknown.
 	}
 
 	for _, tc := range tests {

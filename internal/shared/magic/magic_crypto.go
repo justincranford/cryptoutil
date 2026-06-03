@@ -42,6 +42,11 @@ const (
 	// SHA224 is the SHA-224 digest algorithm name.
 	SHA224 = "SHA224"
 
+	SHA_512 = "SHA-512"
+	SHA_384 = "SHA-384"
+	SHA_256 = "SHA-256"
+	SHA_224 = "SHA-224"
+
 	// RSAKeySize2048 is the RSA 2048-bit key size constant.
 	RSAKeySize2048 = 2048
 	// RSAKeySize3072 is the RSA 3072-bit key size constant.
@@ -147,7 +152,7 @@ const (
 	// PBKDF2SHA512HashName is the algorithm name for PBKDF2 SHA-512.
 	PBKDF2SHA512HashName = "pbkdf2-sha512"
 	// PBKDF2DefaultAlgorithm is the default PRF algorithm for PBKDF2.
-	PBKDF2DefaultAlgorithm = "SHA-256"
+	PBKDF2DefaultAlgorithm = SHA_256
 	// PBKDF2DefaultSaltBytes is the salt length in bytes (32 = 256 bits).
 	PBKDF2DefaultSaltBytes = 32
 	// PBKDF2DefaultHashBytes is the derived key length in bytes (32 = 256 bits for SHA-256).
@@ -189,11 +194,11 @@ var (
 // PBKDF2HashFunction returns the hash function for the given algorithm name.
 func PBKDF2HashFunction(algorithm string) func() hash.Hash {
 	switch algorithm {
-	case "SHA-256", "sha256", "SHA256":
+	case SHA_256, "sha256", "SHA256":
 		return sha256.New
-	case "SHA-512", "sha512", "SHA512":
+	case SHA_512, "sha512", "SHA512":
 		return sha512.New
-	case "SHA-384", "sha384", "SHA384":
+	case SHA_384, "sha384", "SHA384":
 		return sha512.New384
 	default:
 		return sha256.New

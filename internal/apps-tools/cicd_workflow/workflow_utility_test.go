@@ -66,7 +66,7 @@ func TestContains(t *testing.T) {
 		{
 			name:     "Item does not exist in slice",
 			slice:    []string{"quality", "coverage", cryptoutilSharedMagic.WorkflowNameDAST},
-			item:     "unknown",
+			item:     cryptoutilSharedMagic.UNKNOWN,
 			expected: false,
 		},
 		{

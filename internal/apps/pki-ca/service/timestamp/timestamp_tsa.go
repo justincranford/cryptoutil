@@ -186,7 +186,6 @@ const (
 	hexBase           = 16
 	serialRandomBytes = 8
 	serialRandomBits  = 64
-	unknownStatus     = "unknown"
 )
 
 // ASN.1 structures for RFC 3161 TimeStampReq parsing.

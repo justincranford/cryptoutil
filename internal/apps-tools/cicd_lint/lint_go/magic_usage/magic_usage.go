@@ -20,11 +20,11 @@ type magicUsageKind string
 
 const (
 	// magicUsageKindRedefine means the value is the right-hand side of a const
-	// declaration outside the magic package (should reference magic.XXX instead).
+	// declaration outside the magic package (should reference cryptoutilSharedMagic.XXX instead).
 	magicUsageKindRedefine magicUsageKind = "const-redefine"
 
 	// magicUsageKindLiteral means the value appears as a bare literal in non-const
-	// code (should reference magic.XXX instead of repeating the literal).
+	// code (should reference cryptoutilSharedMagic.XXX instead of repeating the literal).
 	magicUsageKindLiteral magicUsageKind = "literal-use"
 )
 
@@ -156,21 +156,21 @@ func CheckMagicUsageInDir(
 		len(violations), len(literalUseViolations), len(constRedefineStringViolations), len(constRedefineNumericViolations))
 
 	for _, v := range violations {
-		fmt.Fprintf(&sb, "  %s:%d  [%s]  literal %s  →  use magic.%s\n",
+		fmt.Fprintf(&sb, "  %s:%d  [%s]  literal %s  →  use cryptoutilSharedMagic.%s\n",
 			v.File, v.Line, v.Kind, v.LiteralValue, v.MagicName)
 	}
 
 	logger.Log(sb.String())
 
 	if len(literalUseViolations) > 0 {
-		return fmt.Errorf("found %d literal-use violations: inline magic constant values must reference magic.XXX instead of repeating the literal", len(literalUseViolations))
+		return fmt.Errorf("found %d literal-use violations: inline magic constant values must reference cryptoutilSharedMagic.XXX instead of repeating the literal", len(literalUseViolations))
 	}
 
 	// String const-redefine is always blocking: redefining a magic string constant
 	// outside the magic package is always wrong — the same string value almost never
 	// coincidentally matches a magic constant (unlike small integers which are ubiquitous).
 	if len(constRedefineStringViolations) > 0 {
-		return fmt.Errorf("found %d const-redefine-string violations: redeclaring a magic string constant value outside the magic package is always wrong — reference magic.XXX instead", len(constRedefineStringViolations))
+		return fmt.Errorf("found %d const-redefine-string violations: redeclaring a magic string constant value outside the magic package is always wrong — reference cryptoutilSharedMagic.XXX instead", len(constRedefineStringViolations))
 	}
 
 	// Numeric const-redefine is informational: small integers (e.g. 5, 10, 32) frequently

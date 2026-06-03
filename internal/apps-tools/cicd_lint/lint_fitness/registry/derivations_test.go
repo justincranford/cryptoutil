@@ -71,7 +71,7 @@ func TestAdminPort_AllServicesReturn9090(t *testing.T) {
 func TestAdminPort_UnknownPSIDStillReturns9090(t *testing.T) {
 	t.Parallel()
 
-	require.Equal(t, int(cryptoutilSharedMagic.DefaultPrivatePortCryptoutil), AdminPort("unknown"))
+	require.Equal(t, int(cryptoutilSharedMagic.DefaultPrivatePortCryptoutil), AdminPort(cryptoutilSharedMagic.UNKNOWN))
 }
 
 func TestPostgresPort_AllPSIDs(t *testing.T) {
@@ -103,7 +103,7 @@ func TestPostgresPort_AllPSIDs(t *testing.T) {
 func TestPostgresPort_UnknownPSID(t *testing.T) {
 	t.Parallel()
 
-	require.Equal(t, 0, PostgresPort("unknown-service"))
+	require.Equal(t, 0, PostgresPort(cryptoutilSharedMagic.UNKNOWN))
 }
 
 func TestProductPublicPort_AllPSIDs(t *testing.T) {
@@ -135,7 +135,7 @@ func TestProductPublicPort_AllPSIDs(t *testing.T) {
 func TestProductPublicPort_UnknownPSID(t *testing.T) {
 	t.Parallel()
 
-	require.Equal(t, 0, ProductPublicPort("unknown-service"))
+	require.Equal(t, 0, ProductPublicPort(cryptoutilSharedMagic.UNKNOWN))
 }
 
 func TestSuitePublicPort_AllPSIDs(t *testing.T) {

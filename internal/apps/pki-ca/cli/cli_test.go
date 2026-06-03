@@ -129,7 +129,7 @@ func TestCLI_GenerateKey(t *testing.T) {
 		},
 		{
 			name:    "unsupported algorithm",
-			opts:    &KeyGenOptions{Algorithm: "unknown"},
+			opts:    &KeyGenOptions{Algorithm: cryptoutilSharedMagic.UNKNOWN},
 			wantErr: true,
 		},
 	}

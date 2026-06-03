@@ -164,7 +164,7 @@ func TestIsVerifyJWK_UnknownKeyType(t *testing.T) {
 func TestGetGenerateAlgorithmTestProbability_UnknownAlgorithm(t *testing.T) {
 	t.Parallel()
 
-	prob := GetGenerateAlgorithmTestProbability(cryptoutilOpenapiModel.GenerateAlgorithm("unknown"))
+	prob := GetGenerateAlgorithmTestProbability(cryptoutilOpenapiModel.GenerateAlgorithm(cryptoutilSharedMagic.UNKNOWN))
 	require.InDelta(t, cryptoutilSharedMagic.TestProbAlways, prob, 0.001)
 }
 
@@ -172,7 +172,7 @@ func TestGetGenerateAlgorithmTestProbability_UnknownAlgorithm(t *testing.T) {
 func TestGetElasticKeyAlgorithmTestProbability_UnknownAlgorithm(t *testing.T) {
 	t.Parallel()
 
-	prob := GetElasticKeyAlgorithmTestProbability(cryptoutilOpenapiModel.ElasticKeyAlgorithm("unknown"))
+	prob := GetElasticKeyAlgorithmTestProbability(cryptoutilOpenapiModel.ElasticKeyAlgorithm(cryptoutilSharedMagic.UNKNOWN))
 	require.InDelta(t, cryptoutilSharedMagic.TestProbAlways, prob, 0.001)
 }
 

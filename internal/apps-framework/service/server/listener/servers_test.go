@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-const testUnknownTLSProvisionMode = "unknown"
+const testUnknownTLSProvisionMode = cryptoutilSharedMagic.UNKNOWN
 
 func TestNewHTTPServers_AutoProvisionMode_HappyPath(t *testing.T) {
 	t.Parallel()

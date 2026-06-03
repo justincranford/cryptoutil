@@ -2,10 +2,11 @@
   "$schema": "vscode://schemas/settings/user",
   // VS Code Copilot Customization Instructions https://code.visualstudio.com/docs/copilot/customization/custom-instructions
   "github.copilot.enable": {
-    "*": true,
+    "*": false,
     "plaintext": false,
     "markdown": true,
-    "scminput": false
+    "scminput": false,
+    "go": false
   }, // Enable Copilot for all languages by default (workspace-level). Caution: confirm policy.
   "github.copilot.chat.codeGeneration.useInstructionFiles": true, // Use instruction files for code generation - Default: false, Recommended: true
   "github.copilot.chat.generateTests.codeLens": true, // Enable test generation code lens - Default: false, Recommended: true (experimental)

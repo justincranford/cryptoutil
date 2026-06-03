@@ -181,7 +181,7 @@ func GetServiceForLegacyPort(port uint16) string {
 		}
 	}
 
-	return "unknown"
+	return cryptoutilSharedMagic.UNKNOWN
 }
 
 func printViolations(violations []lintPortsCommon.Violation) {

@@ -23,7 +23,7 @@ func TestHashPassword_Error(t *testing.T) {
 func TestVerifyPassword_BcryptPrefixUnknown(t *testing.T) {
 	t.Parallel()
 
-	// "$2a$" was once a bcrypt prefix; now DetectHashType returns "unknown" for it.
+	// "$2a$" was once a bcrypt prefix; now DetectHashType returns UNKNOWN for it.
 	_, _, err := VerifyPassword("password", "non-fips140-hash$2a$")
 
 	require.Error(t, err)
@@ -44,7 +44,7 @@ func TestVerifyPassword_PBKDF2VerifyError(t *testing.T) {
 func TestVerifyPassword_UnknownHashType(t *testing.T) {
 	t.Parallel()
 
-	// Pass a hash string that DetectHashType returns "unknown" for.
+	// Pass a hash string that DetectHashType returns UNKNOWN for.
 	_, _, err := VerifyPassword("password", "unknown-hash-prefix-value")
 
 	require.Error(t, err)
