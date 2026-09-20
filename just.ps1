@@ -12,26 +12,43 @@ if (-not (Test-Path $justfile)) {
     exit 1
 }
 
-$content = Get-Content $justfile -Raw
+$lines = @(Get-Content $justfile)
+$inRecipe = $false
+$recipeCommands = @()
 
-# Parse recipe - look for @recipe: pattern
-$pattern = "^@$($Recipe):\s*`n([\s\S]*?)(?=^@|\Z)"
-if ($content -match $pattern) {
-    $commands = $matches[1].Trim()
-    # Remove leading indentation (typically 4 spaces)
-    $commands = $commands -replace '^\s{4}', '' -split "`n" | ForEach-Object {
-        $_.TrimStart()
-    } | Where-Object { $_ -and -not $_.StartsWith('#') }
+foreach ($line in $lines) {
+    # Check if this is the start of our recipe
+    if ($line -match "^@$([Regex]::Escape($Recipe)):\s*$") {
+        $inRecipe = $true
+        continue
+    }
     
-    foreach ($cmd in $commands) {
-        Write-Host "Running: $cmd"
-        Invoke-Expression $cmd
-        if ($LASTEXITCODE -ne 0) {
-            Write-Host "Command failed: $cmd"
-            exit $LASTEXITCODE
+    # Check if we've hit a new recipe (starts with @)
+    if ($inRecipe -and $line -match "^@" -and $line -ne "") {
+        break
+    }
+    
+    # If we're in the recipe, collect the command (remove leading whitespace)
+    if ($inRecipe) {
+        if ($line -match "^\s+(.+)$") {
+            $cmd = $matches[1]
+            if ($cmd -and -not $cmd.StartsWith('#')) {
+                $recipeCommands += $cmd
+            }
         }
     }
-} else {
+}
+
+if ($recipeCommands.Count -eq 0) {
     Write-Host "Recipe '$Recipe' not found in Justfile"
     exit 1
+}
+
+foreach ($cmd in $recipeCommands) {
+    Write-Host "Running: $cmd"
+    Invoke-Expression $cmd
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "Command failed: $cmd"
+        exit $LASTEXITCODE
+    }
 }
