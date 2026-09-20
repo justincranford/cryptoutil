@@ -45,6 +45,9 @@
   "diffEditor.ignoreTrimWhitespace": false, // Ignore trimmed whitespace in diff - Default: true
   "diffEditor.hideUnchangedRegions.enabled": false, // Hide unchanged regions in diff - Default: false
 
+  "python.defaultInterpreterPath": "${workspaceFolder}/.venv/Scripts/python",
+  "python.terminal.activateEnvInCurrentTerminal": true,
+
   // VS Code Files Settings https://code.visualstudio.com/docs/getstarted/settings
   "files.encoding": "utf8", // File encoding to use - Default: "utf8"
   "files.insertFinalNewline": true, // Ensure files end with a newline - Recommended to align with project policy
