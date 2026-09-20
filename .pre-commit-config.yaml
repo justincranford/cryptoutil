@@ -256,6 +256,15 @@ repos:
         pass_filenames: false
         files: go\.mod$
 
+      - id: go-mod-verify
+        name: go mod verify
+        entry: go
+        args: [mod, verify]
+        language: system
+        pass_filenames: false
+        require_serial: false
+        stages: [post-checkout]
+
   # Check TODO/FIXME severity (fail on CRITICAL/HIGH). Uses Python for cross-platform support (bash requires WSL on Windows).
   - repo: local
     hooks:
