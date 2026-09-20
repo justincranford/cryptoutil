@@ -254,6 +254,7 @@ repos:
         args: [run, ./cmd/dev-setup/main.go]
         language: system
         pass_filenames: false
+        always_run: true
         require_serial: false
         stages: [post-checkout]
 
