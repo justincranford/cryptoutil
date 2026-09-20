@@ -81,11 +81,9 @@ func internalMainWithSetup(ctx context.Context, setup *Setup) error {
 		return fmt.Errorf("failed to report results: %w", err)
 	}
 
-	// Return error if any dependency check/install failed
-	if summary.HasErrors {
-		return fmt.Errorf("some dependencies failed to install")
-	}
-
+	// Exit gracefully with status 0 even if dependencies have issues.
+	// This allows post-checkout hooks to continue without blocking.
+	// Users can see the warnings and manually install/fix tools as needed.
 	return nil
 }
 
