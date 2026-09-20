@@ -1,8 +1,8 @@
-@pre-commit:
-    pre-commit run --hook-stage pre-commit
-
 @post-checkout:
-    pre-commit run --hook-stage post-checkout
+    uvx pre-commit run --hook-stage post-checkout
+
+@pre-commit:
+    uvx pre-commit run --hook-stage pre-commit
 
 @pre-push:
-    pre-commit run --hook-stage pre-push
+    uvx pre-commit run --hook-stage pre-push
