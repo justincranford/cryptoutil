@@ -23,7 +23,7 @@ func TestReportSummary_Happy(t *testing.T) {
 							Name:          cryptoutilSharedMagic.DevSetupTestToolNamePython,
 							Version:       cryptoutilSharedMagic.DevSetupTestVersionPythonRequired,
 							ActualVersion: cryptoutilSharedMagic.DevSetupTestVersionPythonActual,
-							Status:        StatusInstalled,
+							Status:        cryptoutilSharedMagic.DevSetupStatusInstalled,
 						},
 					},
 					HasErrors: false,
@@ -68,7 +68,7 @@ func TestReportSummary_Sad(t *testing.T) {
 						Dependencies: []*DepResult{
 							{
 								Name:   cryptoutilSharedMagic.DevSetupTestToolNameGo,
-								Status: StatusCheckFailed,
+								Status: cryptoutilSharedMagic.DevSetupStatusCheckFailed,
 								Error:  fmt.Errorf("command not found"),
 							},
 						},
@@ -89,7 +89,7 @@ func TestReportSummary_Sad(t *testing.T) {
 						Dependencies: []*DepResult{
 							{
 								Name:   "pre-commit",
-								Status: StatusInstallFailed,
+								Status: cryptoutilSharedMagic.DevSetupStatusInstallFailed,
 								Error:  fmt.Errorf("permission denied"),
 							},
 						},
@@ -110,7 +110,7 @@ func TestReportSummary_Sad(t *testing.T) {
 						Dependencies: []*DepResult{
 							{
 								Name:   "golangci-lint",
-								Status: StatusVerifyFailed,
+								Status: cryptoutilSharedMagic.DevSetupStatusVerifyFailed,
 								Error:  fmt.Errorf("tool not found after installation"),
 							},
 						},
@@ -136,7 +136,7 @@ func TestReportSummary_Sad(t *testing.T) {
 			}
 
 			stderrOutput := stderr.String()
-			if tc.expectWarning && !strings.Contains(stderrOutput, "ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã‚Â¡Ãƒâ€šÃ‚Â ") && !strings.Contains(stderrOutput, "Error:") {
+			if tc.expectWarning && !strings.Contains(stderrOutput, "ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â ") && !strings.Contains(stderrOutput, "Error:") {
 				t.Errorf("expected warning/error in stderr output")
 			}
 		})
@@ -158,13 +158,13 @@ func TestReportSummary_Format(t *testing.T) {
 							Name:          cryptoutilSharedMagic.DevSetupTestToolNamePython,
 							Version:       cryptoutilSharedMagic.DevSetupTestVersionPythonRequired,
 							ActualVersion: cryptoutilSharedMagic.DevSetupTestVersionPythonActual,
-							Status:        StatusInstalled,
+							Status:        cryptoutilSharedMagic.DevSetupStatusInstalled,
 						},
 						{
 							Name:          "pip",
 							Version:       cryptoutilSharedMagic.DevSetupTestVersionPythonNext,
 							ActualVersion: cryptoutilSharedMagic.DevSetupTestVersionPythonNext,
-							Status:        StatusInstalled,
+							Status:        cryptoutilSharedMagic.DevSetupStatusInstalled,
 						},
 					},
 					HasErrors: false,
@@ -176,7 +176,7 @@ func TestReportSummary_Format(t *testing.T) {
 							Name:          cryptoutilSharedMagic.DevSetupTestToolNameGo,
 							Version:       cryptoutilSharedMagic.DevSetupTestVersionGoRequired,
 							ActualVersion: cryptoutilSharedMagic.DevSetupTestVersionGoActual,
-							Status:        StatusInstalled,
+							Status:        cryptoutilSharedMagic.DevSetupStatusInstalled,
 						},
 					},
 					HasErrors: false,
@@ -237,7 +237,7 @@ func TestReportSummary_NilGroups(t *testing.T) {
 						{
 							Name:          cryptoutilSharedMagic.DevSetupTestToolNamePython,
 							ActualVersion: cryptoutilSharedMagic.DevSetupTestVersionPythonActual,
-							Status:        StatusInstalled,
+							Status:        cryptoutilSharedMagic.DevSetupStatusInstalled,
 						},
 					},
 					HasErrors: false,

@@ -9,6 +9,8 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // Setup holds all injected dependencies for the dev-setup orchestration.
@@ -115,32 +117,32 @@ func runSetup(
 			// Check if already installed
 			installed, version, err := chk.Check(ctx, dep)
 			if err != nil {
-				depResult.Status = reporter.StatusCheckFailed
+				depResult.Status = cryptoutilSharedMagic.DevSetupStatusCheckFailed
 				depResult.Error = err
 				groupResult.HasErrors = true
 				summary.HasErrors = true
 			} else if installed {
-				depResult.Status = reporter.StatusInstalled
+				depResult.Status = cryptoutilSharedMagic.DevSetupStatusInstalled
 				depResult.ActualVersion = version
 			} else {
 				// Not installed - attempt installation
 				if err := inst.Install(ctx, dep); err != nil {
-					depResult.Status = reporter.StatusInstallFailed
+					depResult.Status = cryptoutilSharedMagic.DevSetupStatusInstallFailed
 					depResult.Error = err
 					groupResult.HasErrors = true
 					summary.HasErrors = true
 				} else {
 					// Verify installation
 					if installed, version, err := chk.Check(ctx, dep); err != nil {
-						depResult.Status = reporter.StatusVerifyFailed
+						depResult.Status = cryptoutilSharedMagic.DevSetupStatusVerifyFailed
 						depResult.Error = fmt.Errorf("post-install verification failed: %w", err)
 						groupResult.HasErrors = true
 						summary.HasErrors = true
 					} else if installed {
-						depResult.Status = reporter.StatusInstalled
+						depResult.Status = cryptoutilSharedMagic.DevSetupStatusInstalled
 						depResult.ActualVersion = version
 					} else {
-						depResult.Status = reporter.StatusInstallFailed
+						depResult.Status = cryptoutilSharedMagic.DevSetupStatusInstallFailed
 						depResult.Error = fmt.Errorf("installation succeeded but tool not found")
 						groupResult.HasErrors = true
 						summary.HasErrors = true

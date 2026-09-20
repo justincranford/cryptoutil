@@ -7,14 +7,6 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
-// Status codes for dependency checks - imported from magic package.
-const (
-	StatusInstalled     = cryptoutilSharedMagic.DevSetupStatusInstalled
-	StatusCheckFailed   = cryptoutilSharedMagic.DevSetupStatusCheckFailed
-	StatusInstallFailed = cryptoutilSharedMagic.DevSetupStatusInstallFailed
-	StatusVerifyFailed  = cryptoutilSharedMagic.DevSetupStatusVerifyFailed
-)
-
 // DepResult represents the result of checking/installing a single dependency.
 type DepResult struct {
 	Name          string
@@ -75,7 +67,7 @@ func (cr *ConsoleReporter) ReportSummary(summary *Summary) error {
 
 		for _, dep := range group.Dependencies {
 			icon := cryptoutilSharedMagic.DevSetupStatusIconSuccess
-			if dep.Status != StatusInstalled {
+			if dep.Status != cryptoutilSharedMagic.DevSetupStatusInstalled {
 				icon = cryptoutilSharedMagic.DevSetupStatusIconFailure
 			}
 
