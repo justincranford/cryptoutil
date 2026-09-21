@@ -86,7 +86,7 @@ func TestRouteSuite_RoutesToProduct(t *testing.T) {
 
 		var stdout, stderr bytes.Buffer
 
-		exitCode := cryptoutilAppsFrameworkSuiteCli.RouteSuite(testSuiteCfg, []string{cryptoutilSharedMagic.SMProductName, cryptoutilSharedMagic.KMSServiceName, "server"}, nil, &stdout, &stderr, products)
+		exitCode := cryptoutilAppsFrameworkSuiteCli.RouteSuite(testSuiteCfg, []string{cryptoutilSharedMagic.SMProductName, cryptoutilSharedMagic.KMSServiceName, cryptoutilSharedMagic.CMD_SERVER}, nil, &stdout, &stderr, products)
 		require.Equal(t, 0, exitCode)
 	})
 

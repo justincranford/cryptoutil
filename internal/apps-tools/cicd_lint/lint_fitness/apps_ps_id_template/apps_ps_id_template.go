@@ -250,7 +250,7 @@ func checkPSIDFiles(
 	}
 
 	// Check required server files.
-	serverDir := filepath.Join(psDir, "server")
+	serverDir := filepath.Join(psDir, cryptoutilSharedMagic.CMD_SERVER)
 
 	for _, tmplFile := range manifest.RequiredServerFiles {
 		if excl, ok := excl.serverFiles[tmplFile]; ok && excl[ps.PSID] {
@@ -284,7 +284,7 @@ func checkServerDirs(
 ) []string {
 	var violations []string
 
-	serverDir := filepath.Join(psDir, "server")
+	serverDir := filepath.Join(psDir, cryptoutilSharedMagic.CMD_SERVER)
 
 	for _, dir := range manifest.RequiredServerDirs {
 		if excl.serverDirs[dir][ps.PSID] {
@@ -308,7 +308,7 @@ func checkServerConfigFiles(
 ) []string {
 	var violations []string
 
-	configDir := filepath.Join(psDir, "server", "config")
+	configDir := filepath.Join(psDir, cryptoutilSharedMagic.CMD_SERVER, "config")
 
 	for _, tmplFile := range manifest.RequiredServerConfigFiles {
 		if excl.configFiles[tmplFile][ps.PSID] {
@@ -335,7 +335,7 @@ func checkServerRepositoryFiles(
 ) []string {
 	var violations []string
 
-	repoDir := filepath.Join(psDir, "server", "repository")
+	repoDir := filepath.Join(psDir, cryptoutilSharedMagic.CMD_SERVER, "repository")
 
 	for _, tmplFile := range manifest.RequiredServerRepositoryFiles {
 		if excl.repoFiles[tmplFile][ps.PSID] {
@@ -362,7 +362,7 @@ func checkServerRepositoryDirs(
 ) []string {
 	var violations []string
 
-	repoDir := filepath.Join(psDir, "server", "repository")
+	repoDir := filepath.Join(psDir, cryptoutilSharedMagic.CMD_SERVER, "repository")
 
 	for _, dir := range manifest.RequiredServerRepositoryDirs {
 		if excl.repoDirs[dir][ps.PSID] {

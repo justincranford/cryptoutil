@@ -37,7 +37,7 @@ func TestOamOasMapper_ToOasGetElastickeysResponse_Errors(t *testing.T) {
 	}{
 		{
 			name:    "bad request",
-			err:     cryptoutilSharedApperr.NewHTTP400BadRequest(strPtr("invalid"), nil),
+			err:     cryptoutilSharedApperr.NewHTTP400BadRequest(strPtr(cryptoutilSharedMagic.DevSetupTestInvalidName), nil),
 			wantErr: false,
 		},
 		{
@@ -109,7 +109,7 @@ func TestOamOasMapper_ToOasGetMaterialKeysResponse_Errors(t *testing.T) {
 	}{
 		{
 			name:    "bad request",
-			err:     cryptoutilSharedApperr.NewHTTP400BadRequest(strPtr("invalid"), nil),
+			err:     cryptoutilSharedApperr.NewHTTP400BadRequest(strPtr(cryptoutilSharedMagic.DevSetupTestInvalidName), nil),
 			wantErr: false,
 		},
 		{

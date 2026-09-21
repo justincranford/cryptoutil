@@ -33,7 +33,7 @@ func TestCheckTestMainFile_ReadError(t *testing.T) {
 	filePath := filepath.Join(tempDir, testmainFileName)
 	require.NoError(t, os.WriteFile(filePath, []byte("package server\n"), cryptoutilSharedMagic.FilePermissionsDefault))
 
-	violations, err := checkTestMainFile(filePath, cryptoutilSharedMagic.OTLPServiceSMKMS, "server", func(string) ([]byte, error) {
+	violations, err := checkTestMainFile(filePath, cryptoutilSharedMagic.OTLPServiceSMKMS, cryptoutilSharedMagic.CMD_SERVER, func(string) ([]byte, error) {
 		return nil, errors.New("injected read failure")
 	})
 	require.Nil(t, violations)
@@ -73,7 +73,7 @@ func TestCheckTestMainFile_Table(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			violations, err := checkTestMainFile(tc.filePath, cryptoutilSharedMagic.OTLPServiceSMKMS, "server", os.ReadFile)
+			violations, err := checkTestMainFile(tc.filePath, cryptoutilSharedMagic.OTLPServiceSMKMS, cryptoutilSharedMagic.CMD_SERVER, os.ReadFile)
 			if tc.wantErrText != "" {
 				require.Error(t, err)
 				require.ErrorContains(t, err, tc.wantErrText)
@@ -92,7 +92,7 @@ func TestFindViolationsWithReader_ReadError(t *testing.T) {
 
 	tempDir := t.TempDir()
 	for _, ps := range cryptoutilFitnessRegistry.AllProductServices() {
-		serverDir := filepath.Join(tempDir, "internal", "apps", ps.PSID, "server")
+		serverDir := filepath.Join(tempDir, "internal", "apps", ps.PSID, cryptoutilSharedMagic.CMD_SERVER)
 		require.NoError(t, os.MkdirAll(serverDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 		require.NoError(t, os.WriteFile(filepath.Join(serverDir, testmainFileName), []byte("package server\n"), cryptoutilSharedMagic.FilePermissionsDefault))
 	}
@@ -110,7 +110,7 @@ func TestFindViolationsWithReader_ClientBranchReadError(t *testing.T) {
 
 	tempDir := t.TempDir()
 	for _, ps := range cryptoutilFitnessRegistry.AllProductServices() {
-		serverDir := filepath.Join(tempDir, "internal", "apps", ps.PSID, "server")
+		serverDir := filepath.Join(tempDir, "internal", "apps", ps.PSID, cryptoutilSharedMagic.CMD_SERVER)
 		clientDir := filepath.Join(tempDir, "internal", "apps", ps.PSID, "client")
 
 		require.NoError(t, os.MkdirAll(serverDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
@@ -134,7 +134,7 @@ func TestFindViolationsWithReader_ClientBranchReadError(t *testing.T) {
 func TestCheckTestMainFile_StatError(t *testing.T) {
 	t.Parallel()
 
-	violations, err := checkTestMainFile("bad\x00path", cryptoutilSharedMagic.OTLPServiceSMKMS, "server", os.ReadFile)
+	violations, err := checkTestMainFile("bad\x00path", cryptoutilSharedMagic.OTLPServiceSMKMS, cryptoutilSharedMagic.CMD_SERVER, os.ReadFile)
 	require.Nil(t, violations)
 	require.Error(t, err)
 	require.ErrorContains(t, err, "stat")

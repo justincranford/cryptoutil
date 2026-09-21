@@ -313,7 +313,7 @@ func validateConfiguration(s *ServiceFrameworkServerSettings) error {
 	}
 
 	// Validate log level
-	validLogLevels := []string{"ALL", "TRACE", "DEBUG", "CONFIG", cryptoutilSharedMagic.DefaultLogLevelInfo, "NOTICE", "WARN", "WARNING", "ERROR", "FATAL", "OFF"}
+	validLogLevels := []string{"ALL", "TRACE", cryptoutilSharedMagic.LOG_LEVEL_DEBUG, "CONFIG", cryptoutilSharedMagic.DefaultLogLevelInfo, "NOTICE", cryptoutilSharedMagic.LOG_LEVEL_WARN, "WARNING", cryptoutilSharedMagic.SEVERITY_ERROR, "FATAL", "OFF"}
 	logLevelValid := false
 
 	for _, level := range validLogLevels {

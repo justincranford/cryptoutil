@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps-tools/cicd_lint/common"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 const lineSeparatorLength = 80
@@ -19,13 +20,13 @@ const lineSeparatorLength = 80
 // deprecatedV1Options maps deprecated v1 options to their v2 replacements.
 var deprecatedV1Options = map[string]string{
 	"wsl:":                "wsl_v5: (renamed in v2)",
-	"deadcode:":           "removed in v2 (use unused linter)",
-	"structcheck:":        "removed in v2 (use unused linter)",
-	"varcheck:":           "removed in v2 (use unused linter)",
-	"interfacer:":         "removed in v2 (use revive)",
+	"deadcode:":           cryptoutilSharedMagic.MSG_DEADCODE_REMOVED,
+	"structcheck:":        cryptoutilSharedMagic.MSG_DEADCODE_REMOVED,
+	"varcheck:":           cryptoutilSharedMagic.MSG_DEADCODE_REMOVED,
+	"interfacer:":         cryptoutilSharedMagic.MSG_INTERFACER_REMOVED,
 	"maligned:":           "removed in v2 (use govet fieldalignment)",
 	"scopelint:":          "removed in v2 (use exportloopref)",
-	"golint:":             "removed in v2 (use revive)",
+	"golint:":             cryptoutilSharedMagic.MSG_INTERFACER_REMOVED,
 	"force-err-cuddling:": "removed in v2 (always enabled in wsl_v5)",
 	"ignore-words:":       "removed from misspell in v2 (use locale)",
 	"ignoreSigs:":         "removed from wrapcheck in v2 (use ignorePackageGlobs)",
@@ -148,7 +149,7 @@ func CheckGolangCIConfig(filePath string) ([]ConfigViolation, error) {
 						Line:       lineNum,
 						Content:    trimmed,
 						Reason:     fmt.Sprintf("Deprecated v1 option: %s", deprecated),
-						Severity:   "ERROR",
+						Severity:   cryptoutilSharedMagic.SEVERITY_ERROR,
 						Suggestion: replacement,
 					})
 				}
@@ -166,7 +167,7 @@ func CheckGolangCIConfig(filePath string) ([]ConfigViolation, error) {
 						Line:       lineNum,
 						Content:    trimmed,
 						Reason:     fmt.Sprintf("Deprecated linter: %s", deprecated),
-						Severity:   "ERROR",
+						Severity:   cryptoutilSharedMagic.SEVERITY_ERROR,
 						Suggestion: fmt.Sprintf("%s was removed in golangci-lint v2", deprecated),
 					})
 				}

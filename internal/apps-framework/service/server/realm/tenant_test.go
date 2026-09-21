@@ -133,7 +133,7 @@ func TestTenantManager_RegisterTenant(t *testing.T) {
 			name: "valid tenant",
 			tenant: &TenantConfig{
 				ID:      "tenant-1",
-				Name:    "Test Tenant",
+				Name:    cryptoutilSharedMagic.NAME_TEST_TENANT,
 				Enabled: true,
 			},
 			wantErr: false,
@@ -390,7 +390,7 @@ func TestValidateTenantID(t *testing.T) {
 		wantErr  bool
 	}{
 		{
-			name:     "empty",
+			name:     cryptoutilSharedMagic.EMPTY,
 			tenantID: "",
 			wantErr:  true,
 		},

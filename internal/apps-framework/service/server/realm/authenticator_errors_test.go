@@ -48,7 +48,7 @@ func TestAuthenticator_VerifyPasswordErrors(t *testing.T) {
 		hash     string
 		password string
 	}{
-		{name: "invalid hash format", hash: "invalid", password: googleUuid.Must(googleUuid.NewV7()).String()},
+		{name: "invalid hash format", hash: cryptoutilSharedMagic.DevSetupTestInvalidName, password: googleUuid.Must(googleUuid.NewV7()).String()},
 		{name: "wrong algorithm", hash: "$bcrypt$10$salt$hash", password: googleUuid.Must(googleUuid.NewV7()).String()},
 		{name: "invalid iterations", hash: "$pbkdf2-sha256$abc$salt$hash", password: googleUuid.Must(googleUuid.NewV7()).String()},
 		{name: "invalid salt encoding", hash: "$pbkdf2-sha256$10000$!!!invalid!!!$hash", password: googleUuid.Must(googleUuid.NewV7()).String()},

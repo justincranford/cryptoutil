@@ -24,7 +24,7 @@ func TestRoleRepository_GetByID(t *testing.T) {
 	tenant := &Tenant{
 		ID:          googleUuid.New(),
 		Name:        uniqueTenantName("Test"),
-		Description: "Test tenant",
+		Description: cryptoutilSharedMagic.DESC_TEST_TENANT,
 		Active:      1,
 		CreatedAt:   time.Now().UTC(),
 	}
@@ -36,7 +36,7 @@ func TestRoleRepository_GetByID(t *testing.T) {
 		ID:          googleUuid.New(),
 		TenantID:    tenant.ID,
 		Name:        "admin",
-		Description: "Administrator role",
+		Description: cryptoutilSharedMagic.DESC_ADMIN_ROLE,
 		CreatedAt:   time.Now().UTC(),
 	}
 
@@ -71,7 +71,7 @@ func TestRoleRepository_ListByTenant(t *testing.T) {
 	tenant := &Tenant{
 		ID:          googleUuid.New(),
 		Name:        uniqueTenantName("Test"),
-		Description: "Test tenant",
+		Description: cryptoutilSharedMagic.DESC_TEST_TENANT,
 		Active:      1,
 		CreatedAt:   time.Now().UTC(),
 	}
@@ -117,7 +117,7 @@ func TestRoleRepository_Delete(t *testing.T) {
 	tenant := &Tenant{
 		ID:          googleUuid.New(),
 		Name:        uniqueTenantName("Test"),
-		Description: "Test tenant",
+		Description: cryptoutilSharedMagic.DESC_TEST_TENANT,
 		Active:      1,
 		CreatedAt:   time.Now().UTC(),
 	}
@@ -156,7 +156,7 @@ func TestUserRoleRepository_ListRolesByUser(t *testing.T) {
 	tenant := &Tenant{
 		ID:          googleUuid.New(),
 		Name:        uniqueTenantName("Test"),
-		Description: "Test tenant",
+		Description: cryptoutilSharedMagic.DESC_TEST_TENANT,
 		Active:      1,
 		CreatedAt:   time.Now().UTC(),
 	}
@@ -225,7 +225,7 @@ func TestUserRoleRepository_ListUsersByRole(t *testing.T) {
 	tenant := &Tenant{
 		ID:          googleUuid.New(),
 		Name:        uniqueTenantName("Test"),
-		Description: "Test tenant",
+		Description: cryptoutilSharedMagic.DESC_TEST_TENANT,
 		Active:      1,
 		CreatedAt:   time.Now().UTC(),
 	}
@@ -296,7 +296,7 @@ func TestClientRoleRepository_Revoke(t *testing.T) {
 	tenant := &Tenant{
 		ID:          googleUuid.New(),
 		Name:        uniqueTenantName("Test"),
-		Description: "Test tenant",
+		Description: cryptoutilSharedMagic.DESC_TEST_TENANT,
 		Active:      1,
 		CreatedAt:   time.Now().UTC(),
 	}
@@ -351,7 +351,7 @@ func TestClientRoleRepository_ListRolesByClient(t *testing.T) {
 	tenant := &Tenant{
 		ID:          googleUuid.New(),
 		Name:        uniqueTenantName("Test"),
-		Description: "Test tenant",
+		Description: cryptoutilSharedMagic.DESC_TEST_TENANT,
 		Active:      1,
 		CreatedAt:   time.Now().UTC(),
 	}

@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	cryptoutilCAStorage "cryptoutil/internal/apps/pki-ca/storage"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // TestNewHandler_NilStorage tests NewHandler with nil storage.
@@ -47,7 +48,7 @@ func TestNewHandler_WithProfiles(t *testing.T) {
 			ID:          "tls-server",
 			Name:        "TLS Server",
 			Description: "TLS server profile",
-			Category:    "server",
+			Category:    cryptoutilSharedMagic.CMD_SERVER,
 		},
 		"tls-client": {
 			ID:          "tls-client",

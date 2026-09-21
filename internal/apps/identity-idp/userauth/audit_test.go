@@ -284,7 +284,7 @@ func TestAuditLoggerPIIProtection(t *testing.T) {
 		TokenID:           googleUuid.New(),
 		TokenType:         cryptoutilSharedMagic.AuthMethodSMSOTP,
 		Success:           false,
-		FailureReason:     "invalid",
+		FailureReason:     cryptoutilSharedMagic.DevSetupTestInvalidName,
 		RemainingAttempts: 2,
 		IPAddress:         "203.0.113.42", // Full IP (masked: "203.0.113.xxx")
 	}

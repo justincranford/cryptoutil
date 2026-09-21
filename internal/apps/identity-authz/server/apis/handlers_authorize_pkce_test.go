@@ -62,7 +62,7 @@ func TestHandleAuthorizeGET_PKCE(t *testing.T) {
 		{
 			name:                "invalid method rejected",
 			codeChallenge:       "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM",
-			codeChallengeMethod: "invalid",
+			codeChallengeMethod: cryptoutilSharedMagic.DevSetupTestInvalidName,
 			wantStatus:          fiber.StatusBadRequest,
 			wantErrorCode:       cryptoutilSharedMagic.ErrorInvalidRequest,
 		},

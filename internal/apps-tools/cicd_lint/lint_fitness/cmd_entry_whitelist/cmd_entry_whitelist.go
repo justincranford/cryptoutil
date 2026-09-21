@@ -16,11 +16,12 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
-// infraToolCmds lists the 2 allowed infrastructure tool cmd entries.
+// infraToolCmds lists the 3 allowed infrastructure tool cmd entries.
 // These are not in the entity registry since they are tools, not services.
 var infraToolCmds = []string{
 	cryptoutilSharedMagic.CICDCmdDirCicdLint,
 	cryptoutilSharedMagic.CICDCmdDirWorkflow,
+	cryptoutilSharedMagic.CICDCmdDirDevSetup,
 }
 
 // Check runs the cmd-entry-whitelist check from the current working directory.

@@ -141,7 +141,7 @@ func TestToOrmGetMaterialKeysForElasticKeyQueryParams(t *testing.T) {
 	futureDate := time.Now().UTC().Add(cryptoutilSharedMagic.HoursPerDay * time.Hour)
 	negativePage := cryptoutilKmsServer.PageNumber(-1)
 	zeroPageSize := cryptoutilKmsServer.PageSize(0)
-	invalidSort := cryptoutilOpenapiModel.MaterialKeySort("invalid")
+	invalidSort := cryptoutilOpenapiModel.MaterialKeySort(cryptoutilSharedMagic.DevSetupTestInvalidName)
 
 	tests := []struct {
 		name          string
@@ -245,7 +245,7 @@ func TestToOrmGetMaterialKeysQueryParams(t *testing.T) {
 	futureDate := time.Now().UTC().Add(cryptoutilSharedMagic.HoursPerDay * time.Hour)
 	negativePage := cryptoutilKmsServer.PageNumber(-1)
 	zeroPageSize := cryptoutilKmsServer.PageSize(0)
-	invalidSort := cryptoutilOpenapiModel.MaterialKeySort("invalid")
+	invalidSort := cryptoutilOpenapiModel.MaterialKeySort(cryptoutilSharedMagic.DevSetupTestInvalidName)
 
 	tests := []struct {
 		name          string

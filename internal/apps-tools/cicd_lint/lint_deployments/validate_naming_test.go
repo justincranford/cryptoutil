@@ -18,7 +18,7 @@ func TestIsKebabCase(t *testing.T) {
 		input string
 		want  bool
 	}{
-		{"hello", true},
+		{cryptoutilSharedMagic.TEST_NEEDLE_HELLO, true},
 		{"hello-world", true},
 		{"service-123", true},
 		{"HelloWorld", false},
@@ -45,11 +45,11 @@ func TestToKebabCase(t *testing.T) {
 	}{
 		{"HelloWorld", "helloworld"},
 		{"hello_world", "hello-world"},
-		{"HELLO", "hello"},
+		{"HELLO", cryptoutilSharedMagic.TEST_NEEDLE_HELLO},
 		{"MyConfig.yml", "myconfig.yml"},
 		{"My_Config.yaml", "my-config.yaml"},
 		{"hello  world", "hello-world"},
-		{"__hello__", "hello"},
+		{"__hello__", cryptoutilSharedMagic.TEST_NEEDLE_HELLO},
 		{"___hello___world___", "hello-world"},
 	}
 	for _, tc := range tests {
@@ -167,7 +167,8 @@ func TestValidateNaming_ValidCases(t *testing.T) {
 				require.NoError(t, os.MkdirAll(templateDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 				require.NoError(t, os.WriteFile(
 					filepath.Join(templateDir, "PRODUCT-SERVICE.yml"),
-					[]byte("name: template\n"), cryptoutilSharedMagic.CacheFilePermissions))
+					[]byte("name: template\n"), cryptoutilSharedMagic.CacheFilePermissions,
+				))
 
 				return dir
 			},

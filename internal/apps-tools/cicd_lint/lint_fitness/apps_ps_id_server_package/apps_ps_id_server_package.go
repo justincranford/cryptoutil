@@ -61,13 +61,13 @@ func checkPSIDServerFiles(serviceDir, psid string) []string {
 		return []string{fmt.Sprintf("%s: PS-ID directory missing: internal/apps/%s/", serviceDir, psid)}
 	}
 
-	serverGo := filepath.Join(serviceDir, "server", "server.go")
+	serverGo := filepath.Join(serviceDir, cryptoutilSharedMagic.CMD_SERVER, "server.go")
 	if _, err := os.Stat(serverGo); os.IsNotExist(err) {
 		errors = append(errors, fmt.Sprintf("%s: missing required file internal/apps/%s/server/server.go", serviceDir, psid))
 	}
 
 	if !knownExclusionsPublicServer[psid] {
-		publicServerGo := filepath.Join(serviceDir, "server", "public_server.go")
+		publicServerGo := filepath.Join(serviceDir, cryptoutilSharedMagic.CMD_SERVER, "public_server.go")
 		if _, err := os.Stat(publicServerGo); os.IsNotExist(err) {
 			errors = append(errors, fmt.Sprintf("%s: missing required file internal/apps/%s/server/public_server.go", serviceDir, psid))
 		}

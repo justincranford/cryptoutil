@@ -25,7 +25,7 @@ var (
 		Description: "Config files",
 	})
 	logLevel = *SetEnvAndRegisterSetting(allServiceFrameworkServerRegisteredSettings, &Setting{
-		Name:        "log-level",
+		Name:        cryptoutilSharedMagic.CONFIG_KEY_LOG_LEVEL,
 		Shorthand:   "l",
 		Value:       cryptoutilSharedMagic.DefaultLogLevelInfo,
 		Usage:       "log level: ALL, TRACE, DEBUG, CONFIG, INFO, NOTICE, WARN, ERROR, FATAL, OFF",

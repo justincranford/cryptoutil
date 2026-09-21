@@ -22,7 +22,7 @@ func newTestLogger() *cryptoutilCmdCicdCommon.Logger {
 func mkServiceDir(t *testing.T, root, psid string) {
 	t.Helper()
 
-	dir := filepath.Join(root, "internal", "apps", psid, "server")
+	dir := filepath.Join(root, "internal", "apps", psid, cryptoutilSharedMagic.CMD_SERVER)
 	require.NoError(t, os.MkdirAll(dir, cryptoutilSharedMagic.DirPermissions))
 	require.NoError(t, os.WriteFile(filepath.Join(dir, "server.go"),
 		[]byte("package server\n"), cryptoutilSharedMagic.CacheFilePermissions))
@@ -107,7 +107,7 @@ func TestCheckInDir_CrossProductImport_Fails(t *testing.T) {
 func TestCheckInDir_SkipArchivedProduct_Passes(t *testing.T) {
 	t.Parallel()
 	tmp := t.TempDir()
-	archivedDir := filepath.Join(tmp, "internal", "apps", "_archived", "svc", "server")
+	archivedDir := filepath.Join(tmp, "internal", "apps", "_archived", "svc", cryptoutilSharedMagic.CMD_SERVER)
 	require.NoError(t, os.MkdirAll(archivedDir, cryptoutilSharedMagic.DirPermissions))
 
 	err := CheckInDir(newTestLogger(), tmp)
@@ -117,7 +117,7 @@ func TestCheckInDir_SkipArchivedProduct_Passes(t *testing.T) {
 func TestCheckInDir_SkipCicdProduct_Passes(t *testing.T) {
 	t.Parallel()
 	tmp := t.TempDir()
-	cicdDir := filepath.Join(tmp, "internal", "apps", "cicd", "linter", "server")
+	cicdDir := filepath.Join(tmp, "internal", "apps", "cicd", "linter", cryptoutilSharedMagic.CMD_SERVER)
 	require.NoError(t, os.MkdirAll(cicdDir, cryptoutilSharedMagic.DirPermissions))
 
 	err := CheckInDir(newTestLogger(), tmp)

@@ -11,6 +11,8 @@ import (
 
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 func TestTenantRealmRepository_ListByTenant(t *testing.T) {
@@ -23,7 +25,7 @@ func TestTenantRealmRepository_ListByTenant(t *testing.T) {
 	tenant := &Tenant{
 		ID:          googleUuid.New(),
 		Name:        uniqueRoleTenantName("Test"),
-		Description: "Test tenant",
+		Description: cryptoutilSharedMagic.DESC_TEST_TENANT,
 		Active:      1,
 		CreatedAt:   time.Now().UTC(),
 	}

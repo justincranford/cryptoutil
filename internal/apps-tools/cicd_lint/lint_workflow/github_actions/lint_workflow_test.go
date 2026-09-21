@@ -15,6 +15,12 @@ import (
 )
 
 const (
+	testHelloWorld  = "hello world"
+	testExactMatch  = "exact match"
+	testEmptySubstr = "empty substr"
+)
+
+const (
 	testWorkflowWithActions = `name: CI
 on: push
 jobs:
@@ -155,11 +161,11 @@ func TestContains(t *testing.T) {
 		substr   string
 		expected bool
 	}{
-		{"contains", "hello world", "world", true},
-		{"not contains", "hello world", "foo", false},
-		{"empty substr", "hello", "", true},
-		{"empty string", "", "foo", false},
-		{"exact match", "foo", "foo", true},
+		{"contains", testHelloWorld, cryptoutilSharedMagic.TEST_NEEDLE_WORLD, true},
+		{"not contains", testHelloWorld, cryptoutilSharedMagic.TEST_NEEDLE_FOO, false},
+		{testEmptySubstr, cryptoutilSharedMagic.TEST_NEEDLE_HELLO, "", true},
+		{"empty string", "", cryptoutilSharedMagic.TEST_NEEDLE_FOO, false},
+		{testExactMatch, cryptoutilSharedMagic.TEST_NEEDLE_FOO, cryptoutilSharedMagic.TEST_NEEDLE_FOO, true},
 	}
 
 	for _, tc := range tests {
@@ -181,13 +187,13 @@ func TestFindSubstring(t *testing.T) {
 		substr   string
 		expected int
 	}{
-		{"found at beginning", "hello world", "hello", 0},
-		{"found at end", "hello world", "world", cryptoutilSharedMagic.DefaultEmailOTPLength},
-		{"found in middle", "hello world", "lo wo", 3},
-		{"not found", "hello world", "foo", -1},
-		{"empty substr", "hello", "", 0},
-		{"substr longer than string", "hi", "hello", -1},
-		{"exact match", "foo", "foo", 0},
+		{"found at beginning", testHelloWorld, cryptoutilSharedMagic.TEST_NEEDLE_HELLO, 0},
+		{"found at end", testHelloWorld, cryptoutilSharedMagic.TEST_NEEDLE_WORLD, cryptoutilSharedMagic.DefaultEmailOTPLength},
+		{"found in middle", testHelloWorld, "lo wo", 3},
+		{"not found", testHelloWorld, cryptoutilSharedMagic.TEST_NEEDLE_FOO, -1},
+		{testEmptySubstr, cryptoutilSharedMagic.TEST_NEEDLE_HELLO, "", 0},
+		{"substr longer than string", "hi", cryptoutilSharedMagic.TEST_NEEDLE_HELLO, -1},
+		{testExactMatch, cryptoutilSharedMagic.TEST_NEEDLE_FOO, cryptoutilSharedMagic.TEST_NEEDLE_FOO, 0},
 		{"multiple occurrences", "test test", "test", 0},
 	}
 

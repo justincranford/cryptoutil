@@ -39,7 +39,7 @@ func createAllPSIDsWithTestFiles(t *testing.T, tmpDir string) {
 	t.Helper()
 
 	for _, ps := range cryptoutilFitnessRegistry.AllProductServices() {
-		serverDir := filepath.Join(tmpDir, "internal", "apps", ps.PSID, "server")
+		serverDir := filepath.Join(tmpDir, "internal", "apps", ps.PSID, cryptoutilSharedMagic.CMD_SERVER)
 		require.NoError(t, os.MkdirAll(serverDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 		require.NoError(t, os.WriteFile(filepath.Join(serverDir, "testmain_test.go"), []byte("package server\n"), cryptoutilSharedMagic.CacheFilePermissions))
 		require.NoError(t, os.WriteFile(filepath.Join(serverDir, ps.Service+"_lifecycle_test.go"), []byte("package server\n"), cryptoutilSharedMagic.CacheFilePermissions))
@@ -116,7 +116,7 @@ func TestCheckInDir_NoExclusions_MissingTestMain(t *testing.T) {
 	tmpDir := t.TempDir()
 	createAllPSIDsWithTestFiles(t, tmpDir)
 
-	require.NoError(t, os.Remove(filepath.Join(tmpDir, "internal", "apps", target.PSID, "server", "testmain_test.go")))
+	require.NoError(t, os.Remove(filepath.Join(tmpDir, "internal", "apps", target.PSID, cryptoutilSharedMagic.CMD_SERVER, "testmain_test.go")))
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	err := ExportedCheckInDirWithExclusions(logger, tmpDir, emptyExclusions, emptyExclusions, emptyExclusions)
@@ -138,7 +138,7 @@ func TestCheckInDir_NoExclusions_MissingLifecycle(t *testing.T) {
 	tmpDir := t.TempDir()
 	createAllPSIDsWithTestFiles(t, tmpDir)
 
-	require.NoError(t, os.Remove(filepath.Join(tmpDir, "internal", "apps", target.PSID, "server", target.Service+"_lifecycle_test.go")))
+	require.NoError(t, os.Remove(filepath.Join(tmpDir, "internal", "apps", target.PSID, cryptoutilSharedMagic.CMD_SERVER, target.Service+"_lifecycle_test.go")))
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	err := ExportedCheckInDirWithExclusions(logger, tmpDir, emptyExclusions, emptyExclusions, emptyExclusions)
@@ -160,7 +160,7 @@ func TestCheckInDir_NoExclusions_MissingPortConflict(t *testing.T) {
 	tmpDir := t.TempDir()
 	createAllPSIDsWithTestFiles(t, tmpDir)
 
-	require.NoError(t, os.Remove(filepath.Join(tmpDir, "internal", "apps", target.PSID, "server", target.Service+"_port_conflict_test.go")))
+	require.NoError(t, os.Remove(filepath.Join(tmpDir, "internal", "apps", target.PSID, cryptoutilSharedMagic.CMD_SERVER, target.Service+"_port_conflict_test.go")))
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	err := ExportedCheckInDirWithExclusions(logger, tmpDir, emptyExclusions, emptyExclusions, emptyExclusions)

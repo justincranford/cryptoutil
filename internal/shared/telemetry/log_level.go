@@ -44,7 +44,7 @@ func ParseLogLevel(logLevelString string) (stdoutLogExporter.Level, error) {
 		return LevelAll, nil
 	case "TRACE": // OpenTelemetry TRACE = -8, no constant in slog, but slog allows extra levels
 		return LevelTrace, nil
-	case "DEBUG": // OpenTelemetry DEBUG = -4
+	case cryptoutilSharedMagic.LOG_LEVEL_DEBUG: // OpenTelemetry DEBUG = -4
 		return LevelDebug, nil
 	case "CONFIG": // Java JUL CONFIG, between DEBUG and INFO
 		return LevelConfig, nil
@@ -52,9 +52,9 @@ func ParseLogLevel(logLevelString string) (stdoutLogExporter.Level, error) {
 		return LevelInfo, nil
 	case "NOTICE": // OpenTelemetry NOTICE = 2, no constant in slog, but slog allows extra levels
 		return LevelNotice, nil
-	case "WARN": // OpenTelemetry WARN = 4
+	case cryptoutilSharedMagic.LOG_LEVEL_WARN: // OpenTelemetry WARN = 4
 		return LevelWarn, nil
-	case "ERROR": // OpenTelemetry ERROR = 8
+	case cryptoutilSharedMagic.SEVERITY_ERROR: // OpenTelemetry ERROR = 8
 		return LevelError, nil
 	case "FATAL": // OpenTelemetry FATAL = 12
 		return LevelFatal, nil

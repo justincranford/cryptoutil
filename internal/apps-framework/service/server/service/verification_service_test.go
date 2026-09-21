@@ -112,7 +112,7 @@ func createTestTenantAndRole(t *testing.T, db *gorm.DB, tenantName string) (*cry
 	tenant := &cryptoutilAppsFrameworkServiceServerRepository.Tenant{
 		ID:          googleUuid.New(),
 		Name:        tenantName,
-		Description: "Test tenant",
+		Description: cryptoutilSharedMagic.DESC_TEST_TENANT,
 		Active:      1,
 	}
 	require.NoError(t, db.Create(tenant).Error)
@@ -121,7 +121,7 @@ func createTestTenantAndRole(t *testing.T, db *gorm.DB, tenantName string) (*cry
 		ID:          googleUuid.New(),
 		TenantID:    tenant.ID,
 		Name:        "user_" + googleUuid.NewString()[:cryptoutilSharedMagic.IMMinPasswordLength],
-		Description: "Test role",
+		Description: cryptoutilSharedMagic.DESC_TEST_ROLE,
 	}
 	require.NoError(t, db.Create(role).Error)
 

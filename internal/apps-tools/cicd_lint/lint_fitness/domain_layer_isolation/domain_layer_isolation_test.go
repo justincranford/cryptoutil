@@ -137,7 +137,7 @@ func TestIsDomainFile_Various(t *testing.T) {
 		wantBool bool
 	}{
 		{"direct domain file", filepath.Join("internal", "apps", "sm", "im", "domain", "message.go"), true},
-		{"server file", filepath.Join("internal", "apps", "sm", "im", "server", "server.go"), false},
+		{"server file", filepath.Join("internal", "apps", "sm", "im", cryptoutilSharedMagic.CMD_SERVER, "server.go"), false},
 		{"nested domain", filepath.Join("internal", "apps", "sm", "im", "domain", "nested", "file.go"), true},
 		{"root file", "main.go", false},
 	}

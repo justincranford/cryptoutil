@@ -180,7 +180,7 @@ func TestFindDomainMigrationDirs(t *testing.T) {
 			tc.setup(t, tmp)
 
 			appsDir := filepath.Join(tmp, "internal", "apps")
-			templateDir := filepath.Join(tmp, cryptoutilSharedMagic.FrameworkInternalDir, "service", "server", "repository", "migrations")
+			templateDir := filepath.Join(tmp, cryptoutilSharedMagic.FrameworkInternalDir, "service", cryptoutilSharedMagic.CMD_SERVER, "repository", "migrations")
 			dirs, err := findDomainMigrationDirs(appsDir, templateDir)
 
 			if tc.wantErr {

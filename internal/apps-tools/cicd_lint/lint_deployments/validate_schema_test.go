@@ -250,7 +250,7 @@ func TestValidateSchema_EmptyFile(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, result)
 	require.True(t, result.Valid, "empty file should produce warning, not error")
-	require.True(t, containsSubstring(result.Warnings, "empty"))
+	require.True(t, containsSubstring(result.Warnings, cryptoutilSharedMagic.EMPTY))
 }
 
 func TestValidateSchema_CORSArrayWithNonString(t *testing.T) {

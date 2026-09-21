@@ -206,7 +206,7 @@ func TestKeyUsageConfig_ToX509KeyUsage(t *testing.T) {
 		want   x509.KeyUsage
 	}{
 		{
-			name:   "empty",
+			name:   cryptoutilSharedMagic.EMPTY,
 			config: KeyUsageConfig{},
 			want:   0,
 		},
@@ -273,7 +273,7 @@ func TestExtKeyUsageConfig_ToX509ExtKeyUsage(t *testing.T) {
 		want   []x509.ExtKeyUsage
 	}{
 		{
-			name:   "empty",
+			name:   cryptoutilSharedMagic.EMPTY,
 			config: ExtKeyUsageConfig{},
 			want:   nil,
 		},
@@ -333,7 +333,7 @@ func TestValidityConfig_GetDuration(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name:    "empty",
+			name:    cryptoutilSharedMagic.EMPTY,
 			config:  ValidityConfig{},
 			wantErr: true,
 		},

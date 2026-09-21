@@ -2,16 +2,18 @@ package checker
 
 import (
 	"context"
-	"cryptoutil/internal/apps-tools/dev_setup/pkg/config"
 	"fmt"
 	"regexp"
 	"strings"
+
+	cryptoutilAppsToolsDevSetupCmdSplit "cryptoutil/internal/apps-tools/cicd_dev_setup/pkg/cmdsplit"
+	cryptoutilAppsToolsDevSetupConfig "cryptoutil/internal/apps-tools/cicd_dev_setup/pkg/config"
 )
 
 // Checker defines the interface for checking dependency installation status.
 type Checker interface {
 	// Check verifies if a dependency is installed and returns (installed, version, error)
-	Check(ctx context.Context, dep *config.Dependency) (bool, string, error)
+	Check(ctx context.Context, dep *cryptoutilAppsToolsDevSetupConfig.Dependency) (bool, string, error)
 }
 
 // SystemChecker executes system commands to verify installation.
@@ -33,13 +35,13 @@ func NewDependencyChecker(executor Executor) Checker {
 }
 
 // Check verifies installation by running the CheckCmd.
-func (sc *SystemChecker) Check(ctx context.Context, dep *config.Dependency) (bool, string, error) {
+func (sc *SystemChecker) Check(ctx context.Context, dep *cryptoutilAppsToolsDevSetupConfig.Dependency) (bool, string, error) {
 	if dep.CheckCmd == "" {
 		return false, "", fmt.Errorf("no check command defined for %s", dep.Name)
 	}
 
-	// Parse command and arguments
-	parts := strings.Fields(dep.CheckCmd)
+	// Parse command and arguments, honoring quoted segments.
+	parts := cryptoutilAppsToolsDevSetupCmdSplit.Split(dep.CheckCmd)
 	if len(parts) == 0 {
 		return false, "", fmt.Errorf("invalid check command: %s", dep.CheckCmd)
 	}

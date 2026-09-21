@@ -96,7 +96,7 @@ func TestCheckHeaderIdentity_EmptyFile(t *testing.T) {
 
 	err := checkHeaderIdentityInDir(logger, tmp)
 	require.Error(t, err)
-	assert.Contains(t, err.Error(), "empty")
+	assert.Contains(t, err.Error(), cryptoutilSharedMagic.EMPTY)
 }
 
 func TestCheckInstanceMinimal_ExtraKey(t *testing.T) {

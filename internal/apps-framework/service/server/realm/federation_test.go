@@ -93,7 +93,7 @@ func TestFederationManager_RegisterProvider(t *testing.T) {
 			provider: &FederatedProvider{
 				ID:        "provider1",
 				IssuerURL: "https://issuer.example.com",
-				Type:      "invalid",
+				Type:      cryptoutilSharedMagic.DevSetupTestInvalidName,
 			},
 			wantErr: true,
 			errMsg:  "unsupported provider type",

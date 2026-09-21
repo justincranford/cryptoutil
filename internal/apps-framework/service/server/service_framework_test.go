@@ -131,7 +131,7 @@ func TestNewServiceFramework_InvalidDatabaseType(t *testing.T) {
 	db := initTestDB(t)
 	cfg := defaultTestConfig()
 
-	_, err := NewServiceFramework(ctx, cfg, db, cryptoutilAppsFrameworkServiceServerRepository.DatabaseType("invalid"))
+	_, err := NewServiceFramework(ctx, cfg, db, cryptoutilAppsFrameworkServiceServerRepository.DatabaseType(cryptoutilSharedMagic.DevSetupTestInvalidName))
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "invalid database type")
 }

@@ -105,7 +105,7 @@ func TestRouteService_ServerSubcommand(t *testing.T) {
 		return cryptoutilSharedMagic.GitRecentActivityDays
 	}
 
-	exitCode := cryptoutilAppsFrameworkCli.RouteService(testServiceCfg, []string{"server"}, &stdout, &stderr, serverFn, noopSubcmd, noopSubcmd)
+	exitCode := cryptoutilAppsFrameworkCli.RouteService(testServiceCfg, []string{cryptoutilSharedMagic.CMD_SERVER}, &stdout, &stderr, serverFn, noopSubcmd, noopSubcmd)
 	require.Equal(t, cryptoutilSharedMagic.GitRecentActivityDays, exitCode)
 	require.True(t, serverCalled)
 }

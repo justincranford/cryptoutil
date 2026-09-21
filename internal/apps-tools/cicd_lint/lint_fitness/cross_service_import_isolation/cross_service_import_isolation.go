@@ -137,7 +137,7 @@ func collectServices(appsDir string) ([]serviceRef, error) {
 
 		// Only directories with server/ are real services.
 		// Product dirs and shared packages lack server/.
-		serverDir := filepath.Join(appsDir, dirName, "server")
+		serverDir := filepath.Join(appsDir, dirName, cryptoutilSharedMagic.CMD_SERVER)
 		if _, statErr := os.Stat(serverDir); os.IsNotExist(statErr) {
 			continue
 		}

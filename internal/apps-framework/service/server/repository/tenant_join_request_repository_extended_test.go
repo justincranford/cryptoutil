@@ -11,6 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	cryptoutilAppsFrameworkServiceServerDomain "cryptoutil/internal/apps-framework/service/server/domain"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 func TestTenantJoinRequestRepository_ListByTenantAndStatus(t *testing.T) {
@@ -134,7 +135,7 @@ func TestTenantJoinRequestRepository_CreateWithClientID(t *testing.T) {
 	// Create tenant.
 	tenant := &Tenant{
 		ID:          googleUuid.Must(googleUuid.NewV7()),
-		Name:        "Test Tenant",
+		Name:        cryptoutilSharedMagic.NAME_TEST_TENANT,
 		Description: "Test tenant for client ID tests",
 		Active:      1,
 		CreatedAt:   time.Now().UTC(),
@@ -237,7 +238,7 @@ func TestTenantJoinRequestRepository_Create_DuplicateID(t *testing.T) {
 	// Create tenant.
 	tenant := &Tenant{
 		ID:          googleUuid.Must(googleUuid.NewV7()),
-		Name:        "Test Tenant",
+		Name:        cryptoutilSharedMagic.NAME_TEST_TENANT,
 		Description: "Test tenant for duplicate tests",
 		Active:      1,
 		CreatedAt:   time.Now().UTC(),
@@ -294,7 +295,7 @@ func TestTenantJoinRequestRepository_Update_NonExistent(t *testing.T) {
 	// Create tenant.
 	tenant := &Tenant{
 		ID:          googleUuid.Must(googleUuid.NewV7()),
-		Name:        "Test Tenant",
+		Name:        cryptoutilSharedMagic.NAME_TEST_TENANT,
 		Description: "Test tenant for update tests",
 		Active:      1,
 		CreatedAt:   time.Now().UTC(),

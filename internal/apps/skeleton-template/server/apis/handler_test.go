@@ -131,7 +131,8 @@ func TestStrictServer_CreateItem(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			resp, err := newHandlerTestServer(t).CreateItem(context.Background(),
+			resp, err := newHandlerTestServer(t).CreateItem(
+				context.Background(),
 				cryptoutilSkeletonTemplateServer.CreateItemRequestObject{Body: tc.body},
 			)
 			require.NoError(t, err)
@@ -151,7 +152,8 @@ func TestStrictServer_CreateItem(t *testing.T) {
 func TestStrictServer_CreateItem_DBError(t *testing.T) {
 	t.Parallel()
 
-	resp, err := newHandlerErrorServer(t).CreateItem(context.Background(),
+	resp, err := newHandlerErrorServer(t).CreateItem(
+		context.Background(),
 		cryptoutilSkeletonTemplateServer.CreateItemRequestObject{
 			Body: &cryptoutilSkeletonTemplateServer.ItemCreate{Name: "item"},
 		},
@@ -176,7 +178,8 @@ func TestStrictServer_ListItems(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			resp, err := newHandlerTestServer(t).ListItems(context.Background(),
+			resp, err := newHandlerTestServer(t).ListItems(
+				context.Background(),
 				cryptoutilSkeletonTemplateServer.ListItemsRequestObject{
 					Params: cryptoutilSkeletonTemplateServer.ListItemsParams{Page: tc.page, Size: tc.size},
 				},
@@ -193,7 +196,8 @@ func TestStrictServer_ListItems(t *testing.T) {
 func TestStrictServer_ListItems_DBError(t *testing.T) {
 	t.Parallel()
 
-	resp, err := newHandlerErrorServer(t).ListItems(context.Background(),
+	resp, err := newHandlerErrorServer(t).ListItems(
+		context.Background(),
 		cryptoutilSkeletonTemplateServer.ListItemsRequestObject{
 			Params: cryptoutilSkeletonTemplateServer.ListItemsParams{},
 		},
@@ -227,7 +231,8 @@ func TestStrictServer_GetItem_Success(t *testing.T) {
 func TestStrictServer_GetItem_NotFound(t *testing.T) {
 	t.Parallel()
 
-	resp, err := newHandlerTestServer(t).GetItem(context.Background(),
+	resp, err := newHandlerTestServer(t).GetItem(
+		context.Background(),
 		cryptoutilSkeletonTemplateServer.GetItemRequestObject{ItemID: googleUuid.Must(googleUuid.NewV7())},
 	)
 	require.NoError(t, err)
@@ -237,7 +242,8 @@ func TestStrictServer_GetItem_NotFound(t *testing.T) {
 func TestStrictServer_GetItem_DBError(t *testing.T) {
 	t.Parallel()
 
-	resp, err := newHandlerErrorServer(t).GetItem(context.Background(),
+	resp, err := newHandlerErrorServer(t).GetItem(
+		context.Background(),
 		cryptoutilSkeletonTemplateServer.GetItemRequestObject{ItemID: googleUuid.Must(googleUuid.NewV7())},
 	)
 	require.NoError(t, err)
@@ -294,7 +300,8 @@ func TestStrictServer_UpdateItem_NilBody(t *testing.T) {
 func TestStrictServer_UpdateItem_NotFound(t *testing.T) {
 	t.Parallel()
 
-	resp, err := newHandlerTestServer(t).UpdateItem(context.Background(),
+	resp, err := newHandlerTestServer(t).UpdateItem(
+		context.Background(),
 		cryptoutilSkeletonTemplateServer.UpdateItemRequestObject{
 			ItemID: googleUuid.Must(googleUuid.NewV7()),
 			Body:   &cryptoutilSkeletonTemplateServer.ItemUpdate{Name: "X"},
@@ -307,7 +314,8 @@ func TestStrictServer_UpdateItem_NotFound(t *testing.T) {
 func TestStrictServer_UpdateItem_DBError(t *testing.T) {
 	t.Parallel()
 
-	resp, err := newHandlerErrorServer(t).UpdateItem(context.Background(),
+	resp, err := newHandlerErrorServer(t).UpdateItem(
+		context.Background(),
 		cryptoutilSkeletonTemplateServer.UpdateItemRequestObject{
 			ItemID: googleUuid.Must(googleUuid.NewV7()),
 			Body:   &cryptoutilSkeletonTemplateServer.ItemUpdate{Name: "X"},
@@ -339,7 +347,8 @@ func TestStrictServer_DeleteItem_Success(t *testing.T) {
 func TestStrictServer_DeleteItem_NotFound(t *testing.T) {
 	t.Parallel()
 
-	resp, err := newHandlerTestServer(t).DeleteItem(context.Background(),
+	resp, err := newHandlerTestServer(t).DeleteItem(
+		context.Background(),
 		cryptoutilSkeletonTemplateServer.DeleteItemRequestObject{ItemID: googleUuid.Must(googleUuid.NewV7())},
 	)
 	require.NoError(t, err)
@@ -349,7 +358,8 @@ func TestStrictServer_DeleteItem_NotFound(t *testing.T) {
 func TestStrictServer_DeleteItem_DBError(t *testing.T) {
 	t.Parallel()
 
-	resp, err := newHandlerErrorServer(t).DeleteItem(context.Background(),
+	resp, err := newHandlerErrorServer(t).DeleteItem(
+		context.Background(),
 		cryptoutilSkeletonTemplateServer.DeleteItemRequestObject{ItemID: googleUuid.Must(googleUuid.NewV7())},
 	)
 	require.NoError(t, err)
@@ -366,7 +376,7 @@ func TestDerefString(t *testing.T) {
 	}{
 		{name: "nil_pointer", input: nil, want: ""},
 		{name: "empty_string", input: handlerStrPtr(""), want: ""},
-		{name: "non_empty", input: handlerStrPtr("hello"), want: "hello"},
+		{name: "non_empty", input: handlerStrPtr(cryptoutilSharedMagic.TEST_NEEDLE_HELLO), want: cryptoutilSharedMagic.TEST_NEEDLE_HELLO},
 	}
 
 	for _, tc := range tests {

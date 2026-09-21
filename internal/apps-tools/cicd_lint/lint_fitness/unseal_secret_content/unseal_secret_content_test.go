@@ -138,7 +138,7 @@ func TestFindViolationsInDir_InvalidContent(t *testing.T) {
 				"deployments/sm-kms/secrets/unseal-1of5.secret": "",
 			},
 			wantViolations: 1,
-			wantSubstring:  "empty",
+			wantSubstring:  cryptoutilSharedMagic.EMPTY,
 		},
 		{
 			name: "invalid format - no hex",

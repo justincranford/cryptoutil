@@ -46,9 +46,9 @@ func TestWriteTempFile(t *testing.T) {
 			content:  `{"name":"test","value":123}`,
 		},
 		{
-			name:     "Multiline_content",
+			name:     cryptoutilSharedMagic.TEST_NAME_MULTILINE,
 			filename: "multi.txt",
-			content:  "Line 1\nLine 2\nLine 3\n",
+			content:  cryptoutilSharedMagic.TEST_CONTENT_MULTI,
 		},
 	}
 
@@ -111,7 +111,7 @@ func TestWriteTestFile(t *testing.T) {
 			content:  "Absolute path content",
 		},
 		{
-			name:     "Binary_content",
+			name:     cryptoutilSharedMagic.TEST_NAME_BINARY,
 			filename: "binary.dat",
 			content:  "\x00\x01\x02\xFF",
 		},
@@ -187,12 +187,12 @@ func TestReadTestFile(t *testing.T) {
 			content: "",
 		},
 		{
-			name:    "Binary_content",
+			name:    cryptoutilSharedMagic.TEST_NAME_BINARY,
 			content: "\x00\x01\x02\xFF\xFE",
 		},
 		{
-			name:    "Multiline_content",
-			content: "Line 1\nLine 2\nLine 3\n",
+			name:    cryptoutilSharedMagic.TEST_NAME_MULTILINE,
+			content: cryptoutilSharedMagic.TEST_CONTENT_MULTI,
 		},
 		{
 			name:    "Unicode_content",
@@ -401,7 +401,7 @@ func TestTestTenantFactory(t *testing.T) {
 		require.NotEmpty(t, tenant.ID)
 		require.Len(t, tenant.ID, cryptoutilSharedMagic.UUIDStringLength) // UUID format
 		require.Contains(t, tenant.Name, "ACME Corp")
-		require.Contains(t, tenant.Description, "Test tenant")
+		require.Contains(t, tenant.Description, cryptoutilSharedMagic.DESC_TEST_TENANT)
 		require.Equal(t, "default", tenant.RealmID)
 		require.True(t, tenant.Enabled)
 	})

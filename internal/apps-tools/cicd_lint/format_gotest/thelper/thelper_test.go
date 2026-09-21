@@ -296,7 +296,7 @@ func TestHasTHelperCall_NonSelectorCallExpr(t *testing.T) {
 	// This covers the "continue" branch when callExpr.Fun.(*ast.SelectorExpr) fails.
 	body := &ast.BlockStmt{
 		List: []ast.Stmt{
-			&ast.ExprStmt{X: &ast.CallExpr{Fun: &ast.Ident{Name: "foo"}}},
+			&ast.ExprStmt{X: &ast.CallExpr{Fun: &ast.Ident{Name: cryptoutilSharedMagic.TEST_NEEDLE_FOO}}},
 		},
 	}
 	funcDecl := &ast.FuncDecl{Body: body}

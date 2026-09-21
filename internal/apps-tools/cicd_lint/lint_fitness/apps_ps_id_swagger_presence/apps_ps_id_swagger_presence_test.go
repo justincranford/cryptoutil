@@ -37,7 +37,7 @@ func createAllPSIDsWithSwaggerFiles(t *testing.T, tmpDir string) {
 	t.Helper()
 
 	for _, ps := range cryptoutilFitnessRegistry.AllProductServices() {
-		serverDir := filepath.Join(tmpDir, "internal", "apps", ps.PSID, "server")
+		serverDir := filepath.Join(tmpDir, "internal", "apps", ps.PSID, cryptoutilSharedMagic.CMD_SERVER)
 		require.NoError(t, os.MkdirAll(serverDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 		if !knownExclusions[ps.PSID] {
@@ -110,7 +110,7 @@ func TestCheckInDir_NoExclusions_MissingSwagger(t *testing.T) {
 
 	for _, ps := range cryptoutilFitnessRegistry.AllProductServices() {
 		require.NoError(t, os.MkdirAll(
-			filepath.Join(tmpDir, "internal", "apps", ps.PSID, "server"),
+			filepath.Join(tmpDir, "internal", "apps", ps.PSID, cryptoutilSharedMagic.CMD_SERVER),
 			cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute,
 		))
 	}
@@ -128,7 +128,7 @@ func TestCheckInDir_NoExclusions_AllValid(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	for _, ps := range cryptoutilFitnessRegistry.AllProductServices() {
-		serverDir := filepath.Join(tmpDir, "internal", "apps", ps.PSID, "server")
+		serverDir := filepath.Join(tmpDir, "internal", "apps", ps.PSID, cryptoutilSharedMagic.CMD_SERVER)
 		require.NoError(t, os.MkdirAll(serverDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 		require.NoError(t, os.WriteFile(filepath.Join(serverDir, "swagger.go"), []byte("package server\n"), cryptoutilSharedMagic.CacheFilePermissions))
 		require.NoError(t, os.WriteFile(filepath.Join(serverDir, "swagger_test.go"), []byte("package server\n"), cryptoutilSharedMagic.CacheFilePermissions))
@@ -153,7 +153,7 @@ func TestCheckPSIDSwaggerFiles_MissingSwaggerGo(t *testing.T) {
 	t.Parallel()
 
 	tmpDir := t.TempDir()
-	serverDir := filepath.Join(tmpDir, "server")
+	serverDir := filepath.Join(tmpDir, cryptoutilSharedMagic.CMD_SERVER)
 	require.NoError(t, os.MkdirAll(serverDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 	// Only create swagger_test.go; swagger.go is absent.
 	require.NoError(t, os.WriteFile(filepath.Join(serverDir, "swagger_test.go"), []byte("package server\n"), cryptoutilSharedMagic.CacheFilePermissions))
@@ -168,7 +168,7 @@ func TestCheckPSIDSwaggerFiles_MissingSwaggerTestGo(t *testing.T) {
 	t.Parallel()
 
 	tmpDir := t.TempDir()
-	serverDir := filepath.Join(tmpDir, "server")
+	serverDir := filepath.Join(tmpDir, cryptoutilSharedMagic.CMD_SERVER)
 	require.NoError(t, os.MkdirAll(serverDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 	// Only create swagger.go; swagger_test.go is absent.
 	require.NoError(t, os.WriteFile(filepath.Join(serverDir, "swagger.go"), []byte("package server\n"), cryptoutilSharedMagic.CacheFilePermissions))
@@ -183,7 +183,7 @@ func TestCheckPSIDSwaggerFiles_BothMissing(t *testing.T) {
 	t.Parallel()
 
 	tmpDir := t.TempDir()
-	serverDir := filepath.Join(tmpDir, "server")
+	serverDir := filepath.Join(tmpDir, cryptoutilSharedMagic.CMD_SERVER)
 	require.NoError(t, os.MkdirAll(serverDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 	// Neither swagger.go nor swagger_test.go.
 
@@ -196,7 +196,7 @@ func TestCheckPSIDSwaggerFiles_AllPresent(t *testing.T) {
 	t.Parallel()
 
 	tmpDir := t.TempDir()
-	serverDir := filepath.Join(tmpDir, "server")
+	serverDir := filepath.Join(tmpDir, cryptoutilSharedMagic.CMD_SERVER)
 	require.NoError(t, os.MkdirAll(serverDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 	require.NoError(t, os.WriteFile(filepath.Join(serverDir, "swagger.go"), []byte("package server\n"), cryptoutilSharedMagic.CacheFilePermissions))
 	require.NoError(t, os.WriteFile(filepath.Join(serverDir, "swagger_test.go"), []byte("package server\n"), cryptoutilSharedMagic.CacheFilePermissions))
@@ -224,7 +224,7 @@ func TestCheckInDir_ExcludedPSIDPassesWithoutSwagger(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	// Create only the excluded PS-ID directory (no swagger files).
-	require.NoError(t, os.MkdirAll(filepath.Join(tmpDir, "internal", "apps", excludedPSID, "server"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+	require.NoError(t, os.MkdirAll(filepath.Join(tmpDir, "internal", "apps", excludedPSID, cryptoutilSharedMagic.CMD_SERVER), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 	// Create all other PS-IDs fully (including swagger if non-excluded).
 	for _, ps := range cryptoutilFitnessRegistry.AllProductServices() {
@@ -232,7 +232,7 @@ func TestCheckInDir_ExcludedPSIDPassesWithoutSwagger(t *testing.T) {
 			continue
 		}
 
-		serverDir := filepath.Join(tmpDir, "internal", "apps", ps.PSID, "server")
+		serverDir := filepath.Join(tmpDir, "internal", "apps", ps.PSID, cryptoutilSharedMagic.CMD_SERVER)
 		require.NoError(t, os.MkdirAll(serverDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 		if !knownExclusions[ps.PSID] {

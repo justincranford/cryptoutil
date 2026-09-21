@@ -129,7 +129,7 @@ func TestMaskSecret(t *testing.T) {
 		secret   string
 		expected string
 	}{
-		{"empty", "", "(not set)"},
+		{cryptoutilSharedMagic.EMPTY, "", "(not set)"},
 		{"short", "abc", "****"},
 		{"exactly 8", "12345678", "****"},
 		{"longer than 8", "123456789", "1234****"},

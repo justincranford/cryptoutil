@@ -18,7 +18,7 @@ import (
 func TestDERDecode_UnsupportedType(t *testing.T) {
 	t.Parallel()
 
-	_, err := DERDecode([]byte("invalid"), "UNSUPPORTED TYPE")
+	_, err := DERDecode([]byte(cryptoutilSharedMagic.DevSetupTestInvalidName), "UNSUPPORTED TYPE")
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "type not supported")
 }

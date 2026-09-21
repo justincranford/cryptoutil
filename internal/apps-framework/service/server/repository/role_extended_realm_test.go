@@ -26,7 +26,7 @@ func TestClientRoleRepository_ListClientsByRole(t *testing.T) {
 	tenant := &Tenant{
 		ID:          googleUuid.New(),
 		Name:        uniqueTenantName("Test"),
-		Description: "Test tenant",
+		Description: cryptoutilSharedMagic.DESC_TEST_TENANT,
 		Active:      1,
 		CreatedAt:   time.Now().UTC(),
 	}
@@ -93,7 +93,7 @@ func TestTenantRealmRepository_GetByID(t *testing.T) {
 	tenant := &Tenant{
 		ID:          googleUuid.New(),
 		Name:        uniqueTenantName("Test"),
-		Description: "Test tenant",
+		Description: cryptoutilSharedMagic.DESC_TEST_TENANT,
 		Active:      1,
 		CreatedAt:   time.Now().UTC(),
 	}
@@ -141,7 +141,7 @@ func TestTenantRealmRepository_GetByRealmID(t *testing.T) {
 	tenant := &Tenant{
 		ID:          googleUuid.New(),
 		Name:        uniqueTenantName("Test"),
-		Description: "Test tenant",
+		Description: cryptoutilSharedMagic.DESC_TEST_TENANT,
 		Active:      1,
 		CreatedAt:   time.Now().UTC(),
 	}
@@ -190,7 +190,7 @@ func TestTenantRealmRepository_Update(t *testing.T) {
 	tenant := &Tenant{
 		ID:          googleUuid.New(),
 		Name:        uniqueTenantName("Test"),
-		Description: "Test tenant",
+		Description: cryptoutilSharedMagic.DESC_TEST_TENANT,
 		Active:      1,
 		CreatedAt:   time.Now().UTC(),
 	}
@@ -231,7 +231,7 @@ func TestTenantRealmRepository_Delete(t *testing.T) {
 	tenant := &Tenant{
 		ID:          googleUuid.New(),
 		Name:        uniqueTenantName("Test"),
-		Description: "Test tenant",
+		Description: cryptoutilSharedMagic.DESC_TEST_TENANT,
 		Active:      1,
 		CreatedAt:   time.Now().UTC(),
 	}

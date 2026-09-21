@@ -20,7 +20,7 @@ func TestNormalizeLineEndings(t *testing.T) {
 		{name: "lf only", input: "a\nb\nc", want: "a\nb\nc"},
 		{name: "crlf to lf", input: "a\r\nb\r\nc", want: "a\nb\nc"},
 		{name: "mixed line endings", input: "a\r\nb\nc\r\n", want: "a\nb\nc\n"},
-		{name: "empty", input: "", want: ""},
+		{name: cryptoutilSharedMagic.EMPTY, input: "", want: ""},
 		{name: "no newlines", input: "abc", want: "abc"},
 	}
 
@@ -46,7 +46,7 @@ func TestNormalizeCommentAlignment(t *testing.T) {
 		{name: "comment triple spaces", input: "# a   b   c", want: "# a b c"},
 		{name: "non-comment preserved", input: "key:  value", want: "key:  value"},
 		{name: "mixed lines", input: "# a  b\nkey:  val\n# c   d", want: "# a b\nkey:  val\n# c d"},
-		{name: "empty", input: "", want: ""},
+		{name: cryptoutilSharedMagic.EMPTY, input: "", want: ""},
 		{name: "single space comment", input: "# ok", want: "# ok"},
 	}
 

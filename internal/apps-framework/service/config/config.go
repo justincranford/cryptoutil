@@ -84,7 +84,7 @@ var (
 // Configuration profiles for common deployment scenarios.
 var profiles = map[string]map[string]any{
 	"test": {
-		"log-level": "ERROR",
+		cryptoutilSharedMagic.CONFIG_KEY_LOG_LEVEL:          cryptoutilSharedMagic.SEVERITY_ERROR,
 		cryptoutilSharedMagic.DefaultOTLPEnvironmentDefault: cryptoutilSharedMagic.DefaultDevMode,
 		"bind-public-protocol":                              cryptoutilSharedMagic.DefaultPublicProtocolCryptoutil,
 		"bind-public-address":                               cryptoutilSharedMagic.DefaultPublicAddressCryptoutil,
@@ -100,7 +100,7 @@ var profiles = map[string]map[string]any{
 		"otlp-environment":                                  "test",
 	},
 	cryptoutilSharedMagic.DefaultOTLPEnvironmentDefault: {
-		"log-level": "DEBUG",
+		cryptoutilSharedMagic.CONFIG_KEY_LOG_LEVEL:          cryptoutilSharedMagic.LOG_LEVEL_DEBUG,
 		cryptoutilSharedMagic.DefaultOTLPEnvironmentDefault: true,
 		"bind-public-protocol":                              cryptoutilSharedMagic.DefaultPrivateProtocolCryptoutil,
 		"bind-public-address":                               cryptoutilSharedMagic.DefaultPublicAddressCryptoutil,
@@ -116,7 +116,7 @@ var profiles = map[string]map[string]any{
 		"otlp-environment":                                  cryptoutilSharedMagic.DefaultOTLPEnvironmentDefault,
 	},
 	"stg": {
-		"log-level": cryptoutilSharedMagic.DefaultLogLevelInfo,
+		cryptoutilSharedMagic.CONFIG_KEY_LOG_LEVEL:          cryptoutilSharedMagic.DefaultLogLevelInfo,
 		cryptoutilSharedMagic.DefaultOTLPEnvironmentDefault: false,
 		"bind-public-protocol":                              cryptoutilSharedMagic.DefaultPrivateProtocolCryptoutil,
 		"bind-public-address":                               cryptoutilSharedMagic.IPv4AnyAddress,
@@ -131,7 +131,7 @@ var profiles = map[string]map[string]any{
 		"otlp-environment":                                  "stg",
 	},
 	"prod": {
-		"log-level": "WARN",
+		cryptoutilSharedMagic.CONFIG_KEY_LOG_LEVEL:          cryptoutilSharedMagic.LOG_LEVEL_WARN,
 		cryptoutilSharedMagic.DefaultOTLPEnvironmentDefault: false,
 		"bind-public-protocol":                              cryptoutilSharedMagic.DefaultPublicProtocolCryptoutil,
 		"bind-public-address":                               cryptoutilSharedMagic.IPv4AnyAddress,

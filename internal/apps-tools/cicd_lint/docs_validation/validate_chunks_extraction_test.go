@@ -8,6 +8,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const testNewlineContent = "\n"
+
 func TestExtractPropagateBlocks(t *testing.T) {
 	t.Parallel()
 
@@ -93,7 +95,7 @@ func TestExtractPropagateBlocks(t *testing.T) {
 				"<!-- @/to-appendix -->",
 			),
 			wantCount: 1,
-			wantFirst: &PropagateBlock{TargetFile: "f.md", ChunkID: "empty", Content: "\n"},
+			wantFirst: &PropagateBlock{TargetFile: "f.md", ChunkID: cryptoutilSharedMagic.EMPTY, Content: testNewlineContent},
 		},
 		{
 			name: "multi-target comma separated",
@@ -199,7 +201,7 @@ func TestExtractSourceBlocks(t *testing.T) {
 				"<!-- @/from-eng-handbook -->",
 			),
 			wantCount: 1,
-			wantFirst: &SourceBlock{ChunkID: "empty", Content: "\n"},
+			wantFirst: &SourceBlock{ChunkID: cryptoutilSharedMagic.EMPTY, Content: testNewlineContent},
 		},
 		{
 			name: "only handbook-derived-body is strict scope",

@@ -11,6 +11,7 @@ import (
 	cryptoutilUnsealKeysService "cryptoutil/internal/apps-framework/service/server/barrier/unsealkeysservice"
 	cryptoutilTestHelpDB "cryptoutil/internal/apps-framework/service/test_help_db"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
@@ -51,13 +52,13 @@ func TestNewTestBarrierService_Table(t *testing.T) {
 			require.NoError(t, err)
 			require.NotNil(t, svc)
 
-			ciphertext, encErr := svc.EncryptContentWithContext(context.Background(), []byte("hello"))
+			ciphertext, encErr := svc.EncryptContentWithContext(context.Background(), []byte(cryptoutilSharedMagic.TEST_NEEDLE_HELLO))
 			require.NoError(t, encErr)
 			require.NotEmpty(t, ciphertext)
 
 			plaintext, decErr := svc.DecryptContentWithContext(context.Background(), ciphertext)
 			require.NoError(t, decErr)
-			require.Equal(t, []byte("hello"), plaintext)
+			require.Equal(t, []byte(cryptoutilSharedMagic.TEST_NEEDLE_HELLO), plaintext)
 		})
 	}
 }

@@ -22,7 +22,7 @@ func TestExtractHostPort(t *testing.T) {
 		{name: "ip:host:container", input: "127.0.0.1:8080:8080", expected: "127.0.0.1:8080"},
 		{name: "container only", input: "8080", expected: ""},
 		{name: "quoted", input: "\"8080:8080\"", expected: "8080"},
-		{name: "empty", input: "", expected: ""},
+		{name: cryptoutilSharedMagic.EMPTY, input: "", expected: ""},
 		{name: "too many parts", input: "a:b:c:d", expected: ""},
 	}
 

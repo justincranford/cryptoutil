@@ -173,7 +173,7 @@ func TestHandlersCoverageBooster(t *testing.T) {
 		Username:     "testuser",
 		Email:        "test@example.com",
 		Password:     "password123",
-		TenantName:   "Test Tenant",
+		TenantName:   cryptoutilSharedMagic.NAME_TEST_TENANT,
 		CreateTenant: true,
 	}
 	require.NotEmpty(t, req.Username)
@@ -206,7 +206,7 @@ func TestRegisterUserRequest_JSON(t *testing.T) {
 		Username:     "testuser",
 		Email:        "test@example.com",
 		Password:     "password123",
-		TenantName:   "Test Tenant",
+		TenantName:   cryptoutilSharedMagic.NAME_TEST_TENANT,
 		CreateTenant: true,
 	}
 

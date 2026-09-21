@@ -113,7 +113,7 @@ func TestDetectHashType(t *testing.T) {
 			expectedType: cryptoutilSharedMagic.UNKNOWN,
 		},
 		{
-			name:         "pbkdf2",
+			name:         cryptoutilSharedMagic.PBKDF2,
 			hash:         "$pbkdf2-sha256$600000$salt$hash",
 			expectedType: cryptoutilSharedMagic.PBKDF2,
 		},

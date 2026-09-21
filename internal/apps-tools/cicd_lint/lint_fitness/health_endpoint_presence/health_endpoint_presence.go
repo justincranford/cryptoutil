@@ -103,7 +103,7 @@ func discoverServices(appsDir string, readDirFn func(string) ([]os.DirEntry, err
 			}
 
 			// Only include actual services (must have server/ subdirectory).
-			serverGoFile := filepath.Join(productDir, name, "server", "server.go")
+			serverGoFile := filepath.Join(productDir, name, cryptoutilSharedMagic.CMD_SERVER, "server.go")
 			if _, statErr := os.Stat(serverGoFile); statErr == nil {
 				services = append(services, serviceID{product: product, service: name})
 			}

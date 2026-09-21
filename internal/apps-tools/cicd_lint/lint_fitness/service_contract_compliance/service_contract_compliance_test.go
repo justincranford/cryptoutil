@@ -23,7 +23,7 @@ func newTestLogger() *cryptoutilCmdCicdCommon.Logger {
 func makeServiceDir(t *testing.T, root, product, service, serverContent string) string {
 	t.Helper()
 
-	serverDir := filepath.Join(root, "internal", "apps", product, service, "server")
+	serverDir := filepath.Join(root, "internal", "apps", product, service, cryptoutilSharedMagic.CMD_SERVER)
 	require.NoError(t, os.MkdirAll(serverDir, cryptoutilSharedMagic.DirPermissions))
 	serverPath := filepath.Join(serverDir, "server.go")
 	require.NoError(t, os.WriteFile(serverPath, []byte(serverContent), cryptoutilSharedMagic.CacheFilePermissions))

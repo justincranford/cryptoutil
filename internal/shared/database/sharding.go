@@ -58,7 +58,7 @@ type ShardConfig struct {
 func DefaultShardConfig() *ShardConfig {
 	return &ShardConfig{
 		Strategy:        StrategyRowLevel,
-		SchemaPrefix:    "tenant_",
+		SchemaPrefix:    cryptoutilSharedMagic.SCHEMA_PREFIX_TENANT,
 		DefaultSchema:   cryptoutilSharedMagic.SubjectTypePublic,
 		EnableMigration: true,
 	}

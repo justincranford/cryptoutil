@@ -117,7 +117,7 @@ func TestMain(m *testing.M) {
 	tenantRepo := cryptoutilAppsFrameworkServiceServerRepository.NewTenantRepository(testDB)
 	tenant := &cryptoutilAppsFrameworkServiceServerRepository.Tenant{
 		ID:   testTenantID,
-		Name: "Test Tenant",
+		Name: cryptoutilSharedMagic.NAME_TEST_TENANT,
 	}
 
 	if err := tenantRepo.Create(ctx, tenant); err != nil {

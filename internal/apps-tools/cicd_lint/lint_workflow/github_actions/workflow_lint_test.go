@@ -13,6 +13,8 @@ import (
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps-tools/cicd_lint/common"
 )
 
+const testNonEmptyStringEmptySubstr = "non-empty string empty substr"
+
 func TestContains_EmptyStrings(t *testing.T) {
 	t.Parallel()
 
@@ -24,7 +26,7 @@ func TestContains_EmptyStrings(t *testing.T) {
 	}{
 		{"both empty", "", "", true},
 		{"empty string non-empty substr", "", "a", false},
-		{"non-empty string empty substr", "hello", "", true},
+		{testNonEmptyStringEmptySubstr, cryptoutilSharedMagic.TEST_NEEDLE_HELLO, "", true},
 	}
 
 	for _, tc := range tests {
@@ -48,7 +50,7 @@ func TestFindSubstring_EmptyStrings(t *testing.T) {
 	}{
 		{"both empty", "", "", 0},
 		{"empty string non-empty substr", "", "a", -1},
-		{"non-empty string empty substr", "hello", "", 0},
+		{testNonEmptyStringEmptySubstr, cryptoutilSharedMagic.TEST_NEEDLE_HELLO, "", 0},
 	}
 
 	for _, tc := range tests {

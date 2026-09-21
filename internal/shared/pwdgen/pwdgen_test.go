@@ -71,7 +71,7 @@ func TestPasswordPolicy_Validate(t *testing.T) {
 			policy: PasswordPolicy{
 				MinLength: cryptoutilSharedMagic.IMMinPasswordLength,
 				MaxLength: cryptoutilSharedMagic.RealmMinTokenLengthBytes,
-				CharSets:  []CharSetConfig{{Name: "empty", Characters: []rune{}, Min: 1, Max: MaxInt}},
+				CharSets:  []CharSetConfig{{Name: cryptoutilSharedMagic.EMPTY, Characters: []rune{}, Min: 1, Max: MaxInt}},
 			},
 			wantErr: true,
 			errMsg:  "has no characters",

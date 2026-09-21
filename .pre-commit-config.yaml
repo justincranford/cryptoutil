@@ -248,10 +248,10 @@ repos:
   # Go dependency management (clean state before linting)
   - repo: local
     hooks:
-      - id: dev-setup
-        name: dev-setup
+      - id: cicd-dev-setup
+        name: cicd-dev-setup
         entry: go
-        args: [run, ./cmd/dev-setup/main.go]
+        args: [run, ./cmd/cicd-dev-setup/main.go]
         language: system
         pass_filenames: false
         always_run: true

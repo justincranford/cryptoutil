@@ -13,6 +13,7 @@ import (
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps-tools/cicd_lint/common"
 	cryptoutilFitnessRegistry "cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/registry"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // knownExclusions lists PS-IDs that are temporarily exempt from server swagger checks.
@@ -68,7 +69,7 @@ func checkPSIDSwaggerFiles(serviceDir, psid string) []string {
 	}
 
 	for _, filename := range []string{"swagger.go", "swagger_test.go"} {
-		target := filepath.Join(serviceDir, "server", filename)
+		target := filepath.Join(serviceDir, cryptoutilSharedMagic.CMD_SERVER, filename)
 		if _, err := os.Stat(target); os.IsNotExist(err) {
 			errors = append(errors, fmt.Sprintf("%s: missing required file internal/apps/%s/server/%s", serviceDir, psid, filename))
 		}

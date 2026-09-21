@@ -133,7 +133,7 @@ func TestRealmConfig_Validate_Errors(t *testing.T) {
 			config: &OpaqueSessionCookieConfig{
 				TokenLengthBytes:     cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes,
 				SessionExpiryMinutes: 15,
-				StorageType:          "invalid",
+				StorageType:          cryptoutilSharedMagic.DevSetupTestInvalidName,
 			},
 			expectedSubstr: "storage_type must be",
 		},
@@ -211,7 +211,7 @@ func TestRealmConfig_Validate_Errors(t *testing.T) {
 			config: &OpaqueSessionTokenConfig{
 				TokenLengthBytes:   cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes,
 				TokenExpiryMinutes: cryptoutilSharedMagic.IdentityDefaultIdleTimeoutSeconds,
-				StorageType:        "invalid",
+				StorageType:        cryptoutilSharedMagic.DevSetupTestInvalidName,
 			},
 			expectedSubstr: "storage_type must be",
 		},

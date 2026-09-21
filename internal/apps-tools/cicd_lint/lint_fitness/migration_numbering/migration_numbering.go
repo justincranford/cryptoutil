@@ -46,7 +46,7 @@ func Check(logger *cryptoutilCmdCicdCommon.Logger) error {
 func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 	var errors []string
 
-	templateDir := filepath.Join(rootDir, cryptoutilSharedMagic.FrameworkInternalDir, "service", "server", "repository", "migrations")
+	templateDir := filepath.Join(rootDir, cryptoutilSharedMagic.FrameworkInternalDir, "service", cryptoutilSharedMagic.CMD_SERVER, "repository", "migrations")
 	errors = append(errors, checkMigrationDir(templateDir, templateMigrationMin, templateMigrationMax, true)...)
 
 	domainDirs, findErr := findDomainMigrationDirs(rootDir, templateDir)

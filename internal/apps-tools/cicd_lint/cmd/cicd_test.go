@@ -126,7 +126,7 @@ func TestHasHelpFlag(t *testing.T) {
 		{name: "--help flag", args: []string{cryptoutilSharedMagic.CLIHelpFlag}, want: true},
 		{name: "help command", args: []string{cryptoutilSharedMagic.CLIHelpCommand}, want: true},
 		{name: "help mixed with other args", args: []string{"lint-text", cryptoutilSharedMagic.CLIHelpFlag}, want: true},
-		{name: "empty", args: []string{}, want: false},
+		{name: cryptoutilSharedMagic.EMPTY, args: []string{}, want: false},
 	}
 
 	for _, tc := range tests {

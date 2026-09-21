@@ -9,6 +9,8 @@ import (
 	cryptoutilAppsFrameworkServiceServerMiddleware "cryptoutil/internal/apps-framework/service/server/middleware"
 	cryptoutilOrmRepository "cryptoutil/internal/apps/sm-kms/server/repository/orm"
 
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+
 	googleUuid "github.com/google/uuid"
 	testify "github.com/stretchr/testify/require"
 )
@@ -253,7 +255,7 @@ func TestImportMaterialKey(t *testing.T) {
 				return seedImportableElasticKeyWithStatus(t, stack, "import-mk-bad-status",
 					cryptoutilKmsServer.ElasticKeyStatus(cryptoutilOpenapiModel.Disabled))
 			},
-			wantErr: "invalid",
+			wantErr: cryptoutilSharedMagic.DevSetupTestInvalidName,
 		},
 	}
 

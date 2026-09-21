@@ -30,7 +30,7 @@ func TestRoleRepository_Create(t *testing.T) {
 	tenant := &Tenant{
 		ID:          googleUuid.New(),
 		Name:        uniqueRoleTenantName("Test"),
-		Description: "Test tenant",
+		Description: cryptoutilSharedMagic.DESC_TEST_TENANT,
 		Active:      1,
 		CreatedAt:   time.Now().UTC(),
 	}
@@ -43,7 +43,7 @@ func TestRoleRepository_Create(t *testing.T) {
 		ID:          googleUuid.New(),
 		TenantID:    tenant.ID,
 		Name:        "admin",
-		Description: "Administrator role",
+		Description: cryptoutilSharedMagic.DESC_ADMIN_ROLE,
 		CreatedAt:   time.Now().UTC(),
 	}
 	err = roleRepo.Create(ctx, firstRole)
@@ -101,7 +101,7 @@ func TestRoleRepository_GetByName(t *testing.T) {
 	tenant := &Tenant{
 		ID:          googleUuid.New(),
 		Name:        uniqueRoleTenantName("Test"),
-		Description: "Test tenant",
+		Description: cryptoutilSharedMagic.DESC_TEST_TENANT,
 		Active:      1,
 		CreatedAt:   time.Now().UTC(),
 	}
@@ -113,7 +113,7 @@ func TestRoleRepository_GetByName(t *testing.T) {
 		ID:          googleUuid.New(),
 		TenantID:    tenant.ID,
 		Name:        "admin",
-		Description: "Administrator role",
+		Description: cryptoutilSharedMagic.DESC_ADMIN_ROLE,
 		CreatedAt:   time.Now().UTC(),
 	}
 
@@ -175,7 +175,7 @@ func TestUserRoleRepository_Assign(t *testing.T) {
 	tenant := &Tenant{
 		ID:          googleUuid.New(),
 		Name:        uniqueRoleTenantName("Test"),
-		Description: "Test tenant",
+		Description: cryptoutilSharedMagic.DESC_TEST_TENANT,
 		Active:      1,
 		CreatedAt:   time.Now().UTC(),
 	}
@@ -199,7 +199,7 @@ func TestUserRoleRepository_Assign(t *testing.T) {
 		ID:          googleUuid.New(),
 		TenantID:    tenant.ID,
 		Name:        "admin",
-		Description: "Administrator role",
+		Description: cryptoutilSharedMagic.DESC_ADMIN_ROLE,
 		CreatedAt:   time.Now().UTC(),
 	}
 
@@ -234,7 +234,7 @@ func TestUserRoleRepository_Revoke(t *testing.T) {
 	tenant := &Tenant{
 		ID:          googleUuid.New(),
 		Name:        uniqueRoleTenantName("Test"),
-		Description: "Test tenant",
+		Description: cryptoutilSharedMagic.DESC_TEST_TENANT,
 		Active:      1,
 		CreatedAt:   time.Now().UTC(),
 	}
@@ -258,7 +258,7 @@ func TestUserRoleRepository_Revoke(t *testing.T) {
 		ID:          googleUuid.New(),
 		TenantID:    tenant.ID,
 		Name:        "admin",
-		Description: "Administrator role",
+		Description: cryptoutilSharedMagic.DESC_ADMIN_ROLE,
 		CreatedAt:   time.Now().UTC(),
 	}
 
@@ -295,7 +295,7 @@ func TestClientRoleRepository_Assign(t *testing.T) {
 	tenant := &Tenant{
 		ID:          googleUuid.New(),
 		Name:        uniqueRoleTenantName("Test"),
-		Description: "Test tenant",
+		Description: cryptoutilSharedMagic.DESC_TEST_TENANT,
 		Active:      1,
 		CreatedAt:   time.Now().UTC(),
 	}
@@ -351,7 +351,7 @@ func TestTenantRealmRepository_Create(t *testing.T) {
 	tenant := &Tenant{
 		ID:          googleUuid.New(),
 		Name:        uniqueRoleTenantName("Test"),
-		Description: "Test tenant",
+		Description: cryptoutilSharedMagic.DESC_TEST_TENANT,
 		Active:      1,
 		CreatedAt:   time.Now().UTC(),
 	}

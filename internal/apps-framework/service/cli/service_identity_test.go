@@ -99,7 +99,7 @@ func TestRouteServiceFromIdentity_ServerSubcommand(t *testing.T) {
 
 	exitCode := cryptoutilAppsFrameworkCli.RouteServiceFromIdentity(
 		id,
-		[]string{"server"},
+		[]string{cryptoutilSharedMagic.CMD_SERVER},
 		&stdout, &stderr,
 	)
 	require.Equal(t, 0, exitCode)

@@ -39,7 +39,7 @@ func highEntropyTests(t *testing.T) []highEntropyTest {
 
 	return []highEntropyTest{
 		{
-			name:        "empty",
+			name:        cryptoutilSharedMagic.EMPTY,
 			input:       "",
 			expectError: true,
 		},

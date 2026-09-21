@@ -92,7 +92,7 @@ func TestUserRoleRepository_Assign_HappyPath(t *testing.T) {
 		ID:          googleUuid.New(),
 		TenantID:    tenant.ID,
 		Name:        "test_role",
-		Description: "Test role",
+		Description: cryptoutilSharedMagic.DESC_TEST_ROLE,
 	}
 	require.NoError(t, db.Create(role).Error)
 
@@ -146,7 +146,7 @@ func TestUserRoleRepository_Assign_DuplicateAssignment(t *testing.T) {
 		ID:          googleUuid.New(),
 		TenantID:    tenant.ID,
 		Name:        "test_role",
-		Description: "Test role",
+		Description: cryptoutilSharedMagic.DESC_TEST_ROLE,
 	}
 	require.NoError(t, db.Create(role).Error)
 
@@ -230,7 +230,7 @@ func TestUserRoleRepository_ListRolesByUser_HappyPath(t *testing.T) {
 		ID:          googleUuid.New(),
 		TenantID:    tenant.ID,
 		Name:        "role1",
-		Description: "First role",
+		Description: cryptoutilSharedMagic.DESC_FIRST_ROLE,
 	}
 	require.NoError(t, db.Create(role1).Error)
 
@@ -238,7 +238,7 @@ func TestUserRoleRepository_ListRolesByUser_HappyPath(t *testing.T) {
 		ID:          googleUuid.New(),
 		TenantID:    tenant.ID,
 		Name:        "role2",
-		Description: "Second role",
+		Description: cryptoutilSharedMagic.DESC_SECOND_ROLE,
 	}
 	require.NoError(t, db.Create(role2).Error)
 
@@ -324,7 +324,7 @@ func TestUserRoleRepository_Revoke_HappyPath(t *testing.T) {
 		ID:          googleUuid.New(),
 		TenantID:    tenant.ID,
 		Name:        "test_role",
-		Description: "Test role",
+		Description: cryptoutilSharedMagic.DESC_TEST_ROLE,
 	}
 	require.NoError(t, db.Create(role).Error)
 

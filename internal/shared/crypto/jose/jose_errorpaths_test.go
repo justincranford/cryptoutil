@@ -322,7 +322,7 @@ func TestEncryptBytes_MissingKid(t *testing.T) {
 
 	_, _, err = EncryptBytes([]joseJwk.Key{nonPublicJWK}, []byte("test payload"))
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "invalid")
+	require.Contains(t, err.Error(), cryptoutilSharedMagic.DevSetupTestInvalidName)
 }
 
 // TestSignBytes_MissingKid covers the ExtractKidUUID error path in SignBytes.
@@ -337,5 +337,5 @@ func TestSignBytes_MissingKid(t *testing.T) {
 
 	_, _, err = SignBytes([]joseJwk.Key{nonPublicJWK}, []byte("test payload"))
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "invalid")
+	require.Contains(t, err.Error(), cryptoutilSharedMagic.DevSetupTestInvalidName)
 }

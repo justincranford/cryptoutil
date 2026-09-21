@@ -10,11 +10,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-const (
-	testHello = "hello"
-	testWorld = "world"
-)
-
 // TestStringPointersToBytes tests converting string pointers to byte slices.
 func TestStringPointersToBytes(t *testing.T) {
 	t.Parallel()
@@ -22,27 +17,27 @@ func TestStringPointersToBytes(t *testing.T) {
 	t.Run("all valid pointers", func(t *testing.T) {
 		t.Parallel()
 
-		str1 := testHello
-		str2 := testWorld
+		str1 := cryptoutilSharedMagic.TEST_NEEDLE_HELLO
+		str2 := cryptoutilSharedMagic.TEST_NEEDLE_WORLD
 		str3 := "test"
 
 		result := StringPointersToBytes(&str1, &str2, &str3)
 		require.Len(t, result, 3, "Should have 3 byte slices")
-		require.Equal(t, []byte(testHello), result[0])
-		require.Equal(t, []byte(testWorld), result[1])
+		require.Equal(t, []byte(cryptoutilSharedMagic.TEST_NEEDLE_HELLO), result[0])
+		require.Equal(t, []byte(cryptoutilSharedMagic.TEST_NEEDLE_WORLD), result[1])
 		require.Equal(t, []byte("test"), result[2])
 	})
 
 	t.Run("with nil pointers", func(t *testing.T) {
 		t.Parallel()
 
-		str1 := testHello
-		str2 := testWorld
+		str1 := cryptoutilSharedMagic.TEST_NEEDLE_HELLO
+		str2 := cryptoutilSharedMagic.TEST_NEEDLE_WORLD
 
 		result := StringPointersToBytes(&str1, nil, &str2, nil)
 		require.Len(t, result, 2, "Should skip nil pointers")
-		require.Equal(t, []byte(testHello), result[0])
-		require.Equal(t, []byte(testWorld), result[1])
+		require.Equal(t, []byte(cryptoutilSharedMagic.TEST_NEEDLE_HELLO), result[0])
+		require.Equal(t, []byte(cryptoutilSharedMagic.TEST_NEEDLE_WORLD), result[1])
 	})
 
 	t.Run("all nil pointers", func(t *testing.T) {

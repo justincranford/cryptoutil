@@ -113,7 +113,7 @@ func TestRouteProduct_RoutesToService(t *testing.T) {
 
 		var stdout, stderr bytes.Buffer
 
-		exitCode := cryptoutilAppsFrameworkProductCli.RouteProduct(testProductCfg, []string{"svc1", "server"}, nil, &stdout, &stderr, services)
+		exitCode := cryptoutilAppsFrameworkProductCli.RouteProduct(testProductCfg, []string{"svc1", cryptoutilSharedMagic.CMD_SERVER}, nil, &stdout, &stderr, services)
 		require.Equal(t, 0, exitCode)
 	})
 

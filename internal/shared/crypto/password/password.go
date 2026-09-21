@@ -8,6 +8,7 @@ import (
 	"fmt"
 
 	cryptoutilSharedCryptoPbkdf2 "cryptoutil/internal/shared/crypto/pbkdf2"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // HashPassword generates a FIPS-compliant PBKDF2-HMAC-SHA256 hash.
@@ -43,7 +44,7 @@ func VerifyPassword(password, storedHash string) (bool, bool, error) {
 	hashType := cryptoutilSharedCryptoPbkdf2.DetectHashType(storedHash)
 
 	switch hashType {
-	case "pbkdf2":
+	case cryptoutilSharedMagic.PBKDF2:
 		return verifyPasswordInternal(password, storedHash, cryptoutilSharedCryptoPbkdf2.VerifyPassword)
 
 	default:

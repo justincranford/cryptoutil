@@ -69,7 +69,7 @@ type SubcommandFunc func(args []string, stdout, stderr io.Writer) int
 func RouteService(cfg ServiceConfig, args []string, stdout, stderr io.Writer, serverFn, clientFn, initFn SubcommandFunc) int {
 	// Default to "server" subcommand if no args provided (backward compatibility).
 	if len(args) == 0 {
-		args = []string{"server"}
+		args = []string{cryptoutilSharedMagic.CMD_SERVER}
 	}
 
 	// Check for help flags.
@@ -87,7 +87,7 @@ func RouteService(cfg ServiceConfig, args []string, stdout, stderr io.Writer, se
 		_, _ = fmt.Fprintln(stdout, "Version information available via Docker image tags")
 
 		return 0
-	case "server":
+	case cryptoutilSharedMagic.CMD_SERVER:
 		return serverFn(args[1:], stdout, stderr)
 	case "client":
 		return clientFn(args[1:], stdout, stderr)

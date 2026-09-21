@@ -130,7 +130,7 @@ func TestTokenConfig_Validate(t *testing.T) {
 				AccessTokenLifetime:  cryptoutilSharedMagic.IMDefaultSessionTimeout * time.Second,
 				RefreshTokenLifetime: cryptoutilSharedMagic.IMDefaultSessionAbsoluteMax * time.Second,
 				IDTokenLifetime:      cryptoutilSharedMagic.IMDefaultSessionTimeout * time.Second,
-				AccessTokenFormat:    "invalid",
+				AccessTokenFormat:    cryptoutilSharedMagic.DevSetupTestInvalidName,
 				RefreshTokenFormat:   cryptoutilSharedMagic.IdentityTokenFormatUUID,
 				IDTokenFormat:        cryptoutilSharedMagic.DefaultBrowserSessionCookie,
 				Issuer:               "https://example.com",

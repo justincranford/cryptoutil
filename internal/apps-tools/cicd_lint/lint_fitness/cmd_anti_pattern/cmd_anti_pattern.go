@@ -5,7 +5,7 @@
 //   - A PS-ID (e.g. "identity-authz", "sm-kms") from the entity registry
 //   - A product name (e.g. "identity", "sm") from the entity registry
 //   - The suite name (e.g. "cryptoutil")
-//   - A documented infrastructure tool (cicd-lint, workflow)
+//   - A documented infrastructure tool (cicd-lint, workflow, cicd-dev-setup)
 //
 // Directories like "identity-compose" or "sm-run" that embed a product prefix
 // but are not registered PS-IDs are the anti-patterns this check prevents.
@@ -95,6 +95,7 @@ func buildAllowedSet() map[string]bool {
 	// Documented infrastructure tools.
 	allowed[cryptoutilSharedMagic.CICDCmdDirCicdLint] = true
 	allowed[cryptoutilSharedMagic.CICDCmdDirWorkflow] = true
+	allowed[cryptoutilSharedMagic.CICDCmdDirDevSetup] = true
 
 	return allowed
 }

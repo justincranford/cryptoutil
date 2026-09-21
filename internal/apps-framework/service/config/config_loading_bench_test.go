@@ -135,7 +135,7 @@ otlp-endpoint: "http://otel-collector:4317"
 
 	// Set environment variables to merge.
 	require.NoError(b, os.Setenv("CRYPTOUTIL_BIND_PRIVATE_PORT", "9191"))
-	require.NoError(b, os.Setenv("CRYPTOUTIL_LOG_LEVEL", "DEBUG"))
+	require.NoError(b, os.Setenv("CRYPTOUTIL_LOG_LEVEL", cryptoutilSharedMagic.LOG_LEVEL_DEBUG))
 
 	defer func() {
 		_ = os.Unsetenv("CRYPTOUTIL_BIND_PRIVATE_PORT")

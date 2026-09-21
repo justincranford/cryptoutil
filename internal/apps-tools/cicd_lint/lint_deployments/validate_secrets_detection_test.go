@@ -297,7 +297,7 @@ func TestCheckSecretLength_BoundaryValues(t *testing.T) {
 		wantError   bool
 		wantWarning bool
 	}{
-		{"empty", "", true, false},
+		{cryptoutilSharedMagic.EMPTY, "", true, false},
 		{"1 byte", "x", false, true},
 		{"31 bytes", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", false, true},
 		{"32 bytes", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", false, false},

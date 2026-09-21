@@ -2,10 +2,13 @@ package installer
 
 import (
 	"context"
-	"cryptoutil/internal/apps-tools/dev_setup/pkg/config"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"fmt"
 	"testing"
+
+	cryptoutilAppsToolsDevSetupConfig "cryptoutil/internal/apps-tools/cicd_dev_setup/pkg/config"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+
+	"github.com/stretchr/testify/require"
 )
 
 // MockExecutor implements Executor for testing.
@@ -24,16 +27,18 @@ func (me *MockExecutor) Execute(ctx context.Context, cmd string, args ...string)
 }
 
 func TestInstall_Happy(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name          string
-		dep           *config.Dependency
+		dep           *cryptoutilAppsToolsDevSetupConfig.Dependency
 		executeErr    error
 		expectErr     bool
 		expectCmdName string
 	}{
 		{
 			name: "Install via uv pip",
-			dep: &config.Dependency{
+			dep: &cryptoutilAppsToolsDevSetupConfig.Dependency{
 				Name:       "pre-commit",
 				InstallCmd: "uv pip install pre-commit",
 			},
@@ -42,18 +47,18 @@ func TestInstall_Happy(t *testing.T) {
 		},
 		{
 			name: "Install via go install",
-			dep: &config.Dependency{
+			dep: &cryptoutilAppsToolsDevSetupConfig.Dependency{
 				Name:       "golangci-lint",
-				InstallCmd: "go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.12.2",
+				InstallCmd: cryptoutilSharedMagic.DevSetupGolangciInstallCmd,
 			},
 			executeErr: nil,
 			expectErr:  false,
 		},
 		{
 			name: "Run pre-commit install",
-			dep: &config.Dependency{
+			dep: &cryptoutilAppsToolsDevSetupConfig.Dependency{
 				Name:       "pre-commit-hooks",
-				InstallCmd: "pre-commit install",
+				InstallCmd: cryptoutilSharedMagic.DevSetupGitHooksInstallCmd,
 			},
 			executeErr: nil,
 			expectErr:  false,
@@ -71,31 +76,29 @@ func TestInstall_Happy(t *testing.T) {
 			installer := NewDependencyInstaller(executor, "/tmp/project")
 			err := installer.Install(context.Background(), tc.dep)
 
-			if tc.expectErr && err == nil {
-				t.Errorf("expected error, got nil")
+			if tc.expectErr {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
 			}
 
-			if !tc.expectErr && err != nil {
-				t.Fatalf("unexpected error: %v", err)
-			}
-
-			if executor.CallCount != 1 {
-				t.Errorf("expected 1 call, got %d", executor.CallCount)
-			}
+			require.Equal(t, 1, executor.CallCount)
 		})
 	}
 }
 
 func TestInstall_Sad(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name       string
-		dep        *config.Dependency
+		dep        *cryptoutilAppsToolsDevSetupConfig.Dependency
 		executeErr error
 		expectErr  bool
 	}{
 		{
 			name: "Installation fails",
-			dep: &config.Dependency{
+			dep: &cryptoutilAppsToolsDevSetupConfig.Dependency{
 				Name:       "missing-tool",
 				InstallCmd: "apt-get install missing-tool",
 			},
@@ -104,7 +107,7 @@ func TestInstall_Sad(t *testing.T) {
 		},
 		{
 			name: "No install command defined",
-			dep: &config.Dependency{
+			dep: &cryptoutilAppsToolsDevSetupConfig.Dependency{
 				Name:       cryptoutilSharedMagic.DevSetupTestInvalidToolName,
 				InstallCmd: "",
 			},
@@ -112,7 +115,7 @@ func TestInstall_Sad(t *testing.T) {
 		},
 		{
 			name: "Invalid install command format",
-			dep: &config.Dependency{
+			dep: &cryptoutilAppsToolsDevSetupConfig.Dependency{
 				Name:       cryptoutilSharedMagic.DevSetupTestInvalidToolName,
 				InstallCmd: "",
 			},
@@ -131,18 +134,17 @@ func TestInstall_Sad(t *testing.T) {
 			installer := NewDependencyInstaller(executor, "/tmp/project")
 			err := installer.Install(context.Background(), tc.dep)
 
-			if tc.expectErr && err == nil {
-				t.Errorf("expected error, got nil")
-			}
-
-			if !tc.expectErr && err != nil {
-				t.Fatalf("unexpected error: %v", err)
+			if tc.expectErr {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
 			}
 		})
 	}
 }
 
 func TestInstall_WithContext(t *testing.T) {
+	t.Parallel()
 	t.Run("Installation respects context deadline", func(t *testing.T) {
 		executor := &MockExecutor{
 			ExecuteFunc: func(ctx context.Context, cmd string, args ...string) (string, string, error) {
@@ -157,7 +159,7 @@ func TestInstall_WithContext(t *testing.T) {
 		}
 
 		installer := NewDependencyInstaller(executor, "/tmp/project")
-		dep := &config.Dependency{
+		dep := &cryptoutilAppsToolsDevSetupConfig.Dependency{
 			Name:       "test",
 			InstallCmd: "test-cmd",
 		}
@@ -166,34 +168,27 @@ func TestInstall_WithContext(t *testing.T) {
 		cancel() // Simulate timeout
 
 		err := installer.Install(ctx, dep)
-		if err == nil {
-			t.Errorf("expected error from context, got nil")
-		}
+		require.Error(t, err, "expected error from context")
 	})
 }
 
 func TestSystemExecutor(t *testing.T) {
+	t.Parallel()
 	t.Run("Execute valid command", func(t *testing.T) {
 		executor := NewSystemExecutor()
 		// Use go version which is guaranteed to exist on systems where tests run
-		stdout, stderr, err := executor.Execute(context.Background(), "go", "version")
-		if err != nil {
-			t.Fatalf("unexpected error: %v", err)
-		}
+		stdout, stderr, err := executor.Execute(context.Background(), "go", cryptoutilSharedMagic.CLIVersionCommand)
+		require.NoError(t, err)
 
 		// Output might have newlines, just check it's not empty
 		output := stdout + stderr
-		if output == "" {
-			t.Errorf("expected output, got empty string")
-		}
+		require.NotEmpty(t, output, "expected output")
 	})
 
 	t.Run("Execute invalid command", func(t *testing.T) {
 		executor := NewSystemExecutor()
 
 		_, _, err := executor.Execute(context.Background(), "nonexistent-command-xyz-123", "arg")
-		if err == nil {
-			t.Errorf("expected error for invalid command, got nil")
-		}
+		require.Error(t, err, "expected error for invalid command")
 	})
 }

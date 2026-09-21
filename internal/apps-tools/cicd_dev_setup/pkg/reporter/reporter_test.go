@@ -2,13 +2,17 @@ package reporter
 
 import (
 	"bytes"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"fmt"
 	"strings"
 	"testing"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestReportSummary_Happy(t *testing.T) {
+	t.Parallel()
 	t.Run("All dependencies installed successfully", func(t *testing.T) {
 		stdout := &bytes.Buffer{}
 		stderr := &bytes.Buffer{}
@@ -33,26 +37,18 @@ func TestReportSummary_Happy(t *testing.T) {
 		}
 
 		err := reporter.ReportSummary(summary)
-		if err != nil {
-			t.Fatalf("unexpected error: %v", err)
-		}
+		require.NoError(t, err)
 
 		output := stdout.String()
-		if !strings.Contains(output, cryptoutilSharedMagic.DevSetupStatusIconSuccess) {
-			t.Errorf("expected success indicator in output")
-		}
-
-		if !strings.Contains(output, cryptoutilSharedMagic.DevSetupTestToolNamePython) {
-			t.Errorf("expected tool name in output")
-		}
-
-		if !strings.Contains(output, "All dependencies installed successfully") {
-			t.Errorf("expected success message in output")
-		}
+		require.Contains(t, output, cryptoutilSharedMagic.DevSetupStatusIconSuccess, "expected success indicator in output")
+		require.Contains(t, output, cryptoutilSharedMagic.DevSetupTestToolNamePython, "expected tool name in output")
+		require.Contains(t, output, "All dependencies installed successfully")
 	})
 }
 
 func TestReportSummary_Sad(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name          string
 		summary       *Summary
@@ -131,19 +127,21 @@ func TestReportSummary_Sad(t *testing.T) {
 			reporter := NewConsoleReporter(stdout, stderr)
 
 			err := reporter.ReportSummary(tc.summary)
-			if tc.expectError && err == nil {
-				t.Errorf("expected error, got nil")
+			if tc.expectError {
+				require.Error(t, err)
 			}
 
 			stderrOutput := stderr.String()
-			if tc.expectWarning && !strings.Contains(stderrOutput, "ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â ") && !strings.Contains(stderrOutput, "Error:") {
-				t.Errorf("expected warning/error in stderr output")
+			if tc.expectWarning {
+				hasIndicator := strings.Contains(stderrOutput, "ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â ") || strings.Contains(stderrOutput, "Error:")
+				require.True(t, hasIndicator, "expected warning/error in stderr output")
 			}
 		})
 	}
 }
 
 func TestReportSummary_Format(t *testing.T) {
+	t.Parallel()
 	t.Run("Output contains all expected sections", func(t *testing.T) {
 		stdout := &bytes.Buffer{}
 		stderr := &bytes.Buffer{}
@@ -186,43 +184,29 @@ func TestReportSummary_Format(t *testing.T) {
 		}
 
 		err := reporter.ReportSummary(summary)
-		if err != nil {
-			t.Fatalf("unexpected error: %v", err)
-		}
+		require.NoError(t, err)
 
 		output := stdout.String()
 
 		// Check for header
-		if !strings.Contains(output, "Development Environment Setup") {
-			t.Errorf("expected header in output")
-		}
+		require.Contains(t, output, "Development Environment Setup")
 
 		// Check for group names
-		if !strings.Contains(output, "Python Runtime") {
-			t.Errorf("expected 'Python Runtime' group in output")
-		}
-
-		if !strings.Contains(output, "Go Toolchain") {
-			t.Errorf("expected 'Go Toolchain' group in output")
-		}
+		require.Contains(t, output, cryptoutilSharedMagic.DevSetupTestGroupPythonRuntime)
+		require.Contains(t, output, cryptoutilSharedMagic.DevSetupTestGroupGoToolchain)
 
 		// Check for tool names
-		if !strings.Contains(output, "python") {
-			t.Errorf("expected 'python' tool in output")
-		}
-
-		if !strings.Contains(output, "go") {
-			t.Errorf("expected 'go' tool in output")
-		}
+		require.Contains(t, output, cryptoutilSharedMagic.DevSetupTestToolNamePython)
+		require.Contains(t, output, cryptoutilSharedMagic.DevSetupTestToolNameGo)
 
 		// Check for versions
-		if !strings.Contains(output, "3.14.0") && !strings.Contains(output, "1.26.1") {
-			t.Errorf("expected version info in output")
-		}
+		hasVersion := strings.Contains(output, cryptoutilSharedMagic.DevSetupTestVersionPythonRequired) || strings.Contains(output, cryptoutilSharedMagic.DevSetupTestVersionGoRequired)
+		require.True(t, hasVersion, "expected version info in output")
 	})
 }
 
 func TestReportSummary_NilGroups(t *testing.T) {
+	t.Parallel()
 	t.Run("Handles nil groups gracefully", func(t *testing.T) {
 		stdout := &bytes.Buffer{}
 		stderr := &bytes.Buffer{}
@@ -247,14 +231,10 @@ func TestReportSummary_NilGroups(t *testing.T) {
 		}
 
 		err := reporter.ReportSummary(summary)
-		if err != nil {
-			t.Fatalf("unexpected error: %v", err)
-		}
+		require.NoError(t, err)
 
 		// Should not panic and should report what's available
 		output := stdout.String()
-		if !strings.Contains(output, "Python") {
-			t.Errorf("expected Python group in output")
-		}
+		require.Contains(t, output, cryptoutilSharedMagic.DevSetupTestGroupNamePython, "expected Python group in output")
 	})
 }

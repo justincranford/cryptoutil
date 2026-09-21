@@ -30,7 +30,7 @@ func TestUserRepository_Create(t *testing.T) {
 	tenant := &Tenant{
 		ID:          googleUuid.New(),
 		Name:        uniqueUserTenantName("UserCreate"),
-		Description: "Test tenant",
+		Description: cryptoutilSharedMagic.DESC_TEST_TENANT,
 		Active:      1,
 		CreatedAt:   time.Now().UTC(),
 	}
@@ -107,7 +107,7 @@ func TestUserRepository_GetByUsername(t *testing.T) {
 	tenant := &Tenant{
 		ID:          googleUuid.New(),
 		Name:        uniqueUserTenantName("Test"),
-		Description: "Test tenant",
+		Description: cryptoutilSharedMagic.DESC_TEST_TENANT,
 		Active:      1,
 		CreatedAt:   time.Now().UTC(),
 	}
@@ -245,7 +245,7 @@ func TestClientRepository_Create(t *testing.T) {
 	tenant := &Tenant{
 		ID:          googleUuid.New(),
 		Name:        uniqueUserTenantName("Test"),
-		Description: "Test tenant",
+		Description: cryptoutilSharedMagic.DESC_TEST_TENANT,
 		Active:      1,
 		CreatedAt:   time.Now().UTC(),
 	}
@@ -305,7 +305,7 @@ func TestUnverifiedUserRepository_Create(t *testing.T) {
 	tenant := &Tenant{
 		ID:          googleUuid.New(),
 		Name:        uniqueUserTenantName("Test"),
-		Description: "Test tenant",
+		Description: cryptoutilSharedMagic.DESC_TEST_TENANT,
 		Active:      1,
 		CreatedAt:   time.Now().UTC(),
 	}
@@ -340,7 +340,7 @@ func TestUnverifiedUserRepository_DeleteExpired(t *testing.T) {
 	tenant := &Tenant{
 		ID:          googleUuid.New(),
 		Name:        uniqueUserTenantName("Test"),
-		Description: "Test tenant",
+		Description: cryptoutilSharedMagic.DESC_TEST_TENANT,
 		Active:      1,
 		CreatedAt:   time.Now().UTC(),
 	}
@@ -394,7 +394,7 @@ func TestUnverifiedClientRepository_DeleteExpired(t *testing.T) {
 	tenant := &Tenant{
 		ID:          googleUuid.New(),
 		Name:        uniqueUserTenantName("Test"),
-		Description: "Test tenant",
+		Description: cryptoutilSharedMagic.DESC_TEST_TENANT,
 		Active:      1,
 		CreatedAt:   time.Now().UTC(),
 	}

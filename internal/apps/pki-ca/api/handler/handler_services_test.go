@@ -256,8 +256,8 @@ func TestEstCSRAttrsHandler(t *testing.T) {
 		storage: cryptoutilCAStorage.NewMemoryStore(),
 		issuer:  testSetup.Issuer,
 		profiles: map[string]*ProfileConfig{
-			"server": {
-				ID:          "server",
+			cryptoutilSharedMagic.CMD_SERVER: {
+				ID:          cryptoutilSharedMagic.CMD_SERVER,
 				Name:        "Server Profile",
 				Description: "Server certificate profile",
 			},

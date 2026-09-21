@@ -10,6 +10,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const testInvalidLogLevel = "INVALID_LEVEL"
+
 func TestParseProtocolAndEndpoint_AllProtocols(t *testing.T) {
 	t.Parallel()
 
@@ -65,12 +67,12 @@ func TestParseLogLevel_AllLevels(t *testing.T) {
 	}{
 		{cryptoutilSharedMagic.TestDefaultLogLevelAll, cryptoutilSharedMagic.TestDefaultLogLevelAll, false},
 		{"TRACE", "TRACE", false},
-		{"DEBUG", "DEBUG", false},
+		{cryptoutilSharedMagic.LOG_LEVEL_DEBUG, cryptoutilSharedMagic.LOG_LEVEL_DEBUG, false},
 		{"CONFIG", "CONFIG", false},
 		{cryptoutilSharedMagic.DefaultLogLevelInfo, cryptoutilSharedMagic.DefaultLogLevelInfo, false},
 		{"NOTICE", "NOTICE", false},
-		{"WARN", "WARN", false},
-		{"ERROR", "ERROR", false},
+		{cryptoutilSharedMagic.LOG_LEVEL_WARN, cryptoutilSharedMagic.LOG_LEVEL_WARN, false},
+		{cryptoutilSharedMagic.SEVERITY_ERROR, cryptoutilSharedMagic.SEVERITY_ERROR, false},
 		{"FATAL", "FATAL", false},
 		{"OFF", "OFF", false},
 		{"lowercase_all", cryptoutilSharedMagic.ModeNameAll, false},
@@ -80,8 +82,8 @@ func TestParseLogLevel_AllLevels(t *testing.T) {
 		{"lowercase_fatal", "fatal", false},
 		{"lowercase_off", "off", false},
 		{"mixed_case", "DeBuG", false},
-		{"invalid", "INVALID_LEVEL", true},
-		{"empty", "", true},
+		{cryptoutilSharedMagic.DevSetupTestInvalidName, testInvalidLogLevel, true},
+		{cryptoutilSharedMagic.EMPTY, "", true},
 	}
 
 	for _, tt := range tests {

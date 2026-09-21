@@ -46,7 +46,7 @@ func checkInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string, readDirF
 	var violations []string
 
 	for _, svc := range services {
-		serverFile := filepath.Join(appsDir, svc.product, svc.service, "server", "server.go")
+		serverFile := filepath.Join(appsDir, svc.product, svc.service, cryptoutilSharedMagic.CMD_SERVER, "server.go")
 
 		if checkErr := checkServerFile(serverFile, svc, &violations, readFileFn); checkErr != nil {
 			return fmt.Errorf("failed to check %s/%s: %w", svc.product, svc.service, checkErr)
@@ -111,7 +111,7 @@ func discoverServices(appsDir string, readDirFn func(string) ([]os.DirEntry, err
 			}
 
 			// Only include actual services (must have server/ subdirectory).
-			serverGoFile := filepath.Join(productDir, name, "server", "server.go")
+			serverGoFile := filepath.Join(productDir, name, cryptoutilSharedMagic.CMD_SERVER, "server.go")
 			if _, statErr := os.Stat(serverGoFile); statErr == nil {
 				services = append(services, serviceID{product: product, service: name})
 			}

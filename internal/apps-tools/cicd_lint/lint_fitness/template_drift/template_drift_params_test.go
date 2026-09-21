@@ -80,7 +80,7 @@ func TestSubstituteParams(t *testing.T) {
 		{
 			name:   "single substitution",
 			input:  "hello __NAME__",
-			params: map[string]string{"__NAME__": "world"},
+			params: map[string]string{"__NAME__": cryptoutilSharedMagic.TEST_NEEDLE_WORLD},
 			want:   "hello world",
 		},
 		{
@@ -173,7 +173,7 @@ func TestBuildProductPSIDListDisplay(t *testing.T) {
 			want:      "PKI product (1 service: ca)",
 		},
 		{
-			name:      "empty",
+			name:      cryptoutilSharedMagic.EMPTY,
 			productID: "test",
 			psIDs:     []string{},
 			want:      "",

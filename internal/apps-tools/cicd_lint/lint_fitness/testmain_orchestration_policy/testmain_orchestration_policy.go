@@ -100,9 +100,9 @@ func findViolationsWithReader(rootDir string, readFileFn readFileFunc) ([]Violat
 		psDir := filepath.Join(appsDir, ps.PSID)
 
 		// Check server/testmain_test.go -- required for every PS-ID.
-		serverTestMain := filepath.Join(psDir, "server", testmainFileName)
+		serverTestMain := filepath.Join(psDir, cryptoutilSharedMagic.CMD_SERVER, testmainFileName)
 
-		serverViolations, err := checkTestMainFile(serverTestMain, ps.PSID, "server", readFileFn)
+		serverViolations, err := checkTestMainFile(serverTestMain, ps.PSID, cryptoutilSharedMagic.CMD_SERVER, readFileFn)
 		if err != nil {
 			return nil, err
 		}
@@ -188,7 +188,7 @@ func WalkTestMainFiles(rootDir string) ([]string, error) {
 			return filepath.SkipDir
 		case !d.IsDir() && d.Name() == testmainFileName:
 			relDir := filepath.Base(filepath.Dir(path))
-			if relDir == "server" || relDir == "client" {
+			if relDir == cryptoutilSharedMagic.CMD_SERVER || relDir == "client" {
 				result = append(result, path)
 			}
 		}

@@ -116,8 +116,8 @@ func createFullPSIDRoot(t *testing.T, realRoot, tmpDir string) {
 				require.NoError(t, psRoot.Close())
 			}()
 
-			serverDir := filepath.Join(psDir, "server")
-			serverRelDir := "server"
+			serverDir := filepath.Join(psDir, cryptoutilSharedMagic.CMD_SERVER)
+			serverRelDir := cryptoutilSharedMagic.CMD_SERVER
 
 			require.NoError(t, os.MkdirAll(serverDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
@@ -130,7 +130,7 @@ func createFullPSIDRoot(t *testing.T, realRoot, tmpDir string) {
 			canonicalFiles := []string{
 				ps.Service + "_test.go",
 				filepath.Join("client", "client.go"),
-				filepath.Join("server", ps.Service+"_port_conflict_test.go"),
+				filepath.Join(cryptoutilSharedMagic.CMD_SERVER, ps.Service+"_port_conflict_test.go"),
 			}
 
 			for _, rel := range canonicalFiles {
@@ -335,7 +335,7 @@ func TestCheckInDir_NoExclusions_MissingRootFile(t *testing.T) {
 	// Create server dirs for all PS-IDs but omit all root files.
 	for _, ps := range cryptoutilFitnessRegistry.AllProductServices() {
 		require.NoError(t, os.MkdirAll(
-			filepath.Join(tmpDir, "internal", "apps", ps.PSID, "server"),
+			filepath.Join(tmpDir, "internal", "apps", ps.PSID, cryptoutilSharedMagic.CMD_SERVER),
 			cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute,
 		))
 	}
@@ -387,7 +387,7 @@ func TestCheckInDir_NoExclusions_MissingServerFile(t *testing.T) {
 	// Create full root files and server/ dir but no server files.
 	for _, ps := range cryptoutilFitnessRegistry.AllProductServices() {
 		psDir := filepath.Join(tmpDir, "internal", "apps", ps.PSID)
-		serverDir := filepath.Join(psDir, "server")
+		serverDir := filepath.Join(psDir, cryptoutilSharedMagic.CMD_SERVER)
 		require.NoError(t, os.MkdirAll(serverDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 		require.NoError(t, os.WriteFile(filepath.Join(psDir, ps.Service+".go"), []byte("package main\n"), cryptoutilSharedMagic.CacheFilePermissions))
 		require.NoError(t, os.WriteFile(filepath.Join(psDir, ps.Service+"_test.go"), []byte("package main\n"), cryptoutilSharedMagic.CacheFilePermissions))
@@ -422,7 +422,7 @@ func TestCheckInDir_NoExclusions_AllValid(t *testing.T) {
 			require.NoError(t, psRoot.Close())
 		}()
 
-		serverDir := filepath.Join(psDir, "server")
+		serverDir := filepath.Join(psDir, cryptoutilSharedMagic.CMD_SERVER)
 		configDir := filepath.Join(serverDir, "config")
 		repoDir := filepath.Join(serverDir, "repository")
 
@@ -479,7 +479,7 @@ func TestCheckInDir_NoExclusions_MissingServerDir(t *testing.T) {
 	// Create root files + server/ + required server files + config + repository files, but omit server/apis/.
 	for _, ps := range cryptoutilFitnessRegistry.AllProductServices() {
 		psDir := filepath.Join(tmpDir, "internal", "apps", ps.PSID)
-		serverDir := filepath.Join(psDir, "server")
+		serverDir := filepath.Join(psDir, cryptoutilSharedMagic.CMD_SERVER)
 		configDir := filepath.Join(serverDir, "config")
 		repoDir := filepath.Join(serverDir, "repository")
 
@@ -519,7 +519,7 @@ func TestCheckInDir_NoExclusions_MissingServerConfigFile(t *testing.T) {
 	// Create everything except server/config/config_test_helper.go.
 	for _, ps := range cryptoutilFitnessRegistry.AllProductServices() {
 		psDir := filepath.Join(tmpDir, "internal", "apps", ps.PSID)
-		serverDir := filepath.Join(psDir, "server")
+		serverDir := filepath.Join(psDir, cryptoutilSharedMagic.CMD_SERVER)
 		configDir := filepath.Join(serverDir, "config")
 		repoDir := filepath.Join(serverDir, "repository")
 
@@ -559,7 +559,7 @@ func TestCheckInDir_NoExclusions_MissingServerRepositoryFile(t *testing.T) {
 	// Create everything except server/repository/migrations.go.
 	for _, ps := range cryptoutilFitnessRegistry.AllProductServices() {
 		psDir := filepath.Join(tmpDir, "internal", "apps", ps.PSID)
-		serverDir := filepath.Join(psDir, "server")
+		serverDir := filepath.Join(psDir, cryptoutilSharedMagic.CMD_SERVER)
 		configDir := filepath.Join(serverDir, "config")
 		repoDir := filepath.Join(serverDir, "repository")
 
@@ -599,7 +599,7 @@ func TestCheckInDir_NoExclusions_MissingServerRepositoryDir(t *testing.T) {
 	// Create everything except server/repository/migrations/ subdirectory.
 	for _, ps := range cryptoutilFitnessRegistry.AllProductServices() {
 		psDir := filepath.Join(tmpDir, "internal", "apps", ps.PSID)
-		serverDir := filepath.Join(psDir, "server")
+		serverDir := filepath.Join(psDir, cryptoutilSharedMagic.CMD_SERVER)
 		configDir := filepath.Join(serverDir, "config")
 		repoDir := filepath.Join(serverDir, "repository")
 
@@ -641,7 +641,7 @@ func TestCheckInDir_NoExclusions_MissingE2EFile(t *testing.T) {
 	// Create a full valid PS-ID structure but add an e2e/ dir without required files for one PS-ID.
 	for _, ps := range cryptoutilFitnessRegistry.AllProductServices() {
 		psDir := filepath.Join(tmpDir, "internal", "apps", ps.PSID)
-		serverDir := filepath.Join(psDir, "server")
+		serverDir := filepath.Join(psDir, cryptoutilSharedMagic.CMD_SERVER)
 		configDir := filepath.Join(serverDir, "config")
 		repoDir := filepath.Join(serverDir, "repository")
 

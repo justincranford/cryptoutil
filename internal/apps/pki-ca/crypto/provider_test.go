@@ -355,7 +355,7 @@ func TestParseKeySpecFromConfig(t *testing.T) {
 		{
 			name:        "RSA-invalid",
 			algorithm:   cryptoutilSharedMagic.KeyTypeRSA,
-			curveOrSize: "invalid",
+			curveOrSize: cryptoutilSharedMagic.DevSetupTestInvalidName,
 			wantErr:     true,
 			errContains: "invalid RSA key size",
 		},

@@ -97,7 +97,7 @@ func TestDefaultShardConfig(t *testing.T) {
 
 	cfg := DefaultShardConfig()
 	require.Equal(t, StrategyRowLevel, cfg.Strategy)
-	require.Equal(t, "tenant_", cfg.SchemaPrefix)
+	require.Equal(t, cryptoutilSharedMagic.SCHEMA_PREFIX_TENANT, cfg.SchemaPrefix)
 	require.Equal(t, cryptoutilSharedMagic.SubjectTypePublic, cfg.DefaultSchema)
 	require.True(t, cfg.EnableMigration)
 }
@@ -196,7 +196,7 @@ func TestShardManager_GetTenantSchemaName(t *testing.T) {
 	m := NewShardManager(db, cfg)
 	tenantID := googleUuid.Must(googleUuid.NewV7())
 	name := m.GetTenantSchemaName(tenantID)
-	require.Equal(t, "tenant_"+tenantID.String(), name)
+	require.Equal(t, cryptoutilSharedMagic.SCHEMA_PREFIX_TENANT+tenantID.String(), name)
 }
 
 func TestShardManager_GetDB_SchemaLevel(t *testing.T) {
@@ -208,7 +208,7 @@ func TestShardManager_GetDB_SchemaLevel(t *testing.T) {
 
 	cfg := &ShardConfig{
 		Strategy:        StrategySchemaLevel,
-		SchemaPrefix:    "tenant_",
+		SchemaPrefix:    cryptoutilSharedMagic.SCHEMA_PREFIX_TENANT,
 		DefaultSchema:   cryptoutilSharedMagic.SubjectTypePublic,
 		EnableMigration: true,
 	}

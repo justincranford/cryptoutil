@@ -14,7 +14,6 @@ import (
 )
 
 const (
-	testSubPkgServer = "server"
 	testSubPkgClient = "client"
 )
 
@@ -51,7 +50,7 @@ func TestMain(m *testing.M) {
 func makeServerDir(t *testing.T, dir, psid string) string {
 	t.Helper()
 
-	serverDir := filepath.Join(dir, "internal", "apps", psid, testSubPkgServer)
+	serverDir := filepath.Join(dir, "internal", "apps", psid, cryptoutilSharedMagic.CMD_SERVER)
 	require.NoError(t, os.MkdirAll(serverDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 	return serverDir
@@ -133,7 +132,7 @@ func TestFindViolations_ViolatingServerTestMain_ReturnsViolation(t *testing.T) {
 	var found bool
 
 	for _, v := range violations {
-		if filepath.Base(filepath.Dir(v.File)) == testSubPkgServer {
+		if filepath.Base(filepath.Dir(v.File)) == cryptoutilSharedMagic.CMD_SERVER {
 			found = true
 
 			break
@@ -266,7 +265,7 @@ func TestWalkTestMainFiles_ReturnsServerAndClientPaths(t *testing.T) {
 
 	for _, p := range paths {
 		base := filepath.Base(filepath.Dir(p))
-		if base == testSubPkgServer {
+		if base == cryptoutilSharedMagic.CMD_SERVER {
 			hasServer = true
 		}
 
@@ -319,7 +318,7 @@ func TestFindViolations_ServerIsDirectory_ReturnsViolation(t *testing.T) {
 	dir := t.TempDir()
 
 	// Create testmain_test.go as a DIRECTORY to hit the info.IsDir() branch.
-	fakeFile := filepath.Join(dir, "internal", "apps", cryptoutilSharedMagic.OTLPServiceSMKMS, testSubPkgServer, "testmain_test.go")
+	fakeFile := filepath.Join(dir, "internal", "apps", cryptoutilSharedMagic.OTLPServiceSMKMS, cryptoutilSharedMagic.CMD_SERVER, "testmain_test.go")
 	require.NoError(t, os.MkdirAll(fakeFile, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 	violations, err := lintFitnessTestmainOrchestrationPolicy.FindViolations(dir)
@@ -337,8 +336,8 @@ func TestWalkTestMainFiles_SkipsGitAndVendorDirs(t *testing.T) {
 	writePSIDServerTestMain(t, dir, cryptoutilSharedMagic.OTLPServiceSMKMS, compliantTestMain)
 
 	// Testmain files inside .git and vendor directories (must be skipped).
-	gitDir := filepath.Join(dir, "internal", "apps", cryptoutilSharedMagic.CICDExcludeDirGit, testSubPkgServer)
-	vendorDir := filepath.Join(dir, "internal", "apps", cryptoutilSharedMagic.CICDExcludeDirVendor, testSubPkgServer)
+	gitDir := filepath.Join(dir, "internal", "apps", cryptoutilSharedMagic.CICDExcludeDirGit, cryptoutilSharedMagic.CMD_SERVER)
+	vendorDir := filepath.Join(dir, "internal", "apps", cryptoutilSharedMagic.CICDExcludeDirVendor, cryptoutilSharedMagic.CMD_SERVER)
 
 	require.NoError(t, os.MkdirAll(gitDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 	require.NoError(t, os.MkdirAll(vendorDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))

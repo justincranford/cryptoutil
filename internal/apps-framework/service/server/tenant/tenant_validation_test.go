@@ -80,7 +80,7 @@ func TestDBType_Constants(t *testing.T) {
 func TestSchemaPrefix_Constant(t *testing.T) {
 	t.Parallel()
 
-	require.Equal(t, "tenant_", SchemaPrefix)
+	require.Equal(t, cryptoutilSharedMagic.SCHEMA_PREFIX_TENANT, SchemaPrefix)
 }
 
 func TestNewSchemaManager_DBError(t *testing.T) {

@@ -121,7 +121,7 @@ func TestPki_CAService_RoutesCorrectly(t *testing.T) {
 
 	combinedOutput := stdout.String() + stderr.String()
 	require.Contains(t, combinedOutput, "Usage: pki ca <subcommand>")
-	require.Contains(t, combinedOutput, "server")
+	require.Contains(t, combinedOutput, cryptoutilSharedMagic.CMD_SERVER)
 	require.Contains(t, combinedOutput, "client")
 	require.Contains(t, combinedOutput, "init")
 }

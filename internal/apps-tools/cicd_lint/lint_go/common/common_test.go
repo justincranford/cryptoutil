@@ -219,7 +219,7 @@ func TestParseMagicDir_MultipleFiles(t *testing.T) {
 func TestIsMagicTrivialLiteral_Float(t *testing.T) {
 	t.Parallel()
 
-	lit := &ast.BasicLit{Kind: token.FLOAT, Value: "3.14"}
+	lit := &ast.BasicLit{Kind: token.FLOAT, Value: cryptoutilSharedMagic.DevSetupTestVersionPythonRequired}
 	result := IsMagicTrivialLiteral(lit)
 	require.False(t, result, "Float should not be trivial")
 }

@@ -68,7 +68,7 @@ func TestTenantRepository_Create(t *testing.T) {
 	firstTenant := &Tenant{
 		ID:          googleUuid.New(),
 		Name:        dupName,
-		Description: "Test tenant",
+		Description: cryptoutilSharedMagic.DESC_TEST_TENANT,
 		Active:      1,
 		CreatedAt:   time.Now().UTC(),
 	}
@@ -85,7 +85,7 @@ func TestTenantRepository_Create(t *testing.T) {
 			tenant: &Tenant{
 				ID:          googleUuid.New(),
 				Name:        uniqueTenantName("Acme"),
-				Description: "Test tenant",
+				Description: cryptoutilSharedMagic.DESC_TEST_TENANT,
 				Active:      1,
 				CreatedAt:   time.Now().UTC(),
 			},
@@ -126,7 +126,7 @@ func TestTenantRepository_GetByID(t *testing.T) {
 	tenant := &Tenant{
 		ID:          googleUuid.New(),
 		Name:        uniqueTenantName("GetByID"),
-		Description: "Test tenant",
+		Description: cryptoutilSharedMagic.DESC_TEST_TENANT,
 		Active:      1,
 		CreatedAt:   time.Now().UTC(),
 	}
@@ -177,7 +177,7 @@ func TestTenantRepository_GetByName(t *testing.T) {
 	tenant := &Tenant{
 		ID:          googleUuid.New(),
 		Name:        uniqueTenantName("GetByName"),
-		Description: "Test tenant",
+		Description: cryptoutilSharedMagic.DESC_TEST_TENANT,
 		Active:      1,
 		CreatedAt:   time.Now().UTC(),
 	}
@@ -313,7 +313,7 @@ func TestTenantRepository_Update(t *testing.T) {
 	tenant := &Tenant{
 		ID:          googleUuid.New(),
 		Name:        uniqueTenantName("Update"),
-		Description: "Test tenant",
+		Description: cryptoutilSharedMagic.DESC_TEST_TENANT,
 		Active:      1,
 		CreatedAt:   time.Now().UTC(),
 	}
@@ -380,7 +380,7 @@ func TestTenantRepository_Delete(t *testing.T) {
 			tenant := &Tenant{
 				ID:          googleUuid.New(),
 				Name:        "Tenant " + googleUuid.NewString(),
-				Description: "Test tenant",
+				Description: cryptoutilSharedMagic.DESC_TEST_TENANT,
 				Active:      1,
 				CreatedAt:   time.Now().UTC(),
 			}
@@ -416,7 +416,7 @@ func TestTenantRepository_CountUsersAndClients(t *testing.T) {
 	tenant := &Tenant{
 		ID:          googleUuid.New(),
 		Name:        uniqueTenantName("Count"),
-		Description: "Test tenant",
+		Description: cryptoutilSharedMagic.DESC_TEST_TENANT,
 		Active:      1,
 		CreatedAt:   time.Now().UTC(),
 	}

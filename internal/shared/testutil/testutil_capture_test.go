@@ -10,6 +10,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	cryptoutilSharedTestutil "cryptoutil/internal/shared/testutil"
 )
 
@@ -75,25 +76,25 @@ func TestContainsAny(t *testing.T) {
 		{
 			name:     "found first needle",
 			haystack: "hello world",
-			needles:  []string{"hello", "foo", "bar"},
+			needles:  []string{cryptoutilSharedMagic.TEST_NEEDLE_HELLO, cryptoutilSharedMagic.TEST_NEEDLE_FOO, cryptoutilSharedMagic.TEST_NEEDLE_BAR},
 			want:     true,
 		},
 		{
 			name:     "found middle needle",
 			haystack: "hello world",
-			needles:  []string{"foo", "world", "bar"},
+			needles:  []string{cryptoutilSharedMagic.TEST_NEEDLE_FOO, cryptoutilSharedMagic.TEST_NEEDLE_WORLD, cryptoutilSharedMagic.TEST_NEEDLE_BAR},
 			want:     true,
 		},
 		{
 			name:     "found last needle",
 			haystack: "hello world",
-			needles:  []string{"foo", "bar", "world"},
+			needles:  []string{cryptoutilSharedMagic.TEST_NEEDLE_FOO, cryptoutilSharedMagic.TEST_NEEDLE_BAR, cryptoutilSharedMagic.TEST_NEEDLE_WORLD},
 			want:     true,
 		},
 		{
 			name:     "no needle found",
 			haystack: "hello world",
-			needles:  []string{"foo", "bar", "baz"},
+			needles:  []string{cryptoutilSharedMagic.TEST_NEEDLE_FOO, cryptoutilSharedMagic.TEST_NEEDLE_BAR, "baz"},
 			want:     false,
 		},
 		{
@@ -105,7 +106,7 @@ func TestContainsAny(t *testing.T) {
 		{
 			name:     "empty haystack",
 			haystack: "",
-			needles:  []string{"hello"},
+			needles:  []string{cryptoutilSharedMagic.TEST_NEEDLE_HELLO},
 			want:     false,
 		},
 	}

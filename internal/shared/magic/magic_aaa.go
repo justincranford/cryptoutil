@@ -37,6 +37,12 @@ const (
 )
 
 const (
+	CONFIG_KEY_LOG_LEVEL = "log-level"
+	LOG_LEVEL_DEBUG      = "DEBUG"
+	LOG_LEVEL_WARN       = "WARN"
+)
+
+const (
 	DESC_TEST_ROLE   = "Test role"
 	DESC_FIRST_ROLE  = "First role"
 	DESC_SECOND_ROLE = "Second role"
@@ -51,5 +57,7 @@ const (
 	TEST_NAME_BINARY    = "Binary_content"
 	TEST_NEEDLE_BAR     = "bar"
 	TEST_NEEDLE_WORLD   = "world"
+	TEST_NEEDLE_FOO     = "foo"
+	TEST_NEEDLE_HELLO   = "hello"
 	TEST_CONTENT_MULTI  = "Line 1\nLine 2\nLine 3\n"
 )

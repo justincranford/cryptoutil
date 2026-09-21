@@ -33,8 +33,8 @@ func TestIsGoVersionSupported(t *testing.T) {
 		{"go1.21", "go1.21", false},
 		{"go1.21.5", "go1.21.5", false},
 		{"go1.20", "go1.20", false},
-		{"invalid", "invalid", false},
-		{"empty", "", false},
+		{cryptoutilSharedMagic.DevSetupTestInvalidName, cryptoutilSharedMagic.DevSetupTestInvalidName, false},
+		{cryptoutilSharedMagic.EMPTY, "", false},
 	}
 
 	for _, tc := range tests {

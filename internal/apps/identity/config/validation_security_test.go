@@ -391,7 +391,7 @@ func TestConfig_Validate(t *testing.T) {
 			name: "invalid_security_config",
 			config: &Config{
 				Security: &SecurityConfig{
-					PKCEChallengeMethod: "invalid",
+					PKCEChallengeMethod: cryptoutilSharedMagic.DevSetupTestInvalidName,
 				},
 			},
 			expectError: true,

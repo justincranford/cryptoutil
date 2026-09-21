@@ -291,10 +291,10 @@ func TestTelemetryService_DifferentLogLevels(t *testing.T) {
 		name     string
 		logLevel string
 	}{
-		{"DEBUG", "DEBUG"},
+		{cryptoutilSharedMagic.LOG_LEVEL_DEBUG, cryptoutilSharedMagic.LOG_LEVEL_DEBUG},
 		{cryptoutilSharedMagic.DefaultLogLevelInfo, cryptoutilSharedMagic.DefaultLogLevelInfo},
-		{"WARN", "WARN"},
-		{"ERROR", "ERROR"},
+		{cryptoutilSharedMagic.LOG_LEVEL_WARN, cryptoutilSharedMagic.LOG_LEVEL_WARN},
+		{cryptoutilSharedMagic.SEVERITY_ERROR, cryptoutilSharedMagic.SEVERITY_ERROR},
 	}
 
 	for _, tt := range tests {
@@ -342,10 +342,10 @@ func TestParseLogLevel_ValidLevels(t *testing.T) {
 		name  string
 		input string
 	}{
-		{"DEBUG", "DEBUG"},
+		{cryptoutilSharedMagic.LOG_LEVEL_DEBUG, cryptoutilSharedMagic.LOG_LEVEL_DEBUG},
 		{cryptoutilSharedMagic.DefaultLogLevelInfo, cryptoutilSharedMagic.DefaultLogLevelInfo},
-		{"WARN", "WARN"},
-		{"ERROR", "ERROR"},
+		{cryptoutilSharedMagic.LOG_LEVEL_WARN, cryptoutilSharedMagic.LOG_LEVEL_WARN},
+		{cryptoutilSharedMagic.SEVERITY_ERROR, cryptoutilSharedMagic.SEVERITY_ERROR},
 		{"lowercase", "info"},
 		{"mixed case", "WaRn"},
 	}
@@ -439,7 +439,7 @@ func TestNewTelemetryService_InvalidLogLevel(t *testing.T) {
 
 	ctx := context.Background()
 	settings := NewTestTelemetrySettings("test_invalid_log_level")
-	settings.LogLevel = "INVALID_LEVEL"
+	settings.LogLevel = testInvalidLogLevel
 
 	_, err := NewTelemetryService(ctx, settings)
 	require.Error(t, err)

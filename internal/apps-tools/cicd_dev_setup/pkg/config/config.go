@@ -66,13 +66,13 @@ func Load() (*Config, error) {
 // pythonRuntimeGroup ensures Python is available (baseline for everything).
 func pythonRuntimeGroup() *Group {
 	return &Group{
-		Name:        "Python Runtime",
+		Name:        cryptoutilSharedMagic.DevSetupTestGroupPythonRuntime,
 		Description: "Python 3.14+ is required for all other tools",
 		Dependencies: []*Dependency{
 			{
-				Name:             "python",
+				Name:             cryptoutilSharedMagic.DevSetupToolTypePython,
 				Type:             cryptoutilSharedMagic.DevSetupToolTypeSystemBinary,
-				MinVersion:       "3.14",
+				MinVersion:       cryptoutilSharedMagic.DevSetupTestVersionPythonRequired,
 				CheckCmd:         cryptoutilSharedMagic.DevSetupPythonCheckCmd,
 				Description:      "Python runtime (required for pre-commit, semgrep, and linters)",
 				DetectVersionCmd: cryptoutilSharedMagic.DevSetupPythonCheckCmd,
@@ -85,7 +85,7 @@ func pythonRuntimeGroup() *Group {
 // uvToolGroup installs uv package manager.
 func uvToolGroup() *Group {
 	return &Group{
-		Name:        "UV Package Manager",
+		Name:        cryptoutilSharedMagic.DevSetupTestGroupUVPackageManager,
 		Description: "uv is a fast Python package installer used for managing dev dependencies",
 		Dependencies: []*Dependency{
 			{
@@ -95,9 +95,8 @@ func uvToolGroup() *Group {
 				CheckCmd:         cryptoutilSharedMagic.DevSetupUVCheckCmd,
 				Description:      "Fast Python package installer and virtualenv manager",
 				DetectVersionCmd: cryptoutilSharedMagic.DevSetupUVCheckCmd,
-				// Note: On Windows, uv is installed via installer (e.g., winget, scoop, or direct binary)
-				// This is a placeholder for installation instructions
-				InstallCmd: "echo 'Please install uv from https://docs.astral.sh/uv/getting-started/'",
+				// No InstallCmd: uv has no portable, non-shell bootstrap command; install manually
+				// from https://docs.astral.sh/uv/getting-started/ if this check fails.
 			},
 		},
 		BlockOnFailure: true,
@@ -107,7 +106,7 @@ func uvToolGroup() *Group {
 // pythonDependenciesGroup installs Python packages via uv.
 func pythonDependenciesGroup() *Group {
 	return &Group{
-		Name:        "Python Dependencies",
+		Name:        cryptoutilSharedMagic.DevSetupTestGroupPythonDependencies,
 		Description: "Python packages needed for development and CI/CD",
 		Dependencies: []*Dependency{
 			{
@@ -145,13 +144,13 @@ func pythonDependenciesGroup() *Group {
 // goToolchainGroup ensures Go is available.
 func goToolchainGroup() *Group {
 	return &Group{
-		Name:        "Go Toolchain",
+		Name:        cryptoutilSharedMagic.DevSetupTestGroupGoToolchain,
 		Description: "Go runtime and build tools",
 		Dependencies: []*Dependency{
 			{
 				Name:             "go",
 				Type:             cryptoutilSharedMagic.DevSetupToolTypeSystemBinary,
-				MinVersion:       "1.26.1",
+				MinVersion:       cryptoutilSharedMagic.CICDTemplateGoVersion,
 				CheckCmd:         cryptoutilSharedMagic.DevSetupGoCheckCmd,
 				Description:      "Go programming language (required for building and testing)",
 				DetectVersionCmd: cryptoutilSharedMagic.DevSetupGoCheckCmd,
@@ -164,15 +163,15 @@ func goToolchainGroup() *Group {
 // golangciLintGroup installs golangci-lint for Go linting.
 func golangciLintGroup() *Group {
 	return &Group{
-		Name:        "Go Linting",
+		Name:        cryptoutilSharedMagic.DevSetupTestGroupGoLinting,
 		Description: "Go static analysis and linting tools",
 		Dependencies: []*Dependency{
 			{
 				Name:             "golangci-lint",
 				Type:             cryptoutilSharedMagic.DevSetupToolTypeGoModule,
-				MinVersion:       "2.13.0",
+				MinVersion:       cryptoutilSharedMagic.DevSetupTestGolangciVersion,
 				CheckCmd:         cryptoutilSharedMagic.DevSetupGolangciCheckCmd,
-				Description:      "Fast Go linter aggregator (v2 latest)",
+				Description:      "Fast Go linter aggregator (pinned per repo policy)",
 				DetectVersionCmd: cryptoutilSharedMagic.DevSetupGolangciCheckCmd,
 				InstallCmd:       cryptoutilSharedMagic.DevSetupGolangciInstallCmd,
 			},
@@ -181,19 +180,19 @@ func golangciLintGroup() *Group {
 	}
 }
 
-// preCommitGroup installs pre-commit hook dependencies.
+// preCommitGroup ensures git hooks are installed into .git/hooks (idempotent:
+// re-running "pre-commit install" when hooks already exist is a no-op).
 func preCommitGroup() *Group {
 	return &Group{
-		Name:        "Pre-commit Hooks",
+		Name:        cryptoutilSharedMagic.DevSetupTestGroupPreCommitHooks,
 		Description: "Git hooks for code quality checks",
 		Dependencies: []*Dependency{
 			{
 				Name:        "pre-commit-hooks",
-				Type:        cryptoutilSharedMagic.DevSetupToolTypePythonModule,
-				MinVersion:  "6.0.0",
-				CheckCmd:    "python -c \"import pre_commit_hooks; print(pre_commit_hooks.__version__)\"",
-				Description: "Collection of useful git hooks",
-				InstallCmd:  "pre-commit install",
+				Type:        cryptoutilSharedMagic.DevSetupToolTypeSystemBinary,
+				CheckCmd:    cryptoutilSharedMagic.DevSetupGitHooksCheckCmd,
+				Description: "Git hook scripts installed in .git/hooks",
+				InstallCmd:  cryptoutilSharedMagic.DevSetupGitHooksInstallCmd,
 			},
 		},
 		BlockOnFailure: false,

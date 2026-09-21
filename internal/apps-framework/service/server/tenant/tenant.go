@@ -19,7 +19,7 @@ import (
 )
 
 // SchemaPrefix is the prefix used for tenant schema names.
-const SchemaPrefix = "tenant_"
+const SchemaPrefix = cryptoutilSharedMagic.SCHEMA_PREFIX_TENANT
 
 // DBType represents the supported database types.
 type DBType string

@@ -11,21 +11,22 @@ const (
 )
 
 // DevSetup tool check/install commands.
+// Install commands use "uv tool install" (not "uv pip install") so binaries land in
+// the global uv tool shim directory and resolve on PATH, matching how uv exposes CLIs.
 const (
 	DevSetupPythonCheckCmd      = "python --version"
-	DevSetupPythonInstallCmd    = "python -m venv .venv --upgrade-deps"
 	DevSetupUVCheckCmd          = "uv --version"
-	DevSetupUVInstallCmd        = "curl -LsSf https://astral.sh/uv/install.sh | sh"
 	DevSetupPreCommitCheckCmd   = "pre-commit --version"
-	DevSetupPreCommitInstallCmd = "uv pip install pre-commit"
+	DevSetupPreCommitInstallCmd = "uv tool install pre-commit"
 	DevSetupSemgrepCheckCmd     = "semgrep --version"
-	DevSetupSemgrepInstallCmd   = "uv pip install semgrep"
+	DevSetupSemgrepInstallCmd   = "uv tool install semgrep"
 	DevSetupYamllintCheckCmd    = "yamllint --version"
-	DevSetupYamllintInstallCmd  = "uv pip install yamllint"
+	DevSetupYamllintInstallCmd  = "uv tool install yamllint"
 	DevSetupGoCheckCmd          = "go version"
-	DevSetupGoInstallCmd        = "curl -LsSf https://go.dev/dl/go1.26.1.linux-amd64.tar.gz | tar -C $HOME -xzf -"
 	DevSetupGolangciCheckCmd    = "golangci-lint --version"
-	DevSetupGolangciInstallCmd  = "go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest"
+	DevSetupGolangciInstallCmd  = "go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.12.2"
+	DevSetupGitHooksCheckCmd    = "python -c \"import os,sys; sys.exit(0 if os.path.exists(os.path.join('.git','hooks','pre-commit')) else 1)\""
+	DevSetupGitHooksInstallCmd  = "pre-commit install"
 )
 
 // DevSetup status codes for dependency checks.

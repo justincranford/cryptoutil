@@ -74,7 +74,7 @@ func TestPEMEncodes_UnsupportedType(t *testing.T) {
 	}{
 		{
 			name:        "string type",
-			input:       "invalid",
+			input:       cryptoutilSharedMagic.DevSetupTestInvalidName,
 			expectedErr: "unsupported type: string",
 		},
 		{
@@ -157,7 +157,7 @@ func TestDEREncodes_UnsupportedType(t *testing.T) {
 	}{
 		{
 			name:        "string type",
-			input:       "invalid",
+			input:       cryptoutilSharedMagic.DevSetupTestInvalidName,
 			expectedErr: "unsupported type: string",
 		},
 		{

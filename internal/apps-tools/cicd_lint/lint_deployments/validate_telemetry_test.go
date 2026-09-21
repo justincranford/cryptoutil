@@ -253,7 +253,7 @@ func TestValidateTelemetry_Violations(t *testing.T) {
 
 				return dir
 			},
-			wantContains: "empty",
+			wantContains: cryptoutilSharedMagic.EMPTY,
 		},
 		{
 			name: "invalid endpoint URL",
@@ -267,7 +267,7 @@ func TestValidateTelemetry_Violations(t *testing.T) {
 
 				return dir
 			},
-			wantContains: "invalid",
+			wantContains: cryptoutilSharedMagic.DevSetupTestInvalidName,
 		},
 		{
 			name: "endpoint missing host",
@@ -385,7 +385,7 @@ func TestNormalizeEndpoint(t *testing.T) {
 		{name: "no trailing slash", input: "http://host:4317", expected: "http://host:4317"},
 		{name: "single trailing slash", input: "http://host:4317/", expected: "http://host:4317"},
 		{name: "multiple trailing slashes", input: "http://host:4317///", expected: "http://host:4317"},
-		{name: "empty", input: "", expected: ""},
+		{name: cryptoutilSharedMagic.EMPTY, input: "", expected: ""},
 	}
 
 	for _, tc := range tests {

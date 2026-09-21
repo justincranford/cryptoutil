@@ -9,6 +9,8 @@ import (
 	testify "github.com/stretchr/testify/require"
 )
 
+const testStrLiteral = "test"
+
 // TestGenerateString tests string generation with various lengths.
 func TestGenerateString(t *testing.T) {
 	t.Parallel()
@@ -119,12 +121,12 @@ func TestConcatBytes(t *testing.T) {
 		},
 		{
 			name:     "Single slice",
-			input:    [][]byte{[]byte("hello")},
-			expected: []byte("hello"),
+			input:    [][]byte{[]byte(cryptoutilSharedMagic.TEST_NEEDLE_HELLO)},
+			expected: []byte(cryptoutilSharedMagic.TEST_NEEDLE_HELLO),
 		},
 		{
 			name:     "Multiple slices",
-			input:    [][]byte{[]byte("hello"), []byte(" "), []byte("world")},
+			input:    [][]byte{[]byte(cryptoutilSharedMagic.TEST_NEEDLE_HELLO), []byte(" "), []byte(cryptoutilSharedMagic.TEST_NEEDLE_WORLD)},
 			expected: []byte("hello world"),
 		},
 		{
@@ -170,13 +172,13 @@ func TestStringsToBytes(t *testing.T) {
 		},
 		{
 			name:     "Single string",
-			input:    []string{"hello"},
-			expected: [][]byte{[]byte("hello")},
+			input:    []string{cryptoutilSharedMagic.TEST_NEEDLE_HELLO},
+			expected: [][]byte{[]byte(cryptoutilSharedMagic.TEST_NEEDLE_HELLO)},
 		},
 		{
 			name:     "Multiple strings",
-			input:    []string{"hello", "world", "test"},
-			expected: [][]byte{[]byte("hello"), []byte("world"), []byte("test")},
+			input:    []string{cryptoutilSharedMagic.TEST_NEEDLE_HELLO, cryptoutilSharedMagic.TEST_NEEDLE_WORLD, testStrLiteral},
+			expected: [][]byte{[]byte(cryptoutilSharedMagic.TEST_NEEDLE_HELLO), []byte(cryptoutilSharedMagic.TEST_NEEDLE_WORLD), []byte(testStrLiteral)},
 		},
 		{
 			name:     "Empty strings",
@@ -190,8 +192,8 @@ func TestStringsToBytes(t *testing.T) {
 		},
 		{
 			name:     "Unicode strings",
-			input:    []string{"hello", "世界", "🌍"},
-			expected: [][]byte{[]byte("hello"), []byte("世界"), []byte("🌍")},
+			input:    []string{cryptoutilSharedMagic.TEST_NEEDLE_HELLO, "世界", "🌍"},
+			expected: [][]byte{[]byte(cryptoutilSharedMagic.TEST_NEEDLE_HELLO), []byte("世界"), []byte("🌍")},
 		},
 	}
 

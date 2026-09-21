@@ -47,7 +47,7 @@ func writeSQL(t *testing.T, dir, filename string) {
 }
 
 func tplRelPath() string {
-	return filepath.Join(cryptoutilSharedMagic.FrameworkInternalDir, "service", "server", "repository", "migrations")
+	return filepath.Join(cryptoutilSharedMagic.FrameworkInternalDir, "service", cryptoutilSharedMagic.CMD_SERVER, "repository", "migrations")
 }
 
 func domainRelPath(parts ...string) string {

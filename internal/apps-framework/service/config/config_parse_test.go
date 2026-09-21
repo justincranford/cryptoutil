@@ -50,7 +50,7 @@ service-rate-limit: 200
 	require.NoError(t, err)
 
 	// Verify second config file values override first.
-	require.Equal(t, "DEBUG", s.LogLevel, "second config should override log-level")
+	require.Equal(t, cryptoutilSharedMagic.LOG_LEVEL_DEBUG, s.LogLevel, "second config should override log-level")
 	require.Equal(t, uint16(9080), s.BindPublicPort, "second config should override bind-public-port")
 	require.Equal(t, uint16(200), s.ServiceIPRateLimit, "second config should set service-rate-limit")
 	require.EqualValues(t, cryptoutilSharedMagic.JoseJAMaxMaterials, s.BrowserIPRateLimit, "first config browser-ip-rate-limit should remain")

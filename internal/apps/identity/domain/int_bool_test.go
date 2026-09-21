@@ -78,7 +78,7 @@ func TestIntBool_Scan(t *testing.T) {
 		},
 		{
 			name:      "invalid_string",
-			input:     "invalid",
+			input:     cryptoutilSharedMagic.DevSetupTestInvalidName,
 			expected:  false,
 			wantError: true,
 		},

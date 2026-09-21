@@ -322,7 +322,7 @@ func TestClientAuthTypeForPolicy(t *testing.T) {
 		{name: string(TLSClientPolicyRequireAny), policy: TLSClientPolicyRequireAny, want: tls.RequireAnyClientCert},
 		{name: string(TLSClientPolicyVerifyIfGiven), policy: TLSClientPolicyVerifyIfGiven, want: tls.VerifyClientCertIfGiven},
 		{name: string(TLSClientPolicyRequireAndVerify), policy: TLSClientPolicyRequireAndVerify, want: tls.RequireAndVerifyClientCert},
-		{name: "invalid", policy: TLSClientPolicy("bogus"), wantError: "unknown TLS client policy"},
+		{name: cryptoutilSharedMagic.DevSetupTestInvalidName, policy: TLSClientPolicy("bogus"), wantError: "unknown TLS client policy"},
 	}
 
 	for _, tc := range tests {

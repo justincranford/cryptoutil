@@ -46,7 +46,7 @@ func TestIntermediateKeyInit_RootEncryptKeyFails(t *testing.T) {
 
 	mockRepo := newMockServiceRepository()
 	// Root key exists but with invalid encrypted data (root init skips creation).
-	mockRepo.tx.rootKey = &RootKey{UUID: googleUuid.New(), Encrypted: "invalid", KEKUUID: googleUuid.Nil}
+	mockRepo.tx.rootKey = &RootKey{UUID: googleUuid.New(), Encrypted: cryptoutilSharedMagic.DevSetupTestInvalidName, KEKUUID: googleUuid.Nil}
 	// No intermediate key → init tries to create one.
 	mockRepo.tx.getIntermediateKeyLatestReturnsNil = true
 

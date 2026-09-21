@@ -254,7 +254,7 @@ func TestOCSPService_ParseRequest(t *testing.T) {
 	require.Contains(t, err.Error(), "empty OCSP request")
 
 	// Test invalid request.
-	_, err = ocspSvc.ParseRequest([]byte("invalid"))
+	_, err = ocspSvc.ParseRequest([]byte(cryptoutilSharedMagic.DevSetupTestInvalidName))
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to parse")
 }

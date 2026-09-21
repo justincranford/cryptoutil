@@ -26,8 +26,8 @@ func TestIsHelpRequest(t *testing.T) {
 		{name: "help_long_flag", args: []string{cryptoutilSharedMagic.CLIHelpFlag}, expect: true},
 		{name: "help_short_flag", args: []string{"-h"}, expect: true},
 		{name: "empty_args", args: []string{}, expect: false},
-		{name: "non_help_arg", args: []string{"server"}, expect: false},
-		{name: "help_not_first", args: []string{"server", cryptoutilSharedMagic.CLIHelpCommand}, expect: false},
+		{name: "non_help_arg", args: []string{cryptoutilSharedMagic.CMD_SERVER}, expect: false},
+		{name: "help_not_first", args: []string{cryptoutilSharedMagic.CMD_SERVER, cryptoutilSharedMagic.CLIHelpCommand}, expect: false},
 	}
 
 	for _, tc := range tests {

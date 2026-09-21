@@ -106,7 +106,7 @@ func TestCheckInDir_ExcludedArchivedDir(t *testing.T) {
 	t.Parallel()
 
 	tmpDir := t.TempDir()
-	archivedDir := filepath.Join(tmpDir, "internal", "apps", cryptoutilSharedMagic.PKIProductName, "_ca-archived", "server")
+	archivedDir := filepath.Join(tmpDir, "internal", "apps", cryptoutilSharedMagic.PKIProductName, "_ca-archived", cryptoutilSharedMagic.CMD_SERVER)
 	require.NoError(t, os.MkdirAll(archivedDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 	require.NoError(t, os.WriteFile(filepath.Join(archivedDir, "server.go"), []byte("package server\nfunc X() {}"), cryptoutilSharedMagic.CacheFilePermissions))
 

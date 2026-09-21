@@ -56,6 +56,9 @@ const (
 	// CICDCmdDirWorkflow is the cmd/ directory name for the workflow testing binary.
 	CICDCmdDirWorkflow = "cicd-workflow"
 
+	// CICDCmdDirDevSetup is the cmd/ directory name for the developer environment setup tool binary.
+	CICDCmdDirDevSetup = "cicd-dev-setup"
+
 	// CICDInfraToolCmdPrefix is the required prefix for infrastructure tool cmd/ directories.
 	CICDInfraToolCmdPrefix = "cicd-"
 
@@ -571,6 +574,7 @@ var (
 	// Used by ListAllFiles to exclude generated/vendored directories.
 	DirectoryNameExclusions = []string{
 		".git",
+		".venv",
 		"api/client",
 		"api/model",
 		"api/server",

@@ -332,7 +332,7 @@ func TestParse_EnvironmentVariables(t *testing.T) {
 	resetFlags()
 
 	// Set environment variables
-	t.Setenv("CRYPTOUTIL_LOG_LEVEL", "DEBUG")
+	t.Setenv("CRYPTOUTIL_LOG_LEVEL", cryptoutilSharedMagic.LOG_LEVEL_DEBUG)
 	t.Setenv("CRYPTOUTIL_LOCAL", "true")
 	t.Setenv("CRYPTOUTIL_BIND_PUBLIC_PORT", "8080")
 	t.Setenv("CRYPTOUTIL_DATABASE_URL", "postgres://env:pass@envdb:5432/envdb?sslmode=require")
@@ -342,7 +342,7 @@ func TestParse_EnvironmentVariables(t *testing.T) {
 	require.NoError(t, err)
 
 	// Verify environment variables were loaded
-	require.Equal(t, "DEBUG", s.LogLevel)
+	require.Equal(t, cryptoutilSharedMagic.LOG_LEVEL_DEBUG, s.LogLevel)
 	require.True(t, s.DevMode)
 	require.Equal(t, uint16(cryptoutilSharedMagic.TestServerPort), s.BindPublicPort)
 	require.Equal(t, "postgres://env:pass@envdb:5432/envdb?sslmode=require", s.DatabaseURL)
@@ -352,7 +352,7 @@ func TestParse_EnvironmentVariables_CommandLineOverride(t *testing.T) {
 	resetFlags()
 
 	// Set environment variables
-	t.Setenv("CRYPTOUTIL_LOG_LEVEL", "DEBUG")
+	t.Setenv("CRYPTOUTIL_LOG_LEVEL", cryptoutilSharedMagic.LOG_LEVEL_DEBUG)
 	t.Setenv("CRYPTOUTIL_LOCAL", "true")
 
 	// Override with command line flags

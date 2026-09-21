@@ -1,41 +1,56 @@
-package main
+// Copyright (c) 2025-2026 Justin Cranford.
+// Package cicd_dev_setup implements the developer environment setup CLI orchestration
+// (dependency verification and idempotent installation for local dev/CI setup).
+package cicd_dev_setup
 
 import (
 	"context"
-	"cryptoutil/internal/apps-tools/dev_setup/pkg/checker"
-	"cryptoutil/internal/apps-tools/dev_setup/pkg/config"
-	"cryptoutil/internal/apps-tools/dev_setup/pkg/installer"
-	"cryptoutil/internal/apps-tools/dev_setup/pkg/reporter"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 
+	cryptoutilAppsToolsDevSetupChecker "cryptoutil/internal/apps-tools/cicd_dev_setup/pkg/checker"
+	cryptoutilAppsToolsDevSetupConfig "cryptoutil/internal/apps-tools/cicd_dev_setup/pkg/config"
+	cryptoutilAppsToolsDevSetupInstaller "cryptoutil/internal/apps-tools/cicd_dev_setup/pkg/installer"
+	cryptoutilAppsToolsDevSetupReporter "cryptoutil/internal/apps-tools/cicd_dev_setup/pkg/reporter"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+)
+
+// exitCodeSuccess and exitCodeFailure are the process exit codes returned by Main.
+const (
+	exitCodeSuccess = 0
+	exitCodeFailure = 1
 )
 
 // Setup holds all injected dependencies for the dev-setup orchestration.
 // Using this struct allows tests to inject mock implementations.
 type Setup struct {
-	Config    *config.Config
-	Checker   checker.Checker
-	Installer installer.Installer
-	Reporter  reporter.Reporter
+	Config    *cryptoutilAppsToolsDevSetupConfig.Config
+	Checker   cryptoutilAppsToolsDevSetupChecker.Checker
+	Installer cryptoutilAppsToolsDevSetupInstaller.Installer
+	Reporter  cryptoutilAppsToolsDevSetupReporter.Reporter
 }
 
-func main() {
-	if err := internalMain(); err != nil {
-		fmt.Fprintf(os.Stderr, "ERROR: %v\n", err)
-		os.Exit(1)
+// Main is the CLI entry point invoked by cmd/cicd-dev-setup/main.go.
+// It accepts args/stdin/stdout/stderr for testability and returns a process exit code.
+func Main(_ []string, _ io.Reader, stdout, stderr io.Writer) int {
+	if err := internalMain(stdout, stderr); err != nil {
+		_, _ = fmt.Fprintf(stderr, "ERROR: %v\n", err)
+
+		return exitCodeFailure
 	}
+
+	return exitCodeSuccess
 }
 
 // internalMain is the testable main function that accepts injected dependencies via Setup.
 // This enables unit tests to inject mock implementations of Checker, Installer, and Reporter.
-func internalMain() error {
+func internalMain(stdout, stderr io.Writer) error {
 	ctx := context.Background()
 
 	// Load dependency configuration
-	cfg, err := config.Load()
+	cfg, err := cryptoutilAppsToolsDevSetupConfig.Load()
 	if err != nil {
 		return fmt.Errorf("failed to load configuration: %w", err)
 	}
@@ -48,10 +63,10 @@ func internalMain() error {
 
 	// Initialize components with real implementations (seam pattern).
 	// Tests can call internalMainWithSetup() instead to inject mocks.
-	exec := installer.NewSystemExecutor()
-	chk := checker.NewDependencyChecker(exec)
-	inst := installer.NewDependencyInstaller(exec, projectRoot)
-	rep := reporter.NewConsoleReporter(os.Stdout, os.Stderr)
+	exec := cryptoutilAppsToolsDevSetupInstaller.NewSystemExecutor()
+	chk := cryptoutilAppsToolsDevSetupChecker.NewDependencyChecker(exec)
+	inst := cryptoutilAppsToolsDevSetupInstaller.NewDependencyInstaller(exec, projectRoot)
+	rep := cryptoutilAppsToolsDevSetupReporter.NewConsoleReporter(stdout, stderr)
 
 	setup := &Setup{
 		Config:    cfg,
@@ -89,30 +104,30 @@ func internalMainWithSetup(ctx context.Context, setup *Setup) error {
 
 func runSetup(
 	ctx context.Context,
-	cfg *config.Config,
-	chk checker.Checker,
-	inst installer.Installer,
-	rep reporter.Reporter,
-) (*reporter.Summary, error) {
-	summary := &reporter.Summary{
-		Groups: make(map[string]*reporter.GroupResult),
+	cfg *cryptoutilAppsToolsDevSetupConfig.Config,
+	chk cryptoutilAppsToolsDevSetupChecker.Checker,
+	inst cryptoutilAppsToolsDevSetupInstaller.Installer,
+	rep cryptoutilAppsToolsDevSetupReporter.Reporter,
+) (*cryptoutilAppsToolsDevSetupReporter.Summary, error) {
+	summary := &cryptoutilAppsToolsDevSetupReporter.Summary{
+		Groups: make(map[string]*cryptoutilAppsToolsDevSetupReporter.GroupResult),
 	}
 
 	// Process each dependency group in order
 	for _, group := range cfg.Groups {
-		groupResult := &reporter.GroupResult{
+		groupResult := &cryptoutilAppsToolsDevSetupReporter.GroupResult{
 			Name:         group.Name,
-			Dependencies: make([]*reporter.DepResult, 0),
+			Dependencies: make([]*cryptoutilAppsToolsDevSetupReporter.DepResult, 0),
 		}
 
 		// Check and install each dependency in the group
 		for _, dep := range group.Dependencies {
-			depResult := &reporter.DepResult{
+			depResult := &cryptoutilAppsToolsDevSetupReporter.DepResult{
 				Name:    dep.Name,
 				Version: dep.MinVersion,
 			}
 
-			// Check if already installed
+			// Check if already installed (idempotent: skip install entirely when found)
 			installed, version, err := chk.Check(ctx, dep)
 			if err != nil {
 				depResult.Status = cryptoutilSharedMagic.DevSetupStatusCheckFailed
@@ -129,21 +144,14 @@ func runSetup(
 					depResult.Error = err
 					groupResult.HasErrors = true
 					summary.HasErrors = true
+				} else if installed, version, err := chk.Check(ctx, dep); err == nil && installed {
+					depResult.Status = cryptoutilSharedMagic.DevSetupStatusInstalled
+					depResult.ActualVersion = version
 				} else {
-					// Installation command succeeded. Assume the tool is available even if
-					// verification check fails (e.g., tool already installed via different mechanism,
-					// or checker can't find it in expected location). Idempotent installs succeed
-					// silently when already installed.
-					if installed, version, _ := chk.Check(ctx, dep); installed {
-						depResult.Status = cryptoutilSharedMagic.DevSetupStatusInstalled
-						depResult.ActualVersion = version
-					} else {
-						// Installation succeeded but verification check couldn't confirm it.
-						// This is OK - mark as installed and move on. The installation command
-						// exiting with 0 is our confirmation that the tool is available.
-						depResult.Status = cryptoutilSharedMagic.DevSetupStatusInstalled
-						depResult.ActualVersion = "unknown (installed via " + dep.Type + ")"
-					}
+					depResult.Status = cryptoutilSharedMagic.DevSetupStatusVerifyFailed
+					depResult.Error = fmt.Errorf("installation succeeded but tool not found on PATH")
+					groupResult.HasErrors = true
+					summary.HasErrors = true
 				}
 			}
 

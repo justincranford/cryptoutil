@@ -224,7 +224,7 @@ func (m *TenantManager) WithTenant(ctx context.Context, tenantID string) (*gorm.
 // createTenantSchema creates a database schema for the tenant.
 func (m *TenantManager) createTenantSchema(ctx context.Context, tenant *TenantConfig) error {
 	if tenant.SchemaName == "" {
-		tenant.SchemaName = sanitizeSchemaName("tenant_" + tenant.ID)
+		tenant.SchemaName = sanitizeSchemaName(cryptoutilSharedMagic.SCHEMA_PREFIX_TENANT + tenant.ID)
 	}
 
 	// Check if already created.

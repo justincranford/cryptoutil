@@ -202,7 +202,7 @@ func TestRealmConfig_Validate(t *testing.T) {
 					{
 						ID:      realmTestID1,
 						Name:    "test-realm",
-						Type:    RealmType("invalid"),
+						Type:    RealmType(cryptoutilSharedMagic.DevSetupTestInvalidName),
 						Enabled: true,
 					},
 				},
@@ -324,7 +324,7 @@ func TestIsValidRealmType(t *testing.T) {
 		{name: "ldap type", realmType: RealmTypeLDAP, valid: true},
 		{name: "oidc type", realmType: RealmTypeOIDC, valid: true},
 		{name: "empty type", realmType: RealmType(""), valid: false},
-		{name: "invalid type", realmType: RealmType("invalid"), valid: false},
+		{name: "invalid type", realmType: RealmType(cryptoutilSharedMagic.DevSetupTestInvalidName), valid: false},
 	}
 
 	for _, tc := range tests {

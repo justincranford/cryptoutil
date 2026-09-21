@@ -2,27 +2,27 @@ package installer
 
 import (
 	"context"
-	"cryptoutil/internal/apps-tools/dev_setup/pkg/checker"
-	"cryptoutil/internal/apps-tools/dev_setup/pkg/config"
+	cryptoutilAppsToolsDevSetupChecker "cryptoutil/internal/apps-tools/cicd_dev_setup/pkg/checker"
+	cryptoutilAppsToolsDevSetupCmdSplit "cryptoutil/internal/apps-tools/cicd_dev_setup/pkg/cmdsplit"
+	cryptoutilAppsToolsDevSetupConfig "cryptoutil/internal/apps-tools/cicd_dev_setup/pkg/config"
 	"fmt"
 	"os/exec"
-	"strings"
 )
 
 // Installer defines the interface for installing dependencies.
 type Installer interface {
 	// Install attempts to install a dependency
-	Install(ctx context.Context, dep *config.Dependency) error
+	Install(ctx context.Context, dep *cryptoutilAppsToolsDevSetupConfig.Dependency) error
 }
 
 // DependencyInstaller handles installing dependencies.
 type DependencyInstaller struct {
-	executor    checker.Executor
+	executor    cryptoutilAppsToolsDevSetupChecker.Executor
 	projectRoot string
 }
 
 // NewDependencyInstaller creates an installer with a real system executor.
-func NewDependencyInstaller(executor checker.Executor, projectRoot string) Installer {
+func NewDependencyInstaller(executor cryptoutilAppsToolsDevSetupChecker.Executor, projectRoot string) Installer {
 	return &DependencyInstaller{
 		executor:    executor,
 		projectRoot: projectRoot,
@@ -30,13 +30,13 @@ func NewDependencyInstaller(executor checker.Executor, projectRoot string) Insta
 }
 
 // Install executes the installation command for a dependency.
-func (di *DependencyInstaller) Install(ctx context.Context, dep *config.Dependency) error {
+func (di *DependencyInstaller) Install(ctx context.Context, dep *cryptoutilAppsToolsDevSetupConfig.Dependency) error {
 	if dep.InstallCmd == "" {
 		return fmt.Errorf("no install command defined for %s", dep.Name)
 	}
 
-	// Parse command and arguments
-	parts := strings.Fields(dep.InstallCmd)
+	// Parse command and arguments, honoring quoted segments.
+	parts := cryptoutilAppsToolsDevSetupCmdSplit.Split(dep.InstallCmd)
 	if len(parts) == 0 {
 		return fmt.Errorf("invalid install command: %s", dep.InstallCmd)
 	}
@@ -57,7 +57,7 @@ func (di *DependencyInstaller) Install(ctx context.Context, dep *config.Dependen
 type SystemExecutor struct{}
 
 // NewSystemExecutor creates a real system executor.
-func NewSystemExecutor() checker.Executor {
+func NewSystemExecutor() cryptoutilAppsToolsDevSetupChecker.Executor {
 	return &SystemExecutor{}
 }
 

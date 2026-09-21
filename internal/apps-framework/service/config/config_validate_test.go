@@ -386,7 +386,7 @@ func TestValidateConfiguration_BoundaryConditions(t *testing.T) {
 			} else {
 				if err != nil {
 					// Allow warnings that don't prevent startup.
-					require.NotContains(t, err.Error(), "invalid")
+					require.NotContains(t, err.Error(), cryptoutilSharedMagic.DevSetupTestInvalidName)
 				}
 			}
 		})

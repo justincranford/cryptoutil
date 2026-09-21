@@ -36,7 +36,7 @@ func TestFindViolations_NoViolations_NonTestFile(t *testing.T) {
 	t.Parallel()
 
 	dir := t.TempDir()
-	psDir := filepath.Join(dir, "internal", "apps", cryptoutilSharedMagic.OTLPServiceSMKMS, "server")
+	psDir := filepath.Join(dir, "internal", "apps", cryptoutilSharedMagic.OTLPServiceSMKMS, cryptoutilSharedMagic.CMD_SERVER)
 	require.NoError(t, os.MkdirAll(psDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 	// Production (non-test) file defining stub-like methods should NOT be flagged.
@@ -52,7 +52,7 @@ func TestFindViolations_Violation_LocalPublicStub(t *testing.T) {
 	t.Parallel()
 
 	dir := t.TempDir()
-	psDir := filepath.Join(dir, "internal", "apps", cryptoutilSharedMagic.OTLPServiceSMKMS, "server")
+	psDir := filepath.Join(dir, "internal", "apps", cryptoutilSharedMagic.OTLPServiceSMKMS, cryptoutilSharedMagic.CMD_SERVER)
 	require.NoError(t, os.MkdirAll(psDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 	content := `package server
@@ -77,7 +77,7 @@ func TestFindViolations_Violation_LocalAdminStub(t *testing.T) {
 	t.Parallel()
 
 	dir := t.TempDir()
-	psDir := filepath.Join(dir, "internal", "apps", cryptoutilSharedMagic.OTLPServiceSkeletonTemplate, "server")
+	psDir := filepath.Join(dir, "internal", "apps", cryptoutilSharedMagic.OTLPServiceSkeletonTemplate, cryptoutilSharedMagic.CMD_SERVER)
 	require.NoError(t, os.MkdirAll(psDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 	content := `package server
@@ -104,7 +104,7 @@ func TestFindViolations_FrameworkExcluded(t *testing.T) {
 	t.Parallel()
 
 	dir := t.TempDir()
-	fwDir := filepath.Join(dir, "internal", "apps", cryptoutilSharedMagic.FrameworkProductName, "service", "server")
+	fwDir := filepath.Join(dir, "internal", "apps", cryptoutilSharedMagic.FrameworkProductName, "service", cryptoutilSharedMagic.CMD_SERVER)
 	require.NoError(t, os.MkdirAll(fwDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 	// Framework files are excluded — no violation should fire even with stub methods.
@@ -151,7 +151,7 @@ func TestFindViolations_PartialMethodSet_NotFlagged(t *testing.T) {
 	t.Parallel()
 
 	dir := t.TempDir()
-	psDir := filepath.Join(dir, "internal", "apps", cryptoutilSharedMagic.OTLPServicePKICA, "server")
+	psDir := filepath.Join(dir, "internal", "apps", cryptoutilSharedMagic.OTLPServicePKICA, cryptoutilSharedMagic.CMD_SERVER)
 	require.NoError(t, os.MkdirAll(psDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 	// Only 3 of the 4 IPublicServer methods — should not be flagged.
@@ -174,7 +174,7 @@ func TestCheckInDir_ReturnsError_WhenViolationsFound(t *testing.T) {
 	t.Parallel()
 
 	dir := t.TempDir()
-	psDir := filepath.Join(dir, "internal", "apps", cryptoutilSharedMagic.OTLPServiceSMKMS, "server")
+	psDir := filepath.Join(dir, "internal", "apps", cryptoutilSharedMagic.OTLPServiceSMKMS, cryptoutilSharedMagic.CMD_SERVER)
 	require.NoError(t, os.MkdirAll(psDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 	require.NoError(t, os.WriteFile(filepath.Join(psDir, "server_test.go"), []byte(stubPublicServerGoSrc), cryptoutilSharedMagic.FilePermissionsDefault))

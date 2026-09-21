@@ -140,7 +140,7 @@ func TestIdentity_ServiceRouting(t *testing.T) {
 
 			combinedOutput := stdout.String() + stderr.String()
 			require.Contains(t, combinedOutput, tt.expectedUsage)
-			require.Contains(t, combinedOutput, "server")
+			require.Contains(t, combinedOutput, cryptoutilSharedMagic.CMD_SERVER)
 			require.Contains(t, combinedOutput, "client")
 			require.Contains(t, combinedOutput, "init")
 		})

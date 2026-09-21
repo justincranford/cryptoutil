@@ -79,7 +79,7 @@ func checkPSIDTestPatterns(serviceDir, psid string, exclTestMain, exclLifecycle,
 		return []string{fmt.Sprintf("%s: PS-ID directory missing: internal/apps/%s/", serviceDir, psid)}
 	}
 
-	serverDir := filepath.Join(serviceDir, "server")
+	serverDir := filepath.Join(serviceDir, cryptoutilSharedMagic.CMD_SERVER)
 
 	if !exclTestMain[psid] {
 		if !fileExists(filepath.Join(serverDir, "testmain_test.go")) {

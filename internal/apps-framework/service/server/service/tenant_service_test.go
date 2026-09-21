@@ -25,6 +25,7 @@ import (
 
 	cryptoutilAppsFrameworkServiceServerRepository "cryptoutil/internal/apps-framework/service/server/repository"
 	cryptoutilSharedApperr "cryptoutil/internal/shared/apperr"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // Test error summary constants.
@@ -163,7 +164,7 @@ func TestTenantService_CreateTenant(t *testing.T) {
 	}{
 		{
 			name:        "happy path",
-			tenantName:  "Test Tenant",
+			tenantName:  cryptoutilSharedMagic.NAME_TEST_TENANT,
 			description: "A test tenant",
 			setupMocks: func(tenantRepo *mockTenantRepository, roleRepo *mockRoleRepository) {
 				tenantRepo.createFn = func(_ context.Context, _ *cryptoutilAppsFrameworkServiceServerRepository.Tenant) error {
@@ -190,7 +191,7 @@ func TestTenantService_CreateTenant(t *testing.T) {
 		},
 		{
 			name:        "role creation fails",
-			tenantName:  "Test Tenant",
+			tenantName:  cryptoutilSharedMagic.NAME_TEST_TENANT,
 			description: "Tenant with role failure",
 			setupMocks: func(tenantRepo *mockTenantRepository, roleRepo *mockRoleRepository) {
 				tenantRepo.createFn = func(_ context.Context, _ *cryptoutilAppsFrameworkServiceServerRepository.Tenant) error {
@@ -252,7 +253,7 @@ func TestTenantService_GetTenant(t *testing.T) {
 			tenantID: tenantID,
 			setupMocks: func(tenantRepo *mockTenantRepository) {
 				tenantRepo.getByIDFn = func(_ context.Context, id googleUuid.UUID) (*cryptoutilAppsFrameworkServiceServerRepository.Tenant, error) {
-					return &cryptoutilAppsFrameworkServiceServerRepository.Tenant{ID: id, Name: "Test Tenant", Active: 1}, nil
+					return &cryptoutilAppsFrameworkServiceServerRepository.Tenant{ID: id, Name: cryptoutilSharedMagic.NAME_TEST_TENANT, Active: 1}, nil
 				}
 			},
 			wantErr: false,

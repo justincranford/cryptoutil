@@ -50,10 +50,10 @@ func TestSafeBuffer_Reset(t *testing.T) {
 
 	var sb SafeBuffer
 
-	_, err := sb.Write([]byte("hello"))
+	_, err := sb.Write([]byte(cryptoutilSharedMagic.TEST_NEEDLE_HELLO))
 	require.NoError(t, err)
 	require.Equal(t, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries, sb.Len())
-	require.Equal(t, "hello", sb.String())
+	require.Equal(t, cryptoutilSharedMagic.TEST_NEEDLE_HELLO, sb.String())
 
 	sb.Reset()
 	require.Equal(t, 0, sb.Len())

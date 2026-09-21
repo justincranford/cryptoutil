@@ -36,7 +36,7 @@ func createAllPSIDsWithServerFiles(t *testing.T, tmpDir string) {
 	t.Helper()
 
 	for _, ps := range cryptoutilFitnessRegistry.AllProductServices() {
-		serverDir := filepath.Join(tmpDir, "internal", "apps", ps.PSID, "server")
+		serverDir := filepath.Join(tmpDir, "internal", "apps", ps.PSID, cryptoutilSharedMagic.CMD_SERVER)
 		require.NoError(t, os.MkdirAll(serverDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 		require.NoError(t, os.WriteFile(filepath.Join(serverDir, "server.go"), []byte("package server\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
@@ -114,7 +114,7 @@ func TestCheckInDir_MissingPSIDDir(t *testing.T) {
 
 	// Create all PS-IDs except the first.
 	for _, ps := range services[1:] {
-		serverDir := filepath.Join(tmpDir, "internal", "apps", ps.PSID, "server")
+		serverDir := filepath.Join(tmpDir, "internal", "apps", ps.PSID, cryptoutilSharedMagic.CMD_SERVER)
 		require.NoError(t, os.MkdirAll(serverDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 		require.NoError(t, os.WriteFile(filepath.Join(serverDir, "server.go"), []byte("package server\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
@@ -146,7 +146,7 @@ func TestCheckInDir_MissingServerGo(t *testing.T) {
 	createAllPSIDsWithServerFiles(t, tmpDir)
 
 	// Remove server.go for the first PS-ID.
-	require.NoError(t, os.Remove(filepath.Join(tmpDir, "internal", "apps", target.PSID, "server", "server.go")))
+	require.NoError(t, os.Remove(filepath.Join(tmpDir, "internal", "apps", target.PSID, cryptoutilSharedMagic.CMD_SERVER, "server.go")))
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	err := CheckInDir(logger, tmpDir)
@@ -179,7 +179,7 @@ func TestCheckInDir_MissingPublicServerGo(t *testing.T) {
 	createAllPSIDsWithServerFiles(t, tmpDir)
 
 	// Remove public_server.go for the target PS-ID.
-	require.NoError(t, os.Remove(filepath.Join(tmpDir, "internal", "apps", targetPSID, "server", "public_server.go")))
+	require.NoError(t, os.Remove(filepath.Join(tmpDir, "internal", "apps", targetPSID, cryptoutilSharedMagic.CMD_SERVER, "public_server.go")))
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	err := CheckInDir(logger, tmpDir)
@@ -208,7 +208,7 @@ func TestCheckInDir_ExcludedPSIDPassesWithoutPublicServer(t *testing.T) {
 	createAllPSIDsWithServerFiles(t, tmpDir)
 
 	// Verify excluded PS-ID doesn't have public_server.go (it shouldn't since createAllPSIDsWithServerFiles skips it).
-	publicServerPath := filepath.Join(tmpDir, "internal", "apps", excludedPSID, "server", "public_server.go")
+	publicServerPath := filepath.Join(tmpDir, "internal", "apps", excludedPSID, cryptoutilSharedMagic.CMD_SERVER, "public_server.go")
 	_, statErr := os.Stat(publicServerPath)
 	require.True(t, os.IsNotExist(statErr), "excluded PS-ID should not have public_server.go in test fixture")
 

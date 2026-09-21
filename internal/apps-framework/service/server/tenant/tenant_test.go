@@ -64,7 +64,7 @@ func TestSchemaName(t *testing.T) {
 	t.Parallel()
 
 	// Compute expected schema name from dynamic UUID.
-	expectedSchemaName := "tenant_" + strings.ReplaceAll(testTenantUUID, "-", "_")
+	expectedSchemaName := cryptoutilSharedMagic.SCHEMA_PREFIX_TENANT + strings.ReplaceAll(testTenantUUID, "-", "_")
 
 	tests := []struct {
 		name     string
@@ -79,7 +79,7 @@ func TestSchemaName(t *testing.T) {
 		{
 			name:     "uppercase UUID",
 			tenantID: strings.ToUpper(testTenantUUID),
-			want:     "tenant_" + strings.ReplaceAll(strings.ToUpper(testTenantUUID), "-", "_"),
+			want:     cryptoutilSharedMagic.SCHEMA_PREFIX_TENANT + strings.ReplaceAll(strings.ToUpper(testTenantUUID), "-", "_"),
 		},
 		{
 			name:     "simple alphanumeric",
@@ -89,7 +89,7 @@ func TestSchemaName(t *testing.T) {
 		{
 			name:     "empty string",
 			tenantID: "",
-			want:     "tenant_",
+			want:     cryptoutilSharedMagic.SCHEMA_PREFIX_TENANT,
 		},
 	}
 

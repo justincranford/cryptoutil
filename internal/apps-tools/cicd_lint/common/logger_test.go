@@ -145,7 +145,7 @@ func TestLogger_Operation(t *testing.T) {
 		{"simple operation", "test-op"},
 		{"complex operation", "complex-test-operation-name"},
 		{"with spaces", "test operation"},
-		{"empty", ""},
+		{cryptoutilSharedMagic.EMPTY, ""},
 	}
 
 	for _, tc := range tests {

@@ -12,8 +12,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-const testUnknownTLSProvisionMode = cryptoutilSharedMagic.UNKNOWN
-
 func TestNewHTTPServers_AutoProvisionMode_HappyPath(t *testing.T) {
 	t.Parallel()
 
@@ -78,7 +76,7 @@ func TestNewHTTPServers_UnknownPublicTLSProvisionMode(t *testing.T) {
 	t.Parallel()
 
 	settings := cryptoutilAppsFrameworkServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
-	settings.TLSPublicProvisionMode = testUnknownTLSProvisionMode
+	settings.TLSPublicProvisionMode = cryptoutilSharedMagic.UNKNOWN
 
 	ctx := context.Background()
 	h, err := NewHTTPServers(ctx, settings)
@@ -91,7 +89,7 @@ func TestNewHTTPServers_UnknownPrivateTLSProvisionMode(t *testing.T) {
 	t.Parallel()
 
 	settings := cryptoutilAppsFrameworkServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
-	settings.TLSPrivateProvisionMode = testUnknownTLSProvisionMode
+	settings.TLSPrivateProvisionMode = cryptoutilSharedMagic.UNKNOWN
 
 	ctx := context.Background()
 	h, err := NewHTTPServers(ctx, settings)

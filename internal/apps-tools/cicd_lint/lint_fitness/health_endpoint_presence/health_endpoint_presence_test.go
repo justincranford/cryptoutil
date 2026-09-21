@@ -20,7 +20,7 @@ func newTestLogger() *cryptoutilCmdCicdCommon.Logger {
 func mkServiceWithServer(t *testing.T, root, product, service string) {
 	t.Helper()
 
-	serverDir := filepath.Join(root, "internal", "apps", product, service, "server")
+	serverDir := filepath.Join(root, "internal", "apps", product, service, cryptoutilSharedMagic.CMD_SERVER)
 	require.NoError(t, os.MkdirAll(serverDir, cryptoutilSharedMagic.DirPermissions))
 	require.NoError(t, os.WriteFile(filepath.Join(serverDir, "server.go"),
 		[]byte("package server\n"), cryptoutilSharedMagic.CacheFilePermissions))
@@ -31,7 +31,7 @@ func TestCheckInDir_ServiceWithHealthEndpoints_Passes(t *testing.T) {
 	tmp := t.TempDir()
 	mkServiceWithServer(t, tmp, "sm", "im")
 	// Write a file containing both required health patterns.
-	serverFile := filepath.Join(tmp, "internal", "apps", "sm", "im", "server", "server.go")
+	serverFile := filepath.Join(tmp, "internal", "apps", "sm", "im", cryptoutilSharedMagic.CMD_SERVER, "server.go")
 	require.NoError(t, os.WriteFile(serverFile, []byte(`package server
 // registers livez and readyz endpoints
 func (s *Server) Start() { }
@@ -46,7 +46,7 @@ func TestCheckInDir_ServiceMissingHealthEndpoints_Fails(t *testing.T) {
 	tmp := t.TempDir()
 	mkServiceWithServer(t, tmp, "sm", "im")
 	// server.go has no health endpoint references.
-	serverFile := filepath.Join(tmp, "internal", "apps", "sm", "im", "server", "server.go")
+	serverFile := filepath.Join(tmp, "internal", "apps", "sm", "im", cryptoutilSharedMagic.CMD_SERVER, "server.go")
 	require.NoError(t, os.WriteFile(serverFile, []byte(`package server
 func (s *Server) Start() { }
 `), cryptoutilSharedMagic.CacheFilePermissions))
@@ -59,7 +59,7 @@ func (s *Server) Start() { }
 func TestCheckInDir_SkipCicdProduct_Passes(t *testing.T) {
 	t.Parallel()
 	tmp := t.TempDir()
-	cicdDir := filepath.Join(tmp, "internal", "apps", "cicd", "linter", "server")
+	cicdDir := filepath.Join(tmp, "internal", "apps", "cicd", "linter", cryptoutilSharedMagic.CMD_SERVER)
 	require.NoError(t, os.MkdirAll(cicdDir, cryptoutilSharedMagic.DirPermissions))
 	require.NoError(t, os.WriteFile(filepath.Join(cicdDir, "server.go"), []byte("package server\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
@@ -70,7 +70,7 @@ func TestCheckInDir_SkipCicdProduct_Passes(t *testing.T) {
 func TestCheckInDir_SkipSkeletonProduct_Passes(t *testing.T) {
 	t.Parallel()
 	tmp := t.TempDir()
-	skeletonDir := filepath.Join(tmp, "internal", "apps", cryptoutilSharedMagic.SkeletonProductName, cryptoutilSharedMagic.SkeletonTemplateServiceName, "server")
+	skeletonDir := filepath.Join(tmp, "internal", "apps", cryptoutilSharedMagic.SkeletonProductName, cryptoutilSharedMagic.SkeletonTemplateServiceName, cryptoutilSharedMagic.CMD_SERVER)
 	require.NoError(t, os.MkdirAll(skeletonDir, cryptoutilSharedMagic.DirPermissions))
 	require.NoError(t, os.WriteFile(filepath.Join(skeletonDir, "server.go"), []byte("package server\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
@@ -82,7 +82,7 @@ func TestCheckInDir_SkipArchivedService_Passes(t *testing.T) {
 	t.Parallel()
 	tmp := t.TempDir()
 	// Archived service has no healthcheck, but should be skipped.
-	archivedDir := filepath.Join(tmp, "internal", "apps", "sm", "_old", "server")
+	archivedDir := filepath.Join(tmp, "internal", "apps", "sm", "_old", cryptoutilSharedMagic.CMD_SERVER)
 	require.NoError(t, os.MkdirAll(archivedDir, cryptoutilSharedMagic.DirPermissions))
 	require.NoError(t, os.WriteFile(filepath.Join(archivedDir, "server.go"), []byte("package server\n"), cryptoutilSharedMagic.CacheFilePermissions))
 

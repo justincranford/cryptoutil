@@ -18,7 +18,7 @@ import (
 func writeTestFile(t *testing.T, dir, psID, filename string, funcNames []string) {
 	t.Helper()
 
-	serverDir := filepath.Join(dir, "internal", "apps", psID, "server")
+	serverDir := filepath.Join(dir, "internal", "apps", psID, cryptoutilSharedMagic.CMD_SERVER)
 	require.NoError(t, os.MkdirAll(serverDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 	var sb strings.Builder
@@ -117,7 +117,7 @@ func TestFindDuplicates_IntegrationTestsExcluded(t *testing.T) {
 
 	// Integration test files should not be considered — function in them should not count.
 	for _, psID := range []string{cryptoutilSharedMagic.OTLPServiceSMKMS, cryptoutilSharedMagic.OTLPServiceIdentityAuthz, cryptoutilSharedMagic.OTLPServicePKICA} {
-		serverDir := filepath.Join(dir, "internal", "apps", psID, "server")
+		serverDir := filepath.Join(dir, "internal", "apps", psID, cryptoutilSharedMagic.CMD_SERVER)
 		require.NoError(t, os.MkdirAll(serverDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 		content := "package server_test\nimport \"testing\"\nfunc TestSomething(t *testing.T) { t.Parallel() }\n"
@@ -135,7 +135,7 @@ func TestFindDuplicates_FrameworkExcluded(t *testing.T) {
 
 	dir := t.TempDir()
 
-	fwDir := filepath.Join(dir, "internal", "apps", cryptoutilSharedMagic.FrameworkProductName, "service", "server")
+	fwDir := filepath.Join(dir, "internal", "apps", cryptoutilSharedMagic.FrameworkProductName, "service", cryptoutilSharedMagic.CMD_SERVER)
 	require.NoError(t, os.MkdirAll(fwDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 	content := "package server_test\nimport \"testing\"\nfunc TestNewFromConfig_NilContext(t *testing.T) {}\n"
@@ -155,7 +155,7 @@ func TestFindDuplicates_NestedSubPackagesExcluded(t *testing.T) {
 
 	// Files under server/handler/ (nested) should not be considered — only server/ direct.
 	for _, psID := range []string{cryptoutilSharedMagic.OTLPServiceSMKMS, cryptoutilSharedMagic.OTLPServiceIdentityAuthz, cryptoutilSharedMagic.OTLPServicePKICA} {
-		handlerDir := filepath.Join(dir, "internal", "apps", psID, "server", "handler")
+		handlerDir := filepath.Join(dir, "internal", "apps", psID, cryptoutilSharedMagic.CMD_SERVER, "handler")
 		require.NoError(t, os.MkdirAll(handlerDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 		content := "package handler_test\nimport \"testing\"\nfunc TestHandlerFn(t *testing.T) {}\n"

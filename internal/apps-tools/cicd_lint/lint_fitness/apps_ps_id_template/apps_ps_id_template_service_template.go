@@ -60,7 +60,7 @@ func checkRootTemplates(rootDir, psDir string, ps cryptoutilFitnessRegistry.Prod
 func checkTestmainConformance(psDir string, ps cryptoutilFitnessRegistry.ProductService) []string {
 	violations := make([]string, 0, 2)
 
-	violations = append(violations, checkPackageTestmainConformance(psDir, ps, "server", true)...)
+	violations = append(violations, checkPackageTestmainConformance(psDir, ps, cryptoutilSharedMagic.CMD_SERVER, true)...)
 	violations = append(violations, checkPackageTestmainConformance(psDir, ps, "client", false)...)
 
 	return violations

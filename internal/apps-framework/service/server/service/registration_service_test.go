@@ -23,6 +23,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	cryptoutilAppsFrameworkServiceServerRepository "cryptoutil/internal/apps-framework/service/server/repository"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // Mock TenantService.
@@ -269,7 +270,7 @@ func TestRegistrationService_RegisterUser_NewTenant(t *testing.T) {
 			password: "hashed_password",
 			tenantInfo: &NewTenantInfo{
 				Name:        "Acme Corp",
-				Description: "Test tenant",
+				Description: cryptoutilSharedMagic.DESC_TEST_TENANT,
 			},
 			setupMocks: func(tenantSvc *mockTenantService, userRepo *mockUserRepository, roleRepo *mockRoleRepository, userRoleRepo *mockUserRoleRepository) {
 				tenantSvc.createTenantFn = func(_ context.Context, name, description string) (*cryptoutilAppsFrameworkServiceServerRepository.Tenant, error) {
@@ -304,7 +305,7 @@ func TestRegistrationService_RegisterUser_NewTenant(t *testing.T) {
 			password: "hashed_password",
 			tenantInfo: &NewTenantInfo{
 				Name:        "Acme Corp",
-				Description: "Test tenant",
+				Description: cryptoutilSharedMagic.DESC_TEST_TENANT,
 			},
 			setupMocks: func(tenantSvc *mockTenantService, _ *mockUserRepository, _ *mockRoleRepository, _ *mockUserRoleRepository) {
 				tenantSvc.createTenantFn = func(ctx context.Context, name, description string) (*cryptoutilAppsFrameworkServiceServerRepository.Tenant, error) {
@@ -321,7 +322,7 @@ func TestRegistrationService_RegisterUser_NewTenant(t *testing.T) {
 			password: "hashed_password",
 			tenantInfo: &NewTenantInfo{
 				Name:        "Acme Corp",
-				Description: "Test tenant",
+				Description: cryptoutilSharedMagic.DESC_TEST_TENANT,
 			},
 			setupMocks: func(tenantSvc *mockTenantService, userRepo *mockUserRepository, _ *mockRoleRepository, _ *mockUserRoleRepository) {
 				tenantSvc.createTenantFn = func(ctx context.Context, name, description string) (*cryptoutilAppsFrameworkServiceServerRepository.Tenant, error) {
@@ -341,7 +342,7 @@ func TestRegistrationService_RegisterUser_NewTenant(t *testing.T) {
 			password: "hashed_password",
 			tenantInfo: &NewTenantInfo{
 				Name:        "Acme Corp",
-				Description: "Test tenant",
+				Description: cryptoutilSharedMagic.DESC_TEST_TENANT,
 			},
 			setupMocks: func(tenantSvc *mockTenantService, userRepo *mockUserRepository, roleRepo *mockRoleRepository, userRoleRepo *mockUserRoleRepository) {
 				tenantSvc.createTenantFn = func(ctx context.Context, name, description string) (*cryptoutilAppsFrameworkServiceServerRepository.Tenant, error) {

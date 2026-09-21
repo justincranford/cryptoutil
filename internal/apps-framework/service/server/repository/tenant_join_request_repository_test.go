@@ -76,7 +76,7 @@ func TestTenantJoinRequestRepository_Create(t *testing.T) {
 	// Create tenant.
 	tenant := &Tenant{
 		ID:          googleUuid.Must(googleUuid.NewV7()),
-		Name:        "Test Tenant",
+		Name:        cryptoutilSharedMagic.NAME_TEST_TENANT,
 		Description: "Test tenant for join request tests",
 		Active:      1,
 		CreatedAt:   time.Now().UTC(),
@@ -127,7 +127,7 @@ func TestTenantJoinRequestRepository_Update(t *testing.T) {
 	// Create tenant.
 	tenant := &Tenant{
 		ID:          googleUuid.Must(googleUuid.NewV7()),
-		Name:        "Test Tenant",
+		Name:        cryptoutilSharedMagic.NAME_TEST_TENANT,
 		Description: "Test tenant for update tests",
 		Active:      1,
 		CreatedAt:   time.Now().UTC(),
@@ -200,7 +200,7 @@ func TestTenantJoinRequestRepository_ListByTenant(t *testing.T) {
 	// Create tenant.
 	tenant := &Tenant{
 		ID:          googleUuid.Must(googleUuid.NewV7()),
-		Name:        "Test Tenant",
+		Name:        cryptoutilSharedMagic.NAME_TEST_TENANT,
 		Description: "Test tenant for list tests",
 		Active:      1,
 		CreatedAt:   time.Now().UTC(),
@@ -251,7 +251,7 @@ func TestTenantJoinRequestRepository_ListByStatus(t *testing.T) {
 	// Create tenant.
 	tenant := &Tenant{
 		ID:          googleUuid.Must(googleUuid.NewV7()),
-		Name:        "Test Tenant",
+		Name:        cryptoutilSharedMagic.NAME_TEST_TENANT,
 		Description: "Test tenant for status tests",
 		Active:      1,
 		CreatedAt:   time.Now().UTC(),
