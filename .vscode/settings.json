@@ -45,8 +45,9 @@
   "diffEditor.ignoreTrimWhitespace": false, // Ignore trimmed whitespace in diff - Default: true
   "diffEditor.hideUnchangedRegions.enabled": false, // Hide unchanged regions in diff - Default: false
 
-  "python.defaultInterpreterPath": "${workspaceFolder}/.venv/Scripts/python",
-  "python.terminal.activateEnvInCurrentTerminal": true,
+  "python.defaultInterpreterPath": "python",
+  "python.terminal.activateEnvInCurrentTerminal": false,
+  "python.terminal.activateEnvironment": false,
 
   // VS Code Files Settings https://code.visualstudio.com/docs/getstarted/settings
   "files.encoding": "utf8", // File encoding to use - Default: "utf8"
@@ -146,7 +147,6 @@
     "**/.Python": true, // Python environment marker
     "**/pip-log.txt": true, // Pip log file
     "**/pip-delete-this-directory.txt": true, // Pip deletion marker
-    "**/.venv": true, // Python virtual environment
     "**/venv": true, // Python virtual environment
     "**/env": true, // Python environment
     "**/ENV": true, // Python environment
@@ -253,7 +253,6 @@
     "**/.Python": true, // Python environment marker
     "**/pip-log.txt": true, // Pip log file
     "**/pip-delete-this-directory.txt": true, // Pip deletion marker
-    "**/.venv": true, // Python virtual environment
     "**/venv": true, // Python virtual environment
     "**/env": true, // Python environment
     "**/ENV": true, // Python environment
@@ -370,7 +369,6 @@
     "**/.Python": true, // Python environment marker
     "**/pip-log.txt": true, // Pip log file
     "**/pip-delete-this-directory.txt": true, // Pip deletion marker
-    "**/.venv/**": true, // Python virtual environment directory
     "**/venv/**": true, // Python virtual environment directory
     "**/env/**": true, // Python environment directory
     "**/ENV/**": true, // Python environment directory
