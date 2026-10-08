@@ -19,6 +19,8 @@ import (
 
 // TestToAppErr_GormRecordNotFound tests toAppErr handling of gorm.ErrRecordNotFound.
 func TestToAppErr_GormRecordNotFound(t *testing.T) {
+	t.Parallel()
+
 	// Sequential: uses shared package-level SQLite fixture state via CleanupDatabase
 	CleanupDatabase(t, testOrmRepository, KMSCleanupTables)
 
@@ -46,6 +48,8 @@ func TestToAppErr_GormRecordNotFound(t *testing.T) {
 
 // TestToAppErr_UniqueConstraintViolation tests toAppErr handling of unique constraint violations.
 func TestToAppErr_UniqueConstraintViolation(t *testing.T) {
+	t.Parallel()
+
 	// Sequential: uses shared package-level SQLite fixture state via CleanupDatabase
 	CleanupDatabase(t, testOrmRepository, KMSCleanupTables)
 
@@ -105,6 +109,8 @@ func TestToAppErr_UniqueConstraintViolation(t *testing.T) {
 
 // TestToAppErr_ForeignKeyViolation tests toAppErr handling of foreign key constraint violations.
 func TestToAppErr_ForeignKeyViolation(t *testing.T) {
+	t.Parallel()
+
 	// Sequential: uses shared package-level SQLite fixture state via CleanupDatabase
 	CleanupDatabase(t, testOrmRepository, KMSCleanupTables)
 
@@ -158,6 +164,8 @@ func TestToAppErr_GenericError(t *testing.T) {
 // toAppErr Error Mapping Tests
 
 func TestOrmTransaction_toAppErr_GormRecordNotFound(t *testing.T) {
+	t.Parallel()
+
 	// Sequential: uses shared package-level SQLite fixture state via CleanupDatabase
 	CleanupDatabase(t, testOrmRepository, KMSCleanupTables)
 
@@ -176,6 +184,8 @@ func TestOrmTransaction_toAppErr_GormRecordNotFound(t *testing.T) {
 }
 
 func TestOrmTransaction_toAppErr_GormDuplicatedKey(t *testing.T) {
+	t.Parallel()
+
 	// Sequential: uses shared package-level SQLite fixture state via CleanupDatabase
 	CleanupDatabase(t, testOrmRepository, KMSCleanupTables)
 
@@ -194,6 +204,8 @@ func TestOrmTransaction_toAppErr_GormDuplicatedKey(t *testing.T) {
 }
 
 func TestOrmTransaction_toAppErr_GormForeignKeyViolated(t *testing.T) {
+	t.Parallel()
+
 	// Sequential: uses shared package-level SQLite fixture state via CleanupDatabase
 	CleanupDatabase(t, testOrmRepository, KMSCleanupTables)
 
@@ -212,6 +224,8 @@ func TestOrmTransaction_toAppErr_GormForeignKeyViolated(t *testing.T) {
 }
 
 func TestOrmTransaction_toAppErr_GormCheckConstraintViolated(t *testing.T) {
+	t.Parallel()
+
 	// Sequential: uses shared package-level SQLite fixture state via CleanupDatabase
 	CleanupDatabase(t, testOrmRepository, KMSCleanupTables)
 
@@ -230,6 +244,8 @@ func TestOrmTransaction_toAppErr_GormCheckConstraintViolated(t *testing.T) {
 }
 
 func TestOrmTransaction_toAppErr_GormInvalidData(t *testing.T) {
+	t.Parallel()
+
 	// Sequential: uses shared package-level SQLite fixture state via CleanupDatabase
 	CleanupDatabase(t, testOrmRepository, KMSCleanupTables)
 
@@ -248,6 +264,8 @@ func TestOrmTransaction_toAppErr_GormInvalidData(t *testing.T) {
 }
 
 func TestOrmTransaction_toAppErr_GormInvalidValueOfLength(t *testing.T) {
+	t.Parallel()
+
 	// Sequential: uses shared package-level SQLite fixture state via CleanupDatabase
 	CleanupDatabase(t, testOrmRepository, KMSCleanupTables)
 
@@ -266,6 +284,8 @@ func TestOrmTransaction_toAppErr_GormInvalidValueOfLength(t *testing.T) {
 }
 
 func TestOrmTransaction_toAppErr_GormNotImplemented(t *testing.T) {
+	t.Parallel()
+
 	// Sequential: uses shared package-level SQLite fixture state via CleanupDatabase
 	CleanupDatabase(t, testOrmRepository, KMSCleanupTables)
 
@@ -286,6 +306,8 @@ func TestOrmTransaction_toAppErr_GormNotImplemented(t *testing.T) {
 // SQLite-specific error tests (trigger via actual database operations).
 
 func TestOrmTransaction_toAppErr_SQLiteUniqueConstraint(t *testing.T) {
+	t.Parallel()
+
 	// Sequential: uses shared package-level SQLite fixture state via CleanupDatabase
 	CleanupDatabase(t, testOrmRepository, KMSCleanupTables)
 
@@ -336,6 +358,8 @@ func TestOrmTransaction_toAppErr_SQLiteUniqueConstraint(t *testing.T) {
 // Default error fallback test.
 
 func TestOrmTransaction_toAppErr_UnknownError(t *testing.T) {
+	t.Parallel()
+
 	// Sequential: uses shared package-level SQLite fixture state via CleanupDatabase
 	CleanupDatabase(t, testOrmRepository, KMSCleanupTables)
 

@@ -3371,7 +3371,7 @@ cmd/cicd-lint/main.go                          # Layer 1: Thin main(), os.Exit(C
 | **Scripts** | `<action>-<target>` | `<action>_<target>/` | Script-specific | `registeredCleaners` etc. |
 
 **Linter commands** (14): `lint-text`, `lint-go`, `lint-go-test`, `lint-go-mod`, `lint-golangci`, `lint-compose`, `lint-ports`, `lint-workflow`, `lint-deployments`, `lint-docs`, `lint-fitness`, `lint-openapi`, `lint-java-test`, `lint-python-test`
-**Formatter commands** (2): `format-go`, `format-go-test`
+**Formatter commands** (3): `format-go`, `format-go-test`, `format-text`
 **Script commands** (1): `github-cleanup`
 <!-- @/to-appendix -->
 
@@ -3478,7 +3478,10 @@ internal/apps-tools/cicd_lint/
 │   └── enforce_time_now_utc/                       # Sub-formatter
 ├── format_gotest/                                    # format-go-test command
 │   ├── format_gotest.go                            # Format() + registeredFormatters
-│   └── thelper/                                    # Sub-formatter
+│   ├── failures/                                   # Sub-formatter: testing.T failure calls
+│   ├── parallel/                                   # Sub-formatter: t.Parallel()
+│   └── thelper/                                    # Sub-formatter: t.Helper()
+├── format_text/                                      # format-text command (CRLF to LF)
 └── github_cleanup/                                   # github-cleanup command
     ├── cleanup_api.go                              # Cleanup() + registeredCleaners
     ├── cleanup_runs.go                             # Sub-script

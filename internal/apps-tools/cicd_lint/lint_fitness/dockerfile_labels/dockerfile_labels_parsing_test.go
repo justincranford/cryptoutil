@@ -5,6 +5,8 @@ import (
 	"testing"
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestParseEntrypointLine(t *testing.T) {
@@ -50,21 +52,21 @@ func TestParseEntrypointLine(t *testing.T) {
 
 			if tc.want == nil {
 				if got != nil {
-					t.Errorf("expected nil, got %v", got)
+					assert.Failf(t, cryptoutilSharedMagic.CICDTestErrorfFailureMessage, "expected nil, got %v", got)
 				}
 
 				return
 			}
 
 			if len(got) != len(tc.want) {
-				t.Errorf("expected %v, got %v", tc.want, got)
+				assert.Failf(t, cryptoutilSharedMagic.CICDTestErrorfFailureMessage, "expected %v, got %v", tc.want, got)
 
 				return
 			}
 
 			for i := range tc.want {
 				if got[i] != tc.want[i] {
-					t.Errorf("element %d: expected %q, got %q", i, tc.want[i], got[i])
+					assert.Failf(t, cryptoutilSharedMagic.CICDTestErrorfFailureMessage, "element %d: expected %q, got %q", i, tc.want[i], got[i])
 				}
 			}
 		})
@@ -92,7 +94,7 @@ func TestEntrypointEqual(t *testing.T) {
 
 			got := entrypointEqual(tc.a, tc.b)
 			if got != tc.want {
-				t.Errorf("entrypointEqual(%v, %v) = %v, want %v", tc.a, tc.b, got, tc.want)
+				assert.Failf(t, cryptoutilSharedMagic.CICDTestErrorfFailureMessage, "entrypointEqual(%v, %v) = %v, want %v", tc.a, tc.b, got, tc.want)
 			}
 		})
 	}
@@ -111,7 +113,7 @@ func TestParseLabelsFromLine_UnquotedNoSpace(t *testing.T) {
 	}
 
 	if got != "unquoted-value" {
-		t.Errorf("expected %q, got %q", "unquoted-value", got)
+		assert.Failf(t, cryptoutilSharedMagic.CICDTestErrorfFailureMessage, "expected %q, got %q", "unquoted-value", got)
 	}
 }
 
@@ -123,6 +125,6 @@ func TestParseLabelsFromLine_NoEqualSign(t *testing.T) {
 	parseLabelsFromLine("no-equal-sign-here", labels)
 
 	if len(labels) != 0 {
-		t.Errorf("expected no labels, got %v", labels)
+		assert.Failf(t, cryptoutilSharedMagic.CICDTestErrorfFailureMessage, "expected no labels, got %v", labels)
 	}
 }

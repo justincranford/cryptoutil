@@ -28,6 +28,8 @@ import (
 //
 // NOTE: NOT parallel — modifies package-level injectable var.
 func TestHandleRegisterUser_ValidationError(t *testing.T) {
+	t.Parallel()
+
 	db := &gorm.DB{}
 	tenantRepo := cryptoutilAppsFrameworkServiceServerRepository.NewTenantRepository(db)
 	userRepo := cryptoutilAppsFrameworkServiceServerRepository.NewUserRepository(db)

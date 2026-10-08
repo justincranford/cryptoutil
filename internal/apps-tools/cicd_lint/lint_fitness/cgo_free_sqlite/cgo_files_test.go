@@ -20,9 +20,8 @@ const (
 	testMainContent  = "package main\n\nfunc main() {}\n"
 )
 
+// Sequential: changes the process working directory with os.Chdir.
 func TestCheckGoFilesForCGO_WithTempDir(t *testing.T) {
-	// NOTE: Cannot use t.Parallel() - test changes working directory.
-
 	// Save current directory.
 	origDir, err := os.Getwd()
 	require.NoError(t, err)
@@ -44,9 +43,8 @@ func TestCheckGoFilesForCGO_WithTempDir(t *testing.T) {
 	require.Empty(t, violations)
 }
 
+// Sequential: changes the process working directory with os.Chdir.
 func TestCheckGoFilesForCGO_WithBannedImport(t *testing.T) {
-	// NOTE: Cannot use t.Parallel() - test changes working directory.
-
 	// Save current directory.
 	origDir, err := os.Getwd()
 	require.NoError(t, err)
@@ -65,7 +63,7 @@ func TestCheckGoFilesForCGO_WithBannedImport(t *testing.T) {
 	banned.WriteString("mattn/go-sqlite3")
 
 	// Create file with banned CGO import.
-	bannedFile := "banned.go"
+	bannedFile := testBannedGoFilename
 	bannedContent := "package main\n\nimport _ \"" + banned.String() + "\"\n\nfunc main() {}\n"
 
 	require.NoError(t, os.WriteFile(bannedFile, []byte(bannedContent), cryptoutilSharedMagic.CacheFilePermissions))
@@ -74,12 +72,11 @@ func TestCheckGoFilesForCGO_WithBannedImport(t *testing.T) {
 	violations, err := CheckGoFilesForCGO()
 	require.NoError(t, err)
 	require.Len(t, violations, 1)
-	require.Contains(t, violations[0], "banned.go")
+	require.Contains(t, violations[0], testBannedGoFilename)
 }
 
-func TestCheckGoFilesForCGO_SkipsVendor(t *testing.T) {
-	// NOTE: Cannot use t.Parallel() - test changes working directory.
-
+// Sequential: changes the process working directory with os.Chdir.
+func TestCheckGoFilesForCGO_SkipsExcludedDirectories(t *testing.T) {
 	// Save current directory.
 	origDir, err := os.Getwd()
 	require.NoError(t, err)
@@ -88,35 +85,30 @@ func TestCheckGoFilesForCGO_SkipsVendor(t *testing.T) {
 		require.NoError(t, os.Chdir(origDir))
 	}()
 
-	// Create temp directory.
 	tempDir := t.TempDir()
 	require.NoError(t, os.Chdir(tempDir))
-
-	// Create vendor directory with file that would be flagged.
-	require.NoError(t, os.MkdirAll(cryptoutilSharedMagic.CICDExcludeDirVendor, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 	var banned strings.Builder
 	banned.WriteString("github.com/")
 	banned.WriteString("mattn/go-sqlite3")
 
-	vendorFile := "vendor/dep.go"
-	vendorContent := "package vendor\n\nimport _ \"" + banned.String() + "\"\n\nfunc init() {}\n"
+	for _, excludedDir := range cryptoutilSharedMagic.DirectoryNameExclusions {
+		bannedFile := filepath.Join(excludedDir, testCleanGoFile)
+		require.NoError(t, os.MkdirAll(filepath.Dir(bannedFile), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
-	require.NoError(t, os.WriteFile(vendorFile, []byte(vendorContent), cryptoutilSharedMagic.CacheFilePermissions))
+		bannedContent := "package main\n\nimport _ \"" + banned.String() + "\"\n\nfunc init() {}\n"
+		require.NoError(t, os.WriteFile(bannedFile, []byte(bannedContent), cryptoutilSharedMagic.CacheFilePermissions))
+	}
 
-	// Create clean main file.
-	mainFile := "main.go"
+	require.NoError(t, os.WriteFile(testCleanGoFile, []byte(testMainContent), cryptoutilSharedMagic.CacheFilePermissions))
 
-	require.NoError(t, os.WriteFile(mainFile, []byte(testMainContent), cryptoutilSharedMagic.CacheFilePermissions))
-
-	// Test - vendor should be skipped, no violations.
 	violations, err := CheckGoFilesForCGO()
 	require.NoError(t, err)
-	require.Empty(t, violations, "vendor directory should be skipped")
+	require.Empty(t, violations, "excluded directories should be skipped")
 }
 
+// Sequential: changes the process working directory with os.Chdir.
 func TestCheckGoFilesForCGO_ErrorPath(t *testing.T) {
-	// NOTE: Cannot use t.Parallel() - test changes working directory.
 	if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
 		t.Skip("os.Chmod does not enforce POSIX permissions on Windows")
 	}

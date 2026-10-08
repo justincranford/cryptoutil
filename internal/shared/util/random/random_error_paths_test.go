@@ -29,6 +29,8 @@ func errUUIDGen() (googleUuid.UUID, error) {
 
 // TestGenerateBytes_RandError covers the crypto/rand error path.
 func TestGenerateBytes_RandError(t *testing.T) {
+	t.Parallel()
+
 	orig := globalRandReader
 	globalRandReader = errReader{}
 
@@ -41,6 +43,8 @@ func TestGenerateBytes_RandError(t *testing.T) {
 
 // TestGenerateMultipleBytes_RandError covers the crypto/rand error path.
 func TestGenerateMultipleBytes_RandError(t *testing.T) {
+	t.Parallel()
+
 	orig := globalRandReader
 	globalRandReader = errReader{}
 
@@ -53,6 +57,8 @@ func TestGenerateMultipleBytes_RandError(t *testing.T) {
 
 // TestGenerateString_RandError covers the GenerateBytes error path in GenerateString.
 func TestGenerateString_RandError(t *testing.T) {
+	t.Parallel()
+
 	orig := globalRandReader
 	globalRandReader = errReader{}
 
@@ -65,6 +71,8 @@ func TestGenerateString_RandError(t *testing.T) {
 
 // TestGenerateUsernameSimple_UUIDError covers the uuid error path.
 func TestGenerateUsernameSimple_UUIDError(t *testing.T) {
+	t.Parallel()
+
 	orig := uuidNewV7
 	uuidNewV7 = errUUIDGen
 
@@ -77,6 +85,8 @@ func TestGenerateUsernameSimple_UUIDError(t *testing.T) {
 
 // TestGeneratePasswordSimple_UUIDError covers the uuid error path.
 func TestGeneratePasswordSimple_UUIDError(t *testing.T) {
+	t.Parallel()
+
 	orig := uuidNewV7
 	uuidNewV7 = errUUIDGen
 
@@ -89,6 +99,8 @@ func TestGeneratePasswordSimple_UUIDError(t *testing.T) {
 
 // TestGenerateUUIDv7_UUIDError covers the uuid error path.
 func TestGenerateUUIDv7_UUIDError(t *testing.T) {
+	t.Parallel()
+
 	orig := uuidNewV7
 	uuidNewV7 = errUUIDGen
 
@@ -101,6 +113,8 @@ func TestGenerateUUIDv7_UUIDError(t *testing.T) {
 
 // TestGenerateUUIDv7Function_UUIDError covers the uuid error path via the function wrapper.
 func TestGenerateUUIDv7Function_UUIDError(t *testing.T) {
+	t.Parallel()
+
 	orig := uuidNewV7
 	uuidNewV7 = errUUIDGen
 

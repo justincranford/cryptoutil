@@ -79,6 +79,22 @@ func TestSomething(t *testing.T) {
 			wantErr: true,
 		},
 		{
+			name: "assert_nonfatal_failure_only",
+			fileContent: `package test
+
+import (
+	"testing"
+	"github.com/stretchr/testify/assert"
+)
+
+func TestSomething(t *testing.T) {
+	t.Parallel()
+	assert.Failf(t, "failure", "message")
+}
+`,
+			wantErr: false,
+		},
+		{
 			name: "both_imports_acceptable",
 			fileContent: `package test
 

@@ -67,6 +67,8 @@ func setupAllValidServiceDirs(t *testing.T, tmpDir string) {
 // TestCheck_DelegatesToCheckInDir verifies Check() delegates to CheckInDir with workspace root.
 // Not parallel because it needs to chdir.
 func TestCheck_DelegatesToCheckInDir(t *testing.T) {
+	t.Parallel()
+
 	tmpDir := t.TempDir()
 	setupAllValidServiceDirs(t, tmpDir)
 

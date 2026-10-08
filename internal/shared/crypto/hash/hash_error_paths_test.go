@@ -61,6 +61,8 @@ func TestHashSecretHKDFRandom_HKDFError(t *testing.T) {
 }
 
 func TestVerifySecretHKDFRandom_InvalidParts(t *testing.T) {
+	t.Parallel()
+
 	_, err := VerifySecretHKDFRandom("no-dollar-signs-here", "secret")
 
 	require.Error(t, err)
@@ -68,6 +70,8 @@ func TestVerifySecretHKDFRandom_InvalidParts(t *testing.T) {
 }
 
 func TestVerifySecretHKDFRandom_WrongAlgo(t *testing.T) {
+	t.Parallel()
+
 	_, err := VerifySecretHKDFRandom("wrong-algo$aGVsbG8=$aGVsbG8=", "secret")
 
 	require.Error(t, err)
@@ -75,6 +79,8 @@ func TestVerifySecretHKDFRandom_WrongAlgo(t *testing.T) {
 }
 
 func TestVerifySecretHKDFRandom_InvalidSalt(t *testing.T) {
+	t.Parallel()
+
 	_, err := VerifySecretHKDFRandom("hkdf-sha256$!not-valid-base64!$aGVsbG8", "secret")
 
 	require.Error(t, err)
@@ -82,6 +88,8 @@ func TestVerifySecretHKDFRandom_InvalidSalt(t *testing.T) {
 }
 
 func TestVerifySecretHKDFRandom_InvalidDK(t *testing.T) {
+	t.Parallel()
+
 	_, err := VerifySecretHKDFRandom("hkdf-sha256$aGVsbG8$!not-valid-base64!", "secret")
 
 	require.Error(t, err)

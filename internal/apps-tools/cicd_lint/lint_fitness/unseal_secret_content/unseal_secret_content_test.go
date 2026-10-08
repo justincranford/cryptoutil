@@ -8,6 +8,9 @@ import (
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps-tools/cicd_lint/common"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestCheck_RealWorkspace(t *testing.T) {
@@ -17,7 +20,7 @@ func TestCheck_RealWorkspace(t *testing.T) {
 	// Run from project root (6 levels up from this test file).
 	err := CheckInDir(logger, filepath.Join("..", "..", "..", "..", ".."))
 	if err != nil {
-		t.Fatalf("unexpected violation in real workspace: %v", err)
+		require.FailNowf(t, cryptoutilSharedMagic.CICDTestFatalfFailureMessage, "unexpected violation in real workspace: %v", err)
 	}
 }
 
@@ -80,11 +83,11 @@ func TestFindViolationsInDir_ValidDeployments(t *testing.T) {
 
 			violations, err := FindViolationsInDir(rootDir)
 			if err != nil {
-				t.Fatalf("unexpected error: %v", err)
+				require.FailNowf(t, cryptoutilSharedMagic.CICDTestFatalfFailureMessage, "unexpected error: %v", err)
 			}
 
 			if len(violations) > 0 {
-				t.Errorf("expected no violations, got %d: %v", len(violations), violations)
+				assert.Failf(t, cryptoutilSharedMagic.CICDTestErrorfFailureMessage, "expected no violations, got %d: %v", len(violations), violations)
 			}
 		})
 	}
@@ -181,11 +184,11 @@ func TestFindViolationsInDir_InvalidContent(t *testing.T) {
 
 			violations, err := FindViolationsInDir(rootDir)
 			if err != nil {
-				t.Fatalf("unexpected error: %v", err)
+				require.FailNowf(t, cryptoutilSharedMagic.CICDTestFatalfFailureMessage, "unexpected error: %v", err)
 			}
 
 			if len(violations) != tc.wantViolations {
-				t.Errorf("expected %d violations, got %d: %v", tc.wantViolations, len(violations), violations)
+				assert.Failf(t, cryptoutilSharedMagic.CICDTestErrorfFailureMessage, "expected %d violations, got %d: %v", tc.wantViolations, len(violations), violations)
 			}
 
 			if tc.wantSubstring != "" && len(violations) > 0 {
@@ -200,7 +203,7 @@ func TestFindViolationsInDir_InvalidContent(t *testing.T) {
 				}
 
 				if !found {
-					t.Errorf("expected violation containing %q, got: %v", tc.wantSubstring, violations)
+					assert.Failf(t, cryptoutilSharedMagic.CICDTestErrorfFailureMessage, "expected violation containing %q, got: %v", tc.wantSubstring, violations)
 				}
 			}
 		})
@@ -246,7 +249,7 @@ func TestCheckInDir_NoViolation(t *testing.T) {
 
 	err := CheckInDir(logger, rootDir)
 	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
+		require.FailNowf(t, cryptoutilSharedMagic.CICDTestFatalfFailureMessage, "unexpected error: %v", err)
 	}
 }
 
@@ -260,11 +263,11 @@ func setupTempDir(t *testing.T, files map[string]string) string {
 		absPath := filepath.Join(rootDir, filepath.FromSlash(relPath))
 
 		if err := os.MkdirAll(filepath.Dir(absPath), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupReadExecute); err != nil {
-			t.Fatalf("failed to create directory: %v", err)
+			require.FailNowf(t, cryptoutilSharedMagic.CICDTestFatalfFailureMessage, "failed to create directory: %v", err)
 		}
 
 		if err := os.WriteFile(absPath, []byte(content), cryptoutilSharedMagic.CacheFilePermissions); err != nil {
-			t.Fatalf("failed to write file: %v", err)
+			require.FailNowf(t, cryptoutilSharedMagic.CICDTestFatalfFailureMessage, "failed to write file: %v", err)
 		}
 	}
 

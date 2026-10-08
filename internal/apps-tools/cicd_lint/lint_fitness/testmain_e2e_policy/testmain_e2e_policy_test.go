@@ -188,6 +188,8 @@ func TestCheck_CalledFromTestWorkdir(t *testing.T) {
 }
 
 func TestLintAndCheck_FromTemporaryWorkdir(t *testing.T) {
+	t.Parallel()
+
 	dir := t.TempDir()
 	writeE2ETestMain(t, dir, cryptoutilSharedMagic.OTLPServiceSMKMS, compliantE2ETestMain)
 

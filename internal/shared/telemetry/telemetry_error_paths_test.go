@@ -22,6 +22,7 @@ import (
 )
 
 // TestNewTelemetryService_InitMetricsError tests the error path when initMetrics fails.
+// Sequential: replaces the package-level metrics initialization seam.
 func TestNewTelemetryService_InitMetricsError(t *testing.T) {
 	original := initMetricsFn
 	initMetricsFn = func(_ context.Context, _ *stdoutLogExporter.Logger, _ *TelemetrySettings) (*metricSdk.MeterProvider, error) {
@@ -38,6 +39,7 @@ func TestNewTelemetryService_InitMetricsError(t *testing.T) {
 }
 
 // TestNewTelemetryService_InitTracesError tests the error path when initTraces fails.
+// Sequential: replaces the package-level traces initialization seam.
 func TestNewTelemetryService_InitTracesError(t *testing.T) {
 	original := initTracesFn
 	initTracesFn = func(_ context.Context, _ *stdoutLogExporter.Logger, _ *TelemetrySettings) (*traceSdk.TracerProvider, error) {
@@ -118,6 +120,7 @@ func TestShutdown_LogsProviderShutdownError(t *testing.T) {
 }
 
 // TestInitMetrics_StdoutExporterError tests the error path when STDOUT metric exporter creation fails.
+// Sequential: replaces the package-level metrics initialization seam.
 func TestInitMetrics_StdoutExporterError(t *testing.T) {
 	originalFn := initMetricsFn
 	initMetricsFn = func(ctx context.Context, slogger *stdoutLogExporter.Logger, settings *TelemetrySettings) (*metricSdk.MeterProvider, error) {
@@ -137,6 +140,7 @@ func TestInitMetrics_StdoutExporterError(t *testing.T) {
 }
 
 // TestInitTraces_StdoutExporterError tests the error path when STDOUT trace exporter creation fails.
+// Sequential: replaces the package-level traces initialization seam.
 func TestInitTraces_StdoutExporterError(t *testing.T) {
 	originalFn := initTracesFn
 	initTracesFn = func(ctx context.Context, slogger *stdoutLogExporter.Logger, settings *TelemetrySettings) (*traceSdk.TracerProvider, error) {

@@ -6,6 +6,8 @@ import (
 	"fmt"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps-tools/cicd_lint/common"
+	formatGoTestFailures "cryptoutil/internal/apps-tools/cicd_lint/format_gotest/failures"
+	formatGoTestParallel "cryptoutil/internal/apps-tools/cicd_lint/format_gotest/parallel"
 	formatGoTestTHelper "cryptoutil/internal/apps-tools/cicd_lint/format_gotest/thelper"
 )
 
@@ -18,6 +20,8 @@ var registeredFormatters = []struct {
 	name      string
 	formatter FormatterFunc
 }{
+	{"failures", formatGoTestFailures.Fix},
+	{"parallel", formatGoTestParallel.Fix},
 	{"thelper", formatGoTestTHelper.Fix},
 }
 

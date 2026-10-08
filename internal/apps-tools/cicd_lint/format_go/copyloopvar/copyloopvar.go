@@ -14,6 +14,7 @@ import (
 	"strings"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps-tools/cicd_lint/common"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 const (
@@ -39,8 +40,24 @@ func Fix(logger *cryptoutilCmdCicdCommon.Logger, rootDir string, goVersion strin
 			return err
 		}
 
+		if info.IsDir() {
+			relativePath, relErr := filepath.Rel(rootDir, path)
+			if relErr != nil {
+				return fmt.Errorf("failed to determine relative path for %s: %w", path, relErr)
+			}
+
+			relativePath = filepath.ToSlash(relativePath)
+			for _, excludedDir := range cryptoutilSharedMagic.DirectoryNameExclusions {
+				if relativePath == excludedDir {
+					return filepath.SkipDir
+				}
+			}
+
+			return nil
+		}
+
 		// Skip directories, non-Go files, test files, and generated files.
-		if info.IsDir() || !strings.HasSuffix(path, ".go") || strings.HasSuffix(path, "_test.go") ||
+		if !strings.HasSuffix(path, ".go") || strings.HasSuffix(path, "_test.go") ||
 			strings.HasSuffix(path, "_gen.go") || strings.Contains(path, "openapi_gen_") {
 			return nil
 		}

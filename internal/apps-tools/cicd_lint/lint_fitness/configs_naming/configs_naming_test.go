@@ -216,6 +216,8 @@ func TestCheckInDir_NonExistentRoot_ReturnsError(t *testing.T) {
 
 // TestCheck_Integration runs the linter against the real workspace.
 func TestCheck_Integration(t *testing.T) {
+	t.Parallel()
+
 	root := findProjectRoot(t)
 
 	err := lintFitnessConfigsNaming.CheckInDir(newTestLogger(), root)

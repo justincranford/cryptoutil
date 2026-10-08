@@ -20,6 +20,7 @@ import (
 
 var errInjectTLSGen = errors.New("injected test error")
 
+// Sequential: replaces the package-level key-generation seam.
 func TestGenerateAutoTLSGeneratedSettings_CAKeyGenError(t *testing.T) {
 	orig := generateECDSAKeyPairFn
 	generateECDSAKeyPairFn = func(_ elliptic.Curve) (*cryptoutilSharedCryptoKeygen.KeyPair, error) {
@@ -32,6 +33,7 @@ func TestGenerateAutoTLSGeneratedSettings_CAKeyGenError(t *testing.T) {
 	require.ErrorContains(t, err, "failed to generate CA key pair")
 }
 
+// Sequential: replaces the package-level CA-subject seam.
 func TestGenerateAutoTLSGeneratedSettings_CASubjectsError(t *testing.T) {
 	orig := createCASubjectsFn
 	createCASubjectsFn = func(_ []*cryptoutilSharedCryptoKeygen.KeyPair, _ string, _ time.Duration) ([]*cryptoutilSharedCryptoCertificate.Subject, error) {
@@ -44,6 +46,7 @@ func TestGenerateAutoTLSGeneratedSettings_CASubjectsError(t *testing.T) {
 	require.ErrorContains(t, err, "failed to create CA subjects")
 }
 
+// Sequential: replaces the package-level key-generation seam.
 func TestGenerateAutoTLSGeneratedSettings_ServerKeyGenError(t *testing.T) {
 	call := 0
 	orig := generateECDSAKeyPairFn
@@ -62,6 +65,7 @@ func TestGenerateAutoTLSGeneratedSettings_ServerKeyGenError(t *testing.T) {
 	require.ErrorContains(t, err, "failed to generate server key pair")
 }
 
+// Sequential: replaces the package-level end-entity seam.
 func TestGenerateAutoTLSGeneratedSettings_CreateEndEntityError(t *testing.T) {
 	orig := createEndEntitySubjectFn
 	createEndEntitySubjectFn = func(_ *cryptoutilSharedCryptoCertificate.Subject, _ *cryptoutilSharedCryptoKeygen.KeyPair, _ string, _ time.Duration, _ []string, _ []net.IP, _ []string, _ []*url.URL, _ x509.KeyUsage, _ []x509.ExtKeyUsage) (*cryptoutilSharedCryptoCertificate.Subject, error) {
@@ -74,6 +78,7 @@ func TestGenerateAutoTLSGeneratedSettings_CreateEndEntityError(t *testing.T) {
 	require.ErrorContains(t, err, "failed to create server certificate")
 }
 
+// Sequential: replaces the package-level certificate-building seam.
 func TestGenerateAutoTLSGeneratedSettings_BuildTLSError(t *testing.T) {
 	orig := buildTLSCertificateFn
 	buildTLSCertificateFn = func(_ *cryptoutilSharedCryptoCertificate.Subject) (*tls.Certificate, *x509.CertPool, *x509.CertPool, error) {
@@ -86,6 +91,7 @@ func TestGenerateAutoTLSGeneratedSettings_BuildTLSError(t *testing.T) {
 	require.ErrorContains(t, err, "failed to build TLS certificate")
 }
 
+// Sequential: replaces the package-level key-encoding seam.
 func TestGenerateAutoTLSGeneratedSettings_MarshalKeyError(t *testing.T) {
 	orig := pemEncodeKeyFn
 	pemEncodeKeyFn = func(_ any) ([]byte, error) { return nil, errInjectTLSGen }
@@ -96,6 +102,7 @@ func TestGenerateAutoTLSGeneratedSettings_MarshalKeyError(t *testing.T) {
 	require.ErrorContains(t, err, "failed to PEM-encode server private key")
 }
 
+// Sequential: replaces the package-level key-generation seam.
 func TestGenerateTestCA_KeyGenError(t *testing.T) {
 	orig := generateECDSAKeyPairFn
 	generateECDSAKeyPairFn = func(_ elliptic.Curve) (*cryptoutilSharedCryptoKeygen.KeyPair, error) {
@@ -108,6 +115,7 @@ func TestGenerateTestCA_KeyGenError(t *testing.T) {
 	require.ErrorContains(t, err, "failed to generate CA key pair")
 }
 
+// Sequential: replaces the package-level CA-subject seam.
 func TestGenerateTestCA_CASubjectsError(t *testing.T) {
 	orig := createCASubjectsFn
 	createCASubjectsFn = func(_ []*cryptoutilSharedCryptoKeygen.KeyPair, _ string, _ time.Duration) ([]*cryptoutilSharedCryptoCertificate.Subject, error) {
@@ -120,6 +128,7 @@ func TestGenerateTestCA_CASubjectsError(t *testing.T) {
 	require.ErrorContains(t, err, "failed to create CA subjects")
 }
 
+// Sequential: replaces the package-level key-encoding seam.
 func TestGenerateTestCA_MarshalKeyError(t *testing.T) {
 	orig := pemEncodeKeyFn
 	pemEncodeKeyFn = func(_ any) ([]byte, error) { return nil, errInjectTLSGen }
@@ -130,6 +139,7 @@ func TestGenerateTestCA_MarshalKeyError(t *testing.T) {
 	require.ErrorContains(t, err, "failed to PEM-encode CA private key")
 }
 
+// Sequential: replaces the package-level key-generation seam.
 func TestGenerateServerCertFromCA_ServerKeyGenError(t *testing.T) {
 	caCertPEM, caKeyPEM, err := GenerateTestCA()
 	require.NoError(t, err)
@@ -145,6 +155,7 @@ func TestGenerateServerCertFromCA_ServerKeyGenError(t *testing.T) {
 	require.ErrorContains(t, err, "failed to generate server key pair")
 }
 
+// Sequential: replaces the package-level certificate-building seam.
 func TestGenerateServerCertFromCA_BuildTLSError(t *testing.T) {
 	caCertPEM, caKeyPEM, err := GenerateTestCA()
 	require.NoError(t, err)
@@ -160,6 +171,7 @@ func TestGenerateServerCertFromCA_BuildTLSError(t *testing.T) {
 	require.ErrorContains(t, err, "failed to build TLS certificate")
 }
 
+// Sequential: replaces the package-level key-encoding seam.
 func TestGenerateServerCertFromCA_MarshalKeyError(t *testing.T) {
 	caCertPEM, caKeyPEM, err := GenerateTestCA()
 	require.NoError(t, err)

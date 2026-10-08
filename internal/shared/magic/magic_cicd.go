@@ -21,6 +21,14 @@ const (
 	// CICDExcludeDirVendor is the name of the vendor directory to exclude from scans.
 	CICDExcludeDirVendor = "vendor"
 
+	SequentialCommentWindow      = 10
+	CICDTestMethodErrorf         = "Errorf"
+	CICDTestMethodFatalf         = "Fatalf"
+	CICDTestMethodFailf          = "Failf"
+	CICDTestMethodFailNowf       = "FailNowf"
+	CICDTestErrorfFailureMessage = "testing.T.Errorf failed"
+	CICDTestFatalfFailureMessage = "testing.T.Fatalf failed"
+
 	// CICDExcludeDirDocs is the name of the documentation directory to exclude from banned-phrase scans.
 	// Planning docs under docs/ legitimately reference old product names when explaining the migration.
 	CICDExcludeDirDocs = "docs"
@@ -396,7 +404,8 @@ const (
 
 	Commands:
 			format-go           - [Formatter] Auto-fix Go files (any -> any, loop var copies)
-		format-go-test      - [Formatter] Auto-fix Go test files (add t.Helper() to helpers)
+		format-go-test      - [Formatter] Auto-fix failure calls, t.Parallel(), and t.Helper()
+		format-text         - [Formatter] Normalize text files to LF line endings
 		github-cleanup      - [Script]    GitHub Actions storage cleanup (runs, artifacts, caches)
 		lint-compose        - [Linter]    Detect admin port 9090 exposure in Docker Compose files
 		lint-deployments    - [Linter]    Deployment structure and config file validation
@@ -425,6 +434,7 @@ var BooleanFlags = map[string]bool{
 var ValidCommands = map[string]bool{
 	"format-go":        true,
 	"format-go-test":   true,
+	"format-text":      true,
 	"github-cleanup":   true,
 	"lint-compose":     true,
 	"lint-deployments": true,
@@ -450,16 +460,14 @@ var (
 	TestFatalfPattern = regexp.MustCompile(`\bt\.Fatalf\s*\(`)
 
 	// Test validation regex patterns for cicd test files.
-	TestErrorfValidationPattern  = regexp.MustCompile(`^t\.Errorf\([^)]+\)$`)
-	TestFErrorfValidationPattern = regexp.MustCompile(`^f\.Errorf\([^)]+\)$`)
-	TestFatalfValidationPattern  = regexp.MustCompile(`t\.Fatalf\([^)]+\)`)
+	TestFatalfValidationPattern = regexp.MustCompile(`t\.Fatalf\([^)]+\)`)
 )
 
 // File patterns for CI/CD enforcement commands.
 var (
 	// CICDSelfExclusionPatterns - Self-exclusion patterns for each cicd command.
 	// CRITICAL: Each command excludes its own subdirectory to prevent self-modification.
-	// Keys match command names: lint-text, lint-go, lint-compose, format-go, lint-go-test, format-go-test, lint-golangci, lint-ports, lint-workflow, lint-go-mod.
+	// Keys match command names: lint-text, lint-go, lint-compose, format-go, format-go-test, format-text, lint-go-test, lint-golangci, lint-ports, lint-workflow, lint-go-mod.
 	CICDSelfExclusionPatterns = map[string]string{
 		"format-go":        `internal[/\\]apps-tools[/\\]cicd_lint[/\\]format_go[/\\].*\.go$`,
 		"format-go-test":   `internal[/\\]apps-tools[/\\]cicd_lint[/\\]format_gotest[/\\].*\.go$`,

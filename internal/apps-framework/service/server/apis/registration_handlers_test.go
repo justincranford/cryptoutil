@@ -225,6 +225,7 @@ func TestRegisterUserRequest_JSON(t *testing.T) {
 }
 
 // TestHandleRegisterUser_TableDriven uses table-driven tests for comprehensive coverage.
+// Sequential: shares the package-level testGormDB fixture.
 func TestHandleRegisterUser_TableDriven(t *testing.T) {
 	tests := []struct {
 		name           string

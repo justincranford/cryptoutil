@@ -74,6 +74,8 @@ func TestNewAdminHTTPServer_NilTLSCfg(t *testing.T) {
 
 // TestAdminServer_Start_Success tests admin server starts and listens on dynamic port.
 func TestAdminServer_Start_Success(t *testing.T) {
+	t.Parallel()
+
 	// NOT parallel - all admin server tests compete for port 9090.
 	// Use shared TestMain-generated fixture for private TLS settings.
 	tlsCfg := cryptoutilAppsFrameworkServiceServerTestutil.PrivateTLS()
@@ -134,6 +136,8 @@ func TestAdminServer_Start_Success(t *testing.T) {
 
 // TestAdminServer_Readyz_NotReady tests that readyz returns 503 when server not marked ready.
 func TestAdminServer_Readyz_NotReady(t *testing.T) {
+	t.Parallel()
+
 	tlsCfg := cryptoutilAppsFrameworkServiceServerTestutil.PrivateTLS()
 	server, err := cryptoutilAppsFrameworkServiceServerListener.NewAdminHTTPServer(context.Background(), cryptoutilAppsFrameworkServiceServerTestutil.ServiceFrameworkServerSettings(), tlsCfg)
 	require.NoError(t, err)
@@ -211,6 +215,8 @@ func TestAdminServer_Readyz_NotReady(t *testing.T) {
 
 // TestAdminServer_HealthChecks_DuringShutdown tests livez and readyz return 503 during shutdown.
 func TestAdminServer_HealthChecks_DuringShutdown(t *testing.T) {
+	t.Parallel()
+
 	tlsCfg := cryptoutilAppsFrameworkServiceServerTestutil.PrivateTLS()
 	server, err := cryptoutilAppsFrameworkServiceServerListener.NewAdminHTTPServer(context.Background(), cryptoutilAppsFrameworkServiceServerTestutil.ServiceFrameworkServerSettings(), tlsCfg)
 	require.NoError(t, err)
@@ -330,6 +336,8 @@ func TestAdminServer_Start_NilContext(t *testing.T) {
 
 // TestAdminServer_Livez_Alive tests /admin/api/v1/livez endpoint when server is alive.
 func TestAdminServer_Livez_Alive(t *testing.T) {
+	t.Parallel()
+
 	// NOT parallel - all admin server tests compete for port 9090.
 	tlsCfg := cryptoutilAppsFrameworkServiceServerTestutil.PrivateTLS()
 	server, err := cryptoutilAppsFrameworkServiceServerListener.NewAdminHTTPServer(context.Background(), cryptoutilAppsFrameworkServiceServerTestutil.ServiceFrameworkServerSettings(), tlsCfg)
@@ -409,6 +417,8 @@ func TestAdminServer_Livez_Alive(t *testing.T) {
 
 // TestAdminServer_Readyz_Ready tests /admin/api/v1/readyz endpoint when server is ready.
 func TestAdminServer_Readyz_Ready(t *testing.T) {
+	t.Parallel()
+
 	// NOT parallel - all admin server tests compete for port 9090.
 	tlsCfg := cryptoutilAppsFrameworkServiceServerTestutil.PrivateTLS()
 	server, err := cryptoutilAppsFrameworkServiceServerListener.NewAdminHTTPServer(context.Background(), cryptoutilAppsFrameworkServiceServerTestutil.ServiceFrameworkServerSettings(), tlsCfg)

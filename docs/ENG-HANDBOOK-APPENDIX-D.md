@@ -2570,7 +2570,7 @@ ALWAYS exclude dev/test artifacts. Build context should be <10MB.
 | **Scripts** | `<action>-<target>` | `<action>_<target>/` | Script-specific | `registeredCleaners` etc. |
 
 **Linter commands** (14): `lint-text`, `lint-go`, `lint-go-test`, `lint-go-mod`, `lint-golangci`, `lint-compose`, `lint-ports`, `lint-workflow`, `lint-deployments`, `lint-docs`, `lint-fitness`, `lint-openapi`, `lint-java-test`, `lint-python-test`
-**Formatter commands** (2): `format-go`, `format-go-test`
+**Formatter commands** (3): `format-go`, `format-go-test`, `format-text`
 **Script commands** (1): `github-cleanup`
 <!-- @/from-eng-handbook -->
 
@@ -2666,7 +2666,8 @@ Run from project root: `go run ./cmd/cicd-lint <command> [command2...]`
 | Command | Purpose | When to Use |
 |---------|---------|-------------|
 | `format-go` | Go file formatters (any, copyloopvar) | Before committing Go code |
-| `format-go-test` | Go test file formatters (t.Helper) | Before committing Go tests |
+| `format-go-test` | Go test formatters (failures, parallel, t.Helper) | Before committing Go tests |
+| `format-text` | Normalize CRLF line endings to LF | After editing text files |
 
 **Scripts** (operational tasks):
 

@@ -23,8 +23,8 @@ import (
 // correctly map to PascalCase struct fields (DevMode, BindPublicAddress).
 // Priority: P1.3 (Critical - Must Have).
 func TestYAMLFieldMapping_KebabCase(t *testing.T) {
-	// NOTE: Cannot use t.Parallel() here - ParseWithFlagSet modifies global viper state
-	// which causes race conditions with other parallel tests
+	t.Parallel()
+
 	yamlContent := `
 local: true
 bind-public-protocol: https
@@ -130,8 +130,8 @@ bind-private-port: 6666
 // TestYAMLFieldMapping_FalseBooleans tests that false boolean values are correctly parsed.
 // Priority: P1.3 (Critical - Must Have).
 func TestYAMLFieldMapping_FalseBooleans(t *testing.T) {
-	// NOTE: Cannot use t.Parallel() here - ParseWithFlagSet modifies global viper state
-	// which causes race conditions with other parallel tests
+	t.Parallel()
+
 	yamlContent := `
 dev: false
 bind-public-protocol: https

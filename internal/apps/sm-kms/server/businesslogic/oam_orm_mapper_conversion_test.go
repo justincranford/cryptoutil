@@ -13,6 +13,8 @@ import (
 )
 
 func TestToOptionalOrmUUIDs(t *testing.T) {
+	t.Parallel()
+
 	mapper := NewOamOrmMapper()
 
 	validUUID1 := googleUuid.New()

@@ -19,9 +19,8 @@ func TestNormalizedRandomFloat32_Range(t *testing.T) {
 	}
 }
 
+// Sequential: replaces the package-level randFloat32 function.
 func TestSkipByProbability_HappyPaths(t *testing.T) {
-	t.Parallel()
-
 	tests := []struct {
 		name       string
 		prob       float32

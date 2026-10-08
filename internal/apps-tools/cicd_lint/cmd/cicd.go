@@ -89,7 +89,8 @@ Lint Commands:
 
 Format Commands:
 	format-go                 Go file formatters (any, copyloopvar)
-	format-go-test            Go test file formatters (t.Helper)
+	format-go-test            Go test formatters (failure calls, t.Parallel, t.Helper)
+format-text               Text file formatter (normalize CRLF to LF)
 
 Script Commands:
 	github-cleanup            GitHub Actions storage cleanup (runs, artifacts, caches)

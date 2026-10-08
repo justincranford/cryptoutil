@@ -120,8 +120,8 @@ func TestCheckGoFileForUnaliasedCryptoutilImports_ScannerError(t *testing.T) {
 	require.Contains(t, err.Error(), "error reading")
 }
 
+// Sequential: changes the process working directory with os.Chdir.
 func TestFindUnaliasedCryptoutilImports_WalkCallbackError(t *testing.T) {
-	// NOTE: Cannot use t.Parallel() - test changes working directory.
 	origDir, err := os.Getwd()
 	require.NoError(t, err)
 
@@ -146,8 +146,8 @@ func TestFindUnaliasedCryptoutilImports_WalkCallbackError(t *testing.T) {
 	require.Error(t, err)
 }
 
+// Sequential: replaces process-global os.Stderr.
 func TestPrintCryptoutilImportViolations(t *testing.T) {
-	// NOTE: Cannot use t.Parallel() - test redirects os.Stderr which is global.
 	oldStderr := os.Stderr
 	r, w, _ := os.Pipe()
 	os.Stderr = w
@@ -170,9 +170,8 @@ func TestPrintCryptoutilImportViolations(t *testing.T) {
 	require.Contains(t, string(output), "golangci-lint run --fix")
 }
 
+// Sequential: changes the process working directory with os.Chdir.
 func TestFindUnaliasedCryptoutilImports_WithTempDir(t *testing.T) {
-	// NOTE: Cannot use t.Parallel() - test changes working directory.
-
 	// Save current directory.
 	origDir, err := os.Getwd()
 	require.NoError(t, err)
@@ -194,9 +193,8 @@ func TestFindUnaliasedCryptoutilImports_WithTempDir(t *testing.T) {
 	require.Empty(t, violations)
 }
 
+// Sequential: changes the process working directory with os.Chdir.
 func TestCheckNoUnaliasedCryptoutilImports_WithTempDir(t *testing.T) {
-	// NOTE: Cannot use t.Parallel() - test changes working directory.
-
 	// Save current directory.
 	origDir, err := os.Getwd()
 	require.NoError(t, err)
@@ -219,9 +217,8 @@ func TestCheckNoUnaliasedCryptoutilImports_WithTempDir(t *testing.T) {
 	require.NoError(t, err)
 }
 
+// Sequential: changes the process working directory and replaces os.Stderr.
 func TestCheckNoUnaliasedCryptoutilImports_WithViolations(t *testing.T) {
-	// NOTE: Cannot use t.Parallel() - test changes working directory and redirects stderr.
-
 	// Save current directory.
 	origDir, err := os.Getwd()
 	require.NoError(t, err)
@@ -251,8 +248,8 @@ func TestCheckNoUnaliasedCryptoutilImports_WithViolations(t *testing.T) {
 	require.Contains(t, err.Error(), "unaliased cryptoutil imports")
 }
 
+// Sequential: changes the process working directory with os.Chdir.
 func TestFindUnaliasedCryptoutilImports_ErrorPath(t *testing.T) {
-	// NOTE: Cannot use t.Parallel() - test changes working directory.
 	if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
 		t.Skip("os.Chmod does not enforce POSIX permissions on Windows")
 	}
@@ -286,8 +283,8 @@ func TestFindUnaliasedCryptoutilImports_ErrorPath(t *testing.T) {
 	require.Error(t, err)
 }
 
+// Sequential: changes the process working directory with os.Chdir.
 func TestFindUnaliasedCryptoutilImports_VendorDirSkipped(t *testing.T) {
-	// NOTE: Cannot use t.Parallel() - test changes working directory.
 	origDir, err := os.Getwd()
 	require.NoError(t, err)
 
@@ -309,8 +306,8 @@ func TestFindUnaliasedCryptoutilImports_VendorDirSkipped(t *testing.T) {
 	require.Empty(t, violations, "vendor directory should be skipped")
 }
 
+// Sequential: changes the process working directory with os.Chdir.
 func TestCheck_WalkError(t *testing.T) {
-	// NOTE: Cannot use t.Parallel() - test changes working directory.
 	if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
 		t.Skip("os.Chmod does not enforce POSIX permissions on Windows")
 	}

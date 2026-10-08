@@ -73,6 +73,8 @@ func setupAllValidAPIDirs(t *testing.T, tmpDir string) {
 }
 
 func TestCheck_DelegatesToCheckInDir(t *testing.T) {
+	t.Parallel()
+
 	// Not parallel: changes process working directory.
 	root := findProjectRoot(t)
 

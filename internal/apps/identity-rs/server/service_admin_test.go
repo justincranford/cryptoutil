@@ -23,6 +23,8 @@ import (
 )
 
 func TestAdminEndpoint_RequiresAdminScope(t *testing.T) {
+	t.Parallel()
+
 	app, tokenSvc := setupTestService(t)
 
 	testCases := []struct {
@@ -63,6 +65,8 @@ func TestAdminEndpoint_RequiresAdminScope(t *testing.T) {
 
 // TestCreateResource_RequiresWriteScope tests POST endpoint scope enforcement.
 func TestCreateResource_RequiresWriteScope(t *testing.T) {
+	t.Parallel()
+
 	app, tokenSvc := setupTestService(t)
 
 	// Configure mock for write scope.
@@ -102,6 +106,8 @@ func TestCreateResource_RequiresWriteScope(t *testing.T) {
 
 // TestDeleteResource_RequiresDeleteScope tests DELETE endpoint scope enforcement.
 func TestDeleteResource_RequiresDeleteScope(t *testing.T) {
+	t.Parallel()
+
 	app, tokenSvc := setupTestService(t)
 
 	testCases := []struct {
@@ -141,6 +147,8 @@ func TestDeleteResource_RequiresDeleteScope(t *testing.T) {
 
 // TestExpiredToken tests that expired tokens are rejected.
 func TestExpiredToken(t *testing.T) {
+	t.Parallel()
+
 	app, tokenSvc := setupTestService(t)
 
 	// Configure mock to return expired token.
@@ -218,6 +226,8 @@ func TestService_Stop(t *testing.T) {
 
 // TestAdminMetrics_RequiresAdminScope tests admin metrics endpoint.
 func TestAdminMetrics_RequiresAdminScope(t *testing.T) {
+	t.Parallel()
+
 	// NOTE: No t.Parallel() - subtests share app/tokenSvc, parallel causes race on validateFunc.
 	app, tokenSvc := setupTestService(t)
 

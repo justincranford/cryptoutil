@@ -6,11 +6,10 @@ import (
 	"bufio"
 	"fmt"
 	"os"
-	"path/filepath"
 	"strings"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps-tools/cicd_lint/common"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedUtilFiles "cryptoutil/internal/shared/util/files"
 )
 
 const (
@@ -113,32 +112,20 @@ func CheckRequiredCGOModule(path string) (bool, error) {
 }
 
 func CheckGoFilesForCGO() ([]string, error) {
+	filesByExtension, err := cryptoutilSharedUtilFiles.ListAllFiles(".")
+	if err != nil {
+		return nil, fmt.Errorf("error listing project files: %w", err)
+	}
+
 	var violations []string
 
-	err := filepath.Walk(".", func(path string, info os.FileInfo, err error) error {
+	for _, path := range filesByExtension["go"] {
+		fileViolations, err := CheckGoFileForCGO(path)
 		if err != nil {
-			return err
+			return nil, fmt.Errorf("error checking %s: %w", path, err)
 		}
 
-		// Skip vendor directories and linting package itself.
-		if info.IsDir() && (info.Name() == cryptoutilSharedMagic.CICDExcludeDirVendor || info.Name() == cryptoutilSharedMagic.CICDExcludeDirGit) {
-			return filepath.SkipDir
-		}
-
-		// Only check .go files.
-		if !info.IsDir() && strings.HasSuffix(path, ".go") {
-			fileViolations, err := CheckGoFileForCGO(path)
-			if err != nil {
-				return fmt.Errorf("error checking %s: %w", path, err)
-			}
-
-			violations = append(violations, fileViolations...)
-		}
-
-		return nil
-	})
-	if err != nil {
-		return nil, fmt.Errorf("error walking directory tree: %w", err)
+		violations = append(violations, fileViolations...)
 	}
 
 	return violations, nil

@@ -9,6 +9,8 @@ import (
 	cryptoutilTestOrcIntegration "cryptoutil/internal/apps-framework/service/test_orch_integration"
 	cryptoutilAppsIdentityRsServerConfig "cryptoutil/internal/apps/identity-rs/server/config"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+
+	"github.com/stretchr/testify/require"
 )
 
 var (
@@ -51,7 +53,7 @@ func requireTestSetup(t *testing.T) {
 	t.Helper()
 
 	if testErr != nil {
-		t.Fatalf("Test setup failed: %v", testErr)
+		require.FailNowf(t, cryptoutilSharedMagic.CICDTestFatalfFailureMessage, "Test setup failed: %v", testErr)
 	}
 
 	if testServer == nil {

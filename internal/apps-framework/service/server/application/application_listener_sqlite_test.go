@@ -7,7 +7,8 @@ package application
 import (
 	"context"
 	"fmt"
-	"os"
+	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -16,7 +17,6 @@ import (
 	cryptoutilAppsFrameworkServiceServerRepository "cryptoutil/internal/apps-framework/service/server/repository"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
-	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 )
 
@@ -25,19 +25,25 @@ func TestOpenSQLite_FileBasedWithWAL(t *testing.T) {
 
 	ctx := context.Background()
 
-	// Create temporary SQLite file.
-	uuid, _ := googleUuid.NewV7()
+	// Create a temporary SQLite file using a portable file URI.
+	tmpFile := filepath.Join(t.TempDir(), "test.db")
 
-	tmpFile := "/tmp/test_sqlite_wal_" + uuid.String() + ".db"
+	slashPath := filepath.ToSlash(tmpFile)
+	if !strings.HasPrefix(slashPath, "/") {
+		slashPath = "/" + slashPath
+	}
 
-	defer func() { _ = os.Remove(tmpFile) }()
+	databaseURL := cryptoutilSharedMagic.FileURIScheme + slashPath
 
-	db, err := openSQLite(ctx, cryptoutilSharedMagic.FileURIScheme+tmpFile, false)
+	db, err := openSQLite(ctx, databaseURL, false)
 	require.NoError(t, err)
 	require.NotNil(t, db)
 
 	// Verify WAL mode enabled for file-based database.
-	sqlDB, _ := db.DB()
+	sqlDB, err := db.DB()
+
+	require.NoError(t, err)
+	defer func() { require.NoError(t, sqlDB.Close()) }()
 
 	var journalMode string
 
@@ -104,6 +110,7 @@ func TestStartBasic_TelemetryFailure(t *testing.T) {
 }
 
 // TestInitializeServicesOnCore_ErrorPaths tests error paths in service initialization.
+// Sequential: uses the shared Core instance.
 func TestInitializeServicesOnCore_ErrorPaths(t *testing.T) {
 	// Cannot use t.Parallel() due to shared Core instance.
 	ctx := context.Background()

@@ -230,7 +230,7 @@ repos:
       - id: cicd-format-all-pre-commit
         name: Run custom CI/CD format checks (pre-commit)
         entry: go
-        args: [run, cmd/cicd-lint/main.go, -q, format-go, format-go-test]
+        args: [run, cmd/cicd-lint/main.go, -q, format-go, format-go-test, format-text]
         language: system
         pass_filenames: false  # formatters handle file scanning internally; no filenames needed
         require_serial: true   # formatters are read-write; must run sequentially to avoid conflicts
@@ -239,7 +239,7 @@ repos:
       - id: cicd-format-all-pre-push
         name: Run custom CI/CD format checks (pre-push)
         entry: go
-        args: [run, cmd/cicd-lint/main.go, -q, format-go, format-go-test]
+        args: [run, cmd/cicd-lint/main.go, -q, format-go, format-go-test, format-text]
         language: system
         pass_filenames: false  # formatters handle file scanning internally; no filenames needed
         require_serial: true   # formatters are read-write; must run sequentially to avoid conflicts

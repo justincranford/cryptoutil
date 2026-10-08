@@ -8,6 +8,9 @@ import (
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps-tools/cicd_lint/common"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestCheck_RealWorkspace(t *testing.T) {
@@ -17,7 +20,7 @@ func TestCheck_RealWorkspace(t *testing.T) {
 	// Run from project root (6 levels up from this test file).
 	err := CheckInDir(logger, filepath.Join("..", "..", "..", "..", ".."))
 	if err != nil {
-		t.Fatalf("unexpected violation in real workspace: %v", err)
+		require.FailNowf(t, cryptoutilSharedMagic.CICDTestFatalfFailureMessage, "unexpected violation in real workspace: %v", err)
 	}
 }
 
@@ -100,11 +103,11 @@ func TestFindViolationsInDir_ValidDeployments(t *testing.T) {
 
 			violations, err := FindViolationsInDir(rootDir)
 			if err != nil {
-				t.Fatalf("unexpected error: %v", err)
+				require.FailNowf(t, cryptoutilSharedMagic.CICDTestFatalfFailureMessage, "unexpected error: %v", err)
 			}
 
 			if len(violations) > 0 {
-				t.Errorf("expected no violations, got %d: %v", len(violations), violations)
+				assert.Failf(t, cryptoutilSharedMagic.CICDTestErrorfFailureMessage, "expected no violations, got %d: %v", len(violations), violations)
 			}
 		})
 	}
@@ -267,11 +270,11 @@ func TestFindViolationsInDir_InvalidContent(t *testing.T) {
 
 			violations, err := FindViolationsInDir(rootDir)
 			if err != nil {
-				t.Fatalf("unexpected error: %v", err)
+				require.FailNowf(t, cryptoutilSharedMagic.CICDTestFatalfFailureMessage, "unexpected error: %v", err)
 			}
 
 			if len(violations) != tc.wantViolations {
-				t.Errorf("expected %d violations, got %d: %v", tc.wantViolations, len(violations), violations)
+				assert.Failf(t, cryptoutilSharedMagic.CICDTestErrorfFailureMessage, "expected %d violations, got %d: %v", tc.wantViolations, len(violations), violations)
 			}
 
 			if tc.wantSubstring != "" && len(violations) > 0 {
@@ -286,7 +289,7 @@ func TestFindViolationsInDir_InvalidContent(t *testing.T) {
 				}
 
 				if !found {
-					t.Errorf("expected violation containing %q, got: %v", tc.wantSubstring, violations)
+					assert.Failf(t, cryptoutilSharedMagic.CICDTestErrorfFailureMessage, "expected violation containing %q, got: %v", tc.wantSubstring, violations)
 				}
 			}
 		})
@@ -332,21 +335,21 @@ func TestCheckInDir_NoViolation(t *testing.T) {
 
 	err := CheckInDir(logger, rootDir)
 	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
+		require.FailNowf(t, cryptoutilSharedMagic.CICDTestFatalfFailureMessage, "unexpected error: %v", err)
 	}
 }
 
+// Sequential: modifies the process working directory, which is global state.
 func TestCheck_DelegatesToWorkspaceRoot(t *testing.T) {
-	// Non-parallel: modifies working directory.
 	orig, err := os.Getwd()
 	if err != nil {
-		t.Fatalf("cannot get cwd: %v", err)
+		require.FailNowf(t, cryptoutilSharedMagic.CICDTestFatalfFailureMessage, "cannot get cwd: %v", err)
 	}
 
 	projectRoot := filepath.Join(orig, "..", "..", "..", "..", "..")
 
 	if err := os.Chdir(projectRoot); err != nil {
-		t.Fatalf("cannot chdir to project root: %v", err)
+		require.FailNowf(t, cryptoutilSharedMagic.CICDTestFatalfFailureMessage, "cannot chdir to project root: %v", err)
 	}
 
 	defer func() { _ = os.Chdir(orig) }()
@@ -354,12 +357,12 @@ func TestCheck_DelegatesToWorkspaceRoot(t *testing.T) {
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 
 	if err := Check(logger); err != nil {
-		t.Fatalf("unexpected violation in real workspace: %v", err)
+		require.FailNowf(t, cryptoutilSharedMagic.CICDTestFatalfFailureMessage, "unexpected violation in real workspace: %v", err)
 	}
 }
 
+// Sequential: modifies package-level secretSchemasYAML.
 func TestFindViolationsInDir_InvalidYAML(t *testing.T) {
-	// Non-parallel: modifies package-level secretSchemasYAML.
 	orig := secretSchemasYAML
 	secretSchemasYAML = []byte("not: valid: yaml: [unclosed")
 
@@ -382,26 +385,26 @@ func TestFindViolationsInDir_ReadError(t *testing.T) {
 	secretsDir := filepath.Join(rootDir, "deployments", cryptoutilSharedMagic.KMSServiceID, "secrets")
 
 	if err := os.MkdirAll(secretsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupReadExecute); err != nil {
-		t.Fatalf("failed to create secrets dir: %v", err)
+		require.FailNowf(t, cryptoutilSharedMagic.CICDTestFatalfFailureMessage, "failed to create secrets dir: %v", err)
 	}
 
 	// Create a directory with the secret file name (forces read error).
 	dirAsFile := filepath.Join(secretsDir, "hash-pepper-v3.secret")
 	if err := os.Mkdir(dirAsFile, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupReadExecute); err != nil {
-		t.Fatalf("failed to create dir-as-file: %v", err)
+		require.FailNowf(t, cryptoutilSharedMagic.CICDTestFatalfFailureMessage, "failed to create dir-as-file: %v", err)
 	}
 
 	violations, err := FindViolationsInDir(rootDir)
 	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
+		require.FailNowf(t, cryptoutilSharedMagic.CICDTestFatalfFailureMessage, "unexpected error: %v", err)
 	}
 
 	if len(violations) != 1 {
-		t.Fatalf("expected 1 violation for read error, got %d: %v", len(violations), violations)
+		require.FailNowf(t, cryptoutilSharedMagic.CICDTestFatalfFailureMessage, "expected 1 violation for read error, got %d: %v", len(violations), violations)
 	}
 
 	if !containsSubstring(violations[0], "failed to read") {
-		t.Errorf("expected violation about read failure, got: %q", violations[0])
+		assert.Failf(t, cryptoutilSharedMagic.CICDTestErrorfFailureMessage, "expected violation about read failure, got: %q", violations[0])
 	}
 }
 
@@ -415,11 +418,11 @@ func setupTempDir(t *testing.T, files map[string]string) string {
 		absPath := filepath.Join(rootDir, filepath.FromSlash(relPath))
 
 		if err := os.MkdirAll(filepath.Dir(absPath), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupReadExecute); err != nil {
-			t.Fatalf("failed to create directory: %v", err)
+			require.FailNowf(t, cryptoutilSharedMagic.CICDTestFatalfFailureMessage, "failed to create directory: %v", err)
 		}
 
 		if err := os.WriteFile(absPath, []byte(content), cryptoutilSharedMagic.CacheFilePermissions); err != nil {
-			t.Fatalf("failed to write file: %v", err)
+			require.FailNowf(t, cryptoutilSharedMagic.CICDTestFatalfFailureMessage, "failed to write file: %v", err)
 		}
 	}
 

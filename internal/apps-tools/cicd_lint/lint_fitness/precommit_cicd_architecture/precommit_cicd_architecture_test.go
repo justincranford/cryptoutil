@@ -22,7 +22,7 @@ func writeConfig(t *testing.T, rootDir, content string) {
 }
 
 func buildValidConfig() string {
-	return strings.TrimSpace(`
+	return strings.ReplaceAll(strings.TrimSpace(`
 repos:
   - repo: local
     hooks:
@@ -34,7 +34,7 @@ repos:
 
       - id: cicd-format-pre-commit
         entry: go
-        args: [run, cmd/cicd-lint/main.go, -q, format-go, format-go-test]
+	args: [run, cmd/cicd-lint/main.go, -q, format-go, format-go-test, format-text]
         require_serial: true
         stages: [pre-commit]
 
@@ -46,10 +46,10 @@ repos:
 
       - id: cicd-format-pre-push
         entry: go
-        args: [run, cmd/cicd-lint/main.go, -q, format-go, format-go-test]
+	args: [run, cmd/cicd-lint/main.go, -q, format-go, format-go-test, format-text]
         require_serial: true
         stages: [pre-push]
-`)
+`), "\targs:", "        args:")
 }
 
 func TestCheckInDir_ValidConfig(t *testing.T) {
@@ -84,7 +84,7 @@ func TestCheckInDir_MissingStageHookRejected(t *testing.T) {
 	rootDir := t.TempDir()
 	content := strings.Replace(
 		buildValidConfig(),
-		"- id: cicd-format-pre-push\n        entry: go\n        args: [run, cmd/cicd-lint/main.go, -q, format-go, format-go-test]\n        require_serial: true\n        stages: [pre-push]",
+		"- id: cicd-format-pre-push\n        entry: go\n        args: [run, cmd/cicd-lint/main.go, -q, format-go, format-go-test, format-text]\n        require_serial: true\n        stages: [pre-push]",
 		"# removed pre-push format hook",
 		1,
 	)

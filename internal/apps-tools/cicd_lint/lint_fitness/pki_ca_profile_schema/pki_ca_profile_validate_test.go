@@ -309,7 +309,7 @@ func requireAnyContains(t *testing.T, strs []string, substr string) {
 		}
 	}
 
-	t.Fatalf("expected at least one string in %v to contain %q", strs, substr)
+	require.FailNowf(t, cryptoutilSharedMagic.CICDTestFatalfFailureMessage, "expected at least one string in %v to contain %q", strs, substr)
 }
 
 // containsSubstr is a simple substring search.

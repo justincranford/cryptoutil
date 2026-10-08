@@ -12,8 +12,8 @@ import (
 // TestRequireNewForTest_TypeAssertionPanics verifies that RequireNewForTest panics
 // when Setting variables have wrong types. Each test corrupts one Setting's Value
 // to trigger the sequential type assertion panic.
+// Sequential: mutates package-level Setting values to trigger type assertion panics.
 func TestRequireNewForTest_TypeAssertionPanics(t *testing.T) {
-	// NOTE: Cannot use t.Parallel() — modifies global Setting variables.
 	tests := []struct {
 		name    string
 		setting *Setting
@@ -93,8 +93,8 @@ func TestRequireNewForTest_TypeAssertionPanics(t *testing.T) {
 
 // TestRequireNewForTest_DatabaseURLBranches verifies the database URL rewriting
 // paths for different database URL formats.
+// Sequential: mutates the package-level databaseURL setting.
 func TestRequireNewForTest_DatabaseURLBranches(t *testing.T) {
-	// NOTE: Cannot use t.Parallel() — modifies global databaseURL.
 	tests := []struct {
 		name   string
 		dbURL  string
@@ -175,8 +175,8 @@ func TestNewTestConfig_ValidationPanic(t *testing.T) {
 
 // TestRequireNewForTest_DatabaseURLEnvOverride verifies that CRYPTOUTIL_DATABASE_URL
 // environment variable overrides the default database URL in RequireNewForTest.
+// Sequential: changes the process-wide environment with t.Setenv.
 func TestRequireNewForTest_DatabaseURLEnvOverride(t *testing.T) {
-	// NOTE: Cannot use t.Parallel() — modifies environment variable.
 	t.Setenv("CRYPTOUTIL_DATABASE_URL", cryptoutilSharedMagic.SQLiteInMemoryDSN)
 
 	settings := RequireNewForTest("test-env-override")

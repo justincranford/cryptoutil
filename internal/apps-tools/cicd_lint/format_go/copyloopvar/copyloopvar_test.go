@@ -19,6 +19,15 @@ import (
 
 const testGoContentInvalid = "package main\n\nfunc main() {\n\tthis is not valid go code\n}\n"
 
+const (
+	testGoVersion122  = "go1.22"
+	testGoVersion1220 = "go1.22.0"
+	testGoVersion1261 = "go1.26.1"
+	testGoVersion121  = "go1.21"
+	testGoVersion1215 = "go1.21.5"
+	testGoVersion120  = "go1.20"
+)
+
 func TestIsGoVersionSupported(t *testing.T) {
 	t.Parallel()
 
@@ -27,12 +36,12 @@ func TestIsGoVersionSupported(t *testing.T) {
 		version   string
 		supported bool
 	}{
-		{"go1.22", "go1.22", true},
-		{"go1.22.0", "go1.22.0", true},
-		{"go1.26.1", "go1.26.1", true},
-		{"go1.21", "go1.21", false},
-		{"go1.21.5", "go1.21.5", false},
-		{"go1.20", "go1.20", false},
+		{testGoVersion122, testGoVersion122, true},
+		{testGoVersion1220, testGoVersion1220, true},
+		{testGoVersion1261, testGoVersion1261, true},
+		{testGoVersion121, testGoVersion121, false},
+		{testGoVersion1215, testGoVersion1215, false},
+		{testGoVersion120, testGoVersion120, false},
 		{cryptoutilSharedMagic.DevSetupTestInvalidName, cryptoutilSharedMagic.DevSetupTestInvalidName, false},
 		{cryptoutilSharedMagic.EMPTY, "", false},
 	}
@@ -187,6 +196,31 @@ func TestFixCopyLoopVar_SupportedVersion(t *testing.T) {
 	require.Equal(t, 1, processed, "Should process 1 file")
 	require.Equal(t, 1, modified, "Should modify 1 file")
 	require.Equal(t, 1, issuesFixed, "Should fix 1 issue")
+}
+
+func TestFixCopyLoopVar_SkipsExcludedDirectories(t *testing.T) {
+	t.Parallel()
+
+	tmpDir := t.TempDir()
+	for _, excludedDir := range cryptoutilSharedMagic.DirectoryNameExclusions {
+		directory := filepath.Join(tmpDir, filepath.FromSlash(excludedDir))
+		err := os.MkdirAll(directory, cryptoutilSharedMagic.CICDTempDirPermissions)
+		require.NoError(t, err)
+
+		err = os.WriteFile(filepath.Join(directory, "excluded.go"), []byte(testGoContentLhsNotRhs), cryptoutilSharedMagic.CacheFilePermissions)
+		require.NoError(t, err)
+	}
+
+	err := os.WriteFile(filepath.Join(tmpDir, "included.go"), []byte(testGoContentLhsNotRhs), cryptoutilSharedMagic.CacheFilePermissions)
+	require.NoError(t, err)
+
+	logger := cryptoutilCmdCicdCommon.NewLogger("test")
+	processed, modified, issuesFixed, err := Fix(logger, tmpDir, "go1.22")
+
+	require.NoError(t, err)
+	require.Equal(t, 1, processed, "Should process only the file outside excluded directories")
+	require.Zero(t, modified)
+	require.Zero(t, issuesFixed)
 }
 
 func TestFixCopyLoopVar_EmptyDir(t *testing.T) {

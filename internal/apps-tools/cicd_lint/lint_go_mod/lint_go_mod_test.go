@@ -12,8 +12,8 @@ import (
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps-tools/cicd_lint/common"
 )
 
+// Sequential: changes the process working directory with os.Chdir.
 func TestLint_NoGoMod(t *testing.T) {
-	// NOTE: Cannot use t.Parallel() - test changes working directory.
 	origDir, err := os.Getwd()
 	require.NoError(t, err)
 
@@ -28,8 +28,8 @@ func TestLint_NoGoMod(t *testing.T) {
 	require.Error(t, err, "Lint should fail when no go.mod is present")
 }
 
+// Sequential: changes the process working directory with os.Chdir.
 func TestLint_UpToDateGoMod(t *testing.T) {
-	// NOTE: Cannot use t.Parallel() - test changes working directory.
 	origDir, err := os.Getwd()
 	require.NoError(t, err)
 

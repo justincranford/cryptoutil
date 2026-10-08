@@ -66,7 +66,7 @@ func TestCheckTestFile_TestErrorf(t *testing.T) {
 	foundErrorfIssue := false
 
 	for _, issue := range issues {
-		if issue == "Found 1 instances of t.Errorf() - should use require.Errorf() or assert.Errorf()" {
+		if issue == "Found 1 instances of t.Errorf() - use assert.Failf() to preserve non-fatal behavior" {
 			foundErrorfIssue = true
 
 			break
@@ -93,7 +93,7 @@ func TestCheckTestFile_TestFatalf(t *testing.T) {
 	foundFatalfIssue := false
 
 	for _, issue := range issues {
-		if issue == "Found 1 instances of t.Fatalf() - should use require.Fatalf() or assert.Fatalf()" {
+		if issue == "Found 1 instances of t.Fatalf() - use require.FailNowf() to preserve fatal behavior" {
 			foundFatalfIssue = true
 
 			break
@@ -101,6 +101,17 @@ func TestCheckTestFile_TestFatalf(t *testing.T) {
 	}
 
 	require.True(t, foundFatalfIssue, "Should find t.Fatalf() pattern issue")
+}
+
+func TestCheckTestFile_IgnoresFailureCallsInStringLiterals(t *testing.T) {
+	t.Parallel()
+
+	tmpDir := t.TempDir()
+	testFile := filepath.Join(tmpDir, "fixture_test.go")
+	content := "package example\\n\\nimport \\\"testing\\\"\\n\\nfunc TestExample(t *testing.T) {\\n\\tt.Parallel()\\n\\tfixture := `t.Errorf(\\\"failure\\\") t.Fatalf(\\\"fatal\\\")`\\n\\t_ = fixture\\n}\\n"
+	require.NoError(t, os.WriteFile(testFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions))
+
+	require.Empty(t, CheckTestFile(testFile))
 }
 
 func TestEnforceTestPatterns_FilteredFiles(t *testing.T) {

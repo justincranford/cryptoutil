@@ -129,6 +129,16 @@ func TestA(t *testing.T) {
 			wantIssues: false,
 		},
 		{
+			name: "nested_subtest_parallel_does_not_cover_parent",
+			fileContent: `package test
+import "testing"
+func TestParent(t *testing.T) {
+	t.Run("child", func(t *testing.T) { t.Parallel() })
+}
+`,
+			wantIssues: true,
+		},
+		{
 			name: "sequential_comment_exempts_function",
 			fileContent: `package test
 import "testing"

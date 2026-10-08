@@ -16,6 +16,21 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const (
+	testBannedGoFilename             = "banned.go"
+	testCGOValidationFailed          = "CGO validation failed"
+	testErrorReadingGoMod            = "error reading go.mod"
+	testFailedToOpenGoMod            = "failed to open go.mod"
+	testFileNotFound                 = "file not found"
+	testGoModFilename                = "go.mod"
+	testMainFilename                 = "main.go"
+	testGoModViolationsMessage       = "go.mod violations"
+	testScannerError                 = "scanner error"
+	testImportViolationsMessage      = "Import violations"
+	testRequiredModuleMissingMessage = "Required module missing"
+	testSQLiteGoModContent           = "module testmod\n\ngo 1.21\n\nrequire (\n\tmodernc.org/sqlite v1.30.0\n)\n"
+)
+
 var nonexistentGoMod = "/nonexistent/path/go.mod"
 
 func TestCheckGoModForCGO(t *testing.T) {
@@ -51,14 +66,14 @@ func TestCheckGoModForCGO(t *testing.T) {
 			wantLen: 0,
 		},
 		{
-			name:           "file not found",
+			name:           testFileNotFound,
 			useNonexistent: true,
-			wantErr:        "failed to open go.mod",
+			wantErr:        testFailedToOpenGoMod,
 		},
 		{
-			name:    "scanner error",
+			name:    testScannerError,
 			content: "module test\n// " + strings.Repeat("x", 70000) + "\n",
-			wantErr: "error reading go.mod",
+			wantErr: testErrorReadingGoMod,
 		},
 	}
 
@@ -71,7 +86,7 @@ func TestCheckGoModForCGO(t *testing.T) {
 				goModFile = "/nonexistent/path/go.mod"
 			} else {
 				tmpDir := t.TempDir()
-				goModFile = filepath.Join(tmpDir, "go.mod")
+				goModFile = filepath.Join(tmpDir, testGoModFilename)
 				require.NoError(t, os.WriteFile(goModFile, []byte(tc.content), cryptoutilSharedMagic.CacheFilePermissions))
 			}
 
@@ -117,14 +132,14 @@ func TestCheckRequiredCGOModule(t *testing.T) {
 			wantFound: false,
 		},
 		{
-			name:           "file not found",
+			name:           testFileNotFound,
 			useNonexistent: true,
-			wantErr:        "failed to open go.mod",
+			wantErr:        testFailedToOpenGoMod,
 		},
 		{
-			name:    "scanner error",
+			name:    testScannerError,
 			content: "module test\n// " + strings.Repeat("x", 70000) + "\n",
-			wantErr: "error reading go.mod",
+			wantErr: testErrorReadingGoMod,
 		},
 	}
 
@@ -137,7 +152,7 @@ func TestCheckRequiredCGOModule(t *testing.T) {
 				goModFile = nonexistentGoMod
 			} else {
 				tmpDir := t.TempDir()
-				goModFile = filepath.Join(tmpDir, "go.mod")
+				goModFile = filepath.Join(tmpDir, testGoModFilename)
 				require.NoError(t, os.WriteFile(goModFile, []byte(tc.content), cryptoutilSharedMagic.CacheFilePermissions))
 			}
 
@@ -179,7 +194,7 @@ func TestCheckGoFileForCGO(t *testing.T) {
 		},
 		{
 			name:     "banned import",
-			filename: "banned.go",
+			filename: testBannedGoFilename,
 			content: "package main\n\nimport (\n" +
 				"\t_ \"github.com/mattn/go-sqlite3\"\n)\n\n" +
 				"func main() {\n}\n",
@@ -201,7 +216,7 @@ func TestCheckGoFileForCGO(t *testing.T) {
 			wantEmpty: true,
 		},
 		{
-			name:           "file not found",
+			name:           testFileNotFound,
 			useNonexistent: true,
 			wantErr:        "failed to open",
 		},
@@ -261,21 +276,21 @@ func TestPrintCGOViolations(t *testing.T) {
 			goModViolations:  []string{"go.mod:5: banned CGO module"},
 			importViolations: []string{"file.go:10: banned CGO import"},
 			hasRequired:      false,
-			wantContains:     []string{"CGO validation failed", "go.mod violations", "Import violations", "Required module missing"},
+			wantContains:     []string{testCGOValidationFailed, testGoModViolationsMessage, testImportViolationsMessage, testRequiredModuleMissingMessage},
 		},
 		{
 			name:            "go.mod only",
 			goModViolations: []string{"go.mod:5: banned module"},
 			hasRequired:     true,
-			wantContains:    []string{"go.mod violations"},
-			wantNotContains: []string{"Import violations", "Required module missing"},
+			wantContains:    []string{testGoModViolationsMessage},
+			wantNotContains: []string{testImportViolationsMessage, testRequiredModuleMissingMessage},
 		},
 		{
 			name:             "import only",
 			importViolations: []string{"file.go:10: banned import"},
 			hasRequired:      true,
-			wantContains:     []string{"Import violations"},
-			wantNotContains:  []string{"go.mod violations", "Required module missing"},
+			wantContains:     []string{testImportViolationsMessage},
+			wantNotContains:  []string{testGoModViolationsMessage, testRequiredModuleMissingMessage},
 		},
 	}
 
@@ -314,17 +329,17 @@ func TestCheck(t *testing.T) {
 		{
 			name: "with required module",
 			setupFiles: map[string]string{
-				"go.mod":  "module testmod\n\ngo 1.21\n\nrequire (\n\tmodernc.org/sqlite v1.30.0\n)\n",
-				"main.go": testMainContent,
+				testGoModFilename: testSQLiteGoModContent,
+				testMainFilename:  testMainContent,
 			},
 		},
 		{
 			name: "missing required module",
 			setupFiles: map[string]string{
-				"go.mod":  "module testmod\n\ngo 1.21\n",
-				"main.go": testMainContent,
+				testGoModFilename: "module testmod\n\ngo 1.21\n",
+				testMainFilename:  testMainContent,
 			},
-			wantErr: "CGO validation failed",
+			wantErr: testCGOValidationFailed,
 		},
 		{
 			name:    "no go.mod",
@@ -375,8 +390,8 @@ func TestCheck_WalkError(t *testing.T) {
 	require.NoError(t, os.Chdir(tmpDir))
 
 	// Write go.mod with required module so CheckGoModForCGO passes.
-	goModContent := "module testmod\n\ngo 1.21\n\nrequire (\n\tmodernc.org/sqlite v1.30.0\n)\n"
-	require.NoError(t, os.WriteFile("go.mod", []byte(goModContent), cryptoutilSharedMagic.CacheFilePermissions))
+	goModContent := testSQLiteGoModContent
+	require.NoError(t, os.WriteFile(testGoModFilename, []byte(goModContent), cryptoutilSharedMagic.CacheFilePermissions))
 
 	// Create chmod 0000 subdir to trigger walk error.
 	require.NoError(t, os.MkdirAll("locked", 0o700))
@@ -397,7 +412,7 @@ func findProjectRoot() (string, error) {
 	}
 
 	for {
-		if _, err := os.Stat(filepath.Join(dir, "go.mod")); err == nil {
+		if _, err := os.Stat(filepath.Join(dir, testGoModFilename)); err == nil {
 			return dir, nil
 		}
 

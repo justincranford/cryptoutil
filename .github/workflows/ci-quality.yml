@@ -336,10 +336,10 @@ jobs:
         shell: bash
         run: |
           echo "::group::cicd-lint formatters"
-          ./cicd -q format-go format-go-test
+          ./cicd -q format-go format-go-test format-text
           echo "::endgroup::"
           if ! git diff --exit-code; then
-            echo "[FAIL] Files need formatting. Run './cicd format-go format-go-test' locally and commit the changes."
+            echo "[FAIL] Files need formatting. Run './cicd format-go format-go-test format-text' locally and commit the changes."
             git diff
             exit 1
           fi

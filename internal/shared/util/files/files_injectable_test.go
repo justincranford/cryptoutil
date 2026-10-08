@@ -13,6 +13,8 @@ import (
 )
 
 func TestReadFileBytesLimit_StatError(t *testing.T) {
+	t.Parallel()
+
 	// Cannot be parallel: modifies package-level injectable var.
 	originalFn := filesStatFn
 
@@ -32,6 +34,8 @@ func TestReadFileBytesLimit_StatError(t *testing.T) {
 }
 
 func TestReadFileBytesLimit_ReadError(t *testing.T) {
+	t.Parallel()
+
 	// Cannot be parallel: modifies package-level injectable var.
 	originalFn := filesReadFn
 
@@ -51,6 +55,8 @@ func TestReadFileBytesLimit_ReadError(t *testing.T) {
 }
 
 func TestReadFileBytesLimit_CloseError(t *testing.T) {
+	t.Parallel()
+
 	// Cannot be parallel: modifies package-level injectable var.
 	originalFn := filesCloseFn
 

@@ -91,7 +91,8 @@ func CheckAssertUsage(filePath string) []string {
 	hasAssertImport := strings.Contains(contentStr, `"github.com/stretchr/testify/assert"`)
 	hasRequireImport := strings.Contains(contentStr, `"github.com/stretchr/testify/require"`)
 
-	if hasAssertImport && !hasRequireImport {
+	assertFailOnly := strings.Contains(contentStr, "assert.Failf(") && !assertPattern.MatchString(contentStr)
+	if hasAssertImport && !hasRequireImport && !assertFailOnly {
 		issues = append(issues, "imports testify/assert but not testify/require | Fix: replace assert import with require import")
 	}
 

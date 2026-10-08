@@ -160,6 +160,8 @@ func TestRootKeysService_UnsealEncryptFails(t *testing.T) {
 // TestRotateRootKey_GenerateJWKFails verifies the error path when rotationGenerateRootJWEJWKFn fails.
 // Cannot use t.Parallel() because it modifies the package-level injectable var.
 func TestRotateRootKey_GenerateJWKFails(t *testing.T) {
+	t.Parallel()
+
 	jwkGenService, unsealService := setupRotationServiceTestHelper(t)
 
 	originalFn := rotationGenerateRootJWEJWKFn
@@ -184,6 +186,8 @@ func TestRotateRootKey_GenerateJWKFails(t *testing.T) {
 // TestRotateRootKey_UnsealEncryptFails verifies the error path when rotationUnsealEncryptKeyFn fails.
 // Cannot use t.Parallel() because it modifies the package-level injectable var.
 func TestRotateRootKey_UnsealEncryptFails(t *testing.T) {
+	t.Parallel()
+
 	jwkGenService, unsealService := setupRotationServiceTestHelper(t)
 
 	originalFn := rotationUnsealEncryptKeyFn
@@ -208,6 +212,8 @@ func TestRotateRootKey_UnsealEncryptFails(t *testing.T) {
 // TestRotateIntermediateKey_GenerateJWKFails verifies the error path when rotationGenerateIntermediateJWEJWKFn fails.
 // Cannot use t.Parallel() because it modifies the package-level injectable var.
 func TestRotateIntermediateKey_GenerateJWKFails(t *testing.T) {
+	t.Parallel()
+
 	jwkGenService, unsealService := setupRotationServiceTestHelper(t)
 
 	originalFn := rotationGenerateIntermediateJWEJWKFn
@@ -269,6 +275,8 @@ func TestRotateIntermediateKey_EncryptFails(t *testing.T) {
 // TestRotateContentKey_GenerateJWKFails verifies the error path when rotationGenerateContentJWEJWKFn fails.
 // Cannot use t.Parallel() because it modifies the package-level injectable var.
 func TestRotateContentKey_GenerateJWKFails(t *testing.T) {
+	t.Parallel()
+
 	jwkGenService, unsealService := setupRotationServiceTestHelper(t)
 
 	originalFn := rotationGenerateContentJWEJWKFn

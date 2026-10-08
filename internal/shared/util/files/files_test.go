@@ -275,6 +275,21 @@ func TestListAllFilesWithOptions_DirectoryExclusions(t *testing.T) {
 	require.Contains(t, result["go"][0], "included", "File should be from included directory")
 }
 
+func TestListAllFiles_ExcludesVenv(t *testing.T) {
+	t.Parallel()
+
+	tempDir := t.TempDir()
+	venvDir := filepath.Join(tempDir, ".venv")
+	require.NoError(t, os.MkdirAll(venvDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+	require.NoError(t, cryptoutilSharedUtilFiles.WriteFile(filepath.Join(tempDir, "included.go"), "package included", cryptoutilSharedMagic.CacheFilePermissions))
+	require.NoError(t, cryptoutilSharedUtilFiles.WriteFile(filepath.Join(venvDir, "excluded.go"), "package excluded", cryptoutilSharedMagic.CacheFilePermissions))
+
+	filesByExtension, err := cryptoutilSharedUtilFiles.ListAllFiles(tempDir)
+	require.NoError(t, err)
+	require.Len(t, filesByExtension["go"], 1)
+	require.Contains(t, filesByExtension["go"][0], "included.go")
+}
+
 func TestListAllFiles_NonExistentDirectory(t *testing.T) {
 	t.Parallel()
 

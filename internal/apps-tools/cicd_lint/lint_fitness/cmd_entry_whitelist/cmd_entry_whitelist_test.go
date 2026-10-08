@@ -220,10 +220,16 @@ func TestCheckInDir_NonExistentRoot_ReturnsError(t *testing.T) {
 func TestAllowedCount_ReturnsExpectedCount(t *testing.T) {
 	t.Parallel()
 
-	// 1 suite + 4 products + 8 PS-IDs + 2 infra tools = 15.
+	infraTools := []string{
+		cryptoutilSharedMagic.CICDCmdDirCicdLint,
+		cryptoutilSharedMagic.CICDCmdDirWorkflow,
+		cryptoutilSharedMagic.CICDCmdDirDevSetup,
+	}
+	wantCount := len(lintFitnessRegistry.AllSuites()) + len(lintFitnessRegistry.AllProducts()) + len(lintFitnessRegistry.AllProductServices()) + len(infraTools)
+
 	count := lintFitnessCmdEntryWhitelist.AllowedCount()
 
-	assert.Equal(t, 15, count)
+	assert.Equal(t, wantCount, count)
 }
 
 func TestAllowedEntries_ReturnsSortedList(t *testing.T) {

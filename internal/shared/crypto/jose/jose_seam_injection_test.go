@@ -111,6 +111,8 @@ func countingMarshal(failOn int) func(any) ([]byte, error) {
 
 // TestCreateJWEJWKFromKey_SeamErrors tests all error injection paths.
 func TestCreateJWEJWKFromKey_SeamErrors(t *testing.T) {
+	t.Parallel()
+
 	// NOT PARALLEL: modifies package-level function variables.
 	saveRestoreSeams(t)
 
@@ -201,6 +203,8 @@ func TestCreateJWEJWKFromKey_SeamErrors(t *testing.T) {
 
 // TestCreateJWSJWKFromKey_SeamErrors tests all error injection paths for JWS JWK creation.
 func TestCreateJWSJWKFromKey_SeamErrors(t *testing.T) {
+	t.Parallel()
+
 	// NOT PARALLEL: modifies package-level function variables.
 	saveRestoreSeams(t)
 
@@ -294,6 +298,8 @@ func TestCreateJWSJWKFromKey_SeamErrors(t *testing.T) {
 
 // TestCreateJWKFromKey_SeamErrors tests all error injection paths for generic JWK creation.
 func TestCreateJWKFromKey_SeamErrors(t *testing.T) {
+	t.Parallel()
+
 	// NOT PARALLEL: modifies package-level function variables.
 	saveRestoreSeams(t)
 

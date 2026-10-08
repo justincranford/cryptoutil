@@ -350,7 +350,7 @@ func waitForAdminPort(t *testing.T, server *AdminServer, timeout time.Duration) 
 		time.Sleep(cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Millisecond)
 	}
 
-	t.Fatalf("admin server did not start within %v", timeout)
+	require.FailNowf(t, cryptoutilSharedMagic.CICDTestFatalfFailureMessage, "admin server did not start within %v", timeout)
 
 	return 0
 }

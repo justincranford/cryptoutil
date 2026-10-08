@@ -70,6 +70,10 @@ func TestRun_AllCommands_HappyPath(t *testing.T) {
 			commands: []string{"format-go-test"},
 		},
 		{
+			name:     "format-text command",
+			commands: []string{cmdFormatText},
+		},
+		{
 			name:     "lint-workflow command",
 			commands: []string{"lint-workflow"},
 		},
@@ -99,7 +103,7 @@ func TestRun_AllCommands_HappyPath(t *testing.T) {
 		},
 		{
 			name:     "all commands together",
-			commands: []string{"lint-text", "lint-go", "format-go", "lint-go-test", "format-go-test", "lint-workflow", "lint-go-mod", "lint-compose", "lint-ports", "lint-golangci", "lint-openapi"},
+			commands: []string{cmdLintText, cmdLintGo, cmdFormatGo, cmdLintGoTest, cmdFormatGoTest, cmdFormatText, cmdLintWorkflow, cmdLintGoMod, cmdLintCompose, cmdLintPorts, cmdLintGolangci, cmdLintOpenAPI},
 		},
 		{
 			name:     "lint-docs command",
@@ -115,7 +119,7 @@ func TestRun_AllCommands_HappyPath(t *testing.T) {
 		},
 		{
 			name:     "lint-openapi command",
-			commands: []string{"lint-openapi"},
+			commands: []string{cmdLintOpenAPI},
 		},
 	}
 
@@ -165,11 +169,11 @@ func TestValidateCommands_HappyPath(t *testing.T) {
 		},
 		{
 			name:     "lint and format commands",
-			commands: []string{"lint-text", "format-go", "format-go-test"},
+			commands: []string{cmdLintText, cmdFormatGo, cmdFormatGoTest, cmdFormatText},
 		},
 		{
 			name:     "all commands once each",
-			commands: []string{"lint-text", "lint-go", "format-go", "lint-go-test", "format-go-test", "lint-workflow", "lint-go-mod", "lint-compose", "lint-ports", "lint-golangci"},
+			commands: []string{cmdLintText, cmdLintGo, cmdFormatGo, cmdLintGoTest, cmdFormatGoTest, cmdFormatText, cmdLintWorkflow, cmdLintGoMod, cmdLintCompose, cmdLintPorts, cmdLintGolangci},
 		},
 	}
 

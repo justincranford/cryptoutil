@@ -265,7 +265,7 @@ func TestCheck_DelegatesCheckInDir(t *testing.T) {
 
 	// Create an empty cmd/ dir so the hard-error-on-absent-cmd-dir check passes.
 	if err := os.MkdirAll(filepath.Join(tmpDir, "cmd"), cryptoutilSharedMagic.CICDTempDirPermissions); err != nil {
-		t.Fatalf("setup: mkdir cmd/: %v", err)
+		require.FailNowf(t, cryptoutilSharedMagic.CICDTestFatalfFailureMessage, "setup: mkdir cmd/: %v", err)
 	}
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")

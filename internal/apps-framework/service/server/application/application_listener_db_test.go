@@ -7,7 +7,7 @@ package application
 import (
 	"context"
 	"fmt"
-	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -246,17 +246,19 @@ func TestProvisionDatabase_SQLiteFileURL(t *testing.T) {
 
 	ctx := context.Background()
 
-	// Use temp file for SQLite database.
-	dbFile := "/tmp/test_sqlite_" + time.Now().UTC().Format("20060102150405") + ".db"
+	// Use a temporary database path that is valid on every supported platform.
+	dbFile := filepath.Join(t.TempDir(), "test.db")
 
-	defer func() {
-		// Cleanup.
-		_ = os.Remove(dbFile)
-	}()
+	slashPath := filepath.ToSlash(dbFile)
+	if !strings.HasPrefix(slashPath, "/") {
+		slashPath = "/" + slashPath
+	}
+
+	databaseURL := cryptoutilSharedMagic.FileURIScheme + slashPath
 
 	settings := &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{
 		DevMode:      true,
-		DatabaseURL:  cryptoutilSharedMagic.FileURIScheme + dbFile,
+		DatabaseURL:  databaseURL,
 		OTLPService:  "test-sqlite-file",
 		OTLPEnabled:  false,
 		OTLPEndpoint: cryptoutilSharedMagic.DefaultOTLPEndpointDefault,
@@ -277,7 +279,9 @@ func TestProvisionDatabase_SQLiteFileURL(t *testing.T) {
 	// Verify database works.
 	sqlDB, err := db.DB()
 	require.NoError(t, err)
+
 	require.NotNil(t, sqlDB)
+	defer func() { require.NoError(t, sqlDB.Close()) }()
 }
 
 // TestProvisionDatabase_SQLiteSchemePrefixURL tests SQLite with sqlite:// URL prefix.
@@ -309,7 +313,9 @@ func TestProvisionDatabase_SQLiteSchemePrefixURL(t *testing.T) {
 	// Verify database works.
 	sqlDB, err := db.DB()
 	require.NoError(t, err)
+
 	require.NotNil(t, sqlDB)
+	defer func() { require.NoError(t, sqlDB.Close()) }()
 }
 
 // TestOpenSQLite_InvalidDSN tests openSQLite with valid DSN and WAL mode.
@@ -441,6 +447,7 @@ func TestOpenPostgreSQL_DebugMode(t *testing.T) {
 }
 
 // TestProvisionDatabase_PostgreSQLContainerRequired tests PostgreSQL container in "required" mode.
+// Sequential: uses the shared Basic instance.
 func TestProvisionDatabase_PostgreSQLContainerRequired(t *testing.T) {
 	// Cannot use t.Parallel() due to shared Basic instance.
 	ctx := context.Background()
@@ -469,7 +476,8 @@ func TestProvisionDatabase_PostgreSQLContainerRequired(t *testing.T) {
 		// Expected failure if Docker not running OR connection fails.
 		require.Error(t, err)
 		// Accept either container start failure or database connection failure.
-		require.True(t,
+		require.True(
+			t,
 			strings.Contains(err.Error(), "failed to start required PostgreSQL testcontainer") ||
 				strings.Contains(err.Error(), "failed to open database") ||
 				strings.Contains(err.Error(), "failed to connect"),
@@ -483,6 +491,7 @@ func TestProvisionDatabase_PostgreSQLContainerRequired(t *testing.T) {
 }
 
 // TestProvisionDatabase_PostgreSQLContainerPreferred tests PostgreSQL container in "preferred" mode with fallback.
+// Sequential: uses the shared Basic instance.
 func TestProvisionDatabase_PostgreSQLContainerPreferred(t *testing.T) {
 	// Cannot use t.Parallel() due to shared Basic instance.
 	ctx := context.Background()

@@ -24,6 +24,7 @@ import (
 	cryptoutilAppsFrameworkServiceServerRepository "cryptoutil/internal/apps-framework/service/server/repository"
 )
 
+// Sequential: shares the package-level testGormDB fixture.
 func TestHandleListJoinRequests_WithDB(t *testing.T) {
 	// Uses testGormDB from TestMain - cannot use t.Parallel() safely.
 	tenantRepo := cryptoutilAppsFrameworkServiceServerRepository.NewTenantRepository(testGormDB)
@@ -32,7 +33,7 @@ func TestHandleListJoinRequests_WithDB(t *testing.T) {
 	registrationService := cryptoutilAppsFrameworkServiceServerBusinesslogic.NewTenantRegistrationService(testGormDB, tenantRepo, userRepo, joinRequestRepo)
 	handlers := NewRegistrationHandlers(registrationService)
 
-	// Create test tenant
+	// Create test tenant.
 	testTenantID := googleUuid.New()
 	testUserID := googleUuid.New()
 	testClientID := googleUuid.New()
@@ -168,6 +169,7 @@ func TestHandleListJoinRequests_WithDB(t *testing.T) {
 }
 
 // TestHandleProcessJoinRequest_ApproveMessage tests the "approved" message path.
+// Sequential: shares the package-level testGormDB fixture.
 func TestHandleProcessJoinRequest_ApproveMessage(t *testing.T) {
 	// Uses testGormDB from TestMain - cannot use t.Parallel() safely.
 	tenantRepo := cryptoutilAppsFrameworkServiceServerRepository.NewTenantRepository(testGormDB)
@@ -203,6 +205,7 @@ func TestHandleProcessJoinRequest_ApproveMessage(t *testing.T) {
 }
 
 // TestHandleProcessJoinRequest_RejectMessage tests the "rejected" message path.
+// Sequential: shares the package-level testGormDB fixture.
 func TestHandleProcessJoinRequest_RejectMessage(t *testing.T) {
 	// Uses testGormDB from TestMain - cannot use t.Parallel() safely.
 	tenantRepo := cryptoutilAppsFrameworkServiceServerRepository.NewTenantRepository(testGormDB)
@@ -238,6 +241,7 @@ func TestHandleProcessJoinRequest_RejectMessage(t *testing.T) {
 
 // TestHandleProcessJoinRequest_SuccessMessages tests lines 211-218 (success response with message variations).
 // This uses integration testing with the real database to create actual join requests and process them.
+// Sequential: shares the package-level testGormDB fixture.
 func TestHandleProcessJoinRequest_SuccessMessages(t *testing.T) {
 	// Uses testGormDB from TestMain - cannot use t.Parallel() safely.
 	tests := []struct {

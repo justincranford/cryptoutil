@@ -122,6 +122,8 @@ func TestPublicHTTPServer_Start_InvalidBindAddress(t *testing.T) {
 // === Context Cancellation (admin.go ctx.Done branch, public.go ctx.Done branch) ===
 
 func TestAdminServer_Start_ContextCancellation(t *testing.T) {
+	t.Parallel()
+
 	settings := cryptoutilAppsFrameworkServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
 	tlsCfg := validAutoTLSSettings(t)
 
@@ -161,6 +163,8 @@ func TestAdminServer_Start_ContextCancellation(t *testing.T) {
 }
 
 func TestPublicHTTPServer_Start_ContextCancellation(t *testing.T) {
+	t.Parallel()
+
 	settings := cryptoutilAppsFrameworkServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
 	tlsCfg := validAutoTLSSettings(t)
 
@@ -271,6 +275,8 @@ func TestNewHTTPServers_AutoMode_InvalidPrivateIPAutoGeneration(t *testing.T) {
 // === Admin Start with Non-Zero Port (admin.go else branch for actualPort assignment) ===
 
 func TestAdminServer_Start_NonZeroPort(t *testing.T) {
+	t.Parallel()
+
 	// Find an available port by briefly listening on port 0.
 	var lc net.ListenConfig
 

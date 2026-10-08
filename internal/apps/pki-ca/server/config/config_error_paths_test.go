@@ -15,6 +15,8 @@ import (
 // TestParseWithFlagSet_MissingSubcommand covers the template parse failure path.
 // Triggers "missing subcommand" error from template config.
 func TestParseWithFlagSet_MissingSubcommand(t *testing.T) {
+	t.Parallel()
+
 	// Not parallel: viper global state shared between tests.
 	fs := pflag.NewFlagSet("test-pki-missing-subcmd", pflag.ContinueOnError)
 
@@ -26,6 +28,8 @@ func TestParseWithFlagSet_MissingSubcommand(t *testing.T) {
 // TestParseWithFlagSet_ValidationError covers the validateCASettings failure path.
 // Triggers CA validation error by providing a non-existent CA config file path.
 func TestParseWithFlagSet_ValidationError(t *testing.T) {
+	t.Parallel()
+
 	// Not parallel: viper global state shared between tests.
 	fs := pflag.NewFlagSet("test-pki-ca-validation", pflag.ContinueOnError)
 
@@ -37,6 +41,8 @@ func TestParseWithFlagSet_ValidationError(t *testing.T) {
 // TestParse_WrapperDelegates covers the Parse wrapper function (uses pflag.CommandLine).
 // Must run exactly once per test binary (not parallel, not count > 1).
 func TestParse_WrapperDelegates(t *testing.T) {
+	t.Parallel()
+
 	// Not parallel: uses global pflag.CommandLine - can only be registered once.
 	settings, err := Parse([]string{"start", "--local"}, false)
 	require.NoError(t, err)

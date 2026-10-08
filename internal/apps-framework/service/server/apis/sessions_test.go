@@ -242,6 +242,8 @@ func TestValidateSession_InvalidJSON(t *testing.T) {
 // These tests focus on early validation failures that return before reaching session manager.
 // NOTE: Fiber's default error handler converts cryptoutilAppErr to 500.
 func TestIssueSession_TableDriven(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name        string
 		requestBody string
@@ -289,6 +291,8 @@ func TestIssueSession_TableDriven(t *testing.T) {
 // These tests focus on early validation failures that return before reaching session manager.
 // NOTE: Fiber's default error handler converts cryptoutilAppErr to 500.
 func TestValidateSession_TableDriven(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name        string
 		requestBody string

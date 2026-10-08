@@ -19,6 +19,7 @@ import (
 
 // TestInitSQLite_SqlOpenError covers the sqlOpenFn error path in InitSQLite.
 // NOT parallel — modifies package-level injectable var.
+// Sequential: mutates package-level sqlOpenFn.
 func TestInitSQLite_SqlOpenError(t *testing.T) {
 	original := sqlOpenFn
 	sqlOpenFn = func(_, _ string) (*sql.DB, error) {
@@ -35,6 +36,7 @@ func TestInitSQLite_SqlOpenError(t *testing.T) {
 
 // TestInitSQLite_GormOpenError covers the gormOpenFn error path in InitSQLite.
 // NOT parallel — modifies package-level injectable var.
+// Sequential: mutates package-level gormOpenFn.
 func TestInitSQLite_GormOpenError(t *testing.T) {
 	original := gormOpenFn
 	gormOpenFn = func(_ gorm.Dialector, _ ...gorm.Option) (*gorm.DB, error) {
@@ -51,6 +53,7 @@ func TestInitSQLite_GormOpenError(t *testing.T) {
 
 // TestInitSQLite_ApplyMigrationsInjectedError covers the applyMigrationsFn error path in InitSQLite.
 // NOT parallel — modifies package-level injectable var.
+// Sequential: mutates package-level applyMigrationsFn.
 func TestInitSQLite_ApplyMigrationsInjectedError(t *testing.T) {
 	original := applyMigrationsFn
 	applyMigrationsFn = func(_ *sql.DB, _ DatabaseType, _ fs.FS) error {
@@ -67,6 +70,7 @@ func TestInitSQLite_ApplyMigrationsInjectedError(t *testing.T) {
 
 // TestInitPostgreSQL_SqlOpenError covers the sqlOpenFn error path in InitPostgreSQL.
 // NOT parallel — modifies package-level injectable var.
+// Sequential: mutates package-level sqlOpenFn.
 func TestInitPostgreSQL_SqlOpenError(t *testing.T) {
 	original := sqlOpenFn
 	sqlOpenFn = func(_, _ string) (*sql.DB, error) {

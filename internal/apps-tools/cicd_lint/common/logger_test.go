@@ -19,8 +19,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// Sequential: replaces process-global os.Stderr.
 func TestNewLogger(t *testing.T) {
-	// Note: Not using t.Parallel() to avoid stderr capture conflicts
 	// Capture stderr
 	oldStderr := os.Stderr
 	r, w, _ := os.Pipe() //nolint:errcheck // Test infrastructure
@@ -43,8 +43,8 @@ func TestNewLogger(t *testing.T) {
 	require.Contains(t, output, "operation=test-operation", "Output should contain operation name")
 }
 
+// Sequential: replaces process-global os.Stderr.
 func TestLogger_Log(t *testing.T) {
-	// Note: Not using t.Parallel() to avoid stderr capture conflicts
 	// Capture stderr
 	oldStderr := os.Stderr
 	r, w, _ := os.Pipe()
@@ -72,8 +72,8 @@ func TestLogger_Log(t *testing.T) {
 	require.Contains(t, output, "test message", "Output should contain message")
 }
 
+// Sequential: replaces process-global os.Stderr.
 func TestLogger_LogError(t *testing.T) {
-	// Note: Not using t.Parallel() to avoid stderr capture conflicts
 	// Capture stderr
 	oldStderr := os.Stderr
 	r, w, _ := os.Pipe()
@@ -98,8 +98,8 @@ func TestLogger_LogError(t *testing.T) {
 	require.Contains(t, output, "test error message", "Output should contain error message")
 }
 
+// Sequential: replaces process-global os.Stderr.
 func TestLogger_LogWithPrefix(t *testing.T) {
-	// Note: Not using t.Parallel() to avoid stderr capture conflicts
 	// Capture stderr
 	oldStderr := os.Stderr
 	r, w, _ := os.Pipe()
@@ -136,8 +136,8 @@ func TestLogger_Duration(t *testing.T) {
 	require.Less(t, duration, 200*time.Millisecond, "Duration should be less than 200ms")
 }
 
+// Sequential: replaces process-global os.Stderr.
 func TestLogger_Operation(t *testing.T) {
-	// Note: Not using t.Parallel() because test modifies global os.Stderr
 	tests := []struct {
 		name      string
 		operation string
@@ -173,8 +173,8 @@ func TestLogger_Operation(t *testing.T) {
 	}
 }
 
+// Sequential: replaces process-global os.Stderr.
 func TestLogger_MultipleLogs(t *testing.T) {
-	// Note: Not using t.Parallel() to avoid stderr capture conflicts
 	// Capture stderr
 	oldStderr := os.Stderr
 	r, w, _ := os.Pipe()
@@ -211,8 +211,8 @@ func TestLogger_MultipleLogs(t *testing.T) {
 	require.GreaterOrEqual(t, logLines, 4, "Should have at least 4 log lines")
 }
 
+// Sequential: replaces process-global os.Stderr.
 func TestLogger_ConcurrentLogging(t *testing.T) {
-	// Note: Not using t.Parallel() to avoid stderr capture conflicts
 	// Capture stderr
 	oldStderr := os.Stderr
 	r, w, _ := os.Pipe()
@@ -254,8 +254,8 @@ func TestLogger_ConcurrentLogging(t *testing.T) {
 	}
 }
 
+// Sequential: replaces process-global os.Stderr.
 func TestNewQuietLogger(t *testing.T) {
-	// Note: Not using t.Parallel() to avoid stderr capture conflicts
 	oldStderr := os.Stderr
 	r, w, _ := os.Pipe()
 	os.Stderr = w
@@ -283,8 +283,8 @@ func TestNewQuietLogger(t *testing.T) {
 	require.NotContains(t, output, "suppressed", "Quiet logger should suppress Log message content")
 }
 
+// Sequential: replaces process-global os.Stderr.
 func TestQuietLogger_LogError_AlwaysWrites(t *testing.T) {
-	// Note: Not using t.Parallel() to avoid stderr capture conflicts
 	oldStderr := os.Stderr
 	r, w, _ := os.Pipe()
 	os.Stderr = w

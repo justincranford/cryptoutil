@@ -10,6 +10,16 @@ import (
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps-tools/cicd_lint/common"
 	lintFitnessRegistry "cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/registry"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+)
+
+const (
+	testMissingOverlayFileMessage = "missing overlay file"
+	testSQLiteDatabaseURL         = "database-url: \"sqlite://file::memory:?cache=shared\"\n"
+	testPostgresDatabaseURL       = "database-url: \"postgres://localhost/db\"\n"
+	testDatabaseURLPatternError   = "does not match pattern"
 )
 
 // setupTempDir creates a temp directory with the given files and returns its path.
@@ -22,11 +32,11 @@ func setupTempDir(t *testing.T, files map[string]string) string {
 		fullPath := filepath.Join(rootDir, filepath.FromSlash(relPath))
 
 		if err := os.MkdirAll(filepath.Dir(fullPath), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute); err != nil {
-			t.Fatalf("setupTempDir: mkdir %s: %v", filepath.Dir(fullPath), err)
+			require.FailNowf(t, cryptoutilSharedMagic.CICDTestFatalfFailureMessage, "setupTempDir: mkdir %s: %v", filepath.Dir(fullPath), err)
 		}
 
 		if err := os.WriteFile(fullPath, []byte(content), cryptoutilSharedMagic.FilePermissionsDefault); err != nil {
-			t.Fatalf("setupTempDir: write %s: %v", fullPath, err)
+			require.FailNowf(t, cryptoutilSharedMagic.CICDTestFatalfFailureMessage, "setupTempDir: write %s: %v", fullPath, err)
 		}
 	}
 
@@ -83,6 +93,15 @@ func allMinimalPSIDFiles() map[string]string {
 	return files
 }
 
+func mergeMinimalPSIDFiles(overrides map[string]string) map[string]string {
+	files := allMinimalPSIDFiles()
+	for path, content := range overrides {
+		files[path] = content
+	}
+
+	return files
+}
+
 func sqliteFilesFor(psID string) map[string]string {
 	return map[string]string{
 		fmt.Sprintf("deployments/%s/config/%s-app-framework-sqlite-1.yml", psID, psID):     fmt.Sprintf("database-url: \"sqlite://file::memory:?cache=shared\"\notlp-service: %s-sqlite-1\n", psID) + minimalOTLPTLSContent(psID, cryptoutilSharedMagic.CICDTemplateVariantSQLite1),
@@ -101,7 +120,7 @@ func TestCheck_RealWorkspace(t *testing.T) {
 	// Run from project root (6 levels up from this test file).
 	err := CheckInDir(logger, filepath.Join("..", "..", "..", "..", ".."), os.ReadFile)
 	if err != nil {
-		t.Fatalf("unexpected violation in real workspace: %v", err)
+		require.FailNowf(t, cryptoutilSharedMagic.CICDTestFatalfFailureMessage, "unexpected violation in real workspace: %v", err)
 	}
 }
 
@@ -135,17 +154,12 @@ func TestCheckInDir_ValidOverlays(t *testing.T) {
 
 			// Merge test-specific files on top of the all-PS-IDs base so that the
 			// hard-error-on-absent-config-dir check passes for every PS-ID.
-			merged := allMinimalPSIDFiles()
-			for k, v := range tc.setupFiles {
-				merged[k] = v
-			}
-
-			rootDir := setupTempDir(t, merged)
+			rootDir := setupTempDir(t, mergeMinimalPSIDFiles(tc.setupFiles))
 			logger := cryptoutilCmdCicdCommon.NewLogger("test")
 
 			err := CheckInDir(logger, rootDir, os.ReadFile)
 			if err != nil {
-				t.Errorf("expected no violations, got: %v", err)
+				assert.Failf(t, cryptoutilSharedMagic.CICDTestErrorfFailureMessage, "expected no violations, got: %v", err)
 			}
 		})
 	}
@@ -159,13 +173,14 @@ func TestCheckInDir_Violations(t *testing.T) {
 	tests := []struct {
 		name          string
 		setupFiles    map[string]string
+		removeFiles   []string
 		wantSubstring string
 	}{
 		{
 			name: "sqlite variant missing database-url",
 			setupFiles: map[string]string{
 				fmt.Sprintf("deployments/%s/config/%s-app-framework-sqlite-1.yml", psID, psID):     fmt.Sprintf("otlp-service: %s-sqlite-1\n", psID),
-				fmt.Sprintf("deployments/%s/config/%s-app-framework-sqlite-2.yml", psID, psID):     "database-url: \"sqlite://file::memory:?cache=shared\"\n",
+				fmt.Sprintf("deployments/%s/config/%s-app-framework-sqlite-2.yml", psID, psID):     testSQLiteDatabaseURL,
 				fmt.Sprintf("deployments/%s/config/%s-app-framework-postgresql-1.yml", psID, psID): minimalPostgresContent(psID, "1"),
 				fmt.Sprintf("deployments/%s/config/%s-app-framework-postgresql-2.yml", psID, psID): minimalPostgresContent(psID, "2"),
 			},
@@ -174,38 +189,39 @@ func TestCheckInDir_Violations(t *testing.T) {
 		{
 			name: "sqlite variant has non-sqlite database-url",
 			setupFiles: map[string]string{
-				fmt.Sprintf("deployments/%s/config/%s-app-framework-sqlite-1.yml", psID, psID):     "database-url: \"postgres://localhost/db\"\n",
-				fmt.Sprintf("deployments/%s/config/%s-app-framework-sqlite-2.yml", psID, psID):     "database-url: \"sqlite://file::memory:?cache=shared\"\n",
+				fmt.Sprintf("deployments/%s/config/%s-app-framework-sqlite-1.yml", psID, psID):     testPostgresDatabaseURL,
+				fmt.Sprintf("deployments/%s/config/%s-app-framework-sqlite-2.yml", psID, psID):     testSQLiteDatabaseURL,
 				fmt.Sprintf("deployments/%s/config/%s-app-framework-postgresql-1.yml", psID, psID): minimalPostgresContent(psID, "1"),
 				fmt.Sprintf("deployments/%s/config/%s-app-framework-postgresql-2.yml", psID, psID): minimalPostgresContent(psID, "2"),
 			},
-			wantSubstring: `does not match pattern`,
+			wantSubstring: testDatabaseURLPatternError,
 		},
 		{
 			name: "postgresql variant has database-url (forbidden)",
 			setupFiles: map[string]string{
-				fmt.Sprintf("deployments/%s/config/%s-app-framework-sqlite-1.yml", psID, psID):     "database-url: \"sqlite://file::memory:?cache=shared\"\n",
-				fmt.Sprintf("deployments/%s/config/%s-app-framework-sqlite-2.yml", psID, psID):     "database-url: \"sqlite://file::memory:?cache=shared\"\n",
-				fmt.Sprintf("deployments/%s/config/%s-app-framework-postgresql-1.yml", psID, psID): "database-url: \"postgres://localhost/db\"\n",
+				fmt.Sprintf("deployments/%s/config/%s-app-framework-sqlite-1.yml", psID, psID):     testSQLiteDatabaseURL,
+				fmt.Sprintf("deployments/%s/config/%s-app-framework-sqlite-2.yml", psID, psID):     testSQLiteDatabaseURL,
+				fmt.Sprintf("deployments/%s/config/%s-app-framework-postgresql-1.yml", psID, psID): testPostgresDatabaseURL,
 				fmt.Sprintf("deployments/%s/config/%s-app-framework-postgresql-2.yml", psID, psID): minimalPostgresContent(psID, "2"),
 			},
 			wantSubstring: `forbidden key "database-url"`,
 		},
 		{
-			name: "missing overlay file",
+			name:        testMissingOverlayFileMessage,
+			removeFiles: []string{fmt.Sprintf("deployments/%s/config/%s-app-framework-sqlite-2.yml", psID, psID)},
 			setupFiles: map[string]string{
-				fmt.Sprintf("deployments/%s/config/%s-app-framework-sqlite-1.yml", psID, psID): "database-url: \"sqlite://file::memory:?cache=shared\"\n",
+				fmt.Sprintf("deployments/%s/config/%s-app-framework-sqlite-1.yml", psID, psID): testSQLiteDatabaseURL,
 				// sqlite-2 is missing
 				fmt.Sprintf("deployments/%s/config/%s-app-framework-postgresql-1.yml", psID, psID): minimalPostgresContent(psID, "1"),
 				fmt.Sprintf("deployments/%s/config/%s-app-framework-postgresql-2.yml", psID, psID): minimalPostgresContent(psID, "2"),
 			},
-			wantSubstring: "missing overlay file",
+			wantSubstring: testMissingOverlayFileMessage,
 		},
 		{
 			name: "database-url value is not a string",
 			setupFiles: map[string]string{
 				fmt.Sprintf("deployments/%s/config/%s-app-framework-sqlite-1.yml", psID, psID):     "database-url: 12345\n",
-				fmt.Sprintf("deployments/%s/config/%s-app-framework-sqlite-2.yml", psID, psID):     "database-url: \"sqlite://file::memory:?cache=shared\"\n",
+				fmt.Sprintf("deployments/%s/config/%s-app-framework-sqlite-2.yml", psID, psID):     testSQLiteDatabaseURL,
 				fmt.Sprintf("deployments/%s/config/%s-app-framework-postgresql-1.yml", psID, psID): minimalPostgresContent(psID, "1"),
 				fmt.Sprintf("deployments/%s/config/%s-app-framework-postgresql-2.yml", psID, psID): minimalPostgresContent(psID, "2"),
 			},
@@ -214,8 +230,8 @@ func TestCheckInDir_Violations(t *testing.T) {
 		{
 			name: "postgresql variant missing database-sslmode",
 			setupFiles: map[string]string{
-				fmt.Sprintf("deployments/%s/config/%s-app-framework-sqlite-1.yml", psID, psID):     "database-url: \"sqlite://file::memory:?cache=shared\"\n",
-				fmt.Sprintf("deployments/%s/config/%s-app-framework-sqlite-2.yml", psID, psID):     "database-url: \"sqlite://file::memory:?cache=shared\"\n",
+				fmt.Sprintf("deployments/%s/config/%s-app-framework-sqlite-1.yml", psID, psID):     testSQLiteDatabaseURL,
+				fmt.Sprintf("deployments/%s/config/%s-app-framework-sqlite-2.yml", psID, psID):     testSQLiteDatabaseURL,
 				fmt.Sprintf("deployments/%s/config/%s-app-framework-postgresql-1.yml", psID, psID): fmt.Sprintf("otlp-service: %s-postgres-1\ndatabase-sslcert: /certs/%s/c.crt\ndatabase-sslkey: /certs/%s/c.key\ndatabase-sslrootcert: /certs/%s/ca.crt\n", psID, psID, psID, psID),
 				fmt.Sprintf("deployments/%s/config/%s-app-framework-postgresql-2.yml", psID, psID): minimalPostgresContent(psID, "2"),
 			},
@@ -224,8 +240,8 @@ func TestCheckInDir_Violations(t *testing.T) {
 		{
 			name: "postgresql variant database-sslmode not verify-full",
 			setupFiles: map[string]string{
-				fmt.Sprintf("deployments/%s/config/%s-app-framework-sqlite-1.yml", psID, psID):     "database-url: \"sqlite://file::memory:?cache=shared\"\n",
-				fmt.Sprintf("deployments/%s/config/%s-app-framework-sqlite-2.yml", psID, psID):     "database-url: \"sqlite://file::memory:?cache=shared\"\n",
+				fmt.Sprintf("deployments/%s/config/%s-app-framework-sqlite-1.yml", psID, psID):     testSQLiteDatabaseURL,
+				fmt.Sprintf("deployments/%s/config/%s-app-framework-sqlite-2.yml", psID, psID):     testSQLiteDatabaseURL,
 				fmt.Sprintf("deployments/%s/config/%s-app-framework-postgresql-1.yml", psID, psID): fmt.Sprintf("database-sslmode: require\ndatabase-sslcert: /certs/%s/c.crt\ndatabase-sslkey: /certs/%s/c.key\ndatabase-sslrootcert: /certs/%s/ca.crt\n", psID, psID, psID),
 				fmt.Sprintf("deployments/%s/config/%s-app-framework-postgresql-2.yml", psID, psID): minimalPostgresContent(psID, "2"),
 			},
@@ -237,7 +253,12 @@ func TestCheckInDir_Violations(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			rootDir := setupTempDir(t, tc.setupFiles)
+			files := mergeMinimalPSIDFiles(tc.setupFiles)
+			for _, path := range tc.removeFiles {
+				delete(files, path)
+			}
+
+			rootDir := setupTempDir(t, files)
 			logger := cryptoutilCmdCicdCommon.NewLogger("test")
 
 			err := CheckInDir(logger, rootDir, os.ReadFile)
@@ -246,7 +267,7 @@ func TestCheckInDir_Violations(t *testing.T) {
 			}
 
 			if tc.wantSubstring != "" && !contains(err.Error(), tc.wantSubstring) {
-				t.Errorf("want error containing %q, got: %v", tc.wantSubstring, err)
+				assert.Failf(t, cryptoutilSharedMagic.CICDTestErrorfFailureMessage, "want error containing %q, got: %v", tc.wantSubstring, err)
 			}
 		})
 	}
@@ -259,12 +280,12 @@ func TestCheckInDir_YAMLParseError(t *testing.T) {
 
 	setupFiles := map[string]string{
 		fmt.Sprintf("deployments/%s/config/%s-app-framework-sqlite-1.yml", psID, psID):     "{ invalid yaml: [unclosed\n",
-		fmt.Sprintf("deployments/%s/config/%s-app-framework-sqlite-2.yml", psID, psID):     "database-url: \"sqlite://file::memory:?cache=shared\"\n",
+		fmt.Sprintf("deployments/%s/config/%s-app-framework-sqlite-2.yml", psID, psID):     testSQLiteDatabaseURL,
 		fmt.Sprintf("deployments/%s/config/%s-app-framework-postgresql-1.yml", psID, psID): minimalPostgresContent(psID, "1"),
 		fmt.Sprintf("deployments/%s/config/%s-app-framework-postgresql-2.yml", psID, psID): minimalPostgresContent(psID, "2"),
 	}
 
-	rootDir := setupTempDir(t, setupFiles)
+	rootDir := setupTempDir(t, mergeMinimalPSIDFiles(setupFiles))
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 
 	err := CheckInDir(logger, rootDir, os.ReadFile)
@@ -273,7 +294,7 @@ func TestCheckInDir_YAMLParseError(t *testing.T) {
 	}
 
 	if !contains(err.Error(), "YAML parse error") {
-		t.Errorf("want YAML parse error, got: %v", err)
+		assert.Failf(t, cryptoutilSharedMagic.CICDTestErrorfFailureMessage, "want YAML parse error, got: %v", err)
 	}
 }
 
@@ -283,13 +304,13 @@ func TestCheckInDir_ReadFileError(t *testing.T) {
 	psID := cryptoutilSharedMagic.OTLPServiceSMKMS
 
 	setupFiles := map[string]string{
-		fmt.Sprintf("deployments/%s/config/%s-app-framework-sqlite-1.yml", psID, psID):     "database-url: \"sqlite://file::memory:?cache=shared\"\n",
-		fmt.Sprintf("deployments/%s/config/%s-app-framework-sqlite-2.yml", psID, psID):     "database-url: \"sqlite://file::memory:?cache=shared\"\n",
+		fmt.Sprintf("deployments/%s/config/%s-app-framework-sqlite-1.yml", psID, psID):     testSQLiteDatabaseURL,
+		fmt.Sprintf("deployments/%s/config/%s-app-framework-sqlite-2.yml", psID, psID):     testSQLiteDatabaseURL,
 		fmt.Sprintf("deployments/%s/config/%s-app-framework-postgresql-1.yml", psID, psID): minimalPostgresContent(psID, "1"),
 		fmt.Sprintf("deployments/%s/config/%s-app-framework-postgresql-2.yml", psID, psID): minimalPostgresContent(psID, "2"),
 	}
 
-	rootDir := setupTempDir(t, setupFiles)
+	rootDir := setupTempDir(t, mergeMinimalPSIDFiles(setupFiles))
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 
 	err := CheckInDir(logger, rootDir, func(_ string) ([]byte, error) {
@@ -300,12 +321,12 @@ func TestCheckInDir_ReadFileError(t *testing.T) {
 	}
 
 	if !contains(err.Error(), "cannot read file") {
-		t.Errorf("want 'cannot read file' in error, got: %v", err)
+		assert.Failf(t, cryptoutilSharedMagic.CICDTestErrorfFailureMessage, "want 'cannot read file' in error, got: %v", err)
 	}
 }
 
+// Sequential: replaces package-level overlayTemplatesYAML.
 func TestLoadOverlayTemplates_InvalidYAML(t *testing.T) {
-	// Non-parallel: modifies package-level overlayTemplatesYAML.
 	original := overlayTemplatesYAML
 
 	defer func() {
@@ -320,8 +341,8 @@ func TestLoadOverlayTemplates_InvalidYAML(t *testing.T) {
 	}
 }
 
+// Sequential: replaces package-level overlayTemplatesYAML.
 func TestCheck_LoadTemplateError(t *testing.T) {
-	// Non-parallel: modifies package-level overlayTemplatesYAML.
 	original := overlayTemplatesYAML
 
 	defer func() {
@@ -340,8 +361,8 @@ func TestCheck_LoadTemplateError(t *testing.T) {
 	}
 }
 
+// Sequential: replaces package-level overlayTemplatesYAML.
 func TestCheckInDir_UnknownVariantInTemplate(t *testing.T) {
-	// Non-parallel: modifies package-level overlayTemplatesYAML.
 	original := overlayTemplatesYAML
 
 	defer func() {
@@ -360,10 +381,10 @@ func TestCheckInDir_UnknownVariantInTemplate(t *testing.T) {
 	psID := cryptoutilSharedMagic.OTLPServiceSMKMS
 
 	setupFiles := map[string]string{
-		fmt.Sprintf("deployments/%s/config/%s-app-framework-sqlite-1.yml", psID, psID): "database-url: \"sqlite://file::memory:?cache=shared\"\n",
+		fmt.Sprintf("deployments/%s/config/%s-app-framework-sqlite-1.yml", psID, psID): testSQLiteDatabaseURL,
 	}
 
-	rootDir := setupTempDir(t, setupFiles)
+	rootDir := setupTempDir(t, mergeMinimalPSIDFiles(setupFiles))
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 
 	err := CheckInDir(logger, rootDir, os.ReadFile)
@@ -372,7 +393,7 @@ func TestCheckInDir_UnknownVariantInTemplate(t *testing.T) {
 	}
 
 	if !contains(err.Error(), "unknown variant") {
-		t.Errorf("want 'unknown variant' in error, got: %v", err)
+		assert.Failf(t, cryptoutilSharedMagic.CICDTestErrorfFailureMessage, "want 'unknown variant' in error, got: %v", err)
 	}
 }
 

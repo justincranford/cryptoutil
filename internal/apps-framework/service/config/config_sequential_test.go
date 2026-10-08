@@ -13,6 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// Sequential: resets and parses the package-level pflag set.
 func TestParse_HappyPath_Defaults(t *testing.T) {
 	resetFlags()
 
@@ -76,6 +77,7 @@ func TestParse_HappyPath_Defaults(t *testing.T) {
 	require.Equal(t, unsealFilesSlice, s.UnsealFiles)
 }
 
+// Sequential: resets and parses the package-level pflag set.
 func TestParse_HappyPath_Overrides(t *testing.T) {
 	resetFlags()
 
@@ -202,6 +204,8 @@ func TestParse_HappyPath_Overrides(t *testing.T) {
 }
 
 func TestAnalyzeSettings_RealSettings(t *testing.T) {
+	t.Parallel()
+
 	result := analyzeSettings(allServiceFrameworkServerRegisteredSettings)
 
 	totalMappedByName := 0
@@ -240,6 +244,8 @@ func TestAnalyzeSettings_RealSettings(t *testing.T) {
 }
 
 func TestAnalyzeSettings_NoDuplicates(t *testing.T) {
+	t.Parallel()
+
 	result := analyzeSettings([]*Setting{
 		{Name: "unique1", Shorthand: "a", Value: "value1", Usage: "usage1"},
 		{Name: "unique2", Shorthand: "b", Value: "value2", Usage: "usage2"},
@@ -268,6 +274,8 @@ func TestAnalyzeSettings_NoDuplicates(t *testing.T) {
 }
 
 func TestAnalyzeSettings_DuplicateNamesOnly(t *testing.T) {
+	t.Parallel()
+
 	result := analyzeSettings([]*Setting{
 		{Name: "duplicate", Shorthand: "a", Value: "value1", Usage: "usage1"},
 		{Name: "duplicate", Shorthand: "b", Value: "value2", Usage: "usage2"},
@@ -285,6 +293,8 @@ func TestAnalyzeSettings_DuplicateNamesOnly(t *testing.T) {
 }
 
 func TestAnalyzeSettings_DuplicateShorthandsOnly(t *testing.T) {
+	t.Parallel()
+
 	result := analyzeSettings([]*Setting{
 		{Name: "unique1", Shorthand: "d", Value: "value1", Usage: "usage1"},
 		{Name: "unique2", Shorthand: "d", Value: "value2", Usage: "usage2"},
@@ -302,6 +312,8 @@ func TestAnalyzeSettings_DuplicateShorthandsOnly(t *testing.T) {
 }
 
 func TestAnalyzeSettings_DuplicateNames_And_DuplicateShorthands(t *testing.T) {
+	t.Parallel()
+
 	result := analyzeSettings([]*Setting{
 		{Name: "duplicate", Shorthand: "d", Value: "value1", Usage: "usage1"},
 		{Name: "duplicate", Shorthand: "d", Value: "value2", Usage: "usage2"},
@@ -328,6 +340,7 @@ func TestAnalyzeSettings_DuplicateNames_And_DuplicateShorthands(t *testing.T) {
 	require.NotContains(t, result.DuplicateShorthands, "U")
 }
 
+// Sequential: resets and parses the package-level pflag set.
 func TestParse_EnvironmentVariables(t *testing.T) {
 	resetFlags()
 
@@ -348,6 +361,7 @@ func TestParse_EnvironmentVariables(t *testing.T) {
 	require.Equal(t, "postgres://env:pass@envdb:5432/envdb?sslmode=require", s.DatabaseURL)
 }
 
+// Sequential: resets and parses the package-level pflag set.
 func TestParse_EnvironmentVariables_CommandLineOverride(t *testing.T) {
 	resetFlags()
 
@@ -365,6 +379,7 @@ func TestParse_EnvironmentVariables_CommandLineOverride(t *testing.T) {
 	require.False(t, s.DevMode)
 }
 
+// Sequential: resets and parses the package-level pflag set.
 func TestParse_DryRun(t *testing.T) {
 	resetFlags()
 
@@ -374,6 +389,7 @@ func TestParse_DryRun(t *testing.T) {
 	require.True(t, s.DryRun)
 }
 
+// Sequential: resets and parses the package-level pflag set.
 func TestParse_DryRun_Default(t *testing.T) {
 	resetFlags()
 

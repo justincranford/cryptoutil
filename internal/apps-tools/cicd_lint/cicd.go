@@ -17,6 +17,7 @@ import (
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps-tools/cicd_lint/common"
 	cryptoutilCmdCicdFormatGo "cryptoutil/internal/apps-tools/cicd_lint/format_go"
 	cryptoutilCmdCicdFormatGotest "cryptoutil/internal/apps-tools/cicd_lint/format_gotest"
+	cryptoutilCmdCicdFormatText "cryptoutil/internal/apps-tools/cicd_lint/format_text"
 	cryptoutilGitHubCleanup "cryptoutil/internal/apps-tools/cicd_lint/github_cleanup"
 	cryptoutilCmdCicdLintCompose "cryptoutil/internal/apps-tools/cicd_lint/lint_compose"
 	cryptoutilLintDeployments "cryptoutil/internal/apps-tools/cicd_lint/lint_deployments"
@@ -49,7 +50,8 @@ const (
 	cmdLintGoMod       = "lint-go-mod"      // [Linter] Go module linters (dependency updates).
 	cmdLintGolangci    = "lint-golangci"    // [Linter] golangci-lint config validation (v2 compatibility).
 	cmdFormatGo        = "format-go"        // [Formatter] Go file formatters (any, copyloopvar).
-	cmdFormatGoTest    = "format-go-test"   // [Formatter] Go test file formatters (t.Helper).
+	cmdFormatGoTest    = "format-go-test"   // [Formatter] Go test formatters (failure calls, t.Parallel, t.Helper).
+	cmdFormatText      = "format-text"      // [Formatter] Normalize text files to LF.
 	cmdLintDocs        = "lint-docs"        // [Linter] Documentation linters (chunk verification, propagation).
 	cmdLintDeployments = "lint-deployments" // [Linter] Deployment structure and config file validation.
 	cmdLintOpenAPI     = "lint-openapi"     // [Linter] OpenAPI spec version and codegen config validation.
@@ -317,6 +319,8 @@ func executeCommand(
 		cmdErr = cryptoutilCmdCicdLintGotest.Lint(logger, filesByExtension)
 	case cmdFormatGoTest:
 		cmdErr = cryptoutilCmdCicdFormatGotest.Format(logger)
+	case cmdFormatText:
+		cmdErr = cryptoutilCmdCicdFormatText.Format(logger, filesByExtension)
 	case cmdLintWorkflow:
 		cmdErr = cryptoutilCmdCicdLintWorkflow.Lint(logger, filesByExtension)
 	case cmdLintGoMod:
@@ -365,7 +369,7 @@ func countFiles(filesByExtension map[string][]string) int {
 // commandNeedsFiles returns true if a single command requires file-based scanning.
 func commandNeedsFiles(command string) bool {
 	switch command {
-	case cmdLintText, cmdLintCompose, cmdFormatGo,
+	case cmdLintText, cmdLintCompose, cmdFormatGo, cmdFormatText,
 		cmdLintGoTest, cmdLintWorkflow,
 		cmdLintPorts, cmdLintGolangci,
 		cmdLintJavaTest, cmdLintPythonTest,
@@ -380,7 +384,7 @@ func commandNeedsFiles(command string) bool {
 func commandsNeedFiles(commands []string) bool {
 	for _, cmd := range commands {
 		switch cmd {
-		case cmdLintText, cmdLintGo, cmdLintCompose, cmdFormatGo,
+		case cmdLintText, cmdLintGo, cmdLintCompose, cmdFormatGo, cmdFormatText,
 			cmdLintGoTest, cmdFormatGoTest, cmdLintWorkflow,
 			cmdLintGoMod, cmdLintPorts, cmdLintGolangci,
 			cmdLintJavaTest, cmdLintPythonTest,

@@ -3,6 +3,9 @@ package test_patterns
 
 import (
 	"fmt"
+	"go/ast"
+	"go/parser"
+	"go/token"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -119,17 +122,14 @@ func CheckTestFile(filePath string) []string {
 		issues = append(issues, "Found hardcoded UUID - consider using uuid.NewV7() for test data")
 	}
 
-	// Pattern 3: Check for testify usage patterns.
-	// Look for t.Errorf/t.Fatalf that should use require/assert.
-	// Use a more sophisticated pattern to avoid matching string literals.
-	if cryptoutilSharedMagic.TestErrorfPattern.MatchString(contentStr) {
-		matches := cryptoutilSharedMagic.TestErrorfPattern.FindAllString(contentStr, -1)
-		issues = append(issues, fmt.Sprintf("Found %d instances of t.Errorf() - should use require.Errorf() or assert.Errorf()", len(matches)))
+	// Pattern 3: Check for testing.T failure calls in Go syntax, not fixture strings.
+	errorfCount, fatalfCount := countTestingFailureCalls(content, filePath)
+	if errorfCount > 0 {
+		issues = append(issues, fmt.Sprintf("Found %d instances of t.Errorf() - use assert.Failf() to preserve non-fatal behavior", errorfCount))
 	}
 
-	if cryptoutilSharedMagic.TestFatalfPattern.MatchString(contentStr) {
-		matches := cryptoutilSharedMagic.TestFatalfPattern.FindAllString(contentStr, -1)
-		issues = append(issues, fmt.Sprintf("Found %d instances of t.Fatalf() - should use require.Fatalf() or assert.Fatalf()", len(matches)))
+	if fatalfCount > 0 {
+		issues = append(issues, fmt.Sprintf("Found %d instances of t.Fatalf() - use require.FailNowf() to preserve fatal behavior", fatalfCount))
 	}
 
 	// Pattern 4: Check for testify imports if testify assertions are used.
@@ -141,6 +141,43 @@ func CheckTestFile(filePath string) []string {
 	}
 
 	return issues
+}
+
+func countTestingFailureCalls(content []byte, filePath string) (int, int) {
+	file, err := parser.ParseFile(token.NewFileSet(), filePath, content, 0)
+	if err != nil {
+		return 0, 0
+	}
+
+	var errorfCount, fatalfCount int
+
+	ast.Inspect(file, func(node ast.Node) bool {
+		call, ok := node.(*ast.CallExpr)
+		if !ok {
+			return true
+		}
+
+		selector, ok := call.Fun.(*ast.SelectorExpr)
+		if !ok || len(call.Args) == 0 {
+			return true
+		}
+
+		receiver, ok := selector.X.(*ast.Ident)
+		if !ok || receiver.Name != "t" {
+			return true
+		}
+
+		switch selector.Sel.Name {
+		case cryptoutilSharedMagic.CICDTestMethodErrorf:
+			errorfCount++
+		case cryptoutilSharedMagic.CICDTestMethodFatalf:
+			fatalfCount++
+		}
+
+		return true
+	})
+
+	return errorfCount, fatalfCount
 }
 
 // bannedTestFilenameSuffixes lists nonsense test filename suffixes that describe

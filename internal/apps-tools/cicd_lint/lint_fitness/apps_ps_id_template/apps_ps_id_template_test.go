@@ -29,7 +29,7 @@ func TestCanonicalTemplateFilesUseActualCanonicalPaths(t *testing.T) {
 		case "__SERVICE___test.go.tmpl":
 			require.Equal(t, "__SERVICE___test.go", spec.actualPath)
 		default:
-			t.Fatalf("unexpected root template path: %s", spec.templatePath)
+			require.FailNowf(t, cryptoutilSharedMagic.CICDTestFatalfFailureMessage, "unexpected root template path: %s", spec.templatePath)
 		}
 	}
 }

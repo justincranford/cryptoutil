@@ -11,6 +11,8 @@ import (
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps-tools/cicd_lint/common"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+
+	"github.com/stretchr/testify/require"
 )
 
 const compliantTestMain = `//go:build e2e
@@ -63,7 +65,7 @@ func TestFindViolationsWithReader_ReadError(t *testing.T) {
 		return nil, errors.New("injected read failure")
 	})
 	if violations != nil {
-		t.Fatalf("violations must be nil on read failure")
+		require.FailNowf(t, cryptoutilSharedMagic.CICDTestFatalfFailureMessage, "violations must be nil on read failure")
 	}
 
 	if err == nil {
@@ -76,7 +78,7 @@ func TestFindViolationsWithReader_InvalidRootPath(t *testing.T) {
 
 	violations, err := findViolationsWithReader("bad\x00root", os.ReadFile)
 	if violations != nil {
-		t.Fatalf("violations must be nil on walk failure")
+		require.FailNowf(t, cryptoutilSharedMagic.CICDTestFatalfFailureMessage, "violations must be nil on walk failure")
 	}
 
 	if err == nil {
@@ -130,7 +132,7 @@ func TestCheckInDirWithReader_Compliant_NoError(t *testing.T) {
 
 	err := checkInDirWithReader(logger, tempDir, os.ReadFile)
 	if err != nil {
-		t.Fatalf("expected nil error, got %v", err)
+		require.FailNowf(t, cryptoutilSharedMagic.CICDTestFatalfFailureMessage, "expected nil error, got %v", err)
 	}
 }
 
