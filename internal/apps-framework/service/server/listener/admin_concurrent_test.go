@@ -345,6 +345,8 @@ func TestAdminServer_Livez_DuringShutdown_InMemory(t *testing.T) {
 	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, "/admin/api/v1/livez", nil)
 	require.NoError(t, err)
 
+	req.Host = cryptoutilSharedMagic.HostnameLocalhost
+
 	resp, err := server.App().Test(req, -1) // -1 = no timeout
 	require.NoError(t, err)
 
@@ -384,6 +386,8 @@ func TestAdminServer_Readyz_DuringShutdown_InMemory(t *testing.T) {
 	// Use app.Test() for in-memory request.
 	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, "/admin/api/v1/readyz", nil)
 	require.NoError(t, err)
+
+	req.Host = cryptoutilSharedMagic.HostnameLocalhost
 
 	resp, err := server.App().Test(req, -1)
 	require.NoError(t, err)

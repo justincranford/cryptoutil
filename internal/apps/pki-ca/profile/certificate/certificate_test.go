@@ -11,6 +11,12 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const (
+	testProfileRootCAName        = "root-ca"
+	testProfileOCSPResponderName = "ocsp-responder"
+	testAnnualValidityDuration   = "8760h"
+)
+
 func TestParseProfile_Valid(t *testing.T) {
 	t.Parallel()
 
@@ -21,7 +27,7 @@ func TestParseProfile_Valid(t *testing.T) {
 		wantType ProfileType
 	}{
 		{
-			name: "root-ca",
+			name: testProfileRootCAName,
 			yaml: `
 name: root-ca
 description: Root CA certificate profile
@@ -36,11 +42,11 @@ basic_constraints:
   is_ca: true
   path_len_constraint: 2
 `,
-			wantName: "root-ca",
+			wantName: testProfileRootCAName,
 			wantType: ProfileTypeRoot,
 		},
 		{
-			name: "tls-server",
+			name: string(ProfileTypeTLSServer),
 			yaml: `
 name: tls-server
 description: TLS Server certificate profile
@@ -56,11 +62,11 @@ key_usage:
 extended_key_usage:
   server_auth: true
 `,
-			wantName: "tls-server",
+			wantName: string(ProfileTypeTLSServer),
 			wantType: ProfileTypeTLSServer,
 		},
 		{
-			name: "code-signing",
+			name: string(ProfileTypeCodeSigning),
 			yaml: `
 name: code-signing
 description: Code signing certificate profile
@@ -72,11 +78,11 @@ key_usage:
 extended_key_usage:
   code_signing: true
 `,
-			wantName: "code-signing",
+			wantName: string(ProfileTypeCodeSigning),
 			wantType: ProfileTypeCodeSigning,
 		},
 		{
-			name: "ocsp-responder",
+			name: testProfileOCSPResponderName,
 			yaml: `
 name: ocsp-responder
 description: OCSP responder certificate
@@ -88,7 +94,7 @@ key_usage:
 extended_key_usage:
   ocsp_signing: true
 `,
-			wantName: "ocsp-responder",
+			wantName: testProfileOCSPResponderName,
 			wantType: ProfileTypeOCSP,
 		},
 	}
@@ -340,7 +346,7 @@ func TestValidityConfig_GetDuration(t *testing.T) {
 		{
 			name: "one-year",
 			config: ValidityConfig{
-				Duration: "8760h",
+				Duration: testAnnualValidityDuration,
 			},
 			want: 8760 * time.Hour,
 		},
@@ -383,7 +389,7 @@ func TestValidityConfig_ValidateDuration(t *testing.T) {
 		{
 			name: "custom-allowed-within-max",
 			config: ValidityConfig{
-				Duration:    "8760h",
+				Duration:    testAnnualValidityDuration,
 				MaxDuration: "17520h",
 				AllowCustom: true,
 			},
@@ -393,8 +399,8 @@ func TestValidityConfig_ValidateDuration(t *testing.T) {
 		{
 			name: "custom-allowed-exceeds-max",
 			config: ValidityConfig{
-				Duration:    "8760h",
-				MaxDuration: "8760h",
+				Duration:    testAnnualValidityDuration,
+				MaxDuration: testAnnualValidityDuration,
 				AllowCustom: true,
 			},
 			requested: twoYears,
@@ -403,7 +409,7 @@ func TestValidityConfig_ValidateDuration(t *testing.T) {
 		{
 			name: "custom-not-allowed-matches-default",
 			config: ValidityConfig{
-				Duration:    "8760h",
+				Duration:    testAnnualValidityDuration,
 				AllowCustom: false,
 			},
 			requested: oneYear,
@@ -412,7 +418,7 @@ func TestValidityConfig_ValidateDuration(t *testing.T) {
 		{
 			name: "custom-not-allowed-differs-from-default",
 			config: ValidityConfig{
-				Duration:    "8760h",
+				Duration:    testAnnualValidityDuration,
 				AllowCustom: false,
 			},
 			requested: twoYears,

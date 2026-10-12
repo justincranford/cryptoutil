@@ -34,7 +34,7 @@ func TestRootKeysService_DecryptKey_ErrorPaths(t *testing.T) {
 		expectedErrContain string
 	}{
 		{
-			name: "invalid_jwe_format",
+			name: testCaseInvalidJWEFormat,
 			setupFunc: func(t *testing.T) (cryptoutilAppsFrameworkServiceServerBarrier.Transaction, *cryptoutilAppsFrameworkServiceServerBarrier.RootKeysService, []byte) {
 				telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsFrameworkServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true).ToTelemetrySettings())
 				require.NoError(t, err)
@@ -75,7 +75,7 @@ func TestRootKeysService_DecryptKey_ErrorPaths(t *testing.T) {
 
 				return tx, rootKeysSvc, invalidJWE
 			},
-			expectedErrContain: "failed to parse encrypted intermediate key message",
+			expectedErrContain: testErrorFailedToParseEncryptedIntermediateKeyMessage,
 		},
 		{
 			name: "corrupted_jwe_json",
@@ -119,7 +119,7 @@ func TestRootKeysService_DecryptKey_ErrorPaths(t *testing.T) {
 
 				return tx, rootKeysSvc, corruptedJWE
 			},
-			expectedErrContain: "failed to parse encrypted intermediate key message",
+			expectedErrContain: testErrorFailedToParseEncryptedIntermediateKeyMessage,
 		},
 		{
 			name: "nil_encrypted_bytes",
@@ -161,7 +161,7 @@ func TestRootKeysService_DecryptKey_ErrorPaths(t *testing.T) {
 				// Return nil bytes
 				return tx, rootKeysSvc, nil
 			},
-			expectedErrContain: "failed to parse encrypted intermediate key message",
+			expectedErrContain: testErrorFailedToParseEncryptedIntermediateKeyMessage,
 		},
 	}
 

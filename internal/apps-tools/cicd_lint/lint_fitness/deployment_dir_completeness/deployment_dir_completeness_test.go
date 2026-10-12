@@ -15,6 +15,19 @@ import (
 	lintFitnessDeploymentDirCompleteness "cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/deployment_dir_completeness"
 )
 
+const (
+	testFrameworkCommonConfigSuffix      = "-app-framework-common.yml"
+	testFrameworkSQLite1ConfigSuffix     = "-app-framework-sqlite-1.yml"
+	testFrameworkSQLite2ConfigSuffix     = "-app-framework-sqlite-2.yml"
+	testFrameworkPostgreSQL1ConfigSuffix = "-app-framework-postgresql-1.yml"
+	testFrameworkPostgreSQL2ConfigSuffix = "-app-framework-postgresql-2.yml"
+	testDomainCommonConfigSuffix         = "-app-domain-common.yml"
+	testDomainSQLite1ConfigSuffix        = "-app-domain-sqlite-1.yml"
+	testDomainSQLite2ConfigSuffix        = "-app-domain-sqlite-2.yml"
+	testDomainPostgreSQL1ConfigSuffix    = "-app-domain-postgresql-1.yml"
+	testDomainPostgreSQL2ConfigSuffix    = "-app-domain-postgresql-2.yml"
+)
+
 func newTestLogger() *cryptoutilCmdCicdCommon.Logger {
 	return cryptoutilCmdCicdCommon.NewLogger("test")
 }
@@ -63,16 +76,16 @@ func createDeploymentDir(t *testing.T, tmpDir, psID string) {
 	require.NoError(t, os.WriteFile(filepath.Join(deployDir, cryptoutilSharedMagic.COMPOSE_YML), []byte("services: {}\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
 	for _, suffix := range []string{
-		"-app-framework-common.yml",
-		"-app-framework-sqlite-1.yml",
-		"-app-framework-sqlite-2.yml",
-		"-app-framework-postgresql-1.yml",
-		"-app-framework-postgresql-2.yml",
-		"-app-domain-common.yml",
-		"-app-domain-sqlite-1.yml",
-		"-app-domain-sqlite-2.yml",
-		"-app-domain-postgresql-1.yml",
-		"-app-domain-postgresql-2.yml",
+		testFrameworkCommonConfigSuffix,
+		testFrameworkSQLite1ConfigSuffix,
+		testFrameworkSQLite2ConfigSuffix,
+		testFrameworkPostgreSQL1ConfigSuffix,
+		testFrameworkPostgreSQL2ConfigSuffix,
+		testDomainCommonConfigSuffix,
+		testDomainSQLite1ConfigSuffix,
+		testDomainSQLite2ConfigSuffix,
+		testDomainPostgreSQL1ConfigSuffix,
+		testDomainPostgreSQL2ConfigSuffix,
 	} {
 		fp := filepath.Join(configDir, psID+suffix)
 		require.NoError(t, os.WriteFile(fp, []byte("# config\n"), cryptoutilSharedMagic.CacheFilePermissions))
@@ -170,16 +183,16 @@ func TestCheckInDir_MissingConfigFile(t *testing.T) {
 
 	psID := cryptoutilSharedMagic.OTLPServiceSMKMS
 	suffixes := []string{
-		"-app-framework-common.yml",
-		"-app-framework-sqlite-1.yml",
-		"-app-framework-sqlite-2.yml",
-		"-app-framework-postgresql-1.yml",
-		"-app-framework-postgresql-2.yml",
-		"-app-domain-common.yml",
-		"-app-domain-sqlite-1.yml",
-		"-app-domain-sqlite-2.yml",
-		"-app-domain-postgresql-1.yml",
-		"-app-domain-postgresql-2.yml",
+		testFrameworkCommonConfigSuffix,
+		testFrameworkSQLite1ConfigSuffix,
+		testFrameworkSQLite2ConfigSuffix,
+		testFrameworkPostgreSQL1ConfigSuffix,
+		testFrameworkPostgreSQL2ConfigSuffix,
+		testDomainCommonConfigSuffix,
+		testDomainSQLite1ConfigSuffix,
+		testDomainSQLite2ConfigSuffix,
+		testDomainPostgreSQL1ConfigSuffix,
+		testDomainPostgreSQL2ConfigSuffix,
 	}
 
 	for _, suffix := range suffixes {

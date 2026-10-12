@@ -14,7 +14,6 @@ import (
 
 	cryptoutilAppsCaServerConfig "cryptoutil/internal/apps/pki-ca/server/config"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
-	cryptoutilSharedUtilPoll "cryptoutil/internal/shared/util/poll"
 )
 
 // pollServerReady timeout and interval for waiting on server port allocation.
@@ -34,11 +33,8 @@ func TestCAServer_HandleOCSP(t *testing.T) {
 		_ = server.Start(ctx)
 	}()
 
-	// Wait for server to be ready and ports to be allocated.
-	err = cryptoutilSharedUtilPoll.Until(ctx, cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days*time.Second, cryptoutilSharedMagic.TestPollReadyInterval, func(_ context.Context) (bool, error) {
-		return server.PublicPort() > 0, nil
-	})
-	require.NoError(t, err, "server did not bind to port")
+	// Wait until both HTTPS listeners are serving requests.
+	waitForServerReady(t, server)
 
 	// Create HTTP client.
 	client := &http.Client{
@@ -90,11 +86,8 @@ func TestCAServer_HandleOCSP_InvalidRequest(t *testing.T) {
 		_ = server.Start(ctx)
 	}()
 
-	// Wait for server to be ready and ports to be allocated.
-	err = cryptoutilSharedUtilPoll.Until(ctx, cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days*time.Second, cryptoutilSharedMagic.TestPollReadyInterval, func(_ context.Context) (bool, error) {
-		return server.PublicPort() > 0, nil
-	})
-	require.NoError(t, err, "server did not bind to port")
+	// Wait until both HTTPS listeners are serving requests.
+	waitForServerReady(t, server)
 
 	// Create HTTP client.
 	client := &http.Client{
@@ -146,11 +139,8 @@ func TestCAServer_HandleCRLDistribution_Error(t *testing.T) {
 		_ = server.Start(ctx)
 	}()
 
-	// Wait for server to be ready and ports to be allocated.
-	err = cryptoutilSharedUtilPoll.Until(ctx, cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days*time.Second, cryptoutilSharedMagic.TestPollReadyInterval, func(_ context.Context) (bool, error) {
-		return server.PublicPort() > 0, nil
-	})
-	require.NoError(t, err, "server did not bind to port")
+	// Wait until both HTTPS listeners are serving requests.
+	waitForServerReady(t, server)
 
 	// Create HTTP client.
 	client := &http.Client{
@@ -217,11 +207,8 @@ func TestCAServer_HealthEndpoints_EdgeCases(t *testing.T) {
 		_ = server.Start(ctx)
 	}()
 
-	// Wait for server to be ready and ports to be allocated.
-	err = cryptoutilSharedUtilPoll.Until(ctx, cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days*time.Second, cryptoutilSharedMagic.TestPollReadyInterval, func(_ context.Context) (bool, error) {
-		return server.PublicPort() > 0 && server.AdminPort() > 0, nil
-	})
-	require.NoError(t, err, "server did not bind to ports")
+	// Wait until both HTTPS listeners are serving requests.
+	waitForServerReady(t, server)
 
 	// Create HTTP client.
 	client := &http.Client{

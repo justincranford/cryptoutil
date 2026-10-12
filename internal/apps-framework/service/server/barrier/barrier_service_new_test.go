@@ -81,34 +81,34 @@ func TestNewService_ValidationErrors(t *testing.T) {
 			jwkGenService:      testJWKGenService,
 			repository:         nil, // We'll use a mock.
 			unsealKeysService:  nil, // We'll use a mock.
-			expectedErrContain: "ctx must be non-nil",
+			expectedErrContain: testErrorContextMustBeNonNil,
 		},
 		{
-			name:               "nil telemetry service",
+			name:               testCaseNilTelemetryService,
 			ctx:                ctx,
 			telemetryService:   nil,
 			jwkGenService:      testJWKGenService,
 			repository:         nil,
 			unsealKeysService:  nil,
-			expectedErrContain: "telemetryService must be non-nil",
+			expectedErrContain: testErrorTelemetryServiceMustBeNonNil,
 		},
 		{
-			name:               "nil jwk gen service",
+			name:               testCaseNilJWKGenService,
 			ctx:                ctx,
 			telemetryService:   testTelemetryService,
 			jwkGenService:      nil,
 			repository:         nil,
 			unsealKeysService:  nil,
-			expectedErrContain: "jwkGenService must be non-nil",
+			expectedErrContain: testErrorJWKGenServiceMustBeNonNil,
 		},
 		{
-			name:               "nil repository",
+			name:               testCaseNilRepository,
 			ctx:                ctx,
 			telemetryService:   testTelemetryService,
 			jwkGenService:      testJWKGenService,
 			repository:         nil,
 			unsealKeysService:  nil,
-			expectedErrContain: "repository must be non-nil",
+			expectedErrContain: testErrorRepositoryMustBeNonNil,
 		},
 	}
 
@@ -173,5 +173,5 @@ func TestNewService_NilUnsealService(t *testing.T) {
 	)
 	require.Error(t, err)
 	require.Nil(t, service)
-	require.Contains(t, err.Error(), "unsealKeysService must be non-nil")
+	require.Contains(t, err.Error(), testErrorUnsealKeysServiceMustBeNonNil)
 }

@@ -6,7 +6,6 @@ import (
 	"crypto"
 	crand "crypto/rand"
 	"crypto/x509"
-	"crypto/x509/pkix"
 	"encoding/pem"
 	"fmt"
 	"math/big"
@@ -176,9 +175,9 @@ func (s *CRLService) GenerateCRL() ([]byte, error) {
 	}
 
 	// Build revoked certificate list.
-	revokedList := make([]pkix.RevokedCertificate, len(s.revokedCerts))
+	revokedList := make([]x509.RevocationListEntry, len(s.revokedCerts))
 	for i, cert := range s.revokedCerts {
-		revokedList[i] = pkix.RevokedCertificate{
+		revokedList[i] = x509.RevocationListEntry{
 			SerialNumber:   cert.SerialNumber,
 			RevocationTime: cert.RevocationTime,
 		}
@@ -192,11 +191,11 @@ func (s *CRLService) GenerateCRL() ([]byte, error) {
 
 	// Build CRL template.
 	template := &x509.RevocationList{
-		Number:              s.currentCRLNumber,
-		ThisUpdate:          now,
-		NextUpdate:          nextUpdate,
-		RevokedCertificates: revokedList,
-		SignatureAlgorithm:  sigAlg,
+		Number:                    s.currentCRLNumber,
+		ThisUpdate:                now,
+		NextUpdate:                nextUpdate,
+		RevokedCertificateEntries: revokedList,
+		SignatureAlgorithm:        sigAlg,
 	}
 
 	// Sign the CRL.

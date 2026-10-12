@@ -6,6 +6,8 @@ package application
 
 import (
 	"context"
+	"path/filepath"
+	"strings"
 	"testing"
 
 	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps-framework/service/config"
@@ -14,6 +16,17 @@ import (
 
 	"github.com/stretchr/testify/require"
 )
+
+func testSQLiteFileURL(t *testing.T, name string) string {
+	t.Helper()
+
+	slashPath := filepath.ToSlash(filepath.Join(t.TempDir(), name))
+	if !strings.HasPrefix(slashPath, "/") {
+		slashPath = "/" + slashPath
+	}
+
+	return cryptoutilSharedMagic.FileURIScheme + slashPath
+}
 
 func TestShutdown_PartialInitialization(t *testing.T) {
 	t.Parallel()
@@ -42,6 +55,7 @@ func TestProvisionDatabase_SQLiteVariations(t *testing.T) {
 	tests := []struct {
 		name        string
 		databaseURL string
+		fileName    string
 		expectError bool
 	}{
 		{
@@ -56,7 +70,7 @@ func TestProvisionDatabase_SQLiteVariations(t *testing.T) {
 		},
 		{
 			name:        "File URL",
-			databaseURL: "file:///tmp/test.db",
+			fileName:    "test.db",
 			expectError: false,
 		},
 		{
@@ -70,6 +84,11 @@ func TestProvisionDatabase_SQLiteVariations(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
+			databaseURL := tt.databaseURL
+			if tt.fileName != "" {
+				databaseURL = testSQLiteFileURL(t, tt.fileName)
+			}
+
 			settings := &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{
 				LogLevel:          "info",
 				OTLPEndpoint:      "grpc://localhost:4317",
@@ -78,7 +97,7 @@ func TestProvisionDatabase_SQLiteVariations(t *testing.T) {
 				OTLPEnvironment:   "test",
 				DevMode:           true,
 				UnsealMode:        cryptoutilSharedMagic.DefaultUnsealModeSysInfo,
-				DatabaseURL:       tt.databaseURL,
+				DatabaseURL:       databaseURL,
 				DatabaseContainer: cryptoutilSharedMagic.DefaultDatabaseContainerDisabled,
 			}
 
@@ -98,6 +117,11 @@ func TestProvisionDatabase_SQLiteVariations(t *testing.T) {
 			} else {
 				require.NoError(t, err)
 				require.NotNil(t, db)
+
+				sqlDB, dbErr := db.DB()
+
+				require.NoError(t, dbErr)
+				defer func() { require.NoError(t, sqlDB.Close()) }()
 			}
 		})
 	}
@@ -169,6 +193,7 @@ func TestOpenSQLite_DebugMode(t *testing.T) {
 	tests := []struct {
 		name        string
 		databaseURL string
+		fileName    string
 		debugMode   bool
 		expectError bool
 	}{
@@ -180,7 +205,7 @@ func TestOpenSQLite_DebugMode(t *testing.T) {
 		},
 		{
 			name:        "File URL with debug mode",
-			databaseURL: "file:///tmp/test-debug.db",
+			fileName:    "test-debug.db",
 			debugMode:   true,
 			expectError: false,
 		},
@@ -196,7 +221,12 @@ func TestOpenSQLite_DebugMode(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			db, err := openSQLite(ctx, tt.databaseURL, tt.debugMode)
+			databaseURL := tt.databaseURL
+			if tt.fileName != "" {
+				databaseURL = testSQLiteFileURL(t, tt.fileName)
+			}
+
+			db, err := openSQLite(ctx, databaseURL, tt.debugMode)
 
 			if tt.expectError {
 				require.Error(t, err)

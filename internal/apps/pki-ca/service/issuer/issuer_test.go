@@ -17,6 +17,26 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const (
+	testIssuerDisplayName         = "Test Issuer"
+	testIssuerShortName           = "Test"
+	testIssuerLowercaseName       = "test"
+	testOrganizationName          = "Test Org"
+	testBenchmarkHostname         = "test.example.com"
+	testRSABenchmarkHostname      = "rsa-test.example.com"
+	testParallelBenchmarkHostname = "parallel-test.example.com"
+	testChainHostname             = "chain-test.example.com"
+	testRSAServerHostname         = "rsa-server.example.com"
+	testEdDSAServerHostname       = "eddsa-server.example.com"
+	testWebServerHostname         = "www.example.com"
+	testOrganizationNameExample   = "Example Corp"
+	testOrganizationalUnit        = "Web Services"
+	testCountryCode               = "US"
+	testAPIHostname               = "api.example.com"
+	testServerHostname            = "server.example.com"
+	testRSAIssuedHostname         = "rsa-ca-issued.example.com"
+)
+
 func createTestIssuingCA(t *testing.T, provider cryptoutilCACrypto.Provider) *cryptoutilCAIntermediate.IntermediateCA {
 	t.Helper()
 
@@ -26,7 +46,7 @@ func createTestIssuingCA(t *testing.T, provider cryptoutilCACrypto.Provider) *cr
 		Name: "Test Root CA",
 		KeySpec: cryptoutilCACrypto.KeySpec{
 			Type:       cryptoutilSharedMagic.ECDSA,
-			ECDSACurve: "P-256",
+			ECDSACurve: cryptoutilSharedMagic.P256,
 		},
 		ValidityDuration:  cryptoutilSharedMagic.MaxErrorDisplay * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour,
 		PathLenConstraint: 2,
@@ -41,7 +61,7 @@ func createTestIssuingCA(t *testing.T, provider cryptoutilCACrypto.Provider) *cr
 		Name: "Test Issuing CA",
 		KeySpec: cryptoutilCACrypto.KeySpec{
 			Type:       cryptoutilSharedMagic.ECDSA,
-			ECDSACurve: "P-256",
+			ECDSACurve: cryptoutilSharedMagic.P256,
 		},
 		ValidityDuration:  cryptoutilSharedMagic.JoseJADefaultMaxMaterials * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour,
 		PathLenConstraint: 0,
@@ -62,7 +82,7 @@ func TestNewIssuer_Valid(t *testing.T) {
 	issuingCA := createTestIssuingCA(t, provider)
 
 	caConfig := &IssuingCAConfig{
-		Name:        "Test Issuer",
+		Name:        testIssuerDisplayName,
 		Certificate: issuingCA.Certificate,
 		PrivateKey:  issuingCA.PrivateKey,
 	}
@@ -99,7 +119,7 @@ func TestNewIssuer_InvalidConfig(t *testing.T) {
 		{
 			name: "no-certificate",
 			config: &IssuingCAConfig{
-				Name:       "Test",
+				Name:       testIssuerShortName,
 				PrivateKey: issuingCA.PrivateKey,
 			},
 			wantErr: "CA certificate is required",
@@ -107,7 +127,7 @@ func TestNewIssuer_InvalidConfig(t *testing.T) {
 		{
 			name: "no-private-key",
 			config: &IssuingCAConfig{
-				Name:        "Test",
+				Name:        testIssuerShortName,
 				Certificate: issuingCA.Certificate,
 			},
 			wantErr: "CA private key is required",
@@ -133,7 +153,7 @@ func TestIssuer_Issue_TLSServer(t *testing.T) {
 	issuingCA := createTestIssuingCA(t, provider)
 
 	caConfig := &IssuingCAConfig{
-		Name:        "Test Issuer",
+		Name:        testIssuerDisplayName,
 		Certificate: issuingCA.Certificate,
 		PrivateKey:  issuingCA.PrivateKey,
 	}
@@ -144,14 +164,14 @@ func TestIssuer_Issue_TLSServer(t *testing.T) {
 	// Generate subscriber key.
 	keyPair, err := provider.GenerateKeyPair(cryptoutilCACrypto.KeySpec{
 		Type:       cryptoutilSharedMagic.ECDSA,
-		ECDSACurve: "P-256",
+		ECDSACurve: cryptoutilSharedMagic.P256,
 	})
 	require.NoError(t, err)
 
 	req := &CertificateRequest{
 		SubjectRequest: &cryptoutilCAProfileSubject.Request{
-			CommonName: "www.example.com",
-			DNSNames:   []string{"www.example.com", "example.com"},
+			CommonName: testWebServerHostname,
+			DNSNames:   []string{testWebServerHostname, "example.com"},
 		},
 		PublicKey:        keyPair.PublicKey,
 		ValidityDuration: cryptoutilSharedMagic.StrictCertificateMaxAgeDays * cryptoutilSharedMagic.HoursPerDay * time.Hour, // 90 days.
@@ -170,8 +190,8 @@ func TestIssuer_Issue_TLSServer(t *testing.T) {
 	require.NotEmpty(t, issued.Fingerprint)
 
 	cert := issued.Certificate
-	require.Equal(t, "www.example.com", cert.Subject.CommonName)
-	require.Contains(t, cert.DNSNames, "www.example.com")
+	require.Equal(t, testWebServerHostname, cert.Subject.CommonName)
+	require.Contains(t, cert.DNSNames, testWebServerHostname)
 	require.Contains(t, cert.DNSNames, "example.com")
 	require.False(t, cert.IsCA)
 
@@ -188,7 +208,7 @@ func TestIssuer_Issue_WithIPAddresses(t *testing.T) {
 	issuingCA := createTestIssuingCA(t, provider)
 
 	caConfig := &IssuingCAConfig{
-		Name:        "Test Issuer",
+		Name:        testIssuerDisplayName,
 		Certificate: issuingCA.Certificate,
 		PrivateKey:  issuingCA.PrivateKey,
 	}
@@ -198,7 +218,7 @@ func TestIssuer_Issue_WithIPAddresses(t *testing.T) {
 
 	keyPair, err := provider.GenerateKeyPair(cryptoutilCACrypto.KeySpec{
 		Type:       cryptoutilSharedMagic.ECDSA,
-		ECDSACurve: "P-256",
+		ECDSACurve: cryptoutilSharedMagic.P256,
 	})
 	require.NoError(t, err)
 
@@ -232,7 +252,7 @@ func TestIssuer_Issue_WithEmail(t *testing.T) {
 	issuingCA := createTestIssuingCA(t, provider)
 
 	caConfig := &IssuingCAConfig{
-		Name:        "Test Issuer",
+		Name:        testIssuerDisplayName,
 		Certificate: issuingCA.Certificate,
 		PrivateKey:  issuingCA.PrivateKey,
 	}
@@ -242,7 +262,7 @@ func TestIssuer_Issue_WithEmail(t *testing.T) {
 
 	keyPair, err := provider.GenerateKeyPair(cryptoutilCACrypto.KeySpec{
 		Type:       cryptoutilSharedMagic.ECDSA,
-		ECDSACurve: "P-256",
+		ECDSACurve: cryptoutilSharedMagic.P256,
 	})
 	require.NoError(t, err)
 
@@ -271,11 +291,11 @@ func TestIssuer_Issue_WithProfile(t *testing.T) {
 	issuingCA := createTestIssuingCA(t, provider)
 
 	subjectProfile := &cryptoutilCAProfileSubject.Profile{
-		Name: "tls-server",
+		Name: string(cryptoutilCAProfileCertificate.ProfileTypeTLSServer),
 		Subject: cryptoutilCAProfileSubject.DN{
-			Organization:       []string{"Example Corp"},
-			OrganizationalUnit: []string{"Web Services"},
-			Country:            []string{"US"},
+			Organization:       []string{testOrganizationNameExample},
+			OrganizationalUnit: []string{testOrganizationalUnit},
+			Country:            []string{testCountryCode},
 		},
 		SubjectAltNames: cryptoutilCAProfileSubject.SANConfig{
 			DNSNames: cryptoutilCAProfileSubject.SANPatterns{
@@ -286,7 +306,7 @@ func TestIssuer_Issue_WithProfile(t *testing.T) {
 	}
 
 	certProfile := &cryptoutilCAProfileCertificate.Profile{
-		Name: "tls-server",
+		Name: string(cryptoutilCAProfileCertificate.ProfileTypeTLSServer),
 		KeyUsage: cryptoutilCAProfileCertificate.KeyUsageConfig{
 			DigitalSignature: true,
 			KeyEncipherment:  true,
@@ -301,7 +321,7 @@ func TestIssuer_Issue_WithProfile(t *testing.T) {
 	}
 
 	caConfig := &IssuingCAConfig{
-		Name:           "Test Issuer",
+		Name:           testIssuerDisplayName,
 		Certificate:    issuingCA.Certificate,
 		PrivateKey:     issuingCA.PrivateKey,
 		SubjectProfile: subjectProfile,
@@ -313,14 +333,14 @@ func TestIssuer_Issue_WithProfile(t *testing.T) {
 
 	keyPair, err := provider.GenerateKeyPair(cryptoutilCACrypto.KeySpec{
 		Type:       cryptoutilSharedMagic.ECDSA,
-		ECDSACurve: "P-256",
+		ECDSACurve: cryptoutilSharedMagic.P256,
 	})
 	require.NoError(t, err)
 
 	req := &CertificateRequest{
 		SubjectRequest: &cryptoutilCAProfileSubject.Request{
-			CommonName: "api.example.com",
-			DNSNames:   []string{"api.example.com"},
+			CommonName: testAPIHostname,
+			DNSNames:   []string{testAPIHostname},
 		},
 		PublicKey:        keyPair.PublicKey,
 		ValidityDuration: cryptoutilSharedMagic.StrictCertificateMaxAgeDays * cryptoutilSharedMagic.HoursPerDay * time.Hour,
@@ -333,9 +353,9 @@ func TestIssuer_Issue_WithProfile(t *testing.T) {
 	cert := issued.Certificate
 
 	// Verify profile was applied.
-	require.Equal(t, []string{"Example Corp"}, cert.Subject.Organization)
-	require.Equal(t, []string{"Web Services"}, cert.Subject.OrganizationalUnit)
-	require.Equal(t, []string{"US"}, cert.Subject.Country)
+	require.Equal(t, []string{testOrganizationNameExample}, cert.Subject.Organization)
+	require.Equal(t, []string{testOrganizationalUnit}, cert.Subject.OrganizationalUnit)
+	require.Equal(t, []string{testCountryCode}, cert.Subject.Country)
 
 	// Verify key usage.
 	require.True(t, cert.KeyUsage&x509.KeyUsageDigitalSignature != 0)
@@ -343,6 +363,6 @@ func TestIssuer_Issue_WithProfile(t *testing.T) {
 	require.Contains(t, cert.ExtKeyUsage, x509.ExtKeyUsageServerAuth)
 
 	// Verify audit includes profile names.
-	require.Equal(t, "tls-server", audit.ProfileName)
-	require.Equal(t, "tls-server", audit.SubjectProfile)
+	require.Equal(t, string(cryptoutilCAProfileCertificate.ProfileTypeTLSServer), audit.ProfileName)
+	require.Equal(t, string(cryptoutilCAProfileCertificate.ProfileTypeTLSServer), audit.SubjectProfile)
 }

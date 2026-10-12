@@ -88,7 +88,7 @@ func TestGormRepository_RootKey_Lifecycle(t *testing.T) {
 	key1UUID, _ := googleUuid.NewV7()
 	key1 := &cryptoutilAppsFrameworkServiceServerBarrier.RootKey{
 		UUID:      key1UUID,
-		Encrypted: "encrypted_root_key_1",
+		Encrypted: testEncryptedRootKey1,
 		KEKUUID:   googleUuid.UUID{},
 	}
 
@@ -125,7 +125,7 @@ func TestGormRepository_RootKey_Lifecycle(t *testing.T) {
 	key2UUID, _ := googleUuid.NewV7()
 	key2 := &cryptoutilAppsFrameworkServiceServerBarrier.RootKey{
 		UUID:      key2UUID,
-		Encrypted: "encrypted_root_key_2",
+		Encrypted: testEncryptedRootKey2,
 		KEKUUID:   googleUuid.UUID{},
 	}
 
@@ -180,7 +180,7 @@ func TestGormRepository_IntermediateKey_Lifecycle(t *testing.T) {
 	rootKeyUUID, _ := googleUuid.NewV7()
 	rootKey := &cryptoutilAppsFrameworkServiceServerBarrier.RootKey{
 		UUID:      rootKeyUUID,
-		Encrypted: "encrypted_root_key_1",
+		Encrypted: testEncryptedRootKey1,
 		KEKUUID:   googleUuid.UUID{},
 	}
 
@@ -203,7 +203,7 @@ func TestGormRepository_IntermediateKey_Lifecycle(t *testing.T) {
 	key1UUID, _ := googleUuid.NewV7()
 	key1 := &cryptoutilAppsFrameworkServiceServerBarrier.IntermediateKey{
 		UUID:      key1UUID,
-		Encrypted: "encrypted_intermediate_key_1",
+		Encrypted: testEncryptedIntermediateKey1,
 		KEKUUID:   rootKeyUUID,
 	}
 
@@ -241,7 +241,7 @@ func TestGormRepository_IntermediateKey_Lifecycle(t *testing.T) {
 	key2UUID, _ := googleUuid.NewV7()
 	key2 := &cryptoutilAppsFrameworkServiceServerBarrier.IntermediateKey{
 		UUID:      key2UUID,
-		Encrypted: "encrypted_intermediate_key_2",
+		Encrypted: testEncryptedIntermediateKey2,
 		KEKUUID:   rootKeyUUID,
 	}
 
@@ -279,7 +279,7 @@ func TestGormRepository_ContentKey_Lifecycle(t *testing.T) {
 	rootKeyUUID, _ := googleUuid.NewV7()
 	rootKey := &cryptoutilAppsFrameworkServiceServerBarrier.RootKey{
 		UUID:      rootKeyUUID,
-		Encrypted: "encrypted_root_key",
+		Encrypted: testEncryptedRootKey,
 		KEKUUID:   googleUuid.UUID{},
 	}
 
@@ -305,7 +305,7 @@ func TestGormRepository_ContentKey_Lifecycle(t *testing.T) {
 	key1UUID, _ := googleUuid.NewV7()
 	key1 := &cryptoutilAppsFrameworkServiceServerBarrier.ContentKey{
 		UUID:      key1UUID,
-		Encrypted: "encrypted_content_key_1",
+		Encrypted: testEncryptedContentKey1,
 		KEKUUID:   intermediateKeyUUID,
 	}
 
@@ -331,7 +331,7 @@ func TestGormRepository_ContentKey_Lifecycle(t *testing.T) {
 	key2UUID, _ := googleUuid.NewV7()
 	key2 := &cryptoutilAppsFrameworkServiceServerBarrier.ContentKey{
 		UUID:      key2UUID,
-		Encrypted: "encrypted_content_key_2",
+		Encrypted: testEncryptedContentKey2,
 		KEKUUID:   intermediateKeyUUID,
 	}
 
@@ -371,7 +371,7 @@ func TestGormRepository_Transaction_Rollback(t *testing.T) {
 	keyUUID, _ := googleUuid.NewV7()
 	key := &cryptoutilAppsFrameworkServiceServerBarrier.RootKey{
 		UUID:      keyUUID,
-		Encrypted: "encrypted_root_key",
+		Encrypted: testEncryptedRootKey,
 		KEKUUID:   googleUuid.UUID{},
 	}
 

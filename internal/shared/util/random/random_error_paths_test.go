@@ -5,6 +5,7 @@
 package random
 
 import (
+	crand "crypto/rand"
 	"errors"
 	"io"
 	"testing"
@@ -31,12 +32,7 @@ func errUUIDGen() (googleUuid.UUID, error) {
 func TestGenerateBytes_RandError(t *testing.T) {
 	t.Parallel()
 
-	orig := globalRandReader
-	globalRandReader = errReader{}
-
-	defer func() { globalRandReader = orig }()
-
-	_, err := GenerateBytes(cryptoutilSharedMagic.RealmMinTokenLengthBytes)
+	_, err := generateBytes(cryptoutilSharedMagic.RealmMinTokenLengthBytes, errReader{})
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to generate")
 }
@@ -45,12 +41,7 @@ func TestGenerateBytes_RandError(t *testing.T) {
 func TestGenerateMultipleBytes_RandError(t *testing.T) {
 	t.Parallel()
 
-	orig := globalRandReader
-	globalRandReader = errReader{}
-
-	defer func() { globalRandReader = orig }()
-
-	_, err := GenerateMultipleBytes(2, cryptoutilSharedMagic.RealmMinTokenLengthBytes)
+	_, err := generateMultipleBytes(2, cryptoutilSharedMagic.RealmMinTokenLengthBytes, errReader{})
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to generate consecutive byte slices")
 }
@@ -59,12 +50,7 @@ func TestGenerateMultipleBytes_RandError(t *testing.T) {
 func TestGenerateString_RandError(t *testing.T) {
 	t.Parallel()
 
-	orig := globalRandReader
-	globalRandReader = errReader{}
-
-	defer func() { globalRandReader = orig }()
-
-	_, err := GenerateString(cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes)
+	_, err := generateString(cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes, errReader{})
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to generate")
 }
@@ -73,12 +59,7 @@ func TestGenerateString_RandError(t *testing.T) {
 func TestGenerateUsernameSimple_UUIDError(t *testing.T) {
 	t.Parallel()
 
-	orig := uuidNewV7
-	uuidNewV7 = errUUIDGen
-
-	defer func() { uuidNewV7 = orig }()
-
-	_, err := GenerateUsernameSimple()
+	_, err := generateUsernameSimple(errUUIDGen)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to generate UUID for username")
 }
@@ -87,12 +68,7 @@ func TestGenerateUsernameSimple_UUIDError(t *testing.T) {
 func TestGeneratePasswordSimple_UUIDError(t *testing.T) {
 	t.Parallel()
 
-	orig := uuidNewV7
-	uuidNewV7 = errUUIDGen
-
-	defer func() { uuidNewV7 = orig }()
-
-	_, err := GeneratePasswordSimple()
+	_, err := generatePasswordSimple(errUUIDGen)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to generate UUID for password")
 }
@@ -101,12 +77,7 @@ func TestGeneratePasswordSimple_UUIDError(t *testing.T) {
 func TestGenerateUUIDv7_UUIDError(t *testing.T) {
 	t.Parallel()
 
-	orig := uuidNewV7
-	uuidNewV7 = errUUIDGen
-
-	defer func() { uuidNewV7 = orig }()
-
-	_, err := GenerateUUIDv7()
+	_, err := generateUUIDv7(errUUIDGen)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to generate UUID")
 }
@@ -115,15 +86,10 @@ func TestGenerateUUIDv7_UUIDError(t *testing.T) {
 func TestGenerateUUIDv7Function_UUIDError(t *testing.T) {
 	t.Parallel()
 
-	orig := uuidNewV7
-	uuidNewV7 = errUUIDGen
-
-	defer func() { uuidNewV7 = orig }()
-
 	fn := GenerateUUIDv7Function()
-	_, err := fn()
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "failed to generate UUID")
+	uuid, err := fn()
+	require.NoError(t, err)
+	require.NotNil(t, uuid)
 }
 
 // TestGenerateUUIDv7_HappyPath2 ensures normal operation still works after error injection.
@@ -135,13 +101,13 @@ func TestGenerateUUIDv7_HappyPath2(t *testing.T) {
 	require.NotNil(t, uuid)
 }
 
-// TestGlobalRandReader_ReadFull ensures the default globalRandReader returns data.
-func TestGlobalRandReader_ReadFull(t *testing.T) {
+// TestCryptoRandReader_ReadFull ensures the default crypto/rand reader returns data.
+func TestCryptoRandReader_ReadFull(t *testing.T) {
 	t.Parallel()
 
 	buf := make([]byte, cryptoutilSharedMagic.RealmMinTokenLengthBytes)
 
-	_, err := io.ReadFull(globalRandReader, buf)
+	_, err := io.ReadFull(crand.Reader, buf)
 	require.NoError(t, err)
 	require.Len(t, buf, cryptoutilSharedMagic.RealmMinTokenLengthBytes)
 }

@@ -30,6 +30,16 @@ import (
 	_ "modernc.org/sqlite"
 )
 
+const (
+	rotationReasonField         = "reason"
+	testRotationReason          = "test rotation"
+	testRotateRootPath          = "/admin/api/v1/barrier/rotate/root"
+	testRotateIntermediatePath  = "/admin/api/v1/barrier/rotate/intermediate"
+	testRotateContentPath       = "/admin/api/v1/barrier/rotate/content"
+	testBarrierEncryptedValue   = "dummy"
+	testEncryptedKeyPlaceholder = "dummy-encrypted-key"
+)
+
 // errMockRotationDBFailure is a standard error for mock database failures in rotation tests.
 var errMockRotationDBFailure = errors.New("mock rotation database failure")
 
@@ -229,11 +239,11 @@ func TestRotateRootKey_Success(t *testing.T) {
 
 	// Make rotation request
 	reqBody := map[string]string{
-		"reason": "scheduled quarterly rotation",
+		rotationReasonField: "scheduled quarterly rotation",
 	}
 	reqJSON, _ := json.Marshal(reqBody)
 
-	req := httptest.NewRequest("POST", "/admin/api/v1/barrier/rotate/root", bytes.NewReader(reqJSON))
+	req := httptest.NewRequest("POST", testRotateRootPath, bytes.NewReader(reqJSON))
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := app.Test(req, -1)
@@ -285,11 +295,11 @@ func TestRotateIntermediateKey_Success(t *testing.T) {
 
 	// Make rotation request
 	reqBody := map[string]string{
-		"reason": "security incident response",
+		rotationReasonField: "security incident response",
 	}
 	reqJSON, _ := json.Marshal(reqBody)
 
-	req := httptest.NewRequest("POST", "/admin/api/v1/barrier/rotate/intermediate", bytes.NewReader(reqJSON))
+	req := httptest.NewRequest("POST", testRotateIntermediatePath, bytes.NewReader(reqJSON))
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := app.Test(req, -1)
@@ -338,11 +348,11 @@ func TestRotateContentKey_Success(t *testing.T) {
 
 	// Make rotation request
 	reqBody := map[string]string{
-		"reason": "annual security audit requirement",
+		rotationReasonField: "annual security audit requirement",
 	}
 	reqJSON, _ := json.Marshal(reqBody)
 
-	req := httptest.NewRequest("POST", "/admin/api/v1/barrier/rotate/content", bytes.NewReader(reqJSON))
+	req := httptest.NewRequest("POST", testRotateContentPath, bytes.NewReader(reqJSON))
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := app.Test(req, -1)
@@ -384,9 +394,9 @@ func TestRotateKey_MissingReason(t *testing.T) {
 
 	// Test all three endpoints
 	endpoints := []string{
-		"/admin/api/v1/barrier/rotate/root",
-		"/admin/api/v1/barrier/rotate/intermediate",
-		"/admin/api/v1/barrier/rotate/content",
+		testRotateRootPath,
+		testRotateIntermediatePath,
+		testRotateContentPath,
 	}
 
 	for _, endpoint := range endpoints {
@@ -406,7 +416,7 @@ func TestRotateKey_MissingReason(t *testing.T) {
 
 			err = json.Unmarshal(respBody, &errResp)
 			require.NoError(t, err)
-			require.Equal(t, "validation_error", errResp[cryptoutilSharedMagic.StringError])
+			require.Equal(t, rotationErrorCodeValidation, errResp[cryptoutilSharedMagic.StringError])
 			require.Contains(t, errResp["message"], "at least 10 characters")
 		})
 	}
@@ -418,16 +428,16 @@ func TestRotateKey_ShortReason(t *testing.T) {
 
 	// Test all three endpoints
 	endpoints := []string{
-		"/admin/api/v1/barrier/rotate/root",
-		"/admin/api/v1/barrier/rotate/intermediate",
-		"/admin/api/v1/barrier/rotate/content",
+		testRotateRootPath,
+		testRotateIntermediatePath,
+		testRotateContentPath,
 	}
 
 	for _, endpoint := range endpoints {
 		t.Run(fmt.Sprintf("endpoint=%s", endpoint), func(t *testing.T) {
 			// Reason too short (less than 10 characters)
 			reqBody := map[string]string{
-				"reason": "short",
+				rotationReasonField: "short",
 			}
 			reqJSON, _ := json.Marshal(reqBody)
 
@@ -445,7 +455,7 @@ func TestRotateKey_ShortReason(t *testing.T) {
 
 			err = json.Unmarshal(respBody, &errResp)
 			require.NoError(t, err)
-			require.Equal(t, "validation_error", errResp[cryptoutilSharedMagic.StringError])
+			require.Equal(t, rotationErrorCodeValidation, errResp[cryptoutilSharedMagic.StringError])
 			require.Contains(t, errResp["message"], "at least 10 characters")
 		})
 	}

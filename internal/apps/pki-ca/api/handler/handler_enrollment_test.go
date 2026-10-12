@@ -100,6 +100,8 @@ func TestSubmitEnrollment_WithOverrides(t *testing.T) {
 
 	req, err := http.NewRequestWithContext(t.Context(), http.MethodPost, "/enrollments", bytes.NewReader(bodyBytes))
 	require.NoError(t, err)
+
+	req.Host = cryptoutilSharedMagic.HostnameLocalhost
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := app.Test(req, -1)

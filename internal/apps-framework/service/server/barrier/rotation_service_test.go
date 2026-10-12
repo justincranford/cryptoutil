@@ -174,7 +174,7 @@ func TestRotateRootKey_NoRootKeyFound(t *testing.T) {
 	require.NoError(t, err)
 
 	ctx := context.Background()
-	result, err := rotationService.RotateRootKey(ctx, "test rotation")
+	result, err := rotationService.RotateRootKey(ctx, testRotationReason)
 	require.Error(t, err)
 	require.Nil(t, result)
 	require.Contains(t, err.Error(), "no root key found")
@@ -189,7 +189,7 @@ func TestRotateRootKey_AddRootKeyFailure(t *testing.T) {
 	mockRepo := newMockServiceRepository()
 	mockRepo.tx.rootKey = &RootKey{
 		UUID:      googleUuid.New(),
-		Encrypted: "dummy-encrypted-key",
+		Encrypted: testEncryptedKeyPlaceholder,
 	}
 	mockRepo.tx.addRootKeyErr = errMockServiceFailure
 
@@ -197,7 +197,7 @@ func TestRotateRootKey_AddRootKeyFailure(t *testing.T) {
 	require.NoError(t, err)
 
 	ctx := context.Background()
-	result, err := rotationService.RotateRootKey(ctx, "test rotation")
+	result, err := rotationService.RotateRootKey(ctx, testRotationReason)
 	require.Error(t, err)
 	require.Nil(t, result)
 	require.Contains(t, err.Error(), "failed to store new root key")
@@ -216,7 +216,7 @@ func TestRotateIntermediateKey_NoIntermediateKeyFound(t *testing.T) {
 	require.NoError(t, err)
 
 	ctx := context.Background()
-	result, err := rotationService.RotateIntermediateKey(ctx, "test rotation")
+	result, err := rotationService.RotateIntermediateKey(ctx, testRotationReason)
 	require.Error(t, err)
 	require.Nil(t, result)
 	require.Contains(t, err.Error(), "no intermediate key found")
@@ -231,7 +231,7 @@ func TestRotateIntermediateKey_NoRootKeyFound(t *testing.T) {
 	mockRepo := newMockServiceRepository()
 	mockRepo.tx.intermediateKey = &IntermediateKey{
 		UUID:      googleUuid.New(),
-		Encrypted: "dummy-encrypted-key",
+		Encrypted: testEncryptedKeyPlaceholder,
 		KEKUUID:   googleUuid.New(),
 	}
 	mockRepo.tx.getRootKeyLatestReturnsNil = true
@@ -240,7 +240,7 @@ func TestRotateIntermediateKey_NoRootKeyFound(t *testing.T) {
 	require.NoError(t, err)
 
 	ctx := context.Background()
-	result, err := rotationService.RotateIntermediateKey(ctx, "test rotation")
+	result, err := rotationService.RotateIntermediateKey(ctx, testRotationReason)
 	require.Error(t, err)
 	require.Nil(t, result)
 	require.Contains(t, err.Error(), "no root key found")
@@ -267,7 +267,7 @@ func TestRotateIntermediateKey_DecryptRootKeyFailure(t *testing.T) {
 	mockRepo := newMockServiceRepository()
 	mockRepo.tx.intermediateKey = &IntermediateKey{
 		UUID:      googleUuid.New(),
-		Encrypted: "dummy-encrypted-key",
+		Encrypted: testEncryptedKeyPlaceholder,
 		KEKUUID:   googleUuid.New(),
 	}
 	mockRepo.tx.rootKey = &RootKey{
@@ -279,7 +279,7 @@ func TestRotateIntermediateKey_DecryptRootKeyFailure(t *testing.T) {
 	require.NoError(t, err)
 
 	ctx := context.Background()
-	result, err := rotationService.RotateIntermediateKey(ctx, "test rotation")
+	result, err := rotationService.RotateIntermediateKey(ctx, testRotationReason)
 	require.Error(t, err)
 	require.Nil(t, result)
 	require.Contains(t, err.Error(), "failed to decrypt root key")
@@ -301,7 +301,7 @@ func TestRotateIntermediateKey_AddIntermediateKeyFailure(t *testing.T) {
 	mockRepo := newMockServiceRepository()
 	mockRepo.tx.intermediateKey = &IntermediateKey{
 		UUID:      googleUuid.New(),
-		Encrypted: "dummy-encrypted-key",
+		Encrypted: testEncryptedKeyPlaceholder,
 		KEKUUID:   googleUuid.New(),
 	}
 	mockRepo.tx.rootKey = &RootKey{
@@ -314,7 +314,7 @@ func TestRotateIntermediateKey_AddIntermediateKeyFailure(t *testing.T) {
 	require.NoError(t, err)
 
 	ctx := context.Background()
-	result, err := rotationService.RotateIntermediateKey(ctx, "test rotation")
+	result, err := rotationService.RotateIntermediateKey(ctx, testRotationReason)
 	require.Error(t, err)
 	require.Nil(t, result)
 	require.Contains(t, err.Error(), "failed to store new intermediate key")

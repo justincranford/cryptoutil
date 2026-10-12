@@ -35,15 +35,15 @@ func TestRotateKey_TooLongReason(t *testing.T) {
 
 	// Test all three endpoints.
 	endpoints := []string{
-		"/admin/api/v1/barrier/rotate/root",
-		"/admin/api/v1/barrier/rotate/intermediate",
-		"/admin/api/v1/barrier/rotate/content",
+		testRotateRootPath,
+		testRotateIntermediatePath,
+		testRotateContentPath,
 	}
 
 	for _, endpoint := range endpoints {
 		t.Run(fmt.Sprintf("endpoint=%s", endpoint), func(t *testing.T) {
 			reqBody := map[string]string{
-				"reason": longReason,
+				rotationReasonField: longReason,
 			}
 			reqJSON, _ := json.Marshal(reqBody)
 
@@ -61,7 +61,7 @@ func TestRotateKey_TooLongReason(t *testing.T) {
 
 			err = json.Unmarshal(respBody, &errResp)
 			require.NoError(t, err)
-			require.Equal(t, "validation_error", errResp[cryptoutilSharedMagic.StringError])
+			require.Equal(t, rotationErrorCodeValidation, errResp[cryptoutilSharedMagic.StringError])
 			require.Contains(t, errResp["message"], "at most 500 characters")
 		})
 	}
@@ -74,9 +74,9 @@ func TestRotateKey_InvalidJSON(t *testing.T) {
 
 	// Test all three endpoints.
 	endpoints := []string{
-		"/admin/api/v1/barrier/rotate/root",
-		"/admin/api/v1/barrier/rotate/intermediate",
-		"/admin/api/v1/barrier/rotate/content",
+		testRotateRootPath,
+		testRotateIntermediatePath,
+		testRotateContentPath,
 	}
 
 	for _, endpoint := range endpoints {
@@ -96,8 +96,8 @@ func TestRotateKey_InvalidJSON(t *testing.T) {
 
 			err = json.Unmarshal(respBody, &errResp)
 			require.NoError(t, err)
-			require.Equal(t, "invalid_request_body", errResp[cryptoutilSharedMagic.StringError])
-			require.Contains(t, errResp["message"], "Failed to parse request body")
+			require.Equal(t, rotationErrorCodeInvalidRequestBody, errResp[cryptoutilSharedMagic.StringError])
+			require.Contains(t, errResp["message"], rotationErrorMessageInvalidRequestBody)
 		})
 	}
 }
@@ -136,10 +136,10 @@ func TestHandleRotateRootKey_RotationFailed(t *testing.T) {
 	RegisterRotationRoutes(app, rotationService)
 
 	// Make rotation request.
-	reqBody := map[string]string{"reason": "test rotation"}
+	reqBody := map[string]string{rotationReasonField: testRotationReason}
 	reqJSON, _ := json.Marshal(reqBody)
 
-	req := httptest.NewRequest("POST", "/admin/api/v1/barrier/rotate/root", bytes.NewReader(reqJSON))
+	req := httptest.NewRequest("POST", testRotateRootPath, bytes.NewReader(reqJSON))
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := app.Test(req, -1)
@@ -153,7 +153,7 @@ func TestHandleRotateRootKey_RotationFailed(t *testing.T) {
 
 	err = json.Unmarshal(respBody, &errResp)
 	require.NoError(t, err)
-	require.Equal(t, "rotation_failed", errResp[cryptoutilSharedMagic.StringError])
+	require.Equal(t, rotationErrorCodeRotationFailed, errResp[cryptoutilSharedMagic.StringError])
 	require.Contains(t, errResp["message"], "Failed to rotate root key")
 }
 
@@ -191,10 +191,10 @@ func TestHandleRotateIntermediateKey_RotationFailed(t *testing.T) {
 	RegisterRotationRoutes(app, rotationService)
 
 	// Make rotation request.
-	reqBody := map[string]string{"reason": "test rotation"}
+	reqBody := map[string]string{rotationReasonField: testRotationReason}
 	reqJSON, _ := json.Marshal(reqBody)
 
-	req := httptest.NewRequest("POST", "/admin/api/v1/barrier/rotate/intermediate", bytes.NewReader(reqJSON))
+	req := httptest.NewRequest("POST", testRotateIntermediatePath, bytes.NewReader(reqJSON))
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := app.Test(req, -1)
@@ -208,7 +208,7 @@ func TestHandleRotateIntermediateKey_RotationFailed(t *testing.T) {
 
 	err = json.Unmarshal(respBody, &errResp)
 	require.NoError(t, err)
-	require.Equal(t, "rotation_failed", errResp[cryptoutilSharedMagic.StringError])
+	require.Equal(t, rotationErrorCodeRotationFailed, errResp[cryptoutilSharedMagic.StringError])
 	require.Contains(t, errResp["message"], "Failed to rotate intermediate key")
 }
 
@@ -246,10 +246,10 @@ func TestHandleRotateContentKey_RotationFailed(t *testing.T) {
 	RegisterRotationRoutes(app, rotationService)
 
 	// Make rotation request.
-	reqBody := map[string]string{"reason": "test rotation"}
+	reqBody := map[string]string{rotationReasonField: testRotationReason}
 	reqJSON, _ := json.Marshal(reqBody)
 
-	req := httptest.NewRequest("POST", "/admin/api/v1/barrier/rotate/content", bytes.NewReader(reqJSON))
+	req := httptest.NewRequest("POST", testRotateContentPath, bytes.NewReader(reqJSON))
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := app.Test(req, -1)
@@ -263,6 +263,6 @@ func TestHandleRotateContentKey_RotationFailed(t *testing.T) {
 
 	err = json.Unmarshal(respBody, &errResp)
 	require.NoError(t, err)
-	require.Equal(t, "rotation_failed", errResp[cryptoutilSharedMagic.StringError])
+	require.Equal(t, rotationErrorCodeRotationFailed, errResp[cryptoutilSharedMagic.StringError])
 	require.Contains(t, errResp["message"], "Failed to rotate content key")
 }

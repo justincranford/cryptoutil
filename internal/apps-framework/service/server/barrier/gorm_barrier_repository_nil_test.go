@@ -105,7 +105,7 @@ func TestGormTransaction_AddRootKey_DuplicateKey(t *testing.T) {
 	keyUUID, _ := googleUuid.NewV7()
 	key1 := &cryptoutilAppsFrameworkServiceServerBarrier.RootKey{
 		UUID:      keyUUID,
-		Encrypted: "encrypted_root_key_1",
+		Encrypted: testEncryptedRootKey1,
 		KEKUUID:   googleUuid.UUID{},
 	}
 
@@ -117,7 +117,7 @@ func TestGormTransaction_AddRootKey_DuplicateKey(t *testing.T) {
 	// Try to add another root key with the same UUID - should fail with UNIQUE constraint violation.
 	key2 := &cryptoutilAppsFrameworkServiceServerBarrier.RootKey{
 		UUID:      keyUUID, // Same UUID as key1
-		Encrypted: "encrypted_root_key_2",
+		Encrypted: testEncryptedRootKey2,
 		KEKUUID:   googleUuid.UUID{},
 	}
 
@@ -147,7 +147,7 @@ func TestGormTransaction_AddIntermediateKey_DuplicateKey(t *testing.T) {
 	kekUUID, _ := googleUuid.NewV7()
 	key1 := &cryptoutilAppsFrameworkServiceServerBarrier.IntermediateKey{
 		UUID:      keyUUID,
-		Encrypted: "encrypted_intermediate_key_1",
+		Encrypted: testEncryptedIntermediateKey1,
 		KEKUUID:   kekUUID,
 	}
 
@@ -159,7 +159,7 @@ func TestGormTransaction_AddIntermediateKey_DuplicateKey(t *testing.T) {
 	// Try to add another intermediate key with the same UUID - should fail.
 	key2 := &cryptoutilAppsFrameworkServiceServerBarrier.IntermediateKey{
 		UUID:      keyUUID, // Same UUID as key1
-		Encrypted: "encrypted_intermediate_key_2",
+		Encrypted: testEncryptedIntermediateKey2,
 		KEKUUID:   kekUUID,
 	}
 
@@ -189,7 +189,7 @@ func TestGormTransaction_AddContentKey_DuplicateKey(t *testing.T) {
 	kekUUID, _ := googleUuid.NewV7()
 	key1 := &cryptoutilAppsFrameworkServiceServerBarrier.ContentKey{
 		UUID:      keyUUID,
-		Encrypted: "encrypted_content_key_1",
+		Encrypted: testEncryptedContentKey1,
 		KEKUUID:   kekUUID,
 	}
 
@@ -201,7 +201,7 @@ func TestGormTransaction_AddContentKey_DuplicateKey(t *testing.T) {
 	// Try to add another content key with the same UUID - should fail.
 	key2 := &cryptoutilAppsFrameworkServiceServerBarrier.ContentKey{
 		UUID:      keyUUID, // Same UUID as key1
-		Encrypted: "encrypted_content_key_2",
+		Encrypted: testEncryptedContentKey2,
 		KEKUUID:   kekUUID,
 	}
 

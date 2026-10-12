@@ -253,7 +253,7 @@ func TestIntermediateKeysService_DecryptKey_NoKidInJWE(t *testing.T) {
 	// Set up mock repo.
 	mockRepo := newMockServiceRepository()
 	mockRepo.tx.rootKey = &RootKey{UUID: *rootKeyUUID, Encrypted: string(encryptedRootKeyBytes), KEKUUID: googleUuid.Nil}
-	mockRepo.tx.intermediateKey = &IntermediateKey{UUID: googleUuid.New(), Encrypted: "dummy", KEKUUID: *rootKeyUUID}
+	mockRepo.tx.intermediateKey = &IntermediateKey{UUID: googleUuid.New(), Encrypted: testBarrierEncryptedValue, KEKUUID: *rootKeyUUID}
 
 	// Construct services.
 	rootKeysService, err := NewRootKeysService(telemetryService, jwkGenService, mockRepo, unsealService)

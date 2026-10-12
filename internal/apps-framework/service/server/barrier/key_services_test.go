@@ -120,36 +120,36 @@ func TestNewRootKeysService_ValidationErrors(t *testing.T) {
 		expectedErrContain string
 	}{
 		{
-			name:               "nil telemetry service",
+			name:               testCaseNilTelemetryService,
 			telemetryService:   nil,
 			jwkGenService:      jwkGenSvc,
 			repository:         repo,
 			unsealKeysService:  unsealSvc,
-			expectedErrContain: "telemetryService must be non-nil",
+			expectedErrContain: testErrorTelemetryServiceMustBeNonNil,
 		},
 		{
-			name:               "nil jwk gen service",
+			name:               testCaseNilJWKGenService,
 			telemetryService:   telemetrySvc,
 			jwkGenService:      nil,
 			repository:         repo,
 			unsealKeysService:  unsealSvc,
-			expectedErrContain: "jwkGenService must be non-nil",
+			expectedErrContain: testErrorJWKGenServiceMustBeNonNil,
 		},
 		{
-			name:               "nil repository",
+			name:               testCaseNilRepository,
 			telemetryService:   telemetrySvc,
 			jwkGenService:      jwkGenSvc,
 			repository:         nil,
 			unsealKeysService:  unsealSvc,
-			expectedErrContain: "repository must be non-nil",
+			expectedErrContain: testErrorRepositoryMustBeNonNil,
 		},
 		{
-			name:               "nil unseal keys service",
+			name:               testCaseNilUnsealKeysService,
 			telemetryService:   telemetrySvc,
 			jwkGenService:      jwkGenSvc,
 			repository:         repo,
 			unsealKeysService:  nil,
-			expectedErrContain: "unsealKeysService must be non-nil",
+			expectedErrContain: testErrorUnsealKeysServiceMustBeNonNil,
 		},
 	}
 
@@ -212,28 +212,28 @@ func TestNewIntermediateKeysService_ValidationErrors(t *testing.T) {
 		expectedErrContain string
 	}{
 		{
-			name:               "nil telemetry service",
+			name:               testCaseNilTelemetryService,
 			telemetryService:   nil,
 			jwkGenService:      jwkGenSvc,
 			repository:         repo,
 			rootKeysService:    rootKeysSvc,
-			expectedErrContain: "telemetryService must be non-nil",
+			expectedErrContain: testErrorTelemetryServiceMustBeNonNil,
 		},
 		{
-			name:               "nil jwk gen service",
+			name:               testCaseNilJWKGenService,
 			telemetryService:   telemetrySvc,
 			jwkGenService:      nil,
 			repository:         repo,
 			rootKeysService:    rootKeysSvc,
-			expectedErrContain: "jwkGenService must be non-nil",
+			expectedErrContain: testErrorJWKGenServiceMustBeNonNil,
 		},
 		{
-			name:               "nil repository",
+			name:               testCaseNilRepository,
 			telemetryService:   telemetrySvc,
 			jwkGenService:      jwkGenSvc,
 			repository:         nil,
 			rootKeysService:    rootKeysSvc,
-			expectedErrContain: "repository must be non-nil",
+			expectedErrContain: testErrorRepositoryMustBeNonNil,
 		},
 		{
 			name:               "nil root keys service",
@@ -308,28 +308,28 @@ func TestNewContentKeysService_ValidationErrors(t *testing.T) {
 		expectedErrContain      string
 	}{
 		{
-			name:                    "nil telemetry service",
+			name:                    testCaseNilTelemetryService,
 			telemetryService:        nil,
 			jwkGenService:           jwkGenSvc,
 			repository:              repo,
 			intermediateKeysService: intermediateKeysSvc,
-			expectedErrContain:      "telemetryService must be non-nil",
+			expectedErrContain:      testErrorTelemetryServiceMustBeNonNil,
 		},
 		{
-			name:                    "nil jwk gen service",
+			name:                    testCaseNilJWKGenService,
 			telemetryService:        telemetrySvc,
 			jwkGenService:           nil,
 			repository:              repo,
 			intermediateKeysService: intermediateKeysSvc,
-			expectedErrContain:      "jwkGenService must be non-nil",
+			expectedErrContain:      testErrorJWKGenServiceMustBeNonNil,
 		},
 		{
-			name:                    "nil repository",
+			name:                    testCaseNilRepository,
 			telemetryService:        telemetrySvc,
 			jwkGenService:           jwkGenSvc,
 			repository:              nil,
 			intermediateKeysService: intermediateKeysSvc,
-			expectedErrContain:      "repository must be non-nil",
+			expectedErrContain:      testErrorRepositoryMustBeNonNil,
 		},
 		{
 			name:                    "nil intermediate keys service",

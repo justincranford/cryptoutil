@@ -46,10 +46,11 @@ func TestAdminServer_Shutdown_Endpoint(t *testing.T) {
 	}()
 
 	// Wait for server to be ready.
-	time.Sleep(200 * time.Millisecond)
+	require.Eventually(t, func() bool { return server.ActualPort() > 0 },
+		cryptoutilSharedMagic.DefaultHealthCheckTimeout, cryptoutilSharedMagic.DefaultHealthCheckInterval,
+		"server should allocate a dynamic port")
 
 	port := server.ActualPort()
-	require.Greater(t, port, 0, "Expected dynamic port allocation")
 
 	// Trigger shutdown via HTTP endpoint.
 	client := &http.Client{

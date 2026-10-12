@@ -263,6 +263,8 @@ func TestPublicHTTPServer_ServiceHealth_DuringShutdown_InMemory(t *testing.T) {
 	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, cryptoutilSharedMagic.IdentityE2EHealthEndpoint, nil)
 	require.NoError(t, err)
 
+	req.Host = cryptoutilSharedMagic.HostnameLocalhost
+
 	resp, err := server.App().Test(req, -1)
 	require.NoError(t, err)
 	require.NotNil(t, resp)
@@ -301,6 +303,8 @@ func TestPublicHTTPServer_BrowserHealth_DuringShutdown_InMemory(t *testing.T) {
 	// Use app.Test() to make in-memory request after shutdown.
 	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, "/browser/api/v1/health", nil)
 	require.NoError(t, err)
+
+	req.Host = cryptoutilSharedMagic.HostnameLocalhost
 
 	resp, err := server.App().Test(req, -1)
 	require.NoError(t, err)

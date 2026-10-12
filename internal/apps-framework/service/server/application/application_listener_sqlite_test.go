@@ -184,6 +184,7 @@ func TestStartCore_DatabaseProvisionFailure(t *testing.T) {
 		OTLPService:     "test-service",
 		OTLPVersion:     cryptoutilSharedMagic.ServiceVersion,
 		OTLPEnvironment: "test",
+		DevMode:         true, // Keep the failure focused on database provisioning, not host sysinfo.
 		UnsealMode:      cryptoutilSharedMagic.DefaultUnsealModeSysInfo,
 	}
 

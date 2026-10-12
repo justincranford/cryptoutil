@@ -29,7 +29,7 @@ func TestIntermediateKeysService_DecryptKey_ErrorPaths(t *testing.T) {
 		expectedErrContain string
 	}{
 		{
-			name: "invalid_jwe_format",
+			name: testCaseInvalidJWEFormat,
 			setupFunc: func(t *testing.T) (cryptoutilAppsFrameworkServiceServerBarrier.Transaction, *cryptoutilAppsFrameworkServiceServerBarrier.IntermediateKeysService, []byte) {
 				telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsFrameworkServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true).ToTelemetrySettings())
 				require.NoError(t, err)

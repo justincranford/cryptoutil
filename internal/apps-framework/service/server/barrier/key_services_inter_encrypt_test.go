@@ -184,7 +184,7 @@ func TestNewService_NilParameters(t *testing.T) {
 			jwkGenSvc:           jwkGenSvc,
 			repo:                repo,
 			unsealSvc:           unsealSvc,
-			expectedErrContains: "ctx must be non-nil",
+			expectedErrContains: testErrorContextMustBeNonNil,
 		},
 		{
 			name:                "nil_telemetry_service",
@@ -193,7 +193,7 @@ func TestNewService_NilParameters(t *testing.T) {
 			jwkGenSvc:           jwkGenSvc,
 			repo:                repo,
 			unsealSvc:           unsealSvc,
-			expectedErrContains: "telemetryService must be non-nil",
+			expectedErrContains: testErrorTelemetryServiceMustBeNonNil,
 		},
 		{
 			name:                "nil_jwkgen_service",
@@ -202,7 +202,7 @@ func TestNewService_NilParameters(t *testing.T) {
 			jwkGenSvc:           nil,
 			repo:                repo,
 			unsealSvc:           unsealSvc,
-			expectedErrContains: "jwkGenService must be non-nil",
+			expectedErrContains: testErrorJWKGenServiceMustBeNonNil,
 		},
 		{
 			name:                "nil_repository",
@@ -211,7 +211,7 @@ func TestNewService_NilParameters(t *testing.T) {
 			jwkGenSvc:           jwkGenSvc,
 			repo:                nil,
 			unsealSvc:           unsealSvc,
-			expectedErrContains: "repository must be non-nil",
+			expectedErrContains: testErrorRepositoryMustBeNonNil,
 		},
 		{
 			name:                "nil_unseal_service",
@@ -220,7 +220,7 @@ func TestNewService_NilParameters(t *testing.T) {
 			jwkGenSvc:           jwkGenSvc,
 			repo:                repo,
 			unsealSvc:           nil,
-			expectedErrContains: "unsealKeysService must be non-nil",
+			expectedErrContains: testErrorUnsealKeysServiceMustBeNonNil,
 		},
 	}
 

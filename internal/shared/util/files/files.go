@@ -14,13 +14,6 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
-// Injectable functions for testing defensive error paths.
-var (
-	filesStatFn  = func(f *os.File) (os.FileInfo, error) { return f.Stat() }
-	filesReadFn  = func(f *os.File, p []byte) (int, error) { return f.Read(p) }
-	filesCloseFn = func(f *os.File) error { return f.Close() }
-)
-
 // WriteFile writes content to a file with the specified permissions.
 // If permissions is 0, it defaults to CacheFilePermissions.
 // The content can be a string or []byte.
@@ -199,26 +192,37 @@ func ReadFilesBytesLimit(filePaths []string, maxFiles, maxBytesPerFile int64) ([
 
 // ReadFileBytesLimit reads a single file with a size limit.
 func ReadFileBytesLimit(filePath string, maxBytes int64) ([]byte, error) {
+	return readFileBytesLimit(filePath, maxBytes, os.Open, (*os.File).Stat, (*os.File).Read, (*os.File).Close)
+}
+
+func readFileBytesLimit(
+	filePath string,
+	maxBytes int64,
+	openFileFn func(string) (*os.File, error),
+	statFn func(*os.File) (os.FileInfo, error),
+	readFn func(*os.File, []byte) (int, error),
+	closeFn func(*os.File) error,
+) ([]byte, error) {
 	if maxBytes <= 0 {
 		// If no limit or negative value, read the entire file
 		return ReadFileBytes(filePath)
 	}
 
 	// Open file
-	file, err := os.Open(filePath) // #nosec G304 -- General purpose file utility function
+	file, err := openFileFn(filePath) // #nosec G304 -- General purpose file utility function
 	if err != nil {
 		return nil, fmt.Errorf("failed to open file %s: %w", filePath, err)
 	}
 
 	defer func() {
-		if closeErr := filesCloseFn(file); closeErr != nil {
+		if closeErr := closeFn(file); closeErr != nil {
 			// Log error but don't override the main return error
 			fmt.Printf("Warning: failed to close file %s: %v\n", filePath, closeErr)
 		}
 	}()
 
 	// Get file info to determine file size
-	fileInfo, err := filesStatFn(file)
+	fileInfo, err := statFn(file)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get file stats for %s: %w", filePath, err)
 	}
@@ -232,7 +236,7 @@ func ReadFileBytesLimit(filePath string, maxBytes int64) ([]byte, error) {
 	// Read the limited bytes
 	buffer := make([]byte, bytesToRead)
 
-	n, err := filesReadFn(file, buffer)
+	n, err := readFn(file, buffer)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read bytes from file %s: %w", filePath, err)
 	}

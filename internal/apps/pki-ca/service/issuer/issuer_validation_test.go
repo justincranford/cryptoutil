@@ -38,7 +38,7 @@ func TestIssuer_Issue_ValidityValidationFailure(t *testing.T) {
 	}
 
 	caConfig := &IssuingCAConfig{
-		Name:        "Test Issuer",
+		Name:        testIssuerDisplayName,
 		Certificate: issuingCA.Certificate,
 		PrivateKey:  issuingCA.PrivateKey,
 		CertProfile: certProfile,
@@ -49,14 +49,14 @@ func TestIssuer_Issue_ValidityValidationFailure(t *testing.T) {
 
 	keyPair, genErr := provider.GenerateKeyPair(cryptoutilCACrypto.KeySpec{
 		Type:       cryptoutilSharedMagic.ECDSA,
-		ECDSACurve: "P-256",
+		ECDSACurve: cryptoutilSharedMagic.P256,
 	})
 	require.NoError(t, genErr)
 
 	req := &CertificateRequest{
 		SubjectRequest: &cryptoutilCAProfileSubject.Request{
-			CommonName: "server.example.com",
-			DNSNames:   []string{"server.example.com"},
+			CommonName: testServerHostname,
+			DNSNames:   []string{testServerHostname},
 		},
 		PublicKey:        keyPair.PublicKey,
 		ValidityDuration: cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour, // 365 days > 30 day max
@@ -84,7 +84,7 @@ func TestIssuer_Issue_SubjectProfileResolveError(t *testing.T) {
 	}
 
 	caConfig := &IssuingCAConfig{
-		Name:           "Test Issuer",
+		Name:           testIssuerDisplayName,
 		Certificate:    issuingCA.Certificate,
 		PrivateKey:     issuingCA.PrivateKey,
 		SubjectProfile: subjectProfile,
@@ -95,7 +95,7 @@ func TestIssuer_Issue_SubjectProfileResolveError(t *testing.T) {
 
 	keyPair, genErr := provider.GenerateKeyPair(cryptoutilCACrypto.KeySpec{
 		Type:       cryptoutilSharedMagic.ECDSA,
-		ECDSACurve: "P-256",
+		ECDSACurve: cryptoutilSharedMagic.P256,
 	})
 	require.NoError(t, genErr)
 
@@ -120,7 +120,7 @@ func TestIssuer_Issue_InvalidURI(t *testing.T) {
 	issuingCA := createTestIssuingCA(t, provider)
 
 	caConfig := &IssuingCAConfig{
-		Name:        "Test Issuer",
+		Name:        testIssuerDisplayName,
 		Certificate: issuingCA.Certificate,
 		PrivateKey:  issuingCA.PrivateKey,
 	}
@@ -130,7 +130,7 @@ func TestIssuer_Issue_InvalidURI(t *testing.T) {
 
 	keyPair, genErr := provider.GenerateKeyPair(cryptoutilCACrypto.KeySpec{
 		Type:       cryptoutilSharedMagic.ECDSA,
-		ECDSACurve: "P-256",
+		ECDSACurve: cryptoutilSharedMagic.P256,
 	})
 	require.NoError(t, genErr)
 
@@ -194,14 +194,14 @@ func TestIssuer_Issue_WithRSACA(t *testing.T) {
 	// Subscriber with ECDSA key.
 	keyPair, genErr := provider.GenerateKeyPair(cryptoutilCACrypto.KeySpec{
 		Type:       cryptoutilSharedMagic.ECDSA,
-		ECDSACurve: "P-256",
+		ECDSACurve: cryptoutilSharedMagic.P256,
 	})
 	require.NoError(t, genErr)
 
 	req := &CertificateRequest{
 		SubjectRequest: &cryptoutilCAProfileSubject.Request{
-			CommonName: "rsa-ca-issued.example.com",
-			DNSNames:   []string{"rsa-ca-issued.example.com"},
+			CommonName: testRSAIssuedHostname,
+			DNSNames:   []string{testRSAIssuedHostname},
 		},
 		PublicKey:        keyPair.PublicKey,
 		ValidityDuration: cryptoutilSharedMagic.StrictCertificateMaxAgeDays * cryptoutilSharedMagic.HoursPerDay * time.Hour,

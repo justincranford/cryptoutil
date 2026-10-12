@@ -407,17 +407,14 @@ func TestStartAutoRotation(t *testing.T) {
 	tests := []struct {
 		name                string
 		autoRotationEnabled bool
-		expectRotation      bool
 	}{
 		{
 			name:                "auto_rotation_disabled",
 			autoRotationEnabled: false,
-			expectRotation:      false,
 		},
 		{
 			name:                "auto_rotation_enabled",
 			autoRotationEnabled: true,
-			expectRotation:      true,
 		},
 	}
 
@@ -435,24 +432,36 @@ func TestStartAutoRotation(t *testing.T) {
 			manager, err := NewKeyRotationManager(policy, mockGen, nil)
 			require.NoError(t, err)
 
-			ctx, cancel := context.WithTimeout(context.Background(), 250*time.Millisecond)
+			if !tc.autoRotationEnabled {
+				manager.StartAutoRotation(context.Background(), cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm)
+				require.Zero(t, manager.GetSigningKeyCount(), "Auto-rotation disabled should not generate keys")
+
+				return
+			}
+
+			ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultDataServerShutdownTimeout)
 			defer cancel()
 
-			if tc.expectRotation {
-				go manager.StartAutoRotation(ctx, cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm)
+			rotationStopped := make(chan struct{})
+			go func() {
+				defer close(rotationStopped)
 
-				time.Sleep(350 * time.Millisecond)
-				cancel()
+				manager.StartAutoRotation(ctx, cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm)
+			}()
 
-				require.Greater(t, manager.GetSigningKeyCount(), 0, "Auto-rotation should generate keys")
-			} else {
-				go manager.StartAutoRotation(ctx, cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm)
+			require.Eventually(t, func() bool {
+				return manager.GetSigningKeyCount() > 0
+			}, cryptoutilSharedMagic.DefaultDataServerShutdownTimeout, cryptoutilSharedMagic.JoseJADefaultMaxMaterials*time.Millisecond, "Auto-rotation should generate keys")
 
-				time.Sleep(150 * time.Millisecond)
-				cancel()
-
-				require.Equal(t, 0, manager.GetSigningKeyCount(), "Auto-rotation disabled should not generate keys")
-			}
+			cancel()
+			require.Eventually(t, func() bool {
+				select {
+				case <-rotationStopped:
+					return true
+				default:
+					return false
+				}
+			}, cryptoutilSharedMagic.DefaultDataServerShutdownTimeout, cryptoutilSharedMagic.JoseJADefaultMaxMaterials*time.Millisecond, "Auto-rotation should stop after cancellation")
 		})
 	}
 }

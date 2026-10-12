@@ -2,6 +2,8 @@ package server
 
 import (
 	"context"
+	"fmt"
+	http "net/http"
 	"testing"
 	"time"
 
@@ -12,13 +14,65 @@ import (
 	cryptoutilAppsCaServerConfig "cryptoutil/internal/apps/pki-ca/server/config"
 )
 
-// waitForServerReady polls until server ports are bound (non-zero), replacing time.Sleep.
+// waitForServerReady polls both HTTPS endpoints until they respond successfully.
 func waitForServerReady(t *testing.T, server *CAServer) {
 	t.Helper()
 
+	var firstProbeErr error
+
+	probe := func(url string) bool {
+		ctx, cancel := context.WithTimeout(t.Context(), cryptoutilSharedMagic.DefaultDataServerShutdownTimeout)
+		defer cancel()
+
+		req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+		if err != nil {
+			if firstProbeErr == nil {
+				firstProbeErr = err
+				t.Logf("readiness request creation failed: %v", err)
+			}
+
+			return false
+		}
+
+		resp, err := testHTTPClient.Do(req)
+		if err != nil {
+			if firstProbeErr == nil {
+				firstProbeErr = err
+				t.Logf("readiness request failed for %s: %v", url, err)
+			}
+
+			return false
+		}
+
+		if err := resp.Body.Close(); err != nil {
+			if firstProbeErr == nil {
+				firstProbeErr = err
+				t.Logf("readiness response close failed: %v", err)
+			}
+
+			return false
+		}
+
+		if resp.StatusCode != http.StatusOK && firstProbeErr == nil {
+			firstProbeErr = fmt.Errorf("GET %s returned status %d", url, resp.StatusCode)
+			t.Logf("readiness response failed: %v", firstProbeErr)
+		}
+
+		return resp.StatusCode == http.StatusOK
+	}
+
 	require.Eventually(t, func() bool {
-		return server.PublicPort() > 0 && server.AdminPort() > 0
-	}, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second, cryptoutilSharedMagic.JoseJADefaultMaxMaterials*time.Millisecond, "server did not become ready")
+		if server.PublicPort() == 0 || server.AdminPort() == 0 {
+			return false
+		}
+
+		server.SetReady(true)
+
+		publicURL := fmt.Sprintf("%s%d%s", cryptoutilSharedMagic.URLPrefixLocalhostHTTPS, server.PublicPort(), cryptoutilSharedMagic.PKICAE2EHealthEndpoint)
+		adminURL := fmt.Sprintf("%s%d%s%s", cryptoutilSharedMagic.URLPrefixLocalhostHTTPS, server.AdminPort(), cryptoutilSharedMagic.DefaultPrivateAdminAPIContextPath, cryptoutilSharedMagic.PrivateAdminLivezRequestPath)
+
+		return probe(publicURL) && probe(adminURL)
+	}, cryptoutilSharedMagic.DefaultHealthCheckTimeout, cryptoutilSharedMagic.JoseJADefaultMaxMaterials*time.Millisecond, "server did not become ready")
 }
 
 // TestCAServer_Shutdown tests the Shutdown method.
@@ -40,7 +94,7 @@ func TestCAServer_Shutdown(t *testing.T) {
 	waitForServerReady(t, server)
 
 	// Shutdown with timeout.
-	shutdownCtx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second)
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultHealthCheckTimeout)
 	defer cancel()
 
 	err = server.Shutdown(shutdownCtx)
@@ -125,7 +179,7 @@ func TestCAServer_Start_Error(t *testing.T) {
 	require.Eventually(t, func() bool { return true }, 1*time.Second, cryptoutilSharedMagic.IMMaxUsernameLength*time.Millisecond)
 
 	// Cleanup.
-	shutdownCtx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second)
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultHealthCheckTimeout)
 	defer cancel()
 
 	_ = server.Shutdown(shutdownCtx)

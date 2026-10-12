@@ -218,8 +218,10 @@ func TestPublicHTTPServer_BrowserHealth_Healthy(t *testing.T) {
 		_ = server.Start(ctx)
 	}()
 
-	// Wait for server to start.
-	time.Sleep(1 * time.Second)
+	// Wait for server to allocate its dynamic port.
+	require.Eventually(t, func() bool { return server.ActualPort() > 0 },
+		cryptoutilSharedMagic.DefaultHealthCheckTimeout, cryptoutilSharedMagic.DefaultHealthCheckInterval,
+		"server should allocate a dynamic port")
 
 	// Make request to browser health endpoint.
 	client := &http.Client{

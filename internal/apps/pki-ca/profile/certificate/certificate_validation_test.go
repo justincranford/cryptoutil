@@ -12,6 +12,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const testInvalidDuration = "not-a-duration"
+
 func TestLoadProfile_FileNotFound(t *testing.T) {
 	t.Parallel()
 
@@ -63,7 +65,7 @@ func TestGetDuration_Empty(t *testing.T) {
 func TestGetDuration_Invalid(t *testing.T) {
 	t.Parallel()
 
-	v := &ValidityConfig{Duration: "not-a-duration"}
+	v := &ValidityConfig{Duration: testInvalidDuration}
 	_, err := v.GetDuration()
 	require.Error(t, err)
 	require.ErrorContains(t, err, "invalid duration")
@@ -81,7 +83,7 @@ func TestGetMaxDuration_Empty(t *testing.T) {
 func TestGetMaxDuration_Invalid(t *testing.T) {
 	t.Parallel()
 
-	v := &ValidityConfig{MaxDuration: "not-a-duration"}
+	v := &ValidityConfig{MaxDuration: testInvalidDuration}
 	_, err := v.GetMaxDuration()
 	require.Error(t, err)
 	require.ErrorContains(t, err, "invalid max duration")
@@ -90,7 +92,7 @@ func TestGetMaxDuration_Invalid(t *testing.T) {
 func TestGetBackdateBuffer_Invalid(t *testing.T) {
 	t.Parallel()
 
-	v := &ValidityConfig{BackdateBuffer: "not-a-duration"}
+	v := &ValidityConfig{BackdateBuffer: testInvalidDuration}
 	_, err := v.GetBackdateBuffer()
 	require.Error(t, err)
 	require.ErrorContains(t, err, "invalid backdate buffer")

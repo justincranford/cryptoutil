@@ -19,7 +19,11 @@ func GenerateUUIDv7Function() func() (*googleUuid.UUID, error) {
 
 // GenerateUUIDv7 generates a new UUID v7.
 func GenerateUUIDv7() (*googleUuid.UUID, error) {
-	uuidV7, err := uuidNewV7()
+	return generateUUIDv7(googleUuid.NewV7)
+}
+
+func generateUUIDv7(uuidNewV7Fn func() (googleUuid.UUID, error)) (*googleUuid.UUID, error) {
+	uuidV7, err := uuidNewV7Fn()
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate UUID: %w", err)
 	}

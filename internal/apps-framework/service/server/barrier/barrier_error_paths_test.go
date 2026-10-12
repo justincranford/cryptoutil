@@ -172,7 +172,7 @@ func TestRotateRootKey_GenerateJWKFails(t *testing.T) {
 	defer func() { rotationGenerateRootJWEJWKFn = originalFn }()
 
 	mockRepo := newMockServiceRepository()
-	mockRepo.tx.rootKey = &RootKey{UUID: googleUuid.New(), Encrypted: "dummy", KEKUUID: googleUuid.UUID{}}
+	mockRepo.tx.rootKey = &RootKey{UUID: googleUuid.New(), Encrypted: testBarrierEncryptedValue, KEKUUID: googleUuid.UUID{}}
 
 	rotationService, err := NewRotationService(jwkGenService, mockRepo, unsealService)
 	require.NoError(t, err)
@@ -198,7 +198,7 @@ func TestRotateRootKey_UnsealEncryptFails(t *testing.T) {
 	defer func() { rotationUnsealEncryptKeyFn = originalFn }()
 
 	mockRepo := newMockServiceRepository()
-	mockRepo.tx.rootKey = &RootKey{UUID: googleUuid.New(), Encrypted: "dummy", KEKUUID: googleUuid.UUID{}}
+	mockRepo.tx.rootKey = &RootKey{UUID: googleUuid.New(), Encrypted: testBarrierEncryptedValue, KEKUUID: googleUuid.UUID{}}
 
 	rotationService, err := NewRotationService(jwkGenService, mockRepo, unsealService)
 	require.NoError(t, err)
@@ -230,7 +230,7 @@ func TestRotateIntermediateKey_GenerateJWKFails(t *testing.T) {
 	require.NoError(t, err)
 
 	mockRepo := newMockServiceRepository()
-	mockRepo.tx.intermediateKey = &IntermediateKey{UUID: googleUuid.New(), Encrypted: "dummy", KEKUUID: googleUuid.New()}
+	mockRepo.tx.intermediateKey = &IntermediateKey{UUID: googleUuid.New(), Encrypted: testBarrierEncryptedValue, KEKUUID: googleUuid.New()}
 	mockRepo.tx.rootKey = &RootKey{UUID: *rootKeyUUID, Encrypted: string(encryptedRootKey)}
 
 	rotationService, err := NewRotationService(jwkGenService, mockRepo, unsealService)
@@ -256,7 +256,7 @@ func TestRotateIntermediateKey_EncryptFails(t *testing.T) {
 	require.NoError(t, err)
 
 	mockRepo := newMockServiceRepository()
-	mockRepo.tx.intermediateKey = &IntermediateKey{UUID: googleUuid.New(), Encrypted: "dummy", KEKUUID: googleUuid.New()}
+	mockRepo.tx.intermediateKey = &IntermediateKey{UUID: googleUuid.New(), Encrypted: testBarrierEncryptedValue, KEKUUID: googleUuid.New()}
 	mockRepo.tx.rootKey = &RootKey{UUID: *rootKeyUUID, Encrypted: string(encryptedRootKey)}
 
 	rotationService, err := NewRotationService(jwkGenService, mockRepo, unsealService)

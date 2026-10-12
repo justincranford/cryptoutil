@@ -97,25 +97,25 @@ func TestNewRotationService_ValidationErrors(t *testing.T) {
 		expectedErrContain string
 	}{
 		{
-			name:               "nil jwk gen service",
+			name:               testCaseNilJWKGenService,
 			jwkGenService:      nil,
 			repository:         repo,
 			unsealKeysService:  unsealSvc,
-			expectedErrContain: "jwkGenService must be non-nil",
+			expectedErrContain: testErrorJWKGenServiceMustBeNonNil,
 		},
 		{
-			name:               "nil repository",
+			name:               testCaseNilRepository,
 			jwkGenService:      jwkGenSvc,
 			repository:         nil,
 			unsealKeysService:  unsealSvc,
-			expectedErrContain: "repository must be non-nil",
+			expectedErrContain: testErrorRepositoryMustBeNonNil,
 		},
 		{
-			name:               "nil unseal keys service",
+			name:               testCaseNilUnsealKeysService,
 			jwkGenService:      jwkGenSvc,
 			repository:         repo,
 			unsealKeysService:  nil,
-			expectedErrContain: "unsealKeysService must be non-nil",
+			expectedErrContain: testErrorUnsealKeysServiceMustBeNonNil,
 		},
 	}
 

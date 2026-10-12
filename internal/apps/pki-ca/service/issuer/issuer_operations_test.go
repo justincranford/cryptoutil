@@ -30,7 +30,7 @@ func TestNewIssuer_NilProvider(t *testing.T) {
 	issuingCA := createTestIssuingCA(t, provider)
 
 	caConfig := &IssuingCAConfig{
-		Name:        "Test Issuer",
+		Name:        testIssuerDisplayName,
 		Certificate: issuingCA.Certificate,
 		PrivateKey:  issuingCA.PrivateKey,
 	}
@@ -49,7 +49,7 @@ func TestIssuer_GetCAConfig(t *testing.T) {
 	issuingCA := createTestIssuingCA(t, provider)
 
 	caConfig := &IssuingCAConfig{
-		Name:        "Test Issuer",
+		Name:        testIssuerDisplayName,
 		Certificate: issuingCA.Certificate,
 		PrivateKey:  issuingCA.PrivateKey,
 	}
@@ -74,7 +74,7 @@ func TestNewIssuer_NonCACert(t *testing.T) {
 		Name: "Root CA",
 		KeySpec: cryptoutilCACrypto.KeySpec{
 			Type:       cryptoutilSharedMagic.ECDSA,
-			ECDSACurve: "P-256",
+			ECDSACurve: cryptoutilSharedMagic.P256,
 		},
 		ValidityDuration:  cryptoutilSharedMagic.JoseJADefaultMaxMaterials * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour,
 		PathLenConstraint: 2,
@@ -123,7 +123,7 @@ func TestIssuer_Issue_RSAKey(t *testing.T) {
 	issuingCA := createTestIssuingCA(t, provider)
 
 	caConfig := &IssuingCAConfig{
-		Name:        "Test Issuer",
+		Name:        testIssuerDisplayName,
 		Certificate: issuingCA.Certificate,
 		PrivateKey:  issuingCA.PrivateKey,
 	}
@@ -137,8 +137,8 @@ func TestIssuer_Issue_RSAKey(t *testing.T) {
 
 	req := &CertificateRequest{
 		SubjectRequest: &cryptoutilCAProfileSubject.Request{
-			CommonName: "rsa-server.example.com",
-			DNSNames:   []string{"rsa-server.example.com"},
+			CommonName: testRSAServerHostname,
+			DNSNames:   []string{testRSAServerHostname},
 		},
 		PublicKey:        &rsaPriv.PublicKey,
 		ValidityDuration: cryptoutilSharedMagic.StrictCertificateMaxAgeDays * cryptoutilSharedMagic.HoursPerDay * time.Hour,
@@ -159,7 +159,7 @@ func TestIssuer_Issue_EdDSAKey(t *testing.T) {
 	issuingCA := createTestIssuingCA(t, provider)
 
 	caConfig := &IssuingCAConfig{
-		Name:        "Test Issuer",
+		Name:        testIssuerDisplayName,
 		Certificate: issuingCA.Certificate,
 		PrivateKey:  issuingCA.PrivateKey,
 	}
@@ -173,8 +173,8 @@ func TestIssuer_Issue_EdDSAKey(t *testing.T) {
 
 	req := &CertificateRequest{
 		SubjectRequest: &cryptoutilCAProfileSubject.Request{
-			CommonName: "eddsa-server.example.com",
-			DNSNames:   []string{"eddsa-server.example.com"},
+			CommonName: testEdDSAServerHostname,
+			DNSNames:   []string{testEdDSAServerHostname},
 		},
 		PublicKey:        edPub,
 		ValidityDuration: cryptoutilSharedMagic.StrictCertificateMaxAgeDays * cryptoutilSharedMagic.HoursPerDay * time.Hour,
@@ -195,7 +195,7 @@ func TestIssuer_Issue_UnknownKeyType(t *testing.T) {
 	issuingCA := createTestIssuingCA(t, provider)
 
 	caConfig := &IssuingCAConfig{
-		Name:        "Test Issuer",
+		Name:        testIssuerDisplayName,
 		Certificate: issuingCA.Certificate,
 		PrivateKey:  issuingCA.PrivateKey,
 	}
@@ -230,7 +230,7 @@ func TestIssuer_Issue_WithURIs(t *testing.T) {
 	issuingCA := createTestIssuingCA(t, provider)
 
 	caConfig := &IssuingCAConfig{
-		Name:        "Test Issuer",
+		Name:        testIssuerDisplayName,
 		Certificate: issuingCA.Certificate,
 		PrivateKey:  issuingCA.PrivateKey,
 	}
@@ -240,7 +240,7 @@ func TestIssuer_Issue_WithURIs(t *testing.T) {
 
 	keyPair, genErr := provider.GenerateKeyPair(cryptoutilCACrypto.KeySpec{
 		Type:       cryptoutilSharedMagic.ECDSA,
-		ECDSACurve: "P-256",
+		ECDSACurve: cryptoutilSharedMagic.P256,
 	})
 	require.NoError(t, genErr)
 
@@ -272,7 +272,7 @@ func TestIssuer_Issue_InvalidIPAddress(t *testing.T) {
 	issuingCA := createTestIssuingCA(t, provider)
 
 	caConfig := &IssuingCAConfig{
-		Name:        "Test Issuer",
+		Name:        testIssuerDisplayName,
 		Certificate: issuingCA.Certificate,
 		PrivateKey:  issuingCA.PrivateKey,
 	}
@@ -282,7 +282,7 @@ func TestIssuer_Issue_InvalidIPAddress(t *testing.T) {
 
 	keyPair, genErr := provider.GenerateKeyPair(cryptoutilCACrypto.KeySpec{
 		Type:       cryptoutilSharedMagic.ECDSA,
-		ECDSACurve: "P-256",
+		ECDSACurve: cryptoutilSharedMagic.P256,
 	})
 	require.NoError(t, genErr)
 

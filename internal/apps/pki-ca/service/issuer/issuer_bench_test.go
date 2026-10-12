@@ -30,7 +30,7 @@ func BenchmarkCertificateIssuance_ECDSA(b *testing.B) {
 		SerialNumber: big.NewInt(1),
 		Subject: pkix.Name{
 			CommonName:   "Test CA",
-			Organization: []string{"Test Org"},
+			Organization: []string{testOrganizationName},
 		},
 		NotBefore:             time.Now().UTC(),
 		NotAfter:              time.Now().UTC().Add(cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour),
@@ -61,9 +61,9 @@ func BenchmarkCertificateIssuance_ECDSA(b *testing.B) {
 
 	req := &CertificateRequest{
 		SubjectRequest: &cryptoutilCAProfileSubject.Request{
-			CommonName:   "test.example.com",
-			Organization: []string{"Test Org"},
-			DNSNames:     []string{"test.example.com", "www.test.example.com"},
+			CommonName:   testBenchmarkHostname,
+			Organization: []string{testOrganizationName},
+			DNSNames:     []string{testBenchmarkHostname, "www.test.example.com"},
 		},
 		PublicKey:        eeKey.Public(),
 		ValidityDuration: cryptoutilSharedMagic.StrictCertificateMaxAgeDays * cryptoutilSharedMagic.HoursPerDay * time.Hour,
@@ -90,7 +90,7 @@ func BenchmarkCertificateIssuance_RSA(b *testing.B) {
 		SerialNumber: big.NewInt(1),
 		Subject: pkix.Name{
 			CommonName:   "Test CA RSA",
-			Organization: []string{"Test Org"},
+			Organization: []string{testOrganizationName},
 		},
 		NotBefore:             time.Now().UTC(),
 		NotAfter:              time.Now().UTC().Add(cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour),
@@ -121,9 +121,9 @@ func BenchmarkCertificateIssuance_RSA(b *testing.B) {
 
 	req := &CertificateRequest{
 		SubjectRequest: &cryptoutilCAProfileSubject.Request{
-			CommonName:   "rsa-test.example.com",
-			Organization: []string{"Test Org"},
-			DNSNames:     []string{"rsa-test.example.com", "www.rsa-test.example.com"},
+			CommonName:   testRSABenchmarkHostname,
+			Organization: []string{testOrganizationName},
+			DNSNames:     []string{testRSABenchmarkHostname, "www.rsa-test.example.com"},
 		},
 		PublicKey:        eeKey.Public(),
 		ValidityDuration: cryptoutilSharedMagic.StrictCertificateMaxAgeDays * cryptoutilSharedMagic.HoursPerDay * time.Hour,
@@ -150,7 +150,7 @@ func BenchmarkCertificateIssuance_Parallel(b *testing.B) {
 		SerialNumber: big.NewInt(1),
 		Subject: pkix.Name{
 			CommonName:   "Test CA Parallel",
-			Organization: []string{"Test Org"},
+			Organization: []string{testOrganizationName},
 		},
 		NotBefore:             time.Now().UTC(),
 		NotAfter:              time.Now().UTC().Add(cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour),
@@ -184,9 +184,9 @@ func BenchmarkCertificateIssuance_Parallel(b *testing.B) {
 
 		req := &CertificateRequest{
 			SubjectRequest: &cryptoutilCAProfileSubject.Request{
-				CommonName:   "parallel-test.example.com",
-				Organization: []string{"Test Org"},
-				DNSNames:     []string{"parallel-test.example.com"},
+				CommonName:   testParallelBenchmarkHostname,
+				Organization: []string{testOrganizationName},
+				DNSNames:     []string{testParallelBenchmarkHostname},
 			},
 			PublicKey:        eeKey.Public(),
 			ValidityDuration: cryptoutilSharedMagic.StrictCertificateMaxAgeDays * cryptoutilSharedMagic.HoursPerDay * time.Hour,

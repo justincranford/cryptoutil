@@ -5,6 +5,8 @@
 package application
 
 import (
+	crand "crypto/rand"
+	"encoding/base64"
 	"os"
 	"path/filepath"
 	"testing"
@@ -128,6 +130,29 @@ func TestBasic_Shutdown_NilComponents(t *testing.T) {
 	require.NotPanics(t, app.Shutdown, "shutdown should not panic with nil components")
 }
 
+const testOneOfOneUnsealMode = "1-of-1"
+
+func configureTestUnsealSecrets(t *testing.T, settings *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings) {
+	t.Helper()
+
+	secret := make([]byte, cryptoutilSharedMagic.MinSharedSecretLength)
+	_, err := crand.Read(secret)
+	require.NoError(t, err)
+
+	secretFile, err := os.CreateTemp(t.TempDir(), "unseal-")
+	require.NoError(t, err)
+	t.Cleanup(func() { _ = secretFile.Close() })
+
+	_, err = secretFile.Write([]byte(base64.StdEncoding.EncodeToString(secret)))
+	require.NoError(t, err)
+
+	secretPath := secretFile.Name()
+	require.NoError(t, secretFile.Close())
+
+	settings.UnsealMode = testOneOfOneUnsealMode
+	settings.UnsealFiles = []string{secretPath}
+}
+
 // TestStartTLSListener_ContainerConfig tests StartTLSListener with container mode and dev mode configurations.
 func TestStartTLSListener_ContainerConfig(t *testing.T) {
 	t.Parallel()
@@ -194,6 +219,10 @@ func TestStartTLSListener_ContainerConfig(t *testing.T) {
 
 			// Apply test-specific modifications.
 			tt.modifySettings(settings)
+
+			if !settings.DevMode {
+				configureTestUnsealSecrets(t, settings)
+			}
 
 			// Attempt to initialize TLS listener.
 			serverApp, err := StartTLSListener(settings)

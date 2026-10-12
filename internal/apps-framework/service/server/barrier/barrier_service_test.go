@@ -26,6 +26,27 @@ import (
 	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 )
 
+const (
+	testErrorContextMustBeNonNil                          = "ctx must be non-nil"
+	testCaseNilTelemetryService                           = "nil telemetry service"
+	testErrorTelemetryServiceMustBeNonNil                 = "telemetryService must be non-nil"
+	testCaseNilJWKGenService                              = "nil jwk gen service"
+	testErrorJWKGenServiceMustBeNonNil                    = "jwkGenService must be non-nil"
+	testCaseNilRepository                                 = "nil repository"
+	testErrorRepositoryMustBeNonNil                       = "repository must be non-nil"
+	testCaseNilUnsealKeysService                          = "nil unseal keys service"
+	testErrorUnsealKeysServiceMustBeNonNil                = "unsealKeysService must be non-nil"
+	testCaseInvalidJWEFormat                              = "invalid_jwe_format"
+	testErrorFailedToParseEncryptedIntermediateKeyMessage = "failed to parse encrypted intermediate key message"
+	testEncryptedRootKey1                                 = "encrypted_root_key_1"
+	testEncryptedRootKey2                                 = "encrypted_root_key_2"
+	testEncryptedRootKey                                  = "encrypted_root_key"
+	testEncryptedIntermediateKey1                         = "encrypted_intermediate_key_1"
+	testEncryptedIntermediateKey2                         = "encrypted_intermediate_key_2"
+	testEncryptedContentKey1                              = "encrypted_content_key_1"
+	testEncryptedContentKey2                              = "encrypted_content_key_2"
+)
+
 var (
 	testDB               *gorm.DB
 	testSQLDB            *sql.DB // Keep reference to prevent GC - in-memory SQLite requires open connection

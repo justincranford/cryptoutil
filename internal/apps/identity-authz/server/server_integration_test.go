@@ -53,30 +53,37 @@ func TestAuthzServer_PublicHealth(t *testing.T) {
 	t.Parallel()
 	requireTestSetup(t)
 
-	client := &http.Client{
-		Timeout: httpTimeout,
-		Transport: &http.Transport{
-			TLSClientConfig: &tls.Config{
-				MinVersion: tls.VersionTLS13,
-				RootCAs:    testServer.TLSRootCAPool(),
-			},
-			DisableKeepAlives: true,
-		},
-	}
-
 	tests := []struct {
 		name     string
+		baseURL  string
 		path     string
+		admin    bool
 		wantCode int
 	}{
-		{"health", "/health", http.StatusOK},
-		{"livez", cryptoutilSharedMagic.PrivateAdminLivezRequestPath, http.StatusOK},
-		{"readyz", cryptoutilSharedMagic.PrivateAdminReadyzRequestPath, http.StatusOK},
+		{"health", testServer.PublicBaseURL(), "/health", false, http.StatusOK},
+		{"livez", testServer.AdminBaseURL(), cryptoutilSharedMagic.DefaultPrivateAdminAPIContextPath + cryptoutilSharedMagic.PrivateAdminLivezRequestPath, true, http.StatusOK},
+		{"readyz", testServer.AdminBaseURL(), cryptoutilSharedMagic.DefaultPrivateAdminAPIContextPath + cryptoutilSharedMagic.PrivateAdminReadyzRequestPath, true, http.StatusOK},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			url := testBaseURL + tt.path
+			rootCAs := testServer.TLSRootCAPool()
+			if tt.admin {
+				rootCAs = testServer.AdminTLSRootCAPool()
+			}
+
+			client := &http.Client{
+				Timeout: httpTimeout,
+				Transport: &http.Transport{
+					TLSClientConfig: &tls.Config{
+						MinVersion: tls.VersionTLS13,
+						RootCAs:    rootCAs,
+					},
+					DisableKeepAlives: true,
+				},
+			}
+
+			url := tt.baseURL + tt.path
 
 			ctx, cancel := context.WithTimeout(context.Background(), httpTimeout)
 			defer cancel()

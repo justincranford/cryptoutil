@@ -157,10 +157,11 @@ func TestAdminServer_Readyz_NotReady(t *testing.T) {
 	}()
 
 	// Wait for server to allocate port.
-	time.Sleep(200 * time.Millisecond)
+	require.Eventually(t, func() bool { return server.ActualPort() > 0 },
+		cryptoutilSharedMagic.DefaultHealthCheckTimeout, cryptoutilSharedMagic.DefaultHealthCheckInterval,
+		"server should allocate a dynamic port")
 
 	port := server.ActualPort()
-	require.Greater(t, port, 0, "Expected dynamic port allocation")
 
 	// Create HTTPS client.
 	client := &http.Client{
@@ -236,10 +237,11 @@ func TestAdminServer_HealthChecks_DuringShutdown(t *testing.T) {
 	}()
 
 	// Wait for server to allocate port.
-	time.Sleep(200 * time.Millisecond)
+	require.Eventually(t, func() bool { return server.ActualPort() > 0 },
+		cryptoutilSharedMagic.DefaultHealthCheckTimeout, cryptoutilSharedMagic.DefaultHealthCheckInterval,
+		"server should allocate a dynamic port")
 
 	port := server.ActualPort()
-	require.Greater(t, port, 0, "Expected dynamic port allocation")
 
 	// Create HTTPS client.
 	client := &http.Client{
@@ -358,10 +360,11 @@ func TestAdminServer_Livez_Alive(t *testing.T) {
 	}()
 
 	// Wait for server to be ready.
-	time.Sleep(200 * time.Millisecond)
+	require.Eventually(t, func() bool { return server.ActualPort() > 0 },
+		cryptoutilSharedMagic.DefaultHealthCheckTimeout, cryptoutilSharedMagic.DefaultHealthCheckInterval,
+		"server should allocate a dynamic port")
 
 	port := server.ActualPort()
-	require.Greater(t, port, 0, "Expected dynamic port allocation")
 
 	// Query livez endpoint.
 	client := &http.Client{
@@ -439,10 +442,11 @@ func TestAdminServer_Readyz_Ready(t *testing.T) {
 	}()
 
 	// Wait for server to be ready.
-	time.Sleep(200 * time.Millisecond)
+	require.Eventually(t, func() bool { return server.ActualPort() > 0 },
+		cryptoutilSharedMagic.DefaultHealthCheckTimeout, cryptoutilSharedMagic.DefaultHealthCheckInterval,
+		"server should allocate a dynamic port")
 
 	port := server.ActualPort()
-	require.Greater(t, port, 0, "Expected dynamic port allocation")
 
 	// Mark server as ready (application's responsibility after dependencies initialized).
 	server.SetReady(true)

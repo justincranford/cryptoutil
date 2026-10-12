@@ -48,10 +48,11 @@ func startAdminServerWithClient(t *testing.T) (*cryptoutilAppsFrameworkServiceSe
 		_ = server.Start(ctx)
 	}()
 
-	time.Sleep(200 * time.Millisecond)
+	require.Eventually(t, func() bool { return server.ActualPort() > 0 },
+		cryptoutilSharedMagic.DefaultHealthCheckTimeout, cryptoutilSharedMagic.DefaultHealthCheckInterval,
+		"server should allocate a dynamic port")
 
 	port := server.ActualPort()
-	require.Greater(t, port, 0, "Expected dynamic port allocation")
 
 	client := &http.Client{
 		Transport: &http.Transport{

@@ -16,18 +16,16 @@ import (
 	googleUuid "github.com/google/uuid"
 )
 
-// uuidNewV7 is the UUID v7 generator — injectable for testing error paths.
-var uuidNewV7 = googleUuid.NewV7
-
-// globalRandReader is the random reader — injectable for testing error paths.
-var globalRandReader io.Reader = crand.Reader
-
 // GenerateUsernameSimple generates a random username with "user_" prefix and full UUID suffix.
 // Uses UUIDv7 for time-ordered uniqueness and concurrency safety.
 // Returns full UUID (36 chars) to prevent collisions in parallel test execution.
 // For test scenarios requiring specific lengths, use GenerateUsername(t, length) instead.
 func GenerateUsernameSimple() (string, error) {
-	id, err := uuidNewV7()
+	return generateUsernameSimple(googleUuid.NewV7)
+}
+
+func generateUsernameSimple(uuidNewV7Fn func() (googleUuid.UUID, error)) (string, error) {
+	id, err := uuidNewV7Fn()
 	if err != nil {
 		return "", fmt.Errorf("failed to generate UUID for username: %w", err)
 	}
@@ -39,7 +37,11 @@ func GenerateUsernameSimple() (string, error) {
 // Provides sufficient entropy for test passwords while maintaining readability.
 // For test scenarios requiring specific lengths, use GeneratePassword(t, length) instead.
 func GeneratePasswordSimple() (string, error) {
-	id, err := uuidNewV7()
+	return generatePasswordSimple(googleUuid.NewV7)
+}
+
+func generatePasswordSimple(uuidNewV7Fn func() (googleUuid.UUID, error)) (string, error) {
+	id, err := uuidNewV7Fn()
 	if err != nil {
 		return "", fmt.Errorf("failed to generate UUID for password: %w", err)
 	}
@@ -49,9 +51,13 @@ func GeneratePasswordSimple() (string, error) {
 
 // GenerateString generates a random hexadecimal string of the specified length.
 func GenerateString(length int) (string, error) {
+	return generateString(length, crand.Reader)
+}
+
+func generateString(length int, randomReader io.Reader) (string, error) {
 	bytesNeeded := (length + 1) / 2
 
-	randomBytes, err := GenerateBytes(bytesNeeded)
+	randomBytes, err := generateBytes(bytesNeeded, randomReader)
 	if err != nil {
 		return "", fmt.Errorf("failed to generate %d random bytes for string of length %d: %w", bytesNeeded, length, err)
 	}
@@ -61,9 +67,13 @@ func GenerateString(length int) (string, error) {
 
 // GenerateBytes generates a slice of random bytes of the specified length.
 func GenerateBytes(lengthBytes int) ([]byte, error) {
+	return generateBytes(lengthBytes, crand.Reader)
+}
+
+func generateBytes(lengthBytes int, randomReader io.Reader) ([]byte, error) {
 	bytes := make([]byte, lengthBytes)
 
-	_, err := io.ReadFull(globalRandReader, bytes)
+	_, err := io.ReadFull(randomReader, bytes)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate %d bytes: %w", lengthBytes, err)
 	}
@@ -73,6 +83,10 @@ func GenerateBytes(lengthBytes int) ([]byte, error) {
 
 // GenerateMultipleBytes generates multiple slices of random bytes.
 func GenerateMultipleBytes(count, lengthBytes int) ([][]byte, error) {
+	return generateMultipleBytes(count, lengthBytes, crand.Reader)
+}
+
+func generateMultipleBytes(count, lengthBytes int, randomReader io.Reader) ([][]byte, error) {
 	if count < 1 {
 		return nil, fmt.Errorf("count can't be less than 1")
 	} else if lengthBytes < 1 {
@@ -81,7 +95,7 @@ func GenerateMultipleBytes(count, lengthBytes int) ([][]byte, error) {
 
 	concatSharedSecrets := make([]byte, count*lengthBytes) // max 255 * 64
 
-	_, err := io.ReadFull(globalRandReader, concatSharedSecrets)
+	_, err := io.ReadFull(randomReader, concatSharedSecrets)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate consecutive byte slices: %w", err)
 	}

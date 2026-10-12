@@ -90,6 +90,8 @@ func TestClientSecretRotation_EndToEnd(t *testing.T) {
 	reqURL := fmt.Sprintf("/oauth2/v1/clients/%s/rotate-secret", client.ClientID)
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, reqURL, nil)
 	require.NoError(t, err)
+
+	req.Host = cryptoutilSharedMagic.HostnameLocalhost
 	req.SetBasicAuth(client.ClientID, originalSecret)
 
 	resp, err := app.Test(req, -1)
@@ -167,6 +169,8 @@ func TestClientSecretRotation_InvalidClientID(t *testing.T) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, reqURL, nil)
 	require.NoError(t, err)
 
+	req.Host = cryptoutilSharedMagic.HostnameLocalhost
+
 	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
@@ -238,6 +242,8 @@ func TestClientSecretRotation_ClientNotFound(t *testing.T) {
 	reqURL := fmt.Sprintf("/oauth2/v1/clients/%s/rotate-secret", nonExistentID)
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, reqURL, nil)
 	require.NoError(t, err)
+
+	req.Host = cryptoutilSharedMagic.HostnameLocalhost
 	req.SetBasicAuth(authClient.ClientID, authSecret)
 
 	resp, err := app.Test(req, -1)
