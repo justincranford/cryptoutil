@@ -191,7 +191,7 @@ func (s *Service) handleProtectedResource(c *fiber.Ctx) error {
 		cryptoutilSharedMagic.ClaimScope, claims[cryptoutilSharedMagic.ClaimScope])
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"message":                           "Protected resource accessed successfully",
+		cryptoutilSharedMagic.StringMessage: "Protected resource accessed successfully",
 		cryptoutilSharedMagic.ClaimClientID: claims[cryptoutilSharedMagic.ClaimClientID],
 		cryptoutilSharedMagic.ClaimScope:    claims[cryptoutilSharedMagic.ClaimScope],
 		"data": fiber.Map{
@@ -216,8 +216,8 @@ func (s *Service) handleCreateResource(c *fiber.Ctx) error {
 		cryptoutilSharedMagic.ClaimClientID, claims[cryptoutilSharedMagic.ClaimClientID])
 
 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
-		"message":     "Resource created successfully",
-		"resource_id": "new-resource-456",
+		cryptoutilSharedMagic.StringMessage: "Resource created successfully",
+		"resource_id":                       "new-resource-456",
 	})
 }
 
@@ -235,7 +235,7 @@ func (s *Service) handleDeleteResource(c *fiber.Ctx) error {
 		cryptoutilSharedMagic.ClaimClientID, claims[cryptoutilSharedMagic.ClaimClientID])
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"message": "Resource deleted successfully",
+		cryptoutilSharedMagic.StringMessage: "Resource deleted successfully",
 	})
 }
 
@@ -253,7 +253,7 @@ func (s *Service) handleAdminUsers(c *fiber.Ctx) error {
 		cryptoutilSharedMagic.ClaimClientID, claims[cryptoutilSharedMagic.ClaimClientID])
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"message": "Admin user list",
+		cryptoutilSharedMagic.StringMessage: "Admin user list",
 		"users": []fiber.Map{
 			{"id": "user-1", "username": "alice", "role": "admin"},
 			{"id": "user-2", "username": "bob", "role": "user"},
@@ -275,7 +275,7 @@ func (s *Service) handleAdminMetrics(c *fiber.Ctx) error {
 		cryptoutilSharedMagic.ClaimClientID, claims[cryptoutilSharedMagic.ClaimClientID])
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"message": "System metrics",
+		cryptoutilSharedMagic.StringMessage: "System metrics",
 		"metrics": fiber.Map{
 			"requests_total":   cryptoutilSharedMagic.ExampleMetricRequestsTotal,
 			"requests_success": cryptoutilSharedMagic.ExampleMetricRequestsSuccess,

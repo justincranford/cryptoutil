@@ -4,10 +4,10 @@ package server
 import (
 	"context"
 	"crypto/tls"
+	"crypto/x509"
 	"io"
 	http "net/http"
 	"testing"
-	"time"
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
@@ -67,13 +67,15 @@ func TestAuthzServer_PublicHealth(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			rootCAs := testServer.TLSRootCAPool()
 			if tt.admin {
 				rootCAs = testServer.AdminTLSRootCAPool()
 			}
 
 			client := &http.Client{
-				Timeout: httpTimeout,
+				Timeout: cryptoutilSharedMagic.DefaultHealthCheckTimeout,
 				Transport: &http.Transport{
 					TLSClientConfig: &tls.Config{
 						MinVersion: tls.VersionTLS13,
@@ -85,7 +87,7 @@ func TestAuthzServer_PublicHealth(t *testing.T) {
 
 			url := tt.baseURL + tt.path
 
-			ctx, cancel := context.WithTimeout(context.Background(), httpTimeout)
+			ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultHealthCheckTimeout)
 			defer cancel()
 
 			req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
@@ -94,98 +96,83 @@ func TestAuthzServer_PublicHealth(t *testing.T) {
 			resp, err := client.Do(req)
 			require.NoError(t, err)
 
-			defer func() {
-				_ = resp.Body.Close()
-			}()
-
 			require.Equal(t, tt.wantCode, resp.StatusCode)
 
 			// Read body to verify response.
-			body, err := io.ReadAll(resp.Body)
-			require.NoError(t, err)
+			body, readErr := io.ReadAll(resp.Body)
+			closeErr := resp.Body.Close()
+
+			require.NoError(t, readErr)
+			require.NoError(t, closeErr)
 			require.NotEmpty(t, body)
 		})
 	}
 }
 
-func TestAuthzServer_OIDCDiscovery(t *testing.T) {
+func TestAuthzServer_WellKnownEndpoints(t *testing.T) {
 	t.Parallel()
 	requireTestSetup(t)
 
-	client := &http.Client{
-		Timeout: httpTimeout,
-		Transport: &http.Transport{
-			TLSClientConfig: &tls.Config{
-				MinVersion: tls.VersionTLS13,
-				RootCAs:    testServer.TLSRootCAPool(),
-			},
-			DisableKeepAlives: true,
-		},
+	tests := []struct {
+		name         string
+		path         string
+		wantStatus   int
+		wantBody     string
+		untrustedTLS bool
+	}{
+		{name: "OIDC discovery", path: cryptoutilSharedMagic.PathDiscovery, wantStatus: http.StatusOK, wantBody: "issuer"},
+		{name: "JWKS", path: cryptoutilSharedMagic.PathJWKS, wantStatus: http.StatusOK, wantBody: "keys"},
+		{name: "admin livez is not exposed publicly", path: cryptoutilSharedMagic.DefaultAdminLivezEndpoint, wantStatus: http.StatusNotFound},
+		{name: "untrusted server certificate is rejected", path: cryptoutilSharedMagic.PathJWKS, untrustedTLS: true},
 	}
 
-	// Test OIDC discovery endpoint.
-	url := testBaseURL + cryptoutilSharedMagic.PathDiscovery
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-	ctx, cancel := context.WithTimeout(context.Background(), httpTimeout)
-	defer cancel()
+			rootCAs := testServer.TLSRootCAPool()
+			if tc.untrustedTLS {
+				rootCAs = x509.NewCertPool()
+			}
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
-	require.NoError(t, err)
+			client := &http.Client{
+				Timeout: cryptoutilSharedMagic.DefaultHealthCheckTimeout,
+				Transport: &http.Transport{
+					TLSClientConfig: &tls.Config{
+						MinVersion: tls.VersionTLS13,
+						RootCAs:    rootCAs,
+					},
+					DisableKeepAlives: true,
+				},
+			}
+			url := testBaseURL + tc.path
 
-	resp, err := client.Do(req)
-	require.NoError(t, err)
+			ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultHealthCheckTimeout)
+			defer cancel()
 
-	defer func() {
-		_ = resp.Body.Close()
-	}()
+			request, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+			require.NoError(t, err)
 
-	require.Equal(t, http.StatusOK, resp.StatusCode)
+			response, err := client.Do(request)
+			if tc.untrustedTLS {
+				require.ErrorContains(t, err, cryptoutilSharedMagic.TLSName)
 
-	// Read body to verify JSON response.
-	body, err := io.ReadAll(resp.Body)
-	require.NoError(t, err)
-	require.NotEmpty(t, body)
-	require.Contains(t, string(body), "issuer")
-}
+				return
+			}
 
-func TestAuthzServer_JWKS(t *testing.T) {
-	t.Parallel()
-	requireTestSetup(t)
+			require.NoError(t, err)
 
-	client := &http.Client{
-		Timeout: httpTimeout,
-		Transport: &http.Transport{
-			TLSClientConfig: &tls.Config{
-				MinVersion: tls.VersionTLS13,
-				RootCAs:    testServer.TLSRootCAPool(),
-			},
-			DisableKeepAlives: true,
-		},
+			body, err := io.ReadAll(response.Body)
+			closeErr := response.Body.Close()
+			require.Equal(t, tc.wantStatus, response.StatusCode)
+			require.NoError(t, err)
+			require.NoError(t, closeErr)
+
+			if tc.wantBody != "" {
+				require.Contains(t, string(body), tc.wantBody)
+			}
+		})
 	}
-
-	// Test JWKS endpoint.
-	url := testBaseURL + cryptoutilSharedMagic.PathJWKS
-
-	ctx, cancel := context.WithTimeout(context.Background(), httpTimeout)
-	defer cancel()
-
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
-	require.NoError(t, err)
-
-	resp, err := client.Do(req)
-	require.NoError(t, err)
-
-	defer func() {
-		_ = resp.Body.Close()
-	}()
-
-	require.Equal(t, http.StatusOK, resp.StatusCode)
-
-	// Read body to verify JSON response.
-	body, err := io.ReadAll(resp.Body)
-	require.NoError(t, err)
-	require.NotEmpty(t, body)
-	require.Contains(t, string(body), "keys")
 }
 
 func TestAuthzServer_AccessorMethods(t *testing.T) {
@@ -197,6 +184,3 @@ func TestAuthzServer_AccessorMethods(t *testing.T) {
 	require.NotEmpty(t, testServer.PublicBaseURL())
 	require.NotEmpty(t, testServer.AdminBaseURL())
 }
-
-// HTTP timeout for test requests.
-const httpTimeout = 5 * time.Second

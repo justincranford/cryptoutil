@@ -74,7 +74,7 @@ func newPublicServerBaseInternal(cfg *PublicServerConfig, appListenerFn func(app
 // registerHealthEndpoints registers standard health check endpoints.
 func (s *PublicServerBase) registerHealthEndpoints() {
 	s.app.Get(cryptoutilSharedMagic.IdentityE2EHealthEndpoint, s.handleServiceHealth)
-	s.app.Get("/browser/api/v1/health", s.handleBrowserHealth)
+	s.app.Get(cryptoutilSharedMagic.DefaultBrowserHealthEndpoint, s.handleBrowserHealth)
 }
 
 // handleServiceHealth returns health status for service-to-service clients.
@@ -85,7 +85,7 @@ func (s *PublicServerBase) handleServiceHealth(c *fiber.Ctx) error {
 	if s.shutdown {
 		//nolint:wrapcheck // Fiber framework error.
 		return c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{
-			cryptoutilSharedMagic.StringStatus: "shutting down",
+			cryptoutilSharedMagic.StringStatus: cryptoutilSharedMagic.StringStatusShuttingDown,
 		})
 	}
 
@@ -103,7 +103,7 @@ func (s *PublicServerBase) handleBrowserHealth(c *fiber.Ctx) error {
 	if s.shutdown {
 		//nolint:wrapcheck // Fiber framework error.
 		return c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{
-			cryptoutilSharedMagic.StringStatus: "shutting down",
+			cryptoutilSharedMagic.StringStatus: cryptoutilSharedMagic.StringStatusShuttingDown,
 		})
 	}
 

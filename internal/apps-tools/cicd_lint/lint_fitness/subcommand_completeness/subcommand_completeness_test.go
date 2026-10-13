@@ -160,13 +160,13 @@ func TestCheckInDir_MultipleViolations(t *testing.T) {
 
 	tmpDir := t.TempDir()
 
-	// Only create service dirs WITHOUT RouteService for sm-kms and pki-ca.
+	// Only create service dirs WITHOUT RouteService for sm-kms and identity-authz.
 	for _, ps := range lintFitnessRegistry.AllProductServices() {
 		serviceDir := filepath.Join(tmpDir, "internal", "apps", ps.PSID)
 		require.NoError(t, os.MkdirAll(serviceDir, cryptoutilSharedMagic.CICDTempDirPermissions))
 
 		var content string
-		if ps.PSID == cryptoutilSharedMagic.OTLPServiceSMKMS || ps.PSID == cryptoutilSharedMagic.OTLPServicePKICA {
+		if ps.PSID == cryptoutilSharedMagic.OTLPServiceSMKMS || ps.PSID == cryptoutilSharedMagic.OTLPServiceIdentityAuthz {
 			content = "package " + ps.PSID + "\n\nfunc Handler() {}\n"
 		} else {
 			content = "package " + ps.PSID + "\n\nfunc Handler() { _ = \"RouteService\" }\n"
@@ -178,7 +178,7 @@ func TestCheckInDir_MultipleViolations(t *testing.T) {
 	err := CheckInDir(newTestLogger(), tmpDir, os.ReadDir, os.ReadFile)
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), cryptoutilSharedMagic.OTLPServiceSMKMS)
-	assert.Contains(t, err.Error(), cryptoutilSharedMagic.OTLPServicePKICA)
+	assert.Contains(t, err.Error(), cryptoutilSharedMagic.OTLPServiceIdentityAuthz)
 }
 
 func TestCheckInDir_ReadFileError(t *testing.T) {

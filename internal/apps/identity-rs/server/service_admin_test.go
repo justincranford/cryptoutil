@@ -101,7 +101,7 @@ func TestCreateResource_RequiresWriteScope(t *testing.T) {
 	err = json.Unmarshal(body, &result)
 	testify.NoError(t, err)
 
-	testify.Equal(t, "Resource created successfully", result["message"])
+	testify.Equal(t, "Resource created successfully", result[cryptoutilSharedMagic.StringMessage])
 }
 
 // TestDeleteResource_RequiresDeleteScope tests DELETE endpoint scope enforcement.
@@ -287,7 +287,7 @@ func TestAdminMetrics_RequiresAdminScope(t *testing.T) {
 				err = json.Unmarshal(body, &result)
 				testify.NoError(t, err)
 
-				testify.Equal(t, "System metrics", result["message"])
+				testify.Equal(t, "System metrics", result[cryptoutilSharedMagic.StringMessage])
 
 				// Verify metrics data exists.
 				metrics, ok := result["metrics"].(map[string]any)

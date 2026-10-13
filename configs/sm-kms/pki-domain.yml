@@ -1,0 +1,56 @@
+# SM-KMS PKI Domain Configuration
+# Local development PKI domain config for sm-kms.
+
+# Development mode - creates self-signed CA on startup.
+dev: false
+
+# CA configuration.
+ca:
+  name: "cryptoutil-ca"
+  description: "Cryptoutil Certificate Authority"
+  type: "root"
+  subject:
+    common_name: "Cryptoutil Root CA"
+    organization: "Cryptoutil"
+    organizational_unit: "Security"
+    country: "US"
+  key:
+    algorithm: "ECDSA"
+    curve_or_size: "P-384"
+  validity:
+    days: 3650
+
+# Revocation services
+revocation:
+  crl:
+    enabled: true
+    validity_hours: 24
+    next_update_hours: 12
+  ocsp:
+    enabled: true
+    validity_minutes: 10
+
+# TSA (Time Stamp Authority) - disabled by default
+tsa:
+  enabled: false
+  policy_oid: "1.2.3.4.5.6.7.8.9"
+  accepted_algorithms:
+    - "SHA-256"
+    - "SHA-384"
+    - "SHA-512"
+
+# EST (Enrollment over Secure Transport) - disabled by default
+est:
+  enabled: false
+  mtls_required: true
+
+# Certificate profiles
+profiles:
+  - id: "tls-server"
+    name: "TLS Server Certificate"
+    category: "tls"
+    path: "configs/sm-kms/profiles/tls-server.yaml"
+  - id: "tls-client"
+    name: "TLS Client Certificate"
+    category: "tls"
+    path: "configs/sm-kms/profiles/tls-client.yaml"

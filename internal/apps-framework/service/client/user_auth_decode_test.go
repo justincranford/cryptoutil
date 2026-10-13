@@ -37,7 +37,7 @@ func TestGetUserIDFromResponse_MissingField(t *testing.T) {
 	t.Parallel()
 
 	respBody := map[string]string{
-		"message": "user created",
+		cryptoutilSharedMagic.StringMessage: "user created",
 	}
 
 	userID, err := cryptoutilAppsFrameworkServiceClient.GetUserIDFromResponse(respBody)
@@ -122,7 +122,7 @@ func TestVerifyHealthEndpoint_MissingStatusField(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		_ = json.NewEncoder(w).Encode(map[string]string{
-			"message": "ok",
+			cryptoutilSharedMagic.StringMessage: "ok",
 		})
 	}))
 	defer server.Close()

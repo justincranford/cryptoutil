@@ -243,7 +243,7 @@ func TestScopeEnforcement_ValidScope(t *testing.T) {
 	err = json.Unmarshal(body, &result)
 	testify.NoError(t, err)
 
-	testify.Equal(t, "Protected resource accessed successfully", result["message"])
+	testify.Equal(t, "Protected resource accessed successfully", result[cryptoutilSharedMagic.StringMessage])
 }
 
 // TestAdminEndpoint_RequiresAdminScope tests admin endpoint scope enforcement.

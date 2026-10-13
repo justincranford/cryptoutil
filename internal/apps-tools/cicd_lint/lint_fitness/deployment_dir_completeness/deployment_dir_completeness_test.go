@@ -158,7 +158,7 @@ func TestCheckInDir_MissingSecretsDir(t *testing.T) {
 	tmpDir := t.TempDir()
 	setupAllDeploymentDirs(t, tmpDir)
 
-	require.NoError(t, os.RemoveAll(filepath.Join(tmpDir, "deployments", cryptoutilSharedMagic.OTLPServicePKICA, "secrets")))
+	require.NoError(t, os.RemoveAll(filepath.Join(tmpDir, "deployments", cryptoutilSharedMagic.OTLPServiceIdentityAuthz, "secrets")))
 
 	err := lintFitnessDeploymentDirCompleteness.CheckInDir(newTestLogger(), tmpDir)
 	require.Error(t, err)
@@ -171,7 +171,7 @@ func TestCheckInDir_MissingConfigDir(t *testing.T) {
 	tmpDir := t.TempDir()
 	setupAllDeploymentDirs(t, tmpDir)
 
-	require.NoError(t, os.RemoveAll(filepath.Join(tmpDir, "deployments", cryptoutilSharedMagic.OTLPServicePKICA, "config")))
+	require.NoError(t, os.RemoveAll(filepath.Join(tmpDir, "deployments", cryptoutilSharedMagic.OTLPServiceIdentityAuthz, "config")))
 
 	err := lintFitnessDeploymentDirCompleteness.CheckInDir(newTestLogger(), tmpDir)
 	require.Error(t, err)

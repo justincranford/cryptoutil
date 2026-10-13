@@ -21,6 +21,7 @@ import (
 	cryptoutilAppsFrameworkServiceServerMiddleware "cryptoutil/internal/apps-framework/service/server/middleware"
 	cryptoutilKmsServerBusinesslogic "cryptoutil/internal/apps/sm-kms/server/businesslogic"
 	cryptoutilAppsSmKmsServerHandler "cryptoutil/internal/apps/sm-kms/server/handler"
+	cryptoutilAppsSmKmsPKIServer "cryptoutil/internal/apps/sm-kms/server/pki/server"
 	cryptoutilAppsSmKmsRepository "cryptoutil/internal/apps/sm-kms/server/repository"
 	cryptoutilOrmRepository "cryptoutil/internal/apps/sm-kms/server/repository/orm"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
@@ -156,6 +157,15 @@ func registerKMSRoutes(
 
 		registerCompatRoutes(browserGroup)
 		registerCompatRoutes(serviceGroup)
+	}
+
+	components, err := cryptoutilAppsSmKmsPKIServer.NewPKIComponents()
+	if err != nil {
+		return fmt.Errorf("failed to initialize PKI components: %w", err)
+	}
+
+	if err := cryptoutilAppsSmKmsPKIServer.RegisterPKIRoutes(serviceGroup, browserGroup, components); err != nil {
+		return fmt.Errorf("failed to register PKI routes: %w", err)
 	}
 
 	return nil

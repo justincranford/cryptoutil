@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"runtime"
 	"testing"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps-tools/cicd_lint/common"
@@ -76,7 +75,7 @@ func TestCheckInDir(t *testing.T) {
 
 	tpl := tplRelPath()
 	dom := domainRelPath("myproduct", "myservice")
-	archivedDir := filepath.Join("internal", "apps", cryptoutilSharedMagic.PKIProductName, "_ca-archived", "repository", "migrations")
+	archivedDir := filepath.Join("internal", "apps", cryptoutilSharedMagic.SMProductName, "_ca-archived", "repository", "migrations")
 
 	type fileEntry struct {
 		relPath string
@@ -219,28 +218,6 @@ func TestCheckMigrationDir(t *testing.T) {
 	}
 }
 
-func TestCheckMigrationDir_ReadDirError(t *testing.T) {
-	t.Parallel()
-
-	if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
-		t.Skip("os.Chmod 0o000 does not restrict access on Windows NTFS")
-	}
-
-	tmpDir := t.TempDir()
-	migrationsDir := filepath.Join(tmpDir, "migrations")
-	mkdirAll(t, migrationsDir)
-	writeSQL(t, migrationsDir, "2001_init.up.sql")
-	require.NoError(t, os.Chmod(migrationsDir, 0o000))
-
-	t.Cleanup(func() {
-		_ = os.Chmod(migrationsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute)
-	})
-
-	errs := checkMigrationDir(migrationsDir, domainMigrationMin, 0, false)
-	require.NotEmpty(t, errs)
-	require.Contains(t, errs[0], "failed to read directory")
-}
-
 func TestFindDomainMigrationDirs_NoAppsDir(t *testing.T) {
 	t.Parallel()
 
@@ -272,116 +249,157 @@ func TestFindDomainMigrationDirs_LegacyExcluded(t *testing.T) {
 	require.Contains(t, dirs[0], "myservice")
 }
 
-func TestFindDomainMigrationDirs_WalkPermissionError(t *testing.T) {
+func TestMigrationNumberingOperations_ErrorPaths(t *testing.T) {
 	t.Parallel()
 
-	if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
-		t.Skip("os.Chmod 0o000 does not restrict access on Windows NTFS")
+	tests := []struct {
+		name    string
+		run     func(*testing.T) error
+		wantErr string
+	}{
+		{
+			name: "template absolute path error",
+			run: func(t *testing.T) error {
+				operations := productionMigrationNumberingOperations()
+				operations.pathAbsFn = func(string) (string, error) {
+					return "", fmt.Errorf("injected template absolute path error")
+				}
+
+				tmpDir := t.TempDir()
+
+				_, err := findDomainMigrationDirsWithOperations(tmpDir, tplRelPath(), operations)
+
+				return err
+			},
+			wantErr: "failed to get absolute path for template dir",
+		},
+		{
+			name: "legacy absolute path error",
+			run: func(t *testing.T) error {
+				operations := productionMigrationNumberingOperations()
+				tmpDir := t.TempDir()
+				legacyDir := filepath.Join(tmpDir, legacyMigrationPaths[0])
+				operations.pathAbsFn = func(path string) (string, error) {
+					if path == legacyDir {
+						return "", fmt.Errorf("injected legacy absolute path error")
+					}
+
+					return filepath.Abs(path)
+				}
+
+				_, err := findDomainMigrationDirsWithOperations(tmpDir, filepath.Join(tmpDir, tplRelPath()), operations)
+
+				return err
+			},
+			wantErr: "failed to get absolute path for legacy migration dir",
+		},
+		{
+			name: "apps stat error",
+			run: func(t *testing.T) error {
+				operations := productionMigrationNumberingOperations()
+				operations.statFn = func(string) (os.FileInfo, error) {
+					return nil, fmt.Errorf("injected apps stat error")
+				}
+				tmpDir := t.TempDir()
+
+				_, err := findDomainMigrationDirsWithOperations(tmpDir, filepath.Join(tmpDir, tplRelPath()), operations)
+
+				return err
+			},
+			wantErr: "failed to stat internal/apps directory",
+		},
+		{
+			name: "walk error",
+			run: func(t *testing.T) error {
+				operations := productionMigrationNumberingOperations()
+				operations.walkFn = func(string, filepath.WalkFunc) error {
+					return fmt.Errorf("injected walk error")
+				}
+				tmpDir := t.TempDir()
+				mkdirAll(t, filepath.Join(tmpDir, "internal", "apps"))
+
+				_, err := findDomainMigrationDirsWithOperations(tmpDir, filepath.Join(tmpDir, tplRelPath()), operations)
+
+				return err
+			},
+			wantErr: migrationNumberingWalkAppsDirectoryErrorPrefix,
+		},
+		{
+			name: "migration directory absolute path error",
+			run: func(t *testing.T) error {
+				operations := productionMigrationNumberingOperations()
+				tmpDir := t.TempDir()
+				migrationDir := filepath.Join(tmpDir, domainRelPath("myservice"))
+				mkdirAll(t, migrationDir)
+
+				operations.pathAbsFn = func(path string) (string, error) {
+					if path == migrationDir {
+						return "", fmt.Errorf("injected migration directory absolute path error")
+					}
+
+					return filepath.Abs(path)
+				}
+
+				_, err := findDomainMigrationDirsWithOperations(tmpDir, filepath.Join(tmpDir, tplRelPath()), operations)
+
+				return err
+			},
+			wantErr: migrationNumberingWalkAppsDirectoryErrorPrefix,
+		},
+		{
+			name: "check in directory wraps domain discovery error",
+			run: func(t *testing.T) error {
+				operations := productionMigrationNumberingOperations()
+				operations.pathAbsFn = func(string) (string, error) {
+					return "", fmt.Errorf("injected domain discovery error")
+				}
+				tmpDir := t.TempDir()
+				mkdirAll(t, filepath.Join(tmpDir, tplRelPath()))
+
+				return checkInDirWithOperations(cryptoutilCmdCicdCommon.NewLogger("test"), tmpDir, operations)
+			},
+			wantErr: "failed to find domain migration directories",
+		},
+		{
+			name: "read directory error",
+			run: func(t *testing.T) error {
+				operations := productionMigrationNumberingOperations()
+				operations.readDirFn = func(string) ([]os.DirEntry, error) {
+					return nil, fmt.Errorf("injected read directory error")
+				}
+				errs := checkMigrationDirWithOperations(t.TempDir(), domainMigrationMin, 0, false, operations)
+
+				return fmt.Errorf("%s", errs[0])
+			},
+			wantErr: "failed to read directory",
+		},
+		{
+			name: "version parser error",
+			run: func(t *testing.T) error {
+				operations := productionMigrationNumberingOperations()
+				operations.atoiFn = func(string) (int, error) {
+					return 0, fmt.Errorf("injected integer parsing error")
+				}
+				migrationsDir := filepath.Join(t.TempDir(), "migrations")
+				mkdirAll(t, migrationsDir)
+				writeSQL(t, migrationsDir, "2001_init.up.sql")
+
+				errs := checkMigrationDirWithOperations(migrationsDir, domainMigrationMin, 0, false, operations)
+
+				return fmt.Errorf("%s", errs[0])
+			},
+			wantErr: "failed to parse version number",
+		},
 	}
 
-	tmpDir := t.TempDir()
-	badDir := filepath.Join(tmpDir, "internal", "apps", "badservice")
-	mkdirAll(t, badDir)
-	require.NoError(t, os.Chmod(badDir, 0o000))
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-	t.Cleanup(func() {
-		_ = os.Chmod(badDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute)
-	})
-
-	_, err := findDomainMigrationDirs(tmpDir, filepath.Join(tmpDir, tplRelPath()))
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "failed to walk apps directory")
-}
-
-// saveRestoreSeams saves and restores test seams.
-func saveRestoreSeams(t *testing.T) {
-	t.Helper()
-
-	origPathAbs := pathAbsFunc
-	origAtoi := atoiFunc
-
-	t.Cleanup(func() {
-		pathAbsFunc = origPathAbs
-		atoiFunc = origAtoi
-	})
-}
-
-// Sequential: modifies package-level seam variables.
-func TestSeam_FindDomainDirs_AbsTemplateError(t *testing.T) {
-	saveRestoreSeams(t)
-
-	pathAbsFunc = func(_ string) (string, error) {
-		return "", fmt.Errorf("injected abs error")
+			err := tc.run(t)
+			require.ErrorContains(t, err, tc.wantErr)
+		})
 	}
-
-	tmpDir := t.TempDir()
-
-	_, err := findDomainMigrationDirs(tmpDir, filepath.Join(tmpDir, tplRelPath()))
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "failed to get absolute path for template dir")
-}
-
-// Sequential: modifies package-level seam variables.
-func TestSeam_FindDomainDirs_WalkAbsError(t *testing.T) {
-	saveRestoreSeams(t)
-
-	callCount := 0
-
-	pathAbsFunc = func(path string) (string, error) {
-		callCount++
-		if callCount > 3 {
-			return "", fmt.Errorf("injected walk abs error")
-		}
-
-		return filepath.Abs(path)
-	}
-
-	tmpDir := t.TempDir()
-	migDir := filepath.Join(tmpDir, domainRelPath("myservice"))
-	mkdirAll(t, migDir)
-	writeSQL(t, migDir, "2001_init.up.sql")
-
-	tplDir := filepath.Join(tmpDir, tplRelPath())
-	mkdirAll(t, tplDir)
-
-	_, err := findDomainMigrationDirs(tmpDir, tplDir)
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "failed to walk apps directory")
-}
-
-// Sequential: modifies package-level seam variables.
-func TestSeam_CheckInDir_FindDomainDirsError(t *testing.T) {
-	saveRestoreSeams(t)
-
-	pathAbsFunc = func(_ string) (string, error) {
-		return "", fmt.Errorf("injected abs error")
-	}
-
-	tmpDir := t.TempDir()
-	mkdirAll(t, filepath.Join(tmpDir, tplRelPath()))
-
-	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	err := CheckInDir(logger, tmpDir)
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "failed to find domain migration directories")
-}
-
-// Sequential: modifies package-level seam variables.
-func TestSeam_CheckMigrationDir_AtoiError(t *testing.T) {
-	saveRestoreSeams(t)
-
-	atoiFunc = func(_ string) (int, error) {
-		return 0, fmt.Errorf("injected atoi error")
-	}
-
-	tmpDir := t.TempDir()
-	migrationsDir := filepath.Join(tmpDir, "migrations")
-	mkdirAll(t, migrationsDir)
-	writeSQL(t, migrationsDir, "2001_init.up.sql")
-
-	errs := checkMigrationDir(migrationsDir, domainMigrationMin, 0, false)
-	require.NotEmpty(t, errs)
-	require.Contains(t, errs[0], "failed to parse version number")
 }
 
 // Sequential: uses os.Chdir (global process state, cannot run in parallel).

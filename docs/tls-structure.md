@@ -18,29 +18,29 @@ Canonical PS-ID app instance names:
 
 Canonical tier IDs:
 - SUITE: `cryptoutil`
-- PRODUCT: `sm`, `jose`, `pki`, `identity`, `skeleton`
-- PS-ID: `sm-kms`, `sm-kms`, `sm-kms`, `pki-ca`, `identity-authz`, `identity-idp`, `identity-rs`, `identity-rp`, `identity-spa`, `skeleton-template`
+- PRODUCT: `sm`, `identity`, `skeleton`
+- PS-ID: `sm-kms`, `identity-authz`, `identity-idp`, `identity-rs`, `identity-rp`, `identity-spa`, `skeleton-template`
 
 ## PKI INIT
 
 `pki-init` takes two positional parameters:
-1. **PKI-INIT-DOMAIN** (`<tier-id>`) — canonical tier ID; one of the 16 valid domains below
+1. **PKI-INIT-DOMAIN** (`<tier-id>`) — canonical tier ID; one of the 11 valid domains below
 2. **TARGET-DIRECTORY** (`<target-dir>`) — target directory root; e.g. `/certs`, `/tmp`
 
 All output files are created under `TARGET-DIRECTORY/PKI-INIT-DOMAIN/`. If that subdirectory exists and is not empty, `pki-init` refuses to generate any files. If the subdirectory does not exist, or exists but is empty, `pki-init` creates the full directory tree and generates all required files.
 
-### Valid PKI-INIT-DOMAIN Values (16 total)
+### Valid PKI-INIT-DOMAIN Values (11 total)
 
 | Tier | Domain |
 |------|--------|
 | Suite | `cryptoutil` |
-| Product | `sm`, `jose`, `pki`, `identity`, `skeleton` |
-| PS-ID | `sm-kms`, `sm-kms`, `sm-kms`, `pki-ca`, `identity-authz`, `identity-idp`, `identity-rs`, `identity-rp`, `identity-spa`, `skeleton-template` |
+| Product | `sm`, `identity`, `skeleton` |
+| PS-ID | `sm-kms`, `identity-authz`, `identity-idp`, `identity-rs`, `identity-rp`, `identity-spa`, `skeleton-template` |
 
 Examples:
-1. `pki-init cryptoutil        /certs`   → output: `/certs/cryptoutil/` (suite scope, 630 dirs)
-2. `pki-init sm                /certs`   → output: `/certs/sm/` (product scope, 150 dirs for 2 PS-IDs)
-3. `pki-init identity          /certs`   → output: `/certs/identity/` (product scope, 4 PS-IDs)
+1. `pki-init cryptoutil        /certs`   → output: `/certs/cryptoutil/` (suite scope, 450 dirs)
+2. `pki-init sm                /certs`   → output: `/certs/sm/` (product scope, 90 dirs for 1 PS-ID)
+3. `pki-init identity          /certs`   → output: `/certs/identity/` (product scope, 5 PS-IDs; 330 dirs)
 4. `pki-init sm-kms            /tmp`     → output: `/tmp/sm-kms/` (PS-ID scope, 90 dirs)
 5. `pki-init skeleton-template /tmp`     → output: `/tmp/skeleton-template/` (PS-ID scope, 90 dirs)
 
@@ -85,7 +85,7 @@ Required domains (14 certificate categories):
 - Keystore only per instance (leaf cert — trust established via issuing CA's truststore).
 - Total per PS-ID: 4 directories (4 instances × 1 store type).
 - Total per PRODUCT: 4 × (PS-ID count in product).
-- Total per SUITE: 40 directories (4 instances × 10 PS-IDs × 1 store type).
+- Total per SUITE: 28 directories.
 
 **4. Public PS-ID HTTPS Client CAs:**
 - Per-instance CA chain (root + issuing) for client authentication on each app instance.
@@ -93,7 +93,7 @@ Required domains (14 certificate categories):
 - **PostgreSQL naming**: `postgres` (no suffix) is used here because this is an **application-level PKI domain** — a single CA chain covers both postgres-1 and postgres-2 as a logical service pair. App instances authenticate to "postgres-the-domain" regardless of which physical container serves them. In contrast, Cat 6/7/14 use `postgres-1`/`postgres-2` because those categories represent individual per-endpoint TLS identities (server cert or client leaf cert) where each container must have a unique identity. See [ENG-HANDBOOK.md §6.11.3](ENG-HANDBOOK.md#6113-pki-init-certificate-structure) for the full naming convention rationale.
 - Total per PS-ID: 12 directories (3 PKI domains × 2 CA tiers × 2 store types).
 - Total per PRODUCT: 12 × (PS-ID count in product).
-- Total per SUITE: 120 directories.
+- Total per SUITE: 84 directories.
 
 **5. Public PS-ID HTTPS Client Certs:**
 - Client leaf certs per API path prefix (`browseruser`, `serviceuser`) and per realm type, grouped into 3 PKI domains: `sqlite-1`, `sqlite-2`, `postgres` (postgres-1 and postgres-2 share client identity per Decision 7).
@@ -101,14 +101,14 @@ Required domains (14 certificate categories):
 - Keystore only per leaf cert (leaf cert — trust established via issuing CA's truststore).
 - Total per PS-ID: `2 × |realms| × 3` directories. Examples assume 2 realms (`file`, `db`): 12 directories.
 - Total per PRODUCT: `2 × |realms| × 3 × (PS-ID count in product)`.
-- Total per SUITE: `2 × |realms| × 3 × 10`; assuming 2 realms: 120 directories.
+- Total per SUITE: 84 directories.
 
 **6. Private PS-ID HTTPS Mutual TLS CAs (Admin Channel):**
 - Per-instance CA chain (root + issuing) for the private admin HTTPS channel; mutual TLS required.
 - {sqlite,postgres} × {1,2} = 4 instances per PS-ID; each has root and issuing CAs; both keystore and truststore.
 - Total per PS-ID: 16 directories (4 instances × 2 CA tiers × 2 store types).
 - Total per PRODUCT: 16 × (PS-ID count in product).
-- Total per SUITE: 160 directories.
+- Total per SUITE: 112 directories.
 
 **7. Private PS-ID HTTPS Mutual TLS Leaf Certs (Admin Channel):**
 - One mTLS leaf cert per app instance, with both Client Auth and Server Auth EKU; for use by the app instance's private admin HTTPS connections.
@@ -116,7 +116,7 @@ Required domains (14 certificate categories):
 - Keystore only per instance (leaf cert — trust established via issuing CA's truststore).
 - Total per PS-ID: 4 directories (4 instances × 1 store type).
 - Total per PRODUCT: 4 × (PS-ID count in product).
-- Total per SUITE: 40 directories.
+- Total per SUITE: 28 directories.
 
 **8. Public Grafana LGTM + OTel Collector Client CAs:**
 - Per-service CA chain (root + issuing) for client authentication toward Grafana LGTM and OTel Collector.
@@ -125,11 +125,11 @@ Required domains (14 certificate categories):
 
 **9. Public Grafana LGTM + OTel Collector Client Certs:**
 - Client leaf certs for each PS-ID app instance, one `admin` cert (human operator UI/API access), and one `infra` cert (OTel Collector → Grafana LGTM OTLP ingest service-to-service), issued by the respective client CA.
-- `{PS-ID}-{sqlite,postgres}-{1,2}` expands to all 4 app instances per PS-ID; `admin` is one shared cert for operators; `infra` is one shared cert for service-to-service OTel→Grafana forwarding.
+- `{PS-ID}-{sqlite,postgres}-{1,2}` expands to all 4 app instances per PS-ID; `admin` is one shared cert for operators; OTel→Grafana presents `grafana-otel-lgtm-https-client-entity-infra`, issued by the Grafana client CA, while app→OTel identities are issued by the OTel client CA.
 - Keystore only per leaf cert per service (leaf cert — trust established via issuing CA's truststore).
 - Total per PS-ID: 12 directories (2 services × (4 per-PS-ID instances + 1 admin + 1 infra) × 1 store type).
 - Total per PRODUCT: 2 services × (4×N per-PS-ID instances + 1 admin + 1 infra) × 1 store type = 4+8×N.
-- Total per SUITE: 2 services × (4×10 per-PS-ID instances + 1 admin + 1 infra) × 1 store type = 84 directories.
+- Total per SUITE: 60 directories.
 
 **10. Public PostgreSQL Server CAs:**
 - One globally shared CA chain (root + issuing) for both the leader and follower PostgreSQL server instances.
@@ -157,7 +157,7 @@ Required domains (14 certificate categories):
 - Keystore only per leaf cert (leaf cert — trust established via issuing CA's truststore).
 - Total per PS-ID: 4 directories (2 DB roles × 2 postgres instances × 1 store type).
 - Total per PRODUCT: 4 × (PS-ID count in product).
-- Total per SUITE: 40 directories.
+- Total per SUITE: 28 directories.
 
 Required logical layout:
 
@@ -187,23 +187,23 @@ TARGET-DIRECTORY/{PKI-INIT-DOMAIN}/
 
 ## Directory Count Summary
 
-| Category | Description | Per PS-ID | Per PRODUCT (N PS-IDs) | Per SUITE (10 PS-IDs) | Logical Layout Pattern |
+| Category | Description | Per PS-ID | Per PRODUCT (N PS-IDs) | Per SUITE (7 PS-IDs) | Logical Layout Pattern |
 |----------|-------------|-----------|------------------------|----------------------|------------------------|
 | 1 | Global HTTPS Server CAs | 4 | 4 | 4 | `public-https-server-{root,issuing}-ca/[truststore/]` |
 | 2 | Grafana/OTel Server Certs | 2 | 2 | 2 | `public-https-server-entity-{otel-collector-contrib,grafana-otel-lgtm}/` |
-| 3 | PS-ID App Server Certs | 4 | 4×N | 40 | `public-https-server-entity-{PS-ID}-{sqlite,postgres}-{1,2}/` |
-| 4 | PS-ID HTTPS Client CAs | 12 | 12×N | 120 | `public-https-client-{root,issuing}-ca-{PS-ID}-{sqlite-1,sqlite-2,postgres}/[truststore/]` |
-| 5 | PS-ID HTTPS Client Certs | 12 | 12×N | 120 | `public-https-client-entity-{PS-ID}-{sqlite-1,sqlite-2,postgres}-{browseruser,serviceuser}-{realm}/` |
-| 6 | Private mTLS CAs (Admin) | 16 | 16×N | 160 | `private-https-mutual-{root,issuing}-ca-{PS-ID}-{sqlite,postgres}-{1,2}/[truststore/]` |
-| 7 | Private mTLS Leaves (Admin) | 4 | 4×N | 40 | `private-https-mutual-entity-{PS-ID}-{sqlite,postgres}-{1,2}/` |
+| 3 | PS-ID App Server Certs | 4 | 4×N | 28 | `public-https-server-entity-{PS-ID}-{sqlite,postgres}-{1,2}/` |
+| 4 | PS-ID HTTPS Client CAs | 12 | 12×N | 84 | `public-https-client-{root,issuing}-ca-{PS-ID}-{sqlite-1,sqlite-2,postgres}/[truststore/]` |
+| 5 | PS-ID HTTPS Client Certs | 12 | 12×N | 84 | `public-https-client-entity-{PS-ID}-{sqlite-1,sqlite-2,postgres}-{browseruser,serviceuser}-{realm}/` |
+| 6 | Private mTLS CAs (Admin) | 16 | 16×N | 112 | `private-https-mutual-{root,issuing}-ca-{PS-ID}-{sqlite,postgres}-{1,2}/[truststore/]` |
+| 7 | Private mTLS Leaves (Admin) | 4 | 4×N | 28 | `private-https-mutual-entity-{PS-ID}-{sqlite,postgres}-{1,2}/` |
 | 8 | Grafana/OTel Client CAs | 8 | 8 | 8 | `{otel-collector-contrib,grafana-otel-lgtm}-https-client-{root,issuing}-ca/[truststore/]` |
-| 9 | Grafana/OTel Client Certs | 12 | 4+8×N | 84 | `{otel-collector-contrib,grafana-otel-lgtm}-https-client-entity-{PS-ID}-{sqlite,postgres}-{1,2}/` and `-entity-{admin,infra}/` |
+| 9 | Grafana/OTel Client Certs | 12 | 4+8×N | 60 | `{otel-collector-contrib,grafana-otel-lgtm}-https-client-entity-{PS-ID}-{sqlite,postgres}-{1,2}/` and `-entity-{admin,infra}/` |
 | 10 | PostgreSQL Server CAs | 4 | 4 | 4 | `postgres-tls-server-{root,issuing}-ca/[truststore/]` |
 | 11 | PostgreSQL Server Certs | 2 | 2 | 2 | `postgres-tls-server-entity-{leader,follower}/` |
 | 12 | PostgreSQL Client CAs | 4 | 4 | 4 | `postgres-tls-client-{root,issuing}-ca/[truststore/]` |
 | 13 | PostgreSQL Replication Certs | 2 | 2 | 2 | `postgres-tls-client-entity-{leader,follower}-replication/` |
-| 14 | PS-ID PostgreSQL App Clients | 4 | 4×N | 40 | `postgres-tls-client-entity-{leader,follower}-{PS-ID}-{postgres}-{1,2}/` |
-| **Total** | | **90** | **varies** | **630** | |
+| 14 | PS-ID PostgreSQL App Clients | 4 | 4×N | 28 | `postgres-tls-client-entity-{leader,follower}-{PS-ID}-{postgres}-{1,2}/` |
+| **Total** | | **90** | **varies** | **450** | |
 
 ## Policy Alignment
 
@@ -225,23 +225,23 @@ The totals in the Directory Count Summary table are derived as follows (assuming
 |----------|-------------------|-------------------|--------|
 | 1 Global HTTPS Server CAs | 2 tiers × 2 store types = **4** | same (shared global) | 4 |
 | 2 Grafana/OTel Server Certs | 2 services × 1 store type = **2** | same (shared global) | 2 |
-| 3 PS-ID App Server Certs | 4 instances × 1 = **4** | 4 × 10 PS-IDs | 40 |
-| 4 PS-ID HTTPS Client CAs | 3 PKI domains × 2 tiers × 2 store types = **12** | 12 × 10 | 120 |
-| 5 PS-ID HTTPS Client Certs | 3 PKI domains × 2 prefixes × 2 realms = **12** | 12 × 10 | 120 |
-| 6 Private mTLS CAs (Admin) | 4 instances × 2 tiers × 2 store types = **16** | 16 × 10 | 160 |
-| 7 Private mTLS Leaves (Admin) | 4 instances × 1 = **4** | 4 × 10 | 40 |
+| 3 PS-ID App Server Certs | 4 instances × 1 = **4** | 4 × 7 PS-IDs | 28 |
+| 4 PS-ID HTTPS Client CAs | 3 PKI domains × 2 tiers × 2 store types = **12** | 12 × 7 | 84 |
+| 5 PS-ID HTTPS Client Certs | 3 PKI domains × 2 prefixes × 2 realms = **12** | 12 × 7 | 84 |
+| 6 Private mTLS CAs (Admin) | 4 instances × 2 tiers × 2 store types = **16** | 16 × 7 | 112 |
+| 7 Private mTLS Leaves (Admin) | 4 instances × 1 = **4** | 4 × 7 | 28 |
 | 8 Grafana/OTel Client CAs | 2 services × 2 tiers × 2 store types = **8** | same (shared global) | 8 |
-| 9 Grafana/OTel Client Certs | 2 services × (4 instances + 1 admin + 1 infra) = **12** | 2 × (4×10 + 1 + 1) | 84 |
+| 9 Grafana/OTel Client Certs | 2 services × (4 instances + 1 admin + 1 infra) = **12** | 2 × (4×7 + 1 + 1) | 60 |
 | 10 PostgreSQL Server CAs | 2 tiers × 2 store types = **4** | same (shared global) | 4 |
 | 11 PostgreSQL Server Certs | 2 instances × 1 = **2** | same (shared global) | 2 |
 | 12 PostgreSQL Client CAs | 2 tiers × 2 store types = **4** | same (shared global) | 4 |
 | 13 PostgreSQL Replication Certs | 2 instances × 1 = **2** | same (shared global) | 2 |
-| 14 PS-ID PostgreSQL App Clients | 2 DB roles × 2 postgres instances = **4** | 4 × 10 | 40 |
-| **Total** | **90** | | **630** |
+| 14 PS-ID PostgreSQL App Clients | 2 DB roles × 2 postgres instances = **4** | 4 × 7 | 28 |
+| **Total** | **90** | | **450** |
 
 **PS-ID breakdown**: 30 global (cats 1, 2, 8, 10, 11, 12, 13 = 4+2+8+4+2+4+2) + 60 PS-ID-specific (cats 3, 4, 5, 6, 7, 9, 14 = 4+12+12+16+4+12+4 − global shares) = **90 per PS-ID**.
 
-**SUITE total**: 30 global directories (identical at every tier) + 60 × 10 PS-IDs = 30 + 600 = **630**.
+**SUITE total**: 30 global directories (identical at every tier) + 60 * 7 PS-IDs = 30 + 420 = **450**.
 
 ## Admin CA Bundle — issuing-ca.pem
 

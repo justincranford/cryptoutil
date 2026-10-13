@@ -11,7 +11,7 @@ import (
 
 // ServicePortConfig defines the expected port configuration for a service.
 type ServicePortConfig struct {
-	Name          string   // Service name (e.g., "sm-kms", "sm-kms").
+	Name          string   // Service name (e.g., "sm-kms", "identity-authz").
 	PublicPorts   []uint16 // Expected public ports (can have multiple for SQLite/PG variants).
 	AdminPort     uint16   // Expected admin port (always 9090).
 	LegacyPorts   []uint16 // Old ports that should be flagged as violations.
@@ -46,7 +46,7 @@ const LineSeparatorLength = 60
 
 // ServicePorts defines the canonical port assignments for all cryptoutil services.
 // This is the single source of truth for port assignments.
-// Canonical order: sm-kms, pki-ca, identity-authz, identity-idp, identity-rs, identity-rp, identity-spa, skeleton-template.
+// Canonical order: sm-kms, identity-authz, identity-idp, identity-rs, identity-rp, identity-spa, skeleton-template.
 var ServicePorts = map[string]ServicePortConfig{
 	cryptoutilSharedMagic.OTLPServiceSMKMS: {
 		Name:          cryptoutilSharedMagic.OTLPServiceSMKMS,
@@ -54,13 +54,6 @@ var ServicePorts = map[string]ServicePortConfig{
 		AdminPort:     StandardAdminPort,
 		LegacyPorts:   []uint16{8081, 8082},
 		MagicConstant: "KMSServicePort",
-	},
-	cryptoutilSharedMagic.OTLPServicePKICA: {
-		Name:          cryptoutilSharedMagic.OTLPServicePKICA,
-		PublicPorts:   []uint16{cryptoutilSharedMagic.PKICAServicePort},
-		AdminPort:     StandardAdminPort,
-		LegacyPorts:   []uint16{8050, 8060, 8092, 8443, 9443},
-		MagicConstant: "PKICAServicePort",
 	},
 	cryptoutilSharedMagic.OTLPServiceIdentityAuthz: {
 		Name:          cryptoutilSharedMagic.OTLPServiceIdentityAuthz,

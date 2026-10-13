@@ -175,13 +175,6 @@ func TestValidateUsernameForRealm_BoundaryLengths(t *testing.T) {
 func TestHandleRegisterUser_BoundaryValues(t *testing.T) {
 	t.Parallel()
 
-	repo := newMockUserRepository()
-	factory := func() UserModel { return &BasicUser{} }
-	svc := NewUserService(repo, factory)
-
-	app := fiber.New()
-	app.Post(cryptoutilSharedMagic.PathRegistration, svc.HandleRegisterUser())
-
 	tests := []struct {
 		name       string
 		username   string
@@ -211,6 +204,12 @@ func TestHandleRegisterUser_BoundaryValues(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
+
+			repo := newMockUserRepository()
+			factory := func() UserModel { return &BasicUser{} }
+			svc := NewUserService(repo, factory)
+			app := fiber.New()
+			app.Post(cryptoutilSharedMagic.PathRegistration, svc.HandleRegisterUser())
 
 			bodyBytes, err := json.Marshal(map[string]string{
 				"username": tt.username,

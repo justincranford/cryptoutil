@@ -25,6 +25,11 @@ import (
 	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 )
 
+const (
+	testOTLPService      = "test-service"
+	testOTLPEndpointHTTP = "http://localhost:4318"
+)
+
 // TestPublicServerBase_StartContextCancellation tests Start when context is canceled before server runs.
 // Target: public_server_base.go:151-156 (context cancellation error path).
 func TestPublicServerBase_StartContextCancellation(t *testing.T) {
@@ -132,7 +137,7 @@ func TestNewServiceFramework_TelemetryInitError(t *testing.T) {
 	ctx := context.Background()
 
 	config := &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{
-		OTLPService: "test-service",
+		OTLPService: testOTLPService,
 		LogLevel:    cryptoutilSharedMagic.DefaultLogLevelInfo,
 	}
 
@@ -168,9 +173,9 @@ func TestNewServiceFramework_JWKGenInitError(t *testing.T) {
 	ctx := context.Background()
 
 	config := &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{
-		OTLPService:  "test-service",
+		OTLPService:  testOTLPService,
 		LogLevel:     cryptoutilSharedMagic.DefaultLogLevelInfo,
-		OTLPEndpoint: "http://localhost:4318",
+		OTLPEndpoint: testOTLPEndpointHTTP,
 	}
 
 	dbUUID, err := googleUuid.NewV7()
@@ -209,9 +214,9 @@ func TestNewServiceFramework_OptionError(t *testing.T) {
 
 	// Provide minimal valid config so telemetry initialization passes.
 	config := &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{
-		OTLPService:  "test-service",
+		OTLPService:  testOTLPService,
 		LogLevel:     cryptoutilSharedMagic.DefaultLogLevelInfo,
-		OTLPEndpoint: "http://localhost:4318", // Valid OTLP HTTP endpoint.
+		OTLPEndpoint: testOTLPEndpointHTTP, // Valid OTLP HTTP endpoint.
 	}
 
 	// Create unique in-memory database per test (using modernc.org/sqlite).

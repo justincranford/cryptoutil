@@ -5,6 +5,7 @@
 package builder
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"encoding/base64"
 	"fmt"
 	"html/template"
@@ -79,8 +80,8 @@ func RegisterSwaggerUI(app *fiber.App, cfg *SwaggerUIConfig) error {
 	csrfTokenEndpoint := cfg.BrowserAPIContextPath + "/csrf-token"
 	app.Get(csrfTokenEndpoint, func(c *fiber.Ctx) error {
 		return c.JSON(fiber.Map{
-			"message":         "CSRF token set in cookie",
-			"csrf_token_name": cfg.CSRFTokenName,
+			cryptoutilSharedMagic.StringMessage: "CSRF token set in cookie",
+			"csrf_token_name":                   cfg.CSRFTokenName,
 		})
 	})
 

@@ -273,7 +273,7 @@ func TestChooseComparison_ExactMatch(t *testing.T) {
 func TestChooseComparison_PKICASuperset(t *testing.T) {
 	t.Parallel()
 
-	diff := chooseComparison("deployments/pki-ca/compose.yml", "a\nb", "a\nextra\nb")
+	diff := chooseComparison("deployments/sm-kms/compose.yml", "a\nb", "a\nextra\nb")
 	require.Empty(t, diff)
 }
 
@@ -281,7 +281,7 @@ func TestChooseComparison_PKICAConfigPrefix(t *testing.T) {
 	t.Parallel()
 
 	diff := chooseComparison(
-		"deployments/pki-ca/config/pki-ca-app-framework-common.yml",
+		"deployments/sm-kms/config/sm-kms-app-framework-common.yml",
 		"a\nb",
 		"a\nb\nextra",
 	)

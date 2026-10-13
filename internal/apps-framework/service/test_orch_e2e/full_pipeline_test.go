@@ -132,7 +132,7 @@ func TestFullPipeline_GrafanaOTLP_MTLSRejected(t *testing.T) {
 	}
 
 	// Accept explicit TLS failures and EOF endpoint close behavior.
-	require.True(t, strings.Contains(err.Error(), "tls") || strings.Contains(err.Error(), "EOF"),
+	require.True(t, strings.Contains(err.Error(), cryptoutilSharedMagic.TLSName) || strings.Contains(err.Error(), "EOF"),
 		"error from no-cert Grafana OTLP gRPC dial must be a TLS handshake failure")
 }
 
@@ -279,7 +279,7 @@ func TestFullPipeline_AppPublicHTTPS_MTLSRejected(t *testing.T) {
 			}
 
 			// Verify it's a TLS/certificate error, not a generic network failure.
-			require.True(t, strings.Contains(err.Error(), "tls") || strings.Contains(err.Error(), "certificate"),
+			require.True(t, strings.Contains(err.Error(), cryptoutilSharedMagic.TLSName) || strings.Contains(err.Error(), "certificate"),
 				"error from no-cert dial to app %q must be a TLS handshake failure", tc.name)
 		})
 	}

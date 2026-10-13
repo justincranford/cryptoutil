@@ -7,7 +7,6 @@ import (
 	"io"
 	http "net/http"
 	"testing"
-	"time"
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
@@ -54,7 +53,7 @@ func TestIDPServer_PublicHealth(t *testing.T) {
 	requireTestSetup(t)
 
 	client := &http.Client{
-		Timeout: httpTimeout,
+		Timeout: cryptoutilSharedMagic.TestTimeout,
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
 				MinVersion: tls.VersionTLS13,
@@ -78,7 +77,7 @@ func TestIDPServer_PublicHealth(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			url := testBaseURL + tt.path
 
-			ctx, cancel := context.WithTimeout(context.Background(), httpTimeout)
+			ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.TestTimeout)
 			defer cancel()
 
 			req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
@@ -112,4 +111,3 @@ func TestIDPServer_AccessorMethods(t *testing.T) {
 }
 
 // HTTP timeout for test requests.
-const httpTimeout = 5 * time.Second

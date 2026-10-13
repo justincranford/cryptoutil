@@ -134,13 +134,13 @@ func TestBuildSuiteIncludeList(t *testing.T) {
 
 	products := []cryptoutilRegistry.Product{
 		{ID: cryptoutilSharedMagic.SMProductName},
-		{ID: cryptoutilSharedMagic.PKIProductName},
+		{ID: cryptoutilSharedMagic.IdentityProductName},
 	}
 
 	list := buildSuiteIncludeList(products)
 	require.Contains(t, list, "include:")
 	require.Contains(t, list, "- path: ../"+cryptoutilSharedMagic.SMProductName+"/compose.yml")
-	require.Contains(t, list, "- path: ../"+cryptoutilSharedMagic.PKIProductName+"/compose.yml")
+	require.Contains(t, list, "- path: ../"+cryptoutilSharedMagic.IdentityProductName+"/compose.yml")
 }
 
 func TestBuildSuiteServiceOverrides(t *testing.T) {
@@ -167,10 +167,10 @@ func TestBuildProductPSIDListDisplay(t *testing.T) {
 			want:      "SM product (1 service: kms)",
 		},
 		{
-			name:      "pki single service",
-			productID: cryptoutilSharedMagic.PKIProductName,
-			psIDs:     []string{cryptoutilSharedMagic.OTLPServicePKICA},
-			want:      "PKI product (1 service: ca)",
+			name:      "identity single service",
+			productID: cryptoutilSharedMagic.IdentityProductName,
+			psIDs:     []string{cryptoutilSharedMagic.OTLPServiceIdentityAuthz},
+			want:      "IDENTITY product (1 service: authz)",
 		},
 		{
 			name:      cryptoutilSharedMagic.EMPTY,
@@ -208,8 +208,8 @@ func TestCheckTemplateCompliance_IntegrationWithProjectRoot(t *testing.T) {
 
 	expected := BuildExpectedFS(templates)
 	require.NotEmpty(t, expected)
-	// Should expand to many files (>260: deployment + config + secrets + *_usage.go per PS-ID).
-	require.Greater(t, len(expected), 260)
+	// Should expand to many files (>250: seven PS-ID deployments plus shared infrastructure and templates).
+	require.Greater(t, len(expected), 250)
 }
 
 // fakeDirEntry is a minimal fs.DirEntry implementation for seam-injection tests.

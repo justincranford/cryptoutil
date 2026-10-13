@@ -35,7 +35,7 @@ var (
 	testCtx               = context.Background()
 	testTelemetryService  *cryptoutilSharedTelemetry.TelemetryService
 
-	happyPathWorkers             = []uint32{1, 3, cryptoutilSharedMagic.JoseJADefaultMaxMaterials}
+	happyPathWorkers             = []uint32{1, cryptoutilSharedMagic.DefaultPoolConfigRSA2048.NumWorkers, cryptoutilSharedMagic.JoseJADefaultMaxMaterials}
 	happyPathSize                = []uint32{1, 4, cryptoutilSharedMagic.MaxErrorDisplay}
 	happyPathMaxLifetimeValues   = []uint64{1, cryptoutilSharedMagic.IMMaxUsernameLength, cryptoutilSharedMagic.MaxPoolLifetimeValues}
 	happyPathMaxLifetimeDuration = []time.Duration{cryptoutilSharedMagic.MaxPoolLifetimeDuration}

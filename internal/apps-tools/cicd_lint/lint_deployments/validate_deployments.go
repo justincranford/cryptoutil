@@ -15,7 +15,7 @@ func ValidateAllDeployments(deploymentsRoot string) ([]ValidationResult, error) 
 	var results []ValidationResult
 	// Service deployments (PRODUCT-SERVICE pattern)
 	serviceNames := []string{
-		cryptoutilSharedMagic.OTLPServiceSMKMS, cryptoutilSharedMagic.OTLPServicePKICA,
+		cryptoutilSharedMagic.OTLPServiceSMKMS,
 		cryptoutilSharedMagic.OTLPServiceIdentityAuthz, cryptoutilSharedMagic.OTLPServiceIdentityIDP, cryptoutilSharedMagic.OTLPServiceIdentityRS, cryptoutilSharedMagic.OTLPServiceIdentityRP, cryptoutilSharedMagic.OTLPServiceIdentitySPA,
 		cryptoutilSharedMagic.OTLPServiceSkeletonTemplate,
 	}
@@ -29,7 +29,7 @@ func ValidateAllDeployments(deploymentsRoot string) ([]ValidationResult, error) 
 	}
 
 	// PRODUCT-level deployments
-	productNames := []string{cryptoutilSharedMagic.SMProductName, cryptoutilSharedMagic.PKIProductName, cryptoutilSharedMagic.IdentityProductName, cryptoutilSharedMagic.SkeletonProductName}
+	productNames := []string{cryptoutilSharedMagic.SMProductName, cryptoutilSharedMagic.IdentityProductName, cryptoutilSharedMagic.SkeletonProductName}
 	for _, product := range productNames {
 		productPath := filepath.Join(deploymentsRoot, product)
 		if _, err := os.Stat(productPath); err == nil {
@@ -158,9 +158,6 @@ func checkDelegationPattern(basePath string, deploymentName string, structType s
 		// Suite MUST include product-level compose files, NOT service-level
 		invalidPatterns := []string{
 			"../sm-kms/compose.yml",
-			"../sm-kms/compose.yml",
-			"../pki-ca/compose.yml",
-			"../sm-kms/compose.yml",
 			"../identity-authz/compose.yml",
 			"../identity-idp/compose.yml",
 			"../identity-rp/compose.yml",
@@ -170,7 +167,6 @@ func checkDelegationPattern(basePath string, deploymentName string, structType s
 		}
 		validPatterns := []string{
 			"../sm/compose.yml",
-			"../pki/compose.yml",
 			"../identity/compose.yml",
 			"../skeleton/compose.yml",
 		}
@@ -196,18 +192,13 @@ func checkDelegationPattern(basePath string, deploymentName string, structType s
 
 		if foundProducts < cryptoutilSharedMagic.SuiteProductCount {
 			result.Warnings = append(result.Warnings,
-				"Suite should include all 4 products (sm, pki, identity, skeleton) via PRODUCT-level compose")
+				"Suite should include all 3 products (sm, identity, skeleton) via PRODUCT-level compose")
 		}
 	case DeploymentTypeProduct:
 		// Product MUST include service-level compose files
 		smProduct := "sm"
 		if deploymentName == smProduct && !strings.Contains(text, "../sm-kms/compose.yml") {
 			result.Errors = append(result.Errors, "Product sm/compose.yml MUST include ../sm-kms/compose.yml")
-			result.Valid = false
-		}
-
-		if deploymentName == cryptoutilSharedMagic.PKIProductName && !strings.Contains(text, "../pki-ca/compose.yml") {
-			result.Errors = append(result.Errors, "Product pki/compose.yml MUST include ../pki-ca/compose.yml")
 			result.Valid = false
 		}
 
@@ -234,16 +225,10 @@ func checkDelegationPattern(basePath string, deploymentName string, structType s
 // checkDatabaseIsolation validates that each service has unique database credentials.
 // CRITICAL: ALL services MUST have isolated database storage (unique db/username/password).
 func checkDatabaseIsolation(deploymentsList []string, deploymentsRoot string) []string {
-	serviceNames := []string{
-		cryptoutilSharedMagic.OTLPServiceSMKMS, cryptoutilSharedMagic.OTLPServicePKICA,
-		cryptoutilSharedMagic.OTLPServiceIdentityAuthz, cryptoutilSharedMagic.OTLPServiceIdentityIDP, cryptoutilSharedMagic.OTLPServiceIdentityRS, cryptoutilSharedMagic.OTLPServiceIdentityRP, cryptoutilSharedMagic.OTLPServiceIdentitySPA,
-		cryptoutilSharedMagic.OTLPServiceSkeletonTemplate,
-	}
-
 	databaseNames := make(map[string][]string)
 	usernames := make(map[string][]string)
 
-	for _, svc := range serviceNames {
+	for _, svc := range deploymentsList {
 		dbPath := filepath.Join(deploymentsRoot, svc, "secrets", "postgres_database.secret")
 		userPath := filepath.Join(deploymentsRoot, svc, "secrets", "postgres_username.secret")
 

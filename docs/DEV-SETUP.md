@@ -754,17 +754,8 @@ Run a service with live reload — air rebuilds and restarts on every `.go` file
 # Syntax: SERVICE=<service-name> air
 # SERVICE must match a directory under cmd/
 
-# SM Instant Messenger
+# SM Key Management Service (key management, messaging, and PKI)
 SERVICE=sm-kms air
-
-# JOSE JWK Authority
-SERVICE=sm-kms air
-
-# SM Key Management Service
-SERVICE=sm-kms air
-
-# PKI Certificate Authority
-SERVICE=pki-ca air
 
 # Identity services
 SERVICE=identity-authz air

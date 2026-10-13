@@ -147,9 +147,9 @@ func setupRotationServiceTestHelper(t *testing.T) (*cryptoutilSharedCryptoJose.J
 	require.NoError(t, err)
 	t.Cleanup(func() { telemetryService.Shutdown() })
 
-	jwkGenService, err := cryptoutilSharedCryptoJose.NewJWKGenService(ctx, telemetryService, false)
+	jwkGenService, err := newBarrierTestJWKGenService(ctx, telemetryService)
 	require.NoError(t, err)
-	t.Cleanup(func() { jwkGenService.Shutdown() })
+	t.Cleanup(func() { shutdownBarrierTestJWKGenService(jwkGenService) })
 
 	_, unsealJWK, _, _, _, err := jwkGenService.GenerateJWEJWK(&cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
 	require.NoError(t, err)

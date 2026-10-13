@@ -102,3 +102,107 @@ const (
 	// server subject: 1 for the end-entity certificate + 1 for the issuing CA certificate.
 	TLSServerKeyPairsNeeded = 2
 )
+
+// PKI and ASN.1 protocol constants.
+const (
+	// DaysPerYear is the number of days in the standard non-leap certificate year.
+	DaysPerYear = 365
+	// Days7 is a seven-day duration.
+	Days7 = 7 * Days1
+	// ECDSAP256KeySizeBits is the bit size of the NIST P-256 curve.
+	ECDSAP256KeySizeBits = 256
+	// OIDArcNIST is the second arc of NIST object identifiers.
+	OIDArcNIST = 16
+	// OIDArcNISTHashAlgorithm is the hash-algorithm arc under NIST algorithm identifiers.
+	OIDArcNISTHashAlgorithm = 3
+	// PKIMaxTrackedEnrollments bounds the number of enrollment requests retained in memory.
+	PKIMaxTrackedEnrollments = 1000
+	// PKISerialNumberRandomBytes is the number of random bytes used for TSA serial numbers.
+	PKISerialNumberRandomBytes = 8
+	// PKITestOIDArc14 is a fixture arc value in PKI ASN.1 identifier tests.
+	PKITestOIDArc14 = 14
+	// PKITestOIDArc3 is a fixture arc value in PKI ASN.1 identifier tests.
+	PKITestOIDArc3 = OIDArcNISTHashAlgorithm
+	// PKIProfileIDTLSServer is the default TLS server certificate profile identifier.
+	PKIProfileIDTLSServer = "tls-server"
+	// PKIProfileIDTLSClient is the default TLS client certificate profile identifier.
+	PKIProfileIDTLSClient = "tls-client"
+	// TLSName is the canonical lowercase text label for Transport Layer Security.
+	TLSName = "tls"
+
+	// PKIProfileCategoryTLS is the category for TLS certificate profiles.
+	PKIProfileCategoryTLS = TLSName
+	// TLSTestCACertValidity15Years is a 15-year CA certificate test duration in days.
+	TLSTestCACertValidity15Years = 15
+)
+
+// RFC5280 certificate revocation reason codes.
+const (
+	RFC5280RevocationReasonUnspecified          = 0
+	RFC5280RevocationReasonKeyCompromise        = 1
+	RFC5280RevocationReasonCACompromise         = 2
+	RFC5280RevocationReasonAffiliationChanged   = 3
+	RFC5280RevocationReasonSuperseded           = 4
+	RFC5280RevocationReasonCessationOfOperation = 5
+	RFC5280RevocationReasonCertificateHold      = 6
+	RFC5280RevocationReasonRemoveFromCRL        = 8
+	RFC5280RevocationReasonPrivilegeWithdrawn   = 9
+	RFC5280RevocationReasonAACompromise         = 10
+)
+
+// RFC5280 certificate revocation reason names.
+const (
+	RFC5280RevocationReasonNameUnspecified          = "unspecified"
+	RFC5280RevocationReasonNameKeyCompromise        = "keyCompromise"
+	RFC5280RevocationReasonNameCACompromise         = "caCompromise"
+	RFC5280RevocationReasonNameAffiliationChanged   = "affiliationChanged"
+	RFC5280RevocationReasonNameSuperseded           = "superseded"
+	RFC5280RevocationReasonNameCessationOfOperation = "cessationOfOperation"
+	RFC5280RevocationReasonNameCertificateHold      = "certificateHold"
+	RFC5280RevocationReasonNameRemoveFromCRL        = "removeFromCRL"
+	RFC5280RevocationReasonNamePrivilegeWithdrawn   = "privilegeWithdrawn"
+	RFC5280RevocationReasonNameAACompromise         = "aaCompromise"
+)
+
+// RFC3161 timestamp status codes.
+const (
+	RFC3161StatusGranted                = 0
+	RFC3161StatusGrantedWithMods        = 1
+	RFC3161StatusRejection              = 2
+	RFC3161StatusWaiting                = 3
+	RFC3161StatusRevocationWarning      = 4
+	RFC3161StatusRevocationNotification = 5
+)
+
+// RFC3161 timestamp status names.
+const (
+	RFC3161StatusNameGranted                = "granted"
+	RFC3161StatusNameGrantedWithMods        = "grantedWithMods"
+	RFC3161StatusNameRejection              = "rejection"
+	RFC3161StatusNameRevocationWarning      = "revocationWarning"
+	RFC3161StatusNameRevocationNotification = "revocationNotification"
+)
+
+// RFC3161 timestamp failure codes.
+const (
+	RFC3161FailureBadAlg              = 0
+	RFC3161FailureBadRequest          = 2
+	RFC3161FailureBadDataFormat       = 5
+	RFC3161FailureTimeNotAvailable    = 14
+	RFC3161FailureUnacceptedPolicy    = 15
+	RFC3161FailureUnacceptedExtension = 16
+	RFC3161FailureAddInfoNotAvailable = 17
+	RFC3161FailureSystemFailure       = 25
+)
+
+// RFC3161 timestamp failure names.
+const (
+	RFC3161FailureNameBadAlg              = "badAlg"
+	RFC3161FailureNameBadRequest          = "badRequest"
+	RFC3161FailureNameBadDataFormat       = "badDataFormat"
+	RFC3161FailureNameTimeNotAvailable    = "timeNotAvailable"
+	RFC3161FailureNameUnacceptedPolicy    = "unacceptedPolicy"
+	RFC3161FailureNameUnacceptedExtension = "unacceptedExtension"
+	RFC3161FailureNameAddInfoNotAvailable = "addInfoNotAvailable"
+	RFC3161FailureNameSystemFailure       = "systemFailure"
+)

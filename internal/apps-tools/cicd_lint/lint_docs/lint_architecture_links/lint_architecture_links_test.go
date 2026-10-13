@@ -9,12 +9,13 @@ import (
 	"testing"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps-tools/cicd_lint/common"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/stretchr/testify/require"
 )
 
 const (
-	testArchPath            = "docs/ENG-HANDBOOK.md"
+	testArchPath            = cryptoutilSharedMagic.CICDDocsHandbookPath
 	testInstructionFileName = "01-01.test.instructions.md"
 	testAgentFileName       = "my-agent.agent.md"
 

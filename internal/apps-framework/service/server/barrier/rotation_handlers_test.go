@@ -187,9 +187,9 @@ func setupRotationTestEnvironment(t *testing.T) (*fiber.App, *RotationService, *
 	t.Cleanup(func() { telemetryService.Shutdown() })
 
 	// Initialize JWK gen service
-	jwkGenService, err := cryptoutilSharedCryptoJose.NewJWKGenService(ctx, telemetryService, false)
+	jwkGenService, err := newBarrierTestJWKGenService(ctx, telemetryService)
 	require.NoError(t, err)
-	t.Cleanup(func() { jwkGenService.Shutdown() })
+	t.Cleanup(func() { shutdownBarrierTestJWKGenService(jwkGenService) })
 
 	// Generate unseal JWK for testing
 	_, unsealJWK, _, _, _, err := jwkGenService.GenerateJWEJWK(&cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
@@ -417,7 +417,7 @@ func TestRotateKey_MissingReason(t *testing.T) {
 			err = json.Unmarshal(respBody, &errResp)
 			require.NoError(t, err)
 			require.Equal(t, rotationErrorCodeValidation, errResp[cryptoutilSharedMagic.StringError])
-			require.Contains(t, errResp["message"], "at least 10 characters")
+			require.Contains(t, errResp[cryptoutilSharedMagic.StringMessage], "at least 10 characters")
 		})
 	}
 }
@@ -456,7 +456,7 @@ func TestRotateKey_ShortReason(t *testing.T) {
 			err = json.Unmarshal(respBody, &errResp)
 			require.NoError(t, err)
 			require.Equal(t, rotationErrorCodeValidation, errResp[cryptoutilSharedMagic.StringError])
-			require.Contains(t, errResp["message"], "at least 10 characters")
+			require.Contains(t, errResp[cryptoutilSharedMagic.StringMessage], "at least 10 characters")
 		})
 	}
 }

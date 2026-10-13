@@ -23,8 +23,8 @@ func TestIntegrationFullPipeline(t *testing.T) {
 
 	// Create a realistic deployment structure.
 	// Note: mapDeploymentToConfig maps 1:1 with flat configs/{PS-ID}/ layout.
-	deployName := cryptoutilSharedMagic.OTLPServicePKICA
-	configName := cryptoutilSharedMagic.OTLPServicePKICA
+	deployName := cryptoutilSharedMagic.OTLPServiceIdentityAuthz
+	configName := cryptoutilSharedMagic.OTLPServiceIdentityAuthz
 	svcDeployDir := filepath.Join(deploymentsDir, deployName)
 	svcConfigDir := filepath.Join(configsDir, configName)
 

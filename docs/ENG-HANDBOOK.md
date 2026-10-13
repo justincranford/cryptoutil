@@ -253,19 +253,18 @@ See [Section 11.1 Maximum Quality Strategy](#111-maximum-quality-strategy---mand
 | Parameter | Meaning | Count | Values |
 |-----------|---------|-------|--------|
 | `{SUITE}` | Suite name | 1 | `cryptoutil` |
-| `{PRODUCT}` | Product name | 4 | `identity`, `pki`, `skeleton`, `sm` |
-| `{PS-ID}` | Product-Service Identifier | 8 | `identity-authz`, `identity-idp`, `identity-rp`, `identity-rs`, `identity-spa`, `sm-kms`, `pki-ca`, `skeleton-template` |
-| `{PS_ID}` | Underscore variant (SQL, secrets) | 8 | Same as `{PS-ID}` with `_` replacing `-` |
+| `{PRODUCT}` | Product name | 3 | `identity`, `skeleton`, `sm` |
+| `{PS-ID}` | Product-Service Identifier | 7 | `identity-authz`, `identity-idp`, `identity-rp`, `identity-rs`, `identity-spa`, `sm-kms`, `skeleton-template` |
+| `{PS_ID}` | Underscore variant (SQL, secrets) | 7 | Same as `{PS-ID}` with `_` replacing `-` |
 | `{INFRA-TOOL}` | Infrastructure tooling | 2 | `cicd-lint`, `cicd-workflow` |
 
-**1 Suite → 4 Products → 8 Services**:
+**1 Suite -> 3 Products -> 7 Services**:
 
 ```
 cryptoutil (suite)
-├── PKI           → pki-ca
-├── SM            → sm-kms
-├── Identity      → identity-authz, identity-idp, identity-rs, identity-rp, identity-spa
-└── Skeleton      → skeleton-template
+|-- SM -> sm-kms (including the PKI domain)
+|-- Identity -> identity-authz, identity-idp, identity-rs, identity-rp, identity-spa
+`-- Skeleton -> skeleton-template
 ```
 
 **Deployment Tiers** (independent, stackable — see [Section 3.4.1](#341-port-design-principles)):
@@ -274,13 +273,13 @@ cryptoutil (suite)
 |------|-------|------------------|---------------------|
 | SERVICE | Single service | +0 (8XXX) | `deployments/{PS-ID}/` |
 | PRODUCT | All services in one product | +10000 (18XXX) | `deployments/{PRODUCT}/` |
-| SUITE | All 8 services across all 4 products | +20000 (28XXX) | `deployments/{SUITE}-suite/` |
+| SUITE | All 7 services across all 3 products | +20000 (28XXX) | `deployments/{SUITE}-suite/` |
 
 **Service Independence**: Each `{PS-ID}` service is a standalone binary with its own HTTPS listeners (public :8080, admin :9090), database (PostgreSQL or SQLite), config (`configs/{PS-ID}/`), Docker Compose file (`deployments/{PS-ID}/compose.yml`), and deployment secrets (`deployments/{PS-ID}/secrets/`). Services communicate via mTLS or OAuth 2.1 client credentials (see [Section 3.3](#33-product-service-relationships)).
 
 **Product & Suite Convenience**: Each `{PRODUCT}` product and `{SUITE}` suite are also available as all-in-one binaries for optional, alternate packaging for ease of distribution. They also come with convenience `{PRODUCT}` product and `{SUITE}` suite Docker Compose files for ease of e2e testing.
 
-**Migration Priority** (to service framework — see [Section 5.1.3](#513-mandatory-usage)): sm-kms → pki-ca → identity services. SM services (sm-kms) migrate first; pki-ca second; identity last.
+**Migration Priority** (to service framework - see [Section 5.1.3](#513-mandatory-usage)): sm-kms -> identity services. PKI is a domain capability hosted by sm-kms.
 
 **Federation**: Services fail over through FEDERATED → DATABASE → FILE realms with no retry logic or circuit breakers. FILE realms (local, always available) are the last-resort failsafe.
 
@@ -469,7 +468,7 @@ Here is current git status:
 | `migration-create` | data | Create numbered golang-migrate SQL files (template 1001-1999, domain 2001+) | [SKILL.md](.github/skills/migration-create/SKILL.md) |
 | `new-service` | architecture | Guide service creation from skeleton-template: copy, rename, register, migrate, test | [SKILL.md](.github/skills/new-service/SKILL.md) |
 | `propagation-check` | docs | Detect @to-appendix/@from-eng-handbook drift, generate corrected @from-eng-handbook blocks | [SKILL.md](.github/skills/propagation-check/SKILL.md) |
-| `psid-template-sync` | testing | Keep stable PS-ID template-instantiated files synchronized across all 8 services via exact template-drift enforcement | [SKILL.md](.github/skills/psid-template-sync/SKILL.md) |
+| `psid-template-sync` | testing | Keep stable PS-ID template-instantiated files synchronized across all 7 services via exact template-drift enforcement | [SKILL.md](.github/skills/psid-template-sync/SKILL.md) |
 | `fitness-function-gen` | tooling | Create new architecture fitness function (linter) for lint-fitness framework | [SKILL.md](.github/skills/fitness-function-gen/SKILL.md) |
 | `copilot-customization` | tooling | Create, update, or delete repo-local agents, instructions, or skills and any required Claude counterpart, including Copilot agent tool allowlist maintenance | [SKILL.md](.github/skills/copilot-customization/SKILL.md) |
 | `sync-copilot-claude` | tooling | Audit and sync Copilot skills/agents with Claude skills/agents | [SKILL.md](.github/skills/sync-copilot-claude/SKILL.md) |
@@ -560,14 +559,14 @@ Use `/copilot-customization` for the end-to-end operational workflow (inventory,
 
 #### Service Framework Pattern
 
-- **Single Reusable Template**: All 8 services across 4 products inherit from `internal/apps-framework/`
+- **Single Reusable Template**: All 7 services across 3 products inherit from `internal/apps-framework/`
 - **Eliminates 48,000+ lines per service**: TLS setup, dual HTTPS servers, database, migrations, sessions, barrier
 - **Merged Migrations**: Template (1001-1999) + Domain (2001+) for golang-migrate validation
 - **Builder Pattern**: Fluent API with `NewServerBuilder(ctx, cfg).WithDomainMigrations(...).Build()`
 
 #### Microservices Architecture
 
-- **8 Services across 4 Products**: Independent deployment, scaling, and lifecycle
+- **7 Services across 3 Products**: Independent deployment, scaling, and lifecycle
 - **Dual HTTPS Endpoints**: Public (0.0.0.0:8080) for business APIs, Private (127.0.0.1:9090) for admin operations
 - **Service Discovery**: Config file → Docker Compose → Kubernetes DNS (no caching)
 - **Multi-Level Failover**: Services attempt credential validators in priority order (FEDERATED → DATABASE → FILE), with FILE realms as CRITICAL failsafe guaranteeing admin access
@@ -762,30 +761,23 @@ Copilot and AI agents have a tendency to partially fulfill requested work, accid
 
 ### 3.1 Product Overview
 
-**cryptoutil** comprises four independent products, each providing specialized cryptographic capabilities:
+**cryptoutil** comprises three independent products, each providing specialized capabilities:
 
-#### 3.1.1 Private Key Infrastructure (PKI)
-
-- **Service**: Certificate Authority (CA)
-- **Capabilities**: X.509 certificate lifecycle management, EST, SCEP, OCSP, CRL
-- **Use Cases**: TLS certificate issuance, client authentication, code signing
-- **Architecture**: 3-tier CA hierarchy (Offline Root → Online Root → Issuing CA)
-
-#### 3.1.2 Secrets Manager (SM)
+#### 3.1.1 Secrets Manager (SM)
 
 - **Service**: Key Management Service (KMS)
-- **Capabilities**: Elastic key management, hierarchical key barriers, encryption-at-rest, JWK/JWS/JWE/JWT cryptographic operations
-- **Use Cases**: Application secrets, database encryption keys, API key management, secure JSON cryptography
+- **Capabilities**: Elastic key management, hierarchical key barriers, encryption-at-rest, JWK/JWS/JWE/JWT cryptographic operations, and X.509 PKI (EST, SCEP, OCSP, CRL)
+- **Use Cases**: Application secrets, database encryption keys, API key management, secure JSON cryptography, and certificate lifecycle management
 - **Key Features**: Unseal-based bootstrapping, per-message key rotation, automatic key versioning
 
-#### 3.1.3 Identity
+#### 3.1.2 Identity
 
 - **Services**: Authorization Server (Authz), Identity Provider (IdP), Resource Server (RS), Relying Party (RP), Single Page Application (SPA)
 - **Capabilities**: OAuth 2.1, OIDC 1.0, WebAuthn, Passkeys, multi-factor authentication
 - **Use Cases**: User authentication, API authorization, SSO, passwordless login
 - **Key Features**: 41 authentication methods (13 headless + 28 browser), multi-tenancy
 
-#### 3.1.4 Skeleton
+#### 3.1.3 Skeleton
 
 - **Service**: Template
 - **Capabilities**: Best-practice stereotype product-service showcasing all service-framework patterns
@@ -808,8 +800,7 @@ Copilot and AI agents have a tendency to partially fulfill requested work, accid
 
 | Product | Service | Product-Service Identifier | Address (Container) [Admin] | Address (Container) [Public] | Address (Host) [Public] | Port Value (Container) [Admin] | Port Value (Container) [Public] | Port Range (Host) [Service Deployment] | Port Range (Host) [Product Deployment] | Port Range (Host) [Suite Deployment] | Description |
 |---------|---------|----------------------------|-----------------------------|-----------------------------|-------------------------|--------------------------------|---------------------------------|----------------------------------------|----------------------------------------|--------------------------------------|-------------|
-| **Secrets Manager (SM)** | **Key Management Service (KMS)** | **sm-kms** | 127.0.0.1 | 0.0.0.0 | 127.0.0.1 | 9090 | 8080 | 8000-8099 | 18000-18099 | 28000-28099 | Elastic key management, encryption-at-rest |
-| **Private Key Infrastructure (PKI)** | **Certificate Authority (CA)** | **pki-ca** | 127.0.0.1 | 0.0.0.0 | 127.0.0.1 | 9090 | 8080 | 8300-8399 | 18300-18399 | 28300-28399 | X.509 certificates, EST, SCEP, OCSP, CRL |
+| **Secrets Manager (SM)** | **Key Management Service (KMS)** | **sm-kms** | 127.0.0.1 | 0.0.0.0 | 127.0.0.1 | 9090 | 8080 | 8000-8099 | 18000-18099 | 28000-28099 | Elastic key management, encryption-at-rest, X.509 PKI, EST, OCSP, and CRL |
 | **Identity** | **Authorization Server (Authz)** | **identity-authz** | 127.0.0.1 | 0.0.0.0 | 127.0.0.1 | 9090 | 8080 | 8400-8499 | 18400-18499 | 28400-28499 | OAuth 2.1 authorization server |
 | **Identity** | **Identity Provider (IdP)** | **identity-idp** | 127.0.0.1 | 0.0.0.0 | 127.0.0.1 | 9090 | 8080 | 8500-8599 | 18500-18599 | 28500-28599 | OIDC 1.0 Identity Provider |
 | **Identity** | **Resource Server (RS)** | **identity-rs** | 127.0.0.1 | 0.0.0.0 | 127.0.0.1 | 9090 | 8080 | 8600-8699 | 18600-18699 | 28600-28699 | OAuth 2.1 Resource Server |
@@ -822,7 +813,6 @@ Copilot and AI agents have a tendency to partially fulfill requested work, accid
 | Product-Service Identifier | Status | Completion | Notes |
 |----------------------------|--------|------------|-------|
 | **sm-kms** | ✅ Complete | 100% | Reference implementation with dual servers, Docker Compose |
-| **pki-ca** | ⚠️ Partial | ~40% | Domain under active development; E2E tests pending |
 | **identity-authz** | ⚠️ Partial | ~50% | Domain under active development; partial E2E tests |
 | **identity-idp** | ⚠️ Partial | ~50% | Domain under active development; partial E2E tests |
 | **identity-rs** | ⚠️ Partial | ~20% | Domain implementation started; E2E tests pending |
@@ -838,7 +828,7 @@ Copilot and AI agents have a tendency to partially fulfill requested work, accid
 
 - Product-Service (Unique Identifier): sm-kms
 - Service Name: Key Management Service (KMS)
-- Service Description: Elastic key management, encryption-at-rest
+- Service Description: Elastic key management, encryption-at-rest, X.509 PKI, EST, OCSP, and CRL
 - Address (Container): Private Admin Compose+K8s APIs: 127.0.0.1 (container loopback only, IPv4 only)
 - Address (Container): Public Browser+Service APIs: 0.0.0.0 (all interfaces, IPv4 only)
 - Address (Host): Public Browser+Service APIs: 127.0.0.1 (IPv4 only), localhost
@@ -848,25 +838,16 @@ Copilot and AI agents have a tendency to partially fulfill requested work, accid
 - Port Range (Host): Public Browser+Service APIs (Isolated Product Deployment): 18000-18099
 - Port Range (Host): Public Browser+Service APIs (Suite Deployment): 28000-28099
 
-#### 3.2.2 Public Key Infrastructure (PKI) Product
+#### 3.2.2 PKI Domain Capability (within SM-KMS)
 
-##### 3.2.3.1 Certificate Authority (CA) Service
-
-- Product-Service (Unique Identifier): pki-ca
-- Service Name: Certificate Authority (CA)
-- Service Description: X.509 certificates, EST, SCEP, OCSP, CRL
-- Address (Container): Private Admin Compose+K8s APIs: 127.0.0.1 (container loopback only, IPv4 only)
-- Address (Container): Public Browser+Service APIs: 0.0.0.0 (all interfaces, IPv4 only)
-- Address (Host): Public Browser+Service APIs: 127.0.0.1 (IPv4 only), localhost
-- Port Value (Container): Private Admin Compose+K8s APIs: 9090
-- Port Value (Container): Public Browser+Service APIs: 8080
-- Port Range (Host): Public Browser+Service APIs (Isolated Service Deployment): 8300-8399
-- Port Range (Host): Public Browser+Service APIs (Isolated Product Deployment): 18300-18399
-- Port Range (Host): Public Browser+Service APIs (Suite Deployment): 28300-28399
+PKI is a domain capability of `sm-kms`, not an independent product or service. Its APIs are
+mounted beneath `/pki/` on both public API prefixes: `/service/api/v1/pki/` and
+`/browser/api/v1/pki/`. PKI uses the KMS listeners and deployment ports; certificate profiles
+are configured under `configs/sm-kms/profiles/`.
 
 #### 3.2.3 Identity Product
 
-##### 3.2.4.1 OAuth 2.1 Authorization Server (Authz) Service
+##### 3.2.3.1 OAuth 2.1 Authorization Server (Authz) Service
 
 **Architecture note**: `identity-authz` is an **authorization-only** service. It implements OAuth 2.1 token issuance, scope enforcement, and client management. It does **NOT** authenticate users directly — it delegates user authentication to `identity-idp` (the OIDC Identity Provider). In error messages, logs, and variable names ALWAYS use `authz` (never the ambiguous `auth`).
 
@@ -882,7 +863,7 @@ Copilot and AI agents have a tendency to partially fulfill requested work, accid
 - Port Range (Host): Public Browser+Service APIs (Isolated Product Deployment): 18400-18499
 - Port Range (Host): Public Browser+Service APIs (Suite Deployment): 28400-28499
 
-##### 3.2.4.2 OIDC 1.0 Identity Provider (IdP) Service
+##### 3.2.3.2 OIDC 1.0 Identity Provider (IdP) Service
 
 **Architecture note**: `identity-idp` is the **authentication and identification** service. It implements all 41 authentication methods (13 headless + 28 browser) and issues OIDC ID tokens. `identity-authz` calls `identity-idp` to authenticate users as part of the OAuth 2.1 authorization code flow. At the Identity **product** level, saying "authentication and authorization" is correct since the product provides both capabilities via separate services.
 
@@ -898,7 +879,7 @@ Copilot and AI agents have a tendency to partially fulfill requested work, accid
 - Port Range (Host): Public Browser+Service APIs (Isolated Product Deployment): 18500-18599
 - Port Range (Host): Public Browser+Service APIs (Suite Deployment): 28500-28599
 
-##### 3.2.4.3 OAuth 2.1 Resource Server (RS) Service
+##### 3.2.3.3 OAuth 2.1 Resource Server (RS) Service
 
 - Product-Service (Unique Identifier): identity-rs
 - Service Name: OAuth 2.1 Resource Server (RS)
@@ -912,7 +893,7 @@ Copilot and AI agents have a tendency to partially fulfill requested work, accid
 - Port Range (Host): Public Browser+Service APIs (Isolated Product Deployment): 18600-18699
 - Port Range (Host): Public Browser+Service APIs (Suite Deployment): 28600-28699
 
-##### 3.2.4.4 OAuth 2.1 Relying Party (RP) Service
+##### 3.2.3.4 OAuth 2.1 Relying Party (RP) Service
 
 - Product-Service (Unique Identifier): identity-rp
 - Service Name: OAuth 2.1 Relying Party (RP)
@@ -926,7 +907,7 @@ Copilot and AI agents have a tendency to partially fulfill requested work, accid
 - Port Range (Host): Public Browser+Service APIs (Isolated Product Deployment): 18700-18799
 - Port Range (Host): Public Browser+Service APIs (Suite Deployment): 28700-28799
 
-##### 3.2.4.5 OAuth 2.1 Single Page Application (SPA) Service
+##### 3.2.3.5 OAuth 2.1 Single Page Application (SPA) Service
 
 - Product-Service (Unique Identifier): identity-spa
 - Service Name: OAuth 2.1 Single Page Application (SPA)
@@ -942,7 +923,7 @@ Copilot and AI agents have a tendency to partially fulfill requested work, accid
 
 #### 3.2.4 Skeleton Product
 
-##### 3.2.5.1 Template Service
+##### 3.2.4.1 Template Service
 
 - **Product-Service Identifier**: skeleton-template
 - **Purpose**: Best-practice stereotype product-service template for service-framework usage reference
@@ -1004,19 +985,19 @@ Copilot and AI agents have a tendency to partially fulfill requested work, accid
 Three deployment scenarios each use distinct host port ranges to enable concurrent operation:
 
 1. **Service Deployment** (8XXX): Single isolated service
-   - Port Range: Service-specific base (e.g., 8300-8399 for pki-ca)
+   - Port Range: Service-specific base (e.g., 8000-8099 for sm-kms)
    - Use Case: Independent service development, testing, or production deployment
-   - Example: `pki-ca` alone uses host ports 8300-8399
+   - Example: `sm-kms` (including PKI APIs) uses host ports 8000-8099
 
 2. **Product Deployment** (18XXX): All services within a product
-   - Port Range: Service-specific base + 10000 offset (e.g., 18300-18399 for pki-ca)
+   - Port Range: Service-specific base + 10000 offset (e.g., 18000-18099 for sm-kms)
    - Use Case: Product-level integration testing, product-only deployments
-   - Example: All PKI services (currently only pki-ca) use host ports 18300-18399
+   - Example: `sm-kms` uses host ports 18000-18099
 
 3. **Suite Deployment** (28XXX): All services across all products
-   - Port Range: Service-specific base + 20000 offset (e.g., 28300-28399 for pki-ca)
+   - Port Range: Service-specific base + 20000 offset (e.g., 28000-28099 for sm-kms)
    - Use Case: Full system integration, E2E testing, complete production suite
-- Example: All 8 services across 4 products use host ports 28000-28999
+   - Example: All 7 services across 3 products use host ports 28000-28999
 
 **Port Allocation Benefits**:
 
@@ -1065,7 +1046,7 @@ PostgreSQL uses a **single shared leader/follower pair** (`deployments/shared-po
 - **Developer access**: `docker exec postgres-leader psql` (container-internal, no host port needed).
 - **Per-PS-ID isolation**: Each service connects with a unique username, password, and logical database name.
 - **Replication**: Follower replicates all logical databases from leader via init scripts.
-- **Init scripts**: `init-leader-databases.sql`, `init-follower-databases.sql`, `setup-logical-replication.sh`; create 24 logical databases in the leader (8 PS-IDs x 3 tiers) with corresponding 24 x 2 separate users (DDL vs DML), create 24 logical schemas in a single database in the follower (8 PS-IDs x 3 tiers) with 24 x 2 separate users (DDL vs DML).
+- **Init scripts**: `init-leader-databases.sql`, `init-follower-databases.sql`, `setup-logical-replication.sh`; create 21 logical databases in the leader (7 PS-IDs x 3 tiers) with corresponding 21 x 2 separate users (DDL vs DML), create 21 logical schemas across 11 grouped follower databases (1 suite + 3 products + 7 services) with 21 x 2 separate users (DDL vs DML).
 
 | Component | Container Address | Container Port | Host Port |
 |-----------|-------------------|----------------|-----------|
@@ -1247,32 +1228,27 @@ Based on golang-standards/project-layout:
 
 #### 4.4.3 CLI Entry Points
 
-**15 flat entries**: 1 suite + 4 products + 8 services + 2 infra tools.
+**13 flat entries**: 1 suite + 3 products + 7 services + 2 infra tools.
 
 ```
 cmd/
-│   # Suite (×1, {SUITE}=cryptoutil)
-├── cryptoutil/main.go                  # Suite CLI → internal/apps/cryptoutil/cryptoutil.go
-│
-│   # Products (×4, {PRODUCT}=identity|pki|skeleton|sm)
-├── identity/main.go                    # Product CLI → internal/apps/identity/identity.go
-├── pki/main.go                         # Product CLI → internal/apps/pki/pki.go
-├── skeleton/main.go                    # Product CLI → internal/apps/skeleton/skeleton.go
-├── sm/main.go                          # Product CLI → internal/apps/sm/sm.go
-│
-│   # Services (×8, {PS-ID}={PRODUCT}-{SERVICE})
-├── identity-authz/main.go             # Service CLI → internal/apps/identity-authz/identity-authz.go
-├── identity-idp/main.go               # Service CLI → internal/apps/identity-idp/identity-idp.go
-├── identity-rp/main.go                # Service CLI → internal/apps/identity-rp/identity-rp.go
-├── identity-rs/main.go                # Service CLI → internal/apps/identity-rs/identity-rs.go
-├── identity-spa/main.go               # Service CLI → internal/apps/identity-spa/identity-spa.go
-├── pki-ca/main.go                      # Service CLI → internal/apps/pki-ca/pki-ca.go
-├── skeleton-template/main.go           # Service CLI → internal/apps/skeleton-template/skeleton-template.go
-├── sm-kms/main.go                       # Service CLI → internal/apps/sm-kms/sm-kms.go
-│
-│   # Infra tools (×2, {INFRA-TOOL}=cicd-lint|cicd-workflow)
-├── cicd-lint/main.go                   # CICD lint CLI → internal/apps-tools/cicd_lint/cicd.go
-└── cicd-workflow/main.go               # Workflow CLI → internal/apps-tools/cicd_workflow/workflow.go
+  # Suite
+  cryptoutil/main.go
+  # Products (3): identity, skeleton, sm
+  identity/main.go
+  skeleton/main.go
+  sm/main.go
+  # Services (7)
+  identity-authz/main.go
+  identity-idp/main.go
+  identity-rp/main.go
+  identity-rs/main.go
+  identity-spa/main.go
+  sm-kms/main.go
+  skeleton-template/main.go
+  # Infrastructure tools (2)
+  cicd-lint/main.go
+  cicd-workflow/main.go
 ```
 
 **Pattern**: Thin `main()` pattern for all cmd/ CLIs, with all logic in `internal/apps/` for maximum code reuse and testability.
@@ -1303,43 +1279,19 @@ product-level code (`{PRODUCT}.go`, shared packages) — NO service subdirectori
 
 ```
 internal/apps/
-│
-│   # Suite orchestration
-├── cryptoutil/
-│   └── cryptoutil.go                     # Suite CLI dispatch
-│
-│   # Product level (product.go + shared packages only; NO service subdirs)
-├── identity/
-│   ├── identity.go                       # Product CLI dispatch
-│   └── (shared: domain/, repository/, config/, apperr/, email/, issuer/, jobs/, mfa/, ratelimit/, rotation/)
-├── pki/
-│   └── pki.go
-├── skeleton/
-│   └── skeleton.go
-├── sm/
-│   └── sm.go
-│
-│   # Service level (flat PS-ID directories, ×8)
-├── identity-authz/
-│   └── identity-authz.go                 # Service entry point (seam pattern)
-├── identity-idp/
-│   └── identity-idp.go
-├── identity-rp/
-│   └── identity-rp.go
-├── identity-rs/
-│   └── identity-rs.go
-├── identity-spa/
-│   └── identity-spa.go
-├── sm-kms/
-│   └── sm-kms.go
-├── pki-ca/
-│   └── pki-ca.go
-├── skeleton-template/
-│   └── skeleton-template.go
-│
-│   # Framework & tools
-├── framework/                            # Service framework (shared by all services)
-└── tools/                                # Infrastructure tooling (cicd_lint, cicd_workflow)
+  cryptoutil/                 # Suite dispatch
+  identity/                   # Identity product/shared packages
+  skeleton/                   # Skeleton product dispatch
+  sm/                         # SM product dispatch
+  identity-authz/             # Product-service
+  identity-idp/
+  identity-rp/
+  identity-rs/
+  identity-spa/
+  sm-kms/                      # KMS and PKI domain
+  skeleton-template/
+  framework/                   # Shared service framework
+  tools/                       # CI/CD tooling
 ```
 
 **Concrete service subdirectories** (actual codebase, by PS-ID):
@@ -1351,11 +1303,8 @@ internal/apps/
 | `identity-rp` | `client/`, `e2e/`, `server/`, `unified/` |
 | `identity-rs` | `client/`, `e2e/`, `server/`, `unified/` |
 | `identity-spa` | `client/`, `e2e/`, `server/`, `unified/` |
-| `sm-kms` | `client/`, `e2e/`, `model/`, `repository/`, `server/`, `service/` |
-| `pki-ca` | `api/`, `bootstrap/`, `cli/`, `compliance/`, `config/`, `crypto/`, `domain/`, `domain-v2/`, `intermediate/`, `observability/`, `profile/`, `repository-v2/`, `security/`, `server/`, `service/`, `storage/` |
+| `sm-kms` | `client/`, `e2e/`, `integration/`, `model/`, `pki/`, `repository/`, `server/`, `service/`, `testing/` |
 | `skeleton-template` | `client/`, `domain/`, `e2e/`, `repository/`, `server/` |
-| `sm-kms` | `client/`, `e2e/`, `integration/`, `model/`, `repository/`, `server/`, `testing/` |
-| `sm-kms` | `client/`, `e2e/`, `server/` |
 
 **Identity shared packages** (at `internal/apps/identity/`, shared across all 5 identity services):
 
@@ -1388,9 +1337,9 @@ internal/shared/
 
 #### 4.4.6 Deployments
 
-**Structure**: Parameterized by `{PS-ID}` (service), `{PRODUCT}` (product), and `{SUITE}` (suite). All 8 services follow an identical pattern.
+**Structure**: Parameterized by `{PS-ID}` (service), `{PRODUCT}` (product), and `{SUITE}` (suite). All 7 services follow an identical pattern.
 
-##### Per-Service Deployment (`deployments/{PS-ID}/`) — ×10
+##### Per-Service Deployment (`deployments/{PS-ID}/`) ? x7
 
 ```
 deployments/{PS-ID}/
@@ -1405,7 +1354,7 @@ deployments/{PS-ID}/
 └── secrets/                       # 14 secret files (see table below)
 ```
 
-**All 8 PS-IDs**: `identity-authz`, `identity-idp`, `identity-rp`, `identity-rs`, `identity-spa`, `sm-kms`, `pki-ca`, `skeleton-template`.
+**All 7 PS-IDs**: `identity-authz`, `identity-idp`, `identity-rp`, `identity-rs`, `identity-spa`, `sm-kms`, `skeleton-template`.
 
 ##### Tier Differences (Product ×5 / Suite ×1)
 
@@ -1418,7 +1367,7 @@ deployments/{PS-ID}/
 | Browser/service creds | Real `.secret` files | `.secret.never` markers | `.secret.never` markers |
 | Value prefix | `{PS-ID}-` / `{PS_ID}_` | `{PRODUCT}-` / `{PRODUCT}_` | `{SUITE}-` / `{SUITE}_` |
 
-**All 4 products**: `identity`, `pki`, `skeleton`, `sm`.
+**All 3 products**: `identity`, `pki`, `skeleton`, `sm`.
 
 ##### Shared Infrastructure Deployments
 
@@ -1445,7 +1394,7 @@ All tiers (service, product, suite) use **identical `{purpose}.secret` filenames
 
 **Pending Work** (known gaps):
 
-- **Dockerfile scope is closed**: `deployments/{PRODUCT}/Dockerfile` and `deployments/{SUITE}/Dockerfile` are intentionally absent. The repository builds 8 PS-ID images from `deployments/{PS-ID}/Dockerfile`; PRODUCT and SUITE deployment domains federate those PS-ID images via compose overlays rather than introducing extra Dockerfiles.
+- **Dockerfile scope is closed**: `deployments/{PRODUCT}/Dockerfile` and `deployments/{SUITE}/Dockerfile` are intentionally absent. The repository builds 7 PS-ID images from `deployments/{PS-ID}/Dockerfile`; PRODUCT and SUITE deployment domains federate those PS-ID images via compose overlays rather than introducing extra Dockerfiles.
 - See `deployment-templates.md` Sections G-I for the compose-only PRODUCT/SUITE deployment model.
 
 #### 4.4.7 CLI Patterns
@@ -1479,7 +1428,7 @@ cryptoutil sm kms server --config=/etc/sm/kms.yml   # {SUITE} {PRODUCT} {SERVICE
 
 ### CLI Subcommand
 
-All CLIs for all 8 services MUST support these subcommands, with consistent behavior and config parsing and flag parsing.
+All CLIs for all 7 services MUST support these subcommands, with consistent behavior and config parsing and flag parsing.
 Consistency MUST be guaranteed by inheriting from service-framework, which will reuse `internal/apps-framework/service/<SUBCOMMAND>/` packages:
 
 | Subcommand | Description |
@@ -1489,7 +1438,7 @@ Consistency MUST be guaranteed by inheriting from service-framework, which will 
 | `livez` | CLI client for Private liveness endpoint API check |
 | `readyz` | CLI client for Private readiness endpoint API check |
 | `shutdown` | CLI client for Private graceful shutdown endpoint API trigger |
-| `client` | CLI client for Business Logic API interaction (n.b. domain-specific for each of the 8 services) |
+| `client` | CLI client for Business Logic API interaction (n.b. domain-specific for each of the 7 services) |
 | `init` | CLI client for Initialize static config, like TLS certificates |
 
 #### Framework Tier Routing
@@ -1554,7 +1503,7 @@ See [Section 9.10 CICD Command Architecture](#910-cicd-command-architecture) for
 #### 5.1.2 Framework Benefits
 
 - Eliminates 48,000+ lines of boilerplate per service
-- Consistent infrastructure across all 8 services
+- Consistent infrastructure across all 7 services
 - Proven patterns: TLS setup, middleware stacks, health checks, graceful shutdown
 - Parameterization: OpenAPI specs, handlers, middleware chains injected via constructor
 
@@ -1562,8 +1511,7 @@ See [Section 9.10 CICD Command Architecture](#910-cicd-command-architecture) for
 
 - ALL new services MUST use `internal/apps-framework/service/` (consistency, reduced duplication)
 - ALL existing services MUST be refactored to use `internal/apps-framework/service/` (iterative migration)
-- Migration priority: sm-kms → pki-ca → identity services
-  - sm-kms migrates first (SM product); pki-ca second; identity last
+- Migration priority: sm-kms (including migrated PKI) ? identity services
 
 ### 5.2 Service Builder Pattern
 
@@ -1966,7 +1914,7 @@ Unseal Key (Docker secrets, NEVER stored)
     └── Root Key (encrypted-at-rest with unseal key(s), rotated manually or automatically annually)
         └── Intermediate Key (encrypted-at-rest with root key, rotated manually or automatically quarterly)
             └── Content Key (encrypted-at-rest with intermediate key, rotated manually or automatically monthly)
-                └── Domain Data (encrypted-at-rest with content key) - Examples: SM-KMS cryptographic keys, PKI-CA private keys, Identity user credentials
+                └── Domain Data (encrypted-at-rest with content key) - Examples: SM-KMS cryptographic keys, PKI private keys, Identity user credentials
 ```
 
 Design Intent: Unseal secret(s) or unseal key(s) are loaded by service instances at startup. To decrypt and reuse existing, sealed root keys in a database, each service instance MUST use unseal credentials to unseal the root keys. This is design intent for barrier service.
@@ -2288,7 +2236,7 @@ The `pki-init` CLI generates the full `/certs` directory tree for each deploymen
 
 **CLI Interface**: `pki-init <PKI-INIT-DOMAIN> <TARGET-DIRECTORY>`
 
-- `<PKI-INIT-DOMAIN>` — one of 13 valid tier IDs: `cryptoutil` (suite), `sm`/`pki`/`identity`/`skeleton` (products), or any of the 8 PS-IDs.
+- `<PKI-INIT-DOMAIN>` ? one of 11 valid tier IDs: `cryptoutil` (suite), `sm`/`identity`/`skeleton` (products), or any of the 7 PS-IDs.
 - `<TARGET-DIRECTORY>` — root output directory (e.g., `/certs`). All files are written under `<TARGET-DIRECTORY>/<PKI-INIT-DOMAIN>/`.
 - **Idempotency**: if `<TARGET-DIRECTORY>/<PKI-INIT-DOMAIN>/` exists and is non-empty, `pki-init` refuses to generate and exits with an error.
 
@@ -2323,8 +2271,8 @@ The `pki-init` CLI generates the full `/certs` directory tree for each deploymen
 
 **Directory counts** (with 2 realms per PS-ID):
 - PS-ID scope: 90 directories
-- PRODUCT scope (sm = 2 PS-IDs): 150 directories (30 global shared + 60 per PS-ID × 2)
-- SUITE scope (8 PS-IDs): 510 directories (30 global shared + 60 per PS-ID × 8)
+- PRODUCT scope (sm = 1 PS-ID): 90 directories (30 global shared + 60 per PS-ID x 1)
+- SUITE scope (7 PS-IDs): 510 directories (30 global shared + 60 per PS-ID × 8)
 
 **Docker volume delivery**: certs are written to a named Docker volume `{ps-id}-certs` by the `pki-init` service, then mounted read-only (`/certs:ro`) by all other services in the compose. NEVER use bind mounts for certs. See [docs/deployment-templates.md](deployment-templates.md) rules CO-21/CO-22.
 
@@ -2435,7 +2383,7 @@ Once all clients present certificates, flip `client-policy` to `require-and-veri
 | Cat 7 leaf dirs | `4 instances` | 4 | One admin mTLS leaf per instance |
 | Total per PS-ID | `30 global + 60 PS-ID-specific` | 90 | Fixed count assuming 2 realms |
 | PRODUCT (1 PS-ID) | `30 + 60 × 1` | 90 | SM product: sm-kms |
-| SUITE (8 PS-IDs) | `30 + 60 × 8` | 510 | Full cryptoutil suite |
+| SUITE (7 PS-IDs) | `30 + 60 × 8` | 510 | Full cryptoutil suite |
 
 **PostgreSQL mTLS Certificate Ownership** (Category 10–14):
 
@@ -2481,7 +2429,7 @@ db.Where("tenant_id = ? AND user_id = ?", tenantID, userID).Find(&messages)
 4. Clear ownership boundaries and access control
 
 **Requirements** (enforced by linter):
-- **Unique Database Name**: Each of 8 services MUST have unique `postgres-database.secret`
+- **Unique Database Name**: Each of 7 services MUST have unique `postgres-database.secret`
   - Example: `identity_authz_database`, `identity_idp_database`, `sm_kms_database` (NOT shared `identity_database`)
 - **Unique Username**: Each service MUST have unique `postgres-username.secret`
   - Example: `identity_authz_database_user`, `identity_idp_database_user`, `sm_kms_database_user`
@@ -2537,7 +2485,7 @@ All factor realm types create or upgrade sessions. All session realm types use e
 
 **Supported Engines**: PostgreSQL and SQLite ONLY. No other database engines (Citus, CockroachDB, Redis, etc.) are supported or planned. This is a deliberate constraint to reduce complexity and ensure consistent cross-database testing.
 
-All 8 services MUST support using one of PostgreSQL or SQLite, specified via configuration at startup.
+all 7 services MUST support using one of PostgreSQL or SQLite, specified via configuration at startup.
 
 Typical usages for each database for different purposes (MANDATORY — see [Section 10.1](#101-testing-strategy-overview) for 3-Tier Database Strategy):
 - Unit tests, Fuzz tests, Benchmark tests, Mutation tests => SQLite in-memory (NEVER PostgreSQL)
@@ -2576,7 +2524,7 @@ cryptoutil ensures enterprise-grade data security through:
 - **Encryption at Rest/In Transit**: AES-GCM and TLS 1.3+ with full validation
 - **Zero-Trust Authorization**: No caching; re-evaluation per request
 
-Implemented via Barrier Service, Hash Service, PKI-CA, and audit logging.
+Implemented via Barrier Service, Hash Service, the KMS-hosted PKI domain, and audit logging.
 
 ---
 
@@ -2645,10 +2593,8 @@ All `openapi-gen_config*.yaml` files MUST include the full base initialisms list
 
 | Service | Domain Additions |
 |---------|----------------|
-| `sm-kms` | JWKS, OKP, URI |
-| `pki-ca` | CSR, CA, CRL, OCSP, URI, SAN, DN, CN, OU |
+| `sm-kms` | JWKS, OKP, URI, CSR, CA, CRL, OCSP, SAN, DN, CN, OU, IM, SM |
 | `sm-kms` | IM, SM, URI |
-| `sm-kms` | URI |
 | `skeleton-template` | (none — base list only) |
 <!-- @/to-appendix -->
 
@@ -3424,7 +3370,7 @@ internal/apps-tools/cicd_lint/
 │   ├── leftover_coverage/                          # Sub-linter: detect _coverage_ test files
 │   ├── magic_aliases/                              # Sub-linter: import alias enforcement
 │   ├── magic_duplicates/                           # Sub-linter: duplicate magic constants
-│   ├── magic_usage/                                # Sub-linter: literal-use + const-redefine (both BLOCKING)
+│   ├── magic_usage/                                # Sub-linter: magic string checks blocking; numeric matches informational
 │   ├── no_unaliased_cryptoutil_imports/            # Sub-linter: require aliases on internal imports
 │   └── test_presence/                              # Sub-linter: require test files per package
 ├── lint_go_mod/                                      # lint-go-mod command
@@ -3578,7 +3524,7 @@ Architecture fitness functions are automated checks that enforce ENG-HANDBOOK.md
 | | **Architecture** |
 | `circular-deps` | No circular imports between packages |
 | `cmd-anti-pattern` | `cmd/` directories must follow `cmd/{name}/main.go` pattern, no banned names |
-| `cmd-entry-whitelist` | Only 15 allowed `cmd/` entries (1 suite + 4 products + 8 services + 2 infra tools) |
+| `cmd-entry-whitelist` | Only 13 allowed `cmd/` entries (1 suite + 3 products + 7 services + 2 infra tools) |
 | `cmd-main-pattern` | `cmd/*/main.go` must delegate to `internalMain()`, no logic |
 | `cross-service-import-isolation` | Service packages must not import other service packages |
 | `domain-layer-isolation` | Domain layer must not import server/client/API packages |
@@ -3657,7 +3603,7 @@ The majority pattern (`os.IsNotExist(err) → return nil`) silently hides compli
 
 **Rationale**: A missing directory is a signal of structural non-compliance, not a vacuously true state. Silently passing on absent input makes the linter useless for catching drift.
 
-**Test Pattern**: Unit tests that create isolated `t.TempDir()` workspaces must create stubs for ALL directories that the linter requires to exist. For linters that iterate the entity registry (e.g., `database_key_uniformity`, `config_overlay_freshness`), use a registry-iterating helper to create stubs for all 8 PS-IDs. For template-directory linters (`migration_numbering`, `migration_range_compliance`), use a `createTemplateMigrationsDirStub()` helper.
+**Test Pattern**: Unit tests that create isolated `t.TempDir()` workspaces must create stubs for ALL directories that the linter requires to exist. For linters that iterate the entity registry (e.g., `database_key_uniformity`, `config_overlay_freshness`), use a registry-iterating helper to create stubs for all 7 PS-IDs. For template-directory linters (`migration_numbering`, `migration_range_compliance`), use a `createTemplateMigrationsDirStub()` helper.
 
 **Structural ceiling**: When a template stub necessarily creates a parent directory that another absent-dir check depends on, direct testing via `CheckInDir` is structurally impossible. In these cases, the equivalent coverage MUST be provided by a direct unit test of the inner function (e.g., `TestFindDomainMigrationDirs_NoAppsDir_ReturnsError` covers the code path that `TestCheckInDir_NoInternalAppsDir_Fails` cannot reach via `CheckInDir`).
 
@@ -3679,7 +3625,7 @@ The majority pattern (`os.IsNotExist(err) → return nil`) silently hides compli
 3. Add the corresponding magic constants to `internal/shared/magic/magic_*.go`
 4. Add required deployment artifacts (Dockerfile, compose.yml, configs, secrets)
 
-**Current registry**: 4 products, 8 product-services
+**Current registry**: 3 products, 7 product-services
 
 #### 9.11.4 Naming Convention Catalog
 
@@ -4163,7 +4109,7 @@ ctx, cancel := context.WithTimeout(ctx, magic.DefaultDataServerShutdownTimeout) 
 
 #### 10.3.5 Cross-Service PS-ID Template Instantiation Pattern
 
-**Purpose**: Enforce consistent source and test scaffolding across all 8 PS-IDs using canonical templates under `api/cryptosuite-registry/templates/internal/apps/__PS_ID__/` and exact-match linting.
+**Purpose**: Enforce consistent source and test scaffolding across all 7 PS-IDs using canonical templates under `api/cryptosuite-registry/templates/internal/apps/__PS_ID__/` and exact-match linting.
 
 **Canonical enforcement mechanism**: `go run ./cmd/cicd-lint lint-fitness` runs the `apps-ps-id-template` sub-linter, which validates every PS-ID against `api/cryptosuite-registry/templates/internal/apps/__PS_ID__/MANIFEST.yaml` and exact canonical template comparisons for the enforced file families.
 
@@ -4179,7 +4125,7 @@ ctx, cancel := context.WithTimeout(ctx, magic.DefaultDataServerShutdownTimeout) 
 
 **Additional structural conformance enforced today**:
 
-- `internal/apps/__PS_ID__/server/testmain_test.go` exists for all 8 PS-IDs.
+- `internal/apps/__PS_ID__/server/testmain_test.go` exists for all 7 PS-IDs.
 - `internal/apps/__PS_ID__/server/testmain_test.go` MUST NOT include `//go:build` or `// +build`.
 - `internal/apps/__PS_ID__/server/` MUST NOT contain split files such as `testmain_integration_test.go` or other `testmain_*_test.go` variants.
 
@@ -4188,7 +4134,7 @@ ctx, cancel := context.WithTimeout(ctx, magic.DefaultDataServerShutdownTimeout) 
 1. Update the canonical template under `api/cryptosuite-registry/templates/internal/apps/__PS_ID__/` first.
 2. Apply the equivalent change to every instantiated PS-ID file in the same semantic commit.
 3. Run `go run ./cmd/cicd-lint lint-fitness` and require `apps-ps-id-template` to pass with exact content matching.
-4. If a file family is no longer structurally identical across all 8 PS-IDs, remove it from exact template enforcement explicitly instead of allowing silent drift.
+4. If a file family is no longer structurally identical across all 7 PS-IDs, remove it from exact template enforcement explicitly instead of allowing silent drift.
 
 **Rationale**: Template-instantiated files are a stronger consistency mechanism than shared contract test helpers because the linter confirms the exact bytes of the maintained scaffolding across all services.
 
@@ -5016,7 +4962,7 @@ def test_health_check(api_client):
 - Rationale: mnd (magic number detector) linter enforcement
 - **Coverage/Mutation Exemption**: `internal/shared/magic/` is **excluded from all code coverage and mutation testing thresholds**; it contains only named constants and variables with no executable logic to test
 - **`time.Duration` constants MUST NOT have unit suffixes** (e.g., `Ms`, `Ns`, `Sec`, `Min` — violates staticcheck ST1011). The `time.Duration` type already encodes the unit. Correct: `DefaultPollInterval = 5 * time.Second`. Wrong: `DefaultPollIntervalMs = 5000`.
-- **ALWAYS check `internal/shared/magic/` before writing any literal**: Search for an existing named constant before adding any string or numeric literal in test or production code. Bare literals violate `literal-use` (blocked by `TestLint_Integration`). Discovering these violations mid-plan is costly.
+- **Check `internal/shared/magic/` before adding domain values**: Reuse matching string constants; string matches block `TestLint_Integration`. Numeric equality alone is informational because it cannot establish shared meaning; use a named numeric constant when the value is genuinely domain-specific, and never substitute an unrelated constant just to silence a warning.
 
 **Magic File Inventory** (47 production files as of this writing):
 
@@ -5322,7 +5268,7 @@ All Dockerfiles follow identical multi-stage structure. Parameterized fields dif
 | DF-23 | `LABEL org.opencontainers.image.authors` MUST equal `{AUTHORS}` | Author attribution |
 | DF-24 | `LABEL org.opencontainers.image.description` MUST equal `{PRODUCT_DISPLAY_NAME} {SERVICE_DISPLAY_NAME}` | Human-readable description |
 
-**Current state**: 8 PS-ID Dockerfiles exist. 0 product-level Dockerfiles exist. 0 suite-level Dockerfiles exist. This is by design: PRODUCT and SUITE deployment domains reuse PS-ID images and PS-ID builders via compose includes.
+**Current state**: 7 PS-ID Dockerfiles exist. 0 product-level Dockerfiles exist. 0 suite-level Dockerfiles exist. This is by design: PRODUCT and SUITE deployment domains reuse PS-ID images and PS-ID builders via compose includes.
 
 #### 12.2.2 Build Optimization
 
@@ -5572,7 +5518,7 @@ See [Section 4.4.6](#446-deployments) for the complete secret file listing at ea
 
 **Consistency Requirements**:
 
-- **hash-pepper-v3.secret**: SAME value across ALL 8 services (enables cross-service PII deduplication, SSO username lookup, for suite-level PostgreSQL OLAP database).
+- **hash-pepper-v3.secret**: SAME value across all 7 services (enables cross-service PII deduplication, SSO username lookup, for suite-level PostgreSQL OLAP database).
 - **unseal-{N}of5.secret**: UNIQUE per service (barrier encryption independence, security isolation).
 - **postgres-*.secret**: Service-specific.
 
@@ -5717,7 +5663,7 @@ All tiers follow the same Docker Compose pattern with `include` + shared `hash-p
 
 1. **SERVICE** (`{PS-ID}-` prefix): Unique per service, NO cross-service lookups.
 2. **PRODUCT** (`{PRODUCT}-` prefix): Shared within product services (e.g., 5 identity services for SSO).
-3. **SUITE** (`{SUITE}-` prefix): Shared by ALL 8 services for cross-product federation.
+3. **SUITE** (`{SUITE}-` prefix): Shared by all 7 services for cross-product federation.
 
 All tiers use the identical filename `hash-pepper-v3.secret` — the tier is selected by which `secrets/` directory the compose file references. This simplifies compose `include` merging.
 
@@ -5899,7 +5845,7 @@ Detection heuristic: `svc.Image == "" && svc.Build == nil && len(svc.Ports) > 0`
 
 #### 13.1.1 Deployment Types
 
-**SUITE** (e.g., cryptoutil - all 8 services):
+**SUITE** (e.g., cryptoutil - all 7 services):
 - Required directories: `secrets/`
 - Required files: `compose.yml`
 - Optional files: `README.md`
@@ -5917,7 +5863,7 @@ Detection heuristic: `svc.Image == "" && svc.Build == nil && len(svc.Ports) > 0`
   - Rationale: Browser and service credentials are service-level only
 - Validation function: `validateProductSecrets()` in lint_deployments.go
 
-**PRODUCT-SERVICE** (e.g., sm-kms, pki-ca, identity-authz/idp/rp/rs/spa, skeleton-template):
+**PRODUCT-SERVICE** (e.g., sm-kms, identity-authz/idp/rp/rs/spa, skeleton-template):
 - Required directories: `secrets/`, `config/`
 - Required files: `compose.yml`, `Dockerfile`
 - Optional files: `otel-collector-config.yaml`, `README.md`
@@ -5951,8 +5897,8 @@ Detection heuristic: `svc.Image == "" && svc.Build == nil && len(svc.Ports) > 0`
 - **Failure Mode**: Violations are ERRORS that block CI/CD
 
 **Database Isolation** (enforced):
-- Each of 8 services MUST have unique `postgres-database.secret` value
-- Each of 8 services MUST have unique `postgres-username.secret` value
+- Each of 7 services MUST have unique `postgres-database.secret` value
+- Each of 7 services MUST have unique `postgres-username.secret` value
 - Duplicate database names or usernames across services are ERRORS
 - **Validation Function**: `checkDatabaseIsolation()` in lint_deployments.go
 - **Cross-Service Check**: Runs after all deployments validated to detect sharing violations
@@ -6150,54 +6096,49 @@ deployments/{PS-ID}/config/         # e.g., {PS-ID}=sm-kms
 
 ```
 configs/
-├── cryptoutil/
-│   └── cryptoutil.yml                          # Suite-level config
-├── identity-authz/
-│   ├── identity-authz.yml                      # Domain config (nested YAML)
-│   └── domain/
-│       └── policies/                           # Authentication/authorization policies
-│           ├── adaptive-authorization.yml
-│           ├── risk-scoring.yml
-│           └── step-up.yml
-├── identity-idp/
-│   └── identity-idp.yml                        # Domain config (nested YAML)
-├── identity-rp/
-│   └── identity-rp.yml                         # Domain config (nested YAML)
-├── identity-rs/
-│   └── identity-rs.yml                         # Domain config (nested YAML)
-├── identity-spa/
-│   └── identity-spa.yml                        # Domain config (nested YAML)
-├── sm-kms/
-│   └── sm-kms.yml                             # Domain config (nested YAML)
-├── pki-ca/
-│   ├── pki-ca.yml                              # Domain config (nested YAML)
-│   └── profiles/                               # X.509 certificate profiles (25 files)
-│       ├── tls-server.yaml
-│       ├── root-ca.yaml
-│       └── ...
-├── skeleton-template/
-│   └── skeleton-template.yml                   # Domain config (nested YAML)
-├── sm-kms/
-│   └── sm-kms.yml                               # Domain config (nested YAML)
-└── sm-kms/
-    └── sm-kms.yml                              # Domain config (nested YAML)
+|-- cryptoutil/
+|   `-- cryptoutil.yml
+|-- identity-authz/
+|   |-- identity-authz-domain.yml
+|   |-- identity-authz-framework.yml
+|   `-- domain/policies/                 # Authorization policies
+|-- identity-idp/
+|   |-- identity-idp-domain.yml
+|   `-- identity-idp-framework.yml
+|-- identity-rp/
+|   |-- identity-rp-domain.yml
+|   `-- identity-rp-framework.yml
+|-- identity-rs/
+|   |-- identity-rs-domain.yml
+|   `-- identity-rs-framework.yml
+|-- identity-spa/
+|   |-- identity-spa-domain.yml
+|   `-- identity-spa-framework.yml
+|-- skeleton-template/
+|   |-- skeleton-template-domain.yml
+|   `-- skeleton-template-framework.yml
+`-- sm-kms/
+    |-- pki-domain.yml
+    |-- sm-kms-domain.yml
+    |-- sm-kms-framework.yml
+    `-- profiles/                        # X.509 certificate profiles
 ```
 
 **Key Rules**:
 
-- **Flat {PS-ID} directories**: `configs/{PS-ID}/` (e.g., `configs/sm-kms/`, `configs/sm-kms/`). NOT nested `configs/{PRODUCT}/{SERVICE}/`.
-- **Domain config naming**: `{PS-ID}.yml` (e.g., `sm-kms.yml`).
-- **Special subdirectories**: `configs/pki-ca/profiles/` for X.509 profiles, `configs/identity-authz/domain/policies/` for auth policies.
+- **Flat {PS-ID} directories**: `configs/{PS-ID}/` (e.g., `configs/sm-kms/`, `configs/identity-authz/`). NOT nested `configs/{PRODUCT}/{SERVICE}/`.
+- **Domain config naming**: `{PS-ID}-domain.yml` and `{PS-ID}-framework.yml` (e.g., `sm-kms-domain.yml` and `sm-kms-framework.yml`).
+- **Special subdirectories**: `configs/sm-kms/profiles/` for X.509 profiles, `configs/identity-authz/domain/policies/` for auth policies.
 
 **Config File Naming Conventions**:
 
 | Type | Naming Pattern | Schema Format | Examples |
 |------|---------------|---------------|----------|
-| Domain config | `{PS-ID}.yml` | Nested YAML, service-specific | `sm-kms.yml` |
+| Domain config | `{PS-ID}-domain.yml` | Nested YAML, service-specific | `sm-kms-domain.yml` |
 | Suite config | `cryptoutil.yml` | Suite-level settings | `configs/cryptoutil/cryptoutil.yml` |
 | Certificate profile | `profiles/*.yaml` | X.509 certificate definitions | `tls-server.yaml` |
 | Auth policy | `domain/policies/*.yml` | Authentication/authorization rules | `adaptive-authorization.yml` |
-| Certificate schema | `*-config-schema.yaml` | CA certificate schema definitions | `pki-ca-config-schema.yaml` |
+| Certificate profile schema | `profiles/profile-schema.json` | X.509 certificate profile validation | `configs/sm-kms/profiles/profile-schema.json` |
 
 **Dual configs/ vs deployments/config/ Relationship**: The `configs/` directory holds **standalone development configs** for direct `go run` usage. The `deployments/{PS-ID}/config/` directories hold **Docker Compose deployment configs** (`{PS-ID}-app-{variant}.yml`) with 5 required variant files (common, sqlite-1, sqlite-2, postgresql-1, postgresql-2). Both follow the same flat kebab-case schema for service framework configs.
 
@@ -6462,7 +6403,7 @@ All validators run to completion (never short-circuit) and aggregate errors for 
 
 #### 12.3.6 Canonical Docker Compose Service Command Pattern
 
-**MANDATORY**: All 8 PS-ID Docker Compose app services (all 4 variants each) MUST use the following canonical command array structure. This pattern is enforced by the `compose-entrypoint-uniformity` fitness linter.
+**MANDATORY**: All 7 PS-ID Docker Compose app services (all 4 variants each) MUST use the following canonical command array structure. This pattern is enforced by the `compose-entrypoint-uniformity` fitness linter.
 
 **Canonical Command Format**:
 
@@ -6560,14 +6501,14 @@ otlp-tls-ca-file:   /certs/{PS-ID}/otel-collector-contrib-https-client-issuing-c
 
 ### 13.6 Template Enforcement & Drift Detection
 
-**Purpose**: Automated enforcement of canonical deployment artifact templates. All 8 PS-ID services MUST produce identical artifacts (after placeholder substitution) from shared templates. This prevents the 3-pattern divergence problem where copy-paste errors lead to silently different deployment configurations across services.
+**Purpose**: Automated enforcement of canonical deployment artifact templates. All 7 PS-ID services MUST produce identical artifacts (after placeholder substitution) from shared templates. This prevents the 3-pattern divergence problem where copy-paste errors lead to silently different deployment configurations across services.
 
 **Canonical Templates**: Stored in [deployment-templates.md](/docs/deployment-templates.md) and as `__KEY__` placeholder files in `api/cryptosuite-registry/templates/`. Templates are organized into directory subdirectories mirroring the actual deployment layout — each `__PS_ID__`, `__PRODUCT__`, or `__SUITE__` path segment is expanded at lint time via `os.WalkDir` over the templates directory. Six template types:
 
 | Template | Scope | Comparison Mode |
 |----------|-------|----------------|
-| Dockerfile | 8 PS-ID Dockerfiles | Exact match |
-| compose.yml | 8 PS-ID compose files | Superset-ordered (allows extra volume lines) |
+| Dockerfile | 7 PS-ID Dockerfiles | Exact match |
+| compose.yml | 7 PS-ID compose files | Superset-ordered (allows extra volume lines) |
 | config-common.yml | 10 deployment common overlays | Exact match |
 | config-sqlite.yml | 20 deployment SQLite overlays | Exact match |
 | config-postgresql.yml | 20 deployment PostgreSQL overlays | Exact match |
@@ -6576,15 +6517,15 @@ otlp-tls-ca-file:   /certs/{PS-ID}/otel-collector-contrib-https-client-issuing-c
 **Template Architecture (V10)**: Templates live in `api/cryptosuite-registry/templates/` — outside the linter package. The `template-compliance` sub-linter in `lint_fitness/template_drift/` uses `os.WalkDir` to load templates at runtime, then expands path and content placeholders in memory before comparing against actual files in `deployments/` and `configs/`. This avoids `embed.FS` re-compilation on every template change and places templates next to the registry that defines the entities they reference.
 
 **Expansion Keys**: Three path-level expansion keys trigger per-entity expansion:
-- `__PS_ID__` in path → expanded for all 8 PS-IDs (e.g., `deployments/__PS_ID__/Dockerfile` → 8 files)
-- `__PRODUCT__` in path → expanded for all 4 products
+- `__PS_ID__` in path → expanded for all 7 PS-IDs (e.g., `deployments/__PS_ID__/Dockerfile` → 7 files)
+- `__PRODUCT__` in path → expanded for all 3 products
 - `__SUITE__` in path → expanded for 1 suite (cryptoutil)
 
 **Placeholder Substitution**: Templates use `__KEY__` format (double underscore delimiters) to avoid conflicts with Dockerfile `${VAR}` syntax. Registry provides per-PS-ID values: `__PS_ID__`, `__PUBLIC_PORT__`, `__PRODUCT_DISPLAY_NAME__`, `__SERVICE_DISPLAY_NAME__`, etc. Content-only placeholders (not in path) like `__SUITE__` and `__PS_ID_UPPER__` are also substituted.
 
 **Supplementary Rule-Based Linters**: Defense-in-depth alongside template drift detection:
 
-- `config-key-naming`: Validates all deployment YAML keys use kebab-case (standalone configs excluded — domain-specific keys like pki-ca's `common_name` are legitimate)
+- `config-key-naming`: Validates all deployment YAML keys use kebab-case (standalone configs excluded — domain-specific keys like PKI profile `common_name` are legitimate)
 - `config-header-identity`: Validates config file headers reference the correct PS-ID (checks lines 1-2 for both deployment and standalone configs)
 - `config-instance-minimal`: Validates instance config overlays contain only allowed keys (`cors-origins`, `otlp-service`, `otlp-hostname`, `database-url`)
 - `config-common-complete`: Validates common config overlays contain all 12 required shared keys
@@ -6596,7 +6537,6 @@ otlp-tls-ca-file:   /certs/{PS-ID}/otel-collector-contrib-https-client-issuing-c
 | PS-ID | PRODUCT | SERVICE | SERVICE_APP_PORT_BASE | SERVICE_PG_HOST_PORT | PRODUCT_APP_PORT_OFFSET | SUITE_APP_PORT_OFFSET |
 |-------|---------|---------|---------------------|--------------------|-----------------------|---------------------|
 | `sm-kms` | `sm` | `kms` | `8000` | `54320` | `18000` | `28000` |
-| `pki-ca` | `pki` | `ca` | `8300` | `54323` | `18300` | `28300` |
 | `identity-authz` | `identity` | `authz` | `8400` | `54324` | `18400` | `28400` |
 | `identity-idp` | `identity` | `idp` | `8500` | `54325` | `18500` | `28500` |
 | `identity-rs` | `identity` | `rs` | `8600` | `54326` | `18600` | `28600` |
@@ -6633,7 +6573,7 @@ otlp-tls-ca-file:   /certs/{PS-ID}/otel-collector-contrib-https-client-issuing-c
 | Category | Affected PS-IDs | Deviation |
 |----------|----------------|-----------|
 | Dockerfile pattern (Pattern A) | sm-kms, identity-authz, identity-idp, identity-rp, identity-rs | 4-stage but: `WORKDIR /app/run`, `GOMODCACHE`/`GOCACHE` env vars, `curl` installed in final, `USER` commented out, individual `LABEL` lines |
-| Dockerfile pattern (Pattern B) | sm-kms, pki-ca, skeleton-template | 3-stage (no `runtime-deps`): `adduser`-based user creation, compact `LABEL`, `CMD` with config path |
+| Dockerfile pattern (Pattern B) | skeleton-template | 3-stage (no `runtime-deps`): `adduser`-based user creation, compact `LABEL`, `CMD` with config path |
 | Dockerfile pattern (Pattern C) | sm-kms | 2-stage (no `validation`): user `1000:1000` (wrong UID), no BuildKit caches, no static link check |
 | Skeleton-template identity | skeleton-template | Header, username, and directory layout use another service identity |
 | identity-spa COPY bug | identity-spa | Builder builds `/app/identity-spa` but runtime COPY copies `/app/cryptoutil` — **runtime failure** |
@@ -6660,7 +6600,7 @@ This applies to ALL issue types including but not limited to:
 
 - `goconst`: Repeated string literals must become constants
 - `noctx`: Missing context in database/HTTP calls (`Ping()` → `PingContext(ctx)`)
-- `lint-go literal-use`: Magic constants must use `cryptoutilSharedMagic` values — **avoid false positives** by not using string literals that coincide with magic constant values as test case `name:` fields; use `string(magic.ConstName)` or a domain-specific discriminator that cannot collide
+- `lint-go magic-usage`: Reuse matching magic string constants; string literal and string const-redefinition matches block. Numeric value matches are informational because value equality cannot establish semantic equivalence. Avoid test-case `name:` strings that collide with magic values or use `string(magic.ConstName)` when the constant is the intended value.
 - `wsl`, `godot`, `gofumpt`: Formatting and style violations
 - Import ordering and unused imports
 - Pre-commit hook findings from any linter
@@ -6684,7 +6624,7 @@ entries, err := os.ReadDir(dir)
 
 This is a documented Go cross-platform difference. Skipping the `Stat` check causes Windows CI/CD failures that do not reproduce on Linux.
 
-**Derive directory/file counts from pattern expansion** (MANDATORY): When documenting or implementing functions that generate multiple output directories/files (e.g., `pki-init` 14 certificate categories), ALWAYS show the derivation formula rather than stating a raw count. Example: `30 global + 60 per-PS-ID × 8 PS-IDs = 510`. Never state `510` without the formula — formula errors are caught immediately during review; raw counts are not.
+**Derive directory/file counts from pattern expansion** (MANDATORY): When documenting or implementing functions that generate multiple output directories/files (e.g., `pki-init` 14 certificate categories), ALWAYS show the derivation formula rather than stating a raw count. Example: `30 global + 60 per-PS-ID × 7 PS-IDs = 510`. Never state `510` without the formula — formula errors are caught immediately during review; raw counts are not.
 
 **Multi-Category Generator Call Sites**: When implementing a function that generates multiple named categories (e.g., `pki-init`'s 14 certificate categories), add `// Cat N: <name>` comments at each call site. Reviewers can then cross-reference the spec document without mentally mapping code positions to category numbers.
 
@@ -6794,7 +6734,7 @@ Use `air` for live-reload development of individual services. Air watches Go sou
 **Usage**: `SERVICE=<service-name> air`
 
 - Example: `SERVICE=sm-kms air` — starts the sm-kms service with live reload
-- Valid SERVICE values: `sm-kms`, `pki-ca`, `skeleton-template`, `identity-authz`, `identity-idp`, `identity-rp`, `identity-rs`, `identity-spa`
+- Valid SERVICE values: `sm-kms`, `skeleton-template`, `identity-authz`, `identity-idp`, `identity-rp`, `identity-rs`, `identity-spa`
 
 **Configuration** (`.air.toml` at repo root):
 
@@ -7016,7 +6956,7 @@ A completed `lessons.md` MUST contain three top-level sections **in this order**
 **1. `## Executive Summary`** — Written at plan completion. A numbered list where each entry is a markdown link to a `## Phase N:` section followed by a one-sentence description of the key outcome. Enables reviewers to scan the entire plan scope at a glance and navigate directly to relevant phases.
 
 Example entries:
-- `1. [Phase 1: Framework Migration](#phase-1-framework-migration) — Migrated 8 PS-ID entry points; no API breakage.`
+- `1. [Phase 1: Framework Migration](#phase-1-framework-migration) — Migrated required PS-ID entry points; no API breakage.`
 - `2. [Phase 2: Knowledge Propagation](#phase-2-knowledge-propagation) — Added 12 ENG-HANDBOOK sections and updated 4 instruction files.`
 
 **2. `## Actions`** — Written at plan completion, directly below Executive Summary. A numbered list of concrete follow-up tasks for the reviewer, each specific enough to copy-paste directly into Copilot Chat or Claude Code as a follow-up prompt.

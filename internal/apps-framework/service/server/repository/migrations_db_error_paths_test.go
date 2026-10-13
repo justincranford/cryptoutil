@@ -17,75 +17,80 @@ import (
 	"gorm.io/gorm"
 )
 
-// TestInitSQLite_SqlOpenError covers the sqlOpenFn error path in InitSQLite.
-// NOT parallel — modifies package-level injectable var.
-// Sequential: mutates package-level sqlOpenFn.
-func TestInitSQLite_SqlOpenError(t *testing.T) {
-	original := sqlOpenFn
-	sqlOpenFn = func(_, _ string) (*sql.DB, error) {
-		return nil, errors.New("injected sql open error")
+func TestDatabaseInitialization_ErrorPaths(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name       string
+		configure  func(*databaseInitializationOperations)
+		initialize func(databaseInitializationOperations) (*gorm.DB, error)
+		wantErr    string
+	}{
+		{
+			name: "SQLite SQL open error",
+			configure: func(operations *databaseInitializationOperations) {
+				operations.openSQL = func(string, string) (*sql.DB, error) {
+					return nil, errors.New("injected SQL open error")
+				}
+			},
+			initialize: func(operations databaseInitializationOperations) (*gorm.DB, error) {
+				return initSQLiteWithOperations(context.Background(), cryptoutilSharedMagic.SQLiteInMemoryDSN, testDBMigrationsFS, operations)
+			},
+			wantErr: "failed to open SQLite database",
+		},
+		{
+			name: "SQLite GORM open error",
+			configure: func(operations *databaseInitializationOperations) {
+				operations.openGORM = func(gorm.Dialector, ...gorm.Option) (*gorm.DB, error) {
+					return nil, errors.New("injected GORM open error")
+				}
+			},
+			initialize: func(operations databaseInitializationOperations) (*gorm.DB, error) {
+				return initSQLiteWithOperations(context.Background(), cryptoutilSharedMagic.SQLiteInMemoryDSN, testDBMigrationsFS, operations)
+			},
+			wantErr: "failed to initialize GORM for SQLite",
+		},
+		{
+			name: "SQLite migration error",
+			configure: func(operations *databaseInitializationOperations) {
+				operations.applyMigrations = func(*sql.DB, DatabaseType, fs.FS) error {
+					return errors.New("injected migration error")
+				}
+			},
+			initialize: func(operations databaseInitializationOperations) (*gorm.DB, error) {
+				return initSQLiteWithOperations(context.Background(), cryptoutilSharedMagic.SQLiteInMemoryDSN, testDBMigrationsFS, operations)
+			},
+			wantErr: "failed to apply migrations",
+		},
+		{
+			name: "PostgreSQL SQL open error",
+			configure: func(operations *databaseInitializationOperations) {
+				operations.openSQL = func(string, string) (*sql.DB, error) {
+					return nil, errors.New("injected SQL open error")
+				}
+			},
+			initialize: func(operations databaseInitializationOperations) (*gorm.DB, error) {
+				return initPostgreSQLWithOperations(context.Background(), "postgres://invalid:5432/test", testDBMigrationsFS, operations)
+			},
+			wantErr: "failed to open PostgreSQL database",
+		},
 	}
 
-	defer func() { sqlOpenFn = original }()
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-	db, err := InitSQLite(context.Background(), cryptoutilSharedMagic.SQLiteInMemoryDSN, testDBMigrationsFS)
-	require.Error(t, err)
-	require.Nil(t, db)
-	require.Contains(t, err.Error(), "failed to open SQLite database")
-}
+			operations := defaultDatabaseInitializationOperations()
+			tc.configure(&operations)
 
-// TestInitSQLite_GormOpenError covers the gormOpenFn error path in InitSQLite.
-// NOT parallel — modifies package-level injectable var.
-// Sequential: mutates package-level gormOpenFn.
-func TestInitSQLite_GormOpenError(t *testing.T) {
-	original := gormOpenFn
-	gormOpenFn = func(_ gorm.Dialector, _ ...gorm.Option) (*gorm.DB, error) {
-		return nil, errors.New("injected gorm open error")
+			db, err := tc.initialize(operations)
+			require.ErrorContains(t, err, tc.wantErr)
+			require.Nil(t, db)
+		})
 	}
-
-	defer func() { gormOpenFn = original }()
-
-	db, err := InitSQLite(context.Background(), cryptoutilSharedMagic.SQLiteInMemoryDSN, testDBMigrationsFS)
-	require.Error(t, err)
-	require.Nil(t, db)
-	require.Contains(t, err.Error(), "failed to initialize GORM for SQLite")
 }
 
-// TestInitSQLite_ApplyMigrationsInjectedError covers the applyMigrationsFn error path in InitSQLite.
-// NOT parallel — modifies package-level injectable var.
-// Sequential: mutates package-level applyMigrationsFn.
-func TestInitSQLite_ApplyMigrationsInjectedError(t *testing.T) {
-	original := applyMigrationsFn
-	applyMigrationsFn = func(_ *sql.DB, _ DatabaseType, _ fs.FS) error {
-		return errors.New("injected migration error")
-	}
-
-	defer func() { applyMigrationsFn = original }()
-
-	db, err := InitSQLite(context.Background(), cryptoutilSharedMagic.SQLiteInMemoryDSN, testDBMigrationsFS)
-	require.Error(t, err)
-	require.Nil(t, db)
-	require.Contains(t, err.Error(), "failed to apply migrations")
-}
-
-// TestInitPostgreSQL_SqlOpenError covers the sqlOpenFn error path in InitPostgreSQL.
-// NOT parallel — modifies package-level injectable var.
-// Sequential: mutates package-level sqlOpenFn.
-func TestInitPostgreSQL_SqlOpenError(t *testing.T) {
-	original := sqlOpenFn
-	sqlOpenFn = func(_, _ string) (*sql.DB, error) {
-		return nil, errors.New("injected sql open error")
-	}
-
-	defer func() { sqlOpenFn = original }()
-
-	db, err := InitPostgreSQL(context.Background(), "postgres://invalid:5432/test", testDBMigrationsFS)
-	require.Error(t, err)
-	require.Nil(t, db)
-	require.Contains(t, err.Error(), "failed to open PostgreSQL database")
-}
-
-// TestMigrationRunner_MigrateNewWithInstanceError covers the migrateNewInstanceFn error path.
+// TestMigrationRunner_MigrateNewWithInstanceError covers the migrate.NewWithInstance error path.
 func TestMigrationRunner_MigrateNewWithInstanceError(t *testing.T) {
 	t.Parallel()
 

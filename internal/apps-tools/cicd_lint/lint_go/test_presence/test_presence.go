@@ -11,6 +11,11 @@ import (
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps-tools/cicd_lint/common"
 )
 
+const (
+	testPresenceReadDirectoryErrorPrefix  = "failed to read directory"
+	testPresenceInspectGoFilesErrorPrefix = "failed to inspect Go files"
+)
+
 // excludedDirs are directories that do not require test files.
 var excludedDirs = map[string]bool{
 	"magic":           true, // Constants only, no executable logic.
@@ -37,8 +42,23 @@ var excludedPrefixes = []string{
 	"_", // Archived or ignored directories.
 }
 
-// Test seams: replaceable in tests for error path coverage.
-var relFunc = filepath.Rel
+type testPresenceOperations struct {
+	statFn     func(string) (os.FileInfo, error)
+	walkFn     func(string, filepath.WalkFunc) error
+	readDirFn  func(string) ([]os.DirEntry, error)
+	readFileFn func(string) ([]byte, error)
+	relFn      func(string, string) (string, error)
+}
+
+func productionTestPresenceOperations() testPresenceOperations {
+	return testPresenceOperations{
+		statFn:     os.Stat,
+		walkFn:     filepath.Walk,
+		readDirFn:  os.ReadDir,
+		readFileFn: os.ReadFile,
+		relFn:      filepath.Rel,
+	}
+}
 
 // Check validates test presence from the workspace root.
 func Check(logger *cryptoutilCmdCicdCommon.Logger) error {
@@ -47,14 +67,22 @@ func Check(logger *cryptoutilCmdCicdCommon.Logger) error {
 
 // CheckInDir validates test presence under rootDir/internal/apps/.
 func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
+	return checkInDirWithOperations(logger, rootDir, productionTestPresenceOperations())
+}
+
+func checkInDirWithOperations(logger *cryptoutilCmdCicdCommon.Logger, rootDir string, operations testPresenceOperations) error {
 	var errors []string
 
 	appsDir := filepath.Join(rootDir, "internal", "apps")
-	if _, statErr := os.Stat(appsDir); os.IsNotExist(statErr) {
-		return fmt.Errorf("internal/apps directory not found at %s", appsDir)
+	if _, statErr := operations.statFn(appsDir); statErr != nil {
+		if os.IsNotExist(statErr) {
+			return fmt.Errorf("internal/apps directory not found at %s", appsDir)
+		}
+
+		return fmt.Errorf("failed to stat internal/apps directory %s: %w", appsDir, statErr)
 	}
 
-	walkErr := filepath.Walk(appsDir, func(path string, info os.FileInfo, err error) error {
+	walkErr := operations.walkFn(appsDir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
@@ -85,12 +113,15 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 		}
 
 		// Check if this directory has Go source files with executable logic.
-		hasLogicFiles, hasTestFiles := checkDirForGoFiles(path)
+		hasLogicFiles, hasTestFiles, inspectErr := checkDirForGoFiles(path, operations)
+		if inspectErr != nil {
+			return fmt.Errorf("%s in %s: %w", testPresenceInspectGoFilesErrorPrefix, path, inspectErr)
+		}
 
 		if hasLogicFiles && !hasTestFiles {
-			relPath, relErr := relFunc(rootDir, path)
+			relPath, relErr := operations.relFn(rootDir, path)
 			if relErr != nil {
-				relPath = path
+				return fmt.Errorf("failed to get path relative to workspace root: %w", relErr)
 			}
 
 			errors = append(errors, fmt.Sprintf("%s: package has .go source files but no _test.go files", relPath))
@@ -117,10 +148,10 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 
 // checkDirForGoFiles checks if a directory contains Go source files with executable logic and test files.
 // Files containing only variable declarations (e.g., embed.FS) are not counted as requiring tests.
-func checkDirForGoFiles(dir string) (hasLogicFiles, hasTestFiles bool) {
-	entries, err := os.ReadDir(dir)
+func checkDirForGoFiles(dir string, operations testPresenceOperations) (hasLogicFiles, hasTestFiles bool, err error) {
+	entries, err := operations.readDirFn(dir)
 	if err != nil {
-		return false, false
+		return false, false, fmt.Errorf("%s %s: %w", testPresenceReadDirectoryErrorPrefix, dir, err)
 	}
 
 	for _, entry := range entries {
@@ -147,28 +178,34 @@ func checkDirForGoFiles(dir string) (hasLogicFiles, hasTestFiles bool) {
 
 		// Check if file contains function declarations (executable logic).
 		filePath := filepath.Join(dir, name)
-		if fileHasLogic(filePath) {
+
+		fileHasLogic, readErr := fileHasLogic(filePath, operations)
+		if readErr != nil {
+			return false, false, readErr
+		}
+
+		if fileHasLogic {
 			hasLogicFiles = true
 		}
 	}
 
-	return hasLogicFiles, hasTestFiles
+	return hasLogicFiles, hasTestFiles, nil
 }
 
 // fileHasLogic checks if a Go source file contains function or method declarations.
 // Files with only package declarations, imports, types, constants, and variables are not considered to have logic.
-func fileHasLogic(filePath string) bool {
-	content, err := os.ReadFile(filePath)
+func fileHasLogic(filePath string, operations testPresenceOperations) (bool, error) {
+	content, err := operations.readFileFn(filePath)
 	if err != nil {
-		return true // Assume logic if unable to read.
+		return false, fmt.Errorf("failed to read Go source file %s: %w", filePath, err)
 	}
 
 	for _, line := range strings.Split(string(content), "\n") {
 		trimmed := strings.TrimSpace(line)
 		if strings.HasPrefix(trimmed, "func ") {
-			return true
+			return true, nil
 		}
 	}
 
-	return false
+	return false, nil
 }

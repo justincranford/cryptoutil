@@ -29,9 +29,7 @@ func TestGetExpectedConfigsContents(t *testing.T) {
 		"identity-rp/",
 		"identity-rs/",
 		"identity-spa/",
-		"sm-kms/",
-		"pki-ca/",
-		"pki-ca/profiles/",
+		"sm-kms/", "sm-kms/profiles/",
 		"skeleton-template/",
 	}
 
@@ -53,14 +51,13 @@ func TestGetDeploymentDirectories(t *testing.T) {
 	require.Len(t, suite, 1)
 	require.Equal(t, cryptoutilSharedMagic.DefaultOTLPServiceDefault, suite[0])
 
-	// Products should include all 4 products.
-	expectedProducts := []string{cryptoutilSharedMagic.SMProductName, cryptoutilSharedMagic.PKIProductName, cryptoutilSharedMagic.IdentityProductName, cryptoutilSharedMagic.SkeletonProductName}
+	// Products should include all 3 products.
+	expectedProducts := []string{cryptoutilSharedMagic.SMProductName, cryptoutilSharedMagic.IdentityProductName, cryptoutilSharedMagic.SkeletonProductName}
 	require.ElementsMatch(t, expectedProducts, product)
 
-	// Product-services should include all 8 services.
+	// Product-services should include all 7 services.
 	expectedServices := []string{
-		cryptoutilSharedMagic.OTLPServiceSMKMS, cryptoutilSharedMagic.OTLPServicePKICA,
-		cryptoutilSharedMagic.OTLPServiceIdentityAuthz, cryptoutilSharedMagic.OTLPServiceIdentityIDP, cryptoutilSharedMagic.OTLPServiceIdentityRS, cryptoutilSharedMagic.OTLPServiceIdentityRP, cryptoutilSharedMagic.OTLPServiceIdentitySPA,
+		cryptoutilSharedMagic.OTLPServiceSMKMS, cryptoutilSharedMagic.OTLPServiceIdentityAuthz, cryptoutilSharedMagic.OTLPServiceIdentityIDP, cryptoutilSharedMagic.OTLPServiceIdentityRS, cryptoutilSharedMagic.OTLPServiceIdentityRP, cryptoutilSharedMagic.OTLPServiceIdentitySPA,
 		cryptoutilSharedMagic.OTLPServiceSkeletonTemplate,
 	}
 	require.ElementsMatch(t, expectedServices, productService)
@@ -82,8 +79,7 @@ func TestGetExpectedDeploymentsContents(t *testing.T) {
 
 	// Verify product-service entries exist with compose.yml.
 	services := []string{
-		cryptoutilSharedMagic.OTLPServiceSMKMS, cryptoutilSharedMagic.OTLPServicePKICA,
-		cryptoutilSharedMagic.OTLPServiceIdentityAuthz, cryptoutilSharedMagic.OTLPServiceIdentityIDP, cryptoutilSharedMagic.OTLPServiceIdentityRS, cryptoutilSharedMagic.OTLPServiceIdentityRP, cryptoutilSharedMagic.OTLPServiceIdentitySPA,
+		cryptoutilSharedMagic.OTLPServiceSMKMS, cryptoutilSharedMagic.OTLPServiceIdentityAuthz, cryptoutilSharedMagic.OTLPServiceIdentityIDP, cryptoutilSharedMagic.OTLPServiceIdentityRS, cryptoutilSharedMagic.OTLPServiceIdentityRP, cryptoutilSharedMagic.OTLPServiceIdentitySPA,
 		cryptoutilSharedMagic.OTLPServiceSkeletonTemplate,
 	}
 
@@ -118,32 +114,32 @@ func TestAddProductServiceFiles(t *testing.T) {
 	t.Parallel()
 
 	contents := make(map[string]string)
-	addProductServiceFiles(&contents, cryptoutilSharedMagic.OTLPServicePKICA)
+	addProductServiceFiles(&contents, cryptoutilSharedMagic.OTLPServiceSMKMS)
 
 	// Should have compose.yml as required.
-	require.Equal(t, RequiredFileStatus, contents["pki-ca/compose.yml"])
+	require.Equal(t, RequiredFileStatus, contents["sm-kms/compose.yml"])
 
 	// Should have Dockerfile as required.
-	require.Equal(t, RequiredFileStatus, contents["pki-ca/Dockerfile"])
+	require.Equal(t, RequiredFileStatus, contents["sm-kms/Dockerfile"])
 
 	// Should have hash-pepper secret (hyphenated, no service prefix).
-	require.Equal(t, RequiredFileStatus, contents["pki-ca/secrets/hash-pepper-v3.secret"])
+	require.Equal(t, RequiredFileStatus, contents["sm-kms/secrets/hash-pepper-v3.secret"])
 
 	// Should have unseal secrets (hyphenated, no service prefix).
-	require.Equal(t, RequiredFileStatus, contents["pki-ca/secrets/unseal-1of5.secret"])
+	require.Equal(t, RequiredFileStatus, contents["sm-kms/secrets/unseal-1of5.secret"])
 
 	// Should have postgres secrets (hyphenated, no service prefix).
-	require.Equal(t, RequiredFileStatus, contents["pki-ca/secrets/postgres-username.secret"])
+	require.Equal(t, RequiredFileStatus, contents["sm-kms/secrets/postgres-username.secret"])
 
 	// Should have browser/service credential secrets.
-	require.Equal(t, RequiredFileStatus, contents["pki-ca/secrets/browser-password.secret"])
-	require.Equal(t, RequiredFileStatus, contents["pki-ca/secrets/service-password.secret"])
+	require.Equal(t, RequiredFileStatus, contents["sm-kms/secrets/browser-password.secret"])
+	require.Equal(t, RequiredFileStatus, contents["sm-kms/secrets/service-password.secret"])
 
 	// Should have config files.
-	require.Equal(t, RequiredFileStatus, contents["pki-ca/config/pki-ca-app-framework-common.yml"])
+	require.Equal(t, RequiredFileStatus, contents["sm-kms/config/sm-kms-app-framework-common.yml"])
 
 	// Should have forbidden deprecated files.
-	require.Equal(t, ForbiddenFileStatus, contents["pki-ca/config/demo-seed.yml"])
+	require.Equal(t, ForbiddenFileStatus, contents["sm-kms/config/demo-seed.yml"])
 }
 
 // TestAddInfrastructureFiles validates infrastructure file entries.

@@ -12,6 +12,9 @@ const (
 	// EmptyString - Empty string constant.
 	EmptyString = ""
 
+	// PublicLabel is the canonical lowercase public label.
+	PublicLabel = "public"
+
 	// Bits to bytes conversion factor.
 	BitsToBytes = 8
 

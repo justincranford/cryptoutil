@@ -56,6 +56,13 @@ func correctMagicSource(psID string) string {
 		")\n"
 }
 
+const (
+	testMagicIdentityFilename = "magic_identity.go"
+	testMagicJoseFilename     = "magic_jose.go"
+	testMagicSMFilename       = "magic_sm.go"
+	testMagicSkeletonFilename = "magic_skeleton.go"
+)
+
 func TestCheck_RealWorkspace(t *testing.T) {
 	t.Parallel()
 
@@ -71,21 +78,21 @@ func TestCheckInDir_AllCorrect(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	// Write magic_sm.go with correct container constants for sm-kms.
-	writeMagicFile(t, tmpDir, "magic_sm.go", correctMagicSource(cryptoutilSharedMagic.OTLPServiceSMKMS))
+	writeMagicFile(t, tmpDir, testMagicSMFilename, correctMagicSource(cryptoutilSharedMagic.OTLPServiceSMKMS))
 
 	// The test uses only the magic files referenced by the registry — inject a minimal registry
 	// by specifying the MagicFile name that the checker will scan.
 	// Because the checker iterates the real registry, fake magic files must match one of the
 	// MagicFile names in the registry and contain valid constants.
 	// We only write magic_sm.go containing sm-kms constants; all other PS will either find no
-	// *E2ESQLiteContainer constant (identity, pki-ca) or their magic file won't exist, causing an error.
+	// *E2ESQLiteContainer constant (identity) or their magic file won't exist, causing an error.
 	// Instead, write all required magic files with NO E2ESQLiteContainer to pass cleanly.
-	for _, mf := range []string{"magic_identity.go", "magic_jose.go", "magic_skeleton.go", "magic_pki.go"} {
+	for _, mf := range []string{testMagicIdentityFilename, testMagicJoseFilename, testMagicSkeletonFilename} {
 		writeMagicFile(t, tmpDir, mf, "package magic\nconst (\n)\n")
 	}
 
 	// Replace magic_sm.go with correct content.
-	writeMagicFile(t, tmpDir, "magic_sm.go", correctMagicSource(cryptoutilSharedMagic.OTLPServiceSMKMS))
+	writeMagicFile(t, tmpDir, testMagicSMFilename, correctMagicSource(cryptoutilSharedMagic.OTLPServiceSMKMS))
 
 	err := lintFitnessMagicE2EContainerNames.CheckInDir(newTestLogger(), tmpDir)
 	require.NoError(t, err)
@@ -97,7 +104,7 @@ func TestCheckInDir_WrongSQLiteContainer(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	// Write all magic files with no E2E constants.
-	for _, mf := range []string{"magic_identity.go", "magic_jose.go", "magic_skeleton.go", "magic_sm.go", "magic_pki.go"} {
+	for _, mf := range []string{testMagicIdentityFilename, testMagicJoseFilename, testMagicSkeletonFilename, testMagicSMFilename} {
 		writeMagicFile(t, tmpDir, mf, "package magic\nconst (\n)\n")
 	}
 
@@ -107,7 +114,7 @@ func TestCheckInDir_WrongSQLiteContainer(t *testing.T) {
 		"\tIME2EPostgreSQL1Container = \"sm-kms-app-postgresql-1\"\n" +
 		"\tIME2EPostgreSQL2Container = \"sm-kms-app-postgresql-2\"\n" +
 		")\n"
-	writeMagicFile(t, tmpDir, "magic_sm.go", wrongSrc)
+	writeMagicFile(t, tmpDir, testMagicSMFilename, wrongSrc)
 
 	err := lintFitnessMagicE2EContainerNames.CheckInDir(newTestLogger(), tmpDir)
 	require.Error(t, err)
@@ -121,7 +128,7 @@ func TestCheckInDir_MissingPostgreSQL1Container(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	// Write all magic files with no E2E constants.
-	for _, mf := range []string{"magic_identity.go", "magic_jose.go", "magic_skeleton.go", "magic_sm.go", "magic_pki.go"} {
+	for _, mf := range []string{testMagicIdentityFilename, testMagicJoseFilename, testMagicSkeletonFilename, testMagicSMFilename} {
 		writeMagicFile(t, tmpDir, mf, "package magic\nconst (\n)\n")
 	}
 
@@ -130,7 +137,7 @@ func TestCheckInDir_MissingPostgreSQL1Container(t *testing.T) {
 		"	IME2ESQLiteContainer = \"sm-kms-app-sqlite-1\"\n" +
 		"\tIME2EPostgreSQL2Container = \"sm-kms-app-postgresql-2\"\n" +
 		")\n"
-	writeMagicFile(t, tmpDir, "magic_sm.go", partialSrc)
+	writeMagicFile(t, tmpDir, testMagicSMFilename, partialSrc)
 
 	err := lintFitnessMagicE2EContainerNames.CheckInDir(newTestLogger(), tmpDir)
 	require.Error(t, err)
@@ -143,7 +150,7 @@ func TestCheckInDir_NoE2EConstants_Skipped(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	// Write all magic files with no E2E constants — all should be skipped.
-	for _, mf := range []string{"magic_identity.go", "magic_jose.go", "magic_skeleton.go", "magic_sm.go", "magic_pki.go"} {
+	for _, mf := range []string{testMagicIdentityFilename, testMagicJoseFilename, testMagicSkeletonFilename, testMagicSMFilename} {
 		writeMagicFile(t, tmpDir, mf, "package magic\nconst (\n)\n")
 	}
 

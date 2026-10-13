@@ -137,7 +137,7 @@ func Test_SadPath_VerifyBytes_MultipleAlgorithms(t *testing.T) {
 	require.NotNil(t, kid2)
 	require.NotNil(t, nonPublicJWSJWK2)
 
-	_, jwsBytes, err := SignBytes([]joseJwk.Key{nonPublicJWSJWK1}, []byte("message"))
+	_, jwsBytes, err := SignBytes([]joseJwk.Key{nonPublicJWSJWK1}, []byte(cryptoutilSharedMagic.StringMessage))
 	require.NoError(t, err)
 
 	_, err = VerifyBytes([]joseJwk.Key{nonPublicJWSJWK1, nonPublicJWSJWK2}, jwsBytes)

@@ -75,37 +75,52 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string, readDirF
 // collectSpecPaths reads all openapi_spec*.yaml files in apiDir (excluding *_components.yaml)
 // and returns the union of all path keys found across the spec files.
 func collectSpecPaths(apiDir string, readDirFn func(string) ([]os.DirEntry, error), readFileFn func(string) ([]byte, error)) (map[string]struct{}, error) {
-	entries, err := readDirFn(apiDir)
-	if err != nil {
-		return nil, fmt.Errorf("cannot read api directory %s: %w", apiDir, err)
-	}
-
 	result := make(map[string]struct{})
 	foundSpec := false
 
-	for _, entry := range entries {
-		if entry.IsDir() {
-			continue
+	var visit func(string) error
+
+	visit = func(dir string) error {
+		entries, err := readDirFn(dir)
+		if err != nil {
+			if dir == apiDir {
+				return fmt.Errorf("cannot read api directory %s: %w", dir, err)
+			}
+
+			return fmt.Errorf("cannot read nested api directory %s: %w", dir, err)
 		}
 
-		name := entry.Name()
+		for _, entry := range entries {
+			filePath := filepath.Join(dir, entry.Name())
+			if entry.IsDir() {
+				if err := visit(filePath); err != nil {
+					return err
+				}
 
-		if !isSpecFile(name) {
-			continue
+				continue
+			}
+
+			if !isSpecFile(entry.Name()) {
+				continue
+			}
+
+			foundSpec = true
+
+			paths, readErr := parseSpecPaths(filePath, readFileFn)
+			if readErr != nil {
+				return fmt.Errorf("cannot parse %s: %w", filePath, readErr)
+			}
+
+			for path := range paths {
+				result[path] = struct{}{}
+			}
 		}
 
-		foundSpec = true
+		return nil
+	}
 
-		filePath := filepath.Join(apiDir, name)
-
-		paths, readErr := parseSpecPaths(filePath, readFileFn)
-		if readErr != nil {
-			return nil, fmt.Errorf("cannot parse %s: %w", name, readErr)
-		}
-
-		for p := range paths {
-			result[p] = struct{}{}
-		}
+	if err := visit(apiDir); err != nil {
+		return nil, err
 	}
 
 	if !foundSpec {

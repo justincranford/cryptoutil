@@ -12,6 +12,11 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const (
+	testSMKMSConfigSchemaFilename = "sm-kms-config-schema.yaml"
+	testSMKMSServerConfigFilename = "sm-kms-server.yml"
+)
+
 func TestClassifyFileType(t *testing.T) {
 	t.Parallel()
 
@@ -27,7 +32,7 @@ func TestClassifyFileType(t *testing.T) {
 		{name: "never file", filename: "postgres_url.secret.never", want: fileTypeSecret},
 		{name: "dockerfile", filename: "Dockerfile", want: fileTypeDocker},
 		{name: "config yaml", filename: "sm-kms-app-common.yml", want: fileTypeConfig},
-		{name: "config yaml alt", filename: "pki-ca-config-schema.yaml", want: fileTypeConfig},
+		{name: "config yaml alt", filename: testSMKMSConfigSchemaFilename, want: fileTypeConfig},
 		{name: "sql file", filename: "init-db.sql", want: fileTypeSQL},
 		{name: "markdown", filename: "README.md", want: fileTypeDoc},
 		{name: "json file", filename: "listings.json", want: fileTypeJSON},

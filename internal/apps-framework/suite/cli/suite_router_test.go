@@ -109,7 +109,6 @@ func TestRouteSuite_MultipleProducts(t *testing.T) {
 	}{
 		{productName: cryptoutilSharedMagic.IdentityProductName, expectedCode: 1},
 		{productName: cryptoutilSharedMagic.SkeletonProductName, expectedCode: 2},
-		{productName: cryptoutilSharedMagic.PKIProductName, expectedCode: 3},
 		{productName: cryptoutilSharedMagic.SMProductName, expectedCode: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries},
 	}
 

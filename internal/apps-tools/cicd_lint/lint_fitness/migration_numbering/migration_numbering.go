@@ -16,19 +16,32 @@ import (
 )
 
 const (
-	templateMigrationMin = 1001
-	templateMigrationMax = 1999
-	domainMigrationMin   = 2001
+	templateMigrationMin                           = 1001
+	templateMigrationMax                           = 1999
+	domainMigrationMin                             = 2001
+	migrationNumberingWalkAppsDirectoryErrorPrefix = "failed to walk apps directory"
 )
 
 // migrationFilePattern matches migration SQL files like "2001_name.up.sql" or "2001_name.down.sql".
 var migrationFilePattern = regexp.MustCompile(`^(\d+)_[a-z][a-z0-9_]*\.(up|down)\.sql$`)
 
-// Test seams: replaceable in tests for error path coverage.
-var (
-	pathAbsFunc = filepath.Abs
-	atoiFunc    = strconv.Atoi
-)
+type migrationNumberingOperations struct {
+	pathAbsFn func(string) (string, error)
+	atoiFn    func(string) (int, error)
+	statFn    func(string) (os.FileInfo, error)
+	walkFn    func(string, filepath.WalkFunc) error
+	readDirFn func(string) ([]os.DirEntry, error)
+}
+
+func productionMigrationNumberingOperations() migrationNumberingOperations {
+	return migrationNumberingOperations{
+		pathAbsFn: filepath.Abs,
+		atoiFn:    strconv.Atoi,
+		statFn:    os.Stat,
+		walkFn:    filepath.Walk,
+		readDirFn: os.ReadDir,
+	}
+}
 
 // legacyMigrationPaths contains migration directories that use legacy numbering (pre-2001 convention).
 // These are excluded from domain migration validation until they are migrated to the 2001+ scheme.
@@ -44,18 +57,22 @@ func Check(logger *cryptoutilCmdCicdCommon.Logger) error {
 
 // CheckInDir validates migration numbering under rootDir.
 func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
+	return checkInDirWithOperations(logger, rootDir, productionMigrationNumberingOperations())
+}
+
+func checkInDirWithOperations(logger *cryptoutilCmdCicdCommon.Logger, rootDir string, operations migrationNumberingOperations) error {
 	var errors []string
 
 	templateDir := filepath.Join(rootDir, cryptoutilSharedMagic.FrameworkInternalDir, "service", cryptoutilSharedMagic.CMD_SERVER, "repository", "migrations")
-	errors = append(errors, checkMigrationDir(templateDir, templateMigrationMin, templateMigrationMax, true)...)
+	errors = append(errors, checkMigrationDirWithOperations(templateDir, templateMigrationMin, templateMigrationMax, true, operations)...)
 
-	domainDirs, findErr := findDomainMigrationDirs(rootDir, templateDir)
+	domainDirs, findErr := findDomainMigrationDirsWithOperations(rootDir, templateDir, operations)
 	if findErr != nil {
 		return fmt.Errorf("failed to find domain migration directories: %w", findErr)
 	}
 
 	for _, dir := range domainDirs {
-		errors = append(errors, checkMigrationDir(dir, domainMigrationMin, 0, false)...)
+		errors = append(errors, checkMigrationDirWithOperations(dir, domainMigrationMin, 0, false, operations)...)
 	}
 
 	if len(errors) > 0 {
@@ -69,7 +86,11 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 
 // findDomainMigrationDirs finds all migrations/ directories under internal/apps/ excluding the template service dir.
 func findDomainMigrationDirs(rootDir, templateDir string) ([]string, error) {
-	absTemplateDir, err := pathAbsFunc(templateDir)
+	return findDomainMigrationDirsWithOperations(rootDir, templateDir, productionMigrationNumberingOperations())
+}
+
+func findDomainMigrationDirsWithOperations(rootDir, templateDir string, operations migrationNumberingOperations) ([]string, error) {
+	absTemplateDir, err := operations.pathAbsFn(templateDir)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get absolute path for template dir: %w", err)
 	}
@@ -77,20 +98,26 @@ func findDomainMigrationDirs(rootDir, templateDir string) ([]string, error) {
 	absLegacyPaths := make(map[string]bool, len(legacyMigrationPaths))
 
 	for _, lp := range legacyMigrationPaths {
-		absLP, lpErr := pathAbsFunc(filepath.Join(rootDir, lp))
-		if lpErr == nil {
-			absLegacyPaths[absLP] = true
+		absLP, lpErr := operations.pathAbsFn(filepath.Join(rootDir, lp))
+		if lpErr != nil {
+			return nil, fmt.Errorf("failed to get absolute path for legacy migration dir %s: %w", lp, lpErr)
 		}
+
+		absLegacyPaths[absLP] = true
 	}
 
 	var dirs []string
 
 	appsDir := filepath.Join(rootDir, "internal", "apps")
-	if _, statErr := os.Stat(appsDir); os.IsNotExist(statErr) {
-		return nil, fmt.Errorf("internal/apps directory not found at %s", appsDir)
+	if _, statErr := operations.statFn(appsDir); statErr != nil {
+		if os.IsNotExist(statErr) {
+			return nil, fmt.Errorf("internal/apps directory not found at %s", appsDir)
+		}
+
+		return nil, fmt.Errorf("failed to stat internal/apps directory %s: %w", appsDir, statErr)
 	}
 
-	walkErr := filepath.Walk(appsDir, func(path string, info os.FileInfo, walkErr error) error {
+	walkErr := operations.walkFn(appsDir, func(path string, info os.FileInfo, walkErr error) error {
 		if walkErr != nil {
 			return walkErr
 		}
@@ -108,7 +135,7 @@ func findDomainMigrationDirs(rootDir, templateDir string) ([]string, error) {
 			return nil
 		}
 
-		absPath, absErr := pathAbsFunc(path)
+		absPath, absErr := operations.pathAbsFn(path)
 		if absErr != nil {
 			return fmt.Errorf("failed to get absolute path: %w", absErr)
 		}
@@ -128,7 +155,7 @@ func findDomainMigrationDirs(rootDir, templateDir string) ([]string, error) {
 	sort.Strings(dirs)
 
 	if walkErr != nil {
-		return dirs, fmt.Errorf("failed to walk apps directory: %w", walkErr)
+		return dirs, fmt.Errorf("%s: %w", migrationNumberingWalkAppsDirectoryErrorPrefix, walkErr)
 	}
 
 	return dirs, nil
@@ -137,9 +164,13 @@ func findDomainMigrationDirs(rootDir, templateDir string) ([]string, error) {
 // checkMigrationDir validates migration files in a single directory.
 // If maxVersion is 0, there is no upper bound.
 func checkMigrationDir(dir string, minVersion, maxVersion int, isTemplate bool) []string {
+	return checkMigrationDirWithOperations(dir, minVersion, maxVersion, isTemplate, productionMigrationNumberingOperations())
+}
+
+func checkMigrationDirWithOperations(dir string, minVersion, maxVersion int, isTemplate bool, operations migrationNumberingOperations) []string {
 	var errors []string
 
-	entries, err := os.ReadDir(dir)
+	entries, err := operations.readDirFn(dir)
 	if err != nil {
 		if os.IsNotExist(err) {
 			return []string{fmt.Sprintf("%s: directory does not exist", dir)}
@@ -164,7 +195,7 @@ func checkMigrationDir(dir string, minVersion, maxVersion int, isTemplate bool) 
 			continue
 		}
 
-		version, parseErr := atoiFunc(matches[1])
+		version, parseErr := operations.atoiFn(matches[1])
 		if parseErr != nil {
 			errors = append(errors, fmt.Sprintf("%s/%s: failed to parse version number: %v", dir, name, parseErr))
 

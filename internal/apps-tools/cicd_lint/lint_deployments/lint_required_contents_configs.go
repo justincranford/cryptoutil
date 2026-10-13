@@ -23,8 +23,7 @@ func GetExpectedConfigsContents() map[string]string {
 	contents["identity-rs/"] = OptionalFileStatus                    // PS-ID: identity-rs
 	contents["identity-spa/"] = OptionalFileStatus                   // PS-ID: identity-spa
 	contents["sm-kms/"] = OptionalFileStatus                         // PS-ID: sm-kms
-	contents["pki-ca/"] = OptionalFileStatus                         // PS-ID: pki-ca
-	contents["pki-ca/profiles/"] = OptionalFileStatus                // certificate profiles
+	contents["sm-kms/profiles/"] = OptionalFileStatus                // PKI certificate profiles owned by sm-kms
 	contents["skeleton-template/"] = OptionalFileStatus              // PS-ID: skeleton-template
 
 	return contents

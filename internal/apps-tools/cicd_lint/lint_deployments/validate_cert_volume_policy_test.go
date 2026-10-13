@@ -35,8 +35,8 @@ func TestValidateCertVolumePolicy(t *testing.T) {
 		},
 		{
 			name:           "missing top-level volume declaration",
-			deploymentName: cryptoutilSharedMagic.OTLPServicePKICA,
-			composeContent: "services:\n  pki-init:\n    volumes:\n      - pki-ca-certs:/certs\n",
+			deploymentName: cryptoutilSharedMagic.OTLPServiceIdentityAuthz,
+			composeContent: "services:\n  pki-init:\n    volumes:\n      - identity-authz-certs:/certs\n",
 			wantValid:      false,
 			wantErrText:    "missing top-level named volume declaration",
 		},

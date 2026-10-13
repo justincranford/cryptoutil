@@ -170,7 +170,7 @@ func TestLoginUser_MissingToken(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		_ = json.NewEncoder(w).Encode(map[string]string{
-			"message": "login successful",
+			cryptoutilSharedMagic.StringMessage: "login successful",
 		})
 	}))
 	defer server.Close()

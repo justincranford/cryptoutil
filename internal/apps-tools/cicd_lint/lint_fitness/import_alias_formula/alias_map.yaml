@@ -59,11 +59,11 @@ internal_aliases:
     alias: cryptoutilOpenapiModel
   - import_path: "cryptoutil/api/server"
     alias: cryptoutilOpenapiServer
-  - import_path: "cryptoutil/api/pki-ca/client"
+  - import_path: "cryptoutil/api/sm-kms/pki/client"
     alias: cryptoutilApiCaClient
-  - import_path: "cryptoutil/api/pki-ca/models"
+  - import_path: "cryptoutil/api/sm-kms/pki/models"
     alias: cryptoutilApiCaModels
-  - import_path: "cryptoutil/api/pki-ca/server"
+  - import_path: "cryptoutil/api/sm-kms/pki/server"
     alias: cryptoutilApiCaServer
   - import_path: "cryptoutil/api/identity-authz"
     alias: cryptoutilApiIdentityAuthz

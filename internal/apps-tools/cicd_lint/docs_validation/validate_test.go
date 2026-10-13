@@ -149,7 +149,7 @@ func TestLoadPropagationsManifest(t *testing.T) {
 
 			if tc.wantLen > 0 {
 				require.Equal(t, "rfc-2119-keywords", manifest.RequiredPropagations[0].ChunkID)
-				require.Equal(t, "docs/ENG-HANDBOOK.md", manifest.RequiredPropagations[0].SourceFile)
+				require.Equal(t, cryptoutilSharedMagic.CICDDocsHandbookPath, manifest.RequiredPropagations[0].SourceFile)
 				require.Len(t, manifest.RequiredPropagations[0].RequiredTargets, 1)
 			}
 		})
@@ -182,22 +182,22 @@ some content
 	}{
 		{
 			name:       "happy path",
-			files:      map[string]string{"docs/ENG-HANDBOOK.md": minimalArchitectureContent()},
+			files:      map[string]string{cryptoutilSharedMagic.CICDDocsHandbookPath: minimalArchitectureContent()},
 			wantChunks: []string{"emphasis-keywords", "rfc-2119-keywords"},
 		},
 		{
 			name:       "deduplicated",
-			files:      map[string]string{"docs/ENG-HANDBOOK.md": deduplicatedContent},
+			files:      map[string]string{cryptoutilSharedMagic.CICDDocsHandbookPath: deduplicatedContent},
 			wantChunks: []string{"my-chunk"},
 		},
 		{
 			name:       "filters invalid chunk IDs",
-			files:      map[string]string{"docs/ENG-HANDBOOK.md": grammarFilterContent},
+			files:      map[string]string{cryptoutilSharedMagic.CICDDocsHandbookPath: grammarFilterContent},
 			wantChunks: []string{"valid-chunk"},
 		},
 		{
 			name:  "empty file",
-			files: map[string]string{"docs/ENG-HANDBOOK.md": ""},
+			files: map[string]string{cryptoutilSharedMagic.CICDDocsHandbookPath: ""},
 		},
 		{
 			name:    "file not found",

@@ -62,7 +62,7 @@ func TestRotateKey_TooLongReason(t *testing.T) {
 			err = json.Unmarshal(respBody, &errResp)
 			require.NoError(t, err)
 			require.Equal(t, rotationErrorCodeValidation, errResp[cryptoutilSharedMagic.StringError])
-			require.Contains(t, errResp["message"], "at most 500 characters")
+			require.Contains(t, errResp[cryptoutilSharedMagic.StringMessage], "at most 500 characters")
 		})
 	}
 }
@@ -97,7 +97,7 @@ func TestRotateKey_InvalidJSON(t *testing.T) {
 			err = json.Unmarshal(respBody, &errResp)
 			require.NoError(t, err)
 			require.Equal(t, rotationErrorCodeInvalidRequestBody, errResp[cryptoutilSharedMagic.StringError])
-			require.Contains(t, errResp["message"], rotationErrorMessageInvalidRequestBody)
+			require.Contains(t, errResp[cryptoutilSharedMagic.StringMessage], rotationErrorMessageInvalidRequestBody)
 		})
 	}
 }
@@ -116,9 +116,9 @@ func TestHandleRotateRootKey_RotationFailed(t *testing.T) {
 	require.NoError(t, err)
 	t.Cleanup(func() { telemetryService.Shutdown() })
 
-	jwkGenService, err := cryptoutilSharedCryptoJose.NewJWKGenService(ctx, telemetryService, false)
+	jwkGenService, err := newBarrierTestJWKGenService(ctx, telemetryService)
 	require.NoError(t, err)
-	t.Cleanup(func() { jwkGenService.Shutdown() })
+	t.Cleanup(func() { shutdownBarrierTestJWKGenService(jwkGenService) })
 
 	// Generate unseal JWK for testing.
 	_, unsealJWK, _, _, _, err := jwkGenService.GenerateJWEJWK(&cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
@@ -154,7 +154,7 @@ func TestHandleRotateRootKey_RotationFailed(t *testing.T) {
 	err = json.Unmarshal(respBody, &errResp)
 	require.NoError(t, err)
 	require.Equal(t, rotationErrorCodeRotationFailed, errResp[cryptoutilSharedMagic.StringError])
-	require.Contains(t, errResp["message"], "Failed to rotate root key")
+	require.Contains(t, errResp[cryptoutilSharedMagic.StringMessage], "Failed to rotate root key")
 }
 
 // TestHandleRotateIntermediateKey_RotationFailed tests that HandleRotateIntermediateKey returns error on rotation failure.
@@ -171,9 +171,9 @@ func TestHandleRotateIntermediateKey_RotationFailed(t *testing.T) {
 	require.NoError(t, err)
 	t.Cleanup(func() { telemetryService.Shutdown() })
 
-	jwkGenService, err := cryptoutilSharedCryptoJose.NewJWKGenService(ctx, telemetryService, false)
+	jwkGenService, err := newBarrierTestJWKGenService(ctx, telemetryService)
 	require.NoError(t, err)
-	t.Cleanup(func() { jwkGenService.Shutdown() })
+	t.Cleanup(func() { shutdownBarrierTestJWKGenService(jwkGenService) })
 
 	// Generate unseal JWK for testing.
 	_, unsealJWK, _, _, _, err := jwkGenService.GenerateJWEJWK(&cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
@@ -209,7 +209,7 @@ func TestHandleRotateIntermediateKey_RotationFailed(t *testing.T) {
 	err = json.Unmarshal(respBody, &errResp)
 	require.NoError(t, err)
 	require.Equal(t, rotationErrorCodeRotationFailed, errResp[cryptoutilSharedMagic.StringError])
-	require.Contains(t, errResp["message"], "Failed to rotate intermediate key")
+	require.Contains(t, errResp[cryptoutilSharedMagic.StringMessage], "Failed to rotate intermediate key")
 }
 
 // TestHandleRotateContentKey_RotationFailed tests that HandleRotateContentKey returns error on rotation failure.
@@ -226,9 +226,9 @@ func TestHandleRotateContentKey_RotationFailed(t *testing.T) {
 	require.NoError(t, err)
 	t.Cleanup(func() { telemetryService.Shutdown() })
 
-	jwkGenService, err := cryptoutilSharedCryptoJose.NewJWKGenService(ctx, telemetryService, false)
+	jwkGenService, err := newBarrierTestJWKGenService(ctx, telemetryService)
 	require.NoError(t, err)
-	t.Cleanup(func() { jwkGenService.Shutdown() })
+	t.Cleanup(func() { shutdownBarrierTestJWKGenService(jwkGenService) })
 
 	// Generate unseal JWK for testing.
 	_, unsealJWK, _, _, _, err := jwkGenService.GenerateJWEJWK(&cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
@@ -264,5 +264,5 @@ func TestHandleRotateContentKey_RotationFailed(t *testing.T) {
 	err = json.Unmarshal(respBody, &errResp)
 	require.NoError(t, err)
 	require.Equal(t, rotationErrorCodeRotationFailed, errResp[cryptoutilSharedMagic.StringError])
-	require.Contains(t, errResp["message"], "Failed to rotate content key")
+	require.Contains(t, errResp[cryptoutilSharedMagic.StringMessage], "Failed to rotate content key")
 }

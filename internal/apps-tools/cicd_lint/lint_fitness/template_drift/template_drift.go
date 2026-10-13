@@ -133,8 +133,8 @@ func CompareExpectedFS(expected map[string]string, projectRoot string) error {
 }
 
 // chooseComparison selects the comparison strategy for each file path.
-// pki-ca compose uses superset (allows domain-specific extra volume mounts).
-// pki-ca framework common config uses prefix (allows domain-specific CRL additions).
+// sm-kms compose uses superset (allows PKI domain-specific extra volume mounts).
+// sm-kms framework common config uses prefix (allows PKI domain-specific CRL additions).
 // Standalone configs use prefix (allows domain-specific additions after framework settings).
 // Secrets files with __BASE64_CHAR43__ use length-based matching.
 // All other files use exact comparison.
@@ -142,12 +142,12 @@ func chooseComparison(relPath, expected, actual string) string {
 	normalized := filepath.ToSlash(relPath)
 
 	switch {
-	case strings.Contains(normalized, "deployments/pki-ca/compose.yml"):
+	case strings.Contains(normalized, "deployments/sm-kms/compose.yml"):
 		return compareSupersetOrdered(
 			normalizeCommentAlignment(expected),
 			normalizeCommentAlignment(actual),
 		)
-	case strings.Contains(normalized, "deployments/pki-ca/config/pki-ca-app-framework-common.yml"):
+	case strings.Contains(normalized, "deployments/sm-kms/config/sm-kms-app-framework-common.yml"):
 		return comparePrefix(expected, actual)
 	case strings.HasPrefix(normalized, "configs/") && strings.HasSuffix(normalized, "-framework.yml"):
 		return comparePrefix(expected, actual)

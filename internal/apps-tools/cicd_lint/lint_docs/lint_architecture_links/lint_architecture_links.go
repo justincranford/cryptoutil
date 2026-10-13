@@ -32,7 +32,7 @@ var targetRelDirs = []string{
 }
 
 // architectureMdRelPath is the path to ENG-HANDBOOK.md relative to the project root.
-const architectureMdRelPath = "docs/ENG-HANDBOOK.md"
+const architectureMdRelPath = cryptoutilSharedMagic.CICDDocsHandbookPath
 
 // Check runs the lint-architecture-links check, automatically finding the project root.
 func Check(logger *cryptoutilCmdCicdCommon.Logger) error {

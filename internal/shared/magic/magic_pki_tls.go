@@ -15,19 +15,6 @@ package magic
 //
 // Note: sm-kms Cat 3 CNs are defined in magic_otel_e2e.go (AppSMKMS*ServerCertCN).
 const (
-	// --- pki-ca ---.
-
-	// AppPKICASQLite1ServerCertCN is the Cat 3 server cert CN for pki-ca-app-sqlite-1.
-	AppPKICASQLite1ServerCertCN = "public-https-server-entity-pki-ca-sqlite-1"
-
-	// AppPKICASQLite2ServerCertCN is the Cat 3 server cert CN for pki-ca-app-sqlite-2.
-	AppPKICASQLite2ServerCertCN = "public-https-server-entity-pki-ca-sqlite-2"
-
-	// AppPKICAPostgres1ServerCertCN is the Cat 3 server cert CN for pki-ca-app-postgres-1.
-	AppPKICAPostgres1ServerCertCN = "public-https-server-entity-pki-ca-postgres-1"
-
-	// AppPKICAPostgres2ServerCertCN is the Cat 3 server cert CN for pki-ca-app-postgres-2.
-	AppPKICAPostgres2ServerCertCN = "public-https-server-entity-pki-ca-postgres-2"
 
 	// --- identity-authz ---.
 

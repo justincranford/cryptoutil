@@ -309,7 +309,7 @@ func TestAdminServer_HealthChecks_DuringShutdown(t *testing.T) {
 			unmarshalErr := json.Unmarshal(body, &result)
 			require.NoError(t, unmarshalErr)
 
-			assert.Equal(t, "shutting down", result[cryptoutilSharedMagic.StringStatus])
+			assert.Equal(t, cryptoutilSharedMagic.StringStatusShuttingDown, result[cryptoutilSharedMagic.StringStatus])
 		}
 	}
 

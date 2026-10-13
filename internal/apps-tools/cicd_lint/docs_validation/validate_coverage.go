@@ -74,7 +74,7 @@ func LoadPropagationsManifest(readFile func(string) ([]byte, error)) (*Propagati
 
 // ExtractPropagateChunks returns all chunk IDs declared in ENG-HANDBOOK.md @to-appendix markers.
 func ExtractPropagateChunks(readFile func(string) ([]byte, error)) ([]string, error) {
-	data, err := readFile("docs/ENG-HANDBOOK.md")
+	data, err := readFile(cryptoutilSharedMagic.CICDDocsHandbookPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read docs/ENG-HANDBOOK.md: %w", err)
 	}
@@ -126,7 +126,7 @@ func ExtractPropagateChunks(readFile func(string) ([]byte, error)) ([]string, er
 }
 
 func extractToAppendixMappings(readFile func(string) ([]byte, error)) (map[string][]string, map[string]int, []string, error) {
-	data, err := readFile("docs/ENG-HANDBOOK.md")
+	data, err := readFile(cryptoutilSharedMagic.CICDDocsHandbookPath)
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("failed to read docs/ENG-HANDBOOK.md: %w", err)
 	}

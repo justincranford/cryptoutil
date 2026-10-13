@@ -107,7 +107,7 @@ func TestGetServiceConfig(t *testing.T) {
 	}{
 		{name: "exact match sm-kms", serviceName: cryptoutilSharedMagic.OTLPServiceSMKMS, wantNil: false, wantName: cryptoutilSharedMagic.OTLPServiceSMKMS},
 		{name: "prefix match sm-kms-postgres", serviceName: "sm-kms-postgres", wantNil: false, wantName: cryptoutilSharedMagic.OTLPServiceSMKMS},
-		{name: "prefix match pki-ca-sqlite", serviceName: "pki-ca-sqlite", wantNil: false, wantName: cryptoutilSharedMagic.OTLPServicePKICA},
+		{name: "retired pki-ca service", serviceName: cryptoutilSharedMagic.RetiredPKICAServiceID, wantNil: true, wantName: ""},
 		{name: "unknown service", serviceName: "unknown-service", wantNil: true, wantName: ""},
 		{name: "empty string", serviceName: "", wantNil: true, wantName: ""},
 	}
@@ -148,7 +148,7 @@ func TestIsPortInValidRange(t *testing.T) {
 		{name: "admin port cryptoutilSharedMagic.TestAdminPort", port: cryptoutilSharedMagic.IdentityDefaultAuthZAdminPort, cfg: smIMConfig, want: true},
 		{name: "range port 8050", port: 8050, cfg: smIMConfig, want: true},                                                                                                       // In range 8000-8099
 		{name: "range port 8099", port: 8099, cfg: smIMConfig, want: true},                                                                                                       // Last in range
-		{name: "out of range cryptoutilSharedMagic.PKICAServicePort", port: cryptoutilSharedMagic.PKICAServicePort, cfg: smIMConfig, want: false},                                // Out of range (pki-ca territory)
+		{name: "out of range cryptoutilSharedMagic.RetiredPKICAServicePort", port: cryptoutilSharedMagic.RetiredPKICAServicePort, cfg: smIMConfig, want: false},                  // Out of range (pki-ca territory)
 		{name: "range port 8060", port: 8060, cfg: smIMConfig, want: true},                                                                                                       // In range 8000-8099
 		{name: "legacy port cryptoutilSharedMagic.DefaultPublicPortInternalMetrics", port: cryptoutilSharedMagic.DefaultPublicPortInternalMetrics, cfg: smIMConfig, want: false}, // Legacy
 	}

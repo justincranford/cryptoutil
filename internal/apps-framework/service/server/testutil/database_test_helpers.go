@@ -87,7 +87,7 @@ func NewInitializedSQLiteTestDatabase(ctx context.Context, migrationsFS fs.FS, i
 
 	if inMemory {
 		// Unique in-memory database (prevents cross-test pollution).
-		databaseURL = fmt.Sprintf("file:%s?mode=memory&cache=shared", googleUuid.NewString())
+		databaseURL = fmt.Sprintf(cryptoutilSharedMagic.SQLiteInMemoryNamedDSNFormat, googleUuid.NewString())
 	} else {
 		// Unique file-based database in OS temp directory (not current working directory).
 		tempFile = filepath.Join(os.TempDir(), fmt.Sprintf("cryptoutil-test-%s.db", googleUuid.NewString()))

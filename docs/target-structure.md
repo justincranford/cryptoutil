@@ -9,7 +9,7 @@ This document supersedes framework-v5/target-structure.md (deleted — git histo
 
 **RULE**: Everything listed here MUST exist. Everything NOT listed is deleted.
 
-**Directory/File Count Derivation Principle**: All file and directory counts in this document MUST be shown as a formula derived from the entity multipliers above (e.g., `4 global + 12×10 PS-IDs = 124`). Raw counts without formulas are unverifiable during review.
+**Directory/File Count Derivation Principle**: All file and directory counts in this document MUST be shown as a formula derived from the entity multipliers above (e.g., `30 global + 60×7 PS-IDs = 450`). Raw counts without formulas are unverifiable during review.
 
 ---
 
@@ -18,19 +18,20 @@ This document supersedes framework-v5/target-structure.md (deleted — git histo
 | Level | Variable | Instances | Count |
 |-------|----------|-----------|-------|
 | Suite | `{SUITE}` | `cryptoutil` | 1 |
-| Product | `{PRODUCT}` | `sm`, `jose`, `pki`, `identity`, `skeleton` | 5 |
-| Service | `{SERVICE}` | varies per product (see below) | 10 total |
-| PS-ID | `{PS-ID}` = `{PRODUCT}-{SERVICE}` | see table below | 10 |
-| PS_ID | `{PS_ID}` = `{PRODUCT}_{SERVICE}` | underscore variant for SQL/secrets | 8 |
+| Product | `{PRODUCT}` | `sm`, `identity`, `skeleton` | 3 |
+| Service | `{SERVICE}` | varies per product (see below) | 7 total |
+| PS-ID | `{PS-ID}` = `{PRODUCT}-{SERVICE}` | see table below | 7 |
+| PS_ID | `{PS_ID}` = `{PRODUCT}_{SERVICE}` | underscore variant for SQL/secrets | 7 |
 | Infra Tool | N/A | `cicd-lint`, `cicd-workflow` | 2 |
 | Framework | N/A | `framework` | 1 |
 
 ### Product-Service Matrix
 
+PKI is a domain capability within `sm-kms`; it is not a separate product-service.
+
 | PS-ID | PS_ID | Product | Service | Display Name |
 |-------|-------|---------|---------|-------------|
 | `sm-kms` | `sm_kms` | sm | kms | Secrets Manager Key Management |
-| `pki-ca` | `pki_ca` | pki | ca | PKI Certificate Authority |
 | `identity-authz` | `identity_authz` | identity | authz | Identity Authorization Server |
 | `identity-idp` | `identity_idp` | identity | idp | Identity Provider |
 | `identity-rs` | `identity_rs` | identity | rs | Identity Resource Server |
@@ -273,36 +274,31 @@ enforced by lint-fitness `cmd-ps-id-template`, `cmd-product-template`, `cmd-suit
 | `cmd/{SUITE}/` | `main.go` | `package main`; imports `os` + `cryptoutil/internal/apps/{SUITE}`; calls `os.Exit(<alias>.Suite(os.Args, os.Stdin, os.Stdout, os.Stderr))` — uses full `os.Args`, NOT `os.Args[1:]` |
 
 ```
-cmd/                                                  # drwxr-x---  (18 flat entries)
+cmd/                                                  # drwxr-x---  (13 flat entries)
 │
 │   # {SUITE}/main.go — Suite CLI → internal/apps/{SUITE}/ (×1)
 ├── cryptoutil/main.go                                # {SUITE}=cryptoutil
 │
-│   # {PRODUCT}/main.go — Product CLI → internal/apps/{PRODUCT}/ (×5)
+│   # {PRODUCT}/main.go — Product CLI → internal/apps/{PRODUCT}/ (×3)
 ├── identity/main.go                                  # {PRODUCT}=identity
-├── jose/main.go                                      # {PRODUCT}=jose
-├── pki/main.go                                       # {PRODUCT}=pki
 ├── skeleton/main.go                                  # {PRODUCT}=skeleton
 ├── sm/main.go                                        # {PRODUCT}=sm
 │
-│   # {PS-ID}/main.go — Service CLI → internal/apps/{PS-ID}/ (×10)
+│   # {PS-ID}/main.go — Service CLI → internal/apps/{PS-ID}/ (×7)
 ├── identity-authz/main.go                            # {PS-ID}=identity-authz
 ├── identity-idp/main.go                              # {PS-ID}=identity-idp
 ├── identity-rp/main.go                               # {PS-ID}=identity-rp
 ├── identity-rs/main.go                               # {PS-ID}=identity-rs
 ├── identity-spa/main.go                              # {PS-ID}=identity-spa
 ├── sm-kms/main.go                                   # {PS-ID}=sm-kms
-├── pki-ca/main.go                                    # {PS-ID}=pki-ca
 ├── skeleton-template/main.go                         # {PS-ID}=skeleton-template
-├── sm-kms/main.go                                     # {PS-ID}=sm-kms
-├── sm-kms/main.go                                    # {PS-ID}=sm-kms
 │
 │   # {INFRA-TOOL}/main.go — Infrastructure tools (×2)
 ├── cicd-lint/main.go                                 # {INFRA-TOOL}=cicd-lint
 └── cicd-workflow/main.go                             # {INFRA-TOOL}=cicd-workflow
 ```
 
-**Total**: 18 flat entries (1 suite + 5 products + 10 services + 2 infra tools).
+**Total**: 13 flat entries (1 suite + 3 products + 7 services + 2 infra tools).
 
 ---
 
@@ -367,7 +363,7 @@ api/                                                  # drwxr-x---
 │               ├── compose.yml
 │               └── otel/
 │                   └── otel-collector-config.yaml
-├── {PS-ID}/                                          # One dir per service (×10)
+├── {PS-ID}/                                          # One dir per service (×7)
 │   ├── openapi_spec_components.yaml                  #   Reusable components
 │   ├── openapi_spec_paths.yaml                       #   API endpoints
 │   ├── openapi-gen_config_client.yaml                #   oapi-codegen client config
@@ -381,8 +377,8 @@ api/                                                  # drwxr-x---
 │       └── server.gen.go
 ```
 
-**All 10 PS-IDs**: `identity-authz`, `identity-idp`, `identity-rp`, `identity-rs`,
-`identity-spa`, `sm-kms`, `pki-ca`, `skeleton-template`.
+**All 7 PS-IDs**: `identity-authz`, `identity-idp`, `identity-rp`, `identity-rs`,
+`identity-spa`, `sm-kms`, `skeleton-template`.
 
 ---
 
@@ -413,52 +409,43 @@ Products (cmd/identity, cmd/sm, etc.) are CLI dispatchers that recurse to their
 constituent service binaries — they do not have their own config files. All config
 is at the service level (E.3) or suite level (E.1).
 
-### E.3 Service Configs (8 services — FLAT `configs/{PS-ID}/`)
+### E.3 Service Configs (7 services - FLAT `configs/{PS-ID}/`)
 
-Each service has its own flat directory at `configs/{PS-ID}/` containing exactly
-one config file named `{PS-ID}.yml`. NO nested product subdirectories.
-
-Config file name pattern: `{PS-ID}.yml` (e.g., `sm-kms.yml`, NOT `im.yml`).
+Each PS-ID has a flat directory containing domain and framework configuration. PKI settings and certificate profiles are nested under `sm-kms`.
 
 ```
 configs/
-├── identity-authz/
-│   ├── identity-authz.yml                 # Service config for identity-authz
-│   └── domain/                            # Exception: authorization domain configs (Decision 4=A)
-│       └── policies/
-│           ├── adaptive-authorization.yml # RENAMED from adaptive-auth.yml (`auth` is a banned term because it is ambiguous)
-│           ├── risk-scoring.yml
-│           └── step-up.yml
-├── identity-idp/
-│   └── identity-idp.yml
-├── identity-rp/
-│   └── identity-rp.yml
-├── identity-rs/
-│   └── identity-rs.yml
-├── identity-spa/
-│   └── identity-spa.yml
-├── sm-kms/
-│   └── sm-kms.yml
-├── pki-ca/
-│   ├── pki-ca.yml
-│   └── profiles/                          # Exception: certificate profiles (Decision 3=B)
-│       │                                  # 25 YAML certificate profile definitions;
-│       │                                  # valid subdir because they are real config data,
-│       │                                  # NOT deployment variants or schema
-│       └── (25 *.yaml profile files)      # e.g. root-ca.yaml, tls-server.yaml, etc.
-├── skeleton-template/
-│   └── skeleton-template.yml
-├── sm-kms/
-│   └── sm-kms.yml
-└── sm-kms/
-    └── sm-kms.yml
+|-- identity-authz/
+|   |-- identity-authz-domain.yml
+|   |-- identity-authz-framework.yml
+|   `-- domain/policies/
+|-- identity-idp/
+|   |-- identity-idp-domain.yml
+|   `-- identity-idp-framework.yml
+|-- identity-rp/
+|   |-- identity-rp-domain.yml
+|   `-- identity-rp-framework.yml
+|-- identity-rs/
+|   |-- identity-rs-domain.yml
+|   `-- identity-rs-framework.yml
+|-- identity-spa/
+|   |-- identity-spa-domain.yml
+|   `-- identity-spa-framework.yml
+|-- skeleton-template/
+|   |-- skeleton-template-domain.yml
+|   `-- skeleton-template-framework.yml
+`-- sm-kms/
+    |-- pki-domain.yml
+    |-- sm-kms-domain.yml
+    |-- sm-kms-framework.yml
+    `-- profiles/                        # X.509 certificate profiles
 ```
 
 ---
 
 ## F. deployments/ — Service Deployments `drwxr-x---`
 
-### F.1 Per-Service Deployment (10 services × identical pattern)
+### F.1 Per-Service Deployment (7 services × identical pattern)
 
 Each service has exactly the same structure. 5 config overlay files (NOT 4).
 
@@ -489,11 +476,9 @@ deployments/{PS-ID}/                                  # drwxr-x---
     └── unseal-5of5.secret                            #   {PS-ID}-unseal-key-5-of-5-{base64-random-32-bytes}
 ```
 
-**All 10 services** (`identity-authz`, `identity-idp`, `identity-rp`, `identity-rs`,
-`identity-spa`, `sm-kms`, `pki-ca`, `skeleton-template`) follow
-this identical structure.
+**All 7 services** (`identity-authz`, `identity-idp`, `identity-rp`, `identity-rs`, `identity-spa`, `sm-kms`, and `skeleton-template`) follow this identical structure.
 
-### F.2 Per-Product Deployment (5 products)
+### F.2 Per-Product Deployment (3 products)
 
 Each product has a deployment directory with a compose.yml and secrets. Product-level
 Dockerfiles are intentionally absent; PRODUCT domains reuse included PS-ID builders and PS-ID images.
@@ -520,7 +505,7 @@ deployments/{PRODUCT}/                                # drwxr-x---
 
 **Total per product**: 4 `.secret.never` + 10 `.secret` = 14 files + compose.yml.
 
-**All 5 products** (`identity`, `jose`, `pki`, `skeleton`, `sm`) follow this identical structure.
+**All 3 products** (`identity`, `skeleton`, `sm`) follow this identical structure.
 
 ### F.3 Suite Deployment
 
@@ -587,7 +572,7 @@ that reuse PS-ID builder services and PS-ID images.
 | `HEALTHCHECK` | `CMD /app/{PS-ID} livez || exit 1` |
 | `ENTRYPOINT` | `["/sbin/tini", "--", "/app/{PS-ID}"]` |
 
-**Current state**: 10 PS-ID Dockerfiles exist. 0 product-level Dockerfiles exist. 0 suite-level Dockerfiles exist. This is the intended 10-image deployment model.
+**Current state**: 7 PS-ID Dockerfiles exist. 0 product-level Dockerfiles exist. 0 suite-level Dockerfiles exist. This is the intended 10-image deployment model.
 
 ---
 
@@ -615,7 +600,7 @@ enforced by lint-fitness `apps-suite-template`, `apps-product-template`.
 | `cryptoutil_test.go` | **REQUIRED** | Suite router tests |
 | `e2e/` | OPTIONAL | Full-suite E2E tests |
 
-**Product rigid structure** (`internal/apps/{PRODUCT}/` — 5 products):
+**Product rigid structure** (`internal/apps/{PRODUCT}/` — 3 products):
 
 | File/Dir | Status | Purpose |
 |----------|--------|---------|
@@ -628,9 +613,7 @@ enforced by lint-fitness `apps-suite-template`, `apps-product-template`.
 
 | Product | Forbidden dirs | Correct location |
 |---------|---------------|-----------------|
-| `sm/` | `im/`, `kms/` | `internal/apps/sm-kms/`, `internal/apps/sm-kms/` |
-| `jose/` | `ja/` | `internal/apps/sm-kms/` |
-| `pki/` | `ca/` | `internal/apps/pki-ca/` |
+| `sm/` | `im/`, `kms/` | `internal/apps/sm-kms/` |
 | `skeleton/` | `template/` | `internal/apps/skeleton-template/` |
 
 ```
@@ -641,8 +624,8 @@ internal/apps/                                        # drwxr-x---
 │   ├── cryptoutil.go                                 #   REQUIRED: Suite CLI dispatch
 │   └── cryptoutil_test.go                            #   REQUIRED: Suite tests
 │
-│   # Products (×5)
-├── {PRODUCT}/                                        # identity, jose, pki, skeleton, sm
+│   # Products (×3)
+├── {PRODUCT}/                                        # identity, skeleton, sm
 │   ├── {PRODUCT}.go                                  #   REQUIRED: Product CLI dispatch
 │   ├── {PRODUCT}_test.go                             #   REQUIRED: Product tests
 │   └── (shared packages only)/                       #   OPTIONAL: NO service subdirectories
@@ -658,7 +641,7 @@ enforced by lint-fitness `apps-ps-id-template`.
 **ROOT FILE RULE**: ALL files at the PS-ID root MUST start with the `{SERVICE}_` prefix.
 The root contains ONLY CLI integration code — no server logic, no HTTP handlers, no OpenAPI.
 
-**PS-ID root rigid structure** (CLI files only — all 10 PS-IDs):
+**PS-ID root rigid structure** (CLI files only — all 7 PS-IDs):
 
 | File/Dir | Status | Purpose |
 |----------|--------|---------|
@@ -682,24 +665,11 @@ The root contains ONLY CLI integration code — no server logic, no HTTP handler
 | `{SERVICE}_port_conflict_test.go` | **REQUIRED** | Deterministic failure when ports already in use |
 | `public_server.go` | OPTIONAL | Public API server (absent in sm-kms legacy structure) |
 
-**Current gap matrix** (✓ = correct location · MOVE = exists at PS-ID root, must migrate to `server/` · MISS = does not exist anywhere):
+**PKI Consolidation**: The former CA service implementation now lives under `internal/apps/sm-kms/server/pki/`. PKI is a KMS domain capability and has no separate CLI, PS-ID, deployment, or port assignment.
 
-| Invariant | sm-kms | pki-ca | id-authz | id-idp | id-rs | id-rp | id-spa | skel-tmpl |
-|-----------|:------:|:-----:|:-------:|:------:|:--------:|:------:|:-----:|:-----:|:------:|:---------:|
-| root `{SVC}.go` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| root `{SVC}_usage.go` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| root `{SVC}_test.go` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| `server/server.go` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| `server/swagger.go` | MOVE | MOVE | MOVE | MOVE | MOVE | MOVE | MOVE | **MISS** | **MISS** | MOVE |
-| `server/swagger_test.go` | MOVE | MOVE | MOVE | MOVE | MOVE | MOVE | MOVE | **MISS** | **MISS** | MOVE |
-| `server/testmain_test.go` | **MISS** | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| `server/{SVC}_lifecycle_test.go` | MOVE | MOVE | MOVE | MOVE¹ | MOVE² | MOVE² | **MISS** | **MISS** | **MISS** | MOVE |
-| `server/{SVC}_port_conflict_test.go` | MOVE | MOVE | MOVE | MOVE | **MISS** | **MISS** | **MISS** | **MISS** | **MISS** | MOVE |
+**Active PS-ID set**: `sm-kms` (including PKI), `identity-authz`, `identity-idp`, `identity-rp`, `identity-rs`, `identity-spa`, and `skeleton-template`.
 
-¹ pki-ca `server/` has `server_lifecycle_test.go` — rename to `ca_lifecycle_test.go` on move.
-² identity-authz/idp have `service_lifecycle_test.go` at root — rename to `authz_`/`idp_lifecycle_test.go` on move.
-
-**{SVC} = service component** (`kms`, `im`, `ja`, `ca`, `authz`, `idp`, `rs`, `rp`, `spa`, `template`)
+**{SVC} = service component** (`kms`, `authz`, `idp`, `rs`, `rp`, `spa`, `template`)
 
 ```
 ├── {PS-ID}/                                          # Flat PS-ID directory (×10 total)
@@ -720,7 +690,7 @@ The root contains ONLY CLI integration code — no server logic, no HTTP handler
 │   └── (domain packages)/                            #   OPTIONAL: Varies by service complexity
 ```
 
-**Concrete service subdirectories** (discovered from actual codebase):
+**Concrete top-level service subdirectories** (PKI packages are nested under `sm-kms/server/pki/`):
 
 | PS-ID | Subdirectories |
 |-------|---------------|
@@ -729,11 +699,8 @@ The root contains ONLY CLI integration code — no server logic, no HTTP handler
 | `identity-rp` | `client/`, `e2e/`, `server/`, `unified/` |
 | `identity-rs` | `client/`, `e2e/`, `server/`, `unified/` |
 | `identity-spa` | `client/`, `e2e/`, `server/`, `unified/` |
-| `sm-kms` | `client/`, `e2e/`, `model/`, `repository/`, `server/`, `service/` |
-| `pki-ca` | `api/`, `bootstrap/`, `cli/`, `compliance/`, `config/`, `crypto/`, `domain/`, `domain-v2/`, `intermediate/`, `observability/`, `profile/`, `repository-v2/`, `security/`, `server/`, `service/`, `storage/` |
+| `sm-kms` | `client/`, `e2e/`, `server/` (PKI domain in `server/pki/`) |
 | `skeleton-template` | `client/`, `domain/`, `e2e/`, `repository/`, `server/` |
-| `sm-kms` | `client/`, `e2e/`, `integration/`, `model/`, `repository/`, `server/`, `testing/` |
-| `sm-kms` | `client/`, `e2e/`, `server/` |
 
 **Identity shared packages** (at `internal/apps/identity/`, shared across identity services):
 
@@ -877,16 +844,15 @@ internal/shared/                                      # drwxr-x---
 │   ├── magic_identity_testing.go                     # Identity testing
 │   ├── magic_identity_timeouts.go                    # Identity timeouts
 │   ├── magic_identity_uris.go                        # Identity URIs
-│   ├── magic_jose.go                                 # JOSE product constants
+│   ├── magic_jose_shared.go                         # Shared JOSE capability constants
 │   ├── magic_memory.go                               # Memory constants
 │   ├── magic_misc.go
 │   ├── magic_network.go
 │   ├── magic_orchestration.go
 │   ├── magic_percent.go
-│   ├── magic_pki.go                                  # PKI product constants
 │   ├── magic_pkiinit.go                              # PKI init constants
 │   ├── magic_pkix.go                                 # PKIX constants
-│   ├── magic_pki_ca.go                               # PKI-CA service constants
+│   ├── magic_pki_ca.go                               # KMS-hosted PKI domain constants
 │   ├── magic_security.go
 │   ├── magic_session.go
 │   ├── magic_skeleton.go                             # Skeleton product constants
@@ -1012,10 +978,10 @@ reminders that browser/service credentials are service-level concerns.
 
 | Tier | Files Present | Content |
 |------|-------------|---------|
-| Product (×5) | `browser-password.secret.never`, `browser-username.secret.never`, `service-password.secret.never`, `service-username.secret.never` | "MUST NEVER be used at product level. Use service-specific secrets." |
+| Product (×3) | `browser-password.secret.never`, `browser-username.secret.never`, `service-password.secret.never`, `service-username.secret.never` | "MUST NEVER be used at product level. Use service-specific secrets." |
 | Suite (×1) | Same 4 filenames | "MUST NEVER be used at suite level. Use service-specific secrets." |
 
-**Total `.secret.never` files**: 4 per product × 5 products + 4 suite = **24 files**.
+**Total `.secret.never` files**: 4 per product × 3 products + 4 suite = **24 files**.
 
 ---
 
@@ -1050,7 +1016,7 @@ lint_fitness/
 ├── cicd_coverage/                         # CICD coverage enforcement
 ├── circular_deps/                         # Circular dependency detection
 ├── cmd_anti_pattern/                      # cmd/ anti-pattern detection
-├── cmd_entry_whitelist/                   # Only 18 allowed cmd/ entries
+├── cmd_entry_whitelist/                   # Only 13 allowed cmd/ entries
 ├── cmd_main_pattern/                      # cmd/*/main.go pattern validation
 ├── compose_db_naming/                     # Docker Compose DB naming conventions
 ├── compose_header_format/                 # Docker Compose header format
@@ -1090,7 +1056,7 @@ lint_fitness/
 ├── no_unit_test_real_server/              # No real server in unit tests
 ├── otlp_service_name_pattern/             # OTLP service name pattern enforcement
 ├── parallel_tests/                        # t.Parallel() enforcement
-├── pki_ca_profile_schema/                 # PKI-CA certificate profile schema validation (v7 NEW)
+├── pki_profile_schema/                 # PKI certificate profile schema validation (v7 NEW)
 ├── product_structure/                     # Product directory structure validation
 ├── product_wiring/                        # Product wiring validation
 ├── registry/                              # Entity registry (SSOT)
@@ -1116,8 +1082,8 @@ lint_fitness/
 | Linter | Scope | Rule |
 |--------|-------|------|
 | `root_junk_detection` | `{ROOT}/` | No `*.exe`, `*.py`, `coverage*`, `*.test.exe` at root |
-| `cmd_entry_whitelist` | `cmd/` | Only 18 allowed entries (1 suite + 5 products + 10 services + 2 infra tools) |
-| `configs_naming` | `configs/` | Validates flat `{PS-ID}/{PS-ID}.yml` pattern; rejects nested `{PRODUCT}/{SERVICE}/`; allows `pki-ca/profiles/` and `identity-authz/domain/policies/` exceptions |
+| `cmd_entry_whitelist` | `cmd/` | Only 13 allowed entries (1 suite + 3 products + 7 services + 2 infra tools) |
+| `configs_naming` | `configs/` | Validates flat `{PS-ID}/{PS-ID}.yml` pattern; rejects nested `{PRODUCT}/{SERVICE}/`; allows `sm-kms/profiles/` and `identity-authz/domain/policies/` exceptions |
 | `secret_naming` | `deployments/*/secrets/` | All tiers use `{purpose}.secret` names; `.never` markers enforced at product/suite |
 | `unseal_secret_content` | `deployments/*/secrets/unseal-*.secret` | Validates unseal secret value patterns; rejects generic `dev-unseal-key-N-of-5` placeholders |
 | `template_consistency` | `deployments/skeleton-template/` | Hyphens in secret names (not underscores) |
@@ -1135,7 +1101,7 @@ See framework-v17/ plan.md Phase 5 and the gap matrix in G.1.2 for per-PS-ID det
 
 | Area | Current State | Target State | Action |
 |------|--------------|-------------|--------|
-| `swagger.go`, `swagger_test.go` at root | 8 PS-IDs have these at root | All in `server/` | MOVE |
+| `swagger.go`, `swagger_test.go` at root | 7 PS-IDs have these at root | All in `server/` | MOVE |
 | `testmain_test.go` at root | 9 PS-IDs have at root (sm-kms missing) | All in `server/` | MOVE (+ CREATE for sm-kms) |
 | `{SVC}_lifecycle_test.go` at root | 7 PS-IDs have at root | All in `server/` | MOVE (+ CREATE for id-rs, id-rp, id-spa) |
 | `{SVC}_port_conflict_test.go` at root | 5 PS-IDs have at root | All in `server/` | MOVE (+ CREATE for id-authz, id-idp, id-rs, id-rp, id-spa) |
@@ -1148,9 +1114,7 @@ Service-named subdirectories inside product directories violate the flat PS-ID l
 
 | Product | Forbidden dirs | Correct location | Action |
 |---------|---------------|-----------------|--------|
-| `sm/` | `im/`, `kms/` | `internal/apps/sm-kms/`, `internal/apps/sm-kms/` | Audit + DELETE if redundant |
-| `jose/` | `ja/` | `internal/apps/sm-kms/` | Audit + DELETE if redundant |
-| `pki/` | `ca/` | `internal/apps/pki-ca/` | Audit + DELETE if redundant |
+| `sm/` | `im/`, `kms/` | `internal/apps/sm-kms/` | Audit + DELETE if redundant |
 | `skeleton/` | `template/` | `internal/apps/skeleton-template/` | Audit + DELETE if redundant |
 
 ### N.3 INFRA_TOOL Nested cmd/ Removal
@@ -1163,7 +1127,7 @@ Service-named subdirectories inside product directories violate the flat PS-ID l
 
 | Area | Current State | Target State | Action |
 |------|--------------|-------------|--------|
-| `deployments/` product Dockerfile | Absent in all 5 products | Intentionally absent in all 5 products; PRODUCT domains reuse PS-ID images | KEEP ABSENT |
+| `deployments/` product Dockerfile | Absent in all 3 products | Intentionally absent in all 3 products; PRODUCT domains reuse PS-ID images | KEEP ABSENT |
 
 ### N.5 Framework V17 Linter Implementation
 

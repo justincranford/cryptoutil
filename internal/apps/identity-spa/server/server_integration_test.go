@@ -7,7 +7,6 @@ import (
 	"io"
 	http "net/http"
 	"testing"
-	"time"
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
@@ -183,4 +182,4 @@ func TestSPAServer_AccessorMethods(t *testing.T) {
 }
 
 // HTTP timeout for test requests.
-const httpTimeout = 5 * time.Second
+const httpTimeout = cryptoutilSharedMagic.TestTimeoutHTTPClient

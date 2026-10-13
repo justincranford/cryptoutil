@@ -8,8 +8,7 @@
 //   - *E2EPostgreSQL1Container = "{ps-id}-app-postgresql-1"
 //   - *E2EPostgreSQL2Container = "{ps-id}-app-postgresql-2"
 //
-// Product-services whose magic files do not contain any E2ESQLiteContainer constant
-// (e.g. identity, pki-ca) are skipped — not all services have the 3-tuple pattern.
+// # Product-services whose magic files do not contain any E2ESQLiteContainer constant
 //
 // This prevents magic constants from drifting out of sync with compose service names.
 package magic_e2e_container_names

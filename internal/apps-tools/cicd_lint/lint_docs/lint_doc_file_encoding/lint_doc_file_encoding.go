@@ -18,7 +18,7 @@ import (
 )
 
 const (
-	handbookPath = "docs/ENG-HANDBOOK.md"
+	handbookPath = cryptoutilSharedMagic.CICDDocsHandbookPath
 	claudeLocal  = ".claude/settings.local.json"
 	skillsReadme = ".github/skills/README.md"
 )

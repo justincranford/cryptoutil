@@ -6,6 +6,14 @@ package magic
 
 import "time"
 
+// Security classification labels shared by risk and threat assessments.
+const (
+	ThreatLevelCritical = "critical"
+	ThreatLevelHigh     = "high"
+	ThreatLevelMedium   = "medium"
+	ThreatLevelLow      = "low"
+)
+
 // Security header policy constants.
 const (
 	// HSTSMaxAge - HSTS max-age for production (1 year with preload).

@@ -144,10 +144,10 @@ func (s *PublicServer) handleSPAFallback(c *fiber.Ctx) error {
 	c.Status(http.StatusOK)
 
 	if err := c.JSON(fiber.Map{
-		"message":     "SPA placeholder - static files not configured",
-		"index_file":  s.cfg.IndexFile,
-		"static_path": s.cfg.StaticFilesPath,
-		"hint":        "Configure static file serving or use CDN/reverse proxy in production",
+		cryptoutilSharedMagic.StringMessage: "SPA placeholder - static files not configured",
+		"index_file":                        s.cfg.IndexFile,
+		"static_path":                       s.cfg.StaticFilesPath,
+		"hint":                              "Configure static file serving or use CDN/reverse proxy in production",
 	}); err != nil {
 		return fmt.Errorf("failed to send SPA fallback response: %w", err)
 	}

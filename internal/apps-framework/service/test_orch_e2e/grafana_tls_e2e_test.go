@@ -157,6 +157,6 @@ func TestGrafanaOTLP_GRPC_mTLS_Rejected(t *testing.T) {
 	}
 
 	// Accept explicit TLS failures and EOF endpoint close behavior.
-	assert.True(t, strings.Contains(err.Error(), "tls") || strings.Contains(err.Error(), "EOF"),
+	assert.True(t, strings.Contains(err.Error(), cryptoutilSharedMagic.TLSName) || strings.Contains(err.Error(), "EOF"),
 		"error from no-cert Grafana OTLP gRPC dial must be a TLS handshake failure")
 }

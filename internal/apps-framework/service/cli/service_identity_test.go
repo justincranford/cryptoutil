@@ -197,7 +197,6 @@ func TestBuildServerUsage_ContainsConfigPath(t *testing.T) {
 	}{
 		{name: "svc_sm_kms", serviceID: cryptoutilSharedMagic.OTLPServiceSMKMS, wantInfix: "configs/sm-kms/sm-kms-framework.yml"},
 		{name: "svc_skeleton_template", serviceID: cryptoutilSharedMagic.OTLPServiceSkeletonTemplate, wantInfix: "configs/skeleton-template/skeleton-template-framework.yml"},
-		{name: "svc_pki_ca", serviceID: cryptoutilSharedMagic.OTLPServicePKICA, wantInfix: "configs/pki-ca/pki-ca-framework.yml"},
 	}
 
 	for _, tt := range tests {

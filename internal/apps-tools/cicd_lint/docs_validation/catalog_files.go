@@ -4,10 +4,10 @@
 // Two linters are provided:
 //
 //  1. CheckCatalogFiles: verifies that each @file-catalog / @file-catalog-pair entry in
-//     ENG-HANDBOOK.md contains content that exactly matches the corresponding file(s) on disk.
+//     Appendix D contains content that exactly matches the corresponding file(s) on disk.
 //
 //  2. CheckCatalogPropagation: verifies that every @to-appendix chunk whose target file
-//     has a catalog entry contains a matching @from-eng-handbook block inside that catalog entry's body.
+//     has a catalog entry contains a matching @from-eng-handbook block inside that Appendix D entry's body.
 package docs_validation
 
 import (
@@ -18,7 +18,7 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
-// FileCatalogEntry represents a @file-catalog single-file entry extracted from ENG-HANDBOOK.md.
+// FileCatalogEntry represents a @file-catalog single-file entry extracted from Appendix D.
 type FileCatalogEntry struct {
 	Path       string // repo-relative path, e.g., "CLAUDE.md"
 	Content    string // verbatim file content stored in the catalog
@@ -235,19 +235,23 @@ func reconstructPairFile(frontmatter, body string) string {
 }
 
 // CheckCatalogFiles verifies that every @file-catalog and @file-catalog-pair entry in
-// ENG-HANDBOOK.md matches the corresponding file(s) on disk exactly (LF-normalized).
+// Appendix D matches the corresponding file(s) on disk exactly (LF-normalized).
 func CheckCatalogFiles(rootDir string, readFileFn func(string) ([]byte, error)) (*CatalogFilesResult, error) {
 	result := &CatalogFilesResult{}
 
-	handbookContent, err := readFileFn("docs/ENG-HANDBOOK.md")
+	appendixContent, err := readFileFn(cryptoutilSharedMagic.CICDDocsAppendixDPath)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read docs/ENG-HANDBOOK.md: %w", err)
+		return nil, fmt.Errorf("failed to read %s: %w", cryptoutilSharedMagic.CICDDocsAppendixDPath, err)
 	}
 
-	normalizedHandbook := strings.ReplaceAll(string(handbookContent), "\r\n", "\n")
+	normalizedAppendix := strings.ReplaceAll(string(appendixContent), "\r\n", "\n")
 
-	singles := extractFileCatalogEntries(normalizedHandbook)
-	pairs := extractFileCatalogPairEntries(normalizedHandbook)
+	singles := extractFileCatalogEntries(normalizedAppendix)
+
+	pairs := extractFileCatalogPairEntries(normalizedAppendix)
+	if len(singles)+len(pairs) == 0 {
+		return nil, fmt.Errorf("no file catalog entries found in %s", cryptoutilSharedMagic.CICDDocsAppendixDPath)
+	}
 
 	// Check single-file entries.
 	for _, entry := range singles {
@@ -271,7 +275,7 @@ func CheckCatalogFiles(rootDir string, readFileFn func(string) ([]byte, error)) 
 			result.Violations = append(result.Violations, CatalogViolation{
 				File:   entry.Path,
 				Field:  "content-mismatch",
-				Detail: fmt.Sprintf("catalog content at handbook line %d does not match file on disk", entry.LineNumber),
+				Detail: fmt.Sprintf("catalog content at Appendix D line %d does not match file on disk", entry.LineNumber),
 			})
 		}
 	}
@@ -296,7 +300,7 @@ func CheckCatalogFiles(rootDir string, readFileFn func(string) ([]byte, error)) 
 				result.Violations = append(result.Violations, CatalogViolation{
 					File:   pair.CopilotPath,
 					Field:  "content-mismatch",
-					Detail: fmt.Sprintf("catalog Copilot content at handbook line %d does not match file on disk", pair.LineNumber),
+					Detail: fmt.Sprintf("catalog Copilot content at Appendix D line %d does not match file on disk", pair.LineNumber),
 				})
 			}
 		}
@@ -317,7 +321,7 @@ func CheckCatalogFiles(rootDir string, readFileFn func(string) ([]byte, error)) 
 				result.Violations = append(result.Violations, CatalogViolation{
 					File:   pair.ClaudePath,
 					Field:  "content-mismatch",
-					Detail: fmt.Sprintf("catalog Claude content at handbook line %d does not match file on disk", pair.LineNumber),
+					Detail: fmt.Sprintf("catalog Claude content at Appendix D line %d does not match file on disk", pair.LineNumber),
 				})
 			}
 		}
@@ -329,18 +333,24 @@ func CheckCatalogFiles(rootDir string, readFileFn func(string) ([]byte, error)) 
 // catalogPairFilesCount is the number of files represented by each @file-catalog-pair entry.
 const catalogPairFilesCount = 2
 
-// CheckCatalogPropagation verifies that every @to-appendix chunk whose target file
-// has a @file-catalog or @file-catalog-pair entry in ENG-HANDBOOK.md also has a matching
-// @from-eng-handbook block inside that catalog entry's body with identical content.
+// CheckCatalogPropagation verifies @to-appendix chunks from ENG-HANDBOOK.md against
+// matching @from-eng-handbook blocks in catalog entries from Appendix D.
 func CheckCatalogPropagation(rootDir string, readFileFn func(string) ([]byte, error)) (*CatalogPropagationResult, error) {
 	result := &CatalogPropagationResult{}
 
-	handbookContent, err := readFileFn("docs/ENG-HANDBOOK.md")
+	handbookContent, err := readFileFn(cryptoutilSharedMagic.CICDDocsHandbookPath)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read docs/ENG-HANDBOOK.md: %w", err)
+		return nil, fmt.Errorf("failed to read %s: %w", cryptoutilSharedMagic.CICDDocsHandbookPath, err)
 	}
 
 	normalizedHandbook := strings.ReplaceAll(string(handbookContent), "\r\n", "\n")
+
+	appendixContent, err := readFileFn(cryptoutilSharedMagic.CICDDocsAppendixDPath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read %s: %w", cryptoutilSharedMagic.CICDDocsAppendixDPath, err)
+	}
+
+	normalizedAppendix := strings.ReplaceAll(string(appendixContent), "\r\n", "\n")
 
 	// Extract all @to-appendix blocks.
 	propagateBlocks := extractPropagateBlocks(normalizedHandbook)
@@ -348,7 +358,10 @@ func CheckCatalogPropagation(rootDir string, readFileFn func(string) ([]byte, er
 	// Build a map from file path to catalog body content.
 	// For single-file entries the "body" is the full content.
 	// For pair entries the body is the shared body section.
-	catalogBodies := buildCatalogBodies(normalizedHandbook)
+	catalogBodies := buildCatalogBodies(normalizedAppendix)
+	if len(catalogBodies) == 0 {
+		return nil, fmt.Errorf("no file catalog entries found in %s", cryptoutilSharedMagic.CICDDocsAppendixDPath)
+	}
 
 	// For each to-appendix block, check each target file that appears in the catalog.
 	for _, pb := range propagateBlocks {
@@ -384,7 +397,7 @@ func CheckCatalogPropagation(rootDir string, readFileFn func(string) ([]byte, er
 			result.Violations = append(result.Violations, CatalogViolation{
 				File:   targetFile,
 				Field:  "source-missing",
-				Detail: fmt.Sprintf("chunk %q: no @from-eng-handbook block found in catalog body for file %q", pb.ChunkID, targetFile),
+				Detail: fmt.Sprintf("chunk %q: no @from-eng-handbook block found in Appendix D catalog body for file %q", pb.ChunkID, targetFile),
 			})
 
 			continue
@@ -394,7 +407,7 @@ func CheckCatalogPropagation(rootDir string, readFileFn func(string) ([]byte, er
 			result.Violations = append(result.Violations, CatalogViolation{
 				File:   targetFile,
 				Field:  "source-mismatch",
-				Detail: fmt.Sprintf("chunk %q: catalog @from-eng-handbook content differs from @to-appendix content in file %q", pb.ChunkID, targetFile),
+				Detail: fmt.Sprintf("chunk %q: Appendix D @from-eng-handbook content differs from @to-appendix content in file %q", pb.ChunkID, targetFile),
 			})
 		}
 	}

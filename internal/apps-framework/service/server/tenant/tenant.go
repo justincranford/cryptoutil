@@ -216,7 +216,7 @@ func (sm *SchemaManager) listPostgresSchemas(ctx context.Context) ([]string, err
 func (sm *SchemaManager) createSQLiteSchema(ctx context.Context, schemaName string) error {
 	// SQLite uses ATTACH DATABASE to create isolated schemas.
 	// For in-memory databases, use file::memory: with unique name.
-	dbPath := fmt.Sprintf("file:%s?mode=memory&cache=shared", schemaName)
+	dbPath := fmt.Sprintf(cryptoutilSharedMagic.SQLiteInMemoryNamedDSNFormat, schemaName)
 	query := fmt.Sprintf("ATTACH DATABASE '%s' AS %s", dbPath, schemaName)
 
 	if _, err := sm.sqlDB.ExecContext(ctx, query); err != nil {

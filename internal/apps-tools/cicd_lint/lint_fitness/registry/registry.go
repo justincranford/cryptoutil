@@ -55,13 +55,13 @@ type Suite struct {
 // allRegistryFile holds the parsed registry YAML loaded once at init time.
 var allRegistryFile *RegistryFile
 
-// allProducts is the canonical registry of all 4 cryptoutil products.
-// Canonical order: sm, pki, identity, skeleton.
+// allProducts is the canonical registry of all 3 cryptoutil products.
+// Canonical order: sm, identity, skeleton.
 // Populated by init() from api/cryptosuite-registry/registry.yaml.
 var allProducts []Product
 
-// allProductServices is the canonical registry of all 8 cryptoutil product-services.
-// Canonical order: sm-kms, pki-ca, identity-authz, identity-idp, identity-rs,
+// allProductServices is the canonical registry of all 7 cryptoutil product-services.
+// Canonical order: sm-kms, identity-authz, identity-idp, identity-rs,
 // identity-rp, identity-spa, skeleton-template.
 // Populated by init() from api/cryptosuite-registry/registry.yaml.
 var allProductServices []ProductService

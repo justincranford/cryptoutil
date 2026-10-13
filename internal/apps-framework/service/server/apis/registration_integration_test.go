@@ -330,7 +330,7 @@ func TestIntegration_RegisterUser_CreateTenant(t *testing.T) {
 	require.NoError(t, json.NewDecoder(resp.Body).Decode(&result))
 	require.Contains(t, result, "tenant_id")
 	require.Contains(t, result, "user_id")
-	require.Contains(t, result, "message")
+	require.Contains(t, result, cryptoutilSharedMagic.StringMessage)
 }
 
 func TestIntegration_RegisterUser_JoinExistingTenant(t *testing.T) {
@@ -390,8 +390,8 @@ func TestIntegration_RegisterUser_JoinExistingTenant(t *testing.T) {
 
 	var result map[string]any
 	require.NoError(t, json.Unmarshal(bodyBytes, &result))
-	require.Contains(t, result, "message")
-	require.Contains(t, result["message"], "pending")
+	require.Contains(t, result, cryptoutilSharedMagic.StringMessage)
+	require.Contains(t, result[cryptoutilSharedMagic.StringMessage], "pending")
 
 	// Verify join request created.
 	var joinRequests []cryptoutilAppsFrameworkServiceServerDomain.TenantJoinRequest

@@ -27,15 +27,14 @@ import io.gatling.javaapi.http.HttpProtocolBuilder;
 
 /**
  * Cryptoutil Suite Load Testing Simulation.
- * Exercises all 5 products (10 services) simultaneously to validate system-wide performance.
+ * Exercises all 3 products (7 services) simultaneously to validate system-wide performance.
  *
  * <p>Port assignments follow the service catalog:
  * <ul>
  *   <li>sm-kms: 8000</li>
  *   <li>sm-kms: 8100</li>
  *   <li>sm-kms: 8200</li>
- *   <li>pki-ca: 8300</li>
- *   <li>identity-authz: 8400</li>
+ *    *   <li>identity-authz: 8400</li>
  *   <li>identity-idp: 8500</li>
  *   <li>identity-rs: 8600</li>
  *   <li>identity-rp: 8700</li>
@@ -45,7 +44,7 @@ import io.gatling.javaapi.http.HttpProtocolBuilder;
  *
  * <p>Example Commands:
  * <pre>
- * # Quick validation (health checks for all 10 services)
+ * # Quick validation (health checks for all 7 services)
  * .\mvnw.cmd gatling:test -Dgatling.simulationClass=cryptoutil.CryptoutilSuiteSimulation -Dprofile=quick
  *
  * # Standard load test (mixed workload across all products)
@@ -63,9 +62,6 @@ public class CryptoutilSuiteSimulation extends Simulation {
 
     // Service ports from the canonical service catalog.
     private static final String SM_KMS_PORT = System.getProperty("smKmsPort", "8000");
-    private static final String SM_IM_PORT = System.getProperty("smImPort", "8100");
-    private static final String JOSE_JA_PORT = System.getProperty("joseJaPort", "8200");
-    private static final String PKI_CA_PORT = System.getProperty("pkiCaPort", "8300");
     private static final String AUTHZ_PORT = System.getProperty("authzPort", "8400");
     private static final String IDP_PORT = System.getProperty("idpPort", "8500");
     private static final String RS_PORT = System.getProperty("rsPort", "8600");
@@ -93,12 +89,9 @@ public class CryptoutilSuiteSimulation extends Simulation {
     {
         List<PopulationBuilder> populations = new ArrayList<>();
 
-        // All 10 services.
+        // All 7 active services.
         String[][] services = {
             {"SM-KMS", SM_KMS_PORT},
-            {"SM-Messaging", SM_IM_PORT},
-            {"JOSE-JWK-AUTHORITY", JOSE_JA_PORT},
-            {"PKI-CA", PKI_CA_PORT},
             {"Identity-AuthZ", AUTHZ_PORT},
             {"Identity-IdP", IDP_PORT},
             {"Identity-RS", RS_PORT},

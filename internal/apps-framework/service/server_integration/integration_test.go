@@ -15,10 +15,11 @@ import (
 
 	cryptoutilAppsFrameworkServiceServerBusinesslogic "cryptoutil/internal/apps-framework/service/server/businesslogic"
 	cryptoutilAppsFrameworkServiceServerRepository "cryptoutil/internal/apps-framework/service/server/repository"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 func newIntegrationSQLiteDSN() string {
-	return fmt.Sprintf("file:%s?mode=memory&cache=shared", googleUuid.New().String())
+	return fmt.Sprintf(cryptoutilSharedMagic.SQLiteInMemoryNamedDSNFormat, googleUuid.New().String())
 }
 
 // TestIntegration_TenantRegistration_CreateTenant tests creating a new tenant.

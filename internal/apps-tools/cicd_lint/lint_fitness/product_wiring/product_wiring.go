@@ -19,12 +19,11 @@ type productServicePair struct {
 }
 
 // knownProducts lists all products that must have cmd/PRODUCT/main.go.
-var knownProducts = []string{"sm", cryptoutilSharedMagic.PKIProductName, cryptoutilSharedMagic.IdentityProductName, cryptoutilSharedMagic.SkeletonProductName}
+var knownProducts = []string{cryptoutilSharedMagic.SMProductName, cryptoutilSharedMagic.IdentityProductName, cryptoutilSharedMagic.SkeletonProductName}
 
 // knownServices lists all product-service pairs that must have cmd/PRODUCT-SERVICE/main.go.
 var knownServices = []productServicePair{
 	{product: "sm", service: cryptoutilSharedMagic.KMSServiceName},
-	{product: cryptoutilSharedMagic.PKIProductName, service: "ca"},
 	{product: cryptoutilSharedMagic.IdentityProductName, service: cryptoutilSharedMagic.AuthzServiceName},
 	{product: cryptoutilSharedMagic.IdentityProductName, service: cryptoutilSharedMagic.IDPServiceName},
 	{product: cryptoutilSharedMagic.IdentityProductName, service: "rs"},

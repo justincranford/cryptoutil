@@ -32,7 +32,6 @@ forbidden_dir_patterns:
   # Known violations (tracked as GAP tasks in docs/framework-v17/tasks.md):
   #   sm/:       im/, kms/        (service code should be at internal/apps/sm-kms/, sm-kms/)
   #   jose/:     ja/              (service code should be at internal/apps/sm-kms/)
-  #   pki/:      ca/              (service code should be at internal/apps/pki-ca/)
   #   skeleton/: template/        (service code should be at internal/apps/skeleton-template/)
   #   identity/: apperr/, config/, domain/, email/, issuer/, jobs/, mfa/, repository/,
   #              rotation/ are LEGITIMATE shared packages — NOT service dirs.

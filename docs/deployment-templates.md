@@ -45,30 +45,32 @@ All templates use parameterized placeholders. Values for each PS-ID are defined 
 
 ### A.1 Entity Parameters
 
-| Parameter | Description | Example (sm-kms) | Example (pki-ca) |
-|-----------|-------------|-------------------|----------------------------|
-| `{SUITE}` | Suite name (always `cryptoutil`) | `cryptoutil` | `cryptoutil` |
-| `{PS-ID}` | Product-Service identifier (kebab-case) | `sm-kms` | `sm-kms` |
-| `{PS_ID}` | Underscore variant (PostgreSQL naming) | `sm_kms` | `pki_ca` |
-| `{PRODUCT}` | Product name (kebab-case) | `sm` | `pki` |
-| `{SERVICE}` | Service name within product | `kms` | `ca` |
-| `{PRODUCT_DISPLAY_NAME}` | Human-readable product name | `Secrets Manager` | `PKI` |
-| `{SERVICE_DISPLAY_NAME}` | Human-readable service name | `Key Management Service` | `Certificate Authority` |
-| `{GITHUB_REPOSITORY_URL}` | Source repository URL | `https://github.com/justincranford/cryptoutil` | (same) |
-| `{AUTHORS}` | Image authors | `Justin Cranford` | (same) |
+PKI APIs and certificates use the existing `sm-kms` service identity and deployment values.
+
+| Parameter | Description | Example (sm-kms) |
+|-----------|-------------|------------------|
+| `{SUITE}` | Suite name (always `cryptoutil`) | `cryptoutil` |
+| `{PS-ID}` | Product-Service identifier (kebab-case) | `sm-kms` |
+| `{PS_ID}` | Underscore variant (PostgreSQL naming) | `sm_kms` |
+| `{PRODUCT}` | Product name (kebab-case) | `sm` |
+| `{SERVICE}` | Service name within product | `kms` |
+| `{PRODUCT_DISPLAY_NAME}` | Human-readable product name | `Secrets Manager` |
+| `{SERVICE_DISPLAY_NAME}` | Human-readable service name | `Key Management Service` |
+| `{GITHUB_REPOSITORY_URL}` | Source repository URL | `https://github.com/justincranford/cryptoutil` |
+| `{AUTHORS}` | Image authors | `Justin Cranford` |
 
 ### A.2 Port Parameters
 
-| Parameter | Description | Formula | Example (sm-kms) | Example (pki-ca) |
-|-----------|-------------|---------|-------------------|--------------------|
-| `{SERVICE_APP_PORT_BASE}` | SERVICE-tier port block start | Per registry | `8000` | `8300` |
-| `{SERVICE_APP_PORT_SQLITE_1}` | SQLite instance 1 host port | `{SERVICE_APP_PORT_BASE} + 0` | `8000` | `8200` |
-| `{SERVICE_APP_PORT_SQLITE_2}` | SQLite instance 2 host port | `{SERVICE_APP_PORT_BASE} + 1` | `8001` | `8301` |
-| `{SERVICE_APP_PORT_PG_1}` | PostgreSQL instance 1 host port | `{SERVICE_APP_PORT_BASE} + 2` | `8002` | `8302` |
-| `{SERVICE_APP_PORT_PG_2}` | PostgreSQL instance 2 host port | `{SERVICE_APP_PORT_BASE} + 3` | `8003` | `8303` |
-| `{SERVICE_PG_HOST_PORT}` | PostgreSQL container host port | Per registry | `54320` | `54323` |
-| `{PRODUCT_APP_PORT_OFFSET}` | PRODUCT tier formula | `{SERVICE_APP_PORT_BASE} + 10000` | `18000` | `18300` |
-| `{SUITE_APP_PORT_OFFSET}` | SUITE tier formula | `{SERVICE_APP_PORT_BASE} + 20000` | `28000` | `28300` |
+| Parameter | Description | Formula | Example (sm-kms) |
+|-----------|-------------|---------|------------------|
+| `{SERVICE_APP_PORT_BASE}` | SERVICE-tier port block start | Per registry | `8000` |
+| `{SERVICE_APP_PORT_SQLITE_1}` | SQLite instance 1 host port | `{SERVICE_APP_PORT_BASE} + 0` | `8000` |
+| `{SERVICE_APP_PORT_SQLITE_2}` | SQLite instance 2 host port | `{SERVICE_APP_PORT_BASE} + 1` | `8001` |
+| `{SERVICE_APP_PORT_PG_1}` | PostgreSQL instance 1 host port | `{SERVICE_APP_PORT_BASE} + 2` | `8002` |
+| `{SERVICE_APP_PORT_PG_2}` | PostgreSQL instance 2 host port | `{SERVICE_APP_PORT_BASE} + 3` | `8003` |
+| `{SERVICE_PG_HOST_PORT}` | PostgreSQL container host port | Per registry | `54320` |
+| `{PRODUCT_APP_PORT_OFFSET}` | PRODUCT tier formula | `{SERVICE_APP_PORT_BASE} + 10000` | `18000` |
+| `{SUITE_APP_PORT_OFFSET}` | SUITE tier formula | `{SERVICE_APP_PORT_BASE} + 20000` | `28000` |
 
 ### A.3 Build & Container Parameters
 
@@ -102,7 +104,6 @@ production).
 | PS-ID | PRODUCT | SERVICE | SERVICE_APP_PORT_BASE | SERVICE_PG_HOST_PORT | PRODUCT_DISPLAY_NAME | SERVICE_DISPLAY_NAME | PRODUCT_APP_PORT_OFFSET | SUITE_APP_PORT_OFFSET |
 |-------|---------|---------|---------------------|--------------------|--------------------|--------------------|-----------------------|---------------------|
 | `sm-kms` | `sm` | `kms` | `8000` | `54320` | Secrets Manager | Key Management | `18000` | `28000` |
-| `pki-ca` | `pki` | `ca` | `8300` | `54323` | PKI | Certificate Authority | `18300` | `28300` |
 | `identity-authz` | `identity` | `authz` | `8400` | `54324` | Identity | Authorization Server | `18400` | `28400` |
 | `identity-idp` | `identity` | `idp` | `8500` | `54325` | Identity | Provider | `18500` | `28500` |
 | `identity-rs` | `identity` | `rs` | `8600` | `54326` | Identity | Resource Server | `18600` | `28600` |
@@ -114,14 +115,14 @@ production).
 
 ## B. PS-ID Dockerfile Template
 
-**ONE canonical pattern for all 10 PS-IDs.** Four stages: `validation` → `builder` → `runtime-deps` → `final`.
+**ONE canonical pattern for all 7 PS-IDs.** Four stages: `validation` → `builder` → `runtime-deps` → `final`.
 
 ### B.1 Canonical Template
 
 **Canonical file**: [`api/cryptosuite-registry/templates/deployments/__PS_ID__/Dockerfile`](../api/cryptosuite-registry/templates/deployments/__PS_ID__/Dockerfile)
 
 The template file is the machine-readable source of truth. Linters instantiate it for each of the
-10 PS-IDs by substituting all `__PS_ID__`, `__PRODUCT__`, `__SUITE__`, and numeric parameters,
+7 PS-IDs by substituting all `__PS_ID__`, `__PRODUCT__`, `__SUITE__`, and numeric parameters,
 then compare byte-for-byte against `deployments/{PS-ID}/Dockerfile`.
 
 See the canonical template file for the full content. The template implements the
@@ -162,9 +163,6 @@ Section B.2 below.
 | PS-ID | Binary Path | HEALTHCHECK Path | ENTRYPOINT | LABEL title |
 |-------|-------------|------------------|------------|-------------|
 | `sm-kms` | `/app/sm-kms` | `/app/sm-kms livez` | `["/sbin/tini", "--", "/app/sm-kms"]` | `{SUITE}-sm-kms` |
-| `sm-kms` | `/app/sm-kms` | `/app/sm-kms livez` | `["/sbin/tini", "--", "/app/sm-kms"]` | `{SUITE}-sm-kms` |
-| `sm-kms` | `/app/sm-kms` | `/app/sm-kms livez` | `["/sbin/tini", "--", "/app/sm-kms"]` | `{SUITE}-sm-kms` |
-| `pki-ca` | `/app/pki-ca` | `/app/pki-ca livez` | `["/sbin/tini", "--", "/app/pki-ca"]` | `{SUITE}-pki-ca` |
 | `identity-authz` | `/app/identity-authz` | `/app/identity-authz livez` | `["/sbin/tini", "--", "/app/identity-authz"]` | `{SUITE}-identity-authz` |
 | `identity-idp` | `/app/identity-idp` | `/app/identity-idp livez` | `["/sbin/tini", "--", "/app/identity-idp"]` | `{SUITE}-identity-idp` |
 | `identity-rs` | `/app/identity-rs` | `/app/identity-rs livez` | `["/sbin/tini", "--", "/app/identity-rs"]` | `{SUITE}-identity-rs` |
@@ -176,14 +174,14 @@ Section B.2 below.
 
 ## C. PS-ID compose.yml Template
 
-**ONE canonical pattern for all 10 PS-IDs.** Four app instances + support services.
+**ONE canonical pattern for all 7 PS-IDs.** Four app instances + support services.
 
 ### C.1 Canonical Template
 
 **Canonical file**: [`api/cryptosuite-registry/templates/deployments/__PS_ID__/compose.yml`](../api/cryptosuite-registry/templates/deployments/__PS_ID__/compose.yml)
 
 The template file is the machine-readable source of truth. Linters instantiate it for each of the
-10 PS-IDs by substituting all `__PS_ID__`, `__PRODUCT__`, `__SUITE__`, and numeric parameters,
+7 PS-IDs by substituting all `__PS_ID__`, `__PRODUCT__`, `__SUITE__`, and numeric parameters,
 then compare byte-for-byte against `deployments/{PS-ID}/compose.yml`.
 
 ### C.2 Compose Rules (Enforceable)
@@ -240,7 +238,7 @@ Five deployment config files per PS-ID, ALL using **kebab-case** YAML keys.
 **Canonical file**: [`api/cryptosuite-registry/templates/deployments/__PS_ID__/config/__PS_ID__-app-framework-postgresql-2.yml`](../api/cryptosuite-registry/templates/deployments/__PS_ID__/config/__PS_ID__-app-framework-postgresql-2.yml)
 
 All five config templates are the machine-readable source of truth. Linters instantiate them for each
-of the 10 PS-IDs by substituting port numbers and PS-ID placeholders, then compare byte-for-byte
+of the 7 PS-IDs by substituting port numbers and PS-ID placeholders, then compare byte-for-byte
 against `deployments/{PS-ID}/config/{PS-ID}-app-framework-{variant}.yml`.
 
 ### D.6 Config File Rules (Enforceable)
@@ -274,7 +272,7 @@ Each PS-ID has a standalone config at `configs/{PS-ID}/{PS-ID}.yml` for local de
 **Canonical file**: [`api/cryptosuite-registry/templates/configs/__PS_ID__/__PS_ID__-framework.yml`](../api/cryptosuite-registry/templates/configs/__PS_ID__/__PS_ID__-framework.yml)
 
 The template file is the machine-readable source of truth. Linters instantiate it for each of the
-10 PS-IDs by substituting port numbers and PS-ID placeholders, then compare byte-for-byte
+7 PS-IDs by substituting port numbers and PS-ID placeholders, then compare byte-for-byte
 against `configs/{PS-ID}/{PS-ID}-framework.yml`.
 
 ### E.1 Standalone Config Rules
@@ -315,12 +313,12 @@ against `configs/{PS-ID}/{PS-ID}-framework.yml`.
 
 ## G. Product compose.yml Template
 
-**ONE canonical pattern for all 5 products.** Includes child PS-IDs, overrides ports.
+**ONE canonical pattern for all 3 products.** Includes child PS-IDs, overrides ports.
 
 **Canonical file**: [`api/cryptosuite-registry/templates/deployments/__PRODUCT__/compose.yml`](../api/cryptosuite-registry/templates/deployments/__PRODUCT__/compose.yml)
 
 The template file is the machine-readable source of truth. Linters instantiate it for each of the
-5 products by substituting product names, PS-ID include lists, and port offsets, then compare
+3 products by substituting product names, PS-ID include lists, and port offsets, then compare
 byte-for-byte against `deployments/{PRODUCT}/compose.yml`.
 
 ### G.1 Product Compose Rules
@@ -359,9 +357,9 @@ byte-for-byte against `deployments/cryptoutil/compose.yml`.
 
 | Rule ID | Rule | Rationale |
 |---------|------|-----------|
-| SU-01 | MUST include all 5 product compose files | Complete suite |
+| SU-01 | MUST include all 3 product compose files | Complete suite |
 | SU-02 | Port formula: `SERVICE + 20000` | Suite tier offset |
-| SU-03 | Compact inline port override syntax for 40 services | Readability |
+| SU-03 | Compact inline port override syntax for 28 app instances | Readability |
 | SU-04 | Unseal secrets MUST use `cryptoutil-unseal-key-N-of-5-...` values | Suite-scoped encryption |
 
 ---
@@ -369,8 +367,8 @@ byte-for-byte against `deployments/cryptoutil/compose.yml`.
 ## J. Suite Dockerfiles Are Intentionally Absent
 
 The SUITE deployment domain does not define its own Dockerfile. `deployments/cryptoutil/compose.yml`
-includes the 5 PRODUCT compose files, which in turn include the 10 PS-ID compose files and their
-PS-ID builder services. The suite therefore federates the 10 PS-ID images instead of building a
+includes the 3 PRODUCT compose files, which in turn include the 7 PS-ID compose files and their
+PS-ID builder services. The suite therefore federates the 7 PS-ID images instead of building a
 separate suite image.
 
 There is no canonical template at `api/cryptosuite-registry/templates/deployments/__SUITE__/Dockerfile`
@@ -459,7 +457,7 @@ Three fundamentally different Dockerfile patterns exist where there MUST be exac
 | Category | Affected PS-IDs | Deviation from Template |
 |----------|----------------|------------------------|
 | **Pattern A** (sm-kms style) | sm-kms, identity-authz, identity-idp, identity-rp, identity-rs | 4-stage but: `WORKDIR /app/run`, `GOMODCACHE`/`GOCACHE` env vars, `curl` installed in final, `USER` commented out, individual `LABEL` lines |
-| **Pattern B** (sm-kms style) | sm-kms, pki-ca, skeleton-template | 3-stage (no `runtime-deps`): `adduser`-based user creation, compact `LABEL`, `CMD` with config path |
+| **Pattern B** (skeleton-template style) | skeleton-template | 3-stage (no `runtime-deps`): `adduser`-based user creation, compact `LABEL`, `CMD` with config path |
 | **Pattern C** (sm-kms) | sm-kms | 2-stage (no `validation`): user `1000:1000` (WRONG), no BuildKit caches, no static link check |
 
 ### M.2 Specific Bugs
@@ -482,7 +480,7 @@ Three fundamentally different Dockerfile patterns exist where there MUST be exac
 
 | Convention | PS-IDs | Status |
 |------------|--------|--------|
-| **kebab-case** (CORRECT) | sm-kms, pki-ca, skeleton-template | Correct |
+| **kebab-case** (CORRECT) | sm-kms, skeleton-template | Correct |
 | **snake_case** (WRONG) | sm-kms, sm-kms, identity-authz, identity-idp, identity-rp, identity-rs, identity-spa | Needs migration |
 
 ### M.4 Config Content Inconsistencies
@@ -538,7 +536,7 @@ byte-for-byte against the actual file on disk. Any deviation is a linting error.
 **Benefits over rule-based linters**:
 - Single source of truth: template file IS the specification (no drift between docs and linter)
 - Complete coverage: checks EVERY byte, not just specific patterns
-- Easy maintenance: update template file → all 10 PS-IDs automatically validated
+- Easy maintenance: update template file → all 7 PS-IDs automatically validated
 - Clear error messages: unified diff shows exactly what differs
 
 ### N.2 Rule-Based Fitness Linters (SUPPLEMENTARY)
@@ -568,7 +566,7 @@ template-comparison linter is the authoritative enforcement mechanism.
 1. **P0 (BLOCKING)**: Fix identity-spa COPY bug (runtime failure)
 2. **P0 (BLOCKING)**: Fix skeleton-template Dockerfile (copy-paste from sm-kms)
 3. **P1 (HIGH)**: Create canonical template files in `api/cryptosuite-registry/templates/`
-4. **P1 (HIGH)**: Standardize all 10 Dockerfiles to canonical template
+4. **P1 (HIGH)**: Standardize all 7 Dockerfiles to canonical template
 5. **P1 (HIGH)**: Enable `USER ${CONTAINER_UID}:${CONTAINER_GID}` in all Dockerfiles (currently commented out in 5)
 6. **P1 (HIGH)**: Implement template-comparison linters (N.1)
 7. **P2 (MEDIUM)**: Migrate snake_case configs to kebab-case (7 services)
@@ -617,11 +615,11 @@ LABEL org.opencontainers.image.title="__SUITE__-__PS_ID__" \
       org.opencontainers.image.authors="__AUTHORS__" \
       org.opencontainers.image.description="__PRODUCT_DISPLAY_NAME__ __SERVICE_DISPLAY_NAME__"
 
-# After instantiation for pki-ca:
-LABEL org.opencontainers.image.title="cryptoutil-pki-ca" \
+# After instantiation for sm-kms:
+LABEL org.opencontainers.image.title="cryptoutil-sm-kms" \
       org.opencontainers.image.source="https://github.com/justincranford/cryptoutil" \
       org.opencontainers.image.authors="Justin Cranford" \
-  org.opencontainers.image.description="PKI Certificate Authority"
+  org.opencontainers.image.description="Secrets Manager Key Management"
 ```
 
 ### O.4 Relationship Between Documents
@@ -676,7 +674,7 @@ services mount it read-only.
 | `opentelemetry-collector-contrib` | **Cat 1** `public-https-server-issuing-ca/truststore/` | `/etc/pki-init/certs/public-https-server-issuing-ca` | Verifies Grafana server cert (OTel→Grafana forwarding) |
 | `opentelemetry-collector-contrib` | **Cat 2** `public-https-server-entity-otel-collector-contrib` | `/etc/pki-init/certs/public-https-server-entity-otel-collector-contrib` | OTel server cert+key (presented to app OTLP exporters) |
 | `opentelemetry-collector-contrib` | **Cat 8** `otel-collector-contrib-https-client-issuing-ca/truststore/` | `/etc/pki-init/certs/otel-collector-contrib-https-client-issuing-ca` | Verifies app OTLP client certs (Cat 9 app enforcement) |
-| `opentelemetry-collector-contrib` | **Cat 9 infra** `otel-collector-contrib-https-client-entity-infra` | `/etc/pki-init/certs/otel-collector-contrib-https-client-entity-infra` | OTel→Grafana client cert+key (OTel presents to Grafana OTLP ingest) |
+| `opentelemetry-collector-contrib` | **Cat 9 infra** `grafana-otel-lgtm-https-client-entity-infra` | `/etc/pki-init/certs/grafana-otel-lgtm-https-client-entity-infra` | Grafana-issued client cert+key for OTel→Grafana OTLP ingest |
 | `grafana-otel-lgtm` | **Cat 2** `public-https-server-entity-grafana-otel-lgtm` | `/etc/pki-init/certs/public-https-server-entity-grafana-otel-lgtm` | Grafana server cert+key (presented to browsers + OTel forwarder) |
 | `grafana-otel-lgtm` | **Cat 8** `grafana-otel-lgtm-https-client-issuing-ca/truststore/` | `/etc/pki-init/certs/grafana-otel-lgtm-https-client-issuing-ca` | Verifies OTel→Grafana client cert (Cat 9 infra enforcement) |
 

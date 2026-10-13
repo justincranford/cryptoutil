@@ -40,15 +40,6 @@ type AliasMap struct {
 }
 
 // =========================================================================
-// Test seams - replaceable in tests to exercise OS-level error paths.
-// See ENG-HANDBOOK.md Section 10.2.4 (Test Seam Injection Pattern).
-// =========================================================================
-
-var findImportAliasProjectRootFn = func() (string, error) {
-	return findImportAliasProjectRoot(os.Getwd)
-}
-
-// =========================================================================
 // Public API
 // =========================================================================
 
@@ -59,6 +50,8 @@ var ExcludedDirs = map[string]bool{
 }
 
 // codeGeneratedCheckBytes is the number of bytes to scan for the "Code generated" marker.
+const importAliasGoModNotFoundError = "go.mod not found"
+
 const codeGeneratedCheckBytes = 512
 
 // LoadAliasMap reads and parses the alias_map.yaml from rootDir.
@@ -93,7 +86,11 @@ func AllEntries(m *AliasMap) []AliasEntry {
 
 // Check runs the linter from the current working directory (project root).
 func Check(logger *cryptoutilCmdCicdCommon.Logger) error {
-	rootDir, err := findImportAliasProjectRootFn()
+	return checkWithRootFinder(logger, func() (string, error) { return findImportAliasProjectRoot(os.Getwd) })
+}
+
+func checkWithRootFinder(logger *cryptoutilCmdCicdCommon.Logger, findRoot func() (string, error)) error {
+	rootDir, err := findRoot()
 	if err != nil {
 		return fmt.Errorf("import-alias-formula: %w", err)
 	}
@@ -259,7 +256,7 @@ func findImportAliasProjectRoot(getwdFn func() (string, error)) (string, error) 
 
 		parent := filepath.Dir(dir)
 		if parent == dir {
-			return "", fmt.Errorf("go.mod not found from %s", cwd)
+			return "", fmt.Errorf("%s from %s", importAliasGoModNotFoundError, cwd)
 		}
 
 		dir = parent

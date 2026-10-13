@@ -21,3 +21,9 @@ const (
 	// TestClientName - Default test client name.
 	TestClientName = "Test Client"
 )
+
+// PKI and telemetry test fixture values.
+const (
+	// TestHistogramObservationValue is a sample for generic histogram tests.
+	TestHistogramObservationValue = 15
+)

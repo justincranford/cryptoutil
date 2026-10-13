@@ -1,9 +1,8 @@
 -- PostgreSQL Leader Initialization Script
--- Creates 24 logical databases (8 services × 3 deployment types)
+-- Creates 21 logical databases (7 services × 3 deployment types)
 -- OLTP Read-Write databases for microservice isolation
 
--- Suite-level deployment databases (8)
-CREATE DATABASE "suitedeployment-pki-ca";
+-- Suite-level deployment databases (7)
 CREATE DATABASE "suitedeployment-sm-kms";
 CREATE DATABASE "suitedeployment-identity-authz";
 CREATE DATABASE "suitedeployment-identity-idp";
@@ -12,8 +11,7 @@ CREATE DATABASE "suitedeployment-identity-rp";
 CREATE DATABASE "suitedeployment-identity-spa";
 CREATE DATABASE "suitedeployment-skeleton-template";
 
--- Product-level deployment databases (8)
-CREATE DATABASE "productdeployment-pki-ca";
+-- Product-level deployment databases (7)
 CREATE DATABASE "productdeployment-sm-kms";
 CREATE DATABASE "productdeployment-identity-authz";
 CREATE DATABASE "productdeployment-identity-idp";
@@ -22,8 +20,7 @@ CREATE DATABASE "productdeployment-identity-rp";
 CREATE DATABASE "productdeployment-identity-spa";
 CREATE DATABASE "productdeployment-skeleton-template";
 
--- Service-level deployment databases (8)
-CREATE DATABASE "servicedeployment-pki-ca";
+-- Service-level deployment databases (7)
 CREATE DATABASE "servicedeployment-sm-kms";
 CREATE DATABASE "servicedeployment-identity-authz";
 CREATE DATABASE "servicedeployment-identity-idp";
@@ -33,8 +30,6 @@ CREATE DATABASE "servicedeployment-identity-spa";
 CREATE DATABASE "servicedeployment-skeleton-template";
 
 -- Enable logical replication for all databases
-\c "suitedeployment-pki-ca"
-CREATE PUBLICATION suite_pki_ca_pub FOR ALL TABLES;
 
 \c "suitedeployment-sm-kms"
 CREATE PUBLICATION suite_sm_kms_pub FOR ALL TABLES;
@@ -57,8 +52,6 @@ CREATE PUBLICATION suite_identity_spa_pub FOR ALL TABLES;
 \c "suitedeployment-skeleton-template"
 CREATE PUBLICATION suite_skeleton_template_pub FOR ALL TABLES;
 
-\c "productdeployment-pki-ca"
-CREATE PUBLICATION product_pki_ca_pub FOR ALL TABLES;
 
 \c "productdeployment-sm-kms"
 CREATE PUBLICATION product_sm_kms_pub FOR ALL TABLES;
@@ -81,8 +74,6 @@ CREATE PUBLICATION product_identity_spa_pub FOR ALL TABLES;
 \c "productdeployment-skeleton-template"
 CREATE PUBLICATION product_skeleton_template_pub FOR ALL TABLES;
 
-\c "servicedeployment-pki-ca"
-CREATE PUBLICATION service_pki_ca_pub FOR ALL TABLES;
 
 \c "servicedeployment-sm-kms"
 CREATE PUBLICATION service_sm_kms_pub FOR ALL TABLES;
@@ -108,7 +99,6 @@ CREATE PUBLICATION service_skeleton_template_pub FOR ALL TABLES;
 -- PS-ID application databases (one per active PS-ID, named by DatabaseName derivation)
 -- These are the databases that app containers connect to via postgres-url.secret.
 CREATE DATABASE sm_kms_database;
-CREATE DATABASE pki_ca_database;
 CREATE DATABASE identity_authz_database;
 CREATE DATABASE identity_idp_database;
 CREATE DATABASE identity_rp_database;

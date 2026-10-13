@@ -142,8 +142,8 @@ func TestFindViolationsInDir_PSIDWithSubdirs(t *testing.T) {
 
 	tmpDir := t.TempDir()
 
-	// Create pki-ca with profiles/ subdirectory.
-	writeConfigFile(t, tmpDir, filepath.Join(cryptoutilSharedMagic.CICDConfigsDir, cryptoutilSharedMagic.OTLPServicePKICA, "profiles", "root-ca.yml"), "# profile\n")
+	// Create KMS with profiles/ subdirectory.
+	writeConfigFile(t, tmpDir, filepath.Join(cryptoutilSharedMagic.CICDConfigsDir, cryptoutilSharedMagic.OTLPServiceSMKMS, "profiles", "root-ca.yml"), "# profile\n")
 
 	violations, err := lintFitnessConfigsNaming.FindViolationsInDir(tmpDir)
 	require.NoError(t, err)
@@ -163,7 +163,7 @@ func TestFindViolationsInDir_FilesInConfigsRootIgnored(t *testing.T) {
 	assert.Empty(t, violations)
 }
 
-// TestFindViolationsInDir_OldProductDirsAreViolations verifies old product-level dirs (e.g. sm/, pki/) are violations.
+// TestFindViolationsInDir_OldProductDirsAreViolations verifies old product-level dirs (e.g. sm/, retired product/) are violations.
 func TestFindViolationsInDir_OldProductDirsAreViolations(t *testing.T) {
 	t.Parallel()
 
@@ -172,7 +172,7 @@ func TestFindViolationsInDir_OldProductDirsAreViolations(t *testing.T) {
 
 	// Old nested product dirs should now be violations.
 	require.NoError(t, os.MkdirAll(filepath.Join(tmpDir, cryptoutilSharedMagic.CICDConfigsDir, "sm"), cryptoutilSharedMagic.DirPermissions))
-	require.NoError(t, os.MkdirAll(filepath.Join(tmpDir, cryptoutilSharedMagic.CICDConfigsDir, cryptoutilSharedMagic.PKIProductName), cryptoutilSharedMagic.DirPermissions))
+	require.NoError(t, os.MkdirAll(filepath.Join(tmpDir, cryptoutilSharedMagic.CICDConfigsDir, cryptoutilSharedMagic.RetiredPKIProductName), cryptoutilSharedMagic.DirPermissions))
 
 	violations, err := lintFitnessConfigsNaming.FindViolationsInDir(tmpDir)
 	require.NoError(t, err)

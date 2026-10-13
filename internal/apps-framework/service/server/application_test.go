@@ -268,7 +268,7 @@ func TestApplication_Start_PublicServerFails(t *testing.T) {
 	app, err := cryptoutilAppsFrameworkServiceServer.NewApplication(ctx, publicServer, adminServer)
 	require.NoError(t, err)
 
-	startCtx, cancel := context.WithTimeout(ctx, 2*time.Second)
+	startCtx, cancel := context.WithTimeout(ctx, cryptoutilSharedMagic.TimeoutTestServerReady)
 	defer cancel()
 
 	err = app.Start(startCtx)
@@ -292,7 +292,7 @@ func TestApplication_Start_AdminServerFails(t *testing.T) {
 	app, err := cryptoutilAppsFrameworkServiceServer.NewApplication(ctx, publicServer, adminServer)
 	require.NoError(t, err)
 
-	startCtx, cancel := context.WithTimeout(ctx, 2*time.Second)
+	startCtx, cancel := context.WithTimeout(ctx, cryptoutilSharedMagic.TimeoutTestServerReady)
 	defer cancel()
 
 	err = app.Start(startCtx)

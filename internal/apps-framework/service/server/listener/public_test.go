@@ -7,20 +7,19 @@ package listener_test
 import (
 	"context"
 	"crypto/tls"
+	"crypto/x509"
 	json "encoding/json"
-	"fmt"
 	"io"
-	"net"
 	http "net/http"
 	"strconv"
 	"sync"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/require"
 
 	cryptoutilAppsFrameworkServiceServerListener "cryptoutil/internal/apps-framework/service/server/listener"
 	cryptoutilAppsFrameworkServiceServerTestutil "cryptoutil/internal/apps-framework/service/server/testutil"
+	cryptoutilAppsFrameworkServiceTestHelpTls "cryptoutil/internal/apps-framework/service/test_help_tls"
 	cryptoutilAppsFrameworkServiceTestingHttpservertests "cryptoutil/internal/apps-framework/service/testing/httpservertests"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
@@ -97,19 +96,12 @@ func TestPublicHTTPServer_Start_Success(t *testing.T) {
 		_ = server.Start(ctx)
 	}()
 
-	// Wait for server to start.
-	time.Sleep(1 * time.Second)
-
-	// Verify server is listening on a port.
-	port := server.ActualPort()
-	require.Greater(t, port, 0)
+	waitForPublicHTTPSHealthEndpoint(t, server.ActualPort, cryptoutilSharedMagic.DefaultServiceHealthEndpoint)
+	require.Greater(t, server.ActualPort(), 0)
 
 	// Shutdown server.
 	cancel()
 	wg.Wait()
-
-	// Wait for port to be fully released.
-	time.Sleep(cryptoutilSharedMagic.TestDefaultRateLimitServiceIP * time.Millisecond)
 }
 
 // TestPublicHTTPServer_Start_NilContext tests Start rejects nil context.
@@ -152,8 +144,8 @@ func TestPublicHTTPServer_ServiceHealth_Healthy(t *testing.T) {
 		_ = server.Start(ctx)
 	}()
 
-	// Wait for server to start.
-	time.Sleep(1 * time.Second)
+	// Wait until the service HTTPS health endpoint is serving requests.
+	baseURL := waitForPublicHTTPSHealthEndpoint(t, server.ActualPort, cryptoutilSharedMagic.DefaultServiceHealthEndpoint)
 
 	// Make request to service health endpoint.
 	client := &http.Client{
@@ -164,11 +156,10 @@ func TestPublicHTTPServer_ServiceHealth_Healthy(t *testing.T) {
 			},
 			DisableKeepAlives: true,
 		},
-		Timeout: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Second,
+		Timeout: cryptoutilSharedMagic.DefaultHealthCheckTimeout,
 	}
 
-	baseURL := "https://" + net.JoinHostPort(cryptoutilSharedMagic.IPv4Loopback, strconv.Itoa(server.ActualPort()))
-	url := fmt.Sprintf("%s/service/api/v1/health", baseURL)
+	url := baseURL + cryptoutilSharedMagic.DefaultServiceHealthEndpoint
 
 	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, url, nil)
 	require.NoError(t, err)
@@ -190,9 +181,6 @@ func TestPublicHTTPServer_ServiceHealth_Healthy(t *testing.T) {
 	// Shutdown server.
 	cancel()
 	wg.Wait()
-
-	// Wait for port to be fully released.
-	time.Sleep(cryptoutilSharedMagic.TestDefaultRateLimitServiceIP * time.Millisecond)
 }
 
 // TestPublicHTTPServer_BrowserHealth_Healthy tests /browser/api/v1/health returns healthy.
@@ -218,10 +206,8 @@ func TestPublicHTTPServer_BrowserHealth_Healthy(t *testing.T) {
 		_ = server.Start(ctx)
 	}()
 
-	// Wait for server to allocate its dynamic port.
-	require.Eventually(t, func() bool { return server.ActualPort() > 0 },
-		cryptoutilSharedMagic.DefaultHealthCheckTimeout, cryptoutilSharedMagic.DefaultHealthCheckInterval,
-		"server should allocate a dynamic port")
+	// Wait until the browser HTTPS health endpoint is serving requests.
+	baseURL := waitForPublicHTTPSHealthEndpoint(t, server.ActualPort, cryptoutilSharedMagic.DefaultBrowserHealthEndpoint)
 
 	// Make request to browser health endpoint.
 	client := &http.Client{
@@ -232,11 +218,10 @@ func TestPublicHTTPServer_BrowserHealth_Healthy(t *testing.T) {
 			},
 			DisableKeepAlives: true,
 		},
-		Timeout: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Second,
+		Timeout: cryptoutilSharedMagic.DefaultHealthCheckTimeout,
 	}
 
-	baseURL := "https://" + net.JoinHostPort(cryptoutilSharedMagic.IPv4Loopback, strconv.Itoa(server.ActualPort()))
-	url := fmt.Sprintf("%s/browser/api/v1/health", baseURL)
+	url := baseURL + cryptoutilSharedMagic.DefaultBrowserHealthEndpoint
 
 	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, url, nil)
 	require.NoError(t, err)
@@ -258,9 +243,6 @@ func TestPublicHTTPServer_BrowserHealth_Healthy(t *testing.T) {
 	// Shutdown server.
 	cancel()
 	wg.Wait()
-
-	// Wait for port to be fully released.
-	time.Sleep(cryptoutilSharedMagic.TestDefaultRateLimitServiceIP * time.Millisecond)
 }
 
 // TestPublicHTTPServer_Shutdown_Graceful tests graceful shutdown.
@@ -311,4 +293,24 @@ func TestPublicHTTPServer_ActualPort_BeforeStart(t *testing.T) {
 	require.Equal(t, 0, port, "Expected port 0 before server starts")
 }
 
-// TestPublicHTTPServer_ServiceHealth_DuringShutdown tests health endpoint during shutdown.
+func waitForPublicHTTPSHealthEndpoint(t *testing.T, actualPortFn func() int, endpointPath string) string {
+	t.Helper()
+
+	rootCAs := cryptoutilAppsFrameworkServiceServerTestutil.PublicRootCAPool()
+
+	var baseURL string
+
+	err := cryptoutilAppsFrameworkServiceTestHelpTls.WaitForHTTPSHealthEndpoint(context.Background(), func() (string, *x509.CertPool) {
+		port := actualPortFn()
+		if port <= 0 {
+			return "", nil
+		}
+
+		baseURL = cryptoutilSharedMagic.URLPrefixLocalhostHTTPS + strconv.Itoa(port)
+
+		return baseURL + endpointPath, rootCAs
+	}, cryptoutilSharedMagic.DefaultHealthCheckTimeout)
+	require.NoError(t, err)
+
+	return baseURL
+}

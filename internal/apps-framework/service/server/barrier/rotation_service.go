@@ -21,27 +21,15 @@ import (
 // but old keys remain in the database for decrypting historical data.
 // Re-encryption of dependent keys is NOT performed automatically.
 type RotationService struct {
-	jwkGenService     *cryptoutilSharedCryptoJose.JWKGenService
-	repository        Repository
-	unsealKeysService cryptoutilUnsealKeysService.UnsealKeysService
-	encryptKeyFn      func([]joseJwk.Key, joseJwk.Key) (*joseJwe.Message, []byte, error)
+	jwkGenService                *cryptoutilSharedCryptoJose.JWKGenService
+	repository                   Repository
+	unsealKeysService            cryptoutilUnsealKeysService.UnsealKeysService
+	generateRootJWEJWKFn         func(*cryptoutilSharedCryptoJose.JWKGenService) (*googleUuid.UUID, joseJwk.Key, joseJwk.Key, []byte, []byte, error)
+	generateIntermediateJWEJWKFn func(*cryptoutilSharedCryptoJose.JWKGenService) (*googleUuid.UUID, joseJwk.Key, joseJwk.Key, []byte, []byte, error)
+	generateContentJWEJWKFn      func(*cryptoutilSharedCryptoJose.JWKGenService) (*googleUuid.UUID, joseJwk.Key, joseJwk.Key, []byte, []byte, error)
+	encryptUnsealKeyFn           func(cryptoutilUnsealKeysService.UnsealKeysService, joseJwk.Key) ([]byte, error)
+	encryptKeyFn                 func([]joseJwk.Key, joseJwk.Key) (*joseJwe.Message, []byte, error)
 }
-
-// Injectable vars for testing error path coverage.
-var (
-	rotationGenerateRootJWEJWKFn = func(svc *cryptoutilSharedCryptoJose.JWKGenService) (*googleUuid.UUID, joseJwk.Key, joseJwk.Key, []byte, []byte, error) {
-		return svc.GenerateJWEJWK(&cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgDir)
-	}
-	rotationGenerateIntermediateJWEJWKFn = func(svc *cryptoutilSharedCryptoJose.JWKGenService) (*googleUuid.UUID, joseJwk.Key, joseJwk.Key, []byte, []byte, error) {
-		return svc.GenerateJWEJWK(&cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
-	}
-	rotationGenerateContentJWEJWKFn = func(svc *cryptoutilSharedCryptoJose.JWKGenService) (*googleUuid.UUID, joseJwk.Key, joseJwk.Key, []byte, []byte, error) {
-		return svc.GenerateJWEJWK(&cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
-	}
-	rotationUnsealEncryptKeyFn = func(svc cryptoutilUnsealKeysService.UnsealKeysService, clearKey joseJwk.Key) ([]byte, error) {
-		return svc.EncryptKey(clearKey)
-	}
-)
 
 // NewRotationService creates a new rotation service.
 func NewRotationService(
@@ -65,7 +53,19 @@ func NewRotationService(
 		jwkGenService:     jwkGenService,
 		repository:        repository,
 		unsealKeysService: unsealKeysService,
-		encryptKeyFn:      cryptoutilSharedCryptoJose.EncryptKey,
+		generateRootJWEJWKFn: func(svc *cryptoutilSharedCryptoJose.JWKGenService) (*googleUuid.UUID, joseJwk.Key, joseJwk.Key, []byte, []byte, error) {
+			return svc.GenerateJWEJWK(&cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgDir)
+		},
+		generateIntermediateJWEJWKFn: func(svc *cryptoutilSharedCryptoJose.JWKGenService) (*googleUuid.UUID, joseJwk.Key, joseJwk.Key, []byte, []byte, error) {
+			return svc.GenerateJWEJWK(&cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
+		},
+		generateContentJWEJWKFn: func(svc *cryptoutilSharedCryptoJose.JWKGenService) (*googleUuid.UUID, joseJwk.Key, joseJwk.Key, []byte, []byte, error) {
+			return svc.GenerateJWEJWK(&cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
+		},
+		encryptUnsealKeyFn: func(svc cryptoutilUnsealKeysService.UnsealKeysService, clearKey joseJwk.Key) ([]byte, error) {
+			return svc.EncryptKey(clearKey)
+		},
+		encryptKeyFn: cryptoutilSharedCryptoJose.EncryptKey,
 	}, nil
 }
 
@@ -94,13 +94,13 @@ func (s *RotationService) RotateRootKey(ctx context.Context, reason string) (*Ro
 		}
 
 		// Generate new root JWK
-		rootKeyKidUUID, clearRootKey, _, _, _, err := rotationGenerateRootJWEJWKFn(s.jwkGenService)
+		rootKeyKidUUID, clearRootKey, _, _, _, err := s.generateRootJWEJWKFn(s.jwkGenService)
 		if err != nil {
 			return fmt.Errorf("failed to generate root JWK: %w", err)
 		}
 
 		// Encrypt with unseal key
-		encryptedRootKeyBytes, err := rotationUnsealEncryptKeyFn(s.unsealKeysService, clearRootKey)
+		encryptedRootKeyBytes, err := s.encryptUnsealKeyFn(s.unsealKeysService, clearRootKey)
 		if err != nil {
 			return fmt.Errorf("failed to encrypt root key: %w", err)
 		}
@@ -173,7 +173,7 @@ func (s *RotationService) RotateIntermediateKey(ctx context.Context, reason stri
 		}
 
 		// Generate new intermediate JWK
-		intermediateKeyKidUUID, clearIntermediateKey, _, _, _, err := rotationGenerateIntermediateJWEJWKFn(s.jwkGenService)
+		intermediateKeyKidUUID, clearIntermediateKey, _, _, _, err := s.generateIntermediateJWEJWKFn(s.jwkGenService)
 		if err != nil {
 			return fmt.Errorf("failed to generate intermediate JWK: %w", err)
 		}
@@ -272,7 +272,7 @@ func (s *RotationService) RotateContentKey(ctx context.Context, reason string) (
 		}
 
 		// Generate new content JWK
-		contentKeyKidUUID, clearContentKey, _, _, _, err := rotationGenerateContentJWEJWKFn(s.jwkGenService)
+		contentKeyKidUUID, clearContentKey, _, _, _, err := s.generateContentJWEJWKFn(s.jwkGenService)
 		if err != nil {
 			return fmt.Errorf("failed to generate content JWK: %w", err)
 		}

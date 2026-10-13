@@ -52,6 +52,7 @@ func TestNewValueGenPool_Errors(t *testing.T) {
 					poolSize:            1,
 					maxLifetimeValues:   1,
 					maxLifetimeDuration: time.Second,
+					maintenanceInterval: cryptoutilSharedMagic.PoolMaintenanceInterval,
 					generateFunction:    nil,
 				}
 
@@ -225,12 +226,73 @@ func TestWorker_Limits(t *testing.T) {
 	}
 }
 
-// Sequential: mutates poolMaintenanceInterval package-level state.
-func TestCloseChannelsThread_TickerPath(t *testing.T) {
-	origInterval := poolMaintenanceInterval
-	poolMaintenanceInterval = 1 * time.Millisecond
+func TestCancel_FullGenerateBuffer(t *testing.T) {
+	t.Parallel()
 
-	defer func() { poolMaintenanceInterval = origInterval }()
+	tests := []struct {
+		name     string
+		poolSize uint32
+	}{
+		{name: "minimum test buffer", poolSize: cryptoutilSharedMagic.DefaultPoolConfigTest.MaxSize},
+		{name: "maximum test buffer", poolSize: cryptoutilSharedMagic.TestPoolMaxSize},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			secondGenerationStarted := make(chan struct{})
+			releaseSecondGeneration := make(chan struct{})
+
+			var (
+				generationSignalOnce sync.Once
+				releaseOnce          sync.Once
+				generateCount        atomic.Uint64
+			)
+
+			generateFn := func() (googleUuid.UUID, error) {
+				if generateCount.Add(1) > uint64(tc.poolSize) {
+					generationSignalOnce.Do(func() { close(secondGenerationStarted) })
+					<-releaseSecondGeneration
+				}
+
+				return googleUuid.NewV7()
+			}
+
+			poolInstance, err := NewValueGenPool(NewValueGenPoolConfig(
+				context.Background(), testTelemetryService,
+				tc.name, cryptoutilSharedMagic.DefaultPoolConfigTest.NumWorkers, tc.poolSize,
+				cryptoutilSharedMagic.JoseJADefaultMaxMaterials, time.Minute, generateFn, false,
+			))
+			require.NoError(t, err)
+
+			require.NotNil(t, poolInstance)
+			defer func() {
+				poolInstance.Cancel()
+				releaseOnce.Do(func() { close(releaseSecondGeneration) })
+			}()
+
+			select {
+			case <-secondGenerationStarted:
+			case <-time.After(cryptoutilSharedMagic.ClientShutdownRequestTimeout):
+				t.Fatal("worker did not start generation after filling the buffer")
+			}
+
+			require.Len(t, poolInstance.generateChannel, int(tc.poolSize))
+
+			poolInstance.Cancel()
+			releaseOnce.Do(func() { close(releaseSecondGeneration) })
+
+			require.Eventually(t, func() bool {
+				return len(poolInstance.permissionChannel) == 0
+			}, cryptoutilSharedMagic.ClientShutdownRequestTimeout, cryptoutilSharedMagic.WaitBeforeShutdownDuration,
+				"worker must release its generation permission after cancellation")
+		})
+	}
+}
+
+func TestCloseChannelsThread_TickerPath(t *testing.T) {
+	t.Parallel()
 
 	generateFn := func() (googleUuid.UUID, error) {
 		time.Sleep(2 * time.Millisecond)
@@ -238,10 +300,15 @@ func TestCloseChannelsThread_TickerPath(t *testing.T) {
 		return googleUuid.NewV7()
 	}
 
-	poolInstance, err := NewValueGenPool(NewValueGenPoolConfig(
+	cfg, err := NewValueGenPoolConfig(
 		context.Background(), testTelemetryService,
-		"ticker-path", 1, 1, cryptoutilSharedMagic.JoseJAMaxMaterials, 1*time.Millisecond, generateFn, false,
-	))
+		"ticker-path", 1, 1, cryptoutilSharedMagic.JoseJAMaxMaterials, time.Millisecond, generateFn, false,
+	)
+	require.NoError(t, err)
+
+	cfg.maintenanceInterval = time.Millisecond
+
+	poolInstance, err := NewValueGenPool(cfg, nil)
 	require.NoError(t, err)
 	require.NotNil(t, poolInstance)
 

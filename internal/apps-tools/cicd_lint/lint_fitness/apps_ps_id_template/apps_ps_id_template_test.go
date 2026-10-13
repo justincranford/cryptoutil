@@ -301,7 +301,7 @@ func TestCheckInDir_WithExclusions_ServiceRootTemplateMismatch(t *testing.T) {
 	tmpDir := t.TempDir()
 	createFullPSIDRoot(t, root, tmpDir)
 
-	servicePath := filepath.Join(tmpDir, "internal", "apps", cryptoutilSharedMagic.OTLPServicePKICA, "ca_test.go")
+	servicePath := filepath.Join(tmpDir, "internal", "apps", cryptoutilSharedMagic.OTLPServiceIdentityIDP, "idp_test.go")
 	serviceContent, readErr := os.ReadFile(servicePath)
 	require.NoError(t, readErr)
 

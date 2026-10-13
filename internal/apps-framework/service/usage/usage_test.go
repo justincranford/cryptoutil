@@ -44,17 +44,6 @@ func TestBuildUsageMain(t *testing.T) {
 				"Use \"skeleton template <subcommand> help\"",
 			},
 		},
-		{
-			name:               "pki ca",
-			productName:        cryptoutilSharedMagic.PKIProductName,
-			serviceName:        cryptoutilSharedMagic.PKICAServiceName,
-			serviceDisplayName: cryptoutilSharedMagic.PKICADisplayName,
-			wantContains: []string{
-				"Usage: pki ca <subcommand> [options]",
-				cryptoutilSharedMagic.PKICADisplayName,
-				"Use \"pki ca <subcommand> help\"",
-			},
-		},
 	}
 
 	for _, tt := range tests {
@@ -215,7 +204,7 @@ func TestBuildUsageHealth(t *testing.T) {
 				"Usage: sm kms health [options]",
 				"https://127.0.0.1:8000",
 				"https://localhost:8000",
-				"/browser/api/v1/health",
+				cryptoutilSharedMagic.DefaultBrowserHealthEndpoint,
 			},
 		},
 	}
@@ -262,15 +251,6 @@ func TestBuildUsageLivez(t *testing.T) {
 				"/admin/api/v1/livez",
 			},
 		},
-		{
-			name:        "pki ca livez",
-			productName: cryptoutilSharedMagic.PKIProductName,
-			serviceName: cryptoutilSharedMagic.PKICAServiceName,
-			wantContains: []string{
-				"Usage: pki ca livez [options]",
-				"https://127.0.0.1:9090",
-			},
-		},
 	}
 
 	for _, tt := range tests {
@@ -311,16 +291,6 @@ func TestBuildUsageReadyz(t *testing.T) {
 			serviceName: cryptoutilSharedMagic.SkeletonTemplateServiceName,
 			wantContains: []string{
 				"Usage: skeleton template readyz [options]",
-				"https://127.0.0.1:9090",
-				"/admin/api/v1/readyz",
-			},
-		},
-		{
-			name:        "pki ca readyz",
-			productName: cryptoutilSharedMagic.PKIProductName,
-			serviceName: cryptoutilSharedMagic.PKICAServiceName,
-			wantContains: []string{
-				"Usage: pki ca readyz [options]",
 				"https://127.0.0.1:9090",
 				"/admin/api/v1/readyz",
 			},
@@ -366,17 +336,6 @@ func TestBuildUsageShutdown(t *testing.T) {
 			serviceName: cryptoutilSharedMagic.SkeletonTemplateServiceName,
 			wantContains: []string{
 				"Usage: skeleton template shutdown [options]",
-				"https://127.0.0.1:9090",
-				"/admin/api/v1/shutdown",
-				"--force",
-			},
-		},
-		{
-			name:        "pki ca shutdown",
-			productName: cryptoutilSharedMagic.PKIProductName,
-			serviceName: cryptoutilSharedMagic.PKICAServiceName,
-			wantContains: []string{
-				"Usage: pki ca shutdown [options]",
 				"https://127.0.0.1:9090",
 				"/admin/api/v1/shutdown",
 				"--force",

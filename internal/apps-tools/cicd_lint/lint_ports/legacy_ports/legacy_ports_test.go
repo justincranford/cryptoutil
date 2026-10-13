@@ -24,10 +24,7 @@ func TestGetServiceForLegacyPort(t *testing.T) {
 	}{
 		{name: "sm-kms 8081", port: cryptoutilSharedMagic.TestIDPServerPort, want: cryptoutilSharedMagic.OTLPServiceSMKMS},
 		{name: "sm-kms 8082", port: cryptoutilSharedMagic.TestResourceServerPort, want: cryptoutilSharedMagic.OTLPServiceSMKMS},
-		{name: "pki-ca 9443", port: 9443, want: cryptoutilSharedMagic.OTLPServicePKICA},
-		{name: "pki-ca 8092", port: 8092, want: cryptoutilSharedMagic.OTLPServicePKICA},
-		{name: "pki-ca 8443", port: 8443, want: cryptoutilSharedMagic.OTLPServicePKICA},
-		{name: "unknown port", port: 12345, want: cryptoutilSharedMagic.UNKNOWN},
+		{name: "retired pki-ca port", port: cryptoutilSharedMagic.RetiredPKICAServicePort, want: cryptoutilSharedMagic.UNKNOWN},
 	}
 
 	for _, tt := range tests {
@@ -96,12 +93,12 @@ func TestCheckFile_WithLegacyPort(t *testing.T) {
 	tmpDir := t.TempDir()
 	goFile := filepath.Join(tmpDir, "handler.go")
 
-	// Port 9443 belongs to pki-ca legacy range.
-	content := "package main\nconst tlsPort = 9443\n"
+	// Port 8081 is a retired sm-kms port.
+	content := "package main\nconst tlsPort = 8081\n"
 	require.NoError(t, os.WriteFile(goFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions))
 
 	violations := CheckFile(goFile, lintPortsCommon.AllLegacyPorts(), legacyPortPattern.FindAllStringSubmatch)
-	require.NotEmpty(t, violations, "Should find legacy port 9443")
+	require.NotEmpty(t, violations, "Should find legacy port 8081")
 }
 
 func TestCheckFile_NonExistentFile(t *testing.T) {

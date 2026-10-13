@@ -362,7 +362,7 @@ func TestAdminServer_Livez_DuringShutdown_InMemory(t *testing.T) {
 
 	err = json.Unmarshal(body, &result)
 	require.NoError(t, err)
-	require.Equal(t, "shutting down", result[cryptoutilSharedMagic.StringStatus])
+	require.Equal(t, cryptoutilSharedMagic.StringStatusShuttingDown, result[cryptoutilSharedMagic.StringStatus])
 }
 
 // TestAdminServer_Readyz_DuringShutdown_InMemory tests readyz returns 503 during shutdown using app.Test().
@@ -404,7 +404,7 @@ func TestAdminServer_Readyz_DuringShutdown_InMemory(t *testing.T) {
 
 	err = json.Unmarshal(body, &result)
 	require.NoError(t, err)
-	require.Equal(t, "shutting down", result[cryptoutilSharedMagic.StringStatus])
+	require.Equal(t, cryptoutilSharedMagic.StringStatusShuttingDown, result[cryptoutilSharedMagic.StringStatus])
 }
 
 // TestAdminServer_Shutdown_Idempotent tests multiple shutdown calls are safe.

@@ -280,19 +280,6 @@ func serviceRootTemplateValues(ps cryptoutilFitnessRegistry.ProductService) (map
 		values["__SERVER_SETTINGS_TYPE__"] = "ServiceFrameworkServerSettings"
 		values["__PARSE_CONFIG_FUNC__"] = templateParseWithFlagSet
 		values["__NEW_SERVER_CONSTRUCTOR__"] = "NewKMSServerFromConfig"
-	case cryptoutilSharedMagic.OTLPServicePKICA:
-		serviceConfigImportPath = "cryptoutil/internal/apps/pki-ca/server/config"
-		serviceServerImportPath = "cryptoutil/internal/apps/pki-ca/server"
-		values["__ENTRY_FUNC__"] = "Ca"
-		values["__SERVICE_DISPLAY_NAME_CONST__"] = "PKICADisplayName"
-		values["__SERVICE_ID_CONST__"] = "PKICAServiceID"
-		values["__PRODUCT_NAME_CONST__"] = "PKIProductName"
-		values["__SERVICE_NAME_CONST__"] = "PKICAServiceName"
-		values["__SERVICE_PORT_CONST__"] = "PKICAServicePort"
-		values["__USAGE_PREFIX__"] = "CA"
-		values["__SERVER_SETTINGS_TYPE__"] = "CAServerSettings"
-		values["__PARSE_CONFIG_FUNC__"] = templateParseWithFlagSet
-		values["__NEW_SERVER_CONSTRUCTOR__"] = templateNewFromConfig
 	case cryptoutilSharedMagic.OTLPServiceIdentityAuthz:
 		serviceConfigImportPath = "cryptoutil/internal/apps/identity-authz/server/config"
 		serviceServerImportPath = "cryptoutil/internal/apps/identity-authz/server"

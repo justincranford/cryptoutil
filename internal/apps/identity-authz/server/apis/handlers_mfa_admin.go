@@ -283,7 +283,7 @@ func (s *Service) handleDeleteMFAFactor(c *fiber.Ctx) error {
 	expectedProfileName := fmt.Sprintf("user_%s_default", user.ID.String())
 	if authProfile.Name != expectedProfileName {
 		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
-			cryptoutilSharedMagic.StringError: "unauthorized",
+			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.StringUnauthorized,
 			"error_description":               "MFA factor does not belong to specified user",
 		})
 	}

@@ -138,6 +138,9 @@ const (
 	// PoolMaintenanceInterval - Ticker interval for periodic pool maintenance checks.
 	PoolMaintenanceInterval = 500 * time.Millisecond
 
+	// PoolMetricHistogramCount is the number of histograms created by a value generator pool.
+	PoolMetricHistogramCount = 3
+
 	// TestPoolMaxSize - Maximum pool size for test configurations.
 	TestPoolMaxSize = 3
 
@@ -218,6 +221,7 @@ var (
 	DefaultPoolConfigECDHP384    = DefaultPoolConfig{NumWorkers: 2, MaxSize: 6}  //nolint:mnd
 	DefaultPoolConfigECDHP256    = DefaultPoolConfig{NumWorkers: 1, MaxSize: 3}  //nolint:mnd
 	DefaultPoolConfigED25519     = DefaultPoolConfig{NumWorkers: 1, MaxSize: 2}  //nolint:mnd
+	DefaultPoolConfigTest        = DefaultPoolConfig{NumWorkers: 1, MaxSize: 1}  //nolint:mnd
 	DefaultPoolConfigAES256      = DefaultPoolConfig{NumWorkers: 3, MaxSize: 9}  //nolint:mnd
 	DefaultPoolConfigAES192      = DefaultPoolConfig{NumWorkers: 2, MaxSize: 6}  //nolint:mnd
 	DefaultPoolConfigAES128      = DefaultPoolConfig{NumWorkers: 1, MaxSize: 3}  //nolint:mnd

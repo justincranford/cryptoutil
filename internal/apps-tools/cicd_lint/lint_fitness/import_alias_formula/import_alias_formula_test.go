@@ -297,30 +297,45 @@ func TestCheckInDir_CheckFileReadError(t *testing.T) {
 	require.Contains(t, err.Error(), "disk error")
 }
 
-// Sequential: mutates findImportAliasProjectRootFn package-level state.
-func TestCheck_ProjectRootNotFound(t *testing.T) {
-	orig := findImportAliasProjectRootFn
-	findImportAliasProjectRootFn = func() (string, error) { return "", errors.New("go.mod not found") }
+func TestCheck_RootFinder(t *testing.T) {
+	t.Parallel()
 
-	defer func() { findImportAliasProjectRootFn = orig }()
+	tests := []struct {
+		name     string
+		findRoot func(*testing.T) (string, error)
+		wantErr  string
+	}{
+		{
+			name: "root lookup succeeds",
+			findRoot: func(t *testing.T) (string, error) {
+				return buildEmptyAliasRoot(t), nil
+			},
+		},
+		{
+			name: "root lookup fails",
+			findRoot: func(*testing.T) (string, error) {
+				return "", errors.New(importAliasGoModNotFoundError)
+			},
+			wantErr: importAliasGoModNotFoundError,
+		},
+	}
 
-	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	err := Check(logger)
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "go.mod not found")
-}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-// Sequential: mutates findImportAliasProjectRootFn package-level state.
-func TestCheck_HappyPath(t *testing.T) {
-	rootDir := buildEmptyAliasRoot(t)
+			err := checkWithRootFinder(cryptoutilCmdCicdCommon.NewLogger("test"), func() (string, error) {
+				return tc.findRoot(t)
+			})
+			if tc.wantErr != "" {
+				require.ErrorContains(t, err, tc.wantErr)
 
-	orig := findImportAliasProjectRootFn
-	findImportAliasProjectRootFn = func() (string, error) { return rootDir, nil }
+				return
+			}
 
-	defer func() { findImportAliasProjectRootFn = orig }()
-
-	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	require.NoError(t, Check(logger))
+			require.NoError(t, err)
+		})
+	}
 }
 
 func TestFindProjectRoot_Errors(t *testing.T) {
@@ -332,7 +347,7 @@ func TestFindProjectRoot_Errors(t *testing.T) {
 		wantErr string
 	}{
 		{name: "getwd error", getwdFn: func() (string, error) { return "", errors.New("getwd failed") }, wantErr: "failed to get working directory"},
-		{name: "go.mod not found", getwdFn: func() (string, error) { return t.TempDir(), nil }, wantErr: "go.mod not found"},
+		{name: importAliasGoModNotFoundError, getwdFn: func() (string, error) { return t.TempDir(), nil }, wantErr: importAliasGoModNotFoundError},
 	}
 
 	for _, tc := range tests {

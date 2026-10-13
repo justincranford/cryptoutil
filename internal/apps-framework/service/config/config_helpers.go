@@ -397,26 +397,3 @@ func NewForJOSEServer(bindAddr string, bindPort uint16, devMode bool) *ServiceFr
 
 	return settings
 }
-
-// NewForCAServer creates settings suitable for the CA Server.
-func NewForCAServer(bindAddr string, bindPort uint16, devMode bool) *ServiceFrameworkServerSettings {
-	// Build args for Parse()
-	args := []string{
-		"start", // Subcommand required
-		"--bind-public-address", bindAddr,
-		"--bind-public-port", fmt.Sprintf("%d", bindPort),
-		"--otlp-service", cryptoutilSharedMagic.OTLPServicePKICA,
-	}
-
-	if devMode {
-		args = append(args, "--local")
-	}
-
-	settings, err := Parse(args, false)
-	if err != nil {
-		// Should not fail with valid default args
-		panic(fmt.Sprintf("NewForCAServer failed to parse args: %v", err))
-	}
-
-	return settings
-}

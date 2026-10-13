@@ -21,7 +21,6 @@ func TestPublicPort_AllPSIDs(t *testing.T) {
 		want int
 	}{
 		{psID: cryptoutilSharedMagic.OTLPServiceSMKMS, want: int(cryptoutilSharedMagic.KMSServicePort)},
-		{psID: cryptoutilSharedMagic.OTLPServicePKICA, want: int(cryptoutilSharedMagic.PKICAServicePort)},
 		{psID: cryptoutilSharedMagic.OTLPServiceIdentityAuthz, want: int(cryptoutilSharedMagic.IdentityDefaultAuthZPort)},
 		{psID: cryptoutilSharedMagic.OTLPServiceIdentityIDP, want: int(cryptoutilSharedMagic.IdentityDefaultIDPPort)},
 		{psID: cryptoutilSharedMagic.OTLPServiceIdentityRS, want: int(cryptoutilSharedMagic.IdentityDefaultRSPort)},
@@ -50,7 +49,6 @@ func TestAdminPort_AllServicesReturn9090(t *testing.T) {
 
 	tests := []string{
 		cryptoutilSharedMagic.OTLPServiceSMKMS,
-		cryptoutilSharedMagic.OTLPServicePKICA,
 		cryptoutilSharedMagic.OTLPServiceIdentityAuthz,
 		cryptoutilSharedMagic.OTLPServiceIdentityIDP,
 		cryptoutilSharedMagic.OTLPServiceIdentityRS,
@@ -82,7 +80,6 @@ func TestPostgresPort_AllPSIDs(t *testing.T) {
 		want int
 	}{
 		{psID: cryptoutilSharedMagic.OTLPServiceSMKMS, want: 54320},
-		{psID: cryptoutilSharedMagic.OTLPServicePKICA, want: 54323},
 		{psID: cryptoutilSharedMagic.OTLPServiceIdentityAuthz, want: 54324},
 		{psID: cryptoutilSharedMagic.OTLPServiceIdentityIDP, want: 54325},
 		{psID: cryptoutilSharedMagic.OTLPServiceIdentityRS, want: 54326},
@@ -114,7 +111,6 @@ func TestProductPublicPort_AllPSIDs(t *testing.T) {
 		want int
 	}{
 		{psID: cryptoutilSharedMagic.OTLPServiceSMKMS, want: int(cryptoutilSharedMagic.ProductTierPortMin)},
-		{psID: cryptoutilSharedMagic.OTLPServicePKICA, want: 18300},
 		{psID: cryptoutilSharedMagic.OTLPServiceIdentityAuthz, want: int(cryptoutilSharedMagic.IdentityE2EAuthzPublicPort)},
 		{psID: cryptoutilSharedMagic.OTLPServiceIdentityIDP, want: int(cryptoutilSharedMagic.IdentityE2EIDPPublicPort)},
 		{psID: cryptoutilSharedMagic.OTLPServiceIdentityRS, want: int(cryptoutilSharedMagic.IdentityE2ERSPublicPort)},
@@ -146,7 +142,6 @@ func TestSuitePublicPort_AllPSIDs(t *testing.T) {
 		want int
 	}{
 		{psID: cryptoutilSharedMagic.OTLPServiceSMKMS, want: int(cryptoutilSharedMagic.SuiteTierPortMin)},
-		{psID: cryptoutilSharedMagic.OTLPServicePKICA, want: 28300},
 		{psID: cryptoutilSharedMagic.OTLPServiceIdentityAuthz, want: 28400},
 		{psID: cryptoutilSharedMagic.OTLPServiceIdentityIDP, want: 28500},
 		{psID: cryptoutilSharedMagic.OTLPServiceIdentityRS, want: 28600},
@@ -183,7 +178,6 @@ func TestPSIDToSQLID(t *testing.T) {
 		want  string
 	}{
 		{name: cryptoutilSharedMagic.OTLPServiceSMKMS, input: cryptoutilSharedMagic.OTLPServiceSMKMS, want: "sm_kms"},
-		{name: cryptoutilSharedMagic.OTLPServicePKICA, input: cryptoutilSharedMagic.OTLPServicePKICA, want: "pki_ca"},
 		{name: cryptoutilSharedMagic.OTLPServiceIdentityAuthz, input: cryptoutilSharedMagic.OTLPServiceIdentityAuthz, want: "identity_authz"},
 		{name: cryptoutilSharedMagic.OTLPServiceIdentityIDP, input: cryptoutilSharedMagic.OTLPServiceIdentityIDP, want: "identity_idp"},
 		{name: cryptoutilSharedMagic.OTLPServiceIdentityRS, input: cryptoutilSharedMagic.OTLPServiceIdentityRS, want: "identity_rs"},
@@ -367,7 +361,6 @@ func TestValidOTLPServiceNames(t *testing.T) {
 
 	require.Len(t, names, cryptoutilSharedMagic.SuiteServiceCount)
 	require.Contains(t, names, OTLPServicePrefix+cryptoutilSharedMagic.OTLPServiceSMKMS)
-	require.Contains(t, names, OTLPServicePrefix+cryptoutilSharedMagic.OTLPServicePKICA)
 	require.Contains(t, names, OTLPServicePrefix+cryptoutilSharedMagic.OTLPServiceSkeletonTemplate)
 }
 
@@ -377,13 +370,12 @@ func TestValidComposeServiceNames(t *testing.T) {
 	names := ValidComposeServiceNames()
 	allVariants := []string{ComposeVariantSQLite1, ComposeVariantSQLite2, ComposeVariantPostgres1, ComposeVariantPostgres2}
 
-	// 8 PS-IDs × 4 variants = 32 names (sqlite-1, sqlite-2, postgresql-1, postgresql-2).
+	// 7 PS-IDs × 4 variants = 28 names (sqlite-1, sqlite-2, postgresql-1, postgresql-2).
 	require.Len(t, names, len(AllProductServices())*len(allVariants))
 	require.Contains(t, names, cryptoutilSharedMagic.OTLPServiceSMKMS+ComposeAppSuffix+ComposeVariantSQLite1)
 	require.Contains(t, names, cryptoutilSharedMagic.OTLPServiceSMKMS+ComposeAppSuffix+ComposeVariantSQLite2)
 	require.Contains(t, names, cryptoutilSharedMagic.OTLPServiceSMKMS+ComposeAppSuffix+ComposeVariantPostgres1)
 	require.Contains(t, names, cryptoutilSharedMagic.OTLPServiceSMKMS+ComposeAppSuffix+ComposeVariantPostgres2)
-	require.Contains(t, names, cryptoutilSharedMagic.OTLPServicePKICA+ComposeAppSuffix+ComposeVariantSQLite1)
 	require.Contains(t, names, cryptoutilSharedMagic.OTLPServiceSkeletonTemplate+ComposeAppSuffix+ComposeVariantPostgres2)
 }
 
@@ -399,7 +391,6 @@ func TestDockerfileEntrypoint_AllPSIDs(t *testing.T) {
 		want []string
 	}{
 		{psID: cryptoutilSharedMagic.OTLPServiceSMKMS, want: []string{"/sbin/tini", "--"}},
-		{psID: cryptoutilSharedMagic.OTLPServicePKICA, want: []string{"/sbin/tini", "--"}},
 		{psID: cryptoutilSharedMagic.OTLPServiceIdentityAuthz, want: []string{"/sbin/tini", "--"}},
 		{psID: cryptoutilSharedMagic.OTLPServiceIdentityIDP, want: []string{"/sbin/tini", "--"}},
 		{psID: cryptoutilSharedMagic.OTLPServiceIdentityRS, want: []string{"/sbin/tini", "--"}},

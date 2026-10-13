@@ -14,11 +14,8 @@ func TestAllLegacyPorts(t *testing.T) {
 
 	ports := AllLegacyPorts()
 
-	// Verify known legacy ports are included.
-	require.Contains(t, ports, uint16(9443)) // legacy sm-kms TLS port
-	require.Contains(t, ports, uint16(8092)) // legacy sm-kms API port
-	require.Contains(t, ports, uint16(8060)) // legacy sm-kms range port
-	require.Contains(t, ports, uint16(8443)) // pki-ca legacy
+	require.Contains(t, ports, uint16(cryptoutilSharedMagic.TestIDPServerPort))
+	require.Contains(t, ports, uint16(cryptoutilSharedMagic.TestResourceServerPort))
 }
 
 func TestAllValidPublicPorts(t *testing.T) {
@@ -27,7 +24,6 @@ func TestAllValidPublicPorts(t *testing.T) {
 	ports := AllValidPublicPorts()
 
 	// Verify standardized ports are included.
-	require.Contains(t, ports, uint16(cryptoutilSharedMagic.PKICAServicePort))            // pki-ca
 	require.Contains(t, ports, uint16(cryptoutilSharedMagic.KMSServicePort))              // sm-kms
 	require.Contains(t, ports, uint16(cryptoutilSharedMagic.KMSE2EPostgreSQL1PublicPort)) // sm-kms
 	require.Contains(t, ports, uint16(cryptoutilSharedMagic.KMSE2EPostgreSQL2PublicPort)) // sm-kms
@@ -50,7 +46,6 @@ func TestIsOtelCollectorPort(t *testing.T) {
 		{name: "OTEL internal metrics", port: cryptoutilSharedMagic.DefaultPublicPortInternalMetrics, want: true},
 		{name: "OTEL Prometheus", port: cryptoutilSharedMagic.PortOtelCollectorReceivedMetrics, want: true},
 		{name: "sm-kms standardized", port: cryptoutilSharedMagic.KMSServicePort, want: false},
-		{name: "pki-ca standardized", port: cryptoutilSharedMagic.PKICAServicePort, want: false},
 		{name: "random port", port: 12345, want: false},
 	}
 
@@ -94,7 +89,6 @@ func TestServicePorts_AllServicesPresent(t *testing.T) {
 
 	expectedServices := []string{
 		cryptoutilSharedMagic.OTLPServiceSMKMS,
-		cryptoutilSharedMagic.OTLPServicePKICA,
 		cryptoutilSharedMagic.OTLPServiceIdentityAuthz,
 		cryptoutilSharedMagic.OTLPServiceIdentityIDP,
 		cryptoutilSharedMagic.OTLPServiceIdentityRS,

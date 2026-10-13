@@ -258,6 +258,6 @@ func TestHandleDeleteMFAFactor_Unauthorized(t *testing.T) {
 	var errResp map[string]any
 
 	require.NoError(t, json.NewDecoder(resp.Body).Decode(&errResp))
-	require.Equal(t, "unauthorized", errResp[cryptoutilSharedMagic.StringError])
+	require.Equal(t, cryptoutilSharedMagic.StringUnauthorized, errResp[cryptoutilSharedMagic.StringError])
 	require.Contains(t, errResp["error_description"], "does not belong to specified user")
 }

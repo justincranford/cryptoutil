@@ -155,7 +155,7 @@ func setupTestDB(t *testing.T) *gorm.DB {
 	ctx := context.Background()
 
 	dbID := googleUuid.Must(googleUuid.NewV7())
-	dsn := fmt.Sprintf("file:%s?mode=memory&cache=shared", dbID.String())
+	dsn := fmt.Sprintf(cryptoutilSharedMagic.SQLiteInMemoryNamedDSNFormat, dbID.String())
 
 	// Open database connection using modernc.org/sqlite (CGO-free).
 	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, dsn)

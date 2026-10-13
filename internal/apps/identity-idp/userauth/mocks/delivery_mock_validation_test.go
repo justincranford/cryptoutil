@@ -3,6 +3,7 @@ package mocks
 
 import (
 	"context"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -12,7 +13,7 @@ func TestSMSProvider_EmptyPhone(t *testing.T) {
 	t.Parallel()
 
 	provider := NewSMSProvider()
-	err := provider.SendSMS(context.Background(), "", "message")
+	err := provider.SendSMS(context.Background(), "", cryptoutilSharedMagic.StringMessage)
 	require.Error(t, err)
 	require.ErrorContains(t, err, "phone number cannot be empty")
 }

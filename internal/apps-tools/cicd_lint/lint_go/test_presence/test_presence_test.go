@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"runtime"
 	"testing"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps-tools/cicd_lint/common"
@@ -106,7 +105,7 @@ func TestCheckInDir_ExcludedArchivedDir(t *testing.T) {
 	t.Parallel()
 
 	tmpDir := t.TempDir()
-	archivedDir := filepath.Join(tmpDir, "internal", "apps", cryptoutilSharedMagic.PKIProductName, "_ca-archived", cryptoutilSharedMagic.CMD_SERVER)
+	archivedDir := filepath.Join(tmpDir, "internal", "apps", cryptoutilSharedMagic.SMProductName, "_ca-archived", cryptoutilSharedMagic.CMD_SERVER)
 	require.NoError(t, os.MkdirAll(archivedDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 	require.NoError(t, os.WriteFile(filepath.Join(archivedDir, "server.go"), []byte("package server\nfunc X() {}"), cryptoutilSharedMagic.CacheFilePermissions))
 
@@ -182,59 +181,98 @@ func TestCheckInDir_NoAppsDir(t *testing.T) {
 	require.Contains(t, err.Error(), "internal/apps directory not found")
 }
 
-func TestCheckDirForGoFiles_EmptyDir(t *testing.T) {
+func TestCheckDirForGoFiles(t *testing.T) {
 	t.Parallel()
 
-	tmpDir := t.TempDir()
+	tests := []struct {
+		name       string
+		files      map[string]string
+		missingDir bool
+		readDirErr bool
+		wantLogic  bool
+		wantTests  bool
+		wantErr    string
+	}{
+		{name: "empty directory"},
+		{name: "test file only", files: map[string]string{"logic_test.go": "package pkg"}, wantTests: true},
+		{name: "production logic", files: map[string]string{"logic.go": "package pkg\nfunc Hello() {}"}, wantLogic: true},
+		{name: "nonexistent directory", missingDir: true, wantErr: testPresenceReadDirectoryErrorPrefix},
+		{name: "read directory error", readDirErr: true, wantErr: testPresenceReadDirectoryErrorPrefix},
+	}
 
-	hasLogic, hasTests := checkDirForGoFiles(tmpDir)
-	require.False(t, hasLogic)
-	require.False(t, hasTests)
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			dir := filepath.Join(t.TempDir(), "package")
+			if !tc.missingDir {
+				require.NoError(t, os.MkdirAll(dir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+
+				for name, content := range tc.files {
+					require.NoError(t, os.WriteFile(filepath.Join(dir, name), []byte(content), cryptoutilSharedMagic.CacheFilePermissions))
+				}
+			}
+
+			operations := productionTestPresenceOperations()
+			if tc.readDirErr {
+				operations.readDirFn = func(string) ([]os.DirEntry, error) {
+					return nil, fmt.Errorf("injected read directory error")
+				}
+			}
+
+			hasLogic, hasTests, err := checkDirForGoFiles(dir, operations)
+			if tc.wantErr != "" {
+				require.ErrorContains(t, err, tc.wantErr)
+
+				return
+			}
+
+			require.NoError(t, err)
+			require.Equal(t, tc.wantLogic, hasLogic)
+			require.Equal(t, tc.wantTests, hasTests)
+		})
+	}
 }
 
-func TestCheckDirForGoFiles_NonexistentDir(t *testing.T) {
+func TestFileHasLogic(t *testing.T) {
 	t.Parallel()
 
-	hasLogic, hasTests := checkDirForGoFiles("/nonexistent")
-	require.False(t, hasLogic)
-	require.False(t, hasTests)
-}
+	tests := []struct {
+		name      string
+		content   []byte
+		readErr   bool
+		wantLogic bool
+		wantErr   string
+	}{
+		{name: "function declaration", content: []byte("package pkg\nfunc Hello() {}"), wantLogic: true},
+		{name: "variable only", content: []byte("package pkg\nvar X = 5")},
+		{name: "read failure", readErr: true, wantErr: "failed to read Go source file"},
+	}
 
-func TestCheckDirForGoFiles_OnlyTestFiles(t *testing.T) {
-	t.Parallel()
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-	tmpDir := t.TempDir()
-	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "logic_test.go"), []byte("package pkg"), cryptoutilSharedMagic.CacheFilePermissions))
+			operations := productionTestPresenceOperations()
+			operations.readFileFn = func(string) ([]byte, error) {
+				if tc.readErr {
+					return nil, fmt.Errorf("injected Go file read error")
+				}
 
-	hasLogic, hasTests := checkDirForGoFiles(tmpDir)
-	require.False(t, hasLogic)
-	require.True(t, hasTests)
-}
+				return tc.content, nil
+			}
 
-func TestFileHasLogic_WithFunc(t *testing.T) {
-	t.Parallel()
+			hasLogic, err := fileHasLogic("logic.go", operations)
+			if tc.wantErr != "" {
+				require.ErrorContains(t, err, tc.wantErr)
 
-	tmpDir := t.TempDir()
-	f := filepath.Join(tmpDir, "logic.go")
-	require.NoError(t, os.WriteFile(f, []byte("package pkg\nfunc Hello() {}"), cryptoutilSharedMagic.CacheFilePermissions))
+				return
+			}
 
-	require.True(t, fileHasLogic(f))
-}
-
-func TestFileHasLogic_WithoutFunc(t *testing.T) {
-	t.Parallel()
-
-	tmpDir := t.TempDir()
-	f := filepath.Join(tmpDir, "vars.go")
-	require.NoError(t, os.WriteFile(f, []byte("package pkg\nvar X = 5"), cryptoutilSharedMagic.CacheFilePermissions))
-
-	require.False(t, fileHasLogic(f))
-}
-
-func TestFileHasLogic_NonexistentFile(t *testing.T) {
-	t.Parallel()
-
-	require.True(t, fileHasLogic("/nonexistent/file.go"))
+			require.NoError(t, err)
+			require.Equal(t, tc.wantLogic, hasLogic)
+		})
+	}
 }
 
 func TestCheckInDir_MultiplePackages(t *testing.T) {
@@ -272,76 +310,96 @@ func TestCheck_FromProjectRoot(t *testing.T) {
 	require.NoError(t, err)
 }
 
-func TestCheckInDir_WalkPermissionError(t *testing.T) {
+func TestCheckInDir_OperationPaths(t *testing.T) {
 	t.Parallel()
 
-	if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
-		t.Skip("os.Chmod 0o000 does not restrict access on Windows NTFS")
+	tests := []struct {
+		name    string
+		setup   func(*testing.T, *testPresenceOperations, string)
+		wantErr string
+	}{
+		{
+			name: "empty apps directory succeeds",
+		},
+		{
+			name: "stat error is reported",
+			setup: func(_ *testing.T, operations *testPresenceOperations, _ string) {
+				operations.statFn = func(string) (os.FileInfo, error) {
+					return nil, fmt.Errorf("injected apps stat error")
+				}
+			},
+			wantErr: "failed to stat internal/apps directory",
+		},
+		{
+			name: "walk error is reported",
+			setup: func(_ *testing.T, operations *testPresenceOperations, _ string) {
+				operations.walkFn = func(string, filepath.WalkFunc) error {
+					return fmt.Errorf("injected walk error")
+				}
+			},
+			wantErr: "failed to walk internal/apps",
+		},
+		{
+			name: "read directory error is reported",
+			setup: func(t *testing.T, operations *testPresenceOperations, appsDir string) {
+				pkgDir := filepath.Join(appsDir, "myservice")
+				require.NoError(t, os.MkdirAll(pkgDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+
+				operations.readDirFn = func(string) ([]os.DirEntry, error) {
+					return nil, fmt.Errorf("injected directory read error")
+				}
+			},
+			wantErr: testPresenceInspectGoFilesErrorPrefix,
+		},
+		{
+			name: "source file read error is reported",
+			setup: func(t *testing.T, operations *testPresenceOperations, appsDir string) {
+				pkgDir := filepath.Join(appsDir, "myservice")
+				require.NoError(t, os.MkdirAll(pkgDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+				require.NoError(t, os.WriteFile(filepath.Join(pkgDir, "logic.go"), []byte("package myservice\nfunc Handle() {}"), cryptoutilSharedMagic.CacheFilePermissions))
+
+				operations.readFileFn = func(string) ([]byte, error) {
+					return nil, fmt.Errorf("injected source file read error")
+				}
+			},
+			wantErr: testPresenceInspectGoFilesErrorPrefix,
+		},
+		{
+			name: "relative path error is reported",
+			setup: func(t *testing.T, operations *testPresenceOperations, appsDir string) {
+				pkgDir := filepath.Join(appsDir, "myservice")
+				require.NoError(t, os.MkdirAll(pkgDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+				require.NoError(t, os.WriteFile(filepath.Join(pkgDir, "logic.go"), []byte("package myservice\nfunc Handle() {}"), cryptoutilSharedMagic.CacheFilePermissions))
+
+				operations.relFn = func(string, string) (string, error) {
+					return "", fmt.Errorf("injected relative path error")
+				}
+			},
+			wantErr: "failed to get path relative to workspace root",
+		},
 	}
 
-	tmpDir := t.TempDir()
-	appsDir := filepath.Join(tmpDir, "internal", "apps")
-	badDir := filepath.Join(appsDir, "badpackage")
-	require.NoError(t, os.MkdirAll(badDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
-	require.NoError(t, os.Chmod(badDir, 0o000))
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-	t.Cleanup(func() {
-		_ = os.Chmod(badDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute)
-	})
+			rootDir := t.TempDir()
+			appsDir := filepath.Join(rootDir, "internal", "apps")
+			require.NoError(t, os.MkdirAll(appsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
-	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	err := CheckInDir(logger, tmpDir)
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "failed to walk internal/apps")
-}
+			operations := productionTestPresenceOperations()
+			if tc.setup != nil {
+				tc.setup(t, &operations, appsDir)
+			}
 
-// Seam tests below: NOT parallel because they modify package-level seam variables.
+			err := checkInDirWithOperations(cryptoutilCmdCicdCommon.NewLogger("test"), rootDir, operations)
+			if tc.wantErr != "" {
+				require.ErrorContains(t, err, tc.wantErr)
 
-func saveRestoreSeams(t *testing.T) {
-	t.Helper()
+				return
+			}
 
-	origRel := relFunc
-
-	t.Cleanup(func() {
-		relFunc = origRel
-	})
-}
-
-// Sequential: uses os.Chdir (global process state, cannot run in parallel).
-func TestCheck_ChDir(t *testing.T) {
-	root, err := findProjectRoot()
-	if err != nil {
-		t.Skip("Skipping - cannot find project root")
+			require.NoError(t, err)
+		})
 	}
-
-	orig, err := os.Getwd()
-	require.NoError(t, err)
-
-	t.Cleanup(func() { _ = os.Chdir(orig) })
-
-	require.NoError(t, os.Chdir(root))
-
-	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	err = Check(logger)
-	require.NoError(t, err)
-}
-
-// Sequential: modifies package-level seam variables.
-func TestSeam_CheckInDir_RelError(t *testing.T) {
-	saveRestoreSeams(t)
-
-	relFunc = func(_, _ string) (string, error) {
-		return "", fmt.Errorf("injected rel error")
-	}
-
-	tmpDir := t.TempDir()
-	appsDir := filepath.Join(tmpDir, "internal", "apps")
-	pkgDir := filepath.Join(appsDir, "myservice")
-	require.NoError(t, os.MkdirAll(pkgDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
-	require.NoError(t, os.WriteFile(filepath.Join(pkgDir, "handler.go"), []byte("package myservice\nfunc Handle() {}\n"), cryptoutilSharedMagic.CacheFilePermissions))
-
-	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	err := CheckInDir(logger, tmpDir)
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "test presence violations")
 }

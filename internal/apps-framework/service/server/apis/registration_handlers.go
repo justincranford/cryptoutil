@@ -277,6 +277,6 @@ func (h *RegistrationHandlers) HandleProcessJoinRequest(c *fiber.Ctx) error {
 	}
 
 	return c.Status(http.StatusOK).JSON(fiber.Map{
-		"message": message,
+		cryptoutilSharedMagic.StringMessage: message,
 	})
 }

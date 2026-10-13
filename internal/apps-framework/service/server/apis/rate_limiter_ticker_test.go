@@ -14,49 +14,52 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// TestRateLimiter_CleanupTickerFires covers the ticker case in cleanupLoop
-// (rate_limiter.go:93: rl.cleanup()). The default ticker interval is 5 minutes,
-// so we replace it with a 1ms ticker via direct field access (same package).
+// TestRateLimiter_CleanupTickerFires covers cleanupLoop with an injected interval.
 func TestRateLimiter_CleanupTickerFires(t *testing.T) {
 	t.Parallel()
 
-	limiter := NewRateLimiter(cryptoutilSharedMagic.IdentityDefaultIdleTimeoutSeconds, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
-	ipAddress := "10.0.0.99"
+	staleBucketAge := (cryptoutilSharedMagic.RateLimitStaleThresholdMinutes + cryptoutilSharedMagic.RateLimitCleanupIntervalMinutes) * time.Minute
+	freshBucketAge := cryptoutilSharedMagic.RateLimitCleanupIntervalMinutes * time.Minute
 
-	// Create a bucket so cleanup has something to find.
-	limiter.Allow(ipAddress)
-
-	// Age the bucket to be stale (> 10 min threshold).
-	limiter.mu.Lock()
-
-	if bucket, ok := limiter.buckets[ipAddress]; ok {
-		bucket.lastRefillTime = time.Now().UTC().Add(-15 * time.Minute)
+	tests := []struct {
+		name             string
+		targetBucketAge  time.Duration
+		wantTargetExists bool
+	}{
+		{name: "stale target removed", targetBucketAge: staleBucketAge, wantTargetExists: false},
+		{name: "fresh target retained", targetBucketAge: freshBucketAge, wantTargetExists: true},
 	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-	limiter.mu.Unlock()
+			limiter := newRateLimiter(cryptoutilSharedMagic.IdentityDefaultIdleTimeoutSeconds, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, time.Millisecond)
+			defer limiter.Stop()
 
-	// Replace the default ticker (5-minute interval) with a 1ms ticker.
-	limiter.cleanupTicker.Stop()
-	limiter.cleanupTicker = time.NewTicker(time.Millisecond)
+			targetIP := "10.0.0.99"
+			staleSentinelIP := "10.0.0.100"
 
-	// Wait for the ticker to fire and cleanupLoop to call cleanup().
-	// The cleanup will remove our stale bucket.
-	deadline := time.Now().UTC().Add(2 * time.Second)
-	for time.Now().UTC().Before(deadline) {
-		time.Sleep(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Millisecond)
+			require.True(t, limiter.Allow(targetIP))
+			require.True(t, limiter.Allow(staleSentinelIP))
 
-		limiter.mu.RLock()
-		_, exists := limiter.buckets[ipAddress]
-		limiter.mu.RUnlock()
+			limiter.mu.Lock()
+			limiter.buckets[targetIP].lastRefillTime = time.Now().UTC().Add(-tc.targetBucketAge)
+			limiter.buckets[staleSentinelIP].lastRefillTime = time.Now().UTC().Add(-staleBucketAge)
+			limiter.mu.Unlock()
 
-		if !exists {
-			// Cleanup fired and removed the stale bucket — test passes.
-			limiter.Stop()
+			require.Eventually(t, func() bool {
+				limiter.mu.RLock()
+				_, exists := limiter.buckets[staleSentinelIP]
+				limiter.mu.RUnlock()
 
-			return
-		}
+				return !exists
+			}, cryptoutilSharedMagic.ClientShutdownRequestTimeout, time.Millisecond)
+
+			limiter.mu.RLock()
+			_, targetExists := limiter.buckets[targetIP]
+			limiter.mu.RUnlock()
+
+			require.Equal(t, tc.wantTargetExists, targetExists)
+		})
 	}
-
-	limiter.Stop()
-	require.Fail(t, "cleanup via ticker did not remove stale bucket within 2 seconds")
 }

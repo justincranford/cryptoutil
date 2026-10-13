@@ -151,7 +151,7 @@ func TestFindViolations_PartialMethodSet_NotFlagged(t *testing.T) {
 	t.Parallel()
 
 	dir := t.TempDir()
-	psDir := filepath.Join(dir, "internal", "apps", cryptoutilSharedMagic.OTLPServicePKICA, cryptoutilSharedMagic.CMD_SERVER)
+	psDir := filepath.Join(dir, "internal", "apps", cryptoutilSharedMagic.OTLPServiceIdentityAuthz, cryptoutilSharedMagic.CMD_SERVER)
 	require.NoError(t, os.MkdirAll(psDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 	// Only 3 of the 4 IPublicServer methods — should not be flagged.

@@ -13,6 +13,11 @@ import (
 	. "cryptoutil/internal/apps-tools/cicd_lint/lint_deployments"
 )
 
+const (
+	testSMKMSDeployPath = "/deploy/sm-kms"
+	testValidStatus     = "\u2705 VALID"
+)
+
 func TestValidateAllDeployments(t *testing.T) {
 	t.Parallel()
 
@@ -53,7 +58,7 @@ func TestValidateAllDeployments(t *testing.T) {
 				createValidProductServiceDeployment(t, validDir, cryptoutilSharedMagic.OTLPServiceSMKMS)
 
 				// Create an invalid deployment (missing secrets and config files).
-				invalidDir := filepath.Join(rootDir, cryptoutilSharedMagic.OTLPServicePKICA)
+				invalidDir := filepath.Join(rootDir, cryptoutilSharedMagic.OTLPServiceIdentityIDP)
 				require.NoError(t, os.MkdirAll(filepath.Join(invalidDir, "config"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 				require.NoError(t, os.WriteFile(filepath.Join(invalidDir, cryptoutilSharedMagic.COMPOSE_YML), []byte("v"), cryptoutilSharedMagic.CacheFilePermissions))
 				require.NoError(t, os.WriteFile(filepath.Join(invalidDir, "Dockerfile"), []byte("F"), cryptoutilSharedMagic.CacheFilePermissions))
@@ -102,19 +107,19 @@ func TestFormatResults(t *testing.T) {
 			name: "valid result no optional sections",
 			results: []ValidationResult{
 				{
-					Path:  "/deploy/pki-ca",
+					Path:  testSMKMSDeployPath,
 					Type:  "PRODUCT-SERVICE",
 					Valid: true,
 				},
 			},
-			contains:    []string{"✅ VALID", cryptoutilSharedMagic.OTLPServicePKICA, "1 valid"},
+			contains:    []string{testValidStatus, cryptoutilSharedMagic.OTLPServiceSMKMS, "1 valid"},
 			notContains: []string{"Missing directories", "Missing files", "Missing secrets", "ERROR:", "WARN:"},
 		},
 		{
 			name: "invalid result with errors",
 			results: []ValidationResult{
 				{
-					Path:           "/deploy/sm-kms",
+					Path:           testSMKMSDeployPath,
 					Type:           "PRODUCT-SERVICE",
 					Valid:          false,
 					MissingDirs:    []string{"secrets"},
@@ -135,14 +140,14 @@ func TestFormatResults(t *testing.T) {
 					Warnings: []string{"Optional file missing"},
 				},
 			},
-			contains:    []string{"✅ VALID", "WARN: Optional file missing"},
+			contains:    []string{testValidStatus, "WARN: Optional file missing"},
 			notContains: []string{"Missing directories", "Missing files", "Missing secrets", "ERROR:"},
 		},
 		{
 			name: "mixed valid and invalid sorted correctly",
 			results: []ValidationResult{
 				{Path: "/deploy/sm-kms", Type: "PRODUCT-SERVICE", Valid: true},
-				{Path: "/deploy/pki-ca", Type: "PRODUCT-SERVICE", Valid: false, MissingDirs: []string{"secrets"}},
+				{Path: "/deploy/sm-kms", Type: "PRODUCT-SERVICE", Valid: false, MissingDirs: []string{"secrets"}},
 				{Path: "/deploy/identity-authz", Type: "PRODUCT-SERVICE", Valid: true},
 			},
 			contains: []string{"3 deployments", "2 valid", "1 with issues"},
@@ -166,7 +171,7 @@ func TestFormatResults(t *testing.T) {
 			// Verify sort order: invalid results should appear before valid ones.
 			if tc.name == "mixed valid and invalid sorted correctly" {
 				invalidIdx := strings.Index(output, "❌ INVALID")
-				validIdx := strings.Index(output, "✅ VALID")
+				validIdx := strings.Index(output, testValidStatus)
 				require.Greater(t, validIdx, invalidIdx, "invalid results should appear before valid results in output")
 			}
 		})
@@ -261,9 +266,9 @@ func TestMain_ValidDeployments(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	// Create a valid PRODUCT-SERVICE deployment.
-	svcDir := filepath.Join(tmpDir, cryptoutilSharedMagic.OTLPServicePKICA)
+	svcDir := filepath.Join(tmpDir, cryptoutilSharedMagic.OTLPServiceIdentityIDP)
 	require.NoError(t, os.MkdirAll(svcDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
-	createValidProductServiceDeployment(t, svcDir, cryptoutilSharedMagic.OTLPServicePKICA)
+	createValidProductServiceDeployment(t, svcDir, cryptoutilSharedMagic.OTLPServiceIdentityIDP)
 
 	exitCode := Main([]string{tmpDir})
 	require.Equal(t, 0, exitCode, "should exit 0 for valid deployments")

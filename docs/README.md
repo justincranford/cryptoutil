@@ -711,13 +711,13 @@ OTEL Collector self-metrics → Prometheus scraping ( 8888)
 
 ### End-to-End (E2E) Testing
 
-Comprehensive E2E testing validates complete workflows across all services (KMS, CA, JOSE, Identity). Tests use real service deployments with Docker Compose, real databases (PostgreSQL, SQLite), and real telemetry infrastructure.
+Comprehensive E2E testing validates complete workflows across active services (KMS, including its PKI and JOSE capabilities, Identity, and Skeleton). Tests use real service deployments with Docker Compose, real databases (PostgreSQL, SQLite), and real telemetry infrastructure.
 
 **E2E Test Suites**:
 
 - **OAuth Workflows** (`oauth_workflow_test.go`) - OAuth 2.1 authorization code + PKCE, client credentials
 - **KMS Workflows** (`kms_workflow_test.go`) - Encrypt/decrypt, sign/verify, key rotation
-- **CA Workflows** (`ca_workflow_test.go`) - Certificate lifecycle, OCSP, CRL distribution
+- **PKI Workflows** (`pki_workflow_test.go`) - KMS-hosted certificate lifecycle, OCSP, CRL distribution
 - **JOSE Workflows** (`jose_workflow_test.go`) - JWT signing/verification, JWKS endpoint, JWK rotation
 
 **Running E2E Tests**:
@@ -727,7 +727,6 @@ Comprehensive E2E testing validates complete workflows across all services (KMS,
 docker compose -f ./deployments/cryptoutil/compose.yml up -d
 
 # Or deploy individual services (SERVICE-level)
-docker compose -f ./deployments/pki-ca/compose.yml up -d
 docker compose -f ./deployments/sm-kms/compose.yml up -d
 
 # Run service-specific E2E tests (new pattern - uses service template)

@@ -44,14 +44,25 @@ var baseInitialisms = []string{
 }
 
 // genConfigServerFileName is the target file name for server gen configs.
+const genConfigInitialismsWalkErrorPrefix = "failed to walk api directory"
+
 const genConfigServerFileName = "openapi-gen_config_server.yaml"
 
-// Test seams: replaceable in tests for error path coverage.
-var (
-	osStatFunc                  = os.Stat
-	filepathWalkDir             = filepath.WalkDir
-	checkMissingInitialismsFunc = checkMissingInitialisms
-)
+type genConfigInitialismsOperations struct {
+	statFn                  func(string) (os.FileInfo, error)
+	walkDirFn               func(string, fs.WalkDirFunc) error
+	checkMissingInitialisms func(string) ([]string, error)
+	relFn                   func(string, string) (string, error)
+}
+
+func productionGenConfigInitialismsOperations() genConfigInitialismsOperations {
+	return genConfigInitialismsOperations{
+		statFn:                  os.Stat,
+		walkDirFn:               filepath.WalkDir,
+		checkMissingInitialisms: checkMissingInitialisms,
+		relFn:                   filepath.Rel,
+	}
+}
 
 // Check validates gen config initialisms from the workspace root.
 func Check(logger *cryptoutilCmdCicdCommon.Logger) error {
@@ -60,15 +71,23 @@ func Check(logger *cryptoutilCmdCicdCommon.Logger) error {
 
 // CheckInDir validates gen config server files under rootDir/api/.
 func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
+	return checkInDirWithOperations(logger, rootDir, productionGenConfigInitialismsOperations())
+}
+
+func checkInDirWithOperations(logger *cryptoutilCmdCicdCommon.Logger, rootDir string, operations genConfigInitialismsOperations) error {
 	apiDir := filepath.Join(rootDir, "api")
 
-	if _, statErr := osStatFunc(apiDir); os.IsNotExist(statErr) {
-		return fmt.Errorf("api directory not found at %s", apiDir)
+	if _, statErr := operations.statFn(apiDir); statErr != nil {
+		if os.IsNotExist(statErr) {
+			return fmt.Errorf("api directory not found at %s", apiDir)
+		}
+
+		return fmt.Errorf("failed to stat api directory %s: %w", apiDir, statErr)
 	}
 
 	var violations []string
 
-	walkErr := filepathWalkDir(apiDir, func(path string, d fs.DirEntry, err error) error {
+	walkErr := operations.walkDirFn(apiDir, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
@@ -86,20 +105,24 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 			return nil
 		}
 
-		missing, checkErr := checkMissingInitialismsFunc(path)
+		missing, checkErr := operations.checkMissingInitialisms(path)
 		if checkErr != nil {
 			return fmt.Errorf("failed to check %s: %w", path, checkErr)
 		}
 
 		for _, item := range missing {
-			rel, _ := filepath.Rel(rootDir, path)
+			rel, relErr := operations.relFn(rootDir, path)
+			if relErr != nil {
+				return fmt.Errorf("failed to get path relative to workspace root: %w", relErr)
+			}
+
 			violations = append(violations, fmt.Sprintf("%s: missing base initialism %q (see ENG-HANDBOOK.md Section 8.1.4)", rel, item))
 		}
 
 		return nil
 	})
 	if walkErr != nil {
-		return fmt.Errorf("failed to walk api directory: %w", walkErr)
+		return fmt.Errorf("%s: %w", genConfigInitialismsWalkErrorPrefix, walkErr)
 	}
 
 	if len(violations) > 0 {

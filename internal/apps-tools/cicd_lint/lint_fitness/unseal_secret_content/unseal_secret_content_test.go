@@ -105,7 +105,7 @@ func TestFindViolationsInDir_InvalidContent(t *testing.T) {
 		{
 			name: "wrong prefix",
 			setupFiles: map[string]string{
-				"deployments/pki-ca/secrets/unseal-1of5.secret": "kms-unseal-key-1-of-5-" + hexA(),
+				"deployments/sm-kms/secrets/unseal-1of5.secret": "kms-unseal-key-1-of-5-" + hexA(),
 			},
 			wantViolations: 1,
 			wantSubstring:  "prefix",

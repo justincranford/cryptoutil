@@ -19,7 +19,6 @@ func TestClassifyDeployment(t *testing.T) {
 		input    string
 		expected string
 	}{
-		{name: "service pki-ca", input: cryptoutilSharedMagic.OTLPServicePKICA, expected: DeploymentTypeProductService},
 		{name: "service sm-kms", input: cryptoutilSharedMagic.OTLPServiceSMKMS, expected: DeploymentTypeProductService},
 		{name: "service identity-authz", input: cryptoutilSharedMagic.OTLPServiceIdentityAuthz, expected: DeploymentTypeProductService},
 		{name: "service identity-idp", input: cryptoutilSharedMagic.OTLPServiceIdentityIDP, expected: DeploymentTypeProductService},
@@ -29,7 +28,6 @@ func TestClassifyDeployment(t *testing.T) {
 		{name: "service skeleton-template", input: cryptoutilSharedMagic.OTLPServiceSkeletonTemplate, expected: DeploymentTypeProductService},
 		{name: "product identity", input: cryptoutilSharedMagic.IdentityProductName, expected: DeploymentTypeProduct},
 		{name: "product sm", input: cryptoutilSharedMagic.SMProductName, expected: DeploymentTypeProduct},
-		{name: "product pki", input: cryptoutilSharedMagic.PKIProductName, expected: DeploymentTypeProduct},
 		{name: "product skeleton", input: cryptoutilSharedMagic.SkeletonProductName, expected: DeploymentTypeProduct},
 		{name: "suite cryptoutil", input: cryptoutilSharedMagic.DefaultOTLPServiceDefault, expected: DeploymentTypeSuite},
 		{name: cryptoutilSharedMagic.SkeletonTemplateServiceName, input: cryptoutilSharedMagic.SkeletonTemplateServiceName, expected: DeploymentTypeTemplate},
@@ -216,7 +214,7 @@ func TestFormatAllValidationResult(t *testing.T) {
 		r := &AllValidationResult{
 			Results: []ValidatorResult{
 				{Name: "naming", Target: "deployments", Passed: true, Duration: cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Millisecond},
-				{Name: "ports", Target: "deployments/pki-ca", Passed: false, Duration: cryptoutilSharedMagic.MaxErrorDisplay * time.Millisecond},
+				{Name: validatorNamePorts, Target: "deployments/identity-authz", Passed: false, Duration: cryptoutilSharedMagic.MaxErrorDisplay * time.Millisecond},
 				{Name: "admin", Target: "deployments/sm-kms", Passed: false, Duration: 15 * time.Millisecond},
 			},
 			TotalDuration: 45 * time.Millisecond,
@@ -230,7 +228,7 @@ func TestFormatAllValidationResult(t *testing.T) {
 		require.Contains(t, output, "Failed:   2")
 		require.Contains(t, output, "VALIDATION FAILED")
 		require.Contains(t, output, "Failed validators:")
-		require.Contains(t, output, "- ports (deployments/pki-ca)")
+		require.Contains(t, output, "- ports (deployments/identity-authz)")
 		require.Contains(t, output, "- admin (deployments/sm-kms)")
 		require.NotContains(t, output, "ALL VALIDATORS PASSED")
 	})
@@ -267,10 +265,10 @@ func TestValidateAll_WithDeployments(t *testing.T) {
 	configsDir := t.TempDir()
 
 	// Create a service deployment with compose.yml.
-	svcDir := filepath.Join(deploymentsDir, cryptoutilSharedMagic.OTLPServicePKICA)
+	svcDir := filepath.Join(deploymentsDir, cryptoutilSharedMagic.OTLPServiceIdentityAuthz)
 	require.NoError(t, os.MkdirAll(filepath.Join(svcDir, "secrets"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 	require.NoError(t, os.MkdirAll(filepath.Join(svcDir, "config"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
-	require.NoError(t, os.WriteFile(filepath.Join(svcDir, cryptoutilSharedMagic.COMPOSE_YML), []byte("services:\n  pki-ca:\n    image: test\n"), cryptoutilSharedMagic.CacheFilePermissions))
+	require.NoError(t, os.WriteFile(filepath.Join(svcDir, cryptoutilSharedMagic.COMPOSE_YML), []byte("services:\n  identity-authz:\n    image: test\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
 	// Create a config file.
 	require.NoError(t, os.WriteFile(filepath.Join(configsDir, "test.yml"), []byte("bind-public-port: 8080\n"), cryptoutilSharedMagic.CacheFilePermissions))

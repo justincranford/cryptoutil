@@ -223,7 +223,7 @@ func getMinimalSettings() *cryptoutilAppsFrameworkServiceConfig.ServiceFramework
 	return &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{
 		DevMode:                    true,
 		VerboseMode:                false,
-		DatabaseURL:                fmt.Sprintf("file:%s?mode=memory&cache=shared", strings.ReplaceAll(googleUuid.Must(googleUuid.NewV7()).String(), "-", "")),
+		DatabaseURL:                fmt.Sprintf(cryptoutilSharedMagic.SQLiteInMemoryNamedDSNFormat, strings.ReplaceAll(googleUuid.Must(googleUuid.NewV7()).String(), "-", "")),
 		OTLPService:                "template-service-test",
 		OTLPEnabled:                false,
 		OTLPEndpoint:               cryptoutilSharedMagic.DefaultOTLPEndpointDefault,

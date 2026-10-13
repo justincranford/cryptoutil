@@ -5,28 +5,50 @@ package test_orch_integration
 import (
 	"context"
 	"crypto/x509"
+	"errors"
 	"fmt"
+	http "net/http"
 	"sync"
 	"testing"
+	"time"
 
 	cryptoutilAppsFrameworkServiceServer "cryptoutil/internal/apps-framework/service/server"
 	cryptoutilAppsFrameworkServiceServerBarrier "cryptoutil/internal/apps-framework/service/server/barrier"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 
 	"github.com/stretchr/testify/require"
 	"gorm.io/gorm"
 )
 
+const (
+	testPublicBaseURL = "https://127.0.0.1:14080"
+	testAdminBaseURL  = "https://127.0.0.1:14090"
+)
+
+const (
+	testCaseNilContext     = "nil context"
+	testCaseStartError     = "start error"
+	testCaseNilServer      = "nil server"
+	testCaseReadinessError = "readiness error"
+	testCaseSuccess        = "success"
+	testReadinessFailure   = "injected readiness failure"
+)
+
 type fakeServiceServer struct {
-	mu          sync.Mutex
-	publicPort  int
-	adminPort   int
-	ready       bool
-	startErr    error
-	shutdownErr error
-	shutdownHit bool
-	setPorts    bool
+	mu            sync.Mutex
+	publicPort    int
+	adminPort     int
+	publicBaseURL string
+	adminBaseURL  string
+	publicRootCAs *x509.CertPool
+	adminRootCAs  *x509.CertPool
+	ready         bool
+	startErr      error
+	shutdownErr   error
+	shutdownHit   bool
+	setPorts      bool
 }
 
 func (f *fakeServiceServer) Start(context.Context) error {
@@ -77,10 +99,13 @@ func (f *fakeServiceServer) SetReady(ready bool) {
 	f.ready = ready
 }
 
-func (f *fakeServiceServer) PublicBaseURL() string                                  { return "" }
-func (f *fakeServiceServer) AdminBaseURL() string                                   { return "" }
-func (f *fakeServiceServer) TLSRootCAPool() *x509.CertPool                          { return nil }
-func (f *fakeServiceServer) AdminTLSRootCAPool() *x509.CertPool                     { return nil }
+func (f *fakeServiceServer) PublicBaseURL() string { return f.publicBaseURL }
+
+func (f *fakeServiceServer) AdminBaseURL() string { return f.adminBaseURL }
+
+func (f *fakeServiceServer) TLSRootCAPool() *x509.CertPool { return f.publicRootCAs }
+
+func (f *fakeServiceServer) AdminTLSRootCAPool() *x509.CertPool                     { return f.adminRootCAs }
 func (f *fakeServiceServer) JWKGen() *cryptoutilSharedCryptoJose.JWKGenService      { return nil }
 func (f *fakeServiceServer) Telemetry() *cryptoutilSharedTelemetry.TelemetryService { return nil }
 func (f *fakeServiceServer) Barrier() *cryptoutilAppsFrameworkServiceServerBarrier.Service {
@@ -91,33 +116,56 @@ func TestStartIntegrationServer_Table(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name      string
-		srv       cryptoutilAppsFrameworkServiceServer.ServiceServer
-		ctx       context.Context
-		wantError string
+		name              string
+		srv               cryptoutilAppsFrameworkServiceServer.ServiceServer
+		ctx               context.Context
+		readinessError    string
+		shutdownError     error
+		nilReadinessCheck bool
+		wantError         string
 	}{
-		{name: "nil server", srv: nil, ctx: context.Background(), wantError: "server cannot be nil"},
-		{name: "start error", srv: &fakeServiceServer{startErr: fmt.Errorf("injected start failure")}, ctx: context.Background(), wantError: "server failed to start"},
-		{name: "success", srv: &fakeServiceServer{setPorts: true}, ctx: context.Background()},
+		{name: testCaseNilContext, srv: &fakeServiceServer{setPorts: true}, wantError: integrationContextCannotBeNil},
+		{name: testCaseNilServer, ctx: context.Background(), wantError: integrationServerCannotBeNil},
+		{name: "nil readiness check", srv: &fakeServiceServer{setPorts: true}, ctx: context.Background(), nilReadinessCheck: true, wantError: "readiness check cannot be nil"},
+		{name: testCaseStartError, srv: &fakeServiceServer{startErr: errors.New("injected start failure")}, ctx: context.Background(), wantError: integrationServerStartFailure},
+		{name: testCaseReadinessError, srv: &fakeServiceServer{setPorts: true}, ctx: context.Background(), readinessError: testReadinessFailure, wantError: integrationReadinessCheckFailed},
+		{name: "readiness and cleanup errors", srv: &fakeServiceServer{setPorts: true, shutdownErr: errors.New("injected shutdown failure")}, ctx: context.Background(), readinessError: testReadinessFailure, wantError: "cleanup failed"},
+		{name: testCaseSuccess, srv: &fakeServiceServer{setPorts: true, publicBaseURL: testPublicBaseURL, adminBaseURL: testAdminBaseURL}, ctx: context.Background()},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			is, err := StartIntegrationServer(tc.ctx, t, tc.srv, nil)
+			var readinessCheck readinessCheckFn
+			if !tc.nilReadinessCheck {
+				readinessCheck = func(context.Context, cryptoutilAppsFrameworkServiceServer.ServiceServer) error {
+					if tc.readinessError != "" {
+						return errors.New(tc.readinessError)
+					}
+
+					return nil
+				}
+			}
+
+			is, err := startIntegrationServer(tc.ctx, t, tc.srv, nil, readinessCheck)
 			if tc.wantError != "" {
 				require.Nil(t, is)
-				require.Error(t, err)
 				require.ErrorContains(t, err, tc.wantError)
+
+				if tc.readinessError != "" {
+					fake, ok := tc.srv.(*fakeServiceServer)
+					require.True(t, ok)
+					require.True(t, fake.shutdownHit)
+				}
 
 				return
 			}
 
 			require.NoError(t, err)
 			require.NotNil(t, is)
-			require.Equal(t, "https://127.0.0.1:14080", is.PublicBaseURL())
-			require.Equal(t, "https://127.0.0.1:14090", is.AdminBaseURL())
+			require.Equal(t, testPublicBaseURL, is.PublicBaseURL())
+			require.Equal(t, testAdminBaseURL, is.AdminBaseURL())
 			require.Nil(t, is.DB())
 			require.Equal(t, tc.srv, is.Server())
 			require.NoError(t, is.Shutdown(context.Background()))
@@ -129,30 +177,40 @@ func TestStartIntegrationServerForTestMain_Table(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name      string
-		srv       cryptoutilAppsFrameworkServiceServer.ServiceServer
-		ctx       context.Context
-		wantError string
+		name           string
+		srv            cryptoutilAppsFrameworkServiceServer.ServiceServer
+		ctx            context.Context
+		readinessError string
+		wantError      string
 	}{
-		{name: "nil server", srv: nil, ctx: context.Background(), wantError: "server cannot be nil"},
-		{name: "start error", srv: &fakeServiceServer{startErr: fmt.Errorf("injected start failure")}, ctx: context.Background(), wantError: "server failed to start"},
-		{name: "timeout waiting for ports", srv: &fakeServiceServer{setPorts: false}, ctx: func() context.Context {
-			c, cancel := context.WithCancel(context.Background())
+		{name: testCaseNilContext, srv: &fakeServiceServer{setPorts: true}, wantError: integrationContextCannotBeNil},
+		{name: testCaseNilServer, ctx: context.Background(), wantError: integrationServerCannotBeNil},
+		{name: testCaseStartError, srv: &fakeServiceServer{startErr: errors.New("injected start failure")}, ctx: context.Background(), wantError: integrationServerStartFailure},
+		{name: "timeout waiting for ports", srv: &fakeServiceServer{}, ctx: func() context.Context {
+			ctx, cancel := context.WithCancel(context.Background())
 			cancel()
 
-			return c
+			return ctx
 		}(), wantError: "timed out waiting for server ports"},
-		{name: "success", srv: &fakeServiceServer{setPorts: true}, ctx: context.Background()},
+		{name: testCaseReadinessError, srv: &fakeServiceServer{setPorts: true}, ctx: context.Background(), readinessError: testReadinessFailure, wantError: integrationReadinessCheckFailed},
+		{name: testCaseSuccess, srv: &fakeServiceServer{setPorts: true, publicBaseURL: testPublicBaseURL, adminBaseURL: testAdminBaseURL}, ctx: context.Background()},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			is, err := StartIntegrationServerForTestMain(tc.ctx, tc.srv, nil)
+			readinessCheck := func(context.Context, cryptoutilAppsFrameworkServiceServer.ServiceServer) error {
+				if tc.readinessError != "" {
+					return errors.New(tc.readinessError)
+				}
+
+				return nil
+			}
+
+			is, err := startIntegrationServer(tc.ctx, nil, tc.srv, nil, readinessCheck)
 			if tc.wantError != "" {
 				require.Nil(t, is)
-				require.Error(t, err)
 				require.ErrorContains(t, err, tc.wantError)
 
 				return
@@ -161,6 +219,133 @@ func TestStartIntegrationServerForTestMain_Table(t *testing.T) {
 			require.NoError(t, err)
 			require.NotNil(t, is)
 			require.NoError(t, is.Shutdown(context.Background()))
+		})
+	}
+}
+
+type readinessProbeResult struct {
+	statusCode int
+	err        error
+}
+
+func TestWaitForServerReadinessWithProbe_Table(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name          string
+		publicRootCAs *x509.CertPool
+		adminRootCAs  *x509.CertPool
+		publicBaseURL string
+		adminBaseURL  string
+		probeResults  []readinessProbeResult
+		ctxTimeout    time.Duration
+		wantError     string
+		wantProbeURLs []string
+	}{
+		{
+			name:          "both HTTPS listeners healthy",
+			publicRootCAs: x509.NewCertPool(),
+			adminRootCAs:  x509.NewCertPool(),
+			publicBaseURL: testPublicBaseURL,
+			adminBaseURL:  testAdminBaseURL,
+			probeResults:  []readinessProbeResult{{statusCode: 200}, {statusCode: 200}},
+			wantProbeURLs: []string{testPublicBaseURL + cryptoutilSharedMagic.DefaultServiceHealthEndpoint, testAdminBaseURL + cryptoutilSharedMagic.DefaultAdminLivezEndpoint},
+		},
+		{
+			name:          "transient public error retries both listeners",
+			publicRootCAs: x509.NewCertPool(),
+			adminRootCAs:  x509.NewCertPool(),
+			publicBaseURL: testPublicBaseURL,
+			adminBaseURL:  testAdminBaseURL,
+			probeResults:  []readinessProbeResult{{err: errors.New("injected startup connection error")}, {statusCode: 200}, {statusCode: 200}},
+			wantProbeURLs: []string{testPublicBaseURL + cryptoutilSharedMagic.DefaultServiceHealthEndpoint, testPublicBaseURL + cryptoutilSharedMagic.DefaultServiceHealthEndpoint, testAdminBaseURL + cryptoutilSharedMagic.DefaultAdminLivezEndpoint},
+		},
+		{
+			name:          "non-success listener status fails after timeout",
+			publicRootCAs: x509.NewCertPool(),
+			adminRootCAs:  x509.NewCertPool(),
+			publicBaseURL: testPublicBaseURL,
+			adminBaseURL:  testAdminBaseURL,
+			probeResults:  []readinessProbeResult{{statusCode: 503}},
+			ctxTimeout:    cryptoutilSharedMagic.TestUnitShortTimeout,
+			wantError:     "public health endpoint returned HTTP 503",
+			wantProbeURLs: []string{testPublicBaseURL + cryptoutilSharedMagic.DefaultServiceHealthEndpoint},
+		},
+		{
+			name:          "missing public trust pool is rejected",
+			adminRootCAs:  x509.NewCertPool(),
+			publicBaseURL: testPublicBaseURL,
+			adminBaseURL:  testAdminBaseURL,
+			wantError:     "public TLS root CA pool is nil",
+		},
+		{
+			name:          "missing admin trust pool is rejected",
+			publicRootCAs: x509.NewCertPool(),
+			publicBaseURL: testPublicBaseURL,
+			adminBaseURL:  testAdminBaseURL,
+			wantError:     "admin TLS root CA pool is nil",
+		},
+		{
+			name:          "missing public URL is rejected",
+			publicRootCAs: x509.NewCertPool(),
+			adminRootCAs:  x509.NewCertPool(),
+			adminBaseURL:  testAdminBaseURL,
+			wantError:     "public base URL is empty",
+		},
+		{
+			name:          "missing admin URL is rejected",
+			publicRootCAs: x509.NewCertPool(),
+			adminRootCAs:  x509.NewCertPool(),
+			publicBaseURL: testPublicBaseURL,
+			wantError:     "admin base URL is empty",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			fake := &fakeServiceServer{
+				publicBaseURL: tc.publicBaseURL,
+				adminBaseURL:  tc.adminBaseURL,
+				publicRootCAs: tc.publicRootCAs,
+				adminRootCAs:  tc.adminRootCAs,
+			}
+			ctx := context.Background()
+
+			if tc.ctxTimeout > 0 {
+				var cancel context.CancelFunc
+
+				ctx, cancel = context.WithTimeout(ctx, tc.ctxTimeout)
+				defer cancel()
+			}
+
+			var (
+				probeIndex int
+				probeURLs  []string
+			)
+
+			probe := func(_ context.Context, _ *http.Client, endpointURL string) (int, error) {
+				probeURLs = append(probeURLs, endpointURL)
+
+				if probeIndex >= len(tc.probeResults) {
+					return 0, errors.New("unexpected extra readiness probe")
+				}
+
+				result := tc.probeResults[probeIndex]
+				probeIndex++
+
+				return result.statusCode, result.err
+			}
+
+			err := waitForServerReadinessWithProbe(ctx, fake, probe)
+			if tc.wantError == "" {
+				require.NoError(t, err)
+			} else {
+				require.ErrorContains(t, err, tc.wantError)
+			}
+
+			require.Equal(t, tc.wantProbeURLs, probeURLs)
 		})
 	}
 }

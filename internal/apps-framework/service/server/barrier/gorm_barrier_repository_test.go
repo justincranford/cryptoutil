@@ -26,7 +26,7 @@ func createIsolatedDB(t *testing.T) (*gorm.DB, func()) {
 	dbUUID, err := googleUuid.NewV7()
 	require.NoError(t, err)
 
-	dsn := fmt.Sprintf("file:%s?mode=memory&cache=shared", dbUUID.String())
+	dsn := fmt.Sprintf(cryptoutilSharedMagic.SQLiteInMemoryNamedDSNFormat, dbUUID.String())
 	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, dsn)
 	require.NoError(t, err)
 

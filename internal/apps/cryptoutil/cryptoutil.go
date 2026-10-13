@@ -13,13 +13,12 @@ import (
 	cryptoutilAppsFrameworkSuiteCli "cryptoutil/internal/apps-framework/suite/cli"
 	cryptoutilAppsFrameworkTls "cryptoutil/internal/apps-framework/tls"
 	cryptoutilAppsIdentity "cryptoutil/internal/apps/identity"
-	cryptoutilAppsPki "cryptoutil/internal/apps/pki"
 	cryptoutilAppsSkeleton "cryptoutil/internal/apps/skeleton"
 	cryptoutilAppsSm "cryptoutil/internal/apps/sm"
 )
 
 const (
-	suiteUsageText = "Usage: cryptoutil <product> [service] [options]\n\nAvailable products:\n  identity    Identity product (OAuth 2.1, OIDC 1.0)\n  pki         PKI product (X.509 certificates, CA)\n  skeleton    Skeleton product (service template demonstration)\n  sm          Secrets Manager product (KMS)\n  pki-init    PKI Init (generate TLS certificates for Docker Compose E2E deployments)\n\nUse \"cryptoutil <product> help\" for product-specific help."
+	suiteUsageText = "Usage: cryptoutil <product> [service] [options]\n\nAvailable products:\n  identity    Identity product (OAuth 2.1, OIDC 1.0)\n  skeleton    Skeleton product (service template demonstration)\n  sm          Secrets Manager product (KMS)\n  pki-init    PKI Init (generate TLS certificates for Docker Compose E2E deployments)\n\nUse \"cryptoutil <product> help\" for product-specific help."
 )
 
 // Suite runs the cryptoutil suite command-line interface.
@@ -35,7 +34,6 @@ func Suite(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		suiteArgs, stdin, stdout, stderr,
 		[]cryptoutilAppsFrameworkSuiteCli.ProductEntry{
 			{Name: cryptoutilSharedMagic.IdentityProductName, Handler: cryptoutilAppsIdentity.Identity},
-			{Name: cryptoutilSharedMagic.PKIProductName, Handler: cryptoutilAppsPki.Pki},
 			{Name: cryptoutilSharedMagic.SkeletonProductName, Handler: cryptoutilAppsSkeleton.Skeleton},
 			{Name: cryptoutilSharedMagic.SMProductName, Handler: cryptoutilAppsSm.Sm},
 			{Name: cryptoutilSharedMagic.PSIDPKIInit, Handler: cryptoutilAppsFrameworkTls.Init},

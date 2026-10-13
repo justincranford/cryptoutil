@@ -22,10 +22,7 @@ func TestMapDeploymentToConfig(t *testing.T) {
 		{name: "identity-authz service", deployment: cryptoutilSharedMagic.OTLPServiceIdentityAuthz, want: cryptoutilSharedMagic.OTLPServiceIdentityAuthz},
 		{name: "identity product", deployment: cryptoutilSharedMagic.IdentityProductName, want: cryptoutilSharedMagic.IdentityProductName},
 		{name: "sm-kms service", deployment: cryptoutilSharedMagic.OTLPServiceSMKMS, want: cryptoutilSharedMagic.OTLPServiceSMKMS},
-		{name: "pki-ca service", deployment: cryptoutilSharedMagic.OTLPServicePKICA, want: cryptoutilSharedMagic.OTLPServicePKICA},
-		{name: "retired product", deployment: cryptoutilSharedMagic.PKIProductName, want: cryptoutilSharedMagic.PKIProductName},
-		{name: "pki product duplicate", deployment: cryptoutilSharedMagic.PKIProductName, want: cryptoutilSharedMagic.PKIProductName},
-		{name: "pki-ca service", deployment: cryptoutilSharedMagic.OTLPServicePKICA, want: cryptoutilSharedMagic.OTLPServicePKICA},
+		{name: "retired product", deployment: cryptoutilSharedMagic.RetiredPKIProductName, want: cryptoutilSharedMagic.RetiredPKIProductName},
 		{name: "sm product", deployment: "sm", want: "sm"},
 		{name: "sm-kms service", deployment: cryptoutilSharedMagic.OTLPServiceSMKMS, want: cryptoutilSharedMagic.OTLPServiceSMKMS},
 		{name: "suite mapping", deployment: cryptoutilSharedMagic.DefaultOTLPServiceDefault, want: cryptoutilSharedMagic.DefaultOTLPServiceDefault},
@@ -251,7 +248,7 @@ func TestValidateStructuralMirror(t *testing.T) {
 		require.Empty(t, result.MissingMirrors)
 	})
 
-	t.Run("identity mapping pki-ca to pki-ca", func(t *testing.T) {
+	t.Run("identity mapping identity-authz to identity-authz", func(t *testing.T) {
 		t.Parallel()
 
 		tmpDir := t.TempDir()
@@ -260,13 +257,13 @@ func TestValidateStructuralMirror(t *testing.T) {
 		createTestDir(t, tmpDir, "deployments")
 		createTestDir(t, tmpDir, cryptoutilSharedMagic.CICDConfigsDir)
 
-		createTestDir(t, deploymentsDir, cryptoutilSharedMagic.OTLPServicePKICA)
-		createTestDir(t, configsDir, cryptoutilSharedMagic.OTLPServicePKICA)
+		createTestDir(t, deploymentsDir, cryptoutilSharedMagic.OTLPServiceIdentityAuthz)
+		createTestDir(t, configsDir, cryptoutilSharedMagic.OTLPServiceIdentityAuthz)
 
 		result, err := ValidateStructuralMirror(deploymentsDir, configsDir)
 		require.NoError(t, err)
 
-		require.True(t, result.Valid, "expected valid for pki-ca -> pki-ca identity mapping, errors: %v, missing: %v", result.Errors, result.MissingMirrors)
+		require.True(t, result.Valid, "expected valid for identity-authz -> identity-authz mapping, errors: %v, missing: %v", result.Errors, result.MissingMirrors)
 	})
 
 	t.Run("warnings for orphaned configs", func(t *testing.T) {
@@ -315,7 +312,7 @@ func TestFormatMirrorResult(t *testing.T) {
 
 		result := &MirrorResult{
 			Valid:          false,
-			MissingMirrors: []string{"sm", cryptoutilSharedMagic.PKIProductName},
+			MissingMirrors: []string{"sm", cryptoutilSharedMagic.IdentityProductName},
 			Orphans:        []string{"orphan1"},
 			Excluded:       []string{cryptoutilSharedMagic.SkeletonTemplateServiceName},
 			Errors:         []string{"some error"},
@@ -364,8 +361,8 @@ func TestValidateStructuralMirror_ExcludedWithConfigs(t *testing.T) {
 
 	// Create excluded deployment + a matching config deployment.
 	createTestDir(t, deploymentsDir, "shared-postgres")
-	createTestDir(t, deploymentsDir, cryptoutilSharedMagic.OTLPServicePKICA)
-	createTestDir(t, configsDir, cryptoutilSharedMagic.OTLPServicePKICA)
+	createTestDir(t, deploymentsDir, cryptoutilSharedMagic.OTLPServiceIdentityAuthz)
+	createTestDir(t, configsDir, cryptoutilSharedMagic.OTLPServiceIdentityAuthz)
 
 	// Add an orphan config to trigger the orphan check loop which includes excluded dirs.
 	createTestDir(t, configsDir, "orphaned")

@@ -71,7 +71,7 @@ func provisionDatabaseInternal(
 		}
 
 		if name != "" {
-			databaseURL = fmt.Sprintf("file:%s?mode=memory&cache=shared", name)
+			databaseURL = fmt.Sprintf(cryptoutilSharedMagic.SQLiteInMemoryNamedDSNFormat, name)
 		}
 	} else if strings.HasPrefix(databaseURL, "file:") && strings.Contains(databaseURL, "mode=memory") {
 		// Handle file:NAME?mode=memory&cache=shared format (unique per-test in-memory SQLite).

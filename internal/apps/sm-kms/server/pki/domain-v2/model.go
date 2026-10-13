@@ -1,0 +1,26 @@
+// Copyright (c) 2025-2026 Justin Cranford.
+// Package domain provides domain
+// These models represent a minimal CA item for demonstration purposes.
+package domain
+
+import (
+	"time"
+
+	googleUuid "github.com/google/uuid"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+)
+
+// CAItem represents a minimal domain entity for the KMS PKI domain.
+// This model demonstrates best-practice GORM tagging with cross-DB compatibility.
+// CRITICAL: TenantID for data scoping only - realms are authentication-only, NOT data scope.
+type CAItem struct {
+	ID        googleUuid.UUID `gorm:"type:text;primaryKey"`
+	TenantID  googleUuid.UUID `gorm:"type:text;not null;index:idx_ca_items_tenant"`
+	CreatedAt time.Time       `gorm:"not null;autoCreateTime"`
+}
+
+// TableName specifies the database table name for CAItem.
+func (CAItem) TableName() string {
+	return cryptoutilSharedMagic.CA_ITEMS
+}

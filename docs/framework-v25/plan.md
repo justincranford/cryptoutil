@@ -1,8 +1,8 @@
 # Implementation Plan â€” Framework v25: 8-to-7 PS-ID Consolidation
 
-**Status**: Planning
+**Status**: In Progress - migration implementation is present; final validation and documentation reconciliation remain.
 **Created**: 2026-05-25
-**Last Updated**: 2026-05-25
+**Last Updated**: 2026-10-12
 **Purpose**: Consolidate from 8 PS-IDs (4 products) to 7 PS-IDs (3 products) by merging
 pki-ca APIs into sm-kms under a `/pki/` path prefix, then deleting pki-ca, the pki product,
 and all associated deployment artifacts.

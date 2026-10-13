@@ -73,6 +73,17 @@ func TestCheckMagicUsageInDir_NoErrors(t *testing.T) {
 			},
 		},
 		{
+			name: "numeric literal matching unrelated magic value is informational",
+			setupFn: func(t *testing.T) (string, string) {
+				t.Helper()
+				magicDir, rootDir := setupMagicUsageDirs(t)
+				writeMagicFile(t, magicDir, "magic.go", "package magic\n\nconst Timeout = 30\n")
+				require.NoError(t, os.WriteFile(filepath.Join(rootDir, "app.go"), []byte("package app\n\nfunc timeoutSeconds() int { return 30 }\n"), cryptoutilSharedMagic.CacheFilePermissions))
+
+				return magicDir, rootDir
+			},
+		},
+		{
 			name: "test const only matches test file",
 			setupFn: func(t *testing.T) (string, string) {
 				t.Helper()

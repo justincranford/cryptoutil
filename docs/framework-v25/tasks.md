@@ -1,10 +1,12 @@
 # Tasks â€” Framework v25: 8-to-7 PS-ID Consolidation
 
-**Status**: 0 of 58 tasks complete (0%)
-**Last Updated**: 2026-05-25
+**Status**: In progress - implementation is present; full validation and tracker reconciliation remain (49 task headings).
+**Last Updated**: 2026-10-12
 **Created**: 2026-05-25
 
 ---
+
+**Reconciliation note**: The 49 task headings below are the original acceptance checklist. Their individual status labels were not maintained during migration execution and are not evidence that the work was never started. The outstanding work is full-suite validation, remaining repository quality gates, final documentation/catalog consistency, and commit verification.
 
 ## Quality Mandate - MANDATORY
 
@@ -50,10 +52,10 @@ certificate profile configs to sm-kms. Verify ported packages compile and tests 
 - **Description**: Port pki-ca's `5001_ca_items.up.sql` as sm-kms migration 2009.
   Create matching down migration.
 - **Acceptance Criteria**:
-  - [ ] `2009_pki_ca_items.up.sql` created in `internal/apps/sm-kms/server/repository/migrations/`
-  - [ ] `2009_pki_ca_items.down.sql` created
-  - [ ] `migrations.go` embed directive updated to include 2009
-  - [ ] Migration runs cleanly on fresh SQLite in-memory DB
+  - [x] `2009_pki_ca_items.up.sql` created in `internal/apps/sm-kms/server/repository/migrations/`
+  - [x] `2009_pki_ca_items.down.sql` created
+  - [x] Existing `migrations/*.sql` embed pattern includes the new migration
+  - [x] Migration runs cleanly on fresh SQLite in-memory DB
 - **Files**:
   - `internal/apps/sm-kms/server/repository/migrations/2009_pki_ca_items.up.sql` (NEW)
   - `internal/apps/sm-kms/server/repository/migrations/2009_pki_ca_items.down.sql` (NEW)

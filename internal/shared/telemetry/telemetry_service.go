@@ -39,15 +39,6 @@ import (
 	traceSdk "go.opentelemetry.io/otel/sdk/trace"
 )
 
-var (
-	initMetricsFn = func(ctx context.Context, slogger *stdoutLogExporter.Logger, settings *TelemetrySettings) (*metricSdk.MeterProvider, error) {
-		return initMetrics(ctx, slogger, settings, stdoutMetricExporter.New)
-	} // injectable for testing error paths.
-	initTracesFn = func(ctx context.Context, slogger *stdoutLogExporter.Logger, settings *TelemetrySettings) (*traceSdk.TracerProvider, error) {
-		return initTraces(ctx, slogger, settings, stdoutTraceExporter.New)
-	} // injectable for testing error paths.
-)
-
 // TelemetryService is a composite of OpenTelemetry providers for Logs, Metrics, and Traces.
 type TelemetryService struct {
 	StartTime          time.Time
@@ -77,8 +68,28 @@ const (
 	MaxTracesBatchSize  = cryptoutilSharedMagic.DefaultTracesBatchSize  // Conservative for traces to prevent memory issues
 )
 
+type telemetryServiceInitializers struct {
+	initMetrics func(context.Context, *stdoutLogExporter.Logger, *TelemetrySettings) (*metricSdk.MeterProvider, error)
+	initTraces  func(context.Context, *stdoutLogExporter.Logger, *TelemetrySettings) (*traceSdk.TracerProvider, error)
+}
+
+func defaultTelemetryServiceInitializers() telemetryServiceInitializers {
+	return telemetryServiceInitializers{
+		initMetrics: func(ctx context.Context, slogger *stdoutLogExporter.Logger, settings *TelemetrySettings) (*metricSdk.MeterProvider, error) {
+			return initMetrics(ctx, slogger, settings, stdoutMetricExporter.New)
+		},
+		initTraces: func(ctx context.Context, slogger *stdoutLogExporter.Logger, settings *TelemetrySettings) (*traceSdk.TracerProvider, error) {
+			return initTraces(ctx, slogger, settings, stdoutTraceExporter.New)
+		},
+	}
+}
+
 // NewTelemetryService creates and initializes a TelemetryService with OTLP exporters.
 func NewTelemetryService(ctx context.Context, settings *TelemetrySettings) (*TelemetryService, error) {
+	return newTelemetryServiceWithInitializers(ctx, settings, defaultTelemetryServiceInitializers())
+}
+
+func newTelemetryServiceWithInitializers(ctx context.Context, settings *TelemetrySettings, initializers telemetryServiceInitializers) (*TelemetryService, error) {
 	startTime := time.Now().UTC()
 
 	if ctx == nil {
@@ -106,12 +117,12 @@ func NewTelemetryService(ctx context.Context, settings *TelemetrySettings) (*Tel
 		slogger.Info("sidecar health check succeeded", "attempts", len(retryErrors), "errors", errors.Join(retryErrors...))
 	}
 
-	metricsProvider, err := initMetricsFn(ctx, slogger, settings)
+	metricsProvider, err := initializers.initMetrics(ctx, slogger, settings)
 	if err != nil {
 		return nil, fmt.Errorf("failed to init metrics: %w", err)
 	}
 
-	tracesProvider, err := initTracesFn(ctx, slogger, settings)
+	tracesProvider, err := initializers.initTraces(ctx, slogger, settings)
 	if err != nil {
 		return nil, fmt.Errorf("failed to init traces: %w", err)
 	}

@@ -25,7 +25,7 @@ import (
 )
 
 const (
-	testRawMemoryDSNFormat          = "file:%s?mode=memory&cache=shared"
+	testRawMemoryDSNFormat          = cryptoutilSharedMagic.SQLiteInMemoryNamedDSNFormat
 	testSecretHashCoverage          = "test-hash-coverage"
 	testCleanupSessionErrorContains = "session cleanup failed"
 )

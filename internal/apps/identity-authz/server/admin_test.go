@@ -19,6 +19,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	cryptoutilAppsFrameworkServiceTestHelpTls "cryptoutil/internal/apps-framework/service/test_help_tls"
 	cryptoutilIdentityConfig "cryptoutil/internal/apps/identity/config"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
@@ -90,7 +91,7 @@ func TestAdminServerLifecycle(t *testing.T) {
 		}()
 
 		// Wait for server to start and get port (polling avoids race condition).
-		port := waitForAdminPort(t, server, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second)
+		port := waitForAdminPort(t, server, cryptoutilSharedMagic.DefaultHealthCheckTimeout)
 		require.NotZero(t, port)
 
 		// Shutdown server.
@@ -167,7 +168,7 @@ func TestAdminServerActualPort(t *testing.T) {
 		}()
 
 		// Wait for server to start and get port (polling avoids race condition).
-		port := waitForAdminPort(t, server, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second)
+		port := waitForAdminPort(t, server, cryptoutilSharedMagic.DefaultHealthCheckTimeout)
 		require.NotZero(t, port)
 
 		// Cleanup.
@@ -192,7 +193,7 @@ func TestAdminEndpointLivez(t *testing.T) {
 	}()
 
 	// Wait for server to start and get port (polling avoids race condition).
-	port := waitForAdminPort(t, server, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second)
+	port := waitForAdminPort(t, server, cryptoutilSharedMagic.DefaultHealthCheckTimeout)
 
 	baseURL := "https://" + net.JoinHostPort(cryptoutilSharedMagic.IPv4Loopback, strconv.Itoa(port))
 
@@ -251,7 +252,7 @@ func TestAdminEndpointReadyz(t *testing.T) {
 	}()
 
 	// Wait for server to start and get port (polling avoids race condition).
-	port := waitForAdminPort(t, server, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second)
+	port := waitForAdminPort(t, server, cryptoutilSharedMagic.DefaultHealthCheckTimeout)
 
 	baseURL := "https://" + net.JoinHostPort(cryptoutilSharedMagic.IPv4Loopback, strconv.Itoa(port))
 
@@ -319,7 +320,7 @@ func TestAdminEndpointShutdown(t *testing.T) {
 	}()
 
 	// Wait for server to start and get port (polling avoids race condition).
-	port := waitForAdminPort(t, server, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second)
+	port := waitForAdminPort(t, server, cryptoutilSharedMagic.DefaultHealthCheckTimeout)
 
 	baseURL := "https://" + net.JoinHostPort(cryptoutilSharedMagic.IPv4Loopback, strconv.Itoa(port))
 
@@ -336,24 +337,22 @@ func TestAdminEndpointShutdown(t *testing.T) {
 	})
 }
 
-// waitForAdminPort polls for the admin server to start and return a valid port.
-// This avoids race conditions where ActualPort() returns 0 before the server is ready.
 func waitForAdminPort(t *testing.T, server *AdminServer, timeout time.Duration) int {
 	t.Helper()
 
-	deadline := time.Now().UTC().Add(timeout)
+	var port int
 
-	for time.Now().UTC().Before(deadline) {
-		if port := server.ActualPort(); port > 0 {
-			return port
+	err := cryptoutilAppsFrameworkServiceTestHelpTls.WaitForHTTPSHealthEndpoint(context.Background(), func() (string, *x509.CertPool) {
+		port = server.ActualPort()
+		if port <= 0 {
+			return "", nil
 		}
 
-		time.Sleep(cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Millisecond)
-	}
+		return cryptoutilSharedMagic.URLPrefixLocalhostHTTPS + strconv.Itoa(port) + cryptoutilSharedMagic.DefaultAdminLivezEndpoint, server.TLSRootCAPool()
+	}, timeout)
+	require.NoError(t, err)
 
-	require.FailNowf(t, cryptoutilSharedMagic.CICDTestFatalfFailureMessage, "admin server did not start within %v", timeout)
-
-	return 0
+	return port
 }
 
 // doAdminGet performs GET request using the provided TLS certificate pool.
@@ -361,7 +360,7 @@ func doAdminGet(t *testing.T, url string, certPool *x509.CertPool) (int, []byte)
 	t.Helper()
 
 	client := &http.Client{
-		Timeout: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Second,
+		Timeout: cryptoutilSharedMagic.DefaultHealthCheckTimeout,
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
 				MinVersion: tls.VersionTLS13,
@@ -392,7 +391,7 @@ func doAdminPost(t *testing.T, url string, certPool *x509.CertPool) (int, []byte
 	t.Helper()
 
 	client := &http.Client{
-		Timeout: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Second,
+		Timeout: cryptoutilSharedMagic.DefaultHealthCheckTimeout,
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
 				MinVersion: tls.VersionTLS13,

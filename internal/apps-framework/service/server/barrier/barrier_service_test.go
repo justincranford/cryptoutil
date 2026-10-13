@@ -7,7 +7,6 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"os"
 	"testing"
 
 	googleUuid "github.com/google/uuid"
@@ -18,7 +17,6 @@ import (
 
 	_ "modernc.org/sqlite" // CGO-free SQLite driver
 
-	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps-framework/service/config"
 	cryptoutilAppsFrameworkServiceServerBarrier "cryptoutil/internal/apps-framework/service/server/barrier"
 	cryptoutilUnsealKeysService "cryptoutil/internal/apps-framework/service/server/barrier/unsealkeysservice"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
@@ -54,105 +52,6 @@ var (
 	testJWKGenService    *cryptoutilSharedCryptoJose.JWKGenService
 	testTelemetryService *cryptoutilSharedTelemetry.TelemetryService
 )
-
-func TestMain(m *testing.M) {
-	ctx := context.Background()
-
-	// Setup: Create shared heavyweight resources ONCE.
-	dbID, _ := googleUuid.NewV7()
-	dsn := "file:" + dbID.String() + "?mode=memory&cache=shared"
-
-	var err error
-
-	testSQLDB, err = sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, dsn)
-	if err != nil {
-		panic("TestMain: failed to open SQLite: " + err.Error())
-	}
-
-	// Configure SQLite for concurrent operations.
-	if _, err := testSQLDB.ExecContext(ctx, "PRAGMA journal_mode=WAL;"); err != nil {
-		panic("TestMain: failed to enable WAL: " + err.Error())
-	}
-
-	if _, err := testSQLDB.ExecContext(ctx, "PRAGMA busy_timeout = 30000;"); err != nil {
-		panic("TestMain: failed to set busy timeout: " + err.Error())
-	}
-
-	testSQLDB.SetMaxOpenConns(cryptoutilSharedMagic.SQLiteMaxOpenConnections)
-	testSQLDB.SetMaxIdleConns(cryptoutilSharedMagic.SQLiteMaxOpenConnections)
-	testSQLDB.SetConnMaxLifetime(0)
-
-	// Wrap with GORM.
-	testDB, err = gorm.Open(sqlite.Dialector{Conn: testSQLDB}, &gorm.Config{
-		SkipDefaultTransaction: true,
-	})
-	if err != nil {
-		panic("TestMain: failed to create GORM DB: " + err.Error())
-	}
-
-	// Create barrier tables.
-	if err := createBarrierTables(testSQLDB); err != nil {
-		panic("TestMain: failed to create tables: " + err.Error())
-	}
-
-	// Initialize telemetry.
-	testTelemetryService, err = cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsFrameworkServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true).ToTelemetrySettings())
-	if err != nil {
-		panic("TestMain: failed to create telemetry: " + err.Error())
-	}
-	defer testTelemetryService.Shutdown()
-
-	// Initialize JWK gen service.
-	testJWKGenService, err = cryptoutilSharedCryptoJose.NewJWKGenService(ctx, testTelemetryService, false)
-	if err != nil {
-		panic("TestMain: failed to create JWK gen service: " + err.Error())
-	}
-	defer testJWKGenService.Shutdown()
-
-	// Generate unseal JWK for testing.
-	_, unsealJWK, _, _, _, err := testJWKGenService.GenerateJWEJWK(&cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
-	if err != nil {
-		panic("TestMain: failed to generate unseal JWK: " + err.Error())
-	}
-
-	unsealService, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple([]joseJwk.Key{unsealJWK})
-	if err != nil {
-		panic("TestMain: failed to create unseal service: " + err.Error())
-	}
-	defer unsealService.Shutdown()
-
-	// Create barrier repository.
-	barrierRepo, err := cryptoutilAppsFrameworkServiceServerBarrier.NewGormRepository(testDB)
-	if err != nil {
-		panic("TestMain: failed to create barrier repository: " + err.Error())
-	}
-	defer barrierRepo.Shutdown()
-
-	// Create barrier service.
-	testService, err = cryptoutilAppsFrameworkServiceServerBarrier.NewService(
-		ctx,
-		testTelemetryService,
-		testJWKGenService,
-		barrierRepo,
-		unsealService,
-	)
-	if err != nil {
-		panic("TestMain: failed to create barrier service: " + err.Error())
-	}
-
-	defer testService.Shutdown()
-	defer func() {
-		if closeErr := testSQLDB.Close(); closeErr != nil {
-			panic("TestMain: failed to close test SQL DB: " + closeErr.Error())
-		}
-	}()
-
-	// Run all tests - defer statements execute cleanup AFTER m.Run() completes.
-	exitCode := m.Run()
-
-	// Exit with test result code.
-	os.Exit(exitCode)
-}
 
 // createBarrierTables creates the barrier encryption tables for testing.
 func createBarrierTables(db *sql.DB) error {
@@ -339,7 +238,7 @@ func TestService_Shutdown(t *testing.T) {
 
 	// Create isolated in-memory database for this test.
 	dbUUID, _ := googleUuid.NewV7()
-	dsn := fmt.Sprintf("file:%s?mode=memory&cache=shared", dbUUID.String())
+	dsn := fmt.Sprintf(cryptoutilSharedMagic.SQLiteInMemoryNamedDSNFormat, dbUUID.String())
 	shutdownSQLDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, dsn)
 	require.NoError(t, err)
 
@@ -363,13 +262,11 @@ func TestService_Shutdown(t *testing.T) {
 	require.NoError(t, err)
 
 	// Create isolated barrier service for shutdown testing.
-	telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsFrameworkServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true).ToTelemetrySettings())
+	telemetrySvc, err := newBarrierTestTelemetryService(t)
 	require.NoError(t, err)
-	t.Cleanup(func() { telemetrySvc.Shutdown() })
 
-	jwkGenSvc, err := cryptoutilSharedCryptoJose.NewJWKGenService(ctx, telemetrySvc, false)
+	jwkGenSvc, err := newBarrierTestJWKGenService(t, telemetrySvc)
 	require.NoError(t, err)
-	t.Cleanup(func() { jwkGenSvc.Shutdown() })
 
 	_, unsealJWK, _, _, _, err := jwkGenSvc.GenerateJWEJWK(&cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
 	require.NoError(t, err)

@@ -32,11 +32,15 @@ type tokenBucket struct {
 // requestsPerMin: Maximum requests per minute per IP.
 // burstSize: Maximum burst requests (tokens available at start).
 func NewRateLimiter(requestsPerMin, burstSize int) *RateLimiter {
+	return newRateLimiter(requestsPerMin, burstSize, cryptoutilSharedMagic.RateLimitCleanupIntervalMinutes*time.Minute)
+}
+
+func newRateLimiter(requestsPerMin, burstSize int, cleanupInterval time.Duration) *RateLimiter {
 	rl := &RateLimiter{
 		buckets:        make(map[string]*tokenBucket),
 		requestsPerMin: requestsPerMin,
 		burstSize:      burstSize,
-		cleanupTicker:  time.NewTicker(cryptoutilSharedMagic.RateLimitCleanupIntervalMinutes * time.Minute),
+		cleanupTicker:  time.NewTicker(cleanupInterval),
 		stopCleanup:    make(chan struct{}),
 	}
 

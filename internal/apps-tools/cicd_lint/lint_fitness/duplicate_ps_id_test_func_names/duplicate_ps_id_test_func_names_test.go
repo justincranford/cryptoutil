@@ -48,7 +48,7 @@ func TestFindDuplicates_BelowThreshold_NotReported(t *testing.T) {
 
 	// Same function in only 2 PS-IDs — below threshold of 3.
 	writeTestFile(t, dir, cryptoutilSharedMagic.OTLPServiceSMKMS, "server_test.go", []string{"TestNewFromConfig_NilContext"})
-	writeTestFile(t, dir, cryptoutilSharedMagic.OTLPServicePKICA, "server_test.go", []string{"TestNewFromConfig_NilContext"})
+	writeTestFile(t, dir, cryptoutilSharedMagic.OTLPServiceIdentityAuthz, "server_test.go", []string{"TestNewFromConfig_NilContext"})
 
 	results, err := lintFitnessDuplicatePSIDTestFuncNames.FindDuplicates(dir)
 
@@ -64,7 +64,7 @@ func TestFindDuplicates_AtThreshold_Reported(t *testing.T) {
 	// Same function in exactly 3 PS-IDs — at threshold, should be reported.
 	writeTestFile(t, dir, cryptoutilSharedMagic.OTLPServiceSMKMS, "server_test.go", []string{"TestNewFromConfig_NilContext"})
 	writeTestFile(t, dir, cryptoutilSharedMagic.OTLPServiceIdentityAuthz, "server_test.go", []string{"TestNewFromConfig_NilContext"})
-	writeTestFile(t, dir, cryptoutilSharedMagic.OTLPServicePKICA, "server_test.go", []string{"TestNewFromConfig_NilContext"})
+	writeTestFile(t, dir, cryptoutilSharedMagic.OTLPServiceIdentityIDP, "server_test.go", []string{"TestNewFromConfig_NilContext"})
 
 	results, err := lintFitnessDuplicatePSIDTestFuncNames.FindDuplicates(dir)
 
@@ -79,7 +79,7 @@ func TestFindDuplicates_IgnoresKnownBoilerplateNames(t *testing.T) {
 
 	dir := t.TempDir()
 
-	for _, psID := range []string{cryptoutilSharedMagic.OTLPServiceSMKMS, cryptoutilSharedMagic.OTLPServiceIdentityAuthz, cryptoutilSharedMagic.OTLPServicePKICA} {
+	for _, psID := range []string{cryptoutilSharedMagic.OTLPServiceSMKMS, cryptoutilSharedMagic.OTLPServiceIdentityAuthz, cryptoutilSharedMagic.OTLPServiceIdentityIDP} {
 		writeTestFile(t, dir, psID, "server_test.go", []string{"TestMain", "TestServeOpenAPISpec_Success"})
 	}
 
@@ -95,7 +95,7 @@ func TestFindDuplicates_RankedWorstFirst(t *testing.T) {
 	dir := t.TempDir()
 
 	// FuncA in 4 PS-IDs, FuncB in 3 PS-IDs — FuncA should come first.
-	for _, psID := range []string{cryptoutilSharedMagic.OTLPServiceSMKMS, cryptoutilSharedMagic.OTLPServicePKICA, cryptoutilSharedMagic.OTLPServiceIdentityAuthz, cryptoutilSharedMagic.OTLPServiceIdentityIDP} {
+	for _, psID := range []string{cryptoutilSharedMagic.OTLPServiceSMKMS, cryptoutilSharedMagic.OTLPServiceIdentityAuthz, cryptoutilSharedMagic.OTLPServiceIdentityIDP, cryptoutilSharedMagic.OTLPServiceIdentityRP} {
 		writeTestFile(t, dir, psID, "server_test.go", []string{"TestFuncA", "TestFuncB"})
 	}
 
@@ -116,7 +116,7 @@ func TestFindDuplicates_IntegrationTestsExcluded(t *testing.T) {
 	dir := t.TempDir()
 
 	// Integration test files should not be considered — function in them should not count.
-	for _, psID := range []string{cryptoutilSharedMagic.OTLPServiceSMKMS, cryptoutilSharedMagic.OTLPServiceIdentityAuthz, cryptoutilSharedMagic.OTLPServicePKICA} {
+	for _, psID := range []string{cryptoutilSharedMagic.OTLPServiceSMKMS, cryptoutilSharedMagic.OTLPServiceIdentityAuthz, cryptoutilSharedMagic.OTLPServiceIdentityIDP} {
 		serverDir := filepath.Join(dir, "internal", "apps", psID, cryptoutilSharedMagic.CMD_SERVER)
 		require.NoError(t, os.MkdirAll(serverDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
@@ -154,7 +154,7 @@ func TestFindDuplicates_NestedSubPackagesExcluded(t *testing.T) {
 	dir := t.TempDir()
 
 	// Files under server/handler/ (nested) should not be considered — only server/ direct.
-	for _, psID := range []string{cryptoutilSharedMagic.OTLPServiceSMKMS, cryptoutilSharedMagic.OTLPServiceIdentityAuthz, cryptoutilSharedMagic.OTLPServicePKICA} {
+	for _, psID := range []string{cryptoutilSharedMagic.OTLPServiceSMKMS, cryptoutilSharedMagic.OTLPServiceIdentityAuthz, cryptoutilSharedMagic.OTLPServiceIdentityIDP} {
 		handlerDir := filepath.Join(dir, "internal", "apps", psID, cryptoutilSharedMagic.CMD_SERVER, "handler")
 		require.NoError(t, os.MkdirAll(handlerDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
@@ -173,7 +173,7 @@ func TestCheckInDir_ReturnsNil_WhenDuplicatesFound(t *testing.T) {
 
 	dir := t.TempDir()
 
-	for _, psID := range []string{cryptoutilSharedMagic.OTLPServiceSMKMS, cryptoutilSharedMagic.OTLPServiceIdentityAuthz, cryptoutilSharedMagic.OTLPServicePKICA} {
+	for _, psID := range []string{cryptoutilSharedMagic.OTLPServiceSMKMS, cryptoutilSharedMagic.OTLPServiceIdentityAuthz, cryptoutilSharedMagic.OTLPServiceIdentityIDP} {
 		writeTestFile(t, dir, psID, "server_test.go", []string{"TestNewFromConfig_NilContext"})
 	}
 

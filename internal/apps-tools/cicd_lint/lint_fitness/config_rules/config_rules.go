@@ -79,7 +79,7 @@ func checkKeyNamingInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string)
 
 	// Check deployment config overlays only.
 	// Standalone configs (configs/PS-ID/PS-ID.yml) are excluded because they contain
-	// domain-specific nested keys that legitimately use underscores (e.g., pki-ca's
+	// domain-specific nested keys that legitimately use underscores (e.g., sm-kms's
 	// ca.subject.common_name). The kebab-case rule applies to service framework keys.
 	for _, ps := range cryptoutilRegistry.AllProductServices() {
 		configDir := filepath.Join(rootDir, "deployments", ps.PSID, "config")

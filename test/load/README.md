@@ -252,10 +252,10 @@ src/test/java/
 │   ├── BrowserApiSimulation.java        # Browser API tests: OAuth 2.1 PKCE, certificate requests
 │   ├── SmProductSimulation.java         # SM product: sm-kms + sm-kms combined
 │   ├── JoseProductSimulation.java       # JOSE product: sm-kms JWK lifecycle
-│   ├── PkiProductSimulation.java        # PKI product: pki-ca certificate lifecycle
+│   ├── SmKmsPkiSimulation.java          # sm-kms PKI domain: certificate lifecycle
 │   ├── IdentityProductSimulation.java   # Identity product: all 5 identity services
 │   ├── SkeletonProductSimulation.java   # Skeleton product: skeleton-template health
-│   └── CryptoutilSuiteSimulation.java   # Suite: all 10 services simultaneously
+│   └── CryptoutilSuiteSimulation.java   # Suite: all 7 active services simultaneously
 ```
 
 ## Simulation Catalog
@@ -266,10 +266,10 @@ src/test/java/
 | Service | `BrowserApiSimulation` | identity-authz | 8180 |
 | Product | `SmProductSimulation` | sm-kms, sm-kms | 8000, 8100 |
 | Product | `JoseProductSimulation` | sm-kms | 8200 |
-| Product | `PkiProductSimulation` | pki-ca | 8300 |
+| Service domain | `SmKmsPkiSimulation` | sm-kms PKI | 8000 |
 | Product | `IdentityProductSimulation` | identity-authz/idp/rs/rp/spa | 8400-8800 |
 | Product | `SkeletonProductSimulation` | skeleton-template | 8900 |
-| Suite | `CryptoutilSuiteSimulation` | All 10 services | 8000-8900 |
+| Suite | `CryptoutilSuiteSimulation` | All 7 active services | 8000-8900 |
 
 All simulations support `profile` (quick/standard/stress), `virtualclients`, and `durationSeconds` system properties.
 

@@ -31,7 +31,7 @@ func TestNewValueGenPool_MetricCreationErrors(t *testing.T) {
 	}{
 		{name: "get histogram error", histFailAt: 1, wantErr: "failed to create get metric"},
 		{name: "permission histogram error", histFailAt: 2, wantErr: "failed to create permission metric"},
-		{name: "generate histogram error", histFailAt: 3, wantErr: "failed to create generate metric"},
+		{name: "generate histogram error", histFailAt: cryptoutilSharedMagic.PoolMetricHistogramCount, wantErr: "failed to create generate metric"},
 		{name: "get counter error", counterFailAt: 1, wantErr: "failed to create get counter metric"},
 		{name: "generate counter error", counterFailAt: 2, wantErr: "failed to create generate counter metric"},
 	}

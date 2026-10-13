@@ -88,7 +88,7 @@ func TestPublicHTTPServer_ServiceHealth_DuringShutdown(t *testing.T) {
 
 			_ = json.Unmarshal(body, &result)
 
-			require.Equal(t, "shutting down", result[cryptoutilSharedMagic.StringStatus])
+			require.Equal(t, cryptoutilSharedMagic.StringStatusShuttingDown, result[cryptoutilSharedMagic.StringStatus])
 		}
 	}
 
@@ -163,7 +163,7 @@ func TestPublicHTTPServer_BrowserHealth_DuringShutdown(t *testing.T) {
 
 			_ = json.Unmarshal(body, &result)
 
-			require.Equal(t, "shutting down", result[cryptoutilSharedMagic.StringStatus])
+			require.Equal(t, cryptoutilSharedMagic.StringStatusShuttingDown, result[cryptoutilSharedMagic.StringStatus])
 		}
 	}
 
@@ -213,18 +213,8 @@ func TestPublicHTTPServer_PublicBaseURL(t *testing.T) {
 		_ = server.Start(ctx)
 	}()
 
-	// Wait for server to be ready with retry logic.
-	var port int
-
-	for i := 0; i < cryptoutilSharedMagic.JoseJADefaultMaxMaterials; i++ {
-		time.Sleep(cryptoutilSharedMagic.IMMaxUsernameLength * time.Millisecond)
-
-		port = server.ActualPort()
-		if port > 0 {
-			break
-		}
-	}
-
+	waitForPublicHTTPSHealthEndpoint(t, server.ActualPort, cryptoutilSharedMagic.DefaultServiceHealthEndpoint)
+	port := server.ActualPort()
 	require.Greater(t, port, 0, "Expected dynamic port allocation")
 
 	// Test PublicBaseURL returns correct format.
@@ -283,7 +273,7 @@ func TestPublicHTTPServer_ServiceHealth_DuringShutdown_InMemory(t *testing.T) {
 
 	err = json.Unmarshal(body, &result)
 	require.NoError(t, err)
-	require.Equal(t, "shutting down", result[cryptoutilSharedMagic.StringStatus])
+	require.Equal(t, cryptoutilSharedMagic.StringStatusShuttingDown, result[cryptoutilSharedMagic.StringStatus])
 }
 
 // TestPublicHTTPServer_BrowserHealth_DuringShutdown_InMemory tests that /browser/api/v1/health returns 503 during shutdown.
@@ -301,7 +291,7 @@ func TestPublicHTTPServer_BrowserHealth_DuringShutdown_InMemory(t *testing.T) {
 	require.NoError(t, err)
 
 	// Use app.Test() to make in-memory request after shutdown.
-	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, "/browser/api/v1/health", nil)
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, cryptoutilSharedMagic.DefaultBrowserHealthEndpoint, nil)
 	require.NoError(t, err)
 
 	req.Host = cryptoutilSharedMagic.HostnameLocalhost
@@ -324,7 +314,7 @@ func TestPublicHTTPServer_BrowserHealth_DuringShutdown_InMemory(t *testing.T) {
 
 	err = json.Unmarshal(body, &result)
 	require.NoError(t, err)
-	require.Equal(t, "shutting down", result[cryptoutilSharedMagic.StringStatus])
+	require.Equal(t, cryptoutilSharedMagic.StringStatusShuttingDown, result[cryptoutilSharedMagic.StringStatus])
 }
 
 // TestPublicHTTPServer_Shutdown_Idempotent tests that shutdown behavior is consistent.

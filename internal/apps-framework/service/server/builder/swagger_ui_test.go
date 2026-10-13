@@ -22,7 +22,7 @@ func TestRegisterSwaggerUI_NilConfig(t *testing.T) {
 	app := fiber.New(fiber.Config{DisableStartupMessage: true})
 	err := RegisterSwaggerUI(app, nil)
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "config is required")
+	require.Contains(t, err.Error(), cryptoutilSharedMagic.PKIErrorConfigRequired)
 }
 
 func TestRegisterSwaggerUI_EmptySpec(t *testing.T) {

@@ -3,9 +3,8 @@
 # Prerequisites: go install github.com/air-verse/air@latest
 #
 # SERVICE env var must match a directory under cmd/, e.g.:
-#   sm-kms, sm-kms, sm-kms, pki-ca,
-#   identity-authz, identity-idp, identity-rs, identity-rp, identity-spa,
-#   skeleton-template
+#   sm-kms, identity-authz, identity-idp, identity-rs, identity-rp,
+#   identity-spa, skeleton-template
 root = "."
 tmp_dir = "tmp"
 

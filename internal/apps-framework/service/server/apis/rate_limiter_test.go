@@ -96,33 +96,40 @@ func TestRateLimiter_Allow_PerIPIsolation(t *testing.T) {
 func TestRateLimiter_Cleanup(t *testing.T) {
 	t.Parallel()
 
-	rl := NewRateLimiter(cryptoutilSharedMagic.JoseJADefaultMaxMaterials, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
-	defer rl.Stop()
+	staleBucketAge := (cryptoutilSharedMagic.RateLimitStaleThresholdMinutes + cryptoutilSharedMagic.RateLimitCleanupIntervalMinutes) * time.Minute
+	freshBucketAge := cryptoutilSharedMagic.RateLimitCleanupIntervalMinutes * time.Minute
 
-	ipAddress := "192.168.1.6"
+	tests := []struct {
+		name             string
+		bucketAge        time.Duration
+		wantBucketExists bool
+	}{
+		{name: "stale bucket removed", bucketAge: staleBucketAge, wantBucketExists: false},
+		{name: "fresh bucket retained", bucketAge: freshBucketAge, wantBucketExists: true},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-	// Create bucket.
-	require.True(t, rl.Allow(ipAddress))
+			rl := NewRateLimiter(cryptoutilSharedMagic.JoseJADefaultMaxMaterials, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
+			defer rl.Stop()
 
-	// Verify bucket exists.
-	rl.mu.RLock()
-	_, exists := rl.buckets[ipAddress]
-	rl.mu.RUnlock()
-	require.True(t, exists, "Bucket should exist after request")
+			ipAddress := "192.168.1.6"
+			require.True(t, rl.Allow(ipAddress))
 
-	// Manually set lastRefillTime to old time.
-	rl.mu.Lock()
-	rl.buckets[ipAddress].lastRefillTime = time.Now().UTC().Add(-15 * time.Minute)
-	rl.mu.Unlock()
+			rl.mu.Lock()
+			rl.buckets[ipAddress].lastRefillTime = time.Now().UTC().Add(-tc.bucketAge)
+			rl.mu.Unlock()
 
-	// Trigger cleanup.
-	rl.cleanup()
+			rl.cleanup()
 
-	// Verify bucket removed.
-	rl.mu.RLock()
-	_, exists = rl.buckets[ipAddress]
-	rl.mu.RUnlock()
-	require.False(t, exists, "Bucket should be removed after cleanup")
+			rl.mu.RLock()
+			_, exists := rl.buckets[ipAddress]
+			rl.mu.RUnlock()
+
+			require.Equal(t, tc.wantBucketExists, exists)
+		})
+	}
 }
 
 // TestRateLimiter_Stop tests that Stop() cleanly shuts down the cleanup goroutine.

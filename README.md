@@ -169,9 +169,8 @@ Grafana-OTEL-LGTM (Prometheus) → OpenTelemetry Collector Contrib (HTTP:8888/me
 
 - **3000**: Grafana UI
 - **5432**: PostgreSQL database
-- **8000**: sm-kms public API — elastic keys, material keys, JWK/JWKS operations, messaging (HTTPS)
+- **8000**: sm-kms public API: key management, messaging, and PKI (HTTPS)
 - **8001-8002**: Additional sm-kms instances in Docker Compose (HTTPS)
-- **8300**: Certificate Authority Server (HTTPS)
 - **9090**: cryptoutil private admin API (health checks, graceful shutdown) on all instances
 - **14317**: Grafana OTLP gRPC receiver (telemetry ingress)
 - **14318**: Grafana OTLP HTTP receiver (telemetry ingress)
@@ -183,8 +182,7 @@ Grafana-OTEL-LGTM (Prometheus) → OpenTelemetry Collector Contrib (HTTP:8888/me
 - **Loki**: Integrated log aggregation
 - **Tempo**: Integrated trace storage
 - **OpenTelemetry Collector**: Receives telemetry from cryptoutil services
-- **sm-kms**: <https://localhost:8000> (elastic keys, JWK/JWKS, messaging)
-- **Certificate Authority**: <https://localhost:8300> (X.509 certificate management)
+- **sm-kms**: <https://localhost:8000> (key management, JWK/JWKS, messaging, X.509 PKI)
 
 ### 🏗️ Production Ready
 
@@ -365,19 +363,18 @@ go run main.go --dev --config=./configs/sm/config-sqlite-1.yml
     - `/messages/:messageID` - Get or delete a message
   - **Health**: `/browser/api/v1/health`
 
-#### Certificate Authority APIs
+#### PKI APIs
 
-- **CA Service** (X.509 Certificate Authority):
-  - **Base URL**: <https://localhost:8300>
-  - **Swagger UI**: <https://localhost:8300/ui/swagger>
-  - **OpenAPI Spec**: <https://localhost:8300/ui/swagger/doc.json>
+- **PKI domain** (hosted by sm-kms):
+  - **Base URL**: <https://localhost:8000>
+  - **API paths**: `/service/api/v1/pki/` and `/browser/api/v1/pki/`
   - **API Endpoints**:
-    - `/ca/v1/certificates` - Certificate lifecycle management
-    - `/ca/v1/csr` - Certificate signing request operations
-    - `/ca/v1/revoke` - Certificate revocation
-    - `/ca/v1/crl` - Certificate revocation list
-    - `/ca/v1/ocsp` - Online Certificate Status Protocol
-  - **Health**: `/health`
+    - `/pki/v1/certificates` - Certificate lifecycle management
+    - `/pki/v1/csr` - Certificate signing request operations
+    - `/pki/v1/revoke` - Certificate revocation
+    - `/pki/v1/crl` - Certificate revocation list
+    - `/pki/v1/ocsp` - Online Certificate Status Protocol
+  - **Health**: `/browser/api/v1/health`
 
 #### Observability
 

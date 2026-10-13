@@ -207,7 +207,7 @@ func truncateRef(line string) string {
 // ValidatePropagation performs the full validation.
 func ValidatePropagation(rootDir string, readFile func(string) ([]byte, error)) (*PropagationResult, error) {
 	// Read ENG-HANDBOOK.md.
-	archContent, err := readFile("docs/ENG-HANDBOOK.md")
+	archContent, err := readFile(cryptoutilSharedMagic.CICDDocsHandbookPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read docs/ENG-HANDBOOK.md: %w", err)
 	}

@@ -10,11 +10,13 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const testNonexistentPath = "/nonexistent/path/abc123"
+
 func TestRunNamingValidation_InvalidPaths(t *testing.T) {
 	t.Parallel()
 
 	result := &AllValidationResult{}
-	runNamingValidation("/nonexistent/path/abc123", "/nonexistent/path/def456", result)
+	runNamingValidation(testNonexistentPath, "/nonexistent/path/def456", result)
 
 	require.Len(t, result.Results, 2)
 	require.False(t, result.Results[0].Passed)
@@ -27,7 +29,7 @@ func TestRunKebabCaseValidation_InvalidPath(t *testing.T) {
 	t.Parallel()
 
 	result := &AllValidationResult{}
-	runKebabCaseValidation("/nonexistent/path/abc123", result)
+	runKebabCaseValidation(testNonexistentPath, result)
 
 	require.Len(t, result.Results, 1)
 	require.False(t, result.Results[0].Passed)
@@ -84,7 +86,7 @@ func TestRunPortsValidation_ErrorPath(t *testing.T) {
 	t.Parallel()
 
 	deployments := []deploymentEntry{
-		{path: "/nonexistent/path/abc123", name: cryptoutilSharedMagic.OTLPServicePKICA, level: DeploymentTypeProductService},
+		{path: testNonexistentPath, name: cryptoutilSharedMagic.OTLPServiceIdentityAuthz, level: DeploymentTypeProductService},
 	}
 
 	result := &AllValidationResult{}
@@ -115,7 +117,7 @@ func TestRunTelemetryValidation_ErrorPath(t *testing.T) {
 	t.Parallel()
 
 	result := &AllValidationResult{}
-	runTelemetryValidation("/nonexistent/path/abc123", result)
+	runTelemetryValidation(testNonexistentPath, result)
 
 	require.Len(t, result.Results, 1)
 	require.Equal(t, validatorNameTelemetry, result.Results[0].Name)
@@ -125,7 +127,7 @@ func TestRunAdminValidation_ErrorPath(t *testing.T) {
 	t.Parallel()
 
 	deployments := []deploymentEntry{
-		{path: "/nonexistent/path/abc123", name: cryptoutilSharedMagic.OTLPServicePKICA, level: DeploymentTypeProductService},
+		{path: testNonexistentPath, name: cryptoutilSharedMagic.OTLPServiceIdentityAuthz, level: DeploymentTypeProductService},
 	}
 
 	result := &AllValidationResult{}
@@ -139,7 +141,7 @@ func TestRunSecretsValidation_ErrorPath(t *testing.T) {
 	t.Parallel()
 
 	deployments := []deploymentEntry{
-		{path: "/nonexistent/path/abc123", name: cryptoutilSharedMagic.OTLPServicePKICA, level: DeploymentTypeProductService},
+		{path: testNonexistentPath, name: cryptoutilSharedMagic.OTLPServiceIdentityAuthz, level: DeploymentTypeProductService},
 	}
 
 	result := &AllValidationResult{}
@@ -177,7 +179,7 @@ func TestRunPostgresSecretsDirSyncValidation_ErrorPath(t *testing.T) {
 	t.Parallel()
 
 	result := &AllValidationResult{}
-	runPostgresSecretsDirSyncValidation("/nonexistent/path/abc123", result)
+	runPostgresSecretsDirSyncValidation(testNonexistentPath, result)
 
 	require.Len(t, result.Results, 1)
 	require.Equal(t, validatorNamePostgresSync, result.Results[0].Name)
@@ -197,9 +199,9 @@ func TestIsServiceFrameworkConfig(t *testing.T) {
 		{name: "sm-kms-app-framework-postgresql-2.yml", path: "deployments/sm-kms/config/sm-kms-app-framework-postgresql-2.yml", expected: true},
 		{name: "sm-kms-app-framework-common.yml", path: "configs/sm-kms/sm-kms-app-framework-common.yml", expected: true},
 		{name: "config-pg-2.yaml", path: "/tmp/config-pg-2.yaml", expected: true},
-		{name: "pki-ca-server.yml", path: "configs/pki-ca/pki-ca-server.yml", expected: false},
-		{name: "pki-ca-server.yml", path: "configs/pki-ca/pki-ca-server.yml", expected: false},
-		{name: "ca-config-schema.yaml", path: "configs/pki-ca/pki-ca-config-schema.yaml", expected: false},
+		{name: testSMKMSServerConfigFilename, path: filepath.Join(cryptoutilSharedMagic.CICDConfigsDir, cryptoutilSharedMagic.OTLPServiceSMKMS, testSMKMSServerConfigFilename), expected: false},
+		{name: testSMKMSServerConfigFilename, path: filepath.Join(cryptoutilSharedMagic.CICDConfigsDir, cryptoutilSharedMagic.OTLPServiceSMKMS, testSMKMSServerConfigFilename), expected: false},
+		{name: testSMKMSConfigSchemaFilename, path: filepath.Join(cryptoutilSharedMagic.CICDConfigsDir, cryptoutilSharedMagic.OTLPServiceSMKMS, testSMKMSConfigSchemaFilename), expected: false},
 		{name: "adaptive-auth.yml", path: "configs/identity-authz/domain/policies/adaptive-auth.yml", expected: false},
 		{name: "authz-docker.yml", path: "configs/identity-authz/authz-docker.yml", expected: false},
 		{name: cryptoutilSharedMagic.COMPOSE_YML, path: "deployments/compose/compose.yml", expected: false},

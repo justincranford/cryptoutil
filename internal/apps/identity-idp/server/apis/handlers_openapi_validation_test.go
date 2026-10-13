@@ -272,7 +272,7 @@ func TestOpenAPISchemaValidation(t *testing.T) {
 			dbID, err := googleUuid.NewV7()
 			require.NoError(t, err)
 
-			dsn := fmt.Sprintf("file:%s?mode=memory&cache=shared", dbID.String())
+			dsn := fmt.Sprintf(cryptoutilSharedMagic.SQLiteInMemoryNamedDSNFormat, dbID.String())
 
 			sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, dsn)
 			require.NoError(t, err)

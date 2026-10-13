@@ -59,35 +59,6 @@ func TestGetTLSPEMBytes(t *testing.T) {
 	}
 }
 
-// TestNewForServer tests NewForJOSEServer and NewForCAServer factory functions.
-// Sequential: uses pflag.CommandLine global state via NewForJOSEServer/NewForCAServer.
-func TestNewForServer(t *testing.T) {
-	tests := []struct {
-		name        string
-		factory     func(address string, port uint16, devMode bool) *ServiceFrameworkServerSettings
-		address     string
-		port        uint16
-		devMode     bool
-		wantService string
-	}{
-		{name: "CA dev mode", factory: NewForCAServer, address: cryptoutilSharedMagic.IPv4Loopback, port: 8050, devMode: true, wantService: cryptoutilSharedMagic.OTLPServicePKICA},
-		{name: "CA production", factory: NewForCAServer, address: cryptoutilSharedMagic.IPv4Loopback, port: 8051, devMode: false, wantService: cryptoutilSharedMagic.OTLPServicePKICA},
-	}
-
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			resetFlags()
-
-			settings := tc.factory(tc.address, tc.port, tc.devMode)
-			require.NotNil(t, settings)
-			require.Equal(t, tc.address, settings.BindPublicAddress)
-			require.Equal(t, tc.port, settings.BindPublicPort)
-			require.Equal(t, tc.wantService, settings.OTLPService)
-			require.Equal(t, tc.devMode, settings.DevMode)
-		})
-	}
-}
-
 // TestRegisterAsSettings tests all RegisterAs* setting functions.
 func TestRegisterAsSettings(t *testing.T) {
 	t.Parallel()

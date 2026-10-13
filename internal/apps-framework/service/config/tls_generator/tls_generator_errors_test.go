@@ -18,169 +18,241 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const (
+	testSuccessfulGeneration     = "successful generation"
+	testCASubjectCreationError   = "CA subject creation error"
+	testServerKeyGenerationError = "server key generation error"
+	testTLSCertificateBuildError = "TLS certificate build error"
+	testPrivateKeyEncodingError  = "private key encoding error"
+)
+
 var errInjectTLSGen = errors.New("injected test error")
 
-// Sequential: replaces the package-level key-generation seam.
-func TestGenerateAutoTLSGeneratedSettings_CAKeyGenError(t *testing.T) {
-	orig := generateECDSAKeyPairFn
-	generateECDSAKeyPairFn = func(_ elliptic.Curve) (*cryptoutilSharedCryptoKeygen.KeyPair, error) {
-		return nil, errInjectTLSGen
+func TestGenerateAutoTLSGeneratedSettings_Operations(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name      string
+		configure func(*tlsGenerationOperations)
+		wantErr   string
+	}{
+		{name: testSuccessfulGeneration},
+		{
+			name: "CA key generation error",
+			configure: func(operations *tlsGenerationOperations) {
+				operations.generateECDSAKeyPair = func(elliptic.Curve) (*cryptoutilSharedCryptoKeygen.KeyPair, error) {
+					return nil, errInjectTLSGen
+				}
+			},
+			wantErr: errorFailedToGenerateCAKeyPair,
+		},
+		{
+			name: testCASubjectCreationError,
+			configure: func(operations *tlsGenerationOperations) {
+				operations.createCASubjects = func([]*cryptoutilSharedCryptoKeygen.KeyPair, string, time.Duration) ([]*cryptoutilSharedCryptoCertificate.Subject, error) {
+					return nil, errInjectTLSGen
+				}
+			},
+			wantErr: errorFailedToCreateCASubjects,
+		},
+		{
+			name: testServerKeyGenerationError,
+			configure: func(operations *tlsGenerationOperations) {
+				generateKeyPair := operations.generateECDSAKeyPair
+
+				var calls int
+
+				operations.generateECDSAKeyPair = func(curve elliptic.Curve) (*cryptoutilSharedCryptoKeygen.KeyPair, error) {
+					calls++
+					if calls == cryptoutilSharedMagic.DefaultTLSAutoCAChainTiers {
+						return nil, errInjectTLSGen
+					}
+
+					return generateKeyPair(curve)
+				}
+			},
+			wantErr: errorFailedToGenerateServerKeyPair,
+		},
+		{
+			name: "server subject creation error",
+			configure: func(operations *tlsGenerationOperations) {
+				operations.createEndEntity = func(*cryptoutilSharedCryptoCertificate.Subject, *cryptoutilSharedCryptoKeygen.KeyPair, string, time.Duration, []string, []net.IP, []string, []*url.URL, x509.KeyUsage, []x509.ExtKeyUsage) (*cryptoutilSharedCryptoCertificate.Subject, error) {
+					return nil, errInjectTLSGen
+				}
+			},
+			wantErr: "failed to create server certificate",
+		},
+		{
+			name: testTLSCertificateBuildError,
+			configure: func(operations *tlsGenerationOperations) {
+				operations.buildTLSCertificate = func(*cryptoutilSharedCryptoCertificate.Subject) (*tls.Certificate, *x509.CertPool, *x509.CertPool, error) {
+					return nil, nil, nil, errInjectTLSGen
+				}
+			},
+			wantErr: errorFailedToBuildTLSCertificate,
+		},
+		{
+			name: testPrivateKeyEncodingError,
+			configure: func(operations *tlsGenerationOperations) {
+				operations.pemEncodeKey = func(any) ([]byte, error) { return nil, errInjectTLSGen }
+			},
+			wantErr: errorFailedToPEMEncodeServerPrivateKey,
+		},
 	}
 
-	defer func() { generateECDSAKeyPairFn = orig }()
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-	_, err := GenerateAutoTLSGeneratedSettings([]string{cryptoutilSharedMagic.DefaultOTLPHostnameDefault}, nil, cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year)
-	require.ErrorContains(t, err, "failed to generate CA key pair")
+			operations := defaultTLSGenerationOperations()
+			if tc.configure != nil {
+				tc.configure(&operations)
+			}
+
+			generated, err := generateAutoTLSGeneratedSettingsWithOperations(
+				[]string{cryptoutilSharedMagic.DefaultOTLPHostnameDefault},
+				nil,
+				cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year,
+				operations,
+			)
+			if tc.wantErr != "" {
+				require.ErrorContains(t, err, tc.wantErr)
+
+				return
+			}
+
+			require.NoError(t, err)
+			require.NotEmpty(t, generated.StaticCertPEM)
+			require.NotEmpty(t, generated.StaticKeyPEM)
+		})
+	}
 }
 
-// Sequential: replaces the package-level CA-subject seam.
-func TestGenerateAutoTLSGeneratedSettings_CASubjectsError(t *testing.T) {
-	orig := createCASubjectsFn
-	createCASubjectsFn = func(_ []*cryptoutilSharedCryptoKeygen.KeyPair, _ string, _ time.Duration) ([]*cryptoutilSharedCryptoCertificate.Subject, error) {
-		return nil, errInjectTLSGen
+func TestGenerateTestCA_Operations(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name      string
+		configure func(*tlsGenerationOperations)
+		wantErr   string
+	}{
+		{name: testSuccessfulGeneration},
+		{
+			name: "key generation error",
+			configure: func(operations *tlsGenerationOperations) {
+				operations.generateECDSAKeyPair = func(elliptic.Curve) (*cryptoutilSharedCryptoKeygen.KeyPair, error) {
+					return nil, errInjectTLSGen
+				}
+			},
+			wantErr: errorFailedToGenerateCAKeyPair,
+		},
+		{
+			name: testCASubjectCreationError,
+			configure: func(operations *tlsGenerationOperations) {
+				operations.createCASubjects = func([]*cryptoutilSharedCryptoKeygen.KeyPair, string, time.Duration) ([]*cryptoutilSharedCryptoCertificate.Subject, error) {
+					return nil, errInjectTLSGen
+				}
+			},
+			wantErr: errorFailedToCreateCASubjects,
+		},
+		{
+			name: testPrivateKeyEncodingError,
+			configure: func(operations *tlsGenerationOperations) {
+				operations.pemEncodeKey = func(any) ([]byte, error) { return nil, errInjectTLSGen }
+			},
+			wantErr: "failed to PEM-encode CA private key",
+		},
 	}
 
-	defer func() { createCASubjectsFn = orig }()
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-	_, err := GenerateAutoTLSGeneratedSettings([]string{cryptoutilSharedMagic.DefaultOTLPHostnameDefault}, nil, cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year)
-	require.ErrorContains(t, err, "failed to create CA subjects")
+			operations := defaultTLSGenerationOperations()
+			if tc.configure != nil {
+				tc.configure(&operations)
+			}
+
+			certPEM, keyPEM, err := generateTestCAWithOperations(operations)
+			if tc.wantErr != "" {
+				require.ErrorContains(t, err, tc.wantErr)
+
+				return
+			}
+
+			require.NoError(t, err)
+			require.NotEmpty(t, certPEM)
+			require.NotEmpty(t, keyPEM)
+		})
+	}
 }
 
-// Sequential: replaces the package-level key-generation seam.
-func TestGenerateAutoTLSGeneratedSettings_ServerKeyGenError(t *testing.T) {
-	call := 0
-	orig := generateECDSAKeyPairFn
-	generateECDSAKeyPairFn = func(c elliptic.Curve) (*cryptoutilSharedCryptoKeygen.KeyPair, error) {
-		call++
-		if call > 2 {
-			return nil, errInjectTLSGen
-		}
+func TestGenerateServerCertFromCA_Operations(t *testing.T) {
+	t.Parallel()
 
-		return orig(c)
+	tests := []struct {
+		name      string
+		configure func(*tlsGenerationOperations)
+		wantErr   string
+	}{
+		{name: testSuccessfulGeneration},
+		{
+			name: testServerKeyGenerationError,
+			configure: func(operations *tlsGenerationOperations) {
+				operations.generateECDSAKeyPair = func(elliptic.Curve) (*cryptoutilSharedCryptoKeygen.KeyPair, error) {
+					return nil, errInjectTLSGen
+				}
+			},
+			wantErr: errorFailedToGenerateServerKeyPair,
+		},
+		{
+			name: testTLSCertificateBuildError,
+			configure: func(operations *tlsGenerationOperations) {
+				operations.buildTLSCertificate = func(*cryptoutilSharedCryptoCertificate.Subject) (*tls.Certificate, *x509.CertPool, *x509.CertPool, error) {
+					return nil, nil, nil, errInjectTLSGen
+				}
+			},
+			wantErr: errorFailedToBuildTLSCertificate,
+		},
+		{
+			name: testPrivateKeyEncodingError,
+			configure: func(operations *tlsGenerationOperations) {
+				operations.pemEncodeKey = func(any) ([]byte, error) { return nil, errInjectTLSGen }
+			},
+			wantErr: errorFailedToPEMEncodeServerPrivateKey,
+		},
 	}
 
-	defer func() { generateECDSAKeyPairFn = orig }()
-
-	_, err := GenerateAutoTLSGeneratedSettings([]string{cryptoutilSharedMagic.DefaultOTLPHostnameDefault}, nil, cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year)
-	require.ErrorContains(t, err, "failed to generate server key pair")
-}
-
-// Sequential: replaces the package-level end-entity seam.
-func TestGenerateAutoTLSGeneratedSettings_CreateEndEntityError(t *testing.T) {
-	orig := createEndEntitySubjectFn
-	createEndEntitySubjectFn = func(_ *cryptoutilSharedCryptoCertificate.Subject, _ *cryptoutilSharedCryptoKeygen.KeyPair, _ string, _ time.Duration, _ []string, _ []net.IP, _ []string, _ []*url.URL, _ x509.KeyUsage, _ []x509.ExtKeyUsage) (*cryptoutilSharedCryptoCertificate.Subject, error) {
-		return nil, errInjectTLSGen
-	}
-
-	defer func() { createEndEntitySubjectFn = orig }()
-
-	_, err := GenerateAutoTLSGeneratedSettings([]string{cryptoutilSharedMagic.DefaultOTLPHostnameDefault}, nil, cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year)
-	require.ErrorContains(t, err, "failed to create server certificate")
-}
-
-// Sequential: replaces the package-level certificate-building seam.
-func TestGenerateAutoTLSGeneratedSettings_BuildTLSError(t *testing.T) {
-	orig := buildTLSCertificateFn
-	buildTLSCertificateFn = func(_ *cryptoutilSharedCryptoCertificate.Subject) (*tls.Certificate, *x509.CertPool, *x509.CertPool, error) {
-		return nil, nil, nil, errInjectTLSGen
-	}
-
-	defer func() { buildTLSCertificateFn = orig }()
-
-	_, err := GenerateAutoTLSGeneratedSettings([]string{cryptoutilSharedMagic.DefaultOTLPHostnameDefault}, nil, cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year)
-	require.ErrorContains(t, err, "failed to build TLS certificate")
-}
-
-// Sequential: replaces the package-level key-encoding seam.
-func TestGenerateAutoTLSGeneratedSettings_MarshalKeyError(t *testing.T) {
-	orig := pemEncodeKeyFn
-	pemEncodeKeyFn = func(_ any) ([]byte, error) { return nil, errInjectTLSGen }
-
-	defer func() { pemEncodeKeyFn = orig }()
-
-	_, err := GenerateAutoTLSGeneratedSettings([]string{cryptoutilSharedMagic.DefaultOTLPHostnameDefault}, nil, cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year)
-	require.ErrorContains(t, err, "failed to PEM-encode server private key")
-}
-
-// Sequential: replaces the package-level key-generation seam.
-func TestGenerateTestCA_KeyGenError(t *testing.T) {
-	orig := generateECDSAKeyPairFn
-	generateECDSAKeyPairFn = func(_ elliptic.Curve) (*cryptoutilSharedCryptoKeygen.KeyPair, error) {
-		return nil, errInjectTLSGen
-	}
-
-	defer func() { generateECDSAKeyPairFn = orig }()
-
-	_, _, err := GenerateTestCA()
-	require.ErrorContains(t, err, "failed to generate CA key pair")
-}
-
-// Sequential: replaces the package-level CA-subject seam.
-func TestGenerateTestCA_CASubjectsError(t *testing.T) {
-	orig := createCASubjectsFn
-	createCASubjectsFn = func(_ []*cryptoutilSharedCryptoKeygen.KeyPair, _ string, _ time.Duration) ([]*cryptoutilSharedCryptoCertificate.Subject, error) {
-		return nil, errInjectTLSGen
-	}
-
-	defer func() { createCASubjectsFn = orig }()
-
-	_, _, err := GenerateTestCA()
-	require.ErrorContains(t, err, "failed to create CA subjects")
-}
-
-// Sequential: replaces the package-level key-encoding seam.
-func TestGenerateTestCA_MarshalKeyError(t *testing.T) {
-	orig := pemEncodeKeyFn
-	pemEncodeKeyFn = func(_ any) ([]byte, error) { return nil, errInjectTLSGen }
-
-	defer func() { pemEncodeKeyFn = orig }()
-
-	_, _, err := GenerateTestCA()
-	require.ErrorContains(t, err, "failed to PEM-encode CA private key")
-}
-
-// Sequential: replaces the package-level key-generation seam.
-func TestGenerateServerCertFromCA_ServerKeyGenError(t *testing.T) {
 	caCertPEM, caKeyPEM, err := GenerateTestCA()
 	require.NoError(t, err)
 
-	orig := generateECDSAKeyPairFn
-	generateECDSAKeyPairFn = func(_ elliptic.Curve) (*cryptoutilSharedCryptoKeygen.KeyPair, error) {
-		return nil, errInjectTLSGen
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			operations := defaultTLSGenerationOperations()
+			if tc.configure != nil {
+				tc.configure(&operations)
+			}
+
+			generated, err := generateServerCertFromCAWithOperations(
+				caCertPEM,
+				caKeyPEM,
+				[]string{cryptoutilSharedMagic.DefaultOTLPHostnameDefault},
+				[]string{cryptoutilSharedMagic.IPv4Loopback},
+				cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year,
+				operations,
+			)
+			if tc.wantErr != "" {
+				require.ErrorContains(t, err, tc.wantErr)
+				require.Nil(t, generated)
+
+				return
+			}
+
+			require.NoError(t, err)
+			require.NotEmpty(t, generated.StaticCertPEM)
+			require.NotEmpty(t, generated.StaticKeyPEM)
+		})
 	}
-
-	defer func() { generateECDSAKeyPairFn = orig }()
-
-	_, err = GenerateServerCertFromCA(caCertPEM, caKeyPEM, []string{cryptoutilSharedMagic.DefaultOTLPHostnameDefault}, []string{cryptoutilSharedMagic.IPv4Loopback}, cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year)
-	require.ErrorContains(t, err, "failed to generate server key pair")
-}
-
-// Sequential: replaces the package-level certificate-building seam.
-func TestGenerateServerCertFromCA_BuildTLSError(t *testing.T) {
-	caCertPEM, caKeyPEM, err := GenerateTestCA()
-	require.NoError(t, err)
-
-	orig := buildTLSCertificateFn
-	buildTLSCertificateFn = func(_ *cryptoutilSharedCryptoCertificate.Subject) (*tls.Certificate, *x509.CertPool, *x509.CertPool, error) {
-		return nil, nil, nil, errInjectTLSGen
-	}
-
-	defer func() { buildTLSCertificateFn = orig }()
-
-	_, err = GenerateServerCertFromCA(caCertPEM, caKeyPEM, []string{cryptoutilSharedMagic.DefaultOTLPHostnameDefault}, []string{cryptoutilSharedMagic.IPv4Loopback}, cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year)
-	require.ErrorContains(t, err, "failed to build TLS certificate")
-}
-
-// Sequential: replaces the package-level key-encoding seam.
-func TestGenerateServerCertFromCA_MarshalKeyError(t *testing.T) {
-	caCertPEM, caKeyPEM, err := GenerateTestCA()
-	require.NoError(t, err)
-
-	orig := pemEncodeKeyFn
-	pemEncodeKeyFn = func(_ any) ([]byte, error) { return nil, errInjectTLSGen }
-
-	defer func() { pemEncodeKeyFn = orig }()
-
-	_, err = GenerateServerCertFromCA(caCertPEM, caKeyPEM, []string{cryptoutilSharedMagic.DefaultOTLPHostnameDefault}, []string{cryptoutilSharedMagic.IPv4Loopback}, cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year)
-	require.ErrorContains(t, err, "failed to PEM-encode server private key")
 }

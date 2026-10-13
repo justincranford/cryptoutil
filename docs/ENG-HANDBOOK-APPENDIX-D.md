@@ -25,14 +25,14 @@ Two linters enforce integrity:
 | Resource | Purpose |
 |----------|---------|
 | [docs/ENG-HANDBOOK.md](docs/ENG-HANDBOOK.md) | Canonical source for ALL architectural decisions, patterns, security, testing, deployment, and implementation guidelines (v2.0). Read relevant sections before making decisions. |
-| [api/cryptosuite-registry/registry.yaml](api/cryptosuite-registry/registry.yaml) | Machine-readable registry: 8 PS-IDs, port assignments, migration number ranges per PS-ID. |
+| [api/cryptosuite-registry/registry.yaml](api/cryptosuite-registry/registry.yaml) | Machine-readable registry: 7 PS-IDs, port assignments, migration number ranges per PS-ID. |
 | [.github/copilot-instructions.md](.github/copilot-instructions.md) | Copilot instructions summary — Claude Code uses this file too. |
 
 ### Key ENG-HANDBOOK.md Sections
 
 | Section | Topic |
 |---------|-------|
-| §1 | Executive summary, entity hierarchy (1 suite → 4 products → 8 PS-IDs) |
+| §1 | Executive summary, entity hierarchy (1 suite → 3 products → 7 PS-IDs) |
 | §2 | Agent/skill catalog, architecture strategy, quality principles |
 | §3 | Product suite architecture, port assignments |
 | §5 | Service architecture, dual HTTPS endpoint pattern, builder pattern |
@@ -97,7 +97,7 @@ Full Copilot originals: [.github/skills/](.github/skills/).
 | `/migration-create` | Create numbered SQL migration files per registry.yaml ranges |
 | `/new-service` | Create new PS-ID service from skeleton-template (9-step guide) |
 | `/propagation-check` | Detect `@to-appendix`/`@from-eng-handbook` drift between ENG-HANDBOOK.md and instruction files |
-| `/psid-template-sync` | Keep stable PS-ID template-instantiated files synchronized across all 8 services |
+| `/psid-template-sync` | Keep stable PS-ID template-instantiated files synchronized across all 7 services |
 | `/fitness-function-gen` | New architecture fitness function linter in cicd_lint/lint_fitness/ |
 | `/copilot-customization` | Create, update, or delete repo-local agents, instructions, or skills, including required Claude counterparts and Copilot agent tool allowlist maintenance |
 | `/sync-copilot-claude` | Audit/sync Copilot skills+agents with Claude skills+agents |
@@ -159,7 +159,7 @@ See [.github/skills/README.md](.github/skills/README.md) for the full catalogue.
 | `/copilot-customization` | Creating, updating, or deleting repo-local agents, instructions, or skills, including required Claude counterparts and Copilot agent tool allowlist maintenance |
 | `/sync-copilot-claude` | Auditing/syncing Copilot skills and agents with their Claude counterparts |
 | `/new-service` | Creating a new service from skeleton-template |
-| `/psid-template-sync` | Updating stable PS-ID template-instantiated files and keeping all 8 services exact-match lint clean |
+| `/psid-template-sync` | Updating stable PS-ID template-instantiated files and keeping all 7 services exact-match lint clean |
 | `/fitness-function-gen` | Creating a new architecture fitness function (linter) |
 
 ## Instruction Files Reference
@@ -383,20 +383,18 @@ applyTo: "**"
 
 ## Quick Reference
 
-- **4 products, 8 services**: PKI (CA), SM (KMS), Identity (Authz, IdP, RS, RP, SPA), Skeleton (Template)
+- **3 products, 7 services**: SM (KMS, including PKI), Identity (Authz, IdP, RS, RP, SPA), Skeleton (Template)
 - **Dual HTTPS**: Public (:8080) + Admin (:9090) per service
 - **Dual Paths**: `/service/**` (headless) + `/browser/**` (browser)
 - **Config Priority**: Docker secrets > YAML > CLI (NO environment variables)
 - **Template**: ALL services MUST use `internal/apps-framework/service/`
-- **Migration priority**: sm-kms -> pki-ca -> identity services
-  - SM services (sm-kms) migrate first; pki-ca second; identity last
+- **Migration status**: PKI is consolidated into sm-kms; Identity and Skeleton remain separate services
 
 ## Service Catalog
 
 | Product | Service | ID | Host Ports | Container Public | Container Admin |
 |---------|---------|-----|-----------|-----------------|----------------|
 | SM | Key Management Service | sm-kms | 8000-8099 | 0.0.0.0:8080 | 127.0.0.1:9090 |
-| PKI | Certificate Authority | pki-ca | 8300-8399 | 0.0.0.0:8080 | 127.0.0.1:9090 |
 | Identity | Authorization Server | identity-authz | 8400-8499 | 0.0.0.0:8080 | 127.0.0.1:9090 |
 | Identity | Identity Provider | identity-idp | 8500-8599 | 0.0.0.0:8080 | 127.0.0.1:9090 |
 | Identity | Resource Server | identity-rs | 8600-8699 | 0.0.0.0:8080 | 127.0.0.1:9090 |
@@ -404,7 +402,7 @@ applyTo: "**"
 | Identity | Single Page App | identity-spa | 8800-8899 | 0.0.0.0:8080 | 127.0.0.1:9090 |
 | Skeleton | Template | skeleton-template | 8900-8999 | 0.0.0.0:8080 | 127.0.0.1:9090 |
 
-**PostgreSQL Ports**: sm-kms:54320, pki-ca:54323, identity-authz:54324, identity-idp:54325, identity-rs:54326, identity-rp:54327, identity-spa:54328, skeleton-template:54329 (all container 0.0.0.0:5432)
+**PostgreSQL Ports**: sm-kms:54320, identity-authz:54324, identity-idp:54325, identity-rs:54326, identity-rp:54327, identity-spa:54328, skeleton-template:54329 (all container 0.0.0.0:5432)
 
 **Telemetry**: otel-collector-contrib (4317 gRPC, 4318 HTTP), grafana-otel-lgtm (3000 UI, 4317/4318 OTLP)
 
@@ -532,7 +530,7 @@ The `GenerateTLSMaterial()` function in `internal/apps-framework/service/config/
 
 **Schema Strategy**: Config file schema is HARDCODED in Go (`validate_schema.go`). No external schema files.
 
-**Directory Structure**: Flat `configs/{PS-ID}/` pattern (e.g., `configs/sm-kms/`, `configs/sm-kms/`). NOT nested `configs/{PRODUCT}/{SERVICE}/`. Each service has one `{PS-ID}.yml` domain config. Special subdirectories: `configs/pki-ca/profiles/` for X.509 profiles, `configs/identity-authz/domain/policies/` for authorization policies.
+**Directory Structure**: Flat `configs/{PS-ID}/` pattern (e.g., `configs/sm-kms/`, `configs/identity-authz/`). NOT nested `configs/{PRODUCT}/{SERVICE}/`. Services use `{PS-ID}-domain.yml` and `{PS-ID}-framework.yml`; KMS PKI config is in `configs/sm-kms/pki-domain.yml`. Certificate profiles are in `configs/sm-kms/profiles/`, `configs/identity-authz/domain/policies/` for authorization policies.
 
 **Deployment Variant Configs**: `deployments/{PS-ID}/config/` holds Docker Compose deployment configs (`{PS-ID}-app-{variant}.yml`) with 5 required variants: common, sqlite-1, sqlite-2, postgresql-1, postgresql-2. These are separate from the standalone `configs/{PS-ID}/{PS-ID}.yml` dev configs.
 
@@ -823,10 +821,8 @@ All `openapi-gen_config*.yaml` files MUST include the full base initialisms list
 
 | Service | Domain Additions |
 |---------|----------------|
-| `sm-kms` | JWKS, OKP, URI |
-| `pki-ca` | CSR, CA, CRL, OCSP, URI, SAN, DN, CN, OU |
+| `sm-kms` | JWKS, OKP, URI, CSR, CA, CRL, OCSP, SAN, DN, CN, OU, IM, SM |
 | `sm-kms` | IM, SM, URI |
-| `sm-kms` | URI |
 | `skeleton-template` | (none — base list only) |
 <!-- @/from-eng-handbook -->
 
@@ -1449,7 +1445,7 @@ All services MUST keep stable PS-ID template-instantiated files aligned with the
 
 **Additional structural conformance enforced today**:
 
-- `internal/apps/__PS_ID__/server/testmain_test.go` exists for all 8 PS-IDs.
+- `internal/apps/__PS_ID__/server/testmain_test.go` exists for all 7 PS-IDs.
 - `internal/apps/__PS_ID__/server/testmain_test.go` MUST NOT include `//go:build` or `// +build`.
 - `internal/apps/__PS_ID__/server/` MUST NOT contain split files such as `testmain_integration_test.go` or other `testmain_*_test.go` variants.
 
@@ -1458,7 +1454,7 @@ All services MUST keep stable PS-ID template-instantiated files aligned with the
 1. Update the canonical template first.
 2. Apply the same change to all 10 instantiated PS-ID files in the same semantic commit.
 3. Run `go run ./cmd/cicd-lint lint-fitness` and require exact `apps-ps-id-template` conformance.
-4. If a file family stops being structurally identical across all 8 PS-IDs, remove it from exact template enforcement explicitly instead of allowing drift.
+4. If a file family stops being structurally identical across all 7 PS-IDs, remove it from exact template enforcement explicitly instead of allowing drift.
 
 ## Shared Test Infrastructure
 
@@ -1877,10 +1873,8 @@ cryptoutil/
 +-- cmd/                                   # Binary entry points
 |   +-- cryptoutil/main.go                 # Suite: -> internal/apps/cryptoutil/
 |   +-- sm-kms/main.go                     # Service: -> internal/apps/sm-kms/
-|   +-- pki-ca/main.go                     # Service: -> internal/apps/pki-ca/
 |   +-- identity-{authz,idp,rp,rs,spa}/    # Service: -> internal/apps/identity-{authz,idp,rp,rs,spa}/
 |   +-- skeleton-template/main.go          # Service: -> internal/apps/skeleton-template/
-|   +-- pki/main.go                        # Product: -> internal/apps/pki/
 |   +-- identity/main.go                   # Product: -> internal/apps/identity/
 |   +-- sm/main.go                         # Product: -> internal/apps/sm/
 |   +-- skeleton/main.go                   # Product: -> internal/apps/skeleton/
@@ -2248,9 +2242,9 @@ applyTo: "**"
 **wsl**: NEVER use `//nolint:wsl` - restructure code to group related logic
 **godot**: ALWAYS end comments with periods (auto-fixable)
 **mnd**: Declare magic values in `internal/shared/magic/` (NEVER in package-local files)
-**magic_usage (lint-go)**: Two BLOCKING categories — `literal-use` (bare literals in non-const code) AND `const-redefine` (value re-declared as local const outside magic package). Both prevent commit. ALWAYS use named magic constants.
+**magic_usage (lint-go)**: Matching magic string literals and string const redefinitions block lint; numeric value matches are informational because equal numbers may represent unrelated concepts. Reuse matching string constants and use numeric magic constants only when semantically appropriate.
 **ST1011 (`time.Duration` names)**: `time.Duration` constants MUST NOT have unit suffixes (`Ms`, `Ns`, `Sec`, `Min` — violates staticcheck ST1011). The `time.Duration` type already encodes the unit. Correct: `DefaultPollInterval = 5 * time.Second`. Wrong: `DefaultPollIntervalMs = 5000`.
-**Magic pre-check**: ALWAYS search `internal/shared/magic/` for an existing named constant BEFORE writing any string or numeric literal in test or production code. Using bare literals violates `literal-use` and blocks `TestLint_Integration`. Discovering these violations mid-plan is costly.
+**Magic pre-check**: Search `internal/shared/magic/` for a semantically matching constant before adding domain values. Matching string literals block `TestLint_Integration`; numeric value matches are informational because equality alone does not prove shared meaning. Never substitute an unrelated numeric constant to silence a warning.
 
 ## Linter Categories
 
@@ -2464,7 +2458,7 @@ COPY --from=validator /app/cryptoutil /app/cryptoutil
 
 ## Deployment Template Enforcement
 
-All 8 PS-ID deployment artifacts MUST match canonical templates after `__KEY__` placeholder substitution. Template drift is detected by the `template-compliance` fitness linter. Canonical templates live in `api/cryptosuite-registry/templates/` and are loaded at lint time via `os.WalkDir` (not embedded FS).
+All 7 PS-ID deployment artifacts MUST match canonical templates after `__KEY__` placeholder substitution. Template drift is detected by the `template-compliance` fitness linter. Canonical templates live in `api/cryptosuite-registry/templates/` and are loaded at lint time via `os.WalkDir` (not embedded FS).
 
 - **Canonical templates**: Defined in [deployment-templates.md](../../docs/deployment-templates.md) (Sections B-E)
 - **Template types**: Dockerfile, compose.yml, config-common, config-sqlite, config-postgresql, standalone-config
@@ -6324,7 +6318,7 @@ A completed `lessons.md` MUST contain three top-level sections **in this order**
 **1. `## Executive Summary`** — Written at plan completion. A numbered list where each entry is a markdown link to a `## Phase N:` section followed by a one-sentence description of the key outcome. Enables reviewers to scan the entire plan scope at a glance and navigate directly to relevant phases.
 
 Example entries:
-- `1. [Phase 1: Framework Migration](#phase-1-framework-migration) — Migrated 8 PS-ID entry points; no API breakage.`
+- `1. [Phase 1: Framework Migration](#phase-1-framework-migration) — Migrated required PS-ID entry points; no API breakage.`
 - `2. [Phase 2: Knowledge Propagation](#phase-2-knowledge-propagation) — Added 12 ENG-HANDBOOK sections and updated 4 instruction files.`
 
 **2. `## Actions`** — Written at plan completion, directly below Executive Summary. A numbered list of concrete follow-up tasks for the reviewer, each specific enough to copy-paste directly into Copilot Chat or Claude Code as a follow-up prompt.
@@ -6667,9 +6661,9 @@ You are explicitly instructed NOT to:
 "Approximately 30 compose files across all services"
 
 # CORRECT: parameterized paths with derivation formula
-deployments/{sm-kms,pki-ca,identity-authz,identity-idp,identity-rp,identity-rs,identity-spa,skeleton-template}/compose.yml  (8 files)
-configs/{sm-kms,pki-ca,...}/config-common.yml  (8 files)
-# Total: 16 files = 2 per PS-ID × 8 PS-IDs
+deployments/{sm-kms,identity-authz,identity-idp,identity-rp,identity-rs,identity-spa,skeleton-template}/compose.yml  (7 files)
+deployments/{sm-kms,identity-authz,identity-idp,identity-rp,identity-rs,identity-spa,skeleton-template}/config/{PS-ID}-app-common.yml  (7 files)
+# Total: 14 files = 2 per PS-ID × 7 PS-IDs
 ```
 
 Always derive counts from the formula, not memory. Missing files in the enumeration are the most common source of task underestimation.
@@ -6938,7 +6932,7 @@ EOF
 - **Framework**: [Framework if applicable]
 - **Database**: PostgreSQL OR SQLite with GORM
 - **Dependencies**: [Key dependencies]
-- **Affected Files**: [MANDATORY: enumerate relative paths of ALL files expected to change, using parameterization and pattern matching to condense sets. Example: `deployments/{sm-kms,pki-ca,identity-authz,identity-idp,identity-rp,identity-rs,identity-spa,skeleton-template}/compose.yml` (8 files). Always show the derivation formula: `30 global + 60 per-PS-ID × 8 = 510`. Raw counts without formulas are unverifiable during review.]
+- **Affected Files**: [MANDATORY: enumerate relative paths of ALL files expected to change, using parameterization and pattern matching to condense sets. Example: `deployments/{sm-kms,identity-authz,identity-idp,identity-rp,identity-rs,identity-spa,skeleton-template}/compose.yml` (7 files). Always show the derivation formula: `30 global + 60 per-PS-ID × 8 = 510`. Raw counts without formulas are unverifiable during review.]
 
 ## Phases
 
@@ -7778,7 +7772,7 @@ A completed `lessons.md` MUST contain three top-level sections **in this order**
 **1. `## Executive Summary`** — Written at plan completion. A numbered list where each entry is a markdown link to a `## Phase N:` section followed by a one-sentence description of the key outcome. Enables reviewers to scan the entire plan scope at a glance and navigate directly to relevant phases.
 
 Example entries:
-- `1. [Phase 1: Framework Migration](#phase-1-framework-migration) — Migrated 8 PS-ID entry points; no API breakage.`
+- `1. [Phase 1: Framework Migration](#phase-1-framework-migration) — Migrated required PS-ID entry points; no API breakage.`
 - `2. [Phase 2: Knowledge Propagation](#phase-2-knowledge-propagation) — Added 12 ENG-HANDBOOK sections and updated 4 instruction files.`
 
 **2. `## Actions`** — Written at plan completion, directly below Executive Summary. A numbered list of concrete follow-up tasks for the reviewer, each specific enough to copy-paste directly into Copilot Chat or Claude Code as a follow-up prompt.
@@ -8675,10 +8669,11 @@ Use `migration-create` for the migration file details, `openapi-codegen` for API
 
 ## Service Catalog
 
+PKI is a domain capability hosted by `sm-kms`, not a separate product-service.
+
 | Product | Service ID | Host Port Range |
 |---------|-----------|----------------|
 | SM | sm-kms | 8000-8099 |
-| PKI | pki-ca | 8300-8399 |
 | Identity | identity-authz | 8400-8499 |
 | ... | ... | ... |
 | Skeleton | skeleton-template | 8900-8999 |
@@ -9063,7 +9058,7 @@ Use `sync-copilot-claude` when the propagation change also affects dual-canonica
 <!-- @copilot-frontmatter:start -->
 ---
 name: psid-template-sync
-description: "Keep stable PS-ID template-instantiated files synchronized across all 8 services using the canonical internal app templates and exact template-drift enforcement."
+description: "Keep stable PS-ID template-instantiated files synchronized across all 7 services using the canonical internal app templates and exact template-drift enforcement."
 argument-hint: "[template path or PS-ID file family]"
 ---
 <!-- @copilot-frontmatter:end -->
@@ -9071,14 +9066,14 @@ argument-hint: "[template path or PS-ID file family]"
 <!-- @claude-frontmatter:start -->
 ---
 name: psid-template-sync
-description: "Keep stable PS-ID template-instantiated files synchronized across all 8 services using the canonical internal app templates and exact template-drift enforcement."
+description: "Keep stable PS-ID template-instantiated files synchronized across all 7 services using the canonical internal app templates and exact template-drift enforcement."
 argument-hint: "[template path or PS-ID file family]"
 ---
 <!-- @claude-frontmatter:end -->
 
 <!-- @file-body:start -->
 
-Keep stable PS-ID template-instantiated files synchronized across all 8 services.
+Keep stable PS-ID template-instantiated files synchronized across all 7 services.
 
 ## Purpose
 
@@ -9088,10 +9083,10 @@ This applies to the stable PS-ID file families instantiated from `api/cryptosuit
 ## Key Rules
 
 - Update the canonical template before editing instantiated PS-ID files.
-- Keep the enforced file families byte-identical across all 8 PS-IDs after placeholder substitution.
-- Apply the template change and all 8 instantiations in the same semantic commit.
+- Keep the enforced file families byte-identical across all 7 PS-IDs after placeholder substitution.
+- Apply the template change and all 7 instantiations in the same semantic commit.
 - Validate with `go run ./cmd/cicd-lint lint-fitness` and require `apps-ps-id-template` to pass.
-- If a file family is no longer structurally identical across all 8 PS-IDs, remove it from exact template enforcement explicitly instead of allowing silent drift.
+- If a file family is no longer structurally identical across all 7 PS-IDs, remove it from exact template enforcement explicitly instead of allowing silent drift.
 - Enforce one untagged `server/testmain_test.go` per PS-ID server package (no `testmain_*_test.go` split variants).
 
 ## Enforced Canonical Template Families
@@ -9108,7 +9103,7 @@ The current exact-match PS-ID template families are:
 
 ## Additional Structural Conformance
 
-- `internal/apps/__PS_ID__/server/testmain_test.go` must exist for all 8 PS-IDs.
+- `internal/apps/__PS_ID__/server/testmain_test.go` must exist for all 7 PS-IDs.
 - `internal/apps/__PS_ID__/server/testmain_test.go` must not include `//go:build` or `// +build`.
 - `internal/apps/__PS_ID__/server/` must not contain split files such as `testmain_integration_test.go` or other `testmain_*_test.go` variants.
 

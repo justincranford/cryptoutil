@@ -69,7 +69,7 @@ func formatCatalogPropagationResults(result *CatalogPropagationResult) string {
 }
 
 // CatalogFilesCommand is the entry point for the lint-catalog-files linter.
-// It verifies that every @file-catalog / @file-catalog-pair entry in ENG-HANDBOOK.md
+// It verifies that every @file-catalog / @file-catalog-pair entry in Appendix D
 // matches the corresponding file(s) on disk.
 // Returns 0 on success, 1 on violations.
 func CatalogFilesCommand(stdout, stderr io.Writer) int {

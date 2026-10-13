@@ -25,7 +25,6 @@ func TestValidatePostgresSecretsDirSync(t *testing.T) {
 			sharedCompose: "secrets:\n  postgres-username.secret:\n    file: ${POSTGRES_SECRETS_DIR:-./secrets}/postgres-username.secret\n",
 			envContentByService: map[string]string{
 				cryptoutilSharedMagic.OTLPServiceSMKMS: "POSTGRES_SECRETS_DIR=../sm-kms/secrets\n",
-				cryptoutilSharedMagic.OTLPServicePKICA: "POSTGRES_SECRETS_DIR=../pki-ca/secrets\n",
 			},
 			wantValid: true,
 		},
@@ -42,7 +41,7 @@ func TestValidatePostgresSecretsDirSync(t *testing.T) {
 			name:          "missing env key",
 			sharedCompose: "secrets:\n  postgres-password.secret:\n    file: ${POSTGRES_SECRETS_DIR:-./secrets}/postgres-password.secret\n",
 			envContentByService: map[string]string{
-				cryptoutilSharedMagic.OTLPServicePKICA: "OTHER_KEY=value\n",
+				cryptoutilSharedMagic.OTLPServiceSMKMS: "OTHER_KEY=value\n",
 			},
 			wantValid:   false,
 			wantErrText: "Missing POSTGRES_SECRETS_DIR",

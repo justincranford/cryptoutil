@@ -30,26 +30,23 @@ func TestServiceServer_InterfaceIsDefinedInServerPackage(t *testing.T) {
 // satisfies the interface structurally (compile-time).
 // This is the idiomatic Go pattern: var _ T = (*Impl)(nil).
 //
-// If ANY of the 10 services were to lose a required method,
+// If ANY of the 7 product-services were to lose a required method,
 // the corresponding compile-time assertion in that service's server.go
 // would cause a build failure — documented here for clarity.
 //
 // Services with compile-time assertions (var _ ServiceServer = (*XxxServer)(nil)):
-// - SmIMServer          (internal/apps/sm-kms/server)
-// - KMSServer           (internal/apps/sm-kms/server)
-// - JoseJAServer        (internal/apps/sm-kms/server)
-// - PKICAServer         (internal/apps/pki-ca/server)
+// - KMSServer              (internal/apps/sm-kms/server)
 // - SkeletonTemplateServer (internal/apps/skeleton-template/server)
-// - AuthzServer         (internal/apps/identity-authz/server)
-// - IDPServer           (internal/apps/identity-idp/server)
-// - RPServer            (internal/apps/identity-rp/server)
-// - RSServer            (internal/apps/identity-rs/server)
-// - SPAServer           (internal/apps/identity-spa/server).
+// - AuthzServer            (internal/apps/identity-authz/server)
+// - IDPServer              (internal/apps/identity-idp/server)
+// - RPServer               (internal/apps/identity-rp/server)
+// - RSServer               (internal/apps/identity-rs/server)
+// - SPAServer              (internal/apps/identity-spa/server).
 func TestServiceServer_AllServicesHaveCompileTimeAssertions(t *testing.T) {
 	t.Parallel()
 
 	// Nothing to run: the compile-time assertions are the test.
-	// If /any/ of the 10 services break the interface, this file will not compile.
+	// If /any/ of the 7 product-services break the interface, this file will not compile.
 	// This function documents and asserts the design intent.
 	t.Log("ServiceServer compile-time assertions are enforced in each service's server.go")
 }

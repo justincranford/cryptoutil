@@ -17,10 +17,10 @@ func TestCheckDelegationPattern_SuiteValid(t *testing.T) {
 	dir := t.TempDir()
 	compose := `include:
   - path: ../sm/compose.yml
-  - path: ../pki/compose.yml
   - path: ../identity/compose.yml
   - path: ../skeleton/compose.yml
 `
+
 	require.NoError(t, os.WriteFile(filepath.Join(dir, cryptoutilSharedMagic.COMPOSE_YML), []byte(compose), cryptoutilSharedMagic.CacheFilePermissions))
 
 	result := &ValidationResult{Valid: true}
@@ -37,9 +37,6 @@ func TestCheckDelegationPattern_SuiteInvalidServiceLevel(t *testing.T) {
 	dir := t.TempDir()
 	compose := `include:
   - path: ../sm-kms/compose.yml
-  - path: ../pki-ca/compose.yml
-  - path: ../sm-kms/compose.yml
-  - path: ../pki-ca/compose.yml
   - path: ../identity-authz/compose.yml
   - path: ../identity-idp/compose.yml
   - path: ../identity-rp/compose.yml
@@ -53,7 +50,7 @@ func TestCheckDelegationPattern_SuiteInvalidServiceLevel(t *testing.T) {
 	checkDelegationPattern(dir, cryptoutilSharedMagic.DefaultOTLPServiceDefault, DeploymentTypeSuite, result)
 
 	require.False(t, result.Valid, "expected invalid for service-level delegation")
-	require.Len(t, result.Errors, int(cryptoutilSharedMagic.RateLimitDefaultRequestsPerMin), "expected invalid service-level include patterns to match include count")
+	require.Len(t, result.Errors, cryptoutilSharedMagic.SuiteServiceCount, "expected one error for each active service-level include")
 }
 
 func TestCheckDelegationPattern_SuiteMissingProducts(t *testing.T) {
@@ -63,6 +60,7 @@ func TestCheckDelegationPattern_SuiteMissingProducts(t *testing.T) {
 	compose := `include:
   - path: ../sm/compose.yml
 `
+
 	require.NoError(t, os.WriteFile(filepath.Join(dir, cryptoutilSharedMagic.COMPOSE_YML), []byte(compose), cryptoutilSharedMagic.CacheFilePermissions))
 
 	result := &ValidationResult{Valid: true}
@@ -84,11 +82,6 @@ func TestCheckDelegationPattern_ProductValid(t *testing.T) {
 			name:           "sm includes sm-kms",
 			deploymentName: "sm",
 			composeContent: "include:\n  - path: ../sm-kms/compose.yml\n",
-		},
-		{
-			name:           "pki includes pki-ca",
-			deploymentName: cryptoutilSharedMagic.PKIProductName,
-			composeContent: "include:\n  - path: ../pki-ca/compose.yml\n",
 		},
 		{
 			name:           "identity includes all identity services",
@@ -127,7 +120,6 @@ func TestCheckDelegationPattern_ProductMissingService(t *testing.T) {
 		wantError      string
 	}{
 		{name: "sm missing sm-kms", deploymentName: "sm", wantError: cryptoutilSharedMagic.OTLPServiceSMKMS},
-		{name: "pki missing pki-ca", deploymentName: cryptoutilSharedMagic.PKIProductName, wantError: cryptoutilSharedMagic.OTLPServicePKICA},
 		{name: "identity missing identity-authz", deploymentName: cryptoutilSharedMagic.IdentityProductName, wantError: cryptoutilSharedMagic.OTLPServiceIdentityAuthz},
 		{name: "identity missing identity-idp", deploymentName: cryptoutilSharedMagic.IdentityProductName, wantError: cryptoutilSharedMagic.OTLPServiceIdentityIDP},
 		{name: "identity missing identity-rp", deploymentName: cryptoutilSharedMagic.IdentityProductName, wantError: cryptoutilSharedMagic.OTLPServiceIdentityRP},
@@ -234,7 +226,7 @@ func TestCheckOTLPProtocolOverride_NoConfigDir(t *testing.T) {
 	t.Parallel()
 
 	result := &ValidationResult{Valid: true}
-	checkOTLPProtocolOverride(t.TempDir(), cryptoutilSharedMagic.OTLPServicePKICA, DeploymentTypeProductService, result)
+	checkOTLPProtocolOverride(t.TempDir(), cryptoutilSharedMagic.OTLPServiceIdentityAuthz, DeploymentTypeProductService, result)
 
 	require.True(t, result.Valid)
 	require.Empty(t, result.Warnings)
@@ -256,7 +248,7 @@ func TestCheckBrowserServiceCredentials_AllPresent(t *testing.T) {
 	}
 
 	result := &ValidationResult{Valid: true}
-	checkBrowserServiceCredentials(dir, cryptoutilSharedMagic.OTLPServicePKICA, DeploymentTypeProductService, result)
+	checkBrowserServiceCredentials(dir, cryptoutilSharedMagic.OTLPServiceIdentityAuthz, DeploymentTypeProductService, result)
 
 	require.True(t, result.Valid)
 	require.Empty(t, result.Errors)
@@ -269,7 +261,7 @@ func TestCheckBrowserServiceCredentials_Missing(t *testing.T) {
 	require.NoError(t, os.MkdirAll(filepath.Join(dir, "secrets"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupReadExecute))
 
 	result := &ValidationResult{Valid: true}
-	checkBrowserServiceCredentials(dir, cryptoutilSharedMagic.OTLPServicePKICA, DeploymentTypeProductService, result)
+	checkBrowserServiceCredentials(dir, cryptoutilSharedMagic.OTLPServiceIdentityAuthz, DeploymentTypeProductService, result)
 
 	require.False(t, result.Valid)
 	require.Len(t, result.Errors, 4, "expected 4 missing credential files")

@@ -5,7 +5,7 @@
 // Package listener provides high-level application lifecycle management.
 //
 // This package encapsulates the complete service startup pattern used across
-// all cryptoutil services (sm-kms, sm-kms, identity-*, sm-kms, pki-ca, skeleton-template).
+// all cryptoutil services (sm-kms, identity-*, skeleton-template).
 //
 // The ApplicationListener provides a unified interface for:
 // - Starting full service with telemetry, database, barrier, public/admin servers
@@ -80,7 +80,7 @@ type HandlerRegistration func(server cryptoutilAppsFrameworkServiceServer.IPubli
 
 // PublicServerFactory creates a product-specific public server.
 //
-// Each service (sm-kms, sm-kms, identity-*, sm-kms, pki-ca, skeleton-template) provides its own factory
+// Each service (sm-kms, identity-*, skeleton-template) provides its own factory
 // that knows how to construct the service's unique public server with appropriate:
 // - Repositories
 // - Business logic handlers
@@ -141,7 +141,7 @@ type ApplicationConfig struct {
 
 // StartApplicationListener creates and starts a full service application.
 //
-// This is the primary entry point for all cryptoutil services (sm-kms, sm-kms, identity-*, sm-kms, pki-ca, skeleton-template).
+// This is the primary entry point for all cryptoutil services (sm-kms, identity-*, skeleton-template).
 //
 // Initialization sequence:
 // 1. Create ServiceFramework (telemetry, JWK gen, optional barrier)

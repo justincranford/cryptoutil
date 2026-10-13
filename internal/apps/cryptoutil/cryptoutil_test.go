@@ -63,7 +63,6 @@ func TestSuite_HelpCommand(t *testing.T) {
 			require.Contains(t, output, "Usage: cryptoutil")
 			require.Contains(t, output, "Available products:")
 			require.Contains(t, output, cryptoutilSharedMagic.IdentityProductName)
-			require.Contains(t, output, cryptoutilSharedMagic.PKIProductName)
 			require.Contains(t, output, cryptoutilSharedMagic.SkeletonProductName)
 			require.Contains(t, output, "sm")
 		})
@@ -92,7 +91,6 @@ func TestSuite_ProductRouting(t *testing.T) {
 		expectedStr string
 	}{
 		{name: "identity help", product: cryptoutilSharedMagic.IdentityProductName, expectedStr: "Usage: identity"},
-		{name: "pki help", product: cryptoutilSharedMagic.PKIProductName, expectedStr: "Usage: pki"},
 		{name: "skeleton help", product: cryptoutilSharedMagic.SkeletonProductName, expectedStr: "Usage: skeleton"},
 		{name: "sm help", product: "sm", expectedStr: "Usage: sm"},
 	}
@@ -122,7 +120,6 @@ func TestSuite_ProductVersion(t *testing.T) {
 		expectedStr string
 	}{
 		{name: "identity version", product: cryptoutilSharedMagic.IdentityProductName, expectedStr: "identity product"},
-		{name: "pki version", product: cryptoutilSharedMagic.PKIProductName, expectedStr: "pki product"},
 		{name: "skeleton version", product: cryptoutilSharedMagic.SkeletonProductName, expectedStr: "skeleton product"},
 		{name: "sm version", product: "sm", expectedStr: "sm product"},
 	}

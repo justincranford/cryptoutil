@@ -8,6 +8,7 @@ package check_skeleton_placeholders
 import (
 	"bufio"
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
@@ -15,6 +16,8 @@ import (
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps-tools/cicd_lint/common"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
+
+const skeletonPlaceholderWalkErrorPrefix = "failed to walk directory tree"
 
 // Violation represents a file that contains an unreplaced skeleton placeholder string.
 type Violation struct {
@@ -45,12 +48,21 @@ var excludedDirPrefixes = []string{
 // excludedDirNames are directory names (single component) that skip entire subtrees.
 var excludedDirNames = []string{cryptoutilSharedMagic.CICDExcludeDirVendor, cryptoutilSharedMagic.CICDExcludeDirGit, cryptoutilSharedMagic.CICDExcludeDirTestOutput, "node_modules"}
 
-// Test seams: replaceable in tests to exercise unreachable OS-level error paths.
-// See ENG-HANDBOOK.md Section 10.2.4 (Test Seam Injection Pattern).
-var (
-	filepathAbs = filepath.Abs
-	filepathRel = filepath.Rel
-)
+type skeletonPlaceholderOperations struct {
+	absFn      func(string) (string, error)
+	walkDirFn  func(string, fs.WalkDirFunc) error
+	relFn      func(string, string) (string, error)
+	scanFileFn func(string) ([]Violation, error)
+}
+
+func productionSkeletonPlaceholderOperations() skeletonPlaceholderOperations {
+	return skeletonPlaceholderOperations{
+		absFn:      filepath.Abs,
+		walkDirFn:  filepath.WalkDir,
+		relFn:      filepath.Rel,
+		scanFileFn: scanFile,
+	}
+}
 
 // Check scans non-skeleton Go source files in the current directory for unreplaced placeholders.
 func Check(logger *cryptoutilCmdCicdCommon.Logger) error {
@@ -79,15 +91,19 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 
 // FindViolations returns all unreplaced skeleton placeholder violations under rootDir.
 func FindViolations(rootDir string) ([]Violation, error) {
+	return findViolationsWithOperations(rootDir, productionSkeletonPlaceholderOperations())
+}
+
+func findViolationsWithOperations(rootDir string, operations skeletonPlaceholderOperations) ([]Violation, error) {
 	// Resolve rootDir to an absolute path for reliable relative-path calculation.
-	absRoot, err := filepathAbs(rootDir)
+	absRoot, err := operations.absFn(rootDir)
 	if err != nil {
 		return nil, fmt.Errorf("failed to resolve rootDir: %w", err)
 	}
 
 	var violations []Violation
 
-	walkErr := filepath.WalkDir(absRoot, func(path string, d os.DirEntry, walkEntryErr error) error {
+	walkErr := operations.walkDirFn(absRoot, func(path string, d os.DirEntry, walkEntryErr error) error {
 		if walkEntryErr != nil {
 			return walkEntryErr
 		}
@@ -108,7 +124,7 @@ func FindViolations(rootDir string) ([]Violation, error) {
 		}
 
 		// Compute path relative to rootDir for consistent prefix matching.
-		relPath, relErr := filepathRel(absRoot, path)
+		relPath, relErr := operations.relFn(absRoot, path)
 		if relErr != nil {
 			return fmt.Errorf("failed to compute relative path for %s: %w", path, relErr)
 		}
@@ -122,7 +138,7 @@ func FindViolations(rootDir string) ([]Violation, error) {
 			}
 		}
 
-		fileViolations, scanErr := scanFile(path)
+		fileViolations, scanErr := operations.scanFileFn(path)
 		if scanErr != nil {
 			return fmt.Errorf("failed to read %s: %w", path, scanErr)
 		}
@@ -132,7 +148,7 @@ func FindViolations(rootDir string) ([]Violation, error) {
 		return nil
 	})
 	if walkErr != nil {
-		return violations, fmt.Errorf("failed to walk directory tree: %w", walkErr)
+		return violations, fmt.Errorf("%s: %w", skeletonPlaceholderWalkErrorPrefix, walkErr)
 	}
 
 	return violations, nil

@@ -6,6 +6,7 @@ package builder
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"testing"
 	"testing/fstest"
@@ -14,7 +15,10 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps-framework/service/config"
+	cryptoutilAppsFrameworkServiceConfigTlsGenerator "cryptoutil/internal/apps-framework/service/config/tls_generator"
 	cryptoutilAppsFrameworkServiceServer "cryptoutil/internal/apps-framework/service/server"
+	cryptoutilAppsFrameworkServiceServerApplication "cryptoutil/internal/apps-framework/service/server/application"
+	cryptoutilAppsFrameworkServiceServerListener "cryptoutil/internal/apps-framework/service/server/listener"
 
 	"github.com/stretchr/testify/require"
 )
@@ -62,6 +66,86 @@ func TestBuild_SimpleErrors(t *testing.T) {
 }
 
 // TestBuild_PublicRouteRegistrationError tests Build failure when route registration fails.
+func TestBuild_OperationErrors(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name      string
+		configure func(*serverBuilderOperations)
+		wantErr   string
+	}{
+		{
+			name: "admin server creation error",
+			configure: func(operations *serverBuilderOperations) {
+				operations.newAdminHTTPServer = func(context.Context, *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings, *cryptoutilAppsFrameworkServiceConfigTlsGenerator.TLSGeneratedSettings) (*cryptoutilAppsFrameworkServiceServerListener.AdminServer, error) {
+					return nil, errors.New("injected builder operation error")
+				}
+			},
+			wantErr: "failed to create admin server",
+		},
+		{
+			name: "application core start error",
+			configure: func(operations *serverBuilderOperations) {
+				operations.startCore = func(context.Context, *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings) (*cryptoutilAppsFrameworkServiceServerApplication.Core, error) {
+					return nil, errors.New("injected builder operation error")
+				}
+			},
+			wantErr: "failed to start application core",
+		},
+		{
+			name: "service initialization error",
+			configure: func(operations *serverBuilderOperations) {
+				operations.initServicesOnCore = func(context.Context, *cryptoutilAppsFrameworkServiceServerApplication.Core, *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings) (*cryptoutilAppsFrameworkServiceServerApplication.CoreWithServices, error) {
+					return nil, errors.New("injected builder operation error")
+				}
+			},
+			wantErr: "failed to initialize services on core",
+		},
+		{
+			name: "public TLS material generation error",
+			configure: func(operations *serverBuilderOperations) {
+				operations.generateTLSMaterial = func(*cryptoutilAppsFrameworkServiceConfigTlsGenerator.TLSGeneratedSettings) (*cryptoutilAppsFrameworkServiceConfig.TLSMaterial, error) {
+					return nil, errors.New("injected builder operation error")
+				}
+			},
+			wantErr: "failed to generate public TLS material",
+		},
+		{
+			name: "public server creation error",
+			configure: func(operations *serverBuilderOperations) {
+				operations.newPublicServerBase = func(*cryptoutilAppsFrameworkServiceServer.PublicServerConfig) (*cryptoutilAppsFrameworkServiceServer.PublicServerBase, error) {
+					return nil, errors.New("injected builder operation error")
+				}
+			},
+			wantErr: "failed to create public server base",
+		},
+		{
+			name: "application creation error",
+			configure: func(operations *serverBuilderOperations) {
+				operations.newApplication = func(context.Context, cryptoutilAppsFrameworkServiceServer.IPublicServer, cryptoutilAppsFrameworkServiceServer.IAdminServer) (*cryptoutilAppsFrameworkServiceServer.Application, error) {
+					return nil, errors.New("injected builder operation error")
+				}
+			},
+			wantErr: "failed to create application",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			builder := NewServerBuilder(context.Background(), getMinimalSettings())
+			operations := defaultServerBuilderOperations()
+			tc.configure(&operations)
+
+			resources, err := builder.buildWithOperations(operations)
+			require.Nil(t, resources)
+			require.ErrorContains(t, err, tc.wantErr)
+			require.ErrorContains(t, err, "injected builder operation error")
+		})
+	}
+}
+
 func TestBuild_PublicRouteRegistrationError(t *testing.T) {
 	t.Parallel()
 

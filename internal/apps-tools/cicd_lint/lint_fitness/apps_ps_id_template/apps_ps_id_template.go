@@ -35,11 +35,10 @@ type psIDManifest struct {
 	RequiredE2EFiles              []string `yaml:"required_e2e_files"`
 }
 
-// allEightPSIDs is a convenience set containing all 8 known PS-IDs used in exclusion maps.
+// allSevenPSIDs is a convenience set containing all 7 known PS-IDs used in exclusion maps.
 // Update when PS-IDs are added or removed from the registry.
-var allEightPSIDs = map[string]bool{
+var allSevenPSIDs = map[string]bool{
 	cryptoutilSharedMagic.OTLPServiceSMKMS:            true,
-	cryptoutilSharedMagic.OTLPServicePKICA:            true,
 	cryptoutilSharedMagic.OTLPServiceIdentityAuthz:    true,
 	cryptoutilSharedMagic.OTLPServiceIdentityIDP:      true,
 	cryptoutilSharedMagic.OTLPServiceIdentityRS:       true,
@@ -70,12 +69,11 @@ var knownRootFileExclusions = map[string]map[string]bool{}
 // that are exempt from that specific server-file check.
 // Remove entries as each PS-ID migrates swagger/test files to server/.
 var knownServerFileExclusions = map[string]map[string]bool{
-	// swagger files live at PS-ID root, not server/ yet; all 10 excluded during migration.
-	"swagger.go":      allEightPSIDs,
-	"swagger_test.go": allEightPSIDs,
+	// swagger files live at PS-ID root, not server/ yet; all 7 excluded during migration.
+	"swagger.go":      allSevenPSIDs,
+	"swagger_test.go": allSevenPSIDs,
 	// Lifecycle tests are still non-canonical for these services.
 	"__SERVICE___lifecycle_test.go": {
-		cryptoutilSharedMagic.OTLPServicePKICA:            true,
 		cryptoutilSharedMagic.OTLPServiceSkeletonTemplate: true,
 	},
 }
@@ -83,21 +81,14 @@ var knownServerFileExclusions = map[string]map[string]bool{
 // knownServerDirExclusions maps required server/ subdirectory names to PS-IDs excluded from that check.
 // Remove entries as each PS-ID creates the missing subdirectory.
 var knownServerDirExclusions = map[string]map[string]bool{
-	// apis/: sm-kms uses businesslogic/handler layout (V20); pki-ca uses cmd/config/middleware (V20).
 	// identity-* migrated and are no longer excluded.
 	"apis": {
 		cryptoutilSharedMagic.OTLPServiceSMKMS: true,
-		cryptoutilSharedMagic.OTLPServicePKICA: true,
 	},
-	// model/: sm-kms and pki-ca pending V20.
 	"model": {
 		cryptoutilSharedMagic.OTLPServiceSMKMS: true,
-		cryptoutilSharedMagic.OTLPServicePKICA: true,
 	},
-	// repository/: pki-ca pending V20 migration (sm-kms already has repository/).
-	"repository": {
-		cryptoutilSharedMagic.OTLPServicePKICA: true,
-	},
+	"repository": {},
 }
 
 // knownServerConfigFileExclusions maps required server/config/ filenames to exempt PS-IDs.
@@ -110,29 +101,21 @@ var knownServerConfigFileExclusions = map[string]map[string]bool{
 	"config_test.go": {
 		cryptoutilSharedMagic.OTLPServiceSMKMS: true,
 	},
-	// config_test_helper.go: sm-kms (no server/config/), pki-ca (pending V20 migration).
 	"config_test_helper.go": {
 		cryptoutilSharedMagic.OTLPServiceSMKMS: true,
-		cryptoutilSharedMagic.OTLPServicePKICA: true,
 	},
 }
 
 // knownServerRepositoryFileExclusions maps required server/repository/ filenames to exempt PS-IDs.
 // Remove entries as each PS-ID creates its server/repository/ directory with required files.
 var knownServerRepositoryFileExclusions = map[string]map[string]bool{
-	// pki-ca has no server/repository/ directory yet (pending V20 migration).
-	"migrations.go": {
-		cryptoutilSharedMagic.OTLPServicePKICA: true,
-	},
+	"migrations.go": {},
 }
 
 // knownServerRepositoryDirExclusions maps required server/repository/ subdirectory names to exempt PS-IDs.
 // Remove entries as each PS-ID creates its server/repository/migrations/ directory.
 var knownServerRepositoryDirExclusions = map[string]map[string]bool{
-	// pki-ca has no server/repository/ directory yet (pending V20 migration).
-	"migrations": {
-		cryptoutilSharedMagic.OTLPServicePKICA: true,
-	},
+	"migrations": {},
 }
 
 // knownE2EFileExclusions maps required e2e/ filenames to exempt PS-IDs.

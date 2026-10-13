@@ -39,7 +39,7 @@ func TestServerConfig_Validate(t *testing.T) {
 			config: &ServerConfig{
 				Name:         "test-server",
 				BindAddress:  cryptoutilSharedMagic.IPv4Loopback,
-				Port:         cryptoutilSharedMagic.PKICAServicePort,
+				Port:         cryptoutilSharedMagic.TestServerPort,
 				TLSEnabled:   true,
 				TLSCertFile:  "/path/to/cert.pem",
 				TLSKeyFile:   "/path/to/key.pem",
@@ -119,7 +119,7 @@ func TestServerConfig_Validate(t *testing.T) {
 			config: &ServerConfig{
 				Name:        "test-server",
 				BindAddress: cryptoutilSharedMagic.IPv4Loopback,
-				Port:        cryptoutilSharedMagic.PKICAServicePort,
+				Port:        cryptoutilSharedMagic.TestServerPort,
 				TLSEnabled:  true,
 				TLSCertFile: "",
 				TLSKeyFile:  "/path/to/key.pem",
@@ -132,7 +132,7 @@ func TestServerConfig_Validate(t *testing.T) {
 			config: &ServerConfig{
 				Name:        "test-server",
 				BindAddress: cryptoutilSharedMagic.IPv4Loopback,
-				Port:        cryptoutilSharedMagic.PKICAServicePort,
+				Port:        cryptoutilSharedMagic.TestServerPort,
 				TLSEnabled:  true,
 				TLSCertFile: "/path/to/cert.pem",
 				TLSKeyFile:  "",

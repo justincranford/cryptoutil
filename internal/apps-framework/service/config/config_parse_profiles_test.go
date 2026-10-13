@@ -176,19 +176,6 @@ func TestNewForJOSEServer_PanicOnInvalidArgs(t *testing.T) {
 	})
 }
 
-// TestNewForCAServer_PanicOnInvalidArgs tests that NewForCAServer panics on invalid args.
-// Sequential: uses pflag.CommandLine global state via Parse().
-func TestNewForCAServer_PanicOnInvalidArgs(t *testing.T) {
-	resetFlags()
-
-	defer resetFlags()
-
-	// In dev mode, IPv4AnyAddress is rejected, so this should cause a validation error and panic
-	require.Panics(t, func() {
-		NewForCAServer(cryptoutilSharedMagic.IPv4AnyAddress, cryptoutilSharedMagic.TestServerPort, true)
-	})
-}
-
 // TestNewForJOSEServer_HappyPath tests the happy path for NewForJOSEServer.
 // Sequential: uses pflag.CommandLine global state via Parse().
 func TestNewForJOSEServer_HappyPath(t *testing.T) {
@@ -234,17 +221,4 @@ tls-private-provision-mode: ""
 	// Empty TLS provision mode should get the default auto setting.
 	require.NotEmpty(t, s.TLSPublicProvisionMode)
 	require.NotEmpty(t, s.TLSPrivateProvisionMode)
-}
-
-// TestNewForCAServer_HappyPath tests the happy path for NewForCAServer.
-// Sequential: uses pflag.CommandLine global state via Parse().
-func TestNewForCAServer_HappyPath(t *testing.T) {
-	resetFlags()
-
-	// Valid address should succeed
-	settings := NewForCAServer(cryptoutilSharedMagic.IPv4Loopback, cryptoutilSharedMagic.TestServerPort, true)
-	require.NotNil(t, settings)
-	require.Equal(t, cryptoutilSharedMagic.IPv4Loopback, settings.BindPublicAddress)
-	require.Equal(t, uint16(cryptoutilSharedMagic.TestServerPort), settings.BindPublicPort)
-	require.Equal(t, cryptoutilSharedMagic.OTLPServicePKICA, settings.OTLPService)
 }

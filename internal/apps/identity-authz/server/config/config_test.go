@@ -39,10 +39,10 @@ func TestDefaultTestConfig(t *testing.T) {
 func TestNewTestConfig_ProductionMode(t *testing.T) {
 	t.Parallel()
 
-	cfg := NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, cryptoutilSharedMagic.PKICAServicePort, false)
+	cfg := NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, cryptoutilSharedMagic.IdentityAuthzServicePort, false)
 
 	require.NotNil(t, cfg)
-	require.Equal(t, uint16(cryptoutilSharedMagic.PKICAServicePort), cfg.BindPublicPort)
+	require.Equal(t, uint16(cryptoutilSharedMagic.IdentityAuthzServicePort), cfg.BindPublicPort)
 	require.False(t, cfg.DevMode, "Should not be in dev mode")
 }
 

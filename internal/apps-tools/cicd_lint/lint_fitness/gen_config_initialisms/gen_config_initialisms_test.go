@@ -34,7 +34,7 @@ func makeTestAPIDir(t *testing.T) (rootDir, apiDir string) {
 	return rootDir, apiDir
 }
 
-var fullBaseList = "output-options:\n  name-normalizer: ToCamelCaseWithInitialisms\n  additional-initialisms:\n    - IDS\n    - JWT\n    - JWK\n    - JWE\n    - JWS\n    - OIDC\n    - SAML\n    - AES\n    - GCM\n    - CBC\n    - RSA\n    - EC\n    - HMAC\n    - SHA\n    - TLS\n    - IP\n    - AI\n    - ML\n    - KEM\n    - PEM\n    - DER\n    - DSA\n    - IKM\n"
+const fullBaseList = "output-options:\n  name-normalizer: ToCamelCaseWithInitialisms\n  additional-initialisms:\n    - IDS\n    - JWT\n    - JWK\n    - JWE\n    - JWS\n    - OIDC\n    - SAML\n    - AES\n    - GCM\n    - CBC\n    - RSA\n    - EC\n    - HMAC\n    - SHA\n    - TLS\n    - IP\n    - AI\n    - ML\n    - KEM\n    - PEM\n    - DER\n    - DSA\n    - IKM\n"
 
 func TestCheckMissingInitialisms_AllPresent(t *testing.T) {
 	t.Parallel()
@@ -219,59 +219,90 @@ func findProjectRoot() (string, error) {
 	}
 }
 
-// TestCheckInDir_WalkError verifies error propagation when WalkDir itself fails.
-// Sequential: mutates package-level filepathWalkDir seam.
-func TestCheckInDir_WalkError(t *testing.T) {
-	origWalkDir := filepathWalkDir
+func TestCheckInDir_OperationPaths(t *testing.T) {
+	t.Parallel()
 
-	defer func() { filepathWalkDir = origWalkDir }()
+	tests := []struct {
+		name    string
+		setup   func(*testing.T, *genConfigInitialismsOperations, string, string)
+		wantErr string
+	}{
+		{
+			name: "empty api directory succeeds",
+		},
+		{
+			name: "stat error is reported",
+			setup: func(_ *testing.T, operations *genConfigInitialismsOperations, _, _ string) {
+				operations.statFn = func(string) (os.FileInfo, error) {
+					return nil, fmt.Errorf("injected api stat error")
+				}
+			},
+			wantErr: "failed to stat api directory",
+		},
+		{
+			name: "walk error is reported",
+			setup: func(_ *testing.T, operations *genConfigInitialismsOperations, _, _ string) {
+				operations.walkDirFn = func(string, fs.WalkDirFunc) error {
+					return fmt.Errorf("injected walk error")
+				}
+			},
+			wantErr: genConfigInitialismsWalkErrorPrefix,
+		},
+		{
+			name: "walk callback entry error is reported",
+			setup: func(_ *testing.T, operations *genConfigInitialismsOperations, apiDir, _ string) {
+				operations.walkDirFn = func(_ string, walkFn fs.WalkDirFunc) error {
+					return walkFn(apiDir, nil, fmt.Errorf("injected entry error"))
+				}
+			},
+			wantErr: genConfigInitialismsWalkErrorPrefix,
+		},
+		{
+			name: "file validation error is reported",
+			setup: func(t *testing.T, operations *genConfigInitialismsOperations, _, apiDir string) {
+				writeTestFile(t, apiDir, genConfigServerFileName, fullBaseList)
 
-	filepathWalkDir = func(_ string, _ fs.WalkDirFunc) error {
-		return fmt.Errorf("mock walk error")
+				operations.checkMissingInitialisms = func(string) ([]string, error) {
+					return nil, fmt.Errorf("injected file validation error")
+				}
+			},
+			wantErr: "failed to check",
+		},
+		{
+			name: "relative path error is reported",
+			setup: func(t *testing.T, operations *genConfigInitialismsOperations, _, apiDir string) {
+				writeTestFile(t, apiDir, genConfigServerFileName, fullBaseList)
+
+				operations.checkMissingInitialisms = func(string) ([]string, error) {
+					return []string{"JWK"}, nil
+				}
+				operations.relFn = func(string, string) (string, error) {
+					return "", fmt.Errorf("injected relative path error")
+				}
+			},
+			wantErr: "failed to get path relative to workspace root",
+		},
 	}
 
-	rootDir, _ := makeTestAPIDir(t)
-	logger := cryptoutilCmdCicdCommon.NewLogger("test-gen-config-initialisms")
-	err := CheckInDir(logger, rootDir)
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "failed to walk api directory")
-}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-// TestCheckInDir_FileCheckError verifies error propagation when checkMissingInitialisms returns an error.
-// Sequential: mutates package-level checkMissingInitialismsFunc seam.
-func TestCheckInDir_FileCheckError(t *testing.T) {
-	orig := checkMissingInitialismsFunc
+			rootDir, apiDir := makeTestAPIDir(t)
 
-	defer func() { checkMissingInitialismsFunc = orig }()
+			operations := productionGenConfigInitialismsOperations()
+			if tc.setup != nil {
+				tc.setup(t, &operations, apiDir, apiDir)
+			}
 
-	checkMissingInitialismsFunc = func(_ string) ([]string, error) {
-		return nil, fmt.Errorf("mock file read error")
+			err := checkInDirWithOperations(cryptoutilCmdCicdCommon.NewLogger("test-gen-config-initialisms"), rootDir, operations)
+			if tc.wantErr != "" {
+				require.ErrorContains(t, err, tc.wantErr)
+
+				return
+			}
+
+			require.NoError(t, err)
+		})
 	}
-
-	rootDir, apiDir := makeTestAPIDir(t)
-	writeTestFile(t, apiDir, genConfigServerFileName, fullBaseList)
-
-	logger := cryptoutilCmdCicdCommon.NewLogger("test-gen-config-initialisms")
-	err := CheckInDir(logger, rootDir)
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "failed to walk api directory")
-}
-
-// TestCheckInDir_WalkCallbackEntryError verifies entry-level error in WalkDir callback.
-// Sequential: mutates package-level filepathWalkDir seam.
-func TestCheckInDir_WalkCallbackEntryError(t *testing.T) {
-	origWalkDir := filepathWalkDir
-
-	defer func() { filepathWalkDir = origWalkDir }()
-
-	filepathWalkDir = func(root string, fn fs.WalkDirFunc) error {
-		// Simulate a WalkDir callback error for a directory entry.
-		return fn(root, nil, fmt.Errorf("mock entry error"))
-	}
-
-	rootDir, _ := makeTestAPIDir(t)
-	logger := cryptoutilCmdCicdCommon.NewLogger("test-gen-config-initialisms")
-	err := CheckInDir(logger, rootDir)
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "failed to walk api directory")
 }

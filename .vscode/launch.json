@@ -28,14 +28,6 @@
             "args": ["server", "--dev=true"]
         },
         {
-            "name": "pki-ca: SQLite (dev mode)",
-            "type": "go",
-            "request": "launch",
-            "mode": "auto",
-            "program": "${workspaceFolder}/cmd/pki-ca",
-            "args": ["server", "--dev=true"]
-        },
-        {
             "name": "skeleton-template: SQLite (dev mode)",
             "type": "go",
             "request": "launch",

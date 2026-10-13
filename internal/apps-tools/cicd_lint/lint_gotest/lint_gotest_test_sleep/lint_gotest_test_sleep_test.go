@@ -319,17 +319,17 @@ func TestIsExemptedFile(t *testing.T) {
 		},
 		{
 			name:     "exempt_cert_ops_suffix",
-			filePath: "/internal/apps/pki-ca/handler_cert_ops_test.go",
+			filePath: "/internal/apps/identity-authz/handler_cert_ops_test.go",
 			want:     true,
 		},
 		{
 			name:     "exempt_observability",
-			filePath: "/internal/apps/pki-ca/observability/observability_test.go",
+			filePath: "/internal/apps/identity-authz/observability/observability_test.go",
 			want:     true,
 		},
 		{
 			name:     "exempt_cancel_suffix",
-			filePath: "/internal/apps/pki-ca/ra_cancel_test.go",
+			filePath: "/internal/apps/identity-authz/ra_cancel_test.go",
 			want:     true,
 		},
 		{
@@ -359,7 +359,7 @@ func TestIsExemptedFile(t *testing.T) {
 		},
 		{
 			name:     "exempt_error_validation_suffix",
-			filePath: "/internal/apps/pki-ca/hardware_error_validation_test.go",
+			filePath: "/internal/apps/identity-authz/hardware_error_validation_test.go",
 			want:     true,
 		},
 		{

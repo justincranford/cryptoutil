@@ -23,49 +23,32 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
-// Injectable vars for testing Build() error paths.
-var (
-	newAdminHTTPServerFn = func(
-		ctx context.Context,
-		settings *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings,
-		tlsCfg *cryptoutilAppsFrameworkServiceConfigTlsGenerator.TLSGeneratedSettings,
-	) (*cryptoutilAppsFrameworkServiceServerListener.AdminServer, error) {
-		return cryptoutilAppsFrameworkServiceServerListener.NewAdminHTTPServer(ctx, settings, tlsCfg)
+type serverBuilderOperations struct {
+	newAdminHTTPServer  func(context.Context, *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings, *cryptoutilAppsFrameworkServiceConfigTlsGenerator.TLSGeneratedSettings) (*cryptoutilAppsFrameworkServiceServerListener.AdminServer, error)
+	startCore           func(context.Context, *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings) (*cryptoutilAppsFrameworkServiceServerApplication.Core, error)
+	initServicesOnCore  func(context.Context, *cryptoutilAppsFrameworkServiceServerApplication.Core, *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings) (*cryptoutilAppsFrameworkServiceServerApplication.CoreWithServices, error)
+	generateTLSMaterial func(*cryptoutilAppsFrameworkServiceConfigTlsGenerator.TLSGeneratedSettings) (*cryptoutilAppsFrameworkServiceConfig.TLSMaterial, error)
+	newPublicServerBase func(*cryptoutilAppsFrameworkServiceServer.PublicServerConfig) (*cryptoutilAppsFrameworkServiceServer.PublicServerBase, error)
+	newApplication      func(context.Context, cryptoutilAppsFrameworkServiceServer.IPublicServer, cryptoutilAppsFrameworkServiceServer.IAdminServer) (*cryptoutilAppsFrameworkServiceServer.Application, error)
+}
+
+func defaultServerBuilderOperations() serverBuilderOperations {
+	return serverBuilderOperations{
+		newAdminHTTPServer:  cryptoutilAppsFrameworkServiceServerListener.NewAdminHTTPServer,
+		startCore:           cryptoutilAppsFrameworkServiceServerApplication.StartCore,
+		initServicesOnCore:  cryptoutilAppsFrameworkServiceServerApplication.InitializeServicesOnCore,
+		generateTLSMaterial: cryptoutilAppsFrameworkServiceConfigTlsGenerator.GenerateTLSMaterial,
+		newPublicServerBase: cryptoutilAppsFrameworkServiceServer.NewPublicServerBase,
+		newApplication:      cryptoutilAppsFrameworkServiceServer.NewApplication,
 	}
-	startCoreFn = func(
-		ctx context.Context,
-		settings *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings,
-	) (*cryptoutilAppsFrameworkServiceServerApplication.Core, error) {
-		return cryptoutilAppsFrameworkServiceServerApplication.StartCore(ctx, settings)
-	}
-	initServicesOnCoreFn = func(
-		ctx context.Context,
-		core *cryptoutilAppsFrameworkServiceServerApplication.Core,
-		settings *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings,
-	) (*cryptoutilAppsFrameworkServiceServerApplication.CoreWithServices, error) {
-		return cryptoutilAppsFrameworkServiceServerApplication.InitializeServicesOnCore(ctx, core, settings)
-	}
-	generateTLSMaterialFn = func(
-		cfg *cryptoutilAppsFrameworkServiceConfigTlsGenerator.TLSGeneratedSettings,
-	) (*cryptoutilAppsFrameworkServiceConfig.TLSMaterial, error) {
-		return cryptoutilAppsFrameworkServiceConfigTlsGenerator.GenerateTLSMaterial(cfg)
-	}
-	newPublicServerBaseFn = func(
-		cfg *cryptoutilAppsFrameworkServiceServer.PublicServerConfig,
-	) (*cryptoutilAppsFrameworkServiceServer.PublicServerBase, error) {
-		return cryptoutilAppsFrameworkServiceServer.NewPublicServerBase(cfg)
-	}
-	newApplicationFn = func(
-		ctx context.Context,
-		publicBase cryptoutilAppsFrameworkServiceServer.IPublicServer,
-		adminServer cryptoutilAppsFrameworkServiceServer.IAdminServer,
-	) (*cryptoutilAppsFrameworkServiceServer.Application, error) {
-		return cryptoutilAppsFrameworkServiceServer.NewApplication(ctx, publicBase, adminServer)
-	}
-)
+}
 
 // ServiceResources contains all initialized service resources available to domain-specific code.
 func (b *ServerBuilder) Build() (*ServiceResources, error) {
+	return b.buildWithOperations(defaultServerBuilderOperations())
+}
+
+func (b *ServerBuilder) buildWithOperations(operations serverBuilderOperations) (*ServiceResources, error) {
 	if b.err != nil {
 		return nil, b.err
 	}
@@ -107,14 +90,14 @@ func (b *ServerBuilder) Build() (*ServiceResources, error) {
 	}
 
 	// Create admin server.
-	adminServer, err := newAdminHTTPServerFn(b.ctx, b.config, adminTLSCfg)
+	adminServer, err := operations.newAdminHTTPServer(b.ctx, b.config, adminTLSCfg)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create admin server: %w", err)
 	}
 
 	// Phase W.1: Initialize application core WITHOUT services (DB + telemetry only).
 	// CRITICAL: Must run migrations BEFORE initializing services (BarrierService needs barrier_root_keys table).
-	applicationCore, err := startCoreFn(b.ctx, b.config)
+	applicationCore, err := operations.startCore(b.ctx, b.config)
 	if err != nil {
 		return nil, fmt.Errorf("failed to start application core: %w", err)
 	}
@@ -143,7 +126,7 @@ func (b *ServerBuilder) Build() (*ServiceResources, error) {
 	var services *cryptoutilAppsFrameworkServiceServerApplication.CoreWithServices
 
 	if barrierEnabled {
-		services, err = initServicesOnCoreFn(
+		services, err = operations.initServicesOnCore(
 			b.ctx,
 			applicationCore,
 			b.config,
@@ -173,7 +156,7 @@ func (b *ServerBuilder) Build() (*ServiceResources, error) {
 	}
 
 	// Generate TLS material for public server.
-	publicTLSMaterial, err := generateTLSMaterialFn(publicTLSCfg)
+	publicTLSMaterial, err := operations.generateTLSMaterial(publicTLSCfg)
 	if err != nil {
 		applicationCore.Shutdown()
 
@@ -181,7 +164,7 @@ func (b *ServerBuilder) Build() (*ServiceResources, error) {
 	}
 
 	// Create public server base.
-	publicServerBase, err := newPublicServerBaseFn(&cryptoutilAppsFrameworkServiceServer.PublicServerConfig{
+	publicServerBase, err := operations.newPublicServerBase(&cryptoutilAppsFrameworkServiceServer.PublicServerConfig{
 		BindAddress: b.config.BindPublicAddress,
 		Port:        int(b.config.BindPublicPort),
 		TLSMaterial: publicTLSMaterial,
@@ -261,7 +244,7 @@ func (b *ServerBuilder) Build() (*ServiceResources, error) {
 	}
 
 	// Create application wrapper with both servers.
-	app, err := newApplicationFn(b.ctx, publicServerBase, adminServer)
+	app, err := operations.newApplication(b.ctx, publicServerBase, adminServer)
 	if err != nil {
 		applicationCore.Shutdown()
 

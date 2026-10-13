@@ -20,7 +20,7 @@ var errTestJSONFailure = errors.New("forced JSON failure")
 const (
 	adminLivezPath    = "/admin/api/v1/livez"
 	adminReadyzPath   = "/admin/api/v1/readyz"
-	browserHealthPath = "/browser/api/v1/health"
+	browserHealthPath = cryptoutilSharedMagic.DefaultBrowserHealthEndpoint
 )
 
 func failingJSONEncoder(_ any) ([]byte, error) {

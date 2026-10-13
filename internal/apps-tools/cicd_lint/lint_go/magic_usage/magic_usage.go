@@ -134,15 +134,18 @@ func CheckMagicUsageInDir(
 	}
 
 	var (
-		literalUseViolations           []magicUsageViolation
+		literalUseStringViolations     []magicUsageViolation
+		literalUseNumericViolations    []magicUsageViolation
 		constRedefineStringViolations  []magicUsageViolation
 		constRedefineNumericViolations []magicUsageViolation
 	)
 
 	for _, v := range violations {
 		switch {
+		case v.Kind == magicUsageKindLiteral && v.LiteralIsStr:
+			literalUseStringViolations = append(literalUseStringViolations, v)
 		case v.Kind == magicUsageKindLiteral:
-			literalUseViolations = append(literalUseViolations, v)
+			literalUseNumericViolations = append(literalUseNumericViolations, v)
 		case v.LiteralIsStr:
 			constRedefineStringViolations = append(constRedefineStringViolations, v)
 		default:
@@ -152,18 +155,25 @@ func CheckMagicUsageInDir(
 
 	var sb strings.Builder
 
-	fmt.Fprintf(&sb, "magic-usage: %d violation(s) found (%d literal-use [blocking], %d const-redefine-string [blocking], %d const-redefine-numeric [informational])\n\n",
-		len(violations), len(literalUseViolations), len(constRedefineStringViolations), len(constRedefineNumericViolations))
+	fmt.Fprintf(&sb, "magic-usage: %d finding(s) found (%d literal-use-string [blocking], %d literal-use-numeric [informational], %d const-redefine-string [blocking], %d const-redefine-numeric [informational])\n\n",
+		len(violations), len(literalUseStringViolations), len(literalUseNumericViolations), len(constRedefineStringViolations), len(constRedefineNumericViolations))
 
 	for _, v := range violations {
-		fmt.Fprintf(&sb, "  %s:%d  [%s]  literal %s  →  use cryptoutilSharedMagic.%s\n",
-			v.File, v.Line, v.Kind, v.LiteralValue, v.MagicName)
+		category := string(v.Kind)
+		if v.LiteralIsStr {
+			category += "-string [blocking]"
+		} else {
+			category += "-numeric [informational]"
+		}
+
+		fmt.Fprintf(&sb, "  %s:%d  [%s]  literal %s  ->  use cryptoutilSharedMagic.%s\n",
+			v.File, v.Line, category, v.LiteralValue, v.MagicName)
 	}
 
 	logger.Log(sb.String())
 
-	if len(literalUseViolations) > 0 {
-		return fmt.Errorf("found %d literal-use violations: inline magic constant values must reference cryptoutilSharedMagic.XXX instead of repeating the literal", len(literalUseViolations))
+	if len(literalUseStringViolations) > 0 {
+		return fmt.Errorf("found %d literal-use-string violations: inline magic string values must reference cryptoutilSharedMagic.XXX instead of repeating the literal", len(literalUseStringViolations))
 	}
 
 	// String const-redefine is always blocking: redefining a magic string constant
@@ -173,9 +183,9 @@ func CheckMagicUsageInDir(
 		return fmt.Errorf("found %d const-redefine-string violations: redeclaring a magic string constant value outside the magic package is always wrong — reference cryptoutilSharedMagic.XXX instead", len(constRedefineStringViolations))
 	}
 
-	// Numeric const-redefine is informational: small integers (e.g. 5, 10, 32) frequently
-	// coincide with magic constant values but represent different concepts (retry counts,
-	// buffer sizes, loop bounds). Run 'cicd lint-go' to review and address true violations.
+	// Numeric literal and const matches are informational: small integers frequently
+	// coincide with magic values while representing unrelated concepts. The AST alone
+	// cannot determine whether a numeric occurrence is a genuine magic-value reuse.
 	return nil
 }
 

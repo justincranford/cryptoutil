@@ -99,6 +99,6 @@ func (s *Service) handleClientSecretRotation(c *fiber.Ctx) error {
 		cryptoutilSharedMagic.ClaimClientID:     client.ClientID,
 		cryptoutilSharedMagic.ParamClientSecret: newSecretPlaintext,
 		"rotated_at":                            time.Now().UTC(),
-		"message":                               "Client secret rotated successfully. Store this secret securely - it will not be shown again.",
+		cryptoutilSharedMagic.StringMessage:     "Client secret rotated successfully. Store this secret securely - it will not be shown again.",
 	})
 }

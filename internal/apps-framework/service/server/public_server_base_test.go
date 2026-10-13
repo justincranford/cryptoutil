@@ -7,6 +7,7 @@ package server
 
 import (
 	"context"
+	x509 "crypto/x509"
 	json "encoding/json"
 	http "net/http"
 	"net/http/httptest"
@@ -19,6 +20,8 @@ import (
 	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps-framework/service/config"
 	cryptoutilAppsFrameworkServiceConfigTlsGenerator "cryptoutil/internal/apps-framework/service/config/tls_generator"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+
+	cryptoutilAppsFrameworkServiceTestHelpTls "cryptoutil/internal/apps-framework/service/test_help_tls"
 )
 
 // Helper function to create test TLS material.
@@ -164,7 +167,7 @@ func TestPublicServerBase_HandleServiceHealth_ShuttingDown(t *testing.T) {
 
 	err = json.NewDecoder(resp.Body).Decode(&result)
 	require.NoError(t, err)
-	require.Equal(t, "shutting down", result[cryptoutilSharedMagic.StringStatus])
+	require.Equal(t, cryptoutilSharedMagic.StringStatusShuttingDown, result[cryptoutilSharedMagic.StringStatus])
 }
 
 // TestPublicServerBase_HandleBrowserHealth_Healthy tests browser health healthy status.
@@ -180,7 +183,7 @@ func TestPublicServerBase_HandleBrowserHealth_Healthy(t *testing.T) {
 	server, err := NewPublicServerBase(cfg)
 	require.NoError(t, err)
 
-	req := httptest.NewRequest("GET", "/browser/api/v1/health", nil)
+	req := httptest.NewRequest("GET", cryptoutilSharedMagic.DefaultBrowserHealthEndpoint, nil)
 
 	resp, err := server.App().Test(req, -1)
 	require.NoError(t, err)
@@ -214,7 +217,7 @@ func TestPublicServerBase_HandleBrowserHealth_ShuttingDown(t *testing.T) {
 	server.shutdown = true
 	server.mu.Unlock()
 
-	req := httptest.NewRequest("GET", "/browser/api/v1/health", nil)
+	req := httptest.NewRequest("GET", cryptoutilSharedMagic.DefaultBrowserHealthEndpoint, nil)
 
 	resp, err := server.App().Test(req, -1)
 	require.NoError(t, err)
@@ -227,7 +230,7 @@ func TestPublicServerBase_HandleBrowserHealth_ShuttingDown(t *testing.T) {
 
 	err = json.NewDecoder(resp.Body).Decode(&result)
 	require.NoError(t, err)
-	require.Equal(t, "shutting down", result[cryptoutilSharedMagic.StringStatus])
+	require.Equal(t, cryptoutilSharedMagic.StringStatusShuttingDown, result[cryptoutilSharedMagic.StringStatus])
 }
 
 // TestPublicServerBase_Shutdown_NotStarted tests shutdown when not started.
@@ -413,33 +416,34 @@ func TestPublicServerBase_StartAndMakeRequest(t *testing.T) {
 		errChan <- server.Start(ctx)
 	}()
 
-	// Wait for server to be ready using polling pattern.
-	waitCtx, waitCancel := context.WithTimeout(ctx, cryptoutilSharedMagic.JoseJADefaultMaxMaterials*time.Second)
+	waitCtx, waitCancel := context.WithTimeout(ctx, cryptoutilSharedMagic.DefaultHealthCheckTimeout)
 	defer waitCancel()
 
-	require.Eventually(t, func() bool {
-		return server.ActualPort() > 0
-	}, cryptoutilSharedMagic.JoseJADefaultMaxMaterials*time.Second, cryptoutilSharedMagic.JoseJAMaxMaterials*time.Millisecond, "server should allocate port")
+	endpointFn := func() (string, *x509.CertPool) {
+		if server.ActualPort() <= 0 {
+			return "", nil
+		}
 
-	// Make actual HTTPS request to running server.
-	actualPort := server.ActualPort()
-	require.Greater(t, actualPort, 0)
+		return server.PublicBaseURL() + cryptoutilSharedMagic.IdentityE2EHealthEndpoint, tlsMaterial.RootCAPool
+	}
 
-	// Create client that trusts our CA.
-	client := createTestHTTPClient(t, tlsMaterial)
-
+	err = cryptoutilAppsFrameworkServiceTestHelpTls.WaitForHTTPSHealthEndpoint(waitCtx, endpointFn, cryptoutilSharedMagic.DefaultHealthCheckTimeout)
+	require.NoError(t, err)
+	require.Greater(t, server.ActualPort(), 0)
 	healthURL := server.PublicBaseURL() + cryptoutilSharedMagic.IdentityE2EHealthEndpoint
 
-	// Use http.NewRequestWithContext for proper context handling.
-	req, err := http.NewRequestWithContext(waitCtx, http.MethodGet, healthURL, nil)
+	requestCtx, requestCancel := context.WithTimeout(ctx, cryptoutilSharedMagic.DefaultHealthCheckTimeout)
+	defer requestCancel()
+
+	request, err := http.NewRequestWithContext(requestCtx, http.MethodGet, healthURL, nil)
 	require.NoError(t, err)
 
-	resp, err := client.Do(req)
+	response, err := createTestHTTPClient(t, tlsMaterial).Do(request)
+
 	require.NoError(t, err)
+	defer func() { require.NoError(t, response.Body.Close()) }()
 
-	defer func() { require.NoError(t, resp.Body.Close()) }()
-
-	require.Equal(t, 200, resp.StatusCode)
+	require.Equal(t, http.StatusOK, response.StatusCode)
 
 	// Cleanup.
 	cancel()

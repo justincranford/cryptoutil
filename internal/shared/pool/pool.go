@@ -21,8 +21,6 @@ import (
 	"go.opentelemetry.io/otel/metric"
 )
 
-var poolMaintenanceInterval = cryptoutilSharedMagic.PoolMaintenanceInterval
-
 // newFloat64HistogramImpl is the real implementation of Float64Histogram creation.
 func newFloat64HistogramImpl(m metric.Meter, name string, opts ...metric.Float64HistogramOption) (metric.Float64Histogram, error) {
 	histogram, err := m.Float64Histogram(name, opts...)
@@ -70,6 +68,7 @@ type ValueGenPoolConfig[T any] struct {
 	poolSize            uint32
 	maxLifetimeValues   uint64
 	maxLifetimeDuration time.Duration
+	maintenanceInterval time.Duration
 	generateFunction    func() (T, error)
 	verbose             bool
 }
@@ -172,6 +171,7 @@ func NewValueGenPoolConfig[T any](ctx context.Context, telemetryService *cryptou
 		poolSize:            poolSize,
 		maxLifetimeValues:   maxLifetimeValues,
 		maxLifetimeDuration: maxLifetimeDuration,
+		maintenanceInterval: cryptoutilSharedMagic.PoolMaintenanceInterval,
 		generateFunction:    generateFunction,
 		verbose:             verbose,
 	}
@@ -311,6 +311,10 @@ func (pool *ValueGenPool[T]) generateWorker(workerNum uint32) {
 	}
 
 	for {
+		if pool.stopGeneratingCtx.Err() != nil {
+			return
+		}
+
 		startPermissionTime := time.Now().UTC()
 
 		if pool.cfg.verbose {
@@ -399,7 +403,11 @@ func (pool *ValueGenPool[T]) generatePublishRelease(workerNum uint32, startTime 
 		pool.cfg.telemetryService.Slogger.Debug("generated", "pool", pool.cfg.poolName, "worker", workerNum, "generate", generateCounter, "duration", time.Since(startTime).Seconds())
 	}
 
-	pool.generateChannel <- value
+	select {
+	case <-pool.stopGeneratingCtx.Done():
+		return nil
+	case pool.generateChannel <- value:
+	}
 
 	if pool.cfg.verbose {
 		pool.cfg.telemetryService.Slogger.Debug("published", "pool", pool.cfg.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds())
@@ -419,7 +427,7 @@ func (pool *ValueGenPool[T]) closeChannelsThread(waitForWorkers *sync.WaitGroup)
 	}
 
 	// this is a finite pool; periodically wake up and check if one of the pool limits has been reached (e.g. time), especially if all workers and getters are idle
-	ticker := time.NewTicker(poolMaintenanceInterval) // time keeps on ticking ticking ticking... into the future
+	ticker := time.NewTicker(pool.cfg.maintenanceInterval) // time keeps on ticking ticking ticking... into the future
 
 	defer func() { ticker.Stop() }() //nolint:errcheck
 
@@ -478,6 +486,8 @@ func validateConfig[T any](config *ValueGenPoolConfig[T]) error {
 		return fmt.Errorf("number of workers can't be greater than pool size")
 	case config.maxLifetimeValues > 0 && uint64(config.poolSize) > config.maxLifetimeValues:
 		return fmt.Errorf("pool size can't be greater than max lifetime values")
+	case config.maintenanceInterval <= 0:
+		return fmt.Errorf("maintenance interval must be positive")
 	case config.generateFunction == nil:
 		return fmt.Errorf("generate function can't be nil")
 	default:

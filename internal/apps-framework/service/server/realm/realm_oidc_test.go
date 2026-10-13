@@ -384,7 +384,7 @@ func TestCreateTenantSchema_DBError(t *testing.T) {
 	t.Parallel()
 
 	// Open a real SQLite DB then close the underlying sql.DB to force errors.
-	dbName := fmt.Sprintf("file:%s?mode=memory&cache=shared", googleUuid.Must(googleUuid.NewV7()).String())
+	dbName := fmt.Sprintf(cryptoutilSharedMagic.SQLiteInMemoryNamedDSNFormat, googleUuid.Must(googleUuid.NewV7()).String())
 
 	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, dbName)
 	require.NoError(t, err)
@@ -414,7 +414,7 @@ func TestCreateTenantSchema_DBError(t *testing.T) {
 func TestDropTenantSchema_DBError(t *testing.T) {
 	t.Parallel()
 
-	dbName := fmt.Sprintf("file:%s?mode=memory&cache=shared", googleUuid.Must(googleUuid.NewV7()).String())
+	dbName := fmt.Sprintf(cryptoutilSharedMagic.SQLiteInMemoryNamedDSNFormat, googleUuid.Must(googleUuid.NewV7()).String())
 
 	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, dbName)
 	require.NoError(t, err)

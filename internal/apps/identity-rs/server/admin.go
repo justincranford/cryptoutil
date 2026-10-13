@@ -88,7 +88,7 @@ func (s *AdminServer) handleLivez(c *fiber.Ctx) error {
 
 	if s.shutdown {
 		if err := c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{
-			cryptoutilSharedMagic.StringStatus: "shutting down",
+			cryptoutilSharedMagic.StringStatus: cryptoutilSharedMagic.StringStatusShuttingDown,
 		}); err != nil {
 			return fmt.Errorf("failed to send livez shutdown response: %w", err)
 		}
@@ -112,7 +112,7 @@ func (s *AdminServer) handleReadyz(c *fiber.Ctx) error {
 
 	if s.shutdown {
 		if err := c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{
-			cryptoutilSharedMagic.StringStatus: "shutting down",
+			cryptoutilSharedMagic.StringStatus: cryptoutilSharedMagic.StringStatusShuttingDown,
 		}); err != nil {
 			return fmt.Errorf("failed to send readyz shutdown response: %w", err)
 		}
@@ -177,19 +177,20 @@ func (s *AdminServer) Start(ctx context.Context) error {
 		s.config.RS.AdminBindAddress,
 		s.config.RS.AdminPort)
 
-	s.listener, err = tls.Listen("tcp", bindAddr, tlsConfig)
+	listener, err := tls.Listen("tcp", bindAddr, tlsConfig)
 	if err != nil {
 		return fmt.Errorf("failed to create TLS listener on %s: %w", bindAddr, err)
 	}
 
 	// Mark server as ready and store TLS certs for test pool access.
 	s.mu.Lock()
+	s.listener = listener
 	s.tlsCerts = tlsConfig.Certificates
 	s.ready = true
 	s.mu.Unlock()
 
 	// Start Fiber server with TLS listener.
-	if err := s.app.Listener(s.listener); err != nil {
+	if err := s.app.Listener(listener); err != nil {
 		return fmt.Errorf("admin server failed: %w", err)
 	}
 

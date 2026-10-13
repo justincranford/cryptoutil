@@ -25,12 +25,6 @@ products:
     cmd_dir: sm/
     init_ps_id: sm-kms
 
-  - id: pki
-    display_name: PKI
-    internal_apps_dir: pki/
-    cmd_dir: pki/
-    init_ps_id: pki-ca
-
   - id: identity
     display_name: Identity
     internal_apps_dir: identity/
@@ -89,33 +83,7 @@ product_services:
       - /messages/{messageID}
       - /messages/send
       - /messages/receive
-
-  - ps_id: pki-ca
-    product: pki
-    service: ca
-    display_name: "Certificate Authority"
-    internal_apps_dir: pki-ca/
-    magic_file: magic_pki.go
-    base_port: 8300
-    entrypoint: ["/sbin/tini", "--"]
-    pg_host_port: 54323
-    migration_range_start: 5001
-    migration_range_end: 5999
-    go_template_params:
-      usage_prefix: CA
-      product_name_const: PKIProductName
-      service_name_const: PKICAServiceName
-      service_id_const: PKICAServiceID
-      service_port_const: PKICAServicePort
-      service_display_name_const: PKICADisplayName
-    realms:
-      - name: file
-        location: file
-        type: user-pass
-      - name: db
-        location: db
-        type: user-pass
-    api_resources:
+      # PKI resources are specified in api/sm-kms/pki/openapi_spec_enrollment.yaml.
       - /cas
       - /cas/{caID}
       - /cas/{caID}/crl

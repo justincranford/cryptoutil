@@ -45,7 +45,6 @@
   "diffEditor.ignoreTrimWhitespace": false, // Ignore trimmed whitespace in diff - Default: true
   "diffEditor.hideUnchangedRegions.enabled": false, // Hide unchanged regions in diff - Default: false
 
-  "python.defaultInterpreterPath": "python",
   "python.terminal.activateEnvInCurrentTerminal": false,
   "python.terminal.activateEnvironment": false,
 
@@ -618,9 +617,6 @@
   "eslint.workingDirectories": ["."], // Working directories for ESLint - Default: [], Recommended: project root
 
   // Go Extension Settings https://github.com/golang/vscode-go/blob/master/docs/settings.md
-  "go.alternateTools": {
-    "gopls": "gopls"
-  }, // Override default tools - Default: {}, Recommended: {"gopls": "gopls"}
   "go.languageServerFlags": [
     "-rpc.trace",
     "serve",
@@ -629,7 +625,7 @@
   // "go.formatTool": "gofumpt", // DISABLED: Let gopls handle formatting to avoid double formatting warning
   "go.lintTool": "golangci-lint", // Tool to use for linting - Default: "golint", Recommended: "golangci-lint"
   "go.vetOnSave": "off", // Run go vet on save - Default: "package", Recommended: "off"
-  "go.lintOnSave": "file", // Run linter on save - Default: "package", CHANGED: "file" → "off" for OOM prevention
+  "go.lintOnSave": "off", // Run linter on save - Default: "package", CHANGED: "file" → "off" for OOM prevention
   "go.testOnSave": false, // Run tests on save - Default: false
   "go.coverOnSave": false, // Run coverage on save - Default: false
   "go.testExplorer.enable": true, // Enable test explorer - Default: false, Recommended: true

@@ -44,12 +44,12 @@ func TestFindViolationsInDir_ValidDockerfiles(t *testing.T) {
 			},
 		},
 		{
-			name: "correct PS-ID title and entrypoint for pki-ca",
+			name: "correct PS-ID title and entrypoint for identity-rs",
 			setupFiles: map[string]string{
-				"deployments/pki-ca/Dockerfile": dockerfileWithLabelsAndEntrypoint(
-					cryptoutilCmdCicdRegistry.OTLPServiceName(cryptoutilSharedMagic.OTLPServicePKICA),
-					"JOSE JWK Authority Server",
-					cryptoutilCmdCicdRegistry.DockerfileEntrypoint(cryptoutilSharedMagic.OTLPServicePKICA),
+				"deployments/identity-rs/Dockerfile": dockerfileWithLabelsAndEntrypoint(
+					cryptoutilCmdCicdRegistry.OTLPServiceName(cryptoutilSharedMagic.OTLPServiceIdentityRS),
+					"Identity Resource Server",
+					cryptoutilCmdCicdRegistry.DockerfileEntrypoint(cryptoutilSharedMagic.OTLPServiceIdentityRS),
 				),
 			},
 		},
@@ -271,9 +271,9 @@ func TestExtractLabelsAndEntrypoint_MultiLine(t *testing.T) {
 	t.Parallel()
 
 	content := multiLineLabelDockerfileWithEntrypoint(
-		cryptoutilCmdCicdRegistry.OTLPServiceName(cryptoutilSharedMagic.OTLPServicePKICA),
+		cryptoutilCmdCicdRegistry.OTLPServiceName(cryptoutilSharedMagic.OTLPServiceIdentityAuthz),
 		"JOSE JWK Authority",
-		cryptoutilCmdCicdRegistry.DockerfileEntrypoint(cryptoutilSharedMagic.OTLPServicePKICA),
+		cryptoutilCmdCicdRegistry.DockerfileEntrypoint(cryptoutilSharedMagic.OTLPServiceIdentityAuthz),
 	)
 	tmpFile := filepath.Join(t.TempDir(), "Dockerfile")
 
@@ -291,7 +291,7 @@ func TestExtractLabelsAndEntrypoint_MultiLine(t *testing.T) {
 		t.Fatal("expected title label to be present")
 	}
 
-	if !strings.EqualFold(title, cryptoutilCmdCicdRegistry.OTLPServiceName(cryptoutilSharedMagic.OTLPServicePKICA)) {
+	if !strings.EqualFold(title, cryptoutilCmdCicdRegistry.OTLPServiceName(cryptoutilSharedMagic.OTLPServiceIdentityAuthz)) {
 		assert.Failf(t, cryptoutilSharedMagic.CICDTestErrorfFailureMessage, "expected title to match OTLP service name, got %q", title)
 	}
 

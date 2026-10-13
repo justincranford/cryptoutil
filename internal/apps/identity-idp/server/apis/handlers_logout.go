@@ -52,7 +52,7 @@ func (s *Service) handleLogout(c *fiber.Ctx) error {
 
 	// Return success response.
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"message": "Logged out successfully",
+		cryptoutilSharedMagic.StringMessage: "Logged out successfully",
 	})
 }
 

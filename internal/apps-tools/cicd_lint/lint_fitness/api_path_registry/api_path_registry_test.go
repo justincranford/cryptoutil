@@ -15,6 +15,8 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
+const nestedSpecDirectory = "nested"
+
 func newTestLogger() *cryptoutilCmdCicdCommon.Logger {
 	return cryptoutilCmdCicdCommon.NewLogger("test")
 }
@@ -318,6 +320,40 @@ func TestCheckInDir_ReadFileError(t *testing.T) {
 	})
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "cannot parse")
+}
+
+func TestCollectSpecPaths_IncludesNestedSpecFiles(t *testing.T) {
+	t.Parallel()
+
+	apiDir := filepath.Join(t.TempDir(), "api", cryptoutilSharedMagic.OTLPServiceSMKMS)
+	nestedDir := filepath.Join(apiDir, nestedSpecDirectory)
+	require.NoError(t, os.MkdirAll(nestedDir, cryptoutilSharedMagic.CICDTempDirPermissions))
+	setupSpecFile(t, filepath.Dir(filepath.Dir(apiDir)), cryptoutilSharedMagic.OTLPServiceSMKMS, []string{"/keys"})
+
+	nestedSpec := "paths:\n  /cas:\n    get:\n      summary: nested\n"
+	require.NoError(t, os.WriteFile(filepath.Join(nestedDir, "openapi_spec_enrollment.yaml"), []byte(nestedSpec), cryptoutilSharedMagic.FilePermissions))
+
+	paths, err := collectSpecPaths(apiDir, os.ReadDir, os.ReadFile)
+	require.NoError(t, err)
+	assert.Contains(t, paths, "/keys")
+	assert.Contains(t, paths, "/cas")
+}
+
+func TestCollectSpecPaths_NestedReadDirError(t *testing.T) {
+	t.Parallel()
+
+	apiDir := t.TempDir()
+	nestedDir := filepath.Join(apiDir, nestedSpecDirectory)
+	require.NoError(t, os.MkdirAll(nestedDir, cryptoutilSharedMagic.CICDTempDirPermissions))
+
+	_, err := collectSpecPaths(apiDir, func(path string) ([]os.DirEntry, error) {
+		if path == nestedDir {
+			return nil, fmt.Errorf("injected nested directory read failure")
+		}
+
+		return os.ReadDir(path)
+	}, os.ReadFile)
+	require.ErrorContains(t, err, "cannot read nested api directory")
 }
 
 func TestIsSpecFile(t *testing.T) {

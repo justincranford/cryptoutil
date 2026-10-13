@@ -78,6 +78,12 @@ func TestCheck_RealWorkspace(t *testing.T) {
 	require.NoError(t, err)
 }
 
+const (
+	testMagicIdentityFilename = "magic_identity.go"
+	testMagicJoseFilename     = "magic_jose.go"
+	testMagicSkeletonFilename = "magic_skeleton.go"
+)
+
 func TestCheckInDir_AllCorrect(t *testing.T) {
 	t.Parallel()
 
@@ -93,7 +99,7 @@ func TestCheckInDir_AllCorrect(t *testing.T) {
 	writeMagicFile(t, tmpDir, "magic_sm.go", smIME2EMagicSrc)
 
 	// All other magic files: no E2EComposeFile constant.
-	for _, mf := range []string{"magic_identity.go", "magic_jose.go", "magic_skeleton.go", "magic_pki.go"} {
+	for _, mf := range []string{testMagicIdentityFilename, testMagicJoseFilename, testMagicSkeletonFilename} {
 		writeMagicFile(t, tmpDir, mf, "package magic\nconst (\n)\n")
 	}
 
@@ -112,7 +118,7 @@ func TestCheckInDir_NonExistentComposePath(t *testing.T) {
 
 	writeMagicFile(t, tmpDir, "magic_sm.go", smIME2EMagicSrc)
 
-	for _, mf := range []string{"magic_identity.go", "magic_jose.go", "magic_skeleton.go", "magic_pki.go"} {
+	for _, mf := range []string{testMagicIdentityFilename, testMagicJoseFilename, testMagicSkeletonFilename} {
 		writeMagicFile(t, tmpDir, mf, "package magic\nconst (\n)\n")
 	}
 
@@ -128,7 +134,7 @@ func TestCheckInDir_NoE2EComposeFile_Skipped(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	// All magic files have no E2EComposeFile constant — all should be skipped.
-	for _, mf := range []string{"magic_identity.go", "magic_jose.go", "magic_skeleton.go", "magic_sm.go", "magic_pki.go"} {
+	for _, mf := range []string{testMagicIdentityFilename, testMagicJoseFilename, testMagicSkeletonFilename, "magic_sm.go"} {
 		writeMagicFile(t, tmpDir, mf, "package magic\nconst (\n)\n")
 	}
 

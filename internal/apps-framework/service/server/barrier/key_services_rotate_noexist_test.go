@@ -10,12 +10,9 @@ import (
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 	"github.com/stretchr/testify/require"
 
-	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps-framework/service/config"
 	cryptoutilAppsFrameworkServiceServerBarrier "cryptoutil/internal/apps-framework/service/server/barrier"
 	cryptoutilUnsealKeysService "cryptoutil/internal/apps-framework/service/server/barrier/unsealkeysservice"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
-	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 )
 
 func TestRotationService_RotateIntermediateKey_NoExistingKey(t *testing.T) {
@@ -23,13 +20,8 @@ func TestRotationService_RotateIntermediateKey_NoExistingKey(t *testing.T) {
 
 	ctx := context.Background()
 
-	telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsFrameworkServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true).ToTelemetrySettings())
+	jwkGenSvc, err := newBarrierTestJWKGenServiceWithTelemetry(t)
 	require.NoError(t, err)
-	t.Cleanup(func() { telemetrySvc.Shutdown() })
-
-	jwkGenSvc, err := cryptoutilSharedCryptoJose.NewJWKGenService(ctx, telemetrySvc, false)
-	require.NoError(t, err)
-	t.Cleanup(func() { jwkGenSvc.Shutdown() })
 
 	db, cleanup := createKeyServiceTestDB(t)
 	defer cleanup()
@@ -61,13 +53,8 @@ func TestRotationService_RotateContentKey_NoExistingKey(t *testing.T) {
 
 	ctx := context.Background()
 
-	telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsFrameworkServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true).ToTelemetrySettings())
+	jwkGenSvc, err := newBarrierTestJWKGenServiceWithTelemetry(t)
 	require.NoError(t, err)
-	t.Cleanup(func() { telemetrySvc.Shutdown() })
-
-	jwkGenSvc, err := cryptoutilSharedCryptoJose.NewJWKGenService(ctx, telemetrySvc, false)
-	require.NoError(t, err)
-	t.Cleanup(func() { jwkGenSvc.Shutdown() })
 
 	db, cleanup := createKeyServiceTestDB(t)
 	defer cleanup()
@@ -99,13 +86,11 @@ func TestRootKeysService_DecryptKey_InvalidJWE(t *testing.T) {
 
 	ctx := context.Background()
 
-	telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsFrameworkServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true).ToTelemetrySettings())
+	telemetrySvc, err := newBarrierTestTelemetryService(t)
 	require.NoError(t, err)
-	t.Cleanup(func() { telemetrySvc.Shutdown() })
 
-	jwkGenSvc, err := cryptoutilSharedCryptoJose.NewJWKGenService(ctx, telemetrySvc, false)
+	jwkGenSvc, err := newBarrierTestJWKGenService(t, telemetrySvc)
 	require.NoError(t, err)
-	t.Cleanup(func() { jwkGenSvc.Shutdown() })
 
 	db, cleanup := createKeyServiceTestDB(t)
 	defer cleanup()
@@ -140,13 +125,11 @@ func TestRootKeysService_DecryptKey_InvalidKidFormat(t *testing.T) {
 
 	ctx := context.Background()
 
-	telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsFrameworkServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true).ToTelemetrySettings())
+	telemetrySvc, err := newBarrierTestTelemetryService(t)
 	require.NoError(t, err)
-	t.Cleanup(func() { telemetrySvc.Shutdown() })
 
-	jwkGenSvc, err := cryptoutilSharedCryptoJose.NewJWKGenService(ctx, telemetrySvc, false)
+	jwkGenSvc, err := newBarrierTestJWKGenService(t, telemetrySvc)
 	require.NoError(t, err)
-	t.Cleanup(func() { jwkGenSvc.Shutdown() })
 
 	db, cleanup := createKeyServiceTestDB(t)
 	defer cleanup()
@@ -184,13 +167,11 @@ func TestRootKeysService_DecryptKey_RootKeyNotFound(t *testing.T) {
 
 	ctx := context.Background()
 
-	telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsFrameworkServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true).ToTelemetrySettings())
+	telemetrySvc, err := newBarrierTestTelemetryService(t)
 	require.NoError(t, err)
-	t.Cleanup(func() { telemetrySvc.Shutdown() })
 
-	jwkGenSvc, err := cryptoutilSharedCryptoJose.NewJWKGenService(ctx, telemetrySvc, false)
+	jwkGenSvc, err := newBarrierTestJWKGenService(t, telemetrySvc)
 	require.NoError(t, err)
-	t.Cleanup(func() { jwkGenSvc.Shutdown() })
 
 	db, cleanup := createKeyServiceTestDB(t)
 	defer cleanup()
@@ -233,13 +214,11 @@ func TestIntermediateKeysService_DecryptKey_InvalidJWE(t *testing.T) {
 
 	ctx := context.Background()
 
-	telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsFrameworkServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true).ToTelemetrySettings())
+	telemetrySvc, err := newBarrierTestTelemetryService(t)
 	require.NoError(t, err)
-	t.Cleanup(func() { telemetrySvc.Shutdown() })
 
-	jwkGenSvc, err := cryptoutilSharedCryptoJose.NewJWKGenService(ctx, telemetrySvc, false)
+	jwkGenSvc, err := newBarrierTestJWKGenService(t, telemetrySvc)
 	require.NoError(t, err)
-	t.Cleanup(func() { jwkGenSvc.Shutdown() })
 
 	db, cleanup := createKeyServiceTestDB(t)
 	defer cleanup()
@@ -278,13 +257,11 @@ func TestIntermediateKeysService_DecryptKey_InvalidKidFormat(t *testing.T) {
 
 	ctx := context.Background()
 
-	telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsFrameworkServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true).ToTelemetrySettings())
+	telemetrySvc, err := newBarrierTestTelemetryService(t)
 	require.NoError(t, err)
-	t.Cleanup(func() { telemetrySvc.Shutdown() })
 
-	jwkGenSvc, err := cryptoutilSharedCryptoJose.NewJWKGenService(ctx, telemetrySvc, false)
+	jwkGenSvc, err := newBarrierTestJWKGenService(t, telemetrySvc)
 	require.NoError(t, err)
-	t.Cleanup(func() { jwkGenSvc.Shutdown() })
 
 	db, cleanup := createKeyServiceTestDB(t)
 	defer cleanup()
@@ -326,13 +303,11 @@ func TestContentKeysService_DecryptContent_InvalidJWE(t *testing.T) {
 
 	ctx := context.Background()
 
-	telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsFrameworkServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true).ToTelemetrySettings())
+	telemetrySvc, err := newBarrierTestTelemetryService(t)
 	require.NoError(t, err)
-	t.Cleanup(func() { telemetrySvc.Shutdown() })
 
-	jwkGenSvc, err := cryptoutilSharedCryptoJose.NewJWKGenService(ctx, telemetrySvc, false)
+	jwkGenSvc, err := newBarrierTestJWKGenService(t, telemetrySvc)
 	require.NoError(t, err)
-	t.Cleanup(func() { jwkGenSvc.Shutdown() })
 
 	db, cleanup := createKeyServiceTestDB(t)
 	defer cleanup()
@@ -375,13 +350,11 @@ func TestRotationService_RotateIntermediateKey_NoRootKey(t *testing.T) {
 
 	ctx := context.Background()
 
-	telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsFrameworkServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true).ToTelemetrySettings())
+	telemetrySvc, err := newBarrierTestTelemetryService(t)
 	require.NoError(t, err)
-	t.Cleanup(func() { telemetrySvc.Shutdown() })
 
-	jwkGenSvc, err := cryptoutilSharedCryptoJose.NewJWKGenService(ctx, telemetrySvc, false)
+	jwkGenSvc, err := newBarrierTestJWKGenService(t, telemetrySvc)
 	require.NoError(t, err)
-	t.Cleanup(func() { jwkGenSvc.Shutdown() })
 
 	db, cleanup := createKeyServiceTestDB(t)
 	defer cleanup()
@@ -430,13 +403,11 @@ func TestRotationService_RotateContentKey_NoRootKey(t *testing.T) {
 
 	ctx := context.Background()
 
-	telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsFrameworkServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true).ToTelemetrySettings())
+	telemetrySvc, err := newBarrierTestTelemetryService(t)
 	require.NoError(t, err)
-	t.Cleanup(func() { telemetrySvc.Shutdown() })
 
-	jwkGenSvc, err := cryptoutilSharedCryptoJose.NewJWKGenService(ctx, telemetrySvc, false)
+	jwkGenSvc, err := newBarrierTestJWKGenService(t, telemetrySvc)
 	require.NoError(t, err)
-	t.Cleanup(func() { jwkGenSvc.Shutdown() })
 
 	db, cleanup := createKeyServiceTestDB(t)
 	defer cleanup()

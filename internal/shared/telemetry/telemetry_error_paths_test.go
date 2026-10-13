@@ -21,38 +21,82 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// TestNewTelemetryService_InitMetricsError tests the error path when initMetrics fails.
-// Sequential: replaces the package-level metrics initialization seam.
-func TestNewTelemetryService_InitMetricsError(t *testing.T) {
-	original := initMetricsFn
-	initMetricsFn = func(_ context.Context, _ *stdoutLogExporter.Logger, _ *TelemetrySettings) (*metricSdk.MeterProvider, error) {
-		return nil, fmt.Errorf("injected initMetrics error")
+func TestNewTelemetryService_Initializers(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name      string
+		configure func(*telemetryServiceInitializers, *TelemetrySettings)
+		wantErr   string
+	}{
+		{
+			name:      "default initializers succeed",
+			configure: func(_ *telemetryServiceInitializers, _ *TelemetrySettings) {},
+		},
+		{
+			name: "metrics initializer error",
+			configure: func(initializers *telemetryServiceInitializers, _ *TelemetrySettings) {
+				initializers.initMetrics = func(context.Context, *stdoutLogExporter.Logger, *TelemetrySettings) (*metricSdk.MeterProvider, error) {
+					return nil, fmt.Errorf("injected metrics initializer error")
+				}
+			},
+			wantErr: "failed to init metrics",
+		},
+		{
+			name: "traces initializer error",
+			configure: func(initializers *telemetryServiceInitializers, _ *TelemetrySettings) {
+				initializers.initTraces = func(context.Context, *stdoutLogExporter.Logger, *TelemetrySettings) (*traceSdk.TracerProvider, error) {
+					return nil, fmt.Errorf("injected traces initializer error")
+				}
+			},
+			wantErr: "failed to init traces",
+		},
+		{
+			name: "stdout metrics exporter error",
+			configure: func(initializers *telemetryServiceInitializers, settings *TelemetrySettings) {
+				settings.OTLPConsole = true
+				initializers.initMetrics = func(ctx context.Context, slogger *stdoutLogExporter.Logger, settings *TelemetrySettings) (*metricSdk.MeterProvider, error) {
+					return initMetrics(ctx, slogger, settings, func(...stdoutMetricExporter.Option) (metricSdk.Exporter, error) {
+						return nil, fmt.Errorf("injected stdout metrics exporter error")
+					})
+				}
+			},
+			wantErr: "create STDOUT metrics failed",
+		},
+		{
+			name: "stdout traces exporter error",
+			configure: func(initializers *telemetryServiceInitializers, settings *TelemetrySettings) {
+				settings.OTLPConsole = true
+				initializers.initTraces = func(ctx context.Context, slogger *stdoutLogExporter.Logger, settings *TelemetrySettings) (*traceSdk.TracerProvider, error) {
+					return initTraces(ctx, slogger, settings, func(...stdoutTraceExporter.Option) (*stdoutTraceExporter.Exporter, error) {
+						return nil, fmt.Errorf("injected stdout traces exporter error")
+					})
+				}
+			},
+			wantErr: "create STDOUT traces failed",
+		},
 	}
 
-	defer func() { initMetricsFn = original }()
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-	settings := NewTestTelemetrySettings("test_metrics_error")
+			settings := NewTestTelemetrySettings("test_initializers")
+			initializers := defaultTelemetryServiceInitializers()
+			tc.configure(&initializers, settings)
 
-	_, err := NewTelemetryService(context.Background(), settings)
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "failed to init metrics")
-}
+			service, err := newTelemetryServiceWithInitializers(context.Background(), settings, initializers)
+			if tc.wantErr != "" {
+				require.ErrorContains(t, err, tc.wantErr)
 
-// TestNewTelemetryService_InitTracesError tests the error path when initTraces fails.
-// Sequential: replaces the package-level traces initialization seam.
-func TestNewTelemetryService_InitTracesError(t *testing.T) {
-	original := initTracesFn
-	initTracesFn = func(_ context.Context, _ *stdoutLogExporter.Logger, _ *TelemetrySettings) (*traceSdk.TracerProvider, error) {
-		return nil, fmt.Errorf("injected initTraces error")
+				return
+			}
+
+			require.NoError(t, err)
+			require.NotNil(t, service)
+			service.Shutdown()
+		})
 	}
-
-	defer func() { initTracesFn = original }()
-
-	settings := NewTestTelemetrySettings("test_traces_error")
-
-	_, err := NewTelemetryService(context.Background(), settings)
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "failed to init traces")
 }
 
 // TestShutdown_ForceFlushTracesError tests the Shutdown error path when traces ForceFlush fails.
@@ -117,46 +161,6 @@ func TestShutdown_LogsProviderShutdownError(t *testing.T) {
 
 	// Shutdown calls ForceFlush and Shutdown on the already-shut-down provider.
 	svc.Shutdown()
-}
-
-// TestInitMetrics_StdoutExporterError tests the error path when STDOUT metric exporter creation fails.
-// Sequential: replaces the package-level metrics initialization seam.
-func TestInitMetrics_StdoutExporterError(t *testing.T) {
-	originalFn := initMetricsFn
-	initMetricsFn = func(ctx context.Context, slogger *stdoutLogExporter.Logger, settings *TelemetrySettings) (*metricSdk.MeterProvider, error) {
-		return initMetrics(ctx, slogger, settings, func(_ ...stdoutMetricExporter.Option) (metricSdk.Exporter, error) {
-			return nil, fmt.Errorf("injected STDOUT metrics error")
-		})
-	}
-
-	defer func() { initMetricsFn = originalFn }()
-
-	settings := NewTestTelemetrySettings("test_stdout_metrics_error")
-	settings.OTLPConsole = true
-
-	_, err := NewTelemetryService(context.Background(), settings)
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "create STDOUT metrics failed")
-}
-
-// TestInitTraces_StdoutExporterError tests the error path when STDOUT trace exporter creation fails.
-// Sequential: replaces the package-level traces initialization seam.
-func TestInitTraces_StdoutExporterError(t *testing.T) {
-	originalFn := initTracesFn
-	initTracesFn = func(ctx context.Context, slogger *stdoutLogExporter.Logger, settings *TelemetrySettings) (*traceSdk.TracerProvider, error) {
-		return initTraces(ctx, slogger, settings, func(_ ...stdoutTraceExporter.Option) (*stdoutTraceExporter.Exporter, error) {
-			return nil, fmt.Errorf("injected STDOUT traces error")
-		})
-	}
-
-	defer func() { initTracesFn = originalFn }()
-
-	settings := NewTestTelemetrySettings("test_stdout_traces_error")
-	settings.OTLPConsole = true
-
-	_, err := NewTelemetryService(context.Background(), settings)
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "create STDOUT traces failed")
 }
 
 // failFlushTraceExporter is a SpanExporter whose ExportSpans always returns an error.

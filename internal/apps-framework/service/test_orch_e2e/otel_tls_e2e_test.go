@@ -215,7 +215,7 @@ func TestOtelServerTLS_HTTP(t *testing.T) {
 	} else {
 		// Some environments enforce stricter receiver-side client cert validation and may reject
 		// host-provided cert material with unknown authority. Treat this as an acceptable secure failure mode.
-		if strings.Contains(err.Error(), "unknown certificate authority") || strings.Contains(err.Error(), "tls") {
+		if strings.Contains(err.Error(), "unknown certificate authority") || strings.Contains(err.Error(), cryptoutilSharedMagic.TLSName) {
 			t.Logf("OTel HTTP rejected client cert via TLS policy (acceptable in this environment): %v", err)
 
 			return
@@ -253,7 +253,7 @@ func TestOtelMTLS_Rejection(t *testing.T) {
 		return
 	}
 
-	if strings.Contains(err.Error(), "tls") || strings.Contains(err.Error(), "certificate") {
+	if strings.Contains(err.Error(), cryptoutilSharedMagic.TLSName) || strings.Contains(err.Error(), "certificate") {
 		t.Logf("OTel gRPC correctly rejected no-cert connection: %v", err)
 
 		return

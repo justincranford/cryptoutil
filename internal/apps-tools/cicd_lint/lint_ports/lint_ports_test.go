@@ -28,6 +28,11 @@ func writeTestFile(t *testing.T, dir, name, content string) string {
 	return path
 }
 
+const (
+	testYMLExtension = "yml"
+	testMDExtension  = "md"
+)
+
 func TestLint(t *testing.T) {
 	t.Parallel()
 
@@ -61,7 +66,7 @@ func TestLint(t *testing.T) {
 				t.Helper()
 				d := t.TempDir()
 
-				return map[string][]string{"go": {writeTestFile(t, d, "main.go", "package main\n\nconst smKMSPort = 8081 // legacy\nconst pkiPort = 9443  // legacy\n")}}
+				return map[string][]string{"go": {writeTestFile(t, d, "main.go", "package main\n\nconst smKMSPort = 8081 // legacy\nconst idpPort = 8110  // legacy\n")}}
 			},
 			wantErr: "2 legacy port violations",
 		},
@@ -102,7 +107,7 @@ func TestLint(t *testing.T) {
 				t.Helper()
 				d := t.TempDir()
 
-				return map[string][]string{"yml": {writeTestFile(t, d, "config.yml", "server:\n  port: 8443\n")}}
+				return map[string][]string{testYMLExtension: {writeTestFile(t, d, "config.yml", "server:\n  port: 8110\n")}}
 			},
 			wantErr: "legacy port violations",
 		},
@@ -112,7 +117,7 @@ func TestLint(t *testing.T) {
 				t.Helper()
 				d := t.TempDir()
 
-				return map[string][]string{"md": {writeTestFile(t, d, "README.md", "# Server\n\nConnect to port 9443 for JOSE.\n")}}
+				return map[string][]string{testMDExtension: {writeTestFile(t, d, "README.md", "# Server\n\nConnect to port 8081 for sm-kms.\n")}}
 			},
 			wantErr: "legacy port violations",
 		},
@@ -167,10 +172,10 @@ func TestLint(t *testing.T) {
 				d := t.TempDir()
 
 				return map[string][]string{
-					"go":   {writeTestFile(t, d, "main.go", "package main\nconst port = 8081\n")},
-					"yml":  {writeTestFile(t, d, "config.yml", "port: 9443\n")},
-					"yaml": {writeTestFile(t, d, "config.yaml", "port: 8443\n")},
-					"md":   {writeTestFile(t, d, "README.md", "# Docs\nPort 8082 is used.\n")},
+					"go":             {writeTestFile(t, d, "main.go", "package main\nconst port = 8081\n")},
+					testYMLExtension: {writeTestFile(t, d, "config.yml", "port: 8081\n")},
+					"yaml":           {writeTestFile(t, d, "config.yaml", "port: 8110\n")},
+					"md":             {writeTestFile(t, d, "README.md", "# Docs\nPort 8082 is used.\n")},
 				}
 			},
 			wantErr: "legacy port violations",
@@ -209,12 +214,12 @@ func TestLint(t *testing.T) {
 			},
 		},
 		{
-			name: "legacy port 9443 detected",
+			name: "legacy port 8081 detected",
 			setup: func(t *testing.T) map[string][]string {
 				t.Helper()
 				d := t.TempDir()
 
-				return map[string][]string{"go": {writeTestFile(t, d, "main.go", "package main\n\nconst port = 9443\n")}}
+				return map[string][]string{"go": {writeTestFile(t, d, "main.go", "package main\n\nconst port = 8081\n")}}
 			},
 			wantErr: "legacy port",
 		},

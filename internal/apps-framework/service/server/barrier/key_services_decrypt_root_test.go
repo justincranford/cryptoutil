@@ -15,12 +15,10 @@ import (
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 
-	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps-framework/service/config"
 	cryptoutilAppsFrameworkServiceServerBarrier "cryptoutil/internal/apps-framework/service/server/barrier"
 	cryptoutilUnsealKeysService "cryptoutil/internal/apps-framework/service/server/barrier/unsealkeysservice"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
-	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 )
 
 func TestRootKeysService_DecryptKey_ErrorPaths(t *testing.T) {
@@ -36,13 +34,11 @@ func TestRootKeysService_DecryptKey_ErrorPaths(t *testing.T) {
 		{
 			name: testCaseInvalidJWEFormat,
 			setupFunc: func(t *testing.T) (cryptoutilAppsFrameworkServiceServerBarrier.Transaction, *cryptoutilAppsFrameworkServiceServerBarrier.RootKeysService, []byte) {
-				telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsFrameworkServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true).ToTelemetrySettings())
+				telemetrySvc, err := newBarrierTestTelemetryService(t)
 				require.NoError(t, err)
-				t.Cleanup(func() { telemetrySvc.Shutdown() })
 
-				jwkGenSvc, err := cryptoutilSharedCryptoJose.NewJWKGenService(ctx, telemetrySvc, false)
+				jwkGenSvc, err := newBarrierTestJWKGenService(t, telemetrySvc)
 				require.NoError(t, err)
-				t.Cleanup(func() { jwkGenSvc.Shutdown() })
 
 				db, cleanup := createKeyServiceTestDB(t)
 				t.Cleanup(cleanup)
@@ -80,13 +76,11 @@ func TestRootKeysService_DecryptKey_ErrorPaths(t *testing.T) {
 		{
 			name: "corrupted_jwe_json",
 			setupFunc: func(t *testing.T) (cryptoutilAppsFrameworkServiceServerBarrier.Transaction, *cryptoutilAppsFrameworkServiceServerBarrier.RootKeysService, []byte) {
-				telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsFrameworkServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true).ToTelemetrySettings())
+				telemetrySvc, err := newBarrierTestTelemetryService(t)
 				require.NoError(t, err)
-				t.Cleanup(func() { telemetrySvc.Shutdown() })
 
-				jwkGenSvc, err := cryptoutilSharedCryptoJose.NewJWKGenService(ctx, telemetrySvc, false)
+				jwkGenSvc, err := newBarrierTestJWKGenService(t, telemetrySvc)
 				require.NoError(t, err)
-				t.Cleanup(func() { jwkGenSvc.Shutdown() })
 
 				db, cleanup := createKeyServiceTestDB(t)
 				t.Cleanup(cleanup)
@@ -124,13 +118,11 @@ func TestRootKeysService_DecryptKey_ErrorPaths(t *testing.T) {
 		{
 			name: "nil_encrypted_bytes",
 			setupFunc: func(t *testing.T) (cryptoutilAppsFrameworkServiceServerBarrier.Transaction, *cryptoutilAppsFrameworkServiceServerBarrier.RootKeysService, []byte) {
-				telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsFrameworkServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true).ToTelemetrySettings())
+				telemetrySvc, err := newBarrierTestTelemetryService(t)
 				require.NoError(t, err)
-				t.Cleanup(func() { telemetrySvc.Shutdown() })
 
-				jwkGenSvc, err := cryptoutilSharedCryptoJose.NewJWKGenService(ctx, telemetrySvc, false)
+				jwkGenSvc, err := newBarrierTestJWKGenService(t, telemetrySvc)
 				require.NoError(t, err)
-				t.Cleanup(func() { jwkGenSvc.Shutdown() })
 
 				db, cleanup := createKeyServiceTestDB(t)
 				t.Cleanup(cleanup)
@@ -184,19 +176,17 @@ func TestRootKeysService_EncryptKey_GetLatestFails(t *testing.T) {
 
 	ctx := context.Background()
 
-	telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsFrameworkServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true).ToTelemetrySettings())
+	telemetrySvc, err := newBarrierTestTelemetryService(t)
 	require.NoError(t, err)
-	t.Cleanup(func() { telemetrySvc.Shutdown() })
 
-	jwkGenSvc, err := cryptoutilSharedCryptoJose.NewJWKGenService(ctx, telemetrySvc, false)
+	jwkGenSvc, err := newBarrierTestJWKGenService(t, telemetrySvc)
 	require.NoError(t, err)
-	t.Cleanup(func() { jwkGenSvc.Shutdown() })
 
 	// Create DB but DON'T initialize any root keys
 	dbUUID, err := googleUuid.NewV7()
 	require.NoError(t, err)
 
-	dsn := fmt.Sprintf("file:%s?mode=memory&cache=shared", dbUUID.String())
+	dsn := fmt.Sprintf(cryptoutilSharedMagic.SQLiteInMemoryNamedDSNFormat, dbUUID.String())
 	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, dsn)
 	require.NoError(t, err)
 	t.Cleanup(func() { _ = sqlDB.Close() })

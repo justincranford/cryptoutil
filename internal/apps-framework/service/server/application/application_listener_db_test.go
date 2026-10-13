@@ -52,7 +52,7 @@ func TestListener_Start_NilContext(t *testing.T) {
 // Sequential: uses shared SQLite in-memory database.
 func TestListener_Start_PublicServerError(t *testing.T) {
 	// NOT parallel - uses shared SQLite database.
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.TestTimeout)
 	defer cancel()
 
 	settings := &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{
@@ -92,7 +92,7 @@ func TestListener_Start_PublicServerError(t *testing.T) {
 // Sequential: uses shared SQLite in-memory database.
 func TestListener_Start_AdminServerError(t *testing.T) {
 	// NOT parallel - uses shared SQLite database.
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.TestTimeout)
 	defer cancel()
 
 	settings := &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{

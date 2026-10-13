@@ -127,7 +127,7 @@ func (s *PublicHTTPServer) registerRoutes() {
 	s.app.Get(cryptoutilSharedMagic.IdentityE2EHealthEndpoint, s.handleServiceHealth)
 
 	// Browser-to-service paths.
-	s.app.Get("/browser/api/v1/health", s.handleBrowserHealth)
+	s.app.Get(cryptoutilSharedMagic.DefaultBrowserHealthEndpoint, s.handleBrowserHealth)
 }
 
 // handleServiceHealth returns health status for service-to-service clients.
@@ -137,7 +137,7 @@ func (s *PublicHTTPServer) handleServiceHealth(c *fiber.Ctx) error {
 
 	if s.shutdown {
 		if err := c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{
-			cryptoutilSharedMagic.StringStatus: statusShuttingDown,
+			cryptoutilSharedMagic.StringStatus: cryptoutilSharedMagic.StringStatusShuttingDown,
 		}); err != nil {
 			return fmt.Errorf("failed to send service health shutdown response: %w", err)
 		}
@@ -161,7 +161,7 @@ func (s *PublicHTTPServer) handleBrowserHealth(c *fiber.Ctx) error {
 
 	if s.shutdown {
 		if err := c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{
-			cryptoutilSharedMagic.StringStatus: statusShuttingDown,
+			cryptoutilSharedMagic.StringStatus: cryptoutilSharedMagic.StringStatusShuttingDown,
 		}); err != nil {
 			return fmt.Errorf("failed to send browser health shutdown response: %w", err)
 		}

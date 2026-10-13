@@ -24,7 +24,6 @@ func GetDeploymentDirectories() (suite []string, product []string, productServic
 	// PRODUCT-level deployments (aggregation of services within product)
 	product = []string{
 		cryptoutilSharedMagic.IdentityProductName, // Multi-service product (5 identity services, more later)
-		cryptoutilSharedMagic.PKIProductName,      // Multi-service product (1 pki service at this time, more later)
 		cryptoutilSharedMagic.SMProductName,       // Multi-service product (sm-kms)
 		cryptoutilSharedMagic.SkeletonProductName, // Single-service product (1 skeleton service: skeleton-template)
 	}
@@ -36,7 +35,6 @@ func GetDeploymentDirectories() (suite []string, product []string, productServic
 		cryptoutilSharedMagic.OTLPServiceIdentityRP,
 		cryptoutilSharedMagic.OTLPServiceIdentityRS,
 		cryptoutilSharedMagic.OTLPServiceIdentitySPA,
-		cryptoutilSharedMagic.OTLPServicePKICA,
 		cryptoutilSharedMagic.OTLPServiceSMKMS,
 		cryptoutilSharedMagic.OTLPServiceSkeletonTemplate,
 	}
@@ -67,7 +65,7 @@ func GetDeploymentDirectories() (suite []string, product []string, productServic
 func GetExpectedDeploymentsContents() map[string]string {
 	contents := make(map[string]string)
 
-	// SUITE Level (cryptoutil) - ALL 10 services.
+	// SUITE Level (cryptoutil) - ALL 7 services.
 	contents[cryptoutilSharedMagic.DefaultOTLPServiceDefault+"/compose.yml"] = RequiredFileStatus
 	contents[cryptoutilSharedMagic.DefaultOTLPServiceDefault+"/Dockerfile"] = RequiredFileStatus
 	addSuiteProductSecrets(&contents, cryptoutilSharedMagic.DefaultOTLPServiceDefault)
@@ -75,10 +73,6 @@ func GetExpectedDeploymentsContents() map[string]string {
 	// PRODUCT Level - identity (multi-service product: 5 identity services).
 	contents[cryptoutilSharedMagic.IdentityProductName+"/compose.yml"] = RequiredFileStatus
 	addSuiteProductSecrets(&contents, cryptoutilSharedMagic.IdentityProductName)
-
-	// PRODUCT Level - pki (currently single service: pki-ca).
-	contents[cryptoutilSharedMagic.PKIProductName+"/compose.yml"] = RequiredFileStatus
-	addSuiteProductSecrets(&contents, cryptoutilSharedMagic.PKIProductName)
 
 	// PRODUCT Level - sm (service: sm-kms).
 	contents[cryptoutilSharedMagic.SMProductName+"/compose.yml"] = RequiredFileStatus
@@ -94,9 +88,6 @@ func GetExpectedDeploymentsContents() map[string]string {
 	addProductServiceFiles(&contents, cryptoutilSharedMagic.OTLPServiceIdentityRP)
 	addProductServiceFiles(&contents, cryptoutilSharedMagic.OTLPServiceIdentityRS)
 	addProductServiceFiles(&contents, cryptoutilSharedMagic.OTLPServiceIdentitySPA)
-
-	// PRODUCT-SERVICE Level - pki-ca
-	addProductServiceFiles(&contents, cryptoutilSharedMagic.OTLPServicePKICA)
 
 	// PRODUCT-SERVICE Level - sm-kms
 	addProductServiceFiles(&contents, cryptoutilSharedMagic.OTLPServiceSMKMS)

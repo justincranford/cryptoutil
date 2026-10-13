@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"io/fs"
 
@@ -13,27 +14,46 @@ import (
 	"gorm.io/gorm"
 )
 
-// Injectable functions for testing error paths.
-var (
-	sqlOpenFn = func(driverName, dataSourceName string) (*sql.DB, error) {
-		return sql.Open(driverName, dataSourceName)
+type databaseInitializationOperations struct {
+	openSQL         func(string, string) (*sql.DB, error)
+	openGORM        func(gorm.Dialector, ...gorm.Option) (*gorm.DB, error)
+	applyMigrations func(*sql.DB, DatabaseType, fs.FS) error
+}
+
+func defaultDatabaseInitializationOperations() databaseInitializationOperations {
+	return databaseInitializationOperations{
+		openSQL:         sql.Open,
+		openGORM:        gorm.Open,
+		applyMigrations: ApplyMigrations,
 	}
-	gormOpenFn = func(dialector gorm.Dialector, opts ...gorm.Option) (*gorm.DB, error) {
-		return gorm.Open(dialector, opts...)
+}
+
+func closeSQLDBAfterInitializationError(sqlDB *sql.DB, cause error) error {
+	if sqlDB == nil {
+		return cause
 	}
-	applyMigrationsFn = ApplyMigrations
-)
+
+	if err := sqlDB.Close(); err != nil {
+		return errors.Join(cause, fmt.Errorf("failed to close database after initialization error: %w", err))
+	}
+
+	return cause
+}
 
 // InitPostgreSQL initializes a PostgreSQL database connection with GORM.
 func InitPostgreSQL(ctx context.Context, databaseURL string, migrationsFS fs.FS) (*gorm.DB, error) {
-	sqlDB, err := sqlOpenFn("pgx", databaseURL)
+	return initPostgreSQLWithOperations(ctx, databaseURL, migrationsFS, defaultDatabaseInitializationOperations())
+}
+
+func initPostgreSQLWithOperations(ctx context.Context, databaseURL string, migrationsFS fs.FS, operations databaseInitializationOperations) (*gorm.DB, error) {
+	sqlDB, err := operations.openSQL("pgx", databaseURL)
 	if err != nil {
-		return nil, fmt.Errorf("failed to open PostgreSQL database: %w", err)
+		return nil, closeSQLDBAfterInitializationError(sqlDB, fmt.Errorf("failed to open PostgreSQL database: %w", err))
 	}
 
 	// Verify connection.
 	if err := sqlDB.PingContext(ctx); err != nil {
-		return nil, fmt.Errorf("failed to ping PostgreSQL database: %w", err)
+		return nil, closeSQLDBAfterInitializationError(sqlDB, fmt.Errorf("failed to ping PostgreSQL database: %w", err))
 	}
 
 	// Create GORM instance.
@@ -41,26 +61,28 @@ func InitPostgreSQL(ctx context.Context, databaseURL string, migrationsFS fs.FS)
 		Conn: sqlDB,
 	})
 
-	db, err := gormOpenFn(dialector, &gorm.Config{
+	db, err := operations.openGORM(dialector, &gorm.Config{
 		SkipDefaultTransaction: true,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("failed to initialize GORM for PostgreSQL: %w", err)
+		return nil, closeSQLDBAfterInitializationError(sqlDB, fmt.Errorf("failed to initialize GORM for PostgreSQL: %w", err))
 	}
 
 	// Configure connection pool.
-	sqlDB, err = db.DB()
+	gormSQLDB, err := db.DB()
 	if err != nil {
-		return nil, fmt.Errorf("failed to get database instance: %w", err)
+		return nil, closeSQLDBAfterInitializationError(sqlDB, fmt.Errorf("failed to get database instance: %w", err))
 	}
+
+	sqlDB = gormSQLDB
 
 	sqlDB.SetMaxOpenConns(cryptoutilSharedMagic.PostgreSQLMaxOpenConns)       // 25
 	sqlDB.SetMaxIdleConns(cryptoutilSharedMagic.PostgreSQLMaxIdleConns)       // 10
 	sqlDB.SetConnMaxLifetime(cryptoutilSharedMagic.PostgreSQLConnMaxLifetime) // 1 hour
 
 	// Run migrations.
-	if err := applyMigrationsFn(sqlDB, DatabaseTypePostgreSQL, migrationsFS); err != nil {
-		return nil, fmt.Errorf("failed to apply migrations: %w", err)
+	if err := operations.applyMigrations(sqlDB, DatabaseTypePostgreSQL, migrationsFS); err != nil {
+		return nil, closeSQLDBAfterInitializationError(sqlDB, fmt.Errorf("failed to apply migrations: %w", err))
 	}
 
 	return db, nil
@@ -68,45 +90,51 @@ func InitPostgreSQL(ctx context.Context, databaseURL string, migrationsFS fs.FS)
 
 // InitSQLite initializes a SQLite database connection with GORM.
 func InitSQLite(ctx context.Context, databaseURL string, migrationsFS fs.FS) (*gorm.DB, error) {
+	return initSQLiteWithOperations(ctx, databaseURL, migrationsFS, defaultDatabaseInitializationOperations())
+}
+
+func initSQLiteWithOperations(ctx context.Context, databaseURL string, migrationsFS fs.FS, operations databaseInitializationOperations) (*gorm.DB, error) {
 	// Open SQLite database.
-	sqlDB, err := sqlOpenFn("sqlite", databaseURL)
+	sqlDB, err := operations.openSQL("sqlite", databaseURL)
 	if err != nil {
-		return nil, fmt.Errorf("failed to open SQLite database: %w", err)
+		return nil, closeSQLDBAfterInitializationError(sqlDB, fmt.Errorf("failed to open SQLite database: %w", err))
 	}
 
 	// Enable WAL mode for concurrent operations.
 	if _, err := sqlDB.ExecContext(ctx, "PRAGMA journal_mode=WAL;"); err != nil {
-		return nil, fmt.Errorf("failed to enable WAL mode: %w", err)
+		return nil, closeSQLDBAfterInitializationError(sqlDB, fmt.Errorf("failed to enable WAL mode: %w", err))
 	}
 
 	// Set busy timeout for concurrent write operations.
 	if _, err := sqlDB.ExecContext(ctx, "PRAGMA busy_timeout = 30000;"); err != nil {
-		return nil, fmt.Errorf("failed to set busy timeout: %w", err)
+		return nil, closeSQLDBAfterInitializationError(sqlDB, fmt.Errorf("failed to set busy timeout: %w", err))
 	}
 
 	// Create GORM instance.
 	dialector := sqlite.Dialector{Conn: sqlDB}
 
-	db, err := gormOpenFn(dialector, &gorm.Config{
+	db, err := operations.openGORM(dialector, &gorm.Config{
 		SkipDefaultTransaction: true,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("failed to initialize GORM for SQLite: %w", err)
+		return nil, closeSQLDBAfterInitializationError(sqlDB, fmt.Errorf("failed to initialize GORM for SQLite: %w", err))
 	}
 
 	// Configure connection pool for GORM transactions.
-	sqlDB, err = db.DB()
+	gormSQLDB, err := db.DB()
 	if err != nil {
-		return nil, fmt.Errorf("failed to get database instance: %w", err)
+		return nil, closeSQLDBAfterInitializationError(sqlDB, fmt.Errorf("failed to get database instance: %w", err))
 	}
+
+	sqlDB = gormSQLDB
 
 	sqlDB.SetMaxOpenConns(cryptoutilSharedMagic.SQLiteMaxOpenConnections) // 5
 	sqlDB.SetMaxIdleConns(cryptoutilSharedMagic.SQLiteMaxOpenConnections) // 5
 	sqlDB.SetConnMaxLifetime(0)                                           // In-memory: never close
 
 	// Run migrations.
-	if err := applyMigrationsFn(sqlDB, DatabaseTypeSQLite, migrationsFS); err != nil {
-		return nil, fmt.Errorf("failed to apply migrations: %w", err)
+	if err := operations.applyMigrations(sqlDB, DatabaseTypeSQLite, migrationsFS); err != nil {
+		return nil, closeSQLDBAfterInitializationError(sqlDB, fmt.Errorf("failed to apply migrations: %w", err))
 	}
 
 	return db, nil

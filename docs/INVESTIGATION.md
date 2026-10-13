@@ -276,6 +276,10 @@ constants from all 4 magic files.
 
 ---
 
+#### Follow-up: Restarting Certificate Consumers
+
+`pki-init` intentionally replaces generated certificates on every run so stale or incompatible output cannot survive. Compose restart propagation does not reliably cascade through one-shot certificate-copy jobs, so every TLS-sensitive long-running service and readiness job now has a direct `pki-init` dependency with `restart: true`. The collector still waits for its refreshed certificate-copy job, the readiness probe waits for the collector, and application instances wait for the readiness probe. A full-stack forced PKI update verified the restart chain and returned all services healthy; PostgreSQL retained 21 active replication streams. Runtime smoke checks also returned HTTP 200 from both public HTTPS health paths (`/service/api/v1/health` and `/browser/api/v1/health`) with certificate verification and a client certificate. Grafana exposed exported OTel metrics, and the collector logs showed no new TLS or export failures.
+
 ### 10. PS-ID Compose Healthcheck Targeted the Admin mTLS Endpoint
 
 **Symptom**: After fixing issues 1–9, E2E Docker Compose deployments reached `starting` state but

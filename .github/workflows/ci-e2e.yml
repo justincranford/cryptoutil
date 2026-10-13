@@ -93,29 +93,12 @@ jobs:
     - name: Build Docker images
       uses: ./.github/actions/docker-compose-build
 
-    # TODO: pki-ca not yet migrated to service-framework pattern
-    # Migration status: sm-kms ✅, skeleton-template ✅ | pki-ca ❌, identity-* ❌
-    # CA deployment needed for E2E test infrastructure (certificate dependencies)
-    - name: Deploy CA services
-      run: |
-        echo "🚀 Deploying CA services..."
-        START_TIME=$(date +%s)
-        echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-        docker compose -f ./deployments/pki-ca/compose.yml --profile dev up -d
-        echo "⏱️ Waiting for CA services to be healthy..."
-        sleep 45
-        echo "✅ CA services deployed"
-        END_TIME=$(date +%s)
-        DURATION=$((END_TIME - START_TIME))
-        echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-        echo "⏱️ CA deployment completed in: ${DURATION}s"
-
     - name: Deploy SM services
       run: |
         echo "🚀 Deploying SM services..."
         START_TIME=$(date +%s)
         echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-        docker compose -f ./deployments/sm/compose.yml --profile dev up -d
+        docker compose -f ./deployments/sm/compose.yml up -d
         echo "⏱️ Waiting for SM services to be healthy..."
         sleep 35
         echo "✅ SM services deployed"
@@ -123,12 +106,6 @@ jobs:
         DURATION=$((END_TIME - START_TIME))
         echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
         echo "⏱️ SM deployment completed in: ${DURATION}s"
-
-    - name: Verify CA services
-      run: |
-        echo "🔍 Verifying CA services..."
-        curl -k https://localhost:9090/admin/api/v1/livez || echo "CA SQLite not ready"
-        docker compose -f ./deployments/pki-ca/compose.yml ps
 
     - name: Verify SM services
       run: |
@@ -142,9 +119,8 @@ jobs:
         START_TIME=$(date +%s)
         echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
 
-        # Stop CA and SM services to free ports for E2E tests
+        # Stop SM services to free ports for E2E tests
         echo "🛑 Stopping CA and SM services to free ports..."
-        docker compose -f ./deployments/pki-ca/compose.yml down -v || true
         docker compose -f ./deployments/sm/compose.yml down -v || true
         sleep 5
 
@@ -170,7 +146,6 @@ jobs:
 
         # TODO: Enable identity E2E tests after identity services migrated to service-framework pattern
         # Currently DISABLED - identity-authz, identity-idp, identity-rp, identity-rs, identity-spa not yet migrated
-        # Migration status: sm-kms ✅, skeleton-template ✅ | pki-ca ❌, identity-* ❌
         # Test identity E2E
         # if go test -tags=e2e -v -timeout=30m ./internal/apps/identity/e2e/... 2>&1; then
         #   echo "✅ identity E2E tests completed successfully"
@@ -201,8 +176,6 @@ jobs:
           docker compose -f ./deployments/sm-kms/compose.yml logs sm-kms-db-postgres-1 > ./workflow-reports/e2e/sm-kms-db-postgres.log 2>&1 || true
           docker compose -f ./deployments/sm-kms/compose.yml logs opentelemetry-collector-contrib > ./workflow-reports/e2e/otel-collector.log 2>&1 || true
 
-        # Collect CA service logs
-          docker compose -f ./deployments/pki-ca/compose.yml logs pki-ca-app-sqlite-1 > ./workflow-reports/e2e/pki-ca-sqlite.log 2>&1 || true
         # Collect SM service logs
           docker compose -f ./deployments/sm/compose.yml logs sm-kms-app-sqlite-1 > ./workflow-reports/e2e/sm-kms.log 2>&1 || true
         echo "✅ Service logs collected"
@@ -236,6 +209,5 @@ jobs:
       run: |
         echo "🛑 Stopping all services..."
           docker compose -f ./deployments/sm-kms/compose.yml down -v --remove-orphans || true
-          docker compose -f ./deployments/pki-ca/compose.yml down -v --remove-orphans || true
           docker compose -f ./deployments/sm/compose.yml down -v --remove-orphans || true
           echo "✅ All services stopped"

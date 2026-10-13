@@ -90,6 +90,12 @@ const (
 	// Boolean flag — takes no value argument.
 	FlagSummary = "--summary"
 
+	// CICDDocsHandbookPath is the repository-relative path to the canonical engineering handbook.
+	CICDDocsHandbookPath = "docs/ENG-HANDBOOK.md"
+
+	// CICDDocsAppendixDPath is the repository-relative path to the handbook file catalog appendix.
+	CICDDocsAppendixDPath = "docs/ENG-HANDBOOK-APPENDIX-D.md"
+
 	// CICDQuietPassFormat is the format string for a quiet-mode PASS line.
 	// Arguments: command name, file count.
 	CICDQuietPassFormat = "%s: PASS (%d files)\n"
@@ -304,8 +310,8 @@ const (
 	// CICDImportAliasMapFile is the relative path to the import alias map YAML.
 	CICDImportAliasMapFile = "internal/apps-tools/cicd_lint/lint_fitness/import_alias_formula/alias_map.yaml"
 
-	// CICDPKICAProfilesDir is the relative path to the PKI-CA certificate profile YAML files.
-	CICDPKICAProfilesDir = "configs/pki-ca/profiles"
+	// CICDSMKMSProfilesDir is the relative path to the sm-kms PKI certificate profile YAML files.
+	CICDSMKMSProfilesDir = "configs/sm-kms/profiles"
 
 	// RequirementsTotalPatternGroups is the requirements coverage regex pattern groups count.
 	RequirementsTotalPatternGroups = 4
@@ -357,13 +363,13 @@ const (
 	ModeNameAll = "all"
 
 	// SuiteProductCount is the total number of products in the cryptoutil suite.
-	// Products: sm, pki, identity, skeleton.
-	SuiteProductCount = 4
+	// Products: sm, identity, skeleton.
+	SuiteProductCount = 3
 
 	// SuiteServiceCount is the total number of individual services in the cryptoutil suite.
-	// Services: sm-kms, pki-ca, identity-authz, identity-idp,
+	// Services: sm-kms, identity-authz, identity-idp,
 	// identity-rp, identity-rs, identity-spa, skeleton-template.
-	SuiteServiceCount = 8
+	SuiteServiceCount = 7
 
 	// RequiredConfigOverlayCount is the number of required config overlay files per service.
 	// Framework variants: common, sqlite-1, sqlite-2, postgresql-1, postgresql-2 (5)

@@ -73,7 +73,7 @@ func TestCheckInDir_MultipleServices_AllValid_Passes(t *testing.T) {
 	t.Parallel()
 	tmp := t.TempDir()
 	makeServiceDir(t, tmp, cryptoutilSharedMagic.SkeletonProductName, cryptoutilSharedMagic.SkeletonTemplateServiceName, goodServerGo)
-	makeServiceDir(t, tmp, cryptoutilSharedMagic.PKIProductName, "ca", goodServerGo)
+	makeServiceDir(t, tmp, cryptoutilSharedMagic.IdentityProductName, cryptoutilSharedMagic.OTLPServiceIdentityAuthz, goodServerGo)
 	makeServiceDir(t, tmp, "sm", cryptoutilSharedMagic.KMSServiceName, goodServerGo)
 	err := CheckInDir(newTestLogger(), tmp)
 	require.NoError(t, err)
@@ -83,7 +83,7 @@ func TestCheckInDir_MultipleServices_OneFails(t *testing.T) {
 	t.Parallel()
 	tmp := t.TempDir()
 	makeServiceDir(t, tmp, cryptoutilSharedMagic.SkeletonProductName, cryptoutilSharedMagic.SkeletonTemplateServiceName, goodServerGo)
-	makeServiceDir(t, tmp, cryptoutilSharedMagic.PKIProductName, "ca", missingAssertionServerGo)
+	makeServiceDir(t, tmp, cryptoutilSharedMagic.IdentityProductName, cryptoutilSharedMagic.OTLPServiceIdentityAuthz, missingAssertionServerGo)
 	err := CheckInDir(newTestLogger(), tmp)
 	require.Error(t, err)
 }

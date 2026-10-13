@@ -94,7 +94,7 @@ func comparePrefix(expected, actual string) string {
 }
 
 // compareSupersetOrdered checks that actual contains all expected lines in order,
-// allowing extra lines interspersed (e.g., pki-ca extra volume mounts).
+// allowing extra lines interspersed (e.g., PKI-specific extra volume mounts).
 func compareSupersetOrdered(expected, actual string) string {
 	expected = strings.TrimRight(normalizeLineEndings(expected), "\n")
 	actual = strings.TrimRight(normalizeLineEndings(actual), "\n")

@@ -8,12 +8,11 @@ package server
 import (
 	"context"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/require"
 
 	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps-framework/service/config"
-	cryptoutilAppsFrameworkServiceTestingE2eHelpers "cryptoutil/internal/apps-framework/service/testing/e2e_helpers"
+	cryptoutilAppsFrameworkServiceTestOrchIntegration "cryptoutil/internal/apps-framework/service/test_orch_integration"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
@@ -29,18 +28,15 @@ func TestKMSServer_Lifecycle(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, server)
 
-	cryptoutilAppsFrameworkServiceTestingE2eHelpers.MustStartAndWaitForDualPorts(server, func() error {
-		return server.Start(ctx)
-	})
-
-	server.SetReady(true)
+	integrationServer, err := cryptoutilAppsFrameworkServiceTestOrchIntegration.StartIntegrationServer(ctx, t, server, nil)
+	require.NoError(t, err)
 
 	require.Greater(t, server.PublicPort(), 0, "public port should be bound")
 	require.Greater(t, server.AdminPort(), 0, "admin port should be bound")
 
-	shutdownCtx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second)
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.TestDefaultServerShutdownTimeout)
 	defer cancel()
 
-	err = server.Shutdown(shutdownCtx)
+	err = integrationServer.Shutdown(shutdownCtx)
 	require.NoError(t, err)
 }

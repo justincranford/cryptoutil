@@ -7,6 +7,7 @@ package thread
 
 import (
 	"context"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"fmt"
 	"sync"
 )
@@ -29,7 +30,7 @@ func runSendersReceivers(ctx context.Context, bufferSize, senderCount, receiverC
 	}
 
 	return func() {
-		fmt.Println("waiting")
+		fmt.Println(cryptoutilSharedMagic.StringWaiting)
 		wg.Wait()
 		fmt.Println("closing")
 		close(ch) //nolint:errcheck

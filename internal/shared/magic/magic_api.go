@@ -11,13 +11,18 @@ const (
 	FiberAppIDRequestAttribute = "fiberAppID"
 
 	// StringError - Error string constant.
-	StringError = "error"
+	StringError        = "error"
+	StringMessage      = "message"
+	StringUnauthorized = "unauthorized"
+	StringWaiting      = "waiting"
 	// StringStatus - Status string constant.
 	StringStatus = "status"
 	// StringStatusOK - OK status string.
 	StringStatusOK = "ok"
 	// StringStatusDegraded - Degraded status string.
 	StringStatusDegraded = "degraded"
+	// StringStatusShuttingDown - Shutting-down status string.
+	StringStatusShuttingDown = "shutting down"
 
 	// WaitBeforeShutdownDuration - Client liveness start timeout.
 	WaitBeforeShutdownDuration = 200 * time.Millisecond
@@ -28,6 +33,13 @@ const (
 	ClientReadinessRequestTimeout = 5 * time.Second
 	// ClientShutdownRequestTimeout - Client shutdown request timeout.
 	ClientShutdownRequestTimeout = 5 * time.Second
+
+	// DefaultServiceHealthEndpoint is the service health endpoint.
+	DefaultServiceHealthEndpoint = "/service/api/v1/health"
+	// DefaultBrowserHealthEndpoint is the browser health endpoint.
+	DefaultBrowserHealthEndpoint = "/browser/api/v1/health"
+	// DefaultAdminLivezEndpoint is the admin liveness endpoint.
+	DefaultAdminLivezEndpoint = DefaultPrivateAdminAPIContextPath + PrivateAdminLivezRequestPath
 
 	// DatabaseHealthCheckTimeout - Database health check timeout.
 	DatabaseHealthCheckTimeout = 5 * time.Second

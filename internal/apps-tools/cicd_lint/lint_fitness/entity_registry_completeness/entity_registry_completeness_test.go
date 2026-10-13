@@ -84,7 +84,7 @@ func TestCheckInDir_MissingDeploymentDir(t *testing.T) {
 		psID string
 	}{
 		{name: cryptoutilSharedMagic.OTLPServiceSMKMS, psID: cryptoutilSharedMagic.OTLPServiceSMKMS},
-		{name: cryptoutilSharedMagic.OTLPServicePKICA, psID: cryptoutilSharedMagic.OTLPServicePKICA},
+		{name: cryptoutilSharedMagic.OTLPServiceIdentityAuthz, psID: cryptoutilSharedMagic.OTLPServiceIdentityAuthz},
 	}
 
 	for _, tc := range tests {
@@ -114,7 +114,7 @@ func TestCheckInDir_MissingConfigsDir(t *testing.T) {
 		psID string
 	}{
 		{name: cryptoutilSharedMagic.OTLPServiceSMKMS, psID: cryptoutilSharedMagic.OTLPServiceSMKMS},
-		{name: cryptoutilSharedMagic.OTLPServicePKICA, psID: cryptoutilSharedMagic.OTLPServicePKICA},
+		{name: cryptoutilSharedMagic.OTLPServiceIdentityAuthz, psID: cryptoutilSharedMagic.OTLPServiceIdentityAuthz},
 	}
 
 	for _, tc := range tests {
@@ -143,7 +143,7 @@ func TestCheckInDir_MissingMagicFile(t *testing.T) {
 		magicFile string
 	}{
 		{name: cryptoutilSharedMagic.SMProductName, magicFile: "magic_sm.go"},
-		{name: cryptoutilSharedMagic.PKIProductName, magicFile: "magic_pki.go"},
+		{name: cryptoutilSharedMagic.IdentityProductName, magicFile: "magic_identity.go"},
 	}
 
 	for _, tc := range tests {

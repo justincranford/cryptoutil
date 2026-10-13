@@ -7,53 +7,77 @@ package apis_test
 
 import (
 	"bytes"
-	"context"
 	json "encoding/json"
 	"net/http/httptest"
 	"strings"
 	"testing"
-
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+	"time"
 
 	fiber "github.com/gofiber/fiber/v2"
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 	"gorm.io/gorm"
 
+	cryptoutilIdentityAuthz "cryptoutil/internal/apps/identity-authz/server/apis"
 	cryptoutilIdentityConfig "cryptoutil/internal/apps/identity/config"
 	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
 	cryptoutilIdentityMfa "cryptoutil/internal/apps/identity/mfa"
 	cryptoutilIdentityRepository "cryptoutil/internal/apps/identity/repository"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 func createTOTPIntegrationTestDependencies(t *testing.T) (*cryptoutilIdentityConfig.Config, *cryptoutilIdentityRepository.RepositoryFactory) {
 	t.Helper()
 
-	config := &cryptoutilIdentityConfig.Config{
-		Database: &cryptoutilIdentityConfig.DatabaseConfig{
-			Type: cryptoutilSharedMagic.TestDatabaseSQLite,
-			DSN:  "file::memory:?cache=private",
-		},
-		Tokens: &cryptoutilIdentityConfig.TokenConfig{
-			Issuer: "https://localhost:8080",
-		},
+	require.NotNil(t, totpTestConfig, "TOTP test configuration should be initialized by TestMain")
+	require.NotNil(t, totpTestRepoFactory, "TOTP test repository factory should be initialized by TestMain")
+
+	return totpTestConfig, totpTestRepoFactory
+}
+
+const (
+	testTOTPSecret      = "JBSWY3DPEHPK3PXP"
+	testInvalidTOTPCode = "not-a-valid-code"
+	testTOTPIssuer      = "CryptoUtil"
+	testTOTPAccountName = "testuser@example.com"
+)
+
+func newTOTPIntegrationTestApp(t *testing.T) (*gorm.DB, *fiber.App) {
+	t.Helper()
+
+	config, repoFactory := createTOTPIntegrationTestDependencies(t)
+	service := cryptoutilIdentityAuthz.NewService(config, repoFactory, nil)
+	require.NotNil(t, service, "AuthZ service should not be nil")
+
+	app := fiber.New()
+	service.RegisterRoutes(app)
+
+	return repoFactory.DB(), app
+}
+
+func seedTOTPSecret(t *testing.T, db *gorm.DB, userID googleUuid.UUID, lastUsedAt time.Time, verified bool) string {
+	t.Helper()
+
+	secretID, err := googleUuid.NewV7()
+	require.NoError(t, err, "Should generate a TOTP secret ID")
+
+	now := time.Now().UTC()
+	secret := &cryptoutilIdentityMfa.TOTPSecret{
+		ID:              secretID,
+		UserID:          userID,
+		Secret:          testTOTPSecret,
+		Algorithm:       cryptoutilIdentityMfa.DefaultTOTPAlgorithm,
+		Digits:          cryptoutilIdentityMfa.DefaultTOTPDigits,
+		Period:          cryptoutilIdentityMfa.DefaultTOTPPeriod,
+		Verified:        verified,
+		RecoveryEnabled: true,
+		LastUsedAt:      lastUsedAt,
+		CreatedAt:       now,
+		UpdatedAt:       now,
 	}
+	require.NoError(t, db.Create(secret).Error, "Should create TOTP secret fixture")
 
-	ctx := context.Background()
-	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, config.Database)
-	require.NoError(t, err, "Failed to create repository factory")
-	require.NotNil(t, repoFactory, "Repository factory should not be nil")
-
-	// Auto-migrate required tables.
-	db := repoFactory.DB()
-	err = db.AutoMigrate(
-		&cryptoutilIdentityDomain.User{},
-		&cryptoutilIdentityMfa.TOTPSecret{},
-		&cryptoutilIdentityMfa.BackupCode{},
-	)
-	require.NoError(t, err, "Failed to auto-migrate database tables")
-
-	return config, repoFactory
+	return testTOTPSecret
 }
 
 // createTestUser creates a user in the database for testing.
@@ -61,8 +85,10 @@ func createTestUser(t *testing.T, db *gorm.DB, userID googleUuid.UUID, email str
 	t.Helper()
 
 	user := &cryptoutilIdentityDomain.User{
-		ID:    userID,
-		Email: email,
+		ID:                userID,
+		Sub:               userID.String(),
+		PreferredUsername: userID.String(),
+		Email:             email + "." + userID.String(),
 	}
 
 	err := db.Create(user).Error
@@ -70,7 +96,7 @@ func createTestUser(t *testing.T, db *gorm.DB, userID googleUuid.UUID, email str
 }
 
 // enrollTOTP sends POST /oidc/v1/mfa/totp/enroll request.
-func enrollTOTP(t *testing.T, app *fiber.App, userID googleUuid.UUID, issuer, accountName string) map[string]any {
+func enrollTOTP(t *testing.T, app *fiber.App, userID googleUuid.UUID, issuer, accountName string, expectedStatus int) map[string]any {
 	t.Helper()
 
 	reqBody := map[string]any{
@@ -90,7 +116,7 @@ func enrollTOTP(t *testing.T, app *fiber.App, userID googleUuid.UUID, issuer, ac
 
 	defer func() { _ = resp.Body.Close() }()
 
-	require.Equal(t, fiber.StatusCreated, resp.StatusCode, "Should return 201 Created")
+	require.Equal(t, expectedStatus, resp.StatusCode, "Should return expected status code")
 
 	var result map[string]any
 

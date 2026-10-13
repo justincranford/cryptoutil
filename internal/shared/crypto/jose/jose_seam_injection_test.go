@@ -30,46 +30,6 @@ import (
 // errInjected is the sentinel error used in all error injection tests.
 var errInjected = errors.New("injected error")
 
-// saveRestoreSeams saves current seam values and restores them on test cleanup.
-func saveRestoreSeams(t *testing.T) {
-	t.Helper()
-
-	origKeySet := jwkKeySet
-	origImport := jwkImport
-	origMarshal := jsonMarshalFunc
-	origPublicKey := jwkPublicKey
-	origGenRSA := generateRSAKeyPair
-	origGenECDSA := generateECDSAKeyPair
-	origGenEDDSA := generateEDDSAKeyPair
-	origGenHMAC := generateHMACKey
-	origGenAES := generateAESKey
-
-	t.Cleanup(func() {
-		jwkKeySet = origKeySet
-		jwkImport = origImport
-		jsonMarshalFunc = origMarshal
-		jwkPublicKey = origPublicKey
-		generateRSAKeyPair = origGenRSA
-		generateECDSAKeyPair = origGenECDSA
-		generateEDDSAKeyPair = origGenEDDSA
-		generateHMACKey = origGenHMAC
-		generateAESKey = origGenAES
-	})
-}
-
-// resetSeams restores all seams to their default (real) implementations.
-func resetSeams() {
-	jwkKeySet = func(key joseJwk.Key, name string, value any) error { return key.Set(name, value) }
-	jwkImport = func(raw any) (joseJwk.Key, error) { return joseJwk.Import(raw) }
-	jsonMarshalFunc = json.Marshal
-	jwkPublicKey = func(key joseJwk.Key) (joseJwk.Key, error) { return key.PublicKey() }
-	generateRSAKeyPair = cryptoutilSharedCryptoKeygen.GenerateRSAKeyPair
-	generateECDSAKeyPair = cryptoutilSharedCryptoKeygen.GenerateECDSAKeyPair
-	generateEDDSAKeyPair = cryptoutilSharedCryptoKeygen.GenerateEDDSAKeyPair
-	generateHMACKey = cryptoutilSharedCryptoKeygen.GenerateHMACKey
-	generateAESKey = cryptoutilSharedCryptoKeygen.GenerateAESKey
-}
-
 // countingSet returns a jwkKeySet that fails on the Nth call.
 func countingSet(failOn int) func(joseJwk.Key, string, any) error {
 	var count atomic.Int32
@@ -110,10 +70,8 @@ func countingMarshal(failOn int) func(any) ([]byte, error) {
 }
 
 // TestCreateJWEJWKFromKey_SeamErrors tests all error injection paths.
-// Sequential: mutates package-level JOSE seams shared with other tests.
 func TestCreateJWEJWKFromKey_SeamErrors(t *testing.T) {
-	// NOT PARALLEL: modifies package-level function variables.
-	saveRestoreSeams(t)
+	t.Parallel()
 
 	kid := googleUuid.Must(googleUuid.NewV7())
 	enc := EncA256GCM
@@ -137,7 +95,7 @@ func TestCreateJWEJWKFromKey_SeamErrors(t *testing.T) {
 		alg     *joseJwa.KeyEncryptionAlgorithm
 		maxSets int
 	}{
-		{"AES", cryptoutilSharedCryptoKeygen.SecretKey(aesKey), &enc, &aesAlg, cryptoutilSharedMagic.GitRecentActivityDays},
+		{testKeygenAESLabel, cryptoutilSharedCryptoKeygen.SecretKey(aesKey), &enc, &aesAlg, cryptoutilSharedMagic.GitRecentActivityDays},
 		{cryptoutilSharedMagic.KeyTypeRSA, &cryptoutilSharedCryptoKeygen.KeyPair{Private: rsaPriv, Public: &rsaPriv.PublicKey}, &enc, &rsaAlg, cryptoutilSharedMagic.IMMinPasswordLength},
 		{"EC", &cryptoutilSharedCryptoKeygen.KeyPair{Private: ecdhPriv, Public: ecdhPriv.PublicKey()}, &enc, &ecAlg, cryptoutilSharedMagic.IMMinPasswordLength},
 	}
@@ -145,8 +103,11 @@ func TestCreateJWEJWKFromKey_SeamErrors(t *testing.T) {
 	for _, tc := range tests {
 		// Import error.
 		t.Run(tc.name+"/import_fail", func(t *testing.T) {
-			jwkImport = countingImport(1)
-			_, _, _, _, _, err := CreateJWEJWKFromKey(&kid, tc.enc, tc.alg, tc.key)
+			t.Parallel()
+
+			operations := newJOSEOperations()
+			operations.importJWK = countingImport(1)
+			_, _, _, _, _, err := createJWEJWKFromKeyWithOperations(&kid, tc.enc, tc.alg, tc.key, operations)
 			require.Error(t, err)
 			require.True(t, errors.Is(err, errInjected))
 		})
@@ -154,57 +115,64 @@ func TestCreateJWEJWKFromKey_SeamErrors(t *testing.T) {
 		// Set errors â€” fail on each Set call number.
 		for i := 1; i <= tc.maxSets; i++ {
 			t.Run(fmt.Sprintf("%s/set_fail_%d", tc.name, i), func(t *testing.T) {
-				jwkKeySet = countingSet(i)
-				_, _, _, _, _, err := CreateJWEJWKFromKey(&kid, tc.enc, tc.alg, tc.key)
+				t.Parallel()
+
+				operations := newJOSEOperations()
+				operations.setJWK = countingSet(i)
+				_, _, _, _, _, err := createJWEJWKFromKeyWithOperations(&kid, tc.enc, tc.alg, tc.key, operations)
 				require.Error(t, err)
 			})
 		}
 
 		// Marshal error (first call).
 		t.Run(tc.name+"/marshal_fail_1", func(t *testing.T) {
-			jsonMarshalFunc = countingMarshal(1)
-			_, _, _, _, _, err := CreateJWEJWKFromKey(&kid, tc.enc, tc.alg, tc.key)
+			t.Parallel()
+
+			operations := newJOSEOperations()
+			operations.marshalJSON = countingMarshal(1)
+			_, _, _, _, _, err := createJWEJWKFromKeyWithOperations(&kid, tc.enc, tc.alg, tc.key, operations)
 			require.Error(t, err)
 		})
 	}
 
 	// PublicKey error â€” only for KeyPair types.
 	t.Run("RSA/publickey_fail", func(t *testing.T) {
-		resetSeams()
+		t.Parallel()
 
-		jwkPublicKey = func(_ joseJwk.Key) (joseJwk.Key, error) { return nil, errInjected }
-		_, _, _, _, _, err := CreateJWEJWKFromKey(&kid, &enc, &rsaAlg,
-			&cryptoutilSharedCryptoKeygen.KeyPair{Private: rsaPriv, Public: &rsaPriv.PublicKey})
+		operations := newJOSEOperations()
+		operations.publicKeyJWK = func(_ joseJwk.Key) (joseJwk.Key, error) { return nil, errInjected }
+		_, _, _, _, _, err := createJWEJWKFromKeyWithOperations(&kid, &enc, &rsaAlg,
+			&cryptoutilSharedCryptoKeygen.KeyPair{Private: rsaPriv, Public: &rsaPriv.PublicKey}, operations)
 		require.Error(t, err)
 		require.True(t, errors.Is(err, errInjected))
 	})
 
 	// Marshal(public) error â€” second Marshal call for KeyPair.
 	t.Run("RSA/marshal_public_fail", func(t *testing.T) {
-		resetSeams()
+		t.Parallel()
 
-		jsonMarshalFunc = countingMarshal(2)
-		_, _, _, _, _, err := CreateJWEJWKFromKey(&kid, &enc, &rsaAlg,
-			&cryptoutilSharedCryptoKeygen.KeyPair{Private: rsaPriv, Public: &rsaPriv.PublicKey})
+		operations := newJOSEOperations()
+		operations.marshalJSON = countingMarshal(2)
+		_, _, _, _, _, err := createJWEJWKFromKeyWithOperations(&kid, &enc, &rsaAlg,
+			&cryptoutilSharedCryptoKeygen.KeyPair{Private: rsaPriv, Public: &rsaPriv.PublicKey}, operations)
 		require.Error(t, err)
 	})
 
 	// Set(ops) on public JWK â€” 8th Set call for RSA KeyPair.
 	t.Run("RSA/set_public_ops_fail", func(t *testing.T) {
-		resetSeams()
+		t.Parallel()
 
-		jwkKeySet = countingSet(cryptoutilSharedMagic.IMMinPasswordLength)
-		_, _, _, _, _, err := CreateJWEJWKFromKey(&kid, &enc, &rsaAlg,
-			&cryptoutilSharedCryptoKeygen.KeyPair{Private: rsaPriv, Public: &rsaPriv.PublicKey})
+		operations := newJOSEOperations()
+		operations.setJWK = countingSet(cryptoutilSharedMagic.IMMinPasswordLength)
+		_, _, _, _, _, err := createJWEJWKFromKeyWithOperations(&kid, &enc, &rsaAlg,
+			&cryptoutilSharedCryptoKeygen.KeyPair{Private: rsaPriv, Public: &rsaPriv.PublicKey}, operations)
 		require.Error(t, err)
 	})
 }
 
 // TestCreateJWSJWKFromKey_SeamErrors tests all error injection paths for JWS JWK creation.
-// Sequential: mutates package-level JOSE seams shared with other tests.
 func TestCreateJWSJWKFromKey_SeamErrors(t *testing.T) {
-	// NOT PARALLEL: modifies package-level function variables.
-	saveRestoreSeams(t)
+	t.Parallel()
 
 	kid := googleUuid.Must(googleUuid.NewV7())
 	hmacAlg := AlgHS256
@@ -230,7 +198,7 @@ func TestCreateJWSJWKFromKey_SeamErrors(t *testing.T) {
 		alg     *joseJwa.SignatureAlgorithm
 		maxSets int
 	}{
-		{"HMAC", cryptoutilSharedCryptoKeygen.SecretKey(hmacKey), &hmacAlg, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries},
+		{testKeygenHMACLabel, cryptoutilSharedCryptoKeygen.SecretKey(hmacKey), &hmacAlg, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries},
 		{cryptoutilSharedMagic.KeyTypeRSA, &cryptoutilSharedCryptoKeygen.KeyPair{Private: rsaPriv, Public: &rsaPriv.PublicKey}, &rsaAlg, cryptoutilSharedMagic.DefaultEmailOTPLength},
 		{"EC", &cryptoutilSharedCryptoKeygen.KeyPair{Private: ecPriv, Public: &ecPriv.PublicKey}, &ecAlg, cryptoutilSharedMagic.DefaultEmailOTPLength},
 		{cryptoutilSharedMagic.JoseAlgEdDSA, &cryptoutilSharedCryptoKeygen.KeyPair{Private: edPriv, Public: edPriv.Public()}, &edAlg, cryptoutilSharedMagic.DefaultEmailOTPLength},
@@ -239,8 +207,11 @@ func TestCreateJWSJWKFromKey_SeamErrors(t *testing.T) {
 	for _, tc := range tests {
 		// Import error.
 		t.Run(tc.name+"/import_fail", func(t *testing.T) {
-			jwkImport = countingImport(1)
-			_, _, _, _, _, err := CreateJWSJWKFromKey(&kid, tc.alg, tc.key)
+			t.Parallel()
+
+			operations := newJOSEOperations()
+			operations.importJWK = countingImport(1)
+			_, _, _, _, _, err := createJWSJWKFromKeyWithOperations(&kid, tc.alg, tc.key, operations)
 			require.Error(t, err)
 			require.True(t, errors.Is(err, errInjected))
 		})
@@ -248,57 +219,64 @@ func TestCreateJWSJWKFromKey_SeamErrors(t *testing.T) {
 		// Set errors.
 		for i := 1; i <= tc.maxSets; i++ {
 			t.Run(fmt.Sprintf("%s/set_fail_%d", tc.name, i), func(t *testing.T) {
-				jwkKeySet = countingSet(i)
-				_, _, _, _, _, err := CreateJWSJWKFromKey(&kid, tc.alg, tc.key)
+				t.Parallel()
+
+				operations := newJOSEOperations()
+				operations.setJWK = countingSet(i)
+				_, _, _, _, _, err := createJWSJWKFromKeyWithOperations(&kid, tc.alg, tc.key, operations)
 				require.Error(t, err)
 			})
 		}
 
 		// Marshal error.
 		t.Run(tc.name+"/marshal_fail_1", func(t *testing.T) {
-			jsonMarshalFunc = countingMarshal(1)
-			_, _, _, _, _, err := CreateJWSJWKFromKey(&kid, tc.alg, tc.key)
+			t.Parallel()
+
+			operations := newJOSEOperations()
+			operations.marshalJSON = countingMarshal(1)
+			_, _, _, _, _, err := createJWSJWKFromKeyWithOperations(&kid, tc.alg, tc.key, operations)
 			require.Error(t, err)
 		})
 	}
 
 	// PublicKey error.
 	t.Run("RSA/publickey_fail", func(t *testing.T) {
-		resetSeams()
+		t.Parallel()
 
-		jwkPublicKey = func(_ joseJwk.Key) (joseJwk.Key, error) { return nil, errInjected }
-		_, _, _, _, _, err := CreateJWSJWKFromKey(&kid, &rsaAlg,
-			&cryptoutilSharedCryptoKeygen.KeyPair{Private: rsaPriv, Public: &rsaPriv.PublicKey})
+		operations := newJOSEOperations()
+		operations.publicKeyJWK = func(_ joseJwk.Key) (joseJwk.Key, error) { return nil, errInjected }
+		_, _, _, _, _, err := createJWSJWKFromKeyWithOperations(&kid, &rsaAlg,
+			&cryptoutilSharedCryptoKeygen.KeyPair{Private: rsaPriv, Public: &rsaPriv.PublicKey}, operations)
 		require.Error(t, err)
 		require.True(t, errors.Is(err, errInjected))
 	})
 
 	// Marshal(public) error.
 	t.Run("RSA/marshal_public_fail", func(t *testing.T) {
-		resetSeams()
+		t.Parallel()
 
-		jsonMarshalFunc = countingMarshal(2)
-		_, _, _, _, _, err := CreateJWSJWKFromKey(&kid, &rsaAlg,
-			&cryptoutilSharedCryptoKeygen.KeyPair{Private: rsaPriv, Public: &rsaPriv.PublicKey})
+		operations := newJOSEOperations()
+		operations.marshalJSON = countingMarshal(2)
+		_, _, _, _, _, err := createJWSJWKFromKeyWithOperations(&kid, &rsaAlg,
+			&cryptoutilSharedCryptoKeygen.KeyPair{Private: rsaPriv, Public: &rsaPriv.PublicKey}, operations)
 		require.Error(t, err)
 	})
 
 	// Set(ops) on public key â€” 7th Set call for RSA.
 	t.Run("RSA/set_public_ops_fail", func(t *testing.T) {
-		resetSeams()
+		t.Parallel()
 
-		jwkKeySet = countingSet(cryptoutilSharedMagic.GitRecentActivityDays)
-		_, _, _, _, _, err := CreateJWSJWKFromKey(&kid, &rsaAlg,
-			&cryptoutilSharedCryptoKeygen.KeyPair{Private: rsaPriv, Public: &rsaPriv.PublicKey})
+		operations := newJOSEOperations()
+		operations.setJWK = countingSet(cryptoutilSharedMagic.GitRecentActivityDays)
+		_, _, _, _, _, err := createJWSJWKFromKeyWithOperations(&kid, &rsaAlg,
+			&cryptoutilSharedCryptoKeygen.KeyPair{Private: rsaPriv, Public: &rsaPriv.PublicKey}, operations)
 		require.Error(t, err)
 	})
 }
 
 // TestCreateJWKFromKey_SeamErrors tests all error injection paths for generic JWK creation.
-// Sequential: mutates package-level JOSE seams shared with other tests.
 func TestCreateJWKFromKey_SeamErrors(t *testing.T) {
-	// NOT PARALLEL: modifies package-level function variables.
-	saveRestoreSeams(t)
+	t.Parallel()
 
 	kid := googleUuid.Must(googleUuid.NewV7())
 	hmacAlg := cryptoutilOpenapiModel.Oct256
@@ -353,8 +331,11 @@ func TestCreateJWKFromKey_SeamErrors(t *testing.T) {
 	for _, tc := range tests {
 		// Import error.
 		t.Run(tc.name+"/import_fail", func(t *testing.T) {
-			jwkImport = countingImport(1)
-			_, _, _, _, _, err := CreateJWKFromKey(&kid, tc.alg, tc.key)
+			t.Parallel()
+
+			operations := newJOSEOperations()
+			operations.importJWK = countingImport(1)
+			_, _, _, _, _, err := createJWKFromKeyWithOperations(&kid, tc.alg, tc.key, operations)
 			require.Error(t, err)
 			require.True(t, errors.Is(err, errInjected))
 		})
@@ -362,38 +343,46 @@ func TestCreateJWKFromKey_SeamErrors(t *testing.T) {
 		// Set errors.
 		for i := 1; i <= tc.maxSets; i++ {
 			t.Run(fmt.Sprintf("%s/set_fail_%d", tc.name, i), func(t *testing.T) {
-				jwkKeySet = countingSet(i)
-				_, _, _, _, _, err := CreateJWKFromKey(&kid, tc.alg, tc.key)
+				t.Parallel()
+
+				operations := newJOSEOperations()
+				operations.setJWK = countingSet(i)
+				_, _, _, _, _, err := createJWKFromKeyWithOperations(&kid, tc.alg, tc.key, operations)
 				require.Error(t, err)
 			})
 		}
 
 		// Marshal error.
 		t.Run(tc.name+"/marshal_fail_1", func(t *testing.T) {
-			jsonMarshalFunc = countingMarshal(1)
-			_, _, _, _, _, err := CreateJWKFromKey(&kid, tc.alg, tc.key)
+			t.Parallel()
+
+			operations := newJOSEOperations()
+			operations.marshalJSON = countingMarshal(1)
+			_, _, _, _, _, err := createJWKFromKeyWithOperations(&kid, tc.alg, tc.key, operations)
 			require.Error(t, err)
 		})
 	}
 
 	// PublicKey error.
 	t.Run("RSA/publickey_fail", func(t *testing.T) {
-		resetSeams()
+		t.Parallel()
 
-		jwkPublicKey = func(_ joseJwk.Key) (joseJwk.Key, error) { return nil, errInjected }
-		_, _, _, _, _, err := CreateJWKFromKey(&kid, &rsaAlg,
-			&cryptoutilSharedCryptoKeygen.KeyPair{Private: rsaPriv, Public: &rsaPriv.PublicKey})
+		operations := newJOSEOperations()
+		operations.publicKeyJWK = func(_ joseJwk.Key) (joseJwk.Key, error) { return nil, errInjected }
+		_, _, _, _, _, err := createJWKFromKeyWithOperations(&kid, &rsaAlg,
+			&cryptoutilSharedCryptoKeygen.KeyPair{Private: rsaPriv, Public: &rsaPriv.PublicKey}, operations)
 		require.Error(t, err)
 		require.True(t, errors.Is(err, errInjected))
 	})
 
 	// Marshal(public) error.
 	t.Run("RSA/marshal_public_fail", func(t *testing.T) {
-		resetSeams()
+		t.Parallel()
 
-		jsonMarshalFunc = countingMarshal(2)
-		_, _, _, _, _, err := CreateJWKFromKey(&kid, &rsaAlg,
-			&cryptoutilSharedCryptoKeygen.KeyPair{Private: rsaPriv, Public: &rsaPriv.PublicKey})
+		operations := newJOSEOperations()
+		operations.marshalJSON = countingMarshal(2)
+		_, _, _, _, _, err := createJWKFromKeyWithOperations(&kid, &rsaAlg,
+			&cryptoutilSharedCryptoKeygen.KeyPair{Private: rsaPriv, Public: &rsaPriv.PublicKey}, operations)
 		require.Error(t, err)
 	})
 }

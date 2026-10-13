@@ -37,13 +37,19 @@ package test_orch_integration
 
 import (
 	"context"
+	"crypto/tls"
+	"crypto/x509"
+	"errors"
 	"fmt"
+	http "net/http"
+	"strings"
 	"testing"
 	"time"
 
 	"gorm.io/gorm"
 
 	cryptoutilAppsFrameworkServiceServer "cryptoutil/internal/apps-framework/service/server"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	cryptoutilSharedUtilPoll "cryptoutil/internal/shared/util/poll"
 )
 
@@ -51,6 +57,13 @@ const (
 	defaultStartupTimeout  = 30 * time.Second
 	defaultStartupInterval = 100 * time.Millisecond
 	defaultShutdownTimeout = 5 * time.Second
+)
+
+const (
+	integrationContextCannotBeNil   = "context cannot be nil"
+	integrationServerStartFailure   = "server failed to start"
+	integrationServerCannotBeNil    = "server cannot be nil"
+	integrationReadinessCheckFailed = "readiness check failed"
 )
 
 // IntegrationServer represents a running integration test environment with a single PS-ID server,
@@ -65,12 +78,26 @@ type IntegrationServer struct {
 	brokeAPIErr error // if non-nil, API was intentionally broken for error-path testing
 }
 
-// StartIntegrationServer starts a new integration test server with the given ServiceServer.
+// readinessCheckFn validates that both HTTPS listeners can serve health requests.
+type readinessCheckFn func(context.Context, cryptoutilAppsFrameworkServiceServer.ServiceServer) error
+
+type readinessProbeFn func(context.Context, *http.Client, string) (int, error)
+
+// StartIntegrationServer starts a server and waits for both HTTPS health endpoints.
 // Intended for use in individual test functions where testing.TB.Cleanup() is available.
 // For TestMain usage, use StartIntegrationServerForTestMain instead.
 func StartIntegrationServer(ctx context.Context, tb testing.TB, srv cryptoutilAppsFrameworkServiceServer.ServiceServer, db *gorm.DB) (*IntegrationServer, error) {
-	if srv == nil {
-		return nil, fmt.Errorf("server cannot be nil")
+	return startIntegrationServer(ctx, tb, srv, db, waitForServerReadiness)
+}
+
+func startIntegrationServer(ctx context.Context, tb testing.TB, srv cryptoutilAppsFrameworkServiceServer.ServiceServer, db *gorm.DB, readinessCheck readinessCheckFn) (*IntegrationServer, error) {
+	switch {
+	case ctx == nil:
+		return nil, errors.New(integrationContextCannotBeNil)
+	case srv == nil:
+		return nil, errors.New(integrationServerCannotBeNil)
+	case readinessCheck == nil:
+		return nil, errors.New("readiness check cannot be nil")
 	}
 
 	is := &IntegrationServer{
@@ -79,7 +106,6 @@ func StartIntegrationServer(ctx context.Context, tb testing.TB, srv cryptoutilAp
 		db:  db,
 	}
 
-	// Start server in background
 	errChan := make(chan error, 1)
 
 	go func() {
@@ -88,11 +114,10 @@ func StartIntegrationServer(ctx context.Context, tb testing.TB, srv cryptoutilAp
 		}
 	}()
 
-	// Wait for both public and admin ports to be allocated
 	pollErr := cryptoutilSharedUtilPoll.Until(ctx, defaultStartupTimeout, defaultStartupInterval, func(_ context.Context) (bool, error) {
 		select {
 		case startErr := <-errChan:
-			return false, fmt.Errorf("server failed to start: %w", startErr)
+			return false, fmt.Errorf("%s: %w", integrationServerStartFailure, startErr)
 		default:
 		}
 
@@ -102,60 +127,144 @@ func StartIntegrationServer(ctx context.Context, tb testing.TB, srv cryptoutilAp
 		return nil, fmt.Errorf("integration server: timed out waiting for server ports: %w", pollErr)
 	}
 
-	// Mark server ready for health checks
 	srv.SetReady(true)
 
-	// Store cleanup function for manual or automatic cleanup
-	// Callers can choose: defer is.Shutdown() in TestMain, or tb.Cleanup(is.Shutdown) in individual tests
+	if err := readinessCheck(ctx, srv); err != nil {
+		shutdownCtx, cancel := context.WithTimeout(context.Background(), defaultShutdownTimeout)
+		defer cancel()
+
+		if shutdownErr := srv.Shutdown(shutdownCtx); shutdownErr != nil {
+			return nil, fmt.Errorf("integration server: %s: %w; cleanup failed: %w", integrationReadinessCheckFailed, err, shutdownErr)
+		}
+
+		return nil, fmt.Errorf("integration server: %s: %w", integrationReadinessCheckFailed, err)
+	}
+
 	is.cleanupFn = nil
 
 	return is, nil
 }
 
-// StartIntegrationServerForTestMain starts a new integration test server specifically for use in TestMain.
-// Unlike StartIntegrationServer, this does not require testing.TB and does not use tb.Cleanup().
-// Callers must manually call is.Shutdown() in a defer statement before os.Exit().
+// StartIntegrationServerForTestMain starts a server for TestMain without testing.TB cleanup.
+// Callers must manually call is.Shutdown() before os.Exit().
 func StartIntegrationServerForTestMain(ctx context.Context, srv cryptoutilAppsFrameworkServiceServer.ServiceServer, db *gorm.DB) (*IntegrationServer, error) {
-	if srv == nil {
-		return nil, fmt.Errorf("server cannot be nil")
+	return startIntegrationServer(ctx, nil, srv, db, waitForServerReadiness)
+}
+
+func waitForServerReadiness(ctx context.Context, srv cryptoutilAppsFrameworkServiceServer.ServiceServer) error {
+	return waitForServerReadinessWithProbe(ctx, srv, requestHealthEndpoint)
+}
+
+func waitForServerReadinessWithProbe(ctx context.Context, srv cryptoutilAppsFrameworkServiceServer.ServiceServer, probe readinessProbeFn) error {
+	switch {
+	case ctx == nil:
+		return errors.New(integrationContextCannotBeNil)
+	case srv == nil:
+		return errors.New(integrationServerCannotBeNil)
+	case probe == nil:
+		return errors.New("readiness probe cannot be nil")
 	}
 
-	is := &IntegrationServer{
-		tb:  nil, // No testing.TB for TestMain usage
-		srv: srv,
-		db:  db,
+	publicRoots := srv.TLSRootCAPool()
+	if publicRoots == nil {
+		return errors.New("public TLS root CA pool is nil")
 	}
 
-	// Start server in background
-	errChan := make(chan error, 1)
+	adminRoots := srv.AdminTLSRootCAPool()
+	if adminRoots == nil {
+		return errors.New("admin TLS root CA pool is nil")
+	}
 
-	go func() {
-		if startErr := srv.Start(ctx); startErr != nil {
-			errChan <- startErr
+	publicBaseURL := strings.TrimRight(srv.PublicBaseURL(), "/")
+	if publicBaseURL == "" {
+		return errors.New("public base URL is empty")
+	}
+
+	adminBaseURL := strings.TrimRight(srv.AdminBaseURL(), "/")
+	if adminBaseURL == "" {
+		return errors.New("admin base URL is empty")
+	}
+
+	publicClient := newReadinessHTTPClient(publicRoots)
+	defer publicClient.CloseIdleConnections()
+
+	adminClient := newReadinessHTTPClient(adminRoots)
+	defer adminClient.CloseIdleConnections()
+
+	endpoints := []struct {
+		name   string
+		url    string
+		client *http.Client
+	}{
+		{name: cryptoutilSharedMagic.PublicLabel, url: publicBaseURL + cryptoutilSharedMagic.DefaultServiceHealthEndpoint, client: publicClient},
+		{name: "admin", url: adminBaseURL + cryptoutilSharedMagic.DefaultAdminLivezEndpoint, client: adminClient},
+	}
+
+	readinessCtx, cancel := context.WithTimeout(ctx, defaultStartupTimeout)
+	defer cancel()
+
+	var lastProbeErr error
+
+	pollErr := cryptoutilSharedUtilPoll.Until(readinessCtx, defaultStartupTimeout, defaultStartupInterval, func(probeCtx context.Context) (bool, error) {
+		for _, endpoint := range endpoints {
+			statusCode, err := probe(probeCtx, endpoint.client, endpoint.url)
+			if err != nil {
+				lastProbeErr = fmt.Errorf("%s health endpoint request failed: %w", endpoint.name, err)
+
+				return false, nil
+			}
+
+			if statusCode != http.StatusOK {
+				lastProbeErr = fmt.Errorf("%s health endpoint returned HTTP %d", endpoint.name, statusCode)
+
+				return false, nil
+			}
 		}
-	}()
 
-	// Wait for both public and admin ports to be allocated
-	pollErr := cryptoutilSharedUtilPoll.Until(ctx, defaultStartupTimeout, defaultStartupInterval, func(_ context.Context) (bool, error) {
-		select {
-		case startErr := <-errChan:
-			return false, fmt.Errorf("server failed to start: %w", startErr)
-		default:
-		}
+		lastProbeErr = nil
 
-		return srv.PublicPort() > 0 && srv.AdminPort() > 0, nil
+		return true, nil
 	})
 	if pollErr != nil {
-		return nil, fmt.Errorf("integration server: timed out waiting for server ports: %w", pollErr)
+		if lastProbeErr != nil {
+			return fmt.Errorf("integration server: dual HTTPS readiness failed: %w; last probe: %w", pollErr, lastProbeErr)
+		}
+
+		return fmt.Errorf("integration server: dual HTTPS readiness failed: %w", pollErr)
 	}
 
-	// Mark server ready for health checks
-	srv.SetReady(true)
+	return nil
+}
 
-	// Store cleanup function for manual or automatic cleanup
-	is.cleanupFn = nil
+func newReadinessHTTPClient(rootCAs *x509.CertPool) *http.Client {
+	return &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{
+				MinVersion: tls.VersionTLS13,
+				RootCAs:    rootCAs,
+			},
+			DisableKeepAlives: true,
+		},
+		Timeout: defaultStartupTimeout,
+	}
+}
 
-	return is, nil
+func requestHealthEndpoint(ctx context.Context, client *http.Client, endpointURL string) (int, error) {
+	request, err := http.NewRequestWithContext(ctx, http.MethodGet, endpointURL, nil)
+	if err != nil {
+		return 0, fmt.Errorf("create readiness request: %w", err)
+	}
+
+	response, err := client.Do(request)
+	if err != nil {
+		return 0, fmt.Errorf("send readiness request: %w", err)
+	}
+
+	if err := response.Body.Close(); err != nil {
+		return 0, fmt.Errorf("close readiness response: %w", err)
+	}
+
+	return response.StatusCode, nil
 }
 
 // Shutdown gracefully shuts down the integration server and cleans up resources.

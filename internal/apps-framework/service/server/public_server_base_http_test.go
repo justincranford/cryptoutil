@@ -9,7 +9,6 @@ import (
 	"crypto/tls"
 	http "net/http"
 	"testing"
-	"time"
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
@@ -27,6 +26,6 @@ func createTestHTTPClient(t *testing.T, tlsMaterial *cryptoutilAppsFrameworkServ
 			},
 			DisableKeepAlives: true,
 		},
-		Timeout: cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Second,
+		Timeout: cryptoutilSharedMagic.DefaultHealthCheckTimeout,
 	}
 }

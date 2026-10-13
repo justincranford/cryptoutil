@@ -324,7 +324,7 @@ func TestHandleProcessJoinRequest_SuccessMessages(t *testing.T) {
 
 			err = json.NewDecoder(resp.Body).Decode(&respBody)
 			require.NoError(t, err)
-			require.Equal(t, tt.expectedMessage, respBody["message"])
+			require.Equal(t, tt.expectedMessage, respBody[cryptoutilSharedMagic.StringMessage])
 
 			// No cleanup needed - test database will be cleared between test runs.
 		})

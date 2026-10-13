@@ -8,7 +8,6 @@ import (
 	"fmt"
 	http "net/http"
 	"testing"
-	"time"
 
 	cryptoutilAppsFrameworkServiceTestOrcIntegration "cryptoutil/internal/apps-framework/service/test_orch_integration"
 	cryptoutilAppsSkeletonTemplateServerConfig "cryptoutil/internal/apps/skeleton-template/server/config"
@@ -127,8 +126,7 @@ func TestSkeletonTemplateServer_ShutdownIdempotent(t *testing.T) {
 	t.Cleanup(func() { _ = integrationServer.Shutdown(context.Background()) })
 
 	// Shutdown the server explicitly (covers Shutdown happy path).
-	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(),
-		cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second)
+	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultServerShutdownTimeout)
 	defer shutdownCancel()
 
 	err = server.Shutdown(shutdownCtx)

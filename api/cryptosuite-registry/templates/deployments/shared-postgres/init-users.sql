@@ -8,7 +8,6 @@
 -- These GRANT statements ensure the admin user owns each database for full DDL/DML access.
 
 -- Suite-level databases
-GRANT ALL PRIVILEGES ON DATABASE "suitedeployment-pki-ca" TO current_user;
 GRANT ALL PRIVILEGES ON DATABASE "suitedeployment-sm-kms" TO current_user;
 GRANT ALL PRIVILEGES ON DATABASE "suitedeployment-identity-authz" TO current_user;
 GRANT ALL PRIVILEGES ON DATABASE "suitedeployment-identity-idp" TO current_user;
@@ -18,7 +17,6 @@ GRANT ALL PRIVILEGES ON DATABASE "suitedeployment-identity-spa" TO current_user;
 GRANT ALL PRIVILEGES ON DATABASE "suitedeployment-skeleton-template" TO current_user;
 
 -- Product-level databases
-GRANT ALL PRIVILEGES ON DATABASE "productdeployment-pki-ca" TO current_user;
 GRANT ALL PRIVILEGES ON DATABASE "productdeployment-sm-kms" TO current_user;
 GRANT ALL PRIVILEGES ON DATABASE "productdeployment-identity-authz" TO current_user;
 GRANT ALL PRIVILEGES ON DATABASE "productdeployment-identity-idp" TO current_user;
@@ -28,7 +26,6 @@ GRANT ALL PRIVILEGES ON DATABASE "productdeployment-identity-spa" TO current_use
 GRANT ALL PRIVILEGES ON DATABASE "productdeployment-skeleton-template" TO current_user;
 
 -- Service-level databases
-GRANT ALL PRIVILEGES ON DATABASE "servicedeployment-pki-ca" TO current_user;
 GRANT ALL PRIVILEGES ON DATABASE "servicedeployment-sm-kms" TO current_user;
 GRANT ALL PRIVILEGES ON DATABASE "servicedeployment-identity-authz" TO current_user;
 GRANT ALL PRIVILEGES ON DATABASE "servicedeployment-identity-idp" TO current_user;

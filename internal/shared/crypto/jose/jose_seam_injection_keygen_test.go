@@ -20,9 +20,13 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// Sequential: modifies package-level seam variables (jwkKeySet, etc.).
+const (
+	testKeygenHMACLabel = "HMAC"
+	testKeygenAESLabel  = "AES"
+)
+
 func TestEdDSASetError(t *testing.T) {
-	saveRestoreSeams(t)
+	t.Parallel()
 
 	kid := googleUuid.Must(googleUuid.NewV7())
 	edAlg := AlgEdDSA
@@ -34,10 +38,11 @@ func TestEdDSASetError(t *testing.T) {
 
 	// JWS: Set error on 1st Set (kty OKP).
 	t.Run("JWS_EdDSA_set1", func(t *testing.T) {
-		resetSeams()
+		t.Parallel()
 
-		jwkKeySet = countingSet(1)
-		_, _, _, _, _, err := CreateJWSJWKFromKey(&kid, &edAlg, edKey)
+		operations := newJOSEOperations()
+		operations.setJWK = countingSet(1)
+		_, _, _, _, _, err := createJWSJWKFromKeyWithOperations(&kid, &edAlg, edKey, operations)
 		require.Error(t, err, "expected Set error for JWS EdDSA kty Set")
 		require.True(t, errors.Is(err, errInjected), "error should wrap errInjected, got: %v", err)
 	})
@@ -51,10 +56,11 @@ func TestEdDSASetError(t *testing.T) {
 	ecdhKey := &cryptoutilSharedCryptoKeygen.KeyPair{Private: ecdhPrivKey, Public: ecdhPrivKey.PublicKey()}
 
 	t.Run("JWE_ECDH_set1", func(t *testing.T) {
-		resetSeams()
+		t.Parallel()
 
-		jwkKeySet = countingSet(1)
-		_, _, _, _, _, err := CreateJWEJWKFromKey(&kid, &encAlg, &ecdhAlg, ecdhKey)
+		operations := newJOSEOperations()
+		operations.setJWK = countingSet(1)
+		_, _, _, _, _, err := createJWEJWKFromKeyWithOperations(&kid, &encAlg, &ecdhAlg, ecdhKey, operations)
 		require.Error(t, err, "expected Set error for JWE ECDH kty Set")
 		require.True(t, errors.Is(err, errInjected), "error should wrap errInjected, got: %v", err)
 	})
@@ -63,71 +69,94 @@ func TestEdDSASetError(t *testing.T) {
 	genAlg := cryptoutilOpenapiModel.OKPEd25519
 
 	t.Run("JWK_EdDSA_set1", func(t *testing.T) {
-		resetSeams()
+		t.Parallel()
 
-		jwkKeySet = countingSet(1)
-		_, _, _, _, _, err := CreateJWKFromKey(&kid, &genAlg, edKey)
+		operations := newJOSEOperations()
+		operations.setJWK = countingSet(1)
+		_, _, _, _, _, err := createJWKFromKeyWithOperations(&kid, &genAlg, edKey, operations)
 		require.Error(t, err, "expected Set error for JWK EdDSA kty Set")
 		require.True(t, errors.Is(err, errInjected), "error should wrap errInjected, got: %v", err)
 	})
 }
 
-// Sequential: modifies package-level seam variables (generateRSAKeyPair, generateECDSAKeyPair, etc.).
 func TestValidateOrGenerate_KeygenErrors(t *testing.T) {
-	saveRestoreSeams(t)
+	t.Parallel()
 
-	t.Run("RSA_keygen_error", func(t *testing.T) {
-		resetSeams()
+	tests := []struct {
+		name string
+		run  func(*testing.T)
+	}{
+		{
+			name: cryptoutilSharedMagic.KeyTypeRSA,
+			run: func(t *testing.T) {
+				key, err := validateOrGenerateRSAJWK(nil, cryptoutilSharedMagic.RSAKeySize2048)
+				require.NoError(t, err)
+				require.NotNil(t, key)
 
-		generateRSAKeyPair = func(_ int) (*cryptoutilSharedCryptoKeygen.KeyPair, error) {
-			return nil, errInjected
-		}
-		_, err := validateOrGenerateRSAJWK(nil, cryptoutilSharedMagic.RSAKeySize2048)
-		require.Error(t, err)
-		require.True(t, errors.Is(err, errInjected))
-	})
+				_, err = validateOrGenerateRSAJWKWithGenerator(nil, cryptoutilSharedMagic.RSAKeySize2048, func(_ int) (*cryptoutilSharedCryptoKeygen.KeyPair, error) {
+					return nil, errInjected
+				})
+				require.ErrorIs(t, err, errInjected)
+			},
+		},
+		{
+			name: cryptoutilSharedMagic.ECDSA,
+			run: func(t *testing.T) {
+				key, err := validateOrGenerateEcdsaJWK(nil, elliptic.P256())
+				require.NoError(t, err)
+				require.NotNil(t, key)
 
-	t.Run("ECDSA_keygen_error", func(t *testing.T) {
-		resetSeams()
+				_, err = validateOrGenerateEcdsaJWKWithGenerator(nil, elliptic.P256(), func(_ elliptic.Curve) (*cryptoutilSharedCryptoKeygen.KeyPair, error) {
+					return nil, errInjected
+				})
+				require.ErrorIs(t, err, errInjected)
+			},
+		},
+		{
+			name: cryptoutilSharedMagic.JoseAlgEdDSA,
+			run: func(t *testing.T) {
+				key, err := validateOrGenerateEddsaJWK(nil, cryptoutilSharedMagic.EdCurveEd25519)
+				require.NoError(t, err)
+				require.NotNil(t, key)
 
-		generateECDSAKeyPair = func(_ elliptic.Curve) (*cryptoutilSharedCryptoKeygen.KeyPair, error) {
-			return nil, errInjected
-		}
-		_, err := validateOrGenerateEcdsaJWK(nil, elliptic.P256())
-		require.Error(t, err)
-		require.True(t, errors.Is(err, errInjected))
-	})
+				_, err = validateOrGenerateEddsaJWKWithGenerator(nil, cryptoutilSharedMagic.EdCurveEd25519, func(_ string) (*cryptoutilSharedCryptoKeygen.KeyPair, error) {
+					return nil, errInjected
+				})
+				require.ErrorIs(t, err, errInjected)
+			},
+		},
+		{
+			name: testKeygenHMACLabel,
+			run: func(t *testing.T) {
+				key, err := validateOrGenerateHMACJWK(nil, cryptoutilSharedMagic.HMACKeySize256)
+				require.NoError(t, err)
+				require.NotEmpty(t, key)
 
-	t.Run("EDDSA_keygen_error", func(t *testing.T) {
-		resetSeams()
+				_, err = validateOrGenerateHMACJWKWithGenerator(nil, cryptoutilSharedMagic.HMACKeySize256, func(_ int) (cryptoutilSharedCryptoKeygen.SecretKey, error) {
+					return nil, errInjected
+				})
+				require.ErrorIs(t, err, errInjected)
+			},
+		},
+		{
+			name: testKeygenAESLabel,
+			run: func(t *testing.T) {
+				key, err := validateOrGenerateAESJWK(nil, cryptoutilSharedMagic.AESKeySize256)
+				require.NoError(t, err)
+				require.NotEmpty(t, key)
 
-		generateEDDSAKeyPair = func(_ string) (*cryptoutilSharedCryptoKeygen.KeyPair, error) {
-			return nil, errInjected
-		}
-		_, err := validateOrGenerateEddsaJWK(nil, cryptoutilSharedMagic.EdCurveEd25519)
-		require.Error(t, err)
-		require.True(t, errors.Is(err, errInjected))
-	})
+				_, err = validateOrGenerateAESJWKWithGenerator(nil, cryptoutilSharedMagic.AESKeySize256, func(_ int) (cryptoutilSharedCryptoKeygen.SecretKey, error) {
+					return nil, errInjected
+				})
+				require.ErrorIs(t, err, errInjected)
+			},
+		},
+	}
 
-	t.Run("HMAC_keygen_error", func(t *testing.T) {
-		resetSeams()
-
-		generateHMACKey = func(_ int) (cryptoutilSharedCryptoKeygen.SecretKey, error) {
-			return nil, errInjected
-		}
-		_, err := validateOrGenerateHMACJWK(nil, cryptoutilSharedMagic.HMACKeySize256)
-		require.Error(t, err)
-		require.True(t, errors.Is(err, errInjected))
-	})
-
-	t.Run("AES_keygen_error", func(t *testing.T) {
-		resetSeams()
-
-		generateAESKey = func(_ int) (cryptoutilSharedCryptoKeygen.SecretKey, error) {
-			return nil, errInjected
-		}
-		_, err := validateOrGenerateAESJWK(nil, cryptoutilSharedMagic.AESKeySize256)
-		require.Error(t, err)
-		require.True(t, errors.Is(err, errInjected))
-	})
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			tc.run(t)
+		})
+	}
 }

@@ -59,7 +59,7 @@ linters:
       - api/identity-rs
       - api/identity-spa
       - api/sm-kms
-      - api/pki-ca
+      - api/sm-kms/pki
       - api/skeleton-template
       - test-output
       - workflow-reports
@@ -234,9 +234,9 @@ linters:
         - {pkg: "github.com/gofiber/fiber/v2", alias: fiber}
         - {pkg: "github.com/stretchr/testify", alias: testify}
         # Cryptoutil API
-        - {pkg: "cryptoutil/api/pki-ca/client", alias: cryptoutilApiCaClient}
-        - {pkg: "cryptoutil/api/pki-ca/models", alias: cryptoutilApiCaModels}
-        - {pkg: "cryptoutil/api/pki-ca/server", alias: cryptoutilApiCaServer}
+        - {pkg: "cryptoutil/api/sm-kms/pki/client", alias: cryptoutilApiCaClient}
+        - {pkg: "cryptoutil/api/sm-kms/pki/models", alias: cryptoutilApiCaModels}
+        - {pkg: "cryptoutil/api/sm-kms/pki/server", alias: cryptoutilApiCaServer}
         - {pkg: "cryptoutil/api/identity-authz", alias: cryptoutilApiIdentityAuthz}
         - {pkg: "cryptoutil/api/identity-idp", alias: cryptoutilApiIdentityIdp}
         - {pkg: "cryptoutil/api/identity-rs", alias: cryptoutilApiIdentityRs}

@@ -19,13 +19,13 @@ type RiskLevel string
 // Risk level constants.
 const (
 	// RiskLevelLow indicates a low risk assessment.
-	RiskLevelLow RiskLevel = "low"
+	RiskLevelLow RiskLevel = cryptoutilSharedMagic.ThreatLevelLow
 	// RiskLevelMedium indicates a medium risk assessment.
-	RiskLevelMedium RiskLevel = "medium"
+	RiskLevelMedium RiskLevel = cryptoutilSharedMagic.ThreatLevelMedium
 	// RiskLevelHigh indicates a high risk assessment.
-	RiskLevelHigh RiskLevel = "high"
+	RiskLevelHigh RiskLevel = cryptoutilSharedMagic.ThreatLevelHigh
 	// RiskLevelCritical indicates a critical risk assessment.
-	RiskLevelCritical RiskLevel = "critical"
+	RiskLevelCritical RiskLevel = cryptoutilSharedMagic.ThreatLevelCritical
 )
 
 // String returns the string representation of the risk level.

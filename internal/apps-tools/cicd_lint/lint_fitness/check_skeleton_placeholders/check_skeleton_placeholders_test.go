@@ -2,6 +2,8 @@
 package check_skeleton_placeholders
 
 import (
+	"errors"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"testing"
@@ -34,6 +36,106 @@ func mkdirAndWriteFile(t *testing.T, tempDir, subDir, filename, content string) 
 	require.NoError(t, os.MkdirAll(dir, 0o700))
 
 	writeFile(t, filepath.Join(dir, filename), content)
+}
+
+func TestFindViolations_OperationPaths(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		run     func(*testing.T, skeletonPlaceholderOperations) error
+		wantErr string
+	}{
+		{
+			name: "empty tree succeeds",
+			run: func(t *testing.T, operations skeletonPlaceholderOperations) error {
+				_, err := findViolationsWithOperations(t.TempDir(), operations)
+
+				return err
+			},
+		},
+		{
+			name: "absolute path error",
+			run: func(t *testing.T, operations skeletonPlaceholderOperations) error {
+				operations.absFn = func(string) (string, error) {
+					return "", errors.New("injected absolute path error")
+				}
+				_, err := findViolationsWithOperations(t.TempDir(), operations)
+
+				return err
+			},
+			wantErr: "failed to resolve rootDir",
+		},
+		{
+			name: "walk error",
+			run: func(t *testing.T, operations skeletonPlaceholderOperations) error {
+				operations.walkDirFn = func(string, fs.WalkDirFunc) error {
+					return errors.New("injected walk error")
+				}
+				_, err := findViolationsWithOperations(t.TempDir(), operations)
+
+				return err
+			},
+			wantErr: skeletonPlaceholderWalkErrorPrefix,
+		},
+		{
+			name: "walk entry error",
+			run: func(t *testing.T, operations skeletonPlaceholderOperations) error {
+				operations.walkDirFn = func(root string, walkFn fs.WalkDirFunc) error {
+					return walkFn(root, nil, errors.New("injected entry error"))
+				}
+				_, err := findViolationsWithOperations(t.TempDir(), operations)
+
+				return err
+			},
+			wantErr: skeletonPlaceholderWalkErrorPrefix,
+		},
+		{
+			name: "relative path error",
+			run: func(t *testing.T, operations skeletonPlaceholderOperations) error {
+				rootDir := t.TempDir()
+				writeFile(t, filepath.Join(rootDir, "source.go"), "package myservice\n")
+
+				operations.relFn = func(string, string) (string, error) {
+					return "", errors.New("injected relative path error")
+				}
+				_, err := findViolationsWithOperations(rootDir, operations)
+
+				return err
+			},
+			wantErr: skeletonPlaceholderWalkErrorPrefix,
+		},
+		{
+			name: "file scan error",
+			run: func(t *testing.T, operations skeletonPlaceholderOperations) error {
+				rootDir := t.TempDir()
+				writeFile(t, filepath.Join(rootDir, "source.go"), "package myservice\n")
+
+				operations.scanFileFn = func(string) ([]Violation, error) {
+					return nil, errors.New("injected file scan error")
+				}
+				_, err := findViolationsWithOperations(rootDir, operations)
+
+				return err
+			},
+			wantErr: "failed to read",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			err := tc.run(t, productionSkeletonPlaceholderOperations())
+			if tc.wantErr != "" {
+				require.ErrorContains(t, err, tc.wantErr)
+
+				return
+			}
+
+			require.NoError(t, err)
+		})
+	}
 }
 
 func TestFindViolations_DetectsPlaceholders(t *testing.T) {

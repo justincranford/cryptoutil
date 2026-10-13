@@ -27,10 +27,11 @@ Use `migration-create` for the migration file details, `openapi-codegen` for API
 
 ## Service Catalog
 
+PKI is a domain capability hosted by `sm-kms`, not a separate product-service.
+
 | Product | Service ID | Host Port Range |
 |---------|-----------|----------------|
 | SM | sm-kms | 8000-8099 |
-| PKI | pki-ca | 8300-8399 |
 | Identity | identity-authz | 8400-8499 |
 | ... | ... | ... |
 | Skeleton | skeleton-template | 8900-8999 |

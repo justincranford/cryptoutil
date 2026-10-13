@@ -7,6 +7,8 @@ import (
 	"regexp"
 	"sort"
 	"strings"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // PropagateBlock represents a @to-appendix block extracted from ENG-HANDBOOK.md.
@@ -204,7 +206,7 @@ func extractSourceBlocks(content string) []SourceBlock {
 
 // ValidateChunks compares all @to-appendix blocks against their @from-eng-handbook counterparts.
 func ValidateChunks(rootDir string, readFile func(string) ([]byte, error)) (*ChunkValidationResult, error) {
-	archContent, err := readFile("docs/ENG-HANDBOOK.md")
+	archContent, err := readFile(cryptoutilSharedMagic.CICDDocsHandbookPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read docs/ENG-HANDBOOK.md: %w", err)
 	}

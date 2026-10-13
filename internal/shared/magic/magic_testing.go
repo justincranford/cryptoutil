@@ -264,6 +264,9 @@ const (
 
 // E2E test timeout and OS constants.
 const (
+	// DefaultE2EHealthPollInterval is the polling cadence for E2E health checks.
+	DefaultE2EHealthPollInterval = 2 * time.Second
+
 	// E2EHTTPClientTimeout is the default HTTP client timeout for E2E tests.
 	E2EHTTPClientTimeout = 10 * time.Second
 

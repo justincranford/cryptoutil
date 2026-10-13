@@ -232,7 +232,7 @@ func (s *Service) handleVerifyRecoveryCode(c *fiber.Ctx) error {
 	userIDStr := c.Get("X-User-ID")
 	if userIDStr == "" {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			cryptoutilSharedMagic.StringError: "unauthorized",
+			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.StringUnauthorized,
 			"error_description":               "Missing user authentication",
 		})
 	}

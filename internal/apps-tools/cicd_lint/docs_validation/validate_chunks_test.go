@@ -151,7 +151,7 @@ func TestValidateChunks(t *testing.T) {
 			}
 
 			if tc.archContent != "" {
-				files["docs/ENG-HANDBOOK.md"] = tc.archContent
+				files[cryptoutilSharedMagic.CICDDocsHandbookPath] = tc.archContent
 			}
 
 			readFile := func(path string) ([]byte, error) {

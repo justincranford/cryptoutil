@@ -71,8 +71,8 @@ const (
 
 // OIDC subject types.
 const (
-	SubjectTypePublic   = "public"   // Public subject type.
-	SubjectTypePairwise = "pairwise" // Pairwise subject type.
+	SubjectTypePublic   = PublicLabel // Public subject type.
+	SubjectTypePairwise = "pairwise"  // Pairwise subject type.
 )
 
 // OIDC display values.

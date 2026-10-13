@@ -2,7 +2,7 @@
 #
 # CRYPTOUTIL SUITE Deployment (SUITE-Level)
 #
-# Purpose: Complete suite deployment with ALL 8 services across 4 products.
+# Purpose: Complete suite deployment with ALL 7 services across 3 products.
 # Deployment Level: SUITE (port range 28000-28999, SERVICE base + 20000 offset)
 # Each PS-ID has 4 instances: 2 SQLite + 2 PostgreSQL.
 #
@@ -18,7 +18,6 @@
 
 include:
   - path: ../sm/compose.yml
-  - path: ../pki/compose.yml
   - path: ../identity/compose.yml
   - path: ../skeleton/compose.yml
 
@@ -39,12 +38,6 @@ services:
   sm-kms-app-sqlite-2: {ports: !override ["28001:8080"]}
   sm-kms-app-postgresql-1: {ports: !override ["28002:8080"]}
   sm-kms-app-postgresql-2: {ports: !override ["28003:8080"]}
-
-  # PKI-CA: PS-PUBLIC 8300-8303 -> SUITE 28300-28303
-  pki-ca-app-sqlite-1: {ports: !override ["28300:8080"]}
-  pki-ca-app-sqlite-2: {ports: !override ["28301:8080"]}
-  pki-ca-app-postgresql-1: {ports: !override ["28302:8080"]}
-  pki-ca-app-postgresql-2: {ports: !override ["28303:8080"]}
 
   # IDENTITY-AUTHZ: PS-PUBLIC 8400-8403 -> SUITE 28400-28403
   identity-authz-app-sqlite-1: {ports: !override ["28400:8080"]}

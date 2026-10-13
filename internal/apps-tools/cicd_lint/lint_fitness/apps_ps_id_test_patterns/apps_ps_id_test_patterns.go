@@ -27,7 +27,6 @@ var knownExclusionsLifecycle = map[string]bool{
 // knownExclusionsPortConflict lists PS-IDs that lack server/*_port_conflict_test.go.
 // All except sm-kms are excluded; no other PS-ID has this file yet.
 var knownExclusionsPortConflict = map[string]bool{
-	cryptoutilSharedMagic.OTLPServicePKICA:            true,
 	cryptoutilSharedMagic.OTLPServiceSkeletonTemplate: true,
 }
 

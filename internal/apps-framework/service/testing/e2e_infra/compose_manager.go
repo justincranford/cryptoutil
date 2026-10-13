@@ -23,9 +23,10 @@ import (
 
 // ComposeManager orchestrates docker compose lifecycle for E2E tests.
 type ComposeManager struct {
-	ComposeFile string
-	Profiles    []string
-	HTTPClient  *http.Client
+	ComposeFile        string
+	Profiles           []string
+	HTTPClient         *http.Client
+	healthPollInterval time.Duration
 	// psOutputFn provides docker compose ps JSON output; injectable for testing.
 	psOutputFn func(ctx context.Context) ([]byte, error)
 }
@@ -35,9 +36,10 @@ type ComposeManager struct {
 // Services with profiles: [...] in compose.yml only start when their profile is active.
 func NewComposeManager(composeFile string, profiles ...string) *ComposeManager {
 	cm := &ComposeManager{
-		ComposeFile: composeFile,
-		Profiles:    profiles,
-		HTTPClient:  cryptoutilSharedCryptoTls.NewClientForTest(),
+		ComposeFile:        composeFile,
+		Profiles:           profiles,
+		HTTPClient:         cryptoutilSharedCryptoTls.NewClientForTest(),
+		healthPollInterval: cryptoutilSharedMagic.DefaultE2EHealthPollInterval,
 	}
 	cm.psOutputFn = cm.defaultPsOutput
 
@@ -216,10 +218,6 @@ func (cm *ComposeManager) BuildDockerExecArgs(service string, command ...string)
 	return execArgs
 }
 
-// defaultHealthPollInterval is the polling cadence for WaitForHealth.
-// Tests override it via export_test.go to avoid 2-second delays.
-var defaultHealthPollInterval = 2 * time.Second //nolint:gochecknoglobals // seam for tests
-
 // WaitForHealth polls an health endpoint until healthy or timeout.
 // Supports both admin endpoints (/admin/api/v1/livez) and public endpoints (/health).
 func (cm *ComposeManager) WaitForHealth(healthURL string, timeout time.Duration) error {
@@ -227,7 +225,14 @@ func (cm *ComposeManager) WaitForHealth(healthURL string, timeout time.Duration)
 
 	timeoutCh := time.After(timeout)
 
-	ticker := time.NewTicker(defaultHealthPollInterval)
+	pollInterval := cm.healthPollInterval
+	if pollInterval == 0 {
+		pollInterval = cryptoutilSharedMagic.DefaultE2EHealthPollInterval
+	} else if pollInterval < 0 {
+		return fmt.Errorf("health poll interval must be positive: %s", pollInterval)
+	}
+
+	ticker := time.NewTicker(pollInterval)
 	defer ticker.Stop()
 
 	fmt.Printf("[WaitForHealth] Starting health check for %s (timeout: %v)\n", healthURL, timeout)

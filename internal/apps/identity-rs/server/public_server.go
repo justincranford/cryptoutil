@@ -68,8 +68,8 @@ func (s *PublicServer) handleListResources(c *fiber.Ctx) error {
 	authHeader := c.Get("Authorization")
 	if authHeader == "" {
 		if err := c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			cryptoutilSharedMagic.StringError: "unauthorized",
-			"message":                         "Authorization header required",
+			cryptoutilSharedMagic.StringError:   cryptoutilSharedMagic.StringUnauthorized,
+			cryptoutilSharedMagic.StringMessage: "Authorization header required",
 		}); err != nil {
 			return fmt.Errorf("failed to send unauthorized response: %w", err)
 		}
@@ -80,8 +80,8 @@ func (s *PublicServer) handleListResources(c *fiber.Ctx) error {
 	// Planned: Implement actual token validation when token introspection ready.
 	// For now, any Authorization header is accepted (E2E test just needs 401 without header).
 	if err := c.JSON(fiber.Map{
-		"resources": []fiber.Map{},
-		"message":   "Protected resource endpoint - token validation not yet implemented",
+		"resources":                         []fiber.Map{},
+		cryptoutilSharedMagic.StringMessage: "Protected resource endpoint - token validation not yet implemented",
 	}); err != nil {
 		return fmt.Errorf("failed to send resource list response: %w", err)
 	}

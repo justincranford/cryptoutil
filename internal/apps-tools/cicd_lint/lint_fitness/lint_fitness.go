@@ -75,7 +75,7 @@ import (
 	lintFitnessNoUnitTestRealServer "cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/no_unit_test_real_server"
 	lintFitnessOTLPServiceNamePattern "cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/otlp_service_name_pattern"
 	lintFitnessParallelTests "cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/parallel_tests"
-	lintFitnessPKICAProfileSchema "cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/pki_ca_profile_schema"
+	lintFitnessPKIProfileSchema "cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/pki_profile_schema"
 	lintFitnessPrecommitCICDArchitecture "cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/precommit_cicd_architecture"
 	lintFitnessProductStructure "cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/product_structure"
 	lintFitnessProductWiring "cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/product_wiring"
@@ -152,7 +152,7 @@ var registeredLinters = []struct {
 	{"fitness-registry-completeness", lintFitnessFitnessRegistryCompleteness.Check},
 	{"test-file-suffix-structure", lintFitnessTestFileSuffixStructure.Check},
 	{"import-alias-formula", lintFitnessImportAliasFormula.Check},
-	{"pki-ca-profile-schema", lintFitnessPKICAProfileSchema.Check},
+	{"pki-profile-schema", lintFitnessPKIProfileSchema.Check},
 	// New fitness checks (added in Phase 3 of framework-v4).
 	{"banned-product-names", lintFitnessBannedProductNames.Check},
 	{"legacy-dir-detection", lintFitnessLegacyDirDetection.Check},

@@ -21,8 +21,12 @@ import (
 
 // JWK algorithm and key type constants and error values.
 func validateOrGenerateRSAJWK(key cryptoutilSharedCryptoKeygen.Key, keyBitsLength int) (*cryptoutilSharedCryptoKeygen.KeyPair, error) {
+	return validateOrGenerateRSAJWKWithGenerator(key, keyBitsLength, cryptoutilSharedCryptoKeygen.GenerateRSAKeyPair)
+}
+
+func validateOrGenerateRSAJWKWithGenerator(key cryptoutilSharedCryptoKeygen.Key, keyBitsLength int, generateKey func(int) (*cryptoutilSharedCryptoKeygen.KeyPair, error)) (*cryptoutilSharedCryptoKeygen.KeyPair, error) {
 	if key == nil {
-		generatedKey, err := generateRSAKeyPair(keyBitsLength)
+		generatedKey, err := generateKey(keyBitsLength)
 		if err != nil {
 			return nil, fmt.Errorf("failed to generate RSA %d key: %w", keyBitsLength, err)
 		}
@@ -57,8 +61,12 @@ func validateOrGenerateRSAJWK(key cryptoutilSharedCryptoKeygen.Key, keyBitsLengt
 }
 
 func validateOrGenerateEcdsaJWK(key cryptoutilSharedCryptoKeygen.Key, curve elliptic.Curve) (*cryptoutilSharedCryptoKeygen.KeyPair, error) {
+	return validateOrGenerateEcdsaJWKWithGenerator(key, curve, cryptoutilSharedCryptoKeygen.GenerateECDSAKeyPair)
+}
+
+func validateOrGenerateEcdsaJWKWithGenerator(key cryptoutilSharedCryptoKeygen.Key, curve elliptic.Curve, generateKey func(elliptic.Curve) (*cryptoutilSharedCryptoKeygen.KeyPair, error)) (*cryptoutilSharedCryptoKeygen.KeyPair, error) {
 	if key == nil {
-		generatedKey, err := generateECDSAKeyPair(curve)
+		generatedKey, err := generateKey(curve)
 		if err != nil {
 			return nil, fmt.Errorf("failed to generate ECDSA %s key pair: %w", curve, err)
 		}
@@ -93,8 +101,12 @@ func validateOrGenerateEcdsaJWK(key cryptoutilSharedCryptoKeygen.Key, curve elli
 }
 
 func validateOrGenerateEddsaJWK(key cryptoutilSharedCryptoKeygen.Key, curve string) (*cryptoutilSharedCryptoKeygen.KeyPair, error) {
+	return validateOrGenerateEddsaJWKWithGenerator(key, curve, cryptoutilSharedCryptoKeygen.GenerateEDDSAKeyPair)
+}
+
+func validateOrGenerateEddsaJWKWithGenerator(key cryptoutilSharedCryptoKeygen.Key, curve string, generateKey func(string) (*cryptoutilSharedCryptoKeygen.KeyPair, error)) (*cryptoutilSharedCryptoKeygen.KeyPair, error) {
 	if key == nil {
-		generatedKey, err := generateEDDSAKeyPair(curve)
+		generatedKey, err := generateKey(curve)
 		if err != nil {
 			return nil, fmt.Errorf("failed to generate Ed29919 key pair: %w", err)
 		}
@@ -128,9 +140,13 @@ func validateOrGenerateEddsaJWK(key cryptoutilSharedCryptoKeygen.Key, curve stri
 	return keyPair, nil
 }
 
-func validateOrGenerateHMACJWK(key cryptoutilSharedCryptoKeygen.Key, keyBitsLength int) (cryptoutilSharedCryptoKeygen.SecretKey, error) { // pragma: allowlist secret
+func validateOrGenerateHMACJWK(key cryptoutilSharedCryptoKeygen.Key, keyBitsLength int) (cryptoutilSharedCryptoKeygen.SecretKey, error) {
+	return validateOrGenerateHMACJWKWithGenerator(key, keyBitsLength, cryptoutilSharedCryptoKeygen.GenerateHMACKey)
+}
+
+func validateOrGenerateHMACJWKWithGenerator(key cryptoutilSharedCryptoKeygen.Key, keyBitsLength int, generateKey func(int) (cryptoutilSharedCryptoKeygen.SecretKey, error)) (cryptoutilSharedCryptoKeygen.SecretKey, error) { // pragma: allowlist secret
 	if key == nil {
-		generatedKey, err := generateHMACKey(keyBitsLength)
+		generatedKey, err := generateKey(keyBitsLength)
 		if err != nil {
 			return nil, fmt.Errorf("failed to generate HMAC %d key: %w", keyBitsLength, err)
 		}
@@ -154,9 +170,13 @@ func validateOrGenerateHMACJWK(key cryptoutilSharedCryptoKeygen.Key, keyBitsLeng
 	return hmacKey, nil
 }
 
-func validateOrGenerateAESJWK(key cryptoutilSharedCryptoKeygen.Key, keyBitsLength int) (cryptoutilSharedCryptoKeygen.SecretKey, error) { // pragma: allowlist secret
+func validateOrGenerateAESJWK(key cryptoutilSharedCryptoKeygen.Key, keyBitsLength int) (cryptoutilSharedCryptoKeygen.SecretKey, error) {
+	return validateOrGenerateAESJWKWithGenerator(key, keyBitsLength, cryptoutilSharedCryptoKeygen.GenerateAESKey)
+}
+
+func validateOrGenerateAESJWKWithGenerator(key cryptoutilSharedCryptoKeygen.Key, keyBitsLength int, generateKey func(int) (cryptoutilSharedCryptoKeygen.SecretKey, error)) (cryptoutilSharedCryptoKeygen.SecretKey, error) { // pragma: allowlist secret
 	if key == nil {
-		generatedKey, err := generateAESKey(keyBitsLength)
+		generatedKey, err := generateKey(keyBitsLength)
 		if err != nil {
 			return nil, fmt.Errorf("failed to generate AES %d key: %w", keyBitsLength, err)
 		}
