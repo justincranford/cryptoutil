@@ -2,6 +2,11 @@
 package random
 
 import (
+	"bytes"
+	"encoding/binary"
+	"errors"
+	"io"
+	"math"
 	"testing"
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
@@ -9,127 +14,237 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestNormalizedRandomFloat32_Range(t *testing.T) {
-	t.Parallel()
-
-	for i := 0; i < cryptoutilSharedMagic.JoseJADefaultMaxMaterials; i++ {
-		v := normalizedRandomFloat32(t)
-		require.GreaterOrEqual(t, v, cryptoutilSharedMagic.Float32Zero)
-		require.Less(t, v, cryptoutilSharedMagic.Float32One)
-	}
+type errorReader struct {
+	err error
 }
 
-// Sequential: replaces the package-level randFloat32 function.
-func TestSkipByProbability_HappyPaths(t *testing.T) {
+func (reader errorReader) Read([]byte) (int, error) {
+	return 0, reader.err
+}
+
+func readerForUint32(value uint32) io.Reader {
+	buffer := make([]byte, cryptoutilSharedMagic.BytesPerUint32)
+	binary.LittleEndian.PutUint32(buffer, value)
+
+	return bytes.NewReader(buffer)
+}
+
+func TestReadRandomUint32(t *testing.T) {
+	t.Parallel()
+
+	readErr := errors.New("injected random reader failure")
+	zero := uint32(cryptoutilSharedMagic.Float32Zero)
+	max := uint32(math.MaxUint32)
+	nonSymmetric := uint32(math.MaxUint32 / cryptoutilSharedMagic.BytesPerUint32)
 	tests := []struct {
-		name       string
-		prob       float32
-		randValue  float32
-		shouldSkip bool
+		name             string
+		reader           io.Reader
+		want             uint32
+		wantErr          error
+		wantErrSubstring string
 	}{
-		{"AlwaysRun", cryptoutilSharedMagic.TestProbAlways, cryptoutilSharedMagic.BaselineContributionZero, false},
-		{"NeverRun", cryptoutilSharedMagic.BaselineContributionZero, cryptoutilSharedMagic.TestProbAlways, true},
-		{"HalfRun_Skip", cryptoutilSharedMagic.Tolerance50Percent, cryptoutilSharedMagic.RiskScoreHigh, true},
-		{"HalfRun_Run", cryptoutilSharedMagic.Tolerance50Percent, cryptoutilSharedMagic.RiskScoreMedium, false},
+		{name: testCaseNameZero, reader: readerForUint32(zero), want: zero},
+		{name: "maximum", reader: readerForUint32(max), want: max},
+		{name: "non-symmetric sample", reader: readerForUint32(nonSymmetric), want: nonSymmetric},
+		{name: testCaseNameShortRead, reader: bytes.NewReader(nil), wantErr: io.EOF},
+		{name: testCaseNameReaderFailure, reader: errorReader{err: readErr}, wantErr: readErr},
+		{name: testCaseNameNilReader, wantErrSubstring: testRandomReaderNilError},
 	}
 
 	for _, tc := range tests {
-		t.Run("Case/"+tc.name, func(t *testing.T) {
-			// CANNOT use t.Parallel() - parallel tests cause race condition with global randFloat32
-			// even with mutex protection, because t.Cleanup runs after subtests complete
-			// inject deterministic rand and restore after test (thread-safe with mutex)
-			randFloat32Mutex.Lock()
-
-			orig := randFloat32
-			randFloat32 = func(_ *testing.T) float32 { return tc.randValue }
-
-			randFloat32Mutex.Unlock()
-
-			defer func() {
-				randFloat32Mutex.Lock()
-
-				randFloat32 = orig
-
-				randFloat32Mutex.Unlock()
-			}()
-
-			// Run inner subtest to observe whether SkipByProbability calls t.Skip
-			didSkip := false
-			ok := t.Run("inner", func(t *testing.T) {
-				defer func() { didSkip = t.Skipped() }()
-
-				SkipByProbability(t, tc.prob)
-			})
-
-			// t.Run returns false if the subtest failed
-			require.True(t, ok, "inner subtest failed unexpectedly")
-			require.Equal(t, tc.shouldSkip, didSkip)
-		})
-	}
-}
-
-func TestSkipByProbability_SadPaths(t *testing.T) {
-	t.Parallel()
-
-	tests := []struct {
-		name         string
-		prob         float32
-		expectsPanic bool
-	}{
-		{"NegativeProb", -cryptoutilSharedMagic.Tolerance10Percent, true},
-		{"GreaterThanOne", 1.1, true},
-	}
-
-	for _, tc := range tests {
-		t.Run("Case/"+tc.name, func(t *testing.T) {
+		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			// validateProbability returns an error for invalid inputs
-			err := validateProbability(tc.prob)
-			require.Error(t, err)
+			got, err := readRandomUint32(tc.reader)
+			switch {
+			case tc.wantErr != nil:
+				require.ErrorIs(t, err, tc.wantErr)
+			case tc.wantErrSubstring != "":
+				require.ErrorContains(t, err, tc.wantErrSubstring)
+			default:
+				require.NoError(t, err)
+				require.Equal(t, tc.want, got)
+			}
 		})
 	}
 }
 
-func TestSamplingBool_HappyPaths(t *testing.T) {
+func TestNormalizedRandomFloat64_Boundaries(t *testing.T) {
 	t.Parallel()
 
-	t.Run("Case/RateZero_AlwaysFalse", func(t *testing.T) {
-		t.Parallel()
+	zero := uint32(cryptoutilSharedMagic.Float32Zero)
+	max := uint32(math.MaxUint32)
+	maxFraction := float64(max) / math.Ldexp(float64(cryptoutilSharedMagic.Float32One), cryptoutilSharedMagic.BytesPerUint32*cryptoutilSharedMagic.BitsToBytes)
+	tests := []struct {
+		name   string
+		reader io.Reader
+		want   float64
+	}{
+		{name: testCaseNameZero, reader: readerForUint32(zero), want: float64(cryptoutilSharedMagic.Float32Zero)},
+		{name: "maximum remains below one", reader: readerForUint32(max), want: maxFraction},
+	}
 
-		for i := 0; i < cryptoutilSharedMagic.JoseJADefaultMaxMaterials; i++ {
-			result, err := SamplingBool(cryptoutilSharedMagic.BaselineContributionZero)
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			got, err := normalizedRandomFloat64(tc.reader)
 			require.NoError(t, err)
-			require.False(t, result, "rate=0.0 must always return false")
-		}
-	})
+			require.Equal(t, tc.want, got)
+			require.GreaterOrEqual(t, got, float64(cryptoutilSharedMagic.Float32Zero))
+			require.Less(t, got, float64(cryptoutilSharedMagic.Float32One))
+		})
+	}
+}
 
-	t.Run("Case/RateOne_AlwaysTrue", func(t *testing.T) {
-		t.Parallel()
+func TestSkipByProbability_HappyPaths(t *testing.T) {
+	t.Parallel()
 
-		for i := 0; i < cryptoutilSharedMagic.JoseJADefaultMaxMaterials; i++ {
-			result, err := SamplingBool(cryptoutilSharedMagic.TestProbAlways)
-			require.NoError(t, err)
-			require.True(t, result, "rate=1.0 must always return true")
-		}
-	})
+	tests := []struct {
+		name        string
+		prob        float32
+		randomValue float64
+		wantSkip    bool
+		production  bool
+	}{
+		{name: "always run", prob: cryptoutilSharedMagic.Float32One, randomValue: cryptoutilSharedMagic.ConfidenceWeightFactors},
+		{name: "zero probability skips even at zero", prob: cryptoutilSharedMagic.Float32Zero, randomValue: float64(cryptoutilSharedMagic.Float32Zero), wantSkip: true},
+		{name: "sample below probability runs", prob: cryptoutilSharedMagic.ConfidenceWeightFactors, randomValue: cryptoutilSharedMagic.TestProbQuarter},
+		{name: "sample at probability skips", prob: cryptoutilSharedMagic.ConfidenceWeightFactors, randomValue: cryptoutilSharedMagic.ConfidenceWeightFactors, wantSkip: true},
+		{name: "sample above probability skips", prob: cryptoutilSharedMagic.ConfidenceWeightFactors, randomValue: math.Nextafter(cryptoutilSharedMagic.ConfidenceWeightFactors, cryptoutilSharedMagic.TestProbAlways), wantSkip: true},
+		{name: "production random source", prob: cryptoutilSharedMagic.TestProbAlways, production: true},
+	}
 
-	t.Run("Case/RateHalf_StatisticalDistribution", func(t *testing.T) {
-		t.Parallel()
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-		trueCount := 0
+			didSkip := false
+			ok := t.Run("decision", func(t *testing.T) {
+				defer func() { didSkip = t.Skipped() }()
 
-		for i := 0; i < cryptoutilSharedMagic.JoseJADefaultListLimit; i++ {
-			result, err := SamplingBool(cryptoutilSharedMagic.ConfidenceWeightFactors)
-			require.NoError(t, err)
+				if tc.production {
+					SkipByProbability(t, tc.prob)
 
-			if result {
-				trueCount++
+					return
+				}
+
+				skipByProbability(t, tc.prob, func() (float64, error) {
+					return tc.randomValue, nil
+				})
+			})
+			require.True(t, ok, "decision subtest did not complete successfully")
+			require.Equal(t, tc.wantSkip, didSkip)
+		})
+	}
+}
+
+func TestShouldSkipByProbability_SadPaths(t *testing.T) {
+	t.Parallel()
+
+	randomErr := errors.New("injected random sample failure")
+	tests := []struct {
+		name             string
+		prob             float32
+		randomFloatFn    func() (float64, error)
+		wantErr          error
+		wantErrSubstring string
+	}{
+		{name: "negative probability", prob: -cryptoutilSharedMagic.TestProbTenth, wantErrSubstring: "less than"},
+		{name: "probability above one", prob: cryptoutilSharedMagic.Float32One + cryptoutilSharedMagic.TestProbTenth, wantErrSubstring: "greater than"},
+		{name: "NaN probability", prob: float32(math.NaN()), wantErrSubstring: "NaN"},
+		{name: "nil random function", prob: cryptoutilSharedMagic.Float32One, wantErrSubstring: "random float function is nil"},
+		{name: "random source error", prob: cryptoutilSharedMagic.Float32One, randomFloatFn: func() (float64, error) { return 0, randomErr }, wantErr: randomErr},
+		{name: "random value outside range", prob: cryptoutilSharedMagic.Float32One, randomFloatFn: func() (float64, error) { return float64(cryptoutilSharedMagic.Float32One), nil }, wantErrSubstring: "outside [0,1)"},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			_, err := shouldSkipByProbability(tc.prob, tc.randomFloatFn)
+			switch {
+			case tc.wantErr != nil:
+				require.ErrorIs(t, err, tc.wantErr)
+			case tc.wantErrSubstring != "":
+				require.ErrorContains(t, err, tc.wantErrSubstring)
+			default:
+				require.NoError(t, err)
 			}
-		}
+		})
+	}
+}
 
-		// Expect ~50% true; allow ±20% tolerance for statistical variance.
-		ratio := float64(trueCount) / cryptoutilSharedMagic.JoseJADefaultListLimit
-		require.InDelta(t, cryptoutilSharedMagic.ConfidenceWeightFactors, ratio, 0.2, "SamplingBool(0.5) should return true ~50%% of the time")
-	})
+func TestSamplingBool(t *testing.T) {
+	t.Parallel()
+
+	readErr := errors.New("injected sampling reader failure")
+	zero := uint32(cryptoutilSharedMagic.Float32Zero)
+	max := uint32(math.MaxUint32)
+	tests := []struct {
+		name             string
+		rate             float64
+		reader           io.Reader
+		useProduction    bool
+		want             bool
+		wantErr          error
+		wantErrSubstring string
+	}{
+		{name: "zero rate", rate: cryptoutilSharedMagic.BaselineContributionZero, reader: readerForUint32(zero)},
+		{name: "full rate from maximum sample", rate: cryptoutilSharedMagic.TestProbAlways, reader: readerForUint32(max), want: true},
+		{name: "sample below rate", rate: cryptoutilSharedMagic.ConfidenceWeightFactors, reader: readerForUint32(zero), want: true},
+		{name: "sample above rate", rate: cryptoutilSharedMagic.ConfidenceWeightFactors, reader: readerForUint32(max)},
+		{name: "production random source at zero", rate: cryptoutilSharedMagic.BaselineContributionZero, useProduction: true},
+		{name: "production random source at full rate", rate: cryptoutilSharedMagic.TestProbAlways, useProduction: true, want: true},
+		{name: "negative rate", rate: -cryptoutilSharedMagic.TestProbTenth, reader: readerForUint32(zero), wantErrSubstring: testSamplingRateError},
+		{name: "rate above one", rate: cryptoutilSharedMagic.TestProbAlways + cryptoutilSharedMagic.TestProbTenth, reader: readerForUint32(zero), wantErrSubstring: testSamplingRateError},
+		{name: "NaN rate", rate: math.NaN(), reader: readerForUint32(zero), wantErrSubstring: testSamplingRateError},
+		{name: testCaseNameNilReader, rate: cryptoutilSharedMagic.TestProbAlways, wantErrSubstring: testRandomReaderNilError},
+		{name: testCaseNameShortRead, rate: cryptoutilSharedMagic.TestProbAlways, reader: bytes.NewReader(nil), wantErr: io.EOF},
+		{name: testCaseNameReaderFailure, rate: cryptoutilSharedMagic.TestProbAlways, reader: errorReader{err: readErr}, wantErr: readErr},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			var (
+				got bool
+				err error
+			)
+			if tc.useProduction {
+				got, err = SamplingBool(tc.rate)
+			} else {
+				got, err = samplingBool(tc.rate, tc.reader)
+			}
+
+			switch {
+			case tc.wantErr != nil:
+				require.ErrorIs(t, err, tc.wantErr)
+			case tc.wantErrSubstring != "":
+				require.ErrorContains(t, err, tc.wantErrSubstring)
+			default:
+				require.NoError(t, err)
+				require.Equal(t, tc.want, got)
+			}
+		})
+	}
+}
+
+func TestSamplingBool_StatisticalDistribution(t *testing.T) {
+	t.Parallel()
+
+	trueCount := 0
+
+	for i := 0; i < cryptoutilSharedMagic.JoseJADefaultListLimit; i++ {
+		result, err := SamplingBool(cryptoutilSharedMagic.ConfidenceWeightFactors)
+		require.NoError(t, err)
+
+		if result {
+			trueCount++
+		}
+	}
+
+	ratio := float64(trueCount) / cryptoutilSharedMagic.JoseJADefaultListLimit
+	require.InDelta(t, cryptoutilSharedMagic.ConfidenceWeightFactors, ratio, 0.2)
 }

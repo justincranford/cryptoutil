@@ -13,6 +13,20 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const (
+	testCaseNameZero          = "zero"
+	testCaseNameOne           = "one"
+	testCaseNameSpecificValue = "specific value"
+	testCaseNamePositiveOne   = "positive one"
+	testCaseNameNegativeOne   = "negative one"
+	testCaseNameShortRead     = "short read"
+	testCaseNameReaderFailure = "reader failure"
+	testCaseNameNilReader     = "nil reader"
+	testRandomReaderNilError  = "random reader is nil"
+	testSamplingRateError     = "sampling rate"
+	testByteValueThree        = 0x03
+)
+
 func TestValidInputs(t *testing.T) {
 	t.Parallel()
 

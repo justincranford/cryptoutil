@@ -65,12 +65,12 @@ func TestUint64ToBytes(t *testing.T) {
 		expected []byte
 	}{
 		{
-			name:     "zero",
+			name:     testCaseNameZero,
 			value:    0,
 			expected: []byte{0, 0, 0, 0, 0, 0, 0, 0},
 		},
 		{
-			name:     "one",
+			name:     testCaseNameOne,
 			value:    1,
 			expected: []byte{0, 0, 0, 0, 0, 0, 0, 1},
 		},
@@ -80,9 +80,9 @@ func TestUint64ToBytes(t *testing.T) {
 			expected: []byte{0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF},
 		},
 		{
-			name:     "specific value",
+			name:     testCaseNameSpecificValue,
 			value:    0x0102030405060708,
-			expected: []byte{0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08},
+			expected: []byte{0x01, 0x02, testByteValueThree, 0x04, 0x05, 0x06, 0x07, 0x08},
 		},
 	}
 
@@ -111,12 +111,12 @@ func TestUint32ToBytes(t *testing.T) {
 		expected []byte
 	}{
 		{
-			name:     "zero",
+			name:     testCaseNameZero,
 			value:    0,
 			expected: []byte{0, 0, 0, 0},
 		},
 		{
-			name:     "one",
+			name:     testCaseNameOne,
 			value:    1,
 			expected: []byte{0, 0, 0, 1},
 		},
@@ -126,9 +126,9 @@ func TestUint32ToBytes(t *testing.T) {
 			expected: []byte{0xFF, 0xFF, 0xFF, 0xFF},
 		},
 		{
-			name:     "specific value",
+			name:     testCaseNameSpecificValue,
 			value:    0x01020304,
-			expected: []byte{0x01, 0x02, 0x03, 0x04},
+			expected: []byte{0x01, 0x02, testByteValueThree, 0x04},
 		},
 	}
 
@@ -157,12 +157,12 @@ func TestUint16ToBytes(t *testing.T) {
 		expected []byte
 	}{
 		{
-			name:     "zero",
+			name:     testCaseNameZero,
 			value:    0,
 			expected: []byte{0, 0},
 		},
 		{
-			name:     "one",
+			name:     testCaseNameOne,
 			value:    1,
 			expected: []byte{0, 1},
 		},
@@ -172,7 +172,7 @@ func TestUint16ToBytes(t *testing.T) {
 			expected: []byte{0xFF, 0xFF},
 		},
 		{
-			name:     "specific value",
+			name:     testCaseNameSpecificValue,
 			value:    0x0102,
 			expected: []byte{0x01, 0x02},
 		},
@@ -203,17 +203,17 @@ func TestInt64ToBytes(t *testing.T) {
 		expected []byte
 	}{
 		{
-			name:     "zero",
+			name:     testCaseNameZero,
 			value:    0,
 			expected: []byte{0, 0, 0, 0, 0, 0, 0, 0},
 		},
 		{
-			name:     "positive one",
+			name:     testCaseNamePositiveOne,
 			value:    1,
 			expected: []byte{0, 0, 0, 0, 0, 0, 0, 1},
 		},
 		{
-			name:     "negative one",
+			name:     testCaseNameNegativeOne,
 			value:    -1,
 			expected: []byte{0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF},
 		},
@@ -250,17 +250,17 @@ func TestInt32ToBytes(t *testing.T) {
 		expected []byte
 	}{
 		{
-			name:     "zero",
+			name:     testCaseNameZero,
 			value:    0,
 			expected: []byte{0, 0, 0, 0},
 		},
 		{
-			name:     "positive one",
+			name:     testCaseNamePositiveOne,
 			value:    1,
 			expected: []byte{0, 0, 0, 1},
 		},
 		{
-			name:     "negative one",
+			name:     testCaseNameNegativeOne,
 			value:    -1,
 			expected: []byte{0xFF, 0xFF, 0xFF, 0xFF},
 		},
@@ -297,17 +297,17 @@ func TestInt16ToBytes(t *testing.T) {
 		expected []byte
 	}{
 		{
-			name:     "zero",
+			name:     testCaseNameZero,
 			value:    0,
 			expected: []byte{0, 0},
 		},
 		{
-			name:     "positive one",
+			name:     testCaseNamePositiveOne,
 			value:    1,
 			expected: []byte{0, 1},
 		},
 		{
-			name:     "negative one",
+			name:     testCaseNameNegativeOne,
 			value:    -1,
 			expected: []byte{0xFF, 0xFF},
 		},
