@@ -10,7 +10,7 @@ import (
 // RunWithSignalChan exposes the internal runWithSignalChan function for testing.
 // Tests inject a pre-populated signal channel to avoid sending real OS signals
 // to the test process, which would terminate the entire test binary.
-var RunWithSignalChan = func(
+func RunWithSignalChan(
 	ctx context.Context,
 	stdout, stderr io.Writer,
 	startFn func(ctx context.Context) error,

@@ -17,6 +17,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const lifecycleTestShutdownMessage = "shutting down gracefully"
+
 // mockServer implements Starter for testing.
 type mockServer struct {
 	startFn    func(ctx context.Context) error
@@ -49,21 +51,21 @@ func TestRunWithSignalChan_SignalPath(t *testing.T) {
 			signal:         syscall.SIGINT,
 			shutdownErr:    nil,
 			wantExitCode:   0,
-			wantStdoutText: "shutting down gracefully",
+			wantStdoutText: lifecycleTestShutdownMessage,
 		},
 		{
 			name:           "SIGTERM clean shutdown",
 			signal:         syscall.SIGTERM,
 			shutdownErr:    nil,
 			wantExitCode:   0,
-			wantStdoutText: "shutting down gracefully",
+			wantStdoutText: lifecycleTestShutdownMessage,
 		},
 		{
 			name:           "SIGINT with shutdown error",
 			signal:         syscall.SIGINT,
 			shutdownErr:    errors.New("shutdown failed"),
 			wantExitCode:   0, // shutdown errors don't change exit code
-			wantStdoutText: "shutting down gracefully",
+			wantStdoutText: lifecycleTestShutdownMessage,
 			wantStderrText: "Shutdown error",
 		},
 	}
