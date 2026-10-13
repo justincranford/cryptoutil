@@ -11,7 +11,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"regexp"
 	"runtime"
@@ -25,32 +24,7 @@ import (
 	"golang.org/x/text/language"
 )
 
-// setupCmdPipes is a package-level function variable for creating stdout and stderr
-// pipes from an exec.Cmd. It is defined as a variable to allow injection during
-// testing to exercise the error handling paths that are otherwise unreachable.
-var setupCmdPipes = func(cmd *exec.Cmd) (io.ReadCloser, io.ReadCloser, error) {
-	stdout, err := cmd.StdoutPipe()
-	if err != nil {
-		return nil, nil, fmt.Errorf("create stdout pipe: %w", err)
-	}
-
-	stderr, err := cmd.StderrPipe()
-	if err != nil {
-		return nil, nil, fmt.Errorf("create stderr pipe: %w", err)
-	}
-
-	return stdout, stderr, nil
-}
-
-// doCloseFile is a package-level function variable for closing a file.
-// It is defined as a variable to allow injection during testing to exercise
-// the close error handling path that is otherwise unreachable.
-var doCloseFile = func(f *os.File) error {
-	return f.Close()
-}
-
-// WorkflowConfig defines a GitHub Actions workflow that can be run locally with act.
-func executeWorkflow(wf WorkflowExecution, combinedLog *os.File, outputDir string, dryRun bool, actPath, actArgs string) WorkflowResult {
+func executeWorkflowWithDependencies(wf WorkflowExecution, combinedLog *os.File, outputDir string, dryRun bool, actPath, actArgs string, dependencies workflowDependencies) WorkflowResult {
 	result := WorkflowResult{
 		Name:         wf.Name,
 		TaskResults:  make(map[string]TaskResult),
@@ -134,7 +108,7 @@ func executeWorkflow(wf WorkflowExecution, combinedLog *os.File, outputDir strin
 	fmt.Printf("🚀 Executing: %s %s\n", actPath, strings.Join(args, " "))
 
 	// Create workflow log file.
-	workflowLog, err := os.OpenFile(result.LogFile, os.O_CREATE|os.O_WRONLY|os.O_APPEND, cryptoutilSharedMagic.FilePermOwnerReadWriteGroupRead)
+	workflowLog, err := dependencies.openFileFn(result.LogFile, os.O_CREATE|os.O_WRONLY|os.O_APPEND, cryptoutilSharedMagic.FilePermOwnerReadWriteGroupRead)
 	if err != nil {
 		errMsg := fmt.Sprintf("%sError creating workflow log file: %v%s\n", cryptoutilSharedMagic.ColorRed, err, cryptoutilSharedMagic.ColorReset)
 		fmt.Print(errMsg)
@@ -155,16 +129,16 @@ func executeWorkflow(wf WorkflowExecution, combinedLog *os.File, outputDir strin
 	}
 
 	defer func() {
-		if err := doCloseFile(workflowLog); err != nil {
+		if err := dependencies.closeFileFn(workflowLog); err != nil {
 			fmt.Fprintf(os.Stderr, "Warning: failed to close workflow log: %v\n", err)
 		}
 	}()
 
 	// Execute act command.
-	cmd := exec.CommandContext(context.Background(), actPath, args...) //nolint:gosec // User-controlled input is intentional for local testing
+	cmd := dependencies.commandContextFn(context.Background(), actPath, args...) //nolint:gosec // User-controlled input is intentional for local testing
 
 	// Setup stdout and stderr pipes for dual logging.
-	stdoutPipe, stderrPipe, err := setupCmdPipes(cmd)
+	stdoutPipe, stderrPipe, err := dependencies.setupCmdPipesFn(cmd)
 	if err != nil {
 		errMsg := fmt.Sprintf("%sError creating command pipes: %v%s\n", cryptoutilSharedMagic.ColorRed, err, cryptoutilSharedMagic.ColorReset)
 		fmt.Print(errMsg)
@@ -280,11 +254,8 @@ func getWorkflowFile(workflowName string) string {
 	return fmt.Sprintf(".github/workflows/ci-%s.yml", workflowName)
 }
 
-// getWorkflowDescription returns the description for a given workflow name by reading it from the workflow file.
-func getWorkflowDescription(workflowName string) string {
-	workflowFile := getWorkflowFile(workflowName)
-
-	content, err := os.ReadFile(workflowFile)
+func getWorkflowDescription(workflowFile, workflowName string, readFileFn func(string) ([]byte, error)) string {
+	content, err := readFileFn(workflowFile)
 	if err != nil {
 		// Fallback to a generic description if file cannot be read
 		caser := cases.Title(language.English)

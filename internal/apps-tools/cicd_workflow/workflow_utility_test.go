@@ -59,50 +59,50 @@ func TestContains(t *testing.T) {
 	}{
 		{
 			name:     "Item exists in slice",
-			slice:    []string{"quality", "coverage", cryptoutilSharedMagic.WorkflowNameDAST},
-			item:     "coverage",
+			slice:    []string{workflowTestNameQuality, workflowTestNameCoverage, cryptoutilSharedMagic.WorkflowNameDAST},
+			item:     workflowTestNameCoverage,
 			expected: true,
 		},
 		{
 			name:     "Item does not exist in slice",
-			slice:    []string{"quality", "coverage", cryptoutilSharedMagic.WorkflowNameDAST},
+			slice:    []string{workflowTestNameQuality, workflowTestNameCoverage, cryptoutilSharedMagic.WorkflowNameDAST},
 			item:     cryptoutilSharedMagic.UNKNOWN,
 			expected: false,
 		},
 		{
 			name:     "Empty slice",
 			slice:    []string{},
-			item:     "quality",
+			item:     workflowTestNameQuality,
 			expected: false,
 		},
 		{
 			name:     "Nil slice",
 			slice:    nil,
-			item:     "quality",
+			item:     workflowTestNameQuality,
 			expected: false,
 		},
 		{
 			name:     "Item at start of slice",
-			slice:    []string{"first", "second", "third"},
-			item:     "first",
+			slice:    []string{workflowTestNameFirst, workflowTestNameSecond, workflowTestNameThird},
+			item:     workflowTestNameFirst,
 			expected: true,
 		},
 		{
 			name:     "Item at end of slice",
-			slice:    []string{"first", "second", "third"},
-			item:     "third",
+			slice:    []string{workflowTestNameFirst, workflowTestNameSecond, workflowTestNameThird},
+			item:     workflowTestNameThird,
 			expected: true,
 		},
 		{
 			name:     "Case sensitive check - exact match",
-			slice:    []string{"Quality", "Coverage"},
-			item:     "Quality",
+			slice:    []string{workflowTestTitleQuality, workflowTestTitleCoverage},
+			item:     workflowTestTitleQuality,
 			expected: true,
 		},
 		{
 			name:     "Case sensitive check - no match",
-			slice:    []string{"Quality", "Coverage"},
-			item:     "quality",
+			slice:    []string{workflowTestTitleQuality, workflowTestTitleCoverage},
+			item:     workflowTestNameQuality,
 			expected: false,
 		},
 	}
@@ -129,12 +129,12 @@ func TestGetWorkflowFile(t *testing.T) {
 	}{
 		{
 			name:         "Quality workflow",
-			workflowName: "quality",
+			workflowName: workflowTestNameQuality,
 			expected:     ".github/workflows/ci-quality.yml",
 		},
 		{
 			name:         "Coverage workflow",
-			workflowName: "coverage",
+			workflowName: workflowTestNameCoverage,
 			expected:     ".github/workflows/ci-coverage.yml",
 		},
 		{
@@ -172,12 +172,12 @@ func TestGetWorkflowLogFile(t *testing.T) {
 		{
 			name:         "Quality workflow in default output dir",
 			outputDir:    cryptoutilSharedMagic.CICDExcludeDirTestOutput,
-			workflowName: "quality",
+			workflowName: workflowTestNameQuality,
 		},
 		{
 			name:         "Coverage workflow in custom dir",
-			outputDir:    "/tmp/output",
-			workflowName: "coverage",
+			outputDir:    workflowTestCustomOutputDir,
+			workflowName: workflowTestNameCoverage,
 		},
 		{
 			name:         "DAST workflow in relative dir",

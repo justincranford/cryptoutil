@@ -116,6 +116,10 @@ func run(args []string) int {
 // runWithWorkflowsDir executes the workflow runner with a configurable workflows directory.
 // This separation enables testing without changing the process working directory.
 func runWithWorkflowsDir(args []string, workflowsDir string) int {
+	return runWithWorkflowsDirAndDependencies(args, workflowsDir, newWorkflowDependencies())
+}
+
+func runWithWorkflowsDirAndDependencies(args []string, workflowsDir string, dependencies workflowDependencies) int {
 	// Create flag set for parsing.
 	fs := flag.NewFlagSet(cryptoutilSharedMagic.CICDCmdDirWorkflow, flag.ContinueOnError)
 
@@ -133,7 +137,7 @@ func runWithWorkflowsDir(args []string, workflowsDir string) int {
 	}
 
 	// Get available workflows - inline the call here
-	availableWorkflows, err := getAvailableWorkflows(workflowsDir)
+	availableWorkflows, err := getAvailableWorkflows(workflowsDir, dependencies.readFileFn)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%sError reading workflows directory: %v%s\n", cryptoutilSharedMagic.ColorRed, err, cryptoutilSharedMagic.ColorReset)
 		fmt.Fprintf(os.Stderr, "Make sure you're running from the project root with .github/workflows/ directory.\n")
@@ -172,14 +176,14 @@ func runWithWorkflowsDir(args []string, workflowsDir string) int {
 	}
 
 	// Setup output directory.
-	if err := os.MkdirAll(*outputDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute); err != nil {
+	if err := dependencies.makeDirectoryFn(*outputDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute); err != nil {
 		fmt.Fprintf(os.Stderr, "%sError creating output directory: %v%s\n", cryptoutilSharedMagic.ColorRed, err, cryptoutilSharedMagic.ColorReset)
 
 		return 1
 	}
 
 	// Open combined log file.
-	combinedLog, err := os.OpenFile(summary.CombinedLog, os.O_CREATE|os.O_WRONLY|os.O_APPEND, cryptoutilSharedMagic.FilePermOwnerReadWriteGroupRead)
+	combinedLog, err := dependencies.openFileFn(summary.CombinedLog, os.O_CREATE|os.O_WRONLY|os.O_APPEND, cryptoutilSharedMagic.FilePermOwnerReadWriteGroupRead)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%sError creating combined log file: %v%s\n", cryptoutilSharedMagic.ColorRed, err, cryptoutilSharedMagic.ColorReset)
 
@@ -187,7 +191,7 @@ func runWithWorkflowsDir(args []string, workflowsDir string) int {
 	}
 
 	defer func() {
-		if err := doCloseFile(combinedLog); err != nil {
+		if err := dependencies.closeFileFn(combinedLog); err != nil {
 			fmt.Fprintf(os.Stderr, "Warning: failed to close combined log: %v\n", err)
 		}
 	}()
@@ -197,7 +201,7 @@ func runWithWorkflowsDir(args []string, workflowsDir string) int {
 
 	// Execute workflows sequentially.
 	for _, wf := range selectedWorkflows {
-		result := executeWorkflow(wf, combinedLog, *outputDir, *dryRun, *actPath, *actArgs)
+		result := executeWorkflowWithDependencies(wf, combinedLog, *outputDir, *dryRun, *actPath, *actArgs, dependencies)
 		summary.Workflows = append(summary.Workflows, result)
 
 		if result.Success {
@@ -223,7 +227,7 @@ func runWithWorkflowsDir(args []string, workflowsDir string) int {
 }
 
 // getAvailableWorkflows returns a map of available workflows by reading ci-*.yml files from .github/workflows/.
-func getAvailableWorkflows(workflowsDir string) (map[string]WorkflowConfig, error) {
+func getAvailableWorkflows(workflowsDir string, readFileFn func(string) ([]byte, error)) (map[string]WorkflowConfig, error) {
 	files, err := os.ReadDir(workflowsDir)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read workflows directory: %w", err)
@@ -243,7 +247,9 @@ func getAvailableWorkflows(workflowsDir string) (map[string]WorkflowConfig, erro
 			workflowName := strings.TrimPrefix(filename, "ci-")
 			workflowName = strings.TrimSuffix(workflowName, ".yml")
 
-			workflows[workflowName] = WorkflowConfig{Description: getWorkflowDescription(workflowName)}
+			workflows[workflowName] = WorkflowConfig{
+				Description: getWorkflowDescription(filepath.Join(workflowsDir, filename), workflowName, readFileFn),
+			}
 		}
 	}
 
@@ -269,9 +275,9 @@ func printHelp(availableWorkflows map[string]WorkflowConfig) {
 
 	fmt.Println("\n" + strings.Repeat("=", cryptoutilSharedMagic.LineWidth))
 	fmt.Println("\nUsage:")
-	fmt.Println("  go run ./cmd/cicd-workflow -workflows=e2e,dast")
-	fmt.Println("  go run ./cmd/cicd-workflow -workflows=quality -dry-run")
-	fmt.Println("  go run ./cmd/cicd-workflow -list")
+	fmt.Println("  go run ./cmd/cicd-workflow run -workflows=e2e,dast")
+	fmt.Println("  go run ./cmd/cicd-workflow run -workflows=quality -dry-run")
+	fmt.Println("  go run ./cmd/cicd-workflow run -help")
 	fmt.Println()
 }
 

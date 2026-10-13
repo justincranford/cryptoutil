@@ -14,97 +14,83 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// Sequential: uses os.Chdir (global process state).
-func TestGetAvailableWorkflows(t *testing.T) { // Create a temporary directory structure to simulate .github/workflows/
-	tempDir := t.TempDir()
-	workflowsDir := filepath.Join(tempDir, "test_workflows")
-
-	// Create the workflows directory
-	err := os.MkdirAll(workflowsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute)
-	require.NoError(t, err, "Failed to create workflows directory")
-
-	// Create some test workflow files
-	testFiles := []string{
-		"ci-quality.yml",
-		"ci-coverage.yml",
-		"ci-dast.yml",
-		"ci-load.yml",
-		"not-ci-file.yml", // Should be ignored (doesn't start with ci-)
-		"ci-test.txt",     // Should be ignored (not .yml extension)
-		"ci-race.yml",
-	}
-
-	for _, filename := range testFiles {
-		filePath := filepath.Join(workflowsDir, filename)
-
-		err := os.WriteFile(filePath, []byte("name: Test Workflow"), cryptoutilSharedMagic.FilePermOwnerReadWriteOnly)
-		require.NoError(t, err, "Failed to create test file %s", filename)
-	}
-
-	// Create a subdirectory (should be ignored)
-	subDir := filepath.Join(workflowsDir, "subdir")
-
-	err = os.MkdirAll(subDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute)
-	require.NoError(t, err, "Failed to create subdirectory")
-
-	// Change to the temp directory to test the function
-	originalWd, err := os.Getwd()
-	require.NoError(t, err, "Failed to get current working directory")
-
-	defer func() {
-		if chdirErr := os.Chdir(originalWd); chdirErr != nil {
-			require.NoError(t, chdirErr, "Failed to restore working directory")
-		}
-	}()
-
-	err = os.Chdir(tempDir)
-	require.NoError(t, err, "Failed to change to temp directory")
-
-	// Test the function
-	workflows, err := getAvailableWorkflows(workflowsDir)
-	require.NoError(t, err, "getAvailableWorkflows() returned error")
-
-	// Verify expected workflows are found
-	expectedWorkflows := map[string]bool{
-		"quality":                              true,
-		"coverage":                             true,
-		cryptoutilSharedMagic.WorkflowNameDAST: true,
-		cryptoutilSharedMagic.WorkflowNameLoad: true,
-		"race":                                 true,
-	}
-
-	require.Equal(t, len(expectedWorkflows), len(workflows))
-
-	for workflowName := range expectedWorkflows {
-		require.Contains(t, workflows, workflowName)
-	}
-
-	// Verify unexpected workflows are not included
-	unexpectedWorkflows := []string{"not-ci-file", "test"}
-	for _, workflowName := range unexpectedWorkflows {
-		require.NotContains(t, workflows, workflowName)
-	}
-}
-
-func TestGetAvailableWorkflows_NoWorkflowsDir(t *testing.T) {
+func TestGetAvailableWorkflows(t *testing.T) {
 	t.Parallel()
-	// Test the function - should return error
-	_, err := getAvailableWorkflows(".github/workflows_nonexistent")
-	require.Error(t, err, "Expected error when workflows directory doesn't exist")
-}
 
-func TestGetAvailableWorkflows_EmptyDir(t *testing.T) {
-	t.Parallel()
-	// Test with an empty directory
-	tempDir := t.TempDir()
-	workflowsDir := filepath.Join(tempDir, "empty_workflows")
+	tests := []struct {
+		name        string
+		createDir   bool
+		files       []string
+		wantNames   []string
+		wantErrText string
+	}{
+		{
+			name:      "filters workflow files and ignores directories",
+			createDir: true,
+			files: []string{
+				"ci-quality.yml",
+				"ci-coverage.yml",
+				"ci-dast.yml",
+				"ci-load.yml",
+				"ci-race.yml",
+				"not-ci-file.yml",
+				"ci-test.txt",
+			},
+			wantNames: []string{
+				workflowTestNameQuality,
+				workflowTestNameCoverage,
+				cryptoutilSharedMagic.WorkflowNameDAST,
+				cryptoutilSharedMagic.WorkflowNameLoad,
+				"race",
+			},
+		},
+		{name: "missing workflow directory", wantErrText: "failed to read workflows directory"},
+		{name: "empty workflow directory", createDir: true, wantErrText: "no workflows found"},
+	}
 
-	// Create the empty directory
-	err := os.MkdirAll(workflowsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute)
-	require.NoError(t, err, "Failed to create empty workflows directory")
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-	// Test the function
-	workflows, err := getAvailableWorkflows(workflowsDir)
-	require.Error(t, err, "getAvailableWorkflows() returned error")
-	require.Nil(t, workflows, "Expected nil workflows map for empty directory")
+			workflowsDir := filepath.Join(t.TempDir(), "workflows")
+			if tc.createDir {
+				err := os.MkdirAll(workflowsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute)
+				require.NoError(t, err)
+			}
+
+			for _, filename := range tc.files {
+				err := os.WriteFile(
+					filepath.Join(workflowsDir, filename),
+					[]byte("name: Test Workflow"),
+					cryptoutilSharedMagic.FilePermOwnerReadWriteOnly,
+				)
+				require.NoError(t, err)
+			}
+
+			if len(tc.files) > 0 {
+				err := os.MkdirAll(filepath.Join(workflowsDir, "subdir"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute)
+				require.NoError(t, err)
+			}
+
+			workflows, err := getAvailableWorkflows(workflowsDir, os.ReadFile)
+			if tc.wantErrText != "" {
+				require.ErrorContains(t, err, tc.wantErrText)
+				require.Nil(t, workflows)
+
+				return
+			}
+
+			require.NoError(t, err)
+			require.Len(t, workflows, len(tc.wantNames))
+
+			for _, workflowName := range tc.wantNames {
+				workflow, ok := workflows[workflowName]
+				require.True(t, ok)
+				require.Equal(t, "Test Workflow", workflow.Description)
+			}
+
+			require.NotContains(t, workflows, "not-ci-file")
+			require.NotContains(t, workflows, "test")
+		})
+	}
 }

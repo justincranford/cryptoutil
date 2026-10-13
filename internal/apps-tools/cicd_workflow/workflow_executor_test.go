@@ -5,14 +5,14 @@
 package cicd_workflow
 
 import (
-	"fmt"
+	"context"
+	"errors"
 	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
-	"runtime"
+	"strconv"
 	"strings"
-	"sync"
 	"testing"
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
@@ -20,285 +20,337 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// varMu guards mutations of package-level function variables used for injection.
-var varMu sync.Mutex
+const (
+	workflowTestChildFailureEnv               = "CICD_WORKFLOW_TEST_CHILD_FAILURE"
+	workflowTestNameMock                      = "mock"
+	workflowTestNameQuality                   = "quality"
+	workflowTestNameCoverage                  = "coverage"
+	workflowTestTitleCoverage                 = "Coverage"
+	workflowTestDescriptionQualityChecks      = "Quality checks"
+	workflowTestDescriptionCoverageCollection = "Coverage collection"
+	workflowTestArgWorkflowsMock              = "-workflows=mock"
+	workflowTestArgDryRun                     = "-dry-run"
+	workflowTestArgVerbose                    = "-act-args=--verbose"
+	workflowTestCustomOutputDir               = "custom-output"
+	workflowTestCaseWithWarnings              = "with warnings"
+	workflowTestNameReadFailure               = "read_failure"
+	workflowTestNameFirst                     = "first"
+	workflowTestNameSecond                    = "second"
+	workflowTestNameThird                     = "third"
+	workflowTestTitleQuality                  = "Quality"
+)
 
-// TestRun_DirectCall exercises the run() wrapper (0% coverage baseline).
-// Not parallel: run() uses ".github/workflows" relative to CWD; no .github here.
-// Sequential: uses os.Chdir (global process state).
 func TestRun_DirectCall(t *testing.T) {
+	t.Parallel()
+
 	result := run([]string{})
-	require.Equal(t, 1, result) // Fails: no .github/workflows in package dir.
+	require.Equal(t, 1, result)
 }
 
-// TestRunWithWorkflowsDir_ParseFlagError tests flag parse error path.
 func TestRunWithWorkflowsDir_ParseFlagError(t *testing.T) {
 	t.Parallel()
 
-	wfDir := makeWorkflowsDir(t, "mock")
-	// --invalid-flag-xyz is not registered; ContinueOnError returns error.
-	result := runWithWorkflowsDir([]string{"--invalid-flag-xyz=bad"}, wfDir)
+	result := runWithWorkflowsDir([]string{"--invalid-flag-xyz=bad"}, makeWorkflowsDir(t, workflowTestNameMock))
 	require.Equal(t, 1, result)
 }
 
-// TestRunWithWorkflowsDir_NonDryRun_FalseBinary tests cmd.Wait failure path.
-// /bin/false exits with code 1, causing result.Success=false and the failed footer.
-func TestRunWithWorkflowsDir_NonDryRun_FalseBinary(t *testing.T) {
+func TestRunWithWorkflowsDir_NonDryRun_ProcessResults(t *testing.T) {
 	t.Parallel()
 
-	tempDir := t.TempDir()
-	wfDir := makeWorkflowsDir(t, "mock")
-	outputDir := filepath.Join(tempDir, "output")
-
-	result := runWithWorkflowsDir([]string{
-		"-workflows=mock",
-		"-act-path=/bin/false",
-		"-act-args=extra-arg",
-		"-output=" + outputDir,
-	}, wfDir)
-
-	require.Equal(t, 1, result) // /bin/false exits 1; TotalFailed > 0.
-}
-
-// TestRunWithWorkflowsDir_NonDryRun_DastWorkflow tests DAST event type selection.
-// WorkflowNameDAST triggers workflow_dispatch event instead of push in non-dry-run.
-func TestRunWithWorkflowsDir_NonDryRun_DastWorkflow(t *testing.T) {
-	t.Parallel()
-
-	tempDir := t.TempDir()
-	wfDir := makeWorkflowsDir(t, cryptoutilSharedMagic.WorkflowNameDAST)
-	outputDir := filepath.Join(tempDir, "output")
-
-	result := runWithWorkflowsDir([]string{
-		"-workflows=" + cryptoutilSharedMagic.WorkflowNameDAST,
-		"-act-path=/bin/false",
-		"-output=" + outputDir,
-	}, wfDir)
-
-	// /bin/false exits 1 but DAST event selection code path is exercised.
-	require.Equal(t, 1, result)
-}
-
-// TestRunWithWorkflowsDir_CombinedLogCreationFails tests the OpenFile failure path.
-// Creates outputDir as read-only so the combined log file cannot be created.
-func TestRunWithWorkflowsDir_CombinedLogCreationFails(t *testing.T) {
-	t.Parallel()
-
-	if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
-		t.Skip("os.Chmod read-only enforcement is not reliable on Windows.")
+	tests := []struct {
+		name           string
+		workflowName   string
+		commandFails   bool
+		wantExitStatus int
+		wantEvent      string
+	}{
+		{
+			name:           "successful regular workflow",
+			workflowName:   workflowTestNameMock,
+			wantExitStatus: 0,
+			wantEvent:      cryptoutilSharedMagic.EventTypePush,
+		},
+		{
+			name:           "failed regular workflow",
+			workflowName:   workflowTestNameMock,
+			commandFails:   true,
+			wantExitStatus: 1,
+			wantEvent:      cryptoutilSharedMagic.EventTypePush,
+		},
+		{
+			name:           "DAST workflow uses dispatch event",
+			workflowName:   cryptoutilSharedMagic.WorkflowNameDAST,
+			wantExitStatus: 0,
+			wantEvent:      cryptoutilSharedMagic.EventTypeWorkflowDispatch,
+		},
 	}
 
-	wfDir := makeWorkflowsDir(t, "mock")
-	parentDir := t.TempDir()
-	outputDir := filepath.Join(parentDir, "noaccess")
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-	err := os.MkdirAll(outputDir, cryptoutilSharedMagic.FilePermOwnerReadOnlyGroupOtherReadOnly)
-	require.NoError(t, err)
+			dependencies := newWorkflowDependencies()
 
-	t.Cleanup(func() {
-		_ = os.Chmod(outputDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute)
-	})
+			var actualArgs []string
 
-	result := runWithWorkflowsDir([]string{
-		"-workflows=mock",
-		"-dry-run",
-		"-output=" + outputDir,
-	}, wfDir)
+			dependencies.commandContextFn = func(ctx context.Context, _ string, args ...string) *exec.Cmd {
+				actualArgs = append([]string(nil), args...)
 
-	require.Equal(t, 1, result)
+				return workflowTestProcess(t, ctx, tc.commandFails)
+			}
+
+			result := runWithWorkflowsDirAndDependencies([]string{
+				"-workflows=" + tc.workflowName,
+				workflowTestArgVerbose,
+				"-output=" + filepath.Join(t.TempDir(), "output"),
+			}, makeWorkflowsDir(t, tc.workflowName), dependencies)
+
+			require.Equal(t, tc.wantExitStatus, result)
+			require.NotEmpty(t, actualArgs)
+			require.Equal(t, tc.wantEvent, actualArgs[0])
+			require.Contains(t, actualArgs, "--verbose")
+		})
+	}
 }
 
-// TestExecuteWorkflow_WorkflowLogCreationFailure tests the workflow log failure path.
-// Valid combinedLog (non-nil) with non-existent outputDir: log file cannot be created.
-func TestExecuteWorkflow_WorkflowLogCreationFailure(t *testing.T) {
+func TestRunWithWorkflowsDir_OutputSetupFailures(t *testing.T) {
 	t.Parallel()
 
-	tmpFile, err := os.CreateTemp("", "combined-log-test-*")
-	require.NoError(t, err)
+	tests := []struct {
+		name          string
+		failDirectory bool
+	}{
+		{name: "output directory creation failure", failDirectory: true},
+		{name: "combined log open failure"},
+	}
 
-	t.Cleanup(func() { _ = tmpFile.Close() })
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-	wf := WorkflowExecution{Name: "testcoveragelog"}
-	result := executeWorkflow(wf, tmpFile, "/totally/nonexistent/dir/xyz123", false, "/bin/echo", "")
+			dependencies := newWorkflowDependencies()
+			if tc.failDirectory {
+				dependencies.makeDirectoryFn = func(string, os.FileMode) error {
+					return errors.New("injected directory creation failure")
+				}
+			} else {
+				dependencies.openFileFn = func(string, int, os.FileMode) (*os.File, error) {
+					return nil, errors.New("injected combined log open failure")
+				}
+			}
+
+			result := runWithWorkflowsDirAndDependencies([]string{
+				workflowTestArgWorkflowsMock,
+				workflowTestArgDryRun,
+				"-output=" + filepath.Join(t.TempDir(), "output"),
+			}, makeWorkflowsDir(t, workflowTestNameMock), dependencies)
+
+			require.Equal(t, 1, result)
+		})
+	}
+}
+
+func TestExecuteWorkflow_OpenLogFailure(t *testing.T) {
+	t.Parallel()
+
+	dependencies := newWorkflowDependencies()
+	dependencies.openFileFn = func(string, int, os.FileMode) (*os.File, error) {
+		return nil, errors.New("injected workflow log open failure")
+	}
+
+	result := executeWorkflowWithDependencies(
+		WorkflowExecution{Name: workflowTestNameMock}, nil, t.TempDir(), false, "unused", "", dependencies,
+	)
+
 	require.False(t, result.Success)
-	require.NotEmpty(t, result.ErrorMessages)
+	require.Contains(t, result.ErrorMessages, "injected workflow log open failure")
 }
 
-// TestExecuteWorkflow_PipeSetupFailure tests the setupCmdPipes error path.
-// Injects a mock that returns an error from setupCmdPipes.
-// Not parallel: modifies package-level setupCmdPipes variable.
-// Sequential: modifies package-level setupCmdPipes function variable.
 func TestExecuteWorkflow_PipeSetupFailure(t *testing.T) {
-	varMu.Lock()
+	t.Parallel()
 
-	origSetupCmdPipes := setupCmdPipes
-	setupCmdPipes = func(_ *exec.Cmd) (io.ReadCloser, io.ReadCloser, error) {
-		return nil, nil, fmt.Errorf("mock pipe setup error")
+	dependencies := newWorkflowDependencies()
+	dependencies.setupCmdPipesFn = func(*exec.Cmd) (io.ReadCloser, io.ReadCloser, error) {
+		return nil, nil, errors.New("injected command pipe setup failure")
 	}
 
-	varMu.Unlock()
-
-	t.Cleanup(func() {
-		varMu.Lock()
-
-		setupCmdPipes = origSetupCmdPipes
-
-		varMu.Unlock()
-	})
-
-	tempDir := t.TempDir()
-	wfDir := makeWorkflowsDir(t, "mock")
-	outputDir := filepath.Join(tempDir, "output")
-
-	result := runWithWorkflowsDir([]string{
-		"-workflows=mock",
-		"-act-path=/bin/echo",
-		"-output=" + outputDir,
-	}, wfDir)
-
-	require.Equal(t, 1, result)
-}
-
-// TestExecuteWorkflow_WorkflowLogCloseError tests the deferred workflowLog.Close error.
-// Injects a doCloseFile mock that returns an error on the first call.
-// Not parallel: modifies package-level doCloseFile variable.
-// Sequential: modifies package-level doCloseFile function variable.
-func TestExecuteWorkflow_WorkflowLogCloseError(t *testing.T) {
-	if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
-		t.Skip("/bin/echo is not available on Windows.")
-	}
-
-	var closeCallCount int
-
-	varMu.Lock()
-
-	origDoCloseFile := doCloseFile
-	closeCallCount = 0
-	doCloseFile = func(f *os.File) error {
-		closeCallCount++
-		if closeCallCount == 1 {
-			// First call is for workflowLog inside executeWorkflow.
-			_ = f.Close() // Close OS handle to prevent Windows file-lock on TempDir cleanup.
-
-			return fmt.Errorf("mock workflow log close error")
-		}
-		// Subsequent calls use real close.
-		return f.Close()
-	}
-
-	varMu.Unlock()
-
-	t.Cleanup(func() {
-		varMu.Lock()
-
-		doCloseFile = origDoCloseFile
-
-		varMu.Unlock()
-	})
-
-	tempDir := t.TempDir()
-	wfDir := makeWorkflowsDir(t, "mock")
-	outputDir := filepath.Join(tempDir, "output")
-
-	// /bin/echo exits 0 so the workflow succeeds despite the close error warning.
-	result := runWithWorkflowsDir([]string{
-		"-workflows=mock",
-		"-act-path=/bin/echo",
-		"-output=" + outputDir,
-	}, wfDir)
-
-	require.Equal(t, 0, result)
-}
-
-// TestExecuteWorkflow_CombinedLogCloseError tests the deferred combinedLog.Close error.
-// Exercises the doCloseFile path for combinedLog in workflow.go.
-// Not parallel: modifies package-level doCloseFile variable.
-// Sequential: modifies package-level doCloseFile function variable.
-func TestExecuteWorkflow_CombinedLogCloseError(t *testing.T) {
-	if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
-		t.Skip("/bin/echo is not available on Windows.")
-	}
-
-	var closeCallCount int
-
-	varMu.Lock()
-
-	origDoCloseFile := doCloseFile
-	closeCallCount = 0
-	doCloseFile = func(f *os.File) error {
-		closeCallCount++
-		if closeCallCount == 2 { //nolint:mnd // 2nd close call = combinedLog.
-			_ = f.Close() // Close OS handle to prevent Windows file-lock on TempDir cleanup.
-
-			return fmt.Errorf("mock combined log close error")
-		}
-
-		return f.Close()
-	}
-
-	varMu.Unlock()
-
-	t.Cleanup(func() {
-		varMu.Lock()
-
-		doCloseFile = origDoCloseFile
-
-		varMu.Unlock()
-	})
-
-	tempDir := t.TempDir()
-	wfDir := makeWorkflowsDir(t, "mock")
-	outputDir := filepath.Join(tempDir, "output")
-
-	result := runWithWorkflowsDir([]string{
-		"-workflows=mock",
-		"-act-path=/bin/echo",
-		"-output=" + outputDir,
-	}, wfDir)
-
-	// Run should succeed even though combinedLog.Close() failed.
-	require.Equal(t, 0, result)
-}
-
-// TestGetWorkflowDescription_WithFile exercises the file-reading path.
-// Not parallel: requires CWD change via os.Chdir.
-// Sequential: uses os.Chdir (global process state).
-func TestGetWorkflowDescription_WithFile(t *testing.T) {
-	tempDir := t.TempDir()
-	wfDir := filepath.Join(tempDir, cryptoutilSharedMagic.CICDExcludeDirGithubInstructions, "workflows")
-	err := os.MkdirAll(wfDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute)
-	require.NoError(t, err)
-
-	// File with a name field.
-	err = os.WriteFile(
-		filepath.Join(wfDir, "ci-mytest.yml"),
-		[]byte("name: My Test Workflow\non:\n  push:\n"),
-		cryptoutilSharedMagic.FilePermOwnerReadWriteGroupRead,
+	result := executeWorkflowWithDependencies(
+		WorkflowExecution{Name: workflowTestNameMock}, nil, t.TempDir(), false, "unused", "", dependencies,
 	)
+
+	require.False(t, result.Success)
+	require.Contains(t, result.ErrorMessages, "injected command pipe setup failure")
+}
+
+func TestSetupCommandPipes(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name        string
+		configure   func(*exec.Cmd)
+		wantErrText string
+	}{
+		{name: "creates both pipes"},
+		{
+			name: "stdout already configured",
+			configure: func(command *exec.Cmd) {
+				command.Stdout = io.Discard
+			},
+			wantErrText: "create stdout pipe",
+		},
+		{
+			name: "stderr already configured",
+			configure: func(command *exec.Cmd) {
+				command.Stderr = io.Discard
+			},
+			wantErrText: "create stderr pipe",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			command := &exec.Cmd{}
+			if tc.configure != nil {
+				tc.configure(command)
+			}
+
+			stdout, stderr, err := setupCommandPipes(command)
+			if tc.wantErrText != "" {
+				require.ErrorContains(t, err, tc.wantErrText)
+				require.Nil(t, stdout)
+				require.Nil(t, stderr)
+
+				return
+			}
+
+			require.NoError(t, err)
+			require.NotNil(t, stdout)
+			require.NotNil(t, stderr)
+			require.NoError(t, stdout.Close())
+			require.NoError(t, stderr.Close())
+
+			stdoutWriter, ok := command.Stdout.(*os.File)
+			require.True(t, ok)
+
+			stdoutCloseErr := stdoutWriter.Close()
+			require.NoError(t, stdoutCloseErr)
+
+			stderrWriter, ok := command.Stderr.(*os.File)
+			require.True(t, ok)
+
+			stderrCloseErr := stderrWriter.Close()
+			require.NoError(t, stderrCloseErr)
+		})
+	}
+}
+
+func TestRunWithWorkflowsDir_CloseFailures(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name             string
+		failFileNameWith string
+	}{
+		{name: "workflow log close warning", failFileNameWith: "mock-"},
+		{name: "combined log close warning", failFileNameWith: "combined-"},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			dependencies := newWorkflowDependencies()
+
+			var injectedFailure bool
+
+			dependencies.commandContextFn = func(ctx context.Context, _ string, _ ...string) *exec.Cmd {
+				return workflowTestProcess(t, ctx, false)
+			}
+			dependencies.closeFileFn = func(file *os.File) error {
+				if strings.HasPrefix(filepath.Base(file.Name()), tc.failFileNameWith) {
+					injectedFailure = true
+					_ = file.Close()
+
+					return errors.New("injected file close failure")
+				}
+
+				return file.Close()
+			}
+
+			result := runWithWorkflowsDirAndDependencies([]string{
+				workflowTestArgWorkflowsMock,
+				"-output=" + filepath.Join(t.TempDir(), "output"),
+			}, makeWorkflowsDir(t, workflowTestNameMock), dependencies)
+
+			require.Equal(t, 0, result)
+			require.True(t, injectedFailure)
+		})
+	}
+}
+
+func TestWorkflowSubprocessHelper(t *testing.T) {
+	t.Parallel()
+
+	value, ok := os.LookupEnv(workflowTestChildFailureEnv)
+	if !ok {
+		return
+	}
+
+	shouldFail, err := strconv.ParseBool(value)
 	require.NoError(t, err)
 
-	// File without a name field (triggers the fallback in the loop body).
-	err = os.WriteFile(
-		filepath.Join(wfDir, "ci-noname.yml"),
-		[]byte("description: no name here\non:\n  push:\n"),
-		cryptoutilSharedMagic.FilePermOwnerReadWriteGroupRead,
-	)
+	if shouldFail {
+		t.Fatal("injected workflow subprocess failure")
+	}
+}
+
+func workflowTestProcess(t *testing.T, ctx context.Context, shouldFail bool) *exec.Cmd {
+	t.Helper()
+
+	executable, err := os.Executable()
 	require.NoError(t, err)
 
-	origDir, err := os.Getwd()
-	require.NoError(t, err)
+	command := exec.CommandContext(ctx, executable, "-test.run=^TestWorkflowSubprocessHelper$")
+	envPrefix := workflowTestChildFailureEnv + "="
 
-	err = os.Chdir(tempDir)
-	require.NoError(t, err)
+	command.Env = make([]string, 0, len(os.Environ())+1)
+	for _, envVar := range os.Environ() {
+		if !strings.HasPrefix(envVar, envPrefix) {
+			command.Env = append(command.Env, envVar)
+		}
+	}
 
-	t.Cleanup(func() { _ = os.Chdir(origDir) })
+	command.Env = append(command.Env, envPrefix+strconv.FormatBool(shouldFail))
 
-	// File with name field -> should return the name from the file.
-	result := getWorkflowDescription("mytest")
-	require.Equal(t, "My Test Workflow", result)
+	return command
+}
 
-	// File without name field -> returns title-cased fallback.
-	result = getWorkflowDescription("noname")
-	require.True(t, strings.Contains(strings.ToLower(result), "noname"),
-		"expected fallback description containing 'noname', got: %s", result)
+func TestGetWorkflowDescription_FilePaths(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name         string
+		workflowName string
+		content      string
+		want         string
+	}{
+		{name: "workflow name field", workflowName: "mytest", content: "name: My Test Workflow\non:\n  push:\n", want: "My Test Workflow"},
+		{name: "fallback when name is absent", workflowName: "noname", content: "description: no name here\non:\n  push:\n", want: "Noname workflow"},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			workflowFile := filepath.Join(t.TempDir(), "ci-"+tc.workflowName+".yml")
+			err := os.WriteFile(workflowFile, []byte(tc.content), cryptoutilSharedMagic.FilePermOwnerReadWriteGroupRead)
+			require.NoError(t, err)
+
+			result := getWorkflowDescription(workflowFile, tc.workflowName, os.ReadFile)
+
+			require.Equal(t, tc.want, result)
+		})
+	}
 }

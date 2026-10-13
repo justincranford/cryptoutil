@@ -28,7 +28,7 @@ func makeWorkflowsDir(t *testing.T, workflowNames ...string) string {
 
 	names := workflowNames
 	if len(names) == 0 {
-		names = []string{"mock"}
+		names = []string{workflowTestNameMock}
 	}
 
 	for _, name := range names {
@@ -48,7 +48,7 @@ func makeWorkflowsDir(t *testing.T, workflowNames ...string) string {
 func TestRunWithWorkflowsDir_MissingDir(t *testing.T) {
 	t.Parallel()
 
-	result := runWithWorkflowsDir([]string{"-workflows=mock"}, "/nonexistent/workflows/dir")
+	result := runWithWorkflowsDir([]string{workflowTestArgWorkflowsMock}, "/nonexistent/workflows/dir")
 	require.Equal(t, 1, result)
 }
 
@@ -56,7 +56,7 @@ func TestRunWithWorkflowsDir_MissingDir(t *testing.T) {
 func TestRunWithWorkflowsDir_HelpFlag(t *testing.T) {
 	t.Parallel()
 
-	wfDir := makeWorkflowsDir(t, "quality", "coverage")
+	wfDir := makeWorkflowsDir(t, workflowTestNameQuality, workflowTestNameCoverage)
 	result := runWithWorkflowsDir([]string{"-help"}, wfDir)
 	require.Equal(t, 0, result)
 }
@@ -84,12 +84,12 @@ func TestRunWithWorkflowsDir_DryRun(t *testing.T) {
 	t.Parallel()
 
 	tempDir := t.TempDir()
-	wfDir := makeWorkflowsDir(t, "mock")
+	wfDir := makeWorkflowsDir(t, workflowTestNameMock)
 	outputDir := filepath.Join(tempDir, "output")
 
 	result := runWithWorkflowsDir([]string{
-		"-workflows=mock",
-		"-dry-run",
+		workflowTestArgWorkflowsMock,
+		workflowTestArgDryRun,
 		"-output=" + outputDir,
 	}, wfDir)
 
@@ -106,7 +106,7 @@ func TestRunWithWorkflowsDir_DryRun_DastWorkflow(t *testing.T) {
 
 	result := runWithWorkflowsDir([]string{
 		"-workflows=dast",
-		"-dry-run",
+		workflowTestArgDryRun,
 		"-output=" + outputDir,
 	}, wfDir)
 
@@ -118,14 +118,14 @@ func TestRunWithWorkflowsDir_DryRun_WithActArgs(t *testing.T) {
 	t.Parallel()
 
 	tempDir := t.TempDir()
-	wfDir := makeWorkflowsDir(t, "quality")
+	wfDir := makeWorkflowsDir(t, workflowTestNameQuality)
 	outputDir := filepath.Join(tempDir, "output")
 
 	result := runWithWorkflowsDir([]string{
 		"-workflows=quality",
-		"-dry-run",
+		workflowTestArgDryRun,
 		"-output=" + outputDir,
-		"-act-args=--verbose",
+		workflowTestArgVerbose,
 	}, wfDir)
 
 	require.Equal(t, 0, result)
@@ -140,12 +140,12 @@ func TestRunWithWorkflowsDir_NonDryRun_EchoAct(t *testing.T) {
 	}
 
 	tempDir := t.TempDir()
-	wfDir := makeWorkflowsDir(t, "mock")
+	wfDir := makeWorkflowsDir(t, workflowTestNameMock)
 	outputDir := filepath.Join(tempDir, "output")
 
 	// /bin/echo just prints args and exits 0 - no real act needed.
 	result := runWithWorkflowsDir([]string{
-		"-workflows=mock",
+		workflowTestArgWorkflowsMock,
 		"-act-path=/bin/echo",
 		"-output=" + outputDir,
 	}, wfDir)
@@ -159,11 +159,11 @@ func TestRunWithWorkflowsDir_NonDryRun_ActNotFound(t *testing.T) {
 	t.Parallel()
 
 	tempDir := t.TempDir()
-	wfDir := makeWorkflowsDir(t, "mock")
+	wfDir := makeWorkflowsDir(t, workflowTestNameMock)
 	outputDir := filepath.Join(tempDir, "output")
 
 	result := runWithWorkflowsDir([]string{
-		"-workflows=mock",
+		workflowTestArgWorkflowsMock,
 		"-act-path=/nonexistent/bin/fake-act-xyz",
 		"-output=" + outputDir,
 	}, wfDir)
@@ -180,12 +180,12 @@ func TestRunWithWorkflowsDir_OutputDirCreationFails(t *testing.T) {
 		t.Skip("Unix /root/ path unavailable on Windows.")
 	}
 
-	wfDir := makeWorkflowsDir(t, "mock")
+	wfDir := makeWorkflowsDir(t, workflowTestNameMock)
 
 	// Use an unwritable path to force MkdirAll failure.
 	result := runWithWorkflowsDir([]string{
-		"-workflows=mock",
-		"-dry-run",
+		workflowTestArgWorkflowsMock,
+		workflowTestArgDryRun,
 		"-output=/root/cannot_write_here_xyz/output",
 	}, wfDir)
 
@@ -253,8 +253,8 @@ func TestPrintHelp(t *testing.T) {
 	t.Parallel()
 
 	workflows := map[string]WorkflowConfig{
-		"quality":  {Description: "Quality checks"},
-		"coverage": {Description: "Coverage collection"},
+		workflowTestNameQuality:  {Description: workflowTestDescriptionQualityChecks},
+		workflowTestNameCoverage: {Description: workflowTestDescriptionCoverageCollection},
 	}
 
 	// printHelp writes to os.Stdout directly; just verify it doesn't panic.
@@ -277,8 +277,8 @@ func TestParseWorkflowNames(t *testing.T) {
 	t.Parallel()
 
 	available := map[string]WorkflowConfig{
-		"quality":                              {Description: "Quality checks"},
-		"coverage":                             {Description: "Coverage"},
+		workflowTestNameQuality:                {Description: workflowTestDescriptionQualityChecks},
+		workflowTestNameCoverage:               {Description: workflowTestTitleCoverage},
 		cryptoutilSharedMagic.WorkflowNameDAST: {Description: "DAST"},
 	}
 
@@ -289,18 +289,18 @@ func TestParseWorkflowNames(t *testing.T) {
 	}{
 		{
 			name:          "single valid workflow",
-			input:         "quality",
-			expectedNames: []string{"quality"},
+			input:         workflowTestNameQuality,
+			expectedNames: []string{workflowTestNameQuality},
 		},
 		{
 			name:          "multiple valid workflows",
 			input:         "quality,coverage",
-			expectedNames: []string{"quality", "coverage"},
+			expectedNames: []string{workflowTestNameQuality, workflowTestNameCoverage},
 		},
 		{
 			name:          "mixed valid and invalid",
 			input:         "quality,nonexistent,coverage",
-			expectedNames: []string{"quality", "coverage"},
+			expectedNames: []string{workflowTestNameQuality, workflowTestNameCoverage},
 		},
 		{
 			name:          "all invalid",
@@ -310,7 +310,7 @@ func TestParseWorkflowNames(t *testing.T) {
 		{
 			name:          "with whitespace",
 			input:         "quality, coverage",
-			expectedNames: []string{"quality", "coverage"},
+			expectedNames: []string{workflowTestNameQuality, workflowTestNameCoverage},
 		},
 	}
 

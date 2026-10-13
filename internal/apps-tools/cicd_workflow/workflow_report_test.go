@@ -21,8 +21,8 @@ func TestPrintExecutiveSummaryHeader(t *testing.T) {
 	t.Parallel()
 
 	workflows := []WorkflowExecution{
-		{Name: "quality", Config: WorkflowConfig{Description: "Quality checks"}},
-		{Name: "coverage", Config: WorkflowConfig{Description: "Coverage"}},
+		{Name: workflowTestNameQuality, Config: WorkflowConfig{Description: workflowTestDescriptionQualityChecks}},
+		{Name: workflowTestNameCoverage, Config: WorkflowConfig{Description: workflowTestTitleCoverage}},
 	}
 
 	tests := []struct {
@@ -88,11 +88,11 @@ func TestPrintExecutiveSummaryFooter(t *testing.T) {
 				TotalDuration: cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Second,
 				TotalSuccess:  2 - tc.totalFailed,
 				TotalFailed:   tc.totalFailed,
-				OutputDir:     "/tmp/output",
+				OutputDir:     workflowTestCustomOutputDir,
 				CombinedLog:   "/tmp/output/combined.log",
 				Workflows: []WorkflowResult{
 					{
-						Name:         "quality",
+						Name:         workflowTestNameQuality,
 						Success:      tc.totalFailed == 0,
 						Duration:     cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Second,
 						LogFile:      "/tmp/quality.log",
@@ -113,7 +113,7 @@ func TestPrintExecutiveSummaryFooter(t *testing.T) {
 						}(),
 					},
 					{
-						Name:         "coverage",
+						Name:         workflowTestNameCoverage,
 						Success:      true,
 						Duration:     3 * time.Second,
 						LogFile:      "/tmp/coverage.log",
@@ -222,7 +222,7 @@ func TestAnalyzeWorkflowLog(t *testing.T) {
 			hasErrors:  true,
 		},
 		{
-			name:        "with warnings",
+			name:        workflowTestCaseWithWarnings,
 			logContent:  "warning: something might be wrong\nNormal output",
 			hasWarnings: true,
 		},
@@ -298,7 +298,7 @@ func TestCreateAnalysisFile(t *testing.T) {
 		{name: "failed result", success: false},
 		{name: "with task results", success: true, withTasks: true},
 		{name: "with error messages", success: false, withErrors: true},
-		{name: "with warnings", success: true, withWarnings: true},
+		{name: workflowTestCaseWithWarnings, success: true, withWarnings: true},
 		{name: "many errors truncation path", success: false, manyErrors: true},
 		{name: "many warnings truncation path", success: true, manyWarnings: true},
 		{name: "all issues combined", success: false, withTasks: true, withErrors: true, withWarnings: true},
@@ -381,32 +381,41 @@ func TestGetWorkflowDescription(t *testing.T) {
 		name         string
 		workflowName string
 		fileContent  string
+		fileExists   bool
+		failRead     bool
 		wantContains string
-		wfDir        string // if empty, create from fileContent; if "none", don't create
 	}{
 		{
 			name:         "workflow with name key",
-			workflowName: "quality",
+			workflowName: workflowTestNameQuality,
 			fileContent:  "name: CI - Quality Check\non:\n  push:\n",
-			wantContains: "quality",
+			fileExists:   true,
+			wantContains: "ci - quality check",
 		},
 		{
 			name:         "workflow with quoted name",
-			workflowName: "coverage",
+			workflowName: workflowTestNameCoverage,
 			fileContent:  "name: \"CI Coverage\"\non:\n  push:\n",
-			wantContains: "coverage",
+			fileExists:   true,
+			wantContains: "ci coverage",
 		},
 		{
-			name:         "no name in file",
+			name:         "workflow without a name",
 			workflowName: "nodesc",
 			fileContent:  "# no name field\non:\n  push:\n",
-			wantContains: "nodesc",
+			fileExists:   true,
+			wantContains: "nodesc workflow",
 		},
 		{
-			name:         "nonexistent file - fallback description",
+			name:         "missing file fallback",
 			workflowName: "nonexistent_xyz",
-			wfDir:        cryptoutilSharedMagic.PromptNone,
 			wantContains: "nonexistent",
+		},
+		{
+			name:         "injected read failure fallback",
+			workflowName: workflowTestNameReadFailure,
+			failRead:     true,
+			wantContains: workflowTestNameReadFailure,
 		},
 	}
 
@@ -414,14 +423,18 @@ func TestGetWorkflowDescription(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			if tc.wfDir != cryptoutilSharedMagic.PromptNone {
-				// Create a temp directory with workflow file and use a test that doesn't need os.Chdir.
-				// Instead we need to pass the path to getWorkflowDescription, but it hardcodes the path.
-				// So we test by checking the fallback description format for names not found.
-				_ = tc.fileContent
+			workflowFile := filepath.Join(t.TempDir(), "ci-"+tc.workflowName+".yml")
+			if tc.fileExists {
+				err := os.WriteFile(workflowFile, []byte(tc.fileContent), cryptoutilSharedMagic.FilePermOwnerReadWriteGroupRead)
+				require.NoError(t, err)
 			}
 
-			result := getWorkflowDescription(tc.workflowName)
+			readFileFn := os.ReadFile
+			if tc.failRead {
+				readFileFn = func(string) ([]byte, error) { return nil, os.ErrPermission }
+			}
+
+			result := getWorkflowDescription(workflowFile, tc.workflowName, readFileFn)
 			require.Contains(t, strings.ToLower(result), tc.wantContains)
 		})
 	}
