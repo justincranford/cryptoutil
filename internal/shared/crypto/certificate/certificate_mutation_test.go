@@ -82,7 +82,7 @@ func TestCreateCASubjects_SubjectNaming(t *testing.T) {
 
 	keyPairs := testKeyGenPool.GetMany(3)
 
-	subjects, err := CreateCASubjects(keyPairs, "Test CA", testCACertValidity10Years)
+	subjects, err := CreateCASubjects(keyPairs, certificateTestCASubjectName, testCACertValidity10Years)
 	require.NoError(t, err)
 	require.Len(t, subjects, 3)
 
@@ -115,7 +115,7 @@ func TestCreateCASubjects_ErrorMessageNumber(t *testing.T) {
 					{Public: nil, Private: kp.Private},
 				}
 			}(),
-			wantErrContain: "failed to create CA subject 0:", // len(1)-1-0 = 0.
+			wantErrContain: certificateTestFailedCASubjectZeroError, // len(1)-1-0 = 0.
 		},
 		{
 			name: "second key pair with nil public key",
@@ -128,7 +128,7 @@ func TestCreateCASubjects_ErrorMessageNumber(t *testing.T) {
 					{Public: nil, Private: bad.Private}, // Root (processed first at i=1).
 				}
 			}(),
-			wantErrContain: "failed to create CA subject 0:", // len(2)-1-1 = 0.
+			wantErrContain: certificateTestFailedCASubjectZeroError, // len(2)-1-1 = 0.
 		},
 	}
 

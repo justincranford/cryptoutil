@@ -50,7 +50,7 @@ func TestCreateCASubject_ValidationErrors(t *testing.T) {
 			name:           "nil issuerSubject with non-nil issuerPrivKey",
 			issuerSubject:  nil,
 			issuerPrivKey:  keyPair.Private,
-			subjectName:    "Test CA",
+			subjectName:    certificateTestCASubjectName,
 			subjectKeyPair: keyPair,
 			maxPathLen:     0,
 			wantErrContain: "issuerSubject is nil but issuerPrivateKey is not nil",
@@ -58,10 +58,10 @@ func TestCreateCASubject_ValidationErrors(t *testing.T) {
 		{
 			name: "non-nil issuerSubject with nil issuerPrivKey",
 			issuerSubject: &Subject{
-				SubjectName: "Root CA",
+				SubjectName: certificateTestRootCASubjectName,
 			},
 			issuerPrivKey:  nil,
-			subjectName:    "Test CA",
+			subjectName:    certificateTestCASubjectName,
 			subjectKeyPair: keyPair,
 			maxPathLen:     0,
 			wantErrContain: "issuerSubject is not nil but issuerPrivateKey is nil",
@@ -79,7 +79,7 @@ func TestCreateCASubject_ValidationErrors(t *testing.T) {
 			name:           "nil subjectKeyPair",
 			issuerSubject:  nil,
 			issuerPrivKey:  nil,
-			subjectName:    "Test CA",
+			subjectName:    certificateTestCASubjectName,
 			subjectKeyPair: nil,
 			maxPathLen:     0,
 			wantErrContain: "subjectKeyPair should not be nil",
@@ -88,7 +88,7 @@ func TestCreateCASubject_ValidationErrors(t *testing.T) {
 			name:          "nil subjectKeyPair.Public",
 			issuerSubject: nil,
 			issuerPrivKey: nil,
-			subjectName:   "Test CA",
+			subjectName:   certificateTestCASubjectName,
 			subjectKeyPair: &cryptoutilSharedCryptoKeygen.KeyPair{
 				Public:  nil,
 				Private: keyPair.Private,
@@ -100,7 +100,7 @@ func TestCreateCASubject_ValidationErrors(t *testing.T) {
 			name:          "nil subjectKeyPair.Private",
 			issuerSubject: nil,
 			issuerPrivKey: nil,
-			subjectName:   "Test CA",
+			subjectName:   certificateTestCASubjectName,
 			subjectKeyPair: &cryptoutilSharedCryptoKeygen.KeyPair{
 				Public:  keyPair.Public,
 				Private: nil,
@@ -112,7 +112,7 @@ func TestCreateCASubject_ValidationErrors(t *testing.T) {
 			name:           "negative maxPathLen",
 			issuerSubject:  nil,
 			issuerPrivKey:  nil,
-			subjectName:    "Test CA",
+			subjectName:    certificateTestCASubjectName,
 			subjectKeyPair: keyPair,
 			maxPathLen:     -1,
 			wantErrContain: "maxPathLen should not be negative",
@@ -216,7 +216,7 @@ func TestCertificateTemplateEndEntity_ExceedsDuration(t *testing.T) {
 		"Issuer CA",
 		"Test End Entity",
 		excessiveDuration,
-		[]string{"example.com"},
+		[]string{certificateTestExampleDomain},
 		nil, nil, nil,
 		x509.KeyUsageDigitalSignature,
 		[]x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
@@ -232,7 +232,7 @@ func TestCreateEndEntitySubject_TemplateError(t *testing.T) {
 
 	keyPairs := testKeyGenPool.GetMany(2)
 
-	caSubject, err := CreateCASubject(nil, nil, "Test CA", keyPairs[1], testCACertValidity10Years, 0)
+	caSubject, err := CreateCASubject(nil, nil, certificateTestCASubjectName, keyPairs[1], testCACertValidity10Years, 0)
 	require.NoError(t, err)
 
 	// 398 days exceeds TLSDefaultSubscriberCertDuration.
@@ -243,7 +243,7 @@ func TestCreateEndEntitySubject_TemplateError(t *testing.T) {
 		keyPairs[0],
 		"Test End Entity",
 		excessiveDuration,
-		[]string{"example.com"},
+		[]string{certificateTestExampleDomain},
 		nil, nil, nil,
 		x509.KeyUsageDigitalSignature,
 		[]x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
@@ -282,7 +282,7 @@ func TestCreateEndEntitySubject_SignError(t *testing.T) {
 		keyPairs[0],
 		"Test End Entity",
 		testEndEntityCertValidity396Days,
-		[]string{"example.com"},
+		[]string{certificateTestExampleDomain},
 		nil, nil, nil,
 		x509.KeyUsageDigitalSignature,
 		[]x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
@@ -298,7 +298,7 @@ func TestSignCertificate_NotSigner(t *testing.T) {
 
 	keyPair := testKeyGenPool.GetMany(1)[0]
 
-	template, err := CertificateTemplateCA("Issuer CA", "Test CA", testCACertValidity10Years, 0)
+	template, err := CertificateTemplateCA("Issuer CA", certificateTestCASubjectName, testCACertValidity10Years, 0)
 	require.NoError(t, err)
 
 	_, _, _, err = SignCertificate(nil, "not-a-signer", template, keyPair.Public, x509.ECDSAWithSHA256)

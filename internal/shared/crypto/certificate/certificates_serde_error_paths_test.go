@@ -35,7 +35,7 @@ func TestSerializeSubjects_AdditionalErrors(t *testing.T) {
 		{
 			name: "empty IssuerName",
 			subjects: []*Subject{{
-				SubjectName: "Test CA",
+				SubjectName: certificateTestCASubjectName,
 				IssuerName:  "", // Empty IssuerName should fail.
 				Duration:    cryptoutilSharedMagic.TestHourDuration,
 			}},
@@ -44,8 +44,8 @@ func TestSerializeSubjects_AdditionalErrors(t *testing.T) {
 		{
 			name: "zero Duration",
 			subjects: []*Subject{{
-				SubjectName: "Test CA",
-				IssuerName:  "Root CA",
+				SubjectName: certificateTestCASubjectName,
+				IssuerName:  certificateTestRootCASubjectName,
 				Duration:    0, // Zero Duration should fail.
 			}},
 			wantErrContain: "has zero or negative Duration",
@@ -53,8 +53,8 @@ func TestSerializeSubjects_AdditionalErrors(t *testing.T) {
 		{
 			name: "serializeKeyMaterial fails with empty chain",
 			subjects: []*Subject{{
-				SubjectName: "Test Subject",
-				IssuerName:  "Root CA",
+				SubjectName: certificateTestSubjectName,
+				IssuerName:  certificateTestRootCASubjectName,
 				Duration:    cryptoutilSharedMagic.TestHourDuration,
 				IsCA:        false,
 				MaxPathLen:  0,
@@ -117,7 +117,7 @@ func TestDeserializeKeyMaterial_AllValidationErrors(t *testing.T) {
 	// Build a real valid cert to get real DER bytes.
 	keyPair := testKeyGenPool.GetMany(1)[0]
 
-	certTemplate, err := CertificateTemplateCA("Issuer", "Test CA", testCACertValidity10Years, 0)
+	certTemplate, err := CertificateTemplateCA("Issuer", certificateTestCASubjectName, testCACertValidity10Years, 0)
 	require.NoError(t, err)
 
 	cert, _, _, err := SignCertificate(nil, keyPair.Private, certTemplate, keyPair.Public, x509.ECDSAWithSHA256)
@@ -237,7 +237,7 @@ func TestGenerateNotBeforeNotAfter_InvalidParams(t *testing.T) {
 			requestedDur:   cryptoutilSharedMagic.HoursPerDay * time.Hour,
 			minSubtract:    time.Hour,
 			maxSubtract:    time.Hour, // maxRangeOffset = maxSubtract - minSubtract = 0.
-			wantErrContain: "maxRangeOffset must be positive",
+			wantErrContain: certificateTestMaxRangeOffsetPositiveError,
 		},
 		{
 			name:           "maxRangeOffset is negative (maxSubtract less than minSubtract)",
@@ -245,7 +245,7 @@ func TestGenerateNotBeforeNotAfter_InvalidParams(t *testing.T) {
 			requestedDur:   cryptoutilSharedMagic.HoursPerDay * time.Hour,
 			minSubtract:    2 * time.Hour,
 			maxSubtract:    time.Hour, // maxRangeOffset = 1h - 2h = -1h.
-			wantErrContain: "maxRangeOffset must be positive",
+			wantErrContain: certificateTestMaxRangeOffsetPositiveError,
 		},
 	}
 
@@ -320,7 +320,7 @@ func TestSerializeKeyMaterial_FakeKeys(t *testing.T) {
 	// Build a real cert chain required by serializeKeyMaterial validation.
 	keyPair := testKeyGenPool.GetMany(1)[0]
 
-	certTemplate, err := CertificateTemplateCA("Test Issuer", "Test CA", testCACertValidity10Years, 0)
+	certTemplate, err := CertificateTemplateCA(certificateTestIssuerName, certificateTestCASubjectName, testCACertValidity10Years, 0)
 	require.NoError(t, err)
 
 	cert, _, _, err := SignCertificate(nil, keyPair.Private, certTemplate, keyPair.Public, x509.ECDSAWithSHA256)

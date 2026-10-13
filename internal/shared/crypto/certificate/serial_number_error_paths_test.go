@@ -17,7 +17,18 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-var stubRandIntError = func(_ io.Reader, _ *big.Int) (*big.Int, error) {
+const (
+	certificateTestCASubjectName               = "Test CA"
+	certificateTestRootCASubjectName           = "Root CA"
+	certificateTestSubjectName                 = "Test Subject"
+	certificateTestIssuerName                  = "Test Issuer"
+	certificateTestExampleDomain               = "example.com"
+	certificateTestFailedCASubjectZeroError    = "failed to create CA subject 0:"
+	certificateTestMaxRangeOffsetPositiveError = "maxRangeOffset must be positive"
+	certificateTestUniqueSerialNumbersCaseName = "generate multiple unique serial numbers"
+)
+
+func stubRandIntError(_ io.Reader, _ *big.Int) (*big.Int, error) {
 	return nil, fmt.Errorf("injected randInt error")
 }
 
@@ -130,7 +141,7 @@ func TestCreateCASubject_CertificateTemplateError(t *testing.T) {
 
 	keyPair := testKeyGenPool.GetMany(1)[0]
 
-	_, err := createCASubjectInternal(nil, nil, "Test CA", keyPair, cryptoutilSharedMagic.HoursPerDay*time.Hour, 0, stubRandIntError)
+	_, err := createCASubjectInternal(nil, nil, certificateTestCASubjectName, keyPair, cryptoutilSharedMagic.HoursPerDay*time.Hour, 0, stubRandIntError)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to create CA certificate template")
 }
@@ -142,7 +153,7 @@ func TestCreateCASubjects_CertificateTemplateError(t *testing.T) {
 
 	keyPairs := testKeyGenPool.GetMany(2)
 
-	_, err := createCASubjectsInternal(keyPairs, "Test CA", cryptoutilSharedMagic.HoursPerDay*time.Hour, stubRandIntError)
+	_, err := createCASubjectsInternal(keyPairs, certificateTestCASubjectName, cryptoutilSharedMagic.HoursPerDay*time.Hour, stubRandIntError)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to create CA subject")
 }
@@ -154,7 +165,7 @@ func TestSignCertificate_ParseCertificateError(t *testing.T) {
 
 	keyPair := testKeyGenPool.GetMany(1)[0]
 
-	certTemplate, err := CertificateTemplateCA("Issuer", "Test CA", testCACertValidity10Years, 0)
+	certTemplate, err := CertificateTemplateCA("Issuer", certificateTestCASubjectName, testCACertValidity10Years, 0)
 	require.NoError(t, err)
 
 	_, _, _, err = signCertificateInternal(nil, keyPair.Private, certTemplate, keyPair.Public, x509.ECDSAWithSHA256, func(_ []byte) (*x509.Certificate, error) {
@@ -171,14 +182,14 @@ func TestSerializeSubjects_JSONMarshalError(t *testing.T) {
 
 	keyPair := testKeyGenPool.GetMany(1)[0]
 
-	certTemplate, err := CertificateTemplateCA("Issuer", "Test CA", testCACertValidity10Years, 0)
+	certTemplate, err := CertificateTemplateCA("Issuer", certificateTestCASubjectName, testCACertValidity10Years, 0)
 	require.NoError(t, err)
 
 	cert, _, _, err := SignCertificate(nil, keyPair.Private, certTemplate, keyPair.Public, x509.ECDSAWithSHA256)
 	require.NoError(t, err)
 
 	subjects := []*Subject{{
-		SubjectName: "Test CA",
+		SubjectName: certificateTestCASubjectName,
 		IssuerName:  "Issuer",
 		Duration:    testCACertValidity10Years,
 		IsCA:        true,

@@ -220,7 +220,7 @@ func TestSerializeEndEntitySubjects(t *testing.T) {
 	originalCASubjects, err := CreateCASubjects(subjectsKeyPairs[1:], "Round Trip CA", testCACertValidity10Years)
 	verifyCASubjects(t, err, originalCASubjects)
 
-	endEntitySubject, err := CreateEndEntitySubject(originalCASubjects[0], subjectsKeyPairs[0], "Round Trip End Entity", testEndEntityCertValidity1Year, []string{"example.com"}, []net.IP{net.ParseIP(cryptoutilSharedMagic.IPv4Loopback)}, []string{"test@example.com"}, []*url.URL{{Scheme: cryptoutilSharedMagic.ProtocolHTTPS, Host: "example.com"}}, x509.KeyUsageDigitalSignature, []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth}) // pragma: allowlist secret
+	endEntitySubject, err := CreateEndEntitySubject(originalCASubjects[0], subjectsKeyPairs[0], "Round Trip End Entity", testEndEntityCertValidity1Year, []string{certificateTestExampleDomain}, []net.IP{net.ParseIP(cryptoutilSharedMagic.IPv4Loopback)}, []string{"test@example.com"}, []*url.URL{{Scheme: cryptoutilSharedMagic.ProtocolHTTPS, Host: certificateTestExampleDomain}}, x509.KeyUsageDigitalSignature, []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth}) // pragma: allowlist secret
 	verifyEndEntitySubject(t, err, endEntitySubject)
 
 	originalCASubjects[0].KeyMaterial.PrivateKey = nil
@@ -311,7 +311,7 @@ func TestSerializeSubjectsSadPaths(t *testing.T) {
 	t.Run("empty SubjectName", func(t *testing.T) {
 		subjects := []*Subject{{
 			SubjectName: "", // Empty subject name should cause error
-			IssuerName:  "Test Issuer",
+			IssuerName:  certificateTestIssuerName,
 		}}
 		_, err := SerializeSubjects(subjects, false)
 		require.Error(t, err)
@@ -319,8 +319,8 @@ func TestSerializeSubjectsSadPaths(t *testing.T) {
 	})
 	t.Run("end-entity with CA MaxPathLen", func(t *testing.T) {
 		subjects := []*Subject{{
-			SubjectName: "Test Subject",
-			IssuerName:  "Test Issuer",
+			SubjectName: certificateTestSubjectName,
+			IssuerName:  certificateTestIssuerName,
 			Duration:    cryptoutilSharedMagic.TestHourDuration,
 			IsCA:        false,
 			MaxPathLen:  1, // Invalid for end entity
@@ -335,12 +335,12 @@ func TestSerializeSubjectsSadPaths(t *testing.T) {
 	})
 	t.Run("CA with end-entity fields", func(t *testing.T) {
 		subjects := []*Subject{{
-			SubjectName: "Test Subject",
-			IssuerName:  "Test Issuer",
+			SubjectName: certificateTestSubjectName,
+			IssuerName:  certificateTestIssuerName,
 			Duration:    cryptoutilSharedMagic.TestHourDuration,
 			IsCA:        true,
 			MaxPathLen:  0,
-			DNSNames:    []string{"example.com"}, // Invalid for CA
+			DNSNames:    []string{certificateTestExampleDomain}, // Invalid for CA
 		}}
 		_, err := SerializeSubjects(subjects, false)
 		require.Error(t, err)
@@ -348,8 +348,8 @@ func TestSerializeSubjectsSadPaths(t *testing.T) {
 	})
 	t.Run("invalid CA MaxPathLen", func(t *testing.T) {
 		subjects := []*Subject{{
-			SubjectName: "Test CA",
-			IssuerName:  "Test Issuer",
+			SubjectName: certificateTestCASubjectName,
+			IssuerName:  certificateTestIssuerName,
 			Duration:    cryptoutilSharedMagic.TestHourDuration,
 			IsCA:        true,
 			MaxPathLen:  cryptoutilSharedMagic.TestNegativeInt, // Invalid negative MaxPathLen
@@ -370,7 +370,7 @@ func TestSerializeKeyMaterialSadPaths(t *testing.T) {
 	t.Run("nil PublicKey", func(t *testing.T) {
 		keyPair := testKeyGenPool.GetMany(1)[0]
 
-		certTemplate, err := CertificateTemplateCA("Test Issuer", "Test CA", testCACertValidity10Years, 0)
+		certTemplate, err := CertificateTemplateCA(certificateTestIssuerName, certificateTestCASubjectName, testCACertValidity10Years, 0)
 		verifyCertificateTemplate(t, err, certTemplate)
 
 		cert, _, _, err := SignCertificate(nil, keyPair.Private, certTemplate, keyPair.Public, x509.ECDSAWithSHA256)
@@ -409,6 +409,6 @@ func TestSerializeKeyMaterialSadPaths(t *testing.T) {
 func TestNegativeDuration(t *testing.T) {
 	t.Parallel()
 
-	_, err := CertificateTemplateCA("Root CA", "Root CA", cryptoutilSharedMagic.TestNegativeDuration, 1)
+	_, err := CertificateTemplateCA(certificateTestRootCASubjectName, certificateTestRootCASubjectName, cryptoutilSharedMagic.TestNegativeDuration, 1)
 	require.Error(t, err, "Creating a certificate with negative duration should fail")
 }

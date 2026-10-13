@@ -20,7 +20,7 @@ func TestGenerateSerialNumber(t *testing.T) {
 		name string
 	}{
 		{name: "generate serial number"},
-		{name: "generate multiple unique serial numbers"},
+		{name: certificateTestUniqueSerialNumbersCaseName},
 	}
 
 	for _, tc := range tests {
@@ -38,7 +38,7 @@ func TestGenerateSerialNumber(t *testing.T) {
 			require.True(t, serial.Cmp(maxSerialNumber) < 0, "serial number should be < 2^159")
 
 			// Generate second serial and verify uniqueness (very high probability).
-			if tc.name == "generate multiple unique serial numbers" {
+			if tc.name == certificateTestUniqueSerialNumbersCaseName {
 				serial2, err2 := GenerateSerialNumber()
 				require.NoError(t, err2)
 				require.NotEqual(t, serial, serial2, "serial numbers should be unique")
