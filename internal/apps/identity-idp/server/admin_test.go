@@ -80,17 +80,7 @@ func TestAdminServerLifecycle(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, server)
 
-		// Start server in background.
-		errChan := make(chan error, 1)
-
-		go func() {
-			if startErr := server.Start(ctx); startErr != nil {
-				errChan <- startErr
-			}
-		}()
-
-		// Wait for server to start and get port (polling avoids race condition).
-		port := waitForAdminPort(t, server, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second)
+		port, errChan := startAdminServerForTest(t, ctx, server)
 		require.NotZero(t, port)
 
 		// Shutdown server.
@@ -162,12 +152,7 @@ func TestAdminServerActualPort(t *testing.T) {
 		require.NoError(t, err)
 
 		// Start server.
-		go func() {
-			_ = server.Start(ctx)
-		}()
-
-		// Wait for server to start and get port (polling avoids race condition).
-		port := waitForAdminPort(t, server, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second)
+		port, _ := startAdminServerForTest(t, ctx, server)
 		require.NotZero(t, port)
 
 		// Cleanup.
@@ -187,12 +172,7 @@ func TestAdminEndpointLivez(t *testing.T) {
 	require.NoError(t, err)
 
 	// Start server.
-	go func() {
-		_ = server.Start(ctx)
-	}()
-
-	// Wait for server to start and get port (polling avoids race condition).
-	port := waitForAdminPort(t, server, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second)
+	port, _ := startAdminServerForTest(t, ctx, server)
 
 	baseURL := "https://" + net.JoinHostPort(cryptoutilSharedMagic.IPv4Loopback, strconv.Itoa(port))
 
@@ -246,12 +226,7 @@ func TestAdminEndpointReadyz(t *testing.T) {
 	require.NoError(t, err)
 
 	// Start server.
-	go func() {
-		_ = server.Start(ctx)
-	}()
-
-	// Wait for server to start and get port (polling avoids race condition).
-	port := waitForAdminPort(t, server, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second)
+	port, _ := startAdminServerForTest(t, ctx, server)
 
 	baseURL := "https://" + net.JoinHostPort(cryptoutilSharedMagic.IPv4Loopback, strconv.Itoa(port))
 
@@ -313,12 +288,7 @@ func TestAdminEndpointShutdown(t *testing.T) {
 	server, err := NewAdminHTTPServer(ctx, cfg)
 	require.NoError(t, err)
 
-	go func() {
-		_ = server.Start(ctx)
-	}()
-
-	// Wait for server to start and get port (polling avoids race condition).
-	port := waitForAdminPort(t, server, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second)
+	port, _ := startAdminServerForTest(t, ctx, server)
 
 	baseURL := "https://" + net.JoinHostPort(cryptoutilSharedMagic.IPv4Loopback, strconv.Itoa(port))
 
@@ -335,24 +305,35 @@ func TestAdminEndpointShutdown(t *testing.T) {
 	})
 }
 
-// waitForAdminPort polls for the admin server to start and return a valid port.
-// This avoids race conditions where ActualPort() returns 0 before the server is ready.
-func waitForAdminPort(t *testing.T, server *AdminServer, timeout time.Duration) int {
+// startAdminServerForTest waits for the listener and reports startup failures immediately.
+func startAdminServerForTest(t *testing.T, ctx context.Context, server *AdminServer) (int, <-chan error) {
 	t.Helper()
 
-	deadline := time.Now().UTC().Add(timeout)
+	startErr := make(chan error, 1)
+	go func() {
+		startErr <- server.Start(ctx)
+	}()
 
-	for time.Now().UTC().Before(deadline) {
+	startupTimer := time.NewTimer(cryptoutilSharedMagic.TestTimeoutCryptoutilReady)
+	defer startupTimer.Stop()
+
+	startupPoll := time.NewTicker(cryptoutilSharedMagic.TestTimeoutHTTPRetryInterval)
+	defer startupPoll.Stop()
+
+	for {
 		if port := server.ActualPort(); port > 0 {
-			return port
+			return port, startErr
 		}
 
-		time.Sleep(cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Millisecond)
+		select {
+		case err := <-startErr:
+			require.NoError(t, err, "admin server exited before its listener became available")
+			require.FailNow(t, "admin server stopped before startup completed")
+		case <-startupTimer.C:
+			require.FailNowf(t, cryptoutilSharedMagic.CICDTestFatalfFailureMessage, "admin server did not start within %v", cryptoutilSharedMagic.TestTimeoutCryptoutilReady)
+		case <-startupPoll.C:
+		}
 	}
-
-	require.FailNowf(t, cryptoutilSharedMagic.CICDTestFatalfFailureMessage, "admin server did not start within %v", timeout)
-
-	return 0
 }
 
 // doAdminGet performs GET request using the provided TLS certificate pool.
