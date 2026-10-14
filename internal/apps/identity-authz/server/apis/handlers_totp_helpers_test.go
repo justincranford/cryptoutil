@@ -8,8 +8,9 @@ package apis_test
 import (
 	"bytes"
 	json "encoding/json"
+	http "net/http"
 	"net/http/httptest"
-	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -41,6 +42,16 @@ const (
 	testTOTPIssuer      = "CryptoUtil"
 	testTOTPAccountName = "testuser@example.com"
 )
+
+// Serialize TOTP requests that perform multiple CPU-heavy PBKDF2 operations.
+var totpHashRequestMu sync.Mutex
+
+func appTestTOTPHashRequest(app *fiber.App, req *http.Request) (*http.Response, error) {
+	totpHashRequestMu.Lock()
+	defer totpHashRequestMu.Unlock()
+
+	return app.Test(req, cryptoutilSharedMagic.FiberTestTimeoutMs)
+}
 
 func newTOTPIntegrationTestApp(t *testing.T) (*gorm.DB, *fiber.App) {
 	t.Helper()
@@ -100,18 +111,18 @@ func enrollTOTP(t *testing.T, app *fiber.App, userID googleUuid.UUID, issuer, ac
 	t.Helper()
 
 	reqBody := map[string]any{
-		"user_id":      userID.String(),
-		"issuer":       issuer,
-		"account_name": accountName,
+		testUserIDValueF89D6B69: userID.String(),
+		"issuer":                issuer,
+		"account_name":          accountName,
 	}
 
 	reqBytes, err := json.Marshal(reqBody)
 	require.NoError(t, err, "Should marshal request body")
 
-	req := httptest.NewRequest("POST", "/oidc/v1/mfa/totp/enroll", bytes.NewReader(reqBytes))
+	req := httptest.NewRequest(testPost, "/oidc/v1/mfa/totp/enroll", bytes.NewReader(reqBytes))
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := app.Test(req, cryptoutilSharedMagic.FiberTestTimeoutMs) // 30-second timeout for password hashing (10 backup codes Ã— ~150ms each)
+	resp, err := appTestTOTPHashRequest(app, req) // 30-second timeout for password hashing (10 backup codes Ã— ~150ms each)
 	require.NoError(t, err, "Request should succeed")
 
 	defer func() { _ = resp.Body.Close() }()
@@ -131,14 +142,14 @@ func verifyTOTP(t *testing.T, app *fiber.App, userID googleUuid.UUID, code strin
 	t.Helper()
 
 	reqBody := map[string]any{
-		"user_id":                              userID.String(),
+		testUserIDValueF89D6B69:                userID.String(),
 		cryptoutilSharedMagic.ResponseTypeCode: code,
 	}
 
 	reqBytes, err := json.Marshal(reqBody)
 	require.NoError(t, err, "Should marshal request body")
 
-	req := httptest.NewRequest("POST", "/oidc/v1/mfa/totp/verify", bytes.NewReader(reqBytes))
+	req := httptest.NewRequest(testPost, "/oidc/v1/mfa/totp/verify", bytes.NewReader(reqBytes))
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := app.Test(req, cryptoutilSharedMagic.FiberTestTimeoutMs) // 30-second timeout for password verification
@@ -182,16 +193,16 @@ func generateBackupCodes(t *testing.T, app *fiber.App, userID googleUuid.UUID, e
 	t.Helper()
 
 	reqBody := map[string]any{
-		"user_id": userID.String(),
+		testUserIDValueF89D6B69: userID.String(),
 	}
 
 	reqBytes, err := json.Marshal(reqBody)
 	require.NoError(t, err, "Should marshal request body")
 
-	req := httptest.NewRequest("POST", "/oidc/v1/mfa/totp/backup-codes/generate", bytes.NewReader(reqBytes))
+	req := httptest.NewRequest(testPost, "/oidc/v1/mfa/totp/backup-codes/generate", bytes.NewReader(reqBytes))
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := app.Test(req, cryptoutilSharedMagic.FiberTestTimeoutMs) // 30-second timeout for generating 10 backup codes with password hashing
+	resp, err := appTestTOTPHashRequest(app, req) // 30-second timeout for generating 10 backup codes with password hashing
 	require.NoError(t, err, "Request should succeed")
 
 	defer func() { _ = resp.Body.Close() }()
@@ -211,17 +222,17 @@ func verifyBackupCode(t *testing.T, app *fiber.App, userID googleUuid.UUID, code
 	t.Helper()
 
 	reqBody := map[string]any{
-		"user_id":                              userID.String(),
+		testUserIDValueF89D6B69:                userID.String(),
 		cryptoutilSharedMagic.ResponseTypeCode: code,
 	}
 
 	reqBytes, err := json.Marshal(reqBody)
 	require.NoError(t, err, "Should marshal request body")
 
-	req := httptest.NewRequest("POST", "/oidc/v1/mfa/totp/backup-codes/verify", bytes.NewReader(reqBytes))
+	req := httptest.NewRequest(testPost, "/oidc/v1/mfa/totp/backup-codes/verify", bytes.NewReader(reqBytes))
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := app.Test(req, cryptoutilSharedMagic.FiberTestTimeoutMs) // 30-second timeout for backup code password verification
+	resp, err := appTestTOTPHashRequest(app, req) // 30-second timeout for backup code password verification
 	require.NoError(t, err, "Request should succeed")
 
 	defer func() { _ = resp.Body.Close() }()
@@ -234,32 +245,4 @@ func verifyBackupCode(t *testing.T, app *fiber.App, userID googleUuid.UUID, code
 	require.NoError(t, err, "Should decode JSON response")
 
 	return result
-}
-
-// extractSecretFromQRCode extracts the secret parameter from otpauth:// URI.
-func extractSecretFromQRCode(t *testing.T, qrCodeURI string) string {
-	t.Helper()
-
-	// Parse URI: otpauth://totp/Issuer:AccountName?secret=BASE32SECRET&issuer=Issuer
-	require.Contains(t, qrCodeURI, "secret=", "QR code should contain secret parameter")
-
-	// Extract secret from query string.
-	parts := strings.Split(qrCodeURI, "?")
-	require.Len(t, parts, 2, "QR code should have query parameters")
-
-	queryParams := parts[1]
-	params := strings.Split(queryParams, "&")
-
-	for _, param := range params {
-		if strings.HasPrefix(param, "secret=") {
-			secret := strings.TrimPrefix(param, "secret=")
-			require.NotEmpty(t, secret, "Secret should not be empty")
-
-			return secret
-		}
-	}
-
-	t.Fatal("Secret not found in QR code URI")
-
-	return ""
 }
