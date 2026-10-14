@@ -85,7 +85,7 @@ func buildSuiteParams(sID string) map[string]string {
 		"__SUITE_DISPLAY_NAME__":      displayName,
 		"__SUITE_INIT_PS_ID__":        initPSID,
 		"__SUITE_INCLUDE_LIST__":      buildSuiteIncludeList(products),
-		"__SUITE_SERVICE_OVERRIDES__": buildSuiteServiceOverrides(),
+		"__SUITE_SERVICE_OVERRIDES__": buildSuiteServiceOverrides(sID),
 		valueImageTag:                 cryptoutilSharedMagic.DefaultOTLPEnvironmentDefault,
 		valueBuildDate:                cryptoutilSharedMagic.CICDTemplateBuildDate,
 		valueGoVersion:                cryptoutilSharedMagic.CICDTemplateGoVersion,
@@ -188,6 +188,8 @@ func buildProductServiceOverrides(productID string, psIDs []string) string {
 			fmt.Fprintf(&sb, "  %s-app-%s:\n", psID, v.suffix)
 			sb.WriteString("    ports: !override\n")
 			fmt.Fprintf(&sb, "      - \"%d:%d\"\n", port, cryptoutilSharedMagic.DockerContainerPublicHTTPSPort)
+			sb.WriteString("    volumes:\n")
+			fmt.Fprintf(&sb, "      - %s-certs:/certs:ro\n", productID)
 			sb.WriteString("\n")
 		}
 	}
@@ -210,7 +212,7 @@ func buildSuiteIncludeList(products []cryptoutilRegistry.Product) string {
 
 // buildSuiteServiceOverrides generates the inline port override blocks for a suite compose.
 // Suite format (inline): sm-kms-app-sqlite-1: {ports: !override ["28000:8080"]}.
-func buildSuiteServiceOverrides() string {
+func buildSuiteServiceOverrides(suiteID string) string {
 	var sb strings.Builder
 
 	allPS := cryptoutilRegistry.AllProductServices()
@@ -262,7 +264,8 @@ func buildSuiteServiceOverrides() string {
 
 		for _, v := range variants {
 			port := suitePort + v.offset
-			fmt.Fprintf(&sb, "  %s-app-%s: {ports: !override [\"%d:%d\"]}\n", ps.PSID, v.suffix, port, cryptoutilSharedMagic.DockerContainerPublicHTTPSPort)
+			fmt.Fprintf(&sb, "  %s-app-%s: {ports: !override [\"%d:%d\"], volumes: [\"%s-certs:/certs:ro\"]}\n",
+				ps.PSID, v.suffix, port, cryptoutilSharedMagic.DockerContainerPublicHTTPSPort, suiteID)
 		}
 	}
 

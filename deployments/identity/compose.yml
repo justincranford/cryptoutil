@@ -27,9 +27,25 @@ services:
   # PRODUCT-level PKI init (overrides PS-ID cert material).
   pki-init:
     image: cryptoutil-identity-authz:local
-    command: ["/app/identity-authz", "init", "--domain=identity", "--output-dir=/certs"]
+    command:
+      - /bin/sh
+      - -c
+      - |
+        set -eu
+        /app/identity-authz init --domain=identity --output-dir=/certs
+        chown -R 65532:65532 /certs
+        find /host-certs -mindepth 1 -maxdepth 1 -exec rm -rf {} +
+        cp -a /certs/. /host-certs/
+        for cert_dir in /certs/identity/public-https-server-entity-*-sqlite-1; do
+          [ -d "$$cert_dir" ] || continue
+          psid=$${cert_dir##*/public-https-server-entity-}
+          psid=$${psid%-sqlite-1}
+          rm -rf "/certs/$$psid"
+          ln -s "identity" "/certs/$$psid"
+        done
     volumes:
-      - ./certs/:/certs/:rw
+      - identity-certs:/certs:rw
+      - ./certs/:/host-certs/:rw
     depends_on:
       builder-identity-authz:
         condition: service_completed_successfully
@@ -37,82 +53,134 @@ services:
   identity-authz-app-sqlite-1:
     ports: !override
       - "18400:8080"
+    volumes:
+      - identity-certs:/certs:ro
 
   identity-authz-app-sqlite-2:
     ports: !override
       - "18401:8080"
+    volumes:
+      - identity-certs:/certs:ro
 
   identity-authz-app-postgresql-1:
     ports: !override
       - "18402:8080"
+    volumes:
+      - identity-certs:/certs:ro
 
   identity-authz-app-postgresql-2:
     ports: !override
       - "18403:8080"
+    volumes:
+      - identity-certs:/certs:ro
 
   identity-idp-app-sqlite-1:
     ports: !override
       - "18500:8080"
+    volumes:
+      - identity-certs:/certs:ro
 
   identity-idp-app-sqlite-2:
     ports: !override
       - "18501:8080"
+    volumes:
+      - identity-certs:/certs:ro
 
   identity-idp-app-postgresql-1:
     ports: !override
       - "18502:8080"
+    volumes:
+      - identity-certs:/certs:ro
 
   identity-idp-app-postgresql-2:
     ports: !override
       - "18503:8080"
+    volumes:
+      - identity-certs:/certs:ro
 
   identity-rs-app-sqlite-1:
     ports: !override
       - "18600:8080"
+    volumes:
+      - identity-certs:/certs:ro
 
   identity-rs-app-sqlite-2:
     ports: !override
       - "18601:8080"
+    volumes:
+      - identity-certs:/certs:ro
 
   identity-rs-app-postgresql-1:
     ports: !override
       - "18602:8080"
+    volumes:
+      - identity-certs:/certs:ro
 
   identity-rs-app-postgresql-2:
     ports: !override
       - "18603:8080"
+    volumes:
+      - identity-certs:/certs:ro
 
   identity-rp-app-sqlite-1:
     ports: !override
       - "18700:8080"
+    volumes:
+      - identity-certs:/certs:ro
 
   identity-rp-app-sqlite-2:
     ports: !override
       - "18701:8080"
+    volumes:
+      - identity-certs:/certs:ro
 
   identity-rp-app-postgresql-1:
     ports: !override
       - "18702:8080"
+    volumes:
+      - identity-certs:/certs:ro
 
   identity-rp-app-postgresql-2:
     ports: !override
       - "18703:8080"
+    volumes:
+      - identity-certs:/certs:ro
 
   identity-spa-app-sqlite-1:
     ports: !override
       - "18800:8080"
+    volumes:
+      - identity-certs:/certs:ro
 
   identity-spa-app-sqlite-2:
     ports: !override
       - "18801:8080"
+    volumes:
+      - identity-certs:/certs:ro
 
   identity-spa-app-postgresql-1:
     ports: !override
       - "18802:8080"
+    volumes:
+      - identity-certs:/certs:ro
 
   identity-spa-app-postgresql-2:
     ports: !override
       - "18803:8080"
+    volumes:
+      - identity-certs:/certs:ro
+
+  otel-certs-init:
+    volumes:
+      - identity-certs:/certs-source:ro
+
+  postgres-leader:
+    volumes:
+      - identity-certs:/mnt/ps-certs-src:ro
+
+  grafana-otel-lgtm:
+    volumes:
+      - identity-certs:/mnt/ps-certs-src:ro
 
 secrets:
   # PRODUCT-level secrets override PS-ID secrets (paths resolve relative to this file).
@@ -139,3 +207,6 @@ secrets:
     file: ./secrets/postgres-password.secret
   postgres-database.secret:
     file: ./secrets/postgres-database.secret
+
+volumes:
+  identity-certs:

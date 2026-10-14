@@ -44,6 +44,13 @@ Examples:
 4. `pki-init sm-kms            /tmp`     → output: `/tmp/sm-kms/` (PS-ID scope, 90 dirs)
 5. `pki-init skeleton-template /tmp`     → output: `/tmp/skeleton-template/` (PS-ID scope, 90 dirs)
 
+PRODUCT- and SUITE-level Compose deployments generate certificates into their tier named volume
+(`{PRODUCT}-certs` or `cryptoutil-certs`) so all included PS-ID apps and shared infrastructure use
+the same persisted material. The generated tier tree is also mirrored to the deployment's
+`./certs/` directory for host inspection. Inside the named volume, each PS-ID name aliases the
+product or suite tree, allowing existing PS-ID TLS configuration paths such as `/certs/sm-kms/...`
+to resolve to the tier-issued certificates.
+
 ## File Format Convention
 
 Each directory name IS the base name for the files it contains. Two directory types exist:

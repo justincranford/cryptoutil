@@ -48,6 +48,7 @@ func TestBuildProductParams(t *testing.T) {
 	require.NotEmpty(t, params["__PRODUCT_INCLUDE_LIST__"])
 	require.NotEmpty(t, params["__PRODUCT_SERVICE_OVERRIDES__"])
 	require.NotEmpty(t, params["__PRODUCT_INIT_PS_ID__"])
+	require.Contains(t, params["__PRODUCT_SERVICE_OVERRIDES__"], "sm-certs:/certs:ro")
 }
 
 func TestBuildSuiteParams(t *testing.T) {
@@ -146,8 +147,9 @@ func TestBuildSuiteIncludeList(t *testing.T) {
 func TestBuildSuiteServiceOverrides(t *testing.T) {
 	t.Parallel()
 
-	overrides := buildSuiteServiceOverrides()
+	overrides := buildSuiteServiceOverrides(cryptoutilSharedMagic.DefaultOTLPServiceDefault)
 	require.Contains(t, overrides, "sm-kms-app-sqlite-1:")
+	require.Contains(t, overrides, "cryptoutil-certs:/certs:ro")
 	require.Contains(t, overrides, "!override")
 }
 

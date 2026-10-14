@@ -23,9 +23,25 @@ services:
   # PRODUCT-level PKI init (overrides PS-ID cert material).
   pki-init:
     image: cryptoutil-sm-kms:local
-    command: ["/app/sm-kms", "init", "--domain=sm", "--output-dir=/certs"]
+    command:
+      - /bin/sh
+      - -c
+      - |
+        set -eu
+        /app/sm-kms init --domain=sm --output-dir=/certs
+        chown -R 65532:65532 /certs
+        find /host-certs -mindepth 1 -maxdepth 1 -exec rm -rf {} +
+        cp -a /certs/. /host-certs/
+        for cert_dir in /certs/sm/public-https-server-entity-*-sqlite-1; do
+          [ -d "$$cert_dir" ] || continue
+          psid=$${cert_dir##*/public-https-server-entity-}
+          psid=$${psid%-sqlite-1}
+          rm -rf "/certs/$$psid"
+          ln -s "sm" "/certs/$$psid"
+        done
     volumes:
-      - ./certs/:/certs/:rw
+      - sm-certs:/certs:rw
+      - ./certs/:/host-certs/:rw
     depends_on:
       builder-sm-kms:
         condition: service_completed_successfully
@@ -33,18 +49,38 @@ services:
   sm-kms-app-sqlite-1:
     ports: !override
       - "18000:8080"
+    volumes:
+      - sm-certs:/certs:ro
 
   sm-kms-app-sqlite-2:
     ports: !override
       - "18001:8080"
+    volumes:
+      - sm-certs:/certs:ro
 
   sm-kms-app-postgresql-1:
     ports: !override
       - "18002:8080"
+    volumes:
+      - sm-certs:/certs:ro
 
   sm-kms-app-postgresql-2:
     ports: !override
       - "18003:8080"
+    volumes:
+      - sm-certs:/certs:ro
+
+  otel-certs-init:
+    volumes:
+      - sm-certs:/certs-source:ro
+
+  postgres-leader:
+    volumes:
+      - sm-certs:/mnt/ps-certs-src:ro
+
+  grafana-otel-lgtm:
+    volumes:
+      - sm-certs:/mnt/ps-certs-src:ro
 
 secrets:
   # PRODUCT-level secrets override PS-ID secrets (paths resolve relative to this file).
@@ -71,3 +107,6 @@ secrets:
     file: ./secrets/postgres-password.secret
   postgres-database.secret:
     file: ./secrets/postgres-database.secret
+
+volumes:
+  sm-certs:

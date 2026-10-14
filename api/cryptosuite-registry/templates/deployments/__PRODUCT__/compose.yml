@@ -22,14 +22,42 @@ services:
   # PRODUCT-level PKI init (overrides PS-ID cert material).
   pki-init:
     image: __SUITE__-__PRODUCT_INIT_PS_ID__:__IMAGE_TAG__
-    command: ["/app/__PRODUCT_INIT_PS_ID__", "init", "--domain=__PRODUCT__", "--output-dir=/certs"]
+    command:
+      - /bin/sh
+      - -c
+      - |
+        set -eu
+        /app/__PRODUCT_INIT_PS_ID__ init --domain=__PRODUCT__ --output-dir=/certs
+        chown -R 65532:65532 /certs
+        find /host-certs -mindepth 1 -maxdepth 1 -exec rm -rf {} +
+        cp -a /certs/. /host-certs/
+        for cert_dir in /certs/__PRODUCT__/public-https-server-entity-*-sqlite-1; do
+          [ -d "$$cert_dir" ] || continue
+          psid=$${cert_dir##*/public-https-server-entity-}
+          psid=$${psid%-sqlite-1}
+          rm -rf "/certs/$$psid"
+          ln -s "__PRODUCT__" "/certs/$$psid"
+        done
     volumes:
-      - ./certs/:/certs/:rw
+      - __PRODUCT__-certs:/certs:rw
+      - ./certs/:/host-certs/:rw
     depends_on:
       builder-__PRODUCT_INIT_PS_ID__:
         condition: service_completed_successfully
 
 __PRODUCT_SERVICE_OVERRIDES__
+
+  otel-certs-init:
+    volumes:
+      - __PRODUCT__-certs:/certs-source:ro
+
+  postgres-leader:
+    volumes:
+      - __PRODUCT__-certs:/mnt/ps-certs-src:ro
+
+  grafana-otel-lgtm:
+    volumes:
+      - __PRODUCT__-certs:/mnt/ps-certs-src:ro
 
 secrets:
   # PRODUCT-level secrets override PS-ID secrets (paths resolve relative to this file).
@@ -56,3 +84,6 @@ secrets:
     file: ./secrets/postgres-password.secret
   postgres-database.secret:
     file: ./secrets/postgres-database.secret
+
+volumes:
+  __PRODUCT__-certs:
