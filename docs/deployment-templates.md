@@ -309,6 +309,10 @@ against `configs/{PS-ID}/{PS-ID}-framework.yml`.
 | `service-username.secret` | `{PS-ID}-service-user` | Service auth user |
 | `service-password.secret` | `{PS-ID}-service-pass-{base64-random-32-bytes}` | Service auth password |
 
+Product and suite deployments use `{PRODUCT}_database` and `{SUITE}_database` respectively. The
+shared PostgreSQL leader bootstrap creates these four tier runtime databases in addition to the
+seven PS-ID runtime databases and 21 deployment databases.
+
 ---
 
 ## G. Product compose.yml Template
@@ -326,11 +330,12 @@ byte-for-byte against `deployments/{PRODUCT}/compose.yml`.
 | Rule ID | Rule | Rationale |
 |---------|------|-----------|
 | PC-01 | MUST include all child PS-ID compose files | Recursive architecture |
-| PC-02 | MUST override `pki-init` command to `["{PRODUCT}", "/certs"]` (positional args: product tier-id then target-dir) | Product-scoped certs |
+| PC-02 | MUST run `pki-init` for the product tier in the product certificate volume | Product-scoped certs |
 | PC-03 | Port overrides MUST use `!override` tag | Complete port replacement |
 | PC-04 | Port formula: `SERVICE + 10000` | Product tier offset |
 | PC-05 | Unseal secrets MUST use `{PRODUCT}-unseal-key-N-of-5-...` values | Product-scoped encryption |
 | PC-06 | MUST include `browser-*.secret.never` and `service-*.secret.never` marker files | Credential scope |
+| PC-07 | Product apps and shared infrastructure MUST consume `{PRODUCT}-certs`; `pki-init` MUST mirror generated files to `./certs/` and expose PS-ID aliases inside the named volume | Shared product PKI material |
 
 ---
 
@@ -361,6 +366,7 @@ byte-for-byte against `deployments/cryptoutil/compose.yml`.
 | SU-02 | Port formula: `SERVICE + 20000` | Suite tier offset |
 | SU-03 | Compact inline port override syntax for 28 app instances | Readability |
 | SU-04 | Unseal secrets MUST use `cryptoutil-unseal-key-N-of-5-...` values | Suite-scoped encryption |
+| SU-05 | Suite apps and shared infrastructure MUST consume `cryptoutil-certs`; `pki-init` MUST mirror generated files to `./certs/` and expose PS-ID aliases inside the named volume | Shared suite PKI material |
 
 ---
 

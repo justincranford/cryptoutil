@@ -1,5 +1,5 @@
 -- PostgreSQL User Initialization Script
--- Grants all privileges to the admin user (created by POSTGRES_USER_FILE) on all 30 databases.
+-- Grants all privileges to the admin user (created by POSTGRES_USER_FILE) on all 32 databases.
 -- Per-PS-ID service users are registered at application startup, not here.
 -- The admin user already exists when this script runs (PostgreSQL entrypoint creates it first).
 
@@ -33,3 +33,18 @@ GRANT ALL PRIVILEGES ON DATABASE "servicedeployment-identity-rs" TO current_user
 GRANT ALL PRIVILEGES ON DATABASE "servicedeployment-identity-rp" TO current_user;
 GRANT ALL PRIVILEGES ON DATABASE "servicedeployment-identity-spa" TO current_user;
 GRANT ALL PRIVILEGES ON DATABASE "servicedeployment-skeleton-template" TO current_user;
+
+-- PS-ID application databases
+GRANT ALL PRIVILEGES ON DATABASE sm_kms_database TO current_user;
+GRANT ALL PRIVILEGES ON DATABASE identity_authz_database TO current_user;
+GRANT ALL PRIVILEGES ON DATABASE identity_idp_database TO current_user;
+GRANT ALL PRIVILEGES ON DATABASE identity_rp_database TO current_user;
+GRANT ALL PRIVILEGES ON DATABASE identity_rs_database TO current_user;
+GRANT ALL PRIVILEGES ON DATABASE identity_spa_database TO current_user;
+GRANT ALL PRIVILEGES ON DATABASE skeleton_template_database TO current_user;
+
+-- Product- and suite-tier application databases
+GRANT ALL PRIVILEGES ON DATABASE sm_database TO current_user;
+GRANT ALL PRIVILEGES ON DATABASE identity_database TO current_user;
+GRANT ALL PRIVILEGES ON DATABASE skeleton_database TO current_user;
+GRANT ALL PRIVILEGES ON DATABASE cryptoutil_database TO current_user;

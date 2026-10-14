@@ -1,5 +1,5 @@
 -- PostgreSQL Leader Initialization Script
--- Creates 21 logical databases (7 services × 3 deployment types)
+-- Creates 21 deployment databases plus 11 runtime databases (7 PS-IDs + 3 products + 1 suite).
 -- OLTP Read-Write databases for microservice isolation
 
 -- Suite-level deployment databases (7)
@@ -106,3 +106,9 @@ CREATE DATABASE identity_rp_database;
 CREATE DATABASE identity_rs_database;
 CREATE DATABASE identity_spa_database;
 CREATE DATABASE skeleton_template_database;
+
+-- Product- and suite-tier application databases (shared by each tier's services).
+CREATE DATABASE sm_database;
+CREATE DATABASE identity_database;
+CREATE DATABASE skeleton_database;
+CREATE DATABASE cryptoutil_database;
