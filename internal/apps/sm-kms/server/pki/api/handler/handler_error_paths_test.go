@@ -2,6 +2,7 @@
 package handler
 
 import (
+	"errors"
 	http "net/http"
 	"net/http/httptest"
 	"testing"
@@ -12,6 +13,8 @@ import (
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 )
+
+const testErrorResponsePath = "/test-error"
 
 // TestErrorResponsePaths tests error response generation for various HTTP error codes.
 func TestErrorResponsePaths(t *testing.T) {
@@ -69,11 +72,11 @@ func TestErrorResponsePaths(t *testing.T) {
 
 			app := fiber.New()
 
-			app.Get("/test-error", func(c *fiber.Ctx) error {
+			app.Get(testErrorResponsePath, func(c *fiber.Ctx) error {
 				return handler.errorResponse(c, tc.statusCode, tc.errorCode, tc.errorMessage)
 			})
 
-			req := httptest.NewRequest(http.MethodGet, "/test-error", nil)
+			req := httptest.NewRequest(http.MethodGet, testErrorResponsePath, nil)
 			resp, err := app.Test(req, -1)
 			require.NoError(t, err)
 			require.Equal(t, tc.expectedStatus, resp.StatusCode)
@@ -82,6 +85,38 @@ func TestErrorResponsePaths(t *testing.T) {
 			require.NoError(t, err)
 		})
 	}
+}
+
+func TestErrorResponse_JSONEncodingError(t *testing.T) {
+	t.Parallel()
+
+	encoderErr := errors.New("injected JSON encoder error")
+
+	var responseErr error
+
+	app := fiber.New(fiber.Config{
+		JSONEncoder: func(any) ([]byte, error) {
+			return nil, encoderErr
+		},
+		ErrorHandler: func(c *fiber.Ctx, err error) error {
+			responseErr = err
+
+			return c.SendStatus(fiber.StatusInternalServerError)
+		},
+	})
+	handler := &Handler{}
+
+	app.Get(testErrorResponsePath, func(c *fiber.Ctx) error {
+		return handler.errorResponse(c, fiber.StatusBadRequest, "test_error", "This is a test error message")
+	})
+
+	req := httptest.NewRequest(http.MethodGet, testErrorResponsePath, nil)
+	resp, err := app.Test(req, -1)
+	require.NoError(t, err)
+	require.Equal(t, fiber.StatusInternalServerError, resp.StatusCode)
+	require.ErrorIs(t, responseErr, encoderErr)
+
+	require.NoError(t, resp.Body.Close())
 }
 
 // TestGetEnrollmentStatus_NotFound tests enrollment status retrieval when enrollment doesn't exist.

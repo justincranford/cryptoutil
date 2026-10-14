@@ -63,6 +63,10 @@ func TestMetricsRegistry_Gauge(t *testing.T) {
 
 	// Get non-existent gauge.
 	require.Equal(t, int64(0), registry.GetGauge("non_existent"))
+
+	// Decrementing a gauge that does not exist initializes it before decrementing.
+	registry.DecrementGauge("decrement_only")
+	require.Equal(t, int64(-1), registry.GetGauge("decrement_only"))
 }
 
 func TestMetricsRegistry_Histogram(t *testing.T) {

@@ -226,3 +226,78 @@ func TestMemoryStore_matchesFilter_RequesterIDMismatch(t *testing.T) {
 	require.Equal(t, 0, total)
 	require.Empty(t, results)
 }
+
+func TestMemoryStore_matchesFilter_IssuerAndNotAfter(t *testing.T) {
+	t.Parallel()
+
+	profileID := "filter-profile"
+	requesterID := "filter-requester"
+	notAfter := time.Now().UTC().Add(time.Hour)
+	activeStatus := StatusActive
+	matchingIssuer := testLiteralCNCA
+	differentIssuer := testLiteralCNTest2
+	notAfterFromEqual := notAfter
+	notAfterFromLater := notAfter.Add(time.Second)
+	notAfterToEqual := notAfter
+	notAfterToEarlier := notAfter.Add(-time.Second)
+
+	tests := []struct {
+		name      string
+		filter    *ListFilter
+		wantTotal int
+	}{
+		{
+			name: "all filter fields match including date boundaries",
+			filter: &ListFilter{
+				Status:       &activeStatus,
+				ProfileID:    &profileID,
+				RequesterID:  &requesterID,
+				IssuerDN:     &matchingIssuer,
+				NotAfterFrom: &notAfterFromEqual,
+				NotAfterTo:   &notAfterToEqual,
+			},
+			wantTotal: 1,
+		},
+		{
+			name:      "issuer does not match",
+			filter:    &ListFilter{IssuerDN: &differentIssuer},
+			wantTotal: 0,
+		},
+		{
+			name:      "not after from includes equal boundary",
+			filter:    &ListFilter{NotAfterFrom: &notAfterFromEqual},
+			wantTotal: 1,
+		},
+		{
+			name:      "not after from excludes later boundary",
+			filter:    &ListFilter{NotAfterFrom: &notAfterFromLater},
+			wantTotal: 0,
+		},
+		{
+			name:      "not after to includes equal boundary",
+			filter:    &ListFilter{NotAfterTo: &notAfterToEqual},
+			wantTotal: 1,
+		},
+		{
+			name:      "not after to excludes earlier boundary",
+			filter:    &ListFilter{NotAfterTo: &notAfterToEarlier},
+			wantTotal: 0,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			store := NewMemoryStore()
+			cert := newTestCert("serial-filter", profileID, requesterID, matchingIssuer, notAfter)
+			err := store.Store(context.Background(), cert)
+			require.NoError(t, err)
+
+			results, total, err := store.List(context.Background(), tc.filter)
+			require.NoError(t, err)
+			require.Equal(t, tc.wantTotal, total)
+			require.Len(t, results, tc.wantTotal)
+		})
+	}
+}
