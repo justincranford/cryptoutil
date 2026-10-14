@@ -7,7 +7,7 @@
 // The YAML file is the machine-readable SSOT; this package exposes Go-typed accessors.
 package registry
 
-// Product represents a cryptoutil product (e.g. "sm", "pki").
+// Product represents a cryptoutil product (e.g. "sm").
 type Product struct {
 	// ID is the canonical product identifier (e.g. "sm").
 	ID string
@@ -87,7 +87,7 @@ func init() {
 	allSuites = r.ToSuites()
 }
 
-// AllProducts returns the canonical list of all 4 products.
+// AllProducts returns the canonical list of all 3 products.
 func AllProducts() []Product {
 	result := make([]Product, len(allProducts))
 	copy(result, allProducts)
@@ -95,7 +95,7 @@ func AllProducts() []Product {
 	return result
 }
 
-// AllProductServices returns the canonical list of all 8 product-services.
+// AllProductServices returns the canonical list of all 7 product-services.
 func AllProductServices() []ProductService {
 	result := make([]ProductService, len(allProductServices))
 	copy(result, allProductServices)

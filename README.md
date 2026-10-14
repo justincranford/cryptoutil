@@ -4,12 +4,11 @@
 
 ## Introduction
 
-**cryptoutil** is a production-ready suite of four cryptographic products, designed with enterprise-grade security, **FIPS 140-3** standards compliance, and Zero-Trust principles:
+**cryptoutil** is a production-ready suite of three cryptographic products, designed with enterprise-grade security, **FIPS 140-3** standards compliance, and Zero-Trust principles:
 
-1. **Private Key Infrastructure (PKI)** - X.509 certificate management with EST, SCEP, OCSP, and CRL support
-2. **Secrets Manager (SM)** - Elastic key management service with hierarchical key barriers, JWK/JWE/JWS cryptographic operations, encrypted messaging, and encryption-at-rest
-3. **Identity** - OAuth 2.1, OIDC 1.0, WebAuthn, and Passkeys authentication and authorization
-4. **Skeleton** - Template product for new service development
+1. **Secrets Manager (SM)** - Elastic key management with hierarchical key barriers, JWK/JWE/JWS cryptographic operations, encrypted messaging, encryption-at-rest, and PKI capabilities
+2. **Identity** - OAuth 2.1, OIDC 1.0, WebAuthn, and Passkeys authentication and authorization
+3. **Skeleton** - Template product for new service development
 
 ### Project Background
 
@@ -21,9 +20,7 @@ The project began as a standalone **Key Management Service (KMS)**. As part of t
 
 ### Evolution of the Architecture
 
-Instead of keeping Identity internal, I chose to build it as an **independent external service**. It wanted to run on its own, not just as a dependency of the KMS.
-
-I also decided to refactor the **CA** and **JSON cryptography** components into external services. Both the KMS and Identity depend on them, but those components are widely useful on their own.
+Identity became an **independent product** rather than remaining internal to KMS. PKI and JSON cryptography are capabilities of the Secrets Manager product; PKI is served by `sm-kms` under the `/pki/` API path rather than as a separate product or deployment unit.
 
 ### Why This Exists
 
@@ -31,7 +28,7 @@ This project is **for fun**. I’ve worked on all four types of systems professi
 
 This opportunity is also a great learning experience, especially with respect to using **LLM agents** for Spec-Driven Development (SDD).
 
-Finally, this project has given me a much greater appreciation for the breadth of work that goes into delivering modern, enterprise-ready security products.
+Finally, this project has given me a much greater appreciation for the breadth of work that goes into delivering modern, enterprise-ready security products across PKI, secrets management, identity, and service frameworks.
 
 ## Key Features
 

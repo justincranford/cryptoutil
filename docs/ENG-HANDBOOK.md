@@ -128,12 +128,11 @@ This document is structured to serve multiple audiences:
 
 ### 1.1 Vision Statement
 
-**cryptoutil** is a production-ready suite of four cryptographic-based products, designed with enterprise-grade security, **FIPS 140-3** standards compliance, Zero-Trust principles, and security-on-by-default:
+**cryptoutil** is a production-ready suite of three cryptographic products, designed with enterprise-grade security, **FIPS 140-3** standards compliance, Zero-Trust principles, and security-on-by-default:
 
-1. **Private Key Infrastructure (PKI)** - X.509 certificate management with EST, SCEP, OCSP, and CRL support
-2. **Secrets Manager (SM)** - Elastic key management service with hierarchical key barriers and JWK/JWS/JWE/JWT cryptographic operations
-3. **Identity** - OAuth 2.1, OIDC 1.0, WebAuthn, and Passkeys authentication and authorization
-4. **Skeleton** - Best-practice stereotype product-service template for service-framework usage reference
+1. **Secrets Manager (SM)** - Elastic key management with hierarchical key barriers, JWK/JWS/JWE/JWT cryptographic operations, and PKI capabilities
+2. **Identity** - OAuth 2.1, OIDC 1.0, WebAuthn, and Passkeys authentication and authorization
+3. **Skeleton** - Best-practice stereotype product-service template for service-framework usage reference
 
 **Purpose**: This project is **for fun** while providing a comprehensive learning experience with LLM agents and delivering modern, enterprise-ready security products.
 
@@ -1367,7 +1366,7 @@ deployments/{PS-ID}/
 | Browser/service creds | Real `.secret` files | `.secret.never` markers | `.secret.never` markers |
 | Value prefix | `{PS-ID}-` / `{PS_ID}_` | `{PRODUCT}-` / `{PRODUCT}_` | `{SUITE}-` / `{SUITE}_` |
 
-**All 3 products**: `identity`, `pki`, `skeleton`, `sm`.
+**All 3 products**: `identity`, `skeleton`, `sm`.
 
 ##### Shared Infrastructure Deployments
 
@@ -2272,7 +2271,7 @@ The `pki-init` CLI generates the full `/certs` directory tree for each deploymen
 **Directory counts** (with 2 realms per PS-ID):
 - PS-ID scope: 90 directories
 - PRODUCT scope (sm = 1 PS-ID): 90 directories (30 global shared + 60 per PS-ID x 1)
-- SUITE scope (7 PS-IDs): 510 directories (30 global shared + 60 per PS-ID × 8)
+- SUITE scope (7 PS-IDs): 450 directories (30 global shared + 60 per PS-ID × 7)
 
 **Docker volume delivery**: certs are written to a named Docker volume `{ps-id}-certs` by the `pki-init` service, then mounted read-only (`/certs:ro`) by all other services in the compose. NEVER use bind mounts for certs. See [docs/deployment-templates.md](deployment-templates.md) rules CO-21/CO-22.
 
@@ -2383,7 +2382,7 @@ Once all clients present certificates, flip `client-policy` to `require-and-veri
 | Cat 7 leaf dirs | `4 instances` | 4 | One admin mTLS leaf per instance |
 | Total per PS-ID | `30 global + 60 PS-ID-specific` | 90 | Fixed count assuming 2 realms |
 | PRODUCT (1 PS-ID) | `30 + 60 × 1` | 90 | SM product: sm-kms |
-| SUITE (7 PS-IDs) | `30 + 60 × 8` | 510 | Full cryptoutil suite |
+| SUITE (7 PS-IDs) | `30 + 60 × 7` | 450 | Full cryptoutil suite |
 
 **PostgreSQL mTLS Certificate Ownership** (Category 10–14):
 
@@ -6653,7 +6652,7 @@ entries, err := os.ReadDir(dir)
 
 This is a documented Go cross-platform difference. Skipping the `Stat` check causes Windows CI/CD failures that do not reproduce on Linux.
 
-**Derive directory/file counts from pattern expansion** (MANDATORY): When documenting or implementing functions that generate multiple output directories/files (e.g., `pki-init` 14 certificate categories), ALWAYS show the derivation formula rather than stating a raw count. Example: `30 global + 60 per-PS-ID × 7 PS-IDs = 510`. Never state `510` without the formula — formula errors are caught immediately during review; raw counts are not.
+**Derive directory/file counts from pattern expansion** (MANDATORY): When documenting or implementing functions that generate multiple output directories/files (e.g., `pki-init` 14 certificate categories), ALWAYS show the derivation formula rather than stating a raw count. Example: `30 global + 60 per-PS-ID × 7 PS-IDs = 450`. Never state `450` without the formula — formula errors are caught immediately during review; raw counts are not.
 
 **Multi-Category Generator Call Sites**: When implementing a function that generates multiple named categories (e.g., `pki-init`'s 14 certificate categories), add `// Cat N: <name>` comments at each call site. Reviewers can then cross-reference the spec document without mentally mapping code positions to category numbers.
 
