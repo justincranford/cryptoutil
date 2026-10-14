@@ -9,23 +9,31 @@
 //
 // Usage patterns:
 //
-//  1. In TestMain (with manual cleanup via defer):
+//  1. In TestMain (with explicit cleanup before os.Exit):
 //     func TestMain(m *testing.M) {
 //     ctx := context.Background()
+//     db, dbCleanup, err := test_help_db.NewInMemorySQLiteDBForTestMain()
+//     if err != nil { log.Fatal(err) }
 //     srv, err := NewMyServer(ctx, config)
-//     db := testdb.NewInMemorySQLiteDB(&testing.T{}) // simplified
-//     is, err := test_orch_integration.StartIntegrationServer(ctx, (*testing.T)(nil), srv, db)
-//     defer is.Shutdown(context.Background())
-//     os.Exit(m.Run())
+//     if err != nil {
+//     if cleanupErr := dbCleanup(); cleanupErr != nil { log.Printf("DB cleanup failed: %v", cleanupErr) }
+//     log.Fatal(err)
+//     }
+//     is, err := test_orch_integration.StartIntegrationServerForTestMain(ctx, srv, db)
+//     if err != nil { dbCleanup(); log.Fatal(err) }
+//     exitCode := m.Run()
+//     if err := is.Shutdown(ctx); err != nil { log.Printf("shutdown failed: %v", err); exitCode = 1 }
+//     if cleanupErr := dbCleanup(); cleanupErr != nil { log.Printf("DB cleanup failed: %v", cleanupErr); exitCode = 1 }
+//     os.Exit(exitCode)
 //     }
 //
-//  2. In individual test functions (with tb.Cleanup):
+//  2. In individual test functions (cleanup is registered automatically):
 //     func TestSomething(t *testing.T) {
 //     ctx := context.Background()
 //     srv, _ := NewMyServer(ctx, config)
-//     db := testdb.NewInMemorySQLiteDB(t)
-//     is, _ := test_orch_integration.StartIntegrationServer(ctx, t, srv, db)
-//     t.Cleanup(func() { is.Shutdown(context.Background()) })
+//     db := test_help_db.NewInMemorySQLiteDB(t)
+//     is, err := test_orch_integration.StartIntegrationServer(ctx, t, srv, db)
+//     if err != nil { t.Fatal(err) }
 //     // Use is.PublicBaseURL(), is.AdminBaseURL(), is.DB()
 //     }
 //

@@ -1256,7 +1256,7 @@ applyTo: "**"
 
 | Tier | Database | Pattern | PostgreSQL? |
 |------|----------|---------|-------------|
-| Unit | SQLite in-memory | `testdb.NewInMemorySQLiteDB(t)` | NEVER |
+| Unit | SQLite in-memory | `test_help_db.NewInMemorySQLiteDB(t)` | NEVER |
 | Integration | SQLite in-memory via TestMain | ONE shared instance per package | NEVER |
 | E2E | Docker Compose PostgreSQL | 4 app instances (2 PostgreSQL + 2 SQLite) | YES (only here) |
 
@@ -1357,19 +1357,9 @@ ctx, cancel := context.WithTimeout(ctx, magic.DefaultDataServerShutdownTimeout) 
 ```
 <!-- @/from-eng-handbook -->
 
-### 8. Nested t.Cleanup Anti-Pattern
+Use orthogonal test data in shared TestMain SQLite databases: each test MUST create and query only UUIDv7-keyed records it owns. NEVER clear shared tables from per-test cleanup because parallel tests may delete each other's data. Register cleanup only for resources owned by that test (for example, its server or temporary files).
 
-NEVER call shared cleanup helpers inside `t.Cleanup`:
-
-```go
-// WRONG: delayed execution, non-obvious ordering, cross-test contamination
-t.Cleanup(func() { testdb.CleanupDatabase(t, testDB) })
-
-// CORRECT: call directly at test start (before test logic runs)
-testdb.CleanupDatabase(t, testDB)
-```
-
-**Why**: `t.Cleanup` runs AFTER the test body, so the cleanup from test N may run concurrently with the setup of test N+1 in parallel suites. Shared SQLite fixtures are particularly susceptible — a cleanup that truncates tables can delete rows being inserted by the next test.
+**Why**: `t.Cleanup` runs AFTER the test body and may execute concurrently with another test's setup. Clearing shared tables can delete rows being inserted or verified by that other test.
 
 ## Sequential Test Exemption
 
@@ -1395,24 +1385,54 @@ func TestRegisterHandler_Duplicate(t *testing.T) {
 
 ## TestMain Integration Pattern
 
-**Use For**: PostgreSQL containers, HTTP servers, crypto services (>100ms init).
+**Use For**: Package-shared SQLite fixtures, HTTP servers, crypto services (>100ms init).
 **Don't Use For**: Simple unit tests, mocks, lightweight helpers.
 
+Integration tests use one SQLite database initialized in `TestMain`; PostgreSQL is reserved for E2E. Each parallel test MUST use orthogonal rows keyed by UUIDv7.
+
 ```go
-var (testDB *gorm.DB; testServer *Server)
+var (
+    testDB                *gorm.DB
+    testServer            *Server
+    testIntegrationServer *test_orch_integration.IntegrationServer
+    dbCleanup             func() error
+)
 
 func TestMain(m *testing.M) {
     ctx := context.Background()
-    container, _ := postgres.RunContainer(ctx,
-        postgres.WithDatabase(fmt.Sprintf("test_%s", googleUuid.NewV7().String())),
-        postgres.WithUsername(fmt.Sprintf("user_%s", googleUuid.NewV7().String())),
-    )
-    defer container.Terminate(ctx)
-    testDB, _ = gorm.Open(postgres.Open(connStr), &gorm.Config{})
-    testServer, _ = NewServer(testDB, ...)
-    go testServer.Start()
-    defer testServer.Shutdown()
-    os.Exit(m.Run())
+    var err error
+
+    testDB, dbCleanup, err = test_help_db.NewInMemorySQLiteDBForTestMain()
+    if err != nil {
+        log.Fatalf("Failed to create test database: %v", err)
+    }
+
+    testServer, err = NewServer(testDB, ...)
+    if err != nil {
+        if cleanupErr := dbCleanup(); cleanupErr != nil {
+            log.Printf("Failed to close test database: %v", cleanupErr)
+        }
+        log.Fatalf("Failed to create test server: %v", err)
+    }
+
+    testIntegrationServer, err = test_orch_integration.StartIntegrationServerForTestMain(ctx, testServer, testDB)
+    if err != nil {
+        if cleanupErr := dbCleanup(); cleanupErr != nil {
+            log.Printf("Failed to close test database: %v", cleanupErr)
+        }
+        log.Fatalf("Failed to start test server: %v", err)
+    }
+
+    exitCode := m.Run()
+    if err := testIntegrationServer.Shutdown(ctx); err != nil {
+        log.Printf("Failed to stop test server: %v", err)
+        exitCode = 1
+    }
+    if cleanupErr := dbCleanup(); cleanupErr != nil {
+        log.Printf("Failed to close test database: %v", cleanupErr)
+        exitCode = 1
+    }
+    os.Exit(exitCode)
 }
 ```
 
@@ -1463,7 +1483,7 @@ Use these packages from `internal/apps-framework/service/` instead of reimplemen
 | Package | Key API | Usage |
 |---------|---------|-------|
 | `test_help_db` | `NewInMemorySQLiteDB(t)` | SQLite in-memory DB (WAL+pool configured) |
-| `test_help_db` | `NewInMemorySQLiteDBForTestMain()` | SQLite in-memory DB for TestMain (no `*testing.T`); returns `(*gorm.DB, cleanupFn, error)` |
+| `test_help_db` | `NewInMemorySQLiteDBForTestMain()` | SQLite in-memory DB for TestMain (no `*testing.T`); returns `(*gorm.DB, func() error, error)` |
 | `test_help_db` | `NewClosedSQLiteDB(t, migrateFn)` | Pre-closed SQLite DB for error-path testing |
 | `test_help_db` | `NewPostgresTestContainer(ctx, t)` | PostgreSQL test container (E2E only) |
 | `test_help_bootstrap` | `NewTestServerSettings(t)` | Server settings for individual tests |
@@ -1483,7 +1503,7 @@ When a failure appears intermittent, run BOTH before concluding root cause:
 1. **Isolated**: `go test -run TestName ./path/to/pkg` — passes alone? → shared fixture contamination likely.
 2. **Full package**: `go test ./path/to/pkg` — fails in group? → confirms interaction with other tests.
 
-**Isolated-pass + grouped-fail = shared fixture contamination**. Check for `t.Cleanup`-wrapped cleanups, missing `CleanupDatabase` at test start, or parallel tests mutating shared SQLite state.
+**Isolated-pass + grouped-fail = shared fixture contamination**. Check for `t.Cleanup`-wrapped cleanups, shared-table cleanup or parallel tests mutating shared SQLite state.
 
 **Also useful**: `git stash ; go test ./... ; git stash pop` — if the test fails before your changes, it is pre-existing, not caused by your work (~30 seconds vs. hours of investigation).
 
@@ -1974,7 +1994,7 @@ applyTo: "**"
 
 | Tier | Database | Pattern | PostgreSQL? |
 |------|----------|---------|-------------|
-| Unit | SQLite in-memory | `testdb.NewInMemorySQLiteDB(t)` | NEVER |
+| Unit | SQLite in-memory | `test_help_db.NewInMemorySQLiteDB(t)` | NEVER |
 | Integration | SQLite in-memory via TestMain | ONE shared instance per package | NEVER |
 | E2E | Docker Compose PostgreSQL | 4 app instances (2 PostgreSQL + 2 SQLite) | YES (only here) |
 
@@ -2144,8 +2164,8 @@ Use shared test infrastructure helpers instead of reimplementing DB/server setup
 
 | Helper | Usage |
 |--------|-------|
-| `testdb.NewInMemorySQLiteDB(t)` | SQLite in-memory with WAL+pool (no test container needed) |
-| `testdb.NewPostgresTestContainer(ctx, t)` | PostgreSQL test container |
+| `test_help_db.NewInMemorySQLiteDB(t)` | SQLite in-memory with WAL+pool (no test container needed) |
+| `test_help_db.NewPostgresTestContainer(ctx, t)` | PostgreSQL test container |
 | `testserver.StartAndWait(ctx, t, srv)` | Start server and wait for dual-port ready, calls SetReady(true) |
 
 ### Phase 13 Extensions
@@ -5761,19 +5781,9 @@ After tests pass, think about the original intent, write additional tests to ens
 - Re-run coverage to verify improvement
 - Iterate until coverage targets met (≥95% production, ≥98% infrastructure)
 
-**Nested t.Cleanup Anti-Pattern:**
+Use orthogonal test data in shared TestMain SQLite databases: each test MUST create and query only UUIDv7-keyed records it owns. NEVER clear shared tables from per-test cleanup because parallel tests may delete each other's data. Register cleanup only for resources owned by that test (for example, its server or temporary files).
 
-NEVER call shared cleanup helpers inside `t.Cleanup`:
-
-```go
-// WRONG: delayed execution, non-obvious ordering, cross-test contamination
-t.Cleanup(func() { testdb.CleanupDatabase(t, testDB) })
-
-// CORRECT: call directly at test start (before test logic runs)
-testdb.CleanupDatabase(t, testDB)
-```
-
-`t.Cleanup` runs AFTER the test body, so cleanup from test N may run concurrently with the setup of test N+1 in parallel suites. Shared SQLite fixtures are particularly susceptible — a cleanup that truncates tables can delete rows being inserted by the next test.
+**Why**: `t.Cleanup` runs AFTER the test body and may execute concurrently with another test's setup. Clearing shared tables can delete rows being inserted or verified by that other test.
 
 **Flaky Test Diagnosis:**
 
@@ -5781,7 +5791,7 @@ When a failure appears intermittent, run BOTH before concluding root cause:
 1. **Isolated**: `go test -run TestName ./path/to/pkg` — passes alone? → shared fixture contamination likely.
 2. **Full package**: `go test ./path/to/pkg` — fails in group? → confirms interaction with other tests.
 
-**Isolated-pass + grouped-fail = shared fixture contamination**. Check for `t.Cleanup`-wrapped cleanups, missing `CleanupDatabase` at test start, or parallel tests mutating shared SQLite state.
+**Isolated-pass + grouped-fail = shared fixture contamination**. Check for `t.Cleanup`-wrapped cleanups, shared-table cleanup or parallel tests mutating shared SQLite state.
 
 **Also useful**: `git stash ; go test ./... ; git stash pop` — if the test fails before your changes, it is pre-existing, not caused by your work (~30 seconds vs. hours of investigation).
 
@@ -5799,7 +5809,7 @@ Unit + integration + E2E tests MUST be done during EVERY phase:
 
 **3-Tier Database Strategy (D7/D19 — MANDATORY):**
 
-- **Unit tests**: SQLite in-memory only (`testdb.NewInMemorySQLiteDB(t)`). NEVER PostgreSQL.
+- **Unit tests**: SQLite in-memory only (`test_help_db.NewInMemorySQLiteDB(t)`). NEVER PostgreSQL.
 - **Integration tests**: ONE shared SQLite in-memory instance per package via TestMain. NEVER PostgreSQL. NEVER per-test DB creation.
 - **E2E tests**: Docker Compose with 3 app instances (2 PostgreSQL + 1 SQLite). PostgreSQL tested ONLY here.
 
@@ -9565,16 +9575,20 @@ testDB *gorm.DB
 )
 
 func TestMain(m *testing.M) {
-var cleanup func()
+var cleanup func() error
 var err error
 
-testDB, cleanup, err = testdb.NewInMemorySQLiteDBForTestMain()
+testDB, cleanup, err = test_help_db.NewInMemorySQLiteDBForTestMain()
 if err != nil {
     panic(err)
 }
-defer cleanup()
 
-os.Exit(m.Run())
+exitCode := m.Run()
+if cleanupErr := cleanup(); cleanupErr != nil {
+    log.Printf("failed to close test database: %v", cleanupErr)
+    exitCode = 1
+}
+os.Exit(exitCode)
 }
 ```
 
@@ -9693,7 +9707,7 @@ Read [ENG-HANDBOOK.md Section 10.2.2 Fiber Handler Testing](../../../docs/ENG-HA
 
 Read [ENG-HANDBOOK.md Section 10.3.2 Test Isolation](../../../docs/ENG-HANDBOOK.md#1032-test-isolation-with-tparallel) for parallelism requirements — ensure `t.Parallel()` is applied correctly at all levels.
 
-Read [ENG-HANDBOOK.md Section 10.3.6 Shared Test Infrastructure](../../../docs/ENG-HANDBOOK.md#1036-shared-test-infrastructure) for shared test helpers — use `testdb.NewInMemorySQLiteDB(t)`, `testserver.StartAndWait`, `fixtures.CreateTestTenant/Realm/User`, `assertions.AssertHealthy`, and `healthclient.NewHealthClient` when these test patterns apply to test infrastructure packages.
+Read [ENG-HANDBOOK.md Section 10.3.6 Shared Test Infrastructure](../../../docs/ENG-HANDBOOK.md#1036-shared-test-infrastructure) for shared test helpers — use `test_help_db.NewInMemorySQLiteDB(t)`, `testserver.StartAndWait`, `fixtures.CreateTestTenant/Realm/User`, `assertions.AssertHealthy`, and `healthclient.NewHealthClient` when these test patterns apply to test infrastructure packages.
 <!-- @file-body:end -->
 
 <!-- @/file-catalog-pair -->

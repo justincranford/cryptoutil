@@ -17,18 +17,21 @@ import (
 
 // Test constants for error messages and test data.
 const (
-	testKeyNotFound     = "key not found"
-	testContext         = "test-context"
-	testInvalidRequest  = "invalid request"
-	testInternalError   = "internal error"
-	testResourceNotFnd  = "resource not found"
-	testInvalidPTText   = "invalid plaintext"
-	testInvalidCTText   = "invalid ciphertext"
-	testDecryptFailed   = "decryption failed"
-	testEncryptFailed   = "encryption failed"
-	testGenFailed       = "generation failed"
-	testInvalidGenParam = "invalid generate params"
-	testEKNotFound      = "elastic key not found"
+	testKeyNotFound      = "key not found"
+	testContext          = "test-context"
+	testInvalidRequest   = "invalid request"
+	testInternalError    = "internal error"
+	testResourceNotFnd   = "resource not found"
+	testInvalidPTText    = "invalid plaintext"
+	testInvalidCTText    = "invalid ciphertext"
+	testDecryptFailed    = "decryption failed"
+	testEncryptFailed    = "encryption failed"
+	testGenFailed        = "generation failed"
+	testInvalidGenParam  = "invalid generate params"
+	testEKNotFound       = "elastic key not found"
+	testCaseNotFound     = "not found"
+	testCaseUnknownError = "unknown error"
+	testCaseSuccess      = "success"
 )
 
 // TestNewOpenapiStrictServer tests that NewOpenapiStrictServer creates a proper server instance.

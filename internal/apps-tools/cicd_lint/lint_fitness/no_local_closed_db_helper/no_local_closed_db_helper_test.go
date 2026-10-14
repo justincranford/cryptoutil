@@ -15,6 +15,8 @@ import (
 )
 
 // createClosedDBViolation is a minimal Go source file that defines a banned closed-DB helper.
+const cleanGoTestFixture = "package repo_test\n\nfunc TestSomething(t *testing.T) {\n\tt.Parallel()\n}\n"
+
 const createClosedDBViolation = "package repo_test\n\nfunc createClosedDatabase() (*gorm.DB, error) {\n\treturn nil, nil\n}\n"
 
 func TestCheckFiles_NoFiles(t *testing.T) {
@@ -56,7 +58,7 @@ func TestCheckFile_ViolationDetected(t *testing.T) {
 		},
 		{
 			name:        "no violation - clean file",
-			fileContent: "package repo_test\n\nfunc TestSomething(t *testing.T) {\n\tt.Parallel()\n}\n",
+			fileContent: cleanGoTestFixture,
 			wantIssues:  false,
 		},
 		{
@@ -104,7 +106,7 @@ func TestCheckFiles_WithViolation(t *testing.T) {
 func TestCheckFiles_AllClean(t *testing.T) {
 	t.Parallel()
 
-	cleanContent := "package repo_test\n\nfunc TestSomething(t *testing.T) {\n\tt.Parallel()\n}\n"
+	cleanContent := cleanGoTestFixture
 	tmpDir := t.TempDir()
 	testFile := filepath.Join(tmpDir, "something_test.go")
 	err := os.WriteFile(testFile, []byte(cleanContent), cryptoutilSharedMagic.CacheFilePermissions)
@@ -139,15 +141,15 @@ func TestCheckInDir_FindsViolation(t *testing.T) {
 	require.Contains(t, err.Error(), "violation")
 }
 
-func TestCheckInDir_SkipsTestdbPackage(t *testing.T) {
+func TestCheckInDir_SkipsSharedDBHelperPackage(t *testing.T) {
 	t.Parallel()
 
 	tmpDir := t.TempDir()
-	testdbDir := filepath.Join(tmpDir, "testing", "testdb")
-	err := os.MkdirAll(testdbDir, cryptoutilSharedMagic.DirPermissions)
+	testHelpDBDir := filepath.Join(tmpDir, "service", "test_help_db")
+	err := os.MkdirAll(testHelpDBDir, cryptoutilSharedMagic.DirPermissions)
 	require.NoError(t, err)
 
-	allowedFile := filepath.Join(testdbDir, "testdb_test.go")
+	allowedFile := filepath.Join(testHelpDBDir, "test_help_db_test.go")
 	err = os.WriteFile(allowedFile, []byte(createClosedDBViolation), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 

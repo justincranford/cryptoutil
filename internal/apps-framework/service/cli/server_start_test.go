@@ -42,9 +42,9 @@ func TestStartServiceServer_Help(t *testing.T) {
 		&stdout,
 		&stderr,
 		cryptoutilAppsFrameworkCli.ServerStartOptions[*struct{}]{
-			UsageServer:  "Usage: test server",
-			ServiceLabel: "test-svc",
-			FlagSetName:  "test-server",
+			UsageServer:  testUsageTestServer,
+			ServiceLabel: testServiceID,
+			FlagSetName:  testTestServer,
 			ParseConfig: func(_ *pflag.FlagSet, _ []string, _ bool) (*struct{}, error) {
 				return &struct{}{}, nil
 			},
@@ -58,7 +58,7 @@ func TestStartServiceServer_Help(t *testing.T) {
 	)
 
 	require.Equal(t, 0, exitCode)
-	require.Contains(t, stderr.String(), "Usage: test server")
+	require.Contains(t, stderr.String(), testUsageTestServer)
 	require.Empty(t, stdout.String())
 }
 
@@ -72,9 +72,9 @@ func TestStartServiceServer_ParseError(t *testing.T) {
 		&stdout,
 		&stderr,
 		cryptoutilAppsFrameworkCli.ServerStartOptions[*struct{}]{
-			UsageServer:  "Usage: test server",
-			ServiceLabel: "test-svc",
-			FlagSetName:  "test-server",
+			UsageServer:  testUsageTestServer,
+			ServiceLabel: testServiceID,
+			FlagSetName:  testTestServer,
 			ParseConfig: func(_ *pflag.FlagSet, _ []string, _ bool) (*struct{}, error) {
 				return nil, fmt.Errorf("parse failed")
 			},
@@ -105,9 +105,9 @@ func TestStartServiceServer_Success(t *testing.T) {
 		&stdout,
 		&stderr,
 		cryptoutilAppsFrameworkCli.ServerStartOptions[*struct{}]{
-			UsageServer:  "Usage: test server",
-			ServiceLabel: "test-svc",
-			FlagSetName:  "test-server",
+			UsageServer:  testUsageTestServer,
+			ServiceLabel: testServiceID,
+			FlagSetName:  testTestServer,
 			ParseConfig: func(_ *pflag.FlagSet, _ []string, _ bool) (*struct{}, error) {
 				return &struct{}{}, nil
 			},

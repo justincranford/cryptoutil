@@ -13,23 +13,42 @@ import (
 
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
-	postgresContainerModule "github.com/testcontainers/testcontainers-go/modules/postgres"
-	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
 
-const testUnusedPostgresURL = "postgres://unused"
+const (
+	testDBCaseSuccess                 = "success"
+	testDBErrorDockerUnavailablePanic = "docker unavailable (panic)"
+	testDBErrorFailedGenerateUUID     = "failed to generate UUID"
+	testDBCaseOpenError               = "open error"
+	testDBErrorSQLOpen                = "sql.Open"
+	testDBCaseUUIDPanic               = "uuid panic"
+	testDBCaseWALError                = "wal error"
+	testDBErrorWALPragma              = "WAL pragma"
+	testDBCaseGormOpenError           = "gorm open error"
+	testDBErrorGormOpen               = "gorm.Open"
+	testDBErrorApplyMigrations        = "apply migrations"
+)
+
+func newIsolatedSQLiteDSN(t *testing.T) string {
+	t.Helper()
+
+	dbID, err := googleUuid.NewV7()
+	require.NoError(t, err)
+
+	return fmt.Sprintf(cryptoutilSharedMagic.SQLiteInMemoryNamedDSNFormat, dbID.String())
+}
 
 func TestNewInMemorySQLiteDBForTestMain_Table(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name      string
-		depsFn    func() dbDeps
-		wantErr   string
-		wantPanic bool
+		name           string
+		depsFn         func() dbDeps
+		wantErr        string
+		wantCleanupErr string
 	}{
-		{name: "success", depsFn: defaultDBDeps},
+		{name: testDBCaseSuccess, depsFn: defaultDBDeps},
 		{
 			name: "uuid error",
 			depsFn: func() dbDeps {
@@ -38,17 +57,27 @@ func TestNewInMemorySQLiteDBForTestMain_Table(t *testing.T) {
 
 				return deps
 			},
-			wantErr: "failed to generate UUID",
+			wantErr: testDBErrorFailedGenerateUUID,
 		},
 		{
-			name: "open error",
+			name: testDBCaseOpenError,
 			depsFn: func() dbDeps {
 				deps := defaultDBDeps()
 				deps.sqlOpenFn = func(_, _ string) (*sql.DB, error) { return nil, errors.New("open failure") }
 
 				return deps
 			},
-			wantErr: "sql.Open",
+			wantErr: testDBErrorSQLOpen,
+		},
+		{
+			name: "cleanup error",
+			depsFn: func() dbDeps {
+				deps := defaultDBDeps()
+				deps.closeSQLDBFn = func(*sql.DB) error { return errors.New("close failure") }
+
+				return deps
+			},
+			wantCleanupErr: "close SQLite TestMain database",
 		},
 	}
 
@@ -73,7 +102,13 @@ func TestNewInMemorySQLiteDBForTestMain_Table(t *testing.T) {
 			sqlDB, sqlErr := db.DB()
 			require.NoError(t, sqlErr)
 			require.NoError(t, sqlDB.Ping())
-			cleanup()
+
+			cleanupErr := cleanup()
+			if tc.wantCleanupErr != "" {
+				require.ErrorContains(t, cleanupErr, tc.wantCleanupErr)
+			} else {
+				require.NoError(t, cleanupErr)
+			}
 		})
 	}
 }
@@ -86,16 +121,16 @@ func TestNewInMemorySQLiteDB_Wrapper_Table(t *testing.T) {
 		depsFn    func() dbDeps
 		wantPanic string
 	}{
-		{name: "success", depsFn: defaultDBDeps},
+		{name: testDBCaseSuccess, depsFn: defaultDBDeps},
 		{
-			name: "uuid panic",
+			name: testDBCaseUUIDPanic,
 			depsFn: func() dbDeps {
 				deps := defaultDBDeps()
 				deps.newUUIDv7Fn = func() (googleUuid.UUID, error) { return googleUuid.UUID{}, errors.New("uuid failure") }
 
 				return deps
 			},
-			wantPanic: "failed to generate UUID",
+			wantPanic: testDBErrorFailedGenerateUUID,
 		},
 		{
 			name: "open panic",
@@ -105,7 +140,7 @@ func TestNewInMemorySQLiteDB_Wrapper_Table(t *testing.T) {
 
 				return deps
 			},
-			wantPanic: "sql.Open",
+			wantPanic: testDBErrorSQLOpen,
 		},
 		{
 			name: "cleanup close error path",
@@ -143,24 +178,24 @@ func TestBuildInMemorySQLiteDB_ErrorPaths(t *testing.T) {
 		wantErr string
 	}{
 		{
-			name: "open error",
+			name: testDBCaseOpenError,
 			depsFn: func() dbDeps {
 				deps := defaultDBDeps()
 				deps.sqlOpenFn = func(_, _ string) (*sql.DB, error) { return nil, errors.New("open failure") }
 
 				return deps
 			},
-			wantErr: "sql.Open",
+			wantErr: testDBErrorSQLOpen,
 		},
 		{
-			name: "wal error",
+			name: testDBCaseWALError,
 			depsFn: func() dbDeps {
 				deps := defaultDBDeps()
 				deps.execSQLitePragmaFn = func(context.Context, *sql.DB, string) error { return errors.New("pragma failure") }
 
 				return deps
 			},
-			wantErr: "WAL pragma",
+			wantErr: testDBErrorWALPragma,
 		},
 		{
 			name: "busy timeout error",
@@ -181,14 +216,14 @@ func TestBuildInMemorySQLiteDB_ErrorPaths(t *testing.T) {
 			wantErr: "busy_timeout pragma",
 		},
 		{
-			name: "gorm open error",
+			name: testDBCaseGormOpenError,
 			depsFn: func() dbDeps {
 				deps := defaultDBDeps()
 				deps.openGormSQLiteFn = func(*sql.DB) (*gorm.DB, error) { return nil, errors.New("gorm open failure") }
 
 				return deps
 			},
-			wantErr: "gorm.Open",
+			wantErr: testDBErrorGormOpen,
 		},
 	}
 
@@ -196,7 +231,7 @@ func TestBuildInMemorySQLiteDB_ErrorPaths(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			db, sqlDB, err := buildInMemorySQLiteDB(context.Background(), tc.depsFn(), "file:test-build-memory?mode=memory&cache=shared")
+			db, sqlDB, err := buildInMemorySQLiteDB(context.Background(), tc.depsFn(), newIsolatedSQLiteDSN(t))
 			require.Nil(t, db)
 			require.Nil(t, sqlDB)
 			require.Error(t, err)
@@ -214,10 +249,10 @@ func TestNewClosedSQLiteDB_Table(t *testing.T) {
 		applyMigrate  func(*sql.DB) error
 		wantPanicText string
 	}{
-		{name: "success", depsFn: defaultDBDeps},
+		{name: testDBCaseSuccess, depsFn: defaultDBDeps},
 		{name: "success with migration", depsFn: defaultDBDeps, applyMigrate: func(*sql.DB) error { return nil }},
 		{
-			name: "uuid panic",
+			name: testDBCaseUUIDPanic,
 			depsFn: func() dbDeps {
 				deps := defaultDBDeps()
 				deps.newUUIDv7Fn = func() (googleUuid.UUID, error) { return googleUuid.UUID{}, errors.New("uuid failure") }
@@ -232,7 +267,7 @@ func TestNewClosedSQLiteDB_Table(t *testing.T) {
 			applyMigrate: func(*sql.DB) error {
 				return errors.New("migration failure")
 			},
-			wantPanicText: "apply migrations",
+			wantPanicText: testDBErrorApplyMigrations,
 		},
 	}
 
@@ -264,40 +299,40 @@ func TestBuildClosedSQLiteDB_ErrorPaths(t *testing.T) {
 		wantErrSub string
 	}{
 		{
-			name: "open error",
+			name: testDBCaseOpenError,
 			depsFn: func() dbDeps {
 				deps := defaultDBDeps()
 				deps.sqlOpenFn = func(_, _ string) (*sql.DB, error) { return nil, errors.New("open failure") }
 
 				return deps
 			},
-			wantErrSub: "sql.Open",
+			wantErrSub: testDBErrorSQLOpen,
 		},
 		{
-			name: "wal error",
+			name: testDBCaseWALError,
 			depsFn: func() dbDeps {
 				deps := defaultDBDeps()
 				deps.execSQLitePragmaFn = func(context.Context, *sql.DB, string) error { return errors.New("wal failure") }
 
 				return deps
 			},
-			wantErrSub: "WAL pragma",
+			wantErrSub: testDBErrorWALPragma,
 		},
 		{
 			name:       "migration error",
 			depsFn:     defaultDBDeps,
 			migrateFn:  func(*sql.DB) error { return errors.New("migration failure") },
-			wantErrSub: "apply migrations",
+			wantErrSub: testDBErrorApplyMigrations,
 		},
 		{
-			name: "gorm open error",
+			name: testDBCaseGormOpenError,
 			depsFn: func() dbDeps {
 				deps := defaultDBDeps()
 				deps.openGormSQLiteFn = func(*sql.DB) (*gorm.DB, error) { return nil, errors.New("gorm open failure") }
 
 				return deps
 			},
-			wantErrSub: "gorm.Open",
+			wantErrSub: testDBErrorGormOpen,
 		},
 		{
 			name: "close error",
@@ -315,7 +350,7 @@ func TestBuildClosedSQLiteDB_ErrorPaths(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			db, err := buildClosedSQLiteDB(context.Background(), tc.depsFn(), "file:test-build-closed?mode=memory&cache=shared", tc.migrateFn)
+			db, err := buildClosedSQLiteDB(context.Background(), tc.depsFn(), newIsolatedSQLiteDSN(t), tc.migrateFn)
 			require.Nil(t, db)
 			require.Error(t, err)
 			require.ErrorContains(t, err, tc.wantErrSub)
@@ -323,32 +358,39 @@ func TestBuildClosedSQLiteDB_ErrorPaths(t *testing.T) {
 	}
 }
 
-func TestSafeNewPostgresTestContainer_Table(t *testing.T) {
+func TestSQLiteSetupErrorsReportCloseFailures(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name      string
-		factoryFn func(context.Context) (*postgresContainerModule.PostgresContainer, error)
-		wantErr   string
+		name  string
+		build func(dbDeps) error
 	}{
 		{
-			name: "factory error",
-			factoryFn: func(context.Context) (*postgresContainerModule.PostgresContainer, error) {
-				return nil, errors.New("factory error")
+			name: "in-memory WAL setup",
+			build: func(deps dbDeps) error {
+				deps.execSQLitePragmaFn = func(context.Context, *sql.DB, string) error { return errors.New("setup failure") }
+				_, _, err := buildInMemorySQLiteDB(context.Background(), deps, cryptoutilSharedMagic.SQLiteMemoryPlaceholder)
+
+				return err
 			},
-			wantErr: "postgres container",
 		},
 		{
-			name: "factory panic",
-			factoryFn: func(context.Context) (*postgresContainerModule.PostgresContainer, error) {
-				panic("factory panic")
+			name: "in-memory GORM setup",
+			build: func(deps dbDeps) error {
+				deps.openGormSQLiteFn = func(*sql.DB) (*gorm.DB, error) { return nil, errors.New("setup failure") }
+				_, _, err := buildInMemorySQLiteDB(context.Background(), deps, cryptoutilSharedMagic.SQLiteMemoryPlaceholder)
+
+				return err
 			},
-			wantErr: "docker unavailable (panic)",
 		},
 		{
-			name: "success",
-			factoryFn: func(context.Context) (*postgresContainerModule.PostgresContainer, error) {
-				return &postgresContainerModule.PostgresContainer{}, nil
+			name: "closed DB migration",
+			build: func(deps dbDeps) error {
+				_, err := buildClosedSQLiteDB(context.Background(), deps, cryptoutilSharedMagic.SQLiteMemoryPlaceholder, func(*sql.DB) error {
+					return errors.New("setup failure")
+				})
+
+				return err
 			},
 		},
 	}
@@ -357,127 +399,36 @@ func TestSafeNewPostgresTestContainer_Table(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			container, err := safeNewPostgresTestContainer(context.Background(), tc.factoryFn)
-			if tc.wantErr != "" {
-				require.Nil(t, container)
-				require.Error(t, err)
-				require.ErrorContains(t, err, tc.wantErr)
+			deps := defaultDBDeps()
+			deps.closeSQLDBFn = func(*sql.DB) error { return errors.New("close failure") }
 
-				return
-			}
-
-			require.NoError(t, err)
-			require.NotNil(t, container)
+			err := tc.build(deps)
+			require.Error(t, err)
+			require.ErrorContains(t, err, "setup failure")
+			require.ErrorContains(t, err, "close SQLite DB after setup failure")
+			require.ErrorContains(t, err, "close failure")
 		})
 	}
 }
 
-func TestNewPostgresTestContainer_WithDeps(t *testing.T) {
-	t.Parallel()
-
-	t.Run("skip path", func(t *testing.T) {
-		t.Parallel()
-
-		deps := defaultDBDeps()
-		deps.newPostgresContainerFactoryFn = func(context.Context) (*postgresContainerModule.PostgresContainer, error) {
-			return nil, fmt.Errorf("forced skip")
-		}
-
-		_ = newPostgresTestContainerWithDeps(context.Background(), t, deps)
-	})
-
-	t.Run("connection string panic", func(t *testing.T) {
-		t.Parallel()
-
-		deps := defaultDBDeps()
-		deps.newPostgresContainerFactoryFn = func(context.Context) (*postgresContainerModule.PostgresContainer, error) {
-			return &postgresContainerModule.PostgresContainer{}, nil
-		}
-		deps.containerConnectionStringFn = func(context.Context, *postgresContainerModule.PostgresContainer) (string, error) {
-			return "", errors.New("connection string failure")
-		}
-		deps.containerTerminateFn = func(context.Context, *postgresContainerModule.PostgresContainer) error {
-			return nil
-		}
-
-		require.Panics(t, func() {
-			_ = newPostgresTestContainerWithDeps(context.Background(), t, deps)
-		})
-	})
-
-	t.Run("gorm open panic", func(t *testing.T) {
-		t.Parallel()
-
-		deps := defaultDBDeps()
-		deps.newPostgresContainerFactoryFn = func(context.Context) (*postgresContainerModule.PostgresContainer, error) {
-			return &postgresContainerModule.PostgresContainer{}, nil
-		}
-		deps.containerConnectionStringFn = func(context.Context, *postgresContainerModule.PostgresContainer) (string, error) {
-			return testUnusedPostgresURL, nil
-		}
-		deps.openGormPostgresFn = func(string) (*gorm.DB, error) {
-			return nil, errors.New("gorm open failure")
-		}
-		deps.containerTerminateFn = func(context.Context, *postgresContainerModule.PostgresContainer) error {
-			return nil
-		}
-
-		require.Panics(t, func() {
-			_ = newPostgresTestContainerWithDeps(context.Background(), t, deps)
-		})
-	})
-
-	t.Run("success with cleanup error paths", func(t *testing.T) {
-		t.Parallel()
-
-		sqlDB, openErr := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, "file:test-postgres-seam-db?mode=memory&cache=shared")
-		require.NoError(t, openErr)
-
-		deps := defaultDBDeps()
-		deps.newPostgresContainerFactoryFn = func(context.Context) (*postgresContainerModule.PostgresContainer, error) {
-			return &postgresContainerModule.PostgresContainer{}, nil
-		}
-		deps.containerConnectionStringFn = func(context.Context, *postgresContainerModule.PostgresContainer) (string, error) {
-			return testUnusedPostgresURL, nil
-		}
-		deps.openGormPostgresFn = func(string) (*gorm.DB, error) {
-			return gorm.Open(sqlite.Dialector{Conn: sqlDB}, &gorm.Config{})
-		}
-		deps.containerTerminateFn = func(context.Context, *postgresContainerModule.PostgresContainer) error {
-			return errors.New("terminate failure")
-		}
-		deps.closeSQLDBFn = func(*sql.DB) error {
-			return errors.New("close failure")
-		}
-
-		db := newPostgresTestContainerWithDeps(context.Background(), t, deps)
-		require.NotNil(t, db)
-	})
-}
-
-func TestPublicWrappers_Coverage(t *testing.T) {
+func TestSQLitePublicWrappers(t *testing.T) {
 	t.Parallel()
 
 	db, cleanup, err := NewInMemorySQLiteDBForTestMain()
 	require.NoError(t, err)
 	require.NotNil(t, db)
 	require.NotNil(t, cleanup)
-	cleanup()
+	require.NoError(t, cleanup())
 
 	require.NotNil(t, NewInMemorySQLiteDB(t))
 	require.NotNil(t, NewClosedSQLiteDB(t, nil))
-
-	t.Run("postgres wrapper skip-or-success", func(t *testing.T) {
-		t.Parallel()
-		_ = NewPostgresTestContainer(context.Background(), t)
-	})
 }
 
 func TestDefaultSeamFunctions_Coverage(t *testing.T) {
 	t.Parallel()
 
 	deps := defaultDBDeps()
-	sqlDB, err := deps.sqlOpenFn(cryptoutilSharedMagic.TestDatabaseSQLite, "file:test-default-seams?mode=memory&cache=shared")
+	sqlDB, err := deps.sqlOpenFn(cryptoutilSharedMagic.TestDatabaseSQLite, newIsolatedSQLiteDSN(t))
 	require.NoError(t, err)
 	t.Cleanup(func() { _ = sqlDB.Close() })
 
@@ -494,7 +445,7 @@ func TestDefaultSeamFunctions_Coverage(t *testing.T) {
 	t.Run("default pragma error wrapping", func(t *testing.T) {
 		t.Parallel()
 
-		closedDB, openErr := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, "file:test-default-seams-closed?mode=memory&cache=shared")
+		closedDB, openErr := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, newIsolatedSQLiteDSN(t))
 		require.NoError(t, openErr)
 		require.NoError(t, closedDB.Close())
 

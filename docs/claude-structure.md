@@ -211,7 +211,7 @@ paths:
 
 When working in the framework package, always:
 - Use function-parameter injection for seams (not package-level vars)
-- Check testdb.NewInMemorySQLiteDB(t) for unit tests
+- Check test_help_db.NewInMemorySQLiteDB(t) for unit tests
 ```
 
 **Without `paths`**: loaded at launch (same priority as `.claude/CLAUDE.md`).

@@ -11,6 +11,11 @@ import (
 	testify "github.com/stretchr/testify/require"
 )
 
+const (
+	testCaseValidSorts     = "valid sorts"
+	testCaseSortsWithEmpty = "sorts with empty"
+)
+
 func TestToOrmAlgorithms(t *testing.T) {
 	t.Parallel()
 
@@ -33,7 +38,7 @@ func TestToOrmAlgorithms(t *testing.T) {
 		expectNil     bool
 		errorContains string
 	}{
-		{"nil input", nil, false, true, ""},
+		{testCaseNilInput, nil, false, true, ""},
 		{"valid algorithms", &validAlgorithms, false, false, ""},
 		{"algorithms with empty", &algorithmsWithEmpty, true, false, "algorithm cannot be empty"},
 	}
@@ -83,9 +88,9 @@ func TestToOrmElasticKeySorts(t *testing.T) {
 		expectNil     bool
 		errorContains string
 	}{
-		{"nil input", nil, false, true, ""},
-		{"valid sorts", &validSorts, false, false, ""},
-		{"sorts with empty", &sortsWithEmpty, true, false, "elastic key sort cannot be empty"},
+		{testCaseNilInput, nil, false, true, ""},
+		{testCaseValidSorts, &validSorts, false, false, ""},
+		{testCaseSortsWithEmpty, &sortsWithEmpty, true, false, "elastic key sort cannot be empty"},
 	}
 
 	for _, tc := range tests {
@@ -143,9 +148,9 @@ func TestToOrmMaterialKeySorts(t *testing.T) {
 		expectNil     bool
 		errorContains string
 	}{
-		{"nil input", nil, false, true, ""},
-		{"valid sorts", &validSorts, false, false, ""},
-		{"sorts with empty", &sortsWithEmpty, true, false, "material key sort cannot be empty"},
+		{testCaseNilInput, nil, false, true, ""},
+		{testCaseValidSorts, &validSorts, false, false, ""},
+		{testCaseSortsWithEmpty, &sortsWithEmpty, true, false, "material key sort cannot be empty"},
 		{"sorts with invalid", &sortsWithInvalid, true, false, "invalid material key sort value"},
 	}
 
@@ -204,7 +209,7 @@ func TestToOrmAddElasticKeyDefaults(t *testing.T) {
 	// Test with minimal input - all optional fields nil.
 	descStr := testDescription
 	create := &cryptoutilKmsServer.ElasticKeyCreate{
-		Name:        "test-key",
+		Name:        testElasticKeyName,
 		Description: &descStr,
 	}
 
@@ -213,7 +218,7 @@ func TestToOrmAddElasticKeyDefaults(t *testing.T) {
 	// Verify defaults are applied.
 	testify.Equal(t, elasticKeyID, result.ElasticKeyID)
 	testify.Equal(t, tenantID, result.TenantID)
-	testify.Equal(t, "test-key", result.ElasticKeyName)
+	testify.Equal(t, testElasticKeyName, result.ElasticKeyName)
 	testify.Equal(t, cryptoutilOpenapiModel.Internal, result.ElasticKeyProvider)
 	testify.Equal(t, cryptoutilOpenapiModel.A256GCMA256KW, result.ElasticKeyAlgorithm)
 	testify.True(t, result.ElasticKeyVersioningAllowed)
@@ -232,7 +237,7 @@ func TestToOrmAddElasticKeyImportAllowed(t *testing.T) {
 	importAllowed := true
 	descStr2 := testDescription
 	create := &cryptoutilKmsServer.ElasticKeyCreate{
-		Name:          "test-key",
+		Name:          testElasticKeyName,
 		Description:   &descStr2,
 		ImportAllowed: &importAllowed,
 	}
@@ -251,9 +256,9 @@ func TestToStrings(t *testing.T) {
 		items     *[]string
 		expectNil bool
 	}{
-		{"nil input", nil, true},
-		{"empty slice", &[]string{}, true},
-		{"valid strings", &[]string{"a", "b", "c"}, false},
+		{testCaseNilInput, nil, true},
+		{testCaseEmptySlice, &[]string{}, true},
+		{testCaseValidStrings, &[]string{"a", "b", "c"}, false},
 	}
 
 	for _, tc := range tests {

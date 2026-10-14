@@ -22,9 +22,9 @@ func TestIsHelpRequest(t *testing.T) {
 		args   []string
 		expect bool
 	}{
-		{name: "help_word", args: []string{cryptoutilSharedMagic.CLIHelpCommand}, expect: true},
+		{name: testHelpWord, args: []string{cryptoutilSharedMagic.CLIHelpCommand}, expect: true},
 		{name: "help_long_flag", args: []string{cryptoutilSharedMagic.CLIHelpFlag}, expect: true},
-		{name: "help_short_flag", args: []string{"-h"}, expect: true},
+		{name: "help_short_flag", args: []string{cryptoutilSharedMagic.CLIHelpShortFlag}, expect: true},
 		{name: "empty_args", args: []string{}, expect: false},
 		{name: "non_help_arg", args: []string{cryptoutilSharedMagic.CMD_SERVER}, expect: false},
 		{name: "help_not_first", args: []string{cryptoutilSharedMagic.CMD_SERVER, cryptoutilSharedMagic.CLIHelpCommand}, expect: false},
@@ -46,7 +46,7 @@ func TestIsHelpRequest_WithClientNotImplementedMessage(t *testing.T) {
 	var stderr bytes.Buffer
 
 	result := cryptoutilAppsFrameworkCli.IsHelpRequest(
-		[]string{"client"},
+		[]string{testClient},
 		cryptoutilAppsFrameworkCli.ClientNotImplementedMessageConfig{
 			Stderr:    &stderr,
 			ServiceID: cryptoutilSharedMagic.SkeletonTemplateServiceID,
@@ -102,12 +102,12 @@ func TestIsHelpRequest_WithUsageTextOnly_HelpRequest(t *testing.T) {
 		[]string{cryptoutilSharedMagic.CLIHelpFlag},
 		cryptoutilAppsFrameworkCli.ClientNotImplementedMessageConfig{
 			Stderr:    &stderr,
-			UsageText: "usage: sm-kms init [flags]",
+			UsageText: testUsageSmKmsInitFlags,
 		},
 	)
 
 	require.True(t, result)
-	require.Contains(t, stderr.String(), "usage: sm-kms init [flags]")
+	require.Contains(t, stderr.String(), testUsageSmKmsInitFlags)
 	require.NotContains(t, stderr.String(), "not yet implemented")
 }
 
@@ -117,10 +117,10 @@ func TestIsHelpRequest_WithUsageTextOnly_NotHelpRequest(t *testing.T) {
 	var stderr bytes.Buffer
 
 	result := cryptoutilAppsFrameworkCli.IsHelpRequest(
-		[]string{"some-arg"},
+		[]string{testSomeArg},
 		cryptoutilAppsFrameworkCli.ClientNotImplementedMessageConfig{
 			Stderr:    &stderr,
-			UsageText: "usage: sm-kms init [flags]",
+			UsageText: testUsageSmKmsInitFlags,
 		},
 	)
 

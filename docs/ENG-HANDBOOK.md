@@ -3670,7 +3670,7 @@ The majority pattern (`os.IsNotExist(err) → return nil`) silently hides compli
 
 | Tier | Database | Pattern | PostgreSQL? |
 |------|----------|---------|-------------|
-| Unit | SQLite in-memory | `testdb.NewInMemorySQLiteDB(t)` | NEVER |
+| Unit | SQLite in-memory | `test_help_db.NewInMemorySQLiteDB(t)` | NEVER |
 | Integration | SQLite in-memory via TestMain | ONE shared instance per package | NEVER |
 | E2E | Docker Compose PostgreSQL | 4 app instances (2 PostgreSQL + 2 SQLite) | YES (only here) |
 
@@ -4026,38 +4026,55 @@ der_pem_coverage_test.go              der_pem_error_paths_test.go
 
 ```go
 var (
-    testDB     *gorm.DB
-    testServer *Server
+    testDB                *gorm.DB
+    testServer            *Server
+    testIntegrationServer *test_orch_integration.IntegrationServer
+    dbCleanup             func() error
 )
 
 func TestMain(m *testing.M) {
     ctx := context.Background()
-
-    // Use SQLite in-memory for integration tests (NEVER PostgreSQL here)
-    testDB = testdb.NewInMemorySQLiteDBForTestMain(migrateFunc)
-
-    // Create server with in-memory DB
     var err error
+
+    testDB, dbCleanup, err = test_help_db.NewInMemorySQLiteDBForTestMain()
+    if err != nil {
+        log.Fatalf("Failed to create test database: %v", err)
+    }
+
     testServer, err = NewFromDB(ctx, testDB)
     if err != nil {
+        if cleanupErr := dbCleanup(); cleanupErr != nil {
+            log.Printf("Failed to close test database: %v", cleanupErr)
+        }
         log.Fatalf("Failed to create test server: %v", err)
     }
 
-    // Start server and wait for ready using shared test helper
-    testserver.StartAndWait(ctx, testServer)
+    testIntegrationServer, err = test_orch_integration.StartIntegrationServerForTestMain(ctx, testServer, testDB)
+    if err != nil {
+        if cleanupErr := dbCleanup(); cleanupErr != nil {
+            log.Printf("Failed to close test database: %v", cleanupErr)
+        }
+        log.Fatalf("Failed to start test server: %v", err)
+    }
 
-    // Run tests
     exitCode := m.Run()
-
-    // Cleanup
-    testServer.Shutdown(ctx)
+    if err := testIntegrationServer.Shutdown(ctx); err != nil {
+        log.Printf("Failed to stop test server: %v", err)
+        exitCode = 1
+    }
+    if cleanupErr := dbCleanup(); cleanupErr != nil {
+        log.Printf("Failed to close test database: %v", cleanupErr)
+        exitCode = 1
+    }
     os.Exit(exitCode)
 }
 ```
 
 **Key rules**:
-- Use `testdb.NewInMemorySQLiteDBForTestMain(migrateFunc)` for the shared DB (no `*testing.T` available in TestMain)
-- Use `testserver.StartAndWait(ctx, t, srv)` inside individual tests (with `*testing.T`)
+- Use `test_help_db.NewInMemorySQLiteDBForTestMain()` for the shared DB (no `*testing.T` is available in TestMain)
+- Use `test_orch_integration.StartIntegrationServerForTestMain(ctx, srv, db)` in TestMain
+- Use `test_orch_integration.StartIntegrationServer(ctx, t, srv, db)` inside individual tests
+- Give each parallel test orthogonal rows keyed by UUIDv7; never clear shared tables used by other tests
 - NEVER use `postgres.RunContainer` in unit or integration tests — PostgreSQL is E2E only
 - Start heavyweight resources ONCE per package; share `testDB`, `testServer` across all tests
 
@@ -4150,10 +4167,23 @@ import cryptoutilTestHelpDB "cryptoutil/internal/apps-framework/service/test_hel
 // In-memory SQLite for per-test use (registers t.Cleanup automatically)
 db := cryptoutilTestHelpDB.NewInMemorySQLiteDB(t)
 
-// In-memory SQLite for TestMain (no *testing.T available)
-// Returns (*gorm.DB, cleanupFn, error) — call cleanupFn in TestMain defer.
-db, cleanup, err := cryptoutilTestHelpDB.NewInMemorySQLiteDBForTestMain()
-defer cleanup()
+// In-memory SQLite for TestMain (no *testing.T available).
+// Its cleanup error must be handled before os.Exit, which skips deferred calls.
+var testDB *gorm.DB
+
+func TestMain(m *testing.M) {
+    testDB, cleanup, err := cryptoutilTestHelpDB.NewInMemorySQLiteDBForTestMain()
+    if err != nil {
+        log.Fatalf("failed to create test database: %v", err)
+    }
+
+    exitCode := m.Run()
+    if cleanupErr := cleanup(); cleanupErr != nil {
+        log.Printf("failed to close test database: %v", cleanupErr)
+        exitCode = 1
+    }
+    os.Exit(exitCode)
+}
 
 // Pre-closed SQLite DB for error-path testing
 db := cryptoutilTestHelpDB.NewClosedSQLiteDB(t, nil) // nil = no migrations
@@ -4233,7 +4263,6 @@ func TestMain(m *testing.M) {
 ```
 
 **Deprecated packages** (still work, but new code MUST use `test_help_*`/`test_orch_*`):
-- `testing/testdb` → use `test_help_db`
 - `testing/testserver` → use `test_orch_integration`
 - `testing/e2e_infra` → use `test_orch_e2e`
 
@@ -7213,7 +7242,7 @@ paths:
 
 When working in the framework package, always:
 - Use function-parameter injection for seams (not package-level vars)
-- Check testdb.NewInMemorySQLiteDB(t) for unit tests
+- Check test_help_db.NewInMemorySQLiteDB(t) for unit tests
 ```
 
 **Without `paths`**: loaded at launch (same priority as CLAUDE.md).

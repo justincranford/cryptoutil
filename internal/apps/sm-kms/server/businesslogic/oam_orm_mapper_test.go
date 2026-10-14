@@ -17,6 +17,28 @@ import (
 
 const testDescription = "test description"
 
+const (
+	testElasticKeyDescription      = "test-desc"
+	testCaseNilInput               = "nil input"
+	testCaseEmptySlice             = "empty slice"
+	testCaseValidStrings           = "valid strings"
+	testCaseNilReturnsDefault      = "nil returns default"
+	testCaseNilParams              = "nil params"
+	testCaseValidParams            = "valid params"
+	testCaseInvalidPageNumber      = "invalid page number"
+	testErrorPageNumber            = "Page Number"
+	testCaseInvalidPageSize        = "invalid page size"
+	testErrorPageSize              = "Page Size"
+	testCaseInvalidSort            = "invalid sort"
+	testCaseInvalidDateRange       = "invalid date range"
+	testErrorGenerateDateRange     = "Generate Date range"
+	testErrorKeySort               = "Key Sort"
+	testCaseInvalidMaterialKeyUUID = "invalid material key UUID"
+	testErrorMaterialKeyID         = "MaterialKeyID"
+	testElasticKeyName             = "test-key"
+	testTenantContextRequired      = "tenant context required"
+)
+
 func TestNewOamOrmMapper(t *testing.T) {
 	t.Parallel()
 
@@ -36,7 +58,7 @@ func TestToOrmAddElasticKey(t *testing.T) {
 	importAllowed := false
 
 	create := &cryptoutilKmsServer.ElasticKeyCreate{
-		Name:              "test-key",
+		Name:              testElasticKeyName,
 		Description:       &description,
 		Provider:          string(cryptoutilOpenapiModel.Internal),
 		Algorithm:         string(cryptoutilOpenapiModel.A128CBCHS256Dir),
@@ -48,7 +70,7 @@ func TestToOrmAddElasticKey(t *testing.T) {
 
 	testify.Equal(t, elasticKeyID, result.ElasticKeyID)
 	testify.Equal(t, tenantID, result.TenantID)
-	testify.Equal(t, "test-key", result.ElasticKeyName)
+	testify.Equal(t, testElasticKeyName, result.ElasticKeyName)
 	testify.Equal(t, testDescription, result.ElasticKeyDescription)
 	testify.Equal(t, cryptoutilOpenapiModel.Internal, result.ElasticKeyProvider)
 	testify.Equal(t, cryptoutilOpenapiModel.A128CBCHS256Dir, result.ElasticKeyAlgorithm)
@@ -109,7 +131,7 @@ func TestToOamElasticKey(t *testing.T) {
 
 	ormElasticKey := &cryptoutilOrmRepository.ElasticKey{
 		ElasticKeyID:                elasticKeyID,
-		ElasticKeyName:              "test-key",
+		ElasticKeyName:              testElasticKeyName,
 		ElasticKeyDescription:       testDescription,
 		ElasticKeyProvider:          cryptoutilOpenapiModel.Internal,
 		ElasticKeyAlgorithm:         cryptoutilOpenapiModel.A128CBCHS256Dir,
@@ -122,7 +144,7 @@ func TestToOamElasticKey(t *testing.T) {
 
 	testify.NotNil(t, result.ElasticKeyID)
 	testify.Equal(t, elasticKeyID, *result.ElasticKeyID)
-	testify.Equal(t, "test-key", *result.Name)
+	testify.Equal(t, testElasticKeyName, *result.Name)
 	testify.Equal(t, testDescription, *result.Description)
 	testify.Equal(t, string(cryptoutilOpenapiModel.Internal), *result.Provider)
 	testify.Equal(t, string(cryptoutilOpenapiModel.A128CBCHS256Dir), *result.Algorithm)

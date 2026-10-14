@@ -47,7 +47,7 @@ func (h *MessageHandler) HandleGetMessage() fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		messageID, err := googleUuid.Parse(c.Params("messageID"))
 		if err != nil {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{cryptoutilSharedMagic.StringError: "invalid messageID"})
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.KMSInvalidMessageIDError})
 		}
 
 		message, err := h.messageRepo.FindByID(c.UserContext(), messageID)
@@ -64,7 +64,7 @@ func (h *MessageHandler) HandleDeleteMessage() fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		messageID, err := googleUuid.Parse(c.Params("messageID"))
 		if err != nil {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{cryptoutilSharedMagic.StringError: "invalid messageID"})
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.KMSInvalidMessageIDError})
 		}
 
 		if err := h.messageRecipientJWKRepo.DeleteByMessageID(c.UserContext(), messageID); err != nil {

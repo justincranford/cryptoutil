@@ -22,7 +22,7 @@ func TestToOrmGetElasticKeysQueryParams(t *testing.T) {
 	validUUID := googleUuid.New()
 	zeroUUID := googleUuid.UUID{}
 	algorithm := cryptoutilOpenapiModel.A128CBCHS256Dir
-	name := "test-key"
+	name := testElasticKeyName
 	versioningAllowed := true
 	negativePage := cryptoutilKmsServer.PageNumber(-1)
 	zeroPageSize := cryptoutilKmsServer.PageSize(0)
@@ -37,9 +37,9 @@ func TestToOrmGetElasticKeysQueryParams(t *testing.T) {
 		expectNil     bool
 		errorContains string
 	}{
-		{"nil params", nil, false, false, ""},
+		{testCaseNilParams, nil, false, false, ""},
 		{
-			"valid params",
+			testCaseValidParams,
 			&cryptoutilOpenapiModel.ElasticKeysQueryParams{
 				ElasticKeyID:      &[]googleUuid.UUID{validUUID},
 				Name:              &[]string{name},
@@ -51,22 +51,22 @@ func TestToOrmGetElasticKeysQueryParams(t *testing.T) {
 			"",
 		},
 		{
-			"invalid page number",
+			testCaseInvalidPageNumber,
 			&cryptoutilOpenapiModel.ElasticKeysQueryParams{
 				Page: &negativePage,
 			},
 			true,
 			false,
-			"Page Number",
+			testErrorPageNumber,
 		},
 		{
-			"invalid page size",
+			testCaseInvalidPageSize,
 			&cryptoutilOpenapiModel.ElasticKeysQueryParams{
 				Size: &zeroPageSize,
 			},
 			true,
 			false,
-			"Page Size",
+			testErrorPageSize,
 		},
 		{
 			"invalid algorithm",
@@ -96,7 +96,7 @@ func TestToOrmGetElasticKeysQueryParams(t *testing.T) {
 			"Elastic Key ID",
 		},
 		{
-			"invalid sort",
+			testCaseInvalidSort,
 			&cryptoutilOpenapiModel.ElasticKeysQueryParams{
 				Sort: &[]cryptoutilOpenapiModel.ElasticKeySort{emptySort},
 			},
@@ -150,9 +150,9 @@ func TestToOrmGetMaterialKeysForElasticKeyQueryParams(t *testing.T) {
 		expectNil     bool
 		errorContains string
 	}{
-		{"nil params", nil, false, false, ""},
+		{testCaseNilParams, nil, false, false, ""},
 		{
-			"valid params",
+			testCaseValidParams,
 			&cryptoutilOpenapiModel.ElasticKeyMaterialKeysQueryParams{
 				MaterialKeyID:   &[]googleUuid.UUID{materialKeyID},
 				MinGenerateDate: &minDate,
@@ -163,49 +163,49 @@ func TestToOrmGetMaterialKeysForElasticKeyQueryParams(t *testing.T) {
 			"",
 		},
 		{
-			"invalid page number",
+			testCaseInvalidPageNumber,
 			&cryptoutilOpenapiModel.ElasticKeyMaterialKeysQueryParams{
 				Page: &negativePage,
 			},
 			true,
 			false,
-			"Page Number",
+			testErrorPageNumber,
 		},
 		{
-			"invalid page size",
+			testCaseInvalidPageSize,
 			&cryptoutilOpenapiModel.ElasticKeyMaterialKeysQueryParams{
 				Size: &zeroPageSize,
 			},
 			true,
 			false,
-			"Page Size",
+			testErrorPageSize,
 		},
 		{
-			"invalid date range",
+			testCaseInvalidDateRange,
 			&cryptoutilOpenapiModel.ElasticKeyMaterialKeysQueryParams{
 				MinGenerateDate: &futureDate,
 			},
 			true,
 			false,
-			"Generate Date range",
+			testErrorGenerateDateRange,
 		},
 		{
-			"invalid sort",
+			testCaseInvalidSort,
 			&cryptoutilOpenapiModel.ElasticKeyMaterialKeysQueryParams{
 				Sort: &[]cryptoutilOpenapiModel.MaterialKeySort{invalidSort},
 			},
 			true,
 			false,
-			"Key Sort",
+			testErrorKeySort,
 		},
 		{
-			"invalid material key UUID",
+			testCaseInvalidMaterialKeyUUID,
 			&cryptoutilOpenapiModel.ElasticKeyMaterialKeysQueryParams{
 				MaterialKeyID: &[]googleUuid.UUID{zeroMaterialKeyID},
 			},
 			true,
 			false,
-			"MaterialKeyID",
+			testErrorMaterialKeyID,
 		},
 	}
 
@@ -254,9 +254,9 @@ func TestToOrmGetMaterialKeysQueryParams(t *testing.T) {
 		expectNil     bool
 		errorContains string
 	}{
-		{"nil params", nil, false, false, ""},
+		{testCaseNilParams, nil, false, false, ""},
 		{
-			"valid params",
+			testCaseValidParams,
 			&cryptoutilOpenapiModel.MaterialKeysQueryParams{
 				ElasticKeyID:    &[]googleUuid.UUID{elasticKeyID},
 				MaterialKeyID:   &[]googleUuid.UUID{materialKeyID},
@@ -268,40 +268,40 @@ func TestToOrmGetMaterialKeysQueryParams(t *testing.T) {
 			"",
 		},
 		{
-			"invalid page number",
+			testCaseInvalidPageNumber,
 			&cryptoutilOpenapiModel.MaterialKeysQueryParams{
 				Page: &negativePage,
 			},
 			true,
 			false,
-			"Page Number",
+			testErrorPageNumber,
 		},
 		{
-			"invalid page size",
+			testCaseInvalidPageSize,
 			&cryptoutilOpenapiModel.MaterialKeysQueryParams{
 				Size: &zeroPageSize,
 			},
 			true,
 			false,
-			"Page Size",
+			testErrorPageSize,
 		},
 		{
-			"invalid date range",
+			testCaseInvalidDateRange,
 			&cryptoutilOpenapiModel.MaterialKeysQueryParams{
 				MinGenerateDate: &futureDate,
 			},
 			true,
 			false,
-			"Generate Date range",
+			testErrorGenerateDateRange,
 		},
 		{
-			"invalid sort",
+			testCaseInvalidSort,
 			&cryptoutilOpenapiModel.MaterialKeysQueryParams{
 				Sort: &[]cryptoutilOpenapiModel.MaterialKeySort{invalidSort},
 			},
 			true,
 			false,
-			"Key Sort",
+			testErrorKeySort,
 		},
 		{
 			"invalid elastic key UUID",
@@ -313,13 +313,13 @@ func TestToOrmGetMaterialKeysQueryParams(t *testing.T) {
 			"ElasticKeyID",
 		},
 		{
-			"invalid material key UUID",
+			testCaseInvalidMaterialKeyUUID,
 			&cryptoutilOpenapiModel.MaterialKeysQueryParams{
 				MaterialKeyID: &[]googleUuid.UUID{zeroMatKeyID},
 			},
 			true,
 			false,
-			"MaterialKeyID",
+			testErrorMaterialKeyID,
 		},
 	}
 

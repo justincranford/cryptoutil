@@ -28,8 +28,8 @@ func TestToOptionalOrmUUIDs(t *testing.T) {
 		expectError bool
 		expectNil   bool
 	}{
-		{"nil input", nil, false, true},
-		{"empty slice", &emptyUUIDs, false, true},
+		{testCaseNilInput, nil, false, true},
+		{testCaseEmptySlice, &emptyUUIDs, false, true},
 		{"valid UUIDs", &validUUIDs, false, false},
 	}
 
@@ -71,9 +71,9 @@ func TestToOptionalOrmStrings(t *testing.T) {
 		expectNil     bool
 		errorContains string
 	}{
-		{"nil input", nil, false, true, ""},
-		{"empty slice", &emptyStrings, false, true, ""},
-		{"valid strings", &validStrings, false, false, ""},
+		{testCaseNilInput, nil, false, true, ""},
+		{testCaseEmptySlice, &emptyStrings, false, true, ""},
+		{testCaseValidStrings, &validStrings, false, false, ""},
 		{"strings with empty value", &stringsWithEmpty, true, false, "value must not be empty string"},
 	}
 
@@ -157,7 +157,7 @@ func TestToOrmPageNumber(t *testing.T) {
 		expected    int
 		expectError bool
 	}{
-		{"nil returns default", nil, 0, false},
+		{testCaseNilReturnsDefault, nil, 0, false},
 		{"zero page number", &zero, 0, false},
 		{"positive page number", &positive, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries, false},
 		{"negative page number", &negative, 0, true},
@@ -195,7 +195,7 @@ func TestToOrmPageSize(t *testing.T) {
 		expectError bool
 		minValue    int
 	}{
-		{"nil returns default", nil, false, 1},
+		{testCaseNilReturnsDefault, nil, false, 1},
 		{"size of one", &one, false, 1},
 		{"size of ten", &ten, false, cryptoutilSharedMagic.JoseJADefaultMaxMaterials},
 		{"zero size", &zero, true, 0},

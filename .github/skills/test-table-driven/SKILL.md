@@ -97,16 +97,20 @@ testDB *gorm.DB
 )
 
 func TestMain(m *testing.M) {
-var cleanup func()
+var cleanup func() error
 var err error
 
-testDB, cleanup, err = testdb.NewInMemorySQLiteDBForTestMain()
+testDB, cleanup, err = test_help_db.NewInMemorySQLiteDBForTestMain()
 if err != nil {
     panic(err)
 }
-defer cleanup()
 
-os.Exit(m.Run())
+exitCode := m.Run()
+if cleanupErr := cleanup(); cleanupErr != nil {
+    log.Printf("failed to close test database: %v", cleanupErr)
+    exitCode = 1
+}
+os.Exit(exitCode)
 }
 ```
 
@@ -225,4 +229,4 @@ Read [ENG-HANDBOOK.md Section 10.2.2 Fiber Handler Testing](../../../docs/ENG-HA
 
 Read [ENG-HANDBOOK.md Section 10.3.2 Test Isolation](../../../docs/ENG-HANDBOOK.md#1032-test-isolation-with-tparallel) for parallelism requirements — ensure `t.Parallel()` is applied correctly at all levels.
 
-Read [ENG-HANDBOOK.md Section 10.3.6 Shared Test Infrastructure](../../../docs/ENG-HANDBOOK.md#1036-shared-test-infrastructure) for shared test helpers — use `testdb.NewInMemorySQLiteDB(t)`, `testserver.StartAndWait`, `fixtures.CreateTestTenant/Realm/User`, `assertions.AssertHealthy`, and `healthclient.NewHealthClient` when these test patterns apply to test infrastructure packages.
+Read [ENG-HANDBOOK.md Section 10.3.6 Shared Test Infrastructure](../../../docs/ENG-HANDBOOK.md#1036-shared-test-infrastructure) for shared test helpers — use `test_help_db.NewInMemorySQLiteDB(t)`, `testserver.StartAndWait`, `fixtures.CreateTestTenant/Realm/User`, `assertions.AssertHealthy`, and `healthclient.NewHealthClient` when these test patterns apply to test infrastructure packages.

@@ -38,7 +38,7 @@ func TestGetTenantID(t *testing.T) {
 				return context.Background()
 			},
 			wantErr:    true,
-			wantErrMsg: "tenant context required",
+			wantErrMsg: testTenantContextRequired,
 		},
 		{
 			name: "nil tenant ID in realm context",
@@ -50,7 +50,7 @@ func TestGetTenantID(t *testing.T) {
 				return context.WithValue(context.Background(), cryptoutilAppsFrameworkServiceServerMiddleware.RealmContextKey{}, rc)
 			},
 			wantErr:    true,
-			wantErrMsg: "tenant context required",
+			wantErrMsg: testTenantContextRequired,
 		},
 	}
 

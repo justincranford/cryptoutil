@@ -15,6 +15,13 @@ import (
 	testify "github.com/stretchr/testify/require"
 )
 
+const (
+	testBusinessLogicSuccessCase           = "success"
+	testBusinessLogicPlaceholderName       = "x"
+	testElasticKeyAddSuccessName           = "add-ek-success"
+	testBusinessLogicMissingElasticKeyCase = "elastic key lookup returns no record"
+)
+
 func ptr[T any](v T) *T { return &v }
 
 // seedImportableElasticKeyWithStatus creates an ElasticKey with ImportAllowed=true and the given status.
@@ -28,7 +35,7 @@ func seedImportableElasticKeyWithStatus(t *testing.T, stack *testStack, name str
 		TenantID:                    tenantID,
 		ElasticKeyName:              name,
 		ElasticKeyDescription:       "test-import-status",
-		ElasticKeyProvider:          "Internal",
+		ElasticKeyProvider:          providerInternal,
 		ElasticKeyAlgorithm:         cryptoutilOpenapiModel.A256GCMDir,
 		ElasticKeyVersioningAllowed: false,
 		ElasticKeyImportAllowed:     true,
@@ -76,7 +83,7 @@ func TestNoTenantContext(t *testing.T) {
 			return err
 		}},
 		{name: "UpdateElasticKey", fn: func() error {
-			_, err := stack.service.UpdateElasticKey(noTenant, &id, &cryptoutilKmsServer.ElasticKeyUpdate{Name: "x"})
+			_, err := stack.service.UpdateElasticKey(noTenant, &id, &cryptoutilKmsServer.ElasticKeyUpdate{Name: testBusinessLogicPlaceholderName})
 
 			return err
 		}},
@@ -85,7 +92,7 @@ func TestNoTenantContext(t *testing.T) {
 		}},
 		{name: "AddElasticKey", fn: func() error {
 			_, err := stack.service.AddElasticKey(noTenant, &cryptoutilKmsServer.ElasticKeyCreate{
-				Name: "x", Algorithm: string(cryptoutilOpenapiModel.A256GCMDir), Provider: providerInternal,
+				Name: testBusinessLogicPlaceholderName, Algorithm: string(cryptoutilOpenapiModel.A256GCMDir), Provider: providerInternal,
 			})
 
 			return err
@@ -96,17 +103,17 @@ func TestNoTenantContext(t *testing.T) {
 			return err
 		}},
 		{name: "PostEncrypt", fn: func() error {
-			_, err := stack.service.PostEncryptByElasticKeyID(noTenant, &id, nil, []byte("x"))
+			_, err := stack.service.PostEncryptByElasticKeyID(noTenant, &id, nil, []byte(testBusinessLogicPlaceholderName))
 
 			return err
 		}},
 		{name: "PostSign", fn: func() error {
-			_, err := stack.service.PostSignByElasticKeyID(noTenant, &id, []byte("x"))
+			_, err := stack.service.PostSignByElasticKeyID(noTenant, &id, []byte(testBusinessLogicPlaceholderName))
 
 			return err
 		}},
 		{name: "ImportMaterialKey", fn: func() error {
-			_, err := stack.service.ImportMaterialKey(noTenant, &id, &cryptoutilKmsServer.MaterialKeyImport{JWK: "x"})
+			_, err := stack.service.ImportMaterialKey(noTenant, &id, &cryptoutilKmsServer.MaterialKeyImport{JWK: testBusinessLogicPlaceholderName})
 
 			return err
 		}},
@@ -116,7 +123,7 @@ func TestNoTenantContext(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			err := tc.fn()
 			testify.Error(t, err)
-			testify.Contains(t, err.Error(), "tenant context required")
+			testify.Contains(t, err.Error(), testTenantContextRequired)
 		})
 	}
 }
@@ -130,12 +137,12 @@ func TestAddElasticKey(t *testing.T) {
 		wantName string
 	}{
 		{
-			name: "success",
+			name: testBusinessLogicSuccessCase,
 			create: cryptoutilKmsServer.ElasticKeyCreate{
-				Name: "add-ek-success", Algorithm: string(cryptoutilOpenapiModel.A256GCMDir),
+				Name: testElasticKeyAddSuccessName, Algorithm: string(cryptoutilOpenapiModel.A256GCMDir),
 				Provider: providerInternal, Description: ptr("add-ek-desc"),
 			},
-			wantName: "add-ek-success",
+			wantName: testElasticKeyAddSuccessName,
 		},
 		{
 			name: "import allowed rejected",
@@ -170,12 +177,13 @@ func TestAddElasticKey(t *testing.T) {
 // Sequential: tests mutate shared testCore database with WAL write locks; parallel execution causes SQLite lock contention.
 func TestGenerateMaterialKeyInElasticKey(t *testing.T) {
 	tests := []struct {
-		name   string
-		setup  func(t *testing.T, stack *testStack) googleUuid.UUID
-		wantOK bool
+		name    string
+		setup   func(t *testing.T, stack *testStack) googleUuid.UUID
+		wantOK  bool
+		wantErr string
 	}{
 		{
-			name: "success",
+			name: testBusinessLogicSuccessCase,
 			setup: func(t *testing.T, stack *testStack) googleUuid.UUID {
 				t.Helper()
 
@@ -184,7 +192,7 @@ func TestGenerateMaterialKeyInElasticKey(t *testing.T) {
 			wantOK: true,
 		},
 		{
-			name: "not found",
+			name: testBusinessLogicMissingElasticKeyCase,
 			setup: func(t *testing.T, _ *testStack) googleUuid.UUID {
 				t.Helper()
 
@@ -192,7 +200,8 @@ func TestGenerateMaterialKeyInElasticKey(t *testing.T) {
 			},
 		},
 		{
-			name: "invalid status",
+			name:    "disabled key cannot generate material",
+			wantErr: "invalid ElasticKey Status:",
 			setup: func(t *testing.T, stack *testStack) googleUuid.UUID {
 				t.Helper()
 
@@ -210,6 +219,11 @@ func TestGenerateMaterialKeyInElasticKey(t *testing.T) {
 
 			if !tc.wantOK {
 				testify.Error(t, err)
+
+				if tc.wantErr != "" {
+					testify.ErrorContains(t, err, tc.wantErr)
+					testify.NotContains(t, err.Error(), "%!w(<nil>)")
+				}
 
 				return
 			}
@@ -231,7 +245,7 @@ func TestImportMaterialKey(t *testing.T) {
 		wantErr string
 	}{
 		{
-			name: "success",
+			name: testBusinessLogicSuccessCase,
 			setup: func(t *testing.T, stack *testStack) googleUuid.UUID {
 				t.Helper()
 
@@ -240,7 +254,7 @@ func TestImportMaterialKey(t *testing.T) {
 			wantOK: true,
 		},
 		{
-			name: "not found",
+			name: testBusinessLogicMissingElasticKeyCase,
 			setup: func(t *testing.T, _ *testStack) googleUuid.UUID {
 				t.Helper()
 

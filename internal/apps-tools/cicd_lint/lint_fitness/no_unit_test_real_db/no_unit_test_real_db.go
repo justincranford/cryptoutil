@@ -1,6 +1,6 @@
 // Copyright (c) 2025-2026 Justin Cranford.
 // Package no_unit_test_real_db enforces that unit tests do not create real PostgreSQL database containers.
-// Unit tests MUST use testdb.NewInMemorySQLiteDB() instead.
+// Unit tests MUST use test_help_db.NewInMemorySQLiteDB() instead.
 // See ENG-HANDBOOK.md Section 10.3 TestMain Pattern (Forbidden Pattern #3).
 package no_unit_test_real_db
 
@@ -17,7 +17,7 @@ import (
 )
 
 // bannedPatterns contains lowercase patterns indicating a real PostgreSQL container is being started.
-// These are banned in unit tests outside TestMain - use testdb.NewInMemorySQLiteDB() for unit tests
+// These are banned in unit tests outside TestMain - use test_help_db.NewInMemorySQLiteDB() for unit tests
 // or place in TestMain for per-package setup.
 var bannedPatterns = []string{
 	"postgres.runcontainer(",
@@ -33,7 +33,6 @@ var allowedSuffixes = []string{
 
 // allowedPathFragments lists path segments permitted to create real DB containers.
 var allowedPathFragments = []string{
-	"testing/testdb/",
 	"lint_fitness/",
 	"lint_gotest/",
 }
@@ -116,7 +115,7 @@ func CheckFiles(logger *cryptoutilCmdCicdCommon.Logger, testFiles []string) erro
 
 	if totalViolations > 0 {
 		logger.Log(fmt.Sprintf("Found %d real-database container violation(s) in unit tests", totalViolations))
-		fmt.Fprintln(os.Stderr, "Use testdb.NewInMemorySQLiteDB() for unit tests or place containers in TestMain.")
+		fmt.Fprintln(os.Stderr, "Use test_help_db.NewInMemorySQLiteDB() for unit tests or place containers in TestMain.")
 		fmt.Fprintln(os.Stderr, "See ENG-HANDBOOK.md Section 10.3 TestMain Pattern.")
 
 		return fmt.Errorf("found %d real-database container violation(s) in unit tests", totalViolations)
@@ -184,7 +183,7 @@ func CheckFile(filePath string) []string {
 		for _, pattern := range bannedPatterns {
 			if strings.Contains(line, pattern) {
 				violations = append(violations, fmt.Sprintf(
-					"line %d: real database container %q - use testdb.NewInMemorySQLiteDB() instead", lineNum, rawLine))
+					"line %d: real database container %q - use test_help_db.NewInMemorySQLiteDB() instead", lineNum, rawLine))
 
 				break
 			}

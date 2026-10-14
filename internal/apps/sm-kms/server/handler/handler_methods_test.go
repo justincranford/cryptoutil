@@ -16,6 +16,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const testCaseBadRequest = "bad request"
+
 func TestStrictServer_HandlerMethodsExist(t *testing.T) {
 	t.Parallel()
 
@@ -91,7 +93,7 @@ func TestOamOasMapper_ToOasGetElastickeyElasticKeyIDResponse_UnknownError(t *tes
 	t.Parallel()
 
 	mapper := NewOasOamMapper()
-	unknownErr := errors.New("unknown error")
+	unknownErr := errors.New(testCaseUnknownError)
 
 	resp, err := mapper.toOasGetElasticKeysElasticKeyIDResponse(unknownErr, nil)
 	require.Error(t, err)
@@ -103,7 +105,7 @@ func TestOamOasMapper_ToOasPostDecryptResponse_UnknownError(t *testing.T) {
 	t.Parallel()
 
 	mapper := NewOasOamMapper()
-	unknownErr := errors.New("unknown error")
+	unknownErr := errors.New(testCaseUnknownError)
 
 	resp, err := mapper.toOasPostElasticKeysElasticKeyIDDecryptResponse(unknownErr, nil)
 	require.Error(t, err)
@@ -115,7 +117,7 @@ func TestOamOasMapper_ToOasPostEncryptResponse_UnknownError(t *testing.T) {
 	t.Parallel()
 
 	mapper := NewOasOamMapper()
-	unknownErr := errors.New("unknown error")
+	unknownErr := errors.New(testCaseUnknownError)
 
 	resp, err := mapper.toOasPostElasticKeysElasticKeyIDEncryptResponse(unknownErr, nil)
 	require.Error(t, err)
@@ -127,7 +129,7 @@ func TestOamOasMapper_ToOasPostGenerateResponse_UnknownError(t *testing.T) {
 	t.Parallel()
 
 	mapper := NewOasOamMapper()
-	unknownErr := errors.New("unknown error")
+	unknownErr := errors.New(testCaseUnknownError)
 
 	resp, err := mapper.toOasPostElasticKeysElasticKeyIDGenerateResponse(unknownErr, nil, nil)
 	require.Error(t, err)
@@ -197,7 +199,7 @@ func TestOamOasMapper_ToOasPostElastickeyElasticKeyIDMaterialkeyResponse_Unknown
 	t.Parallel()
 
 	mapper := NewOasOamMapper()
-	unknownErr := errors.New("unknown error")
+	unknownErr := errors.New(testCaseUnknownError)
 
 	resp, err := mapper.toOasPostElasticKeysElasticKeyIDMaterialKeysResponse(unknownErr, nil)
 	require.Error(t, err)
@@ -233,13 +235,13 @@ func TestOamOasMapper_ToOasGetElastickeyElasticKeyIDMaterialkeyMaterialKeyIDResp
 		wantErr bool
 	}{
 		{
-			name:    "bad request",
+			name:    testCaseBadRequest,
 			err:     cryptoutilSharedApperr.NewHTTP400BadRequest(strPtr(cryptoutilSharedMagic.DevSetupTestInvalidName), nil),
 			wantErr: false,
 		},
 		{
-			name:    "not found",
-			err:     cryptoutilSharedApperr.NewHTTP404NotFound(strPtr("not found"), nil),
+			name:    testCaseNotFound,
+			err:     cryptoutilSharedApperr.NewHTTP404NotFound(strPtr(testCaseNotFound), nil),
 			wantErr: false,
 		},
 		{
@@ -248,7 +250,7 @@ func TestOamOasMapper_ToOasGetElastickeyElasticKeyIDMaterialkeyMaterialKeyIDResp
 			wantErr: false,
 		},
 		{
-			name:    "unknown error",
+			name:    testCaseUnknownError,
 			err:     errors.New(cryptoutilSharedMagic.UNKNOWN),
 			wantErr: true,
 		},
@@ -310,13 +312,13 @@ func TestOamOasMapper_ToOasGetElastickeyElasticKeyIDMaterialkeysResponse_Errors(
 		wantErr bool
 	}{
 		{
-			name:    "bad request",
+			name:    testCaseBadRequest,
 			err:     cryptoutilSharedApperr.NewHTTP400BadRequest(strPtr(cryptoutilSharedMagic.DevSetupTestInvalidName), nil),
 			wantErr: false,
 		},
 		{
-			name:    "not found",
-			err:     cryptoutilSharedApperr.NewHTTP404NotFound(strPtr("not found"), nil),
+			name:    testCaseNotFound,
+			err:     cryptoutilSharedApperr.NewHTTP404NotFound(strPtr(testCaseNotFound), nil),
 			wantErr: false,
 		},
 		{
@@ -325,7 +327,7 @@ func TestOamOasMapper_ToOasGetElastickeyElasticKeyIDMaterialkeysResponse_Errors(
 			wantErr: false,
 		},
 		{
-			name:    "unknown error",
+			name:    testCaseUnknownError,
 			err:     errors.New(cryptoutilSharedMagic.UNKNOWN),
 			wantErr: true,
 		},
@@ -371,13 +373,13 @@ func TestOamOasMapper_ToOasPostSignResponse_Errors(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name:    "bad request",
+			name:    testCaseBadRequest,
 			err:     cryptoutilSharedApperr.NewHTTP400BadRequest(strPtr(cryptoutilSharedMagic.DevSetupTestInvalidName), nil),
 			wantErr: false,
 		},
 		{
-			name:    "not found",
-			err:     cryptoutilSharedApperr.NewHTTP404NotFound(strPtr("not found"), nil),
+			name:    testCaseNotFound,
+			err:     cryptoutilSharedApperr.NewHTTP404NotFound(strPtr(testCaseNotFound), nil),
 			wantErr: false,
 		},
 		{
@@ -386,7 +388,7 @@ func TestOamOasMapper_ToOasPostSignResponse_Errors(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name:    "unknown error",
+			name:    testCaseUnknownError,
 			err:     errors.New(cryptoutilSharedMagic.UNKNOWN),
 			wantErr: true,
 		},
@@ -431,13 +433,13 @@ func TestOamOasMapper_ToOasPostVerifyResponse_Errors(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name:    "bad request",
+			name:    testCaseBadRequest,
 			err:     cryptoutilSharedApperr.NewHTTP400BadRequest(strPtr(cryptoutilSharedMagic.DevSetupTestInvalidName), nil),
 			wantErr: false,
 		},
 		{
-			name:    "not found",
-			err:     cryptoutilSharedApperr.NewHTTP404NotFound(strPtr("not found"), nil),
+			name:    testCaseNotFound,
+			err:     cryptoutilSharedApperr.NewHTTP404NotFound(strPtr(testCaseNotFound), nil),
 			wantErr: false,
 		},
 		{
@@ -446,7 +448,7 @@ func TestOamOasMapper_ToOasPostVerifyResponse_Errors(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name:    "unknown error",
+			name:    testCaseUnknownError,
 			err:     errors.New(cryptoutilSharedMagic.UNKNOWN),
 			wantErr: true,
 		},

@@ -13,6 +13,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const testPostgresGoFilename = "foo_test.go"
+
 // postgresRunContainerViolationPrefix and postgresRunContainerViolationSuffix are split to avoid
 // false-positive self-detection by this linter when scanning its own test file.
 var (
@@ -45,7 +47,7 @@ var (
 	requireNewPostgresViolation       = requireNewPostgresViolationPrefix + requireNewPostgresViolationSuffix
 )
 
-var cleanUnitTestContent = "package repo_test\n\nfunc TestFoo(t *testing.T) {\n\tdb := testdb.NewInMemorySQLiteDB(t)\n\t_ = db\n}\n"
+var cleanUnitTestContent = "package repo_test\n\nfunc TestFoo(t *testing.T) {\n\tdb := test_help_db.NewInMemorySQLiteDB(t)\n\t_ = db\n}\n"
 
 var commentedOutViolationContent = "package repo_test\n\nfunc TestFoo(t *testing.T) {\n\t// postgres.RunContainer(ctx) -- do not use\n}\n"
 
@@ -181,9 +183,8 @@ func TestCheckInDir_SkipsAllowedPathFragments(t *testing.T) {
 		dirPath  string
 		filename string
 	}{
-		{"testdb package", "testing/testdb", "foo_test.go"},
-		{"container package", "shared/container", "foo_test.go"},
-		{"lint_fitness package", "lint_fitness/some_linter", "foo_test.go"},
+		{"container package", "shared/container", testPostgresGoFilename},
+		{"lint_fitness package", "lint_fitness/some_linter", testPostgresGoFilename},
 	}
 
 	for _, tc := range tests {
@@ -217,7 +218,7 @@ func TestCheckInDir_FlagsBusinesslogicFiles(t *testing.T) {
 	err := os.MkdirAll(subDir, cryptoutilSharedMagic.DirPermissions)
 	require.NoError(t, err)
 
-	filePath := filepath.Join(subDir, "foo_test.go")
+	filePath := filepath.Join(subDir, testPostgresGoFilename)
 
 	err = os.WriteFile(filePath, []byte(postgresRunContainerViolation), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
@@ -249,7 +250,7 @@ func TestCheckInDir_SkipsGitAndVendorDirs(t *testing.T) {
 			err := os.MkdirAll(subDir, cryptoutilSharedMagic.DirPermissions)
 			require.NoError(t, err)
 
-			filePath := filepath.Join(subDir, "foo_test.go")
+			filePath := filepath.Join(subDir, testPostgresGoFilename)
 
 			err = os.WriteFile(filePath, []byte(postgresRunContainerViolation), cryptoutilSharedMagic.CacheFilePermissions)
 			require.NoError(t, err)

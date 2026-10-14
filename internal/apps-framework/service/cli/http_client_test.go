@@ -416,8 +416,8 @@ func TestLivezCommand_WithCertAndKey_InvalidPaths(t *testing.T) {
 	exitCode := cryptoutilAppsFrameworkCli.LivezCommand(
 		[]string{
 			cryptoutilSharedMagic.CLIURLFlag, "https://127.0.0.1:1/admin/api/v1/livez",
-			cryptoutilSharedMagic.CLICertFlag, "/nonexistent/client.pem",
-			cryptoutilSharedMagic.CLIKeyFlag, "/nonexistent/client.key",
+			cryptoutilSharedMagic.CLICertFlag, testNonexistentClientPem,
+			cryptoutilSharedMagic.CLIKeyFlag, testNonexistentClientKey,
 		},
 		&stdout, &stderr,
 		"Usage: livez",
@@ -435,8 +435,8 @@ func TestReadyzCommand_WithCertAndKey_InvalidPaths(t *testing.T) {
 	exitCode := cryptoutilAppsFrameworkCli.ReadyzCommand(
 		[]string{
 			cryptoutilSharedMagic.CLIURLFlag, "https://127.0.0.1:1/admin/api/v1/readyz",
-			cryptoutilSharedMagic.CLICertFlag, "/nonexistent/client.pem",
-			cryptoutilSharedMagic.CLIKeyFlag, "/nonexistent/client.key",
+			cryptoutilSharedMagic.CLICertFlag, testNonexistentClientPem,
+			cryptoutilSharedMagic.CLIKeyFlag, testNonexistentClientKey,
 		},
 		&stdout, &stderr,
 		"Usage: readyz",

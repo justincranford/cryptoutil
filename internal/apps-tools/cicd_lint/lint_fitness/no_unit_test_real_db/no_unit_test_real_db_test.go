@@ -14,6 +14,8 @@ import (
 
 // postgresViolationPrefix and postgresViolationSuffix are split to avoid
 // false-positive self-detection by this linter when scanning its own test file.
+const testRealDatabaseContainerError = "real database container"
+
 var (
 	postgresViolationPrefix  = "package repo_test\n\nfunc TestFoo(t *testing.T) {\n\tcontainer, err := postgres"
 	postgresViolationSuffix  = "Module.Run(ctx, \"postgres:16-alpine\")\n\t_ = container\n\t_ = err\n}\n"
@@ -28,7 +30,7 @@ var (
 	newPostgresHelperViolationContent = newPostgresHelperViolationPrefix + newPostgresHelperViolationSuffix
 )
 
-var cleanUnitTestContent = "package repo_test\n\nfunc TestFoo(t *testing.T) {\n\tdb := testdb.NewInMemorySQLiteDB(t)\n\t_ = db\n}\n"
+var cleanUnitTestContent = "package repo_test\n\nfunc TestFoo(t *testing.T) {\n\tdb := test_help_db.NewInMemorySQLiteDB(t)\n\t_ = db\n}\n"
 
 var commentedOutViolationContent = "package repo_test\n\nfunc TestFoo(t *testing.T) {\n\t// postgres.RunContainer(ctx) -- do not use\n}\n"
 
@@ -47,13 +49,13 @@ func TestCheckFile_Violations(t *testing.T) {
 			name:       "postgresModule.Run violation",
 			content:    postgresViolationContent,
 			wantCount:  1,
-			wantErrMsg: "real database container",
+			wantErrMsg: testRealDatabaseContainerError,
 		},
 		{
 			name:       "postgres.RunContainer violation",
 			content:    postgresRunContainerViolationContent,
 			wantCount:  1,
-			wantErrMsg: "real database container",
+			wantErrMsg: testRealDatabaseContainerError,
 		},
 		{
 			name:      "NewPostgresTestContainer violation",

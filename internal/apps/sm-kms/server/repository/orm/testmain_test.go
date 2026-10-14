@@ -40,7 +40,13 @@ func TestMain(m *testing.M) {
 		if err != nil {
 			panic(fmt.Sprintf("failed to create test DB: %v", err))
 		}
-		defer dbCleanup()
+		defer func() {
+			if cleanupErr := dbCleanup(); cleanupErr != nil {
+				fmt.Fprintf(os.Stderr, "TestMain: failed to close test database: %v\n", cleanupErr)
+
+				rc = 1
+			}
+		}()
 
 		settings := cryptoutilAppsFrameworkServiceConfig.RequireNewForTest("orm-integration-tests")
 		settings.DatabaseURL = cryptoutilSharedMagic.SQLiteInMemoryDSN

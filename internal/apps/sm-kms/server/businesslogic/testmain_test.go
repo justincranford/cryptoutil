@@ -6,6 +6,7 @@ package businesslogic
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"testing"
 
@@ -38,71 +39,80 @@ var (
 )
 
 func TestMain(m *testing.M) {
-	ctx := context.Background()
+	exitCode := func() (exitCode int) {
+		ctx := context.Background()
 
-	testDB, dbCleanup, err := cryptoutilAppsFrameworkServiceTestHelpDb.NewInMemorySQLiteDBForTestMain()
-	if err != nil {
-		panic("TestMain: failed to create test database: " + err.Error())
-	}
-	defer dbCleanup()
+		testDB, dbCleanup, err := cryptoutilAppsFrameworkServiceTestHelpDb.NewInMemorySQLiteDBForTestMain()
+		if err != nil {
+			panic("TestMain: failed to create test database: " + err.Error())
+		}
+		defer func() {
+			if cleanupErr := dbCleanup(); cleanupErr != nil {
+				fmt.Fprintf(os.Stderr, "TestMain: failed to close test database: %v\n", cleanupErr)
 
-	telemetrySettings := cryptoutilAppsFrameworkServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
+				exitCode = 1
+			}
+		}()
 
-	telemetryService, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, telemetrySettings.ToTelemetrySettings())
-	if err != nil {
-		panic("TestMain: failed to create telemetry service: " + err.Error())
-	}
-	defer telemetryService.Shutdown()
+		telemetrySettings := cryptoutilAppsFrameworkServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
 
-	jwkGenService, err := cryptoutilSharedCryptoJose.NewJWKGenService(ctx, telemetryService, false)
-	if err != nil {
-		panic("TestMain: failed to create JWK generator: " + err.Error())
-	}
-	defer jwkGenService.Shutdown()
+		telemetryService, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, telemetrySettings.ToTelemetrySettings())
+		if err != nil {
+			panic("TestMain: failed to create telemetry service: " + err.Error())
+		}
+		defer telemetryService.Shutdown()
 
-	_, testUnsealJWK, _, _, _, err := jwkGenService.GenerateJWEJWK(&cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
-	if err != nil {
-		panic("TestMain: failed to generate unseal JWK: " + err.Error())
-	}
+		jwkGenService, err := cryptoutilSharedCryptoJose.NewJWKGenService(ctx, telemetryService, false)
+		if err != nil {
+			panic("TestMain: failed to create JWK generator: " + err.Error())
+		}
+		defer jwkGenService.Shutdown()
 
-	unsealKeysService, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple([]joseJwk.Key{testUnsealJWK})
-	if err != nil {
-		panic("TestMain: failed to create unseal keys service: " + err.Error())
-	}
-	defer unsealKeysService.Shutdown()
+		_, testUnsealJWK, _, _, _, err := jwkGenService.GenerateJWEJWK(&cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
+		if err != nil {
+			panic("TestMain: failed to generate unseal JWK: " + err.Error())
+		}
 
-	if err := testDB.AutoMigrate(
-		&cryptoutilAppsFrameworkServiceServerBarrier.RootKey{},
-		&cryptoutilAppsFrameworkServiceServerBarrier.IntermediateKey{},
-		&cryptoutilAppsFrameworkServiceServerBarrier.ContentKey{},
-	); err != nil {
-		panic("TestMain: failed to migrate barrier tables: " + err.Error())
-	}
+		unsealKeysService, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple([]joseJwk.Key{testUnsealJWK})
+		if err != nil {
+			panic("TestMain: failed to create unseal keys service: " + err.Error())
+		}
+		defer unsealKeysService.Shutdown()
 
-	barrierRepo, err := cryptoutilAppsFrameworkServiceServerBarrier.NewGormRepository(testDB)
-	if err != nil {
-		panic("TestMain: failed to create barrier repository: " + err.Error())
-	}
-	defer barrierRepo.Shutdown()
+		if err := testDB.AutoMigrate(
+			&cryptoutilAppsFrameworkServiceServerBarrier.RootKey{},
+			&cryptoutilAppsFrameworkServiceServerBarrier.IntermediateKey{},
+			&cryptoutilAppsFrameworkServiceServerBarrier.ContentKey{},
+		); err != nil {
+			panic("TestMain: failed to migrate barrier tables: " + err.Error())
+		}
 
-	testBarrierService, err = cryptoutilAppsFrameworkServiceServerBarrier.NewService(ctx, telemetryService, jwkGenService, barrierRepo, unsealKeysService)
-	if err != nil {
-		panic("TestMain: failed to create barrier service: " + err.Error())
-	}
-	defer testBarrierService.Shutdown()
+		barrierRepo, err := cryptoutilAppsFrameworkServiceServerBarrier.NewGormRepository(testDB)
+		if err != nil {
+			panic("TestMain: failed to create barrier repository: " + err.Error())
+		}
+		defer barrierRepo.Shutdown()
 
-	testCore = &testCoreFixture{
-		DB: testDB,
-		Basic: &testBasicFixture{
-			TelemetryService: telemetryService,
-			JWKGenService:    jwkGenService,
-		},
-	}
-	if err := testCore.DB.AutoMigrate(&cryptoutilOrmRepository.ElasticKey{}, &cryptoutilOrmRepository.MaterialKey{}); err != nil {
-		panic("TestMain: failed to migrate KMS tables: " + err.Error())
-	}
+		testBarrierService, err = cryptoutilAppsFrameworkServiceServerBarrier.NewService(ctx, telemetryService, jwkGenService, barrierRepo, unsealKeysService)
+		if err != nil {
+			panic("TestMain: failed to create barrier service: " + err.Error())
+		}
+		defer testBarrierService.Shutdown()
 
-	exitCode := m.Run()
+		testCore = &testCoreFixture{
+			DB: testDB,
+			Basic: &testBasicFixture{
+				TelemetryService: telemetryService,
+				JWKGenService:    jwkGenService,
+			},
+		}
+		if err := testCore.DB.AutoMigrate(&cryptoutilOrmRepository.ElasticKey{}, &cryptoutilOrmRepository.MaterialKey{}); err != nil {
+			panic("TestMain: failed to migrate KMS tables: " + err.Error())
+		}
 
+		exitCode = m.Run()
+
+		return exitCode
+	}()
 	os.Exit(exitCode)
 }

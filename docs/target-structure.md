@@ -763,7 +763,6 @@ internal/
 │       │   ├── fixtures/
 │       │   ├── healthclient/
 │       │   ├── httpservertests/
-│       │   ├── testdb/
 │       │   └── testserver/
 │       └── testutil/
 │

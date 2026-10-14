@@ -21,7 +21,7 @@ var testIdentityBase = cryptoutilAppsFrameworkCli.ServiceIdentity{ //nolint:goch
 	ServiceID:   testServiceID,
 	ProductName: testProductNameService,
 	ServiceName: testServiceNameConst,
-	DisplayName: "Test Service",
+	DisplayName: testTestService,
 	ServicePort: testDefaultPort,
 }
 
@@ -31,7 +31,7 @@ func TestBuildServerUsage(t *testing.T) {
 	got := cryptoutilAppsFrameworkCli.BuildServerUsage(testIdentityBase)
 	require.Contains(t, got, testProductNameService)
 	require.Contains(t, got, testServiceNameConst)
-	require.Contains(t, got, "Test Service")
+	require.Contains(t, got, testTestService)
 	require.Contains(t, got, "configs/test-svc/test-svc-framework.yml")
 }
 
@@ -42,9 +42,9 @@ func TestRouteServiceFromIdentity_HelpFlag(t *testing.T) {
 		name string
 		arg  string
 	}{
-		{name: "help_word", arg: cryptoutilSharedMagic.CLIHelpCommand},
-		{name: "help_long", arg: cryptoutilSharedMagic.CLIHelpFlag},
-		{name: "help_short", arg: "-h"},
+		{name: testHelpWord, arg: cryptoutilSharedMagic.CLIHelpCommand},
+		{name: testHelpLong, arg: cryptoutilSharedMagic.CLIHelpFlag},
+		{name: testHelpShort, arg: cryptoutilSharedMagic.CLIHelpShortFlag},
 	}
 
 	for _, tt := range tests {
@@ -88,7 +88,7 @@ func TestRouteServiceFromIdentity_ServerSubcommand(t *testing.T) {
 		ServiceID:   testServiceID,
 		ProductName: testProductNameService,
 		ServiceName: testServiceNameConst,
-		DisplayName: "Test Service",
+		DisplayName: testTestService,
 		ServicePort: testDefaultPort,
 		ServerFn: func(_ []string, _, _ io.Writer) int {
 			serverCalled = true
@@ -113,7 +113,7 @@ func TestRouteServiceFromIdentity_ClientHelpSubcommand(t *testing.T) {
 
 	exitCode := cryptoutilAppsFrameworkCli.RouteServiceFromIdentity(
 		testIdentityBase,
-		[]string{"client", cryptoutilSharedMagic.CLIHelpFlag},
+		[]string{testClient, cryptoutilSharedMagic.CLIHelpFlag},
 		&stdout, &stderr,
 	)
 	require.Equal(t, 0, exitCode)
@@ -126,7 +126,7 @@ func TestRouteServiceFromIdentity_ClientUnknownArg(t *testing.T) {
 
 	exitCode := cryptoutilAppsFrameworkCli.RouteServiceFromIdentity(
 		testIdentityBase,
-		[]string{"client", "some-arg"},
+		[]string{testClient, testSomeArg},
 		&stdout, &stderr,
 	)
 	require.Equal(t, 1, exitCode)
@@ -139,7 +139,7 @@ func TestRouteServiceFromIdentity_InitHelpSubcommand(t *testing.T) {
 
 	exitCode := cryptoutilAppsFrameworkCli.RouteServiceFromIdentity(
 		testIdentityBase,
-		[]string{"init", cryptoutilSharedMagic.CLIHelpFlag},
+		[]string{testInit, cryptoutilSharedMagic.CLIHelpFlag},
 		&stdout, &stderr,
 	)
 	require.Equal(t, 0, exitCode)
@@ -169,7 +169,7 @@ func TestRouteServiceFromIdentity_EmptyArgsDefaultsToServer(t *testing.T) {
 		ServiceID:   testServiceID,
 		ProductName: testProductNameService,
 		ServiceName: testServiceNameConst,
-		DisplayName: "Test Service",
+		DisplayName: testTestService,
 		ServicePort: testDefaultPort,
 		ServerFn: func(_ []string, _, _ io.Writer) int {
 			serverCalled = true

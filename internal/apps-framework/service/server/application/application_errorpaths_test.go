@@ -22,7 +22,6 @@ import (
 	cryptoutilUnsealKeysService "cryptoutil/internal/apps-framework/service/server/barrier/unsealkeysservice"
 	cryptoutilAppsFrameworkServiceServerBusinesslogic "cryptoutil/internal/apps-framework/service/server/businesslogic"
 	cryptoutilAppsFrameworkServiceServerRepository "cryptoutil/internal/apps-framework/service/server/repository"
-	cryptoutilSharedContainer "cryptoutil/internal/shared/container"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 )
@@ -84,48 +83,66 @@ func setupCoreWithMigrations(t *testing.T) (*Core, *cryptoutilAppsFrameworkServi
 	return core, settings
 }
 
-// TestStartBasic_JWKGenServiceFailure tests StartBasic JWKGenService error path.
-func TestStartBasic_JWKGenServiceFailure(t *testing.T) {
+func TestStartup_JWKGenServiceFailure(t *testing.T) {
 	t.Parallel()
 
-	ctx := context.Background()
-	settings := cryptoutilAppsFrameworkServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
+	tests := []struct {
+		name    string
+		start   func(context.Context, *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings) error
+		wantErr string
+	}{
+		{
+			name: "basic startup",
+			start: func(ctx context.Context, settings *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings) error {
+				_, err := startBasicInternal(ctx, settings, injectJWKGenFail)
 
-	_, err := startBasicInternal(ctx, settings, injectJWKGenFail)
-	require.ErrorContains(t, err, "JWK Gen Service")
+				return err
+			},
+			wantErr: "JWK Gen Service",
+		},
+		{
+			name: "core wraps basic startup failure",
+			start: func(ctx context.Context, settings *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings) error {
+				_, err := startCoreInternal(ctx, settings, injectJWKGenFail,
+					unexpectedPostgresStart,
+					sql.Open,
+					func(d gorm.Dialector, c *gorm.Config) (*gorm.DB, error) { return gorm.Open(d, c) },
+				)
+
+				return err
+			},
+			wantErr: "basic application",
+		},
+		{
+			name: "listener wraps core startup failure",
+			start: func(ctx context.Context, settings *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings) error {
+				cfg := &ListenerConfig{Settings: settings, PublicServer: &mockPublicServer{}, AdminServer: &mockAdminServer{}}
+				_, err := startListenerInternal(ctx, cfg,
+					injectJWKGenFail,
+					unexpectedPostgresStart,
+					sql.Open,
+					func(d gorm.Dialector, c *gorm.Config) (*gorm.DB, error) { return gorm.Open(d, c) },
+				)
+
+				return err
+			},
+			wantErr: "application core",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			settings := cryptoutilAppsFrameworkServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
+			err := tc.start(context.Background(), settings)
+			require.ErrorContains(t, err, tc.wantErr)
+		})
+	}
 }
 
-// TestStartCore_StartBasicViaJWKGenFailure tests StartCore error path via StartBasic failure.
-func TestStartCore_StartBasicViaJWKGenFailure(t *testing.T) {
-	t.Parallel()
-
-	ctx := context.Background()
-	settings := cryptoutilAppsFrameworkServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
-
-	_, err := startCoreInternal(ctx, settings, injectJWKGenFail,
-		cryptoutilSharedContainer.StartPostgres,
-		sql.Open,
-		func(d gorm.Dialector, c *gorm.Config) (*gorm.DB, error) { return gorm.Open(d, c) },
-	)
-	require.ErrorContains(t, err, "basic application")
-}
-
-// TestStartListener_StartCoreViaJWKGenFailure tests StartListener error path via StartCore failure.
-func TestStartListener_StartCoreViaJWKGenFailure(t *testing.T) {
-	t.Parallel()
-
-	ctx := context.Background()
-	settings := cryptoutilAppsFrameworkServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
-	cfg := &ListenerConfig{Settings: settings, PublicServer: &mockPublicServer{}, AdminServer: &mockAdminServer{}}
-
-	// startCoreInternal returns error due to JWK gen failure, StartListener returns error.
-	_, err := startListenerInternal(ctx, cfg,
-		injectJWKGenFail,
-		cryptoutilSharedContainer.StartPostgres,
-		sql.Open,
-		func(d gorm.Dialector, c *gorm.Config) (*gorm.DB, error) { return gorm.Open(d, c) },
-	)
-	require.ErrorContains(t, err, "application core")
+func unexpectedPostgresStart(context.Context, *cryptoutilSharedTelemetry.TelemetryService, string, string, string) (string, func(), error) {
+	return "", nil, errors.New("unexpected PostgreSQL container startup")
 }
 
 // TestInitializeServicesOnCore_NewGormRepositoryFailure tests error path when NewGormRepository fails.

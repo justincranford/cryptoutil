@@ -6,6 +6,7 @@
 package apis
 
 import (
+	"fmt"
 	"os"
 	"testing"
 
@@ -39,26 +40,37 @@ func TestMain(m *testing.M) {
 
 	cryptoutilAppsFrameworkServiceServerTestutil.ConfigureTestFixtures(settings, publicTLS, privateTLS, publicMaterial.RootCAPool, privateMaterial.RootCAPool)
 
-	var (
-		dbCleanup func()
-		dbErr     error
-	)
+	exitCode := func() (exitCode int) {
+		var (
+			dbCleanup func() error
+			dbErr     error
+		)
 
-	testGormDB, dbCleanup, dbErr = cryptoutilTestHelpDb.NewInMemorySQLiteDBForTestMain()
-	if dbErr != nil {
-		panic("failed to create test database: " + dbErr.Error())
-	}
+		testGormDB, dbCleanup, dbErr = cryptoutilTestHelpDb.NewInMemorySQLiteDBForTestMain()
+		if dbErr != nil {
+			panic("failed to create test database: " + dbErr.Error())
+		}
 
-	defer dbCleanup()
+		defer func() {
+			if cleanupErr := dbCleanup(); cleanupErr != nil {
+				fmt.Fprintf(os.Stderr, "TestMain: failed to close test database: %v\n", cleanupErr)
 
-	sqlDB, err := testGormDB.DB()
-	if err != nil {
-		panic("failed to get sql.DB for migrations: " + err.Error())
-	}
+				exitCode = 1
+			}
+		}()
 
-	if migrateErr := cryptoutilAppsFrameworkServiceServerRepository.ApplyMigrations(sqlDB, cryptoutilAppsFrameworkServiceServerRepository.DatabaseTypeSQLite, cryptoutilAppsFrameworkServiceServerRepository.MigrationsFS); migrateErr != nil {
-		panic("failed to apply migrations: " + migrateErr.Error())
-	}
+		sqlDB, err := testGormDB.DB()
+		if err != nil {
+			panic("failed to get sql.DB for migrations: " + err.Error())
+		}
 
-	os.Exit(m.Run())
+		if migrateErr := cryptoutilAppsFrameworkServiceServerRepository.ApplyMigrations(sqlDB, cryptoutilAppsFrameworkServiceServerRepository.DatabaseTypeSQLite, cryptoutilAppsFrameworkServiceServerRepository.MigrationsFS); migrateErr != nil {
+			panic("failed to apply migrations: " + migrateErr.Error())
+		}
+
+		exitCode = m.Run()
+
+		return exitCode
+	}()
+	os.Exit(exitCode)
 }

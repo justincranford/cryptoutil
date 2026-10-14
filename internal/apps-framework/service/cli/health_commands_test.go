@@ -48,9 +48,9 @@ func TestHealthCommand_HelpFlag(t *testing.T) {
 		name string
 		arg  string
 	}{
-		{name: "help_word", arg: cryptoutilSharedMagic.CLIHelpCommand},
-		{name: "help_long", arg: cryptoutilSharedMagic.CLIHelpFlag},
-		{name: "help_short", arg: "-h"},
+		{name: testHelpWord, arg: cryptoutilSharedMagic.CLIHelpCommand},
+		{name: testHelpLong, arg: cryptoutilSharedMagic.CLIHelpFlag},
+		{name: testHelpShort, arg: cryptoutilSharedMagic.CLIHelpShortFlag},
 	}
 
 	for _, tt := range tests {
@@ -106,7 +106,7 @@ func TestHealthCommand_ConnectionRefused(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 
 	exitCode := cryptoutilAppsFrameworkCli.HealthCommand(
-		[]string{cryptoutilSharedMagic.CLIURLFlag, "https://127.0.0.1:1"},
+		[]string{cryptoutilSharedMagic.CLIURLFlag, testHttps1270011},
 		&stdout, &stderr,
 		"Usage: health",
 		uint16(cryptoutilSharedMagic.KMSServicePort),
@@ -122,9 +122,9 @@ func TestLivezCommand_HelpFlag(t *testing.T) {
 		name string
 		arg  string
 	}{
-		{name: "help_word", arg: cryptoutilSharedMagic.CLIHelpCommand},
-		{name: "help_long", arg: cryptoutilSharedMagic.CLIHelpFlag},
-		{name: "help_short", arg: "-h"},
+		{name: testHelpWord, arg: cryptoutilSharedMagic.CLIHelpCommand},
+		{name: testHelpLong, arg: cryptoutilSharedMagic.CLIHelpFlag},
+		{name: testHelpShort, arg: cryptoutilSharedMagic.CLIHelpShortFlag},
 	}
 
 	for _, tt := range tests {
@@ -178,7 +178,7 @@ func TestLivezCommand_ConnectionRefused(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 
 	exitCode := cryptoutilAppsFrameworkCli.LivezCommand(
-		[]string{cryptoutilSharedMagic.CLIURLFlag, "https://127.0.0.1:1"},
+		[]string{cryptoutilSharedMagic.CLIURLFlag, testHttps1270011},
 		&stdout, &stderr,
 		"Usage: livez",
 	)
@@ -193,9 +193,9 @@ func TestReadyzCommand_HelpFlag(t *testing.T) {
 		name string
 		arg  string
 	}{
-		{name: "help_word", arg: cryptoutilSharedMagic.CLIHelpCommand},
-		{name: "help_long", arg: cryptoutilSharedMagic.CLIHelpFlag},
-		{name: "help_short", arg: "-h"},
+		{name: testHelpWord, arg: cryptoutilSharedMagic.CLIHelpCommand},
+		{name: testHelpLong, arg: cryptoutilSharedMagic.CLIHelpFlag},
+		{name: testHelpShort, arg: cryptoutilSharedMagic.CLIHelpShortFlag},
 	}
 
 	for _, tt := range tests {
@@ -249,7 +249,7 @@ func TestReadyzCommand_ConnectionRefused(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 
 	exitCode := cryptoutilAppsFrameworkCli.ReadyzCommand(
-		[]string{cryptoutilSharedMagic.CLIURLFlag, "https://127.0.0.1:1"},
+		[]string{cryptoutilSharedMagic.CLIURLFlag, testHttps1270011},
 		&stdout, &stderr,
 		"Usage: readyz",
 	)
@@ -264,9 +264,9 @@ func TestShutdownCommand_HelpFlag(t *testing.T) {
 		name string
 		arg  string
 	}{
-		{name: "help_word", arg: cryptoutilSharedMagic.CLIHelpCommand},
-		{name: "help_long", arg: cryptoutilSharedMagic.CLIHelpFlag},
-		{name: "help_short", arg: "-h"},
+		{name: testHelpWord, arg: cryptoutilSharedMagic.CLIHelpCommand},
+		{name: testHelpLong, arg: cryptoutilSharedMagic.CLIHelpFlag},
+		{name: testHelpShort, arg: cryptoutilSharedMagic.CLIHelpShortFlag},
 	}
 
 	for _, tt := range tests {
@@ -336,7 +336,7 @@ func TestShutdownCommand_ConnectionRefused(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 
 	exitCode := cryptoutilAppsFrameworkCli.ShutdownCommand(
-		[]string{cryptoutilSharedMagic.CLIURLFlag, "https://127.0.0.1:1"},
+		[]string{cryptoutilSharedMagic.CLIURLFlag, testHttps1270011},
 		&stdout, &stderr,
 		"Usage: shutdown",
 	)
@@ -448,7 +448,7 @@ func TestHealthCommand_DuplicateURLFlag(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 
 	exitCode := cryptoutilAppsFrameworkCli.HealthCommand(
-		[]string{cryptoutilSharedMagic.CLIURLFlag, srv.URL, cryptoutilSharedMagic.CLIURLFlag, "https://127.0.0.1:1"},
+		[]string{cryptoutilSharedMagic.CLIURLFlag, srv.URL, cryptoutilSharedMagic.CLIURLFlag, testHttps1270011},
 		&stdout, &stderr,
 		"Usage: health",
 		uint16(cryptoutilSharedMagic.KMSServicePort),

@@ -10,14 +10,15 @@ import (
 	"github.com/stretchr/testify/require"
 
 	cryptoutilAppsFrameworkServiceServerRepository "cryptoutil/internal/apps-framework/service/server/repository"
+	cryptoutilTestHelpDB "cryptoutil/internal/apps-framework/service/test_help_db"
 	cryptoutilTestingFixtures "cryptoutil/internal/apps-framework/service/testing/fixtures"
-	cryptoutilTestingTestdb "cryptoutil/internal/apps-framework/service/testing/testdb"
 )
 
 func TestCreateTestTenant(t *testing.T) {
 	t.Parallel()
 
-	db := cryptoutilTestingTestdb.RequireNewInMemorySQLiteDB(t, &cryptoutilAppsFrameworkServiceServerRepository.Tenant{})
+	db := cryptoutilTestHelpDB.NewInMemorySQLiteDB(t)
+	require.NoError(t, db.AutoMigrate(&cryptoutilAppsFrameworkServiceServerRepository.Tenant{}))
 
 	tenant := cryptoutilTestingFixtures.CreateTestTenant(t, db)
 
@@ -34,7 +35,8 @@ func TestCreateTestTenant(t *testing.T) {
 func TestCreateTestTenant_UniquePerCall(t *testing.T) {
 	t.Parallel()
 
-	db := cryptoutilTestingTestdb.RequireNewInMemorySQLiteDB(t, &cryptoutilAppsFrameworkServiceServerRepository.Tenant{})
+	db := cryptoutilTestHelpDB.NewInMemorySQLiteDB(t)
+	require.NoError(t, db.AutoMigrate(&cryptoutilAppsFrameworkServiceServerRepository.Tenant{}))
 
 	tenant1 := cryptoutilTestingFixtures.CreateTestTenant(t, db)
 	tenant2 := cryptoutilTestingFixtures.CreateTestTenant(t, db)
@@ -46,7 +48,8 @@ func TestCreateTestTenant_UniquePerCall(t *testing.T) {
 func TestCreateTestRealm(t *testing.T) {
 	t.Parallel()
 
-	db := cryptoutilTestingTestdb.RequireNewInMemorySQLiteDB(t, &cryptoutilAppsFrameworkServiceServerRepository.Tenant{}, &cryptoutilAppsFrameworkServiceServerRepository.TenantRealm{})
+	db := cryptoutilTestHelpDB.NewInMemorySQLiteDB(t)
+	require.NoError(t, db.AutoMigrate(&cryptoutilAppsFrameworkServiceServerRepository.Tenant{}, &cryptoutilAppsFrameworkServiceServerRepository.TenantRealm{}))
 
 	tenant := cryptoutilTestingFixtures.CreateTestTenant(t, db)
 	realm := cryptoutilTestingFixtures.CreateTestRealm(t, db, tenant.ID)
@@ -65,7 +68,8 @@ func TestCreateTestRealm(t *testing.T) {
 func TestCreateTestUser(t *testing.T) {
 	t.Parallel()
 
-	db := cryptoutilTestingTestdb.RequireNewInMemorySQLiteDB(t, &cryptoutilAppsFrameworkServiceServerRepository.Tenant{}, &cryptoutilAppsFrameworkServiceServerRepository.User{})
+	db := cryptoutilTestHelpDB.NewInMemorySQLiteDB(t)
+	require.NoError(t, db.AutoMigrate(&cryptoutilAppsFrameworkServiceServerRepository.Tenant{}, &cryptoutilAppsFrameworkServiceServerRepository.User{}))
 
 	tenant := cryptoutilTestingFixtures.CreateTestTenant(t, db)
 	user := cryptoutilTestingFixtures.CreateTestUser(t, db, tenant.ID)
@@ -84,7 +88,8 @@ func TestCreateTestUser(t *testing.T) {
 func TestCreateTestUser_UniqueUsernames(t *testing.T) {
 	t.Parallel()
 
-	db := cryptoutilTestingTestdb.RequireNewInMemorySQLiteDB(t, &cryptoutilAppsFrameworkServiceServerRepository.Tenant{}, &cryptoutilAppsFrameworkServiceServerRepository.User{})
+	db := cryptoutilTestHelpDB.NewInMemorySQLiteDB(t)
+	require.NoError(t, db.AutoMigrate(&cryptoutilAppsFrameworkServiceServerRepository.Tenant{}, &cryptoutilAppsFrameworkServiceServerRepository.User{}))
 
 	tenant := cryptoutilTestingFixtures.CreateTestTenant(t, db)
 	user1 := cryptoutilTestingFixtures.CreateTestUser(t, db, tenant.ID)

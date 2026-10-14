@@ -1,6 +1,6 @@
 // Copyright (c) 2025-2026 Justin Cranford.
 // Package no_postgres_in_non_e2e enforces that PostgreSQL test containers are only used in E2E tests.
-// Unit tests and integration tests MUST use testdb.NewInMemorySQLiteDB() instead.
+// Unit tests and integration tests MUST use test_help_db.NewInMemorySQLiteDB() instead.
 // PostgreSQL containers are allowed only in files ending with _e2e_test.go or containing //go:build e2e.
 // See ENG-HANDBOOK.md Section 10.3 Integration Testing Strategy (D19).
 package no_postgres_in_non_e2e
@@ -18,7 +18,7 @@ import (
 )
 
 // bannedPatterns contains lowercase patterns indicating a PostgreSQL container is being started.
-// PostgreSQL containers are forbidden in non-E2E tests. Use testdb.NewInMemorySQLiteDB() instead.
+// PostgreSQL containers are forbidden in non-E2E tests. Use test_help_db.NewInMemorySQLiteDB() instead.
 var bannedPatterns = []string{
 	"postgres.runcontainer(",
 	"postgres.run(",
@@ -34,7 +34,6 @@ var allowedSuffixes = []string{
 
 // allowedPathFragments lists path segments permitted to use PostgreSQL containers.
 var allowedPathFragments = []string{
-	"testing/testdb/",
 	"shared/container/",
 	"shared/database/",
 	"lint_fitness/",
@@ -122,7 +121,7 @@ func CheckFiles(logger *cryptoutilCmdCicdCommon.Logger, testFiles []string) erro
 
 	if totalViolations > 0 {
 		logger.Log(fmt.Sprintf("Found %d PostgreSQL container violation(s) in non-E2E tests", totalViolations))
-		fmt.Fprintln(os.Stderr, "Use testdb.NewInMemorySQLiteDB() for unit/integration tests or place in _e2e_test.go files.")
+		fmt.Fprintln(os.Stderr, "Use test_help_db.NewInMemorySQLiteDB() for unit/integration tests or place in _e2e_test.go files.")
 		fmt.Fprintln(os.Stderr, "See ENG-HANDBOOK.md Section 10.3 Integration Testing Strategy (D19).")
 
 		return fmt.Errorf("found %d PostgreSQL container violation(s) in non-E2E tests", totalViolations)
@@ -164,7 +163,7 @@ func CheckFile(filePath string) []string {
 		for _, pattern := range bannedPatterns {
 			if strings.Contains(line, pattern) {
 				violations = append(violations, fmt.Sprintf(
-					"line %d: PostgreSQL container %q - use testdb.NewInMemorySQLiteDB() or place in _e2e_test.go",
+					"line %d: PostgreSQL container %q - use test_help_db.NewInMemorySQLiteDB() or place in _e2e_test.go",
 					lineNum, rawLine))
 
 				break

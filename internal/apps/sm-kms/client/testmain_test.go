@@ -73,50 +73,62 @@ func bootstrapTokens(testServer *cryptoutilKmsServer.KMSServer) (string, string,
 }
 
 func TestMain(m *testing.M) {
-	ctx := context.Background()
+	exitCode := func() (exitCode int) {
+		ctx := context.Background()
 
-	configureLightweightJWKPoolsForIntegrationTests()
+		configureLightweightJWKPoolsForIntegrationTests()
 
-	cfg := cryptoutilAppsFrameworkServiceConfig.RequireNewForTest("application_test")
-	cfg.DatabaseURL = cryptoutilSharedMagic.SQLiteInMemoryDSN
+		cfg := cryptoutilAppsFrameworkServiceConfig.RequireNewForTest("application_test")
+		cfg.DatabaseURL = cryptoutilSharedMagic.SQLiteInMemoryDSN
 
-	// Create test server
-	testServer, err := cryptoutilKmsServer.NewKMSServerFromConfig(ctx, cfg)
-	if err != nil {
-		panic(fmt.Sprintf("TestMain: failed to create server: %v", err))
-	}
+		// Create test server
+		testServer, err := cryptoutilKmsServer.NewKMSServerFromConfig(ctx, cfg)
+		if err != nil {
+			panic(fmt.Sprintf("TestMain: failed to create server: %v", err))
+		}
 
-	testDB, dbCleanup, err := cryptoutilTestDb.NewInMemorySQLiteDBForTestMain()
-	if err != nil {
-		panic(fmt.Sprintf("TestMain: failed to create test database: %v", err))
-	}
-	defer dbCleanup()
+		testDB, dbCleanup, err := cryptoutilTestDb.NewInMemorySQLiteDBForTestMain()
+		if err != nil {
+			panic(fmt.Sprintf("TestMain: failed to create test database: %v", err))
+		}
+		defer func() {
+			if testIntegrationServer != nil {
+				if shutdownErr := testIntegrationServer.Shutdown(ctx); shutdownErr != nil {
+					fmt.Fprintf(os.Stderr, "TestMain: failed to shutdown integration server: %v\n", shutdownErr)
 
-	// Start integration server and wait for ports
-	testIntegrationServer, err = cryptoutilAppsFrameworkServiceTestOrcIntegration.StartIntegrationServerForTestMain(
-		ctx,
-		testServer,
-		testDB,
-	)
-	if err != nil {
-		panic(fmt.Sprintf("TestMain: failed to start integration server: %v", err))
-	}
+					exitCode = 1
+				}
+			}
 
-	// Extract TLS root CA pool from server
-	testRootCAsPool = testServer.TLSRootCAPool()
-	testServerPublicURL = testIntegrationServer.PublicBaseURL()
+			if cleanupErr := dbCleanup(); cleanupErr != nil {
+				fmt.Fprintf(os.Stderr, "TestMain: failed to close test database: %v\n", cleanupErr)
 
-	testBrowserToken, testServiceToken, err = bootstrapTokens(testServer)
-	if err != nil {
-		panic(fmt.Sprintf("TestMain: failed to bootstrap tokens: %v", err))
-	}
+				exitCode = 1
+			}
+		}()
 
-	exitCode := m.Run()
+		// Start integration server and wait for ports
+		testIntegrationServer, err = cryptoutilAppsFrameworkServiceTestOrcIntegration.StartIntegrationServerForTestMain(
+			ctx,
+			testServer,
+			testDB,
+		)
+		if err != nil {
+			panic(fmt.Sprintf("TestMain: failed to start integration server: %v", err))
+		}
 
-	// Cleanup
-	if err := testIntegrationServer.Shutdown(ctx); err != nil {
-		fmt.Fprintf(os.Stderr, "TestMain: failed to shutdown integration server: %v\n", err)
-	}
+		// Extract TLS root CA pool from server
+		testRootCAsPool = testServer.TLSRootCAPool()
+		testServerPublicURL = testIntegrationServer.PublicBaseURL()
 
+		testBrowserToken, testServiceToken, err = bootstrapTokens(testServer)
+		if err != nil {
+			panic(fmt.Sprintf("TestMain: failed to bootstrap tokens: %v", err))
+		}
+
+		exitCode = m.Run()
+
+		return exitCode
+	}()
 	os.Exit(exitCode)
 }

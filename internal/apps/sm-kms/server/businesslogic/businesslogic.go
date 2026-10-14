@@ -7,6 +7,7 @@ package businesslogic
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -211,7 +212,7 @@ func (s *BusinessLogicService) GenerateMaterialKeyInElasticKey(ctx context.Conte
 		}
 
 		if ormElasticKey.ElasticKeyStatus != cryptoutilKmsServer.ElasticKeyStatus(cryptoutilOpenapiModel.PendingGenerate) && ormElasticKey.ElasticKeyStatus != cryptoutilKmsServer.Active {
-			return fmt.Errorf("invalid ElasticKey Status: %w", err)
+			return fmt.Errorf("invalid ElasticKey Status: %s", ormElasticKey.ElasticKeyStatus)
 		}
 
 		return nil
@@ -287,7 +288,7 @@ func (s *BusinessLogicService) GetMaterialKeysForElasticKey(ctx context.Context,
 		if err != nil {
 			return fmt.Errorf("failed to get ElasticKey by ElasticKeyID: %w", err)
 		} else if ormElasticKey == nil {
-			return fmt.Errorf("got nil ElasticKey by ElasticKeyID: %w", err)
+			return errors.New("got nil ElasticKey by ElasticKeyID")
 		}
 
 		ormMaterialKeys, err = cryptoutilOrmRepository.GetMaterialKeysForElasticKey(sqlTransaction.GormTx(), s.telemetryService.Slogger, elasticKeyID, ormElasticKeyMaterialKeysQueryParams)
@@ -346,7 +347,7 @@ func (s *BusinessLogicService) GetMaterialKeys(ctx context.Context, materialKeys
 				if err != nil {
 					return fmt.Errorf("failed to get ElasticKey by ElasticKeyID: %w", err)
 				} else if ormElasticKey == nil {
-					return fmt.Errorf("got nil ElasticKey by ElasticKeyID: %w", err)
+					return errors.New("got nil ElasticKey by ElasticKeyID")
 				}
 				// Cache the result
 				elasticKeyCache[elasticKeyID] = ormElasticKey

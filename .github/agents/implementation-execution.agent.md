@@ -869,19 +869,9 @@ After tests pass, think about the original intent, write additional tests to ens
 - Re-run coverage to verify improvement
 - Iterate until coverage targets met (≥95% production, ≥98% infrastructure)
 
-**Nested t.Cleanup Anti-Pattern:**
+Use orthogonal test data in shared TestMain SQLite databases: each test MUST create and query only UUIDv7-keyed records it owns. NEVER clear shared tables from per-test cleanup because parallel tests may delete each other's data. Register cleanup only for resources owned by that test (for example, its server or temporary files).
 
-NEVER call shared cleanup helpers inside `t.Cleanup`:
-
-```go
-// WRONG: delayed execution, non-obvious ordering, cross-test contamination
-t.Cleanup(func() { testdb.CleanupDatabase(t, testDB) })
-
-// CORRECT: call directly at test start (before test logic runs)
-testdb.CleanupDatabase(t, testDB)
-```
-
-`t.Cleanup` runs AFTER the test body, so cleanup from test N may run concurrently with the setup of test N+1 in parallel suites. Shared SQLite fixtures are particularly susceptible — a cleanup that truncates tables can delete rows being inserted by the next test.
+**Why**: `t.Cleanup` runs AFTER the test body and may execute concurrently with another test's setup. Clearing shared tables can delete rows being inserted or verified by that other test.
 
 **Flaky Test Diagnosis:**
 
@@ -889,7 +879,7 @@ When a failure appears intermittent, run BOTH before concluding root cause:
 1. **Isolated**: `go test -run TestName ./path/to/pkg` — passes alone? → shared fixture contamination likely.
 2. **Full package**: `go test ./path/to/pkg` — fails in group? → confirms interaction with other tests.
 
-**Isolated-pass + grouped-fail = shared fixture contamination**. Check for `t.Cleanup`-wrapped cleanups, missing `CleanupDatabase` at test start, or parallel tests mutating shared SQLite state.
+**Isolated-pass + grouped-fail = shared fixture contamination**. Check for `t.Cleanup`-wrapped cleanups, shared-table cleanup or parallel tests mutating shared SQLite state.
 
 **Also useful**: `git stash ; go test ./... ; git stash pop` — if the test fails before your changes, it is pre-existing, not caused by your work (~30 seconds vs. hours of investigation).
 
@@ -907,7 +897,7 @@ Unit + integration + E2E tests MUST be done during EVERY phase:
 
 **3-Tier Database Strategy (D7/D19 — MANDATORY):**
 
-- **Unit tests**: SQLite in-memory only (`testdb.NewInMemorySQLiteDB(t)`). NEVER PostgreSQL.
+- **Unit tests**: SQLite in-memory only (`test_help_db.NewInMemorySQLiteDB(t)`). NEVER PostgreSQL.
 - **Integration tests**: ONE shared SQLite in-memory instance per package via TestMain. NEVER PostgreSQL. NEVER per-test DB creation.
 - **E2E tests**: Docker Compose with 3 app instances (2 PostgreSQL + 1 SQLite). PostgreSQL tested ONLY here.
 

@@ -10,6 +10,12 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const (
+	testCaseNilTelemetryService = "nil telemetryService"
+	testCaseNilGormDB           = "nil gormDB"
+	testCaseNilJWKGenService    = "nil jwkGenService"
+)
+
 func TestNewOrmRepository_NilChecks(t *testing.T) {
 	t.Parallel()
 
@@ -20,9 +26,9 @@ func TestNewOrmRepository_NilChecks(t *testing.T) {
 		jwkGen          any
 		wantErrContains string
 	}{
-		{name: "nil telemetryService", telemetry: nil, wantErrContains: "telemetryService must be non-nil"},
-		{name: "nil gormDB", telemetry: testTelemetryService, gormDB: nil, wantErrContains: "gormDB must be non-nil"},
-		{name: "nil jwkGenService", telemetry: testTelemetryService, gormDB: testGormDB, jwkGen: nil, wantErrContains: "jwkGenService must be non-nil"},
+		{name: testCaseNilTelemetryService, telemetry: nil, wantErrContains: "telemetryService must be non-nil"},
+		{name: testCaseNilGormDB, telemetry: testTelemetryService, gormDB: nil, wantErrContains: "gormDB must be non-nil"},
+		{name: testCaseNilJWKGenService, telemetry: testTelemetryService, gormDB: testGormDB, jwkGen: nil, wantErrContains: "jwkGenService must be non-nil"},
 	}
 
 	for _, tc := range tests {
@@ -35,11 +41,11 @@ func TestNewOrmRepository_NilChecks(t *testing.T) {
 			)
 
 			switch tc.name {
-			case "nil telemetryService":
+			case testCaseNilTelemetryService:
 				repo, err = NewOrmRepository(testCtx, nil, testGormDB, testJWKGenService, false)
-			case "nil gormDB":
+			case testCaseNilGormDB:
 				repo, err = NewOrmRepository(testCtx, testTelemetryService, nil, testJWKGenService, false)
-			case "nil jwkGenService":
+			case testCaseNilJWKGenService:
 				repo, err = NewOrmRepository(testCtx, testTelemetryService, testGormDB, nil, false)
 			}
 

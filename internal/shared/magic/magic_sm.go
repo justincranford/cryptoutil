@@ -22,6 +22,12 @@ const (
 	// Port range for SM KMS: 8000-8099 (100-port block).
 	KMSServicePort = 8000
 
+	// KMSInvalidElasticKeyIDError is returned when an elasticKeyID path parameter is invalid.
+	KMSInvalidElasticKeyIDError = "invalid elasticKeyID"
+
+	// KMSInvalidMessageIDError is returned when a messageID path parameter is invalid.
+	KMSInvalidMessageIDError = "invalid messageID"
+
 	// KMSServerFlagSetName is the pflag set name for the sm-kms server subcommand.
 	KMSServerFlagSetName = "sm-kms-server"
 

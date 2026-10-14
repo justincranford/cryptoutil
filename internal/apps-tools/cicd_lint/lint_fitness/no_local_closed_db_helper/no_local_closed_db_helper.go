@@ -1,7 +1,7 @@
 // Copyright (c) 2025-2026 Justin Cranford.
 // Package no_local_closed_db_helper enforces that createClosedDatabase-style helpers
-// are not defined outside the shared testdb package.
-// Use testdb.NewClosedSQLiteDB() from internal/apps-framework/service/testing/testdb instead.
+// are not defined outside the shared test_help_db package.
+// Use test_help_db.NewClosedSQLiteDB() from internal/apps-framework/service/test_help_db instead.
 package no_local_closed_db_helper
 
 import (
@@ -16,8 +16,8 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
-// allowedPathFragment is the testdb package path where closed-DB helpers are permitted.
-const allowedPathFragment = "testing/testdb/"
+// allowedPathFragment is the shared test helper package path where closed-DB helpers are permitted.
+const allowedPathFragment = "service/test_help_db/"
 
 // bannedFunctions contains lowercase prefix patterns for locally-defined closed-DB helpers.
 var bannedFunctions = []string{
@@ -34,7 +34,7 @@ func Check(logger *cryptoutilCmdCicdCommon.Logger) error {
 
 // CheckInDir walks test files from rootDir and reports violations.
 func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
-	logger.Log("Checking for local createClosedDatabase-style helpers outside testdb package...")
+	logger.Log("Checking for local createClosedDatabase-style helpers outside test_help_db package...")
 
 	var testFiles []string
 
@@ -56,7 +56,7 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 			return nil
 		}
 
-		// Skip the testdb package - it is the canonical location for these helpers.
+		// Skip the shared test helper package - it is the canonical location for these helpers.
 		if strings.Contains(filepath.ToSlash(path), allowedPathFragment) {
 			return nil
 		}
@@ -96,7 +96,7 @@ func CheckFiles(logger *cryptoutilCmdCicdCommon.Logger, testFiles []string) erro
 
 	if totalViolations > 0 {
 		logger.Log(fmt.Sprintf("Found %d local closed-DB helper violation(s)", totalViolations))
-		fmt.Fprintln(os.Stderr, "Use testdb.NewClosedSQLiteDB() from internal/apps-framework/service/testing/testdb instead.")
+		fmt.Fprintln(os.Stderr, "Use test_help_db.NewClosedSQLiteDB() from internal/apps-framework/service/test_help_db instead.")
 
 		return fmt.Errorf("found %d local closed-DB helper violation(s)", totalViolations)
 	}
@@ -125,7 +125,7 @@ func CheckFile(filePath string) []string {
 
 		for _, banned := range bannedFunctions {
 			if strings.HasPrefix(line, banned) {
-				violations = append(violations, fmt.Sprintf("line %d: banned private function %q - use testdb.NewClosedSQLiteDB() instead", lineNum, scanner.Text()))
+				violations = append(violations, fmt.Sprintf("line %d: banned private function %q - use test_help_db.NewClosedSQLiteDB() instead", lineNum, scanner.Text()))
 			}
 		}
 	}

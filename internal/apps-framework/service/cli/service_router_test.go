@@ -64,9 +64,9 @@ func TestRouteService_HelpFlag(t *testing.T) {
 		name string
 		arg  string
 	}{
-		{name: "help_word", arg: cryptoutilSharedMagic.CLIHelpCommand},
-		{name: "help_long", arg: cryptoutilSharedMagic.CLIHelpFlag},
-		{name: "help_short", arg: "-h"},
+		{name: testHelpWord, arg: cryptoutilSharedMagic.CLIHelpCommand},
+		{name: testHelpLong, arg: cryptoutilSharedMagic.CLIHelpFlag},
+		{name: testHelpShort, arg: cryptoutilSharedMagic.CLIHelpShortFlag},
 	}
 
 	for _, tt := range tests {
@@ -122,7 +122,7 @@ func TestRouteService_ClientSubcommand(t *testing.T) {
 		return cryptoutilSharedMagic.IMMinPasswordLength
 	}
 
-	exitCode := cryptoutilAppsFrameworkCli.RouteService(testServiceCfg, []string{"client"}, &stdout, &stderr, noopSubcmd, clientFn, noopSubcmd)
+	exitCode := cryptoutilAppsFrameworkCli.RouteService(testServiceCfg, []string{testClient}, &stdout, &stderr, noopSubcmd, clientFn, noopSubcmd)
 	require.Equal(t, cryptoutilSharedMagic.IMMinPasswordLength, exitCode)
 	require.True(t, clientCalled)
 }
@@ -139,7 +139,7 @@ func TestRouteService_InitSubcommand(t *testing.T) {
 		return 9
 	}
 
-	exitCode := cryptoutilAppsFrameworkCli.RouteService(testServiceCfg, []string{"init"}, &stdout, &stderr, noopSubcmd, noopSubcmd, initFn)
+	exitCode := cryptoutilAppsFrameworkCli.RouteService(testServiceCfg, []string{testInit}, &stdout, &stderr, noopSubcmd, noopSubcmd, initFn)
 	require.Equal(t, 9, exitCode)
 	require.True(t, initCalled)
 }

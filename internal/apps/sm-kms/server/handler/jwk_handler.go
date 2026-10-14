@@ -30,7 +30,7 @@ func (h *JWKCompatHandler) HandleGetActiveMaterialJWK() fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		elasticID, err := googleUuid.Parse(c.Params("elasticKeyID"))
 		if err != nil {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{cryptoutilSharedMagic.StringError: "invalid elasticKeyID"})
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.KMSInvalidElasticKeyIDError})
 		}
 
 		mat, err := h.materialRepo.GetActiveMaterial(c.UserContext(), elasticID)
@@ -53,7 +53,7 @@ func (h *JWKCompatHandler) HandleRotateMaterialJWK() fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		elasticID, err := googleUuid.Parse(c.Params("elasticKeyID"))
 		if err != nil {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{cryptoutilSharedMagic.StringError: "invalid elasticKeyID"})
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.KMSInvalidElasticKeyIDError})
 		}
 
 		elastic, err := h.elasticRepo.GetByID(c.UserContext(), elasticID)

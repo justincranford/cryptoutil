@@ -13,6 +13,7 @@ package test_help_db
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"testing"
 
@@ -111,27 +112,31 @@ func defaultDBDeps() dbDeps {
 
 // NewInMemorySQLiteDBForTestMain creates a unique in-memory SQLite database for use in TestMain functions.
 // Configures WAL mode, busy timeout, and connection pool.
-// Returns the db, a cleanup function, and any error.
+// Returns the db, a cleanup function that reports close errors, and any setup error.
 // Unlike NewInMemorySQLiteDB, this function does not require a *testing.T.
-func NewInMemorySQLiteDBForTestMain() (*gorm.DB, func(), error) {
+func NewInMemorySQLiteDBForTestMain() (*gorm.DB, func() error, error) {
 	return newInMemorySQLiteDBForTestMainWithDeps(defaultDBDeps())
 }
 
-func newInMemorySQLiteDBForTestMainWithDeps(deps dbDeps) (*gorm.DB, func(), error) {
+func newInMemorySQLiteDBForTestMainWithDeps(deps dbDeps) (*gorm.DB, func() error, error) {
 	dbID, err := deps.newUUIDv7Fn()
 	if err != nil {
 		return nil, nil, fmt.Errorf("test_help_db: failed to generate UUID: %w", err)
 	}
 
-	dsn := "file:" + dbID.String() + "?mode=memory&cache=shared"
+	dsn := fmt.Sprintf(cryptoutilSharedMagic.SQLiteInMemoryNamedDSNFormat, dbID.String())
 
 	db, sqlDB, err := buildInMemorySQLiteDB(context.Background(), deps, dsn)
 	if err != nil {
 		return nil, nil, fmt.Errorf("test_help_db: %w", err)
 	}
 
-	cleanup := func() {
-		_ = deps.closeSQLDBFn(sqlDB)
+	cleanup := func() error {
+		if closeErr := deps.closeSQLDBFn(sqlDB); closeErr != nil {
+			return fmt.Errorf("close SQLite TestMain database: %w", closeErr)
+		}
+
+		return nil
 	}
 
 	return db, cleanup, nil
@@ -178,15 +183,11 @@ func buildInMemorySQLiteDB(ctx context.Context, deps dbDeps, dsn string) (*gorm.
 	}
 
 	if err = deps.execSQLitePragmaFn(ctx, sqlDB, "PRAGMA journal_mode=WAL;"); err != nil {
-		_ = sqlDB.Close()
-
-		return nil, nil, fmt.Errorf("WAL pragma: %w", err)
+		return nil, nil, closeSQLDBAfterSetupFailure(deps, sqlDB, fmt.Errorf("WAL pragma: %w", err))
 	}
 
 	if err = deps.execSQLitePragmaFn(ctx, sqlDB, "PRAGMA busy_timeout = 30000;"); err != nil {
-		_ = sqlDB.Close()
-
-		return nil, nil, fmt.Errorf("busy_timeout pragma: %w", err)
+		return nil, nil, closeSQLDBAfterSetupFailure(deps, sqlDB, fmt.Errorf("busy_timeout pragma: %w", err))
 	}
 
 	sqlDB.SetMaxOpenConns(cryptoutilSharedMagic.SQLiteMaxOpenConnectionsForGORM)
@@ -195,63 +196,98 @@ func buildInMemorySQLiteDB(ctx context.Context, deps dbDeps, dsn string) (*gorm.
 
 	db, err := deps.openGormSQLiteFn(sqlDB)
 	if err != nil {
-		_ = sqlDB.Close()
-
-		return nil, nil, fmt.Errorf("gorm.Open: %w", err)
+		return nil, nil, closeSQLDBAfterSetupFailure(deps, sqlDB, fmt.Errorf("gorm.Open: %w", err))
 	}
 
 	return db, sqlDB, nil
 }
 
+func closeSQLDBAfterSetupFailure(deps dbDeps, sqlDB *sql.DB, cause error) error {
+	if closeErr := deps.closeSQLDBFn(sqlDB); closeErr != nil {
+		return errors.Join(cause, fmt.Errorf("close SQLite DB after setup failure: %w", closeErr))
+	}
+
+	return cause
+}
+
 // NewPostgresTestContainer creates a PostgreSQL test container and returns a configured GORM DB.
-// Requires Docker to be running. Skips the test if the container fails to start.
+// Requires Docker to be running. Fails the test if the container cannot be started.
 // Registers cleanup via t.Cleanup() to terminate the container and close the DB after the test.
 func NewPostgresTestContainer(ctx context.Context, t *testing.T) *gorm.DB {
 	t.Helper()
 
-	return newPostgresTestContainerWithDeps(ctx, t, defaultDBDeps())
-}
-
-func newPostgresTestContainerWithDeps(ctx context.Context, t *testing.T, deps dbDeps) *gorm.DB {
-	t.Helper()
-
-	container, err := safeNewPostgresTestContainer(ctx, deps.newPostgresContainerFactoryFn)
+	db, cleanup, err := newPostgresTestContainerWithDeps(ctx, defaultDBDeps())
 	if err != nil {
-		t.Skipf("test_help_db: skipping PostgreSQL test - container unavailable: %v", err)
+		t.Fatalf("test_help_db: failed to create PostgreSQL test container: %v", err)
 
 		return nil
 	}
 
 	t.Cleanup(func() {
-		if termErr := deps.containerTerminateFn(ctx, container); termErr != nil {
-			t.Logf("test_help_db: failed to terminate PostgreSQL container: %v", termErr)
-		}
-	})
-
-	connStr, err := deps.containerConnectionStringFn(ctx, container)
-	if err != nil {
-		panic(fmt.Sprintf("test_help_db: failed to get PostgreSQL connection string: %v", err))
-	}
-
-	db, err := deps.openGormPostgresFn(connStr)
-	if err != nil {
-		panic(fmt.Sprintf("test_help_db: failed to open GORM PostgreSQL DB: %v", err))
-	}
-
-	t.Cleanup(func() {
-		sqlDB, sqlErr := deps.getSQLDBFn(db)
-		if sqlErr != nil {
-			t.Logf("test_help_db: failed to get sql.DB for cleanup: %v", sqlErr)
-
-			return
-		}
-
-		if closeErr := deps.closeSQLDBFn(sqlDB); closeErr != nil {
-			t.Logf("test_help_db: failed to close PostgreSQL DB: %v", closeErr)
+		if cleanupErr := cleanup(); cleanupErr != nil {
+			t.Errorf("test_help_db: failed to clean up PostgreSQL test container: %v", cleanupErr)
 		}
 	})
 
 	return db
+}
+
+func newPostgresTestContainerWithDeps(ctx context.Context, deps dbDeps) (*gorm.DB, func() error, error) {
+	if ctx == nil {
+		return nil, nil, errors.New("context cannot be nil")
+	}
+
+	container, err := safeNewPostgresTestContainer(ctx, deps.newPostgresContainerFactoryFn)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to start PostgreSQL container: %w", err)
+	}
+
+	if container == nil {
+		return nil, nil, errors.New("PostgreSQL container factory returned nil container")
+	}
+
+	terminateAfterSetupFailure := func(cause error) error {
+		if terminateErr := deps.containerTerminateFn(ctx, container); terminateErr != nil {
+			return errors.Join(cause, fmt.Errorf("failed to terminate PostgreSQL container after setup failure: %w", terminateErr))
+		}
+
+		return cause
+	}
+
+	connStr, err := deps.containerConnectionStringFn(ctx, container)
+	if err != nil {
+		return nil, nil, terminateAfterSetupFailure(fmt.Errorf("failed to get PostgreSQL connection string: %w", err))
+	}
+
+	db, err := deps.openGormPostgresFn(connStr)
+	if err != nil {
+		return nil, nil, terminateAfterSetupFailure(fmt.Errorf("failed to open GORM PostgreSQL DB: %w", err))
+	}
+
+	if db == nil {
+		return nil, nil, terminateAfterSetupFailure(errors.New("GORM PostgreSQL opener returned nil database"))
+	}
+
+	cleanup := func() error {
+		var cleanupErr error
+
+		sqlDB, sqlErr := deps.getSQLDBFn(db)
+		if sqlErr != nil {
+			cleanupErr = errors.Join(cleanupErr, fmt.Errorf("failed to get sql.DB for cleanup: %w", sqlErr))
+		} else if sqlDB == nil {
+			cleanupErr = errors.Join(cleanupErr, errors.New("GORM PostgreSQL database returned nil sql.DB"))
+		} else if closeErr := deps.closeSQLDBFn(sqlDB); closeErr != nil {
+			cleanupErr = errors.Join(cleanupErr, fmt.Errorf("failed to close PostgreSQL DB: %w", closeErr))
+		}
+
+		if terminateErr := deps.containerTerminateFn(ctx, container); terminateErr != nil {
+			cleanupErr = errors.Join(cleanupErr, fmt.Errorf("failed to terminate PostgreSQL container: %w", terminateErr))
+		}
+
+		return cleanupErr
+	}
+
+	return db, cleanup, nil
 }
 
 // NewClosedSQLiteDB creates an in-memory SQLite DB, applies optional migrations,
@@ -272,7 +308,7 @@ func newClosedSQLiteDBWithDeps(t *testing.T, applyMigrations func(*sql.DB) error
 		panic(fmt.Sprintf("test_help_db: uuid: %v", err))
 	}
 
-	dsn := "file:" + dbID.String() + "?mode=memory&cache=shared"
+	dsn := fmt.Sprintf(cryptoutilSharedMagic.SQLiteInMemoryNamedDSNFormat, dbID.String())
 
 	db, err := buildClosedSQLiteDB(context.Background(), deps, dsn, applyMigrations)
 	if err != nil {
@@ -290,23 +326,17 @@ func buildClosedSQLiteDB(ctx context.Context, deps dbDeps, dsn string, applyMigr
 	}
 
 	if err = deps.execSQLitePragmaFn(ctx, sqlDB, "PRAGMA journal_mode=WAL;"); err != nil {
-		_ = sqlDB.Close()
-
-		return nil, fmt.Errorf("WAL pragma: %w", err)
+		return nil, closeSQLDBAfterSetupFailure(deps, sqlDB, fmt.Errorf("WAL pragma: %w", err))
 	}
 
 	db, err := deps.openGormSQLiteFn(sqlDB)
 	if err != nil {
-		_ = sqlDB.Close()
-
-		return nil, fmt.Errorf("gorm.Open: %w", err)
+		return nil, closeSQLDBAfterSetupFailure(deps, sqlDB, fmt.Errorf("gorm.Open: %w", err))
 	}
 
 	if applyMigrations != nil {
 		if err = applyMigrations(sqlDB); err != nil {
-			_ = sqlDB.Close()
-
-			return nil, fmt.Errorf("apply migrations: %w", err)
+			return nil, closeSQLDBAfterSetupFailure(deps, sqlDB, fmt.Errorf("apply migrations: %w", err))
 		}
 	}
 

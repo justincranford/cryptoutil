@@ -22,50 +22,62 @@ var (
 )
 
 func TestMain(m *testing.M) {
-	ctx := context.Background()
+	exitCode := func() (exitCode int) {
+		ctx := context.Background()
 
-	cfg := cryptoutilAppsFrameworkServiceConfig.RequireNewForTest(cryptoutilSharedMagic.OTLPServiceSMKMS)
-	cfg.DatabaseURL = cryptoutilSharedMagic.SQLiteInMemoryDSN
+		cfg := cryptoutilAppsFrameworkServiceConfig.RequireNewForTest(cryptoutilSharedMagic.OTLPServiceSMKMS)
+		cfg.DatabaseURL = cryptoutilSharedMagic.SQLiteInMemoryDSN
 
-	var err error
+		var err error
 
-	// Create test server
-	testServer, err := NewKMSServerFromConfig(ctx, cfg)
-	if err != nil {
-		panic(fmt.Sprintf("TestMain: failed to create KMS server: %v", err))
-	}
+		// Create test server
+		testServer, err := NewKMSServerFromConfig(ctx, cfg)
+		if err != nil {
+			panic(fmt.Sprintf("TestMain: failed to create KMS server: %v", err))
+		}
 
-	testDB, dbCleanup, err := cryptoutilTestDb.NewInMemorySQLiteDBForTestMain()
-	if err != nil {
-		panic(fmt.Sprintf("TestMain: failed to create test database: %v", err))
-	}
-	defer dbCleanup()
+		testDB, dbCleanup, err := cryptoutilTestDb.NewInMemorySQLiteDBForTestMain()
+		if err != nil {
+			panic(fmt.Sprintf("TestMain: failed to create test database: %v", err))
+		}
+		defer func() {
+			if testIntegrationServer != nil {
+				if shutdownErr := testIntegrationServer.Shutdown(ctx); shutdownErr != nil {
+					fmt.Fprintf(os.Stderr, "TestMain: failed to shutdown integration server: %v\n", shutdownErr)
 
-	// Start integration server and wait for ports
-	testIntegrationServer, err = cryptoutilAppsFrameworkServiceTestOrcIntegration.StartIntegrationServerForTestMain(
-		ctx,
-		testServer,
-		testDB,
-	)
-	if err != nil {
-		panic(fmt.Sprintf("TestMain: failed to start integration server: %v", err))
-	}
+					exitCode = 1
+				}
+			}
 
-	// Mark server ready
-	testServer.SetReady(true)
+			if cleanupErr := dbCleanup(); cleanupErr != nil {
+				fmt.Fprintf(os.Stderr, "TestMain: failed to close test database: %v\n", cleanupErr)
 
-	// Create health client for use in tests
-	testHealthClient = cryptoutilAppsFrameworkServiceTestHelperApi.NewHealthClient(
-		testIntegrationServer.PublicBaseURL(),
-		testIntegrationServer.AdminBaseURL(),
-	)
+				exitCode = 1
+			}
+		}()
 
-	exitCode := m.Run()
+		// Start integration server and wait for ports
+		testIntegrationServer, err = cryptoutilAppsFrameworkServiceTestOrcIntegration.StartIntegrationServerForTestMain(
+			ctx,
+			testServer,
+			testDB,
+		)
+		if err != nil {
+			panic(fmt.Sprintf("TestMain: failed to start integration server: %v", err))
+		}
 
-	// Cleanup
-	if err := testIntegrationServer.Shutdown(ctx); err != nil {
-		fmt.Fprintf(os.Stderr, "TestMain: failed to shutdown integration server: %v\n", err)
-	}
+		// Mark server ready
+		testServer.SetReady(true)
 
+		// Create health client for use in tests
+		testHealthClient = cryptoutilAppsFrameworkServiceTestHelperApi.NewHealthClient(
+			testIntegrationServer.PublicBaseURL(),
+			testIntegrationServer.AdminBaseURL(),
+		)
+
+		exitCode = m.Run()
+
+		return exitCode
+	}()
 	os.Exit(exitCode)
 }

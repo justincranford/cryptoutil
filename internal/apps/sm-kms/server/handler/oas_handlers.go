@@ -1,24 +1,45 @@
 // Copyright (c) 2025-2026 Justin Cranford.
 //
-//
 
 package handler
 
 import (
 	"context"
 
+	cryptoutilOpenapiModel "cryptoutil/api/sm-kms/models"
 	cryptoutilKmsServer "cryptoutil/api/sm-kms/server"
-	cryptoutilKmsServerBusinesslogic "cryptoutil/internal/apps/sm-kms/server/businesslogic"
+
+	googleUuid "github.com/google/uuid"
 )
+
+type strictServerBusinessLogic interface {
+	AddElasticKey(context.Context, *cryptoutilKmsServer.ElasticKeyCreate) (*cryptoutilKmsServer.ElasticKey, error)
+	GetElasticKeyByElasticKeyID(context.Context, *googleUuid.UUID) (*cryptoutilKmsServer.ElasticKey, error)
+	PostDecryptByElasticKeyID(context.Context, *googleUuid.UUID, []byte) ([]byte, error)
+	PostEncryptByElasticKeyID(context.Context, *googleUuid.UUID, *cryptoutilOpenapiModel.EncryptParams, []byte) ([]byte, error)
+	PostGenerateByElasticKeyID(context.Context, *googleUuid.UUID, *cryptoutilOpenapiModel.GenerateParams) ([]byte, []byte, []byte, error)
+	GenerateMaterialKeyInElasticKey(context.Context, *googleUuid.UUID, *cryptoutilKmsServer.MaterialKeyGenerate) (*cryptoutilKmsServer.MaterialKey, error)
+	GetMaterialKeyByElasticKeyAndMaterialKeyID(context.Context, *googleUuid.UUID, *googleUuid.UUID) (*cryptoutilKmsServer.MaterialKey, error)
+	GetMaterialKeysForElasticKey(context.Context, *googleUuid.UUID, *cryptoutilOpenapiModel.ElasticKeyMaterialKeysQueryParams) ([]cryptoutilKmsServer.MaterialKey, error)
+	PostSignByElasticKeyID(context.Context, *googleUuid.UUID, []byte) ([]byte, error)
+	PostVerifyByElasticKeyID(context.Context, *googleUuid.UUID, []byte) ([]byte, error)
+	GetElasticKeys(context.Context, *cryptoutilOpenapiModel.ElasticKeysQueryParams) ([]cryptoutilKmsServer.ElasticKey, error)
+	GetMaterialKeys(context.Context, *cryptoutilOpenapiModel.MaterialKeysQueryParams) ([]cryptoutilKmsServer.MaterialKey, error)
+	UpdateElasticKey(context.Context, *googleUuid.UUID, *cryptoutilKmsServer.ElasticKeyUpdate) (*cryptoutilKmsServer.ElasticKey, error)
+	DeleteElasticKey(context.Context, *googleUuid.UUID) error
+	ImportMaterialKey(context.Context, *googleUuid.UUID, *cryptoutilKmsServer.MaterialKeyImport) (*cryptoutilKmsServer.MaterialKey, error)
+	RevokeMaterialKey(context.Context, *googleUuid.UUID, *googleUuid.UUID) error
+	DeleteMaterialKey(context.Context, *googleUuid.UUID, *googleUuid.UUID) error
+}
 
 // StrictServer implements cryptoutilKmsServer.StrictServerInterface.
 type StrictServer struct {
-	businessLogicService *cryptoutilKmsServerBusinesslogic.BusinessLogicService
+	businessLogicService strictServerBusinessLogic
 	oasOamMapper         *OamOasMapper
 }
 
 // NewOpenapiStrictServer creates a new OpenAPI strict server handler.
-func NewOpenapiStrictServer(service *cryptoutilKmsServerBusinesslogic.BusinessLogicService) *StrictServer {
+func NewOpenapiStrictServer(service strictServerBusinessLogic) *StrictServer {
 	return &StrictServer{businessLogicService: service, oasOamMapper: &OamOasMapper{}}
 }
 
