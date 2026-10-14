@@ -34,7 +34,7 @@ func TestAuthFlowRepository_Create(t *testing.T) {
 			name: "successful_creation",
 			setup: func() *cryptoutilIdentityDomain.AuthFlow {
 				return &cryptoutilIdentityDomain.AuthFlow{
-					Name:        "test_flow",
+					Name:        testTestFlow,
 					FlowType:    cryptoutilIdentityDomain.AuthFlowTypeAuthorizationCode,
 					RequirePKCE: true,
 					Enabled:     true,
@@ -78,10 +78,10 @@ func TestAuthFlowRepository_GetByID(t *testing.T) {
 		wantError error
 	}{
 		{
-			name: "auth_flow_found",
+			name: testAuthFlowFound,
 			setup: func() googleUuid.UUID {
 				flow := &cryptoutilIdentityDomain.AuthFlow{
-					Name:        "test_flow",
+					Name:        testTestFlow,
 					FlowType:    cryptoutilIdentityDomain.AuthFlowTypeAuthorizationCode,
 					RequirePKCE: true,
 					Enabled:     true,
@@ -93,7 +93,7 @@ func TestAuthFlowRepository_GetByID(t *testing.T) {
 			wantError: nil,
 		},
 		{
-			name: "auth_flow_not_found",
+			name: testAuthFlowNotFound,
 			setup: func() googleUuid.UUID {
 				return googleUuid.Must(googleUuid.NewV7())
 			},
@@ -139,10 +139,10 @@ func TestAuthFlowRepository_GetByName(t *testing.T) {
 		wantErr error
 	}{
 		{
-			name: "auth_flow_found",
+			name: testAuthFlowFound,
 			setup: func() string {
 				flow := &cryptoutilIdentityDomain.AuthFlow{
-					Name:        "test_flow",
+					Name:        testTestFlow,
 					FlowType:    cryptoutilIdentityDomain.AuthFlowTypeAuthorizationCode,
 					RequirePKCE: true,
 					Enabled:     true,
@@ -154,7 +154,7 @@ func TestAuthFlowRepository_GetByName(t *testing.T) {
 			wantErr: nil,
 		},
 		{
-			name: "auth_flow_not_found",
+			name: testAuthFlowNotFound,
 			setup: func() string {
 				return "nonexistent_flow"
 			},
@@ -339,15 +339,15 @@ func TestAuthFlowRepository_List(t *testing.T) {
 			name:       "list first page",
 			setupCount: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries,
 			offset:     0,
-			limit:      3,
-			expectMin:  3,
+			limit:      test3,
+			expectMin:  test3,
 			wantError:  false,
 		},
 		{
 			name:       "list with offset",
 			setupCount: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries,
-			offset:     3,
-			limit:      3,
+			offset:     test3,
+			limit:      test3,
 			expectMin:  2,
 			wantError:  false,
 		},

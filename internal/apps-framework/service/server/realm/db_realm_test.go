@@ -56,7 +56,7 @@ func TestNewDBRealmRepository(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name:    "nil database",
+			name:    testNilDatabase,
 			db:      nil,
 			policy:  nil,
 			wantErr: true,
@@ -141,8 +141,8 @@ func TestDBRealmRepository_CreateUser(t *testing.T) {
 			name: "empty password",
 			user: &DBRealmUser{
 				ID:       "user-1",
-				RealmID:  "realm-1",
-				Username: "testuser",
+				RealmID:  testRealm1,
+				Username: testTestuser,
 				Enabled:  true,
 			},
 			password: "",
@@ -152,7 +152,7 @@ func TestDBRealmRepository_CreateUser(t *testing.T) {
 			name: "valid user",
 			user: &DBRealmUser{
 				ID:       "user-2",
-				RealmID:  "realm-1",
+				RealmID:  testRealm1,
 				Username: "validuser",
 				Email:    "valid@example.com",
 				Roles:    `["user"]`,
@@ -193,7 +193,7 @@ func TestDBRealmRepository_GetUser(t *testing.T) {
 	// Create test user.
 	user := &DBRealmUser{
 		ID:       "get-user-1",
-		RealmID:  "realm-1",
+		RealmID:  testRealm1,
 		Username: "getuser",
 		Enabled:  true,
 	}
@@ -207,7 +207,7 @@ func TestDBRealmRepository_GetUser(t *testing.T) {
 	require.Equal(t, "getuser", found.Username)
 
 	// Get non-existent user.
-	notFound, err := repo.GetUser(ctx, "nonexistent")
+	notFound, err := repo.GetUser(ctx, testNonexistent)
 	require.ErrorIs(t, err, ErrUserNotFound)
 	require.Nil(t, notFound)
 }
@@ -228,7 +228,7 @@ func TestDBRealmRepository_GetUserByUsername(t *testing.T) {
 	// Create test user.
 	user := &DBRealmUser{
 		ID:       "username-user-1",
-		RealmID:  "realm-1",
+		RealmID:  testRealm1,
 		Username: "byusername",
 		Enabled:  true,
 	}
@@ -236,13 +236,13 @@ func TestDBRealmRepository_GetUserByUsername(t *testing.T) {
 	require.NoError(t, err)
 
 	// Get existing user.
-	found, err := repo.GetUserByUsername(ctx, "realm-1", "byusername")
+	found, err := repo.GetUserByUsername(ctx, testRealm1, "byusername")
 	require.NoError(t, err)
 	require.NotNil(t, found)
 	require.Equal(t, "username-user-1", found.ID)
 
 	// Get non-existent user.
-	notFound, err := repo.GetUserByUsername(ctx, "realm-1", "nonexistent")
+	notFound, err := repo.GetUserByUsername(ctx, testRealm1, testNonexistent)
 	require.ErrorIs(t, err, ErrUserNotFound)
 	require.Nil(t, notFound)
 
@@ -268,8 +268,8 @@ func TestDBRealmRepository_Authenticate(t *testing.T) {
 	// Create test users.
 	activeUser := &DBRealmUser{
 		ID:       "auth-user-1",
-		RealmID:  "realm-1",
-		Username: "activeuser",
+		RealmID:  testRealm1,
+		Username: testActiveuser,
 		Enabled:  true,
 	}
 	err = repo.CreateUser(ctx, activeUser, "correctpassword")
@@ -277,8 +277,8 @@ func TestDBRealmRepository_Authenticate(t *testing.T) {
 
 	disabledUser := &DBRealmUser{
 		ID:       "auth-user-2",
-		RealmID:  "realm-1",
-		Username: "disableduser",
+		RealmID:  testRealm1,
+		Username: testDisableduser,
 		Enabled:  false,
 	}
 	err = repo.CreateUser(ctx, disabledUser, "password")
@@ -293,33 +293,33 @@ func TestDBRealmRepository_Authenticate(t *testing.T) {
 		wantErrCode AuthErrorCode
 	}{
 		{
-			name:        "successful authentication",
-			realmID:     "realm-1",
-			username:    "activeuser",
+			name:        testSuccessfulAuthentication,
+			realmID:     testRealm1,
+			username:    testActiveuser,
 			password:    "correctpassword",
 			wantAuth:    true,
 			wantErrCode: AuthErrorNone,
 		},
 		{
-			name:        "wrong password",
-			realmID:     "realm-1",
-			username:    "activeuser",
+			name:        testWrongPassword,
+			realmID:     testRealm1,
+			username:    testActiveuser,
 			password:    "wrongpassword",
 			wantAuth:    false,
 			wantErrCode: AuthErrorPasswordMismatch,
 		},
 		{
-			name:        "user not found",
-			realmID:     "realm-1",
-			username:    "nonexistent",
+			name:        errMsgUserNotFound,
+			realmID:     testRealm1,
+			username:    testNonexistent,
 			password:    googleUuid.Must(googleUuid.NewV7()).String(),
 			wantAuth:    false,
 			wantErrCode: AuthErrorUserNotFound,
 		},
 		{
-			name:        "disabled user",
-			realmID:     "realm-1",
-			username:    "disableduser",
+			name:        testDisabledUser,
+			realmID:     testRealm1,
+			username:    testDisableduser,
 			password:    googleUuid.Must(googleUuid.NewV7()).String(),
 			wantAuth:    false,
 			wantErrCode: AuthErrorUserDisabled,

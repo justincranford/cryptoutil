@@ -244,7 +244,7 @@ func createTestCACert(t *testing.T, key *ecdsa.PrivateKey) *x509.Certificate {
 	template := &x509.Certificate{
 		SerialNumber: serialNumber,
 		Subject: pkix.Name{
-			CommonName: testLiteralTestCA,
+			CommonName: cryptoutilSharedMagic.TEST_CA_CN,
 		},
 		NotBefore:             time.Now().UTC(),
 		NotAfter:              time.Now().UTC().Add(cryptoutilSharedMagic.JoseJADefaultMaxMaterials * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour),

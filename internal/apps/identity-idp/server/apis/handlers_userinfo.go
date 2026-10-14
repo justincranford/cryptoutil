@@ -31,7 +31,7 @@ func (s *Service) handleUserInfo(c *fiber.Ctx) error {
 	if authHeader == "" {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInvalidToken,
-			"error_description":               "Missing Authorization header",
+			valueErrorDescription:             valueMissingAuthorizationHeader,
 		})
 	}
 
@@ -40,7 +40,7 @@ func (s *Service) handleUserInfo(c *fiber.Ctx) error {
 	if len(parts) != 2 || parts[0] != cryptoutilSharedMagic.AuthorizationBearer {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInvalidToken,
-			"error_description":               "Invalid Authorization header format",
+			valueErrorDescription:             valueInvalidAuthorizationHeaderFormat,
 		})
 	}
 
@@ -51,7 +51,7 @@ func (s *Service) handleUserInfo(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInvalidToken,
-			"error_description":               "Invalid or expired access token",
+			valueErrorDescription:             valueInvalidOrExpiredAccessToken,
 		})
 	}
 
@@ -68,7 +68,7 @@ func (s *Service) handleUserInfo(c *fiber.Ctx) error {
 		if len(claims) == 0 {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 				cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInvalidToken,
-				"error_description":               "Token not found",
+				valueErrorDescription:             "Token not found",
 			})
 		}
 
@@ -81,7 +81,7 @@ func (s *Service) handleUserInfo(c *fiber.Ctx) error {
 		if time.Now().UTC().After(dbToken.ExpiresAt) {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 				cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInvalidToken,
-				"error_description":               "Token has expired",
+				valueErrorDescription:             "Token has expired",
 			})
 		}
 
@@ -102,7 +102,7 @@ func (s *Service) handleUserInfo(c *fiber.Ctx) error {
 	if !ok || sub == "" {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInvalidToken,
-			"error_description":               "Token missing sub claim",
+			valueErrorDescription:             "Token missing sub claim",
 		})
 	}
 
@@ -113,7 +113,7 @@ func (s *Service) handleUserInfo(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInvalidToken,
-			"error_description":               "User not found",
+			valueErrorDescription:             valueUserNotFound,
 		})
 	}
 

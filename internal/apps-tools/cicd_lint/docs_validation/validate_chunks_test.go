@@ -27,7 +27,7 @@ func TestValidateChunks(t *testing.T) {
 		wantFileErrors int
 	}{
 		{
-			name: "all match",
+			name: testAllMatch,
 			archContent: join(
 				"# Arch",
 				`<!-- @to-appendix as="chunk-a" appendixes="target.md" -->`,
@@ -35,7 +35,7 @@ func TestValidateChunks(t *testing.T) {
 				"<!-- @/to-appendix -->",
 			),
 			files: map[string]string{
-				"target.md": join(
+				testTargetMd: join(
 					"# Target",
 					`<!-- @from-eng-handbook as="chunk-a" -->`,
 					"Line alpha",
@@ -45,14 +45,14 @@ func TestValidateChunks(t *testing.T) {
 			wantMatched: 1,
 		},
 		{
-			name: "mismatch",
+			name: testMismatch,
 			archContent: join(
 				`<!-- @to-appendix as="chunk-b" appendixes="target.md" -->`,
 				"New content",
 				"<!-- @/to-appendix -->",
 			),
 			files: map[string]string{
-				"target.md": join(
+				testTargetMd: join(
 					`<!-- @from-eng-handbook as="chunk-b" -->`,
 					"Old content",
 					"<!-- @/from-eng-handbook -->",
@@ -67,11 +67,11 @@ func TestValidateChunks(t *testing.T) {
 				"Content here",
 				"<!-- @/to-appendix -->",
 			),
-			files:       map[string]string{"target.md": "# Just a heading\n"},
+			files:       map[string]string{testTargetMd: "# Just a heading\n"},
 			wantMissing: 1,
 		},
 		{
-			name: "file not found",
+			name: testFileNotFound,
 			archContent: join(
 				`<!-- @to-appendix as="chunk-d" appendixes="nonexistent.md" -->`,
 				"Some content",
@@ -131,7 +131,7 @@ func TestValidateChunks(t *testing.T) {
 					"Multi content",
 					"<!-- @/from-eng-handbook -->",
 				),
-				"second.md": join(
+				testSecondMd: join(
 					`<!-- @from-eng-handbook as="multi" -->`,
 					"Multi content",
 					"<!-- @/from-eng-handbook -->",
@@ -189,19 +189,19 @@ func TestFormatChunkResults(t *testing.T) {
 		wantExcludes []string
 	}{
 		{
-			name: "all match",
+			name: testAllMatch,
 			result: &ChunkValidationResult{
 				Results: []ChunkResult{{ChunkID: "a", Status: ChunkStatusMatch}, {ChunkID: "b", Status: ChunkStatusMatch}},
 				Matched: 2,
 			},
 			wantContains: []string{"2 chunks, 2 matched, 0 mismatched", "All propagated chunks are in sync."},
-			wantExcludes: []string{"STALE", cryptoutilSharedMagic.TestStatusFail, "FILE NOT FOUND", "MISSING @from-eng-handbook BLOCKS", "CONTENT MISMATCHES"},
+			wantExcludes: []string{"STALE", cryptoutilSharedMagic.TestStatusFail, "FILE NOT FOUND", testMissingFromEngHandbookBlocks, "CONTENT MISMATCHES"},
 		},
 		{
 			name: "with mismatch",
 			result: &ChunkValidationResult{
 				Results: []ChunkResult{{
-					ChunkID: "stale-chunk", PropagateBlock: PropagateBlock{TargetFile: "target.md", LineNumber: 3},
+					ChunkID: "stale-chunk", PropagateBlock: PropagateBlock{TargetFile: testTargetMd, LineNumber: toAppendixMatchGroups},
 					SourceBlock: &SourceBlock{LineNumber: 4}, Status: ChunkStatusMismatch,
 				}},
 				Mismatched: 1,
@@ -212,18 +212,18 @@ func TestFormatChunkResults(t *testing.T) {
 			name: "with missing",
 			result: &ChunkValidationResult{
 				Results: []ChunkResult{{
-					ChunkID: "absent", PropagateBlock: PropagateBlock{TargetFile: "target.md", LineNumber: 2},
+					ChunkID: testAbsent, PropagateBlock: PropagateBlock{TargetFile: testTargetMd, LineNumber: 2},
 					Status: ChunkStatusMissing,
 				}},
 				Missing: 1,
 			},
-			wantContains: []string{"MISSING @from-eng-handbook BLOCKS (1)", cryptoutilSharedMagic.TestStatusFail + " [absent]"},
+			wantContains: []string{testMissingFromEngHandbookBlocks1, cryptoutilSharedMagic.TestStatusFail + " [absent]"},
 		},
 		{
 			name: "with file not found",
 			result: &ChunkValidationResult{
 				Results: []ChunkResult{{
-					ChunkID: "gone", PropagateBlock: PropagateBlock{TargetFile: "missing.md", LineNumber: 3},
+					ChunkID: testGone, PropagateBlock: PropagateBlock{TargetFile: testMissingMd, LineNumber: toAppendixMatchGroups},
 					Status: ChunkStatusFileNotFound,
 				}},
 				FileErrors: 1,
@@ -235,9 +235,9 @@ func TestFormatChunkResults(t *testing.T) {
 			result: &ChunkValidationResult{
 				Results: []ChunkResult{
 					{ChunkID: "ok", Status: ChunkStatusMatch},
-					{ChunkID: "stale", PropagateBlock: PropagateBlock{TargetFile: "t.md", LineNumber: 1}, SourceBlock: &SourceBlock{LineNumber: 2}, Status: ChunkStatusMismatch},
-					{ChunkID: "absent", PropagateBlock: PropagateBlock{TargetFile: "t.md", LineNumber: 3}, Status: ChunkStatusMissing},
-					{ChunkID: "gone", PropagateBlock: PropagateBlock{TargetFile: "x.md", LineNumber: 4}, Status: ChunkStatusFileNotFound},
+					{ChunkID: "stale", PropagateBlock: PropagateBlock{TargetFile: testTMd, LineNumber: 1}, SourceBlock: &SourceBlock{LineNumber: 2}, Status: ChunkStatusMismatch},
+					{ChunkID: testAbsent, PropagateBlock: PropagateBlock{TargetFile: testTMd, LineNumber: toAppendixMatchGroups}, Status: ChunkStatusMissing},
+					{ChunkID: testGone, PropagateBlock: PropagateBlock{TargetFile: "x.md", LineNumber: 4}, Status: ChunkStatusFileNotFound},
 				},
 				Matched: 1, Mismatched: 1, Missing: 1, FileErrors: 1,
 			},

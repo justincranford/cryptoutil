@@ -154,8 +154,8 @@ func TestIssueSession_ValidationErrors(t *testing.T) {
 		{
 			name: "invalid tenant ID",
 			requestBody: SessionIssueRequest{
-				UserID:      "user-123",
-				TenantID:    "not-a-valid-uuid",
+				UserID:      testUser123,
+				TenantID:    testNotAValidUUID,
 				RealmID:     googleUuid.New().String(),
 				SessionType: sessionTypeBrowser,
 			},
@@ -171,9 +171,9 @@ func TestIssueSession_ValidationErrors(t *testing.T) {
 		{
 			name: "invalid realm ID",
 			requestBody: SessionIssueRequest{
-				UserID:      "user-123",
+				UserID:      testUser123,
 				TenantID:    googleUuid.New().String(),
-				RealmID:     "not-a-valid-uuid",
+				RealmID:     testNotAValidUUID,
 				SessionType: sessionTypeBrowser,
 			},
 			setupApp: func() *fiber.App {
@@ -224,7 +224,7 @@ func TestValidateSession_InvalidJSON(t *testing.T) {
 	app := fiber.New()
 	app.Post("/session/validate", handler.ValidateSession)
 
-	req := httptest.NewRequest("POST", "/session/validate", bytes.NewReader([]byte("invalid json")))
+	req := httptest.NewRequest("POST", "/session/validate", bytes.NewReader([]byte(testInvalidJsonValue9E1FF427)))
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := app.Test(req, -1)
@@ -250,13 +250,13 @@ func TestIssueSession_TableDriven(t *testing.T) {
 		wantError   bool
 	}{
 		{
-			name:        "Empty body returns error due to parse error",
+			name:        testEmptyBodyReturnsErrorDueToParseError,
 			requestBody: "",
 			wantError:   true,
 		},
 		{
-			name:        "Invalid JSON returns error",
-			requestBody: "{invalid",
+			name:        testInvalidJsonReturnsError,
+			requestBody: testInvalid,
 			wantError:   true,
 		},
 	}
@@ -299,13 +299,13 @@ func TestValidateSession_TableDriven(t *testing.T) {
 		wantError   bool
 	}{
 		{
-			name:        "Empty body returns error due to parse error",
+			name:        testEmptyBodyReturnsErrorDueToParseError,
 			requestBody: "",
 			wantError:   true,
 		},
 		{
-			name:        "Invalid JSON returns error",
-			requestBody: "{invalid",
+			name:        testInvalidJsonReturnsError,
+			requestBody: testInvalid,
 			wantError:   true,
 		},
 	}

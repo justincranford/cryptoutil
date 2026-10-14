@@ -97,7 +97,7 @@ func parseOTLPConfig(configPath string) *otlpConfigEntry {
 		return nil
 	}
 
-	otlpVal, ok := config["otlp"]
+	otlpVal, ok := config[valueOtlp]
 	if !ok {
 		return nil
 	}
@@ -112,19 +112,19 @@ func parseOTLPConfig(configPath string) *otlpConfigEntry {
 		Enabled:  enabled,
 	}
 
-	if svc, ok := config["otlp-service"]; ok {
+	if svc, ok := config[valueOtlpService]; ok {
 		if s, ok := svc.(string); ok {
 			entry.Service = s
 		}
 	}
 
-	if ep, ok := config["otlp-endpoint"]; ok {
+	if ep, ok := config[valueOtlpEndpoint]; ok {
 		if s, ok := ep.(string); ok {
 			entry.Endpoint = s
 		}
 	}
 
-	if env, ok := config["otlp-environment"]; ok {
+	if env, ok := config[valueOtlpEnvironment]; ok {
 		if s, ok := env.(string); ok {
 			entry.Environment = s
 		}

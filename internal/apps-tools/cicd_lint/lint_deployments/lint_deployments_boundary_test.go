@@ -25,11 +25,11 @@ func TestValidatePorts_ExactBoundaryPorts(t *testing.T) {
 		valid bool
 	}{
 		// Service range [8000-8999]: exact min and max are valid.
-		{name: "service exact min", port: cryptoutilSharedMagic.ServiceTierPortMin, level: DeploymentTypeProductService, valid: true},
-		{name: "service exact max", port: cryptoutilSharedMagic.ServiceTierPortMax, level: DeploymentTypeProductService, valid: true},
+		{name: testServiceExactMin, port: cryptoutilSharedMagic.ServiceTierPortMin, level: DeploymentTypeProductService, valid: true},
+		{name: testServiceExactMax, port: cryptoutilSharedMagic.ServiceTierPortMax, level: DeploymentTypeProductService, valid: true},
 		// One below min and one above max are invalid.
-		{name: "service below min", port: cryptoutilSharedMagic.ServiceTierPortMin - 1, level: DeploymentTypeProductService, valid: false},
-		{name: "service above max", port: cryptoutilSharedMagic.ServiceTierPortMax + 1, level: DeploymentTypeProductService, valid: false},
+		{name: testServiceBelowMin, port: cryptoutilSharedMagic.ServiceTierPortMin - 1, level: DeploymentTypeProductService, valid: false},
+		{name: testServiceAboveMax, port: cryptoutilSharedMagic.ServiceTierPortMax + 1, level: DeploymentTypeProductService, valid: false},
 		// Product range [18000-18999]: exact boundaries.
 		{name: "product exact min", port: cryptoutilSharedMagic.ProductTierPortMin, level: DeploymentTypeProduct, valid: true},
 		{name: "product exact max", port: cryptoutilSharedMagic.ProductTierPortMax, level: DeploymentTypeProduct, valid: true},
@@ -68,17 +68,17 @@ func TestValidateConfigPortValue_ExactBoundary(t *testing.T) {
 		level string
 		valid bool
 	}{
-		{name: "service exact min", port: cryptoutilSharedMagic.ServiceTierPortMin, level: DeploymentTypeProductService, valid: true},
-		{name: "service exact max", port: cryptoutilSharedMagic.ServiceTierPortMax, level: DeploymentTypeProductService, valid: true},
-		{name: "service below min", port: cryptoutilSharedMagic.ServiceTierPortMin - 1, level: DeploymentTypeProductService, valid: false},
-		{name: "service above max", port: cryptoutilSharedMagic.ServiceTierPortMax + 1, level: DeploymentTypeProductService, valid: false},
+		{name: testServiceExactMin, port: cryptoutilSharedMagic.ServiceTierPortMin, level: DeploymentTypeProductService, valid: true},
+		{name: testServiceExactMax, port: cryptoutilSharedMagic.ServiceTierPortMax, level: DeploymentTypeProductService, valid: true},
+		{name: testServiceBelowMin, port: cryptoutilSharedMagic.ServiceTierPortMin - 1, level: DeploymentTypeProductService, valid: false},
+		{name: testServiceAboveMax, port: cryptoutilSharedMagic.ServiceTierPortMax + 1, level: DeploymentTypeProductService, valid: false},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			config := map[string]any{"bind-public-port": tc.port}
+			config := map[string]any{valueBindPublicPort: tc.port}
 			result := &PortValidationResult{Valid: true}
 
 			validateConfigPortValue(config, "/fake/config.yml", "test-svc", tc.level, result)
@@ -101,7 +101,7 @@ func TestCheckOTLPProtocolOverride_LineNumber(t *testing.T) {
 		{
 			name:     "protocol on line 3",
 			content:  "key1: value1\nkey2: value2\notlp-endpoint: grpc://collector:4317\n",
-			wantLine: 3,
+			wantLine: testThree,
 		},
 		{
 			name:     "protocol on line 5",
@@ -125,7 +125,7 @@ func TestCheckOTLPProtocolOverride_LineNumber(t *testing.T) {
 			t.Parallel()
 
 			dir := t.TempDir()
-			configDir := filepath.Join(dir, "config")
+			configDir := filepath.Join(dir, fileTypeConfig)
 			require.NoError(t, os.MkdirAll(configDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 			require.NoError(t, os.WriteFile(filepath.Join(configDir, "config-test.yml"), []byte(tc.content), cryptoutilSharedMagic.CacheFilePermissions))
 
@@ -154,10 +154,10 @@ func TestFormatResults_SortOrderBoundary(t *testing.T) {
 	t.Parallel()
 
 	results := []ValidationResult{
-		{Path: "/deploy/b-valid", Type: "PRODUCT-SERVICE", Valid: true},
-		{Path: "/deploy/z-invalid", Type: "PRODUCT-SERVICE", Valid: false, Errors: []string{"err1"}},
-		{Path: "/deploy/a-valid", Type: "PRODUCT-SERVICE", Valid: true},
-		{Path: "/deploy/m-invalid", Type: "PRODUCT-SERVICE", Valid: false, Errors: []string{"err2"}},
+		{Path: "/deploy/b-valid", Type: DeploymentTypeProductService, Valid: true},
+		{Path: "/deploy/z-invalid", Type: DeploymentTypeProductService, Valid: false, Errors: []string{testErr1}},
+		{Path: "/deploy/a-valid", Type: DeploymentTypeProductService, Valid: true},
+		{Path: "/deploy/m-invalid", Type: DeploymentTypeProductService, Valid: false, Errors: []string{"err2"}},
 	}
 
 	output := FormatResults(results)
@@ -227,7 +227,7 @@ func TestLint_WithRealDirs(t *testing.T) {
 	// Package path: internal/apps-tools/cicd_lint/lint_deployments/ (5 levels below module root).
 	root := filepath.Join(original, "../../../../../")
 
-	if _, statErr := os.Stat(filepath.Join(root, "deployments")); os.IsNotExist(statErr) {
+	if _, statErr := os.Stat(filepath.Join(root, defaultDeploymentsDir)); os.IsNotExist(statErr) {
 		t.Skip("cannot locate project deployments/ directory — not running from expected workspace")
 	}
 
@@ -264,7 +264,7 @@ func TestFormatResults_EmptySlicesSectionsOmitted(t *testing.T) {
 	results := []ValidationResult{
 		{
 			Path:           "/deploy/test-svc",
-			Type:           "PRODUCT-SERVICE",
+			Type:           DeploymentTypeProductService,
 			Valid:          true,
 			MissingDirs:    []string{},
 			MissingFiles:   []string{},

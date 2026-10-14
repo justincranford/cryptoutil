@@ -67,31 +67,31 @@ func TestRegisterRoutes_OAuth2Endpoints(t *testing.T) {
 		{
 			name:       "authorize GET endpoint",
 			method:     http.MethodGet,
-			path:       "/oauth2/v1/authorize",
+			path:       testOauth2V1Authorize,
 			wantStatus: fiber.StatusBadRequest, // Missing required params.
 		},
 		{
 			name:       "authorize POST endpoint",
 			method:     http.MethodPost,
-			path:       "/oauth2/v1/authorize",
+			path:       testOauth2V1Authorize,
 			wantStatus: fiber.StatusBadRequest, // Missing required params.
 		},
 		{
 			name:       "token endpoint",
 			method:     http.MethodPost,
-			path:       "/oauth2/v1/token",
+			path:       testOauth2V1Token,
 			wantStatus: fiber.StatusBadRequest, // Missing grant_type.
 		},
 		{
 			name:       "introspect endpoint",
 			method:     http.MethodPost,
-			path:       "/oauth2/v1/introspect",
+			path:       testOauth2V1Introspect,
 			wantStatus: fiber.StatusBadRequest, // Missing token.
 		},
 		{
 			name:       "revoke endpoint",
 			method:     http.MethodPost,
-			path:       "/oauth2/v1/revoke",
+			path:       testOauth2V1Revoke,
 			wantStatus: fiber.StatusBadRequest, // Revoke returns 400 for missing token.
 		},
 	}
@@ -140,10 +140,10 @@ func createRoutesTestConfig() *cryptoutilIdentityConfig.Config {
 	return &cryptoutilIdentityConfig.Config{
 		Database: &cryptoutilIdentityConfig.DatabaseConfig{
 			Type: cryptoutilSharedMagic.TestDatabaseSQLite,
-			DSN:  "file::memory:?cache=private",
+			DSN:  testFileMemoryCachePrivate,
 		},
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{
-			Issuer: "https://localhost:8080",
+			Issuer: testHTTPSLocalhost8080,
 		},
 	}
 }

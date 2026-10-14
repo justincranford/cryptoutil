@@ -22,7 +22,7 @@ func TestEncryptKey_EncryptData_Comprehensive(t *testing.T) {
 	}
 
 	// Test 3-of-3 (all combinations = 1)
-	service, err := NewUnsealKeysServiceSharedSecrets(secrets, 3)
+	service, err := NewUnsealKeysServiceSharedSecrets(secrets, test3)
 	require.NoError(t, err)
 	require.NotNil(t, service)
 
@@ -63,7 +63,7 @@ func TestDeriveJWKsFromMChooseNCombinations_LargeCombinations(t *testing.T) {
 		[]byte("secret five with minimum required length for testing"),
 	}
 
-	jwks, err := deriveJWKsFromMChooseNCombinations(secrets, 3)
+	jwks, err := deriveJWKsFromMChooseNCombinations(secrets, test3)
 	require.NoError(t, err)
 	require.Len(t, jwks, cryptoutilSharedMagic.JoseJADefaultMaxMaterials) // C(5,3) = 10
 

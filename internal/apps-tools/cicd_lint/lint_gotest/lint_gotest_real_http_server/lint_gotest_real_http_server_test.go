@@ -32,7 +32,7 @@ func TestCheck(t *testing.T) {
 	}{
 		{
 			name:     "no_violation_app_test",
-			fileName: "handler_test.go",
+			fileName: testHandlerTestGo,
 			fileContent: `package test
 
 import (
@@ -50,7 +50,7 @@ func TestHandler(t *testing.T) {
 		},
 		{
 			name:     "violation_new_server",
-			fileName: "handler_test.go",
+			fileName: testHandlerTestGo,
 			fileContent: `package test
 
 import (

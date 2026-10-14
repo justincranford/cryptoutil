@@ -95,7 +95,7 @@ func TestChooseNGreaterThanCount(t *testing.T) {
 		make([]byte, cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes),
 		make([]byte, cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes),
 	}
-	_, err := NewUnsealKeysServiceSharedSecrets(sharedSecretsM, 3)
+	_, err := NewUnsealKeysServiceSharedSecrets(sharedSecretsM, test3)
 	require.Error(t, err)
 	require.Equal(t, "n can't be greater than shared secrets count", err.Error())
 }

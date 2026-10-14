@@ -49,7 +49,7 @@ secrets:
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	filesByExtension := map[string][]string{
-		"yml": {composeFile},
+		testYml: {composeFile},
 	}
 
 	err = Check(logger, filesByExtension)
@@ -75,7 +75,7 @@ services:
       POSTGRES_PASSWORD: mysecretpassword
 `,
 			wantErr:     true,
-			errContains: "inline credential violations",
+			errContains: testInlineCredentialViolations,
 		},
 		{
 			name: "inline POSTGRES_USER",
@@ -87,7 +87,7 @@ services:
       POSTGRES_USER: admin
 `,
 			wantErr:     true,
-			errContains: "inline credential violations",
+			errContains: testInlineCredentialViolations,
 		},
 		{
 			name: "inline DATABASE_URL",
@@ -99,7 +99,7 @@ services:
       DATABASE_URL: postgres://user:pass@localhost:5432/db
 `,
 			wantErr:     true,
-			errContains: "inline credential violations",
+			errContains: testInlineCredentialViolations,
 		},
 		{
 			name: "inline API_KEY",
@@ -111,7 +111,7 @@ services:
       API_KEY: sk-1234567890
 `,
 			wantErr:     true,
-			errContains: "inline credential violations",
+			errContains: testInlineCredentialViolations,
 		},
 		{
 			name: "inline SECRET_KEY",
@@ -123,7 +123,7 @@ services:
       SECRET_KEY: my-secret-key-value
 `,
 			wantErr:     true,
-			errContains: "inline credential violations",
+			errContains: testInlineCredentialViolations,
 		},
 		{
 			name: "valid _FILE pattern",
@@ -196,7 +196,7 @@ services:
 
 			logger := cryptoutilCmdCicdCommon.NewLogger("test")
 			filesByExtension := map[string][]string{
-				"yml": {composeFile},
+				testYml: {composeFile},
 			}
 
 			err = Check(logger, filesByExtension)
@@ -278,7 +278,7 @@ func TestCheck_FailedToOpenComposeFile(t *testing.T) {
 	// Pass a compose file path that doesn't exist → CheckComposeFileSecrets fails
 	// → triggers the "Warning: failed to check" log in Check(), continues execution.
 	filesByExtension := map[string][]string{
-		"yml": {"/nonexistent/path/compose.yml"},
+		testYml: {"/nonexistent/path/compose.yml"},
 	}
 
 	err := Check(logger, filesByExtension)

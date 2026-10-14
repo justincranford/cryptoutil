@@ -30,8 +30,8 @@ type User struct {
 // Reusable for all services implementing user registration on /service paths.
 func RegisterServiceUser(client *http.Client, baseURL, username, password string) (*User, error) {
 	reqBody := map[string]string{
-		"username": username,
-		"password": password,
+		valueUsername: username,
+		valuePassword: password,
 	}
 
 	reqJSON, err := json.Marshal(reqBody)
@@ -87,8 +87,8 @@ func RegisterServiceUser(client *http.Client, baseURL, username, password string
 // Reusable for all services implementing user registration on /browser paths.
 func RegisterBrowserUser(client *http.Client, baseURL, username, password string) (*User, error) {
 	reqBody := map[string]string{
-		"username": username,
-		"password": password,
+		valueUsername: username,
+		valuePassword: password,
 	}
 
 	reqJSON, err := json.Marshal(reqBody)
@@ -144,8 +144,8 @@ func RegisterBrowserUser(client *http.Client, baseURL, username, password string
 // Reusable for all services implementing JWT-based authentication.
 func LoginUser(client *http.Client, baseURL, loginPath, username, password string) (string, error) {
 	reqBody := map[string]string{
-		"username": username,
-		"password": password,
+		valueUsername: username,
+		valuePassword: password,
 	}
 
 	reqJSON, err := json.Marshal(reqBody)

@@ -16,13 +16,13 @@ func TestMockEmailService_SendEmail(t *testing.T) {
 	mockService := cryptoutilIdentityEmail.NewMockEmailService()
 	ctx := context.Background()
 
-	err := mockService.SendEmail(ctx, "user@example.com", "Test Subject", "Test Body")
+	err := mockService.SendEmail(ctx, testUserExampleCom, "Test Subject", "Test Body")
 	require.NoError(t, err)
 
 	require.Len(t, mockService.SentEmails, 1, "Should have 1 sent email")
 	lastEmail := mockService.GetLastEmail()
 	require.NotNil(t, lastEmail)
-	require.Equal(t, "user@example.com", lastEmail.To)
+	require.Equal(t, testUserExampleCom, lastEmail.To)
 	require.Equal(t, "Test Subject", lastEmail.Subject)
 	require.Equal(t, "Test Body", lastEmail.Body)
 }
@@ -83,7 +83,7 @@ func TestMockEmailService_ContainsOTP(t *testing.T) {
 		},
 		{
 			name:     "partial_otp",
-			body:     "Code: 12345",
+			body:     testCode12345,
 			wantOTP:  "",
 			wantBool: false,
 		},
@@ -101,8 +101,8 @@ func TestMockEmailService_ContainsOTP(t *testing.T) {
 
 			mockService := cryptoutilIdentityEmail.NewMockEmailService()
 			email := &cryptoutilIdentityEmail.SentEmail{
-				To:      "user@example.com",
-				Subject: "Test",
+				To:      testUserExampleCom,
+				Subject: testTest,
 				Body:    tc.body,
 			}
 

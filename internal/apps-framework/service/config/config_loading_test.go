@@ -51,8 +51,8 @@ tls-private-ip-addresses:
 	err := os.WriteFile(configPath, []byte(yamlContent), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
-	cmdParams := []string{"start", "--config=" + configPath}
-	fs := pflag.NewFlagSet("test", pflag.ContinueOnError)
+	cmdParams := []string{valueStart, "--config=" + configPath}
+	fs := pflag.NewFlagSet(valueTest, pflag.ContinueOnError)
 	settings, err := ParseWithFlagSet(fs, cmdParams, false)
 	require.NoError(t, err)
 
@@ -83,8 +83,8 @@ bind-private-port: 9999
 	err := os.WriteFile(configPath, []byte(yamlContent), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
-	cmdParams := []string{"start", "--config=" + configPath}
-	fs := pflag.NewFlagSet("test", pflag.ContinueOnError)
+	cmdParams := []string{valueStart, "--config=" + configPath}
+	fs := pflag.NewFlagSet(valueTest, pflag.ContinueOnError)
 	settings, err := ParseWithFlagSet(fs, cmdParams, false)
 	require.NoError(t, err)
 
@@ -115,8 +115,8 @@ bind-private-port: 6666
 	err := os.WriteFile(configPath, []byte(yamlContent), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
-	cmdParams := []string{"start", "--config=" + configPath}
-	fs := pflag.NewFlagSet("test", pflag.ContinueOnError)
+	cmdParams := []string{valueStart, "--config=" + configPath}
+	fs := pflag.NewFlagSet(valueTest, pflag.ContinueOnError)
 	settings, err := ParseWithFlagSet(fs, cmdParams, false)
 	require.NoError(t, err)
 
@@ -158,8 +158,8 @@ tls-private-ip-addresses:
 	err := os.WriteFile(configPath, []byte(yamlContent), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
-	cmdParams := []string{"start", "--config=" + configPath}
-	fs := pflag.NewFlagSet("test", pflag.ContinueOnError)
+	cmdParams := []string{valueStart, "--config=" + configPath}
+	fs := pflag.NewFlagSet(valueTest, pflag.ContinueOnError)
 	settings, err := ParseWithFlagSet(fs, cmdParams, false)
 	require.NoError(t, err)
 

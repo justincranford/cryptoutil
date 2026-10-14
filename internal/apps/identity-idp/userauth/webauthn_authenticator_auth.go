@@ -68,12 +68,12 @@ func (w *WebAuthnAuthenticator) InitiateAuth(ctx context.Context, userID string)
 	challenge := &AuthChallenge{
 		ID:        challengeID,
 		UserID:    userID,
-		Method:    "passkey_webauthn",
+		Method:    valuePasskeyWebauthn,
 		ExpiresAt: time.Now().UTC().Add(w.config.Timeout),
 		Metadata: map[string]any{
-			"session_data":           session.Challenge,
-			"operation":              "authentication",
-			"user_handle":            session.UserID,
+			valueSessionData:         session.Challenge,
+			valueOperation:           "authentication",
+			valueUserHandle:          session.UserID,
 			"allowed_credential_ids": session.AllowedCredentialIDs,
 			"assertion":              assertion,
 		},
@@ -119,12 +119,12 @@ func (w *WebAuthnAuthenticator) VerifyAuth(
 	}
 
 	// Reconstruct session from stored challenge.
-	sessionDataStr, ok := challenge.Metadata["session_data"].(string)
+	sessionDataStr, ok := challenge.Metadata[valueSessionData].(string)
 	if !ok {
 		return nil, fmt.Errorf("invalid session data in challenge")
 	}
 
-	userHandle, ok := challenge.Metadata["user_handle"].([]byte)
+	userHandle, ok := challenge.Metadata[valueUserHandle].([]byte)
 	if !ok {
 		return nil, fmt.Errorf("invalid user handle in challenge")
 	}

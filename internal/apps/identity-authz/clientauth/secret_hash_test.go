@@ -25,7 +25,7 @@ func TestHashLowEntropyNonDeterministic(t *testing.T) {
 	}{
 		{
 			name:    "valid secret",
-			secret:  "my-secret-password",
+			secret:  testMySecretPassword,
 			wantErr: false,
 		},
 		{
@@ -88,14 +88,14 @@ func TestCompareSecret(t *testing.T) {
 	}{
 		{
 			name:       "matching secret",
-			secret:     "my-secret-password",
-			plainInput: "my-secret-password",
+			secret:     testMySecretPassword,
+			plainInput: testMySecretPassword,
 			wantMatch:  true,
 			wantErr:    false,
 		},
 		{
 			name:       "non-matching secret",
-			secret:     "my-secret-password",
+			secret:     testMySecretPassword,
 			plainInput: "wrong-password",
 			wantMatch:  false,
 			wantErr:    false,
@@ -135,25 +135,25 @@ func TestCompareSecret_InvalidFormat(t *testing.T) {
 		{
 			name:    "missing separator",
 			hashed:  "invalidsalthash",
-			plain:   "secret",
+			plain:   testSecret,
 			wantErr: true,
 		},
 		{
 			name:    "invalid base64 salt",
 			hashed:  "!!!invalid!!!:validhash",
-			plain:   "secret",
+			plain:   testSecret,
 			wantErr: true,
 		},
 		{
 			name:    "invalid base64 hash",
 			hashed:  "validhash:!!!invalid!!!",
-			plain:   "secret",
+			plain:   testSecret,
 			wantErr: true,
 		},
 		{
 			name:    "empty hashed",
 			hashed:  "",
-			plain:   "secret",
+			plain:   testSecret,
 			wantErr: true,
 		},
 	}
@@ -180,7 +180,7 @@ func TestCompareSecret_ConstantTime(t *testing.T) {
 	// Note: This is a basic test; true timing analysis requires benchmarking.
 	// Reduced iterations from 100 to 10 to optimize test execution time (<30s target).
 
-	secret := "my-secret-password"
+	secret := testMySecretPassword
 	hashed, err := cryptoutilIdentityClientAuth.HashLowEntropyNonDeterministic(secret)
 	require.NoError(t, err)
 

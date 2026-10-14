@@ -105,15 +105,15 @@ func TestRecordStepUpTriggered(t *testing.T) {
 	}{
 		{
 			name:          "transfer requires step-up from basic to mfa",
-			operation:     "transfer_funds",
-			currentLevel:  "basic",
+			operation:     valueTransferFunds,
+			currentLevel:  authLevelStringBasic,
 			requiredLevel: cryptoutilSharedMagic.AMRMultiFactor,
 		},
 		{
 			name:          "sensitive op requires strong mfa",
-			operation:     "change_password",
+			operation:     valueChangePassword,
 			currentLevel:  cryptoutilSharedMagic.AMRMultiFactor,
-			requiredLevel: "strong_mfa",
+			requiredLevel: authLevelStringStrongMFA,
 		},
 	}
 
@@ -184,12 +184,12 @@ func TestRecordPolicyEvaluation(t *testing.T) {
 	}{
 		{
 			name:      "fast evaluation",
-			operation: "view_balance",
+			operation: testViewBalance,
 			duration:  cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Millisecond,
 		},
 		{
 			name:      "slow evaluation",
-			operation: "transfer_funds",
+			operation: valueTransferFunds,
 			duration:  cryptoutilSharedMagic.JoseJAMaxMaterials * time.Millisecond,
 		},
 	}
@@ -221,13 +221,13 @@ func TestRecordPolicyLoad(t *testing.T) {
 	}{
 		{
 			name:       "successful risk scoring policy load",
-			policyType: "risk_scoring",
+			policyType: testRiskScoring,
 			duration:   cryptoutilSharedMagic.IMMaxUsernameLength * time.Millisecond,
 			success:    true,
 		},
 		{
 			name:       "failed step-up policy load",
-			policyType: "step_up",
+			policyType: authLevelStringStepUp,
 			duration:   cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days * time.Millisecond,
 			success:    false,
 		},
@@ -258,11 +258,11 @@ func TestRecordPolicyReload(t *testing.T) {
 	}{
 		{
 			name:       "reload risk scoring policy",
-			policyType: "risk_scoring",
+			policyType: testRiskScoring,
 		},
 		{
 			name:       "reload step-up policy",
-			policyType: "step_up",
+			policyType: authLevelStringStepUp,
 		},
 	}
 
@@ -293,19 +293,19 @@ func TestRecordOperationDecision(t *testing.T) {
 	}{
 		{
 			name:      "allow low risk operation",
-			operation: "view_balance",
+			operation: testViewBalance,
 			riskLevel: RiskLevelLow,
 			blocked:   false,
 		},
 		{
 			name:      "block high risk operation",
-			operation: "transfer_funds",
+			operation: valueTransferFunds,
 			riskLevel: RiskLevelHigh,
 			blocked:   true,
 		},
 		{
 			name:      "block critical risk operation",
-			operation: "change_password",
+			operation: valueChangePassword,
 			riskLevel: RiskLevelCritical,
 			blocked:   true,
 		},

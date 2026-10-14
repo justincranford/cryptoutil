@@ -187,7 +187,7 @@ func ParseArgs(args []string, cfg *CleanupConfig) error {
 		arg := args[i]
 
 		switch {
-		case arg == "--confirm":
+		case arg == valueConfirm:
 			cfg.Confirm = true
 		case strings.HasPrefix(arg, "--max-age-days="):
 			val := strings.TrimPrefix(arg, "--max-age-days=")

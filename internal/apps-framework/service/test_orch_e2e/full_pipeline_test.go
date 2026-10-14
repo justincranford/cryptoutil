@@ -30,6 +30,8 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
+const testServerCertificateCommonName = "Server Certificate"
+
 // TestFullPipeline_GrafanaHealth verifies Grafana HTTPS UI returns 200 from /api/health.
 // This confirms the OTel→Grafana mTLS pipeline is active (Grafana runs OTel internally).
 func TestFullPipeline_GrafanaHealth(t *testing.T) {
@@ -98,7 +100,7 @@ func TestFullPipeline_GrafanaOTLP_ServerCert(t *testing.T) {
 	require.NotEmpty(t, certs, "Grafana OTLP gRPC must present a server certificate")
 
 	cn := certs[0].Subject.CommonName
-	require.Contains(t, []string{tlsPSIDSpec.GrafanaServerCertCN, "Server Certificate"}, cn,
+	require.Contains(t, []string{tlsPSIDSpec.GrafanaServerCertCN, testServerCertificateCommonName}, cn,
 		"Grafana OTLP gRPC server cert CN must match expected runtime identity")
 }
 
@@ -195,7 +197,7 @@ func TestFullPipeline_AppPublicHTTPS_ServerCert(t *testing.T) {
 			require.NotEmpty(t, certs, "app %q must present a server certificate", tc.name)
 
 			cn := certs[0].Subject.CommonName
-			require.Contains(t, []string{tc.serverCertCN, "Server Certificate"}, cn,
+			require.Contains(t, []string{tc.serverCertCN, testServerCertificateCommonName}, cn,
 				"app %q server cert CN must match expected runtime identity", tc.name)
 		})
 	}

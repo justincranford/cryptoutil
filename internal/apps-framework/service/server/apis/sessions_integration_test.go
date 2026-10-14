@@ -52,7 +52,7 @@ func TestSessionConstants(t *testing.T) {
 	t.Parallel()
 
 	require.Equal(t, "Invalid request body format", errInvalidRequestBody)
-	require.Equal(t, "browser", sessionTypeBrowser)
+	require.Equal(t, sessionTypeBrowser, sessionTypeBrowser)
 }
 
 // TestIssueSession_ServiceSessionSuccess tests service session issuance with mock.
@@ -70,7 +70,7 @@ func TestIssueSession_ServiceSessionSuccess(t *testing.T) {
 		UserID:      cryptoutilSharedMagic.TestClientID,
 		TenantID:    googleUuid.New().String(),
 		RealmID:     googleUuid.New().String(),
-		SessionType: "service", // ← Tests service branch (line 91-94)
+		SessionType: testService, // ← Tests service branch (line 91-94)
 	}
 	bodyBytes, _ := json.Marshal(reqBody)
 
@@ -107,7 +107,7 @@ func TestIssueSession_ServiceSessionError(t *testing.T) {
 		UserID:      cryptoutilSharedMagic.TestClientID,
 		TenantID:    googleUuid.New().String(),
 		RealmID:     googleUuid.New().String(),
-		SessionType: "service",
+		SessionType: testService,
 	}
 	bodyBytes, _ := json.Marshal(reqBody)
 
@@ -136,7 +136,7 @@ func TestIssueSession_BrowserSessionSuccess(t *testing.T) {
 		UserID:      "test-user@example.com",
 		TenantID:    googleUuid.New().String(),
 		RealmID:     googleUuid.New().String(),
-		SessionType: "browser",
+		SessionType: sessionTypeBrowser,
 	}
 	bodyBytes, _ := json.Marshal(reqBody)
 
@@ -171,7 +171,7 @@ func TestValidateSession_BrowserSuccess(t *testing.T) {
 
 	reqBody := SessionValidateRequest{
 		Token:       "valid-browser-token",
-		SessionType: "browser", // ← Tests browser branch (line 138-144)
+		SessionType: sessionTypeBrowser, // ← Tests browser branch (line 138-144)
 	}
 	bodyBytes, _ := json.Marshal(reqBody)
 
@@ -206,7 +206,7 @@ func TestValidateSession_BrowserError(t *testing.T) {
 
 	reqBody := SessionValidateRequest{
 		Token:       "invalid-browser-token",
-		SessionType: "browser",
+		SessionType: sessionTypeBrowser,
 	}
 	bodyBytes, _ := json.Marshal(reqBody)
 
@@ -240,7 +240,7 @@ func TestValidateSession_ServiceSuccess(t *testing.T) {
 
 	reqBody := SessionValidateRequest{
 		Token:       "valid-service-token",
-		SessionType: "service", // ← Tests service branch (line 146-160)
+		SessionType: testService, // ← Tests service branch (line 146-160)
 	}
 	bodyBytes, _ := json.Marshal(reqBody)
 
@@ -275,7 +275,7 @@ func TestValidateSession_ServiceError(t *testing.T) {
 
 	reqBody := SessionValidateRequest{
 		Token:       "invalid-service-token",
-		SessionType: "service",
+		SessionType: testService,
 	}
 	bodyBytes, _ := json.Marshal(reqBody)
 
@@ -319,7 +319,7 @@ func TestValidateSession_BrowserNullUserID(t *testing.T) {
 
 	reqBody := SessionValidateRequest{
 		Token:       "token-with-null-user",
-		SessionType: "browser",
+		SessionType: sessionTypeBrowser,
 	}
 	bodyBytes, _ := json.Marshal(reqBody)
 
@@ -364,7 +364,7 @@ func TestValidateSession_ServiceNullClientID(t *testing.T) {
 
 	reqBody := SessionValidateRequest{
 		Token:       "token-with-null-client",
-		SessionType: "service",
+		SessionType: testService,
 	}
 	bodyBytes, _ := json.Marshal(reqBody)
 

@@ -53,7 +53,7 @@ func TestCheck_WithCleanComposeFile(t *testing.T) {
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	filesByExtension := map[string][]string{
-		"yml": {composeFile},
+		testYml: {composeFile},
 	}
 
 	err := Check(logger, filesByExtension)
@@ -70,7 +70,7 @@ func TestCheck_WithAdminPortExposure(t *testing.T) {
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	filesByExtension := map[string][]string{
-		"yml": {composeFile},
+		testYml: {composeFile},
 	}
 
 	err := Check(logger, filesByExtension)
@@ -83,7 +83,7 @@ func TestCheck_FailedToOpenComposeFile(t *testing.T) {
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	filesByExtension := map[string][]string{
-		"yml": {"/nonexistent/path/compose.yml"},
+		testYml: {"/nonexistent/path/compose.yml"},
 	}
 
 	// FindComposeFiles returns files named compose.yml/compose.yaml/etc.

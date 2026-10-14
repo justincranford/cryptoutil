@@ -138,15 +138,15 @@ func TestRealmConfig_Validate_Valid(t *testing.T) {
 		{
 			name: "LDAPConfig_Valid",
 			config: &LDAPConfig{
-				URL:    "ldap://ldap.example.com:389",
-				BaseDN: "dc=example,dc=com",
+				URL:    testLdapLdapExampleCom389,
+				BaseDN: testDcExampleDcCom,
 			},
 		},
 		{
 			name: "OAuth2Config_Valid_WithDiscovery",
 			config: &OAuth2Config{
 				ClientID:     cryptoutilSharedMagic.TestClientID,
-				ProviderURL:  "https://auth.example.com",
+				ProviderURL:  testHTTPSAuthExampleCom,
 				UseDiscovery: true,
 			},
 		},
@@ -155,22 +155,22 @@ func TestRealmConfig_Validate_Valid(t *testing.T) {
 			config: &OAuth2Config{
 				ClientID:     cryptoutilSharedMagic.TestClientID,
 				UseDiscovery: false,
-				AuthorizeURL: "https://auth.example.com/authorize",
-				TokenURL:     "https://auth.example.com/token",
+				AuthorizeURL: testHTTPSAuthExampleComAuthorize,
+				TokenURL:     testHTTPSAuthExampleComToken,
 			},
 		},
 		{
 			name: "SAMLConfig_Valid_WithMetadataURL",
 			config: &SAMLConfig{
-				MetadataURL: "https://idp.example.com/metadata",
-				EntityID:    "test-entity-id",
+				MetadataURL: testHTTPSIdpExampleComMetadata,
+				EntityID:    testTestEntityID,
 			},
 		},
 		{
 			name: "SAMLConfig_Valid_WithMetadataXML",
 			config: &SAMLConfig{
 				MetadataXML: "<EntityDescriptor>...</EntityDescriptor>",
-				EntityID:    "test-entity-id",
+				EntityID:    testTestEntityID,
 			},
 		},
 		// Browser realm types (6).

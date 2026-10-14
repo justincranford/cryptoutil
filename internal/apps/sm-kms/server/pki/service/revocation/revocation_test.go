@@ -23,16 +23,16 @@ func TestRevocationReason_String(t *testing.T) {
 		reason RevocationReason
 		want   string
 	}{
-		{testLiteralUnspecified, ReasonUnspecified, testLiteralUnspecified},
-		{testLiteralKeyCompromise, ReasonKeyCompromise, testLiteralKeyCompromise},
-		{testLiteralCaCompromise, ReasonCACompromise, testLiteralCaCompromise},
-		{testLiteralAffiliationChanged, ReasonAffiliationChanged, testLiteralAffiliationChanged},
-		{testLiteralSuperseded, ReasonSuperseded, testLiteralSuperseded},
-		{testLiteralCessationOfOperation, ReasonCessationOfOperation, testLiteralCessationOfOperation},
-		{testLiteralCertificateHold, ReasonCertificateHold, testLiteralCertificateHold},
-		{testLiteralRemoveFromCRL, ReasonRemoveFromCRL, testLiteralRemoveFromCRL},
-		{testLiteralPrivilegeWithdrawn, ReasonPrivilegeWithdrawn, testLiteralPrivilegeWithdrawn},
-		{testLiteralAaCompromise, ReasonAACompromise, testLiteralAaCompromise},
+		{cryptoutilSharedMagic.RFC5280RevocationReasonNameUnspecified, ReasonUnspecified, cryptoutilSharedMagic.RFC5280RevocationReasonNameUnspecified},
+		{cryptoutilSharedMagic.RFC5280RevocationReasonNameKeyCompromise, ReasonKeyCompromise, cryptoutilSharedMagic.RFC5280RevocationReasonNameKeyCompromise},
+		{cryptoutilSharedMagic.RFC5280RevocationReasonNameCACompromise, ReasonCACompromise, cryptoutilSharedMagic.RFC5280RevocationReasonNameCACompromise},
+		{cryptoutilSharedMagic.RFC5280RevocationReasonNameAffiliationChanged, ReasonAffiliationChanged, cryptoutilSharedMagic.RFC5280RevocationReasonNameAffiliationChanged},
+		{cryptoutilSharedMagic.RFC5280RevocationReasonNameSuperseded, ReasonSuperseded, cryptoutilSharedMagic.RFC5280RevocationReasonNameSuperseded},
+		{cryptoutilSharedMagic.RFC5280RevocationReasonNameCessationOfOperation, ReasonCessationOfOperation, cryptoutilSharedMagic.RFC5280RevocationReasonNameCessationOfOperation},
+		{cryptoutilSharedMagic.RFC5280RevocationReasonNameCertificateHold, ReasonCertificateHold, cryptoutilSharedMagic.RFC5280RevocationReasonNameCertificateHold},
+		{cryptoutilSharedMagic.RFC5280RevocationReasonNameRemoveFromCRL, ReasonRemoveFromCRL, cryptoutilSharedMagic.RFC5280RevocationReasonNameRemoveFromCRL},
+		{cryptoutilSharedMagic.RFC5280RevocationReasonNamePrivilegeWithdrawn, ReasonPrivilegeWithdrawn, cryptoutilSharedMagic.RFC5280RevocationReasonNamePrivilegeWithdrawn},
+		{cryptoutilSharedMagic.RFC5280RevocationReasonNameAACompromise, ReasonAACompromise, cryptoutilSharedMagic.RFC5280RevocationReasonNameAACompromise},
 		{cryptoutilSharedMagic.UNKNOWN, RevocationReason(cryptoutilSharedMagic.JoseJAMaxMaterials), cryptoutilSharedMagic.UNKNOWN},
 	}
 
@@ -62,7 +62,7 @@ func TestNewCRLService(t *testing.T) {
 			name:    testLiteralNilConfig,
 			config:  nil,
 			wantErr: true,
-			errMsg:  testLiteralConfigIsRequired,
+			errMsg:  cryptoutilSharedMagic.PKIErrorConfigRequired,
 		},
 		{
 			name: testLiteralNilIssuer,
@@ -72,7 +72,7 @@ func TestNewCRLService(t *testing.T) {
 				Provider:   provider,
 			},
 			wantErr: true,
-			errMsg:  testLiteralIssuerCertificateIsRequired,
+			errMsg:  cryptoutilSharedMagic.PKIErrorIssuerCertificateRequired,
 		},
 		{
 			name: "nil-private-key",
@@ -92,7 +92,7 @@ func TestNewCRLService(t *testing.T) {
 				Provider:   nil,
 			},
 			wantErr: true,
-			errMsg:  testLiteralCryptoProviderIsRequired,
+			errMsg:  cryptoutilSharedMagic.PKIErrorCryptoProviderRequired,
 		},
 		{
 			name: testLiteralValidConfig,

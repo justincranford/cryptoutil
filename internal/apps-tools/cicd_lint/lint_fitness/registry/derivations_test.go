@@ -184,7 +184,7 @@ func TestPSIDToSQLID(t *testing.T) {
 		{name: cryptoutilSharedMagic.OTLPServiceIdentityRP, input: cryptoutilSharedMagic.OTLPServiceIdentityRP, want: "identity_rp"},
 		{name: cryptoutilSharedMagic.OTLPServiceIdentitySPA, input: cryptoutilSharedMagic.OTLPServiceIdentitySPA, want: "identity_spa"},
 		{name: cryptoutilSharedMagic.OTLPServiceSkeletonTemplate, input: cryptoutilSharedMagic.OTLPServiceSkeletonTemplate, want: "skeleton_template"},
-		{name: "no-hyphens", input: "nohyphens", want: "nohyphens"},
+		{name: "no-hyphens", input: testNohyphens, want: testNohyphens},
 	}
 
 	for _, tt := range tests {
@@ -390,13 +390,13 @@ func TestDockerfileEntrypoint_AllPSIDs(t *testing.T) {
 		psID string
 		want []string
 	}{
-		{psID: cryptoutilSharedMagic.OTLPServiceSMKMS, want: []string{"/sbin/tini", "--"}},
-		{psID: cryptoutilSharedMagic.OTLPServiceIdentityAuthz, want: []string{"/sbin/tini", "--"}},
-		{psID: cryptoutilSharedMagic.OTLPServiceIdentityIDP, want: []string{"/sbin/tini", "--"}},
-		{psID: cryptoutilSharedMagic.OTLPServiceIdentityRS, want: []string{"/sbin/tini", "--"}},
-		{psID: cryptoutilSharedMagic.OTLPServiceIdentityRP, want: []string{"/sbin/tini", "--"}},
-		{psID: cryptoutilSharedMagic.OTLPServiceIdentitySPA, want: []string{"/sbin/tini", "--"}},
-		{psID: cryptoutilSharedMagic.OTLPServiceSkeletonTemplate, want: []string{"/sbin/tini", "--"}},
+		{psID: cryptoutilSharedMagic.OTLPServiceSMKMS, want: []string{testSbinTini, testStringValue}},
+		{psID: cryptoutilSharedMagic.OTLPServiceIdentityAuthz, want: []string{testSbinTini, testStringValue}},
+		{psID: cryptoutilSharedMagic.OTLPServiceIdentityIDP, want: []string{testSbinTini, testStringValue}},
+		{psID: cryptoutilSharedMagic.OTLPServiceIdentityRS, want: []string{testSbinTini, testStringValue}},
+		{psID: cryptoutilSharedMagic.OTLPServiceIdentityRP, want: []string{testSbinTini, testStringValue}},
+		{psID: cryptoutilSharedMagic.OTLPServiceIdentitySPA, want: []string{testSbinTini, testStringValue}},
+		{psID: cryptoutilSharedMagic.OTLPServiceSkeletonTemplate, want: []string{testSbinTini, testStringValue}},
 	}
 
 	for _, tt := range tests {

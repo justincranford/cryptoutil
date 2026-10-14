@@ -40,7 +40,7 @@ jobs:
 	require.NoError(t, err)
 
 	filesByExtension := map[string][]string{
-		"yml": {workflowFile},
+		valueYml: {workflowFile},
 	}
 
 	err = Check(logger, FilterWorkflowFiles(filesByExtension))
@@ -60,7 +60,7 @@ func TestValidateAndGetWorkflowActionsDetails_FileReadError(t *testing.T) {
 	t.Parallel()
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	actionDetails, err := validateAndGetWorkflowActionsDetails(logger, []string{"nonexistent.yml"})
+	actionDetails, err := validateAndGetWorkflowActionsDetails(logger, []string{testNonexistentYml})
 	require.Error(t, err)
 	require.Nil(t, actionDetails)
 	require.Contains(t, err.Error(), "workflow validation errors")
@@ -78,7 +78,7 @@ func TestLintGitHubWorkflows_ValidationError(t *testing.T) {
 	t.Parallel()
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	err := Check(logger, []string{"nonexistent.yml"})
+	err := Check(logger, []string{testNonexistentYml})
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "workflow validation failed")
 }
@@ -87,26 +87,26 @@ func TestFilterWorkflowFiles_MixedExtensions(t *testing.T) {
 	t.Parallel()
 
 	filesByExtension := map[string][]string{
-		"yml": {
-			".github/workflows/ci.yml",
-			".github/workflows/cd.yml",
-			"config.yml",
+		valueYml: {
+			testGithubWorkflowsCiYml,
+			testGithubWorkflowsCdYml,
+			testConfigYml,
 		},
-		"yaml": {
+		valueYAML: {
 			".github/workflows/test.yaml",
 			"settings.yaml",
 		},
-		"go": {"main.go"},
+		testGo: {testMainGo},
 	}
 
 	result := FilterWorkflowFiles(filesByExtension)
 	require.Len(t, result, 3)
-	require.Contains(t, result, ".github/workflows/ci.yml")
-	require.Contains(t, result, ".github/workflows/cd.yml")
+	require.Contains(t, result, testGithubWorkflowsCiYml)
+	require.Contains(t, result, testGithubWorkflowsCdYml)
 	require.Contains(t, result, ".github/workflows/test.yaml")
-	require.NotContains(t, result, "config.yml")
+	require.NotContains(t, result, testConfigYml)
 	require.NotContains(t, result, "settings.yaml")
-	require.NotContains(t, result, "main.go")
+	require.NotContains(t, result, testMainGo)
 }
 
 func TestIsWorkflowFile_EdgeCases(t *testing.T) {
@@ -202,7 +202,7 @@ func TestLint_ErrorPath(t *testing.T) {
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	filesByExtension := map[string][]string{
-		"yml": {".github/workflows/nonexistent.yml"},
+		valueYml: {".github/workflows/nonexistent.yml"},
 	}
 
 	err := Check(logger, FilterWorkflowFiles(filesByExtension))
@@ -214,17 +214,17 @@ func TestCheckActionVersionsConcurrently_NonExemptedVersion(t *testing.T) {
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	actionDetails := map[string]WorkflowActionDetails{
-		"actions/checkout@v4": {
-			Name:           "actions/checkout",
-			CurrentVersion: "v4",
-			WorkflowFiles:  []string{"ci.yml"},
+		testActionsCheckoutV4: {
+			Name:           testActionsCheckout,
+			CurrentVersion: testV4,
+			WorkflowFiles:  []string{testCiYml},
 		},
 	}
 	exceptions := &WorkflowActionExceptions{
 		Exceptions: map[string]WorkflowActionException{
-			"actions/checkout": {
-				Version: "v3",
-				Reason:  "Testing",
+			testActionsCheckout: {
+				Version: testV3,
+				Reason:  testTesting,
 			},
 		},
 	}
@@ -234,8 +234,8 @@ func TestCheckActionVersionsConcurrently_NonExemptedVersion(t *testing.T) {
 	require.Empty(t, exempted, "Should not be exempted (version mismatch)")
 	// Version mismatch with exception triggers a stale-exception warning.
 	require.Len(t, errors, 1, "Should have 1 stale-exception warning")
-	require.Contains(t, errors[0], "actions/checkout@v4")
-	require.Contains(t, errors[0], "v3")
+	require.Contains(t, errors[0], testActionsCheckoutV4)
+	require.Contains(t, errors[0], testV3)
 }
 
 func TestIsWorkflowFile_LongPaths(t *testing.T) {
@@ -266,8 +266,8 @@ func TestFilterWorkflowFiles_EmptyExtensionKeys(t *testing.T) {
 	t.Parallel()
 
 	filesByExtension := map[string][]string{
-		"go": {"main.go"},
-		"md": {"README.md"},
+		testGo: {testMainGo},
+		"md":   {"README.md"},
 	}
 
 	result := FilterWorkflowFiles(filesByExtension)
@@ -286,7 +286,7 @@ func TestLint_WithValidationError(t *testing.T) {
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	filesByExtension := map[string][]string{
-		"yml": {".github/workflows/invalid.yml"},
+		valueYml: {".github/workflows/invalid.yml"},
 	}
 
 	err := Check(logger, FilterWorkflowFiles(filesByExtension))
@@ -311,7 +311,7 @@ jobs:
 	err := os.WriteFile(workflowFile1, []byte(content1), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
-	workflowFiles := []string{workflowFile1, "nonexistent.yml"}
+	workflowFiles := []string{workflowFile1, testNonexistentYml}
 
 	actionDetails, err := validateAndGetWorkflowActionsDetails(logger, workflowFiles)
 	require.Error(t, err)

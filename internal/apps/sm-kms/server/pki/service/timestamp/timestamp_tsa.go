@@ -123,11 +123,11 @@ func (s *TSAService) generateSerialNumber() *big.Int {
 	// Combine counter with random component for uniqueness.
 	counter := s.serialCounter.Add(1)
 
-	randomBytes := make([]byte, serialRandomBytes)
+	randomBytes := make([]byte, cryptoutilSharedMagic.PKISerialNumberRandomBytes)
 	_, _ = crand.Read(randomBytes)
 
 	serial := new(big.Int).SetUint64(counter)
-	serial.Lsh(serial, serialRandomBits)
+	serial.Lsh(serial, cryptoutilSharedMagic.MinSerialNumberBits)
 	serial.Or(serial, new(big.Int).SetBytes(randomBytes))
 
 	return serial
@@ -168,7 +168,7 @@ type TimestampEntry struct {
 // ToEntry converts a TSTInfo to a TimestampEntry for auditing.
 func (t *TSTInfo) ToEntry(tsaCert string) *TimestampEntry {
 	entry := &TimestampEntry{
-		SerialNumber:   t.SerialNumber.Text(hexBase),
+		SerialNumber:   t.SerialNumber.Text(cryptoutilSharedMagic.HexBase),
 		GenTime:        t.GenTime,
 		Policy:         t.Policy.String(),
 		HashAlgorithm:  string(t.MessageImprint.HashAlgorithm),
@@ -177,18 +177,13 @@ func (t *TSTInfo) ToEntry(tsaCert string) *TimestampEntry {
 	}
 
 	if t.Nonce != nil {
-		entry.Nonce = t.Nonce.Text(hexBase)
+		entry.Nonce = t.Nonce.Text(cryptoutilSharedMagic.HexBase)
 	}
 
 	return entry
 }
 
 // Constants.
-const (
-	hexBase           = cryptoutilSharedMagic.HexBase
-	serialRandomBytes = cryptoutilSharedMagic.PKISerialNumberRandomBytes
-	serialRandomBits  = cryptoutilSharedMagic.MinSerialNumberBits
-)
 
 // ASN.1 structures for RFC 3161 TimeStampReq parsing.
 
@@ -330,10 +325,10 @@ func SerializeTimestampResponse(resp *TimestampResponse) ([]byte, error) {
 		// PKI failure info is a bit string with the failure bit set.
 		failBit := int(*resp.Status.FailInfo)
 		// Create a bit string with the appropriate bit set.
-		failBytes := make([]byte, (failBit/bitStringBitsPerByte)+1)
+		failBytes := make([]byte, (failBit/cryptoutilSharedMagic.BitsPerByte)+1)
 
 		if len(failBytes) > 0 {
-			failBytes[failBit/bitStringBitsPerByte] = 1 << (bitStringBitShift - (failBit % bitStringBitsPerByte))
+			failBytes[failBit/cryptoutilSharedMagic.BitsPerByte] = 1 << (bitStringBitShift - (failBit % cryptoutilSharedMagic.BitsPerByte))
 		}
 
 		statusInfo.FailInfo = asn1.BitString{Bytes: failBytes, BitLength: failBit + 1}
@@ -397,6 +392,5 @@ func SerializeTimestampResponse(resp *TimestampResponse) ([]byte, error) {
 
 // Bit string constants.
 const (
-	bitStringBitsPerByte = cryptoutilSharedMagic.BitsPerByte
-	bitStringBitShift    = cryptoutilSharedMagic.BitsPerByte - 1
+	bitStringBitShift = cryptoutilSharedMagic.BitsPerByte - 1
 )

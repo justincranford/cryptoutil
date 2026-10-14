@@ -240,7 +240,7 @@ func toCredential(dbCred *WebAuthnCredential) *Credential {
 		CreatedAt:       dbCred.CreatedAt,
 		LastUsedAt:      dbCred.LastUsedAt,
 		Metadata: map[string]any{
-			"device_name": dbCred.DeviceName,
+			valueDeviceName: dbCred.DeviceName,
 		},
 	}
 }
@@ -248,7 +248,7 @@ func toCredential(dbCred *WebAuthnCredential) *Credential {
 // getDeviceName extracts device name from credential metadata.
 func getDeviceName(cred *Credential) string {
 	if cred.Metadata != nil {
-		if name, ok := cred.Metadata["device_name"].(string); ok {
+		if name, ok := cred.Metadata[valueDeviceName].(string); ok {
 			return name
 		}
 	}

@@ -24,7 +24,7 @@ func Check(logger *cryptoutilCmdCicdCommon.Logger, filesByExtension map[string][
 	var violations []lintPortsCommon.Violation
 
 	// Only check compose files (YAML).
-	allYamlFiles := append(filesByExtension["yml"], filesByExtension["yaml"]...)
+	allYamlFiles := append(filesByExtension[valueYml], filesByExtension["yaml"]...)
 
 	for _, filePath := range allYamlFiles {
 		// Only check compose files.

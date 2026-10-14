@@ -50,10 +50,10 @@ func TestNewServerBuilder_ValidationErrors(t *testing.T) {
 			wantErrSubstr: "context cannot be nil",
 		},
 		{
-			name:          "nil config",
+			name:          testNilConfig,
 			ctx:           context.Background(),
 			config:        nil,
-			wantErrSubstr: "config cannot be nil",
+			wantErrSubstr: valueConfigCannotBeNil,
 		},
 	}
 
@@ -79,21 +79,21 @@ func TestWithDomainMigrations_Success(t *testing.T) {
 
 	// Create test migration filesystem.
 	migrationFS := fstest.MapFS{
-		"migrations/2001_test.up.sql": &fstest.MapFile{
+		testMigrations2001TestUpSQL: &fstest.MapFile{
 			Data: []byte("CREATE TABLE test (id TEXT);"),
 		},
-		"migrations/2001_test.down.sql": &fstest.MapFile{
+		testMigrations2001TestDownSQL: &fstest.MapFile{
 			Data: []byte("DROP TABLE test;"),
 		},
 	}
 
 	builder := NewServerBuilder(ctx, settings).
-		WithDomainMigrations(migrationFS, "migrations")
+		WithDomainMigrations(migrationFS, valueMigrations)
 
 	require.NotNil(t, builder)
 	require.Nil(t, builder.err)
 	require.NotNil(t, builder.migrationFS)
-	require.Equal(t, "migrations", builder.migrationsPath)
+	require.Equal(t, valueMigrations, builder.migrationsPath)
 }
 
 // TestWithDomainMigrations_ValidationErrors tests error handling using table-driven pattern.
@@ -104,7 +104,7 @@ func TestWithDomainMigrations_ValidationErrors(t *testing.T) {
 	settings := getMinimalSettings()
 
 	migrationFS := fstest.MapFS{
-		"migrations/2001_test.up.sql": &fstest.MapFile{
+		testMigrations2001TestUpSQL: &fstest.MapFile{
 			Data: []byte("CREATE TABLE test (id TEXT);"),
 		},
 	}
@@ -118,7 +118,7 @@ func TestWithDomainMigrations_ValidationErrors(t *testing.T) {
 		{
 			name:          "nil filesystem",
 			fs:            nil,
-			path:          "migrations",
+			path:          valueMigrations,
 			wantErrSubstr: "migration FS cannot be nil",
 		},
 		{
@@ -193,9 +193,9 @@ func TestErrorAccumulation(t *testing.T) {
 			name: "domain migrations after nil config",
 			buildFn: func() *ServerBuilder {
 				return NewServerBuilder(ctx, nil).
-					WithDomainMigrations(fstest.MapFS{}, "migrations")
+					WithDomainMigrations(fstest.MapFS{}, valueMigrations)
 			},
-			wantErrSubstr:    "config cannot be nil",
+			wantErrSubstr:    valueConfigCannotBeNil,
 			notWantErrSubstr: "migration",
 		},
 		{
@@ -208,7 +208,7 @@ func TestErrorAccumulation(t *testing.T) {
 				return NewServerBuilder(ctx, nil).
 					WithPublicRouteRegistration(registerFunc)
 			},
-			wantErrSubstr:    "config cannot be nil",
+			wantErrSubstr:    valueConfigCannotBeNil,
 			notWantErrSubstr: "route registration",
 		},
 	}

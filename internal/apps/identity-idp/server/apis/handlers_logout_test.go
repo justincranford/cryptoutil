@@ -54,9 +54,9 @@ func TestHandleLogout_POST(t *testing.T) {
 			TLSEnabled:  true,
 		},
 		Sessions: &cryptoutilIdentityConfig.SessionConfig{
-			CookieName:      "session_id",
+			CookieName:      testSessionID,
 			CookieHTTPOnly:  true,
-			CookieSameSite:  "Lax",
+			CookieSameSite:  testLax,
 			SessionLifetime: 1 * time.Hour,
 		},
 	}
@@ -69,7 +69,7 @@ func TestHandleLogout_POST(t *testing.T) {
 	// Create test user.
 	testUser := &cryptoutilIdentityDomain.User{
 		Sub:   googleUuid.Must(googleUuid.NewV7()).String(),
-		Email: "test@example.com",
+		Email: testTestExampleCom,
 	}
 	userRepo := repoFactory.UserRepository()
 	require.NoError(t, userRepo.Create(ctx, testUser))
@@ -83,19 +83,19 @@ func TestHandleLogout_POST(t *testing.T) {
 		createSession  bool
 	}{
 		{
-			name:           "Valid session cookie",
+			name:           testValidSessionCookie,
 			sessionCookie:  "", // Will be set by createSession
 			expectedStatus: http.StatusOK,
 			createSession:  true,
 		},
 		{
-			name:           "Missing session cookie",
+			name:           testMissingSessionCookie,
 			sessionCookie:  "",
 			expectedStatus: http.StatusUnauthorized,
 			createSession:  false,
 		},
 		{
-			name:           "Invalid session cookie",
+			name:           testInvalidSessionCookie,
 			sessionCookie:  googleUuid.Must(googleUuid.NewV7()).String(),
 			expectedStatus: http.StatusUnauthorized,
 			createSession:  false,
@@ -112,7 +112,7 @@ func TestHandleLogout_POST(t *testing.T) {
 					UserID:                testUser.ID,
 					SessionID:             googleUuid.Must(googleUuid.NewV7()).String(),
 					IPAddress:             cryptoutilSharedMagic.IPv4Loopback,
-					UserAgent:             "test-agent",
+					UserAgent:             testTestAgent,
 					IssuedAt:              time.Now().UTC(),
 					ExpiresAt:             time.Now().UTC().Add(1 * time.Hour),
 					LastSeenAt:            time.Now().UTC(),
@@ -128,7 +128,7 @@ func TestHandleLogout_POST(t *testing.T) {
 
 			if sessionCookie != "" {
 				req.AddCookie(&http.Cookie{
-					Name:     "session_id",
+					Name:     testSessionID,
 					Value:    sessionCookie,
 					Secure:   true,
 					HttpOnly: true,
@@ -168,9 +168,9 @@ func TestHandleEndSession_MissingParams(t *testing.T) {
 			TLSEnabled:  true,
 		},
 		Sessions: &cryptoutilIdentityConfig.SessionConfig{
-			CookieName:      "session_id",
+			CookieName:      testSessionID,
 			CookieHTTPOnly:  true,
-			CookieSameSite:  "Lax",
+			CookieSameSite:  testLax,
 			SessionLifetime: 1 * time.Hour,
 		},
 	}
@@ -211,9 +211,9 @@ func TestHandleEndSession_WithClientID(t *testing.T) {
 			TLSEnabled:  true,
 		},
 		Sessions: &cryptoutilIdentityConfig.SessionConfig{
-			CookieName:      "session_id",
+			CookieName:      testSessionID,
 			CookieHTTPOnly:  true,
-			CookieSameSite:  "Lax",
+			CookieSameSite:  testLax,
 			SessionLifetime: 1 * time.Hour,
 		},
 	}

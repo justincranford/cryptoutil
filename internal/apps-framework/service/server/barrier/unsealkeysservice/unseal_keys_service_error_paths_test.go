@@ -38,8 +38,8 @@ func TestDeriveJWKsFromMChooseNCombinations_InvalidChooseN(t *testing.T) {
 		chooseN  int
 		errMatch string
 	}{
-		{"negative-chooseN", -1, "failed to compute"},
-		{"chooseN-exceeds-m", cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries, "failed to compute"},
+		{"negative-chooseN", -1, testFailedToCompute},
+		{"chooseN-exceeds-m", cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries, testFailedToCompute},
 	}
 
 	for _, tc := range tests {
@@ -110,7 +110,7 @@ func TestDeriveJWKsFromMChooseNCombinations_HappyPath(t *testing.T) {
 	// Test 2-of-3 combinations (should generate 3 JWKs: AB, AC, BC)
 	jwks, err := deriveJWKsFromMChooseNCombinations(secrets, 2)
 	require.NoError(t, err)
-	require.Len(t, jwks, 3) // C(3,2) = 3 combinations
+	require.Len(t, jwks, test3) // C(3,2) = 3 combinations
 
 	// Verify all JWKs are valid
 	for i, jwk := range jwks {

@@ -137,8 +137,8 @@ func (r *gormMaterialJWKRepository) RotateMaterial(ctx context.Context, elasticJ
 		if err := tx.Model(&cryptoutilAppsSmKmsModel.MaterialJWK{}).
 			Where("elastic_jwk_id = ? AND active = ?", elasticJWKID.String(), true).
 			Updates(map[string]any{
-				"active":     false,
-				"retired_at": now,
+				valueActive:    false,
+				valueRetiredAt: now,
 			}).Error; err != nil {
 			return fmt.Errorf("failed to retire current material: %w", err)
 		}
@@ -165,8 +165,8 @@ func (r *gormMaterialJWKRepository) RetireMaterial(ctx context.Context, id googl
 		Model(&cryptoutilAppsSmKmsModel.MaterialJWK{}).
 		Where("id = ?", id.String()).
 		Updates(map[string]any{
-			"active":     false,
-			"retired_at": now,
+			valueActive:    false,
+			valueRetiredAt: now,
 		}).Error; err != nil {
 		return fmt.Errorf("failed to retire material JWK: %w", err)
 	}

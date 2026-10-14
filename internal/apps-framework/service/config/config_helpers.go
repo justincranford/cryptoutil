@@ -299,7 +299,7 @@ func validateConfiguration(s *ServiceFrameworkServerSettings) error {
 	// Standard formats must contain "://" (e.g., "postgres://...", "file://...")
 	if s.DatabaseURL != "" &&
 		s.DatabaseURL != cryptoutilSharedMagic.SQLiteMemoryPlaceholder &&
-		!strings.HasPrefix(s.DatabaseURL, "file::memory:") &&
+		!strings.HasPrefix(s.DatabaseURL, valueFileMemory) &&
 		!strings.Contains(s.DatabaseURL, "mode=memory") &&
 		!strings.Contains(s.DatabaseURL, "://") {
 		errors = append(errors, fmt.Sprintf("invalid database URL format '%s': must contain '://' (e.g., 'postgres://user:pass@host:port/db') or use SQLite special formats (':memory:', 'file::memory:NAME?cache=shared')", s.DatabaseURL))
@@ -379,14 +379,14 @@ func resolveFileURL(value string) string {
 func NewForJOSEServer(bindAddr string, bindPort uint16, devMode bool) *ServiceFrameworkServerSettings {
 	// Build args for Parse()
 	args := []string{
-		"start", // Subcommand required
+		valueStart, // Subcommand required
 		"--bind-public-address", bindAddr,
 		"--bind-public-port", fmt.Sprintf("%d", bindPort),
 		"--otlp-service", cryptoutilSharedMagic.OTLPServiceSMKMS,
 	}
 
 	if devMode {
-		args = append(args, "--local")
+		args = append(args, valueLocal)
 	}
 
 	settings, err := Parse(args, false)

@@ -113,7 +113,7 @@ func seedTestUser(ctx context.Context, t *testing.T, db *gorm.DB, userID string)
 		ID:                uid,
 		Sub:               userID,
 		PreferredUsername: "testuser",
-		Email:             "test@example.com",
+		Email:             testTestExampleCom,
 		EmailVerified:     true,
 		PasswordHash:      "dummy-hash",
 		Enabled:           true,

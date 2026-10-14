@@ -45,9 +45,9 @@ func TestHandleAuthorizeGET_HappyPath(t *testing.T) {
 		cryptoutilSharedMagic.ParamClientID:            []string{testClient.ClientID},
 		cryptoutilSharedMagic.ParamResponseType:        []string{cryptoutilSharedMagic.ResponseTypeCode},
 		cryptoutilSharedMagic.ParamRedirectURI:         []string{testClient.RedirectURIs[0]},
-		cryptoutilSharedMagic.ParamScope:               []string{"openid profile"},
-		cryptoutilSharedMagic.ParamState:               []string{"test-state"},
-		cryptoutilSharedMagic.ParamCodeChallenge:       []string{"test-challenge"},
+		cryptoutilSharedMagic.ParamScope:               []string{testOpenidProfile},
+		cryptoutilSharedMagic.ParamState:               []string{testTestState},
+		cryptoutilSharedMagic.ParamCodeChallenge:       []string{testTestChallenge},
 		cryptoutilSharedMagic.ParamCodeChallengeMethod: []string{cryptoutilSharedMagic.PKCEMethodS256},
 	}
 
@@ -79,9 +79,9 @@ func TestHandleAuthorizeGET_InvalidClientID(t *testing.T) {
 		cryptoutilSharedMagic.ParamClientID:            []string{"non-existent-client"},
 		cryptoutilSharedMagic.ParamResponseType:        []string{cryptoutilSharedMagic.ResponseTypeCode},
 		cryptoutilSharedMagic.ParamRedirectURI:         []string{cryptoutilSharedMagic.TestRedirectURI},
-		cryptoutilSharedMagic.ParamScope:               []string{"openid profile"},
-		cryptoutilSharedMagic.ParamState:               []string{"test-state"},
-		cryptoutilSharedMagic.ParamCodeChallenge:       []string{"test-challenge"},
+		cryptoutilSharedMagic.ParamScope:               []string{testOpenidProfile},
+		cryptoutilSharedMagic.ParamState:               []string{testTestState},
+		cryptoutilSharedMagic.ParamCodeChallenge:       []string{testTestChallenge},
 		cryptoutilSharedMagic.ParamCodeChallengeMethod: []string{cryptoutilSharedMagic.PKCEMethodS256},
 	}
 
@@ -115,10 +115,10 @@ func TestHandleAuthorizeGET_InvalidRedirectURI(t *testing.T) {
 	query := url.Values{
 		cryptoutilSharedMagic.ParamClientID:            []string{testClient.ClientID},
 		cryptoutilSharedMagic.ParamResponseType:        []string{cryptoutilSharedMagic.ResponseTypeCode},
-		cryptoutilSharedMagic.ParamRedirectURI:         []string{"https://malicious.com/callback"},
-		cryptoutilSharedMagic.ParamScope:               []string{"openid profile"},
-		cryptoutilSharedMagic.ParamState:               []string{"test-state"},
-		cryptoutilSharedMagic.ParamCodeChallenge:       []string{"test-challenge"},
+		cryptoutilSharedMagic.ParamRedirectURI:         []string{testHTTPSMaliciousComCallback},
+		cryptoutilSharedMagic.ParamScope:               []string{testOpenidProfile},
+		cryptoutilSharedMagic.ParamState:               []string{testTestState},
+		cryptoutilSharedMagic.ParamCodeChallenge:       []string{testTestChallenge},
 		cryptoutilSharedMagic.ParamCodeChallengeMethod: []string{cryptoutilSharedMagic.PKCEMethodS256},
 	}
 
@@ -155,9 +155,9 @@ func TestHandleAuthorizeGET_UnsupportedResponseType(t *testing.T) {
 		cryptoutilSharedMagic.ParamClientID:            []string{testClient.ClientID},
 		cryptoutilSharedMagic.ParamResponseType:        []string{cryptoutilSharedMagic.ParamToken},
 		cryptoutilSharedMagic.ParamRedirectURI:         []string{testClient.RedirectURIs[0]},
-		cryptoutilSharedMagic.ParamScope:               []string{"openid profile"},
-		cryptoutilSharedMagic.ParamState:               []string{"test-state"},
-		cryptoutilSharedMagic.ParamCodeChallenge:       []string{"test-challenge"},
+		cryptoutilSharedMagic.ParamScope:               []string{testOpenidProfile},
+		cryptoutilSharedMagic.ParamState:               []string{testTestState},
+		cryptoutilSharedMagic.ParamCodeChallenge:       []string{testTestChallenge},
 		cryptoutilSharedMagic.ParamCodeChallengeMethod: []string{cryptoutilSharedMagic.PKCEMethodS256},
 	}
 
@@ -194,8 +194,8 @@ func TestHandleAuthorizeGET_MissingCodeChallenge(t *testing.T) {
 		cryptoutilSharedMagic.ParamClientID:     []string{testClient.ClientID},
 		cryptoutilSharedMagic.ParamResponseType: []string{cryptoutilSharedMagic.ResponseTypeCode},
 		cryptoutilSharedMagic.ParamRedirectURI:  []string{testClient.RedirectURIs[0]},
-		cryptoutilSharedMagic.ParamScope:        []string{"openid profile"},
-		cryptoutilSharedMagic.ParamState:        []string{"test-state"},
+		cryptoutilSharedMagic.ParamScope:        []string{testOpenidProfile},
+		cryptoutilSharedMagic.ParamState:        []string{testTestState},
 	}
 
 	req := httptest.NewRequest("GET", "/oauth2/v1/authorize?"+query.Encode(), nil)
@@ -231,9 +231,9 @@ func TestHandleAuthorizeGET_InvalidCodeChallengeMethod(t *testing.T) {
 		cryptoutilSharedMagic.ParamClientID:            []string{testClient.ClientID},
 		cryptoutilSharedMagic.ParamResponseType:        []string{cryptoutilSharedMagic.ResponseTypeCode},
 		cryptoutilSharedMagic.ParamRedirectURI:         []string{testClient.RedirectURIs[0]},
-		cryptoutilSharedMagic.ParamScope:               []string{"openid profile"},
-		cryptoutilSharedMagic.ParamState:               []string{"test-state"},
-		cryptoutilSharedMagic.ParamCodeChallenge:       []string{"test-challenge"},
+		cryptoutilSharedMagic.ParamScope:               []string{testOpenidProfile},
+		cryptoutilSharedMagic.ParamState:               []string{testTestState},
+		cryptoutilSharedMagic.ParamCodeChallenge:       []string{testTestChallenge},
 		cryptoutilSharedMagic.ParamCodeChallengeMethod: []string{cryptoutilSharedMagic.PKCEMethodPlain},
 	}
 
@@ -270,13 +270,13 @@ func TestHandleAuthorizePOST_HappyPath(t *testing.T) {
 		cryptoutilSharedMagic.ParamClientID:            []string{testClient.ClientID},
 		cryptoutilSharedMagic.ParamResponseType:        []string{cryptoutilSharedMagic.ResponseTypeCode},
 		cryptoutilSharedMagic.ParamRedirectURI:         []string{testClient.RedirectURIs[0]},
-		cryptoutilSharedMagic.ParamScope:               []string{"openid profile"},
-		cryptoutilSharedMagic.ParamState:               []string{"test-state"},
-		cryptoutilSharedMagic.ParamCodeChallenge:       []string{"test-challenge"},
+		cryptoutilSharedMagic.ParamScope:               []string{testOpenidProfile},
+		cryptoutilSharedMagic.ParamState:               []string{testTestState},
+		cryptoutilSharedMagic.ParamCodeChallenge:       []string{testTestChallenge},
 		cryptoutilSharedMagic.ParamCodeChallengeMethod: []string{cryptoutilSharedMagic.PKCEMethodS256},
 	}
 
-	req := httptest.NewRequest("POST", "/oauth2/v1/authorize", strings.NewReader(formData.Encode()))
+	req := httptest.NewRequest(testPost, testOauth2V1Authorize, strings.NewReader(formData.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	resp, err := app.Test(req, -1)
@@ -309,11 +309,11 @@ func TestHandleAuthorizePOST_MissingPKCE(t *testing.T) {
 		cryptoutilSharedMagic.ParamClientID:     []string{testClient.ClientID},
 		cryptoutilSharedMagic.ParamResponseType: []string{cryptoutilSharedMagic.ResponseTypeCode},
 		cryptoutilSharedMagic.ParamRedirectURI:  []string{testClient.RedirectURIs[0]},
-		cryptoutilSharedMagic.ParamScope:        []string{"openid profile"},
-		cryptoutilSharedMagic.ParamState:        []string{"test-state"},
+		cryptoutilSharedMagic.ParamScope:        []string{testOpenidProfile},
+		cryptoutilSharedMagic.ParamState:        []string{testTestState},
 	}
 
-	req := httptest.NewRequest("POST", "/oauth2/v1/authorize", strings.NewReader(formData.Encode()))
+	req := httptest.NewRequest(testPost, testOauth2V1Authorize, strings.NewReader(formData.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	resp, err := app.Test(req, -1)
@@ -337,7 +337,7 @@ func createAuthorizeComprehensiveTestConfig(t *testing.T) *cryptoutilIdentityCon
 			DSN:  cryptoutilSharedMagic.SQLiteInMemoryDSN,
 		},
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{
-			Issuer: "https://localhost:8080",
+			Issuer: testHTTPSLocalhost8080,
 		},
 	}
 }
@@ -368,7 +368,7 @@ func createTestClient(ctx context.Context, t *testing.T, repoFactory *cryptoutil
 	client := &cryptoutilIdentityDomain.Client{
 		ID:                      googleUuid.New(),
 		ClientID:                clientID,
-		ClientSecret:            "test-secret",
+		ClientSecret:            testTestSecret,
 		Name:                    cryptoutilSharedMagic.TestClientName,
 		ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
 		RedirectURIs:            []string{cryptoutilSharedMagic.TestRedirectURI},

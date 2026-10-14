@@ -54,7 +54,7 @@ func setupSpecFile(t *testing.T, tmpDir, psID string, paths []string) {
 	}
 
 	require.NoError(t, os.WriteFile(
-		filepath.Join(apiDir, "openapi_spec.yaml"),
+		filepath.Join(apiDir, testOpenapiSpecYAML),
 		[]byte(content),
 		cryptoutilSharedMagic.FilePermissions,
 	))
@@ -231,7 +231,7 @@ func TestCheckInDir_InvalidYAML(t *testing.T) {
 	// Replace sm-kms spec with malformed YAML.
 	smKMSDir := filepath.Join(tmpDir, "api", cryptoutilSharedMagic.OTLPServiceSMKMS)
 	require.NoError(t, os.WriteFile(
-		filepath.Join(smKMSDir, "openapi_spec.yaml"),
+		filepath.Join(smKMSDir, testOpenapiSpecYAML),
 		[]byte("paths: {invalid: [yaml: content"),
 		cryptoutilSharedMagic.FilePermissions,
 	))
@@ -252,7 +252,7 @@ func TestCheckInDir_SpecFileNoPathsBlock(t *testing.T) {
 	// Replace sm-kms spec with valid YAML but no "paths:" top-level key.
 	smKMSDir := filepath.Join(tmpDir, "api", cryptoutilSharedMagic.OTLPServiceSMKMS)
 	require.NoError(t, os.WriteFile(
-		filepath.Join(smKMSDir, "openapi_spec.yaml"),
+		filepath.Join(smKMSDir, testOpenapiSpecYAML),
 		[]byte("info:\n  title: test\n  version: 1.0.0\n"),
 		cryptoutilSharedMagic.FilePermissions,
 	))
@@ -276,7 +276,7 @@ func TestCheckInDir_PathsBlockNotMapping(t *testing.T) {
 	// Replace sm-kms spec with valid YAML but "paths:" is a scalar (not a mapping).
 	smKMSDir := filepath.Join(tmpDir, "api", cryptoutilSharedMagic.OTLPServiceSMKMS)
 	require.NoError(t, os.WriteFile(
-		filepath.Join(smKMSDir, "openapi_spec.yaml"),
+		filepath.Join(smKMSDir, testOpenapiSpecYAML),
 		[]byte("paths: some_scalar_value\n"),
 		cryptoutilSharedMagic.FilePermissions,
 	))
@@ -312,7 +312,7 @@ func TestCheckInDir_ReadFileError(t *testing.T) {
 	setupAllValidAPIDirs(t, tmpDir)
 
 	err := CheckInDir(newTestLogger(), tmpDir, os.ReadDir, func(path string) ([]byte, error) {
-		if filepath.Base(path) == "openapi_spec.yaml" {
+		if filepath.Base(path) == testOpenapiSpecYAML {
 			return nil, fmt.Errorf("injected OS error: ReadFile failed")
 		}
 
@@ -366,7 +366,7 @@ func TestIsSpecFile(t *testing.T) {
 	}{
 		{
 			name: "standard spec file",
-			file: "openapi_spec.yaml",
+			file: testOpenapiSpecYAML,
 			want: true,
 		},
 		{

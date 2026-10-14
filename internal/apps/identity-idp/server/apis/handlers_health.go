@@ -21,18 +21,18 @@ func (s *Service) handleHealth(c *fiber.Ctx) error {
 	sqlDB, err := db.DB()
 	if err != nil {
 		return c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{
-			cryptoutilSharedMagic.StringStatus:             "unhealthy",
+			cryptoutilSharedMagic.StringStatus:             valueUnhealthy,
 			cryptoutilSharedMagic.RealmStorageTypeDatabase: "unavailable",
-			"service":                         cryptoutilSharedMagic.IDPServiceName,
+			valueService:                      cryptoutilSharedMagic.IDPServiceName,
 			cryptoutilSharedMagic.StringError: err.Error(),
 		})
 	}
 
 	if err := sqlDB.PingContext(ctx); err != nil {
 		return c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{
-			cryptoutilSharedMagic.StringStatus:             "unhealthy",
+			cryptoutilSharedMagic.StringStatus:             valueUnhealthy,
 			cryptoutilSharedMagic.RealmStorageTypeDatabase: "unreachable",
-			"service":                         cryptoutilSharedMagic.IDPServiceName,
+			valueService:                      cryptoutilSharedMagic.IDPServiceName,
 			cryptoutilSharedMagic.StringError: err.Error(),
 		})
 	}
@@ -40,6 +40,6 @@ func (s *Service) handleHealth(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		cryptoutilSharedMagic.StringStatus:             cryptoutilSharedMagic.DockerServiceHealthHealthy,
 		cryptoutilSharedMagic.RealmStorageTypeDatabase: "ok",
-		"service": cryptoutilSharedMagic.IDPServiceName,
+		valueService: cryptoutilSharedMagic.IDPServiceName,
 	})
 }

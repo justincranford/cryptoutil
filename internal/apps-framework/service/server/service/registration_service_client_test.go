@@ -44,9 +44,9 @@ func TestRegistrationService_RegisterUser_ExistingTenant(t *testing.T) {
 	}{
 		{
 			name:     "happy path - pending verification",
-			username: "newuser",
-			email:    "newuser@example.com",
-			password: "hashed_password",
+			username: testNewuser,
+			email:    testNewuserExampleCom,
+			password: testHashedPassword,
 			setupMocks: func(unverifiedUserRepo *mockUnverifiedUserRepository) {
 				unverifiedUserRepo.createFn = func(ctx context.Context, user *cryptoutilAppsFrameworkServiceServerRepository.UnverifiedUser) error {
 					return nil
@@ -57,9 +57,9 @@ func TestRegistrationService_RegisterUser_ExistingTenant(t *testing.T) {
 		},
 		{
 			name:     "unverified user creation fails",
-			username: "newuser",
-			email:    "newuser@example.com",
-			password: "hashed_password",
+			username: testNewuser,
+			email:    testNewuserExampleCom,
+			password: testHashedPassword,
 			setupMocks: func(unverifiedUserRepo *mockUnverifiedUserRepository) {
 				unverifiedUserRepo.createFn = func(ctx context.Context, user *cryptoutilAppsFrameworkServiceServerRepository.UnverifiedUser) error {
 					return errors.New("duplicate username")
@@ -125,22 +125,22 @@ func TestRegistrationService_RegisterUser_ValidationErrors(t *testing.T) {
 			name:             "neither newTenant nor existingTenantID provided",
 			newTenant:        nil,
 			existingTenantID: nil,
-			errContains:      "exactly one of newTenant or existingTenantID must be provided",
+			errContains:      valueExactlyOneOfNewTenantOrExistingTenantIDMustBeProvided,
 		},
 		{
 			name: "both newTenant and existingTenantID provided",
 			newTenant: &NewTenantInfo{
-				Name:        "Test",
-				Description: "Test",
+				Name:        testTest,
+				Description: testTest,
 			},
 			existingTenantID: &tenantID,
-			errContains:      "exactly one of newTenant or existingTenantID must be provided",
+			errContains:      valueExactlyOneOfNewTenantOrExistingTenantIDMustBeProvided,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result, err := service.RegisterUser(ctx, "user", "user@example.com", "hash", tt.newTenant, tt.existingTenantID)
+			result, err := service.RegisterUser(ctx, "user", "user@example.com", testHash, tt.newTenant, tt.existingTenantID)
 
 			require.Error(t, err)
 			require.Contains(t, err.Error(), tt.errContains)
@@ -168,7 +168,7 @@ func TestRegistrationService_RegisterClient_NewTenant(t *testing.T) {
 	}
 	roleRepo := &mockRoleRepository{
 		getByNameFn: func(ctx context.Context, tenantID googleUuid.UUID, name string) (*cryptoutilAppsFrameworkServiceServerRepository.Role, error) {
-			return &cryptoutilAppsFrameworkServiceServerRepository.Role{ID: roleID, TenantID: tenantID, Name: "admin"}, nil
+			return &cryptoutilAppsFrameworkServiceServerRepository.Role{ID: roleID, TenantID: tenantID, Name: valueAdmin}, nil
 		},
 	}
 	clientRoleRepo := &mockClientRoleRepository{
@@ -188,7 +188,7 @@ func TestRegistrationService_RegisterClient_NewTenant(t *testing.T) {
 		clientRoleRepo,
 	)
 
-	result, err := service.RegisterClient(ctx, "client-id", "client-secret", &NewTenantInfo{Name: "Test Corp", Description: "Test"}, nil)
+	result, err := service.RegisterClient(ctx, "client-id", "client-secret", &NewTenantInfo{Name: "Test Corp", Description: testTest}, nil)
 
 	require.NoError(t, err)
 	require.NotNil(t, result)

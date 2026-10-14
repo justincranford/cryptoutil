@@ -339,13 +339,10 @@ func (c *Checker) checkValidityPeriod(cert *x509.Certificate) Requirement {
 	status := StatusCompliant
 
 	// BR limits subscriber certificates to 398 days.
-	const (
-		maxValidityDays = cryptoutilSharedMagic.TLSMaxValidityEndEntityDays
-	)
 
 	validityDays := int(cert.NotAfter.Sub(cert.NotBefore).Hours() / cryptoutilSharedMagic.HoursPerDay)
 
-	if !cert.IsCA && validityDays > maxValidityDays {
+	if !cert.IsCA && validityDays > cryptoutilSharedMagic.TLSMaxValidityEndEntityDays {
 		status = StatusNonCompliant
 	}
 
@@ -419,9 +416,3 @@ func (c *Checker) checkExtensions(cert *x509.Certificate) []Requirement {
 
 	return requirements
 }
-
-const (
-	minRSAKeyBits = cryptoutilSharedMagic.RSA2048KeySize
-	minECKeyBits  = cryptoutilSharedMagic.ECDSAP256KeySizeBits
-	bitsPerByte   = cryptoutilSharedMagic.BitsPerByte
-)

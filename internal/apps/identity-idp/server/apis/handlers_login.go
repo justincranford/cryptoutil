@@ -24,7 +24,7 @@ func (s *Service) handleLogin(c *fiber.Ctx) error {
 	if requestID == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInvalidRequest,
-			"error_description":               "request_id is required",
+			valueErrorDescription:             valueRequestIDIsRequired,
 		})
 	}
 
@@ -32,8 +32,8 @@ func (s *Service) handleLogin(c *fiber.Ctx) error {
 	c.Set(fiber.HeaderContentType, fiber.MIMETextHTML)
 
 	return s.templates.ExecuteTemplate(c.Response().BodyWriter(), "login.html", fiber.Map{
-		"RequestID": requestID,
-		"Error":     "",
+		valueRequestID: requestID,
+		"Error":        "",
 	})
 }
 
@@ -48,21 +48,21 @@ func (s *Service) handleLoginSubmit(c *fiber.Ctx) error {
 	if username == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInvalidRequest,
-			"error_description":               "username is required",
+			valueErrorDescription:             "username is required",
 		})
 	}
 
 	if password == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInvalidRequest,
-			"error_description":               "password is required",
+			valueErrorDescription:             "password is required",
 		})
 	}
 
 	if requestIDStr == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInvalidRequest,
-			"error_description":               "request_id is required",
+			valueErrorDescription:             valueRequestIDIsRequired,
 		})
 	}
 
@@ -74,8 +74,8 @@ func (s *Service) handleLoginSubmit(c *fiber.Ctx) error {
 			c.Set(fiber.HeaderRetryAfter, fmt.Sprintf("%d", int(s.config.Security.RateLimitWindow.Seconds())))
 
 			return c.Status(fiber.StatusTooManyRequests).JSON(fiber.Map{
-				cryptoutilSharedMagic.StringError: "rate_limit_exceeded",
-				"error_description":               "Too many login attempts, please try again later",
+				cryptoutilSharedMagic.StringError: valueRateLimitExceeded,
+				valueErrorDescription:             "Too many login attempts, please try again later",
 			})
 		}
 	}
@@ -85,7 +85,7 @@ func (s *Service) handleLoginSubmit(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInvalidRequest,
-			"error_description":               "Invalid request_id format",
+			valueErrorDescription:             valueInvalidRequestIDFormat,
 		})
 	}
 
@@ -96,7 +96,7 @@ func (s *Service) handleLoginSubmit(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInvalidRequest,
-			"error_description":               "Authorization request not found or expired",
+			valueErrorDescription:             valueAuthorizationRequestNotFoundOrExpired,
 		})
 	}
 
@@ -104,7 +104,7 @@ func (s *Service) handleLoginSubmit(c *fiber.Ctx) error {
 	if authRequest.IsExpired() {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInvalidRequest,
-			"error_description":               "Authorization request has expired",
+			valueErrorDescription:             valueAuthorizationRequestHasExpired,
 		})
 	}
 
@@ -113,7 +113,7 @@ func (s *Service) handleLoginSubmit(c *fiber.Ctx) error {
 	if !exists {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorServerError,
-			"error_description":               "Authentication profile not available",
+			valueErrorDescription:             "Authentication profile not available",
 		})
 	}
 
@@ -130,7 +130,7 @@ func (s *Service) handleLoginSubmit(c *fiber.Ctx) error {
 
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorAccessDenied,
-			"error_description":               "Invalid username or password",
+			valueErrorDescription:             "Invalid username or password",
 		})
 	}
 
@@ -143,7 +143,7 @@ func (s *Service) handleLoginSubmit(c *fiber.Ctx) error {
 	if err := authzReqRepo.Update(ctx, authRequest); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorServerError,
-			"error_description":               "Failed to update authorization request",
+			valueErrorDescription:             "Failed to update authorization request",
 		})
 	}
 
@@ -165,7 +165,7 @@ func (s *Service) handleLoginSubmit(c *fiber.Ctx) error {
 	if err := sessionRepo.Create(ctx, session); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorServerError,
-			"error_description":               "Failed to create session",
+			valueErrorDescription:             "Failed to create session",
 		})
 	}
 

@@ -30,7 +30,7 @@ func TestHandleListMFAFactors_NoFactors(t *testing.T) {
 		ID:           googleUuid.Must(googleUuid.NewV7()),
 		Sub:          googleUuid.Must(googleUuid.NewV7()).String(),
 		Email:        fmt.Sprintf("test-%s@example.com", googleUuid.Must(googleUuid.NewV7()).String()),
-		PasswordHash: "hash",
+		PasswordHash: testHash,
 	}
 	require.NoError(t, userRepo.Create(ctx, user))
 
@@ -99,7 +99,7 @@ func TestHandleDeleteMFAFactor_HappyPath(t *testing.T) {
 		ID:           googleUuid.Must(googleUuid.NewV7()),
 		Sub:          googleUuid.Must(googleUuid.NewV7()).String(),
 		Email:        fmt.Sprintf("test-%s@example.com", googleUuid.Must(googleUuid.NewV7()).String()),
-		PasswordHash: "hash",
+		PasswordHash: testHash,
 	}
 	require.NoError(t, userRepo.Create(ctx, user))
 
@@ -108,7 +108,7 @@ func TestHandleDeleteMFAFactor_HappyPath(t *testing.T) {
 	authProfile := &cryptoutilIdentityDomain.AuthProfile{
 		ID:          googleUuid.Must(googleUuid.NewV7()),
 		Name:        fmt.Sprintf("user_%s_default", user.ID.String()),
-		Description: "Test profile",
+		Description: testTestProfile,
 		ProfileType: cryptoutilIdentityDomain.AuthProfileTypeUsernamePassword,
 		Enabled:     true,
 	}
@@ -118,7 +118,7 @@ func TestHandleDeleteMFAFactor_HappyPath(t *testing.T) {
 	mfaFactorRepo := repoFactory.MFAFactorRepository()
 	factor := &cryptoutilIdentityDomain.MFAFactor{
 		ID:            googleUuid.Must(googleUuid.NewV7()),
-		Name:          "TOTP Factor",
+		Name:          testTotpFactor,
 		FactorType:    cryptoutilIdentityDomain.MFAFactorTypeTOTP,
 		AuthProfileID: authProfile.ID,
 		Required:      cryptoutilIdentityDomain.IntBool(true),
@@ -161,7 +161,7 @@ func TestHandleDeleteMFAFactor_FactorNotFound(t *testing.T) {
 		ID:           googleUuid.Must(googleUuid.NewV7()),
 		Sub:          googleUuid.Must(googleUuid.NewV7()).String(),
 		Email:        fmt.Sprintf("test-%s@example.com", googleUuid.Must(googleUuid.NewV7()).String()),
-		PasswordHash: "hash",
+		PasswordHash: testHash,
 	}
 	require.NoError(t, userRepo.Create(ctx, user))
 
@@ -202,7 +202,7 @@ func TestHandleDeleteMFAFactor_Unauthorized(t *testing.T) {
 		Sub:               googleUuid.Must(googleUuid.NewV7()).String(),
 		Email:             fmt.Sprintf("owner-%s@example.com", googleUuid.Must(googleUuid.NewV7()).String()),
 		PreferredUsername: fmt.Sprintf("owner-%s", googleUuid.Must(googleUuid.NewV7()).String()),
-		PasswordHash:      "hash",
+		PasswordHash:      testHash,
 	}
 	require.NoError(t, userRepo.Create(ctx, ownerUser))
 
@@ -211,7 +211,7 @@ func TestHandleDeleteMFAFactor_Unauthorized(t *testing.T) {
 		Sub:               googleUuid.Must(googleUuid.NewV7()).String(),
 		Email:             fmt.Sprintf("other-%s@example.com", googleUuid.Must(googleUuid.NewV7()).String()),
 		PreferredUsername: fmt.Sprintf("other-%s", googleUuid.Must(googleUuid.NewV7()).String()),
-		PasswordHash:      "hash",
+		PasswordHash:      testHash,
 	}
 	require.NoError(t, userRepo.Create(ctx, otherUser))
 

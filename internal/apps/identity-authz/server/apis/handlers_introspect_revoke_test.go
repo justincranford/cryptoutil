@@ -34,7 +34,7 @@ func TestHandleIntrospect_MissingToken(t *testing.T) {
 
 	reqBody := url.Values{}
 
-	req := httptest.NewRequest("POST", "/oauth2/v1/introspect", strings.NewReader(reqBody.Encode()))
+	req := httptest.NewRequest(testPost, testOauth2V1Introspect, strings.NewReader(reqBody.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	resp, err := app.Test(req, -1)
@@ -58,10 +58,10 @@ func TestHandleIntrospect_MissingClient(t *testing.T) {
 	svc.RegisterRoutes(app)
 
 	reqBody := url.Values{
-		cryptoutilSharedMagic.ParamToken: []string{"test-token"},
+		cryptoutilSharedMagic.ParamToken: []string{testTestToken},
 	}
 
-	req := httptest.NewRequest("POST", "/oauth2/v1/introspect", strings.NewReader(reqBody.Encode()))
+	req := httptest.NewRequest(testPost, testOauth2V1Introspect, strings.NewReader(reqBody.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	resp, err := app.Test(req, -1)
@@ -86,7 +86,7 @@ func TestHandleRevoke_MissingToken(t *testing.T) {
 
 	reqBody := url.Values{}
 
-	req := httptest.NewRequest("POST", "/oauth2/v1/revoke", strings.NewReader(reqBody.Encode()))
+	req := httptest.NewRequest(testPost, testOauth2V1Revoke, strings.NewReader(reqBody.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	resp, err := app.Test(req, -1)
@@ -110,10 +110,10 @@ func TestHandleRevoke_MissingClient(t *testing.T) {
 	svc.RegisterRoutes(app)
 
 	reqBody := url.Values{
-		cryptoutilSharedMagic.ParamToken: []string{"test-token"},
+		cryptoutilSharedMagic.ParamToken: []string{testTestToken},
 	}
 
-	req := httptest.NewRequest("POST", "/oauth2/v1/revoke", strings.NewReader(reqBody.Encode()))
+	req := httptest.NewRequest(testPost, testOauth2V1Revoke, strings.NewReader(reqBody.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	resp, err := app.Test(req, -1)
@@ -130,10 +130,10 @@ func createIntrospectTestConfig(t *testing.T) *cryptoutilIdentityConfig.Config {
 	return &cryptoutilIdentityConfig.Config{
 		Database: &cryptoutilIdentityConfig.DatabaseConfig{
 			Type: cryptoutilSharedMagic.TestDatabaseSQLite,
-			DSN:  "file::memory:?cache=private",
+			DSN:  testFileMemoryCachePrivate,
 		},
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{
-			Issuer: "https://localhost:8080",
+			Issuer: testHTTPSLocalhost8080,
 		},
 	}
 }

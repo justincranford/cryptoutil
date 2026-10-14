@@ -30,52 +30,52 @@ func GetExpectedStructures() map[string]DeploymentStructure {
 	return map[string]DeploymentStructure{
 		cryptoutilSharedMagic.SkeletonTemplateServiceName: {
 			Name:          "Template deployment (deployments/template/)",
-			RequiredDirs:  []string{"secrets"},
+			RequiredDirs:  []string{validatorNameSecrets},
 			RequiredFiles: []string{cryptoutilSharedMagic.COMPOSE_YML},
 			RequiredSecrets: []string{
-				"hash_pepper_v3.secret", "unseal_1of5.secret", "unseal_2of5.secret",
-				"unseal_3of5.secret", "unseal_4of5.secret", "unseal_5of5.secret",
-				"postgres_username.secret", "postgres_password.secret",
-				"postgres_database.secret", "postgres_url.secret",
+				valueHashPepperV3Secret, valueUnseal1of5Secret, valueUnseal2of5Secret,
+				valueUnseal3of5Secret, valueUnseal4of5Secret, valueUnseal5of5Secret,
+				valuePostgresUsernameSecret, valuePostgresPasswordSecret,
+				valuePostgresDatabaseSecret, valuePostgresURLSecret,
 			},
-			AllowedExtensions: []string{".yml", ".yaml", cryptoutilSharedMagic.CICDTemplateSecretFileSuffix, ".md"},
+			AllowedExtensions: []string{valueYml, valueYAML, cryptoutilSharedMagic.CICDTemplateSecretFileSuffix, valueMd},
 		},
 		DeploymentTypeProductService: {
 			Name:          "PRODUCT-SERVICE deployment (e.g., sm-kms, sm-kms)",
-			RequiredDirs:  []string{"secrets", "config"},
+			RequiredDirs:  []string{validatorNameSecrets, fileTypeConfig},
 			RequiredFiles: []string{cryptoutilSharedMagic.COMPOSE_YML, deploymentDockerfileName},
 			OptionalFiles: []string{}, // no optional files
 			RequiredSecrets: []string{
-				"hash_pepper_v3.secret", "unseal_1of5.secret", "unseal_2of5.secret",
-				"unseal_3of5.secret", "unseal_4of5.secret", "unseal_5of5.secret",
-				"postgres_username.secret", "postgres_password.secret",
-				"postgres_database.secret", "postgres_url.secret",
+				valueHashPepperV3Secret, valueUnseal1of5Secret, valueUnseal2of5Secret,
+				valueUnseal3of5Secret, valueUnseal4of5Secret, valueUnseal5of5Secret,
+				valuePostgresUsernameSecret, valuePostgresPasswordSecret,
+				valuePostgresDatabaseSecret, valuePostgresURLSecret,
 			},
-			AllowedExtensions: []string{".yml", ".yaml", cryptoutilSharedMagic.CICDTemplateSecretFileSuffix, ".md"},
+			AllowedExtensions: []string{valueYml, valueYAML, cryptoutilSharedMagic.CICDTemplateSecretFileSuffix, valueMd},
 		},
 		DeploymentTypeProduct: {
 			Name:              "PRODUCT-level deployment (e.g., identity, sm, pki, jose, skeleton)",
-			RequiredDirs:      []string{"secrets"},
+			RequiredDirs:      []string{validatorNameSecrets},
 			RequiredFiles:     []string{cryptoutilSharedMagic.COMPOSE_YML},
 			OptionalFiles:     []string{}, // no optional files
 			RequiredSecrets:   []string{}, // Validated by validateProductSecrets() with product-specific prefixes
-			AllowedExtensions: []string{".yml", ".yaml", cryptoutilSharedMagic.CICDTemplateSecretFileSuffix, cryptoutilSharedMagic.CICDTemplateSecretFileNeverSuffix, ".md"},
+			AllowedExtensions: []string{valueYml, valueYAML, cryptoutilSharedMagic.CICDTemplateSecretFileSuffix, cryptoutilSharedMagic.CICDTemplateSecretFileNeverSuffix, valueMd},
 		},
 		DeploymentTypeSuite: {
 			Name:              "SUITE-level deployment (cryptoutil - all 10 services)",
-			RequiredDirs:      []string{"secrets"},
+			RequiredDirs:      []string{validatorNameSecrets},
 			RequiredFiles:     []string{cryptoutilSharedMagic.COMPOSE_YML, deploymentDockerfileName},
 			OptionalFiles:     []string{}, // no optional files
 			RequiredSecrets:   []string{}, // Validated by validateSuiteSecrets() with suite-specific prefixes
-			AllowedExtensions: []string{".yml", ".yaml", cryptoutilSharedMagic.CICDTemplateSecretFileSuffix, cryptoutilSharedMagic.CICDTemplateSecretFileNeverSuffix, ".md"},
+			AllowedExtensions: []string{valueYml, valueYAML, cryptoutilSharedMagic.CICDTemplateSecretFileSuffix, cryptoutilSharedMagic.CICDTemplateSecretFileNeverSuffix, valueMd},
 		},
 		"infrastructure": {
 			Name:              "Infrastructure deployment (postgres, telemetry)",
 			RequiredDirs:      []string{},
 			RequiredFiles:     []string{cryptoutilSharedMagic.COMPOSE_YML},
-			OptionalFiles:     []string{"init-db.sql", "README.md"},
+			OptionalFiles:     []string{"init-db.sql", valueReadmeMd},
 			RequiredSecrets:   []string{}, // Infrastructure secrets are optional
-			AllowedExtensions: []string{".yml", ".yaml", ".sql", ".md"},
+			AllowedExtensions: []string{valueYml, valueYAML, ".sql", valueMd},
 		},
 	}
 }

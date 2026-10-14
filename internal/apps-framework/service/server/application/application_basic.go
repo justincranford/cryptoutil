@@ -7,6 +7,7 @@ package application
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
@@ -38,9 +39,9 @@ func startBasicInternal(
 	newJWKGenServiceFn func(ctx context.Context, telemetryService *cryptoutilSharedTelemetry.TelemetryService, devMode bool) (*cryptoutilSharedCryptoJose.JWKGenService, error),
 ) (*Basic, error) {
 	if ctx == nil {
-		return nil, fmt.Errorf("ctx cannot be nil")
+		return nil, errors.New(valueCtxCannotBeNil)
 	} else if settings == nil {
-		return nil, fmt.Errorf("settings cannot be nil")
+		return nil, errors.New(valueSettingsCannotBeNil)
 	}
 
 	app := &Basic{Settings: settings}

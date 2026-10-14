@@ -47,8 +47,8 @@ func TestPrintExecutionSummary_AllSuccess(t *testing.T) {
 	t.Parallel()
 
 	results := []CommandResult{
-		{Command: "cmd1", Duration: cryptoutilSharedMagic.IMMaxUsernameLength * time.Millisecond, Error: nil},
-		{Command: "cmd2", Duration: 75 * time.Millisecond, Error: nil},
+		{Command: testCmd1, Duration: cryptoutilSharedMagic.IMMaxUsernameLength * time.Millisecond, Error: nil},
+		{Command: testCmd2, Duration: 75 * time.Millisecond, Error: nil},
 	}
 
 	var buf bytes.Buffer
@@ -65,8 +65,8 @@ func TestPrintExecutionSummary_AllFailure(t *testing.T) {
 	t.Parallel()
 
 	results := []CommandResult{
-		{Command: "cmd1", Duration: cryptoutilSharedMagic.IMMaxUsernameLength * time.Millisecond, Error: errors.New("error1")},
-		{Command: "cmd2", Duration: 75 * time.Millisecond, Error: errors.New("error2")},
+		{Command: testCmd1, Duration: cryptoutilSharedMagic.IMMaxUsernameLength * time.Millisecond, Error: errors.New("error1")},
+		{Command: testCmd2, Duration: 75 * time.Millisecond, Error: errors.New("error2")},
 	}
 
 	var buf bytes.Buffer
@@ -124,11 +124,11 @@ func TestCalculateStats(t *testing.T) {
 		expectedDuration time.Duration
 	}{
 		{
-			name: "mixed results",
+			name: testMixedResults,
 			results: []CommandResult{
-				{Command: "cmd1", Duration: cryptoutilSharedMagic.JoseJAMaxMaterials * time.Millisecond, Error: nil},
-				{Command: "cmd2", Duration: 200 * time.Millisecond, Error: errors.New(cryptoutilSharedMagic.StringError)},
-				{Command: "cmd3", Duration: 150 * time.Millisecond, Error: nil},
+				{Command: testCmd1, Duration: cryptoutilSharedMagic.JoseJAMaxMaterials * time.Millisecond, Error: nil},
+				{Command: testCmd2, Duration: 200 * time.Millisecond, Error: errors.New(cryptoutilSharedMagic.StringError)},
+				{Command: testCmd3, Duration: 150 * time.Millisecond, Error: nil},
 			},
 			totalDuration:    cryptoutilSharedMagic.TestDefaultRateLimitServiceIP * time.Millisecond,
 			expectedTotal:    3,
@@ -139,8 +139,8 @@ func TestCalculateStats(t *testing.T) {
 		{
 			name: "all success",
 			results: []CommandResult{
-				{Command: "cmd1", Duration: cryptoutilSharedMagic.IMMaxUsernameLength * time.Millisecond, Error: nil},
-				{Command: "cmd2", Duration: 75 * time.Millisecond, Error: nil},
+				{Command: testCmd1, Duration: cryptoutilSharedMagic.IMMaxUsernameLength * time.Millisecond, Error: nil},
+				{Command: testCmd2, Duration: 75 * time.Millisecond, Error: nil},
 			},
 			totalDuration:    150 * time.Millisecond,
 			expectedTotal:    2,
@@ -149,10 +149,10 @@ func TestCalculateStats(t *testing.T) {
 			expectedDuration: 150 * time.Millisecond,
 		},
 		{
-			name: "all failures",
+			name: testAllFailures,
 			results: []CommandResult{
-				{Command: "cmd1", Duration: cryptoutilSharedMagic.IMMaxUsernameLength * time.Millisecond, Error: errors.New("err1")},
-				{Command: "cmd2", Duration: 75 * time.Millisecond, Error: errors.New("err2")},
+				{Command: testCmd1, Duration: cryptoutilSharedMagic.IMMaxUsernameLength * time.Millisecond, Error: errors.New("err1")},
+				{Command: testCmd2, Duration: 75 * time.Millisecond, Error: errors.New("err2")},
 			},
 			totalDuration:    150 * time.Millisecond,
 			expectedTotal:    2,
@@ -161,7 +161,7 @@ func TestCalculateStats(t *testing.T) {
 			expectedDuration: 150 * time.Millisecond,
 		},
 		{
-			name:             "empty results",
+			name:             testEmptyResults,
 			results:          []CommandResult{},
 			totalDuration:    0,
 			expectedTotal:    0,
@@ -194,31 +194,31 @@ func TestHasFailures(t *testing.T) {
 		expected bool
 	}{
 		{
-			name: "no failures",
+			name: testNoFailures,
 			results: []CommandResult{
-				{Command: "cmd1", Error: nil},
-				{Command: "cmd2", Error: nil},
+				{Command: testCmd1, Error: nil},
+				{Command: testCmd2, Error: nil},
 			},
 			expected: false,
 		},
 		{
 			name: "has failures",
 			results: []CommandResult{
-				{Command: "cmd1", Error: nil},
-				{Command: "cmd2", Error: errors.New(cryptoutilSharedMagic.StringError)},
+				{Command: testCmd1, Error: nil},
+				{Command: testCmd2, Error: errors.New(cryptoutilSharedMagic.StringError)},
 			},
 			expected: true,
 		},
 		{
-			name: "all failures",
+			name: testAllFailures,
 			results: []CommandResult{
-				{Command: "cmd1", Error: errors.New("err1")},
-				{Command: "cmd2", Error: errors.New("err2")},
+				{Command: testCmd1, Error: errors.New("err1")},
+				{Command: testCmd2, Error: errors.New("err2")},
 			},
 			expected: true,
 		},
 		{
-			name:     "empty results",
+			name:     testEmptyResults,
 			results:  []CommandResult{},
 			expected: false,
 		},
@@ -244,33 +244,33 @@ func TestGetFailedCommands(t *testing.T) {
 		expected []string
 	}{
 		{
-			name: "mixed results",
+			name: testMixedResults,
 			results: []CommandResult{
-				{Command: "cmd1", Error: nil},
-				{Command: "cmd2", Error: errors.New(cryptoutilSharedMagic.StringError)},
-				{Command: "cmd3", Error: nil},
-				{Command: "cmd4", Error: errors.New("error2")},
+				{Command: testCmd1, Error: nil},
+				{Command: testCmd2, Error: errors.New(cryptoutilSharedMagic.StringError)},
+				{Command: testCmd3, Error: nil},
+				{Command: testCmd4, Error: errors.New("error2")},
 			},
-			expected: []string{"cmd2", "cmd4"},
+			expected: []string{testCmd2, testCmd4},
 		},
 		{
-			name: "no failures",
+			name: testNoFailures,
 			results: []CommandResult{
-				{Command: "cmd1", Error: nil},
-				{Command: "cmd2", Error: nil},
+				{Command: testCmd1, Error: nil},
+				{Command: testCmd2, Error: nil},
 			},
 			expected: nil,
 		},
 		{
-			name: "all failures",
+			name: testAllFailures,
 			results: []CommandResult{
-				{Command: "cmd1", Error: errors.New("err1")},
-				{Command: "cmd2", Error: errors.New("err2")},
+				{Command: testCmd1, Error: errors.New("err1")},
+				{Command: testCmd2, Error: errors.New("err2")},
 			},
-			expected: []string{"cmd1", "cmd2"},
+			expected: []string{testCmd1, testCmd2},
 		},
 		{
-			name:     "empty results",
+			name:     testEmptyResults,
 			results:  []CommandResult{},
 			expected: nil,
 		},

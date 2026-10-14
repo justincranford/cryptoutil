@@ -44,7 +44,7 @@ var baseInitialisms = []string{
 func Check(logger *cryptoutilCmdCicdCommon.Logger, filesByExtension map[string][]string) error {
 	logger.Log("Checking oapi-codegen config base initialisms...")
 
-	yamlFiles := append(filesByExtension["yaml"], filesByExtension["yml"]...)
+	yamlFiles := append(filesByExtension[valueYAML], filesByExtension["yml"]...)
 	if len(yamlFiles) == 0 {
 		logger.Log("No YAML files to check")
 

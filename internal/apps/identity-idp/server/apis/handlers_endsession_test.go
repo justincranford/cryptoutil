@@ -54,9 +54,9 @@ func TestHandleEndSession_GET(t *testing.T) {
 			TLSEnabled:  true,
 		},
 		Sessions: &cryptoutilIdentityConfig.SessionConfig{
-			CookieName:      "session_id",
+			CookieName:      testSessionID,
 			CookieHTTPOnly:  true,
-			CookieSameSite:  "Lax",
+			CookieSameSite:  testLax,
 			SessionLifetime: 1 * time.Hour,
 		},
 	}
@@ -71,8 +71,8 @@ func TestHandleEndSession_GET(t *testing.T) {
 		ClientID:                "test-logout-client",
 		ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
 		Name:                    "Test Logout Client",
-		RedirectURIs:            []string{"https://client.example.com/callback"},
-		PostLogoutRedirectURIs:  []string{"https://client.example.com/logged-out"},
+		RedirectURIs:            []string{testHTTPSClientExampleComCallback},
+		PostLogoutRedirectURIs:  []string{testHTTPSClientExampleComLoggedOut},
 		TokenEndpointAuthMethod: cryptoutilIdentityDomain.ClientAuthMethodSecretBasic,
 	}
 	clientRepo := repoFactory.ClientRepository()
@@ -90,7 +90,7 @@ func TestHandleEndSession_GET(t *testing.T) {
 		UserID:                testUser.ID,
 		SessionID:             googleUuid.Must(googleUuid.NewV7()).String(),
 		IPAddress:             cryptoutilSharedMagic.IPv4Loopback,
-		UserAgent:             "test-agent",
+		UserAgent:             testTestAgent,
 		IssuedAt:              time.Now().UTC(),
 		ExpiresAt:             time.Now().UTC().Add(1 * time.Hour),
 		LastSeenAt:            time.Now().UTC(),
@@ -135,17 +135,17 @@ func TestHandleEndSession_GET(t *testing.T) {
 			name: "Valid redirect URI redirects",
 			queryParams: map[string]string{
 				cryptoutilSharedMagic.ClaimClientID: testClient.ClientID,
-				"post_logout_redirect_uri":          "https://client.example.com/logged-out",
+				testPostLogoutRedirectURI:           testHTTPSClientExampleComLoggedOut,
 			},
 			expectedStatus:      http.StatusFound,
 			expectRedirect:      true,
-			expectedRedirectURL: "https://client.example.com/logged-out",
+			expectedRedirectURL: testHTTPSClientExampleComLoggedOut,
 		},
 		{
 			name: "Valid redirect URI with state includes state in redirect",
 			queryParams: map[string]string{
 				cryptoutilSharedMagic.ClaimClientID: testClient.ClientID,
-				"post_logout_redirect_uri":          "https://client.example.com/logged-out",
+				testPostLogoutRedirectURI:           testHTTPSClientExampleComLoggedOut,
 				cryptoutilSharedMagic.ParamState:    "test-state-123",
 			},
 			expectedStatus: http.StatusFound,
@@ -155,7 +155,7 @@ func TestHandleEndSession_GET(t *testing.T) {
 			name: "Invalid redirect URI returns error",
 			queryParams: map[string]string{
 				cryptoutilSharedMagic.ClaimClientID: testClient.ClientID,
-				"post_logout_redirect_uri":          "https://malicious.com/callback",
+				testPostLogoutRedirectURI:           "https://malicious.com/callback",
 			},
 			expectedStatus: http.StatusBadRequest,
 		},
@@ -172,7 +172,7 @@ func TestHandleEndSession_GET(t *testing.T) {
 			name: "Unknown client returns error for redirect validation",
 			queryParams: map[string]string{
 				cryptoutilSharedMagic.ClaimClientID: "unknown-client",
-				"post_logout_redirect_uri":          "https://unknown.com/callback",
+				testPostLogoutRedirectURI:           "https://unknown.com/callback",
 			},
 			expectedStatus: http.StatusBadRequest,
 		},
@@ -199,7 +199,7 @@ func TestHandleEndSession_GET(t *testing.T) {
 
 			if tc.sessionCookie != "" {
 				req.AddCookie(&http.Cookie{
-					Name:     "session_id",
+					Name:     testSessionID,
 					Value:    tc.sessionCookie,
 					Secure:   true,
 					HttpOnly: true,

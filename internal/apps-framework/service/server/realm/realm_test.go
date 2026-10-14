@@ -102,7 +102,7 @@ func TestRealmConfig_Validate(t *testing.T) {
 				Realms: []RealmConfig{
 					{
 						ID:      realmTestID1,
-						Name:    "test-realm",
+						Name:    testTestRealm,
 						Type:    RealmTypeFile,
 						Enabled: true,
 					},
@@ -115,7 +115,7 @@ func TestRealmConfig_Validate(t *testing.T) {
 			config: Config{
 				Realms: []RealmConfig{
 					{
-						Name:    "test-realm",
+						Name:    testTestRealm,
 						Type:    RealmTypeFile,
 						Enabled: true,
 					},
@@ -130,7 +130,7 @@ func TestRealmConfig_Validate(t *testing.T) {
 				Realms: []RealmConfig{
 					{
 						ID:      "not-a-uuid",
-						Name:    "test-realm",
+						Name:    testTestRealm,
 						Type:    RealmTypeFile,
 						Enabled: true,
 					},
@@ -159,13 +159,13 @@ func TestRealmConfig_Validate(t *testing.T) {
 				Realms: []RealmConfig{
 					{
 						ID:      realmTestID1,
-						Name:    "realm1",
+						Name:    testRealm1Value7BF439FE,
 						Type:    RealmTypeFile,
 						Enabled: true,
 					},
 					{
 						ID:      realmTestID1,
-						Name:    "realm2",
+						Name:    testRealm2,
 						Type:    RealmTypeFile,
 						Enabled: true,
 					},
@@ -180,13 +180,13 @@ func TestRealmConfig_Validate(t *testing.T) {
 				Realms: []RealmConfig{
 					{
 						ID:      realmTestID1,
-						Name:    "same-name",
+						Name:    testSameName,
 						Type:    RealmTypeFile,
 						Enabled: true,
 					},
 					{
 						ID:      userTestID1,
-						Name:    "same-name",
+						Name:    testSameName,
 						Type:    RealmTypeFile,
 						Enabled: true,
 					},
@@ -201,14 +201,14 @@ func TestRealmConfig_Validate(t *testing.T) {
 				Realms: []RealmConfig{
 					{
 						ID:      realmTestID1,
-						Name:    "test-realm",
+						Name:    testTestRealm,
 						Type:    RealmType(cryptoutilSharedMagic.DevSetupTestInvalidName),
 						Enabled: true,
 					},
 				},
 			},
 			wantErr: true,
-			errMsg:  "invalid type",
+			errMsg:  testInvalidType,
 		},
 	}
 
@@ -280,13 +280,13 @@ defaults:
 	require.NotNil(t, config)
 	require.Equal(t, "1.0", config.Version)
 	require.Len(t, config.Realms, 1)
-	require.Equal(t, "test-realm", config.Realms[0].Name)
+	require.Equal(t, testTestRealm, config.Realms[0].Name)
 	require.Equal(t, RealmTypeFile, config.Realms[0].Type)
 	require.True(t, config.Realms[0].Enabled)
 	require.Len(t, config.Realms[0].Users, 1)
-	require.Equal(t, "admin", config.Realms[0].Users[0].Username)
+	require.Equal(t, testAdmin, config.Realms[0].Users[0].Username)
 	require.Len(t, config.Realms[0].Roles, 1)
-	require.Equal(t, "admin", config.Realms[0].Roles[0].Name)
+	require.Equal(t, testAdmin, config.Realms[0].Roles[0].Name)
 }
 
 func TestLoadConfig_InvalidYAML(t *testing.T) {
@@ -324,7 +324,7 @@ func TestIsValidRealmType(t *testing.T) {
 		{name: "ldap type", realmType: RealmTypeLDAP, valid: true},
 		{name: "oidc type", realmType: RealmTypeOIDC, valid: true},
 		{name: "empty type", realmType: RealmType(""), valid: false},
-		{name: "invalid type", realmType: RealmType(cryptoutilSharedMagic.DevSetupTestInvalidName), valid: false},
+		{name: testInvalidType, realmType: RealmType(cryptoutilSharedMagic.DevSetupTestInvalidName), valid: false},
 	}
 
 	for _, tc := range tests {

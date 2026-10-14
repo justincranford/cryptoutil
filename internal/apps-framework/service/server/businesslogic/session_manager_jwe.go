@@ -97,8 +97,8 @@ func (sm *SessionManager) issueJWESession(ctx context.Context, isBrowser bool, p
 		cryptoutilSharedMagic.ClaimIat: now.Unix(),
 		cryptoutilSharedMagic.ClaimExp: exp.Unix(),
 		cryptoutilSharedMagic.ClaimSub: principalID,
-		"tenant_id":                    tenantID.String(),
-		"realm_id":                     realmID.String(),
+		valueTenantID:                  tenantID.String(),
+		valueRealmID:                   realmID.String(),
 	}
 
 	claimsBytes, marshalErr := sm.jsonMarshalFn(claims)

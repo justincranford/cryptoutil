@@ -136,9 +136,9 @@ func TestPushNotificationAuthenticator_InitiateAuth(t *testing.T) {
 	user := &cryptoutilIdentityDomain.User{
 		ID:              googleUuid.New(),
 		Sub:             userID,
-		Email:           "user@example.com",
-		PushDeviceToken: "fcm-device-token-123",
-		PasswordHash:    "test-hash",
+		Email:           testUserExampleCom,
+		PushDeviceToken: testFcmDeviceToken123,
+		PasswordHash:    testTestHash,
 	}
 	err := userRepo.Create(ctx, user)
 	require.NoError(t, err)
@@ -157,7 +157,7 @@ func TestPushNotificationAuthenticator_InitiateAuth(t *testing.T) {
 	// Verify push notification was sent.
 	require.Len(t, mockPush.sentNotifications, 1)
 	notification := mockPush.sentNotifications[0]
-	require.Equal(t, "fcm-device-token-123", notification.DeviceToken)
+	require.Equal(t, testFcmDeviceToken123, notification.DeviceToken)
 	require.Contains(t, notification.Title, "Authentication Request")
 	require.Contains(t, notification.Body, "approve")
 	require.Contains(t, notification.Data, "challenge_id")
@@ -201,9 +201,9 @@ func TestPushNotificationAuthenticator_InitiateAuthNoDeviceToken(t *testing.T) {
 	user := &cryptoutilIdentityDomain.User{
 		ID:              googleUuid.New(),
 		Sub:             userID,
-		Email:           "user@example.com",
+		Email:           testUserExampleCom,
 		PushDeviceToken: "", // No device token.
-		PasswordHash:    "test-hash",
+		PasswordHash:    testTestHash,
 	}
 	err := userRepo.Create(ctx, user)
 	require.NoError(t, err)
@@ -232,9 +232,9 @@ func TestPushNotificationAuthenticator_VerifyAuth(t *testing.T) {
 	user := &cryptoutilIdentityDomain.User{
 		ID:              googleUuid.New(),
 		Sub:             userID,
-		Email:           "user@example.com",
-		PushDeviceToken: "fcm-device-token-123",
-		PasswordHash:    "test-hash",
+		Email:           testUserExampleCom,
+		PushDeviceToken: testFcmDeviceToken123,
+		PasswordHash:    testTestHash,
 	}
 	err := userRepo.Create(ctx, user)
 	require.NoError(t, err)

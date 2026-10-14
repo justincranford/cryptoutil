@@ -30,7 +30,7 @@ func TestClientRepository_RotateSecret(t *testing.T) {
 	client := &cryptoutilIdentityDomain.Client{
 		ID:                      googleUuid.Must(googleUuid.NewV7()),
 		ClientID:                "test-client-rotate-secret",
-		ClientSecret:            "initial-secret-hash",
+		ClientSecret:            testInitialSecretHash,
 		ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
 		Name:                    "Test Client for Secret Rotation",
 		TokenEndpointAuthMethod: cryptoutilIdentityDomain.ClientAuthMethodSecretPost,
@@ -58,20 +58,20 @@ func TestClientRepository_RotateSecret(t *testing.T) {
 		setup         func(t *testing.T)
 	}{
 		{
-			name:          "successful_rotation",
+			name:          testSuccessfulRotation,
 			clientID:      client.ID,
-			newSecretHash: "new-secret-hash",
-			rotatedBy:     "admin@example.com",
+			newSecretHash: testNewSecretHash,
+			rotatedBy:     testAdminExampleCom,
 			reason:        "Scheduled rotation",
 			wantErr:       nil,
 			setup:         func(_ *testing.T) {},
 		},
 		{
-			name:          "client_not_found",
+			name:          testClientNotFoundValueB2EC3166,
 			clientID:      googleUuid.Must(googleUuid.NewV7()),
-			newSecretHash: "new-secret-hash",
-			rotatedBy:     "admin@example.com",
-			reason:        "Test rotation",
+			newSecretHash: testNewSecretHash,
+			rotatedBy:     testAdminExampleCom,
+			reason:        testTestRotation,
 			wantErr:       cryptoutilIdentityAppErr.ErrClientNotFound,
 			setup:         func(_ *testing.T) {},
 		},
@@ -79,8 +79,8 @@ func TestClientRepository_RotateSecret(t *testing.T) {
 			name:          "empty_new_secret_hash",
 			clientID:      client.ID,
 			newSecretHash: "",
-			rotatedBy:     "admin@example.com",
-			reason:        "Test rotation",
+			rotatedBy:     testAdminExampleCom,
+			reason:        testTestRotation,
 			wantErr:       nil, // Repository allows empty hash (validation should happen at service layer)
 			setup:         func(_ *testing.T) {},
 		},
@@ -117,7 +117,7 @@ func TestClientRepository_RotateSecret(t *testing.T) {
 					Find(&history).Error
 				require.NoError(t, err)
 
-				if tc.name == "successful_rotation" {
+				if tc.name == testSuccessfulRotation {
 					require.Len(t, history, 1, "Expected old secret in history")
 					require.Equal(t, tc.clientID, history[0].ClientID)
 					require.Equal(t, oldSecretHash, history[0].SecretHash)
@@ -156,12 +156,12 @@ func TestClientRepository_GetSecretHistory(t *testing.T) {
 		},
 		{
 			name:            "multiple_rotations",
-			setupRotations:  3,
+			setupRotations:  test3,
 			expectHistoryOK: true,
 			wantErr:         nil,
 		},
 		{
-			name:            "client_not_found",
+			name:            testClientNotFoundValueB2EC3166,
 			setupRotations:  0,
 			expectHistoryOK: true, // Returns empty list, not error
 			wantErr:         nil,
@@ -175,7 +175,7 @@ func TestClientRepository_GetSecretHistory(t *testing.T) {
 			client := &cryptoutilIdentityDomain.Client{
 				ID:                      googleUuid.Must(googleUuid.NewV7()),
 				ClientID:                fmt.Sprintf("test-client-history-%s", tc.name),
-				ClientSecret:            "initial-secret-hash",
+				ClientSecret:            testInitialSecretHash,
 				ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
 				Name:                    fmt.Sprintf("Test Client for %s", tc.name),
 				TokenEndpointAuthMethod: cryptoutilIdentityDomain.ClientAuthMethodSecretPost,
@@ -195,7 +195,7 @@ func TestClientRepository_GetSecretHistory(t *testing.T) {
 
 			// Use a different client ID for "client_not_found" test.
 			clientID := client.ID
-			if tc.name == "client_not_found" {
+			if tc.name == testClientNotFoundValueB2EC3166 {
 				clientID = googleUuid.Must(googleUuid.NewV7())
 			}
 

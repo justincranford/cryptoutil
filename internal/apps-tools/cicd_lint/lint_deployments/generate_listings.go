@@ -38,15 +38,15 @@ func classifyFileType(filename string) string {
 	switch {
 	case strings.HasSuffix(lower, cryptoutilSharedMagic.CICDTemplateSecretFileSuffix) || strings.HasSuffix(lower, ".never"):
 		return fileTypeSecret
-	case strings.HasPrefix(lower, "compose") && (strings.HasSuffix(lower, ".yml") || strings.HasSuffix(lower, ".yaml")):
+	case strings.HasPrefix(lower, "compose") && (strings.HasSuffix(lower, valueYml) || strings.HasSuffix(lower, valueYAML)):
 		return fileTypeCompose
-	case strings.HasPrefix(lower, "dockerfile") || lower == "dockerfile":
+	case strings.HasPrefix(lower, valueDockerfile) || lower == valueDockerfile:
 		return fileTypeDocker
-	case strings.HasSuffix(lower, ".yml") || strings.HasSuffix(lower, ".yaml"):
+	case strings.HasSuffix(lower, valueYml) || strings.HasSuffix(lower, valueYAML):
 		return fileTypeConfig
 	case strings.HasSuffix(lower, ".sql"):
 		return fileTypeSQL
-	case strings.HasSuffix(lower, ".md"):
+	case strings.HasSuffix(lower, valueMd):
 		return fileTypeDoc
 	case strings.HasSuffix(lower, ".json"):
 		return fileTypeJSON
@@ -64,9 +64,9 @@ func classifyFileStatus(relPath string) string {
 		return RequiredFileStatus
 	case strings.HasSuffix(lower, cryptoutilSharedMagic.CICDTemplateSecretFileSuffix):
 		return RequiredFileStatus
-	case strings.HasSuffix(lower, "dockerfile"):
+	case strings.HasSuffix(lower, valueDockerfile):
 		return RequiredFileStatus
-	case strings.HasSuffix(lower, ".md"):
+	case strings.HasSuffix(lower, valueMd):
 		return OptionalFileStatus
 	case strings.HasSuffix(lower, ".never"):
 		return RequiredFileStatus

@@ -29,10 +29,10 @@ import (
 const toolsProductName = "tools"
 
 // publicServerMethods is the complete method set of IPublicServer.
-var publicServerMethods = []string{"Start", "Shutdown", "ActualPort", "PublicBaseURL"}
+var publicServerMethods = []string{valueStart, valueShutdown, valueActualPort, "PublicBaseURL"}
 
 // adminServerMethods is the complete method set of IAdminServer.
-var adminServerMethods = []string{"Start", "Shutdown", "ActualPort", "SetReady", "AdminBaseURL", "AdminTLSRootCAPool"}
+var adminServerMethods = []string{valueStart, valueShutdown, valueActualPort, "SetReady", "AdminBaseURL", "AdminTLSRootCAPool"}
 
 // Violation records one detected local stub type.
 type Violation struct {

@@ -80,7 +80,7 @@ func TestCheckDelegationPattern_ProductValid(t *testing.T) {
 	}{
 		{
 			name:           "sm includes sm-kms",
-			deploymentName: "sm",
+			deploymentName: valueSm,
 			composeContent: "include:\n  - path: ../sm-kms/compose.yml\n",
 		},
 		{
@@ -119,7 +119,7 @@ func TestCheckDelegationPattern_ProductMissingService(t *testing.T) {
 		deploymentName string
 		wantError      string
 	}{
-		{name: "sm missing sm-kms", deploymentName: "sm", wantError: cryptoutilSharedMagic.OTLPServiceSMKMS},
+		{name: "sm missing sm-kms", deploymentName: valueSm, wantError: cryptoutilSharedMagic.OTLPServiceSMKMS},
 		{name: "identity missing identity-authz", deploymentName: cryptoutilSharedMagic.IdentityProductName, wantError: cryptoutilSharedMagic.OTLPServiceIdentityAuthz},
 		{name: "identity missing identity-idp", deploymentName: cryptoutilSharedMagic.IdentityProductName, wantError: cryptoutilSharedMagic.OTLPServiceIdentityIDP},
 		{name: "identity missing identity-rp", deploymentName: cryptoutilSharedMagic.IdentityProductName, wantError: cryptoutilSharedMagic.OTLPServiceIdentityRP},
@@ -180,7 +180,7 @@ func TestCheckOTLPProtocolOverride_NonServiceSkipped(t *testing.T) {
 	t.Parallel()
 
 	result := &ValidationResult{Valid: true}
-	checkOTLPProtocolOverride(t.TempDir(), "sm", DeploymentTypeProduct, result)
+	checkOTLPProtocolOverride(t.TempDir(), valueSm, DeploymentTypeProduct, result)
 
 	require.True(t, result.Valid, "should skip non-product-service types")
 	require.Empty(t, result.Warnings)
@@ -190,7 +190,7 @@ func TestCheckOTLPProtocolOverride_WithProtocolPrefix(t *testing.T) {
 	t.Parallel()
 
 	dir := t.TempDir()
-	configDir := filepath.Join(dir, "config")
+	configDir := filepath.Join(dir, fileTypeConfig)
 	require.NoError(t, os.MkdirAll(configDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupReadExecute))
 	require.NoError(t, os.WriteFile(
 		filepath.Join(configDir, "config-test.yml"),
@@ -208,7 +208,7 @@ func TestCheckOTLPProtocolOverride_NoProtocolPrefix(t *testing.T) {
 	t.Parallel()
 
 	dir := t.TempDir()
-	configDir := filepath.Join(dir, "config")
+	configDir := filepath.Join(dir, fileTypeConfig)
 	require.NoError(t, os.MkdirAll(configDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupReadExecute))
 	require.NoError(t, os.WriteFile(
 		filepath.Join(configDir, "config-test.yml"),
@@ -236,7 +236,7 @@ func TestCheckBrowserServiceCredentials_AllPresent(t *testing.T) {
 	t.Parallel()
 
 	dir := t.TempDir()
-	secretsDir := filepath.Join(dir, "secrets")
+	secretsDir := filepath.Join(dir, validatorNameSecrets)
 	require.NoError(t, os.MkdirAll(secretsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupReadExecute))
 
 	credFiles := []string{
@@ -258,7 +258,7 @@ func TestCheckBrowserServiceCredentials_Missing(t *testing.T) {
 	t.Parallel()
 
 	dir := t.TempDir()
-	require.NoError(t, os.MkdirAll(filepath.Join(dir, "secrets"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupReadExecute))
+	require.NoError(t, os.MkdirAll(filepath.Join(dir, validatorNameSecrets), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupReadExecute))
 
 	result := &ValidationResult{Valid: true}
 	checkBrowserServiceCredentials(dir, cryptoutilSharedMagic.OTLPServiceIdentityAuthz, DeploymentTypeProductService, result)
@@ -271,7 +271,7 @@ func TestCheckBrowserServiceCredentials_SkipsNonService(t *testing.T) {
 	t.Parallel()
 
 	result := &ValidationResult{Valid: true}
-	checkBrowserServiceCredentials(t.TempDir(), "sm", DeploymentTypeProduct, result)
+	checkBrowserServiceCredentials(t.TempDir(), valueSm, DeploymentTypeProduct, result)
 
 	require.True(t, result.Valid)
 	require.Empty(t, result.Errors)

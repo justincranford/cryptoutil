@@ -31,7 +31,7 @@ func TestClassifyDeployment(t *testing.T) {
 		{name: "product skeleton", input: cryptoutilSharedMagic.SkeletonProductName, expected: DeploymentTypeProduct},
 		{name: "suite cryptoutil", input: cryptoutilSharedMagic.DefaultOTLPServiceDefault, expected: DeploymentTypeSuite},
 		{name: cryptoutilSharedMagic.SkeletonTemplateServiceName, input: cryptoutilSharedMagic.SkeletonTemplateServiceName, expected: DeploymentTypeTemplate},
-		{name: "infrastructure shared-postgres", input: "shared-postgres", expected: DeploymentTypeInfrastructure},
+		{name: "infrastructure shared-postgres", input: postgresSharedDirName, expected: DeploymentTypeInfrastructure},
 
 		{name: "unknown dir", input: "random-dir", expected: DeploymentTypeInfrastructure},
 	}
@@ -56,8 +56,8 @@ func TestDiscoverDeploymentDirs(t *testing.T) {
 		require.NoError(t, os.MkdirAll(filepath.Join(dir, cryptoutilSharedMagic.OTLPServiceSMKMS), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 		require.NoError(t, os.MkdirAll(filepath.Join(dir, cryptoutilSharedMagic.IdentityProductName), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 		require.NoError(t, os.MkdirAll(filepath.Join(dir, cryptoutilSharedMagic.DefaultOTLPServiceDefault), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
-		require.NoError(t, os.MkdirAll(filepath.Join(dir, "shared-postgres"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
-		require.NoError(t, os.WriteFile(filepath.Join(dir, "README.md"), []byte("readme"), cryptoutilSharedMagic.CacheFilePermissions))
+		require.NoError(t, os.MkdirAll(filepath.Join(dir, postgresSharedDirName), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+		require.NoError(t, os.WriteFile(filepath.Join(dir, valueReadmeMd), []byte("readme"), cryptoutilSharedMagic.CacheFilePermissions))
 
 		result := discoverDeploymentDirs(dir)
 		require.Len(t, result, 4)
@@ -70,7 +70,7 @@ func TestDiscoverDeploymentDirs(t *testing.T) {
 		require.Equal(t, DeploymentTypeProductService, nameMap[cryptoutilSharedMagic.OTLPServiceSMKMS])
 		require.Equal(t, DeploymentTypeProduct, nameMap[cryptoutilSharedMagic.IdentityProductName])
 		require.Equal(t, DeploymentTypeSuite, nameMap[cryptoutilSharedMagic.DefaultOTLPServiceDefault])
-		require.Equal(t, DeploymentTypeInfrastructure, nameMap["shared-postgres"])
+		require.Equal(t, DeploymentTypeInfrastructure, nameMap[postgresSharedDirName])
 	})
 
 	t.Run("nonexistent directory returns empty", func(t *testing.T) {
@@ -80,7 +80,7 @@ func TestDiscoverDeploymentDirs(t *testing.T) {
 		require.Empty(t, result)
 	})
 
-	t.Run("empty directory", func(t *testing.T) {
+	t.Run(testEmptyDirectory, func(t *testing.T) {
 		t.Parallel()
 
 		dir := t.TempDir()
@@ -97,9 +97,9 @@ func TestDiscoverConfigFiles(t *testing.T) {
 
 		dir := t.TempDir()
 		require.NoError(t, os.MkdirAll(filepath.Join(dir, cryptoutilSharedMagic.ClaimSub), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
-		require.NoError(t, os.WriteFile(filepath.Join(dir, "config.yml"), []byte("key: val"), cryptoutilSharedMagic.CacheFilePermissions))
+		require.NoError(t, os.WriteFile(filepath.Join(dir, testConfigYml), []byte("key: val"), cryptoutilSharedMagic.CacheFilePermissions))
 		require.NoError(t, os.WriteFile(filepath.Join(dir, cryptoutilSharedMagic.ClaimSub, "nested.yaml"), []byte("key: val"), cryptoutilSharedMagic.CacheFilePermissions))
-		require.NoError(t, os.WriteFile(filepath.Join(dir, "readme.md"), []byte("readme"), cryptoutilSharedMagic.CacheFilePermissions))
+		require.NoError(t, os.WriteFile(filepath.Join(dir, testReadmeMd), []byte("readme"), cryptoutilSharedMagic.CacheFilePermissions))
 
 		files := discoverConfigFiles(dir)
 		require.Len(t, files, 2)
@@ -138,8 +138,8 @@ func TestAllValidationResult_AllPassed(t *testing.T) {
 
 		r := &AllValidationResult{
 			Results: []ValidatorResult{
-				{Name: "a", Passed: true},
-				{Name: "b", Passed: true},
+				{Name: testA, Passed: true},
+				{Name: testB, Passed: true},
 			},
 		}
 		require.True(t, r.AllPassed())
@@ -150,9 +150,9 @@ func TestAllValidationResult_AllPassed(t *testing.T) {
 
 		r := &AllValidationResult{
 			Results: []ValidatorResult{
-				{Name: "a", Passed: true},
-				{Name: "b", Passed: false},
-				{Name: "c", Passed: true},
+				{Name: testA, Passed: true},
+				{Name: testB, Passed: false},
+				{Name: testC, Passed: true},
 			},
 		}
 		require.False(t, r.AllPassed())
@@ -163,7 +163,7 @@ func TestAllValidationResult_AllPassed(t *testing.T) {
 
 		r := &AllValidationResult{
 			Results: []ValidatorResult{
-				{Name: "a", Passed: false},
+				{Name: testA, Passed: false},
 			},
 		}
 		require.False(t, r.AllPassed())
@@ -192,8 +192,8 @@ func TestFormatAllValidationResult(t *testing.T) {
 
 		r := &AllValidationResult{
 			Results: []ValidatorResult{
-				{Name: "naming", Target: "deployments", Passed: true, Duration: cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Millisecond},
-				{Name: "schema", Target: "configs/test.yml", Passed: true, Duration: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Millisecond},
+				{Name: validatorNameNaming, Target: defaultDeploymentsDir, Passed: true, Duration: cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Millisecond},
+				{Name: validatorNameSchema, Target: "configs/test.yml", Passed: true, Duration: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Millisecond},
 			},
 			TotalDuration: 15 * time.Millisecond,
 		}
@@ -213,9 +213,9 @@ func TestFormatAllValidationResult(t *testing.T) {
 
 		r := &AllValidationResult{
 			Results: []ValidatorResult{
-				{Name: "naming", Target: "deployments", Passed: true, Duration: cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Millisecond},
+				{Name: validatorNameNaming, Target: defaultDeploymentsDir, Passed: true, Duration: cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Millisecond},
 				{Name: validatorNamePorts, Target: "deployments/identity-authz", Passed: false, Duration: cryptoutilSharedMagic.MaxErrorDisplay * time.Millisecond},
-				{Name: "admin", Target: "deployments/sm-kms", Passed: false, Duration: 15 * time.Millisecond},
+				{Name: validatorNameAdmin, Target: "deployments/sm-kms", Passed: false, Duration: 15 * time.Millisecond},
 			},
 			TotalDuration: 45 * time.Millisecond,
 		}
@@ -266,12 +266,12 @@ func TestValidateAll_WithDeployments(t *testing.T) {
 
 	// Create a service deployment with compose.yml.
 	svcDir := filepath.Join(deploymentsDir, cryptoutilSharedMagic.OTLPServiceIdentityAuthz)
-	require.NoError(t, os.MkdirAll(filepath.Join(svcDir, "secrets"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
-	require.NoError(t, os.MkdirAll(filepath.Join(svcDir, "config"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+	require.NoError(t, os.MkdirAll(filepath.Join(svcDir, validatorNameSecrets), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+	require.NoError(t, os.MkdirAll(filepath.Join(svcDir, fileTypeConfig), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 	require.NoError(t, os.WriteFile(filepath.Join(svcDir, cryptoutilSharedMagic.COMPOSE_YML), []byte("services:\n  identity-authz:\n    image: test\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
 	// Create a config file.
-	require.NoError(t, os.WriteFile(filepath.Join(configsDir, "test.yml"), []byte("bind-public-port: 8080\n"), cryptoutilSharedMagic.CacheFilePermissions))
+	require.NoError(t, os.WriteFile(filepath.Join(configsDir, testTestYml), []byte("bind-public-port: 8080\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
 	result := ValidateAll(deploymentsDir, configsDir)
 	require.NotNil(t, result)
@@ -326,7 +326,7 @@ func TestMainValidateAll(t *testing.T) {
 	t.Run("missing deployments dir", func(t *testing.T) {
 		t.Parallel()
 
-		exitCode := mainValidateAll([]string{"/nonexistent/deployments", "/nonexistent/configs"})
+		exitCode := mainValidateAll([]string{"/nonexistent/deployments", testNonexistentConfigs})
 		require.Equal(t, 1, exitCode)
 	})
 
@@ -334,7 +334,7 @@ func TestMainValidateAll(t *testing.T) {
 		t.Parallel()
 
 		deploymentsDir := t.TempDir()
-		exitCode := mainValidateAll([]string{deploymentsDir, "/nonexistent/configs"})
+		exitCode := mainValidateAll([]string{deploymentsDir, testNonexistentConfigs})
 		require.Equal(t, 1, exitCode)
 	})
 
@@ -379,7 +379,7 @@ func TestValidatorResultFields(t *testing.T) {
 		Duration: cryptoutilSharedMagic.IMMaxUsernameLength * time.Millisecond,
 	}
 
-	require.Equal(t, "naming", vr.Name)
+	require.Equal(t, validatorNameNaming, vr.Name)
 	require.Equal(t, "/tmp/test", vr.Target)
 	require.True(t, vr.Passed)
 	require.Equal(t, "sample output", vr.Output)
@@ -394,14 +394,14 @@ func TestValidatorNameConstants(t *testing.T) {
 		constant string
 		expected string
 	}{
-		{name: "naming", constant: validatorNameNaming, expected: "naming"},
-		{name: "kebab-case", constant: validatorNameKebabCase, expected: "kebab-case"},
-		{name: "schema", constant: validatorNameSchema, expected: "schema"},
-		{name: "template-pattern", constant: validatorNameTemplatePattern, expected: "template-pattern"},
-		{name: "ports", constant: validatorNamePorts, expected: "ports"},
-		{name: "telemetry", constant: validatorNameTelemetry, expected: "telemetry"},
-		{name: "admin", constant: validatorNameAdmin, expected: "admin"},
-		{name: "secrets", constant: validatorNameSecrets, expected: "secrets"},
+		{name: validatorNameNaming, constant: validatorNameNaming, expected: validatorNameNaming},
+		{name: validatorNameKebabCase, constant: validatorNameKebabCase, expected: validatorNameKebabCase},
+		{name: validatorNameSchema, constant: validatorNameSchema, expected: validatorNameSchema},
+		{name: validatorNameTemplatePattern, constant: validatorNameTemplatePattern, expected: validatorNameTemplatePattern},
+		{name: validatorNamePorts, constant: validatorNamePorts, expected: validatorNamePorts},
+		{name: validatorNameTelemetry, constant: validatorNameTelemetry, expected: validatorNameTelemetry},
+		{name: validatorNameAdmin, constant: validatorNameAdmin, expected: validatorNameAdmin},
+		{name: validatorNameSecrets, constant: validatorNameSecrets, expected: validatorNameSecrets},
 	}
 
 	for _, tc := range tests {

@@ -23,18 +23,18 @@ func TestJWKGenService_GenerateJWK(t *testing.T) {
 		algorithm cryptoutilOpenapiModel.GenerateAlgorithm
 		wantErr   bool
 	}{
-		{"RSA4096", cryptoutilOpenapiModel.RSA4096, false},
-		{"RSA3072", cryptoutilOpenapiModel.RSA3072, false},
-		{"RSA2048", cryptoutilOpenapiModel.RSA2048, false},
-		{"ECP521", cryptoutilOpenapiModel.ECP521, false},
-		{"ECP384", cryptoutilOpenapiModel.ECP384, false},
-		{"ECP256", cryptoutilOpenapiModel.ECP256, false},
-		{"OKPEd25519", cryptoutilOpenapiModel.OKPEd25519, false},
-		{"Oct512", cryptoutilOpenapiModel.Oct512, false},
-		{"Oct384", cryptoutilOpenapiModel.Oct384, false},
-		{"Oct256", cryptoutilOpenapiModel.Oct256, false},
-		{"Oct192", cryptoutilOpenapiModel.Oct192, false},
-		{"Oct128", cryptoutilOpenapiModel.Oct128, false},
+		{testRsa4096, cryptoutilOpenapiModel.RSA4096, false},
+		{testRsa3072, cryptoutilOpenapiModel.RSA3072, false},
+		{testRsa2048, cryptoutilOpenapiModel.RSA2048, false},
+		{testEcp521, cryptoutilOpenapiModel.ECP521, false},
+		{testEcp384, cryptoutilOpenapiModel.ECP384, false},
+		{testEcp256, cryptoutilOpenapiModel.ECP256, false},
+		{testOkped25519, cryptoutilOpenapiModel.OKPEd25519, false},
+		{testOct512, cryptoutilOpenapiModel.Oct512, false},
+		{testOct384, cryptoutilOpenapiModel.Oct384, false},
+		{testOct256, cryptoutilOpenapiModel.Oct256, false},
+		{testOct192, cryptoutilOpenapiModel.Oct192, false},
+		{testOct128, cryptoutilOpenapiModel.Oct128, false},
 	}
 
 	for _, tc := range tests {

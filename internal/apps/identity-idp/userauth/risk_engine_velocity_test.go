@@ -81,7 +81,7 @@ behavior_risks: {}
 		{
 			name:              "very fast auth (<5s) - critical risk",
 			lastAuthTime:      time.Date(2025, 1, 15, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, 0, 0, 0, time.UTC),
-			currentAuthTime:   time.Date(2025, 1, 15, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, 0, 3, 0, time.UTC), // 3 seconds later.
+			currentAuthTime:   time.Date(2025, 1, 15, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, 0, value3, 0, time.UTC), // 3 seconds later.
 			wantRiskLevel:     RiskLevelCritical,
 			wantMinScore:      0.85,
 			wantMaxScore:      cryptoutilSharedMagic.TestProbAlways,
@@ -113,9 +113,9 @@ behavior_risks: {}
 
 			// Create baseline with specific last auth time.
 			baseline := &UserBaseline{
-				KnownLocations: []GeoLocation{{Country: "US"}},
-				KnownDevices:   []string{"device-1"},
-				KnownNetworks:  []string{"192.168.1.1"},
+				KnownLocations: []GeoLocation{{Country: testUs}},
+				KnownDevices:   []string{testDevice1},
+				KnownNetworks:  []string{test19216811},
 				TypicalHours:   []int{9, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, 11},
 				LastAuthTime:   tc.lastAuthTime,
 			}
@@ -124,9 +124,9 @@ behavior_risks: {}
 			engine := NewBehavioralRiskEngine(loader, userHistory, geoIP, deviceDB)
 
 			authContext := &AuthContext{
-				Location: &GeoLocation{Country: "US"},
-				Device:   &DeviceFingerprint{ID: "device-1"},
-				Network:  &NetworkInfo{IPAddress: "192.168.1.1"},
+				Location: &GeoLocation{Country: testUs},
+				Device:   &DeviceFingerprint{ID: testDevice1},
+				Network:  &NetworkInfo{IPAddress: test19216811},
 				Time:     tc.currentAuthTime,
 			}
 
@@ -165,13 +165,13 @@ func (m *mockUserBehaviorStore) RecordAuthentication(_ context.Context, _ string
 type mockGeoIPService struct{}
 
 func (m *mockGeoIPService) Lookup(_ context.Context, _ string) (*GeoLocation, error) {
-	return &GeoLocation{Country: "US"}, nil
+	return &GeoLocation{Country: testUs}, nil
 }
 
 type mockDeviceFingerprintDB struct{}
 
 func (m *mockDeviceFingerprintDB) GetFingerprint(_ context.Context, _ string, _ map[string]string) (*DeviceFingerprint, error) {
-	return &DeviceFingerprint{ID: "test-device"}, nil
+	return &DeviceFingerprint{ID: testTestDevice}, nil
 }
 
 func (m *mockDeviceFingerprintDB) StoreFingerprint(_ context.Context, _ *DeviceFingerprint) error {
@@ -254,7 +254,7 @@ func TestRiskBasedAuthenticator_Authenticate(t *testing.T) {
 			name:             "critical risk requires strong auth",
 			riskLevel:        RiskLevelCritical,
 			wantRequiresAuth: true,
-			wantRequirements: 3,
+			wantRequirements: value3,
 		},
 	}
 
@@ -277,9 +277,9 @@ func TestRiskBasedAuthenticator_Authenticate(t *testing.T) {
 			// Create mock context analyzer.
 			contextAnalyzer := &mockContextAnalyzer{
 				authContext: &AuthContext{
-					Location: &GeoLocation{Country: "US"},
-					Device:   &DeviceFingerprint{ID: "test-device"},
-					Network:  &NetworkInfo{IPAddress: "192.168.1.1"},
+					Location: &GeoLocation{Country: testUs},
+					Device:   &DeviceFingerprint{ID: testTestDevice},
+					Network:  &NetworkInfo{IPAddress: test19216811},
 					Time:     time.Now().UTC(),
 				},
 			}
@@ -293,7 +293,7 @@ func TestRiskBasedAuthenticator_Authenticate(t *testing.T) {
 
 			// Create auth request.
 			authRequest := &AuthRequest{
-				IPAddress: "192.168.1.1",
+				IPAddress: test19216811,
 				UserAgent: "Test Browser",
 			}
 

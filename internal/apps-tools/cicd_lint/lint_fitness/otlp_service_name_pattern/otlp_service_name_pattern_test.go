@@ -47,14 +47,14 @@ func TestCheckOTLPServiceValue_CorrectNames(t *testing.T) {
 		{
 			name:           "sqlite config correct",
 			psID:           cryptoutilSharedMagic.OTLPServiceSMKMS,
-			expectedSuffix: "-sqlite-1",
-			otlpService:    cryptoutilSharedMagic.OTLPServiceSMKMS + "-sqlite-1",
+			expectedSuffix: testSqlite1,
+			otlpService:    cryptoutilSharedMagic.OTLPServiceSMKMS + testSqlite1,
 		},
 		{
 			name:           "postgres-1 config correct",
 			psID:           cryptoutilSharedMagic.OTLPServiceSMKMS,
-			expectedSuffix: "-postgres-1",
-			otlpService:    cryptoutilSharedMagic.OTLPServiceSMKMS + "-postgres-1",
+			expectedSuffix: testPostgres1,
+			otlpService:    cryptoutilSharedMagic.OTLPServiceSMKMS + testPostgres1,
 		},
 		{
 			name:           "postgres-2 config correct",
@@ -93,21 +93,21 @@ func TestCheckOTLPServiceValue_IncorrectNames(t *testing.T) {
 		{
 			name:           "legacy pg abbreviation",
 			psID:           cryptoutilSharedMagic.OTLPServiceSMKMS,
-			expectedSuffix: "-postgres-1",
+			expectedSuffix: testPostgres1,
 			otlpService:    cryptoutilSharedMagic.OTLPServiceSMKMS + "-pg-1",
 			wantErrContain: `got "sm-kms-pg-1", want "sm-kms-postgres-1"`,
 		},
 		{
 			name:           "missing trailing number",
 			psID:           cryptoutilSharedMagic.OTLPServiceSMKMS,
-			expectedSuffix: "-sqlite-1",
+			expectedSuffix: testSqlite1,
 			otlpService:    cryptoutilSharedMagic.OTLPServiceSMKMS + "-sqlite",
 			wantErrContain: `got "sm-kms-sqlite", want "sm-kms-sqlite-1"`,
 		},
 		{
 			name:           "wrong ps-id",
 			psID:           cryptoutilSharedMagic.OTLPServiceSMKMS,
-			expectedSuffix: "-postgres-1",
+			expectedSuffix: testPostgres1,
 			otlpService:    "cipher-im-postgres-1",
 			wantErrContain: `got "cipher-im-postgres-1", want "sm-kms-postgres-1"`,
 		},
@@ -208,7 +208,7 @@ func TestCheckOTLPServiceValue_NonStringValue(t *testing.T) {
 	content := "otlp-service: 12345\n"
 	require.NoError(t, os.WriteFile(configPath, []byte(content), cryptoutilSharedMagic.FilePermissionsDefault))
 
-	violations := checkOTLPServiceValue(configPath, cryptoutilSharedMagic.OTLPServiceSMKMS, "-sqlite-1", tmpDir, os.ReadFile)
+	violations := checkOTLPServiceValue(configPath, cryptoutilSharedMagic.OTLPServiceSMKMS, testSqlite1, tmpDir, os.ReadFile)
 	require.Len(t, violations, 1)
 	require.Contains(t, violations[0], "otlp-service value is not a string")
 }
@@ -223,7 +223,7 @@ func TestCheckOTLPServiceValue_InvalidYAML(t *testing.T) {
 	content := "key: [\nbad yaml\n"
 	require.NoError(t, os.WriteFile(configPath, []byte(content), cryptoutilSharedMagic.FilePermissionsDefault))
 
-	violations := checkOTLPServiceValue(configPath, cryptoutilSharedMagic.OTLPServiceSMKMS, "-sqlite-1", tmpDir, os.ReadFile)
+	violations := checkOTLPServiceValue(configPath, cryptoutilSharedMagic.OTLPServiceSMKMS, testSqlite1, tmpDir, os.ReadFile)
 	require.Len(t, violations, 1)
 	require.Contains(t, violations[0], "YAML parse error")
 }
@@ -291,7 +291,7 @@ func TestCheckOTLPServiceValue_ReadFileError(t *testing.T) {
 	configPath := filepath.Join(tmpDir, "config-test.yml")
 	require.NoError(t, os.WriteFile(configPath, []byte("otlp-service: test\n"), cryptoutilSharedMagic.FilePermissionsDefault))
 
-	violations := checkOTLPServiceValue(configPath, cryptoutilSharedMagic.OTLPServiceSMKMS, "-sqlite-1", tmpDir, func(_ string) ([]byte, error) {
+	violations := checkOTLPServiceValue(configPath, cryptoutilSharedMagic.OTLPServiceSMKMS, testSqlite1, tmpDir, func(_ string) ([]byte, error) {
 		return nil, os.ErrPermission
 	})
 	require.Len(t, violations, 1)

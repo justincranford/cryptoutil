@@ -92,12 +92,12 @@ func TestWebAuthnCredentialRepository_StoreCredential(t *testing.T) {
 				Type:            CredentialTypePasskey,
 				PublicKey:       []byte("public-key-data"),
 				AttestationType: cryptoutilSharedMagic.PromptNone,
-				AAGUID:          []byte{1, 2, 3, 4},
+				AAGUID:          []byte{1, 2, test3, 4},
 				SignCount:       0,
 				CreatedAt:       time.Now().UTC(),
 				LastUsedAt:      time.Now().UTC(),
 				Metadata: map[string]any{
-					"device_name": "Test Device",
+					valueDeviceName: testTestDevice,
 				},
 			},
 			wantError: false,
@@ -109,7 +109,7 @@ func TestWebAuthnCredentialRepository_StoreCredential(t *testing.T) {
 			wantErrorContains: "credential cannot be nil",
 		},
 		{
-			name: "invalid user ID returns error",
+			name: testInvalidUserIDReturnsError,
 			credential: &Credential{
 				ID:              "invalid-user-id-cred",
 				UserID:          invalidUserID,
@@ -176,12 +176,12 @@ func TestWebAuthnCredentialRepository_UpdateCredential(t *testing.T) {
 		Type:            CredentialTypePasskey,
 		PublicKey:       []byte("public-key-data"),
 		AttestationType: cryptoutilSharedMagic.PromptNone,
-		AAGUID:          []byte{1, 2, 3, 4},
+		AAGUID:          []byte{1, 2, test3, 4},
 		SignCount:       cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries,
 		CreatedAt:       time.Now().UTC(),
 		LastUsedAt:      time.Now().UTC(),
 		Metadata: map[string]any{
-			"device_name": "Test Device",
+			valueDeviceName: testTestDevice,
 		},
 	}
 
@@ -214,9 +214,9 @@ func TestWebAuthnCredentialRepository_GetCredential(t *testing.T) {
 	}{
 		{
 			name:         "get existing credential succeeds",
-			credentialID: "existing-cred-id-webauthn-get-1",
+			credentialID: testExistingCredIDWebauthnGet1,
 			setupCred: &Credential{
-				ID:              "existing-cred-id-webauthn-get-1",
+				ID:              testExistingCredIDWebauthnGet1,
 				UserID:          userID,
 				Type:            CredentialTypePasskey,
 				PublicKey:       []byte("public-key-data"),
@@ -229,7 +229,7 @@ func TestWebAuthnCredentialRepository_GetCredential(t *testing.T) {
 		},
 		{
 			name:         "get non-existent credential returns not found error",
-			credentialID: "non-existent-cred-id",
+			credentialID: testNonExistentCredID,
 			setupCred:    nil,
 			wantError:    true,
 		},
@@ -317,7 +317,7 @@ func TestWebAuthnCredentialRepository_GetUserCredentials(t *testing.T) {
 			wantError:  false,
 		},
 		{
-			name:       "invalid user ID returns error",
+			name:       testInvalidUserIDReturnsError,
 			userID:     invalidUserID,
 			setupCreds: nil,
 			wantCount:  0,
@@ -377,9 +377,9 @@ func TestWebAuthnCredentialRepository_DeleteCredential(t *testing.T) {
 	}{
 		{
 			name:         "delete existing credential succeeds",
-			credentialID: "delete-cred-id-webauthn-delete-1",
+			credentialID: testDeleteCredIDWebauthnDelete1,
 			setupCred: &Credential{
-				ID:              "delete-cred-id-webauthn-delete-1",
+				ID:              testDeleteCredIDWebauthnDelete1,
 				UserID:          userID1,
 				Type:            CredentialTypePasskey,
 				PublicKey:       []byte("public-key-data"),
@@ -392,7 +392,7 @@ func TestWebAuthnCredentialRepository_DeleteCredential(t *testing.T) {
 		},
 		{
 			name:         "delete non-existent credential returns not found error",
-			credentialID: "non-existent-cred-id",
+			credentialID: testNonExistentCredID,
 			setupCred:    nil,
 			wantError:    true,
 		},
@@ -451,7 +451,7 @@ func TestWebAuthnCredentialRepository_CounterIncrement(t *testing.T) {
 		Type:            CredentialTypePasskey,
 		PublicKey:       []byte("public-key-data"),
 		AttestationType: cryptoutilSharedMagic.PromptNone,
-		AAGUID:          []byte{1, 2, 3, 4},
+		AAGUID:          []byte{1, 2, test3, 4},
 		SignCount:       cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries,
 		CreatedAt:       time.Now().UTC(),
 		LastUsedAt:      time.Now().UTC(),

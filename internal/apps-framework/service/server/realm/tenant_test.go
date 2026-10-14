@@ -59,7 +59,7 @@ func TestNewTenantManager(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name:    "nil database",
+			name:    testNilDatabase,
 			db:      nil,
 			config:  nil,
 			wantErr: true,
@@ -75,7 +75,7 @@ func TestNewTenantManager(t *testing.T) {
 			db:   setupTenantTestDB(t),
 			config: &TenantManagerConfig{
 				IsolationMode:  TenantIsolationRow,
-				DefaultRealmID: "default-realm",
+				DefaultRealmID: testDefaultRealm,
 			},
 			wantErr: false,
 		},
@@ -103,7 +103,7 @@ func TestTenantManager_RegisterTenant(t *testing.T) {
 	db := setupTenantTestDB(t)
 	manager, err := NewTenantManager(db, &TenantManagerConfig{
 		IsolationMode:  TenantIsolationRow,
-		DefaultRealmID: "default-realm",
+		DefaultRealmID: testDefaultRealm,
 	})
 	require.NoError(t, err)
 
@@ -126,13 +126,13 @@ func TestTenantManager_RegisterTenant(t *testing.T) {
 		},
 		{
 			name:    "empty tenant name",
-			tenant:  &TenantConfig{ID: "tenant-1"},
+			tenant:  &TenantConfig{ID: testTenant1},
 			wantErr: true,
 		},
 		{
 			name: "valid tenant",
 			tenant: &TenantConfig{
-				ID:      "tenant-1",
+				ID:      testTenant1,
 				Name:    cryptoutilSharedMagic.NAME_TEST_TENANT,
 				Enabled: true,
 			},
@@ -152,7 +152,7 @@ func TestTenantManager_RegisterTenant(t *testing.T) {
 				tenant, ok := manager.GetTenant(tc.tenant.ID)
 				require.True(t, ok)
 				require.Equal(t, TenantIsolationRow, tenant.IsolationMode)
-				require.Equal(t, "default-realm", tenant.RealmID)
+				require.Equal(t, testDefaultRealm, tenant.RealmID)
 			}
 		})
 	}
@@ -207,7 +207,7 @@ func TestTenantManager_GetTenant(t *testing.T) {
 	require.Equal(t, "Get Tenant", found.Name)
 
 	// Not found.
-	notFound, ok := manager.GetTenant("nonexistent")
+	notFound, ok := manager.GetTenant(testNonexistent)
 	require.False(t, ok)
 	require.Nil(t, notFound)
 }
@@ -264,7 +264,7 @@ func TestTenantManager_DeleteTenant(t *testing.T) {
 	require.False(t, ok)
 
 	// Delete nonexistent tenant.
-	err = manager.DeleteTenant(ctx, "nonexistent")
+	err = manager.DeleteTenant(ctx, testNonexistent)
 	require.Error(t, err)
 }
 
@@ -294,7 +294,7 @@ func TestTenantManager_WithTenant_Row(t *testing.T) {
 	require.NotNil(t, scopedDB)
 
 	// Nonexistent tenant.
-	_, err = manager.WithTenant(ctx, "nonexistent")
+	_, err = manager.WithTenant(ctx, testNonexistent)
 	require.Error(t, err)
 }
 
@@ -369,7 +369,7 @@ func TestTenantContext(t *testing.T) {
 	tenantCtx := &TenantContext{
 		TenantID:   "ctx-tenant",
 		TenantName: "Context Tenant",
-		RealmID:    "realm-1",
+		RealmID:    testRealm1,
 	}
 	ctx = ContextWithTenant(ctx, tenantCtx)
 
@@ -378,7 +378,7 @@ func TestTenantContext(t *testing.T) {
 	require.True(t, ok)
 	require.Equal(t, "ctx-tenant", found.TenantID)
 	require.Equal(t, "Context Tenant", found.TenantName)
-	require.Equal(t, "realm-1", found.RealmID)
+	require.Equal(t, testRealm1, found.RealmID)
 }
 
 func TestValidateTenantID(t *testing.T) {
@@ -430,8 +430,8 @@ func TestSanitizeSchemaName(t *testing.T) {
 	}{
 		{
 			name:   "simple name",
-			input:  "tenant_abc",
-			expect: "tenant_abc",
+			input:  testTenantAbc,
+			expect: testTenantAbc,
 		},
 		{
 			name:   "with special characters",
@@ -446,7 +446,7 @@ func TestSanitizeSchemaName(t *testing.T) {
 		{
 			name:   "uppercase",
 			input:  "Tenant_ABC",
-			expect: "tenant_abc",
+			expect: testTenantAbc,
 		},
 	}
 

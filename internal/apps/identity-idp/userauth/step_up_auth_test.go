@@ -22,38 +22,7 @@ func TestStepUpAuthenticator_LoadPolicies(t *testing.T) {
 	tempDir := t.TempDir()
 	stepUpFile := filepath.Join(tempDir, "step_up.yml")
 
-	policyContent := `version: "1.0"
-policies:
-  transfer_funds:
-    operation_pattern: "transfer_funds"
-    required_level: "step_up"
-    allowed_methods: ["sms_otp", "totp", "webauthn"]
-    max_age: "5m"
-    description: "High-value financial transfer"
-  change_password:
-    operation_pattern: "change_password"
-    required_level: "step_up"
-    allowed_methods: ["email_otp", "totp"]
-    max_age: "2m"
-    description: "Password change operation"
-default_policy:
-  required_level: "basic"
-  allowed_methods: ["password"]
-  max_age: "24h"
-auth_levels:
-  none: 0
-  basic: 1
-  mfa: 2
-  step_up: 3
-  strong_mfa: 4
-step_up_methods: {}
-session_durations: {}
-monitoring:
-  step_up_rate: "15%"
-  blocked_operations: "5%"
-  fallback_methods: "20%"
-  description: ""
-`
+	policyContent := testVersion10PoliciesTransferFundsOperationPatternTransferFundsRequiredLevelStepUpAllowedMethodsSmsOTPTotpWebauthnMaxAge5mDescriptionHighValueFinancialTransferChangePasswordOperationPatternChangePasswordRequiredLevelStepUpAllowedMethodsEmailOTPTotpMaxAge2mDescriptionPasswordChangeOperationDefaultPolicyRequiredLevelBasicAllowedMethodsPasswordMaxAge24hAuthLevelsNone0Basic1Mfa2StepUp3StrongMfa4StepUpMethodsSessionDurationsMonitoringStepUpRate15BlockedOperations5FallbackMethods20Description
 
 	err := os.WriteFile(stepUpFile, []byte(policyContent), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
@@ -78,19 +47,19 @@ monitoring:
 
 	// Verify policies loaded.
 	require.NotNil(t, auth.policies)
-	require.Contains(t, auth.policies, "transfer_funds")
-	require.Contains(t, auth.policies, "change_password")
+	require.Contains(t, auth.policies, valueTransferFunds)
+	require.Contains(t, auth.policies, valueChangePassword)
 	require.Contains(t, auth.policies, "default")
 
 	// Verify transfer_funds policy.
-	transferPolicy := auth.policies["transfer_funds"]
-	require.Equal(t, "transfer_funds", transferPolicy.OperationPattern)
+	transferPolicy := auth.policies[valueTransferFunds]
+	require.Equal(t, valueTransferFunds, transferPolicy.OperationPattern)
 	require.Equal(t, AuthLevelStepUp, transferPolicy.RequiredLevel)
 	require.Equal(t, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Minute, transferPolicy.MaxAge)
 	require.ElementsMatch(t, []string{cryptoutilSharedMagic.AuthMethodSMSOTP, cryptoutilSharedMagic.MFATypeTOTP, cryptoutilSharedMagic.MFATypeWebAuthn}, transferPolicy.AllowedMethods)
 
 	// Verify change_password policy.
-	passwordPolicy := auth.policies["change_password"]
+	passwordPolicy := auth.policies[valueChangePassword]
 	require.Equal(t, AuthLevelStepUp, passwordPolicy.RequiredLevel)
 	require.Equal(t, 2*time.Minute, passwordPolicy.MaxAge)
 
@@ -162,7 +131,7 @@ monitoring:
 	}{
 		{
 			name:              "transfer_funds requires step_up - current basic",
-			operation:         "transfer_funds",
+			operation:         valueTransferFunds,
 			currentLevel:      AuthLevelBasic,
 			authTime:          time.Now().UTC(),
 			wantStepUpNeeded:  true,
@@ -170,14 +139,14 @@ monitoring:
 		},
 		{
 			name:             "transfer_funds satisfied - recent step_up",
-			operation:        "transfer_funds",
+			operation:        valueTransferFunds,
 			currentLevel:     AuthLevelStepUp,
 			authTime:         time.Now().UTC().Add(-2 * time.Minute), // Within 5m max age.
 			wantStepUpNeeded: false,
 		},
 		{
 			name:              "transfer_funds expired - old step_up",
-			operation:         "transfer_funds",
+			operation:         valueTransferFunds,
 			currentLevel:      AuthLevelStepUp,
 			authTime:          time.Now().UTC().Add(-cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Minute), // Beyond 5m max age.
 			wantStepUpNeeded:  true,
@@ -192,14 +161,14 @@ monitoring:
 		},
 		{
 			name:             "unknown operation uses default policy",
-			operation:        "unknown_operation",
+			operation:        testUnknownOperation,
 			currentLevel:     AuthLevelBasic,
 			authTime:         time.Now().UTC(),
 			wantStepUpNeeded: false, // Default policy requires basic.
 		},
 		{
 			name:              "unknown operation with no auth uses default policy",
-			operation:         "unknown_operation",
+			operation:         testUnknownOperation,
 			currentLevel:      AuthLevelNone,
 			authTime:          time.Now().UTC(),
 			wantStepUpNeeded:  true, // Default policy requires basic.
@@ -211,7 +180,7 @@ monitoring:
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			challenge, err := auth.EvaluateStepUp(ctx, "user-123", tc.operation, tc.currentLevel, tc.authTime)
+			challenge, err := auth.EvaluateStepUp(ctx, testUser123, tc.operation, tc.currentLevel, tc.authTime)
 			require.NoError(t, err)
 
 			if tc.wantStepUpNeeded {
@@ -235,10 +204,10 @@ func TestStepUpAuthenticator_ParseAuthLevel(t *testing.T) {
 		want        AuthenticationLevel
 	}{
 		{cryptoutilSharedMagic.PromptNone, AuthLevelNone},
-		{"basic", AuthLevelBasic},
+		{authLevelStringBasic, AuthLevelBasic},
 		{cryptoutilSharedMagic.AMRMultiFactor, AuthLevelMFA},
-		{"step_up", AuthLevelStepUp},
-		{"strong_mfa", AuthLevelStrongMFA},
+		{authLevelStringStepUp, AuthLevelStepUp},
+		{authLevelStringStrongMFA, AuthLevelStrongMFA},
 		{cryptoutilSharedMagic.UNKNOWN, AuthLevelBasic}, // Default to basic for unknown.
 	}
 

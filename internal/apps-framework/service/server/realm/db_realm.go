@@ -20,7 +20,7 @@ import (
 )
 
 // ErrUserNotFound is returned when a user is not found in the database.
-var ErrUserNotFound = errors.New("user not found")
+var ErrUserNotFound = errors.New(errMsgUserNotFound)
 
 // DBRealmUser represents a user in the database realm.
 // This is separate from Identity server users.
@@ -319,7 +319,7 @@ func (r *DBRealmRepository) CountUsers(ctx context.Context, realmID string) (int
 // EnableUser enables a user account.
 func (r *DBRealmRepository) EnableUser(ctx context.Context, userID string) error {
 	if err := r.db.WithContext(ctx).Model(&DBRealmUser{}).Where("id = ?", userID).Updates(map[string]any{
-		"enabled":                            true,
+		valueEnabled:                         true,
 		cryptoutilSharedMagic.ClaimUpdatedAt: time.Now().UTC(),
 	}).Error; err != nil {
 		return fmt.Errorf("failed to enable user: %w", err)
@@ -331,7 +331,7 @@ func (r *DBRealmRepository) EnableUser(ctx context.Context, userID string) error
 // DisableUser disables a user account.
 func (r *DBRealmRepository) DisableUser(ctx context.Context, userID string) error {
 	if err := r.db.WithContext(ctx).Model(&DBRealmUser{}).Where("id = ?", userID).Updates(map[string]any{
-		"enabled":                            false,
+		valueEnabled:                         false,
 		cryptoutilSharedMagic.ClaimUpdatedAt: time.Now().UTC(),
 	}).Error; err != nil {
 		return fmt.Errorf("failed to disable user: %w", err)

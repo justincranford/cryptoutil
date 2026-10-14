@@ -20,7 +20,7 @@ type KebabCaseValidationResult struct {
 // kebabCaseConfigFields lists YAML paths that must follow kebab-case convention.
 // These are field values inside config files (not file/dir names - see ValidateNaming).
 var kebabCaseConfigFields = []string{
-	"service.name",
+	valueServiceName,
 }
 
 // ValidateKebabCase validates YAML config field values follow kebab-case convention.

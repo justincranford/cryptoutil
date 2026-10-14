@@ -46,7 +46,7 @@ func TestValidateProfile(t *testing.T) {
 		wantEmpty bool
 	}{
 		{
-			name:    "missing profile field",
+			name:    testMissingProfileField,
 			pf:      ProfileFile{},
 			wantErr: "missing required top-level field 'profile'",
 		},
@@ -83,7 +83,7 @@ func TestValidateProfile(t *testing.T) {
 			pf: baseProfile(func(p *ProfileSpec) {
 				p.Key.DefaultAlgorithm = "QuantumAlgo"
 			}),
-			wantErr: "known algorithm",
+			wantErr: testKnownAlgorithm,
 		},
 		{
 			name: "nil default curve or size for RSA",
@@ -147,12 +147,12 @@ func TestValidateValidity(t *testing.T) {
 		{
 			name:    "min days zero is error",
 			spec:    &ValiditySpec{MinDays: 0, MaxDays: days30, DefaultDays: 1},
-			wantErr: "min_days must be >= 1",
+			wantErr: testMinDaysMustBe1,
 		},
 		{
 			name:    "min days negative is error",
 			spec:    &ValiditySpec{MinDays: -1, MaxDays: days30, DefaultDays: 1},
-			wantErr: "min_days must be >= 1",
+			wantErr: testMinDaysMustBe1,
 		},
 		{
 			name:      "max days equal min days",

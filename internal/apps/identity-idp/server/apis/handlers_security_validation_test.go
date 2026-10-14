@@ -79,8 +79,8 @@ func TestSecurityValidation_InputSanitization(t *testing.T) {
 	// Create default auth profile.
 	defaultAuthProfile := &cryptoutilIdentityDomain.AuthProfile{
 		ID:          googleUuid.Must(googleUuid.NewV7()),
-		Name:        "default",
-		Description: "Default authentication profile",
+		Name:        testDefault,
+		Description: testDefaultAuthenticationProfile,
 		ProfileType: cryptoutilIdentityDomain.AuthProfileTypeUsernamePassword,
 		RequireMFA:  false,
 		MFAChain:    []string{},
@@ -99,7 +99,7 @@ func TestSecurityValidation_InputSanitization(t *testing.T) {
 			AccessTokenLifetime: cryptoutilSharedMagic.IMDefaultSessionTimeout * time.Second,
 		},
 		Sessions: &cryptoutilIdentityConfig.SessionConfig{
-			CookieName:      "identity_session",
+			CookieName:      testIdentitySession,
 			SessionLifetime: cryptoutilSharedMagic.IMDefaultSessionTimeout * time.Second,
 			CookieHTTPOnly:  true,
 		},
@@ -185,9 +185,9 @@ func TestSecurityValidation_InputSanitization(t *testing.T) {
 					ClientID:     testClient.ClientID,
 					RedirectURI:  testClient.RedirectURIs[0],
 					ResponseType: cryptoutilSharedMagic.ResponseTypeCode,
-					Scope:        "openid profile email",
-					State:        "test-state",
-					Nonce:        "test-nonce",
+					Scope:        testOpenidProfileEmail,
+					State:        testTestState,
+					Nonce:        testTestNonce,
 					CreatedAt:    time.Now().UTC(),
 					ExpiresAt:    time.Now().UTC().Add(cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Minute),
 				}
@@ -198,11 +198,11 @@ func TestSecurityValidation_InputSanitization(t *testing.T) {
 				formData := url.Values{}
 				formData.Set("username", "<script>alert('XSS')</script>") // XSS attack
 				formData.Set("password", testPassword)
-				formData.Set("request_id", authzReq.ID.String())
+				formData.Set(testRequestID, authzReq.ID.String())
 
 				req := httptest.NewRequest(
 					http.MethodPost,
-					"/oidc/v1/login",
+					testOIDCV1Login,
 					strings.NewReader(formData.Encode()),
 				)
 				req.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationForm)
@@ -220,9 +220,9 @@ func TestSecurityValidation_InputSanitization(t *testing.T) {
 					ClientID:     testClient.ClientID,
 					RedirectURI:  testClient.RedirectURIs[0],
 					ResponseType: cryptoutilSharedMagic.ResponseTypeCode,
-					Scope:        "openid profile email",
-					State:        "test-state",
-					Nonce:        "test-nonce",
+					Scope:        testOpenidProfileEmail,
+					State:        testTestState,
+					Nonce:        testTestNonce,
 					CreatedAt:    time.Now().UTC(),
 					ExpiresAt:    time.Now().UTC().Add(cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Minute),
 				}
@@ -233,11 +233,11 @@ func TestSecurityValidation_InputSanitization(t *testing.T) {
 				formData := url.Values{}
 				formData.Set("username", "admin' OR '1'='1") // SQL injection attempt
 				formData.Set("password", testPassword)
-				formData.Set("request_id", authzReq.ID.String())
+				formData.Set(testRequestID, authzReq.ID.String())
 
 				req := httptest.NewRequest(
 					http.MethodPost,
-					"/oidc/v1/login",
+					testOIDCV1Login,
 					strings.NewReader(formData.Encode()),
 				)
 				req.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationForm)
@@ -257,9 +257,9 @@ func TestSecurityValidation_InputSanitization(t *testing.T) {
 				params.Set(cryptoutilSharedMagic.ClaimClientID, testClient.ClientID)
 				params.Set(cryptoutilSharedMagic.ParamRedirectURI, maliciousRedirectURI) // CRLF injection attempt
 				params.Set(cryptoutilSharedMagic.ParamResponseType, cryptoutilSharedMagic.ResponseTypeCode)
-				params.Set(cryptoutilSharedMagic.ClaimScope, "openid profile email")
-				params.Set(cryptoutilSharedMagic.ParamState, "test-state")
-				params.Set(cryptoutilSharedMagic.ClaimNonce, "test-nonce")
+				params.Set(cryptoutilSharedMagic.ClaimScope, testOpenidProfileEmail)
+				params.Set(cryptoutilSharedMagic.ParamState, testTestState)
+				params.Set(cryptoutilSharedMagic.ClaimNonce, testTestNonce)
 
 				req := httptest.NewRequest(
 					http.MethodGet,
@@ -280,9 +280,9 @@ func TestSecurityValidation_InputSanitization(t *testing.T) {
 					ClientID:     testClient.ClientID,
 					RedirectURI:  testClient.RedirectURIs[0],
 					ResponseType: cryptoutilSharedMagic.ResponseTypeCode,
-					Scope:        "openid profile email",
-					State:        "test-state",
-					Nonce:        "test-nonce",
+					Scope:        testOpenidProfileEmail,
+					State:        testTestState,
+					Nonce:        testTestNonce,
 					CreatedAt:    time.Now().UTC(),
 					ExpiresAt:    time.Now().UTC().Add(cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Minute),
 				}
@@ -293,11 +293,11 @@ func TestSecurityValidation_InputSanitization(t *testing.T) {
 				formData := url.Values{}
 				formData.Set("username", testUsername)
 				formData.Set("password", testPassword)
-				formData.Set("request_id", "../../etc/passwd") // Path traversal attempt
+				formData.Set(testRequestID, "../../etc/passwd") // Path traversal attempt
 
 				req := httptest.NewRequest(
 					http.MethodPost,
-					"/oidc/v1/login",
+					testOIDCV1Login,
 					strings.NewReader(formData.Encode()),
 				)
 				req.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationForm)
@@ -305,7 +305,7 @@ func TestSecurityValidation_InputSanitization(t *testing.T) {
 				return req
 			},
 			expectedStatus:   http.StatusBadRequest,
-			expectedContains: "request_id", // Path traversal blocked by UUID parsing
+			expectedContains: testRequestID, // Path traversal blocked by UUID parsing
 		},
 	}
 

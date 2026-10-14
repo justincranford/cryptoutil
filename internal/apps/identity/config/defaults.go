@@ -60,7 +60,7 @@ func defaultIDPConfig() *ServerConfig {
 
 func defaultRSConfig() *ServerConfig {
 	return &ServerConfig{
-		Name:             "rs",
+		Name:             valueRs,
 		BindAddress:      cryptoutilSharedMagic.IPv4Loopback,
 		Port:             cryptoutilSharedMagic.IdentityDefaultRSPort,
 		TLSEnabled:       false,
@@ -77,7 +77,7 @@ func defaultRSConfig() *ServerConfig {
 
 func defaultDatabaseConfig() *DatabaseConfig {
 	return &DatabaseConfig{
-		Type:            "sqlite",
+		Type:            valueSqlite,
 		DSN:             cryptoutilSharedMagic.SQLiteMemoryPlaceholder,
 		MaxOpenConns:    cryptoutilSharedMagic.IdentityDefaultMaxOpenConns,
 		MaxIdleConns:    cryptoutilSharedMagic.IdentityDefaultMaxIdleConns,
@@ -131,10 +131,10 @@ func defaultSecurityConfig() *SecurityConfig {
 
 func defaultObservabilityConfig() *ObservabilityConfig {
 	return &ObservabilityConfig{
-		LogLevel:       "info",
-		LogFormat:      "json",
+		LogLevel:       valueInfo,
+		LogFormat:      valueJson,
 		MetricsEnabled: true,
-		MetricsPath:    "/metrics",
+		MetricsPath:    valueMetrics,
 		TracingEnabled: true,
 		TracingBackend: "otlp",
 	}

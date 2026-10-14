@@ -107,7 +107,7 @@ func TestRequireNewForTest_DatabaseURLBranches(t *testing.T) {
 			expect: func(t *testing.T, result string) {
 				t.Helper()
 				require.Contains(t, result, "?mode=memory&cache=shared")
-				require.NotContains(t, result, "file::memory:")
+				require.NotContains(t, result, valueFileMemory)
 			},
 		},
 		{

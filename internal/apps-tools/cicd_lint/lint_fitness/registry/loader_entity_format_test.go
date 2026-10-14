@@ -98,7 +98,7 @@ product_services:
     migration_range_end: 2999
     api_resources: []
 `,
-			wantContains: "cmd_dir",
+			wantContains: testCmdDir,
 		},
 		{
 			name: "product cmd_dir missing trailing slash",
@@ -125,7 +125,7 @@ product_services:
     migration_range_end: 2999
     api_resources: []
 `,
-			wantContains: "must end with '/'",
+			wantContains: testMustEndWith,
 		},
 		{
 			name: "product internal_apps_dir missing trailing slash",
@@ -152,7 +152,7 @@ product_services:
     migration_range_end: 2999
     api_resources: []
 `,
-			wantContains: "must end with '/'",
+			wantContains: testMustEndWith,
 		},
 	}
 
@@ -253,10 +253,10 @@ func TestLoadRegistry_PSPortValidation(t *testing.T) {
 		pgHostPort   string
 		wantContains string
 	}{
-		{name: "negative base_port", basePort: "-1", pgHostPort: "54320", wantContains: "base_port"},
-		{name: "zero base_port", basePort: "0", pgHostPort: "54320", wantContains: "base_port"},
-		{name: "negative pg_host_port", basePort: "8000", pgHostPort: "-1", wantContains: "pg_host_port"},
-		{name: "zero pg_host_port", basePort: "8000", pgHostPort: "0", wantContains: "pg_host_port"},
+		{name: "negative base_port", basePort: "-1", pgHostPort: "54320", wantContains: testBasePort},
+		{name: "zero base_port", basePort: "0", pgHostPort: "54320", wantContains: testBasePort},
+		{name: "negative pg_host_port", basePort: "8000", pgHostPort: "-1", wantContains: testPgHostPort},
+		{name: "zero pg_host_port", basePort: "8000", pgHostPort: "0", wantContains: testPgHostPort},
 	}
 
 	for _, tc := range tests {

@@ -27,16 +27,16 @@ func TestGenerateJWKForAlg_AllAlgorithms(t *testing.T) {
 		name string
 		alg  cryptoutilOpenapiModel.GenerateAlgorithm
 	}{
-		{"RSA2048", cryptoutilOpenapiModel.RSA2048},
-		{"ECP256", cryptoutilOpenapiModel.ECP256},
-		{"ECP384", cryptoutilOpenapiModel.ECP384},
-		{"ECP521", cryptoutilOpenapiModel.ECP521},
-		{"OKPEd25519", cryptoutilOpenapiModel.OKPEd25519},
-		{"Oct128", cryptoutilOpenapiModel.Oct128},
-		{"Oct192", cryptoutilOpenapiModel.Oct192},
-		{"Oct256", cryptoutilOpenapiModel.Oct256},
-		{"Oct384", cryptoutilOpenapiModel.Oct384},
-		{"Oct512", cryptoutilOpenapiModel.Oct512},
+		{testRsa2048, cryptoutilOpenapiModel.RSA2048},
+		{testEcp256, cryptoutilOpenapiModel.ECP256},
+		{testEcp384, cryptoutilOpenapiModel.ECP384},
+		{testEcp521, cryptoutilOpenapiModel.ECP521},
+		{testOkped25519, cryptoutilOpenapiModel.OKPEd25519},
+		{testOct128, cryptoutilOpenapiModel.Oct128},
+		{testOct192, cryptoutilOpenapiModel.Oct192},
+		{testOct256, cryptoutilOpenapiModel.Oct256},
+		{testOct384, cryptoutilOpenapiModel.Oct384},
+		{testOct512, cryptoutilOpenapiModel.Oct512},
 	}
 
 	for _, tc := range testCases {
@@ -435,7 +435,7 @@ func TestExtractKty_ValidKeyTypes(t *testing.T) {
 			expectedKty: joseJwa.RSA(),
 		},
 		{
-			name: "EC",
+			name: testEC,
 			genKey: func(t *testing.T) joseJwk.Key {
 				keyPair, err := cryptoutilSharedCryptoKeygen.GenerateECDSAKeyPair(elliptic.P256())
 				require.NoError(t, err)
@@ -447,7 +447,7 @@ func TestExtractKty_ValidKeyTypes(t *testing.T) {
 			expectedKty: joseJwa.EC(),
 		},
 		{
-			name: "OKP",
+			name: testOkp,
 			genKey: func(t *testing.T) joseJwk.Key {
 				keyPair, err := cryptoutilSharedCryptoKeygen.GenerateEDDSAKeyPair(cryptoutilSharedMagic.EdCurveEd25519)
 				require.NoError(t, err)

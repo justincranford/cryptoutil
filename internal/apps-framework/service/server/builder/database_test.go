@@ -85,7 +85,7 @@ func TestDatabaseConnection_Close_NilDB(t *testing.T) {
 func TestDatabaseConfig(t *testing.T) {
 	t.Parallel()
 
-	t.Run("default config", func(t *testing.T) {
+	t.Run(testDefaultConfig, func(t *testing.T) {
 		t.Parallel()
 
 		cfg := NewDatabaseConfig("postgres://localhost/db")

@@ -18,10 +18,10 @@ func TestKeyRotationEvent_BeforeCreate(t *testing.T) {
 	t.Parallel()
 
 	event := &KeyRotationEvent{
-		EventType: "rotation",
+		EventType: EventTypeRotation,
 		KeyType:   cryptoutilSharedMagic.ParamClientSecret,
 		KeyID:     cryptoutilSharedMagic.TestClientID,
-		Initiator: "test-user",
+		Initiator: testTestUser,
 	}
 
 	err := event.BeforeCreate(nil)
@@ -43,7 +43,7 @@ func TestKeyRotationEvent_Constants(t *testing.T) {
 	t.Parallel()
 
 	// Event type constants.
-	require.Equal(t, "rotation", EventTypeRotation)
+	require.Equal(t, EventTypeRotation, EventTypeRotation)
 	require.Equal(t, "revocation", EventTypeRevocation)
 	require.Equal(t, "expiration", EventTypeExpiration)
 
@@ -63,11 +63,11 @@ func TestKeyRotationEvent_FieldValidation(t *testing.T) {
 
 	event := &KeyRotationEvent{
 		ID:            googleUuid.Must(googleUuid.NewV7()),
-		EventType:     "rotation",
+		EventType:     EventTypeRotation,
 		KeyType:       cryptoutilSharedMagic.ParamClientSecret,
 		KeyID:         cryptoutilSharedMagic.TestClientID,
 		Timestamp:     now,
-		Initiator:     "test-user",
+		Initiator:     testTestUser,
 		OldKeyVersion: &oldVersion,
 		NewKeyVersion: &newVersion,
 		GracePeriod:   &gracePeriod,
@@ -77,11 +77,11 @@ func TestKeyRotationEvent_FieldValidation(t *testing.T) {
 		ErrorMessage:  "",
 	}
 
-	require.Equal(t, "rotation", event.EventType)
+	require.Equal(t, EventTypeRotation, event.EventType)
 	require.Equal(t, cryptoutilSharedMagic.ParamClientSecret, event.KeyType)
 	require.Equal(t, cryptoutilSharedMagic.TestClientID, event.KeyID)
 	require.Equal(t, now, event.Timestamp)
-	require.Equal(t, "test-user", event.Initiator)
+	require.Equal(t, testTestUser, event.Initiator)
 	require.NotNil(t, event.OldKeyVersion)
 	require.Equal(t, 1, *event.OldKeyVersion)
 	require.NotNil(t, event.NewKeyVersion)

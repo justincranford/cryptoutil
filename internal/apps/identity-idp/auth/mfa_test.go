@@ -78,7 +78,7 @@ func TestMFAOrchestrator_GetRequiredFactors(t *testing.T) {
 				}
 			},
 			wantErr:     true,
-			errContains: "failed to fetch MFA factors",
+			errContains: testFailedToFetchMfaFactors,
 		},
 	}
 
@@ -217,11 +217,11 @@ func TestMFAOrchestrator_ValidateFactor(t *testing.T) {
 			},
 			credentials: map[string]string{cryptoutilSharedMagic.ResponseTypeCode: "123456"},
 			wantErr:     true,
-			errContains: "failed to fetch MFA factors",
+			errContains: testFailedToFetchMfaFactors,
 		},
 		{
 			name:       "unsupported_factor_type",
-			factorType: "unknown_mfa_type",
+			factorType: testUnknownMfaType,
 			setupRepo: func() *mockMFAFactorRepo {
 				now := time.Now().UTC()
 				expiry := now.Add(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Minute)
@@ -229,7 +229,7 @@ func TestMFAOrchestrator_ValidateFactor(t *testing.T) {
 					ID:             googleUuid.New(),
 					Name:           "test-unknown",
 					AuthProfileID:  authProfileID,
-					FactorType:     "unknown_mfa_type",
+					FactorType:     testUnknownMfaType,
 					Nonce:          googleUuid.NewString(),
 					NonceExpiresAt: &expiry,
 				}

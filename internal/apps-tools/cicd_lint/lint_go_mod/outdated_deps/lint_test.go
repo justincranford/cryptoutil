@@ -42,8 +42,8 @@ github.com/pkg/errors v0.9.1
 github.com/stretchr/testify v1.8.0`
 
 	directDeps := map[string]bool{
-		"github.com/pkg/errors":       true,
-		"github.com/stretchr/testify": true,
+		testGithubComPkgErrors:       true,
+		testGithubComStretchrTestify: true,
 	}
 
 	outdated := checkDependencyUpdates(goListOutput, directDeps)
@@ -59,14 +59,14 @@ github.com/pkg/errors v0.9.1 [v0.9.2]
 github.com/stretchr/testify v1.8.0`
 
 	directDeps := map[string]bool{
-		"github.com/pkg/errors":       true,
-		"github.com/stretchr/testify": true,
+		testGithubComPkgErrors:       true,
+		testGithubComStretchrTestify: true,
 	}
 
 	outdated := checkDependencyUpdates(goListOutput, directDeps)
 
 	require.Len(t, outdated, 1)
-	require.Contains(t, outdated[0], "github.com/pkg/errors")
+	require.Contains(t, outdated[0], testGithubComPkgErrors)
 }
 
 func TestCheckDependencyUpdates_IndirectNotIncluded(t *testing.T) {
@@ -78,13 +78,13 @@ github.com/indirect/dep v1.0.0 [v1.1.0]`
 
 	// Only direct deps are included.
 	directDeps := map[string]bool{
-		"github.com/pkg/errors": true,
+		testGithubComPkgErrors: true,
 	}
 
 	outdated := checkDependencyUpdates(goListOutput, directDeps)
 
 	require.Len(t, outdated, 1)
-	require.Contains(t, outdated[0], "github.com/pkg/errors")
+	require.Contains(t, outdated[0], testGithubComPkgErrors)
 }
 
 func TestGetDirectDependencies(t *testing.T) {
@@ -103,8 +103,8 @@ require (
 
 	directDeps := getDirectDependencies(goModContent)
 
-	require.True(t, directDeps["github.com/pkg/errors"])
-	require.True(t, directDeps["github.com/stretchr/testify"])
+	require.True(t, directDeps[testGithubComPkgErrors])
+	require.True(t, directDeps[testGithubComStretchrTestify])
 	require.False(t, directDeps["github.com/indirect/dep"])
 }
 
@@ -120,7 +120,7 @@ require github.com/pkg/errors v0.9.1
 
 	directDeps := getDirectDependencies(goModContent)
 
-	require.True(t, directDeps["github.com/pkg/errors"])
+	require.True(t, directDeps[testGithubComPkgErrors])
 }
 
 func TestGetDirectDependencies_Empty(t *testing.T) {
@@ -195,7 +195,7 @@ func TestSaveDepCache_Success(t *testing.T) {
 		LastCheck:    time.Now().UTC(),
 		GoModModTime: time.Now().UTC(),
 		GoSumModTime: time.Now().UTC(),
-		OutdatedDeps: []string{"example.com/dep v1.0.0 [v1.1.0]"},
+		OutdatedDeps: []string{testExampleComDepV100V110},
 		Mode:         cryptoutilSharedMagic.ModeNameDirect,
 	}
 
@@ -216,7 +216,7 @@ malformed_line_without_space [v0.9.2]
 github.com/pkg/errors v0.9.1`
 
 	directDeps := map[string]bool{
-		"github.com/pkg/errors": true,
+		testGithubComPkgErrors: true,
 	}
 
 	outdated := checkDependencyUpdates(goListOutput, directDeps)
@@ -231,8 +231,8 @@ github.com/pkg/errors v0.9.1 [v0.9.2
 github.com/stretchr/testify v1.8.0 [incomplete`
 
 	directDeps := map[string]bool{
-		"github.com/pkg/errors":       true,
-		"github.com/stretchr/testify": true,
+		testGithubComPkgErrors:       true,
+		testGithubComStretchrTestify: true,
 	}
 
 	outdated := checkDependencyUpdates(goListOutput, directDeps)
@@ -255,8 +255,8 @@ require (
 
 	directDeps := getDirectDependencies(goModContent)
 	require.Len(t, directDeps, 2)
-	require.True(t, directDeps["github.com/pkg/errors"])
-	require.True(t, directDeps["github.com/stretchr/testify"])
+	require.True(t, directDeps[testGithubComPkgErrors])
+	require.True(t, directDeps[testGithubComStretchrTestify])
 }
 
 func TestGetDirectDependencies_MixedRequireFormats(t *testing.T) {
@@ -276,8 +276,8 @@ require (
 
 	directDeps := getDirectDependencies(goModContent)
 	require.Len(t, directDeps, 2)
-	require.True(t, directDeps["github.com/pkg/errors"])
-	require.True(t, directDeps["github.com/stretchr/testify"])
+	require.True(t, directDeps[testGithubComPkgErrors])
+	require.True(t, directDeps[testGithubComStretchrTestify])
 	require.False(t, directDeps["github.com/indirect/dep"])
 }
 
@@ -290,14 +290,14 @@ github.com/stretchr/testify v1.8.0 [v1.9.0]
 github.com/indirect/dep v1.0.0 [v1.1.0]`
 
 	directDeps := map[string]bool{
-		"github.com/pkg/errors":       true,
-		"github.com/stretchr/testify": true,
+		testGithubComPkgErrors:       true,
+		testGithubComStretchrTestify: true,
 	}
 
 	outdated := checkDependencyUpdates(goListOutput, directDeps)
 	require.Len(t, outdated, 2)
-	require.Contains(t, outdated[0], "github.com/pkg/errors")
-	require.Contains(t, outdated[1], "github.com/stretchr/testify")
+	require.Contains(t, outdated[0], testGithubComPkgErrors)
+	require.Contains(t, outdated[1], testGithubComStretchrTestify)
 }
 
 func TestCheckDependencyUpdates_NoDirectDeps(t *testing.T) {

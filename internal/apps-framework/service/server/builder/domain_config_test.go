@@ -57,17 +57,17 @@ func TestDomainConfig_Build_WithMigrations(t *testing.T) {
 	defer cancel()
 
 	domainFS := fstest.MapFS{
-		"migrations/2001_test.up.sql": &fstest.MapFile{
+		testMigrations2001TestUpSQL: &fstest.MapFile{
 			Data: []byte("CREATE TABLE IF NOT EXISTS test_domain_build (id TEXT PRIMARY KEY);"),
 		},
-		"migrations/2001_test.down.sql": &fstest.MapFile{
+		testMigrations2001TestDownSQL: &fstest.MapFile{
 			Data: []byte("DROP TABLE IF EXISTS test_domain_build;"),
 		},
 	}
 
 	resources, err := Build(ctx, getMinimalSettings(), &DomainConfig{
 		MigrationsFS:   domainFS,
-		MigrationsPath: "migrations",
+		MigrationsPath: valueMigrations,
 	})
 
 	require.NoError(t, err)

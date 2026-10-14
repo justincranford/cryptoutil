@@ -62,15 +62,15 @@ func buildKnownServices() []ServiceDef {
 
 // defaultRequiredFiles are files that every service must have (relative to service dir).
 var defaultRequiredFiles = []string{
-	"{SERVICE}.go",
-	"server/server.go",
+	valueServiceGo,
+	valueServerServerGo,
 	"server/config/config.go",
 }
 
 // kmsRequiredFiles are files required for sm-kms (legacy service, no server/config/config.go).
 var kmsRequiredFiles = []string{
-	"{SERVICE}.go",
-	"server/server.go",
+	valueServiceGo,
+	valueServerServerGo,
 }
 
 // Check validates service structure from the workspace root.

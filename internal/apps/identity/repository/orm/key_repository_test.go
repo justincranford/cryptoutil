@@ -48,7 +48,7 @@ func TestKeyRepository_Create(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name:    "nil_key",
+			name:    testNilKey,
 			key:     nil,
 			wantErr: true,
 		},
@@ -159,7 +159,7 @@ func TestKeyRepository_Update(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name:    "nil_key",
+			name:    testNilKey,
 			key:     nil,
 			wantErr: true,
 		},
@@ -253,7 +253,7 @@ func TestKeyRepository_List(t *testing.T) {
 			ID:         googleUuid.Must(googleUuid.NewV7()),
 			Usage:      cryptoutilSharedMagic.KeyUsageSigning,
 			Algorithm:  cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
-			PrivateKey: "test-key",
+			PrivateKey: testTestKey,
 			Active:     true,
 		}
 		require.NoError(t, repo.Create(ctx, key))
@@ -281,7 +281,7 @@ func TestKeyRepository_List(t *testing.T) {
 			name:          "offset_2",
 			limit:         0,
 			offset:        2,
-			expectedCount: 3,
+			expectedCount: test3,
 		},
 		{
 			name:          "limit_2_offset_1",
@@ -335,7 +335,7 @@ func TestKeyRepository_FindByUsage(t *testing.T) {
 					ID:         googleUuid.Must(googleUuid.NewV7()),
 					Usage:      cryptoutilSharedMagic.KeyUsageEncryption,
 					Algorithm:  cryptoutilSharedMagic.JoseAlgRSAOAEP256,
-					PrivateKey: "encryption-key-1",
+					PrivateKey: testEncryptionKey1,
 					Active:     true,
 				},
 			},
@@ -372,7 +372,7 @@ func TestKeyRepository_FindByUsage(t *testing.T) {
 					ID:         googleUuid.Must(googleUuid.NewV7()),
 					Usage:      cryptoutilSharedMagic.KeyUsageEncryption,
 					Algorithm:  cryptoutilSharedMagic.JoseAlgRSAOAEP256,
-					PrivateKey: "encryption-key-1",
+					PrivateKey: testEncryptionKey1,
 					Active:     true,
 				},
 				{
@@ -390,7 +390,7 @@ func TestKeyRepository_FindByUsage(t *testing.T) {
 		{
 			name:          "no_matching_keys",
 			setupKeys:     []*cryptoutilIdentityDomain.Key{},
-			usage:         "nonexistent",
+			usage:         testNonexistent,
 			active:        true,
 			expectedCount: 0,
 		},
@@ -455,8 +455,8 @@ func TestKeyRepository_Count(t *testing.T) {
 		},
 		{
 			name:          "three_keys",
-			setupCount:    3,
-			expectedCount: 3,
+			setupCount:    test3,
+			expectedCount: test3,
 		},
 	}
 
@@ -469,7 +469,7 @@ func TestKeyRepository_Count(t *testing.T) {
 					ID:         googleUuid.Must(googleUuid.NewV7()),
 					Usage:      cryptoutilSharedMagic.KeyUsageSigning,
 					Algorithm:  cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
-					PrivateKey: "test-key",
+					PrivateKey: testTestKey,
 					Active:     true,
 				}
 				require.NoError(t, repo.Create(ctx, key))

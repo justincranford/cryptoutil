@@ -19,8 +19,8 @@ func createValidTemplateDir(t *testing.T) string {
 	dir := t.TempDir()
 
 	// Create required directories.
-	require.NoError(t, os.MkdirAll(filepath.Join(dir, "config"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
-	require.NoError(t, os.MkdirAll(filepath.Join(dir, "secrets"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+	require.NoError(t, os.MkdirAll(filepath.Join(dir, fileTypeConfig), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+	require.NoError(t, os.MkdirAll(filepath.Join(dir, validatorNameSecrets), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 	// Compose files with placeholders.
 	serviceContent := "name: PRODUCT-SERVICE\nservices:\n  PRODUCT-SERVICE-sqlite:\n    ports:\n      - \"XXXX:8080\"\n"
@@ -35,12 +35,12 @@ func createValidTemplateDir(t *testing.T) string {
 
 	// Config files.
 	for _, f := range requiredTemplateConfigFiles {
-		require.NoError(t, os.WriteFile(filepath.Join(dir, "config", f), []byte("# template config\n"), cryptoutilSharedMagic.CacheFilePermissions))
+		require.NoError(t, os.WriteFile(filepath.Join(dir, fileTypeConfig, f), []byte("# template config\n"), cryptoutilSharedMagic.CacheFilePermissions))
 	}
 
 	// Secret files.
 	for _, f := range requiredTemplateSecretFiles {
-		require.NoError(t, os.WriteFile(filepath.Join(dir, "secrets", f), []byte("secret-value"), cryptoutilSharedMagic.CacheFilePermissions))
+		require.NoError(t, os.WriteFile(filepath.Join(dir, validatorNameSecrets, f), []byte("secret-value"), cryptoutilSharedMagic.CacheFilePermissions))
 	}
 
 	return dir
@@ -67,7 +67,7 @@ func TestValidateTemplatePattern_ValidCases(t *testing.T) {
 				t.Helper()
 
 				dir := createValidTemplateDir(t)
-				require.NoError(t, os.WriteFile(filepath.Join(dir, "config", "README.md"), []byte("# readme\n"), cryptoutilSharedMagic.CacheFilePermissions))
+				require.NoError(t, os.WriteFile(filepath.Join(dir, fileTypeConfig, valueReadmeMd), []byte("# readme\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
 				return dir
 			},
@@ -78,7 +78,7 @@ func TestValidateTemplatePattern_ValidCases(t *testing.T) {
 				t.Helper()
 
 				dir := createValidTemplateDir(t)
-				require.NoError(t, os.MkdirAll(filepath.Join(dir, "config", "subdir"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+				require.NoError(t, os.MkdirAll(filepath.Join(dir, fileTypeConfig, "subdir"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 				return dir
 			},
@@ -106,16 +106,16 @@ func TestValidateTemplatePattern_Violations(t *testing.T) {
 		wantContains []string
 	}{
 		{
-			name: "path not found",
+			name: testPathNotFound,
 			setupFn: func(t *testing.T) string {
 				t.Helper()
 
 				return filepath.Join(t.TempDir(), "nonexistent")
 			},
-			wantContains: []string{"does not exist"},
+			wantContains: []string{testDoesNotExist},
 		},
 		{
-			name: "path is file",
+			name: testPathIsFile,
 			setupFn: func(t *testing.T) string {
 				t.Helper()
 
@@ -124,7 +124,7 @@ func TestValidateTemplatePattern_Violations(t *testing.T) {
 
 				return f
 			},
-			wantContains: []string{"not a directory"},
+			wantContains: []string{testNotADirectory},
 		},
 		{
 			name: "missing compose files",
@@ -145,7 +145,7 @@ func TestValidateTemplatePattern_Violations(t *testing.T) {
 				t.Helper()
 
 				dir := createValidTemplateDir(t)
-				require.NoError(t, os.RemoveAll(filepath.Join(dir, "config")))
+				require.NoError(t, os.RemoveAll(filepath.Join(dir, fileTypeConfig)))
 
 				return dir
 			},
@@ -157,7 +157,7 @@ func TestValidateTemplatePattern_Violations(t *testing.T) {
 				t.Helper()
 
 				dir := createValidTemplateDir(t)
-				require.NoError(t, os.Remove(filepath.Join(dir, "config", "template-app-common.yml")))
+				require.NoError(t, os.Remove(filepath.Join(dir, fileTypeConfig, "template-app-common.yml")))
 
 				return dir
 			},
@@ -169,7 +169,7 @@ func TestValidateTemplatePattern_Violations(t *testing.T) {
 				t.Helper()
 
 				dir := createValidTemplateDir(t)
-				require.NoError(t, os.RemoveAll(filepath.Join(dir, "secrets")))
+				require.NoError(t, os.RemoveAll(filepath.Join(dir, validatorNameSecrets)))
 
 				return dir
 			},
@@ -181,11 +181,11 @@ func TestValidateTemplatePattern_Violations(t *testing.T) {
 				t.Helper()
 
 				dir := createValidTemplateDir(t)
-				require.NoError(t, os.Remove(filepath.Join(dir, "secrets", "unseal_3of5.secret")))
+				require.NoError(t, os.Remove(filepath.Join(dir, validatorNameSecrets, valueUnseal3of5Secret)))
 
 				return dir
 			},
-			wantContains: []string{"unseal_3of5.secret"},
+			wantContains: []string{valueUnseal3of5Secret},
 		},
 		{
 			name: "missing service placeholder",
@@ -258,7 +258,7 @@ func TestValidateTemplatePattern_ConfigNonStandardNaming(t *testing.T) {
 	t.Parallel()
 
 	dir := createValidTemplateDir(t)
-	require.NoError(t, os.WriteFile(filepath.Join(dir, "config", "custom-config.yml"), []byte("# custom\n"), cryptoutilSharedMagic.CacheFilePermissions))
+	require.NoError(t, os.WriteFile(filepath.Join(dir, fileTypeConfig, "custom-config.yml"), []byte("# custom\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
 	result, err := ValidateTemplatePattern(dir)
 	require.NoError(t, err)
@@ -276,18 +276,18 @@ func TestFormatTemplatePatternResult(t *testing.T) {
 		contains []string
 	}{
 		{
-			name:     "passing",
-			result:   &TemplatePatternResult{Path: "/template", Valid: true},
-			contains: []string{cryptoutilSharedMagic.TestStatusPass, "/template"},
+			name:     testPassing,
+			result:   &TemplatePatternResult{Path: testTemplate, Valid: true},
+			contains: []string{cryptoutilSharedMagic.TestStatusPass, testTemplate},
 		},
 		{
-			name: "failing with errors and warnings",
+			name: testFailingWithErrorsAndWarnings,
 			result: &TemplatePatternResult{
-				Path: "/template", Valid: false,
-				Errors:   []string{"missing compose.yml"},
-				Warnings: []string{"non-standard name"},
+				Path: testTemplate, Valid: false,
+				Errors:   []string{testMissingComposeYml},
+				Warnings: []string{testNonStandardName},
 			},
-			contains: []string{cryptoutilSharedMagic.TestStatusFail, "missing compose.yml", "non-standard name"},
+			contains: []string{cryptoutilSharedMagic.TestStatusFail, testMissingComposeYml, testNonStandardName},
 		},
 	}
 
@@ -306,7 +306,7 @@ func TestFormatTemplatePatternResult(t *testing.T) {
 func TestValidateTemplatePattern_RealTemplate(t *testing.T) {
 	t.Parallel()
 
-	templatePath := filepath.Join(".", "..", "..", "..", "..", "deployments", cryptoutilSharedMagic.SkeletonTemplateServiceName)
+	templatePath := filepath.Join(".", "..", "..", "..", "..", defaultDeploymentsDir, cryptoutilSharedMagic.SkeletonTemplateServiceName)
 
 	info, err := os.Stat(templatePath)
 	if err != nil || !info.IsDir() {

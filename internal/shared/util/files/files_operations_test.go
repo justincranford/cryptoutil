@@ -36,16 +36,16 @@ func TestListAllFilesWithOptions_ErrorPath(t *testing.T) {
 	require.NoError(t, err)
 
 	// Test with directory exclusion using prefix match
-	inclusions := []string{"txt"}
+	inclusions := []string{testTxt}
 	exclusions := []string{filepath.ToSlash(subDir)}
 
 	result, err := cryptoutilSharedUtilFiles.ListAllFilesWithOptions(tempDir, inclusions, exclusions)
 	require.NoError(t, err)
 
 	// Should only have root file, not subdirectory file
-	require.Len(t, result["txt"], 1)
-	require.Contains(t, result["txt"][0], "test.txt")
-	require.NotContains(t, result["txt"][0], "subfile.txt")
+	require.Len(t, result[testTxt], 1)
+	require.Contains(t, result[testTxt][0], "test.txt")
+	require.NotContains(t, result[testTxt][0], "subfile.txt")
 }
 
 // TestListAllFilesWithOptions_NoExtension tests handling of files without extension.
@@ -55,22 +55,22 @@ func TestListAllFilesWithOptions_NoExtension(t *testing.T) {
 	tempDir := t.TempDir()
 
 	// Create file without extension
-	noExtFile := filepath.Join(tempDir, "Makefile")
+	noExtFile := filepath.Join(tempDir, testMakefile)
 	err := cryptoutilSharedUtilFiles.WriteFile(noExtFile, "content", cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	// Try to find it without matching extension
-	inclusions := []string{"txt"}
+	inclusions := []string{testTxt}
 	exclusions := []string{}
 
 	result, err := cryptoutilSharedUtilFiles.ListAllFilesWithOptions(tempDir, inclusions, exclusions)
 	require.NoError(t, err)
 
 	// Should not find Makefile since "txt" not matched
-	require.Empty(t, result["txt"])
+	require.Empty(t, result[testTxt])
 
 	// Now try with Makefile in inclusions (no dot prefix)
-	inclusions = []string{"Makefile"}
+	inclusions = []string{testMakefile}
 	result, err = cryptoutilSharedUtilFiles.ListAllFilesWithOptions(tempDir, inclusions, exclusions)
 	require.NoError(t, err)
 

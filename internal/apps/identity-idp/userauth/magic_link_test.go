@@ -83,7 +83,7 @@ func TestMagicLinkAuthenticator_Method(t *testing.T) {
 	t.Parallel()
 
 	auth := cryptoutilIdentityIdpUserauth.NewMagicLinkAuthenticator(nil, nil, nil, nil, nil, "https://example.com")
-	require.Equal(t, "magic_link", auth.Method(), "Method should return 'magic_link'")
+	require.Equal(t, testMagicLink, auth.Method(), "Method should return 'magic_link'")
 }
 
 func TestRiskBasedAuthenticator_NewAuthenticator(t *testing.T) {
@@ -210,12 +210,12 @@ func TestMockDeliveryService_SendEmailSuccess(t *testing.T) {
 	ctx := t.Context()
 	service := cryptoutilIdentityIdpUserauth.NewMockDeliveryService()
 
-	err := service.SendEmail(ctx, "test@example.com", "Test Subject", "Test body")
+	err := service.SendEmail(ctx, testTestExampleCom, "Test Subject", "Test body")
 	require.NoError(t, err, "SendEmail should succeed")
 
 	sent := service.GetSentEmails()
 	require.Len(t, sent, 1, "Should have one sent email")
-	require.Equal(t, "test@example.com", sent[0].To, "Email address should match")
+	require.Equal(t, testTestExampleCom, sent[0].To, "Email address should match")
 	require.Equal(t, "Test Subject", sent[0].Subject, "Subject should match")
 	require.Equal(t, "Test body", sent[0].Body, "Body should match")
 }
@@ -231,7 +231,7 @@ func TestMockDeliveryService_SetShouldFail(t *testing.T) {
 	err := service.SendSMS(ctx, "+1234567890", "Test message")
 	require.Error(t, err, "SendSMS should fail when SetShouldFail is true")
 
-	err = service.SendEmail(ctx, "test@example.com", "Subject", "Body")
+	err = service.SendEmail(ctx, testTestExampleCom, "Subject", "Body")
 	require.Error(t, err, "SendEmail should fail when SetShouldFail is true")
 }
 
@@ -245,7 +245,7 @@ func TestMockDeliveryService_Reset(t *testing.T) {
 	err := service.SendSMS(ctx, "+1234567890", "Test message")
 	require.NoError(t, err, "SendSMS should succeed")
 
-	err = service.SendEmail(ctx, "test@example.com", "Subject", "Body")
+	err = service.SendEmail(ctx, testTestExampleCom, "Subject", "Body")
 	require.NoError(t, err, "SendEmail should succeed")
 
 	// Reset.

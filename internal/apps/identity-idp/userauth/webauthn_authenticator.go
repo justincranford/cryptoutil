@@ -150,7 +150,7 @@ func NewWebAuthnAuthenticator(
 
 // Method returns the authentication method name.
 func (w *WebAuthnAuthenticator) Method() string {
-	return "passkey_webauthn"
+	return valuePasskeyWebauthn
 }
 
 // BeginRegistration begins WebAuthn credential registration ceremony.
@@ -201,12 +201,12 @@ func (w *WebAuthnAuthenticator) BeginRegistration(ctx context.Context, user *cry
 	challenge := &AuthChallenge{
 		ID:        challengeID,
 		UserID:    user.ID.String(),
-		Method:    "passkey_webauthn",
+		Method:    valuePasskeyWebauthn,
 		ExpiresAt: time.Now().UTC().Add(w.config.Timeout),
 		Metadata: map[string]any{
-			"session_data": session.Challenge,
-			"operation":    "registration",
-			"user_handle":  session.UserID,
+			valueSessionData: session.Challenge,
+			valueOperation:   "registration",
+			valueUserHandle:  session.UserID,
 		},
 	}
 
@@ -255,12 +255,12 @@ func (w *WebAuthnAuthenticator) FinishRegistration(
 	}
 
 	// Reconstruct session from stored challenge.
-	sessionDataStr, ok := challenge.Metadata["session_data"].(string)
+	sessionDataStr, ok := challenge.Metadata[valueSessionData].(string)
 	if !ok {
 		return nil, fmt.Errorf("invalid session data in challenge")
 	}
 
-	userHandle, ok := challenge.Metadata["user_handle"].([]byte)
+	userHandle, ok := challenge.Metadata[valueUserHandle].([]byte)
 	if !ok {
 		return nil, fmt.Errorf("invalid user handle in challenge")
 	}

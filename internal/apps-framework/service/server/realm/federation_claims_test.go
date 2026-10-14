@@ -22,19 +22,19 @@ func TestFederationManager_MapTenantFromClaims(t *testing.T) {
 	manager := NewFederationManager(nil)
 
 	err := manager.RegisterProvider(&FederatedProvider{
-		ID:        "mapping-provider",
-		IssuerURL: "https://issuer.example.com",
+		ID:        testMappingProvider,
+		IssuerURL: testHTTPSIssuerExampleCom,
 		Type:      FederationTypeOIDC,
 		TenantMappings: []TenantMapping{
-			{ClaimName: "org", ClaimValue: "acme", TenantID: "tenant-acme", Priority: cryptoutilSharedMagic.JoseJADefaultMaxMaterials},
-			{ClaimName: "groups", ClaimValue: "admin", TenantID: "tenant-admin", Priority: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries},
+			{ClaimName: testOrg, ClaimValue: testAcme, TenantID: testTenantAcme, Priority: cryptoutilSharedMagic.JoseJADefaultMaxMaterials},
+			{ClaimName: testGroups, ClaimValue: testAdmin, TenantID: testTenantAdmin, Priority: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries},
 			{ClaimName: cryptoutilSharedMagic.ClaimSub, ClaimValue: "user123", TenantID: "tenant-user", Priority: cryptoutilSharedMagic.MaxErrorDisplay},
 		},
 	})
 	require.NoError(t, err)
 
 	err = manager.RegisterProvider(&FederatedProvider{
-		ID:        "no-mappings",
+		ID:        testNoMappings,
 		IssuerURL: "https://no-mappings.example.com",
 		Type:      FederationTypeOIDC,
 	})
@@ -49,43 +49,43 @@ func TestFederationManager_MapTenantFromClaims(t *testing.T) {
 		errMsg     string
 	}{
 		{
-			name:       "non-existing provider",
-			providerID: "non-existing",
-			claims:     map[string]any{"org": "acme"},
+			name:       testNonExistingProvider,
+			providerID: testNonExisting,
+			claims:     map[string]any{testOrg: testAcme},
 			wantErr:    true,
 			errMsg:     "not found",
 		},
 		{
 			name:       "no tenant mappings",
-			providerID: "no-mappings",
-			claims:     map[string]any{"org": "acme"},
+			providerID: testNoMappings,
+			claims:     map[string]any{testOrg: testAcme},
 			wantErr:    true,
 			errMsg:     "no tenant mappings configured",
 		},
 		{
 			name:       "string claim match",
-			providerID: "mapping-provider",
-			claims:     map[string]any{"org": "acme"},
-			wantTenant: "tenant-acme",
+			providerID: testMappingProvider,
+			claims:     map[string]any{testOrg: testAcme},
+			wantTenant: testTenantAcme,
 			wantErr:    false,
 		},
 		{
 			name:       "array claim match",
-			providerID: "mapping-provider",
-			claims:     map[string]any{"groups": []any{"user", "admin", "developer"}},
-			wantTenant: "tenant-admin",
+			providerID: testMappingProvider,
+			claims:     map[string]any{testGroups: []any{testUser, testAdmin, "developer"}},
+			wantTenant: testTenantAdmin,
 			wantErr:    false,
 		},
 		{
 			name:       "priority ordering (groups has higher priority than org)",
-			providerID: "mapping-provider",
-			claims:     map[string]any{"org": "acme", "groups": []any{"admin"}},
-			wantTenant: "tenant-admin",
+			providerID: testMappingProvider,
+			claims:     map[string]any{testOrg: testAcme, testGroups: []any{testAdmin}},
+			wantTenant: testTenantAdmin,
 			wantErr:    false,
 		},
 		{
 			name:       "no matching claim",
-			providerID: "mapping-provider",
+			providerID: testMappingProvider,
 			claims:     map[string]any{"other": "value"},
 			wantErr:    true,
 			errMsg:     "no matching tenant mapping found",
@@ -115,15 +115,15 @@ func TestFederationManager_ValidateAudience(t *testing.T) {
 	manager := NewFederationManager(nil)
 
 	err := manager.RegisterProvider(&FederatedProvider{
-		ID:               "aud-provider",
-		IssuerURL:        "https://issuer.example.com",
+		ID:               testAudProvider,
+		IssuerURL:        testHTTPSIssuerExampleCom,
 		Type:             FederationTypeOIDC,
-		AllowedAudiences: []string{"client1", "client2"},
+		AllowedAudiences: []string{testClient1, testClient2},
 	})
 	require.NoError(t, err)
 
 	err = manager.RegisterProvider(&FederatedProvider{
-		ID:        "no-aud-provider",
+		ID:        testNoAudProvider,
 		IssuerURL: "https://no-aud.example.com",
 		Type:      FederationTypeOIDC,
 	})
@@ -136,32 +136,32 @@ func TestFederationManager_ValidateAudience(t *testing.T) {
 		wantErr    bool
 	}{
 		{
-			name:       "non-existing provider",
-			providerID: "non-existing",
-			audience:   []string{"client1"},
+			name:       testNonExistingProvider,
+			providerID: testNonExisting,
+			audience:   []string{testClient1},
 			wantErr:    true,
 		},
 		{
 			name:       "no audience restriction",
-			providerID: "no-aud-provider",
+			providerID: testNoAudProvider,
 			audience:   []string{"any-client"},
 			wantErr:    false,
 		},
 		{
 			name:       "valid audience",
-			providerID: "aud-provider",
-			audience:   []string{"client1"},
+			providerID: testAudProvider,
+			audience:   []string{testClient1},
 			wantErr:    false,
 		},
 		{
 			name:       "multiple audiences with one valid",
-			providerID: "aud-provider",
-			audience:   []string{cryptoutilSharedMagic.UNKNOWN, "client2"},
+			providerID: testAudProvider,
+			audience:   []string{cryptoutilSharedMagic.UNKNOWN, testClient2},
 			wantErr:    false,
 		},
 		{
 			name:       "invalid audience",
-			providerID: "aud-provider",
+			providerID: testAudProvider,
 			audience:   []string{cryptoutilSharedMagic.UNKNOWN},
 			wantErr:    true,
 		},
@@ -185,12 +185,12 @@ func TestFederationManager_ValidateAudience(t *testing.T) {
 func TestFederationManager_GetJWKSURL(t *testing.T) {
 	t.Parallel()
 
-	t.Run("non-existing provider", func(t *testing.T) {
+	t.Run(testNonExistingProvider, func(t *testing.T) {
 		t.Parallel()
 
 		manager := NewFederationManager(nil)
 
-		_, err := manager.GetJWKSURL(context.Background(), "non-existing")
+		_, err := manager.GetJWKSURL(context.Background(), testNonExisting)
 		require.Error(t, err)
 	})
 
@@ -201,7 +201,7 @@ func TestFederationManager_GetJWKSURL(t *testing.T) {
 
 		err := manager.RegisterProvider(&FederatedProvider{
 			ID:        "jwks-configured",
-			IssuerURL: "https://issuer.example.com",
+			IssuerURL: testHTTPSIssuerExampleCom,
 			Type:      FederationTypeOIDC,
 			JWKSURL:   "https://custom.example.com/jwks",
 		})
@@ -216,7 +216,7 @@ func TestFederationManager_GetJWKSURL(t *testing.T) {
 		t.Parallel()
 
 		discoveryDoc := OIDCDiscoveryDocument{
-			Issuer:  "https://issuer.example.com",
+			Issuer:  testHTTPSIssuerExampleCom,
 			JWKSURI: "https://issuer.example.com/jwks",
 		}
 

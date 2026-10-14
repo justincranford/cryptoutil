@@ -154,7 +154,7 @@ func TestCleanupService_ExpiredTokenDeletion(t *testing.T) {
 	testClient := &cryptoutilIdentityDomain.Client{
 		ClientID:                "client-" + googleUuid.NewString(),
 		ClientSecret:            "secret123",
-		Name:                    "test-client",
+		Name:                    testTestClient,
 		ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
 		AllowedScopes:           []string{cryptoutilSharedMagic.ScopeRead, cryptoutilSharedMagic.ScopeWrite},
 		AllowedGrantTypes:       []string{cryptoutilSharedMagic.GrantTypeAuthorizationCode},
@@ -303,7 +303,7 @@ func createTestConfig(t *testing.T) *cryptoutilIdentityConfig.Config {
 			RefreshTokenLifetime: cryptoutilSharedMagic.HoursPerDay * time.Hour,
 		},
 		Security: &cryptoutilIdentityConfig.SecurityConfig{
-			CORSAllowedOrigins: []string{"https://localhost:8080"},
+			CORSAllowedOrigins: []string{testHTTPSLocalhost8080},
 		},
 	}
 }

@@ -79,15 +79,15 @@ func TestBasicAuthenticator_Authenticate(t *testing.T) {
 			wantErrType: nil,
 		},
 		{
-			name:        "invalid client secret",
+			name:        testInvalidClientSecret,
 			clientID:    testClientID,
-			credential:  "wrong-secret", // Plaintext wrong secret
+			credential:  testWrongSecret, // Plaintext wrong secret
 			wantErr:     true,
 			wantErrType: cryptoutilIdentityAppErr.ErrInvalidClientSecret,
 		},
 		{
-			name:        "client not found",
-			clientID:    "nonexistent",
+			name:        testClientNotFound,
+			clientID:    testNonexistent,
 			credential:  testClientSecret, // Plaintext client secret
 			wantErr:     true,
 			wantErrType: cryptoutilIdentityAppErr.ErrClientNotFound,
@@ -130,7 +130,7 @@ func TestBasicAuthenticator_ValidateAuthMethod(t *testing.T) {
 		expected bool
 	}{
 		{
-			name: "valid auth method",
+			name: testValidAuthMethod,
 			client: &cryptoutilIdentityDomain.Client{
 				TokenEndpointAuthMethod: cryptoutilIdentityDomain.ClientAuthMethodSecretBasic,
 			},
@@ -144,7 +144,7 @@ func TestBasicAuthenticator_ValidateAuthMethod(t *testing.T) {
 			expected: false,
 		},
 		{
-			name: "invalid auth method - private_key_jwt",
+			name: testInvalidAuthMethodPrivateKeyJWT,
 			client: &cryptoutilIdentityDomain.Client{
 				TokenEndpointAuthMethod: cryptoutilIdentityDomain.ClientAuthMethodPrivateKeyJWT,
 			},

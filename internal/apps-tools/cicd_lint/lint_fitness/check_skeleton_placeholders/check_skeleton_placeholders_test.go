@@ -148,9 +148,9 @@ func TestFindViolations_DetectsPlaceholders(t *testing.T) {
 		wantWord string
 		wantLine int
 	}{
-		{name: "lowercase skeleton in func name", filename: "bad.go", content: goSkeletonFuncContent, wantWord: cryptoutilSharedMagic.SkeletonProductNameTitleCase, wantLine: 3},
-		{name: "titlecase Skeleton in type name", filename: "bad.go", content: goSkeletonTypeContent, wantWord: cryptoutilSharedMagic.SkeletonProductNameTitleCase, wantLine: 3},
-		{name: "uppercase SKELETON in const name", filename: "bad.go", content: "package myservice\n\nconst SKELETON_PORT = 8080\n", wantWord: cryptoutilSharedMagic.SkeletonProductNameUpperCase, wantLine: 3},
+		{name: "lowercase skeleton in func name", filename: testBadGo, content: goSkeletonFuncContent, wantWord: cryptoutilSharedMagic.SkeletonProductNameTitleCase, wantLine: test3},
+		{name: "titlecase Skeleton in type name", filename: testBadGo, content: goSkeletonTypeContent, wantWord: cryptoutilSharedMagic.SkeletonProductNameTitleCase, wantLine: test3},
+		{name: "uppercase SKELETON in const name", filename: testBadGo, content: "package myservice\n\nconst SKELETON_PORT = 8080\n", wantWord: cryptoutilSharedMagic.SkeletonProductNameUpperCase, wantLine: test3},
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
@@ -193,13 +193,13 @@ func TestFindViolations_ExcludedPaths(t *testing.T) {
 		{
 			name:    "cmd/skeleton-template dir excluded",
 			subDir:  filepath.Join("cmd", cryptoutilSharedMagic.OTLPServiceSkeletonTemplate),
-			file:    "main.go",
+			file:    testMainGo,
 			content: "package main\n\n// Entry point for skeleton-template service\nfunc main() {}\n",
 		},
 		{
 			name:    "cmd/skeleton dir excluded",
 			subDir:  filepath.Join("cmd", cryptoutilSharedMagic.SkeletonProductName),
-			file:    "main.go",
+			file:    testMainGo,
 			content: "package main\n\n// Skeleton product entry point\nimport \"cryptoutil/internal/apps/skeleton\"\n",
 		},
 		{
@@ -288,7 +288,7 @@ func TestFindViolations_EdgeCases(t *testing.T) {
 				t.Helper()
 
 				tempDir := t.TempDir()
-				writeFile(t, filepath.Join(tempDir, "bad.go"), "package myservice\n\n// line with skeleton and Skeleton keywords\n")
+				writeFile(t, filepath.Join(tempDir, testBadGo), "package myservice\n\n// line with skeleton and Skeleton keywords\n")
 
 				return tempDir
 			},
@@ -347,7 +347,7 @@ func TestCheckInDir(t *testing.T) {
 				t.Helper()
 
 				tempDir := t.TempDir()
-				writeFile(t, filepath.Join(tempDir, "bad.go"), goSkeletonTypeContent)
+				writeFile(t, filepath.Join(tempDir, testBadGo), goSkeletonTypeContent)
 
 				return tempDir
 			},

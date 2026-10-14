@@ -66,7 +66,7 @@ output-options:
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	err = Check(logger, map[string][]string{"yaml": {configFile}})
+	err = Check(logger, map[string][]string{valueYAML: {configFile}})
 
 	require.NoError(t, err)
 }
@@ -92,7 +92,7 @@ output-options:
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	err = Check(logger, map[string][]string{"yaml": {configFile}})
+	err = Check(logger, map[string][]string{valueYAML: {configFile}})
 
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "codegen-config")
@@ -111,7 +111,7 @@ func TestCheck_NonAPIFile(t *testing.T) {
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	err = Check(logger, map[string][]string{"yaml": {configFile}})
+	err = Check(logger, map[string][]string{valueYAML: {configFile}})
 
 	require.NoError(t, err, "non-api config files should be skipped")
 }
@@ -158,7 +158,7 @@ output-options:
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	err = Check(logger, map[string][]string{"yaml": {configFile}})
+	err = Check(logger, map[string][]string{valueYAML: {configFile}})
 
 	require.NoError(t, err, "initialisms with trailing comments should be recognized")
 }

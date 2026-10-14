@@ -19,7 +19,7 @@ func TestValidateAndParseWorkflowFile_BranchPinned(t *testing.T) {
 	t.Parallel()
 
 	tmpDir := t.TempDir()
-	workflowFile := filepath.Join(tmpDir, "ci.yml")
+	workflowFile := filepath.Join(tmpDir, testCiYml)
 	content := []byte("uses: actions/checkout@main\n")
 
 	err := os.WriteFile(workflowFile, content, cryptoutilSharedMagic.CacheFilePermissions)
@@ -46,7 +46,7 @@ func TestValidateAndParseWorkflowFile_BranchPinned_AllBranchNames(t *testing.T) 
 			t.Parallel()
 
 			tmpDir := t.TempDir()
-			workflowFile := filepath.Join(tmpDir, "ci.yml")
+			workflowFile := filepath.Join(tmpDir, testCiYml)
 			content := []byte("uses: actions/checkout@" + branch + "\n")
 
 			err := os.WriteFile(workflowFile, content, cryptoutilSharedMagic.CacheFilePermissions)
@@ -66,7 +66,7 @@ func TestValidateAndGetWorkflowActionsDetails_BranchPinned(t *testing.T) {
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	tmpDir := t.TempDir()
-	workflowFile := filepath.Join(tmpDir, "ci.yml")
+	workflowFile := filepath.Join(tmpDir, testCiYml)
 	content := []byte("uses: actions/checkout@main\n")
 
 	err := os.WriteFile(workflowFile, content, cryptoutilSharedMagic.CacheFilePermissions)
@@ -86,7 +86,7 @@ func TestLintGitHubWorkflows_BranchPinnedAction(t *testing.T) {
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	tmpDir := t.TempDir()
 
-	workflowFile := filepath.Join(tmpDir, "ci.yml")
+	workflowFile := filepath.Join(tmpDir, testCiYml)
 	content := []byte("uses: actions/checkout@main\n")
 
 	err := os.WriteFile(workflowFile, content, cryptoutilSharedMagic.CacheFilePermissions)
@@ -117,7 +117,7 @@ func TestLintGitHubWorkflows_ExceptionVersionMismatch(t *testing.T) {
 	require.NoError(t, err)
 
 	// Workflow uses v4 but exception specifies v3 - triggers stale-exception warning.
-	workflowFile := filepath.Join(tmpDir, "ci.yml")
+	workflowFile := filepath.Join(tmpDir, testCiYml)
 	content := []byte("uses: actions/checkout@v4\n")
 
 	err = os.WriteFile(workflowFile, content, cryptoutilSharedMagic.CacheFilePermissions)

@@ -148,9 +148,9 @@ func TestMapGormError_SQLiteUniqueConstraint(t *testing.T) {
 	db := newSQLiteDBWithUniqueConstraint(t)
 
 	// Insert a row, then insert a duplicate to trigger a real SQLite unique constraint error.
-	require.NoError(t, db.Create(&testModel{ID: "1", Name: "alice"}).Error)
+	require.NoError(t, db.Create(&testModel{ID: "1", Name: testAlice}).Error)
 
-	sqliteErr := db.Create(&testModel{ID: "2", Name: "alice"}).Error
+	sqliteErr := db.Create(&testModel{ID: "2", Name: testAlice}).Error
 	require.Error(t, sqliteErr, "duplicate name must trigger a SQLite error")
 
 	msg := "sqlite unique constraint"

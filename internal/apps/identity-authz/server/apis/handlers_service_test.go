@@ -61,7 +61,7 @@ func createServiceComprehensiveTestConfig(t *testing.T) *cryptoutilIdentityConfi
 
 	return &cryptoutilIdentityConfig.Config{
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{
-			Issuer:               "https://identity.example.com",
+			Issuer:               testHTTPSIdentityExampleCom,
 			AccessTokenLifetime:  15 * time.Minute,
 			RefreshTokenLifetime: cryptoutilSharedMagic.HoursPerDay * time.Hour,
 		},
@@ -93,7 +93,7 @@ func createServiceComprehensiveTestTokenService(t *testing.T) *cryptoutilIdentit
 	t.Helper()
 
 	config := &cryptoutilIdentityConfig.TokenConfig{
-		Issuer:               "https://identity.example.com",
+		Issuer:               testHTTPSIdentityExampleCom,
 		AccessTokenLifetime:  15 * time.Minute,
 		RefreshTokenLifetime: cryptoutilSharedMagic.HoursPerDay * time.Hour,
 	}

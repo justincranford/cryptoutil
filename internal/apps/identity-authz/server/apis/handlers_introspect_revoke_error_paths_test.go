@@ -41,7 +41,7 @@ func TestHandleRevoke_AdditionalErrorPaths(t *testing.T) {
 				// Create client first (foreign key constraint).
 				client := &cryptoutilIdentityDomain.Client{
 					ClientID:                "test-client-" + googleUuid.NewString(),
-					ClientSecret:            "test-secret",
+					ClientSecret:            testTestSecret,
 					Name:                    cryptoutilSharedMagic.TestClientName,
 					AllowedScopes:           []string{cryptoutilSharedMagic.ScopeRead, cryptoutilSharedMagic.ScopeWrite},
 					ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
@@ -84,7 +84,7 @@ func TestHandleRevoke_AdditionalErrorPaths(t *testing.T) {
 				// Create client first (foreign key constraint).
 				client := &cryptoutilIdentityDomain.Client{
 					ClientID:                "test-client-" + googleUuid.NewString(),
-					ClientSecret:            "test-secret",
+					ClientSecret:            testTestSecret,
 					Name:                    cryptoutilSharedMagic.TestClientName,
 					AllowedScopes:           []string{cryptoutilSharedMagic.ScopeRead, cryptoutilSharedMagic.ScopeWrite},
 					ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
@@ -140,7 +140,7 @@ func TestHandleRevoke_AdditionalErrorPaths(t *testing.T) {
 			form.Set(cryptoutilSharedMagic.ParamToken, tokenValue)
 			form.Set(cryptoutilSharedMagic.ParamTokenTypeHint, tokenTypeHint)
 
-			req := httptest.NewRequest("POST", "/oauth2/v1/revoke", strings.NewReader(form.Encode()))
+			req := httptest.NewRequest(testPost, testOauth2V1Revoke, strings.NewReader(form.Encode()))
 			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 			resp, err := app.Test(req, -1)
@@ -169,7 +169,7 @@ func createRevokeErrorPathTestDependencies(t *testing.T) (*cryptoutilIdentityCon
 	config := &cryptoutilIdentityConfig.Config{
 		Database: dbConfig,
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{
-			Issuer:              "https://localhost:8080",
+			Issuer:              testHTTPSLocalhost8080,
 			AccessTokenLifetime: cryptoutilSharedMagic.IMDefaultSessionTimeout,
 		},
 	}

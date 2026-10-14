@@ -208,28 +208,33 @@ func PBKDF2HashFunction(algorithm string) func() hash.Hash {
 	}
 }
 
+const (
+	defaultPoolWorkerCountThree = 3
+	defaultPoolMaxSizeThree     = 3
+)
+
 // Default pool configurations for key generation pools.
 var (
 	// DefaultPoolConfigRSA4096 is the pool configuration for RSA 4096-bit key generation.
-	DefaultPoolConfigRSA4096     = DefaultPoolConfig{NumWorkers: 9, MaxSize: 9}  //nolint:mnd
-	DefaultPoolConfigRSA3072     = DefaultPoolConfig{NumWorkers: 6, MaxSize: 6}  //nolint:mnd
-	DefaultPoolConfigRSA2048     = DefaultPoolConfig{NumWorkers: 3, MaxSize: 3}  //nolint:mnd
-	DefaultPoolConfigECDSAP521   = DefaultPoolConfig{NumWorkers: 3, MaxSize: 9}  //nolint:mnd
-	DefaultPoolConfigECDSAP384   = DefaultPoolConfig{NumWorkers: 2, MaxSize: 6}  //nolint:mnd
-	DefaultPoolConfigECDSAP256   = DefaultPoolConfig{NumWorkers: 1, MaxSize: 3}  //nolint:mnd
-	DefaultPoolConfigECDHP521    = DefaultPoolConfig{NumWorkers: 3, MaxSize: 9}  //nolint:mnd
-	DefaultPoolConfigECDHP384    = DefaultPoolConfig{NumWorkers: 2, MaxSize: 6}  //nolint:mnd
-	DefaultPoolConfigECDHP256    = DefaultPoolConfig{NumWorkers: 1, MaxSize: 3}  //nolint:mnd
-	DefaultPoolConfigED25519     = DefaultPoolConfig{NumWorkers: 1, MaxSize: 2}  //nolint:mnd
-	DefaultPoolConfigTest        = DefaultPoolConfig{NumWorkers: 1, MaxSize: 1}  //nolint:mnd
-	DefaultPoolConfigAES256      = DefaultPoolConfig{NumWorkers: 3, MaxSize: 9}  //nolint:mnd
-	DefaultPoolConfigAES192      = DefaultPoolConfig{NumWorkers: 2, MaxSize: 6}  //nolint:mnd
-	DefaultPoolConfigAES128      = DefaultPoolConfig{NumWorkers: 1, MaxSize: 3}  //nolint:mnd
-	DefaultPoolConfigAES256HS512 = DefaultPoolConfig{NumWorkers: 3, MaxSize: 6}  //nolint:mnd
-	DefaultPoolConfigAES192HS384 = DefaultPoolConfig{NumWorkers: 2, MaxSize: 4}  //nolint:mnd
-	DefaultPoolConfigAES128HS256 = DefaultPoolConfig{NumWorkers: 1, MaxSize: 2}  //nolint:mnd
-	DefaultPoolConfigHMAC512     = DefaultPoolConfig{NumWorkers: 3, MaxSize: 9}  //nolint:mnd
-	DefaultPoolConfigHMAC384     = DefaultPoolConfig{NumWorkers: 2, MaxSize: 6}  //nolint:mnd
-	DefaultPoolConfigHMAC256     = DefaultPoolConfig{NumWorkers: 1, MaxSize: 3}  //nolint:mnd
-	DefaultPoolConfigUUIDv7      = DefaultPoolConfig{NumWorkers: 2, MaxSize: 20} //nolint:mnd
+	DefaultPoolConfigRSA4096     = DefaultPoolConfig{NumWorkers: 9, MaxSize: 9}                                                 //nolint:mnd
+	DefaultPoolConfigRSA3072     = DefaultPoolConfig{NumWorkers: 6, MaxSize: 6}                                                 //nolint:mnd
+	DefaultPoolConfigRSA2048     = DefaultPoolConfig{NumWorkers: defaultPoolWorkerCountThree, MaxSize: defaultPoolMaxSizeThree} //nolint:mnd
+	DefaultPoolConfigECDSAP521   = DefaultPoolConfig{NumWorkers: defaultPoolWorkerCountThree, MaxSize: 9}                       //nolint:mnd
+	DefaultPoolConfigECDSAP384   = DefaultPoolConfig{NumWorkers: 2, MaxSize: 6}                                                 //nolint:mnd
+	DefaultPoolConfigECDSAP256   = DefaultPoolConfig{NumWorkers: 1, MaxSize: defaultPoolMaxSizeThree}                           //nolint:mnd
+	DefaultPoolConfigECDHP521    = DefaultPoolConfig{NumWorkers: defaultPoolWorkerCountThree, MaxSize: 9}                       //nolint:mnd
+	DefaultPoolConfigECDHP384    = DefaultPoolConfig{NumWorkers: 2, MaxSize: 6}                                                 //nolint:mnd
+	DefaultPoolConfigECDHP256    = DefaultPoolConfig{NumWorkers: 1, MaxSize: defaultPoolMaxSizeThree}                           //nolint:mnd
+	DefaultPoolConfigED25519     = DefaultPoolConfig{NumWorkers: 1, MaxSize: 2}                                                 //nolint:mnd
+	DefaultPoolConfigTest        = DefaultPoolConfig{NumWorkers: 1, MaxSize: 1}                                                 //nolint:mnd
+	DefaultPoolConfigAES256      = DefaultPoolConfig{NumWorkers: defaultPoolWorkerCountThree, MaxSize: 9}                       //nolint:mnd
+	DefaultPoolConfigAES192      = DefaultPoolConfig{NumWorkers: 2, MaxSize: 6}                                                 //nolint:mnd
+	DefaultPoolConfigAES128      = DefaultPoolConfig{NumWorkers: 1, MaxSize: defaultPoolMaxSizeThree}                           //nolint:mnd
+	DefaultPoolConfigAES256HS512 = DefaultPoolConfig{NumWorkers: defaultPoolWorkerCountThree, MaxSize: 6}                       //nolint:mnd
+	DefaultPoolConfigAES192HS384 = DefaultPoolConfig{NumWorkers: 2, MaxSize: 4}                                                 //nolint:mnd
+	DefaultPoolConfigAES128HS256 = DefaultPoolConfig{NumWorkers: 1, MaxSize: 2}                                                 //nolint:mnd
+	DefaultPoolConfigHMAC512     = DefaultPoolConfig{NumWorkers: defaultPoolWorkerCountThree, MaxSize: 9}                       //nolint:mnd
+	DefaultPoolConfigHMAC384     = DefaultPoolConfig{NumWorkers: 2, MaxSize: 6}                                                 //nolint:mnd
+	DefaultPoolConfigHMAC256     = DefaultPoolConfig{NumWorkers: 1, MaxSize: defaultPoolMaxSizeThree}                           //nolint:mnd
+	DefaultPoolConfigUUIDv7      = DefaultPoolConfig{NumWorkers: 2, MaxSize: 20}                                                //nolint:mnd
 )

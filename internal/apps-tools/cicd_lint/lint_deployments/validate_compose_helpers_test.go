@@ -44,14 +44,14 @@ func TestExtractDependencies(t *testing.T) {
 	}{
 		{name: "nil depends_on", svc: composeService{}, expected: nil},
 		{
-			name:     "list format",
-			svc:      composeService{DependsOn: []any{"svc1", "svc2"}},
-			expected: []string{"svc1", "svc2"},
+			name:     testListFormat,
+			svc:      composeService{DependsOn: []any{testSvc1, testSvc2Value24BCAB51}},
+			expected: []string{testSvc1, testSvc2Value24BCAB51},
 		},
 		{
-			name:     "map format",
-			svc:      composeService{DependsOn: map[string]any{"svc1": map[string]any{"condition": "service_started"}}},
-			expected: []string{"svc1"},
+			name:     testMapFormat,
+			svc:      composeService{DependsOn: map[string]any{testSvc1: map[string]any{"condition": "service_started"}}},
+			expected: []string{testSvc1},
 		},
 	}
 
@@ -73,10 +73,10 @@ func TestExtractSecretName(t *testing.T) {
 		input    any
 		expected string
 	}{
-		{name: "string", input: "my_secret.secret", expected: "my_secret.secret"},
-		{name: "map with source", input: map[string]any{"source": "my_secret.secret"}, expected: "my_secret.secret"},
+		{name: testString, input: testMySecretSecret, expected: testMySecretSecret},
+		{name: "map with source", input: map[string]any{"source": testMySecretSecret}, expected: testMySecretSecret},
 		{name: "map without source", input: map[string]any{"target": "/run/secrets/foo"}, expected: ""},
-		{name: "nil", input: nil, expected: ""},
+		{name: testNil, input: nil, expected: ""},
 		{name: "integer", input: cryptoutilSharedMagic.AnswerToLifeUniverseEverything, expected: ""},
 	}
 
@@ -96,16 +96,16 @@ func TestExtractEnvironmentVars(t *testing.T) {
 		svc      composeService
 		expected map[string]string
 	}{
-		{name: "nil", svc: composeService{}, expected: map[string]string{}},
+		{name: testNil, svc: composeService{}, expected: map[string]string{}},
 		{
-			name:     "map format",
-			svc:      composeService{Environment: map[string]any{"KEY1": "value1", "KEY2": nil}},
-			expected: map[string]string{"KEY1": "value1", "KEY2": ""},
+			name:     testMapFormat,
+			svc:      composeService{Environment: map[string]any{testKey1: testValue1, testKey2: nil}},
+			expected: map[string]string{testKey1: testValue1, testKey2: ""},
 		},
 		{
-			name:     "list format",
-			svc:      composeService{Environment: []any{"KEY1=value1", "KEY2=value2", "NOVALUE"}},
-			expected: map[string]string{"KEY1": "value1", "KEY2": "value2", "NOVALUE": ""},
+			name:     testListFormat,
+			svc:      composeService{Environment: []any{"KEY1=value1", "KEY2=value2", testNovalue}},
+			expected: map[string]string{testKey1: testValue1, testKey2: "value2", testNovalue: ""},
 		},
 	}
 
@@ -134,8 +134,8 @@ func TestIsExemptFromHealthcheck(t *testing.T) {
 		{name: "init suffix", svcName: "db-init", svc: composeService{}, expected: true},
 		{name: "echo entrypoint", svcName: "init", svc: composeService{Entrypoint: []any{"sh", "-c", "echo done"}}, expected: true},
 		{name: "override-only port service", svcName: cryptoutilSharedMagic.KMSE2ESQLiteContainer, svc: composeService{Ports: []string{"18000:8080"}}, expected: true},
-		{name: "regular service", svcName: "myapp", svc: composeService{}, expected: false},
-		{name: "non-echo entrypoint", svcName: "myapp", svc: composeService{Entrypoint: []any{"app", "start"}}, expected: false},
+		{name: "regular service", svcName: testMyapp, svc: composeService{}, expected: false},
+		{name: "non-echo entrypoint", svcName: testMyapp, svc: composeService{Entrypoint: []any{"app", "start"}}, expected: false},
 	}
 
 	for _, tc := range tests {
@@ -156,14 +156,14 @@ func TestFormatComposeValidationResult(t *testing.T) {
 	}{
 		{
 			name:     "pass",
-			result:   &ComposeValidationResult{Path: "test.yml", Valid: true},
-			contains: []string{"test.yml", cryptoutilSharedMagic.TestStatusPass},
+			result:   &ComposeValidationResult{Path: testTestYml, Valid: true},
+			contains: []string{testTestYml, cryptoutilSharedMagic.TestStatusPass},
 		},
 		{
 			name: "fail with errors and warnings",
 			result: &ComposeValidationResult{
-				Path: "test.yml", Valid: false,
-				Errors: []string{"port conflict"}, Warnings: []string{"dep warning"},
+				Path: testTestYml, Valid: false,
+				Errors: []string{testPortConflict}, Warnings: []string{"dep warning"},
 			},
 			contains: []string{cryptoutilSharedMagic.TestStatusFail, "ERROR: port conflict", "WARNING: dep warning"},
 		},
@@ -185,10 +185,10 @@ func TestSortedServiceNames(t *testing.T) {
 	t.Parallel()
 
 	compose := &composeFile{
-		Services: map[string]composeService{"zulu": {}, "alpha": {}, "mike": {}},
+		Services: map[string]composeService{testZulu: {}, testAlpha: {}, testMike: {}},
 	}
 	names := sortedServiceNames(compose)
-	require.Equal(t, []string{"alpha", "mike", "zulu"}, names)
+	require.Equal(t, []string{testAlpha, testMike, testZulu}, names)
 }
 
 func TestParseComposeWithIncludes_MissingInclude(t *testing.T) {

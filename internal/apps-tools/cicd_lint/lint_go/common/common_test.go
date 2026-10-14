@@ -49,6 +49,45 @@ var NotAConst = "skip"
 	require.Contains(t, inv.ByName, "TestProtocol")
 }
 
+func TestParseMagicDir_ExportedConstantsOnly(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name          string
+		constantName  string
+		literal       string
+		wantInventory bool
+	}{
+		{name: "exported constant", constantName: "ExportedValue", literal: `"exported-value"`, wantInventory: true},
+		{name: "unexported constant", constantName: "unexportedValue", literal: `"unexported-value"`},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			tmpDir := t.TempDir()
+			content := "package magic\n\nconst " + tc.constantName + " = " + tc.literal + "\n"
+			require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "magic_constants.go"), []byte(content), cryptoutilSharedMagic.CacheFilePermissions))
+
+			inv, err := ParseMagicDir(tmpDir)
+			require.NoError(t, err)
+
+			if tc.wantInventory {
+				require.Len(t, inv.Constants, 1)
+				require.Contains(t, inv.ByName, tc.constantName)
+				require.Contains(t, inv.ByValue, tc.literal)
+
+				return
+			}
+
+			require.Empty(t, inv.Constants)
+			require.NotContains(t, inv.ByName, tc.constantName)
+			require.NotContains(t, inv.ByValue, tc.literal)
+		})
+	}
+}
+
 func TestParseMagicDir_InvalidDir(t *testing.T) {
 	t.Parallel()
 

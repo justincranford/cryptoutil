@@ -26,15 +26,15 @@ func TestComputeFileCoverage(t *testing.T) {
 		{
 			name:          "no source blocks",
 			content:       "line 1\nline 2\nline 3",
-			wantTotal:     3,
+			wantTotal:     toAppendixMatchGroups,
 			wantCovered:   0,
 			wantHasSource: false,
 		},
 		{
 			name:          "single source block",
 			content:       "<!-- @from-eng-handbook as=\"chunk\" -->\ncontent\n<!-- @/from-eng-handbook -->",
-			wantTotal:     3,
-			wantCovered:   3,
+			wantTotal:     toAppendixMatchGroups,
+			wantCovered:   toAppendixMatchGroups,
 			wantHasSource: true,
 		},
 		{
@@ -45,7 +45,7 @@ func TestComputeFileCoverage(t *testing.T) {
 			wantHasSource: true,
 		},
 		{
-			name:          "empty file",
+			name:          testEmptyFile,
 			content:       "",
 			wantTotal:     1,
 			wantCovered:   0,
@@ -80,7 +80,7 @@ func TestComputeCoverage(t *testing.T) {
 			name: "mixed coverage",
 			files: map[string]string{
 				cryptoutilSharedMagic.CICDCopilotInstructionsFile: "plain text only\nno source blocks",
-				".github/instructions/01.instructions.md":         "before\n<!-- @from-eng-handbook as=\"x\" -->\ncontent\n<!-- @/from-eng-handbook -->\nafter",
+				testGithubInstructions01InstructionsMd:            "before\n<!-- @from-eng-handbook as=\"x\" -->\ncontent\n<!-- @/from-eng-handbook -->\nafter",
 			},
 			wantTotalFiles: 2,
 			wantCovered:    1,
@@ -89,7 +89,7 @@ func TestComputeCoverage(t *testing.T) {
 		{
 			name: "all covered",
 			files: map[string]string{
-				".github/instructions/01.instructions.md": "<!-- @from-eng-handbook as=\"x\" -->\nline\n<!-- @/from-eng-handbook -->",
+				testGithubInstructions01InstructionsMd: "<!-- @from-eng-handbook as=\"x\" -->\nline\n<!-- @/from-eng-handbook -->",
 			},
 			wantTotalFiles: 1,
 			wantCovered:    1,
@@ -126,7 +126,7 @@ func TestFormatCoverageResults(t *testing.T) {
 	t.Parallel()
 
 	result := &PropagationCoverageResult{
-		TotalFiles:        3,
+		TotalFiles:        toAppendixMatchGroups,
 		CoveredFiles:      2,
 		ZeroCoverageFiles: []string{".github/agents/test.agent.md"},
 		TotalLines:        4,
@@ -149,7 +149,7 @@ func TestFormatCoverageResults_NoCoverage(t *testing.T) {
 	result := &PropagationCoverageResult{
 		TotalFiles:        2,
 		CoveredFiles:      0,
-		ZeroCoverageFiles: []string{"a.md", "b.md"},
+		ZeroCoverageFiles: []string{testFileA, testFileB},
 		TotalLines:        4,
 		CoveredLines:      0,
 	}
@@ -181,8 +181,8 @@ func TestPercentage(t *testing.T) {
 		total    int
 		expected float64
 	}{
-		{name: "zero total", covered: 0, total: 0, expected: 0},
-		{name: "full coverage", covered: 1, total: 1, expected: cryptoutilSharedMagic.PercentageBasis100},
+		{name: testZeroTotal, covered: 0, total: 0, expected: 0},
+		{name: testFullCoverage, covered: 1, total: 1, expected: cryptoutilSharedMagic.PercentageBasis100},
 		{name: "half coverage", covered: 1, total: 2, expected: cryptoutilSharedMagic.PercentageBasis100 / 2},
 		{name: "zero covered", covered: 0, total: 1, expected: 0},
 	}

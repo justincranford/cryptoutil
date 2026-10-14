@@ -50,20 +50,20 @@ func TestStripBuildIgnoreTag(t *testing.T) {
 		{
 			name:  "strips tag and following blank line",
 			input: "//go:build ignore\n\npackage main\n",
-			want:  "package main\n",
+			want:  testPackageMain,
 		},
 		{
 			name:  "strips tag with no following blank line",
 			input: "//go:build ignore\npackage main\n",
-			want:  "package main\n",
+			want:  testPackageMain,
 		},
 		{
 			name:  "no tag present returns unchanged",
-			input: "package main\n// some comment\n",
-			want:  "package main\n// some comment\n",
+			input: testPackageMainSomeComment,
+			want:  testPackageMainSomeComment,
 		},
 		{
-			name:  "empty string",
+			name:  testEmptyString,
 			input: "",
 			want:  "",
 		},
@@ -91,7 +91,7 @@ func TestHasUnresolvedPlaceholders(t *testing.T) {
 		{name: "unresolved single", input: "package __SERVICE__", want: true},
 		{name: "unresolved multiple", input: "__PRODUCT_NAME_CONST__ = \"__SERVICE__\"", want: true},
 		{name: "lowercase not placeholder", input: "var __lower__ = 1", want: false},
-		{name: "empty string", input: "", want: false},
+		{name: testEmptyString, input: "", want: false},
 		{
 			name:  "base64 sentinel is not unresolved",
 			input: "prefix-" + cryptoutilSharedMagic.CICDTemplateBase64Char43Placeholder,

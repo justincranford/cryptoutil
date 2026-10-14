@@ -75,7 +75,7 @@ func TestProvisionDatabase_SQLiteVariations(t *testing.T) {
 		},
 		{
 			name:        "Invalid URL scheme",
-			databaseURL: "mysql://user:pass@localhost:3306/db",
+			databaseURL: testMysqlUserPassLocalhost3306DB,
 			expectError: true,
 		},
 	}
@@ -90,11 +90,11 @@ func TestProvisionDatabase_SQLiteVariations(t *testing.T) {
 			}
 
 			settings := &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{
-				LogLevel:          "info",
-				OTLPEndpoint:      "grpc://localhost:4317",
-				OTLPService:       "test-service",
+				LogLevel:          testInfo,
+				OTLPEndpoint:      testGrpcLocalhost4317,
+				OTLPService:       testTestService,
 				OTLPVersion:       cryptoutilSharedMagic.ServiceVersion,
-				OTLPEnvironment:   "test",
+				OTLPEnvironment:   testTest,
 				DevMode:           true,
 				UnsealMode:        cryptoutilSharedMagic.DefaultUnsealModeSysInfo,
 				DatabaseURL:       databaseURL,
@@ -158,11 +158,11 @@ func TestStartCore_Variations(t *testing.T) {
 			t.Parallel()
 
 			settings := &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{
-				LogLevel:        "info",
-				OTLPEndpoint:    "grpc://localhost:4317",
-				OTLPService:     "test-service",
+				LogLevel:        testInfo,
+				OTLPEndpoint:    testGrpcLocalhost4317,
+				OTLPService:     testTestService,
 				OTLPVersion:     cryptoutilSharedMagic.ServiceVersion,
-				OTLPEnvironment: "test",
+				OTLPEnvironment: testTest,
 				DevMode:         true,
 				UnsealMode:      tt.unsealMode,
 				DatabaseURL:     tt.databaseURL,
@@ -253,11 +253,11 @@ func TestOpenPostgreSQL_WithContainer(t *testing.T) {
 
 	// Create a basic telemetry service for the container.
 	settings := &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{
-		LogLevel:        "info",
-		OTLPEndpoint:    "grpc://localhost:4317",
+		LogLevel:        testInfo,
+		OTLPEndpoint:    testGrpcLocalhost4317,
 		OTLPService:     "test-container",
 		OTLPVersion:     cryptoutilSharedMagic.ServiceVersion,
-		OTLPEnvironment: "test",
+		OTLPEnvironment: testTest,
 		DevMode:         true,
 		UnsealMode:      cryptoutilSharedMagic.DefaultUnsealModeSysInfo,
 		DatabaseURL:     cryptoutilSharedMagic.SQLiteInMemoryDSN,
@@ -347,11 +347,11 @@ func TestStartBasic_VerboseMode(t *testing.T) {
 			t.Parallel()
 
 			settings := &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{
-				LogLevel:        "info",
-				OTLPEndpoint:    "grpc://localhost:4317",
-				OTLPService:     "test-service",
+				LogLevel:        testInfo,
+				OTLPEndpoint:    testGrpcLocalhost4317,
+				OTLPService:     testTestService,
 				OTLPVersion:     cryptoutilSharedMagic.ServiceVersion,
-				OTLPEnvironment: "test",
+				OTLPEnvironment: testTest,
 				DevMode:         true,
 				UnsealMode:      cryptoutilSharedMagic.DefaultUnsealModeSysInfo,
 				VerboseMode:     tt.verboseMode,
@@ -404,11 +404,11 @@ func TestProvisionDatabase_PostgreSQLContainerModes(t *testing.T) {
 			t.Parallel()
 
 			settings := &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{
-				LogLevel:          "info",
-				OTLPEndpoint:      "grpc://localhost:4317",
+				LogLevel:          testInfo,
+				OTLPEndpoint:      testGrpcLocalhost4317,
 				OTLPService:       "test-container-modes",
 				OTLPVersion:       cryptoutilSharedMagic.ServiceVersion,
-				OTLPEnvironment:   "test",
+				OTLPEnvironment:   testTest,
 				DevMode:           true,
 				UnsealMode:        cryptoutilSharedMagic.DefaultUnsealModeSysInfo,
 				DatabaseURL:       tt.databaseURL,
@@ -470,11 +470,11 @@ func TestMaskPasswordVariations(t *testing.T) {
 			t.Parallel()
 
 			settings := &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{
-				LogLevel:          "info",
-				OTLPEndpoint:      "grpc://localhost:4317",
+				LogLevel:          testInfo,
+				OTLPEndpoint:      testGrpcLocalhost4317,
 				OTLPService:       "test-mask-password",
 				OTLPVersion:       cryptoutilSharedMagic.ServiceVersion,
-				OTLPEnvironment:   "test",
+				OTLPEnvironment:   testTest,
 				DevMode:           true,
 				UnsealMode:        cryptoutilSharedMagic.DefaultUnsealModeSysInfo,
 				DatabaseURL:       tt.databaseURL,

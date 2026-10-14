@@ -35,7 +35,7 @@ func TestMagicLinkAuthenticator_InitiateAuth(t *testing.T) {
 	user := &cryptoutilIdentityDomain.User{
 		ID:    userID,
 		Sub:   userID.String(),
-		Email: "test@example.com",
+		Email: testTestExampleCom,
 	}
 	userRepo.AddUser(user)
 
@@ -45,12 +45,12 @@ func TestMagicLinkAuthenticator_InitiateAuth(t *testing.T) {
 	require.NoError(t, err, "InitiateAuth should succeed")
 	require.NotNil(t, challenge, "Challenge should not be nil")
 	require.Equal(t, userID.String(), challenge.UserID, "Challenge UserID should match")
-	require.Equal(t, "magic_link", challenge.Method, "Challenge Method should match")
+	require.Equal(t, testMagicLink, challenge.Method, "Challenge Method should match")
 
 	// Verify email was sent.
 	sent := delivery.GetSentEmails()
 	require.Len(t, sent, 1, "One email should have been sent")
-	require.Equal(t, "test@example.com", sent[0].To, "Email recipient should match")
+	require.Equal(t, testTestExampleCom, sent[0].To, "Email recipient should match")
 }
 
 // TestMagicLinkAuthenticator_InitiateAuthUserNotFound tests InitiateAuth with non-existent user.
@@ -124,7 +124,7 @@ func TestMagicLinkAuthenticator_InitiateAuthTokenGenerationFailure(t *testing.T)
 	user := &cryptoutilIdentityDomain.User{
 		ID:    userID,
 		Sub:   userID.String(),
-		Email: "test@example.com",
+		Email: testTestExampleCom,
 	}
 	userRepo.AddUser(user)
 
@@ -166,7 +166,7 @@ func TestMagicLinkAuthenticator_InitiateAuthEmailDeliveryFailure(t *testing.T) {
 	user := &cryptoutilIdentityDomain.User{
 		ID:    userID,
 		Sub:   userID.String(),
-		Email: "test@example.com",
+		Email: testTestExampleCom,
 	}
 	userRepo.AddUser(user)
 
@@ -196,7 +196,7 @@ func TestMagicLinkAuthenticator_VerifyAuth(t *testing.T) {
 	user := &cryptoutilIdentityDomain.User{
 		ID:    userID,
 		Sub:   userID.String(),
-		Email: "test@example.com",
+		Email: testTestExampleCom,
 	}
 	userRepo.AddUser(user)
 
@@ -256,7 +256,7 @@ func TestMagicLinkAuthenticator_VerifyAuthExpired(t *testing.T) {
 	user := &cryptoutilIdentityDomain.User{
 		ID:    userID,
 		Sub:   userID.String(),
-		Email: "test@example.com",
+		Email: testTestExampleCom,
 	}
 	userRepo.AddUser(user)
 
@@ -272,7 +272,7 @@ func TestMagicLinkAuthenticator_VerifyAuthExpired(t *testing.T) {
 	expiredChallenge := &cryptoutilIdentityIdpUserauth.AuthChallenge{
 		ID:        googleUuid.Must(googleUuid.NewV7()),
 		UserID:    userID.String(),
-		Method:    "magic_link",
+		Method:    testMagicLink,
 		ExpiresAt: time.Now().UTC().Add(-1 * time.Hour), // Expired 1 hour ago.
 		Metadata:  map[string]any{cryptoutilSharedMagic.ClaimEmail: user.Email},
 	}
@@ -303,7 +303,7 @@ func TestMagicLinkAuthenticator_VerifyAuthSuccess(t *testing.T) {
 	user := &cryptoutilIdentityDomain.User{
 		ID:    userID,
 		Sub:   userID.String(),
-		Email: "test@example.com",
+		Email: testTestExampleCom,
 	}
 	userRepo.AddUser(user)
 
@@ -320,7 +320,7 @@ func TestMagicLinkAuthenticator_VerifyAuthSuccess(t *testing.T) {
 	challenge := &cryptoutilIdentityIdpUserauth.AuthChallenge{
 		ID:        googleUuid.Must(googleUuid.NewV7()),
 		UserID:    userID.String(),
-		Method:    "magic_link",
+		Method:    testMagicLink,
 		ExpiresAt: time.Now().UTC().Add(15 * time.Minute),
 		Metadata:  map[string]any{cryptoutilSharedMagic.ClaimEmail: user.Email},
 	}

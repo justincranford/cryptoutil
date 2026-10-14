@@ -53,7 +53,7 @@ func TestSPAServer_PublicHealth(t *testing.T) {
 	requireTestSetup(t)
 
 	client := &http.Client{
-		Timeout: httpTimeout,
+		Timeout: cryptoutilSharedMagic.TestTimeoutHTTPClient,
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
 				MinVersion: tls.VersionTLS13,
@@ -78,7 +78,7 @@ func TestSPAServer_PublicHealth(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			url := testBaseURL + tt.path
 
-			ctx, cancel := context.WithTimeout(context.Background(), httpTimeout)
+			ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.TestTimeoutHTTPClient)
 			defer cancel()
 
 			req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
@@ -106,7 +106,7 @@ func TestSPAServer_SPAFallback(t *testing.T) {
 	requireTestSetup(t)
 
 	client := &http.Client{
-		Timeout: httpTimeout,
+		Timeout: cryptoutilSharedMagic.TestTimeoutHTTPClient,
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
 				MinVersion: tls.VersionTLS13,
@@ -119,7 +119,7 @@ func TestSPAServer_SPAFallback(t *testing.T) {
 	// Any route should return the SPA placeholder (for client-side routing).
 	url := testBaseURL + "/some/client/route"
 
-	ctx, cancel := context.WithTimeout(context.Background(), httpTimeout)
+	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.TestTimeoutHTTPClient)
 	defer cancel()
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
@@ -141,7 +141,7 @@ func TestSPAServer_APINotFound(t *testing.T) {
 	requireTestSetup(t)
 
 	client := &http.Client{
-		Timeout: httpTimeout,
+		Timeout: cryptoutilSharedMagic.TestTimeoutHTTPClient,
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
 				MinVersion: tls.VersionTLS13,
@@ -154,7 +154,7 @@ func TestSPAServer_APINotFound(t *testing.T) {
 	// API routes should return 404 (not SPA fallback).
 	url := testBaseURL + "/api/unknown"
 
-	ctx, cancel := context.WithTimeout(context.Background(), httpTimeout)
+	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.TestTimeoutHTTPClient)
 	defer cancel()
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
@@ -182,4 +182,3 @@ func TestSPAServer_AccessorMethods(t *testing.T) {
 }
 
 // HTTP timeout for test requests.
-const httpTimeout = cryptoutilSharedMagic.TestTimeoutHTTPClient

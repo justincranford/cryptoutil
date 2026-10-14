@@ -32,7 +32,7 @@ func TestCheck(t *testing.T) {
 	}{
 		{
 			name:     "no_violation_channel_sync",
-			fileName: "handler_test.go",
+			fileName: testHandlerTestGo,
 			fileContent: `package test
 
 import (
@@ -50,7 +50,7 @@ func TestSync(t *testing.T) {
 		},
 		{
 			name:     "violation_time_sleep",
-			fileName: "handler_test.go",
+			fileName: testHandlerTestGo,
 			fileContent: `package test
 
 import (
@@ -66,7 +66,7 @@ func TestBad(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name:     "exempt_rate_limiter",
+			name:     testExemptRateLimiter,
 			fileName: "rate_limiter_test.go",
 			fileContent: `package test
 
@@ -79,7 +79,7 @@ func TestRate(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name:     "exempt_cleanup_suffix",
+			name:     testExemptCleanupSuffix,
 			fileName: "session_cleanup_test.go",
 			fileContent: `package test
 
@@ -193,7 +193,7 @@ func TestIsExemptedFile(t *testing.T) {
 		want     bool
 	}{
 		{
-			name:     "exempt_rate_limiter",
+			name:     testExemptRateLimiter,
 			filePath: "/internal/apps/sm-kms/rate_limiter_test.go",
 			want:     true,
 		},
@@ -203,7 +203,7 @@ func TestIsExemptedFile(t *testing.T) {
 			want:     true,
 		},
 		{
-			name:     "exempt_cleanup_suffix",
+			name:     testExemptCleanupSuffix,
 			filePath: "/internal/apps/sm-kms/session_cleanup_test.go",
 			want:     true,
 		},

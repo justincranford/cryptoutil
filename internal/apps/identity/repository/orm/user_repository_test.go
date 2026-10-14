@@ -30,7 +30,7 @@ func TestUserRepository_Create(t *testing.T) {
 		PreferredUsername: "createuser",
 		Email:             "create@example.com",
 		EmailVerified:     true,
-		PasswordHash:      "hash123",
+		PasswordHash:      testHash123,
 		Enabled:           true,
 	}
 
@@ -55,7 +55,7 @@ func TestUserRepository_GetByID(t *testing.T) {
 		wantErr error
 	}{
 		{
-			name:    "user not found",
+			name:    testUserNotFound,
 			id:      googleUuid.Must(googleUuid.NewV7()),
 			wantErr: cryptoutilIdentityAppErr.ErrUserNotFound,
 		},
@@ -81,11 +81,11 @@ func TestUserRepository_GetBySub(t *testing.T) {
 
 	testUser := &cryptoutilIdentityDomain.User{
 		ID:                googleUuid.Must(googleUuid.NewV7()),
-		Sub:               "user-sub-test",
+		Sub:               testUserSubTest,
 		PreferredUsername: "subuser",
 		Email:             "sub@example.com",
 		EmailVerified:     true,
-		PasswordHash:      "hash123",
+		PasswordHash:      testHash123,
 		Enabled:           true,
 	}
 
@@ -98,13 +98,13 @@ func TestUserRepository_GetBySub(t *testing.T) {
 		wantErr error
 	}{
 		{
-			name:    "user found",
-			sub:     "user-sub-test",
+			name:    testUserFound,
+			sub:     testUserSubTest,
 			wantErr: nil,
 		},
 		{
-			name:    "user not found",
-			sub:     "nonexistent",
+			name:    testUserNotFound,
+			sub:     testNonexistent,
 			wantErr: cryptoutilIdentityAppErr.ErrUserNotFound,
 		},
 	}
@@ -137,10 +137,10 @@ func TestUserRepository_GetByUsername(t *testing.T) {
 	testUser := &cryptoutilIdentityDomain.User{
 		ID:                googleUuid.Must(googleUuid.NewV7()),
 		Sub:               "user-username-test",
-		PreferredUsername: "testusername",
+		PreferredUsername: testTestusername,
 		Email:             "username@example.com",
 		EmailVerified:     true,
-		PasswordHash:      "hash123",
+		PasswordHash:      testHash123,
 		Enabled:           true,
 	}
 
@@ -153,13 +153,13 @@ func TestUserRepository_GetByUsername(t *testing.T) {
 		wantErr  error
 	}{
 		{
-			name:     "user found",
-			username: "testusername",
+			name:     testUserFound,
+			username: testTestusername,
 			wantErr:  nil,
 		},
 		{
-			name:     "user not found",
-			username: "nonexistent",
+			name:     testUserNotFound,
+			username: testNonexistent,
 			wantErr:  cryptoutilIdentityAppErr.ErrUserNotFound,
 		},
 	}
@@ -193,9 +193,9 @@ func TestUserRepository_GetByEmail(t *testing.T) {
 		ID:                googleUuid.Must(googleUuid.NewV7()),
 		Sub:               "user-email-test",
 		PreferredUsername: "emailuser",
-		Email:             "test@example.com",
+		Email:             testTestExampleCom,
 		EmailVerified:     true,
-		PasswordHash:      "hash123",
+		PasswordHash:      testHash123,
 		Enabled:           true,
 	}
 
@@ -208,12 +208,12 @@ func TestUserRepository_GetByEmail(t *testing.T) {
 		wantErr error
 	}{
 		{
-			name:    "user found",
-			email:   "test@example.com",
+			name:    testUserFound,
+			email:   testTestExampleCom,
 			wantErr: nil,
 		},
 		{
-			name:    "user not found",
+			name:    testUserNotFound,
 			email:   "nonexistent@example.com",
 			wantErr: cryptoutilIdentityAppErr.ErrUserNotFound,
 		},
@@ -250,7 +250,7 @@ func TestUserRepository_Update(t *testing.T) {
 		PreferredUsername: "updateuser",
 		Email:             "update@example.com",
 		EmailVerified:     false,
-		PasswordHash:      "hash123",
+		PasswordHash:      testHash123,
 		Enabled:           true,
 	}
 
@@ -279,7 +279,7 @@ func TestUserRepository_Delete(t *testing.T) {
 		PreferredUsername: "deleteuser",
 		Email:             "delete@example.com",
 		EmailVerified:     true,
-		PasswordHash:      "hash123",
+		PasswordHash:      testHash123,
 		Enabled:           true,
 	}
 
@@ -308,18 +308,18 @@ func TestUserRepository_List(t *testing.T) {
 			PreferredUsername: "listuser" + string(rune('0'+i)),
 			Email:             "list" + string(rune('0'+i)) + "@example.com",
 			EmailVerified:     true,
-			PasswordHash:      "hash123",
+			PasswordHash:      testHash123,
 			Enabled:           true,
 		}
 		err := repo.Create(ctx, user)
 		require.NoError(t, err)
 	}
 
-	users, err := repo.List(ctx, 0, 3)
+	users, err := repo.List(ctx, 0, test3)
 	require.NoError(t, err)
-	require.Len(t, users, 3)
+	require.Len(t, users, test3)
 
-	users, err = repo.List(ctx, 3, 3)
+	users, err = repo.List(ctx, test3, test3)
 	require.NoError(t, err)
 	require.Len(t, users, 2)
 }
@@ -342,7 +342,7 @@ func TestUserRepository_Count(t *testing.T) {
 			PreferredUsername: "countuser" + string(rune('0'+i)),
 			Email:             "count" + string(rune('0'+i)) + "@example.com",
 			EmailVerified:     true,
-			PasswordHash:      "hash123",
+			PasswordHash:      testHash123,
 			Enabled:           true,
 		}
 		err := repo.Create(ctx, user)

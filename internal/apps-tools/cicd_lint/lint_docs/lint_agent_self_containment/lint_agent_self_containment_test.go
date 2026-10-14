@@ -59,7 +59,7 @@ func TestCheckWithFS_AllAgentsCompliant(t *testing.T) {
 			content string
 		}{
 			{testBeastModeAgentFile, "# Beast Mode\n\nSee [ENG-HANDBOOK.md Section 14.7](docs/ENG-HANDBOOK.md#147).\n"},
-			{"fix-workflows.agent.md", "# Fix Workflows\n\nSee ENG-HANDBOOK.md Section 9.\n"},
+			{testFixWorkflowsAgentMd, "# Fix Workflows\n\nSee ENG-HANDBOOK.md Section 9.\n"},
 		}
 
 		for _, f := range files {
@@ -75,7 +75,7 @@ func TestCheckWithFS_AllAgentsCompliant(t *testing.T) {
 		switch filepath.Base(name) {
 		case testBeastModeAgentFile:
 			return []byte("# Beast Mode\n\nSee [ENG-HANDBOOK.md Section 14.7](docs/ENG-HANDBOOK.md#147).\n"), nil
-		case "fix-workflows.agent.md":
+		case testFixWorkflowsAgentMd:
 			return []byte("# Fix Workflows\n\nSee ENG-HANDBOOK.md Section 9.\n"), nil
 		}
 
@@ -96,7 +96,7 @@ func TestCheckWithFS_AgentMissingReference(t *testing.T) {
 	getwdFn := func() (string, error) { return root, nil }
 
 	walkFn := func(_ string, fn fs.WalkDirFunc) error {
-		files := []string{"beast-mode.agent.md", "noncompliant.agent.md"}
+		files := []string{testBeastModeAgentFile, testNoncompliantAgentMd}
 
 		for _, name := range files {
 			if err := fn(filepath.Join(root, cryptoutilSharedMagic.CICDGithubAgentsDir, name), &fakeAgentDirEntry{name: name, isDir: false}, nil); err != nil {
@@ -109,9 +109,9 @@ func TestCheckWithFS_AgentMissingReference(t *testing.T) {
 
 	readFileFn := func(name string) ([]byte, error) {
 		switch filepath.Base(name) {
-		case "beast-mode.agent.md":
+		case testBeastModeAgentFile:
 			return []byte("# Beast Mode\nSee ENG-HANDBOOK.md Section 14.\n"), nil
-		case "noncompliant.agent.md":
+		case testNoncompliantAgentMd:
 			return []byte("# Noncompliant Agent\n\nNo architecture reference here.\n"), nil
 		}
 
@@ -230,7 +230,7 @@ func TestCheckWithFS_SkipsDirectoriesAndNonAgentFiles(t *testing.T) {
 		}{
 			{"subdir", true},
 			{"README.md", false},
-			{"beast-mode.agent.md", false},
+			{testBeastModeAgentFile, false},
 		}
 
 		for _, e := range entries {
@@ -252,7 +252,7 @@ func TestCheckWithFS_SkipsDirectoriesAndNonAgentFiles(t *testing.T) {
 	err := checkWithFS(logger, getwdFn, walkFn, readFileFn)
 
 	require.NoError(t, err)
-	require.Equal(t, []string{"beast-mode.agent.md"}, readCalled, "should only read .agent.md files")
+	require.Equal(t, []string{testBeastModeAgentFile}, readCalled, "should only read .agent.md files")
 }
 
 func TestCheckWithFS_EmptyDirectory(t *testing.T) {

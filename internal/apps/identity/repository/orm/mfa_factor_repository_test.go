@@ -27,7 +27,7 @@ func TestMFAFactorRepository_Create(t *testing.T) {
 	authProfileID := googleUuid.Must(googleUuid.NewV7())
 
 	factor := &cryptoutilIdentityDomain.MFAFactor{
-		Name:          "totp_factor",
+		Name:          testTotpFactor,
 		Description:   "TOTP authentication factor",
 		FactorType:    cryptoutilIdentityDomain.MFAFactorTypeTOTP,
 		Order:         1,
@@ -45,7 +45,7 @@ func TestMFAFactorRepository_Create(t *testing.T) {
 	retrieved, err := repo.GetByID(ctx, factor.ID)
 	require.NoError(t, err, "GetByID should find created factor")
 	require.Equal(t, factor.ID, retrieved.ID)
-	require.Equal(t, "totp_factor", retrieved.Name)
+	require.Equal(t, testTotpFactor, retrieved.Name)
 	require.Equal(t, cryptoutilIdentityDomain.MFAFactorTypeTOTP, retrieved.FactorType)
 }
 
@@ -74,7 +74,7 @@ func TestMFAFactorRepository_GetByAuthProfileID(t *testing.T) {
 
 	factors := []*cryptoutilIdentityDomain.MFAFactor{
 		{
-			Name:          "totp_factor",
+			Name:          testTotpFactor,
 			FactorType:    cryptoutilIdentityDomain.MFAFactorTypeTOTP,
 			Order:         1,
 			AuthProfileID: authProfileID,
@@ -111,7 +111,7 @@ func TestMFAFactorRepository_Update(t *testing.T) {
 	authProfileID := googleUuid.Must(googleUuid.NewV7())
 
 	factor := &cryptoutilIdentityDomain.MFAFactor{
-		Name:          "totp_factor",
+		Name:          testTotpFactor,
 		Description:   "Original description",
 		FactorType:    cryptoutilIdentityDomain.MFAFactorTypeTOTP,
 		Order:         1,
@@ -144,7 +144,7 @@ func TestMFAFactorRepository_Delete(t *testing.T) {
 	authProfileID := googleUuid.Must(googleUuid.NewV7())
 
 	factor := &cryptoutilIdentityDomain.MFAFactor{
-		Name:          "totp_factor",
+		Name:          testTotpFactor,
 		FactorType:    cryptoutilIdentityDomain.MFAFactorTypeTOTP,
 		Order:         1,
 		AuthProfileID: authProfileID,
@@ -183,11 +183,11 @@ func TestMFAFactorRepository_List(t *testing.T) {
 		require.NoError(t, err)
 	}
 
-	factors, err := repo.List(ctx, 0, 3)
+	factors, err := repo.List(ctx, 0, test3)
 	require.NoError(t, err, "List should succeed")
-	require.Len(t, factors, 3, "Should return 3 factors with limit 3")
+	require.Len(t, factors, test3, "Should return 3 factors with limit 3")
 
-	factors, err = repo.List(ctx, 3, 3)
+	factors, err = repo.List(ctx, test3, test3)
 	require.NoError(t, err, "List should succeed")
 	require.Len(t, factors, 2, "Should return 2 factors with offset 3")
 }

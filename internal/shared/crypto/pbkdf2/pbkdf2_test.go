@@ -26,7 +26,7 @@ func TestHashPassword(t *testing.T) {
 			expectError: false,
 		},
 		{
-			name:        "empty password",
+			name:        testEmptyPassword,
 			password:    "",
 			expectError: true,
 		},
@@ -95,7 +95,7 @@ func TestVerifyPassword(t *testing.T) {
 			expectError: false,
 		},
 		{
-			name:        "empty password",
+			name:        testEmptyPassword,
 			password:    "",
 			storedHash:  hash,
 			expectMatch: false,

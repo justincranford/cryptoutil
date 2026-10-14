@@ -117,7 +117,7 @@ func TestUsernamePasswordAuthenticator_VerifyAuthEmptyPassword(t *testing.T) {
 	auth := cryptoutilIdentityIdpUserauth.NewUsernamePasswordAuthenticator(credStore, challengeStore, userStore, nil, false)
 
 	// Hash and store password.
-	hash, err := auth.HashPassword("ValidPassword123!")
+	hash, err := auth.HashPassword(testValidPassword123)
 	require.NoError(t, err, "HashPassword should succeed")
 
 	err = credStore.StoreCredential(ctx, userID.String(), hash)
@@ -212,7 +212,7 @@ func TestUsernamePasswordAuthenticator_UpdatePasswordInvalidNew(t *testing.T) {
 	require.NoError(t, err, "StoreCredential should succeed")
 
 	// Try to update password with too short new password.
-	err = auth.UpdatePassword(ctx, userID.String(), oldPassword, "short")
+	err = auth.UpdatePassword(ctx, userID.String(), oldPassword, testShort)
 	require.Error(t, err, "UpdatePassword should fail with too short new password")
-	require.Contains(t, err.Error(), "password too short", "Error should indicate password too short")
+	require.Contains(t, err.Error(), testPasswordTooShort, "Error should indicate password too short")
 }

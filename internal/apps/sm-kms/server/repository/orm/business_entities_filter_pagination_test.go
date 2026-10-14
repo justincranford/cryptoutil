@@ -219,14 +219,14 @@ func TestApplyKeyFilters_WithSort(t *testing.T) {
 
 	// Test with single sort field.
 	filters := &GetMaterialKeysFilters{
-		Sort: []string{"material_key_id DESC"},
+		Sort: []string{testMaterialKeySortIDDescending},
 	}
 	filteredQuery := applyKeyFilters(query, filters)
 	require.NotNil(t, filteredQuery)
 
 	// Test with multiple sort fields.
 	filters2 := &GetMaterialKeysFilters{
-		Sort: []string{"elastic_key_id ASC", "material_key_id DESC"},
+		Sort: []string{testElasticKeySortIDAscending, testMaterialKeySortIDDescending},
 	}
 	filteredQuery2 := applyKeyFilters(query, filters2)
 	require.NotNil(t, filteredQuery2)
@@ -240,14 +240,14 @@ func TestApplyGetElasticKeyKeysFilters_WithSort(t *testing.T) {
 
 	// Test with single sort field.
 	filters := &GetElasticKeyMaterialKeysFilters{
-		Sort: []string{"material_key_id DESC"},
+		Sort: []string{testMaterialKeySortIDDescending},
 	}
 	filteredQuery := applyGetElasticKeyKeysFilters(query, filters)
 	require.NotNil(t, filteredQuery)
 
 	// Test with multiple sort fields.
 	filters2 := &GetElasticKeyMaterialKeysFilters{
-		Sort: []string{"elastic_key_id ASC", "material_key_id DESC"},
+		Sort: []string{testElasticKeySortIDAscending, testMaterialKeySortIDDescending},
 	}
 	filteredQuery2 := applyGetElasticKeyKeysFilters(query, filters2)
 	require.NotNil(t, filteredQuery2)
@@ -261,14 +261,14 @@ func TestApplyGetElasticKeysFilters_WithSort(t *testing.T) {
 
 	// Test with single sort field.
 	filters := &GetElasticKeysFilters{
-		Sort: []string{"elastic_key_name DESC"},
+		Sort: []string{testElasticKeySortNameDescending},
 	}
 	filteredQuery := applyGetElasticKeysFilters(query, filters)
 	require.NotNil(t, filteredQuery)
 
 	// Test with multiple sort fields.
 	filters2 := &GetElasticKeysFilters{
-		Sort: []string{"elastic_key_name ASC", "elastic_key_id DESC"},
+		Sort: []string{testElasticKeySortNameAscending, "elastic_key_id DESC"},
 	}
 	filteredQuery2 := applyGetElasticKeysFilters(query, filters2)
 	require.NotNil(t, filteredQuery2)

@@ -45,7 +45,7 @@ services:
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	filesByExtension := map[string][]string{
-		"yml": {composeFile},
+		testYml: {composeFile},
 	}
 
 	err = Lint(logger, filesByExtension)
@@ -72,7 +72,7 @@ services:
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	filesByExtension := map[string][]string{
-		"yml": {composeFile},
+		testYml: {composeFile},
 	}
 
 	err = Lint(logger, filesByExtension)
@@ -99,7 +99,7 @@ services:
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	filesByExtension := map[string][]string{
-		"yml": {composeFile},
+		testYml: {composeFile},
 	}
 
 	err = Lint(logger, filesByExtension)
@@ -125,7 +125,7 @@ services:
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	filesByExtension := map[string][]string{
-		"yml": {composeFile},
+		testYml: {composeFile},
 	}
 
 	err = Lint(logger, filesByExtension)
@@ -152,7 +152,7 @@ services:
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	filesByExtension := map[string][]string{
-		"yml": {composeFile},
+		testYml: {composeFile},
 	}
 
 	err = Lint(logger, filesByExtension)
@@ -178,7 +178,7 @@ services:
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	filesByExtension := map[string][]string{
-		"yml": {composeFile},
+		testYml: {composeFile},
 	}
 
 	err = Lint(logger, filesByExtension)
@@ -213,7 +213,7 @@ services:
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	filesByExtension := map[string][]string{
-		"yml": {composeFile1, composeFile2},
+		testYml: {composeFile1, composeFile2},
 	}
 
 	err = Lint(logger, filesByExtension)
@@ -242,7 +242,7 @@ services:
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	// Include both a valid file and a non-existent file.
 	filesByExtension := map[string][]string{
-		"yml": {composeFile, "/nonexistent/compose.yml"},
+		testYml: {composeFile, "/nonexistent/compose.yml"},
 	}
 
 	// Lint should succeed (warning for non-existent file, but no violations).

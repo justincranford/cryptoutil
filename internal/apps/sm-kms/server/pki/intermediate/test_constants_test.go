@@ -10,7 +10,6 @@ const (
 	testLiteralKeyWriteErrorCA            = "Key Write Error CA"
 	testLiteralNewYork                    = "New York"
 	testLiteralNewYorkCity                = "New York City"
-	testLiteralP256                       = cryptoutilSharedMagic.P256
 	testLiteralPKIOperations              = "PKI Operations"
 	testLiteralPersistErrorIntermediate   = "Persist Error Intermediate"
 	testLiteralTestCA                     = cryptoutilSharedMagic.TEST_CA_CN

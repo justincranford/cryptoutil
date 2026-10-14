@@ -27,7 +27,7 @@ func TestBarrierConfig_Validate(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name:    "default config",
+			name:    testDefaultConfig,
 			config:  NewBarrierConfig(),
 			wantErr: false,
 		},
@@ -37,7 +37,7 @@ func TestBarrierConfig_Validate(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name:    "nil config",
+			name:    testNilConfig,
 			config:  nil,
 			wantErr: true,
 		},

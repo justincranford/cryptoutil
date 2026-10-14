@@ -92,11 +92,11 @@ func TestRegisterUser_HappyPath(t *testing.T) {
 	svc := NewUserService(repo, factory)
 
 	ctx := context.Background()
-	user, err := svc.RegisterUser(ctx, "testuser", "SecurePass123!")
+	user, err := svc.RegisterUser(ctx, testTestuser, testSecurePass123)
 
 	require.NoError(t, err)
 	require.NotNil(t, user)
-	require.Equal(t, "testuser", user.GetUsername())
+	require.Equal(t, testTestuser, user.GetUsername())
 	require.NotEmpty(t, user.GetPasswordHash())
 	require.NotEqual(t, googleUuid.Nil, user.GetID())
 }
@@ -110,7 +110,7 @@ func TestRegisterUser_EmptyUsername(t *testing.T) {
 	svc := NewUserService(repo, factory)
 
 	ctx := context.Background()
-	user, err := svc.RegisterUser(ctx, "", "SecurePass123!")
+	user, err := svc.RegisterUser(ctx, "", testSecurePass123)
 
 	require.Error(t, err)
 	require.Nil(t, user)
@@ -126,7 +126,7 @@ func TestRegisterUser_UsernameTooShort(t *testing.T) {
 	svc := NewUserService(repo, factory)
 
 	ctx := context.Background()
-	user, err := svc.RegisterUser(ctx, "ab", "SecurePass123!")
+	user, err := svc.RegisterUser(ctx, testAb, testSecurePass123)
 
 	require.Error(t, err)
 	require.Nil(t, user)
@@ -143,7 +143,7 @@ func TestRegisterUser_UsernameTooLong(t *testing.T) {
 
 	ctx := context.Background()
 	longUsername := "a" + string(make([]byte, cryptoutilSharedMagic.IMMaxUsernameLength)) // 51 characters
-	user, err := svc.RegisterUser(ctx, longUsername, "SecurePass123!")
+	user, err := svc.RegisterUser(ctx, longUsername, testSecurePass123)
 
 	require.Error(t, err)
 	require.Nil(t, user)
@@ -159,7 +159,7 @@ func TestRegisterUser_EmptyPassword(t *testing.T) {
 	svc := NewUserService(repo, factory)
 
 	ctx := context.Background()
-	user, err := svc.RegisterUser(ctx, "testuser", "")
+	user, err := svc.RegisterUser(ctx, testTestuser, "")
 
 	require.Error(t, err)
 	require.Nil(t, user)
@@ -175,7 +175,7 @@ func TestRegisterUser_PasswordTooShort(t *testing.T) {
 	svc := NewUserService(repo, factory)
 
 	ctx := context.Background()
-	user, err := svc.RegisterUser(ctx, "testuser", "short1!")
+	user, err := svc.RegisterUser(ctx, testTestuser, "short1!")
 
 	require.Error(t, err)
 	require.Nil(t, user)
@@ -193,11 +193,11 @@ func TestRegisterUser_DuplicateUsername(t *testing.T) {
 	ctx := context.Background()
 
 	// First registration should succeed.
-	_, err := svc.RegisterUser(ctx, "testuser", "SecurePass123!")
+	_, err := svc.RegisterUser(ctx, testTestuser, testSecurePass123)
 	require.NoError(t, err)
 
 	// Second registration with same username should fail.
-	user, err := svc.RegisterUser(ctx, "testuser", "AnotherPass456!")
+	user, err := svc.RegisterUser(ctx, testTestuser, "AnotherPass456!")
 	require.Error(t, err)
 	require.Nil(t, user)
 	require.Contains(t, err.Error(), "failed to create user")
@@ -213,7 +213,7 @@ func TestRegisterUser_RepositoryError(t *testing.T) {
 	svc := NewUserService(repo, factory)
 
 	ctx := context.Background()
-	user, err := svc.RegisterUser(ctx, "testuser", "SecurePass123!")
+	user, err := svc.RegisterUser(ctx, testTestuser, testSecurePass123)
 
 	require.Error(t, err)
 	require.Nil(t, user)
@@ -229,18 +229,18 @@ func TestAuthenticateUser_HappyPath(t *testing.T) {
 	svc := NewUserService(repo, factory)
 
 	ctx := context.Background()
-	password := "SecurePass123!"
+	password := testSecurePass123
 
 	// Register user first.
-	_, err := svc.RegisterUser(ctx, "testuser", password)
+	_, err := svc.RegisterUser(ctx, testTestuser, password)
 	require.NoError(t, err)
 
 	// Authenticate with correct credentials.
-	user, err := svc.AuthenticateUser(ctx, "testuser", password)
+	user, err := svc.AuthenticateUser(ctx, testTestuser, password)
 
 	require.NoError(t, err)
 	require.NotNil(t, user)
-	require.Equal(t, "testuser", user.GetUsername())
+	require.Equal(t, testTestuser, user.GetUsername())
 }
 
 // TestAuthenticateUser_UserNotFound tests authentication with non-existent user.
@@ -252,7 +252,7 @@ func TestAuthenticateUser_UserNotFound(t *testing.T) {
 	svc := NewUserService(repo, factory)
 
 	ctx := context.Background()
-	user, err := svc.AuthenticateUser(ctx, "nonexistent", "SomePass123!")
+	user, err := svc.AuthenticateUser(ctx, testNonexistent, "SomePass123!")
 
 	require.Error(t, err)
 	require.Nil(t, user)
@@ -270,11 +270,11 @@ func TestAuthenticateUser_WrongPassword(t *testing.T) {
 	ctx := context.Background()
 
 	// Register user first.
-	_, err := svc.RegisterUser(ctx, "testuser", "CorrectPass123!")
+	_, err := svc.RegisterUser(ctx, testTestuser, "CorrectPass123!")
 	require.NoError(t, err)
 
 	// Authenticate with wrong password.
-	user, err := svc.AuthenticateUser(ctx, "testuser", "WrongPass456!")
+	user, err := svc.AuthenticateUser(ctx, testTestuser, "WrongPass456!")
 
 	require.Error(t, err)
 	require.Nil(t, user)
@@ -291,7 +291,7 @@ func TestAuthenticateUser_RepositoryError(t *testing.T) {
 	svc := NewUserService(repo, factory)
 
 	ctx := context.Background()
-	user, err := svc.AuthenticateUser(ctx, "testuser", "SomePass123!")
+	user, err := svc.AuthenticateUser(ctx, testTestuser, "SomePass123!")
 
 	require.Error(t, err)
 	require.Nil(t, user)
@@ -305,12 +305,12 @@ func TestBasicUser_Getters(t *testing.T) {
 	id := googleUuid.Must(googleUuid.NewV7())
 	user := &BasicUser{
 		ID:           id,
-		Username:     "testuser",
+		Username:     testTestuser,
 		PasswordHash: "hashedpassword123",
 	}
 
 	require.Equal(t, id, user.GetID())
-	require.Equal(t, "testuser", user.GetUsername())
+	require.Equal(t, testTestuser, user.GetUsername())
 	require.Equal(t, "hashedpassword123", user.GetPasswordHash())
 }
 

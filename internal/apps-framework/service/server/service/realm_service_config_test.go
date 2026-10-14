@@ -67,7 +67,7 @@ func TestUsernamePasswordConfig_Validate(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name:    "valid",
+			name:    testValid,
 			config:  &UsernamePasswordConfig{MinPasswordLength: cryptoutilSharedMagic.IMMinPasswordLength},
 			wantErr: false,
 		},
@@ -107,21 +107,21 @@ func TestLDAPConfig_Validate(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "valid",
+			name: testValid,
 			config: &LDAPConfig{
-				URL:    "ldap://ldap.example.com",
-				BaseDN: "dc=example,dc=com",
+				URL:    testLdapLdapExampleCom,
+				BaseDN: testDcExampleDcCom,
 			},
 			wantErr: false,
 		},
 		{
 			name:    "missing_url",
-			config:  &LDAPConfig{BaseDN: "dc=example,dc=com"},
+			config:  &LDAPConfig{BaseDN: testDcExampleDcCom},
 			wantErr: true,
 		},
 		{
 			name:    "missing_basedn",
-			config:  &LDAPConfig{URL: "ldap://ldap.example.com"},
+			config:  &LDAPConfig{URL: testLdapLdapExampleCom},
 			wantErr: true,
 		},
 	}
@@ -152,8 +152,8 @@ func TestOAuth2Config_Validate(t *testing.T) {
 		{
 			name: "valid_with_discovery",
 			config: &OAuth2Config{
-				ClientID:     "my-client",
-				ProviderURL:  "https://auth.example.com",
+				ClientID:     testMyClient,
+				ProviderURL:  testHTTPSAuthExampleCom,
 				UseDiscovery: true,
 			},
 			wantErr: false,
@@ -161,22 +161,22 @@ func TestOAuth2Config_Validate(t *testing.T) {
 		{
 			name: "valid_without_discovery",
 			config: &OAuth2Config{
-				ClientID:     "my-client",
-				AuthorizeURL: "https://auth.example.com/authorize",
-				TokenURL:     "https://auth.example.com/token",
+				ClientID:     testMyClient,
+				AuthorizeURL: testHTTPSAuthExampleComAuthorize,
+				TokenURL:     testHTTPSAuthExampleComToken,
 				UseDiscovery: false,
 			},
 			wantErr: false,
 		},
 		{
 			name:    "missing_client_id",
-			config:  &OAuth2Config{ProviderURL: "https://auth.example.com", UseDiscovery: true},
+			config:  &OAuth2Config{ProviderURL: testHTTPSAuthExampleCom, UseDiscovery: true},
 			wantErr: true,
 		},
 		{
 			name: "discovery_without_provider_url",
 			config: &OAuth2Config{
-				ClientID:     "my-client",
+				ClientID:     testMyClient,
 				UseDiscovery: true,
 			},
 			wantErr: true,
@@ -184,7 +184,7 @@ func TestOAuth2Config_Validate(t *testing.T) {
 		{
 			name: "no_discovery_missing_urls",
 			config: &OAuth2Config{
-				ClientID:     "my-client",
+				ClientID:     testMyClient,
 				UseDiscovery: false,
 			},
 			wantErr: true,
@@ -217,8 +217,8 @@ func TestSAMLConfig_Validate(t *testing.T) {
 		{
 			name: "valid_with_metadata_url",
 			config: &SAMLConfig{
-				MetadataURL: "https://idp.example.com/metadata",
-				EntityID:    "https://myapp.example.com",
+				MetadataURL: testHTTPSIdpExampleComMetadata,
+				EntityID:    testHTTPSMyappExampleCom,
 			},
 			wantErr: false,
 		},
@@ -226,19 +226,19 @@ func TestSAMLConfig_Validate(t *testing.T) {
 			name: "valid_with_metadata_xml",
 			config: &SAMLConfig{
 				MetadataXML: "<xml>...</xml>",
-				EntityID:    "https://myapp.example.com",
+				EntityID:    testHTTPSMyappExampleCom,
 			},
 			wantErr: false,
 		},
 		{
 			name:    "missing_metadata",
-			config:  &SAMLConfig{EntityID: "https://myapp.example.com"},
+			config:  &SAMLConfig{EntityID: testHTTPSMyappExampleCom},
 			wantErr: true,
 		},
 		{
 			name: "missing_entity_id",
 			config: &SAMLConfig{
-				MetadataURL: "https://idp.example.com/metadata",
+				MetadataURL: testHTTPSIdpExampleComMetadata,
 			},
 			wantErr: true,
 		},

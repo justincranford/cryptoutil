@@ -79,8 +79,8 @@ func TestOIDCFlow_IDPEndpointsIntegration(t *testing.T) {
 	// Create default auth profile (required for login).
 	defaultAuthProfile := &cryptoutilIdentityDomain.AuthProfile{
 		ID:          googleUuid.Must(googleUuid.NewV7()),
-		Name:        "default",
-		Description: "Default authentication profile",
+		Name:        testDefault,
+		Description: testDefaultAuthenticationProfile,
 		ProfileType: cryptoutilIdentityDomain.AuthProfileTypeUsernamePassword,
 		RequireMFA:  false,
 		MFAChain:    []string{},
@@ -99,7 +99,7 @@ func TestOIDCFlow_IDPEndpointsIntegration(t *testing.T) {
 			AccessTokenLifetime: cryptoutilSharedMagic.IMDefaultSessionTimeout * time.Second,
 		},
 		Sessions: &cryptoutilIdentityConfig.SessionConfig{
-			CookieName:      "identity_session",
+			CookieName:      testIdentitySession,
 			SessionLifetime: cryptoutilSharedMagic.IMDefaultSessionTimeout * time.Second,
 			CookieHTTPOnly:  true,
 		},
@@ -161,7 +161,7 @@ func TestOIDCFlow_IDPEndpointsIntegration(t *testing.T) {
 		PreferredUsername: testUsername,
 		Email:             "testuser-" + googleUuid.Must(googleUuid.NewV7()).String() + "@example.com",
 		EmailVerified:     true,
-		Name:              "Test User",
+		Name:              testTestUser,
 		GivenName:         "Test",
 		FamilyName:        "User",
 		Enabled:           true,
@@ -179,9 +179,9 @@ func TestOIDCFlow_IDPEndpointsIntegration(t *testing.T) {
 		ClientID:     testClient.ClientID,
 		RedirectURI:  testClient.RedirectURIs[0],
 		ResponseType: cryptoutilSharedMagic.ResponseTypeCode,
-		Scope:        "openid profile email",
-		State:        "test-state",
-		Nonce:        "test-nonce",
+		Scope:        testOpenidProfileEmail,
+		State:        testTestState,
+		Nonce:        testTestNonce,
 		CreatedAt:    time.Now().UTC(),
 		ExpiresAt:    time.Now().UTC().Add(cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Minute),
 	}
@@ -193,11 +193,11 @@ func TestOIDCFlow_IDPEndpointsIntegration(t *testing.T) {
 	loginFormData := url.Values{}
 	loginFormData.Set("username", testUsername)
 	loginFormData.Set("password", testPassword)
-	loginFormData.Set("request_id", authzReq.ID.String())
+	loginFormData.Set(testRequestID, authzReq.ID.String())
 
 	loginReq := httptest.NewRequest(
 		http.MethodPost,
-		"/oidc/v1/login",
+		testOIDCV1Login,
 		strings.NewReader(loginFormData.Encode()),
 	)
 	loginReq.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationForm)
@@ -211,10 +211,10 @@ func TestOIDCFlow_IDPEndpointsIntegration(t *testing.T) {
 
 	// Extract session cookie from Set-Cookie header.
 	setCookieHeader := loginResp.Header.Get("Set-Cookie")
-	require.Contains(t, setCookieHeader, "identity_session", "Expected session cookie")
+	require.Contains(t, setCookieHeader, testIdentitySession, "Expected session cookie")
 
 	// Parse session cookie value.
-	sessionCookie := parseCookieValue(setCookieHeader, "identity_session")
+	sessionCookie := parseCookieValue(setCookieHeader, testIdentitySession)
 	require.NotEmpty(t, sessionCookie, "Session cookie value is empty")
 
 	// Verify redirect to consent page.
@@ -224,7 +224,7 @@ func TestOIDCFlow_IDPEndpointsIntegration(t *testing.T) {
 
 	// Step 2: POST /consent - Approve scopes (simulate form submission).
 	consentFormData := url.Values{}
-	consentFormData.Set("request_id", authzReq.ID.String())
+	consentFormData.Set(testRequestID, authzReq.ID.String())
 	consentFormData.Set("decision", "approve")
 
 	consentReq := httptest.NewRequest(
@@ -233,7 +233,7 @@ func TestOIDCFlow_IDPEndpointsIntegration(t *testing.T) {
 		strings.NewReader(consentFormData.Encode()),
 	)
 	consentReq.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationForm)
-	consentReq.Header.Set("Cookie", fmt.Sprintf("%s=%s", "identity_session", sessionCookie))
+	consentReq.Header.Set("Cookie", fmt.Sprintf("%s=%s", testIdentitySession, sessionCookie))
 
 	consentResp, err := app.Test(consentReq, -1)
 	require.NoError(t, err, "Consent request failed")

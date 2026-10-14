@@ -50,7 +50,7 @@ linters:
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	filesByExtension := map[string][]string{
-		"yml": {configFile},
+		valueYml: {configFile},
 	}
 
 	err = Check(logger, filesByExtension)
@@ -73,7 +73,7 @@ func TestLintGolangCIConfig_DeprecatedOptions(t *testing.T) {
     allow-assign-and-anything: false
 `,
 			wantErr:     true,
-			errContains: "v2 compatibility violations",
+			errContains: testV2CompatibilityViolations,
 		},
 		{
 			name: "deprecated force-err-cuddling option",
@@ -82,7 +82,7 @@ func TestLintGolangCIConfig_DeprecatedOptions(t *testing.T) {
     force-err-cuddling: true
 `,
 			wantErr:     true,
-			errContains: "v2 compatibility violations",
+			errContains: testV2CompatibilityViolations,
 		},
 		{
 			name: "deprecated ignore-words option",
@@ -92,7 +92,7 @@ func TestLintGolangCIConfig_DeprecatedOptions(t *testing.T) {
       - color
 `,
 			wantErr:     true,
-			errContains: "v2 compatibility violations",
+			errContains: testV2CompatibilityViolations,
 		},
 		{
 			name: "deprecated deadcode linter",
@@ -102,7 +102,7 @@ func TestLintGolangCIConfig_DeprecatedOptions(t *testing.T) {
     - gofmt
 `,
 			wantErr:     true,
-			errContains: "v2 compatibility violations",
+			errContains: testV2CompatibilityViolations,
 		},
 		{
 			name: "deprecated structcheck linter",
@@ -111,7 +111,7 @@ func TestLintGolangCIConfig_DeprecatedOptions(t *testing.T) {
     - structcheck
 `,
 			wantErr:     true,
-			errContains: "v2 compatibility violations",
+			errContains: testV2CompatibilityViolations,
 		},
 		{
 			name: "deprecated varcheck linter",
@@ -120,7 +120,7 @@ func TestLintGolangCIConfig_DeprecatedOptions(t *testing.T) {
     - varcheck
 `,
 			wantErr:     true,
-			errContains: "v2 compatibility violations",
+			errContains: testV2CompatibilityViolations,
 		},
 		{
 			name: "deprecated golint linter",
@@ -129,7 +129,7 @@ func TestLintGolangCIConfig_DeprecatedOptions(t *testing.T) {
     - golint
 `,
 			wantErr:     true,
-			errContains: "v2 compatibility violations",
+			errContains: testV2CompatibilityViolations,
 		},
 		{
 			name: "deprecated interfacer linter",
@@ -138,7 +138,7 @@ func TestLintGolangCIConfig_DeprecatedOptions(t *testing.T) {
     - interfacer
 `,
 			wantErr:     true,
-			errContains: "v2 compatibility violations",
+			errContains: testV2CompatibilityViolations,
 		},
 		{
 			name: "deprecated maligned linter",
@@ -147,7 +147,7 @@ func TestLintGolangCIConfig_DeprecatedOptions(t *testing.T) {
     - maligned
 `,
 			wantErr:     true,
-			errContains: "v2 compatibility violations",
+			errContains: testV2CompatibilityViolations,
 		},
 		{
 			name: "valid v2 config with wsl_v5",
@@ -181,7 +181,7 @@ func TestLintGolangCIConfig_DeprecatedOptions(t *testing.T) {
 
 			logger := cryptoutilCmdCicdCommon.NewLogger("test")
 			filesByExtension := map[string][]string{
-				"yml": {configFile},
+				valueYml: {configFile},
 			}
 
 			err = Check(logger, filesByExtension)
@@ -247,9 +247,9 @@ func TestFindGolangCIConfigFiles_AllFormats(t *testing.T) {
 	}
 
 	filesByExtension := map[string][]string{
-		"yml":  {ymlFile, otherFile},
-		"yaml": {yamlFile},
-		"toml": {tomlFile},
+		valueYml: {ymlFile, otherFile},
+		"yaml":   {yamlFile},
+		"toml":   {tomlFile},
 	}
 
 	files := FindGolangCIConfigFiles(filesByExtension)
@@ -269,7 +269,7 @@ func TestLintGolangCIConfig_FileReadError(t *testing.T) {
 	// Pass a nonexistent .golangci.yml path - FindGolangCIConfigFiles will include it
 	// but checkGolangCIConfig will fail to open it.
 	filesByExtension := map[string][]string{
-		"yml": {"/nonexistent/path/.golangci.yml"},
+		valueYml: {"/nonexistent/path/.golangci.yml"},
 	}
 
 	// Should not return error - file errors are logged as warnings and skipped.

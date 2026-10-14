@@ -4,6 +4,7 @@ package compliance
 
 import (
 	"crypto/x509"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"fmt"
 	"strings"
 	"sync"
@@ -20,8 +21,8 @@ func (c *Checker) checkKeySize(cert *x509.Certificate) Requirement {
 	}
 
 	if rsaKey, ok := cert.PublicKey.(rsaPublicKey); ok {
-		keyBits := rsaKey.Size() * bitsPerByte
-		if keyBits < minRSAKeyBits {
+		keyBits := rsaKey.Size() * cryptoutilSharedMagic.BitsPerByte
+		if keyBits < cryptoutilSharedMagic.RSA2048KeySize {
 			status = StatusNonCompliant
 		}
 	}

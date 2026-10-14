@@ -70,14 +70,14 @@ func TestDERDecodes(t *testing.T) {
 		expectedType string
 	}{
 		{
-			name: "RSA private key",
+			name: testRSAPrivateKey,
 			keyGen: func() (any, error) {
 				return rsa.GenerateKey(crand.Reader, cryptoutilSharedMagic.DefaultMetricsBatchSize)
 			},
 			expectedType: cryptoutilSharedMagic.StringPEMTypePKCS8PrivateKey,
 		},
 		{
-			name: "ECDSA public key",
+			name: testECDSAPublicKey,
 			keyGen: func() (any, error) {
 				priv, err := ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
 				if err != nil {
@@ -162,19 +162,19 @@ func TestPEMRead(t *testing.T) {
 		keyGen func() (any, error)
 	}{
 		{
-			name: "RSA private key",
+			name: testRSAPrivateKey,
 			keyGen: func() (any, error) {
 				return rsa.GenerateKey(crand.Reader, cryptoutilSharedMagic.DefaultMetricsBatchSize)
 			},
 		},
 		{
-			name: "ECDSA private key",
+			name: testECDSAPrivateKey,
 			keyGen: func() (any, error) {
 				return ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
 			},
 		},
 		{
-			name: "EdDSA private key",
+			name: testEdDsaPrivateKey,
 			keyGen: func() (any, error) {
 				_, priv, err := ed25519.GenerateKey(crand.Reader)
 
@@ -226,14 +226,14 @@ func TestDERRead(t *testing.T) {
 		expectedType string
 	}{
 		{
-			name: "RSA private key",
+			name: testRSAPrivateKey,
 			keyGen: func() (any, error) {
 				return rsa.GenerateKey(crand.Reader, cryptoutilSharedMagic.DefaultMetricsBatchSize)
 			},
 			expectedType: cryptoutilSharedMagic.StringPEMTypePKCS8PrivateKey,
 		},
 		{
-			name: "ECDSA public key",
+			name: testECDSAPublicKey,
 			keyGen: func() (any, error) {
 				priv, err := ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
 				if err != nil {

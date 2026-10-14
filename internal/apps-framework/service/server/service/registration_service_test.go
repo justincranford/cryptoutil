@@ -265,11 +265,11 @@ func TestRegistrationService_RegisterUser_NewTenant(t *testing.T) {
 	}{
 		{
 			name:     "happy path - new tenant with user",
-			username: "admin",
-			email:    "admin@example.com",
-			password: "hashed_password",
+			username: valueAdmin,
+			email:    testAdminExampleCom,
+			password: testHashedPassword,
 			tenantInfo: &NewTenantInfo{
-				Name:        "Acme Corp",
+				Name:        testAcmeCorp,
 				Description: cryptoutilSharedMagic.DESC_TEST_TENANT,
 			},
 			setupMocks: func(tenantSvc *mockTenantService, userRepo *mockUserRepository, roleRepo *mockRoleRepository, userRoleRepo *mockUserRoleRepository) {
@@ -288,7 +288,7 @@ func TestRegistrationService_RegisterUser_NewTenant(t *testing.T) {
 					return &cryptoutilAppsFrameworkServiceServerRepository.Role{
 						ID:       roleID,
 						TenantID: tenantID,
-						Name:     "admin",
+						Name:     valueAdmin,
 					}, nil
 				}
 				userRoleRepo.assignFn = func(ctx context.Context, userRole *cryptoutilAppsFrameworkServiceServerRepository.UserRole) error {
@@ -300,11 +300,11 @@ func TestRegistrationService_RegisterUser_NewTenant(t *testing.T) {
 		},
 		{
 			name:     "tenant creation fails",
-			username: "admin",
-			email:    "admin@example.com",
-			password: "hashed_password",
+			username: valueAdmin,
+			email:    testAdminExampleCom,
+			password: testHashedPassword,
 			tenantInfo: &NewTenantInfo{
-				Name:        "Acme Corp",
+				Name:        testAcmeCorp,
 				Description: cryptoutilSharedMagic.DESC_TEST_TENANT,
 			},
 			setupMocks: func(tenantSvc *mockTenantService, _ *mockUserRepository, _ *mockRoleRepository, _ *mockUserRoleRepository) {
@@ -313,15 +313,15 @@ func TestRegistrationService_RegisterUser_NewTenant(t *testing.T) {
 				}
 			},
 			wantErr:     true,
-			errContains: "failed to create tenant",
+			errContains: testFailedToCreateTenant,
 		},
 		{
 			name:     "user creation fails",
-			username: "admin",
-			email:    "admin@example.com",
-			password: "hashed_password",
+			username: valueAdmin,
+			email:    testAdminExampleCom,
+			password: testHashedPassword,
 			tenantInfo: &NewTenantInfo{
-				Name:        "Acme Corp",
+				Name:        testAcmeCorp,
 				Description: cryptoutilSharedMagic.DESC_TEST_TENANT,
 			},
 			setupMocks: func(tenantSvc *mockTenantService, userRepo *mockUserRepository, _ *mockRoleRepository, _ *mockUserRoleRepository) {
@@ -337,11 +337,11 @@ func TestRegistrationService_RegisterUser_NewTenant(t *testing.T) {
 		},
 		{
 			name:     "role assignment fails",
-			username: "admin",
-			email:    "admin@example.com",
-			password: "hashed_password",
+			username: valueAdmin,
+			email:    testAdminExampleCom,
+			password: testHashedPassword,
 			tenantInfo: &NewTenantInfo{
-				Name:        "Acme Corp",
+				Name:        testAcmeCorp,
 				Description: cryptoutilSharedMagic.DESC_TEST_TENANT,
 			},
 			setupMocks: func(tenantSvc *mockTenantService, userRepo *mockUserRepository, roleRepo *mockRoleRepository, userRoleRepo *mockUserRoleRepository) {
@@ -352,7 +352,7 @@ func TestRegistrationService_RegisterUser_NewTenant(t *testing.T) {
 					return nil
 				}
 				roleRepo.getByNameFn = func(ctx context.Context, tenantID googleUuid.UUID, name string) (*cryptoutilAppsFrameworkServiceServerRepository.Role, error) {
-					return &cryptoutilAppsFrameworkServiceServerRepository.Role{ID: roleID, TenantID: tenantID, Name: "admin"}, nil
+					return &cryptoutilAppsFrameworkServiceServerRepository.Role{ID: roleID, TenantID: tenantID, Name: valueAdmin}, nil
 				}
 				userRoleRepo.assignFn = func(ctx context.Context, userRole *cryptoutilAppsFrameworkServiceServerRepository.UserRole) error {
 					return errors.New("database error")

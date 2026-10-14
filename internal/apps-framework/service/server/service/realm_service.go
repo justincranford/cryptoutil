@@ -15,6 +15,7 @@
 package service
 
 import (
+	"errors"
 	"fmt"
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
@@ -100,7 +101,7 @@ func (c *UsernamePasswordConfig) GetType() RealmType {
 // Validate validates the configuration.
 func (c *UsernamePasswordConfig) Validate() error {
 	if c.MinPasswordLength < 1 {
-		return fmt.Errorf("min_password_length must be at least 1")
+		return errors.New(valueMinPasswordLengthMustBeAtLeast1)
 	}
 
 	return nil
@@ -214,7 +215,7 @@ func (c *JWESessionCookieConfig) GetType() RealmType {
 // Validate validates the configuration.
 func (c *JWESessionCookieConfig) Validate() error {
 	if c.SessionExpiryMinutes < 1 {
-		return fmt.Errorf("session_expiry_minutes must be at least 1")
+		return errors.New(valueSessionExpiryMinutesMustBeAtLeast1)
 	}
 
 	return nil
@@ -234,7 +235,7 @@ func (c *JWSSessionCookieConfig) GetType() RealmType {
 // Validate validates the configuration.
 func (c *JWSSessionCookieConfig) Validate() error {
 	if c.SessionExpiryMinutes < 1 {
-		return fmt.Errorf("session_expiry_minutes must be at least 1")
+		return errors.New(valueSessionExpiryMinutesMustBeAtLeast1)
 	}
 
 	return nil
@@ -259,7 +260,7 @@ func (c *OpaqueSessionCookieConfig) Validate() error {
 	}
 
 	if c.SessionExpiryMinutes < 1 {
-		return fmt.Errorf("session_expiry_minutes must be at least 1")
+		return errors.New(valueSessionExpiryMinutesMustBeAtLeast1)
 	}
 
 	if c.StorageType != cryptoutilSharedMagic.RealmStorageTypeDatabase && c.StorageType != cryptoutilSharedMagic.RealmStorageTypeRedis {
@@ -287,7 +288,7 @@ func (c *BasicUsernamePasswordConfig) GetType() RealmType {
 // Validate validates the configuration.
 func (c *BasicUsernamePasswordConfig) Validate() error {
 	if c.MinPasswordLength < 1 {
-		return fmt.Errorf("min_password_length must be at least 1")
+		return errors.New(valueMinPasswordLengthMustBeAtLeast1)
 	}
 
 	return nil

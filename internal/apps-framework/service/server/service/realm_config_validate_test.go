@@ -36,20 +36,20 @@ func TestRealmConfig_Validate_Errors(t *testing.T) {
 			config: &UsernamePasswordConfig{
 				MinPasswordLength: 0,
 			},
-			expectedSubstr: "min_password_length must be at least 1",
+			expectedSubstr: valueMinPasswordLengthMustBeAtLeast1,
 		},
 		// LDAPConfig errors.
 		{
 			name: "LDAPConfig_MissingURL",
 			config: &LDAPConfig{
-				BaseDN: "dc=example,dc=com",
+				BaseDN: testDcExampleDcCom,
 			},
 			expectedSubstr: "url is required",
 		},
 		{
 			name: "LDAPConfig_MissingBaseDN",
 			config: &LDAPConfig{
-				URL: "ldap://ldap.example.com:389",
+				URL: testLdapLdapExampleCom389,
 			},
 			expectedSubstr: "base_dn is required",
 		},
@@ -58,7 +58,7 @@ func TestRealmConfig_Validate_Errors(t *testing.T) {
 			name: "OAuth2Config_MissingClientID",
 			config: &OAuth2Config{
 				UseDiscovery: true,
-				ProviderURL:  "https://auth.example.com",
+				ProviderURL:  testHTTPSAuthExampleCom,
 			},
 			expectedSubstr: "client_id is required",
 		},
@@ -82,14 +82,14 @@ func TestRealmConfig_Validate_Errors(t *testing.T) {
 		{
 			name: "SAMLConfig_MissingMetadata",
 			config: &SAMLConfig{
-				EntityID: "test-entity-id",
+				EntityID: testTestEntityID,
 			},
 			expectedSubstr: "either metadata_url or metadata_xml is required",
 		},
 		{
 			name: "SAMLConfig_MissingEntityID",
 			config: &SAMLConfig{
-				MetadataURL: "https://idp.example.com/metadata",
+				MetadataURL: testHTTPSIdpExampleComMetadata,
 			},
 			expectedSubstr: "entity_id is required",
 		},
@@ -99,7 +99,7 @@ func TestRealmConfig_Validate_Errors(t *testing.T) {
 			config: &JWESessionCookieConfig{
 				SessionExpiryMinutes: 0,
 			},
-			expectedSubstr: "session_expiry_minutes must be at least 1",
+			expectedSubstr: valueSessionExpiryMinutesMustBeAtLeast1,
 		},
 		// JWSSessionCookieConfig errors.
 		{
@@ -107,7 +107,7 @@ func TestRealmConfig_Validate_Errors(t *testing.T) {
 			config: &JWSSessionCookieConfig{
 				SessionExpiryMinutes: 0,
 			},
-			expectedSubstr: "session_expiry_minutes must be at least 1",
+			expectedSubstr: valueSessionExpiryMinutesMustBeAtLeast1,
 		},
 		// OpaqueSessionCookieConfig errors.
 		{
@@ -117,7 +117,7 @@ func TestRealmConfig_Validate_Errors(t *testing.T) {
 				SessionExpiryMinutes: 15,
 				StorageType:          cryptoutilSharedMagic.RealmStorageTypeDatabase,
 			},
-			expectedSubstr: "token_length_bytes must be at least",
+			expectedSubstr: testTokenLengthBytesMustBeAtLeast,
 		},
 		{
 			name: "OpaqueSessionCookieConfig_SessionExpiryZero",
@@ -126,7 +126,7 @@ func TestRealmConfig_Validate_Errors(t *testing.T) {
 				SessionExpiryMinutes: 0,
 				StorageType:          cryptoutilSharedMagic.RealmStorageTypeDatabase,
 			},
-			expectedSubstr: "session_expiry_minutes must be at least 1",
+			expectedSubstr: valueSessionExpiryMinutesMustBeAtLeast1,
 		},
 		{
 			name: "OpaqueSessionCookieConfig_InvalidStorageType",
@@ -135,7 +135,7 @@ func TestRealmConfig_Validate_Errors(t *testing.T) {
 				SessionExpiryMinutes: 15,
 				StorageType:          cryptoutilSharedMagic.DevSetupTestInvalidName,
 			},
-			expectedSubstr: "storage_type must be",
+			expectedSubstr: testStorageTypeMustBe,
 		},
 		// BasicUsernamePasswordConfig errors.
 		{
@@ -143,7 +143,7 @@ func TestRealmConfig_Validate_Errors(t *testing.T) {
 			config: &BasicUsernamePasswordConfig{
 				MinPasswordLength: 0,
 			},
-			expectedSubstr: "min_password_length must be at least 1",
+			expectedSubstr: valueMinPasswordLengthMustBeAtLeast1,
 		},
 		// BearerAPITokenConfig errors.
 		{
@@ -160,7 +160,7 @@ func TestRealmConfig_Validate_Errors(t *testing.T) {
 				TokenExpiryDays:  cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days,
 				TokenLengthBytes: cryptoutilSharedMagic.RealmMinTokenLengthBytes, // Below minimum
 			},
-			expectedSubstr: "token_length_bytes must be at least",
+			expectedSubstr: testTokenLengthBytesMustBeAtLeast,
 		},
 		// HTTPSClientCertConfig errors.
 		{
@@ -177,7 +177,7 @@ func TestRealmConfig_Validate_Errors(t *testing.T) {
 			config: &JWESessionTokenConfig{
 				TokenExpiryMinutes: 0,
 			},
-			expectedSubstr: "token_expiry_minutes must be at least 1",
+			expectedSubstr: valueTokenExpiryMinutesMustBeAtLeast1,
 		},
 		// JWSSessionTokenConfig errors.
 		{
@@ -185,7 +185,7 @@ func TestRealmConfig_Validate_Errors(t *testing.T) {
 			config: &JWSSessionTokenConfig{
 				TokenExpiryMinutes: 0,
 			},
-			expectedSubstr: "token_expiry_minutes must be at least 1",
+			expectedSubstr: valueTokenExpiryMinutesMustBeAtLeast1,
 		},
 		// OpaqueSessionTokenConfig errors.
 		{
@@ -195,7 +195,7 @@ func TestRealmConfig_Validate_Errors(t *testing.T) {
 				TokenExpiryMinutes: cryptoutilSharedMagic.IdentityDefaultIdleTimeoutSeconds,
 				StorageType:        cryptoutilSharedMagic.RealmStorageTypeDatabase,
 			},
-			expectedSubstr: "token_length_bytes must be at least",
+			expectedSubstr: testTokenLengthBytesMustBeAtLeast,
 		},
 		{
 			name: "OpaqueSessionTokenConfig_TokenExpiryZero",
@@ -204,7 +204,7 @@ func TestRealmConfig_Validate_Errors(t *testing.T) {
 				TokenExpiryMinutes: 0,
 				StorageType:        cryptoutilSharedMagic.RealmStorageTypeDatabase,
 			},
-			expectedSubstr: "token_expiry_minutes must be at least 1",
+			expectedSubstr: valueTokenExpiryMinutesMustBeAtLeast1,
 		},
 		{
 			name: "OpaqueSessionTokenConfig_InvalidStorageType",
@@ -213,7 +213,7 @@ func TestRealmConfig_Validate_Errors(t *testing.T) {
 				TokenExpiryMinutes: cryptoutilSharedMagic.IdentityDefaultIdleTimeoutSeconds,
 				StorageType:        cryptoutilSharedMagic.DevSetupTestInvalidName,
 			},
-			expectedSubstr: "storage_type must be",
+			expectedSubstr: testStorageTypeMustBe,
 		},
 		// BasicClientIDSecretConfig errors.
 		{

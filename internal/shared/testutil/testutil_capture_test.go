@@ -75,31 +75,31 @@ func TestContainsAny(t *testing.T) {
 	}{
 		{
 			name:     "found first needle",
-			haystack: "hello world",
+			haystack: testHelloWorld,
 			needles:  []string{cryptoutilSharedMagic.TEST_NEEDLE_HELLO, cryptoutilSharedMagic.TEST_NEEDLE_FOO, cryptoutilSharedMagic.TEST_NEEDLE_BAR},
 			want:     true,
 		},
 		{
 			name:     "found middle needle",
-			haystack: "hello world",
+			haystack: testHelloWorld,
 			needles:  []string{cryptoutilSharedMagic.TEST_NEEDLE_FOO, cryptoutilSharedMagic.TEST_NEEDLE_WORLD, cryptoutilSharedMagic.TEST_NEEDLE_BAR},
 			want:     true,
 		},
 		{
 			name:     "found last needle",
-			haystack: "hello world",
+			haystack: testHelloWorld,
 			needles:  []string{cryptoutilSharedMagic.TEST_NEEDLE_FOO, cryptoutilSharedMagic.TEST_NEEDLE_BAR, cryptoutilSharedMagic.TEST_NEEDLE_WORLD},
 			want:     true,
 		},
 		{
 			name:     "no needle found",
-			haystack: "hello world",
+			haystack: testHelloWorld,
 			needles:  []string{cryptoutilSharedMagic.TEST_NEEDLE_FOO, cryptoutilSharedMagic.TEST_NEEDLE_BAR, "baz"},
 			want:     false,
 		},
 		{
 			name:     "empty needles",
-			haystack: "hello world",
+			haystack: testHelloWorld,
 			needles:  []string{},
 			want:     false,
 		},

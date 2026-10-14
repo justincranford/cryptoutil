@@ -20,21 +20,21 @@ func TestParseEntrypointLine(t *testing.T) {
 		{
 			name:  "single binary",
 			input: `["/app/sm-kms"]`,
-			want:  []string{"/app/sm-kms"},
+			want:  []string{testAppSmKMS},
 		},
 		{
 			name:  "tini with suite binary no args",
 			input: `["/sbin/tini", "--", "/app/cryptoutil"]`,
-			want:  []string{"/sbin/tini", "--", "/app/cryptoutil"},
+			want:  []string{testSbinTini, testStringValue, testAppCryptoutil},
 		},
 		{
 			name:  "tini with suite binary and subcommand",
 			input: `["/sbin/tini", "--", "/app/cryptoutil", "identity-authz", "start"]`,
-			want:  []string{"/sbin/tini", "--", "/app/cryptoutil", cryptoutilSharedMagic.OTLPServiceIdentityAuthz, "start"},
+			want:  []string{testSbinTini, testStringValue, testAppCryptoutil, cryptoutilSharedMagic.OTLPServiceIdentityAuthz, "start"},
 		},
 		{
 			name:  "not json array returns nil",
-			input: `/app/sm-kms`,
+			input: testAppSmKMS,
 			want:  nil,
 		},
 		{
@@ -82,10 +82,10 @@ func TestEntrypointEqual(t *testing.T) {
 		b    []string
 		want bool
 	}{
-		{name: "equal single", a: []string{"/app/sm-kms"}, b: []string{"/app/sm-kms"}, want: true},
-		{name: "equal multi", a: []string{"/sbin/tini", "--", "/app/cryptoutil"}, b: []string{"/sbin/tini", "--", "/app/cryptoutil"}, want: true},
-		{name: "different length", a: []string{"/app/a"}, b: []string{"/app/a", "extra"}, want: false},
-		{name: "different element", a: []string{"/app/a"}, b: []string{"/app/b"}, want: false},
+		{name: "equal single", a: []string{testAppSmKMS}, b: []string{testAppSmKMS}, want: true},
+		{name: "equal multi", a: []string{testSbinTini, testStringValue, testAppCryptoutil}, b: []string{testSbinTini, testStringValue, testAppCryptoutil}, want: true},
+		{name: "different length", a: []string{testAppA}, b: []string{testAppA, "extra"}, want: false},
+		{name: "different element", a: []string{testAppA}, b: []string{"/app/b"}, want: false},
 	}
 
 	for _, tc := range tests {

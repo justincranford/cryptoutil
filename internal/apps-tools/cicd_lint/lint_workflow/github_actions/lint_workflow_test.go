@@ -47,9 +47,9 @@ func TestLint_NoWorkflowFiles(t *testing.T) {
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	// Files not in .github/workflows/.
 	filesByExtension := map[string][]string{
-		"go":   {"main.go"},
-		"yaml": {"config.yaml"},
-		"yml":  {"test.yml"},
+		testGo:    {testMainGo},
+		valueYAML: {testConfigYAML},
+		valueYml:  {"test.yml"},
 	}
 
 	err := Check(logger, FilterWorkflowFiles(filesByExtension))
@@ -72,25 +72,25 @@ func TestFilterWorkflowFiles(t *testing.T) {
 		{
 			name: "no workflow files",
 			input: map[string][]string{
-				"go":   {"main.go"},
-				"yaml": {"config.yaml"},
+				testGo:    {testMainGo},
+				valueYAML: {testConfigYAML},
 			},
 			expected: 0,
 		},
 		{
 			name: "workflow files",
 			input: map[string][]string{
-				"yml":  {".github/workflows/ci.yml"},
-				"yaml": {".github/workflows/cd.yaml"},
+				valueYml:  {testGithubWorkflowsCiYml},
+				valueYAML: {".github/workflows/cd.yaml"},
 			},
 			expected: 2,
 		},
 		{
 			name: "mixed files",
 			input: map[string][]string{
-				"yml":  {".github/workflows/ci.yml"},
-				"go":   {"main.go"},
-				"yaml": {"config.yaml"},
+				valueYml:  {testGithubWorkflowsCiYml},
+				testGo:    {testMainGo},
+				valueYAML: {testConfigYAML},
 			},
 			expected: 1,
 		},
@@ -114,11 +114,11 @@ func TestIsWorkflowFile(t *testing.T) {
 		path     string
 		expected bool
 	}{
-		{"github workflow yml", ".github/workflows/ci.yml", true},
+		{"github workflow yml", testGithubWorkflowsCiYml, true},
 		{"github workflow yaml", ".github/workflows/ci.yaml", true},
-		{"non-workflow yml", "config.yml", false},
-		{"non-workflow yaml", "config.yaml", false},
-		{"go file", "main.go", false},
+		{"non-workflow yml", testConfigYml, false},
+		{"non-workflow yaml", testConfigYAML, false},
+		{"go file", testMainGo, false},
 		{"windows path", ".github\\workflows\\ci.yml", true},
 	}
 
@@ -141,7 +141,7 @@ func TestValidateAndParseWorkflowFile(t *testing.T) {
 	err := os.MkdirAll(workflowDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute)
 	require.NoError(t, err)
 
-	workflowFile := filepath.Join(workflowDir, "ci.yml")
+	workflowFile := filepath.Join(workflowDir, testCiYml)
 	err = os.WriteFile(workflowFile, []byte(testWorkflowWithActions), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
@@ -243,7 +243,7 @@ func TestLintGitHubWorkflows_WithActions(t *testing.T) {
 	err := os.MkdirAll(workflowDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute)
 	require.NoError(t, err)
 
-	workflowFile := filepath.Join(workflowDir, "ci.yml")
+	workflowFile := filepath.Join(workflowDir, testCiYml)
 	err = os.WriteFile(workflowFile, []byte(testWorkflowWithActions), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
@@ -296,9 +296,9 @@ func TestLoadWorkflowActionExceptions_ValidJSON(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, exceptions)
 	require.Len(t, exceptions.Exceptions, 1)
-	require.Contains(t, exceptions.Exceptions, "actions/checkout")
-	require.Equal(t, "v3", exceptions.Exceptions["actions/checkout"].Version)
-	require.Equal(t, "Test exception", exceptions.Exceptions["actions/checkout"].Reason)
+	require.Contains(t, exceptions.Exceptions, testActionsCheckout)
+	require.Equal(t, testV3, exceptions.Exceptions[testActionsCheckout].Version)
+	require.Equal(t, "Test exception", exceptions.Exceptions[testActionsCheckout].Reason)
 }
 
 func TestLoadWorkflowActionExceptions_UnreadableFile(t *testing.T) {
@@ -336,7 +336,7 @@ func TestLoadWorkflowActionExceptions_UnreadableFile(t *testing.T) {
 func TestValidateAndParseWorkflowFile_InvalidFile(t *testing.T) {
 	t.Parallel()
 
-	actionDetails, validationErrors, err := validateAndParseWorkflowFile("nonexistent.yml")
+	actionDetails, validationErrors, err := validateAndParseWorkflowFile(testNonexistentYml)
 	require.Error(t, err)
 	require.Nil(t, actionDetails)
 	require.Nil(t, validationErrors)
@@ -366,7 +366,7 @@ jobs:
 	require.NoError(t, err)
 	require.Empty(t, validationErrors)
 	require.Len(t, actionDetails, 3)
-	require.Contains(t, actionDetails, "actions/checkout@v4")
+	require.Contains(t, actionDetails, testActionsCheckoutV4)
 	require.Contains(t, actionDetails, "actions/setup-go@v5")
 	require.Contains(t, actionDetails, "actions/upload-artifact@v3")
 }
@@ -376,10 +376,10 @@ func TestCheckActionVersionsConcurrently_NoExceptions(t *testing.T) {
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	actionDetails := map[string]WorkflowActionDetails{
-		"actions/checkout@v4": {
-			Name:           "actions/checkout",
-			CurrentVersion: "v4",
-			WorkflowFiles:  []string{"ci.yml"},
+		testActionsCheckoutV4: {
+			Name:           testActionsCheckout,
+			CurrentVersion: testV4,
+			WorkflowFiles:  []string{testCiYml},
 		},
 	}
 	exceptions := &WorkflowActionExceptions{Exceptions: make(map[string]WorkflowActionException)}
@@ -395,17 +395,17 @@ func TestCheckActionVersionsConcurrently_WithExemption(t *testing.T) {
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	actionDetails := map[string]WorkflowActionDetails{
-		"actions/checkout@v3": {
-			Name:           "actions/checkout",
-			CurrentVersion: "v3",
-			WorkflowFiles:  []string{"ci.yml"},
+		testActionsCheckoutV3: {
+			Name:           testActionsCheckout,
+			CurrentVersion: testV3,
+			WorkflowFiles:  []string{testCiYml},
 		},
 	}
 	exceptions := &WorkflowActionExceptions{
 		Exceptions: map[string]WorkflowActionException{
-			"actions/checkout": {
-				Version: "v3",
-				Reason:  "Testing",
+			testActionsCheckout: {
+				Version: testV3,
+				Reason:  testTesting,
 			},
 		},
 	}
@@ -414,8 +414,8 @@ func TestCheckActionVersionsConcurrently_WithExemption(t *testing.T) {
 	require.Empty(t, outdated)
 	require.Len(t, exempted, 1)
 	require.Empty(t, errors)
-	require.Equal(t, "actions/checkout", exempted[0].Name)
-	require.Equal(t, "v3", exempted[0].CurrentVersion)
+	require.Equal(t, testActionsCheckout, exempted[0].Name)
+	require.Equal(t, testV3, exempted[0].CurrentVersion)
 }
 
 func TestValidateAndGetWorkflowActionsDetails_MultipleFiles(t *testing.T) {
@@ -424,7 +424,7 @@ func TestValidateAndGetWorkflowActionsDetails_MultipleFiles(t *testing.T) {
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	tmpDir := t.TempDir()
 
-	workflowFile1 := filepath.Join(tmpDir, "ci.yml")
+	workflowFile1 := filepath.Join(tmpDir, testCiYml)
 	content1 := `name: CI
 on: push
 jobs:
@@ -450,7 +450,7 @@ jobs:
 	actionDetails, err := validateAndGetWorkflowActionsDetails(logger, []string{workflowFile1, workflowFile2})
 	require.NoError(t, err)
 	require.Len(t, actionDetails, 2)
-	require.Contains(t, actionDetails, "actions/checkout@v4")
+	require.Contains(t, actionDetails, testActionsCheckoutV4)
 	require.Contains(t, actionDetails, "actions/setup-go@v5")
-	require.Len(t, actionDetails["actions/checkout@v4"].WorkflowFiles, 2, "Should merge workflow files for duplicate actions")
+	require.Len(t, actionDetails[testActionsCheckoutV4].WorkflowFiles, 2, "Should merge workflow files for duplicate actions")
 }

@@ -183,7 +183,7 @@ func TestCheckInDir_Violations(t *testing.T) {
 		wantErr string
 	}{
 		{
-			name:    "missing profile field",
+			name:    testMissingProfileField,
 			file:    "bad.yaml",
 			yaml:    "validity:\n  max_days: 365\n",
 			wantErr: "violation",
@@ -283,7 +283,7 @@ func TestCheckInDir_Violations(t *testing.T) {
     default_curve_or_size: 1024
   key_usage: ["digitalSignature"]
   extended_key_usage: {required: [], optional: []}`,
-			wantErr: "known algorithm",
+			wantErr: testKnownAlgorithm,
 		},
 		{
 			name: "empty key usage",
@@ -437,7 +437,7 @@ func TestCheckInDir_ZeroMinDaysIsError(t *testing.T) {
 	err := CheckInDir(logger, rootDir, os.ReadFile, filepath.WalkDir)
 
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "min_days must be >= 1")
+	require.Contains(t, err.Error(), testMinDaysMustBe1)
 }
 
 // Copyright (c) 2025-2026 Justin Cranford.

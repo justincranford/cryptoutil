@@ -17,37 +17,37 @@ func TestFilterExcludedTestFiles(t *testing.T) {
 	}{
 		{
 			name:      "no_exclusions",
-			input:     []string{"user_test.go", "repo_test.go"},
+			input:     []string{testUserTestGo, "repo_test.go"},
 			wantCount: 2,
 		},
 		{
 			name:      "exclude_cicd",
-			input:     []string{"user_test.go", "cicd_test.go"},
+			input:     []string{testUserTestGo, "cicd_test.go"},
 			wantCount: 1,
 		},
 		{
 			name:      "exclude_testmain",
-			input:     []string{"user_test.go", "testmain_test.go"},
+			input:     []string{testUserTestGo, "testmain_test.go"},
 			wantCount: 1,
 		},
 		{
 			name:      "exclude_e2e",
-			input:     []string{"user_test.go", "e2e_test.go"},
+			input:     []string{testUserTestGo, "e2e_test.go"},
 			wantCount: 1,
 		},
 		{
 			name:      "exclude_sessions",
-			input:     []string{"user_test.go", "sessions_test.go"},
+			input:     []string{testUserTestGo, "sessions_test.go"},
 			wantCount: 1,
 		},
 		{
 			name:      "exclude_admin",
-			input:     []string{"user_test.go", "admin_test.go"},
+			input:     []string{testUserTestGo, "admin_test.go"},
 			wantCount: 1,
 		},
 		{
 			name:      "exclude_lint_gotest_path",
-			input:     []string{"user_test.go", "lint_gotest/patterns_test.go"},
+			input:     []string{testUserTestGo, "lint_gotest/patterns_test.go"},
 			wantCount: 1,
 		},
 	}

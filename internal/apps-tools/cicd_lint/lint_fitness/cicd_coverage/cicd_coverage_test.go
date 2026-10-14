@@ -38,7 +38,7 @@ func createValidDir(t *testing.T) string {
 	validContent := buildValidContent()
 
 	for _, relPath := range []string{
-		".pre-commit-config.yaml",
+		testPreCommitConfigYAML,
 		filepath.Join(cryptoutilSharedMagic.CICDExcludeDirGithubInstructions, "workflows", "ci-quality.yml"),
 	} {
 		fullPath := filepath.Join(rootDir, relPath)
@@ -64,14 +64,14 @@ func TestCheckInDir_MissingPreCommitFile(t *testing.T) {
 	t.Parallel()
 
 	rootDir := createValidDir(t)
-	require.NoError(t, os.Remove(filepath.Join(rootDir, ".pre-commit-config.yaml")))
+	require.NoError(t, os.Remove(filepath.Join(rootDir, testPreCommitConfigYAML)))
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 
 	err := CheckInDir(logger, rootDir)
 
 	require.Error(t, err)
-	require.Contains(t, err.Error(), ".pre-commit-config.yaml")
+	require.Contains(t, err.Error(), testPreCommitConfigYAML)
 	require.Contains(t, err.Error(), "cannot read file")
 }
 
@@ -124,7 +124,7 @@ func TestCheckInDir_MissingLinterInWorkflow(t *testing.T) {
 		relPath string
 		content string
 	}{
-		{".pre-commit-config.yaml", validContent},
+		{testPreCommitConfigYAML, validContent},
 		{filepath.Join(cryptoutilSharedMagic.CICDExcludeDirGithubInstructions, "workflows", "ci-quality.yml"), workflowContent},
 	} {
 		fullPath := filepath.Join(rootDir, entry.relPath)
@@ -175,7 +175,7 @@ func TestCheckInDir_MissingFormatterInPreCommit(t *testing.T) {
 		relPath string
 		content string
 	}{
-		{".pre-commit-config.yaml", preCommitContent},
+		{testPreCommitConfigYAML, preCommitContent},
 		{filepath.Join(cryptoutilSharedMagic.CICDExcludeDirGithubInstructions, "workflows", "ci-quality.yml"), validContent},
 	} {
 		fullPath := filepath.Join(rootDir, entry.relPath)
@@ -188,6 +188,6 @@ func TestCheckInDir_MissingFormatterInPreCommit(t *testing.T) {
 	err := CheckInDir(logger, rootDir)
 
 	require.Error(t, err)
-	require.Contains(t, err.Error(), ".pre-commit-config.yaml")
+	require.Contains(t, err.Error(), testPreCommitConfigYAML)
 	require.Contains(t, err.Error(), omitCmd)
 }

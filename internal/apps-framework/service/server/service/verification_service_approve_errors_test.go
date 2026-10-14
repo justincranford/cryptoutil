@@ -161,7 +161,7 @@ func newApproveTestUnverifiedUser(tenantID googleUuid.UUID) *cryptoutilAppsFrame
 		TenantID:     tenantID,
 		Username:     "testuser",
 		Email:        "test@example.com",
-		PasswordHash: "hash",
+		PasswordHash: testHash,
 		ExpiresAt:    time.Now().UTC().Add(72 * time.Hour),
 	}
 }
@@ -324,7 +324,7 @@ func TestApproveClient_DeleteUnverifiedError(t *testing.T) {
 		ID:               googleUuid.New(),
 		TenantID:         tenantID,
 		ClientID:         "testclient",
-		ClientSecretHash: "hash",
+		ClientSecretHash: testHash,
 		ExpiresAt:        time.Now().UTC().Add(72 * time.Hour),
 	}
 

@@ -71,7 +71,7 @@ product_services:
     migration_range_end: 2999
     api_resources: []
 `,
-			wantContains: "display_name",
+			wantContains: testDisplayName,
 		},
 		{
 			name: "empty PS magic_file",
@@ -260,7 +260,7 @@ product_services:
     migration_range_end: 2999
     api_resources: []
 `,
-			wantContains: "must end with '/'",
+			wantContains: testMustEndWith,
 		},
 	}
 
@@ -309,7 +309,7 @@ product_services:
     migration_range_end: 2999
     api_resources: []
 `,
-			wantContains: "display_name",
+			wantContains: testDisplayName,
 		},
 		{
 			name: "empty cmd_dir",
@@ -336,7 +336,7 @@ product_services:
     migration_range_end: 2999
     api_resources: []
 `,
-			wantContains: "cmd_dir",
+			wantContains: testCmdDir,
 		},
 		{
 			name: "cmd_dir missing trailing slash",
@@ -363,7 +363,7 @@ product_services:
     migration_range_end: 2999
     api_resources: []
 `,
-			wantContains: "must end with '/'",
+			wantContains: testMustEndWith,
 		},
 	}
 

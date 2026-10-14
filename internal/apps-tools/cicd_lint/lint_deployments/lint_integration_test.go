@@ -40,7 +40,7 @@ func TestValidateAllDeployments(t *testing.T) {
 
 				// Create a valid template deployment.
 				tmplDir := filepath.Join(rootDir, cryptoutilSharedMagic.SkeletonTemplateServiceName)
-				require.NoError(t, os.MkdirAll(filepath.Join(tmplDir, "secrets"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+				require.NoError(t, os.MkdirAll(filepath.Join(tmplDir, testSecrets), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 				require.NoError(t, os.WriteFile(filepath.Join(tmplDir, cryptoutilSharedMagic.COMPOSE_YML), []byte("v"), cryptoutilSharedMagic.CacheFilePermissions))
 				createRequiredSecrets(t, tmplDir)
 			},
@@ -59,9 +59,9 @@ func TestValidateAllDeployments(t *testing.T) {
 
 				// Create an invalid deployment (missing secrets and config files).
 				invalidDir := filepath.Join(rootDir, cryptoutilSharedMagic.OTLPServiceIdentityIDP)
-				require.NoError(t, os.MkdirAll(filepath.Join(invalidDir, "config"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+				require.NoError(t, os.MkdirAll(filepath.Join(invalidDir, testConfig), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 				require.NoError(t, os.WriteFile(filepath.Join(invalidDir, cryptoutilSharedMagic.COMPOSE_YML), []byte("v"), cryptoutilSharedMagic.CacheFilePermissions))
-				require.NoError(t, os.WriteFile(filepath.Join(invalidDir, "Dockerfile"), []byte("F"), cryptoutilSharedMagic.CacheFilePermissions))
+				require.NoError(t, os.WriteFile(filepath.Join(invalidDir, testDockerfile), []byte("F"), cryptoutilSharedMagic.CacheFilePermissions))
 			},
 			wantCount:  2,
 			wantValid:  1,
@@ -108,47 +108,47 @@ func TestFormatResults(t *testing.T) {
 			results: []ValidationResult{
 				{
 					Path:  testSMKMSDeployPath,
-					Type:  "PRODUCT-SERVICE",
+					Type:  testProductService,
 					Valid: true,
 				},
 			},
 			contains:    []string{testValidStatus, cryptoutilSharedMagic.OTLPServiceSMKMS, "1 valid"},
-			notContains: []string{"Missing directories", "Missing files", "Missing secrets", "ERROR:", "WARN:"},
+			notContains: []string{testMissingDirectories, testMissingFiles, testMissingSecrets, testError, "WARN:"},
 		},
 		{
 			name: "invalid result with errors",
 			results: []ValidationResult{
 				{
 					Path:           testSMKMSDeployPath,
-					Type:           "PRODUCT-SERVICE",
+					Type:           testProductService,
 					Valid:          false,
-					MissingDirs:    []string{"secrets"},
-					MissingFiles:   []string{"Dockerfile"},
-					MissingSecrets: []string{"unseal_1of5.secret"},
+					MissingDirs:    []string{testSecrets},
+					MissingFiles:   []string{testDockerfile},
+					MissingSecrets: []string{testUnseal1of5Secret},
 					Errors:         []string{"Config file error"},
 				},
 			},
-			contains: []string{"❌ INVALID", cryptoutilSharedMagic.OTLPServiceSMKMS, "Missing directories", "Missing files", "Missing secrets", "ERROR: Config file error"},
+			contains: []string{"❌ INVALID", cryptoutilSharedMagic.OTLPServiceSMKMS, testMissingDirectories, testMissingFiles, testMissingSecrets, "ERROR: Config file error"},
 		},
 		{
 			name: "result with warnings",
 			results: []ValidationResult{
 				{
-					Path:     "/deploy/sm-kms",
-					Type:     "PRODUCT-SERVICE",
+					Path:     testSMKMSDeployPath,
+					Type:     testProductService,
 					Valid:    true,
 					Warnings: []string{"Optional file missing"},
 				},
 			},
 			contains:    []string{testValidStatus, "WARN: Optional file missing"},
-			notContains: []string{"Missing directories", "Missing files", "Missing secrets", "ERROR:"},
+			notContains: []string{testMissingDirectories, testMissingFiles, testMissingSecrets, testError},
 		},
 		{
-			name: "mixed valid and invalid sorted correctly",
+			name: testMixedValidAndInvalidSortedCorrectly,
 			results: []ValidationResult{
-				{Path: "/deploy/sm-kms", Type: "PRODUCT-SERVICE", Valid: true},
-				{Path: "/deploy/sm-kms", Type: "PRODUCT-SERVICE", Valid: false, MissingDirs: []string{"secrets"}},
-				{Path: "/deploy/identity-authz", Type: "PRODUCT-SERVICE", Valid: true},
+				{Path: testSMKMSDeployPath, Type: testProductService, Valid: true},
+				{Path: testSMKMSDeployPath, Type: testProductService, Valid: false, MissingDirs: []string{testSecrets}},
+				{Path: "/deploy/identity-authz", Type: testProductService, Valid: true},
 			},
 			contains: []string{"3 deployments", "2 valid", "1 with issues"},
 		},
@@ -169,7 +169,7 @@ func TestFormatResults(t *testing.T) {
 			}
 
 			// Verify sort order: invalid results should appear before valid ones.
-			if tc.name == "mixed valid and invalid sorted correctly" {
+			if tc.name == testMixedValidAndInvalidSortedCorrectly {
 				invalidIdx := strings.Index(output, "❌ INVALID")
 				validIdx := strings.Index(output, testValidStatus)
 				require.Greater(t, validIdx, invalidIdx, "invalid results should appear before valid results in output")
@@ -184,35 +184,35 @@ func TestGetExpectedStructures(t *testing.T) {
 	structures := GetExpectedStructures()
 
 	// Verify all expected structure types exist.
-	require.Contains(t, structures, "PRODUCT-SERVICE")
+	require.Contains(t, structures, testProductService)
 	require.Contains(t, structures, cryptoutilSharedMagic.SkeletonTemplateServiceName)
-	require.Contains(t, structures, "infrastructure")
+	require.Contains(t, structures, testInfrastructure)
 
 	// Verify PRODUCT-SERVICE has correct requirements.
-	ps := structures["PRODUCT-SERVICE"]
-	require.ElementsMatch(t, []string{"secrets", "config"}, ps.RequiredDirs)
-	require.ElementsMatch(t, []string{cryptoutilSharedMagic.COMPOSE_YML, "Dockerfile"}, ps.RequiredFiles)
+	ps := structures[testProductService]
+	require.ElementsMatch(t, []string{testSecrets, testConfig}, ps.RequiredDirs)
+	require.ElementsMatch(t, []string{cryptoutilSharedMagic.COMPOSE_YML, testDockerfile}, ps.RequiredFiles)
 	require.Len(t, ps.RequiredSecrets, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, "PRODUCT-SERVICE should require 10 secrets")
 
 	// Verify template has correct requirements.
 	tmpl := structures[cryptoutilSharedMagic.SkeletonTemplateServiceName]
-	require.ElementsMatch(t, []string{"secrets"}, tmpl.RequiredDirs)
+	require.ElementsMatch(t, []string{testSecrets}, tmpl.RequiredDirs)
 	require.ElementsMatch(t, []string{cryptoutilSharedMagic.COMPOSE_YML}, tmpl.RequiredFiles)
 
 	// Verify PRODUCT has correct requirements (NO Dockerfile — Q3=D permanently cancelled).
 	product := structures["PRODUCT"]
-	require.ElementsMatch(t, []string{"secrets"}, product.RequiredDirs)
+	require.ElementsMatch(t, []string{testSecrets}, product.RequiredDirs)
 	require.ElementsMatch(t, []string{cryptoutilSharedMagic.COMPOSE_YML}, product.RequiredFiles, "PRODUCT must NOT require Dockerfile (Q3=D)")
 	require.Empty(t, product.RequiredSecrets, "PRODUCT secrets validated by validateProductSecrets()")
 
 	// Verify SUITE has correct requirements (includes Dockerfile for suite binary).
 	suite := structures["SUITE"]
-	require.ElementsMatch(t, []string{"secrets"}, suite.RequiredDirs)
-	require.ElementsMatch(t, []string{cryptoutilSharedMagic.COMPOSE_YML, "Dockerfile"}, suite.RequiredFiles)
+	require.ElementsMatch(t, []string{testSecrets}, suite.RequiredDirs)
+	require.ElementsMatch(t, []string{cryptoutilSharedMagic.COMPOSE_YML, testDockerfile}, suite.RequiredFiles)
 	require.Empty(t, suite.RequiredSecrets, "SUITE secrets validated by validateSuiteSecrets()")
 
 	// Verify infrastructure has minimal requirements.
-	infra := structures["infrastructure"]
+	infra := structures[testInfrastructure]
 	require.Empty(t, infra.RequiredDirs)
 	require.ElementsMatch(t, []string{cryptoutilSharedMagic.COMPOSE_YML}, infra.RequiredFiles)
 	require.Empty(t, infra.RequiredSecrets)
@@ -253,9 +253,9 @@ func TestValidateConfigFiles_DirectoryEntry(t *testing.T) {
 	createValidProductServiceDeployment(t, tmpDir, cryptoutilSharedMagic.OTLPServiceSMKMS)
 
 	// Add a subdirectory inside config/ (should be skipped, not cause errors).
-	require.NoError(t, os.MkdirAll(filepath.Join(tmpDir, "config", "subdir"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+	require.NoError(t, os.MkdirAll(filepath.Join(tmpDir, testConfig, "subdir"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
-	result := ValidateDeploymentStructure(tmpDir, cryptoutilSharedMagic.OTLPServiceSMKMS, "PRODUCT-SERVICE")
+	result := ValidateDeploymentStructure(tmpDir, cryptoutilSharedMagic.OTLPServiceSMKMS, testProductService)
 	require.True(t, result.Valid, "subdirectory in config/ should be ignored")
 	require.Empty(t, result.Errors, "no errors expected for config subdirectory")
 }

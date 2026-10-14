@@ -239,14 +239,14 @@ func TestCheckCrossFileDuplicatesInDir_ErrorPaths(t *testing.T) {
 	}{
 		{
 			name:    "abs magic dir error",
-			dirs:    [2]string{"/some/magic", "/some/root"},
+			dirs:    [2]string{testSomeMagic, testSomeRoot},
 			absFn:   failAbsOnCall(1),
 			walkFn:  filepath.Walk,
 			wantErr: "cannot resolve magic dir",
 		},
 		{
 			name:    "abs root dir error",
-			dirs:    [2]string{"/some/magic", "/some/root"},
+			dirs:    [2]string{testSomeMagic, testSomeRoot},
 			absFn:   failAbsOnCall(2),
 			walkFn:  filepath.Walk,
 			wantErr: "cannot resolve root dir",

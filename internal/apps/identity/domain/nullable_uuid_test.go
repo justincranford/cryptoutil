@@ -47,7 +47,7 @@ func TestNullableUUID_SQLiteIntegration(t *testing.T) {
 	testClient := &cryptoutilIdentityDomain.Client{
 		ID:                      googleUuid.Must(googleUuid.NewV7()),
 		ClientID:                "test-client",
-		ClientType:              "confidential",
+		ClientType:              testConfidential,
 		Name:                    cryptoutilSharedMagic.TestClientName,
 		TokenEndpointAuthMethod: cryptoutilSharedMagic.ClientAuthMethodSecretPost,
 	}
@@ -67,7 +67,7 @@ func TestNullableUUID_SQLiteIntegration(t *testing.T) {
 	testClient2 := &cryptoutilIdentityDomain.Client{
 		ID:                      googleUuid.Must(googleUuid.NewV7()),
 		ClientID:                "test-client-2",
-		ClientType:              "confidential",
+		ClientType:              testConfidential,
 		Name:                    "Test Client 2",
 		TokenEndpointAuthMethod: cryptoutilSharedMagic.ClientAuthMethodSecretPost,
 		ClientProfileID:         cryptoutilIdentityDomain.NewNullableUUID(&profileID),
@@ -145,7 +145,7 @@ func TestNullableUUID_Ptr(t *testing.T) {
 			wantNil:  false,
 		},
 		{
-			name:     "invalid UUID returns nil",
+			name:     testInvalidUUIDReturnsNil,
 			nullable: cryptoutilIdentityDomain.NullableUUID{UUID: googleUuid.Nil, Valid: false},
 			wantNil:  true,
 		},
@@ -262,7 +262,7 @@ func TestNullableUUID_Value(t *testing.T) {
 			wantErr:   false,
 		},
 		{
-			name:      "invalid UUID returns nil",
+			name:      testInvalidUUIDReturnsNil,
 			nullable:  cryptoutilIdentityDomain.NullableUUID{Valid: false},
 			wantValue: nil,
 			wantErr:   false,

@@ -36,7 +36,7 @@ func (s *Service) handleToken(c *fiber.Ctx) error {
 	default:
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorUnsupportedGrantType,
-			"error_description":               "Unsupported grant type",
+			valueErrorDescription:             "Unsupported grant type",
 		})
 	}
 }
@@ -53,28 +53,28 @@ func (s *Service) handleAuthorizationCodeGrant(c *fiber.Ctx) error {
 	if code == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInvalidRequest,
-			"error_description":               "code is required",
+			valueErrorDescription:             "code is required",
 		})
 	}
 
 	if redirectURI == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInvalidRequest,
-			"error_description":               "redirect_uri is required",
+			valueErrorDescription:             valueRedirectURIIsRequired,
 		})
 	}
 
 	if clientID == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInvalidRequest,
-			"error_description":               "client_id is required",
+			valueErrorDescription:             valueClientIDIsRequired,
 		})
 	}
 
 	if codeVerifier == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInvalidRequest,
-			"error_description":               "code_verifier is required (OAuth 2.1 requires PKCE)",
+			valueErrorDescription:             "code_verifier is required (OAuth 2.1 requires PKCE)",
 		})
 	}
 
@@ -89,7 +89,7 @@ func (s *Service) handleAuthorizationCodeGrant(c *fiber.Ctx) error {
 
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInvalidGrant,
-			"error_description":               "Invalid or expired authorization code",
+			valueErrorDescription:             "Invalid or expired authorization code",
 		})
 	}
 
@@ -99,7 +99,7 @@ func (s *Service) handleAuthorizationCodeGrant(c *fiber.Ctx) error {
 
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInvalidGrant,
-			"error_description":               "Authorization code has expired",
+			valueErrorDescription:             "Authorization code has expired",
 		})
 	}
 
@@ -109,7 +109,7 @@ func (s *Service) handleAuthorizationCodeGrant(c *fiber.Ctx) error {
 
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInvalidGrant,
-			"error_description":               "Authorization code has already been used",
+			valueErrorDescription:             "Authorization code has already been used",
 		})
 	}
 
@@ -119,7 +119,7 @@ func (s *Service) handleAuthorizationCodeGrant(c *fiber.Ctx) error {
 
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInvalidGrant,
-			"error_description":               "Client ID does not match authorization code",
+			valueErrorDescription:             "Client ID does not match authorization code",
 		})
 	}
 
@@ -129,7 +129,7 @@ func (s *Service) handleAuthorizationCodeGrant(c *fiber.Ctx) error {
 
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInvalidGrant,
-			"error_description":               "Redirect URI does not match authorization request",
+			valueErrorDescription:             "Redirect URI does not match authorization request",
 		})
 	}
 
@@ -139,7 +139,7 @@ func (s *Service) handleAuthorizationCodeGrant(c *fiber.Ctx) error {
 
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInvalidGrant,
-			"error_description":               "PKCE validation failed",
+			valueErrorDescription:             "PKCE validation failed",
 		})
 	}
 
@@ -164,7 +164,7 @@ func (s *Service) handleAuthorizationCodeGrant(c *fiber.Ctx) error {
 
 		return c.Status(appErr.HTTPStatus).JSON(fiber.Map{
 			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInvalidClient,
-			"error_description":               appErr.Message,
+			valueErrorDescription:             appErr.Message,
 		})
 	}
 
@@ -175,17 +175,17 @@ func (s *Service) handleAuthorizationCodeGrant(c *fiber.Ctx) error {
 
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInvalidRequest,
-			"error_description":               "Authorization request missing user ID (login/consent not completed)",
+			valueErrorDescription:             "Authorization request missing user ID (login/consent not completed)",
 		})
 	}
 
 	// Ensure token service is configured.
 	if s.tokenSvc == nil {
-		slog.ErrorContext(ctx, "Token service not configured")
+		slog.ErrorContext(ctx, valueTokenServiceNotConfigured)
 
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorServerError,
-			"error_description":               "Token service not configured",
+			valueErrorDescription:             valueTokenServiceNotConfigured,
 		})
 	}
 
@@ -205,7 +205,7 @@ func (s *Service) handleAuthorizationCodeGrant(c *fiber.Ctx) error {
 
 		return c.Status(appErr.HTTPStatus).JSON(fiber.Map{
 			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorServerError,
-			"error_description":               appErr.Message,
+			valueErrorDescription:             appErr.Message,
 		})
 	}
 
@@ -218,7 +218,7 @@ func (s *Service) handleAuthorizationCodeGrant(c *fiber.Ctx) error {
 
 		return c.Status(appErr.HTTPStatus).JSON(fiber.Map{
 			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorServerError,
-			"error_description":               appErr.Message,
+			valueErrorDescription:             appErr.Message,
 		})
 	}
 
@@ -250,7 +250,7 @@ func (s *Service) handleClientCredentialsGrant(c *fiber.Ctx) error {
 
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInvalidClient,
-			"error_description":               "Client authentication failed",
+			valueErrorDescription:             valueClientAuthenticationFailed,
 		})
 	}
 
@@ -267,7 +267,7 @@ func (s *Service) handleClientCredentialsGrant(c *fiber.Ctx) error {
 
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorServerError,
-			"error_description":               "Token service not configured",
+			valueErrorDescription:             valueTokenServiceNotConfigured,
 		})
 	}
 
@@ -294,7 +294,7 @@ func (s *Service) handleClientCredentialsGrant(c *fiber.Ctx) error {
 
 		return c.Status(appErr.HTTPStatus).JSON(fiber.Map{
 			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorServerError,
-			"error_description":               appErr.Message,
+			valueErrorDescription:             appErr.Message,
 		})
 	}
 
@@ -342,14 +342,14 @@ func (s *Service) handleRefreshTokenGrant(c *fiber.Ctx) error {
 	if refreshToken == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInvalidRequest,
-			"error_description":               "refresh_token is required",
+			valueErrorDescription:             "refresh_token is required",
 		})
 	}
 
 	if clientID == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInvalidRequest,
-			"error_description":               "client_id is required",
+			valueErrorDescription:             valueClientIDIsRequired,
 		})
 	}
 
@@ -363,7 +363,7 @@ func (s *Service) handleRefreshTokenGrant(c *fiber.Ctx) error {
 
 		return c.Status(appErr.HTTPStatus).JSON(fiber.Map{
 			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInvalidGrant,
-			"error_description":               "Invalid refresh token",
+			valueErrorDescription:             "Invalid refresh token",
 		})
 	}
 
@@ -371,7 +371,7 @@ func (s *Service) handleRefreshTokenGrant(c *fiber.Ctx) error {
 	if token.TokenType != cryptoutilIdentityDomain.TokenTypeRefresh {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInvalidGrant,
-			"error_description":               "Token is not a refresh token",
+			valueErrorDescription:             "Token is not a refresh token",
 		})
 	}
 
@@ -379,7 +379,7 @@ func (s *Service) handleRefreshTokenGrant(c *fiber.Ctx) error {
 	if token.RevokedAt != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInvalidGrant,
-			"error_description":               "Refresh token has been revoked",
+			valueErrorDescription:             "Refresh token has been revoked",
 		})
 	}
 
@@ -387,7 +387,7 @@ func (s *Service) handleRefreshTokenGrant(c *fiber.Ctx) error {
 	if token.ExpiresAt.Before(time.Now().UTC()) {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInvalidGrant,
-			"error_description":               "Refresh token has expired",
+			valueErrorDescription:             "Refresh token has expired",
 		})
 	}
 
@@ -399,7 +399,7 @@ func (s *Service) handleRefreshTokenGrant(c *fiber.Ctx) error {
 
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorServerError,
-			"error_description":               "Token service not configured",
+			valueErrorDescription:             valueTokenServiceNotConfigured,
 		})
 	}
 
@@ -418,7 +418,7 @@ func (s *Service) handleRefreshTokenGrant(c *fiber.Ctx) error {
 
 		return c.Status(appErr.HTTPStatus).JSON(fiber.Map{
 			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorServerError,
-			"error_description":               appErr.Message,
+			valueErrorDescription:             appErr.Message,
 		})
 	}
 

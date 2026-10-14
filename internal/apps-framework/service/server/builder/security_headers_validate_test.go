@@ -64,7 +64,7 @@ func TestValidateSecurityHeaders_HTTPSMissingHSTS(t *testing.T) {
 
 	app := fiber.New(fiber.Config{
 		DisableStartupMessage: true,
-		ProxyHeader:           "X-Forwarded-Proto",
+		ProxyHeader:           testXForwardedProto,
 	})
 
 	var missing []string
@@ -81,7 +81,7 @@ func TestValidateSecurityHeaders_HTTPSMissingHSTS(t *testing.T) {
 	})
 
 	req := httptest.NewRequest("GET", "/test", nil)
-	req.Header.Set("X-Forwarded-Proto", cryptoutilSharedMagic.ProtocolHTTPS)
+	req.Header.Set(testXForwardedProto, cryptoutilSharedMagic.ProtocolHTTPS)
 
 	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
@@ -94,7 +94,7 @@ func TestValidateSecurityHeaders_HTTPSWithHSTS(t *testing.T) {
 
 	app := fiber.New(fiber.Config{
 		DisableStartupMessage: true,
-		ProxyHeader:           "X-Forwarded-Proto",
+		ProxyHeader:           testXForwardedProto,
 	})
 
 	var missing []string
@@ -111,7 +111,7 @@ func TestValidateSecurityHeaders_HTTPSWithHSTS(t *testing.T) {
 	})
 
 	req := httptest.NewRequest("GET", "/test", nil)
-	req.Header.Set("X-Forwarded-Proto", cryptoutilSharedMagic.ProtocolHTTPS)
+	req.Header.Set(testXForwardedProto, cryptoutilSharedMagic.ProtocolHTTPS)
 
 	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
@@ -123,23 +123,23 @@ func TestCreateAdditionalSecurityHeadersMiddleware_HTTPSDevMode(t *testing.T) {
 	t.Parallel()
 
 	settings := &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{
-		PublicServiceAPIContextPath: "/service/",
-		PublicBrowserAPIContextPath: "/browser/",
+		PublicServiceAPIContextPath: valueService,
+		PublicBrowserAPIContextPath: testBrowser,
 		DevMode:                     true,
 	}
 	config := &SecurityHeadersConfig{Settings: settings}
 
 	app := fiber.New(fiber.Config{
 		DisableStartupMessage: true,
-		ProxyHeader:           "X-Forwarded-Proto",
+		ProxyHeader:           testXForwardedProto,
 	})
 	app.Use(config.CreateAdditionalSecurityHeadersMiddleware())
-	app.Get("/browser/api/v1/test", func(c *fiber.Ctx) error {
+	app.Get(testBrowserAPIV1Test, func(c *fiber.Ctx) error {
 		return c.SendString("OK")
 	})
 
-	req := httptest.NewRequest("GET", "/browser/api/v1/test", nil)
-	req.Header.Set("X-Forwarded-Proto", cryptoutilSharedMagic.ProtocolHTTPS)
+	req := httptest.NewRequest("GET", testBrowserAPIV1Test, nil)
+	req.Header.Set(testXForwardedProto, cryptoutilSharedMagic.ProtocolHTTPS)
 
 	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
@@ -151,23 +151,23 @@ func TestCreateAdditionalSecurityHeadersMiddleware_HTTPSProduction(t *testing.T)
 	t.Parallel()
 
 	settings := &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{
-		PublicServiceAPIContextPath: "/service/",
-		PublicBrowserAPIContextPath: "/browser/",
+		PublicServiceAPIContextPath: valueService,
+		PublicBrowserAPIContextPath: testBrowser,
 		DevMode:                     false,
 	}
 	config := &SecurityHeadersConfig{Settings: settings}
 
 	app := fiber.New(fiber.Config{
 		DisableStartupMessage: true,
-		ProxyHeader:           "X-Forwarded-Proto",
+		ProxyHeader:           testXForwardedProto,
 	})
 	app.Use(config.CreateAdditionalSecurityHeadersMiddleware())
-	app.Get("/browser/api/v1/test", func(c *fiber.Ctx) error {
+	app.Get(testBrowserAPIV1Test, func(c *fiber.Ctx) error {
 		return c.SendString("OK")
 	})
 
-	req := httptest.NewRequest("GET", "/browser/api/v1/test", nil)
-	req.Header.Set("X-Forwarded-Proto", cryptoutilSharedMagic.ProtocolHTTPS)
+	req := httptest.NewRequest("GET", testBrowserAPIV1Test, nil)
+	req.Header.Set(testXForwardedProto, cryptoutilSharedMagic.ProtocolHTTPS)
 
 	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
@@ -179,8 +179,8 @@ func TestCreateAdditionalSecurityHeadersMiddleware_PostLogout(t *testing.T) {
 	t.Parallel()
 
 	settings := &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{
-		PublicServiceAPIContextPath: "/service/",
-		PublicBrowserAPIContextPath: "/browser/",
+		PublicServiceAPIContextPath: valueService,
+		PublicBrowserAPIContextPath: testBrowser,
 	}
 	config := &SecurityHeadersConfig{Settings: settings}
 

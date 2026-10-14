@@ -212,7 +212,7 @@ func (t *TelemetryRecorder) RecordRiskScore(ctx context.Context, score float64, 
 // RecordStepUpTriggered records step-up authentication trigger.
 func (t *TelemetryRecorder) RecordStepUpTriggered(ctx context.Context, operation string, currentLevel, requiredLevel string) {
 	t.stepUpTriggeredCounter.Add(ctx, 1, metric.WithAttributes(
-		attribute.String("operation", operation),
+		attribute.String(valueOperation, operation),
 		attribute.String("current_level", currentLevel),
 		attribute.String("required_level", requiredLevel),
 	))
@@ -238,7 +238,7 @@ func (t *TelemetryRecorder) RecordStepUpMethod(ctx context.Context, method strin
 // RecordPolicyEvaluation records policy evaluation duration.
 func (t *TelemetryRecorder) RecordPolicyEvaluation(ctx context.Context, operation string, duration time.Duration) {
 	t.policyEvaluationDuration.Record(ctx, duration.Seconds(), metric.WithAttributes(
-		attribute.String("operation", operation),
+		attribute.String(valueOperation, operation),
 	))
 }
 
@@ -267,12 +267,12 @@ func (t *TelemetryRecorder) RecordPolicyReload(ctx context.Context, policyType s
 func (t *TelemetryRecorder) RecordOperationDecision(ctx context.Context, operation string, riskLevel RiskLevel, blocked bool) {
 	if blocked {
 		t.blockedOperationsCounter.Add(ctx, 1, metric.WithAttributes(
-			attribute.String("operation", operation),
+			attribute.String(valueOperation, operation),
 			attribute.String("risk_level", riskLevel.String()),
 		))
 	} else {
 		t.allowedOperationsCounter.Add(ctx, 1, metric.WithAttributes(
-			attribute.String("operation", operation),
+			attribute.String(valueOperation, operation),
 			attribute.String("risk_level", riskLevel.String()),
 		))
 	}

@@ -65,13 +65,13 @@ func TestDeviceAuthorizationRepository_Create(t *testing.T) {
 		expectedError string
 	}{
 		{
-			name: "SuccessfulCreate",
+			name: testSuccessfulCreate,
 			auth: &cryptoutilIdentityDomain.DeviceAuthorization{
 				ID:         googleUuid.New(),
 				ClientID:   "test-client-123",
 				DeviceCode: "device-" + googleUuid.NewString(),
 				UserCode:   "ABCD-1234",
-				Scope:      "openid profile",
+				Scope:      testOpenidProfile,
 				Status:     cryptoutilIdentityDomain.DeviceAuthStatusPending,
 				CreatedAt:  time.Now().UTC(),
 				ExpiresAt:  time.Now().UTC().Add(cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Minute).UTC(),
@@ -108,12 +108,12 @@ func TestDeviceAuthorizationRepository_GetByDeviceCode(t *testing.T) {
 		validateResult func(t *testing.T, result *cryptoutilIdentityDomain.DeviceAuthorization)
 	}{
 		{
-			name:       "Found",
-			deviceCode: "device-test-code-123",
+			name:       testFound,
+			deviceCode: testDeviceTestCode123,
 			setupAuth: &cryptoutilIdentityDomain.DeviceAuthorization{
 				ID:         googleUuid.New(),
 				ClientID:   "test-client",
-				DeviceCode: "device-test-code-123",
+				DeviceCode: testDeviceTestCode123,
 				UserCode:   "WXYZ-9876",
 				Status:     cryptoutilIdentityDomain.DeviceAuthStatusPending,
 				CreatedAt:  time.Now().UTC(),
@@ -123,12 +123,12 @@ func TestDeviceAuthorizationRepository_GetByDeviceCode(t *testing.T) {
 			validateResult: func(t *testing.T, result *cryptoutilIdentityDomain.DeviceAuthorization) {
 				t.Helper()
 				require.NotNil(t, result)
-				require.Equal(t, "device-test-code-123", result.DeviceCode)
+				require.Equal(t, testDeviceTestCode123, result.DeviceCode)
 				require.Equal(t, "test-client", result.ClientID)
 			},
 		},
 		{
-			name:           "NotFound",
+			name:           testNotFound,
 			deviceCode:     "nonexistent-device-code",
 			setupAuth:      nil,
 			expectedError:  cryptoutilIdentityAppErr.ErrDeviceAuthorizationNotFound,
@@ -174,13 +174,13 @@ func TestDeviceAuthorizationRepository_GetByUserCode(t *testing.T) {
 		validateResult func(t *testing.T, result *cryptoutilIdentityDomain.DeviceAuthorization)
 	}{
 		{
-			name:     "Found",
-			userCode: "ABCD-5678",
+			name:     testFound,
+			userCode: testAbcd5678,
 			setupAuth: &cryptoutilIdentityDomain.DeviceAuthorization{
 				ID:         googleUuid.New(),
 				ClientID:   "test-client-user-code",
 				DeviceCode: "device-" + googleUuid.NewString(),
-				UserCode:   "ABCD-5678",
+				UserCode:   testAbcd5678,
 				Status:     cryptoutilIdentityDomain.DeviceAuthStatusPending,
 				CreatedAt:  time.Now().UTC(),
 				ExpiresAt:  time.Now().UTC().Add(15 * time.Minute).UTC(),
@@ -189,12 +189,12 @@ func TestDeviceAuthorizationRepository_GetByUserCode(t *testing.T) {
 			validateResult: func(t *testing.T, result *cryptoutilIdentityDomain.DeviceAuthorization) {
 				t.Helper()
 				require.NotNil(t, result)
-				require.Equal(t, "ABCD-5678", result.UserCode)
+				require.Equal(t, testAbcd5678, result.UserCode)
 				require.Equal(t, "test-client-user-code", result.ClientID)
 			},
 		},
 		{
-			name:           "NotFound",
+			name:           testNotFound,
 			userCode:       "INVALID-CODE",
 			setupAuth:      nil,
 			expectedError:  cryptoutilIdentityAppErr.ErrDeviceAuthorizationNotFound,
@@ -240,7 +240,7 @@ func TestDeviceAuthorizationRepository_GetByID(t *testing.T) {
 		validateResult func(t *testing.T, result *cryptoutilIdentityDomain.DeviceAuthorization)
 	}{
 		{
-			name: "Found",
+			name: testFound,
 			id:   googleUuid.New(),
 			setupAuth: &cryptoutilIdentityDomain.DeviceAuthorization{
 				ID:         googleUuid.UUID{}, // Overwritten below.
@@ -259,7 +259,7 @@ func TestDeviceAuthorizationRepository_GetByID(t *testing.T) {
 			},
 		},
 		{
-			name:           "NotFound",
+			name:           testNotFound,
 			id:             googleUuid.New(),
 			setupAuth:      nil,
 			expectedError:  cryptoutilIdentityAppErr.ErrDeviceAuthorizationNotFound,

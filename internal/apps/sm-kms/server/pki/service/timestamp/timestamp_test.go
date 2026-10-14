@@ -23,12 +23,12 @@ func TestPKIStatus_String(t *testing.T) {
 		status PKIStatus
 		want   string
 	}{
-		{testLiteralGranted, PKIStatusGranted, testLiteralGranted},
-		{testLiteralGrantedWithMods, PKIStatusGrantedWithMods, testLiteralGrantedWithMods},
-		{testLiteralRejection, PKIStatusRejection, testLiteralRejection},
-		{testLiteralWaiting, PKIStatusWaiting, testLiteralWaiting},
-		{testLiteralRevocationWarning, PKIStatusRevocationWarning, testLiteralRevocationWarning},
-		{testLiteralRevocationNotification, PKIStatusRevocationNotification, testLiteralRevocationNotification},
+		{cryptoutilSharedMagic.RFC3161StatusNameGranted, PKIStatusGranted, cryptoutilSharedMagic.RFC3161StatusNameGranted},
+		{cryptoutilSharedMagic.RFC3161StatusNameGrantedWithMods, PKIStatusGrantedWithMods, cryptoutilSharedMagic.RFC3161StatusNameGrantedWithMods},
+		{cryptoutilSharedMagic.RFC3161StatusNameRejection, PKIStatusRejection, cryptoutilSharedMagic.RFC3161StatusNameRejection},
+		{cryptoutilSharedMagic.StringWaiting, PKIStatusWaiting, cryptoutilSharedMagic.StringWaiting},
+		{cryptoutilSharedMagic.RFC3161StatusNameRevocationWarning, PKIStatusRevocationWarning, cryptoutilSharedMagic.RFC3161StatusNameRevocationWarning},
+		{cryptoutilSharedMagic.RFC3161StatusNameRevocationNotification, PKIStatusRevocationNotification, cryptoutilSharedMagic.RFC3161StatusNameRevocationNotification},
 		{cryptoutilSharedMagic.UNKNOWN, PKIStatus(cryptoutilSharedMagic.JoseJAMaxMaterials), cryptoutilSharedMagic.UNKNOWN},
 	}
 
@@ -50,14 +50,14 @@ func TestPKIFailureInfo_String(t *testing.T) {
 		failInfo PKIFailureInfo
 		want     string
 	}{
-		{testLiteralBadAlg, PKIFailureBadAlg, testLiteralBadAlg},
-		{testLiteralBadRequest, PKIFailureBadRequest, testLiteralBadRequest},
-		{testLiteralBadDataFormat, PKIFailureBadDataFormat, testLiteralBadDataFormat},
-		{testLiteralTimeNotAvailable, PKIFailureTimeNotAvailable, testLiteralTimeNotAvailable},
-		{testLiteralUnacceptedPolicy, PKIFailureUnacceptedPolicy, testLiteralUnacceptedPolicy},
-		{testLiteralUnacceptedExtension, PKIFailureUnacceptedExtension, testLiteralUnacceptedExtension},
-		{testLiteralAddInfoNotAvailable, PKIFailureAddInfoNotAvailable, testLiteralAddInfoNotAvailable},
-		{testLiteralSystemFailure, PKIFailureSystemFailure, testLiteralSystemFailure},
+		{cryptoutilSharedMagic.RFC3161FailureNameBadAlg, PKIFailureBadAlg, cryptoutilSharedMagic.RFC3161FailureNameBadAlg},
+		{cryptoutilSharedMagic.RFC3161FailureNameBadRequest, PKIFailureBadRequest, cryptoutilSharedMagic.RFC3161FailureNameBadRequest},
+		{cryptoutilSharedMagic.RFC3161FailureNameBadDataFormat, PKIFailureBadDataFormat, cryptoutilSharedMagic.RFC3161FailureNameBadDataFormat},
+		{cryptoutilSharedMagic.RFC3161FailureNameTimeNotAvailable, PKIFailureTimeNotAvailable, cryptoutilSharedMagic.RFC3161FailureNameTimeNotAvailable},
+		{cryptoutilSharedMagic.RFC3161FailureNameUnacceptedPolicy, PKIFailureUnacceptedPolicy, cryptoutilSharedMagic.RFC3161FailureNameUnacceptedPolicy},
+		{cryptoutilSharedMagic.RFC3161FailureNameUnacceptedExtension, PKIFailureUnacceptedExtension, cryptoutilSharedMagic.RFC3161FailureNameUnacceptedExtension},
+		{cryptoutilSharedMagic.RFC3161FailureNameAddInfoNotAvailable, PKIFailureAddInfoNotAvailable, cryptoutilSharedMagic.RFC3161FailureNameAddInfoNotAvailable},
+		{cryptoutilSharedMagic.RFC3161FailureNameSystemFailure, PKIFailureSystemFailure, cryptoutilSharedMagic.RFC3161FailureNameSystemFailure},
 		{cryptoutilSharedMagic.UNKNOWN, PKIFailureInfo(cryptoutilSharedMagic.JoseJAMaxMaterials), cryptoutilSharedMagic.UNKNOWN},
 	}
 

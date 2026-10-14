@@ -113,7 +113,7 @@ func TestClientSecretJWTAuthenticator_ClientNotFound(t *testing.T) {
 
 	client, err := auth.Authenticate(context.Background(), "some.jwt.token", "")
 	require.Error(t, err)
-	require.ErrorContains(t, err, "client not found")
+	require.ErrorContains(t, err, testClientNotFound)
 	require.Nil(t, client)
 }
 
@@ -255,7 +255,7 @@ func TestPrivateKeyJWTAuthenticator_ClientNotFound(t *testing.T) {
 
 	client, err := auth.Authenticate(context.Background(), "some.jwt.token", "")
 	require.Error(t, err)
-	require.ErrorContains(t, err, "client not found")
+	require.ErrorContains(t, err, testClientNotFound)
 	require.Nil(t, client)
 }
 

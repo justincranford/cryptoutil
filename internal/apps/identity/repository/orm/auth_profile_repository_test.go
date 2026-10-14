@@ -75,7 +75,7 @@ func TestAuthProfileRepository_GetByName(t *testing.T) {
 			name: "auth_profile_found",
 			setup: func() string {
 				profile := &cryptoutilIdentityDomain.AuthProfile{
-					Name:        "test_profile",
+					Name:        testTestProfile,
 					ProfileType: cryptoutilIdentityDomain.AuthProfileTypeUsernamePassword,
 					RequireMFA:  false,
 					Enabled:     true,
@@ -119,7 +119,7 @@ func TestAuthProfileRepository_Update(t *testing.T) {
 	repo := NewAuthProfileRepository(testDB.db)
 
 	profile := &cryptoutilIdentityDomain.AuthProfile{
-		Name:        "update_test_profile",
+		Name:        testUpdateTestProfile,
 		ProfileType: cryptoutilIdentityDomain.AuthProfileTypeUsernamePassword,
 		RequireMFA:  false,
 		Enabled:     true,
@@ -147,7 +147,7 @@ func TestAuthProfileRepository_Delete(t *testing.T) {
 	repo := NewAuthProfileRepository(testDB.db)
 
 	profile := &cryptoutilIdentityDomain.AuthProfile{
-		Name:        "delete_test_profile",
+		Name:        testDeleteTestProfile,
 		ProfileType: cryptoutilIdentityDomain.AuthProfileTypeUsernamePassword,
 		RequireMFA:  false,
 		Enabled:     true,
@@ -179,11 +179,11 @@ func TestAuthProfileRepository_List(t *testing.T) {
 		require.NoError(t, err)
 	}
 
-	profiles, err := repo.List(context.Background(), 0, 3)
+	profiles, err := repo.List(context.Background(), 0, test3)
 	require.NoError(t, err)
-	require.Len(t, profiles, 3)
+	require.Len(t, profiles, test3)
 
-	profiles, err = repo.List(context.Background(), 3, 3)
+	profiles, err = repo.List(context.Background(), test3, test3)
 	require.NoError(t, err)
 	require.Len(t, profiles, 2)
 }

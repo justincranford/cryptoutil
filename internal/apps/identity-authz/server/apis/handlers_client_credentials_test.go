@@ -76,7 +76,7 @@ func TestHandleClientCredentialsGrant_ErrorPaths(t *testing.T) {
 				// Create client with limited scopes.
 				client := &cryptoutilIdentityDomain.Client{
 					ClientID:                "test-client-" + googleUuid.NewString(),
-					ClientSecret:            "test-secret",
+					ClientSecret:            testTestSecret,
 					Name:                    cryptoutilSharedMagic.TestClientName,
 					AllowedScopes:           []string{cryptoutilSharedMagic.ScopeRead},
 					ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
@@ -121,7 +121,7 @@ func TestHandleClientCredentialsGrant_ErrorPaths(t *testing.T) {
 				form.Set(cryptoutilSharedMagic.ClaimScope, scope)
 			}
 
-			req := httptest.NewRequest("POST", "/oauth2/v1/token", strings.NewReader(form.Encode()))
+			req := httptest.NewRequest(testPost, testOauth2V1Token, strings.NewReader(form.Encode()))
 			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 			if authHeader != "" {
@@ -154,7 +154,7 @@ func createClientCredentialsTestDependencies(t *testing.T) (*cryptoutilIdentityC
 	config := &cryptoutilIdentityConfig.Config{
 		Database: dbConfig,
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{
-			Issuer:              "https://localhost:8080",
+			Issuer:              testHTTPSLocalhost8080,
 			AccessTokenLifetime: cryptoutilSharedMagic.IMDefaultSessionTimeout,
 		},
 	}

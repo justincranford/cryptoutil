@@ -7,6 +7,7 @@ package application
 import (
 	"context"
 	"crypto/x509"
+	"errors"
 	"fmt"
 	"net"
 	"os"
@@ -36,7 +37,7 @@ type TLSListener struct {
 // Returns an error if database connectivity fails (e.g., PostgreSQL not running).
 func StartTLSListener(settings *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings) (*TLSListener, error) {
 	if settings == nil {
-		return nil, fmt.Errorf("settings cannot be nil")
+		return nil, errors.New(valueSettingsCannotBeNil)
 	}
 
 	ctx := context.Background()

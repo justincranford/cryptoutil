@@ -40,21 +40,21 @@ var requiredTemplateConfigFiles = []string{
 
 // Required secret files in deployments/template/secrets/.
 var requiredTemplateSecretFiles = []string{
-	"hash_pepper_v3.secret",
-	"unseal_1of5.secret",
-	"unseal_2of5.secret",
-	"unseal_3of5.secret",
-	"unseal_4of5.secret",
-	"unseal_5of5.secret",
-	"postgres_database.secret",
-	"postgres_password.secret",
-	"postgres_username.secret",
-	"postgres_url.secret",
+	valueHashPepperV3Secret,
+	valueUnseal1of5Secret,
+	valueUnseal2of5Secret,
+	valueUnseal3of5Secret,
+	valueUnseal4of5Secret,
+	valueUnseal5of5Secret,
+	valuePostgresDatabaseSecret,
+	valuePostgresPasswordSecret,
+	valuePostgresUsernameSecret,
+	valuePostgresURLSecret,
 }
 
 // Placeholder patterns that MUST appear in SERVICE-level compose template.
 var requiredServicePlaceholders = []string{
-	"PRODUCT-SERVICE",
+	DeploymentTypeProductService,
 	"XXXX",
 }
 
@@ -113,7 +113,7 @@ func validateRequiredTemplateFiles(templatePath string, result *TemplatePatternR
 	}
 
 	// Check config directory and files.
-	configDir := filepath.Join(templatePath, "config")
+	configDir := filepath.Join(templatePath, fileTypeConfig)
 
 	if info, err := os.Stat(configDir); err != nil || !info.IsDir() {
 		result.Valid = false
@@ -131,7 +131,7 @@ func validateRequiredTemplateFiles(templatePath string, result *TemplatePatternR
 	}
 
 	// Check secrets directory and files.
-	secretsDir := filepath.Join(templatePath, "secrets")
+	secretsDir := filepath.Join(templatePath, validatorNameSecrets)
 
 	if info, err := os.Stat(secretsDir); err != nil || !info.IsDir() {
 		result.Valid = false
@@ -193,7 +193,7 @@ func validateTemplatePlaceholders(templatePath string, result *TemplatePatternRe
 // validateTemplateConfigNaming ensures config files follow the naming convention:
 // template-app-<variant>.yml (e.g., template-app-common.yml, template-app-sqlite-1.yml).
 func validateTemplateConfigNaming(templatePath string, result *TemplatePatternResult) {
-	configDir := filepath.Join(templatePath, "config")
+	configDir := filepath.Join(templatePath, fileTypeConfig)
 
 	entries, err := os.ReadDir(configDir)
 	if err != nil {

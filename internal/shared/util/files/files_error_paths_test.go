@@ -38,10 +38,10 @@ func TestListAllFilesWithOptions_DotfileNoExtension(t *testing.T) {
 	t.Parallel()
 
 	tmpDir := t.TempDir()
-	dotFile := filepath.Join(tmpDir, ".gitignore")
+	dotFile := filepath.Join(tmpDir, testGitignore)
 	require.NoError(t, os.WriteFile(dotFile, []byte("*.out"), cryptoutilSharedMagic.CacheFilePermissions))
 
-	result, err := cryptoutilSharedUtilFiles.ListAllFilesWithOptions(tmpDir, []string{"gitignore"}, nil)
+	result, err := cryptoutilSharedUtilFiles.ListAllFilesWithOptions(tmpDir, []string{testGitignoreValueA1AA6596}, nil)
 	require.NoError(t, err)
 	require.NotNil(t, result)
 }

@@ -43,7 +43,7 @@ func TestRegisterSwaggerUI_DocJSON(t *testing.T) {
 	err := RegisterSwaggerUI(app, &SwaggerUIConfig{
 		OpenAPISpecJSON:       spec,
 		BrowserAPIContextPath: cryptoutilSharedMagic.DefaultPublicBrowserAPIContextPath,
-		CSRFTokenName:         "csrf_token",
+		CSRFTokenName:         testCSRFToken,
 	})
 	require.NoError(t, err)
 
@@ -65,7 +65,7 @@ func TestRegisterSwaggerUI_CSRFTokenEndpoint(t *testing.T) {
 	err := RegisterSwaggerUI(app, &SwaggerUIConfig{
 		OpenAPISpecJSON:       []byte(`{"openapi":"3.0.3"}`),
 		BrowserAPIContextPath: cryptoutilSharedMagic.DefaultPublicBrowserAPIContextPath,
-		CSRFTokenName:         "csrf_token",
+		CSRFTokenName:         testCSRFToken,
 	})
 	require.NoError(t, err)
 
@@ -77,7 +77,7 @@ func TestRegisterSwaggerUI_CSRFTokenEndpoint(t *testing.T) {
 	require.NoError(t, err)
 	require.NoError(t, resp.Body.Close())
 	require.Equal(t, 200, resp.StatusCode)
-	require.Contains(t, string(body), "csrf_token")
+	require.Contains(t, string(body), testCSRFToken)
 }
 
 func TestRegisterSwaggerUI_AuthNoHeader(t *testing.T) {
@@ -88,8 +88,8 @@ func TestRegisterSwaggerUI_AuthNoHeader(t *testing.T) {
 	err := RegisterSwaggerUI(app, &SwaggerUIConfig{
 		OpenAPISpecJSON:       []byte(`{"openapi":"3.0.3"}`),
 		BrowserAPIContextPath: cryptoutilSharedMagic.DefaultPublicBrowserAPIContextPath,
-		CSRFTokenName:         "csrf_token",
-		Username:              "admin",
+		CSRFTokenName:         testCSRFToken,
+		Username:              valueAdmin,
 		Password:              password,
 	})
 	require.NoError(t, err)
@@ -110,8 +110,8 @@ func TestRegisterSwaggerUI_AuthInvalidMethod(t *testing.T) {
 	err := RegisterSwaggerUI(app, &SwaggerUIConfig{
 		OpenAPISpecJSON:       []byte(`{"openapi":"3.0.3"}`),
 		BrowserAPIContextPath: cryptoutilSharedMagic.DefaultPublicBrowserAPIContextPath,
-		CSRFTokenName:         "csrf_token",
-		Username:              "admin",
+		CSRFTokenName:         testCSRFToken,
+		Username:              valueAdmin,
 		Password:              password,
 	})
 	require.NoError(t, err)
@@ -132,8 +132,8 @@ func TestRegisterSwaggerUI_AuthInvalidBase64(t *testing.T) {
 	err := RegisterSwaggerUI(app, &SwaggerUIConfig{
 		OpenAPISpecJSON:       []byte(`{"openapi":"3.0.3"}`),
 		BrowserAPIContextPath: cryptoutilSharedMagic.DefaultPublicBrowserAPIContextPath,
-		CSRFTokenName:         "csrf_token",
-		Username:              "admin",
+		CSRFTokenName:         testCSRFToken,
+		Username:              valueAdmin,
 		Password:              password,
 	})
 	require.NoError(t, err)
@@ -154,8 +154,8 @@ func TestRegisterSwaggerUI_AuthNoColon(t *testing.T) {
 	err := RegisterSwaggerUI(app, &SwaggerUIConfig{
 		OpenAPISpecJSON:       []byte(`{"openapi":"3.0.3"}`),
 		BrowserAPIContextPath: cryptoutilSharedMagic.DefaultPublicBrowserAPIContextPath,
-		CSRFTokenName:         "csrf_token",
-		Username:              "admin",
+		CSRFTokenName:         testCSRFToken,
+		Username:              valueAdmin,
 		Password:              password,
 	})
 	require.NoError(t, err)
@@ -178,8 +178,8 @@ func TestRegisterSwaggerUI_AuthWrongPassword(t *testing.T) {
 	err := RegisterSwaggerUI(app, &SwaggerUIConfig{
 		OpenAPISpecJSON:       []byte(`{"openapi":"3.0.3"}`),
 		BrowserAPIContextPath: cryptoutilSharedMagic.DefaultPublicBrowserAPIContextPath,
-		CSRFTokenName:         "csrf_token",
-		Username:              "admin",
+		CSRFTokenName:         testCSRFToken,
+		Username:              valueAdmin,
 		Password:              password,
 	})
 	require.NoError(t, err)
@@ -202,8 +202,8 @@ func TestRegisterSwaggerUI_AuthSuccess(t *testing.T) {
 	err := RegisterSwaggerUI(app, &SwaggerUIConfig{
 		OpenAPISpecJSON:       spec,
 		BrowserAPIContextPath: cryptoutilSharedMagic.DefaultPublicBrowserAPIContextPath,
-		CSRFTokenName:         "csrf_token",
-		Username:              "admin",
+		CSRFTokenName:         testCSRFToken,
+		Username:              valueAdmin,
 		Password:              password,
 	})
 	require.NoError(t, err)
@@ -228,7 +228,7 @@ func TestRegisterSwaggerUI_SwaggerPage(t *testing.T) {
 	err := RegisterSwaggerUI(app, &SwaggerUIConfig{
 		OpenAPISpecJSON:       []byte(`{"openapi":"3.0.3"}`),
 		BrowserAPIContextPath: cryptoutilSharedMagic.DefaultPublicBrowserAPIContextPath,
-		CSRFTokenName:         "csrf_token",
+		CSRFTokenName:         testCSRFToken,
 	})
 	require.NoError(t, err)
 
@@ -246,7 +246,7 @@ func TestRegisterSwaggerUI_SwaggerPageContentTypeHTML(t *testing.T) {
 	err := RegisterSwaggerUI(app, &SwaggerUIConfig{
 		OpenAPISpecJSON:       []byte(`{"openapi":"3.0.3"}`),
 		BrowserAPIContextPath: cryptoutilSharedMagic.DefaultPublicBrowserAPIContextPath,
-		CSRFTokenName:         "csrf_token",
+		CSRFTokenName:         testCSRFToken,
 	})
 	require.NoError(t, err)
 

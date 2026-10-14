@@ -20,8 +20,8 @@ func TestWebAuthnUser_WebAuthnID(t *testing.T) {
 
 	domainUser := &cryptoutilIdentityDomain.User{
 		ID:                userID,
-		PreferredUsername: "testuser",
-		Name:              "Test User",
+		PreferredUsername: testTestuser,
+		Name:              testTestUser,
 	}
 
 	user := &WebAuthnUser{
@@ -44,7 +44,7 @@ func TestWebAuthnUser_WebAuthnName(t *testing.T) {
 	domainUser := &cryptoutilIdentityDomain.User{
 		ID:                userID,
 		PreferredUsername: "testuser@example.com",
-		Name:              "Test User",
+		Name:              testTestUser,
 	}
 
 	user := &WebAuthnUser{
@@ -65,7 +65,7 @@ func TestWebAuthnUser_WebAuthnDisplayName(t *testing.T) {
 
 	domainUser := &cryptoutilIdentityDomain.User{
 		ID:                userID,
-		PreferredUsername: "testuser",
+		PreferredUsername: testTestuser,
 		Name:              "Test Display Name",
 	}
 
@@ -87,7 +87,7 @@ func TestWebAuthnUser_WebAuthnDisplayNameFallback(t *testing.T) {
 
 	domainUser := &cryptoutilIdentityDomain.User{
 		ID:                userID,
-		PreferredUsername: "testuser",
+		PreferredUsername: testTestuser,
 		Name:              "", // Empty name should fall back to PreferredUsername.
 	}
 
@@ -97,7 +97,7 @@ func TestWebAuthnUser_WebAuthnDisplayNameFallback(t *testing.T) {
 	}
 
 	displayName := user.WebAuthnDisplayName()
-	require.Equal(t, "testuser", displayName, "WebAuthnDisplayName should fall back to preferred username when name is empty")
+	require.Equal(t, testTestuser, displayName, "WebAuthnDisplayName should fall back to preferred username when name is empty")
 }
 
 // TestWebAuthnUser_WebAuthnIcon tests WebAuthnIcon.
@@ -109,7 +109,7 @@ func TestWebAuthnUser_WebAuthnIcon(t *testing.T) {
 
 	domainUser := &cryptoutilIdentityDomain.User{
 		ID:                userID,
-		PreferredUsername: "testuser",
+		PreferredUsername: testTestuser,
 	}
 
 	user := &WebAuthnUser{
@@ -130,7 +130,7 @@ func TestWebAuthnUser_WebAuthnCredentials_Nil(t *testing.T) {
 
 	domainUser := &cryptoutilIdentityDomain.User{
 		ID:                userID,
-		PreferredUsername: "testuser",
+		PreferredUsername: testTestuser,
 	}
 
 	user := &WebAuthnUser{
@@ -157,9 +157,9 @@ func TestWebAuthnAuthenticator_NewAuthenticatorNilCredentialStore(t *testing.T) 
 	t.Parallel()
 
 	config := &WebAuthnConfig{
-		RPID:          "example.com",
-		RPDisplayName: "Example Corp",
-		RPOrigins:     []string{"https://example.com"},
+		RPID:          testExampleCom,
+		RPDisplayName: testExampleCorp,
+		RPOrigins:     []string{testHTTPSExampleCom},
 	}
 
 	auth, err := NewWebAuthnAuthenticator(config, nil, nil)
@@ -173,9 +173,9 @@ func TestWebAuthnAuthenticator_NewAuthenticatorNilChallengeStore(t *testing.T) {
 	t.Parallel()
 
 	config := &WebAuthnConfig{
-		RPID:          "example.com",
-		RPDisplayName: "Example Corp",
-		RPOrigins:     []string{"https://example.com"},
+		RPID:          testExampleCom,
+		RPDisplayName: testExampleCorp,
+		RPOrigins:     []string{testHTTPSExampleCom},
 	}
 
 	// Create a mock credential store.
@@ -192,9 +192,9 @@ func TestWebAuthnAuthenticator_Method(t *testing.T) {
 	t.Parallel()
 
 	config := &WebAuthnConfig{
-		RPID:          "example.com",
-		RPDisplayName: "Example Corp",
-		RPOrigins:     []string{"https://example.com"},
+		RPID:          testExampleCom,
+		RPDisplayName: testExampleCorp,
+		RPOrigins:     []string{testHTTPSExampleCom},
 	}
 
 	credStore := &mockWebAuthnCredentialStore{}
@@ -204,7 +204,7 @@ func TestWebAuthnAuthenticator_Method(t *testing.T) {
 	require.NoError(t, err, "NewWebAuthnAuthenticator should succeed")
 
 	method := auth.Method()
-	require.Equal(t, "passkey_webauthn", method, "Method should return 'passkey_webauthn'")
+	require.Equal(t, valuePasskeyWebauthn, method, "Method should return 'passkey_webauthn'")
 }
 
 // mockWebAuthnCredentialStore implements CredentialStore for testing.
@@ -251,9 +251,9 @@ func TestWebAuthnAuthenticator_BeginRegistration_NilUser(t *testing.T) {
 	t.Parallel()
 
 	config := &WebAuthnConfig{
-		RPID:          "example.com",
-		RPDisplayName: "Example Corp",
-		RPOrigins:     []string{"https://example.com"},
+		RPID:          testExampleCom,
+		RPDisplayName: testExampleCorp,
+		RPOrigins:     []string{testHTTPSExampleCom},
 	}
 
 	credStore := &mockWebAuthnCredentialStore{}
@@ -273,9 +273,9 @@ func TestWebAuthnAuthenticator_BeginRegistration_Success(t *testing.T) {
 	t.Parallel()
 
 	config := &WebAuthnConfig{
-		RPID:          "example.com",
-		RPDisplayName: "Example Corp",
-		RPOrigins:     []string{"https://example.com"},
+		RPID:          testExampleCom,
+		RPDisplayName: testExampleCorp,
+		RPOrigins:     []string{testHTTPSExampleCom},
 	}
 
 	credStore := &mockWebAuthnCredentialStore{}
@@ -289,8 +289,8 @@ func TestWebAuthnAuthenticator_BeginRegistration_Success(t *testing.T) {
 
 	user := &cryptoutilIdentityDomain.User{
 		ID:                userID,
-		PreferredUsername: "testuser",
-		Name:              "Test User",
+		PreferredUsername: testTestuser,
+		Name:              testTestUser,
 	}
 
 	creation, err := auth.BeginRegistration(context.Background(), user)
@@ -304,9 +304,9 @@ func TestWebAuthnAuthenticator_FinishRegistration_NilUser(t *testing.T) {
 	t.Parallel()
 
 	config := &WebAuthnConfig{
-		RPID:          "example.com",
-		RPDisplayName: "Example Corp",
-		RPOrigins:     []string{"https://example.com"},
+		RPID:          testExampleCom,
+		RPDisplayName: testExampleCorp,
+		RPOrigins:     []string{testHTTPSExampleCom},
 	}
 
 	credStore := &mockWebAuthnCredentialStore{}
@@ -326,9 +326,9 @@ func TestWebAuthnAuthenticator_FinishRegistration_NilResponse(t *testing.T) {
 	t.Parallel()
 
 	config := &WebAuthnConfig{
-		RPID:          "example.com",
-		RPDisplayName: "Example Corp",
-		RPOrigins:     []string{"https://example.com"},
+		RPID:          testExampleCom,
+		RPDisplayName: testExampleCorp,
+		RPOrigins:     []string{testHTTPSExampleCom},
 	}
 
 	credStore := &mockWebAuthnCredentialStore{}
@@ -342,7 +342,7 @@ func TestWebAuthnAuthenticator_FinishRegistration_NilResponse(t *testing.T) {
 
 	user := &cryptoutilIdentityDomain.User{
 		ID:                userID,
-		PreferredUsername: "testuser",
+		PreferredUsername: testTestuser,
 	}
 
 	cred, err := auth.FinishRegistration(context.Background(), user, "challenge-id", nil)
@@ -356,9 +356,9 @@ func TestWebAuthnAuthenticator_InitiateAuth_NoCredentials(t *testing.T) {
 	t.Parallel()
 
 	config := &WebAuthnConfig{
-		RPID:          "example.com",
-		RPDisplayName: "Example Corp",
-		RPOrigins:     []string{"https://example.com"},
+		RPID:          testExampleCom,
+		RPDisplayName: testExampleCorp,
+		RPOrigins:     []string{testHTTPSExampleCom},
 	}
 
 	credStore := &mockWebAuthnCredentialStore{}
@@ -381,9 +381,9 @@ func TestWebAuthnAuthenticator_VerifyAuth_NilResponse(t *testing.T) {
 	t.Parallel()
 
 	config := &WebAuthnConfig{
-		RPID:          "example.com",
-		RPDisplayName: "Example Corp",
-		RPOrigins:     []string{"https://example.com"},
+		RPID:          testExampleCom,
+		RPDisplayName: testExampleCorp,
+		RPOrigins:     []string{testHTTPSExampleCom},
 	}
 
 	credStore := &mockWebAuthnCredentialStore{}

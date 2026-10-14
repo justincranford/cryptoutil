@@ -59,7 +59,7 @@ func TestIsJWEAlg(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name:    "nil algorithm pointer returns error",
+			name:    testNilAlgorithmPointerReturnsError,
 			alg:     nil,
 			want:    false,
 			wantErr: true,
@@ -143,7 +143,7 @@ func TestIsJWSAlg(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name:    "nil algorithm pointer returns error",
+			name:    testNilAlgorithmPointerReturnsError,
 			alg:     nil,
 			want:    false,
 			wantErr: true,

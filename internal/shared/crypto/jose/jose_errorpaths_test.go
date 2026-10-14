@@ -280,7 +280,7 @@ func TestLogJWSInfo_ExoticHeaders(t *testing.T) {
 	headers := joseJws.NewHeaders()
 	require.NoError(t, headers.Set(joseJwk.AlgorithmKey, joseJwa.HS256()))
 	require.NoError(t, headers.Set(joseJwk.KeyIDKey, googleUuid.Must(googleUuid.NewV7()).String()))
-	require.NoError(t, headers.Set("typ", "JWT"))
+	require.NoError(t, headers.Set("typ", testJWT))
 	require.NoError(t, headers.Set("cty", "jwt"))
 	require.NoError(t, headers.Set("jku", "https://example.com/.well-known/jwks.json"))
 	require.NoError(t, headers.Set("x5u", "https://example.com/cert"))

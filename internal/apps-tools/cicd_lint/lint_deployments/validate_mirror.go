@@ -22,9 +22,9 @@ type MirrorResult struct {
 
 // excludedDeployments lists infrastructure deployments that do not require a configs/ counterpart.
 var excludedDeployments = map[string]bool{
-	"shared-postgres":  true,
-	"shared-telemetry": true,
-	"archived":         true,
+	postgresSharedDirName: true,
+	valueSharedTelemetry:  true,
+	"archived":            true,
 	cryptoutilSharedMagic.SkeletonTemplateServiceName: true,
 }
 
@@ -185,7 +185,7 @@ func FormatMirrorResult(result *MirrorResult) string {
 	}
 
 	var (
-		deploymentsDir = filepath.Clean("deployments")
+		deploymentsDir = filepath.Clean(defaultDeploymentsDir)
 		configsDir     = filepath.Clean(cryptoutilSharedMagic.CICDConfigsDir)
 	)
 

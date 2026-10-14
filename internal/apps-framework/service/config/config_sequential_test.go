@@ -17,7 +17,7 @@ import (
 func TestParse_HappyPath_Defaults(t *testing.T) {
 	resetFlags()
 
-	commandParameters := []string{"start"}
+	commandParameters := []string{valueStart}
 	s, err := Parse(commandParameters, true) // true => If --help is set, help is printed and the program exits
 	require.NoError(t, err)
 	require.Equal(t, help.Value, s.Help)
@@ -82,12 +82,12 @@ func TestParse_HappyPath_Overrides(t *testing.T) {
 	resetFlags()
 
 	commandParameters := []string{
-		"start",
+		valueStart,
 		cryptoutilSharedMagic.CLIHelpFlag,
 		"--config=test.yaml",
 		"--log-level=debug",
 		"--verbose",
-		"--local",
+		valueLocal,
 		"--bind-public-protocol=http",
 		"--bind-public-address=192.168.1.2",
 		"--bind-public-port=18080",
@@ -169,7 +169,7 @@ func TestParse_HappyPath_Overrides(t *testing.T) {
 	require.Equal(t, []byte("KEY-KEY"), s.TLSMixedCAKeyPEM)
 	require.Equal(t, cryptoutilSharedMagic.PathPrefixBrowser, s.PublicBrowserAPIContextPath)
 	require.Equal(t, cryptoutilSharedMagic.PathPrefixService, s.PublicServiceAPIContextPath)
-	require.Equal(t, []string{"https://example.com"}, s.CORSAllowedOrigins)
+	require.Equal(t, []string{testHTTPSExampleCom}, s.CORSAllowedOrigins)
 	require.Equal(t, []string{"GET", "POST"}, s.CORSAllowedMethods)
 	require.Equal(t, []string{"X-Custom-Header"}, s.CORSAllowedHeaders)
 	require.Equal(t, uint16(cryptoutilSharedMagic.IMEnterpriseSessionTimeout), s.CORSMaxAge)
@@ -182,7 +182,7 @@ func TestParse_HappyPath_Overrides(t *testing.T) {
 	require.Equal(t, true, s.CSRFTokenSingleUseToken)
 	require.EqualValues(t, cryptoutilSharedMagic.JoseJAMaxMaterials, s.BrowserIPRateLimit)
 	require.Equal(t, uint16(cryptoutilSharedMagic.IMMaxUsernameLength), s.ServiceIPRateLimit)
-	require.Equal(t, []string{"192.168.1.100", "192.168.1.101"}, s.AllowedIPs)
+	require.Equal(t, []string{test1921681100, "192.168.1.101"}, s.AllowedIPs)
 	require.Equal(t, []string{cryptoutilSharedMagic.PrivateLANClassACIDRv4, "192.168.1.0/24"}, s.AllowedCIDRs)
 	require.Equal(t, "required", s.DatabaseContainer)
 	require.Equal(t, "postgres://user:pass@db:5432/dbname?sslmode=disable", s.DatabaseURL)
@@ -247,26 +247,26 @@ func TestAnalyzeSettings_NoDuplicates(t *testing.T) {
 	t.Parallel()
 
 	result := analyzeSettings([]*Setting{
-		{Name: "unique1", Shorthand: "a", Value: "value1", Usage: "usage1"},
-		{Name: "unique2", Shorthand: "b", Value: "value2", Usage: "usage2"},
-		{Name: "unique3", Shorthand: "c", Value: "value3", Usage: "usage3"},
+		{Name: testUnique1, Shorthand: valueA, Value: testValue1, Usage: testUsage1},
+		{Name: testUnique2, Shorthand: valueB, Value: testValue2, Usage: testUsage2},
+		{Name: testUnique3, Shorthand: valueC, Value: testValue3, Usage: testUsage3},
 	})
 
 	require.Len(t, result.SettingsByNames, 3)
-	require.Len(t, result.SettingsByNames["unique1"], 1)
-	require.Len(t, result.SettingsByNames["unique2"], 1)
-	require.Len(t, result.SettingsByNames["unique3"], 1)
-	require.Equal(t, "unique1", result.SettingsByNames["unique1"][0].Name)
-	require.Equal(t, "unique2", result.SettingsByNames["unique2"][0].Name)
-	require.Equal(t, "unique3", result.SettingsByNames["unique3"][0].Name)
+	require.Len(t, result.SettingsByNames[testUnique1], 1)
+	require.Len(t, result.SettingsByNames[testUnique2], 1)
+	require.Len(t, result.SettingsByNames[testUnique3], 1)
+	require.Equal(t, testUnique1, result.SettingsByNames[testUnique1][0].Name)
+	require.Equal(t, testUnique2, result.SettingsByNames[testUnique2][0].Name)
+	require.Equal(t, testUnique3, result.SettingsByNames[testUnique3][0].Name)
 
 	require.Len(t, result.SettingsByShorthands, 3)
-	require.Len(t, result.SettingsByShorthands["a"], 1)
-	require.Len(t, result.SettingsByShorthands["b"], 1)
-	require.Len(t, result.SettingsByShorthands["c"], 1)
-	require.Equal(t, "a", result.SettingsByShorthands["a"][0].Shorthand)
-	require.Equal(t, "b", result.SettingsByShorthands["b"][0].Shorthand)
-	require.Equal(t, "c", result.SettingsByShorthands["c"][0].Shorthand)
+	require.Len(t, result.SettingsByShorthands[valueA], 1)
+	require.Len(t, result.SettingsByShorthands[valueB], 1)
+	require.Len(t, result.SettingsByShorthands[valueC], 1)
+	require.Equal(t, valueA, result.SettingsByShorthands[valueA][0].Shorthand)
+	require.Equal(t, valueB, result.SettingsByShorthands[valueB][0].Shorthand)
+	require.Equal(t, valueC, result.SettingsByShorthands[valueC][0].Shorthand)
 
 	require.Empty(t, result.DuplicateNames)
 
@@ -277,16 +277,16 @@ func TestAnalyzeSettings_DuplicateNamesOnly(t *testing.T) {
 	t.Parallel()
 
 	result := analyzeSettings([]*Setting{
-		{Name: "duplicate", Shorthand: "a", Value: "value1", Usage: "usage1"},
-		{Name: "duplicate", Shorthand: "b", Value: "value2", Usage: "usage2"},
-		{Name: "unique", Shorthand: "c", Value: "value3", Usage: "usage3"},
+		{Name: testDuplicate, Shorthand: valueA, Value: testValue1, Usage: testUsage1},
+		{Name: testDuplicate, Shorthand: valueB, Value: testValue2, Usage: testUsage2},
+		{Name: "unique", Shorthand: valueC, Value: testValue3, Usage: testUsage3},
 	})
 
 	require.Len(t, result.SettingsByNames, 2)
-	require.Len(t, result.SettingsByNames["duplicate"], 2)
+	require.Len(t, result.SettingsByNames[testDuplicate], 2)
 	require.Len(t, result.SettingsByNames["unique"], 1)
 
-	require.Contains(t, result.DuplicateNames, "duplicate")
+	require.Contains(t, result.DuplicateNames, testDuplicate)
 	require.NotContains(t, result.DuplicateNames, "unique")
 
 	require.Empty(t, result.DuplicateShorthands)
@@ -296,47 +296,47 @@ func TestAnalyzeSettings_DuplicateShorthandsOnly(t *testing.T) {
 	t.Parallel()
 
 	result := analyzeSettings([]*Setting{
-		{Name: "unique1", Shorthand: "d", Value: "value1", Usage: "usage1"},
-		{Name: "unique2", Shorthand: "d", Value: "value2", Usage: "usage2"},
-		{Name: "unique3", Shorthand: "u", Value: "value3", Usage: "usage3"},
+		{Name: testUnique1, Shorthand: valueD, Value: testValue1, Usage: testUsage1},
+		{Name: testUnique2, Shorthand: valueD, Value: testValue2, Usage: testUsage2},
+		{Name: testUnique3, Shorthand: valueU, Value: testValue3, Usage: testUsage3},
 	})
 
 	require.Len(t, result.SettingsByShorthands, 2)
-	require.Len(t, result.SettingsByShorthands["d"], 2)
-	require.Len(t, result.SettingsByShorthands["u"], 1)
+	require.Len(t, result.SettingsByShorthands[valueD], 2)
+	require.Len(t, result.SettingsByShorthands[valueU], 1)
 
 	require.Empty(t, result.DuplicateNames)
 
-	require.Contains(t, result.DuplicateShorthands, "d")
-	require.NotContains(t, result.DuplicateShorthands, "u")
+	require.Contains(t, result.DuplicateShorthands, valueD)
+	require.NotContains(t, result.DuplicateShorthands, valueU)
 }
 
 func TestAnalyzeSettings_DuplicateNames_And_DuplicateShorthands(t *testing.T) {
 	t.Parallel()
 
 	result := analyzeSettings([]*Setting{
-		{Name: "duplicate", Shorthand: "d", Value: "value1", Usage: "usage1"},
-		{Name: "duplicate", Shorthand: "d", Value: "value2", Usage: "usage2"},
-		{Name: "unique1", Shorthand: "u", Value: "value3", Usage: "usage3"},
-		{Name: "unique2", Shorthand: "U", Value: "value4", Usage: "usage4"},
+		{Name: testDuplicate, Shorthand: valueD, Value: testValue1, Usage: testUsage1},
+		{Name: testDuplicate, Shorthand: valueD, Value: testValue2, Usage: testUsage2},
+		{Name: testUnique1, Shorthand: valueU, Value: testValue3, Usage: testUsage3},
+		{Name: testUnique2, Shorthand: "U", Value: "value4", Usage: "usage4"},
 	})
 
 	require.Len(t, result.SettingsByNames, 3)
-	require.Len(t, result.SettingsByNames["duplicate"], 2)
-	require.Len(t, result.SettingsByNames["unique1"], 1)
-	require.Len(t, result.SettingsByNames["unique2"], 1)
+	require.Len(t, result.SettingsByNames[testDuplicate], 2)
+	require.Len(t, result.SettingsByNames[testUnique1], 1)
+	require.Len(t, result.SettingsByNames[testUnique2], 1)
 
 	require.Len(t, result.SettingsByShorthands, 3)
-	require.Len(t, result.SettingsByShorthands["d"], 2)
-	require.Len(t, result.SettingsByShorthands["u"], 1)
+	require.Len(t, result.SettingsByShorthands[valueD], 2)
+	require.Len(t, result.SettingsByShorthands[valueU], 1)
 	require.Len(t, result.SettingsByShorthands["U"], 1)
 
-	require.Contains(t, result.DuplicateNames, "duplicate")
-	require.NotContains(t, result.DuplicateNames, "unique1")
-	require.NotContains(t, result.DuplicateNames, "unique2")
+	require.Contains(t, result.DuplicateNames, testDuplicate)
+	require.NotContains(t, result.DuplicateNames, testUnique1)
+	require.NotContains(t, result.DuplicateNames, testUnique2)
 
-	require.Contains(t, result.DuplicateShorthands, "d")
-	require.NotContains(t, result.DuplicateShorthands, "u")
+	require.Contains(t, result.DuplicateShorthands, valueD)
+	require.NotContains(t, result.DuplicateShorthands, valueU)
 	require.NotContains(t, result.DuplicateShorthands, "U")
 }
 
@@ -350,7 +350,7 @@ func TestParse_EnvironmentVariables(t *testing.T) {
 	t.Setenv("CRYPTOUTIL_BIND_PUBLIC_PORT", "8080")
 	t.Setenv("CRYPTOUTIL_DATABASE_URL", "postgres://env:pass@envdb:5432/envdb?sslmode=require")
 
-	commandParameters := []string{"start"}
+	commandParameters := []string{valueStart}
 	s, err := Parse(commandParameters, false)
 	require.NoError(t, err)
 
@@ -370,7 +370,7 @@ func TestParse_EnvironmentVariables_CommandLineOverride(t *testing.T) {
 	t.Setenv("CRYPTOUTIL_LOCAL", "true")
 
 	// Override with command line flags
-	commandParameters := []string{"start", "--log-level=INFO", "--local=false"}
+	commandParameters := []string{valueStart, "--log-level=INFO", testLocalFalse}
 	s, err := Parse(commandParameters, false)
 	require.NoError(t, err)
 
@@ -383,7 +383,7 @@ func TestParse_EnvironmentVariables_CommandLineOverride(t *testing.T) {
 func TestParse_DryRun(t *testing.T) {
 	resetFlags()
 
-	commandParameters := []string{"start", "--dry-run"}
+	commandParameters := []string{valueStart, "--dry-run"}
 	s, err := Parse(commandParameters, false)
 	require.NoError(t, err)
 	require.True(t, s.DryRun)
@@ -393,7 +393,7 @@ func TestParse_DryRun(t *testing.T) {
 func TestParse_DryRun_Default(t *testing.T) {
 	resetFlags()
 
-	commandParameters := []string{"start"}
+	commandParameters := []string{valueStart}
 	s, err := Parse(commandParameters, false)
 	require.NoError(t, err)
 	require.False(t, s.DryRun)

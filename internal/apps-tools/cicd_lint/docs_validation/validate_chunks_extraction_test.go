@@ -21,7 +21,7 @@ func TestExtractPropagateBlocks(t *testing.T) {
 		wantSecond *PropagateBlock // optional check for second block.
 	}{
 		{
-			name: "basic single block",
+			name: testBasicSingleBlock,
 			content: join(
 				"# Heading",
 				`<!-- @to-appendix as="chunk-1" appendixes="file.md" -->`,
@@ -31,10 +31,10 @@ func TestExtractPropagateBlocks(t *testing.T) {
 				"Other text",
 			),
 			wantCount: 1,
-			wantFirst: &PropagateBlock{TargetFile: "file.md", ChunkID: "chunk-1", Content: "Line one\nLine two\n", LineNumber: 2},
+			wantFirst: &PropagateBlock{TargetFile: testFileMd, ChunkID: testChunk1, Content: "Line one\nLine two\n", LineNumber: 2},
 		},
 		{
-			name: "multiple blocks",
+			name: testMultipleBlocks,
 			content: join(
 				`<!-- @to-appendix as="alpha" appendixes="a.md" -->`,
 				"content-a",
@@ -45,8 +45,8 @@ func TestExtractPropagateBlocks(t *testing.T) {
 				"<!-- @/to-appendix -->",
 			),
 			wantCount:  2,
-			wantFirst:  &PropagateBlock{TargetFile: "a.md", ChunkID: "alpha", Content: "content-a\n"},
-			wantSecond: &PropagateBlock{TargetFile: "b.md", ChunkID: "beta", Content: "content-b\n"},
+			wantFirst:  &PropagateBlock{TargetFile: testFileA, ChunkID: testAlpha, Content: "content-a\n"},
+			wantSecond: &PropagateBlock{TargetFile: testFileB, ChunkID: testBeta, Content: "content-b\n"},
 		},
 		{
 			name: "skips markers inside code fences",
@@ -78,18 +78,18 @@ func TestExtractPropagateBlocks(t *testing.T) {
 			),
 			wantCount: 1,
 			wantFirst: &PropagateBlock{
-				TargetFile: "target.md",
+				TargetFile: testTargetMd,
 				ChunkID:    "with-fence",
 				Content:    "**Example**:\n\n```bash\necho \"hello\"\n```\n\nDone.\n",
 			},
 		},
 		{
-			name:      "no markers",
+			name:      testNoMarkers,
 			content:   "no markers here\njust text",
 			wantCount: 0,
 		},
 		{
-			name: "empty content block",
+			name: testEmptyContentBlock,
 			content: join(
 				`<!-- @to-appendix as="empty" appendixes="f.md" -->`,
 				"<!-- @/to-appendix -->",
@@ -105,8 +105,8 @@ func TestExtractPropagateBlocks(t *testing.T) {
 				"<!-- @/to-appendix -->",
 			),
 			wantCount:  2,
-			wantFirst:  &PropagateBlock{TargetFile: "a.md", ChunkID: "shared", Content: "Shared content\n", LineNumber: 1},
-			wantSecond: &PropagateBlock{TargetFile: "b.md", ChunkID: "shared", Content: "Shared content\n", LineNumber: 1},
+			wantFirst:  &PropagateBlock{TargetFile: testFileA, ChunkID: testShared, Content: testSharedContent, LineNumber: 1},
+			wantSecond: &PropagateBlock{TargetFile: testFileB, ChunkID: testShared, Content: testSharedContent, LineNumber: 1},
 		},
 		{
 			name: "to-appendix marker",
@@ -117,8 +117,8 @@ func TestExtractPropagateBlocks(t *testing.T) {
 			),
 			wantCount: 1,
 			wantFirst: &PropagateBlock{
-				TargetFile: "target.md",
-				ChunkID:    "rfc-2119-keywords",
+				TargetFile: testTargetMd,
+				ChunkID:    testRfc2119Keywords,
 				Content:    "Terminology content\n",
 				LineNumber: 1,
 			},
@@ -162,7 +162,7 @@ func TestExtractSourceBlocks(t *testing.T) {
 		wantSecond *SourceBlock
 	}{
 		{
-			name: "basic single block",
+			name: testBasicSingleBlock,
 			content: join(
 				"Some intro",
 				`<!-- @from-eng-handbook as="chunk-1" -->`,
@@ -172,10 +172,10 @@ func TestExtractSourceBlocks(t *testing.T) {
 				"See more",
 			),
 			wantCount: 1,
-			wantFirst: &SourceBlock{ChunkID: "chunk-1", Content: "Source line one\nSource line two\n", LineNumber: 2},
+			wantFirst: &SourceBlock{ChunkID: testChunk1, Content: "Source line one\nSource line two\n", LineNumber: 2},
 		},
 		{
-			name: "multiple blocks",
+			name: testMultipleBlocks,
 			content: join(
 				`<!-- @from-eng-handbook as="alpha" -->`,
 				"a-content",
@@ -186,16 +186,16 @@ func TestExtractSourceBlocks(t *testing.T) {
 				"<!-- @/from-eng-handbook -->",
 			),
 			wantCount:  2,
-			wantFirst:  &SourceBlock{ChunkID: "alpha", Content: "a-content\n"},
-			wantSecond: &SourceBlock{ChunkID: "beta", Content: "b-content\n"},
+			wantFirst:  &SourceBlock{ChunkID: testAlpha, Content: "a-content\n"},
+			wantSecond: &SourceBlock{ChunkID: testBeta, Content: "b-content\n"},
 		},
 		{
-			name:      "no markers",
+			name:      testNoMarkers,
 			content:   "no markers here",
 			wantCount: 0,
 		},
 		{
-			name: "empty content block",
+			name: testEmptyContentBlock,
 			content: join(
 				`<!-- @from-eng-handbook as="empty" -->`,
 				"<!-- @/from-eng-handbook -->",

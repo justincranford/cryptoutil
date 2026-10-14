@@ -24,7 +24,7 @@ func TestValidateKebabCase_ValidCases(t *testing.T) {
 				t.Helper()
 
 				dir := t.TempDir()
-				require.NoError(t, os.WriteFile(filepath.Join(dir, "config.yml"),
+				require.NoError(t, os.WriteFile(filepath.Join(dir, testConfigYml),
 					[]byte("service:\n  name: \"sm-kms\"\n  version: \"1.0.0\"\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
 				return dir
@@ -36,19 +36,19 @@ func TestValidateKebabCase_ValidCases(t *testing.T) {
 				t.Helper()
 
 				dir := t.TempDir()
-				require.NoError(t, os.WriteFile(filepath.Join(dir, "config.yml"),
+				require.NoError(t, os.WriteFile(filepath.Join(dir, testConfigYml),
 					[]byte("observability:\n  enabled: true\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
 				return dir
 			},
 		},
 		{
-			name: "non-YAML files ignored",
+			name: testNonYAMLFilesIgnored,
 			setupFn: func(t *testing.T) string {
 				t.Helper()
 
 				dir := t.TempDir()
-				require.NoError(t, os.WriteFile(filepath.Join(dir, "README.md"), []byte("# readme"), cryptoutilSharedMagic.CacheFilePermissions))
+				require.NoError(t, os.WriteFile(filepath.Join(dir, valueReadmeMd), []byte("# readme"), cryptoutilSharedMagic.CacheFilePermissions))
 				require.NoError(t, os.WriteFile(filepath.Join(dir, "data.json"), []byte("{}"), cryptoutilSharedMagic.CacheFilePermissions))
 
 				return dir
@@ -68,21 +68,21 @@ func TestValidateKebabCase_ValidCases(t *testing.T) {
 			},
 		},
 		{
-			name: "nested directories",
+			name: testNestedDirectories,
 			setupFn: func(t *testing.T) string {
 				t.Helper()
 
 				dir := t.TempDir()
-				nested := filepath.Join(dir, cryptoutilSharedMagic.ClaimSub, "deep")
+				nested := filepath.Join(dir, cryptoutilSharedMagic.ClaimSub, testDeep)
 				require.NoError(t, os.MkdirAll(nested, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
-				require.NoError(t, os.WriteFile(filepath.Join(nested, "config.yml"),
+				require.NoError(t, os.WriteFile(filepath.Join(nested, testConfigYml),
 					[]byte("service:\n  name: \"my-nested-service\"\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
 				return dir
 			},
 		},
 		{
-			name: "empty directory",
+			name: testEmptyDirectory,
 			setupFn: func(t *testing.T) string {
 				t.Helper()
 
@@ -95,7 +95,7 @@ func TestValidateKebabCase_ValidCases(t *testing.T) {
 				t.Helper()
 
 				dir := t.TempDir()
-				require.NoError(t, os.WriteFile(filepath.Join(dir, "config.yml"),
+				require.NoError(t, os.WriteFile(filepath.Join(dir, testConfigYml),
 					[]byte("service:\n  name: 123\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
 				return dir
@@ -123,11 +123,11 @@ func TestValidateKebabCase_InvalidServiceName(t *testing.T) {
 		serviceName string
 		wantErr     string
 	}{
-		{name: "PascalCase", serviceName: "SmIM", wantErr: "SmIM"},
-		{name: "snake_case", serviceName: "sm_kms_service", wantErr: "sm_kms_service"},
-		{name: "UPPERCASE", serviceName: "SM-KMS-SERVICE", wantErr: "SM-KMS-SERVICE"},
-		{name: "spaces", serviceName: "sm im", wantErr: "sm im"},
-		{name: "leading hyphen", serviceName: "-sm-kms", wantErr: "-sm-kms"},
+		{name: "PascalCase", serviceName: testSmIm, wantErr: testSmIm},
+		{name: "snake_case", serviceName: testSmKMSServiceValue38605A41, wantErr: testSmKMSServiceValue38605A41},
+		{name: "UPPERCASE", serviceName: testSmKMSService, wantErr: testSmKMSService},
+		{name: "spaces", serviceName: testSmImValueA70FF70D, wantErr: testSmImValueA70FF70D},
+		{name: testLeadingHyphen, serviceName: testSmKMS, wantErr: testSmKMS},
 	}
 
 	for _, tc := range tests {
@@ -136,7 +136,7 @@ func TestValidateKebabCase_InvalidServiceName(t *testing.T) {
 
 			dir := t.TempDir()
 			content := "service:\n  name: \"" + tc.serviceName + "\"\n"
-			require.NoError(t, os.WriteFile(filepath.Join(dir, "config.yml"), []byte(content), cryptoutilSharedMagic.CacheFilePermissions))
+			require.NoError(t, os.WriteFile(filepath.Join(dir, testConfigYml), []byte(content), cryptoutilSharedMagic.CacheFilePermissions))
 
 			result, err := ValidateKebabCase(dir)
 			require.NoError(t, err)
@@ -145,8 +145,8 @@ func TestValidateKebabCase_InvalidServiceName(t *testing.T) {
 			require.True(t, len(result.Errors) > 0)
 			require.Contains(t, result.Errors[0], "[ValidateKebabCase]")
 			require.Contains(t, result.Errors[0], tc.wantErr)
-			require.Contains(t, result.Errors[0], "kebab-case")
-			require.Contains(t, result.Errors[0], "ENG-HANDBOOK.md Section 4.4.1")
+			require.Contains(t, result.Errors[0], validatorNameKebabCase)
+			require.Contains(t, result.Errors[0], testEngHandbookMdSection441)
 		})
 	}
 }
@@ -160,16 +160,16 @@ func TestValidateKebabCase_Violations(t *testing.T) {
 		wantContains string
 	}{
 		{
-			name: "path does not exist",
+			name: testPathDoesNotExist,
 			setupFn: func(t *testing.T) string {
 				t.Helper()
 
 				return filepath.Join(t.TempDir(), "nonexistent")
 			},
-			wantContains: "does not exist",
+			wantContains: testDoesNotExist,
 		},
 		{
-			name: "path is file",
+			name: testPathIsFile,
 			setupFn: func(t *testing.T) string {
 				t.Helper()
 
@@ -178,7 +178,7 @@ func TestValidateKebabCase_Violations(t *testing.T) {
 
 				return f
 			},
-			wantContains: "not a directory",
+			wantContains: testNotADirectory,
 		},
 	}
 	for _, tc := range tests {
@@ -216,7 +216,7 @@ func TestValidateKebabCase_UnreadableFile(t *testing.T) {
 	}
 
 	dir := t.TempDir()
-	filePath := filepath.Join(dir, "config.yml")
+	filePath := filepath.Join(dir, testConfigYml)
 	require.NoError(t, os.WriteFile(filePath, []byte("service:\n  name: ok\n"), cryptoutilSharedMagic.CacheFilePermissions))
 	require.NoError(t, os.Chmod(filePath, 0o000))
 
@@ -241,7 +241,7 @@ func TestValidateKebabCase_WalkError(t *testing.T) {
 	dir := t.TempDir()
 	subDir := filepath.Join(dir, "locked")
 	require.NoError(t, os.MkdirAll(subDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
-	require.NoError(t, os.WriteFile(filepath.Join(subDir, "config.yml"), []byte("key: val"), cryptoutilSharedMagic.CacheFilePermissions))
+	require.NoError(t, os.WriteFile(filepath.Join(subDir, testConfigYml), []byte("key: val"), cryptoutilSharedMagic.CacheFilePermissions))
 	require.NoError(t, os.Chmod(subDir, 0o000))
 
 	t.Cleanup(func() {
@@ -266,38 +266,38 @@ func TestGetNestedField(t *testing.T) {
 	}{
 		{
 			name:      "simple field",
-			config:    map[string]any{cryptoutilSharedMagic.ClaimName: "value"},
+			config:    map[string]any{cryptoutilSharedMagic.ClaimName: testValue},
 			fieldPath: cryptoutilSharedMagic.ClaimName,
-			want:      "value",
+			want:      testValue,
 		},
 		{
 			name:      "nested field",
-			config:    map[string]any{"service": map[string]any{cryptoutilSharedMagic.ClaimName: "my-svc"}},
-			fieldPath: "service.name",
-			want:      "my-svc",
+			config:    map[string]any{testService: map[string]any{cryptoutilSharedMagic.ClaimName: testMySvc}},
+			fieldPath: valueServiceName,
+			want:      testMySvc,
 		},
 		{
 			name:      "deeply nested",
-			config:    map[string]any{"a": map[string]any{"b": map[string]any{"c": "deep"}}},
+			config:    map[string]any{testA: map[string]any{testB: map[string]any{testC: testDeep}}},
 			fieldPath: "a.b.c",
-			want:      "deep",
+			want:      testDeep,
 		},
 		{
-			name:      "missing field",
-			config:    map[string]any{"other": "value"},
-			fieldPath: "service.name",
+			name:      testMissingField,
+			config:    map[string]any{"other": testValue},
+			fieldPath: valueServiceName,
 			want:      "",
 		},
 		{
 			name:      "missing intermediate",
-			config:    map[string]any{"service": "not-a-map"},
-			fieldPath: "service.name",
+			config:    map[string]any{testService: "not-a-map"},
+			fieldPath: valueServiceName,
 			want:      "",
 		},
 		{
 			name:      "non-string value",
-			config:    map[string]any{"count": cryptoutilSharedMagic.AnswerToLifeUniverseEverything},
-			fieldPath: "count",
+			config:    map[string]any{testCount: cryptoutilSharedMagic.AnswerToLifeUniverseEverything},
+			fieldPath: testCount,
 			want:      "",
 		},
 		{
@@ -327,18 +327,18 @@ func TestFormatKebabCaseValidationResult(t *testing.T) {
 		contains []string
 	}{
 		{
-			name:     "passing result",
-			result:   &KebabCaseValidationResult{Path: "/test", Valid: true},
-			contains: []string{"/test", cryptoutilSharedMagic.TestStatusPass},
+			name:     testPassingResult,
+			result:   &KebabCaseValidationResult{Path: testTest, Valid: true},
+			contains: []string{testTest, cryptoutilSharedMagic.TestStatusPass},
 		},
 		{
 			name: "failing result",
 			result: &KebabCaseValidationResult{
-				Path: "/test", Valid: false,
-				Errors:   []string{"field error"},
-				Warnings: []string{"warning msg"},
+				Path: testTest, Valid: false,
+				Errors:   []string{testFieldError},
+				Warnings: []string{testWarningMsg},
 			},
-			contains: []string{cryptoutilSharedMagic.TestStatusFail, "field error", "warning msg"},
+			contains: []string{cryptoutilSharedMagic.TestStatusFail, testFieldError, testWarningMsg},
 		},
 	}
 

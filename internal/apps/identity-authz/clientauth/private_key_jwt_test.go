@@ -180,8 +180,8 @@ func TestPrivateKeyJWTValidator_AssertionLifetimeValidation(t *testing.T) {
 	}{
 		{"valid lifetime (cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries minutes)", cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Minute, false},
 		{"valid lifetime (maximum cryptoutilSharedMagic.JoseJADefaultMaxMaterials minutes)", cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Minute, false},
-		{"invalid lifetime (15 minutes)", 15 * time.Minute, true},
-		{"invalid lifetime (1 hour)", time.Hour, true},
+		{testInvalidLifetime15Minutes, 15 * time.Minute, true},
+		{testInvalidLifetime1Hour, time.Hour, true},
 	}
 
 	for _, tc := range tests {

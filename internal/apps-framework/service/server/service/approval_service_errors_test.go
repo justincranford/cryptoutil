@@ -332,7 +332,7 @@ func TestApproveClient_CreateClientError(t *testing.T) {
 		unverifiedClient: &cryptoutilAppsFrameworkServiceServerRepository.UnverifiedClient{
 			ID:        unverifiedClientID,
 			TenantID:  tenantID,
-			ClientID:  "test-client",
+			ClientID:  testTestClient,
 			ExpiresAt: time.Now().UTC().Add(1 * time.Hour),
 		},
 	}
@@ -376,7 +376,7 @@ func TestApproveClient_AssignRoleError(t *testing.T) {
 		unverifiedClient: &cryptoutilAppsFrameworkServiceServerRepository.UnverifiedClient{
 			ID:        unverifiedClientID,
 			TenantID:  tenantID,
-			ClientID:  "test-client",
+			ClientID:  testTestClient,
 			ExpiresAt: time.Now().UTC().Add(1 * time.Hour),
 		},
 	}

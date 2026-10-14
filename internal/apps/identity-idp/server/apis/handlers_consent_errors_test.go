@@ -41,9 +41,9 @@ func TestHandleConsent_MissingRequestID(t *testing.T) {
 			TLSEnabled:  true,
 		},
 		Sessions: &cryptoutilIdentityConfig.SessionConfig{
-			CookieName:      "session_id",
+			CookieName:      testSessionID,
 			CookieHTTPOnly:  true,
-			CookieSameSite:  "Lax",
+			CookieSameSite:  testLax,
 			SessionLifetime: 1 * time.Hour,
 		},
 	}
@@ -85,9 +85,9 @@ func TestHandleConsent_InvalidRequestIDFormat(t *testing.T) {
 			TLSEnabled:  true,
 		},
 		Sessions: &cryptoutilIdentityConfig.SessionConfig{
-			CookieName:      "session_id",
+			CookieName:      testSessionID,
 			CookieHTTPOnly:  true,
-			CookieSameSite:  "Lax",
+			CookieSameSite:  testLax,
 			SessionLifetime: 1 * time.Hour,
 		},
 	}
@@ -129,9 +129,9 @@ func TestHandleConsent_RequestNotFound(t *testing.T) {
 			TLSEnabled:  true,
 		},
 		Sessions: &cryptoutilIdentityConfig.SessionConfig{
-			CookieName:      "session_id",
+			CookieName:      testSessionID,
 			CookieHTTPOnly:  true,
-			CookieSameSite:  "Lax",
+			CookieSameSite:  testLax,
 			SessionLifetime: 1 * time.Hour,
 		},
 	}

@@ -18,7 +18,7 @@ func TestParseWithFlagSet_Defaults(t *testing.T) {
 
 	fs := pflag.NewFlagSet("test-defaults", pflag.ContinueOnError)
 
-	cfg, err := ParseWithFlagSet(fs, []string{"start", "--profile=test"}, false)
+	cfg, err := ParseWithFlagSet(fs, []string{testStart, testProfileTest}, false)
 	require.NoError(t, err)
 	require.NotNil(t, cfg)
 	require.NotNil(t, cfg.ServiceFrameworkServerSettings)
@@ -32,7 +32,7 @@ func TestParseWithFlagSet_CustomPort(t *testing.T) {
 
 	fs := pflag.NewFlagSet("test-custom-port", pflag.ContinueOnError)
 
-	cfg, err := ParseWithFlagSet(fs, []string{"start", "--profile=test", "--bind-public-port=0"}, false)
+	cfg, err := ParseWithFlagSet(fs, []string{testStart, testProfileTest, "--bind-public-port=0"}, false)
 	require.NoError(t, err)
 	require.NotNil(t, cfg)
 	require.Equal(t, uint16(0), cfg.BindPublicPort)
@@ -44,7 +44,7 @@ func TestParseWithFlagSet_InvalidFlag(t *testing.T) {
 
 	fs := pflag.NewFlagSet("test-invalid", pflag.ContinueOnError)
 
-	_, err := ParseWithFlagSet(fs, []string{"start", "--nonexistent-flag=true"}, false)
+	_, err := ParseWithFlagSet(fs, []string{testStart, "--nonexistent-flag=true"}, false)
 	require.Error(t, err)
 }
 
@@ -82,7 +82,7 @@ func TestValidateSettings_NilBase(t *testing.T) {
 func TestParse_Delegates(t *testing.T) {
 	// Parse with valid args to verify delegation works (pflag.CommandLine
 	// uses ExitOnError mode, so we cannot test invalid flags here).
-	cfg, err := Parse([]string{"start", "--profile=test"}, false)
+	cfg, err := Parse([]string{testStart, testProfileTest}, false)
 	require.NoError(t, err)
 	require.NotNil(t, cfg)
 	require.NotNil(t, cfg.ServiceFrameworkServerSettings)

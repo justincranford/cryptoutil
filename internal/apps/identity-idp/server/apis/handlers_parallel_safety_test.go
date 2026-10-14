@@ -37,19 +37,19 @@ func TestParallelTestSafety(t *testing.T) {
 		{
 			name:           "parallel_user_creation",
 			parallelOps:    cryptoutilSharedMagic.MaxErrorDisplay,
-			entityType:     "user",
+			entityType:     testUserValue04F8996D,
 			validateUnique: true,
 		},
 		{
 			name:           "parallel_client_creation",
 			parallelOps:    cryptoutilSharedMagic.MaxErrorDisplay,
-			entityType:     "client",
+			entityType:     testClientValue948FE603,
 			validateUnique: true,
 		},
 		{
 			name:           "parallel_mixed_operations",
 			parallelOps:    cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days,
-			entityType:     "mixed-ops",
+			entityType:     testMixedOps,
 			validateUnique: true,
 		},
 	}
@@ -119,7 +119,7 @@ func TestParallelTestSafety(t *testing.T) {
 			createdIDs := make(chan string, tc.parallelOps)
 
 			switch tc.entityType {
-			case "user":
+			case testUserValue04F8996D:
 				userRepo := cryptoutilIdentityORM.NewUserRepository(db)
 
 				for i := 0; i < tc.parallelOps; i++ {
@@ -135,7 +135,7 @@ func TestParallelTestSafety(t *testing.T) {
 							PreferredUsername: "testuser_parallel_" + uniqueID,
 							Email:             "parallel_" + uniqueID + "@example.com",
 							EmailVerified:     false,
-							PasswordHash:      "hashedpassword",
+							PasswordHash:      testHashedpassword,
 						}
 
 						if err := userRepo.Create(ctx, user); err != nil {
@@ -148,7 +148,7 @@ func TestParallelTestSafety(t *testing.T) {
 					}(i)
 				}
 
-			case "client":
+			case testClientValue948FE603:
 				clientRepo := cryptoutilIdentityORM.NewClientRepository(db)
 
 				for i := 0; i < tc.parallelOps; i++ {
@@ -176,7 +176,7 @@ func TestParallelTestSafety(t *testing.T) {
 					}(i)
 				}
 
-			case "mixed-ops":
+			case testMixedOps:
 				userRepo := cryptoutilIdentityORM.NewUserRepository(db)
 				clientRepo := cryptoutilIdentityORM.NewClientRepository(db)
 
@@ -196,7 +196,7 @@ func TestParallelTestSafety(t *testing.T) {
 								PreferredUsername: "testuser_mixed_" + uniqueID,
 								Email:             "mixed_" + uniqueID + "@example.com",
 								EmailVerified:     false,
-								PasswordHash:      "hashedpassword",
+								PasswordHash:      testHashedpassword,
 							}
 
 							if err := userRepo.Create(ctx, user); err != nil {

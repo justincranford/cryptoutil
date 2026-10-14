@@ -199,7 +199,7 @@ func TestStartCore_NilContext(t *testing.T) {
 	core, err := StartCore(nil, settings) //nolint:staticcheck // Testing nil context.
 	require.Error(t, err)
 	require.Nil(t, core)
-	require.Contains(t, err.Error(), "ctx cannot be nil")
+	require.Contains(t, err.Error(), valueCtxCannotBeNil)
 }
 
 // TestStartCore_NilSettings tests StartCore with nil settings.
@@ -211,7 +211,7 @@ func TestStartCore_NilSettings(t *testing.T) {
 	core, err := StartCore(ctx, nil)
 	require.Error(t, err)
 	require.Nil(t, core)
-	require.Contains(t, err.Error(), "settings cannot be nil")
+	require.Contains(t, err.Error(), valueSettingsCannotBeNil)
 }
 
 // TestProvisionDatabase_UnsupportedScheme tests provisionDatabase with unsupported database URL.
@@ -292,7 +292,7 @@ func TestProvisionDatabase_SQLiteSchemePrefixURL(t *testing.T) {
 	ctx := context.Background()
 	settings := &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{
 		DevMode:      true,
-		DatabaseURL:  "sqlite://file::memory:?cache=shared", // sqlite:// prefix with in-memory DSN
+		DatabaseURL:  testSqliteFileMemoryCacheShared, // sqlite:// prefix with in-memory DSN
 		OTLPService:  "test-sqlite-scheme",
 		OTLPEnabled:  false,
 		OTLPEndpoint: cryptoutilSharedMagic.DefaultOTLPEndpointDefault,
@@ -384,37 +384,37 @@ func TestStripQueryParam(t *testing.T) {
 		{
 			name:      "strips sslmode=disable from URL with only that param",
 			rawURL:    "postgres://user:pass@host:5432/db?sslmode=disable",
-			paramName: "sslmode",
-			want:      "postgres://user:pass@host:5432/db",
+			paramName: valueSslmode,
+			want:      testPostgresUserPassHost5432DB,
 		},
 		{
 			name:      "strips sslmode=disable with trailing params",
 			rawURL:    "postgres://user:pass@host:5432/db?sslmode=disable&other=val",
-			paramName: "sslmode",
-			want:      "postgres://user:pass@host:5432/db?other=val",
+			paramName: valueSslmode,
+			want:      testPostgresUserPassHost5432DBOtherVal,
 		},
 		{
 			name:      "strips sslmode in middle of params",
 			rawURL:    "postgres://user:pass@host:5432/db?before=1&sslmode=disable&after=2",
-			paramName: "sslmode",
+			paramName: valueSslmode,
 			want:      "postgres://user:pass@host:5432/db?before=1&after=2",
 		},
 		{
 			name:      "no change when param absent",
-			rawURL:    "postgres://user:pass@host:5432/db?other=val",
-			paramName: "sslmode",
-			want:      "postgres://user:pass@host:5432/db?other=val",
+			rawURL:    testPostgresUserPassHost5432DBOtherVal,
+			paramName: valueSslmode,
+			want:      testPostgresUserPassHost5432DBOtherVal,
 		},
 		{
 			name:      "no query string — returns unchanged",
-			rawURL:    "postgres://user:pass@host:5432/db",
-			paramName: "sslmode",
-			want:      "postgres://user:pass@host:5432/db",
+			rawURL:    testPostgresUserPassHost5432DB,
+			paramName: valueSslmode,
+			want:      testPostgresUserPassHost5432DB,
 		},
 		{
 			name:      "strips only sslmode=verify-full not sslrootcert",
 			rawURL:    "postgres://host/db?sslmode=verify-full&sslrootcert=/certs/ca.crt",
-			paramName: "sslmode",
+			paramName: valueSslmode,
 			want:      "postgres://host/db?sslrootcert=/certs/ca.crt",
 		},
 	}
@@ -454,15 +454,15 @@ func TestProvisionDatabase_PostgreSQLContainerRequired(t *testing.T) {
 
 	// Start basic infrastructure.
 	settings := &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{
-		LogLevel:          "info",
+		LogLevel:          testInfo,
 		VerboseMode:       false,
-		OTLPEndpoint:      "grpc://localhost:4317",
-		OTLPService:       "test-service",
+		OTLPEndpoint:      testGrpcLocalhost4317,
+		OTLPService:       testTestService,
 		OTLPVersion:       cryptoutilSharedMagic.ServiceVersion,
-		OTLPEnvironment:   "test",
+		OTLPEnvironment:   testTest,
 		UnsealMode:        cryptoutilSharedMagic.DefaultUnsealModeSysInfo,
 		DatabaseURL:       testPostgresDSN,
-		DatabaseContainer: "required",
+		DatabaseContainer: valueRequired,
 	}
 
 	basic, err := StartBasic(ctx, settings)
@@ -498,15 +498,15 @@ func TestProvisionDatabase_PostgreSQLContainerPreferred(t *testing.T) {
 
 	// Start basic infrastructure.
 	settings := &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{
-		LogLevel:          "info",
+		LogLevel:          testInfo,
 		VerboseMode:       false,
-		OTLPEndpoint:      "grpc://localhost:4317",
-		OTLPService:       "test-service",
+		OTLPEndpoint:      testGrpcLocalhost4317,
+		OTLPService:       testTestService,
 		OTLPVersion:       cryptoutilSharedMagic.ServiceVersion,
-		OTLPEnvironment:   "test",
+		OTLPEnvironment:   testTest,
 		UnsealMode:        cryptoutilSharedMagic.DefaultUnsealModeSysInfo,
 		DatabaseURL:       testPostgresDSN,
-		DatabaseContainer: "preferred",
+		DatabaseContainer: testPreferred,
 	}
 
 	basic, err := StartBasic(ctx, settings)

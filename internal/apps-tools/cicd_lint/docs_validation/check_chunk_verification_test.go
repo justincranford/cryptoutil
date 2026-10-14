@@ -45,8 +45,8 @@ func TestVerifyChunks(t *testing.T) {
 		{
 			name: "all chunks found",
 			mappings: []ChunkMapping{
-				{ArchSection: "1.1", Description: "Test A", DestFile: testFileA, MarkerText: "marker-a"},
-				{ArchSection: "2.2", Description: "Test B", DestFile: testFileB, MarkerText: "marker-b"},
+				{ArchSection: test11, Description: testTestA, DestFile: testFileA, MarkerText: testMarkerA},
+				{ArchSection: test22, Description: testTestB, DestFile: testFileB, MarkerText: testMarkerB},
 			},
 			readFile: func(path string) ([]byte, error) {
 				switch path {
@@ -65,8 +65,8 @@ func TestVerifyChunks(t *testing.T) {
 		{
 			name: "missing marker",
 			mappings: []ChunkMapping{
-				{ArchSection: "1.1", Description: "Test A", DestFile: testFileA, MarkerText: "marker-a"},
-				{ArchSection: "2.2", Description: "Test B", DestFile: testFileB, MarkerText: "marker-b"},
+				{ArchSection: test11, Description: testTestA, DestFile: testFileA, MarkerText: testMarkerA},
+				{ArchSection: test22, Description: testTestB, DestFile: testFileB, MarkerText: testMarkerB},
 			},
 			readFile: func(path string) ([]byte, error) {
 				switch path {
@@ -85,7 +85,7 @@ func TestVerifyChunks(t *testing.T) {
 		{
 			name: "file read error",
 			mappings: []ChunkMapping{
-				{ArchSection: "1.1", Description: "Test A", DestFile: "missing.md", MarkerText: "marker-a"},
+				{ArchSection: test11, Description: testTestA, DestFile: testMissingMd, MarkerText: testMarkerA},
 			},
 			readFile: func(_ string) ([]byte, error) {
 				return nil, fmt.Errorf("permission denied")
@@ -107,8 +107,8 @@ func TestVerifyChunks(t *testing.T) {
 		{
 			name: "all markers missing",
 			mappings: []ChunkMapping{
-				{ArchSection: "1.1", Description: "Test A", DestFile: testFileA, MarkerText: "missing-a"},
-				{ArchSection: "2.2", Description: "Test B", DestFile: testFileB, MarkerText: "missing-b"},
+				{ArchSection: test11, Description: testTestA, DestFile: testFileA, MarkerText: "missing-a"},
+				{ArchSection: test22, Description: testTestB, DestFile: testFileB, MarkerText: "missing-b"},
 			},
 			readFile: func(_ string) ([]byte, error) {
 				return []byte("empty content"), nil
@@ -120,15 +120,15 @@ func TestVerifyChunks(t *testing.T) {
 		{
 			name: "mixed errors and missing",
 			mappings: []ChunkMapping{
-				{ArchSection: "1.1", Description: "Found", DestFile: testFileA, MarkerText: "exists"},
-				{ArchSection: "2.2", Description: "Error", DestFile: "bad.md", MarkerText: "x"},
-				{ArchSection: "3.3", Description: "Missing", DestFile: testFileC, MarkerText: "absent"},
+				{ArchSection: test11, Description: "Found", DestFile: testFileA, MarkerText: "exists"},
+				{ArchSection: test22, Description: "Error", DestFile: testBadMd, MarkerText: "x"},
+				{ArchSection: "3.3", Description: "Missing", DestFile: testFileC, MarkerText: testAbsent},
 			},
 			readFile: func(path string) ([]byte, error) {
 				switch path {
 				case testFileA:
 					return []byte("content with exists here"), nil
-				case "bad.md":
+				case testBadMd:
 					return nil, fmt.Errorf("disk error")
 				case testFileC:
 					return []byte("no match"), nil
@@ -176,25 +176,25 @@ func TestFormatVerificationResults(t *testing.T) {
 		{
 			name: "all pass",
 			results: []ChunkVerificationResult{
-				{Mapping: ChunkMapping{ArchSection: "1.1", Description: "A"}, Found: true},
-				{Mapping: ChunkMapping{ArchSection: "2.2", Description: "B"}, Found: true},
+				{Mapping: ChunkMapping{ArchSection: test11, Description: testA}, Found: true},
+				{Mapping: ChunkMapping{ArchSection: test22, Description: testB}, Found: true},
 			},
 			allPassed: true,
-			wantParts: []string{"PASS [1.1] A", "PASS [2.2] B", "Summary: 2 PASS, 0 FAIL", "verified successfully"},
+			wantParts: []string{testPass11A, "PASS [2.2] B", "Summary: 2 PASS, 0 FAIL", testVerifiedSuccessfully},
 		},
 		{
 			name: "some fail - missing",
 			results: []ChunkVerificationResult{
-				{Mapping: ChunkMapping{ArchSection: "1.1", Description: "A"}, Found: true},
-				{Mapping: ChunkMapping{ArchSection: "2.2", Description: "B", DestFile: testFileB, MarkerText: "marker"}, Found: false},
+				{Mapping: ChunkMapping{ArchSection: test11, Description: testA}, Found: true},
+				{Mapping: ChunkMapping{ArchSection: test22, Description: testB, DestFile: testFileB, MarkerText: "marker"}, Found: false},
 			},
 			allPassed: false,
-			wantParts: []string{"PASS [1.1] A", "FAIL [2.2] B", "Missing marker", "1 PASS, 1 FAIL", cryptoutilSharedMagic.TaskFailed},
+			wantParts: []string{testPass11A, "FAIL [2.2] B", "Missing marker", "1 PASS, 1 FAIL", cryptoutilSharedMagic.TaskFailed},
 		},
 		{
 			name: "error result",
 			results: []ChunkVerificationResult{
-				{Mapping: ChunkMapping{ArchSection: "1.1", Description: "A"}, Found: false, Error: fmt.Errorf("read error")},
+				{Mapping: ChunkMapping{ArchSection: test11, Description: testA}, Found: false, Error: fmt.Errorf("read error")},
 			},
 			allPassed: false,
 			wantParts: []string{"FAIL [1.1] A", "read error", "0 PASS, 1 FAIL", cryptoutilSharedMagic.TaskFailed},
@@ -203,7 +203,7 @@ func TestFormatVerificationResults(t *testing.T) {
 			name:      "empty results",
 			results:   []ChunkVerificationResult{},
 			allPassed: true,
-			wantParts: []string{"0 PASS, 0 FAIL", "verified successfully"},
+			wantParts: []string{"0 PASS, 0 FAIL", testVerifiedSuccessfully},
 		},
 	}
 
@@ -303,7 +303,7 @@ func TestCheckChunkVerificationWithRoot_Success(t *testing.T) {
 	exitCode := checkChunkVerificationWithRoot(rootDir, &stdout)
 
 	require.Equal(t, 0, exitCode, "should pass when using real project root: %s", stdout.String())
-	require.Contains(t, stdout.String(), "verified successfully")
+	require.Contains(t, stdout.String(), testVerifiedSuccessfully)
 }
 
 func TestRootedReadFile(t *testing.T) {

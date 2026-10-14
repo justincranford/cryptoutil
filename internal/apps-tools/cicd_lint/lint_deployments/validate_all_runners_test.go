@@ -102,7 +102,7 @@ func TestRunPortsValidation_SkipsInfrastructure(t *testing.T) {
 	t.Parallel()
 
 	deployments := []deploymentEntry{
-		{path: "/tmp/shared-postgres", name: "shared-postgres", level: DeploymentTypeInfrastructure},
+		{path: "/tmp/shared-postgres", name: postgresSharedDirName, level: DeploymentTypeInfrastructure},
 		{path: "/tmp/template", name: cryptoutilSharedMagic.SkeletonTemplateServiceName, level: DeploymentTypeTemplate},
 	}
 
@@ -161,7 +161,7 @@ func TestRunCertVolumePolicyValidation(t *testing.T) {
 			{path: "/nonexistent/path/service", name: cryptoutilSharedMagic.OTLPServiceSMKMS, level: DeploymentTypeProductService},
 			{path: "/nonexistent/path/template", name: cryptoutilSharedMagic.SkeletonTemplateServiceName, level: DeploymentTypeTemplate},
 			{path: "/nonexistent/path/product", name: cryptoutilSharedMagic.SMProductName, level: DeploymentTypeProduct},
-			{path: "/nonexistent/path/infra", name: "shared-postgres", level: DeploymentTypeInfrastructure},
+			{path: "/nonexistent/path/infra", name: postgresSharedDirName, level: DeploymentTypeInfrastructure},
 		}
 
 		result := &AllValidationResult{}

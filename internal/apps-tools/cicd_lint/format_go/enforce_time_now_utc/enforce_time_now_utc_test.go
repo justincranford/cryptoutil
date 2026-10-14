@@ -142,7 +142,7 @@ _ = ft.Now()
 			t.Parallel()
 
 			tmpDir := t.TempDir()
-			testFile := filepath.Join(tmpDir, "test.go")
+			testFile := filepath.Join(tmpDir, testTestGo)
 
 			err := os.WriteFile(testFile, []byte(tc.content), cryptoutilSharedMagic.CacheFilePermissions)
 			require.NoError(t, err)
@@ -259,7 +259,7 @@ func main() {
 		{
 			name: "integration with multiple replacements",
 			files: map[string]string{
-				"test.go": `package main
+				testTestGo: `package main
 
 import "time"
 
@@ -274,7 +274,7 @@ func main() {
 			validate: func(t *testing.T, dir string) {
 				t.Helper()
 
-				content, err := os.ReadFile(filepath.Join(dir, "test.go"))
+				content, err := os.ReadFile(filepath.Join(dir, testTestGo))
 				require.NoError(t, err)
 
 				modifiedStr := string(content)
@@ -285,11 +285,11 @@ func main() {
 		},
 		{
 			name:  "no modifications needed",
-			files: map[string]string{"test.go": noModContent},
+			files: map[string]string{testTestGo: noModContent},
 			validate: func(t *testing.T, dir string) {
 				t.Helper()
 
-				content, err := os.ReadFile(filepath.Join(dir, "test.go"))
+				content, err := os.ReadFile(filepath.Join(dir, testTestGo))
 				require.NoError(t, err)
 				require.Equal(t, noModContent, string(content))
 			},

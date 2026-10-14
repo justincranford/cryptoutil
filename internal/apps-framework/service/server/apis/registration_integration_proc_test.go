@@ -44,13 +44,13 @@ func TestIntegration_ListJoinRequests(t *testing.T) {
 		ID:       googleUuid.New(),
 		TenantID: tenant.ID,
 		UserID:   &userID1,
-		Status:   "pending",
+		Status:   testJoinRequestPendingStatus,
 	}
 	jr2 := &cryptoutilAppsFrameworkServiceServerDomain.TenantJoinRequest{
 		ID:       googleUuid.New(),
 		TenantID: tenant.ID,
 		UserID:   &userID2,
-		Status:   "pending",
+		Status:   testJoinRequestPendingStatus,
 	}
 
 	require.NoError(t, testDB.Create(jr1).Error)
@@ -93,7 +93,7 @@ func TestIntegration_ProcessJoinRequest_Approve(t *testing.T) {
 		ID:       googleUuid.New(),
 		TenantID: tenant.ID,
 		UserID:   &userID,
-		Status:   "pending",
+		Status:   testJoinRequestPendingStatus,
 	}
 	require.NoError(t, testDB.Create(jr).Error)
 
@@ -138,7 +138,7 @@ func TestIntegration_ProcessJoinRequest_Reject(t *testing.T) {
 		ID:       googleUuid.New(),
 		TenantID: tenant.ID,
 		UserID:   &userID,
-		Status:   "pending",
+		Status:   testJoinRequestPendingStatus,
 	}
 	require.NoError(t, testDB.Create(jr).Error)
 
@@ -186,7 +186,7 @@ func TestIntegration_DuplicateUsername_SameTenant(t *testing.T) {
 		ID:       googleUuid.New(),
 		TenantID: tenant.ID,
 		UserID:   &userID1,
-		Status:   "pending",
+		Status:   testJoinRequestPendingStatus,
 	}
 	require.NoError(t, testDB.Create(jr1).Error)
 
@@ -200,7 +200,7 @@ func TestIntegration_DuplicateUsername_SameTenant(t *testing.T) {
 	}
 	bodyBytes, _ := json.Marshal(reqBody) //nolint:gosec // G117: test fixture marshaling registration request; password is a test placeholder
 
-	req := httptest.NewRequest(http.MethodPost, "/browser/api/v1/auth/register", bytes.NewReader(bodyBytes))
+	req := httptest.NewRequest(http.MethodPost, testRegisterUserPath, bytes.NewReader(bodyBytes))
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := testRegistrationApp.Test(req, -1)
@@ -221,7 +221,7 @@ func TestIntegration_DuplicateUsername_SameTenant(t *testing.T) {
 func TestIntegration_RegisterUser_InvalidJSON(t *testing.T) {
 	t.Parallel()
 
-	req := httptest.NewRequest(http.MethodPost, "/browser/api/v1/auth/register", bytes.NewReader([]byte("{invalid json")))
+	req := httptest.NewRequest(http.MethodPost, testRegisterUserPath, bytes.NewReader([]byte("{invalid json")))
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := testRegistrationApp.Test(req, -1)
@@ -234,7 +234,7 @@ func TestIntegration_RegisterUser_InvalidJSON(t *testing.T) {
 	var result map[string]any
 	require.NoError(t, json.NewDecoder(resp.Body).Decode(&result))
 	require.Contains(t, result, cryptoutilSharedMagic.StringError)
-	require.Contains(t, result[cryptoutilSharedMagic.StringError], "Invalid request body")
+	require.Contains(t, result[cryptoutilSharedMagic.StringError], valueInvalidRequestBody)
 }
 
 // TestIntegration_ListJoinRequests_NoRequests tests list when no requests exist.

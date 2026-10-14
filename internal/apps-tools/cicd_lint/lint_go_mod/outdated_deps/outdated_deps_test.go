@@ -104,7 +104,7 @@ func TestCheckOutdatedDeps_CacheWithError(t *testing.T) {
 		LastCheck:    time.Now().UTC(),
 		GoModModTime: goModStat.ModTime(),
 		GoSumModTime: goSumStat.ModTime(),
-		OutdatedDeps: []string{"example.com/dep v1.0.0 [v1.1.0]"},
+		OutdatedDeps: []string{testExampleComDepV100V110},
 		Mode:         cryptoutilSharedMagic.ModeNameDirect,
 	}
 

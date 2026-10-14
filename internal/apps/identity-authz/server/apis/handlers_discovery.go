@@ -18,19 +18,19 @@ func (s *Service) handleOAuthMetadata(c *fiber.Ctx) error {
 	baseURL := s.config.Tokens.Issuer
 
 	metadata := fiber.Map{
-		"issuer":                                baseURL,
-		"authorization_endpoint":                fmt.Sprintf("%s/oauth2/v1/authorize", baseURL),
-		"token_endpoint":                        fmt.Sprintf("%s/oauth2/v1/token", baseURL),
-		"introspection_endpoint":                fmt.Sprintf("%s/oauth2/v1/introspect", baseURL),
-		"revocation_endpoint":                   fmt.Sprintf("%s/oauth2/v1/revoke", baseURL),
-		"jwks_uri":                              fmt.Sprintf("%s/oauth2/v1/jwks", baseURL),
-		"grant_types_supported":                 []string{cryptoutilSharedMagic.GrantTypeAuthorizationCode, cryptoutilSharedMagic.GrantTypeRefreshToken, cryptoutilSharedMagic.GrantTypeClientCredentials},
-		"response_types_supported":              []string{cryptoutilSharedMagic.ResponseTypeCode},
-		"response_modes_supported":              []string{cryptoutilSharedMagic.ResponseModeQuery, cryptoutilSharedMagic.ResponseModeFragment},
-		"code_challenge_methods_supported":      []string{cryptoutilSharedMagic.PKCEMethodS256},
-		"token_endpoint_auth_methods_supported": []string{cryptoutilSharedMagic.ClientAuthMethodSecretPost, cryptoutilSharedMagic.ClientAuthMethodSecretBasic},
-		"scopes_supported":                      []string{cryptoutilSharedMagic.ScopeOpenID, cryptoutilSharedMagic.ClaimProfile, cryptoutilSharedMagic.ClaimEmail, cryptoutilSharedMagic.ScopeRead, cryptoutilSharedMagic.ScopeWrite},
-		"service_documentation":                 fmt.Sprintf("%s/docs", baseURL),
+		valueIssuer:                            baseURL,
+		valueAuthorizationEndpoint:             fmt.Sprintf("%s/oauth2/v1/authorize", baseURL),
+		valueTokenEndpoint:                     fmt.Sprintf("%s/oauth2/v1/token", baseURL),
+		valueIntrospectionEndpoint:             fmt.Sprintf("%s/oauth2/v1/introspect", baseURL),
+		valueRevocationEndpoint:                fmt.Sprintf("%s/oauth2/v1/revoke", baseURL),
+		valueJwksURI:                           fmt.Sprintf("%s/oauth2/v1/jwks", baseURL),
+		valueGrantTypesSupported:               []string{cryptoutilSharedMagic.GrantTypeAuthorizationCode, cryptoutilSharedMagic.GrantTypeRefreshToken, cryptoutilSharedMagic.GrantTypeClientCredentials},
+		valueResponseTypesSupported:            []string{cryptoutilSharedMagic.ResponseTypeCode},
+		valueResponseModesSupported:            []string{cryptoutilSharedMagic.ResponseModeQuery, cryptoutilSharedMagic.ResponseModeFragment},
+		valueCodeChallengeMethodsSupported:     []string{cryptoutilSharedMagic.PKCEMethodS256},
+		valueTokenEndpointAuthMethodsSupported: []string{cryptoutilSharedMagic.ClientAuthMethodSecretPost, cryptoutilSharedMagic.ClientAuthMethodSecretBasic},
+		valueScopesSupported:                   []string{cryptoutilSharedMagic.ScopeOpenID, cryptoutilSharedMagic.ClaimProfile, cryptoutilSharedMagic.ClaimEmail, cryptoutilSharedMagic.ScopeRead, cryptoutilSharedMagic.ScopeWrite},
+		valueServiceDocumentation:              fmt.Sprintf("%s/docs", baseURL),
 	}
 
 	return c.JSON(metadata) //nolint:wrapcheck // Fiber JSON returns internal error
@@ -42,21 +42,21 @@ func (s *Service) handleOIDCDiscovery(c *fiber.Ctx) error {
 	baseURL := s.config.Tokens.Issuer
 
 	metadata := fiber.Map{
-		"issuer":                                baseURL,
-		"authorization_endpoint":                fmt.Sprintf("%s/oauth2/v1/authorize", baseURL),
-		"token_endpoint":                        fmt.Sprintf("%s/oauth2/v1/token", baseURL),
+		valueIssuer:                             baseURL,
+		valueAuthorizationEndpoint:              fmt.Sprintf("%s/oauth2/v1/authorize", baseURL),
+		valueTokenEndpoint:                      fmt.Sprintf("%s/oauth2/v1/token", baseURL),
 		"userinfo_endpoint":                     fmt.Sprintf("%s/oauth2/v1/userinfo", baseURL),
-		"introspection_endpoint":                fmt.Sprintf("%s/oauth2/v1/introspect", baseURL),
-		"revocation_endpoint":                   fmt.Sprintf("%s/oauth2/v1/revoke", baseURL),
-		"jwks_uri":                              fmt.Sprintf("%s/oauth2/v1/jwks", baseURL),
-		"grant_types_supported":                 []string{cryptoutilSharedMagic.GrantTypeAuthorizationCode, cryptoutilSharedMagic.GrantTypeRefreshToken, cryptoutilSharedMagic.GrantTypeClientCredentials},
-		"response_types_supported":              []string{cryptoutilSharedMagic.ResponseTypeCode, cryptoutilSharedMagic.ParamIDToken, "token id_token"},
-		"response_modes_supported":              []string{cryptoutilSharedMagic.ResponseModeQuery, cryptoutilSharedMagic.ResponseModeFragment},
+		valueIntrospectionEndpoint:              fmt.Sprintf("%s/oauth2/v1/introspect", baseURL),
+		valueRevocationEndpoint:                 fmt.Sprintf("%s/oauth2/v1/revoke", baseURL),
+		valueJwksURI:                            fmt.Sprintf("%s/oauth2/v1/jwks", baseURL),
+		valueGrantTypesSupported:                []string{cryptoutilSharedMagic.GrantTypeAuthorizationCode, cryptoutilSharedMagic.GrantTypeRefreshToken, cryptoutilSharedMagic.GrantTypeClientCredentials},
+		valueResponseTypesSupported:             []string{cryptoutilSharedMagic.ResponseTypeCode, cryptoutilSharedMagic.ParamIDToken, "token id_token"},
+		valueResponseModesSupported:             []string{cryptoutilSharedMagic.ResponseModeQuery, cryptoutilSharedMagic.ResponseModeFragment},
 		"subject_types_supported":               []string{cryptoutilSharedMagic.SubjectTypePublic},
 		"id_token_signing_alg_values_supported": []string{cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm, cryptoutilSharedMagic.JoseAlgES256},
-		"code_challenge_methods_supported":      []string{cryptoutilSharedMagic.PKCEMethodS256},
-		"token_endpoint_auth_methods_supported": []string{cryptoutilSharedMagic.ClientAuthMethodSecretPost, cryptoutilSharedMagic.ClientAuthMethodSecretBasic},
-		"scopes_supported":                      []string{cryptoutilSharedMagic.ScopeOpenID, cryptoutilSharedMagic.ClaimProfile, cryptoutilSharedMagic.ClaimEmail, cryptoutilSharedMagic.ClaimAddress, cryptoutilSharedMagic.ScopePhone},
+		valueCodeChallengeMethodsSupported:      []string{cryptoutilSharedMagic.PKCEMethodS256},
+		valueTokenEndpointAuthMethodsSupported:  []string{cryptoutilSharedMagic.ClientAuthMethodSecretPost, cryptoutilSharedMagic.ClientAuthMethodSecretBasic},
+		valueScopesSupported:                    []string{cryptoutilSharedMagic.ScopeOpenID, cryptoutilSharedMagic.ClaimProfile, cryptoutilSharedMagic.ClaimEmail, cryptoutilSharedMagic.ClaimAddress, cryptoutilSharedMagic.ScopePhone},
 		"claims_supported": []string{
 			cryptoutilSharedMagic.ClaimSub, cryptoutilSharedMagic.ClaimIss, cryptoutilSharedMagic.ClaimAud, cryptoutilSharedMagic.ClaimExp, cryptoutilSharedMagic.ClaimIat, cryptoutilSharedMagic.ClaimAuthTime, cryptoutilSharedMagic.ClaimNonce, cryptoutilSharedMagic.ClaimAcr, cryptoutilSharedMagic.ClaimAmr, cryptoutilSharedMagic.ClaimAzp,
 			cryptoutilSharedMagic.ClaimName, cryptoutilSharedMagic.ClaimGivenName, cryptoutilSharedMagic.ClaimFamilyName, cryptoutilSharedMagic.ClaimMiddleName, cryptoutilSharedMagic.ClaimNickname, cryptoutilSharedMagic.ClaimPreferredUsername,
@@ -67,7 +67,7 @@ func (s *Service) handleOIDCDiscovery(c *fiber.Ctx) error {
 		"request_uri_parameter_supported":  false,
 		"require_request_uri_registration": false,
 		"claims_parameter_supported":       false,
-		"service_documentation":            fmt.Sprintf("%s/docs", baseURL),
+		valueServiceDocumentation:          fmt.Sprintf("%s/docs", baseURL),
 	}
 
 	return c.JSON(metadata) //nolint:wrapcheck // Fiber JSON returns internal error

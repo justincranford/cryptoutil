@@ -57,8 +57,8 @@ var DefaultBrowserRealms = []string{
 	"jws-session-cookie",      // Browser Realm #2: JWS Session Cookie (signed session tokens)
 	"opaque-session-cookie",   // Browser Realm #3: Opaque Session Cookie (database-backed session tokens)
 	"basic-username-password", // Browser Realm #4: Basic (Username/Password) - HTTP Basic auth with user credentials
-	"bearer-api-token",        // Browser Realm #5: Bearer (API Token) - Bearer token authentication from browser
-	"https-client-cert",       // Browser Realm #6: HTTPS Client Certificate - mTLS client certificate from browser
+	valueBearerAPIToken,       // Browser Realm #5: Bearer (API Token) - Bearer token authentication from browser
+	valueHTTPSClientCert,      // Browser Realm #6: HTTPS Client Certificate - mTLS client certificate from browser
 }
 
 // DefaultServiceRealms - Default service realm configuration files (6 non-federated token-based auth methods).
@@ -68,8 +68,8 @@ var DefaultServiceRealms = []string{
 	"jws-session-token",      // Service Realm #2: JWS Session Token (signed session tokens for headless clients)
 	"opaque-session-token",   // Service Realm #3: Opaque Session Token (non-JWT session tokens)
 	"basic-client-id-secret", // Service Realm #4: Basic (Client ID/Secret) - HTTP Basic with client credentials
-	"bearer-api-token",       // Service Realm #5: Bearer (API Token) - Long-lived service credentials
-	"https-client-cert",      // Service Realm #6: HTTPS Client Certificate - mTLS for high-security service-to-service
+	valueBearerAPIToken,      // Service Realm #5: Bearer (API Token) - Long-lived service credentials
+	valueHTTPSClientCert,     // Service Realm #6: HTTPS Client Certificate - mTLS for high-security service-to-service
 }
 
 // Realm configuration validation constants.

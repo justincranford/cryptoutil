@@ -84,9 +84,9 @@ func TestNewWebAuthnAuthenticator(t *testing.T) {
 		{
 			name: "valid configuration creates authenticator successfully",
 			config: &WebAuthnConfig{
-				RPID:          "example.com",
-				RPDisplayName: "Example Corp",
-				RPOrigins:     []string{"https://example.com"},
+				RPID:          testExampleCom,
+				RPDisplayName: testExampleCorp,
+				RPOrigins:     []string{testHTTPSExampleCom},
 				Timeout:       cryptoutilSharedMagic.DefaultOTPLifetime,
 			},
 			credentialStore: newMockCredentialStore(),
@@ -104,9 +104,9 @@ func TestNewWebAuthnAuthenticator(t *testing.T) {
 		{
 			name: "nil credential store returns error",
 			config: &WebAuthnConfig{
-				RPID:          "example.com",
-				RPDisplayName: "Example Corp",
-				RPOrigins:     []string{"https://example.com"},
+				RPID:          testExampleCom,
+				RPDisplayName: testExampleCorp,
+				RPOrigins:     []string{testHTTPSExampleCom},
 			},
 			credentialStore:   nil,
 			challengeStore:    newMockChallengeStore(),
@@ -116,9 +116,9 @@ func TestNewWebAuthnAuthenticator(t *testing.T) {
 		{
 			name: "nil challenge store returns error",
 			config: &WebAuthnConfig{
-				RPID:          "example.com",
-				RPDisplayName: "Example Corp",
-				RPOrigins:     []string{"https://example.com"},
+				RPID:          testExampleCom,
+				RPDisplayName: testExampleCorp,
+				RPOrigins:     []string{testHTTPSExampleCom},
 			},
 			credentialStore:   newMockCredentialStore(),
 			challengeStore:    nil,
@@ -128,9 +128,9 @@ func TestNewWebAuthnAuthenticator(t *testing.T) {
 		{
 			name: "zero timeout defaults to DefaultOTPLifetime",
 			config: &WebAuthnConfig{
-				RPID:          "example.com",
-				RPDisplayName: "Example Corp",
-				RPOrigins:     []string{"https://example.com"},
+				RPID:          testExampleCom,
+				RPDisplayName: testExampleCorp,
+				RPOrigins:     []string{testHTTPSExampleCom},
 				Timeout:       0,
 			},
 			credentialStore: newMockCredentialStore(),
@@ -153,7 +153,7 @@ func TestNewWebAuthnAuthenticator(t *testing.T) {
 			} else {
 				require.NoError(t, err)
 				require.NotNil(t, auth)
-				require.Equal(t, "passkey_webauthn", auth.Method())
+				require.Equal(t, valuePasskeyWebauthn, auth.Method())
 
 				if tc.config.Timeout == 0 {
 					require.Equal(t, cryptoutilSharedMagic.DefaultOTPLifetime, auth.config.Timeout)
@@ -182,7 +182,7 @@ func TestWebAuthnAuthenticator_BeginRegistration(t *testing.T) {
 			user: &cryptoutilIdentityDomain.User{
 				ID:                userID1,
 				PreferredUsername: "test-user-webauthn-reg-new",
-				Name:              "Test User",
+				Name:              testTestUser,
 			},
 			existingCreds: nil,
 			wantError:     false,
@@ -192,7 +192,7 @@ func TestWebAuthnAuthenticator_BeginRegistration(t *testing.T) {
 			user: &cryptoutilIdentityDomain.User{
 				ID:                userID2,
 				PreferredUsername: "test-user-webauthn-reg-existing",
-				Name:              "Test User",
+				Name:              testTestUser,
 			},
 			existingCreds: []*Credential{
 				{
@@ -233,9 +233,9 @@ func TestWebAuthnAuthenticator_BeginRegistration(t *testing.T) {
 			}
 
 			config := &WebAuthnConfig{
-				RPID:          "example.com",
-				RPDisplayName: "Example Corp",
-				RPOrigins:     []string{"https://example.com"},
+				RPID:          testExampleCom,
+				RPDisplayName: testExampleCorp,
+				RPOrigins:     []string{testHTTPSExampleCom},
 				Timeout:       cryptoutilSharedMagic.DefaultOTPLifetime,
 			}
 
@@ -314,9 +314,9 @@ func TestWebAuthnAuthenticator_InitiateAuth(t *testing.T) {
 			}
 
 			config := &WebAuthnConfig{
-				RPID:          "example.com",
-				RPDisplayName: "Example Corp",
-				RPOrigins:     []string{"https://example.com"},
+				RPID:          testExampleCom,
+				RPDisplayName: testExampleCorp,
+				RPOrigins:     []string{testHTTPSExampleCom},
 				Timeout:       cryptoutilSharedMagic.DefaultOTPLifetime,
 			}
 
@@ -332,12 +332,12 @@ func TestWebAuthnAuthenticator_InitiateAuth(t *testing.T) {
 			} else {
 				require.NoError(t, err)
 				require.NotNil(t, challenge)
-				require.Equal(t, "passkey_webauthn", challenge.Method)
+				require.Equal(t, valuePasskeyWebauthn, challenge.Method)
 				require.Equal(t, tc.userID, challenge.UserID)
 				require.True(t, challenge.ExpiresAt.After(time.Now().UTC()))
-				require.Contains(t, challenge.Metadata, "session_data")
-				require.Contains(t, challenge.Metadata, "operation")
-				require.Equal(t, "authentication", challenge.Metadata["operation"])
+				require.Contains(t, challenge.Metadata, valueSessionData)
+				require.Contains(t, challenge.Metadata, valueOperation)
+				require.Equal(t, "authentication", challenge.Metadata[valueOperation])
 			}
 		})
 	}
@@ -351,9 +351,9 @@ func TestWebAuthnAuthenticator_ChallengeExpiration(t *testing.T) {
 	challengeStore := newMockChallengeStore()
 
 	config := &WebAuthnConfig{
-		RPID:          "example.com",
-		RPDisplayName: "Example Corp",
-		RPOrigins:     []string{"https://example.com"},
+		RPID:          testExampleCom,
+		RPDisplayName: testExampleCorp,
+		RPOrigins:     []string{testHTTPSExampleCom},
 		Timeout:       1 * time.Millisecond, // Very short timeout for test.
 	}
 
@@ -363,7 +363,7 @@ func TestWebAuthnAuthenticator_ChallengeExpiration(t *testing.T) {
 	user := &cryptoutilIdentityDomain.User{
 		ID:                googleUuid.Must(googleUuid.NewV7()),
 		PreferredUsername: "test-user-webauthn-expiration",
-		Name:              "Test User",
+		Name:              testTestUser,
 	}
 
 	// Begin registration.
@@ -390,16 +390,16 @@ func TestWebAuthnAuthenticator_Method(t *testing.T) {
 	challengeStore := newMockChallengeStore()
 
 	config := &WebAuthnConfig{
-		RPID:          "example.com",
-		RPDisplayName: "Example Corp",
-		RPOrigins:     []string{"https://example.com"},
+		RPID:          testExampleCom,
+		RPDisplayName: testExampleCorp,
+		RPOrigins:     []string{testHTTPSExampleCom},
 		Timeout:       cryptoutilSharedMagic.DefaultOTPLifetime,
 	}
 
 	auth, err := NewWebAuthnAuthenticator(config, credStore, challengeStore)
 	require.NoError(t, err)
 
-	require.Equal(t, "passkey_webauthn", auth.Method())
+	require.Equal(t, valuePasskeyWebauthn, auth.Method())
 }
 
 func TestWebAuthnUser_Adapter(t *testing.T) {

@@ -27,11 +27,11 @@ func TestValidateCertVolumePolicy(t *testing.T) {
 			wantValid:      true,
 		},
 		{
-			name:           "forbidden cert bind mount",
+			name:           testForbiddenCertBindMount,
 			deploymentName: cryptoutilSharedMagic.OTLPServiceSMKMS,
 			composeContent: "services:\n  pki-init:\n    volumes:\n      - ./certs:/certs:rw\n  sm-kms-app:\n    volumes:\n      - sm-kms-certs:/certs:ro\nvolumes:\n  sm-kms-certs:\n",
 			wantValid:      false,
-			wantErrText:    "forbidden cert bind mount",
+			wantErrText:    testForbiddenCertBindMount,
 		},
 		{
 			name:           "missing top-level volume declaration",

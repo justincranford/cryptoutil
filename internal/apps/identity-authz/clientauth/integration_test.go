@@ -57,7 +57,7 @@ func TestRegistry_AllAuthMethods(t *testing.T) {
 
 	config := &cryptoutilIdentityConfig.Config{
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{
-			Issuer: "https://authz.example.com",
+			Issuer: testHTTPSAuthzExampleCom,
 		},
 	}
 
@@ -88,7 +88,7 @@ func TestRegistry_UnknownMethod(t *testing.T) {
 	repoFactory, _ := getTestRepository(t)
 	config := &cryptoutilIdentityConfig.Config{
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{
-			Issuer: "https://authz.example.com",
+			Issuer: testHTTPSAuthzExampleCom,
 		},
 	}
 
@@ -104,7 +104,7 @@ func TestRegistry_RegisterCustomAuthenticator(t *testing.T) {
 	repoFactory, _ := getTestRepository(t)
 	config := &cryptoutilIdentityConfig.Config{
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{
-			Issuer: "https://authz.example.com",
+			Issuer: testHTTPSAuthzExampleCom,
 		},
 	}
 
@@ -147,7 +147,7 @@ func TestClientAuthentication_MultiSecretValidation(t *testing.T) {
 	client := &cryptoutilIdentityDomain.Client{
 		ID:                      googleUuid.Must(googleUuid.NewV7()),
 		ClientID:                "test-multi-secret-client",
-		ClientSecret:            "will-be-replaced-by-create",
+		ClientSecret:            testWillBeReplacedByCreate,
 		ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
 		Name:                    "Multi-Secret Test Client",
 		TokenEndpointAuthMethod: cryptoutilIdentityDomain.ClientAuthMethodSecretPost,
@@ -195,7 +195,7 @@ func TestClientAuthentication_OldSecretExpired(t *testing.T) {
 	client := &cryptoutilIdentityDomain.Client{
 		ID:                      googleUuid.Must(googleUuid.NewV7()),
 		ClientID:                "test-expired-secret-client",
-		ClientSecret:            "will-be-replaced-by-create",
+		ClientSecret:            testWillBeReplacedByCreate,
 		ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
 		Name:                    "Expired Secret Test Client",
 		TokenEndpointAuthMethod: cryptoutilIdentityDomain.ClientAuthMethodSecretPost,
@@ -254,7 +254,7 @@ func TestClientAuthentication_NewSecretImmediate(t *testing.T) {
 	client := &cryptoutilIdentityDomain.Client{
 		ID:                      googleUuid.Must(googleUuid.NewV7()),
 		ClientID:                "test-immediate-secret-client",
-		ClientSecret:            "will-be-replaced-by-create",
+		ClientSecret:            testWillBeReplacedByCreate,
 		ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
 		Name:                    "Immediate Secret Test Client",
 		TokenEndpointAuthMethod: cryptoutilIdentityDomain.ClientAuthMethodSecretPost,
@@ -294,7 +294,7 @@ func TestClientAuthentication_RevokedSecretRejected(t *testing.T) {
 	client := &cryptoutilIdentityDomain.Client{
 		ID:                      googleUuid.Must(googleUuid.NewV7()),
 		ClientID:                "test-revoked-secret-client",
-		ClientSecret:            "will-be-replaced-by-create",
+		ClientSecret:            testWillBeReplacedByCreate,
 		ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
 		Name:                    "Revoked Secret Test Client",
 		TokenEndpointAuthMethod: cryptoutilIdentityDomain.ClientAuthMethodSecretPost,

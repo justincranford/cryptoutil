@@ -48,7 +48,7 @@ func TestHandleRegisterUser_InvalidJSON(t *testing.T) {
 
 	err = json.Unmarshal(body, &response)
 	require.NoError(t, err)
-	require.Contains(t, response[cryptoutilSharedMagic.StringError], "Invalid request body")
+	require.Contains(t, response[cryptoutilSharedMagic.StringError], valueInvalidRequestBody)
 }
 
 // TestHandleRegisterUser_MissingFields tests registration with missing username/password.
@@ -68,24 +68,24 @@ func TestHandleRegisterUser_MissingFields(t *testing.T) {
 		wantErr string
 	}{
 		{
-			name:    "missing username",
-			body:    map[string]string{"password": "SecurePass123!"},
-			wantErr: "Username and password are required",
+			name:    testMissingUsername,
+			body:    map[string]string{testPasswordFieldName: testSecurePass123},
+			wantErr: valueUsernameAndPasswordAreRequired,
 		},
 		{
-			name:    "missing password",
-			body:    map[string]string{"username": "testuser"},
-			wantErr: "Username and password are required",
+			name:    testMissingPassword,
+			body:    map[string]string{valueUsername: testTestuser},
+			wantErr: valueUsernameAndPasswordAreRequired,
 		},
 		{
 			name:    "empty username",
-			body:    map[string]string{"username": "", "password": "SecurePass123!"},
-			wantErr: "Username and password are required",
+			body:    map[string]string{valueUsername: "", testPasswordFieldName: testSecurePass123},
+			wantErr: valueUsernameAndPasswordAreRequired,
 		},
 		{
 			name:    "empty password",
-			body:    map[string]string{"username": "testuser", "password": ""},
-			wantErr: "Username and password are required",
+			body:    map[string]string{valueUsername: testTestuser, testPasswordFieldName: ""},
+			wantErr: valueUsernameAndPasswordAreRequired,
 		},
 	}
 
@@ -136,13 +136,13 @@ func TestHandleRegisterUser_UsernameLengthValidation(t *testing.T) {
 	}{
 		{
 			name:     "username too short",
-			username: "ab",
-			wantErr:  "username must be 3-50 characters",
+			username: testAb,
+			wantErr:  valueUsernameMustBe350Characters,
 		},
 		{
 			name:     "username too long",
 			username: "a" + string(make([]byte, cryptoutilSharedMagic.IMMaxUsernameLength)), // 51 characters
-			wantErr:  "username must be 3-50 characters",
+			wantErr:  valueUsernameMustBe350Characters,
 		},
 	}
 
@@ -151,8 +151,8 @@ func TestHandleRegisterUser_UsernameLengthValidation(t *testing.T) {
 			t.Parallel()
 
 			bodyBytes, err := json.Marshal(map[string]string{
-				"username": tt.username,
-				"password": "SecurePass123!",
+				valueUsername:         tt.username,
+				testPasswordFieldName: testSecurePass123,
 			})
 			require.NoError(t, err)
 
@@ -190,8 +190,8 @@ func TestHandleRegisterUser_PasswordTooShort(t *testing.T) {
 	app.Post(cryptoutilSharedMagic.PathRegistration, svc.HandleRegisterUser())
 
 	bodyBytes, err := json.Marshal(map[string]string{
-		"username": "testuser",
-		"password": "short", // less than 8 characters
+		valueUsername:         testTestuser,
+		testPasswordFieldName: "short", // less than 8 characters
 	})
 	require.NoError(t, err)
 
@@ -227,8 +227,8 @@ func TestHandleRegisterUser_Success(t *testing.T) {
 	app.Post(cryptoutilSharedMagic.PathRegistration, svc.HandleRegisterUser())
 
 	bodyBytes, err := json.Marshal(map[string]string{
-		"username": "testuser",
-		"password": "SecurePass123!",
+		valueUsername:         testTestuser,
+		testPasswordFieldName: testSecurePass123,
 	})
 	require.NoError(t, err)
 
@@ -249,7 +249,7 @@ func TestHandleRegisterUser_Success(t *testing.T) {
 
 	err = json.Unmarshal(body, &response)
 	require.NoError(t, err)
-	require.Equal(t, "testuser", response["username"])
+	require.Equal(t, testTestuser, response[valueUsername])
 	require.NotEmpty(t, response["user_id"])
 }
 
@@ -267,8 +267,8 @@ func TestHandleRegisterUser_DuplicateUsernameSQLite(t *testing.T) {
 	app.Post(cryptoutilSharedMagic.PathRegistration, svc.HandleRegisterUser())
 
 	bodyBytes, err := json.Marshal(map[string]string{
-		"username": "existinguser",
-		"password": "SecurePass123!",
+		valueUsername:         testExistinguser,
+		testPasswordFieldName: testSecurePass123,
 	})
 	require.NoError(t, err)
 
@@ -307,8 +307,8 @@ func TestHandleRegisterUser_DuplicateUsernamePostgreSQL(t *testing.T) {
 	app.Post(cryptoutilSharedMagic.PathRegistration, svc.HandleRegisterUser())
 
 	bodyBytes, err := json.Marshal(map[string]string{
-		"username": "existinguser",
-		"password": "SecurePass123!",
+		valueUsername:         testExistinguser,
+		testPasswordFieldName: testSecurePass123,
 	})
 	require.NoError(t, err)
 
@@ -347,8 +347,8 @@ func TestHandleRegisterUser_GenericError(t *testing.T) {
 	app.Post(cryptoutilSharedMagic.PathRegistration, svc.HandleRegisterUser())
 
 	bodyBytes, err := json.Marshal(map[string]string{
-		"username": "newuser",
-		"password": "SecurePass123!",
+		valueUsername:         "newuser",
+		testPasswordFieldName: testSecurePass123,
 	})
 	require.NoError(t, err)
 
@@ -401,7 +401,7 @@ func TestHandleLoginUser_InvalidJSON(t *testing.T) {
 
 	err = json.Unmarshal(body, &response)
 	require.NoError(t, err)
-	require.Contains(t, response[cryptoutilSharedMagic.StringError], "Invalid request body")
+	require.Contains(t, response[cryptoutilSharedMagic.StringError], valueInvalidRequestBody)
 }
 
 // TestHandleLoginUser_MissingFields tests login with missing username/password.
@@ -421,14 +421,14 @@ func TestHandleLoginUser_MissingFields(t *testing.T) {
 		wantErr string
 	}{
 		{
-			name:    "missing username",
-			body:    map[string]string{"password": "SecurePass123!"},
-			wantErr: "Username and password are required",
+			name:    testMissingUsername,
+			body:    map[string]string{testPasswordFieldName: testSecurePass123},
+			wantErr: valueUsernameAndPasswordAreRequired,
 		},
 		{
-			name:    "missing password",
-			body:    map[string]string{"username": "testuser"},
-			wantErr: "Username and password are required",
+			name:    testMissingPassword,
+			body:    map[string]string{valueUsername: testTestuser},
+			wantErr: valueUsernameAndPasswordAreRequired,
 		},
 	}
 

@@ -20,7 +20,6 @@ import (
 )
 
 const (
-	defaultCAValidity          = cryptoutilSharedMagic.TLSDefaultMaxCACertDuration
 	defaultCRLValidity         = cryptoutilSharedMagic.Days7
 	defaultCRLNextUpdateBuffer = cryptoutilSharedMagic.Days1
 	defaultOCSPValidity        = cryptoutilSharedMagic.Days1
@@ -86,8 +85,8 @@ func newPKIComponents(factories pkiComponentFactories) (*PKIComponents, error) {
 		Issuer:           caCert,
 		PrivateKey:       caKeySigner,
 		Provider:         factories.provider,
-		Validity:         defaultCRLValidity,
-		NextUpdateBuffer: defaultCRLNextUpdateBuffer,
+		Validity:         cryptoutilSharedMagic.Days7,
+		NextUpdateBuffer: cryptoutilSharedMagic.Days1,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to create CRL service: %w", err)
@@ -98,7 +97,7 @@ func newPKIComponents(factories pkiComponentFactories) (*PKIComponents, error) {
 		Responder:    caCert,
 		ResponderKey: caKeySigner,
 		Provider:     factories.provider,
-		Validity:     defaultOCSPValidity,
+		Validity:     cryptoutilSharedMagic.Days1,
 	}, crlService)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create OCSP service: %w", err)
@@ -149,7 +148,7 @@ func createSelfSignedCA(provider cryptoutilCACrypto.Provider, randomReader io.Re
 		return nil, nil, fmt.Errorf("failed to generate CA key: %w", err)
 	}
 
-	serialNumber, err := crand.Int(randomReader, new(big.Int).Lsh(big.NewInt(1), serialNumberBitSize))
+	serialNumber, err := crand.Int(randomReader, new(big.Int).Lsh(big.NewInt(1), cryptoutilSharedMagic.PKICASerialNumberBits))
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to generate serial number: %w", err)
 	}
@@ -167,7 +166,7 @@ func createSelfSignedCA(provider cryptoutilCACrypto.Provider, randomReader io.Re
 			Country:      []string{"US"},
 		},
 		NotBefore:             now,
-		NotAfter:              now.Add(defaultCAValidity),
+		NotAfter:              now.Add(cryptoutilSharedMagic.TLSDefaultMaxCACertDuration),
 		KeyUsage:              x509.KeyUsageCertSign | x509.KeyUsageCRLSign | x509.KeyUsageDigitalSignature,
 		BasicConstraintsValid: true,
 		IsCA:                  true,

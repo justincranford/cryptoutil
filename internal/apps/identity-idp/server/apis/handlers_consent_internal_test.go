@@ -28,7 +28,7 @@ func TestParseScopeDescriptions(t *testing.T) {
 			expectedScopes: []string{cryptoutilSharedMagic.ScopeOpenID},
 		},
 		{
-			name:           "multiple scopes",
+			name:           testMultipleScopes,
 			scopeStr:       "openid profile email",
 			expectedCount:  3,
 			expectedScopes: []string{cryptoutilSharedMagic.ScopeOpenID, cryptoutilSharedMagic.ClaimProfile, cryptoutilSharedMagic.ClaimEmail},
@@ -52,10 +52,10 @@ func TestParseScopeDescriptions(t *testing.T) {
 			expectedScopes: []string{cryptoutilSharedMagic.ScopeOpenID, cryptoutilSharedMagic.ClaimProfile},
 		},
 		{
-			name:           "custom scope",
+			name:           testCustomScope,
 			scopeStr:       "openid custom_scope",
 			expectedCount:  2,
-			expectedScopes: []string{cryptoutilSharedMagic.ScopeOpenID, "custom_scope"},
+			expectedScopes: []string{cryptoutilSharedMagic.ScopeOpenID, testCustomScopeValue2BF082C3},
 		},
 	}
 
@@ -90,22 +90,22 @@ func TestGetScopeDescription(t *testing.T) {
 			expectedDescription: scopeDescriptionOpenID,
 		},
 		{
-			name:                "profile scope",
+			name:                testProfileScope,
 			scope:               cryptoutilSharedMagic.ClaimProfile,
 			expectedDescription: "Access your profile information (name, picture, etc.)",
 		},
 		{
-			name:                "email scope",
+			name:                testEmailScope,
 			scope:               cryptoutilSharedMagic.ClaimEmail,
 			expectedDescription: scopeDescriptionEmail,
 		},
 		{
-			name:                "address scope",
+			name:                testAddressScope,
 			scope:               cryptoutilSharedMagic.ClaimAddress,
 			expectedDescription: scopeDescriptionAddress,
 		},
 		{
-			name:                "phone scope",
+			name:                testPhoneScope,
 			scope:               cryptoutilSharedMagic.ScopePhone,
 			expectedDescription: "Access your phone number",
 		},
@@ -115,8 +115,8 @@ func TestGetScopeDescription(t *testing.T) {
 			expectedDescription: "Maintain access when you're offline (refresh token)",
 		},
 		{
-			name:                "custom scope",
-			scope:               "custom_scope",
+			name:                testCustomScope,
+			scope:               testCustomScopeValue2BF082C3,
 			expectedDescription: "Access custom_scope data",
 		},
 		{

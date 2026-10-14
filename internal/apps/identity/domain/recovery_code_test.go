@@ -27,7 +27,7 @@ func TestRecoveryCode_IsExpired(t *testing.T) {
 			want:      false,
 		},
 		{
-			name:      "expired",
+			name:      testExpired,
 			expiresAt: time.Now().UTC().Add(-1 * time.Hour),
 			want:      true,
 		},
@@ -40,7 +40,7 @@ func TestRecoveryCode_IsExpired(t *testing.T) {
 			code := &cryptoutilIdentityDomain.RecoveryCode{
 				ID:        googleUuid.New(),
 				UserID:    googleUuid.New(),
-				CodeHash:  "hash",
+				CodeHash:  testHash,
 				ExpiresAt: tc.expiresAt,
 				CreatedAt: time.Now().UTC(),
 			}
@@ -60,7 +60,7 @@ func TestRecoveryCode_IsUsed(t *testing.T) {
 		want bool
 	}{
 		{
-			name: "used",
+			name: testUsed,
 			used: true,
 			want: true,
 		},
@@ -78,7 +78,7 @@ func TestRecoveryCode_IsUsed(t *testing.T) {
 			code := &cryptoutilIdentityDomain.RecoveryCode{
 				ID:        googleUuid.New(),
 				UserID:    googleUuid.New(),
-				CodeHash:  "hash",
+				CodeHash:  testHash,
 				Used:      tc.used,
 				ExpiresAt: time.Now().UTC().Add(1 * time.Hour),
 				CreatedAt: time.Now().UTC(),
@@ -96,7 +96,7 @@ func TestRecoveryCode_MarkAsUsed(t *testing.T) {
 	code := &cryptoutilIdentityDomain.RecoveryCode{
 		ID:        googleUuid.New(),
 		UserID:    googleUuid.New(),
-		CodeHash:  "hash",
+		CodeHash:  testHash,
 		Used:      false,
 		UsedAt:    nil,
 		ExpiresAt: time.Now().UTC().Add(1 * time.Hour),

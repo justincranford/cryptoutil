@@ -20,13 +20,13 @@ func TestValidateSecrets_PathErrors(t *testing.T) {
 		wantErrContains []string
 	}{
 		{
-			name: "path not found",
+			name: testPathNotFound,
 			setup: func(t *testing.T) string {
 				t.Helper()
 
 				return "/nonexistent/path/xyz"
 			},
-			wantErrContains: []string{"[ValidateSecrets]", "path not found"},
+			wantErrContains: []string{testValidateSecrets, testPathNotFound},
 		},
 		{
 			name: "path is file not directory",
@@ -37,7 +37,7 @@ func TestValidateSecrets_PathErrors(t *testing.T) {
 
 				return f
 			},
-			wantErrContains: []string{"[ValidateSecrets]", "not a directory"},
+			wantErrContains: []string{testValidateSecrets, testNotADirectory},
 		},
 	}
 	for _, tc := range tests {
@@ -67,19 +67,19 @@ func TestValidateSecrets_SecretFiles(t *testing.T) {
 		wantErrContains  []string
 		wantWarnContains []string
 	}{
-		{name: "valid long secret", filename: "my_password.secret", content: "this-is-a-very-long-secret-value-with-enough-entropy-for-security", wantValid: true},
-		{name: "empty secret file", filename: "my_password.secret", content: "", wantErrContains: []string{"[ValidateSecrets]", "is empty", "ENG-HANDBOOK.md Section 12.6"}},
-		{name: "short secret warns", filename: "hash_pepper.secret", content: "short", wantValid: true, wantWarnContains: []string{"has 5 bytes", "minimum recommended: 32"}},
-		{name: "base64 value meets threshold", filename: "hash_pepper.secret", content: "4b0beuNCVMFMjA4y2/WvULfaCZiE6TLnPctdiSdtVrI=", wantValid: true},
-		{name: "non-secret file ignored", filename: "readme.md", content: "short", wantValid: true},
-		{name: "non-high-entropy secret ignored", filename: "postgres_database.secret", content: "mydb", wantValid: true},
-		{name: "subdirectory skipped", makeSubdir: true, wantValid: true},
+		{name: "valid long secret", filename: testMyPasswordSecret, content: "this-is-a-very-long-secret-value-with-enough-entropy-for-security", wantValid: true},
+		{name: "empty secret file", filename: testMyPasswordSecret, content: "", wantErrContains: []string{testValidateSecrets, "is empty", "ENG-HANDBOOK.md Section 12.6"}},
+		{name: "short secret warns", filename: testHashPepperSecret, content: testShort, wantValid: true, wantWarnContains: []string{"has 5 bytes", "minimum recommended: 32"}},
+		{name: "base64 value meets threshold", filename: testHashPepperSecret, content: "4b0beuNCVMFMjA4y2/WvULfaCZiE6TLnPctdiSdtVrI=", wantValid: true},
+		{name: "non-secret file ignored", filename: testReadmeMd, content: testShort, wantValid: true},
+		{name: "non-high-entropy secret ignored", filename: valuePostgresDatabaseSecret, content: "mydb", wantValid: true},
+		{name: testSubdirectorySkipped, makeSubdir: true, wantValid: true},
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			dir := t.TempDir()
-			secretsDir := filepath.Join(dir, "secrets")
+			secretsDir := filepath.Join(dir, validatorNameSecrets)
 			require.NoError(t, os.Mkdir(secretsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 			if tc.makeSubdir {
@@ -130,7 +130,7 @@ func TestValidateSecrets_UnreadablePaths(t *testing.T) {
 			setup: func(t *testing.T) string {
 				t.Helper()
 				dir := t.TempDir()
-				secretsDir := filepath.Join(dir, "secrets")
+				secretsDir := filepath.Join(dir, validatorNameSecrets)
 				require.NoError(t, os.Mkdir(secretsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 				f := filepath.Join(secretsDir, "api_key.secret")
 				require.NoError(t, os.WriteFile(f, []byte("data"), cryptoutilSharedMagic.CacheFilePermissions))
@@ -146,7 +146,7 @@ func TestValidateSecrets_UnreadablePaths(t *testing.T) {
 			setup: func(t *testing.T) string {
 				t.Helper()
 				dir := t.TempDir()
-				secretsDir := filepath.Join(dir, "secrets")
+				secretsDir := filepath.Join(dir, validatorNameSecrets)
 				require.NoError(t, os.Mkdir(secretsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 				require.NoError(t, os.Chmod(secretsDir, 0o000))
 				t.Cleanup(func() {
@@ -190,7 +190,7 @@ func TestValidateSecrets_UnreadablePaths(t *testing.T) {
 			wantWarnContains: "cannot read configs directory",
 		},
 		{
-			name: "unreadable compose file",
+			name: testUnreadableComposeFile,
 			setup: func(t *testing.T) string {
 				t.Helper()
 				dir := t.TempDir()
@@ -226,13 +226,13 @@ func TestValidateSecrets_ConfigFiles(t *testing.T) {
 		wantValid       bool
 		wantErrContains []string
 	}{
-		{name: "inline secret detected", filename: "app.yml", content: "database-password: supersecretpassword123\n", wantErrContains: []string{"inline secret"}},
-		{name: "safe file reference", filename: "app.yml", content: "database-password: file:///run/secrets/db_password\n", wantValid: true},
-		{name: "nested inline secret", filename: "app.yml", content: "auth:\n  api-key: my-hardcoded-api-key-value\n", wantErrContains: []string{"auth.api-key"}},
-		{name: "empty secret value accepted", filename: "app.yml", content: "database-password: \"\"\n", wantValid: true},
-		{name: "non-secret field accepted", filename: "app.yml", content: "bind-public-port: 8080\nhost: localhost\n", wantValid: true},
-		{name: "invalid YAML tolerated", filename: "bad.yml", content: ":\n  - :\n:", wantValid: true},
-		{name: "non-YAML file ignored", filename: "readme.md", content: "api-key: secret", wantValid: true},
+		{name: testInlineSecretDetected, filename: testAppYml, content: "database-password: supersecretpassword123\n", wantErrContains: []string{testInlineSecret}},
+		{name: "safe file reference", filename: testAppYml, content: "database-password: file:///run/secrets/db_password\n", wantValid: true},
+		{name: "nested inline secret", filename: testAppYml, content: "auth:\n  api-key: my-hardcoded-api-key-value\n", wantErrContains: []string{"auth.api-key"}},
+		{name: testEmptySecretValueAccepted, filename: testAppYml, content: "database-password: \"\"\n", wantValid: true},
+		{name: "non-secret field accepted", filename: testAppYml, content: "bind-public-port: 8080\nhost: localhost\n", wantValid: true},
+		{name: testInvalidYAMLTolerated, filename: testBadYml, content: testStringValue, wantValid: true},
+		{name: "non-YAML file ignored", filename: testReadmeMd, content: "api-key: secret", wantValid: true},
 		{name: "subdirectory ignored", makeSubdir: true, wantValid: true},
 	}
 	for _, tc := range tests {
@@ -275,14 +275,14 @@ func TestValidateSecrets_ComposeFiles(t *testing.T) {
 		wantErrContains []string
 	}{
 		{
-			name:            "inline secret detected",
+			name:            testInlineSecretDetected,
 			compose:         "services:\n  myapp:\n    image: myapp:latest\n    environment:\n      DB_PASSWORD: \"hardcoded-password-value\"\n",
-			wantErrContains: []string{"inline secret"},
+			wantErrContains: []string{testInlineSecret},
 		},
 		{name: "secret file reference accepted", compose: "services:\n  myapp:\n    image: myapp:latest\n    environment:\n      DB_PASSWORD_FILE: \"/run/secrets/db_password\"\n", wantValid: true},
 		{name: "non-secret env accepted", compose: "services:\n  myapp:\n    image: myapp:latest\n    environment:\n      APP_NAME: \"my-service\"\n", wantValid: true},
-		{name: "empty secret value accepted", compose: "services:\n  myapp:\n    image: myapp:latest\n    environment:\n      DB_PASSWORD: \"\"\n", wantValid: true},
-		{name: "invalid YAML tolerated", compose: ":\n  - :\n:", wantValid: true},
+		{name: testEmptySecretValueAccepted, compose: "services:\n  myapp:\n    image: myapp:latest\n    environment:\n      DB_PASSWORD: \"\"\n", wantValid: true},
+		{name: testInvalidYAMLTolerated, compose: testStringValue, wantValid: true},
 		{name: "non-map env format accepted", compose: "services:\n  myapp:\n    image: myapp:latest\n    environment:\n      - DB_PASSWORD=hardcoded\n", wantValid: true},
 	}
 	for _, tc := range tests {

@@ -79,9 +79,9 @@ func TestGenerateECDSAKeyPair(t *testing.T) {
 		curve elliptic.Curve
 		prob  float32
 	}{
-		{"P-256", elliptic.P256(), cryptoutilSharedMagic.TestProbAlways},
-		{"P-384", elliptic.P384(), cryptoutilSharedMagic.TestProbTenth},
-		{"P-521", elliptic.P521(), cryptoutilSharedMagic.TestProbTenth},
+		{testP256, elliptic.P256(), cryptoutilSharedMagic.TestProbAlways},
+		{testP384, elliptic.P384(), cryptoutilSharedMagic.TestProbTenth},
+		{testP521, elliptic.P521(), cryptoutilSharedMagic.TestProbTenth},
 	}
 
 	for _, tc := range testCases {
@@ -132,9 +132,9 @@ func TestGenerateECDHKeyPair(t *testing.T) {
 		curve ecdh.Curve
 		prob  float32
 	}{
-		{"P-256", ecdh.P256(), cryptoutilSharedMagic.TestProbAlways},
-		{"P-384", ecdh.P384(), cryptoutilSharedMagic.TestProbTenth},
-		{"P-521", ecdh.P521(), cryptoutilSharedMagic.TestProbTenth},
+		{testP256, ecdh.P256(), cryptoutilSharedMagic.TestProbAlways},
+		{testP384, ecdh.P384(), cryptoutilSharedMagic.TestProbTenth},
+		{testP521, ecdh.P521(), cryptoutilSharedMagic.TestProbTenth},
 		{"X25519", ecdh.X25519(), cryptoutilSharedMagic.TestProbAlways},
 	}
 

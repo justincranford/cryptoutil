@@ -67,17 +67,17 @@ func TestGetActiveSecretVersions(t *testing.T) {
 		},
 		{
 			name:             "multiple_active_secrets",
-			setupVersions:    3,
+			setupVersions:    test3,
 			revokeVersions:   nil,
-			expectedActive:   3,
-			expectedVersions: []int{3, 2, 1}, // DESC order.
+			expectedActive:   test3,
+			expectedVersions: []int{test3, 2, 1}, // DESC order.
 		},
 		{
 			name:             "mixed_active_and_revoked",
 			setupVersions:    4,
 			revokeVersions:   []int{2},
-			expectedActive:   3,
-			expectedVersions: []int{4, 3, 1}, // Excludes version 2.
+			expectedActive:   test3,
+			expectedVersions: []int{4, test3, 1}, // Excludes version 2.
 		},
 		{
 			name:             "all_revoked",
@@ -259,7 +259,7 @@ func TestSecretRotationService_GetActiveSecretVersions(t *testing.T) {
 	revokedVersion := &cryptoutilIdentityDomain.ClientSecretVersion{
 		ID:        googleUuid.New(),
 		ClientID:  clientID,
-		Version:   3,
+		Version:   test3,
 		Status:    cryptoutilIdentityDomain.SecretStatusRevoked,
 		CreatedAt: time.Now().UTC().Add(-cryptoutilSharedMagic.HashPrefixLength * time.Hour),
 		RevokedAt: &revokedAt,

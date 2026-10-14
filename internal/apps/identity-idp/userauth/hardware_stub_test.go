@@ -23,7 +23,7 @@ func TestStubHSM(t *testing.T) {
 		fn   func() error
 	}{
 		{
-			name: "GenerateKey",
+			name: testGenerateKey,
 			fn: func() error {
 				_, err := hsm.GenerateKey(ctx, cryptoutilSharedMagic.KeyTypeRSA, cryptoutilSharedMagic.DefaultMetricsBatchSize)
 
@@ -113,7 +113,7 @@ func TestStubTPM(t *testing.T) {
 			},
 		},
 		{
-			name: "GenerateKey",
+			name: testGenerateKey,
 			fn: func() error {
 				_, err := tpm.GenerateKey(ctx, cryptoutilSharedMagic.KeyTypeRSA)
 
@@ -185,7 +185,7 @@ func TestStubSecureElement(t *testing.T) {
 			},
 		},
 		{
-			name: "GenerateKey",
+			name: testGenerateKey,
 			fn: func() error {
 				_, err := se.GenerateKey(ctx, "EC")
 

@@ -66,7 +66,7 @@ func TestRecoveryCodeRepository_Create(t *testing.T) {
 		expectedError string
 	}{
 		{
-			name: "SuccessfulCreate",
+			name: testSuccessfulCreate,
 			code: &cryptoutilIdentityDomain.RecoveryCode{
 				ID:        googleUuid.New(),
 				UserID:    googleUuid.New(),
@@ -238,7 +238,7 @@ func TestRecoveryCodeRepository_GetByID(t *testing.T) {
 		validateResult func(t *testing.T, result *cryptoutilIdentityDomain.RecoveryCode)
 	}{
 		{
-			name: "Found",
+			name: testFound,
 			id:   googleUuid.New(),
 			setupCode: &cryptoutilIdentityDomain.RecoveryCode{
 				ID:        googleUuid.UUID{}, // Overwritten below.
@@ -256,7 +256,7 @@ func TestRecoveryCodeRepository_GetByID(t *testing.T) {
 			},
 		},
 		{
-			name:           "NotFound",
+			name:           testNotFound,
 			id:             googleUuid.New(),
 			setupCode:      nil,
 			expectedError:  cryptoutilIdentityAppErr.ErrRecoveryCodeNotFound,
@@ -304,7 +304,7 @@ func TestRecoveryCodeRepository_Update(t *testing.T) {
 		validateResult func(t *testing.T, repo cryptoutilIdentityRepository.RecoveryCodeRepository, id googleUuid.UUID)
 	}{
 		{
-			name: "MarkAsUsed",
+			name: testMarkAsUsed,
 			setupCode: &cryptoutilIdentityDomain.RecoveryCode{
 				ID:        googleUuid.New(),
 				UserID:    googleUuid.New(),

@@ -221,27 +221,27 @@ func TestWriteKeystore_Errors(t *testing.T) {
 			wantErrFragment: "pkcs12 encode",
 		},
 		{
-			name:           "write .p12 fails",
+			name:           testWriteP12Fails,
 			encodePKCS12Fn: stubEncodePKCS12,
 			writeFileFn: failWriteFileAtCall(1,
 				func(path string, _ []byte, _ os.FileMode) error {
 					return fmt.Errorf("injected write error for %s", filepath.Base(path))
 				}),
-			wantErrFragment: "write .p12",
+			wantErrFragment: testWriteP12,
 		},
 		{
-			name:           "write .crt fails",
+			name:           testWriteCrtFails,
 			encodePKCS12Fn: stubEncodePKCS12,
 			writeFileFn: failWriteFileAtCall(2,
 				func(path string, _ []byte, _ os.FileMode) error {
 					return fmt.Errorf("injected write error for %s", filepath.Base(path))
 				}),
-			wantErrFragment: "write .crt",
+			wantErrFragment: testWriteCrt,
 		},
 		{
 			name:           "write .key fails",
 			encodePKCS12Fn: stubEncodePKCS12,
-			writeFileFn: failWriteFileAtCall(3,
+			writeFileFn: failWriteFileAtCall(test3,
 				func(path string, _ []byte, _ os.FileMode) error {
 					return fmt.Errorf("injected write error for %s", filepath.Base(path))
 				}),
@@ -283,22 +283,22 @@ func TestWriteTruststore_Errors(t *testing.T) {
 			wantErrFragment: "pkcs12 trust encode",
 		},
 		{
-			name:                "write .p12 fails",
+			name:                testWriteP12Fails,
 			encodeTrustPKCS12Fn: stubEncodeTrustPKCS12,
 			writeFileFn: failWriteFileAtCall(1,
 				func(path string, _ []byte, _ os.FileMode) error {
 					return fmt.Errorf("injected write error for %s", filepath.Base(path))
 				}),
-			wantErrFragment: "write .p12",
+			wantErrFragment: testWriteP12,
 		},
 		{
-			name:                "write .crt fails",
+			name:                testWriteCrtFails,
 			encodeTrustPKCS12Fn: stubEncodeTrustPKCS12,
 			writeFileFn: failWriteFileAtCall(2,
 				func(path string, _ []byte, _ os.FileMode) error {
 					return fmt.Errorf("injected write error for %s", filepath.Base(path))
 				}),
-			wantErrFragment: "write .crt",
+			wantErrFragment: testWriteCrt,
 		},
 	}
 
@@ -358,7 +358,7 @@ func TestReadRealmsForPSID_Scenarios(t *testing.T) {
 `)
 			},
 			psID:       validPSID,
-			wantRealms: []string{"file", "db"},
+			wantRealms: []string{testFile, testDB},
 		},
 		{
 			name: "file not found",
@@ -368,7 +368,7 @@ func TestReadRealmsForPSID_Scenarios(t *testing.T) {
 				return filepath.Join(t.TempDir(), "missing.yaml")
 			},
 			psID:        validPSID,
-			wantRealms:  []string{"file", "db"}, // falls back to defaultRealms() when file not found
+			wantRealms:  []string{testFile, testDB}, // falls back to defaultRealms() when file not found
 			wantErrFrag: "",
 		},
 		{
@@ -444,7 +444,7 @@ func TestDefaultRealms(t *testing.T) {
 	t.Parallel()
 
 	realms := cryptoutilAppsFrameworkTls.ExportedDefaultRealms()
-	require.Equal(t, []string{"file", "db"}, realms)
+	require.Equal(t, []string{testFile, testDB}, realms)
 }
 
 // --- helpers ---
@@ -582,9 +582,9 @@ func TestGenerate_SharedCAs_ErrorBranches(t *testing.T) {
 		{"cat1 CA error", 1, 0, "cat1 global server CA"},
 		{"cat2 grafana leaf error", 0, 1, "cat2 grafana server leaf"},
 		{"cat2 otel leaf error", 0, 2, "cat2 otel server leaf"},
-		{"cat8 grafana CA error", 3, 0, "cat8 grafana client CA"},
+		{"cat8 grafana CA error", test3, 0, "cat8 grafana client CA"},
 		{"cat8 otel CA error", cryptoutilSharedMagic.DefaultEmailOTPRateLimit, 0, "cat8 otel client CA"},
-		{"cat9 grafana admin error", 0, 3, "cat9 grafana admin client"},
+		{"cat9 grafana admin error", 0, test3, "cat9 grafana admin client"},
 		{"cat9 otel admin error", 0, 4, "cat9 otel admin client"},
 		{"cat9 grafana infra error", 0, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries, "cat9 grafana infra client"},
 		{"cat9 otel infra error", 0, cryptoutilSharedMagic.Utf8EnforceWorkerPoolSize, "cat9 otel infra client"},

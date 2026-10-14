@@ -67,7 +67,7 @@ func TestFindViolationsInDir_HyphenatedNames_NoViolations(t *testing.T) {
 
 	for _, name := range []string{
 		"browser-password.secret",
-		"hash-pepper-v3.secret",
+		testHashPepperV3Secret,
 		"postgres-database.secret",
 		"unseal-1of5.secret",
 		"browser-password.secret.never",
@@ -134,7 +134,7 @@ func TestFindViolationsInDir_MultipleViolations_AllReported(t *testing.T) {
 		"postgres_database.secret",
 	}
 	valid := []string{
-		"hash-pepper-v3.secret",
+		testHashPepperV3Secret,
 	}
 
 	for _, name := range append(violating, valid...) {
@@ -205,7 +205,7 @@ func TestCheckInDir_ValidNames(t *testing.T) {
 	secretsDir := makeSecretsDir(t, tmpDir)
 
 	require.NoError(t, os.WriteFile(
-		filepath.Join(secretsDir, "hash-pepper-v3.secret"),
+		filepath.Join(secretsDir, testHashPepperV3Secret),
 		[]byte("value"),
 		cryptoutilSharedMagic.FilePermissions,
 	))

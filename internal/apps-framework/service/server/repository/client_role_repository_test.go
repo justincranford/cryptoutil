@@ -81,7 +81,7 @@ func TestClientRoleRepository_Assign_HappyPath(t *testing.T) {
 		ID:               googleUuid.New(),
 		TenantID:         tenant.ID,
 		ClientID:         googleUuid.New().String(),
-		ClientSecretHash: "hashed_secret",
+		ClientSecretHash: testHashedSecret,
 		Active:           1,
 	}
 	require.NoError(t, db.Create(client).Error)
@@ -90,7 +90,7 @@ func TestClientRoleRepository_Assign_HappyPath(t *testing.T) {
 	role := &Role{
 		ID:          googleUuid.New(),
 		TenantID:    tenant.ID,
-		Name:        "test_role",
+		Name:        testTestRole,
 		Description: cryptoutilSharedMagic.DESC_TEST_ROLE,
 	}
 	require.NoError(t, db.Create(role).Error)
@@ -124,7 +124,7 @@ func TestClientRoleRepository_Assign_DuplicateAssignment(t *testing.T) {
 	tenant := &Tenant{
 		ID:          tenantID,
 		Name:        tenantID.String(),
-		Description: "Test tenant for duplicate assignment",
+		Description: testTestTenantForDuplicateAssignment,
 		Active:      1,
 	}
 	require.NoError(t, db.Create(tenant).Error)
@@ -134,7 +134,7 @@ func TestClientRoleRepository_Assign_DuplicateAssignment(t *testing.T) {
 		ID:               googleUuid.New(),
 		TenantID:         tenant.ID,
 		ClientID:         googleUuid.New().String(),
-		ClientSecretHash: "hashed_secret",
+		ClientSecretHash: testHashedSecret,
 		Active:           1,
 	}
 	require.NoError(t, db.Create(client).Error)
@@ -143,7 +143,7 @@ func TestClientRoleRepository_Assign_DuplicateAssignment(t *testing.T) {
 	role := &Role{
 		ID:          googleUuid.New(),
 		TenantID:    tenant.ID,
-		Name:        "test_role",
+		Name:        testTestRole,
 		Description: cryptoutilSharedMagic.DESC_TEST_ROLE,
 	}
 	require.NoError(t, db.Create(role).Error)
@@ -206,7 +206,7 @@ func TestClientRoleRepository_ListRolesByClient_HappyPath(t *testing.T) {
 	tenant := &Tenant{
 		ID:          tenantID,
 		Name:        tenantID.String(),
-		Description: "Test tenant for listing roles",
+		Description: testTestTenantForListingRoles,
 		Active:      1,
 	}
 	require.NoError(t, db.Create(tenant).Error)
@@ -217,7 +217,7 @@ func TestClientRoleRepository_ListRolesByClient_HappyPath(t *testing.T) {
 		ID:               clientUUID,
 		TenantID:         tenant.ID,
 		ClientID:         clientUUID.String(),
-		ClientSecretHash: "hashed_secret",
+		ClientSecretHash: testHashedSecret,
 		Active:           1,
 	}
 	require.NoError(t, db.Create(client).Error)
@@ -226,7 +226,7 @@ func TestClientRoleRepository_ListRolesByClient_HappyPath(t *testing.T) {
 	role1 := &Role{
 		ID:          googleUuid.New(),
 		TenantID:    tenant.ID,
-		Name:        "role1",
+		Name:        testRole1,
 		Description: cryptoutilSharedMagic.DESC_FIRST_ROLE,
 	}
 	require.NoError(t, db.Create(role1).Error)
@@ -234,7 +234,7 @@ func TestClientRoleRepository_ListRolesByClient_HappyPath(t *testing.T) {
 	role2 := &Role{
 		ID:          googleUuid.New(),
 		TenantID:    tenant.ID,
-		Name:        "role2",
+		Name:        testRole2,
 		Description: cryptoutilSharedMagic.DESC_SECOND_ROLE,
 	}
 	require.NoError(t, db.Create(role2).Error)
@@ -249,8 +249,8 @@ func TestClientRoleRepository_ListRolesByClient_HappyPath(t *testing.T) {
 	require.Len(t, roles, 2)
 
 	roleNames := []string{roles[0].Name, roles[1].Name}
-	require.Contains(t, roleNames, "role1")
-	require.Contains(t, roleNames, "role2")
+	require.Contains(t, roleNames, testRole1)
+	require.Contains(t, roleNames, testRole2)
 }
 
 func TestClientRoleRepository_ListRolesByClient_NoRoles(t *testing.T) {
@@ -265,7 +265,7 @@ func TestClientRoleRepository_ListRolesByClient_NoRoles(t *testing.T) {
 	tenant := &Tenant{
 		ID:          tenantID,
 		Name:        tenantID.String(),
-		Description: "Test tenant for no roles",
+		Description: testTestTenantForNoRoles,
 		Active:      1,
 	}
 	require.NoError(t, db.Create(tenant).Error)
@@ -276,7 +276,7 @@ func TestClientRoleRepository_ListRolesByClient_NoRoles(t *testing.T) {
 		ID:               clientUUID,
 		TenantID:         tenant.ID,
 		ClientID:         clientUUID.String(),
-		ClientSecretHash: "hashed_secret",
+		ClientSecretHash: testHashedSecret,
 		Active:           1,
 	}
 	require.NoError(t, db.Create(client).Error)
@@ -299,7 +299,7 @@ func TestClientRoleRepository_Revoke_HappyPath(t *testing.T) {
 	tenant := &Tenant{
 		ID:          tenantID,
 		Name:        tenantID.String(),
-		Description: "Test tenant for revoke",
+		Description: testTestTenantForRevoke,
 		Active:      1,
 	}
 	require.NoError(t, db.Create(tenant).Error)
@@ -309,7 +309,7 @@ func TestClientRoleRepository_Revoke_HappyPath(t *testing.T) {
 		ID:               googleUuid.New(),
 		TenantID:         tenant.ID,
 		ClientID:         googleUuid.New().String(),
-		ClientSecretHash: "hashed_secret",
+		ClientSecretHash: testHashedSecret,
 		Active:           1,
 	}
 	require.NoError(t, db.Create(client).Error)
@@ -318,7 +318,7 @@ func TestClientRoleRepository_Revoke_HappyPath(t *testing.T) {
 	role := &Role{
 		ID:          googleUuid.New(),
 		TenantID:    tenant.ID,
-		Name:        "test_role",
+		Name:        testTestRole,
 		Description: cryptoutilSharedMagic.DESC_TEST_ROLE,
 	}
 	require.NoError(t, db.Create(role).Error)
@@ -358,7 +358,7 @@ func TestClientRoleRepository_ListClientsByRole_HappyPath(t *testing.T) {
 	role := &Role{
 		ID:          googleUuid.New(),
 		TenantID:    tenant.ID,
-		Name:        "shared_role",
+		Name:        testSharedRole,
 		Description: "Role shared by multiple clients",
 	}
 	require.NoError(t, db.Create(role).Error)

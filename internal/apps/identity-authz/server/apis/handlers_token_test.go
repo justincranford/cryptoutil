@@ -36,7 +36,7 @@ func TestHandleToken_UnsupportedGrantType(t *testing.T) {
 		cryptoutilSharedMagic.ParamGrantType: []string{"invalid_grant_type"},
 	}
 
-	req := httptest.NewRequest("POST", "/oauth2/v1/token", strings.NewReader(reqBody.Encode()))
+	req := httptest.NewRequest(testPost, testOauth2V1Token, strings.NewReader(reqBody.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	resp, err := app.Test(req, -1)
@@ -62,10 +62,10 @@ func TestHandleToken_AuthorizationCodeGrant_MissingCode(t *testing.T) {
 	reqBody := url.Values{
 		cryptoutilSharedMagic.ParamGrantType:   []string{cryptoutilSharedMagic.GrantTypeAuthorizationCode},
 		cryptoutilSharedMagic.ParamRedirectURI: []string{cryptoutilSharedMagic.TestRedirectURI},
-		cryptoutilSharedMagic.ParamClientID:    []string{"test-client"},
+		cryptoutilSharedMagic.ParamClientID:    []string{testTestClient},
 	}
 
-	req := httptest.NewRequest("POST", "/oauth2/v1/token", strings.NewReader(reqBody.Encode()))
+	req := httptest.NewRequest(testPost, testOauth2V1Token, strings.NewReader(reqBody.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	resp, err := app.Test(req, -1)
@@ -90,11 +90,11 @@ func TestHandleToken_AuthorizationCodeGrant_MissingRedirectURI(t *testing.T) {
 
 	reqBody := url.Values{
 		cryptoutilSharedMagic.ParamGrantType: []string{cryptoutilSharedMagic.GrantTypeAuthorizationCode},
-		cryptoutilSharedMagic.ParamCode:      []string{"test-code"},
-		cryptoutilSharedMagic.ParamClientID:  []string{"test-client"},
+		cryptoutilSharedMagic.ParamCode:      []string{testTestCode},
+		cryptoutilSharedMagic.ParamClientID:  []string{testTestClient},
 	}
 
-	req := httptest.NewRequest("POST", "/oauth2/v1/token", strings.NewReader(reqBody.Encode()))
+	req := httptest.NewRequest(testPost, testOauth2V1Token, strings.NewReader(reqBody.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	resp, err := app.Test(req, -1)
@@ -121,7 +121,7 @@ func TestHandleToken_ClientCredentialsGrant_MissingClient(t *testing.T) {
 		cryptoutilSharedMagic.ParamGrantType: []string{cryptoutilSharedMagic.GrantTypeClientCredentials},
 	}
 
-	req := httptest.NewRequest("POST", "/oauth2/v1/token", strings.NewReader(reqBody.Encode()))
+	req := httptest.NewRequest(testPost, testOauth2V1Token, strings.NewReader(reqBody.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	resp, err := app.Test(req, -1)
@@ -148,7 +148,7 @@ func TestHandleToken_RefreshTokenGrant_MissingRefreshToken(t *testing.T) {
 		cryptoutilSharedMagic.ParamGrantType: []string{cryptoutilSharedMagic.GrantTypeRefreshToken},
 	}
 
-	req := httptest.NewRequest("POST", "/oauth2/v1/token", strings.NewReader(reqBody.Encode()))
+	req := httptest.NewRequest(testPost, testOauth2V1Token, strings.NewReader(reqBody.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	resp, err := app.Test(req, -1)
@@ -165,10 +165,10 @@ func createTokenTestConfig(t *testing.T) *cryptoutilIdentityConfig.Config {
 	return &cryptoutilIdentityConfig.Config{
 		Database: &cryptoutilIdentityConfig.DatabaseConfig{
 			Type: cryptoutilSharedMagic.TestDatabaseSQLite,
-			DSN:  "file::memory:?cache=private",
+			DSN:  testFileMemoryCachePrivate,
 		},
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{
-			Issuer: "https://localhost:8080",
+			Issuer: testHTTPSLocalhost8080,
 		},
 	}
 }

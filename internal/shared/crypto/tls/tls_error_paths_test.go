@@ -31,7 +31,7 @@ func testSubjectHelper(t *testing.T) *cryptoutilSharedCryptoCertificate.Subject 
 	chain, err := CreateCAChain(DefaultCAChainOptions("test.local"))
 	require.NoError(t, err)
 
-	subject, err := chain.CreateEndEntity(ServerEndEntityOptions("server.test.local", []string{"server.test.local", cryptoutilSharedMagic.DefaultOTLPHostnameDefault}, []net.IP{net.ParseIP(cryptoutilSharedMagic.IPv4Loopback)}))
+	subject, err := chain.CreateEndEntity(ServerEndEntityOptions(testServerTestLocal, []string{testServerTestLocal, cryptoutilSharedMagic.DefaultOTLPHostnameDefault}, []net.IP{net.ParseIP(cryptoutilSharedMagic.IPv4Loopback)}))
 	require.NoError(t, err)
 
 	return subject
@@ -107,7 +107,7 @@ func TestCreateEndEntity_KeyGenError(t *testing.T) {
 
 	injectedErr := errors.New("injected keygen error for end entity")
 
-	_, err = createEndEntityInternal(chain, ServerEndEntityOptions("server.test.local", []string{"server.test.local", cryptoutilSharedMagic.DefaultOTLPHostnameDefault}, []net.IP{net.ParseIP(cryptoutilSharedMagic.IPv4Loopback)}), func(_ elliptic.Curve) (*cryptoutilSharedCryptoKeygen.KeyPair, error) {
+	_, err = createEndEntityInternal(chain, ServerEndEntityOptions(testServerTestLocal, []string{testServerTestLocal, cryptoutilSharedMagic.DefaultOTLPHostnameDefault}, []net.IP{net.ParseIP(cryptoutilSharedMagic.IPv4Loopback)}), func(_ elliptic.Curve) (*cryptoutilSharedCryptoKeygen.KeyPair, error) {
 		return nil, injectedErr
 	}, cryptoutilSharedCryptoCertificate.CreateEndEntitySubject)
 
@@ -123,7 +123,7 @@ func TestCreateEndEntity_CreateSubjectError(t *testing.T) {
 
 	injectedErr := errors.New("injected create end entity error")
 
-	_, err = createEndEntityInternal(chain, ServerEndEntityOptions("server.test.local", []string{"server.test.local", cryptoutilSharedMagic.DefaultOTLPHostnameDefault}, []net.IP{net.ParseIP(cryptoutilSharedMagic.IPv4Loopback)}), cryptoutilSharedCryptoKeygen.GenerateECDSAKeyPair, func(
+	_, err = createEndEntityInternal(chain, ServerEndEntityOptions(testServerTestLocal, []string{testServerTestLocal, cryptoutilSharedMagic.DefaultOTLPHostnameDefault}, []net.IP{net.ParseIP(cryptoutilSharedMagic.IPv4Loopback)}), cryptoutilSharedCryptoKeygen.GenerateECDSAKeyPair, func(
 		_ *cryptoutilSharedCryptoCertificate.Subject,
 		_ *cryptoutilSharedCryptoKeygen.KeyPair,
 		_ string,

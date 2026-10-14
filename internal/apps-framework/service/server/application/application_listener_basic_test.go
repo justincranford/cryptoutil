@@ -27,7 +27,7 @@ func TestStartBasic_Success(t *testing.T) {
 	settings := &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{
 		DevMode:      true,
 		VerboseMode:  false,
-		OTLPService:  "template-service-test",
+		OTLPService:  testTemplateServiceTest,
 		OTLPEnabled:  false,
 		OTLPEndpoint: cryptoutilSharedMagic.DefaultOTLPEndpointDefault,
 		LogLevel:     cryptoutilSharedMagic.DefaultLogLevelInfo,
@@ -55,8 +55,8 @@ func TestStartBasic_NilValidation(t *testing.T) {
 		settings *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings
 		wantErr  string
 	}{
-		{name: "nil context", ctx: nil, settings: &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{}, wantErr: "ctx cannot be nil"},
-		{name: "nil settings", ctx: context.Background(), settings: nil, wantErr: "settings cannot be nil"},
+		{name: testNilContext, ctx: nil, settings: &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{}, wantErr: valueCtxCannotBeNil},
+		{name: testNilSettings, ctx: context.Background(), settings: nil, wantErr: valueSettingsCannotBeNil},
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
@@ -78,7 +78,7 @@ func TestBasicShutdown(t *testing.T) {
 	settings := &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{
 		DevMode:      true,
 		VerboseMode:  false,
-		OTLPService:  "template-service-test",
+		OTLPService:  testTemplateServiceTest,
 		OTLPEnabled:  false,
 		OTLPEndpoint: cryptoutilSharedMagic.DefaultOTLPEndpointDefault,
 		LogLevel:     cryptoutilSharedMagic.DefaultLogLevelInfo,
@@ -116,7 +116,7 @@ func TestInitializeServicesOnCore_Success(t *testing.T) {
 		DevMode:                    true,
 		VerboseMode:                false,
 		DatabaseURL:                dbName,
-		OTLPService:                "template-service-test",
+		OTLPService:                testTemplateServiceTest,
 		OTLPEnabled:                false,
 		OTLPEndpoint:               cryptoutilSharedMagic.DefaultOTLPEndpointDefault,
 		LogLevel:                   cryptoutilSharedMagic.DefaultLogLevelInfo,
@@ -179,7 +179,7 @@ func TestCoreShutdown(t *testing.T) {
 		DevMode:      true,
 		VerboseMode:  false,
 		DatabaseURL:  cryptoutilSharedMagic.SQLiteInMemoryDSN,
-		OTLPService:  "template-service-test",
+		OTLPService:  testTemplateServiceTest,
 		OTLPEnabled:  false,
 		OTLPEndpoint: cryptoutilSharedMagic.DefaultOTLPEndpointDefault,
 		LogLevel:     cryptoutilSharedMagic.DefaultLogLevelInfo,
@@ -307,10 +307,10 @@ func TestStartListener_NilValidation(t *testing.T) {
 		wantErr string
 	}{
 		{
-			name:    "nil context",
+			name:    testNilContext,
 			ctx:     nil,
 			config:  &ListenerConfig{Settings: defaultSettings, PublicServer: &mockPublicServer{}, AdminServer: &mockAdminServer{}},
-			wantErr: "ctx cannot be nil",
+			wantErr: valueCtxCannotBeNil,
 		},
 		{
 			name:    "nil config",
@@ -319,10 +319,10 @@ func TestStartListener_NilValidation(t *testing.T) {
 			wantErr: "config cannot be nil",
 		},
 		{
-			name:    "nil settings",
+			name:    testNilSettings,
 			ctx:     context.Background(),
 			config:  &ListenerConfig{Settings: nil, PublicServer: &mockPublicServer{}, AdminServer: &mockAdminServer{}},
-			wantErr: "settings cannot be nil",
+			wantErr: valueSettingsCannotBeNil,
 		},
 		{
 			name:    "nil public server",

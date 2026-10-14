@@ -157,7 +157,7 @@ func TestAddInfrastructureFiles(t *testing.T) {
 		},
 		{
 			name:      "shared-postgres has init-db.sql",
-			infraName: "shared-postgres",
+			infraName: postgresSharedDirName,
 			wantExtra: "shared-postgres/init-db.sql",
 		},
 	}

@@ -46,7 +46,7 @@ func TestNewOCSPService(t *testing.T) {
 			config:     nil,
 			crlService: crlSvc,
 			wantErr:    true,
-			errMsg:     testLiteralConfigIsRequired,
+			errMsg:     cryptoutilSharedMagic.PKIErrorConfigRequired,
 		},
 		{
 			name: testLiteralNilIssuer,
@@ -58,7 +58,7 @@ func TestNewOCSPService(t *testing.T) {
 			},
 			crlService: crlSvc,
 			wantErr:    true,
-			errMsg:     testLiteralIssuerCertificateIsRequired,
+			errMsg:     cryptoutilSharedMagic.PKIErrorIssuerCertificateRequired,
 		},
 		{
 			name: "nil-responder",
@@ -94,7 +94,7 @@ func TestNewOCSPService(t *testing.T) {
 			},
 			crlService: crlSvc,
 			wantErr:    true,
-			errMsg:     testLiteralCryptoProviderIsRequired,
+			errMsg:     cryptoutilSharedMagic.PKIErrorCryptoProviderRequired,
 		},
 		{
 			name: "nil-crl-service",
@@ -272,7 +272,7 @@ func TestRevokedCertificate_ToEntry(t *testing.T) {
 	entry := rc.ToEntry("CN=Test CA")
 	require.Equal(t, "3039", entry.SerialNumber)
 	require.Equal(t, revTime, entry.RevocationTime)
-	require.Equal(t, testLiteralKeyCompromise, entry.Reason)
+	require.Equal(t, cryptoutilSharedMagic.RFC5280RevocationReasonNameKeyCompromise, entry.Reason)
 	require.Equal(t, int(ReasonKeyCompromise), entry.ReasonCode)
 	require.Equal(t, "CN=Test CA", entry.IssuerDN)
 }

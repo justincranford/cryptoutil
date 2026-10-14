@@ -36,7 +36,7 @@ func TestFindViolationsInDir_ValidDockerfiles(t *testing.T) {
 		{
 			name: "correct PS-ID title and entrypoint for sm-kms",
 			setupFiles: map[string]string{
-				"deployments/sm-kms/Dockerfile": dockerfileWithLabelsAndEntrypoint(
+				testDeploymentsSmKMSDockerfile: dockerfileWithLabelsAndEntrypoint(
 					cryptoutilCmdCicdRegistry.OTLPServiceName(cryptoutilSharedMagic.OTLPServiceSMKMS),
 					"SM KMS Server",
 					cryptoutilCmdCicdRegistry.DockerfileEntrypoint(cryptoutilSharedMagic.OTLPServiceSMKMS),
@@ -72,7 +72,7 @@ func TestFindViolationsInDir_ValidDockerfiles(t *testing.T) {
 		{
 			name: "PS-ID title is case-insensitive exact match",
 			setupFiles: map[string]string{
-				"deployments/sm-kms/Dockerfile": dockerfileWithLabelsAndEntrypoint(
+				testDeploymentsSmKMSDockerfile: dockerfileWithLabelsAndEntrypoint(
 					"CRYPTOUTIL-SM-KMS",
 					"Description",
 					cryptoutilCmdCicdRegistry.DockerfileEntrypoint(cryptoutilSharedMagic.OTLPServiceSMKMS),
@@ -82,7 +82,7 @@ func TestFindViolationsInDir_ValidDockerfiles(t *testing.T) {
 		{
 			name: "multi-line labels with correct PS-ID entrypoint",
 			setupFiles: map[string]string{
-				"deployments/sm-kms/Dockerfile": multiLineLabelDockerfileWithEntrypoint(
+				testDeploymentsSmKMSDockerfile: multiLineLabelDockerfileWithEntrypoint(
 					cryptoutilCmdCicdRegistry.OTLPServiceName(cryptoutilSharedMagic.OTLPServiceSMKMS),
 					"SM KMS Server",
 					cryptoutilCmdCicdRegistry.DockerfileEntrypoint(cryptoutilSharedMagic.OTLPServiceSMKMS),
@@ -124,23 +124,23 @@ func TestFindViolationsInDir_InvalidDockerfiles(t *testing.T) {
 		{
 			name: "wrong title for PS-ID - must exactly match registry value",
 			setupFiles: map[string]string{
-				"deployments/sm-kms/Dockerfile": dockerfileWithLabelsAndEntrypoint("CA Server", "Some description", correctSMKMSEntrypoint),
+				testDeploymentsSmKMSDockerfile: dockerfileWithLabelsAndEntrypoint("CA Server", "Some description", correctSMKMSEntrypoint),
 			},
 			wantViolations: 1,
-			wantSubstring:  "must exactly match registry-derived value",
+			wantSubstring:  testMustExactlyMatchRegistryDerivedValue,
 		},
 		{
 			name: "wrong title for PS-ID - substring no longer accepted",
 			setupFiles: map[string]string{
-				"deployments/sm-kms/Dockerfile": dockerfileWithLabelsAndEntrypoint("sm-kms service", "Some description", correctSMKMSEntrypoint),
+				testDeploymentsSmKMSDockerfile: dockerfileWithLabelsAndEntrypoint("sm-kms service", "Some description", correctSMKMSEntrypoint),
 			},
 			wantViolations: 1,
-			wantSubstring:  "must exactly match registry-derived value",
+			wantSubstring:  testMustExactlyMatchRegistryDerivedValue,
 		},
 		{
 			name: "wrong ENTRYPOINT for PS-ID",
 			setupFiles: map[string]string{
-				"deployments/sm-kms/Dockerfile": dockerfileWithLabelsAndEntrypoint(correctSMKMSTitle, "Some description", []string{"/app/wrong-binary"}),
+				testDeploymentsSmKMSDockerfile: dockerfileWithLabelsAndEntrypoint(correctSMKMSTitle, "Some description", []string{"/app/wrong-binary"}),
 			},
 			wantViolations: 1,
 			wantSubstring:  "must match registry-declared entrypoint",
@@ -148,7 +148,7 @@ func TestFindViolationsInDir_InvalidDockerfiles(t *testing.T) {
 		{
 			name: "missing ENTRYPOINT for PS-ID",
 			setupFiles: map[string]string{
-				"deployments/sm-kms/Dockerfile": dockerfileWithLabels(correctSMKMSTitle, "Some description"),
+				testDeploymentsSmKMSDockerfile: dockerfileWithLabels(correctSMKMSTitle, "Some description"),
 			},
 			wantViolations: 1,
 			wantSubstring:  "missing ENTRYPOINT instruction",
@@ -156,23 +156,23 @@ func TestFindViolationsInDir_InvalidDockerfiles(t *testing.T) {
 		{
 			name: "missing title label",
 			setupFiles: map[string]string{
-				"deployments/sm-kms/Dockerfile": dockerfileWithOnlyDescription("Some description"),
+				testDeploymentsSmKMSDockerfile: dockerfileWithOnlyDescription("Some description"),
 			},
 			wantViolations: 2,
-			wantSubstring:  "missing required label",
+			wantSubstring:  testMissingRequiredLabel,
 		},
 		{
 			name: "missing description label",
 			setupFiles: map[string]string{
-				"deployments/sm-kms/Dockerfile": dockerfileWithOnlyTitle(correctSMKMSTitle),
+				testDeploymentsSmKMSDockerfile: dockerfileWithOnlyTitle(correctSMKMSTitle),
 			},
 			wantViolations: 2,
-			wantSubstring:  "missing required label",
+			wantSubstring:  testMissingRequiredLabel,
 		},
 		{
 			name: "no labels at all",
 			setupFiles: map[string]string{
-				"deployments/sm-kms/Dockerfile": dockerfileNoLabels(),
+				testDeploymentsSmKMSDockerfile: dockerfileNoLabels(),
 			},
 			wantViolations: 3,
 		},
@@ -235,7 +235,7 @@ func TestCheckInDir_WithViolation(t *testing.T) {
 	t.Parallel()
 
 	files := map[string]string{
-		"deployments/sm-kms/Dockerfile": dockerfileWithLabels("Wrong Title", "Description"),
+		testDeploymentsSmKMSDockerfile: dockerfileWithLabels("Wrong Title", "Description"),
 	}
 	rootDir := setupTempDir(t, files)
 
@@ -251,7 +251,7 @@ func TestCheckInDir_NoViolation(t *testing.T) {
 	t.Parallel()
 
 	files := map[string]string{
-		"deployments/sm-kms/Dockerfile": dockerfileWithLabelsAndEntrypoint(
+		testDeploymentsSmKMSDockerfile: dockerfileWithLabelsAndEntrypoint(
 			cryptoutilCmdCicdRegistry.OTLPServiceName(cryptoutilSharedMagic.OTLPServiceSMKMS),
 			"SM KMS Server",
 			cryptoutilCmdCicdRegistry.DockerfileEntrypoint(cryptoutilSharedMagic.OTLPServiceSMKMS),

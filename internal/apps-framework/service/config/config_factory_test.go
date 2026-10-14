@@ -54,7 +54,7 @@ func TestNewFromFile_FileNotFound(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, settings)
 	// Verify defaults are applied when config file is missing
-	require.Equal(t, "start", settings.SubCommand)
+	require.Equal(t, valueStart, settings.SubCommand)
 }
 
 // TestNewFromFile_InvalidYAML tests error when config file has invalid YAML.
@@ -87,7 +87,7 @@ func TestRegisterAsBoolSetting_WrongType(t *testing.T) {
 		require.Contains(t, panicMsg, "value is not bool")
 	}()
 
-	setting := Setting{Name: "test-setting", Value: "not-a-bool"}
+	setting := Setting{Name: testTestSetting, Value: "not-a-bool"}
 	_ = RegisterAsBoolSetting(&setting)
 }
 
@@ -103,7 +103,7 @@ func TestRegisterAsStringSetting_WrongType(t *testing.T) {
 		require.Contains(t, panicMsg, "value is not string")
 	}()
 
-	setting := Setting{Name: "test-setting", Value: 123}
+	setting := Setting{Name: testTestSetting, Value: 123}
 	_ = RegisterAsStringSetting(&setting)
 }
 
@@ -119,7 +119,7 @@ func TestRegisterAsUint16Setting_WrongType(t *testing.T) {
 		require.Contains(t, panicMsg, "value is not uint16")
 	}()
 
-	setting := Setting{Name: "test-setting", Value: "not-a-uint16"}
+	setting := Setting{Name: testTestSetting, Value: "not-a-uint16"}
 	_ = RegisterAsUint16Setting(&setting)
 }
 
@@ -135,7 +135,7 @@ func TestRegisterAsStringSliceSetting_WrongType(t *testing.T) {
 		require.Contains(t, panicMsg, "value is not []string")
 	}()
 
-	setting := Setting{Name: "test-setting", Value: "not-a-slice"}
+	setting := Setting{Name: testTestSetting, Value: "not-a-slice"}
 	_ = RegisterAsStringSliceSetting(&setting)
 }
 
@@ -151,7 +151,7 @@ func TestRegisterAsStringArraySetting_WrongType(t *testing.T) {
 		require.Contains(t, panicMsg, "value is not []string")
 	}()
 
-	setting := Setting{Name: "test-setting", Value: 123}
+	setting := Setting{Name: testTestSetting, Value: 123}
 	_ = RegisterAsStringArraySetting(&setting)
 }
 
@@ -167,7 +167,7 @@ func TestRegisterAsDurationSetting_WrongType(t *testing.T) {
 		require.Contains(t, panicMsg, "value is not time.Duration")
 	}()
 
-	setting := Setting{Name: "test-setting", Value: "not-a-duration"}
+	setting := Setting{Name: testTestSetting, Value: "not-a-duration"}
 	_ = RegisterAsDurationSetting(&setting)
 }
 
@@ -183,7 +183,7 @@ func TestRegisterAsIntSetting_WrongType(t *testing.T) {
 		require.Contains(t, panicMsg, "value is not int")
 	}()
 
-	setting := Setting{Name: "test-setting", Value: "not-an-int"}
+	setting := Setting{Name: testTestSetting, Value: "not-an-int"}
 	_ = RegisterAsIntSetting(&setting)
 }
 
@@ -258,7 +258,7 @@ func TestNewTestConfig_ProdMode(t *testing.T) {
 func TestParseWithFlagSet_EmptyCommandParameters(t *testing.T) {
 	t.Parallel()
 
-	fs := pflag.NewFlagSet("test", pflag.ContinueOnError)
+	fs := pflag.NewFlagSet(valueTest, pflag.ContinueOnError)
 	_, err := ParseWithFlagSet(fs, []string{}, false)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "missing subcommand")
@@ -268,10 +268,10 @@ func TestParseWithFlagSet_EmptyCommandParameters(t *testing.T) {
 func TestParseWithFlagSet_InvalidFlagSyntax(t *testing.T) {
 	t.Parallel()
 
-	fs := pflag.NewFlagSet("test", pflag.ContinueOnError)
+	fs := pflag.NewFlagSet(valueTest, pflag.ContinueOnError)
 	// Invalid flag syntax: --unknown-flag will cause pflag.Parse to fail when flag doesn't exist
 	// Actually need to test flag parsing error - use --bind-public-port with invalid value type
-	_, err := ParseWithFlagSet(fs, []string{"start", "--bind-public-port=not-a-number"}, false)
+	_, err := ParseWithFlagSet(fs, []string{valueStart, "--bind-public-port=not-a-number"}, false)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "error parsing flags")
 }
@@ -280,9 +280,9 @@ func TestParseWithFlagSet_InvalidFlagSyntax(t *testing.T) {
 func TestParseWithFlagSet_ProfileKnown(t *testing.T) {
 	t.Parallel()
 
-	fs := pflag.NewFlagSet("test", pflag.ContinueOnError)
+	fs := pflag.NewFlagSet(valueTest, pflag.ContinueOnError)
 	// Use a known profile (local, stg, prod, test)
-	settings, err := ParseWithFlagSet(fs, []string{"start", "--profile=local"}, false)
+	settings, err := ParseWithFlagSet(fs, []string{valueStart, "--profile=local"}, false)
 	require.NoError(t, err)
 	require.NotNil(t, settings)
 }

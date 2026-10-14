@@ -47,8 +47,8 @@ func TestFindDuplicates_BelowThreshold_NotReported(t *testing.T) {
 	dir := t.TempDir()
 
 	// Same function in only 2 PS-IDs — below threshold of 3.
-	writeTestFile(t, dir, cryptoutilSharedMagic.OTLPServiceSMKMS, "server_test.go", []string{"TestNewFromConfig_NilContext"})
-	writeTestFile(t, dir, cryptoutilSharedMagic.OTLPServiceIdentityAuthz, "server_test.go", []string{"TestNewFromConfig_NilContext"})
+	writeTestFile(t, dir, cryptoutilSharedMagic.OTLPServiceSMKMS, "server_test.go", []string{testTestNewFromConfigNilContext})
+	writeTestFile(t, dir, cryptoutilSharedMagic.OTLPServiceIdentityAuthz, "server_test.go", []string{testTestNewFromConfigNilContext})
 
 	results, err := lintFitnessDuplicatePSIDTestFuncNames.FindDuplicates(dir)
 
@@ -62,15 +62,15 @@ func TestFindDuplicates_AtThreshold_Reported(t *testing.T) {
 	dir := t.TempDir()
 
 	// Same function in exactly 3 PS-IDs — at threshold, should be reported.
-	writeTestFile(t, dir, cryptoutilSharedMagic.OTLPServiceSMKMS, "server_test.go", []string{"TestNewFromConfig_NilContext"})
-	writeTestFile(t, dir, cryptoutilSharedMagic.OTLPServiceIdentityAuthz, "server_test.go", []string{"TestNewFromConfig_NilContext"})
-	writeTestFile(t, dir, cryptoutilSharedMagic.OTLPServiceIdentityIDP, "server_test.go", []string{"TestNewFromConfig_NilContext"})
+	writeTestFile(t, dir, cryptoutilSharedMagic.OTLPServiceSMKMS, "server_test.go", []string{testTestNewFromConfigNilContext})
+	writeTestFile(t, dir, cryptoutilSharedMagic.OTLPServiceIdentityAuthz, "server_test.go", []string{testTestNewFromConfigNilContext})
+	writeTestFile(t, dir, cryptoutilSharedMagic.OTLPServiceIdentityIDP, "server_test.go", []string{testTestNewFromConfigNilContext})
 
 	results, err := lintFitnessDuplicatePSIDTestFuncNames.FindDuplicates(dir)
 
 	require.NoError(t, err)
 	require.Len(t, results, 1)
-	require.Equal(t, "TestNewFromConfig_NilContext", results[0].FuncName)
+	require.Equal(t, testTestNewFromConfigNilContext, results[0].FuncName)
 	require.Len(t, results[0].PSIDs, 3)
 }
 
@@ -96,11 +96,11 @@ func TestFindDuplicates_RankedWorstFirst(t *testing.T) {
 
 	// FuncA in 4 PS-IDs, FuncB in 3 PS-IDs — FuncA should come first.
 	for _, psID := range []string{cryptoutilSharedMagic.OTLPServiceSMKMS, cryptoutilSharedMagic.OTLPServiceIdentityAuthz, cryptoutilSharedMagic.OTLPServiceIdentityIDP, cryptoutilSharedMagic.OTLPServiceIdentityRP} {
-		writeTestFile(t, dir, psID, "server_test.go", []string{"TestFuncA", "TestFuncB"})
+		writeTestFile(t, dir, psID, "server_test.go", []string{testTestFuncA, "TestFuncB"})
 	}
 
 	// FuncB only in 3 of the 4.
-	writeTestFile(t, dir, cryptoutilSharedMagic.OTLPServiceSkeletonTemplate, "server_test.go", []string{"TestFuncA"})
+	writeTestFile(t, dir, cryptoutilSharedMagic.OTLPServiceSkeletonTemplate, "server_test.go", []string{testTestFuncA})
 
 	results, err := lintFitnessDuplicatePSIDTestFuncNames.FindDuplicates(dir)
 
@@ -174,7 +174,7 @@ func TestCheckInDir_ReturnsNil_WhenDuplicatesFound(t *testing.T) {
 	dir := t.TempDir()
 
 	for _, psID := range []string{cryptoutilSharedMagic.OTLPServiceSMKMS, cryptoutilSharedMagic.OTLPServiceIdentityAuthz, cryptoutilSharedMagic.OTLPServiceIdentityIDP} {
-		writeTestFile(t, dir, psID, "server_test.go", []string{"TestNewFromConfig_NilContext"})
+		writeTestFile(t, dir, psID, "server_test.go", []string{testTestNewFromConfigNilContext})
 	}
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test-duplicate-ps-id-test-func-names")

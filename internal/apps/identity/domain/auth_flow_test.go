@@ -23,7 +23,7 @@ func TestAuthFlow_BeforeCreate(t *testing.T) {
 		expectedErr bool
 	}{
 		{
-			name: "generates ID when empty",
+			name: testGeneratesIDWhenEmpty,
 			setupFlow: func() *cryptoutilIdentityDomain.AuthFlow {
 				return &cryptoutilIdentityDomain.AuthFlow{}
 			},
@@ -31,7 +31,7 @@ func TestAuthFlow_BeforeCreate(t *testing.T) {
 			expectedErr: false,
 		},
 		{
-			name: "preserves existing ID",
+			name: testPreservesExistingID,
 			setupFlow: func() *cryptoutilIdentityDomain.AuthFlow {
 				existingID := googleUuid.Must(googleUuid.NewV7())
 

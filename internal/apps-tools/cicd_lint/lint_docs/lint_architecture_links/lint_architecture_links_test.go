@@ -15,7 +15,6 @@ import (
 )
 
 const (
-	testArchPath            = cryptoutilSharedMagic.CICDDocsHandbookPath
 	testInstructionFileName = "01-01.test.instructions.md"
 	testAgentFileName       = "my-agent.agent.md"
 
@@ -68,7 +67,7 @@ func TestHeadingToAnchor(t *testing.T) {
 		{
 			name:     "heading with dots removed",
 			input:    "2.5 Quality Strategy",
-			expected: "25-quality-strategy",
+			expected: test25QualityStrategy,
 		},
 		{
 			name:     "heading with ampersand creates double hyphen",
@@ -83,7 +82,7 @@ func TestHeadingToAnchor(t *testing.T) {
 		{
 			name:     "heading with section number and underscores",
 			input:    "11.2.8 format_go Self-Modification Protection - CRITICAL",
-			expected: "1128-format_go-self-modification-protection---critical",
+			expected: test1128FormatGoSelfModificationProtectionCritical,
 		},
 		{
 			name:     "parens removed",
@@ -135,8 +134,8 @@ Some regular content line without heading.
 
 	expected := []string{
 		"executive-summary",
-		"25-quality-strategy",
-		"1128-format_go-self-modification-protection---critical",
+		test25QualityStrategy,
+		test1128FormatGoSelfModificationProtectionCritical,
 		"692-headless-authentication-methods-13-total",
 		"65-pki-architecture--strategy",
 	}
@@ -162,7 +161,7 @@ func TestCheckWithFS_AllAnchorsValid(t *testing.T) {
 		return fn(filepath.Join(absDir, name), &fakeDirEntry{name: name, isDir: false}, nil)
 	}
 
-	archAbsPath := filepath.Join(root, filepath.FromSlash(testArchPath))
+	archAbsPath := filepath.Join(root, filepath.FromSlash(cryptoutilSharedMagic.CICDDocsHandbookPath))
 
 	readFileFn := func(name string) ([]byte, error) {
 		if name == archAbsPath {
@@ -200,7 +199,7 @@ func TestCheckWithFS_BrokenAnchor(t *testing.T) {
 	}
 
 	readFileFn := func(name string) ([]byte, error) {
-		if name == filepath.Join(root, filepath.FromSlash(testArchPath)) {
+		if name == filepath.Join(root, filepath.FromSlash(cryptoutilSharedMagic.CICDDocsHandbookPath)) {
 			return []byte(archContent), nil
 		}
 

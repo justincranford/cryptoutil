@@ -42,7 +42,7 @@ func RequireNewForTest(_ string) *Config {
 			AdminPort:        int(cryptoutilSharedMagic.DefaultPrivatePortCryptoutil) + 1,
 		},
 		RS: &ServerConfig{
-			Name:             "rs",
+			Name:             valueRs,
 			BindAddress:      cryptoutilSharedMagic.IPv4Loopback,
 			Port:             int(cryptoutilSharedMagic.DefaultPublicPortCryptoutilCompose2),
 			TLSEnabled:       true,
@@ -56,7 +56,7 @@ func RequireNewForTest(_ string) *Config {
 			AdminPort:        int(cryptoutilSharedMagic.DefaultPrivatePortCryptoutil) + 2,
 		},
 		Database: &DatabaseConfig{
-			Type:         "sqlite",
+			Type:         valueSqlite,
 			DSN:          cryptoutilSharedMagic.SQLiteMemoryPlaceholder,
 			MaxOpenConns: cryptoutilSharedMagic.SQLiteMaxOpenConnections,
 		},
@@ -78,7 +78,7 @@ func RequireNewForTest(_ string) *Config {
 			RateLimitWindow:    time.Minute,
 		},
 		Observability: &ObservabilityConfig{
-			LogLevel: "info",
+			LogLevel: valueInfo,
 		},
 	}
 }

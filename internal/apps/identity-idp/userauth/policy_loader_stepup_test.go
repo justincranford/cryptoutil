@@ -24,51 +24,20 @@ func TestYAMLPolicyLoader_LoadStepUpPolicies(t *testing.T) {
 		errorContains string
 	}{
 		{
-			name: "valid step-up policies",
-			yamlContent: `version: "1.0"
-policies:
-  transfer_funds:
-    operation_pattern: "transfer_funds"
-    required_level: "step_up"
-    allowed_methods: ["sms_otp", "totp", "webauthn"]
-    max_age: "5m"
-    description: "High-value financial transfer"
-  change_password:
-    operation_pattern: "change_password"
-    required_level: "step_up"
-    allowed_methods: ["email_otp", "totp"]
-    max_age: "2m"
-    description: "Password change operation"
-default_policy:
-  required_level: "basic"
-  allowed_methods: ["password"]
-  max_age: "24h"
-auth_levels:
-  none: 0
-  basic: 1
-  mfa: 2
-  step_up: 3
-  strong_mfa: 4
-step_up_methods: {}
-session_durations: {}
-monitoring:
-  step_up_rate: "15%"
-  blocked_operations: "5%"
-  fallback_methods: "20%"
-  description: ""
-`,
-			wantVersion:  "1.0",
+			name:         "valid step-up policies",
+			yamlContent:  testVersion10PoliciesTransferFundsOperationPatternTransferFundsRequiredLevelStepUpAllowedMethodsSmsOTPTotpWebauthnMaxAge5mDescriptionHighValueFinancialTransferChangePasswordOperationPatternChangePasswordRequiredLevelStepUpAllowedMethodsEmailOTPTotpMaxAge2mDescriptionPasswordChangeOperationDefaultPolicyRequiredLevelBasicAllowedMethodsPasswordMaxAge24hAuthLevelsNone0Basic1Mfa2StepUp3StrongMfa4StepUpMethodsSessionDurationsMonitoringStepUpRate15BlockedOperations5FallbackMethods20Description,
+			wantVersion:  test10,
 			wantPolicies: 2,
 			wantError:    false,
 		},
 		{
-			name: "invalid YAML syntax",
+			name: testInvalidYAMLSyntax,
 			yamlContent: `version: "1.0"
 policies:
   - invalid list format
 `,
 			wantError:     true,
-			errorContains: "failed to parse",
+			errorContains: testFailedToParse,
 		},
 		{
 			name: "empty default policy required_level",
@@ -93,7 +62,7 @@ monitoring:
   description: ""
 `,
 			wantError:     true,
-			errorContains: "cannot be empty",
+			errorContains: testCannotBeEmpty,
 		},
 		{
 			name: "empty policies map",
@@ -113,7 +82,7 @@ monitoring:
   description: ""
 `,
 			wantError:     true,
-			errorContains: "cannot be empty",
+			errorContains: testCannotBeEmpty,
 		},
 	}
 
@@ -224,18 +193,18 @@ tuning:
   confidence_threshold_high: 0.8
   baseline_staleness_threshold: "30d"
 `,
-			wantVersion:    "1.0",
+			wantVersion:    test10,
 			wantRiskLevels: 2,
 			wantError:      false,
 		},
 		{
-			name: "invalid YAML syntax",
+			name: testInvalidYAMLSyntax,
 			yamlContent: `version: "1.0"
 risk_based_auth:
   - invalid list
 `,
 			wantError:     true,
-			errorContains: "failed to parse",
+			errorContains: testFailedToParse,
 		},
 		{
 			name: "empty risk_based_auth",
@@ -271,7 +240,7 @@ tuning:
   baseline_staleness_threshold: ""
 `,
 			wantError:     true,
-			errorContains: "cannot be empty",
+			errorContains: testCannotBeEmpty,
 		},
 		{
 			name: "empty fallback on_error",
@@ -321,7 +290,7 @@ tuning:
   baseline_staleness_threshold: ""
 `,
 			wantError:     true,
-			errorContains: "cannot be empty",
+			errorContains: testCannotBeEmpty,
 		},
 	}
 

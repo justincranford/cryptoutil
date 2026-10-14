@@ -22,7 +22,7 @@ func TestNewDefaultJWTAuthConfig(t *testing.T) {
 
 	require.Equal(t, JWTAuthModeSession, cfg.Mode)
 	require.Equal(t, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Minute, cfg.CacheTTL)
-	require.Equal(t, "minimal", cfg.ErrorDetailLevel)
+	require.Equal(t, valueMinimal, cfg.ErrorDetailLevel)
 	require.False(t, cfg.IsEnabled())
 	require.False(t, cfg.IsRequired())
 }
@@ -30,10 +30,10 @@ func TestNewDefaultJWTAuthConfig(t *testing.T) {
 func TestNewKMSJWTAuthConfig(t *testing.T) {
 	t.Parallel()
 
-	cfg := NewKMSJWTAuthConfig("https://example.com/.well-known/jwks.json", "https://auth.example.com", "kms-service")
+	cfg := NewKMSJWTAuthConfig(testHTTPSExampleComWellKnownJwksJson, "https://auth.example.com", "kms-service")
 
 	require.Equal(t, JWTAuthModeRequired, cfg.Mode)
-	require.Equal(t, "https://example.com/.well-known/jwks.json", cfg.JWKSURL)
+	require.Equal(t, testHTTPSExampleComWellKnownJwksJson, cfg.JWKSURL)
 	require.Equal(t, "https://auth.example.com", cfg.RequiredIssuer)
 	require.Equal(t, "kms-service", cfg.RequiredAudience)
 	require.True(t, cfg.IsEnabled())
@@ -57,7 +57,7 @@ func TestJWTAuthConfig_Validate(t *testing.T) {
 			name: "required mode with valid config",
 			config: &JWTAuthConfig{
 				Mode:              JWTAuthModeRequired,
-				JWKSURL:           "https://example.com/.well-known/jwks.json",
+				JWKSURL:           testHTTPSExampleComWellKnownJwksJson,
 				AllowedAlgorithms: []string{cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm},
 			},
 			wantErr: false,
@@ -74,7 +74,7 @@ func TestJWTAuthConfig_Validate(t *testing.T) {
 			name: "required mode - missing algorithms",
 			config: &JWTAuthConfig{
 				Mode:              JWTAuthModeRequired,
-				JWKSURL:           "https://example.com/.well-known/jwks.json",
+				JWKSURL:           testHTTPSExampleComWellKnownJwksJson,
 				AllowedAlgorithms: []string{},
 			},
 			wantErr: true,
@@ -83,7 +83,7 @@ func TestJWTAuthConfig_Validate(t *testing.T) {
 			name: "optional mode with valid config",
 			config: &JWTAuthConfig{
 				Mode:              JWTAuthModeOptional,
-				JWKSURL:           "https://example.com/.well-known/jwks.json",
+				JWKSURL:           testHTTPSExampleComWellKnownJwksJson,
 				AllowedAlgorithms: []string{cryptoutilSharedMagic.JoseAlgES256},
 			},
 			wantErr: false,
@@ -108,8 +108,8 @@ func TestJWTClaims_Scopes(t *testing.T) {
 	t.Parallel()
 
 	claims := &JWTClaims{
-		Subject: "user123",
-		Scopes:  []string{cryptoutilSharedMagic.ScopeRead, cryptoutilSharedMagic.ScopeWrite, "admin"},
+		Subject: testUser123,
+		Scopes:  []string{cryptoutilSharedMagic.ScopeRead, cryptoutilSharedMagic.ScopeWrite, valueAdmin},
 	}
 
 	t.Run("HasScope", func(t *testing.T) {
@@ -117,7 +117,7 @@ func TestJWTClaims_Scopes(t *testing.T) {
 
 		require.True(t, claims.HasScope(cryptoutilSharedMagic.ScopeRead))
 		require.True(t, claims.HasScope(cryptoutilSharedMagic.ScopeWrite))
-		require.True(t, claims.HasScope("admin"))
+		require.True(t, claims.HasScope(valueAdmin))
 		require.False(t, claims.HasScope("delete"))
 	})
 
@@ -144,12 +144,12 @@ func TestGetJWTClaims(t *testing.T) {
 	t.Run("claims present", func(t *testing.T) {
 		t.Parallel()
 
-		claims := &JWTClaims{Subject: "user123"}
+		claims := &JWTClaims{Subject: testUser123}
 		ctx := context.WithValue(context.Background(), JWTContextKey{}, claims)
 
 		result := GetJWTClaims(ctx)
 		require.NotNil(t, result)
-		require.Equal(t, "user123", result.Subject)
+		require.Equal(t, testUser123, result.Subject)
 	})
 
 	t.Run("claims absent", func(t *testing.T) {
@@ -184,7 +184,7 @@ func TestWithJWTAuth(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name:    "nil config",
+			name:    testNilConfig,
 			config:  nil,
 			wantErr: true,
 		},
@@ -202,7 +202,7 @@ func TestWithJWTAuth(t *testing.T) {
 		},
 		{
 			name:    "valid required config",
-			config:  NewKMSJWTAuthConfig("https://example.com/.well-known/jwks.json", "https://auth.example.com", cryptoutilSharedMagic.KMSServiceName),
+			config:  NewKMSJWTAuthConfig(testHTTPSExampleComWellKnownJwksJson, "https://auth.example.com", cryptoutilSharedMagic.KMSServiceName),
 			wantErr: false,
 		},
 	}

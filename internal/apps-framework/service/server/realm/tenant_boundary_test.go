@@ -22,43 +22,43 @@ func TestSanitizeSchemaName_CharacterBoundaries(t *testing.T) {
 		{
 			name:   "lowercase a boundary",
 			input:  "x" + string(rune('a')) + "x",
-			expect: "xax",
+			expect: testXax,
 		},
 		{
 			name:   "lowercase z boundary",
 			input:  "x" + string(rune('z')) + "x",
-			expect: "xzx",
+			expect: testXzx,
 		},
 		{
 			name:   "char before a replaced",
 			input:  "x" + string(rune('a'-1)) + "x",
-			expect: "x_x",
+			expect: testXX,
 		},
 		{
 			name:   "char after z replaced",
 			input:  "x" + string(rune('z'+1)) + "x",
-			expect: "x_x",
+			expect: testXX,
 		},
 		// Uppercase boundary: 'A' and 'Z' should be kept (lowercased).
 		{
 			name:   "uppercase A boundary",
 			input:  "x" + string(rune('A')) + "x",
-			expect: "xax",
+			expect: testXax,
 		},
 		{
 			name:   "uppercase Z boundary",
 			input:  "x" + string(rune('Z')) + "x",
-			expect: "xzx",
+			expect: testXzx,
 		},
 		{
 			name:   "char before A replaced",
 			input:  "x" + string(rune('A'-1)) + "x",
-			expect: "x_x",
+			expect: testXX,
 		},
 		{
 			name:   "char after Z replaced",
 			input:  "x" + string(rune('Z'+1)) + "x",
-			expect: "x_x",
+			expect: testXX,
 		},
 		// Digit boundary: '0' and '9' should be kept.
 		{
@@ -74,18 +74,18 @@ func TestSanitizeSchemaName_CharacterBoundaries(t *testing.T) {
 		{
 			name:   "char before 0 replaced",
 			input:  "x" + string(rune('0'-1)) + "x",
-			expect: "x_x",
+			expect: testXX,
 		},
 		{
 			name:   "char after 9 replaced",
 			input:  "x" + string(rune('9'+1)) + "x",
-			expect: "x_x",
+			expect: testXX,
 		},
 		// Underscore kept.
 		{
 			name:   "underscore kept",
-			input:  "x_x",
-			expect: "x_x",
+			input:  testXX,
+			expect: testXX,
 		},
 	}
 

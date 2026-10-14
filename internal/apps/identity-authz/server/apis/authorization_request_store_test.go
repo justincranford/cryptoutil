@@ -33,12 +33,12 @@ func TestInMemoryAuthorizationRequestStore(t *testing.T) {
 				requestID := googleUuid.New()
 				request := &cryptoutilIdentityAuthz.AuthorizationRequest{
 					RequestID:           requestID,
-					ClientID:            "test-client",
-					RedirectURI:         "https://client.example.com/callback",
+					ClientID:            testTestClient,
+					RedirectURI:         testHTTPSClientExampleComCallback,
 					ResponseType:        cryptoutilSharedMagic.ResponseTypeCode,
-					Scope:               "openid profile",
-					State:               "test-state",
-					CodeChallenge:       "test-challenge",
+					Scope:               testOpenidProfile,
+					State:               testTestState,
+					CodeChallenge:       testTestChallenge,
 					CodeChallengeMethod: cryptoutilSharedMagic.PKCEMethodS256,
 					CreatedAt:           time.Now().UTC(),
 					ExpiresAt:           time.Now().UTC().Add(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Minute),
@@ -64,13 +64,13 @@ func TestInMemoryAuthorizationRequestStore(t *testing.T) {
 				authCode := "test-authorization-code"
 				request := &cryptoutilIdentityAuthz.AuthorizationRequest{
 					RequestID:           requestID,
-					ClientID:            "test-client",
-					RedirectURI:         "https://client.example.com/callback",
+					ClientID:            testTestClient,
+					RedirectURI:         testHTTPSClientExampleComCallback,
 					ResponseType:        cryptoutilSharedMagic.ResponseTypeCode,
-					Scope:               "openid profile",
-					State:               "test-state",
+					Scope:               testOpenidProfile,
+					State:               testTestState,
 					Code:                authCode,
-					CodeChallenge:       "test-challenge",
+					CodeChallenge:       testTestChallenge,
 					CodeChallengeMethod: cryptoutilSharedMagic.PKCEMethodS256,
 					CreatedAt:           time.Now().UTC(),
 					ExpiresAt:           time.Now().UTC().Add(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Minute),
@@ -95,12 +95,12 @@ func TestInMemoryAuthorizationRequestStore(t *testing.T) {
 				requestID := googleUuid.New()
 				request := &cryptoutilIdentityAuthz.AuthorizationRequest{
 					RequestID:           requestID,
-					ClientID:            "test-client",
-					RedirectURI:         "https://client.example.com/callback",
+					ClientID:            testTestClient,
+					RedirectURI:         testHTTPSClientExampleComCallback,
 					ResponseType:        cryptoutilSharedMagic.ResponseTypeCode,
-					Scope:               "openid profile",
-					State:               "test-state",
-					CodeChallenge:       "test-challenge",
+					Scope:               testOpenidProfile,
+					State:               testTestState,
+					CodeChallenge:       testTestChallenge,
 					CodeChallengeMethod: cryptoutilSharedMagic.PKCEMethodS256,
 					CreatedAt:           time.Now().UTC(),
 					ExpiresAt:           time.Now().UTC().Add(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Minute),
@@ -112,7 +112,7 @@ func TestInMemoryAuthorizationRequestStore(t *testing.T) {
 
 				// Update with consent granted.
 				request.ConsentGranted = true
-				request.Code = "test-code"
+				request.Code = testTestCode
 
 				err = store.Update(ctx, request)
 				require.NoError(t, err)
@@ -120,7 +120,7 @@ func TestInMemoryAuthorizationRequestStore(t *testing.T) {
 				retrieved, err := store.GetByRequestID(ctx, requestID)
 				require.NoError(t, err)
 				require.True(t, retrieved.ConsentGranted)
-				require.Equal(t, "test-code", retrieved.Code)
+				require.Equal(t, testTestCode, retrieved.Code)
 			},
 		},
 		{
@@ -131,12 +131,12 @@ func TestInMemoryAuthorizationRequestStore(t *testing.T) {
 				requestID := googleUuid.New()
 				request := &cryptoutilIdentityAuthz.AuthorizationRequest{
 					RequestID:           requestID,
-					ClientID:            "test-client",
-					RedirectURI:         "https://client.example.com/callback",
+					ClientID:            testTestClient,
+					RedirectURI:         testHTTPSClientExampleComCallback,
 					ResponseType:        cryptoutilSharedMagic.ResponseTypeCode,
-					Scope:               "openid profile",
-					State:               "test-state",
-					CodeChallenge:       "test-challenge",
+					Scope:               testOpenidProfile,
+					State:               testTestState,
+					CodeChallenge:       testTestChallenge,
 					CodeChallengeMethod: cryptoutilSharedMagic.PKCEMethodS256,
 					CreatedAt:           time.Now().UTC(),
 					ExpiresAt:           time.Now().UTC().Add(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Minute),
@@ -161,12 +161,12 @@ func TestInMemoryAuthorizationRequestStore(t *testing.T) {
 				requestID := googleUuid.New()
 				request := &cryptoutilIdentityAuthz.AuthorizationRequest{
 					RequestID:           requestID,
-					ClientID:            "test-client",
-					RedirectURI:         "https://client.example.com/callback",
+					ClientID:            testTestClient,
+					RedirectURI:         testHTTPSClientExampleComCallback,
 					ResponseType:        cryptoutilSharedMagic.ResponseTypeCode,
-					Scope:               "openid profile",
-					State:               "test-state",
-					CodeChallenge:       "test-challenge",
+					Scope:               testOpenidProfile,
+					State:               testTestState,
+					CodeChallenge:       testTestChallenge,
 					CodeChallengeMethod: cryptoutilSharedMagic.PKCEMethodS256,
 					CreatedAt:           time.Now().UTC().Add(-cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Minute),
 					ExpiresAt:           time.Now().UTC().Add(-cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Minute),

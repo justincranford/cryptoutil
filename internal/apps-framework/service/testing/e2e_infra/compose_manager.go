@@ -48,7 +48,7 @@ func NewComposeManager(composeFile string, profiles ...string) *ComposeManager {
 
 // defaultPsOutput runs the real docker compose ps command.
 func (cm *ComposeManager) defaultPsOutput(ctx context.Context) ([]byte, error) {
-	psCmd := exec.CommandContext(ctx, "docker", "compose", "-f", cm.ComposeFile, "ps", "-a", "--format", "json")
+	psCmd := exec.CommandContext(ctx, "docker", valueCompose, valueF, cm.ComposeFile, "ps", "-a", "--format", "json")
 
 	output, err := psCmd.CombinedOutput()
 	if err != nil {
@@ -199,7 +199,7 @@ func (cm *ComposeManager) Stop(ctx context.Context) error {
 // buildComposeArgs builds the docker compose command arguments including profiles.
 func (cm *ComposeManager) buildComposeArgs(subcommand ...string) []string {
 	args := make([]string, 0, 3+2*len(cm.Profiles)+len(subcommand))
-	args = append(args, "compose", "-f", cm.ComposeFile)
+	args = append(args, valueCompose, valueF, cm.ComposeFile)
 
 	for _, profile := range cm.Profiles {
 		args = append(args, "--profile", profile)
@@ -213,7 +213,7 @@ func (cm *ComposeManager) buildComposeArgs(subcommand ...string) []string {
 // BuildDockerExecArgs builds the docker exec arguments to run a command inside a container.
 // Returns arguments suitable for passing to exec.Command("docker", args...).
 func (cm *ComposeManager) BuildDockerExecArgs(service string, command ...string) []string {
-	execArgs := cm.buildComposeArgs(append([]string{"exec", service}, command...)...)
+	execArgs := cm.buildComposeArgs(append([]string{valueExec, service}, command...)...)
 
 	return execArgs
 }

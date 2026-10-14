@@ -92,7 +92,7 @@ func TestClientRepository_GetByID(t *testing.T) {
 		wantErr error
 	}{
 		{
-			name:    "client not found",
+			name:    testClientNotFound,
 			id:      googleUuid.Must(googleUuid.NewV7()),
 			wantErr: cryptoutilIdentityAppErr.ErrClientNotFound,
 		},
@@ -118,7 +118,7 @@ func TestClientRepository_GetByClientID(t *testing.T) {
 
 	testClient := &cryptoutilIdentityDomain.Client{
 		ID:                      googleUuid.Must(googleUuid.NewV7()),
-		ClientID:                "test-client-get",
+		ClientID:                testTestClientGet,
 		ClientSecret:            googleUuid.Must(googleUuid.NewV7()).String(),
 		ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
 		Name:                    cryptoutilSharedMagic.TestClientName,
@@ -144,12 +144,12 @@ func TestClientRepository_GetByClientID(t *testing.T) {
 	}{
 		{
 			name:     "client found",
-			clientID: "test-client-get",
+			clientID: testTestClientGet,
 			wantErr:  nil,
 		},
 		{
-			name:     "client not found",
-			clientID: "nonexistent",
+			name:     testClientNotFound,
+			clientID: testNonexistent,
 			wantErr:  cryptoutilIdentityAppErr.ErrClientNotFound,
 		},
 	}
@@ -274,11 +274,11 @@ func TestClientRepository_List(t *testing.T) {
 		require.NoError(t, err)
 	}
 
-	clients, err := repo.List(ctx, 0, 3)
+	clients, err := repo.List(ctx, 0, test3)
 	require.NoError(t, err)
-	require.Len(t, clients, 3)
+	require.Len(t, clients, test3)
 
-	clients, err = repo.List(ctx, 3, 3)
+	clients, err = repo.List(ctx, test3, test3)
 	require.NoError(t, err)
 	require.Len(t, clients, 2)
 }

@@ -45,7 +45,7 @@ func TestApplication_TableDriven_HappyPath(t *testing.T) {
 			},
 		},
 		{
-			name:        "Start",
+			name:        testStart,
 			description: "Application starts both public and admin servers concurrently",
 			testFunc: func(t *testing.T, app *cryptoutilAppsFrameworkServiceServer.Application) {
 				t.Helper()
@@ -186,7 +186,7 @@ func TestApplication_TableDriven_SadPath(t *testing.T) {
 		expectedError string
 	}{
 		{
-			name:        "NilContext",
+			name:        testNilContext,
 			description: "NewApplication rejects nil context",
 			setupFunc: func(t *testing.T) (*cryptoutilAppsFrameworkServiceServer.Application, error) {
 				t.Helper()
@@ -196,7 +196,7 @@ func TestApplication_TableDriven_SadPath(t *testing.T) {
 
 				return cryptoutilAppsFrameworkServiceServer.NewApplication(nil, publicServer, adminServer) //nolint:staticcheck // Testing nil context.
 			},
-			expectedError: "context cannot be nil",
+			expectedError: testContextCannotBeNil,
 		},
 		{
 			name:        "NilPublicServer",
@@ -225,8 +225,8 @@ func TestApplication_TableDriven_SadPath(t *testing.T) {
 			expectedError: "adminServer cannot be nil",
 		},
 		{
-			name:        "Start_NilContext",
-			description: "Start rejects nil context",
+			name:        testStartNilContext,
+			description: testStartRejectsNilContext,
 			setupFunc: func(t *testing.T) (*cryptoutilAppsFrameworkServiceServer.Application, error) {
 				t.Helper()
 
@@ -241,7 +241,7 @@ func TestApplication_TableDriven_SadPath(t *testing.T) {
 
 				return app, fmt.Errorf("failed to start application: %w", err)
 			},
-			expectedError: "context cannot be nil",
+			expectedError: testContextCannotBeNil,
 		},
 		{
 			name:        "Start_PublicServerFailure",
@@ -284,8 +284,8 @@ func TestApplication_TableDriven_SadPath(t *testing.T) {
 			expectedError: "admin server start failed",
 		},
 		{
-			name:        "Shutdown_NilContext",
-			description: "Shutdown accepts nil context and uses Background()",
+			name:        testShutdownNilContext,
+			description: testShutdownAcceptsNilContextAndUsesBackground,
 			setupFunc: func(t *testing.T) (*cryptoutilAppsFrameworkServiceServer.Application, error) {
 				t.Helper()
 
@@ -313,7 +313,7 @@ func TestApplication_TableDriven_SadPath(t *testing.T) {
 
 				ctx := context.Background()
 				publicServer := cryptoutilAppsFrameworkServiceServerTestutil.NewMockPublicServer(cryptoutilSharedMagic.TestServerPort)
-				publicServer.ShutdownErr = errors.New("public shutdown failed")
+				publicServer.ShutdownErr = errors.New(testPublicShutdownFailed)
 				adminServer := cryptoutilAppsFrameworkServiceServerTestutil.NewMockAdminServer(cryptoutilSharedMagic.TestAdminPort)
 
 				app, err := cryptoutilAppsFrameworkServiceServer.NewApplication(ctx, publicServer, adminServer)
@@ -323,7 +323,7 @@ func TestApplication_TableDriven_SadPath(t *testing.T) {
 
 				return app, fmt.Errorf("failed to shutdown application: %w", err)
 			},
-			expectedError: "public shutdown failed",
+			expectedError: testPublicShutdownFailed,
 		},
 		{
 			name:        "Shutdown_AdminServerError",
@@ -353,7 +353,7 @@ func TestApplication_TableDriven_SadPath(t *testing.T) {
 
 				ctx := context.Background()
 				publicServer := cryptoutilAppsFrameworkServiceServerTestutil.NewMockPublicServer(cryptoutilSharedMagic.TestServerPort)
-				publicServer.ShutdownErr = errors.New("public shutdown failed")
+				publicServer.ShutdownErr = errors.New(testPublicShutdownFailed)
 				adminServer := cryptoutilAppsFrameworkServiceServerTestutil.NewMockAdminServer(cryptoutilSharedMagic.TestAdminPort)
 				adminServer.ShutdownErr = errors.New("admin shutdown failed")
 
@@ -364,7 +364,7 @@ func TestApplication_TableDriven_SadPath(t *testing.T) {
 
 				return app, fmt.Errorf("failed to shutdown application: %w", err)
 			},
-			expectedError: "public shutdown failed",
+			expectedError: testPublicShutdownFailed,
 		},
 		{
 			name:        "AdminPort_NotInitialized",

@@ -62,8 +62,8 @@ func TestCheckInDir_TemplateMigrations(t *testing.T) {
 		errContains string
 	}{
 		{name: "valid range passes", fileNumbers: []int{1001, 1002, 1003}},
-		{name: "below min fails", fileNumbers: []int{1001, 0}, wantErr: true, errContains: "migration range compliance"},
-		{name: "above max fails", fileNumbers: []int{1001, 2000}, wantErr: true, errContains: "migration range compliance"},
+		{name: "below min fails", fileNumbers: []int{1001, 0}, wantErr: true, errContains: testMigrationRangeCompliance},
+		{name: "above max fails", fileNumbers: []int{1001, 2000}, wantErr: true, errContains: testMigrationRangeCompliance},
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
@@ -96,13 +96,13 @@ func TestCheckInDir_DomainMigrations(t *testing.T) {
 		errContains string
 	}{
 		{name: "sm-kms valid range passes", migRelDir: smKmsMigRelDir, fileNumbers: []int{2001, 2002}},
-		{name: "sm-kms below min fails", migRelDir: smKmsMigRelDir, fileNumbers: []int{2001, 1}, wantErr: true, errContains: "migration range compliance"},
-		{name: "sm-kms above max fails", migRelDir: smKmsMigRelDir, fileNumbers: []int{2001, 3001}, wantErr: true, errContains: "migration range compliance"},
+		{name: "sm-kms below min fails", migRelDir: smKmsMigRelDir, fileNumbers: []int{2001, 1}, wantErr: true, errContains: testMigrationRangeCompliance},
+		{name: "sm-kms above max fails", migRelDir: smKmsMigRelDir, fileNumbers: []int{2001, 3001}, wantErr: true, errContains: testMigrationRangeCompliance},
 		{name: "sm-kms PKI migration range passes", migRelDir: smKmsMigRelDir, fileNumbers: []int{2009}},
 		{name: "identity skipped", migRelDir: identityMigRelDir, fileNumbers: []int{1, 2, 3, 11}},
 		{name: "empty dir passes", migRelDir: "", fileNumbers: nil},
 		{name: "unknown psid valid loose bound", migRelDir: unknownSvcMigDir, fileNumbers: []int{2001, 9999}},
-		{name: "unknown psid below loose lower fails", migRelDir: unknownSvcMigDir, fileNumbers: []int{999}, wantErr: true, errContains: "migration range compliance"},
+		{name: "unknown psid below loose lower fails", migRelDir: unknownSvcMigDir, fileNumbers: []int{999}, wantErr: true, errContains: testMigrationRangeCompliance},
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
@@ -296,19 +296,19 @@ func TestCheckRangeCollisions(t *testing.T) {
 		{
 			name: "no overlap returns empty",
 			ranges: []lintFitnessRegistry.MigrationRangeInfo{
-				{PSID: "svc-a", Start: 1001, End: 1999},
-				{PSID: "svc-b", Start: 2001, End: 2999},
+				{PSID: testSvcA, Start: 1001, End: 1999},
+				{PSID: testSvcB, Start: 2001, End: 2999},
 				{PSID: "svc-c", Start: 3001, End: 3999},
 			},
 		},
 		{
 			name: "overlap returns violation",
 			ranges: []lintFitnessRegistry.MigrationRangeInfo{
-				{PSID: "svc-a", Start: 1001, End: 2500},
-				{PSID: "svc-b", Start: 2001, End: 2999},
+				{PSID: testSvcA, Start: 1001, End: 2500},
+				{PSID: testSvcB, Start: 2001, End: 2999},
 			},
 			wantViolations: true,
-			checkContains:  []string{"svc-a", "svc-b"},
+			checkContains:  []string{testSvcA, testSvcB},
 		},
 		{name: "empty ranges returns empty", ranges: nil},
 	}

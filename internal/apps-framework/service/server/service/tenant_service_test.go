@@ -163,7 +163,7 @@ func TestTenantService_CreateTenant(t *testing.T) {
 		errContains string
 	}{
 		{
-			name:        "happy path",
+			name:        testHappyPath,
 			tenantName:  cryptoutilSharedMagic.NAME_TEST_TENANT,
 			description: "A test tenant",
 			setupMocks: func(tenantRepo *mockTenantRepository, roleRepo *mockRoleRepository) {
@@ -187,7 +187,7 @@ func TestTenantService_CreateTenant(t *testing.T) {
 				}
 			},
 			wantErr:     true,
-			errContains: "failed to create tenant",
+			errContains: testFailedToCreateTenant,
 		},
 		{
 			name:        "role creation fails",
@@ -249,7 +249,7 @@ func TestTenantService_GetTenant(t *testing.T) {
 		errContains string
 	}{
 		{
-			name:     "happy path",
+			name:     testHappyPath,
 			tenantID: tenantID,
 			setupMocks: func(tenantRepo *mockTenantRepository) {
 				tenantRepo.getByIDFn = func(_ context.Context, id googleUuid.UUID) (*cryptoutilAppsFrameworkServiceServerRepository.Tenant, error) {
@@ -259,16 +259,16 @@ func TestTenantService_GetTenant(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name:     "tenant not found",
+			name:     testErrSummaryTenantNotFound,
 			tenantID: googleUuid.New(),
 			setupMocks: func(tenantRepo *mockTenantRepository) {
 				summary := testErrSummaryTenantNotFound
 				tenantRepo.getByIDFn = func(_ context.Context, _ googleUuid.UUID) (*cryptoutilAppsFrameworkServiceServerRepository.Tenant, error) {
-					return nil, cryptoutilSharedApperr.NewHTTP404NotFound(&summary, errors.New("not found"))
+					return nil, cryptoutilSharedApperr.NewHTTP404NotFound(&summary, errors.New(testNotFound))
 				}
 			},
 			wantErr:     true,
-			errContains: "not found",
+			errContains: testNotFound,
 		},
 	}
 
@@ -358,17 +358,17 @@ func TestTenantService_UpdateTenant(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name:       "tenant not found",
+			name:       testErrSummaryTenantNotFound,
 			tenantID:   googleUuid.New(),
-			nameUpdate: stringPtr("Test"),
+			nameUpdate: stringPtr(testTest),
 			setupMocks: func(tenantRepo *mockTenantRepository) {
 				summary := testErrSummaryTenantNotFound
 				tenantRepo.getByIDFn = func(_ context.Context, _ googleUuid.UUID) (*cryptoutilAppsFrameworkServiceServerRepository.Tenant, error) {
-					return nil, cryptoutilSharedApperr.NewHTTP404NotFound(&summary, errors.New("not found"))
+					return nil, cryptoutilSharedApperr.NewHTTP404NotFound(&summary, errors.New(testNotFound))
 				}
 			},
 			wantErr:     true,
-			errContains: "not found",
+			errContains: testNotFound,
 		},
 	}
 
@@ -427,7 +427,7 @@ func TestTenantService_DeleteTenant(t *testing.T) {
 		errContains string
 	}{
 		{
-			name:     "happy path",
+			name:     testHappyPath,
 			tenantID: tenantID,
 			setupMocks: func(tenantRepo *mockTenantRepository) {
 				tenantRepo.deleteFn = func(_ context.Context, _ googleUuid.UUID) error {

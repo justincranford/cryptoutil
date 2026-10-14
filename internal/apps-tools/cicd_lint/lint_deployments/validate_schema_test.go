@@ -32,7 +32,7 @@ otlp-endpoint: "http://otel:4317"
 func TestValidateSchema_ValidConfig(t *testing.T) {
 	t.Parallel()
 
-	path := filepath.Join(t.TempDir(), "config.yml")
+	path := filepath.Join(t.TempDir(), testConfigYml)
 	require.NoError(t, os.WriteFile(path, []byte(validConfigContent()), cryptoutilSharedMagic.CacheFilePermissions))
 
 	result, err := ValidateSchema(path)
@@ -53,17 +53,17 @@ func TestValidateSchema_MissingRequiredFields(t *testing.T) {
 		{
 			name:    "missing bind-public-protocol",
 			content: "bind-public-address: \"0.0.0.0\"\nbind-public-port: 8080\nbind-private-protocol: \"https\"\nbind-private-address: \"127.0.0.1\"\nbind-private-port: 9090\ntls-public-provision-mode: \"auto\"\ntls-private-provision-mode: \"auto\"\notlp: true\n",
-			wantErr: "bind-public-protocol",
+			wantErr: valueBindPublicProtocol,
 		},
 		{
 			name:    "missing bind-private-address",
 			content: "bind-public-protocol: \"https\"\nbind-public-address: \"0.0.0.0\"\nbind-public-port: 8080\nbind-private-protocol: \"https\"\nbind-private-port: 9090\ntls-public-provision-mode: \"auto\"\ntls-private-provision-mode: \"auto\"\notlp: true\n",
-			wantErr: "bind-private-address",
+			wantErr: valueBindPrivateAddress,
 		},
 		{
 			name:    "missing otlp",
 			content: "bind-public-protocol: \"https\"\nbind-public-address: \"0.0.0.0\"\nbind-public-port: 8080\nbind-private-protocol: \"https\"\nbind-private-address: \"127.0.0.1\"\nbind-private-port: 9090\ntls-public-provision-mode: \"auto\"\ntls-private-provision-mode: \"auto\"\n",
-			wantErr: "otlp",
+			wantErr: valueOtlp,
 		},
 	}
 
@@ -71,7 +71,7 @@ func TestValidateSchema_MissingRequiredFields(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			path := filepath.Join(t.TempDir(), "config.yml")
+			path := filepath.Join(t.TempDir(), testConfigYml)
 			require.NoError(t, os.WriteFile(path, []byte(tc.content), cryptoutilSharedMagic.CacheFilePermissions))
 
 			result, err := ValidateSchema(path)
@@ -122,7 +122,7 @@ func TestValidateSchema_InvalidTypes(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			path := filepath.Join(t.TempDir(), "config.yml")
+			path := filepath.Join(t.TempDir(), testConfigYml)
 			require.NoError(t, os.WriteFile(path, []byte(tc.content), cryptoutilSharedMagic.CacheFilePermissions))
 
 			result, err := ValidateSchema(path)
@@ -150,37 +150,37 @@ func TestValidateSchema_InvalidEnumValues(t *testing.T) {
 		{
 			name:    "invalid protocol",
 			content: "bind-public-protocol: \"http\"\nbind-public-address: \"0.0.0.0\"\nbind-public-port: 8080\nbind-private-protocol: \"https\"\nbind-private-address: \"127.0.0.1\"\nbind-private-port: 9090\ntls-public-provision-mode: \"auto\"\ntls-private-provision-mode: \"auto\"\notlp: true\n",
-			wantErr: "not in allowed values",
+			wantErr: testNotInAllowedValues,
 		},
 		{
 			name:    "invalid private address",
 			content: "bind-public-protocol: \"https\"\nbind-public-address: \"0.0.0.0\"\nbind-public-port: 8080\nbind-private-protocol: \"https\"\nbind-private-address: \"0.0.0.0\"\nbind-private-port: 9090\ntls-public-provision-mode: \"auto\"\ntls-private-provision-mode: \"auto\"\notlp: true\n",
-			wantErr: "not in allowed values",
+			wantErr: testNotInAllowedValues,
 		},
 		{
 			name:    "invalid tls mode",
 			content: "bind-public-protocol: \"https\"\nbind-public-address: \"0.0.0.0\"\nbind-public-port: 8080\nbind-private-protocol: \"https\"\nbind-private-address: \"127.0.0.1\"\nbind-private-port: 9090\ntls-public-provision-mode: \"invalid\"\ntls-private-provision-mode: \"auto\"\notlp: true\n",
-			wantErr: "not in allowed values",
+			wantErr: testNotInAllowedValues,
 		},
 		{
 			name:    "invalid public client policy",
 			content: "bind-public-protocol: \"https\"\nbind-public-address: \"0.0.0.0\"\nbind-public-port: 8080\nbind-private-protocol: \"https\"\nbind-private-address: \"127.0.0.1\"\nbind-private-port: 9090\ntls-public-provision-mode: \"auto\"\ntls-private-provision-mode: \"auto\"\nserver-public-tls-client-policy: \"enforce\"\notlp: true\n",
-			wantErr: "not in allowed values",
+			wantErr: testNotInAllowedValues,
 		},
 		{
 			name:    "invalid admin client policy",
 			content: "bind-public-protocol: \"https\"\nbind-public-address: \"0.0.0.0\"\nbind-public-port: 8080\nbind-private-protocol: \"https\"\nbind-private-address: \"127.0.0.1\"\nbind-private-port: 9090\ntls-public-provision-mode: \"auto\"\ntls-private-provision-mode: \"auto\"\nserver-admin-tls-client-policy: \"mandatory\"\notlp: true\n",
-			wantErr: "not in allowed values",
+			wantErr: testNotInAllowedValues,
 		},
 		{
 			name:    "invalid otlp-environment",
 			content: "bind-public-protocol: \"https\"\nbind-public-address: \"0.0.0.0\"\nbind-public-port: 8080\nbind-private-protocol: \"https\"\nbind-private-address: \"127.0.0.1\"\nbind-private-port: 9090\ntls-public-provision-mode: \"auto\"\ntls-private-provision-mode: \"auto\"\notlp: true\notlp-environment: \"staging\"\n",
-			wantErr: "not in allowed values",
+			wantErr: testNotInAllowedValues,
 		},
 		{
 			name:    "invalid session algorithm",
 			content: "bind-public-protocol: \"https\"\nbind-public-address: \"0.0.0.0\"\nbind-public-port: 8080\nbind-private-protocol: \"https\"\nbind-private-address: \"127.0.0.1\"\nbind-private-port: 9090\ntls-public-provision-mode: \"auto\"\ntls-private-provision-mode: \"auto\"\notlp: true\nbrowser-session-algorithm: \"HMAC\"\n",
-			wantErr: "not in allowed values",
+			wantErr: testNotInAllowedValues,
 		},
 	}
 
@@ -188,7 +188,7 @@ func TestValidateSchema_InvalidEnumValues(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			path := filepath.Join(t.TempDir(), "config.yml")
+			path := filepath.Join(t.TempDir(), testConfigYml)
 			require.NoError(t, os.WriteFile(path, []byte(tc.content), cryptoutilSharedMagic.CacheFilePermissions))
 
 			result, err := ValidateSchema(path)
@@ -204,7 +204,7 @@ func TestValidateSchema_UnknownFields(t *testing.T) {
 	t.Parallel()
 
 	content := validConfigContent() + "unknown-field: \"value\"\nanother-unknown: 42\n"
-	path := filepath.Join(t.TempDir(), "config.yml")
+	path := filepath.Join(t.TempDir(), testConfigYml)
 	require.NoError(t, os.WriteFile(path, []byte(content), cryptoutilSharedMagic.CacheFilePermissions))
 
 	result, err := ValidateSchema(path)
@@ -237,7 +237,7 @@ func TestValidateSchema_InvalidYAML(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, result)
 	require.False(t, result.Valid)
-	require.True(t, containsSubstring(result.Errors, "YAML parse error"))
+	require.True(t, containsSubstring(result.Errors, testYAMLParseError))
 }
 
 func TestValidateSchema_EmptyFile(t *testing.T) {
@@ -257,7 +257,7 @@ func TestValidateSchema_CORSArrayWithNonString(t *testing.T) {
 	t.Parallel()
 
 	content := validConfigContent() + "cors-allowed-origins:\n  - \"http://ok\"\n  - 123\n"
-	path := filepath.Join(t.TempDir(), "config.yml")
+	path := filepath.Join(t.TempDir(), testConfigYml)
 	require.NoError(t, os.WriteFile(path, []byte(content), cryptoutilSharedMagic.CacheFilePermissions))
 
 	result, err := ValidateSchema(path)
@@ -278,7 +278,7 @@ func TestValidateSchema_OptionalFieldsValid(t *testing.T) {
 		"service-session-algorithm: \"Opaque\"\n" +
 		"database-url: \"file:///run/secrets/db.secret\"\n"
 
-	path := filepath.Join(t.TempDir(), "config.yml")
+	path := filepath.Join(t.TempDir(), testConfigYml)
 	require.NoError(t, os.WriteFile(path, []byte(content), cryptoutilSharedMagic.CacheFilePermissions))
 
 	result, err := ValidateSchema(path)
@@ -296,12 +296,12 @@ func TestIsIntLike(t *testing.T) {
 		val  any
 		want bool
 	}{
-		{name: "int", val: cryptoutilSharedMagic.AnswerToLifeUniverseEverything, want: true},
-		{name: "int64", val: int64(cryptoutilSharedMagic.AnswerToLifeUniverseEverything), want: true},
-		{name: "float64", val: float64(42.0), want: true},
-		{name: "string", val: "42", want: false},
-		{name: "bool", val: true, want: false},
-		{name: "nil", val: nil, want: false},
+		{name: testInt, val: cryptoutilSharedMagic.AnswerToLifeUniverseEverything, want: true},
+		{name: testInt64, val: int64(cryptoutilSharedMagic.AnswerToLifeUniverseEverything), want: true},
+		{name: testFloat64, val: float64(42.0), want: true},
+		{name: testString, val: "42", want: false},
+		{name: testBool, val: true, want: false},
+		{name: testNil, val: nil, want: false},
 	}
 
 	for _, tc := range tests {
@@ -322,18 +322,18 @@ func TestFormatSchemaValidationResult(t *testing.T) {
 		contains []string
 	}{
 		{
-			name:     "passing",
-			result:   &SchemaValidationResult{Path: "/test", Valid: true},
-			contains: []string{cryptoutilSharedMagic.TestStatusPass, "/test"},
+			name:     testPassing,
+			result:   &SchemaValidationResult{Path: testTest, Valid: true},
+			contains: []string{cryptoutilSharedMagic.TestStatusPass, testTest},
 		},
 		{
-			name: "failing with errors and warnings",
+			name: testFailingWithErrorsAndWarnings,
 			result: &SchemaValidationResult{
-				Path: "/test", Valid: false,
-				Errors:   []string{"missing field"},
-				Warnings: []string{"unknown field"},
+				Path: testTest, Valid: false,
+				Errors:   []string{testMissingField},
+				Warnings: []string{testUnknownField},
 			},
-			contains: []string{cryptoutilSharedMagic.TestStatusFail, "missing field", "unknown field"},
+			contains: []string{cryptoutilSharedMagic.TestStatusFail, testMissingField, testUnknownField},
 		},
 	}
 

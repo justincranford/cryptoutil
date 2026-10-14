@@ -165,7 +165,7 @@ func buildContentSecurityPolicy(settings *cryptoutilAppsFrameworkServiceConfig.S
 // isNonBrowserAPIRequest returns a function that checks if a request is for a non-browser API.
 // Non-browser APIs include /service/api/v1/*, /oauth2/v1/*, /openid/v1/*.
 func isNonBrowserAPIRequest(settings *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings) func(*fiber.Ctx) bool {
-	servicePrefix := "/service/"
+	servicePrefix := valueService
 	if settings != nil && settings.PublicServiceAPIContextPath != "" {
 		servicePrefix = settings.PublicServiceAPIContextPath
 	}

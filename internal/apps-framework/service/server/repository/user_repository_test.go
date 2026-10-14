@@ -263,7 +263,7 @@ func TestClientRepository_Create(t *testing.T) {
 			client: &Client{
 				ID:        googleUuid.New(),
 				TenantID:  tenant.ID,
-				ClientID:  "client123",
+				ClientID:  testClient123,
 				Active:    1,
 				CreatedAt: time.Now().UTC(),
 			},
@@ -274,7 +274,7 @@ func TestClientRepository_Create(t *testing.T) {
 			client: &Client{
 				ID:        googleUuid.New(),
 				TenantID:  tenant.ID,
-				ClientID:  "client123",
+				ClientID:  testClient123,
 				Active:    1,
 				CreatedAt: time.Now().UTC(),
 			},

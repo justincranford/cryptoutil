@@ -112,8 +112,8 @@ func (t *TOTPAuthenticator) InitiateAuth(ctx context.Context, userID string) (*A
 		Method:    cryptoutilSharedMagic.MFATypeTOTP,
 		ExpiresAt: expiresAt,
 		Metadata: map[string]any{
-			"digits": t.digits,
-			"period": t.period.Seconds(),
+			valueDigits: t.digits,
+			"period":    t.period.Seconds(),
 		},
 	}
 
@@ -253,7 +253,7 @@ func NewHOTPAuthenticator(
 
 // Method returns the authentication method name.
 func (h *HOTPAuthenticator) Method() string {
-	return "hotp"
+	return valueHotp
 }
 
 // GenerateSecret generates a random HOTP secret (same as TOTP).
@@ -356,10 +356,10 @@ func (h *HOTPAuthenticator) InitiateAuth(ctx context.Context, userID string) (*A
 	challenge := &AuthChallenge{
 		ID:        challengeID,
 		UserID:    userID,
-		Method:    "hotp",
+		Method:    valueHotp,
 		ExpiresAt: expiresAt,
 		Metadata: map[string]any{
-			"digits": h.digits,
+			valueDigits: h.digits,
 		},
 	}
 

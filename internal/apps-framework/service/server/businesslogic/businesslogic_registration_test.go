@@ -263,7 +263,7 @@ func TestInitialize_UnsupportedJWSSubAlgorithm(t *testing.T) {
 	sm := NewSessionManager(db, nil, config)
 	err := sm.Initialize(context.Background())
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "unsupported JWS algorithm")
+	require.Contains(t, err.Error(), testUnsupportedJWSAlgorithm)
 }
 
 // TestInitialize_UnsupportedJWESubAlgorithm covers the default branch in
@@ -285,7 +285,7 @@ func TestInitialize_UnsupportedJWESubAlgorithm(t *testing.T) {
 	sm := NewSessionManager(db, nil, config)
 	err := sm.Initialize(context.Background())
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "unsupported JWE algorithm")
+	require.Contains(t, err.Error(), testUnsupportedJWEAlgorithm)
 }
 
 // =============================================================================

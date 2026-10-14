@@ -60,7 +60,7 @@ func TestTokenRepository_GetByID(t *testing.T) {
 		wantErr error
 	}{
 		{
-			name:    "token not found",
+			name:    testTokenNotFound,
 			id:      googleUuid.Must(googleUuid.NewV7()),
 			wantErr: cryptoutilIdentityAppErr.ErrTokenNotFound,
 		},
@@ -86,7 +86,7 @@ func TestTokenRepository_GetByTokenValue(t *testing.T) {
 
 	testToken := &cryptoutilIdentityDomain.Token{
 		ID:             googleUuid.Must(googleUuid.NewV7()),
-		TokenValue:     "access_token_getbyvalue",
+		TokenValue:     testAccessTokenGetbyvalue,
 		TokenType:      cryptoutilIdentityDomain.TokenTypeAccess,
 		TokenFormat:    cryptoutilIdentityDomain.TokenFormatUUID,
 		ClientID:       googleUuid.Must(googleUuid.NewV7()),
@@ -108,12 +108,12 @@ func TestTokenRepository_GetByTokenValue(t *testing.T) {
 	}{
 		{
 			name:       "token found",
-			tokenValue: "access_token_getbyvalue",
+			tokenValue: testAccessTokenGetbyvalue,
 			wantErr:    nil,
 		},
 		{
-			name:       "token not found",
-			tokenValue: "nonexistent",
+			name:       testTokenNotFound,
+			tokenValue: testNonexistent,
 			wantErr:    cryptoutilIdentityAppErr.ErrTokenNotFound,
 		},
 	}
@@ -166,7 +166,7 @@ func TestTokenRepository_Update(t *testing.T) {
 
 	retrieved, err := repo.GetByID(ctx, token.ID)
 	require.NoError(t, err)
-	require.Len(t, retrieved.Scopes, 3)
+	require.Len(t, retrieved.Scopes, test3)
 }
 
 func TestTokenRepository_Delete(t *testing.T) {
@@ -290,11 +290,11 @@ func TestTokenRepository_List(t *testing.T) {
 		require.NoError(t, err)
 	}
 
-	tokens, err := repo.List(ctx, 0, 3)
+	tokens, err := repo.List(ctx, 0, test3)
 	require.NoError(t, err)
-	require.Len(t, tokens, 3)
+	require.Len(t, tokens, test3)
 
-	tokens, err = repo.List(ctx, 3, 3)
+	tokens, err = repo.List(ctx, test3, test3)
 	require.NoError(t, err)
 	require.Len(t, tokens, 2)
 }
@@ -403,7 +403,7 @@ func TestTokenRepository_DeleteExpiredBefore(t *testing.T) {
 		ClientID:       googleUuid.Must(googleUuid.NewV7()),
 		UserID:         cryptoutilIdentityDomain.NullableUUID{UUID: googleUuid.Must(googleUuid.NewV7()), Valid: true},
 		Scopes:         []string{cryptoutilSharedMagic.ScopeOpenID},
-		IssuedAt:       time.Now().UTC().Add(-3 * time.Hour),
+		IssuedAt:       time.Now().UTC().Add(-test3 * time.Hour),
 		ExpiresAt:      time.Now().UTC().Add(-2 * time.Hour),
 		Revoked:        false,
 		RefreshTokenID: cryptoutilIdentityDomain.NullableUUID{Valid: false},

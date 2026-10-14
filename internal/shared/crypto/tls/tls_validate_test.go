@@ -78,8 +78,8 @@ func TestStoreCertificatePEM(t *testing.T) {
 	require.NoError(t, err)
 
 	serverSubject, err := chain.CreateEndEntity(ServerEndEntityOptions(
-		"server.test.local",
-		[]string{"server.test.local"},
+		testServerTestLocal,
+		[]string{testServerTestLocal},
 		[]net.IP{net.ParseIP(cryptoutilSharedMagic.IPv4Loopback)},
 	))
 	require.NoError(t, err)
@@ -99,13 +99,13 @@ func TestStoreCertificatePEM(t *testing.T) {
 		expectError bool
 	}{
 		{
-			name:        "nil subject",
+			name:        testNilSubject,
 			subject:     nil,
 			opts:        DefaultStorageOptions(tempDir),
 			expectError: true,
 		},
 		{
-			name:        "nil options",
+			name:        testNilOptions,
 			subject:     serverSubject,
 			opts:        nil,
 			expectError: true,
@@ -177,8 +177,8 @@ func TestLoadCertificatePEM(t *testing.T) {
 	require.NoError(t, err)
 
 	serverSubject, err := chain.CreateEndEntity(ServerEndEntityOptions(
-		"server.test.local",
-		[]string{"server.test.local"},
+		testServerTestLocal,
+		[]string{testServerTestLocal},
 		[]net.IP{net.ParseIP(cryptoutilSharedMagic.IPv4Loopback)},
 	))
 	require.NoError(t, err)
@@ -258,7 +258,7 @@ func TestIntermediateCAsPool(t *testing.T) {
 
 	// Test with chain length 3 (root + 2 intermediates).
 	chain, err := CreateCAChain(&CAChainOptions{
-		ChainLength:      3,
+		ChainLength:      DefaultCAChainLength,
 		CommonNamePrefix: "test.intermediate",
 		Duration:         time.Hour,
 	})

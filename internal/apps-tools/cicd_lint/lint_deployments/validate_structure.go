@@ -45,7 +45,7 @@ func ValidateDeploymentStructure(basePath string, deploymentName string, structT
 
 	// Check required secrets
 	if len(expected.RequiredSecrets) > 0 {
-		secretsPath := filepath.Join(basePath, "secrets")
+		secretsPath := filepath.Join(basePath, validatorNameSecrets)
 		if _, err := os.Stat(secretsPath); err == nil {
 			for _, secret := range expected.RequiredSecrets {
 				secretPath := filepath.Join(secretsPath, secret)
@@ -87,7 +87,7 @@ func ValidateDeploymentStructure(basePath string, deploymentName string, structT
 // See: docs/ENG-HANDBOOK.md Section 12.4.5 "Config File Naming Strategy".
 // See: docs/ENG-HANDBOOK.md Section 12.4.7 "Linter Validation Modes".
 func validateConfigFiles(basePath string, deploymentName string, result *ValidationResult) {
-	configPath := filepath.Join(basePath, "config")
+	configPath := filepath.Join(basePath, fileTypeConfig)
 
 	// Extract PRODUCT-SERVICE parts (e.g., "sm-kms" -> product="sm", service="kms").
 	parts := strings.Split(deploymentName, "-")
@@ -159,12 +159,12 @@ func validateConfigFiles(basePath string, deploymentName string, result *Validat
 		filename := entry.Name()
 
 		// Skip known non-YAML files.
-		if filename == "README.md" || filename == ".gitkeep" {
+		if filename == valueReadmeMd || filename == ".gitkeep" {
 			continue
 		}
 
 		// Check if YAML file.
-		if !strings.HasSuffix(filename, ".yml") && !strings.HasSuffix(filename, ".yaml") {
+		if !strings.HasSuffix(filename, valueYml) && !strings.HasSuffix(filename, valueYAML) {
 			continue
 		}
 
@@ -181,7 +181,7 @@ func validateConfigFiles(basePath string, deploymentName string, result *Validat
 // See: docs/ENG-HANDBOOK.md Section 12.3.4 "Layered Pepper Strategy".
 func validateProductSecrets(basePath string, productName string, result *ValidationResult) {
 	expectedSecret := fmt.Sprintf("%s-hash_pepper.secret", productName)
-	secretPath := filepath.Join(basePath, "secrets", expectedSecret)
+	secretPath := filepath.Join(basePath, validatorNameSecrets, expectedSecret)
 
 	if _, err := os.Stat(secretPath); os.IsNotExist(err) {
 		result.MissingSecrets = append(result.MissingSecrets, expectedSecret)
@@ -204,7 +204,7 @@ func validateProductSecrets(basePath string, productName string, result *Validat
 	}
 
 	for _, neverFile := range neverFiles {
-		neverPath := filepath.Join(basePath, "secrets", neverFile)
+		neverPath := filepath.Join(basePath, validatorNameSecrets, neverFile)
 		if _, err := os.Stat(neverPath); os.IsNotExist(err) {
 			result.MissingSecrets = append(result.MissingSecrets, neverFile)
 			result.Errors = append(result.Errors,
@@ -218,7 +218,7 @@ func validateProductSecrets(basePath string, productName string, result *Validat
 // See: docs/ENG-HANDBOOK.md Section 12.3.4 "Layered Pepper Strategy".
 func validateSuiteSecrets(basePath string, result *ValidationResult) {
 	expectedSecret := "cryptoutil-hash_pepper.secret"
-	secretPath := filepath.Join(basePath, "secrets", expectedSecret)
+	secretPath := filepath.Join(basePath, validatorNameSecrets, expectedSecret)
 
 	if _, err := os.Stat(secretPath); os.IsNotExist(err) {
 		result.MissingSecrets = append(result.MissingSecrets, expectedSecret)
@@ -241,7 +241,7 @@ func validateSuiteSecrets(basePath string, result *ValidationResult) {
 	}
 
 	for _, neverFile := range neverFiles {
-		neverPath := filepath.Join(basePath, "secrets", neverFile)
+		neverPath := filepath.Join(basePath, validatorNameSecrets, neverFile)
 		if _, err := os.Stat(neverPath); os.IsNotExist(err) {
 			result.MissingSecrets = append(result.MissingSecrets, neverFile)
 			result.Errors = append(result.Errors,

@@ -147,7 +147,7 @@ func TestYAMLPolicyLoader_HotReload(t *testing.T) {
 	// Load initial policy.
 	policy1, err := loader.LoadRiskScoringPolicy(ctx)
 	require.NoError(t, err)
-	require.Equal(t, "1.0", policy1.Version)
+	require.Equal(t, test10, policy1.Version)
 
 	// Enable hot-reload with short interval.
 	err = loader.EnableHotReload(ctx, cryptoutilSharedMagic.JoseJAMaxMaterials*time.Millisecond)

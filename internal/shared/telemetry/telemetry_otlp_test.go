@@ -25,12 +25,12 @@ func TestParseProtocolAndEndpoint_AllProtocols(t *testing.T) {
 		wantAddr  string
 		wantErr   bool
 	}{
-		{"HTTP", testHTTPEndpoint, true, false, false, false, "localhost:4318", false},
-		{"HTTPS", testHTTPSEndpoint, false, true, false, false, "localhost:4318", false},
-		{"gRPC", testGRPCEndpoint, false, false, true, false, "localhost:4317", false},
-		{"gRPCS", testGRPCSEndpoint, false, false, false, true, "localhost:4317", false},
+		{"HTTP", testHTTPEndpoint, true, false, false, false, testLocalhost4318, false},
+		{"HTTPS", testHTTPSEndpoint, false, true, false, false, testLocalhost4318, false},
+		{"gRPC", testGRPCEndpoint, false, false, true, false, testLocalhost4317, false},
+		{"gRPCS", testGRPCSEndpoint, false, false, false, true, testLocalhost4317, false},
 		{"Invalid", "ftp://localhost:4318", false, false, false, false, "", true},
-		{"NoProtocol", "localhost:4318", false, false, false, false, "", true},
+		{"NoProtocol", testLocalhost4318, false, false, false, false, "", true},
 	}
 
 	for _, tt := range tests {
@@ -66,15 +66,15 @@ func TestParseLogLevel_AllLevels(t *testing.T) {
 		wantErr bool
 	}{
 		{cryptoutilSharedMagic.TestDefaultLogLevelAll, cryptoutilSharedMagic.TestDefaultLogLevelAll, false},
-		{"TRACE", "TRACE", false},
+		{valueTrace, valueTrace, false},
 		{cryptoutilSharedMagic.LOG_LEVEL_DEBUG, cryptoutilSharedMagic.LOG_LEVEL_DEBUG, false},
-		{"CONFIG", "CONFIG", false},
+		{valueConfig, valueConfig, false},
 		{cryptoutilSharedMagic.DefaultLogLevelInfo, cryptoutilSharedMagic.DefaultLogLevelInfo, false},
-		{"NOTICE", "NOTICE", false},
+		{valueNotice, valueNotice, false},
 		{cryptoutilSharedMagic.LOG_LEVEL_WARN, cryptoutilSharedMagic.LOG_LEVEL_WARN, false},
 		{cryptoutilSharedMagic.SEVERITY_ERROR, cryptoutilSharedMagic.SEVERITY_ERROR, false},
-		{"FATAL", "FATAL", false},
-		{"OFF", "OFF", false},
+		{valueFatal, valueFatal, false},
+		{valueOff, valueOff, false},
 		{"lowercase_all", cryptoutilSharedMagic.ModeNameAll, false},
 		{"lowercase_trace", "trace", false},
 		{"lowercase_config", "config", false},

@@ -46,7 +46,7 @@ func TestCheck_FreshCheckFindsCircularDeps(t *testing.T) {
 	logger := cryptoutilCmdCicdCommon.NewLogger("test-circular-fresh")
 
 	err = check(logger, stubGoListFn)
-	require.ErrorContains(t, err, "circular dependency")
+	require.ErrorContains(t, err, testCircularDependency)
 
 	_ = os.Remove(cryptoutilSharedMagic.CircularDepCacheFileName)
 }
@@ -107,7 +107,7 @@ func TestCheck_CacheStates(t *testing.T) {
 				LastCheck:       time.Now().UTC(),
 				GoModModTime:    goModStat.ModTime(),
 				HasCircularDeps: true,
-				CircularDeps:    []string{"pkg/a -> pkg/b -> pkg/a"},
+				CircularDeps:    []string{testPkgAPkgBPkgA},
 			},
 			wantErr: "circular dependencies detected (cached)",
 		},

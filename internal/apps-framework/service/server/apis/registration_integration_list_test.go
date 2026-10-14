@@ -112,7 +112,7 @@ func TestIntegration_ListJoinRequests_WithData(t *testing.T) {
 		ID:       googleUuid.New(),
 		TenantID: testTenantID,
 		UserID:   &userID,
-		Status:   "pending",
+		Status:   testJoinRequestPendingStatus,
 	}
 	require.NoError(t, testDB.WithContext(ctx).Create(joinReq).Error)
 
@@ -156,7 +156,7 @@ func TestIntegration_ListJoinRequests_WithData(t *testing.T) {
 		if reqMap["id"] == joinReq.ID.String() {
 			foundOurRequest = true
 
-			require.Equal(t, "pending", reqMap[cryptoutilSharedMagic.StringStatus])
+			require.Equal(t, testJoinRequestPendingStatus, reqMap[cryptoutilSharedMagic.StringStatus])
 			require.Equal(t, tenant.ID.String(), reqMap["tenant_id"])
 
 			break
@@ -253,7 +253,7 @@ func TestIntegration_ListJoinRequests_AllOptionalFields(t *testing.T) {
 func TestIntegration_ProcessJoinRequest_InvalidID(t *testing.T) {
 	t.Parallel()
 
-	reqBody := `{"approved": true}`
+	reqBody := testApprovedTrue
 	req := httptest.NewRequest(http.MethodPut, "/admin/api/v1/join-requests/invalid-uuid", strings.NewReader(reqBody))
 	req.Header.Set("Content-Type", "application/json")
 	addAuthHeader(req)
@@ -290,7 +290,7 @@ func TestIntegration_ProcessJoinRequest_InvalidJSON(t *testing.T) {
 	var result map[string]any
 	require.NoError(t, json.NewDecoder(resp.Body).Decode(&result))
 	require.Contains(t, result, cryptoutilSharedMagic.StringError)
-	require.Equal(t, "Invalid request body", result[cryptoutilSharedMagic.StringError])
+	require.Equal(t, valueInvalidRequestBody, result[cryptoutilSharedMagic.StringError])
 }
 
 // TestIntegration_JoinRequestManagement_Unauthenticated tests that admin endpoints
@@ -351,9 +351,9 @@ func TestRegistrationRoutes_MethodNotAllowed(t *testing.T) {
 		method string
 		path   string
 	}{
-		{"GET on register endpoint", http.MethodGet, "/browser/api/v1/auth/register"},
-		{"DELETE on register endpoint", http.MethodDelete, "/browser/api/v1/auth/register"},
-		{"PATCH on register endpoint", http.MethodPatch, "/browser/api/v1/auth/register"},
+		{"GET on register endpoint", http.MethodGet, testRegisterUserPath},
+		{"DELETE on register endpoint", http.MethodDelete, testRegisterUserPath},
+		{"PATCH on register endpoint", http.MethodPatch, testRegisterUserPath},
 	}
 
 	for _, tt := range tests {

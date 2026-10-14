@@ -16,7 +16,7 @@ func TestServerConfig_Validate(t *testing.T) {
 	t.Parallel()
 
 	validBase := &ServerConfig{
-		Name:        "test-server",
+		Name:        testTestServer,
 		BindAddress: cryptoutilSharedMagic.IPv4Loopback,
 		Port:        int(cryptoutilSharedMagic.TestServerPort),
 	}
@@ -33,18 +33,18 @@ func TestServerConfig_Validate(t *testing.T) {
 		{
 			name: "valid_with_tls",
 			config: &ServerConfig{
-				Name:        "test-server",
+				Name:        testTestServer,
 				BindAddress: cryptoutilSharedMagic.IPv4Loopback,
 				Port:        int(cryptoutilSharedMagic.TestServerPort),
 				TLSEnabled:  true,
-				TLSCertFile: "/path/to/cert.pem",
-				TLSKeyFile:  "/path/to/key.pem",
+				TLSCertFile: testPathToCertPEM,
+				TLSKeyFile:  testPathToKeyPEM,
 			},
 		},
 		{
 			name: "valid_with_admin",
 			config: &ServerConfig{
-				Name:             "test-server",
+				Name:             testTestServer,
 				BindAddress:      cryptoutilSharedMagic.IPv4Loopback,
 				Port:             int(cryptoutilSharedMagic.TestServerPort),
 				AdminEnabled:     true,
@@ -59,45 +59,45 @@ func TestServerConfig_Validate(t *testing.T) {
 		},
 		{
 			name:      "missing_bind_address",
-			config:    &ServerConfig{Name: "test-server", BindAddress: "", Port: int(cryptoutilSharedMagic.TestServerPort)},
+			config:    &ServerConfig{Name: testTestServer, BindAddress: "", Port: int(cryptoutilSharedMagic.TestServerPort)},
 			wantError: "bind address is required",
 		},
 		{
 			name:      "port_zero",
-			config:    &ServerConfig{Name: "test-server", BindAddress: cryptoutilSharedMagic.IPv4Loopback, Port: 0},
-			wantError: "port must be between 1 and 65535",
+			config:    &ServerConfig{Name: testTestServer, BindAddress: cryptoutilSharedMagic.IPv4Loopback, Port: 0},
+			wantError: valuePortMustBeBetween1And65535,
 		},
 		{
 			name:      "port_too_high",
-			config:    &ServerConfig{Name: "test-server", BindAddress: cryptoutilSharedMagic.IPv4Loopback, Port: int(cryptoutilSharedMagic.MaxPortNumber) + 1},
-			wantError: "port must be between 1 and 65535",
+			config:    &ServerConfig{Name: testTestServer, BindAddress: cryptoutilSharedMagic.IPv4Loopback, Port: int(cryptoutilSharedMagic.MaxPortNumber) + 1},
+			wantError: valuePortMustBeBetween1And65535,
 		},
 		{
 			name: "tls_enabled_missing_cert",
 			config: &ServerConfig{
-				Name:        "test-server",
+				Name:        testTestServer,
 				BindAddress: cryptoutilSharedMagic.IPv4Loopback,
 				Port:        int(cryptoutilSharedMagic.TestServerPort),
 				TLSEnabled:  true,
-				TLSKeyFile:  "/path/to/key.pem",
+				TLSKeyFile:  testPathToKeyPEM,
 			},
 			wantError: "TLS cert file is required when TLS is enabled",
 		},
 		{
 			name: "tls_enabled_missing_key",
 			config: &ServerConfig{
-				Name:        "test-server",
+				Name:        testTestServer,
 				BindAddress: cryptoutilSharedMagic.IPv4Loopback,
 				Port:        int(cryptoutilSharedMagic.TestServerPort),
 				TLSEnabled:  true,
-				TLSCertFile: "/path/to/cert.pem",
+				TLSCertFile: testPathToCertPEM,
 			},
 			wantError: "TLS key file is required when TLS is enabled",
 		},
 		{
 			name: "admin_enabled_missing_address",
 			config: &ServerConfig{
-				Name:         "test-server",
+				Name:         testTestServer,
 				BindAddress:  cryptoutilSharedMagic.IPv4Loopback,
 				Port:         int(cryptoutilSharedMagic.TestServerPort),
 				AdminEnabled: true,
@@ -108,7 +108,7 @@ func TestServerConfig_Validate(t *testing.T) {
 		{
 			name: "admin_enabled_invalid_port",
 			config: &ServerConfig{
-				Name:             "test-server",
+				Name:             testTestServer,
 				BindAddress:      cryptoutilSharedMagic.IPv4Loopback,
 				Port:             int(cryptoutilSharedMagic.TestServerPort),
 				AdminEnabled:     true,
@@ -144,15 +144,15 @@ func TestDatabaseConfig_Validate(t *testing.T) {
 	}{
 		{
 			name:   "valid_postgres",
-			config: &DatabaseConfig{Type: cryptoutilSharedMagic.DockerServicePostgres, DSN: "postgres://user:pass@host/db", MaxOpenConns: cryptoutilSharedMagic.PostgreSQLMaxIdleConns, MaxIdleConns: cryptoutilSharedMagic.SQLiteMaxOpenConnectionsForGORM},
+			config: &DatabaseConfig{Type: cryptoutilSharedMagic.DockerServicePostgres, DSN: testPostgresUserPassHostDB, MaxOpenConns: cryptoutilSharedMagic.PostgreSQLMaxIdleConns, MaxIdleConns: cryptoutilSharedMagic.SQLiteMaxOpenConnectionsForGORM},
 		},
 		{
 			name:   "valid_sqlite",
-			config: &DatabaseConfig{Type: cryptoutilSharedMagic.TestDatabaseSQLite, DSN: "file::memory:", MaxOpenConns: cryptoutilSharedMagic.SQLiteMaxOpenConnectionsForGORM, MaxIdleConns: cryptoutilSharedMagic.SQLiteMaxOpenConnectionsForGORM},
+			config: &DatabaseConfig{Type: cryptoutilSharedMagic.TestDatabaseSQLite, DSN: valueFileMemory, MaxOpenConns: cryptoutilSharedMagic.SQLiteMaxOpenConnectionsForGORM, MaxIdleConns: cryptoutilSharedMagic.SQLiteMaxOpenConnectionsForGORM},
 		},
 		{
 			name:      "empty_type",
-			config:    &DatabaseConfig{DSN: "postgres://user:pass@host/db", MaxOpenConns: cryptoutilSharedMagic.PostgreSQLMaxIdleConns, MaxIdleConns: cryptoutilSharedMagic.SQLiteMaxOpenConnectionsForGORM},
+			config:    &DatabaseConfig{DSN: testPostgresUserPassHostDB, MaxOpenConns: cryptoutilSharedMagic.PostgreSQLMaxIdleConns, MaxIdleConns: cryptoutilSharedMagic.SQLiteMaxOpenConnectionsForGORM},
 			wantError: "database type is required",
 		},
 		{
@@ -167,17 +167,17 @@ func TestDatabaseConfig_Validate(t *testing.T) {
 		},
 		{
 			name:      "zero_max_open_conns",
-			config:    &DatabaseConfig{Type: cryptoutilSharedMagic.TestDatabaseSQLite, DSN: "file::memory:", MaxOpenConns: 0, MaxIdleConns: cryptoutilSharedMagic.SQLiteMaxOpenConnectionsForGORM},
+			config:    &DatabaseConfig{Type: cryptoutilSharedMagic.TestDatabaseSQLite, DSN: valueFileMemory, MaxOpenConns: 0, MaxIdleConns: cryptoutilSharedMagic.SQLiteMaxOpenConnectionsForGORM},
 			wantError: "max open connections must be positive",
 		},
 		{
 			name:      "zero_max_idle_conns",
-			config:    &DatabaseConfig{Type: cryptoutilSharedMagic.TestDatabaseSQLite, DSN: "file::memory:", MaxOpenConns: cryptoutilSharedMagic.SQLiteMaxOpenConnectionsForGORM, MaxIdleConns: 0},
+			config:    &DatabaseConfig{Type: cryptoutilSharedMagic.TestDatabaseSQLite, DSN: valueFileMemory, MaxOpenConns: cryptoutilSharedMagic.SQLiteMaxOpenConnectionsForGORM, MaxIdleConns: 0},
 			wantError: "max idle connections must be positive",
 		},
 		{
 			name:      "idle_exceeds_open",
-			config:    &DatabaseConfig{Type: cryptoutilSharedMagic.TestDatabaseSQLite, DSN: "file::memory:", MaxOpenConns: 3, MaxIdleConns: cryptoutilSharedMagic.SQLiteMaxOpenConnectionsForGORM},
+			config:    &DatabaseConfig{Type: cryptoutilSharedMagic.TestDatabaseSQLite, DSN: valueFileMemory, MaxOpenConns: 3, MaxIdleConns: cryptoutilSharedMagic.SQLiteMaxOpenConnectionsForGORM},
 			wantError: "max idle connections cannot exceed max open connections",
 		},
 	}
@@ -203,7 +203,7 @@ func TestSessionConfig_Validate(t *testing.T) {
 	validBase := &SessionConfig{
 		SessionLifetime: cryptoutilSharedMagic.DefaultSessionCleanupInterval,
 		IdleTimeout:     cryptoutilSharedMagic.DefaultIdleTimeout,
-		CookieName:      "session",
+		CookieName:      testSession,
 		CookieSameSite:  cryptoutilSharedMagic.DefaultCSRFTokenSameSiteStrict,
 	}
 
@@ -221,7 +221,7 @@ func TestSessionConfig_Validate(t *testing.T) {
 			config: &SessionConfig{
 				SessionLifetime: cryptoutilSharedMagic.DefaultSessionCleanupInterval,
 				IdleTimeout:     cryptoutilSharedMagic.DefaultIdleTimeout,
-				CookieName:      "session",
+				CookieName:      testSession,
 				CookieSameSite:  "Lax",
 			},
 		},
@@ -230,7 +230,7 @@ func TestSessionConfig_Validate(t *testing.T) {
 			config: &SessionConfig{
 				SessionLifetime: cryptoutilSharedMagic.DefaultSessionCleanupInterval,
 				IdleTimeout:     cryptoutilSharedMagic.DefaultIdleTimeout,
-				CookieName:      "session",
+				CookieName:      testSession,
 				CookieSameSite:  "None",
 			},
 		},
@@ -239,7 +239,7 @@ func TestSessionConfig_Validate(t *testing.T) {
 			config: &SessionConfig{
 				SessionLifetime: 0,
 				IdleTimeout:     cryptoutilSharedMagic.DefaultIdleTimeout,
-				CookieName:      "session",
+				CookieName:      testSession,
 				CookieSameSite:  cryptoutilSharedMagic.DefaultCSRFTokenSameSiteStrict,
 			},
 			wantError: "session lifetime must be positive",
@@ -249,7 +249,7 @@ func TestSessionConfig_Validate(t *testing.T) {
 			config: &SessionConfig{
 				SessionLifetime: cryptoutilSharedMagic.DefaultSessionCleanupInterval,
 				IdleTimeout:     0,
-				CookieName:      "session",
+				CookieName:      testSession,
 				CookieSameSite:  cryptoutilSharedMagic.DefaultCSRFTokenSameSiteStrict,
 			},
 			wantError: "idle timeout must be positive",
@@ -269,7 +269,7 @@ func TestSessionConfig_Validate(t *testing.T) {
 			config: &SessionConfig{
 				SessionLifetime: cryptoutilSharedMagic.DefaultSessionCleanupInterval,
 				IdleTimeout:     cryptoutilSharedMagic.DefaultIdleTimeout,
-				CookieName:      "session",
+				CookieName:      testSession,
 				CookieSameSite:  "Invalid",
 			},
 			wantError: "cookie SameSite must be 'Strict', 'Lax', or 'None'",
@@ -301,51 +301,51 @@ func TestObservabilityConfig_Validate(t *testing.T) {
 	}{
 		{
 			name:   "valid_debug",
-			config: &ObservabilityConfig{LogLevel: "debug", LogFormat: "json"},
+			config: &ObservabilityConfig{LogLevel: "debug", LogFormat: valueJson},
 		},
 		{
 			name:   "valid_info_text",
-			config: &ObservabilityConfig{LogLevel: "info", LogFormat: "text"},
+			config: &ObservabilityConfig{LogLevel: valueInfo, LogFormat: "text"},
 		},
 		{
 			name:   "valid_warn",
-			config: &ObservabilityConfig{LogLevel: "warn", LogFormat: "json"},
+			config: &ObservabilityConfig{LogLevel: "warn", LogFormat: valueJson},
 		},
 		{
 			name:   "valid_error",
-			config: &ObservabilityConfig{LogLevel: cryptoutilSharedMagic.StringError, LogFormat: "json"},
+			config: &ObservabilityConfig{LogLevel: cryptoutilSharedMagic.StringError, LogFormat: valueJson},
 		},
 		{
 			name:   "valid_metrics_enabled",
-			config: &ObservabilityConfig{LogLevel: "info", LogFormat: "json", MetricsEnabled: true, MetricsPath: "/metrics"},
+			config: &ObservabilityConfig{LogLevel: valueInfo, LogFormat: valueJson, MetricsEnabled: true, MetricsPath: "/metrics"},
 		},
 		{
 			name:   "valid_tracing_enabled",
-			config: &ObservabilityConfig{LogLevel: "info", LogFormat: "json", TracingEnabled: true, TracingBackend: "otlp"},
+			config: &ObservabilityConfig{LogLevel: valueInfo, LogFormat: valueJson, TracingEnabled: true, TracingBackend: valueOtlp},
 		},
 		{
 			name:      "empty_log_level",
-			config:    &ObservabilityConfig{LogLevel: "", LogFormat: "json"},
+			config:    &ObservabilityConfig{LogLevel: "", LogFormat: valueJson},
 			wantError: "log level is required",
 		},
 		{
 			name:      "invalid_log_level",
-			config:    &ObservabilityConfig{LogLevel: "verbose", LogFormat: "json"},
+			config:    &ObservabilityConfig{LogLevel: "verbose", LogFormat: valueJson},
 			wantError: "log level must be 'debug', 'info', 'warn', or 'error'",
 		},
 		{
 			name:      "invalid_log_format",
-			config:    &ObservabilityConfig{LogLevel: "info", LogFormat: "xml"},
+			config:    &ObservabilityConfig{LogLevel: valueInfo, LogFormat: "xml"},
 			wantError: "log format must be 'json' or 'text'",
 		},
 		{
 			name:      "metrics_enabled_missing_path",
-			config:    &ObservabilityConfig{LogLevel: "info", LogFormat: "json", MetricsEnabled: true, MetricsPath: ""},
+			config:    &ObservabilityConfig{LogLevel: valueInfo, LogFormat: valueJson, MetricsEnabled: true, MetricsPath: ""},
 			wantError: "metrics path is required when metrics are enabled",
 		},
 		{
 			name:      "tracing_enabled_missing_backend",
-			config:    &ObservabilityConfig{LogLevel: "info", LogFormat: "json", TracingEnabled: true, TracingBackend: ""},
+			config:    &ObservabilityConfig{LogLevel: valueInfo, LogFormat: valueJson, TracingEnabled: true, TracingBackend: ""},
 			wantError: "tracing backend is required when tracing is enabled",
 		},
 	}

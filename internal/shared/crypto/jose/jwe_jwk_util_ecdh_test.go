@@ -140,7 +140,7 @@ func TestValidateOrGenerateJWEEcdhJWK_Generate(t *testing.T) {
 			expectError: false,
 		},
 		{
-			name:        "disallowed enc",
+			name:        testDisallowedEnc,
 			enc:         &EncA128GCM,
 			alg:         &AlgECDHES,
 			allowedEncs: []*joseJwa.ContentEncryptionAlgorithm{&EncA256GCM},

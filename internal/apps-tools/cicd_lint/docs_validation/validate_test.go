@@ -111,7 +111,7 @@ func TestLoadPropagationsManifest(t *testing.T) {
 		wantLen int
 	}{
 		{
-			name:    "happy path",
+			name:    testHappyPath,
 			files:   map[string]string{cryptoutilSharedMagic.CICDRequiredPropagationsManifest: minimalManifestYAML()},
 			wantLen: 2,
 		},
@@ -121,7 +121,7 @@ func TestLoadPropagationsManifest(t *testing.T) {
 			wantErr: "failed to parse",
 		},
 		{
-			name:    "file not found",
+			name:    testFileNotFound,
 			files:   map[string]string{},
 			wantErr: "failed to read",
 		},
@@ -148,7 +148,7 @@ func TestLoadPropagationsManifest(t *testing.T) {
 			require.Len(t, manifest.RequiredPropagations, tc.wantLen)
 
 			if tc.wantLen > 0 {
-				require.Equal(t, "rfc-2119-keywords", manifest.RequiredPropagations[0].ChunkID)
+				require.Equal(t, testRfc2119Keywords, manifest.RequiredPropagations[0].ChunkID)
 				require.Equal(t, cryptoutilSharedMagic.CICDDocsHandbookPath, manifest.RequiredPropagations[0].SourceFile)
 				require.Len(t, manifest.RequiredPropagations[0].RequiredTargets, 1)
 			}
@@ -181,26 +181,26 @@ some content
 		wantChunks []string
 	}{
 		{
-			name:       "happy path",
+			name:       testHappyPath,
 			files:      map[string]string{cryptoutilSharedMagic.CICDDocsHandbookPath: minimalArchitectureContent()},
-			wantChunks: []string{"emphasis-keywords", "rfc-2119-keywords"},
+			wantChunks: []string{"emphasis-keywords", testRfc2119Keywords},
 		},
 		{
 			name:       "deduplicated",
 			files:      map[string]string{cryptoutilSharedMagic.CICDDocsHandbookPath: deduplicatedContent},
-			wantChunks: []string{"my-chunk"},
+			wantChunks: []string{testMyChunk},
 		},
 		{
-			name:       "filters invalid chunk IDs",
+			name:       testFiltersInvalidChunkIDS,
 			files:      map[string]string{cryptoutilSharedMagic.CICDDocsHandbookPath: grammarFilterContent},
 			wantChunks: []string{"valid-chunk"},
 		},
 		{
-			name:  "empty file",
+			name:  testEmptyFile,
 			files: map[string]string{cryptoutilSharedMagic.CICDDocsHandbookPath: ""},
 		},
 		{
-			name:    "file not found",
+			name:    testFileNotFound,
 			files:   map[string]string{},
 			wantErr: "failed to read docs/ENG-HANDBOOK.md",
 		},
@@ -258,31 +258,31 @@ b
 		validate      func(t *testing.T, result map[string][]string)
 	}{
 		{
-			name: "single match", filePath: "instructions/test.md", content: singleContent,
+			name: "single match", filePath: testInstructionsTestMd, content: singleContent,
 			validate: func(t *testing.T, result map[string][]string) {
 				t.Helper()
 				require.Len(t, result, 1)
-				require.Equal(t, []string{"instructions/test.md"}, result["my-chunk"])
+				require.Equal(t, []string{testInstructionsTestMd}, result[testMyChunk])
 			},
 		},
 		{
-			name: "multiple matches", filePath: "file.md", content: multiContent,
+			name: "multiple matches", filePath: testFileMd, content: multiContent,
 			validate: func(t *testing.T, result map[string][]string) {
 				t.Helper()
 				require.Len(t, result, 2)
-				require.Equal(t, []string{"file.md"}, result["chunk-a"])
-				require.Equal(t, []string{"file.md"}, result["chunk-b"])
+				require.Equal(t, []string{testFileMd}, result["chunk-a"])
+				require.Equal(t, []string{testFileMd}, result["chunk-b"])
 			},
 		},
 		{
-			name: "no matches", filePath: "file.md", content: "no @from-eng-handbook blocks here",
+			name: "no matches", filePath: testFileMd, content: "no @from-eng-handbook blocks here",
 			validate: func(t *testing.T, result map[string][]string) {
 				t.Helper()
 				require.Empty(t, result)
 			},
 		},
 		{
-			name: "filters invalid chunk IDs", filePath: "file.md", content: grammarContent,
+			name: testFiltersInvalidChunkIDS, filePath: testFileMd, content: grammarContent,
 			validate: func(t *testing.T, result map[string][]string) {
 				t.Helper()
 				require.Len(t, result, 1)
@@ -291,12 +291,12 @@ b
 			},
 		},
 		{
-			name: "appends to prior entries", filePath: "second.md",
+			name: "appends to prior entries", filePath: testSecondMd,
 			content:       `<!-- @from-eng-handbook as="my-chunk" -->`,
-			initialResult: map[string][]string{"my-chunk": {"already-there.md"}},
+			initialResult: map[string][]string{testMyChunk: {"already-there.md"}},
 			validate: func(t *testing.T, result map[string][]string) {
 				t.Helper()
-				require.Len(t, result["my-chunk"], 2)
+				require.Len(t, result[testMyChunk], 2)
 			},
 		},
 	}
@@ -369,7 +369,7 @@ extra content
 			name:             "all chunks covered",
 			manifestContent:  minimalManifestYAML(),
 			archContent:      minimalArchitectureContent(),
-			instructionFiles: map[string]string{"01-01.terminology.instructions.md": sourceInstructionContent()},
+			instructionFiles: map[string]string{test0101TerminologyInstructionsMd: sourceInstructionContent()},
 			validate: func(t *testing.T, result *CoverageResult) {
 				t.Helper()
 				require.Empty(t, result.Violations)
@@ -382,7 +382,7 @@ extra content
 			name:             "missing from-eng-handbook block",
 			manifestContent:  minimalManifestYAML(),
 			archContent:      minimalArchitectureContent(),
-			instructionFiles: map[string]string{"01-01.terminology.instructions.md": rfcOnlySourceContent()},
+			instructionFiles: map[string]string{test0101TerminologyInstructionsMd: rfcOnlySourceContent()},
 			validate: func(t *testing.T, result *CoverageResult) {
 				t.Helper()
 				require.Len(t, result.Violations, 1)
@@ -394,7 +394,7 @@ extra content
 			name:             "orphaned chunk",
 			manifestContent:  minimalManifestYAML(),
 			archContent:      archWithExtra,
-			instructionFiles: map[string]string{"01-01.terminology.instructions.md": sourceInstructionContent()},
+			instructionFiles: map[string]string{test0101TerminologyInstructionsMd: sourceInstructionContent()},
 			validate: func(t *testing.T, result *CoverageResult) {
 				t.Helper()
 				require.Len(t, result.OrphanedChunks, 1)
@@ -405,7 +405,7 @@ extra content
 			name:             "violations and orphans together",
 			manifestContent:  minimalManifestYAML(),
 			archContent:      archWithExtra,
-			instructionFiles: map[string]string{"01-01.terminology.instructions.md": rfcOnlySourceContent()},
+			instructionFiles: map[string]string{test0101TerminologyInstructionsMd: rfcOnlySourceContent()},
 			validate: func(t *testing.T, result *CoverageResult) {
 				t.Helper()
 				require.Len(t, result.Violations, 1)
@@ -416,7 +416,7 @@ extra content
 			name:             "to-appendix target mismatch against manifest",
 			manifestContent:  minimalManifestYAML(),
 			archContent:      minimalArchitectureWithTargetMismatchContent(),
-			instructionFiles: map[string]string{"01-01.terminology.instructions.md": rfcOnlySourceContent()},
+			instructionFiles: map[string]string{test0101TerminologyInstructionsMd: rfcOnlySourceContent()},
 			validate: func(t *testing.T, result *CoverageResult) {
 				t.Helper()
 				require.NotEmpty(t, result.CompositionIssues)
@@ -431,7 +431,7 @@ extra content
 some content
 <!-- @/to-appendix -->
 `,
-			instructionFiles: map[string]string{"01-01.terminology.instructions.md": rfcOnlySourceContent()},
+			instructionFiles: map[string]string{test0101TerminologyInstructionsMd: rfcOnlySourceContent()},
 			validate: func(t *testing.T, result *CoverageResult) {
 				t.Helper()
 				require.NotEmpty(t, result.CompositionIssues)
@@ -446,7 +446,7 @@ some content
 some content
 <!-- @/to-appendix -->
 `,
-			instructionFiles: map[string]string{"01-01.terminology.instructions.md": rfcOnlySourceContent()},
+			instructionFiles: map[string]string{test0101TerminologyInstructionsMd: rfcOnlySourceContent()},
 			validate: func(t *testing.T, result *CoverageResult) {
 				t.Helper()
 				require.NotEmpty(t, result.CompositionIssues)
@@ -535,7 +535,7 @@ zzz
 	result, err := ValidateCoverage(rootDir, readFile)
 
 	require.NoError(t, err)
-	require.Len(t, result.Violations, 3)
+	require.Len(t, result.Violations, toAppendixMatchGroups)
 	// First two should be aaa-first.
 	require.Equal(t, "aaa-first", result.Violations[0].ChunkID)
 	require.Equal(t, "aaa-first", result.Violations[1].ChunkID)

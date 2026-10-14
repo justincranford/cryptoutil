@@ -76,7 +76,7 @@ func TestKMSServer_StartNotInitialized(t *testing.T) {
 		server *KMSServer
 	}{
 		{
-			name:   "nil resources",
+			name:   testNilResources,
 			server: &KMSServer{},
 		},
 	}
@@ -282,7 +282,7 @@ func TestKMSServer_SetReady(t *testing.T) {
 		server func(t *testing.T) *KMSServer
 	}{
 		{
-			name:   "nil resources",
+			name:   testNilResources,
 			server: func(_ *testing.T) *KMSServer { return &KMSServer{} },
 		},
 		{

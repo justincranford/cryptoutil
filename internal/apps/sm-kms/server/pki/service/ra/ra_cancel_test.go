@@ -336,7 +336,7 @@ func TestDefaultRAConfig(t *testing.T) {
 	require.True(t, cfg.Workflow.RequireApproval)
 	require.Equal(t, 1, cfg.Workflow.MinApprovers)
 	require.True(t, cfg.Validation.ValidateKeyStrength)
-	require.Equal(t, minRSAKeyBits, cfg.Validation.MinRSAKeySize)
+	require.Equal(t, cryptoutilSharedMagic.RSA2048KeySize, cfg.Validation.MinRSAKeySize)
 }
 
 func TestGenerateTestCSR(t *testing.T) {

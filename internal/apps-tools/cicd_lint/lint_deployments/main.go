@@ -26,7 +26,7 @@ func Main(args []string) int {
 			return mainValidateCompose(args[1:])
 		case "validate-config":
 			return mainValidateConfig(args[1:])
-		case "validate-all":
+		case valueValidateAll:
 			return mainValidateAll(args[1:])
 		}
 	}

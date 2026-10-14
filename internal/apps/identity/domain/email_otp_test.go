@@ -27,7 +27,7 @@ func TestEmailOTP_IsExpired(t *testing.T) {
 			want:      false,
 		},
 		{
-			name:      "expired",
+			name:      testExpired,
 			expiresAt: time.Now().UTC().Add(-1 * time.Minute),
 			want:      true,
 		},
@@ -58,7 +58,7 @@ func TestEmailOTP_IsUsed(t *testing.T) {
 		want bool
 	}{
 		{
-			name: "used",
+			name: testUsed,
 			used: true,
 			want: true,
 		},

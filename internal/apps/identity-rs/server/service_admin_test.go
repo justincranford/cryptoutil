@@ -32,9 +32,9 @@ func TestAdminEndpoint_RequiresAdminScope(t *testing.T) {
 		scope          string
 		expectedStatus int
 	}{
-		{"No Admin Scope", "read:resource write:resource", http.StatusForbidden},
+		{"No Admin Scope", testReadResourceWriteResource, http.StatusForbidden},
 		{"With Admin Scope", "admin read:resource", http.StatusOK},
-		{"Only Admin Scope", "admin", http.StatusOK},
+		{"Only Admin Scope", testAdmin, http.StatusOK},
 	}
 
 	for _, tc := range testCases {
@@ -42,7 +42,7 @@ func TestAdminEndpoint_RequiresAdminScope(t *testing.T) {
 			tokenSvc.validateFunc = func(_ context.Context, _ string) (map[string]any, error) {
 				return map[string]any{
 					cryptoutilSharedMagic.ClaimExp:      float64(time.Now().UTC().Add(1 * time.Hour).Unix()),
-					cryptoutilSharedMagic.ClaimClientID: "test-client",
+					cryptoutilSharedMagic.ClaimClientID: testTestClient,
 					cryptoutilSharedMagic.ClaimScope:    tc.scope,
 				}, nil
 			}
@@ -73,7 +73,7 @@ func TestCreateResource_RequiresWriteScope(t *testing.T) {
 	tokenSvc.validateFunc = func(_ context.Context, _ string) (map[string]any, error) {
 		return map[string]any{
 			cryptoutilSharedMagic.ClaimExp:      float64(time.Now().UTC().Add(1 * time.Hour).Unix()),
-			cryptoutilSharedMagic.ClaimClientID: "test-client",
+			cryptoutilSharedMagic.ClaimClientID: testTestClient,
 			cryptoutilSharedMagic.ClaimScope:    "write:resource",
 		}, nil
 	}
@@ -115,7 +115,7 @@ func TestDeleteResource_RequiresDeleteScope(t *testing.T) {
 		scope          string
 		expectedStatus int
 	}{
-		{"Missing Delete Scope", "read:resource write:resource", http.StatusForbidden},
+		{"Missing Delete Scope", testReadResourceWriteResource, http.StatusForbidden},
 		{"With Delete Scope", "delete:resource", http.StatusOK},
 	}
 
@@ -124,7 +124,7 @@ func TestDeleteResource_RequiresDeleteScope(t *testing.T) {
 			tokenSvc.validateFunc = func(_ context.Context, _ string) (map[string]any, error) {
 				return map[string]any{
 					cryptoutilSharedMagic.ClaimExp:      float64(time.Now().UTC().Add(1 * time.Hour).Unix()),
-					cryptoutilSharedMagic.ClaimClientID: "test-client",
+					cryptoutilSharedMagic.ClaimClientID: testTestClient,
 					cryptoutilSharedMagic.ClaimScope:    tc.scope,
 				}, nil
 			}
@@ -155,7 +155,7 @@ func TestExpiredToken(t *testing.T) {
 	tokenSvc.validateFunc = func(_ context.Context, _ string) (map[string]any, error) {
 		return map[string]any{
 			cryptoutilSharedMagic.ClaimExp:      float64(time.Now().UTC().Add(-1 * time.Hour).Unix()),
-			cryptoutilSharedMagic.ClaimClientID: "test-client",
+			cryptoutilSharedMagic.ClaimClientID: testTestClient,
 			cryptoutilSharedMagic.ClaimScope:    "read:resource",
 		}, nil
 	}
@@ -239,13 +239,13 @@ func TestAdminMetrics_RequiresAdminScope(t *testing.T) {
 	}{
 		{
 			name:           "missing_admin_scope",
-			scope:          "read:resource write:resource",
+			scope:          testReadResourceWriteResource,
 			expectedStatus: http.StatusForbidden,
 			checkMetrics:   false,
 		},
 		{
 			name:           "with_admin_scope",
-			scope:          "admin",
+			scope:          testAdmin,
 			expectedStatus: http.StatusOK,
 			checkMetrics:   true,
 		},
@@ -257,7 +257,7 @@ func TestAdminMetrics_RequiresAdminScope(t *testing.T) {
 			tokenSvc.validateFunc = func(_ context.Context, _ string) (map[string]any, error) {
 				return map[string]any{
 					cryptoutilSharedMagic.ClaimExp:      float64(time.Now().UTC().Add(1 * time.Hour).Unix()),
-					cryptoutilSharedMagic.ClaimClientID: "test-client",
+					cryptoutilSharedMagic.ClaimClientID: testTestClient,
 					cryptoutilSharedMagic.ClaimScope:    tc.scope,
 				}, nil
 			}

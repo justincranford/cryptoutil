@@ -49,26 +49,26 @@ func TestTOTPProfile_Authenticate(t *testing.T) {
 		errContains string
 	}{
 		{
-			name: "missing user_id",
+			name: testMissingUserID,
 			credentials: map[string]string{
-				"otp_code": "123456",
+				testOTPCode: "123456",
 			},
 			wantErr:     true,
-			errContains: "missing user_id",
+			errContains: testMissingUserID,
 		},
 		{
-			name: "missing otp_code",
+			name: testMissingOTPCode,
 			credentials: map[string]string{
-				"user_id": "test-user-id",
+				testUserID: testTestUserID,
 			},
 			wantErr:     true,
-			errContains: "missing otp_code",
+			errContains: testMissingOTPCode,
 		},
 		{
-			name: "not implemented",
+			name: testNotImplemented,
 			credentials: map[string]string{
-				"user_id":  "test-user-id",
-				"otp_code": "123456",
+				testUserID:  testTestUserID,
+				testOTPCode: "123456",
 			},
 			wantErr:     true,
 			errContains: "TOTP validation not implemented",
@@ -100,28 +100,28 @@ func TestTOTPProfile_ValidateCredentials(t *testing.T) {
 		errContains string
 	}{
 		{
-			name: "valid credentials",
+			name: testValidCredentials,
 			credentials: map[string]string{
-				"user_id":  "test-user-id",
-				"otp_code": "123456",
+				testUserID:  testTestUserID,
+				testOTPCode: "123456",
 			},
 			wantErr: false,
 		},
 		{
-			name: "missing user_id",
+			name: testMissingUserID,
 			credentials: map[string]string{
-				"otp_code": "123456",
+				testOTPCode: "123456",
 			},
 			wantErr:     true,
-			errContains: "missing user_id",
+			errContains: testMissingUserID,
 		},
 		{
-			name: "missing otp_code",
+			name: testMissingOTPCode,
 			credentials: map[string]string{
-				"user_id": "test-user-id",
+				testUserID: testTestUserID,
 			},
 			wantErr:     true,
-			errContains: "missing otp_code",
+			errContains: testMissingOTPCode,
 		},
 	}
 
@@ -180,26 +180,26 @@ func TestPasskeyProfile_Authenticate(t *testing.T) {
 		errContains string
 	}{
 		{
-			name: "missing credential_id",
+			name: testMissingCredentialID,
 			credentials: map[string]string{
-				"assertion": "test-assertion",
+				testAssertion: testTestAssertion,
 			},
 			wantErr:     true,
-			errContains: "missing credential_id",
+			errContains: testMissingCredentialID,
 		},
 		{
-			name: "missing assertion",
+			name: testMissingAssertion,
 			credentials: map[string]string{
-				"credential_id": "test-credential-id",
+				testCredentialID: testTestCredentialID,
 			},
 			wantErr:     true,
-			errContains: "missing assertion",
+			errContains: testMissingAssertion,
 		},
 		{
-			name: "not implemented",
+			name: testNotImplemented,
 			credentials: map[string]string{
-				"credential_id": "test-credential-id",
-				"assertion":     "test-assertion",
+				testCredentialID: testTestCredentialID,
+				testAssertion:    testTestAssertion,
 			},
 			wantErr:     true,
 			errContains: "passkey validation not implemented",
@@ -231,28 +231,28 @@ func TestPasskeyProfile_ValidateCredentials(t *testing.T) {
 		errContains string
 	}{
 		{
-			name: "valid credentials",
+			name: testValidCredentials,
 			credentials: map[string]string{
-				"credential_id": "test-credential-id",
-				"assertion":     "test-assertion",
+				testCredentialID: testTestCredentialID,
+				testAssertion:    testTestAssertion,
 			},
 			wantErr: false,
 		},
 		{
-			name: "missing credential_id",
+			name: testMissingCredentialID,
 			credentials: map[string]string{
-				"assertion": "test-assertion",
+				testAssertion: testTestAssertion,
 			},
 			wantErr:     true,
-			errContains: "missing credential_id",
+			errContains: testMissingCredentialID,
 		},
 		{
-			name: "missing assertion",
+			name: testMissingAssertion,
 			credentials: map[string]string{
-				"credential_id": "test-credential-id",
+				testCredentialID: testTestCredentialID,
 			},
 			wantErr:     true,
-			errContains: "missing assertion",
+			errContains: testMissingAssertion,
 		},
 	}
 

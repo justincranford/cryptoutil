@@ -27,12 +27,12 @@ func TestAuthorizationRequestStore_CRUD(t *testing.T) {
 	requestID := googleUuid.Must(googleUuid.NewV7())
 	authRequest := &AuthorizationRequest{
 		RequestID:           requestID,
-		ClientID:            "test_client",
+		ClientID:            testTestClient,
 		RedirectURI:         cryptoutilSharedMagic.TestRedirectURI,
 		ResponseType:        cryptoutilSharedMagic.ResponseTypeCode,
 		Scope:               cryptoutilSharedMagic.ScopeOpenID,
-		State:               "state123",
-		CodeChallenge:       "challenge",
+		State:               testState123,
+		CodeChallenge:       testChallenge,
 		CodeChallengeMethod: cryptoutilSharedMagic.PKCEMethodS256,
 		CreatedAt:           time.Now().UTC(),
 		ExpiresAt:           time.Now().UTC().Add(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Minute),
@@ -77,12 +77,12 @@ func TestAuthorizationRequestStore_Expiration(t *testing.T) {
 	requestID1 := googleUuid.Must(googleUuid.NewV7())
 	authRequest1 := &AuthorizationRequest{
 		RequestID:           requestID1,
-		ClientID:            "test_client",
+		ClientID:            testTestClient,
 		RedirectURI:         cryptoutilSharedMagic.TestRedirectURI,
 		ResponseType:        cryptoutilSharedMagic.ResponseTypeCode,
 		Scope:               cryptoutilSharedMagic.ScopeOpenID,
-		State:               "state123",
-		CodeChallenge:       "challenge",
+		State:               testState123,
+		CodeChallenge:       testChallenge,
 		CodeChallengeMethod: cryptoutilSharedMagic.PKCEMethodS256,
 		Code:                "valid_code",
 		CreatedAt:           time.Now().UTC(),
@@ -96,7 +96,7 @@ func TestAuthorizationRequestStore_Expiration(t *testing.T) {
 	// Verify non-expired request is retrievable.
 	retrieved, err := store.GetByRequestID(ctx, requestID1)
 	require.NoError(t, err)
-	require.Equal(t, "test_client", retrieved.ClientID)
+	require.Equal(t, testTestClient, retrieved.ClientID)
 
 	retrievedByCode, err := store.GetByCode(ctx, "valid_code")
 	require.NoError(t, err)

@@ -28,9 +28,9 @@ func TestIntegrationFullPipeline(t *testing.T) {
 	svcDeployDir := filepath.Join(deploymentsDir, deployName)
 	svcConfigDir := filepath.Join(configsDir, configName)
 
-	require.NoError(t, os.MkdirAll(filepath.Join(svcDeployDir, "config"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
-	require.NoError(t, os.MkdirAll(filepath.Join(svcDeployDir, "secrets"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
-	require.NoError(t, os.MkdirAll(filepath.Join(svcConfigDir, "config"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+	require.NoError(t, os.MkdirAll(filepath.Join(svcDeployDir, testConfig), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+	require.NoError(t, os.MkdirAll(filepath.Join(svcDeployDir, testSecrets), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+	require.NoError(t, os.MkdirAll(filepath.Join(svcConfigDir, testConfig), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 	// Write compose file.
 	composeContent := `services:
@@ -69,17 +69,17 @@ bind-private-port: 9090
 database-url: "file:///run/secrets/db_url"
 `
 	require.NoError(t, os.WriteFile(
-		filepath.Join(svcConfigDir, "config", "config.yml"),
+		filepath.Join(svcConfigDir, testConfig, "config.yml"),
 		[]byte(configContent), cryptoutilSharedMagic.CacheFilePermissions))
 
 	// Write deployment config file (empty placeholder).
 	require.NoError(t, os.WriteFile(
-		filepath.Join(svcDeployDir, "config", "config.yml"),
+		filepath.Join(svcDeployDir, testConfig, "config.yml"),
 		[]byte(configContent), cryptoutilSharedMagic.CacheFilePermissions))
 
 	// Write secrets.
 	require.NoError(t, os.WriteFile(
-		filepath.Join(svcDeployDir, "secrets", "test_secret.secret"),
+		filepath.Join(svcDeployDir, testSecrets, "test_secret.secret"),
 		[]byte("secret-value"), cryptoutilSharedMagic.CacheFilePermissions))
 
 	// Step 1: Generate listings.
@@ -109,7 +109,7 @@ database-url: "file:///run/secrets/db_url"
 		composeResult.Errors, composeResult.Warnings)
 
 	// Step 4: Validate config.
-	configPath := filepath.Join(svcConfigDir, "config", "config.yml")
+	configPath := filepath.Join(svcConfigDir, testConfig, "config.yml")
 	configResult, err := ValidateConfigFile(configPath)
 	require.NoError(t, err, "validate config")
 	require.True(t, configResult.Valid,
@@ -169,7 +169,7 @@ database-url: "postgres://user:pass@db:5432/mydb"
 		configsDir := filepath.Join(tmpDir, cryptoutilSharedMagic.CICDConfigsDir)
 
 		// Create deployment without matching config.
-		require.NoError(t, os.MkdirAll(filepath.Join(deploymentsDir, "svc-a", "config"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+		require.NoError(t, os.MkdirAll(filepath.Join(deploymentsDir, "svc-a", testConfig), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 		require.NoError(t, os.WriteFile(
 			filepath.Join(deploymentsDir, "svc-a", cryptoutilSharedMagic.COMPOSE_YML),
 			[]byte("services: {}"), cryptoutilSharedMagic.CacheFilePermissions))

@@ -29,7 +29,7 @@ func TestLint_NoTestFiles(t *testing.T) {
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	// Files without _test.go suffix.
 	filesByExtension := map[string][]string{
-		"go":   {"main.go", "util.go"},
+		testGo: {"main.go", "util.go"},
 		"json": {"config.json"},
 	}
 
@@ -62,7 +62,7 @@ func TestExample(t *testing.T) {
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	filesByExtension := map[string][]string{
-		"go": {testFile},
+		testGo: {testFile},
 	}
 
 	err = cryptoutilCmdCicdLintGotest.Lint(logger, filesByExtension)

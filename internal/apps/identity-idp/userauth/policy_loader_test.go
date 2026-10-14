@@ -110,13 +110,13 @@ velocity_limits: {}
 time_risks: {}
 behavior_risks: {}
 `,
-			wantVersion:    "1.0",
+			wantVersion:    test10,
 			wantFactors:    cryptoutilSharedMagic.DefaultEmailOTPLength,
 			wantThresholds: 2,
 			wantError:      false,
 		},
 		{
-			name: "invalid YAML syntax",
+			name: testInvalidYAMLSyntax,
 			yamlContent: `version: "1.0"
 risk_factors:
   location:
@@ -124,7 +124,7 @@ risk_factors:
     - invalid syntax
 `,
 			wantError:     true,
-			errorContains: "failed to parse",
+			errorContains: testFailedToParse,
 		},
 		{
 			name: "weights do not sum to 1.0",
@@ -193,7 +193,7 @@ time_risks: {}
 behavior_risks: {}
 `,
 			wantError:     true,
-			errorContains: "cannot be empty",
+			errorContains: testCannotBeEmpty,
 		},
 	}
 

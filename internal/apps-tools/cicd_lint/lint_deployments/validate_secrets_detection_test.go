@@ -53,10 +53,10 @@ func TestValidateSecrets_RealSmIM(t *testing.T) {
 func TestValidateSecrets_DotNeverSecretFile(t *testing.T) {
 	t.Parallel()
 	dir := t.TempDir()
-	secretsDir := filepath.Join(dir, "secrets")
+	secretsDir := filepath.Join(dir, validatorNameSecrets)
 	require.NoError(t, os.Mkdir(secretsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 	require.NoError(t, os.WriteFile(filepath.Join(secretsDir, "unseal_1of5.secret.never"),
-		[]byte("short"), cryptoutilSharedMagic.CacheFilePermissions))
+		[]byte(testShort), cryptoutilSharedMagic.CacheFilePermissions))
 
 	result, err := ValidateSecrets(dir)
 	require.NoError(t, err)
@@ -80,7 +80,7 @@ func TestValidateSecrets_ComposeDockerComposeYml(t *testing.T) {
 	result, err := ValidateSecrets(dir)
 	require.NoError(t, err)
 	require.False(t, result.Valid)
-	require.Contains(t, result.Errors[0], "inline secret")
+	require.Contains(t, result.Errors[0], testInlineSecret)
 }
 
 func TestValidateSecrets_ConfigNonStringValue(t *testing.T) {
@@ -90,7 +90,7 @@ func TestValidateSecrets_ConfigNonStringValue(t *testing.T) {
 	require.NoError(t, os.Mkdir(configsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 	config := "api-key: 12345\n"
-	require.NoError(t, os.WriteFile(filepath.Join(configsDir, "app.yml"), []byte(config), cryptoutilSharedMagic.CacheFilePermissions))
+	require.NoError(t, os.WriteFile(filepath.Join(configsDir, testAppYml), []byte(config), cryptoutilSharedMagic.CacheFilePermissions))
 
 	result, err := ValidateSecrets(dir)
 	require.NoError(t, err)
@@ -104,7 +104,7 @@ func TestValidateSecrets_ConfigSqliteURL(t *testing.T) {
 	require.NoError(t, os.Mkdir(configsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 	config := "database-password: sqlite:///tmp/test.db\n"
-	require.NoError(t, os.WriteFile(filepath.Join(configsDir, "app.yml"), []byte(config), cryptoutilSharedMagic.CacheFilePermissions))
+	require.NoError(t, os.WriteFile(filepath.Join(configsDir, testAppYml), []byte(config), cryptoutilSharedMagic.CacheFilePermissions))
 
 	result, err := ValidateSecrets(dir)
 	require.NoError(t, err)
@@ -118,7 +118,7 @@ func TestValidateSecrets_ConfigMemoryRef(t *testing.T) {
 	require.NoError(t, os.Mkdir(configsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 	config := "db-password: \":memory:\"\n"
-	require.NoError(t, os.WriteFile(filepath.Join(configsDir, "app.yml"), []byte(config), cryptoutilSharedMagic.CacheFilePermissions))
+	require.NoError(t, os.WriteFile(filepath.Join(configsDir, testAppYml), []byte(config), cryptoutilSharedMagic.CacheFilePermissions))
 
 	result, err := ValidateSecrets(dir)
 	require.NoError(t, err)
@@ -162,10 +162,10 @@ func TestIsSecretFile(t *testing.T) {
 		input  string
 		expect bool
 	}{
-		{"secret file", "password.secret", true},
+		{testSecretFile, "password.secret", true},
 		{"secret never file", "unseal.secret.never", true},
-		{"not secret", "readme.md", false},
-		{"yml file", "config.yml", false},
+		{"not secret", testReadmeMd, false},
+		{"yml file", testConfigYml, false},
 	}
 
 	for _, tc := range tests {
@@ -184,14 +184,14 @@ func TestIsHighEntropySecretFile(t *testing.T) {
 		input  string
 		expect bool
 	}{
-		{"password", "db_password.secret", true},
-		{"pepper", "hash_pepper_v3.secret", true},
-		{"unseal", "unseal_1of5.secret", true},
-		{"api_key", "my_api_key.secret", true},
+		{valuePassword, "db_password.secret", true},
+		{valuePepper, valueHashPepperV3Secret, true},
+		{"unseal", valueUnseal1of5Secret, true},
+		{valueAPIKeyValue2E9BC6C9, "my_api_key.secret", true},
 		{"secret_key", "secret_key.secret", true},
-		{"database name", "postgres_database.secret", false},
-		{"username", "postgres_username.secret", false},
-		{"url", "postgres_url.secret", false},
+		{"database name", valuePostgresDatabaseSecret, false},
+		{"username", valuePostgresUsernameSecret, false},
+		{"url", valuePostgresURLSecret, false},
 	}
 
 	for _, tc := range tests {
@@ -210,15 +210,15 @@ func TestIsSecretFieldName(t *testing.T) {
 		input  string
 		expect bool
 	}{
-		{"password", "database-password", true},
+		{valuePassword, "database-password", true},
 		{"PASSWD", "POSTGRES_PASSWD", true},
 		{"secret", "my-secret", true},
 		{"TOKEN", "ACCESS_TOKEN", true},
-		{"api-key", "api-key", true},
-		{"api_key", "API_KEY", true},
-		{"private-key", "private-key", true},
-		{"pepper", "hash-pepper", true},
-		{"hostname", "hostname", false},
+		{valueAPIKey, valueAPIKey, true},
+		{valueAPIKeyValue2E9BC6C9, "API_KEY", true},
+		{valuePrivateKey, valuePrivateKey, true},
+		{valuePepper, "hash-pepper", true},
+		{testHostname, testHostname, false},
 		{"port", "bind-port", false},
 	}
 
@@ -298,7 +298,7 @@ func TestCheckSecretLength_BoundaryValues(t *testing.T) {
 		wantWarning bool
 	}{
 		{cryptoutilSharedMagic.EMPTY, "", true, false},
-		{"1 byte", "x", false, true},
+		{"1 byte", testX, false, true},
 		{"31 bytes", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", false, true},
 		{"32 bytes", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", false, false},
 		{"43 bytes", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", false, false},
@@ -410,8 +410,8 @@ func TestValidateSecrets_ComposeEnvNonSecretKey(t *testing.T) {
 
 func findRealDeploymentPath(name string) string {
 	candidates := []string{
-		filepath.Join("deployments", name),
-		filepath.Join("..", "..", "..", "..", "deployments", name),
+		filepath.Join(defaultDeploymentsDir, name),
+		filepath.Join("..", "..", "..", "..", defaultDeploymentsDir, name),
 	}
 
 	for _, p := range candidates {

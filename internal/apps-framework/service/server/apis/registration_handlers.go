@@ -57,7 +57,7 @@ func (h *RegistrationHandlers) HandleRegisterUser(c *fiber.Ctx) error {
 	var req RegisterUserRequest
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
-			cryptoutilSharedMagic.StringError: "Invalid request body",
+			cryptoutilSharedMagic.StringError: valueInvalidRequestBody,
 		})
 	}
 
@@ -240,7 +240,7 @@ func (h *RegistrationHandlers) HandleProcessJoinRequest(c *fiber.Ctx) error {
 	var req ProcessJoinRequestRequest
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
-			cryptoutilSharedMagic.StringError: "Invalid request body",
+			cryptoutilSharedMagic.StringError: valueInvalidRequestBody,
 		})
 	}
 

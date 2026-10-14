@@ -109,7 +109,7 @@ func fixTHelperInFileWithPrinter(_ *cryptoutilCmdCicdCommon.Logger, filePath str
 				X: &ast.CallExpr{
 					Fun: &ast.SelectorExpr{
 						X:   &ast.Ident{Name: testingParam},
-						Sel: &ast.Ident{Name: "Helper"},
+						Sel: &ast.Ident{Name: valueHelper},
 					},
 				},
 			}
@@ -176,7 +176,7 @@ func hasTHelperCall(funcDecl *ast.FuncDecl) bool {
 			continue
 		}
 
-		if selExpr.Sel.Name == "Helper" {
+		if selExpr.Sel.Name == valueHelper {
 			return true
 		}
 	}

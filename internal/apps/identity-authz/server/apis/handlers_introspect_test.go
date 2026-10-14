@@ -31,11 +31,11 @@ func TestHandleIntrospect_TokenTypeHint(t *testing.T) {
 	svc.RegisterRoutes(app)
 
 	reqBody := url.Values{
-		cryptoutilSharedMagic.ParamToken:         []string{"non-existent-token"},
+		cryptoutilSharedMagic.ParamToken:         []string{testNonExistentToken},
 		cryptoutilSharedMagic.ParamTokenTypeHint: []string{cryptoutilSharedMagic.TokenTypeAccessToken},
 	}
 
-	req := httptest.NewRequest("POST", "/oauth2/v1/introspect", strings.NewReader(reqBody.Encode()))
+	req := httptest.NewRequest(testPost, testOauth2V1Introspect, strings.NewReader(reqBody.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	resp, err := app.Test(req, -1)
@@ -61,10 +61,10 @@ func TestHandleRevoke_InvalidToken(t *testing.T) {
 	svc.RegisterRoutes(app)
 
 	reqBody := url.Values{
-		cryptoutilSharedMagic.ParamToken: []string{"non-existent-token"},
+		cryptoutilSharedMagic.ParamToken: []string{testNonExistentToken},
 	}
 
-	req := httptest.NewRequest("POST", "/oauth2/v1/revoke", strings.NewReader(reqBody.Encode()))
+	req := httptest.NewRequest(testPost, testOauth2V1Revoke, strings.NewReader(reqBody.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	resp, err := app.Test(req, -1)

@@ -26,11 +26,11 @@ func TestProvisionDatabase_FileMemoryNamedFormat(t *testing.T) {
 	ctx := context.Background()
 
 	settings := &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{
-		LogLevel:          "info",
-		OTLPEndpoint:      "grpc://localhost:4317",
+		LogLevel:          testInfo,
+		OTLPEndpoint:      testGrpcLocalhost4317,
 		OTLPService:       "test-file-memory-named",
 		OTLPVersion:       cryptoutilSharedMagic.ServiceVersion,
-		OTLPEnvironment:   "test",
+		OTLPEnvironment:   testTest,
 		DevMode:           true,
 		UnsealMode:        cryptoutilSharedMagic.DefaultUnsealModeSysInfo,
 		DatabaseURL:       "file::memory:testnameddb_provision?cache=shared",
@@ -63,15 +63,15 @@ func TestProvisionDatabase_ContainerSuccess(t *testing.T) {
 	}
 
 	settings := &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{
-		LogLevel:          "info",
-		OTLPEndpoint:      "grpc://localhost:4317",
+		LogLevel:          testInfo,
+		OTLPEndpoint:      testGrpcLocalhost4317,
 		OTLPService:       "test-container-success",
 		OTLPVersion:       cryptoutilSharedMagic.ServiceVersion,
-		OTLPEnvironment:   "test",
+		OTLPEnvironment:   testTest,
 		DevMode:           true,
 		UnsealMode:        cryptoutilSharedMagic.DefaultUnsealModeSysInfo,
-		DatabaseURL:       "postgres://user:pass@localhost:5432/db",
-		DatabaseContainer: "required",
+		DatabaseURL:       testPostgresUserPassLocalhost5432DB,
+		DatabaseContainer: valueRequired,
 	}
 
 	basic, err := StartBasic(ctx, settings)
@@ -104,15 +104,15 @@ func TestProvisionDatabase_ContainerPreferredFallback(t *testing.T) {
 	}
 
 	settings := &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{
-		LogLevel:          "info",
-		OTLPEndpoint:      "grpc://localhost:4317",
+		LogLevel:          testInfo,
+		OTLPEndpoint:      testGrpcLocalhost4317,
 		OTLPService:       "test-container-preferred",
 		OTLPVersion:       cryptoutilSharedMagic.ServiceVersion,
-		OTLPEnvironment:   "test",
+		OTLPEnvironment:   testTest,
 		DevMode:           true,
 		UnsealMode:        cryptoutilSharedMagic.DefaultUnsealModeSysInfo,
-		DatabaseURL:       "postgres://user:pass@localhost:5432/db",
-		DatabaseContainer: "preferred",
+		DatabaseURL:       testPostgresUserPassLocalhost5432DB,
+		DatabaseContainer: testPreferred,
 	}
 
 	basic, err := StartBasic(ctx, settings)
@@ -145,15 +145,15 @@ func TestProvisionDatabase_ContainerRequiredFailure(t *testing.T) {
 	}
 
 	settings := &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{
-		LogLevel:          "info",
-		OTLPEndpoint:      "grpc://localhost:4317",
+		LogLevel:          testInfo,
+		OTLPEndpoint:      testGrpcLocalhost4317,
 		OTLPService:       "test-container-required-fail",
 		OTLPVersion:       cryptoutilSharedMagic.ServiceVersion,
-		OTLPEnvironment:   "test",
+		OTLPEnvironment:   testTest,
 		DevMode:           true,
 		UnsealMode:        cryptoutilSharedMagic.DefaultUnsealModeSysInfo,
-		DatabaseURL:       "postgres://user:pass@localhost:5432/db",
-		DatabaseContainer: "required",
+		DatabaseURL:       testPostgresUserPassLocalhost5432DB,
+		DatabaseContainer: valueRequired,
 	}
 
 	basic, err := StartBasic(ctx, settings)

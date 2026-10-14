@@ -24,7 +24,7 @@ func TestHandleSendEmailOTP_InvalidBody(t *testing.T) {
 	app := fiber.New()
 	svc.RegisterRoutes(app)
 
-	req := httptest.NewRequest("POST", "/oidc/v1/mfa/email-otp/send", bytes.NewReader([]byte("{invalid json")))
+	req := httptest.NewRequest(testPost, "/oidc/v1/mfa/email-otp/send", bytes.NewReader([]byte("{invalid json")))
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := app.Test(req, -1)
@@ -46,14 +46,14 @@ func TestHandleSendEmailOTP_InvalidUserIDFormat(t *testing.T) {
 	svc.RegisterRoutes(app)
 
 	reqBody := cryptoutilIdentityAuthz.SendEmailOTPRequest{
-		UserID: "not-a-uuid",
-		Email:  "test@example.com",
+		UserID: testNotAUUID,
+		Email:  testTestExampleCom,
 	}
 
 	body, err := json.Marshal(reqBody)
 	require.NoError(t, err)
 
-	req := httptest.NewRequest("POST", "/oidc/v1/mfa/email-otp/send", bytes.NewReader(body))
+	req := httptest.NewRequest(testPost, "/oidc/v1/mfa/email-otp/send", bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := app.Test(req, -1)
@@ -79,7 +79,7 @@ func TestHandleVerifyEmailOTP_InvalidBody(t *testing.T) {
 	app := fiber.New()
 	svc.RegisterRoutes(app)
 
-	req := httptest.NewRequest("POST", "/oidc/v1/mfa/email-otp/verify", bytes.NewReader([]byte("{invalid json")))
+	req := httptest.NewRequest(testPost, "/oidc/v1/mfa/email-otp/verify", bytes.NewReader([]byte("{invalid json")))
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := app.Test(req, -1)
@@ -107,7 +107,7 @@ func TestHandleVerifyEmailOTP_MissingUserIDHeader(t *testing.T) {
 	body, err := json.Marshal(reqBody)
 	require.NoError(t, err)
 
-	req := httptest.NewRequest("POST", "/oidc/v1/mfa/email-otp/verify", bytes.NewReader(body))
+	req := httptest.NewRequest(testPost, "/oidc/v1/mfa/email-otp/verify", bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 	// Missing X-User-ID header.
 
@@ -136,9 +136,9 @@ func TestHandleVerifyEmailOTP_InvalidUserIDHeader(t *testing.T) {
 	body, err := json.Marshal(reqBody)
 	require.NoError(t, err)
 
-	req := httptest.NewRequest("POST", "/oidc/v1/mfa/email-otp/verify", bytes.NewReader(body))
+	req := httptest.NewRequest(testPost, "/oidc/v1/mfa/email-otp/verify", bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("X-User-ID", "not-a-uuid")
+	req.Header.Set("X-User-ID", testNotAUUID)
 
 	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
@@ -167,7 +167,7 @@ func TestHandleVerifyEmailOTP_InvalidOTP(t *testing.T) {
 	body, err := json.Marshal(reqBody)
 	require.NoError(t, err)
 
-	req := httptest.NewRequest("POST", "/oidc/v1/mfa/email-otp/verify", bytes.NewReader(body))
+	req := httptest.NewRequest(testPost, "/oidc/v1/mfa/email-otp/verify", bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("X-User-ID", userID.String())
 

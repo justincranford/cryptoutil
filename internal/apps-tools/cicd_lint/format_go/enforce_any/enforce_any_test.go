@@ -35,7 +35,7 @@ func TestEnforceAny_NoModifications(t *testing.T) {
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	filesByExtension := map[string][]string{
-		"go": {testFile},
+		testGo: {testFile},
 	}
 
 	err = Enforce(logger, filesByExtension)
@@ -71,7 +71,7 @@ func TestEnforceAny_ErrorProcessingFile(t *testing.T) {
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	filesByExtension := map[string][]string{
-		"go": {"/nonexistent/path/to/file.go"},
+		testGo: {"/nonexistent/path/to/file.go"},
 	}
 
 	err := Enforce(logger, filesByExtension)
@@ -128,8 +128,8 @@ func TestFilterGoFiles_NoGoFiles(t *testing.T) {
 	t.Parallel()
 
 	filesByExtension := map[string][]string{
-		".txt": {"file1.txt", "file2.txt"},
-		"md":   {"README.md"},
+		testTxt: {"file1.txt", "file2.txt"},
+		"md":    {"README.md"},
 	}
 
 	goFiles := FilterGoFiles(filesByExtension)
@@ -141,8 +141,8 @@ func TestFilterGoFiles_WithGoFiles(t *testing.T) {
 	t.Parallel()
 
 	filesByExtension := map[string][]string{
-		"go":   {"file1.go", "file2.go"},
-		".txt": {"file.txt"},
+		testGo:  {"file1.go", "file2.go"},
+		testTxt: {"file.txt"},
 	}
 
 	goFiles := FilterGoFiles(filesByExtension)
@@ -181,7 +181,7 @@ func TestEnforceAny_WithModificationsViaEnforceAny(t *testing.T) {
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	filesByExtension := map[string][]string{
-		"go": {testFile},
+		testGo: {testFile},
 	}
 
 	err = Enforce(logger, filesByExtension)

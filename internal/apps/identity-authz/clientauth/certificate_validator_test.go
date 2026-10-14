@@ -160,7 +160,7 @@ func createExpiredClientCert(t *testing.T, caCert *x509.Certificate, caKey *ecds
 	template := &x509.Certificate{
 		SerialNumber: big.NewInt(3),
 		Subject: pkix.Name{
-			CommonName: "Expired Client",
+			CommonName: testExpiredClient,
 		},
 		NotBefore:   time.Now().UTC().Add(-cryptoutilSharedMagic.HMACSHA384KeySize * time.Hour),
 		NotAfter:    time.Now().UTC().Add(-cryptoutilSharedMagic.HoursPerDay * time.Hour), // Expired.
@@ -200,7 +200,7 @@ func TestSelfSignedCertificateValidator_ValidateCertificate(t *testing.T) {
 		SerialNumber: big.NewInt(1),
 		Subject: pkix.Name{
 			CommonName:   "Test Self-Signed Client",
-			Organization: []string{"Test Org"},
+			Organization: []string{testTestOrg},
 		},
 		NotBefore:             time.Now().UTC().Add(-1 * time.Hour),
 		NotAfter:              time.Now().UTC().Add(cryptoutilSharedMagic.HoursPerDay * time.Hour),
@@ -219,8 +219,8 @@ func TestSelfSignedCertificateValidator_ValidateCertificate(t *testing.T) {
 	expiredTemplate := &x509.Certificate{
 		SerialNumber: big.NewInt(2),
 		Subject: pkix.Name{
-			CommonName:   "Expired Client",
-			Organization: []string{"Test Org"},
+			CommonName:   testExpiredClient,
+			Organization: []string{testTestOrg},
 		},
 		NotBefore:             time.Now().UTC().Add(-cryptoutilSharedMagic.HMACSHA384KeySize * time.Hour),
 		NotAfter:              time.Now().UTC().Add(-cryptoutilSharedMagic.HoursPerDay * time.Hour),
@@ -240,7 +240,7 @@ func TestSelfSignedCertificateValidator_ValidateCertificate(t *testing.T) {
 		SerialNumber: big.NewInt(3),
 		Subject: pkix.Name{
 			CommonName:   "Future Client",
-			Organization: []string{"Test Org"},
+			Organization: []string{testTestOrg},
 		},
 		NotBefore:             time.Now().UTC().Add(cryptoutilSharedMagic.HoursPerDay * time.Hour),
 		NotAfter:              time.Now().UTC().Add(cryptoutilSharedMagic.HMACSHA384KeySize * time.Hour),

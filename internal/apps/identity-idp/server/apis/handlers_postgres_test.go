@@ -141,7 +141,7 @@ func testConcurrentOperations(t *testing.T, repoFactory *cryptoutilIdentityRepos
 				Sub:               googleUuid.Must(googleUuid.NewV7()).String(),
 				PreferredUsername: "testuser_" + uniqueID,
 				Email:             "test_" + uniqueID + "@example.com",
-				PasswordHash:      "hashedpassword", // pragma: allowlist secret
+				PasswordHash:      testHashedpassword, // pragma: allowlist secret
 				Enabled:           true,
 			}
 			done <- userRepo.Create(ctx, user)
@@ -153,7 +153,7 @@ func testConcurrentOperations(t *testing.T, repoFactory *cryptoutilIdentityRepos
 		go func(_ int) {
 			client := &cryptoutilIdentityDomain.Client{
 				ClientID:     googleUuid.Must(googleUuid.NewV7()).String(),
-				ClientSecret: "hashedsecret", // pragma: allowlist secret
+				ClientSecret: testHashedsecret, // pragma: allowlist secret
 				ClientType:   cryptoutilIdentityDomain.ClientTypeConfidential,
 				Enabled:      boolPtr(true),
 			}
@@ -168,7 +168,7 @@ func testConcurrentOperations(t *testing.T, repoFactory *cryptoutilIdentityRepos
 		Sub:               googleUuid.Must(googleUuid.NewV7()).String(),
 		PreferredUsername: "testuser_token_" + uniqueIDToken,
 		Email:             "test_token_" + uniqueIDToken + "@example.com",
-		PasswordHash:      "hashedpassword", // pragma: allowlist secret
+		PasswordHash:      testHashedpassword, // pragma: allowlist secret
 		Enabled:           true,
 	}
 	err := userRepo.Create(ctx, testUser)
@@ -176,7 +176,7 @@ func testConcurrentOperations(t *testing.T, repoFactory *cryptoutilIdentityRepos
 
 	testClient := &cryptoutilIdentityDomain.Client{
 		ClientID:     googleUuid.Must(googleUuid.NewV7()).String(),
-		ClientSecret: "hashedsecret", // pragma: allowlist secret
+		ClientSecret: testHashedsecret, // pragma: allowlist secret
 		ClientType:   cryptoutilIdentityDomain.ClientTypeConfidential,
 		Enabled:      boolPtr(true),
 	}
@@ -253,7 +253,7 @@ func testTransactionIsolation(t *testing.T, repoFactory *cryptoutilIdentityRepos
 					Sub:               googleUuid.Must(googleUuid.NewV7()).String(),
 					PreferredUsername: "testuser_tx_" + uniqueIDTx,
 					Email:             "test_tx_" + uniqueIDTx + "@example.com",
-					PasswordHash:      "hashedpassword", // pragma: allowlist secret
+					PasswordHash:      testHashedpassword, // pragma: allowlist secret
 					Enabled:           true,
 				}
 

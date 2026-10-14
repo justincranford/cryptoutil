@@ -63,8 +63,8 @@ func (s *Service) RegisterMiddleware(app *fiber.App) {
 		Expiration: time.Duration(cryptoutilSharedMagic.RateLimitWindowSeconds) * time.Second,
 		LimitReached: func(c *fiber.Ctx) error {
 			return c.Status(fiber.StatusTooManyRequests).JSON(fiber.Map{
-				cryptoutilSharedMagic.StringError: "rate_limit_exceeded",
-				"error_description":               "Too many requests",
+				cryptoutilSharedMagic.StringError: valueRateLimitExceeded,
+				valueErrorDescription:             "Too many requests",
 			})
 		},
 	}))
@@ -81,7 +81,7 @@ func (s *Service) AuthMiddleware() fiber.Handler {
 		if sessionID == "" {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 				cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorAccessDenied,
-				"error_description":               "Authentication required",
+				valueErrorDescription:             "Authentication required",
 			})
 		}
 
@@ -92,7 +92,7 @@ func (s *Service) AuthMiddleware() fiber.Handler {
 		if err != nil {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 				cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorAccessDenied,
-				"error_description":               "Invalid or expired session",
+				valueErrorDescription:             "Invalid or expired session",
 			})
 		}
 
@@ -100,7 +100,7 @@ func (s *Service) AuthMiddleware() fiber.Handler {
 		if session.Active == nil || !*session.Active {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 				cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorAccessDenied,
-				"error_description":               "Session is no longer active",
+				valueErrorDescription:             "Session is no longer active",
 			})
 		}
 
@@ -108,7 +108,7 @@ func (s *Service) AuthMiddleware() fiber.Handler {
 		if session.IsExpired() {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 				cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorAccessDenied,
-				"error_description":               "Session has expired",
+				valueErrorDescription:             "Session has expired",
 			})
 		}
 
@@ -130,7 +130,7 @@ func (s *Service) TokenAuthMiddleware() fiber.Handler {
 		if authHeader == "" {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 				cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInvalidToken,
-				"error_description":               "Missing Authorization header",
+				valueErrorDescription:             valueMissingAuthorizationHeader,
 			})
 		}
 
@@ -139,7 +139,7 @@ func (s *Service) TokenAuthMiddleware() fiber.Handler {
 		if len(parts) != 2 || parts[0] != cryptoutilSharedMagic.AuthorizationBearer {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 				cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInvalidToken,
-				"error_description":               "Invalid Authorization header format",
+				valueErrorDescription:             valueInvalidAuthorizationHeaderFormat,
 			})
 		}
 
@@ -150,7 +150,7 @@ func (s *Service) TokenAuthMiddleware() fiber.Handler {
 		if err != nil {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 				cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInvalidToken,
-				"error_description":               "Invalid or expired access token",
+				valueErrorDescription:             valueInvalidOrExpiredAccessToken,
 			})
 		}
 
@@ -185,7 +185,7 @@ func (s *Service) HybridAuthMiddleware() fiber.Handler {
 				// If Bearer token is present but invalid, reject immediately.
 				return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 					cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInvalidToken,
-					"error_description":               "Invalid or expired access token",
+					valueErrorDescription:             valueInvalidOrExpiredAccessToken,
 				})
 			}
 		}
@@ -216,7 +216,7 @@ func (s *Service) HybridAuthMiddleware() fiber.Handler {
 		// Neither Bearer token nor valid session cookie.
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorAccessDenied,
-			"error_description":               "Authentication required (Bearer token or session cookie)",
+			valueErrorDescription:             "Authentication required (Bearer token or session cookie)",
 		})
 	}
 }

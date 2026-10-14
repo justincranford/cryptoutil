@@ -38,7 +38,7 @@ func Execute(parameters []string) {
 	cmdParams := parameters[1:]
 
 	switch subcommand {
-	case "start":
+	case valueStart:
 		startService(cmdParams)
 	case "stop":
 		stopService(cmdParams)
@@ -72,7 +72,7 @@ func startService(parameters []string) {
 	fmt.Fprintf(os.Stderr, "Using config file: %s\n", configFile)
 
 	// Load Authz-specific configuration from YAML file.
-	parseArgs := []string{"start", cryptoutilSharedMagic.IdentityCLIFlagConfig, configFile}
+	parseArgs := []string{valueStart, cryptoutilSharedMagic.IdentityCLIFlagConfig, configFile}
 
 	settings, err := cryptoutilAppsIdentityAuthzServerConfig.Parse(parseArgs, false)
 	if err != nil {

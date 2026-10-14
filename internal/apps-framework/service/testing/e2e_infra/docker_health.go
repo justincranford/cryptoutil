@@ -50,7 +50,7 @@ func parseDockerComposePsOutput(output []byte) (map[string]map[string]any, error
 	serviceMap := make(map[string]map[string]any)
 
 	for _, service := range serviceList {
-		if name, ok := service["Name"].(string); ok {
+		if name, ok := service[valueName].(string); ok {
 			if strings.Contains(name, "compose-") { // Example: compose-cryptoutil-sqlite-1
 				parts := strings.Split(name, "-")
 				if len(parts) >= cryptoutilSharedMagic.DockerServiceNamePartsMin {
@@ -97,12 +97,12 @@ func determineServiceHealthStatus(serviceMap map[string]map[string]any, services
 		if service.Job != "" {
 			// Use case 1 & 3: Job is present - Check job's exit code
 			// (Covers both "Job-only" and "Service with healthcheck job")
-			exitCode, hasExitCode := serviceData["ExitCode"].(float64)
+			exitCode, hasExitCode := serviceData[valueExitCode].(float64)
 			healthStatus[healthKey] = hasExitCode && exitCode == 0
 		} else {
 			// Use case 2: Service-only - Check service's running/healthy status
-			state, hasState := serviceData["State"].(string)
-			health, hasHealth := serviceData["Health"].(string)
+			state, hasState := serviceData[valueState].(string)
+			health, hasHealth := serviceData[valueHealth].(string)
 
 			var isHealthy bool
 			if hasHealth {

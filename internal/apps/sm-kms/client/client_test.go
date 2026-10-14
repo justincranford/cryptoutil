@@ -32,10 +32,33 @@ type elasticKeyTestCase struct {
 	name              string
 	description       string
 	algorithm         string
-	provider          string
+	provider          cryptoutilOpenapiModel.ElasticKeyProvider
 	importAllowed     bool
 	versioningAllowed bool
 }
+
+const (
+	clientTestPlaceholder            = "placeholder"
+	clientTestCleartextPrefix        = "Hello World "
+	clientTestGenerateKeySubtestName = "  Generate Key"
+	clientTestProvider               = cryptoutilOpenapiModel.Internal
+
+	clientTestJWEA128GCMA128KW            = cryptoutilOpenapiModel.A128GCMA128KW
+	clientTestJWEA128GCMA128GCMKW         = cryptoutilOpenapiModel.A128GCMA128GCMKW
+	clientTestJWEA128GCMRSAOAEP256        = cryptoutilOpenapiModel.A128GCMRSAOAEP256
+	clientTestJWEA128GCMRSAOAEP           = cryptoutilOpenapiModel.A128GCMRSAOAEP
+	clientTestJWEA128GCMRSA15             = cryptoutilOpenapiModel.A128GCMRSA15
+	clientTestJWEA128GCMECDHESA128KW      = cryptoutilOpenapiModel.A128GCMECDHESA128KW
+	clientTestJWEA128GCMECDHES            = cryptoutilOpenapiModel.A128GCMECDHES
+	clientTestJWEA128CBCHS256A128KW       = cryptoutilOpenapiModel.A128CBCHS256A128KW
+	clientTestJWEA128CBCHS256A128GCMKW    = cryptoutilOpenapiModel.A128CBCHS256A128GCMKW
+	clientTestJWEA128CBCHS256Dir          = cryptoutilOpenapiModel.A128CBCHS256Dir
+	clientTestJWEA128CBCHS256RSAOAEP256   = cryptoutilOpenapiModel.A128CBCHS256RSAOAEP256
+	clientTestJWEA128CBCHS256RSAOAEP      = cryptoutilOpenapiModel.A128CBCHS256RSAOAEP
+	clientTestJWEA128CBCHS256RSA15        = cryptoutilOpenapiModel.A128CBCHS256RSA15
+	clientTestJWEA128CBCHS256ECDHESA128KW = cryptoutilOpenapiModel.A128CBCHS256ECDHESA128KW
+	clientTestJWEA128CBCHS256ECDHES       = cryptoutilOpenapiModel.A128CBCHS256ECDHES
+)
 
 func nextElasticKeyName() *string {
 	// Use UUIDv7 for time-ordered uniqueness across concurrent test runs
@@ -77,7 +100,7 @@ func generateHappyPathElasticKeyTestCasesEncrypt() []elasticKeyTestCase {
 		// {name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A128GCM/A192KW", provider: "Internal", importAllowed: false, versioningAllowed: true},
 		// {name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A256GCM/A128KW", provider: "Internal", importAllowed: false, versioningAllowed: true},
 		// {name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A192GCM/A128KW", provider: "Internal", importAllowed: false, versioningAllowed: true},
-		{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A128GCM/A128KW", provider: "Internal", importAllowed: false, versioningAllowed: true},
+		{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: string(clientTestJWEA128GCMA128KW), provider: clientTestProvider, importAllowed: false, versioningAllowed: true},
 
 		// {name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A256GCM/A256GCMKW", provider: "Internal", importAllowed: false, versioningAllowed: true},
 		// {name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A192GCM/A256GCMKW", provider: "Internal", importAllowed: false, versioningAllowed: true},
@@ -87,11 +110,11 @@ func generateHappyPathElasticKeyTestCasesEncrypt() []elasticKeyTestCase {
 		// {name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A128GCM/A192GCMKW", provider: "Internal", importAllowed: false, versioningAllowed: true},
 		// {name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A256GCM/A128GCMKW", provider: "Internal", importAllowed: false, versioningAllowed: true},
 		// {name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A192GCM/A128GCMKW", provider: "Internal", importAllowed: false, versioningAllowed: true},
-		{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A128GCM/A128GCMKW", provider: "Internal", importAllowed: false, versioningAllowed: true},
+		{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: string(clientTestJWEA128GCMA128GCMKW), provider: clientTestProvider, importAllowed: false, versioningAllowed: true},
 
 		// {name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A256GCM/dir", provider: "Internal", importAllowed: false, versioningAllowed: true},
 		// {name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A192GCM/dir", provider: "Internal", importAllowed: false, versioningAllowed: true},
-		{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A128GCM/dir", provider: "Internal", importAllowed: false, versioningAllowed: true},
+		{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A128GCM/dir", provider: cryptoutilOpenapiModel.Internal, importAllowed: false, versioningAllowed: true},
 
 		// {name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A256GCM/RSA-OAEP-512", provider: "Internal", importAllowed: false, versioningAllowed: true},
 		// {name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A192GCM/RSA-OAEP-512", provider: "Internal", importAllowed: false, versioningAllowed: true},
@@ -101,13 +124,13 @@ func generateHappyPathElasticKeyTestCasesEncrypt() []elasticKeyTestCase {
 		// {name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A128GCM/RSA-OAEP-384", provider: "Internal", importAllowed: false, versioningAllowed: true},
 		// {name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A256GCM/RSA-OAEP-256", provider: "Internal", importAllowed: false, versioningAllowed: true},
 		// {name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A192GCM/RSA-OAEP-256", provider: "Internal", importAllowed: false, versioningAllowed: true},
-		{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A128GCM/RSA-OAEP-256", provider: "Internal", importAllowed: false, versioningAllowed: true},
+		{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: string(clientTestJWEA128GCMRSAOAEP256), provider: clientTestProvider, importAllowed: false, versioningAllowed: true},
 		// {name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A256GCM/RSA-OAEP", provider: "Internal", importAllowed: false, versioningAllowed: true},
 		// {name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A192GCM/RSA-OAEP", provider: "Internal", importAllowed: false, versioningAllowed: true},
-		{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A128GCM/RSA-OAEP", provider: "Internal", importAllowed: false, versioningAllowed: true},
+		{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: string(clientTestJWEA128GCMRSAOAEP), provider: clientTestProvider, importAllowed: false, versioningAllowed: true},
 		// {name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A256GCM/RSA1_5", provider: "Internal", importAllowed: false, versioningAllowed: true},
 		// {name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A192GCM/RSA1_5", provider: "Internal", importAllowed: false, versioningAllowed: true},
-		{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A128GCM/RSA1_5", provider: "Internal", importAllowed: false, versioningAllowed: true},
+		{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: string(clientTestJWEA128GCMRSA15), provider: clientTestProvider, importAllowed: false, versioningAllowed: true},
 
 		// {name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A256GCM/ECDH-ES+A256KW", provider: "Internal", importAllowed: false, versioningAllowed: true},
 		// {name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A192GCM/ECDH-ES+A256KW", provider: "Internal", importAllowed: false, versioningAllowed: true},
@@ -117,10 +140,10 @@ func generateHappyPathElasticKeyTestCasesEncrypt() []elasticKeyTestCase {
 		// {name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A128GCM/ECDH-ES+A192KW", provider: "Internal", importAllowed: false, versioningAllowed: true},
 		// {name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A256GCM/ECDH-ES+A128KW", provider: "Internal", importAllowed: false, versioningAllowed: true},
 		// {name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A192GCM/ECDH-ES+A128KW", provider: "Internal", importAllowed: false, versioningAllowed: true},
-		{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A128GCM/ECDH-ES+A128KW", provider: "Internal", importAllowed: false, versioningAllowed: true},
+		{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: string(clientTestJWEA128GCMECDHESA128KW), provider: clientTestProvider, importAllowed: false, versioningAllowed: true},
 		// {name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A256GCM/ECDH-ES", provider: "Internal", importAllowed: false, versioningAllowed: true},
 		// {name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A192GCM/ECDH-ES", provider: "Internal", importAllowed: false, versioningAllowed: true},
-		{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A128GCM/ECDH-ES", provider: "Internal", importAllowed: false, versioningAllowed: true},
+		{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: string(clientTestJWEA128GCMECDHES), provider: clientTestProvider, importAllowed: false, versioningAllowed: true},
 
 		// {name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A256CBC-HS512/A256KW", provider: "Internal", importAllowed: false, versioningAllowed: true},
 		// {name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A192CBC-HS384/A256KW", provider: "Internal", importAllowed: false, versioningAllowed: true},
@@ -130,7 +153,7 @@ func generateHappyPathElasticKeyTestCasesEncrypt() []elasticKeyTestCase {
 		// {name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A128CBC-HS256/A192KW", provider: "Internal", importAllowed: false, versioningAllowed: true},
 		// {name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A256CBC-HS512/A128KW", provider: "Internal", importAllowed: false, versioningAllowed: true},
 		// {name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A192CBC-HS384/A128KW", provider: "Internal", importAllowed: false, versioningAllowed: true},
-		{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A128CBC-HS256/A128KW", provider: "Internal", importAllowed: false, versioningAllowed: true},
+		{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: string(clientTestJWEA128CBCHS256A128KW), provider: clientTestProvider, importAllowed: false, versioningAllowed: true},
 
 		// {name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A256CBC-HS512/A256GCMKW", provider: "Internal", importAllowed: false, versioningAllowed: true},
 		// {name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A192CBC-HS384/A256GCMKW", provider: "Internal", importAllowed: false, versioningAllowed: true},
@@ -140,11 +163,11 @@ func generateHappyPathElasticKeyTestCasesEncrypt() []elasticKeyTestCase {
 		// {name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A128CBC-HS256/A192GCMKW", provider: "Internal", importAllowed: false, versioningAllowed: true},
 		// {name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A256CBC-HS512/A128GCMKW", provider: "Internal", importAllowed: false, versioningAllowed: true},
 		// {name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A192CBC-HS384/A128GCMKW", provider: "Internal", importAllowed: false, versioningAllowed: true},
-		{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A128CBC-HS256/A128GCMKW", provider: "Internal", importAllowed: false, versioningAllowed: true},
+		{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: string(clientTestJWEA128CBCHS256A128GCMKW), provider: clientTestProvider, importAllowed: false, versioningAllowed: true},
 
 		// {name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A256CBC-HS512/dir", provider: "Internal", importAllowed: false, versioningAllowed: true},
 		// {name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A192CBC-HS384/dir", provider: "Internal", importAllowed: false, versioningAllowed: true},
-		{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A128CBC-HS256/dir", provider: "Internal", importAllowed: false, versioningAllowed: true},
+		{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: string(clientTestJWEA128CBCHS256Dir), provider: clientTestProvider, importAllowed: false, versioningAllowed: true},
 
 		// {name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A256CBC-HS512/RSA-OAEP-512", provider: "Internal", importAllowed: false, versioningAllowed: true},
 		// {name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A192CBC-HS384/RSA-OAEP-512", provider: "Internal", importAllowed: false, versioningAllowed: true},
@@ -154,40 +177,52 @@ func generateHappyPathElasticKeyTestCasesEncrypt() []elasticKeyTestCase {
 		// {name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A128CBC-HS256/RSA-OAEP-384", provider: "Internal", importAllowed: false, versioningAllowed: true},
 		// {name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A256CBC-HS512/RSA-OAEP-256", provider: "Internal", importAllowed: false, versioningAllowed: true},
 		// {name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A192CBC-HS384/RSA-OAEP-256", provider: "Internal", importAllowed: false, versioningAllowed: true},
-		{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A128CBC-HS256/RSA-OAEP-256", provider: "Internal", importAllowed: false, versioningAllowed: true},
+		{
+			name: *nextElasticKeyName(), description: *nextElasticKeyDesc(),
+			algorithm: string(clientTestJWEA128CBCHS256RSAOAEP256),
+			provider:  clientTestProvider, importAllowed: false, versioningAllowed: true,
+		},
 		// {name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A256CBC-HS512/RSA-OAEP", provider: "Internal", importAllowed: false, versioningAllowed: true},
 		// {name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A192CBC-HS384/RSA-OAEP", provider: "Internal", importAllowed: false, versioningAllowed: true},
-		{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A128CBC-HS256/RSA-OAEP", provider: "Internal", importAllowed: false, versioningAllowed: true},
+		{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: string(clientTestJWEA128CBCHS256RSAOAEP), provider: clientTestProvider, importAllowed: false, versioningAllowed: true},
 		// {name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A256CBC-HS512/RSA1_5", provider: "Internal", importAllowed: false, versioningAllowed: true},
 		// {name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A192CBC-HS384/RSA1_5", provider: "Internal", importAllowed: false, versioningAllowed: true},
-		{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A128CBC-HS256/RSA1_5", provider: "Internal", importAllowed: false, versioningAllowed: true},
+		{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: string(clientTestJWEA128CBCHS256RSA15), provider: clientTestProvider, importAllowed: false, versioningAllowed: true},
 
 		// {name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A256CBC-HS512/ECDH-ES+A256KW", provider: "Internal", importAllowed: false, versioningAllowed: true},
 		// {name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A192CBC-HS384/ECDH-ES+A256KW", provider: "Internal", importAllowed: false, versioningAllowed: true},
 		// {name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A128CBC-HS256/ECDH-ES+A256KW", provider: "Internal", importAllowed: false, versioningAllowed: true},
 		// {name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A192CBC-HS384/ECDH-ES+A192KW", provider: "Internal", importAllowed: false, versioningAllowed: true},
 		// {name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A128CBC-HS256/ECDH-ES+A192KW", provider: "Internal", importAllowed: false, versioningAllowed: true},
-		{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A128CBC-HS256/ECDH-ES+A128KW", provider: "Internal", importAllowed: false, versioningAllowed: true},
+		{
+			name: *nextElasticKeyName(), description: *nextElasticKeyDesc(),
+			algorithm: string(clientTestJWEA128CBCHS256ECDHESA128KW),
+			provider:  clientTestProvider, importAllowed: false, versioningAllowed: true,
+		},
 		// {name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A256CBC-HS512/ECDH-ES", provider: "Internal", importAllowed: false, versioningAllowed: true},
 		// {name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A192CBC-HS384/ECDH-ES", provider: "Internal", importAllowed: false, versioningAllowed: true},
-		{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A128CBC-HS256/ECDH-ES", provider: "Internal", importAllowed: false, versioningAllowed: true},
+		{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: string(clientTestJWEA128CBCHS256ECDHES), provider: clientTestProvider, importAllowed: false, versioningAllowed: true},
 	}
 }
 
 var happyPathElasticKeyTestCasesSign = []elasticKeyTestCase{
-	{name: "placeholder", description: "placeholder", algorithm: cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm, provider: "Internal", importAllowed: false, versioningAllowed: true},
+	{
+		name: clientTestPlaceholder, description: clientTestPlaceholder,
+		algorithm: cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
+		provider:  clientTestProvider, importAllowed: false, versioningAllowed: true,
+	},
 	// {name: "placeholder", description: "placeholder", algorithm: "RS384", provider: "Internal", importAllowed: false, versioningAllowed: true},
 	// {name: "placeholder", description: "placeholder", algorithm: "RS512", provider: "Internal", importAllowed: false, versioningAllowed: true},
-	{name: "placeholder", description: "placeholder", algorithm: cryptoutilSharedMagic.JoseAlgPS256, provider: "Internal", importAllowed: false, versioningAllowed: true},
+	{name: clientTestPlaceholder, description: clientTestPlaceholder, algorithm: cryptoutilSharedMagic.JoseAlgPS256, provider: clientTestProvider, importAllowed: false, versioningAllowed: true},
 	// {name: "placeholder", description: "placeholder", algorithm: "PS384", provider: "Internal", importAllowed: false, versioningAllowed: true},
 	// {name: "placeholder", description: "placeholder", algorithm: "PS512", provider: "Internal", importAllowed: false, versioningAllowed: true},
-	{name: "placeholder", description: "placeholder", algorithm: cryptoutilSharedMagic.JoseAlgES256, provider: "Internal", importAllowed: false, versioningAllowed: true},
+	{name: clientTestPlaceholder, description: clientTestPlaceholder, algorithm: cryptoutilSharedMagic.JoseAlgES256, provider: clientTestProvider, importAllowed: false, versioningAllowed: true},
 	// {name: "placeholder", description: "placeholder", algorithm: "ES384", provider: "Internal", importAllowed: false, versioningAllowed: true},
 	// {name: "placeholder", description: "placeholder", algorithm: "ES512", provider: "Internal", importAllowed: false, versioningAllowed: true},
-	{name: "placeholder", description: "placeholder", algorithm: cryptoutilSharedMagic.JoseAlgHS256, provider: "Internal", importAllowed: false, versioningAllowed: true},
+	{name: clientTestPlaceholder, description: clientTestPlaceholder, algorithm: cryptoutilSharedMagic.JoseAlgHS256, provider: clientTestProvider, importAllowed: false, versioningAllowed: true},
 	// {name: "placeholder", description: "placeholder", algorithm: "HS384", provider: "Internal", importAllowed: false, versioningAllowed: true},
 	// {name: "placeholder", description: "placeholder", algorithm: "HS512", provider: "Internal", importAllowed: false, versioningAllowed: true},
-	{name: "placeholder", description: "placeholder", algorithm: cryptoutilSharedMagic.JoseAlgEdDSA, provider: "Internal", importAllowed: false, versioningAllowed: true},
+	{name: clientTestPlaceholder, description: clientTestPlaceholder, algorithm: cryptoutilSharedMagic.JoseAlgEdDSA, provider: clientTestProvider, importAllowed: false, versioningAllowed: true},
 }
 
 func TestAllElasticKeyCipherAlgorithms(t *testing.T) {
@@ -209,9 +244,22 @@ func TestAllElasticKeyCipherAlgorithms(t *testing.T) {
 			// Medium priority (1.5-3.0s): TestProbQuarter (25% execution)
 			// Base algorithms (<1.5s): TestProbAlways (100% execution)
 			switch testCase.algorithm {
-			case "A128CBC-HS256/RSA1_5", "A128CBC-HS256/RSA-OAEP", "A128CBC-HS256/dir", "A128GCM/A128KW", "A128CBC-HS256/ECDH-ES", "A128CBC-HS256/ECDH-ES+A128KW", "A128CBC-HS256/RSA-OAEP-256":
+			case string(clientTestJWEA128CBCHS256RSA15),
+				string(clientTestJWEA128CBCHS256RSAOAEP),
+				string(clientTestJWEA128CBCHS256Dir),
+				string(clientTestJWEA128GCMA128KW),
+				string(clientTestJWEA128CBCHS256ECDHES),
+				string(clientTestJWEA128CBCHS256ECDHESA128KW),
+				string(clientTestJWEA128CBCHS256RSAOAEP256):
 				cryptoutilSharedUtilRandom.SkipByProbability(t, cryptoutilSharedMagic.TestProbTenth) // 10% execution for >3.0s tests
-			case "A128CBC-HS256/A128GCMKW", "A128GCM/ECDH-ES", "A128CBC-HS256/A128KW", "A128GCM/ECDH-ES+A128KW", "A128GCM/RSA-OAEP", "A128GCM/RSA1_5", "A128GCM/A128GCMKW", "A128GCM/RSA-OAEP-256":
+			case string(clientTestJWEA128CBCHS256A128GCMKW),
+				string(clientTestJWEA128GCMECDHES),
+				string(clientTestJWEA128CBCHS256A128KW),
+				string(clientTestJWEA128GCMECDHESA128KW),
+				string(clientTestJWEA128GCMRSAOAEP),
+				string(clientTestJWEA128GCMRSA15),
+				string(clientTestJWEA128GCMA128GCMKW),
+				string(clientTestJWEA128GCMRSAOAEP256):
 				cryptoutilSharedUtilRandom.SkipByProbability(t, cryptoutilSharedMagic.TestProbQuarter) // 25% execution for 1.5-3.0s tests
 			default:
 				cryptoutilSharedUtilRandom.SkipByProbability(t, cryptoutilSharedMagic.TestProbAlways) // 100% execution for <1.5s tests (base algorithms)
@@ -224,7 +272,8 @@ func TestAllElasticKeyCipherAlgorithms(t *testing.T) {
 			var elasticKey *cryptoutilOpenapiModel.ElasticKey
 
 			t.Run(testCaseNamePrefix+"  Create Elastic Key", func(t *testing.T) {
-				elasticKeyCreate := RequireCreateElasticKeyRequest(t, uniqueName, uniqueDesc, &testCase.algorithm, &testCase.provider, &testCase.importAllowed, &testCase.versioningAllowed)
+				provider := string(testCase.provider)
+				elasticKeyCreate := RequireCreateElasticKeyRequest(t, uniqueName, uniqueDesc, &testCase.algorithm, &provider, &testCase.importAllowed, &testCase.versioningAllowed)
 				elasticKey = RequireCreateElasticKeyResponse(context, t, openapiClient, elasticKeyCreate)
 				logObjectAsJSON(t, elasticKey)
 			})
@@ -249,7 +298,7 @@ func TestAllElasticKeyCipherAlgorithms(t *testing.T) {
 			var ciphertext *string
 
 			t.Run(testCaseNamePrefix+"  Encrypt", func(t *testing.T) {
-				str := "Hello World " + strconv.Itoa(i)
+				str := clientTestCleartextPrefix + strconv.Itoa(i)
 				cleartext = &str
 				encryptRequest := RequireEncryptRequest(t, cleartext)
 				ciphertext = RequireEncryptResponse(context, t, openapiClient, elasticKey.ElasticKeyID, nil, encryptRequest)
@@ -273,7 +322,7 @@ func TestAllElasticKeyCipherAlgorithms(t *testing.T) {
 			for _, generateAlgorithm := range happyPathGenerateAlgorithmTestCases {
 				var generateDataKeyResponse *string
 
-				algorithmSuffix := strings.ReplaceAll(((string)(generateAlgorithm)), "/", "_")
+				algorithmSuffix := strings.ReplaceAll(string(generateAlgorithm), "/", "_")
 				t.Run(testCaseNamePrefix+"  Generate Data Key  "+algorithmSuffix, func(t *testing.T) {
 					generateDataKeyParams := &cryptoutilOpenapiModel.GenerateParams{Context: nil, Alg: &generateAlgorithm}
 					generateDataKeyResponse = RequireGenerateResponse(context, t, openapiClient, elasticKey.ElasticKeyID, generateDataKeyParams)
@@ -327,7 +376,8 @@ func TestAllElasticKeySignatureAlgorithms(t *testing.T) {
 			t.Run(testCaseNamePrefix+"  Create Elastic Key", func(t *testing.T) {
 				uniqueName := nextElasticKeyName()
 				uniqueDesc := nextElasticKeyDesc()
-				elasticKeyCreate := RequireCreateElasticKeyRequest(t, uniqueName, uniqueDesc, &testCase.algorithm, &testCase.provider, &testCase.importAllowed, &testCase.versioningAllowed)
+				provider := string(testCase.provider)
+				elasticKeyCreate := RequireCreateElasticKeyRequest(t, uniqueName, uniqueDesc, &testCase.algorithm, &provider, &testCase.importAllowed, &testCase.versioningAllowed)
 				elasticKey = RequireCreateElasticKeyResponse(context, t, openapiClient, elasticKeyCreate)
 				logObjectAsJSON(t, elasticKey)
 			})
@@ -345,7 +395,7 @@ func TestAllElasticKeySignatureAlgorithms(t *testing.T) {
 			isAsymmetric, err := cryptoutilSharedCryptoJose.IsAsymmetric(&elasticKeyAlgorithm)
 			require.NoError(t, err)
 
-			t.Run(testCaseNamePrefix+"  Generate Key", func(t *testing.T) {
+			t.Run(testCaseNamePrefix+clientTestGenerateKeySubtestName, func(t *testing.T) {
 				keyGenerate := RequireMaterialKeyGenerateRequest(t)
 
 				key := RequireMaterialKeyGenerateResponse(context, t, openapiClient, elasticKey.ElasticKeyID, keyGenerate)
@@ -358,14 +408,14 @@ func TestAllElasticKeySignatureAlgorithms(t *testing.T) {
 			var signedtext *string
 
 			t.Run(testCaseNamePrefix+"  Sign", func(t *testing.T) {
-				str := "Hello World " + strconv.Itoa(i)
+				str := clientTestCleartextPrefix + strconv.Itoa(i)
 				cleartext = &str
 				signRequest := RequireSignRequest(t, cleartext)
 				signedtext = RequireSignResponse(context, t, openapiClient, elasticKey.ElasticKeyID, nil, signRequest)
 				logJWS(t, signedtext)
 			})
 
-			t.Run(testCaseNamePrefix+"  Generate Key", func(t *testing.T) {
+			t.Run(testCaseNamePrefix+clientTestGenerateKeySubtestName, func(t *testing.T) {
 				keyGenerate := RequireMaterialKeyGenerateRequest(t)
 				key := RequireMaterialKeyGenerateResponse(context, t, openapiClient, elasticKey.ElasticKeyID, keyGenerate)
 				validateKeyResponsePublicKey(t, key, isAsymmetric)

@@ -74,13 +74,13 @@ func TestClientSecretJWTValidator_JTIReplayProtection(t *testing.T) {
 
 	db := setupTestDB(t)
 	jtiRepo := cryptoutilIdentityRepository.NewJTIReplayCacheRepository(db)
-	validator := NewClientSecretJWTValidator("https://auth.example.com/token", jtiRepo)
+	validator := NewClientSecretJWTValidator(testTokenEndpointURL, jtiRepo)
 
 	clientID := googleUuid.New()
 	client := &cryptoutilIdentityDomain.Client{
 		ID:           clientID,
-		ClientID:     "test-client",
-		ClientSecret: "test-secret",
+		ClientID:     testTestClient,
+		ClientSecret: testTestSecret,
 	}
 
 	// Create first JWT with jti claim
@@ -88,7 +88,7 @@ func TestClientSecretJWTValidator_JTIReplayProtection(t *testing.T) {
 	firstToken := joseJwt.New()
 	require.NoError(t, firstToken.Set(joseJwt.IssuerKey, client.ClientID))
 	require.NoError(t, firstToken.Set(joseJwt.SubjectKey, client.ClientID))
-	require.NoError(t, firstToken.Set(joseJwt.AudienceKey, []string{"https://auth.example.com/token"}))
+	require.NoError(t, firstToken.Set(joseJwt.AudienceKey, []string{testTokenEndpointURL}))
 	require.NoError(t, firstToken.Set(joseJwt.IssuedAtKey, now))
 	require.NoError(t, firstToken.Set(joseJwt.ExpirationKey, now.Add(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Minute)))
 	require.NoError(t, firstToken.Set(joseJwt.JwtIDKey, "unique-jti-1"))
@@ -101,7 +101,7 @@ func TestClientSecretJWTValidator_JTIReplayProtection(t *testing.T) {
 	secondToken := joseJwt.New()
 	require.NoError(t, secondToken.Set(joseJwt.IssuerKey, client.ClientID))
 	require.NoError(t, secondToken.Set(joseJwt.SubjectKey, client.ClientID))
-	require.NoError(t, secondToken.Set(joseJwt.AudienceKey, []string{"https://auth.example.com/token"}))
+	require.NoError(t, secondToken.Set(joseJwt.AudienceKey, []string{testTokenEndpointURL}))
 	require.NoError(t, secondToken.Set(joseJwt.IssuedAtKey, now))
 	require.NoError(t, secondToken.Set(joseJwt.ExpirationKey, now.Add(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Minute)))
 	require.NoError(t, secondToken.Set(joseJwt.JwtIDKey, "unique-jti-1")) // Same JTI!
@@ -132,13 +132,13 @@ func TestClientSecretJWTValidator_AssertionLifetimeValidation(t *testing.T) {
 			wantErr:  false,
 		},
 		{
-			name:      "invalid lifetime (15 minutes)",
+			name:      testInvalidLifetime15Minutes,
 			lifetime:  15 * time.Minute,
 			wantErr:   true,
 			errSubstr: "assertion lifetime",
 		},
 		{
-			name:      "invalid lifetime (1 hour)",
+			name:      testInvalidLifetime1Hour,
 			lifetime:  time.Hour,
 			wantErr:   true,
 			errSubstr: "exceeds maximum",
@@ -150,20 +150,20 @@ func TestClientSecretJWTValidator_AssertionLifetimeValidation(t *testing.T) {
 			t.Parallel()
 
 			// Create validator without JTI repo for isolated assertion lifetime testing
-			validator := NewClientSecretJWTValidator("https://auth.example.com/token", nil)
+			validator := NewClientSecretJWTValidator(testTokenEndpointURL, nil)
 
 			clientID := googleUuid.New()
 			client := &cryptoutilIdentityDomain.Client{
 				ID:           clientID,
-				ClientID:     "test-client",
-				ClientSecret: "test-secret",
+				ClientID:     testTestClient,
+				ClientSecret: testTestSecret,
 			}
 
 			now := time.Now().UTC()
 			token := joseJwt.New()
 			require.NoError(t, token.Set(joseJwt.IssuerKey, client.ClientID))
 			require.NoError(t, token.Set(joseJwt.SubjectKey, client.ClientID))
-			require.NoError(t, token.Set(joseJwt.AudienceKey, []string{"https://auth.example.com/token"}))
+			require.NoError(t, token.Set(joseJwt.AudienceKey, []string{testTokenEndpointURL}))
 			require.NoError(t, token.Set(joseJwt.IssuedAtKey, now))
 			require.NoError(t, token.Set(joseJwt.ExpirationKey, now.Add(tc.lifetime)))
 			require.NoError(t, token.Set(joseJwt.JwtIDKey, googleUuid.NewString()))
@@ -184,20 +184,20 @@ func TestClientSecretJWTValidator_AssertionLifetimeValidation(t *testing.T) {
 func TestClientSecretJWTValidator_MissingJTI(t *testing.T) {
 	t.Parallel()
 
-	validator := NewClientSecretJWTValidator("https://auth.example.com/token", nil)
+	validator := NewClientSecretJWTValidator(testTokenEndpointURL, nil)
 
 	clientID := googleUuid.New()
 	client := &cryptoutilIdentityDomain.Client{
 		ID:           clientID,
-		ClientID:     "test-client",
-		ClientSecret: "test-secret",
+		ClientID:     testTestClient,
+		ClientSecret: testTestSecret,
 	}
 
 	now := time.Now().UTC()
 	token := joseJwt.New()
 	require.NoError(t, token.Set(joseJwt.IssuerKey, client.ClientID))
 	require.NoError(t, token.Set(joseJwt.SubjectKey, client.ClientID))
-	require.NoError(t, token.Set(joseJwt.AudienceKey, []string{"https://auth.example.com/token"}))
+	require.NoError(t, token.Set(joseJwt.AudienceKey, []string{testTokenEndpointURL}))
 	require.NoError(t, token.Set(joseJwt.IssuedAtKey, now))
 	require.NoError(t, token.Set(joseJwt.ExpirationKey, now.Add(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Minute)))
 	// No jti claim set!

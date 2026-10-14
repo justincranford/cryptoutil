@@ -23,7 +23,7 @@ func TestGetUserIDFromResponse_Success(t *testing.T) {
 
 	expectedID := googleUuid.New()
 	respBody := map[string]string{
-		"user_id": expectedID.String(),
+		testUserID: expectedID.String(),
 	}
 
 	userID, err := cryptoutilAppsFrameworkServiceClient.GetUserIDFromResponse(respBody)
@@ -52,7 +52,7 @@ func TestGetUserIDFromResponse_InvalidUUID(t *testing.T) {
 	t.Parallel()
 
 	respBody := map[string]string{
-		"user_id": "not-a-valid-uuid",
+		testUserID: testNotAValidUUID,
 	}
 
 	userID, err := cryptoutilAppsFrameworkServiceClient.GetUserIDFromResponse(respBody)
@@ -141,7 +141,7 @@ func TestRegisterServiceUser_InvalidUserIDInResponse(t *testing.T) {
 		if r.URL.Path == serviceRegisterPath {
 			w.WriteHeader(http.StatusCreated)
 			_ = json.NewEncoder(w).Encode(map[string]string{
-				"user_id": "not-a-valid-uuid",
+				testUserID: testNotAValidUUID,
 			})
 		}
 	}))
@@ -184,7 +184,7 @@ func TestRegisterServiceUser_LoginFailsAfterRegistration(t *testing.T) {
 		case serviceRegisterPath:
 			w.WriteHeader(http.StatusCreated)
 			_ = json.NewEncoder(w).Encode(map[string]string{
-				"user_id": userID.String(),
+				testUserID: userID.String(),
 			})
 		case serviceLoginPath:
 			w.WriteHeader(http.StatusUnauthorized)
@@ -225,7 +225,7 @@ func TestRegisterBrowserUser_InvalidUserIDInResponse(t *testing.T) {
 		if r.URL.Path == browserRegisterPath {
 			w.WriteHeader(http.StatusCreated)
 			_ = json.NewEncoder(w).Encode(map[string]string{
-				"user_id": "not-a-valid-uuid",
+				testUserID: testNotAValidUUID,
 			})
 		}
 	}))
@@ -268,7 +268,7 @@ func TestRegisterBrowserUser_LoginFailsAfterRegistration(t *testing.T) {
 		case browserRegisterPath:
 			w.WriteHeader(http.StatusCreated)
 			_ = json.NewEncoder(w).Encode(map[string]string{
-				"user_id": userID.String(),
+				testUserID: userID.String(),
 			})
 		case browserLoginPath:
 			w.WriteHeader(http.StatusUnauthorized)

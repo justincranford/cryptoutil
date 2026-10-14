@@ -57,14 +57,14 @@ func TestIdentityRPServerSettings_FullConfig(t *testing.T) {
 	cfg.ClientID = cryptoutilSharedMagic.TestClientID
 	cfg.ClientSecret = "test-client-secret"
 	cfg.RedirectURI = "https://rp.example.com/callback"
-	cfg.SPAOrigin = "https://spa.example.com:8130"
+	cfg.SPAOrigin = testHTTPSSpaExampleCom8130
 	cfg.SessionSecret = "super-secret-session-key"
 
 	require.Equal(t, "https://authz.example.com:8100", cfg.AuthzServerURL)
 	require.Equal(t, cryptoutilSharedMagic.TestClientID, cfg.ClientID)
 	require.Equal(t, "test-client-secret", cfg.ClientSecret)
 	require.Equal(t, "https://rp.example.com/callback", cfg.RedirectURI)
-	require.Equal(t, "https://spa.example.com:8130", cfg.SPAOrigin)
+	require.Equal(t, testHTTPSSpaExampleCom8130, cfg.SPAOrigin)
 	require.Equal(t, "super-secret-session-key", cfg.SessionSecret)
 }
 
@@ -91,7 +91,7 @@ func TestValidateIdentityRPSettings_SPAOriginFormat(t *testing.T) {
 	}{
 		{"valid https", "https://spa.example.com", true},
 		{"valid http", "http://localhost:8080", true},
-		{"valid with port", "https://spa.example.com:8130", true},
+		{"valid with port", testHTTPSSpaExampleCom8130, true},
 		{"invalid no scheme", "spa.example.com", false},
 		{"invalid ftp scheme", "ftp://spa.example.com", false},
 		{"empty allowed", "", true},
@@ -130,8 +130,8 @@ func TestMaskSecret(t *testing.T) {
 		expected string
 	}{
 		{cryptoutilSharedMagic.EMPTY, "", "(not set)"},
-		{"short", "abc", "****"},
-		{"exactly 8", "12345678", "****"},
+		{"short", "abc", valueStringValue},
+		{"exactly 8", "12345678", valueStringValue},
 		{"longer than 8", "123456789", "1234****"},
 		{"long secret", "super-secret-key-here", "supe****"},
 	}

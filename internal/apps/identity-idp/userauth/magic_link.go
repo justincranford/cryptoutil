@@ -51,7 +51,7 @@ func NewMagicLinkAuthenticator(
 
 // Method returns the authentication method name.
 func (a *MagicLinkAuthenticator) Method() string {
-	return "magic_link"
+	return valueMagicLink
 }
 
 // InitiateAuth initiates magic link authentication for a user.

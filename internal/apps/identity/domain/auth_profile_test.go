@@ -23,7 +23,7 @@ func TestAuthProfile_BeforeCreate(t *testing.T) {
 		expectedErr bool
 	}{
 		{
-			name: "generates ID when empty",
+			name: testGeneratesIDWhenEmpty,
 			setupProf: func() *cryptoutilIdentityDomain.AuthProfile {
 				return &cryptoutilIdentityDomain.AuthProfile{}
 			},
@@ -31,7 +31,7 @@ func TestAuthProfile_BeforeCreate(t *testing.T) {
 			expectedErr: false,
 		},
 		{
-			name: "preserves existing ID",
+			name: testPreservesExistingID,
 			setupProf: func() *cryptoutilIdentityDomain.AuthProfile {
 				existingID := googleUuid.Must(googleUuid.NewV7())
 

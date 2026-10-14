@@ -78,10 +78,10 @@ func TestNewE2ETestEnvWithDeps_StartFails(t *testing.T) {
 	}
 
 	cfg := E2ETestConfig{
-		ComposeFile:    "nonexistent/compose.yml",
-		HealthChecks:   map[string]string{"svc": "http://localhost:9999/health"},
+		ComposeFile:    testNonexistentComposeYml,
+		HealthChecks:   map[string]string{testSvc: testHTTPLocalhost9999Health},
 		HealthTimeout:  cryptoutilSharedMagic.TestTLSClientRetryWait,
-		ServiceLogName: "test-service",
+		ServiceLogName: testTestService,
 	}
 
 	env, err := newE2ETestEnvWithDeps(context.Background(), cfg, deps)
@@ -109,10 +109,10 @@ func TestNewE2ETestEnvWithDeps_WaitFails(t *testing.T) {
 	}
 
 	cfg := E2ETestConfig{
-		ComposeFile:    "nonexistent/compose.yml",
-		HealthChecks:   map[string]string{"svc": "http://localhost:9999/health"},
+		ComposeFile:    testNonexistentComposeYml,
+		HealthChecks:   map[string]string{testSvc: testHTTPLocalhost9999Health},
 		HealthTimeout:  cryptoutilSharedMagic.TestTLSClientRetryWait,
-		ServiceLogName: "test-service",
+		ServiceLogName: testTestService,
 	}
 
 	env, err := newE2ETestEnvWithDeps(context.Background(), cfg, deps)
@@ -140,11 +140,11 @@ func TestNewE2ETestEnvWithDeps_SyncFails(t *testing.T) {
 	}
 
 	cfg := E2ETestConfig{
-		ComposeFile:    "nonexistent/compose.yml",
-		HealthChecks:   map[string]string{"svc": "http://localhost:9999/health"},
+		ComposeFile:    testNonexistentComposeYml,
+		HealthChecks:   map[string]string{testSvc: testHTTPLocalhost9999Health},
 		HealthTimeout:  cryptoutilSharedMagic.TestTLSClientRetryWait,
-		CACertPath:     "/tmp/certs/public-https-server-issuing-ca/truststore/public-https-server-issuing-ca.crt",
-		ServiceLogName: "test-service",
+		CACertPath:     testTmpCertsPublicHTTPSServerIssuingCATruststorePublicHTTPSServerIssuingCACrt,
+		ServiceLogName: testTestService,
 	}
 
 	env, err := newE2ETestEnvWithDeps(context.Background(), cfg, deps)
@@ -162,9 +162,9 @@ func TestNewE2ETestEnvWithDeps_Success(t *testing.T) {
 	deps := successDeps()
 
 	cfg := E2ETestConfig{
-		ComposeFile:    "deployments/sm-kms/compose.yml",
+		ComposeFile:    testDeploymentsSmKMSComposeYml,
 		Profiles:       []string{cryptoutilSharedMagic.DefaultOTLPEnvironmentDefault, cryptoutilSharedMagic.DockerServicePostgres},
-		HealthChecks:   map[string]string{"svc": "https://localhost:8080/health"},
+		HealthChecks:   map[string]string{testSvc: "https://localhost:8080/health"},
 		HealthTimeout:  cryptoutilSharedMagic.TimeoutTestServerReady,
 		CACertPath:     "/certs/issuing-ca.pem",
 		ServiceLogName: cryptoutilSharedMagic.OTLPServiceSMKMS,
@@ -192,7 +192,7 @@ func TestE2ETestEnv_Cleanup(t *testing.T) {
 	}
 
 	cfg := E2ETestConfig{
-		ComposeFile:    "deployments/sm-kms/compose.yml",
+		ComposeFile:    testDeploymentsSmKMSComposeYml,
 		HealthChecks:   map[string]string{},
 		HealthTimeout:  cryptoutilSharedMagic.DefaultTestRetryDelay,
 		ServiceLogName: cryptoutilSharedMagic.OTLPServiceSMKMS,
@@ -220,10 +220,10 @@ func TestSetupE2ETestMainWithDeps_SetupFails(t *testing.T) {
 	}
 
 	cfg := E2ETestConfig{
-		ComposeFile:    "nonexistent/compose.yml",
+		ComposeFile:    testNonexistentComposeYml,
 		HealthChecks:   map[string]string{},
 		HealthTimeout:  time.Second,
-		ServiceLogName: "test",
+		ServiceLogName: testTest,
 	}
 
 	var onReadyCalled bool
@@ -242,10 +242,10 @@ func TestSetupE2ETestMainWithDeps_Success(t *testing.T) {
 
 	deps := successDeps()
 	cfg := E2ETestConfig{
-		ComposeFile:    "deployments/sm-kms/compose.yml",
+		ComposeFile:    testDeploymentsSmKMSComposeYml,
 		HealthChecks:   map[string]string{},
 		HealthTimeout:  cryptoutilSharedMagic.DefaultTestRetryDelay,
-		CACertPath:     "/tmp/certs/public-https-server-issuing-ca/truststore/public-https-server-issuing-ca.crt",
+		CACertPath:     testTmpCertsPublicHTTPSServerIssuingCATruststorePublicHTTPSServerIssuingCACrt,
 		ServiceLogName: cryptoutilSharedMagic.OTLPServiceSMKMS,
 	}
 
@@ -286,7 +286,7 @@ func TestNewE2ETestEnv_StartFailsWithProductionDeps(t *testing.T) {
 		ComposeFile:    "/nonexistent/path/compose.yml",
 		HealthChecks:   map[string]string{},
 		HealthTimeout:  cryptoutilSharedMagic.TestTLSClientRetryWait,
-		ServiceLogName: "test",
+		ServiceLogName: testTest,
 	}
 
 	env, err := NewE2ETestEnv(context.Background(), cfg)

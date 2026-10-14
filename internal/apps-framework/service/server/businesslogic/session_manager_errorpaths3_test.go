@@ -117,7 +117,7 @@ func TestGenerateJWSKey_UnsupportedAlgorithm(t *testing.T) {
 	sm := setupSessionManager(t, cryptoutilSharedMagic.SessionAlgorithmOPAQUE, cryptoutilSharedMagic.SessionAlgorithmOPAQUE)
 	_, err := sm.generateJWSKey("INVALID_JWS_ALG")
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "unsupported JWS algorithm")
+	require.Contains(t, err.Error(), testUnsupportedJWSAlgorithm)
 }
 
 // TestGenerateJWEKey_UnsupportedAlgorithm covers the default case.
@@ -127,7 +127,7 @@ func TestGenerateJWEKey_UnsupportedAlgorithm(t *testing.T) {
 	sm := setupSessionManager(t, cryptoutilSharedMagic.SessionAlgorithmOPAQUE, cryptoutilSharedMagic.SessionAlgorithmOPAQUE)
 	_, err := sm.generateJWEKey("INVALID_JWE_ALG")
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "unsupported JWE algorithm")
+	require.Contains(t, err.Error(), testUnsupportedJWEAlgorithm)
 }
 
 // TestGenerateSessionJWK_UnsupportedAlgorithm covers the default case.

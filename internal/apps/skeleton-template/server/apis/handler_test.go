@@ -304,7 +304,7 @@ func TestStrictServer_UpdateItem_NotFound(t *testing.T) {
 		context.Background(),
 		cryptoutilSkeletonTemplateServer.UpdateItemRequestObject{
 			ItemID: googleUuid.Must(googleUuid.NewV7()),
-			Body:   &cryptoutilSkeletonTemplateServer.ItemUpdate{Name: "X"},
+			Body:   &cryptoutilSkeletonTemplateServer.ItemUpdate{Name: testX},
 		},
 	)
 	require.NoError(t, err)
@@ -318,7 +318,7 @@ func TestStrictServer_UpdateItem_DBError(t *testing.T) {
 		context.Background(),
 		cryptoutilSkeletonTemplateServer.UpdateItemRequestObject{
 			ItemID: googleUuid.Must(googleUuid.NewV7()),
-			Body:   &cryptoutilSkeletonTemplateServer.ItemUpdate{Name: "X"},
+			Body:   &cryptoutilSkeletonTemplateServer.ItemUpdate{Name: testX},
 		},
 	)
 	require.NoError(t, err)

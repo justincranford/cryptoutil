@@ -40,7 +40,7 @@ func TestPushedAuthorizationRequest_IsExpired(t *testing.T) {
 
 			par := &PushedAuthorizationRequest{
 				ID:         googleUuid.New(),
-				RequestURI: "urn:ietf:params:oauth:request_uri:test",
+				RequestURI: testUrnIetfParamsOAuthRequestURITest,
 				ClientID:   googleUuid.New(),
 				ExpiresAt:  tc.expiresAt,
 				CreatedAt:  time.Now().UTC(),
@@ -78,7 +78,7 @@ func TestPushedAuthorizationRequest_IsUsed(t *testing.T) {
 
 			par := &PushedAuthorizationRequest{
 				ID:         googleUuid.New(),
-				RequestURI: "urn:ietf:params:oauth:request_uri:test",
+				RequestURI: testUrnIetfParamsOAuthRequestURITest,
 				ClientID:   googleUuid.New(),
 				Used:       tc.used,
 				ExpiresAt:  time.Now().UTC().Add(cryptoutilSharedMagic.DefaultPARLifetime),
@@ -96,7 +96,7 @@ func TestPushedAuthorizationRequest_MarkAsUsed(t *testing.T) {
 
 	par := &PushedAuthorizationRequest{
 		ID:         googleUuid.New(),
-		RequestURI: "urn:ietf:params:oauth:request_uri:test",
+		RequestURI: testUrnIetfParamsOAuthRequestURITest,
 		ClientID:   googleUuid.New(),
 		Used:       false,
 		UsedAt:     nil,

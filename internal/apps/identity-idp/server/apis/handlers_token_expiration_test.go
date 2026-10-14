@@ -221,7 +221,7 @@ func TestTokenExpiration(t *testing.T) {
 
 			tokenCfg := &cryptoutilIdentityConfig.TokenConfig{
 				AccessTokenFormat: cryptoutilSharedMagic.IdentityTokenFormatUUID,
-				Issuer:            "https://example.com",
+				Issuer:            testHTTPSExampleCom,
 			}
 
 			tokenSvc := cryptoutilIdentityIssuer.NewTokenService(nil, nil, nil, tokenCfg)

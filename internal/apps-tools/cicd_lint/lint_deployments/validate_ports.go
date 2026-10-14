@@ -60,7 +60,7 @@ func ValidatePorts(deploymentPath, deploymentName, deploymentLevel string) (*Por
 	validateComposePortRanges(composePath, deploymentLevel, result)
 
 	// Validate config file ports.
-	configDir := filepath.Join(deploymentPath, "config")
+	configDir := filepath.Join(deploymentPath, fileTypeConfig)
 
 	if info, err := os.Stat(configDir); err == nil && info.IsDir() {
 		validateConfigPortRanges(configDir, deploymentName, deploymentLevel, result)
@@ -146,7 +146,7 @@ func validateConfigPortRanges(configDir, deploymentName, deploymentLevel string,
 
 // validateConfigPortValue checks a single config file's bind-public-port value.
 func validateConfigPortValue(config map[string]any, configPath, deploymentName, deploymentLevel string, result *PortValidationResult) {
-	val, ok := config["bind-public-port"]
+	val, ok := config[valueBindPublicPort]
 	if !ok {
 		return
 	}

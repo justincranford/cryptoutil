@@ -207,7 +207,7 @@ func TestMFAStepUp(t *testing.T) {
 			seedTOTPSecret(t, db, userID, lastUsedAt, tc.verified)
 
 			response := checkMFAStepUp(t, app, userID, fiber.StatusOK)
-			required, ok := response["required"].(bool)
+			required, ok := response[testRequired].(bool)
 			require.True(t, ok, "required should be boolean")
 			require.Equal(t, tc.wantRequired, required)
 		})

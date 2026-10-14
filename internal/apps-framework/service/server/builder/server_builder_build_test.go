@@ -37,13 +37,13 @@ func TestBuild_SimpleErrors(t *testing.T) {
 			setupFn: func() *ServerBuilder {
 				return NewServerBuilder(context.Background(), nil)
 			},
-			wantErrSubstr: "config cannot be nil",
+			wantErrSubstr: valueConfigCannotBeNil,
 		},
 		{
 			name: "admin TLS invalid mode",
 			setupFn: func() *ServerBuilder {
 				settings := getMinimalSettings()
-				settings.TLSPrivateProvisionMode = cryptoutilAppsFrameworkServiceConfig.TLSProvisionMode("invalid-mode")
+				settings.TLSPrivateProvisionMode = cryptoutilAppsFrameworkServiceConfig.TLSProvisionMode(testInvalidMode)
 
 				return NewServerBuilder(context.Background(), settings)
 			},
@@ -209,7 +209,7 @@ func TestBuild_MigrationError(t *testing.T) {
 	}
 
 	builder := NewServerBuilder(ctx, settings)
-	builder.WithDomainMigrations(invalidMigrations, "migrations")
+	builder.WithDomainMigrations(invalidMigrations, valueMigrations)
 
 	resources, err := builder.Build()
 
@@ -239,7 +239,7 @@ func TestBuild_Success(t *testing.T) {
 
 	// Build with domain migrations and route registration.
 	builder := NewServerBuilder(ctx, settings)
-	builder.WithDomainMigrations(domainMigrations, "migrations")
+	builder.WithDomainMigrations(domainMigrations, valueMigrations)
 
 	routeRegistered := false
 
@@ -380,14 +380,14 @@ func TestBuild_ExplicitConfigPreserved(t *testing.T) {
 		{
 			name: "explicit JWTAuth preserved",
 			setupFn: func(builder *ServerBuilder) {
-				explicitConfig := NewKMSJWTAuthConfig("https://example.com/.well-known/jwks.json", "https://auth.example.com", "kms-service")
+				explicitConfig := NewKMSJWTAuthConfig(testHTTPSExampleComWellKnownJwksJson, "https://auth.example.com", "kms-service")
 				builder.WithJWTAuth(explicitConfig)
 			},
 			checkFn: func(t *testing.T, resources *ServiceResources) {
 				t.Helper()
 				require.NotNil(t, resources.JWTAuthConfig)
 				require.Equal(t, JWTAuthModeRequired, resources.JWTAuthConfig.Mode, "explicit JWTAuthMode must be preserved")
-				require.Equal(t, "https://example.com/.well-known/jwks.json", resources.JWTAuthConfig.JWKSURL)
+				require.Equal(t, testHTTPSExampleComWellKnownJwksJson, resources.JWTAuthConfig.JWKSURL)
 			},
 		},
 		{

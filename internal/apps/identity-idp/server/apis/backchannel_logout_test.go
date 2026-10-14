@@ -34,31 +34,31 @@ func TestGenerateFrontChannelLogoutIframes(t *testing.T) {
 		{
 			name:        "No clients returns empty string",
 			clients:     []*cryptoutilIdentityDomain.Client{},
-			sessionID:   "session-123",
+			sessionID:   testSession123,
 			expectEmpty: true,
 		},
 		{
 			name: "Client without front-channel URI is skipped",
 			clients: []*cryptoutilIdentityDomain.Client{
 				{
-					ClientID:              "client-1",
+					ClientID:              testClient1,
 					FrontChannelLogoutURI: "",
 				},
 			},
-			sessionID:   "session-123",
+			sessionID:   testSession123,
 			expectEmpty: true,
 		},
 		{
 			name: "Single client generates one iframe",
 			clients: []*cryptoutilIdentityDomain.Client{
 				{
-					ClientID:              "client-1",
-					FrontChannelLogoutURI: "https://client1.example.com/logout",
+					ClientID:              testClient1,
+					FrontChannelLogoutURI: testHTTPSClient1ExampleComLogout,
 				},
 			},
-			sessionID: "session-123",
+			sessionID: testSession123,
 			expectContains: []string{
-				"https://client1.example.com/logout",
+				testHTTPSClient1ExampleComLogout,
 				"iframe",
 				`style="display:none;"`,
 			},
@@ -67,14 +67,14 @@ func TestGenerateFrontChannelLogoutIframes(t *testing.T) {
 			name: "Client with session required includes sid parameter",
 			clients: []*cryptoutilIdentityDomain.Client{
 				{
-					ClientID:                          "client-1",
-					FrontChannelLogoutURI:             "https://client1.example.com/logout",
+					ClientID:                          testClient1,
+					FrontChannelLogoutURI:             testHTTPSClient1ExampleComLogout,
 					FrontChannelLogoutSessionRequired: boolPtr(true),
 				},
 			},
 			sessionID: "session-456",
 			expectContains: []string{
-				"https://client1.example.com/logout",
+				testHTTPSClient1ExampleComLogout,
 				"sid=session-456",
 			},
 		},
@@ -82,8 +82,8 @@ func TestGenerateFrontChannelLogoutIframes(t *testing.T) {
 			name: "Multiple clients generate multiple iframes",
 			clients: []*cryptoutilIdentityDomain.Client{
 				{
-					ClientID:              "client-1",
-					FrontChannelLogoutURI: "https://client1.example.com/logout",
+					ClientID:              testClient1,
+					FrontChannelLogoutURI: testHTTPSClient1ExampleComLogout,
 				},
 				{
 					ClientID:              "client-2",
@@ -176,7 +176,7 @@ func TestBackChannelLogoutService_DeliverLogoutToken(t *testing.T) {
 			}
 
 			client := &cryptoutilIdentityDomain.Client{
-				ClientID:             "test-client",
+				ClientID:             testTestClient,
 				BackChannelLogoutURI: server.URL,
 			}
 

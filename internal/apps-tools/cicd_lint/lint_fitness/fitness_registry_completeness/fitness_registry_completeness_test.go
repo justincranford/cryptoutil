@@ -72,7 +72,7 @@ func TestLoadFitnessRegistry_HappyPath(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, reg.SubLinters, 2)
 	require.Equal(t, "cgo-free-sqlite", reg.SubLinters[0].Name)
-	require.Equal(t, "cgo_free_sqlite", reg.SubLinters[0].Directory)
+	require.Equal(t, testCgoFreeSqlite, reg.SubLinters[0].Directory)
 	require.Equal(t, "architecture", reg.SubLinters[0].Category)
 }
 
@@ -133,28 +133,28 @@ func TestCheckRegistryCompleteness_SubdirVariants(t *testing.T) {
 		wantMissing  []string
 	}{
 		{
-			name:    "all match",
-			subdirs: []string{"cgo_free_sqlite", "file_size_limits"},
+			name:    testAllMatch,
+			subdirs: []string{testCgoFreeSqlite, testFileSizeLimits},
 		},
 		{
 			name:         "orphaned dir",
-			subdirs:      []string{"cgo_free_sqlite", "file_size_limits", "extra_linter"},
-			wantOrphaned: []string{"extra_linter"},
+			subdirs:      []string{testCgoFreeSqlite, testFileSizeLimits, testExtraLinter},
+			wantOrphaned: []string{testExtraLinter},
 		},
 		{
 			name:        "missing dir",
-			subdirs:     []string{"cgo_free_sqlite"},
-			wantMissing: []string{"file_size_limits"},
+			subdirs:     []string{testCgoFreeSqlite},
+			wantMissing: []string{testFileSizeLimits},
 		},
 		{
 			name:    "skips registry dir",
-			subdirs: []string{"cgo_free_sqlite", "file_size_limits", "registry"},
+			subdirs: []string{testCgoFreeSqlite, testFileSizeLimits, "registry"},
 		},
 		{
 			name:         "both orphaned and missing",
-			subdirs:      []string{"cgo_free_sqlite", "extra_unknown"},
-			wantOrphaned: []string{"extra_unknown"},
-			wantMissing:  []string{"file_size_limits"},
+			subdirs:      []string{testCgoFreeSqlite, testExtraUnknown},
+			wantOrphaned: []string{testExtraUnknown},
+			wantMissing:  []string{testFileSizeLimits},
 		},
 	}
 	for _, tc := range tests {
@@ -175,7 +175,7 @@ func TestCheckRegistryCompleteness_SubdirVariants(t *testing.T) {
 func TestCheckRegistryCompleteness_SkipsNonDirectories(t *testing.T) {
 	t.Parallel()
 
-	rootDir := buildRegistryRoot(t, minimalRegistryYAML(), []string{"cgo_free_sqlite", "file_size_limits"})
+	rootDir := buildRegistryRoot(t, minimalRegistryYAML(), []string{testCgoFreeSqlite, testFileSizeLimits})
 
 	// Create a file (not a directory) in the fitness dir to verify non-dirs are ignored.
 	fitnessDir := filepath.Join(rootDir, filepath.FromSlash(cryptoutilSharedMagic.CICDLintFitnessDir))
@@ -230,12 +230,12 @@ func TestCheckRegistryCompleteness_SortedResults(t *testing.T) {
     description: First linter.
     category: architecture
 `
-	rootDir := buildRegistryRoot(t, yaml, []string{"zzz_extra", "aaa_extra"})
+	rootDir := buildRegistryRoot(t, yaml, []string{testZzzExtra, testAaaExtra})
 
 	orphaned, missing, err := CheckRegistryCompleteness(rootDir, os.ReadFile, os.ReadDir)
 
 	require.NoError(t, err)
-	require.Equal(t, []string{"aaa_extra", "zzz_extra"}, orphaned, "orphaned should be sorted")
+	require.Equal(t, []string{testAaaExtra, testZzzExtra}, orphaned, "orphaned should be sorted")
 	require.Equal(t, []string{"aaa_first", "zzz_last"}, missing, "missing should be sorted")
 }
 
@@ -252,9 +252,9 @@ func TestCheckInDir_SubdirVariants(t *testing.T) {
 		wantErr    bool
 		wantSubstr string
 	}{
-		{name: "all match", subdirs: []string{"cgo_free_sqlite", "file_size_limits"}},
-		{name: "orphaned", subdirs: []string{"cgo_free_sqlite", "file_size_limits", "orphan_dir"}, wantErr: true, wantSubstr: "ORPHANED"},
-		{name: "missing", subdirs: []string{"cgo_free_sqlite"}, wantErr: true, wantSubstr: "MISSING"},
+		{name: testAllMatch, subdirs: []string{testCgoFreeSqlite, testFileSizeLimits}},
+		{name: "orphaned", subdirs: []string{testCgoFreeSqlite, testFileSizeLimits, "orphan_dir"}, wantErr: true, wantSubstr: "ORPHANED"},
+		{name: "missing", subdirs: []string{testCgoFreeSqlite}, wantErr: true, wantSubstr: "MISSING"},
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
@@ -344,7 +344,7 @@ func TestFindFitnessProjectRoot_ErrorPaths(t *testing.T) {
 			wantErr: "simulated getwd error",
 		},
 		{
-			name: "go.mod not found",
+			name: testGoModNotFound,
 			getwdFn: func() (string, error) {
 				root := filepath.VolumeName(os.TempDir())
 				if root == "" {
@@ -355,7 +355,7 @@ func TestFindFitnessProjectRoot_ErrorPaths(t *testing.T) {
 
 				return root, nil
 			},
-			wantErr: "go.mod not found",
+			wantErr: testGoModNotFound,
 		},
 	}
 	for _, tc := range tests {

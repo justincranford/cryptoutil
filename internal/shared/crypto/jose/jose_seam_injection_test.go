@@ -97,7 +97,7 @@ func TestCreateJWEJWKFromKey_SeamErrors(t *testing.T) {
 	}{
 		{testKeygenAESLabel, cryptoutilSharedCryptoKeygen.SecretKey(aesKey), &enc, &aesAlg, cryptoutilSharedMagic.GitRecentActivityDays},
 		{cryptoutilSharedMagic.KeyTypeRSA, &cryptoutilSharedCryptoKeygen.KeyPair{Private: rsaPriv, Public: &rsaPriv.PublicKey}, &enc, &rsaAlg, cryptoutilSharedMagic.IMMinPasswordLength},
-		{"EC", &cryptoutilSharedCryptoKeygen.KeyPair{Private: ecdhPriv, Public: ecdhPriv.PublicKey()}, &enc, &ecAlg, cryptoutilSharedMagic.IMMinPasswordLength},
+		{testEC, &cryptoutilSharedCryptoKeygen.KeyPair{Private: ecdhPriv, Public: ecdhPriv.PublicKey()}, &enc, &ecAlg, cryptoutilSharedMagic.IMMinPasswordLength},
 	}
 
 	for _, tc := range tests {
@@ -200,7 +200,7 @@ func TestCreateJWSJWKFromKey_SeamErrors(t *testing.T) {
 	}{
 		{testKeygenHMACLabel, cryptoutilSharedCryptoKeygen.SecretKey(hmacKey), &hmacAlg, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries},
 		{cryptoutilSharedMagic.KeyTypeRSA, &cryptoutilSharedCryptoKeygen.KeyPair{Private: rsaPriv, Public: &rsaPriv.PublicKey}, &rsaAlg, cryptoutilSharedMagic.DefaultEmailOTPLength},
-		{"EC", &cryptoutilSharedCryptoKeygen.KeyPair{Private: ecPriv, Public: &ecPriv.PublicKey}, &ecAlg, cryptoutilSharedMagic.DefaultEmailOTPLength},
+		{testEC, &cryptoutilSharedCryptoKeygen.KeyPair{Private: ecPriv, Public: &ecPriv.PublicKey}, &ecAlg, cryptoutilSharedMagic.DefaultEmailOTPLength},
 		{cryptoutilSharedMagic.JoseAlgEdDSA, &cryptoutilSharedCryptoKeygen.KeyPair{Private: edPriv, Public: edPriv.Public()}, &edAlg, cryptoutilSharedMagic.DefaultEmailOTPLength},
 	}
 
@@ -318,14 +318,14 @@ func TestCreateJWKFromKey_SeamErrors(t *testing.T) {
 		alg     *cryptoutilOpenapiModel.GenerateAlgorithm
 		maxSets int
 	}{
-		{"HMAC256", cryptoutilSharedCryptoKeygen.SecretKey(hmacKey), &hmacAlg, cryptoutilSharedMagic.DefaultEmailOTPLength},
-		{"HMAC384", cryptoutilSharedCryptoKeygen.SecretKey(hmac384Key), &hmac384Alg, cryptoutilSharedMagic.DefaultEmailOTPLength},
-		{"HMAC512", cryptoutilSharedCryptoKeygen.SecretKey(hmac512Key), &hmac512Alg, cryptoutilSharedMagic.DefaultEmailOTPLength},
-		{"AES128", cryptoutilSharedCryptoKeygen.SecretKey(aes128Key), &aes128Alg, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries},
-		{"AES192", cryptoutilSharedCryptoKeygen.SecretKey(aes192Key), &aes192Alg, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries},
-		{cryptoutilSharedMagic.KeyTypeRSA, &cryptoutilSharedCryptoKeygen.KeyPair{Private: rsaPriv, Public: &rsaPriv.PublicKey}, &rsaAlg, 3},
-		{"EC", &cryptoutilSharedCryptoKeygen.KeyPair{Private: ecPriv, Public: &ecPriv.PublicKey}, &ecAlg, 3},
-		{cryptoutilSharedMagic.JoseAlgEdDSA, &cryptoutilSharedCryptoKeygen.KeyPair{Private: edPriv, Public: edPriv.Public()}, &edAlg, 3},
+		{testHmac256, cryptoutilSharedCryptoKeygen.SecretKey(hmacKey), &hmacAlg, cryptoutilSharedMagic.DefaultEmailOTPLength},
+		{testHmac384, cryptoutilSharedCryptoKeygen.SecretKey(hmac384Key), &hmac384Alg, cryptoutilSharedMagic.DefaultEmailOTPLength},
+		{testHmac512, cryptoutilSharedCryptoKeygen.SecretKey(hmac512Key), &hmac512Alg, cryptoutilSharedMagic.DefaultEmailOTPLength},
+		{testAes128, cryptoutilSharedCryptoKeygen.SecretKey(aes128Key), &aes128Alg, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries},
+		{testAes192, cryptoutilSharedCryptoKeygen.SecretKey(aes192Key), &aes192Alg, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries},
+		{cryptoutilSharedMagic.KeyTypeRSA, &cryptoutilSharedCryptoKeygen.KeyPair{Private: rsaPriv, Public: &rsaPriv.PublicKey}, &rsaAlg, test3},
+		{testEC, &cryptoutilSharedCryptoKeygen.KeyPair{Private: ecPriv, Public: &ecPriv.PublicKey}, &ecAlg, test3},
+		{cryptoutilSharedMagic.JoseAlgEdDSA, &cryptoutilSharedCryptoKeygen.KeyPair{Private: edPriv, Public: edPriv.Public()}, &edAlg, test3},
 	}
 
 	for _, tc := range tests {

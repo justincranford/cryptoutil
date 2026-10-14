@@ -40,7 +40,7 @@ func TestCleanupJob_Integration_TokenDeletion(t *testing.T) {
 		Sub:               "test-user-" + googleUuid.NewString(),
 		PreferredUsername: "test-user-" + googleUuid.NewString(),
 		Email:             "test-" + googleUuid.NewString() + "@example.com",
-		PasswordHash:      "hash123",
+		PasswordHash:      testHash123,
 		EmailVerified:     false,
 	}
 
@@ -139,7 +139,7 @@ func TestCleanupJob_Integration_SessionDeletion(t *testing.T) {
 		Sub:               "test-user-" + googleUuid.NewString(),
 		PreferredUsername: "test-user-" + googleUuid.NewString(),
 		Email:             "test-" + googleUuid.NewString() + "@example.com",
-		PasswordHash:      "hash123",
+		PasswordHash:      testHash123,
 		EmailVerified:     false,
 	}
 
@@ -155,7 +155,7 @@ func TestCleanupJob_Integration_SessionDeletion(t *testing.T) {
 		LastSeenAt:         time.Now().UTC().Add(-2 * time.Hour),
 		ExpiresAt:          time.Now().UTC().Add(-1 * time.Hour), // Expired 1 hour ago.
 		IPAddress:          "192.168.1.100",
-		UserAgent:          "Mozilla/5.0",
+		UserAgent:          testMozilla50,
 		AuthenticationTime: time.Now().UTC().Add(-2 * time.Hour),
 		Active:             boolPtr(true),
 	}
@@ -172,7 +172,7 @@ func TestCleanupJob_Integration_SessionDeletion(t *testing.T) {
 		LastSeenAt:         time.Now().UTC(),
 		ExpiresAt:          time.Now().UTC().Add(1 * time.Hour), // Expires 1 hour from now.
 		IPAddress:          "192.168.1.101",
-		UserAgent:          "Mozilla/5.0",
+		UserAgent:          testMozilla50,
 		AuthenticationTime: time.Now().UTC(),
 		Active:             boolPtr(true),
 	}

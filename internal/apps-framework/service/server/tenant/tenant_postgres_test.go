@@ -167,18 +167,18 @@ func TestSchemaManager_UnsupportedType(t *testing.T) {
 		op      func(sm *SchemaManager) error
 		wantErr string
 	}{
-		{name: "CreateSchema unsupported", op: func(sm *SchemaManager) error { return sm.CreateSchema(context.Background(), "tenant-id") }, wantErr: "unsupported database type"},
-		{name: "DropSchema unsupported", op: func(sm *SchemaManager) error { return sm.DropSchema(context.Background(), "tenant-id") }, wantErr: "unsupported database type"},
+		{name: "CreateSchema unsupported", op: func(sm *SchemaManager) error { return sm.CreateSchema(context.Background(), "tenant-id") }, wantErr: testUnsupportedDatabaseType},
+		{name: "DropSchema unsupported", op: func(sm *SchemaManager) error { return sm.DropSchema(context.Background(), "tenant-id") }, wantErr: testUnsupportedDatabaseType},
 		{name: "SchemaExists unsupported", op: func(sm *SchemaManager) error {
 			_, err := sm.SchemaExists(context.Background(), "tenant-id")
 
 			return err
-		}, wantErr: "unsupported database type"},
+		}, wantErr: testUnsupportedDatabaseType},
 		{name: "ListSchemas unsupported", op: func(sm *SchemaManager) error {
 			_, err := sm.ListSchemas(context.Background())
 
 			return err
-		}, wantErr: "unsupported database type"},
+		}, wantErr: testUnsupportedDatabaseType},
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
@@ -205,9 +205,9 @@ func TestPostgresSchema_CreateDrop(t *testing.T) {
 		wantErr  string
 	}{
 		{name: "create success", failExec: false, op: func(sm *SchemaManager) error { return sm.CreateSchema(context.Background(), "test-tenant-id") }},
-		{name: "create error", failExec: true, op: func(sm *SchemaManager) error { return sm.CreateSchema(context.Background(), "test-tenant-id") }, wantErr: "failed to create PostgreSQL schema"},
+		{name: testCreateError, failExec: true, op: func(sm *SchemaManager) error { return sm.CreateSchema(context.Background(), "test-tenant-id") }, wantErr: "failed to create PostgreSQL schema"},
 		{name: "drop success", failExec: false, op: func(sm *SchemaManager) error { return sm.DropSchema(context.Background(), "test-tenant-id") }},
-		{name: "drop error", failExec: true, op: func(sm *SchemaManager) error { return sm.DropSchema(context.Background(), "test-tenant-id") }, wantErr: "failed to drop PostgreSQL schema"},
+		{name: testDropError, failExec: true, op: func(sm *SchemaManager) error { return sm.DropSchema(context.Background(), "test-tenant-id") }, wantErr: "failed to drop PostgreSQL schema"},
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
@@ -239,9 +239,9 @@ func TestPostgresSchemaExists(t *testing.T) {
 		want    bool
 		wantErr string
 	}{
-		{name: "exists true", driver: &mockPGDriver{columns: []string{"exists"}, rowsData: [][]driver.Value{{true}}}, want: true},
-		{name: "exists false", driver: &mockPGDriver{columns: []string{"exists"}, rowsData: [][]driver.Value{{false}}}, want: false},
-		{name: "query error", driver: &mockPGDriver{failExec: true}, wantErr: "failed to check PostgreSQL schema existence"},
+		{name: "exists true", driver: &mockPGDriver{columns: []string{testExists}, rowsData: [][]driver.Value{{true}}}, want: true},
+		{name: "exists false", driver: &mockPGDriver{columns: []string{testExists}, rowsData: [][]driver.Value{{false}}}, want: false},
+		{name: testQueryError, driver: &mockPGDriver{failExec: true}, wantErr: "failed to check PostgreSQL schema existence"},
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
@@ -276,13 +276,13 @@ func TestPostgresListSchemas(t *testing.T) {
 	}{
 		{
 			name:      "success",
-			driver:    &mockPGDriver{columns: []string{"schema_name"}, rowsData: [][]driver.Value{{"tenant_abc"}, {"tenant_def"}}},
+			driver:    &mockPGDriver{columns: []string{testSchemaName}, rowsData: [][]driver.Value{{testTenantAbc}, {"tenant_def"}}},
 			wantLen:   2,
-			wantEntry: "tenant_abc",
+			wantEntry: testTenantAbc,
 		},
-		{name: "query error", driver: &mockPGDriver{failExec: true}, wantErr: "failed to list PostgreSQL schemas"},
-		{name: "scan error", driver: &mockPGDriver{failScan: true, columns: []string{"schema_name"}, rowsData: [][]driver.Value{{"tenant_bad"}}}, wantErr: "failed to scan schema name"},
-		{name: "iteration error", driver: &mockPGDriver{failIter: true, columns: []string{"schema_name"}, rowsData: [][]driver.Value{{"tenant_ok"}, {"tenant_fail"}}}, wantErr: "error iterating schema rows"},
+		{name: testQueryError, driver: &mockPGDriver{failExec: true}, wantErr: "failed to list PostgreSQL schemas"},
+		{name: "scan error", driver: &mockPGDriver{failScan: true, columns: []string{testSchemaName}, rowsData: [][]driver.Value{{"tenant_bad"}}}, wantErr: "failed to scan schema name"},
+		{name: "iteration error", driver: &mockPGDriver{failIter: true, columns: []string{testSchemaName}, rowsData: [][]driver.Value{{"tenant_ok"}, {"tenant_fail"}}}, wantErr: "error iterating schema rows"},
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
@@ -360,8 +360,8 @@ func TestClosedSQLiteSchema_Errors(t *testing.T) {
 		op      func(sm *SchemaManager) error
 		wantErr string
 	}{
-		{name: "create error", op: func(sm *SchemaManager) error { return sm.CreateSchema(context.Background(), "error-tenant") }, wantErr: "failed to attach SQLite database"},
-		{name: "drop error", op: func(sm *SchemaManager) error { return sm.DropSchema(context.Background(), "error-tenant") }, wantErr: "failed to detach SQLite database"},
+		{name: testCreateError, op: func(sm *SchemaManager) error { return sm.CreateSchema(context.Background(), "error-tenant") }, wantErr: "failed to attach SQLite database"},
+		{name: testDropError, op: func(sm *SchemaManager) error { return sm.DropSchema(context.Background(), "error-tenant") }, wantErr: "failed to detach SQLite database"},
 		{name: "list query error", op: func(sm *SchemaManager) error {
 			_, err := sm.ListSchemas(context.Background())
 

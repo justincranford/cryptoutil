@@ -237,7 +237,7 @@ func TestUnsealKeysServiceSimple_DifferentKeySizes(t *testing.T) {
 	}{
 		{"Single Key", 1, &cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW},
 		{"Two Keys", 2, &cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW},
-		{"Three Keys", 3, &cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW},
+		{"Three Keys", test3, &cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW},
 	}
 
 	for _, tc := range testCases {

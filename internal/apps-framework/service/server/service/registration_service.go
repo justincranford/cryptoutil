@@ -16,6 +16,7 @@ package service
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -104,7 +105,7 @@ func NewRegistrationService(
 func (s *RegistrationServiceImpl) RegisterUser(ctx context.Context, username, email, passwordHash string, newTenant *NewTenantInfo, existingTenantID *googleUuid.UUID) (*RegistrationResult, error) {
 	// Validate input: exactly one of newTenant or existingTenantID must be provided.
 	if (newTenant == nil && existingTenantID == nil) || (newTenant != nil && existingTenantID != nil) {
-		return nil, fmt.Errorf("exactly one of newTenant or existingTenantID must be provided")
+		return nil, errors.New(valueExactlyOneOfNewTenantOrExistingTenantIDMustBeProvided)
 	}
 
 	// Case 1: New tenant registration (immediate approval).
@@ -130,7 +131,7 @@ func (s *RegistrationServiceImpl) RegisterUser(ctx context.Context, username, em
 		}
 
 		// Assign admin role to user.
-		adminRole, err := s.roleRepo.GetByName(ctx, tenant.ID, "admin")
+		adminRole, err := s.roleRepo.GetByName(ctx, tenant.ID, valueAdmin)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get admin role: %w", err)
 		}
@@ -180,7 +181,7 @@ func (s *RegistrationServiceImpl) RegisterUser(ctx context.Context, username, em
 func (s *RegistrationServiceImpl) RegisterClient(ctx context.Context, clientID, clientSecretHash string, newTenant *NewTenantInfo, existingTenantID *googleUuid.UUID) (*RegistrationResult, error) {
 	// Validate input: exactly one of newTenant or existingTenantID must be provided.
 	if (newTenant == nil && existingTenantID == nil) || (newTenant != nil && existingTenantID != nil) {
-		return nil, fmt.Errorf("exactly one of newTenant or existingTenantID must be provided")
+		return nil, errors.New(valueExactlyOneOfNewTenantOrExistingTenantIDMustBeProvided)
 	}
 
 	// Case 1: New tenant registration (immediate approval).
@@ -205,7 +206,7 @@ func (s *RegistrationServiceImpl) RegisterClient(ctx context.Context, clientID, 
 		}
 
 		// Assign admin role to client.
-		adminRole, err := s.roleRepo.GetByName(ctx, tenant.ID, "admin")
+		adminRole, err := s.roleRepo.GetByName(ctx, tenant.ID, valueAdmin)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get admin role: %w", err)
 		}

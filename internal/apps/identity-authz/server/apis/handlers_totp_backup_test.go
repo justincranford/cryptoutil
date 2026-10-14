@@ -26,7 +26,7 @@ func TestHandleGenerateTOTPBackupCodes_InvalidBody(t *testing.T) {
 	app := fiber.New()
 	svc.RegisterRoutes(app)
 
-	req := httptest.NewRequest("POST", "/oidc/v1/mfa/totp/backup-codes/generate", bytes.NewReader([]byte("{invalid json")))
+	req := httptest.NewRequest(testPost, "/oidc/v1/mfa/totp/backup-codes/generate", bytes.NewReader([]byte("{invalid json")))
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := app.Test(req, -1)
@@ -56,7 +56,7 @@ func TestHandleGenerateTOTPBackupCodes_MissingUserID(t *testing.T) {
 	body, err := json.Marshal(reqBody)
 	require.NoError(t, err)
 
-	req := httptest.NewRequest("POST", "/oidc/v1/mfa/totp/backup-codes/generate", bytes.NewReader(body))
+	req := httptest.NewRequest(testPost, "/oidc/v1/mfa/totp/backup-codes/generate", bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := app.Test(req, -1)
@@ -80,13 +80,13 @@ func TestHandleGenerateTOTPBackupCodes_InvalidUserIDFormat(t *testing.T) {
 	reqBody := struct {
 		UserID string `json:"user_id"`
 	}{
-		UserID: "not-a-uuid",
+		UserID: testNotAUUID,
 	}
 
 	body, err := json.Marshal(reqBody)
 	require.NoError(t, err)
 
-	req := httptest.NewRequest("POST", "/oidc/v1/mfa/totp/backup-codes/generate", bytes.NewReader(body))
+	req := httptest.NewRequest(testPost, "/oidc/v1/mfa/totp/backup-codes/generate", bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := app.Test(req, -1)
@@ -109,7 +109,7 @@ func TestHandleVerifyTOTPBackupCode_InvalidBody(t *testing.T) {
 	app := fiber.New()
 	svc.RegisterRoutes(app)
 
-	req := httptest.NewRequest("POST", "/oidc/v1/mfa/totp/backup-codes/verify", bytes.NewReader([]byte("{invalid json")))
+	req := httptest.NewRequest(testPost, "/oidc/v1/mfa/totp/backup-codes/verify", bytes.NewReader([]byte("{invalid json")))
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := app.Test(req, -1)
@@ -139,7 +139,7 @@ func TestHandleVerifyTOTPBackupCode_MissingCode(t *testing.T) {
 	body, err := json.Marshal(reqBody)
 	require.NoError(t, err)
 
-	req := httptest.NewRequest("POST", "/oidc/v1/mfa/totp/backup-codes/verify", bytes.NewReader(body))
+	req := httptest.NewRequest(testPost, "/oidc/v1/mfa/totp/backup-codes/verify", bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := app.Test(req, -1)
@@ -162,13 +162,13 @@ func TestHandleVerifyTOTPBackupCode_MissingUserID(t *testing.T) {
 
 	reqBody := cryptoutilIdentityAuthz.VerifyBackupCodeRequest{
 		UserID: "",
-		Code:   "TEST-CODE-1234",
+		Code:   testTestCode1234,
 	}
 
 	body, err := json.Marshal(reqBody)
 	require.NoError(t, err)
 
-	req := httptest.NewRequest("POST", "/oidc/v1/mfa/totp/backup-codes/verify", bytes.NewReader(body))
+	req := httptest.NewRequest(testPost, "/oidc/v1/mfa/totp/backup-codes/verify", bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := app.Test(req, -1)
@@ -190,14 +190,14 @@ func TestHandleVerifyTOTPBackupCode_InvalidUserIDFormat(t *testing.T) {
 	svc.RegisterRoutes(app)
 
 	reqBody := cryptoutilIdentityAuthz.VerifyBackupCodeRequest{
-		UserID: "not-a-uuid",
-		Code:   "TEST-CODE-1234",
+		UserID: testNotAUUID,
+		Code:   testTestCode1234,
 	}
 
 	body, err := json.Marshal(reqBody)
 	require.NoError(t, err)
 
-	req := httptest.NewRequest("POST", "/oidc/v1/mfa/totp/backup-codes/verify", bytes.NewReader(body))
+	req := httptest.NewRequest(testPost, "/oidc/v1/mfa/totp/backup-codes/verify", bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := app.Test(req, -1)

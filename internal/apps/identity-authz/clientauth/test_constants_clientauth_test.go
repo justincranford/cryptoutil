@@ -1,0 +1,27 @@
+package clientauth
+
+const (
+	testTestOrg                        = "Test Org"
+	testWrongSubject                   = "Wrong Subject"
+	testClientNotFound                 = "client not found"
+	testCorrectSecret                  = "correct-secret"
+	testDisabledClient                 = "disabled-client"
+	testEnabledClient                  = "enabled-client"
+	testFingerprintMismatch            = "fingerprint mismatch"
+	testHTTP1270019998Ocsp             = "http://127.0.0.1:9998/ocsp"
+	testHTTPSAuthzExampleCom           = "https://authz.example.com"
+	testInvalidAuthMethodPrivateKeyJWT = "invalid auth method - private_key_jwt"
+	testInvalidClientSecret            = "invalid client secret"
+	testInvalidLifetime1Hour           = "invalid lifetime (1 hour)"
+	testInvalidLifetime15Minutes       = "invalid lifetime (15 minutes)"
+	testMissingCertificate             = "missing certificate"
+	testMySecretPassword123            = "mySecretPassword123"
+	testNonexistent                    = "nonexistent"
+	testSelfSignedClient               = "self-signed-client"
+	testSubjectMismatch                = "subject mismatch"
+	testTestClient                     = "test-client"
+	testTestSecret                     = "test-secret"
+	testValidAuthMethod                = "valid auth method"
+	testWillBeReplacedByCreate         = "will-be-replaced-by-create"
+	testWrongSecret                    = "wrong-secret"
+)

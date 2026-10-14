@@ -171,11 +171,11 @@ behavior_risks: {}
 	// Create mock baseline with known location and device.
 	baseline := &UserBaseline{
 		KnownLocations: []GeoLocation{
-			{Country: "US"},
+			{Country: testUs},
 		},
-		KnownDevices:  []string{"device-fingerprint-1"},
+		KnownDevices:  []string{testDeviceFingerprint1},
 		TypicalHours:  []int{9, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, 11, 14, 15, cryptoutilSharedMagic.RealmMinTokenLengthBytes},
-		KnownNetworks: []string{"192.168.1.1"},
+		KnownNetworks: []string{test19216811},
 		LastAuthTime:  time.Now().UTC().Add(-1 * time.Hour),
 	}
 
@@ -198,9 +198,9 @@ behavior_risks: {}
 		{
 			name: "low-risk known context",
 			authContext: &AuthContext{
-				Location: &GeoLocation{Country: "US"},
-				Device:   &DeviceFingerprint{ID: "device-fingerprint-1"},
-				Network:  &NetworkInfo{IPAddress: "192.168.1.1", IsVPN: false, IsProxy: false},
+				Location: &GeoLocation{Country: testUs},
+				Device:   &DeviceFingerprint{ID: testDeviceFingerprint1},
+				Network:  &NetworkInfo{IPAddress: test19216811, IsVPN: false, IsProxy: false},
 				Time:     time.Date(2025, 1, 15, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, 0, 0, 0, time.UTC), // Wednesday, 10 AM.
 			},
 			wantRiskLevel: RiskLevelLow,
@@ -211,25 +211,25 @@ behavior_risks: {}
 			name: "medium-risk new location",
 			authContext: &AuthContext{
 				Location: &GeoLocation{Country: "CA"}, // New country.
-				Device:   &DeviceFingerprint{ID: "device-fingerprint-1"},
-				Network:  &NetworkInfo{IPAddress: "192.168.1.1", IsVPN: false, IsProxy: false},
+				Device:   &DeviceFingerprint{ID: testDeviceFingerprint1},
+				Network:  &NetworkInfo{IPAddress: test19216811, IsVPN: false, IsProxy: false},
 				Time:     time.Date(2025, 1, 15, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, 0, 0, 0, time.UTC),
 			},
 			wantRiskLevel: RiskLevelMedium,
 			wantLowScore:  cryptoutilSharedMagic.TestProbQuarter,
-			wantHighScore: 0.50,
+			wantHighScore: value050,
 		},
 		{
 			name: "high-risk VPN usage",
 			authContext: &AuthContext{
-				Location: &GeoLocation{Country: "US"},
-				Device:   &DeviceFingerprint{ID: "device-fingerprint-1"},
+				Location: &GeoLocation{Country: testUs},
+				Device:   &DeviceFingerprint{ID: testDeviceFingerprint1},
 				Network:  &NetworkInfo{IPAddress: "10.0.0.1", IsVPN: true, IsProxy: false}, // VPN detected.
 				Time:     time.Date(2025, 1, 15, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, 0, 0, 0, time.UTC),
 			},
 			wantRiskLevel: RiskLevelMedium,
 			wantLowScore:  cryptoutilSharedMagic.TestProbQuarter,
-			wantHighScore: 0.50,
+			wantHighScore: value050,
 		},
 	}
 
@@ -237,7 +237,7 @@ behavior_risks: {}
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			score, err := engine.AssessRisk(ctx, "user-123", tc.authContext)
+			score, err := engine.AssessRisk(ctx, testUser123, tc.authContext)
 			require.NoError(t, err)
 			require.NotNil(t, score)
 			require.Equal(t, tc.wantRiskLevel, score.Level)

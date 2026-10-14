@@ -20,22 +20,22 @@ func TestMergedMigrations_Open(t *testing.T) {
 	t.Parallel()
 
 	templateFS := fstest.MapFS{
-		"migrations/1001_template.up.sql": &fstest.MapFile{
+		testMigrations1001TemplateUpSQL: &fstest.MapFile{
 			Data: []byte("CREATE TABLE template (id TEXT);"),
 		},
 	}
 
 	domainFS := fstest.MapFS{
-		"migrations/2001_domain.up.sql": &fstest.MapFile{
+		testMigrations2001DomainUpSQL: &fstest.MapFile{
 			Data: []byte("CREATE TABLE domain (id TEXT);"),
 		},
 	}
 
 	merged := &mergedMigrations{
 		templateFS:   templateFS,
-		templatePath: "migrations",
+		templatePath: valueMigrations,
 		domainFS:     domainFS,
-		domainPath:   "migrations",
+		domainPath:   valueMigrations,
 	}
 
 	// Test opening domain file (higher priority).
@@ -62,22 +62,22 @@ func TestMergedMigrations_ReadDir(t *testing.T) {
 	t.Parallel()
 
 	templateFS := fstest.MapFS{
-		"migrations/1001_template.up.sql": &fstest.MapFile{
+		testMigrations1001TemplateUpSQL: &fstest.MapFile{
 			Data: []byte("CREATE TABLE template (id TEXT);"),
 		},
 	}
 
 	domainFS := fstest.MapFS{
-		"migrations/2001_domain.up.sql": &fstest.MapFile{
+		testMigrations2001DomainUpSQL: &fstest.MapFile{
 			Data: []byte("CREATE TABLE domain (id TEXT);"),
 		},
 	}
 
 	merged := &mergedMigrations{
 		templateFS:   templateFS,
-		templatePath: "migrations",
+		templatePath: valueMigrations,
 		domainFS:     domainFS,
-		domainPath:   "migrations",
+		domainPath:   valueMigrations,
 	}
 
 	// Read merged directory (should contain both template and domain files).
@@ -91,22 +91,22 @@ func TestMergedMigrations_ReadFile(t *testing.T) {
 	t.Parallel()
 
 	templateFS := fstest.MapFS{
-		"migrations/1001_template.up.sql": &fstest.MapFile{
+		testMigrations1001TemplateUpSQL: &fstest.MapFile{
 			Data: []byte("CREATE TABLE template (id TEXT);"),
 		},
 	}
 
 	domainFS := fstest.MapFS{
-		"migrations/2001_domain.up.sql": &fstest.MapFile{
+		testMigrations2001DomainUpSQL: &fstest.MapFile{
 			Data: []byte("CREATE TABLE domain (id TEXT);"),
 		},
 	}
 
 	merged := &mergedMigrations{
 		templateFS:   templateFS,
-		templatePath: "migrations",
+		templatePath: valueMigrations,
 		domainFS:     domainFS,
-		domainPath:   "migrations",
+		domainPath:   valueMigrations,
 	}
 
 	// Read domain file (higher priority).
@@ -129,22 +129,22 @@ func TestMergedMigrations_Stat(t *testing.T) {
 	t.Parallel()
 
 	templateFS := fstest.MapFS{
-		"migrations/1001_template.up.sql": &fstest.MapFile{
+		testMigrations1001TemplateUpSQL: &fstest.MapFile{
 			Data: []byte("CREATE TABLE template (id TEXT);"),
 		},
 	}
 
 	domainFS := fstest.MapFS{
-		"migrations/2001_domain.up.sql": &fstest.MapFile{
+		testMigrations2001DomainUpSQL: &fstest.MapFile{
 			Data: []byte("CREATE TABLE domain (id TEXT);"),
 		},
 	}
 
 	merged := &mergedMigrations{
 		templateFS:   templateFS,
-		templatePath: "migrations",
+		templatePath: valueMigrations,
 		domainFS:     domainFS,
-		domainPath:   "migrations",
+		domainPath:   valueMigrations,
 	}
 
 	// Stat domain file (higher priority).
@@ -182,7 +182,7 @@ func TestGenerateTLSConfig_StaticMode(t *testing.T) {
 		nil,
 		[]string{cryptoutilSharedMagic.DefaultOTLPHostnameDefault},
 		[]string{cryptoutilSharedMagic.IPv4Loopback},
-		"admin",
+		valueAdmin,
 	)
 
 	require.NoError(t, err)
@@ -236,7 +236,7 @@ func TestGenerateTLSConfig_MixedModeError(t *testing.T) {
 		[]byte("invalid-ca-key"),
 		[]string{cryptoutilSharedMagic.DefaultOTLPHostnameDefault},
 		[]string{cryptoutilSharedMagic.IPv4Loopback},
-		"admin",
+		valueAdmin,
 	)
 
 	require.Error(t, err)
@@ -288,7 +288,7 @@ func TestGenerateTLSConfig_UnsupportedMode(t *testing.T) {
 		nil,
 		[]string{cryptoutilSharedMagic.DefaultOTLPHostnameDefault},
 		[]string{cryptoutilSharedMagic.IPv4Loopback},
-		"admin",
+		valueAdmin,
 	)
 
 	require.Error(t, err)

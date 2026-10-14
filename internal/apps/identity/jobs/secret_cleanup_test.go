@@ -37,7 +37,7 @@ func TestCleanupExpiredSecrets(t *testing.T) {
 					ID:         googleUuid.Must(googleUuid.NewV7()),
 					ClientID:   googleUuid.Must(googleUuid.NewV7()),
 					Version:    1,
-					SecretHash: "hash1",
+					SecretHash: testHash1,
 					Status:     cryptoutilIdentityDomain.SecretStatusActive,
 					CreatedAt:  time.Now().UTC(),
 					ExpiresAt:  ptrTime(time.Now().UTC().Add(cryptoutilSharedMagic.HoursPerDay * time.Hour)), // Future expiration.
@@ -52,7 +52,7 @@ func TestCleanupExpiredSecrets(t *testing.T) {
 					ID:         googleUuid.Must(googleUuid.NewV7()),
 					ClientID:   googleUuid.Must(googleUuid.NewV7()),
 					Version:    1,
-					SecretHash: "hash1",
+					SecretHash: testHash1,
 					Status:     cryptoutilIdentityDomain.SecretStatusActive,
 					CreatedAt:  time.Now().UTC().Add(-cryptoutilSharedMagic.HMACSHA384KeySize * time.Hour),
 					ExpiresAt:  ptrTime(time.Now().UTC().Add(-1 * time.Hour)), // Past expiration.
@@ -67,7 +67,7 @@ func TestCleanupExpiredSecrets(t *testing.T) {
 					ID:         googleUuid.Must(googleUuid.NewV7()),
 					ClientID:   googleUuid.Must(googleUuid.NewV7()),
 					Version:    1,
-					SecretHash: "hash1",
+					SecretHash: testHash1,
 					Status:     cryptoutilIdentityDomain.SecretStatusActive,
 					CreatedAt:  time.Now().UTC().Add(-cryptoutilSharedMagic.HMACSHA384KeySize * time.Hour),
 					ExpiresAt:  ptrTime(time.Now().UTC().Add(-1 * time.Hour)), // Expired.
@@ -91,7 +91,7 @@ func TestCleanupExpiredSecrets(t *testing.T) {
 					ID:         googleUuid.Must(googleUuid.NewV7()),
 					ClientID:   googleUuid.Must(googleUuid.NewV7()),
 					Version:    1,
-					SecretHash: "hash1",
+					SecretHash: testHash1,
 					Status:     cryptoutilIdentityDomain.SecretStatusExpired, // Already expired.
 					CreatedAt:  time.Now().UTC().Add(-cryptoutilSharedMagic.HMACSHA384KeySize * time.Hour),
 					ExpiresAt:  ptrTime(time.Now().UTC().Add(-1 * time.Hour)),
@@ -106,7 +106,7 @@ func TestCleanupExpiredSecrets(t *testing.T) {
 					ID:         googleUuid.Must(googleUuid.NewV7()),
 					ClientID:   googleUuid.Must(googleUuid.NewV7()),
 					Version:    1,
-					SecretHash: "hash1",
+					SecretHash: testHash1,
 					Status:     cryptoutilIdentityDomain.SecretStatusRevoked, // Revoked.
 					CreatedAt:  time.Now().UTC().Add(-cryptoutilSharedMagic.HMACSHA384KeySize * time.Hour),
 					ExpiresAt:  ptrTime(time.Now().UTC().Add(-1 * time.Hour)),

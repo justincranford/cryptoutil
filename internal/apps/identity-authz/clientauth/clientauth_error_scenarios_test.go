@@ -17,14 +17,14 @@ import (
 
 // makeValidatorClient creates a minimal client for validateClaims tests.
 func makeValidatorClient() *cryptoutilIdentityDomain.Client {
-	return &cryptoutilIdentityDomain.Client{ClientID: "test-client"}
+	return &cryptoutilIdentityDomain.Client{ClientID: testTestClient}
 }
 
 func TestPrivateKeyJWTValidator_ValidateClaims_InvalidSubject(t *testing.T) {
 	t.Parallel()
 
 	validator := &PrivateKeyJWTValidator{
-		expectedAudience: "https://auth.example.com/token",
+		expectedAudience: testTokenEndpointURL,
 	}
 	client := makeValidatorClient()
 
@@ -41,7 +41,7 @@ func TestPrivateKeyJWTValidator_ValidateClaims_MissingAudience(t *testing.T) {
 	t.Parallel()
 
 	validator := &PrivateKeyJWTValidator{
-		expectedAudience: "https://auth.example.com/token",
+		expectedAudience: testTokenEndpointURL,
 	}
 	client := makeValidatorClient()
 
@@ -59,14 +59,14 @@ func TestPrivateKeyJWTValidator_ValidateClaims_MissingExpiration(t *testing.T) {
 	t.Parallel()
 
 	validator := &PrivateKeyJWTValidator{
-		expectedAudience: "https://auth.example.com/token",
+		expectedAudience: testTokenEndpointURL,
 	}
 	client := makeValidatorClient()
 
 	tok := joseJwt.New()
 	require.NoError(t, tok.Set(joseJwt.IssuerKey, client.ClientID))
 	require.NoError(t, tok.Set(joseJwt.SubjectKey, client.ClientID))
-	require.NoError(t, tok.Set(joseJwt.AudienceKey, []string{"https://auth.example.com/token"}))
+	require.NoError(t, tok.Set(joseJwt.AudienceKey, []string{testTokenEndpointURL}))
 	// Intentionally no exp
 
 	err := validator.validateClaims(context.Background(), tok, client)
@@ -78,14 +78,14 @@ func TestPrivateKeyJWTValidator_ValidateClaims_ExpiredToken(t *testing.T) {
 	t.Parallel()
 
 	validator := &PrivateKeyJWTValidator{
-		expectedAudience: "https://auth.example.com/token",
+		expectedAudience: testTokenEndpointURL,
 	}
 	client := makeValidatorClient()
 
 	tok := joseJwt.New()
 	require.NoError(t, tok.Set(joseJwt.IssuerKey, client.ClientID))
 	require.NoError(t, tok.Set(joseJwt.SubjectKey, client.ClientID))
-	require.NoError(t, tok.Set(joseJwt.AudienceKey, []string{"https://auth.example.com/token"}))
+	require.NoError(t, tok.Set(joseJwt.AudienceKey, []string{testTokenEndpointURL}))
 	require.NoError(t, tok.Set(joseJwt.ExpirationKey, time.Now().UTC().Add(-cryptoutilSharedMagic.JoseJADefaultMaxMaterials*time.Minute)))
 
 	err := validator.validateClaims(context.Background(), tok, client)
@@ -97,14 +97,14 @@ func TestPrivateKeyJWTValidator_ValidateClaims_MissingIssuedAt(t *testing.T) {
 	t.Parallel()
 
 	validator := &PrivateKeyJWTValidator{
-		expectedAudience: "https://auth.example.com/token",
+		expectedAudience: testTokenEndpointURL,
 	}
 	client := makeValidatorClient()
 
 	tok := joseJwt.New()
 	require.NoError(t, tok.Set(joseJwt.IssuerKey, client.ClientID))
 	require.NoError(t, tok.Set(joseJwt.SubjectKey, client.ClientID))
-	require.NoError(t, tok.Set(joseJwt.AudienceKey, []string{"https://auth.example.com/token"}))
+	require.NoError(t, tok.Set(joseJwt.AudienceKey, []string{testTokenEndpointURL}))
 	require.NoError(t, tok.Set(joseJwt.ExpirationKey, time.Now().UTC().Add(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Minute)))
 	// Intentionally no iat
 
@@ -117,7 +117,7 @@ func TestPrivateKeyJWTValidator_ValidateClaims_FutureIssuedAt(t *testing.T) {
 	t.Parallel()
 
 	validator := &PrivateKeyJWTValidator{
-		expectedAudience: "https://auth.example.com/token",
+		expectedAudience: testTokenEndpointURL,
 	}
 	client := makeValidatorClient()
 
@@ -125,7 +125,7 @@ func TestPrivateKeyJWTValidator_ValidateClaims_FutureIssuedAt(t *testing.T) {
 	tok := joseJwt.New()
 	require.NoError(t, tok.Set(joseJwt.IssuerKey, client.ClientID))
 	require.NoError(t, tok.Set(joseJwt.SubjectKey, client.ClientID))
-	require.NoError(t, tok.Set(joseJwt.AudienceKey, []string{"https://auth.example.com/token"}))
+	require.NoError(t, tok.Set(joseJwt.AudienceKey, []string{testTokenEndpointURL}))
 	require.NoError(t, tok.Set(joseJwt.ExpirationKey, now.Add(cryptoutilSharedMagic.JoseJADefaultMaxMaterials*time.Minute)))
 	require.NoError(t, tok.Set(joseJwt.IssuedAtKey, now.Add(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Minute)))
 
@@ -157,7 +157,7 @@ func TestAuthenticateBasic_ClientRepoError(t *testing.T) {
 		clientRepo: &mockErrorClientRepo{},
 	}
 
-	client, err := auth.AuthenticateBasic(context.Background(), "test-client", "secret")
+	client, err := auth.AuthenticateBasic(context.Background(), testTestClient, "secret")
 	require.Error(t, err)
 	require.ErrorContains(t, err, "client authentication failed")
 	require.Nil(t, client)
@@ -170,12 +170,12 @@ func TestAuthenticateBasic_ClientDisabled(t *testing.T) {
 	auth := &SecretBasedAuthenticator{
 		clientRepo: &mockClientRepo{
 			clients: map[string]*cryptoutilIdentityDomain.Client{
-				"test-client": {ClientID: "test-client", Enabled: &disabled},
+				testTestClient: {ClientID: testTestClient, Enabled: &disabled},
 			},
 		},
 	}
 
-	client, err := auth.AuthenticateBasic(context.Background(), "test-client", "secret")
+	client, err := auth.AuthenticateBasic(context.Background(), testTestClient, "secret")
 	require.Error(t, err)
 	require.ErrorContains(t, err, "client is disabled")
 	require.Nil(t, client)
@@ -187,12 +187,12 @@ func TestAuthenticateBasic_NilEnabled(t *testing.T) {
 	auth := &SecretBasedAuthenticator{
 		clientRepo: &mockClientRepo{
 			clients: map[string]*cryptoutilIdentityDomain.Client{
-				"test-client": {ClientID: "test-client", Enabled: nil},
+				testTestClient: {ClientID: testTestClient, Enabled: nil},
 			},
 		},
 	}
 
-	client, err := auth.AuthenticateBasic(context.Background(), "test-client", "secret")
+	client, err := auth.AuthenticateBasic(context.Background(), testTestClient, "secret")
 	require.Error(t, err)
 	require.ErrorContains(t, err, "client is disabled")
 	require.Nil(t, client)
@@ -205,8 +205,8 @@ func TestAuthenticateBasic_InvalidHashedSecret(t *testing.T) {
 	auth := &SecretBasedAuthenticator{
 		clientRepo: &mockClientRepo{
 			clients: map[string]*cryptoutilIdentityDomain.Client{
-				"test-client": {
-					ClientID:     "test-client",
+				testTestClient: {
+					ClientID:     testTestClient,
 					Enabled:      &enabled,
 					ClientSecret: "wrong-hashed-secret",
 				},
@@ -219,7 +219,7 @@ func TestAuthenticateBasic_InvalidHashedSecret(t *testing.T) {
 		},
 	}
 
-	client, err := auth.AuthenticateBasic(context.Background(), "test-client", "wrong-secret")
+	client, err := auth.AuthenticateBasic(context.Background(), testTestClient, testWrongSecret)
 	require.Error(t, err)
 	require.ErrorContains(t, err, "invalid client credentials")
 	require.Nil(t, client)
@@ -232,8 +232,8 @@ func TestAuthenticateBasic_ValidSecret(t *testing.T) {
 	auth := &SecretBasedAuthenticator{
 		clientRepo: &mockClientRepo{
 			clients: map[string]*cryptoutilIdentityDomain.Client{
-				"test-client": {
-					ClientID:     "test-client",
+				testTestClient: {
+					ClientID:     testTestClient,
 					Enabled:      &enabled,
 					ClientSecret: "hashed-secret",
 				},
@@ -244,8 +244,8 @@ func TestAuthenticateBasic_ValidSecret(t *testing.T) {
 		},
 	}
 
-	client, err := auth.AuthenticateBasic(context.Background(), "test-client", "correct-secret")
+	client, err := auth.AuthenticateBasic(context.Background(), testTestClient, testCorrectSecret)
 	require.NoError(t, err)
 	require.NotNil(t, client)
-	require.Equal(t, "test-client", client.ClientID)
+	require.Equal(t, testTestClient, client.ClientID)
 }

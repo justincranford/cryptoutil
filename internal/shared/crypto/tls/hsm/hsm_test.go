@@ -51,8 +51,8 @@ func TestErrHSMNotAvailable(t *testing.T) {
 		expected string
 	}{
 		{
-			name:     "device disconnected",
-			reason:   "device disconnected",
+			name:     testDeviceDisconnected,
+			reason:   testDeviceDisconnected,
 			expected: "HSM not available: device disconnected",
 		},
 		{

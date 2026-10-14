@@ -106,72 +106,72 @@ func TestCheckFiles_SuffixAndContentRules(t *testing.T) {
 	}{
 		{
 			name:     "bench file has benchmark",
-			filename: "foo_bench_test.go",
-			content:  "package mypkg\nimport \"testing\"\nfunc BenchmarkFoo(b *testing.B) {}\n",
+			filename: testFooBenchTestGo,
+			content:  testPackageMypkgImportTestingFuncBenchmarkFooBTestingB,
 		},
 		{
 			name:        "bench file missing benchmark",
-			filename:    "foo_bench_test.go",
-			content:     "package mypkg\nimport \"testing\"\nfunc TestFoo(t *testing.T) {}\n",
+			filename:    testFooBenchTestGo,
+			content:     testPackageMypkgImportTestingFuncTestFooTTestingT,
 			wantErr:     true,
-			errContains: "violation(s)",
+			errContains: testViolationS,
 		},
 		{
 			name:        "bench file forbidden fuzz",
-			filename:    "foo_bench_test.go",
+			filename:    testFooBenchTestGo,
 			content:     "package mypkg\nimport \"testing\"\nfunc BenchmarkFoo(b *testing.B) {}\nfunc FuzzFoo(f *testing.F) {}\n",
 			wantErr:     true,
-			errContains: "violation(s)",
+			errContains: testViolationS,
 		},
 		{
 			name:     "fuzz file has fuzz",
-			filename: "foo_fuzz_test.go",
-			content:  "package mypkg\nimport \"testing\"\nfunc FuzzFoo(f *testing.F) {}\n",
+			filename: testFooFuzzTestGo,
+			content:  testPackageMypkgImportTestingFuncFuzzFooFTestingF,
 		},
 		{
 			name:        "fuzz file missing fuzz",
-			filename:    "foo_fuzz_test.go",
-			content:     "package mypkg\nimport \"testing\"\nfunc TestFoo(t *testing.T) {}\n",
+			filename:    testFooFuzzTestGo,
+			content:     testPackageMypkgImportTestingFuncTestFooTTestingT,
 			wantErr:     true,
-			errContains: "violation(s)",
+			errContains: testViolationS,
 		},
 		{
 			name:     "property file has build tag",
-			filename: "foo_property_test.go",
+			filename: testFooPropertyTestGo,
 			content:  "//go:build !fuzz\npackage mypkg\nimport \"testing\"\nfunc TestFooProp(t *testing.T) {}\n",
 		},
 		{
 			name:        "property file missing build tag",
-			filename:    "foo_property_test.go",
+			filename:    testFooPropertyTestGo,
 			content:     "package mypkg\nimport \"testing\"\nfunc TestFooProp(t *testing.T) {}\n",
 			wantErr:     true,
-			errContains: "violation(s)",
+			errContains: testViolationS,
 		},
 		{
 			name:     "integration file no fuzz",
-			filename: "foo_integration_test.go",
-			content:  "package mypkg\nimport \"testing\"\nfunc TestFoo(t *testing.T) {}\n",
+			filename: testFooIntegrationTestGo,
+			content:  testPackageMypkgImportTestingFuncTestFooTTestingT,
 		},
 		{
 			name:        "integration file forbidden fuzz",
-			filename:    "foo_integration_test.go",
-			content:     "package mypkg\nimport \"testing\"\nfunc FuzzFoo(f *testing.F) {}\n",
+			filename:    testFooIntegrationTestGo,
+			content:     testPackageMypkgImportTestingFuncFuzzFooFTestingF,
 			wantErr:     true,
-			errContains: "violation(s)",
+			errContains: testViolationS,
 		},
 		{
 			name:        "fuzz in wrong file suffix",
-			filename:    "foo_test.go",
-			content:     "package mypkg\nimport \"testing\"\nfunc FuzzFoo(f *testing.F) {}\n",
+			filename:    testFooTestGo,
+			content:     testPackageMypkgImportTestingFuncFuzzFooFTestingF,
 			wantErr:     true,
-			errContains: "violation(s)",
+			errContains: testViolationS,
 		},
 		{
 			name:        "benchmark in wrong file suffix",
-			filename:    "foo_test.go",
-			content:     "package mypkg\nimport \"testing\"\nfunc BenchmarkFoo(b *testing.B) {}\n",
+			filename:    testFooTestGo,
+			content:     testPackageMypkgImportTestingFuncBenchmarkFooBTestingB,
 			wantErr:     true,
-			errContains: "violation(s)",
+			errContains: testViolationS,
 		},
 	}
 
@@ -220,7 +220,7 @@ func TestCheckFiles_ReadFileError(t *testing.T) {
 	require.NoError(t, err)
 
 	pkgDir := filepath.Join(t.TempDir(), "mypkg")
-	f := writeTestFile(t, pkgDir, "foo_test.go", "package mypkg\n")
+	f := writeTestFile(t, pkgDir, testFooTestGo, "package mypkg\n")
 
 	stubReadFileFn := func(_ string) ([]byte, error) {
 		return nil, fmt.Errorf("simulated read error")
@@ -245,7 +245,7 @@ func TestCheckFiles_InvalidRegexPatterns(t *testing.T) {
 			name: "invalid content pattern in content rules",
 			rules: &SuffixRules{
 				ContentRules: []ContentRule{
-					{ContentPattern: "[invalid-regex", RequiredSuffix: "_test.go"},
+					{ContentPattern: "[invalid-regex", RequiredSuffix: valueTestGo},
 				},
 			},
 			errContains: "invalid content_pattern",
@@ -254,7 +254,7 @@ func TestCheckFiles_InvalidRegexPatterns(t *testing.T) {
 			name: "invalid required pattern in suffix rule",
 			rules: &SuffixRules{
 				SuffixRules: []SuffixRule{
-					{Suffix: "_test.go", RequiredContentPatterns: []string{"[bad-regex"}},
+					{Suffix: valueTestGo, RequiredContentPatterns: []string{testBadRegex}},
 				},
 			},
 			errContains: "invalid required_content_pattern",
@@ -263,7 +263,7 @@ func TestCheckFiles_InvalidRegexPatterns(t *testing.T) {
 			name: "invalid forbidden pattern in suffix rule",
 			rules: &SuffixRules{
 				SuffixRules: []SuffixRule{
-					{Suffix: "_test.go", ForbiddenContentPatterns: []string{"[bad-regex"}},
+					{Suffix: valueTestGo, ForbiddenContentPatterns: []string{testBadRegex}},
 				},
 			},
 			errContains: "invalid forbidden_content_pattern",
@@ -276,7 +276,7 @@ func TestCheckFiles_InvalidRegexPatterns(t *testing.T) {
 
 			logger := cryptoutilCmdCicdCommon.NewLogger("test")
 			pkgDir := filepath.Join(t.TempDir(), "mypkg")
-			f := writeTestFile(t, pkgDir, "foo_test.go", "package mypkg\n")
+			f := writeTestFile(t, pkgDir, testFooTestGo, "package mypkg\n")
 
 			checkErr := CheckFiles(logger, []string{f}, tc.rules, os.ReadFile)
 
@@ -295,12 +295,12 @@ func TestCheckInDir_HappyPath(t *testing.T) {
 
 	rootDir := buildSuffixRoot(t)
 	pkgDir := filepath.Join(rootDir, "mypkg")
-	writeTestFile(t, pkgDir, "foo_bench_test.go",
-		"package mypkg\nimport \"testing\"\nfunc BenchmarkFoo(b *testing.B) {}\n")
-	writeTestFile(t, pkgDir, "foo_fuzz_test.go",
-		"package mypkg\nimport \"testing\"\nfunc FuzzFoo(f *testing.F) {}\n")
-	writeTestFile(t, pkgDir, "foo_test.go",
-		"package mypkg\nimport \"testing\"\nfunc TestFoo(t *testing.T) {}\n")
+	writeTestFile(t, pkgDir, testFooBenchTestGo,
+		testPackageMypkgImportTestingFuncBenchmarkFooBTestingB)
+	writeTestFile(t, pkgDir, testFooFuzzTestGo,
+		testPackageMypkgImportTestingFuncFuzzFooFTestingF)
+	writeTestFile(t, pkgDir, testFooTestGo,
+		testPackageMypkgImportTestingFuncTestFooTTestingT)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	err := CheckInDir(logger, rootDir)
@@ -401,7 +401,7 @@ func TestFindTestFileSuffixProjectRoot_Errors(t *testing.T) {
 			errContains: "simulated getwd error",
 		},
 		{
-			name: "go.mod not found",
+			name: testGoModNotFound,
 			getwdFn: func() (string, error) {
 				root := filepath.VolumeName(t.TempDir())
 				if root == "" {
@@ -412,7 +412,7 @@ func TestFindTestFileSuffixProjectRoot_Errors(t *testing.T) {
 
 				return root, nil
 			},
-			errContains: "go.mod not found",
+			errContains: testGoModNotFound,
 		},
 	}
 

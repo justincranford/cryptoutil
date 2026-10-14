@@ -47,7 +47,7 @@ func TestLint(t *testing.T) {
 				t.Helper()
 				d := t.TempDir()
 
-				return map[string][]string{"go": {writeTestFile(t, d, "main.go", "package main\n\nconst port = 8700 // sm-kms standardized port\n")}}
+				return map[string][]string{testGo: {writeTestFile(t, d, "main.go", "package main\n\nconst port = 8700 // sm-kms standardized port\n")}}
 			},
 		},
 		{
@@ -56,9 +56,9 @@ func TestLint(t *testing.T) {
 				t.Helper()
 				d := t.TempDir()
 
-				return map[string][]string{"go": {writeTestFile(t, d, "main.go", "package main\n\nconst port = 8081 // legacy sm-kms port\n")}}
+				return map[string][]string{testGo: {writeTestFile(t, d, "main.go", "package main\n\nconst port = 8081 // legacy sm-kms port\n")}}
 			},
-			wantErr: "legacy port violations",
+			wantErr: testLegacyPortViolations,
 		},
 		{
 			name: "detects multiple legacy ports",
@@ -66,7 +66,7 @@ func TestLint(t *testing.T) {
 				t.Helper()
 				d := t.TempDir()
 
-				return map[string][]string{"go": {writeTestFile(t, d, "main.go", "package main\n\nconst smKMSPort = 8081 // legacy\nconst idpPort = 8110  // legacy\n")}}
+				return map[string][]string{testGo: {writeTestFile(t, d, "main.go", "package main\n\nconst smKMSPort = 8081 // legacy\nconst idpPort = 8110  // legacy\n")}}
 			},
 			wantErr: "2 legacy port violations",
 		},
@@ -76,7 +76,7 @@ func TestLint(t *testing.T) {
 				t.Helper()
 				d := t.TempDir()
 
-				return map[string][]string{"go": {writeTestFile(t, d, "otel_config.go", "package main\n\nconst metricsPort = 8888 // OTEL internal metrics\nconst promPort = 8889    // OTEL Prometheus port\n")}}
+				return map[string][]string{testGo: {writeTestFile(t, d, "otel_config.go", "package main\n\nconst metricsPort = 8888 // OTEL internal metrics\nconst promPort = 8889    // OTEL Prometheus port\n")}}
 			},
 		},
 		{
@@ -85,9 +85,9 @@ func TestLint(t *testing.T) {
 				t.Helper()
 				d := t.TempDir()
 
-				return map[string][]string{"go": {writeTestFile(t, d, "config.go", "package main\n\nconst port = 8082 // legacy sm-kms port\n")}}
+				return map[string][]string{testGo: {writeTestFile(t, d, "config.go", "package main\n\nconst port = 8082 // legacy sm-kms port\n")}}
 			},
-			wantErr: "legacy port",
+			wantErr: testLegacyPort,
 		},
 		{
 			name: "detects 8081 in regular file",
@@ -97,9 +97,9 @@ func TestLint(t *testing.T) {
 				f := writeTestFile(t, d, "main.go", "package main\n\nconst port = 8081\n")
 				require.False(t, lintPortsCommon.IsOtelRelatedFile(f), "test file path should NOT be collector-related")
 
-				return map[string][]string{"go": {f}}
+				return map[string][]string{testGo: {f}}
 			},
-			wantErr: "legacy port violations",
+			wantErr: testLegacyPortViolations,
 		},
 		{
 			name: "yaml file with legacy port",
@@ -109,7 +109,7 @@ func TestLint(t *testing.T) {
 
 				return map[string][]string{testYMLExtension: {writeTestFile(t, d, "config.yml", "server:\n  port: 8110\n")}}
 			},
-			wantErr: "legacy port violations",
+			wantErr: testLegacyPortViolations,
 		},
 		{
 			name: "markdown file with legacy port",
@@ -119,7 +119,7 @@ func TestLint(t *testing.T) {
 
 				return map[string][]string{testMDExtension: {writeTestFile(t, d, "README.md", "# Server\n\nConnect to port 8081 for sm-kms.\n")}}
 			},
-			wantErr: "legacy port violations",
+			wantErr: testLegacyPortViolations,
 		},
 		{
 			name: "skips lint_ports directory",
@@ -127,7 +127,7 @@ func TestLint(t *testing.T) {
 				t.Helper()
 				d := t.TempDir()
 
-				return map[string][]string{"go": {writeTestFile(t, d, filepath.Join("lint_ports", "constants.go"), "package lint_ports\n\nvar LegacyPorts = []uint16{8888, 8889, 8890}\n")}}
+				return map[string][]string{testGo: {writeTestFile(t, d, filepath.Join("lint_ports", "constants.go"), "package lint_ports\n\nvar LegacyPorts = []uint16{8888, 8889, 8890}\n")}}
 			},
 		},
 		{
@@ -136,7 +136,7 @@ func TestLint(t *testing.T) {
 				t.Helper()
 				d := t.TempDir()
 
-				return map[string][]string{"go": {filepath.Join(d, "does_not_exist.go")}}
+				return map[string][]string{testGo: {filepath.Join(d, "does_not_exist.go")}}
 			},
 		},
 		{
@@ -145,7 +145,7 @@ func TestLint(t *testing.T) {
 				t.Helper()
 				d := t.TempDir()
 
-				return map[string][]string{"go": {writeTestFile(t, d, "main.go", "package main\n\nconst validPort = 8000\nconst anotherValid = 8700\nconst irrelevantNumber = 1234\n")}}
+				return map[string][]string{testGo: {writeTestFile(t, d, "main.go", "package main\n\nconst validPort = 8000\nconst anotherValid = 8700\nconst irrelevantNumber = 1234\n")}}
 			},
 		},
 		{
@@ -172,13 +172,13 @@ func TestLint(t *testing.T) {
 				d := t.TempDir()
 
 				return map[string][]string{
-					"go":             {writeTestFile(t, d, "main.go", "package main\nconst port = 8081\n")},
+					testGo:           {writeTestFile(t, d, "main.go", "package main\nconst port = 8081\n")},
 					testYMLExtension: {writeTestFile(t, d, "config.yml", "port: 8081\n")},
 					"yaml":           {writeTestFile(t, d, "config.yaml", "port: 8110\n")},
 					"md":             {writeTestFile(t, d, "README.md", "# Docs\nPort 8082 is used.\n")},
 				}
 			},
-			wantErr: "legacy port violations",
+			wantErr: testLegacyPortViolations,
 		},
 		{
 			name: "non-legacy port numbers not flagged",
@@ -186,7 +186,7 @@ func TestLint(t *testing.T) {
 				t.Helper()
 				d := t.TempDir()
 
-				return map[string][]string{"go": {writeTestFile(t, d, "main.go", "package main\n\nconst port1 = 8000\nconst port2 = 8700\nconst port3 = 9000\nconst port4 = 12345\n")}}
+				return map[string][]string{testGo: {writeTestFile(t, d, "main.go", "package main\n\nconst port1 = 8000\nconst port2 = 8700\nconst port3 = 9000\nconst port4 = 12345\n")}}
 			},
 		},
 		{
@@ -197,7 +197,7 @@ func TestLint(t *testing.T) {
 				f := writeTestFile(t, d, "magic_network.go", "package magic\n\n// Default OpenTelemetry collector internal metrics port (Prometheus).\nconst DefaultPublicPortInternalMetrics uint16 = 8888\n// PortOtelCollectorReceivedMetrics - Default OpenTelemetry collector received metrics port.\nconst PortOtelCollectorReceivedMetrics uint16 = 8889\n")
 				require.False(t, lintPortsCommon.IsOtelRelatedFile(f), "file path should NOT be collector-related")
 
-				return map[string][]string{"go": {f}}
+				return map[string][]string{testGo: {f}}
 			},
 		},
 		{
@@ -207,7 +207,7 @@ func TestLint(t *testing.T) {
 				d := t.TempDir()
 
 				return map[string][]string{
-					"go":         {writeTestFile(t, d, "main.go", "package main\n\nconst port = 8000\n")},
+					testGo:       {writeTestFile(t, d, "main.go", "package main\n\nconst port = 8000\n")},
 					"yml":        {writeTestFile(t, d, cryptoutilSharedMagic.COMPOSE_YML, "services:\n  sm-kms:\n    ports:\n      - \"8000:8000\"\n    healthcheck:\n      test: [\"CMD\", \"wget\", \"-q\", \"-O\", \"/dev/null\", \"https://127.0.0.1:9090/admin/api/v1/livez\"]\n")},
 					"dockerfile": {writeTestFile(t, d, "Dockerfile", "FROM alpine:latest\nHEALTHCHECK CMD wget -q -O /dev/null https://127.0.0.1:9090/admin/api/v1/livez\n")},
 				}
@@ -219,9 +219,9 @@ func TestLint(t *testing.T) {
 				t.Helper()
 				d := t.TempDir()
 
-				return map[string][]string{"go": {writeTestFile(t, d, "main.go", "package main\n\nconst port = 8081\n")}}
+				return map[string][]string{testGo: {writeTestFile(t, d, "main.go", "package main\n\nconst port = 8081\n")}}
 			},
-			wantErr: "legacy port",
+			wantErr: testLegacyPort,
 		},
 	}
 	for _, tc := range tests {

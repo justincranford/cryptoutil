@@ -196,10 +196,10 @@ func createIntegrationTestDependencies(t *testing.T) (*cryptoutilIdentityConfig.
 	config := &cryptoutilIdentityConfig.Config{
 		Database: &cryptoutilIdentityConfig.DatabaseConfig{
 			Type: cryptoutilSharedMagic.TestDatabaseSQLite,
-			DSN:  "file::memory:?cache=private",
+			DSN:  testFileMemoryCachePrivate,
 		},
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{
-			Issuer: "https://localhost:8080",
+			Issuer: testHTTPSLocalhost8080,
 		},
 	}
 
@@ -254,7 +254,7 @@ func createIntegrationTestClient(ctx context.Context, t *testing.T, repoFactory 
 	client := &cryptoutilIdentityDomain.Client{
 		ID:                      googleUuid.Must(googleUuid.NewV7()),
 		ClientID:                "device-client-" + googleUuid.NewString()[:cryptoutilSharedMagic.IMMinPasswordLength],
-		ClientSecret:            "$2a$10$examplehashedvalue",
+		ClientSecret:            test2a10Examplehashedvalue,
 		ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
 		Name:                    "Integration Test Device Client",
 		RedirectURIs:            []string{cryptoutilSharedMagic.TestRedirectURI},
@@ -282,10 +282,10 @@ func requestDeviceAuthorization(t *testing.T, app *fiber.App, clientID string) m
 
 	formData := url.Values{
 		cryptoutilSharedMagic.ParamClientID: []string{clientID},
-		cryptoutilSharedMagic.ParamScope:    []string{"openid profile"},
+		cryptoutilSharedMagic.ParamScope:    []string{testOpenidProfile},
 	}
 
-	req := httptest.NewRequest("POST", "/oauth2/v1/device_authorization", strings.NewReader(formData.Encode()))
+	req := httptest.NewRequest(testPost, "/oauth2/v1/device_authorization", strings.NewReader(formData.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	resp, err := app.Test(req, -1)
@@ -313,7 +313,7 @@ func pollDeviceToken(t *testing.T, app *fiber.App, clientID, deviceCode string, 
 		cryptoutilSharedMagic.ParamDeviceCode: []string{deviceCode},
 	}
 
-	req := httptest.NewRequest("POST", "/oauth2/v1/token", strings.NewReader(formData.Encode()))
+	req := httptest.NewRequest(testPost, testOauth2V1Token, strings.NewReader(formData.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	resp, err := app.Test(req, -1)

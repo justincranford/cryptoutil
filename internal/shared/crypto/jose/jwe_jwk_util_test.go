@@ -72,7 +72,7 @@ func TestValidateOrGenerateJWEAESJWK_Generate(t *testing.T) {
 			expectError:   false,
 		},
 		{
-			name:          "disallowed enc",
+			name:          testDisallowedEnc,
 			enc:           &EncA128GCM,
 			alg:           &AlgA256KW,
 			keyBitsLength: cryptoutilSharedMagic.MaxUnsealSharedSecrets,
@@ -275,7 +275,7 @@ func TestValidateOrGenerateJWERSAJWK_Generate(t *testing.T) {
 			expectError:   false,
 		},
 		{
-			name:          "disallowed enc",
+			name:          testDisallowedEnc,
 			enc:           &EncA128GCM,
 			alg:           &AlgRSAOAEP,
 			keyBitsLength: cryptoutilSharedMagic.DefaultMetricsBatchSize,

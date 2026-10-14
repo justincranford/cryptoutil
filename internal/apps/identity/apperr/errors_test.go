@@ -25,8 +25,8 @@ func TestIdentityError_Error(t *testing.T) {
 		{
 			name: "Error without internal error",
 			err: &IdentityError{
-				Code:       "test_error",
-				Message:    "Test error message",
+				Code:       testTestError,
+				Message:    testTestErrorMessage,
 				HTTPStatus: http.StatusBadRequest,
 			},
 			expected: "test_error: Test error message",
@@ -34,8 +34,8 @@ func TestIdentityError_Error(t *testing.T) {
 		{
 			name: "Error with internal error",
 			err: &IdentityError{
-				Code:       "test_error",
-				Message:    "Test error message",
+				Code:       testTestError,
+				Message:    testTestErrorMessage,
 				HTTPStatus: http.StatusBadRequest,
 				Internal:   errors.New("internal issue"),
 			},

@@ -27,7 +27,7 @@ func TestHandleLoginUserWithSession_UserWithoutTenantID(t *testing.T) {
 	svc := NewUserService(repo, factory)
 
 	// Register a user first.
-	_, err := svc.RegisterUser(t.Context(), "testuser", "SecurePass123!")
+	_, err := svc.RegisterUser(t.Context(), testTestuser, testSecurePass123)
 	require.NoError(t, err)
 
 	// Create a valid session manager that passes type assertion.
@@ -37,8 +37,8 @@ func TestHandleLoginUserWithSession_UserWithoutTenantID(t *testing.T) {
 	app.Post("/login/session", svc.HandleLoginUserWithSession(sessionMgr, true))
 
 	bodyBytes, err := json.Marshal(map[string]string{
-		"username": "testuser",
-		"password": "SecurePass123!",
+		valueUsername:         testTestuser,
+		testPasswordFieldName: testSecurePass123,
 	})
 	require.NoError(t, err)
 
@@ -113,7 +113,7 @@ func TestHandleLoginUserWithSession_BrowserSession_Success(t *testing.T) {
 	svc := NewUserService(repo, factory)
 
 	// Register a user first.
-	_, err := svc.RegisterUser(t.Context(), "testuser", "SecurePass123!")
+	_, err := svc.RegisterUser(t.Context(), testTestuser, testSecurePass123)
 	require.NoError(t, err)
 
 	// Create a session manager that returns a token.
@@ -123,8 +123,8 @@ func TestHandleLoginUserWithSession_BrowserSession_Success(t *testing.T) {
 	app.Post("/login/session", svc.HandleLoginUserWithSession(sessionMgr, true))
 
 	bodyBytes, err := json.Marshal(map[string]string{
-		"username": "testuser",
-		"password": "SecurePass123!",
+		valueUsername:         testTestuser,
+		testPasswordFieldName: testSecurePass123,
 	})
 	require.NoError(t, err)
 
@@ -147,7 +147,7 @@ func TestHandleLoginUserWithSession_BrowserSession_Success(t *testing.T) {
 	err = json.Unmarshal(body, &response)
 	require.NoError(t, err)
 	require.Equal(t, "browser-session-token-123", response[cryptoutilSharedMagic.ParamToken])
-	require.NotEmpty(t, response["expires_at"])
+	require.NotEmpty(t, response[valueExpiresAt])
 }
 
 // TestHandleLoginUserWithSession_ServiceSession_Success tests successful service session login.
@@ -175,8 +175,8 @@ func TestHandleLoginUserWithSession_ServiceSession_Success(t *testing.T) {
 	app.Post("/login/session", svc.HandleLoginUserWithSession(sessionMgr, false))
 
 	bodyBytes, err := json.Marshal(map[string]string{
-		"username": "serviceuser",
-		"password": "SecurePass456!",
+		valueUsername:         "serviceuser",
+		testPasswordFieldName: "SecurePass456!",
 	})
 	require.NoError(t, err)
 
@@ -225,8 +225,8 @@ func TestHandleLoginUserWithSession_SessionIssueError(t *testing.T) {
 	app.Post("/login/session", svc.HandleLoginUserWithSession(sessionMgr, true))
 
 	bodyBytes, err := json.Marshal(map[string]string{
-		"username": "erroruser",
-		"password": "SecurePass789!",
+		valueUsername:         "erroruser",
+		testPasswordFieldName: "SecurePass789!",
 	})
 	require.NoError(t, err)
 
@@ -256,10 +256,10 @@ func TestClaims(t *testing.T) {
 	t.Parallel()
 
 	claims := &Claims{
-		UserID:   "test-user-id",
-		Username: "testuser",
+		UserID:   testTestUserID,
+		Username: testTestuser,
 	}
 
-	require.Equal(t, "test-user-id", claims.UserID)
-	require.Equal(t, "testuser", claims.Username)
+	require.Equal(t, testTestUserID, claims.UserID)
+	require.Equal(t, testTestuser, claims.Username)
 }

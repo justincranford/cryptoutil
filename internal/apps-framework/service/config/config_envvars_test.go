@@ -20,7 +20,7 @@ func TestParse_EnvironmentVariables_DatabaseURL(t *testing.T) {
 	// Set environment variable with CRYPTOUTIL_ prefix and underscores
 	t.Setenv("CRYPTOUTIL_DATABASE_URL", "postgres://envuser:envpass@envhost:5432/envdb")
 
-	commandParameters := []string{"start"}
+	commandParameters := []string{valueStart}
 	s, err := Parse(commandParameters, true)
 	require.NoError(t, err)
 	require.Equal(t, "postgres://envuser:envpass@envhost:5432/envdb", s.DatabaseURL, "environment variable should override default")
@@ -33,7 +33,7 @@ func TestParse_EnvironmentVariables_BindPublicPort(t *testing.T) {
 	// Set environment variable for public port
 	t.Setenv("CRYPTOUTIL_BIND_PUBLIC_PORT", "9999")
 
-	commandParameters := []string{"start"}
+	commandParameters := []string{valueStart}
 	s, err := Parse(commandParameters, true)
 	require.NoError(t, err)
 	require.Equal(t, uint16(9999), s.BindPublicPort, "environment variable should override default")
@@ -46,7 +46,7 @@ func TestParse_EnvironmentVariables_LogLevel(t *testing.T) {
 	// Set environment variable for log level
 	t.Setenv("CRYPTOUTIL_LOG_LEVEL", "TRACE")
 
-	commandParameters := []string{"start"}
+	commandParameters := []string{valueStart}
 	s, err := Parse(commandParameters, true)
 	require.NoError(t, err)
 	require.Equal(t, "TRACE", s.LogLevel, "environment variable should override default")
@@ -60,7 +60,7 @@ func TestParse_Precedence_FlagOverridesEnvVar(t *testing.T) {
 	t.Setenv("CRYPTOUTIL_BIND_PUBLIC_PORT", "9999")
 
 	// Flag should take precedence over environment variable
-	commandParameters := []string{"start", "--bind-public-port=7777"}
+	commandParameters := []string{valueStart, "--bind-public-port=7777"}
 	s, err := Parse(commandParameters, true)
 	require.NoError(t, err)
 	require.Equal(t, uint16(7777), s.BindPublicPort, "flag should override environment variable")
@@ -121,7 +121,7 @@ func TestParse_FileURL_DatabaseURL(t *testing.T) {
 	require.NoError(t, err)
 
 	// Pass file URL via flag
-	commandParameters := []string{"start", "--database-url=file://" + tempFile}
+	commandParameters := []string{valueStart, "--database-url=file://" + tempFile}
 	s, err := Parse(commandParameters, true)
 	require.NoError(t, err)
 	require.Equal(t, secretContent, s.DatabaseURL, "file URL should resolve to file content")
@@ -142,7 +142,7 @@ func TestParse_Precedence_FullStack(t *testing.T) {
 	t.Setenv("CRYPTOUTIL_DATABASE_URL", "postgres://envuser:envpass@envhost:5432/envdb")
 
 	// Flag should override environment variable
-	commandParameters := []string{"start", "--config=" + configFile, "--database-url=postgres://flaguser:flagpass@flaghost:5432/flagdb"}
+	commandParameters := []string{valueStart, "--config=" + configFile, "--database-url=postgres://flaguser:flagpass@flaghost:5432/flagdb"}
 	s, err := Parse(commandParameters, true)
 	require.NoError(t, err)
 	require.Equal(t, "postgres://flaguser:flagpass@flaghost:5432/flagdb", s.DatabaseURL, "flag should have highest precedence")
@@ -150,7 +150,7 @@ func TestParse_Precedence_FullStack(t *testing.T) {
 	// Without flag, env var should override config
 	resetFlags()
 
-	commandParameters = []string{"start", "--config=" + configFile}
+	commandParameters = []string{valueStart, "--config=" + configFile}
 	s, err = Parse(commandParameters, true)
 	require.NoError(t, err)
 	require.Equal(t, "postgres://envuser:envpass@envhost:5432/envdb", s.DatabaseURL, "env var should override config file")

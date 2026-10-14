@@ -149,7 +149,7 @@ func TestIsComposeFile(t *testing.T) {
 		{name: cryptoutilSharedMagic.COMPOSE_YAML, filePath: "deployments/compose.yaml", want: true},
 		{name: cryptoutilSharedMagic.DOCKER_COMPOSE_YML, filePath: cryptoutilSharedMagic.DOCKER_COMPOSE_YML, want: true},
 		{name: "compose.e2e.yml", filePath: "deployments/identity/compose.e2e.yml", want: true},
-		{name: "compose.advanced.yml", filePath: "compose.advanced.yml", want: true},
+		{name: testComposeAdvancedYml, filePath: testComposeAdvancedYml, want: true},
 		{name: "regular yaml", filePath: "config/settings.yml", want: false},
 		{name: "regular yaml 2", filePath: "configs/app.yaml", want: false},
 		{name: "go file", filePath: "main.go", want: false},

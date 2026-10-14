@@ -178,7 +178,7 @@ func TestScopeEnforcement_MissingScope(t *testing.T) {
 	tokenSvc.validateFunc = func(_ context.Context, _ string) (map[string]any, error) {
 		return map[string]any{
 			cryptoutilSharedMagic.ClaimExp:      float64(time.Now().UTC().Add(1 * time.Hour).Unix()),
-			cryptoutilSharedMagic.ClaimClientID: "test-client",
+			cryptoutilSharedMagic.ClaimClientID: testTestClient,
 			cryptoutilSharedMagic.ClaimScope:    "write:other",
 		}, nil
 	}
@@ -217,8 +217,8 @@ func TestScopeEnforcement_ValidScope(t *testing.T) {
 	tokenSvc.validateFunc = func(_ context.Context, _ string) (map[string]any, error) {
 		return map[string]any{
 			cryptoutilSharedMagic.ClaimExp:      float64(time.Now().UTC().Add(1 * time.Hour).Unix()),
-			cryptoutilSharedMagic.ClaimClientID: "test-client",
-			cryptoutilSharedMagic.ClaimScope:    "read:resource write:resource",
+			cryptoutilSharedMagic.ClaimClientID: testTestClient,
+			cryptoutilSharedMagic.ClaimScope:    testReadResourceWriteResource,
 		}, nil
 	}
 	tokenSvc.isActiveFunc = func(_ map[string]any) bool {

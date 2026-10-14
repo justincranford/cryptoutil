@@ -53,7 +53,7 @@ func TestCheckInDir_Violations(t *testing.T) {
 
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "secrets-compliance violations")
-	require.Contains(t, err.Error(), "unseal-1of5.secret")
+	require.Contains(t, err.Error(), valueUnseal1of5Secret)
 }
 
 func TestCheckInDir_LoadError(t *testing.T) {
@@ -99,7 +99,7 @@ func TestCheckSecretsDir_MissingFile(t *testing.T) {
 
 	violations := checkSecretsDir(secretsDir, cryptoutilSharedMagic.OTLPServiceSMKMS, expectedPSIDSecrets)
 	require.Len(t, violations, 1)
-	require.Contains(t, violations[0], "unseal-1of5.secret")
+	require.Contains(t, violations[0], valueUnseal1of5Secret)
 	require.Contains(t, violations[0], "missing expected secret file")
 }
 

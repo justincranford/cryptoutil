@@ -49,7 +49,7 @@ func ValidateAdmin(deploymentPath string) (*AdminValidationResult, error) {
 		validateAdminNotExposed(composePath, result)
 	}
 
-	configDir := filepath.Join(deploymentPath, "config")
+	configDir := filepath.Join(deploymentPath, fileTypeConfig)
 	if info, statErr := os.Stat(configDir); statErr == nil && info.IsDir() {
 		validateAdminConfigSettings(configDir, result)
 	}
@@ -122,7 +122,7 @@ func validateAdminConfigSettings(configDir string, result *AdminValidationResult
 
 // validateAdminPort checks that bind-private-port is the mandatory admin port.
 func validateAdminPort(config map[string]any, configPath string, result *AdminValidationResult) {
-	val, ok := config["bind-private-port"]
+	val, ok := config[valueBindPrivatePort]
 	if !ok {
 		return
 	}
@@ -142,7 +142,7 @@ func validateAdminPort(config map[string]any, configPath string, result *AdminVa
 
 // validateAdminAddress checks that bind-private-address is 127.0.0.1.
 func validateAdminAddress(config map[string]any, configPath string, result *AdminValidationResult) {
-	val, ok := config["bind-private-address"]
+	val, ok := config[valueBindPrivateAddress]
 	if !ok {
 		return
 	}

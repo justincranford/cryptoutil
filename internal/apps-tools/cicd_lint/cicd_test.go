@@ -19,7 +19,7 @@ func TestRunUsage(t *testing.T) {
 	t.Parallel()
 
 	// Test with no commands (should return error).
-	exitCode := Cicd([]string{"cicd"}, nil, nil, os.Stderr)
+	exitCode := Cicd([]string{testCicd}, nil, nil, os.Stderr)
 	require.Equal(t, 1, exitCode, "Expected exit code 1 when no commands provided")
 }
 
@@ -27,7 +27,7 @@ func TestRunInvalidCommand(t *testing.T) {
 	t.Parallel()
 
 	// Test with invalid command.
-	err := run([]string{"invalid-command"}, []string{}, false)
+	err := run([]string{testInvalidCommand}, []string{}, false)
 	require.Error(t, err, "Expected error for invalid command")
 	require.Contains(t, err.Error(), "unknown command: invalid-command", "Error message should indicate unknown command")
 }
@@ -36,10 +36,10 @@ func TestRunMultipleCommands(t *testing.T) {
 	t.Parallel()
 
 	// Verify the command parsing logic works.
-	commands := []string{"lint-go-mod", "lint-workflow"}
+	commands := []string{cmdLintGoMod, cmdLintWorkflow}
 	require.Len(t, commands, 2, "Expected 2 commands")
-	require.Equal(t, "lint-go-mod", commands[0], "Expected first command")
-	require.Equal(t, "lint-workflow", commands[1], "Expected second command")
+	require.Equal(t, cmdLintGoMod, commands[0], "Expected first command")
+	require.Equal(t, cmdLintWorkflow, commands[1], "Expected second command")
 }
 
 func TestRun_AllCommands_HappyPath(t *testing.T) {
@@ -51,19 +51,19 @@ func TestRun_AllCommands_HappyPath(t *testing.T) {
 	}{
 		{
 			name:     "lint-text command",
-			commands: []string{"lint-text"},
+			commands: []string{cmdLintText},
 		},
 		{
 			name:     "lint-go command",
-			commands: []string{"lint-go"},
+			commands: []string{cmdLintGo},
 		},
 		{
 			name:     "format-go command",
-			commands: []string{"format-go"},
+			commands: []string{cmdFormatGo},
 		},
 		{
 			name:     "lint-go-test command",
-			commands: []string{"lint-go-test"},
+			commands: []string{cmdLintGoTest},
 		},
 		{
 			name:     "format-go-test command",
@@ -75,19 +75,19 @@ func TestRun_AllCommands_HappyPath(t *testing.T) {
 		},
 		{
 			name:     "lint-workflow command",
-			commands: []string{"lint-workflow"},
+			commands: []string{cmdLintWorkflow},
 		},
 		{
 			name:     "lint-go-mod command",
-			commands: []string{"lint-go-mod"},
+			commands: []string{cmdLintGoMod},
 		},
 		{
 			name:     "multiple commands together",
-			commands: []string{"lint-text", "lint-go"},
+			commands: []string{cmdLintText, cmdLintGo},
 		},
 		{
 			name:     "lint-compose command",
-			commands: []string{"lint-compose"},
+			commands: []string{cmdLintCompose},
 		},
 		{
 			name:     "lint-ports command",
@@ -99,7 +99,7 @@ func TestRun_AllCommands_HappyPath(t *testing.T) {
 		},
 		{
 			name:     "multiple commands together (subset)",
-			commands: []string{"lint-text", "lint-go"},
+			commands: []string{cmdLintText, cmdLintGo},
 		},
 		{
 			name:     "all commands together",
@@ -107,15 +107,15 @@ func TestRun_AllCommands_HappyPath(t *testing.T) {
 		},
 		{
 			name:     "lint-docs command",
-			commands: []string{"lint-docs"},
+			commands: []string{cmdLintDocs},
 		},
 		{
 			name:     "lint-deployments command",
-			commands: []string{"lint-deployments"},
+			commands: []string{cmdLintDeployments},
 		},
 		{
 			name:     "lint-fitness command",
-			commands: []string{"lint-fitness"},
+			commands: []string{cmdLintFitness},
 		},
 		{
 			name:     "lint-openapi command",
@@ -140,16 +140,16 @@ func TestRun_AllCommands_HappyPath(t *testing.T) {
 func TestGetExtraArgs_WithArgs(t *testing.T) {
 	t.Parallel()
 
-	result := getExtraArgs([]string{"binary", "command", "extra1", "extra2"})
-	require.Equal(t, []string{"extra1", "extra2"}, result)
+	result := getExtraArgs([]string{"binary", "command", testExtra1, testExtra2})
+	require.Equal(t, []string{testExtra1, testExtra2}, result)
 }
 
 func TestCommandsNeedFiles_NonFileCommands(t *testing.T) {
 	t.Parallel()
 
-	require.False(t, commandsNeedFiles([]string{"lint-docs"}))
-	require.False(t, commandsNeedFiles([]string{"lint-deployments"}))
-	require.False(t, commandsNeedFiles([]string{"lint-fitness"}))
+	require.False(t, commandsNeedFiles([]string{cmdLintDocs}))
+	require.False(t, commandsNeedFiles([]string{cmdLintDeployments}))
+	require.False(t, commandsNeedFiles([]string{cmdLintFitness}))
 }
 
 func TestValidateCommands_HappyPath(t *testing.T) {
@@ -161,11 +161,11 @@ func TestValidateCommands_HappyPath(t *testing.T) {
 	}{
 		{
 			name:     "single lint command",
-			commands: []string{"lint-workflow"},
+			commands: []string{cmdLintWorkflow},
 		},
 		{
 			name:     "multiple lint commands",
-			commands: []string{"lint-text", "lint-go", "lint-go-test"},
+			commands: []string{cmdLintText, cmdLintGo, cmdLintGoTest},
 		},
 		{
 			name:     "lint and format commands",
@@ -198,22 +198,22 @@ func TestValidateCommands_DuplicateCommands(t *testing.T) {
 	}{
 		{
 			name:         "duplicate lint-text",
-			commands:     []string{"lint-text", "lint-text"},
+			commands:     []string{cmdLintText, cmdLintText},
 			expectedText: "command 'lint-text' specified 2 times",
 		},
 		{
 			name:         "duplicate lint-go",
-			commands:     []string{"lint-go", "lint-text", "lint-go"},
+			commands:     []string{cmdLintGo, cmdLintText, cmdLintGo},
 			expectedText: "command 'lint-go' specified 2 times",
 		},
 		{
 			name:         "duplicate format-go",
-			commands:     []string{"format-go", "lint-workflow", "format-go"},
+			commands:     []string{cmdFormatGo, cmdLintWorkflow, cmdFormatGo},
 			expectedText: "command 'format-go' specified 2 times",
 		},
 		{
 			name:         "multiple duplicates",
-			commands:     []string{"lint-workflow", "lint-workflow", "lint-text", "lint-text"},
+			commands:     []string{cmdLintWorkflow, cmdLintWorkflow, cmdLintText, cmdLintText},
 			expectedText: "command 'lint-workflow' specified 2 times",
 		},
 	}
@@ -282,21 +282,21 @@ func TestValidateCommands_EdgeCases(t *testing.T) {
 		},
 		{
 			name:         "valid commands with flags (flags are skipped)",
-			commands:     []string{"--strict", "true", "lint-text"},
+			commands:     []string{"--strict", testTrue, cmdLintText},
 			expectErr:    false,
-			expectedCmds: []string{"lint-text"},
+			expectedCmds: []string{cmdLintText},
 		},
 		{
 			name:         "boolean flag -q does not consume next argument",
-			commands:     []string{"-q", "lint-text"},
+			commands:     []string{testQ, cmdLintText},
 			expectErr:    false,
-			expectedCmds: []string{"lint-text"},
+			expectedCmds: []string{cmdLintText},
 		},
 		{
 			name:         "boolean flag --summary does not consume next argument",
-			commands:     []string{cryptoutilSharedMagic.FlagSummary, "lint-workflow"},
+			commands:     []string{cryptoutilSharedMagic.FlagSummary, cmdLintWorkflow},
 			expectErr:    false,
-			expectedCmds: []string{"lint-workflow"},
+			expectedCmds: []string{cmdLintWorkflow},
 		},
 	}
 
@@ -319,11 +319,11 @@ func TestCommandResult(t *testing.T) {
 	t.Parallel()
 
 	result := cryptoutilCmdCicdCommon.CommandResult{
-		Command:  "lint-text",
+		Command:  cmdLintText,
 		Duration: cryptoutilSharedMagic.JoseJAMaxMaterials * time.Millisecond,
 		Error:    fmt.Errorf("test error"),
 	}
-	require.Equal(t, "lint-text", result.Command)
+	require.Equal(t, cmdLintText, result.Command)
 	require.Equal(t, cryptoutilSharedMagic.JoseJAMaxMaterials*time.Millisecond, result.Duration)
 	require.Error(t, result.Error)
 }
@@ -332,11 +332,11 @@ func TestCommandResultSuccess(t *testing.T) {
 	t.Parallel()
 
 	result := cryptoutilCmdCicdCommon.CommandResult{
-		Command:  "lint-workflow",
+		Command:  cmdLintWorkflow,
 		Duration: cryptoutilSharedMagic.IMMaxUsernameLength * time.Millisecond,
 		Error:    nil,
 	}
-	require.Equal(t, "lint-workflow", result.Command)
+	require.Equal(t, cmdLintWorkflow, result.Command)
 	require.Equal(t, cryptoutilSharedMagic.IMMaxUsernameLength*time.Millisecond, result.Duration)
 	require.NoError(t, result.Error)
 }
@@ -345,24 +345,24 @@ func TestGetFailedCommands(t *testing.T) {
 	t.Parallel()
 
 	results := []cryptoutilCmdCicdCommon.CommandResult{
-		{Command: "lint-text", Duration: cryptoutilSharedMagic.JoseJAMaxMaterials * time.Millisecond, Error: nil},
-		{Command: "lint-go", Duration: 200 * time.Millisecond, Error: fmt.Errorf("error1")},
-		{Command: "format-go", Duration: 150 * time.Millisecond, Error: nil},
-		{Command: "lint-workflow", Duration: cryptoutilSharedMagic.IMMaxUsernameLength * time.Millisecond, Error: fmt.Errorf("error2")},
+		{Command: cmdLintText, Duration: cryptoutilSharedMagic.JoseJAMaxMaterials * time.Millisecond, Error: nil},
+		{Command: cmdLintGo, Duration: 200 * time.Millisecond, Error: fmt.Errorf("error1")},
+		{Command: cmdFormatGo, Duration: 150 * time.Millisecond, Error: nil},
+		{Command: cmdLintWorkflow, Duration: cryptoutilSharedMagic.IMMaxUsernameLength * time.Millisecond, Error: fmt.Errorf("error2")},
 	}
 
 	failed := cryptoutilCmdCicdCommon.GetFailedCommands(results)
 	require.Len(t, failed, 2)
-	require.Contains(t, failed, "lint-go")
-	require.Contains(t, failed, "lint-workflow")
+	require.Contains(t, failed, cmdLintGo)
+	require.Contains(t, failed, cmdLintWorkflow)
 }
 
 func TestGetFailedCommands_NoFailures(t *testing.T) {
 	t.Parallel()
 
 	results := []cryptoutilCmdCicdCommon.CommandResult{
-		{Command: "lint-text", Duration: cryptoutilSharedMagic.JoseJAMaxMaterials * time.Millisecond, Error: nil},
-		{Command: "lint-go", Duration: 200 * time.Millisecond, Error: nil},
+		{Command: cmdLintText, Duration: cryptoutilSharedMagic.JoseJAMaxMaterials * time.Millisecond, Error: nil},
+		{Command: cmdLintGo, Duration: 200 * time.Millisecond, Error: nil},
 	}
 
 	failed := cryptoutilCmdCicdCommon.GetFailedCommands(results)
@@ -373,7 +373,7 @@ func TestGetFailedCommands_NoFailures(t *testing.T) {
 func TestRun_LintComposeCommand(t *testing.T) {
 	t.Parallel()
 
-	err := run([]string{"lint-compose"}, []string{}, false)
+	err := run([]string{cmdLintCompose}, []string{}, false)
 	// Command may pass or fail depending on compose files in project.
 	// We're testing that the switch case executes without panic.
 	if err != nil {
@@ -386,7 +386,7 @@ func TestValidateCommands_OnlyFlags(t *testing.T) {
 	t.Parallel()
 
 	// Pass only flags with values (no actual commands).
-	actualCommands, err := validateCommands(cryptoutilCmdCicdCommon.NewQuietLogger("test"), []string{"-v", "true", "-debug", "enabled"})
+	actualCommands, err := validateCommands(cryptoutilCmdCicdCommon.NewQuietLogger("test"), []string{"-v", testTrue, "-debug", "enabled"})
 	require.Error(t, err, "Expected error when only flags provided")
 	require.Nil(t, actualCommands, "Expected nil actual commands")
 	require.Contains(t, err.Error(), "Usage: cicd <command>", "Error should contain usage info")
@@ -397,7 +397,7 @@ func TestCicd_ErrorPath(t *testing.T) {
 	t.Parallel()
 
 	// invalid-command is not in ValidCommands so run() returns an error.
-	exitCode := Cicd([]string{"cicd", "invalid-command"}, nil, os.Stdout, os.Stderr)
+	exitCode := Cicd([]string{testCicd, testInvalidCommand}, nil, os.Stdout, os.Stderr)
 	require.Equal(t, 1, exitCode, "Expected exit code 1 when run returns error")
 }
 
@@ -406,7 +406,7 @@ func TestCicd_SuccessPath(t *testing.T) {
 	t.Parallel()
 
 	// lint-workflow runs successfully from the project root.
-	exitCode := Cicd([]string{"cicd", "lint-workflow"}, nil, os.Stdout, os.Stderr)
+	exitCode := Cicd([]string{testCicd, cmdLintWorkflow}, nil, os.Stdout, os.Stderr)
 	require.Equal(t, 0, exitCode, "Expected exit code 0 for lint-workflow")
 }
 
@@ -419,10 +419,10 @@ func TestHasQuietFlag(t *testing.T) {
 		args     []string
 		wantBool bool
 	}{
-		{name: "no flags", args: []string{"lint-text"}, wantBool: false},
-		{name: "short flag -q", args: []string{"-q", "lint-text"}, wantBool: true},
-		{name: "long flag --summary", args: []string{cryptoutilSharedMagic.FlagSummary, "lint-text"}, wantBool: true},
-		{name: "flag after command", args: []string{"lint-text", "-q"}, wantBool: true},
+		{name: "no flags", args: []string{cmdLintText}, wantBool: false},
+		{name: "short flag -q", args: []string{testQ, cmdLintText}, wantBool: true},
+		{name: "long flag --summary", args: []string{cryptoutilSharedMagic.FlagSummary, cmdLintText}, wantBool: true},
+		{name: "flag after command", args: []string{cmdLintText, testQ}, wantBool: true},
 		{name: "empty args", args: []string{}, wantBool: false},
 	}
 
@@ -446,8 +446,8 @@ func TestCountFiles(t *testing.T) {
 	}{
 		{name: "nil map", input: nil, wantInt: 0},
 		{name: "empty map", input: map[string][]string{}, wantInt: 0},
-		{name: "one extension", input: map[string][]string{".go": {"a.go", "b.go"}}, wantInt: 2},
-		{name: "two extensions", input: map[string][]string{".go": {"a.go"}, ".yml": {"b.yml", "c.yml"}}, wantInt: 3},
+		{name: "one extension", input: map[string][]string{testGo: {testAGo, "b.go"}}, wantInt: 2},
+		{name: "two extensions", input: map[string][]string{testGo: {testAGo}, ".yml": {"b.yml", "c.yml"}}, wantInt: 3},
 	}
 
 	for _, tc := range tests {
@@ -468,13 +468,13 @@ func TestCommandNeedsFiles(t *testing.T) {
 		command  string
 		wantBool bool
 	}{
-		{name: "lint-text needs files", command: "lint-text", wantBool: true},
-		{name: "lint-compose needs files", command: "lint-compose", wantBool: true},
-		{name: "lint-workflow needs files", command: "lint-workflow", wantBool: true},
-		{name: "lint-go does not", command: "lint-go", wantBool: false},
-		{name: "lint-docs does not", command: "lint-docs", wantBool: false},
-		{name: "lint-fitness does not", command: "lint-fitness", wantBool: false},
-		{name: "lint-deployments does not", command: "lint-deployments", wantBool: false},
+		{name: "lint-text needs files", command: cmdLintText, wantBool: true},
+		{name: "lint-compose needs files", command: cmdLintCompose, wantBool: true},
+		{name: "lint-workflow needs files", command: cmdLintWorkflow, wantBool: true},
+		{name: "lint-go does not", command: cmdLintGo, wantBool: false},
+		{name: "lint-docs does not", command: cmdLintDocs, wantBool: false},
+		{name: "lint-fitness does not", command: cmdLintFitness, wantBool: false},
+		{name: "lint-deployments does not", command: cmdLintDeployments, wantBool: false},
 		{name: "github-cleanup does not", command: "github-cleanup", wantBool: false},
 	}
 
@@ -496,7 +496,7 @@ func TestRun_QuietMode(t *testing.T) {
 
 	os.Stderr = w
 
-	runErr := run([]string{"lint-workflow"}, []string{}, true)
+	runErr := run([]string{cmdLintWorkflow}, []string{}, true)
 
 	_ = w.Close()
 	os.Stderr = oldStderr
@@ -520,7 +520,7 @@ func TestCicd_QuietFlagShort(t *testing.T) {
 
 	os.Stderr = w
 
-	exitCode := Cicd([]string{"cicd", "-q", "lint-workflow"}, nil, os.Stdout, os.Stderr)
+	exitCode := Cicd([]string{testCicd, testQ, cmdLintWorkflow}, nil, os.Stdout, os.Stderr)
 
 	_ = w.Close()
 	os.Stderr = oldStderr
@@ -543,7 +543,7 @@ func TestCicd_SummaryFlagLong(t *testing.T) {
 
 	os.Stderr = w
 
-	exitCode := Cicd([]string{"cicd", cryptoutilSharedMagic.FlagSummary, "lint-workflow"}, nil, os.Stdout, os.Stderr)
+	exitCode := Cicd([]string{testCicd, cryptoutilSharedMagic.FlagSummary, cmdLintWorkflow}, nil, os.Stdout, os.Stderr)
 
 	_ = w.Close()
 	os.Stderr = oldStderr
@@ -566,7 +566,7 @@ func TestRun_QuietMode_FileBasedCommand(t *testing.T) {
 
 	os.Stderr = w
 
-	runErr := run([]string{"lint-text"}, []string{}, true)
+	runErr := run([]string{cmdLintText}, []string{}, true)
 
 	_ = w.Close()
 	os.Stderr = oldStderr
@@ -593,7 +593,7 @@ func TestRun_QuietMode_FailingCommand(t *testing.T) {
 	os.Stderr = w
 
 	// lint-go-mod fails when dependencies are outdated (always fails in this project).
-	runErr := run([]string{"lint-go-mod"}, []string{}, true)
+	runErr := run([]string{cmdLintGoMod}, []string{}, true)
 
 	_ = w.Close()
 	os.Stderr = oldStderr
@@ -620,7 +620,7 @@ func TestRun_QuietMode_NoFilesCommand(t *testing.T) {
 	os.Stderr = w
 
 	// lint-docs does NOT need files and always passes → covers CICDQuietPassNoFilesFormat branch.
-	runErr := run([]string{"lint-docs"}, []string{}, true)
+	runErr := run([]string{cmdLintDocs}, []string{}, true)
 
 	_ = w.Close()
 	os.Stderr = oldStderr
@@ -644,8 +644,8 @@ func TestRun_JavaTest_PythonTest(t *testing.T) {
 		name    string
 		command string
 	}{
-		{name: "lint-java-test", command: "lint-java-test"},
-		{name: "lint-python-test", command: "lint-python-test"},
+		{name: cmdLintJavaTest, command: cmdLintJavaTest},
+		{name: cmdLintPythonTest, command: cmdLintPythonTest},
 	}
 
 	for _, tc := range tests {

@@ -35,7 +35,7 @@ func TestValidateAccessToken(t *testing.T) {
 				ctx := context.Background()
 				claims := map[string]any{
 					cryptoutilSharedMagic.ClaimSub:   googleUuid.Must(googleUuid.NewV7()).String(),
-					cryptoutilSharedMagic.ClaimScope: "openid profile",
+					cryptoutilSharedMagic.ClaimScope: testOpenidProfile,
 					cryptoutilSharedMagic.ClaimIat:   time.Now().UTC().Unix(),
 					cryptoutilSharedMagic.ClaimExp:   time.Now().UTC().Add(1 * time.Hour).Unix(),
 				}
@@ -55,7 +55,7 @@ func TestValidateAccessToken(t *testing.T) {
 				ctx := context.Background()
 				claims := map[string]any{
 					cryptoutilSharedMagic.ClaimSub:   googleUuid.Must(googleUuid.NewV7()).String(),
-					cryptoutilSharedMagic.ClaimScope: "openid profile",
+					cryptoutilSharedMagic.ClaimScope: testOpenidProfile,
 					cryptoutilSharedMagic.ClaimIat:   time.Now().UTC().Unix(),
 					cryptoutilSharedMagic.ClaimExp:   time.Now().UTC().Add(1 * time.Hour).Unix(),
 				}
@@ -92,12 +92,12 @@ func TestValidateAccessToken(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name:        "invalid_jwe_token",
+			name:        testInvalidJWEToken,
 			tokenFormat: cryptoutilSharedMagic.IdentityTokenFormatJWE,
 			setupToken: func(t *testing.T, _ *cryptoutilIdentityIssuer.TokenService) string {
 				t.Helper()
 
-				return "invalid_jwe_token"
+				return testInvalidJWEToken
 			},
 			wantErr: true,
 		},
@@ -153,7 +153,7 @@ func TestValidateIDToken(t *testing.T) {
 				claims := map[string]any{
 					cryptoutilSharedMagic.ClaimSub:   googleUuid.Must(googleUuid.NewV7()).String(),
 					cryptoutilSharedMagic.ClaimAud:   googleUuid.Must(googleUuid.NewV7()).String(),
-					cryptoutilSharedMagic.ClaimNonce: "test-nonce",
+					cryptoutilSharedMagic.ClaimNonce: testTestNonce,
 					cryptoutilSharedMagic.ClaimIat:   time.Now().UTC().Unix(),
 					cryptoutilSharedMagic.ClaimExp:   time.Now().UTC().Add(1 * time.Hour).Unix(),
 				}
@@ -182,7 +182,7 @@ func TestValidateIDToken(t *testing.T) {
 				claims := map[string]any{
 					cryptoutilSharedMagic.ClaimSub:   googleUuid.Must(googleUuid.NewV7()).String(),
 					cryptoutilSharedMagic.ClaimAud:   googleUuid.Must(googleUuid.NewV7()).String(),
-					cryptoutilSharedMagic.ClaimNonce: "test-nonce",
+					cryptoutilSharedMagic.ClaimNonce: testTestNonce,
 					cryptoutilSharedMagic.ClaimIat:   time.Now().UTC().Add(-2 * time.Hour).Unix(),
 					cryptoutilSharedMagic.ClaimExp:   time.Now().UTC().Add(-1 * time.Hour).Unix(),
 				}
@@ -228,7 +228,7 @@ func TestIsTokenActive(t *testing.T) {
 		wantActive bool
 	}{
 		{
-			name: "valid_active_token",
+			name: testValidActiveToken,
 			claims: map[string]any{
 				cryptoutilSharedMagic.ClaimExp: float64(time.Now().UTC().Add(1 * time.Hour).Unix()),
 				cryptoutilSharedMagic.ClaimNbf: float64(time.Now().UTC().Add(-1 * time.Minute).Unix()),
@@ -296,14 +296,14 @@ func TestIntrospectToken(t *testing.T) {
 		checkExpiry bool
 	}{
 		{
-			name: "valid_active_token",
+			name: testValidActiveToken,
 			setupToken: func(t *testing.T, service *cryptoutilIdentityIssuer.TokenService) string {
 				t.Helper()
 
 				ctx := context.Background()
 				claims := map[string]any{
 					cryptoutilSharedMagic.ClaimSub:   googleUuid.Must(googleUuid.NewV7()).String(),
-					cryptoutilSharedMagic.ClaimScope: "openid profile",
+					cryptoutilSharedMagic.ClaimScope: testOpenidProfile,
 					cryptoutilSharedMagic.ClaimIat:   time.Now().UTC().Unix(),
 					cryptoutilSharedMagic.ClaimExp:   time.Now().UTC().Add(1 * time.Hour).Unix(),
 				}
@@ -323,7 +323,7 @@ func TestIntrospectToken(t *testing.T) {
 				ctx := context.Background()
 				claims := map[string]any{
 					cryptoutilSharedMagic.ClaimSub:   googleUuid.Must(googleUuid.NewV7()).String(),
-					cryptoutilSharedMagic.ClaimScope: "openid profile",
+					cryptoutilSharedMagic.ClaimScope: testOpenidProfile,
 					cryptoutilSharedMagic.ClaimIat:   time.Now().UTC().Add(-2 * time.Hour).Unix(),
 					cryptoutilSharedMagic.ClaimExp:   time.Now().UTC().Add(-1 * time.Hour).Unix(),
 				}
@@ -386,8 +386,8 @@ func TestIssueUserInfoJWT(t *testing.T) {
 			clientID: googleUuid.Must(googleUuid.NewV7()).String(),
 			claims: map[string]any{
 				cryptoutilSharedMagic.ClaimSub:   googleUuid.Must(googleUuid.NewV7()).String(),
-				cryptoutilSharedMagic.ClaimEmail: "user@example.com",
-				cryptoutilSharedMagic.ClaimName:  "Test User",
+				cryptoutilSharedMagic.ClaimEmail: testUserExampleCom,
+				cryptoutilSharedMagic.ClaimName:  testTestUser,
 			},
 			wantErr: false,
 		},
@@ -395,8 +395,8 @@ func TestIssueUserInfoJWT(t *testing.T) {
 			name:     "missing_sub_claim",
 			clientID: googleUuid.Must(googleUuid.NewV7()).String(),
 			claims: map[string]any{
-				cryptoutilSharedMagic.ClaimEmail: "user@example.com",
-				cryptoutilSharedMagic.ClaimName:  "Test User",
+				cryptoutilSharedMagic.ClaimEmail: testUserExampleCom,
+				cryptoutilSharedMagic.ClaimName:  testTestUser,
 			},
 			wantErr: true,
 		},
@@ -405,7 +405,7 @@ func TestIssueUserInfoJWT(t *testing.T) {
 			clientID: "",
 			claims: map[string]any{
 				cryptoutilSharedMagic.ClaimSub:   googleUuid.Must(googleUuid.NewV7()).String(),
-				cryptoutilSharedMagic.ClaimEmail: "user@example.com",
+				cryptoutilSharedMagic.ClaimEmail: testUserExampleCom,
 			},
 			wantErr: false,
 		},

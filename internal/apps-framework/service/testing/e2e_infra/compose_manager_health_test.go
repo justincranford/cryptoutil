@@ -293,7 +293,7 @@ func TestSetupE2ETestMain_SetupFails(t *testing.T) {
 		ComposeFile:    "nonexistent-compose.yml",
 		HealthChecks:   map[string]string{},
 		HealthTimeout:  cryptoutilSharedMagic.TestTLSClientRetryWait,
-		ServiceLogName: "test",
+		ServiceLogName: testTest,
 	}
 
 	code := SetupE2ETestMain(nil, cfg, func(*E2ETestEnv) {})

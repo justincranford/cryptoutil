@@ -30,12 +30,12 @@ func TestEmailOTPRepository_Create(t *testing.T) {
 		expectErr bool
 	}{
 		{
-			name: "SuccessfulCreate",
+			name: testSuccessfulCreate,
 			setupOTP: func() *cryptoutilIdentityDomain.EmailOTP {
 				return &cryptoutilIdentityDomain.EmailOTP{
 					ID:        googleUuid.Must(googleUuid.NewV7()),
 					UserID:    googleUuid.Must(googleUuid.NewV7()),
-					CodeHash:  "hash123",
+					CodeHash:  testHash123,
 					ExpiresAt: time.Now().UTC().Add(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Minute),
 					CreatedAt: time.Now().UTC(),
 				}
@@ -101,7 +101,7 @@ func TestEmailOTPRepository_GetByUserID(t *testing.T) {
 			},
 		},
 		{
-			name: "NotFound",
+			name: testNotFound,
 			setupOTPs: func() (googleUuid.UUID, []*cryptoutilIdentityDomain.EmailOTP) {
 				return googleUuid.Must(googleUuid.NewV7()), nil
 			},
@@ -149,12 +149,12 @@ func TestEmailOTPRepository_GetByID(t *testing.T) {
 		expectErr error
 	}{
 		{
-			name: "Found",
+			name: testFound,
 			setupOTP: func() *cryptoutilIdentityDomain.EmailOTP {
 				return &cryptoutilIdentityDomain.EmailOTP{
 					ID:        googleUuid.Must(googleUuid.NewV7()),
 					UserID:    googleUuid.Must(googleUuid.NewV7()),
-					CodeHash:  "hash123",
+					CodeHash:  testHash123,
 					ExpiresAt: time.Now().UTC().Add(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Minute),
 					CreatedAt: time.Now().UTC(),
 				}
@@ -165,12 +165,12 @@ func TestEmailOTPRepository_GetByID(t *testing.T) {
 			expectErr: nil,
 		},
 		{
-			name: "NotFound",
+			name: testNotFound,
 			setupOTP: func() *cryptoutilIdentityDomain.EmailOTP {
 				return &cryptoutilIdentityDomain.EmailOTP{
 					ID:        googleUuid.Must(googleUuid.NewV7()),
 					UserID:    googleUuid.Must(googleUuid.NewV7()),
-					CodeHash:  "hash123",
+					CodeHash:  testHash123,
 					ExpiresAt: time.Now().UTC().Add(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Minute),
 					CreatedAt: time.Now().UTC(),
 				}
@@ -347,7 +347,7 @@ func TestEmailOTPRepository_DeleteExpired(t *testing.T) {
 				valid := &cryptoutilIdentityDomain.EmailOTP{
 					ID:        googleUuid.Must(googleUuid.NewV7()),
 					UserID:    googleUuid.Must(googleUuid.NewV7()),
-					CodeHash:  "valid",
+					CodeHash:  testValid,
 					ExpiresAt: time.Now().UTC().Add(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Minute),
 					CreatedAt: time.Now().UTC(),
 				}
@@ -363,7 +363,7 @@ func TestEmailOTPRepository_DeleteExpired(t *testing.T) {
 				valid := &cryptoutilIdentityDomain.EmailOTP{
 					ID:        googleUuid.Must(googleUuid.NewV7()),
 					UserID:    googleUuid.Must(googleUuid.NewV7()),
-					CodeHash:  "valid",
+					CodeHash:  testValid,
 					ExpiresAt: time.Now().UTC().Add(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Minute),
 					CreatedAt: time.Now().UTC(),
 				}

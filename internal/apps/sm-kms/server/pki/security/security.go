@@ -42,11 +42,6 @@ const (
 )
 
 // Security configuration defaults.
-const (
-	defaultMinRSAKeySize       = cryptoutilSharedMagic.RSA2048KeySize
-	defaultMinECKeySize        = cryptoutilSharedMagic.ECDSAP256KeySizeBits
-	defaultMaxCertValidityDays = cryptoutilSharedMagic.TLSMaxValidityEndEntityDays
-)
 
 // Threat represents a security threat in the threat model.
 type Threat struct {
@@ -167,8 +162,8 @@ func NewValidator(config *Config) *Validator {
 // DefaultConfig returns a secure default configuration.
 func DefaultConfig() *Config {
 	return &Config{
-		MinRSAKeySize: defaultMinRSAKeySize,
-		MinECKeySize:  defaultMinECKeySize,
+		MinRSAKeySize: cryptoutilSharedMagic.RSA2048KeySize,
+		MinECKeySize:  cryptoutilSharedMagic.ECDSAP256KeySizeBits,
 		AllowedSignatureAlgorithms: []x509.SignatureAlgorithm{
 			x509.SHA256WithRSA,
 			x509.SHA384WithRSA,
@@ -178,7 +173,7 @@ func DefaultConfig() *Config {
 			x509.ECDSAWithSHA512,
 			x509.PureEd25519,
 		},
-		MaxCertValidityDays:          defaultMaxCertValidityDays,
+		MaxCertValidityDays:          cryptoutilSharedMagic.TLSMaxValidityEndEntityDays,
 		RequireKeyUsage:              true,
 		RequireBasicConstraints:      true,
 		RequireSAN:                   true,

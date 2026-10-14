@@ -41,7 +41,7 @@ func TestHandleIntrospect_ActiveToken(t *testing.T) {
 		cryptoutilSharedMagic.ParamToken: []string{testToken.TokenValue},
 	}
 
-	req := httptest.NewRequest("POST", "/oauth2/v1/introspect", strings.NewReader(formBody.Encode()))
+	req := httptest.NewRequest(testPost, testOauth2V1Introspect, strings.NewReader(formBody.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	resp, err := app.Test(req, -1)
@@ -72,7 +72,7 @@ func TestHandleIntrospect_RevokedToken(t *testing.T) {
 		cryptoutilSharedMagic.ParamToken: []string{testToken.TokenValue},
 	}
 
-	req := httptest.NewRequest("POST", "/oauth2/v1/introspect", strings.NewReader(formBody.Encode()))
+	req := httptest.NewRequest(testPost, testOauth2V1Introspect, strings.NewReader(formBody.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	resp, err := app.Test(req, -1)
@@ -121,7 +121,7 @@ func TestHandleIntrospect_ExpiredToken(t *testing.T) {
 		cryptoutilSharedMagic.ParamToken: []string{expiredToken.TokenValue},
 	}
 
-	req := httptest.NewRequest("POST", "/oauth2/v1/introspect", strings.NewReader(formBody.Encode()))
+	req := httptest.NewRequest(testPost, testOauth2V1Introspect, strings.NewReader(formBody.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	resp, err := app.Test(req, -1)
@@ -152,7 +152,7 @@ func TestHandleRevoke_ValidToken(t *testing.T) {
 		cryptoutilSharedMagic.ParamToken: []string{testToken.TokenValue},
 	}
 
-	req := httptest.NewRequest("POST", "/oauth2/v1/revoke", strings.NewReader(formBody.Encode()))
+	req := httptest.NewRequest(testPost, testOauth2V1Revoke, strings.NewReader(formBody.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	resp, err := app.Test(req, -1)
@@ -180,7 +180,7 @@ func TestHandleRevoke_NonExistentToken(t *testing.T) {
 		cryptoutilSharedMagic.ParamToken: []string{"non-existent-token-12345"},
 	}
 
-	req := httptest.NewRequest("POST", "/oauth2/v1/revoke", strings.NewReader(formBody.Encode()))
+	req := httptest.NewRequest(testPost, testOauth2V1Revoke, strings.NewReader(formBody.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	resp, err := app.Test(req, -1)
@@ -202,7 +202,7 @@ func createIntrospectRevokeTestConfig(t *testing.T) *cryptoutilIdentityConfig.Co
 			DSN:  fmt.Sprintf("file:test_%s.db?mode=memory&cache=shared", testID),
 		},
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{
-			Issuer: "https://localhost:8080",
+			Issuer: testHTTPSLocalhost8080,
 		},
 	}
 }

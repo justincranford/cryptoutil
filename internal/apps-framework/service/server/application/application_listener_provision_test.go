@@ -34,7 +34,7 @@ func TestProvisionDatabase_ErrorPaths(t *testing.T) {
 	}{
 		{
 			name:          "Unsupported database scheme",
-			databaseURL:   "mysql://user:pass@localhost:3306/db",
+			databaseURL:   testMysqlUserPassLocalhost3306DB,
 			containerMode: cryptoutilSharedMagic.DefaultDatabaseContainerDisabled,
 			expectError:   true,
 			errorContains: "unsupported database URL scheme",
@@ -65,11 +65,11 @@ func TestProvisionDatabase_ErrorPaths(t *testing.T) {
 			t.Parallel()
 
 			settings := &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{
-				LogLevel:          "info",
-				OTLPEndpoint:      "grpc://localhost:4317",
+				LogLevel:          testInfo,
+				OTLPEndpoint:      testGrpcLocalhost4317,
 				OTLPService:       "test-error-paths",
 				OTLPVersion:       cryptoutilSharedMagic.ServiceVersion,
-				OTLPEnvironment:   "test",
+				OTLPEnvironment:   testTest,
 				UnsealMode:        cryptoutilSharedMagic.DefaultUnsealModeSysInfo,
 				DatabaseURL:       tt.databaseURL,
 				DatabaseContainer: tt.containerMode,
@@ -217,7 +217,7 @@ func TestStartCoreWithServices_InitializeServicesFails(t *testing.T) {
 		DevMode:                    true,
 		VerboseMode:                false,
 		DatabaseURL:                dbName,
-		OTLPService:                "template-service-test",
+		OTLPService:                testTemplateServiceTest,
 		OTLPEnabled:                false,
 		OTLPEndpoint:               cryptoutilSharedMagic.DefaultOTLPEndpointDefault,
 		LogLevel:                   cryptoutilSharedMagic.DefaultLogLevelInfo,
@@ -253,12 +253,12 @@ func TestStartBasic_UnsealKeysServiceFailure(t *testing.T) {
 	settings := &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{
 		DevMode:         false, // Must be false to use UnsealMode
 		VerboseMode:     false,
-		LogLevel:        "info", // Required for telemetry to succeed
-		OTLPEnabled:     false,  // Disable OTLP to avoid endpoint issues
-		OTLPEndpoint:    "grpc://localhost:4317",
-		OTLPService:     "test-service",
+		LogLevel:        testInfo, // Required for telemetry to succeed
+		OTLPEnabled:     false,    // Disable OTLP to avoid endpoint issues
+		OTLPEndpoint:    testGrpcLocalhost4317,
+		OTLPService:     testTestService,
 		OTLPVersion:     cryptoutilSharedMagic.ServiceVersion,
-		OTLPEnvironment: "test",
+		OTLPEnvironment: testTest,
 		UnsealMode:      "invalid-mode", // Invalid mode triggers unseal service error
 		DatabaseURL:     cryptoutilSharedMagic.SQLiteInMemoryDSN,
 	}

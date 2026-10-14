@@ -179,7 +179,7 @@ func TestLintHostPortRanges_NoViolations(t *testing.T) {
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	filesByExtension := map[string][]string{
-		"yml": {composeFile},
+		valueYml: {composeFile},
 	}
 
 	err = Check(logger, filesByExtension)
@@ -201,7 +201,7 @@ func TestLintHostPortRanges_WithViolations(t *testing.T) {
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	filesByExtension := map[string][]string{
-		"yml": {composeFile},
+		valueYml: {composeFile},
 	}
 
 	err = Check(logger, filesByExtension)
@@ -222,7 +222,7 @@ func TestLintHostPortRanges_NonComposeYAMLSkipped(t *testing.T) {
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	filesByExtension := map[string][]string{
-		"yml": {nonComposeFile},
+		valueYml: {nonComposeFile},
 	}
 
 	err = Check(logger, filesByExtension)

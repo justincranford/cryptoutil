@@ -74,8 +74,8 @@ func TestLoadAliasMap_Errors(t *testing.T) {
 		readFileFn func(string) ([]byte, error)
 		wantErr    string
 	}{
-		{name: "file not found", rootDir: t.TempDir(), readFileFn: os.ReadFile, wantErr: "failed to read"},
-		{name: "read file error", rootDir: "dummy", readFileFn: func(_ string) ([]byte, error) { return nil, errors.New("read error") }, wantErr: "failed to read"},
+		{name: "file not found", rootDir: t.TempDir(), readFileFn: os.ReadFile, wantErr: testFailedToRead},
+		{name: "read file error", rootDir: "dummy", readFileFn: func(_ string) ([]byte, error) { return nil, errors.New("read error") }, wantErr: testFailedToRead},
 	}
 
 	for _, tc := range tests {
@@ -161,7 +161,7 @@ func TestCheckInDir_FileHandling(t *testing.T) {
 
 				return rootDir
 			},
-			wantErr: "violation(s)",
+			wantErr: testViolationS,
 		},
 		{
 			name: "violation no alias",
@@ -172,7 +172,7 @@ func TestCheckInDir_FileHandling(t *testing.T) {
 
 				return rootDir
 			},
-			wantErr: "violation(s)",
+			wantErr: testViolationS,
 		},
 		{
 			name: "blank import allowed",
@@ -260,7 +260,7 @@ func TestCheckInDir_LoadAliasMapError(t *testing.T) {
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	err := CheckInDir(logger, t.TempDir(), os.ReadFile, filepath.WalkDir)
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "failed to read")
+	require.Contains(t, err.Error(), testFailedToRead)
 }
 
 func TestCheckInDir_WalkCallbackError(t *testing.T) {

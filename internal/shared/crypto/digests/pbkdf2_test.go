@@ -124,7 +124,7 @@ func TestVerifySecret(t *testing.T) {
 			},
 			wantOK:   false,
 			wantErr:  true,
-			errMatch: "stored hash empty",
+			errMatch: valueStoredHashEmpty,
 		},
 		{
 			name: "invalid hash format - non-versioned",
@@ -133,7 +133,7 @@ func TestVerifySecret(t *testing.T) {
 			},
 			wantOK:   false,
 			wantErr:  true,
-			errMatch: "unsupported hash format",
+			errMatch: testUnsupportedHashFormat,
 		},
 		{
 			name: "invalid iterations in hash - old format rejected",
@@ -142,7 +142,7 @@ func TestVerifySecret(t *testing.T) {
 			},
 			wantOK:   false,
 			wantErr:  true,
-			errMatch: "unsupported hash format",
+			errMatch: testUnsupportedHashFormat,
 		},
 		{
 			name: "zero iterations in hash - old format rejected",
@@ -151,7 +151,7 @@ func TestVerifySecret(t *testing.T) {
 			},
 			wantOK:   false,
 			wantErr:  true,
-			errMatch: "unsupported hash format",
+			errMatch: testUnsupportedHashFormat,
 		},
 		{
 			name: "invalid salt encoding - old format rejected",
@@ -160,7 +160,7 @@ func TestVerifySecret(t *testing.T) {
 			},
 			wantOK:   false,
 			wantErr:  true,
-			errMatch: "unsupported hash format",
+			errMatch: testUnsupportedHashFormat,
 		},
 		{
 			name: "invalid dk encoding - old format rejected",
@@ -169,7 +169,7 @@ func TestVerifySecret(t *testing.T) {
 			},
 			wantOK:   false,
 			wantErr:  true,
-			errMatch: "unsupported hash format",
+			errMatch: testUnsupportedHashFormat,
 		},
 	}
 

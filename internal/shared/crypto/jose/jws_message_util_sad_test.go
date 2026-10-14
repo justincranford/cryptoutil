@@ -289,7 +289,7 @@ func Test_LogJWSInfo_AllHeaders(t *testing.T) {
 			alg:  &AlgRS256,
 			headers: map[string]any{
 				joseJws.KeyIDKey:       "test-kid-" + googleUuid.NewString(),
-				joseJws.TypeKey:        "JWT",
+				joseJws.TypeKey:        testJWT,
 				joseJws.ContentTypeKey: "application/json",
 				joseJws.JWKSetURLKey:   "https://example.com/jwks",
 				joseJws.X509URLKey:     "https://example.com/x509",
@@ -308,7 +308,7 @@ func Test_LogJWSInfo_AllHeaders(t *testing.T) {
 			name: "HS256 with type only",
 			alg:  &AlgHS256,
 			headers: map[string]any{
-				joseJws.TypeKey: "JWT",
+				joseJws.TypeKey: testJWT,
 			},
 		},
 		{

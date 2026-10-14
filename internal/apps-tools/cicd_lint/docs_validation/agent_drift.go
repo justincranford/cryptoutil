@@ -140,7 +140,7 @@ func CheckAgentDrift(rootDir string, readFileFn func(string) ([]byte, error)) (*
 		if parseErr != nil {
 			result.Violations = append(result.Violations, AgentDriftViolation{
 				CopilotFile: copilotRelPath,
-				Field:       "frontmatter",
+				Field:       valueFrontmatter,
 				Detail:      fmt.Sprintf("Copilot agent parse error: %v", parseErr),
 			})
 
@@ -158,7 +158,7 @@ func CheckAgentDrift(rootDir string, readFileFn func(string) ([]byte, error)) (*
 			result.Violations = append(result.Violations, AgentDriftViolation{
 				CopilotFile: copilotRelPath,
 				ClaudeFile:  claudeRelPath,
-				Field:       "missing",
+				Field:       valueMissing,
 				Detail:      fmt.Sprintf("Claude Code agent file not found: %s", claudeRelPath),
 			})
 
@@ -172,7 +172,7 @@ func CheckAgentDrift(rootDir string, readFileFn func(string) ([]byte, error)) (*
 			result.Violations = append(result.Violations, AgentDriftViolation{
 				CopilotFile: copilotRelPath,
 				ClaudeFile:  claudeRelPath,
-				Field:       "frontmatter",
+				Field:       valueFrontmatter,
 				Detail:      fmt.Sprintf("Claude Code agent parse error: %v", claudeParseErr),
 			})
 

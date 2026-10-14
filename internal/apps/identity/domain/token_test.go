@@ -20,17 +20,17 @@ func TestToken_BeforeCreate(t *testing.T) {
 		expectIDChange bool
 	}{
 		{
-			name: "generates ID when empty",
+			name: testGeneratesIDWhenEmpty,
 			token: &cryptoutilIdentityDomain.Token{
-				TokenValue: "test_token",
+				TokenValue: testTestToken,
 			},
 			expectIDChange: true,
 		},
 		{
-			name: "preserves existing ID",
+			name: testPreservesExistingID,
 			token: &cryptoutilIdentityDomain.Token{
 				ID:         googleUuid.Must(googleUuid.NewV7()),
-				TokenValue: "test_token",
+				TokenValue: testTestToken,
 			},
 			expectIDChange: false,
 		},

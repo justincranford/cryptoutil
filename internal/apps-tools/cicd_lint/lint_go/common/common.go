@@ -107,7 +107,7 @@ type MagicConstant struct {
 	IsTestConst bool
 }
 
-// MagicInventory holds all BasicLit-valued constants parsed from the magic package.
+// MagicInventory holds exported BasicLit-valued constants parsed from the magic package.
 type MagicInventory struct {
 	// Constants is the full sorted list.
 	Constants []MagicConstant
@@ -120,7 +120,7 @@ type MagicInventory struct {
 }
 
 // ParseMagicDir parses all non-test .go files in magicDir and returns a
-// MagicInventory of every constant whose value is a basic literal.
+// MagicInventory of exported constants whose value is a basic literal.
 func ParseMagicDir(magicDir string) (*MagicInventory, error) {
 	fset := token.NewFileSet()
 
@@ -142,6 +142,7 @@ func ParseMagicDir(magicDir string) (*MagicInventory, error) {
 
 			ast.Inspect(file, func(n ast.Node) bool {
 				decl, ok := n.(*ast.GenDecl)
+
 				if !ok || decl.Tok != token.CONST {
 					return true
 				}
@@ -153,6 +154,10 @@ func ParseMagicDir(magicDir string) (*MagicInventory, error) {
 					}
 
 					for i, nameIdent := range vspec.Names {
+						if !nameIdent.IsExported() {
+							continue
+						}
+
 						if i >= len(vspec.Values) {
 							continue
 						}

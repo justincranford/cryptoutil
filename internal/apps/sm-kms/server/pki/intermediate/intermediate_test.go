@@ -24,7 +24,7 @@ func createTestRootCA(t *testing.T, provider cryptoutilCACrypto.Provider) *crypt
 		Name: "Test Root CA",
 		KeySpec: cryptoutilCACrypto.KeySpec{
 			Type:       cryptoutilSharedMagic.ECDSA,
-			ECDSACurve: testLiteralP256,
+			ECDSACurve: cryptoutilSharedMagic.P256,
 		},
 		ValidityDuration:  cryptoutilSharedMagic.MaxErrorDisplay * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour,
 		PathLenConstraint: 2,
@@ -48,7 +48,7 @@ func TestProvisioner_Provision_ECDSA(t *testing.T) {
 		Name: "Test Intermediate CA",
 		KeySpec: cryptoutilCACrypto.KeySpec{
 			Type:       cryptoutilSharedMagic.ECDSA,
-			ECDSACurve: testLiteralP256,
+			ECDSACurve: cryptoutilSharedMagic.P256,
 		},
 		ValidityDuration:  cryptoutilSharedMagic.JoseJADefaultMaxMaterials * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour,
 		PathLenConstraint: 1,
@@ -191,7 +191,7 @@ func TestProvisioner_Provision_WithPersistence(t *testing.T) {
 		Name: "Persisted Intermediate CA",
 		KeySpec: cryptoutilCACrypto.KeySpec{
 			Type:       cryptoutilSharedMagic.ECDSA,
-			ECDSACurve: testLiteralP256,
+			ECDSACurve: cryptoutilSharedMagic.P256,
 		},
 		ValidityDuration:  cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour,
 		PathLenConstraint: 0,
@@ -250,7 +250,7 @@ func TestProvisioner_Provision_InvalidConfig(t *testing.T) {
 			config: &IntermediateCAConfig{
 				KeySpec: cryptoutilCACrypto.KeySpec{
 					Type:       cryptoutilSharedMagic.ECDSA,
-					ECDSACurve: testLiteralP256,
+					ECDSACurve: cryptoutilSharedMagic.P256,
 				},
 				ValidityDuration:  1 * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour,
 				IssuerCertificate: rootCA.Certificate,
@@ -261,10 +261,10 @@ func TestProvisioner_Provision_InvalidConfig(t *testing.T) {
 		{
 			name: "zero-validity",
 			config: &IntermediateCAConfig{
-				Name: testLiteralTestCA,
+				Name: cryptoutilSharedMagic.TEST_CA_CN,
 				KeySpec: cryptoutilCACrypto.KeySpec{
 					Type:       cryptoutilSharedMagic.ECDSA,
-					ECDSACurve: testLiteralP256,
+					ECDSACurve: cryptoutilSharedMagic.P256,
 				},
 				ValidityDuration:  0,
 				IssuerCertificate: rootCA.Certificate,
@@ -275,10 +275,10 @@ func TestProvisioner_Provision_InvalidConfig(t *testing.T) {
 		{
 			name: "negative-path-len",
 			config: &IntermediateCAConfig{
-				Name: testLiteralTestCA,
+				Name: cryptoutilSharedMagic.TEST_CA_CN,
 				KeySpec: cryptoutilCACrypto.KeySpec{
 					Type:       cryptoutilSharedMagic.ECDSA,
-					ECDSACurve: testLiteralP256,
+					ECDSACurve: cryptoutilSharedMagic.P256,
 				},
 				ValidityDuration:  1 * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour,
 				PathLenConstraint: -1,
@@ -290,10 +290,10 @@ func TestProvisioner_Provision_InvalidConfig(t *testing.T) {
 		{
 			name: "no-issuer-cert",
 			config: &IntermediateCAConfig{
-				Name: testLiteralTestCA,
+				Name: cryptoutilSharedMagic.TEST_CA_CN,
 				KeySpec: cryptoutilCACrypto.KeySpec{
 					Type:       cryptoutilSharedMagic.ECDSA,
-					ECDSACurve: testLiteralP256,
+					ECDSACurve: cryptoutilSharedMagic.P256,
 				},
 				ValidityDuration: 1 * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour,
 				IssuerPrivateKey: rootCA.PrivateKey,
@@ -303,10 +303,10 @@ func TestProvisioner_Provision_InvalidConfig(t *testing.T) {
 		{
 			name: "no-issuer-key",
 			config: &IntermediateCAConfig{
-				Name: testLiteralTestCA,
+				Name: cryptoutilSharedMagic.TEST_CA_CN,
 				KeySpec: cryptoutilCACrypto.KeySpec{
 					Type:       cryptoutilSharedMagic.ECDSA,
-					ECDSACurve: testLiteralP256,
+					ECDSACurve: cryptoutilSharedMagic.P256,
 				},
 				ValidityDuration:  1 * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour,
 				IssuerCertificate: rootCA.Certificate,
@@ -339,7 +339,7 @@ func TestProvisioner_Provision_PathLenEnforcement(t *testing.T) {
 		Name: "Zero Path Root CA",
 		KeySpec: cryptoutilCACrypto.KeySpec{
 			Type:       cryptoutilSharedMagic.ECDSA,
-			ECDSACurve: testLiteralP256,
+			ECDSACurve: cryptoutilSharedMagic.P256,
 		},
 		ValidityDuration:  cryptoutilSharedMagic.JoseJADefaultMaxMaterials * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour,
 		PathLenConstraint: 0,
@@ -354,7 +354,7 @@ func TestProvisioner_Provision_PathLenEnforcement(t *testing.T) {
 		Name: "Should Fail Intermediate",
 		KeySpec: cryptoutilCACrypto.KeySpec{
 			Type:       cryptoutilSharedMagic.ECDSA,
-			ECDSACurve: testLiteralP256,
+			ECDSACurve: cryptoutilSharedMagic.P256,
 		},
 		ValidityDuration:  cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour,
 		PathLenConstraint: 0,
@@ -379,7 +379,7 @@ func TestProvisioner_Provision_ValidityTruncation(t *testing.T) {
 		Name: "Short Root CA",
 		KeySpec: cryptoutilCACrypto.KeySpec{
 			Type:       cryptoutilSharedMagic.ECDSA,
-			ECDSACurve: testLiteralP256,
+			ECDSACurve: cryptoutilSharedMagic.P256,
 		},
 		ValidityDuration:  1 * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour, // 1 year.
 		PathLenConstraint: 1,
@@ -394,7 +394,7 @@ func TestProvisioner_Provision_ValidityTruncation(t *testing.T) {
 		Name: "Truncated Intermediate",
 		KeySpec: cryptoutilCACrypto.KeySpec{
 			Type:       cryptoutilSharedMagic.ECDSA,
-			ECDSACurve: testLiteralP256,
+			ECDSACurve: cryptoutilSharedMagic.P256,
 		},
 		ValidityDuration:  cryptoutilSharedMagic.JoseJADefaultMaxMaterials * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour, // Request 10 years.
 		PathLenConstraint: 0,
@@ -422,7 +422,7 @@ func TestProvisioner_Provision_ChainVerification(t *testing.T) {
 		Name: "Chain Test Intermediate",
 		KeySpec: cryptoutilCACrypto.KeySpec{
 			Type:       cryptoutilSharedMagic.ECDSA,
-			ECDSACurve: testLiteralP256,
+			ECDSACurve: cryptoutilSharedMagic.P256,
 		},
 		ValidityDuration:  cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour,
 		PathLenConstraint: 0,

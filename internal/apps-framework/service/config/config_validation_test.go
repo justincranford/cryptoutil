@@ -71,20 +71,20 @@ func TestValidateConfiguration(t *testing.T) {
 			modify: func(s *ServiceFrameworkServerSettings) {
 				s.BindPublicAddress = ""
 			},
-			wantErrorMessage: "bind public address cannot be blank",
+			wantErrorMessage: testBindPublicAddressCannotBeBlank,
 		},
 		{
 			name: "blank private address",
 			modify: func(s *ServiceFrameworkServerSettings) {
 				s.BindPrivateAddress = ""
 			},
-			wantErrorMessage: "bind private address cannot be blank",
+			wantErrorMessage: testBindPrivateAddressCannotBeBlank,
 		},
 		// Valid production configurations.
 		{
 			name: "valid production PostgreSQL config",
 			modify: func(s *ServiceFrameworkServerSettings) {
-				s.BindPublicAddress = "192.168.1.100"
+				s.BindPublicAddress = test1921681100
 				s.BindPublicPort = cryptoutilSharedMagic.TestServerPort
 				s.DatabaseURL = "postgres://user:pass@db.example.com:5432/production"
 				s.TLSPublicDNSNames = []string{"api.example.com"}
@@ -98,10 +98,10 @@ func TestValidateConfiguration(t *testing.T) {
 			modify: func(s *ServiceFrameworkServerSettings) {
 				s.DatabaseURL = "invalid-format-no-scheme"
 			},
-			wantErrorMessage: "invalid database URL format",
+			wantErrorMessage: testInvalidDatabaseURLFormat,
 		},
 		{
-			name: "invalid log level",
+			name: testInvalidLogLevel,
 			modify: func(s *ServiceFrameworkServerSettings) {
 				s.LogLevel = "INVALID_LEVEL"
 			},
@@ -112,7 +112,7 @@ func TestValidateConfiguration(t *testing.T) {
 			modify: func(s *ServiceFrameworkServerSettings) {
 				s.CORSAllowedOrigins = []string{"invalid-origin-no-scheme"}
 			},
-			wantErrorMessage: "invalid CORS origin format",
+			wantErrorMessage: testInvalidCorsOriginFormat,
 		},
 		{
 			name: "invalid OTLP endpoint format (missing scheme)",
@@ -120,7 +120,7 @@ func TestValidateConfiguration(t *testing.T) {
 				s.OTLPEnabled = true
 				s.OTLPEndpoint = "invalid-endpoint-no-scheme"
 			},
-			wantErrorMessage: "invalid OTLP endpoint format",
+			wantErrorMessage: testInvalidOtlpEndpointFormat,
 		},
 		// Port edge cases.
 		{
@@ -149,14 +149,14 @@ func TestValidateConfiguration(t *testing.T) {
 		},
 		// Protocol validation.
 		{
-			name: "invalid public protocol",
+			name: testInvalidPublicProtocol,
 			modify: func(s *ServiceFrameworkServerSettings) {
-				s.BindPublicProtocol = "ftp"
+				s.BindPublicProtocol = testFtp
 			},
-			wantErrorMessage: "invalid public protocol 'ftp'",
+			wantErrorMessage: testInvalidPublicProtocolFtp,
 		},
 		{
-			name: "invalid private protocol",
+			name: testInvalidPrivateProtocol,
 			modify: func(s *ServiceFrameworkServerSettings) {
 				s.BindPrivateProtocol = "gopher"
 			},
@@ -176,14 +176,14 @@ func TestValidateConfiguration(t *testing.T) {
 			modify: func(s *ServiceFrameworkServerSettings) {
 				s.BrowserIPRateLimit = 0
 			},
-			wantErrorMessage: "browser rate limit cannot be 0",
+			wantErrorMessage: testBrowserRateLimitCannotBe0,
 		},
 		{
 			name: "zero service rate limit rejected",
 			modify: func(s *ServiceFrameworkServerSettings) {
 				s.ServiceIPRateLimit = 0
 			},
-			wantErrorMessage: "service rate limit cannot be 0",
+			wantErrorMessage: testServiceRateLimitCannotBe0,
 		},
 		{
 			name: "very high browser rate limit warning",
@@ -208,7 +208,7 @@ func TestValidateConfiguration(t *testing.T) {
 				s.TLSPublicDNSNames = nil
 				s.TLSPublicIPAddresses = nil
 			},
-			wantErrorMessage: "HTTPS public protocol requires TLS DNS names or IP addresses",
+			wantErrorMessage: testHTTPSPublicProtocolRequiresTLSDNSNamesOrIPAddresses,
 		},
 		{
 			name: "HTTPS private without TLS config",
@@ -218,7 +218,7 @@ func TestValidateConfiguration(t *testing.T) {
 				s.TLSPrivateDNSNames = nil
 				s.TLSPrivateIPAddresses = nil
 			},
-			wantErrorMessage: "HTTPS private protocol requires TLS DNS names or IP addresses",
+			wantErrorMessage: testHTTPSPrivateProtocolRequiresTLSDNSNamesOrIPAddresses,
 		},
 	}
 

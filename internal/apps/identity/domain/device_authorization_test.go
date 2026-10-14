@@ -141,8 +141,8 @@ func TestDeviceAuthorization_FullLifecycle(t *testing.T) {
 
 	auth := &DeviceAuthorization{
 		ID:         authID,
-		ClientID:   "test-client",
-		DeviceCode: "device-code-123",
+		ClientID:   testTestClient,
+		DeviceCode: testDeviceCode123,
 		UserCode:   "WDJB-MJHT",
 		Scope:      "openid profile",
 		Status:     DeviceAuthStatusPending,
@@ -184,8 +184,8 @@ func TestDeviceAuthorization_PollingMetadata(t *testing.T) {
 
 	auth := &DeviceAuthorization{
 		ID:         googleUuid.Must(googleUuid.NewV7()),
-		ClientID:   "test-client",
-		DeviceCode: "device-code-123",
+		ClientID:   testTestClient,
+		DeviceCode: testDeviceCode123,
 		UserCode:   "ABCD-1234",
 		Status:     DeviceAuthStatusPending,
 		CreatedAt:  time.Now().UTC(),

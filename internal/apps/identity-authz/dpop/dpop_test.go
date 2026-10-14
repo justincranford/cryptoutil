@@ -47,23 +47,23 @@ func TestValidateProof(t *testing.T) {
 		{
 			name: "valid DPoP proof",
 			dpopBuilder: func() string {
-				return buildValidProof(t, privateKey, publicKey, "POST", "https://server.example.com/token", "")
+				return buildValidProof(t, privateKey, publicKey, testPost, testHTTPSServerExampleComToken, "")
 			},
-			httpMethod:  "POST",
-			httpURI:     "https://server.example.com/token",
+			httpMethod:  testPost,
+			httpURI:     testHTTPSServerExampleComToken,
 			accessToken: "",
 			expectError: false,
 		},
 		{
 			name: "valid DPoP proof with access token",
 			dpopBuilder: func() string {
-				accessToken := "test-access-token"
+				accessToken := testTestAccessToken
 
-				return buildValidProof(t, privateKey, publicKey, "GET", "https://server.example.com/resource", accessToken)
+				return buildValidProof(t, privateKey, publicKey, testGet, testHTTPSServerExampleComResource, accessToken)
 			},
-			httpMethod:  "GET",
-			httpURI:     "https://server.example.com/resource",
-			accessToken: "test-access-token",
+			httpMethod:  testGet,
+			httpURI:     testHTTPSServerExampleComResource,
+			accessToken: testTestAccessToken,
 			expectError: false,
 		},
 		{
@@ -71,38 +71,38 @@ func TestValidateProof(t *testing.T) {
 			dpopBuilder: func() string {
 				return ""
 			},
-			httpMethod:    "POST",
-			httpURI:       "https://server.example.com/token",
+			httpMethod:    testPost,
+			httpURI:       testHTTPSServerExampleComToken,
 			expectError:   true,
 			errorContains: "DPoP header is required",
 		},
 		{
 			name: "htm mismatch",
 			dpopBuilder: func() string {
-				return buildValidProof(t, privateKey, publicKey, "GET", "https://server.example.com/token", "")
+				return buildValidProof(t, privateKey, publicKey, testGet, testHTTPSServerExampleComToken, "")
 			},
-			httpMethod:    "POST",
-			httpURI:       "https://server.example.com/token",
+			httpMethod:    testPost,
+			httpURI:       testHTTPSServerExampleComToken,
 			expectError:   true,
 			errorContains: "htm claim must match HTTP method",
 		},
 		{
 			name: "htu mismatch",
 			dpopBuilder: func() string {
-				return buildValidProof(t, privateKey, publicKey, "POST", "https://other.example.com/token", "")
+				return buildValidProof(t, privateKey, publicKey, testPost, "https://other.example.com/token", "")
 			},
-			httpMethod:    "POST",
-			httpURI:       "https://server.example.com/token",
+			httpMethod:    testPost,
+			httpURI:       testHTTPSServerExampleComToken,
 			expectError:   true,
 			errorContains: "htu claim must match HTTP URI",
 		},
 		{
 			name: "ath claim mismatch",
 			dpopBuilder: func() string {
-				return buildValidProof(t, privateKey, publicKey, "GET", "https://server.example.com/resource", "wrong-token")
+				return buildValidProof(t, privateKey, publicKey, testGet, testHTTPSServerExampleComResource, "wrong-token")
 			},
-			httpMethod:    "GET",
-			httpURI:       "https://server.example.com/resource",
+			httpMethod:    testGet,
+			httpURI:       testHTTPSServerExampleComResource,
 			accessToken:   "correct-token",
 			expectError:   true,
 			errorContains: "ath claim does not match access token",
@@ -256,7 +256,7 @@ func buildAccessTokenWithCnf(t *testing.T, jkt string) string {
 
 	token := joseJwt.New()
 	require.NoError(t, token.Set(cryptoutilSharedMagic.ClaimSub, "test-subject"))
-	require.NoError(t, token.Set("cnf", map[string]any{"jkt": jkt}))
+	require.NoError(t, token.Set("cnf", map[string]any{valueJkt: jkt}))
 
 	signed, err := joseJwt.Sign(token, joseJwt.WithKey(joseJwa.ES256(), privateKey))
 	require.NoError(t, err)

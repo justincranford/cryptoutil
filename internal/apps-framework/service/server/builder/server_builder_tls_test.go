@@ -41,9 +41,9 @@ func TestMergedMigrations_ReadDir_SubPath(t *testing.T) {
 
 	merged := &mergedMigrations{
 		templateFS:   templateFS,
-		templatePath: "migrations",
+		templatePath: valueMigrations,
 		domainFS:     domainFS,
-		domainPath:   "migrations",
+		domainPath:   valueMigrations,
 	}
 
 	// Read merged subdirectory.
@@ -57,22 +57,22 @@ func TestMergedMigrations_Open_RootDir(t *testing.T) {
 	t.Parallel()
 
 	templateFS := fstest.MapFS{
-		"migrations/1001_template.up.sql": &fstest.MapFile{
+		testMigrations1001TemplateUpSQL: &fstest.MapFile{
 			Data: []byte("CREATE TABLE template (id TEXT);"),
 		},
 	}
 
 	domainFS := fstest.MapFS{
-		"migrations/2001_domain.up.sql": &fstest.MapFile{
+		testMigrations2001DomainUpSQL: &fstest.MapFile{
 			Data: []byte("CREATE TABLE domain (id TEXT);"),
 		},
 	}
 
 	merged := &mergedMigrations{
 		templateFS:   templateFS,
-		templatePath: "migrations",
+		templatePath: valueMigrations,
 		domainFS:     domainFS,
-		domainPath:   "migrations",
+		domainPath:   valueMigrations,
 	}
 
 	// Open root directory (should work for both "." and "").
@@ -94,14 +94,14 @@ func TestMergedMigrations_ReadDir_NilDomainFS(t *testing.T) {
 	t.Parallel()
 
 	templateFS := fstest.MapFS{
-		"migrations/1001_template.up.sql": &fstest.MapFile{
+		testMigrations1001TemplateUpSQL: &fstest.MapFile{
 			Data: []byte("CREATE TABLE template (id TEXT);"),
 		},
 	}
 
 	merged := &mergedMigrations{
 		templateFS:   templateFS,
-		templatePath: "migrations",
+		templatePath: valueMigrations,
 		domainFS:     nil, // No domain FS
 		domainPath:   "",
 	}
@@ -117,14 +117,14 @@ func TestMergedMigrations_Open_NilDomainFS(t *testing.T) {
 	t.Parallel()
 
 	templateFS := fstest.MapFS{
-		"migrations/1001_template.up.sql": &fstest.MapFile{
+		testMigrations1001TemplateUpSQL: &fstest.MapFile{
 			Data: []byte("CREATE TABLE template (id TEXT);"),
 		},
 	}
 
 	merged := &mergedMigrations{
 		templateFS:   templateFS,
-		templatePath: "migrations",
+		templatePath: valueMigrations,
 		domainFS:     nil, // No domain FS
 		domainPath:   "",
 	}
@@ -142,14 +142,14 @@ func TestMergedMigrations_ReadFile_NilDomainFS(t *testing.T) {
 	t.Parallel()
 
 	templateFS := fstest.MapFS{
-		"migrations/1001_template.up.sql": &fstest.MapFile{
+		testMigrations1001TemplateUpSQL: &fstest.MapFile{
 			Data: []byte("CREATE TABLE template_only (id TEXT);"),
 		},
 	}
 
 	merged := &mergedMigrations{
 		templateFS:   templateFS,
-		templatePath: "migrations",
+		templatePath: valueMigrations,
 		domainFS:     nil, // No domain FS
 		domainPath:   "",
 	}
@@ -165,14 +165,14 @@ func TestMergedMigrations_Stat_NilDomainFS(t *testing.T) {
 	t.Parallel()
 
 	templateFS := fstest.MapFS{
-		"migrations/1001_template.up.sql": &fstest.MapFile{
+		testMigrations1001TemplateUpSQL: &fstest.MapFile{
 			Data: []byte("CREATE TABLE template_stat (id TEXT);"),
 		},
 	}
 
 	merged := &mergedMigrations{
 		templateFS:   templateFS,
-		templatePath: "migrations",
+		templatePath: valueMigrations,
 		domainFS:     nil, // No domain FS
 		domainPath:   "",
 	}

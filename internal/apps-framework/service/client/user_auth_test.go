@@ -42,7 +42,7 @@ func TestRegisterServiceUser_Success(t *testing.T) {
 
 			w.WriteHeader(http.StatusCreated)
 			_ = json.NewEncoder(w).Encode(map[string]string{
-				"user_id": userID.String(),
+				testUserID: userID.String(),
 			})
 
 		case serviceLoginPath:
@@ -98,7 +98,7 @@ func TestRegisterBrowserUser_Success(t *testing.T) {
 		case browserRegisterPath:
 			w.WriteHeader(http.StatusCreated)
 			_ = json.NewEncoder(w).Encode(map[string]string{
-				"user_id": userID.String(),
+				testUserID: userID.String(),
 			})
 
 		case browserLoginPath:
@@ -193,7 +193,7 @@ func TestRegisterTestUserService_Success(t *testing.T) {
 		case serviceRegisterPath:
 			w.WriteHeader(http.StatusCreated)
 			_ = json.NewEncoder(w).Encode(map[string]string{
-				"user_id": userID.String(),
+				testUserID: userID.String(),
 			})
 		case serviceLoginPath:
 			w.WriteHeader(http.StatusOK)
@@ -225,7 +225,7 @@ func TestRegisterTestUserBrowser_Success(t *testing.T) {
 		case browserRegisterPath:
 			w.WriteHeader(http.StatusCreated)
 			_ = json.NewEncoder(w).Encode(map[string]string{
-				"user_id": userID.String(),
+				testUserID: userID.String(),
 			})
 		case browserLoginPath:
 			w.WriteHeader(http.StatusOK)

@@ -53,8 +53,8 @@ func TestTenant_SetActive(t *testing.T) {
 		active   bool
 		expected int
 	}{
-		{"Set active to true", true, 1},
-		{"Set active to false", false, 0},
+		{testSetActiveToTrue, true, 1},
+		{testSetActiveToFalse, false, 0},
 	}
 
 	for _, tt := range tests {
@@ -170,8 +170,8 @@ func TestUser_SetActive(t *testing.T) {
 		active   bool
 		expected int
 	}{
-		{"Set active to true", true, 1},
-		{"Set active to false", false, 0},
+		{testSetActiveToTrue, true, 1},
+		{testSetActiveToFalse, false, 0},
 	}
 
 	for _, tt := range tests {

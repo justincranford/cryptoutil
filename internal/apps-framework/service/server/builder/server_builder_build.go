@@ -83,7 +83,7 @@ func (b *ServerBuilder) buildWithOperations(operations serverBuilderOperations) 
 		b.config.TLSMixedCAKeyPEM,
 		b.config.TLSPrivateDNSNames,
 		b.config.TLSPrivateIPAddresses,
-		"admin",
+		valueAdmin,
 	)
 	if err != nil {
 		return nil, err
@@ -329,13 +329,13 @@ func (b *ServerBuilder) applyMigrations(sqlDB *sql.DB) error {
 	// Merge template migrations with domain migrations (if provided).
 	var migrationsFS fs.FS = cryptoutilAppsFrameworkServiceServerRepository.MigrationsFS
 
-	migrationsPath := "migrations"
+	migrationsPath := valueMigrations
 
 	if b.migrationFS != nil {
 		// Create merged FS combining template + domain migrations.
 		migrationsFS = &mergedMigrations{
 			templateFS:   cryptoutilAppsFrameworkServiceServerRepository.MigrationsFS,
-			templatePath: "migrations",
+			templatePath: valueMigrations,
 			domainFS:     b.migrationFS,
 			domainPath:   b.migrationsPath,
 		}

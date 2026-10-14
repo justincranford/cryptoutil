@@ -131,7 +131,7 @@ func CheckSkillCommandDrift(rootDir string, readFileFn func(string) ([]byte, err
 			result.Violations = append(result.Violations, SkillCommandDriftViolation{
 				SkillFile:       skillFilePath,
 				ClaudeSkillFile: claudeSkillRelPath,
-				Field:           "missing",
+				Field:           valueMissing,
 				Detail:          fmt.Sprintf("Claude Code skill file not found for skill %q: expected %s", skillName, claudeSkillRelPath),
 			})
 
@@ -162,7 +162,7 @@ func CheckSkillCommandDrift(rootDir string, readFileFn func(string) ([]byte, err
 			result.Violations = append(result.Violations, SkillCommandDriftViolation{
 				SkillFile:       skillFilePath,
 				ClaudeSkillFile: claudeSkillRelPath,
-				Field:           "body-mismatch",
+				Field:           valueBodyMismatch,
 				Detail:          fmt.Sprintf("Claude Code skill %s body content does not match Copilot skill %s", claudeSkillRelPath, skillFilePath),
 			})
 		}
@@ -171,7 +171,7 @@ func CheckSkillCommandDrift(rootDir string, readFileFn func(string) ([]byte, err
 		if !hasMarkdownSection(skillStr, "## Key Rules") {
 			result.Violations = append(result.Violations, SkillCommandDriftViolation{
 				SkillFile: skillFilePath,
-				Field:     "missing-key-rules",
+				Field:     valueMissingKeyRules,
 				Detail:    fmt.Sprintf("Copilot skill %s is missing the '## Key Rules' section", skillFilePath),
 			})
 		}
@@ -181,7 +181,7 @@ func CheckSkillCommandDrift(rootDir string, readFileFn func(string) ([]byte, err
 			result.Violations = append(result.Violations, SkillCommandDriftViolation{
 				SkillFile:       skillFilePath,
 				ClaudeSkillFile: claudeSkillRelPath,
-				Field:           "missing-key-rules",
+				Field:           valueMissingKeyRules,
 				Detail:          fmt.Sprintf("Claude Code skill %s is missing the '## Key Rules' section", claudeSkillRelPath),
 			})
 		}

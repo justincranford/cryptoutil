@@ -155,9 +155,9 @@ func TestCheckTLSCAPolicyPairs_MissingPolicy(t *testing.T) {
 	filePath := filepath.Join(tmpDir, "instance.yml")
 
 	writeFile(t, filePath, strings.Join([]string{
-		"server-admin-tls-ca-file: /certs/admin-ca.crt",
-		"server-public-tls-ca-file: /certs/public-ca.crt",
-		"database-url: sqlite://file::memory:?cache=shared",
+		testServerAdminTLSCAFileCertsAdminCACrt,
+		testServerPublicTLSCAFileCertsPublicCACrt,
+		testDatabaseURLSqliteFileMemoryCacheShared,
 		"", // trailing newline
 	}, "\n"))
 
@@ -174,11 +174,11 @@ func TestCheckTLSCAPolicyPairs_WithPolicy(t *testing.T) {
 	filePath := filepath.Join(tmpDir, "instance.yml")
 
 	writeFile(t, filePath, strings.Join([]string{
-		"server-admin-tls-ca-file: /certs/admin-ca.crt",
+		testServerAdminTLSCAFileCertsAdminCACrt,
 		"server-admin-tls-client-policy: require-and-verify",
-		"server-public-tls-ca-file: /certs/public-ca.crt",
+		testServerPublicTLSCAFileCertsPublicCACrt,
 		"server-public-tls-client-policy: require-and-verify",
-		"database-url: sqlite://file::memory:?cache=shared",
+		testDatabaseURLSqliteFileMemoryCacheShared,
 		"", // trailing newline
 	}, "\n"))
 

@@ -19,7 +19,7 @@ var (
 	ErrDeviceRemoved = errors.New("hardware device removed during authentication")
 
 	// ErrPINRetryExhausted indicates PIN retry limit exceeded.
-	ErrPINRetryExhausted = errors.New("PIN retry limit exhausted")
+	ErrPINRetryExhausted = errors.New(valuePinRetryLimitExhausted)
 
 	// ErrAuthenticationTimeout indicates hardware authentication timed out.
 	ErrAuthenticationTimeout = errors.New("hardware authentication timeout")
@@ -31,7 +31,7 @@ var (
 	ErrInvalidPIN = errors.New("invalid PIN provided")
 
 	// ErrDeviceLocked indicates the hardware device is locked due to too many failed attempts.
-	ErrDeviceLocked = errors.New("hardware device locked")
+	ErrDeviceLocked = errors.New(valueHardwareDeviceLocked)
 )
 
 // HardwareErrorValidator validates hardware authentication errors and determines appropriate responses.

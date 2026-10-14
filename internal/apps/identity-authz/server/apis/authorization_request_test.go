@@ -27,10 +27,10 @@ func TestInMemoryAuthorizationRequestStore_StoreAndGet(t *testing.T) {
 	requestID := googleUuid.New()
 	request := &cryptoutilIdentityAuthz.AuthorizationRequest{
 		RequestID:    requestID,
-		ClientID:     "test-client",
+		ClientID:     testTestClient,
 		RedirectURI:  cryptoutilSharedMagic.TestRedirectURI,
 		ResponseType: cryptoutilSharedMagic.ResponseTypeCode,
-		Scope:        "openid profile",
+		Scope:        testOpenidProfile,
 		State:        "state123",
 		CreatedAt:    time.Now().UTC(),
 		ExpiresAt:    time.Now().UTC().Add(cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Minute),
@@ -56,7 +56,7 @@ func TestInMemoryAuthorizationRequestStore_GetByCode(t *testing.T) {
 	code := "auth-code-12345"
 	request := &cryptoutilIdentityAuthz.AuthorizationRequest{
 		RequestID:    requestID,
-		ClientID:     "test-client",
+		ClientID:     testTestClient,
 		RedirectURI:  cryptoutilSharedMagic.TestRedirectURI,
 		ResponseType: cryptoutilSharedMagic.ResponseTypeCode,
 		Code:         code,
@@ -83,7 +83,7 @@ func TestInMemoryAuthorizationRequestStore_Update(t *testing.T) {
 	requestID := googleUuid.New()
 	request := &cryptoutilIdentityAuthz.AuthorizationRequest{
 		RequestID:    requestID,
-		ClientID:     "test-client",
+		ClientID:     testTestClient,
 		RedirectURI:  cryptoutilSharedMagic.TestRedirectURI,
 		ResponseType: cryptoutilSharedMagic.ResponseTypeCode,
 		CreatedAt:    time.Now().UTC(),
@@ -114,7 +114,7 @@ func TestInMemoryAuthorizationRequestStore_Delete(t *testing.T) {
 	code := "delete-test-code"
 	request := &cryptoutilIdentityAuthz.AuthorizationRequest{
 		RequestID:    requestID,
-		ClientID:     "test-client",
+		ClientID:     testTestClient,
 		RedirectURI:  cryptoutilSharedMagic.TestRedirectURI,
 		ResponseType: cryptoutilSharedMagic.ResponseTypeCode,
 		Code:         code,
@@ -145,7 +145,7 @@ func TestInMemoryAuthorizationRequestStore_ExpiredRequest(t *testing.T) {
 	requestID := googleUuid.New()
 	request := &cryptoutilIdentityAuthz.AuthorizationRequest{
 		RequestID:    requestID,
-		ClientID:     "test-client",
+		ClientID:     testTestClient,
 		RedirectURI:  cryptoutilSharedMagic.TestRedirectURI,
 		ResponseType: cryptoutilSharedMagic.ResponseTypeCode,
 		CreatedAt:    time.Now().UTC().Add(-cryptoutilSharedMagic.MaxErrorDisplay * time.Minute),
@@ -187,7 +187,7 @@ func TestInMemoryAuthorizationRequestStore_UpdateNonExistent(t *testing.T) {
 
 	nonExistentRequest := &cryptoutilIdentityAuthz.AuthorizationRequest{
 		RequestID:    googleUuid.New(),
-		ClientID:     "test-client",
+		ClientID:     testTestClient,
 		RedirectURI:  cryptoutilSharedMagic.TestRedirectURI,
 		ResponseType: cryptoutilSharedMagic.ResponseTypeCode,
 		CreatedAt:    time.Now().UTC(),

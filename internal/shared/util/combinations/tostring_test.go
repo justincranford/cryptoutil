@@ -22,15 +22,15 @@ func TestToString_M(t *testing.T) {
 		{
 			name:     "Empty M",
 			m:        M{},
-			expected: "[]",
+			expected: testStringValue,
 		},
 		{
-			name:     "Single value",
+			name:     testSingleValue,
 			m:        M{[]byte("A")},
 			expected: "[A]",
 		},
 		{
-			name:     "Multiple values",
+			name:     testMultipleValues,
 			m:        M{[]byte("A"), []byte("B"), []byte("C")},
 			expected: "[A, B, C]",
 		},
@@ -99,15 +99,15 @@ func TestToString_combination(t *testing.T) {
 		{
 			name:     "Empty combination",
 			c:        combination{},
-			expected: "[]",
+			expected: testStringValue,
 		},
 		{
-			name:     "Single value",
+			name:     testSingleValue,
 			c:        combination{value("A")},
 			expected: `["A"]`,
 		},
 		{
-			name:     "Multiple values",
+			name:     testMultipleValues,
 			c:        combination{value("A"), value("B"), value("C")},
 			expected: `["A", "B", "C"]`,
 		},
@@ -135,7 +135,7 @@ func TestToString_combinations(t *testing.T) {
 		{
 			name:     "Empty combinations",
 			c:        Combinations{},
-			expected: "[]",
+			expected: testStringValue,
 		},
 		{
 			name:     "Single combination",
@@ -303,7 +303,7 @@ func TestEncode_BinaryValue(t *testing.T) {
 
 	encoded := c.Encode()
 
-	expected := []byte{1, 3, 0x00, 0x01, 0xFF}
+	expected := []byte{1, test3, 0x00, 0x01, 0xFF}
 	testify.Equal(t, expected, encoded, "Binary value should be encoded correctly")
 }
 
@@ -319,7 +319,7 @@ func TestEncode_MultipleCombinations(t *testing.T) {
 
 	encodings := combos.Encode()
 
-	testify.Len(t, encodings, 3, "Should have 3 encodings")
+	testify.Len(t, encodings, test3, "Should have 3 encodings")
 
 	// Verify first combination encoding
 	testify.Equal(t, []byte{1, 1, 'A'}, encodings[0], "First combination encoding should match")
@@ -328,7 +328,7 @@ func TestEncode_MultipleCombinations(t *testing.T) {
 	testify.Equal(t, []byte{2, 1, 'B', 1, 'C'}, encodings[1], "Second combination encoding should match")
 
 	// Verify third combination encoding
-	testify.Equal(t, []byte{3, 1, 'D', 1, 'E', 1, 'F'}, encodings[2], "Third combination encoding should match")
+	testify.Equal(t, []byte{test3, 1, 'D', 1, 'E', 1, 'F'}, encodings[2], "Third combination encoding should match")
 }
 
 // TestToString_Integration tests ToString on complex combinations.

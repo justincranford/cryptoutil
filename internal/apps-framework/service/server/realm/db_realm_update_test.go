@@ -33,7 +33,7 @@ func TestDBRealmRepository_UpdatePassword(t *testing.T) {
 	// Create test user.
 	user := &DBRealmUser{
 		ID:       "pwd-user-1",
-		RealmID:  "realm-1",
+		RealmID:  testRealm1,
 		Username: "pwduser",
 		Enabled:  true,
 	}
@@ -45,12 +45,12 @@ func TestDBRealmRepository_UpdatePassword(t *testing.T) {
 	require.NoError(t, err)
 
 	// Verify old password fails.
-	result, err := repo.Authenticate(ctx, "realm-1", "pwduser", "oldpassword")
+	result, err := repo.Authenticate(ctx, testRealm1, "pwduser", "oldpassword")
 	require.NoError(t, err)
 	require.False(t, result.Authenticated)
 
 	// Verify new password works.
-	result, err = repo.Authenticate(ctx, "realm-1", "pwduser", "newpassword")
+	result, err = repo.Authenticate(ctx, testRealm1, "pwduser", "newpassword")
 	require.NoError(t, err)
 	require.True(t, result.Authenticated)
 }
@@ -71,7 +71,7 @@ func TestDBRealmRepository_EnableDisableUser(t *testing.T) {
 	// Create test user.
 	user := &DBRealmUser{
 		ID:       "toggle-user-1",
-		RealmID:  "realm-1",
+		RealmID:  testRealm1,
 		Username: "toggleuser",
 		Enabled:  true,
 	}
@@ -111,7 +111,7 @@ func TestDBRealmRepository_DeleteUser(t *testing.T) {
 	// Create test user.
 	user := &DBRealmUser{
 		ID:       "delete-user-1",
-		RealmID:  "realm-1",
+		RealmID:  testRealm1,
 		Username: "deleteuser",
 		Enabled:  true,
 	}
@@ -145,7 +145,7 @@ func TestDBRealmRepository_ListUsers(t *testing.T) {
 	for i := 0; i < cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries; i++ {
 		user := &DBRealmUser{
 			ID:       "list-user-" + string(rune('0'+i)),
-			RealmID:  "realm-1",
+			RealmID:  testRealm1,
 			Username: "listuser" + string(rune('0'+i)),
 			Enabled:  true,
 		}
@@ -154,17 +154,17 @@ func TestDBRealmRepository_ListUsers(t *testing.T) {
 	}
 
 	// List all users.
-	users, err := repo.ListUsers(ctx, "realm-1", 0, 0)
+	users, err := repo.ListUsers(ctx, testRealm1, 0, 0)
 	require.NoError(t, err)
 	require.Len(t, users, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
 
 	// List with limit.
-	users, err = repo.ListUsers(ctx, "realm-1", 2, 0)
+	users, err = repo.ListUsers(ctx, testRealm1, 2, 0)
 	require.NoError(t, err)
 	require.Len(t, users, 2)
 
 	// List with offset.
-	users, err = repo.ListUsers(ctx, "realm-1", 2, 2)
+	users, err = repo.ListUsers(ctx, testRealm1, 2, 2)
 	require.NoError(t, err)
 	require.Len(t, users, 2)
 }

@@ -52,7 +52,7 @@ func ValidateAllDeployments(deploymentsRoot string) ([]ValidationResult, error) 
 	}
 
 	// Infrastructure deployments
-	infraNames := []string{"shared-postgres", "shared-telemetry"}
+	infraNames := []string{postgresSharedDirName, valueSharedTelemetry}
 	for _, infra := range infraNames {
 		infraPath := filepath.Join(deploymentsRoot, infra)
 		if _, err := os.Stat(infraPath); err == nil {
@@ -196,7 +196,7 @@ func checkDelegationPattern(basePath string, deploymentName string, structType s
 		}
 	case DeploymentTypeProduct:
 		// Product MUST include service-level compose files
-		smProduct := "sm"
+		smProduct := valueSm
 		if deploymentName == smProduct && !strings.Contains(text, "../sm-kms/compose.yml") {
 			result.Errors = append(result.Errors, "Product sm/compose.yml MUST include ../sm-kms/compose.yml")
 			result.Valid = false
@@ -229,8 +229,8 @@ func checkDatabaseIsolation(deploymentsList []string, deploymentsRoot string) []
 	usernames := make(map[string][]string)
 
 	for _, svc := range deploymentsList {
-		dbPath := filepath.Join(deploymentsRoot, svc, "secrets", "postgres_database.secret")
-		userPath := filepath.Join(deploymentsRoot, svc, "secrets", "postgres_username.secret")
+		dbPath := filepath.Join(deploymentsRoot, svc, validatorNameSecrets, valuePostgresDatabaseSecret)
+		userPath := filepath.Join(deploymentsRoot, svc, validatorNameSecrets, valuePostgresUsernameSecret)
 
 		if dbContent, err := os.ReadFile(dbPath); err == nil {
 			dbName := strings.TrimSpace(string(dbContent))
@@ -276,7 +276,7 @@ func checkBrowserServiceCredentials(basePath string, deploymentName string, stru
 		"service_password.secret",
 	}
 
-	secretsPath := filepath.Join(basePath, "secrets")
+	secretsPath := filepath.Join(basePath, validatorNameSecrets)
 	for _, credFile := range requiredCredFiles {
 		credPath := filepath.Join(secretsPath, credFile)
 		if _, err := os.Stat(credPath); os.IsNotExist(err) {
@@ -294,7 +294,7 @@ func checkOTLPProtocolOverride(basePath string, deploymentName string, structTyp
 		return
 	}
 
-	configPath := filepath.Join(basePath, "config")
+	configPath := filepath.Join(basePath, fileTypeConfig)
 
 	configFiles, err := filepath.Glob(filepath.Join(configPath, "*.yml"))
 	if err != nil {

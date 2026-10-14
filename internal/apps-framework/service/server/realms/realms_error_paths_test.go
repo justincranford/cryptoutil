@@ -28,7 +28,7 @@ func TestRegisterUser_HashError(t *testing.T) {
 		return "", errors.New("injected hash failure")
 	}
 
-	_, err := svc.RegisterUser(t.Context(), "validuser", "SecurePass123!")
+	_, err := svc.RegisterUser(t.Context(), "validuser", testSecurePass123)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to hash password")
 }
@@ -45,15 +45,15 @@ func TestHandleLoginUser_GenerateJWTError(t *testing.T) {
 	}
 
 	// Register user first.
-	_, err := svc.RegisterUser(t.Context(), "jwtuser", "SecurePass123!")
+	_, err := svc.RegisterUser(t.Context(), "jwtuser", testSecurePass123)
 	require.NoError(t, err)
 
 	app := fiber.New(fiber.Config{DisableStartupMessage: true})
 	app.Post("/login", svc.HandleLoginUser("test-secret"))
 
 	bodyBytes, err := json.Marshal(map[string]string{
-		"username": "jwtuser",
-		"password": "SecurePass123!",
+		valueUsername:         "jwtuser",
+		testPasswordFieldName: testSecurePass123,
 	})
 	require.NoError(t, err)
 
@@ -129,7 +129,7 @@ func TestHandleLoginUserWithSession_RealmLookupError(t *testing.T) {
 	svc := NewUserService(repo, factory)
 
 	// Register user with TenantAwareUser factory.
-	_, err := svc.RegisterUser(t.Context(), "tenantuser1", "SecurePass123!")
+	_, err := svc.RegisterUser(t.Context(), "tenantuser1", testSecurePass123)
 	require.NoError(t, err)
 
 	// Session manager with realm service that returns an error.
@@ -144,8 +144,8 @@ func TestHandleLoginUserWithSession_RealmLookupError(t *testing.T) {
 	app.Post("/login/session", svc.HandleLoginUserWithSession(sessionMgr, true))
 
 	bodyBytes, err := json.Marshal(map[string]string{
-		"username": "tenantuser1",
-		"password": "SecurePass123!",
+		valueUsername:         "tenantuser1",
+		testPasswordFieldName: testSecurePass123,
 	})
 	require.NoError(t, err)
 
@@ -177,7 +177,7 @@ func TestHandleLoginUserWithSession_RealmLookupSuccess(t *testing.T) {
 	svc := NewUserService(repo, factory)
 
 	// Register user with TenantAwareUser factory.
-	_, err := svc.RegisterUser(t.Context(), "tenantuser2", "SecurePass123!")
+	_, err := svc.RegisterUser(t.Context(), "tenantuser2", testSecurePass123)
 	require.NoError(t, err)
 
 	// Session manager with realm service that returns a valid realm.
@@ -192,8 +192,8 @@ func TestHandleLoginUserWithSession_RealmLookupSuccess(t *testing.T) {
 	app.Post("/login/session", svc.HandleLoginUserWithSession(sessionMgr, false))
 
 	bodyBytes, err := json.Marshal(map[string]string{
-		"username": "tenantuser2",
-		"password": "SecurePass123!",
+		valueUsername:         "tenantuser2",
+		testPasswordFieldName: testSecurePass123,
 	})
 	require.NoError(t, err)
 

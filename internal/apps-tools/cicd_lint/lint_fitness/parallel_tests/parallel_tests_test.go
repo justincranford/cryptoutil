@@ -44,7 +44,7 @@ func TestSomething(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "missing_parallel",
+			name: testMissingParallel,
 			fileContent: `package test
 
 import "testing"
@@ -109,7 +109,7 @@ func TestA(t *testing.T) { t.Parallel() }
 			wantIssues: false,
 		},
 		{
-			name: "missing_parallel",
+			name: testMissingParallel,
 			fileContent: `package test
 import "testing"
 func TestA(t *testing.T) { t.Log("test") }

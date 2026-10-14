@@ -19,10 +19,10 @@ func TestIsKebabCase(t *testing.T) {
 		want  bool
 	}{
 		{cryptoutilSharedMagic.TEST_NEEDLE_HELLO, true},
-		{"hello-world", true},
-		{"service-123", true},
-		{"HelloWorld", false},
-		{"hello_world", false},
+		{testHelloWorldValueAFA27B44, true},
+		{testService123, true},
+		{testHelloWorld, false},
+		{testHelloWorldValue35072C1A, false},
 		{"-hello", false},
 		{"hello-", false},
 		{"hello--world", false},
@@ -43,14 +43,14 @@ func TestToKebabCase(t *testing.T) {
 		input string
 		want  string
 	}{
-		{"HelloWorld", "helloworld"},
-		{"hello_world", "hello-world"},
+		{testHelloWorld, "helloworld"},
+		{testHelloWorldValue35072C1A, testHelloWorldValueAFA27B44},
 		{"HELLO", cryptoutilSharedMagic.TEST_NEEDLE_HELLO},
 		{"MyConfig.yml", "myconfig.yml"},
 		{"My_Config.yaml", "my-config.yaml"},
-		{"hello  world", "hello-world"},
+		{"hello  world", testHelloWorldValueAFA27B44},
 		{"__hello__", cryptoutilSharedMagic.TEST_NEEDLE_HELLO},
-		{"___hello___world___", "hello-world"},
+		{"___hello___world___", testHelloWorldValueAFA27B44},
 	}
 	for _, tc := range tests {
 		t.Run(tc.input, func(t *testing.T) {
@@ -68,10 +68,10 @@ func TestIsYAMLFile(t *testing.T) {
 		input string
 		want  bool
 	}{
-		{"config.yml", true},
+		{testConfigYml, true},
 		{"config.yaml", true},
 		{"readme.txt", false},
-		{"config", false},
+		{fileTypeConfig, false},
 	}
 	for _, tc := range tests {
 		t.Run(tc.input, func(t *testing.T) {
@@ -113,12 +113,12 @@ func TestValidateNaming_ValidCases(t *testing.T) {
 			},
 		},
 		{
-			name: "non-YAML files ignored",
+			name: testNonYAMLFilesIgnored,
 			setupFn: func(t *testing.T) string {
 				t.Helper()
 
 				dir := t.TempDir()
-				require.NoError(t, os.WriteFile(filepath.Join(dir, "README.md"), []byte("# readme"), cryptoutilSharedMagic.CacheFilePermissions))
+				require.NoError(t, os.WriteFile(filepath.Join(dir, valueReadmeMd), []byte("# readme"), cryptoutilSharedMagic.CacheFilePermissions))
 				require.NoError(t, os.WriteFile(filepath.Join(dir, "config.json"), []byte("{}"), cryptoutilSharedMagic.CacheFilePermissions))
 				require.NoError(t, os.WriteFile(filepath.Join(dir, "Makefile"), []byte("all:"), cryptoutilSharedMagic.CacheFilePermissions))
 
@@ -126,20 +126,20 @@ func TestValidateNaming_ValidCases(t *testing.T) {
 			},
 		},
 		{
-			name: "nested directories",
+			name: testNestedDirectories,
 			setupFn: func(t *testing.T) string {
 				t.Helper()
 
 				dir := t.TempDir()
 				nested := filepath.Join(dir, "level-one", "level-two", "level-three")
 				require.NoError(t, os.MkdirAll(nested, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
-				require.NoError(t, os.WriteFile(filepath.Join(nested, "config.yml"), []byte("key: value"), cryptoutilSharedMagic.CacheFilePermissions))
+				require.NoError(t, os.WriteFile(filepath.Join(nested, testConfigYml), []byte("key: value"), cryptoutilSharedMagic.CacheFilePermissions))
 
 				return dir
 			},
 		},
 		{
-			name: "empty directory",
+			name: testEmptyDirectory,
 			setupFn: func(t *testing.T) string {
 				t.Helper()
 
@@ -208,7 +208,7 @@ func TestValidateNaming_Violations(t *testing.T) {
 
 				return dir
 			},
-			wantContains: []string{"[ValidateNaming]", "ServiceOne", "kebab-case", "ENG-HANDBOOK.md Section 4.4.1"},
+			wantContains: []string{testValidateNaming, "ServiceOne", validatorNameKebabCase, testEngHandbookMdSection441},
 		},
 		{
 			name: "invalid snake_case dir",
@@ -235,16 +235,16 @@ func TestValidateNaming_Violations(t *testing.T) {
 			minErrors: 2,
 		},
 		{
-			name: "path does not exist",
+			name: testPathDoesNotExist,
 			setupFn: func(t *testing.T) string {
 				t.Helper()
 
 				return filepath.Join(t.TempDir(), "nonexistent")
 			},
-			wantContains: []string{"[ValidateNaming]", "does not exist"},
+			wantContains: []string{testValidateNaming, testDoesNotExist},
 		},
 		{
-			name: "path is file",
+			name: testPathIsFile,
 			setupFn: func(t *testing.T) string {
 				t.Helper()
 
@@ -254,7 +254,7 @@ func TestValidateNaming_Violations(t *testing.T) {
 
 				return filePath
 			},
-			wantContains: []string{"[ValidateNaming]", "not a directory"},
+			wantContains: []string{testValidateNaming, testNotADirectory},
 		},
 		{
 			name: "compose file read error",
@@ -304,7 +304,7 @@ func TestValidateNaming_Violations(t *testing.T) {
 
 				return dir
 			},
-			wantContains: []string{"[ValidateNaming]", "UPPER", "kebab-case", "ENG-HANDBOOK.md Section 4.4.1"},
+			wantContains: []string{testValidateNaming, "UPPER", validatorNameKebabCase, testEngHandbookMdSection441},
 		},
 	}
 	for _, tc := range tests {
@@ -338,10 +338,10 @@ func TestValidateNaming_EdgeCases(t *testing.T) {
 		dirname   string
 		wantValid bool
 	}{
-		{name: "leading hyphen", dirname: "-invalid-", wantValid: false},
+		{name: testLeadingHyphen, dirname: "-invalid-", wantValid: false},
 		{name: "trailing hyphen", dirname: "invalid-", wantValid: false},
 		{name: "consecutive hyphens", dirname: "my--service", wantValid: false},
-		{name: "numbers", dirname: "service-123", wantValid: true},
+		{name: "numbers", dirname: testService123, wantValid: true},
 	}
 
 	for _, tc := range tests {
@@ -368,18 +368,18 @@ func TestFormatNamingValidationResult(t *testing.T) {
 		contains []string
 	}{
 		{
-			name:     "valid",
-			result:   &NamingValidationResult{Path: "/test", Valid: true},
-			contains: []string{"/test", cryptoutilSharedMagic.TestStatusPass},
+			name:     testValid,
+			result:   &NamingValidationResult{Path: testTest, Valid: true},
+			contains: []string{testTest, cryptoutilSharedMagic.TestStatusPass},
 		},
 		{
-			name: "errors and warnings",
+			name: testErrorsAndWarnings,
 			result: &NamingValidationResult{
-				Path: "/test", Valid: false,
-				Errors:   []string{"error1"},
-				Warnings: []string{"warning1"},
+				Path: testTest, Valid: false,
+				Errors:   []string{testError1},
+				Warnings: []string{testWarning1},
 			},
-			contains: []string{cryptoutilSharedMagic.TestStatusFail, "error1", "warning1"},
+			contains: []string{cryptoutilSharedMagic.TestStatusFail, testError1, testWarning1},
 		},
 	}
 	for _, tc := range tests {
@@ -404,7 +404,7 @@ func TestValidateNaming_WalkErrorPermission(t *testing.T) {
 	dir := t.TempDir()
 	subDir := filepath.Join(dir, "sub-dir")
 	require.NoError(t, os.MkdirAll(subDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
-	require.NoError(t, os.WriteFile(filepath.Join(subDir, "test.yml"), []byte("key: value"), cryptoutilSharedMagic.CacheFilePermissions))
+	require.NoError(t, os.WriteFile(filepath.Join(subDir, testTestYml), []byte("key: value"), cryptoutilSharedMagic.CacheFilePermissions))
 
 	// Remove read permission from subdirectory to trigger walk error.
 	require.NoError(t, os.Chmod(subDir, 0o000))
@@ -419,7 +419,7 @@ func TestValidateNaming_WalkErrorPermission(t *testing.T) {
 	require.NotNil(t, result)
 	require.False(t, result.Valid)
 	require.True(t, len(result.Errors) > 0)
-	require.Contains(t, result.Errors[0], "[ValidateNaming]")
+	require.Contains(t, result.Errors[0], testValidateNaming)
 	require.Contains(t, result.Errors[0], "error accessing path")
 }
 

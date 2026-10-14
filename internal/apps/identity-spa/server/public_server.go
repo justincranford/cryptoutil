@@ -56,7 +56,7 @@ func (s *PublicServer) handleHealth(c *fiber.Ctx) error {
 
 	if err := c.JSON(fiber.Map{
 		cryptoutilSharedMagic.StringStatus: cryptoutilSharedMagic.DockerServiceHealthHealthy,
-		"service":                          cryptoutilSharedMagic.OTLPServiceIdentitySPA,
+		valueService:                       cryptoutilSharedMagic.OTLPServiceIdentitySPA,
 	}); err != nil {
 		return fmt.Errorf("failed to send health response: %w", err)
 	}
@@ -96,7 +96,7 @@ func (s *PublicServer) handleReadyz(c *fiber.Ctx) error {
 // This allows the SPA to discover the RP (BFF) endpoint dynamically.
 func (s *PublicServer) handleConfig(c *fiber.Ctx) error {
 	config := fiber.Map{
-		"service":                               cryptoutilSharedMagic.OTLPServiceIdentitySPA,
+		valueService:                            cryptoutilSharedMagic.OTLPServiceIdentitySPA,
 		cryptoutilSharedMagic.CLIVersionCommand: cryptoutilSharedMagic.DefaultOTLPVersionDefault,
 	}
 

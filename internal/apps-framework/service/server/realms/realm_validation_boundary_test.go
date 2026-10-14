@@ -108,7 +108,7 @@ func TestRegisterUser_BoundaryUsernameLengths(t *testing.T) {
 
 			// RegisterUser validates username first, then password.
 			// Use valid password so username validation is the focus.
-			_, err := s.RegisterUser(nil, tt.username, "ValidPass123!") //nolint:staticcheck // pragma: allowlist secret - nil ctx OK for unit test.
+			_, err := s.RegisterUser(nil, tt.username, testValidPass123) //nolint:staticcheck // pragma: allowlist secret - nil ctx OK for unit test.
 
 			if tt.wantErr {
 				require.Error(t, err)
@@ -136,7 +136,7 @@ func TestRegisterUser_BoundaryPasswordLength(t *testing.T) {
 
 	// Exact boundary: password with exactly DefaultPasswordMinLengthChars (8) chars.
 	password := strings.Repeat("p", cryptoutilSharedMagic.DefaultPasswordMinLengthChars) // pragma: allowlist secret
-	_, err := s.RegisterUser(nil, "testuser", password)                                  //nolint:staticcheck // nil ctx OK for unit test — hits mock repo.
+	_, err := s.RegisterUser(nil, testTestuser, password)                                //nolint:staticcheck // nil ctx OK for unit test — hits mock repo.
 	// Password length validation should pass; may succeed or fail on hash — verify no length error.
 	if err != nil {
 		require.NotContains(t, err.Error(), "password must be at least")
@@ -184,13 +184,13 @@ func TestHandleRegisterUser_BoundaryValues(t *testing.T) {
 		{
 			name:       "username exact min length passes",
 			username:   strings.Repeat("u", cryptoutilSharedMagic.IMMinUsernameLength),
-			password:   "ValidPass123!", // pragma: allowlist secret
+			password:   testValidPass123, // pragma: allowlist secret
 			wantStatus: fiber.StatusCreated,
 		},
 		{
 			name:       "username exact max length passes",
 			username:   strings.Repeat("u", cryptoutilSharedMagic.IMMaxUsernameLength),
-			password:   "ValidPass123!", // pragma: allowlist secret
+			password:   testValidPass123, // pragma: allowlist secret
 			wantStatus: fiber.StatusCreated,
 		},
 		{
@@ -212,8 +212,8 @@ func TestHandleRegisterUser_BoundaryValues(t *testing.T) {
 			app.Post(cryptoutilSharedMagic.PathRegistration, svc.HandleRegisterUser())
 
 			bodyBytes, err := json.Marshal(map[string]string{
-				"username": tt.username,
-				"password": tt.password,
+				valueUsername:         tt.username,
+				testPasswordFieldName: tt.password,
 			})
 			require.NoError(t, err)
 

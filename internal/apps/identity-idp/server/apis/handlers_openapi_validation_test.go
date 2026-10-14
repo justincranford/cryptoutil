@@ -63,13 +63,13 @@ func TestOpenAPISchemaValidation(t *testing.T) {
 				user := &cryptoutilIdentityDomain.User{
 					ID:            userID,
 					Sub:           userID.String(),
-					Email:         "test@example.com",
+					Email:         testTestExampleCom,
 					EmailVerified: true,
-					Name:          "Test User",
-					GivenName:     "Test",
-					FamilyName:    "User",
-					Locale:        "en-US",
-					Zoneinfo:      "America/New_York",
+					Name:          testTestUser,
+					GivenName:     testTest,
+					FamilyName:    testUserValueB512D97E,
+					Locale:        testEnUs,
+					Zoneinfo:      testAmericaNewYork,
 					PasswordHash:  testPasswordHash,
 				}
 
@@ -142,35 +142,35 @@ func TestOpenAPISchemaValidation(t *testing.T) {
 				return "" // No auth required for discovery
 			},
 			requiredFields: []string{
-				"issuer",
-				"authorization_endpoint",
-				"token_endpoint",
-				"userinfo_endpoint",
-				"jwks_uri",
-				"response_types_supported",
-				"subject_types_supported",
-				"id_token_signing_alg_values_supported",
+				testIssuer,
+				testAuthorizationEndpoint,
+				testTokenEndpoint,
+				testUserinfoEndpoint,
+				testJwksURI,
+				testResponseTypesSupported,
+				testSubjectTypesSupported,
+				testIDTokenSigningAlgValuesSupported,
 			},
 			optionalFields: []string{
-				"scopes_supported",
-				"claims_supported",
+				testScopesSupported,
+				testClaimsSupported,
 				"grant_types_supported",
 			},
 			validateResponse: func(t *testing.T, resp map[string]any) {
 				t.Helper()
 
 				// Validate issuer is a URL
-				issuer, ok := resp["issuer"].(string)
+				issuer, ok := resp[testIssuer].(string)
 				require.True(t, ok, "issuer must be string")
 				require.NotEmpty(t, issuer, "issuer must not be empty")
 
 				// Validate response_types_supported is array
-				responseTypes, ok := resp["response_types_supported"].([]any)
+				responseTypes, ok := resp[testResponseTypesSupported].([]any)
 				require.True(t, ok, "response_types_supported must be array")
 				require.NotEmpty(t, responseTypes, "response_types_supported must not be empty")
 
 				// Validate subject_types_supported is array
-				subjectTypes, ok := resp["subject_types_supported"].([]any)
+				subjectTypes, ok := resp[testSubjectTypesSupported].([]any)
 				require.True(t, ok, "subject_types_supported must be array")
 				require.NotEmpty(t, subjectTypes, "subject_types_supported must not be empty")
 			},
@@ -206,7 +206,7 @@ func TestOpenAPISchemaValidation(t *testing.T) {
 				user := &cryptoutilIdentityDomain.User{
 					ID:           userID,
 					Sub:          userID.String(),
-					Email:        "test@example.com",
+					Email:        testTestExampleCom,
 					PasswordHash: testPasswordHash,
 				}
 
@@ -334,33 +334,33 @@ func TestOpenAPISchemaValidation(t *testing.T) {
 			case endpointUserInfo:
 				respBody = map[string]any{
 					cryptoutilSharedMagic.ClaimSub:           testUUID,
-					cryptoutilSharedMagic.ClaimEmail:         "test@example.com",
+					cryptoutilSharedMagic.ClaimEmail:         testTestExampleCom,
 					cryptoutilSharedMagic.ClaimEmailVerified: true,
-					cryptoutilSharedMagic.ClaimName:          "Test User",
-					cryptoutilSharedMagic.ClaimGivenName:     "Test",
-					cryptoutilSharedMagic.ClaimFamilyName:    "User",
-					cryptoutilSharedMagic.ClaimLocale:        "en-US",
-					cryptoutilSharedMagic.ClaimZoneinfo:      "America/New_York",
+					cryptoutilSharedMagic.ClaimName:          testTestUser,
+					cryptoutilSharedMagic.ClaimGivenName:     testTest,
+					cryptoutilSharedMagic.ClaimFamilyName:    testUserValueB512D97E,
+					cryptoutilSharedMagic.ClaimLocale:        testEnUs,
+					cryptoutilSharedMagic.ClaimZoneinfo:      testAmericaNewYork,
 				}
 			case cryptoutilSharedMagic.PathDiscovery:
 				respBody = map[string]any{
-					"issuer":                                "https://example.com",
-					"authorization_endpoint":                "https://example.com/authorize",
-					"token_endpoint":                        "https://example.com/token",
-					"userinfo_endpoint":                     "https://example.com/userinfo",
-					"jwks_uri":                              "https://example.com/jwks",
-					"response_types_supported":              []any{cryptoutilSharedMagic.ResponseTypeCode, cryptoutilSharedMagic.ParamToken, cryptoutilSharedMagic.ParamIDToken},
-					"subject_types_supported":               []any{cryptoutilSharedMagic.SubjectTypePublic},
-					"id_token_signing_alg_values_supported": []any{cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm},
-					"scopes_supported":                      []any{cryptoutilSharedMagic.ScopeOpenID, cryptoutilSharedMagic.ClaimProfile, cryptoutilSharedMagic.ClaimEmail},
-					"claims_supported":                      []any{cryptoutilSharedMagic.ClaimSub, cryptoutilSharedMagic.ClaimEmail, cryptoutilSharedMagic.ClaimName},
+					testIssuer:                           testHTTPSExampleCom,
+					testAuthorizationEndpoint:            "https://example.com/authorize",
+					testTokenEndpoint:                    "https://example.com/token",
+					testUserinfoEndpoint:                 "https://example.com/userinfo",
+					testJwksURI:                          "https://example.com/jwks",
+					testResponseTypesSupported:           []any{cryptoutilSharedMagic.ResponseTypeCode, cryptoutilSharedMagic.ParamToken, cryptoutilSharedMagic.ParamIDToken},
+					testSubjectTypesSupported:            []any{cryptoutilSharedMagic.SubjectTypePublic},
+					testIDTokenSigningAlgValuesSupported: []any{cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm},
+					testScopesSupported:                  []any{cryptoutilSharedMagic.ScopeOpenID, cryptoutilSharedMagic.ClaimProfile, cryptoutilSharedMagic.ClaimEmail},
+					testClaimsSupported:                  []any{cryptoutilSharedMagic.ClaimSub, cryptoutilSharedMagic.ClaimEmail, cryptoutilSharedMagic.ClaimName},
 				}
 			case endpointToken:
 				respBody = map[string]any{
-					cryptoutilSharedMagic.TokenTypeAccessToken: "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...",
+					cryptoutilSharedMagic.TokenTypeAccessToken: testEyJhbGciOiJsuzI1NiIsInR5cCi6IkpXvcj9,
 					cryptoutilSharedMagic.ParamTokenType:       cryptoutilSharedMagic.AuthorizationBearer,
 					cryptoutilSharedMagic.ParamExpiresIn:       float64(cryptoutilSharedMagic.IMDefaultSessionTimeout),
-					cryptoutilSharedMagic.ParamIDToken:         "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...",
+					cryptoutilSharedMagic.ParamIDToken:         testEyJhbGciOiJsuzI1NiIsInR5cCi6IkpXvcj9,
 				}
 			}
 

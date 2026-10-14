@@ -80,7 +80,7 @@ func TestCheckSkillCommandDrift(t *testing.T) {
 				makeSkillPair(t, root, "fips-audit")
 			},
 			checkChecked: true,
-			wantChecked:  3,
+			wantChecked:  toAppendixMatchGroups,
 		},
 		{
 			name: "missing claude skill file",
@@ -89,8 +89,8 @@ func TestCheckSkillCommandDrift(t *testing.T) {
 				writeSkillFile(t, ghSkills(root, "orphan-skill"), fmt.Sprintf(validSkill, "orphan-skill"))
 				require.NoError(t, os.MkdirAll(clSkills(root, ""), 0o700))
 			},
-			wantFields:       []string{"missing"},
-			wantDetailSubstr: []string{"orphan-skill", ".claude/skills/orphan-skill/SKILL.md"},
+			wantFields:       []string{valueMissing},
+			wantDetailSubstr: []string{"orphan-skill", testClaudeSkillsOrphanSkillSkillMd},
 		},
 		{
 			name: "body mismatch",
@@ -101,7 +101,7 @@ func TestCheckSkillCommandDrift(t *testing.T) {
 				writeSkillFile(t, clSkills(root, "test-fuzz"),
 					"---\nname: test-fuzz\ndescription: \"Fuzz skill.\"\nargument-hint: \"[arg]\"\n---\n\n## Purpose\n\nDifferent Claude body.\n\n## Key Rules\n\n- Rule one.\n")
 			},
-			wantFields:       []string{"body-mismatch"},
+			wantFields:       []string{valueBodyMismatch},
 			wantDetailSubstr: []string{".claude/skills/test-fuzz/SKILL.md"},
 		},
 		{
@@ -112,7 +112,7 @@ func TestCheckSkillCommandDrift(t *testing.T) {
 				writeSkillFile(t, clSkills(root, "orphan-skill"), "# Orphan claude skill\n")
 			},
 			wantFields:       []string{"orphan"},
-			wantDetailSubstr: []string{".claude/skills/orphan-skill/SKILL.md", ".github/skills/orphan-skill/SKILL.md"},
+			wantDetailSubstr: []string{testClaudeSkillsOrphanSkillSkillMd, ".github/skills/orphan-skill/SKILL.md"},
 		},
 		{
 			name: "missing SKILL.md in copilot dir",
@@ -210,7 +210,7 @@ func TestCheckSkillCommandDrift(t *testing.T) {
 				writeSkillFile(t, ghSkills(root, "no-kr-skill"), noKR)
 				writeSkillFile(t, clSkills(root, "no-kr-skill"), noKR)
 			},
-			wantFields: []string{"missing-key-rules"},
+			wantFields: []string{valueMissingKeyRules},
 		},
 		{
 			name: "claude skill missing key rules",
@@ -221,7 +221,7 @@ func TestCheckSkillCommandDrift(t *testing.T) {
 				writeSkillFile(t, clSkills(root, "no-kr-claude"),
 					"---\nname: no-kr-claude\ndescription: \"A skill.\"\nargument-hint: \"[arg]\"\n---\n\n## Purpose\n\nNo Key Rules here.\n")
 			},
-			wantFields: []string{"missing-key-rules"},
+			wantFields: []string{valueMissingKeyRules},
 		},
 	}
 	for _, tc := range tests {
@@ -286,7 +286,7 @@ func TestFormatSkillCommandDriftResults(t *testing.T) {
 		{
 			name:            "clean report",
 			result:          &SkillCommandDriftResult{Checked: 14},
-			wantContains:    []string{"Checked 14 Copilot skill / Claude Code skill pairs", "All skill pairs are in sync"},
+			wantContains:    []string{"Checked 14 Copilot skill / Claude Code skill pairs", testAllSkillPairsAreInSync},
 			wantNotContains: []string{"violation"},
 		},
 		{
@@ -294,14 +294,14 @@ func TestFormatSkillCommandDriftResults(t *testing.T) {
 			result: &SkillCommandDriftResult{
 				Checked: cryptoutilSharedMagic.DefaultEmailOTPLength,
 				Violations: []SkillCommandDriftViolation{
-					{SkillFile: ".github/skills/foo/SKILL.md", ClaudeSkillFile: ".claude/skills/foo/SKILL.md", Field: "body-mismatch", Detail: "Claude Code skill body does not match Copilot skill"},
-					{SkillFile: ".github/skills/bar/SKILL.md", ClaudeSkillFile: ".claude/skills/bar/SKILL.md", Field: "missing", Detail: "Claude Code skill file not found"},
+					{SkillFile: testGithubSkillsFooSkillMd, ClaudeSkillFile: testClaudeSkillsFooSkillMd, Field: valueBodyMismatch, Detail: "Claude Code skill body does not match Copilot skill"},
+					{SkillFile: testGithubSkillsBarSkillMd, ClaudeSkillFile: testClaudeSkillsBarSkillMd, Field: valueMissing, Detail: "Claude Code skill file not found"},
 				},
 			},
 			wantContains: []string{
 				fmt.Sprintf("Checked %d Copilot skill / Claude Code skill pairs", cryptoutilSharedMagic.DefaultEmailOTPLength),
 				"2 violation(s) found", "field=body-mismatch", "field=missing",
-				".github/skills/foo/SKILL.md", ".claude/skills/bar/SKILL.md",
+				testGithubSkillsFooSkillMd, testClaudeSkillsBarSkillMd,
 			},
 		},
 	}
@@ -328,8 +328,8 @@ func TestFormatSkillCommandDriftResults_ViolationOrdering(t *testing.T) {
 	result := &SkillCommandDriftResult{
 		Checked: cryptoutilSharedMagic.DefaultEmailOTPLength,
 		Violations: []SkillCommandDriftViolation{
-			{SkillFile: ".github/skills/foo/SKILL.md", ClaudeSkillFile: ".claude/skills/foo/SKILL.md", Field: "body-mismatch", Detail: "mismatch"},
-			{SkillFile: ".github/skills/bar/SKILL.md", ClaudeSkillFile: ".claude/skills/bar/SKILL.md", Field: "missing", Detail: "not found"},
+			{SkillFile: testGithubSkillsFooSkillMd, ClaudeSkillFile: testClaudeSkillsFooSkillMd, Field: valueBodyMismatch, Detail: testMismatch},
+			{SkillFile: testGithubSkillsBarSkillMd, ClaudeSkillFile: testClaudeSkillsBarSkillMd, Field: valueMissing, Detail: "not found"},
 		},
 	}
 
@@ -354,7 +354,7 @@ func TestSkillCommandDriftCommand(t *testing.T) {
 				makeSkillPair(t, root, "my-skill")
 			},
 			wantExitCode:    0,
-			wantStdout:      []string{"All skill pairs are in sync"},
+			wantStdout:      []string{testAllSkillPairsAreInSync},
 			wantStderrEmpty: true,
 		},
 		{

@@ -20,7 +20,7 @@ func TestNewDefaultSecurityHeadersConfig(t *testing.T) {
 		settings *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings
 	}{
 		{
-			name:     "nil settings",
+			name:     testNilSettings,
 			settings: nil,
 		},
 		{
@@ -64,26 +64,26 @@ func TestSecurityHeadersConfig_CreateHelmetMiddleware(t *testing.T) {
 		{
 			name:           "helmet enabled on browser path",
 			disableHelmet:  false,
-			path:           "/browser/api/v1/test",
+			path:           testBrowserAPIV1Test,
 			wantCSPApplied: true,
 		},
 		{
 			name:           "helmet disabled",
 			disableHelmet:  true,
-			path:           "/browser/api/v1/test",
+			path:           testBrowserAPIV1Test,
 			wantCSPApplied: false,
 		},
 		{
 			name:           "helmet skipped for service path",
 			disableHelmet:  false,
-			path:           "/service/api/v1/test",
+			path:           testServiceAPIV1Test,
 			wantCSPApplied: false,
 		},
 		{
 			name:           "custom CSP",
 			disableHelmet:  false,
 			customCSP:      "default-src 'self';",
-			path:           "/browser/api/v1/test",
+			path:           testBrowserAPIV1Test,
 			wantCSPApplied: true,
 		},
 	}
@@ -93,8 +93,8 @@ func TestSecurityHeadersConfig_CreateHelmetMiddleware(t *testing.T) {
 			t.Parallel()
 
 			settings := &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{
-				PublicServiceAPIContextPath: "/service/",
-				PublicBrowserAPIContextPath: "/browser/",
+				PublicServiceAPIContextPath: valueService,
+				PublicBrowserAPIContextPath: testBrowser,
 			}
 			config := &SecurityHeadersConfig{
 				Settings:      settings,
@@ -147,7 +147,7 @@ func TestSecurityHeadersConfig_CreateAdditionalSecurityHeadersMiddleware(t *test
 			name:              "browser path production",
 			disableAdditional: false,
 			devMode:           false,
-			path:              "/browser/api/v1/test",
+			path:              testBrowserAPIV1Test,
 			wantContentType:   true,
 			wantPermissions:   true,
 			wantCrossOrigin:   true,
@@ -157,7 +157,7 @@ func TestSecurityHeadersConfig_CreateAdditionalSecurityHeadersMiddleware(t *test
 			name:              "service path production",
 			disableAdditional: false,
 			devMode:           false,
-			path:              "/service/api/v1/test",
+			path:              testServiceAPIV1Test,
 			wantContentType:   true,
 			wantPermissions:   false, // Browser-specific
 			wantCrossOrigin:   false, // Browser-specific
@@ -166,7 +166,7 @@ func TestSecurityHeadersConfig_CreateAdditionalSecurityHeadersMiddleware(t *test
 		{
 			name:              "disabled additional headers",
 			disableAdditional: true,
-			path:              "/browser/api/v1/test",
+			path:              testBrowserAPIV1Test,
 			wantContentType:   false,
 			wantPermissions:   false,
 			wantCrossOrigin:   false,
@@ -179,8 +179,8 @@ func TestSecurityHeadersConfig_CreateAdditionalSecurityHeadersMiddleware(t *test
 			t.Parallel()
 
 			settings := &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{
-				PublicServiceAPIContextPath: "/service/",
-				PublicBrowserAPIContextPath: "/browser/",
+				PublicServiceAPIContextPath: valueService,
+				PublicBrowserAPIContextPath: testBrowser,
 				DevMode:                     tt.devMode,
 			}
 			config := &SecurityHeadersConfig{
@@ -239,10 +239,10 @@ func TestBuildContentSecurityPolicy(t *testing.T) {
 		wantNotContain []string
 	}{
 		{
-			name:     "nil settings",
+			name:     testNilSettings,
 			settings: nil,
 			wantContains: []string{
-				"default-src 'none'",
+				testDefaultSrcNone,
 				"script-src 'self'",
 				"style-src 'self'",
 				"img-src 'self' data:",
@@ -259,7 +259,7 @@ func TestBuildContentSecurityPolicy(t *testing.T) {
 				DevMode: false,
 			},
 			wantContains: []string{
-				"default-src 'none'",
+				testDefaultSrcNone,
 			},
 			wantNotContain: []string{
 				cryptoutilSharedMagic.DefaultOTLPHostnameDefault,
@@ -272,7 +272,7 @@ func TestBuildContentSecurityPolicy(t *testing.T) {
 				DevMode: true,
 			},
 			wantContains: []string{
-				"default-src 'none'",
+				testDefaultSrcNone,
 				cryptoutilSharedMagic.DefaultOTLPHostnameDefault,
 				cryptoutilSharedMagic.IPv4Loopback,
 			},
@@ -341,7 +341,7 @@ func TestIsNonBrowserAPIRequest(t *testing.T) {
 			t.Parallel()
 
 			settings := &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{
-				PublicServiceAPIContextPath: "/service/",
+				PublicServiceAPIContextPath: valueService,
 			}
 			checkFunc := isNonBrowserAPIRequest(settings)
 
@@ -385,8 +385,8 @@ func TestSecurityHeadersConfig_BrowserSecurityMiddlewares(t *testing.T) {
 	t.Parallel()
 
 	settings := &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{
-		PublicServiceAPIContextPath: "/service/",
-		PublicBrowserAPIContextPath: "/browser/",
+		PublicServiceAPIContextPath: valueService,
+		PublicBrowserAPIContextPath: testBrowser,
 	}
 	config := NewDefaultSecurityHeadersConfig(settings)
 

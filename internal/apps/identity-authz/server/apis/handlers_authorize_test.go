@@ -34,8 +34,8 @@ func TestHandleAuthorizeGET_MissingClientID(t *testing.T) {
 	query := url.Values{
 		cryptoutilSharedMagic.ParamResponseType: []string{cryptoutilSharedMagic.ResponseTypeCode},
 		cryptoutilSharedMagic.ParamRedirectURI:  []string{cryptoutilSharedMagic.TestRedirectURI},
-		cryptoutilSharedMagic.ParamScope:        []string{"openid profile"},
-		cryptoutilSharedMagic.ParamState:        []string{"test-state"},
+		cryptoutilSharedMagic.ParamScope:        []string{testOpenidProfile},
+		cryptoutilSharedMagic.ParamState:        []string{testTestState},
 	}
 
 	req := httptest.NewRequest("GET", "/oauth2/v1/authorize?"+query.Encode(), nil)
@@ -63,10 +63,10 @@ func TestHandleAuthorizeGET_MissingResponseType(t *testing.T) {
 	svc.RegisterRoutes(app)
 
 	query := url.Values{
-		cryptoutilSharedMagic.ParamClientID:    []string{"test-client"},
+		cryptoutilSharedMagic.ParamClientID:    []string{testTestClient},
 		cryptoutilSharedMagic.ParamRedirectURI: []string{cryptoutilSharedMagic.TestRedirectURI},
-		cryptoutilSharedMagic.ParamScope:       []string{"openid profile"},
-		cryptoutilSharedMagic.ParamState:       []string{"test-state"},
+		cryptoutilSharedMagic.ParamScope:       []string{testOpenidProfile},
+		cryptoutilSharedMagic.ParamState:       []string{testTestState},
 	}
 
 	req := httptest.NewRequest("GET", "/oauth2/v1/authorize?"+query.Encode(), nil)
@@ -94,10 +94,10 @@ func TestHandleAuthorizeGET_MissingRedirectURI(t *testing.T) {
 	svc.RegisterRoutes(app)
 
 	query := url.Values{
-		cryptoutilSharedMagic.ParamClientID:     []string{"test-client"},
+		cryptoutilSharedMagic.ParamClientID:     []string{testTestClient},
 		cryptoutilSharedMagic.ParamResponseType: []string{cryptoutilSharedMagic.ResponseTypeCode},
-		cryptoutilSharedMagic.ParamScope:        []string{"openid profile"},
-		cryptoutilSharedMagic.ParamState:        []string{"test-state"},
+		cryptoutilSharedMagic.ParamScope:        []string{testOpenidProfile},
+		cryptoutilSharedMagic.ParamState:        []string{testTestState},
 	}
 
 	req := httptest.NewRequest("GET", "/oauth2/v1/authorize?"+query.Encode(), nil)
@@ -124,7 +124,7 @@ func TestHandleAuthorizePOST_MissingClientID(t *testing.T) {
 
 	reqBody := url.Values{}
 
-	req := httptest.NewRequest("POST", "/oauth2/v1/authorize", nil)
+	req := httptest.NewRequest(testPost, testOauth2V1Authorize, nil)
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	for key, values := range reqBody {
@@ -147,10 +147,10 @@ func createAuthorizeTestConfig(t *testing.T) *cryptoutilIdentityConfig.Config {
 	return &cryptoutilIdentityConfig.Config{
 		Database: &cryptoutilIdentityConfig.DatabaseConfig{
 			Type: cryptoutilSharedMagic.TestDatabaseSQLite,
-			DSN:  "file::memory:?cache=private",
+			DSN:  testFileMemoryCachePrivate,
 		},
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{
-			Issuer: "https://localhost:8080",
+			Issuer: testHTTPSLocalhost8080,
 		},
 	}
 }

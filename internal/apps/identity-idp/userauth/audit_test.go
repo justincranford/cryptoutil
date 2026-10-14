@@ -26,7 +26,7 @@ func TestTelemetryAuditLoggerTokenGeneration(t *testing.T) {
 
 	ctx := context.Background()
 	event := TokenGenerationEvent{
-		UserID:       "user-123",
+		UserID:       testUser123,
 		TokenID:      googleUuid.New(),
 		TokenType:    cryptoutilSharedMagic.AuthMethodSMSOTP,
 		Provider:     cryptoutilSharedMagic.AMRSMS,
@@ -50,12 +50,12 @@ func TestTelemetryAuditLoggerValidationAttempt(t *testing.T) {
 
 	// Successful validation.
 	event := ValidationAttemptEvent{
-		UserID:            "user-456",
+		UserID:            testUser456,
 		TokenID:           googleUuid.New(),
-		TokenType:         "email_otp",
+		TokenType:         testEmailOTP,
 		Success:           true,
 		RemainingAttempts: 2,
-		IPAddress:         "192.168.1.100",
+		IPAddress:         test1921681100,
 	}
 
 	err = logger.LogValidationAttempt(ctx, event)
@@ -63,13 +63,13 @@ func TestTelemetryAuditLoggerValidationAttempt(t *testing.T) {
 
 	// Failed validation.
 	failedEvent := ValidationAttemptEvent{
-		UserID:            "user-789",
+		UserID:            testUser789,
 		TokenID:           googleUuid.New(),
 		TokenType:         cryptoutilSharedMagic.AuthMethodSMSOTP,
 		Success:           false,
 		FailureReason:     "expired",
 		RemainingAttempts: 0,
-		IPAddress:         "10.0.0.50",
+		IPAddress:         test100050,
 	}
 
 	err = logger.LogValidationAttempt(ctx, failedEvent)
@@ -87,8 +87,8 @@ func TestTelemetryAuditLoggerTokenInvalidation(t *testing.T) {
 	event := TokenInvalidationEvent{
 		UserID:    "user-abc",
 		TokenID:   googleUuid.New(),
-		TokenType: "magic_link",
-		Reason:    "used",
+		TokenType: valueMagicLink,
+		Reason:    testUsed,
 	}
 
 	err = logger.LogTokenInvalidation(ctx, event)
@@ -107,7 +107,7 @@ func TestExtractDomain(t *testing.T) {
 		{
 			name:     "Standard email",
 			email:    "user@example.com",
-			expected: "example.com",
+			expected: testExampleCom,
 		},
 		{
 			name:     "Subdomain email",
@@ -120,7 +120,7 @@ func TestExtractDomain(t *testing.T) {
 			expected: cryptoutilSharedMagic.UNKNOWN,
 		},
 		{
-			name:     "Empty string",
+			name:     testEmptyString,
 			email:    "",
 			expected: cryptoutilSharedMagic.UNKNOWN,
 		},
@@ -147,7 +147,7 @@ func TestMaskIPAddress(t *testing.T) {
 	}{
 		{
 			name:     "Standard IPv4",
-			ip:       "192.168.1.100",
+			ip:       test1921681100,
 			expected: "192.168.1.xxx",
 		},
 		{
@@ -163,12 +163,12 @@ func TestMaskIPAddress(t *testing.T) {
 		{
 			name:     "No dots (invalid IP)",
 			ip:       "notanip",
-			expected: "xxx.xxx.xxx.xxx",
+			expected: valueXxxXxxXxxXxx,
 		},
 		{
-			name:     "Empty string",
+			name:     testEmptyString,
 			ip:       "",
-			expected: "xxx.xxx.xxx.xxx",
+			expected: valueXxxXxxXxxXxx,
 		},
 	}
 
@@ -199,7 +199,7 @@ func TestAuditLoggerConcurrent(t *testing.T) {
 
 			// Log token generation.
 			genEvent := TokenGenerationEvent{
-				UserID:       "concurrent-user",
+				UserID:       testConcurrentUser,
 				TokenID:      googleUuid.New(),
 				TokenType:    cryptoutilSharedMagic.AuthMethodSMSOTP,
 				Provider:     cryptoutilSharedMagic.AMRSMS,
@@ -212,22 +212,22 @@ func TestAuditLoggerConcurrent(t *testing.T) {
 
 			// Log validation attempt.
 			valEvent := ValidationAttemptEvent{
-				UserID:            "concurrent-user",
+				UserID:            testConcurrentUser,
 				TokenID:           googleUuid.New(),
 				TokenType:         cryptoutilSharedMagic.AuthMethodSMSOTP,
 				Success:           true,
-				RemainingAttempts: 3,
-				IPAddress:         "192.168.1.100",
+				RemainingAttempts: value3,
+				IPAddress:         test1921681100,
 			}
 
 			_ = logger.LogValidationAttempt(ctx, valEvent) //nolint:errcheck // Test audit logging - error not critical for test validation
 
 			// Log invalidation.
 			invEvent := TokenInvalidationEvent{
-				UserID:    "concurrent-user",
+				UserID:    testConcurrentUser,
 				TokenID:   googleUuid.New(),
 				TokenType: cryptoutilSharedMagic.AuthMethodSMSOTP,
-				Reason:    "used",
+				Reason:    testUsed,
 			}
 
 			_ = logger.LogTokenInvalidation(ctx, invEvent) //nolint:errcheck // Test audit logging - error not critical for test validation
@@ -268,7 +268,7 @@ func TestAuditLoggerPIIProtection(t *testing.T) {
 	emailEvent := TokenGenerationEvent{
 		UserID:       "user-pii-2",
 		TokenID:      googleUuid.New(),
-		TokenType:    "email_otp",
+		TokenType:    testEmailOTP,
 		Provider:     cryptoutilSharedMagic.ClaimEmail,
 		ExpiresAt:    time.Now().UTC().Add(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Minute),
 		PhoneNumber:  "",
@@ -286,7 +286,7 @@ func TestAuditLoggerPIIProtection(t *testing.T) {
 		Success:           false,
 		FailureReason:     cryptoutilSharedMagic.DevSetupTestInvalidName,
 		RemainingAttempts: 2,
-		IPAddress:         "203.0.113.42", // Full IP (masked: "203.0.113.xxx")
+		IPAddress:         test203011342, // Full IP (masked: "203.0.113.xxx")
 	}
 
 	err = logger.LogValidationAttempt(ctx, valEvent)

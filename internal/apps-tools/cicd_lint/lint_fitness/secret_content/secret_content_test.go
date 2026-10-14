@@ -34,23 +34,23 @@ func TestFindViolationsInDir_ValidDeployments(t *testing.T) {
 		{
 			name: "valid service deployment",
 			setupFiles: map[string]string{
-				"deployments/sm-kms/secrets/hash-pepper-v3.secret":    "sm-kms-hash-pepper-v3-" + base64url43A(),
-				"deployments/sm-kms/secrets/browser-username.secret":  "sm-kms-browser-user",
-				"deployments/sm-kms/secrets/browser-password.secret":  "sm-kms-browser-pass-" + base64url43B(),
-				"deployments/sm-kms/secrets/service-username.secret":  "sm-kms-service-user",
-				"deployments/sm-kms/secrets/service-password.secret":  "sm-kms-service-pass-" + base64url43C(),
-				"deployments/sm-kms/secrets/postgres-database.secret": "sm_kms_database",
-				"deployments/sm-kms/secrets/postgres-username.secret": "sm_kms_database_user",
-				"deployments/sm-kms/secrets/postgres-password.secret": "sm_kms_database_pass-" + base64url43D(),
-				"deployments/sm-kms/secrets/postgres-url.secret":      "postgres://sm_kms_database_user:sm_kms_database_pass-" + base64url43D() + "@shared-postgres-leader:5432/sm_kms_database",
+				testDeploymentsSmKMSSecretsHashPepperV3Secret:     "sm-kms-hash-pepper-v3-" + base64url43A(),
+				testDeploymentsSmKMSSecretsBrowserUsernameSecret:  "sm-kms-browser-user",
+				testDeploymentsSmKMSSecretsBrowserPasswordSecret:  "sm-kms-browser-pass-" + base64url43B(),
+				testDeploymentsSmKMSSecretsServiceUsernameSecret:  "sm-kms-service-user",
+				testDeploymentsSmKMSSecretsServicePasswordSecret:  "sm-kms-service-pass-" + base64url43C(),
+				testDeploymentsSmKMSSecretsPostgresDatabaseSecret: "sm_kms_database",
+				testDeploymentsSmKMSSecretsPostgresUsernameSecret: "sm_kms_database_user",
+				testDeploymentsSmKMSSecretsPostgresPasswordSecret: "sm_kms_database_pass-" + base64url43D(),
+				testDeploymentsSmKMSSecretsPostgresURLSecret:      "postgres://sm_kms_database_user:sm_kms_database_pass-" + base64url43D() + "@shared-postgres-leader:5432/sm_kms_database",
 			},
 		},
 		{
 			name: "valid product deployment",
 			setupFiles: map[string]string{
 				"deployments/sm/secrets/hash-pepper-v3.secret":         "sm-hash-pepper-v3-" + base64url43A(),
-				"deployments/sm/secrets/browser-username.secret.never": NeverMarkerProduct,
-				"deployments/sm/secrets/browser-password.secret.never": NeverMarkerProduct,
+				testDeploymentsSmSecretsBrowserUsernameSecretNever:     NeverMarkerProduct,
+				testDeploymentsSmSecretsBrowserPasswordSecretNever:     NeverMarkerProduct,
 				"deployments/sm/secrets/service-username.secret.never": NeverMarkerProduct,
 				"deployments/sm/secrets/service-password.secret.never": NeverMarkerProduct,
 				"deployments/sm/secrets/postgres-database.secret":      "sm_database",
@@ -64,9 +64,9 @@ func TestFindViolationsInDir_ValidDeployments(t *testing.T) {
 			setupFiles: map[string]string{
 				"deployments/cryptoutil/secrets/hash-pepper-v3.secret":         "cryptoutil-hash-pepper-v3-" + base64url43A(),
 				"deployments/cryptoutil/secrets/browser-username.secret.never": NeverMarkerSuite,
-				"deployments/cryptoutil/secrets/browser-password.secret.never": NeverMarkerSuite,
+				testDeploymentsCryptoutilSecretsBrowserPasswordSecretNever:     NeverMarkerSuite,
 				"deployments/cryptoutil/secrets/service-username.secret.never": NeverMarkerSuite,
-				"deployments/cryptoutil/secrets/service-password.secret.never": NeverMarkerSuite,
+				testDeploymentsCryptoutilSecretsServicePasswordSecretNever:     NeverMarkerSuite,
 				"deployments/cryptoutil/secrets/postgres-database.secret":      "cryptoutil_database",
 				"deployments/cryptoutil/secrets/postgres-username.secret":      "cryptoutil_database_user",
 				"deployments/cryptoutil/secrets/postgres-password.secret":      "cryptoutil_database_pass-" + base64url43C(),
@@ -90,7 +90,7 @@ func TestFindViolationsInDir_ValidDeployments(t *testing.T) {
 		{
 			name: "content with trailing newline is valid",
 			setupFiles: map[string]string{
-				"deployments/sm-kms/secrets/hash-pepper-v3.secret": "sm-kms-hash-pepper-v3-" + base64url43A() + "\n",
+				testDeploymentsSmKMSSecretsHashPepperV3Secret: "sm-kms-hash-pepper-v3-" + base64url43A() + "\n",
 			},
 		},
 	}
@@ -125,15 +125,15 @@ func TestFindViolationsInDir_InvalidContent(t *testing.T) {
 		{
 			name: "wrong prefix in hash pepper",
 			setupFiles: map[string]string{
-				"deployments/sm-kms/secrets/hash-pepper-v3.secret": "wrong-hash-pepper-v3-" + base64url43A(),
+				testDeploymentsSmKMSSecretsHashPepperV3Secret: "wrong-hash-pepper-v3-" + base64url43A(),
 			},
 			wantViolations: 1,
-			wantSubstring:  "does not match expected pattern",
+			wantSubstring:  testDoesNotMatchExpectedPattern,
 		},
 		{
 			name: "empty hash pepper file",
 			setupFiles: map[string]string{
-				"deployments/sm-kms/secrets/hash-pepper-v3.secret": "",
+				testDeploymentsSmKMSSecretsHashPepperV3Secret: "",
 			},
 			wantViolations: 1,
 			wantSubstring:  cryptoutilSharedMagic.EMPTY,
@@ -141,79 +141,79 @@ func TestFindViolationsInDir_InvalidContent(t *testing.T) {
 		{
 			name: "wrong browser username",
 			setupFiles: map[string]string{
-				"deployments/sm-kms/secrets/browser-username.secret": "wrong-browser-user",
+				testDeploymentsSmKMSSecretsBrowserUsernameSecret: testWrongBrowserUser,
 			},
 			wantViolations: 1,
-			wantSubstring:  "does not match expected pattern",
+			wantSubstring:  testDoesNotMatchExpectedPattern,
 		},
 		{
 			name: "wrong browser password prefix",
 			setupFiles: map[string]string{
-				"deployments/sm-kms/secrets/browser-password.secret": "wrong-browser-pass-" + base64url43A(),
+				testDeploymentsSmKMSSecretsBrowserPasswordSecret: "wrong-browser-pass-" + base64url43A(),
 			},
 			wantViolations: 1,
-			wantSubstring:  "does not match expected pattern",
+			wantSubstring:  testDoesNotMatchExpectedPattern,
 		},
 		{
 			name: "browser password too short base64url",
 			setupFiles: map[string]string{
-				"deployments/sm-kms/secrets/browser-password.secret": "sm-kms-browser-pass-abc123",
+				testDeploymentsSmKMSSecretsBrowserPasswordSecret: "sm-kms-browser-pass-abc123",
 			},
 			wantViolations: 1,
-			wantSubstring:  "does not match expected pattern",
+			wantSubstring:  testDoesNotMatchExpectedPattern,
 		},
 		{
 			name: "wrong service username",
 			setupFiles: map[string]string{
-				"deployments/sm-kms/secrets/service-username.secret": "wrong-service-user",
+				testDeploymentsSmKMSSecretsServiceUsernameSecret: "wrong-service-user",
 			},
 			wantViolations: 1,
-			wantSubstring:  "does not match expected pattern",
+			wantSubstring:  testDoesNotMatchExpectedPattern,
 		},
 		{
 			name: "wrong service password prefix",
 			setupFiles: map[string]string{
-				"deployments/sm-kms/secrets/service-password.secret": "wrong-service-pass-" + base64url43A(),
+				testDeploymentsSmKMSSecretsServicePasswordSecret: "wrong-service-pass-" + base64url43A(),
 			},
 			wantViolations: 1,
-			wantSubstring:  "does not match expected pattern",
+			wantSubstring:  testDoesNotMatchExpectedPattern,
 		},
 		{
 			name: "wrong postgres database prefix",
 			setupFiles: map[string]string{
-				"deployments/sm-kms/secrets/postgres-database.secret": "wrong_database",
+				testDeploymentsSmKMSSecretsPostgresDatabaseSecret: testWrongDatabase,
 			},
 			wantViolations: 1,
-			wantSubstring:  "does not match expected pattern",
+			wantSubstring:  testDoesNotMatchExpectedPattern,
 		},
 		{
 			name: "wrong postgres username prefix",
 			setupFiles: map[string]string{
-				"deployments/sm-kms/secrets/postgres-username.secret": "wrong_database_user",
+				testDeploymentsSmKMSSecretsPostgresUsernameSecret: "wrong_database_user",
 			},
 			wantViolations: 1,
-			wantSubstring:  "does not match expected pattern",
+			wantSubstring:  testDoesNotMatchExpectedPattern,
 		},
 		{
 			name: "wrong postgres password prefix",
 			setupFiles: map[string]string{
-				"deployments/sm-kms/secrets/postgres-password.secret": "wrong_database_pass-" + base64url43A(),
+				testDeploymentsSmKMSSecretsPostgresPasswordSecret: "wrong_database_pass-" + base64url43A(),
 			},
 			wantViolations: 1,
-			wantSubstring:  "does not match expected pattern",
+			wantSubstring:  testDoesNotMatchExpectedPattern,
 		},
 		{
 			name: "wrong postgres url host",
 			setupFiles: map[string]string{
-				"deployments/sm-kms/secrets/postgres-url.secret": "postgres://sm_kms_database_user:sm_kms_database_pass-" + base64url43A() + "@wrong-postgres:5432/sm_kms_database",
+				testDeploymentsSmKMSSecretsPostgresURLSecret: "postgres://sm_kms_database_user:sm_kms_database_pass-" + base64url43A() + "@wrong-postgres:5432/sm_kms_database",
 			},
 			wantViolations: 1,
-			wantSubstring:  "does not match expected pattern",
+			wantSubstring:  testDoesNotMatchExpectedPattern,
 		},
 		{
 			name: "empty postgres url",
 			setupFiles: map[string]string{
-				"deployments/sm-kms/secrets/postgres-url.secret": "",
+				testDeploymentsSmKMSSecretsPostgresURLSecret: "",
 			},
 			wantViolations: 1,
 			wantSubstring:  cryptoutilSharedMagic.EMPTY,
@@ -221,41 +221,41 @@ func TestFindViolationsInDir_InvalidContent(t *testing.T) {
 		{
 			name: "wrong never marker at product tier",
 			setupFiles: map[string]string{
-				"deployments/sm/secrets/browser-username.secret.never": "wrong content",
+				testDeploymentsSmSecretsBrowserUsernameSecretNever: testWrongContent,
 			},
 			wantViolations: 1,
-			wantSubstring:  "expected",
+			wantSubstring:  testExpected,
 		},
 		{
 			name: "wrong never marker at suite tier",
 			setupFiles: map[string]string{
-				"deployments/cryptoutil/secrets/service-password.secret.never": "wrong content",
+				testDeploymentsCryptoutilSecretsServicePasswordSecretNever: testWrongContent,
 			},
 			wantViolations: 1,
-			wantSubstring:  "expected",
+			wantSubstring:  testExpected,
 		},
 		{
 			name: "product tier marker has suite text",
 			setupFiles: map[string]string{
-				"deployments/sm/secrets/browser-password.secret.never": NeverMarkerSuite,
+				testDeploymentsSmSecretsBrowserPasswordSecretNever: NeverMarkerSuite,
 			},
 			wantViolations: 1,
-			wantSubstring:  "expected",
+			wantSubstring:  testExpected,
 		},
 		{
 			name: "suite tier marker has product text",
 			setupFiles: map[string]string{
-				"deployments/cryptoutil/secrets/browser-password.secret.never": NeverMarkerProduct,
+				testDeploymentsCryptoutilSecretsBrowserPasswordSecretNever: NeverMarkerProduct,
 			},
 			wantViolations: 1,
-			wantSubstring:  "expected",
+			wantSubstring:  testExpected,
 		},
 		{
 			name: "multiple violations in one deployment",
 			setupFiles: map[string]string{
-				"deployments/sm-kms/secrets/hash-pepper-v3.secret":    "",
-				"deployments/sm-kms/secrets/browser-username.secret":  "wrong-browser-user",
-				"deployments/sm-kms/secrets/postgres-database.secret": "wrong_database",
+				testDeploymentsSmKMSSecretsHashPepperV3Secret:     "",
+				testDeploymentsSmKMSSecretsBrowserUsernameSecret:  testWrongBrowserUser,
+				testDeploymentsSmKMSSecretsPostgresDatabaseSecret: testWrongDatabase,
 			},
 			wantViolations: 3,
 			wantSubstring:  "",
@@ -311,7 +311,7 @@ func TestCheckInDir_WithViolation(t *testing.T) {
 	t.Parallel()
 
 	files := map[string]string{
-		"deployments/sm-kms/secrets/hash-pepper-v3.secret": "wrong-hash-pepper-v3-" + base64url43A(),
+		testDeploymentsSmKMSSecretsHashPepperV3Secret: "wrong-hash-pepper-v3-" + base64url43A(),
 	}
 	rootDir := setupTempDir(t, files)
 
@@ -327,7 +327,7 @@ func TestCheckInDir_NoViolation(t *testing.T) {
 	t.Parallel()
 
 	files := map[string]string{
-		"deployments/sm-kms/secrets/hash-pepper-v3.secret": "sm-kms-hash-pepper-v3-" + base64url43A(),
+		testDeploymentsSmKMSSecretsHashPepperV3Secret: "sm-kms-hash-pepper-v3-" + base64url43A(),
 	}
 	rootDir := setupTempDir(t, files)
 

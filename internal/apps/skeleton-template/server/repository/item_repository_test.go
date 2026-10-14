@@ -95,7 +95,7 @@ func TestItemRepository_Create(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "success",
+			name: testSuccess,
 			item: &cryptoutilAppsSkeletonTemplateServerModel.TemplateItem{
 				ID:          googleUuid.Must(googleUuid.NewV7()),
 				TenantID:    googleUuid.Must(googleUuid.NewV7()),
@@ -109,7 +109,7 @@ func TestItemRepository_Create(t *testing.T) {
 			item: &cryptoutilAppsSkeletonTemplateServerModel.TemplateItem{
 				ID:       googleUuid.Must(googleUuid.NewV7()),
 				TenantID: googleUuid.Must(googleUuid.NewV7()),
-				Name:     "fail",
+				Name:     testFail,
 			},
 			useBad:  true,
 			wantErr: true,
@@ -151,7 +151,7 @@ func TestItemRepository_GetByID(t *testing.T) {
 		errMsg  string
 	}{
 		{
-			name: "success",
+			name: testSuccess,
 			setup: func(t *testing.T, repo *ItemRepository) setupResult {
 				t.Helper()
 
@@ -168,7 +168,7 @@ func TestItemRepository_GetByID(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "not_found",
+			name: testNotFound,
 			setup: func(_ *testing.T, _ *ItemRepository) setupResult {
 				return setupResult{
 					tenantID: googleUuid.Must(googleUuid.NewV7()),
@@ -176,10 +176,10 @@ func TestItemRepository_GetByID(t *testing.T) {
 				}
 			},
 			wantErr: true,
-			errMsg:  "failed to get item",
+			errMsg:  testFailedToGetItem,
 		},
 		{
-			name: "db_error",
+			name: testDBError,
 			setup: func(_ *testing.T, _ *ItemRepository) setupResult {
 				return setupResult{
 					tenantID: googleUuid.Must(googleUuid.NewV7()),
@@ -188,7 +188,7 @@ func TestItemRepository_GetByID(t *testing.T) {
 			},
 			useBad:  true,
 			wantErr: true,
-			errMsg:  "failed to get item",
+			errMsg:  testFailedToGetItem,
 		},
 	}
 
@@ -232,9 +232,9 @@ func TestItemRepository_List(t *testing.T) {
 		wantCount int
 	}{
 		{name: "empty_list", seedCount: 0, page: 1, size: cryptoutilSharedMagic.SuiteServiceCount, wantCount: 0},
-		{name: "with_items", seedCount: 3, page: 1, size: cryptoutilSharedMagic.SuiteServiceCount, wantCount: 3},
-		{name: "pagination_page2", seedCount: cryptoutilSharedMagic.DBMaxPingAttempts, page: 2, size: 3, wantCount: 2},
-		{name: "db_error", useBad: true, page: 1, size: cryptoutilSharedMagic.SuiteServiceCount, wantErr: true},
+		{name: "with_items", seedCount: test3, page: 1, size: cryptoutilSharedMagic.SuiteServiceCount, wantCount: test3},
+		{name: "pagination_page2", seedCount: cryptoutilSharedMagic.DBMaxPingAttempts, page: 2, size: test3, wantCount: 2},
+		{name: testDBError, useBad: true, page: 1, size: cryptoutilSharedMagic.SuiteServiceCount, wantErr: true},
 	}
 
 	for _, tc := range tests {
@@ -283,7 +283,7 @@ func TestItemRepository_Update(t *testing.T) {
 		errMsg  string
 	}{
 		{
-			name: "success",
+			name: testSuccess,
 			setup: func(t *testing.T, repo *ItemRepository) *cryptoutilAppsSkeletonTemplateServerModel.TemplateItem {
 				t.Helper()
 
@@ -305,12 +305,12 @@ func TestItemRepository_Update(t *testing.T) {
 			// INSERT ON CONFLICT (upsert). RowsAffected is always >=1 when there
 			// is no DB error, so the RowsAffected==0 branch in Update is unreachable
 			// in SQLite. That path is only exercisable with PostgreSQL in E2E tests.
-			name: "db_error",
+			name: testDBError,
 			setup: func(_ *testing.T, _ *ItemRepository) *cryptoutilAppsSkeletonTemplateServerModel.TemplateItem {
 				return &cryptoutilAppsSkeletonTemplateServerModel.TemplateItem{
 					ID:       googleUuid.Must(googleUuid.NewV7()),
 					TenantID: googleUuid.Must(googleUuid.NewV7()),
-					Name:     "fail",
+					Name:     testFail,
 				}
 			},
 			useBad:  true,
@@ -354,7 +354,7 @@ func TestItemRepository_Delete(t *testing.T) {
 		errMsg  string
 	}{
 		{
-			name: "success",
+			name: testSuccess,
 			setup: func(t *testing.T, repo *ItemRepository) (googleUuid.UUID, googleUuid.UUID) {
 				t.Helper()
 
@@ -371,7 +371,7 @@ func TestItemRepository_Delete(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "not_found",
+			name: testNotFound,
 			setup: func(_ *testing.T, _ *ItemRepository) (googleUuid.UUID, googleUuid.UUID) {
 				return googleUuid.Must(googleUuid.NewV7()), googleUuid.Must(googleUuid.NewV7())
 			},
@@ -379,7 +379,7 @@ func TestItemRepository_Delete(t *testing.T) {
 			errMsg:  "record not found",
 		},
 		{
-			name: "db_error",
+			name: testDBError,
 			setup: func(_ *testing.T, _ *ItemRepository) (googleUuid.UUID, googleUuid.UUID) {
 				return googleUuid.Must(googleUuid.NewV7()), googleUuid.Must(googleUuid.NewV7())
 			},

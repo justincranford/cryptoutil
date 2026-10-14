@@ -30,7 +30,7 @@ func Check(logger *cryptoutilCmdCicdCommon.Logger, filesByExtension map[string][
 	var violations []lintPortsCommon.HealthViolation
 
 	// Check Dockerfiles.
-	for _, filePath := range filesByExtension["dockerfile"] {
+	for _, filePath := range filesByExtension[valueDockerfile] {
 		// Skip third-party services (Grafana, OTEL collector).
 		if lintPortsCommon.IsOtelRelatedFile(filePath) {
 			continue

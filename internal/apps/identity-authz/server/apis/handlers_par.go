@@ -65,35 +65,35 @@ func (s *Service) handlePAR(c *fiber.Ctx) error {
 	if clientIDStr == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInvalidRequest,
-			"error_description":               "Missing required parameter: client_id",
+			valueErrorDescription:             "Missing required parameter: client_id",
 		})
 	}
 
 	if responseType == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInvalidRequest,
-			"error_description":               "Missing required parameter: response_type",
+			valueErrorDescription:             "Missing required parameter: response_type",
 		})
 	}
 
 	if redirectURI == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInvalidRequest,
-			"error_description":               "Missing required parameter: redirect_uri",
+			valueErrorDescription:             "Missing required parameter: redirect_uri",
 		})
 	}
 
 	if codeChallenge == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInvalidRequest,
-			"error_description":               "Missing required parameter: code_challenge",
+			valueErrorDescription:             "Missing required parameter: code_challenge",
 		})
 	}
 
 	if codeChallengeMethod == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInvalidRequest,
-			"error_description":               "Missing required parameter: code_challenge_method",
+			valueErrorDescription:             "Missing required parameter: code_challenge_method",
 		})
 	}
 
@@ -101,7 +101,7 @@ func (s *Service) handlePAR(c *fiber.Ctx) error {
 	if responseType != cryptoutilSharedMagic.ResponseTypeCode {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorUnsupportedResponseType,
-			"error_description":               fmt.Sprintf("Only response_type=%s is supported", cryptoutilSharedMagic.ResponseTypeCode),
+			valueErrorDescription:             fmt.Sprintf("Only response_type=%s is supported", cryptoutilSharedMagic.ResponseTypeCode),
 		})
 	}
 
@@ -109,7 +109,7 @@ func (s *Service) handlePAR(c *fiber.Ctx) error {
 	if codeChallengeMethod != cryptoutilSharedMagic.PKCEMethodS256 {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInvalidRequest,
-			"error_description":               fmt.Sprintf("Only code_challenge_method=%s is supported", cryptoutilSharedMagic.PKCEMethodS256),
+			valueErrorDescription:             fmt.Sprintf("Only code_challenge_method=%s is supported", cryptoutilSharedMagic.PKCEMethodS256),
 		})
 	}
 
@@ -122,7 +122,7 @@ func (s *Service) handlePAR(c *fiber.Ctx) error {
 
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInvalidClient,
-			"error_description":               "Invalid client_id",
+			valueErrorDescription:             valueInvalidClientID,
 		})
 	}
 
@@ -142,7 +142,7 @@ func (s *Service) handlePAR(c *fiber.Ctx) error {
 
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInvalidRequest,
-			"error_description":               "redirect_uri not registered for this client",
+			valueErrorDescription:             "redirect_uri not registered for this client",
 		})
 	}
 
@@ -153,7 +153,7 @@ func (s *Service) handlePAR(c *fiber.Ctx) error {
 
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorServerError,
-			"error_description":               "Internal server error",
+			valueErrorDescription:             valueInternalServerError,
 		})
 	}
 
@@ -183,7 +183,7 @@ func (s *Service) handlePAR(c *fiber.Ctx) error {
 
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorServerError,
-			"error_description":               "Internal server error",
+			valueErrorDescription:             valueInternalServerError,
 		})
 	}
 

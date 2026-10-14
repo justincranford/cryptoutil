@@ -36,7 +36,7 @@ func TestFindViolationsInDir_ValidDockerfiles(t *testing.T) {
 		{
 			name: "correct PS-ID livez healthcheck",
 			setupFiles: map[string]string{
-				"deployments/sm-kms/Dockerfile": dockerfileWithHealthcheck(
+				testDeploymentsSmKMSDockerfile: dockerfileWithHealthcheck(
 					entrypoint,
 					binaryPath+" livez || exit 1",
 				),
@@ -49,7 +49,7 @@ func TestFindViolationsInDir_ValidDockerfiles(t *testing.T) {
 			},
 		},
 		{
-			name: "no HEALTHCHECK instruction is acceptable for non-PS-ID",
+			name: testNoHealthcheckInstructionIsAcceptableForNonPsID,
 			setupFiles: map[string]string{
 				"deployments/shared-telemetry/Dockerfile": dockerfileNoHealthcheck(),
 			},
@@ -57,7 +57,7 @@ func TestFindViolationsInDir_ValidDockerfiles(t *testing.T) {
 		{
 			name: "multi-line healthcheck with continuation",
 			setupFiles: map[string]string{
-				"deployments/sm-kms/Dockerfile": dockerfileWithMultiLineHealthcheck(
+				testDeploymentsSmKMSDockerfile: dockerfileWithMultiLineHealthcheck(
 					entrypoint,
 					binaryPath+" livez || exit 1",
 				),
@@ -74,7 +74,7 @@ func TestFindViolationsInDir_ValidDockerfiles(t *testing.T) {
 			violations, err := FindViolationsInDir(rootDir)
 			require.NoError(t, err)
 
-			if tc.name == "no HEALTHCHECK instruction is acceptable for non-PS-ID" {
+			if tc.name == testNoHealthcheckInstructionIsAcceptableForNonPsID {
 				require.Len(t, violations, 1)
 				require.Contains(t, violations[0], "non-PS-ID deployment MUST NOT define Dockerfile")
 
@@ -102,57 +102,57 @@ func TestFindViolationsInDir_InvalidDockerfiles(t *testing.T) {
 		{
 			name: "wget in healthcheck",
 			setupFiles: map[string]string{
-				"deployments/sm-kms/Dockerfile": dockerfileWithHealthcheck(
+				testDeploymentsSmKMSDockerfile: dockerfileWithHealthcheck(
 					entrypoint,
 					"wget --spider https://127.0.0.1:9090/admin/api/v1/livez || exit 1",
 				),
 			},
 			wantViolations: 2,
-			wantContains:   []string{"banned tool \"wget\"", "HEALTHCHECK CMD should be"},
+			wantContains:   []string{"banned tool \"wget\"", testHealthcheckCmdShouldBe},
 		},
 		{
 			name: "curl in healthcheck",
 			setupFiles: map[string]string{
-				"deployments/sm-kms/Dockerfile": dockerfileWithHealthcheck(
+				testDeploymentsSmKMSDockerfile: dockerfileWithHealthcheck(
 					entrypoint,
 					"curl -sf https://127.0.0.1:9090/admin/api/v1/livez || exit 1",
 				),
 			},
 			wantViolations: 2,
-			wantContains:   []string{"banned tool \"curl\"", "HEALTHCHECK CMD should be"},
+			wantContains:   []string{"banned tool \"curl\"", testHealthcheckCmdShouldBe},
 		},
 		{
 			name: "wrong binary in healthcheck",
 			setupFiles: map[string]string{
-				"deployments/sm-kms/Dockerfile": dockerfileWithHealthcheck(
+				testDeploymentsSmKMSDockerfile: dockerfileWithHealthcheck(
 					entrypoint,
 					"/app/wrong-binary livez || exit 1",
 				),
 			},
 			wantViolations: 1,
-			wantContains:   []string{"HEALTHCHECK CMD should be"},
+			wantContains:   []string{testHealthcheckCmdShouldBe},
 		},
 		{
 			name: "readyz instead of livez",
 			setupFiles: map[string]string{
-				"deployments/sm-kms/Dockerfile": dockerfileWithHealthcheck(
+				testDeploymentsSmKMSDockerfile: dockerfileWithHealthcheck(
 					entrypoint,
 					"/app/sm-kms readyz || exit 1",
 				),
 			},
 			wantViolations: 1,
-			wantContains:   []string{"HEALTHCHECK CMD should be"},
+			wantContains:   []string{testHealthcheckCmdShouldBe},
 		},
 		{
 			name: "missing exit 1 suffix",
 			setupFiles: map[string]string{
-				"deployments/sm-kms/Dockerfile": dockerfileWithHealthcheck(
+				testDeploymentsSmKMSDockerfile: dockerfileWithHealthcheck(
 					entrypoint,
 					"/app/sm-kms livez",
 				),
 			},
 			wantViolations: 1,
-			wantContains:   []string{"HEALTHCHECK CMD should be"},
+			wantContains:   []string{testHealthcheckCmdShouldBe},
 		},
 	}
 
@@ -216,14 +216,14 @@ func TestContainsTool_Boundary(t *testing.T) {
 		tool string
 		want bool
 	}{
-		{name: "wget standalone", cmd: "wget --spider url", tool: "wget", want: true},
-		{name: "wget as substring", cmd: "powget data", tool: "wget", want: false},
-		{name: "curl standalone", cmd: "curl -sf url", tool: "curl", want: true},
-		{name: "curl as substring", cmd: "securly data", tool: "curl", want: false},
-		{name: "tool at end", cmd: "something wget", tool: "wget", want: true},
-		{name: "tool with slash prefix", cmd: "/usr/bin/wget url", tool: "wget", want: true},
-		{name: "empty cmd", cmd: "", tool: "wget", want: false},
-		{name: "case insensitive", cmd: "WGET --spider url", tool: "wget", want: true},
+		{name: "wget standalone", cmd: "wget --spider url", tool: valueWget, want: true},
+		{name: "wget as substring", cmd: "powget data", tool: valueWget, want: false},
+		{name: "curl standalone", cmd: "curl -sf url", tool: valueCurl, want: true},
+		{name: "curl as substring", cmd: "securly data", tool: valueCurl, want: false},
+		{name: "tool at end", cmd: "something wget", tool: valueWget, want: true},
+		{name: "tool with slash prefix", cmd: "/usr/bin/wget url", tool: valueWget, want: true},
+		{name: "empty cmd", cmd: "", tool: valueWget, want: false},
+		{name: "case insensitive", cmd: "WGET --spider url", tool: valueWget, want: true},
 	}
 
 	for _, tc := range tests {
@@ -246,8 +246,8 @@ func TestJoinHealthcheckLines(t *testing.T) {
 	}{
 		{
 			name:  "single line",
-			lines: []string{"HEALTHCHECK CMD /app/sm-kms livez || exit 1"},
-			want:  "HEALTHCHECK CMD /app/sm-kms livez || exit 1",
+			lines: []string{testHealthcheckCmdAppSmKMSLivezExit1},
+			want:  testHealthcheckCmdAppSmKMSLivezExit1,
 		},
 		{
 			name: "multi-line with continuations",
@@ -282,7 +282,7 @@ func TestCheckInDir_NoViolations(t *testing.T) {
 	binaryPath := "/app/" + psID
 
 	rootDir := setupTempDir(t, map[string]string{
-		"deployments/sm-kms/Dockerfile": dockerfileWithHealthcheck(
+		testDeploymentsSmKMSDockerfile: dockerfileWithHealthcheck(
 			entrypoint,
 			binaryPath+" livez || exit 1",
 		),
@@ -300,7 +300,7 @@ func TestCheckInDir_WithViolations(t *testing.T) {
 	entrypoint := cryptoutilCmdCicdRegistry.DockerfileEntrypoint(psID)
 
 	rootDir := setupTempDir(t, map[string]string{
-		"deployments/sm-kms/Dockerfile": dockerfileWithHealthcheck(
+		testDeploymentsSmKMSDockerfile: dockerfileWithHealthcheck(
 			entrypoint,
 			"wget --spider https://127.0.0.1:9090/admin/api/v1/livez || exit 1",
 		),

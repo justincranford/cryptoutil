@@ -25,9 +25,9 @@ var legacyPrefixes = []struct {
 	scanDir string
 	prefix  string
 }{
-	{scanDir: "deployments", prefix: "cipher-"},
-	{scanDir: cryptoutilSharedMagic.CICDConfigsDir, prefix: "cipher-"},
-	{scanDir: "cmd", prefix: "cipher-"},
+	{scanDir: "deployments", prefix: valueCipher},
+	{scanDir: cryptoutilSharedMagic.CICDConfigsDir, prefix: valueCipher},
+	{scanDir: "cmd", prefix: valueCipher},
 }
 
 // Check runs the legacy-dir-detection check from the current working directory.

@@ -35,7 +35,7 @@ func TestFormat_WithFiles(t *testing.T) {
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	filesByExtension := map[string][]string{
-		"go": {testFile},
+		testGo: {testFile},
 	}
 
 	err = Format(logger, filesByExtension)
@@ -58,7 +58,7 @@ func TestFormat_ErrorPath(t *testing.T) {
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	filesByExtension := map[string][]string{
-		"go": {testFile},
+		testGo: {testFile},
 	}
 
 	err = Format(logger, filesByExtension)
@@ -120,7 +120,7 @@ func TestFormat_WithEnforceAnyModification(t *testing.T) {
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	filesByExtension := map[string][]string{
-		"go": {testFile},
+		testGo: {testFile},
 	}
 
 	err = Format(logger, filesByExtension)

@@ -187,14 +187,14 @@ func TestHasTHelperCall_Detection(t *testing.T) {
 		{
 			name: "has t.Helper()",
 			body: &ast.BlockStmt{List: []ast.Stmt{
-				&ast.ExprStmt{X: &ast.CallExpr{Fun: &ast.SelectorExpr{X: &ast.Ident{Name: "t"}, Sel: &ast.Ident{Name: "Helper"}}}},
+				&ast.ExprStmt{X: &ast.CallExpr{Fun: &ast.SelectorExpr{X: &ast.Ident{Name: testT}, Sel: &ast.Ident{Name: valueHelper}}}},
 			}},
 			expected: true,
 		},
 		{
 			name: "other method call only",
 			body: &ast.BlockStmt{List: []ast.Stmt{
-				&ast.ExprStmt{X: &ast.CallExpr{Fun: &ast.SelectorExpr{X: &ast.Ident{Name: "t"}, Sel: &ast.Ident{Name: "Log"}}}},
+				&ast.ExprStmt{X: &ast.CallExpr{Fun: &ast.SelectorExpr{X: &ast.Ident{Name: testT}, Sel: &ast.Ident{Name: "Log"}}}},
 			}},
 			expected: false,
 		},
@@ -227,7 +227,7 @@ func TestGetTestingParam_Extraction(t *testing.T) {
 		{
 			name:     "testing.T parameter named t",
 			content:  "package foo\nimport \"testing\"\nfunc setupDB(t *testing.T) {}\n",
-			expected: "t",
+			expected: testT,
 		},
 		{
 			name:     "testing.T parameter named tb",
@@ -237,7 +237,7 @@ func TestGetTestingParam_Extraction(t *testing.T) {
 		{
 			name:     "testing.B parameter",
 			content:  "package foo\nimport \"testing\"\nfunc setupBench(b *testing.B) {}\n",
-			expected: "b",
+			expected: testB,
 		},
 		{
 			name:     "no testing parameter",
@@ -422,7 +422,7 @@ func TestGetTestingParam_SelectorWithNonIdentX(t *testing.T) {
 						Names: []*ast.Ident{{Name: "x"}},
 						Type: &ast.StarExpr{
 							X: &ast.SelectorExpr{
-								X:   &ast.SelectorExpr{X: &ast.Ident{Name: "a"}, Sel: &ast.Ident{Name: "b"}},
+								X:   &ast.SelectorExpr{X: &ast.Ident{Name: "a"}, Sel: &ast.Ident{Name: testB}},
 								Sel: &ast.Ident{Name: "T"},
 							},
 						},

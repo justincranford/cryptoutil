@@ -140,7 +140,7 @@ func TestTenantService_GetTenantByName(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	tenantName := "test-tenant"
+	tenantName := testTestTenant
 	tenant := &cryptoutilAppsFrameworkServiceServerRepository.Tenant{
 		ID:   googleUuid.New(),
 		Name: tenantName,
@@ -152,7 +152,7 @@ func TestTenantService_GetTenantByName(t *testing.T) {
 		wantErr    bool
 	}{
 		{
-			name: "happy path",
+			name: testHappyPath,
 			setupMocks: func(tenantRepo *mockTenantRepository) {
 				tenantRepo.getByNameFn = func(_ context.Context, _ string) (*cryptoutilAppsFrameworkServiceServerRepository.Tenant, error) {
 					return tenant, nil
@@ -161,11 +161,11 @@ func TestTenantService_GetTenantByName(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "tenant not found",
+			name: testErrSummaryTenantNotFound,
 			setupMocks: func(tenantRepo *mockTenantRepository) {
 				summary := testErrSummaryTenantNotFound
 				tenantRepo.getByNameFn = func(_ context.Context, _ string) (*cryptoutilAppsFrameworkServiceServerRepository.Tenant, error) {
-					return nil, cryptoutilSharedApperr.NewHTTP404NotFound(&summary, errors.New("not found"))
+					return nil, cryptoutilSharedApperr.NewHTTP404NotFound(&summary, errors.New(testNotFound))
 				}
 			},
 			wantErr: true,

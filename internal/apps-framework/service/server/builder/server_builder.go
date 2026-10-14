@@ -7,6 +7,7 @@ package builder
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io/fs"
 
@@ -70,7 +71,7 @@ func NewServerBuilder(ctx context.Context, config *cryptoutilAppsFrameworkServic
 	if ctx == nil {
 		return &ServerBuilder{err: fmt.Errorf("context cannot be nil")}
 	} else if config == nil {
-		return &ServerBuilder{err: fmt.Errorf("config cannot be nil")}
+		return &ServerBuilder{err: errors.New(valueConfigCannotBeNil)}
 	}
 
 	return &ServerBuilder{

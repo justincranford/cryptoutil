@@ -27,7 +27,7 @@ const (
 	// AuthLevelMFA indicates multi-factor authentication.
 	AuthLevelMFA AuthenticationLevel = 2
 	// AuthLevelStepUp indicates step-up authentication completed.
-	AuthLevelStepUp AuthenticationLevel = 3
+	AuthLevelStepUp AuthenticationLevel = value3
 	// AuthLevelStrongMFA indicates strong MFA (hardware key, biometric).
 	AuthLevelStrongMFA AuthenticationLevel = 4
 )
@@ -159,7 +159,7 @@ func (s *StepUpAuthenticator) parseAuthLevel(level string) AuthenticationLevel {
 
 // Method returns the authentication method name.
 func (s *StepUpAuthenticator) Method() string {
-	return "step_up"
+	return authLevelStringStepUp
 }
 
 // EvaluateStepUp determines if step-up authentication is required for an operation using policy-driven rules.
@@ -233,10 +233,10 @@ func (s *StepUpAuthenticator) EvaluateStepUp(
 	authChallenge := &AuthChallenge{
 		ID:        challengeID,
 		UserID:    userID,
-		Method:    "step_up",
+		Method:    authLevelStringStepUp,
 		ExpiresAt: expiresAt,
 		Metadata: map[string]any{
-			"operation":        operation,
+			valueOperation:     operation,
 			"required_level":   policy.RequiredLevel,
 			"current_level":    currentLevel,
 			"challenge_method": challengeMethod,
@@ -323,10 +323,10 @@ func (s *StepUpAuthenticator) InitiateAuth(ctx context.Context, userID string) (
 	challenge := &AuthChallenge{
 		ID:        challengeID,
 		UserID:    userID,
-		Method:    "step_up",
+		Method:    authLevelStringStepUp,
 		ExpiresAt: expiresAt,
 		Metadata: map[string]any{
-			"operation": "generic",
+			valueOperation: "generic",
 		},
 	}
 
@@ -347,8 +347,8 @@ func (s *StepUpAuthenticator) VerifyAuth(ctx context.Context, challengeID, respo
 // DefaultStepUpPolicies returns default step-up policies for common operations.
 func DefaultStepUpPolicies() map[string]*StepUpPolicy {
 	const (
-		policyTransferFunds  = "transfer_funds"
-		policyChangePassword = "change_password"
+		policyTransferFunds  = valueTransferFunds
+		policyChangePassword = valueChangePassword
 		policyAddPayee       = "add_payee"
 		policyDeleteAccount  = "delete_account"
 		policyViewPII        = "view_pii"

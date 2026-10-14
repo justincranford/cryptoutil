@@ -23,7 +23,7 @@ func TestValidatePasswordForRealm_ValidPasswords(t *testing.T) {
 	}{
 		{
 			name:     "default realm - valid password with all character types",
-			password: "Abc123!@#xyz", // pragma: allowlist secret - Test vector for realm validation.
+			password: testAbc123Xyz, // pragma: allowlist secret - Test vector for realm validation.
 			realm:    DefaultRealm(),
 		},
 		{
@@ -64,7 +64,7 @@ func TestValidatePasswordForRealm_InvalidPasswords(t *testing.T) {
 	}{
 		{
 			name:        "nil realm",
-			password:    "ValidPass123!", // pragma: allowlist secret - Test vector for realm validation.
+			password:    testValidPass123, // pragma: allowlist secret - Test vector for realm validation.
 			realm:       nil,
 			expectedErr: "realm configuration is nil",
 		},
@@ -76,7 +76,7 @@ func TestValidatePasswordForRealm_InvalidPasswords(t *testing.T) {
 		},
 		{
 			name:        "too short for enterprise realm",
-			password:    "Abc123!@#xyz", // pragma: allowlist secret - Test vector for realm validation.
+			password:    testAbc123Xyz, // pragma: allowlist secret - Test vector for realm validation.
 			realm:       EnterpriseRealm(),
 			expectedErr: "password must be at least 16 characters long",
 		},
@@ -163,9 +163,9 @@ func TestValidateUsernameForRealm(t *testing.T) {
 		},
 		{
 			name:        "invalid - too short",
-			username:    "ab",
+			username:    testAb,
 			wantErr:     true,
-			expectedErr: "username must be at least 3 characters long",
+			expectedErr: testUsernameMustBeAtLeast3CharactersLong,
 		},
 		{
 			name:        "invalid - too long",
@@ -177,13 +177,13 @@ func TestValidateUsernameForRealm(t *testing.T) {
 			name:        "invalid - only whitespace",
 			username:    "   ",
 			wantErr:     true,
-			expectedErr: "username must be at least 3 characters long",
+			expectedErr: testUsernameMustBeAtLeast3CharactersLong,
 		},
 		{
 			name:        "invalid - empty string",
 			username:    "",
 			wantErr:     true,
-			expectedErr: "username must be at least 3 characters long",
+			expectedErr: testUsernameMustBeAtLeast3CharactersLong,
 		},
 	}
 

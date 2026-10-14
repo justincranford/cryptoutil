@@ -212,18 +212,18 @@ func TestGenerateECDSAKeyPairCurves(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name:    testLiteralP256,
-			curve:   testLiteralP256,
+			name:    cryptoutilSharedMagic.P256,
+			curve:   cryptoutilSharedMagic.P256,
 			wantErr: false,
 		},
 		{
-			name:    testLiteralP384,
-			curve:   testLiteralP384,
+			name:    cryptoutilSharedMagic.P384,
+			curve:   cryptoutilSharedMagic.P384,
 			wantErr: false,
 		},
 		{
-			name:    testLiteralP521,
-			curve:   testLiteralP521,
+			name:    cryptoutilSharedMagic.P521,
+			curve:   cryptoutilSharedMagic.P521,
 			wantErr: false,
 		},
 	}
@@ -321,17 +321,17 @@ func TestGetSignatureAlgorithm(t *testing.T) {
 
 				publicKey = &priv.PublicKey
 			case testLiteralECDSAP256:
-				kp, genErr := provider.generateECDSAKeyPair(testLiteralP256)
+				kp, genErr := provider.generateECDSAKeyPair(cryptoutilSharedMagic.P256)
 				require.NoError(t, genErr)
 
 				publicKey = kp.PublicKey
 			case testLiteralECDSAP384:
-				kp, genErr := provider.generateECDSAKeyPair(testLiteralP384)
+				kp, genErr := provider.generateECDSAKeyPair(cryptoutilSharedMagic.P384)
 				require.NoError(t, genErr)
 
 				publicKey = kp.PublicKey
 			case testLiteralECDSAP521:
-				kp, genErr := provider.generateECDSAKeyPair(testLiteralP521)
+				kp, genErr := provider.generateECDSAKeyPair(cryptoutilSharedMagic.P521)
 				require.NoError(t, genErr)
 
 				publicKey = kp.PublicKey
@@ -446,7 +446,7 @@ func TestGenerateECDSAKeyPair_KeygenError(t *testing.T) {
 		return nil, errSignFailed
 	}
 
-	_, err := provider.generateECDSAKeyPair(testLiteralP256)
+	_, err := provider.generateECDSAKeyPair(cryptoutilSharedMagic.P256)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to generate ECDSA key pair")
 }

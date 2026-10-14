@@ -315,7 +315,7 @@ func createDiscoveryTestConfig(t *testing.T, issuer string) *cryptoutilIdentityC
 	return &cryptoutilIdentityConfig.Config{
 		Database: &cryptoutilIdentityConfig.DatabaseConfig{
 			Type: cryptoutilSharedMagic.TestDatabaseSQLite,
-			DSN:  "file::memory:?cache=private",
+			DSN:  testFileMemoryCachePrivate,
 		},
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{
 			Issuer: issuer,

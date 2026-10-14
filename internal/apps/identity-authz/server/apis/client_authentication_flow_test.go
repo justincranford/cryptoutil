@@ -67,7 +67,7 @@ func TestAuthenticateClient_BasicAuthSuccess(t *testing.T) {
 
 	basicAuth := base64.StdEncoding.EncodeToString([]byte(testClient.ClientID + ":test-secret"))
 
-	req := httptest.NewRequest("POST", "/oauth2/v1/token", strings.NewReader(formBody.Encode()))
+	req := httptest.NewRequest(testPost, testOauth2V1Token, strings.NewReader(formBody.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Set("Authorization", "Basic "+basicAuth)
 
@@ -116,10 +116,10 @@ func TestAuthenticateClient_PostAuthSuccess(t *testing.T) {
 	formBody := url.Values{
 		cryptoutilSharedMagic.ParamGrantType:    []string{cryptoutilSharedMagic.GrantTypeClientCredentials},
 		cryptoutilSharedMagic.ParamClientID:     []string{testClient.ClientID},
-		cryptoutilSharedMagic.ParamClientSecret: []string{"test-secret"},
+		cryptoutilSharedMagic.ParamClientSecret: []string{testTestSecret},
 	}
 
-	req := httptest.NewRequest("POST", "/oauth2/v1/token", strings.NewReader(formBody.Encode()))
+	req := httptest.NewRequest(testPost, testOauth2V1Token, strings.NewReader(formBody.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	// Use 30 second timeout for parallel test execution under load.
@@ -156,7 +156,7 @@ func TestAuthenticateClient_NoCredentialsFailure(t *testing.T) {
 		cryptoutilSharedMagic.ParamGrantType: []string{cryptoutilSharedMagic.GrantTypeClientCredentials},
 	}
 
-	req := httptest.NewRequest("POST", "/oauth2/v1/token", strings.NewReader(formBody.Encode()))
+	req := httptest.NewRequest(testPost, testOauth2V1Token, strings.NewReader(formBody.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	// Use 30 second timeout for parallel test execution under load.
@@ -179,7 +179,7 @@ func createClientAuthFlowTestConfig(t *testing.T) *cryptoutilIdentityConfig.Conf
 			DSN:  fmt.Sprintf("file:test_%s.db?mode=memory&cache=shared", testID),
 		},
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{
-			Issuer:              "https://localhost:8080",
+			Issuer:              testHTTPSLocalhost8080,
 			SigningAlgorithm:    cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
 			AccessTokenFormat:   cryptoutilSharedMagic.DefaultBrowserSessionCookie, // Use JWS format for testing (legacy issuer)
 			AccessTokenLifetime: cryptoutilSharedMagic.IMDefaultSessionTimeout,
@@ -227,7 +227,7 @@ func createClientAuthFlowTestClient(
 
 	// Generate proper PBKDF2 hash for "test-secret" using cryptoutilCrypto.HashSecretPBKDF2
 	// Format: $pbkdf2-sha256$iterations$base64(salt)$base64(hash)
-	hashedSecret, err := cryptoutilSharedCryptoHash.HashSecretPBKDF2("test-secret")
+	hashedSecret, err := cryptoutilSharedCryptoHash.HashSecretPBKDF2(testTestSecret)
 	require.NoError(t, err, "Failed to hash client secret")
 
 	testClient := &cryptoutilIdentityDomain.Client{

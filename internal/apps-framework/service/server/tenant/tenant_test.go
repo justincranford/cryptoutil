@@ -87,7 +87,7 @@ func TestSchemaName(t *testing.T) {
 			want:     "tenant_tenant123",
 		},
 		{
-			name:     "empty string",
+			name:     testEmptyString,
 			tenantID: "",
 			want:     cryptoutilSharedMagic.SCHEMA_PREFIX_TENANT,
 		},
@@ -113,8 +113,8 @@ func TestSanitizeTenantID(t *testing.T) {
 	}{
 		{
 			name:     "alphanumeric only",
-			tenantID: "abc123",
-			want:     "abc123",
+			tenantID: testAbc123,
+			want:     testAbc123,
 		},
 		{
 			name:     "hyphens converted",
@@ -124,15 +124,15 @@ func TestSanitizeTenantID(t *testing.T) {
 		{
 			name:     "special chars removed",
 			tenantID: "abc!@#$%^&*()123",
-			want:     "abc123",
+			want:     testAbc123,
 		},
 		{
 			name:     "mixed case preserved",
-			tenantID: "AbCdEf",
-			want:     "AbCdEf",
+			tenantID: testAbCdEf,
+			want:     testAbCdEf,
 		},
 		{
-			name:     "empty string",
+			name:     testEmptyString,
 			tenantID: "",
 			want:     "",
 		},
@@ -273,19 +273,19 @@ func TestSchemaManager_UnsupportedDBType(t *testing.T) {
 	// All operations should fail with unsupported type.
 	err = sm.CreateSchema(ctx, tenantID)
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "unsupported database type")
+	require.Contains(t, err.Error(), testUnsupportedDatabaseType)
 
 	err = sm.DropSchema(ctx, tenantID)
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "unsupported database type")
+	require.Contains(t, err.Error(), testUnsupportedDatabaseType)
 
 	_, err = sm.SchemaExists(ctx, tenantID)
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "unsupported database type")
+	require.Contains(t, err.Error(), testUnsupportedDatabaseType)
 
 	_, err = sm.ListSchemas(ctx)
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "unsupported database type")
+	require.Contains(t, err.Error(), testUnsupportedDatabaseType)
 }
 
 func TestWithTenant_GetTenant(t *testing.T) {
@@ -380,7 +380,7 @@ func TestIsValidTenantID(t *testing.T) {
 			want:     false,
 		},
 		{
-			name:     "empty string",
+			name:     testEmptyString,
 			tenantID: "",
 			want:     false,
 		},

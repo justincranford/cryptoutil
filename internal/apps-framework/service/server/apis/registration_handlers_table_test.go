@@ -87,19 +87,19 @@ func TestHandleProcessJoinRequest_TableDriven(t *testing.T) {
 		{
 			name:           "Invalid UUID",
 			requestID:      "invalid-uuid",
-			requestBody:    `{"approved": true}`,
+			requestBody:    testApprovedTrue,
 			expectedStatus: 400,
 		},
 		{
-			name:           "Invalid JSON",
+			name:           testInvalidJson,
 			requestID:      validID,
-			requestBody:    "invalid json",
+			requestBody:    testInvalidJsonValue9E1FF427,
 			expectedStatus: 400,
 		},
 		{
 			name:           "Approve nonexistent request",
 			requestID:      googleUuid.New().String(),
-			requestBody:    `{"approved": true}`,
+			requestBody:    testApprovedTrue,
 			expectedStatus: cryptoutilSharedMagic.TestDefaultRateLimitServiceIP,
 		},
 		{
@@ -144,7 +144,7 @@ func TestHandleProcessJoinRequest_TableDriven(t *testing.T) {
 func TestJoinRequestSummary_AllFields(t *testing.T) {
 	t.Parallel()
 
-	userID := "user-123"
+	userID := testUser123
 	clientID := "client-456"
 	processedAt := "2026-01-16T12:30:00Z"
 	processedBy := "admin-789"
@@ -155,7 +155,7 @@ func TestJoinRequestSummary_AllFields(t *testing.T) {
 		ClientID:    &clientID,
 		TenantID:    googleUuid.New().String(),
 		Status:      "approved",
-		RequestedAt: "2026-01-16T12:00:00Z",
+		RequestedAt: test20260116T120000Z,
 		ProcessedAt: &processedAt,
 		ProcessedBy: &processedBy,
 	}

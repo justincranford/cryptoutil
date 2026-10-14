@@ -18,7 +18,6 @@ import (
 )
 
 const (
-	handbookPath = cryptoutilSharedMagic.CICDDocsHandbookPath
 	claudeLocal  = ".claude/settings.local.json"
 	skillsReadme = ".github/skills/README.md"
 )
@@ -83,7 +82,7 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 
 func collectPolicyFiles(rootDir string) ([]string, error) {
 	files := []string{
-		filepath.Join(rootDir, handbookPath),
+		filepath.Join(rootDir, cryptoutilSharedMagic.CICDDocsHandbookPath),
 		filepath.Join(rootDir, cryptoutilSharedMagic.CICDCopilotInstructionsFile),
 		filepath.Join(rootDir, cryptoutilSharedMagic.CICDClaudeMdFile),
 		filepath.Join(rootDir, claudeLocal),

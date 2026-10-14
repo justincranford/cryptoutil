@@ -106,10 +106,10 @@ func DefaultRAConfig() *RAConfig {
 			RequireApproval:      true,
 			MinApprovers:         1,
 			AutoApproveProfiles:  []string{},
-			RequestTTL:           sevenDays,
+			RequestTTL:           cryptoutilSharedMagic.Days7,
 			AllowSelfApproval:    false,
 			EscalationEnabled:    true,
-			EscalationTimeout:    oneDay,
+			EscalationTimeout:    cryptoutilSharedMagic.Days1,
 			NotificationsEnabled: true,
 		},
 		Validation: ValidationConfig{
@@ -118,8 +118,8 @@ func DefaultRAConfig() *RAConfig {
 			ValidateOrganization:    false,
 			ValidateKeyStrength:     true,
 			AllowedKeyAlgorithms:    []string{cryptoutilSharedMagic.KeyTypeRSA, cryptoutilSharedMagic.ECDSA, cryptoutilSharedMagic.EdCurveEd25519},
-			MinRSAKeySize:           minRSAKeyBits,
-			MinECKeySize:            minECKeyBits,
+			MinRSAKeySize:           cryptoutilSharedMagic.RSA2048KeySize,
+			MinECKeySize:            cryptoutilSharedMagic.ECDSAP256KeySizeBits,
 			BlocklistedDomains:      []string{},
 			RequiredDNSRecords:      false,
 		},
@@ -127,16 +127,8 @@ func DefaultRAConfig() *RAConfig {
 }
 
 // Time duration constants.
-const (
-	sevenDays = cryptoutilSharedMagic.Days7
-	oneDay    = cryptoutilSharedMagic.Days1
-)
 
 // Key size constants.
-const (
-	minRSAKeyBits = cryptoutilSharedMagic.RSA2048KeySize
-	minECKeyBits  = cryptoutilSharedMagic.ECDSAP256KeySizeBits
-)
 
 // Action constants.
 const (

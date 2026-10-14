@@ -20,7 +20,7 @@ func TestTenantContext(t *testing.T) {
 		userID   googleUuid.UUID
 	}{
 		{
-			name:     "valid context",
+			name:     testValidContext,
 			tenantID: googleUuid.New(),
 			realmID:  googleUuid.New(),
 			userID:   googleUuid.New(),
@@ -70,7 +70,7 @@ func TestGetTenantID(t *testing.T) {
 		expected googleUuid.UUID
 	}{
 		{
-			name:     "no context",
+			name:     testNoContext,
 			ctx:      context.Background(),
 			expected: googleUuid.Nil,
 		},
@@ -99,11 +99,11 @@ func TestMustGetTenantID_Panic(t *testing.T) {
 		ctx  context.Context
 	}{
 		{
-			name: "no context",
+			name: testNoContext,
 			ctx:  context.Background(),
 		},
 		{
-			name: "nil tenant id",
+			name: testNilTenantID,
 			ctx:  WithTenantContext(context.Background(), &TenantContext{TenantID: googleUuid.Nil}),
 		},
 	}
@@ -138,17 +138,17 @@ func TestRequireTenantContext(t *testing.T) {
 		wantTenant googleUuid.UUID
 	}{
 		{
-			name:    "no context",
+			name:    testNoContext,
 			ctx:     context.Background(),
 			wantErr: ErrNoTenantContext,
 		},
 		{
-			name:    "nil tenant id",
+			name:    testNilTenantID,
 			ctx:     WithTenantContext(context.Background(), &TenantContext{TenantID: googleUuid.Nil}),
 			wantErr: ErrInvalidTenantID,
 		},
 		{
-			name:       "valid context",
+			name:       testValidContext,
 			ctx:        WithTenantContext(context.Background(), &TenantContext{TenantID: testTenantID}),
 			wantErr:    nil,
 			wantTenant: testTenantID,

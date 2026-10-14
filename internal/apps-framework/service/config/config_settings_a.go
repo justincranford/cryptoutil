@@ -40,7 +40,7 @@ var (
 	})
 	devMode = *SetEnvAndRegisterSetting(allServiceFrameworkServerRegisteredSettings, &Setting{
 		Name:        cryptoutilSharedMagic.DefaultOTLPEnvironmentDefault,
-		Shorthand:   "d",
+		Shorthand:   valueD,
 		Value:       cryptoutilSharedMagic.DefaultDevMode,
 		Usage:       "run in development mode; enables in-memory SQLite",
 		Description: "Dev mode",
@@ -61,42 +61,42 @@ var (
 		Description: "Configuration profile",
 	})
 	bindPublicProtocol = *SetEnvAndRegisterSetting(allServiceFrameworkServerRegisteredSettings, &Setting{
-		Name:        "bind-public-protocol",
+		Name:        valueBindPublicProtocol,
 		Shorthand:   "t",
 		Value:       cryptoutilSharedMagic.DefaultPublicProtocolCryptoutil,
 		Usage:       "bind public protocol (http or https)",
 		Description: "Bind Public Protocol",
 	})
 	bindPublicAddress = *SetEnvAndRegisterSetting(allServiceFrameworkServerRegisteredSettings, &Setting{
-		Name:        "bind-public-address",
-		Shorthand:   "a",
+		Name:        valueBindPublicAddress,
+		Shorthand:   valueA,
 		Value:       cryptoutilSharedMagic.DefaultPublicAddressCryptoutil,
 		Usage:       "bind public address",
 		Description: "Bind Public Address",
 	})
 	bindPublicPort = *SetEnvAndRegisterSetting(allServiceFrameworkServerRegisteredSettings, &Setting{
-		Name:        "bind-public-port",
+		Name:        valueBindPublicPort,
 		Shorthand:   "p",
 		Value:       cryptoutilSharedMagic.DefaultPublicPortCryptoutil,
 		Usage:       "bind public port",
 		Description: "Bind Public Port",
 	})
 	bindPrivateProtocol = *SetEnvAndRegisterSetting(allServiceFrameworkServerRegisteredSettings, &Setting{
-		Name:        "bind-private-protocol",
+		Name:        valueBindPrivateProtocol,
 		Shorthand:   "T",
 		Value:       cryptoutilSharedMagic.DefaultPrivateProtocolCryptoutil,
 		Usage:       "bind private protocol (http or https)",
 		Description: "Bind Private Protocol",
 	})
 	bindPrivateAddress = *SetEnvAndRegisterSetting(allServiceFrameworkServerRegisteredSettings, &Setting{
-		Name:        "bind-private-address",
+		Name:        valueBindPrivateAddress,
 		Shorthand:   "A",
 		Value:       cryptoutilSharedMagic.DefaultPrivateAddressCryptoutil,
 		Usage:       "bind private address",
 		Description: "Bind Private Address",
 	})
 	bindPrivatePort = *SetEnvAndRegisterSetting(allServiceFrameworkServerRegisteredSettings, &Setting{
-		Name:        "bind-private-port",
+		Name:        valueBindPrivatePort,
 		Shorthand:   "P",
 		Value:       cryptoutilSharedMagic.DefaultPrivatePortCryptoutil,
 		Usage:       "bind private port",
@@ -178,14 +178,14 @@ var (
 	})
 	publicBrowserAPIContextPath = *SetEnvAndRegisterSetting(allServiceFrameworkServerRegisteredSettings, &Setting{
 		Name:        "browser-api-context-path",
-		Shorthand:   "c",
+		Shorthand:   valueC,
 		Value:       cryptoutilSharedMagic.DefaultPublicBrowserAPIContextPath,
 		Usage:       "context path for Public Browser API",
 		Description: "Public Browser API Context Path",
 	})
 	publicServiceAPIContextPath = *SetEnvAndRegisterSetting(allServiceFrameworkServerRegisteredSettings, &Setting{
 		Name:        "service-api-context-path",
-		Shorthand:   "b",
+		Shorthand:   valueB,
 		Value:       cryptoutilSharedMagic.DefaultPublicServiceAPIContextPath,
 		Usage:       "context path for Public Server API",
 		Description: "Public Service API Context Path",

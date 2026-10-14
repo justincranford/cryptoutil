@@ -44,7 +44,7 @@ paths: {}
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	err = Check(logger, map[string][]string{"yaml": {specFile}})
+	err = Check(logger, map[string][]string{valueYAML: {specFile}})
 
 	require.NoError(t, err)
 }
@@ -69,7 +69,7 @@ info:
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	err = Check(logger, map[string][]string{"yaml": {specFile}})
+	err = Check(logger, map[string][]string{valueYAML: {specFile}})
 
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "openapi-version")
@@ -95,7 +95,7 @@ info:
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	err = Check(logger, map[string][]string{"yaml": {specFile}})
+	err = Check(logger, map[string][]string{valueYAML: {specFile}})
 
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "openapi-version")
@@ -122,7 +122,7 @@ components:
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	err = Check(logger, map[string][]string{"yaml": {specFile}})
+	err = Check(logger, map[string][]string{valueYAML: {specFile}})
 
 	require.NoError(t, err, "component files without openapi field should pass")
 }
@@ -140,7 +140,7 @@ func TestCheck_NonAPIFile(t *testing.T) {
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	err = Check(logger, map[string][]string{"yaml": {yamlFile}})
+	err = Check(logger, map[string][]string{valueYAML: {yamlFile}})
 
 	require.NoError(t, err, "non-api YAML files should be skipped")
 }
@@ -174,7 +174,7 @@ info:
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	err = Check(logger, map[string][]string{"yaml": {specFile}})
+	err = Check(logger, map[string][]string{valueYAML: {specFile}})
 
 	require.NoError(t, err, "single-quoted version should be accepted")
 }

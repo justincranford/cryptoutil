@@ -87,7 +87,7 @@ func TestIsPublicPrivateAsymmetricSymmetric_AsymmetricKeys(t *testing.T) {
 		keyGenFunc func() (any, any, error)
 		prob       float32
 	}{
-		{"RSA2048", cryptoutilOpenapiModel.RSA2048, func() (any, any, error) {
+		{testRsa2048, cryptoutilOpenapiModel.RSA2048, func() (any, any, error) {
 			key, err := rsa.GenerateKey(crand.Reader, cryptoutilSharedMagic.RSAKeySize2048)
 			if err != nil {
 				return nil, nil, fmt.Errorf("failed to generate RSA 2048 key: %w", err)
@@ -95,7 +95,7 @@ func TestIsPublicPrivateAsymmetricSymmetric_AsymmetricKeys(t *testing.T) {
 
 			return key, &key.PublicKey, nil
 		}, cryptoutilSharedMagic.TestProbAlways},
-		{"RSA3072", cryptoutilOpenapiModel.RSA3072, func() (any, any, error) {
+		{testRsa3072, cryptoutilOpenapiModel.RSA3072, func() (any, any, error) {
 			key, err := rsa.GenerateKey(crand.Reader, cryptoutilSharedMagic.RSAKeySize3072)
 			if err != nil {
 				return nil, nil, fmt.Errorf("failed to generate RSA 3072 key: %w", err)
@@ -103,7 +103,7 @@ func TestIsPublicPrivateAsymmetricSymmetric_AsymmetricKeys(t *testing.T) {
 
 			return key, &key.PublicKey, nil
 		}, cryptoutilSharedMagic.TestProbTenth},
-		{"RSA4096", cryptoutilOpenapiModel.RSA4096, func() (any, any, error) {
+		{testRsa4096, cryptoutilOpenapiModel.RSA4096, func() (any, any, error) {
 			key, err := rsa.GenerateKey(crand.Reader, cryptoutilSharedMagic.RSAKeySize4096)
 			if err != nil {
 				return nil, nil, fmt.Errorf("failed to generate RSA 4096 key: %w", err)
@@ -111,7 +111,7 @@ func TestIsPublicPrivateAsymmetricSymmetric_AsymmetricKeys(t *testing.T) {
 
 			return key, &key.PublicKey, nil
 		}, cryptoutilSharedMagic.TestProbTenth},
-		{"ECP256", cryptoutilOpenapiModel.ECP256, func() (any, any, error) {
+		{testEcp256, cryptoutilOpenapiModel.ECP256, func() (any, any, error) {
 			key, err := ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
 			if err != nil {
 				return nil, nil, fmt.Errorf("failed to generate ECDSA P-256 key: %w", err)
@@ -119,7 +119,7 @@ func TestIsPublicPrivateAsymmetricSymmetric_AsymmetricKeys(t *testing.T) {
 
 			return key, &key.PublicKey, nil
 		}, cryptoutilSharedMagic.TestProbAlways},
-		{"ECP384", cryptoutilOpenapiModel.ECP384, func() (any, any, error) {
+		{testEcp384, cryptoutilOpenapiModel.ECP384, func() (any, any, error) {
 			key, err := ecdsa.GenerateKey(elliptic.P384(), crand.Reader)
 			if err != nil {
 				return nil, nil, fmt.Errorf("failed to generate ECDSA P-384 key: %w", err)
@@ -127,7 +127,7 @@ func TestIsPublicPrivateAsymmetricSymmetric_AsymmetricKeys(t *testing.T) {
 
 			return key, &key.PublicKey, nil
 		}, cryptoutilSharedMagic.TestProbTenth},
-		{"ECP521", cryptoutilOpenapiModel.ECP521, func() (any, any, error) {
+		{testEcp521, cryptoutilOpenapiModel.ECP521, func() (any, any, error) {
 			key, err := ecdsa.GenerateKey(elliptic.P521(), crand.Reader)
 			if err != nil {
 				return nil, nil, fmt.Errorf("failed to generate ECDSA P-521 key: %w", err)
@@ -135,7 +135,7 @@ func TestIsPublicPrivateAsymmetricSymmetric_AsymmetricKeys(t *testing.T) {
 
 			return key, &key.PublicKey, nil
 		}, cryptoutilSharedMagic.TestProbTenth},
-		{"OKPEd25519", cryptoutilOpenapiModel.OKPEd25519, func() (any, any, error) {
+		{testOkped25519, cryptoutilOpenapiModel.OKPEd25519, func() (any, any, error) {
 			pub, priv, err := ed25519.GenerateKey(crand.Reader)
 			if err != nil {
 				return nil, nil, fmt.Errorf("failed to generate Ed25519 key: %w", err)
@@ -341,9 +341,9 @@ func TestCreateJWEJWKFromKey_RSA_Variants(t *testing.T) {
 		alg     joseJwa.KeyEncryptionAlgorithm
 		prob    float32
 	}{
-		{"RSA2048", cryptoutilSharedMagic.RSAKeySize2048, joseJwa.A256GCM(), joseJwa.RSA_OAEP_256(), cryptoutilSharedMagic.TestProbAlways},
-		{"RSA3072", cryptoutilSharedMagic.RSAKeySize3072, joseJwa.A192GCM(), joseJwa.RSA_OAEP_384(), cryptoutilSharedMagic.TestProbTenth},
-		{"RSA4096", cryptoutilSharedMagic.RSAKeySize4096, joseJwa.A256GCM(), joseJwa.RSA_OAEP_512(), cryptoutilSharedMagic.TestProbTenth},
+		{testRsa2048, cryptoutilSharedMagic.RSAKeySize2048, joseJwa.A256GCM(), joseJwa.RSA_OAEP_256(), cryptoutilSharedMagic.TestProbAlways},
+		{testRsa3072, cryptoutilSharedMagic.RSAKeySize3072, joseJwa.A192GCM(), joseJwa.RSA_OAEP_384(), cryptoutilSharedMagic.TestProbTenth},
+		{testRsa4096, cryptoutilSharedMagic.RSAKeySize4096, joseJwa.A256GCM(), joseJwa.RSA_OAEP_512(), cryptoutilSharedMagic.TestProbTenth},
 	}
 
 	for _, tc := range tests {
@@ -379,9 +379,9 @@ func TestCreateJWEJWKFromKey_AES_Variants(t *testing.T) {
 		enc     joseJwa.ContentEncryptionAlgorithm
 		prob    float32
 	}{
-		{"AES128", cryptoutilSharedMagic.AESKeySize128, joseJwa.A128GCM(), cryptoutilSharedMagic.TestProbAlways},
-		{"AES192", cryptoutilSharedMagic.AESKeySize192, joseJwa.A192GCM(), cryptoutilSharedMagic.TestProbTenth},
-		{"AES256", cryptoutilSharedMagic.AESKeySize256, joseJwa.A256GCM(), cryptoutilSharedMagic.TestProbAlways},
+		{testAes128, cryptoutilSharedMagic.AESKeySize128, joseJwa.A128GCM(), cryptoutilSharedMagic.TestProbAlways},
+		{testAes192, cryptoutilSharedMagic.AESKeySize192, joseJwa.A192GCM(), cryptoutilSharedMagic.TestProbTenth},
+		{testAes256, cryptoutilSharedMagic.AESKeySize256, joseJwa.A256GCM(), cryptoutilSharedMagic.TestProbAlways},
 	}
 
 	for _, tc := range tests {
@@ -455,9 +455,9 @@ func TestCreateJWSJWKFromKey_HMAC_Variants(t *testing.T) {
 		alg     joseJwa.SignatureAlgorithm
 		prob    float32
 	}{
-		{"HMAC256", cryptoutilSharedMagic.HMACKeySize256, joseJwa.HS256(), cryptoutilSharedMagic.TestProbAlways},
-		{"HMAC384", cryptoutilSharedMagic.HMACKeySize384, joseJwa.HS384(), cryptoutilSharedMagic.TestProbTenth},
-		{"HMAC512", cryptoutilSharedMagic.HMACKeySize512, joseJwa.HS512(), cryptoutilSharedMagic.TestProbTenth},
+		{testHmac256, cryptoutilSharedMagic.HMACKeySize256, joseJwa.HS256(), cryptoutilSharedMagic.TestProbAlways},
+		{testHmac384, cryptoutilSharedMagic.HMACKeySize384, joseJwa.HS384(), cryptoutilSharedMagic.TestProbTenth},
+		{testHmac512, cryptoutilSharedMagic.HMACKeySize512, joseJwa.HS512(), cryptoutilSharedMagic.TestProbTenth},
 	}
 
 	for _, tc := range tests {

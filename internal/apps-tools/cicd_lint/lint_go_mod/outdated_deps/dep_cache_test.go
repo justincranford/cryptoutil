@@ -115,7 +115,7 @@ func TestCheckAndUseDepCache_ValidCacheWithOutdated(t *testing.T) {
 		LastCheck:    time.Now().UTC(),
 		GoModModTime: goModStat.ModTime(),
 		GoSumModTime: goSumStat.ModTime(),
-		OutdatedDeps: []string{"example.com/dep v1.0.0 [v1.1.0]"},
+		OutdatedDeps: []string{testExampleComDepV100V110},
 		Mode:         cryptoutilSharedMagic.ModeNameDirect,
 	}
 	err = saveDepCache(cacheFile, cache, json.MarshalIndent)
@@ -175,7 +175,7 @@ func TestLoadDepCache_ValidCache(t *testing.T) {
 		LastCheck:    time.Now().UTC(),
 		GoModModTime: time.Now().UTC(),
 		GoSumModTime: time.Now().UTC(),
-		OutdatedDeps: []string{"example.com/dep v1.0.0 [v1.1.0]"},
+		OutdatedDeps: []string{testExampleComDepV100V110},
 		Mode:         cryptoutilSharedMagic.ModeNameDirect,
 	}
 	err := saveDepCache(cacheFile, cache, json.MarshalIndent)
@@ -227,8 +227,8 @@ require (
 
 	directDeps := getDirectDependencies(goModContent)
 	require.Len(t, directDeps, 2)
-	require.True(t, directDeps["github.com/pkg/errors"])
-	require.True(t, directDeps["github.com/stretchr/testify"])
+	require.True(t, directDeps[testGithubComPkgErrors])
+	require.True(t, directDeps[testGithubComStretchrTestify])
 }
 
 func TestCheckDependencyUpdates_OnlyEmptyLines(t *testing.T) {
@@ -237,7 +237,7 @@ func TestCheckDependencyUpdates_OnlyEmptyLines(t *testing.T) {
 	goListOutput := "\n\n\n"
 
 	directDeps := map[string]bool{
-		"github.com/pkg/errors": true,
+		testGithubComPkgErrors: true,
 	}
 
 	outdated := checkDependencyUpdates(goListOutput, directDeps)
@@ -258,8 +258,8 @@ require github.com/indirect/dep v1.0.0 // indirect
 
 	directDeps := getDirectDependencies(goModContent)
 	require.Len(t, directDeps, 2)
-	require.True(t, directDeps["github.com/pkg/errors"])
-	require.True(t, directDeps["github.com/stretchr/testify"])
+	require.True(t, directDeps[testGithubComPkgErrors])
+	require.True(t, directDeps[testGithubComStretchrTestify])
 	require.False(t, directDeps["github.com/indirect/dep"])
 }
 
@@ -271,12 +271,12 @@ no-space-line[v0.9.2]
 github.com/pkg/errors v0.9.1 [v0.9.2]`
 
 	directDeps := map[string]bool{
-		"github.com/pkg/errors": true,
+		testGithubComPkgErrors: true,
 	}
 
 	outdated := checkDependencyUpdates(goListOutput, directDeps)
 	require.Len(t, outdated, 1)
-	require.Contains(t, outdated[0], "github.com/pkg/errors")
+	require.Contains(t, outdated[0], testGithubComPkgErrors)
 }
 
 func TestCheckDependencyUpdates_UpdateMarkersWithoutClosingBracket(t *testing.T) {
@@ -287,13 +287,13 @@ github.com/pkg/errors v0.9.1 [v0.9.2
 github.com/stretchr/testify v1.8.0 [v1.9.0]`
 
 	directDeps := map[string]bool{
-		"github.com/pkg/errors":       true,
-		"github.com/stretchr/testify": true,
+		testGithubComPkgErrors:       true,
+		testGithubComStretchrTestify: true,
 	}
 
 	outdated := checkDependencyUpdates(goListOutput, directDeps)
 	require.Len(t, outdated, 1, "Should only include lines with complete update markers")
-	require.Contains(t, outdated[0], "github.com/stretchr/testify")
+	require.Contains(t, outdated[0], testGithubComStretchrTestify)
 }
 
 func TestGetDirectDependencies_NoRequireBlock(t *testing.T) {

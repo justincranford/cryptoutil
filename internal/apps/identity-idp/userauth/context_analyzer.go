@@ -222,12 +222,12 @@ func (a *DefaultContextAnalyzer) detectLocationAnomaly(location *GeoLocation, ba
 	const severityUnknownLocation = 0.7
 
 	return &Anomaly{
-		Type:        "unknown_location",
+		Type:        valueUnknownLocation,
 		Severity:    severityUnknownLocation,
 		Description: "Authentication from unknown location",
 		Metadata: map[string]any{
 			cryptoutilSharedMagic.AddressCountry: location.Country,
-			"city":                               location.City,
+			valueCity:                            location.City,
 		},
 	}
 }
@@ -242,11 +242,11 @@ func (a *DefaultContextAnalyzer) detectDeviceAnomaly(device *DeviceFingerprint, 
 	const severityUnknownDevice = 0.6
 
 	return &Anomaly{
-		Type:        "unknown_device",
+		Type:        valueUnknownDevice,
 		Severity:    severityUnknownDevice,
 		Description: "Authentication from unknown device",
 		Metadata: map[string]any{
-			"device_id": device.ID,
+			valueDeviceID: device.ID,
 		},
 	}
 }
@@ -263,11 +263,11 @@ func (a *DefaultContextAnalyzer) detectTimeAnomaly(authTime time.Time, baseline 
 	const severityUnusualTime = 0.4
 
 	return &Anomaly{
-		Type:        "unusual_time",
+		Type:        valueUnusualTime,
 		Severity:    severityUnusualTime,
 		Description: "Authentication at unusual time",
 		Metadata: map[string]any{
-			"hour": hour,
+			valueHour: hour,
 		},
 	}
 }
@@ -282,7 +282,7 @@ func (a *DefaultContextAnalyzer) detectVelocityAnomaly(authTime, lastAuthTime ti
 
 	if timeSinceLastAuth < veryFastThreshold {
 		return &Anomaly{
-			Type:        "high_velocity",
+			Type:        valueHighVelocity,
 			Severity:    severityVeryFast,
 			Description: "Extremely fast authentication attempts",
 			Metadata: map[string]any{

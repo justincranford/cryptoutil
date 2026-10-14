@@ -29,9 +29,9 @@ func TestGenerateRSAJWK(t *testing.T) {
 		rsaBits int
 		prob    float32
 	}{
-		{"RSA2048", cryptoutilSharedMagic.RSAKeySize2048, cryptoutilSharedMagic.TestProbAlways},
-		{"RSA3072", cryptoutilSharedMagic.RSAKeySize3072, cryptoutilSharedMagic.TestProbTenth},
-		{"RSA4096", cryptoutilSharedMagic.RSAKeySize4096, cryptoutilSharedMagic.TestProbTenth},
+		{testRsa2048, cryptoutilSharedMagic.RSAKeySize2048, cryptoutilSharedMagic.TestProbAlways},
+		{testRsa3072, cryptoutilSharedMagic.RSAKeySize3072, cryptoutilSharedMagic.TestProbTenth},
+		{testRsa4096, cryptoutilSharedMagic.RSAKeySize4096, cryptoutilSharedMagic.TestProbTenth},
 	}
 
 	for _, tc := range tests {
@@ -151,9 +151,9 @@ func TestGenerateAESJWK(t *testing.T) {
 		aesBits int
 		prob    float32
 	}{
-		{"AES128", cryptoutilSharedMagic.AESKeySize128, cryptoutilSharedMagic.TestProbAlways},
-		{"AES192", cryptoutilSharedMagic.AESKeySize192, cryptoutilSharedMagic.TestProbTenth},
-		{"AES256", cryptoutilSharedMagic.AESKeySize256, cryptoutilSharedMagic.TestProbTenth},
+		{testAes128, cryptoutilSharedMagic.AESKeySize128, cryptoutilSharedMagic.TestProbAlways},
+		{testAes192, cryptoutilSharedMagic.AESKeySize192, cryptoutilSharedMagic.TestProbTenth},
+		{testAes256, cryptoutilSharedMagic.AESKeySize256, cryptoutilSharedMagic.TestProbTenth},
 	}
 
 	for _, tc := range tests {
@@ -221,9 +221,9 @@ func TestGenerateHMACJWK(t *testing.T) {
 		hmacBits int
 		prob     float32
 	}{
-		{"HMAC256", cryptoutilSharedMagic.HMACKeySize256, cryptoutilSharedMagic.TestProbAlways},
-		{"HMAC384", cryptoutilSharedMagic.HMACKeySize384, cryptoutilSharedMagic.TestProbTenth},
-		{"HMAC512", cryptoutilSharedMagic.HMACKeySize512, cryptoutilSharedMagic.TestProbTenth},
+		{testHmac256, cryptoutilSharedMagic.HMACKeySize256, cryptoutilSharedMagic.TestProbAlways},
+		{testHmac384, cryptoutilSharedMagic.HMACKeySize384, cryptoutilSharedMagic.TestProbTenth},
+		{testHmac512, cryptoutilSharedMagic.HMACKeySize512, cryptoutilSharedMagic.TestProbTenth},
 	}
 
 	for _, tc := range tests {
@@ -269,7 +269,7 @@ func TestBuildJWK(t *testing.T) {
 			},
 		},
 		{
-			name: "EC",
+			name: testEC,
 			kty:  KtyEC,
 			generateKey: func() (any, error) {
 				keyPair, err := cryptoutilSharedCryptoKeygen.GenerateECDSAKeyPair(elliptic.P256())
@@ -281,7 +281,7 @@ func TestBuildJWK(t *testing.T) {
 			},
 		},
 		{
-			name: "OKP",
+			name: testOkp,
 			kty:  KtyOKP,
 			generateKey: func() (any, error) {
 				keyPair, err := cryptoutilSharedCryptoKeygen.GenerateEDDSAKeyPair(cryptoutilSharedCryptoKeygen.EdCurveEd25519)

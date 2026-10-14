@@ -77,8 +77,8 @@ func TestSecurityAttacks_CSRFProtection(t *testing.T) {
 	// 4. Create default auth profile.
 	defaultAuthProfile := &cryptoutilIdentityDomain.AuthProfile{
 		ID:          googleUuid.Must(googleUuid.NewV7()),
-		Name:        "default",
-		Description: "Default authentication profile",
+		Name:        testDefault,
+		Description: testDefaultAuthenticationProfile,
 		ProfileType: cryptoutilIdentityDomain.AuthProfileTypeUsernamePassword,
 		RequireMFA:  false,
 		MFAChain:    []string{},
@@ -97,7 +97,7 @@ func TestSecurityAttacks_CSRFProtection(t *testing.T) {
 			AccessTokenLifetime: cryptoutilSharedMagic.IMDefaultSessionTimeout * time.Second,
 		},
 		Sessions: &cryptoutilIdentityConfig.SessionConfig{
-			CookieName:      "identity_session",
+			CookieName:      testIdentitySession,
 			SessionLifetime: cryptoutilSharedMagic.IMDefaultSessionTimeout * time.Second,
 			CookieHTTPOnly:  true,
 		},
@@ -173,9 +173,9 @@ func TestSecurityAttacks_CSRFProtection(t *testing.T) {
 		ClientID:     testClient.ClientID,
 		RedirectURI:  testClient.RedirectURIs[0],
 		ResponseType: cryptoutilSharedMagic.ResponseTypeCode,
-		Scope:        "openid profile email",
+		Scope:        testOpenidProfileEmail,
 		State:        "", // MISSING STATE - CSRF vulnerability
-		Nonce:        "test-nonce",
+		Nonce:        testTestNonce,
 		CreatedAt:    time.Now().UTC(),
 		ExpiresAt:    time.Now().UTC().Add(cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Minute),
 	}
@@ -187,11 +187,11 @@ func TestSecurityAttacks_CSRFProtection(t *testing.T) {
 	loginFormData := url.Values{}
 	loginFormData.Set("username", testUsername)
 	loginFormData.Set("password", cryptoutilIdentityIdp.TestPassword)
-	loginFormData.Set("request_id", authzReqNoState.ID.String())
+	loginFormData.Set(testRequestID, authzReqNoState.ID.String())
 
 	loginReq := httptest.NewRequest(
 		http.MethodPost,
-		"/oidc/v1/login",
+		testOIDCV1Login,
 		strings.NewReader(loginFormData.Encode()),
 	)
 	loginReq.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationForm)

@@ -74,9 +74,9 @@ var (
 		StartCharacters:      append([]rune{}, LowercaseLetters...),
 		EndCharacters:        append(append([]rune{}, Digits...), SpecialChars...),
 		CharSets: []CharSetConfig{
-			{Name: "lowercase", Characters: LowercaseLetters, Min: 1, Max: MaxInt},
-			{Name: "uppercase", Characters: UppercaseLetters, Min: 1, Max: MaxInt},
-			{Name: "digits", Characters: Digits, Min: 1, Max: MaxInt},
+			{Name: valueLowercase, Characters: LowercaseLetters, Min: 1, Max: MaxInt},
+			{Name: valueUppercase, Characters: UppercaseLetters, Min: 1, Max: MaxInt},
+			{Name: valueDigits, Characters: Digits, Min: 1, Max: MaxInt},
 		},
 	}
 
@@ -90,10 +90,10 @@ var (
 		StartCharacters:      append(append([]rune{}, LowercaseLetters...), UppercaseLetters...),
 		EndCharacters:        append(append([]rune{}, Digits...), SpecialChars...),
 		CharSets: []CharSetConfig{
-			{Name: "lowercase", Characters: LowercaseLetters, Min: 1, Max: MaxInt},
-			{Name: "uppercase", Characters: UppercaseLetters, Min: 1, Max: MaxInt},
-			{Name: "digits", Characters: Digits, Min: 1, Max: MaxInt},
-			{Name: "special", Characters: SpecialChars, Min: 1, Max: MaxInt},
+			{Name: valueLowercase, Characters: LowercaseLetters, Min: 1, Max: MaxInt},
+			{Name: valueUppercase, Characters: UppercaseLetters, Min: 1, Max: MaxInt},
+			{Name: valueDigits, Characters: Digits, Min: 1, Max: MaxInt},
+			{Name: valueSpecial, Characters: SpecialChars, Min: 1, Max: MaxInt},
 		},
 	}
 
@@ -107,10 +107,10 @@ var (
 		StartCharacters:      append([]rune{}, LowercaseLetters...),
 		EndCharacters:        append([]rune{}, Digits...),
 		CharSets: []CharSetConfig{
-			{Name: "lowercase", Characters: LowercaseLetters, Min: 2, Max: MaxInt},
-			{Name: "uppercase", Characters: UppercaseLetters, Min: 2, Max: MaxInt},
-			{Name: "digits", Characters: Digits, Min: 2, Max: MaxInt},
-			{Name: "special", Characters: SpecialChars, Min: 2, Max: MaxInt},
+			{Name: valueLowercase, Characters: LowercaseLetters, Min: 2, Max: MaxInt},
+			{Name: valueUppercase, Characters: UppercaseLetters, Min: 2, Max: MaxInt},
+			{Name: valueDigits, Characters: Digits, Min: 2, Max: MaxInt},
+			{Name: valueSpecial, Characters: SpecialChars, Min: 2, Max: MaxInt},
 		},
 	}
 )

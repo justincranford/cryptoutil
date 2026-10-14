@@ -21,44 +21,44 @@ func TestFilterFilesForCommand(t *testing.T) {
 		{
 			name:        "empty files",
 			files:       []string{},
-			commandName: "lint-text",
+			commandName: testLintText,
 			expected:    []string{},
 		},
 		{
 			name:        "filters self-exclusion for lint-text",
-			files:       []string{"internal/apps-tools/cicd_lint/lint_text/utf8.go", "internal/common/magic/magic.go"},
-			commandName: "lint-text",
-			expected:    []string{"internal/common/magic/magic.go"},
+			files:       []string{testInternalAppsToolsCicdLintLintTextUtf8Go, testInternalCommonMagicMagicGo},
+			commandName: testLintText,
+			expected:    []string{testInternalCommonMagicMagicGo},
 		},
 		{
 			name:        "filters self-exclusion for format-go",
-			files:       []string{"internal/apps-tools/cicd_lint/format_go/enforce_any.go", "internal/common/magic/magic.go"},
-			commandName: "format-go",
-			expected:    []string{"internal/common/magic/magic.go"},
+			files:       []string{testInternalAppsToolsCicdLintFormatGoEnforceAnyGo, testInternalCommonMagicMagicGo},
+			commandName: valueFormatGo,
+			expected:    []string{testInternalCommonMagicMagicGo},
 		},
 		{
 			name:        "filters template go files for format-go",
-			files:       []string{"api/cryptosuite-registry/templates/internal/apps/__PS_ID__/__SERVICE__.go", "internal/common/magic/magic.go"},
-			commandName: "format-go",
-			expected:    []string{"internal/common/magic/magic.go"},
+			files:       []string{"api/cryptosuite-registry/templates/internal/apps/__PS_ID__/__SERVICE__.go", testInternalCommonMagicMagicGo},
+			commandName: valueFormatGo,
+			expected:    []string{testInternalCommonMagicMagicGo},
 		},
 		{
 			name:        "filters generated files",
-			files:       []string{"api/server/generated_gen.go", "internal/common/magic/magic.go", "proto/service.pb.go"},
-			commandName: "lint-text",
-			expected:    []string{"internal/common/magic/magic.go"},
+			files:       []string{"api/server/generated_gen.go", testInternalCommonMagicMagicGo, "proto/service.pb.go"},
+			commandName: testLintText,
+			expected:    []string{testInternalCommonMagicMagicGo},
 		},
 		{
 			name:        "no exclusions for unknown command",
-			files:       []string{"internal/apps-tools/cicd_lint/lint_text/utf8.go", "internal/common/magic/magic.go"},
+			files:       []string{testInternalAppsToolsCicdLintLintTextUtf8Go, testInternalCommonMagicMagicGo},
 			commandName: "unknown-command",
-			expected:    []string{"internal/apps-tools/cicd_lint/lint_text/utf8.go", "internal/common/magic/magic.go"},
+			expected:    []string{testInternalAppsToolsCicdLintLintTextUtf8Go, testInternalCommonMagicMagicGo},
 		},
 		{
 			name:        "keeps non-matching files",
-			files:       []string{"internal/server/server.go", "cmd/app/main.go"},
-			commandName: "lint-go",
-			expected:    []string{"internal/server/server.go", "cmd/app/main.go"},
+			files:       []string{testInternalServerServerGo, testCmdAppMainGo},
+			commandName: testLintGo,
+			expected:    []string{testInternalServerServerGo, testCmdAppMainGo},
 		},
 	}
 
@@ -81,23 +81,23 @@ func TestFlattenFileMap(t *testing.T) {
 		expected int
 	}{
 		{
-			name:     "empty map",
+			name:     testEmptyMap,
 			fileMap:  map[string][]string{},
 			expected: 0,
 		},
 		{
 			name: "single extension",
 			fileMap: map[string][]string{
-				"go": {"file1.go", "file2.go"},
+				valueGo: {testFile1Go, testFile2Go},
 			},
 			expected: 2,
 		},
 		{
 			name: "multiple extensions",
 			fileMap: map[string][]string{
-				"go":   {"file1.go", "file2.go"},
-				"yaml": {"config.yaml"},
-				"md":   {"README.md", "CHANGELOG.md"},
+				valueGo:  {testFile1Go, testFile2Go},
+				testYAML: {testConfigYAML},
+				"md":     {"README.md", "CHANGELOG.md"},
 			},
 			expected: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries,
 		},
@@ -123,27 +123,27 @@ func TestGetGoFiles(t *testing.T) {
 		expected    []string
 	}{
 		{
-			name:        "empty map",
+			name:        testEmptyMap,
 			fileMap:     map[string][]string{},
-			commandName: "format-go",
+			commandName: valueFormatGo,
 			expected:    nil,
 		},
 		{
 			name: "extracts go files",
 			fileMap: map[string][]string{
-				"go":   {"file1.go", "file2.go"},
-				"yaml": {"config.yaml"},
+				valueGo:  {testFile1Go, testFile2Go},
+				testYAML: {testConfigYAML},
 			},
-			commandName: "lint-go",
-			expected:    []string{"file1.go", "file2.go"},
+			commandName: testLintGo,
+			expected:    []string{testFile1Go, testFile2Go},
 		},
 		{
 			name: "filters self-exclusion",
 			fileMap: map[string][]string{
-				"go": {"internal/apps-tools/cicd_lint/format_go/enforce_any.go", "internal/common/magic/magic.go"},
+				valueGo: {testInternalAppsToolsCicdLintFormatGoEnforceAnyGo, testInternalCommonMagicMagicGo},
 			},
-			commandName: "format-go",
-			expected:    []string{"internal/common/magic/magic.go"},
+			commandName: valueFormatGo,
+			expected:    []string{testInternalCommonMagicMagicGo},
 		},
 	}
 

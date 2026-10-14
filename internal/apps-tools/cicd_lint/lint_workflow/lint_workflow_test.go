@@ -39,7 +39,7 @@ func TestLint_ValidWorkflowFile(t *testing.T) {
 	require.NoError(t, os.WriteFile(workflowPath, []byte(workflowContent), cryptoutilSharedMagic.CacheFilePermissions))
 
 	filesByExtension := map[string][]string{
-		"yml": {workflowPath},
+		testYml: {workflowPath},
 	}
 
 	// Lint either succeeds or fails depending on GitHub API availability.
@@ -63,7 +63,7 @@ func TestLint_BranchPinnedAction(t *testing.T) {
 	require.NoError(t, os.WriteFile(workflowPath, []byte(workflowContent), cryptoutilSharedMagic.CacheFilePermissions))
 
 	filesByExtension := map[string][]string{
-		"yml": {workflowPath},
+		testYml: {workflowPath},
 	}
 
 	// Lint should fail for branch-pinned action.

@@ -131,7 +131,7 @@ func listWorkflowRunsAPI(cfg *CleanupConfig) ([]workflowRun, error) {
 	var allRuns []workflowRun
 
 	for page := 1; page <= maxPages; page++ {
-		args := append([]string{"api"}, repoArgs(cfg)...)
+		args := append([]string{valueAPI}, repoArgs(cfg)...)
 		args = append(args,
 			"-X", "GET",
 			fmt.Sprintf("/repos/{owner}/{repo}/actions/runs?per_page=%d&page=%d", maxPerPage, page),
@@ -168,7 +168,7 @@ func listWorkflowRunsAPI(cfg *CleanupConfig) ([]workflowRun, error) {
 
 // deleteWorkflowRun deletes a single workflow run by ID.
 func deleteWorkflowRun(cfg *CleanupConfig, runID int64) error {
-	args := append([]string{"api"}, repoArgs(cfg)...)
+	args := append([]string{valueAPI}, repoArgs(cfg)...)
 	args = append(args,
 		"-X", "DELETE",
 		"/repos/{owner}/{repo}/actions/runs/"+strconv.FormatInt(runID, cryptoutilSharedMagic.DecimalRadix),

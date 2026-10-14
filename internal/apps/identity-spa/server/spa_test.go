@@ -51,7 +51,7 @@ func TestSpaClient_HelpFlag(t *testing.T) {
 
 	var stdout, stderr bytes.Buffer
 
-	exitCode := cryptoutilIdentitySPA.Spa([]string{"client", cryptoutilSharedMagic.CLIHelpFlag}, nil, &stdout, &stderr)
+	exitCode := cryptoutilIdentitySPA.Spa([]string{testClient, cryptoutilSharedMagic.CLIHelpFlag}, nil, &stdout, &stderr)
 	testify.Equal(t, 0, exitCode)
 }
 
@@ -60,7 +60,7 @@ func TestSpaClient_NotImplemented(t *testing.T) {
 
 	var stdout, stderr bytes.Buffer
 
-	exitCode := cryptoutilIdentitySPA.Spa([]string{"client"}, nil, &stdout, &stderr)
+	exitCode := cryptoutilIdentitySPA.Spa([]string{testClient}, nil, &stdout, &stderr)
 	testify.Equal(t, 1, exitCode)
 	testify.Contains(t, stderr.String(), "not yet implemented")
 }

@@ -49,7 +49,7 @@ func TestValidatePorts_ValidCases(t *testing.T) {
 
 				return createDeploymentWithCompose(t, "services:\n  sm-kms-sqlite:\n    ports:\n      - \"18700:8080\"\n  sm-kms-pg-1:\n    ports:\n      - \"18701:8080\"\n")
 			},
-			psID:  "sm",
+			psID:  valueSm,
 			level: DeploymentTypeProduct,
 		},
 		{
@@ -78,7 +78,7 @@ func TestValidatePorts_ValidCases(t *testing.T) {
 				t.Helper()
 
 				dir := createDeploymentWithCompose(t, testComposeServicePort)
-				configDir := filepath.Join(dir, "config")
+				configDir := filepath.Join(dir, fileTypeConfig)
 				require.NoError(t, os.MkdirAll(configDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 				require.NoError(t, os.WriteFile(filepath.Join(configDir, "config-sqlite.yml"),
 					[]byte("bind-public-port: 8700\n"), cryptoutilSharedMagic.CacheFilePermissions))
@@ -89,7 +89,7 @@ func TestValidatePorts_ValidCases(t *testing.T) {
 			level: DeploymentTypeProductService,
 		},
 		{
-			name: "no compose file",
+			name: testNoComposeFile,
 			setupFn: func(t *testing.T) string {
 				t.Helper()
 
@@ -124,9 +124,9 @@ func TestValidatePorts_ValidCases(t *testing.T) {
 				t.Helper()
 
 				dir := createDeploymentWithCompose(t, testComposeServicePort)
-				configDir := filepath.Join(dir, "config")
+				configDir := filepath.Join(dir, fileTypeConfig)
 				require.NoError(t, os.MkdirAll(configDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
-				require.NoError(t, os.WriteFile(filepath.Join(configDir, "README.md"),
+				require.NoError(t, os.WriteFile(filepath.Join(configDir, valueReadmeMd),
 					[]byte("# readme\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
 				return dir
@@ -140,7 +140,7 @@ func TestValidatePorts_ValidCases(t *testing.T) {
 				t.Helper()
 
 				dir := createDeploymentWithCompose(t, testComposeServicePort)
-				configDir := filepath.Join(dir, "config")
+				configDir := filepath.Join(dir, fileTypeConfig)
 				require.NoError(t, os.MkdirAll(configDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 				require.NoError(t, os.WriteFile(filepath.Join(configDir, "broken.yml"),
 					[]byte("invalid: [yaml: {broken"), cryptoutilSharedMagic.CacheFilePermissions))
@@ -156,9 +156,9 @@ func TestValidatePorts_ValidCases(t *testing.T) {
 				t.Helper()
 
 				dir := createDeploymentWithCompose(t, testComposeServicePort)
-				configDir := filepath.Join(dir, "config")
+				configDir := filepath.Join(dir, fileTypeConfig)
 				require.NoError(t, os.MkdirAll(configDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
-				require.NoError(t, os.WriteFile(filepath.Join(configDir, "config.yml"),
+				require.NoError(t, os.WriteFile(filepath.Join(configDir, testConfigYml),
 					[]byte("bind-public-port: \"not-a-number\"\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
 				return dir
@@ -172,7 +172,7 @@ func TestValidatePorts_ValidCases(t *testing.T) {
 				t.Helper()
 
 				dir := createDeploymentWithCompose(t, testComposeServicePort)
-				configDir := filepath.Join(dir, "config")
+				configDir := filepath.Join(dir, fileTypeConfig)
 				require.NoError(t, os.MkdirAll(filepath.Join(configDir, "subdir"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 				require.NoError(t, os.WriteFile(filepath.Join(configDir, "valid.yml"),
 					[]byte("bind-public-port: 8700\n"), cryptoutilSharedMagic.CacheFilePermissions))
@@ -215,7 +215,7 @@ func TestValidatePorts_Violations(t *testing.T) {
 			},
 			psID:         cryptoutilSharedMagic.OTLPServiceSMKMS,
 			level:        DeploymentTypeProductService,
-			wantContains: []string{"[ValidatePorts]", "outside PRODUCT-SERVICE range", "ENG-HANDBOOK.md Section 3.4"},
+			wantContains: []string{testValidatePorts, "outside PRODUCT-SERVICE range", testEngHandbookMdSection34},
 		},
 		{
 			name: "product level out of range",
@@ -224,9 +224,9 @@ func TestValidatePorts_Violations(t *testing.T) {
 
 				return createDeploymentWithCompose(t, testComposeServicePort)
 			},
-			psID:         "sm",
+			psID:         valueSm,
 			level:        DeploymentTypeProduct,
-			wantContains: []string{"[ValidatePorts]", "outside PRODUCT range", "ENG-HANDBOOK.md Section 3.4"},
+			wantContains: []string{testValidatePorts, "outside PRODUCT range", testEngHandbookMdSection34},
 		},
 		{
 			name: "suite level out of range",
@@ -237,21 +237,21 @@ func TestValidatePorts_Violations(t *testing.T) {
 			},
 			psID:         cryptoutilSharedMagic.DefaultOTLPServiceDefault,
 			level:        DeploymentTypeSuite,
-			wantContains: []string{"[ValidatePorts]", "outside SUITE range", "ENG-HANDBOOK.md Section 3.4"},
+			wantContains: []string{testValidatePorts, "outside SUITE range", testEngHandbookMdSection34},
 		},
 		{
-			name: "path not found",
+			name: testPathNotFound,
 			setupFn: func(t *testing.T) string {
 				t.Helper()
 
 				return filepath.Join(t.TempDir(), "nonexistent")
 			},
-			psID:         "x",
+			psID:         testX,
 			level:        DeploymentTypeProductService,
-			wantContains: []string{"[ValidatePorts]", "does not exist"},
+			wantContains: []string{testValidatePorts, testDoesNotExist},
 		},
 		{
-			name: "path is file",
+			name: testPathIsFile,
 			setupFn: func(t *testing.T) string {
 				t.Helper()
 
@@ -260,9 +260,9 @@ func TestValidatePorts_Violations(t *testing.T) {
 
 				return f
 			},
-			psID:         "x",
+			psID:         testX,
 			level:        DeploymentTypeProductService,
-			wantContains: []string{"[ValidatePorts]", "not a directory"},
+			wantContains: []string{testValidatePorts, testNotADirectory},
 		},
 		{
 			name: "config port out of range",
@@ -270,7 +270,7 @@ func TestValidatePorts_Violations(t *testing.T) {
 				t.Helper()
 
 				dir := createDeploymentWithCompose(t, testComposeServicePort)
-				configDir := filepath.Join(dir, "config")
+				configDir := filepath.Join(dir, fileTypeConfig)
 				require.NoError(t, os.MkdirAll(configDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 				require.NoError(t, os.WriteFile(filepath.Join(configDir, "config-sqlite.yml"),
 					[]byte("bind-public-port: 18700\n"), cryptoutilSharedMagic.CacheFilePermissions))
@@ -279,7 +279,7 @@ func TestValidatePorts_Violations(t *testing.T) {
 			},
 			psID:         cryptoutilSharedMagic.OTLPServiceSMKMS,
 			level:        DeploymentTypeProductService,
-			wantContains: []string{"[ValidatePorts]", "bind-public-port", "ENG-HANDBOOK.md Section 3.4"},
+			wantContains: []string{testValidatePorts, valueBindPublicPort, testEngHandbookMdSection34},
 		},
 	}
 	for _, tc := range tests {
@@ -320,7 +320,7 @@ func TestValidatePorts_ConfigUnreadableFile(t *testing.T) {
 
 	dir := createDeploymentWithCompose(t, testComposeServicePort)
 
-	configDir := filepath.Join(dir, "config")
+	configDir := filepath.Join(dir, fileTypeConfig)
 	require.NoError(t, os.MkdirAll(configDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 	require.NoError(t, os.Symlink("/nonexistent/file.yml", filepath.Join(configDir, "broken.yml")))
 
@@ -347,7 +347,7 @@ func TestGetPortRange(t *testing.T) {
 		wantMin int
 		wantMax int
 	}{
-		{name: "service", level: DeploymentTypeProductService, wantMin: cryptoutilSharedMagic.ServiceTierPortMin, wantMax: cryptoutilSharedMagic.ServiceTierPortMax},
+		{name: testService, level: DeploymentTypeProductService, wantMin: cryptoutilSharedMagic.ServiceTierPortMin, wantMax: cryptoutilSharedMagic.ServiceTierPortMax},
 		{name: "product", level: DeploymentTypeProduct, wantMin: cryptoutilSharedMagic.ProductTierPortMin, wantMax: cryptoutilSharedMagic.ProductTierPortMax},
 		{name: "suite", level: DeploymentTypeSuite, wantMin: cryptoutilSharedMagic.SuiteTierPortMin, wantMax: cryptoutilSharedMagic.SuiteTierPortMax},
 		{name: "unknown defaults to service", level: cryptoutilSharedMagic.UNKNOWN, wantMin: cryptoutilSharedMagic.ServiceTierPortMin, wantMax: cryptoutilSharedMagic.ServiceTierPortMax},
@@ -401,18 +401,18 @@ func TestFormatPortValidationResult(t *testing.T) {
 		contains []string
 	}{
 		{
-			name:     "passing",
-			result:   &PortValidationResult{Path: "/deploy", Valid: true},
-			contains: []string{cryptoutilSharedMagic.TestStatusPass, "/deploy"},
+			name:     testPassing,
+			result:   &PortValidationResult{Path: testDeploy, Valid: true},
+			contains: []string{cryptoutilSharedMagic.TestStatusPass, testDeploy},
 		},
 		{
 			name: "failing",
 			result: &PortValidationResult{
-				Path: "/deploy", Valid: false,
-				Errors:   []string{"port out of range"},
-				Warnings: []string{"cannot parse"},
+				Path: testDeploy, Valid: false,
+				Errors:   []string{testPortOutOfRange},
+				Warnings: []string{testCannotParse},
 			},
-			contains: []string{cryptoutilSharedMagic.TestStatusFail, "port out of range", "cannot parse"},
+			contains: []string{cryptoutilSharedMagic.TestStatusFail, testPortOutOfRange, testCannotParse},
 		},
 	}
 
@@ -431,7 +431,7 @@ func TestFormatPortValidationResult(t *testing.T) {
 func TestValidatePorts_RealSmIM(t *testing.T) {
 	t.Parallel()
 
-	deplPath := filepath.Join(".", "..", "..", "..", "..", "deployments", cryptoutilSharedMagic.OTLPServiceSMKMS)
+	deplPath := filepath.Join(".", "..", "..", "..", "..", defaultDeploymentsDir, cryptoutilSharedMagic.OTLPServiceSMKMS)
 	info, err := os.Stat(deplPath)
 
 	if err != nil || !info.IsDir() {

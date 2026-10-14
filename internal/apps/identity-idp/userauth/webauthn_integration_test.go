@@ -34,9 +34,9 @@ func TestWebAuthnIntegration_RegistrationAndAuthentication(t *testing.T) {
 
 	// Create WebAuthn authenticator.
 	config := &WebAuthnConfig{
-		RPID:          "example.com",
-		RPDisplayName: "Example Corp",
-		RPOrigins:     []string{"https://example.com"},
+		RPID:          testExampleCom,
+		RPDisplayName: testExampleCorp,
+		RPOrigins:     []string{testHTTPSExampleCom},
 		Timeout:       cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Minute,
 	}
 
@@ -47,8 +47,8 @@ func TestWebAuthnIntegration_RegistrationAndAuthentication(t *testing.T) {
 	user := &cryptoutilIdentityDomain.User{
 		ID:                googleUuid.Must(googleUuid.NewV7()),
 		Sub:               "test-user-webauthn-integration-1",
-		PreferredUsername: "testuser",
-		Name:              "Test User",
+		PreferredUsername: testTestuser,
+		Name:              testTestUser,
 		Email:             "testuser@example.com",
 	}
 
@@ -105,9 +105,9 @@ func TestWebAuthnIntegration_CredentialLifecycle(t *testing.T) {
 	challengeMetadata := NewChallengeMetadata(ctx, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Minute)
 
 	config := &WebAuthnConfig{
-		RPID:          "example.com",
-		RPDisplayName: "Example Corp",
-		RPOrigins:     []string{"https://example.com"},
+		RPID:          testExampleCom,
+		RPDisplayName: testExampleCorp,
+		RPOrigins:     []string{testHTTPSExampleCom},
 		Timeout:       cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Minute,
 	}
 
@@ -180,9 +180,9 @@ func TestWebAuthnIntegration_MultipleCredentials(t *testing.T) {
 	challengeMetadata := NewChallengeMetadata(ctx, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Minute)
 
 	config := &WebAuthnConfig{
-		RPID:          "example.com",
-		RPDisplayName: "Example Corp",
-		RPOrigins:     []string{"https://example.com"},
+		RPID:          testExampleCom,
+		RPDisplayName: testExampleCorp,
+		RPOrigins:     []string{testHTTPSExampleCom},
 		Timeout:       cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Minute,
 	}
 
@@ -199,9 +199,9 @@ func TestWebAuthnIntegration_MultipleCredentials(t *testing.T) {
 	}
 
 	// Register 3 credentials (simulating phone, laptop, security key).
-	credentialIDs := make([]string, 3)
+	credentialIDs := make([]string, value3)
 
-	for i := 0; i < 3; i++ {
+	for i := 0; i < value3; i++ {
 		registrationOptions, err := auth.BeginRegistration(ctx, user, nil)
 		require.NoError(t, err)
 
@@ -220,13 +220,13 @@ func TestWebAuthnIntegration_MultipleCredentials(t *testing.T) {
 	// Verify all credentials registered.
 	userCreds, err := credStore.GetUserCredentials(ctx, user.ID.String())
 	require.NoError(t, err)
-	require.Len(t, userCreds, 3)
+	require.Len(t, userCreds, value3)
 
 	// Authenticate with each credential.
 	for i, credID := range credentialIDs {
 		authOptions, err := auth.InitiateAuth(ctx, user)
 		require.NoError(t, err)
-		require.Len(t, authOptions.Response.AllowedCredentials, 3)
+		require.Len(t, authOptions.Response.AllowedCredentials, value3)
 
 		mockAssertionResponse := createMockAssertionResponse(t, authOptions.Response.Challenge, credID, 1)
 		err = auth.VerifyAuth(ctx, user, mockAssertionResponse)
@@ -258,9 +258,9 @@ func TestWebAuthnIntegration_ReplayAttackPrevention(t *testing.T) {
 	challengeMetadata := NewChallengeMetadata(ctx, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Minute)
 
 	config := &WebAuthnConfig{
-		RPID:          "example.com",
-		RPDisplayName: "Example Corp",
-		RPOrigins:     []string{"https://example.com"},
+		RPID:          testExampleCom,
+		RPDisplayName: testExampleCorp,
+		RPOrigins:     []string{testHTTPSExampleCom},
 		Timeout:       cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Minute,
 	}
 

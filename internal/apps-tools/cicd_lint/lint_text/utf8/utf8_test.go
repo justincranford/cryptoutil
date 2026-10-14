@@ -28,12 +28,12 @@ func TestFilterTextFiles(t *testing.T) {
 		},
 		{
 			name:     "go files included",
-			input:    []string{"main.go", "test.go", "util.go"},
+			input:    []string{testMainGo, "test.go", "util.go"},
 			expected: 3,
 		},
 		{
 			name:     "all files passed through after directory-level filtering",
-			input:    []string{"main.go", "image.png", "data.json", "binary.exe"},
+			input:    []string{testMainGo, "image.png", "data.json", "binary.exe"},
 			expected: 4, // All files passed through since directory-level filtering happens in ListAllFiles.
 		},
 		{
@@ -154,12 +154,12 @@ func TestCheck_WithValidUTF8Files(t *testing.T) {
 	t.Parallel()
 
 	tmpDir := t.TempDir()
-	goFile := filepath.Join(tmpDir, "main.go")
+	goFile := filepath.Join(tmpDir, testMainGo)
 	require.NoError(t, os.WriteFile(goFile, []byte("package main\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	filesByExtension := map[string][]string{
-		"go": {goFile},
+		testGo: {goFile},
 	}
 
 	err := Check(logger, filesByExtension)
@@ -178,7 +178,7 @@ func TestCheck_WithBOMFile(t *testing.T) {
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	filesByExtension := map[string][]string{
-		"go": {bomFile},
+		testGo: {bomFile},
 	}
 
 	err := Check(logger, filesByExtension)
@@ -202,16 +202,16 @@ func TestFlattenFileMap(t *testing.T) {
 		{
 			name: "single extension with files",
 			input: map[string][]string{
-				"go": {"file1.go", "file2.go"},
+				testGo: {testFile1Go, "file2.go"},
 			},
 			expected: 2,
 		},
 		{
 			name: "multiple extensions",
 			input: map[string][]string{
-				"go":  {"file1.go"},
-				"yml": {"config.yml", cryptoutilSharedMagic.COMPOSE_YML},
-				"md":  {"README.md"},
+				testGo: {testFile1Go},
+				"yml":  {"config.yml", cryptoutilSharedMagic.COMPOSE_YML},
+				"md":   {"README.md"},
 			},
 			expected: 4,
 		},

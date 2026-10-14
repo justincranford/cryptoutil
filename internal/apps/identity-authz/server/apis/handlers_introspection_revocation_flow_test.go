@@ -69,7 +69,7 @@ func TestIntrospectionRevocationFlow(t *testing.T) {
 		cryptoutilSharedMagic.ParamToken: []string{testToken.TokenValue},
 	}
 
-	revokeReq := httptest.NewRequest("POST", "/oauth2/v1/revoke", strings.NewReader(revokeFormBody.Encode()))
+	revokeReq := httptest.NewRequest(testPost, testOauth2V1Revoke, strings.NewReader(revokeFormBody.Encode()))
 	revokeReq.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	revokeResp, err := app.Test(revokeReq)
@@ -137,7 +137,7 @@ func TestIntrospectionRefreshTokenRevocation(t *testing.T) {
 		cryptoutilSharedMagic.ParamTokenTypeHint: []string{cryptoutilSharedMagic.TokenTypeRefreshToken},
 	}
 
-	revokeReq := httptest.NewRequest("POST", "/oauth2/v1/revoke", strings.NewReader(revokeFormBody.Encode()))
+	revokeReq := httptest.NewRequest(testPost, testOauth2V1Revoke, strings.NewReader(revokeFormBody.Encode()))
 	revokeReq.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	revokeResp, err := app.Test(revokeReq)
@@ -176,7 +176,7 @@ func TestIntrospectionTokenTypeHintMismatch(t *testing.T) {
 		cryptoutilSharedMagic.ParamTokenTypeHint: []string{cryptoutilSharedMagic.TokenTypeRefreshToken},
 	}
 
-	revokeReq := httptest.NewRequest("POST", "/oauth2/v1/revoke", strings.NewReader(revokeFormBody.Encode()))
+	revokeReq := httptest.NewRequest(testPost, testOauth2V1Revoke, strings.NewReader(revokeFormBody.Encode()))
 	revokeReq.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	revokeResp, err := app.Test(revokeReq)
@@ -210,7 +210,7 @@ func TestIntrospectionMultipleRevocationsIdempotent(t *testing.T) {
 			cryptoutilSharedMagic.ParamToken: []string{testToken.TokenValue},
 		}
 
-		revokeReq := httptest.NewRequest("POST", "/oauth2/v1/revoke", strings.NewReader(revokeFormBody.Encode()))
+		revokeReq := httptest.NewRequest(testPost, testOauth2V1Revoke, strings.NewReader(revokeFormBody.Encode()))
 		revokeReq.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 		revokeResp, err := app.Test(revokeReq)
@@ -256,7 +256,7 @@ func introspectTokenForRevocationFlow(t *testing.T, app *fiber.App, tokenValue s
 		cryptoutilSharedMagic.ParamToken: []string{tokenValue},
 	}
 
-	req := httptest.NewRequest("POST", "/oauth2/v1/introspect", strings.NewReader(formBody.Encode()))
+	req := httptest.NewRequest(testPost, testOauth2V1Introspect, strings.NewReader(formBody.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	resp, err := app.Test(req, -1)
@@ -286,7 +286,7 @@ func createRevocationFlowTestConfig(t *testing.T) *cryptoutilIdentityConfig.Conf
 			DSN:  fmt.Sprintf("file:revocation_flow_test_%s.db?mode=memory&cache=shared", testID),
 		},
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{
-			Issuer: "https://localhost:8080",
+			Issuer: testHTTPSLocalhost8080,
 		},
 	}
 }

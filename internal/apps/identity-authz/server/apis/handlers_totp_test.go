@@ -26,7 +26,7 @@ func TestHandleEnrollTOTP_InvalidBody(t *testing.T) {
 	app := fiber.New()
 	svc.RegisterRoutes(app)
 
-	req := httptest.NewRequest("POST", "/oidc/v1/mfa/totp/enroll", bytes.NewReader([]byte("{invalid json")))
+	req := httptest.NewRequest(testPost, "/oidc/v1/mfa/totp/enroll", bytes.NewReader([]byte("{invalid json")))
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := app.Test(req, -1)
@@ -49,14 +49,14 @@ func TestHandleEnrollTOTP_MissingUserID(t *testing.T) {
 
 	reqBody := cryptoutilIdentityAuthz.EnrollTOTPRequest{
 		UserID:      "",
-		Issuer:      "CryptoUtil",
-		AccountName: "test@example.com",
+		Issuer:      testTOTPIssuer,
+		AccountName: testTestExampleCom,
 	}
 
 	body, err := json.Marshal(reqBody)
 	require.NoError(t, err)
 
-	req := httptest.NewRequest("POST", "/oidc/v1/mfa/totp/enroll", bytes.NewReader(body))
+	req := httptest.NewRequest(testPost, "/oidc/v1/mfa/totp/enroll", bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := app.Test(req, -1)
@@ -78,15 +78,15 @@ func TestHandleEnrollTOTP_InvalidUserIDFormat(t *testing.T) {
 	svc.RegisterRoutes(app)
 
 	reqBody := cryptoutilIdentityAuthz.EnrollTOTPRequest{
-		UserID:      "not-a-uuid",
-		Issuer:      "CryptoUtil",
-		AccountName: "test@example.com",
+		UserID:      testNotAUUID,
+		Issuer:      testTOTPIssuer,
+		AccountName: testTestExampleCom,
 	}
 
 	body, err := json.Marshal(reqBody)
 	require.NoError(t, err)
 
-	req := httptest.NewRequest("POST", "/oidc/v1/mfa/totp/enroll", bytes.NewReader(body))
+	req := httptest.NewRequest(testPost, "/oidc/v1/mfa/totp/enroll", bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := app.Test(req, -1)
@@ -111,13 +111,13 @@ func TestHandleEnrollTOTP_MissingIssuer(t *testing.T) {
 	reqBody := cryptoutilIdentityAuthz.EnrollTOTPRequest{
 		UserID:      testUserID,
 		Issuer:      "",
-		AccountName: "test@example.com",
+		AccountName: testTestExampleCom,
 	}
 
 	body, err := json.Marshal(reqBody)
 	require.NoError(t, err)
 
-	req := httptest.NewRequest("POST", "/oidc/v1/mfa/totp/enroll", bytes.NewReader(body))
+	req := httptest.NewRequest(testPost, "/oidc/v1/mfa/totp/enroll", bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := app.Test(req, -1)
@@ -141,14 +141,14 @@ func TestHandleEnrollTOTP_MissingAccountName(t *testing.T) {
 	testUserID := googleUuid.Must(googleUuid.NewV7()).String()
 	reqBody := cryptoutilIdentityAuthz.EnrollTOTPRequest{
 		UserID:      testUserID,
-		Issuer:      "CryptoUtil",
+		Issuer:      testTOTPIssuer,
 		AccountName: "",
 	}
 
 	body, err := json.Marshal(reqBody)
 	require.NoError(t, err)
 
-	req := httptest.NewRequest("POST", "/oidc/v1/mfa/totp/enroll", bytes.NewReader(body))
+	req := httptest.NewRequest(testPost, "/oidc/v1/mfa/totp/enroll", bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := app.Test(req, -1)
@@ -171,7 +171,7 @@ func TestHandleVerifyTOTP_InvalidBody(t *testing.T) {
 	app := fiber.New()
 	svc.RegisterRoutes(app)
 
-	req := httptest.NewRequest("POST", "/oidc/v1/mfa/totp/verify", bytes.NewReader([]byte("{invalid json")))
+	req := httptest.NewRequest(testPost, "/oidc/v1/mfa/totp/verify", bytes.NewReader([]byte("{invalid json")))
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := app.Test(req, -1)
@@ -200,7 +200,7 @@ func TestHandleVerifyTOTP_MissingUserID(t *testing.T) {
 	body, err := json.Marshal(reqBody)
 	require.NoError(t, err)
 
-	req := httptest.NewRequest("POST", "/oidc/v1/mfa/totp/verify", bytes.NewReader(body))
+	req := httptest.NewRequest(testPost, "/oidc/v1/mfa/totp/verify", bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := app.Test(req, -1)
@@ -222,14 +222,14 @@ func TestHandleVerifyTOTP_InvalidUserIDFormat(t *testing.T) {
 	svc.RegisterRoutes(app)
 
 	reqBody := cryptoutilIdentityAuthz.VerifyTOTPRequest{
-		UserID: "not-a-uuid",
+		UserID: testNotAUUID,
 		Code:   "123456",
 	}
 
 	body, err := json.Marshal(reqBody)
 	require.NoError(t, err)
 
-	req := httptest.NewRequest("POST", "/oidc/v1/mfa/totp/verify", bytes.NewReader(body))
+	req := httptest.NewRequest(testPost, "/oidc/v1/mfa/totp/verify", bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := app.Test(req, -1)
@@ -259,7 +259,7 @@ func TestHandleVerifyTOTP_MissingCode(t *testing.T) {
 	body, err := json.Marshal(reqBody)
 	require.NoError(t, err)
 
-	req := httptest.NewRequest("POST", "/oidc/v1/mfa/totp/verify", bytes.NewReader(body))
+	req := httptest.NewRequest(testPost, "/oidc/v1/mfa/totp/verify", bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := app.Test(req, -1)

@@ -103,7 +103,7 @@ func TestNewUnsealKeysServiceFromSettings_MZeroBoundary(t *testing.T) {
 	ctx, telemetryService := createTestContext(t)
 	settings := cryptoutilAppsFrameworkServiceConfig.RequireNewForTest("test-m-zero-boundary")
 	settings.DevMode = false
-	settings.UnsealMode = "0-of-3" // m=0, n=3: m must fail validation, not proceed to file reading.
+	settings.UnsealMode = test0Of3 // m=0, n=3: m must fail validation, not proceed to file reading.
 
 	unsealKeysService, err := NewUnsealKeysServiceFromSettings(ctx, telemetryService, settings)
 	require.Error(t, err)
@@ -119,10 +119,10 @@ func TestNewUnsealKeysServiceFromSettings_InvalidMNValues(t *testing.T) {
 		unsealMode string
 		errMessage string
 	}{
-		{"m-zero", "0-of-3", "M must be > 0"},
-		{"n-zero", "2-of-0", "M must be > 0"},
-		{"m-greater-than-n", "5-of-3", "M must be > 0"},
-		{"both-negative", "-1-of--2", "M must be > 0"}, // Parses as negative numbers, then fails M > 0 check.
+		{"m-zero", test0Of3, testMMustBe0},
+		{"n-zero", "2-of-0", testMMustBe0},
+		{"m-greater-than-n", "5-of-3", testMMustBe0},
+		{"both-negative", "-1-of--2", testMMustBe0}, // Parses as negative numbers, then fails M > 0 check.
 	}
 
 	for _, tc := range tests {

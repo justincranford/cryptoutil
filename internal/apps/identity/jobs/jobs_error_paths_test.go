@@ -25,7 +25,6 @@ import (
 )
 
 const (
-	testRawMemoryDSNFormat          = cryptoutilSharedMagic.SQLiteInMemoryNamedDSNFormat
 	testSecretHashCoverage          = "test-hash-coverage"
 	testCleanupSessionErrorContains = "session cleanup failed"
 )
@@ -35,7 +34,7 @@ func createRawMemoryDB(t *testing.T) *gorm.DB {
 	t.Helper()
 
 	dbID := googleUuid.Must(googleUuid.NewV7())
-	dsn := fmt.Sprintf(testRawMemoryDSNFormat, dbID.String())
+	dsn := fmt.Sprintf(cryptoutilSharedMagic.SQLiteInMemoryNamedDSNFormat, dbID.String())
 
 	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, dsn)
 	require.NoError(t, err)

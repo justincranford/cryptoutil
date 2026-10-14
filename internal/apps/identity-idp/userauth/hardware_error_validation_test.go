@@ -30,7 +30,7 @@ func TestNewHardwareErrorValidator(t *testing.T) {
 	}{
 		{
 			name:               "valid configuration",
-			maxPINRetries:      3,
+			maxPINRetries:      value3,
 			authTimeout:        cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days * time.Second,
 			devicePollInterval: 1 * time.Second,
 			wantErr:            false,
@@ -44,14 +44,14 @@ func TestNewHardwareErrorValidator(t *testing.T) {
 		},
 		{
 			name:               "invalid authTimeout (zero)",
-			maxPINRetries:      3,
+			maxPINRetries:      value3,
 			authTimeout:        0,
 			devicePollInterval: 1 * time.Second,
 			wantErr:            true,
 		},
 		{
 			name:               "invalid devicePollInterval (zero)",
-			maxPINRetries:      3,
+			maxPINRetries:      value3,
 			authTimeout:        cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days * time.Second,
 			devicePollInterval: 0,
 			wantErr:            true,
@@ -82,7 +82,7 @@ func TestNewHardwareErrorValidator(t *testing.T) {
 func TestValidateAuthentication(t *testing.T) {
 	t.Parallel()
 
-	validator, err := NewHardwareErrorValidator(3, cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days*time.Second, cryptoutilSharedMagic.JoseJAMaxMaterials*time.Millisecond)
+	validator, err := NewHardwareErrorValidator(value3, cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days*time.Second, cryptoutilSharedMagic.JoseJAMaxMaterials*time.Millisecond)
 	require.NoError(t, err)
 
 	tests := []struct {
@@ -98,27 +98,27 @@ func TestValidateAuthentication(t *testing.T) {
 			wantErrContains: "",
 		},
 		{
-			name: "device removed error",
+			name: testDeviceRemovedError,
 			authFunc: func(_ context.Context) error {
 				return ErrDeviceRemoved
 			},
-			wantErrContains: "hardware device removed",
+			wantErrContains: testHardwareDeviceRemoved,
 		},
 		{
-			name: "PIN retry exhausted",
+			name: testPinRetryExhausted,
 			authFunc: func(_ context.Context) error {
 				return ErrPINRetryExhausted
 			},
-			wantErrContains: "PIN retry limit exhausted",
+			wantErrContains: valuePinRetryLimitExhausted,
 		},
 		{
-			name: "authentication timeout",
+			name: testAuthenticationTimeout,
 			authFunc: func(_ context.Context) error {
 				time.Sleep(cryptoutilSharedMagic.IMMaxUsernameLength * time.Millisecond)
 
 				return ErrAuthenticationTimeout
 			},
-			wantErrContains: "authentication timeout",
+			wantErrContains: testAuthenticationTimeout,
 		},
 		{
 			name: "device unresponsive",
@@ -128,18 +128,18 @@ func TestValidateAuthentication(t *testing.T) {
 			wantErrContains: "hardware device unresponsive",
 		},
 		{
-			name: "invalid PIN",
+			name: testInvalidPin,
 			authFunc: func(_ context.Context) error {
 				return ErrInvalidPIN
 			},
-			wantErrContains: "invalid PIN",
+			wantErrContains: testInvalidPin,
 		},
 		{
 			name: "device locked",
 			authFunc: func(_ context.Context) error {
 				return ErrDeviceLocked
 			},
-			wantErrContains: "hardware device locked",
+			wantErrContains: valueHardwareDeviceLocked,
 		},
 	}
 
@@ -164,7 +164,7 @@ func TestValidateAuthentication(t *testing.T) {
 func TestRetryWithBackoff(t *testing.T) {
 	t.Parallel()
 
-	validator, err := NewHardwareErrorValidator(3, cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days*time.Second, cryptoutilSharedMagic.JoseJADefaultMaxMaterials*time.Millisecond)
+	validator, err := NewHardwareErrorValidator(value3, cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days*time.Second, cryptoutilSharedMagic.JoseJADefaultMaxMaterials*time.Millisecond)
 	require.NoError(t, err)
 
 	tests := []struct {
@@ -175,7 +175,7 @@ func TestRetryWithBackoff(t *testing.T) {
 	}{
 		{
 			name:       "successful on first attempt",
-			maxRetries: 3,
+			maxRetries: value3,
 			operation: func(_ context.Context) error {
 				return nil
 			},
@@ -183,27 +183,27 @@ func TestRetryWithBackoff(t *testing.T) {
 		},
 		{
 			name:       "non-retriable error (PIN exhausted)",
-			maxRetries: 3,
+			maxRetries: value3,
 			operation: func(_ context.Context) error {
 				return ErrPINRetryExhausted
 			},
-			wantErrContains: "PIN retry limit exhausted",
+			wantErrContains: valuePinRetryLimitExhausted,
 		},
 		{
 			name:       "non-retriable error (device locked)",
-			maxRetries: 3,
+			maxRetries: value3,
 			operation: func(_ context.Context) error {
 				return ErrDeviceLocked
 			},
-			wantErrContains: "hardware device locked",
+			wantErrContains: valueHardwareDeviceLocked,
 		},
 		{
-			name:       "max retries exhausted",
-			maxRetries: 3,
+			name:       testMaxRetriesExhausted,
+			maxRetries: value3,
 			operation: func(_ context.Context) error {
 				return ErrDeviceUnresponsive
 			},
-			wantErrContains: "max retries exhausted",
+			wantErrContains: testMaxRetriesExhausted,
 		},
 	}
 
@@ -228,7 +228,7 @@ func TestRetryWithBackoff(t *testing.T) {
 func TestMonitorDevicePresence(t *testing.T) {
 	t.Parallel()
 
-	validator, err := NewHardwareErrorValidator(3, cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days*time.Second, cryptoutilSharedMagic.IMMaxUsernameLength*time.Millisecond)
+	validator, err := NewHardwareErrorValidator(value3, cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days*time.Second, cryptoutilSharedMagic.IMMaxUsernameLength*time.Millisecond)
 	require.NoError(t, err)
 
 	tests := []struct {
@@ -251,7 +251,7 @@ func TestMonitorDevicePresence(t *testing.T) {
 				return ErrDeviceRemoved
 			},
 			contextCancel:   false,
-			wantErrContains: "hardware device removed",
+			wantErrContains: testHardwareDeviceRemoved,
 		},
 		{
 			name: "context cancelled",
@@ -292,7 +292,7 @@ func TestMonitorDevicePresence(t *testing.T) {
 func TestClassifyError(t *testing.T) {
 	t.Parallel()
 
-	validator, err := NewHardwareErrorValidator(3, cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days*time.Second, cryptoutilSharedMagic.JoseJAMaxMaterials*time.Millisecond)
+	validator, err := NewHardwareErrorValidator(value3, cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days*time.Second, cryptoutilSharedMagic.JoseJAMaxMaterials*time.Millisecond)
 	require.NoError(t, err)
 
 	tests := []struct {
@@ -306,14 +306,14 @@ func TestClassifyError(t *testing.T) {
 			wantErrContains: "",
 		},
 		{
-			name:            "device removed error",
+			name:            testDeviceRemovedError,
 			inputErr:        ErrDeviceRemoved,
-			wantErrContains: "hardware device removed",
+			wantErrContains: testHardwareDeviceRemoved,
 		},
 		{
-			name:            "PIN retry exhausted",
+			name:            testPinRetryExhausted,
 			inputErr:        ErrPINRetryExhausted,
-			wantErrContains: "PIN retry limit exhausted",
+			wantErrContains: valuePinRetryLimitExhausted,
 		},
 		{
 			name:            "unknown hardware error",

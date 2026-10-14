@@ -58,7 +58,7 @@ func setupTestService(t *testing.T, tokenFormat string) *cryptoutilIdentityIssue
 	require.NoError(t, err)
 
 	tokenConfig := &cryptoutilIdentityConfig.TokenConfig{
-		Issuer:            "https://localhost:8080",
+		Issuer:            testHTTPSLocalhost8080,
 		SigningAlgorithm:  cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
 		AccessTokenFormat: tokenFormat,
 	}
@@ -119,7 +119,7 @@ func TestNewTokenService(t *testing.T) {
 	require.NoError(t, err)
 
 	tokenConfig := &cryptoutilIdentityConfig.TokenConfig{
-		Issuer:            "https://localhost:8080",
+		Issuer:            testHTTPSLocalhost8080,
 		SigningAlgorithm:  cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
 		AccessTokenFormat: cryptoutilSharedMagic.DefaultBrowserSessionCookie,
 	}
@@ -174,7 +174,7 @@ func TestIssueAccessTokenJWS(t *testing.T) {
 	require.NoError(t, err)
 
 	tokenConfig := &cryptoutilIdentityConfig.TokenConfig{
-		Issuer:            "https://localhost:8080",
+		Issuer:            testHTTPSLocalhost8080,
 		SigningAlgorithm:  cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
 		AccessTokenFormat: cryptoutilSharedMagic.DefaultBrowserSessionCookie,
 	}
@@ -208,8 +208,8 @@ func TestIssueAccessTokenJWS(t *testing.T) {
 
 	claims := map[string]any{
 		cryptoutilSharedMagic.ClaimSub:   googleUuid.Must(googleUuid.NewV7()).String(),
-		cryptoutilSharedMagic.ClaimEmail: "test@example.com",
-		cryptoutilSharedMagic.ClaimName:  "Test User",
+		cryptoutilSharedMagic.ClaimEmail: testTestExampleCom,
+		cryptoutilSharedMagic.ClaimName:  testTestUser,
 		cryptoutilSharedMagic.ClaimIat:   time.Now().UTC().Unix(),
 		cryptoutilSharedMagic.ClaimExp:   time.Now().UTC().Add(1 * time.Hour).Unix(),
 	}
@@ -226,7 +226,7 @@ func TestIssueAccessTokenInvalidFormat(t *testing.T) {
 	ctx := context.Background()
 
 	tokenConfig := &cryptoutilIdentityConfig.TokenConfig{
-		Issuer:            "https://localhost:8080",
+		Issuer:            testHTTPSLocalhost8080,
 		SigningAlgorithm:  cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
 		AccessTokenFormat: "invalid-format",
 	}
@@ -256,7 +256,7 @@ func TestIssueAccessTokenInvalidFormat(t *testing.T) {
 
 	claims := map[string]any{
 		cryptoutilSharedMagic.ClaimSub:   googleUuid.Must(googleUuid.NewV7()).String(),
-		cryptoutilSharedMagic.ClaimEmail: "test@example.com",
+		cryptoutilSharedMagic.ClaimEmail: testTestExampleCom,
 	}
 
 	_, err = service.IssueAccessToken(ctx, claims)
@@ -286,7 +286,7 @@ func TestIssueAccessTokenJWE(t *testing.T) {
 	require.NoError(t, err)
 
 	tokenConfig := &cryptoutilIdentityConfig.TokenConfig{
-		Issuer:            "https://localhost:8080",
+		Issuer:            testHTTPSLocalhost8080,
 		SigningAlgorithm:  cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
 		AccessTokenFormat: cryptoutilSharedMagic.IdentityTokenFormatJWE,
 	}
@@ -323,8 +323,8 @@ func TestIssueAccessTokenJWE(t *testing.T) {
 
 	claims := map[string]any{
 		cryptoutilSharedMagic.ClaimSub:   googleUuid.Must(googleUuid.NewV7()).String(),
-		cryptoutilSharedMagic.ClaimEmail: "test@example.com",
-		cryptoutilSharedMagic.ClaimName:  "Test User",
+		cryptoutilSharedMagic.ClaimEmail: testTestExampleCom,
+		cryptoutilSharedMagic.ClaimName:  testTestUser,
 		cryptoutilSharedMagic.ClaimIat:   time.Now().UTC().Unix(),
 		cryptoutilSharedMagic.ClaimExp:   time.Now().UTC().Add(1 * time.Hour).Unix(),
 	}
@@ -356,7 +356,7 @@ func TestIssueAccessTokenUUID(t *testing.T) {
 	require.NoError(t, err)
 
 	tokenConfig := &cryptoutilIdentityConfig.TokenConfig{
-		Issuer:            "https://localhost:8080",
+		Issuer:            testHTTPSLocalhost8080,
 		SigningAlgorithm:  cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
 		AccessTokenFormat: cryptoutilSharedMagic.IdentityTokenFormatUUID,
 	}
@@ -386,7 +386,7 @@ func TestIssueAccessTokenUUID(t *testing.T) {
 
 	claims := map[string]any{
 		cryptoutilSharedMagic.ClaimSub:   googleUuid.Must(googleUuid.NewV7()).String(),
-		cryptoutilSharedMagic.ClaimEmail: "test@example.com",
+		cryptoutilSharedMagic.ClaimEmail: testTestExampleCom,
 	}
 
 	token, err := service.IssueAccessToken(ctx, claims)

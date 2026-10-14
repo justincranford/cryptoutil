@@ -75,14 +75,14 @@ func TestWebAuthnUser_Interface(t *testing.T) {
 	userID := googleUuid.Must(googleUuid.NewV7())
 	user := &cryptoutilIdentityMfa.WebAuthnUser{
 		ID:          userID,
-		Name:        "testuser",
-		DisplayName: "Test User",
+		Name:        testTestuser,
+		DisplayName: testTestUser,
 		Credentials: []cryptoutilIdentityMfa.WebAuthnCredential{},
 	}
 
 	require.Equal(t, userID[:], user.WebAuthnID())
-	require.Equal(t, "testuser", user.WebAuthnName())
-	require.Equal(t, "Test User", user.WebAuthnDisplayName())
+	require.Equal(t, testTestuser, user.WebAuthnName())
+	require.Equal(t, testTestUser, user.WebAuthnDisplayName())
 	require.Empty(t, user.WebAuthnCredentials())
 }
 
@@ -98,8 +98,8 @@ func TestWebAuthnService_BeginRegistration(t *testing.T) {
 	userID := googleUuid.Must(googleUuid.NewV7())
 	user := &cryptoutilIdentityMfa.WebAuthnUser{
 		ID:          userID,
-		Name:        "testuser",
-		DisplayName: "Test User",
+		Name:        testTestuser,
+		DisplayName: testTestUser,
 	}
 
 	options, sessionID, err := service.BeginRegistration(context.Background(), user)

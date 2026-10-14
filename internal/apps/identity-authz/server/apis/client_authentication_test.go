@@ -38,7 +38,7 @@ func TestClientAuthentication_BasicAuth_InvalidFormat(t *testing.T) {
 		cryptoutilSharedMagic.ParamGrantType: []string{cryptoutilSharedMagic.GrantTypeClientCredentials},
 	}
 
-	req := httptest.NewRequest("POST", "/oauth2/v1/token", strings.NewReader(reqBody.Encode()))
+	req := httptest.NewRequest(testPost, testOauth2V1Token, strings.NewReader(reqBody.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Set("Authorization", "Basic invalid-base64")
 
@@ -72,7 +72,7 @@ func TestClientAuthentication_BasicAuth_InvalidClientID(t *testing.T) {
 		cryptoutilSharedMagic.ParamGrantType: []string{cryptoutilSharedMagic.GrantTypeClientCredentials},
 	}
 
-	req := httptest.NewRequest("POST", "/oauth2/v1/token", strings.NewReader(reqBody.Encode()))
+	req := httptest.NewRequest(testPost, testOauth2V1Token, strings.NewReader(reqBody.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Set("Authorization", "Basic "+encoded)
 
@@ -100,10 +100,10 @@ func TestClientAuthentication_PostAuth_MissingClientID(t *testing.T) {
 
 	reqBody := url.Values{
 		cryptoutilSharedMagic.ParamGrantType:    []string{cryptoutilSharedMagic.GrantTypeClientCredentials},
-		cryptoutilSharedMagic.ParamClientSecret: []string{"secret"},
+		cryptoutilSharedMagic.ParamClientSecret: []string{testSecretValue2BB80D53},
 	}
 
-	req := httptest.NewRequest("POST", "/oauth2/v1/token", strings.NewReader(reqBody.Encode()))
+	req := httptest.NewRequest(testPost, testOauth2V1Token, strings.NewReader(reqBody.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	resp, err := app.Test(req, -1)
@@ -131,10 +131,10 @@ func TestClientAuthentication_PostAuth_InvalidClientID(t *testing.T) {
 	reqBody := url.Values{
 		cryptoutilSharedMagic.ParamGrantType:    []string{cryptoutilSharedMagic.GrantTypeClientCredentials},
 		cryptoutilSharedMagic.ClaimClientID:     []string{"invalid-client-id"},
-		cryptoutilSharedMagic.ParamClientSecret: []string{"secret"},
+		cryptoutilSharedMagic.ParamClientSecret: []string{testSecretValue2BB80D53},
 	}
 
-	req := httptest.NewRequest("POST", "/oauth2/v1/token", strings.NewReader(reqBody.Encode()))
+	req := httptest.NewRequest(testPost, testOauth2V1Token, strings.NewReader(reqBody.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	resp, err := app.Test(req, -1)
@@ -153,10 +153,10 @@ func createClientAuthTestConfig(t *testing.T) *cryptoutilIdentityConfig.Config {
 	return &cryptoutilIdentityConfig.Config{
 		Database: &cryptoutilIdentityConfig.DatabaseConfig{
 			Type: cryptoutilSharedMagic.TestDatabaseSQLite,
-			DSN:  "file::memory:?cache=private",
+			DSN:  testFileMemoryCachePrivate,
 		},
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{
-			Issuer: "https://localhost:8080",
+			Issuer: testHTTPSLocalhost8080,
 		},
 	}
 }

@@ -48,7 +48,7 @@ func Cicd(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 // hasHelpFlag returns true if any help flag (-h, --help, help) is present in args.
 func hasHelpFlag(args []string) bool {
 	for _, arg := range args {
-		if arg == cryptoutilSharedMagic.CLIHelpCommand || arg == cryptoutilSharedMagic.CLIHelpFlag || arg == "-h" {
+		if arg == cryptoutilSharedMagic.CLIHelpCommand || arg == cryptoutilSharedMagic.CLIHelpFlag || arg == valueShortHelpFlag {
 			return true
 		}
 	}

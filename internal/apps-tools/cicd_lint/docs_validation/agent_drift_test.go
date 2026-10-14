@@ -33,19 +33,19 @@ func TestSplitMarkdownFrontmatter(t *testing.T) {
 		{
 			name:            "crlf normalized",
 			content:         "---\r\nname: test\r\n---\r\n# Body\r\n",
-			wantFrontmatter: "name: test",
-			wantBody:        "# Body\n",
+			wantFrontmatter: testNameTest,
+			wantBody:        testBodyValue4B36FF87,
 		},
 		{
 			name:            "empty body",
 			content:         "---\nname: test\n---\n",
-			wantFrontmatter: "name: test",
+			wantFrontmatter: testNameTest,
 			wantBody:        "",
 		},
 		{
 			name:             "no frontmatter delimiter",
 			content:          "just content\nno delimiter",
-			wantErrSubstring: "does not begin with YAML frontmatter delimiter",
+			wantErrSubstring: testDoesNotBeginWithYAMLFrontmatterDelimiter,
 		},
 		{
 			name:             "unclosed frontmatter",
@@ -56,7 +56,7 @@ func TestSplitMarkdownFrontmatter(t *testing.T) {
 			name:            "multiline frontmatter",
 			content:         "---\nname: copilot-test\ndescription: Multi-line.\nargument-hint: '<dir>'\n---\n# Body\n",
 			wantFrontmatter: "name: copilot-test\ndescription: Multi-line.\nargument-hint: '<dir>'",
-			wantBody:        "# Body\n",
+			wantBody:        testBodyValue4B36FF87,
 		},
 	}
 
@@ -115,7 +115,7 @@ func TestParseAgentFrontmatter(t *testing.T) {
 		{
 			name:             "no frontmatter",
 			content:          "no frontmatter here",
-			wantErrSubstring: "does not begin with YAML frontmatter delimiter",
+			wantErrSubstring: testDoesNotBeginWithYAMLFrontmatterDelimiter,
 		},
 	}
 
@@ -218,7 +218,7 @@ func TestCheckAgentDrift_MissingClaudeFile(t *testing.T) {
 
 	require.NoError(t, err)
 	require.Len(t, result.Violations, 1)
-	require.Equal(t, "missing", result.Violations[0].Field)
+	require.Equal(t, valueMissing, result.Violations[0].Field)
 	require.Contains(t, result.Violations[0].Detail, ".claude/agents/orphan.md")
 }
 
@@ -433,7 +433,7 @@ func TestFormatAgentDriftResults_WithViolations(t *testing.T) {
 	t.Parallel()
 
 	result := &AgentDriftResult{
-		Checked: 3,
+		Checked: toAppendixMatchGroups,
 		Violations: []AgentDriftViolation{
 			{
 				CopilotFile: ".github/agents/foo.agent.md",
@@ -471,7 +471,7 @@ func TestFormatAgentDriftResults_MissingClaudeFile(t *testing.T) {
 		Violations: []AgentDriftViolation{
 			{
 				CopilotFile: ".github/agents/orphan.agent.md",
-				Field:       "missing",
+				Field:       valueMissing,
 				Detail:      "Claude Code agent file not found",
 			},
 		},

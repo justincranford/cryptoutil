@@ -54,9 +54,9 @@ func TestHandleUserInfo_GET(t *testing.T) {
 			TLSEnabled:  true,
 		},
 		Sessions: &cryptoutilIdentityConfig.SessionConfig{
-			CookieName:      "session_id",
+			CookieName:      testSessionID,
 			CookieHTTPOnly:  true,
-			CookieSameSite:  "Lax",
+			CookieSameSite:  testLax,
 			SessionLifetime: 1 * time.Hour,
 		},
 	}
@@ -69,8 +69,8 @@ func TestHandleUserInfo_GET(t *testing.T) {
 	// Create test user.
 	testUser := &cryptoutilIdentityDomain.User{
 		Sub:   googleUuid.Must(googleUuid.NewV7()).String(),
-		Email: "test@example.com",
-		Name:  "Test User",
+		Email: testTestExampleCom,
+		Name:  testTestUser,
 	}
 	userRepo := repoFactory.UserRepository()
 	require.NoError(t, userRepo.Create(ctx, testUser))
@@ -80,7 +80,7 @@ func TestHandleUserInfo_GET(t *testing.T) {
 		UserID:                testUser.ID,
 		SessionID:             googleUuid.Must(googleUuid.NewV7()).String(),
 		IPAddress:             cryptoutilSharedMagic.IPv4Loopback,
-		UserAgent:             "test-agent",
+		UserAgent:             testTestAgent,
 		IssuedAt:              time.Now().UTC(),
 		ExpiresAt:             time.Now().UTC().Add(1 * time.Hour),
 		LastSeenAt:            time.Now().UTC(),
@@ -97,17 +97,17 @@ func TestHandleUserInfo_GET(t *testing.T) {
 		expectedStatus int
 	}{
 		{
-			name:           "Valid session cookie",
+			name:           testValidSessionCookie,
 			sessionCookie:  testSession.SessionID,
 			expectedStatus: http.StatusUnauthorized,
 		},
 		{
-			name:           "Missing session cookie",
+			name:           testMissingSessionCookie,
 			sessionCookie:  "",
 			expectedStatus: http.StatusUnauthorized,
 		},
 		{
-			name:           "Invalid session cookie",
+			name:           testInvalidSessionCookie,
 			sessionCookie:  googleUuid.Must(googleUuid.NewV7()).String(),
 			expectedStatus: http.StatusUnauthorized,
 		},
@@ -121,7 +121,7 @@ func TestHandleUserInfo_GET(t *testing.T) {
 
 			if tc.sessionCookie != "" {
 				req.AddCookie(&http.Cookie{
-					Name:     "session_id",
+					Name:     testSessionID,
 					Value:    tc.sessionCookie,
 					Secure:   true,
 					HttpOnly: true,

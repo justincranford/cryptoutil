@@ -20,26 +20,26 @@ func TestHashLowEntropyDeterministic(t *testing.T) {
 	}{
 		{
 			name:        "valid_low_entropy_secret",
-			secret:      "password123",
+			secret:      testPassword123,
 			expectError: false,
 		},
 		{
-			name:        "empty_secret",
+			name:        testEmptySecret,
 			secret:      "",
 			expectError: true,
 		},
 		{
-			name:        "long_secret",
+			name:        testLongSecret,
 			secret:      strings.Repeat("a", cryptoutilSharedMagic.DefaultLogsBatchSize),
 			expectError: false,
 		},
 		{
-			name:        "unicode_secret",
+			name:        testUnicodeSecret,
 			secret:      "密码🔐密钥",
 			expectError: false,
 		},
 		{
-			name:        "special_characters",
+			name:        testSpecialCharacters,
 			secret:      "!@#$%^&*()_+-=[]{}|;:',.<>?/~`",
 			expectError: false,
 		},
@@ -77,23 +77,23 @@ func TestHashSecretHKDFFixed(t *testing.T) {
 		expectError bool
 	}{
 		{
-			name:        "valid_secret",
+			name:        testValidSecret,
 			secret:      "testPassword123",
 			expectError: false,
 		},
 		{
-			name:        "empty_secret",
+			name:        testEmptySecret,
 			secret:      "",
 			expectError: true,
 		},
 		{
-			name:        "long_secret",
+			name:        testLongSecret,
 			secret:      strings.Repeat("x", cryptoutilSharedMagic.DefaultMetricsBatchSize),
 			expectError: false,
 		},
 		{
-			name:        "unicode_secret",
-			secret:      "秘密🔐密钥",
+			name:        testUnicodeSecret,
+			secret:      test秘密密钥,
 			expectError: false,
 		},
 	}
@@ -158,44 +158,44 @@ func TestVerifySecretHKDFFixed(t *testing.T) {
 		expectError    bool
 	}{
 		{
-			name:           "valid_hash_matches",
-			storedHash:     "hkdf-sha256-fixed$ZGVyaXZlZGtleTE2Ynl0ZXNsb25nZGVyaXZlZGtleTE2",
-			providedSecret: "password123",
+			name:           testValidHashMatches,
+			storedHash:     testHkdfSha256FixedZgvyaXzlZgtleTe2Ynl0Zxnsb25nZgvyaXzlZgtleTe2,
+			providedSecret: testPassword123,
 			expectMatch:    false, // Won't match unless we use the exact secret that generated this hash.
 			expectError:    false,
 		},
 		{
-			name:           "empty_stored_hash",
+			name:           testEmptyStoredHash,
 			storedHash:     "",
-			providedSecret: "password123",
+			providedSecret: testPassword123,
 			expectMatch:    false,
 			expectError:    true,
 		},
 		{
-			name:           "empty_provided_secret",
-			storedHash:     "hkdf-sha256-fixed$ZGVyaXZlZGtleTE2Ynl0ZXNsb25nZGVyaXZlZGtleTE2",
+			name:           testEmptyProvidedSecret,
+			storedHash:     testHkdfSha256FixedZgvyaXzlZgtleTe2Ynl0Zxnsb25nZgvyaXzlZgtleTe2,
 			providedSecret: "",
 			expectMatch:    false,
 			expectError:    true,
 		},
 		{
-			name:           "invalid_hash_format",
-			storedHash:     "invalid-format",
-			providedSecret: "password123",
+			name:           testInvalidHashFormat,
+			storedHash:     testInvalidFormat,
+			providedSecret: testPassword123,
 			expectMatch:    false,
 			expectError:    true,
 		},
 		{
-			name:           "invalid_dk_encoding",
+			name:           testInvalidDkEncoding,
 			storedHash:     "hkdf-sha256-fixed$!!!invalid-base64!!!",
-			providedSecret: "password123",
+			providedSecret: testPassword123,
 			expectMatch:    false,
 			expectError:    true,
 		},
 		{
-			name:           "wrong_algorithm",
+			name:           testWrongAlgorithm,
 			storedHash:     "hkdf-sha512-fixed$ZGVyaXZlZGtleTE2Ynl0ZXNsb25nZGVyaXZlZGtleTE2",
-			providedSecret: "password123",
+			providedSecret: testPassword123,
 			expectMatch:    false,
 			expectError:    true,
 		},
@@ -264,31 +264,31 @@ func TestConstantTimeCompareBytes(t *testing.T) {
 		expect bool
 	}{
 		{
-			name:   "equal_slices",
-			a:      []byte{1, 2, 3, 4},
-			b:      []byte{1, 2, 3, 4},
+			name:   testEqualSlices,
+			a:      []byte{1, 2, value3, 4},
+			b:      []byte{1, 2, value3, 4},
 			expect: true,
 		},
 		{
-			name:   "different_slices",
-			a:      []byte{1, 2, 3, 4},
-			b:      []byte{1, 2, 3, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries},
+			name:   testDifferentSlices,
+			a:      []byte{1, 2, value3, 4},
+			b:      []byte{1, 2, value3, testDifferentSliceLastByte},
 			expect: false,
 		},
 		{
-			name:   "different_lengths",
-			a:      []byte{1, 2, 3},
-			b:      []byte{1, 2, 3, 4},
+			name:   testDifferentLengths,
+			a:      []byte{1, 2, value3},
+			b:      []byte{1, 2, value3, 4},
 			expect: false,
 		},
 		{
-			name:   "empty_slices",
+			name:   testEmptySlices,
 			a:      []byte{},
 			b:      []byte{},
 			expect: true,
 		},
 		{
-			name:   "nil_vs_empty",
+			name:   testNilVsEmpty,
 			a:      nil,
 			b:      []byte{},
 			expect: true, // Both have length 0, so they compare equal.
@@ -314,24 +314,24 @@ func TestSplitHKDFFixedParts(t *testing.T) {
 		expect []string
 	}{
 		{
-			name:   "valid_two_parts",
+			name:   testValidTwoParts,
 			hash:   "hkdf-sha256-fixed$ZGVyaXZlZGtleQ==",
-			expect: []string{cryptoutilSharedMagic.HKDFFixedLowHashName, "ZGVyaXZlZGtleQ=="},
+			expect: []string{cryptoutilSharedMagic.HKDFFixedLowHashName, testZgvyaXzlZgtleQ},
 		},
 		{
-			name:   "single_part",
+			name:   testSinglePart,
 			hash:   cryptoutilSharedMagic.HKDFFixedLowHashName,
 			expect: []string{cryptoutilSharedMagic.HKDFFixedLowHashName},
 		},
 		{
-			name:   "empty_string",
+			name:   testEmptyString,
 			hash:   "",
 			expect: []string{},
 		},
 		{
-			name:   "multiple_delimiters",
-			hash:   "part1$part2$part3",
-			expect: []string{"part1", "part2", "part3"},
+			name:   testMultipleDelimiters,
+			hash:   testPart1Part2Part3,
+			expect: []string{testPart1, testPart2, testPart3},
 		},
 	}
 

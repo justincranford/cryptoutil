@@ -70,7 +70,7 @@ func TestNewUnsealKeysServiceFromSettings_SimpleMode_FileCountMismatch(t *testin
 	ctx, telemetryService := createTestContext(t)
 	settings := cryptoutilAppsFrameworkServiceConfig.RequireNewForTest("test-simple-file-mismatch")
 	settings.DevMode = false
-	settings.UnsealMode = "3" // Expecting 3 files
+	settings.UnsealMode = test3Value4E074085 // Expecting 3 files
 	settings.UnsealFiles = []string{jwkFile}
 
 	unsealKeysService, err := NewUnsealKeysServiceFromSettings(ctx, telemetryService, settings)

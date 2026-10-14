@@ -140,12 +140,12 @@ func TestTenantRepository_GetByID(t *testing.T) {
 		wantError bool
 	}{
 		{
-			name:      "happy path - existing tenant",
+			name:      testHappyPathExistingTenant,
 			id:        tenant.ID,
 			wantError: false,
 		},
 		{
-			name:      "not found - non-existent tenant",
+			name:      testNotFoundNonExistentTenant,
 			id:        googleUuid.New(),
 			wantError: true,
 		},
@@ -191,12 +191,12 @@ func TestTenantRepository_GetByName(t *testing.T) {
 		wantError  bool
 	}{
 		{
-			name:       "happy path - existing tenant",
+			name:       testHappyPathExistingTenant,
 			tenantName: tenant.Name,
 			wantError:  false,
 		},
 		{
-			name:       "not found - non-existent tenant",
+			name:       testNotFoundNonExistentTenant,
 			tenantName: "Non-Existent Corp",
 			wantError:  true,
 		},

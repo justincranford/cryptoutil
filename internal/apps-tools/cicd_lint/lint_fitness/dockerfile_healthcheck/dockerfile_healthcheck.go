@@ -26,7 +26,7 @@ import (
 )
 
 // bannedHealthcheckTools lists tools that MUST NOT appear in HEALTHCHECK commands.
-var bannedHealthcheckTools = []string{"wget", "curl"}
+var bannedHealthcheckTools = []string{valueWget, valueCurl}
 
 // Check validates Dockerfile healthchecks from the workspace root.
 func Check(logger *cryptoutilCmdCicdCommon.Logger) error {

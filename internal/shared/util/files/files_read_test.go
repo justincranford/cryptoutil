@@ -36,7 +36,7 @@ func TestReadFileBytes(t *testing.T) {
 	t.Run("file not found", func(t *testing.T) {
 		t.Parallel()
 
-		content, err := cryptoutilSharedUtilFiles.ReadFileBytes("/nonexistent/path/file.txt")
+		content, err := cryptoutilSharedUtilFiles.ReadFileBytes(testNonexistentPathFileTxt)
 		require.Error(t, err, "Should return error for missing file")
 		require.Nil(t, content, "Content should be nil on error")
 		require.Contains(t, err.Error(), "failed to read file", "Error should indicate read failure")
@@ -52,7 +52,7 @@ func TestReadFilesBytes(t *testing.T) {
 
 		// Create temp files.
 		tmpDir := t.TempDir()
-		file1 := filepath.Join(tmpDir, "file1.txt")
+		file1 := filepath.Join(tmpDir, testFile1Txt)
 		file2 := filepath.Join(tmpDir, "file2.txt")
 		content1 := []byte("content 1")
 		content2 := []byte("content 2")
@@ -90,7 +90,7 @@ func TestReadFilesBytes(t *testing.T) {
 		t.Parallel()
 
 		tmpDir := t.TempDir()
-		file1 := filepath.Join(tmpDir, "file1.txt")
+		file1 := filepath.Join(tmpDir, testFile1Txt)
 		require.NoError(t, os.WriteFile(file1, []byte("content"), cryptoutilSharedMagic.CacheFilePermissions))
 
 		contents, err := cryptoutilSharedUtilFiles.ReadFilesBytes([]string{file1, ""})
@@ -103,7 +103,7 @@ func TestReadFilesBytes(t *testing.T) {
 		t.Parallel()
 
 		tmpDir := t.TempDir()
-		file1 := filepath.Join(tmpDir, "file1.txt")
+		file1 := filepath.Join(tmpDir, testFile1Txt)
 		require.NoError(t, os.WriteFile(file1, []byte("content"), cryptoutilSharedMagic.CacheFilePermissions))
 
 		contents, err := cryptoutilSharedUtilFiles.ReadFilesBytes([]string{file1, "   "})
@@ -116,7 +116,7 @@ func TestReadFilesBytes(t *testing.T) {
 		t.Parallel()
 
 		tmpDir := t.TempDir()
-		file1 := filepath.Join(tmpDir, "file1.txt")
+		file1 := filepath.Join(tmpDir, testFile1Txt)
 		require.NoError(t, os.WriteFile(file1, []byte("content"), cryptoutilSharedMagic.CacheFilePermissions))
 
 		contents, err := cryptoutilSharedUtilFiles.ReadFilesBytes([]string{file1, "/nonexistent/file.txt"})
@@ -221,7 +221,7 @@ func TestReadFilesBytesLimit(t *testing.T) {
 
 		// Create temp files.
 		tmpDir := t.TempDir()
-		file1 := filepath.Join(tmpDir, "file1.txt")
+		file1 := filepath.Join(tmpDir, testFile1Txt)
 		file2 := filepath.Join(tmpDir, "file2.txt")
 		content1 := []byte("content 1")
 		content2 := []byte("content 2")
@@ -241,7 +241,7 @@ func TestReadFilesBytesLimit(t *testing.T) {
 		t.Parallel()
 
 		tmpDir := t.TempDir()
-		file1 := filepath.Join(tmpDir, "file1.txt")
+		file1 := filepath.Join(tmpDir, testFile1Txt)
 		file2 := filepath.Join(tmpDir, "file2.txt")
 		file3 := filepath.Join(tmpDir, "file3.txt")
 
@@ -286,7 +286,7 @@ func TestReadFilesBytesLimit(t *testing.T) {
 		t.Parallel()
 
 		tmpDir := t.TempDir()
-		file1 := filepath.Join(tmpDir, "file1.txt")
+		file1 := filepath.Join(tmpDir, testFile1Txt)
 		require.NoError(t, os.WriteFile(file1, []byte("content"), cryptoutilSharedMagic.CacheFilePermissions))
 
 		contents, err := cryptoutilSharedUtilFiles.ReadFilesBytesLimit([]string{file1, ""}, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, cryptoutilSharedMagic.JoseJAMaxMaterials)

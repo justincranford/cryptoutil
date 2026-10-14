@@ -46,7 +46,7 @@ func TestHandleAuthorizationCodeGrant_ErrorPaths(t *testing.T) {
 				clientID := "test-client-" + googleUuid.NewString()
 				client := &cryptoutilIdentityDomain.Client{
 					ClientID:                clientID,
-					ClientSecret:            "test-secret",
+					ClientSecret:            testTestSecret,
 					Name:                    cryptoutilSharedMagic.TestClientName,
 					RedirectURIs:            []string{cryptoutilSharedMagic.TestRedirectURI},
 					AllowedScopes:           []string{cryptoutilSharedMagic.ScopeOpenID, cryptoutilSharedMagic.ClaimProfile},
@@ -70,8 +70,8 @@ func TestHandleAuthorizationCodeGrant_ErrorPaths(t *testing.T) {
 					Code:                authCode,
 					RedirectURI:         cryptoutilSharedMagic.TestRedirectURI,
 					ResponseType:        cryptoutilSharedMagic.ResponseTypeCode,
-					Scope:               "openid profile",
-					CodeChallenge:       "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM",
+					Scope:               testOpenidProfile,
+					CodeChallenge:       testE9Melhoa2OwvFrEmtjguChaoeK1t8UrwbuGjsstwCM,
 					CodeChallengeMethod: cryptoutilSharedMagic.PKCEMethodS256,
 					CreatedAt:           time.Now().UTC(),
 					ExpiresAt:           time.Now().UTC().Add(cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Minute),
@@ -115,7 +115,7 @@ func TestHandleAuthorizationCodeGrant_ErrorPaths(t *testing.T) {
 			form.Set(cryptoutilSharedMagic.ClaimClientID, clientID)
 			form.Set(cryptoutilSharedMagic.ParamCodeVerifier, codeVerifier)
 
-			req := httptest.NewRequest("POST", "/oauth2/v1/token", strings.NewReader(form.Encode()))
+			req := httptest.NewRequest(testPost, testOauth2V1Token, strings.NewReader(form.Encode()))
 			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 			resp, err := app.Test(req, -1)
@@ -149,7 +149,7 @@ func TestHandleRevoke_ErrorPaths(t *testing.T) {
 				// Create client for token association.
 				client := &cryptoutilIdentityDomain.Client{
 					ClientID:                "test-client-" + googleUuid.NewString(),
-					ClientSecret:            "test-secret",
+					ClientSecret:            testTestSecret,
 					Name:                    cryptoutilSharedMagic.TestClientName,
 					RedirectURIs:            []string{cryptoutilSharedMagic.TestRedirectURI},
 					AllowedScopes:           []string{cryptoutilSharedMagic.ScopeRead, cryptoutilSharedMagic.ScopeWrite},
@@ -207,7 +207,7 @@ func TestHandleRevoke_ErrorPaths(t *testing.T) {
 			// Create test infrastructure.
 			config := &cryptoutilIdentityConfig.Config{
 				Tokens: &cryptoutilIdentityConfig.TokenConfig{
-					Issuer:               "https://identity.example.com",
+					Issuer:               testHTTPSIdentityExampleCom,
 					AccessTokenLifetime:  15 * time.Minute,
 					RefreshTokenLifetime: cryptoutilSharedMagic.HoursPerDay * time.Hour,
 				},
@@ -238,7 +238,7 @@ func TestHandleRevoke_ErrorPaths(t *testing.T) {
 			form := url.Values{}
 			form.Set(cryptoutilSharedMagic.ParamToken, tokenValue)
 
-			req := httptest.NewRequest("POST", "/oauth2/v1/revoke", strings.NewReader(form.Encode()))
+			req := httptest.NewRequest(testPost, testOauth2V1Revoke, strings.NewReader(form.Encode()))
 			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 			resp, err := app.Test(req, -1)
@@ -264,7 +264,7 @@ func createUncoveredPathsTestDependencies(t *testing.T) (*cryptoutilIdentityConf
 			DSN:  fmt.Sprintf("file::memory:?cache=private&mode=memory&_id=%s", googleUuid.New().String()),
 		},
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{
-			Issuer:              "https://localhost:8080",
+			Issuer:              testHTTPSLocalhost8080,
 			AccessTokenLifetime: cryptoutilSharedMagic.IMDefaultSessionTimeout,
 		},
 	}

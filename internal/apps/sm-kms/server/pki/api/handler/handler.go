@@ -127,7 +127,7 @@ func NewHandler(issuer *cryptoutilCAServiceIssuer.Issuer, storage cryptoutilCASt
 		issuer:            issuer,
 		storage:           storage,
 		profiles:          profiles,
-		enrollmentTracker: newEnrollmentTracker(maxTrackedEnrollments),
+		enrollmentTracker: newEnrollmentTracker(cryptoutilSharedMagic.PKIMaxTrackedEnrollments),
 	}, nil
 }
 

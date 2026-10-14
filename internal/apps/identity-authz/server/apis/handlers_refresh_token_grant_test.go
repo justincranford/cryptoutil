@@ -39,7 +39,7 @@ func TestHandleRefreshTokenGrant_Success(t *testing.T) {
 			DSN:  fmt.Sprintf("file:test_%s.db?mode=memory&cache=shared", testID),
 		},
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{
-			Issuer:              "https://localhost:8080",
+			Issuer:              testHTTPSLocalhost8080,
 			SigningAlgorithm:    cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
 			AccessTokenFormat:   cryptoutilSharedMagic.DefaultBrowserSessionCookie,
 			AccessTokenLifetime: cryptoutilSharedMagic.IMDefaultSessionTimeout,
@@ -106,7 +106,7 @@ func TestHandleRefreshTokenGrant_Success(t *testing.T) {
 	testUser := &cryptoutilIdentityDomain.User{
 		ID:           userUUID,
 		Sub:          fmt.Sprintf("user-%s", userUUID.String()),
-		PasswordHash: "dummy-hash",
+		PasswordHash: testDummyHash,
 	}
 
 	userRepo := repoFactory.UserRepository()
@@ -151,7 +151,7 @@ func TestHandleRefreshTokenGrant_Success(t *testing.T) {
 		cryptoutilSharedMagic.ParamScope:        []string{cryptoutilSharedMagic.ScopeOpenID},
 	}
 
-	req := httptest.NewRequest("POST", "/oauth2/v1/token", strings.NewReader(formBody.Encode()))
+	req := httptest.NewRequest(testPost, testOauth2V1Token, strings.NewReader(formBody.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	resp, err := app.Test(req, -1)
@@ -219,10 +219,10 @@ func TestHandleRefreshTokenGrant_MissingRefreshTokenParam(t *testing.T) {
 
 	formBody := url.Values{
 		cryptoutilSharedMagic.ParamGrantType: []string{cryptoutilSharedMagic.GrantTypeRefreshToken},
-		cryptoutilSharedMagic.ParamClientID:  []string{"test-client"},
+		cryptoutilSharedMagic.ParamClientID:  []string{testTestClient},
 	}
 
-	req := httptest.NewRequest("POST", "/oauth2/v1/token", strings.NewReader(formBody.Encode()))
+	req := httptest.NewRequest(testPost, testOauth2V1Token, strings.NewReader(formBody.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	resp, err := app.Test(req, -1)
@@ -288,10 +288,10 @@ func TestHandleRefreshTokenGrant_InvalidRefreshToken(t *testing.T) {
 	formBody := url.Values{
 		cryptoutilSharedMagic.ParamGrantType:    []string{cryptoutilSharedMagic.GrantTypeRefreshToken},
 		cryptoutilSharedMagic.ParamRefreshToken: []string{"invalid-refresh-token"},
-		cryptoutilSharedMagic.ParamClientID:     []string{"test-client"},
+		cryptoutilSharedMagic.ParamClientID:     []string{testTestClient},
 	}
 
-	req := httptest.NewRequest("POST", "/oauth2/v1/token", strings.NewReader(formBody.Encode()))
+	req := httptest.NewRequest(testPost, testOauth2V1Token, strings.NewReader(formBody.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	resp, err := app.Test(req, -1)
@@ -368,7 +368,7 @@ func TestHandleRefreshTokenGrant_RevokedToken(t *testing.T) {
 	testUser := &cryptoutilIdentityDomain.User{
 		ID:           userUUID,
 		Sub:          fmt.Sprintf("user-%s", userUUID.String()),
-		PasswordHash: "dummy-hash",
+		PasswordHash: testDummyHash,
 	}
 
 	userRepo := repoFactory.UserRepository()
@@ -410,10 +410,10 @@ func TestHandleRefreshTokenGrant_RevokedToken(t *testing.T) {
 	formBody := url.Values{
 		cryptoutilSharedMagic.ParamGrantType:    []string{cryptoutilSharedMagic.GrantTypeRefreshToken},
 		cryptoutilSharedMagic.ParamRefreshToken: []string{tokenValue},
-		cryptoutilSharedMagic.ParamClientID:     []string{"test-client"},
+		cryptoutilSharedMagic.ParamClientID:     []string{testTestClient},
 	}
 
-	req := httptest.NewRequest("POST", "/oauth2/v1/token", strings.NewReader(formBody.Encode()))
+	req := httptest.NewRequest(testPost, testOauth2V1Token, strings.NewReader(formBody.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	resp, err := app.Test(req, -1)

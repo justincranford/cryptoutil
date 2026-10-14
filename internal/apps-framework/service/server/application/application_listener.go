@@ -7,6 +7,7 @@ package application
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 
 	"gorm.io/gorm"
@@ -81,11 +82,11 @@ func startListenerInternal(
 	gormOpenSQLiteFn func(dialector gorm.Dialector, config *gorm.Config) (*gorm.DB, error),
 ) (*Listener, error) {
 	if ctx == nil {
-		return nil, fmt.Errorf("ctx cannot be nil")
+		return nil, errors.New(valueCtxCannotBeNil)
 	} else if config == nil {
 		return nil, fmt.Errorf("config cannot be nil")
 	} else if config.Settings == nil {
-		return nil, fmt.Errorf("settings cannot be nil")
+		return nil, errors.New(valueSettingsCannotBeNil)
 	} else if config.PublicServer == nil {
 		return nil, fmt.Errorf("publicServer cannot be nil")
 	} else if config.AdminServer == nil {

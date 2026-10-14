@@ -52,9 +52,9 @@ func TestHandleLogin_GET(t *testing.T) {
 			TLSEnabled:  true,
 		},
 		Sessions: &cryptoutilIdentityConfig.SessionConfig{
-			CookieName:      "session_id",
+			CookieName:      testSessionID,
 			CookieHTTPOnly:  true,
-			CookieSameSite:  "Lax",
+			CookieSameSite:  testLax,
 			SessionLifetime: 1 * time.Hour,
 		},
 	}
@@ -71,13 +71,13 @@ func TestHandleLogin_GET(t *testing.T) {
 		expectedContains string
 	}{
 		{
-			name:             "Valid request ID",
+			name:             testValidRequestID,
 			requestID:        googleUuid.Must(googleUuid.NewV7()).String(),
 			expectedStatus:   http.StatusOK,
-			expectedContains: "request_id",
+			expectedContains: testRequestID,
 		},
 		{
-			name:             "Missing request ID",
+			name:             testMissingRequestID,
 			requestID:        "",
 			expectedStatus:   http.StatusBadRequest,
 			expectedContains: "request_id is required",
@@ -88,7 +88,7 @@ func TestHandleLogin_GET(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			reqURL := "/oidc/v1/login"
+			reqURL := testOIDCV1Login
 			if tc.requestID != "" {
 				reqURL += "?request_id=" + tc.requestID
 			}
@@ -131,9 +131,9 @@ func TestHandleLoginSubmit_POST(t *testing.T) {
 			TLSEnabled:  true,
 		},
 		Sessions: &cryptoutilIdentityConfig.SessionConfig{
-			CookieName:      "session_id",
+			CookieName:      testSessionID,
 			CookieHTTPOnly:  true,
-			CookieSameSite:  "Lax",
+			CookieSameSite:  testLax,
 			SessionLifetime: 1 * time.Hour,
 		},
 	}
@@ -146,15 +146,15 @@ func TestHandleLoginSubmit_POST(t *testing.T) {
 	// Create test user.
 	testUser := &cryptoutilIdentityDomain.User{
 		Sub:   googleUuid.Must(googleUuid.NewV7()).String(),
-		Email: "test@example.com",
+		Email: testTestExampleCom,
 	}
 	userRepo := repoFactory.UserRepository()
 	require.NoError(t, userRepo.Create(ctx, testUser))
 
 	// Create test client.
 	testClient := &cryptoutilIdentityDomain.Client{
-		ClientID:     "test-client",
-		RedirectURIs: []string{"https://client.example.com/callback"},
+		ClientID:     testTestClient,
+		RedirectURIs: []string{testHTTPSClientExampleComCallback},
 	}
 	clientRepo := repoFactory.ClientRepository()
 	require.NoError(t, clientRepo.Create(ctx, testClient))
@@ -165,8 +165,8 @@ func TestHandleLoginSubmit_POST(t *testing.T) {
 		ClientID:     testClient.ClientID,
 		RedirectURI:  testClient.RedirectURIs[0],
 		ResponseType: cryptoutilSharedMagic.ResponseTypeCode,
-		Scope:        "openid profile",
-		State:        "test-state",
+		Scope:        testOpenidProfile,
+		State:        testTestState,
 		CreatedAt:    time.Now().UTC(),
 		ExpiresAt:    time.Now().UTC().Add(cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Minute),
 	}
@@ -183,35 +183,35 @@ func TestHandleLoginSubmit_POST(t *testing.T) {
 		{
 			name:           "Missing username",
 			username:       "",
-			password:       "password123",
+			password:       testPassword123,
 			requestID:      authzReq.ID.String(),
 			expectedStatus: http.StatusBadRequest,
 		},
 		{
 			name:           "Missing password",
-			username:       "testuser",
+			username:       testTestuser,
 			password:       "",
 			requestID:      authzReq.ID.String(),
 			expectedStatus: http.StatusBadRequest,
 		},
 		{
-			name:           "Missing request_id",
-			username:       "testuser",
-			password:       "password123",
+			name:           testMissingRequestIDValueCFA47702,
+			username:       testTestuser,
+			password:       testPassword123,
 			requestID:      "",
 			expectedStatus: http.StatusBadRequest,
 		},
 		{
-			name:           "Invalid request_id format",
-			username:       "testuser",
-			password:       "password123",
-			requestID:      "invalid-uuid",
+			name:           testInvalidRequestIDFormat,
+			username:       testTestuser,
+			password:       testPassword123,
+			requestID:      testInvalidUUID,
 			expectedStatus: http.StatusBadRequest,
 		},
 		{
-			name:           "Nonexistent request_id",
-			username:       "testuser",
-			password:       "password123",
+			name:           testNonexistentRequestID,
+			username:       testTestuser,
+			password:       testPassword123,
 			requestID:      googleUuid.Must(googleUuid.NewV7()).String(),
 			expectedStatus: http.StatusBadRequest,
 		},
@@ -224,11 +224,11 @@ func TestHandleLoginSubmit_POST(t *testing.T) {
 			formData := url.Values{}
 			formData.Set("username", tc.username)
 			formData.Set("password", tc.password)
-			formData.Set("request_id", tc.requestID)
+			formData.Set(testRequestID, tc.requestID)
 
 			req := httptest.NewRequest(
 				http.MethodPost,
-				"/oidc/v1/login",
+				testOIDCV1Login,
 				strings.NewReader(formData.Encode()),
 			)
 			req.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationForm)

@@ -65,7 +65,7 @@ func NewRiskBasedAuthenticator(
 
 // Method returns the authentication method name.
 func (r *RiskBasedAuthenticator) Method() string {
-	return "risk_based"
+	return valueRiskBased
 }
 
 // Authenticate performs risk-based authentication.
@@ -138,7 +138,7 @@ func (r *RiskBasedAuthenticator) InitiateAuth(ctx context.Context, userID string
 	challenge := &AuthChallenge{
 		ID:        challengeID,
 		UserID:    userID,
-		Method:    "risk_based",
+		Method:    valueRiskBased,
 		ExpiresAt: expiresAt,
 		Metadata: map[string]any{
 			"risk_assessed": false,
@@ -192,20 +192,20 @@ func DefaultRiskThresholds() map[RiskLevel]*AuthRequirements {
 	const (
 		factorsOne   = 1
 		factorsTwo   = 2
-		factorsThree = 3
+		factorsThree = value3
 	)
 
 	return map[RiskLevel]*AuthRequirements{
 		RiskLevelLow: {
 			MinFactors:        factorsOne,
-			AllowedMethods:    []string{"password", "magic_link"},
+			AllowedMethods:    []string{valuePassword, valueMagicLink},
 			RequiresBiometric: false,
 			RequiresHardware:  false,
 			MaxAge:            cryptoutilSharedMagic.LowRiskAuthMaxAge,
 		},
 		RiskLevelMedium: {
 			MinFactors:        factorsTwo,
-			AllowedMethods:    []string{"password", cryptoutilSharedMagic.MFATypeTOTP, cryptoutilSharedMagic.AuthMethodSMSOTP},
+			AllowedMethods:    []string{valuePassword, cryptoutilSharedMagic.MFATypeTOTP, cryptoutilSharedMagic.AuthMethodSMSOTP},
 			RequiresBiometric: false,
 			RequiresHardware:  false,
 			MaxAge:            cryptoutilSharedMagic.MediumRiskAuthMaxAge,

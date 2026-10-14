@@ -186,7 +186,7 @@ func TestClientSecretRotation_InvalidClientID(t *testing.T) {
 	err = json.NewDecoder(resp.Body).Decode(&result)
 	require.NoError(t, err)
 	require.Equal(t, cryptoutilSharedMagic.ErrorInvalidClient, result[cryptoutilSharedMagic.StringError])
-	require.Contains(t, result["error_description"], "Client authentication failed")
+	require.Contains(t, result[valueErrorDescription], valueClientAuthenticationFailed)
 }
 
 // TestClientSecretRotation_ClientNotFound validates error handling for non-existent client.

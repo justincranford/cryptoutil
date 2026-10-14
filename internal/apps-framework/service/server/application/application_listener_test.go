@@ -36,7 +36,7 @@ func TestStartCoreWithServices_FullIntegration(t *testing.T) {
 		DevMode:                    true,
 		VerboseMode:                false,
 		DatabaseURL:                cryptoutilSharedMagic.SQLiteInMemoryDSN,
-		OTLPService:                "test-service",
+		OTLPService:                testTestService,
 		OTLPEnabled:                false,
 		OTLPEndpoint:               cryptoutilSharedMagic.DefaultOTLPEndpointDefault,
 		LogLevel:                   cryptoutilSharedMagic.DefaultLogLevelInfo,
@@ -100,23 +100,23 @@ func TestMaskPassword(t *testing.T) {
 	}{
 		{
 			name:     "PostgreSQL with password - KNOWN BUG: looks for '/:', not '://'",
-			dsn:      "postgres://user:mypassword@localhost:5432/dbname",
-			expected: "postgres://user:mypassword@localhost:5432/dbname", // Planned: Should mask to "postgres://***@localhost:5432/dbname"
+			dsn:      testPostgresUserMypasswordLocalhost5432Dbname,
+			expected: testPostgresUserMypasswordLocalhost5432Dbname, // Planned: Should mask to "postgres://***@localhost:5432/dbname"
 		},
 		{
 			name:     "PostgreSQL with complex password - KNOWN BUG",
-			dsn:      "postgres://user:p@ss:w0rd@localhost:5432/dbname",
-			expected: "postgres://user:p@ss:w0rd@localhost:5432/dbname", // Planned: Should mask
+			dsn:      testPostgresUserPSsW0rdLocalhost5432Dbname,
+			expected: testPostgresUserPSsW0rdLocalhost5432Dbname, // Planned: Should mask
 		},
 		{
 			name:     "Non-PostgreSQL DSN without pattern",
-			dsn:      "file://path/to/db.sqlite",
-			expected: "file://path/to/db.sqlite",
+			dsn:      testFilePathToDBSqlite,
+			expected: testFilePathToDBSqlite,
 		},
 		{
 			name:     "DSN without @ symbol",
-			dsn:      "postgres://localhost:5432/dbname",
-			expected: "postgres://localhost:5432/dbname",
+			dsn:      testPostgresLocalhost5432Dbname,
+			expected: testPostgresLocalhost5432Dbname,
 		},
 		{
 			name:     "Hypothetical DSN with /: pattern (would work)",
@@ -125,8 +125,8 @@ func TestMaskPassword(t *testing.T) {
 		},
 		{
 			name:     "DSN with /: but no @ symbol - covers end == start branch",
-			dsn:      "scheme/:password_without_at",
-			expected: "scheme/:password_without_at", // No @ means end == start, return dsn unchanged
+			dsn:      testSchemePasswordWithoutAt,
+			expected: testSchemePasswordWithoutAt, // No @ means end == start, return dsn unchanged
 		},
 	}
 
@@ -270,13 +270,13 @@ func TestHealthcheck_CompletesWithinTimeout(t *testing.T) {
 	}{
 		{
 			name:         "livez endpoint responds quickly",
-			endpoint:     "/admin/api/v1/livez",
+			endpoint:     testAdminAPIV1Livez,
 			wantStatus:   200,
 			wantContains: `"status":"alive"`,
 		},
 		{
 			name:         "readyz endpoint responds quickly",
-			endpoint:     "/admin/api/v1/readyz",
+			endpoint:     testAdminAPIV1Readyz,
 			wantStatus:   200,
 			wantContains: `"status":"ready"`,
 		},
@@ -294,10 +294,10 @@ func TestHealthcheck_CompletesWithinTimeout(t *testing.T) {
 			// Simple healthcheck handlers mimicking admin server behavior.
 			api := app.Group(cryptoutilSharedMagic.DefaultPrivateAdminAPIContextPath)
 			api.Get(cryptoutilSharedMagic.PrivateAdminLivezRequestPath, func(c *fiber.Ctx) error {
-				return c.JSON(fiber.Map{cryptoutilSharedMagic.StringStatus: "alive"})
+				return c.JSON(fiber.Map{cryptoutilSharedMagic.StringStatus: testAlive})
 			})
 			api.Get(cryptoutilSharedMagic.PrivateAdminReadyzRequestPath, func(c *fiber.Ctx) error {
-				return c.JSON(fiber.Map{cryptoutilSharedMagic.StringStatus: "ready"})
+				return c.JSON(fiber.Map{cryptoutilSharedMagic.StringStatus: testReady})
 			})
 
 			// Create test request.
@@ -335,13 +335,13 @@ func TestHealthcheck_TimeoutExceeded(t *testing.T) {
 	}{
 		{
 			name:        "livez timeout - handler too slow",
-			endpoint:    "/admin/api/v1/livez",
+			endpoint:    testAdminAPIV1Livez,
 			timeout:     cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Millisecond,
 			handlerWait: cryptoutilSharedMagic.IMMaxUsernameLength * time.Millisecond,
 		},
 		{
 			name:        "readyz timeout - handler too slow",
-			endpoint:    "/admin/api/v1/readyz",
+			endpoint:    testAdminAPIV1Readyz,
 			timeout:     cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Millisecond,
 			handlerWait: cryptoutilSharedMagic.IMMaxUsernameLength * time.Millisecond,
 		},
@@ -361,12 +361,12 @@ func TestHealthcheck_TimeoutExceeded(t *testing.T) {
 			api.Get(cryptoutilSharedMagic.PrivateAdminLivezRequestPath, func(c *fiber.Ctx) error {
 				time.Sleep(tt.handlerWait)
 
-				return c.JSON(fiber.Map{cryptoutilSharedMagic.StringStatus: "alive"})
+				return c.JSON(fiber.Map{cryptoutilSharedMagic.StringStatus: testAlive})
 			})
 			api.Get(cryptoutilSharedMagic.PrivateAdminReadyzRequestPath, func(c *fiber.Ctx) error {
 				time.Sleep(tt.handlerWait)
 
-				return c.JSON(fiber.Map{cryptoutilSharedMagic.StringStatus: "ready"})
+				return c.JSON(fiber.Map{cryptoutilSharedMagic.StringStatus: testReady})
 			})
 
 			// Create test request.

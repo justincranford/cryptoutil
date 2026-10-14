@@ -19,17 +19,17 @@ func TestClientProfile_BeforeCreate(t *testing.T) {
 		expectIDChange bool
 	}{
 		{
-			name: "generates ID when empty",
+			name: testGeneratesIDWhenEmpty,
 			clientProfile: &cryptoutilIdentityDomain.ClientProfile{
-				Name: "Test Profile",
+				Name: testTestProfile,
 			},
 			expectIDChange: true,
 		},
 		{
-			name: "preserves existing ID",
+			name: testPreservesExistingID,
 			clientProfile: &cryptoutilIdentityDomain.ClientProfile{
 				ID:   googleUuid.Must(googleUuid.NewV7()),
-				Name: "Test Profile",
+				Name: testTestProfile,
 			},
 			expectIDChange: false,
 		},

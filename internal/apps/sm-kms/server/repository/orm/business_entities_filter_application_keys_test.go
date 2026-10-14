@@ -132,7 +132,7 @@ func TestApplyKeyFilters(t *testing.T) {
 	t.Run("Filter by Sort ascending", func(t *testing.T) {
 		query := testOrmRepository.GormDB().Model(&MaterialKey{})
 		filters := &GetMaterialKeysFilters{
-			Sort:     []string{"material_key_generate_date ASC"},
+			Sort:     []string{testMaterialKeySortGenerateDateAscending},
 			PageSize: cryptoutilSharedMagic.DefaultPageSize,
 		}
 		filteredQuery := applyKeyFilters(query, filters)
@@ -149,7 +149,7 @@ func TestApplyKeyFilters(t *testing.T) {
 			ElasticKeyID:        []googleUuid.UUID{googleUuid.New()},
 			MinimumGenerateDate: timePtr(minDate),
 			MaximumGenerateDate: timePtr(maxDate),
-			Sort:                []string{"material_key_generate_date DESC"},
+			Sort:                []string{testMaterialKeySortGenerateDateDescending},
 			PageSize:            cryptoutilSharedMagic.DefaultPageSize,
 		}
 		filteredQuery := applyKeyFilters(query, filters)
@@ -268,7 +268,7 @@ func TestApplyGetElasticKeyKeysFilters(t *testing.T) {
 	t.Run("Filter by Sort ascending", func(t *testing.T) {
 		query := testOrmRepository.GormDB().Model(&MaterialKey{})
 		filters := &GetElasticKeyMaterialKeysFilters{
-			Sort:     []string{"material_key_generate_date ASC"},
+			Sort:     []string{testMaterialKeySortGenerateDateAscending},
 			PageSize: cryptoutilSharedMagic.DefaultPageSize,
 		}
 		filteredQuery := applyGetElasticKeyKeysFilters(query, filters)
@@ -284,7 +284,7 @@ func TestApplyGetElasticKeyKeysFilters(t *testing.T) {
 			ElasticKeyID:        []googleUuid.UUID{googleUuid.New()},
 			MinimumGenerateDate: timePtr(minDate),
 			MaximumGenerateDate: timePtr(maxDate),
-			Sort:                []string{"material_key_generate_date DESC"},
+			Sort:                []string{testMaterialKeySortGenerateDateDescending},
 			PageSize:            cryptoutilSharedMagic.DefaultPageSize,
 		}
 		filteredQuery := applyGetElasticKeyKeysFilters(query, filters)

@@ -5,6 +5,7 @@
 package config
 
 import (
+	"errors"
 	"fmt"
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
@@ -66,7 +67,7 @@ func (c *Config) Validate() error {
 // Validate validates token configuration.
 func (tc *TokenConfig) Validate() error {
 	if tc.AccessTokenLifetime <= 0 {
-		return fmt.Errorf("access token lifetime must be positive")
+		return errors.New(valueAccessTokenLifetimeMustBePositive)
 	}
 
 	if tc.RefreshTokenLifetime <= 0 {
@@ -108,11 +109,11 @@ func (sc *SecurityConfig) Validate() error {
 
 	if sc.RateLimitEnabled {
 		if sc.RateLimitRequests <= 0 {
-			return fmt.Errorf("rate limit requests must be positive")
+			return errors.New(valueRateLimitRequestsMustBePositive)
 		}
 
 		if sc.RateLimitWindow <= 0 {
-			return fmt.Errorf("rate limit window must be positive")
+			return errors.New(valueRateLimitWindowMustBePositive)
 		}
 	}
 

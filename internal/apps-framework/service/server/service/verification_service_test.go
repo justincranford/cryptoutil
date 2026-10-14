@@ -144,7 +144,7 @@ func TestVerificationService_ListPendingUsers(t *testing.T) {
 			TenantID:     tenant.ID,
 			Username:     "user" + googleUuid.NewString()[:cryptoutilSharedMagic.IMMinPasswordLength],
 			Email:        "user" + googleUuid.NewString()[:cryptoutilSharedMagic.IMMinPasswordLength] + "@example.com",
-			PasswordHash: "hash",
+			PasswordHash: testHash,
 			ExpiresAt:    time.Now().UTC().Add(72 * time.Hour),
 		}
 		require.NoError(t, db.Create(unverifiedUser).Error)
@@ -171,7 +171,7 @@ func TestVerificationService_ListPendingClients(t *testing.T) {
 			ID:               googleUuid.New(),
 			TenantID:         tenant.ID,
 			ClientID:         "client" + googleUuid.NewString()[:cryptoutilSharedMagic.IMMinPasswordLength],
-			ClientSecretHash: "secret",
+			ClientSecretHash: testHash,
 			ExpiresAt:        time.Now().UTC().Add(72 * time.Hour),
 		}
 		require.NoError(t, db.Create(unverifiedClient).Error)
@@ -198,7 +198,7 @@ func TestVerificationService_ApproveUser_Success(t *testing.T) {
 		TenantID:     tenant.ID,
 		Username:     "pendinguser" + googleUuid.NewString()[:cryptoutilSharedMagic.IMMinPasswordLength],
 		Email:        "pending" + googleUuid.NewString()[:cryptoutilSharedMagic.IMMinPasswordLength] + "@example.com",
-		PasswordHash: "hashedpassword",
+		PasswordHash: testHashedpassword,
 		ExpiresAt:    time.Now().UTC().Add(72 * time.Hour),
 	}
 	require.NoError(t, db.Create(unverifiedUser).Error)
@@ -240,7 +240,7 @@ func TestVerificationService_ApproveUser_ExpiredRegistration(t *testing.T) {
 		TenantID:     tenant.ID,
 		Username:     "expireduser" + googleUuid.NewString()[:cryptoutilSharedMagic.IMMinPasswordLength],
 		Email:        "expired" + googleUuid.NewString()[:cryptoutilSharedMagic.IMMinPasswordLength] + "@example.com",
-		PasswordHash: "hashedpassword",
+		PasswordHash: testHashedpassword,
 		ExpiresAt:    time.Now().UTC().Add(-1 * time.Hour), // Already expired.
 	}
 	require.NoError(t, db.Create(unverifiedUser).Error)
@@ -267,7 +267,7 @@ func TestVerificationService_ApproveUser_WrongTenant(t *testing.T) {
 		TenantID:     tenant1.ID,
 		Username:     "wrongtenantuser" + googleUuid.NewString()[:cryptoutilSharedMagic.IMMinPasswordLength],
 		Email:        "wrong" + googleUuid.NewString()[:cryptoutilSharedMagic.IMMinPasswordLength] + "@example.com",
-		PasswordHash: "hashedpassword",
+		PasswordHash: testHashedpassword,
 		ExpiresAt:    time.Now().UTC().Add(72 * time.Hour),
 	}
 	require.NoError(t, db.Create(unverifiedUser).Error)

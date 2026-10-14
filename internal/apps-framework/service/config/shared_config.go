@@ -5,6 +5,7 @@
 package config
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -47,7 +48,7 @@ func (sc *ServerConfig) Validate() error {
 	}
 
 	if sc.Port <= 0 || sc.Port > int(cryptoutilSharedMagic.MaxPortNumber) {
-		return fmt.Errorf("port must be between 1 and 65535")
+		return errors.New(valuePortMustBeBetween1And65535)
 	}
 
 	if sc.TLSEnabled {
@@ -179,7 +180,7 @@ func (oc *ObservabilityConfig) Validate() error {
 
 	validLogLevels := map[string]bool{
 		"debug":                           true,
-		"info":                            true,
+		valueInfo:                         true,
 		"warn":                            true,
 		cryptoutilSharedMagic.StringError: true,
 	}
@@ -188,7 +189,7 @@ func (oc *ObservabilityConfig) Validate() error {
 		return fmt.Errorf("log level must be 'debug', 'info', 'warn', or 'error'")
 	}
 
-	if oc.LogFormat != "json" && oc.LogFormat != "text" {
+	if oc.LogFormat != valueJson && oc.LogFormat != "text" {
 		return fmt.Errorf("log format must be 'json' or 'text'")
 	}
 

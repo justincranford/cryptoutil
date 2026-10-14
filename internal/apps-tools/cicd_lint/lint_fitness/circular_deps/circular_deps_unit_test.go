@@ -51,7 +51,7 @@ func TestCheckDependencies(t *testing.T) {
 			goListOutput: `{"ImportPath": "example.com/pkg/a", "Imports": ["example.com/pkg/b"]}
 {"ImportPath": "example.com/pkg/b", "Imports": ["example.com/pkg/c"]}
 {"ImportPath": "example.com/pkg/c", "Imports": ["example.com/pkg/a"]}`,
-			wantErr: "circular dependency",
+			wantErr: testCircularDependency,
 		},
 		{
 			name: "complex cycle via d",
@@ -59,12 +59,12 @@ func TestCheckDependencies(t *testing.T) {
 {"ImportPath": "example.com/pkg/b", "Imports": ["example.com/pkg/d"]}
 {"ImportPath": "example.com/pkg/c", "Imports": ["example.com/pkg/d"]}
 {"ImportPath": "example.com/pkg/d", "Imports": ["example.com/pkg/a"]}`,
-			wantErr: "circular dependency",
+			wantErr: testCircularDependency,
 		},
 		{
 			name:         "self reference",
 			goListOutput: `{"ImportPath": "example.com/pkg/a", "Imports": ["example.com/pkg/a"]}`,
-			wantErr:      "circular dependency",
+			wantErr:      testCircularDependency,
 		},
 		{
 			name: "malformed JSON",
@@ -100,8 +100,8 @@ func TestGetModulePath(t *testing.T) {
 		want     string
 	}{
 		{name: "empty packages", packages: map[string][]string{}, want: ""},
-		{name: "single package", packages: map[string][]string{"example.com/pkg/a": {}}, want: "example.com"},
-		{name: "multiple packages", packages: map[string][]string{"example.com/pkg/a": {}, "example.com/pkg/b": {}, "example.com/pkg/c": {}}, want: "example.com"},
+		{name: "single package", packages: map[string][]string{testExampleComPkgA: {}}, want: testExampleCom},
+		{name: "multiple packages", packages: map[string][]string{testExampleComPkgA: {}, "example.com/pkg/b": {}, "example.com/pkg/c": {}}, want: testExampleCom},
 		{name: "different prefixes", packages: map[string][]string{"github.com/user/repo/pkg/a": {}, "github.com/user/repo/pkg/b": {}}, want: "github.com"},
 	}
 
@@ -163,7 +163,7 @@ func TestSaveLoadCircularDepCache_RoundTrip(t *testing.T) {
 		LastCheck:       time.Now().UTC().Truncate(time.Second),
 		GoModModTime:    time.Now().UTC().Add(-1 * time.Hour).Truncate(time.Second),
 		HasCircularDeps: true,
-		CircularDeps:    []string{"pkg/a -> pkg/b -> pkg/a"},
+		CircularDeps:    []string{testPkgAPkgBPkgA},
 	}
 
 	err := SaveCircularDepCache(tmpFile, original)

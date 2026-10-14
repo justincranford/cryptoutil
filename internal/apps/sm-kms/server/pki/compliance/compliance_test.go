@@ -270,11 +270,11 @@ func TestChecker_RFC5280Requirements(t *testing.T) {
 	hasValidity := false
 
 	for _, req := range requirements {
-		if req.Section == testLiteral4122 {
+		if req.Section == cryptoutilSharedMagic.RFC5280SectionSerialNumber {
 			hasSerialNumber = true
 		}
 
-		if req.Section == testLiteral4125 {
+		if req.Section == cryptoutilSharedMagic.RFC5280SectionValidity {
 			hasValidity = true
 		}
 	}
@@ -302,7 +302,7 @@ func TestChecker_CACertificate(t *testing.T) {
 	hasBasicConstraints := false
 
 	for _, req := range requirements {
-		if req.ID == testLiteralBR7124BC {
+		if req.ID == cryptoutilSharedMagic.CABFBaselineIDBasicConstraintsExtension {
 			hasBasicConstraints = true
 
 			require.Equal(t, StatusCompliant, req.Status)

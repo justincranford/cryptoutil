@@ -24,24 +24,24 @@ func TestBrowserAndServiceRealms_DefaultCounts(t *testing.T) {
 
 	// Verify browser realms (session-based).
 	expectedBrowserRealms := []string{
-		"jwe-session-cookie",
-		"jws-session-cookie",
-		"opaque-session-cookie",
-		"basic-username-password",
-		"bearer-api-token",
-		"https-client-cert",
+		string(RealmTypeJWESessionCookie),
+		string(RealmTypeJWSSessionCookie),
+		string(RealmTypeOpaqueSessionCookie),
+		string(RealmTypeBasicUsernamePassword),
+		string(RealmTypeBearerAPIToken),
+		string(RealmTypeHTTPSClientCert),
 	}
 
 	require.Equal(t, expectedBrowserRealms, browserRealms, "Browser realms should match expected 6 non-federated methods")
 
 	// Verify service realms (token-based).
 	expectedServiceRealms := []string{
-		"jwe-session-token",
-		"jws-session-token",
-		"opaque-session-token",
-		"basic-client-id-secret",
-		"bearer-api-token",
-		"https-client-cert",
+		string(RealmTypeJWESessionToken),
+		string(RealmTypeJWSSessionToken),
+		string(RealmTypeOpaqueSessionToken),
+		string(RealmTypeBasicClientIDSecret),
+		string(RealmTypeBearerAPIToken),
+		string(RealmTypeHTTPSClientCert),
 	}
 
 	require.Equal(t, expectedServiceRealms, serviceRealms, "Service realms should match expected 6 non-federated methods")
@@ -76,12 +76,12 @@ func TestRealmService_CreateMultipleRealms_AllTypes(t *testing.T) {
 		realmType   string
 		description string
 	}{
-		{"jwe-session-cookie", "jwe-session-cookie", "JWE Session Cookie - Encrypted session tokens for browsers"},
-		{"jws-session-cookie", "jws-session-cookie", "JWS Session Cookie - Signed session tokens for browsers"},
-		{"opaque-session-cookie", "opaque-session-cookie", "Opaque Session Cookie - Database-backed session tokens"},
-		{"basic-username-password", "basic-username-password", "Basic (Username/Password) - HTTP Basic auth with user credentials"},
-		{"bearer-api-token", "bearer-api-token", "Bearer (API Token) - Bearer token authentication from browser"},
-		{"https-client-cert", "https-client-cert", "HTTPS Client Certificate - mTLS client certificate from browser"},
+		{string(RealmTypeJWESessionCookie), string(RealmTypeJWESessionCookie), "JWE Session Cookie - Encrypted session tokens for browsers"},
+		{string(RealmTypeJWSSessionCookie), string(RealmTypeJWSSessionCookie), "JWS Session Cookie - Signed session tokens for browsers"},
+		{string(RealmTypeOpaqueSessionCookie), string(RealmTypeOpaqueSessionCookie), "Opaque Session Cookie - Database-backed session tokens"},
+		{string(RealmTypeBasicUsernamePassword), string(RealmTypeBasicUsernamePassword), "Basic (Username/Password) - HTTP Basic auth with user credentials"},
+		{string(RealmTypeBearerAPIToken), string(RealmTypeBearerAPIToken), "Bearer (API Token) - Bearer token authentication from browser"},
+		{string(RealmTypeHTTPSClientCert), string(RealmTypeHTTPSClientCert), "HTTPS Client Certificate - mTLS client certificate from browser"},
 	}
 
 	// Create all 6 browser realms.
@@ -109,12 +109,12 @@ func TestRealmService_CreateMultipleRealms_AllTypes(t *testing.T) {
 		realmType   string
 		description string
 	}{
-		{"jwe-session-token", "jwe-session-token", "JWE Session Token - Encrypted session tokens for headless clients"},
-		{"jws-session-token", "jws-session-token", "JWS Session Token - Signed session tokens for headless clients"},
-		{"opaque-session-token", "opaque-session-token", "Opaque Session Token - Non-JWT session tokens"},
-		{"basic-client-id-secret", "basic-client-id-secret", "Basic (Client ID/Secret) - HTTP Basic with client credentials"},
-		{"bearer-api-token-service", "bearer-api-token", "Bearer (API Token) - Long-lived service credentials"},
-		{"https-client-cert-service", "https-client-cert", "HTTPS Client Certificate - mTLS for high-security service-to-service"},
+		{string(RealmTypeJWESessionToken), string(RealmTypeJWESessionToken), "JWE Session Token - Encrypted session tokens for headless clients"},
+		{string(RealmTypeJWSSessionToken), string(RealmTypeJWSSessionToken), "JWS Session Token - Signed session tokens for headless clients"},
+		{string(RealmTypeOpaqueSessionToken), string(RealmTypeOpaqueSessionToken), "Opaque Session Token - Non-JWT session tokens"},
+		{string(RealmTypeBasicClientIDSecret), string(RealmTypeBasicClientIDSecret), "Basic (Client ID/Secret) - HTTP Basic with client credentials"},
+		{"bearer-api-token-service", string(RealmTypeBearerAPIToken), "Bearer (API Token) - Long-lived service credentials"},
+		{"https-client-cert-service", string(RealmTypeHTTPSClientCert), "HTTPS Client Certificate - mTLS for high-security service-to-service"},
 	}
 
 	// Create all 6 service realms.
@@ -161,7 +161,7 @@ func TestRealmService_ActivateDeactivateAllTypes(t *testing.T) {
 	}
 
 	// Create realm.
-	realm, err := svc.CreateRealm(ctx, tenant.ID, "jwe-session-cookie", config)
+	realm, err := svc.CreateRealm(ctx, tenant.ID, string(RealmTypeJWESessionCookie), config)
 	require.NoError(t, err)
 	require.True(t, realm.Active, "Realm should be active after creation")
 

@@ -81,7 +81,7 @@ func TestChecker_RFC5280_CACertificate(t *testing.T) {
 	// CA cert with valid BasicConstraints (covers evaluateBasicConstraints5280 compliant path).
 	cert := &x509.Certificate{
 		SerialNumber:          new(big.Int).Lsh(big.NewInt(1), cryptoutilSharedMagic.TLSSelfSignedCertSerialNumberBits),
-		Subject:               pkix.Name{CommonName: testLiteralTestCA},
+		Subject:               pkix.Name{CommonName: cryptoutilSharedMagic.TEST_CA_CN},
 		NotBefore:             time.Now().UTC(),
 		NotAfter:              time.Now().UTC().Add(cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour),
 		IsCA:                  true,
@@ -115,7 +115,7 @@ func TestChecker_RFC5280_CACert_NonCompliant(t *testing.T) {
 	// CA cert WITHOUT valid BasicConstraints (covers evaluateBasicConstraints5280 non-compliant path).
 	cert := &x509.Certificate{
 		SerialNumber:          new(big.Int).Lsh(big.NewInt(1), cryptoutilSharedMagic.TLSSelfSignedCertSerialNumberBits),
-		Subject:               pkix.Name{CommonName: testLiteralTestCA},
+		Subject:               pkix.Name{CommonName: cryptoutilSharedMagic.TEST_CA_CN},
 		NotBefore:             time.Now().UTC(),
 		NotAfter:              time.Now().UTC().Add(cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour),
 		IsCA:                  true,
@@ -152,7 +152,7 @@ func TestChecker_RFC5280_NonCompliantCert(t *testing.T) {
 				NotBefore:    time.Now().UTC(),
 				NotAfter:     time.Now().UTC().Add(cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour),
 			},
-			section: testLiteral4122,
+			section: cryptoutilSharedMagic.RFC5280SectionSerialNumber,
 			status:  StatusNonCompliant,
 		},
 		{
@@ -162,7 +162,7 @@ func TestChecker_RFC5280_NonCompliantCert(t *testing.T) {
 				NotBefore:    time.Now().UTC().Add(cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour),
 				NotAfter:     time.Now().UTC(),
 			},
-			section: testLiteral4125,
+			section: cryptoutilSharedMagic.RFC5280SectionValidity,
 			status:  StatusNonCompliant,
 		},
 		{
@@ -262,7 +262,7 @@ func TestChecker_CABF_NonCompliantCert(t *testing.T) {
 				IsCA:                  true,
 				BasicConstraintsValid: false,
 			},
-			checkID: testLiteralBR7124BC,
+			checkID: cryptoutilSharedMagic.CABFBaselineIDBasicConstraintsExtension,
 			status:  StatusNonCompliant,
 		},
 		{

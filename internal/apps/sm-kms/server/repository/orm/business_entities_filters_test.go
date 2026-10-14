@@ -30,7 +30,7 @@ func TestGetElasticKeysFilters(t *testing.T) {
 		filters := GetElasticKeysFilters{
 			ElasticKeyID:      []googleUuid.UUID{ekID1, ekID2},
 			Name:              []string{"key-1", "key-2"},
-			Algorithm:         []string{"A256GCM/A256KW", "A192GCM/A192KW"},
+			Algorithm:         []string{cryptoutilSharedMagic.TestJwkJweAlgorithm, "A192GCM/A192KW"},
 			VersioningAllowed: &versioningAllowed,
 			ImportAllowed:     &importAllowed,
 			ExportAllowed:     &exportAllowed,
@@ -72,7 +72,7 @@ func TestGetElasticKeysFilters(t *testing.T) {
 
 	t.Run("Create filters with nil boolean pointers", func(t *testing.T) {
 		filters := GetElasticKeysFilters{
-			Name:              []string{"test-key"},
+			Name:              []string{testElasticKeyFilterFixtureName},
 			VersioningAllowed: nil,
 			ImportAllowed:     nil,
 			ExportAllowed:     nil,

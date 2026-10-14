@@ -7,6 +7,7 @@ package application
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 
 	"gorm.io/gorm"
@@ -71,9 +72,9 @@ func startCoreInternal(
 	gormOpenSQLiteFn func(dialector gorm.Dialector, config *gorm.Config) (*gorm.DB, error),
 ) (*Core, error) {
 	if ctx == nil {
-		return nil, fmt.Errorf("ctx cannot be nil")
+		return nil, errors.New(valueCtxCannotBeNil)
 	} else if settings == nil {
-		return nil, fmt.Errorf("settings cannot be nil")
+		return nil, errors.New(valueSettingsCannotBeNil)
 	}
 
 	// Start basic infrastructure.

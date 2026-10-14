@@ -28,7 +28,7 @@ func BenchmarkUUIDTokenIssuance(b *testing.B) {
 
 	for i := 0; i < b.N; i++ {
 		// Benchmark UUID token generation.
-		if err := uuidIssuer.ValidateToken(ctx, "test-token"); err == nil {
+		if err := uuidIssuer.ValidateToken(ctx, testTestToken); err == nil {
 			b.Fatal("expected validation error")
 		}
 	}
@@ -65,7 +65,7 @@ func BenchmarkJWTSigning(b *testing.B) {
 		b.Fatal(err)
 	}
 
-	if err := token.Set(joseJwt.AudienceKey, []string{"bench_audience"}); err != nil {
+	if err := token.Set(joseJwt.AudienceKey, []string{testBenchAudience}); err != nil {
 		b.Fatal(err)
 	}
 
@@ -117,7 +117,7 @@ func BenchmarkJWTValidation(b *testing.B) {
 		b.Fatal(err)
 	}
 
-	if err := token.Set(joseJwt.AudienceKey, []string{"bench_audience"}); err != nil {
+	if err := token.Set(joseJwt.AudienceKey, []string{testBenchAudience}); err != nil {
 		b.Fatal(err)
 	}
 

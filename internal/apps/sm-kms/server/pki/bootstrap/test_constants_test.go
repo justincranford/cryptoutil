@@ -8,7 +8,6 @@ const (
 	testLiteralExampleCorp       = "Example Corp"
 	testLiteralITSecurity        = "IT Security"
 	testLiteralKeyWriteErrorRoot = "Key Write Error Root"
-	testLiteralP256              = cryptoutilSharedMagic.P256
 	testLiteralRootCACertError   = "Root CA Cert Error"
 	testLiteralRootCAMkdirError  = "Root CA Mkdir Error"
 	testLiteralSanFrancisco      = "San Francisco"

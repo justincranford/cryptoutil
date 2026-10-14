@@ -148,42 +148,42 @@ func TestVerifySecretHKDFFixedHigh(t *testing.T) {
 		expectError    bool
 	}{
 		{
-			name:           "valid_hash_matches",
-			expectedOutput: "hkdf-sha256-fixed-high$ZGVyaXZlZGtleTE2Ynl0ZXNsb25nZGVyaXZlZGtleTE2",
+			name:           testValidHashMatches,
+			expectedOutput: testHkdfSha256FixedHighZgvyaXzlZgtleTe2Ynl0Zxnsb25nZgvyaXzlZgtleTe2,
 			input:          randomHighEntropyValue(t, cryptoutilSharedMagic.UUIDStringLength),
 			expectMatch:    false, // Won't match unless we use the exact secret that generated this hash.
 			expectError:    false,
 		},
 		{
-			name:           "empty_stored_hash",
+			name:           testEmptyStoredHash,
 			expectedOutput: "",
 			input:          randomHighEntropyValue(t, cryptoutilSharedMagic.UUIDStringLength),
 			expectMatch:    false,
 			expectError:    true,
 		},
 		{
-			name:           "empty_provided_secret",
-			expectedOutput: "hkdf-sha256-fixed-high$ZGVyaXZlZGtleTE2Ynl0ZXNsb25nZGVyaXZlZGtleTE2", // pragma: allowlist secret
+			name:           testEmptyProvidedSecret,
+			expectedOutput: testHkdfSha256FixedHighZgvyaXzlZgtleTe2Ynl0Zxnsb25nZgvyaXzlZgtleTe2, // pragma: allowlist secret
 			input:          "",
 			expectMatch:    false,
 			expectError:    true,
 		},
 		{
-			name:           "invalid_hash_format",
-			expectedOutput: "invalid-format",
+			name:           testInvalidHashFormat,
+			expectedOutput: testInvalidFormat,
 			input:          randomHighEntropyValue(t, cryptoutilSharedMagic.UUIDStringLength),
 			expectMatch:    false,
 			expectError:    true,
 		},
 		{
-			name:           "invalid_dk_encoding",
+			name:           testInvalidDkEncoding,
 			expectedOutput: "hkdf-sha256-fixed-high$!!!invalid-base64!!!",
 			input:          randomHighEntropyValue(t, cryptoutilSharedMagic.UUIDStringLength),
 			expectMatch:    false,
 			expectError:    true,
 		},
 		{
-			name:           "wrong_algorithm",
+			name:           testWrongAlgorithm,
 			expectedOutput: "hkdf-sha512-fixed-high$ZGVyaXZlZGtleTE2Ynl0ZXNsb25nZGVyaXZlZGtleTE2",
 			input:          randomHighEntropyValue(t, cryptoutilSharedMagic.UUIDStringLength),
 			expectMatch:    false,
@@ -258,31 +258,31 @@ func TestConstantTimeCompareBytesHigh(t *testing.T) {
 		expect bool
 	}{
 		{
-			name:   "equal_slices",
-			a:      []byte{1, 2, 3, 4},
-			b:      []byte{1, 2, 3, 4},
+			name:   testEqualSlices,
+			a:      []byte{1, 2, value3, 4},
+			b:      []byte{1, 2, value3, 4},
 			expect: true,
 		},
 		{
-			name:   "different_slices",
-			a:      []byte{1, 2, 3, 4},
-			b:      []byte{1, 2, 3, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries},
+			name:   testDifferentSlices,
+			a:      []byte{1, 2, value3, 4},
+			b:      []byte{1, 2, value3, testDifferentSliceLastByte},
 			expect: false,
 		},
 		{
-			name:   "different_lengths",
-			a:      []byte{1, 2, 3},
-			b:      []byte{1, 2, 3, 4},
+			name:   testDifferentLengths,
+			a:      []byte{1, 2, value3},
+			b:      []byte{1, 2, value3, 4},
 			expect: false,
 		},
 		{
-			name:   "empty_slices",
+			name:   testEmptySlices,
 			a:      []byte{},
 			b:      []byte{},
 			expect: true,
 		},
 		{
-			name:   "nil_vs_empty",
+			name:   testNilVsEmpty,
 			a:      nil,
 			b:      []byte{},
 			expect: true, // Both have length 0, so they compare equal.
@@ -308,24 +308,24 @@ func TestSplitHKDFFixedHighParts(t *testing.T) {
 		expect []string
 	}{
 		{
-			name:   "valid_two_parts",
+			name:   testValidTwoParts,
 			hash:   "hkdf-sha256-fixed-high$ZGVyaXZlZGtleQ==",
-			expect: []string{cryptoutilSharedMagic.HKDFFixedHighHashName, "ZGVyaXZlZGtleQ=="},
+			expect: []string{cryptoutilSharedMagic.HKDFFixedHighHashName, testZgvyaXzlZgtleQ},
 		},
 		{
-			name:   "single_part",
+			name:   testSinglePart,
 			hash:   cryptoutilSharedMagic.HKDFFixedHighHashName,
 			expect: []string{cryptoutilSharedMagic.HKDFFixedHighHashName},
 		},
 		{
-			name:   "empty_string",
+			name:   testEmptyString,
 			hash:   "",
 			expect: []string{},
 		},
 		{
-			name:   "multiple_delimiters",
-			hash:   "part1$part2$part3",
-			expect: []string{"part1", "part2", "part3"},
+			name:   testMultipleDelimiters,
+			hash:   testPart1Part2Part3,
+			expect: []string{testPart1, testPart2, testPart3},
 		},
 	}
 

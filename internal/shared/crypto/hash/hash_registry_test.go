@@ -40,7 +40,7 @@ func TestParameterSetRegistry_GetParameterSet(t *testing.T) {
 	}{
 		{name: "Version1", version: "1", expectError: false, expectedVersion: "1"},
 		{name: "Version2", version: "2", expectError: false, expectedVersion: "2"},
-		{name: "Version3", version: "3", expectError: false, expectedVersion: "3"},
+		{name: "Version3", version: value3Value4E074085, expectError: false, expectedVersion: value3Value4E074085},
 		{name: "InvalidVersion", version: "99", expectError: true, expectedVersion: ""},
 		{name: "EmptyVersion", version: "", expectError: true, expectedVersion: ""},
 	}
@@ -71,10 +71,10 @@ func TestParameterSetRegistry_ListVersions(t *testing.T) {
 	registry := NewParameterSetRegistry()
 	versions := registry.ListVersions()
 
-	require.Len(t, versions, 3, "should have exactly 3 registered versions")
+	require.Len(t, versions, value3, "should have exactly 3 registered versions")
 	require.Contains(t, versions, "1", "should contain version 1")
 	require.Contains(t, versions, "2", "should contain version 2")
-	require.Contains(t, versions, "3", "should contain version 3")
+	require.Contains(t, versions, value3Value4E074085, "should contain version 3")
 }
 
 // TestParameterSetRegistry_GetDefaultVersion tests retrieving the default version string.
@@ -100,7 +100,7 @@ func TestParameterSetRegistry_HashWithAllVersions(t *testing.T) {
 	}{
 		{name: "V1_600k_iterations", version: "1"},
 		{name: "V2_1M_iterations", version: "2"},
-		{name: "V3_2M_iterations", version: "3"},
+		{name: "V3_2M_iterations", version: value3Value4E074085},
 	}
 
 	for _, tt := range tests {
@@ -139,7 +139,7 @@ func TestParameterSetRegistry_CrossVersionVerification(t *testing.T) {
 	hashV2, err := cryptoutilSharedCryptoDigests.PBKDF2WithParams(secret, paramsV2)
 	require.NoError(t, err, "should hash with V2")
 
-	paramsV3, err := registry.GetParameterSet("3")
+	paramsV3, err := registry.GetParameterSet(value3Value4E074085)
 	require.NoError(t, err, "should get V3 params")
 	hashV3, err := cryptoutilSharedCryptoDigests.PBKDF2WithParams(secret, paramsV3)
 	require.NoError(t, err, "should hash with V3")
@@ -195,8 +195,8 @@ func TestParameterSetRegistry_ConcurrentAccess(t *testing.T) {
 				require.NotNil(t, params)
 			case 2:
 				versions := registry.ListVersions()
-				require.Len(t, versions, 3)
-			case 3:
+				require.Len(t, versions, value3)
+			case value3:
 				version := registry.GetDefaultVersion()
 				require.Equal(t, "1", version)
 			}
@@ -222,7 +222,7 @@ func TestGlobalRegistry(t *testing.T) {
 	require.Equal(t, "1", defaultParams.Version, "default version should be '1'")
 
 	versions := registry.ListVersions()
-	require.Len(t, versions, 3, "should have exactly 3 registered versions")
+	require.Len(t, versions, value3, "should have exactly 3 registered versions")
 }
 
 // TestGetDefaultParameterSet_MissingDefaultPanics tests that GetDefaultParameterSet panics

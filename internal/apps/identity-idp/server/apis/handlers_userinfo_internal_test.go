@@ -24,21 +24,21 @@ func TestAddScopeBasedClaims(t *testing.T) {
 
 	baseUser := &cryptoutilIdentityDomain.User{
 		ID:                userID,
-		Sub:               "testuser",
-		Name:              "Test User",
-		GivenName:         "Test",
-		FamilyName:        "User",
+		Sub:               testTestuser,
+		Name:              testTestUser,
+		GivenName:         testTest,
+		FamilyName:        testUserValueB512D97E,
 		MiddleName:        "Middle",
 		Nickname:          "tester",
-		PreferredUsername: "testuser",
+		PreferredUsername: testTestuser,
 		Profile:           "https://example.com/profile",
 		Picture:           "https://example.com/picture.png",
-		Website:           "https://example.com",
+		Website:           testHTTPSExampleCom,
 		Gender:            "other",
 		Birthdate:         "1990-01-01",
-		Zoneinfo:          "America/New_York",
-		Locale:            "en-US",
-		Email:             "test@example.com",
+		Zoneinfo:          testAmericaNewYork,
+		Locale:            testEnUs,
+		Email:             testTestExampleCom,
 		EmailVerified:     true,
 		PhoneNumber:       "+1234567890",
 		PhoneVerified:     true,
@@ -60,31 +60,31 @@ func TestAddScopeBasedClaims(t *testing.T) {
 		missingClaims  []string
 	}{
 		{
-			name:           "profile scope",
+			name:           testProfileScope,
 			scopes:         []string{cryptoutilSharedMagic.ClaimProfile},
 			expectedClaims: []string{cryptoutilSharedMagic.ClaimName, cryptoutilSharedMagic.ClaimGivenName, cryptoutilSharedMagic.ClaimFamilyName, cryptoutilSharedMagic.ClaimMiddleName, cryptoutilSharedMagic.ClaimNickname, cryptoutilSharedMagic.ClaimPreferredUsername, cryptoutilSharedMagic.ClaimProfile, cryptoutilSharedMagic.ClaimPicture, cryptoutilSharedMagic.ClaimWebsite, cryptoutilSharedMagic.ClaimGender, cryptoutilSharedMagic.ClaimBirthdate, cryptoutilSharedMagic.ClaimZoneinfo, cryptoutilSharedMagic.ClaimLocale, cryptoutilSharedMagic.ClaimUpdatedAt},
 			missingClaims:  []string{cryptoutilSharedMagic.ClaimEmail, cryptoutilSharedMagic.ClaimEmailVerified, cryptoutilSharedMagic.ClaimAddress, cryptoutilSharedMagic.ClaimPhoneNumber, cryptoutilSharedMagic.ClaimPhoneVerified},
 		},
 		{
-			name:           "email scope",
+			name:           testEmailScope,
 			scopes:         []string{cryptoutilSharedMagic.ClaimEmail},
 			expectedClaims: []string{cryptoutilSharedMagic.ClaimEmail, cryptoutilSharedMagic.ClaimEmailVerified},
 			missingClaims:  []string{cryptoutilSharedMagic.ClaimName, cryptoutilSharedMagic.ClaimAddress, cryptoutilSharedMagic.ClaimPhoneNumber},
 		},
 		{
-			name:           "phone scope",
+			name:           testPhoneScope,
 			scopes:         []string{cryptoutilSharedMagic.ScopePhone},
 			expectedClaims: []string{cryptoutilSharedMagic.ClaimPhoneNumber, cryptoutilSharedMagic.ClaimPhoneVerified},
 			missingClaims:  []string{cryptoutilSharedMagic.ClaimName, cryptoutilSharedMagic.ClaimEmail, cryptoutilSharedMagic.ClaimAddress},
 		},
 		{
-			name:           "address scope",
+			name:           testAddressScope,
 			scopes:         []string{cryptoutilSharedMagic.ClaimAddress},
 			expectedClaims: []string{cryptoutilSharedMagic.ClaimAddress},
 			missingClaims:  []string{cryptoutilSharedMagic.ClaimName, cryptoutilSharedMagic.ClaimEmail, cryptoutilSharedMagic.ClaimPhoneNumber},
 		},
 		{
-			name:           "multiple scopes",
+			name:           testMultipleScopes,
 			scopes:         []string{cryptoutilSharedMagic.ClaimProfile, cryptoutilSharedMagic.ClaimEmail},
 			expectedClaims: []string{cryptoutilSharedMagic.ClaimName, cryptoutilSharedMagic.ClaimEmail, cryptoutilSharedMagic.ClaimEmailVerified},
 			missingClaims:  []string{cryptoutilSharedMagic.ClaimAddress, cryptoutilSharedMagic.ClaimPhoneNumber},
@@ -132,7 +132,7 @@ func TestAddScopeBasedClaimsNilAddress(t *testing.T) {
 
 	userWithNoAddress := &cryptoutilIdentityDomain.User{
 		ID:        googleUuid.New(),
-		Sub:       "testuser",
+		Sub:       testTestuser,
 		Address:   nil,
 		UpdatedAt: time.Now().UTC(),
 	}
@@ -150,7 +150,7 @@ func TestAddScopeBasedClaimsProfileValues(t *testing.T) {
 	now := time.Now().UTC()
 	user := &cryptoutilIdentityDomain.User{
 		ID:                googleUuid.New(),
-		Sub:               "testuser",
+		Sub:               testTestuser,
 		Name:              "John Doe",
 		GivenName:         "John",
 		FamilyName:        "Doe",
@@ -191,7 +191,7 @@ func TestAddScopeBasedClaimsAddressValues(t *testing.T) {
 
 	user := &cryptoutilIdentityDomain.User{
 		ID:  googleUuid.New(),
-		Sub: "testuser",
+		Sub: testTestuser,
 		Address: &cryptoutilIdentityDomain.Address{
 			Formatted:     "456 Oak Ave, Suite 100, Metro City, MC 67890, Canada",
 			StreetAddress: "456 Oak Ave, Suite 100",

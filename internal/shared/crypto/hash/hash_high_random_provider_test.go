@@ -23,10 +23,10 @@ func TestHashHighEntropyNonDeterministic(t *testing.T) {
 		expectError bool
 	}{
 		{name: "valid_high_entropy_secret", secret: "api-key-1234567890abcdefghijklmnopqrstuvwxyz", expectError: false},
-		{name: "empty_secret", secret: "", expectError: true},
-		{name: "long_secret", secret: strings.Repeat("x", cryptoutilSharedMagic.DefaultLogsBatchSize), expectError: false},
-		{name: "unicode_secret", secret: "秘密🔐密钥", expectError: false},
-		{name: "special_characters", secret: "!@#$%^&*()_+-={}[]|\\:;\"'<>,.?/", expectError: false},
+		{name: testEmptySecret, secret: "", expectError: true},
+		{name: testLongSecret, secret: strings.Repeat("x", cryptoutilSharedMagic.DefaultLogsBatchSize), expectError: false},
+		{name: testUnicodeSecret, secret: test秘密密钥, expectError: false},
+		{name: testSpecialCharacters, secret: "!@#$%^&*()_+-={}[]|\\:;\"'<>,.?/", expectError: false},
 	}
 
 	for _, tt := range tests {
@@ -61,10 +61,10 @@ func TestHashSecretHKDFRandom(t *testing.T) {
 		secret      string
 		expectError bool
 	}{
-		{name: "valid_secret", secret: "high-entropy-secret-1234567890", expectError: false},
-		{name: "empty_secret", secret: "", expectError: true},
-		{name: "long_secret", secret: strings.Repeat("a", cryptoutilSharedMagic.MaxUnsealSharedSecrets), expectError: false},
-		{name: "unicode_secret", secret: "日本語パスワード", expectError: false},
+		{name: testValidSecret, secret: "high-entropy-secret-1234567890", expectError: false},
+		{name: testEmptySecret, secret: "", expectError: true},
+		{name: testLongSecret, secret: strings.Repeat("a", cryptoutilSharedMagic.MaxUnsealSharedSecrets), expectError: false},
+		{name: testUnicodeSecret, secret: "日本語パスワード", expectError: false},
 	}
 
 	for _, tt := range tests {
@@ -81,7 +81,7 @@ func TestHashSecretHKDFRandom(t *testing.T) {
 				require.NotEmpty(t, hash, "hash should not be empty")
 
 				// Parse format: hkdf-sha256$salt$dk.
-				const expectedParts = 3
+				const expectedParts = value3
 
 				parts := strings.Split(hash, "$")
 				require.Len(t, parts, expectedParts, "hash should have exactly %d parts", expectedParts)
@@ -127,14 +127,14 @@ func TestVerifySecretHKDFRandom(t *testing.T) {
 		expectError   bool
 		expectedValid bool
 	}{
-		{name: "valid_hash_matches", stored: hash, provided: secret, expectError: false, expectedValid: true},
+		{name: testValidHashMatches, stored: hash, provided: secret, expectError: false, expectedValid: true},
 		{name: "valid_hash_wrong_password", stored: hash, provided: "wrong-secret", expectError: false, expectedValid: false},
-		{name: "empty_stored_hash", stored: "", provided: secret, expectError: true, expectedValid: false},
-		{name: "empty_provided_secret", stored: hash, provided: "", expectError: true, expectedValid: false},
-		{name: "invalid_hash_format", stored: "not-a-valid-hash", expectError: true, expectedValid: false},
+		{name: testEmptyStoredHash, stored: "", provided: secret, expectError: true, expectedValid: false},
+		{name: testEmptyProvidedSecret, stored: hash, provided: "", expectError: true, expectedValid: false},
+		{name: testInvalidHashFormat, stored: "not-a-valid-hash", expectError: true, expectedValid: false},
 		{name: "invalid_salt_encoding", stored: "hkdf-sha256$invalid!!!$abc123", expectError: true, expectedValid: false},
-		{name: "invalid_dk_encoding", stored: "hkdf-sha256$abc123$invalid!!!", expectError: true, expectedValid: false},
-		{name: "wrong_algorithm", stored: "unknown-algo$abc123$def456", expectError: true, expectedValid: false},
+		{name: testInvalidDkEncoding, stored: "hkdf-sha256$abc123$invalid!!!", expectError: true, expectedValid: false},
+		{name: testWrongAlgorithm, stored: "unknown-algo$abc123$def456", expectError: true, expectedValid: false},
 	}
 
 	for _, tt := range tests {

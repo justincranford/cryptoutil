@@ -24,32 +24,32 @@ func TestParseIPAddresses(t *testing.T) {
 	}{
 		{
 			name:      "Valid_IPv4_addresses",
-			input:     []string{cryptoutilSharedMagic.IPv4Loopback, "192.168.1.1", "10.0.0.1"},
-			wantLen:   3,
+			input:     []string{cryptoutilSharedMagic.IPv4Loopback, test19216811, test10001},
+			wantLen:   test3,
 			wantFirst: cryptoutilSharedMagic.IPv4Loopback,
 			wantErr:   false,
 		},
 		{
 			name:      "Valid_IPv6_addresses",
-			input:     []string{cryptoutilSharedMagic.IPv6Loopback, "2001:db8::1", "fe80::1"},
-			wantLen:   3,
+			input:     []string{cryptoutilSharedMagic.IPv6Loopback, test2001Db81, testFe801},
+			wantLen:   test3,
 			wantFirst: cryptoutilSharedMagic.IPv6Loopback,
 			wantErr:   false,
 		},
 		{
 			name:      "Mixed_IPv4_and_IPv6",
-			input:     []string{cryptoutilSharedMagic.IPv4Loopback, cryptoutilSharedMagic.IPv6Loopback, "192.168.1.1"},
-			wantLen:   3,
+			input:     []string{cryptoutilSharedMagic.IPv4Loopback, cryptoutilSharedMagic.IPv6Loopback, test19216811},
+			wantLen:   test3,
 			wantFirst: cryptoutilSharedMagic.IPv4Loopback,
 			wantErr:   false,
 		},
 		{
 			name:    "Invalid_IP_address",
-			input:   []string{cryptoutilSharedMagic.IPv4Loopback, "invalid-ip", "192.168.1.1"},
+			input:   []string{cryptoutilSharedMagic.IPv4Loopback, "invalid-ip", test19216811},
 			wantErr: true,
 		},
 		{
-			name:      "Empty_slice",
+			name:      testEmptySlice,
 			input:     []string{},
 			wantLen:   0,
 			wantFirst: "",
@@ -67,9 +67,9 @@ func TestParseIPAddresses(t *testing.T) {
 		},
 		{
 			name:      "IPv4_mapped_IPv6",
-			input:     []string{"::ffff:192.168.1.1"},
+			input:     []string{testFfff19216811},
 			wantLen:   1,
-			wantFirst: "192.168.1.1", // net.ParseIP normalizes IPv4-mapped IPv6 to IPv4
+			wantFirst: test19216811, // net.ParseIP normalizes IPv4-mapped IPv6 to IPv4
 			wantErr:   false,
 		},
 	}
@@ -105,26 +105,26 @@ func TestNormalizeIPv4Addresses(t *testing.T) {
 	}{
 		{
 			name:     "IPv4_addresses_unchanged",
-			input:    []string{cryptoutilSharedMagic.IPv4Loopback, "192.168.1.1", "10.0.0.1"},
-			expected: []string{cryptoutilSharedMagic.IPv4Loopback, "192.168.1.1", "10.0.0.1"},
+			input:    []string{cryptoutilSharedMagic.IPv4Loopback, test19216811, test10001},
+			expected: []string{cryptoutilSharedMagic.IPv4Loopback, test19216811, test10001},
 		},
 		{
 			name:     "IPv6_addresses_unchanged",
-			input:    []string{cryptoutilSharedMagic.IPv6Loopback, "2001:db8::1", "fe80::1"},
-			expected: []string{cryptoutilSharedMagic.IPv6Loopback, "2001:db8::1", "fe80::1"},
+			input:    []string{cryptoutilSharedMagic.IPv6Loopback, test2001Db81, testFe801},
+			expected: []string{cryptoutilSharedMagic.IPv6Loopback, test2001Db81, testFe801},
 		},
 		{
 			name:     "IPv4_mapped_IPv6_to_IPv4",
-			input:    []string{cryptoutilSharedMagic.IPv4MappedIPv6Loopback, "::ffff:192.168.1.1"},
-			expected: []string{cryptoutilSharedMagic.IPv4Loopback, "192.168.1.1"}, // Converted to IPv4
+			input:    []string{cryptoutilSharedMagic.IPv4MappedIPv6Loopback, testFfff19216811},
+			expected: []string{cryptoutilSharedMagic.IPv4Loopback, test19216811}, // Converted to IPv4
 		},
 		{
 			name:     "Mixed_addresses",
-			input:    []string{cryptoutilSharedMagic.IPv4Loopback, cryptoutilSharedMagic.IPv6Loopback, "::ffff:192.168.1.1"},
-			expected: []string{cryptoutilSharedMagic.IPv4Loopback, cryptoutilSharedMagic.IPv6Loopback, "192.168.1.1"}, // Last one converted
+			input:    []string{cryptoutilSharedMagic.IPv4Loopback, cryptoutilSharedMagic.IPv6Loopback, testFfff19216811},
+			expected: []string{cryptoutilSharedMagic.IPv4Loopback, cryptoutilSharedMagic.IPv6Loopback, test19216811}, // Last one converted
 		},
 		{
-			name:     "Empty_slice",
+			name:     testEmptySlice,
 			input:    []string{},
 			expected: []string{},
 		},
@@ -141,7 +141,7 @@ func TestNormalizeIPv4Addresses(t *testing.T) {
 		{
 			name:     "Single_IPv4_mapped_IPv6",
 			input:    []string{"::ffff:10.0.0.1"},
-			expected: []string{"10.0.0.1"},
+			expected: []string{test10001},
 		},
 	}
 

@@ -28,7 +28,7 @@ func TestExtractSourceChunks_HappyPath(t *testing.T) {
 	result, err := ExtractSourceChunks(rootDir, readFile)
 
 	require.NoError(t, err)
-	require.Contains(t, result, "rfc-2119-keywords")
+	require.Contains(t, result, testRfc2119Keywords)
 	require.Contains(t, result, "emphasis-keywords")
 }
 
@@ -161,7 +161,7 @@ func TestExtractSourceChunks_DirectoryEntrySkipped(t *testing.T) {
 	result, err := ExtractSourceChunks(rootDir, rootedReadFile(rootDir))
 
 	require.NoError(t, err)
-	require.Contains(t, result, "rfc-2119-keywords")
+	require.Contains(t, result, testRfc2119Keywords)
 }
 
 // --- FormatCoverageValidationResults ---
@@ -176,31 +176,31 @@ func TestFormatCoverageValidationResults(t *testing.T) {
 		wantAbsent  []string
 	}{
 		{
-			name:        "clean result",
+			name:        testCleanResult,
 			result:      &CoverageResult{ManifestChunks: 40, ArchitectureChunks: 40},
-			wantContain: []string{"Manifest chunks:      40", "Architecture chunks:  40", "All required @to-appendix chunks are covered"},
-			wantAbsent:  []string{"ORPHANED CHUNKS", "MISSING @from-eng-handbook BLOCKS"},
+			wantContain: []string{"Manifest chunks:      40", "Architecture chunks:  40", testAllRequiredToAppendixChunksAreCovered},
+			wantAbsent:  []string{testOrphanedChunks, testMissingFromEngHandbookBlocks},
 		},
 		{
 			name: "with violations",
 			result: &CoverageResult{
-				Violations:     []CoverageViolation{{ChunkID: "my-chunk", File: "instructions/a.md", Description: `@from-eng-handbook block for chunk "my-chunk" not found in instructions/a.md`}},
+				Violations:     []CoverageViolation{{ChunkID: testMyChunk, File: testInstructionsAMd, Description: `@from-eng-handbook block for chunk "my-chunk" not found in instructions/a.md`}},
 				ManifestChunks: 1, ArchitectureChunks: 1,
 			},
-			wantContain: []string{"MISSING @from-eng-handbook BLOCKS (1)", "my-chunk", "instructions/a.md", "Coverage validation FAILED"},
+			wantContain: []string{testMissingFromEngHandbookBlocks1, testMyChunk, testInstructionsAMd, testCoverageValidationFailed},
 		},
 		{
 			name:        "with orphans",
-			result:      &CoverageResult{OrphanedChunks: []string{"orphan-chunk"}, ManifestChunks: 0, ArchitectureChunks: 1},
-			wantContain: []string{"ORPHANED CHUNKS (1)", "orphan-chunk", "Coverage validation FAILED"},
+			result:      &CoverageResult{OrphanedChunks: []string{testOrphanChunk}, ManifestChunks: 0, ArchitectureChunks: 1},
+			wantContain: []string{testOrphanedChunks1, testOrphanChunk, testCoverageValidationFailed},
 		},
 		{
 			name: "with both",
 			result: &CoverageResult{
-				Violations:     []CoverageViolation{{ChunkID: "missing-chunk", File: "a.md"}},
-				OrphanedChunks: []string{"orphan-chunk"}, ManifestChunks: 1, ArchitectureChunks: 2,
+				Violations:     []CoverageViolation{{ChunkID: "missing-chunk", File: testFileA}},
+				OrphanedChunks: []string{testOrphanChunk}, ManifestChunks: 1, ArchitectureChunks: 2,
 			},
-			wantContain: []string{"ORPHANED CHUNKS (1)", "MISSING @from-eng-handbook BLOCKS (1)", "Coverage validation FAILED"},
+			wantContain: []string{testOrphanedChunks1, testMissingFromEngHandbookBlocks1, testCoverageValidationFailed},
 		},
 	}
 
@@ -243,7 +243,7 @@ func TestValidateCoverageCommand_CleanProject(t *testing.T) {
 		minimalManifestYAML(),
 		minimalArchitectureContent(),
 		map[string]string{
-			"01-01.terminology.instructions.md": sourceInstructionContent(),
+			test0101TerminologyInstructionsMd: sourceInstructionContent(),
 		},
 	)
 
@@ -254,7 +254,7 @@ func TestValidateCoverageCommand_CleanProject(t *testing.T) {
 	})
 
 	require.Equal(t, 0, code)
-	require.Contains(t, stdout.String(), "All required @to-appendix chunks are covered")
+	require.Contains(t, stdout.String(), testAllRequiredToAppendixChunksAreCovered)
 }
 
 // --- validateCoverageWithRoot ---
@@ -275,16 +275,16 @@ extra content
 		wantStderr string
 	}{
 		{
-			name: "clean result",
+			name: testCleanResult,
 			setup: func(t *testing.T) string {
 				t.Helper()
 				rootDir, _ := buildValidateRoot(t, minimalManifestYAML(), minimalArchitectureContent(),
-					map[string]string{"01-01.terminology.instructions.md": sourceInstructionContent()})
+					map[string]string{test0101TerminologyInstructionsMd: sourceInstructionContent()})
 
 				return rootDir
 			},
 			wantCode:   0,
-			wantStdout: "All required @to-appendix chunks are covered",
+			wantStdout: testAllRequiredToAppendixChunksAreCovered,
 		},
 		{
 			name: "manifest error",
@@ -301,24 +301,24 @@ extra content
 			setup: func(t *testing.T) string {
 				t.Helper()
 				rootDir, _ := buildValidateRoot(t, minimalManifestYAML(), minimalArchitectureContent(),
-					map[string]string{"01-01.terminology.instructions.md": rfcOnlySourceContent()})
+					map[string]string{test0101TerminologyInstructionsMd: rfcOnlySourceContent()})
 
 				return rootDir
 			},
 			wantCode:   1,
-			wantStdout: "MISSING @from-eng-handbook BLOCKS",
+			wantStdout: testMissingFromEngHandbookBlocks,
 		},
 		{
 			name: "orphans",
 			setup: func(t *testing.T) string {
 				t.Helper()
 				rootDir, _ := buildValidateRoot(t, minimalManifestYAML(), archWithExtra,
-					map[string]string{"01-01.terminology.instructions.md": sourceInstructionContent()})
+					map[string]string{test0101TerminologyInstructionsMd: sourceInstructionContent()})
 
 				return rootDir
 			},
 			wantCode:   1,
-			wantStdout: "ORPHANED CHUNKS",
+			wantStdout: testOrphanedChunks,
 		},
 	}
 

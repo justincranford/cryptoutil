@@ -20,7 +20,7 @@ var impossiblePolicy = PasswordPolicy{
 	MinLength: 4,
 	MaxLength: 4,
 	CharSets: []CharSetConfig{
-		{Name: "letters", Characters: []rune("abcd"), Min: 0, Max: 0},
+		{Name: testLetters, Characters: []rune("abcd"), Min: 0, Max: 0},
 	},
 }
 
@@ -30,7 +30,7 @@ var noStartEndPolicy = PasswordPolicy{
 	MinLength: 4,
 	MaxLength: 4,
 	CharSets: []CharSetConfig{
-		{Name: "letters", Characters: []rune("abcdefghijklmnopqrstuvwxyz"), Min: 4, Max: MaxInt},
+		{Name: testLetters, Characters: []rune("abcdefghijklmnopqrstuvwxyz"), Min: 4, Max: MaxInt},
 	},
 }
 
@@ -78,7 +78,7 @@ func TestGenerate_RandomLengthError(t *testing.T) {
 		Name:      "var-length",
 		MinLength: cryptoutilSharedMagic.IMMinPasswordLength,
 		MaxLength: cryptoutilSharedMagic.HashPrefixLength,
-		CharSets:  []CharSetConfig{{Name: "letters", Characters: []rune("abcdefgh"), Min: cryptoutilSharedMagic.IMMinPasswordLength, Max: MaxInt}},
+		CharSets:  []CharSetConfig{{Name: testLetters, Characters: []rune("abcdefgh"), Min: cryptoutilSharedMagic.IMMinPasswordLength, Max: MaxInt}},
 	}
 	gen, err := NewPasswordGenerator(pol)
 	require.NoError(t, err)
@@ -101,7 +101,7 @@ func TestGenerateCandidate_StartCharIndexError(t *testing.T) {
 		MinLength:       4,
 		MaxLength:       4,
 		StartCharacters: []rune("ABCD"),
-		CharSets:        []CharSetConfig{{Name: "letters", Characters: []rune("abcd"), Min: 4, Max: MaxInt}},
+		CharSets:        []CharSetConfig{{Name: testLetters, Characters: []rune("abcd"), Min: 4, Max: MaxInt}},
 	}
 	gen, err := NewPasswordGenerator(pol)
 	require.NoError(t, err)
@@ -148,7 +148,7 @@ func TestGenerateCandidate_EndCharIndexError(t *testing.T) {
 		MinLength:     4,
 		MaxLength:     4,
 		EndCharacters: []rune("XYZ"),
-		CharSets:      []CharSetConfig{{Name: "letters", Characters: []rune("abcd"), Min: 4, Max: MaxInt}},
+		CharSets:      []CharSetConfig{{Name: testLetters, Characters: []rune("abcd"), Min: 4, Max: MaxInt}},
 	}
 	gen, err := NewPasswordGenerator(pol)
 	require.NoError(t, err)

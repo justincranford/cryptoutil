@@ -265,14 +265,14 @@ func FilterWorkflowFiles(filesByExtension map[string][]string) []string {
 	var workflowFiles []string
 
 	// Check yml files.
-	for _, f := range filesByExtension["yml"] {
+	for _, f := range filesByExtension[valueYml] {
 		if IsWorkflowFile(f) {
 			workflowFiles = append(workflowFiles, f)
 		}
 	}
 
 	// Check yaml files.
-	for _, f := range filesByExtension["yaml"] {
+	for _, f := range filesByExtension[valueYAML] {
 		if IsWorkflowFile(f) {
 			workflowFiles = append(workflowFiles, f)
 		}

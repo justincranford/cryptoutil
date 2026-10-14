@@ -71,7 +71,7 @@ func TestLoadCertificatePEM_ReadKeyError(t *testing.T) {
 	chain, err := CreateCAChain(DefaultCAChainOptions("test.local"))
 	require.NoError(t, err)
 
-	subject, err := chain.CreateEndEntity(ServerEndEntityOptions("server.test.local", []string{"server.test.local", cryptoutilSharedMagic.DefaultOTLPHostnameDefault}, []net.IP{net.ParseIP(cryptoutilSharedMagic.IPv4Loopback)}))
+	subject, err := chain.CreateEndEntity(ServerEndEntityOptions(testServerTestLocal, []string{testServerTestLocal, cryptoutilSharedMagic.DefaultOTLPHostnameDefault}, []net.IP{net.ParseIP(cryptoutilSharedMagic.IPv4Loopback)}))
 	require.NoError(t, err)
 
 	opts := DefaultStorageOptions(t.TempDir())
@@ -91,7 +91,7 @@ func TestLoadCertificatePEM_DecodeKeyError(t *testing.T) {
 	chain, err := CreateCAChain(DefaultCAChainOptions("test.local"))
 	require.NoError(t, err)
 
-	subject, err := chain.CreateEndEntity(ServerEndEntityOptions("server.test.local", []string{"server.test.local", cryptoutilSharedMagic.DefaultOTLPHostnameDefault}, []net.IP{net.ParseIP(cryptoutilSharedMagic.IPv4Loopback)}))
+	subject, err := chain.CreateEndEntity(ServerEndEntityOptions(testServerTestLocal, []string{testServerTestLocal, cryptoutilSharedMagic.DefaultOTLPHostnameDefault}, []net.IP{net.ParseIP(cryptoutilSharedMagic.IPv4Loopback)}))
 	require.NoError(t, err)
 
 	opts := DefaultStorageOptions(t.TempDir())
@@ -115,7 +115,7 @@ func TestLoadCertificatePEM_ParseKeyError(t *testing.T) {
 	chain, err := CreateCAChain(DefaultCAChainOptions("test.local"))
 	require.NoError(t, err)
 
-	subject, err := chain.CreateEndEntity(ServerEndEntityOptions("server.test.local", []string{"server.test.local", cryptoutilSharedMagic.DefaultOTLPHostnameDefault}, []net.IP{net.ParseIP(cryptoutilSharedMagic.IPv4Loopback)}))
+	subject, err := chain.CreateEndEntity(ServerEndEntityOptions(testServerTestLocal, []string{testServerTestLocal, cryptoutilSharedMagic.DefaultOTLPHostnameDefault}, []net.IP{net.ParseIP(cryptoutilSharedMagic.IPv4Loopback)}))
 	require.NoError(t, err)
 
 	opts := DefaultStorageOptions(t.TempDir())

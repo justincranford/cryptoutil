@@ -45,9 +45,9 @@ func TestRegisterRoutes_RouteRegistration(t *testing.T) {
 			TLSEnabled:  true,
 		},
 		Sessions: &cryptoutilIdentityConfig.SessionConfig{
-			CookieName:      "session_id",
+			CookieName:      testSessionID,
 			CookieHTTPOnly:  true,
-			CookieSameSite:  "Lax",
+			CookieSameSite:  testLax,
 			SessionLifetime: 1 * time.Hour,
 		},
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{
@@ -82,7 +82,7 @@ func TestRegisterRoutes_RouteRegistration(t *testing.T) {
 		{
 			name:           "GET /oidc/v1/login missing request_id",
 			method:         http.MethodGet,
-			path:           "/oidc/v1/login",
+			path:           testOIDCV1Login,
 			expectedStatus: http.StatusBadRequest,
 		},
 		{

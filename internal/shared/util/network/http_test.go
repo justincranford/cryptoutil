@@ -185,9 +185,9 @@ func TestHealthEndpoints_HappyPaths(t *testing.T) {
 		wantStatus int
 		wantBody   []byte
 	}{
-		{name: "livez", fn: HTTPGetLivez, wantStatus: http.StatusOK, wantBody: []byte("OK")},
-		{name: "readyz", fn: HTTPGetReadyz, wantStatus: http.StatusOK, wantBody: []byte("OK")},
-		{name: "shutdown", fn: HTTPPostShutdown, wantStatus: http.StatusOK, wantBody: []byte("Shutting down")},
+		{name: testLivez, fn: HTTPGetLivez, wantStatus: http.StatusOK, wantBody: []byte("OK")},
+		{name: testReadyz, fn: HTTPGetReadyz, wantStatus: http.StatusOK, wantBody: []byte("OK")},
+		{name: testShutdown, fn: HTTPPostShutdown, wantStatus: http.StatusOK, wantBody: []byte("Shutting down")},
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
@@ -212,9 +212,9 @@ func TestHealthEndpoints_ErrorPaths(t *testing.T) {
 		fn           healthEndpointFn
 		wantContains string
 	}{
-		{name: "livez", fn: HTTPGetLivez, wantContains: "failed to get"},
-		{name: "readyz", fn: HTTPGetReadyz, wantContains: "failed to get"},
-		{name: "shutdown", fn: HTTPPostShutdown, wantContains: "failed to post"},
+		{name: testLivez, fn: HTTPGetLivez, wantContains: testFailedToGet},
+		{name: testReadyz, fn: HTTPGetReadyz, wantContains: testFailedToGet},
+		{name: testShutdown, fn: HTTPPostShutdown, wantContains: "failed to post"},
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {

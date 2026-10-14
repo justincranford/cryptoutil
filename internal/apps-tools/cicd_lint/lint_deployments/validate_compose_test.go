@@ -40,19 +40,19 @@ secrets:
 			wantValid: true,
 		},
 		{
-			name:       "invalid YAML",
+			name:       testInvalidYAML,
 			content:    "services:\n  myapp:\n    image: [invalid",
 			wantValid:  false,
-			wantErrors: []string{"YAML parse error"},
+			wantErrors: []string{testYAMLParseError},
 		},
 		{
-			name:       "no services defined",
+			name:       testNoServicesDefined,
 			content:    "version: '3'\n",
 			wantValid:  false,
-			wantErrors: []string{"no services defined"},
+			wantErrors: []string{testNoServicesDefined},
 		},
 		{
-			name: "port conflict",
+			name: testPortConflict,
 			content: `services:
   app1:
     image: app1:latest
@@ -68,16 +68,16 @@ secrets:
       test: ["CMD", "true"]
 `,
 			wantValid:  false,
-			wantErrors: []string{"port conflict"},
+			wantErrors: []string{testPortConflict},
 		},
 		{
-			name: "missing healthcheck",
+			name: testMissingHealthcheck,
 			content: `services:
   myapp:
     image: myapp:latest
 `,
 			wantValid:  false,
-			wantErrors: []string{"missing healthcheck"},
+			wantErrors: []string{testMissingHealthcheck},
 		},
 		{
 			name: "builder exempt from healthcheck",
@@ -128,7 +128,7 @@ secrets:
 			wantErrors: []string{"references undefined secret"},
 		},
 		{
-			name: "hardcoded credentials",
+			name: testHardcodedCredentials,
 			content: `services:
   mydb:
     image: postgres:latest
@@ -138,7 +138,7 @@ secrets:
       test: ["CMD", "pg_isready"]
 `,
 			wantValid:  false,
-			wantErrors: []string{"hardcoded credentials"},
+			wantErrors: []string{testHardcodedCredentials},
 		},
 		{
 			name: "credentials via file reference safe",
@@ -248,7 +248,7 @@ secrets:
       test: ["CMD", "pg_isready"]
 `,
 			wantValid:  false,
-			wantErrors: []string{"hardcoded credentials"},
+			wantErrors: []string{testHardcodedCredentials},
 		},
 		{
 			name: "infrastructure service exempt from credential check",
@@ -293,11 +293,11 @@ secrets:
 func TestValidateComposeFile_FileNotFound(t *testing.T) {
 	t.Parallel()
 
-	result, err := ValidateComposeFile("/nonexistent/compose.yml")
+	result, err := ValidateComposeFile(testNonexistentComposeYml)
 	require.NoError(t, err)
 	require.NotNil(t, result)
 	require.False(t, result.Valid)
-	require.True(t, containsSubstring(result.Errors, "YAML parse error"))
+	require.True(t, containsSubstring(result.Errors, testYAMLParseError))
 }
 
 func TestValidateComposeFile_WithIncludes(t *testing.T) {

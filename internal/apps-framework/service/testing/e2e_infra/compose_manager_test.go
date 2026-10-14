@@ -63,18 +63,18 @@ func TestBuildDockerExecArgs(t *testing.T) {
 	}{
 		{
 			name:    "no-profiles",
-			compose: "deployments/sm-kms/compose.yml",
+			compose: testDeploymentsSmKMSComposeYml,
 			service: cryptoutilSharedMagic.PKIInitPostgresLeaderService,
-			command: []string{"psql", "--username=user", "--command", "SELECT 1"},
-			want:    []string{"compose", "-f", "deployments/sm-kms/compose.yml", "exec", cryptoutilSharedMagic.PKIInitPostgresLeaderService, "psql", "--username=user", "--command", "SELECT 1"},
+			command: []string{testPsql, testUsernameUser, testCommand, testSelect1},
+			want:    []string{valueCompose, valueF, testDeploymentsSmKMSComposeYml, valueExec, cryptoutilSharedMagic.PKIInitPostgresLeaderService, testPsql, testUsernameUser, testCommand, testSelect1},
 		},
 		{
 			name:     "with-profile",
-			compose:  "deployments/sm-kms/compose.yml",
+			compose:  testDeploymentsSmKMSComposeYml,
 			profiles: []string{cryptoutilSharedMagic.DockerServicePostgres},
 			service:  cryptoutilSharedMagic.KMSE2ESQLiteContainer,
-			command:  []string{"/bin/sh"},
-			want:     []string{"compose", "-f", "deployments/sm-kms/compose.yml", "--profile", cryptoutilSharedMagic.DockerServicePostgres, "exec", cryptoutilSharedMagic.KMSE2ESQLiteContainer, "/bin/sh"},
+			command:  []string{testBinSh},
+			want:     []string{valueCompose, valueF, testDeploymentsSmKMSComposeYml, "--profile", cryptoutilSharedMagic.DockerServicePostgres, valueExec, cryptoutilSharedMagic.KMSE2ESQLiteContainer, testBinSh},
 		},
 	}
 

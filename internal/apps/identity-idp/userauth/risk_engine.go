@@ -207,7 +207,7 @@ func (e *BehavioralRiskEngine) CalculateRiskFactors(authContext *AuthContext, ba
 			Reason: "Location-based risk assessment",
 			Metadata: map[string]any{
 				cryptoutilSharedMagic.AddressCountry: authContext.Location.Country,
-				"city":                               authContext.Location.City,
+				valueCity:                            authContext.Location.City,
 			},
 		})
 	}
@@ -221,7 +221,7 @@ func (e *BehavioralRiskEngine) CalculateRiskFactors(authContext *AuthContext, ba
 			Weight: e.deviceWeight,
 			Reason: "Device fingerprint risk assessment",
 			Metadata: map[string]any{
-				"device_id": authContext.Device.ID,
+				valueDeviceID: authContext.Device.ID,
 			},
 		})
 	}
@@ -234,7 +234,7 @@ func (e *BehavioralRiskEngine) CalculateRiskFactors(authContext *AuthContext, ba
 		Weight: e.timeWeight,
 		Reason: "Time-based risk assessment",
 		Metadata: map[string]any{
-			"hour": authContext.Time.Hour(),
+			valueHour: authContext.Time.Hour(),
 		},
 	})
 
@@ -376,7 +376,7 @@ func (e *BehavioralRiskEngine) assessVelocityRisk(authContext *AuthContext, base
 func (e *BehavioralRiskEngine) determineRiskLevel(score float64) RiskLevel {
 	const (
 		lowThreshold    = 0.25
-		mediumThreshold = 0.50
+		mediumThreshold = value050
 		highThreshold   = 0.75
 	)
 

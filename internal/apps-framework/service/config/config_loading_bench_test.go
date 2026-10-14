@@ -52,7 +52,7 @@ tls-private-dns-names: ["localhost"]
 
 		_, err := cryptoutilAppsFrameworkServiceConfig.ParseWithFlagSet(
 			fs,
-			[]string{"start", cryptoutilSharedMagic.IdentityCLIFlagConfig, configPath},
+			[]string{testStart, cryptoutilSharedMagic.IdentityCLIFlagConfig, configPath},
 			false, // Don't exit on help
 		)
 		if err != nil {
@@ -102,7 +102,7 @@ allowed-ips: ["192.168.1.0/24", "10.0.0.0/8"]
 
 		_, err := cryptoutilAppsFrameworkServiceConfig.ParseWithFlagSet(
 			fs,
-			[]string{"start", cryptoutilSharedMagic.IdentityCLIFlagConfig, configPath},
+			[]string{testStart, cryptoutilSharedMagic.IdentityCLIFlagConfig, configPath},
 			false,
 		)
 		if err != nil {
@@ -153,7 +153,7 @@ otlp-endpoint: "http://otel-collector:4317"
 		_, err := cryptoutilAppsFrameworkServiceConfig.ParseWithFlagSet(
 			fs,
 			[]string{
-				"start",
+				testStart,
 				cryptoutilSharedMagic.IdentityCLIFlagConfig, configPath,
 				"--bind-private-address", cryptoutilSharedMagic.IPv4Loopback, // CLI override.
 			},

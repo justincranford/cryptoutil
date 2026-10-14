@@ -107,7 +107,7 @@ func TestTenantRealmRepository_GetByID(t *testing.T) {
 		RealmID:  googleUuid.New(),
 		Type:     "OIDC",
 		Active:   true,
-		Source:   "external",
+		Source:   testExternal,
 	}
 
 	err = realmRepo.Create(ctx, realm)
@@ -157,7 +157,7 @@ func TestTenantRealmRepository_GetByRealmID(t *testing.T) {
 		RealmID:  realmID,
 		Type:     "SAML",
 		Active:   true,
-		Source:   "external",
+		Source:   testExternal,
 	}
 
 	err = realmRepo.Create(ctx, realm)
@@ -204,7 +204,7 @@ func TestTenantRealmRepository_Update(t *testing.T) {
 		RealmID:  googleUuid.New(),
 		Type:     "LDAP",
 		Active:   true,
-		Source:   "external",
+		Source:   testExternal,
 	}
 
 	err = realmRepo.Create(ctx, realm)
@@ -243,7 +243,7 @@ func TestTenantRealmRepository_Delete(t *testing.T) {
 		ID:       googleUuid.New(),
 		TenantID: tenant.ID,
 		RealmID:  googleUuid.New(),
-		Type:     "DB",
+		Type:     testDB,
 		Active:   true,
 		Source:   cryptoutilSharedMagic.DefaultOTLPEnvironmentDefault,
 	}

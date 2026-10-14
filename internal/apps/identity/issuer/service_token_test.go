@@ -41,7 +41,7 @@ func TestIssueIDTokenService(t *testing.T) {
 	require.NoError(t, err)
 
 	tokenConfig := &cryptoutilIdentityConfig.TokenConfig{
-		Issuer:            "https://localhost:8080",
+		Issuer:            testHTTPSLocalhost8080,
 		SigningAlgorithm:  cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
 		AccessTokenFormat: cryptoutilSharedMagic.DefaultBrowserSessionCookie,
 	}
@@ -75,7 +75,7 @@ func TestIssueIDTokenService(t *testing.T) {
 
 	claims := map[string]any{
 		cryptoutilSharedMagic.ClaimSub: googleUuid.Must(googleUuid.NewV7()).String(),
-		cryptoutilSharedMagic.ClaimAud: "client123",
+		cryptoutilSharedMagic.ClaimAud: testClient123,
 	}
 
 	token, err := service.IssueIDToken(ctx, claims)
@@ -105,7 +105,7 @@ func TestIssueRefreshToken(t *testing.T) {
 	require.NoError(t, err)
 
 	tokenConfig := &cryptoutilIdentityConfig.TokenConfig{
-		Issuer:            "https://localhost:8080",
+		Issuer:            testHTTPSLocalhost8080,
 		SigningAlgorithm:  cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
 		AccessTokenFormat: cryptoutilSharedMagic.DefaultBrowserSessionCookie,
 	}
@@ -164,7 +164,7 @@ func TestGetPublicKeys(t *testing.T) {
 	require.NoError(t, err)
 
 	tokenConfig := &cryptoutilIdentityConfig.TokenConfig{
-		Issuer:            "https://localhost:8080",
+		Issuer:            testHTTPSLocalhost8080,
 		SigningAlgorithm:  cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
 		AccessTokenFormat: cryptoutilSharedMagic.DefaultBrowserSessionCookie,
 	}
@@ -207,7 +207,7 @@ func TestGetPublicKeysNilJWSIssuer(t *testing.T) {
 	t.Parallel()
 
 	tokenConfig := &cryptoutilIdentityConfig.TokenConfig{
-		Issuer:            "https://localhost:8080",
+		Issuer:            testHTTPSLocalhost8080,
 		SigningAlgorithm:  cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
 		AccessTokenFormat: cryptoutilSharedMagic.IdentityTokenFormatUUID, // Not JWS.
 	}

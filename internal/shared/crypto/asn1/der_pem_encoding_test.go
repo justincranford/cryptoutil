@@ -31,7 +31,7 @@ func TestPEMEncodes(t *testing.T) {
 	template := &x509.Certificate{
 		SerialNumber: big.NewInt(1),
 		Subject: pkix.Name{
-			CommonName: "Test Certificate",
+			CommonName: testTestCertificate,
 		},
 	}
 
@@ -73,19 +73,19 @@ func TestPEMEncodes_UnsupportedType(t *testing.T) {
 		expectedErr string
 	}{
 		{
-			name:        "string type",
+			name:        testStringType,
 			input:       cryptoutilSharedMagic.DevSetupTestInvalidName,
-			expectedErr: "unsupported type: string",
+			expectedErr: testUnsupportedTypeString,
 		},
 		{
-			name:        "int type",
+			name:        testIntType,
 			input:       123,
-			expectedErr: "unsupported type: int",
+			expectedErr: testUnsupportedTypeInt,
 		},
 		{
-			name:        "nil",
+			name:        testNil,
 			input:       nil,
-			expectedErr: "unsupported type: <nil>",
+			expectedErr: testUnsupportedTypeNil,
 		},
 	}
 
@@ -114,7 +114,7 @@ func TestDEREncodes(t *testing.T) {
 	template := &x509.Certificate{
 		SerialNumber: big.NewInt(1),
 		Subject: pkix.Name{
-			CommonName: "Test Certificate",
+			CommonName: testTestCertificate,
 		},
 	}
 
@@ -156,19 +156,19 @@ func TestDEREncodes_UnsupportedType(t *testing.T) {
 		expectedErr string
 	}{
 		{
-			name:        "string type",
+			name:        testStringType,
 			input:       cryptoutilSharedMagic.DevSetupTestInvalidName,
-			expectedErr: "unsupported type: string",
+			expectedErr: testUnsupportedTypeString,
 		},
 		{
-			name:        "int type",
+			name:        testIntType,
 			input:       123,
-			expectedErr: "unsupported type: int",
+			expectedErr: testUnsupportedTypeInt,
 		},
 		{
-			name:        "nil",
+			name:        testNil,
 			input:       nil,
-			expectedErr: "unsupported type: <nil>",
+			expectedErr: testUnsupportedTypeNil,
 		},
 	}
 
@@ -193,7 +193,7 @@ func TestDEREncode_AllKeyTypes(t *testing.T) {
 		expectedPEMType string
 	}{
 		{
-			name: "RSA private key",
+			name: testRSAPrivateKey,
 			keyGen: func() (any, error) {
 				return rsa.GenerateKey(crand.Reader, cryptoutilSharedMagic.DefaultMetricsBatchSize)
 			},
@@ -212,14 +212,14 @@ func TestDEREncode_AllKeyTypes(t *testing.T) {
 			expectedPEMType: cryptoutilSharedMagic.StringPEMTypePKIXPublicKey,
 		},
 		{
-			name: "ECDSA private key",
+			name: testECDSAPrivateKey,
 			keyGen: func() (any, error) {
 				return ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
 			},
 			expectedPEMType: cryptoutilSharedMagic.StringPEMTypePKCS8PrivateKey,
 		},
 		{
-			name: "ECDSA public key",
+			name: testECDSAPublicKey,
 			keyGen: func() (any, error) {
 				priv, err := ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
 				if err != nil {
@@ -231,7 +231,7 @@ func TestDEREncode_AllKeyTypes(t *testing.T) {
 			expectedPEMType: cryptoutilSharedMagic.StringPEMTypePKIXPublicKey,
 		},
 		{
-			name: "EdDSA private key",
+			name: testEdDsaPrivateKey,
 			keyGen: func() (any, error) {
 				_, priv, err := ed25519.GenerateKey(crand.Reader)
 

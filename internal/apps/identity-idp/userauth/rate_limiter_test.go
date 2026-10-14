@@ -26,7 +26,7 @@ func TestDatabaseRateLimitStoreRecordAttempt(t *testing.T) {
 	require.NoError(t, err)
 
 	ctx := context.Background()
-	key := "user-123"
+	key := testUser123
 	timestamp := time.Now().UTC()
 
 	err = store.RecordAttempt(ctx, key, timestamp)
@@ -45,7 +45,7 @@ func TestDatabaseRateLimitStoreCountAttempts(t *testing.T) {
 	require.NoError(t, err)
 
 	ctx := context.Background()
-	key := "user-456"
+	key := testUser456
 	now := time.Now().UTC()
 
 	// Record 3 attempts: 2 within 1 hour, 1 older.
@@ -66,7 +66,7 @@ func TestDatabaseRateLimitStoreCountAttempts(t *testing.T) {
 	// Count within 2 hour window.
 	count, err = store.CountAttempts(ctx, key, 2*time.Hour)
 	require.NoError(t, err)
-	require.Equal(t, 3, count, "Should count all attempts within 2 hours")
+	require.Equal(t, value3, count, "Should count all attempts within 2 hours")
 }
 
 // TestDatabaseRateLimitStoreCleanupExpired tests cleanup of expired records.
@@ -77,11 +77,11 @@ func TestDatabaseRateLimitStoreCleanupExpired(t *testing.T) {
 	require.NoError(t, err)
 
 	ctx := context.Background()
-	key := "user-789"
+	key := testUser789
 	now := time.Now().UTC()
 
 	// Record attempts at different times.
-	err = store.RecordAttempt(ctx, key, now.Add(-3*time.Hour))
+	err = store.RecordAttempt(ctx, key, now.Add(-value3*time.Hour))
 	require.NoError(t, err)
 
 	err = store.RecordAttempt(ctx, key, now.Add(-cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days*time.Minute))
@@ -109,14 +109,14 @@ func TestPerUserRateLimiterCheckLimit(t *testing.T) {
 	store, err := NewDatabaseRateLimitStore(noop.NewMeterProvider())
 	require.NoError(t, err)
 
-	limiter, err := NewPerUserRateLimiter(store, time.Hour, 3, noop.NewMeterProvider())
+	limiter, err := NewPerUserRateLimiter(store, time.Hour, value3, noop.NewMeterProvider())
 	require.NoError(t, err)
 
 	ctx := context.Background()
 	userID := googleUuid.New()
 
 	// First 3 attempts should succeed.
-	for range 3 {
+	for range value3 {
 		err = limiter.CheckLimit(ctx, userID)
 		require.NoError(t, err, "First 3 attempts should pass")
 
@@ -223,7 +223,7 @@ func TestPerUserRateLimiterCleanup(t *testing.T) {
 	userID := googleUuid.New()
 
 	// Record old attempt.
-	err = store.RecordAttempt(ctx, userID.String(), time.Now().UTC().Add(-3*time.Hour))
+	err = store.RecordAttempt(ctx, userID.String(), time.Now().UTC().Add(-value3*time.Hour))
 	require.NoError(t, err)
 
 	// Before cleanup: 1 attempt.
@@ -252,7 +252,7 @@ func TestPerIPRateLimiterCheckLimit(t *testing.T) {
 	require.NoError(t, err)
 
 	ctx := context.Background()
-	ipAddress := "192.168.1.100"
+	ipAddress := test1921681100
 
 	// First 5 attempts should succeed.
 	for range cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries {
@@ -303,7 +303,7 @@ func TestPerIPRateLimiterConcurrent(t *testing.T) {
 	require.NoError(t, err)
 
 	ctx := context.Background()
-	ipAddress := "10.0.0.50"
+	ipAddress := test100050
 
 	// 10 concurrent goroutines each make 2 attempts (20 total).
 	done := make(chan bool, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
@@ -350,9 +350,9 @@ func TestExtractIPFromContext(t *testing.T) {
 		{
 			name: "X-Forwarded-For single IP",
 			contextValues: map[any]any{
-				contextKeyXForwardedFor: "203.0.113.42",
+				contextKeyXForwardedFor: test203011342,
 			},
-			expectedIP:  "203.0.113.42",
+			expectedIP:  test203011342,
 			expectError: false,
 		},
 		{
@@ -360,23 +360,23 @@ func TestExtractIPFromContext(t *testing.T) {
 			contextValues: map[any]any{
 				contextKeyXForwardedFor: "203.0.113.42, 198.51.100.17, 192.0.2.1",
 			},
-			expectedIP:  "203.0.113.42",
+			expectedIP:  test203011342,
 			expectError: false,
 		},
 		{
 			name: "RemoteAddr with port",
 			contextValues: map[any]any{
-				contextKeyRemoteAddr: "192.168.1.100:54321",
+				contextKeyRemoteAddr: test192168110054321,
 			},
-			expectedIP:  "192.168.1.100",
+			expectedIP:  test1921681100,
 			expectError: false,
 		},
 		{
 			name: "RemoteAddr without port",
 			contextValues: map[any]any{
-				contextKeyRemoteAddr: "10.0.0.50",
+				contextKeyRemoteAddr: test100050,
 			},
-			expectedIP:  "10.0.0.50",
+			expectedIP:  test100050,
 			expectError: false,
 		},
 		{
@@ -389,10 +389,10 @@ func TestExtractIPFromContext(t *testing.T) {
 		{
 			name: "X-Forwarded-For takes precedence over RemoteAddr",
 			contextValues: map[any]any{
-				contextKeyXForwardedFor: "203.0.113.42",
-				contextKeyRemoteAddr:    "192.168.1.100:54321",
+				contextKeyXForwardedFor: test203011342,
+				contextKeyRemoteAddr:    test192168110054321,
 			},
-			expectedIP:  "203.0.113.42",
+			expectedIP:  test203011342,
 			expectError: false,
 		},
 	}
@@ -436,11 +436,11 @@ func TestPerIPRateLimiterCleanup(t *testing.T) {
 	require.NoError(t, err, "NewPerIPRateLimiter should succeed")
 
 	// Record some test data.
-	testIP := "192.168.1.1"
+	testIP := test19216811
 	now := time.Now().UTC()
 
 	// Record an old attempt (older than window).
-	err = store.RecordAttempt(ctx, testIP, now.Add(-3*time.Hour))
+	err = store.RecordAttempt(ctx, testIP, now.Add(-value3*time.Hour))
 	require.NoError(t, err, "RecordAttempt should succeed")
 
 	// Record a recent attempt (within window).

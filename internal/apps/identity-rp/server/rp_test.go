@@ -51,7 +51,7 @@ func TestRpClient_HelpFlag(t *testing.T) {
 
 	var stdout, stderr bytes.Buffer
 
-	exitCode := cryptoutilIdentityRP.Rp([]string{"client", cryptoutilSharedMagic.CLIHelpFlag}, nil, &stdout, &stderr)
+	exitCode := cryptoutilIdentityRP.Rp([]string{testClient, cryptoutilSharedMagic.CLIHelpFlag}, nil, &stdout, &stderr)
 	testify.Equal(t, 0, exitCode)
 }
 
@@ -60,7 +60,7 @@ func TestRpClient_NotImplemented(t *testing.T) {
 
 	var stdout, stderr bytes.Buffer
 
-	exitCode := cryptoutilIdentityRP.Rp([]string{"client"}, nil, &stdout, &stderr)
+	exitCode := cryptoutilIdentityRP.Rp([]string{testClient}, nil, &stdout, &stderr)
 	testify.Equal(t, 1, exitCode)
 	testify.Contains(t, stderr.String(), "not yet implemented")
 }

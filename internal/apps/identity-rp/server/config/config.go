@@ -185,10 +185,10 @@ func maskSecret(secret string) string {
 	if len(secret) == 0 {
 		return "(not set)"
 	} else if len(secret) <= secretMaskMinLength {
-		return "****"
+		return valueStringValue
 	}
 
-	return secret[:secretMaskPrefixLen] + "****"
+	return secret[:secretMaskPrefixLen] + valueStringValue
 }
 
 // NewTestConfig creates an IdentityRPServerSettings instance for testing without calling Parse().

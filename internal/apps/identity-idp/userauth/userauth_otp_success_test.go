@@ -359,7 +359,7 @@ func TestMagicLinkAuthenticator_VerifyAuth_UserNotFound(t *testing.T) {
 	challenge := &cryptoutilIdentityIdpUserauth.AuthChallenge{
 		ID:        googleUuid.New(),
 		UserID:    userID.String(),
-		Method:    "magic_link",
+		Method:    testMagicLink,
 		ExpiresAt: time.Now().UTC().Add(15 * time.Minute),
 		Metadata:  map[string]any{cryptoutilSharedMagic.ClaimEmail: user.Email},
 	}

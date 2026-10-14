@@ -40,10 +40,10 @@ func TestHandleDeviceAuthorization_HappyPath(t *testing.T) {
 
 	formData := url.Values{
 		cryptoutilSharedMagic.ParamClientID: []string{testClient.ClientID},
-		cryptoutilSharedMagic.ParamScope:    []string{"openid profile"},
+		cryptoutilSharedMagic.ParamScope:    []string{testOpenidProfile},
 	}
 
-	req := httptest.NewRequest("POST", "/oauth2/v1/device_authorization", strings.NewReader(formData.Encode()))
+	req := httptest.NewRequest(testPost, "/oauth2/v1/device_authorization", strings.NewReader(formData.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	resp, err := app.Test(req, -1)
@@ -100,7 +100,7 @@ func TestHandleDeviceAuthorization_HappyPath(t *testing.T) {
 	storedAuth, err := deviceAuthRepo.GetByDeviceCode(ctx, deviceCode)
 	require.NoError(t, err, "Should retrieve device authorization from database")
 	require.Equal(t, testClient.ClientID, storedAuth.ClientID, "Client ID should match")
-	require.Equal(t, "openid profile", storedAuth.Scope, "Scope should match")
+	require.Equal(t, testOpenidProfile, storedAuth.Scope, "Scope should match")
 	require.Equal(t, cryptoutilIdentityDomain.DeviceAuthStatusPending, storedAuth.Status, "Status should be pending")
 	require.False(t, storedAuth.IsExpired(), "Device code should not be expired")
 }
@@ -121,7 +121,7 @@ func TestHandleDeviceAuthorization_MissingClientID(t *testing.T) {
 		cryptoutilSharedMagic.ParamScope: []string{cryptoutilSharedMagic.ScopeOpenID},
 	}
 
-	req := httptest.NewRequest("POST", "/oauth2/v1/device_authorization", strings.NewReader(formData.Encode()))
+	req := httptest.NewRequest(testPost, "/oauth2/v1/device_authorization", strings.NewReader(formData.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	resp, err := app.Test(req, -1)
@@ -157,7 +157,7 @@ func TestHandleDeviceAuthorization_InvalidClientID(t *testing.T) {
 		cryptoutilSharedMagic.ParamScope:    []string{cryptoutilSharedMagic.ScopeOpenID},
 	}
 
-	req := httptest.NewRequest("POST", "/oauth2/v1/device_authorization", strings.NewReader(formData.Encode()))
+	req := httptest.NewRequest(testPost, "/oauth2/v1/device_authorization", strings.NewReader(formData.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	resp, err := app.Test(req, -1)
@@ -194,7 +194,7 @@ func TestHandleDeviceAuthorization_OptionalScope(t *testing.T) {
 		cryptoutilSharedMagic.ParamClientID: []string{testClient.ClientID},
 	}
 
-	req := httptest.NewRequest("POST", "/oauth2/v1/device_authorization", strings.NewReader(formData.Encode()))
+	req := httptest.NewRequest(testPost, "/oauth2/v1/device_authorization", strings.NewReader(formData.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	resp, err := app.Test(req, -1)
@@ -220,10 +220,10 @@ func createDeviceAuthTestDependencies(t *testing.T) (*cryptoutilIdentityConfig.C
 	config := &cryptoutilIdentityConfig.Config{
 		Database: &cryptoutilIdentityConfig.DatabaseConfig{
 			Type: cryptoutilSharedMagic.TestDatabaseSQLite,
-			DSN:  "file::memory:?cache=private",
+			DSN:  testFileMemoryCachePrivate,
 		},
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{
-			Issuer: "https://localhost:8080",
+			Issuer: testHTTPSLocalhost8080,
 		},
 	}
 
@@ -258,7 +258,7 @@ func createTestClientForDevice(ctx context.Context, t *testing.T, repoFactory *c
 	client := &cryptoutilIdentityDomain.Client{
 		ID:                      googleUuid.Must(googleUuid.NewV7()),
 		ClientID:                "test-device-client-" + googleUuid.NewString()[:cryptoutilSharedMagic.IMMinPasswordLength],
-		ClientSecret:            "$2a$10$examplehashedvalue",
+		ClientSecret:            test2a10Examplehashedvalue,
 		ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
 		Name:                    "Test Device Client",
 		RedirectURIs:            []string{cryptoutilSharedMagic.TestRedirectURI},

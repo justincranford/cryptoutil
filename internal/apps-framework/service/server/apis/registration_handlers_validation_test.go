@@ -20,7 +20,7 @@ func TestValidateRegistrationRequest_Table(t *testing.T) {
 	t.Parallel()
 
 	validUsername := strings.Repeat("a", cryptoutilSharedMagic.IMMinUsernameLength)
-	validEmail := "user@example.com"
+	validEmail := testUserExampleCom
 	validPassword := strings.Repeat("p", cryptoutilSharedMagic.IMMinPasswordLength)
 	validTenantName := strings.Repeat("t", cryptoutilSharedMagic.IMMinUsernameLength)
 

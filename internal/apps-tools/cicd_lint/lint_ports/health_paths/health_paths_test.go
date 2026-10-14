@@ -126,7 +126,7 @@ HEALTHCHECK CMD wget -q -O /dev/null https://127.0.0.1:9090/admin/api/v1/livez
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	filesByExtension := map[string][]string{
-		"dockerfile": {dockerfile},
+		valueDockerfile: {dockerfile},
 	}
 
 	err = Check(logger, filesByExtension)
@@ -146,7 +146,7 @@ HEALTHCHECK CMD curl -f http://localhost:8080/health
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	filesByExtension := map[string][]string{
-		"dockerfile": {dockerfile},
+		valueDockerfile: {dockerfile},
 	}
 
 	err = Check(logger, filesByExtension)
@@ -260,7 +260,7 @@ func TestCheck_WithOtelRelatedFiles(t *testing.T) {
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	filesByExtension := map[string][]string{
-		"dockerfile": {otelDockerfile},
+		valueDockerfile: {otelDockerfile},
 	}
 
 	err := Check(logger, filesByExtension)

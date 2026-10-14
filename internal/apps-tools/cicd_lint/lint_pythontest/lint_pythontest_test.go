@@ -38,7 +38,7 @@ func TestLint_HappyPaths(t *testing.T) {
 				content := "class HelperUtil(unittest.TestCase):\n    def test_something(self):\n        self.assertEqual(1, 1)\n"
 				require.NoError(t, os.WriteFile(utilFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions))
 
-				return map[string][]string{"py": {utilFile}}
+				return map[string][]string{testPy: {utilFile}}
 			},
 		},
 		{
@@ -49,7 +49,7 @@ func TestLint_HappyPaths(t *testing.T) {
 				content := "import pytest\n\n@pytest.mark.parametrize(\"x,expected\", [(1, 1), (2, 4)])\ndef test_square(x, expected):\n    assert x * x == expected\n"
 				require.NoError(t, os.WriteFile(testFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions))
 
-				return map[string][]string{"py": {testFile}}
+				return map[string][]string{testPy: {testFile}}
 			},
 		},
 		{
@@ -65,7 +65,7 @@ func TestLint_HappyPaths(t *testing.T) {
 					require.NoError(t, os.WriteFile(f, []byte("# placeholder"), cryptoutilSharedMagic.CacheFilePermissions))
 				}
 
-				return map[string][]string{"py": {testFile1, testFile2, nonTestFile}}
+				return map[string][]string{testPy: {testFile1, testFile2, nonTestFile}}
 			},
 		},
 	}
@@ -116,7 +116,7 @@ func TestLint_UnittestViolations(t *testing.T) {
 			require.NoError(t, os.WriteFile(testFile, []byte(tc.content), cryptoutilSharedMagic.CacheFilePermissions))
 
 			logger := cryptoutilCmdCicdCommon.NewLogger("test")
-			filesByExtension := map[string][]string{"py": {testFile}}
+			filesByExtension := map[string][]string{testPy: {testFile}}
 
 			err := cryptoutilLintPythonTest.Lint(logger, filesByExtension)
 

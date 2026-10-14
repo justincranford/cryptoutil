@@ -186,15 +186,15 @@ func TestReadFilesBytesLimit_EmptyPathIndex(t *testing.T) {
 	}{
 		{
 			name:              "empty path at index 1 of 1",
-			filePaths:         []string{"  "},
-			expectedErrIndex:  "1 of 1",
-			expectedErrLength: "1 of 1",
+			filePaths:         []string{testStringValue},
+			expectedErrIndex:  test1Of1,
+			expectedErrLength: test1Of1,
 		},
 		{
 			name:              "empty path at index 2 of 3",
-			filePaths:         []string{"/valid/path.txt", "  ", "/also/valid.txt"},
-			expectedErrIndex:  "2 of 3",
-			expectedErrLength: "2 of 3",
+			filePaths:         []string{"/valid/path.txt", testStringValue, "/also/valid.txt"},
+			expectedErrIndex:  test2Of3,
+			expectedErrLength: test2Of3,
 		},
 	}
 
@@ -226,23 +226,23 @@ func TestListAllFilesWithOptions_ExtensionFiltering(t *testing.T) {
 		{
 			name:       "include only matching extensions",
 			files:      map[string]string{"file.go": "go code", "file.txt": "text", "file.md": "markdown"},
-			inclusions: []string{"go", "md"},
-			wantKeys:   []string{"go", "md"},
-			wantAbsent: []string{"txt"},
+			inclusions: []string{testGo, testMd},
+			wantKeys:   []string{testGo, testMd},
+			wantAbsent: []string{testTxt},
 		},
 		{
 			name:       "dotfile without extension matched by name",
-			files:      map[string]string{".gitignore": "*.o", ".dockerignore": "node_modules"},
-			inclusions: []string{"gitignore"},
-			wantKeys:   []string{"gitignore"},
+			files:      map[string]string{testGitignore: "*.o", ".dockerignore": "node_modules"},
+			inclusions: []string{testGitignoreValueA1AA6596},
+			wantKeys:   []string{testGitignoreValueA1AA6596},
 			wantAbsent: []string{"dockerignore"},
 		},
 		{
 			name:       "regular file without extension not matched",
-			files:      map[string]string{"Makefile": "all:", "README": "readme"},
-			inclusions: []string{"go"},
+			files:      map[string]string{testMakefile: "all:", "README": "readme"},
+			inclusions: []string{testGo},
 			wantKeys:   []string{},
-			wantAbsent: []string{"go"},
+			wantAbsent: []string{testGo},
 		},
 	}
 
@@ -295,7 +295,7 @@ func TestWriteFile_ByteSliceContent(t *testing.T) {
 func TestReadFilesBytes_EmptyPathIndex(t *testing.T) {
 	t.Parallel()
 
-	contents, err := cryptoutilSharedUtilFiles.ReadFilesBytes([]string{"  "})
+	contents, err := cryptoutilSharedUtilFiles.ReadFilesBytes([]string{testStringValue})
 	require.Error(t, err)
 	require.Nil(t, contents)
 	require.EqualError(t, err, "empty file path 1 of 1 in list")
@@ -309,7 +309,7 @@ func TestReadFilesBytes_ReadErrorIndex(t *testing.T) {
 
 	// Provide a non-existent file path that passes validation (non-empty)
 	// but fails during ReadFileBytes.
-	contents, err := cryptoutilSharedUtilFiles.ReadFilesBytes([]string{"/nonexistent/path/file.txt"})
+	contents, err := cryptoutilSharedUtilFiles.ReadFilesBytes([]string{testNonexistentPathFileTxt})
 	require.Error(t, err)
 	require.Nil(t, contents)
 	require.Contains(t, err.Error(), "failed to read file 1 of 1")
@@ -323,7 +323,7 @@ func TestReadFilesBytesLimit_ReadErrorIndex(t *testing.T) {
 
 	// Provide a non-existent file path that passes validation but fails during read.
 	contents, err := cryptoutilSharedUtilFiles.ReadFilesBytesLimit(
-		[]string{"/nonexistent/path/file.txt"}, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, cryptoutilSharedMagic.JoseJAMaxMaterials,
+		[]string{testNonexistentPathFileTxt}, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, cryptoutilSharedMagic.JoseJAMaxMaterials,
 	)
 	require.Error(t, err)
 	require.Nil(t, contents)

@@ -39,7 +39,7 @@ func TestTenantJoinRequestRepository_ListByTenantAndStatus(t *testing.T) {
 		ID:           googleUuid.Must(googleUuid.NewV7()),
 		TenantID:     tenant1.ID,
 		Username:     "tenant1user",
-		PasswordHash: "hashedpassword",
+		PasswordHash: testHashedpassword,
 		Active:       1,
 		CreatedAt:    time.Now().UTC(),
 	}
@@ -62,7 +62,7 @@ func TestTenantJoinRequestRepository_ListByTenantAndStatus(t *testing.T) {
 		ID:           googleUuid.Must(googleUuid.NewV7()),
 		TenantID:     tenant2.ID,
 		Username:     "tenant2user",
-		PasswordHash: "hashedpassword",
+		PasswordHash: testHashedpassword,
 		Active:       1,
 		CreatedAt:    time.Now().UTC(),
 	}
@@ -251,7 +251,7 @@ func TestTenantJoinRequestRepository_Create_DuplicateID(t *testing.T) {
 		ID:           googleUuid.Must(googleUuid.NewV7()),
 		TenantID:     tenant.ID,
 		Username:     "duplicateuser",
-		PasswordHash: "hashedpassword",
+		PasswordHash: testHashedpassword,
 		Active:       1,
 		CreatedAt:    time.Now().UTC(),
 	}
@@ -296,7 +296,7 @@ func TestTenantJoinRequestRepository_Update_NonExistent(t *testing.T) {
 	tenant := &Tenant{
 		ID:          googleUuid.Must(googleUuid.NewV7()),
 		Name:        cryptoutilSharedMagic.NAME_TEST_TENANT,
-		Description: "Test tenant for update tests",
+		Description: testTestTenantForUpdateTests,
 		Active:      1,
 		CreatedAt:   time.Now().UTC(),
 	}

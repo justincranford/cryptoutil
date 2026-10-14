@@ -41,14 +41,14 @@ func TestRiskScenario_LowRisk(t *testing.T) {
 					Timezone:   "America/New_York",
 				},
 				GeoLocation: &GeoLocation{
-					IPAddress: "192.168.1.100",
-					Country:   "US",
-					City:      "New York",
+					IPAddress: test1921681100,
+					Country:   testUs,
+					City:      testNewYork,
 					Latitude:  40.7128,
 					Longitude: -74.0060,
 				},
 				NetworkInfo: &NetworkInfo{
-					IPAddress: "192.168.1.100",
+					IPAddress: test1921681100,
 					IsVPN:     false,
 					IsProxy:   false,
 					IsTor:     false,
@@ -58,7 +58,7 @@ func TestRiskScenario_LowRisk(t *testing.T) {
 			baseline: &UserBaseline{
 				UserID: googleUuid.New().String(),
 				KnownLocations: []GeoLocation{
-					{Country: "US", City: "New York"},
+					{Country: testUs, City: testNewYork},
 				},
 				KnownDevices: []DeviceFingerprint{
 					{ID: "known-device-001"},
@@ -84,14 +84,14 @@ func TestRiskScenario_LowRisk(t *testing.T) {
 					Timezone:   "America/Los_Angeles",
 				},
 				GeoLocation: &GeoLocation{
-					IPAddress: "10.0.0.50",
-					Country:   "US",
+					IPAddress: test100050,
+					Country:   testUs,
 					City:      "San Francisco",
 					Latitude:  37.7749,
 					Longitude: -122.4194,
 				},
 				NetworkInfo: &NetworkInfo{
-					IPAddress: "10.0.0.50",
+					IPAddress: test100050,
 					IsVPN:     false,
 					IsProxy:   false,
 					IsTor:     false,
@@ -101,7 +101,7 @@ func TestRiskScenario_LowRisk(t *testing.T) {
 			baseline: &UserBaseline{
 				UserID: googleUuid.New().String(),
 				KnownLocations: []GeoLocation{
-					{Country: "US", City: "San Francisco"},
+					{Country: testUs, City: "San Francisco"},
 				},
 				KnownDevices: []DeviceFingerprint{
 					{ID: "known-device-002"},
@@ -176,14 +176,14 @@ func TestRiskScenario_MediumRisk(t *testing.T) {
 					Timezone:   "Europe/London",
 				},
 				GeoLocation: &GeoLocation{
-					IPAddress: "203.0.113.42",
+					IPAddress: test203011342,
 					Country:   "GB",
 					City:      "London",
 					Latitude:  51.5074,
 					Longitude: -0.1278,
 				},
 				NetworkInfo: &NetworkInfo{
-					IPAddress: "203.0.113.42",
+					IPAddress: test203011342,
 					IsVPN:     false,
 					IsProxy:   false,
 					IsTor:     false,
@@ -193,7 +193,7 @@ func TestRiskScenario_MediumRisk(t *testing.T) {
 			baseline: &UserBaseline{
 				UserID: googleUuid.New().String(),
 				KnownLocations: []GeoLocation{
-					{Country: "US", City: "New York"},
+					{Country: testUs, City: testNewYork},
 				},
 				KnownDevices: []DeviceFingerprint{
 					{ID: "known-device-001"},
@@ -219,24 +219,24 @@ func TestRiskScenario_MediumRisk(t *testing.T) {
 					Timezone:   "America/New_York",
 				},
 				GeoLocation: &GeoLocation{
-					IPAddress: "192.168.1.100",
-					Country:   "US",
-					City:      "New York",
+					IPAddress: test1921681100,
+					Country:   testUs,
+					City:      testNewYork,
 					Latitude:  40.7128,
 					Longitude: -74.0060,
 				},
 				NetworkInfo: &NetworkInfo{
-					IPAddress: "192.168.1.100",
+					IPAddress: test1921681100,
 					IsVPN:     false,
 					IsProxy:   false,
 					IsTor:     false,
 				},
-				Timestamp: time.Date(2025, 1, 15, 3, 0, 0, 0, time.UTC), // 3 AM UTC (10 PM EST previous day - unusual).
+				Timestamp: time.Date(2025, 1, 15, value3, 0, 0, 0, time.UTC), // 3 AM UTC (10 PM EST previous day - unusual).
 			},
 			baseline: &UserBaseline{
 				UserID: googleUuid.New().String(),
 				KnownLocations: []GeoLocation{
-					{Country: "US", City: "New York"},
+					{Country: testUs, City: testNewYork},
 				},
 				KnownDevices: []DeviceFingerprint{
 					{ID: "known-device-002"},

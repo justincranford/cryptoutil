@@ -35,7 +35,7 @@ func TestRoleRepository_GetByID(t *testing.T) {
 	role := &Role{
 		ID:          googleUuid.New(),
 		TenantID:    tenant.ID,
-		Name:        "admin",
+		Name:        testAdmin,
 		Description: cryptoutilSharedMagic.DESC_ADMIN_ROLE,
 		CreatedAt:   time.Now().UTC(),
 	}
@@ -82,7 +82,7 @@ func TestRoleRepository_ListByTenant(t *testing.T) {
 	role1 := &Role{
 		ID:          googleUuid.New(),
 		TenantID:    tenant.ID,
-		Name:        "admin",
+		Name:        testAdmin,
 		Description: "Administrator",
 		CreatedAt:   time.Now().UTC(),
 	}
@@ -90,7 +90,7 @@ func TestRoleRepository_ListByTenant(t *testing.T) {
 	role2 := &Role{
 		ID:          googleUuid.New(),
 		TenantID:    tenant.ID,
-		Name:        "user",
+		Name:        testUser,
 		Description: "Regular user",
 		CreatedAt:   time.Now().UTC(),
 	}

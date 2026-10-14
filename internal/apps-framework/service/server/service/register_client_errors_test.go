@@ -168,17 +168,17 @@ func TestRegisterClient_ValidationError(t *testing.T) {
 	svc := &RegistrationServiceImpl{}
 
 	// Neither parameter provided.
-	result, err := svc.RegisterClient(context.Background(), "client-id", "hash", nil, nil)
+	result, err := svc.RegisterClient(context.Background(), "client-id", testHash, nil, nil)
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "exactly one of newTenant or existingTenantID must be provided")
+	require.Contains(t, err.Error(), valueExactlyOneOfNewTenantOrExistingTenantIDMustBeProvided)
 	require.Nil(t, result)
 
 	// Both parameters provided.
 	tenantID := googleUuid.New()
-	newTenant := &NewTenantInfo{Name: "test", Description: "test"}
-	result, err = svc.RegisterClient(context.Background(), "client-id", "hash", newTenant, &tenantID)
+	newTenant := &NewTenantInfo{Name: testTestValue9F86D081, Description: testTestValue9F86D081}
+	result, err = svc.RegisterClient(context.Background(), "client-id", testHash, newTenant, &tenantID)
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "exactly one of newTenant or existingTenantID must be provided")
+	require.Contains(t, err.Error(), valueExactlyOneOfNewTenantOrExistingTenantIDMustBeProvided)
 	require.Nil(t, result)
 }
 
@@ -197,11 +197,11 @@ func TestRegisterClient_CreateTenantError(t *testing.T) {
 		tenantService: mockTenantSvc,
 	}
 
-	newTenant := &NewTenantInfo{Name: "test", Description: "test"}
-	result, err := svc.RegisterClient(context.Background(), "client-id", "hash", newTenant, nil)
+	newTenant := &NewTenantInfo{Name: testTestValue9F86D081, Description: testTestValue9F86D081}
+	result, err := svc.RegisterClient(context.Background(), "client-id", testHash, newTenant, nil)
 
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "failed to create tenant")
+	require.Contains(t, err.Error(), testFailedToCreateTenant)
 	require.Nil(t, result)
 }
 
@@ -215,7 +215,7 @@ func TestRegisterClient_CreateClientError(t *testing.T) {
 	mockTenantSvc := &mockTenantServiceForRegisterClient{
 		tenant: &cryptoutilAppsFrameworkServiceServerRepository.Tenant{
 			ID:   googleUuid.New(),
-			Name: "test-tenant",
+			Name: testTestTenant,
 		},
 	}
 
@@ -228,8 +228,8 @@ func TestRegisterClient_CreateClientError(t *testing.T) {
 		clientRepo:    mockClientRepo,
 	}
 
-	newTenant := &NewTenantInfo{Name: "test", Description: "test"}
-	result, err := svc.RegisterClient(context.Background(), "client-id", "hash", newTenant, nil)
+	newTenant := &NewTenantInfo{Name: testTestValue9F86D081, Description: testTestValue9F86D081}
+	result, err := svc.RegisterClient(context.Background(), "client-id", testHash, newTenant, nil)
 
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to create client")
@@ -246,7 +246,7 @@ func TestRegisterClient_GetAdminRoleError(t *testing.T) {
 	mockTenantSvc := &mockTenantServiceForRegisterClient{
 		tenant: &cryptoutilAppsFrameworkServiceServerRepository.Tenant{
 			ID:   googleUuid.New(),
-			Name: "test-tenant",
+			Name: testTestTenant,
 		},
 	}
 
@@ -262,8 +262,8 @@ func TestRegisterClient_GetAdminRoleError(t *testing.T) {
 		roleRepo:      mockRoleRepo,
 	}
 
-	newTenant := &NewTenantInfo{Name: "test", Description: "test"}
-	result, err := svc.RegisterClient(context.Background(), "client-id", "hash", newTenant, nil)
+	newTenant := &NewTenantInfo{Name: testTestValue9F86D081, Description: testTestValue9F86D081}
+	result, err := svc.RegisterClient(context.Background(), "client-id", testHash, newTenant, nil)
 
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to get admin role")
@@ -280,7 +280,7 @@ func TestRegisterClient_AssignRoleError(t *testing.T) {
 	mockTenantSvc := &mockTenantServiceForRegisterClient{
 		tenant: &cryptoutilAppsFrameworkServiceServerRepository.Tenant{
 			ID:   googleUuid.New(),
-			Name: "test-tenant",
+			Name: testTestTenant,
 		},
 	}
 
@@ -289,7 +289,7 @@ func TestRegisterClient_AssignRoleError(t *testing.T) {
 	mockRoleRepo := &mockRoleRepoForRegisterClient{
 		role: &cryptoutilAppsFrameworkServiceServerRepository.Role{
 			ID:   googleUuid.New(),
-			Name: "admin",
+			Name: valueAdmin,
 		},
 	}
 
@@ -304,8 +304,8 @@ func TestRegisterClient_AssignRoleError(t *testing.T) {
 		clientRoleRepo: mockClientRoleRepo,
 	}
 
-	newTenant := &NewTenantInfo{Name: "test", Description: "test"}
-	result, err := svc.RegisterClient(context.Background(), "client-id", "hash", newTenant, nil)
+	newTenant := &NewTenantInfo{Name: testTestValue9F86D081, Description: testTestValue9F86D081}
+	result, err := svc.RegisterClient(context.Background(), "client-id", testHash, newTenant, nil)
 
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to assign admin role")
@@ -328,7 +328,7 @@ func TestRegisterClient_UnverifiedCreateError(t *testing.T) {
 	}
 
 	tenantID := googleUuid.New()
-	result, err := svc.RegisterClient(context.Background(), "client-id", "hash", nil, &tenantID)
+	result, err := svc.RegisterClient(context.Background(), "client-id", testHash, nil, &tenantID)
 
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to create unverified client")

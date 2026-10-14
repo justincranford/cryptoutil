@@ -32,36 +32,36 @@ func TestHandleAuthorizeGET_PKCE(t *testing.T) {
 		wantErrorCode       string
 	}{
 		{
-			name:                "missing code_challenge required",
+			name:                testMissingCodeChallengeRequired,
 			codeChallenge:       "",
 			codeChallengeMethod: cryptoutilSharedMagic.PKCEMethodS256,
 			wantStatus:          fiber.StatusBadRequest,
 			wantErrorCode:       cryptoutilSharedMagic.ErrorInvalidRequest,
 		},
 		{
-			name:                "valid S256 code_challenge",
-			codeChallenge:       "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM",
+			name:                testValidS256CodeChallenge,
+			codeChallenge:       testE9Melhoa2OwvFrEmtjguChaoeK1t8UrwbuGjsstwCM,
 			codeChallengeMethod: cryptoutilSharedMagic.PKCEMethodS256,
 			wantStatus:          fiber.StatusFound,
 			wantErrorCode:       "",
 		},
 		{
-			name:                "default method is S256",
-			codeChallenge:       "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM",
+			name:                testDefaultMethodIsS256,
+			codeChallenge:       testE9Melhoa2OwvFrEmtjguChaoeK1t8UrwbuGjsstwCM,
 			codeChallengeMethod: "",
 			wantStatus:          fiber.StatusFound,
 			wantErrorCode:       "",
 		},
 		{
-			name:                "plain method rejected",
-			codeChallenge:       "test-plain-challenge",
+			name:                testPlainMethodRejected,
+			codeChallenge:       testTestPlainChallenge,
 			codeChallengeMethod: cryptoutilSharedMagic.PKCEMethodPlain,
 			wantStatus:          fiber.StatusBadRequest,
 			wantErrorCode:       cryptoutilSharedMagic.ErrorInvalidRequest,
 		},
 		{
 			name:                "invalid method rejected",
-			codeChallenge:       "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM",
+			codeChallenge:       testE9Melhoa2OwvFrEmtjguChaoeK1t8UrwbuGjsstwCM,
 			codeChallengeMethod: cryptoutilSharedMagic.DevSetupTestInvalidName,
 			wantStatus:          fiber.StatusBadRequest,
 			wantErrorCode:       cryptoutilSharedMagic.ErrorInvalidRequest,
@@ -87,8 +87,8 @@ func TestHandleAuthorizeGET_PKCE(t *testing.T) {
 				cryptoutilSharedMagic.ParamClientID:     []string{testClient.ClientID},
 				cryptoutilSharedMagic.ParamResponseType: []string{cryptoutilSharedMagic.ResponseTypeCode},
 				cryptoutilSharedMagic.ParamRedirectURI:  []string{testClient.RedirectURIs[0]},
-				cryptoutilSharedMagic.ParamScope:        []string{"openid profile"},
-				cryptoutilSharedMagic.ParamState:        []string{"test-state"},
+				cryptoutilSharedMagic.ParamScope:        []string{testOpenidProfile},
+				cryptoutilSharedMagic.ParamState:        []string{testTestState},
 			}
 
 			if tc.codeChallenge != "" {
@@ -123,29 +123,29 @@ func TestHandleAuthorizePOST_PKCE(t *testing.T) {
 		wantErrorCode       string
 	}{
 		{
-			name:                "missing code_challenge required",
+			name:                testMissingCodeChallengeRequired,
 			codeChallenge:       "",
 			codeChallengeMethod: cryptoutilSharedMagic.PKCEMethodS256,
 			wantStatus:          fiber.StatusBadRequest,
 			wantErrorCode:       cryptoutilSharedMagic.ErrorInvalidRequest,
 		},
 		{
-			name:                "valid S256 code_challenge",
-			codeChallenge:       "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM",
+			name:                testValidS256CodeChallenge,
+			codeChallenge:       testE9Melhoa2OwvFrEmtjguChaoeK1t8UrwbuGjsstwCM,
 			codeChallengeMethod: cryptoutilSharedMagic.PKCEMethodS256,
 			wantStatus:          fiber.StatusFound,
 			wantErrorCode:       "",
 		},
 		{
-			name:                "default method is S256",
-			codeChallenge:       "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM",
+			name:                testDefaultMethodIsS256,
+			codeChallenge:       testE9Melhoa2OwvFrEmtjguChaoeK1t8UrwbuGjsstwCM,
 			codeChallengeMethod: "",
 			wantStatus:          fiber.StatusFound,
 			wantErrorCode:       "",
 		},
 		{
-			name:                "plain method rejected",
-			codeChallenge:       "test-plain-challenge",
+			name:                testPlainMethodRejected,
+			codeChallenge:       testTestPlainChallenge,
 			codeChallengeMethod: cryptoutilSharedMagic.PKCEMethodPlain,
 			wantStatus:          fiber.StatusBadRequest,
 			wantErrorCode:       cryptoutilSharedMagic.ErrorInvalidRequest,
@@ -171,8 +171,8 @@ func TestHandleAuthorizePOST_PKCE(t *testing.T) {
 				cryptoutilSharedMagic.ParamClientID:     []string{testClient.ClientID},
 				cryptoutilSharedMagic.ParamResponseType: []string{cryptoutilSharedMagic.ResponseTypeCode},
 				cryptoutilSharedMagic.ParamRedirectURI:  []string{testClient.RedirectURIs[0]},
-				cryptoutilSharedMagic.ParamScope:        []string{"openid profile"},
-				cryptoutilSharedMagic.ParamState:        []string{"test-state"},
+				cryptoutilSharedMagic.ParamScope:        []string{testOpenidProfile},
+				cryptoutilSharedMagic.ParamState:        []string{testTestState},
 			}
 
 			if tc.codeChallenge != "" {
@@ -183,7 +183,7 @@ func TestHandleAuthorizePOST_PKCE(t *testing.T) {
 				formBody.Set(cryptoutilSharedMagic.ParamCodeChallengeMethod, tc.codeChallengeMethod)
 			}
 
-			req := httptest.NewRequest("POST", "/oauth2/v1/authorize", strings.NewReader(formBody.Encode()))
+			req := httptest.NewRequest(testPost, testOauth2V1Authorize, strings.NewReader(formBody.Encode()))
 			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 			resp, err := app.Test(req, -1)
@@ -215,9 +215,9 @@ func TestHandleAuthorizeGET_ValidRequestCreatesAuthorizationRequest(t *testing.T
 		cryptoutilSharedMagic.ParamClientID:            []string{testClient.ClientID},
 		cryptoutilSharedMagic.ParamResponseType:        []string{cryptoutilSharedMagic.ResponseTypeCode},
 		cryptoutilSharedMagic.ParamRedirectURI:         []string{testClient.RedirectURIs[0]},
-		cryptoutilSharedMagic.ParamScope:               []string{"openid profile"},
-		cryptoutilSharedMagic.ParamState:               []string{"test-state"},
-		cryptoutilSharedMagic.ParamCodeChallenge:       []string{"E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM"},
+		cryptoutilSharedMagic.ParamScope:               []string{testOpenidProfile},
+		cryptoutilSharedMagic.ParamState:               []string{testTestState},
+		cryptoutilSharedMagic.ParamCodeChallenge:       []string{testE9Melhoa2OwvFrEmtjguChaoeK1t8UrwbuGjsstwCM},
 		cryptoutilSharedMagic.ParamCodeChallengeMethod: []string{cryptoutilSharedMagic.PKCEMethodS256},
 	}
 
@@ -247,7 +247,7 @@ func createAuthorizePKCETestConfig(t *testing.T) *cryptoutilIdentityConfig.Confi
 			DSN:  fmt.Sprintf("file:test_%s.db?mode=memory&cache=shared", testID),
 		},
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{
-			Issuer: "https://localhost:8080",
+			Issuer: testHTTPSLocalhost8080,
 		},
 	}
 }

@@ -138,7 +138,7 @@ func TestHashSecretPBKDF2_Error(t *testing.T) {
 		return "", injectedErr
 	}
 
-	_, err := hashSecretPBKDF2Internal("password123", stubPBKDF2Fn)
+	_, err := hashSecretPBKDF2Internal(testPassword123, stubPBKDF2Fn)
 
 	require.ErrorIs(t, err, injectedErr)
 }
@@ -151,7 +151,7 @@ func TestHashSecretPBKDF2WithParams_Error(t *testing.T) {
 		return "", injectedErr
 	}
 
-	_, err := hashSecretPBKDF2WithParamsInternal("password123", DefaultPBKDF2ParameterSet(), stubPBKDF2Fn)
+	_, err := hashSecretPBKDF2WithParamsInternal(testPassword123, DefaultPBKDF2ParameterSet(), stubPBKDF2Fn)
 
 	require.ErrorIs(t, err, injectedErr)
 }

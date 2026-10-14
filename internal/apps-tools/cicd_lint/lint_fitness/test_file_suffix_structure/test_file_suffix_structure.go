@@ -328,7 +328,7 @@ func checkInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string, readFile
 			return nil
 		}
 
-		if strings.HasSuffix(path, "_test.go") {
+		if strings.HasSuffix(path, valueTestGo) {
 			testFiles = append(testFiles, path)
 		}
 

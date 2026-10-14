@@ -17,7 +17,7 @@ func TestUnsealKeysServiceSharedSecrets_EncryptDecryptKey(t *testing.T) {
 	// Create shared secrets (5 secrets, choose 3)
 	const (
 		sharedSecretCount = 5
-		chooseN           = 3
+		chooseN           = test3
 		secretSize        = 32
 	)
 
@@ -61,7 +61,7 @@ func TestUnsealKeysServiceSharedSecrets_EncryptDecryptData(t *testing.T) {
 	// Create shared secrets (5 secrets, choose 3)
 	const (
 		sharedSecretCount = 5
-		chooseN           = 3
+		chooseN           = test3
 		secretSize        = 32
 	)
 
@@ -101,7 +101,7 @@ func TestUnsealKeysServiceSharedSecrets_Shutdown(t *testing.T) {
 
 	// Create shared secrets
 	const (
-		sharedSecretCount = 3
+		sharedSecretCount = test3
 		chooseN           = 2
 		secretSize        = 32
 	)
@@ -131,8 +131,8 @@ func TestUnsealKeysServiceSharedSecrets_DifferentChooseN(t *testing.T) {
 		secretCount int
 		chooseN     int
 	}{
-		{"2 of 3", 3, 2},
-		{"3 of cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries", cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries, 3},
+		{"2 of 3", test3, 2},
+		{"3 of cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries", cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries, test3},
 		{"4 of cryptoutilSharedMagic.DefaultEmailOTPLength", cryptoutilSharedMagic.DefaultEmailOTPLength, 4},
 	}
 
@@ -190,7 +190,7 @@ func TestUnsealKeysServiceSharedSecrets_DecryptInvalidData(t *testing.T) {
 
 	// Create shared secrets
 	const (
-		sharedSecretCount = 3
+		sharedSecretCount = test3
 		chooseN           = 2
 		secretSize        = 32
 	)
@@ -301,7 +301,7 @@ func TestUnsealKeysServiceSharedSecrets_DeterministicKeyDerivation(t *testing.T)
 
 	// Create shared secrets
 	const (
-		sharedSecretCount = 3
+		sharedSecretCount = test3
 		chooseN           = 2
 		secretSize        = 32
 	)

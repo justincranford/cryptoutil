@@ -50,7 +50,7 @@ func TestHandleRegisterUser_InvalidJSON(t *testing.T) {
 	app := fiber.New()
 	app.Post(cryptoutilSharedMagic.PathRegistration, handlers.HandleRegisterUser)
 
-	req := httptest.NewRequest("POST", cryptoutilSharedMagic.PathRegistration, bytes.NewReader([]byte("invalid json")))
+	req := httptest.NewRequest("POST", cryptoutilSharedMagic.PathRegistration, bytes.NewReader([]byte(testInvalidJsonValue9E1FF427)))
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := app.Test(req, -1)
@@ -144,7 +144,7 @@ func TestHandleProcessJoinRequest_InvalidJSON(t *testing.T) {
 
 	validID := googleUuid.New().String()
 
-	req := httptest.NewRequest("PUT", "/admin/join-requests/"+validID, bytes.NewReader([]byte("invalid json")))
+	req := httptest.NewRequest("PUT", "/admin/join-requests/"+validID, bytes.NewReader([]byte(testInvalidJsonValue9E1FF427)))
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := app.Test(req, -1)
@@ -170,9 +170,9 @@ func TestHandlersCoverageBooster(t *testing.T) {
 
 	// Test request/response types
 	req := RegisterUserRequest{
-		Username:     "testuser",
-		Email:        "test@example.com",
-		Password:     "password123",
+		Username:     testTestuser,
+		Email:        testTestExampleCom,
+		Password:     testPassword123,
 		TenantName:   cryptoutilSharedMagic.NAME_TEST_TENANT,
 		CreateTenant: true,
 	}
@@ -189,7 +189,7 @@ func TestHandlersCoverageBooster(t *testing.T) {
 		ID:          googleUuid.New().String(),
 		TenantID:    googleUuid.New().String(),
 		Status:      "pending",
-		RequestedAt: "2026-01-16T12:00:00Z",
+		RequestedAt: test20260116T120000Z,
 	}
 	require.NotEmpty(t, summary.ID)
 
@@ -203,9 +203,9 @@ func TestRegisterUserRequest_JSON(t *testing.T) {
 	t.Parallel()
 
 	req := RegisterUserRequest{
-		Username:     "testuser",
-		Email:        "test@example.com",
-		Password:     "password123",
+		Username:     testTestuser,
+		Email:        testTestExampleCom,
+		Password:     testPassword123,
 		TenantName:   cryptoutilSharedMagic.NAME_TEST_TENANT,
 		CreateTenant: true,
 	}
@@ -234,8 +234,8 @@ func TestHandleRegisterUser_TableDriven(t *testing.T) {
 		expectedError  bool
 	}{
 		{
-			name:           "Invalid JSON",
-			requestBody:    "invalid json",
+			name:           testInvalidJson,
+			requestBody:    testInvalidJsonValue9E1FF427,
 			expectedStatus: 400,
 			expectedError:  true,
 		},

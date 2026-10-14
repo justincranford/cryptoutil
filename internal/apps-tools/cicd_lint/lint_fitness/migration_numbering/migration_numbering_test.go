@@ -88,26 +88,26 @@ func TestCheckInDir(t *testing.T) {
 		files        []fileEntry
 		wantErr      string
 	}{
-		{name: "valid domain migrations", stubTemplate: true, files: []fileEntry{{dom, []string{"2001_init.up.sql", "2001_init.down.sql"}}}},
+		{name: "valid domain migrations", stubTemplate: true, files: []fileEntry{{dom, []string{test2001InitUpSQL, test2001InitDownSQL}}}},
 		{name: "valid template migrations", files: []fileEntry{{tpl, []string{"1001_sessions.up.sql", "1001_sessions.down.sql"}}}},
 		{name: "template at max boundary", files: []fileEntry{{tpl, []string{"1999_last.up.sql", "1999_last.down.sql"}}}},
 		{name: "empty migrations dir", stubTemplate: true, files: []fileEntry{{dom, nil}}},
 		{name: "archived dirs skipped", stubTemplate: true, files: []fileEntry{{archivedDir, []string{"0001_bad.up.sql"}}}},
 		{name: "multiple domain dirs", stubTemplate: true, files: []fileEntry{
-			{domainRelPath("product1", "svc1"), []string{"2001_init.up.sql", "2001_init.down.sql"}},
+			{domainRelPath("product1", "svc1"), []string{test2001InitUpSQL, test2001InitDownSQL}},
 			{domainRelPath("product2", "svc2"), []string{"2002_tables.up.sql", "2002_tables.down.sql"}},
 		}},
 		{name: "multiple versions", stubTemplate: true, files: []fileEntry{
-			{dom, []string{"2001_init.up.sql", "2001_init.down.sql", "2002_add_column.up.sql", "2002_add_column.down.sql"}},
+			{dom, []string{test2001InitUpSQL, test2001InitDownSQL, "2002_add_column.up.sql", "2002_add_column.down.sql"}},
 		}},
 		{name: "domain version below minimum", files: []fileEntry{{dom, []string{"0001_init.up.sql", "0001_init.down.sql"}}}, wantErr: "below minimum 2001"},
-		{name: "template version above maximum", files: []fileEntry{{tpl, []string{"2001_too_high.up.sql", "2001_too_high.down.sql"}}}, wantErr: "exceeds maximum 1999"},
-		{name: "missing down file", files: []fileEntry{{dom, []string{"2001_init.up.sql"}}}, wantErr: "missing .down.sql"},
-		{name: "missing up file", files: []fileEntry{{dom, []string{"2001_init.down.sql"}}}, wantErr: "missing .up.sql"},
+		{name: "template version above maximum", files: []fileEntry{{tpl, []string{"2001_too_high.up.sql", "2001_too_high.down.sql"}}}, wantErr: testExceedsMaximum1999},
+		{name: "missing down file", files: []fileEntry{{dom, []string{test2001InitUpSQL}}}, wantErr: "missing .down.sql"},
+		{name: "missing up file", files: []fileEntry{{dom, []string{test2001InitDownSQL}}}, wantErr: "missing .up.sql"},
 		{name: "invalid filename", files: []fileEntry{{dom, []string{"bad_file.sql"}}}, wantErr: "does not match migration naming pattern"},
-		{name: "no apps dir", wantErr: "internal/apps directory not found"},
+		{name: "no apps dir", wantErr: testInternalAppsDirectoryNotFound},
 		{name: "template below minimum", files: []fileEntry{{tpl, []string{"0500_too_low.up.sql", "0500_too_low.down.sql"}}}, wantErr: "below minimum 1001"},
-		{name: "template exceeds max", files: []fileEntry{{tpl, []string{"2500_above.up.sql", "2500_above.down.sql"}}}, wantErr: "exceeds maximum 1999"},
+		{name: "template exceeds max", files: []fileEntry{{tpl, []string{"2500_above.up.sql", "2500_above.down.sql"}}}, wantErr: testExceedsMaximum1999},
 	}
 
 	for _, tc := range tests {
@@ -122,7 +122,7 @@ func TestCheckInDir(t *testing.T) {
 			// Create internal/apps/ dir so findDomainMigrationDirs does not fail before
 			// the template or domain checks can return their violations — except for the
 			// "no apps dir" test case which explicitly exercises that error path.
-			if tc.wantErr != "internal/apps directory not found" {
+			if tc.wantErr != testInternalAppsDirectoryNotFound {
 				mkdirAll(t, filepath.Join(tmpDir, "internal", "apps"))
 			}
 
@@ -166,8 +166,8 @@ func TestCheckMigrationDir(t *testing.T) {
 				dir := filepath.Join(t.TempDir(), "migrations")
 				mkdirAll(t, dir)
 				mkdirAll(t, filepath.Join(dir, "subdir"))
-				writeSQL(t, dir, "2001_init.up.sql")
-				writeSQL(t, dir, "2001_init.down.sql")
+				writeSQL(t, dir, test2001InitUpSQL)
+				writeSQL(t, dir, test2001InitDownSQL)
 
 				return dir
 			},
@@ -225,7 +225,7 @@ func TestFindDomainMigrationDirs_NoAppsDir(t *testing.T) {
 
 	dirs, err := findDomainMigrationDirs(tmpDir, filepath.Join(tmpDir, tplRelPath()))
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "internal/apps directory not found")
+	require.Contains(t, err.Error(), testInternalAppsDirectoryNotFound)
 	require.Empty(t, dirs)
 }
 
@@ -240,8 +240,8 @@ func TestFindDomainMigrationDirs_LegacyExcluded(t *testing.T) {
 
 	dir := filepath.Join(tmpDir, domainRelPath("myservice"))
 	mkdirAll(t, dir)
-	writeSQL(t, dir, "2001_init.up.sql")
-	writeSQL(t, dir, "2001_init.down.sql")
+	writeSQL(t, dir, test2001InitUpSQL)
+	writeSQL(t, dir, test2001InitDownSQL)
 
 	dirs, err := findDomainMigrationDirs(tmpDir, filepath.Join(tmpDir, tplRelPath()))
 	require.NoError(t, err)
@@ -382,7 +382,7 @@ func TestMigrationNumberingOperations_ErrorPaths(t *testing.T) {
 				}
 				migrationsDir := filepath.Join(t.TempDir(), "migrations")
 				mkdirAll(t, migrationsDir)
-				writeSQL(t, migrationsDir, "2001_init.up.sql")
+				writeSQL(t, migrationsDir, test2001InitUpSQL)
 
 				errs := checkMigrationDirWithOperations(migrationsDir, domainMigrationMin, 0, false, operations)
 

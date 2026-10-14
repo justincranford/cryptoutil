@@ -96,9 +96,9 @@ func TestExtractRefsFromFile_MultipleOnSameLine(t *testing.T) {
 
 	require.Len(t, refs, 2)
 	require.Equal(t, "11-vision", refs[0].Anchor)
-	require.Equal(t, "A", refs[0].DisplayText)
+	require.Equal(t, testA, refs[0].DisplayText)
 	require.Equal(t, "12-key-chars", refs[1].Anchor)
-	require.Equal(t, "B", refs[1].DisplayText)
+	require.Equal(t, testB, refs[1].DisplayText)
 }
 
 func TestExtractRefsFromFile_NoRefs(t *testing.T) {
@@ -171,7 +171,7 @@ func TestTruncateRef(t *testing.T) {
 		input    string
 		expected string
 	}{
-		{name: "short line", input: "short", expected: "short"},
+		{name: "short line", input: testShort, expected: testShort},
 		{name: "exact cryptoutilSharedMagic.CertificateRandomizationNotBeforeMinutes", input: strings.Repeat("a", cryptoutilSharedMagic.CertificateRandomizationNotBeforeMinutes), expected: strings.Repeat("a", cryptoutilSharedMagic.CertificateRandomizationNotBeforeMinutes)},
 		{name: "over cryptoutilSharedMagic.CertificateRandomizationNotBeforeMinutes", input: strings.Repeat("b", 130), expected: strings.Repeat("b", cryptoutilSharedMagic.CertificateRandomizationNotBeforeMinutes) + "..."},
 		{name: "with leading spaces", input: "  trimmed  ", expected: "trimmed"},
@@ -267,7 +267,7 @@ See [ENG-HANDBOOK.md Section 1.1.1](../../docs/ENG-HANDBOOK.md#111-deep-section)
 	require.NoError(t, err)
 
 	// All 3 references should be valid.
-	require.Len(t, result.ValidRefs, 3)
+	require.Len(t, result.ValidRefs, toAppendixMatchGroups)
 	require.Empty(t, result.BrokenRefs)
 
 	// ## level: 1 total, 1 referenced (kills HighImpact.Total++/Referenced++ mutations).
@@ -377,7 +377,7 @@ func TestFormatPropagationResults_AllValid(t *testing.T) {
 		BrokenRefs:   nil,
 		OrphanedKeys: nil,
 		TotalAnchors: cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
-		HighImpact:   LevelCoverage{Total: 3, Referenced: 3},
+		HighImpact:   LevelCoverage{Total: toAppendixMatchGroups, Referenced: toAppendixMatchGroups},
 		MediumImpact: LevelCoverage{Total: cryptoutilSharedMagic.GitRecentActivityDays, Referenced: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries},
 		LowImpact:    LevelCoverage{Total: cryptoutilSharedMagic.JoseJADefaultMaxMaterials, Referenced: 2},
 	}
@@ -400,7 +400,7 @@ func TestFormatPropagationResults_WithBroken(t *testing.T) {
 	t.Parallel()
 
 	result := &PropagationResult{
-		ValidRefs:    []PropagationRef{{Anchor: "valid"}},
+		ValidRefs:    []PropagationRef{{Anchor: testValid}},
 		BrokenRefs:   []PropagationRef{{SourceFile: "test.md", LineNumber: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries, Anchor: "broken"}},
 		OrphanedKeys: []string{"orphan1"},
 		TotalAnchors: cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
@@ -422,10 +422,10 @@ func TestFormatPropagationResults_DisplayTextWarnings(t *testing.T) {
 	t.Parallel()
 
 	result := &PropagationResult{
-		ValidRefs:    []PropagationRef{{Anchor: "valid"}},
+		ValidRefs:    []PropagationRef{{Anchor: testValid}},
 		TotalAnchors: 1,
 		DisplayTextWarnings: []DisplayTextWarning{
-			{SourceFile: "file.md", LineNumber: 3, Anchor: "134-docs", DisplayNumber: "12.7", HeadingNumber: "13.4"},
+			{SourceFile: testFileMd, LineNumber: toAppendixMatchGroups, Anchor: "134-docs", DisplayNumber: "12.7", HeadingNumber: "13.4"},
 		},
 	}
 
@@ -443,11 +443,11 @@ func TestFormatLevelCoverage(t *testing.T) {
 		lc       LevelCoverage
 		expected string
 	}{
-		{name: "zero total", label: "Test", lc: LevelCoverage{Total: 0, Referenced: 0}, expected: "Test: 0/0 (N/A)\n"},
-		{name: "full coverage", label: "High", lc: LevelCoverage{Total: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries, Referenced: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries}, expected: "High: 5/5 (100%)\n"},
-		{name: "partial coverage", label: "Med", lc: LevelCoverage{Total: cryptoutilSharedMagic.JoseJADefaultMaxMaterials, Referenced: 3}, expected: "Med: 3/10 (30%)\n"},
+		{name: testZeroTotal, label: "Test", lc: LevelCoverage{Total: 0, Referenced: 0}, expected: "Test: 0/0 (N/A)\n"},
+		{name: testFullCoverage, label: "High", lc: LevelCoverage{Total: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries, Referenced: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries}, expected: "High: 5/5 (100%)\n"},
+		{name: "partial coverage", label: "Med", lc: LevelCoverage{Total: cryptoutilSharedMagic.JoseJADefaultMaxMaterials, Referenced: toAppendixMatchGroups}, expected: "Med: 3/10 (30%)\n"},
 		{name: "no coverage", label: "Low", lc: LevelCoverage{Total: cryptoutilSharedMagic.IMMinPasswordLength, Referenced: 0}, expected: "Low: 0/8 (0%)\n"},
-		{name: "integer truncation", label: "X", lc: LevelCoverage{Total: 3, Referenced: 1}, expected: "X: 1/3 (33%)\n"},
+		{name: "integer truncation", label: "X", lc: LevelCoverage{Total: toAppendixMatchGroups, Referenced: 1}, expected: "X: 1/3 (33%)\n"},
 	}
 
 	for _, tc := range tests {

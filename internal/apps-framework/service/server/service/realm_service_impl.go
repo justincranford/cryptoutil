@@ -37,7 +37,7 @@ func (c *JWESessionTokenConfig) GetType() RealmType {
 // Validate validates the configuration.
 func (c *JWESessionTokenConfig) Validate() error {
 	if c.TokenExpiryMinutes < 1 {
-		return fmt.Errorf("token_expiry_minutes must be at least 1")
+		return errors.New(valueTokenExpiryMinutesMustBeAtLeast1)
 	}
 
 	return nil
@@ -57,7 +57,7 @@ func (c *JWSSessionTokenConfig) GetType() RealmType {
 // Validate validates the configuration.
 func (c *JWSSessionTokenConfig) Validate() error {
 	if c.TokenExpiryMinutes < 1 {
-		return fmt.Errorf("token_expiry_minutes must be at least 1")
+		return errors.New(valueTokenExpiryMinutesMustBeAtLeast1)
 	}
 
 	return nil
@@ -82,7 +82,7 @@ func (c *OpaqueSessionTokenConfig) Validate() error {
 	}
 
 	if c.TokenExpiryMinutes < 1 {
-		return fmt.Errorf("token_expiry_minutes must be at least 1")
+		return errors.New(valueTokenExpiryMinutesMustBeAtLeast1)
 	}
 
 	if c.StorageType != cryptoutilSharedMagic.RealmStorageTypeDatabase && c.StorageType != cryptoutilSharedMagic.RealmStorageTypeRedis {

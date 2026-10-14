@@ -28,13 +28,13 @@ func TestClassifyFileType(t *testing.T) {
 		{name: "compose yaml", filename: cryptoutilSharedMagic.COMPOSE_YML, want: fileTypeCompose},
 		{name: "compose yaml variant", filename: "compose-cryptoutil.yml", want: fileTypeCompose},
 		{name: "compose yaml extension", filename: cryptoutilSharedMagic.COMPOSE_YAML, want: fileTypeCompose},
-		{name: "secret file", filename: "postgres_password.secret", want: fileTypeSecret},
-		{name: "never file", filename: "postgres_url.secret.never", want: fileTypeSecret},
-		{name: "dockerfile", filename: "Dockerfile", want: fileTypeDocker},
+		{name: testSecretFile, filename: valuePostgresPasswordSecret, want: fileTypeSecret},
+		{name: testNeverFile, filename: "postgres_url.secret.never", want: fileTypeSecret},
+		{name: valueDockerfile, filename: "Dockerfile", want: fileTypeDocker},
 		{name: "config yaml", filename: "sm-kms-app-common.yml", want: fileTypeConfig},
 		{name: "config yaml alt", filename: testSMKMSConfigSchemaFilename, want: fileTypeConfig},
 		{name: "sql file", filename: "init-db.sql", want: fileTypeSQL},
-		{name: "markdown", filename: "README.md", want: fileTypeDoc},
+		{name: testMarkdown, filename: valueReadmeMd, want: fileTypeDoc},
 		{name: "json file", filename: "listings.json", want: fileTypeJSON},
 		{name: "other file", filename: "something.txt", want: fileTypeOther},
 		{name: "no extension", filename: "Makefile", want: fileTypeOther},
@@ -59,10 +59,10 @@ func TestClassifyFileStatus(t *testing.T) {
 		want    string
 	}{
 		{name: "compose file", relPath: "service/compose.yml", want: RequiredFileStatus},
-		{name: "secret file", relPath: "service/secrets/db.secret", want: RequiredFileStatus},
-		{name: "dockerfile", relPath: "service/Dockerfile", want: RequiredFileStatus},
-		{name: "never file", relPath: "service/secrets/db.secret.never", want: RequiredFileStatus},
-		{name: "markdown", relPath: "service/README.md", want: OptionalFileStatus},
+		{name: testSecretFile, relPath: "service/secrets/db.secret", want: RequiredFileStatus},
+		{name: valueDockerfile, relPath: "service/Dockerfile", want: RequiredFileStatus},
+		{name: testNeverFile, relPath: "service/secrets/db.secret.never", want: RequiredFileStatus},
+		{name: testMarkdown, relPath: "service/README.md", want: OptionalFileStatus},
 		{name: "config file", relPath: "service/config/app.yml", want: OptionalFileStatus},
 	}
 
@@ -86,7 +86,7 @@ func TestGenerateDirectoryListing(t *testing.T) {
 		require.Error(t, err, "expected error for nonexistent directory")
 	})
 
-	t.Run("empty directory", func(t *testing.T) {
+	t.Run(testEmptyDirectory, func(t *testing.T) {
 		t.Parallel()
 
 		tmpDir := t.TempDir()
@@ -105,9 +105,9 @@ func TestGenerateDirectoryListing(t *testing.T) {
 		// Create test files.
 		createTestFile(t, tmpDir, cryptoutilSharedMagic.COMPOSE_YML, "")
 		createTestFile(t, tmpDir, "Dockerfile", "")
-		createTestDir(t, tmpDir, "secrets")
+		createTestDir(t, tmpDir, validatorNameSecrets)
 		createTestFile(t, tmpDir, "secrets/db.secret", "")
-		createTestDir(t, tmpDir, "config")
+		createTestDir(t, tmpDir, fileTypeConfig)
 		createTestFile(t, tmpDir, "config/app.yml", "")
 
 		listing, err := GenerateDirectoryListing(tmpDir)
@@ -168,7 +168,7 @@ func TestGenerateDeploymentsListing(t *testing.T) {
 
 		tmpDir := t.TempDir()
 		createTestFile(t, tmpDir, cryptoutilSharedMagic.COMPOSE_YML, "")
-		createTestDir(t, tmpDir, "secrets")
+		createTestDir(t, tmpDir, validatorNameSecrets)
 		createTestFile(t, tmpDir, "secrets/db.secret", "")
 
 		data, err := GenerateDeploymentsListing(tmpDir)
@@ -196,7 +196,7 @@ func TestGenerateConfigsListing(t *testing.T) {
 		t.Parallel()
 
 		tmpDir := t.TempDir()
-		createTestFile(t, tmpDir, "app.yml", "")
+		createTestFile(t, tmpDir, testAppYml, "")
 
 		data, err := GenerateConfigsListing(tmpDir)
 		require.NoError(t, err)
@@ -228,8 +228,8 @@ func TestMarshalListing(t *testing.T) {
 		t.Parallel()
 
 		listing := DirectoryListing{
-			"z/file.yml":    {Type: "config", Status: OptionalFileStatus},
-			"a/file.yml":    {Type: "config", Status: OptionalFileStatus},
+			"z/file.yml":    {Type: fileTypeConfig, Status: OptionalFileStatus},
+			"a/file.yml":    {Type: fileTypeConfig, Status: OptionalFileStatus},
 			"m/compose.yml": {Type: "compose", Status: RequiredFileStatus},
 		}
 
@@ -332,7 +332,7 @@ func TestWriteListingFile_WriteError(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	// Create a valid input dir with a file.
-	createTestFile(t, tmpDir, "test.yml", "content")
+	createTestFile(t, tmpDir, testTestYml, "content")
 
 	// Use a directory path that doesn't exist for output.
 	badOutput := filepath.Join("/nonexistent-dir-xyz", "output.json")

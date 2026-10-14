@@ -23,7 +23,7 @@ func TestAuthenticator_VerifyPasswordErrors(t *testing.T) {
 		Realms: []RealmConfig{
 			{
 				ID:      testRealmID1,
-				Name:    "test-realm",
+				Name:    testTestRealm,
 				Type:    RealmTypeFile,
 				Enabled: true,
 			},

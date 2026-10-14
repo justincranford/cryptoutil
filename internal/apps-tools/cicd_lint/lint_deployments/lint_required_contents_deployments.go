@@ -41,8 +41,8 @@ func GetDeploymentDirectories() (suite []string, product []string, productServic
 
 	// Infrastructure deployments (shared resources)
 	infrastructure = []string{
-		"shared-postgres",  // PostgreSQL leader/follower infrastructure
-		"shared-telemetry", // Telemetry infrastructure
+		postgresSharedDirName, // PostgreSQL leader/follower infrastructure
+		valueSharedTelemetry,  // Telemetry infrastructure
 	}
 
 	// Template deployment (for creating new services)
@@ -96,8 +96,8 @@ func GetExpectedDeploymentsContents() map[string]string {
 	addProductServiceFiles(&contents, cryptoutilSharedMagic.OTLPServiceSkeletonTemplate)
 
 	// Infrastructure deployments
-	addInfrastructureFiles(&contents, "shared-postgres")
-	addInfrastructureFiles(&contents, "shared-telemetry")
+	addInfrastructureFiles(&contents, postgresSharedDirName)
+	addInfrastructureFiles(&contents, valueSharedTelemetry)
 
 	// Template deployment
 	addTemplateFiles(&contents)
@@ -178,7 +178,7 @@ func addInfrastructureFiles(contents *map[string]string, infraName string) {
 	(*contents)[infraName+"/compose.yml"] = RequiredFileStatus
 
 	// Optional files for specific infrastructure types
-	if infraName == "shared-postgres" {
+	if infraName == postgresSharedDirName {
 		(*contents)[infraName+"/init-db.sql"] = OptionalFileStatus
 	}
 }

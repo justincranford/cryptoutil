@@ -26,10 +26,10 @@ func TestSessionManager_JWS_Issue_Validate(t *testing.T) {
 		isBrowser bool
 		jwsAlg    string
 	}{
-		{"Browser_RS256", true, cryptoutilSharedMagic.SessionJWSAlgorithmRS256},
-		{"Browser_ES256", true, cryptoutilSharedMagic.SessionJWSAlgorithmES256},
-		{"Browser_EdDSA", true, cryptoutilSharedMagic.SessionJWSAlgorithmEdDSA},
-		{"Service_RS256", false, cryptoutilSharedMagic.SessionJWSAlgorithmRS256},
+		{testBrowserRs256, true, cryptoutilSharedMagic.SessionJWSAlgorithmRS256},
+		{testBrowserEs256, true, cryptoutilSharedMagic.SessionJWSAlgorithmES256},
+		{testBrowserEdDsa, true, cryptoutilSharedMagic.SessionJWSAlgorithmEdDSA},
+		{testServiceRs256, false, cryptoutilSharedMagic.SessionJWSAlgorithmRS256},
 	}
 
 	for _, tt := range tests {
@@ -97,9 +97,9 @@ func TestSessionManager_JWE_Issue_Validate(t *testing.T) {
 		isBrowser bool
 		jweAlg    string
 	}{
-		{"Browser_DirA256GCM", true, cryptoutilSharedMagic.SessionJWEAlgorithmDirA256GCM},
+		{testBrowserDirA256GCM, true, cryptoutilSharedMagic.SessionJWEAlgorithmDirA256GCM},
 		{"Browser_A256GCMKW", true, cryptoutilSharedMagic.SessionJWEAlgorithmA256GCMKWA256GCM},
-		{"Service_DirA256GCM", false, cryptoutilSharedMagic.SessionJWEAlgorithmDirA256GCM},
+		{testServiceDirA256GCM, false, cryptoutilSharedMagic.SessionJWEAlgorithmDirA256GCM},
 	}
 
 	for _, tt := range tests {

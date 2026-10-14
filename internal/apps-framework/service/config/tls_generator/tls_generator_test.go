@@ -73,7 +73,7 @@ func TestMain(m *testing.M) {
 		testServerKeyPair,
 		"Test Server",
 		duration,
-		[]string{cryptoutilSharedMagic.DefaultOTLPHostnameDefault, "test-server"},
+		[]string{cryptoutilSharedMagic.DefaultOTLPHostnameDefault, testTestServer},
 		nil,
 		nil,
 		nil,
@@ -206,7 +206,7 @@ func TestGenerateTLSMaterialStatic_HappyPath(t *testing.T) {
 		serverKeyPair,
 		"Test Server",
 		duration,
-		[]string{cryptoutilSharedMagic.DefaultOTLPHostnameDefault, "test-server"},
+		[]string{cryptoutilSharedMagic.DefaultOTLPHostnameDefault, testTestServer},
 		nil,
 		nil,
 		nil,
@@ -262,7 +262,7 @@ func TestGenerateTLSMaterialStatic_HappyPath(t *testing.T) {
 
 	// Verify DNS names.
 	require.Contains(t, tlsCert.Leaf.DNSNames, cryptoutilSharedMagic.DefaultOTLPHostnameDefault)
-	require.Contains(t, tlsCert.Leaf.DNSNames, "test-server")
+	require.Contains(t, tlsCert.Leaf.DNSNames, testTestServer)
 
 	// Verify certificate pools populated.
 	// (x509.CertPool doesn't expose subjects method for verification, but we validated chain parsing above)

@@ -131,7 +131,7 @@ func createMiddlewareTestConfig(t *testing.T) *cryptoutilIdentityConfig.Config {
 
 	return &cryptoutilIdentityConfig.Config{
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{
-			Issuer: "https://identity.example.com",
+			Issuer: testHTTPSIdentityExampleCom,
 		},
 	}
 }
@@ -143,7 +143,7 @@ func createMiddlewareTestRepoFactory(t *testing.T) *cryptoutilIdentityRepository
 
 	dbConfig := &cryptoutilIdentityConfig.DatabaseConfig{
 		Type:        cryptoutilSharedMagic.TestDatabaseSQLite,
-		DSN:         "file::memory:?cache=private",
+		DSN:         testFileMemoryCachePrivate,
 		AutoMigrate: true, // Enable auto-migration for tests
 	}
 

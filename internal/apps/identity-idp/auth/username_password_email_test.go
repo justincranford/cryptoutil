@@ -53,13 +53,13 @@ func TestEmailPasswordProfile_AuthenticateMissingEmail(t *testing.T) {
 	profile := cryptoutilIdentityAuth.NewEmailPasswordProfile(userRepo)
 
 	credentials := map[string]string{
-		"password": "SecurePassword123!",
+		testPasswordValue5E884898: testSecurePassword123,
 	}
 
 	user, err := profile.Authenticate(ctx, credentials)
 	require.Error(t, err, "Authenticate should fail with missing email")
 	require.Nil(t, user, "User should be nil on error")
-	require.Contains(t, err.Error(), "missing email", "Error should indicate missing email")
+	require.Contains(t, err.Error(), testMissingEmail, "Error should indicate missing email")
 }
 
 // TestEmailPasswordProfile_AuthenticateMissingPassword tests missing password.
@@ -71,13 +71,13 @@ func TestEmailPasswordProfile_AuthenticateMissingPassword(t *testing.T) {
 	profile := cryptoutilIdentityAuth.NewEmailPasswordProfile(userRepo)
 
 	credentials := map[string]string{
-		cryptoutilSharedMagic.ClaimEmail: "test@example.com",
+		cryptoutilSharedMagic.ClaimEmail: testTestExampleCom,
 	}
 
 	user, err := profile.Authenticate(ctx, credentials)
 	require.Error(t, err, "Authenticate should fail with missing password")
 	require.Nil(t, user, "User should be nil on error")
-	require.Contains(t, err.Error(), "missing password", "Error should indicate missing password")
+	require.Contains(t, err.Error(), testMissingPassword, "Error should indicate missing password")
 }
 
 // TestEmailPasswordProfile_AuthenticateUserNotFound tests user lookup failure.
@@ -90,7 +90,7 @@ func TestEmailPasswordProfile_AuthenticateUserNotFound(t *testing.T) {
 
 	credentials := map[string]string{
 		cryptoutilSharedMagic.ClaimEmail: "nonexistent@example.com",
-		"password":                       "SecurePassword123!",
+		testPasswordValue5E884898:        testSecurePassword123,
 	}
 
 	user, err := profile.Authenticate(ctx, credentials)
@@ -114,8 +114,8 @@ func TestEmailPasswordProfile_AuthenticateInvalidPassword(t *testing.T) {
 
 	testUser := &cryptoutilIdentityDomain.User{
 		Sub:               googleUuid.NewString(),
-		Email:             "testuser@example.com",
-		PreferredUsername: "testuser",
+		Email:             testTestuserExampleCom,
+		PreferredUsername: testTestuser,
 		PasswordHash:      passwordHash,
 	}
 	userRepo.AddUser(testUser)
@@ -123,8 +123,8 @@ func TestEmailPasswordProfile_AuthenticateInvalidPassword(t *testing.T) {
 	profile := cryptoutilIdentityAuth.NewEmailPasswordProfile(userRepo)
 
 	credentials := map[string]string{
-		cryptoutilSharedMagic.ClaimEmail: "testuser@example.com",
-		"password":                       "WrongPassword456!",
+		cryptoutilSharedMagic.ClaimEmail: testTestuserExampleCom,
+		testPasswordValue5E884898:        "WrongPassword456!",
 	}
 
 	user, err := profile.Authenticate(ctx, credentials)
@@ -148,8 +148,8 @@ func TestEmailPasswordProfile_AuthenticateSuccess(t *testing.T) {
 
 	testUser := &cryptoutilIdentityDomain.User{
 		Sub:               googleUuid.NewString(),
-		Email:             "testuser@example.com",
-		PreferredUsername: "testuser",
+		Email:             testTestuserExampleCom,
+		PreferredUsername: testTestuser,
 		PasswordHash:      passwordHash,
 	}
 	userRepo.AddUser(testUser)
@@ -157,8 +157,8 @@ func TestEmailPasswordProfile_AuthenticateSuccess(t *testing.T) {
 	profile := cryptoutilIdentityAuth.NewEmailPasswordProfile(userRepo)
 
 	credentials := map[string]string{
-		cryptoutilSharedMagic.ClaimEmail: "testuser@example.com",
-		"password":                       correctPassword,
+		cryptoutilSharedMagic.ClaimEmail: testTestuserExampleCom,
+		testPasswordValue5E884898:        correctPassword,
 	}
 
 	user, err := profile.Authenticate(ctx, credentials)
@@ -182,33 +182,33 @@ func TestEmailPasswordProfile_ValidateCredentials(t *testing.T) {
 		errSubstr string
 	}{
 		{
-			name:    "valid credentials",
-			creds:   map[string]string{cryptoutilSharedMagic.ClaimEmail: "test@example.com", "password": "pwd123"},
+			name:    testValidCredentials,
+			creds:   map[string]string{cryptoutilSharedMagic.ClaimEmail: testTestExampleCom, testPasswordValue5E884898: testPwd123},
 			wantErr: false,
 		},
 		{
-			name:      "missing email",
-			creds:     map[string]string{"password": "pwd123"},
+			name:      testMissingEmail,
+			creds:     map[string]string{testPasswordValue5E884898: testPwd123},
 			wantErr:   true,
-			errSubstr: "missing email",
+			errSubstr: testMissingEmail,
 		},
 		{
-			name:      "missing password",
-			creds:     map[string]string{cryptoutilSharedMagic.ClaimEmail: "test@example.com"},
+			name:      testMissingPassword,
+			creds:     map[string]string{cryptoutilSharedMagic.ClaimEmail: testTestExampleCom},
 			wantErr:   true,
-			errSubstr: "missing password",
+			errSubstr: testMissingPassword,
 		},
 		{
 			name:      "empty email",
-			creds:     map[string]string{cryptoutilSharedMagic.ClaimEmail: "", "password": "pwd123"},
+			creds:     map[string]string{cryptoutilSharedMagic.ClaimEmail: "", testPasswordValue5E884898: testPwd123},
 			wantErr:   true,
-			errSubstr: "missing email",
+			errSubstr: testMissingEmail,
 		},
 		{
-			name:      "empty password",
-			creds:     map[string]string{cryptoutilSharedMagic.ClaimEmail: "test@example.com", "password": ""},
+			name:      testEmptyPassword,
+			creds:     map[string]string{cryptoutilSharedMagic.ClaimEmail: testTestExampleCom, testPasswordValue5E884898: ""},
 			wantErr:   true,
-			errSubstr: "missing password",
+			errSubstr: testMissingPassword,
 		},
 	}
 

@@ -199,5 +199,5 @@ func maskIPAddress(ip string) string {
 		return ip[:lastDot+1] + "xxx"
 	}
 
-	return "xxx.xxx.xxx.xxx" // Fallback if no dots found
+	return valueXxxXxxXxxXxx // Fallback if no dots found
 }

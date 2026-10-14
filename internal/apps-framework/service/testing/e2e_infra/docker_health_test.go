@@ -23,19 +23,19 @@ func TestParseDockerComposePsOutput_ValidJSON(t *testing.T) {
 	// Check cryptoutil-sqlite
 	sqliteService, exists := serviceMap[cryptoutilSharedMagic.DockerServiceCryptoutilSqlite]
 	require.True(t, exists)
-	require.Equal(t, "compose-cryptoutil-sqlite-1", sqliteService["Name"])
-	require.Equal(t, cryptoutilSharedMagic.DockerServiceStateRunning, sqliteService["State"])
+	require.Equal(t, testComposeCryptoutilSqlite1, sqliteService[valueName])
+	require.Equal(t, cryptoutilSharedMagic.DockerServiceStateRunning, sqliteService[valueState])
 
 	// Check postgres
 	postgresService, exists := serviceMap[cryptoutilSharedMagic.DockerServicePostgres]
 	require.True(t, exists)
-	require.Equal(t, "compose-postgres-1", postgresService["Name"])
-	require.Equal(t, cryptoutilSharedMagic.DockerServiceHealthHealthy, postgresService["Health"])
+	require.Equal(t, "compose-postgres-1", postgresService[valueName])
+	require.Equal(t, cryptoutilSharedMagic.DockerServiceHealthHealthy, postgresService[valueHealth])
 
 	// Check healthcheck job
 	healthcheckJob, exists := serviceMap[cryptoutilSharedMagic.DockerJobHealthcheckSecrets]
 	require.True(t, exists)
-	require.Equal(t, cryptoutilSharedMagic.DockerServiceStateExited, healthcheckJob["State"])
+	require.Equal(t, cryptoutilSharedMagic.DockerServiceStateExited, healthcheckJob[valueState])
 }
 
 func TestParseDockerComposePsOutput_EmptyInput(t *testing.T) {
@@ -67,14 +67,14 @@ func TestDetermineServiceHealthStatus_JobOnly(t *testing.T) {
 	// Use case 1: Job-only (standalone job that must exit successfully)
 	serviceMap := map[string]map[string]any{
 		cryptoutilSharedMagic.DockerJobHealthcheckSecrets: {
-			"Name":     "compose-healthcheck-secrets-1",
-			"State":    cryptoutilSharedMagic.DockerServiceStateExited,
-			"ExitCode": float64(0),
+			valueName:     testComposeHealthcheckSecrets1,
+			valueState:    cryptoutilSharedMagic.DockerServiceStateExited,
+			valueExitCode: float64(0),
 		},
 		builderJobName: {
-			"Name":     "compose-builder-sm-kms-1",
-			"State":    cryptoutilSharedMagic.DockerServiceStateExited,
-			"ExitCode": float64(1), // Failed job
+			valueName:     "compose-builder-sm-kms-1",
+			valueState:    cryptoutilSharedMagic.DockerServiceStateExited,
+			valueExitCode: float64(1), // Failed job
 		},
 	}
 
@@ -95,18 +95,18 @@ func TestDetermineServiceHealthStatus_ServiceOnly(t *testing.T) {
 	// Use case 2: Service-only (service with native healthcheck)
 	serviceMap := map[string]map[string]any{
 		cryptoutilSharedMagic.DockerServiceCryptoutilSqlite: {
-			"Name":   "compose-cryptoutil-sqlite-1",
-			"State":  cryptoutilSharedMagic.DockerServiceStateRunning,
-			"Health": cryptoutilSharedMagic.DockerServiceHealthHealthy,
+			valueName:   testComposeCryptoutilSqlite1,
+			valueState:  cryptoutilSharedMagic.DockerServiceStateRunning,
+			valueHealth: cryptoutilSharedMagic.DockerServiceHealthHealthy,
 		},
 		cryptoutilSharedMagic.DockerServicePostgres: {
-			"Name":   "compose-postgres-1",
-			"State":  cryptoutilSharedMagic.DockerServiceStateRunning,
-			"Health": "unhealthy",
+			valueName:   "compose-postgres-1",
+			valueState:  cryptoutilSharedMagic.DockerServiceStateRunning,
+			valueHealth: "unhealthy",
 		},
 		cryptoutilSharedMagic.DockerServiceCryptoutilPostgres1: {
-			"Name":  "compose-cryptoutil-postgres-1-1",
-			"State": cryptoutilSharedMagic.DockerServiceStateRunning,
+			valueName:  "compose-cryptoutil-postgres-1-1",
+			valueState: cryptoutilSharedMagic.DockerServiceStateRunning,
 			// No Health field - should check State only
 		},
 	}
@@ -130,14 +130,14 @@ func TestDetermineServiceHealthStatus_ServiceWithJob(t *testing.T) {
 	// Use case 3: Service with healthcheck job (external job verifies service)
 	serviceMap := map[string]map[string]any{
 		cryptoutilSharedMagic.DockerServiceOtelCollector: {
-			"Name":  "compose-opentelemetry-collector-contrib-1",
-			"State": cryptoutilSharedMagic.DockerServiceStateRunning,
+			valueName:  testComposeOpentelemetryCollectorContrib1,
+			valueState: cryptoutilSharedMagic.DockerServiceStateRunning,
 			// No native healthcheck
 		},
 		cryptoutilSharedMagic.DockerJobHealthcheckOtelCollectorContrib: {
-			"Name":     "compose-healthcheck-opentelemetry-collector-contrib-1",
-			"State":    cryptoutilSharedMagic.DockerServiceStateExited,
-			"ExitCode": float64(0),
+			valueName:     testComposeHealthcheckOpentelemetryCollectorContrib1,
+			valueState:    cryptoutilSharedMagic.DockerServiceStateExited,
+			valueExitCode: float64(0),
 		},
 	}
 
@@ -156,9 +156,9 @@ func TestDetermineServiceHealthStatus_ServiceNotFound(t *testing.T) {
 
 	serviceMap := map[string]map[string]any{
 		cryptoutilSharedMagic.DockerServiceCryptoutilSqlite: {
-			"Name":   "compose-cryptoutil-sqlite-1",
-			"State":  cryptoutilSharedMagic.DockerServiceStateRunning,
-			"Health": cryptoutilSharedMagic.DockerServiceHealthHealthy,
+			valueName:   testComposeCryptoutilSqlite1,
+			valueState:  cryptoutilSharedMagic.DockerServiceStateRunning,
+			valueHealth: cryptoutilSharedMagic.DockerServiceHealthHealthy,
 		},
 	}
 
@@ -177,23 +177,23 @@ func TestDetermineServiceHealthStatus_MixedUseCases(t *testing.T) {
 	// Test all three use cases together
 	serviceMap := map[string]map[string]any{
 		cryptoutilSharedMagic.DockerJobHealthcheckSecrets: {
-			"Name":     "compose-healthcheck-secrets-1",
-			"State":    cryptoutilSharedMagic.DockerServiceStateExited,
-			"ExitCode": float64(0),
+			valueName:     testComposeHealthcheckSecrets1,
+			valueState:    cryptoutilSharedMagic.DockerServiceStateExited,
+			valueExitCode: float64(0),
 		},
 		cryptoutilSharedMagic.DockerServiceCryptoutilSqlite: {
-			"Name":   "compose-cryptoutil-sqlite-1",
-			"State":  cryptoutilSharedMagic.DockerServiceStateRunning,
-			"Health": cryptoutilSharedMagic.DockerServiceHealthHealthy,
+			valueName:   testComposeCryptoutilSqlite1,
+			valueState:  cryptoutilSharedMagic.DockerServiceStateRunning,
+			valueHealth: cryptoutilSharedMagic.DockerServiceHealthHealthy,
 		},
 		cryptoutilSharedMagic.DockerServiceOtelCollector: {
-			"Name":  "compose-opentelemetry-collector-contrib-1",
-			"State": cryptoutilSharedMagic.DockerServiceStateRunning,
+			valueName:  testComposeOpentelemetryCollectorContrib1,
+			valueState: cryptoutilSharedMagic.DockerServiceStateRunning,
 		},
 		cryptoutilSharedMagic.DockerJobHealthcheckOtelCollectorContrib: {
-			"Name":     "compose-healthcheck-opentelemetry-collector-contrib-1",
-			"State":    cryptoutilSharedMagic.DockerServiceStateExited,
-			"ExitCode": float64(0),
+			valueName:     testComposeHealthcheckOpentelemetryCollectorContrib1,
+			valueState:    cryptoutilSharedMagic.DockerServiceStateExited,
+			valueExitCode: float64(0),
 		},
 	}
 

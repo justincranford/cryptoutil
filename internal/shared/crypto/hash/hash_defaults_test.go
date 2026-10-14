@@ -20,7 +20,7 @@ func TestHashLowEntropyNonDeterministic(t *testing.T) {
 	}{
 		{
 			name:   "simple_password",
-			secret: "password123",
+			secret: testPassword123,
 		},
 		{
 			name:   "short_password",
@@ -108,7 +108,7 @@ func TestHashSecretPBKDF2(t *testing.T) {
 			require.Equal(t, "600000", parts[2], "iterations should be 600000")
 
 			// Salt and derived key should be base64-encoded
-			require.NotEmpty(t, parts[3], "salt should not be empty")
+			require.NotEmpty(t, parts[value3], "salt should not be empty")
 			require.NotEmpty(t, parts[4], "derived key should not be empty")
 		})
 	}
@@ -149,7 +149,7 @@ func TestPBKDF2ParameterSetVariants(t *testing.T) {
 
 		params := PBKDF2SHA384ParameterSetV3()
 		require.NotNil(t, params)
-		require.Equal(t, "3", params.Version)
+		require.Equal(t, value3Value4E074085, params.Version)
 		require.Equal(t, cryptoutilSharedMagic.PBKDF2SHA384HashName, params.HashName)
 		require.Equal(t, cryptoutilSharedMagic.JoseJADefaultListLimit, params.Iterations)
 		require.Equal(t, cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes, params.SaltLength)
@@ -188,7 +188,7 @@ func TestPBKDF2ParameterSetVariants(t *testing.T) {
 
 		params := PBKDF2SHA512ParameterSetV3()
 		require.NotNil(t, params)
-		require.Equal(t, "3", params.Version)
+		require.Equal(t, value3Value4E074085, params.Version)
 		require.Equal(t, cryptoutilSharedMagic.PBKDF2SHA512HashName, params.HashName)
 		require.Equal(t, cryptoutilSharedMagic.JoseJADefaultListLimit, params.Iterations)
 		require.Equal(t, cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes, params.SaltLength)

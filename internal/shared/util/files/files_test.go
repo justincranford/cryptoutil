@@ -44,7 +44,7 @@ func TestWriteFile(t *testing.T) {
 		},
 		{
 			name:        "Zero_permissions",
-			content:     "test",
+			content:     testTest,
 			permissions: 0,
 			wantErr:     true,
 			errContains: "missing file permissions",
@@ -63,7 +63,7 @@ func TestWriteFile(t *testing.T) {
 		},
 		{
 			name:        "Different_permissions",
-			content:     "test",
+			content:     testTest,
 			permissions: cryptoutilSharedMagic.CICDOutputFilePermissions,
 			wantErr:     false,
 		},
@@ -126,11 +126,11 @@ func TestListAllFiles(t *testing.T) {
 	}{
 		{
 			name:               "Single_txt_file_in_directory",
-			setupFiles:         []string{"file1.txt"},
-			expectedExtensions: []string{"txt"},
+			setupFiles:         []string{testFile1Txt},
+			expectedExtensions: []string{testTxt},
 			expectedTotalFiles: 1,
 			validateFunc: func(result map[string][]string, _ string) bool {
-				txtFiles := result["txt"]
+				txtFiles := result[testTxt]
 
 				return len(txtFiles) == 1
 			},
@@ -138,26 +138,26 @@ func TestListAllFiles(t *testing.T) {
 		},
 		{
 			name:               "Multiple_txt_files_in_directory",
-			setupFiles:         []string{"file1.txt", "file2.txt", "file3.txt"},
-			expectedExtensions: []string{"txt"},
+			setupFiles:         []string{testFile1Txt, "file2.txt", "file3.txt"},
+			expectedExtensions: []string{testTxt},
 			expectedTotalFiles: expectedTxtFilesCount,
 			validateFunc: func(result map[string][]string, _ string) bool {
-				return len(result["txt"]) == expectedTxtFilesCount
+				return len(result[testTxt]) == expectedTxtFilesCount
 			},
 			wantErr: false,
 		},
 		{
 			name: "Files_in_nested_directories",
 			setupFiles: []string{
-				"file1.txt",
+				testFile1Txt,
 				filepath.Join("subdir1", "file2.txt"),
 				filepath.Join("subdir1", "subdir2", "file3.txt"),
 			},
 			setupDirs:          []string{"subdir1", filepath.Join("subdir1", "subdir2")},
-			expectedExtensions: []string{"txt"},
+			expectedExtensions: []string{testTxt},
 			expectedTotalFiles: expectedTxtFilesCount,
 			validateFunc: func(result map[string][]string, _ string) bool {
-				return len(result["txt"]) == expectedTxtFilesCount
+				return len(result[testTxt]) == expectedTxtFilesCount
 			},
 			wantErr: false,
 		},
@@ -173,21 +173,21 @@ func TestListAllFiles(t *testing.T) {
 		},
 		{
 			name:               "Mixed_extensions",
-			setupFiles:         []string{"file1.txt", "file2.go", "file3.yml"},
-			expectedExtensions: []string{"txt", "go", "yml"},
+			setupFiles:         []string{testFile1Txt, "file2.go", "file3.yml"},
+			expectedExtensions: []string{testTxt, testGo, testYml},
 			expectedTotalFiles: expectedTxtFilesCount,
 			validateFunc: func(result map[string][]string, _ string) bool {
-				return len(result["txt"]) == 1 && len(result["go"]) == 1 && len(result["yml"]) == 1
+				return len(result[testTxt]) == 1 && len(result[testGo]) == 1 && len(result[testYml]) == 1
 			},
 			wantErr: false,
 		},
 		{
 			name:               "Dotfiles_like_gitignore",
-			setupFiles:         []string{".gitignore"},
-			expectedExtensions: []string{"gitignore"},
+			setupFiles:         []string{testGitignore},
+			expectedExtensions: []string{testGitignoreValueA1AA6596},
 			expectedTotalFiles: 1,
 			validateFunc: func(result map[string][]string, _ string) bool {
-				return len(result["gitignore"]) == 1
+				return len(result[testGitignoreValueA1AA6596]) == 1
 			},
 			wantErr: false,
 		},
@@ -215,7 +215,7 @@ func TestListAllFiles(t *testing.T) {
 			}
 
 			// Call function under test with custom options to include all test file extensions.
-			inclusions := []string{"txt", "go", "yml", "gitignore"}
+			inclusions := []string{testTxt, testGo, testYml, testGitignoreValueA1AA6596}
 			exclusions := []string{}
 
 			result, err := cryptoutilSharedUtilFiles.ListAllFilesWithOptions(tempDir, inclusions, exclusions)
@@ -263,7 +263,7 @@ func TestListAllFilesWithOptions_DirectoryExclusions(t *testing.T) {
 	require.NoError(t, err, "Should create excluded file")
 
 	// Call function with exclusion using the normalized excluded directory path.
-	inclusions := []string{"go"}
+	inclusions := []string{testGo}
 	excludedNormalized := filepath.ToSlash(excludedDir)
 	exclusions := []string{excludedNormalized}
 
@@ -271,8 +271,8 @@ func TestListAllFilesWithOptions_DirectoryExclusions(t *testing.T) {
 	require.NoError(t, err, "ListAllFilesWithOptions should succeed")
 
 	// Should only have 1 file (from included directory).
-	require.Equal(t, 1, len(result["go"]), "Should have exactly 1 go file")
-	require.Contains(t, result["go"][0], "included", "File should be from included directory")
+	require.Equal(t, 1, len(result[testGo]), "Should have exactly 1 go file")
+	require.Contains(t, result[testGo][0], "included", "File should be from included directory")
 }
 
 func TestListAllFiles_ExcludesVenv(t *testing.T) {
@@ -286,8 +286,8 @@ func TestListAllFiles_ExcludesVenv(t *testing.T) {
 
 	filesByExtension, err := cryptoutilSharedUtilFiles.ListAllFiles(tempDir)
 	require.NoError(t, err)
-	require.Len(t, filesByExtension["go"], 1)
-	require.Contains(t, filesByExtension["go"][0], "included.go")
+	require.Len(t, filesByExtension[testGo], 1)
+	require.Contains(t, filesByExtension[testGo][0], "included.go")
 }
 
 func TestListAllFiles_NonExistentDirectory(t *testing.T) {

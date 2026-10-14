@@ -41,7 +41,7 @@ func TestPasswordPolicy_Validate(t *testing.T) {
 			policy: PasswordPolicy{
 				MinLength: 0,
 				MaxLength: cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
-				CharSets:  []CharSetConfig{{Name: "test", Characters: []rune("abc"), Min: 1, Max: MaxInt}},
+				CharSets:  []CharSetConfig{{Name: testTest, Characters: []rune("abc"), Min: 1, Max: MaxInt}},
 			},
 			wantErr: true,
 			errMsg:  "MinLength must be at least 1",
@@ -51,7 +51,7 @@ func TestPasswordPolicy_Validate(t *testing.T) {
 			policy: PasswordPolicy{
 				MinLength: cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
 				MaxLength: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries,
-				CharSets:  []CharSetConfig{{Name: "test", Characters: []rune("abc"), Min: 1, Max: MaxInt}},
+				CharSets:  []CharSetConfig{{Name: testTest, Characters: []rune("abc"), Min: 1, Max: MaxInt}},
 			},
 			wantErr: true,
 			errMsg:  "MaxLength must be >= MinLength",
@@ -81,7 +81,7 @@ func TestPasswordPolicy_Validate(t *testing.T) {
 			policy: PasswordPolicy{
 				MinLength: cryptoutilSharedMagic.IMMinPasswordLength,
 				MaxLength: cryptoutilSharedMagic.RealmMinTokenLengthBytes,
-				CharSets:  []CharSetConfig{{Name: "test", Characters: []rune("abc"), Min: -1, Max: MaxInt}},
+				CharSets:  []CharSetConfig{{Name: testTest, Characters: []rune("abc"), Min: -1, Max: MaxInt}},
 			},
 			wantErr: true,
 			errMsg:  "Min must be >= 0",
@@ -91,7 +91,7 @@ func TestPasswordPolicy_Validate(t *testing.T) {
 			policy: PasswordPolicy{
 				MinLength: cryptoutilSharedMagic.IMMinPasswordLength,
 				MaxLength: cryptoutilSharedMagic.RealmMinTokenLengthBytes,
-				CharSets:  []CharSetConfig{{Name: "test", Characters: []rune("abc"), Min: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries, Max: 2}},
+				CharSets:  []CharSetConfig{{Name: testTest, Characters: []rune("abc"), Min: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries, Max: 2}},
 			},
 			wantErr: true,
 			errMsg:  "Max must be >= Min",
@@ -249,8 +249,8 @@ func TestGenerate_CustomPolicy(t *testing.T) {
 		StartCharacters:      []rune("ABC"),
 		EndCharacters:        []rune("123"),
 		CharSets: []CharSetConfig{
-			{Name: "uppercase", Characters: []rune("ABCDEFGHIJKLMNOPQRSTUVWXYZ"), Min: 3, Max: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries},
-			{Name: "digits", Characters: []rune(cryptoutilSharedMagic.EmailOTPCharset), Min: 3, Max: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries},
+			{Name: valueUppercase, Characters: []rune("ABCDEFGHIJKLMNOPQRSTUVWXYZ"), Min: test3, Max: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries},
+			{Name: valueDigits, Characters: []rune(cryptoutilSharedMagic.EmailOTPCharset), Min: test3, Max: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries},
 		},
 	}
 
@@ -272,9 +272,9 @@ func TestGenerate_CustomPolicy(t *testing.T) {
 		upperCount := countChars(password, []rune("ABCDEFGHIJKLMNOPQRSTUVWXYZ"))
 		digitCount := countChars(password, []rune(cryptoutilSharedMagic.EmailOTPCharset))
 
-		require.GreaterOrEqual(t, upperCount, 3)
+		require.GreaterOrEqual(t, upperCount, test3)
 		require.LessOrEqual(t, upperCount, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
-		require.GreaterOrEqual(t, digitCount, 3)
+		require.GreaterOrEqual(t, digitCount, test3)
 		require.LessOrEqual(t, digitCount, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
 	}
 }

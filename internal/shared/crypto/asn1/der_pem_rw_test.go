@@ -26,13 +26,13 @@ func TestPEMWrite(t *testing.T) {
 		keyGen func() (any, error)
 	}{
 		{
-			name: "RSA private key",
+			name: testRSAPrivateKey,
 			keyGen: func() (any, error) {
 				return rsa.GenerateKey(crand.Reader, cryptoutilSharedMagic.DefaultMetricsBatchSize)
 			},
 		},
 		{
-			name: "ECDSA public key",
+			name: testECDSAPublicKey,
 			keyGen: func() (any, error) {
 				priv, err := ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
 				if err != nil {
@@ -43,7 +43,7 @@ func TestPEMWrite(t *testing.T) {
 			},
 		},
 		{
-			name: "EdDSA private key",
+			name: testEdDsaPrivateKey,
 			keyGen: func() (any, error) {
 				_, priv, err := ed25519.GenerateKey(crand.Reader)
 
@@ -102,13 +102,13 @@ func TestDERWrite(t *testing.T) {
 		keyGen func() (any, error)
 	}{
 		{
-			name: "RSA private key",
+			name: testRSAPrivateKey,
 			keyGen: func() (any, error) {
 				return rsa.GenerateKey(crand.Reader, cryptoutilSharedMagic.DefaultMetricsBatchSize)
 			},
 		},
 		{
-			name: "ECDSA public key",
+			name: testECDSAPublicKey,
 			keyGen: func() (any, error) {
 				priv, err := ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
 				if err != nil {
@@ -119,7 +119,7 @@ func TestDERWrite(t *testing.T) {
 			},
 		},
 		{
-			name: "EdDSA private key",
+			name: testEdDsaPrivateKey,
 			keyGen: func() (any, error) {
 				_, priv, err := ed25519.GenerateKey(crand.Reader)
 

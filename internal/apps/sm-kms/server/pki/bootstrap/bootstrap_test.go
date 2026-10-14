@@ -24,7 +24,7 @@ func TestBootstrapper_Bootstrap_ECDSA(t *testing.T) {
 		Name: "Test Root CA",
 		KeySpec: cryptoutilCACrypto.KeySpec{
 			Type:       cryptoutilSharedMagic.ECDSA,
-			ECDSACurve: testLiteralP256,
+			ECDSACurve: cryptoutilSharedMagic.P256,
 		},
 		ValidityDuration:  cryptoutilSharedMagic.JoseJADefaultMaxMaterials * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour, // 10 years.
 		PathLenConstraint: 2,
@@ -166,7 +166,7 @@ func TestBootstrapper_Bootstrap_WithPersistence(t *testing.T) {
 		Name: "Persisted Root CA",
 		KeySpec: cryptoutilCACrypto.KeySpec{
 			Type:       cryptoutilSharedMagic.ECDSA,
-			ECDSACurve: testLiteralP256,
+			ECDSACurve: cryptoutilSharedMagic.P256,
 		},
 		ValidityDuration:  1 * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour,
 		PathLenConstraint: 1,
@@ -218,7 +218,7 @@ func TestBootstrapper_Bootstrap_InvalidConfig(t *testing.T) {
 			config: &RootCAConfig{
 				KeySpec: cryptoutilCACrypto.KeySpec{
 					Type:       cryptoutilSharedMagic.ECDSA,
-					ECDSACurve: testLiteralP256,
+					ECDSACurve: cryptoutilSharedMagic.P256,
 				},
 				ValidityDuration: 1 * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour,
 			},
@@ -227,10 +227,10 @@ func TestBootstrapper_Bootstrap_InvalidConfig(t *testing.T) {
 		{
 			name: "zero-validity",
 			config: &RootCAConfig{
-				Name: testLiteralTestCA,
+				Name: cryptoutilSharedMagic.TEST_CA_CN,
 				KeySpec: cryptoutilCACrypto.KeySpec{
 					Type:       cryptoutilSharedMagic.ECDSA,
-					ECDSACurve: testLiteralP256,
+					ECDSACurve: cryptoutilSharedMagic.P256,
 				},
 				ValidityDuration: 0,
 			},
@@ -239,10 +239,10 @@ func TestBootstrapper_Bootstrap_InvalidConfig(t *testing.T) {
 		{
 			name: "negative-path-len",
 			config: &RootCAConfig{
-				Name: testLiteralTestCA,
+				Name: cryptoutilSharedMagic.TEST_CA_CN,
 				KeySpec: cryptoutilCACrypto.KeySpec{
 					Type:       cryptoutilSharedMagic.ECDSA,
-					ECDSACurve: testLiteralP256,
+					ECDSACurve: cryptoutilSharedMagic.P256,
 				},
 				ValidityDuration:  1 * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour,
 				PathLenConstraint: -1,
@@ -276,7 +276,7 @@ func TestBootstrapper_Bootstrap_CertificateValidity(t *testing.T) {
 		Name: "Validity Test CA",
 		KeySpec: cryptoutilCACrypto.KeySpec{
 			Type:       cryptoutilSharedMagic.ECDSA,
-			ECDSACurve: testLiteralP256,
+			ECDSACurve: cryptoutilSharedMagic.P256,
 		},
 		ValidityDuration:  validityDuration,
 		PathLenConstraint: 0,

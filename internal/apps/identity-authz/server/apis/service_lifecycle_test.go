@@ -64,7 +64,7 @@ func TestServiceStart(t *testing.T) {
 
 	// Create token service.
 	tokenConfig := &cryptoutilIdentityConfig.TokenConfig{
-		Issuer:               "https://issuer.example.com",
+		Issuer:               testHTTPSIssuerExampleCom,
 		AccessTokenFormat:    cryptoutilSharedMagic.TokenFormatJWS,
 		AccessTokenLifetime:  cryptoutilSharedMagic.DefaultAccessTokenLifetime,
 		RefreshTokenLifetime: cryptoutilSharedMagic.DefaultRefreshTokenLifetime,
@@ -103,7 +103,7 @@ func TestServiceStart(t *testing.T) {
 	// Create authz service.
 	cfg := &cryptoutilIdentityConfig.Config{
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{
-			Issuer: "https://issuer.example.com",
+			Issuer: testHTTPSIssuerExampleCom,
 		},
 	}
 	authzSvc := cryptoutilIdentityAuthz.NewService(cfg, repoFactory, tokenSvc)
@@ -145,7 +145,7 @@ func TestServiceStop(t *testing.T) {
 
 	// Create token service.
 	tokenConfig := &cryptoutilIdentityConfig.TokenConfig{
-		Issuer:               "https://issuer.example.com",
+		Issuer:               testHTTPSIssuerExampleCom,
 		AccessTokenFormat:    cryptoutilSharedMagic.TokenFormatJWS,
 		AccessTokenLifetime:  cryptoutilSharedMagic.DefaultAccessTokenLifetime,
 		RefreshTokenLifetime: cryptoutilSharedMagic.DefaultRefreshTokenLifetime,
@@ -184,7 +184,7 @@ func TestServiceStop(t *testing.T) {
 	// Create authz service.
 	authzCfg := &cryptoutilIdentityConfig.Config{
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{
-			Issuer: "https://issuer.example.com",
+			Issuer: testHTTPSIssuerExampleCom,
 		},
 	}
 	authzSvc := cryptoutilIdentityAuthz.NewService(authzCfg, repoFactory, tokenSvc)

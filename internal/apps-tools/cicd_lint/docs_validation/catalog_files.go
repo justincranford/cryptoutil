@@ -261,7 +261,7 @@ func CheckCatalogFiles(rootDir string, readFileFn func(string) ([]byte, error)) 
 		if readErr != nil {
 			result.Violations = append(result.Violations, CatalogViolation{
 				File:   entry.Path,
-				Field:  "disk-read",
+				Field:  valueDiskRead,
 				Detail: fmt.Sprintf("cannot read file from disk: %v", readErr),
 			})
 
@@ -274,7 +274,7 @@ func CheckCatalogFiles(rootDir string, readFileFn func(string) ([]byte, error)) 
 		if diskContent != catalogContent {
 			result.Violations = append(result.Violations, CatalogViolation{
 				File:   entry.Path,
-				Field:  "content-mismatch",
+				Field:  valueContentMismatch,
 				Detail: fmt.Sprintf("catalog content at Appendix D line %d does not match file on disk", entry.LineNumber),
 			})
 		}
@@ -291,7 +291,7 @@ func CheckCatalogFiles(rootDir string, readFileFn func(string) ([]byte, error)) 
 		if readCopilotErr != nil {
 			result.Violations = append(result.Violations, CatalogViolation{
 				File:   pair.CopilotPath,
-				Field:  "disk-read",
+				Field:  valueDiskRead,
 				Detail: fmt.Sprintf("cannot read Copilot file from disk: %v", readCopilotErr),
 			})
 		} else {
@@ -299,7 +299,7 @@ func CheckCatalogFiles(rootDir string, readFileFn func(string) ([]byte, error)) 
 			if diskCopilotStr != copilotExpected {
 				result.Violations = append(result.Violations, CatalogViolation{
 					File:   pair.CopilotPath,
-					Field:  "content-mismatch",
+					Field:  valueContentMismatch,
 					Detail: fmt.Sprintf("catalog Copilot content at Appendix D line %d does not match file on disk", pair.LineNumber),
 				})
 			}
@@ -312,7 +312,7 @@ func CheckCatalogFiles(rootDir string, readFileFn func(string) ([]byte, error)) 
 		if readClaudeErr != nil {
 			result.Violations = append(result.Violations, CatalogViolation{
 				File:   pair.ClaudePath,
-				Field:  "disk-read",
+				Field:  valueDiskRead,
 				Detail: fmt.Sprintf("cannot read Claude file from disk: %v", readClaudeErr),
 			})
 		} else {
@@ -320,7 +320,7 @@ func CheckCatalogFiles(rootDir string, readFileFn func(string) ([]byte, error)) 
 			if diskClaudeStr != claudeExpected {
 				result.Violations = append(result.Violations, CatalogViolation{
 					File:   pair.ClaudePath,
-					Field:  "content-mismatch",
+					Field:  valueContentMismatch,
 					Detail: fmt.Sprintf("catalog Claude content at Appendix D line %d does not match file on disk", pair.LineNumber),
 				})
 			}

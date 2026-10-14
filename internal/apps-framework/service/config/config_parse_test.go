@@ -41,12 +41,12 @@ service-rate-limit: 200
 
 	// Parse with multiple config files (second should override first).
 	commandParameters := []string{
-		"start",
+		valueStart,
 		"--config=" + configFile1,
 		"--config=" + configFile2,
 	}
 
-	s, err := ParseWithFlagSet(pflag.NewFlagSet("test", pflag.ContinueOnError), commandParameters, true)
+	s, err := ParseWithFlagSet(pflag.NewFlagSet(valueTest, pflag.ContinueOnError), commandParameters, true)
 	require.NoError(t, err)
 
 	// Verify second config file values override first.
@@ -73,12 +73,12 @@ func TestFormatDefault_EmptyStringSlice(t *testing.T) {
 		},
 		{
 			name:     "single element string slice",
-			value:    []string{"one"},
+			value:    []string{testOne},
 			expected: "[one]",
 		},
 		{
 			name:     "multi element string slice",
-			value:    []string{"one", "two", "three"},
+			value:    []string{testOne, "two", "three"},
 			expected: "[one,two,three]",
 		},
 		{
@@ -88,7 +88,7 @@ func TestFormatDefault_EmptyStringSlice(t *testing.T) {
 		},
 		{
 			name:     "non-empty string",
-			value:    "test",
+			value:    valueTest,
 			expected: `"test"`,
 		},
 		{
@@ -125,7 +125,7 @@ func TestParse_BooleanEnvironmentVariableBinding(t *testing.T) {
 	t.Setenv("CRYPTOUTIL_DRY_RUN", "true")
 
 	// Parse without any command line flags (environment variables should be used)
-	commandParameters := []string{"start"}
+	commandParameters := []string{valueStart}
 	s, err := Parse(commandParameters, true)
 	require.NoError(t, err)
 
@@ -138,7 +138,7 @@ func TestParse_BooleanEnvironmentVariableBinding(t *testing.T) {
 	resetFlags()
 	t.Setenv("CRYPTOUTIL_LOCAL", "true")
 
-	commandParameters = []string{"start", "--local=false"}
+	commandParameters = []string{valueStart, testLocalFalse}
 	s, err = Parse(commandParameters, true)
 	require.NoError(t, err)
 	require.False(t, s.DevMode, "flag should override environment variable")

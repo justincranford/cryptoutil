@@ -17,11 +17,11 @@ func TestNormalizeLineEndings(t *testing.T) {
 		input string
 		want  string
 	}{
-		{name: "lf only", input: "a\nb\nc", want: "a\nb\nc"},
-		{name: "crlf to lf", input: "a\r\nb\r\nc", want: "a\nb\nc"},
+		{name: "lf only", input: testABC, want: testABC},
+		{name: "crlf to lf", input: testABCValueD37A6C0B, want: testABC},
 		{name: "mixed line endings", input: "a\r\nb\nc\r\n", want: "a\nb\nc\n"},
 		{name: cryptoutilSharedMagic.EMPTY, input: "", want: ""},
-		{name: "no newlines", input: "abc", want: "abc"},
+		{name: "no newlines", input: testAbc, want: testAbc},
 	}
 
 	for _, tt := range tests {
@@ -44,10 +44,10 @@ func TestNormalizeCommentAlignment(t *testing.T) {
 	}{
 		{name: "comment multi spaces", input: "# foo  bar", want: "# foo bar"},
 		{name: "comment triple spaces", input: "# a   b   c", want: "# a b c"},
-		{name: "non-comment preserved", input: "key:  value", want: "key:  value"},
+		{name: "non-comment preserved", input: testKeyValue, want: testKeyValue},
 		{name: "mixed lines", input: "# a  b\nkey:  val\n# c   d", want: "# a b\nkey:  val\n# c d"},
 		{name: cryptoutilSharedMagic.EMPTY, input: "", want: ""},
-		{name: "single space comment", input: "# ok", want: "# ok"},
+		{name: "single space comment", input: testOk, want: testOk},
 	}
 
 	for _, tt := range tests {
@@ -69,15 +69,15 @@ func TestCompareExact(t *testing.T) {
 		actual   string
 		wantDiff bool
 	}{
-		{name: "identical", expected: "a\nb\nc", actual: "a\nb\nc", wantDiff: false},
-		{name: "identical crlf normalize", expected: "a\nb\nc", actual: "a\r\nb\r\nc", wantDiff: false},
-		{name: "trailing newline trim", expected: "a\nb\n", actual: "a\nb", wantDiff: false},
-		{name: "different line", expected: "a\nb\nc", actual: "a\nX\nc", wantDiff: true},
-		{name: "extra actual line", expected: "a\nb", actual: "a\nb\nc", wantDiff: true},
-		{name: "missing actual line", expected: "a\nb\nc", actual: "a\nb", wantDiff: true},
+		{name: "identical", expected: testABC, actual: testABC, wantDiff: false},
+		{name: "identical crlf normalize", expected: testABC, actual: testABCValueD37A6C0B, wantDiff: false},
+		{name: "trailing newline trim", expected: "a\nb\n", actual: testAB, wantDiff: false},
+		{name: "different line", expected: testABC, actual: "a\nX\nc", wantDiff: true},
+		{name: "extra actual line", expected: testAB, actual: testABC, wantDiff: true},
+		{name: "missing actual line", expected: testABC, actual: testAB, wantDiff: true},
 		{name: "empty both", expected: "", actual: "", wantDiff: false},
-		{name: "empty expected", expected: "", actual: "a", wantDiff: true},
-		{name: "empty actual", expected: "a", actual: "", wantDiff: true},
+		{name: testEmptyExpected, expected: "", actual: testAValueCA978112, wantDiff: true},
+		{name: "empty actual", expected: testAValueCA978112, actual: "", wantDiff: true},
 	}
 
 	for _, tt := range tests {
@@ -101,7 +101,7 @@ func TestCompareExact_DiffContent(t *testing.T) {
 	t.Run("shows line number for mismatch", func(t *testing.T) {
 		t.Parallel()
 
-		diff := compareExact("a\nb\nc", "a\nX\nc")
+		diff := compareExact(testABC, "a\nX\nc")
 		require.Contains(t, diff, "line 2")
 		require.Contains(t, diff, "want")
 		require.Contains(t, diff, "got")
@@ -110,14 +110,14 @@ func TestCompareExact_DiffContent(t *testing.T) {
 	t.Run("shows extra line message", func(t *testing.T) {
 		t.Parallel()
 
-		diff := compareExact("a", "a\nb")
+		diff := compareExact(testAValueCA978112, testAB)
 		require.Contains(t, diff, "unexpected extra line")
 	})
 
 	t.Run("shows missing line message", func(t *testing.T) {
 		t.Parallel()
 
-		diff := compareExact("a\nb", "a")
+		diff := compareExact(testAB, testAValueCA978112)
 		require.Contains(t, diff, "missing expected line")
 	})
 }
@@ -131,12 +131,12 @@ func TestComparePrefix(t *testing.T) {
 		actual   string
 		wantDiff bool
 	}{
-		{name: "exact match", expected: "a\nb", actual: "a\nb", wantDiff: false},
-		{name: "actual has extra suffix", expected: "a\nb", actual: "a\nb\nc\nd", wantDiff: false},
-		{name: "prefix mismatch line 1", expected: "a\nb", actual: "X\nb", wantDiff: true},
-		{name: "prefix mismatch line 2", expected: "a\nb", actual: "a\nX", wantDiff: true},
-		{name: "actual too short", expected: "a\nb\nc", actual: "a\nb", wantDiff: true},
-		{name: "empty expected", expected: "", actual: "a\nb", wantDiff: false},
+		{name: testExactMatch, expected: testAB, actual: testAB, wantDiff: false},
+		{name: "actual has extra suffix", expected: testAB, actual: "a\nb\nc\nd", wantDiff: false},
+		{name: "prefix mismatch line 1", expected: testAB, actual: "X\nb", wantDiff: true},
+		{name: "prefix mismatch line 2", expected: testAB, actual: "a\nX", wantDiff: true},
+		{name: "actual too short", expected: testABC, actual: testAB, wantDiff: true},
+		{name: testEmptyExpected, expected: "", actual: testAB, wantDiff: false},
 	}
 
 	for _, tt := range tests {
@@ -160,7 +160,7 @@ func TestComparePrefix_DiffContent(t *testing.T) {
 	t.Run("shows line count when too short", func(t *testing.T) {
 		t.Parallel()
 
-		diff := comparePrefix("a\nb\nc", "a")
+		diff := comparePrefix(testABC, testAValueCA978112)
 		require.Contains(t, diff, "1 lines")
 		require.Contains(t, diff, "at least 3")
 	})
@@ -168,7 +168,7 @@ func TestComparePrefix_DiffContent(t *testing.T) {
 	t.Run("shows line diff for mismatch", func(t *testing.T) {
 		t.Parallel()
 
-		diff := comparePrefix("a\nb", "a\nX")
+		diff := comparePrefix(testAB, "a\nX")
 		require.Contains(t, diff, "line 2")
 		require.Contains(t, diff, "want")
 		require.Contains(t, diff, "got")
@@ -184,10 +184,10 @@ func TestCompareSupersetOrdered(t *testing.T) {
 		actual   string
 		wantDiff bool
 	}{
-		{name: "exact match", expected: "a\nb\nc", actual: "a\nb\nc", wantDiff: false},
-		{name: "actual has extra interspersed", expected: "a\nc", actual: "a\nb\nc", wantDiff: false},
-		{name: "missing expected line", expected: "a\nb\nc", actual: "a\nc", wantDiff: true},
-		{name: "wrong order", expected: "a\nb", actual: "b\na", wantDiff: true},
+		{name: testExactMatch, expected: testABC, actual: testABC, wantDiff: false},
+		{name: "actual has extra interspersed", expected: testAC, actual: testABC, wantDiff: false},
+		{name: "missing expected line", expected: testABC, actual: testAC, wantDiff: true},
+		{name: "wrong order", expected: testAB, actual: "b\na", wantDiff: true},
 		{name: "all present with extras", expected: "x\nz", actual: "w\nx\ny\nz\nend", wantDiff: false},
 	}
 
@@ -209,7 +209,7 @@ func TestCompareSupersetOrdered(t *testing.T) {
 func TestCompareSupersetOrdered_DiffContent(t *testing.T) {
 	t.Parallel()
 
-	diff := compareSupersetOrdered("a\nb\nc", "a\nc")
+	diff := compareSupersetOrdered(testABC, testAC)
 	require.Contains(t, diff, "missing expected line")
 	require.Contains(t, diff, "b")
 }
@@ -251,8 +251,8 @@ func TestCompareBase64Placeholder(t *testing.T) {
 		},
 		{
 			name:     "no placeholder exact match",
-			expected: "no placeholder",
-			actual:   "no placeholder",
+			expected: testNoPlaceholder,
+			actual:   testNoPlaceholder,
 			wantDiff: false,
 		},
 		{

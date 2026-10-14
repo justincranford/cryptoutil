@@ -87,7 +87,7 @@ func listArtifacts(cfg *CleanupConfig) ([]artifact, int64, error) {
 	var totalSize int64
 
 	for page := 1; page <= maxPages; page++ {
-		args := append([]string{"api"}, repoArgs(cfg)...)
+		args := append([]string{valueAPI}, repoArgs(cfg)...)
 		args = append(args,
 			"-X", "GET",
 			fmt.Sprintf("/repos/{owner}/{repo}/actions/artifacts?per_page=%d&page=%d", maxPerPage, page),
@@ -119,7 +119,7 @@ func listArtifacts(cfg *CleanupConfig) ([]artifact, int64, error) {
 
 // deleteArtifact deletes a single artifact by ID.
 func deleteArtifact(cfg *CleanupConfig, artifactID int64) error {
-	args := append([]string{"api"}, repoArgs(cfg)...)
+	args := append([]string{valueAPI}, repoArgs(cfg)...)
 	args = append(args,
 		"-X", "DELETE",
 		"/repos/{owner}/{repo}/actions/artifacts/"+strconv.FormatInt(artifactID, cryptoutilSharedMagic.DecimalRadix),

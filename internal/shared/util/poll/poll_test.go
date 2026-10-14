@@ -101,7 +101,7 @@ func TestUntil(t *testing.T) {
 				return ctx
 			},
 			wantErr:     true,
-			errContains: "poll canceled",
+			errContains: testPollCanceled,
 		},
 		{
 			name:        "nil conditionFn",
@@ -123,7 +123,7 @@ func TestUntil(t *testing.T) {
 			},
 			ctxFn:       func() context.Context { return context.Background() },
 			wantErr:     true,
-			errContains: "poll timeout must be positive",
+			errContains: testPollTimeoutMustBePositive,
 		},
 		{
 			name:     "negative timeout",
@@ -136,7 +136,7 @@ func TestUntil(t *testing.T) {
 			},
 			ctxFn:       func() context.Context { return context.Background() },
 			wantErr:     true,
-			errContains: "poll timeout must be positive",
+			errContains: testPollTimeoutMustBePositive,
 		},
 		{
 			name:     "zero interval",
@@ -149,7 +149,7 @@ func TestUntil(t *testing.T) {
 			},
 			ctxFn:       func() context.Context { return context.Background() },
 			wantErr:     true,
-			errContains: "poll interval must be positive",
+			errContains: testPollIntervalMustBePositive,
 		},
 		{
 			name:     "negative interval",
@@ -162,7 +162,7 @@ func TestUntil(t *testing.T) {
 			},
 			ctxFn:       func() context.Context { return context.Background() },
 			wantErr:     true,
-			errContains: "poll interval must be positive",
+			errContains: testPollIntervalMustBePositive,
 		},
 		{
 			name:     "context canceled during polling",
@@ -180,7 +180,7 @@ func TestUntil(t *testing.T) {
 				return ctx
 			},
 			wantErr:     true,
-			errContains: "poll canceled",
+			errContains: testPollCanceled,
 		},
 	}
 

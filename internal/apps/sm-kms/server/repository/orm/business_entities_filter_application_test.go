@@ -15,6 +15,18 @@ import (
 	"gorm.io/gorm"
 )
 
+const (
+	testElasticKeyFilterFixtureName           = "elastic-key-filter-fixture"
+	testElasticKeyFilterNameQuery             = "test"
+	testElasticKeyFilterAlgorithmRSA2048      = "RSA-2048"
+	testElasticKeySortNameAscending           = "elastic_key_name ASC"
+	testElasticKeySortNameDescending          = "elastic_key_name DESC"
+	testMaterialKeySortGenerateDateAscending  = "material_key_generate_date ASC"
+	testMaterialKeySortGenerateDateDescending = "material_key_generate_date DESC"
+	testMaterialKeySortIDDescending           = "material_key_id DESC"
+	testElasticKeySortIDAscending             = "elastic_key_id ASC"
+)
+
 //nolint:gochecknoglobals // Test helper function.
 func boolPtr(b bool) *bool {
 	return &b
@@ -65,7 +77,7 @@ func TestApplyGetElasticKeysFilters(t *testing.T) {
 	t.Run("Filter by single Name", func(t *testing.T) {
 		query := testOrmRepository.GormDB().Model(&ElasticKey{})
 		filters := &GetElasticKeysFilters{
-			Name:     []string{"test-key"},
+			Name:     []string{testElasticKeyFilterFixtureName},
 			PageSize: cryptoutilSharedMagic.DefaultPageSize,
 		}
 		filteredQuery := applyGetElasticKeysFilters(query, filters)
@@ -87,7 +99,7 @@ func TestApplyGetElasticKeysFilters(t *testing.T) {
 	t.Run("Filter by single Algorithm", func(t *testing.T) {
 		query := testOrmRepository.GormDB().Model(&ElasticKey{})
 		filters := &GetElasticKeysFilters{
-			Algorithm: []string{"RSA-2048"},
+			Algorithm: []string{testElasticKeyFilterAlgorithmRSA2048},
 			PageSize:  cryptoutilSharedMagic.DefaultPageSize,
 		}
 		filteredQuery := applyGetElasticKeysFilters(query, filters)
@@ -98,7 +110,7 @@ func TestApplyGetElasticKeysFilters(t *testing.T) {
 	t.Run("Filter by multiple Algorithms", func(t *testing.T) {
 		query := testOrmRepository.GormDB().Model(&ElasticKey{})
 		filters := &GetElasticKeysFilters{
-			Algorithm: []string{"RSA-2048", "RSA-4096", "ECDSA-P256"},
+			Algorithm: []string{testElasticKeyFilterAlgorithmRSA2048, "RSA-4096", "ECDSA-P256"},
 			PageSize:  cryptoutilSharedMagic.DefaultPageSize,
 		}
 		filteredQuery := applyGetElasticKeysFilters(query, filters)
@@ -175,7 +187,7 @@ func TestApplyGetElasticKeysFilters(t *testing.T) {
 	t.Run("Filter by Sort ascending", func(t *testing.T) {
 		query := testOrmRepository.GormDB().Model(&ElasticKey{})
 		filters := &GetElasticKeysFilters{
-			Sort:     []string{"elastic_key_name ASC"},
+			Sort:     []string{testElasticKeySortNameAscending},
 			PageSize: cryptoutilSharedMagic.DefaultPageSize,
 		}
 		filteredQuery := applyGetElasticKeysFilters(query, filters)
@@ -186,7 +198,7 @@ func TestApplyGetElasticKeysFilters(t *testing.T) {
 	t.Run("Filter by Sort descending", func(t *testing.T) {
 		query := testOrmRepository.GormDB().Model(&ElasticKey{})
 		filters := &GetElasticKeysFilters{
-			Sort:     []string{"elastic_key_name DESC"},
+			Sort:     []string{testElasticKeySortNameDescending},
 			PageSize: cryptoutilSharedMagic.DefaultPageSize,
 		}
 		filteredQuery := applyGetElasticKeysFilters(query, filters)
@@ -197,7 +209,7 @@ func TestApplyGetElasticKeysFilters(t *testing.T) {
 	t.Run("Filter by multiple Sort fields", func(t *testing.T) {
 		query := testOrmRepository.GormDB().Model(&ElasticKey{})
 		filters := &GetElasticKeysFilters{
-			Sort:     []string{"elastic_key_algorithm ASC", "elastic_key_name DESC"},
+			Sort:     []string{"elastic_key_algorithm ASC", testElasticKeySortNameDescending},
 			PageSize: cryptoutilSharedMagic.DefaultPageSize,
 		}
 		filteredQuery := applyGetElasticKeysFilters(query, filters)
@@ -209,8 +221,8 @@ func TestApplyGetElasticKeysFilters(t *testing.T) {
 		query := testOrmRepository.GormDB().Model(&ElasticKey{})
 		filters := &GetElasticKeysFilters{
 			ElasticKeyID: []googleUuid.UUID{googleUuid.New()},
-			Name:         []string{"test"},
-			Algorithm:    []string{"RSA-2048"},
+			Name:         []string{testElasticKeyFilterNameQuery},
+			Algorithm:    []string{testElasticKeyFilterAlgorithmRSA2048},
 			PageSize:     cryptoutilSharedMagic.DefaultPageSize,
 		}
 		filteredQuery := applyGetElasticKeysFilters(query, filters)
@@ -222,12 +234,12 @@ func TestApplyGetElasticKeysFilters(t *testing.T) {
 		query := testOrmRepository.GormDB().Model(&ElasticKey{})
 		filters := &GetElasticKeysFilters{
 			ElasticKeyID:      []googleUuid.UUID{googleUuid.New()},
-			Name:              []string{"test"},
-			Algorithm:         []string{"RSA-2048"},
+			Name:              []string{testElasticKeyFilterNameQuery},
+			Algorithm:         []string{testElasticKeyFilterAlgorithmRSA2048},
 			VersioningAllowed: boolPtr(true),
 			ImportAllowed:     boolPtr(false),
 			ExportAllowed:     boolPtr(true),
-			Sort:              []string{"elastic_key_name ASC"},
+			Sort:              []string{testElasticKeySortNameAscending},
 			PageSize:          cryptoutilSharedMagic.DefaultPageSize,
 		}
 		filteredQuery := applyGetElasticKeysFilters(query, filters)

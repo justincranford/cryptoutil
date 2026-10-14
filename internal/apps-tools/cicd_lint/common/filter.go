@@ -25,7 +25,7 @@ func FilterFilesForCommand(files []string, commandName string) []string {
 	}
 
 	var formatGoTemplateExclusionRegex *regexp.Regexp
-	if commandName == "format-go" {
+	if commandName == valueFormatGo {
 		formatGoTemplateExclusionRegex = regexp.MustCompile(cryptoutilSharedMagic.CICDFormatGoTemplateExcludePattern)
 	}
 
@@ -78,7 +78,7 @@ func FlattenFileMap(filesByExtension map[string][]string) []string {
 
 // GetGoFiles extracts Go files from the file map and applies command-specific filtering.
 func GetGoFiles(filesByExtension map[string][]string, commandName string) []string {
-	goFiles := filesByExtension["go"]
+	goFiles := filesByExtension[valueGo]
 
 	return FilterFilesForCommand(goFiles, commandName)
 }

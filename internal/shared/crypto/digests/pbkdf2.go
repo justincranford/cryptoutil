@@ -147,7 +147,7 @@ func VerifySecretWithParams(stored, provided string, params *PBKDF2Params) (bool
 
 func parsePbkdf2Params(stored string) (string, string, int, []byte, []byte, error) {
 	if stored == "" {
-		return "", "", 0, nil, nil, errors.New("stored hash empty")
+		return "", "", 0, nil, nil, errors.New(valueStoredHashEmpty)
 	}
 
 	// ONLY support versioned format: {version}$hashname$iter$salt$dk

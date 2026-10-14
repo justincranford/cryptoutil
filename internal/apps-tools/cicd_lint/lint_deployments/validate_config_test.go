@@ -63,10 +63,10 @@ database-url: ":memory:"
 			wantErrors: nil,
 		},
 		{
-			name:       "invalid YAML",
+			name:       testInvalidYAML,
 			content:    "key: [unclosed bracket",
 			wantValid:  false,
-			wantErrors: []string{"YAML parse error"},
+			wantErrors: []string{testYAMLParseError},
 		},
 		{
 			name:      "empty config",
@@ -97,14 +97,14 @@ bind-private-address: 127.0.0.l
 			content: `bind-public-port: 0
 `,
 			wantValid:  false,
-			wantErrors: []string{"'bind-public-port' must be between"},
+			wantErrors: []string{testBindPublicPortMustBeBetween},
 		},
 		{
 			name: "port out of range high",
 			content: `bind-public-port: 70000
 `,
 			wantValid:  false,
-			wantErrors: []string{"'bind-public-port' must be between"},
+			wantErrors: []string{testBindPublicPortMustBeBetween},
 		},
 		{
 			name: "port wrong type",
@@ -136,21 +136,21 @@ bind-private-protocol: grpc
 			content: `bind-private-address: 0.0.0.0
 `,
 			wantValid:  false,
-			wantErrors: []string{"POLICY VIOLATION"},
+			wantErrors: []string{testPolicyViolation},
 		},
 		{
 			name: "inline postgres credentials",
 			content: `database-url: "postgres://user:pass@localhost:5432/mydb"
 `,
 			wantValid:  false,
-			wantErrors: []string{"inline database credentials"},
+			wantErrors: []string{testInlineDatabaseCredentials},
 		},
 		{
 			name: "inline postgresql credentials",
 			content: `database-url: "postgresql://admin:secret@db:5432/prod"
 `,
 			wantValid:  false,
-			wantErrors: []string{"inline database credentials"},
+			wantErrors: []string{testInlineDatabaseCredentials},
 		},
 		{
 			name: "unexpected database URL format",
@@ -191,9 +191,8 @@ otlp-endpoint: collector:4317
 			wantValid: true,
 		},
 		{
-			name: "minimal valid config",
-			content: `log-level: INFO
-`,
+			name:      "minimal valid config",
+			content:   testLogLevelInfo,
 			wantValid: true,
 		},
 		{
@@ -223,8 +222,8 @@ otlp: true
 				"not a valid IP address",
 				"must be between",
 				"must be \"https\"",
-				"POLICY VIOLATION",
-				"inline database credentials",
+				testPolicyViolation,
+				testInlineDatabaseCredentials,
 				"'otlp-service' is required",
 				"'otlp-endpoint' is required",
 			},
@@ -236,7 +235,7 @@ otlp: true
 			t.Parallel()
 
 			tmpDir := t.TempDir()
-			configFile := filepath.Join(tmpDir, "config.yml")
+			configFile := filepath.Join(tmpDir, testConfigYml)
 			require.NoError(t, os.WriteFile(configFile, []byte(tc.content), filePermissions))
 
 			result, err := ValidateConfigFile(configFile)
@@ -274,12 +273,12 @@ func TestToInt(t *testing.T) {
 		wantVal int
 		wantOK  bool
 	}{
-		{name: "int", input: cryptoutilSharedMagic.AnswerToLifeUniverseEverything, wantVal: cryptoutilSharedMagic.AnswerToLifeUniverseEverything, wantOK: true},
-		{name: "int64", input: int64(99), wantVal: 99, wantOK: true},
-		{name: "float64", input: float64(cryptoutilSharedMagic.TestServerPort), wantVal: cryptoutilSharedMagic.TestServerPort, wantOK: true},
-		{name: "string", input: "not-a-number", wantVal: 0, wantOK: false},
-		{name: "bool", input: true, wantVal: 0, wantOK: false},
-		{name: "nil", input: nil, wantVal: 0, wantOK: false},
+		{name: testInt, input: cryptoutilSharedMagic.AnswerToLifeUniverseEverything, wantVal: cryptoutilSharedMagic.AnswerToLifeUniverseEverything, wantOK: true},
+		{name: testInt64, input: int64(99), wantVal: 99, wantOK: true},
+		{name: testFloat64, input: float64(cryptoutilSharedMagic.TestServerPort), wantVal: cryptoutilSharedMagic.TestServerPort, wantOK: true},
+		{name: testString, input: "not-a-number", wantVal: 0, wantOK: false},
+		{name: testBool, input: true, wantVal: 0, wantOK: false},
+		{name: testNil, input: nil, wantVal: 0, wantOK: false},
 	}
 
 	for _, tc := range tests {
@@ -303,24 +302,24 @@ func TestFormatConfigValidationResult(t *testing.T) {
 		wantSubstr []string
 	}{
 		{
-			name: "passing result",
+			name: testPassingResult,
 			result: &ConfigValidationResult{
-				Path:  "config.yml",
+				Path:  testConfigYml,
 				Valid: true,
 			},
 			wantPASS:   true,
-			wantSubstr: []string{"[PASS]", "config.yml"},
+			wantSubstr: []string{"[PASS]", testConfigYml},
 		},
 		{
 			name: "failing result with errors and warnings",
 			result: &ConfigValidationResult{
-				Path:     "bad.yml",
+				Path:     testBadYml,
 				Valid:    false,
-				Errors:   []string{"port out of range", "invalid address"},
+				Errors:   []string{testPortOutOfRange, "invalid address"},
 				Warnings: []string{"deprecated field"},
 			},
 			wantPASS:   false,
-			wantSubstr: []string{"[FAIL]", "bad.yml", "ERROR: port out of range", "ERROR: invalid address", "WARNING: deprecated field"},
+			wantSubstr: []string{"[FAIL]", testBadYml, "ERROR: port out of range", "ERROR: invalid address", "WARNING: deprecated field"},
 		},
 	}
 
@@ -389,7 +388,7 @@ func TestValidateAdminBindPolicy_NonStringType(t *testing.T) {
 	t.Parallel()
 
 	tmpDir := t.TempDir()
-	configFile := filepath.Join(tmpDir, "config.yml")
+	configFile := filepath.Join(tmpDir, testConfigYml)
 	content := `bind-private-address: 12345
 `
 	require.NoError(t, os.WriteFile(configFile, []byte(content), filePermissions))
@@ -405,7 +404,7 @@ func TestValidateConfigSecretRefs_NonStringType(t *testing.T) {
 	t.Parallel()
 
 	tmpDir := t.TempDir()
-	configFile := filepath.Join(tmpDir, "config.yml")
+	configFile := filepath.Join(tmpDir, testConfigYml)
 	content := `database-url: 12345
 `
 	require.NoError(t, os.WriteFile(configFile, []byte(content), filePermissions))
@@ -420,9 +419,8 @@ func TestValidateConfigSecretRefs_NoDatabaseURL(t *testing.T) {
 	t.Parallel()
 
 	tmpDir := t.TempDir()
-	configFile := filepath.Join(tmpDir, "config.yml")
-	content := `log-level: INFO
-`
+	configFile := filepath.Join(tmpDir, testConfigYml)
+	content := testLogLevelInfo
 	require.NoError(t, os.WriteFile(configFile, []byte(content), filePermissions))
 
 	result, err := ValidateConfigFile(configFile)

@@ -23,7 +23,7 @@ func TestGenerate_CategoryMapping(t *testing.T) {
 	t.Parallel()
 
 	psID := cryptoutilSharedMagic.OTLPServiceSkeletonTemplate
-	realms := []string{"file", "db"}
+	realms := []string{testFile, testDB}
 
 	gen := cryptoutilAppsFrameworkTls.ExportedNewTestGenerator(
 		os.MkdirAll,
@@ -55,7 +55,7 @@ func TestGenerate_CategoryUniqueness(t *testing.T) {
 	t.Parallel()
 
 	psID := cryptoutilSharedMagic.OTLPServiceSkeletonTemplate
-	realms := []string{"file", "db"}
+	realms := []string{testFile, testDB}
 
 	categories := expectedDirsForPSID(psID, realms)
 

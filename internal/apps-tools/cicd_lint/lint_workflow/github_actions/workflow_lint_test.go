@@ -24,8 +24,8 @@ func TestContains_EmptyStrings(t *testing.T) {
 		substr   string
 		expected bool
 	}{
-		{"both empty", "", "", true},
-		{"empty string non-empty substr", "", "a", false},
+		{testBothEmpty, "", "", true},
+		{testEmptyStringNonEmptySubstr, "", testA, false},
 		{testNonEmptyStringEmptySubstr, cryptoutilSharedMagic.TEST_NEEDLE_HELLO, "", true},
 	}
 
@@ -48,8 +48,8 @@ func TestFindSubstring_EmptyStrings(t *testing.T) {
 		substr   string
 		expected int
 	}{
-		{"both empty", "", "", 0},
-		{"empty string non-empty substr", "", "a", -1},
+		{testBothEmpty, "", "", 0},
+		{testEmptyStringNonEmptySubstr, "", testA, -1},
 		{testNonEmptyStringEmptySubstr, cryptoutilSharedMagic.TEST_NEEDLE_HELLO, "", 0},
 	}
 
@@ -120,25 +120,25 @@ func TestCheckActionVersionsConcurrently_MultipleExemptions(t *testing.T) {
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	actionDetails := map[string]WorkflowActionDetails{
-		"actions/checkout@v3": {
-			Name:           "actions/checkout",
-			CurrentVersion: "v3",
-			WorkflowFiles:  []string{"ci.yml"},
+		testActionsCheckoutV3: {
+			Name:           testActionsCheckout,
+			CurrentVersion: testV3,
+			WorkflowFiles:  []string{testCiYml},
 		},
 		"actions/setup-go@v4": {
-			Name:           "actions/setup-go",
-			CurrentVersion: "v4",
-			WorkflowFiles:  []string{"ci.yml"},
+			Name:           testActionsSetupGo,
+			CurrentVersion: testV4,
+			WorkflowFiles:  []string{testCiYml},
 		},
 	}
 	exceptions := &WorkflowActionExceptions{
 		Exceptions: map[string]WorkflowActionException{
-			"actions/checkout": {
-				Version: "v3",
+			testActionsCheckout: {
+				Version: testV3,
 				Reason:  "Exemption 1",
 			},
-			"actions/setup-go": {
-				Version: "v4",
+			testActionsSetupGo: {
+				Version: testV4,
 				Reason:  "Exemption 2",
 			},
 		},
@@ -178,10 +178,10 @@ func TestFilterWorkflowFiles_DuplicateFiles(t *testing.T) {
 	t.Parallel()
 
 	filesByExtension := map[string][]string{
-		"yml": {
-			".github/workflows/ci.yml",
-			".github/workflows/ci.yml",
-			".github/workflows/cd.yml",
+		valueYml: {
+			testGithubWorkflowsCiYml,
+			testGithubWorkflowsCiYml,
+			testGithubWorkflowsCdYml,
 		},
 	}
 
@@ -220,8 +220,8 @@ jobs:
 	actionDetails, err := validateAndGetWorkflowActionsDetails(logger, []string{workflowFile1, workflowFile2})
 	require.NoError(t, err)
 	require.Len(t, actionDetails, 1)
-	require.Contains(t, actionDetails, "actions/checkout@v4")
-	require.Len(t, actionDetails["actions/checkout@v4"].WorkflowFiles, 2, "Should merge workflow files list")
+	require.Contains(t, actionDetails, testActionsCheckoutV4)
+	require.Len(t, actionDetails[testActionsCheckoutV4].WorkflowFiles, 2, "Should merge workflow files list")
 }
 
 // TestLintGitHubWorkflows_WithExemptedActions tests the exempted actions reporting path
@@ -263,7 +263,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 `
-	workflowFile := filepath.Join(workflowDir, "ci.yml")
+	workflowFile := filepath.Join(workflowDir, testCiYml)
 	err = os.WriteFile(workflowFile, []byte(workflowContent), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
@@ -295,7 +295,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
 `
-	workflowFile := filepath.Join(workflowDir, "ci.yml")
+	workflowFile := filepath.Join(workflowDir, testCiYml)
 	err = os.WriteFile(workflowFile, []byte(workflowContent), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
@@ -344,7 +344,7 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v5
 `
-	workflowFile := filepath.Join(workflowDir, "ci.yml")
+	workflowFile := filepath.Join(workflowDir, testCiYml)
 	err = os.WriteFile(workflowFile, []byte(workflowContent), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 

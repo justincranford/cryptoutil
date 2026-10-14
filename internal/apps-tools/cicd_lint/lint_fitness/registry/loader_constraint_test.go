@@ -428,8 +428,8 @@ func TestLoadRegistry_MigrationRangeValidation(t *testing.T) {
 		end          int
 		wantContains string
 	}{
-		{name: "end equals start", start: 2001, end: 2001, wantContains: "migration_range_end"},
-		{name: "end less than start", start: migrationRangeTestEnd, end: 2001, wantContains: "migration_range_end"},
+		{name: "end equals start", start: 2001, end: 2001, wantContains: testMigrationRangeEnd},
+		{name: "end less than start", start: migrationRangeTestEnd, end: 2001, wantContains: testMigrationRangeEnd},
 		{name: "start below minimum", start: migrationRangeTestBelowMinStart, end: 999, wantContains: "migration_range_start"},
 	}
 

@@ -59,7 +59,7 @@ func TestAuthenticator_Reload(t *testing.T) {
 				return tmpDir
 			},
 			wantErr:     true,
-			errContains: "failed to reload config",
+			errContains: testFailedToReloadConfig,
 		},
 		{
 			name: "error with invalid realm id",
@@ -74,7 +74,7 @@ func TestAuthenticator_Reload(t *testing.T) {
 				return tmpDir
 			},
 			wantErr:     true,
-			errContains: "failed to reload config",
+			errContains: testFailedToReloadConfig,
 		},
 	}
 

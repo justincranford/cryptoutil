@@ -109,7 +109,7 @@ func TestDetectHashType(t *testing.T) {
 	}{
 		{
 			name:         "non-fips140-hash 2a",
-			hash:         "$2a$12$abcdefghijklmnopqrstuv",
+			hash:         test2a12Abcdefghijklmnopqrstuv,
 			expectedType: cryptoutilSharedMagic.UNKNOWN,
 		},
 		{
@@ -142,7 +142,7 @@ func TestVerifyPassword_BcryptAndUnknownRejected(t *testing.T) {
 		name string
 		hash string
 	}{
-		{name: "bcrypt 2a prefix", hash: "$2a$12$abcdefghijklmnopqrstuv"},
+		{name: "bcrypt 2a prefix", hash: test2a12Abcdefghijklmnopqrstuv},
 		{name: "bcrypt 2b prefix", hash: "$2b$12$abcdefghijklmnopqrstuv"},
 		{name: "plain text", hash: "not-a-real-hash"},
 	}

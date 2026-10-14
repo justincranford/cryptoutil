@@ -71,7 +71,7 @@ func TestAuthenticate_UnsupportedRealmType(t *testing.T) {
 	auth.realmMap[realmID].Type = "unsupported"
 	auth.mu.Unlock()
 
-	result := auth.Authenticate(context.Background(), realmID, "user", "pass")
+	result := auth.Authenticate(context.Background(), realmID, testUser, "pass")
 	require.NotNil(t, result)
 	require.Equal(t, "unsupported realm type", result.Error)
 }
@@ -84,7 +84,7 @@ func TestVerifyPassword_InvalidHashEncoding(t *testing.T) {
 		Realms: []RealmConfig{
 			{
 				ID:      googleUuid.Must(googleUuid.NewV7()).String(),
-				Name:    "test-realm",
+				Name:    testTestRealm,
 				Type:    RealmTypeFile,
 				Enabled: true,
 			},
@@ -117,7 +117,7 @@ func TestDiscoverOIDC_NonOIDCProvider(t *testing.T) {
 
 	err := manager.RegisterProvider(&FederatedProvider{
 		ID:        "saml-provider",
-		IssuerURL: "https://issuer.example.com",
+		IssuerURL: testHTTPSIssuerExampleCom,
 		Type:      FederationTypeOIDC,
 	})
 	require.NoError(t, err)
@@ -193,7 +193,7 @@ func TestDiscoverOIDC_HTTPError(t *testing.T) {
 
 	err := manager.RegisterProvider(&FederatedProvider{
 		ID:        "unreachable-provider",
-		IssuerURL: "http://127.0.0.1:1", // port 1 — connection refused
+		IssuerURL: testHTTP1270011, // port 1 — connection refused
 		Type:      FederationTypeOIDC,
 	})
 	require.NoError(t, err)
@@ -213,7 +213,7 @@ func TestDiscoverOIDC_ReadAllError(t *testing.T) {
 
 	err := manager.RegisterProvider(&FederatedProvider{
 		ID:        "readall-error-provider",
-		IssuerURL: "https://issuer.example.com",
+		IssuerURL: testHTTPSIssuerExampleCom,
 		Type:      FederationTypeOIDC,
 	})
 	require.NoError(t, err)
@@ -230,8 +230,8 @@ func TestUnregisterProvider_WithCacheEntries(t *testing.T) {
 
 	// Create mock OIDC discovery server.
 	discoveryDoc := OIDCDiscoveryDocument{
-		Issuer:  "https://issuer.example.com",
-		JWKSURI: "https://issuer.example.com/.well-known/jwks.json",
+		Issuer:  testHTTPSIssuerExampleCom,
+		JWKSURI: testHTTPSIssuerExampleComWellKnownJwksJson,
 	}
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
@@ -282,13 +282,13 @@ func TestMapTenantFromClaims_NonStringArrayElement(t *testing.T) {
 
 	err := manager.RegisterProvider(&FederatedProvider{
 		ID:        "array-provider",
-		IssuerURL: "https://issuer.example.com",
+		IssuerURL: testHTTPSIssuerExampleCom,
 		Type:      FederationTypeOIDC,
 		TenantMappings: []TenantMapping{
 			{
-				ClaimName:  "groups",
-				ClaimValue: "admin",
-				TenantID:   "tenant-1",
+				ClaimName:  testGroups,
+				ClaimValue: testAdmin,
+				TenantID:   testTenant1,
 			},
 		},
 	})
@@ -296,7 +296,7 @@ func TestMapTenantFromClaims_NonStringArrayElement(t *testing.T) {
 
 	// Array with non-string elements — should skip without matching.
 	claims := map[string]any{
-		"groups": []any{123, true, nil},
+		testGroups: []any{123, true, nil},
 	}
 
 	tenantID, err := manager.MapTenantFromClaims("array-provider", claims)
@@ -313,11 +313,11 @@ func TestMapTenantFromClaims_DefaultTypeConversion(t *testing.T) {
 
 	err := manager.RegisterProvider(&FederatedProvider{
 		ID:        "default-type-provider",
-		IssuerURL: "https://issuer.example.com",
+		IssuerURL: testHTTPSIssuerExampleCom,
 		Type:      FederationTypeOIDC,
 		TenantMappings: []TenantMapping{
 			{
-				ClaimName:  "org_id",
+				ClaimName:  testOrgID,
 				ClaimValue: "42",
 				TenantID:   "tenant-42",
 			},
@@ -327,7 +327,7 @@ func TestMapTenantFromClaims_DefaultTypeConversion(t *testing.T) {
 
 	// Integer claim value — hits default case with fmt.Sprintf conversion.
 	claims := map[string]any{
-		"org_id": cryptoutilSharedMagic.AnswerToLifeUniverseEverything,
+		testOrgID: cryptoutilSharedMagic.AnswerToLifeUniverseEverything,
 	}
 
 	tenantID, err := manager.MapTenantFromClaims("default-type-provider", claims)
@@ -343,7 +343,7 @@ func TestGetJWKSURL_DiscoverError(t *testing.T) {
 
 	err := manager.RegisterProvider(&FederatedProvider{
 		ID:        "no-jwks-provider",
-		IssuerURL: "http://127.0.0.1:1", // unreachable
+		IssuerURL: testHTTP1270011, // unreachable
 		Type:      FederationTypeOIDC,
 		JWKSURL:   "", // no configured JWKS URL — forces discovery
 	})

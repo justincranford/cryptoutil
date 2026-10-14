@@ -26,7 +26,7 @@ func TestMainGenerateListings(t *testing.T) {
 				t.Helper()
 
 				tmpDir := t.TempDir()
-				deploymentsDir := filepath.Join(tmpDir, "deployments")
+				deploymentsDir := filepath.Join(tmpDir, defaultDeploymentsDir)
 				configsDir := filepath.Join(tmpDir, cryptoutilSharedMagic.CICDConfigsDir)
 				require.NoError(t, os.MkdirAll(filepath.Join(deploymentsDir, cryptoutilSharedMagic.OTLPServiceIdentityAuthz), cryptoutilSharedMagic.CICDTempDirPermissions))
 				require.NoError(t, os.MkdirAll(configsDir, cryptoutilSharedMagic.CICDTempDirPermissions))
@@ -75,7 +75,7 @@ func TestMainValidateMirror(t *testing.T) {
 				t.Helper()
 
 				tmpDir := t.TempDir()
-				deploymentsDir := filepath.Join(tmpDir, "deployments")
+				deploymentsDir := filepath.Join(tmpDir, defaultDeploymentsDir)
 				configsDir := filepath.Join(tmpDir, cryptoutilSharedMagic.CICDConfigsDir)
 				require.NoError(t, os.MkdirAll(filepath.Join(deploymentsDir, cryptoutilSharedMagic.OTLPServiceIdentityAuthz), cryptoutilSharedMagic.CICDTempDirPermissions))
 				require.NoError(t, os.MkdirAll(filepath.Join(configsDir, cryptoutilSharedMagic.OTLPServiceIdentityAuthz), cryptoutilSharedMagic.CICDTempDirPermissions))
@@ -90,7 +90,7 @@ func TestMainValidateMirror(t *testing.T) {
 				t.Helper()
 
 				tmpDir := t.TempDir()
-				deploymentsDir := filepath.Join(tmpDir, "deployments")
+				deploymentsDir := filepath.Join(tmpDir, defaultDeploymentsDir)
 				configsDir := filepath.Join(tmpDir, cryptoutilSharedMagic.CICDConfigsDir)
 				require.NoError(t, os.MkdirAll(filepath.Join(deploymentsDir, cryptoutilSharedMagic.OTLPServiceIdentityAuthz), cryptoutilSharedMagic.CICDTempDirPermissions))
 				require.NoError(t, os.MkdirAll(configsDir, cryptoutilSharedMagic.CICDTempDirPermissions))
@@ -155,7 +155,7 @@ func TestMainValidateCompose(t *testing.T) {
 			setup: func(t *testing.T) string {
 				t.Helper()
 
-				return "/nonexistent/compose.yml"
+				return testNonexistentComposeYml
 			},
 			wantCode: 1,
 		},
@@ -210,7 +210,7 @@ func TestMainSubcommandRouting(t *testing.T) {
 				t.Helper()
 
 				tmpDir := t.TempDir()
-				deploymentsDir := filepath.Join(tmpDir, "deployments")
+				deploymentsDir := filepath.Join(tmpDir, defaultDeploymentsDir)
 				configsDir := filepath.Join(tmpDir, cryptoutilSharedMagic.CICDConfigsDir)
 				require.NoError(t, os.MkdirAll(filepath.Join(deploymentsDir, cryptoutilSharedMagic.OTLPServiceIdentityAuthz), cryptoutilSharedMagic.CICDTempDirPermissions))
 				require.NoError(t, os.MkdirAll(configsDir, cryptoutilSharedMagic.CICDTempDirPermissions))
@@ -228,7 +228,7 @@ func TestMainSubcommandRouting(t *testing.T) {
 				t.Helper()
 
 				tmpDir := t.TempDir()
-				deploymentsDir := filepath.Join(tmpDir, "deployments")
+				deploymentsDir := filepath.Join(tmpDir, defaultDeploymentsDir)
 				configsDir := filepath.Join(tmpDir, cryptoutilSharedMagic.CICDConfigsDir)
 				require.NoError(t, os.MkdirAll(filepath.Join(deploymentsDir, cryptoutilSharedMagic.OTLPServiceIdentityAuthz), cryptoutilSharedMagic.CICDTempDirPermissions))
 				require.NoError(t, os.MkdirAll(filepath.Join(configsDir, cryptoutilSharedMagic.OTLPServiceIdentityAuthz), cryptoutilSharedMagic.CICDTempDirPermissions))
@@ -245,7 +245,7 @@ func TestMainSubcommandRouting(t *testing.T) {
 				deploymentsDir := t.TempDir()
 				configsDir := t.TempDir()
 
-				return []string{"validate-all", deploymentsDir, configsDir}
+				return []string{valueValidateAll, deploymentsDir, configsDir}
 			},
 			wantCode: 0,
 		},
@@ -262,7 +262,7 @@ func TestMainSubcommandRouting(t *testing.T) {
 					filepath.Join(deploymentsDir, "INVALID_DIR"),
 					cryptoutilSharedMagic.CICDTempDirPermissions))
 
-				return []string{"validate-all", deploymentsDir, configsDir}
+				return []string{valueValidateAll, deploymentsDir, configsDir}
 			},
 			wantCode: 1,
 		},
@@ -289,7 +289,7 @@ func TestMainGenerateListings_ConfigsFailure(t *testing.T) {
 	t.Parallel()
 
 	tmpDir := t.TempDir()
-	deploymentsDir := filepath.Join(tmpDir, "deployments")
+	deploymentsDir := filepath.Join(tmpDir, defaultDeploymentsDir)
 	require.NoError(t, os.MkdirAll(deploymentsDir, cryptoutilSharedMagic.CICDTempDirPermissions))
 
 	got := mainGenerateListings([]string{deploymentsDir, "/nonexistent-configs"})

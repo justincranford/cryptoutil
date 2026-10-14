@@ -76,7 +76,7 @@ func TestDBRealmRepository_CreateUser_DBClosed(t *testing.T) {
 	user := &DBRealmUser{
 		ID:       googleUuid.Must(googleUuid.NewV7()).String(),
 		RealmID:  googleUuid.Must(googleUuid.NewV7()).String(),
-		Username: "testuser",
+		Username: testTestuser,
 		Enabled:  true,
 	}
 
@@ -226,7 +226,7 @@ func TestDBRealmRepository_Authenticate_DBError(t *testing.T) {
 
 	repo, ctx := setupMigratedClosedDBRepo(t)
 
-	result, err := repo.Authenticate(ctx, googleUuid.Must(googleUuid.NewV7()).String(), "user", "pass")
+	result, err := repo.Authenticate(ctx, googleUuid.Must(googleUuid.NewV7()).String(), testUser, "pass")
 	require.Error(t, err)
 	require.NotNil(t, result)
 	require.Equal(t, "database error", result.Error)

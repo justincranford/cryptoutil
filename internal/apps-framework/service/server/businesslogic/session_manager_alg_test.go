@@ -27,7 +27,7 @@ func TestSessionManager_GenerateJWEKey(t *testing.T) {
 	// Test unsupported algorithm
 	_, err = sm.generateJWEKey("invalid-algorithm")
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "unsupported JWE algorithm")
+	require.Contains(t, err.Error(), testUnsupportedJWEAlgorithm)
 }
 
 // TestSessionManager_Initialize_JWS_AllAlgorithms tests initialization with all JWS algorithm variants.
@@ -40,19 +40,19 @@ func TestSessionManager_Initialize_JWS_AllAlgorithms(t *testing.T) {
 		jwsAlg    string
 		isBrowser bool
 	}{
-		{"Browser_RS256", cryptoutilSharedMagic.SessionJWSAlgorithmRS256, true},
+		{testBrowserRs256, cryptoutilSharedMagic.SessionJWSAlgorithmRS256, true},
 		{"Browser_RS384", cryptoutilSharedMagic.SessionJWSAlgorithmRS384, true},
 		{"Browser_RS512", cryptoutilSharedMagic.SessionJWSAlgorithmRS512, true},
-		{"Browser_ES256", cryptoutilSharedMagic.SessionJWSAlgorithmES256, true},
+		{testBrowserEs256, cryptoutilSharedMagic.SessionJWSAlgorithmES256, true},
 		{"Browser_ES384", cryptoutilSharedMagic.SessionJWSAlgorithmES384, true},
 		{"Browser_ES512", cryptoutilSharedMagic.SessionJWSAlgorithmES512, true},
-		{"Browser_EdDSA", cryptoutilSharedMagic.SessionJWSAlgorithmEdDSA, true},
+		{testBrowserEdDsa, cryptoutilSharedMagic.SessionJWSAlgorithmEdDSA, true},
 		// HMAC algorithms (HS256/HS384/HS512) are supported in initializeSessionJWK
 		// but constants are not exported; test with raw strings
 		{"Browser_HS256", cryptoutilSharedMagic.JoseAlgHS256, true},
 		{"Browser_HS384", cryptoutilSharedMagic.JoseAlgHS384, true},
 		{"Browser_HS512", cryptoutilSharedMagic.JoseAlgHS512, true},
-		{"Service_RS256", cryptoutilSharedMagic.SessionJWSAlgorithmRS256, false},
+		{testServiceRs256, cryptoutilSharedMagic.SessionJWSAlgorithmRS256, false},
 		{"Service_ES256", cryptoutilSharedMagic.SessionJWSAlgorithmES256, false},
 		{"Service_HS256", cryptoutilSharedMagic.JoseAlgHS256, false},
 	}
@@ -103,9 +103,9 @@ func TestSessionManager_Initialize_JWE_AllAlgorithms(t *testing.T) {
 		jweAlg    string
 		isBrowser bool
 	}{
-		{"Browser_DirA256GCM", cryptoutilSharedMagic.SessionJWEAlgorithmDirA256GCM, true},
+		{testBrowserDirA256GCM, cryptoutilSharedMagic.SessionJWEAlgorithmDirA256GCM, true},
 		{"Browser_A256GCMKWA256GCM", cryptoutilSharedMagic.SessionJWEAlgorithmA256GCMKWA256GCM, true},
-		{"Service_DirA256GCM", cryptoutilSharedMagic.SessionJWEAlgorithmDirA256GCM, false},
+		{testServiceDirA256GCM, cryptoutilSharedMagic.SessionJWEAlgorithmDirA256GCM, false},
 		{"Service_A256GCMKWA256GCM", cryptoutilSharedMagic.SessionJWEAlgorithmA256GCMKWA256GCM, false},
 	}
 
@@ -163,29 +163,29 @@ func TestSessionManager_Initialize_UnsupportedAlgorithm(t *testing.T) {
 			name:          "UnsupportedBrowserJWSAlg",
 			browserAlg:    cryptoutilSharedMagic.SessionAlgorithmJWS,
 			serviceAlg:    cryptoutilSharedMagic.SessionAlgorithmOPAQUE,
-			browserJWSAlg: "INVALID_ALG",
-			expectErrPart: "unsupported JWS algorithm",
+			browserJWSAlg: testInvalidAlg,
+			expectErrPart: testUnsupportedJWSAlgorithm,
 		},
 		{
 			name:          "UnsupportedBrowserJWEAlg",
 			browserAlg:    cryptoutilSharedMagic.SessionAlgorithmJWE,
 			serviceAlg:    cryptoutilSharedMagic.SessionAlgorithmOPAQUE,
-			browserJWEAlg: "INVALID_ALG",
-			expectErrPart: "unsupported JWE algorithm",
+			browserJWEAlg: testInvalidAlg,
+			expectErrPart: testUnsupportedJWEAlgorithm,
 		},
 		{
 			name:          "UnsupportedServiceJWSAlg",
 			browserAlg:    cryptoutilSharedMagic.SessionAlgorithmOPAQUE,
 			serviceAlg:    cryptoutilSharedMagic.SessionAlgorithmJWS,
-			serviceJWSAlg: "INVALID_ALG",
-			expectErrPart: "unsupported JWS algorithm",
+			serviceJWSAlg: testInvalidAlg,
+			expectErrPart: testUnsupportedJWSAlgorithm,
 		},
 		{
 			name:          "UnsupportedServiceJWEAlg",
 			browserAlg:    cryptoutilSharedMagic.SessionAlgorithmOPAQUE,
 			serviceAlg:    cryptoutilSharedMagic.SessionAlgorithmJWE,
-			serviceJWEAlg: "INVALID_ALG",
-			expectErrPart: "unsupported JWE algorithm",
+			serviceJWEAlg: testInvalidAlg,
+			expectErrPart: testUnsupportedJWEAlgorithm,
 		},
 	}
 

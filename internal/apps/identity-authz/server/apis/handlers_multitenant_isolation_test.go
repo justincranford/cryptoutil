@@ -78,7 +78,7 @@ func TestMultiTenantTokenIsolation(t *testing.T) {
 				cryptoutilSharedMagic.ParamToken: []string{tc.token},
 			}
 
-			req := httptest.NewRequest("POST", "/oauth2/v1/introspect", strings.NewReader(formBody.Encode()))
+			req := httptest.NewRequest(testPost, testOauth2V1Introspect, strings.NewReader(formBody.Encode()))
 			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 			resp, err := app.Test(req, -1)
@@ -135,7 +135,7 @@ func TestMultiTenantTokenRevocationIsolation(t *testing.T) {
 		cryptoutilSharedMagic.ParamToken: []string{tokenA.TokenValue},
 	}
 
-	revokeReq := httptest.NewRequest("POST", "/oauth2/v1/revoke", strings.NewReader(revokeFormBody.Encode()))
+	revokeReq := httptest.NewRequest(testPost, testOauth2V1Revoke, strings.NewReader(revokeFormBody.Encode()))
 	revokeReq.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	revokeResp, err := app.Test(revokeReq)
@@ -164,11 +164,11 @@ func TestMultiTenantScopeIsolation(t *testing.T) {
 	limitedClient := createMultiTenantTestClientWithScopes(t, repoFactory, "limited-client", []string{cryptoutilSharedMagic.ScopeOpenID})
 
 	// Create client with full scopes.
-	fullClient := createMultiTenantTestClientWithScopes(t, repoFactory, "full-client", []string{cryptoutilSharedMagic.ScopeOpenID, cryptoutilSharedMagic.ClaimProfile, cryptoutilSharedMagic.ClaimEmail, "api:admin"})
+	fullClient := createMultiTenantTestClientWithScopes(t, repoFactory, "full-client", []string{cryptoutilSharedMagic.ScopeOpenID, cryptoutilSharedMagic.ClaimProfile, cryptoutilSharedMagic.ClaimEmail, testAPIAdmin})
 
 	// Create tokens with their client's allowed scopes.
 	limitedToken := createMultiTenantTestTokenWithScopes(t, repoFactory, limitedClient.ID, "limited-token", []string{cryptoutilSharedMagic.ScopeOpenID})
-	fullToken := createMultiTenantTestTokenWithScopes(t, repoFactory, fullClient.ID, "full-token", []string{cryptoutilSharedMagic.ScopeOpenID, cryptoutilSharedMagic.ClaimProfile, cryptoutilSharedMagic.ClaimEmail, "api:admin"})
+	fullToken := createMultiTenantTestTokenWithScopes(t, repoFactory, fullClient.ID, "full-token", []string{cryptoutilSharedMagic.ScopeOpenID, cryptoutilSharedMagic.ClaimProfile, cryptoutilSharedMagic.ClaimEmail, testAPIAdmin})
 
 	svc := cryptoutilIdentityAuthz.NewService(config, repoFactory, nil)
 	require.NotNil(t, svc, "Service should not be nil")
@@ -181,12 +181,12 @@ func TestMultiTenantScopeIsolation(t *testing.T) {
 
 	// Scope can be either []any (from JSON) or string.
 	limitedScopes := extractScopes(introspectResult)
-	require.NotContains(t, limitedScopes, "api:admin", "Limited client token should not have admin scope")
+	require.NotContains(t, limitedScopes, testAPIAdmin, "Limited client token should not have admin scope")
 
 	// Verify full client token has all scopes.
 	fullIntrospectResult := introspectToken(t, app, fullToken.TokenValue)
 	fullScopes := extractScopes(fullIntrospectResult)
-	require.Contains(t, fullScopes, "api:admin", "Full client token should have admin scope")
+	require.Contains(t, fullScopes, testAPIAdmin, "Full client token should have admin scope")
 }
 
 // TestMultiTenantDatabaseIsolation validates that tokens are stored with
@@ -239,7 +239,7 @@ func introspectToken(t *testing.T, app *fiber.App, tokenValue string) map[string
 		cryptoutilSharedMagic.ParamToken: []string{tokenValue},
 	}
 
-	req := httptest.NewRequest("POST", "/oauth2/v1/introspect", strings.NewReader(formBody.Encode()))
+	req := httptest.NewRequest(testPost, testOauth2V1Introspect, strings.NewReader(formBody.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	resp, err := app.Test(req, -1)
@@ -297,7 +297,7 @@ func createMultiTenantTestConfig(t *testing.T) *cryptoutilIdentityConfig.Config 
 			DSN:  fmt.Sprintf("file:multitenant_test_%s.db?mode=memory&cache=shared", testID),
 		},
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{
-			Issuer: "https://localhost:8080",
+			Issuer: testHTTPSLocalhost8080,
 		},
 	}
 }

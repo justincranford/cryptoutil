@@ -115,7 +115,7 @@ func TestRecoveryCodeRepository_DeleteExpired(t *testing.T) {
 				{
 					ID:        googleUuid.New(),
 					UserID:    googleUuid.New(),
-					CodeHash:  "hash-expired-1",
+					CodeHash:  testHashExpired1,
 					Used:      false,
 					CreatedAt: time.Now().UTC().Add(-cryptoutilSharedMagic.HMACSHA384KeySize * time.Hour).UTC(),
 					ExpiresAt: time.Now().UTC().Add(-cryptoutilSharedMagic.HoursPerDay * time.Hour).UTC(),
@@ -226,7 +226,7 @@ func TestRecoveryCodeRepository_CountUnused(t *testing.T) {
 				{
 					ID:        googleUuid.New(),
 					UserID:    googleUuid.UUID{}, // Overwritten below.
-					CodeHash:  "hash-expired-1",
+					CodeHash:  testHashExpired1,
 					Used:      false,
 					CreatedAt: time.Now().UTC().Add(-cryptoutilSharedMagic.HMACSHA384KeySize * time.Hour).UTC(),
 					ExpiresAt: time.Now().UTC().Add(-cryptoutilSharedMagic.HoursPerDay * time.Hour).UTC(),

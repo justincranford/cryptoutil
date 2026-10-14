@@ -72,7 +72,7 @@ func TestFederationManager_RegisterProvider(t *testing.T) {
 			name: "empty ID",
 			provider: &FederatedProvider{
 				ID:        "",
-				IssuerURL: "https://issuer.example.com",
+				IssuerURL: testHTTPSIssuerExampleCom,
 				Type:      FederationTypeOIDC,
 			},
 			wantErr: true,
@@ -81,7 +81,7 @@ func TestFederationManager_RegisterProvider(t *testing.T) {
 		{
 			name: "empty issuer URL",
 			provider: &FederatedProvider{
-				ID:        "provider1",
+				ID:        testProvider1,
 				IssuerURL: "",
 				Type:      FederationTypeOIDC,
 			},
@@ -89,21 +89,21 @@ func TestFederationManager_RegisterProvider(t *testing.T) {
 			errMsg:  "issuer URL is required",
 		},
 		{
-			name: "unsupported provider type",
+			name: testUnsupportedProviderType,
 			provider: &FederatedProvider{
-				ID:        "provider1",
-				IssuerURL: "https://issuer.example.com",
+				ID:        testProvider1,
+				IssuerURL: testHTTPSIssuerExampleCom,
 				Type:      cryptoutilSharedMagic.DevSetupTestInvalidName,
 			},
 			wantErr: true,
-			errMsg:  "unsupported provider type",
+			errMsg:  testUnsupportedProviderType,
 		},
 		{
 			name: "valid OIDC provider",
 			provider: &FederatedProvider{
 				ID:        "oidc-provider",
 				Name:      "OIDC Provider",
-				IssuerURL: "https://issuer.example.com",
+				IssuerURL: testHTTPSIssuerExampleCom,
 				Type:      FederationTypeOIDC,
 				ClientID:  "client-id",
 				Enabled:   true,
@@ -136,7 +136,7 @@ func TestFederationManager_RegisterProvider_Duplicate(t *testing.T) {
 
 	provider := &FederatedProvider{
 		ID:        "dup-provider",
-		IssuerURL: "https://issuer.example.com",
+		IssuerURL: testHTTPSIssuerExampleCom,
 		Type:      FederationTypeOIDC,
 	}
 
@@ -156,7 +156,7 @@ func TestFederationManager_GetProvider(t *testing.T) {
 	provider := &FederatedProvider{
 		ID:        "test-provider",
 		Name:      "Test Provider",
-		IssuerURL: "https://issuer.example.com",
+		IssuerURL: testHTTPSIssuerExampleCom,
 		Type:      FederationTypeOIDC,
 	}
 
@@ -172,10 +172,10 @@ func TestFederationManager_GetProvider(t *testing.T) {
 		require.Equal(t, "test-provider", found.ID)
 	})
 
-	t.Run("non-existing provider", func(t *testing.T) {
+	t.Run(testNonExistingProvider, func(t *testing.T) {
 		t.Parallel()
 
-		found, ok := manager.GetProvider("non-existing")
+		found, ok := manager.GetProvider(testNonExisting)
 		require.False(t, ok)
 		require.Nil(t, found)
 	})
@@ -188,7 +188,7 @@ func TestFederationManager_GetProviderByIssuer(t *testing.T) {
 
 	provider := &FederatedProvider{
 		ID:        "issuer-provider",
-		IssuerURL: "https://issuer.example.com/",
+		IssuerURL: testHTTPSIssuerExampleComValue60C54C47,
 		Type:      FederationTypeOIDC,
 	}
 
@@ -202,12 +202,12 @@ func TestFederationManager_GetProviderByIssuer(t *testing.T) {
 	}{
 		{
 			name:      "exact match",
-			issuerURL: "https://issuer.example.com/",
+			issuerURL: testHTTPSIssuerExampleComValue60C54C47,
 			wantFound: true,
 		},
 		{
 			name:      "without trailing slash",
-			issuerURL: "https://issuer.example.com",
+			issuerURL: testHTTPSIssuerExampleCom,
 			wantFound: true,
 		},
 		{
@@ -244,7 +244,7 @@ func TestFederationManager_ListProviders(t *testing.T) {
 	})
 
 	err := manager.RegisterProvider(&FederatedProvider{
-		ID:        "provider1",
+		ID:        testProvider1,
 		IssuerURL: "https://issuer1.example.com",
 		Type:      FederationTypeOIDC,
 	})
@@ -270,7 +270,7 @@ func TestFederationManager_UnregisterProvider(t *testing.T) {
 
 	provider := &FederatedProvider{
 		ID:        "unregister-provider",
-		IssuerURL: "https://issuer.example.com",
+		IssuerURL: testHTTPSIssuerExampleCom,
 		Type:      FederationTypeOIDC,
 	}
 
@@ -286,7 +286,7 @@ func TestFederationManager_UnregisterProvider(t *testing.T) {
 	})
 
 	t.Run("unregister non-existing", func(t *testing.T) {
-		err := manager.UnregisterProvider("non-existing")
+		err := manager.UnregisterProvider(testNonExisting)
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "not found")
 	})
@@ -300,10 +300,10 @@ func TestFederationManager_DiscoverOIDC(t *testing.T) {
 
 		// Create mock OIDC discovery server for this test only.
 		discoveryDoc := OIDCDiscoveryDocument{
-			Issuer:                "https://issuer.example.com",
+			Issuer:                testHTTPSIssuerExampleCom,
 			AuthorizationEndpoint: "https://issuer.example.com/authorize",
 			TokenEndpoint:         "https://issuer.example.com/token",
-			JWKSURI:               "https://issuer.example.com/.well-known/jwks.json",
+			JWKSURI:               testHTTPSIssuerExampleComWellKnownJwksJson,
 		}
 
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -333,15 +333,15 @@ func TestFederationManager_DiscoverOIDC(t *testing.T) {
 		doc, err := manager.DiscoverOIDC(context.Background(), "oidc-discovery")
 		require.NoError(t, err)
 		require.NotNil(t, doc)
-		require.Equal(t, "https://issuer.example.com", doc.Issuer)
+		require.Equal(t, testHTTPSIssuerExampleCom, doc.Issuer)
 	})
 
-	t.Run("non-existing provider", func(t *testing.T) {
+	t.Run(testNonExistingProvider, func(t *testing.T) {
 		t.Parallel()
 
 		manager := NewFederationManager(nil)
 
-		doc, err := manager.DiscoverOIDC(context.Background(), "non-existing")
+		doc, err := manager.DiscoverOIDC(context.Background(), testNonExisting)
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "not found")
 		require.Nil(t, doc)
@@ -358,7 +358,7 @@ func TestFederationManager_DiscoverOIDC_Caching(t *testing.T) {
 
 		w.Header().Set("Content-Type", "application/json")
 
-		doc := OIDCDiscoveryDocument{Issuer: "https://issuer.example.com"}
+		doc := OIDCDiscoveryDocument{Issuer: testHTTPSIssuerExampleCom}
 		if err := json.NewEncoder(w).Encode(doc); err != nil {
 			http.Error(w, "encoding error", http.StatusInternalServerError)
 		}

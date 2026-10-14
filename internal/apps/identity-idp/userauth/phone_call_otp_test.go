@@ -132,9 +132,9 @@ func TestPhoneCallOTPAuthenticator_InitiateAuth(t *testing.T) {
 	user := &cryptoutilIdentityDomain.User{
 		ID:           googleUuid.New(),
 		Sub:          userID,
-		Email:        "user@example.com",
+		Email:        testUserExampleCom,
 		PhoneNumber:  "+1234567890",
-		PasswordHash: "test-hash",
+		PasswordHash: testTestHash,
 	}
 	err := userRepo.Create(ctx, user)
 	require.NoError(t, err)
@@ -194,9 +194,9 @@ func TestPhoneCallOTPAuthenticator_InitiateAuthNoPhoneNumber(t *testing.T) {
 	user := &cryptoutilIdentityDomain.User{
 		ID:           googleUuid.New(),
 		Sub:          userID,
-		Email:        "user@example.com",
+		Email:        testUserExampleCom,
 		PhoneNumber:  "", // No phone number.
-		PasswordHash: "test-hash",
+		PasswordHash: testTestHash,
 	}
 	err := userRepo.Create(ctx, user)
 	require.NoError(t, err)
@@ -225,9 +225,9 @@ func TestPhoneCallOTPAuthenticator_VerifyAuth(t *testing.T) {
 	user := &cryptoutilIdentityDomain.User{
 		ID:           googleUuid.New(),
 		Sub:          userID,
-		Email:        "user@example.com",
+		Email:        testUserExampleCom,
 		PhoneNumber:  "+1234567890",
-		PasswordHash: "test-hash",
+		PasswordHash: testTestHash,
 	}
 	err := userRepo.Create(ctx, user)
 	require.NoError(t, err)

@@ -104,9 +104,9 @@ func TestServerConfigValidation(t *testing.T) {
 		expectError bool
 	}{
 		{
-			name: "valid config",
+			name: testValidConfig,
 			config: &ServerConfig{
-				Name:         "test",
+				Name:         testTest,
 				BindAddress:  cryptoutilSharedMagic.IPv4Loopback,
 				Port:         cryptoutilSharedMagic.TestServerPort,
 				TLSEnabled:   false,
@@ -119,7 +119,7 @@ func TestServerConfigValidation(t *testing.T) {
 		{
 			name: "invalid port",
 			config: &ServerConfig{
-				Name:        "test",
+				Name:        testTest,
 				BindAddress: cryptoutilSharedMagic.IPv4Loopback,
 				Port:        -1,
 			},
@@ -161,7 +161,7 @@ func TestDatabaseConfigValidation(t *testing.T) {
 			name: "valid postgres config",
 			config: &DatabaseConfig{
 				Type:         cryptoutilSharedMagic.DockerServicePostgres,
-				DSN:          "postgres://user:pass@localhost/db",
+				DSN:          testPostgresUserPassLocalhostDB,
 				MaxOpenConns: cryptoutilSharedMagic.TLSMaxValidityCACertYears,
 				MaxIdleConns: cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
 			},
@@ -210,7 +210,7 @@ func TestTokenConfigValidation(t *testing.T) {
 		expectError bool
 	}{
 		{
-			name: "valid config",
+			name: testValidConfig,
 			config: &TokenConfig{
 				AccessTokenLifetime:  cryptoutilSharedMagic.IMDefaultSessionTimeout * time.Second,
 				RefreshTokenLifetime: cryptoutilSharedMagic.IMDefaultSessionAbsoluteMax * time.Second,
@@ -218,7 +218,7 @@ func TestTokenConfigValidation(t *testing.T) {
 				AccessTokenFormat:    cryptoutilSharedMagic.DefaultBrowserSessionCookie,
 				RefreshTokenFormat:   cryptoutilSharedMagic.IdentityTokenFormatUUID,
 				IDTokenFormat:        cryptoutilSharedMagic.DefaultBrowserSessionCookie,
-				Issuer:               "https://example.com",
+				Issuer:               testHTTPSExampleCom,
 				SigningAlgorithm:     cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
 			},
 			expectError: false,

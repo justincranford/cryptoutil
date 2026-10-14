@@ -64,7 +64,7 @@ func TestSuite_HelpCommand(t *testing.T) {
 			require.Contains(t, output, "Available products:")
 			require.Contains(t, output, cryptoutilSharedMagic.IdentityProductName)
 			require.Contains(t, output, cryptoutilSharedMagic.SkeletonProductName)
-			require.Contains(t, output, "sm")
+			require.Contains(t, output, testSm)
 		})
 	}
 }
@@ -92,7 +92,7 @@ func TestSuite_ProductRouting(t *testing.T) {
 	}{
 		{name: "identity help", product: cryptoutilSharedMagic.IdentityProductName, expectedStr: "Usage: identity"},
 		{name: "skeleton help", product: cryptoutilSharedMagic.SkeletonProductName, expectedStr: "Usage: skeleton"},
-		{name: "sm help", product: "sm", expectedStr: "Usage: sm"},
+		{name: "sm help", product: testSm, expectedStr: "Usage: sm"},
 	}
 
 	for _, tt := range tests {
@@ -121,7 +121,7 @@ func TestSuite_ProductVersion(t *testing.T) {
 	}{
 		{name: "identity version", product: cryptoutilSharedMagic.IdentityProductName, expectedStr: "identity product"},
 		{name: "skeleton version", product: cryptoutilSharedMagic.SkeletonProductName, expectedStr: "skeleton product"},
-		{name: "sm version", product: "sm", expectedStr: "sm product"},
+		{name: "sm version", product: testSm, expectedStr: "sm product"},
 	}
 
 	for _, tt := range tests {

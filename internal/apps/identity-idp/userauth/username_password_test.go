@@ -131,8 +131,8 @@ func TestUsernamePasswordAuthenticator_HashPassword(t *testing.T) {
 		errSubstr string
 	}{
 		{
-			name:      "valid password",
-			password:  "ValidPassword123!",
+			name:      testValidPassword,
+			password:  testValidPassword123,
 			wantErr:   false,
 			errSubstr: "",
 		},
@@ -143,22 +143,22 @@ func TestUsernamePasswordAuthenticator_HashPassword(t *testing.T) {
 			errSubstr: "",
 		},
 		{
-			name:      "password too short",
-			password:  "short",
+			name:      testPasswordTooShort,
+			password:  testShort,
 			wantErr:   true,
-			errSubstr: "password too short",
+			errSubstr: testPasswordTooShort,
 		},
 		{
-			name:      "password too long",
+			name:      testPasswordTooLong,
 			password:  strings.Repeat("a", cryptoutilSharedMagic.MaxPasswordLength+1),
 			wantErr:   true,
-			errSubstr: "password too long",
+			errSubstr: testPasswordTooLong,
 		},
 		{
 			name:      "empty password",
 			password:  "",
 			wantErr:   true,
-			errSubstr: "password too short",
+			errSubstr: testPasswordTooShort,
 		},
 	}
 
@@ -195,22 +195,22 @@ func TestUsernamePasswordAuthenticator_ValidatePassword(t *testing.T) {
 		errSubstr string
 	}{
 		{
-			name:      "valid password",
-			password:  "ValidPassword123!",
+			name:      testValidPassword,
+			password:  testValidPassword123,
 			wantErr:   false,
 			errSubstr: "",
 		},
 		{
-			name:      "password too short",
-			password:  "short",
+			name:      testPasswordTooShort,
+			password:  testShort,
 			wantErr:   true,
-			errSubstr: "password too short",
+			errSubstr: testPasswordTooShort,
 		},
 		{
-			name:      "password too long",
+			name:      testPasswordTooLong,
 			password:  strings.Repeat("a", cryptoutilSharedMagic.MaxPasswordLength+1),
 			wantErr:   true,
-			errSubstr: "password too long",
+			errSubstr: testPasswordTooLong,
 		},
 	}
 

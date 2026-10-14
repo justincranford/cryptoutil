@@ -60,9 +60,9 @@ func TestOpenAPIConfig_CreateRequestValidatorMiddleware(t *testing.T) {
 
 	// Create a minimal valid OpenAPI spec for testing.
 	minimalSpec := &openapi3.T{
-		OpenAPI: "3.0.0",
+		OpenAPI: test300,
 		Info: &openapi3.Info{
-			Title:   "Test API",
+			Title:   testTestAPI,
 			Version: cryptoutilSharedMagic.ServiceVersion,
 		},
 		Paths: &openapi3.Paths{},
@@ -134,9 +134,9 @@ func TestOpenAPIConfig_Middlewares(t *testing.T) {
 	t.Parallel()
 
 	minimalSpec := &openapi3.T{
-		OpenAPI: "3.0.0",
+		OpenAPI: test300,
 		Info: &openapi3.Info{
-			Title:   "Test API",
+			Title:   testTestAPI,
 			Version: cryptoutilSharedMagic.ServiceVersion,
 		},
 		Paths: &openapi3.Paths{},
@@ -192,9 +192,9 @@ func TestOpenAPIConfig_MiddlewareExecution(t *testing.T) {
 
 	// Create a minimal valid OpenAPI spec with a test path.
 	spec := &openapi3.T{
-		OpenAPI: "3.0.0",
+		OpenAPI: test300,
 		Info: &openapi3.Info{
-			Title:   "Test API",
+			Title:   testTestAPI,
 			Version: cryptoutilSharedMagic.ServiceVersion,
 		},
 		Paths: &openapi3.Paths{
@@ -264,9 +264,9 @@ func TestFiberHandlerOpenAPISpec_Success(t *testing.T) {
 
 	getSwagger := func() (*openapi3.T, error) {
 		return &openapi3.T{
-			OpenAPI: "3.0.0",
+			OpenAPI: test300,
 			Info: &openapi3.Info{
-				Title:   "Test API",
+				Title:   testTestAPI,
 				Version: cryptoutilSharedMagic.ServiceVersion,
 			},
 			Paths: &openapi3.Paths{},
@@ -310,9 +310,9 @@ func TestFiberHandlerOpenAPISpec_MultipleInvocations(t *testing.T) {
 
 	getSwagger := func() (*openapi3.T, error) {
 		return &openapi3.T{
-			OpenAPI: "3.0.0",
+			OpenAPI: test300,
 			Info: &openapi3.Info{
-				Title:   "Test API",
+				Title:   testTestAPI,
 				Version: cryptoutilSharedMagic.ServiceVersion,
 			},
 			Paths: &openapi3.Paths{},

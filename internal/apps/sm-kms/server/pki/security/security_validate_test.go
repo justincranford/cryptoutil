@@ -100,7 +100,7 @@ func TestThreatModelBuilder(t *testing.T) {
 
 	builder.WithDescription("Test description")
 	builder.AddAsset(Asset{
-		ID:          testLiteralASSET001,
+		ID:          cryptoutilSharedMagic.PKIAssetIDRootCAKey,
 		Name:        "Test Asset",
 		Description: "A test asset",
 		Type:        "test",
@@ -111,7 +111,7 @@ func TestThreatModelBuilder(t *testing.T) {
 		Category:    ThreatSpoofing,
 		Title:       "Test Threat",
 		Description: "A test threat",
-		Asset:       testLiteralASSET001,
+		Asset:       cryptoutilSharedMagic.PKIAssetIDRootCAKey,
 		Severity:    SeverityHigh,
 		Status:      testLiteralOpen,
 	})

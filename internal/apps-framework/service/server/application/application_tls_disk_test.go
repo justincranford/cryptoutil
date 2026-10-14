@@ -168,7 +168,7 @@ func TestStartTLSListener_ContainerConfig(t *testing.T) {
 			modifySettings: func(s *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings) {
 				s.BindPublicAddress = cryptoutilSharedMagic.IPv4AnyAddress // 0.0.0.0
 				s.BindPublicPort = 0                                       // Dynamic port
-				s.DatabaseURL = "sqlite://file::memory:?cache=shared"
+				s.DatabaseURL = testSqliteFileMemoryCacheShared
 			},
 			wantInitSuccess:   true,
 			wantContainerMode: true,

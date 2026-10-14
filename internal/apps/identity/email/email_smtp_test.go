@@ -21,11 +21,11 @@ func TestNewSMTPEmailService(t *testing.T) {
 		{
 			name: "valid_config",
 			config: cryptoutilIdentityEmail.SMTPConfig{
-				Host:     "smtp.example.com",
+				Host:     testSmtpExampleCom,
 				Port:     587,
-				Username: "user@example.com",
-				Password: "password123",
-				From:     "noreply@example.com",
+				Username: testUserExampleCom,
+				Password: testPassword123,
+				From:     testNoreplyExampleCom,
 			},
 		},
 		{
@@ -73,22 +73,22 @@ func TestSMTPEmailService_SendEmail_ErrorPaths(t *testing.T) {
 			config: cryptoutilIdentityEmail.SMTPConfig{
 				Host:     "invalid.smtp.host.example.com",
 				Port:     587,
-				Username: "user@example.com",
-				Password: "password123",
-				From:     "noreply@example.com",
+				Username: testUserExampleCom,
+				Password: testPassword123,
+				From:     testNoreplyExampleCom,
 			},
-			to: "recipient@example.com",
+			to: testRecipientExampleCom,
 		},
 		{
 			name: "invalid_smtp_port",
 			config: cryptoutilIdentityEmail.SMTPConfig{
-				Host:     "smtp.example.com",
+				Host:     testSmtpExampleCom,
 				Port:     99999, // Invalid port
-				Username: "user@example.com",
-				Password: "password123",
-				From:     "noreply@example.com",
+				Username: testUserExampleCom,
+				Password: testPassword123,
+				From:     testNoreplyExampleCom,
 			},
-			to: "recipient@example.com",
+			to: testRecipientExampleCom,
 		},
 	}
 
@@ -143,7 +143,7 @@ func TestMockEmailService_ContainsOTP_EdgeCases(t *testing.T) {
 		},
 		{
 			name:     "five_digit_number",
-			body:     "Code: 12345",
+			body:     testCode12345,
 			wantOTP:  "",
 			wantBool: false,
 		},
@@ -161,8 +161,8 @@ func TestMockEmailService_ContainsOTP_EdgeCases(t *testing.T) {
 
 			mockService := cryptoutilIdentityEmail.NewMockEmailService()
 			email := &cryptoutilIdentityEmail.SentEmail{
-				To:      "user@example.com",
-				Subject: "Test",
+				To:      testUserExampleCom,
+				Subject: testTest,
 				Body:    tc.body,
 			}
 

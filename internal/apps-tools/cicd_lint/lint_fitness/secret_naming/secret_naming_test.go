@@ -35,16 +35,16 @@ func TestFindViolationsInDir_ValidSecrets(t *testing.T) {
 		{
 			name: "hyphenated secret files",
 			setupFiles: map[string]string{
-				"deployments/sm-kms/secrets/unseal-1of5.secret":       "content",
-				"deployments/sm-kms/secrets/hash-pepper-v3.secret":    "content",
-				"deployments/sm-kms/secrets/postgres-password.secret": "content",
+				testDeploymentsSmKMSSecretsUnseal1of5SecretValue4011E2E5: testContent,
+				"deployments/sm-kms/secrets/hash-pepper-v3.secret":       testContent,
+				"deployments/sm-kms/secrets/postgres-password.secret":    testContent,
 			},
 		},
 		{
 			name: "secret.never files are valid",
 			setupFiles: map[string]string{
-				"deployments/sm/secrets/browser-password.secret.never": "content",
-				"deployments/sm/secrets/service-password.secret.never": "content",
+				"deployments/sm/secrets/browser-password.secret.never": testContent,
+				"deployments/sm/secrets/service-password.secret.never": testContent,
 			},
 		},
 		{
@@ -85,7 +85,7 @@ func TestFindViolationsInDir_InvalidSecrets(t *testing.T) {
 		{
 			name: "underscore in filename",
 			setupFiles: map[string]string{
-				"deployments/sm-kms/secrets/unseal_1of5.secret": "content",
+				testDeploymentsSmKMSSecretsUnseal1of5Secret: testContent,
 			},
 			wantViolations: 1,
 			wantSubstring:  "underscore",
@@ -93,7 +93,7 @@ func TestFindViolationsInDir_InvalidSecrets(t *testing.T) {
 		{
 			name: "missing .secret extension",
 			setupFiles: map[string]string{
-				"deployments/sm-kms/secrets/password.txt": "content",
+				"deployments/sm-kms/secrets/password.txt": testContent,
 			},
 			wantViolations: 1,
 			wantSubstring:  "extension",
@@ -101,7 +101,7 @@ func TestFindViolationsInDir_InvalidSecrets(t *testing.T) {
 		{
 			name: "uppercase in filename",
 			setupFiles: map[string]string{
-				"deployments/sm-kms/secrets/Unseal-1of5.secret": "content",
+				"deployments/sm-kms/secrets/Unseal-1of5.secret": testContent,
 			},
 			wantViolations: 1,
 			wantSubstring:  "lowercase",
@@ -109,7 +109,7 @@ func TestFindViolationsInDir_InvalidSecrets(t *testing.T) {
 		{
 			name: "multiple violations in one file",
 			setupFiles: map[string]string{
-				"deployments/sm-kms/secrets/Unseal_1of5.txt": "content",
+				"deployments/sm-kms/secrets/Unseal_1of5.txt": testContent,
 			},
 			wantViolations: 3,
 		},
@@ -164,7 +164,7 @@ func TestCheckInDir_WithViolation(t *testing.T) {
 	t.Parallel()
 
 	files := map[string]string{
-		"deployments/sm-kms/secrets/unseal_1of5.secret": "content",
+		testDeploymentsSmKMSSecretsUnseal1of5Secret: testContent,
 	}
 	rootDir := setupTempDir(t, files)
 
@@ -180,7 +180,7 @@ func TestCheckInDir_NoViolation(t *testing.T) {
 	t.Parallel()
 
 	files := map[string]string{
-		"deployments/sm-kms/secrets/unseal-1of5.secret": "content",
+		testDeploymentsSmKMSSecretsUnseal1of5SecretValue4011E2E5: testContent,
 	}
 	rootDir := setupTempDir(t, files)
 

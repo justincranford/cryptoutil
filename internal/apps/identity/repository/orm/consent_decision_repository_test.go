@@ -30,7 +30,7 @@ func TestConsentDecisionRepository_Create(t *testing.T) {
 
 	userID := googleUuid.Must(googleUuid.NewV7())
 	clientID := "client-id-123"
-	scope := "openid profile email"
+	scope := testOpenidProfileEmail
 	grantedAt := time.Now().UTC()
 	expiresAt := grantedAt.Add(cryptoutilSharedMagic.HoursPerDay * time.Hour)
 
@@ -106,7 +106,7 @@ func TestConsentDecisionRepository_GetByUserClientScope(t *testing.T) {
 			wantNotFound: true,
 		},
 		{
-			name:         "consent_expired",
+			name:         testConsentExpired,
 			setupConsent: true,
 			revoked:      false,
 			expired:      true,
@@ -120,7 +120,7 @@ func TestConsentDecisionRepository_GetByUserClientScope(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			// Skip consent_expired on Windows - SQLite datetime comparison behaves differently
-			if tc.name == "consent_expired" && runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
+			if tc.name == testConsentExpired && runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
 				t.Skip("Skipping consent_expired test on Windows (SQLite datetime comparison issue)")
 			}
 

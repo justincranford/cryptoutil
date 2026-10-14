@@ -63,7 +63,7 @@ func TestHandleIntrospect_InvalidTokenFormat(t *testing.T) {
 		cryptoutilSharedMagic.ParamToken: []string{""},
 	}
 
-	req := httptest.NewRequest("POST", "/oauth2/v1/introspect", strings.NewReader(formBody.Encode()))
+	req := httptest.NewRequest(testPost, testOauth2V1Introspect, strings.NewReader(formBody.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	resp, err := app.Test(req, -1)
@@ -115,7 +115,7 @@ func TestHandleRevoke_InvalidTokenFormat(t *testing.T) {
 		cryptoutilSharedMagic.ParamToken: []string{""},
 	}
 
-	req := httptest.NewRequest("POST", "/oauth2/v1/revoke", strings.NewReader(formBody.Encode()))
+	req := httptest.NewRequest(testPost, testOauth2V1Revoke, strings.NewReader(formBody.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	resp, err := app.Test(req, -1)
@@ -169,7 +169,7 @@ func TestHandleIntrospect_UnknownToken(t *testing.T) {
 		cryptoutilSharedMagic.ParamToken: []string{unknownToken},
 	}
 
-	req := httptest.NewRequest("POST", "/oauth2/v1/introspect", strings.NewReader(formBody.Encode()))
+	req := httptest.NewRequest(testPost, testOauth2V1Introspect, strings.NewReader(formBody.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	resp, err := app.Test(req, -1)
@@ -222,7 +222,7 @@ func TestHandleRevoke_AlreadyRevokedToken(t *testing.T) {
 	testUser := &cryptoutilIdentityDomain.User{
 		ID:           userUUID,
 		Sub:          fmt.Sprintf("user-%s", userUUID),
-		PasswordHash: "dummy-hash",
+		PasswordHash: testDummyHash,
 		CreatedAt:    time.Now().UTC(),
 		UpdatedAt:    time.Now().UTC(),
 	}
@@ -288,7 +288,7 @@ func TestHandleRevoke_AlreadyRevokedToken(t *testing.T) {
 		cryptoutilSharedMagic.ParamToken: []string{tokenValue},
 	}
 
-	req := httptest.NewRequest("POST", "/oauth2/v1/revoke", strings.NewReader(formBody.Encode()))
+	req := httptest.NewRequest(testPost, testOauth2V1Revoke, strings.NewReader(formBody.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	resp, err := app.Test(req, -1)

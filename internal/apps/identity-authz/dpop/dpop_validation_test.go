@@ -36,7 +36,7 @@ func buildBaseToken(t *testing.T) joseJwt.Token {
 
 	token := joseJwt.New()
 	require.NoError(t, token.Set(cryptoutilSharedMagic.ClaimJti, "test-jti"))
-	require.NoError(t, token.Set("htm", "POST"))
+	require.NoError(t, token.Set("htm", testPost))
 	require.NoError(t, token.Set("htu", "https://example.com/token"))
 	require.NoError(t, token.Set(cryptoutilSharedMagic.ClaimIat, time.Now().UTC().Unix()))
 
@@ -70,7 +70,7 @@ func TestValidateProof_EmptyHTTPMethod(t *testing.T) {
 	t.Parallel()
 
 	privateKey, publicKey := generateTestKeys(t)
-	dpopHeader := buildValidProof(t, privateKey, publicKey, "POST", "https://example.com/token", "")
+	dpopHeader := buildValidProof(t, privateKey, publicKey, testPost, "https://example.com/token", "")
 
 	proof, err := ValidateProof(dpopHeader, "", "https://example.com/token", "")
 	require.Error(t, err)
@@ -82,9 +82,9 @@ func TestValidateProof_EmptyHTTPURI(t *testing.T) {
 	t.Parallel()
 
 	privateKey, publicKey := generateTestKeys(t)
-	dpopHeader := buildValidProof(t, privateKey, publicKey, "POST", "https://example.com/token", "")
+	dpopHeader := buildValidProof(t, privateKey, publicKey, testPost, "https://example.com/token", "")
 
-	proof, err := ValidateProof(dpopHeader, "POST", "", "")
+	proof, err := ValidateProof(dpopHeader, testPost, "", "")
 	require.Error(t, err)
 	require.ErrorContains(t, err, "HTTP URI is required")
 	require.Nil(t, proof)
@@ -93,7 +93,7 @@ func TestValidateProof_EmptyHTTPURI(t *testing.T) {
 func TestValidateProof_InvalidJWT(t *testing.T) {
 	t.Parallel()
 
-	proof, err := ValidateProof("this-is-not-a-valid-jwt", "POST", "https://example.com/token", "")
+	proof, err := ValidateProof("this-is-not-a-valid-jwt", testPost, "https://example.com/token", "")
 	require.Error(t, err)
 	require.ErrorContains(t, err, "failed to parse DPoP JWT")
 	require.Nil(t, proof)
@@ -110,7 +110,7 @@ func TestValidateProof_WrongTypHeader(t *testing.T) {
 
 	dpopHeader := buildProofWithHeaders(t, privateKey, token, headers)
 
-	proof, err := ValidateProof(dpopHeader, "POST", "https://example.com/token", "")
+	proof, err := ValidateProof(dpopHeader, testPost, "https://example.com/token", "")
 	require.Error(t, err)
 	require.ErrorContains(t, err, "typ header must be 'dpop+jwt'")
 	require.Nil(t, proof)
@@ -135,7 +135,7 @@ func TestValidateProof_MissingJWKHeader(t *testing.T) {
 	token := buildBaseToken(t)
 	dpopHeader := buildProofWithHeaders(t, privateJWK, token, headers)
 
-	proof, err := ValidateProof(dpopHeader, "POST", "https://example.com/token", "")
+	proof, err := ValidateProof(dpopHeader, testPost, "https://example.com/token", "")
 	require.Error(t, err)
 	require.ErrorContains(t, err, "must include jwk header")
 	require.Nil(t, proof)
@@ -148,14 +148,14 @@ func TestValidateProof_MissingJTI(t *testing.T) {
 
 	// Build token without jti.
 	token := joseJwt.New()
-	require.NoError(t, token.Set("htm", "POST"))
+	require.NoError(t, token.Set("htm", testPost))
 	require.NoError(t, token.Set("htu", "https://example.com/token"))
 	require.NoError(t, token.Set(cryptoutilSharedMagic.ClaimIat, time.Now().UTC().Unix()))
 
 	headers := buildValidHeaders(t, publicKey)
 	dpopHeader := buildProofWithHeaders(t, privateKey, token, headers)
 
-	proof, err := ValidateProof(dpopHeader, "POST", "https://example.com/token", "")
+	proof, err := ValidateProof(dpopHeader, testPost, "https://example.com/token", "")
 	require.Error(t, err)
 	require.ErrorContains(t, err, "must include jti claim")
 	require.Nil(t, proof)
@@ -175,7 +175,7 @@ func TestValidateProof_MissingHTM(t *testing.T) {
 	headers := buildValidHeaders(t, publicKey)
 	dpopHeader := buildProofWithHeaders(t, privateKey, token, headers)
 
-	proof, err := ValidateProof(dpopHeader, "POST", "https://example.com/token", "")
+	proof, err := ValidateProof(dpopHeader, testPost, "https://example.com/token", "")
 	require.Error(t, err)
 	require.ErrorContains(t, err, "must include htm claim")
 	require.Nil(t, proof)
@@ -189,13 +189,13 @@ func TestValidateProof_MissingHTU(t *testing.T) {
 	// Build token without htu.
 	token := joseJwt.New()
 	require.NoError(t, token.Set(cryptoutilSharedMagic.ClaimJti, "test-jti"))
-	require.NoError(t, token.Set("htm", "POST"))
+	require.NoError(t, token.Set("htm", testPost))
 	require.NoError(t, token.Set(cryptoutilSharedMagic.ClaimIat, time.Now().UTC().Unix()))
 
 	headers := buildValidHeaders(t, publicKey)
 	dpopHeader := buildProofWithHeaders(t, privateKey, token, headers)
 
-	proof, err := ValidateProof(dpopHeader, "POST", "https://example.com/token", "")
+	proof, err := ValidateProof(dpopHeader, testPost, "https://example.com/token", "")
 	require.Error(t, err)
 	require.ErrorContains(t, err, "must include htu claim")
 	require.Nil(t, proof)
@@ -209,14 +209,14 @@ func TestValidateProof_MissingIAT(t *testing.T) {
 	// Build token without iat.
 	token := joseJwt.New()
 	require.NoError(t, token.Set(cryptoutilSharedMagic.ClaimJti, "test-jti"))
-	require.NoError(t, token.Set("htm", "POST"))
+	require.NoError(t, token.Set("htm", testPost))
 	require.NoError(t, token.Set("htu", "https://example.com/token"))
 	// Intentionally omit iat
 
 	headers := buildValidHeaders(t, publicKey)
 	dpopHeader := buildProofWithHeaders(t, privateKey, token, headers)
 
-	proof, err := ValidateProof(dpopHeader, "POST", "https://example.com/token", "")
+	proof, err := ValidateProof(dpopHeader, testPost, "https://example.com/token", "")
 	require.Error(t, err)
 	require.ErrorContains(t, err, "must include iat claim")
 	require.Nil(t, proof)
@@ -230,14 +230,14 @@ func TestValidateProof_FutureIAT(t *testing.T) {
 	// Build token with iat 10 minutes in the future.
 	token := joseJwt.New()
 	require.NoError(t, token.Set(cryptoutilSharedMagic.ClaimJti, "test-jti"))
-	require.NoError(t, token.Set("htm", "POST"))
+	require.NoError(t, token.Set("htm", testPost))
 	require.NoError(t, token.Set("htu", "https://example.com/token"))
 	require.NoError(t, token.Set(cryptoutilSharedMagic.ClaimIat, time.Now().UTC().Add(cryptoutilSharedMagic.JoseJADefaultMaxMaterials*time.Minute).Unix()))
 
 	headers := buildValidHeaders(t, publicKey)
 	dpopHeader := buildProofWithHeaders(t, privateKey, token, headers)
 
-	proof, err := ValidateProof(dpopHeader, "POST", "https://example.com/token", "")
+	proof, err := ValidateProof(dpopHeader, testPost, "https://example.com/token", "")
 	require.Error(t, err)
 	require.ErrorContains(t, err, "iat claim is outside acceptable time window")
 	require.Nil(t, proof)
@@ -251,14 +251,14 @@ func TestValidateProof_OldIAT(t *testing.T) {
 	// Build token with iat 10 minutes in the past.
 	token := joseJwt.New()
 	require.NoError(t, token.Set(cryptoutilSharedMagic.ClaimJti, "test-jti"))
-	require.NoError(t, token.Set("htm", "POST"))
+	require.NoError(t, token.Set("htm", testPost))
 	require.NoError(t, token.Set("htu", "https://example.com/token"))
 	require.NoError(t, token.Set(cryptoutilSharedMagic.ClaimIat, time.Now().UTC().Add(-cryptoutilSharedMagic.JoseJADefaultMaxMaterials*time.Minute).Unix()))
 
 	headers := buildValidHeaders(t, publicKey)
 	dpopHeader := buildProofWithHeaders(t, privateKey, token, headers)
 
-	proof, err := ValidateProof(dpopHeader, "POST", "https://example.com/token", "")
+	proof, err := ValidateProof(dpopHeader, testPost, "https://example.com/token", "")
 	require.Error(t, err)
 	require.ErrorContains(t, err, "iat claim is outside acceptable time window")
 	require.Nil(t, proof)
@@ -276,7 +276,7 @@ func TestValidateProof_MissingATHWithAccessToken(t *testing.T) {
 	dpopHeader := buildProofWithHeaders(t, privateKey, token, headers)
 
 	// Provide an access token so ValidateProof expects ath in the JWT.
-	proof, err := ValidateProof(dpopHeader, "POST", "https://example.com/token", "some-access-token")
+	proof, err := ValidateProof(dpopHeader, testPost, "https://example.com/token", "some-access-token")
 	require.Error(t, err)
 	require.ErrorContains(t, err, "must include ath claim when used with access token")
 	require.Nil(t, proof)
@@ -299,7 +299,7 @@ func TestValidateProof_NoneAlgorithm(t *testing.T) {
 	// Empty signature for none algorithm
 	noneToken := encodedHeader + "." + encodedPayload + "."
 
-	proof, err := ValidateProof(noneToken, "POST", "https://example.com/token", "")
+	proof, err := ValidateProof(noneToken, testPost, "https://example.com/token", "")
 	require.Error(t, err)
 	require.ErrorContains(t, err, "alg must not be 'none'")
 	require.Nil(t, proof)
@@ -336,7 +336,7 @@ func TestIsDPoPBound_CNFJKTNotString(t *testing.T) {
 
 	token := joseJwt.New()
 	require.NoError(t, token.Set(cryptoutilSharedMagic.ClaimSub, "test-subject"))
-	require.NoError(t, token.Set("cnf", map[string]any{"jkt": 12345})) // non-string jkt
+	require.NoError(t, token.Set("cnf", map[string]any{valueJkt: 12345})) // non-string jkt
 
 	signed, err := joseJwt.Sign(token, joseJwt.WithKey(joseJwa.ES256(), privateKey))
 	require.NoError(t, err)

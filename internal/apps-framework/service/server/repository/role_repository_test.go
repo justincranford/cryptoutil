@@ -42,7 +42,7 @@ func TestRoleRepository_Create(t *testing.T) {
 	firstRole := &Role{
 		ID:          googleUuid.New(),
 		TenantID:    tenant.ID,
-		Name:        "admin",
+		Name:        testAdmin,
 		Description: cryptoutilSharedMagic.DESC_ADMIN_ROLE,
 		CreatedAt:   time.Now().UTC(),
 	}
@@ -59,7 +59,7 @@ func TestRoleRepository_Create(t *testing.T) {
 			role: &Role{
 				ID:          googleUuid.New(),
 				TenantID:    tenant.ID,
-				Name:        "user",
+				Name:        testUser,
 				Description: "User role",
 				CreatedAt:   time.Now().UTC(),
 			},
@@ -70,7 +70,7 @@ func TestRoleRepository_Create(t *testing.T) {
 			role: &Role{
 				ID:          googleUuid.New(),
 				TenantID:    tenant.ID,
-				Name:        "admin",
+				Name:        testAdmin,
 				Description: "Duplicate admin role",
 				CreatedAt:   time.Now().UTC(),
 			},
@@ -112,7 +112,7 @@ func TestRoleRepository_GetByName(t *testing.T) {
 	role := &Role{
 		ID:          googleUuid.New(),
 		TenantID:    tenant.ID,
-		Name:        "admin",
+		Name:        testAdmin,
 		Description: cryptoutilSharedMagic.DESC_ADMIN_ROLE,
 		CreatedAt:   time.Now().UTC(),
 	}
@@ -129,13 +129,13 @@ func TestRoleRepository_GetByName(t *testing.T) {
 		{
 			name:      "happy path - existing role",
 			tenantID:  tenant.ID,
-			roleName:  "admin",
+			roleName:  testAdmin,
 			wantError: false,
 		},
 		{
 			name:      "not found - wrong tenant",
 			tenantID:  googleUuid.New(),
-			roleName:  "admin",
+			roleName:  testAdmin,
 			wantError: true,
 		},
 		{
@@ -198,7 +198,7 @@ func TestUserRoleRepository_Assign(t *testing.T) {
 	role := &Role{
 		ID:          googleUuid.New(),
 		TenantID:    tenant.ID,
-		Name:        "admin",
+		Name:        testAdmin,
 		Description: cryptoutilSharedMagic.DESC_ADMIN_ROLE,
 		CreatedAt:   time.Now().UTC(),
 	}
@@ -257,7 +257,7 @@ func TestUserRoleRepository_Revoke(t *testing.T) {
 	role := &Role{
 		ID:          googleUuid.New(),
 		TenantID:    tenant.ID,
-		Name:        "admin",
+		Name:        testAdmin,
 		Description: cryptoutilSharedMagic.DESC_ADMIN_ROLE,
 		CreatedAt:   time.Now().UTC(),
 	}
@@ -370,7 +370,7 @@ func TestTenantRealmRepository_Create(t *testing.T) {
 				ID:        googleUuid.New(),
 				TenantID:  tenant.ID,
 				RealmID:   googleUuid.New(),
-				Type:      "DB",
+				Type:      testDB,
 				Active:    true,
 				CreatedAt: time.Now().UTC(),
 			},
@@ -383,7 +383,7 @@ func TestTenantRealmRepository_Create(t *testing.T) {
 					ID:        googleUuid.New(),
 					TenantID:  tenant.ID,
 					RealmID:   googleUuid.New(),
-					Type:      "DB",
+					Type:      testDB,
 					Active:    true,
 					CreatedAt: time.Now().UTC(),
 				}
@@ -394,7 +394,7 @@ func TestTenantRealmRepository_Create(t *testing.T) {
 					ID:        googleUuid.New(),
 					TenantID:  tenant.ID,
 					RealmID:   existingRealm.RealmID,
-					Type:      "DB",
+					Type:      testDB,
 					Active:    true,
 					CreatedAt: time.Now().UTC(),
 				}

@@ -32,7 +32,7 @@ func createTestCertificatePair(t *testing.T, includeCRLDistributionPoints, inclu
 		SerialNumber: big.NewInt(1),
 		Subject: pkix.Name{
 			CommonName:   "Test CA",
-			Organization: []string{"Test Org"},
+			Organization: []string{testTestOrg},
 		},
 		NotBefore:             time.Now().UTC().Add(-1 * time.Hour),
 		NotAfter:              time.Now().UTC().Add(cryptoutilSharedMagic.HoursPerDay * time.Hour),
@@ -55,7 +55,7 @@ func createTestCertificatePair(t *testing.T, includeCRLDistributionPoints, inclu
 		SerialNumber: big.NewInt(cryptoutilSharedMagic.AnswerToLifeUniverseEverything),
 		Subject: pkix.Name{
 			CommonName:   cryptoutilSharedMagic.TestClientName,
-			Organization: []string{"Test Org"},
+			Organization: []string{testTestOrg},
 		},
 		NotBefore:             time.Now().UTC().Add(-1 * time.Hour),
 		NotAfter:              time.Now().UTC().Add(cryptoutilSharedMagic.HoursPerDay * time.Hour),
@@ -69,7 +69,7 @@ func createTestCertificatePair(t *testing.T, includeCRLDistributionPoints, inclu
 	}
 
 	if includeOCSP {
-		clientTemplate.OCSPServer = []string{"http://127.0.0.1:9998/ocsp"}
+		clientTemplate.OCSPServer = []string{testHTTP1270019998Ocsp}
 	}
 
 	clientCertDER, err := x509.CreateCertificate(crand.Reader, clientTemplate, caCert, &clientPrivKey.PublicKey, caPrivKey)
@@ -446,7 +446,7 @@ func TestCombinedRevocationChecker_CheckRevocation(t *testing.T) {
 
 	// Update client certificate distribution points.
 	clientCert.CRLDistributionPoints = []string{crlServer.URL}
-	clientCert.OCSPServer = []string{"http://127.0.0.1:9998/ocsp"} // Invalid OCSP server.
+	clientCert.OCSPServer = []string{testHTTP1270019998Ocsp} // Invalid OCSP server.
 
 	checker := NewCombinedRevocationChecker(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second, 1*time.Hour)
 	ctx := context.Background()

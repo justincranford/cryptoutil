@@ -25,7 +25,7 @@ func TestHandleGenerateRecoveryCodes_InvalidBody(t *testing.T) {
 	app := fiber.New()
 	svc.RegisterRoutes(app)
 
-	req := httptest.NewRequest("POST", "/oidc/v1/mfa/recovery-codes/generate", bytes.NewReader([]byte("{invalid json")))
+	req := httptest.NewRequest(testPost, "/oidc/v1/mfa/recovery-codes/generate", bytes.NewReader([]byte("{invalid json")))
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := app.Test(req, -1)
@@ -53,7 +53,7 @@ func TestHandleGenerateRecoveryCodes_MissingUserID(t *testing.T) {
 	body, err := json.Marshal(reqBody)
 	require.NoError(t, err)
 
-	req := httptest.NewRequest("POST", "/oidc/v1/mfa/recovery-codes/generate", bytes.NewReader(body))
+	req := httptest.NewRequest(testPost, "/oidc/v1/mfa/recovery-codes/generate", bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := app.Test(req, -1)
@@ -75,13 +75,13 @@ func TestHandleGenerateRecoveryCodes_InvalidUserIDFormat(t *testing.T) {
 	svc.RegisterRoutes(app)
 
 	reqBody := cryptoutilIdentityAuthz.GenerateRecoveryCodesRequest{
-		UserID: "not-a-uuid",
+		UserID: testNotAUUID,
 	}
 
 	body, err := json.Marshal(reqBody)
 	require.NoError(t, err)
 
-	req := httptest.NewRequest("POST", "/oidc/v1/mfa/recovery-codes/generate", bytes.NewReader(body))
+	req := httptest.NewRequest(testPost, "/oidc/v1/mfa/recovery-codes/generate", bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := app.Test(req, -1)
@@ -146,7 +146,7 @@ func TestHandleRegenerateRecoveryCodes_InvalidBody(t *testing.T) {
 	app := fiber.New()
 	svc.RegisterRoutes(app)
 
-	req := httptest.NewRequest("POST", "/oidc/v1/mfa/recovery-codes/regenerate", bytes.NewReader([]byte("{invalid json")))
+	req := httptest.NewRequest(testPost, "/oidc/v1/mfa/recovery-codes/regenerate", bytes.NewReader([]byte("{invalid json")))
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := app.Test(req, -1)
@@ -174,7 +174,7 @@ func TestHandleRegenerateRecoveryCodes_MissingUserID(t *testing.T) {
 	body, err := json.Marshal(reqBody)
 	require.NoError(t, err)
 
-	req := httptest.NewRequest("POST", "/oidc/v1/mfa/recovery-codes/regenerate", bytes.NewReader(body))
+	req := httptest.NewRequest(testPost, "/oidc/v1/mfa/recovery-codes/regenerate", bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := app.Test(req, -1)
@@ -196,13 +196,13 @@ func TestHandleRegenerateRecoveryCodes_InvalidUserIDFormat(t *testing.T) {
 	svc.RegisterRoutes(app)
 
 	reqBody := cryptoutilIdentityAuthz.GenerateRecoveryCodesRequest{
-		UserID: "not-a-uuid",
+		UserID: testNotAUUID,
 	}
 
 	body, err := json.Marshal(reqBody)
 	require.NoError(t, err)
 
-	req := httptest.NewRequest("POST", "/oidc/v1/mfa/recovery-codes/regenerate", bytes.NewReader(body))
+	req := httptest.NewRequest(testPost, "/oidc/v1/mfa/recovery-codes/regenerate", bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := app.Test(req, -1)
@@ -225,7 +225,7 @@ func TestHandleVerifyRecoveryCode_InvalidBody(t *testing.T) {
 	app := fiber.New()
 	svc.RegisterRoutes(app)
 
-	req := httptest.NewRequest("POST", "/oidc/v1/mfa/verify-recovery-code", bytes.NewReader([]byte("{invalid json")))
+	req := httptest.NewRequest(testPost, "/oidc/v1/mfa/verify-recovery-code", bytes.NewReader([]byte("{invalid json")))
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := app.Test(req, -1)
@@ -253,7 +253,7 @@ func TestHandleVerifyRecoveryCode_MissingCode(t *testing.T) {
 	body, err := json.Marshal(reqBody)
 	require.NoError(t, err)
 
-	req := httptest.NewRequest("POST", "/oidc/v1/mfa/verify-recovery-code", bytes.NewReader(body))
+	req := httptest.NewRequest(testPost, "/oidc/v1/mfa/verify-recovery-code", bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := app.Test(req, -1)
@@ -275,13 +275,13 @@ func TestHandleVerifyRecoveryCode_MissingUserID(t *testing.T) {
 	svc.RegisterRoutes(app)
 
 	reqBody := cryptoutilIdentityAuthz.VerifyRecoveryCodeRequest{
-		Code: "TEST-CODE-1234",
+		Code: testTestCode1234,
 	}
 
 	body, err := json.Marshal(reqBody)
 	require.NoError(t, err)
 
-	req := httptest.NewRequest("POST", "/oidc/v1/mfa/verify-recovery-code", bytes.NewReader(body))
+	req := httptest.NewRequest(testPost, "/oidc/v1/mfa/verify-recovery-code", bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 	// X-User-ID header intentionally not set
 
@@ -304,15 +304,15 @@ func TestHandleVerifyRecoveryCode_InvalidUserIDFormat(t *testing.T) {
 	svc.RegisterRoutes(app)
 
 	reqBody := cryptoutilIdentityAuthz.VerifyRecoveryCodeRequest{
-		Code: "TEST-CODE-1234",
+		Code: testTestCode1234,
 	}
 
 	body, err := json.Marshal(reqBody)
 	require.NoError(t, err)
 
-	req := httptest.NewRequest("POST", "/oidc/v1/mfa/verify-recovery-code", bytes.NewReader(body))
+	req := httptest.NewRequest(testPost, "/oidc/v1/mfa/verify-recovery-code", bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("X-User-ID", "not-a-uuid")
+	req.Header.Set("X-User-ID", testNotAUUID)
 
 	resp, err := app.Test(req, -1)
 	require.NoError(t, err)

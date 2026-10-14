@@ -19,17 +19,17 @@ func TestUser_BeforeCreate(t *testing.T) {
 		expectIDChange bool
 	}{
 		{
-			name: "generates ID when empty",
+			name: testGeneratesIDWhenEmpty,
 			user: &cryptoutilIdentityDomain.User{
-				Sub: "test_user",
+				Sub: testTestUser,
 			},
 			expectIDChange: true,
 		},
 		{
-			name: "preserves existing ID",
+			name: testPreservesExistingID,
 			user: &cryptoutilIdentityDomain.User{
 				ID:  googleUuid.Must(googleUuid.NewV7()),
-				Sub: "test_user",
+				Sub: testTestUser,
 			},
 			expectIDChange: false,
 		},

@@ -47,11 +47,11 @@ func TestRegisterRoutes_AllEndpointsRegistered(t *testing.T) {
 		method string
 		path   string
 	}{
-		{"GET", "/oauth2/v1/authorize"},
-		{"POST", "/oauth2/v1/authorize"},
-		{"POST", "/oauth2/v1/token"},
-		{"POST", "/oauth2/v1/introspect"},
-		{"POST", "/oauth2/v1/revoke"},
+		{"GET", testOauth2V1Authorize},
+		{testPost, testOauth2V1Authorize},
+		{testPost, testOauth2V1Token},
+		{testPost, testOauth2V1Introspect},
+		{testPost, testOauth2V1Revoke},
 	}
 
 	for _, endpoint := range endpoints {
@@ -70,7 +70,7 @@ func createRoutesComprehensiveTestConfig(t *testing.T) *cryptoutilIdentityConfig
 
 	return &cryptoutilIdentityConfig.Config{
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{
-			Issuer: "https://identity.example.com",
+			Issuer: testHTTPSIdentityExampleCom,
 		},
 	}
 }
@@ -99,7 +99,7 @@ func createRoutesComprehensiveTestTokenService(t *testing.T) *cryptoutilIdentity
 	t.Helper()
 
 	config := &cryptoutilIdentityConfig.TokenConfig{
-		Issuer: "https://identity.example.com",
+		Issuer: testHTTPSIdentityExampleCom,
 	}
 
 	return cryptoutilIdentityIssuer.NewTokenService(nil, nil, nil, config)

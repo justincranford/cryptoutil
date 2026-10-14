@@ -198,8 +198,8 @@ func TestFormatDir_HelperDetection(t *testing.T) {
 	}{
 		{name: "adds helper to function with testing.T", content: contentHelperNeedingFix, wantHelper: true, helperStr: ".Helper()"},
 		{name: "adds helper to benchmark function", content: contentBenchmarkHelper, wantHelper: true, helperStr: "b.Helper"},
-		{name: "adds helper to pointer receiver method", content: contentPointerReceiver, wantHelper: true, helperStr: "t.Helper"},
-		{name: "adds helper with mixed statements", content: contentMixedStatements, wantHelper: true, helperStr: "t.Helper"},
+		{name: "adds helper to pointer receiver method", content: contentPointerReceiver, wantHelper: true, helperStr: testTHelper},
+		{name: "adds helper with mixed statements", content: contentMixedStatements, wantHelper: true, helperStr: testTHelper},
 		{name: "skips function without testing.T param", content: contentHelperWithoutTestingT},
 		{name: "skips non-pointer testing.T", content: contentNonPointerTestingT},
 		{name: "skips function with no params", content: contentNoParams},
@@ -282,7 +282,7 @@ func TestFormatDir_Errors(t *testing.T) {
 
 				return tmpDir
 			},
-			wantErr: "format-go-test failed",
+			wantErr: testFormatGoTestFailed,
 		},
 		{
 			name: "nonexistent directory",
@@ -291,7 +291,7 @@ func TestFormatDir_Errors(t *testing.T) {
 
 				return "/nonexistent/directory/path"
 			},
-			wantErr: "format-go-test failed",
+			wantErr: testFormatGoTestFailed,
 		},
 		{
 			name: "read-only file",
@@ -310,7 +310,7 @@ func TestFormatDir_Errors(t *testing.T) {
 
 				return tmpDir
 			},
-			wantErr: "format-go-test failed",
+			wantErr: testFormatGoTestFailed,
 		},
 	}
 	for _, tc := range tests {

@@ -16,7 +16,7 @@ func TestCicd_NoArgs(t *testing.T) {
 
 	var stdout, stderr bytes.Buffer
 
-	exitCode := Cicd([]string{"cicd"}, strings.NewReader(""), &stdout, &stderr)
+	exitCode := Cicd([]string{testCicd}, strings.NewReader(""), &stdout, &stderr)
 	require.Equal(t, 1, exitCode)
 	require.Contains(t, stdout.String(), "Usage:")
 }
@@ -30,7 +30,7 @@ func TestCicd_Help(t *testing.T) {
 	}{
 		{name: cryptoutilSharedMagic.CLIHelpCommand, arg: cryptoutilSharedMagic.CLIHelpCommand},
 		{name: cryptoutilSharedMagic.CLIHelpFlag, arg: cryptoutilSharedMagic.CLIHelpFlag},
-		{name: "-h", arg: "-h"},
+		{name: valueShortHelpFlag, arg: valueShortHelpFlag},
 	}
 
 	for _, tc := range tests {
@@ -39,7 +39,7 @@ func TestCicd_Help(t *testing.T) {
 
 			var stdout, stderr bytes.Buffer
 
-			exitCode := Cicd([]string{"cicd", tc.arg}, strings.NewReader(""), &stdout, &stderr)
+			exitCode := Cicd([]string{testCicd, tc.arg}, strings.NewReader(""), &stdout, &stderr)
 			require.Equal(t, 0, exitCode)
 			require.Contains(t, stdout.String(), "Usage:")
 		})
@@ -51,7 +51,7 @@ func TestCicd_UnknownCommand(t *testing.T) {
 
 	var stdout, stderr bytes.Buffer
 
-	exitCode := Cicd([]string{"cicd", "nonexistent-cmd"}, strings.NewReader(""), &stdout, &stderr)
+	exitCode := Cicd([]string{testCicd, "nonexistent-cmd"}, strings.NewReader(""), &stdout, &stderr)
 	require.Equal(t, 1, exitCode)
 	require.Contains(t, stderr.String(), "Unknown command: nonexistent-cmd")
 }
@@ -61,7 +61,7 @@ func TestCicd_LintDocs(t *testing.T) {
 
 	var stdout, stderr bytes.Buffer
 
-	exitCode := Cicd([]string{"cicd", "lint-docs"}, strings.NewReader(""), &stdout, &stderr)
+	exitCode := Cicd([]string{testCicd, "lint-docs"}, strings.NewReader(""), &stdout, &stderr)
 	require.Contains(t, []int{0, 1}, exitCode)
 }
 
@@ -70,7 +70,7 @@ func TestCicd_LintDeployments(t *testing.T) {
 
 	var stdout, stderr bytes.Buffer
 
-	exitCode := Cicd([]string{"cicd", "lint-deployments"}, strings.NewReader(""), &stdout, &stderr)
+	exitCode := Cicd([]string{testCicd, "lint-deployments"}, strings.NewReader(""), &stdout, &stderr)
 	require.Contains(t, []int{0, 1}, exitCode)
 }
 
@@ -98,10 +98,10 @@ func TestFirstNonFlag(t *testing.T) {
 		want string
 	}{
 		{name: "no args", args: []string{}, want: ""},
-		{name: "only flags", args: []string{"-q", cryptoutilSharedMagic.FlagSummary}, want: ""},
-		{name: "command first", args: []string{"lint-text"}, want: "lint-text"},
-		{name: "flag then command", args: []string{"-q", "lint-text"}, want: "lint-text"},
-		{name: "multiple flags then command", args: []string{"-q", cryptoutilSharedMagic.FlagSummary, "lint-go"}, want: "lint-go"},
+		{name: "only flags", args: []string{testQ, cryptoutilSharedMagic.FlagSummary}, want: ""},
+		{name: "command first", args: []string{testLintText}, want: testLintText},
+		{name: "flag then command", args: []string{testQ, testLintText}, want: testLintText},
+		{name: "multiple flags then command", args: []string{testQ, cryptoutilSharedMagic.FlagSummary, testLintGo}, want: testLintGo},
 	}
 
 	for _, tc := range tests {
@@ -121,11 +121,11 @@ func TestHasHelpFlag(t *testing.T) {
 		args []string
 		want bool
 	}{
-		{name: "no flags", args: []string{"lint-text"}, want: false},
-		{name: "short -h", args: []string{"-h"}, want: true},
+		{name: "no flags", args: []string{testLintText}, want: false},
+		{name: "short -h", args: []string{valueShortHelpFlag}, want: true},
 		{name: "--help flag", args: []string{cryptoutilSharedMagic.CLIHelpFlag}, want: true},
 		{name: "help command", args: []string{cryptoutilSharedMagic.CLIHelpCommand}, want: true},
-		{name: "help mixed with other args", args: []string{"lint-text", cryptoutilSharedMagic.CLIHelpFlag}, want: true},
+		{name: "help mixed with other args", args: []string{testLintText, cryptoutilSharedMagic.CLIHelpFlag}, want: true},
 		{name: cryptoutilSharedMagic.EMPTY, args: []string{}, want: false},
 	}
 
@@ -144,6 +144,6 @@ func TestCicd_QuietFlag(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 
 	// lint-workflow is fast and always passes in the project root.
-	exitCode := Cicd([]string{"cicd", "-q", "lint-workflow"}, strings.NewReader(""), &stdout, &stderr)
+	exitCode := Cicd([]string{testCicd, testQ, "lint-workflow"}, strings.NewReader(""), &stdout, &stderr)
 	require.Equal(t, 0, exitCode, "Expected exit code 0 for -q lint-workflow")
 }

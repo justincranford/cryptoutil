@@ -37,7 +37,7 @@ func TestTenantRealmRepository_ListByTenant(t *testing.T) {
 		ID:        googleUuid.New(),
 		TenantID:  tenant.ID,
 		RealmID:   googleUuid.New(),
-		Type:      "DB",
+		Type:      testDB,
 		Active:    true,
 		CreatedAt: time.Now().UTC(),
 	}

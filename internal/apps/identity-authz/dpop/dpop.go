@@ -173,7 +173,7 @@ func IsDPoPBound(accessToken string) (bool, string, error) {
 		return false, "", nil //nolint:nilerr // Missing cnf claim means not DPoP-bound, not an error.
 	}
 
-	jkt, ok := cnfRaw["jkt"]
+	jkt, ok := cnfRaw[valueJkt]
 	if !ok {
 		return false, "", nil // Not DPoP-bound (no jkt in cnf)
 	}

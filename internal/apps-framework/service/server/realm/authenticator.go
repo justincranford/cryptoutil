@@ -165,7 +165,7 @@ func (a *Authenticator) Authenticate(ctx context.Context, realmID, username, pas
 	// Find realm.
 	realm, ok := a.realmMap[realmID]
 	if !ok {
-		result.Error = "realm not found"
+		result.Error = valueRealmNotFound
 		result.ErrorCode = AuthErrorRealmNotFound
 
 		return result
@@ -353,7 +353,7 @@ func (a *Authenticator) AuthenticateByRealmName(ctx context.Context, realmName, 
 
 	return &AuthResult{
 		Timestamp: time.Now().UTC(),
-		Error:     "realm not found",
+		Error:     valueRealmNotFound,
 		ErrorCode: AuthErrorRealmNotFound,
 	}
 }

@@ -4,7 +4,6 @@ package security
 import cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 const (
-	testLiteralASSET001        = cryptoutilSharedMagic.PKIAssetIDRootCAKey
 	testLiteralTHREAT001       = "THREAT-001"
 	testLiteralTestCertificate = "Test Certificate"
 	testLiteralExampleCom      = "example.com"

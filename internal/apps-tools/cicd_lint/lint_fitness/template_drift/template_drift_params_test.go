@@ -21,10 +21,10 @@ func TestBuildParams(t *testing.T) {
 	require.Equal(t, cryptoutilSharedMagic.OTLPServiceSMKMS, params[cryptoutilSharedMagic.CICDTemplateExpansionKeyPSID])
 	require.Equal(t, "SM-KMS", params["__PS_ID_UPPER__"])
 	require.Equal(t, cryptoutilSharedMagic.DefaultOTLPServiceDefault, params[cryptoutilSharedMagic.CICDTemplateExpansionKeySuite])
-	require.Equal(t, cryptoutilSharedMagic.CICDTemplateGoVersion, params["__GO_VERSION__"])
-	require.Equal(t, cryptoutilSharedMagic.CICDTemplateContainerUID, params["__CONTAINER_UID__"])
-	require.Equal(t, cryptoutilSharedMagic.CICDTemplateContainerGID, params["__CONTAINER_GID__"])
-	require.NotEmpty(t, params["__PRODUCT_DISPLAY_NAME__"])
+	require.Equal(t, cryptoutilSharedMagic.CICDTemplateGoVersion, params[valueGoVersion])
+	require.Equal(t, cryptoutilSharedMagic.CICDTemplateContainerUID, params[valueContainerUid])
+	require.Equal(t, cryptoutilSharedMagic.CICDTemplateContainerGID, params[valueContainerGid])
+	require.NotEmpty(t, params[valueProductDisplayName])
 	require.NotEmpty(t, params["__PS_DISPLAY_NAME__"])
 	require.NotEmpty(t, params["__PS_PUBLIC_PORT_BASE__"])
 }
@@ -65,7 +65,7 @@ func TestBuildStaticParams(t *testing.T) {
 
 	params := buildStaticParams()
 	require.Equal(t, cryptoutilSharedMagic.DefaultOTLPServiceDefault, params[cryptoutilSharedMagic.CICDTemplateExpansionKeySuite])
-	require.Equal(t, cryptoutilSharedMagic.DefaultOTLPEnvironmentDefault, params["__IMAGE_TAG__"])
+	require.Equal(t, cryptoutilSharedMagic.DefaultOTLPEnvironmentDefault, params[valueImageTag])
 }
 
 func TestSubstituteParams(t *testing.T) {
@@ -86,20 +86,20 @@ func TestSubstituteParams(t *testing.T) {
 		{
 			name:   "multiple substitutions",
 			input:  "__A__ and __B__",
-			params: map[string]string{"__A__": "x", "__B__": "y"},
+			params: map[string]string{testA: "x", "__B__": testY},
 			want:   "x and y",
 		},
 		{
 			name:   "no placeholders",
-			input:  "no change",
-			params: map[string]string{"__X__": "y"},
-			want:   "no change",
+			input:  testNoChange,
+			params: map[string]string{"__X__": testY},
+			want:   testNoChange,
 		},
 		{
 			name:   "empty params",
-			input:  "__A__",
+			input:  testA,
 			params: map[string]string{},
-			want:   "__A__",
+			want:   testA,
 		},
 	}
 

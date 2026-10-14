@@ -34,8 +34,8 @@ func RegisterServiceUser(t *testing.T, client *http.Client, baseURL, username, p
 	t.Helper()
 
 	reqBody := map[string]string{
-		"username": username,
-		"password": password,
+		valueUsername: username,
+		valuePassword: password,
 	}
 
 	reqJSON, err := json.Marshal(reqBody)
@@ -77,8 +77,8 @@ func RegisterBrowserUser(t *testing.T, client *http.Client, baseURL, username, p
 	t.Helper()
 
 	reqBody := map[string]string{
-		"username": username,
-		"password": password,
+		valueUsername: username,
+		valuePassword: password,
 	}
 
 	reqJSON, err := json.Marshal(reqBody)
@@ -120,8 +120,8 @@ func LoginUser(t *testing.T, client *http.Client, baseURL, loginPath, username, 
 	t.Helper()
 
 	reqBody := map[string]string{
-		"username": username,
-		"password": password,
+		valueUsername: username,
+		valuePassword: password,
 	}
 
 	reqJSON, err := json.Marshal(reqBody)

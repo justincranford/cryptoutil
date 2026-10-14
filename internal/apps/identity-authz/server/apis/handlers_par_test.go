@@ -38,14 +38,14 @@ func TestHandlePAR_HappyPath(t *testing.T) {
 		cryptoutilSharedMagic.ParamClientID:            []string{testClient.ClientID},
 		cryptoutilSharedMagic.ParamResponseType:        []string{cryptoutilSharedMagic.ResponseTypeCode},
 		cryptoutilSharedMagic.ParamRedirectURI:         []string{cryptoutilSharedMagic.TestRedirectURI},
-		cryptoutilSharedMagic.ParamScope:               []string{"openid profile"},
+		cryptoutilSharedMagic.ParamScope:               []string{testOpenidProfile},
 		cryptoutilSharedMagic.ParamState:               []string{"random-state-value"},
 		cryptoutilSharedMagic.ParamCodeChallenge:       []string{"test-code-challenge-value-xxxxxxxxxxxxxxxxx"},
 		cryptoutilSharedMagic.ParamCodeChallengeMethod: []string{cryptoutilSharedMagic.PKCEMethodS256},
 		cryptoutilSharedMagic.ClaimNonce:               []string{"random-nonce-value"},
 	}
 
-	req := httptest.NewRequest("POST", "/oauth2/v1/par", strings.NewReader(formData.Encode()))
+	req := httptest.NewRequest(testPost, "/oauth2/v1/par", strings.NewReader(formData.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	resp, err := app.Test(req, -1)
@@ -82,7 +82,7 @@ func TestHandlePAR_HappyPath(t *testing.T) {
 	require.Equal(t, testClient.ID, storedPAR.ClientID, "ClientID should match")
 	require.Equal(t, cryptoutilSharedMagic.ResponseTypeCode, storedPAR.ResponseType, "ResponseType should match")
 	require.Equal(t, cryptoutilSharedMagic.TestRedirectURI, storedPAR.RedirectURI, "RedirectURI should match")
-	require.Equal(t, "openid profile", storedPAR.Scope, "Scope should match")
+	require.Equal(t, testOpenidProfile, storedPAR.Scope, "Scope should match")
 	require.Equal(t, "random-state-value", storedPAR.State, "State should match")
 	require.Equal(t, "test-code-challenge-value-xxxxxxxxxxxxxxxxx", storedPAR.CodeChallenge, "CodeChallenge should match")
 	require.Equal(t, cryptoutilSharedMagic.PKCEMethodS256, storedPAR.CodeChallengeMethod, "CodeChallengeMethod should match")
@@ -109,7 +109,7 @@ func TestHandlePAR_MissingClientID(t *testing.T) {
 		cryptoutilSharedMagic.ParamCodeChallengeMethod: []string{cryptoutilSharedMagic.PKCEMethodS256},
 	}
 
-	req := httptest.NewRequest("POST", "/oauth2/v1/par", strings.NewReader(formData.Encode()))
+	req := httptest.NewRequest(testPost, "/oauth2/v1/par", strings.NewReader(formData.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	resp, err := app.Test(req, -1)
@@ -155,7 +155,7 @@ func TestHandlePAR_MissingResponseType(t *testing.T) {
 		cryptoutilSharedMagic.ParamCodeChallengeMethod: []string{cryptoutilSharedMagic.PKCEMethodS256},
 	}
 
-	req := httptest.NewRequest("POST", "/oauth2/v1/par", strings.NewReader(formData.Encode()))
+	req := httptest.NewRequest(testPost, "/oauth2/v1/par", strings.NewReader(formData.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	resp, err := app.Test(req, -1)
@@ -201,7 +201,7 @@ func TestHandlePAR_MissingRedirectURI(t *testing.T) {
 		cryptoutilSharedMagic.ParamCodeChallengeMethod: []string{cryptoutilSharedMagic.PKCEMethodS256},
 	}
 
-	req := httptest.NewRequest("POST", "/oauth2/v1/par", strings.NewReader(formData.Encode()))
+	req := httptest.NewRequest(testPost, "/oauth2/v1/par", strings.NewReader(formData.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	resp, err := app.Test(req, -1)
@@ -247,7 +247,7 @@ func TestHandlePAR_MissingCodeChallenge(t *testing.T) {
 		cryptoutilSharedMagic.ParamCodeChallengeMethod: []string{cryptoutilSharedMagic.PKCEMethodS256},
 	}
 
-	req := httptest.NewRequest("POST", "/oauth2/v1/par", strings.NewReader(formData.Encode()))
+	req := httptest.NewRequest(testPost, "/oauth2/v1/par", strings.NewReader(formData.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	resp, err := app.Test(req, -1)

@@ -73,7 +73,7 @@ func TestJWTMiddleware_AuthenticationErrors(t *testing.T) {
 			name: "invalid user_id",
 			setupAuth: func() string {
 				// Token with invalid UUID format for user_id
-				token := createTestToken(t, "not-a-valid-uuid", "testuser", testJWTSecret, time.Now().UTC().Add(1*time.Hour))
+				token := createTestToken(t, "not-a-valid-uuid", testTestuser, testJWTSecret, time.Now().UTC().Add(1*time.Hour))
 
 				return cryptoutilSharedMagic.AuthorizationBearerPrefix + token
 			},
@@ -112,7 +112,7 @@ func TestJWTMiddleware_ValidToken_Success(t *testing.T) {
 	t.Parallel()
 
 	userID := googleUuid.New()
-	validToken := createTestToken(t, userID.String(), "testuser", testJWTSecret, time.Now().UTC().Add(1*time.Hour))
+	validToken := createTestToken(t, userID.String(), testTestuser, testJWTSecret, time.Now().UTC().Add(1*time.Hour))
 
 	var capturedUserID googleUuid.UUID
 
@@ -148,7 +148,7 @@ func TestJWTMiddleware_UnsupportedSigningMethod(t *testing.T) {
 	userID := googleUuid.New()
 	claims := &Claims{
 		UserID:   userID.String(),
-		Username: "testuser",
+		Username: testTestuser,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().UTC().Add(1 * time.Hour)),
 			IssuedAt:  jwt.NewNumericDate(time.Now().UTC()),

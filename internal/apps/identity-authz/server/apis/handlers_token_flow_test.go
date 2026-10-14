@@ -33,12 +33,12 @@ func TestHandleAuthorizationCodeGrant_MissingCodeVerifier(t *testing.T) {
 
 	form := url.Values{}
 	form.Set(cryptoutilSharedMagic.ParamGrantType, cryptoutilSharedMagic.GrantTypeAuthorizationCode)
-	form.Set(cryptoutilSharedMagic.ResponseTypeCode, "test-code")
+	form.Set(cryptoutilSharedMagic.ResponseTypeCode, testTestCode)
 	form.Set(cryptoutilSharedMagic.ParamRedirectURI, cryptoutilSharedMagic.TestRedirectURI)
-	form.Set(cryptoutilSharedMagic.ClaimClientID, "test-client")
+	form.Set(cryptoutilSharedMagic.ClaimClientID, testTestClient)
 	// Missing code_verifier (PKCE required).
 
-	req := httptest.NewRequest(http.MethodPost, "/oauth2/v1/token", strings.NewReader(form.Encode()))
+	req := httptest.NewRequest(http.MethodPost, testOauth2V1Token, strings.NewReader(form.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	resp, err := app.Test(req, -1)
@@ -59,10 +59,10 @@ func TestHandleAuthorizationCodeGrant_InvalidCode(t *testing.T) {
 	form.Set(cryptoutilSharedMagic.ParamGrantType, cryptoutilSharedMagic.GrantTypeAuthorizationCode)
 	form.Set(cryptoutilSharedMagic.ResponseTypeCode, "invalid-code-12345")
 	form.Set(cryptoutilSharedMagic.ParamRedirectURI, cryptoutilSharedMagic.TestRedirectURI)
-	form.Set(cryptoutilSharedMagic.ClaimClientID, "test-client")
+	form.Set(cryptoutilSharedMagic.ClaimClientID, testTestClient)
 	form.Set(cryptoutilSharedMagic.ParamCodeVerifier, "valid-verifier-here")
 
-	req := httptest.NewRequest(http.MethodPost, "/oauth2/v1/token", strings.NewReader(form.Encode()))
+	req := httptest.NewRequest(http.MethodPost, testOauth2V1Token, strings.NewReader(form.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	resp, err := app.Test(req, -1)
@@ -85,7 +85,7 @@ func TestHandleClientCredentialsGrant_ValidClient(t *testing.T) {
 
 	testClient := &cryptoutilIdentityDomain.Client{
 		ID:           googleUuid.New(),
-		ClientID:     "test-client-credentials",
+		ClientID:     testTestClientCredentials,
 		ClientSecret: "$" + cryptoutilSharedMagic.PBKDF2DefaultHashName + "$i=100000,l=32$test-salt$test-hash", // Pre-hashed.
 		Name:         cryptoutilSharedMagic.TestClientName,
 		CreatedAt:    time.Now().UTC(),
@@ -97,10 +97,10 @@ func TestHandleClientCredentialsGrant_ValidClient(t *testing.T) {
 
 	form := url.Values{}
 	form.Set(cryptoutilSharedMagic.ParamGrantType, cryptoutilSharedMagic.GrantTypeClientCredentials)
-	form.Set(cryptoutilSharedMagic.ClaimClientID, "test-client-credentials")
+	form.Set(cryptoutilSharedMagic.ClaimClientID, testTestClientCredentials)
 	form.Set(cryptoutilSharedMagic.ParamClientSecret, "test-secret-plaintext")
 
-	req := httptest.NewRequest(http.MethodPost, "/oauth2/v1/token", strings.NewReader(form.Encode()))
+	req := httptest.NewRequest(http.MethodPost, testOauth2V1Token, strings.NewReader(form.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	resp, err := app.Test(req, -1)
@@ -123,7 +123,7 @@ func TestHandleRefreshTokenGrant_MissingRefreshToken(t *testing.T) {
 	form.Set(cryptoutilSharedMagic.ParamGrantType, cryptoutilSharedMagic.GrantTypeRefreshToken)
 	// Missing refresh_token parameter.
 
-	req := httptest.NewRequest(http.MethodPost, "/oauth2/v1/token", strings.NewReader(form.Encode()))
+	req := httptest.NewRequest(http.MethodPost, testOauth2V1Token, strings.NewReader(form.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	resp, err := app.Test(req, -1)
@@ -155,10 +155,10 @@ func createTokenFlowTestConfig() *cryptoutilIdentityConfig.Config {
 	return &cryptoutilIdentityConfig.Config{
 		Database: &cryptoutilIdentityConfig.DatabaseConfig{
 			Type: cryptoutilSharedMagic.TestDatabaseSQLite,
-			DSN:  "file::memory:?cache=private",
+			DSN:  testFileMemoryCachePrivate,
 		},
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{
-			Issuer: "https://localhost:8080",
+			Issuer: testHTTPSLocalhost8080,
 		},
 	}
 }

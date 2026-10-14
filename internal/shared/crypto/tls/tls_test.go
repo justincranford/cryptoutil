@@ -94,7 +94,7 @@ func TestCreateCAChain(t *testing.T) {
 		expectError bool
 	}{
 		{
-			name:        "nil options",
+			name:        testNilOptions,
 			opts:        nil,
 			expectError: true,
 		},
@@ -102,7 +102,7 @@ func TestCreateCAChain(t *testing.T) {
 			name: "zero chain length",
 			opts: &CAChainOptions{
 				ChainLength:      0,
-				CommonNamePrefix: "test.chain",
+				CommonNamePrefix: testTestChain,
 				Duration:         time.Hour,
 			},
 			expectError: true,
@@ -120,7 +120,7 @@ func TestCreateCAChain(t *testing.T) {
 			name: "negative duration",
 			opts: &CAChainOptions{
 				ChainLength:      1,
-				CommonNamePrefix: "test.chain",
+				CommonNamePrefix: testTestChain,
 				Duration:         -time.Hour,
 			},
 			expectError: true,
@@ -133,7 +133,7 @@ func TestCreateCAChain(t *testing.T) {
 		{
 			name: "valid chain length 3 FQDN style",
 			opts: &CAChainOptions{
-				ChainLength:      3,
+				ChainLength:      DefaultCAChainLength,
 				CommonNamePrefix: "test.chain3",
 				CNStyle:          CNStyleFQDN,
 				Duration:         time.Hour,
@@ -143,7 +143,7 @@ func TestCreateCAChain(t *testing.T) {
 		{
 			name: "valid chain length 3 descriptive style",
 			opts: &CAChainOptions{
-				ChainLength:      3,
+				ChainLength:      DefaultCAChainLength,
 				CommonNamePrefix: "Test CA Chain",
 				CNStyle:          CNStyleDescriptive,
 				Duration:         time.Hour,
@@ -195,7 +195,7 @@ func TestCreateEndEntity(t *testing.T) {
 		expectError bool
 	}{
 		{
-			name:        "nil options",
+			name:        testNilOptions,
 			opts:        nil,
 			expectError: true,
 		},
@@ -208,7 +208,7 @@ func TestCreateEndEntity(t *testing.T) {
 		},
 		{
 			name:        "valid server certificate",
-			opts:        ServerEndEntityOptions("server.test.local", []string{"server.test.local", cryptoutilSharedMagic.DefaultOTLPHostnameDefault}, []net.IP{net.ParseIP(cryptoutilSharedMagic.IPv4Loopback)}),
+			opts:        ServerEndEntityOptions(testServerTestLocal, []string{testServerTestLocal, cryptoutilSharedMagic.DefaultOTLPHostnameDefault}, []net.IP{net.ParseIP(cryptoutilSharedMagic.IPv4Loopback)}),
 			expectError: false,
 		},
 		{
@@ -246,8 +246,8 @@ func TestNewServerConfig(t *testing.T) {
 	require.NoError(t, err)
 
 	serverSubject, err := chain.CreateEndEntity(ServerEndEntityOptions(
-		"server.test.local",
-		[]string{"server.test.local"},
+		testServerTestLocal,
+		[]string{testServerTestLocal},
 		[]net.IP{net.ParseIP(cryptoutilSharedMagic.IPv4Loopback)},
 	))
 	require.NoError(t, err)
@@ -258,12 +258,12 @@ func TestNewServerConfig(t *testing.T) {
 		expectError bool
 	}{
 		{
-			name:        "nil options",
+			name:        testNilOptions,
 			opts:        nil,
 			expectError: true,
 		},
 		{
-			name: "nil subject",
+			name: testNilSubject,
 			opts: &ServerConfigOptions{
 				Subject: nil,
 			},
@@ -360,7 +360,7 @@ func TestNewClientConfig(t *testing.T) {
 		expectError bool
 	}{
 		{
-			name:        "nil options",
+			name:        testNilOptions,
 			opts:        nil,
 			expectError: true,
 		},
@@ -368,7 +368,7 @@ func TestNewClientConfig(t *testing.T) {
 			name: "valid client config no mTLS",
 			opts: &ClientConfigOptions{
 				RootCAs:    chain.RootCAsPool(),
-				ServerName: "server.test.local",
+				ServerName: testServerTestLocal,
 			},
 			expectError: false,
 		},
@@ -377,7 +377,7 @@ func TestNewClientConfig(t *testing.T) {
 			opts: &ClientConfigOptions{
 				ClientSubject: clientSubject,
 				RootCAs:       chain.RootCAsPool(),
-				ServerName:    "server.test.local",
+				ServerName:    testServerTestLocal,
 			},
 			expectError: false,
 		},

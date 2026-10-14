@@ -46,7 +46,7 @@ func TestNewJWSIssuer(t *testing.T) {
 	require.NoError(t, err)
 
 	jwsIssuer, err := cryptoutilIdentityIssuer.NewJWSIssuer(
-		"https://localhost:8080",
+		testHTTPSLocalhost8080,
 		keyRotationMgr,
 		cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
 		1*time.Hour,
@@ -117,7 +117,7 @@ func TestNewJWSIssuer_MissingAlgorithm(t *testing.T) {
 	require.NoError(t, err)
 
 	_, err = cryptoutilIdentityIssuer.NewJWSIssuer(
-		"https://localhost:8080",
+		testHTTPSLocalhost8080,
 		keyRotationMgr,
 		"",
 		1*time.Hour,
@@ -131,7 +131,7 @@ func TestNewJWSIssuer_NilKeyRotationManager(t *testing.T) {
 	t.Parallel()
 
 	_, err := cryptoutilIdentityIssuer.NewJWSIssuer(
-		"https://localhost:8080",
+		testHTTPSLocalhost8080,
 		nil,
 		cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
 		1*time.Hour,
@@ -169,7 +169,7 @@ func TestJWSIssueAccessToken(t *testing.T) {
 	require.NoError(t, err)
 
 	jwsIssuer, err := cryptoutilIdentityIssuer.NewJWSIssuer(
-		"https://localhost:8080",
+		testHTTPSLocalhost8080,
 		keyRotationMgr,
 		cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
 		1*time.Hour,
@@ -179,8 +179,8 @@ func TestJWSIssueAccessToken(t *testing.T) {
 
 	claims := map[string]any{
 		cryptoutilSharedMagic.ClaimSub:   googleUuid.Must(googleUuid.NewV7()).String(),
-		cryptoutilSharedMagic.ClaimEmail: "test@example.com",
-		cryptoutilSharedMagic.ClaimName:  "Test User",
+		cryptoutilSharedMagic.ClaimEmail: testTestExampleCom,
+		cryptoutilSharedMagic.ClaimName:  testTestUser,
 	}
 
 	token, err := jwsIssuer.IssueAccessToken(ctx, claims)
@@ -217,7 +217,7 @@ func TestIssueIDToken(t *testing.T) {
 	require.NoError(t, err)
 
 	jwsIssuer, err := cryptoutilIdentityIssuer.NewJWSIssuer(
-		"https://localhost:8080",
+		testHTTPSLocalhost8080,
 		keyRotationMgr,
 		cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
 		1*time.Hour,
@@ -227,7 +227,7 @@ func TestIssueIDToken(t *testing.T) {
 
 	claims := map[string]any{
 		cryptoutilSharedMagic.ClaimSub: googleUuid.Must(googleUuid.NewV7()).String(),
-		cryptoutilSharedMagic.ClaimAud: "client123",
+		cryptoutilSharedMagic.ClaimAud: testClient123,
 	}
 
 	token, err := jwsIssuer.IssueIDToken(ctx, claims)
@@ -264,7 +264,7 @@ func TestIssueIDToken_MissingSub(t *testing.T) {
 	require.NoError(t, err)
 
 	jwsIssuer, err := cryptoutilIdentityIssuer.NewJWSIssuer(
-		"https://localhost:8080",
+		testHTTPSLocalhost8080,
 		keyRotationMgr,
 		cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
 		1*time.Hour,
@@ -273,7 +273,7 @@ func TestIssueIDToken_MissingSub(t *testing.T) {
 	require.NoError(t, err)
 
 	claims := map[string]any{
-		cryptoutilSharedMagic.ClaimAud: "client123",
+		cryptoutilSharedMagic.ClaimAud: testClient123,
 	}
 
 	_, err = jwsIssuer.IssueIDToken(ctx, claims)
@@ -309,7 +309,7 @@ func TestIssueIDToken_MissingAud(t *testing.T) {
 	require.NoError(t, err)
 
 	jwsIssuer, err := cryptoutilIdentityIssuer.NewJWSIssuer(
-		"https://localhost:8080",
+		testHTTPSLocalhost8080,
 		keyRotationMgr,
 		cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
 		1*time.Hour,

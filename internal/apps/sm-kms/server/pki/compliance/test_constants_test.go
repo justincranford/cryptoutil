@@ -4,7 +4,6 @@ package compliance
 import cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 const (
-	testLiteral4122              = cryptoutilSharedMagic.RFC5280SectionSerialNumber
 	testLiteral4125              = cryptoutilSharedMagic.RFC5280SectionValidity
 	testLiteralBR7124BC          = cryptoutilSharedMagic.CABFBaselineIDBasicConstraintsExtension
 	testLiteralEVT001            = "EVT-001"

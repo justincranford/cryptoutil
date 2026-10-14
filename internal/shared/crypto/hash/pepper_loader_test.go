@@ -75,7 +75,7 @@ func TestLoadPepperFromSecret_ErrorCases(t *testing.T) {
 		expectedErrMsg string
 	}{
 		{
-			name: "empty secret path",
+			name: testEmptySecretPath,
 			setupFunc: func(_ *testing.T) string {
 				return ""
 			},
@@ -141,7 +141,7 @@ func TestConfigurePeppers_HappyPath(t *testing.T) {
 	peppers := []PepperConfig{
 		{Version: "1", SecretPath: secret1},
 		{Version: "2", SecretPath: secret2},
-		{Version: "3", SecretPath: cryptoutilSharedMagic.FileURIScheme + secret3}, // Test file:// prefix
+		{Version: value3Value4E074085, SecretPath: cryptoutilSharedMagic.FileURIScheme + secret3}, // Test file:// prefix
 	}
 
 	err := ConfigurePeppers(registry, peppers)
@@ -156,7 +156,7 @@ func TestConfigurePeppers_HappyPath(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, pepper2, params2.Pepper)
 
-	params3, err := registry.GetParameterSet("3")
+	params3, err := registry.GetParameterSet(value3Value4E074085)
 	require.NoError(t, err)
 	require.Equal(t, pepper3, params3.Pepper)
 }
@@ -182,20 +182,20 @@ func TestConfigurePeppers_ErrorCases(t *testing.T) {
 			expectedErrMsg: "registry is nil",
 		},
 		{
-			name:     "empty version",
+			name:     testEmptyVersion,
 			registry: NewParameterSetRegistry(),
 			peppers: []PepperConfig{
 				{Version: "", SecretPath: validSecret},
 			},
-			expectedErrMsg: "empty version",
+			expectedErrMsg: testEmptyVersion,
 		},
 		{
-			name:     "empty secret path",
+			name:     testEmptySecretPath,
 			registry: NewParameterSetRegistry(),
 			peppers: []PepperConfig{
 				{Version: "1", SecretPath: ""},
 			},
-			expectedErrMsg: "empty secret path",
+			expectedErrMsg: testEmptySecretPath,
 		},
 		{
 			name:     "non-existent secret file",

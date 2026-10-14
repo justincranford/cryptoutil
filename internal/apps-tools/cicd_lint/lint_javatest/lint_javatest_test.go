@@ -55,7 +55,7 @@ public class SecureSimulation extends Simulation {
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	filesByExtension := map[string][]string{
-		"java": {testFile},
+		testJava: {testFile},
 	}
 
 	err = cryptoutilLintJavaTest.Lint(logger, filesByExtension)
@@ -82,7 +82,7 @@ public class InsecureSimulation extends Simulation {
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	filesByExtension := map[string][]string{
-		"java": {testFile},
+		testJava: {testFile},
 	}
 
 	err = cryptoutilLintJavaTest.Lint(logger, filesByExtension)
@@ -111,7 +111,7 @@ public class MathRandomSimulation extends Simulation {
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	filesByExtension := map[string][]string{
-		"java": {testFile},
+		testJava: {testFile},
 	}
 
 	err = cryptoutilLintJavaTest.Lint(logger, filesByExtension)

@@ -47,15 +47,15 @@ func TestNewAuthenticator(t *testing.T) {
 				Realms: []RealmConfig{
 					{
 						ID:      testRealmID1,
-						Name:    "test-realm",
+						Name:    testTestRealm,
 						Type:    RealmTypeFile,
 						Enabled: true,
 						Users: []UserConfig{
 							{
 								ID:           testUserID1,
-								Username:     "testuser",
+								Username:     testTestuser,
 								PasswordHash: createTestPasswordHash(t, "testpass"),
-								Roles:        []string{"user"},
+								Roles:        []string{testUser},
 								Enabled:      true,
 							},
 						},
@@ -97,32 +97,32 @@ func TestAuthenticator_Authenticate(t *testing.T) {
 		Realms: []RealmConfig{
 			{
 				ID:      testRealmID1,
-				Name:    "test-realm",
+				Name:    testTestRealm,
 				Type:    RealmTypeFile,
 				Enabled: true,
 				Users: []UserConfig{
 					{
 						ID:           testUserID1,
-						Username:     "admin",
+						Username:     testAdmin,
 						PasswordHash: createTestPasswordHash(t, adminPassword),
-						Roles:        []string{"admin"},
+						Roles:        []string{testAdmin},
 						Enabled:      true,
 					},
 					{
 						ID:           testUserID2,
-						Username:     "disabled_user",
+						Username:     testDisabledUserValue8F2CDEEB,
 						PasswordHash: createTestPasswordHash(t, disabledUserPassword),
-						Roles:        []string{"user"},
+						Roles:        []string{testUser},
 						Enabled:      false,
 					},
 				},
 				Roles: []RoleConfig{
 					{
-						Name:        "admin",
-						Permissions: []string{cryptoutilSharedMagic.ScopeRead, cryptoutilSharedMagic.ScopeWrite, "delete"},
+						Name:        testAdmin,
+						Permissions: []string{cryptoutilSharedMagic.ScopeRead, cryptoutilSharedMagic.ScopeWrite, testDelete},
 					},
 					{
-						Name:        "user",
+						Name:        testUser,
 						Permissions: []string{cryptoutilSharedMagic.ScopeRead},
 					},
 				},
@@ -153,41 +153,41 @@ func TestAuthenticator_Authenticate(t *testing.T) {
 		wantErrCode AuthErrorCode
 	}{
 		{
-			name:        "successful authentication",
+			name:        testSuccessfulAuthentication,
 			realmID:     testRealmID1,
-			username:    "admin",
+			username:    testAdmin,
 			password:    adminPassword,
 			wantAuth:    true,
 			wantErrCode: AuthErrorNone,
 		},
 		{
-			name:        "wrong password",
+			name:        testWrongPassword,
 			realmID:     testRealmID1,
-			username:    "admin",
+			username:    testAdmin,
 			password:    wrongPassword,
 			wantAuth:    false,
 			wantErrCode: AuthErrorPasswordMismatch,
 		},
 		{
-			name:        "user not found",
+			name:        errMsgUserNotFound,
 			realmID:     testRealmID1,
-			username:    "nonexistent",
+			username:    testNonexistent,
 			password:    googleUuid.Must(googleUuid.NewV7()).String(),
 			wantAuth:    false,
 			wantErrCode: AuthErrorUserNotFound,
 		},
 		{
-			name:        "disabled user",
+			name:        testDisabledUser,
 			realmID:     testRealmID1,
-			username:    "disabled_user",
+			username:    testDisabledUserValue8F2CDEEB,
 			password:    disabledUserPassword,
 			wantAuth:    false,
 			wantErrCode: AuthErrorUserDisabled,
 		},
 		{
-			name:        "realm not found",
+			name:        valueRealmNotFound,
 			realmID:     nonExistentID,
-			username:    "admin",
+			username:    testAdmin,
 			password:    googleUuid.Must(googleUuid.NewV7()).String(),
 			wantAuth:    false,
 			wantErrCode: AuthErrorRealmNotFound,
@@ -195,7 +195,7 @@ func TestAuthenticator_Authenticate(t *testing.T) {
 		{
 			name:        "disabled realm",
 			realmID:     testRealmID2,
-			username:    "admin",
+			username:    testAdmin,
 			password:    googleUuid.Must(googleUuid.NewV7()).String(),
 			wantAuth:    false,
 			wantErrCode: AuthErrorRealmDisabled,
@@ -238,15 +238,15 @@ func TestAuthenticator_AuthenticateByRealmName(t *testing.T) {
 		Realms: []RealmConfig{
 			{
 				ID:      testRealmID1,
-				Name:    "test-realm",
+				Name:    testTestRealm,
 				Type:    RealmTypeFile,
 				Enabled: true,
 				Users: []UserConfig{
 					{
 						ID:           testUserID1,
-						Username:     "testuser",
+						Username:     testTestuser,
 						PasswordHash: createTestPasswordHash(t, testuserPassword),
-						Roles:        []string{"user"},
+						Roles:        []string{testUser},
 						Enabled:      true,
 					},
 				},
@@ -263,12 +263,12 @@ func TestAuthenticator_AuthenticateByRealmName(t *testing.T) {
 	ctx := context.Background()
 
 	// Success case.
-	result := auth.AuthenticateByRealmName(ctx, "test-realm", "testuser", testuserPassword)
+	result := auth.AuthenticateByRealmName(ctx, testTestRealm, testTestuser, testuserPassword)
 	require.True(t, result.Authenticated)
-	require.Equal(t, "testuser", result.Username)
+	require.Equal(t, testTestuser, result.Username)
 
 	// Realm not found.
-	result = auth.AuthenticateByRealmName(ctx, "nonexistent-realm", "testuser", googleUuid.Must(googleUuid.NewV7()).String())
+	result = auth.AuthenticateByRealmName(ctx, "nonexistent-realm", testTestuser, googleUuid.Must(googleUuid.NewV7()).String())
 	require.False(t, result.Authenticated)
 	require.Equal(t, AuthErrorRealmNotFound, result.ErrorCode)
 }
@@ -283,37 +283,37 @@ func TestAuthenticator_ExpandPermissions(t *testing.T) {
 		Realms: []RealmConfig{
 			{
 				ID:      testRealmID1,
-				Name:    "test-realm",
+				Name:    testTestRealm,
 				Type:    RealmTypeFile,
 				Enabled: true,
 				Users: []UserConfig{
 					{
 						ID:           testUserID1,
-						Username:     "superadmin",
+						Username:     testSuperadmin,
 						PasswordHash: createTestPasswordHash(t, testPassword),
-						Roles:        []string{"superadmin"},
+						Roles:        []string{testSuperadmin},
 						Enabled:      true,
 					},
 				},
 				Roles: []RoleConfig{
 					{
-						Name:        "reader",
+						Name:        testReader,
 						Permissions: []string{cryptoutilSharedMagic.ScopeRead},
 					},
 					{
-						Name:        "writer",
+						Name:        testWriter,
 						Permissions: []string{cryptoutilSharedMagic.ScopeWrite},
-						Inherits:    []string{"reader"},
+						Inherits:    []string{testReader},
 					},
 					{
-						Name:        "admin",
-						Permissions: []string{"delete"},
-						Inherits:    []string{"writer"},
+						Name:        testAdmin,
+						Permissions: []string{testDelete},
+						Inherits:    []string{testWriter},
 					},
 					{
-						Name:        "superadmin",
+						Name:        testSuperadmin,
 						Permissions: []string{"manage_users"},
-						Inherits:    []string{"admin"},
+						Inherits:    []string{testAdmin},
 					},
 				},
 			},
@@ -328,12 +328,12 @@ func TestAuthenticator_ExpandPermissions(t *testing.T) {
 
 	ctx := context.Background()
 
-	result := auth.Authenticate(ctx, testRealmID1, "superadmin", testPassword)
+	result := auth.Authenticate(ctx, testRealmID1, testSuperadmin, testPassword)
 	require.True(t, result.Authenticated)
 
 	// Should have all inherited permissions.
 	require.Contains(t, result.Permissions, "manage_users")
-	require.Contains(t, result.Permissions, "delete")
+	require.Contains(t, result.Permissions, testDelete)
 	require.Contains(t, result.Permissions, cryptoutilSharedMagic.ScopeWrite)
 	require.Contains(t, result.Permissions, cryptoutilSharedMagic.ScopeRead)
 }
@@ -345,7 +345,7 @@ func TestAuthenticator_GetRealm(t *testing.T) {
 		Realms: []RealmConfig{
 			{
 				ID:      testRealmID1,
-				Name:    "test-realm",
+				Name:    testTestRealm,
 				Type:    RealmTypeFile,
 				Enabled: true,
 			},
@@ -358,10 +358,10 @@ func TestAuthenticator_GetRealm(t *testing.T) {
 	// Found.
 	realm, ok := auth.GetRealm(testRealmID1)
 	require.True(t, ok)
-	require.Equal(t, "test-realm", realm.Name)
+	require.Equal(t, testTestRealm, realm.Name)
 
 	// Not found.
-	realm, ok = auth.GetRealm("nonexistent")
+	realm, ok = auth.GetRealm(testNonexistent)
 	require.False(t, ok)
 	require.Nil(t, realm)
 }
@@ -373,13 +373,13 @@ func TestAuthenticator_ListRealms(t *testing.T) {
 		Realms: []RealmConfig{
 			{
 				ID:      testRealmID1,
-				Name:    "realm1",
+				Name:    testRealm1Value7BF439FE,
 				Type:    RealmTypeFile,
 				Enabled: true,
 			},
 			{
 				ID:      testUserID1,
-				Name:    "realm2",
+				Name:    testRealm2,
 				Type:    RealmTypeFile,
 				Enabled: true,
 			},
@@ -415,7 +415,7 @@ func TestAuthenticator_UnsupportedRealmTypes(t *testing.T) {
 				Realms: []RealmConfig{
 					{
 						ID:      testRealmID1,
-						Name:    "test-realm",
+						Name:    testTestRealm,
 						Type:    tc.realmType,
 						Enabled: true,
 					},
@@ -425,7 +425,7 @@ func TestAuthenticator_UnsupportedRealmTypes(t *testing.T) {
 			auth, err := NewAuthenticator(config)
 			require.NoError(t, err)
 
-			result := auth.Authenticate(ctx, testRealmID1, "user", "pass")
+			result := auth.Authenticate(ctx, testRealmID1, testUser, "pass")
 			require.False(t, result.Authenticated)
 			require.Equal(t, AuthErrorRealmNotFound, result.ErrorCode)
 		})

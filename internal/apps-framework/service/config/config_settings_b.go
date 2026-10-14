@@ -10,7 +10,7 @@ import (
 
 var (
 	csrfTokenCookieSecure = *SetEnvAndRegisterSetting(allServiceFrameworkServerRegisteredSettings, &Setting{
-		Name:        "csrf-token-cookie-secure",
+		Name:        valueCSRFTokenCookieSecure,
 		Shorthand:   "R",
 		Value:       cryptoutilSharedMagic.DefaultCSRFTokenCookieSecure,
 		Usage:       "CSRF token cookie Secure attribute",
@@ -88,15 +88,15 @@ var (
 		Description: "Request Body Limit",
 	})
 	databaseContainer = *SetEnvAndRegisterSetting(allServiceFrameworkServerRegisteredSettings, &Setting{
-		Name:        "database-container",
+		Name:        valueDatabaseContainer,
 		Shorthand:   "D",
 		Value:       cryptoutilSharedMagic.DefaultDatabaseContainerDisabled,
 		Usage:       "database container mode; true to use container, false to use local database",
 		Description: "Database Container",
 	})
 	databaseURL = *SetEnvAndRegisterSetting(allServiceFrameworkServerRegisteredSettings, &Setting{
-		Name:        "database-url",
-		Shorthand:   "u",
+		Name:        valueDatabaseURL,
+		Shorthand:   valueU,
 		Value:       cryptoutilSharedMagic.DefaultDatabaseURL,
 		Usage:       "database URL; start a container with:\ndocker run -d --name postgres -p 5432:5432 -e POSTGRES_USER=USR -e POSTGRES_PASSWORD=PWD -e POSTGRES_DB=DB postgres:latest\n", // pragma: allowlist secret
 		Description: "Database URL",
@@ -211,14 +211,14 @@ var (
 		Description: "Server Shutdown Timeout",
 	})
 	otlpEnabled = *SetEnvAndRegisterSetting(allServiceFrameworkServerRegisteredSettings, &Setting{
-		Name:        "otlp",
+		Name:        valueOtlp,
 		Shorthand:   "z",
 		Value:       cryptoutilSharedMagic.DefaultOTLPEnabled,
 		Usage:       "enable OTLP export",
 		Description: "OTLP Export",
 	})
 	otlpConsole = *SetEnvAndRegisterSetting(allServiceFrameworkServerRegisteredSettings, &Setting{
-		Name:        "otlp-console",
+		Name:        valueOtlpConsole,
 		Shorthand:   "q",
 		Value:       cryptoutilSharedMagic.DefaultOTLPConsole,
 		Usage:       "enable OTLP logging to console (STDOUT)",
@@ -239,7 +239,7 @@ var (
 		Description: "OTLP Version",
 	})
 	otlpEnvironment = *SetEnvAndRegisterSetting(allServiceFrameworkServerRegisteredSettings, &Setting{
-		Name:        "otlp-environment",
+		Name:        valueOtlpEnvironment,
 		Shorthand:   "K",
 		Value:       cryptoutilSharedMagic.DefaultOTLPEnvironmentDefault,
 		Usage:       "OTLP environment",

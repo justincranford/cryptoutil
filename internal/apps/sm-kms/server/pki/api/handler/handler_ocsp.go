@@ -116,7 +116,7 @@ func (h *Handler) buildIssueRequest(
 	}
 
 	// Determine validity.
-	validityDays := defaultValidityDays
+	validityDays := cryptoutilSharedMagic.DaysPerYear
 	if req.ValidityDays != nil {
 		validityDays = *req.ValidityDays
 	}
@@ -458,7 +458,3 @@ func (h *Handler) errorResponse(c *fiber.Ctx, status int, errorCode, message str
 var _ cryptoutilApiCaServer.ServerInterface = (*Handler)(nil)
 
 // Constants.
-const (
-	defaultValidityDays   = cryptoutilSharedMagic.DaysPerYear
-	maxTrackedEnrollments = cryptoutilSharedMagic.PKIMaxTrackedEnrollments
-)

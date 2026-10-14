@@ -76,7 +76,7 @@ func (s *TenantServiceImpl) CreateTenant(ctx context.Context, name, description 
 	adminRole := &cryptoutilAppsFrameworkServiceServerRepository.Role{
 		ID:          googleUuid.New(),
 		TenantID:    tenant.ID,
-		Name:        "admin",
+		Name:        valueAdmin,
 		Description: "Tenant administrator role",
 	}
 

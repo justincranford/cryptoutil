@@ -149,7 +149,7 @@ func (f *TestClientFactory) CreateConfidential(name string) *TestClient {
 		ClientID:     "client-" + suffix,
 		ClientSecret: "secret-" + googleUuid.NewString()[:cryptoutilSharedMagic.RealmMinTokenLengthBytes],
 		Name:         name,
-		RedirectURIs: []string{"https://localhost/callback"},
+		RedirectURIs: []string{valueHTTPSLocalhostCallback},
 		Scopes:       []string{cryptoutilSharedMagic.ScopeOpenID, cryptoutilSharedMagic.ClaimProfile, cryptoutilSharedMagic.ClaimEmail},
 		Public:       false,
 	}
@@ -165,7 +165,7 @@ func (f *TestClientFactory) CreatePublic(name string) *TestClient {
 		ClientID:     "public-" + suffix,
 		ClientSecret: "",
 		Name:         name,
-		RedirectURIs: []string{"https://localhost/callback"},
+		RedirectURIs: []string{valueHTTPSLocalhostCallback},
 		Scopes:       []string{cryptoutilSharedMagic.ScopeOpenID, cryptoutilSharedMagic.ClaimProfile},
 		Public:       true,
 	}

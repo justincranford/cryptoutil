@@ -42,23 +42,23 @@ func ParseLogLevel(logLevelString string) (stdoutLogExporter.Level, error) {
 	switch strings.ToUpper(logLevelString) {
 	case "ALL": // Log4j ALL, lowest possible value
 		return LevelAll, nil
-	case "TRACE": // OpenTelemetry TRACE = -8, no constant in slog, but slog allows extra levels
+	case valueTrace: // OpenTelemetry TRACE = -8, no constant in slog, but slog allows extra levels
 		return LevelTrace, nil
 	case cryptoutilSharedMagic.LOG_LEVEL_DEBUG: // OpenTelemetry DEBUG = -4
 		return LevelDebug, nil
-	case "CONFIG": // Java JUL CONFIG, between DEBUG and INFO
+	case valueConfig: // Java JUL CONFIG, between DEBUG and INFO
 		return LevelConfig, nil
 	case cryptoutilSharedMagic.DefaultLogLevelInfo: // OpenTelemetry INFO = 0
 		return LevelInfo, nil
-	case "NOTICE": // OpenTelemetry NOTICE = 2, no constant in slog, but slog allows extra levels
+	case valueNotice: // OpenTelemetry NOTICE = 2, no constant in slog, but slog allows extra levels
 		return LevelNotice, nil
 	case cryptoutilSharedMagic.LOG_LEVEL_WARN: // OpenTelemetry WARN = 4
 		return LevelWarn, nil
 	case cryptoutilSharedMagic.SEVERITY_ERROR: // OpenTelemetry ERROR = 8
 		return LevelError, nil
-	case "FATAL": // OpenTelemetry FATAL = 12
+	case valueFatal: // OpenTelemetry FATAL = 12
 		return LevelFatal, nil
-	case "OFF": // Log4j OFF, disables logging, highest possible value
+	case valueOff: // Log4j OFF, disables logging, highest possible value
 		return LevelMax, nil
 	default:
 		return LevelMax, fmt.Errorf("invalid log level: %s", logLevelString)

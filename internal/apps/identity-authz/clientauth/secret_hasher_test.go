@@ -32,7 +32,7 @@ func TestPBKDF2Hasher_HashLowEntropyNonDeterministic(t *testing.T) {
 	}{
 		{
 			name:      "valid password",
-			plaintext: "mySecretPassword123",
+			plaintext: testMySecretPassword123,
 			wantErr:   false,
 		},
 		{
@@ -72,7 +72,7 @@ func TestPBKDF2Hasher_CompareSecret(t *testing.T) {
 	t.Parallel()
 
 	hasher := NewPBKDF2Hasher()
-	plaintext := "mySecretPassword123"
+	plaintext := testMySecretPassword123
 	hashed, err := hasher.HashLowEntropyNonDeterministic(plaintext)
 	require.NoError(t, err)
 
@@ -193,7 +193,7 @@ func TestSecretBasedAuthenticator_AuthenticatePost(t *testing.T) {
 
 	ctx := context.Background()
 	hasher := NewPBKDF2Hasher()
-	hashedSecret, err := hasher.HashLowEntropyNonDeterministic("correct-secret")
+	hashedSecret, err := hasher.HashLowEntropyNonDeterministic(testCorrectSecret)
 	require.NoError(t, err)
 
 	clientID, err := googleUuid.NewV7()
@@ -201,7 +201,7 @@ func TestSecretBasedAuthenticator_AuthenticatePost(t *testing.T) {
 
 	client := &cryptoutilIdentityDomain.Client{
 		ID:           clientID,
-		ClientID:     "test-client",
+		ClientID:     testTestClient,
 		ClientSecret: hashedSecret,
 		Enabled:      boolPtr(true),
 	}
@@ -210,13 +210,13 @@ func TestSecretBasedAuthenticator_AuthenticatePost(t *testing.T) {
 	auth := NewSecretBasedAuthenticator(mockRepo, nil)
 
 	// Test successful authentication via POST method.
-	authenticatedClient, err := auth.AuthenticatePost(ctx, "test-client", "correct-secret")
+	authenticatedClient, err := auth.AuthenticatePost(ctx, testTestClient, testCorrectSecret)
 	require.NoError(t, err)
 	require.NotNil(t, authenticatedClient)
-	require.Equal(t, "test-client", authenticatedClient.ClientID)
+	require.Equal(t, testTestClient, authenticatedClient.ClientID)
 
 	// Test failed authentication with wrong secret.
-	_, err = auth.AuthenticatePost(ctx, "test-client", "wrong-secret")
+	_, err = auth.AuthenticatePost(ctx, testTestClient, testWrongSecret)
 	require.Error(t, err)
 }
 
@@ -226,7 +226,7 @@ func TestSecretBasedAuthenticator_Authenticate(t *testing.T) {
 
 	ctx := context.Background()
 	hasher := NewPBKDF2Hasher()
-	hashedSecret, err := hasher.HashLowEntropyNonDeterministic("correct-secret")
+	hashedSecret, err := hasher.HashLowEntropyNonDeterministic(testCorrectSecret)
 	require.NoError(t, err)
 
 	clientID, err := googleUuid.NewV7()
@@ -234,7 +234,7 @@ func TestSecretBasedAuthenticator_Authenticate(t *testing.T) {
 
 	client := &cryptoutilIdentityDomain.Client{
 		ID:           clientID,
-		ClientID:     "test-client",
+		ClientID:     testTestClient,
 		ClientSecret: hashedSecret,
 		Enabled:      boolPtr(true),
 	}
@@ -243,13 +243,13 @@ func TestSecretBasedAuthenticator_Authenticate(t *testing.T) {
 	auth := NewSecretBasedAuthenticator(mockRepo, nil)
 
 	// Test successful authentication via generic Authenticate method.
-	authenticatedClient, err := auth.Authenticate(ctx, "test-client", "correct-secret")
+	authenticatedClient, err := auth.Authenticate(ctx, testTestClient, testCorrectSecret)
 	require.NoError(t, err)
 	require.NotNil(t, authenticatedClient)
-	require.Equal(t, "test-client", authenticatedClient.ClientID)
+	require.Equal(t, testTestClient, authenticatedClient.ClientID)
 
 	// Test failed authentication with wrong secret.
-	_, err = auth.Authenticate(ctx, "test-client", "wrong-secret")
+	_, err = auth.Authenticate(ctx, testTestClient, testWrongSecret)
 	require.Error(t, err)
 }
 
@@ -302,7 +302,7 @@ func TestSecretBasedAuthenticator_AuthenticateBasic(t *testing.T) {
 
 	ctx := context.Background()
 	hasher := NewPBKDF2Hasher()
-	hashedSecret, err := hasher.HashLowEntropyNonDeterministic("correct-secret")
+	hashedSecret, err := hasher.HashLowEntropyNonDeterministic(testCorrectSecret)
 	require.NoError(t, err)
 
 	clientID, err := googleUuid.NewV7()
@@ -310,7 +310,7 @@ func TestSecretBasedAuthenticator_AuthenticateBasic(t *testing.T) {
 
 	enabledClient := &cryptoutilIdentityDomain.Client{
 		ID:           clientID,
-		ClientID:     "enabled-client",
+		ClientID:     testEnabledClient,
 		ClientSecret: hashedSecret,
 		Enabled:      boolPtr(true),
 	}
@@ -320,7 +320,7 @@ func TestSecretBasedAuthenticator_AuthenticateBasic(t *testing.T) {
 
 	disabledClient := &cryptoutilIdentityDomain.Client{
 		ID:           disabledClientID,
-		ClientID:     "disabled-client",
+		ClientID:     testDisabledClient,
 		ClientSecret: hashedSecret,
 		Enabled:      boolPtr(false),
 	}
@@ -335,22 +335,22 @@ func TestSecretBasedAuthenticator_AuthenticateBasic(t *testing.T) {
 		{
 			name:         "valid credentials",
 			client:       enabledClient,
-			clientID:     "enabled-client",
-			clientSecret: "correct-secret",
+			clientID:     testEnabledClient,
+			clientSecret: testCorrectSecret,
 			wantErr:      false,
 		},
 		{
 			name:         "wrong secret",
 			client:       enabledClient,
-			clientID:     "enabled-client",
-			clientSecret: "wrong-secret",
+			clientID:     testEnabledClient,
+			clientSecret: testWrongSecret,
 			wantErr:      true,
 		},
 		{
 			name:         "disabled client",
 			client:       disabledClient,
-			clientID:     "disabled-client",
-			clientSecret: "correct-secret",
+			clientID:     testDisabledClient,
+			clientSecret: testCorrectSecret,
 			wantErr:      true,
 		},
 	}

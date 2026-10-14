@@ -5,7 +5,6 @@ import cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 const (
 	testLiteralTestOrg                     = "Test Org"
-	testLiteralAaCompromise                = cryptoutilSharedMagic.RFC5280RevocationReasonNameAACompromise
 	testLiteralAffiliationChanged          = cryptoutilSharedMagic.RFC5280RevocationReasonNameAffiliationChanged
 	testLiteralCaCompromise                = cryptoutilSharedMagic.RFC5280RevocationReasonNameCACompromise
 	testLiteralCertificateHold             = cryptoutilSharedMagic.RFC5280RevocationReasonNameCertificateHold

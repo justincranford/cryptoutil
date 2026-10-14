@@ -382,7 +382,7 @@ func RequireNewForTest(applicationName string) *ServiceFrameworkServerSettings {
 	if strings.Contains(settings.DatabaseURL, "/DB?") {
 		// SQLite: Randomize the in-memory database name, so it is unique during concurrent testing
 		settings.DatabaseURL = strings.Replace(settings.DatabaseURL, "/DB?", "/DB_"+applicationName+"_"+uniqueSuffix+"?", 1)
-	} else if strings.HasPrefix(settings.DatabaseURL, "file::memory:") {
+	} else if strings.HasPrefix(settings.DatabaseURL, valueFileMemory) {
 		// SQLite file::memory: format - convert to file:NAME?mode=memory&cache=shared
 		// The file::memory:NAME?cache=shared format creates disk files in modernc.org/sqlite.
 		// Use file:NAME?mode=memory&cache=shared which is the correct named in-memory URI.
@@ -413,5 +413,5 @@ func RequireNewForTest(applicationName string) *ServiceFrameworkServerSettings {
 func NewFromFile(filePath string) (*ServiceFrameworkServerSettings, error) {
 	fs := pflag.NewFlagSet("NewFromFile", pflag.ContinueOnError)
 
-	return ParseWithFlagSet(fs, []string{"start", cryptoutilSharedMagic.IdentityCLIFlagConfig, filePath}, false)
+	return ParseWithFlagSet(fs, []string{valueStart, cryptoutilSharedMagic.IdentityCLIFlagConfig, filePath}, false)
 }

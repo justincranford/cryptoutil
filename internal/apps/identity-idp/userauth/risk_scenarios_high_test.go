@@ -57,7 +57,7 @@ func TestRiskScenario_HighRisk(t *testing.T) {
 			baseline: &UserBaseline{
 				UserID: googleUuid.New().String(),
 				KnownLocations: []GeoLocation{
-					{Country: "US", City: "San Francisco"},
+					{Country: testUs, City: "San Francisco"},
 				},
 				KnownDevices: []DeviceFingerprint{
 					{ID: "known-device-001"},
@@ -100,7 +100,7 @@ func TestRiskScenario_HighRisk(t *testing.T) {
 			baseline: &UserBaseline{
 				UserID: googleUuid.New().String(),
 				KnownLocations: []GeoLocation{
-					{Country: "US", City: "New York"},
+					{Country: testUs, City: testNewYork},
 				},
 				KnownDevices: []DeviceFingerprint{
 					{ID: "known-device-001"},
@@ -169,8 +169,8 @@ func TestRiskScenario_CriticalRisk(t *testing.T) {
 				},
 				GeoLocation: &GeoLocation{
 					IPAddress: "185.220.101.1",
-					Country:   "RU",
-					City:      "Moscow",
+					Country:   testRu,
+					City:      testMoscow,
 					Latitude:  55.7558,
 					Longitude: 37.6173,
 				},
@@ -185,7 +185,7 @@ func TestRiskScenario_CriticalRisk(t *testing.T) {
 			baseline: &UserBaseline{
 				UserID: googleUuid.New().String(),
 				KnownLocations: []GeoLocation{
-					{Country: "US", City: "Seattle"},
+					{Country: testUs, City: "Seattle"},
 				},
 				KnownDevices: []DeviceFingerprint{
 					{ID: "known-device-001"},
@@ -232,7 +232,7 @@ func TestRiskScenario_CriticalRisk(t *testing.T) {
 			baseline: &UserBaseline{
 				UserID: googleUuid.New().String(),
 				KnownLocations: []GeoLocation{
-					{Country: "US", City: "Boston"},
+					{Country: testUs, City: "Boston"},
 				},
 				KnownDevices: []DeviceFingerprint{
 					{ID: "device-velocity-test"},

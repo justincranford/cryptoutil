@@ -65,13 +65,13 @@ func (s *UserServiceImpl) HandleRegisterUser() fiber.Handler {
 
 		if err := c.BodyParser(&req); err != nil {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				cryptoutilSharedMagic.StringError: "Invalid request body",
+				cryptoutilSharedMagic.StringError: valueInvalidRequestBody,
 			})
 		}
 
 		if req.Username == "" || req.Password == "" {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				cryptoutilSharedMagic.StringError: "Username and password are required",
+				cryptoutilSharedMagic.StringError: valueUsernameAndPasswordAreRequired,
 			})
 		}
 
@@ -79,7 +79,7 @@ func (s *UserServiceImpl) HandleRegisterUser() fiber.Handler {
 		if len(req.Username) < cryptoutilSharedMagic.IMMinUsernameLength ||
 			len(req.Username) > cryptoutilSharedMagic.IMMaxUsernameLength {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				cryptoutilSharedMagic.StringError: "username must be 3-50 characters",
+				cryptoutilSharedMagic.StringError: valueUsernameMustBe350Characters,
 			})
 		}
 
@@ -110,8 +110,8 @@ func (s *UserServiceImpl) HandleRegisterUser() fiber.Handler {
 		}
 
 		return c.Status(fiber.StatusCreated).JSON(fiber.Map{
-			"user_id":  user.GetID().String(),
-			"username": user.GetUsername(),
+			"user_id":     user.GetID().String(),
+			valueUsername: user.GetUsername(),
 		})
 	}
 }
@@ -152,13 +152,13 @@ func (s *UserServiceImpl) HandleLoginUser(jwtSecret string) fiber.Handler {
 
 		if err := c.BodyParser(&req); err != nil {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				cryptoutilSharedMagic.StringError: "Invalid request body",
+				cryptoutilSharedMagic.StringError: valueInvalidRequestBody,
 			})
 		}
 
 		if req.Username == "" || req.Password == "" {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				cryptoutilSharedMagic.StringError: "Username and password are required",
+				cryptoutilSharedMagic.StringError: valueUsernameAndPasswordAreRequired,
 			})
 		}
 
@@ -167,7 +167,7 @@ func (s *UserServiceImpl) HandleLoginUser(jwtSecret string) fiber.Handler {
 		if err != nil {
 			// Service layer returns generic error for security.
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				cryptoutilSharedMagic.StringError: "Invalid credentials",
+				cryptoutilSharedMagic.StringError: valueInvalidCredentials,
 			})
 		}
 
@@ -181,7 +181,7 @@ func (s *UserServiceImpl) HandleLoginUser(jwtSecret string) fiber.Handler {
 
 		return c.JSON(fiber.Map{
 			cryptoutilSharedMagic.ParamToken: token,
-			"expires_at":                     expiresAt.Format(time.RFC3339),
+			valueExpiresAt:                   expiresAt.Format(time.RFC3339),
 		})
 	}
 }
@@ -226,13 +226,13 @@ func (s *UserServiceImpl) HandleLoginUserWithSession(sessionManager any, isBrows
 
 		if err := c.BodyParser(&req); err != nil {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				cryptoutilSharedMagic.StringError: "Invalid request body",
+				cryptoutilSharedMagic.StringError: valueInvalidRequestBody,
 			})
 		}
 
 		if req.Username == "" || req.Password == "" {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				cryptoutilSharedMagic.StringError: "Username and password are required",
+				cryptoutilSharedMagic.StringError: valueUsernameAndPasswordAreRequired,
 			})
 		}
 
@@ -241,7 +241,7 @@ func (s *UserServiceImpl) HandleLoginUserWithSession(sessionManager any, isBrows
 		if err != nil {
 			// Service layer returns generic error for security.
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				cryptoutilSharedMagic.StringError: "Invalid credentials",
+				cryptoutilSharedMagic.StringError: valueInvalidCredentials,
 			})
 		}
 
@@ -324,7 +324,7 @@ func (s *UserServiceImpl) HandleLoginUserWithSession(sessionManager any, isBrows
 
 		return c.JSON(fiber.Map{
 			cryptoutilSharedMagic.ParamToken: token,
-			"expires_at":                     expiresAt.Format(time.RFC3339),
+			valueExpiresAt:                   expiresAt.Format(time.RFC3339),
 		})
 	}
 }

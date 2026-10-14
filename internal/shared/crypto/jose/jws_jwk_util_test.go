@@ -246,7 +246,7 @@ func TestCreateJWSJWKFromKey_ValidationErrors(t *testing.T) {
 
 				return &kid, &alg, cryptoutilSharedCryptoKeygen.SecretKey("")
 			},
-			wantErr: "invalid JWS JWK headers",
+			wantErr: testInvalidJWSJWKHeaders,
 		},
 		{
 			name: "nil private key in pair",
@@ -258,7 +258,7 @@ func TestCreateJWSJWKFromKey_ValidationErrors(t *testing.T) {
 
 				return &kid, &alg, &cryptoutilSharedCryptoKeygen.KeyPair{Private: nil, Public: nil}
 			},
-			wantErr: "invalid JWS JWK headers",
+			wantErr: testInvalidJWSJWKHeaders,
 		},
 	}
 	for _, tt := range tests {

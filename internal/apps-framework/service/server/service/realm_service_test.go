@@ -140,10 +140,10 @@ func TestRealmService_CreateRealm_LDAP(t *testing.T) {
 	require.NoError(t, err)
 
 	config := &LDAPConfig{
-		URL:           "ldap://ldap.example.com:389",
+		URL:           testLdapLdapExampleCom389,
 		BindDN:        "cn=admin,dc=example,dc=com",
 		BindPassword:  bindPassword,
-		BaseDN:        "dc=example,dc=com",
+		BaseDN:        testDcExampleDcCom,
 		UserFilter:    "(uid=%s)",
 		GroupFilter:   "(member=%s)",
 		UseTLS:        true,
@@ -171,7 +171,7 @@ func TestRealmService_CreateRealm_OAuth2(t *testing.T) {
 	require.NoError(t, err)
 
 	config := &OAuth2Config{
-		ProviderURL:  "https://auth.example.com",
+		ProviderURL:  testHTTPSAuthExampleCom,
 		ClientID:     "my-client-id",
 		ClientSecret: clientSecret,
 		Scopes:       []string{cryptoutilSharedMagic.ScopeOpenID, cryptoutilSharedMagic.ClaimProfile, cryptoutilSharedMagic.ClaimEmail},
@@ -195,8 +195,8 @@ func TestRealmService_CreateRealm_SAML(t *testing.T) {
 	tenant := createRealmTestTenant(t, db, "realm-saml-"+googleUuid.NewString()[:cryptoutilSharedMagic.IMMinPasswordLength])
 
 	config := &SAMLConfig{
-		MetadataURL:  "https://idp.example.com/metadata",
-		EntityID:     "https://myapp.example.com",
+		MetadataURL:  testHTTPSIdpExampleComMetadata,
+		EntityID:     testHTTPSMyappExampleCom,
 		AssertionURL: "https://myapp.example.com/saml/acs",
 		SignRequests: true,
 	}
@@ -232,7 +232,7 @@ func TestRealmService_CreateRealm_InvalidConfig(t *testing.T) {
 
 	// LDAP config without required URL.
 	config := &LDAPConfig{
-		BaseDN: "dc=example,dc=com",
+		BaseDN: testDcExampleDcCom,
 		// Missing required URL.
 	}
 
@@ -295,7 +295,7 @@ func TestRealmService_ListRealms(t *testing.T) {
 	_, err := svc.CreateRealm(ctx, tenant.ID, string(RealmTypeUsernamePassword), config1)
 	require.NoError(t, err)
 
-	config2 := &LDAPConfig{URL: "ldap://ldap.example.com", BaseDN: "dc=example,dc=com"}
+	config2 := &LDAPConfig{URL: testLdapLdapExampleCom, BaseDN: testDcExampleDcCom}
 	_, err = svc.CreateRealm(ctx, tenant.ID, string(RealmTypeLDAP), config2)
 	require.NoError(t, err)
 
@@ -320,7 +320,7 @@ func TestRealmService_ListRealms_ActiveOnly(t *testing.T) {
 	require.NoError(t, err)
 
 	// Create and deactivate realm.
-	config2 := &LDAPConfig{URL: "ldap://ldap.example.com", BaseDN: "dc=example,dc=com"}
+	config2 := &LDAPConfig{URL: testLdapLdapExampleCom, BaseDN: testDcExampleDcCom}
 	inactive, err := svc.CreateRealm(ctx, tenant.ID, string(RealmTypeLDAP), config2)
 	require.NoError(t, err)
 

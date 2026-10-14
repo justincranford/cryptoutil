@@ -28,10 +28,10 @@ func createMFAAdminTestDependencies(t *testing.T) (*cryptoutilIdentityConfig.Con
 	config := &cryptoutilIdentityConfig.Config{
 		Database: &cryptoutilIdentityConfig.DatabaseConfig{
 			Type: cryptoutilSharedMagic.TestDatabaseSQLite,
-			DSN:  "file::memory:?cache=private",
+			DSN:  testFileMemoryCachePrivate,
 		},
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{
-			Issuer: "https://localhost:8080",
+			Issuer: testHTTPSLocalhost8080,
 		},
 	}
 
@@ -67,7 +67,7 @@ func TestHandleEnrollMFA_HappyPath(t *testing.T) {
 		ID:           googleUuid.Must(googleUuid.NewV7()),
 		Sub:          googleUuid.Must(googleUuid.NewV7()).String(),
 		Email:        fmt.Sprintf("test-%s@example.com", googleUuid.Must(googleUuid.NewV7()).String()),
-		PasswordHash: "hash",
+		PasswordHash: testHash,
 	}
 	require.NoError(t, userRepo.Create(ctx, user))
 
@@ -79,15 +79,15 @@ func TestHandleEnrollMFA_HappyPath(t *testing.T) {
 
 	// Prepare enrollment request.
 	reqBody := map[string]any{
-		"user_id":                       user.ID.String(),
-		"factor_type":                   cryptoutilSharedMagic.MFATypeTOTP,
-		cryptoutilSharedMagic.ClaimName: "My TOTP",
-		"required":                      true,
+		testUserIDValueF89D6B69:         user.ID.String(),
+		testFactorType:                  cryptoutilSharedMagic.MFATypeTOTP,
+		cryptoutilSharedMagic.ClaimName: testMyTotp,
+		testRequired:                    true,
 	}
 	bodyBytes, err := json.Marshal(reqBody)
 	require.NoError(t, err)
 
-	req := httptest.NewRequest("POST", "/oidc/v1/mfa/enroll", bytes.NewReader(bodyBytes))
+	req := httptest.NewRequest(testPost, "/oidc/v1/mfa/enroll", bytes.NewReader(bodyBytes))
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := app.Test(req, -1)
@@ -103,9 +103,9 @@ func TestHandleEnrollMFA_HappyPath(t *testing.T) {
 
 	require.NoError(t, json.NewDecoder(resp.Body).Decode(&enrollResp))
 	require.NotEmpty(t, enrollResp["id"])
-	require.Equal(t, cryptoutilSharedMagic.MFATypeTOTP, enrollResp["factor_type"])
-	require.Equal(t, "My TOTP", enrollResp[cryptoutilSharedMagic.ClaimName])
-	require.Equal(t, true, enrollResp["required"])
+	require.Equal(t, cryptoutilSharedMagic.MFATypeTOTP, enrollResp[testFactorType])
+	require.Equal(t, testMyTotp, enrollResp[cryptoutilSharedMagic.ClaimName])
+	require.Equal(t, true, enrollResp[testRequired])
 	require.Equal(t, true, enrollResp["enabled"])
 	require.NotEmpty(t, enrollResp["created_at"])
 }
@@ -121,15 +121,15 @@ func TestHandleEnrollMFA_InvalidUserID(t *testing.T) {
 	svc.RegisterRoutes(app)
 
 	reqBody := map[string]any{
-		"user_id":                       "not-a-uuid",
-		"factor_type":                   cryptoutilSharedMagic.MFATypeTOTP,
-		cryptoutilSharedMagic.ClaimName: "My TOTP",
-		"required":                      true,
+		testUserIDValueF89D6B69:         testNotAUUID,
+		testFactorType:                  cryptoutilSharedMagic.MFATypeTOTP,
+		cryptoutilSharedMagic.ClaimName: testMyTotp,
+		testRequired:                    true,
 	}
 	bodyBytes, err := json.Marshal(reqBody)
 	require.NoError(t, err)
 
-	req := httptest.NewRequest("POST", "/oidc/v1/mfa/enroll", bytes.NewReader(bodyBytes))
+	req := httptest.NewRequest(testPost, "/oidc/v1/mfa/enroll", bytes.NewReader(bodyBytes))
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := app.Test(req, -1)
@@ -159,15 +159,15 @@ func TestHandleEnrollMFA_UserNotFound(t *testing.T) {
 	svc.RegisterRoutes(app)
 
 	reqBody := map[string]any{
-		"user_id":                       googleUuid.Must(googleUuid.NewV7()).String(),
-		"factor_type":                   cryptoutilSharedMagic.MFATypeTOTP,
-		cryptoutilSharedMagic.ClaimName: "My TOTP",
-		"required":                      false,
+		testUserIDValueF89D6B69:         googleUuid.Must(googleUuid.NewV7()).String(),
+		testFactorType:                  cryptoutilSharedMagic.MFATypeTOTP,
+		cryptoutilSharedMagic.ClaimName: testMyTotp,
+		testRequired:                    false,
 	}
 	bodyBytes, err := json.Marshal(reqBody)
 	require.NoError(t, err)
 
-	req := httptest.NewRequest("POST", "/oidc/v1/mfa/enroll", bytes.NewReader(bodyBytes))
+	req := httptest.NewRequest(testPost, "/oidc/v1/mfa/enroll", bytes.NewReader(bodyBytes))
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := app.Test(req, -1)
@@ -197,7 +197,7 @@ func TestHandleEnrollMFA_InvalidFactorType(t *testing.T) {
 		ID:           googleUuid.Must(googleUuid.NewV7()),
 		Sub:          googleUuid.Must(googleUuid.NewV7()).String(),
 		Email:        fmt.Sprintf("test-%s@example.com", googleUuid.Must(googleUuid.NewV7()).String()),
-		PasswordHash: "hash",
+		PasswordHash: testHash,
 	}
 	require.NoError(t, userRepo.Create(ctx, user))
 
@@ -206,15 +206,15 @@ func TestHandleEnrollMFA_InvalidFactorType(t *testing.T) {
 	svc.RegisterRoutes(app)
 
 	reqBody := map[string]any{
-		"user_id":                       user.ID.String(),
-		"factor_type":                   "invalid_type",
+		testUserIDValueF89D6B69:         user.ID.String(),
+		testFactorType:                  "invalid_type",
 		cryptoutilSharedMagic.ClaimName: "My Factor",
-		"required":                      false,
+		testRequired:                    false,
 	}
 	bodyBytes, err := json.Marshal(reqBody)
 	require.NoError(t, err)
 
-	req := httptest.NewRequest("POST", "/oidc/v1/mfa/enroll", bytes.NewReader(bodyBytes))
+	req := httptest.NewRequest(testPost, "/oidc/v1/mfa/enroll", bytes.NewReader(bodyBytes))
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := app.Test(req, -1)
@@ -246,7 +246,7 @@ func TestHandleListMFAFactors_HappyPath(t *testing.T) {
 		ID:           googleUuid.Must(googleUuid.NewV7()),
 		Sub:          googleUuid.Must(googleUuid.NewV7()).String(),
 		Email:        fmt.Sprintf("test-%s@example.com", googleUuid.Must(googleUuid.NewV7()).String()),
-		PasswordHash: "hash",
+		PasswordHash: testHash,
 	}
 	require.NoError(t, userRepo.Create(ctx, user))
 
@@ -255,7 +255,7 @@ func TestHandleListMFAFactors_HappyPath(t *testing.T) {
 	authProfile := &cryptoutilIdentityDomain.AuthProfile{
 		ID:          googleUuid.Must(googleUuid.NewV7()),
 		Name:        fmt.Sprintf("user_%s_default", user.ID.String()),
-		Description: "Test profile",
+		Description: testTestProfile,
 		ProfileType: cryptoutilIdentityDomain.AuthProfileTypeUsernamePassword,
 		Enabled:     true,
 	}
@@ -265,7 +265,7 @@ func TestHandleListMFAFactors_HappyPath(t *testing.T) {
 	mfaFactorRepo := repoFactory.MFAFactorRepository()
 	factor1 := &cryptoutilIdentityDomain.MFAFactor{
 		ID:            googleUuid.Must(googleUuid.NewV7()),
-		Name:          "TOTP Factor",
+		Name:          testTotpFactor,
 		FactorType:    cryptoutilIdentityDomain.MFAFactorTypeTOTP,
 		AuthProfileID: authProfile.ID,
 		Required:      cryptoutilIdentityDomain.IntBool(true),
@@ -311,17 +311,17 @@ func TestHandleListMFAFactors_HappyPath(t *testing.T) {
 	// Verify first factor.
 	f1, ok := factors[0].(map[string]any)
 	require.True(t, ok)
-	require.Equal(t, "TOTP Factor", f1[cryptoutilSharedMagic.ClaimName])
-	require.Equal(t, cryptoutilSharedMagic.MFATypeTOTP, f1["factor_type"])
-	require.Equal(t, true, f1["required"])
+	require.Equal(t, testTotpFactor, f1[cryptoutilSharedMagic.ClaimName])
+	require.Equal(t, cryptoutilSharedMagic.MFATypeTOTP, f1[testFactorType])
+	require.Equal(t, true, f1[testRequired])
 	require.Equal(t, true, f1["enabled"])
 
 	// Verify second factor.
 	f2, ok := factors[1].(map[string]any)
 	require.True(t, ok)
 	require.Equal(t, "Email OTP Factor", f2[cryptoutilSharedMagic.ClaimName])
-	require.Equal(t, "email_otp", f2["factor_type"])
-	require.Equal(t, false, f2["required"])
+	require.Equal(t, "email_otp", f2[testFactorType])
+	require.Equal(t, false, f2[testRequired])
 	require.Equal(t, true, f2["enabled"])
 }
 

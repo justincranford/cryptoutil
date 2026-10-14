@@ -12,6 +12,8 @@ import (
 	"os/exec"
 )
 
+const dockerComposeFileFlag = "-f"
+
 // ComposeManager manages Docker Compose stack lifecycle for PS-ID TLS E2E tests.
 // It starts two compose files (main + test port-expose override) so Go tests
 // can directly dial OTel gRPC/HTTP from the host.
@@ -30,8 +32,8 @@ func (m *ComposeManager) Start(ctx context.Context) error {
 	startupServices := m.spec.StartupServices()
 	baseArgs := []string{
 		"compose",
-		"-f", m.spec.ComposeFile,
-		"-f", m.spec.ComposeOverrideFile,
+		dockerComposeFileFlag, m.spec.ComposeFile,
+		dockerComposeFileFlag, m.spec.ComposeOverrideFile,
 		"up", "-d", "--build",
 	}
 
@@ -53,8 +55,8 @@ func (m *ComposeManager) Start(ctx context.Context) error {
 // Stop tears down the compose stack and removes volumes.
 func (m *ComposeManager) Stop(ctx context.Context) error {
 	cmd := exec.CommandContext(ctx, "docker", "compose",
-		"-f", m.spec.ComposeFile,
-		"-f", m.spec.ComposeOverrideFile,
+		dockerComposeFileFlag, m.spec.ComposeFile,
+		dockerComposeFileFlag, m.spec.ComposeOverrideFile,
 		"down", "-v",
 	)
 	cmd.Stdout = os.Stdout

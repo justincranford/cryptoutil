@@ -117,7 +117,7 @@ func (s *Service) RequireScopes(requiredScopes ...string) fiber.Handler {
 
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 				cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInvalidToken,
-				"error_description":               "Token validation required",
+				valueErrorDescription:             "Token validation required",
 			})
 		}
 
@@ -130,7 +130,7 @@ func (s *Service) RequireScopes(requiredScopes ...string) fiber.Handler {
 
 			return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
 				cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInsufficientScope,
-				"error_description":               "Token missing scope claim",
+				valueErrorDescription:             "Token missing scope claim",
 			})
 		}
 
@@ -153,7 +153,7 @@ func (s *Service) RequireScopes(requiredScopes ...string) fiber.Handler {
 
 				return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
 					cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInsufficientScope,
-					"error_description":               fmt.Sprintf("Required scope missing: %s", required),
+					valueErrorDescription:             fmt.Sprintf("Required scope missing: %s", required),
 				})
 			}
 		}
@@ -182,7 +182,7 @@ func (s *Service) handleProtectedResource(c *fiber.Ctx) error {
 	if !ok {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorServerError,
-			"error_description":               "Invalid token claims format",
+			valueErrorDescription:             valueInvalidTokenClaimsFormat,
 		})
 	}
 
@@ -195,7 +195,7 @@ func (s *Service) handleProtectedResource(c *fiber.Ctx) error {
 		cryptoutilSharedMagic.ClaimClientID: claims[cryptoutilSharedMagic.ClaimClientID],
 		cryptoutilSharedMagic.ClaimScope:    claims[cryptoutilSharedMagic.ClaimScope],
 		"data": fiber.Map{
-			"id":                            "resource-123",
+			valueID:                         "resource-123",
 			cryptoutilSharedMagic.ClaimName: "Sample Protected Resource",
 			"type":                          "example",
 		},
@@ -208,7 +208,7 @@ func (s *Service) handleCreateResource(c *fiber.Ctx) error {
 	if !ok {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorServerError,
-			"error_description":               "Invalid token claims format",
+			valueErrorDescription:             valueInvalidTokenClaimsFormat,
 		})
 	}
 
@@ -227,7 +227,7 @@ func (s *Service) handleDeleteResource(c *fiber.Ctx) error {
 	if !ok {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorServerError,
-			"error_description":               "Invalid token claims format",
+			valueErrorDescription:             valueInvalidTokenClaimsFormat,
 		})
 	}
 
@@ -245,7 +245,7 @@ func (s *Service) handleAdminUsers(c *fiber.Ctx) error {
 	if !ok {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorServerError,
-			"error_description":               "Invalid token claims format",
+			valueErrorDescription:             valueInvalidTokenClaimsFormat,
 		})
 	}
 
@@ -255,8 +255,8 @@ func (s *Service) handleAdminUsers(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		cryptoutilSharedMagic.StringMessage: "Admin user list",
 		"users": []fiber.Map{
-			{"id": "user-1", "username": "alice", "role": "admin"},
-			{"id": "user-2", "username": "bob", "role": "user"},
+			{valueID: "user-1", valueUsername: "alice", valueRole: "admin"},
+			{valueID: "user-2", valueUsername: "bob", valueRole: "user"},
 		},
 	})
 }
@@ -267,7 +267,7 @@ func (s *Service) handleAdminMetrics(c *fiber.Ctx) error {
 	if !ok {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorServerError,
-			"error_description":               "Invalid token claims format",
+			valueErrorDescription:             valueInvalidTokenClaimsFormat,
 		})
 	}
 

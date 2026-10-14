@@ -356,11 +356,11 @@ func TestSessionRepository_List(t *testing.T) {
 	}
 
 	// Test pagination.
-	sessions, err := repo.List(context.Background(), 0, 3)
+	sessions, err := repo.List(context.Background(), 0, test3)
 	require.NoError(t, err)
-	require.Len(t, sessions, 3)
+	require.Len(t, sessions, test3)
 
-	sessions, err = repo.List(context.Background(), 3, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
+	sessions, err = repo.List(context.Background(), test3, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
 	require.NoError(t, err)
 	require.Len(t, sessions, 2)
 }

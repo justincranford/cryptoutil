@@ -264,7 +264,7 @@ func stubEncodeTrustPKCS12(_ []*x509.Certificate) ([]byte, error) {
 
 // stubGetRealmsForPSID returns the default realms for testing.
 func stubGetRealmsForPSID(_ string) ([]string, error) {
-	return []string{"file", "db"}, nil
+	return []string{testFile, testDB}, nil
 }
 
 // stubMkdirAll is a no-op mkdir for testing.

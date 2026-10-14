@@ -131,46 +131,46 @@ func TestUsernamePasswordProfile_ValidateCredentials(t *testing.T) {
 		errContains string
 	}{
 		{
-			name: "valid credentials",
+			name: testValidCredentials,
 			credentials: map[string]string{
-				"username": "testuser",
-				"password": "SecurePassword123!",
+				testUsername:              testTestuser,
+				testPasswordValue5E884898: testSecurePassword123,
 			},
 			wantErr: false,
 		},
 		{
-			name: "missing username",
+			name: testMissingUsername,
 			credentials: map[string]string{
-				"password": "SecurePassword123!",
+				testPasswordValue5E884898: testSecurePassword123,
 			},
 			wantErr:     true,
-			errContains: "missing username",
+			errContains: testMissingUsername,
 		},
 		{
 			name: "empty username",
 			credentials: map[string]string{
-				"username": "",
-				"password": "SecurePassword123!",
+				testUsername:              "",
+				testPasswordValue5E884898: testSecurePassword123,
 			},
 			wantErr:     true,
-			errContains: "missing username",
+			errContains: testMissingUsername,
 		},
 		{
-			name: "missing password",
+			name: testMissingPassword,
 			credentials: map[string]string{
-				"username": "testuser",
+				testUsername: testTestuser,
 			},
 			wantErr:     true,
-			errContains: "missing password",
+			errContains: testMissingPassword,
 		},
 		{
-			name: "empty password",
+			name: testEmptyPassword,
 			credentials: map[string]string{
-				"username": "testuser",
-				"password": "",
+				testUsername:              testTestuser,
+				testPasswordValue5E884898: "",
 			},
 			wantErr:     true,
-			errContains: "missing password",
+			errContains: testMissingPassword,
 		},
 	}
 
@@ -202,7 +202,7 @@ func TestUsernamePasswordProfile_AuthenticateSuccess(t *testing.T) {
 	require.NoError(t, err, "NewV7 should succeed")
 
 	// Create password hash using PBKDF2 (old format for username_password).
-	password := "SecurePassword123!"
+	password := testSecurePassword123
 	hash, err := cryptoutilSharedCryptoHash.HashSecretPBKDF2(password)
 	require.NoError(t, err, "HashSecret should succeed")
 
@@ -210,7 +210,7 @@ func TestUsernamePasswordProfile_AuthenticateSuccess(t *testing.T) {
 	user := &cryptoutilIdentityDomain.User{
 		ID:                userID,
 		Sub:               userID.String(),
-		PreferredUsername: "testuser",
+		PreferredUsername: testTestuser,
 		PasswordHash:      hash,
 		Enabled:           true,
 		Locked:            false,
@@ -220,8 +220,8 @@ func TestUsernamePasswordProfile_AuthenticateSuccess(t *testing.T) {
 	profile := cryptoutilIdentityAuth.NewUsernamePasswordProfile(userRepo)
 
 	credentials := map[string]string{
-		"username": "testuser",
-		"password": password,
+		testUsername:              testTestuser,
+		testPasswordValue5E884898: password,
 	}
 
 	authenticatedUser, err := profile.Authenticate(ctx, credentials)
@@ -239,13 +239,13 @@ func TestUsernamePasswordProfile_AuthenticateMissingUsername(t *testing.T) {
 	profile := cryptoutilIdentityAuth.NewUsernamePasswordProfile(userRepo)
 
 	credentials := map[string]string{
-		"password": "SecurePassword123!",
+		testPasswordValue5E884898: testSecurePassword123,
 	}
 
 	user, err := profile.Authenticate(ctx, credentials)
 	require.Error(t, err, "Authenticate should fail with missing username")
 	require.Nil(t, user, "User should be nil on error")
-	require.Contains(t, err.Error(), "missing username", "Error should indicate missing username")
+	require.Contains(t, err.Error(), testMissingUsername, "Error should indicate missing username")
 }
 
 // TestUsernamePasswordProfile_AuthenticateMissingPassword tests missing password.
@@ -257,13 +257,13 @@ func TestUsernamePasswordProfile_AuthenticateMissingPassword(t *testing.T) {
 	profile := cryptoutilIdentityAuth.NewUsernamePasswordProfile(userRepo)
 
 	credentials := map[string]string{
-		"username": "testuser",
+		testUsername: testTestuser,
 	}
 
 	user, err := profile.Authenticate(ctx, credentials)
 	require.Error(t, err, "Authenticate should fail with missing password")
 	require.Nil(t, user, "User should be nil on error")
-	require.Contains(t, err.Error(), "missing password", "Error should indicate missing password")
+	require.Contains(t, err.Error(), testMissingPassword, "Error should indicate missing password")
 }
 
 // TestUsernamePasswordProfile_AuthenticateUserNotFound tests non-existent user.
@@ -275,8 +275,8 @@ func TestUsernamePasswordProfile_AuthenticateUserNotFound(t *testing.T) {
 	profile := cryptoutilIdentityAuth.NewUsernamePasswordProfile(userRepo)
 
 	credentials := map[string]string{
-		"username": "nonexistent",
-		"password": "SecurePassword123!",
+		testUsername:              "nonexistent",
+		testPasswordValue5E884898: testSecurePassword123,
 	}
 
 	user, err := profile.Authenticate(ctx, credentials)
@@ -295,14 +295,14 @@ func TestUsernamePasswordProfile_AuthenticateDisabledUser(t *testing.T) {
 	userID, err := googleUuid.NewV7()
 	require.NoError(t, err, "NewV7 should succeed")
 
-	hash, err := cryptoutilSharedCryptoHash.HashSecretPBKDF2("SecurePassword123!")
+	hash, err := cryptoutilSharedCryptoHash.HashSecretPBKDF2(testSecurePassword123)
 	require.NoError(t, err, "HashSecret should succeed")
 
 	// Add disabled user.
 	user := &cryptoutilIdentityDomain.User{
 		ID:                userID,
 		Sub:               userID.String(),
-		PreferredUsername: "disableduser",
+		PreferredUsername: testDisableduser,
 		PasswordHash:      hash,
 		Enabled:           false,
 		Locked:            false,
@@ -312,8 +312,8 @@ func TestUsernamePasswordProfile_AuthenticateDisabledUser(t *testing.T) {
 	profile := cryptoutilIdentityAuth.NewUsernamePasswordProfile(userRepo)
 
 	credentials := map[string]string{
-		"username": "disableduser",
-		"password": "SecurePassword123!",
+		testUsername:              testDisableduser,
+		testPasswordValue5E884898: testSecurePassword123,
 	}
 
 	authenticatedUser, err := profile.Authenticate(ctx, credentials)
@@ -332,14 +332,14 @@ func TestUsernamePasswordProfile_AuthenticateLockedUser(t *testing.T) {
 	userID, err := googleUuid.NewV7()
 	require.NoError(t, err, "NewV7 should succeed")
 
-	hash, err := cryptoutilSharedCryptoHash.HashSecretPBKDF2("SecurePassword123!")
+	hash, err := cryptoutilSharedCryptoHash.HashSecretPBKDF2(testSecurePassword123)
 	require.NoError(t, err, "HashSecret should succeed")
 
 	// Add locked user.
 	user := &cryptoutilIdentityDomain.User{
 		ID:                userID,
 		Sub:               userID.String(),
-		PreferredUsername: "lockeduser",
+		PreferredUsername: testLockeduser,
 		PasswordHash:      hash,
 		Enabled:           true,
 		Locked:            true,
@@ -349,8 +349,8 @@ func TestUsernamePasswordProfile_AuthenticateLockedUser(t *testing.T) {
 	profile := cryptoutilIdentityAuth.NewUsernamePasswordProfile(userRepo)
 
 	credentials := map[string]string{
-		"username": "lockeduser",
-		"password": "SecurePassword123!",
+		testUsername:              testLockeduser,
+		testPasswordValue5E884898: testSecurePassword123,
 	}
 
 	authenticatedUser, err := profile.Authenticate(ctx, credentials)
@@ -375,7 +375,7 @@ func TestUsernamePasswordProfile_AuthenticateWrongPassword(t *testing.T) {
 	user := &cryptoutilIdentityDomain.User{
 		ID:                userID,
 		Sub:               userID.String(),
-		PreferredUsername: "wrongpwduser",
+		PreferredUsername: testWrongpwduser,
 		PasswordHash:      hash,
 		Enabled:           true,
 		Locked:            false,
@@ -385,8 +385,8 @@ func TestUsernamePasswordProfile_AuthenticateWrongPassword(t *testing.T) {
 	profile := cryptoutilIdentityAuth.NewUsernamePasswordProfile(userRepo)
 
 	credentials := map[string]string{
-		"username": "wrongpwduser",
-		"password": "WrongPassword123!",
+		testUsername:              testWrongpwduser,
+		testPasswordValue5E884898: "WrongPassword123!",
 	}
 
 	authenticatedUser, err := profile.Authenticate(ctx, credentials)

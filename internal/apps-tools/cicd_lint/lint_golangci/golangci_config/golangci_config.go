@@ -212,7 +212,7 @@ func FindGolangCIConfigFiles(filesByExtension map[string][]string) []string {
 	var configFiles []string
 
 	// Check for yml files.
-	for _, file := range filesByExtension["yml"] {
+	for _, file := range filesByExtension[valueYml] {
 		filename := filepath.Base(file)
 		if filename == ".golangci.yml" || filename == "golangci.yml" {
 			configFiles = append(configFiles, file)

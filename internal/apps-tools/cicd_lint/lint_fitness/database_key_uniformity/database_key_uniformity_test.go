@@ -107,9 +107,9 @@ func TestCheckInDir_AllCorrect(t *testing.T) {
 	createAllConfigDirStubs(t, tmpDir)
 
 	setupConfigDir(t, tmpDir, psID, map[string]string{
-		psID + "-app-common.yml":       "bind-public-address: \"0.0.0.0\"\n",
-		psID + "-app-sqlite-1.yml":     "database-url: \"sqlite://file::memory:?cache=shared\"\n",
-		psID + "-app-sqlite-2.yml":     "database-url: \"sqlite://file::memory:?cache=shared\"\n",
+		psID + "-app-common.yml":       testBindPublicAddress0000,
+		psID + "-app-sqlite-1.yml":     testDatabaseURLSqliteFileMemoryCacheShared,
+		psID + "-app-sqlite-2.yml":     testDatabaseURLSqliteFileMemoryCacheShared,
 		psID + "-app-postgresql-1.yml": fmt.Sprintf("otlp-service: %s-postgres-1\n", psID),
 		psID + "-app-postgresql-2.yml": fmt.Sprintf("otlp-service: %s-postgres-2\n", psID),
 	})
@@ -288,7 +288,7 @@ func TestCheckInDir_ReadFileFnError(t *testing.T) {
 	psID := cryptoutilSharedMagic.KMSServiceID
 	filename := psID + "-app-common.yml"
 
-	setupConfigDir(t, tmpDir, psID, map[string]string{filename: "bind-public-address: \"0.0.0.0\"\n"})
+	setupConfigDir(t, tmpDir, psID, map[string]string{filename: testBindPublicAddress0000})
 
 	err := CheckInDir(newLogger(), tmpDir, os.ReadDir, func(_ string) ([]byte, error) { return nil, sentinelErr })
 	require.Error(t, err)
@@ -328,7 +328,7 @@ func TestCheck_DelegatesToCheckInDir(t *testing.T) {
 	psID := cryptoutilSharedMagic.KMSServiceID
 	filename := psID + "-app-common.yml"
 
-	setupConfigDir(t, tmpDir, psID, map[string]string{filename: "bind-public-address: \"0.0.0.0\"\n"})
+	setupConfigDir(t, tmpDir, psID, map[string]string{filename: testBindPublicAddress0000})
 
 	origDir, err := os.Getwd()
 	require.NoError(t, err)

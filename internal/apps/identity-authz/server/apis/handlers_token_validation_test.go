@@ -35,7 +35,7 @@ func TestHandleTokenAuthorizationCodeGrant_MissingParameters(t *testing.T) {
 	// Create authz service.
 	cfg := &cryptoutilIdentityConfig.Config{
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{
-			Issuer: "https://issuer.example.com",
+			Issuer: testHTTPSIssuerExampleCom,
 		},
 	}
 	authzSvc := cryptoutilIdentityAuthz.NewService(cfg, repoFactory, tokenSvc)
@@ -54,9 +54,9 @@ func TestHandleTokenAuthorizationCodeGrant_MissingParameters(t *testing.T) {
 			name: "missing code",
 			formData: map[string]string{
 				cryptoutilSharedMagic.ParamGrantType:    cryptoutilSharedMagic.GrantTypeAuthorizationCode,
-				cryptoutilSharedMagic.ParamRedirectURI:  "https://client.example.com/callback",
-				cryptoutilSharedMagic.ClaimClientID:     "test-client",
-				cryptoutilSharedMagic.ParamCodeVerifier: "test-verifier",
+				cryptoutilSharedMagic.ParamRedirectURI:  testHTTPSClientExampleComCallback,
+				cryptoutilSharedMagic.ClaimClientID:     testTestClient,
+				cryptoutilSharedMagic.ParamCodeVerifier: testTestVerifier,
 			},
 			wantStatusCode: 400,
 			wantError:      "code is required",
@@ -65,9 +65,9 @@ func TestHandleTokenAuthorizationCodeGrant_MissingParameters(t *testing.T) {
 			name: "missing redirect_uri",
 			formData: map[string]string{
 				cryptoutilSharedMagic.ParamGrantType:    cryptoutilSharedMagic.GrantTypeAuthorizationCode,
-				cryptoutilSharedMagic.ResponseTypeCode:  "test-code",
-				cryptoutilSharedMagic.ClaimClientID:     "test-client",
-				cryptoutilSharedMagic.ParamCodeVerifier: "test-verifier",
+				cryptoutilSharedMagic.ResponseTypeCode:  testTestCode,
+				cryptoutilSharedMagic.ClaimClientID:     testTestClient,
+				cryptoutilSharedMagic.ParamCodeVerifier: testTestVerifier,
 			},
 			wantStatusCode: 400,
 			wantError:      "redirect_uri is required",
@@ -76,9 +76,9 @@ func TestHandleTokenAuthorizationCodeGrant_MissingParameters(t *testing.T) {
 			name: "missing client_id",
 			formData: map[string]string{
 				cryptoutilSharedMagic.ParamGrantType:    cryptoutilSharedMagic.GrantTypeAuthorizationCode,
-				cryptoutilSharedMagic.ResponseTypeCode:  "test-code",
-				cryptoutilSharedMagic.ParamRedirectURI:  "https://client.example.com/callback",
-				cryptoutilSharedMagic.ParamCodeVerifier: "test-verifier",
+				cryptoutilSharedMagic.ResponseTypeCode:  testTestCode,
+				cryptoutilSharedMagic.ParamRedirectURI:  testHTTPSClientExampleComCallback,
+				cryptoutilSharedMagic.ParamCodeVerifier: testTestVerifier,
 			},
 			wantStatusCode: 400,
 			wantError:      "client_id is required",
@@ -87,9 +87,9 @@ func TestHandleTokenAuthorizationCodeGrant_MissingParameters(t *testing.T) {
 			name: "missing code_verifier (PKCE required)",
 			formData: map[string]string{
 				cryptoutilSharedMagic.ParamGrantType:   cryptoutilSharedMagic.GrantTypeAuthorizationCode,
-				cryptoutilSharedMagic.ResponseTypeCode: "test-code",
-				cryptoutilSharedMagic.ParamRedirectURI: "https://client.example.com/callback",
-				cryptoutilSharedMagic.ClaimClientID:    "test-client",
+				cryptoutilSharedMagic.ResponseTypeCode: testTestCode,
+				cryptoutilSharedMagic.ParamRedirectURI: testHTTPSClientExampleComCallback,
+				cryptoutilSharedMagic.ClaimClientID:    testTestClient,
 			},
 			wantStatusCode: 400,
 			wantError:      "code_verifier is required",
@@ -107,7 +107,7 @@ func TestHandleTokenAuthorizationCodeGrant_MissingParameters(t *testing.T) {
 			}
 
 			// Create request.
-			req := httptest.NewRequest("POST", "/oauth2/v1/token", strings.NewReader(formData.Encode()))
+			req := httptest.NewRequest(testPost, testOauth2V1Token, strings.NewReader(formData.Encode()))
 			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 			// Execute request.
@@ -133,7 +133,7 @@ func TestHandleTokenClientCredentialsGrant(t *testing.T) {
 	db := repoFactory.DB()
 	testClient := &cryptoutilIdentityDomain.Client{
 		ID:                      googleUuid.New(),
-		ClientID:                "test-client-credentials",
+		ClientID:                testTestClientCredentials,
 		Name:                    "Test Client Credentials",
 		ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
 		AllowedGrantTypes:       []string{cryptoutilSharedMagic.GrantTypeClientCredentials},
@@ -150,7 +150,7 @@ func TestHandleTokenClientCredentialsGrant(t *testing.T) {
 	// Create authz service.
 	cfg := &cryptoutilIdentityConfig.Config{
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{
-			Issuer: "https://issuer.example.com",
+			Issuer: testHTTPSIssuerExampleCom,
 		},
 	}
 	authzSvc := cryptoutilIdentityAuthz.NewService(cfg, repoFactory, tokenSvc)
@@ -162,11 +162,11 @@ func TestHandleTokenClientCredentialsGrant(t *testing.T) {
 	// Build form data.
 	formData := url.Values{}
 	formData.Set(cryptoutilSharedMagic.ParamGrantType, cryptoutilSharedMagic.GrantTypeClientCredentials)
-	formData.Set(cryptoutilSharedMagic.ClaimClientID, "test-client-credentials")
+	formData.Set(cryptoutilSharedMagic.ClaimClientID, testTestClientCredentials)
 	formData.Set(cryptoutilSharedMagic.ClaimScope, "read write")
 
 	// Create request.
-	req := httptest.NewRequest("POST", "/oauth2/v1/token", strings.NewReader(formData.Encode()))
+	req := httptest.NewRequest(testPost, testOauth2V1Token, strings.NewReader(formData.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	// Execute request (will fail due to missing client authentication, but exercises handler code).
@@ -208,7 +208,7 @@ func setupAuthzTestDependencies(ctx context.Context, t *testing.T) (*cryptoutilI
 
 	// Create token service.
 	tokenConfig := &cryptoutilIdentityConfig.TokenConfig{
-		Issuer:               "https://issuer.example.com",
+		Issuer:               testHTTPSIssuerExampleCom,
 		AccessTokenFormat:    cryptoutilSharedMagic.TokenFormatJWS,
 		AccessTokenLifetime:  cryptoutilSharedMagic.DefaultAccessTokenLifetime,
 		RefreshTokenLifetime: cryptoutilSharedMagic.DefaultRefreshTokenLifetime,

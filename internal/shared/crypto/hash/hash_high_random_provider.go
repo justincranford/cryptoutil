@@ -77,7 +77,7 @@ func hashVerifySecretHKDFRandomInternal(stored, provided string, hkdfFn func(str
 	}
 
 	// Parse stored hash format: hkdf-sha256$salt$dk.
-	const expectedParts = 3
+	const expectedParts = value3
 
 	parts := strings.Split(stored, "$")
 

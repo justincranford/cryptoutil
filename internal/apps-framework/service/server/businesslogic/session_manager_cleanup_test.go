@@ -138,7 +138,7 @@ func TestSessionManager_ServiceSession_JWE_FullCycle(t *testing.T) {
 		name   string
 		jweAlg string
 	}{
-		{"DirA256GCM", cryptoutilSharedMagic.SessionJWEAlgorithmDirA256GCM},
+		{testDirA256GCM, cryptoutilSharedMagic.SessionJWEAlgorithmDirA256GCM},
 		{"A256GCMKW", cryptoutilSharedMagic.SessionJWEAlgorithmA256GCMKWA256GCM},
 	}
 

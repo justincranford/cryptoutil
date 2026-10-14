@@ -25,12 +25,12 @@ func TestValidateTelemetry_ValidCases(t *testing.T) {
 
 				dir := t.TempDir()
 				writeConfig(t, dir, "config-1.yml", map[string]string{
-					"otlp": "true", "otlp-service": "svc-1",
-					"otlp-endpoint": "http://collector:4317", "otlp-environment": "development",
+					valueOtlp: testTrue, valueOtlpService: testSvc1Value43DBC711,
+					valueOtlpEndpoint: testHTTPCollector4317, valueOtlpEnvironment: valueDevelopment,
 				})
 				writeConfig(t, dir, "config-2.yml", map[string]string{
-					"otlp": "true", "otlp-service": "svc-2",
-					"otlp-endpoint": "http://collector:4317", "otlp-environment": "development",
+					valueOtlp: testTrue, valueOtlpService: testSvc2,
+					valueOtlpEndpoint: testHTTPCollector4317, valueOtlpEnvironment: valueDevelopment,
 				})
 
 				return dir
@@ -42,7 +42,7 @@ func TestValidateTelemetry_ValidCases(t *testing.T) {
 				t.Helper()
 
 				dir := t.TempDir()
-				writeConfig(t, dir, "config.yml", map[string]string{"otlp": "false"})
+				writeConfig(t, dir, testConfigYml, map[string]string{valueOtlp: testFalse})
 
 				return dir
 			},
@@ -54,7 +54,7 @@ func TestValidateTelemetry_ValidCases(t *testing.T) {
 
 				dir := t.TempDir()
 				require.NoError(t, os.WriteFile(
-					filepath.Join(dir, "config.yml"),
+					filepath.Join(dir, testConfigYml),
 					[]byte("otlp: \"yes\"\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
 				return dir
@@ -67,7 +67,7 @@ func TestValidateTelemetry_ValidCases(t *testing.T) {
 
 				dir := t.TempDir()
 				require.NoError(t, os.WriteFile(
-					filepath.Join(dir, "config.yml"),
+					filepath.Join(dir, testConfigYml),
 					[]byte("bind-public-port: 8080\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
 				return dir
@@ -80,21 +80,21 @@ func TestValidateTelemetry_ValidCases(t *testing.T) {
 
 				dir := t.TempDir()
 				require.NoError(t, os.WriteFile(
-					filepath.Join(dir, "config.yml"),
+					filepath.Join(dir, testConfigYml),
 					[]byte("- item1\n- item2\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
 				return dir
 			},
 		},
 		{
-			name: "subdirectory skipped",
+			name: testSubdirectorySkipped,
 			setupFn: func(t *testing.T) string {
 				t.Helper()
 
 				dir := t.TempDir()
 				require.NoError(t, os.MkdirAll(filepath.Join(dir, "subdir"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
-				writeConfig(t, dir, "config.yml", map[string]string{
-					"otlp": "true", "otlp-service": "svc-1", "otlp-endpoint": "http://collector:4317",
+				writeConfig(t, dir, testConfigYml, map[string]string{
+					valueOtlp: testTrue, valueOtlpService: testSvc1Value43DBC711, valueOtlpEndpoint: testHTTPCollector4317,
 				})
 
 				return dir
@@ -141,8 +141,8 @@ func TestValidateTelemetry_ValidWithWarnings(t *testing.T) {
 				t.Helper()
 
 				dir := t.TempDir()
-				writeConfig(t, dir, "config.yml", map[string]string{
-					"otlp": "true", "otlp-service": "svc-1", "otlp-endpoint": "http://collector",
+				writeConfig(t, dir, testConfigYml, map[string]string{
+					valueOtlp: testTrue, valueOtlpService: testSvc1Value43DBC711, valueOtlpEndpoint: "http://collector",
 				})
 
 				return dir
@@ -150,18 +150,18 @@ func TestValidateTelemetry_ValidWithWarnings(t *testing.T) {
 			wantWarnSubstr: "missing port",
 		},
 		{
-			name: "unusual scheme",
+			name: testUnusualScheme,
 			setupFn: func(t *testing.T) string {
 				t.Helper()
 
 				dir := t.TempDir()
-				writeConfig(t, dir, "config.yml", map[string]string{
-					"otlp": "true", "otlp-service": "svc-1", "otlp-endpoint": "ftp://collector:4317",
+				writeConfig(t, dir, testConfigYml, map[string]string{
+					valueOtlp: testTrue, valueOtlpService: testSvc1Value43DBC711, valueOtlpEndpoint: "ftp://collector:4317",
 				})
 
 				return dir
 			},
-			wantWarnSubstr: "unusual scheme",
+			wantWarnSubstr: testUnusualScheme,
 		},
 		{
 			name: "duplicate service names",
@@ -170,10 +170,10 @@ func TestValidateTelemetry_ValidWithWarnings(t *testing.T) {
 
 				dir := t.TempDir()
 				writeConfig(t, dir, "config-1.yml", map[string]string{
-					"otlp": "true", "otlp-service": "same-name", "otlp-endpoint": "http://collector:4317",
+					valueOtlp: testTrue, valueOtlpService: testSameName, valueOtlpEndpoint: testHTTPCollector4317,
 				})
 				writeConfig(t, dir, "config-2.yml", map[string]string{
-					"otlp": "true", "otlp-service": "same-name", "otlp-endpoint": "http://collector:4317",
+					valueOtlp: testTrue, valueOtlpService: testSameName, valueOtlpEndpoint: testHTTPCollector4317,
 				})
 
 				return dir
@@ -187,10 +187,10 @@ func TestValidateTelemetry_ValidWithWarnings(t *testing.T) {
 
 				dir := t.TempDir()
 				writeConfig(t, dir, "config-1.yml", map[string]string{
-					"otlp": "true", "otlp-service": "svc-1", "otlp-endpoint": "http://collector-a:4317",
+					valueOtlp: testTrue, valueOtlpService: testSvc1Value43DBC711, valueOtlpEndpoint: "http://collector-a:4317",
 				})
 				writeConfig(t, dir, "config-2.yml", map[string]string{
-					"otlp": "true", "otlp-service": "svc-2", "otlp-endpoint": "http://collector-b:4317",
+					valueOtlp: testTrue, valueOtlpService: testSvc2, valueOtlpEndpoint: "http://collector-b:4317",
 				})
 
 				return dir
@@ -221,16 +221,16 @@ func TestValidateTelemetry_Violations(t *testing.T) {
 		wantContains string
 	}{
 		{
-			name: "path not found",
+			name: testPathNotFound,
 			setupFn: func(t *testing.T) string {
 				t.Helper()
 
 				return filepath.Join(t.TempDir(), "nonexistent")
 			},
-			wantContains: "not found",
+			wantContains: testNotFound,
 		},
 		{
-			name: "path is file",
+			name: testPathIsFile,
 			setupFn: func(t *testing.T) string {
 				t.Helper()
 
@@ -239,7 +239,7 @@ func TestValidateTelemetry_Violations(t *testing.T) {
 
 				return f
 			},
-			wantContains: "not a directory",
+			wantContains: testNotADirectory,
 		},
 		{
 			name: "empty endpoint",
@@ -247,8 +247,8 @@ func TestValidateTelemetry_Violations(t *testing.T) {
 				t.Helper()
 
 				dir := t.TempDir()
-				writeConfig(t, dir, "config.yml", map[string]string{
-					"otlp": "true", "otlp-service": "svc-1",
+				writeConfig(t, dir, testConfigYml, map[string]string{
+					valueOtlp: testTrue, valueOtlpService: testSvc1Value43DBC711,
 				})
 
 				return dir
@@ -261,8 +261,8 @@ func TestValidateTelemetry_Violations(t *testing.T) {
 				t.Helper()
 
 				dir := t.TempDir()
-				writeConfig(t, dir, "config.yml", map[string]string{
-					"otlp": "true", "otlp-service": "svc-1", "otlp-endpoint": "://bad-url",
+				writeConfig(t, dir, testConfigYml, map[string]string{
+					valueOtlp: testTrue, valueOtlpService: testSvc1Value43DBC711, valueOtlpEndpoint: "://bad-url",
 				})
 
 				return dir
@@ -275,8 +275,8 @@ func TestValidateTelemetry_Violations(t *testing.T) {
 				t.Helper()
 
 				dir := t.TempDir()
-				writeConfig(t, dir, "config.yml", map[string]string{
-					"otlp": "true", "otlp-service": "svc-1", "otlp-endpoint": "http://:4317",
+				writeConfig(t, dir, testConfigYml, map[string]string{
+					valueOtlp: testTrue, valueOtlpService: testSvc1Value43DBC711, valueOtlpEndpoint: "http://:4317",
 				})
 
 				return dir
@@ -304,7 +304,7 @@ func TestValidateTelemetry_AcceptedSchemes(t *testing.T) {
 		name     string
 		endpoint string
 	}{
-		{name: cryptoutilSharedMagic.ProtocolHTTP, endpoint: "http://collector:4317"},
+		{name: cryptoutilSharedMagic.ProtocolHTTP, endpoint: testHTTPCollector4317},
 		{name: cryptoutilSharedMagic.ProtocolHTTPS, endpoint: "https://collector:4318"},
 		{name: "grpc", endpoint: "grpc://collector:4317"},
 	}
@@ -314,8 +314,8 @@ func TestValidateTelemetry_AcceptedSchemes(t *testing.T) {
 			t.Parallel()
 
 			dir := t.TempDir()
-			writeConfig(t, dir, "config.yml", map[string]string{
-				"otlp": "true", "otlp-service": "svc-1", "otlp-endpoint": tc.endpoint,
+			writeConfig(t, dir, testConfigYml, map[string]string{
+				valueOtlp: testTrue, valueOtlpService: testSvc1Value43DBC711, valueOtlpEndpoint: tc.endpoint,
 			})
 
 			result, err := ValidateTelemetry(dir)
@@ -323,7 +323,7 @@ func TestValidateTelemetry_AcceptedSchemes(t *testing.T) {
 			require.True(t, result.Valid)
 
 			for _, w := range result.Warnings {
-				require.NotContains(t, w, "unusual scheme")
+				require.NotContains(t, w, testUnusualScheme)
 			}
 		})
 	}
@@ -359,10 +359,10 @@ func TestValidateTelemetry_EndpointNormalization(t *testing.T) {
 
 	dir := t.TempDir()
 	writeConfig(t, dir, "config-1.yml", map[string]string{
-		"otlp": "true", "otlp-service": "svc-1", "otlp-endpoint": "http://collector:4317/",
+		valueOtlp: testTrue, valueOtlpService: testSvc1Value43DBC711, valueOtlpEndpoint: "http://collector:4317/",
 	})
 	writeConfig(t, dir, "config-2.yml", map[string]string{
-		"otlp": "true", "otlp-service": "svc-2", "otlp-endpoint": "http://collector:4317",
+		valueOtlp: testTrue, valueOtlpService: testSvc2, valueOtlpEndpoint: testHTTPCollector4317,
 	})
 
 	result, err := ValidateTelemetry(dir)
@@ -382,9 +382,9 @@ func TestNormalizeEndpoint(t *testing.T) {
 		input    string
 		expected string
 	}{
-		{name: "no trailing slash", input: "http://host:4317", expected: "http://host:4317"},
-		{name: "single trailing slash", input: "http://host:4317/", expected: "http://host:4317"},
-		{name: "multiple trailing slashes", input: "http://host:4317///", expected: "http://host:4317"},
+		{name: "no trailing slash", input: testHTTPHost4317, expected: testHTTPHost4317},
+		{name: "single trailing slash", input: "http://host:4317/", expected: testHTTPHost4317},
+		{name: "multiple trailing slashes", input: "http://host:4317///", expected: testHTTPHost4317},
 		{name: cryptoutilSharedMagic.EMPTY, input: "", expected: ""},
 	}
 
@@ -406,23 +406,23 @@ func TestFormatTelemetryValidationResult(t *testing.T) {
 		contains []string
 	}{
 		{
-			name:     "nil result",
+			name:     testNilResult,
 			result:   nil,
 			contains: []string{"No telemetry validation result"},
 		},
 		{
-			name:     "valid",
+			name:     testValid,
 			result:   &TelemetryValidationResult{Valid: true},
-			contains: []string{"PASSED"},
+			contains: []string{testPassed},
 		},
 		{
-			name: "errors and warnings",
+			name: testErrorsAndWarnings,
 			result: &TelemetryValidationResult{
 				Valid:    false,
-				Errors:   []string{"err1"},
-				Warnings: []string{"warn1"},
+				Errors:   []string{testErr1},
+				Warnings: []string{testWarn1},
 			},
-			contains: []string{cryptoutilSharedMagic.TaskFailed, "ERROR: err1", "WARNING: warn1"},
+			contains: []string{cryptoutilSharedMagic.TaskFailed, testErrorErr1, testWarningWarn1},
 		},
 	}
 
@@ -441,9 +441,9 @@ func TestFormatTelemetryValidationResult(t *testing.T) {
 func TestValidateTelemetry_RealSmIM(t *testing.T) {
 	t.Parallel()
 
-	configDir := filepath.Join("testdata", cryptoutilSharedMagic.CICDConfigsDir, "sm", "im")
+	configDir := filepath.Join("testdata", cryptoutilSharedMagic.CICDConfigsDir, valueSm, "im")
 	if _, err := os.Stat(configDir); err != nil {
-		configDir = filepath.Join("..", "..", "..", "..", cryptoutilSharedMagic.CICDConfigsDir, "sm", "im")
+		configDir = filepath.Join("..", "..", "..", "..", cryptoutilSharedMagic.CICDConfigsDir, valueSm, "im")
 	}
 
 	if _, err := os.Stat(configDir); err != nil {
@@ -463,7 +463,7 @@ func writeConfig(t *testing.T, dir, name string, fields map[string]string) {
 	var content string
 
 	for k, v := range fields {
-		if v == "true" || v == "false" {
+		if v == testTrue || v == testFalse {
 			content += k + ": " + v + "\n"
 		} else {
 			content += k + ": \"" + v + "\"\n"

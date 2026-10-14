@@ -34,8 +34,8 @@ func TestFindViolationsInDir_ValidDeployments(t *testing.T) {
 		{
 			name: "valid service deployment",
 			setupFiles: map[string]string{
-				"deployments/sm-kms/secrets/unseal-1of5.secret": "sm-kms-unseal-key-1-of-5-" + hexA(),
-				"deployments/sm-kms/secrets/unseal-2of5.secret": "sm-kms-unseal-key-2-of-5-" + hexB(),
+				testDeploymentsSmKMSSecretsUnseal1of5Secret:     "sm-kms-unseal-key-1-of-5-" + hexA(),
+				testDeploymentsSmKMSSecretsUnseal2of5Secret:     "sm-kms-unseal-key-2-of-5-" + hexB(),
 				"deployments/sm-kms/secrets/unseal-3of5.secret": "sm-kms-unseal-key-3-of-5-" + hexC(),
 				"deployments/sm-kms/secrets/unseal-4of5.secret": "sm-kms-unseal-key-4-of-5-" + hexD(),
 				"deployments/sm-kms/secrets/unseal-5of5.secret": "sm-kms-unseal-key-5-of-5-" + hexE(),
@@ -105,7 +105,7 @@ func TestFindViolationsInDir_InvalidContent(t *testing.T) {
 		{
 			name: "wrong prefix",
 			setupFiles: map[string]string{
-				"deployments/sm-kms/secrets/unseal-1of5.secret": "kms-unseal-key-1-of-5-" + hexA(),
+				testDeploymentsSmKMSSecretsUnseal1of5Secret: "kms-unseal-key-1-of-5-" + hexA(),
 			},
 			wantViolations: 1,
 			wantSubstring:  "prefix",
@@ -113,7 +113,7 @@ func TestFindViolationsInDir_InvalidContent(t *testing.T) {
 		{
 			name: "wrong shard number",
 			setupFiles: map[string]string{
-				"deployments/sm-kms/secrets/unseal-1of5.secret": "sm-kms-unseal-key-3-of-5-" + hexA(),
+				testDeploymentsSmKMSSecretsUnseal1of5Secret: "sm-kms-unseal-key-3-of-5-" + hexA(),
 			},
 			wantViolations: 1,
 			wantSubstring:  "shard number",
@@ -129,8 +129,8 @@ func TestFindViolationsInDir_InvalidContent(t *testing.T) {
 		{
 			name: "duplicate hex values",
 			setupFiles: map[string]string{
-				"deployments/sm-kms/secrets/unseal-1of5.secret": "sm-kms-unseal-key-1-of-5-" + hexA(),
-				"deployments/sm-kms/secrets/unseal-2of5.secret": "sm-kms-unseal-key-2-of-5-" + hexA(),
+				testDeploymentsSmKMSSecretsUnseal1of5Secret: "sm-kms-unseal-key-1-of-5-" + hexA(),
+				testDeploymentsSmKMSSecretsUnseal2of5Secret: "sm-kms-unseal-key-2-of-5-" + hexA(),
 			},
 			wantViolations: 1,
 			wantSubstring:  "duplicate hex",
@@ -138,7 +138,7 @@ func TestFindViolationsInDir_InvalidContent(t *testing.T) {
 		{
 			name: "empty file",
 			setupFiles: map[string]string{
-				"deployments/sm-kms/secrets/unseal-1of5.secret": "",
+				testDeploymentsSmKMSSecretsUnseal1of5Secret: "",
 			},
 			wantViolations: 1,
 			wantSubstring:  cryptoutilSharedMagic.EMPTY,
@@ -146,31 +146,31 @@ func TestFindViolationsInDir_InvalidContent(t *testing.T) {
 		{
 			name: "invalid format - no hex",
 			setupFiles: map[string]string{
-				"deployments/sm-kms/secrets/unseal-1of5.secret": "sm-kms-unseal-key-1-of-5",
+				testDeploymentsSmKMSSecretsUnseal1of5Secret: "sm-kms-unseal-key-1-of-5",
 			},
 			wantViolations: 1,
-			wantSubstring:  "does not match pattern",
+			wantSubstring:  testDoesNotMatchPattern,
 		},
 		{
 			name: "invalid format - short hex",
 			setupFiles: map[string]string{
-				"deployments/sm-kms/secrets/unseal-1of5.secret": "sm-kms-unseal-key-1-of-5-abcd1234",
+				testDeploymentsSmKMSSecretsUnseal1of5Secret: "sm-kms-unseal-key-1-of-5-abcd1234",
 			},
 			wantViolations: 1,
-			wantSubstring:  "does not match pattern",
+			wantSubstring:  testDoesNotMatchPattern,
 		},
 		{
 			name: "invalid format - uppercase hex",
 			setupFiles: map[string]string{
-				"deployments/sm-kms/secrets/unseal-1of5.secret": "sm-kms-unseal-key-1-of-5-" + hexAUpper(),
+				testDeploymentsSmKMSSecretsUnseal1of5Secret: "sm-kms-unseal-key-1-of-5-" + hexAUpper(),
 			},
 			wantViolations: 1,
-			wantSubstring:  "does not match pattern",
+			wantSubstring:  testDoesNotMatchPattern,
 		},
 		{
 			name: "content with trailing newline is valid",
 			setupFiles: map[string]string{
-				"deployments/sm-kms/secrets/unseal-1of5.secret": "sm-kms-unseal-key-1-of-5-" + hexA() + "\n",
+				testDeploymentsSmKMSSecretsUnseal1of5Secret: "sm-kms-unseal-key-1-of-5-" + hexA() + "\n",
 			},
 			wantViolations: 0,
 		},
@@ -225,7 +225,7 @@ func TestCheckInDir_WithViolation(t *testing.T) {
 	t.Parallel()
 
 	files := map[string]string{
-		"deployments/sm-kms/secrets/unseal-1of5.secret": "wrong-prefix-unseal-key-1-of-5-" + hexA(),
+		testDeploymentsSmKMSSecretsUnseal1of5Secret: "wrong-prefix-unseal-key-1-of-5-" + hexA(),
 	}
 	rootDir := setupTempDir(t, files)
 
@@ -241,7 +241,7 @@ func TestCheckInDir_NoViolation(t *testing.T) {
 	t.Parallel()
 
 	files := map[string]string{
-		"deployments/sm-kms/secrets/unseal-1of5.secret": "sm-kms-unseal-key-1-of-5-" + hexA(),
+		testDeploymentsSmKMSSecretsUnseal1of5Secret: "sm-kms-unseal-key-1-of-5-" + hexA(),
 	}
 	rootDir := setupTempDir(t, files)
 

@@ -37,15 +37,20 @@ type TestCase struct {
 	gets                uint64
 }
 
+const (
+	happyPathPoolSizeThree uint32 = 3
+	happyPathGetCountThree uint64 = 3
+)
+
 var (
 	testTelemetrySettings        = cryptoutilSharedTelemetry.NewTestTelemetrySettings("keygenpool_test")
 	testCtx                      = context.Background()
 	testTelemetryService         *cryptoutilSharedTelemetry.TelemetryService
 	happyPathWorkers             = []uint32{1, 2}
-	happyPathSize                = []uint32{1, 3}
+	happyPathSize                = []uint32{1, happyPathPoolSizeThree}
 	happyPathMaxLifetimeKeys     = []uint64{1, cryptoutilSharedMagic.MaxPoolLifetimeValues}
 	happyPathMaxLifetimeDuration = []time.Duration{cryptoutilSharedMagic.MaxPoolLifetimeDuration}
-	happyPathGets                = []uint64{0, 1, 3}
+	happyPathGets                = []uint64{0, 1, happyPathGetCountThree}
 	happyPathTestCases           = func() []*TestCase {
 		testCases := make([]*TestCase, 0, len(happyPathWorkers)*len(happyPathSize)*len(happyPathMaxLifetimeKeys)*len(happyPathMaxLifetimeDuration)*len(happyPathGets))
 		for _, workers := range happyPathWorkers {

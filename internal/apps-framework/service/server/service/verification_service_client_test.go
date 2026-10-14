@@ -42,7 +42,7 @@ func TestVerificationService_ApproveUser_NoRoles(t *testing.T) {
 		TenantID:     tenant.ID,
 		Username:     "norolesuser" + googleUuid.NewString()[:cryptoutilSharedMagic.IMMinPasswordLength],
 		Email:        "noroles" + googleUuid.NewString()[:cryptoutilSharedMagic.IMMinPasswordLength] + "@example.com",
-		PasswordHash: "hashedpassword",
+		PasswordHash: testHashedpassword,
 		ExpiresAt:    time.Now().UTC().Add(72 * time.Hour),
 	}
 	require.NoError(t, db.Create(unverifiedUser).Error)
@@ -102,7 +102,7 @@ func TestVerificationService_RejectUser(t *testing.T) {
 		TenantID:     tenant.ID,
 		Username:     "rejectuser" + googleUuid.NewString()[:cryptoutilSharedMagic.IMMinPasswordLength],
 		Email:        "reject" + googleUuid.NewString()[:cryptoutilSharedMagic.IMMinPasswordLength] + "@example.com",
-		PasswordHash: "hashedpassword",
+		PasswordHash: testHashedpassword,
 		ExpiresAt:    time.Now().UTC().Add(72 * time.Hour),
 	}
 	require.NoError(t, db.Create(unverifiedUser).Error)
@@ -132,7 +132,7 @@ func TestVerificationService_RejectClient(t *testing.T) {
 		ID:               googleUuid.New(),
 		TenantID:         tenant.ID,
 		ClientID:         "rejectclient" + googleUuid.NewString()[:cryptoutilSharedMagic.IMMinPasswordLength],
-		ClientSecretHash: "secret",
+		ClientSecretHash: testHash,
 		ExpiresAt:        time.Now().UTC().Add(72 * time.Hour),
 	}
 	require.NoError(t, db.Create(unverifiedClient).Error)
@@ -163,7 +163,7 @@ func TestVerificationService_CleanupExpiredRegistrations(t *testing.T) {
 		TenantID:     tenant.ID,
 		Username:     "expireduser" + googleUuid.NewString()[:cryptoutilSharedMagic.IMMinPasswordLength],
 		Email:        "expired" + googleUuid.NewString()[:cryptoutilSharedMagic.IMMinPasswordLength] + "@example.com",
-		PasswordHash: "hash",
+		PasswordHash: testHash,
 		ExpiresAt:    time.Now().UTC().Add(-1 * time.Hour),
 	}
 	require.NoError(t, db.Create(expiredUser).Error)
@@ -172,8 +172,8 @@ func TestVerificationService_CleanupExpiredRegistrations(t *testing.T) {
 		ID:           googleUuid.New(),
 		TenantID:     tenant.ID,
 		Username:     "validuser" + googleUuid.NewString()[:cryptoutilSharedMagic.IMMinPasswordLength],
-		Email:        "valid" + googleUuid.NewString()[:cryptoutilSharedMagic.IMMinPasswordLength] + "@example.com",
-		PasswordHash: "hash",
+		Email:        testValid + googleUuid.NewString()[:cryptoutilSharedMagic.IMMinPasswordLength] + "@example.com",
+		PasswordHash: testHash,
 		ExpiresAt:    time.Now().UTC().Add(72 * time.Hour),
 	}
 	require.NoError(t, db.Create(validUser).Error)
@@ -183,7 +183,7 @@ func TestVerificationService_CleanupExpiredRegistrations(t *testing.T) {
 		ID:               googleUuid.New(),
 		TenantID:         tenant.ID,
 		ClientID:         "expiredclient" + googleUuid.NewString()[:cryptoutilSharedMagic.IMMinPasswordLength],
-		ClientSecretHash: "secret",
+		ClientSecretHash: testHash,
 		ExpiresAt:        time.Now().UTC().Add(-1 * time.Hour),
 	}
 	require.NoError(t, db.Create(expiredClient).Error)
@@ -227,7 +227,7 @@ func TestVerificationService_ApproveUser_RoleFromWrongTenant(t *testing.T) {
 		TenantID:     tenant1.ID,
 		Username:     "roletenantuser" + googleUuid.NewString()[:cryptoutilSharedMagic.IMMinPasswordLength],
 		Email:        "roleuser" + googleUuid.NewString()[:cryptoutilSharedMagic.IMMinPasswordLength] + "@example.com",
-		PasswordHash: "hashedpassword",
+		PasswordHash: testHashedpassword,
 		ExpiresAt:    time.Now().UTC().Add(72 * time.Hour),
 	}
 	require.NoError(t, db.Create(unverifiedUser).Error)

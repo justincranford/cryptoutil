@@ -71,7 +71,7 @@ func TestSecurityConfig_Validate(t *testing.T) {
 				RateLimitWindow:     cryptoutilSharedMagic.IdentityDefaultIdleTimeoutSeconds * time.Second,
 			},
 			expectError: true,
-			errorMsg:    "rate limit requests must be positive",
+			errorMsg:    valueRateLimitRequestsMustBePositive,
 		},
 		{
 			name: "rate_limit_enabled_invalid_requests_negative",
@@ -83,7 +83,7 @@ func TestSecurityConfig_Validate(t *testing.T) {
 				RateLimitWindow:     cryptoutilSharedMagic.IdentityDefaultIdleTimeoutSeconds * time.Second,
 			},
 			expectError: true,
-			errorMsg:    "rate limit requests must be positive",
+			errorMsg:    valueRateLimitRequestsMustBePositive,
 		},
 		{
 			name: "rate_limit_enabled_invalid_window_zero",
@@ -95,7 +95,7 @@ func TestSecurityConfig_Validate(t *testing.T) {
 				RateLimitWindow:     0,
 			},
 			expectError: true,
-			errorMsg:    "rate limit window must be positive",
+			errorMsg:    valueRateLimitWindowMustBePositive,
 		},
 		{
 			name: "rate_limit_enabled_invalid_window_negative",
@@ -107,7 +107,7 @@ func TestSecurityConfig_Validate(t *testing.T) {
 				RateLimitWindow:     -1 * time.Second,
 			},
 			expectError: true,
-			errorMsg:    "rate limit window must be positive",
+			errorMsg:    valueRateLimitWindowMustBePositive,
 		},
 	}
 
@@ -138,8 +138,8 @@ func TestObservabilityConfig_Validate(t *testing.T) {
 		{
 			name: "valid_minimal",
 			config: &ObservabilityConfig{
-				LogLevel:       "info",
-				LogFormat:      "json",
+				LogLevel:       valueInfo,
+				LogFormat:      valueJson,
 				MetricsEnabled: false,
 				TracingEnabled: false,
 			},
@@ -151,7 +151,7 @@ func TestObservabilityConfig_Validate(t *testing.T) {
 				LogLevel:       "debug",
 				LogFormat:      "text",
 				MetricsEnabled: true,
-				MetricsPath:    "/metrics",
+				MetricsPath:    valueMetrics,
 				TracingEnabled: false,
 			},
 			expectError: false,
@@ -160,7 +160,7 @@ func TestObservabilityConfig_Validate(t *testing.T) {
 			name: "valid_with_tracing",
 			config: &ObservabilityConfig{
 				LogLevel:       "warn",
-				LogFormat:      "json",
+				LogFormat:      valueJson,
 				MetricsEnabled: false,
 				TracingEnabled: true,
 				TracingBackend: "jaeger",
@@ -171,9 +171,9 @@ func TestObservabilityConfig_Validate(t *testing.T) {
 			name: "valid_all_features",
 			config: &ObservabilityConfig{
 				LogLevel:       cryptoutilSharedMagic.StringError,
-				LogFormat:      "json",
+				LogFormat:      valueJson,
 				MetricsEnabled: true,
-				MetricsPath:    "/metrics",
+				MetricsPath:    valueMetrics,
 				TracingEnabled: true,
 				TracingBackend: "otlp",
 			},
@@ -183,7 +183,7 @@ func TestObservabilityConfig_Validate(t *testing.T) {
 			name: "missing_log_level",
 			config: &ObservabilityConfig{
 				LogLevel:       "",
-				LogFormat:      "json",
+				LogFormat:      valueJson,
 				MetricsEnabled: false,
 				TracingEnabled: false,
 			},
@@ -194,7 +194,7 @@ func TestObservabilityConfig_Validate(t *testing.T) {
 			name: "invalid_log_level",
 			config: &ObservabilityConfig{
 				LogLevel:       "trace",
-				LogFormat:      "json",
+				LogFormat:      valueJson,
 				MetricsEnabled: false,
 				TracingEnabled: false,
 			},
@@ -204,7 +204,7 @@ func TestObservabilityConfig_Validate(t *testing.T) {
 		{
 			name: "invalid_log_format",
 			config: &ObservabilityConfig{
-				LogLevel:       "info",
+				LogLevel:       valueInfo,
 				LogFormat:      "xml",
 				MetricsEnabled: false,
 				TracingEnabled: false,
@@ -215,8 +215,8 @@ func TestObservabilityConfig_Validate(t *testing.T) {
 		{
 			name: "metrics_enabled_missing_path",
 			config: &ObservabilityConfig{
-				LogLevel:       "info",
-				LogFormat:      "json",
+				LogLevel:       valueInfo,
+				LogFormat:      valueJson,
 				MetricsEnabled: true,
 				MetricsPath:    "",
 				TracingEnabled: false,
@@ -227,8 +227,8 @@ func TestObservabilityConfig_Validate(t *testing.T) {
 		{
 			name: "tracing_enabled_missing_backend",
 			config: &ObservabilityConfig{
-				LogLevel:       "info",
-				LogFormat:      "json",
+				LogLevel:       valueInfo,
+				LogFormat:      valueJson,
 				MetricsEnabled: false,
 				TracingEnabled: true,
 				TracingBackend: "",
@@ -271,12 +271,12 @@ func TestConfig_Validate(t *testing.T) {
 					Port:        cryptoutilSharedMagic.TestServerPort,
 				},
 				IDP: &ServerConfig{
-					Name:        "idp-server",
+					Name:        testIdpServer,
 					BindAddress: cryptoutilSharedMagic.IPv4Loopback,
 					Port:        cryptoutilSharedMagic.TestIDPServerPort,
 				},
 				RS: &ServerConfig{
-					Name:        "rs-server",
+					Name:        testRsServer,
 					BindAddress: cryptoutilSharedMagic.IPv4Loopback,
 					Port:        cryptoutilSharedMagic.TestResourceServerPort,
 				},
@@ -293,13 +293,13 @@ func TestConfig_Validate(t *testing.T) {
 					AccessTokenFormat:    cryptoutilSharedMagic.DefaultBrowserSessionCookie,
 					RefreshTokenFormat:   cryptoutilSharedMagic.IdentityTokenFormatUUID,
 					IDTokenFormat:        cryptoutilSharedMagic.DefaultBrowserSessionCookie,
-					Issuer:               "https://example.com",
+					Issuer:               testHTTPSExampleCom,
 					SigningAlgorithm:     cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
 				},
 				Sessions: &SessionConfig{
 					SessionLifetime: cryptoutilSharedMagic.IMDefaultSessionTimeout * time.Second,
 					IdleTimeout:     cryptoutilSharedMagic.IMEnterpriseSessionTimeout * time.Second,
-					CookieName:      "session_id",
+					CookieName:      testSessionID,
 					CookieSameSite:  cryptoutilSharedMagic.DefaultCSRFTokenSameSiteStrict,
 				},
 				Security: &SecurityConfig{
@@ -308,8 +308,8 @@ func TestConfig_Validate(t *testing.T) {
 					RateLimitEnabled:    false,
 				},
 				Observability: &ObservabilityConfig{
-					LogLevel:       "info",
-					LogFormat:      "json",
+					LogLevel:       valueInfo,
+					LogFormat:      valueJson,
 					MetricsEnabled: false,
 					TracingEnabled: false,
 				},
@@ -332,7 +332,7 @@ func TestConfig_Validate(t *testing.T) {
 			name: "invalid_idp_config",
 			config: &Config{
 				IDP: &ServerConfig{
-					Name:        "idp-server",
+					Name:        testIdpServer,
 					BindAddress: "",
 					Port:        cryptoutilSharedMagic.TestIDPServerPort,
 				},
@@ -344,7 +344,7 @@ func TestConfig_Validate(t *testing.T) {
 			name: "invalid_rs_config",
 			config: &Config{
 				RS: &ServerConfig{
-					Name:        "rs-server",
+					Name:        testRsServer,
 					BindAddress: cryptoutilSharedMagic.IPv4Loopback,
 					Port:        0,
 				},
@@ -370,7 +370,7 @@ func TestConfig_Validate(t *testing.T) {
 			config: &Config{
 				Tokens: &TokenConfig{
 					AccessTokenLifetime: 0,
-					Issuer:              "https://example.com",
+					Issuer:              testHTTPSExampleCom,
 				},
 			},
 			expectError: true,
@@ -381,7 +381,7 @@ func TestConfig_Validate(t *testing.T) {
 			config: &Config{
 				Sessions: &SessionConfig{
 					SessionLifetime: 0,
-					CookieName:      "session_id",
+					CookieName:      testSessionID,
 				},
 			},
 			expectError: true,
@@ -402,7 +402,7 @@ func TestConfig_Validate(t *testing.T) {
 			config: &Config{
 				Observability: &ObservabilityConfig{
 					LogLevel:  "",
-					LogFormat: "json",
+					LogFormat: valueJson,
 				},
 			},
 			expectError: true,

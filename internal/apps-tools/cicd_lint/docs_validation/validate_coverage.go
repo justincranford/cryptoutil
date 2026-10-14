@@ -12,7 +12,7 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
-const toAppendixCoverageMatchGroups = 3
+const toAppendixCoverageMatchGroups = toAppendixMatchGroups
 
 // PropagationEntry describes a single required handbook chunk from the manifest.
 type PropagationEntry struct {
@@ -164,7 +164,7 @@ func extractToAppendixMappings(readFile func(string) ([]byte, error)) (map[strin
 		}
 
 		toAppendixMatch := toAppendixMarkerRegex.FindStringSubmatch(line)
-		if len(toAppendixMatch) == 3 { //nolint:mnd // full match plus two capture groups
+		if len(toAppendixMatch) == toAppendixMatchGroups { //nolint:mnd // full match plus two capture groups
 			chunkID := toAppendixMatch[1]
 			if unstableChunkIDRegex.MatchString(chunkID) {
 				issues = append(issues, fmt.Sprintf("unstable semantic chunk id %q at line %d uses section-like numerics", chunkID, lineNumber))

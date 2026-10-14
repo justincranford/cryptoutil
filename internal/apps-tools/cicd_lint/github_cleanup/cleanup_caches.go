@@ -87,7 +87,7 @@ func listCaches(cfg *CleanupConfig) ([]cache, int64, error) {
 	var totalSize int64
 
 	for page := 1; page <= maxPages; page++ {
-		args := append([]string{"api"}, repoArgs(cfg)...)
+		args := append([]string{valueAPI}, repoArgs(cfg)...)
 		args = append(args,
 			"-X", "GET",
 			fmt.Sprintf("/repos/{owner}/{repo}/actions/cache/usage?per_page=%d&page=%d", maxPerPage, page),
@@ -119,7 +119,7 @@ func listCaches(cfg *CleanupConfig) ([]cache, int64, error) {
 
 // deleteCache deletes a single cache by ID.
 func deleteCache(cfg *CleanupConfig, cacheID int64) error {
-	args := append([]string{"api"}, repoArgs(cfg)...)
+	args := append([]string{valueAPI}, repoArgs(cfg)...)
 	args = append(args,
 		"-X", "DELETE",
 		"/repos/{owner}/{repo}/actions/caches/"+strconv.FormatInt(cacheID, cryptoutilSharedMagic.DecimalRadix),

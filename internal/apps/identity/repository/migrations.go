@@ -107,7 +107,7 @@ func Migrate(ctx context.Context, db *sql.DB, dbType string) error {
 
 	if dbType == dbTypeSQLite {
 		sqliteDriver, err := sqlite.WithInstance(db, &sqlite.Config{
-			MigrationsTable: "schema_migrations",
+			MigrationsTable: valueSchemaMigrations,
 		})
 		if err != nil {
 			return fmt.Errorf("failed to create sqlite driver: %w", err)
@@ -119,7 +119,7 @@ func Migrate(ctx context.Context, db *sql.DB, dbType string) error {
 		}
 	} else {
 		postgresDriver, err := postgres.WithInstance(db, &postgres.Config{
-			MigrationsTable: "schema_migrations",
+			MigrationsTable: valueSchemaMigrations,
 		})
 		if err != nil {
 			return fmt.Errorf("failed to create postgres driver: %w", err)

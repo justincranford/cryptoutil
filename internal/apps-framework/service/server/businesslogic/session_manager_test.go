@@ -452,7 +452,7 @@ func TestSessionManager_GenerateJWSKey_AllAlgorithms(t *testing.T) {
 		{cryptoutilSharedMagic.JoseAlgES384, cryptoutilSharedMagic.SessionJWSAlgorithmES384, ""},
 		{cryptoutilSharedMagic.JoseAlgES512, cryptoutilSharedMagic.SessionJWSAlgorithmES512, ""},
 		{cryptoutilSharedMagic.JoseAlgEdDSA, cryptoutilSharedMagic.SessionJWSAlgorithmEdDSA, ""},
-		{"unsupported algorithm", "invalid-algorithm", "unsupported JWS algorithm"},
+		{"unsupported algorithm", "invalid-algorithm", testUnsupportedJWSAlgorithm},
 	}
 
 	for _, tt := range tests {
@@ -482,7 +482,7 @@ func TestSessionManager_GenerateJWEKey_AllAlgorithms(t *testing.T) {
 		name      string
 		algorithm string
 	}{
-		{"DirA256GCM", cryptoutilSharedMagic.SessionJWEAlgorithmDirA256GCM},
+		{testDirA256GCM, cryptoutilSharedMagic.SessionJWEAlgorithmDirA256GCM},
 		{"A256GCMKWA256GCM", cryptoutilSharedMagic.SessionJWEAlgorithmA256GCMKWA256GCM},
 	}
 

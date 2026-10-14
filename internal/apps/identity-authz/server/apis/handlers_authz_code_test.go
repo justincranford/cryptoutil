@@ -61,8 +61,8 @@ func TestHandleAuthorizationCodeGrant_AdditionalErrorPaths(t *testing.T) {
 				authRequest := &cryptoutilIdentityDomain.AuthorizationRequest{
 					ClientID:            client.ClientID,
 					RedirectURI:         cryptoutilSharedMagic.TestRedirectURI,
-					Scope:               "openid profile",
-					State:               "test-state",
+					Scope:               testOpenidProfile,
+					State:               testTestState,
 					CodeChallenge:       codeChallenge,
 					CodeChallengeMethod: cryptoutilSharedMagic.PKCEMethodS256,
 					ExpiresAt:           time.Now().UTC().Add(cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Minute),
@@ -90,8 +90,8 @@ func TestHandleAuthorizationCodeGrant_AdditionalErrorPaths(t *testing.T) {
 				authRequest := &cryptoutilIdentityDomain.AuthorizationRequest{
 					ClientID:            nonExistentClientID,
 					RedirectURI:         cryptoutilSharedMagic.TestRedirectURI,
-					Scope:               "openid profile",
-					State:               "test-state",
+					Scope:               testOpenidProfile,
+					State:               testTestState,
 					CodeChallenge:       codeChallenge,
 					CodeChallengeMethod: cryptoutilSharedMagic.PKCEMethodS256,
 					ExpiresAt:           time.Now().UTC().Add(cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Minute),
@@ -178,7 +178,7 @@ func TestHandleAuthorizationCodeGrant_AdditionalErrorPaths(t *testing.T) {
 			form.Set(cryptoutilSharedMagic.ClaimClientID, clientID)
 			form.Set(cryptoutilSharedMagic.ParamCodeVerifier, codeVerifier)
 
-			req := httptest.NewRequest("POST", "/oauth2/v1/token", strings.NewReader(form.Encode()))
+			req := httptest.NewRequest(testPost, testOauth2V1Token, strings.NewReader(form.Encode()))
 			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 			resp, err := app.Test(req, -1)
@@ -208,7 +208,7 @@ func createAuthzCodeAdditionalTestDependencies(t *testing.T) (*cryptoutilIdentit
 	config := &cryptoutilIdentityConfig.Config{
 		Database: dbConfig,
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{
-			Issuer:               "https://localhost:8080",
+			Issuer:               testHTTPSLocalhost8080,
 			AccessTokenLifetime:  cryptoutilSharedMagic.IMDefaultSessionTimeout,
 			RefreshTokenLifetime: cryptoutilSharedMagic.IMDefaultSessionAbsoluteMax,
 		},

@@ -31,18 +31,18 @@ func TestGetGenerateAlgorithmTestProbability_AllCases(t *testing.T) {
 		alg      cryptoutilOpenapiModel.GenerateAlgorithm
 		wantProb float64
 	}{
-		{"RSA2048", cryptoutilOpenapiModel.RSA2048, cryptoutilSharedMagic.TestProbAlways},
-		{"RSA3072", cryptoutilOpenapiModel.RSA3072, cryptoutilSharedMagic.TestProbThird},
-		{"RSA4096", cryptoutilOpenapiModel.RSA4096, cryptoutilSharedMagic.TestProbThird},
-		{"ECP256", cryptoutilOpenapiModel.ECP256, cryptoutilSharedMagic.TestProbAlways},
-		{"ECP384", cryptoutilOpenapiModel.ECP384, cryptoutilSharedMagic.TestProbThird},
-		{"ECP521", cryptoutilOpenapiModel.ECP521, cryptoutilSharedMagic.TestProbThird},
-		{"OKPEd25519", cryptoutilOpenapiModel.OKPEd25519, cryptoutilSharedMagic.TestProbAlways},
-		{"Oct256", cryptoutilOpenapiModel.Oct256, cryptoutilSharedMagic.TestProbAlways},
-		{"Oct128", cryptoutilOpenapiModel.Oct128, cryptoutilSharedMagic.TestProbThird},
-		{"Oct192", cryptoutilOpenapiModel.Oct192, cryptoutilSharedMagic.TestProbThird},
-		{"Oct384", cryptoutilOpenapiModel.Oct384, cryptoutilSharedMagic.TestProbThird},
-		{"Oct512", cryptoutilOpenapiModel.Oct512, cryptoutilSharedMagic.TestProbThird},
+		{testRsa2048, cryptoutilOpenapiModel.RSA2048, cryptoutilSharedMagic.TestProbAlways},
+		{testRsa3072, cryptoutilOpenapiModel.RSA3072, cryptoutilSharedMagic.TestProbThird},
+		{testRsa4096, cryptoutilOpenapiModel.RSA4096, cryptoutilSharedMagic.TestProbThird},
+		{testEcp256, cryptoutilOpenapiModel.ECP256, cryptoutilSharedMagic.TestProbAlways},
+		{testEcp384, cryptoutilOpenapiModel.ECP384, cryptoutilSharedMagic.TestProbThird},
+		{testEcp521, cryptoutilOpenapiModel.ECP521, cryptoutilSharedMagic.TestProbThird},
+		{testOkped25519, cryptoutilOpenapiModel.OKPEd25519, cryptoutilSharedMagic.TestProbAlways},
+		{testOct256, cryptoutilOpenapiModel.Oct256, cryptoutilSharedMagic.TestProbAlways},
+		{testOct128, cryptoutilOpenapiModel.Oct128, cryptoutilSharedMagic.TestProbThird},
+		{testOct192, cryptoutilOpenapiModel.Oct192, cryptoutilSharedMagic.TestProbThird},
+		{testOct384, cryptoutilOpenapiModel.Oct384, cryptoutilSharedMagic.TestProbThird},
+		{testOct512, cryptoutilOpenapiModel.Oct512, cryptoutilSharedMagic.TestProbThird},
 	}
 
 	for _, tc := range tests {

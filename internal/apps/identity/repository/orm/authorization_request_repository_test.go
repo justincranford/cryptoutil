@@ -29,7 +29,7 @@ func TestAuthorizationRequestRepository_Create(t *testing.T) {
 		ClientID:            cryptoutilSharedMagic.TestClientID,
 		RedirectURI:         cryptoutilSharedMagic.TestRedirectURI,
 		ResponseType:        cryptoutilSharedMagic.ResponseTypeCode,
-		Scope:               "openid profile email",
+		Scope:               testOpenidProfileEmail,
 		State:               "random-state",
 		Nonce:               "random-nonce",
 		CodeChallenge:       "challenge-hash",
@@ -82,7 +82,7 @@ func TestAuthorizationRequestRepository_GetByCode(t *testing.T) {
 					ClientID:            "client-123",
 					RedirectURI:         cryptoutilSharedMagic.TestRedirectURI,
 					ResponseType:        cryptoutilSharedMagic.ResponseTypeCode,
-					CodeChallenge:       "challenge",
+					CodeChallenge:       testChallenge,
 					CodeChallengeMethod: cryptoutilSharedMagic.PKCEMethodS256,
 					Code:                "test-code-123",
 					CreatedAt:           time.Now().UTC(),
@@ -131,7 +131,7 @@ func TestAuthorizationRequestRepository_Update(t *testing.T) {
 		ClientID:            "client-456",
 		RedirectURI:         cryptoutilSharedMagic.TestRedirectURI,
 		ResponseType:        cryptoutilSharedMagic.ResponseTypeCode,
-		CodeChallenge:       "challenge",
+		CodeChallenge:       testChallenge,
 		CodeChallengeMethod: cryptoutilSharedMagic.PKCEMethodS256,
 		Code:                "update-code",
 		CreatedAt:           time.Now().UTC(),
@@ -163,7 +163,7 @@ func TestAuthorizationRequestRepository_Delete(t *testing.T) {
 		ClientID:            "client-789",
 		RedirectURI:         cryptoutilSharedMagic.TestRedirectURI,
 		ResponseType:        cryptoutilSharedMagic.ResponseTypeCode,
-		CodeChallenge:       "challenge",
+		CodeChallenge:       testChallenge,
 		CodeChallengeMethod: cryptoutilSharedMagic.PKCEMethodS256,
 		Code:                "delete-code",
 		CreatedAt:           time.Now().UTC(),
@@ -186,13 +186,13 @@ func TestAuthorizationRequestRepository_DeleteExpired(t *testing.T) {
 	repo := NewAuthorizationRequestRepository(testDB.db)
 
 	// Create expired requests.
-	for i := 0; i < 3; i++ {
+	for i := 0; i < test3; i++ {
 		expiredRequest := &cryptoutilIdentityDomain.AuthorizationRequest{
 			ID:                  googleUuid.Must(googleUuid.NewV7()),
 			ClientID:            "client-expired",
 			RedirectURI:         cryptoutilSharedMagic.TestRedirectURI,
 			ResponseType:        cryptoutilSharedMagic.ResponseTypeCode,
-			CodeChallenge:       "challenge",
+			CodeChallenge:       testChallenge,
 			CodeChallengeMethod: cryptoutilSharedMagic.PKCEMethodS256,
 			Code:                "expired-code-" + string(rune('a'+i)),
 			CreatedAt:           time.Now().UTC().Add(-cryptoutilSharedMagic.MaxErrorDisplay * time.Minute),
@@ -209,7 +209,7 @@ func TestAuthorizationRequestRepository_DeleteExpired(t *testing.T) {
 			ClientID:            "client-valid",
 			RedirectURI:         cryptoutilSharedMagic.TestRedirectURI,
 			ResponseType:        cryptoutilSharedMagic.ResponseTypeCode,
-			CodeChallenge:       "challenge",
+			CodeChallenge:       testChallenge,
 			CodeChallengeMethod: cryptoutilSharedMagic.PKCEMethodS256,
 			Code:                "valid-code-" + string(rune('a'+i)),
 			CreatedAt:           time.Now().UTC(),
@@ -221,5 +221,5 @@ func TestAuthorizationRequestRepository_DeleteExpired(t *testing.T) {
 
 	deletedCount, err := repo.DeleteExpired(context.Background())
 	require.NoError(t, err)
-	require.Equal(t, int64(3), deletedCount)
+	require.Equal(t, int64(test3), deletedCount)
 }

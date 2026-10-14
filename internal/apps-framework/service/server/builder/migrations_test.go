@@ -38,12 +38,12 @@ func TestMigrationConfig_Validate_TemplateWithDomain_Success(t *testing.T) {
 	t.Parallel()
 
 	mockFS := fstest.MapFS{
-		"migrations/0001_init.up.sql": &fstest.MapFile{Data: []byte("CREATE TABLE test;")},
+		testMigrations0001InitUpSQL: &fstest.MapFile{Data: []byte("CREATE TABLE test;")},
 	}
 
 	config := NewDefaultMigrationConfig().
 		WithDomainFS(mockFS).
-		WithDomainPath("migrations")
+		WithDomainPath(valueMigrations)
 
 	err := config.Validate()
 	require.NoError(t, err)
@@ -53,7 +53,7 @@ func TestMigrationConfig_Validate_TemplateWithDomain_MissingFS(t *testing.T) {
 	t.Parallel()
 
 	config := NewDefaultMigrationConfig().
-		WithDomainPath("migrations")
+		WithDomainPath(valueMigrations)
 
 	err := config.Validate()
 	require.Error(t, err)
@@ -64,7 +64,7 @@ func TestMigrationConfig_Validate_TemplateWithDomain_MissingPath(t *testing.T) {
 	t.Parallel()
 
 	mockFS := fstest.MapFS{
-		"migrations/0001_init.up.sql": &fstest.MapFile{Data: []byte("CREATE TABLE test;")},
+		testMigrations0001InitUpSQL: &fstest.MapFile{Data: []byte("CREATE TABLE test;")},
 	}
 
 	config := NewDefaultMigrationConfig().
@@ -79,12 +79,12 @@ func TestMigrationConfig_Validate_DomainOnly_Success(t *testing.T) {
 	t.Parallel()
 
 	mockFS := fstest.MapFS{
-		"migrations/0001_init.up.sql": &fstest.MapFile{Data: []byte("CREATE TABLE test;")},
+		testMigrations0001InitUpSQL: &fstest.MapFile{Data: []byte("CREATE TABLE test;")},
 	}
 
 	config := NewDomainOnlyMigrationConfig().
 		WithDomainFS(mockFS).
-		WithDomainPath("migrations")
+		WithDomainPath(valueMigrations)
 
 	err := config.Validate()
 	require.NoError(t, err)
@@ -94,7 +94,7 @@ func TestMigrationConfig_Validate_DomainOnly_MissingFS(t *testing.T) {
 	t.Parallel()
 
 	config := NewDomainOnlyMigrationConfig().
-		WithDomainPath("migrations")
+		WithDomainPath(valueMigrations)
 
 	err := config.Validate()
 	require.Error(t, err)
@@ -105,7 +105,7 @@ func TestMigrationConfig_Validate_DomainOnly_MissingPath(t *testing.T) {
 	t.Parallel()
 
 	mockFS := fstest.MapFS{
-		"migrations/0001_init.up.sql": &fstest.MapFile{Data: []byte("CREATE TABLE test;")},
+		testMigrations0001InitUpSQL: &fstest.MapFile{Data: []byte("CREATE TABLE test;")},
 	}
 
 	config := NewDomainOnlyMigrationConfig().
@@ -132,7 +132,7 @@ func TestMigrationConfig_Validate_InvalidMode(t *testing.T) {
 	t.Parallel()
 
 	config := &MigrationConfig{
-		Mode: "invalid-mode",
+		Mode: testInvalidMode,
 	}
 
 	err := config.Validate()
@@ -154,7 +154,7 @@ func TestMigrationConfig_WithDomainFS(t *testing.T) {
 	t.Parallel()
 
 	mockFS := fstest.MapFS{
-		"migrations/0001_init.up.sql": &fstest.MapFile{Data: []byte("CREATE TABLE test;")},
+		testMigrations0001InitUpSQL: &fstest.MapFile{Data: []byte("CREATE TABLE test;")},
 	}
 
 	config := NewDefaultMigrationConfig()
@@ -172,10 +172,10 @@ func TestMigrationConfig_WithDomainPath(t *testing.T) {
 	config := NewDefaultMigrationConfig()
 	require.Empty(t, config.DomainPath)
 
-	result := config.WithDomainPath("migrations")
+	result := config.WithDomainPath(valueMigrations)
 
 	require.Same(t, config, result)
-	require.Equal(t, "migrations", config.DomainPath)
+	require.Equal(t, valueMigrations, config.DomainPath)
 }
 
 func TestMigrationConfig_WithMode(t *testing.T) {
@@ -244,18 +244,18 @@ func TestMigrationConfig_FluentChaining(t *testing.T) {
 	t.Parallel()
 
 	mockFS := fstest.MapFS{
-		"migrations/0001_init.up.sql": &fstest.MapFile{Data: []byte("CREATE TABLE test;")},
+		testMigrations0001InitUpSQL: &fstest.MapFile{Data: []byte("CREATE TABLE test;")},
 	}
 
 	config := NewDefaultMigrationConfig().
 		WithMode(MigrationModeDomainOnly).
 		WithDomainFS(mockFS).
-		WithDomainPath("migrations").
+		WithDomainPath(valueMigrations).
 		WithSkipTemplateMigrations(true)
 
 	require.Equal(t, MigrationModeDomainOnly, config.Mode)
 	require.NotNil(t, config.DomainFS)
-	require.Equal(t, "migrations", config.DomainPath)
+	require.Equal(t, valueMigrations, config.DomainPath)
 	require.True(t, config.SkipTemplateMigrations)
 }
 
@@ -297,7 +297,7 @@ func TestWithMigrationConfig_ValidConfig(t *testing.T) {
 	t.Parallel()
 
 	mockFS := fstest.MapFS{
-		"migrations/0001_init.up.sql": &fstest.MapFile{Data: []byte("CREATE TABLE test;")},
+		testMigrations0001InitUpSQL: &fstest.MapFile{Data: []byte("CREATE TABLE test;")},
 	}
 
 	tests := []struct {
@@ -308,13 +308,13 @@ func TestWithMigrationConfig_ValidConfig(t *testing.T) {
 			name: "template with domain",
 			config: NewDefaultMigrationConfig().
 				WithDomainFS(mockFS).
-				WithDomainPath("migrations"),
+				WithDomainPath(valueMigrations),
 		},
 		{
 			name: "domain only",
 			config: NewDomainOnlyMigrationConfig().
 				WithDomainFS(mockFS).
-				WithDomainPath("migrations"),
+				WithDomainPath(valueMigrations),
 		},
 	}
 
@@ -336,7 +336,7 @@ func TestWithMigrationConfig_InvalidConfig(t *testing.T) {
 	t.Parallel()
 
 	config := &MigrationConfig{
-		Mode: "invalid-mode",
+		Mode: testInvalidMode,
 	}
 
 	builder := &ServerBuilder{}
@@ -351,12 +351,12 @@ func TestWithMigrationConfig_SetsLegacyFields(t *testing.T) {
 	t.Parallel()
 
 	mockFS := fstest.MapFS{
-		"migrations/0001_init.up.sql": &fstest.MapFile{Data: []byte("CREATE TABLE test;")},
+		testMigrations0001InitUpSQL: &fstest.MapFile{Data: []byte("CREATE TABLE test;")},
 	}
 
 	config := NewDefaultMigrationConfig().
 		WithDomainFS(mockFS).
-		WithDomainPath("migrations")
+		WithDomainPath(valueMigrations)
 
 	builder := &ServerBuilder{}
 	result := builder.WithMigrationConfig(config)
@@ -364,21 +364,21 @@ func TestWithMigrationConfig_SetsLegacyFields(t *testing.T) {
 	require.Same(t, builder, result)
 	require.NoError(t, builder.err)
 	require.NotNil(t, builder.migrationFS)
-	require.Equal(t, "migrations", builder.migrationsPath)
+	require.Equal(t, valueMigrations, builder.migrationsPath)
 }
 
 func TestWithMigrationConfig_ErrorAccumulation(t *testing.T) {
 	t.Parallel()
 
 	mockFS := fstest.MapFS{
-		"migrations/0001_init.up.sql": &fstest.MapFile{Data: []byte("CREATE TABLE test;")},
+		testMigrations0001InitUpSQL: &fstest.MapFile{Data: []byte("CREATE TABLE test;")},
 	}
 
 	// Builder with existing error should not process new config.
 	builder := &ServerBuilder{err: ErrMigrationModeRequired}
 	result := builder.WithMigrationConfig(NewDefaultMigrationConfig().
 		WithDomainFS(mockFS).
-		WithDomainPath("migrations"))
+		WithDomainPath(valueMigrations))
 
 	require.Same(t, builder, result)
 	require.ErrorIs(t, builder.err, ErrMigrationModeRequired)

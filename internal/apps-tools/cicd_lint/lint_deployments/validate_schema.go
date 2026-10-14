@@ -61,20 +61,20 @@ type schemaField struct {
 var configSchema = map[string]schemaField{
 	// Public Server Configuration.
 	// bind-public-protocol MUST be "https" (TLS required for all services).
-	"bind-public-protocol": {
+	valueBindPublicProtocol: {
 		Type:        fieldTypeString,
 		Required:    true,
 		ValidValues: []string{cryptoutilSharedMagic.ProtocolHTTPS},
 		Description: "Public server protocol (MUST be https)",
 	},
 	// bind-public-address: IPv4 address to bind on (0.0.0.0 for containers, 127.0.0.1 for local dev).
-	"bind-public-address": {
+	valueBindPublicAddress: {
 		Type:        fieldTypeString,
 		Required:    true,
 		Description: "Public server bind address (0.0.0.0 for containers, 127.0.0.1 for local)",
 	},
 	// bind-public-port: TCP port for public API (range 1-65535, typically 8000-8999 for services).
-	"bind-public-port": {
+	valueBindPublicPort: {
 		Type:        fieldTypeInt,
 		Required:    true,
 		Description: "Public server bind port (1-65535)",
@@ -82,21 +82,21 @@ var configSchema = map[string]schemaField{
 
 	// Admin Server Configuration.
 	// bind-private-protocol MUST be "https" (TLS required for admin endpoints).
-	"bind-private-protocol": {
+	valueBindPrivateProtocol: {
 		Type:        fieldTypeString,
 		Required:    true,
 		ValidValues: []string{cryptoutilSharedMagic.ProtocolHTTPS},
 		Description: "Admin server protocol (MUST be https)",
 	},
 	// bind-private-address MUST be "127.0.0.1" (admin never exposed outside container).
-	"bind-private-address": {
+	valueBindPrivateAddress: {
 		Type:        fieldTypeString,
 		Required:    true,
 		ValidValues: []string{cryptoutilSharedMagic.IPv4Loopback},
 		Description: "Admin server bind address (MUST be 127.0.0.1)",
 	},
 	// bind-private-port: TCP port for admin API (typically 9090).
-	"bind-private-port": {
+	valueBindPrivatePort: {
 		Type:        fieldTypeInt,
 		Required:    true,
 		Description: "Admin server bind port (typically 9090)",
@@ -120,26 +120,26 @@ var configSchema = map[string]schemaField{
 
 	// OTLP Telemetry Configuration.
 	// otlp: Master switch for OTLP telemetry export.
-	"otlp": {
+	valueOtlp: {
 		Type:        fieldTypeBool,
 		Required:    true,
 		Description: "Enable OTLP telemetry export",
 	},
 	// otlp-service: Service name reported to telemetry collector.
-	"otlp-service": {
+	valueOtlpService: {
 		Type:        fieldTypeString,
 		Required:    false,
 		Description: "OTLP service name (required when otlp: true)",
 	},
 	// otlp-environment: Deployment environment label.
-	"otlp-environment": {
+	valueOtlpEnvironment: {
 		Type:        fieldTypeString,
 		Required:    false,
-		ValidValues: []string{"development", "production", "ci"},
+		ValidValues: []string{valueDevelopment, "production", "ci"},
 		Description: "OTLP environment label",
 	},
 	// otlp-endpoint: Collector endpoint URL (gRPC or HTTP).
-	"otlp-endpoint": {
+	valueOtlpEndpoint: {
 		Type:        fieldTypeString,
 		Required:    false,
 		Description: "OTLP collector endpoint (required when otlp: true)",
@@ -238,7 +238,7 @@ var configSchema = map[string]schemaField{
 	"browser-session-algorithm": {
 		Type:        fieldTypeString,
 		Required:    false,
-		ValidValues: []string{cryptoutilSharedMagic.DefaultServiceSessionAlgorithm, string(cryptoutilSharedMagic.SessionAlgorithmJWE), "Opaque"},
+		ValidValues: []string{cryptoutilSharedMagic.DefaultServiceSessionAlgorithm, string(cryptoutilSharedMagic.SessionAlgorithmJWE), valueOpaque},
 		Description: "Browser session token format",
 	},
 	// browser-session-jws-algorithm: JWS signing algorithm (when browser-session-algorithm: JWS).
@@ -258,7 +258,7 @@ var configSchema = map[string]schemaField{
 	"service-session-algorithm": {
 		Type:        fieldTypeString,
 		Required:    false,
-		ValidValues: []string{cryptoutilSharedMagic.DefaultServiceSessionAlgorithm, string(cryptoutilSharedMagic.SessionAlgorithmJWE), "Opaque"},
+		ValidValues: []string{cryptoutilSharedMagic.DefaultServiceSessionAlgorithm, string(cryptoutilSharedMagic.SessionAlgorithmJWE), valueOpaque},
 		Description: "Service session token format",
 	},
 	// service-session-jws-algorithm: JWS signing algorithm (when service-session-algorithm: JWS).

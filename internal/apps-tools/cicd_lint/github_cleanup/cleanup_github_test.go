@@ -53,7 +53,7 @@ func TestParseArgs(t *testing.T) {
 		},
 		{
 			name:        "confirm flag",
-			args:        []string{"--confirm"},
+			args:        []string{valueConfirm},
 			wantConfirm: true,
 			wantMaxAge:  defaultMaxAgeDays,
 			wantKeepMin: defaultKeepMinRuns,
@@ -84,12 +84,12 @@ func TestParseArgs(t *testing.T) {
 			wantConfirm: false,
 			wantMaxAge:  defaultMaxAgeDays,
 			wantKeepMin: defaultKeepMinRuns,
-			wantRepo:    "owner/repo",
+			wantRepo:    testOwnerRepo,
 			wantErr:     false,
 		},
 		{
 			name:        "all flags combined",
-			args:        []string{"--confirm", "--max-age-days=14", "--keep-min-runs=3", "--repo=test/repo"},
+			args:        []string{valueConfirm, "--max-age-days=14", "--keep-min-runs=3", "--repo=test/repo"},
 			wantConfirm: true,
 			wantMaxAge:  14,
 			wantKeepMin: 3,
@@ -172,8 +172,8 @@ func TestRepoArgs(t *testing.T) {
 		},
 		{
 			name:     "explicit repo",
-			repo:     "owner/repo",
-			expected: []string{"--repo", "owner/repo"},
+			repo:     testOwnerRepo,
+			expected: []string{"--repo", testOwnerRepo},
 		},
 	}
 

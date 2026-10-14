@@ -37,7 +37,7 @@ func TestAdaptiveAuth_E2E_LowRiskNoStepUp(t *testing.T) {
 	baseline := &UserBaseline{
 		UserID: user.ID.UUID.String(),
 		KnownLocations: []GeoLocation{
-			{Country: "US", City: "New York"},
+			{Country: testUs, City: testNewYork},
 		},
 		KnownDevices: []DeviceFingerprint{
 			{ID: "known-device-001"},
@@ -59,14 +59,14 @@ func TestAdaptiveAuth_E2E_LowRiskNoStepUp(t *testing.T) {
 			Timezone:   "America/New_York",
 		},
 		GeoLocation: &GeoLocation{
-			IPAddress: "192.168.1.100",
-			Country:   "US",
-			City:      "New York",
+			IPAddress: test1921681100,
+			Country:   testUs,
+			City:      testNewYork,
 			Latitude:  40.7128,
 			Longitude: -74.0060,
 		},
 		NetworkInfo: &NetworkInfo{
-			IPAddress: "192.168.1.100",
+			IPAddress: test1921681100,
 			IsVPN:     false,
 			IsProxy:   false,
 			IsTor:     false,
@@ -114,7 +114,7 @@ func TestAdaptiveAuth_E2E_LowRiskNoStepUp(t *testing.T) {
 		SessionID:       googleUuid.New().String(),
 	}
 
-	stepUpRequired, challenge, err := stepUpAuth.EvaluateStepUp(ctx, user.ID.UUID.String(), "view_balance", authState)
+	stepUpRequired, challenge, err := stepUpAuth.EvaluateStepUp(ctx, user.ID.UUID.String(), testViewBalance, authState)
 
 	require.NoError(t, err)
 	require.False(t, stepUpRequired, "Low-risk operation should not require step-up")
@@ -138,7 +138,7 @@ func TestAdaptiveAuth_E2E_MediumRiskOTPStepUp(t *testing.T) {
 	baseline := &UserBaseline{
 		UserID: user.ID.UUID.String(),
 		KnownLocations: []GeoLocation{
-			{Country: "US", City: "New York"},
+			{Country: testUs, City: testNewYork},
 		},
 		KnownDevices: []DeviceFingerprint{
 			{ID: "known-device-001"},
@@ -160,14 +160,14 @@ func TestAdaptiveAuth_E2E_MediumRiskOTPStepUp(t *testing.T) {
 			Timezone:   "Europe/London",
 		},
 		GeoLocation: &GeoLocation{
-			IPAddress: "203.0.113.42",
+			IPAddress: test203011342,
 			Country:   "GB",
 			City:      "London",
 			Latitude:  51.5074,
 			Longitude: -0.1278,
 		},
 		NetworkInfo: &NetworkInfo{
-			IPAddress: "203.0.113.42",
+			IPAddress: test203011342,
 			IsVPN:     false,
 			IsProxy:   false,
 			IsTor:     false,
@@ -221,12 +221,12 @@ func TestAdaptiveAuth_E2E_MediumRiskOTPStepUp(t *testing.T) {
 		SessionID:       googleUuid.New().String(),
 	}
 
-	stepUpRequired, challenge, err := stepUpAuth.EvaluateStepUp(ctx, user.ID.UUID.String(), "transfer_funds", authState)
+	stepUpRequired, challenge, err := stepUpAuth.EvaluateStepUp(ctx, user.ID.UUID.String(), valueTransferFunds, authState)
 
 	require.NoError(t, err)
 	require.True(t, stepUpRequired, "Medium-risk transfer should require step-up")
 	require.NotNil(t, challenge)
-	require.Equal(t, "transfer_funds", challenge.Operation)
+	require.Equal(t, valueTransferFunds, challenge.Operation)
 	require.Equal(t, AuthLevelMFA, challenge.RequiredLevel)
 }
 
@@ -247,7 +247,7 @@ func TestAdaptiveAuth_E2E_HighRiskStrongMFAOrBlock(t *testing.T) {
 	baseline := &UserBaseline{
 		UserID: user.ID.UUID.String(),
 		KnownLocations: []GeoLocation{
-			{Country: "US", City: "San Francisco"},
+			{Country: testUs, City: "San Francisco"},
 		},
 		KnownDevices: []DeviceFingerprint{
 			{ID: "known-device-001"},
@@ -327,7 +327,7 @@ func TestAdaptiveAuth_E2E_HighRiskStrongMFAOrBlock(t *testing.T) {
 		SessionID:       googleUuid.New().String(),
 	}
 
-	stepUpRequired, challenge, err := stepUpAuth.EvaluateStepUp(ctx, user.ID.UUID.String(), "transfer_funds", authState)
+	stepUpRequired, challenge, err := stepUpAuth.EvaluateStepUp(ctx, user.ID.UUID.String(), valueTransferFunds, authState)
 
 	require.NoError(t, err)
 	require.True(t, stepUpRequired, "High-risk transfer should require step-up")
@@ -354,7 +354,7 @@ func TestAdaptiveAuth_E2E_CriticalRiskBlocked(t *testing.T) {
 	baseline := &UserBaseline{
 		UserID: user.ID.UUID.String(),
 		KnownLocations: []GeoLocation{
-			{Country: "US", City: "Seattle"},
+			{Country: testUs, City: "Seattle"},
 		},
 		KnownDevices: []DeviceFingerprint{
 			{ID: "known-device-001"},
@@ -377,8 +377,8 @@ func TestAdaptiveAuth_E2E_CriticalRiskBlocked(t *testing.T) {
 		},
 		GeoLocation: &GeoLocation{
 			IPAddress: "185.220.101.1",
-			Country:   "RU",
-			City:      "Moscow",
+			Country:   testRu,
+			City:      testMoscow,
 			Latitude:  55.7558,
 			Longitude: 37.6173,
 		},

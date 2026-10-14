@@ -48,7 +48,7 @@ func TestTLSClientAuthenticator_Authenticate_Cert(t *testing.T) {
 			wantErr:    false,
 		},
 		{
-			name: "missing certificate",
+			name: testMissingCertificate,
 			client: &cryptoutilIdentityDomain.Client{
 				ID:                      mustNewUUID(),
 				ClientID:                cryptoutilSharedMagic.TestClientID,
@@ -60,12 +60,12 @@ func TestTLSClientAuthenticator_Authenticate_Cert(t *testing.T) {
 			wantErr:    true,
 		},
 		{
-			name: "subject mismatch",
+			name: testSubjectMismatch,
 			client: &cryptoutilIdentityDomain.Client{
 				ID:                      mustNewUUID(),
 				ClientID:                cryptoutilSharedMagic.TestClientID,
 				TokenEndpointAuthMethod: cryptoutilIdentityDomain.ClientAuthMethodTLSClientAuth,
-				CertificateSubject:      "Wrong Subject",
+				CertificateSubject:      testWrongSubject,
 				Enabled:                 boolPtr(true),
 			},
 			clientID:   cryptoutilSharedMagic.TestClientID,
@@ -73,7 +73,7 @@ func TestTLSClientAuthenticator_Authenticate_Cert(t *testing.T) {
 			wantErr:    true,
 		},
 		{
-			name: "fingerprint mismatch",
+			name: testFingerprintMismatch,
 			client: &cryptoutilIdentityDomain.Client{
 				ID:                      mustNewUUID(),
 				ClientID:                cryptoutilSharedMagic.TestClientID,

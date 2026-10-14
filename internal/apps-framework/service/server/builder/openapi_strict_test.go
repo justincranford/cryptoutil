@@ -35,7 +35,7 @@ func TestStrictServerConfig_Validate_Success(t *testing.T) {
 		config *StrictServerConfig
 	}{
 		{
-			name:   "default config",
+			name:   testDefaultConfig,
 			config: NewDefaultStrictServerConfig(),
 		},
 		{

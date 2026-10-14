@@ -23,7 +23,7 @@ var bannedPhrases = []string{
 	"cipher-im",
 	"cipher_im",
 	"CipherIM",
-	"cryptoutilCmdCipher",
+	valueCryptoutilCmdCipher,
 }
 
 // scannedExtensions lists the file extensions checked for banned phrases.

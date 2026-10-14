@@ -58,8 +58,8 @@ func TestCheckInDir_DetectsBannedPhrase(t *testing.T) {
 		content string
 	}{
 		{
-			name:    "cryptoutilCmdCipher",
-			phrase:  "cryptoutilCmdCipher",
+			name:    valueCryptoutilCmdCipher,
+			phrase:  valueCryptoutilCmdCipher,
 			file:    "main.go",
 			content: "package main\n\nfunc main() { cryptoutilCmdCipher.Run() }\n",
 		},

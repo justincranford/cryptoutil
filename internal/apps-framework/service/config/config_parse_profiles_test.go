@@ -19,8 +19,8 @@ import (
 func TestParseWithFlagSet_ProfileUnknown(t *testing.T) {
 	t.Parallel()
 
-	fs := pflag.NewFlagSet("test", pflag.ContinueOnError)
-	_, err := ParseWithFlagSet(fs, []string{"start", "--profile=nonexistent"}, false)
+	fs := pflag.NewFlagSet(valueTest, pflag.ContinueOnError)
+	_, err := ParseWithFlagSet(fs, []string{valueStart, "--profile=nonexistent"}, false)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "unknown configuration profile")
 }
@@ -51,7 +51,7 @@ func TestGetTLSPEMBytes_MapType(t *testing.T) {
 func TestParseWithFlagSet_InvalidSubcommand(t *testing.T) {
 	t.Parallel()
 
-	fs := pflag.NewFlagSet("test", pflag.ContinueOnError)
+	fs := pflag.NewFlagSet(valueTest, pflag.ContinueOnError)
 	_, err := ParseWithFlagSet(fs, []string{"invalid-subcommand"}, false)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "invalid subcommand")
@@ -77,9 +77,9 @@ func TestParseWithFlagSet_ConfigFileReadError(t *testing.T) {
 	err := os.MkdirAll(configDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute)
 	require.NoError(t, err)
 
-	fs := pflag.NewFlagSet("test", pflag.ContinueOnError)
+	fs := pflag.NewFlagSet(valueTest, pflag.ContinueOnError)
 	// Pass the directory as config file - should fail to read.
-	_, _ = ParseWithFlagSet(fs, []string{"start", "--config=" + configDir}, false)
+	_, _ = ParseWithFlagSet(fs, []string{valueStart, "--config=" + configDir}, false)
 	// The error may be about reading config or may succeed if stat shows it's a directory.
 	// Either way, we're exercising the code path.
 	// Note: viper.ReadInConfig may not error for directories in all cases.
@@ -99,8 +99,8 @@ bind-public-address: [this is invalid YAML
 	err := os.WriteFile(configPath, []byte(invalidYAML), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
-	fs := pflag.NewFlagSet("test", pflag.ContinueOnError)
-	_, err = ParseWithFlagSet(fs, []string{"start", "--config=" + configPath}, false)
+	fs := pflag.NewFlagSet(valueTest, pflag.ContinueOnError)
+	_, err = ParseWithFlagSet(fs, []string{valueStart, "--config=" + configPath}, false)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "error reading config file")
 }
@@ -128,8 +128,8 @@ bind-public-port: 9999
 	err = os.WriteFile(config2Path, []byte(config2), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
-	fs := pflag.NewFlagSet("test", pflag.ContinueOnError)
-	settings, err := ParseWithFlagSet(fs, []string{"start", "--config=" + config1Path, "--config=" + config2Path}, false)
+	fs := pflag.NewFlagSet(valueTest, pflag.ContinueOnError)
+	settings, err := ParseWithFlagSet(fs, []string{valueStart, "--config=" + config1Path, "--config=" + config2Path}, false)
 	require.NoError(t, err)
 	require.NotNil(t, settings)
 	require.Equal(t, uint16(9999), settings.BindPublicPort)
@@ -157,8 +157,8 @@ bind-public-port: [invalid yaml syntax
 	err = os.WriteFile(config2Path, []byte(config2Invalid), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
-	fs := pflag.NewFlagSet("test", pflag.ContinueOnError)
-	_, err = ParseWithFlagSet(fs, []string{"start", "--config=" + config1Path, "--config=" + config2Path}, false)
+	fs := pflag.NewFlagSet(valueTest, pflag.ContinueOnError)
+	_, err = ParseWithFlagSet(fs, []string{valueStart, "--config=" + config1Path, "--config=" + config2Path}, false)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "error merging config file")
 }
@@ -195,7 +195,7 @@ func TestParseWithFlagSet_ValidationError(t *testing.T) {
 	resetFlags()
 
 	// Pass invalid config via flags - 0.0.0.0 in dev mode causes validation error
-	args := []string{"start", "--local", "--bind-public-address=0.0.0.0"}
+	args := []string{valueStart, valueLocal, "--bind-public-address=0.0.0.0"}
 	_, err := Parse(args, false)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "validation failed")
@@ -215,7 +215,7 @@ tls-private-provision-mode: ""
 `
 	require.NoError(t, os.WriteFile(configFile, []byte(configContent), cryptoutilSharedMagic.CacheFilePermissions))
 
-	args := []string{"start", cryptoutilSharedMagic.IdentityCLIFlagConfig, configFile}
+	args := []string{valueStart, cryptoutilSharedMagic.IdentityCLIFlagConfig, configFile}
 	s, err := Parse(args, true)
 	require.NoError(t, err)
 	// Empty TLS provision mode should get the default auto setting.

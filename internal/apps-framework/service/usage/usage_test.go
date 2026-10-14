@@ -79,7 +79,7 @@ func TestBuildUsageServer(t *testing.T) {
 			wantContains: []string{
 				"Usage: sm kms server [options]",
 				cryptoutilSharedMagic.KMSDisplayName,
-				"configs/sm-kms/sm-kms-framework.yml",
+				testConfigsSmKMSSmKMSFrameworkYml,
 				"SQLite",
 				"PostgreSQL",
 			},
@@ -122,14 +122,14 @@ func TestBuildUsageClient(t *testing.T) {
 		wantContains       []string
 	}{
 		{
-			name:               "sm kms client",
+			name:               testSmKMSClient,
 			productName:        cryptoutilSharedMagic.SMProductName,
 			serviceName:        cryptoutilSharedMagic.KMSServiceName,
 			serviceDisplayName: cryptoutilSharedMagic.KMSDisplayName,
 			wantContains: []string{
 				"Usage: sm kms client [options]",
 				cryptoutilSharedMagic.KMSDisplayName,
-				"sm kms client",
+				testSmKMSClient,
 			},
 		},
 	}
@@ -167,7 +167,7 @@ func TestBuildUsageInit(t *testing.T) {
 			wantContains: []string{
 				"Usage: sm kms init [options]",
 				cryptoutilSharedMagic.KMSDisplayName,
-				"configs/sm-kms/sm-kms-framework.yml",
+				testConfigsSmKMSSmKMSFrameworkYml,
 			},
 		},
 	}
@@ -237,8 +237,8 @@ func TestBuildUsageLivez(t *testing.T) {
 			serviceName: cryptoutilSharedMagic.KMSServiceName,
 			wantContains: []string{
 				"Usage: sm kms livez [options]",
-				"https://127.0.0.1:9090",
-				"/admin/api/v1/livez",
+				testHTTPS1270019090,
+				testAdminAPIV1Livez,
 			},
 		},
 		{
@@ -247,8 +247,8 @@ func TestBuildUsageLivez(t *testing.T) {
 			serviceName: cryptoutilSharedMagic.SkeletonTemplateServiceName,
 			wantContains: []string{
 				"Usage: skeleton template livez [options]",
-				"https://127.0.0.1:9090",
-				"/admin/api/v1/livez",
+				testHTTPS1270019090,
+				testAdminAPIV1Livez,
 			},
 		},
 	}
@@ -281,8 +281,8 @@ func TestBuildUsageReadyz(t *testing.T) {
 			serviceName: cryptoutilSharedMagic.KMSServiceName,
 			wantContains: []string{
 				"Usage: sm kms readyz [options]",
-				"https://127.0.0.1:9090",
-				"/admin/api/v1/readyz",
+				testHTTPS1270019090,
+				testAdminAPIV1Readyz,
 			},
 		},
 		{
@@ -291,8 +291,8 @@ func TestBuildUsageReadyz(t *testing.T) {
 			serviceName: cryptoutilSharedMagic.SkeletonTemplateServiceName,
 			wantContains: []string{
 				"Usage: skeleton template readyz [options]",
-				"https://127.0.0.1:9090",
-				"/admin/api/v1/readyz",
+				testHTTPS1270019090,
+				testAdminAPIV1Readyz,
 			},
 		},
 	}
@@ -325,9 +325,9 @@ func TestBuildUsageShutdown(t *testing.T) {
 			serviceName: cryptoutilSharedMagic.KMSServiceName,
 			wantContains: []string{
 				"Usage: sm kms shutdown [options]",
-				"https://127.0.0.1:9090",
-				"/admin/api/v1/shutdown",
-				"--force",
+				testHTTPS1270019090,
+				testAdminAPIV1Shutdown,
+				testForce,
 			},
 		},
 		{
@@ -336,9 +336,9 @@ func TestBuildUsageShutdown(t *testing.T) {
 			serviceName: cryptoutilSharedMagic.SkeletonTemplateServiceName,
 			wantContains: []string{
 				"Usage: skeleton template shutdown [options]",
-				"https://127.0.0.1:9090",
-				"/admin/api/v1/shutdown",
-				"--force",
+				testHTTPS1270019090,
+				testAdminAPIV1Shutdown,
+				testForce,
 			},
 		},
 	}

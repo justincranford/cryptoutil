@@ -138,7 +138,7 @@ func TestShardManager_GetDBNContext(t *testing.T) {
 		require.ErrorIs(t, err, ErrNoTenantContext)
 	})
 
-	t.Run("nil tenant id", func(t *testing.T) {
+	t.Run(testNilTenantID, func(t *testing.T) {
 		t.Parallel()
 
 		ctx := WithTenantContext(context.Background(), &TenantContext{TenantID: googleUuid.Nil})
@@ -389,7 +389,7 @@ func TestShardManager_GetDB_InvalidSchemaPrefix(t *testing.T) {
 	sm := &ShardManager{
 		config: &ShardConfig{
 			Strategy:     StrategySchemaLevel,
-			SchemaPrefix: "invalid$prefix_",
+			SchemaPrefix: testInvalidPrefix,
 		},
 	}
 
@@ -407,7 +407,7 @@ func TestShardManager_DropTenantSchema_InvalidSchemaPrefix(t *testing.T) {
 	sm := &ShardManager{
 		config: &ShardConfig{
 			Strategy:     StrategySchemaLevel,
-			SchemaPrefix: "invalid$prefix_",
+			SchemaPrefix: testInvalidPrefix,
 		},
 	}
 

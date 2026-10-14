@@ -20,8 +20,8 @@ type SecretValidationResult struct {
 
 // secretKeyPatterns are field name substrings that indicate credential fields.
 var secretKeyPatterns = []string{
-	"password", "passwd", "secret", cryptoutilSharedMagic.ParamToken, "api-key",
-	"api_key", "private-key", "private_key", "pepper",
+	valuePassword, valuePasswd, "secret", cryptoutilSharedMagic.ParamToken, valueAPIKey,
+	valueAPIKeyValue2E9BC6C9, valuePrivateKey, valuePrivateKeyValue189759FA, valuePepper,
 }
 
 // minSecretLengthRaw is the minimum acceptable length in bytes for raw secret files.
@@ -30,8 +30,8 @@ const minSecretLengthRaw = 32
 
 // secretFilePatterns are substrings in secret file names that indicate high-entropy credential content.
 var secretFilePatterns = []string{
-	"password", "passwd", "pepper", "private_key", "private-key",
-	"api_key", "api-key", "secret_key", "secret-key",
+	valuePassword, valuePasswd, valuePepper, valuePrivateKeyValue189759FA, valuePrivateKey,
+	valueAPIKeyValue2E9BC6C9, valueAPIKey, "secret_key", "secret-key",
 	"unseal", "hash_pepper", "hash-pepper",
 }
 
@@ -62,7 +62,7 @@ func ValidateSecrets(deploymentPath string) (*SecretValidationResult, error) {
 		return result, nil
 	}
 
-	secretsDir := filepath.Join(deploymentPath, "secrets")
+	secretsDir := filepath.Join(deploymentPath, validatorNameSecrets)
 
 	if dirInfo, err := os.Stat(secretsDir); err == nil && dirInfo.IsDir() {
 		validateSecretFileLengths(secretsDir, result)

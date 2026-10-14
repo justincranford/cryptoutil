@@ -87,15 +87,15 @@ func TestRegisterAsSettings(t *testing.T) {
 	t.Run("string slice", func(t *testing.T) {
 		t.Parallel()
 
-		setting := Setting{Value: []string{"item1", "item2"}}
-		require.Equal(t, []string{"item1", "item2"}, RegisterAsStringSliceSetting(&setting))
+		setting := Setting{Value: []string{testItem1, testItem2}}
+		require.Equal(t, []string{testItem1, testItem2}, RegisterAsStringSliceSetting(&setting))
 	})
 
 	t.Run("string array", func(t *testing.T) {
 		t.Parallel()
 
-		setting := Setting{Value: []string{"item1", "item2"}}
-		require.Equal(t, []string{"item1", "item2"}, RegisterAsStringArraySetting(&setting))
+		setting := Setting{Value: []string{testItem1, testItem2}}
+		require.Equal(t, []string{testItem1, testItem2}, RegisterAsStringArraySetting(&setting))
 	})
 
 	t.Run("duration", func(t *testing.T) {

@@ -161,7 +161,7 @@ func TestService_MigrateClientSecrets(t *testing.T) {
 					RedirectURIs:            []string{"https://example2.com/callback"},
 					AllowedGrantTypes:       []string{cryptoutilSharedMagic.GrantTypeClientCredentials},
 					AllowedResponseTypes:    []string{},
-					AllowedScopes:           []string{"api:read"},
+					AllowedScopes:           []string{testAPIRead},
 					TokenEndpointAuthMethod: cryptoutilIdentityDomain.ClientAuthMethodSecretPost,
 				}
 				err = clientRepo.Create(ctx, client2)
@@ -233,14 +233,14 @@ func createServiceTestConfig(t *testing.T) *cryptoutilIdentityConfig.Config {
 
 	dbConfig := &cryptoutilIdentityConfig.DatabaseConfig{
 		Type:        cryptoutilSharedMagic.TestDatabaseSQLite,
-		DSN:         "file::memory:?cache=private",
+		DSN:         testFileMemoryCachePrivate,
 		AutoMigrate: true,
 	}
 
 	return &cryptoutilIdentityConfig.Config{
 		Database: dbConfig,
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{
-			Issuer: "https://localhost:8080",
+			Issuer: testHTTPSLocalhost8080,
 		},
 	}
 }

@@ -45,7 +45,7 @@ func TestPBKDF2WithParams_ErrorPaths(t *testing.T) {
 		},
 		{
 			name:          "nil_params",
-			secret:        "test_secret",
+			secret:        testTestSecret,
 			params:        nil,
 			expectedError: true,
 			errorContains: "parameter set is nil",
@@ -102,23 +102,23 @@ func TestVerifySecret_ErrorPaths(t *testing.T) {
 		{
 			name:          "empty_stored_hash",
 			stored:        "",
-			provided:      "test_secret",
+			provided:      testTestSecret,
 			expectedValid: false,
 			expectedError: true,
-			errorContains: "stored hash empty",
+			errorContains: valueStoredHashEmpty,
 		},
 		{
 			name:          "non_versioned_format",
 			stored:        "pbkdf2-sha256$600000$salt$dk",
-			provided:      "test_secret",
+			provided:      testTestSecret,
 			expectedValid: false,
 			expectedError: true,
-			errorContains: "unsupported hash format",
+			errorContains: testUnsupportedHashFormat,
 		},
 		{
 			name:          "invalid_parts_count",
 			stored:        "{1}$pbkdf2-sha256$600000",
-			provided:      "test_secret",
+			provided:      testTestSecret,
 			expectedValid: false,
 			expectedError: true,
 			errorContains: "invalid versioned hash format",
@@ -126,31 +126,31 @@ func TestVerifySecret_ErrorPaths(t *testing.T) {
 		{
 			name:          "malformed_version",
 			stored:        "1$pbkdf2-sha256$600000$c2FsdA$ZGVyaXZlZA",
-			provided:      "test_secret",
+			provided:      testTestSecret,
 			expectedValid: false,
 			expectedError: true,
-			errorContains: "unsupported hash format",
+			errorContains: testUnsupportedHashFormat,
 		},
 		{
 			name:          "invalid_iterations",
 			stored:        "{1}$pbkdf2-sha256$abc$c2FsdA$ZGVyaXZlZA",
-			provided:      "test_secret",
+			provided:      testTestSecret,
 			expectedValid: false,
 			expectedError: true,
-			errorContains: "invalid iterations",
+			errorContains: testInvalidIterations,
 		},
 		{
 			name:          "negative_iterations",
 			stored:        "{1}$pbkdf2-sha256$-1000$c2FsdA$ZGVyaXZlZA",
-			provided:      "test_secret",
+			provided:      testTestSecret,
 			expectedValid: false,
 			expectedError: true,
-			errorContains: "invalid iterations",
+			errorContains: testInvalidIterations,
 		},
 		{
 			name:          "malformed_base64_salt",
 			stored:        "{1}$pbkdf2-sha256$600000$!!!invalid!!!$ZGVyaXZlZA",
-			provided:      "test_secret",
+			provided:      testTestSecret,
 			expectedValid: false,
 			expectedError: true,
 			errorContains: "invalid salt encoding",
@@ -158,7 +158,7 @@ func TestVerifySecret_ErrorPaths(t *testing.T) {
 		{
 			name:          "malformed_base64_dk",
 			stored:        "{1}$pbkdf2-sha256$600000$c2FsdA$!!!invalid!!!",
-			provided:      "test_secret",
+			provided:      testTestSecret,
 			expectedValid: false,
 			expectedError: true,
 			errorContains: "invalid dk encoding",
@@ -166,7 +166,7 @@ func TestVerifySecret_ErrorPaths(t *testing.T) {
 		{
 			name:          "unsupported_hash_algorithm",
 			stored:        "{1}$pbkdf2-md5$600000$c2FsdA$ZGVyaXZlZA",
-			provided:      "test_secret",
+			provided:      testTestSecret,
 			expectedValid: false,
 			expectedError: true,
 			errorContains: "unsupported hash algorithm",
@@ -174,14 +174,14 @@ func TestVerifySecret_ErrorPaths(t *testing.T) {
 		{
 			name:          "sha384_valid_format",
 			stored:        "{1}$pbkdf2-sha384$600000$VGVzdFNhbHQxMjM0NTY3ODkwMTIzNDU2Nzg5MDEy$dGVzdF9kZXJpdmVkX2tleV80OF9ieXRlc19sb25nX2Zvcl9zaGEzODQ",
-			provided:      "test_secret",
+			provided:      testTestSecret,
 			expectedValid: false, // Will fail hash comparison (fake hash)
 			expectedError: false,
 		},
 		{
 			name:          "sha512_valid_format",
 			stored:        "{1}$pbkdf2-sha512$600000$VGVzdFNhbHQxMjM0NTY3ODkwMTIzNDU2Nzg5MDEy$dGVzdF9kZXJpdmVkX2tleV82NF9ieXRlc19sb25nX2Zvcl9zaGE1MTJfaGFzaF90ZXN0",
-			provided:      "test_secret",
+			provided:      testTestSecret,
 			expectedValid: false, // Will fail hash comparison (fake hash)
 			expectedError: false,
 		},
@@ -228,12 +228,12 @@ func TestParsePbkdf2Params_CoverageCheck(t *testing.T) {
 		{
 			name:          "version_without_opening_brace",
 			stored:        "1}$pbkdf2-sha256$600000$c2FsdA$ZGVyaXZlZA",
-			errorContains: "unsupported hash format",
+			errorContains: testUnsupportedHashFormat,
 		},
 		{
 			name:          "zero_iterations",
 			stored:        "{1}$pbkdf2-sha256$0$c2FsdA$ZGVyaXZlZA",
-			errorContains: "invalid iterations",
+			errorContains: testInvalidIterations,
 		},
 	}
 

@@ -26,7 +26,7 @@ func TestMFAFactor_BeforeCreate(t *testing.T) {
 		{
 			name: "generates_id_when_nil",
 			factor: &MFAFactor{
-				Name:          "test_factor",
+				Name:          testTestFactor,
 				FactorType:    MFAFactorTypeTOTP,
 				Order:         1,
 				AuthProfileID: googleUuid.Must(googleUuid.NewV7()),
@@ -40,7 +40,7 @@ func TestMFAFactor_BeforeCreate(t *testing.T) {
 			name: "preserves_existing_id",
 			factor: &MFAFactor{
 				ID:            googleUuid.Must(googleUuid.NewV7()),
-				Name:          "test_factor",
+				Name:          testTestFactor,
 				FactorType:    MFAFactorTypeTOTP,
 				Order:         1,
 				AuthProfileID: googleUuid.Must(googleUuid.NewV7()),
@@ -53,7 +53,7 @@ func TestMFAFactor_BeforeCreate(t *testing.T) {
 		{
 			name: "generates_nonce_when_empty",
 			factor: &MFAFactor{
-				Name:          "test_factor",
+				Name:          testTestFactor,
 				FactorType:    MFAFactorTypeTOTP,
 				Order:         1,
 				AuthProfileID: googleUuid.Must(googleUuid.NewV7()),
@@ -68,7 +68,7 @@ func TestMFAFactor_BeforeCreate(t *testing.T) {
 		{
 			name: "preserves_existing_nonce",
 			factor: &MFAFactor{
-				Name:          "test_factor",
+				Name:          testTestFactor,
 				FactorType:    MFAFactorTypeTOTP,
 				Order:         1,
 				AuthProfileID: googleUuid.Must(googleUuid.NewV7()),
@@ -110,14 +110,14 @@ func TestMFAFactor_IsNonceValid(t *testing.T) {
 		{
 			name: "valid_nonce_no_expiry",
 			factor: &MFAFactor{
-				Nonce: "valid_nonce",
+				Nonce: testValidNonce,
 			},
 			wantValid: true,
 		},
 		{
 			name: "valid_nonce_not_expired",
 			factor: &MFAFactor{
-				Nonce: "valid_nonce",
+				Nonce: testValidNonce,
 				NonceExpiresAt: func() *time.Time {
 					t := time.Now().UTC().Add(1 * time.Hour)
 
@@ -127,9 +127,9 @@ func TestMFAFactor_IsNonceValid(t *testing.T) {
 			wantValid: true,
 		},
 		{
-			name: "expired_nonce",
+			name: testExpiredNonce,
 			factor: &MFAFactor{
-				Nonce: "expired_nonce",
+				Nonce: testExpiredNonce,
 				NonceExpiresAt: func() *time.Time {
 					t := time.Now().UTC().Add(-1 * time.Hour)
 
@@ -139,9 +139,9 @@ func TestMFAFactor_IsNonceValid(t *testing.T) {
 			wantValid: false,
 		},
 		{
-			name: "used_nonce",
+			name: testUsedNonce,
 			factor: &MFAFactor{
-				Nonce: "used_nonce",
+				Nonce: testUsedNonce,
 				NonceUsedAt: func() *time.Time {
 					t := time.Now().UTC()
 

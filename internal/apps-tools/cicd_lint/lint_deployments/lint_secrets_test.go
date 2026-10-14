@@ -15,7 +15,7 @@ func TestValidateProductSecrets_AllPresent(t *testing.T) {
 	t.Parallel()
 
 	tmpDir := t.TempDir()
-	secretsDir := filepath.Join(tmpDir, "secrets")
+	secretsDir := filepath.Join(tmpDir, validatorNameSecrets)
 	require.NoError(t, os.MkdirAll(secretsDir, dirPermissions))
 
 	productName := cryptoutilSharedMagic.IdentityProductName
@@ -23,7 +23,7 @@ func TestValidateProductSecrets_AllPresent(t *testing.T) {
 	// Create hash_pepper secret.
 	require.NoError(t, os.WriteFile(
 		filepath.Join(secretsDir, productName+"-hash_pepper.secret"),
-		[]byte("pepper"), filePermissions))
+		[]byte(valuePepper), filePermissions))
 
 	// Create all .never files.
 	neverFiles := []string{
@@ -57,11 +57,11 @@ func TestValidateProductSecrets_Missing(t *testing.T) {
 	t.Parallel()
 
 	tmpDir := t.TempDir()
-	secretsDir := filepath.Join(tmpDir, "secrets")
+	secretsDir := filepath.Join(tmpDir, validatorNameSecrets)
 	require.NoError(t, os.MkdirAll(secretsDir, dirPermissions))
 
 	result := &ValidationResult{Valid: true}
-	validateProductSecrets(tmpDir, "sm", result)
+	validateProductSecrets(tmpDir, valueSm, result)
 
 	require.False(t, result.Valid, "expected invalid when secrets missing")
 	require.NotEmpty(t, result.MissingSecrets, "expected missing secrets reported")
@@ -76,13 +76,13 @@ func TestValidateSuiteSecrets_AllPresent(t *testing.T) {
 	t.Parallel()
 
 	tmpDir := t.TempDir()
-	secretsDir := filepath.Join(tmpDir, "secrets")
+	secretsDir := filepath.Join(tmpDir, validatorNameSecrets)
 	require.NoError(t, os.MkdirAll(secretsDir, dirPermissions))
 
 	// Create hash_pepper.
 	require.NoError(t, os.WriteFile(
 		filepath.Join(secretsDir, "cryptoutil-hash_pepper.secret"),
-		[]byte("pepper"), filePermissions))
+		[]byte(valuePepper), filePermissions))
 
 	// Create all .never files.
 	neverFiles := []string{
@@ -115,7 +115,7 @@ func TestValidateSuiteSecrets_Missing(t *testing.T) {
 	t.Parallel()
 
 	tmpDir := t.TempDir()
-	secretsDir := filepath.Join(tmpDir, "secrets")
+	secretsDir := filepath.Join(tmpDir, validatorNameSecrets)
 	require.NoError(t, os.MkdirAll(secretsDir, dirPermissions))
 
 	result := &ValidationResult{Valid: true}
@@ -228,10 +228,10 @@ services:
       POSTGRES_DB: mydb
 `,
 			wantValid: false,
-			wantErrs:  3,
+			wantErrs:  testThree,
 		},
 		{
-			name:      "line numbers are correct",
+			name:      testLineNumbersAreCorrect,
 			content:   "line1\nline2\nPOSTGRES_USER: admin\nline4\nPOSTGRES_DB: mydb\n",
 			wantValid: false,
 			wantErrs:  2,
@@ -252,7 +252,7 @@ services:
 			require.Equal(t, tc.wantValid, result.Valid)
 			require.Len(t, result.Errors, tc.wantErrs)
 
-			if tc.name == "line numbers are correct" {
+			if tc.name == testLineNumbersAreCorrect {
 				require.Contains(t, result.Errors[0], ":3:", "POSTGRES_USER should be on line 3")
 				require.Contains(t, result.Errors[1], ":5:", "POSTGRES_DB should be on line 5")
 			}

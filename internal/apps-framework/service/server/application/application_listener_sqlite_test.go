@@ -92,9 +92,9 @@ func TestStartBasic_TelemetryFailure(t *testing.T) {
 	settings := &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{
 		VerboseMode:     false,
 		OTLPEndpoint:    "invalid://endpoint",
-		OTLPService:     "test-service",
+		OTLPService:     testTestService,
 		OTLPVersion:     cryptoutilSharedMagic.ServiceVersion,
-		OTLPEnvironment: "test",
+		OTLPEnvironment: testTest,
 	}
 
 	basic, err := StartBasic(ctx, settings)
@@ -117,12 +117,12 @@ func TestInitializeServicesOnCore_ErrorPaths(t *testing.T) {
 
 	// Start core infrastructure.
 	settings := &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{
-		LogLevel:        "info",
+		LogLevel:        testInfo,
 		VerboseMode:     false,
-		OTLPEndpoint:    "grpc://localhost:4317",
-		OTLPService:     "test-service",
+		OTLPEndpoint:    testGrpcLocalhost4317,
+		OTLPService:     testTestService,
 		OTLPVersion:     cryptoutilSharedMagic.ServiceVersion,
-		OTLPEnvironment: "test",
+		OTLPEnvironment: testTest,
 		UnsealMode:      cryptoutilSharedMagic.DefaultUnsealModeSysInfo,
 		DatabaseURL:     cryptoutilSharedMagic.SQLiteInMemoryDSN,
 	}
@@ -179,11 +179,11 @@ func TestStartCore_DatabaseProvisionFailure(t *testing.T) {
 	// Use invalid database URL to trigger provisioning failure.
 	settings := &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{
 		DatabaseURL:     "postgres://invalid:invalid@nonexistent:9999/invalid",
-		LogLevel:        "info",
-		OTLPEndpoint:    "grpc://localhost:4317",
-		OTLPService:     "test-service",
+		LogLevel:        testInfo,
+		OTLPEndpoint:    testGrpcLocalhost4317,
+		OTLPService:     testTestService,
 		OTLPVersion:     cryptoutilSharedMagic.ServiceVersion,
-		OTLPEnvironment: "test",
+		OTLPEnvironment: testTest,
 		DevMode:         true, // Keep the failure focused on database provisioning, not host sysinfo.
 		UnsealMode:      cryptoutilSharedMagic.DefaultUnsealModeSysInfo,
 	}
@@ -204,11 +204,11 @@ func TestOpenSQLite_PragmaErrors(t *testing.T) {
 	// Use file-based database in a read-only location to trigger errors.
 	settings := &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{
 		DatabaseURL:     "file:///nonexistent/readonly/test.db",
-		LogLevel:        "info",
-		OTLPEndpoint:    "grpc://localhost:4317",
+		LogLevel:        testInfo,
+		OTLPEndpoint:    testGrpcLocalhost4317,
 		OTLPService:     "test-sqlite-pragma",
 		OTLPVersion:     cryptoutilSharedMagic.ServiceVersion,
-		OTLPEnvironment: "test",
+		OTLPEnvironment: testTest,
 		UnsealMode:      cryptoutilSharedMagic.DefaultUnsealModeSysInfo,
 	}
 
@@ -337,11 +337,11 @@ func TestStartBasic_InvalidOTLPProtocol(t *testing.T) {
 
 	// Use invalid OTLP protocol to trigger telemetry service failure.
 	settings := &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{
-		LogLevel:        "info",
+		LogLevel:        testInfo,
 		OTLPEndpoint:    "invalid-protocol://localhost:4317",
-		OTLPService:     "test-service",
+		OTLPService:     testTestService,
 		OTLPVersion:     cryptoutilSharedMagic.ServiceVersion,
-		OTLPEnvironment: "test",
+		OTLPEnvironment: testTest,
 		UnsealMode:      cryptoutilSharedMagic.DefaultUnsealModeSysInfo,
 		DatabaseURL:     cryptoutilSharedMagic.SQLiteInMemoryDSN,
 	}
@@ -360,11 +360,11 @@ func TestStartBasic_MissingOTLPService(t *testing.T) {
 
 	// Empty OTLP service name should trigger validation error.
 	settings := &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{
-		LogLevel:        "info",
-		OTLPEndpoint:    "grpc://localhost:4317",
+		LogLevel:        testInfo,
+		OTLPEndpoint:    testGrpcLocalhost4317,
 		OTLPService:     "",
 		OTLPVersion:     cryptoutilSharedMagic.ServiceVersion,
-		OTLPEnvironment: "test",
+		OTLPEnvironment: testTest,
 		UnsealMode:      cryptoutilSharedMagic.DefaultUnsealModeSysInfo,
 		DatabaseURL:     cryptoutilSharedMagic.SQLiteInMemoryDSN,
 	}
@@ -384,11 +384,11 @@ func TestInitializeServicesOnCore_NilCore(t *testing.T) {
 
 	settings := &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{
 		DatabaseURL:     cryptoutilSharedMagic.SQLiteInMemoryDSN,
-		LogLevel:        "info",
-		OTLPEndpoint:    "grpc://localhost:4317",
-		OTLPService:     "test-service",
+		LogLevel:        testInfo,
+		OTLPEndpoint:    testGrpcLocalhost4317,
+		OTLPService:     testTestService,
 		OTLPVersion:     cryptoutilSharedMagic.ServiceVersion,
-		OTLPEnvironment: "test",
+		OTLPEnvironment: testTest,
 		UnsealMode:      cryptoutilSharedMagic.DefaultUnsealModeSysInfo,
 	}
 
@@ -407,10 +407,10 @@ func TestStartBasic_InvalidLogLevel(t *testing.T) {
 	// Invalid log level should trigger validation error.
 	settings := &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{
 		LogLevel:        "INVALID_LEVEL",
-		OTLPEndpoint:    "grpc://localhost:4317",
-		OTLPService:     "test-service",
+		OTLPEndpoint:    testGrpcLocalhost4317,
+		OTLPService:     testTestService,
 		OTLPVersion:     cryptoutilSharedMagic.ServiceVersion,
-		OTLPEnvironment: "test",
+		OTLPEnvironment: testTest,
 		UnsealMode:      cryptoutilSharedMagic.DefaultUnsealModeSysInfo,
 		DatabaseURL:     cryptoutilSharedMagic.SQLiteInMemoryDSN,
 	}

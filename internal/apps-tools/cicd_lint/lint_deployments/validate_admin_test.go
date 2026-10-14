@@ -27,8 +27,8 @@ func TestValidateAdmin_ValidCases(t *testing.T) {
 				return createAdminTestDeployment(t,
 					"services:\n  my-app:\n    ports:\n      - \"8700:8080\"\n",
 					map[string]string{
-						"bind-private-address": cryptoutilSharedMagic.IPv4Loopback,
-						"bind-private-port":    "9090",
+						valueBindPrivateAddress: cryptoutilSharedMagic.IPv4Loopback,
+						valueBindPrivatePort:    "9090",
 					})
 			},
 		},
@@ -42,7 +42,7 @@ func TestValidateAdmin_ValidCases(t *testing.T) {
 			},
 		},
 		{
-			name: "no compose file",
+			name: testNoComposeFile,
 			setupFn: func(t *testing.T) string {
 				t.Helper()
 
@@ -79,9 +79,9 @@ func TestValidateAdmin_ValidCases(t *testing.T) {
 				t.Helper()
 
 				dir := t.TempDir()
-				configDir := filepath.Join(dir, "config")
+				configDir := filepath.Join(dir, fileTypeConfig)
 				require.NoError(t, os.MkdirAll(configDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
-				require.NoError(t, os.WriteFile(filepath.Join(configDir, "config.yml"),
+				require.NoError(t, os.WriteFile(filepath.Join(configDir, testConfigYml),
 					[]byte("{{invalid"), cryptoutilSharedMagic.CacheFilePermissions))
 
 				return dir
@@ -93,7 +93,7 @@ func TestValidateAdmin_ValidCases(t *testing.T) {
 				t.Helper()
 
 				return createAdminTestDeployment(t, "", map[string]string{
-					"bind-private-port": "\"not-a-number\"",
+					valueBindPrivatePort: "\"not-a-number\"",
 				})
 			},
 		},
@@ -103,9 +103,9 @@ func TestValidateAdmin_ValidCases(t *testing.T) {
 				t.Helper()
 
 				dir := t.TempDir()
-				configDir := filepath.Join(dir, "config")
+				configDir := filepath.Join(dir, fileTypeConfig)
 				require.NoError(t, os.MkdirAll(configDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
-				require.NoError(t, os.WriteFile(filepath.Join(configDir, "config.yml"),
+				require.NoError(t, os.WriteFile(filepath.Join(configDir, testConfigYml),
 					[]byte("bind-private-address: 12345\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
 				return dir
@@ -117,7 +117,7 @@ func TestValidateAdmin_ValidCases(t *testing.T) {
 				t.Helper()
 
 				dir := t.TempDir()
-				configDir := filepath.Join(dir, "config")
+				configDir := filepath.Join(dir, fileTypeConfig)
 				require.NoError(t, os.MkdirAll(filepath.Join(configDir, "subdir"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 				return dir
@@ -129,7 +129,7 @@ func TestValidateAdmin_ValidCases(t *testing.T) {
 				t.Helper()
 
 				dir := t.TempDir()
-				configDir := filepath.Join(dir, "config")
+				configDir := filepath.Join(dir, fileTypeConfig)
 				require.NoError(t, os.MkdirAll(configDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 				require.NoError(t, os.WriteFile(filepath.Join(configDir, "readme.txt"),
 					[]byte("not yaml"), cryptoutilSharedMagic.CacheFilePermissions))
@@ -179,25 +179,25 @@ func TestValidateAdmin_Violations(t *testing.T) {
 		wantContains []string
 	}{
 		{
-			name: "path not found",
+			name: testPathNotFound,
 			setupFn: func(t *testing.T) string {
 				t.Helper()
 
 				return "/nonexistent/path"
 			},
-			wantContains: []string{"[ValidateAdmin]", "not found"},
+			wantContains: []string{testValidateAdmin, testNotFound},
 		},
 		{
-			name: "path is file",
+			name: testPathIsFile,
 			setupFn: func(t *testing.T) string {
 				t.Helper()
 
 				f := filepath.Join(t.TempDir(), "file")
-				require.NoError(t, os.WriteFile(f, []byte("x"), cryptoutilSharedMagic.CacheFilePermissions))
+				require.NoError(t, os.WriteFile(f, []byte(testX), cryptoutilSharedMagic.CacheFilePermissions))
 
 				return f
 			},
-			wantContains: []string{"[ValidateAdmin]", "not a directory"},
+			wantContains: []string{testValidateAdmin, testNotADirectory},
 		},
 		{
 			name: "admin port exposed",
@@ -207,7 +207,7 @@ func TestValidateAdmin_Violations(t *testing.T) {
 				return createAdminTestDeployment(t,
 					"services:\n  my-app:\n    ports:\n      - \"9090:9090\"\n", nil)
 			},
-			wantContains: []string{"[ValidateAdmin]", "SECURITY VIOLATION", "9090", "ENG-HANDBOOK.md Section 5.3"},
+			wantContains: []string{testValidateAdmin, "SECURITY VIOLATION", "9090", testEngHandbookMdSection53},
 		},
 		{
 			name: "wrong admin port",
@@ -215,10 +215,10 @@ func TestValidateAdmin_Violations(t *testing.T) {
 				t.Helper()
 
 				return createAdminTestDeployment(t, "", map[string]string{
-					"bind-private-port": "8443",
+					valueBindPrivatePort: "8443",
 				})
 			},
-			wantContains: []string{"[ValidateAdmin]", "bind-private-port is 8443", "ENG-HANDBOOK.md Section 5.3"},
+			wantContains: []string{testValidateAdmin, "bind-private-port is 8443", testEngHandbookMdSection53},
 		},
 		{
 			name: "wrong admin address",
@@ -226,10 +226,10 @@ func TestValidateAdmin_Violations(t *testing.T) {
 				t.Helper()
 
 				return createAdminTestDeployment(t, "", map[string]string{
-					"bind-private-address": cryptoutilSharedMagic.IPv4AnyAddress,
+					valueBindPrivateAddress: cryptoutilSharedMagic.IPv4AnyAddress,
 				})
 			},
-			wantContains: []string{"[ValidateAdmin]", "bind-private-address", cryptoutilSharedMagic.IPv4AnyAddress, "ENG-HANDBOOK.md Section 5.3"},
+			wantContains: []string{testValidateAdmin, valueBindPrivateAddress, cryptoutilSharedMagic.IPv4AnyAddress, testEngHandbookMdSection53},
 		},
 	}
 	for _, tc := range tests {
@@ -258,7 +258,7 @@ func TestValidateAdmin_InternalEdgeCases(t *testing.T) {
 		path string
 	}{
 		{name: "unreadable config dir", fn: validateAdminConfigSettings, path: "/nonexistent/dir"},
-		{name: "unreadable compose file", fn: validateAdminNotExposed, path: "/nonexistent/compose.yml"},
+		{name: testUnreadableComposeFile, fn: validateAdminNotExposed, path: testNonexistentComposeYml},
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
@@ -279,7 +279,7 @@ func TestValidateAdmin_ConfigUnreadableFile(t *testing.T) {
 	}
 
 	dir := t.TempDir()
-	configDir := filepath.Join(dir, "config")
+	configDir := filepath.Join(dir, fileTypeConfig)
 	require.NoError(t, os.MkdirAll(configDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 	require.NoError(t, os.Symlink("/nonexistent/broken.yml",
 		filepath.Join(configDir, "broken.yml")))
@@ -292,9 +292,9 @@ func TestValidateAdmin_ConfigUnreadableFile(t *testing.T) {
 func TestValidateAdmin_RealSmIM(t *testing.T) {
 	t.Parallel()
 
-	deploymentDir := filepath.Join("testdata", "deployments", cryptoutilSharedMagic.OTLPServiceSMKMS)
+	deploymentDir := filepath.Join("testdata", defaultDeploymentsDir, cryptoutilSharedMagic.OTLPServiceSMKMS)
 	if _, err := os.Stat(deploymentDir); err != nil {
-		deploymentDir = filepath.Join("..", "..", "..", "..", "deployments", cryptoutilSharedMagic.OTLPServiceSMKMS)
+		deploymentDir = filepath.Join("..", "..", "..", "..", defaultDeploymentsDir, cryptoutilSharedMagic.OTLPServiceSMKMS)
 	}
 
 	if _, err := os.Stat(deploymentDir); err != nil {
@@ -316,23 +316,23 @@ func TestFormatAdminValidationResult(t *testing.T) {
 		contains []string
 	}{
 		{
-			name:     "nil result",
+			name:     testNilResult,
 			result:   nil,
 			contains: []string{"No admin validation result"},
 		},
 		{
-			name:     "valid",
+			name:     testValid,
 			result:   &AdminValidationResult{Valid: true},
-			contains: []string{"PASSED"},
+			contains: []string{testPassed},
 		},
 		{
-			name: "errors and warnings",
+			name: testErrorsAndWarnings,
 			result: &AdminValidationResult{
 				Valid:    false,
-				Errors:   []string{"err1"},
-				Warnings: []string{"warn1"},
+				Errors:   []string{testErr1},
+				Warnings: []string{testWarn1},
 			},
-			contains: []string{cryptoutilSharedMagic.TaskFailed, "ERROR: err1", "WARNING: warn1"},
+			contains: []string{cryptoutilSharedMagic.TaskFailed, testErrorErr1, testWarningWarn1},
 		},
 	}
 
@@ -360,7 +360,7 @@ func createAdminTestDeployment(t *testing.T, composeContent string, configFields
 	}
 
 	if configFields != nil {
-		configDir := filepath.Join(dir, "config")
+		configDir := filepath.Join(dir, fileTypeConfig)
 		require.NoError(t, os.MkdirAll(configDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 		var content string
@@ -368,7 +368,7 @@ func createAdminTestDeployment(t *testing.T, composeContent string, configFields
 			content += k + ": " + v + "\n"
 		}
 
-		require.NoError(t, os.WriteFile(filepath.Join(configDir, "config.yml"),
+		require.NoError(t, os.WriteFile(filepath.Join(configDir, testConfigYml),
 			[]byte(content), cryptoutilSharedMagic.CacheFilePermissions))
 	}
 

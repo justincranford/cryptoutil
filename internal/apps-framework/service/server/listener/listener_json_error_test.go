@@ -18,9 +18,8 @@ import (
 var errTestJSONFailure = errors.New("forced JSON failure")
 
 const (
-	adminLivezPath    = "/admin/api/v1/livez"
-	adminReadyzPath   = "/admin/api/v1/readyz"
-	browserHealthPath = cryptoutilSharedMagic.DefaultBrowserHealthEndpoint
+	adminLivezPath  = "/admin/api/v1/livez"
+	adminReadyzPath = "/admin/api/v1/readyz"
 )
 
 func failingJSONEncoder(_ any) ([]byte, error) {
@@ -160,7 +159,7 @@ func TestPublicHTTPServer_HealthEndpoints_JSONSerializationErrors(t *testing.T) 
 		},
 		{
 			name: "browser health healthy JSON error",
-			path: browserHealthPath,
+			path: cryptoutilSharedMagic.DefaultBrowserHealthEndpoint,
 			setup: func(_ *PublicHTTPServer) {
 				// Default: not shutdown.
 			},
@@ -168,7 +167,7 @@ func TestPublicHTTPServer_HealthEndpoints_JSONSerializationErrors(t *testing.T) 
 		},
 		{
 			name: "browser health shutdown JSON error",
-			path: browserHealthPath,
+			path: cryptoutilSharedMagic.DefaultBrowserHealthEndpoint,
 			setup: func(s *PublicHTTPServer) {
 				s.shutdown = true
 			},

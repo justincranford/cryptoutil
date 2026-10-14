@@ -43,7 +43,7 @@ func TestHandleRegisterUser_ValidationError(t *testing.T) {
 	// username too short — triggers validateRegistrationRequest error → 400
 	body := RegisterUserRequest{
 		Username:   strings.Repeat("a", cryptoutilSharedMagic.IMMinUsernameLength-1),
-		Email:      "user@example.com",
+		Email:      testUserExampleCom,
 		Password:   strings.Repeat("p", cryptoutilSharedMagic.IMMinPasswordLength),
 		TenantName: strings.Repeat("t", cryptoutilSharedMagic.IMMinUsernameLength),
 	}
@@ -80,7 +80,7 @@ func TestHandleRegisterUser_HashError(t *testing.T) {
 
 	body := RegisterUserRequest{
 		Username:   strings.Repeat("a", cryptoutilSharedMagic.IMMinUsernameLength),
-		Email:      "user@example.com",
+		Email:      testUserExampleCom,
 		Password:   strings.Repeat("p", cryptoutilSharedMagic.IMMinPasswordLength),
 		TenantName: strings.Repeat("t", cryptoutilSharedMagic.IMMinUsernameLength),
 	}
@@ -161,7 +161,7 @@ func TestHandleRegisterUser_ServiceError(t *testing.T) {
 
 	body := RegisterUserRequest{
 		Username:     strings.Repeat("a", cryptoutilSharedMagic.IMMinUsernameLength),
-		Email:        "user@example.com",
+		Email:        testUserExampleCom,
 		Password:     strings.Repeat("p", cryptoutilSharedMagic.IMMinPasswordLength),
 		TenantName:   strings.Repeat("t", cryptoutilSharedMagic.IMMinUsernameLength),
 		CreateTenant: true,

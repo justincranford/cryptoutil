@@ -63,11 +63,11 @@ func TestCombinations_HappyPath(t *testing.T) {
 		{"0 of 3", mABC, 0, Combinations{}},
 		{"1 of 3", mABC, 1, Combinations{combinationA, combinationB, combinationC}},
 		{"2 of 3", mABC, 2, Combinations{combinationAB, combinationAC, combinationBC}},
-		{"3 of 3", mABC, 3, Combinations{combinationABC}},
+		{"3 of 3", mABC, test3, Combinations{combinationABC}},
 		{"0 of 4", mABCD, 0, Combinations{}},
 		{"1 of 4", mABCD, 1, Combinations{combinationA, combinationB, combinationC, combinationD}},
 		{"2 of 4", mABCD, 2, Combinations{combinationAB, combinationAC, combinationAD, combinationBC, combinationBD, combinationCD}},
-		{"3 of 4", mABCD, 3, Combinations{combinationABC, combinationABD, combinationACD, combinationBCD}},
+		{"3 of 4", mABCD, test3, Combinations{combinationABC, combinationABD, combinationACD, combinationBCD}},
 		{"4 of 4", mABCD, 4, Combinations{combinationABCD}},
 	}
 	for _, tc := range testCases {

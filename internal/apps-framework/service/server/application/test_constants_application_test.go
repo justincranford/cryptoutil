@@ -1,0 +1,25 @@
+package application
+
+const (
+	testAdminAPIV1Livez                           = "/admin/api/v1/livez"
+	testAdminAPIV1Readyz                          = "/admin/api/v1/readyz"
+	testAlive                                     = "alive"
+	testFilePathToDBSqlite                        = "file://path/to/db.sqlite"
+	testGrpcLocalhost4317                         = "grpc://localhost:4317"
+	testInfo                                      = "info"
+	testMysqlUserPassLocalhost3306DB              = "mysql://user:pass@localhost:3306/db"
+	testNilSettings                               = "nil settings"
+	testPostgresLocalhost5432Dbname               = "postgres://localhost:5432/dbname"
+	testPostgresUserMypasswordLocalhost5432Dbname = "postgres://user:mypassword@localhost:5432/dbname"
+	testPostgresUserPSsW0rdLocalhost5432Dbname    = "postgres://user:p@ss:w0rd@localhost:5432/dbname"
+	testPostgresUserPassHost5432DB                = "postgres://user:pass@host:5432/db"
+	testPostgresUserPassHost5432DBOtherVal        = "postgres://user:pass@host:5432/db?other=val"
+	testPostgresUserPassLocalhost5432DB           = "postgres://user:pass@localhost:5432/db"
+	testPreferred                                 = "preferred"
+	testReady                                     = "ready"
+	testSchemePasswordWithoutAt                   = "scheme/:password_without_at"
+	testSqliteFileMemoryCacheShared               = "sqlite://file::memory:?cache=shared"
+	testTemplateServiceTest                       = "template-service-test"
+	testTest                                      = "test"
+	testTestService                               = "test-service"
+)

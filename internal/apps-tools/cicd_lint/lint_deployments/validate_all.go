@@ -160,7 +160,7 @@ var serviceFrameworkSuffixes = []string{
 func isServiceFrameworkConfig(path string) bool {
 	base := filepath.Base(path)
 
-	if !strings.HasSuffix(base, ".yml") && !strings.HasSuffix(base, ".yaml") {
+	if !strings.HasSuffix(base, valueYml) && !strings.HasSuffix(base, valueYAML) {
 		return false
 	}
 
@@ -179,7 +179,7 @@ func isServiceFrameworkConfig(path string) bool {
 	psIDPrefix := filepath.Base(dir)
 
 	// If the parent is "config", use the grandparent (deployments/{PS-ID}/config/).
-	if psIDPrefix == "config" {
+	if psIDPrefix == fileTypeConfig {
 		psIDPrefix = filepath.Base(filepath.Dir(dir))
 	}
 

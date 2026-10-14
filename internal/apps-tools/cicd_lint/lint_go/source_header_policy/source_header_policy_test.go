@@ -25,9 +25,9 @@ func TestCheckInDirWithYear_ValidHeaders(t *testing.T) {
 	goodFile := filepath.Join(tmpDir, "good.go")
 	content := strings.Join([]string{
 		"// Copyright (c) 2025-" + intToString(currentYear) + " Justin Cranford.",
-		"// SPDX-License-Identifier: AGPL-3.0-only",
+		testSpdxLicenseIdentifierAgpl30Only,
 		"",
-		"package example",
+		testPackageExample,
 		"",
 	}, "\n")
 
@@ -49,7 +49,7 @@ func TestCheckInDirWithYear_DetectsSPDXMismatch(t *testing.T) {
 		"// Copyright (c) 2025-" + intToString(currentYear) + " Justin Cranford.",
 		"// SPDX-License-Identifier: MIT",
 		"",
-		"package example",
+		testPackageExample,
 		"",
 	}, "\n")
 
@@ -72,9 +72,9 @@ func TestCheckInDirWithYear_StaleYearAllowed(t *testing.T) {
 	filePath := filepath.Join(tmpDir, "stale_year.go")
 	content := strings.Join([]string{
 		"// Copyright (c) " + intToString(staleYear) + " Justin Cranford.",
-		"// SPDX-License-Identifier: AGPL-3.0-only",
+		testSpdxLicenseIdentifierAgpl30Only,
 		"",
-		"package example",
+		testPackageExample,
 		"",
 	}, "\n")
 
@@ -95,9 +95,9 @@ func TestCheckInDirWithYear_FutureYearRejected(t *testing.T) {
 	filePath := filepath.Join(tmpDir, "future_year.go")
 	content := strings.Join([]string{
 		"// Copyright (c) 2025-" + intToString(futureYear) + " Justin Cranford.",
-		"// SPDX-License-Identifier: AGPL-3.0-only",
+		testSpdxLicenseIdentifierAgpl30Only,
 		"",
-		"package example",
+		testPackageExample,
 		"",
 	}, "\n")
 
@@ -133,9 +133,9 @@ func TestCheckInDirWithYear_IgnoresBodyStringLiterals(t *testing.T) {
 	filePath := filepath.Join(tmpDir, "fixture.go")
 	content := strings.Join([]string{
 		"// Copyright (c) 2025-" + intToString(currentYear) + " Justin Cranford.",
-		"// SPDX-License-Identifier: AGPL-3.0-only",
+		testSpdxLicenseIdentifierAgpl30Only,
 		"",
-		"package example",
+		testPackageExample,
 		"",
 		"const fixture = `// SPDX-License-Identifier: MIT`",
 		"",

@@ -39,7 +39,7 @@ func (s *Service) handleSendEmailOTP(c *fiber.Ctx) error {
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInvalidRequest,
-			"error_description":               "invalid request body",
+			valueErrorDescription:             valueInvalidRequestBodyValue6F148E46,
 		})
 	}
 
@@ -48,7 +48,7 @@ func (s *Service) handleSendEmailOTP(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInvalidRequest,
-			"error_description":               "invalid user_id format",
+			valueErrorDescription:             valueInvalidUserIDFormatValue30AA2EF5,
 		})
 	}
 
@@ -58,8 +58,8 @@ func (s *Service) handleSendEmailOTP(c *fiber.Ctx) error {
 	user, err := s.repoFactory.UserRepository().GetByID(ctx, userID)
 	if err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-			cryptoutilSharedMagic.StringError: "user_not_found",
-			"error_description":               fmt.Sprintf("user not found: %v", err),
+			cryptoutilSharedMagic.StringError: valueUserNotFoundValue7642C8B6,
+			valueErrorDescription:             fmt.Sprintf("user not found: %v", err),
 		})
 	}
 
@@ -68,7 +68,7 @@ func (s *Service) handleSendEmailOTP(c *fiber.Ctx) error {
 	if err := emailOTPService.SendOTP(ctx, user.ID, req.Email); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorServerError,
-			"error_description":               fmt.Sprintf("failed to send OTP: %v", err),
+			valueErrorDescription:             fmt.Sprintf("failed to send OTP: %v", err),
 		})
 	}
 
@@ -81,7 +81,7 @@ func (s *Service) handleVerifyEmailOTP(c *fiber.Ctx) error {
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInvalidRequest,
-			"error_description":               "invalid request body",
+			valueErrorDescription:             valueInvalidRequestBodyValue6F148E46,
 		})
 	}
 
@@ -90,7 +90,7 @@ func (s *Service) handleVerifyEmailOTP(c *fiber.Ctx) error {
 	if userIDStr == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInvalidRequest,
-			"error_description":               "missing X-User-ID header",
+			valueErrorDescription:             "missing X-User-ID header",
 		})
 	}
 
@@ -98,7 +98,7 @@ func (s *Service) handleVerifyEmailOTP(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInvalidRequest,
-			"error_description":               "invalid X-User-ID format",
+			valueErrorDescription:             "invalid X-User-ID format",
 		})
 	}
 
@@ -109,7 +109,7 @@ func (s *Service) handleVerifyEmailOTP(c *fiber.Ctx) error {
 	if err := emailOTPService.VerifyOTP(ctx, userID, req.Code); err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			cryptoutilSharedMagic.StringError: "invalid_otp",
-			"error_description":               fmt.Sprintf("OTP verification failed: %v", err),
+			valueErrorDescription:             fmt.Sprintf("OTP verification failed: %v", err),
 		})
 	}
 

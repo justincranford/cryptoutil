@@ -46,7 +46,7 @@ func TestPublicHTTPServer_TableDriven_HappyPath(t *testing.T) {
 			},
 		},
 		{
-			name:        "Start",
+			name:        testStart,
 			description: "Verify public server starts and listens on dynamic port",
 			testFunc: func(t *testing.T, server cryptoutilAppsFrameworkServiceServer.IPublicServer) {
 				t.Helper()
@@ -254,7 +254,7 @@ func TestPublicHTTPServer_TableDriven_SadPath(t *testing.T) {
 		expectedError string
 	}{
 		{
-			name:        "NilContext",
+			name:        testNilContext,
 			description: "NewPublicHTTPServer rejects nil context",
 			setupFunc: func(t *testing.T) (cryptoutilAppsFrameworkServiceServer.IPublicServer, error) {
 				t.Helper()
@@ -263,11 +263,11 @@ func TestPublicHTTPServer_TableDriven_SadPath(t *testing.T) {
 
 				return cryptoutilAppsFrameworkServiceServerListener.NewPublicHTTPServer(nil, cryptoutilAppsFrameworkServiceServerTestutil.ServiceFrameworkServerSettings(), tlsCfg) //nolint:staticcheck // Testing nil context.
 			},
-			expectedError: "context cannot be nil",
+			expectedError: testContextCannotBeNil,
 		},
 		{
-			name:        "Start_NilContext",
-			description: "Start rejects nil context",
+			name:        testStartNilContext,
+			description: testStartRejectsNilContext,
 			setupFunc: func(t *testing.T) (cryptoutilAppsFrameworkServiceServer.IPublicServer, error) {
 				t.Helper()
 
@@ -280,11 +280,11 @@ func TestPublicHTTPServer_TableDriven_SadPath(t *testing.T) {
 
 				return server, fmt.Errorf("failed to start server: %w", err)
 			},
-			expectedError: "context cannot be nil",
+			expectedError: testContextCannotBeNil,
 		},
 		{
-			name:        "Shutdown_NilContext",
-			description: "Shutdown accepts nil context and uses Background()",
+			name:        testShutdownNilContext,
+			description: testShutdownAcceptsNilContextAndUsesBackground,
 			setupFunc: func(t *testing.T) (cryptoutilAppsFrameworkServiceServer.IPublicServer, error) {
 				t.Helper()
 

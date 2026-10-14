@@ -122,7 +122,7 @@ func PBKDF2ParameterSetV2() *cryptoutilSharedCryptoDigests.PBKDF2Params {
 // that used weak hashing (e.g., old databases). New passwords MUST use V1 (600k) or V2 (310k).
 func PBKDF2ParameterSetV3() *cryptoutilSharedCryptoDigests.PBKDF2Params {
 	return &cryptoutilSharedCryptoDigests.PBKDF2Params{
-		Version:    "3",
+		Version:    value3Value4E074085,
 		HashName:   cryptoutilSharedMagic.PBKDF2DefaultHashName,
 		Iterations: cryptoutilSharedMagic.PBKDF2V3Iterations,
 		SaltLength: cryptoutilSharedMagic.PBKDF2DefaultSaltBytes,
@@ -176,7 +176,7 @@ func PBKDF2SHA384ParameterSetV2() *cryptoutilSharedCryptoDigests.PBKDF2Params {
 // - SHA-384 hash function.
 func PBKDF2SHA384ParameterSetV3() *cryptoutilSharedCryptoDigests.PBKDF2Params {
 	return &cryptoutilSharedCryptoDigests.PBKDF2Params{
-		Version:    "3",
+		Version:    value3Value4E074085,
 		HashName:   cryptoutilSharedMagic.PBKDF2SHA384HashName,
 		Iterations: cryptoutilSharedMagic.PBKDF2V3Iterations,
 		SaltLength: cryptoutilSharedMagic.PBKDF2DefaultSaltBytes,
@@ -230,7 +230,7 @@ func PBKDF2SHA512ParameterSetV2() *cryptoutilSharedCryptoDigests.PBKDF2Params {
 // - SHA-512 hash function.
 func PBKDF2SHA512ParameterSetV3() *cryptoutilSharedCryptoDigests.PBKDF2Params {
 	return &cryptoutilSharedCryptoDigests.PBKDF2Params{
-		Version:    "3",
+		Version:    value3Value4E074085,
 		HashName:   cryptoutilSharedMagic.PBKDF2SHA512HashName,
 		Iterations: cryptoutilSharedMagic.PBKDF2V3Iterations,
 		SaltLength: cryptoutilSharedMagic.PBKDF2DefaultSaltBytes,

@@ -29,8 +29,8 @@ func TestHandleLoginUser_InvalidCredentials(t *testing.T) {
 	app.Post("/login", svc.HandleLoginUser("test-secret"))
 
 	bodyBytes, err := json.Marshal(map[string]string{
-		"username": "nonexistent",
-		"password": "SecurePass123!",
+		valueUsername:         testNonexistent,
+		testPasswordFieldName: testSecurePass123,
 	})
 	require.NoError(t, err)
 
@@ -51,7 +51,7 @@ func TestHandleLoginUser_InvalidCredentials(t *testing.T) {
 
 	err = json.Unmarshal(body, &response)
 	require.NoError(t, err)
-	require.Contains(t, response[cryptoutilSharedMagic.StringError], "Invalid credentials")
+	require.Contains(t, response[cryptoutilSharedMagic.StringError], valueInvalidCredentials)
 }
 
 // TestHandleLoginUser_Success tests successful login and JWT generation.
@@ -63,15 +63,15 @@ func TestHandleLoginUser_Success(t *testing.T) {
 	svc := NewUserService(repo, factory)
 
 	// First register a user.
-	_, err := svc.RegisterUser(t.Context(), "testuser", "SecurePass123!")
+	_, err := svc.RegisterUser(t.Context(), testTestuser, testSecurePass123)
 	require.NoError(t, err)
 
 	app := fiber.New()
 	app.Post("/login", svc.HandleLoginUser("test-secret-key-12345"))
 
 	bodyBytes, err := json.Marshal(map[string]string{
-		"username": "testuser",
-		"password": "SecurePass123!",
+		valueUsername:         testTestuser,
+		testPasswordFieldName: testSecurePass123,
 	})
 	require.NoError(t, err)
 
@@ -93,7 +93,7 @@ func TestHandleLoginUser_Success(t *testing.T) {
 	err = json.Unmarshal(body, &response)
 	require.NoError(t, err)
 	require.NotEmpty(t, response[cryptoutilSharedMagic.ParamToken])
-	require.NotEmpty(t, response["expires_at"])
+	require.NotEmpty(t, response[valueExpiresAt])
 }
 
 // TestGenerateJWT tests the JWT generation function directly.
@@ -109,15 +109,15 @@ func TestGenerateJWT(t *testing.T) {
 	}{
 		{
 			name:     "valid parameters",
-			userID:   "test-user-id",
-			username: "testuser",
+			userID:   testTestUserID,
+			username: testTestuser,
 			secret:   "test-secret-key-12345",
 			wantErr:  false,
 		},
 		{
 			name:     "empty secret still works",
-			userID:   "test-user-id",
-			username: "testuser",
+			userID:   testTestUserID,
+			username: testTestuser,
 			secret:   "",
 			wantErr:  false,
 		},
@@ -172,7 +172,7 @@ func TestHandleLoginUserWithSession_InvalidJSON(t *testing.T) {
 
 	err = json.Unmarshal(body, &response)
 	require.NoError(t, err)
-	require.Contains(t, response[cryptoutilSharedMagic.StringError], "Invalid request body")
+	require.Contains(t, response[cryptoutilSharedMagic.StringError], valueInvalidRequestBody)
 }
 
 // TestHandleLoginUserWithSession_MissingFields tests session login with missing fields.
@@ -187,7 +187,7 @@ func TestHandleLoginUserWithSession_MissingFields(t *testing.T) {
 	app.Post("/login/session", svc.HandleLoginUserWithSession(nil, true))
 
 	bodyBytes, err := json.Marshal(map[string]string{
-		"username": "testuser",
+		valueUsername: testTestuser,
 		// missing password
 	})
 	require.NoError(t, err)
@@ -215,8 +215,8 @@ func TestHandleLoginUserWithSession_InvalidCredentials(t *testing.T) {
 	app.Post("/login/session", svc.HandleLoginUserWithSession(nil, true))
 
 	bodyBytes, err := json.Marshal(map[string]string{
-		"username": "nonexistent",
-		"password": "SecurePass123!",
+		valueUsername:         testNonexistent,
+		testPasswordFieldName: testSecurePass123,
 	})
 	require.NoError(t, err)
 
@@ -240,7 +240,7 @@ func TestHandleLoginUserWithSession_InvalidSessionManager(t *testing.T) {
 	svc := NewUserService(repo, factory)
 
 	// Register a user first.
-	_, err := svc.RegisterUser(t.Context(), "testuser", "SecurePass123!")
+	_, err := svc.RegisterUser(t.Context(), testTestuser, testSecurePass123)
 	require.NoError(t, err)
 
 	app := fiber.New()
@@ -248,8 +248,8 @@ func TestHandleLoginUserWithSession_InvalidSessionManager(t *testing.T) {
 	app.Post("/login/session", svc.HandleLoginUserWithSession("not-a-session-manager", true))
 
 	bodyBytes, err := json.Marshal(map[string]string{
-		"username": "testuser",
-		"password": "SecurePass123!",
+		valueUsername:         testTestuser,
+		testPasswordFieldName: testSecurePass123,
 	})
 	require.NoError(t, err)
 

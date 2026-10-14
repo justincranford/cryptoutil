@@ -38,8 +38,8 @@ func TestLint_ValidUTF8Files(t *testing.T) {
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	filesByExtension := map[string][]string{
-		"txt": {validFile},
-		"go":  {validGoFile},
+		testTxt: {validFile},
+		testGo:  {validGoFile},
 	}
 
 	err = Lint(logger, filesByExtension)
@@ -60,7 +60,7 @@ func TestLint_FileWithBOM(t *testing.T) {
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	filesByExtension := map[string][]string{
-		"txt": {bomFile},
+		testTxt: {bomFile},
 	}
 
 	err = Lint(logger, filesByExtension)
@@ -78,7 +78,7 @@ func TestFilterTextFilesViaLint(t *testing.T) {
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	filesByExtension := map[string][]string{
-		"go": {goFile},
+		testGo: {goFile},
 	}
 
 	err = Lint(logger, filesByExtension)

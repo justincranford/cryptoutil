@@ -89,7 +89,7 @@ func provisionDatabaseInternal(
 			basic.TelemetryService.Slogger.Info("successfully started PostgreSQL testcontainer", "containerURL", containerURL)
 			databaseURL = containerURL
 			shutdownContainer = cleanup
-		} else if containerMode == "required" {
+		} else if containerMode == valueRequired {
 			basic.TelemetryService.Slogger.Error("failed to start required PostgreSQL testcontainer", cryptoutilSharedMagic.StringError, err)
 
 			return nil, nil, fmt.Errorf("failed to start required PostgreSQL testcontainer: %w", err)
@@ -216,7 +216,7 @@ func openSQLiteInternal(
 // then the new sslmode and cert/key/rootcert params are appended.
 func openPostgreSQL(_ context.Context, databaseURL string, debugMode bool, sslMode, sslCert, sslKey, sslRootCert string) (*gorm.DB, error) {
 	if sslMode != "" {
-		databaseURL = stripQueryParam(databaseURL, "sslmode")
+		databaseURL = stripQueryParam(databaseURL, valueSslmode)
 
 		sep := "?"
 		if strings.Contains(databaseURL, "?") {

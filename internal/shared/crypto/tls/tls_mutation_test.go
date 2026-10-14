@@ -114,7 +114,7 @@ func TestRootCAsPool_ContainsRootCert(t *testing.T) {
 	t.Parallel()
 
 	chain, err := CreateCAChain(&CAChainOptions{
-		ChainLength:      3,
+		ChainLength:      DefaultCAChainLength,
 		CommonNamePrefix: "test.rootpool",
 		Duration:         time.Hour,
 	})
@@ -135,7 +135,7 @@ func TestIntermediateCAsPool_ExcludesRoot(t *testing.T) {
 	t.Parallel()
 
 	chain, err := CreateCAChain(&CAChainOptions{
-		ChainLength:      3,
+		ChainLength:      DefaultCAChainLength,
 		CommonNamePrefix: "test.intpool",
 		Duration:         time.Hour,
 	})

@@ -252,8 +252,8 @@ func TestGenerateReport_MitigatedThreats(t *testing.T) {
 		Name:    "Test",
 		Version: cryptoutilSharedMagic.ServiceVersion,
 		Threats: []Threat{
-			{ID: "T-001", Status: testLiteralMitigated},
-			{ID: "T-002", Status: testLiteralMitigated},
+			{ID: "T-001", Status: cryptoutilSharedMagic.PKIThreatStatusMitigated},
+			{ID: "T-002", Status: cryptoutilSharedMagic.PKIThreatStatusMitigated},
 			{ID: "T-003", Status: testLiteralOpen},
 		},
 	}

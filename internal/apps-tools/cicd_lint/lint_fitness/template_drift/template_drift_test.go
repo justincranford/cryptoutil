@@ -201,10 +201,10 @@ func TestCompareExpectedFS_AllMatch(t *testing.T) {
 	// Create a file on disk.
 	filePath := filepath.Join(tmpDir, "deployments", "test", "Dockerfile")
 	require.NoError(t, os.MkdirAll(filepath.Dir(filePath), cryptoutilSharedMagic.CICDTempDirPermissions))
-	require.NoError(t, os.WriteFile(filePath, []byte("FROM scratch"), cryptoutilSharedMagic.CacheFilePermissions))
+	require.NoError(t, os.WriteFile(filePath, []byte(testFromScratch), cryptoutilSharedMagic.CacheFilePermissions))
 
 	expected := map[string]string{
-		"deployments/test/Dockerfile": "FROM scratch",
+		testDeploymentsTestDockerfile: testFromScratch,
 	}
 
 	err := CompareExpectedFS(expected, tmpDir)
@@ -221,7 +221,7 @@ func TestCompareExpectedFS_ContentMismatch(t *testing.T) {
 	require.NoError(t, os.WriteFile(filePath, []byte("FROM wrong"), cryptoutilSharedMagic.CacheFilePermissions))
 
 	expected := map[string]string{
-		"deployments/test/Dockerfile": "FROM scratch",
+		testDeploymentsTestDockerfile: testFromScratch,
 	}
 
 	err := CompareExpectedFS(expected, tmpDir)
@@ -235,12 +235,12 @@ func TestCompareExpectedFS_MissingFile(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	expected := map[string]string{
-		"deployments/test/Dockerfile": "FROM scratch",
+		testDeploymentsTestDockerfile: testFromScratch,
 	}
 
 	err := CompareExpectedFS(expected, tmpDir)
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "deployments/test/Dockerfile")
+	require.Contains(t, err.Error(), testDeploymentsTestDockerfile)
 }
 
 func TestCompareExpectedFS_SecretsPlaceholder(t *testing.T) {
@@ -273,7 +273,7 @@ func TestChooseComparison_ExactMatch(t *testing.T) {
 func TestChooseComparison_PKICASuperset(t *testing.T) {
 	t.Parallel()
 
-	diff := chooseComparison("deployments/sm-kms/compose.yml", "a\nb", "a\nextra\nb")
+	diff := chooseComparison("deployments/sm-kms/compose.yml", testAB, "a\nextra\nb")
 	require.Empty(t, diff)
 }
 
@@ -282,7 +282,7 @@ func TestChooseComparison_PKICAConfigPrefix(t *testing.T) {
 
 	diff := chooseComparison(
 		"deployments/sm-kms/config/sm-kms-app-framework-common.yml",
-		"a\nb",
+		testAB,
 		"a\nb\nextra",
 	)
 	require.Empty(t, diff)
@@ -291,7 +291,7 @@ func TestChooseComparison_PKICAConfigPrefix(t *testing.T) {
 func TestChooseComparison_StandaloneConfigPrefix(t *testing.T) {
 	t.Parallel()
 
-	diff := chooseComparison("configs/sm-kms/sm-kms-framework.yml", "a\nb", "a\nb\nextra")
+	diff := chooseComparison("configs/sm-kms/sm-kms-framework.yml", testAB, "a\nb\nextra")
 	require.Empty(t, diff)
 }
 

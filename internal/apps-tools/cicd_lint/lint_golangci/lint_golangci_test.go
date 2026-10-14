@@ -35,7 +35,7 @@ func TestLint_ValidConfig(t *testing.T) {
 	require.NoError(t, os.WriteFile(configPath, []byte(configContent), cryptoutilSharedMagic.CacheFilePermissions))
 
 	filesByExtension := map[string][]string{
-		"yml": {configPath},
+		testYml: {configPath},
 	}
 
 	// Lint should succeed for a valid config.
@@ -55,7 +55,7 @@ func TestLint_DeprecatedV1Options(t *testing.T) {
 	require.NoError(t, os.WriteFile(configPath, []byte(configContent), cryptoutilSharedMagic.CacheFilePermissions))
 
 	filesByExtension := map[string][]string{
-		"yml": {configPath},
+		testYml: {configPath},
 	}
 
 	err := Lint(logger, filesByExtension)

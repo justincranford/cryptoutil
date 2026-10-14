@@ -82,7 +82,7 @@ func TestUserRoleRepository_Assign_HappyPath(t *testing.T) {
 		TenantID:     tenant.ID,
 		Username:     googleUuid.New().String(),
 		Email:        googleUuid.New().String() + "@example.com",
-		PasswordHash: "hashed_password",
+		PasswordHash: testHashedPassword,
 		Active:       1,
 	}
 	require.NoError(t, db.Create(user).Error)
@@ -91,7 +91,7 @@ func TestUserRoleRepository_Assign_HappyPath(t *testing.T) {
 	role := &Role{
 		ID:          googleUuid.New(),
 		TenantID:    tenant.ID,
-		Name:        "test_role",
+		Name:        testTestRole,
 		Description: cryptoutilSharedMagic.DESC_TEST_ROLE,
 	}
 	require.NoError(t, db.Create(role).Error)
@@ -125,7 +125,7 @@ func TestUserRoleRepository_Assign_DuplicateAssignment(t *testing.T) {
 	tenant := &Tenant{
 		ID:          tenantID,
 		Name:        tenantID.String(),
-		Description: "Test tenant for duplicate assignment",
+		Description: testTestTenantForDuplicateAssignment,
 		Active:      1,
 	}
 	require.NoError(t, db.Create(tenant).Error)
@@ -136,7 +136,7 @@ func TestUserRoleRepository_Assign_DuplicateAssignment(t *testing.T) {
 		TenantID:     tenant.ID,
 		Username:     googleUuid.New().String(),
 		Email:        googleUuid.New().String() + "@example.com",
-		PasswordHash: "hashed_password",
+		PasswordHash: testHashedPassword,
 		Active:       1,
 	}
 	require.NoError(t, db.Create(user).Error)
@@ -145,7 +145,7 @@ func TestUserRoleRepository_Assign_DuplicateAssignment(t *testing.T) {
 	role := &Role{
 		ID:          googleUuid.New(),
 		TenantID:    tenant.ID,
-		Name:        "test_role",
+		Name:        testTestRole,
 		Description: cryptoutilSharedMagic.DESC_TEST_ROLE,
 	}
 	require.NoError(t, db.Create(role).Error)
@@ -208,7 +208,7 @@ func TestUserRoleRepository_ListRolesByUser_HappyPath(t *testing.T) {
 	tenant := &Tenant{
 		ID:          tenantID,
 		Name:        tenantID.String(),
-		Description: "Test tenant for listing roles",
+		Description: testTestTenantForListingRoles,
 		Active:      1,
 	}
 	require.NoError(t, db.Create(tenant).Error)
@@ -220,7 +220,7 @@ func TestUserRoleRepository_ListRolesByUser_HappyPath(t *testing.T) {
 		TenantID:     tenant.ID,
 		Username:     userID.String(),
 		Email:        googleUuid.New().String() + "@example.com",
-		PasswordHash: "hashed_password",
+		PasswordHash: testHashedPassword,
 		Active:       1,
 	}
 	require.NoError(t, db.Create(user).Error)
@@ -229,7 +229,7 @@ func TestUserRoleRepository_ListRolesByUser_HappyPath(t *testing.T) {
 	role1 := &Role{
 		ID:          googleUuid.New(),
 		TenantID:    tenant.ID,
-		Name:        "role1",
+		Name:        testRole1,
 		Description: cryptoutilSharedMagic.DESC_FIRST_ROLE,
 	}
 	require.NoError(t, db.Create(role1).Error)
@@ -237,7 +237,7 @@ func TestUserRoleRepository_ListRolesByUser_HappyPath(t *testing.T) {
 	role2 := &Role{
 		ID:          googleUuid.New(),
 		TenantID:    tenant.ID,
-		Name:        "role2",
+		Name:        testRole2,
 		Description: cryptoutilSharedMagic.DESC_SECOND_ROLE,
 	}
 	require.NoError(t, db.Create(role2).Error)
@@ -252,8 +252,8 @@ func TestUserRoleRepository_ListRolesByUser_HappyPath(t *testing.T) {
 	require.Len(t, roles, 2)
 
 	roleNames := []string{roles[0].Name, roles[1].Name}
-	require.Contains(t, roleNames, "role1")
-	require.Contains(t, roleNames, "role2")
+	require.Contains(t, roleNames, testRole1)
+	require.Contains(t, roleNames, testRole2)
 }
 
 func TestUserRoleRepository_ListRolesByUser_NoRoles(t *testing.T) {
@@ -268,7 +268,7 @@ func TestUserRoleRepository_ListRolesByUser_NoRoles(t *testing.T) {
 	tenant := &Tenant{
 		ID:          tenantID,
 		Name:        tenantID.String(),
-		Description: "Test tenant for no roles",
+		Description: testTestTenantForNoRoles,
 		Active:      1,
 	}
 	require.NoError(t, db.Create(tenant).Error)
@@ -280,7 +280,7 @@ func TestUserRoleRepository_ListRolesByUser_NoRoles(t *testing.T) {
 		TenantID:     tenant.ID,
 		Username:     userID.String(),
 		Email:        googleUuid.New().String() + "@example.com",
-		PasswordHash: "hashed_password",
+		PasswordHash: testHashedPassword,
 		Active:       1,
 	}
 	require.NoError(t, db.Create(user).Error)
@@ -303,7 +303,7 @@ func TestUserRoleRepository_Revoke_HappyPath(t *testing.T) {
 	tenant := &Tenant{
 		ID:          tenantID,
 		Name:        tenantID.String(),
-		Description: "Test tenant for revoke",
+		Description: testTestTenantForRevoke,
 		Active:      1,
 	}
 	require.NoError(t, db.Create(tenant).Error)
@@ -314,7 +314,7 @@ func TestUserRoleRepository_Revoke_HappyPath(t *testing.T) {
 		TenantID:     tenant.ID,
 		Username:     googleUuid.New().String(),
 		Email:        googleUuid.New().String() + "@example.com",
-		PasswordHash: "hashed_password",
+		PasswordHash: testHashedPassword,
 		Active:       1,
 	}
 	require.NoError(t, db.Create(user).Error)
@@ -323,7 +323,7 @@ func TestUserRoleRepository_Revoke_HappyPath(t *testing.T) {
 	role := &Role{
 		ID:          googleUuid.New(),
 		TenantID:    tenant.ID,
-		Name:        "test_role",
+		Name:        testTestRole,
 		Description: cryptoutilSharedMagic.DESC_TEST_ROLE,
 	}
 	require.NoError(t, db.Create(role).Error)
@@ -363,7 +363,7 @@ func TestUserRoleRepository_ListUsersByRole_HappyPath(t *testing.T) {
 	role := &Role{
 		ID:          googleUuid.New(),
 		TenantID:    tenant.ID,
-		Name:        "shared_role",
+		Name:        testSharedRole,
 		Description: "Role shared by multiple users",
 	}
 	require.NoError(t, db.Create(role).Error)
@@ -374,7 +374,7 @@ func TestUserRoleRepository_ListUsersByRole_HappyPath(t *testing.T) {
 		TenantID:     tenant.ID,
 		Username:     googleUuid.New().String(),
 		Email:        googleUuid.New().String() + "@example.com",
-		PasswordHash: "hashed_password",
+		PasswordHash: testHashedPassword,
 		Active:       1,
 	}
 	require.NoError(t, db.Create(user1).Error)
@@ -384,7 +384,7 @@ func TestUserRoleRepository_ListUsersByRole_HappyPath(t *testing.T) {
 		TenantID:     tenant.ID,
 		Username:     googleUuid.New().String(),
 		Email:        googleUuid.New().String() + "@example.com",
-		PasswordHash: "hashed_password",
+		PasswordHash: testHashedPassword,
 		Active:       1,
 	}
 	require.NoError(t, db.Create(user2).Error)

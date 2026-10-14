@@ -68,7 +68,7 @@ func ValidateConfigFile(configPath string) (*ConfigValidationResult, error) {
 
 // validateBindAddresses checks that bind address values are valid IPv4 addresses.
 func validateBindAddresses(config map[string]any, result *ConfigValidationResult) {
-	addressKeys := []string{"bind-public-address", "bind-private-address"}
+	addressKeys := []string{valueBindPublicAddress, valueBindPrivateAddress}
 
 	for _, key := range addressKeys {
 		val, ok := config[key]
@@ -95,7 +95,7 @@ func validateBindAddresses(config map[string]any, result *ConfigValidationResult
 
 // validatePorts checks that port values are within valid range 1-65535.
 func validatePorts(config map[string]any, result *ConfigValidationResult) {
-	portKeys := []string{"bind-public-port", "bind-private-port"}
+	portKeys := []string{valueBindPublicPort, valueBindPrivatePort}
 
 	for _, key := range portKeys {
 		val, ok := config[key]
@@ -122,7 +122,7 @@ func validatePorts(config map[string]any, result *ConfigValidationResult) {
 
 // validateProtocols checks that protocol values are "https".
 func validateProtocols(config map[string]any, result *ConfigValidationResult) {
-	protocolKeys := []string{"bind-public-protocol", "bind-private-protocol"}
+	protocolKeys := []string{valueBindPublicProtocol, valueBindPrivateProtocol}
 
 	for _, key := range protocolKeys {
 		val, ok := config[key]
@@ -149,7 +149,7 @@ func validateProtocols(config map[string]any, result *ConfigValidationResult) {
 
 // validateAdminBindPolicy enforces that bind-private-address is always 127.0.0.1.
 func validateAdminBindPolicy(config map[string]any, result *ConfigValidationResult) {
-	val, ok := config["bind-private-address"]
+	val, ok := config[valueBindPrivateAddress]
 	if !ok {
 		return
 	}
@@ -205,7 +205,7 @@ func validateConfigSecretRefs(config map[string]any, result *ConfigValidationRes
 
 // validateOTLPConfig checks OTLP telemetry settings for consistency.
 func validateOTLPConfig(config map[string]any, result *ConfigValidationResult) {
-	otlpEnabled, ok := config["otlp"]
+	otlpEnabled, ok := config[valueOtlp]
 	if !ok {
 		return
 	}
@@ -222,7 +222,7 @@ func validateOTLPConfig(config map[string]any, result *ConfigValidationResult) {
 		return
 	}
 
-	requiredWhenEnabled := []string{"otlp-service", "otlp-endpoint"}
+	requiredWhenEnabled := []string{valueOtlpService, valueOtlpEndpoint}
 
 	for _, key := range requiredWhenEnabled {
 		if _, exists := config[key]; !exists {

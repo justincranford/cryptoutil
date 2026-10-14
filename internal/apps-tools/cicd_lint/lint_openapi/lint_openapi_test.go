@@ -43,7 +43,7 @@ paths: {}
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	err = Lint(logger, map[string][]string{"yaml": {specFile}})
+	err = Lint(logger, map[string][]string{testYAML: {specFile}})
 
 	require.NoError(t, err)
 }
@@ -68,7 +68,7 @@ info:
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	err = Lint(logger, map[string][]string{"yaml": {specFile}})
+	err = Lint(logger, map[string][]string{testYAML: {specFile}})
 
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "lint-openapi failed")
@@ -94,7 +94,7 @@ output-options:
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	err = Lint(logger, map[string][]string{"yaml": {configFile}})
+	err = Lint(logger, map[string][]string{testYAML: {configFile}})
 
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "lint-openapi failed")

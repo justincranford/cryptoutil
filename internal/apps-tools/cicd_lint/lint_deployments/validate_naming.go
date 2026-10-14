@@ -89,7 +89,7 @@ func ValidateNaming(rootPath string) (*NamingValidationResult, error) {
 		// Validate file names (*.yml, *.yaml).
 		if isYAMLFile(name) {
 			// Allow docker-compose.yml as-is (valid kebab-case).
-			if !isKebabCase(strings.TrimSuffix(strings.TrimSuffix(name, ".yml"), ".yaml")) {
+			if !isKebabCase(strings.TrimSuffix(strings.TrimSuffix(name, valueYml), valueYAML)) {
 				result.Errors = append(result.Errors, fmt.Sprintf(
 					"[ValidateNaming] File '%s' violates kebab-case - rename to '%s' (path: %s) | See: ENG-HANDBOOK.md Section 4.4.1",
 					name, toKebabCase(name), relPath))
@@ -117,7 +117,7 @@ func isKebabCase(s string) bool {
 // Simple heuristic: lowercase and replace non-alphanumeric with hyphens.
 func toKebabCase(s string) string {
 	// Remove file extensions for suggestion.
-	base := strings.TrimSuffix(strings.TrimSuffix(s, ".yml"), ".yaml")
+	base := strings.TrimSuffix(strings.TrimSuffix(s, valueYml), valueYAML)
 
 	// Convert to lowercase.
 	base = strings.ToLower(base)
@@ -135,12 +135,12 @@ func toKebabCase(s string) string {
 	base = strings.Trim(base, "-")
 
 	// Re-add extension if original had one.
-	if strings.HasSuffix(s, ".yml") {
-		return base + ".yml"
+	if strings.HasSuffix(s, valueYml) {
+		return base + valueYml
 	}
 
-	if strings.HasSuffix(s, ".yaml") {
-		return base + ".yaml"
+	if strings.HasSuffix(s, valueYAML) {
+		return base + valueYAML
 	}
 
 	return base
@@ -148,7 +148,7 @@ func toKebabCase(s string) string {
 
 // isYAMLFile checks if a filename has .yml or .yaml extension.
 func isYAMLFile(name string) bool {
-	return strings.HasSuffix(name, ".yml") || strings.HasSuffix(name, ".yaml")
+	return strings.HasSuffix(name, valueYml) || strings.HasSuffix(name, valueYAML)
 }
 
 // validateComposeServiceNames parses a compose file and validates service names.

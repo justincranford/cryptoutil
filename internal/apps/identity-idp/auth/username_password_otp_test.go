@@ -6,7 +6,7 @@ package auth_test
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"testing"
 
 	googleUuid "github.com/google/uuid"
@@ -30,9 +30,9 @@ func TestOTPService_GenerateOTP(t *testing.T) {
 	service := cryptoutilIdentityAuth.NewOTPService()
 	user := &cryptoutilIdentityDomain.User{
 		ID:                googleUuid.New(),
-		Sub:               "testuser",
-		PreferredUsername: "testuser",
-		Email:             "test@example.com",
+		Sub:               testTestuser,
+		PreferredUsername: testTestuser,
+		Email:             testTestExampleCom,
 	}
 
 	// Test with email method.
@@ -53,9 +53,9 @@ func TestOTPService_ValidateOTP(t *testing.T) {
 	service := cryptoutilIdentityAuth.NewOTPService()
 	user := &cryptoutilIdentityDomain.User{
 		ID:                googleUuid.New(),
-		Sub:               "testuser",
-		PreferredUsername: "testuser",
-		Email:             "test@example.com",
+		Sub:               testTestuser,
+		PreferredUsername: testTestuser,
+		Email:             testTestExampleCom,
 	}
 
 	// Test with email method.
@@ -123,17 +123,17 @@ func TestTOTPValidator_ValidateTOTP(t *testing.T) {
 		wantErr   bool
 	}{
 		{
-			name:      "invalid code with valid secret",
-			secret:    "JBSWY3DPEHPK3PXP", // Base32-encoded secret
+			name:      testInvalidCodeWithValidSecret,
+			secret:    testJbswy3Dpehpk3Pxp, // Base32-encoded secret
 			code:      "000000",
 			wantValid: false,
 			wantErr:   false,
 		},
 		{
-			name:     "store error",
+			name:     testStoreError,
 			secret:   "",
 			code:     "123456",
-			storeErr: fmt.Errorf("store error"),
+			storeErr: errors.New(testStoreError),
 			wantErr:  true,
 		},
 	}
@@ -172,18 +172,18 @@ func TestTOTPValidator_ValidateTOTPWithWindow(t *testing.T) {
 		wantErr    bool
 	}{
 		{
-			name:       "invalid code with valid secret",
-			secret:     "JBSWY3DPEHPK3PXP",
+			name:       testInvalidCodeWithValidSecret,
+			secret:     testJbswy3Dpehpk3Pxp,
 			code:       "000000",
 			windowSize: 1,
 			wantErr:    false,
 		},
 		{
-			name:       "store error",
+			name:       testStoreError,
 			secret:     "",
 			code:       "123456",
 			windowSize: 1,
-			storeErr:   fmt.Errorf("store error"),
+			storeErr:   errors.New(testStoreError),
 			wantErr:    true,
 		},
 	}
@@ -220,16 +220,16 @@ func TestTOTPValidator_ValidateEmailOTP(t *testing.T) {
 		wantErr  bool
 	}{
 		{
-			name:    "invalid code with valid secret",
-			secret:  "JBSWY3DPEHPK3PXP",
+			name:    testInvalidCodeWithValidSecret,
+			secret:  testJbswy3Dpehpk3Pxp,
 			code:    "000000",
 			wantErr: false,
 		},
 		{
-			name:     "store error",
+			name:     testStoreError,
 			secret:   "",
 			code:     "123456",
-			storeErr: fmt.Errorf("store error"),
+			storeErr: errors.New(testStoreError),
 			wantErr:  true,
 		},
 	}
@@ -266,16 +266,16 @@ func TestTOTPValidator_ValidateSMSOTP(t *testing.T) {
 		wantErr  bool
 	}{
 		{
-			name:    "invalid code with valid secret",
-			secret:  "JBSWY3DPEHPK3PXP",
+			name:    testInvalidCodeWithValidSecret,
+			secret:  testJbswy3Dpehpk3Pxp,
 			code:    "000000",
 			wantErr: false,
 		},
 		{
-			name:     "store error",
+			name:     testStoreError,
 			secret:   "",
 			code:     "123456",
-			storeErr: fmt.Errorf("store error"),
+			storeErr: errors.New(testStoreError),
 			wantErr:  true,
 		},
 	}

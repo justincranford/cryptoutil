@@ -24,7 +24,7 @@ func TestSession_BeforeCreate(t *testing.T) {
 		validateSessionID bool
 	}{
 		{
-			name: "generates ID when empty",
+			name: testGeneratesIDWhenEmpty,
 			setupSession: func() *cryptoutilIdentityDomain.Session {
 				return &cryptoutilIdentityDomain.Session{}
 			},
@@ -32,7 +32,7 @@ func TestSession_BeforeCreate(t *testing.T) {
 			validateSessionID: true,
 		},
 		{
-			name: "preserves existing ID",
+			name: testPreservesExistingID,
 			setupSession: func() *cryptoutilIdentityDomain.Session {
 				existingID := googleUuid.Must(googleUuid.NewV7())
 
