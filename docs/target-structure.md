@@ -569,7 +569,7 @@ that reuse PS-ID builder services and PS-ID images.
 | `image.description` LABEL | Service-specific description |
 | Binary built | `./cmd/{PS-ID}` |
 | `EXPOSE` | 8080 (container public) |
-| `HEALTHCHECK` | `CMD /app/{PS-ID} livez || exit 1` |
+| `HEALTHCHECK` | `CMD ["/app/{PS-ID}", "livez"]` |
 | `ENTRYPOINT` | `["/sbin/tini", "--", "/app/{PS-ID}"]` |
 
 **Current state**: 7 PS-ID Dockerfiles exist. 0 product-level Dockerfiles exist. 0 suite-level Dockerfiles exist. This is the intended 10-image deployment model.

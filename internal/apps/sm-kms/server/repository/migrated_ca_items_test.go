@@ -12,7 +12,7 @@ import (
 	_ "modernc.org/sqlite"
 )
 
-func TestMigratedCAItemsTable(t *testing.T) {
+func TestMigratedPKITables(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
@@ -27,12 +27,18 @@ func TestMigratedCAItemsTable(t *testing.T) {
 	err = runner.Apply(db, cryptoutilAppsFrameworkServiceServerRepository.DatabaseTypeSQLite)
 	require.NoError(t, err)
 
-	var tableName string
-
-	err = db.QueryRowContext(ctx,
-		"SELECT name FROM sqlite_master WHERE type='table' AND name=?",
+	for _, expectedTable := range []string{
 		cryptoutilSharedMagic.CA_ITEMS,
-	).Scan(&tableName)
-	require.NoError(t, err)
-	require.Equal(t, cryptoutilSharedMagic.CA_ITEMS, tableName)
+		cryptoutilSharedMagic.PKICertificatesTable,
+		cryptoutilSharedMagic.PKIAuthoritiesTable,
+	} {
+		var tableName string
+
+		err = db.QueryRowContext(ctx,
+			"SELECT name FROM sqlite_master WHERE type='table' AND name=?",
+			expectedTable,
+		).Scan(&tableName)
+		require.NoError(t, err)
+		require.Equal(t, expectedTable, tableName)
+	}
 }

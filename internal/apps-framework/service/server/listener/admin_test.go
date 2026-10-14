@@ -142,56 +142,19 @@ func TestAdminServer_Readyz_NotReady(t *testing.T) {
 	server, err := cryptoutilAppsFrameworkServiceServerListener.NewAdminHTTPServer(context.Background(), cryptoutilAppsFrameworkServiceServerTestutil.ServiceFrameworkServerSettings(), tlsCfg)
 	require.NoError(t, err)
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	// Start server in background.
-	var wg sync.WaitGroup
-
-	wg.Add(1)
-
-	go func() {
-		defer wg.Done()
-
-		_ = server.Start(ctx)
-	}()
-
-	// Wait for server to allocate port.
-	require.Eventually(t, func() bool { return server.ActualPort() > 0 },
-		cryptoutilSharedMagic.DefaultHealthCheckTimeout, cryptoutilSharedMagic.DefaultHealthCheckInterval,
-		"server should allocate a dynamic port")
-
-	port := server.ActualPort()
-
-	// Create HTTPS client.
-	client := &http.Client{
-		Transport: &http.Transport{
-			TLSClientConfig: &tls.Config{
-				MinVersion: tls.VersionTLS13,
-				RootCAs:    cryptoutilAppsFrameworkServiceServerTestutil.PrivateRootCAPool(),
-			},
-			DisableKeepAlives: true,
-		},
-		Timeout: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Second,
-	}
-
-	// Call readyz endpoint (should return 503 - not ready).
-	reqCtx, reqCancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second)
-	defer reqCancel()
-
-	url := "https://" + net.JoinHostPort(cryptoutilSharedMagic.IPv4Loopback, strconv.Itoa(port)) + "/admin/api/v1/readyz"
-	req, err := http.NewRequestWithContext(reqCtx, http.MethodGet, url, nil)
+	request, err := http.NewRequestWithContext(context.Background(), http.MethodGet, "/admin/api/v1/readyz", nil)
 	require.NoError(t, err)
 
-	resp, err := client.Do(req)
+	request.Host = cryptoutilSharedMagic.HostnameLocalhost
+
+	response, err := server.App().Test(request, -1)
 	require.NoError(t, err)
 
-	defer func() { _ = resp.Body.Close() }()
+	defer func() { _ = response.Body.Close() }()
 
-	// Should return 503 Service Unavailable when not ready.
-	assert.Equal(t, http.StatusServiceUnavailable, resp.StatusCode)
+	require.Equal(t, http.StatusServiceUnavailable, response.StatusCode)
 
-	body, err := io.ReadAll(resp.Body)
+	body, err := io.ReadAll(response.Body)
 	require.NoError(t, err)
 
 	var result map[string]any
@@ -199,22 +162,10 @@ func TestAdminServer_Readyz_NotReady(t *testing.T) {
 	err = json.Unmarshal(body, &result)
 	require.NoError(t, err)
 
-	assert.Equal(t, "not ready", result[cryptoutilSharedMagic.StringStatus])
-
-	// Shutdown server.
-	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second)
-	defer shutdownCancel()
-
-	err = server.Shutdown(shutdownCtx)
-	require.NoError(t, err)
-
-	wg.Wait()
-
-	// Wait for port to be fully released before next test.
-	time.Sleep(cryptoutilSharedMagic.TestDefaultRateLimitServiceIP * time.Millisecond)
+	require.Equal(t, "not ready", result[cryptoutilSharedMagic.StringStatus])
 }
 
-// TestAdminServer_HealthChecks_DuringShutdown tests livez and readyz return 503 during shutdown.
+// TestAdminServer_HealthChecks_DuringShutdown tests livez and readyz before and during shutdown.
 func TestAdminServer_HealthChecks_DuringShutdown(t *testing.T) {
 	t.Parallel()
 
@@ -222,101 +173,49 @@ func TestAdminServer_HealthChecks_DuringShutdown(t *testing.T) {
 	server, err := cryptoutilAppsFrameworkServiceServerListener.NewAdminHTTPServer(context.Background(), cryptoutilAppsFrameworkServiceServerTestutil.ServiceFrameworkServerSettings(), tlsCfg)
 	require.NoError(t, err)
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	// Start server in background.
-	var wg sync.WaitGroup
-
-	wg.Add(1)
-
-	go func() {
-		defer wg.Done()
-
-		_ = server.Start(ctx)
-	}()
-
-	// Wait for server to allocate port.
-	require.Eventually(t, func() bool { return server.ActualPort() > 0 },
-		cryptoutilSharedMagic.DefaultHealthCheckTimeout, cryptoutilSharedMagic.DefaultHealthCheckInterval,
-		"server should allocate a dynamic port")
-
-	port := server.ActualPort()
-
-	// Create HTTPS client.
-	client := &http.Client{
-		Transport: &http.Transport{
-			TLSClientConfig: &tls.Config{
-				MinVersion: tls.VersionTLS13,
-				RootCAs:    cryptoutilAppsFrameworkServiceServerTestutil.PrivateRootCAPool(),
-			},
-			DisableKeepAlives: true,
-		},
-		Timeout: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Second,
-	}
-
-	// Mark server ready.
 	server.SetReady(true)
 
-	// Verify readyz returns 200 OK when ready.
-	reqCtx1, reqCancel1 := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second)
-	defer reqCancel1()
-
-	url := "https://" + net.JoinHostPort(cryptoutilSharedMagic.IPv4Loopback, strconv.Itoa(port)) + "/admin/api/v1/readyz"
-	req1, err := http.NewRequestWithContext(reqCtx1, http.MethodGet, url, nil)
+	readyzRequest, err := http.NewRequestWithContext(context.Background(), http.MethodGet, "/admin/api/v1/readyz", nil)
 	require.NoError(t, err)
 
-	resp1, err := client.Do(req1)
+	readyzRequest.Host = cryptoutilSharedMagic.HostnameLocalhost
+
+	readyzResponse, err := server.App().Test(readyzRequest, -1)
 	require.NoError(t, err)
 
-	defer func() { _ = resp1.Body.Close() }()
+	defer func() { _ = readyzResponse.Body.Close() }()
 
-	assert.Equal(t, http.StatusOK, resp1.StatusCode)
+	require.Equal(t, http.StatusOK, readyzResponse.StatusCode)
 
-	// Initiate shutdown in background.
-	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second)
+	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultServerShutdownTimeout)
 	defer shutdownCancel()
 
-	go func() {
-		_ = server.Shutdown(shutdownCtx)
-	}()
+	require.NoError(t, server.Shutdown(shutdownCtx))
 
-	// Wait a bit for shutdown to start.
-	time.Sleep(cryptoutilSharedMagic.JoseJAMaxMaterials * time.Millisecond)
+	for _, path := range []string{"/admin/api/v1/livez", "/admin/api/v1/readyz"} {
+		t.Run(path, func(t *testing.T) {
+			t.Parallel()
 
-	// Call livez endpoint during shutdown (should return 503 - shutting down).
-	reqCtx2, reqCancel2 := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second)
-	defer reqCancel2()
+			request, requestErr := http.NewRequestWithContext(context.Background(), http.MethodGet, path, nil)
+			require.NoError(t, requestErr)
 
-	livezURL := "https://" + net.JoinHostPort(cryptoutilSharedMagic.IPv4Loopback, strconv.Itoa(port)) + "/admin/api/v1/livez"
-	req2, err := http.NewRequestWithContext(reqCtx2, http.MethodGet, livezURL, nil)
-	require.NoError(t, err)
+			request.Host = cryptoutilSharedMagic.HostnameLocalhost
 
-	resp2, err := client.Do(req2)
-	if err != nil {
-		// Connection may be refused if shutdown completed quickly - this is acceptable.
-		t.Logf("Expected error during shutdown: %v", err)
-	} else {
-		defer func() { _ = resp2.Body.Close() }()
+			response, requestErr := server.App().Test(request, -1)
+			require.NoError(t, requestErr)
 
-		// If we got a response, it should be 503 Service Unavailable.
-		if resp2.StatusCode == http.StatusServiceUnavailable {
-			body, readErr := io.ReadAll(resp2.Body)
+			defer func() { _ = response.Body.Close() }()
+
+			require.Equal(t, http.StatusServiceUnavailable, response.StatusCode)
+
+			body, readErr := io.ReadAll(response.Body)
 			require.NoError(t, readErr)
 
 			var result map[string]any
-
-			unmarshalErr := json.Unmarshal(body, &result)
-			require.NoError(t, unmarshalErr)
-
-			assert.Equal(t, cryptoutilSharedMagic.StringStatusShuttingDown, result[cryptoutilSharedMagic.StringStatus])
-		}
+			require.NoError(t, json.Unmarshal(body, &result))
+			require.Equal(t, cryptoutilSharedMagic.StringStatusShuttingDown, result[cryptoutilSharedMagic.StringStatus])
+		})
 	}
-
-	wg.Wait()
-
-	// Wait for port to be fully released before next test.
-	time.Sleep(cryptoutilSharedMagic.TestDefaultRateLimitServiceIP * time.Millisecond)
 }
 
 // TestAdminServer_Start_NilContext tests that Start rejects nil context.

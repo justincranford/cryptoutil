@@ -8,9 +8,9 @@
 <!-- @to-appendix as="minimum-versions" appendixes=".github/instructions/02-02.versions.instructions.md" -->
 **CRITICAL: ALWAYS use the same version everywhere** (dev, CI/CD, Docker, workflows, docs)
 
-- Go: 1.26.1+
+- Go: 1.27.2+
 - Python: 3.14+
-- golangci-lint: v2.12.2+
+- golangci-lint: v2.14.0+
 - Node: v24.11.1+ LTS
 - Java: 21 LTS (Gatling load tests)
 - Maven: 3.9+
@@ -19,7 +19,7 @@
 - Docker Compose: v5+
 <!-- @/to-appendix -->
 
-**Languages**: Go 1.26.1 (services), Python 3.14+ (utilities), Node v24.11.1+ (CLI tools)
+**Languages**: Go 1.27.2 (services), Python 3.14+ (utilities), Node v24.11.1+ (CLI tools)
 **Databases**: PostgreSQL 18, SQLite (modernc.org/sqlite, CGO-free)
 **Frameworks**: Fiber (HTTP), GORM (ORM), oapi-codegen (OpenAPI)
 **Container Base**: Alpine Linux latest (all Dockerfiles, unpinned for security patches)

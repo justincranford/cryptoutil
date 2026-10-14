@@ -25,6 +25,7 @@ import (
 	cryptoutilAppsSmKmsRepository "cryptoutil/internal/apps/sm-kms/server/repository"
 	cryptoutilOrmRepository "cryptoutil/internal/apps/sm-kms/server/repository/orm"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
+	cryptoutilSharedDatabase "cryptoutil/internal/shared/database"
 	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 
 	fiber "github.com/gofiber/fiber/v2"
@@ -66,7 +67,7 @@ func NewKMSServerFromConfig(
 				return fmt.Errorf("failed to create business logic service: %w", err)
 			}
 
-			return registerKMSRoutes(publicServerBase.App(), bizLogicService, settings, res)
+			return registerKMSRoutes(ctx, publicServerBase.App(), bizLogicService, settings, res)
 		},
 	})
 	if err != nil {
@@ -92,7 +93,14 @@ func tenantContextBridgeMiddleware() fiber.Handler {
 				RealmID:  rid,
 				Source:   "session",
 			}
-			c.SetUserContext(context.WithValue(c.UserContext(), cryptoutilAppsFrameworkServiceServerMiddleware.RealmContextKey{}, rc))
+			uid, _ := c.Locals(cryptoutilAppsFrameworkServiceServerMiddleware.ContextKeyUserID).(googleUuid.UUID)
+			userContext := context.WithValue(c.UserContext(), cryptoutilAppsFrameworkServiceServerMiddleware.RealmContextKey{}, rc)
+			userContext = cryptoutilSharedDatabase.WithTenantContext(userContext, &cryptoutilSharedDatabase.TenantContext{
+				TenantID: tid,
+				RealmID:  rid,
+				UserID:   uid,
+			})
+			c.SetUserContext(userContext)
 		}
 
 		return c.Next()
@@ -101,10 +109,34 @@ func tenantContextBridgeMiddleware() fiber.Handler {
 
 // registerKMSRoutes registers KMS-specific routes on the public Fiber app.
 func registerKMSRoutes(
+	ctx context.Context,
 	app *fiber.App,
 	bizLogicService *cryptoutilKmsServerBusinesslogic.BusinessLogicService,
 	settings *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings,
 	res *cryptoutilAppsFrameworkServiceServerBuilder.ServiceResources,
+) error {
+	if ctx == nil {
+		return fmt.Errorf("context is required")
+	}
+
+	if res == nil || res.DB == nil || res.BarrierService == nil {
+		return fmt.Errorf("database and barrier service resources are required")
+	}
+
+	components, err := cryptoutilAppsSmKmsPKIServer.NewPKIComponents(ctx, res.DB, res.BarrierService)
+	if err != nil {
+		return fmt.Errorf("failed to initialize PKI components: %w", err)
+	}
+
+	return registerKMSRoutesWithPKIComponents(app, bizLogicService, settings, res, components)
+}
+
+func registerKMSRoutesWithPKIComponents(
+	app *fiber.App,
+	bizLogicService *cryptoutilKmsServerBusinesslogic.BusinessLogicService,
+	settings *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings,
+	res *cryptoutilAppsFrameworkServiceServerBuilder.ServiceResources,
+	components *cryptoutilAppsSmKmsPKIServer.PKIComponents,
 ) error {
 	// Create the OpenAPI strict server handler.
 	openapiStrictServer := cryptoutilAppsSmKmsServerHandler.NewOpenapiStrictServer(bizLogicService)
@@ -157,11 +189,6 @@ func registerKMSRoutes(
 
 		registerCompatRoutes(browserGroup)
 		registerCompatRoutes(serviceGroup)
-	}
-
-	components, err := cryptoutilAppsSmKmsPKIServer.NewPKIComponents()
-	if err != nil {
-		return fmt.Errorf("failed to initialize PKI components: %w", err)
 	}
 
 	if err := cryptoutilAppsSmKmsPKIServer.RegisterPKIRoutes(serviceGroup, browserGroup, components); err != nil {

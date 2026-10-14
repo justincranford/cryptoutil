@@ -172,7 +172,7 @@ func TestWaitForMultipleServices(t *testing.T) {
 			name:         "all healthy services succeed",
 			serviceNames: []string{"svc-a", "svc-b"},
 			statusCode:   http.StatusOK,
-			timeout:      cryptoutilSharedMagic.TestUnitMediumTimeout,
+			timeout:      cryptoutilSharedMagic.TestUnitHealthCheckTimeout,
 			wantRequests: true,
 		},
 	}

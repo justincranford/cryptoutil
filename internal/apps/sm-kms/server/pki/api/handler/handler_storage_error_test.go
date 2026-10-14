@@ -52,6 +52,14 @@ func (s *errorStore) GetBySerialNumber(ctx context.Context, serialNumber string)
 	return s.inner.GetBySerialNumber(ctx, serialNumber)
 }
 
+func (s *errorStore) GetByRequestID(ctx context.Context, requestID googleUuid.UUID) (*cryptoutilCAStorage.StoredCertificate, error) {
+	if s.getErr != nil {
+		return nil, s.getErr
+	}
+
+	return s.inner.GetByRequestID(ctx, requestID)
+}
+
 func (s *errorStore) List(ctx context.Context, filter *cryptoutilCAStorage.ListFilter) ([]*cryptoutilCAStorage.StoredCertificate, int, error) {
 	if s.listErr != nil {
 		return nil, 0, s.listErr

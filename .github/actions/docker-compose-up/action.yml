@@ -17,30 +17,42 @@ runs:
   steps:
     - name: Start Docker Compose services
       shell: bash
+      env:
+        COMPOSE_INPUT_PATH: ${{ inputs.compose-file }}
+        COMPOSE_PROFILES: ${{ inputs.profiles }}
       run: |
         echo "🚀 Starting Docker Compose services..."
         START_TIME=$(date +%s)
         echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
 
+        COMPOSE_DIR="$(dirname "$COMPOSE_INPUT_PATH")"
+        COMPOSE_FILE="$(basename "$COMPOSE_INPUT_PATH")"
+        cd "$COMPOSE_DIR"
+
         # Build docker compose command with optional profiles
-        COMPOSE_CMD="docker compose -f ${{ inputs.compose-file }}"
-        if [ -n "${{ inputs.profiles }}" ]; then
-          echo "🎯 Activating profiles: ${{ inputs.profiles }}"
+        COMPOSE_ARGS=(--file "$COMPOSE_FILE")
+        if [ -n "$COMPOSE_PROFILES" ]; then
+          echo "🎯 Activating profiles: $COMPOSE_PROFILES"
           # Split comma-separated profiles and add --profile flag for each
-          IFS=',' read -ra PROFILE_ARRAY <<< "${{ inputs.profiles }}"
+          IFS=',' read -ra PROFILE_ARRAY <<< "$COMPOSE_PROFILES"
           for profile in "${PROFILE_ARRAY[@]}"; do
-            COMPOSE_CMD="$COMPOSE_CMD --profile $(echo $profile | xargs)"
+            COMPOSE_ARGS+=(--profile "$(echo "$profile" | xargs)")
           done
         fi
 
         # Start services
-        $COMPOSE_CMD up -d
+        docker compose "${COMPOSE_ARGS[@]}" up -d
 
         echo "⏳ Waiting for services to be healthy..."
-        timeout 120s bash -c "until $COMPOSE_CMD ps | grep -q 'healthy'; do echo 'Waiting for healthy services...'; sleep 5; done"
+        timeout 120s bash -c '
+          until docker compose "$@" ps | grep -q "healthy"; do
+            echo "Waiting for healthy services..."
+            sleep 5
+          done
+        ' _ "${COMPOSE_ARGS[@]}"
 
         echo "📋 Service status:"
-        $COMPOSE_CMD ps
+        docker compose "${COMPOSE_ARGS[@]}" ps
         END_TIME=$(date +%s)
         DURATION=$((END_TIME - START_TIME))
         echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"

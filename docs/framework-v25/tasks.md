@@ -995,13 +995,12 @@ Verify propagation integrity.
 
 ---
 
-## Notes / Deferred Work
+## Follow-up Resolution and Registry Decisions
 
-- **Database-backed PKI storage**: pki-ca uses in-memory storage. Migrating to DB-backed
-  storage (GORM + PostgreSQL) is a separate feature planned for a future phase.
-- **pki port range 8300**: Freed by this plan but not reallocated. Available for future use.
-- **pki migration range 5001â€“5999**: Freed but not reallocated.
-- **pg_host_port 54323**: Freed but not reallocated.
+- [x] PKI certificate and authority data use sm-kms GORM persistence on the shared SQLite/PostgreSQL database, via migrations 2010 and 2011.
+- [x] The CA private key is barrier-encrypted before persistence.
+- [x] CRL and OCSP responses use tenant-scoped persisted revocation status, including after process restart.
+- [x] Retired PKI port 8300, PostgreSQL host port 54323, and migration range 5001-5999 remain unassigned; any future allocation requires an explicit canonical registry change.
 
 ---
 

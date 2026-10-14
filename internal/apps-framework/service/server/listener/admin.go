@@ -11,6 +11,7 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/pem"
+	"errors"
 	"fmt"
 	"net"
 	"os"
@@ -220,6 +221,14 @@ func (s *AdminServer) Start(ctx context.Context) error {
 		return fmt.Errorf("context cannot be nil")
 	}
 
+	s.mu.RLock()
+	shutdown := s.shutdown
+	s.mu.RUnlock()
+
+	if shutdown {
+		return fmt.Errorf("admin server already shutdown")
+	}
+
 	// Bind to address and port from ServiceFrameworkServerSettings.
 	addr := net.JoinHostPort(s.settings.BindPrivateAddress, strconv.Itoa(int(s.settings.BindPrivatePort)))
 
@@ -229,11 +238,20 @@ func (s *AdminServer) Start(ctx context.Context) error {
 		return fmt.Errorf("failed to create admin listener: %w", err)
 	}
 
-	s.listener = listener
-
 	// Store actual port if dynamic allocation was used (port 0).
 	// Use mutex to protect actualPort writes for concurrent access safety.
 	s.mu.Lock()
+	if s.shutdown {
+		s.mu.Unlock()
+
+		if closeErr := listener.Close(); closeErr != nil && !errors.Is(closeErr, net.ErrClosed) {
+			return fmt.Errorf("admin server already shutdown; failed to close listener: %w", closeErr)
+		}
+
+		return fmt.Errorf("admin server already shutdown")
+	}
+
+	s.listener = listener
 
 	if s.settings.BindPrivatePort == 0 {
 		tcpAddr, ok := listener.Addr().(*net.TCPAddr)
@@ -287,6 +305,18 @@ func (s *AdminServer) Start(ctx context.Context) error {
 
 		return fmt.Errorf("admin server stopped: %w", ctx.Err())
 	case err := <-errChan:
+		if err == nil {
+			return nil
+		}
+
+		s.mu.RLock()
+		shutdown := s.shutdown
+		s.mu.RUnlock()
+
+		if shutdown && errors.Is(err, net.ErrClosed) {
+			return nil
+		}
+
 		return err
 	}
 }
@@ -307,19 +337,24 @@ func (s *AdminServer) Shutdown(ctx context.Context) error {
 
 	s.shutdown = true
 	s.ready = false
+	listener := s.listener
 	s.mu.Unlock()
 
-	// Shutdown Fiber app (this automatically closes the listener).
+	var shutdownErr error
+
 	if s.app != nil {
 		if err := s.app.ShutdownWithContext(ctx); err != nil {
-			return fmt.Errorf("failed to shutdown admin app: %w", err)
+			shutdownErr = errors.Join(shutdownErr, fmt.Errorf("failed to shutdown admin app: %w", err))
 		}
 	}
 
-	// Do NOT explicitly close listener - Fiber's Shutdown already did this.
-	// Attempting to close again causes "use of closed network connection" errors.
+	if listener != nil {
+		if err := listener.Close(); err != nil && !errors.Is(err, net.ErrClosed) {
+			shutdownErr = errors.Join(shutdownErr, fmt.Errorf("failed to close admin listener: %w", err))
+		}
+	}
 
-	return nil
+	return shutdownErr
 }
 
 // ActualPort returns the actual port the admin server is listening on.

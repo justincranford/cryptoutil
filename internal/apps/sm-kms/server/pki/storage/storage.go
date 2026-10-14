@@ -5,6 +5,7 @@ package storage
 import (
 	"context"
 	"crypto/x509"
+	"encoding/pem"
 	"errors"
 	"fmt"
 	"sync"
@@ -19,8 +20,10 @@ import (
 var (
 	ErrCertificateNotFound = errors.New("certificate not found")
 	ErrCertificateExists   = errors.New("certificate already exists")
+	ErrCertificateRevoked  = errors.New("certificate already revoked")
 	ErrInvalidCertificate  = errors.New("invalid certificate")
 	ErrStorageFull         = errors.New("storage capacity exceeded")
+	ErrAuthorityNotFound   = errors.New("PKI authority not found")
 )
 
 // CertificateStatus represents the status of a stored certificate.
@@ -53,25 +56,48 @@ const (
 
 // StoredCertificate represents a certificate in storage.
 type StoredCertificate struct {
-	ID               googleUuid.UUID   `json:"id"`
-	SerialNumber     string            `json:"serial_number"`
-	SubjectDN        string            `json:"subject_dn"`
-	IssuerDN         string            `json:"issuer_dn"`
-	NotBefore        time.Time         `json:"not_before"`
-	NotAfter         time.Time         `json:"not_after"`
-	Status           CertificateStatus `json:"status"`
-	ProfileID        string            `json:"profile_id"`
-	RequesterID      string            `json:"requester_id"`
-	CertificatePEM   string            `json:"certificate_pem"`
+	ID               googleUuid.UUID   `json:"id" gorm:"type:text;primaryKey"`
+	TenantID         googleUuid.UUID   `json:"tenant_id" gorm:"type:text;not null;index:idx_pki_certificates_tenant_status,priority:1;uniqueIndex:idx_pki_certificates_tenant_serial,priority:1;index:idx_pki_certificates_tenant_request,priority:1"`
+	RequestID        googleUuid.UUID   `json:"request_id" gorm:"type:text;not null;index:idx_pki_certificates_tenant_request,priority:2"`
+	SerialNumber     string            `json:"serial_number" gorm:"not null;uniqueIndex:idx_pki_certificates_tenant_serial,priority:2"`
+	SubjectDN        string            `json:"subject_dn" gorm:"not null"`
+	IssuerDN         string            `json:"issuer_dn" gorm:"not null"`
+	NotBefore        time.Time         `json:"not_before" gorm:"not null"`
+	NotAfter         time.Time         `json:"not_after" gorm:"not null"`
+	Status           CertificateStatus `json:"status" gorm:"not null;index:idx_pki_certificates_tenant_status,priority:2"`
+	ProfileID        string            `json:"profile_id" gorm:"not null"`
+	RequesterID      string            `json:"requester_id" gorm:"not null"`
+	CertificatePEM   string            `json:"certificate_pem" gorm:"not null"`
 	CertificateDER   []byte            `json:"certificate_der"`
-	PublicKeyHash    string            `json:"public_key_hash"`
-	SubjectKeyID     string            `json:"subject_key_id"`
-	AuthorityKeyID   string            `json:"authority_key_id"`
+	PublicKeyHash    string            `json:"public_key_hash" gorm:"not null"`
+	SubjectKeyID     string            `json:"subject_key_id" gorm:"not null"`
+	AuthorityKeyID   string            `json:"authority_key_id" gorm:"not null"`
 	RevocationTime   *time.Time        `json:"revocation_time,omitempty"`
 	RevocationReason *RevocationReason `json:"revocation_reason,omitempty"`
-	Metadata         map[string]string `json:"metadata"`
-	CreatedAt        time.Time         `json:"created_at"`
-	UpdatedAt        time.Time         `json:"updated_at"`
+	Metadata         map[string]string `json:"metadata" gorm:"serializer:json;not null"`
+	CreatedAt        time.Time         `json:"created_at" gorm:"not null;autoCreateTime"`
+	UpdatedAt        time.Time         `json:"updated_at" gorm:"not null;autoUpdateTime"`
+}
+
+func (StoredCertificate) TableName() string {
+	return cryptoutilSharedMagic.PKICertificatesTable
+}
+
+type StoredAuthority struct {
+	ID                  string    `gorm:"type:text;primaryKey"`
+	CertificateDER      []byte    `gorm:"not null"`
+	PrivateKeyEncrypted []byte    `gorm:"not null"`
+	CreatedAt           time.Time `gorm:"not null;autoCreateTime"`
+	UpdatedAt           time.Time `gorm:"not null;autoUpdateTime"`
+}
+
+func (StoredAuthority) TableName() string {
+	return cryptoutilSharedMagic.PKIAuthoritiesTable
+}
+
+type AuthorityStore interface {
+	Get(ctx context.Context, id string) (*StoredAuthority, error)
+	Create(ctx context.Context, authority *StoredAuthority) error
 }
 
 // ListFilter defines filtering options for listing certificates.
@@ -96,6 +122,9 @@ type Store interface {
 
 	// GetBySerialNumber retrieves a certificate by serial number.
 	GetBySerialNumber(ctx context.Context, serialNumber string) (*StoredCertificate, error)
+
+	// GetByRequestID retrieves a certificate by enrollment request ID.
+	GetByRequestID(ctx context.Context, requestID googleUuid.UUID) (*StoredCertificate, error)
 
 	// List returns certificates matching the filter.
 	List(ctx context.Context, filter *ListFilter) ([]*StoredCertificate, int, error)
@@ -123,6 +152,7 @@ type Store interface {
 type MemoryStore struct {
 	certificates map[googleUuid.UUID]*StoredCertificate
 	bySerial     map[string]googleUuid.UUID
+	byRequestID  map[googleUuid.UUID]googleUuid.UUID
 	mu           sync.RWMutex
 }
 
@@ -131,6 +161,7 @@ func NewMemoryStore() *MemoryStore {
 	return &MemoryStore{
 		certificates: make(map[googleUuid.UUID]*StoredCertificate),
 		bySerial:     make(map[string]googleUuid.UUID),
+		byRequestID:  make(map[googleUuid.UUID]googleUuid.UUID),
 	}
 }
 
@@ -151,12 +182,22 @@ func (s *MemoryStore) Store(_ context.Context, cert *StoredCertificate) error {
 		return fmt.Errorf("serial number already exists: %s", cert.SerialNumber)
 	}
 
+	if cert.RequestID != googleUuid.Nil {
+		if _, exists := s.byRequestID[cert.RequestID]; exists {
+			return fmt.Errorf("request ID already exists: %s", cert.RequestID)
+		}
+	}
+
 	now := time.Now().UTC()
 	cert.CreatedAt = now
 	cert.UpdatedAt = now
 
 	s.certificates[cert.ID] = cert
+
 	s.bySerial[cert.SerialNumber] = cert.ID
+	if cert.RequestID != googleUuid.Nil {
+		s.byRequestID[cert.RequestID] = cert.ID
+	}
 
 	return nil
 }
@@ -180,6 +221,23 @@ func (s *MemoryStore) GetBySerialNumber(_ context.Context, serialNumber string) 
 	defer s.mu.RUnlock()
 
 	id, exists := s.bySerial[serialNumber]
+	if !exists {
+		return nil, ErrCertificateNotFound
+	}
+
+	cert, exists := s.certificates[id]
+	if !exists {
+		return nil, ErrCertificateNotFound
+	}
+
+	return cert, nil
+}
+
+func (s *MemoryStore) GetByRequestID(_ context.Context, requestID googleUuid.UUID) (*StoredCertificate, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	id, exists := s.byRequestID[requestID]
 	if !exists {
 		return nil, ErrCertificateNotFound
 	}
@@ -286,6 +344,11 @@ func (s *MemoryStore) Delete(_ context.Context, id googleUuid.UUID) error {
 	}
 
 	delete(s.bySerial, cert.SerialNumber)
+
+	if cert.RequestID != googleUuid.Nil {
+		delete(s.byRequestID, cert.RequestID)
+	}
+
 	delete(s.certificates, id)
 
 	return nil
@@ -302,7 +365,7 @@ func (s *MemoryStore) Revoke(_ context.Context, id googleUuid.UUID, reason Revoc
 	}
 
 	if cert.Status == StatusRevoked {
-		return errors.New("certificate already revoked")
+		return ErrCertificateRevoked
 	}
 
 	now := time.Now().UTC()
@@ -362,7 +425,7 @@ func NewStoredCertificateFromX509(cert *x509.Certificate, profileID, requesterID
 
 	return &StoredCertificate{
 		ID:             id,
-		SerialNumber:   cert.SerialNumber.String(),
+		SerialNumber:   cert.SerialNumber.Text(cryptoutilSharedMagic.HexBase),
 		SubjectDN:      cert.Subject.String(),
 		IssuerDN:       cert.Issuer.String(),
 		NotBefore:      cert.NotBefore,
@@ -370,6 +433,7 @@ func NewStoredCertificateFromX509(cert *x509.Certificate, profileID, requesterID
 		Status:         StatusActive,
 		ProfileID:      profileID,
 		RequesterID:    requesterID,
+		CertificatePEM: string(pem.EncodeToMemory(&pem.Block{Type: cryptoutilSharedMagic.StringPEMTypeCertificate, Bytes: cert.Raw})),
 		CertificateDER: cert.Raw,
 		SubjectKeyID:   fmt.Sprintf("%x", cert.SubjectKeyId),
 		AuthorityKeyID: fmt.Sprintf("%x", cert.AuthorityKeyId),

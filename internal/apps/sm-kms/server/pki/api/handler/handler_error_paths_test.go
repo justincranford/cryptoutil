@@ -7,6 +7,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	cryptoutilCAStorage "cryptoutil/internal/apps/sm-kms/server/pki/storage"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	fiber "github.com/gofiber/fiber/v2"
@@ -126,6 +127,7 @@ func TestGetEnrollmentStatus_NotFound(t *testing.T) {
 	testSetup := createTestIssuer(t)
 	handler := &Handler{
 		issuer:            testSetup.Issuer,
+		storage:           cryptoutilCAStorage.NewMemoryStore(),
 		enrollmentTracker: newEnrollmentTracker(cryptoutilSharedMagic.JoseJAMaxMaterials),
 	}
 

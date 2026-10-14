@@ -3,6 +3,7 @@ package handler
 
 import (
 	"context"
+	json "encoding/json"
 	http "net/http"
 	"net/http/httptest"
 	"testing"
@@ -107,6 +108,54 @@ func TestGetEnrollmentStatus_IssuedNoCertificate(t *testing.T) {
 
 	err = resp.Body.Close()
 	require.NoError(t, err)
+}
+
+func TestGetEnrollmentStatus_PersistedAfterTrackerRestart(t *testing.T) {
+	t.Parallel()
+
+	app := fiber.New()
+	storage := cryptoutilCAStorage.NewMemoryStore()
+	requestID := googleUuid.Must(googleUuid.NewV7())
+	certificate := &cryptoutilCAStorage.StoredCertificate{
+		ID:             googleUuid.Must(googleUuid.NewV7()),
+		RequestID:      requestID,
+		SerialNumber:   googleUuid.Must(googleUuid.NewV7()).String(),
+		SubjectDN:      testSubjectDNExample,
+		IssuerDN:       testIssuerDNTestCA,
+		NotBefore:      time.Now().UTC().Add(-time.Hour),
+		NotAfter:       time.Now().UTC().Add(time.Hour * cryptoutilSharedMagic.HoursPerDay * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year),
+		Status:         cryptoutilCAStorage.StatusActive,
+		ProfileID:      cryptoutilSharedMagic.PKIProfileIDTLSServer,
+		CertificatePEM: testCertificatePEMInvalid,
+	}
+	require.NoError(t, storage.Store(context.Background(), certificate))
+
+	handler := &Handler{
+		storage:           storage,
+		enrollmentTracker: newEnrollmentTracker(cryptoutilSharedMagic.JoseJAMaxMaterials),
+	}
+
+	app.Get("/enroll/:requestId", func(c *fiber.Ctx) error {
+		id, err := googleUuid.Parse(c.Params("requestId"))
+		if err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{cryptoutilSharedMagic.StringError: testErrorMessageInvalidRequestID})
+		}
+
+		return handler.GetEnrollmentStatus(c, id)
+	})
+
+	request := httptest.NewRequest(http.MethodGet, "/enroll/"+requestID.String(), nil)
+	response, err := app.Test(request, -1)
+	require.NoError(t, err)
+	require.Equal(t, fiber.StatusOK, response.StatusCode)
+
+	var status cryptoutilApiCaServer.EnrollmentStatusResponse
+	require.NoError(t, json.NewDecoder(response.Body).Decode(&status))
+	require.Equal(t, requestID, status.RequestID)
+	require.Equal(t, cryptoutilApiCaServer.EnrollmentStatusResponseStatusIssued, status.Status)
+	require.NotNil(t, status.Certificate)
+	require.Equal(t, certificate.SerialNumber, status.Certificate.SerialNumber)
+	require.NoError(t, response.Body.Close())
 }
 
 // TestGetEnrollmentStatus_Pending tests enrollment status for pending request.

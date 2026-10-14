@@ -73,10 +73,9 @@ pki-ca operates as a Certificate Authority: CA hierarchy management, certificate
 (PKCS#10 CSR), X.509 certificate issuance, CRL generation, OCSP, EST protocol (RFC 7030),
 RFC 3161 Timestamp Authority, and CA/Browser Forum compliance enforcement.
 
-**pki-ca internal storage architecture:**
-pki-ca uses **in-memory storage** (`storage/storage.go`, `sync.RWMutex` + Go maps) for
-certificates. The database only has the `ca_items` demo table (migration 5001). This means
-the migration work is lightweight â€” only 1 SQL migration file needs porting to sm-kms.
+**pki-ca internal storage architecture before consolidation:**
+The original pki-ca implementation used in-memory certificate storage and a `ca_items` demo
+table. Production PKI state in sm-kms now uses the service's shared SQLite/PostgreSQL database.
 
 **pki-ca API endpoints (18 total, all new for sm-kms under `/pki/` prefix):**
 - `GET  /pki/cas`                              â€” listCAs
@@ -98,14 +97,18 @@ the migration work is lightweight â€” only 1 SQL migration file needs porti
 - `GET  /pki/est/csrattrs`                     â€” estCSRAttrs
 - `POST /pki/tsa/timestamp`                    â€” tsaTimestamp (RFC 3161, binary)
 
-**pki-ca domain objects (1 DB table, ported as new sm-kms migration 2009):**
+**pki-ca domain objects (original sm-kms migration 2009):**
 - `ca_items` â€” minimal CA demo table (`id TEXT PK`, `tenant_id TEXT`, `created_at DATETIME`)
+
+**Durable PKI state (sm-kms migrations 2010 and 2011):**
+- `pki_certificates` — tenant-scoped certificate and revocation records
+- `pki_authorities` — CA certificates and barrier-encrypted private keys
 
 **pki-ca services (all ported to `internal/apps/sm-kms/server/pki/`):**
 - `compliance/` â€” CA/Browser Forum certificate compliance checker
 - `crypto/` â€” crypto provider (RSA, ECDSA, Ed25519 key generation)
 - `domain-v2/` â€” GORM models (CAItem)
-- `storage/` â€” in-memory certificate storage (sync.RWMutex + maps)
+- `storage/` — GORM-backed production persistence and an in-memory test store
 - `profile/certificate/` â€” X.509 certificate profile enforcement
 - `profile/subject/` â€” subject DN profile enforcement
 - `security/` â€” CSR validation and threat modeling
@@ -122,10 +125,10 @@ the migration work is lightweight â€” only 1 SQL migration file needs porti
 
 ## Technical Context
 
-- **Language**: Go 1.26.1
+- **Language**: Go 1.27.2
 - **Framework**: `internal/apps-framework/service/` service builder
 - **Database**: PostgreSQL (E2E) + SQLite in-memory (unit/integration)
-- **PKI storage note**: pki-ca uses in-memory storage for certificates; only `ca_items` is DB-backed
+- **PKI storage**: Production certificate, revocation, and CA authority state uses the shared sm-kms SQLite/PostgreSQL database. The CA private key is barrier-encrypted before persistence.
 - **Binary content types**: OCSP (application/ocsp-request), TSA (application/timestamp-query),
   EST (application/pkcs10, application/pkcs7-mime) â€” oapi-codegen handles these as `[]byte`
 - **Test references**: [ENG-HANDBOOK Â§10](../../docs/ENG-HANDBOOK.md#10-testing-architecture), [Â§10.2](../../docs/ENG-HANDBOOK.md#102-unit-testing-strategy), [Â§10.3](../../docs/ENG-HANDBOOK.md#103-integration-testing-strategy), [Â§10.4](../../docs/ENG-HANDBOOK.md#104-e2e-testing-strategy), [Â§10.5](../../docs/ENG-HANDBOOK.md#105-mutation-testing-strategy)
@@ -430,13 +433,15 @@ easily discoverable in documentation.
 
 **Options**:
 - A: Keep in-memory storage â€” port `storage/storage.go` as-is to sm-kms
-- B: Migrate to database-backed storage â€” convert to GORM models stored in PostgreSQL âœ“ **DEFERRED**
+- B: Migrate to database-backed storage â€” GORM over the shared SQLite/PostgreSQL database âœ“ **SELECTED**
 - C: Hybrid â€” keep in-memory but add persistence for critical state
 
-**Decision**: Option A for framework-v25. Database-backed storage is a separate feature.
-**Rationale**: The goal is service consolidation, not architecture redesign. Changing storage
-architecture during a migration multiplies risk and scope. In-memory storage works for the current
-use case. A separate plan can address DB-backed cert storage as a future enhancement.
+**Decision**: Option B for the sm-kms production service. The in-memory store remains available
+only for isolated tests.
+**Rationale**: PKI endpoints are part of the single sm-kms service and must use its shared
+SQLite/PostgreSQL persistence. Certificate and authority schemas are owned by sm-kms migrations
+2010 and 2011. The CA private key is protected with the existing barrier service, and revocation
+responses read tenant-scoped persisted records.
 
 ### Decision 3: Package Organization in sm-kms
 

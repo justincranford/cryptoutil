@@ -8,25 +8,52 @@ package httpservertests
 
 import (
 	"context"
+	"net"
+	"strconv"
 	"sync"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // Test-specific timing constants.
 const (
-	testShutdownTimeout   = 5 * time.Second
-	testServerStartupWait = 1 * time.Second
-	testPortReleaseWait   = 500 * time.Millisecond
+	testShutdownTimeout           = cryptoutilSharedMagic.TestDefaultServerShutdownTimeout
+	testServerStartupTimeout      = cryptoutilSharedMagic.TestTimeoutCryptoutilReady
+	testServerStartupPollInterval = cryptoutilSharedMagic.TestTimeoutHTTPRetryInterval
+	testServerStartupProbeTimeout = cryptoutilSharedMagic.TestTimeoutHTTPRetryInterval
+	testPortReleaseWait           = 500 * time.Millisecond
 )
 
 // HTTPServer represents a minimal HTTP server interface for shutdown testing.
 type HTTPServer interface {
 	Start(ctx context.Context) error
 	Shutdown(ctx context.Context) error
+	ActualPort() int
+}
+
+func waitForServerStart(t *testing.T, server HTTPServer) {
+	t.Helper()
+
+	require.Eventually(t, func() bool {
+		port := server.ActualPort()
+		if port <= 0 {
+			return false
+		}
+
+		dialer := net.Dialer{Timeout: testServerStartupProbeTimeout}
+
+		conn, err := dialer.DialContext(context.Background(), "tcp", net.JoinHostPort(cryptoutilSharedMagic.IPv4Loopback, strconv.Itoa(port)))
+		if err != nil {
+			return false
+		}
+
+		return conn.Close() == nil
+	}, testServerStartupTimeout, testServerStartupPollInterval, "server did not accept a TCP connection")
 }
 
 // TestShutdownGraceful verifies that server shuts down gracefully.
@@ -51,8 +78,7 @@ func TestShutdownGraceful(t *testing.T, createServer func(t *testing.T) HTTPServ
 		startErr = server.Start(ctx)
 	}()
 
-	// Wait for server to start.
-	time.Sleep(testServerStartupWait)
+	waitForServerStart(t, server)
 
 	// Shutdown server.
 	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), testShutdownTimeout)
@@ -82,24 +108,27 @@ func TestShutdownNilContext(t *testing.T, createServer func(t *testing.T) HTTPSe
 	defer cancel()
 
 	// Start server in background.
-	var wg sync.WaitGroup
+	var (
+		wg       sync.WaitGroup
+		startErr = make(chan error, 1)
+	)
 
 	wg.Add(1)
 
 	go func() {
 		defer wg.Done()
 
-		_ = server.Start(ctx)
+		startErr <- server.Start(ctx)
 	}()
 
-	// Wait for server to start.
-	time.Sleep(testServerStartupWait)
+	waitForServerStart(t, server)
 
 	// Shutdown with nil context (should use background context internally).
 	err := server.Shutdown(nil) //nolint:staticcheck // Testing nil context handling.
 	require.NoError(t, err, "Shutdown should accept nil context")
 
 	wg.Wait()
+	require.NoError(t, <-startErr, "Start should return cleanly after shutdown")
 
 	// Wait for port to be fully released.
 	time.Sleep(testPortReleaseWait)
@@ -115,18 +144,20 @@ func TestShutdownDoubleCall(t *testing.T, createServer func(t *testing.T) HTTPSe
 	defer cancel()
 
 	// Start server in background.
-	var wg sync.WaitGroup
+	var (
+		wg       sync.WaitGroup
+		startErr = make(chan error, 1)
+	)
 
 	wg.Add(1)
 
 	go func() {
 		defer wg.Done()
 
-		_ = server.Start(ctx)
+		startErr <- server.Start(ctx)
 	}()
 
-	// Wait for server to start.
-	time.Sleep(testServerStartupWait)
+	waitForServerStart(t, server)
 
 	// First shutdown - should succeed.
 	shutdownCtx1, shutdownCancel1 := context.WithTimeout(context.Background(), testShutdownTimeout)
@@ -143,8 +174,8 @@ func TestShutdownDoubleCall(t *testing.T, createServer func(t *testing.T) HTTPSe
 	require.Error(t, err, "Second shutdown should return error")
 	assert.Contains(t, err.Error(), "already shutdown", "Error should indicate already shutdown")
 
-	// Cleanup.
 	wg.Wait()
+	require.NoError(t, <-startErr, "Start should return cleanly after shutdown")
 
 	// Wait for port to be fully released.
 	time.Sleep(testPortReleaseWait)

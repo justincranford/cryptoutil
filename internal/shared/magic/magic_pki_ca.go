@@ -22,6 +22,15 @@ const BitsPerByte = 8
 // CA_ITEMS is the sm-kms PKI table name for CAItem persistence model.
 const CA_ITEMS = "ca_items"
 
+const (
+	PKICertificatesTable       = "pki_certificates"
+	PKIAuthoritiesTable        = "pki_authorities"
+	PKIDefaultAuthorityID      = "sm-kms-pki-development-authority"
+	PKICertificateStatusIndex  = "idx_pki_certificates_tenant_status"
+	PKICertificateSerialIndex  = "idx_pki_certificates_tenant_serial"
+	PKICertificateRequestIndex = "idx_pki_certificates_tenant_request"
+)
+
 // PKI CA hierarchy and status labels.
 const (
 	ROOT         = "root"

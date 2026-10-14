@@ -2,7 +2,7 @@
 # https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax
 
 # WORKFLOW: CI - Coverage Collection
-# PURPOSE: Measure test coverage across all packages, enforce 95%+ production / 98%+ infrastructure targets
+# PURPOSE: Enforce per-package coverage targets and report aggregate coverage trends
 # DEPENDENCIES: None (runs independently without external services)
 # EXPECTED DURATION: 5-6 minutes (matrix parallel execution across 4-6 package groups)
 # TIMEOUT: 20 minutes (allows for parallel test execution with retry overhead)
@@ -132,15 +132,15 @@ jobs:
         echo "| Package | Coverage | Status |" >> $GITHUB_STEP_SUMMARY
         echo "|---------|----------|--------|" >> $GITHUB_STEP_SUMMARY
         FAILED=0
-        # internal/apps/tools/cicd_lint infrastructure packages require >=98%
+        # internal/apps-tools/cicd_lint infrastructure packages require >=98%
         # All other production packages require >=95%
         while IFS= read -r line; do
           PKG=$(echo "$line" | grep -oP '(?<=ok\s{1,10})[\w./\-]+' || true)
           PCT=$(echo "$line" | grep -oP '[\d.]+(?=% of statements)' || true)
           if [ -z "$PKG" ] || [ -z "$PCT" ]; then continue; fi
-          # Determine threshold: 98% for cicd infra, 95% for all others
+          # Determine threshold: 98% for cicd infrastructure, 95% for all others
           THRESHOLD=95.0
-          if echo "$PKG" | grep -q '/apps/cicd'; then THRESHOLD=98.0; fi
+          if echo "$PKG" | grep -q '/apps-tools/cicd_lint'; then THRESHOLD=98.0; fi
           STATUS="✅ PASS"
           if awk "BEGIN {exit !($PCT < $THRESHOLD)}"; then
             STATUS="❌ FAIL"
@@ -173,23 +173,13 @@ jobs:
         cat workflow-reports/coverage/coverage-func.txt >> $GITHUB_STEP_SUMMARY
         echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
 
-    - name: Calculate coverage trend
+    - name: Calculate aggregate coverage trend (informational)
       id: coverage-trend
       run: |
-        # Extract current coverage percentage from coverage-func.txt
+        # Aggregate coverage is informational; package-level checks above enforce policy.
         CURRENT_COVERAGE=$(grep -oP 'total:\s+\(statements\)\s+\K[\d.]+' workflow-reports/coverage/coverage-func.txt || echo "0.0")
         echo "current_coverage=$CURRENT_COVERAGE" >> $GITHUB_OUTPUT
-        echo "📋 Current coverage: ${CURRENT_COVERAGE}%"
-
-        # Coverage threshold enforcement (95% required, matching architecture.md quality gates)
-        MINIMUM_COVERAGE=95.0
-        if (( $(echo "$CURRENT_COVERAGE < $MINIMUM_COVERAGE" | bc -l) )); then
-          echo "❌ Coverage ${CURRENT_COVERAGE}% is below minimum threshold ${MINIMUM_COVERAGE}%"
-          echo "coverage_passed=false" >> $GITHUB_OUTPUT
-        else
-          echo "✅ Coverage ${CURRENT_COVERAGE}% meets minimum threshold ${MINIMUM_COVERAGE}%"
-          echo "coverage_passed=true" >> $GITHUB_OUTPUT
-        fi
+        echo "📋 Aggregate statement coverage (informational): ${CURRENT_COVERAGE}%"
 
         # Try to download previous coverage data
         PREVIOUS_COVERAGE="baseline"
@@ -242,13 +232,12 @@ jobs:
 
     - name: Display coverage trend
       run: |
-        echo "## 📈 Coverage Trend Analysis" >> $GITHUB_STEP_SUMMARY
+        echo "## 📈 Aggregate Coverage Trend (Informational)" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "| Metric | Value |" >> $GITHUB_STEP_SUMMARY
         echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
-        echo "| Current Coverage | ${{ steps.coverage-trend.outputs.current_coverage }}% |" >> $GITHUB_STEP_SUMMARY
-        echo "| Minimum Threshold | 95.0% |" >> $GITHUB_STEP_SUMMARY
-        echo "| Threshold Status | ${{ steps.coverage-trend.outputs.coverage_passed == 'true' && '✅ PASS' || '❌ FAIL' }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| Aggregate Statement Coverage (informational; not a gate) | ${{ steps.coverage-trend.outputs.current_coverage }}% |" >> $GITHUB_STEP_SUMMARY
+        echo "| Policy Enforcement | Per-package thresholds above: 95% production / 98% infrastructure |" >> $GITHUB_STEP_SUMMARY
 
         if [ "${{ steps.coverage-trend.outputs.trend_text }}" != "baseline" ]; then
           echo "| Previous Coverage | ${{ steps.coverage-trend.outputs.previous_coverage }}% |" >> $GITHUB_STEP_SUMMARY
@@ -259,14 +248,6 @@ jobs:
         fi
 
         echo "" >> $GITHUB_STEP_SUMMARY
-
-    - name: Enforce coverage threshold
-      if: steps.coverage-trend.outputs.coverage_passed == 'false'
-      run: |
-        echo "⚠️ Coverage below minimum threshold of 95%"
-        echo "Current coverage: ${{ steps.coverage-trend.outputs.current_coverage }}%"
-        echo "Improve test coverage to meet the ≥95% quality gate"
-        exit 1
 
     - name: Upload coverage
       # https://github.com/codecov/codecov-action/releases (v5.5.1, 2025-11-15)

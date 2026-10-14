@@ -50,7 +50,7 @@ func appTestTOTPHashRequest(app *fiber.App, req *http.Request) (*http.Response, 
 	totpHashRequestMu.Lock()
 	defer totpHashRequestMu.Unlock()
 
-	return app.Test(req, cryptoutilSharedMagic.FiberTestTimeoutMs)
+	return app.Test(req, cryptoutilSharedMagic.FiberTestPBKDF2TimeoutMs)
 }
 
 func newTOTPIntegrationTestApp(t *testing.T) (*gorm.DB, *fiber.App) {
@@ -122,7 +122,7 @@ func enrollTOTP(t *testing.T, app *fiber.App, userID googleUuid.UUID, issuer, ac
 	req := httptest.NewRequest(testPost, "/oidc/v1/mfa/totp/enroll", bytes.NewReader(reqBytes))
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := appTestTOTPHashRequest(app, req) // 30-second timeout for password hashing (10 backup codes Ã— ~150ms each)
+	resp, err := appTestTOTPHashRequest(app, req)
 	require.NoError(t, err, "Request should succeed")
 
 	defer func() { _ = resp.Body.Close() }()
@@ -202,7 +202,7 @@ func generateBackupCodes(t *testing.T, app *fiber.App, userID googleUuid.UUID, e
 	req := httptest.NewRequest(testPost, "/oidc/v1/mfa/totp/backup-codes/generate", bytes.NewReader(reqBytes))
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := appTestTOTPHashRequest(app, req) // 30-second timeout for generating 10 backup codes with password hashing
+	resp, err := appTestTOTPHashRequest(app, req)
 	require.NoError(t, err, "Request should succeed")
 
 	defer func() { _ = resp.Body.Close() }()
@@ -232,7 +232,7 @@ func verifyBackupCode(t *testing.T, app *fiber.App, userID googleUuid.UUID, code
 	req := httptest.NewRequest(testPost, "/oidc/v1/mfa/totp/backup-codes/verify", bytes.NewReader(reqBytes))
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := appTestTOTPHashRequest(app, req) // 30-second timeout for backup code password verification
+	resp, err := appTestTOTPHashRequest(app, req)
 	require.NoError(t, err, "Request should succeed")
 
 	defer func() { _ = resp.Body.Close() }()

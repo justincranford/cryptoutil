@@ -10,10 +10,13 @@ import (
 	"encoding/base64"
 	"encoding/pem"
 	"fmt"
+	"math/big"
 
 	fiber "github.com/gofiber/fiber/v2"
+	googleUuid "github.com/google/uuid"
 
 	cryptoutilApiCaServer "cryptoutil/api/sm-kms/pki/server"
+	cryptoutilCAServiceRevocation "cryptoutil/internal/apps/sm-kms/server/pki/service/revocation"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
@@ -151,6 +154,29 @@ func (h *Handler) GetCRL(c *fiber.Ctx, caID string, params cryptoutilApiCaServer
 		return h.errorResponse(c, fiber.StatusNotFound, "not_found", "CA not found")
 	}
 
+	storedRevocations, err := h.storage.GetRevoked(c.UserContext(), caConfig.Certificate.Subject.String())
+	if err != nil {
+		return h.errorResponse(c, fiber.StatusInternalServerError, "storage_error", err.Error())
+	}
+
+	revokedCertificates := make([]cryptoutilCAServiceRevocation.RevokedCertificate, 0, len(storedRevocations))
+	for _, storedRevocation := range storedRevocations {
+		if storedRevocation.RevocationTime == nil || storedRevocation.RevocationReason == nil {
+			return h.errorResponse(c, fiber.StatusInternalServerError, "storage_error", "revoked certificate is missing revocation metadata")
+		}
+
+		serialNumber, ok := new(big.Int).SetString(storedRevocation.SerialNumber, cryptoutilSharedMagic.HexBase)
+		if !ok {
+			return h.errorResponse(c, fiber.StatusInternalServerError, "storage_error", "revoked certificate has an invalid serial number")
+		}
+
+		revokedCertificates = append(revokedCertificates, cryptoutilCAServiceRevocation.RevokedCertificate{
+			SerialNumber:   serialNumber,
+			RevocationTime: *storedRevocation.RevocationTime,
+			Reason:         cryptoutilCAServiceRevocation.RevocationReason(*storedRevocation.RevocationReason),
+		})
+	}
+
 	// Determine output format (default to DER).
 	format := "der"
 	if params.Format != nil {
@@ -160,7 +186,7 @@ func (h *Handler) GetCRL(c *fiber.Ctx, caID string, params cryptoutilApiCaServer
 	// Generate the CRL based on format.
 	switch format {
 	case "pem":
-		crlPEM, err := crlService.GenerateCRLPEM()
+		crlPEM, err := crlService.GenerateCRLPEMWithRevokedCertificates(revokedCertificates)
 		if err != nil {
 			return h.errorResponse(c, fiber.StatusInternalServerError, "crl_error", err.Error())
 		}
@@ -175,7 +201,7 @@ func (h *Handler) GetCRL(c *fiber.Ctx, caID string, params cryptoutilApiCaServer
 		return nil
 	default:
 		// DER format.
-		crlDER, err := crlService.GenerateCRL()
+		crlDER, err := crlService.GenerateCRLWithRevokedCertificates(revokedCertificates)
 		if err != nil {
 			return h.errorResponse(c, fiber.StatusInternalServerError, "crl_error", err.Error())
 		}
@@ -363,6 +389,10 @@ func (h *Handler) ESTSimpleEnroll(c *fiber.Ctx) error {
 	issued, _, err := h.issuer.Issue(issueReq)
 	if err != nil {
 		return h.errorResponse(c, fiber.StatusInternalServerError, "issuance_error", err.Error())
+	}
+
+	if _, err := h.storeIssuedCertificate(c.UserContext(), issued, profile.ID, googleUuid.Nil); err != nil {
+		return h.errorResponse(c, fiber.StatusInternalServerError, "storage_error", err.Error())
 	}
 
 	// Return the certificate in PEM format (wrapped as PKCS#7 would be in production).

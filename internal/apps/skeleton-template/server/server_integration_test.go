@@ -126,7 +126,7 @@ func TestSkeletonTemplateServer_ShutdownIdempotent(t *testing.T) {
 	t.Cleanup(func() { _ = integrationServer.Shutdown(context.Background()) })
 
 	// Shutdown the server explicitly (covers Shutdown happy path).
-	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultServerShutdownTimeout)
+	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.TestDefaultServerShutdownTimeout)
 	defer shutdownCancel()
 
 	err = server.Shutdown(shutdownCtx)

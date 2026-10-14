@@ -84,7 +84,7 @@ jobs:
       uses: ./.github/actions/docker-images-pull
       with:
         images: |
-          golang:1.26.1
+          golang:1.27.2
           postgres:latest
           alpine:latest
           otel/opentelemetry-collector-contrib:latest
@@ -98,7 +98,7 @@ jobs:
         echo "🚀 Deploying SM services..."
         START_TIME=$(date +%s)
         echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-        docker compose -f ./deployments/sm/compose.yml up -d
+        (cd ./deployments/sm && docker compose -f compose.yml up -d)
         echo "⏱️ Waiting for SM services to be healthy..."
         sleep 35
         echo "✅ SM services deployed"
@@ -111,7 +111,7 @@ jobs:
       run: |
         echo "🔍 Verifying SM services..."
         curl -k https://localhost:9090/admin/api/v1/livez || echo "SM server not ready"
-        docker compose -f ./deployments/sm/compose.yml ps
+        (cd ./deployments/sm && docker compose -f compose.yml ps)
 
     - name: Run E2E tests
       run: |
@@ -121,7 +121,7 @@ jobs:
 
         # Stop SM services to free ports for E2E tests
         echo "🛑 Stopping CA and SM services to free ports..."
-        docker compose -f ./deployments/sm/compose.yml down -v || true
+        (cd ./deployments/sm && docker compose -f compose.yml down -v) || true
         sleep 5
 
         # Set environment variable to help with debugging
@@ -170,14 +170,14 @@ jobs:
         mkdir -p ./workflow-reports/e2e
 
         # Collect logs from all cryptoutil services
-          docker compose -f ./deployments/sm-kms/compose.yml logs sm-kms-app-sqlite-1 > ./workflow-reports/e2e/sm-kms-sqlite.log 2>&1 || true
-          docker compose -f ./deployments/sm-kms/compose.yml logs sm-kms-app-postgresql-1 > ./workflow-reports/e2e/sm-kms-postgresql-1.log 2>&1 || true
-          docker compose -f ./deployments/sm-kms/compose.yml logs sm-kms-app-postgresql-2 > ./workflow-reports/e2e/sm-kms-postgresql-2.log 2>&1 || true
-          docker compose -f ./deployments/sm-kms/compose.yml logs sm-kms-db-postgres-1 > ./workflow-reports/e2e/sm-kms-db-postgres.log 2>&1 || true
-          docker compose -f ./deployments/sm-kms/compose.yml logs opentelemetry-collector-contrib > ./workflow-reports/e2e/otel-collector.log 2>&1 || true
+          (cd ./deployments/sm-kms && docker compose -f compose.yml logs sm-kms-app-sqlite-1) > ./workflow-reports/e2e/sm-kms-sqlite.log 2>&1 || true
+          (cd ./deployments/sm-kms && docker compose -f compose.yml logs sm-kms-app-postgresql-1) > ./workflow-reports/e2e/sm-kms-postgresql-1.log 2>&1 || true
+          (cd ./deployments/sm-kms && docker compose -f compose.yml logs sm-kms-app-postgresql-2) > ./workflow-reports/e2e/sm-kms-postgresql-2.log 2>&1 || true
+          (cd ./deployments/sm-kms && docker compose -f compose.yml logs sm-kms-db-postgres-1) > ./workflow-reports/e2e/sm-kms-db-postgres.log 2>&1 || true
+          (cd ./deployments/sm-kms && docker compose -f compose.yml logs opentelemetry-collector-contrib) > ./workflow-reports/e2e/otel-collector.log 2>&1 || true
 
         # Collect SM service logs
-          docker compose -f ./deployments/sm/compose.yml logs sm-kms-app-sqlite-1 > ./workflow-reports/e2e/sm-kms.log 2>&1 || true
+          (cd ./deployments/sm && docker compose -f compose.yml logs sm-kms-app-sqlite-1) > ./workflow-reports/e2e/sm-kms.log 2>&1 || true
         echo "✅ Service logs collected"
         END_TIME=$(date +%s)
         DURATION=$((END_TIME - START_TIME))
@@ -208,6 +208,6 @@ jobs:
       if: always()
       run: |
         echo "🛑 Stopping all services..."
-          docker compose -f ./deployments/sm-kms/compose.yml down -v --remove-orphans || true
-          docker compose -f ./deployments/sm/compose.yml down -v --remove-orphans || true
+          (cd ./deployments/sm-kms && docker compose -f compose.yml down -v --remove-orphans) || true
+          (cd ./deployments/sm && docker compose -f compose.yml down -v --remove-orphans) || true
           echo "✅ All services stopped"

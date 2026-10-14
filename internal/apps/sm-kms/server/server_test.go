@@ -17,6 +17,8 @@ import (
 	cryptoutilAppsFrameworkServiceServerMiddleware "cryptoutil/internal/apps-framework/service/server/middleware"
 	cryptoutilTestingStubs "cryptoutil/internal/apps-framework/service/testing/stubs"
 	cryptoutilKmsServerBusinesslogic "cryptoutil/internal/apps/sm-kms/server/businesslogic"
+	cryptoutilAppsSmKmsPKIServer "cryptoutil/internal/apps/sm-kms/server/pki/server"
+	cryptoutilSharedDatabase "cryptoutil/internal/shared/database"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	fiber "github.com/gofiber/fiber/v2"
@@ -246,7 +248,13 @@ func TestRegisterKMSRoutes(t *testing.T) {
 
 			app := fiber.New(fiber.Config{DisableStartupMessage: true})
 
-			err := registerKMSRoutes(app, (*cryptoutilKmsServerBusinesslogic.BusinessLogicService)(nil), tc.settings, nil)
+			err := registerKMSRoutesWithPKIComponents(
+				app,
+				(*cryptoutilKmsServerBusinesslogic.BusinessLogicService)(nil),
+				tc.settings,
+				nil,
+				newPKIComponentsForRouteTest(t),
+			)
 			require.NoError(t, err)
 
 			// Verify routes were registered (Fiber's route stack should be non-empty).
@@ -268,7 +276,13 @@ func TestRegisterKMSRoutes_WithSessionManager(t *testing.T) {
 		SessionManager: &cryptoutilAppsFrameworkServiceServerBusinesslogic.SessionManagerService{},
 	}
 
-	err := registerKMSRoutes(app, (*cryptoutilKmsServerBusinesslogic.BusinessLogicService)(nil), settings, res)
+	err := registerKMSRoutesWithPKIComponents(
+		app,
+		(*cryptoutilKmsServerBusinesslogic.BusinessLogicService)(nil),
+		settings,
+		res,
+		newPKIComponentsForRouteTest(t),
+	)
 
 	require.NoError(t, err)
 	require.NotEmpty(t, app.GetRoutes())
@@ -395,7 +409,10 @@ func TestTenantContextBridgeMiddleware(t *testing.T) {
 
 			fiberApp := fiber.New(fiber.Config{DisableStartupMessage: true})
 
-			var capturedRC *cryptoutilAppsFrameworkServiceServerMiddleware.RealmContext
+			var (
+				capturedRC            *cryptoutilAppsFrameworkServiceServerMiddleware.RealmContext
+				capturedTenantContext *cryptoutilSharedDatabase.TenantContext
+			)
 
 			fiberApp.Use(func(c *fiber.Ctx) error {
 				tc.setup(c)
@@ -405,6 +422,7 @@ func TestTenantContextBridgeMiddleware(t *testing.T) {
 			fiberApp.Use(tenantContextBridgeMiddleware())
 			fiberApp.Get("/test", func(c *fiber.Ctx) error {
 				capturedRC = cryptoutilAppsFrameworkServiceServerMiddleware.GetRealmContext(c.UserContext())
+				capturedTenantContext = cryptoutilSharedDatabase.GetTenantContext(c.UserContext())
 
 				return c.SendStatus(fiber.StatusOK)
 			})
@@ -418,9 +436,22 @@ func TestTenantContextBridgeMiddleware(t *testing.T) {
 			if tc.expectRC {
 				require.NotNil(t, capturedRC)
 				require.Equal(t, validTID, capturedRC.TenantID)
+				require.NotNil(t, capturedTenantContext)
+				require.Equal(t, validTID, capturedTenantContext.TenantID)
+				require.Equal(t, validRID, capturedTenantContext.RealmID)
 			} else {
 				require.Nil(t, capturedRC)
+				require.Nil(t, capturedTenantContext)
 			}
 		})
 	}
+}
+
+func newPKIComponentsForRouteTest(t *testing.T) *cryptoutilAppsSmKmsPKIServer.PKIComponents {
+	t.Helper()
+
+	components, err := cryptoutilAppsSmKmsPKIServer.NewInMemoryPKIComponents()
+	require.NoError(t, err)
+
+	return components
 }

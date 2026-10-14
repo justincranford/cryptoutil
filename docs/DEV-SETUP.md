@@ -24,7 +24,7 @@ This guide covers setting up a complete development environment for the cryptout
 
 | Tool | Version | Purpose | Required For |
 |------|---------|---------|--------------|
-| **Go** | 1.26.1+ | Primary language | All development |
+| **Go** | 1.27.2+ | Primary language | All development |
 | **Docker** | 27+ | Containerization | PostgreSQL, E2E tests, deployments |
 | **Docker Compose** | v5+ | Container orchestration | Multi-service deployments, recursive includes |
 | **Python** | 3.14+ | Pre-commit hooks, utilities | Code quality automation |
@@ -39,12 +39,12 @@ See [ENG-HANDBOOK.md Section 2.2 Architecture Strategy](ENG-HANDBOOK.md#22-archi
 
 | Tool | Installation | Purpose |
 |------|-------------|---------|
-| **golangci-lint** | `go install github.com/golangci/golangci-lint/cmd/golangci-lint@v2.12.2` | Comprehensive linting (includes 50+ linters) |
+| **golangci-lint** | `go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.14.0` | Comprehensive linting (includes 50+ linters) |
 | **gofumpt** | `go install mvdan.cc/gofumpt@latest` | Strict Go formatting (gofmt superset) |
 | **goimports** | `go install golang.org/x/tools/cmd/goimports@latest` | Auto-import organization |
 | **gopls** | `go install golang.org/x/tools/gopls@latest` | Go language server for VS Code |
 | **staticcheck** | `go install honnef.co/go/tools/cmd/staticcheck@latest` | Advanced static analysis |
-| **govulncheck** | `go install golang.org/x/vuln/cmd/govulncheck@latest` | Go vulnerability scanning |
+| **govulncheck** | `go install golang.org/x/vuln/cmd/govulncheck@v1.9.0` | Go vulnerability scanning |
 | **gremlins** | `go install github.com/go-gremlins/gremlins/cmd/gremlins@latest` | Mutation testing |
 | **oapi-codegen** | `go install github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@latest` | OpenAPI code generation |
 | **air** | `go install github.com/air-verse/air@latest` | Live reload for development (hot-rebuild on Save) |
@@ -75,15 +75,12 @@ See [ENG-HANDBOOK.md Section 2.2 Architecture Strategy](ENG-HANDBOOK.md#22-archi
 
 ## Why Each Tool is Required
 
-### Core Development (Go 1.26.1+)
+### Core Development (Go 1.27.2+)
 
-**Why this version?** Go 1.26.1 is required for:
+**Why this version?** Go 1.27.2 is pinned because it includes upstream fixes for standard-library
+vulnerabilities reported against Go 1.27.1. CI and container builds use the same release.
 
-- Generic type improvements used in internal packages
-- Performance optimizations in crypto packages
-- Bug fixes in `modernc.org/sqlite` CGO-free driver
-
-**Project dependencies requiring Go 1.26.1+:**
+**Core project dependencies built and tested with this toolchain:**
 
 ```text
 github.com/gofiber/fiber/v2       # HTTP framework
@@ -130,7 +127,7 @@ See [ENG-HANDBOOK.md Section 12 Deployment Architecture](ENG-HANDBOOK.md#12-depl
 
 **Skip if:** Not running performance/load tests.
 
-### golangci-lint v2.12.2+
+### golangci-lint v2.14.0+
 
 **Why this specific tool and version?**
 
@@ -169,7 +166,7 @@ See [ENG-HANDBOOK.md Section 6.2 SDLC Security Strategy](ENG-HANDBOOK.md#62-sdlc
 
 #### 1. Install Core Prerequisites
 
-**Go 1.26.1+**
+**Go 1.27.2+**
 
 ```powershell
 # Download and install from https://golang.org/dl/
@@ -178,7 +175,7 @@ winget install --id Google.Go --source winget
 
 # Verify installation
 go version
-# Expected: go version go1.26.1 windows/amd64
+# Expected: go version go1.27.2 windows/amd64
 ```
 
 **Docker Desktop**
@@ -270,7 +267,7 @@ git --version
 
 ```powershell
 # Install golangci-lint (comprehensive linting)
-go install github.com/golangci/golangci-lint/cmd/golangci-lint@v2.12.2
+go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.14.0
 
 # Install gofumpt (strict Go formatting)
 go install mvdan.cc/gofumpt@latest
@@ -285,7 +282,7 @@ go install golang.org/x/tools/gopls@latest
 go install honnef.co/go/tools/cmd/staticcheck@latest
 
 # Install govulncheck (vulnerability scanning)
-go install golang.org/x/vuln/cmd/govulncheck@latest
+go install golang.org/x/vuln/cmd/govulncheck@v1.9.0
 
 # Install gremlins (mutation testing)
 go install github.com/go-gremlins/gremlins/cmd/gremlins@latest
@@ -389,9 +386,9 @@ go env GOCACHE
 # Update package list
 sudo apt update
 
-# Install Go 1.26.1+
-wget https://go.dev/dl/go1.26.1.linux-amd64.tar.gz
-sudo rm -rf /usr/local/go && sudo tar -C /usr/local -xzf go1.26.1.linux-amd64.tar.gz
+# Install Go 1.27.2+
+wget https://go.dev/dl/go1.27.2.linux-amd64.tar.gz
+sudo rm -rf /usr/local/go && sudo tar -C /usr/local -xzf go1.27.2.linux-amd64.tar.gz
 echo 'export PATH=$PATH:/usr/local/go/bin:$(go env GOPATH)/bin' >> ~/.bashrc
 source ~/.bashrc
 
@@ -454,8 +451,8 @@ sudo apt install -y maven
 
 ```bash
 # Install Go
-wget https://go.dev/dl/go1.26.1.linux-amd64.tar.gz
-sudo rm -rf /usr/local/go && sudo tar -C /usr/local -xzf go1.26.1.linux-amd64.tar.gz
+wget https://go.dev/dl/go1.27.2.linux-amd64.tar.gz
+sudo rm -rf /usr/local/go && sudo tar -C /usr/local -xzf go1.27.2.linux-amd64.tar.gz
 echo 'export PATH=$PATH:/usr/local/go/bin:$(go env GOPATH)/bin' >> ~/.bashrc
 source ~/.bashrc
 
@@ -486,12 +483,12 @@ sudo dnf install -y java-21-openjdk-devel
 
 ```bash
 # Install all Go tools
-go install github.com/golangci/golangci-lint/cmd/golangci-lint@v2.12.2
+go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.14.0
 go install mvdan.cc/gofumpt@latest
 go install golang.org/x/tools/cmd/goimports@latest
 go install golang.org/x/tools/gopls@latest
 go install honnef.co/go/tools/cmd/staticcheck@latest
-go install golang.org/x/vuln/cmd/govulncheck@latest
+go install golang.org/x/vuln/cmd/govulncheck@v1.9.0
 go install github.com/go-gremlins/gremlins/cmd/gremlins@latest
 go install github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@latest
 
@@ -538,7 +535,7 @@ curl -s https://raw.githubusercontent.com/nektos/act/master/install.sh | sudo ba
 # Install Homebrew if not already installed
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
-# Install Go 1.26.1+
+# Install Go 1.27.2+
 brew install go
 
 # Install Docker Desktop
@@ -572,12 +569,12 @@ java -version  # if installed
 #### 2. Install Go Development Tools
 
 ```bash
-go install github.com/golangci/golangci-lint/cmd/golangci-lint@v2.12.2
+go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.14.0
 go install mvdan.cc/gofumpt@latest
 go install golang.org/x/tools/cmd/goimports@latest
 go install golang.org/x/tools/gopls@latest
 go install honnef.co/go/tools/cmd/staticcheck@latest
-go install golang.org/x/vuln/cmd/govulncheck@latest
+go install golang.org/x/vuln/cmd/govulncheck@v1.9.0
 go install github.com/go-gremlins/gremlins/cmd/gremlins@latest
 go install github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@latest
 ```

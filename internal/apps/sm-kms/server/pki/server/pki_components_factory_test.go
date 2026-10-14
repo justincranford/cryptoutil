@@ -24,14 +24,14 @@ func pkiComponentFactoriesForTest() pkiComponentFactories {
 	provider := cryptoutilCACrypto.NewSoftwareProvider()
 
 	return pkiComponentFactories{
-		provider:             provider,
-		storage:              cryptoutilCAStorage.NewMemoryStore(),
-		randomReader:         crand.Reader,
-		createSelfSignedCAFn: createSelfSignedCA,
-		newIssuerFn:          cryptoutilCAServiceIssuer.NewIssuer,
-		newCRLServiceFn:      cryptoutilCAServiceRevocation.NewCRLService,
-		newOCSPServiceFn:     cryptoutilCAServiceRevocation.NewOCSPService,
-		newHandlerFn:         cryptoutilCAHandler.NewHandler,
+		provider:         provider,
+		storage:          cryptoutilCAStorage.NewMemoryStore(),
+		randomReader:     crand.Reader,
+		loadOrCreateCAFn: createSelfSignedCA,
+		newIssuerFn:      cryptoutilCAServiceIssuer.NewIssuer,
+		newCRLServiceFn:  cryptoutilCAServiceRevocation.NewCRLService,
+		newOCSPServiceFn: cryptoutilCAServiceRevocation.NewOCSPService,
+		newHandlerFn:     cryptoutilCAHandler.NewHandler,
 	}
 }
 
@@ -49,7 +49,7 @@ func TestNewPKIComponents_FactoryFailures(t *testing.T) {
 		{
 			name: "CA creation failure",
 			configure: func(factories *pkiComponentFactories) {
-				factories.createSelfSignedCAFn = func(_ cryptoutilCACrypto.Provider, _ io.Reader) (*x509.Certificate, crypto.PrivateKey, error) {
+				factories.loadOrCreateCAFn = func(_ cryptoutilCACrypto.Provider, _ io.Reader) (*x509.Certificate, crypto.PrivateKey, error) {
 					return nil, nil, errors.New(pkiComponentInjectedFailure)
 				}
 			},
@@ -67,7 +67,7 @@ func TestNewPKIComponents_FactoryFailures(t *testing.T) {
 		{
 			name: "non-signer CA private key",
 			configure: func(factories *pkiComponentFactories) {
-				factories.createSelfSignedCAFn = func(provider cryptoutilCACrypto.Provider, randomReader io.Reader) (*x509.Certificate, crypto.PrivateKey, error) {
+				factories.loadOrCreateCAFn = func(provider cryptoutilCACrypto.Provider, randomReader io.Reader) (*x509.Certificate, crypto.PrivateKey, error) {
 					certificate, _, err := createSelfSignedCA(provider, randomReader)
 					if err != nil {
 						return nil, nil, err

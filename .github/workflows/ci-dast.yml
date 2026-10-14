@@ -852,7 +852,7 @@ jobs:
         [ -n "${APP_PID:-}" ] && { kill "$APP_PID" 2>/dev/null || true; sleep 1; kill -9 "$APP_PID" 2>/dev/null || true; }
 
         # Stop and remove containers
-        docker compose -f ./deployments/cryptoutil/compose.yml down -v --remove-orphans || true
+        (cd ./deployments/cryptoutil && docker compose -f compose.yml down -v --remove-orphans) || true
 
         # Clean up any leftover containers/networks
         docker system prune -f || true

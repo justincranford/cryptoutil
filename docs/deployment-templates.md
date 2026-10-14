@@ -76,7 +76,7 @@ PKI APIs and certificates use the existing `sm-kms` service identity and deploym
 
 | Parameter | Description | Default Value |
 |-----------|-------------|---------------|
-| `{GO_VERSION}` | Go compiler version | `1.26.1` |
+| `{GO_VERSION}` | Go compiler version | `1.27.2` |
 | `{ALPINE_VERSION}` | Alpine base image tag | `latest` |
 | `{CGO_ENABLED}` | CGO linkage (MUST be `0`) | `0` |
 | `{CONTAINER_UID}` | Non-root user ID for final container stage | `65532` |

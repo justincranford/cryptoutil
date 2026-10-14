@@ -1,0 +1,35 @@
+# PS-ID-specific overrides for the imported shared telemetry project.
+services:
+  # Direct PKI dependency reruns this one-shot readiness check after certificate regeneration.
+  healthcheck-opentelemetry-collector-contrib:
+    depends_on:
+      pki-init:
+        condition: service_completed_successfully
+        restart: true
+
+  # OTel Collector mTLS cert setup: Cat 2 server cert + Cat 8 client issuing CA.
+  # CRITICAL: otel/opentelemetry-collector-contrib is distroless (no bash/sh).
+  # Certs are prepared by otel-certs-init (Alpine) into the identity-rs-otel-certs volume.
+  opentelemetry-collector-contrib:
+    depends_on:
+      pki-init:
+        condition: service_completed_successfully
+        restart: true
+      otel-certs-init:
+        condition: service_completed_successfully
+        restart: true
+    volumes:
+      - identity-rs-otel-certs:/etc/pki-init/certs:ro
+
+  # Grafana HTTPS and OTLP ingest mTLS cert setup.
+  grafana-otel-lgtm:
+    depends_on:
+      pki-init:
+        condition: service_completed_successfully
+        restart: true
+    volumes:
+      - identity-rs-certs:/mnt/ps-certs-src:ro
+    environment:
+      GF_SERVER_CERT_FILE: /mnt/ps-certs-src/identity-rs/public-https-server-entity-grafana-otel-lgtm/public-https-server-entity-grafana-otel-lgtm.crt
+      GF_SERVER_CERT_KEY: /mnt/ps-certs-src/identity-rs/public-https-server-entity-grafana-otel-lgtm/public-https-server-entity-grafana-otel-lgtm.key
+      OTELCOL_CLIENT_CA_FILE: /mnt/ps-certs-src/identity-rs/grafana-otel-lgtm-https-client-issuing-ca/truststore/grafana-otel-lgtm-https-client-issuing-ca.crt

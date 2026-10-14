@@ -277,14 +277,14 @@ func (h *Handler) HandleOCSP(c *fiber.Ctx) error {
 		return h.ocspErrorResponse(c, fiber.StatusBadRequest)
 	}
 
-	// Create a certificate lookup function that captures the context.
-	ctx := c.Context()
-	lookupFunc := func(serialNumber *big.Int) *x509.Certificate {
-		return h.lookupCertificateBySerial(ctx, serialNumber)
+	// Create a certificate status lookup function that captures the context.
+	ctx := c.UserContext()
+	lookupFunc := func(serialNumber *big.Int) (*x509.Certificate, *cryptoutilCAServiceRevocation.RevokedCertificate, error) {
+		return h.lookupCertificateStatusBySerial(ctx, serialNumber)
 	}
 
-	// Process the OCSP request using a certificate lookup function.
-	responseBytes, err := ocspService.RespondToRequest(requestBody, lookupFunc)
+	// Process the OCSP request using the persisted certificate status.
+	responseBytes, err := ocspService.RespondToRequestWithStatus(requestBody, lookupFunc)
 	if err != nil {
 		return h.ocspErrorResponse(c, fiber.StatusInternalServerError)
 	}

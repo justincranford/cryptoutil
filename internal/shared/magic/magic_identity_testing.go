@@ -27,6 +27,9 @@ const (
 	// FiberTestTimeoutMs is the timeout in milliseconds for Fiber app.Test() calls in parallel tests.
 	// Increased from default 1000ms (1s) to handle concurrent test execution under load.
 	FiberTestTimeoutMs = 30000 // 30 seconds in milliseconds
+
+	// FiberTestPBKDF2TimeoutMs allows batch password-hash requests to complete under concurrent test load.
+	FiberTestPBKDF2TimeoutMs = 120000
 )
 
 // Base64 encoding constants.

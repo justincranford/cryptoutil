@@ -372,7 +372,7 @@ func doAdminPost(t *testing.T, url string, certPool *x509.CertPool) (int, []byte
 	t.Helper()
 
 	client := &http.Client{
-		Timeout: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Second,
+		Timeout: cryptoutilSharedMagic.TestDefaultServerShutdownTimeout,
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
 				MinVersion: tls.VersionTLS13,

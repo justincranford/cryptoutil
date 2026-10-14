@@ -111,7 +111,7 @@ func TestRegisterPKIRoutes(t *testing.T) {
 func newPKIComponentsForTest(t *testing.T) *PKIComponents {
 	t.Helper()
 
-	components, err := NewPKIComponents()
+	components, err := NewInMemoryPKIComponents()
 	require.NoError(t, err)
 
 	return components

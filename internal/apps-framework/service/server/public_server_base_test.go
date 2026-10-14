@@ -416,7 +416,7 @@ func TestPublicServerBase_StartAndMakeRequest(t *testing.T) {
 		errChan <- server.Start(ctx)
 	}()
 
-	waitCtx, waitCancel := context.WithTimeout(ctx, cryptoutilSharedMagic.DefaultHealthCheckTimeout)
+	waitCtx, waitCancel := context.WithTimeout(ctx, cryptoutilSharedMagic.TestDefaultServerShutdownTimeout)
 	defer waitCancel()
 
 	endpointFn := func() (string, *x509.CertPool) {
@@ -427,12 +427,12 @@ func TestPublicServerBase_StartAndMakeRequest(t *testing.T) {
 		return server.PublicBaseURL() + cryptoutilSharedMagic.IdentityE2EHealthEndpoint, tlsMaterial.RootCAPool
 	}
 
-	err = cryptoutilAppsFrameworkServiceTestHelpTls.WaitForHTTPSHealthEndpoint(waitCtx, endpointFn, cryptoutilSharedMagic.DefaultHealthCheckTimeout)
+	err = cryptoutilAppsFrameworkServiceTestHelpTls.WaitForHTTPSHealthEndpoint(waitCtx, endpointFn, cryptoutilSharedMagic.TestDefaultServerShutdownTimeout)
 	require.NoError(t, err)
 	require.Greater(t, server.ActualPort(), 0)
 	healthURL := server.PublicBaseURL() + cryptoutilSharedMagic.IdentityE2EHealthEndpoint
 
-	requestCtx, requestCancel := context.WithTimeout(ctx, cryptoutilSharedMagic.DefaultHealthCheckTimeout)
+	requestCtx, requestCancel := context.WithTimeout(ctx, cryptoutilSharedMagic.TestDefaultServerShutdownTimeout)
 	defer requestCancel()
 
 	request, err := http.NewRequestWithContext(requestCtx, http.MethodGet, healthURL, nil)
@@ -451,7 +451,7 @@ func TestPublicServerBase_StartAndMakeRequest(t *testing.T) {
 	select {
 	case <-errChan:
 		// Server stopped.
-	case <-time.After(cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Second):
+	case <-time.After(cryptoutilSharedMagic.TestDefaultServerShutdownTimeout):
 		t.Fatal("server did not stop within timeout")
 	}
 }

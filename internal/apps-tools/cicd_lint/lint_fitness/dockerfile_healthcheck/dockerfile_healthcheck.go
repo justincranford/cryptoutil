@@ -7,7 +7,7 @@
 // The canonical HEALTHCHECK pattern is:
 //
 //	HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
-//	    CMD /app/<ps-id> livez || exit 1
+//	    CMD ["/app/<ps-id>", "livez"]
 //
 // This eliminates external tool dependencies each container image and leverages
 // the framework's built-in health check client which handles self-signed TLS
@@ -132,7 +132,7 @@ func validateDockerfileHealthcheck(dockerfilePath, deploymentName string, psidBi
 	// Check for expected PS-ID livez pattern.
 	expectedBinary := psidBinaryMap[deploymentName]
 
-	expectedCMD := fmt.Sprintf("%s livez || exit 1", expectedBinary)
+	expectedCMD := fmt.Sprintf(`["%s", "livez"]`, expectedBinary)
 	if !strings.Contains(healthcheckCMD, expectedCMD) {
 		violations = append(violations, fmt.Sprintf(
 			"%s: HEALTHCHECK CMD should be %q, got %q",

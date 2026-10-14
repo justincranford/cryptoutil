@@ -9,6 +9,7 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/pem"
+	"errors"
 	"fmt"
 	"net"
 	"os"
@@ -197,6 +198,14 @@ func (s *PublicHTTPServer) Start(ctx context.Context) error {
 		return fmt.Errorf("context cannot be nil")
 	}
 
+	s.mu.RLock()
+	shutdown := s.shutdown
+	s.mu.RUnlock()
+
+	if shutdown {
+		return fmt.Errorf("public server already shutdown")
+	}
+
 	// Create TCP listener using address and port from ServiceFrameworkServerSettings.
 	listener, err := s.listenFn(ctx, "tcp", net.JoinHostPort(s.settings.BindPublicAddress, strconv.Itoa(int(s.settings.BindPublicPort))))
 	if err != nil {
@@ -204,11 +213,23 @@ func (s *PublicHTTPServer) Start(ctx context.Context) error {
 	}
 
 	s.mu.Lock()
+	if s.shutdown {
+		s.mu.Unlock()
+
+		if closeErr := listener.Close(); closeErr != nil && !errors.Is(closeErr, net.ErrClosed) {
+			return fmt.Errorf("public server already shutdown; failed to close listener: %w", closeErr)
+		}
+
+		return fmt.Errorf("public server already shutdown")
+	}
+
 	s.listener = listener
 
 	tcpAddr, ok := listener.Addr().(*net.TCPAddr)
 	if !ok {
 		s.mu.Unlock()
+
+		_ = listener.Close()
 
 		return fmt.Errorf("listener address is not *net.TCPAddr")
 	}
@@ -241,6 +262,18 @@ func (s *PublicHTTPServer) Start(ctx context.Context) error {
 
 		return fmt.Errorf("public server stopped: %w", ctx.Err())
 	case err := <-errChan:
+		if err == nil {
+			return nil
+		}
+
+		s.mu.RLock()
+		shutdown := s.shutdown
+		s.mu.RUnlock()
+
+		if shutdown && errors.Is(err, net.ErrClosed) {
+			return nil
+		}
+
 		return err
 	}
 }
@@ -260,14 +293,22 @@ func (s *PublicHTTPServer) Shutdown(ctx context.Context) error {
 	}
 
 	s.shutdown = true
+	listener := s.listener
 	s.mu.Unlock()
 
-	// Shutdown Fiber app.
+	var shutdownErr error
+
 	if err := s.app.ShutdownWithContext(ctx); err != nil {
-		return fmt.Errorf("failed to shutdown public server: %w", err)
+		shutdownErr = errors.Join(shutdownErr, fmt.Errorf("failed to shutdown public server: %w", err))
 	}
 
-	return nil
+	if listener != nil {
+		if err := listener.Close(); err != nil && !errors.Is(err, net.ErrClosed) {
+			shutdownErr = errors.Join(shutdownErr, fmt.Errorf("failed to close public listener: %w", err))
+		}
+	}
+
+	return shutdownErr
 }
 
 // ActualPort returns the actual port the server is listening on (after dynamic allocation).

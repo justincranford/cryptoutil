@@ -167,6 +167,18 @@ func (s *CRLService) GenerateCRL() ([]byte, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
+	return s.generateCRL(s.revokedCerts)
+}
+
+// GenerateCRLWithRevokedCertificates creates a CRL from persisted revocation records.
+func (s *CRLService) GenerateCRLWithRevokedCertificates(revokedCerts []RevokedCertificate) ([]byte, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	return s.generateCRL(revokedCerts)
+}
+
+func (s *CRLService) generateCRL(revokedCerts []RevokedCertificate) ([]byte, error) {
 	now := time.Now().UTC()
 	nextUpdate := now.Add(s.config.Validity)
 
@@ -175,11 +187,12 @@ func (s *CRLService) GenerateCRL() ([]byte, error) {
 	}
 
 	// Build revoked certificate list.
-	revokedList := make([]x509.RevocationListEntry, len(s.revokedCerts))
-	for i, cert := range s.revokedCerts {
+	revokedList := make([]x509.RevocationListEntry, len(revokedCerts))
+	for i, cert := range revokedCerts {
 		revokedList[i] = x509.RevocationListEntry{
 			SerialNumber:   cert.SerialNumber,
 			RevocationTime: cert.RevocationTime,
+			ReasonCode:     int(cert.Reason),
 		}
 	}
 
@@ -217,10 +230,24 @@ func (s *CRLService) GenerateCRLPEM() ([]byte, error) {
 		return nil, err
 	}
 
+	return encodeCRLPEM(crlDER), nil
+}
+
+// GenerateCRLPEMWithRevokedCertificates creates a PEM CRL from persisted revocation records.
+func (s *CRLService) GenerateCRLPEMWithRevokedCertificates(revokedCerts []RevokedCertificate) ([]byte, error) {
+	crlDER, err := s.GenerateCRLWithRevokedCertificates(revokedCerts)
+	if err != nil {
+		return nil, err
+	}
+
+	return encodeCRLPEM(crlDER), nil
+}
+
+func encodeCRLPEM(crlDER []byte) []byte {
 	return pem.EncodeToMemory(&pem.Block{
 		Type:  "X509 CRL",
 		Bytes: crlDER,
-	}), nil
+	})
 }
 
 // GetRevokedCertificates returns a copy of all revoked certificates.
@@ -297,6 +324,20 @@ func (s *OCSPService) CreateResponse(cert *x509.Certificate) ([]byte, error) {
 		return nil, fmt.Errorf("certificate is required")
 	}
 
+	revoked, revokedCert := s.crlService.IsRevoked(cert.SerialNumber)
+	if !revoked {
+		revokedCert = nil
+	}
+
+	return s.CreateResponseWithRevocation(cert, revokedCert)
+}
+
+// CreateResponseWithRevocation generates an OCSP response using the supplied persisted status.
+func (s *OCSPService) CreateResponseWithRevocation(cert *x509.Certificate, revokedCert *RevokedCertificate) ([]byte, error) {
+	if cert == nil {
+		return nil, fmt.Errorf("certificate is required")
+	}
+
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
@@ -311,8 +352,7 @@ func (s *OCSPService) CreateResponse(cert *x509.Certificate) ([]byte, error) {
 		revocationReason int
 	)
 
-	revoked, revokedCert := s.crlService.IsRevoked(cert.SerialNumber)
-	if revoked {
+	if revokedCert != nil {
 		status = ocsp.Revoked
 		revokedAt = revokedCert.RevocationTime
 		revocationReason = int(revokedCert.Reason)
@@ -372,6 +412,32 @@ func (s *OCSPService) RespondToRequest(requestBytes []byte, certLookup func(seri
 	}
 
 	return s.CreateResponse(cert)
+}
+
+// RespondToRequestWithStatus processes an OCSP request using persisted certificate status.
+func (s *OCSPService) RespondToRequestWithStatus(
+	requestBytes []byte,
+	certificateLookup func(serialNumber *big.Int) (*x509.Certificate, *RevokedCertificate, error),
+) ([]byte, error) {
+	if certificateLookup == nil {
+		return nil, fmt.Errorf("certificate status lookup is required")
+	}
+
+	request, err := s.ParseRequest(requestBytes)
+	if err != nil {
+		return nil, err
+	}
+
+	certificate, revokedCert, err := certificateLookup(request.SerialNumber)
+	if err != nil {
+		return nil, fmt.Errorf("failed to look up certificate status: %w", err)
+	}
+
+	if certificate == nil {
+		return s.createUnknownResponse(request.SerialNumber)
+	}
+
+	return s.CreateResponseWithRevocation(certificate, revokedCert)
 }
 
 // createUnknownResponse creates an OCSP response for an unknown certificate.

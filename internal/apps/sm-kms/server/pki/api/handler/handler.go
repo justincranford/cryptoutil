@@ -157,7 +157,7 @@ func (h *Handler) ListCertificates(c *fiber.Ctx, params cryptoutilApiCaServer.Li
 	}
 
 	// List certificates from storage.
-	certs, total, err := h.storage.List(c.Context(), filter)
+	certs, total, err := h.storage.List(c.UserContext(), filter)
 	if err != nil {
 		return h.errorResponse(c, fiber.StatusInternalServerError, "storage_error", err.Error())
 	}
@@ -206,7 +206,7 @@ func (h *Handler) GetCertificate(c *fiber.Ctx, serialNumber string) error {
 		return h.errorResponse(c, fiber.StatusBadRequest, "invalid_serial", "serial number is required")
 	}
 
-	cert, err := h.storage.GetBySerialNumber(c.Context(), serialNumber)
+	cert, err := h.storage.GetBySerialNumber(c.UserContext(), serialNumber)
 	if err != nil {
 		if errors.Is(err, cryptoutilCAStorage.ErrCertificateNotFound) {
 			return h.errorResponse(c, fiber.StatusNotFound, "not_found", "certificate not found")
@@ -244,7 +244,7 @@ func (h *Handler) GetCertificateChain(c *fiber.Ctx, serialNumber string) error {
 		return h.errorResponse(c, fiber.StatusBadRequest, "invalid_serial", "serial number is required")
 	}
 
-	cert, err := h.storage.GetBySerialNumber(c.Context(), serialNumber)
+	cert, err := h.storage.GetBySerialNumber(c.UserContext(), serialNumber)
 	if err != nil {
 		if errors.Is(err, cryptoutilCAStorage.ErrCertificateNotFound) {
 			return h.errorResponse(c, fiber.StatusNotFound, "not_found", "certificate not found")
@@ -285,7 +285,7 @@ func (h *Handler) RevokeCertificate(c *fiber.Ctx, serialNumber string) error {
 	}
 
 	// Look up certificate by serial number.
-	cert, err := h.storage.GetBySerialNumber(c.Context(), serialNumber)
+	cert, err := h.storage.GetBySerialNumber(c.UserContext(), serialNumber)
 	if err != nil {
 		if errors.Is(err, cryptoutilCAStorage.ErrCertificateNotFound) {
 			return h.errorResponse(c, fiber.StatusNotFound, "not_found", "certificate not found")
@@ -303,7 +303,7 @@ func (h *Handler) RevokeCertificate(c *fiber.Ctx, serialNumber string) error {
 	storageReason := mapAPIRevocationReasonToStorage(req.Reason)
 
 	// Revoke the certificate.
-	if err := h.storage.Revoke(c.Context(), cert.ID, storageReason); err != nil {
+	if err := h.storage.Revoke(c.UserContext(), cert.ID, storageReason); err != nil {
 		return h.errorResponse(c, fiber.StatusInternalServerError, "revocation_failed", err.Error())
 	}
 
@@ -397,6 +397,9 @@ func (h *Handler) SubmitEnrollment(c *fiber.Ctx) error {
 
 	// Build the response.
 	resp := h.buildEnrollmentResponse(issued)
+	if _, err := h.storeIssuedCertificate(c.UserContext(), issued, req.Profile, resp.RequestID); err != nil {
+		return h.errorResponse(c, fiber.StatusInternalServerError, "storage_error", err.Error())
+	}
 
 	// Track the enrollment - convert status type.
 	statusForTracking := cryptoutilApiCaServer.EnrollmentStatusResponseStatus(resp.Status)
@@ -414,7 +417,22 @@ func (h *Handler) GetEnrollmentStatus(c *fiber.Ctx, requestID googleUuid.UUID) e
 	// Look up the enrollment in the tracker.
 	entry, found := h.enrollmentTracker.get(requestID)
 	if !found {
-		return h.errorResponse(c, fiber.StatusNotFound, "not_found", "enrollment request not found")
+		cert, err := h.storage.GetByRequestID(c.UserContext(), requestID)
+		if errors.Is(err, cryptoutilCAStorage.ErrCertificateNotFound) {
+			return h.errorResponse(c, fiber.StatusNotFound, "not_found", "enrollment request not found")
+		}
+
+		if err != nil {
+			return h.errorResponse(c, fiber.StatusInternalServerError, "storage_error", err.Error())
+		}
+
+		entry = &enrollmentEntry{
+			RequestID:    requestID,
+			Status:       cryptoutilApiCaServer.EnrollmentStatusResponseStatusIssued,
+			SerialNumber: cert.SerialNumber,
+			CreatedAt:    cert.CreatedAt,
+			CompletedAt:  cert.UpdatedAt,
+		}
 	}
 
 	// Build response based on tracked status.
@@ -430,8 +448,12 @@ func (h *Handler) GetEnrollmentStatus(c *fiber.Ctx, requestID googleUuid.UUID) e
 
 	// If issued, try to get the certificate from storage.
 	if entry.Status == cryptoutilApiCaServer.EnrollmentStatusResponseStatusIssued && entry.SerialNumber != "" {
-		cert, err := h.storage.GetBySerialNumber(c.Context(), entry.SerialNumber)
-		if err == nil {
+		cert, err := h.storage.GetBySerialNumber(c.UserContext(), entry.SerialNumber)
+		if err != nil && !errors.Is(err, cryptoutilCAStorage.ErrCertificateNotFound) {
+			return h.errorResponse(c, fiber.StatusInternalServerError, "storage_error", err.Error())
+		}
+
+		if cert != nil {
 			notBefore := cert.NotBefore
 			notAfter := cert.NotAfter
 

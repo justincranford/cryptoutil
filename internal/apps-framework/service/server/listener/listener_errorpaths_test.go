@@ -311,7 +311,9 @@ func TestAdminServer_Start_NonZeroPort(t *testing.T) {
 	}()
 
 	// Wait for server to start.
-	time.Sleep(200 * time.Millisecond)
+	require.Eventually(t, func() bool {
+		return server.ActualPort() > 0
+	}, cryptoutilSharedMagic.TestTimeoutCryptoutilReady, cryptoutilSharedMagic.TestTimeoutHTTPRetryInterval)
 	require.Equal(t, int(port), server.ActualPort())
 
 	cancel()

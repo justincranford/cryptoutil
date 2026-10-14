@@ -13,11 +13,16 @@ runs:
   steps:
     - name: Build Docker images
       shell: bash
+      env:
+        COMPOSE_INPUT_PATH: ${{ inputs.compose-file }}
       run: |
         echo "🏗️ Building Docker images..."
         START_TIME=$(date +%s)
         echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-        docker compose -f ${{ inputs.compose-file }} build
+        COMPOSE_DIR="$(dirname "$COMPOSE_INPUT_PATH")"
+        COMPOSE_FILE="$(basename "$COMPOSE_INPUT_PATH")"
+        cd "$COMPOSE_DIR"
+        docker compose -f "$COMPOSE_FILE" build
         END_TIME=$(date +%s)
         DURATION=$((END_TIME - START_TIME))
         echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"

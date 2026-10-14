@@ -27,7 +27,6 @@ func TestFindViolationsInDir_ValidDockerfiles(t *testing.T) {
 
 	psID := cryptoutilSharedMagic.OTLPServiceSMKMS
 	entrypoint := cryptoutilCmdCicdRegistry.DockerfileEntrypoint(psID)
-	binaryPath := "/app/" + psID
 
 	tests := []struct {
 		name       string
@@ -38,7 +37,7 @@ func TestFindViolationsInDir_ValidDockerfiles(t *testing.T) {
 			setupFiles: map[string]string{
 				testDeploymentsSmKMSDockerfile: dockerfileWithHealthcheck(
 					entrypoint,
-					binaryPath+" livez || exit 1",
+					`["/app/sm-kms", "livez"]`,
 				),
 			},
 		},
@@ -59,7 +58,7 @@ func TestFindViolationsInDir_ValidDockerfiles(t *testing.T) {
 			setupFiles: map[string]string{
 				testDeploymentsSmKMSDockerfile: dockerfileWithMultiLineHealthcheck(
 					entrypoint,
-					binaryPath+" livez || exit 1",
+					`["/app/sm-kms", "livez"]`,
 				),
 			},
 		},
@@ -246,16 +245,16 @@ func TestJoinHealthcheckLines(t *testing.T) {
 	}{
 		{
 			name:  "single line",
-			lines: []string{testHealthcheckCmdAppSmKMSLivezExit1},
-			want:  testHealthcheckCmdAppSmKMSLivezExit1,
+			lines: []string{testHealthcheckCmdAppSmKMSLivezExec},
+			want:  testHealthcheckCmdAppSmKMSLivezExec,
 		},
 		{
 			name: "multi-line with continuations",
 			lines: []string{
 				"HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \\",
-				"CMD /app/sm-kms livez || exit 1",
+				`CMD ["/app/sm-kms", "livez"]`,
 			},
-			want: "HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 CMD /app/sm-kms livez || exit 1",
+			want: `HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 CMD ["/app/sm-kms", "livez"]`,
 		},
 		{
 			name:  "empty input",
@@ -279,12 +278,11 @@ func TestCheckInDir_NoViolations(t *testing.T) {
 
 	psID := cryptoutilSharedMagic.OTLPServiceSMKMS
 	entrypoint := cryptoutilCmdCicdRegistry.DockerfileEntrypoint(psID)
-	binaryPath := "/app/" + psID
 
 	rootDir := setupTempDir(t, map[string]string{
 		testDeploymentsSmKMSDockerfile: dockerfileWithHealthcheck(
 			entrypoint,
-			binaryPath+" livez || exit 1",
+			`["/app/sm-kms", "livez"]`,
 		),
 	})
 

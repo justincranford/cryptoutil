@@ -174,7 +174,7 @@ func TestExtractVersion(t *testing.T) {
 		{cryptoutilSharedMagic.DevSetupTestVersion123, cryptoutilSharedMagic.DevSetupTestVersion123},
 		{cryptoutilSharedMagic.DevSetupTestPythonVersion, cryptoutilSharedMagic.DevSetupTestPythonVersionParsed},
 		{cryptoutilSharedMagic.DevSetupTestGoVersionOutput, cryptoutilSharedMagic.DevSetupTestGoVersionParsed},
-		{"version 2.12.2", cryptoutilSharedMagic.DevSetupTestGolangciVersion},
+		{"version 2.12.2", "2.12.2"},
 		{"v1.0.0-alpha", "1.0.0-alpha"},
 		{cryptoutilSharedMagic.DevSetupTestGolangciOutput, cryptoutilSharedMagic.DevSetupTestGolangciVersion},
 		{cryptoutilSharedMagic.DevSetupTestNoVersionHere, cryptoutilSharedMagic.DevSetupTestNoVersionHere},

@@ -2,6 +2,7 @@
 package outdated_deps
 
 import (
+	"context"
 	json "encoding/json"
 	"os"
 	"path/filepath"
@@ -37,7 +38,9 @@ func TestCheckOutdatedDeps_NoGoSum(t *testing.T) {
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	err = CheckInDir(logger, tmpDir)
+	err = checkInDir(logger, tmpDir, func(_ context.Context, _ string) ([]byte, error) {
+		return []byte("github.com/pkg/errors v0.8.0 [v0.9.1]\n"), nil
+	})
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to read go.sum")
 }

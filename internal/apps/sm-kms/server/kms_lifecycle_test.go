@@ -7,8 +7,10 @@ package server
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
+	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
 	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps-framework/service/config"
@@ -22,7 +24,10 @@ func TestKMSServer_Lifecycle(t *testing.T) {
 
 	ctx := context.Background()
 	cfg := cryptoutilAppsFrameworkServiceConfig.RequireNewForTest(cryptoutilSharedMagic.OTLPServiceSMKMS)
-	cfg.DatabaseURL = cryptoutilSharedMagic.SQLiteInMemoryDSN
+	databaseID, err := googleUuid.NewV7()
+	require.NoError(t, err)
+
+	cfg.DatabaseURL = fmt.Sprintf(cryptoutilSharedMagic.SQLiteInMemoryNamedDSNFormat, databaseID.String())
 
 	server, err := NewKMSServerFromConfig(ctx, cfg)
 	require.NoError(t, err)

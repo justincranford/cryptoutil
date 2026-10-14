@@ -25,6 +25,14 @@ func Check(logger *cryptoutilCmdCicdCommon.Logger) error {
 // CheckInDir checks for outdated Go direct dependencies in the given directory.
 // This command uses caching to avoid repeated expensive checks and returns an error if outdated dependencies are found.
 func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, dir string) error {
+	return checkInDir(logger, dir, listGoModules)
+}
+
+func checkInDir(
+	logger *cryptoutilCmdCicdCommon.Logger,
+	dir string,
+	listModulesFn func(context.Context, string) ([]byte, error),
+) error {
 	modeName := cryptoutilSharedMagic.ModeNameDirect
 
 	cacheFile := filepath.Join(dir, cryptoutilSharedMagic.DepCacheFileName)
@@ -61,10 +69,7 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, dir string) error {
 	logger.Log("Performing fresh dependency check")
 
 	// Run go list -u -m all to check for outdated dependencies.
-	cmd := exec.CommandContext(context.Background(), "go", "list", "-u", "-m", cryptoutilSharedMagic.ModeNameAll)
-	cmd.Dir = dir
-
-	output, err := cmd.Output()
+	output, err := listModulesFn(context.Background(), dir)
 	if err != nil {
 		logger.Log(fmt.Sprintf("Error checking dependencies: %v", err))
 
@@ -118,6 +123,18 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, dir string) error {
 	logger.Log("lint-go-mod completed")
 
 	return nil
+}
+
+func listGoModules(ctx context.Context, dir string) ([]byte, error) {
+	cmd := exec.CommandContext(ctx, "go", "list", "-u", "-m", cryptoutilSharedMagic.ModeNameAll)
+	cmd.Dir = dir
+
+	output, err := cmd.Output()
+	if err != nil {
+		return nil, fmt.Errorf("failed to list Go modules: %w", err)
+	}
+
+	return output, nil
 }
 
 func checkDependencyUpdates(goListOutput string, directDeps map[string]bool) []string {

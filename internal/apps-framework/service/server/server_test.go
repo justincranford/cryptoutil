@@ -408,7 +408,7 @@ func TestPublicServerBase_ErrChanPath(t *testing.T) {
 	// Wait for server to be listening.
 	require.Eventually(t, func() bool {
 		return base.ActualPort() != 0
-	}, cryptoutilSharedMagic.JoseJADefaultMaxMaterials*time.Second, cryptoutilSharedMagic.JoseJADefaultMaxMaterials*time.Millisecond)
+	}, cryptoutilSharedMagic.TestTimeoutCryptoutilReady, cryptoutilSharedMagic.TestTimeoutHTTPRetryInterval)
 
 	// Release the listener stub so Start returns through the errChan branch.
 	close(listenerClosed)
@@ -417,7 +417,7 @@ func TestPublicServerBase_ErrChanPath(t *testing.T) {
 	select {
 	case err = <-startErr:
 		require.NoError(t, err)
-	case <-time.After(cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Second):
+	case <-time.After(cryptoutilSharedMagic.TestTimeoutCryptoutilReady):
 		t.Fatal("server did not return from errChan path within timeout")
 	}
 

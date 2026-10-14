@@ -137,7 +137,7 @@ LABEL org.opencontainers.image.title="__SUITE__-__PS_ID__" \
 EXPOSE 8080
 
 HEALTHCHECK --interval=__HEALTHCHECK_INTERVAL__ --timeout=__HEALTHCHECK_TIMEOUT__ --start-period=__HEALTHCHECK_START_PERIOD__ --retries=__HEALTHCHECK_RETRIES__ \
-    CMD /app/__PS_ID__ livez || exit 1
+    CMD ["/app/__PS_ID__", "livez"]
 
 ENTRYPOINT ["/sbin/tini", "--"]
 

@@ -7,7 +7,6 @@ import (
 	"net"
 	"os"
 	"testing"
-	"time"
 
 	fiber "github.com/gofiber/fiber/v2"
 	"github.com/stretchr/testify/require"
@@ -41,6 +40,14 @@ func (f *invalidPortListener) Accept() (net.Conn, error) { return f.inner.Accept
 func (f *invalidPortListener) Close() error              { return f.inner.Close() }
 func (f *invalidPortListener) Addr() net.Addr {
 	return &net.TCPAddr{IP: net.IPv4(127, 0, 0, 1), Port: 99999}
+}
+
+type stubTCPListener struct{}
+
+func (stubTCPListener) Accept() (net.Conn, error) { return nil, net.ErrClosed }
+func (stubTCPListener) Close() error              { return nil }
+func (stubTCPListener) Addr() net.Addr {
+	return &net.TCPAddr{Port: cryptoutilSharedMagic.TestAdminPort}
 }
 
 // TestAdminServer_Start_NonTCPAddr tests Start when listener returns a non-TCP address.
@@ -140,27 +147,21 @@ func TestAdminServer_ErrChanPath(t *testing.T) {
 	settings := cryptoutilAppsFrameworkServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
 	tlsCfg := validAutoTLSSettings(t)
 
-	server, err := NewAdminHTTPServer(context.Background(), settings, tlsCfg)
+	server, err := newAdminHTTPServerInternal(context.Background(), settings, tlsCfg,
+		cryptoutilAppsFrameworkServiceConfigTlsGenerator.GenerateTLSMaterial,
+		func(_ context.Context, _, _ string) (net.Listener, error) {
+			return stubTCPListener{}, nil
+		},
+		func(_ *fiber.App, _ net.Listener) error {
+			return nil
+		},
+		os.ReadFile,
+	)
 	require.NoError(t, err)
 
-	// Start server in background.
-	startErr := make(chan error, 1)
-
-	go func() {
-		startErr <- server.Start(context.Background())
-	}()
-
-	// Wait for server to be listening.
-	require.Eventually(t, func() bool {
-		return server.ActualPort() != 0
-	}, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second, cryptoutilSharedMagic.JoseJADefaultMaxMaterials*time.Millisecond)
-
-	// Directly shutdown Fiber app (not server.Shutdown which cancels context).
-	_ = server.app.Shutdown()
-
-	// Start returns via errChan path.
-	err = <-startErr
-	_ = err
+	err = server.Start(context.Background())
+	require.NoError(t, err)
+	require.Equal(t, cryptoutilSharedMagic.TestAdminPort, server.ActualPort())
 }
 
 // TestPublicServer_Start_NonTCPAddr tests Start when listener returns a non-TCP address.

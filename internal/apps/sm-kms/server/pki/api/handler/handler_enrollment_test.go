@@ -107,6 +107,14 @@ func TestSubmitEnrollment_WithOverrides(t *testing.T) {
 	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 	require.Equal(t, fiber.StatusCreated, resp.StatusCode)
+
+	var enrollmentResponse cryptoutilApiCaServer.EnrollmentResponse
+	require.NoError(t, json.NewDecoder(resp.Body).Decode(&enrollmentResponse))
+	storedCertificate, err := mockStorage.GetByRequestID(context.Background(), enrollmentResponse.RequestID)
+	require.NoError(t, err)
+	require.Equal(t, enrollmentResponse.Certificate.SerialNumber, storedCertificate.SerialNumber)
+	require.Equal(t, enrollmentResponse.Certificate.CertificatePEM, storedCertificate.CertificatePEM)
+
 	require.NoError(t, resp.Body.Close())
 }
 

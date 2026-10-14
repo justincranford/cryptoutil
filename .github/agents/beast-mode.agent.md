@@ -111,7 +111,7 @@ This prevents pre-commit from stashing unrelated unstaged edits and returning to
 **Before starting work:**
 
 1. **Build Health**: `go build ./...` AND `go build -tags e2e,integration ./...`
-2. **Go Version**: `go version` (1.26.1+)
+2. **Go Version**: `go version` (1.27.2+)
 3. **Docker**: `docker ps` (if needed)
 
 **If fails**: Treat as a blocker and fix it immediately; do NOT stop and do NOT defer

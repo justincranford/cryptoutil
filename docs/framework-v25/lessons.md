@@ -19,8 +19,8 @@ after each phase's quality gates pass.
 
 ## Actions
 
-1. Plan a separate PKI persistence feature: replace the current in-memory certificate storage with a database-backed repository, define migration ownership, and add SQLite/PostgreSQL compatibility tests.
-2. Review the freed PKI port 8300, PostgreSQL host port 54323, and migration range 5001-5999 before assigning any of them in the canonical registry.
+1. PKI persistence follow-up resolved: certificates, revocations, and CA authority state use the shared sm-kms SQLite/PostgreSQL database; the CA private key is barrier-encrypted, and CRL/OCSP responses read tenant-scoped durable status.
+2. Keep the retired PKI port 8300, PostgreSQL host port 54323, and migration range 5001-5999 unassigned until an explicit canonical registry change authorizes reuse.
 3. For future migrations, create and update each phase's evidence directory and task statuses as its quality gates complete instead of reconstructing status from the final tree.
 
 ---
@@ -53,7 +53,7 @@ The phase-level evidence archive was not maintained alongside the individual tas
 
 ### Patterns for Future Phases
 
-Run package-scoped build/tests while porting, preserve the logs under the phase directory, and update each task status immediately after its acceptance criteria pass. Keep runtime storage behavior explicit: the current certificate storage is in-memory, while database-backed persistence remains deferred.
+Run package-scoped build/tests while porting, preserve the logs under the phase directory, and update each task status immediately after its acceptance criteria pass. The original in-memory port is retained only as a test store; production persistence belongs to the shared sm-kms database.
 
 ---
 

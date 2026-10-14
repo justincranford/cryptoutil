@@ -23,7 +23,7 @@
 #   - Admin livez endpoint: https://127.0.0.1:9090/admin/api/v1/livez (internal only)
 #
 include:
-  - path: ../shared-telemetry/compose.yml
+  - path: ./compose-telemetry.yml
   - path: ../shared-postgres/compose.yml
     env_file: .env.postgres
 
@@ -383,44 +383,6 @@ services:
           memory: 256M
         reservations:
           memory: 128M
-
-  # Direct PKI dependency reruns this one-shot readiness check after certificate regeneration.
-  healthcheck-opentelemetry-collector-contrib:
-    depends_on:
-      pki-init:
-        condition: service_completed_successfully
-        restart: true
-
-  # OTel Collector mTLS cert setup: Cat 2 server cert + Cat 8 client issuing CA.
-  # Extends the shared-telemetry service with PS-ID-specific cert mounts so the
-  # collector can present its server cert and verify app client certs (Cat 2 + Cat 8).
-  # CRITICAL: otel/opentelemetry-collector-contrib is distroless (no bash/sh).
-  # Certs are prepared by otel-certs-init (Alpine) into the identity-spa-otel-certs volume.
-  # Direct PKI dependency ensures the long-running collector reloads rotated TLS material.
-  opentelemetry-collector-contrib:
-    depends_on:
-      pki-init:
-        condition: service_completed_successfully
-        restart: true
-      otel-certs-init:
-        condition: service_completed_successfully
-        restart: true
-    volumes:
-      - identity-spa-otel-certs:/etc/pki-init/certs:ro
-
-  # Grafana HTTPS and OTLP ingest mTLS cert setup.
-  # Extends the shared-telemetry Grafana service with PS-ID-specific cert mounts.
-  grafana-otel-lgtm:
-    depends_on:
-      pki-init:
-        condition: service_completed_successfully
-        restart: true
-    volumes:
-      - identity-spa-certs:/mnt/ps-certs-src:ro
-    environment:
-      GF_SERVER_CERT_FILE: /mnt/ps-certs-src/identity-spa/public-https-server-entity-grafana-otel-lgtm/public-https-server-entity-grafana-otel-lgtm.crt
-      GF_SERVER_CERT_KEY: /mnt/ps-certs-src/identity-spa/public-https-server-entity-grafana-otel-lgtm/public-https-server-entity-grafana-otel-lgtm.key
-      OTELCOL_CLIENT_CA_FILE: /mnt/ps-certs-src/identity-spa/grafana-otel-lgtm-https-client-issuing-ca/truststore/grafana-otel-lgtm-https-client-issuing-ca.crt
 
   # postgres-leader SSL setup - extends shared-postgres service with mTLS cert setup.
   # Runs as root to copy certs into a writable directory, chown to postgres (uid 999),

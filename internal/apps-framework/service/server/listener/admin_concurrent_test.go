@@ -39,8 +39,8 @@ func TestAdminServer_ConcurrentRequests(t *testing.T) {
 
 	// Start server in background.
 	var (
-		wg       sync.WaitGroup
-		startErr error
+		wg         sync.WaitGroup
+		startErrCh = make(chan error, 1)
 	)
 
 	wg.Add(1)
@@ -48,7 +48,7 @@ func TestAdminServer_ConcurrentRequests(t *testing.T) {
 	go func() {
 		defer wg.Done()
 
-		startErr = server.Start(ctx)
+		startErrCh <- server.Start(ctx)
 	}()
 
 	// Wait for server to be ready with health check retry.
@@ -60,29 +60,33 @@ func TestAdminServer_ConcurrentRequests(t *testing.T) {
 			},
 			DisableKeepAlives: true,
 		},
-		Timeout: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Second,
+		Timeout: cryptoutilSharedMagic.TestTimeoutHTTPClient,
 	}
 
-	var (
-		serverReady bool
-		port        int
-	)
+	startupCtx, startupCancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.TestTimeoutCryptoutilReady)
+	defer startupCancel()
 
-	for i := 0; i < cryptoutilSharedMagic.IdentityDefaultIdleTimeoutSeconds; i++ { // Increased to 60 attempts (3 seconds total) to handle previous test shutdown.
-		time.Sleep(cryptoutilSharedMagic.IMMaxUsernameLength * time.Millisecond)
+	startupPoll := time.NewTicker(cryptoutilSharedMagic.TestTimeoutHTTPRetryInterval)
+	defer startupPoll.Stop()
 
-		// Check if Start() returned an error.
-		if startErr != nil {
-			require.FailNow(t, "server.Start() error after attempts", "attempt", i, cryptoutilSharedMagic.StringError, startErr)
+	var port int
+
+	for {
+		select {
+		case startErr := <-startErrCh:
+			require.NoError(t, startErr, "server.Start() exited before becoming ready")
+			require.FailNow(t, "server.Start() exited before becoming ready")
+		default:
 		}
 
 		port = server.ActualPort()
 		if port > 0 {
-			healthCtx, healthCancel := context.WithTimeout(context.Background(), 2*time.Second)
+			healthCtx, healthCancel := context.WithTimeout(startupCtx, cryptoutilSharedMagic.TestTimeoutHTTPClient)
 
 			healthURL := "https://" + net.JoinHostPort(cryptoutilSharedMagic.IPv4Loopback, strconv.Itoa(port)) + "/admin/api/v1/livez"
 
-			healthReq, _ := http.NewRequestWithContext(healthCtx, http.MethodGet, healthURL, nil)
+			healthReq, reqErr := http.NewRequestWithContext(healthCtx, http.MethodGet, healthURL, nil)
+			require.NoError(t, reqErr)
 
 			healthResp, healthErr := client.Do(healthReq)
 
@@ -90,7 +94,6 @@ func TestAdminServer_ConcurrentRequests(t *testing.T) {
 
 			if healthErr == nil && healthResp.StatusCode == http.StatusOK {
 				_ = healthResp.Body.Close()
-				serverReady = true
 
 				break
 			}
@@ -99,18 +102,16 @@ func TestAdminServer_ConcurrentRequests(t *testing.T) {
 				_ = healthResp.Body.Close()
 			}
 
-			// Log startup failures for debugging.
-			if i%cryptoutilSharedMagic.JoseJADefaultMaxMaterials == 0 && healthErr != nil {
-				t.Logf("Health check attempt %d failed: %v", i, healthErr)
+			if healthErr != nil {
+				t.Logf("Health check failed: %v", healthErr)
 			}
 		}
-	}
 
-	require.True(t, serverReady, "server failed to become ready after 60 attempts (3 seconds)")
-
-	// Check if server.Start() returned an error during startup.
-	if startErr != nil {
-		require.FailNow(t, "server.Start() error", startErr)
+		select {
+		case <-startupCtx.Done():
+			require.FailNow(t, "server failed to become ready before startup deadline", startupCtx.Err())
+		case <-startupPoll.C:
+		}
 	}
 
 	// Make 10 concurrent requests to livez endpoint.
@@ -126,7 +127,7 @@ func TestAdminServer_ConcurrentRequests(t *testing.T) {
 		go func() {
 			defer requestWG.Done()
 
-			reqCtx, reqCancel := context.WithTimeout(context.Background(), 2*time.Second)
+			reqCtx, reqCancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.TestTimeoutHTTPClient)
 			defer reqCancel()
 
 			url := "https://" + net.JoinHostPort(cryptoutilSharedMagic.IPv4Loopback, strconv.Itoa(port)) + "/admin/api/v1/livez"
@@ -162,7 +163,7 @@ func TestAdminServer_ConcurrentRequests(t *testing.T) {
 	}
 
 	// Shutdown server.
-	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second)
+	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.TestDefaultServerShutdownTimeout)
 	defer shutdownCancel()
 
 	err = server.Shutdown(shutdownCtx)
@@ -171,6 +172,7 @@ func TestAdminServer_ConcurrentRequests(t *testing.T) {
 	wg.Wait()
 
 	// Check if server.Start() returned an error.
+	startErr := <-startErrCh
 	if startErr != nil {
 		require.NoError(t, startErr, "server.Start() error")
 	}

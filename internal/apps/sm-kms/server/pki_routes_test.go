@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps-framework/service/config"
+	cryptoutilAppsSmKmsPKIServer "cryptoutil/internal/apps/sm-kms/server/pki/server"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	fiber "github.com/gofiber/fiber/v2"
@@ -21,7 +22,10 @@ func TestRegisterKMSRoutes_PKIEndpoints(t *testing.T) {
 		PublicBrowserAPIContextPath: cryptoutilSharedMagic.DefaultPublicBrowserAPIContextPath,
 		PublicServiceAPIContextPath: cryptoutilSharedMagic.DefaultPublicServiceAPIContextPath,
 	}
-	err := registerKMSRoutes(app, nil, settings, nil)
+	components, err := cryptoutilAppsSmKmsPKIServer.NewInMemoryPKIComponents()
+	require.NoError(t, err)
+
+	err = registerKMSRoutesWithPKIComponents(app, nil, settings, nil, components)
 	require.NoError(t, err)
 
 	tests := []struct {

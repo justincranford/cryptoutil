@@ -2,6 +2,7 @@
 package server
 
 import (
+	"context"
 	"crypto"
 	crand "crypto/rand"
 	"crypto/x509"
@@ -11,12 +12,15 @@ import (
 	"math/big"
 	"time"
 
+	cryptoutilAppsFrameworkServiceServerBarrier "cryptoutil/internal/apps-framework/service/server/barrier"
 	cryptoutilCAHandler "cryptoutil/internal/apps/sm-kms/server/pki/api/handler"
 	cryptoutilCACrypto "cryptoutil/internal/apps/sm-kms/server/pki/crypto"
 	cryptoutilCAServiceIssuer "cryptoutil/internal/apps/sm-kms/server/pki/service/issuer"
 	cryptoutilCAServiceRevocation "cryptoutil/internal/apps/sm-kms/server/pki/service/revocation"
 	cryptoutilCAStorage "cryptoutil/internal/apps/sm-kms/server/pki/storage"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+
+	"gorm.io/gorm"
 )
 
 const (
@@ -36,33 +40,79 @@ type PKIComponents struct {
 }
 
 type pkiComponentFactories struct {
-	provider             cryptoutilCACrypto.Provider
-	storage              cryptoutilCAStorage.Store
-	randomReader         io.Reader
-	createSelfSignedCAFn func(cryptoutilCACrypto.Provider, io.Reader) (*x509.Certificate, crypto.PrivateKey, error)
-	newIssuerFn          func(cryptoutilCACrypto.Provider, *cryptoutilCAServiceIssuer.IssuingCAConfig) (*cryptoutilCAServiceIssuer.Issuer, error)
-	newCRLServiceFn      func(*cryptoutilCAServiceRevocation.CRLConfig) (*cryptoutilCAServiceRevocation.CRLService, error)
-	newOCSPServiceFn     func(*cryptoutilCAServiceRevocation.OCSPConfig, *cryptoutilCAServiceRevocation.CRLService) (*cryptoutilCAServiceRevocation.OCSPService, error)
-	newHandlerFn         func(*cryptoutilCAServiceIssuer.Issuer, cryptoutilCAStorage.Store, map[string]*cryptoutilCAHandler.ProfileConfig) (*cryptoutilCAHandler.Handler, error)
+	provider         cryptoutilCACrypto.Provider
+	storage          cryptoutilCAStorage.Store
+	randomReader     io.Reader
+	loadOrCreateCAFn func(cryptoutilCACrypto.Provider, io.Reader) (*x509.Certificate, crypto.PrivateKey, error)
+	newIssuerFn      func(cryptoutilCACrypto.Provider, *cryptoutilCAServiceIssuer.IssuingCAConfig) (*cryptoutilCAServiceIssuer.Issuer, error)
+	newCRLServiceFn  func(*cryptoutilCAServiceRevocation.CRLConfig) (*cryptoutilCAServiceRevocation.CRLService, error)
+	newOCSPServiceFn func(*cryptoutilCAServiceRevocation.OCSPConfig, *cryptoutilCAServiceRevocation.CRLService) (*cryptoutilCAServiceRevocation.OCSPService, error)
+	newHandlerFn     func(*cryptoutilCAServiceIssuer.Issuer, cryptoutilCAStorage.Store, map[string]*cryptoutilCAHandler.ProfileConfig) (*cryptoutilCAHandler.Handler, error)
 }
 
-func NewPKIComponents() (*PKIComponents, error) {
+func NewPKIComponents(ctx context.Context, db *gorm.DB, barrierService *cryptoutilAppsFrameworkServiceServerBarrier.Service) (*PKIComponents, error) {
+	if ctx == nil {
+		return nil, fmt.Errorf("context is required")
+	}
+
+	if db == nil {
+		return nil, fmt.Errorf("database is required")
+	}
+
+	if barrierService == nil {
+		return nil, fmt.Errorf("barrier service is required")
+	}
+
+	certificateStore, err := cryptoutilCAStorage.NewGORMStore(db)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create PKI certificate store: %w", err)
+	}
+
+	authorityStore, err := cryptoutilCAStorage.NewGORMAuthorityStore(db)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create PKI authority store: %w", err)
+	}
+
 	cryptoProvider := cryptoutilCACrypto.NewSoftwareProvider()
 
 	return newPKIComponents(pkiComponentFactories{
-		provider:             cryptoProvider,
-		storage:              cryptoutilCAStorage.NewMemoryStore(),
-		randomReader:         crand.Reader,
-		createSelfSignedCAFn: createSelfSignedCA,
-		newIssuerFn:          cryptoutilCAServiceIssuer.NewIssuer,
-		newCRLServiceFn:      cryptoutilCAServiceRevocation.NewCRLService,
-		newOCSPServiceFn:     cryptoutilCAServiceRevocation.NewOCSPService,
-		newHandlerFn:         cryptoutilCAHandler.NewHandler,
+		provider:     cryptoProvider,
+		storage:      certificateStore,
+		randomReader: crand.Reader,
+		loadOrCreateCAFn: func(provider cryptoutilCACrypto.Provider, randomReader io.Reader) (*x509.Certificate, crypto.PrivateKey, error) {
+			return getOrCreateCA(
+				ctx,
+				provider,
+				randomReader,
+				authorityStore,
+				barrierService.EncryptContentWithContext,
+				barrierService.DecryptContentWithContext,
+			)
+		},
+		newIssuerFn:      cryptoutilCAServiceIssuer.NewIssuer,
+		newCRLServiceFn:  cryptoutilCAServiceRevocation.NewCRLService,
+		newOCSPServiceFn: cryptoutilCAServiceRevocation.NewOCSPService,
+		newHandlerFn:     cryptoutilCAHandler.NewHandler,
+	})
+}
+
+func NewInMemoryPKIComponents() (*PKIComponents, error) {
+	cryptoProvider := cryptoutilCACrypto.NewSoftwareProvider()
+
+	return newPKIComponents(pkiComponentFactories{
+		provider:         cryptoProvider,
+		storage:          cryptoutilCAStorage.NewMemoryStore(),
+		randomReader:     crand.Reader,
+		loadOrCreateCAFn: createSelfSignedCA,
+		newIssuerFn:      cryptoutilCAServiceIssuer.NewIssuer,
+		newCRLServiceFn:  cryptoutilCAServiceRevocation.NewCRLService,
+		newOCSPServiceFn: cryptoutilCAServiceRevocation.NewOCSPService,
+		newHandlerFn:     cryptoutilCAHandler.NewHandler,
 	})
 }
 
 func newPKIComponents(factories pkiComponentFactories) (*PKIComponents, error) {
-	caCert, caKey, err := factories.createSelfSignedCAFn(factories.provider, factories.randomReader)
+	caCert, caKey, err := factories.loadOrCreateCAFn(factories.provider, factories.randomReader)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create CA: %w", err)
 	}

@@ -6,6 +6,7 @@ import (
 	"context"
 	"crypto/x509"
 	"encoding/pem"
+	"errors"
 	"fmt"
 	"math/big"
 	"net"
@@ -19,6 +20,8 @@ import (
 	cryptoutilCAProfileCertificate "cryptoutil/internal/apps/sm-kms/server/pki/profile/certificate"
 	cryptoutilCAProfileSubject "cryptoutil/internal/apps/sm-kms/server/pki/profile/subject"
 	cryptoutilCAServiceIssuer "cryptoutil/internal/apps/sm-kms/server/pki/service/issuer"
+	cryptoutilCAServiceRevocation "cryptoutil/internal/apps/sm-kms/server/pki/service/revocation"
+	cryptoutilCAStorage "cryptoutil/internal/apps/sm-kms/server/pki/storage"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
@@ -47,6 +50,48 @@ func (h *Handler) lookupCertificateBySerial(ctx context.Context, serialNumber *b
 	}
 
 	return cert
+}
+
+func (h *Handler) lookupCertificateStatusBySerial(
+	ctx context.Context,
+	serialNumber *big.Int,
+) (*x509.Certificate, *cryptoutilCAServiceRevocation.RevokedCertificate, error) {
+	if serialNumber == nil {
+		return nil, nil, fmt.Errorf("serial number is required")
+	}
+
+	storedCert, err := h.storage.GetBySerialNumber(ctx, serialNumber.Text(cryptoutilSharedMagic.HexBase))
+	if errors.Is(err, cryptoutilCAStorage.ErrCertificateNotFound) {
+		return nil, nil, nil
+	}
+
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to look up certificate: %w", err)
+	}
+
+	block, _ := pem.Decode([]byte(storedCert.CertificatePEM))
+	if block == nil {
+		return nil, nil, fmt.Errorf("stored certificate PEM is invalid")
+	}
+
+	cert, err := x509.ParseCertificate(block.Bytes)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to parse stored certificate: %w", err)
+	}
+
+	if storedCert.Status != cryptoutilCAStorage.StatusRevoked {
+		return cert, nil, nil
+	}
+
+	if storedCert.RevocationTime == nil || storedCert.RevocationReason == nil {
+		return nil, nil, fmt.Errorf("revoked certificate is missing revocation metadata")
+	}
+
+	return cert, &cryptoutilCAServiceRevocation.RevokedCertificate{
+		SerialNumber:   cert.SerialNumber,
+		RevocationTime: *storedCert.RevocationTime,
+		Reason:         cryptoutilCAServiceRevocation.RevocationReason(*storedCert.RevocationReason),
+	}, nil
 }
 
 // ocspErrorResponse sends an OCSP error response with appropriate content type.

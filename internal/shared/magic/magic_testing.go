@@ -292,6 +292,10 @@ const (
 	// TestUnitMediumTimeout is a medium overall timeout used in unit tests that
 	// need slightly more ticks (e.g. non-OK status retry path).
 	TestUnitMediumTimeout = 60 * time.Millisecond
+
+	// TestUnitHealthCheckTimeout allows health-check success tests to tolerate
+	// scheduling delays while keeping failures bounded.
+	TestUnitHealthCheckTimeout = time.Second
 )
 
 var (

@@ -119,7 +119,7 @@ jobs:
         images: |
           postgres:latest
           alpine:latest
-          golang:1.26.1
+          golang:1.27.2
           otel/opentelemetry-collector-contrib:latest
           grafana/otel-lgtm:latest
 
@@ -282,10 +282,10 @@ jobs:
         mkdir -p ./load-reports/service-logs
 
         # Collect logs from all cryptoutil services
-        docker compose -f ./deployments/sm-kms/compose.yml logs sm-kms-app-postgresql-1 > ./load-reports/service-logs/sm-kms-postgresql-1.log 2>&1 || true
-        docker compose -f ./deployments/sm-kms/compose.yml logs sm-kms-app-postgresql-2 > ./load-reports/service-logs/sm-kms-postgresql-2.log 2>&1 || true
-        docker compose -f ./deployments/sm-kms/compose.yml logs sm-kms-db-postgres-1 > ./load-reports/service-logs/postgres.log 2>&1 || true
-        docker compose -f ./deployments/sm-kms/compose.yml logs opentelemetry-collector-contrib > ./load-reports/service-logs/otel-collector.log 2>&1 || true
+        (cd ./deployments/sm-kms && docker compose -f compose.yml logs sm-kms-app-postgresql-1) > ./load-reports/service-logs/sm-kms-postgresql-1.log 2>&1 || true
+        (cd ./deployments/sm-kms && docker compose -f compose.yml logs sm-kms-app-postgresql-2) > ./load-reports/service-logs/sm-kms-postgresql-2.log 2>&1 || true
+        (cd ./deployments/sm-kms && docker compose -f compose.yml logs sm-kms-db-postgres-1) > ./load-reports/service-logs/postgres.log 2>&1 || true
+        (cd ./deployments/sm-kms && docker compose -f compose.yml logs opentelemetry-collector-contrib) > ./load-reports/service-logs/otel-collector.log 2>&1 || true
 
         echo "✅ Service logs collected"
         END_TIME=$(date +%s)

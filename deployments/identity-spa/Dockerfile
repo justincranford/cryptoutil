@@ -12,7 +12,7 @@ ARG APP_VERSION=UNSET
 ARG VCS_REF=UNSET
 ARG BUILD_DATE=UNSET
 #############################################################################################
-ARG GO_VERSION=1.26.1
+ARG GO_VERSION=1.27.2
 # hadolint ignore=DL3007
 ARG ALPINE_VERSION=latest
 # Design intent is to NEVER set CGO_ENABLED=1
@@ -137,7 +137,7 @@ LABEL org.opencontainers.image.title="cryptoutil-identity-spa" \
 EXPOSE 8080
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
-    CMD /app/identity-spa livez || exit 1
+    CMD ["/app/identity-spa", "livez"]
 
 ENTRYPOINT ["/sbin/tini", "--"]
 
