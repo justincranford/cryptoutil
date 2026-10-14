@@ -1,45 +1,6 @@
 ---
 name: copilot-beast-mode
 description: Activate for continuous autonomous execution without interruptions, permission requests, or status updates between tasks. Use for large multi-step implementations, refactoring sessions, or any task requiring sustained uninterrupted progress across many files.
-tools:
-  - agent/runSubagent
-  - edit/createDirectory
-  - edit/createFile
-  - edit/editFiles
-  - edit/rename
-  - execute/awaitTerminal
-  - execute/createAndRunTask
-  - execute/getTerminalOutput
-  - execute/killTerminal
-  - execute/runInTerminal
-  - execute/runTests
-  - execute/testFailure
-  - read/problems
-  - read/readFile
-  - read/terminalLastCommand
-  - read/terminalSelection
-  - read/viewImage
-  - search/codebase
-  - search/changes
-  - search/fileSearch
-  - search/listDirectory
-  - search/textSearch
-  - search/usages
-  - todo
-  - vscode/extensions
-  - vscode/installExtension
-  - vscode/renameSymbol
-  - web/fetch
-  - web/githubRepo
-  - web/searchResults
-  - edit/applyPatch
-  - edit/insertEdit
-  - edit/multiReplaceString
-  - edit/replaceString
-  - search/findTestFiles
-  - search/symbols
-  - selection
-  - vscode.mermaid-chat-features/renderMermaidDiagram
 ---
 # AUTONOMOUS EXECUTION MODE
 
