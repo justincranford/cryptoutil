@@ -110,13 +110,43 @@ jobs:
     - name: Run coverage on tests
       working-directory: .
       run: |
+        set -euo pipefail
         echo "::group::go test with coverage"
         mkdir -p workflow-reports/coverage
-        # Exclude cmd/* packages (main packages without coverage requirements)
-        # Exclude e2e/* packages (require Docker Compose, run in ci-e2e workflow)
+        if ! PACKAGE_INVENTORY=$(go list ./...); then
+          echo "Failed to generate the coverage package inventory"
+          exit 1
+        fi
+        if ! MODULE_PATH=$(go list -m); then
+          echo "Failed to determine the Go module path for inventory classification"
+          exit 1
+        fi
+        if [[ -z "$MODULE_PATH" ]]; then
+          echo "Go module path is empty"
+          exit 1
+        fi
+        if [[ -z "${PACKAGE_INVENTORY//[[:space:]]/}" ]]; then
+          echo "Coverage package inventory is empty"
+          exit 1
+        fi
+        PACKAGES=()
+        while IFS= read -r PKG; do
+          if [[ -z "$PKG" ]]; then
+            echo "Coverage package inventory contains an empty entry"
+            exit 1
+          fi
+          case "$PKG" in
+            "$MODULE_PATH"/cmd|"$MODULE_PATH"/cmd/*) continue ;;
+          esac
+          PACKAGES+=("$PKG")
+        done <<< "$PACKAGE_INVENTORY"
+        if ((${#PACKAGES[@]} == 0)); then
+          echo "Coverage package inventory is empty after exclusions"
+          exit 1
+        fi
+        printf '%s\n' "${PACKAGES[@]}" > workflow-reports/coverage/package-inventory.txt
         go test -count=1 -p=2 -coverprofile=workflow-reports/coverage/coverage.out -covermode=atomic \
-          $(go list ./internal/... | grep -v '/cmd$' | grep -v '/cmd/' | grep -v '/e2e$' | grep -v '/e2e/') \
-          2>&1 | tee workflow-reports/coverage/coverage-per-pkg.txt
+          "${PACKAGES[@]}" 2>&1 | tee workflow-reports/coverage/coverage-per-pkg.txt
         echo "::endgroup::"
 
     - name: Generate coverage report
@@ -127,34 +157,131 @@ jobs:
 
     - name: Enforce per-package coverage threshold
       run: |
-        echo "## 🔍 Per-Package Coverage Enforcement" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "| Package | Coverage | Status |" >> $GITHUB_STEP_SUMMARY
-        echo "|---------|----------|--------|" >> $GITHUB_STEP_SUMMARY
-        FAILED=0
-        # internal/apps-tools/cicd_lint infrastructure packages require >=98%
-        # All other production packages require >=95%
-        while IFS= read -r line; do
-          PKG=$(echo "$line" | grep -oP '(?<=ok\s{1,10})[\w./\-]+' || true)
-          PCT=$(echo "$line" | grep -oP '[\d.]+(?=% of statements)' || true)
-          if [ -z "$PKG" ] || [ -z "$PCT" ]; then continue; fi
-          # Determine threshold: 98% for cicd infrastructure, 95% for all others
-          THRESHOLD=95.0
-          if echo "$PKG" | grep -q '/apps-tools/cicd_lint'; then THRESHOLD=98.0; fi
-          STATUS="✅ PASS"
-          if awk "BEGIN {exit !($PCT < $THRESHOLD)}"; then
-            STATUS="❌ FAIL"
-            FAILED=1
-          fi
-          echo "| \`$PKG\` | ${PCT}% | $STATUS (min ${THRESHOLD}%) |" >> $GITHUB_STEP_SUMMARY
-        done < workflow-reports/coverage/coverage-per-pkg.txt
-        if [ "$FAILED" -eq 1 ]; then
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "❌ One or more packages are below the required coverage threshold." >> $GITHUB_STEP_SUMMARY
-          echo "❌ Per-package coverage gate failed — see table above for details"
+        set -euo pipefail
+        if ! MODULE_PATH=$(go list -m); then
+          echo "Failed to determine the Go module path for inventory classification"
           exit 1
-        else
-          echo "✅ All packages meet per-package coverage thresholds"
+        fi
+        if [[ -z "$MODULE_PATH" ]]; then
+          echo "Go module path is empty"
+          exit 1
+        fi
+        echo "## Per-Package Coverage Enforcement" >> "$GITHUB_STEP_SUMMARY"
+        echo "" >> "$GITHUB_STEP_SUMMARY"
+        echo "| Package | Coverage | Status |" >> "$GITHUB_STEP_SUMMARY"
+        echo "|---------|----------|--------|" >> "$GITHUB_STEP_SUMMARY"
+        if ! awk -v summary="$GITHUB_STEP_SUMMARY" -v module="$MODULE_PATH" '
+          function fail(message) {
+            print "ERROR: " message
+            failed = 1
+          }
+          BEGIN {
+            category_count = 3
+            category_name[1] = "internal/apps-tools"
+            category_name[2] = "internal/shared"
+            category_name[3] = "internal/apps-framework"
+            category_expected[1] = 166
+            category_expected[2] = 29
+            category_expected[3] = 44
+            expected_total_count = 352
+            expected_root_pkg_count = 0
+            expected_no_statement_count = 1
+            no_statement_package = module "/internal/apps/identity-authz/e2e"
+            root_pkg_prefix = module "/pkg"
+          }
+          FILENAME == ARGV[1] {
+            if (NF != 1) {
+              fail("Malformed coverage package inventory at line " FNR)
+              next
+            }
+            if ($1 in expected) {
+              fail("Duplicate coverage package inventory entry: " $1)
+              next
+            }
+            expected[$1] = 1
+            expected_count++
+            for (i = 1; i <= category_count; i++) {
+              if ($1 ~ ("/" category_name[i] "(/|$)")) category_inventory[i]++
+            }
+            if ($1 == root_pkg_prefix || index($1, root_pkg_prefix "/") == 1) root_pkg_inventory++
+            next
+          }
+          ($1 == "ok" || $1 == "?") {
+            pkg = $2
+            if (!(pkg in expected)) {
+              fail("Test output contains package absent from inventory: " pkg)
+              next
+            }
+            if (pkg in seen) {
+              fail("Duplicate test result for package: " pkg)
+              next
+            }
+            seen[pkg] = 1
+            if ($4 == "coverage:" && $5 == "[no" && $6 == "statements]") {
+              if (pkg != no_statement_package) {
+                fail("Unexpected package with no statements: " pkg)
+              } else {
+                no_statement_count++
+              }
+              next
+            }
+            if ($1 == "?") {
+              if ($3 != "[no" || $4 != "test" || $5 != "files]") {
+                fail("Malformed no-test-files result for package: " pkg)
+              } else {
+                no_test_count++
+              }
+              next
+            }
+            if ($4 != "coverage:" || $5 !~ /^[0-9]+([.][0-9]+)?%$/ || $6 != "of" || $7 != "statements") {
+              fail("Malformed coverage result for package: " pkg)
+              next
+            }
+            pct = $5
+            sub(/%$/, "", pct)
+            threshold = 95.0
+            for (i = 1; i <= category_count; i++) {
+              if (pkg ~ ("/" category_name[i] "(/|$)")) threshold = 98.0
+            }
+            if (pkg == root_pkg_prefix || index(pkg, root_pkg_prefix "/") == 1) threshold = 98.0
+            status = "PASS"
+            if ((pct + 0) < threshold) {
+              status = "FAIL"
+              failed = 1
+            }
+            printf "| `%s` | %s%% | %s (min %.1f%%) |\n", pkg, pct, status, threshold >> summary
+            coverage_count++
+          }
+          END {
+            if (expected_count == 0) fail("Coverage package inventory is empty")
+            if (expected_count != expected_total_count) {
+              fail("Coverage package inventory count changed: expected " expected_total_count ", got " expected_count)
+            }
+            for (i = 1; i <= category_count; i++) {
+              if (category_inventory[i] != category_expected[i]) {
+                fail("Coverage package count changed for " category_name[i] ": expected " category_expected[i] ", got " category_inventory[i])
+              }
+            }
+            if (root_pkg_inventory != expected_root_pkg_count) {
+              fail("Top-level pkg namespace count changed: expected " expected_root_pkg_count ", got " root_pkg_inventory "; update the explicit inventory baseline")
+            }
+            if (no_statement_count != expected_no_statement_count) {
+              fail("No-statement package count changed: expected " expected_no_statement_count ", got " no_statement_count)
+            }
+            for (pkg in expected) {
+              if (!(pkg in seen)) fail("Missing test result for inventoried package: " pkg)
+            }
+            if (coverage_count == 0) fail("No package coverage rows were parsed")
+            if (failed) {
+              print "Per-package coverage gate failed; see table above for details"
+              exit 1
+            }
+            print "All packages meet per-package coverage thresholds (" no_test_count " packages have no test files)"
+          }
+        ' workflow-reports/coverage/package-inventory.txt workflow-reports/coverage/coverage-per-pkg.txt; then
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "Per-package coverage gate failed; see step logs for details." >> "$GITHUB_STEP_SUMMARY"
+          exit 1
         fi
 
     - name: Scan coverage artifacts for vulnerabilities
@@ -176,8 +303,35 @@ jobs:
     - name: Calculate aggregate coverage trend (informational)
       id: coverage-trend
       run: |
+        set -euo pipefail
         # Aggregate coverage is informational; package-level checks above enforce policy.
-        CURRENT_COVERAGE=$(grep -oP 'total:\s+\(statements\)\s+\K[\d.]+' workflow-reports/coverage/coverage-func.txt || echo "0.0")
+        if ! CURRENT_COVERAGE=$(awk '
+          function fail(message) {
+            print "ERROR: " message > "/dev/stderr"
+            invalid = 1
+          }
+          $1 == "total:" && $2 == "(statements)" {
+            if (total_count != 0) {
+              fail("duplicate aggregate coverage total")
+              next
+            }
+            if (NF != 3 || $3 !~ /^[0-9]+([.][0-9]+)?%$/) {
+              fail("malformed aggregate coverage total at line " FNR)
+              next
+            }
+            coverage = $3
+            sub(/%$/, "", coverage)
+            total_count++
+          }
+          END {
+            if (total_count != 1) fail("aggregate coverage total is missing")
+            if (invalid) exit 1
+            print coverage
+          }
+        ' workflow-reports/coverage/coverage-func.txt); then
+          echo "Failed to parse aggregate coverage output"
+          exit 1
+        fi
         echo "current_coverage=$CURRENT_COVERAGE" >> $GITHUB_OUTPUT
         echo "📋 Aggregate statement coverage (informational): ${CURRENT_COVERAGE}%"
 
@@ -237,7 +391,7 @@ jobs:
         echo "| Metric | Value |" >> $GITHUB_STEP_SUMMARY
         echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
         echo "| Aggregate Statement Coverage (informational; not a gate) | ${{ steps.coverage-trend.outputs.current_coverage }}% |" >> $GITHUB_STEP_SUMMARY
-        echo "| Policy Enforcement | Per-package thresholds above: 95% production / 98% infrastructure |" >> $GITHUB_STEP_SUMMARY
+        echo "| Policy Enforcement | Per-package thresholds above: 95% default / 98% internal/apps-tools, internal/shared, internal/apps-framework, and root pkg packages |" >> $GITHUB_STEP_SUMMARY
 
         if [ "${{ steps.coverage-trend.outputs.trend_text }}" != "baseline" ]; then
           echo "| Previous Coverage | ${{ steps.coverage-trend.outputs.previous_coverage }}% |" >> $GITHUB_STEP_SUMMARY
