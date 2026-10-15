@@ -507,6 +507,109 @@ Provides PostgreSQL leader+follower for all services.
 builder appends SSL params from YAML config, stripping any pre-existing `sslmode` to prevent
 conflicts.
 
+### K.3 Safe Upgrade of an Existing PostgreSQL Volume
+
+The `init-leader-databases.sql` file is mounted in `/docker-entrypoint-initdb.d/` and is only run
+when PostgreSQL initializes an empty data directory. Do not rerun it against an existing volume:
+its plain `CREATE DATABASE` statements are bootstrap-only. Instead, use the canonical
+[`upgrade-existing-volume.sql`](../deployments/shared-postgres/upgrade-existing-volume.sql), which
+creates only missing PRODUCT/SUITE PS-ID databases and publications. Re-running it is safe: it
+does not drop or alter existing databases, publications, or rows, and it never changes the legacy
+`*_database` sources.
+
+Run the following from a tier deployment directory (for example, `deployments/identity`) so
+Compose resolves the shared PostgreSQL include and its environment files correctly:
+
+1. Schedule maintenance and stop the affected application writers; leave `postgres-leader` running.
+   Confirm `SHOW wal_level` returns `logical` (the canonical leader config sets this). Keep a secure
+   logical backup outside the repository:
+
+   ```sh
+   umask 077
+   BACKUP=/secure-backup/postgres-before-upgrade.sql
+   docker compose exec -T postgres-leader \
+     sh -ec 'exec pg_dumpall -U "$(cat /run/secrets/postgres-username.secret)"' \
+     > "$BACKUP"
+   test -s "$BACKUP"
+   ```
+
+2. Apply the idempotent database/publication upgrade:
+
+   ```sh
+   docker compose exec -T postgres-leader \
+     sh -ec 'exec psql -X -v ON_ERROR_STOP=1 -U "$(cat /run/secrets/postgres-username.secret)" -d postgres' \
+     < ../shared-postgres/upgrade-existing-volume.sql
+   ```
+
+3. Verify that PostgreSQL reports 14 PRODUCT/SUITE target databases:
+
+   ```sql
+   SELECT count(*)
+   FROM pg_database
+   WHERE datname LIKE 'productdeployment-%'
+      OR datname LIKE 'suitedeployment-%';
+   ```
+
+   In each target database, also verify that its matching publication exists. The names are
+   `product_{PS-ID-with-underscores}_pub` and `suite_{PS-ID-with-underscores}_pub`; for example,
+   `product_identity_authz_pub` in `productdeployment-identity-authz`.
+
+4. Migrate application data from the legacy shared databases before starting the new app URLs.
+   The database/publication script deliberately does not copy data: these sources can contain
+   multiple services' tables and migration history, so copying a full source to each target can
+   duplicate unrelated state and increase storage use. The source-to-target mapping is:
+
+   | Legacy source | Possible target database(s) |
+   |---|---|
+   | `sm_database` | `productdeployment-sm-kms` |
+   | `identity_database` | `productdeployment-identity-authz`, `productdeployment-identity-idp`, `productdeployment-identity-rs`, `productdeployment-identity-rp`, `productdeployment-identity-spa` |
+   | `skeleton_database` | `productdeployment-skeleton-template` |
+   | `cryptoutil_database` | `suitedeployment-{sm-kms,identity-authz,identity-idp,identity-rs,identity-rp,identity-spa,skeleton-template}` |
+
+   For each approved source/target pair, first connect to the target and confirm it has no
+   application relations (`t` means empty):
+
+   ```sql
+   SELECT NOT EXISTS (
+     SELECT 1
+     FROM pg_class AS c
+     JOIN pg_namespace AS n ON n.oid = c.relnamespace
+     WHERE n.nspname NOT LIKE 'pg_%'
+       AND n.nspname <> 'information_schema'
+       AND c.relkind IN ('r', 'p', 'v', 'm', 'S', 'f')
+   );
+   ```
+
+   If the target is empty and the whole source snapshot belongs there, copy it while writers remain
+   stopped. Change `source_db` and `target_db` for each pair in the table:
+
+   ```sh
+   docker compose exec -T postgres-leader \
+     bash -c '
+       set -Eeuo pipefail
+       db_user=$(cat /run/secrets/postgres-username.secret)
+       source_db=identity_database
+       target_db=productdeployment-identity-authz
+       pg_dump --format=custom --no-owner --no-acl --no-publications \
+         --username="$db_user" --dbname="$source_db" |
+         pg_restore --single-transaction --exit-on-error --no-owner --no-acl \
+           --username="$db_user" --dbname="$target_db"
+     '
+   ```
+
+   Never use `pg_restore --clean` or restore into a non-empty target. The single transaction rolls
+   back a failed import; after a successful import the target is non-empty, so a rerun must skip
+   that pair rather than replay it. If a target is already non-empty, stop and reconcile it
+   explicitly; do not overwrite it. Full-source copies intentionally duplicate the shared snapshot
+   across listed targets, so use a domain-specific export instead when each PS-ID should receive
+   only part of the source data.
+
+5. Recreate/start the affected apps against their per-PS-ID URLs and verify health and expected
+   data. Retain the legacy databases and the backup until the cutover is accepted; do not remove
+   PostgreSQL volumes or use `docker compose down -v` as part of this upgrade. If rollback is
+   needed, stop the new app writers and restore the prior URL mappings without dropping either the
+   new targets or the legacy sources.
+
 ---
 
 ## L. OTel Config Template
@@ -595,14 +698,16 @@ byte-for-byte against the actual file on disk. Any deviation is a linting error.
 
 | Linter Name | Template File | Target Files | Comparison |
 |-------------|---------------|--------------|------------|
-| `template-compliance` | `api/cryptosuite-registry/templates/deployments/__PS_ID__/Dockerfile` | `deployments/{PS-ID}/Dockerfile` (×10) | Full byte-for-byte |
-| `template-compliance` | `api/cryptosuite-registry/templates/deployments/__PS_ID__/compose.yml` | `deployments/{PS-ID}/compose.yml` (×10) | Full byte-for-byte |
-| `template-compliance` | `api/cryptosuite-registry/templates/deployments/__PS_ID__/config/__PS_ID__-app-framework-common.yml` | `deployments/{PS-ID}/config/{PS-ID}-app-framework-common.yml` (×10) | Full byte-for-byte |
-| `template-compliance` | `api/cryptosuite-registry/templates/deployments/__PS_ID__/config/__PS_ID__-app-framework-sqlite-{1,2}.yml` | `deployments/{PS-ID}/config/{PS-ID}-app-framework-sqlite-{1,2}.yml` (×20) | Full byte-for-byte |
-| `template-compliance` | `api/cryptosuite-registry/templates/deployments/__PS_ID__/config/__PS_ID__-app-framework-postgresql-{1,2}.yml` | `deployments/{PS-ID}/config/{PS-ID}-app-framework-postgresql-{1,2}.yml` (×20) | Full byte-for-byte |
-| `template-compliance` | `api/cryptosuite-registry/templates/configs/__PS_ID__/__PS_ID__-framework.yml` | `configs/{PS-ID}/{PS-ID}-framework.yml` (×10) | Full byte-for-byte |
-| `template-compliance` | `api/cryptosuite-registry/templates/deployments/__PRODUCT__/compose.yml` | `deployments/{PRODUCT}/compose.yml` (×5) | Full byte-for-byte |
+| `template-compliance` | `api/cryptosuite-registry/templates/deployments/__PS_ID__/Dockerfile` | `deployments/{PS-ID}/Dockerfile` (×7) | Full byte-for-byte |
+| `template-compliance` | `api/cryptosuite-registry/templates/deployments/__PS_ID__/compose.yml` | `deployments/{PS-ID}/compose.yml` (×7) | Full byte-for-byte |
+| `template-compliance` | `api/cryptosuite-registry/templates/deployments/__PS_ID__/compose-sqlite-durable.yml` | `deployments/{PS-ID}/compose-sqlite-durable.yml` (×7) | Full byte-for-byte |
+| `template-compliance` | `api/cryptosuite-registry/templates/deployments/__PS_ID__/config/__PS_ID__-app-framework-common.yml` | `deployments/{PS-ID}/config/{PS-ID}-app-framework-common.yml` (×7) | Full byte-for-byte |
+| `template-compliance` | `api/cryptosuite-registry/templates/deployments/__PS_ID__/config/__PS_ID__-app-framework-sqlite-{1,2}.yml` | `deployments/{PS-ID}/config/{PS-ID}-app-framework-sqlite-{1,2}.yml` (×14) | Full byte-for-byte |
+| `template-compliance` | `api/cryptosuite-registry/templates/deployments/__PS_ID__/config/__PS_ID__-app-framework-postgresql-{1,2}.yml` | `deployments/{PS-ID}/config/{PS-ID}-app-framework-postgresql-{1,2}.yml` (×14) | Full byte-for-byte |
+| `template-compliance` | `api/cryptosuite-registry/templates/configs/__PS_ID__/__PS_ID__-framework.yml` | `configs/{PS-ID}/{PS-ID}-framework.yml` (×7) | Full byte-for-byte |
+| `template-compliance` | `api/cryptosuite-registry/templates/deployments/__PRODUCT__/compose.yml` | `deployments/{PRODUCT}/compose.yml` (×3) | Full byte-for-byte |
 | `template-compliance` | `api/cryptosuite-registry/templates/deployments/__SUITE__/compose.yml` | `deployments/cryptoutil/compose.yml` (×1) | Full byte-for-byte |
+| `template-compliance` | `api/cryptosuite-registry/templates/deployments/shared-postgres/upgrade-existing-volume.sql` | `deployments/shared-postgres/upgrade-existing-volume.sql` | Full byte-for-byte |
 | `secrets-compliance` | N/A (validation-only) | `deployments/{PS-ID}/secrets/*.secret` (×140) | File count + naming pattern |
 
 **Instantiation Process**:
