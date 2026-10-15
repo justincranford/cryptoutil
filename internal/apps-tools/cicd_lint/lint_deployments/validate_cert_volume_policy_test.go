@@ -57,6 +57,46 @@ func TestValidateCertVolumePolicy(t *testing.T) {
 			wantErrText:    testForbiddenCertBindMount,
 		},
 		{
+			name:           "trailing slash bind target at certificate root rejected",
+			deploymentName: cryptoutilSharedMagic.OTLPServiceSMKMS,
+			composeContent: "services:\n  pki-init:\n    volumes:\n      - ./certs:/certs/:rw\n  sm-kms-app:\n    depends_on:\n      pki-init:\n        condition: service_completed_successfully\n    volumes:\n      - sm-kms-certs:/certs:ro\nvolumes:\n  sm-kms-certs:\n",
+			wantValid:      false,
+			wantErrText:    testForbiddenCertBindMount,
+		},
+		{
+			name:           "bind target nested under certificate root rejected",
+			deploymentName: cryptoutilSharedMagic.OTLPServiceSMKMS,
+			composeContent: "services:\n  pki-init:\n    volumes:\n      - ./private:/certs/private:rw\n  sm-kms-app:\n    depends_on:\n      pki-init:\n        condition: service_completed_successfully\n    volumes:\n      - sm-kms-certs:/certs:ro\nvolumes:\n  sm-kms-certs:\n",
+			wantValid:      false,
+			wantErrText:    testForbiddenCertBindMount,
+		},
+		{
+			name:           "bind target overlapping infrastructure certificate root rejected",
+			deploymentName: cryptoutilSharedMagic.OTLPServiceSMKMS,
+			composeContent: "services:\n  pki-init:\n    volumes:\n      - /host/certs:/mnt:rw\n  sm-kms-app:\n    depends_on:\n      pki-init:\n        condition: service_completed_successfully\n    volumes:\n      - sm-kms-certs:/mnt/ps-certs-src:ro\nvolumes:\n  sm-kms-certs:\n",
+			wantValid:      false,
+			wantErrText:    testForbiddenCertBindMount,
+		},
+		{
+			name:           "root bind target overlapping certificate roots rejected",
+			deploymentName: cryptoutilSharedMagic.OTLPServiceSMKMS,
+			composeContent: "services:\n  pki-init:\n    volumes:\n      - /host:/\n  sm-kms-app:\n    depends_on:\n      pki-init:\n        condition: service_completed_successfully\n    volumes:\n      - sm-kms-certs:/certs:ro\nvolumes:\n  sm-kms-certs:\n",
+			wantValid:      false,
+			wantErrText:    testForbiddenCertBindMount,
+		},
+		{
+			name:           "bind target beside certificate root remains allowed",
+			deploymentName: cryptoutilSharedMagic.OTLPServiceSMKMS,
+			composeContent: "services:\n  pki-init:\n    volumes:\n      - ./backup:/certs-backup:rw\n  sm-kms-app:\n    depends_on:\n      pki-init:\n        condition: service_completed_successfully\n    volumes:\n      - sm-kms-certs:/certs:ro\nvolumes:\n  sm-kms-certs:\n",
+			wantValid:      true,
+		},
+		{
+			name:           "named volume target with trailing slash accepted",
+			deploymentName: cryptoutilSharedMagic.OTLPServiceSMKMS,
+			composeContent: "services:\n  pki-init:\n    volumes:\n      - sm-kms-certs:/certs/\n  sm-kms-app:\n    depends_on:\n      pki-init:\n        condition: service_completed_successfully\n    volumes:\n      - sm-kms-certs:/certs/:ro\nvolumes:\n  sm-kms-certs:\n",
+			wantValid:      true,
+		},
+		{
 			name:           "bind source containing expected volume name rejected",
 			deploymentName: cryptoutilSharedMagic.OTLPServiceSMKMS,
 			composeContent: "services:\n  pki-init:\n    volumes:\n      - ./sm-kms-certs:/certs:rw\n  sm-kms-app:\n    depends_on:\n      pki-init:\n        condition: service_completed_successfully\n    volumes:\n      - ./sm-kms-certs:/certs:ro\nvolumes:\n  sm-kms-certs:\n",
@@ -108,6 +148,51 @@ volumes:
 `,
 			wantValid:   false,
 			wantErrText: testForbiddenCertBindMount,
+		},
+		{
+			name:           "long syntax trailing slash bind target rejected",
+			deploymentName: cryptoutilSharedMagic.OTLPServiceSMKMS,
+			composeContent: `services:
+  pki-init:
+    volumes:
+      - type: bind
+        source: ./certs
+        target: /certs/
+  sm-kms-app:
+    depends_on:
+      pki-init:
+        condition: service_completed_successfully
+    volumes:
+      - type: volume
+        source: sm-kms-certs
+        target: /certs
+volumes:
+  sm-kms-certs:
+`,
+			wantValid:   false,
+			wantErrText: testForbiddenCertBindMount,
+		},
+		{
+			name:           "long syntax named volume with trailing slash accepted",
+			deploymentName: cryptoutilSharedMagic.OTLPServiceSMKMS,
+			composeContent: `services:
+  pki-init:
+    volumes:
+      - type: volume
+        source: sm-kms-certs
+        target: /certs/
+  sm-kms-app:
+    depends_on:
+      pki-init:
+        condition: service_completed_successfully
+    volumes:
+      - type: volume
+        source: sm-kms-certs
+        target: /certs/
+volumes:
+  sm-kms-certs:
+`,
+			wantValid: true,
 		},
 		{
 			name:           "missing top-level volume declaration",

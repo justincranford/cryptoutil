@@ -2,6 +2,7 @@ package lint_deployments
 
 import (
 	"fmt"
+	"path"
 	"path/filepath"
 	"strings"
 
@@ -46,8 +47,10 @@ func ValidateCertVolumePolicy(deploymentPath, deploymentName string) (*CertVolum
 	for _, serviceName := range sortedServiceNames(compose) {
 		svc := compose.Services[serviceName]
 		for _, volume := range svc.Volumes {
-			if isCertVolumeTarget(volume.Target) &&
-				(volume.Type == cryptoutilSharedMagic.DockerComposeVolumeMountTypeBind || volume.Source != expectedVolumeName) {
+			expectedCertMount := volume.Type == cryptoutilSharedMagic.DockerComposeVolumeMountTypeVolume &&
+				volume.Source == expectedVolumeName &&
+				isCertVolumeTarget(volume.Target)
+			if overlapsCertVolumeTarget(volume.Target) && !expectedCertMount {
 				result.Errors = append(result.Errors,
 					fmt.Sprintf("[ValidateCertVolumePolicy] service '%s' uses forbidden cert bind mount or unexpected cert volume '%s' | See: %s",
 						serviceName, volume.Raw, certVolumePolicyHandbookSection))
@@ -99,7 +102,23 @@ func hasCertVolumeMountReference(compose *composeFile, expectedVolumeName string
 }
 
 func isCertVolumeTarget(target string) bool {
+	target = path.Clean(strings.TrimSpace(target))
+
 	return target == certVolumeMountTarget || target == certVolumeInfraMountTarget
+}
+
+func overlapsCertVolumeTarget(target string) bool {
+	target = path.Clean(strings.TrimSpace(target))
+	for _, certTarget := range []string{certVolumeMountTarget, certVolumeInfraMountTarget} {
+		if target == "/" ||
+			target == certTarget ||
+			strings.HasPrefix(target, certTarget+"/") ||
+			strings.HasPrefix(certTarget, target+"/") {
+			return true
+		}
+	}
+
+	return false
 }
 
 func hasTopLevelCertVolumeDeclaration(compose *composeFile, expectedVolumeName string) bool {

@@ -5495,7 +5495,7 @@ healthcheck-otel-collector:
 | CO-18 | PostgreSQL instance 2 MUST depend on instance 1 `service_healthy` | Schema init ordering |
 | CO-19 | Healthcheck timing MUST use parameterized values from A.3 (`start_period`, `interval`, `timeout`, `retries`) | Configurable health probes |
 | CO-20 | All `image:` references MUST use `{SUITE}-{PS-ID}:{IMAGE_TAG}` (NOT hardcoded suite name or tag) | Parameterized naming |
-| CO-21 | All services (pki-init, app variants) MUST use named volume `{PS-ID}-certs` at `/certs` (read-only for consumers); host bind mounts MUST NOT target `/certs` or `/mnt/ps-certs-src`. The source and target MUST be validated as a mount pair in short or long Compose syntax. | Portable cert storage (works in Docker Desktop, Swarm, Kubernetes) |
+| CO-21 | Services MUST use named volume `{PS-ID}-certs` at exact `/certs` (or `/mnt/ps-certs-src` for infrastructure); POSIX-normalized mount targets overlapping either root MUST be rejected unless they are that exact named-volume mount. Validate source and target as a mount pair in short or long Compose syntax. | Portable cert storage (works in Docker Desktop, Swarm, Kubernetes) |
 | CO-22 | Top-level `volumes:` section MUST declare `{PS-ID}-certs:` (no `driver:` override) | Named volume declaration |
 
 **Product compose.yml Template Rules** (PC-01 through PC-06):

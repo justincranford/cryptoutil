@@ -165,7 +165,11 @@ in `tasks.md`.
   validates the staging ACL before its first write. The shuffled TLS package tests, normal and
   `e2e,integration` builds, focused normal/tagged golangci-lint, and Go, Go-test, fitness, docs, and
   text validators pass. Evidence is recorded in `test-output/reviewfollowup/post-review-windows-staging-*.log`.
-- **F-7 — In progress.** Certificate volume target matching is literal, so equivalent trailing
-  slash and overlapping ancestor/descendant targets can evade the forbidden-mount check. Normalize
-  container paths and reject mount targets that overlap certificate roots unless they are the
-  expected named-volume mounts at the exact roots.
+- **F-7 — Complete.** Certificate volume targets are now normalized with POSIX path semantics.
+  Only the expected named volume mounted at an exact certificate root is accepted; mounts at
+  trailing-slash equivalents and overlapping ancestor/descendant paths are rejected. Table-driven
+  tests cover short and long Compose syntax, valid trailing-slash named mounts, forbidden bind
+  mounts, root/ancestor/descendant overlaps, and a non-overlapping sibling path. The shuffled
+  deployment-linter tests, `lint-deployments`, normal and tagged builds/lint, and Go, Go-test,
+  fitness, docs, and text validators pass. Evidence is recorded in
+  `test-output/reviewfollowup/post-review-cert-volume-*.log`.
