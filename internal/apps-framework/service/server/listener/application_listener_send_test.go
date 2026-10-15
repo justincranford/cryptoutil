@@ -6,7 +6,6 @@ package listener_test
 
 import (
 	"context"
-	"sync"
 	"testing"
 	"time"
 
@@ -19,9 +18,8 @@ import (
 )
 
 // startAdminServer starts an admin server with dynamic port allocation and returns
-// the server, context cancel func, and WaitGroup. Caller must call cancel() then wg.Wait()
-// to clean up.
-func startAdminServer(t *testing.T) (*cryptoutilAppsFrameworkServiceServerListener.AdminServer, func(), *sync.WaitGroup) {
+// the server, context cancel func, and bounded completion channel.
+func startAdminServer(t *testing.T) (*cryptoutilAppsFrameworkServiceServerListener.AdminServer, func(), <-chan error) {
 	t.Helper()
 
 	tlsCfg := cryptoutilAppsFrameworkServiceServerTestutil.PrivateTLS()
@@ -33,14 +31,10 @@ func startAdminServer(t *testing.T) (*cryptoutilAppsFrameworkServiceServerListen
 
 	ctx, cancel := context.WithCancel(context.Background())
 
-	var wg sync.WaitGroup
-
-	wg.Add(1)
+	startErr := make(chan error, 1)
 
 	go func() {
-		defer wg.Done()
-
-		_ = server.Start(ctx)
+		startErr <- server.Start(ctx)
 	}()
 
 	// Wait for dynamic port assignment.
@@ -57,7 +51,20 @@ func startAdminServer(t *testing.T) (*cryptoutilAppsFrameworkServiceServerListen
 
 	require.Greater(t, port, 0, "Expected dynamic port allocation")
 
-	return server, cancel, &wg
+	return server, cancel, startErr
+}
+
+func waitForListenerServerExit(t *testing.T, startErr <-chan error) error {
+	t.Helper()
+
+	select {
+	case err := <-startErr:
+		return err
+	case <-time.After(cryptoutilSharedMagic.TestDefaultServerShutdownTimeout):
+		require.FailNow(t, "admin server did not exit before shutdown deadline")
+
+		return nil
+	}
 }
 
 // TestSendLivenessCheck_Success tests the success path of SendLivenessCheck.
@@ -65,12 +72,11 @@ func startAdminServer(t *testing.T) (*cryptoutilAppsFrameworkServiceServerListen
 // Sequential: starts a real HTTPS server (port reuse issues).
 func TestSendLivenessCheck_Success(t *testing.T) {
 	// NOT parallel: starts admin server with dynamic port.
-	server, cancel, wg := startAdminServer(t)
+	server, cancel, startErr := startAdminServer(t)
 
 	defer func() {
-		// Cancel context to allow Start() to exit cleanly (matches TestAdminServer_Shutdown_Endpoint pattern).
 		cancel()
-		wg.Wait()
+		require.ErrorIs(t, waitForListenerServerExit(t, startErr), context.Canceled)
 	}()
 
 	settings := cryptoutilAppsFrameworkServiceServerTestutil.ServiceFrameworkServerSettings()
@@ -87,11 +93,11 @@ func TestSendLivenessCheck_Success(t *testing.T) {
 // Sequential: starts a real HTTPS server (port reuse issues).
 func TestSendReadinessCheck_Success(t *testing.T) {
 	// NOT parallel: starts admin server with dynamic port.
-	server, cancel, wg := startAdminServer(t)
+	server, cancel, startErr := startAdminServer(t)
 
 	defer func() {
 		cancel()
-		wg.Wait()
+		require.ErrorIs(t, waitForListenerServerExit(t, startErr), context.Canceled)
 	}()
 
 	// Mark server ready so readyz returns 200.
@@ -108,11 +114,12 @@ func TestSendReadinessCheck_Success(t *testing.T) {
 
 // TestSendShutdownRequest_Success tests the success path of SendShutdownRequest.
 // Covers: return nil (the non-error path in SendShutdownRequest).
-// Pattern matches TestAdminServer_Shutdown_Endpoint: explicit cancel() + wg.Wait().
+// The endpoint must stop the listener without context cancellation.
 // Sequential: starts a real HTTPS server (port reuse issues).
 func TestSendShutdownRequest_Success(t *testing.T) {
 	// NOT parallel: starts admin server with dynamic port.
-	server, cancel, wg := startAdminServer(t)
+	server, cancel, startErr := startAdminServer(t)
+	defer cancel()
 
 	settings := cryptoutilAppsFrameworkServiceServerTestutil.ServiceFrameworkServerSettings()
 	settings.BindPrivatePort = uint16(server.ActualPort()) //nolint:gosec // Port validated by server.
@@ -121,8 +128,5 @@ func TestSendShutdownRequest_Success(t *testing.T) {
 	err := cryptoutilAppsFrameworkServiceServerListener.SendShutdownRequest(settings)
 	require.NoError(t, err)
 
-	// The HTTP shutdown endpoint sets s.shutdown=true but the Fiber app requires the context
-	// to be cancelled for Start() to exit. This matches TestAdminServer_Shutdown_Endpoint pattern.
-	cancel()
-	wg.Wait()
+	require.NoError(t, waitForListenerServerExit(t, startErr))
 }

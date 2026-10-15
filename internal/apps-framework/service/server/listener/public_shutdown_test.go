@@ -13,7 +13,6 @@ import (
 	"net"
 	http "net/http"
 	"strconv"
-	"sync"
 	"testing"
 	"time"
 
@@ -37,18 +36,13 @@ func TestPublicHTTPServer_ServiceHealth_DuringShutdown(t *testing.T) {
 	defer cancel()
 
 	// Start server in background.
-	var wg sync.WaitGroup
-
-	wg.Add(1)
+	startErr := make(chan error, 1)
 
 	go func() {
-		defer wg.Done()
-
-		_ = server.Start(ctx)
+		startErr <- server.Start(ctx)
 	}()
 
-	// Wait for server to start.
-	time.Sleep(1 * time.Second)
+	waitForPublicHTTPSHealthEndpoint(t, server.ActualPort, cryptoutilSharedMagic.DefaultServiceHealthEndpoint)
 
 	// Create client.
 	client := &http.Client{
@@ -92,8 +86,7 @@ func TestPublicHTTPServer_ServiceHealth_DuringShutdown(t *testing.T) {
 		}
 	}
 
-	// Cleanup.
-	wg.Wait()
+	require.NoError(t, waitForListenerServerExit(t, startErr))
 
 	// Wait for port to be fully released.
 	time.Sleep(cryptoutilSharedMagic.TestDefaultRateLimitServiceIP * time.Millisecond)
@@ -112,18 +105,13 @@ func TestPublicHTTPServer_BrowserHealth_DuringShutdown(t *testing.T) {
 	defer cancel()
 
 	// Start server in background.
-	var wg sync.WaitGroup
-
-	wg.Add(1)
+	startErr := make(chan error, 1)
 
 	go func() {
-		defer wg.Done()
-
-		_ = server.Start(ctx)
+		startErr <- server.Start(ctx)
 	}()
 
-	// Wait for server to start.
-	time.Sleep(1 * time.Second)
+	waitForPublicHTTPSHealthEndpoint(t, server.ActualPort, cryptoutilSharedMagic.DefaultServiceHealthEndpoint)
 
 	// Create client.
 	client := &http.Client{
@@ -167,8 +155,7 @@ func TestPublicHTTPServer_BrowserHealth_DuringShutdown(t *testing.T) {
 		}
 	}
 
-	// Cleanup.
-	wg.Wait()
+	require.NoError(t, waitForListenerServerExit(t, startErr))
 
 	// Wait for port to be fully released.
 	time.Sleep(cryptoutilSharedMagic.TestDefaultRateLimitServiceIP * time.Millisecond)
@@ -203,14 +190,10 @@ func TestPublicHTTPServer_PublicBaseURL(t *testing.T) {
 	defer cancel()
 
 	// Start server in background.
-	var wg sync.WaitGroup
-
-	wg.Add(1)
+	startErr := make(chan error, 1)
 
 	go func() {
-		defer wg.Done()
-
-		_ = server.Start(ctx)
+		startErr <- server.Start(ctx)
 	}()
 
 	waitForPublicHTTPSHealthEndpoint(t, server.ActualPort, cryptoutilSharedMagic.DefaultServiceHealthEndpoint)
@@ -229,7 +212,7 @@ func TestPublicHTTPServer_PublicBaseURL(t *testing.T) {
 	err = server.Shutdown(shutdownCtx)
 	require.NoError(t, err)
 
-	wg.Wait()
+	require.NoError(t, waitForListenerServerExit(t, startErr))
 
 	// Wait for port to be fully released.
 	time.Sleep(cryptoutilSharedMagic.TestDefaultRateLimitServiceIP * time.Millisecond)

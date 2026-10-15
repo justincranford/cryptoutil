@@ -11,7 +11,6 @@ import (
 	"net"
 	http "net/http"
 	"strconv"
-	"sync"
 	"testing"
 	"time"
 
@@ -23,11 +22,8 @@ import (
 )
 
 // startAdminServerWithClient creates an admin server, starts it, and returns
-// the server, an HTTPS client, the port, cancel func, and WaitGroup.
-// The HTTP shutdown endpoint sets s.shutdown=true but leaves Fiber running
-// (100ms delay goroutine is a no-op due to early return in Shutdown()).
-// This gives a reliable window to test health endpoints during "shutting down" state.
-func startAdminServerWithClient(t *testing.T) (*cryptoutilAppsFrameworkServiceServerListener.AdminServer, *http.Client, int, context.CancelFunc, *sync.WaitGroup) {
+// the server, an HTTPS client, the port, cancel func, and completion channel.
+func startAdminServerWithClient(t *testing.T) (*cryptoutilAppsFrameworkServiceServerListener.AdminServer, *http.Client, int, context.CancelFunc, <-chan error) {
 	t.Helper()
 
 	tlsCfg := cryptoutilAppsFrameworkServiceServerTestutil.PrivateTLS()
@@ -38,14 +34,10 @@ func startAdminServerWithClient(t *testing.T) (*cryptoutilAppsFrameworkServiceSe
 
 	ctx, cancel := context.WithCancel(context.Background())
 
-	var wg sync.WaitGroup
-
-	wg.Add(1)
+	startErr := make(chan error, 1)
 
 	go func() {
-		defer wg.Done()
-
-		_ = server.Start(ctx)
+		startErr <- server.Start(ctx)
 	}()
 
 	require.Eventually(t, func() bool { return server.ActualPort() > 0 },
@@ -65,24 +57,22 @@ func startAdminServerWithClient(t *testing.T) (*cryptoutilAppsFrameworkServiceSe
 		Timeout: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Second,
 	}
 
-	return server, client, port, cancel, &wg
+	return server, client, port, cancel, startErr
 }
 
 // TestAdminServer_Livez_DuringHTTPShutdown covers handleLivez's "return nil" after
-// the shutdown JSON response when s.shutdown=true via the HTTP endpoint.
-// The HTTP /admin/api/v1/shutdown endpoint sets s.shutdown=true but leaves Fiber running
-// (scheduled goroutine is a no-op), providing a reliable window to test livez.
+// the shutdown JSON response while the listener is draining.
 // Sequential: starts a real HTTPS server (port reuse issues).
 func TestAdminServer_Livez_DuringHTTPShutdown(t *testing.T) {
 	// NOT parallel: starts admin server.
-	_, client, port, cancel, wg := startAdminServerWithClient(t)
+	_, client, port, cancel, startErr := startAdminServerWithClient(t)
 
 	defer func() {
 		cancel()
-		wg.Wait()
+		require.ErrorIs(t, waitForListenerServerExit(t, startErr), context.Canceled)
 	}()
 
-	// POST to /admin/api/v1/shutdown - sets s.shutdown=true, Fiber still running.
+	// POST to /admin/api/v1/shutdown and probe liveness during the drain delay.
 	shutdownURL := "https://" + net.JoinHostPort(cryptoutilSharedMagic.IPv4Loopback, strconv.Itoa(port)) + "/admin/api/v1/shutdown"
 	shutdownReq, err := http.NewRequestWithContext(context.Background(), http.MethodPost, shutdownURL, nil)
 	require.NoError(t, err)
@@ -93,7 +83,7 @@ func TestAdminServer_Livez_DuringHTTPShutdown(t *testing.T) {
 	_, _ = io.ReadAll(shutdownResp.Body)
 	_ = shutdownResp.Body.Close()
 
-	// Immediately call livez - s.shutdown=true, Fiber still accepting (< 100ms).
+	// During the drain delay, the listener remains available but reports shutdown.
 	livezURL := "https://" + net.JoinHostPort(cryptoutilSharedMagic.IPv4Loopback, strconv.Itoa(port)) + "/admin/api/v1/livez"
 	livezReq, err := http.NewRequestWithContext(context.Background(), http.MethodGet, livezURL, nil)
 	require.NoError(t, err)
@@ -107,21 +97,21 @@ func TestAdminServer_Livez_DuringHTTPShutdown(t *testing.T) {
 }
 
 // TestAdminServer_Readyz_DuringHTTPShutdown covers handleReadyz's "return nil" after
-// the shutdown JSON response when s.shutdown=true via the HTTP endpoint.
+// the shutdown JSON response while the listener is draining.
 // Sequential: starts a real HTTPS server (port reuse issues).
 func TestAdminServer_Readyz_DuringHTTPShutdown(t *testing.T) {
 	// NOT parallel: starts admin server.
-	server, client, port, cancel, wg := startAdminServerWithClient(t)
+	server, client, port, cancel, startErr := startAdminServerWithClient(t)
 
 	defer func() {
 		cancel()
-		wg.Wait()
+		require.ErrorIs(t, waitForListenerServerExit(t, startErr), context.Canceled)
 	}()
 
 	// Mark server ready before testing shutdown response.
 	server.SetReady(true)
 
-	// POST to /admin/api/v1/shutdown - sets s.shutdown=true, Fiber still running.
+	// POST to /admin/api/v1/shutdown and probe readiness during the drain delay.
 	shutdownURL := "https://" + net.JoinHostPort(cryptoutilSharedMagic.IPv4Loopback, strconv.Itoa(port)) + "/admin/api/v1/shutdown"
 	shutdownReq, err := http.NewRequestWithContext(context.Background(), http.MethodPost, shutdownURL, nil)
 	require.NoError(t, err)
@@ -132,7 +122,7 @@ func TestAdminServer_Readyz_DuringHTTPShutdown(t *testing.T) {
 	_, _ = io.ReadAll(shutdownResp.Body)
 	_ = shutdownResp.Body.Close()
 
-	// Immediately call readyz - s.shutdown=true, Fiber still accepting (< 100ms).
+	// During the drain delay, the listener remains available but reports shutdown.
 	readyzURL := "https://" + net.JoinHostPort(cryptoutilSharedMagic.IPv4Loopback, strconv.Itoa(port)) + "/admin/api/v1/readyz"
 	readyzReq, err := http.NewRequestWithContext(context.Background(), http.MethodGet, readyzURL, nil)
 	require.NoError(t, err)

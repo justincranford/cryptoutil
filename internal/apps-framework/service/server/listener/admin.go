@@ -30,16 +30,19 @@ import (
 // AdminServer represents the private admin API server for health checks and graceful shutdown.
 // Binds to address and port from ServiceFrameworkServerSettings.
 type AdminServer struct {
-	app           *fiber.App
-	listener      net.Listener
-	settings      *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings
-	actualPort    uint16
-	tlsMaterial   *cryptoutilAppsFrameworkServiceConfig.TLSMaterial
-	listenFn      func(ctx context.Context, network, address string) (net.Listener, error)
-	appListenerFn func(app *fiber.App, ln net.Listener) error
-	mu            sync.RWMutex
-	ready         bool
-	shutdown      bool
+	app             *fiber.App
+	listener        net.Listener
+	settings        *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings
+	actualPort      uint16
+	tlsMaterial     *cryptoutilAppsFrameworkServiceConfig.TLSMaterial
+	listenFn        func(ctx context.Context, network, address string) (net.Listener, error)
+	appListenerFn   func(app *fiber.App, ln net.Listener) error
+	mu              sync.RWMutex
+	ready           bool
+	shutdown        bool
+	shutdownStarted bool
+	shutdownDone    chan struct{}
+	shutdownErr     error
 }
 
 // NewAdminHTTPServer creates a new admin server instance for private administrative operations.
@@ -99,6 +102,7 @@ func newAdminHTTPServerInternal(
 		appListenerFn: appListenerFn,
 		ready:         false,
 		shutdown:      false,
+		shutdownDone:  make(chan struct{}),
 	}
 
 	// Create Fiber app with minimal configuration.
@@ -192,6 +196,7 @@ func (s *AdminServer) handleReadyz(c *fiber.Ctx) error {
 func (s *AdminServer) handleShutdown(c *fiber.Ctx) error {
 	s.mu.Lock()
 	s.shutdown = true
+	s.ready = false
 	s.mu.Unlock()
 
 	// Acknowledge shutdown request.
@@ -329,14 +334,25 @@ func (s *AdminServer) Shutdown(ctx context.Context) error {
 
 	s.mu.Lock()
 
-	if s.shutdown {
+	if s.shutdownStarted {
+		shutdownDone := s.shutdownDone
 		s.mu.Unlock()
 
-		return nil // Already shutdown, return success.
+		select {
+		case <-shutdownDone:
+			s.mu.RLock()
+			shutdownErr := s.shutdownErr
+			s.mu.RUnlock()
+
+			return shutdownErr
+		case <-ctx.Done():
+			return fmt.Errorf("timed out waiting for admin server shutdown: %w", ctx.Err())
+		}
 	}
 
 	s.shutdown = true
 	s.ready = false
+	s.shutdownStarted = true
 	listener := s.listener
 	s.mu.Unlock()
 
@@ -353,6 +369,11 @@ func (s *AdminServer) Shutdown(ctx context.Context) error {
 			shutdownErr = errors.Join(shutdownErr, fmt.Errorf("failed to close admin listener: %w", err))
 		}
 	}
+
+	s.mu.Lock()
+	s.shutdownErr = shutdownErr
+	close(s.shutdownDone)
+	s.mu.Unlock()
 
 	return shutdownErr
 }

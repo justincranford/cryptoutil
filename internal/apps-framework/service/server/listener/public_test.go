@@ -12,7 +12,6 @@ import (
 	"io"
 	http "net/http"
 	"strconv"
-	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -86,14 +85,10 @@ func TestPublicHTTPServer_Start_Success(t *testing.T) {
 	defer cancel()
 
 	// Start server in background.
-	var wg sync.WaitGroup
-
-	wg.Add(1)
+	startResult := make(chan error, 1)
 
 	go func() {
-		defer wg.Done()
-
-		_ = server.Start(ctx)
+		startResult <- server.Start(ctx)
 	}()
 
 	waitForPublicHTTPSHealthEndpoint(t, server.ActualPort, cryptoutilSharedMagic.DefaultServiceHealthEndpoint)
@@ -101,7 +96,7 @@ func TestPublicHTTPServer_Start_Success(t *testing.T) {
 
 	// Shutdown server.
 	cancel()
-	wg.Wait()
+	require.ErrorContains(t, waitForServerStartResult(t, startResult), "public server stopped")
 }
 
 // TestPublicHTTPServer_Start_NilContext tests Start rejects nil context.
@@ -134,14 +129,10 @@ func TestPublicHTTPServer_ServiceHealth_Healthy(t *testing.T) {
 	defer cancel()
 
 	// Start server in background.
-	var wg sync.WaitGroup
-
-	wg.Add(1)
+	startResult := make(chan error, 1)
 
 	go func() {
-		defer wg.Done()
-
-		_ = server.Start(ctx)
+		startResult <- server.Start(ctx)
 	}()
 
 	// Wait until the service HTTPS health endpoint is serving requests.
@@ -180,7 +171,7 @@ func TestPublicHTTPServer_ServiceHealth_Healthy(t *testing.T) {
 
 	// Shutdown server.
 	cancel()
-	wg.Wait()
+	require.ErrorContains(t, waitForServerStartResult(t, startResult), "public server stopped")
 }
 
 // TestPublicHTTPServer_BrowserHealth_Healthy tests /browser/api/v1/health returns healthy.
@@ -196,14 +187,10 @@ func TestPublicHTTPServer_BrowserHealth_Healthy(t *testing.T) {
 	defer cancel()
 
 	// Start server in background.
-	var wg sync.WaitGroup
-
-	wg.Add(1)
+	startResult := make(chan error, 1)
 
 	go func() {
-		defer wg.Done()
-
-		_ = server.Start(ctx)
+		startResult <- server.Start(ctx)
 	}()
 
 	// Wait until the browser HTTPS health endpoint is serving requests.
@@ -242,7 +229,7 @@ func TestPublicHTTPServer_BrowserHealth_Healthy(t *testing.T) {
 
 	// Shutdown server.
 	cancel()
-	wg.Wait()
+	require.ErrorContains(t, waitForServerStartResult(t, startResult), "public server stopped")
 }
 
 // TestPublicHTTPServer_Shutdown_Graceful tests graceful shutdown.

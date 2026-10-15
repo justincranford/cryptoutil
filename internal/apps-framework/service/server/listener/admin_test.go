@@ -12,7 +12,6 @@ import (
 	"net"
 	http "net/http"
 	"strconv"
-	"sync"
 	"testing"
 	"time"
 
@@ -86,18 +85,10 @@ func TestAdminServer_Start_Success(t *testing.T) {
 	defer cancel()
 
 	// Start server in background.
-	var wg sync.WaitGroup
-
-	wg.Add(1)
-
-	startErr := make(chan error, 1)
+	startResult := make(chan error, 1)
 
 	go func() {
-		defer wg.Done()
-
-		if err := server.Start(ctx); err != nil {
-			startErr <- err
-		}
+		startResult <- server.Start(ctx)
 	}()
 
 	// Wait for server to be ready with retry logic.
@@ -121,14 +112,7 @@ func TestAdminServer_Start_Success(t *testing.T) {
 	err = server.Shutdown(shutdownCtx)
 	require.NoError(t, err)
 
-	wg.Wait()
-
-	// Verify no startup error.
-	select {
-	case err := <-startErr:
-		require.FailNow(t, "unexpected start error", err)
-	default:
-	}
+	require.NoError(t, waitForServerStartResult(t, startResult))
 
 	// Wait for port to be fully released before next test.
 	time.Sleep(cryptoutilSharedMagic.TestDefaultRateLimitServiceIP * time.Millisecond)
@@ -248,14 +232,10 @@ func TestAdminServer_Livez_Alive(t *testing.T) {
 	defer cancel()
 
 	// Start server in background.
-	var wg sync.WaitGroup
-
-	wg.Add(1)
+	startResult := make(chan error, 1)
 
 	go func() {
-		defer wg.Done()
-
-		_ = server.Start(ctx)
+		startResult <- server.Start(ctx)
 	}()
 
 	// Wait for server to be ready.
@@ -310,7 +290,7 @@ func TestAdminServer_Livez_Alive(t *testing.T) {
 	err = server.Shutdown(shutdownCtx)
 	require.NoError(t, err)
 
-	wg.Wait()
+	require.NoError(t, waitForServerStartResult(t, startResult))
 
 	// Wait for OS socket cleanup (TCP TIME_WAIT state).
 	// Windows needs longer for socket release.
@@ -330,14 +310,10 @@ func TestAdminServer_Readyz_Ready(t *testing.T) {
 	defer cancel()
 
 	// Start server in background.
-	var wg sync.WaitGroup
-
-	wg.Add(1)
+	startResult := make(chan error, 1)
 
 	go func() {
-		defer wg.Done()
-
-		_ = server.Start(ctx)
+		startResult <- server.Start(ctx)
 	}()
 
 	// Wait for server to be ready.
@@ -395,7 +371,7 @@ func TestAdminServer_Readyz_Ready(t *testing.T) {
 	err = server.Shutdown(shutdownCtx)
 	require.NoError(t, err)
 
-	wg.Wait()
+	require.NoError(t, waitForServerStartResult(t, startResult))
 
 	// Wait for OS socket cleanup (TCP TIME_WAIT state).
 	// Windows needs longer for socket release.

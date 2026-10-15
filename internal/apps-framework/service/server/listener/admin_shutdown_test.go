@@ -12,7 +12,6 @@ import (
 	"net"
 	http "net/http"
 	"strconv"
-	"sync"
 	"testing"
 	"time"
 
@@ -24,6 +23,22 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func waitForServerStartResult(t *testing.T, startResult <-chan error) error {
+	t.Helper()
+
+	timer := time.NewTimer(cryptoutilSharedMagic.TestDefaultServerShutdownTimeout)
+	defer timer.Stop()
+
+	select {
+	case err := <-startResult:
+		return err
+	case <-timer.C:
+		t.Fatal("server Start did not return before the shutdown deadline")
+
+		return nil
+	}
+}
+
 // Sequential: uses shared state (not safe for parallel execution).
 func TestAdminServer_Shutdown_Endpoint(t *testing.T) {
 	// NOT parallel - all admin server tests compete for port 9090.
@@ -34,15 +49,9 @@ func TestAdminServer_Shutdown_Endpoint(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	// Start server in background and track goroutine.
-	var wg sync.WaitGroup
-
-	wg.Add(1)
-
+	startResult := make(chan error, 1)
 	go func() {
-		defer wg.Done()
-
-		_ = server.Start(ctx)
+		startResult <- server.Start(ctx)
 	}()
 
 	// Wait for server to be ready.
@@ -92,10 +101,17 @@ func TestAdminServer_Shutdown_Endpoint(t *testing.T) {
 
 	require.Equal(t, "shutdown initiated", response[cryptoutilSharedMagic.StringStatus])
 
-	// The endpoint triggers shutdown in a goroutine with 100ms delay.
-	// Cancel context to let Start() exit cleanly, then wait for goroutine.
-	cancel()
-	wg.Wait()
+	timer := time.NewTimer(cryptoutilSharedMagic.DefaultServerShutdownTimeout)
+	defer timer.Stop()
+
+	select {
+	case startErr := <-startResult:
+		if startErr != nil {
+			require.ErrorContains(t, startErr, "admin server stopped")
+		}
+	case <-timer.C:
+		t.Fatal("admin server did not stop after the HTTP shutdown request")
+	}
 
 	// Wait for OS socket cleanup (TCP TIME_WAIT state).
 	// Windows needs longer for socket release.
