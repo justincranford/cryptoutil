@@ -246,41 +246,33 @@ public class BrowserApiSimulation extends Simulation {
   /** Build population based on profile. */
   private PopulationBuilder buildPopulation(
       String profile, int virtualClients, int durationSeconds) {
-    ScenarioBuilder scenario;
-
-    switch (profile) {
-      case "quick":
-        // Quick validation: UI health check only
-        scenario = scenario("Quick Health Check").exec(uiHealthCheckScenario());
-        break;
-
-      case "standard":
-        // Standard load: OAuth flow
-        scenario = scenario("Standard OAuth Flow").exec(oauthAuthorizationCodePkceFlow());
-        break;
-
-      case "certificate":
-        // Certificate workflow
-        scenario =
-            scenario("Certificate Request Flow")
+    ScenarioBuilder scenario =
+        switch (profile) {
+          case "quick" -> {
+            // Quick validation: UI health check only
+            yield scenario("Quick Health Check").exec(uiHealthCheckScenario());
+          }
+          case "standard" -> {
+            // Standard load: OAuth flow
+            yield scenario("Standard OAuth Flow").exec(oauthAuthorizationCodePkceFlow());
+          }
+          case "certificate" -> {
+            // Certificate workflow
+            yield scenario("Certificate Request Flow")
                 .exec(oauthAuthorizationCodePkceFlow())
                 .exec(certificateRequestFlow());
-        break;
-
-      case "stress":
-        // Stress test: Mixed scenarios
-        scenario =
-            scenario("Stress Test - Mixed")
+          }
+          case "stress" -> {
+            // Stress test: Mixed scenarios
+            yield scenario("Stress Test - Mixed")
                 .randomSwitch()
                 .on(
                     percent(50.0).then(exec(oauthAuthorizationCodePkceFlow())),
                     percent(30.0).then(exec(certificateRequestFlow())),
                     percent(20.0).then(exec(uiHealthCheckScenario())));
-        break;
-
-      default:
-        throw new IllegalArgumentException("Unknown profile: " + profile);
-    }
+          }
+          default -> throw new IllegalArgumentException("Unknown profile: " + profile);
+        };
 
     // Ramp users over duration
     return scenario.injectOpen(rampUsers(virtualClients).during(durationSeconds));
