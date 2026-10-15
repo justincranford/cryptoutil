@@ -62,9 +62,9 @@ and are independent of the numbered rows in the task evidence table.
   full-suite run concurrent with repository validators timed out in two RP/RS health tests; the
   isolated tests, shuffled packages, and serial full-suite rerun passed. No push is authorized by
   this plan.
-- **14 — Complete.** The implementation commit and final disposition-documentation commit both
-  contain the required co-author trailer; `test-output/reviewfollowup/commit-trailer-audit.log`
-  records the post-commit audit.
+- **14 — Complete.** `test-output/reviewfollowup/commit-trailer-audit.log` verifies the required
+  co-author trailer on every task commit from the recorded baseline through the implementation,
+  disposition, and post-review fix commits.
 
 ## Additional Recommendations
 
@@ -99,8 +99,10 @@ and are independent of the numbered rows in the task evidence table.
   never reuses reserved numbers; documented and tested.
 - **29 — Complete.** The request-ID sentinel policy is enforced at persistence; zero UUID and
   duplicate cases are covered by focused tests.
-- **30 — Complete.** Authority ID, issuer key ID, and issuer DN consistency are checked across
-  issuance/revocation, with focused tests.
+- **30 — Complete.** Issuance and revocation enforce the configured authority ID, issuer key ID,
+  and issuer DN. Pre-migration records without an authority ID can be revoked only after their
+  embedded certificate, serial, issuer, authority key ID, and signature are verified against the
+  configured issuer; focused tests cover valid and invalid legacy records.
 - **31 — Complete.** CRLs are explicitly issuer-wide for the shared authority; tests verify
   revocation lookup and publication semantics without tenant-scoped CRL partitioning.
 - **32 — Complete.** CRL/OCSP URLs and profile metadata are deployment-time configuration, not
@@ -121,3 +123,17 @@ and are independent of the numbered rows in the task evidence table.
 **28 — Omitted.** Legacy duplicate request-ID remediation is not planned because the project has
 no existing deployments or deployed data. Reconsider this only if persistent databases with
 pre-migration records become part of the supported upgrade path.
+
+## Post-Implementation Deep-Review Findings
+
+These findings were raised by the requested deep review of the implementation commits. Their
+identifiers are separate from the numbered recommendations above; disposition evidence is recorded
+in `tasks.md`.
+
+- **F-1 — Complete.** Compose credential validation rejects hard-coded or empty interpolation
+  fallbacks and invalid `_FILE` values, including empty paths, and recognizes `_PASS` credential
+  names. Focused tests and all deployment validators pass.
+- **F-2 — Complete.** Revocation remains available for pre-migration certificates without a stable
+  authority ID only after the embedded certificate identity, serial, issuer, authority key ID, and
+  signature are verified against the configured issuer. Focused regression tests pass, and the
+  compatibility rule is documented in ENG-HANDBOOK §6.5.

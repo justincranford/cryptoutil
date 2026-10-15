@@ -1061,7 +1061,7 @@ Recommendation numbers below refer to `review-follow-up-plan.md`, not to the his
 | 11 | Complete | `postgres-continuity-restart.log` passes the PostgreSQL restart test, reinitializing authority components and verifying restored certificate, encrypted-key envelope, and revocation state. | None. |
 | 12 | Complete | `docs/framework-v25/plan.md` remains the completed historical plan; `test-output/review-followup/docs-validation.log`. | None. |
 | 13 | Complete | `test-output/reviewfollowup/final-builds.log` records passing normal and `e2e,integration` builds; `final-golangci-normal-verify.log` and `final-golangci-tagged-verify.log` report no issues; `final-repository-validators.log` passes all 9 applicable validators. `final-go-test-shuffle.log` records the serial full shuffled suite passing. An initial full-suite run concurrent with validators timed out in RP/RS health checks; isolated tests and shuffled package reruns passed before the serial suite rerun. | None. |
-| 14 | Complete | `test-output/reviewfollowup/commit-trailer-audit.log` verifies the required co-author trailer on the implementation commit and final disposition-documentation commit. | None. |
+| 14 | Complete | `test-output/reviewfollowup/commit-trailer-audit.log` verifies the required co-author trailer on every task commit from the recorded baseline through the implementation, disposition, and post-review fix commits. | None. |
 | 15 | Complete | `test-output/review-followup/postgres-existing-volume-upgrade.log` verifies database access for the application role. | None. |
 | 16 | Complete | `test-output/review-followup/postgres-existing-volume-upgrade.log` verifies existing ownership normalization and malformed-publication rejection. | None. |
 | 17 | Complete | `test-output/review-followup/postgres-existing-volume-upgrade.log` exercises the upgrade on PostgreSQL 18; `test-output/review-followup/tracking-deploy-validation.log` records the post-documentation deployment lint. | None. |
@@ -1076,7 +1076,7 @@ Recommendation numbers below refer to `review-follow-up-plan.md`, not to the his
 | 26 | Complete | `final-focused-tests.log` passes bounded retry/error-classification tests; PostgreSQL classification uses SQLSTATE and SQLite allocation tests pass. | None. |
 | 27 | Complete | `docs/ENG-HANDBOOK.md` specifies permitted CRL-number gaps and no reuse; focused allocation/failure tests pass. | None. |
 | 29 | Complete | `final-focused-tests.log` passes persistence tests for the zero-UUID sentinel and duplicate request IDs. | None. |
-| 30 | Complete | `final-focused-tests.log` passes authority, issuer-key, and issuer-DN consistency tests across issuance/revocation. | None. |
+| 30 | Complete | `final-focused-tests.log` and `post-review-focused-tests.log` pass authority-ID, issuer-key, and issuer-DN consistency tests. The latter covers valid legacy-certificate revocation and rejects invalid PEM and serial mismatches; `docs/ENG-HANDBOOK.md` §6.5 documents the verified compatibility rule. | None. |
 | 31 | Complete | `docs/ENG-HANDBOOK.md` and focused PKI tests establish issuer-wide CRLs for the shared authority, not tenant-scoped CRLs. | None. |
 | 32 | Complete | Authority configuration tests verify deployment-time CRL/OCSP URL and profile metadata precedence after restart. | None. |
 | 33 | Complete | `final-repository-validators.log` passes deployment and template checks for endpoint hostnames, ports, and TLS paths across PS-ID configs. | None. |
@@ -1084,6 +1084,15 @@ Recommendation numbers below refer to `review-follow-up-plan.md`, not to the his
 | 35 | Complete | `final-focused-tests.log` passes authority creation, encryption/persistence failure, and concurrency tests. | None. |
 | 36 | Complete | `final-focused-tests.log` passes storage and handler tests proving stale updates cannot clear revocation metadata. | None. |
 | 37 | Complete | `postgres-continuity-restart.log` passes concurrent CRL allocation and verifies issuance/revocation and authority-key continuity across PostgreSQL restart. | None. |
+
+## Post-Implementation Deep-Review Findings
+
+Finding identifiers F-1 and F-2 are distinct from review recommendation numbers.
+
+| Finding | Disposition | Evidence | Remaining work |
+|---|---|---|---|
+| F-1 | Complete | `post-review-focused-tests.log` passes the Compose credential validation cases; `post-review-deployment-validation.log` passes all 51 deployment validators; `post-review-golangci.log` reports no issues. | None. |
+| F-2 | Complete | `post-review-focused-tests.log` passes valid legacy-certificate revocation and rejects invalid PEM and serial mismatches; `docs/ENG-HANDBOOK.md` §6.5 documents the issuer-verification rule. | None. |
 
 **Environment incident during live verification:** An accidental `docker compose down --volumes`
 removed the globally named volumes `cryptoutil_postgres_leader_volume`,
