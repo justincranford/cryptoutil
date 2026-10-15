@@ -162,6 +162,7 @@ services:
       - skeleton-template-certs:/certs-source:ro
       - skeleton-template-otel-certs:/etc/pki-init/certs
 
+  # DISPOSABLE: in-memory SQLite data is lost when the process/container is recreated.
   # skeleton-template server with SQLite backend (instance 1).
   skeleton-template-app-sqlite-1:
     image: cryptoutil-skeleton-template:local
@@ -214,6 +215,7 @@ services:
         reservations:
           memory: 128M
 
+  # DISPOSABLE: in-memory SQLite data is lost when the process/container is recreated.
   # skeleton-template server with SQLite backend (instance 2).
   skeleton-template-app-sqlite-2:
     image: cryptoutil-skeleton-template:local

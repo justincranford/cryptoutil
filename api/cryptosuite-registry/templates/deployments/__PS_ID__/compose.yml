@@ -162,6 +162,7 @@ services:
       - __PS_ID__-certs:/certs-source:ro
       - __PS_ID__-otel-certs:/etc/pki-init/certs
 
+  # DISPOSABLE: in-memory SQLite data is lost when the process/container is recreated.
   # __PS_ID__ server with SQLite backend (instance 1).
   __PS_ID__-app-sqlite-1:
     image: __SUITE__-__PS_ID__:__IMAGE_TAG__
@@ -214,6 +215,7 @@ services:
         reservations:
           memory: 128M
 
+  # DISPOSABLE: in-memory SQLite data is lost when the process/container is recreated.
   # __PS_ID__ server with SQLite backend (instance 2).
   __PS_ID__-app-sqlite-2:
     image: __SUITE__-__PS_ID__:__IMAGE_TAG__

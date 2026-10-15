@@ -162,6 +162,7 @@ services:
       - identity-authz-certs:/certs-source:ro
       - identity-authz-otel-certs:/etc/pki-init/certs
 
+  # DISPOSABLE: in-memory SQLite data is lost when the process/container is recreated.
   # identity-authz server with SQLite backend (instance 1).
   identity-authz-app-sqlite-1:
     image: cryptoutil-identity-authz:local
@@ -214,6 +215,7 @@ services:
         reservations:
           memory: 128M
 
+  # DISPOSABLE: in-memory SQLite data is lost when the process/container is recreated.
   # identity-authz server with SQLite backend (instance 2).
   identity-authz-app-sqlite-2:
     image: cryptoutil-identity-authz:local

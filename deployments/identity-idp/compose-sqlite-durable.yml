@@ -1,0 +1,45 @@
+# Optional Docker Compose override for persistent, file-backed SQLite storage.
+#
+# Use together with compose.yml:
+#   docker compose -f compose.yml -f compose-sqlite-durable.yml up -d
+#
+# Without this override, the base SQLite services use disposable in-memory databases.
+# The named volumes are scoped to the Compose project; keep the project name stable.
+
+services:
+  identity-idp-sqlite-data-init:
+    image: alpine:latest
+    user: "0:0"
+    command:
+      - /bin/sh
+      - -c
+      - |
+        set -eu
+        for data_dir in /data/sqlite-1 /data/sqlite-2; do
+          mkdir -p "$$data_dir"
+          chown 65532:65532 "$$data_dir"
+          chmod 0700 "$$data_dir"
+        done
+    volumes:
+      - identity-idp-sqlite-1-data:/data/sqlite-1
+      - identity-idp-sqlite-2-data:/data/sqlite-2
+
+  identity-idp-app-sqlite-1:
+    command: /bin/sh -c "exec /app/identity-idp server --config=/certs/tls-config.yml --config=/app/config/identity-idp-app-framework-common.yml --config=/app/config/identity-idp-app-framework-sqlite-1.yml --config=/app/config/identity-idp-app-domain-common.yml --config=/app/config/identity-idp-app-domain-sqlite-1.yml --config=/app/otel/otel.yml --bind-public-port=8080 -u sqlite:///var/lib/cryptoutil/identity-idp-sqlite-1.db $$SUITE_ARGS"
+    volumes:
+      - identity-idp-sqlite-1-data:/var/lib/cryptoutil
+    depends_on:
+      identity-idp-sqlite-data-init:
+        condition: service_completed_successfully
+
+  identity-idp-app-sqlite-2:
+    command: /bin/sh -c "exec /app/identity-idp server --config=/certs/tls-config.yml --config=/app/config/identity-idp-app-framework-common.yml --config=/app/config/identity-idp-app-framework-sqlite-2.yml --config=/app/config/identity-idp-app-domain-common.yml --config=/app/config/identity-idp-app-domain-sqlite-2.yml --config=/app/otel/otel.yml --bind-public-port=8080 -u sqlite:///var/lib/cryptoutil/identity-idp-sqlite-2.db $$SUITE_ARGS"
+    volumes:
+      - identity-idp-sqlite-2-data:/var/lib/cryptoutil
+    depends_on:
+      identity-idp-sqlite-data-init:
+        condition: service_completed_successfully
+
+volumes:
+  identity-idp-sqlite-1-data:
+  identity-idp-sqlite-2-data:

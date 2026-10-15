@@ -1,0 +1,45 @@
+# Optional Docker Compose override for persistent, file-backed SQLite storage.
+#
+# Use together with compose.yml:
+#   docker compose -f compose.yml -f compose-sqlite-durable.yml up -d
+#
+# Without this override, the base SQLite services use disposable in-memory databases.
+# The named volumes are scoped to the Compose project; keep the project name stable.
+
+services:
+  skeleton-template-sqlite-data-init:
+    image: alpine:latest
+    user: "0:0"
+    command:
+      - /bin/sh
+      - -c
+      - |
+        set -eu
+        for data_dir in /data/sqlite-1 /data/sqlite-2; do
+          mkdir -p "$$data_dir"
+          chown 65532:65532 "$$data_dir"
+          chmod 0700 "$$data_dir"
+        done
+    volumes:
+      - skeleton-template-sqlite-1-data:/data/sqlite-1
+      - skeleton-template-sqlite-2-data:/data/sqlite-2
+
+  skeleton-template-app-sqlite-1:
+    command: /bin/sh -c "exec /app/skeleton-template server --config=/certs/tls-config.yml --config=/app/config/skeleton-template-app-framework-common.yml --config=/app/config/skeleton-template-app-framework-sqlite-1.yml --config=/app/config/skeleton-template-app-domain-common.yml --config=/app/config/skeleton-template-app-domain-sqlite-1.yml --config=/app/otel/otel.yml --bind-public-port=8080 -u sqlite:///var/lib/cryptoutil/skeleton-template-sqlite-1.db $$SUITE_ARGS"
+    volumes:
+      - skeleton-template-sqlite-1-data:/var/lib/cryptoutil
+    depends_on:
+      skeleton-template-sqlite-data-init:
+        condition: service_completed_successfully
+
+  skeleton-template-app-sqlite-2:
+    command: /bin/sh -c "exec /app/skeleton-template server --config=/certs/tls-config.yml --config=/app/config/skeleton-template-app-framework-common.yml --config=/app/config/skeleton-template-app-framework-sqlite-2.yml --config=/app/config/skeleton-template-app-domain-common.yml --config=/app/config/skeleton-template-app-domain-sqlite-2.yml --config=/app/otel/otel.yml --bind-public-port=8080 -u sqlite:///var/lib/cryptoutil/skeleton-template-sqlite-2.db $$SUITE_ARGS"
+    volumes:
+      - skeleton-template-sqlite-2-data:/var/lib/cryptoutil
+    depends_on:
+      skeleton-template-sqlite-data-init:
+        condition: service_completed_successfully
+
+volumes:
+  skeleton-template-sqlite-1-data:
+  skeleton-template-sqlite-2-data:

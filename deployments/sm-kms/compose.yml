@@ -162,6 +162,7 @@ services:
       - sm-kms-certs:/certs-source:ro
       - sm-kms-otel-certs:/etc/pki-init/certs
 
+  # DISPOSABLE: in-memory SQLite data is lost when the process/container is recreated.
   # sm-kms server with SQLite backend (instance 1).
   sm-kms-app-sqlite-1:
     image: cryptoutil-sm-kms:local
@@ -214,6 +215,7 @@ services:
         reservations:
           memory: 128M
 
+  # DISPOSABLE: in-memory SQLite data is lost when the process/container is recreated.
   # sm-kms server with SQLite backend (instance 2).
   sm-kms-app-sqlite-2:
     image: cryptoutil-sm-kms:local

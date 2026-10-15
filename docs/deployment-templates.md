@@ -211,6 +211,10 @@ then compare byte-for-byte against `deployments/{PS-ID}/compose.yml`.
 | CO-21 | All services (pki-init, app variants) MUST use named volume `{PS-ID}-certs:/certs` (NEVER bind mount `./certs/:/certs`) | Portable cert storage — named volumes work in Docker Desktop, Docker Swarm, and Kubernetes without host path dependencies |
 | CO-22 | Top-level `volumes:` section MUST declare `{PS-ID}-certs:` (no `driver:` override — defaults to local) | Named volume declaration required |
 
+The base SQLite services are disposable in-memory instances: their database contents are lost when
+the application process exits or its container is recreated. Use the optional durable SQLite
+Compose override described in Section D.6 when SQLite data must survive container recreation.
+
 ---
 
 ## D. PS-ID Deployment Config Templates
@@ -241,7 +245,61 @@ All five config templates are the machine-readable source of truth. Linters inst
 of the 7 PS-IDs by substituting port numbers and PS-ID placeholders, then compare byte-for-byte
 against `deployments/{PS-ID}/config/{PS-ID}-app-framework-{variant}.yml`.
 
-### D.6 Config File Rules (Enforceable)
+### D.6 Optional Durable SQLite Deployment
+
+The canonical `compose-sqlite-durable.yml` override switches both SQLite app services from their
+disposable in-memory URLs to independent file-backed databases under
+`/var/lib/cryptoutil/{PS-ID}-sqlite-{1,2}.db`. It attaches one named volume to each app and runs a
+small initialization service first to set the volume directory owner to the image's non-root
+`65532:65532` user and its mode to `0700`. The override does not add app service names or alter the
+default disposable behavior.
+
+For a standalone PS-ID deployment, run from its deployment directory:
+
+```sh
+cd deployments/sm-kms
+docker compose -f compose.yml -f compose-sqlite-durable.yml up -d sm-kms-app-sqlite-1 sm-kms-app-sqlite-2
+```
+
+Product and suite Compose files recursively include the PS-ID services, but do not automatically
+include their durable overrides. Pass each relevant PS-ID override explicitly. For example, to make
+all Identity product SQLite instances durable:
+
+```sh
+cd deployments/identity
+docker compose \
+  -f compose.yml \
+  -f ../identity-authz/compose-sqlite-durable.yml \
+  -f ../identity-idp/compose-sqlite-durable.yml \
+  -f ../identity-rs/compose-sqlite-durable.yml \
+  -f ../identity-rp/compose-sqlite-durable.yml \
+  -f ../identity-spa/compose-sqlite-durable.yml \
+  up -d
+```
+
+For a complete durable suite, pass all seven PS-ID overrides from the suite directory:
+
+```sh
+cd deployments/cryptoutil
+docker compose \
+  -f compose.yml \
+  -f ../sm-kms/compose-sqlite-durable.yml \
+  -f ../identity-authz/compose-sqlite-durable.yml \
+  -f ../identity-idp/compose-sqlite-durable.yml \
+  -f ../identity-rs/compose-sqlite-durable.yml \
+  -f ../identity-rp/compose-sqlite-durable.yml \
+  -f ../identity-spa/compose-sqlite-durable.yml \
+  -f ../skeleton-template/compose-sqlite-durable.yml \
+  up -d
+```
+
+Volumes are scoped by the Compose project name, keeping service, product, and suite databases
+separate. Keep that project name stable to reuse the same volumes. Normal `docker compose down`
+retains database volumes; `docker compose down -v` deletes them and is destructive. Back up the
+SQLite data before volume removal or manual changes. Any PS-ID service without its durable override
+continues to use disposable in-memory SQLite.
+
+### D.7 Config File Rules (Enforceable)
 
 | Rule ID | Rule | Rationale |
 |---------|------|-----------|

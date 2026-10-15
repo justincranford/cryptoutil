@@ -9,6 +9,7 @@ cors-origins:
 otlp-service: identity-spa-sqlite-1
 otlp-hostname: identity-spa-sqlite-1
 
+# DISPOSABLE: this in-memory database loses all data when its process exits.
 database-url: "sqlite://file::memory:?cache=shared"
 
 # Admin mTLS (Cat 7 + Cat 6): present server cert and explicitly require-and-verify client certs for the private admin API.
