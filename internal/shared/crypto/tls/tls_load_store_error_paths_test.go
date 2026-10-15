@@ -99,7 +99,7 @@ func TestLoadCertificatePEM_DecodeKeyError(t *testing.T) {
 	require.NoError(t, err)
 
 	// Write an invalid (non-PEM) key file.
-	keyFile := stored.CertificatePath + ".key"
+	keyFile := stored.CertificatePath + cryptoutilSharedMagic.PKIInitPrivateKeyFileExtension
 	require.NoError(t, os.WriteFile(keyFile, []byte("not valid PEM content"), cryptoutilSharedMagic.CacheFilePermissions)) //nolint:gosec // Test file.
 
 	_, err = LoadCertificatePEM(stored.CertificatePath, keyFile)
@@ -123,7 +123,7 @@ func TestLoadCertificatePEM_ParseKeyError(t *testing.T) {
 	require.NoError(t, err)
 
 	// Write a key PEM file with valid PEM block but invalid PKCS8 bytes.
-	keyFile := stored.CertificatePath + ".key"
+	keyFile := stored.CertificatePath + cryptoutilSharedMagic.PKIInitPrivateKeyFileExtension
 	keyPEMBytes := pem.EncodeToMemory(&pem.Block{Type: cryptoutilSharedMagic.StringPEMTypePKCS8PrivateKey, Bytes: []byte("notvalidpkcs8")})
 	require.NoError(t, os.WriteFile(keyFile, keyPEMBytes, cryptoutilSharedMagic.CacheFilePermissions)) //nolint:gosec // Test file.
 

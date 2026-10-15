@@ -8,7 +8,18 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
+
+const (
+	pkiAuthorityTestSQLite1Distribution = `pki-distribution:
+  crl-url: https://sm-kms-app-sqlite-1:8080/pki/cas/sm-kms-pki-test/crl
+  ocsp-url: https://sm-kms-app-sqlite-1:8080/pki/ocsp/sm-kms-pki-test
+`
+)
+
+var pkiAuthorityTestProjectRootRelative = filepath.Join("..", "..", "..", "..", "..", "..")
 
 func TestPKIAuthorityConfigFromConfigFiles(t *testing.T) {
 	t.Parallel()
@@ -39,6 +50,134 @@ pki-authority:
 	require.Equal(t, pkiAuthorityCurveP256, config.KeySpec.ECDSACurve)
 	require.Equal(t, "https://pki.example.test/pki/cas/sm-kms-pki-test/crl", config.CRLURL)
 	require.Equal(t, "https://pki.example.test/pki/ocsp/sm-kms-pki-test", config.OCSPURL)
+}
+
+func TestPKIAuthorityConfigFromDeploymentConfigs(t *testing.T) {
+	t.Parallel()
+
+	projectRoot := pkiAuthorityTestProjectRootRelative
+	deploymentConfigDir := filepath.Join(projectRoot, "deployments", cryptoutilSharedMagic.OTLPServiceSMKMS, "config")
+	commonPath := filepath.Join(deploymentConfigDir, "sm-kms-app-domain-common.yml")
+
+	tests := []struct {
+		name         string
+		configFiles  []string
+		wantEndpoint string
+	}{
+		{
+			name: "SQLite instance 1 publishes through its service",
+			configFiles: []string{
+				commonPath,
+				filepath.Join(deploymentConfigDir, "sm-kms-app-domain-sqlite-1.yml"),
+			},
+			wantEndpoint: "https://sm-kms-app-sqlite-1:8080",
+		},
+		{
+			name: "SQLite instance 2 publishes through its service",
+			configFiles: []string{
+				commonPath,
+				filepath.Join(deploymentConfigDir, "sm-kms-app-domain-sqlite-2.yml"),
+			},
+			wantEndpoint: "https://sm-kms-app-sqlite-2:8080",
+		},
+		{
+			name: "PostgreSQL instances publish through the shared issuer service",
+			configFiles: []string{
+				commonPath,
+				filepath.Join(deploymentConfigDir, "sm-kms-app-domain-postgresql-1.yml"),
+			},
+			wantEndpoint: "https://sm-kms-app-postgres-1:8080",
+		},
+		{
+			name: "local development publishes through the host port",
+			configFiles: []string{
+				filepath.Join(
+					projectRoot,
+					cryptoutilSharedMagic.CICDConfigsDir,
+					cryptoutilSharedMagic.OTLPServiceSMKMS,
+					"sm-kms-domain.yml",
+				),
+			},
+			wantEndpoint: "https://localhost:8000",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			config, err := PKIAuthorityConfigFromConfigFiles(tc.configFiles)
+			require.NoError(t, err)
+			require.Equal(t, cryptoutilSharedMagic.PKIDefaultAuthorityID, config.ID)
+			require.Equal(t, tc.wantEndpoint+"/pki/cas/"+cryptoutilSharedMagic.PKIDefaultAuthorityID+"/crl", config.CRLURL)
+			require.Equal(t, tc.wantEndpoint+"/pki/ocsp/"+cryptoutilSharedMagic.PKIDefaultAuthorityID, config.OCSPURL)
+		})
+	}
+}
+
+func TestPKIAuthorityConfigFromConfigFiles_DistributionOverrides(t *testing.T) {
+	t.Parallel()
+
+	commonPath := filepath.Join(t.TempDir(), "common.yml")
+	require.NoError(t, os.WriteFile(commonPath, []byte(`
+pki-authority:
+  id: sm-kms-pki-test
+  common-name: Test Authority
+  organization: [Example Org]
+  country: [US]
+  key-algorithm: ECDSA
+  ecdsa-curve: P-384
+  validity: 48h
+  max-path-length: 1
+pki-distribution:
+  crl-url: https://sm-kms-app-postgres-1:8080/pki/cas/sm-kms-pki-test/crl
+  ocsp-url: https://sm-kms-app-postgres-1:8080/pki/ocsp/sm-kms-pki-test
+`), 0o600))
+
+	tests := []struct {
+		name        string
+		overrides   []string
+		wantCRLURL  string
+		wantOCSPURL string
+	}{
+		{
+			name:        "sqlite instance overrides common PostgreSQL endpoints",
+			overrides:   []string{pkiAuthorityTestSQLite1Distribution},
+			wantCRLURL:  "https://sm-kms-app-sqlite-1:8080/pki/cas/sm-kms-pki-test/crl",
+			wantOCSPURL: "https://sm-kms-app-sqlite-1:8080/pki/ocsp/sm-kms-pki-test",
+		},
+		{
+			name: "later instance override wins",
+			overrides: []string{
+				pkiAuthorityTestSQLite1Distribution,
+				`pki-distribution:
+  crl-url: https://sm-kms-app-sqlite-2:8080/pki/cas/sm-kms-pki-test/crl
+  ocsp-url: https://sm-kms-app-sqlite-2:8080/pki/ocsp/sm-kms-pki-test
+`,
+			},
+			wantCRLURL:  "https://sm-kms-app-sqlite-2:8080/pki/cas/sm-kms-pki-test/crl",
+			wantOCSPURL: "https://sm-kms-app-sqlite-2:8080/pki/ocsp/sm-kms-pki-test",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			paths := []string{commonPath}
+
+			for _, content := range tc.overrides {
+				path := filepath.Join(t.TempDir(), "instance.yml")
+				require.NoError(t, os.WriteFile(path, []byte(content), 0o600))
+				paths = append(paths, path)
+			}
+
+			config, err := PKIAuthorityConfigFromConfigFiles(paths)
+			require.NoError(t, err)
+			require.Equal(t, tc.wantCRLURL, config.CRLURL)
+			require.Equal(t, tc.wantOCSPURL, config.OCSPURL)
+		})
+	}
 }
 
 func TestPKIAuthorityConfigFromConfigFiles_ValidationErrors(t *testing.T) {

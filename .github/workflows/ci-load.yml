@@ -141,13 +141,33 @@ jobs:
       with:
         endpoints: '[{"url": "https://127.0.0.1:8002/browser/api/v1/health", "name": "sm-kms-postgresql-1"}, {"url": "https://127.0.0.1:8003/browser/api/v1/health", "name": "sm-kms-postgresql-2"}]'
 
+    - name: Verify authenticated PostgreSQL service readiness
+      run: |
+        set -euo pipefail
+        docker compose --profile postgres -f ./deployments/sm-kms/compose.yml exec -T sm-kms-app-postgresql-1 \
+          /app/sm-kms readyz --url https://127.0.0.1:9090 \
+          --cacert /certs/issuing-ca.pem \
+          --cert /certs/sm-kms/private-https-mutual-entity-sm-kms-postgres-1/private-https-mutual-entity-sm-kms-postgres-1.crt \
+          --key /certs/sm-kms/private-https-mutual-entity-sm-kms-postgres-1/private-https-mutual-entity-sm-kms-postgres-1.key
+        docker compose --profile postgres -f ./deployments/sm-kms/compose.yml exec -T sm-kms-app-postgresql-2 \
+          /app/sm-kms readyz --url https://127.0.0.1:9090 \
+          --cacert /certs/issuing-ca.pem \
+          --cert /certs/sm-kms/private-https-mutual-entity-sm-kms-postgres-2/private-https-mutual-entity-sm-kms-postgres-2.crt \
+          --key /certs/sm-kms/private-https-mutual-entity-sm-kms-postgres-2/private-https-mutual-entity-sm-kms-postgres-2.key
+
     - name: Set load test parameters
       id: load-params
+      env:
+        LOAD_PROFILE: ${{ env.LOAD_PROFILE }}
+        VIRTUAL_CLIENTS_OVERRIDE: ${{ env.VIRTUAL_CLIENTS_OVERRIDE }}
+        DURATION_OVERRIDE: ${{ env.DURATION_OVERRIDE }}
       run: |
+        set -euo pipefail
         echo "⚙️ Setting load test parameters..."
         START_TIME=$(date +%s)
         echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-        case "${{ env.LOAD_PROFILE }}" in
+
+        case "$LOAD_PROFILE" in
           quick)
             CLIENTS=10
             DURATION=30
@@ -161,31 +181,59 @@ jobs:
             DURATION=300
             ;;
           *)
-            CLIENTS=10
-            DURATION=30
+            echo "❌ Invalid load profile: $LOAD_PROFILE" >&2
+            exit 1
             ;;
         esac
 
-        # Override with manual inputs if provided
-        if [ "${{ env.VIRTUAL_CLIENTS_OVERRIDE }}" != "0" ]; then
-          CLIENTS="${{ env.VIRTUAL_CLIENTS_OVERRIDE }}"
+        validate_override() {
+          local name="$1"
+          local value="$2"
+          local maximum="$3"
+          local normalized
+
+          if [[ ! "$value" =~ ^[0-9]+$ ]]; then
+            echo "❌ $name must contain only decimal digits; received: $value" >&2
+            return 1
+          fi
+
+          normalized="${value#"${value%%[!0]*}"}"
+          if [[ -z "$normalized" ]]; then
+            normalized=0
+          fi
+
+          if (( ${#normalized} > ${#maximum} )); then
+            echo "❌ $name must be 0 or between 1 and $maximum; received: $value" >&2
+            return 1
+          fi
+          if (( 10#$normalized > 10#$maximum )); then
+            echo "❌ $name must be 0 or between 1 and $maximum; received: $value" >&2
+            return 1
+          fi
+
+          printf '%s' "$normalized"
+        }
+
+        CLIENTS_OVERRIDE="$(validate_override 'virtual_clients' "$VIRTUAL_CLIENTS_OVERRIDE" 200)"
+        DURATION_OVERRIDE_VALIDATED="$(validate_override 'duration_seconds' "$DURATION_OVERRIDE" 300)"
+        if [[ "$CLIENTS_OVERRIDE" != "0" ]]; then
+          CLIENTS="$CLIENTS_OVERRIDE"
         fi
-        if [ "${{ env.DURATION_OVERRIDE }}" != "0" ]; then
-          DURATION="${{ env.DURATION_OVERRIDE }}"
+        if [[ "$DURATION_OVERRIDE_VALIDATED" != "0" ]]; then
+          DURATION="$DURATION_OVERRIDE_VALIDATED"
         fi
 
-        echo "virtual_clients=$CLIENTS" >> $GITHUB_OUTPUT
-        echo "duration=$DURATION" >> $GITHUB_OUTPUT
+        printf 'virtual_clients=%s\n' "$CLIENTS" >> "$GITHUB_OUTPUT"
+        printf 'duration=%s\n' "$DURATION" >> "$GITHUB_OUTPUT"
 
         echo "📊 Load test configuration:"
-        echo "  Profile: ${{ env.LOAD_PROFILE }}"
+        echo "  Profile: $LOAD_PROFILE"
         echo "  Virtual Clients: $CLIENTS"
         echo "  Duration: ${DURATION}s"
         END_TIME=$(date +%s)
-        DURATION=$((END_TIME - START_TIME))
+        ELAPSED_SECONDS=$((END_TIME - START_TIME))
         echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-        echo "⏱️ Load test parameter configuration completed in: ${DURATION}s"
-
+        echo "⏱️ Load test parameter configuration completed in: ${ELAPSED_SECONDS}s"
     - name: Start infrastructure monitoring
       run: |
         echo "📊 Starting infrastructure monitoring..."
@@ -229,6 +277,10 @@ jobs:
     - name: Run Gatling load tests (informational)
       continue-on-error: true
       working-directory: ./test/load
+      env:
+        LOAD_PROFILE: ${{ env.LOAD_PROFILE }}
+        LOAD_VIRTUAL_CLIENTS: ${{ steps.load-params.outputs.virtual_clients }}
+        LOAD_DURATION: ${{ steps.load-params.outputs.duration }}
       run: |
         echo "🚀 Running Gatling load tests..."
         echo "⚠️ Note: Gatling simulations may need updating to match current KMS API (registration required, field changes)"
@@ -243,11 +295,11 @@ jobs:
         # Run ServiceApiSimulation only (BrowserApiSimulation targets identity OAuth endpoints not available on sm-kms)
         if ./mvnw gatling:test \
           -Dgatling.simulationClass=cryptoutil.ServiceApiSimulation \
-          -Dprofile=${{ env.LOAD_PROFILE }} \
+          "-Dprofile=$LOAD_PROFILE" \
           -Dport=8001 \
-          -Dvirtualclients=${{ steps.load-params.outputs.virtual_clients }} \
-          -DdurationSeconds=${{ steps.load-params.outputs.duration }} \
-          -Dgatling.runDescription="CI Load Test - Profile: ${{ env.LOAD_PROFILE }}"; then
+          "-Dvirtualclients=$LOAD_VIRTUAL_CLIENTS" \
+          "-DdurationSeconds=$LOAD_DURATION" \
+          "-Dgatling.runDescription=CI Load Test - Profile: $LOAD_PROFILE"; then
           echo "✅ Gatling load tests completed successfully"
         else
           echo "❌ Gatling load tests failed"
@@ -297,45 +349,42 @@ jobs:
 
     - name: Generate load test summary
       if: always()
+      env:
+        LOAD_PROFILE: ${{ env.LOAD_PROFILE }}
+        LOAD_VIRTUAL_CLIENTS: ${{ steps.load-params.outputs.virtual_clients }}
+        LOAD_DURATION: ${{ steps.load-params.outputs.duration }}
+        TRIGGERED_BY: ${{ github.event_name }}
+        RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
       run: |
+        set -euo pipefail
         echo "📊 Generating load test summary..."
         START_TIME=$(date +%s)
         echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
 
-        cat > ./load-reports/load-test-summary.md << 'EOF'
-        # Load Test Summary
-
-        **Profile:** ${{ env.LOAD_PROFILE }}
-        **Virtual Clients:** ${{ steps.load-params.outputs.virtual_clients }}
-        **Duration:** ${{ steps.load-params.outputs.duration }}s
-        **Triggered by:** ${{ github.event_name }}
-        **Workflow Run:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-
-        ## Test Configuration
-
-        | Parameter | Value |
-        |-----------|-------|
-        | Load Profile | ${{ env.LOAD_PROFILE }} |
-        | Virtual Clients | ${{ steps.load-params.outputs.virtual_clients }} |
-        | Test Duration | ${{ steps.load-params.outputs.duration }}s |
-        | Target Services | sm-kms-postgresql-1, sm-kms-postgresql-2 |
-
-        ## Services Tested
-
-        - **sm-kms-postgresql-1** - https://127.0.0.1:8002/service/api/v1
-        - **sm-kms-postgresql-2** - https://127.0.0.1:8003/service/api/v1
-
-        ## Artifacts Generated
-
-        - Gatling HTML reports: `test/load/target/gatling/`
-        - Infrastructure metrics: `load-reports/infrastructure/`
-        - Service logs: `load-reports/service-logs/`
-
-        ## Results
-
-        See Gatling HTML reports in artifacts for detailed performance analysis.
-
-        EOF
+        {
+          printf '# Load Test Summary\n\n'
+          printf '**Profile:** %s\n' "$LOAD_PROFILE"
+          printf '**Virtual Clients:** %s\n' "$LOAD_VIRTUAL_CLIENTS"
+          printf '**Duration:** %ss\n' "$LOAD_DURATION"
+          printf '**Triggered by:** %s\n' "$TRIGGERED_BY"
+          printf '**Workflow Run:** %s\n\n' "$RUN_URL"
+          printf '## Test Configuration\n\n'
+          printf '| Parameter | Value |\n'
+          printf '|-----------|-------|\n'
+          printf '| Load Profile | %s |\n' "$LOAD_PROFILE"
+          printf '| Virtual Clients | %s |\n' "$LOAD_VIRTUAL_CLIENTS"
+          printf '| Test Duration | %ss |\n' "$LOAD_DURATION"
+          printf '| Target Services | sm-kms-postgresql-1, sm-kms-postgresql-2 |\n\n'
+          printf '## Services Tested\n\n'
+          printf '%s\n' '- **sm-kms-postgresql-1** - https://127.0.0.1:8002/service/api/v1'
+          printf '%s\n\n' '- **sm-kms-postgresql-2** - https://127.0.0.1:8003/service/api/v1'
+          printf '## Artifacts Generated\n\n'
+          printf '%s\n' '- Gatling HTML reports: `test/load/target/gatling/`'
+          printf '%s\n' '- Infrastructure metrics: `load-reports/infrastructure/`'
+          printf '%s\n\n' '- Service logs: `load-reports/service-logs/`'
+          printf '## Results\n\n'
+          printf '%s\n' 'See Gatling HTML reports in artifacts for detailed performance analysis.'
+        } > ./load-reports/load-test-summary.md
 
         echo "✅ Load test summary generated"
         END_TIME=$(date +%s)

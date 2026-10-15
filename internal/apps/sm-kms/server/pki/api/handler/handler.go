@@ -283,6 +283,10 @@ func (h *Handler) RevokeCertificate(c *fiber.Ctx, serialNumber string) error {
 		return h.errorResponse(c, fiber.StatusBadRequest, cryptoutilSharedMagic.ErrorInvalidRequest, "failed to parse request body")
 	}
 
+	if req.Reason == cryptoutilApiCaServer.RemoveFromCRL {
+		return h.errorResponse(c, fiber.StatusUnprocessableEntity, "unsupported_revocation_reason", cryptoutilSharedMagic.PKIErrorRemoveFromCRLUnsupported)
+	}
+
 	// Look up certificate by serial number.
 	cert, err := h.storage.GetBySerialNumber(c.UserContext(), serialNumber)
 	if err != nil {
@@ -296,6 +300,10 @@ func (h *Handler) RevokeCertificate(c *fiber.Ctx, serialNumber string) error {
 	// Check if already revoked.
 	if cert.Status == cryptoutilCAStorage.StatusRevoked {
 		return h.errorResponse(c, fiber.StatusConflict, "already_revoked", "certificate is already revoked")
+	}
+
+	if err := validateStoredCertificateIssuer(cert, h.issuer); err != nil {
+		return h.errorResponse(c, fiber.StatusInternalServerError, "issuer_mismatch", err.Error())
 	}
 
 	// Convert API reason to storage reason.

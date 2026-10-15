@@ -2,6 +2,7 @@
 package handler
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"strings"
@@ -11,6 +12,7 @@ import (
 	cryptoutilCAServiceIssuer "cryptoutil/internal/apps/sm-kms/server/pki/service/issuer"
 	cryptoutilCAStorage "cryptoutil/internal/apps/sm-kms/server/pki/storage"
 	cryptoutilSharedDatabase "cryptoutil/internal/shared/database"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 func (h *Handler) storeIssuedCertificate(
@@ -37,9 +39,32 @@ func (h *Handler) storeIssuedCertificate(
 		return nil, fmt.Errorf("issuing authority identity is not configured")
 	}
 
-	issuerAuthorityID := strings.TrimSpace(h.issuer.GetCAConfig().AuthorityID)
-	if issuerAuthorityID == "" {
+	caConfig := h.issuer.GetCAConfig()
+
+	issuerAuthorityID := strings.TrimSpace(caConfig.AuthorityID)
+	if issuerAuthorityID == "" || issuerAuthorityID != caConfig.AuthorityID {
 		return nil, fmt.Errorf("issuing authority identity is not configured")
+	}
+
+	if caConfig.Certificate == nil {
+		return nil, fmt.Errorf("issuing authority certificate is not configured")
+	}
+
+	if !bytes.Equal(issued.Certificate.RawIssuer, caConfig.Certificate.RawSubject) {
+		return nil, fmt.Errorf("issued certificate issuer does not match configured authority")
+	}
+
+	if len(caConfig.Certificate.SubjectKeyId) == 0 ||
+		!bytes.Equal(issued.Certificate.AuthorityKeyId, caConfig.Certificate.SubjectKeyId) {
+		return nil, fmt.Errorf("issued certificate authority key identifier does not match configured authority")
+	}
+
+	if err := issued.Certificate.CheckSignatureFrom(caConfig.Certificate); err != nil {
+		return nil, fmt.Errorf("issued certificate signature does not match configured authority: %w", err)
+	}
+
+	if issued.SerialNumber != issued.Certificate.SerialNumber.Text(cryptoutilSharedMagic.HexBase) {
+		return nil, fmt.Errorf("issued certificate serial number does not match the certificate")
 	}
 
 	certificate.SerialNumber = issued.SerialNumber
@@ -53,4 +78,39 @@ func (h *Handler) storeIssuedCertificate(
 	}
 
 	return certificate, nil
+}
+
+func validateStoredCertificateIssuer(
+	certificate *cryptoutilCAStorage.StoredCertificate,
+	issuer *cryptoutilCAServiceIssuer.Issuer,
+) error {
+	if certificate == nil {
+		return fmt.Errorf("stored certificate is required")
+	}
+
+	if issuer == nil || issuer.GetCAConfig() == nil {
+		return fmt.Errorf("issuing authority identity is not configured")
+	}
+
+	caConfig := issuer.GetCAConfig()
+
+	authorityID := strings.TrimSpace(caConfig.AuthorityID)
+	if authorityID == "" || authorityID != caConfig.AuthorityID || certificate.IssuerAuthorityID != authorityID {
+		return fmt.Errorf("stored certificate authority ID does not match configured issuer")
+	}
+
+	if caConfig.Certificate == nil || len(caConfig.Certificate.SubjectKeyId) == 0 {
+		return fmt.Errorf("issuing authority certificate identity is not configured")
+	}
+
+	if certificate.IssuerDN != caConfig.Certificate.Subject.String() {
+		return fmt.Errorf("stored certificate issuer DN does not match configured issuer")
+	}
+
+	expectedAuthorityKeyID := fmt.Sprintf("%x", caConfig.Certificate.SubjectKeyId)
+	if !strings.EqualFold(certificate.AuthorityKeyID, expectedAuthorityKeyID) {
+		return fmt.Errorf("stored certificate authority key ID does not match configured issuer")
+	}
+
+	return nil
 }

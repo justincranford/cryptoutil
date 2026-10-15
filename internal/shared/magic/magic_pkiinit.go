@@ -30,9 +30,18 @@ const (
 	// truststore .p12).
 	PKIInitPublicCertFileMode = os.FileMode(0o444)
 
+	// PKIInitPublicCertFileExtension is the file extension for public certificate files.
+	PKIInitPublicCertFileExtension = ".crt"
+
 	// PKIInitPrivateKeyFileMode is the file permission mode for private key files (.key,
 	// keystore .p12 with private key).
 	PKIInitPrivateKeyFileMode = os.FileMode(0o440)
+
+	// PKIInitPrivateKeyFileExtension is the file extension for private key files.
+	PKIInitPrivateKeyFileExtension = ".key"
+
+	// PKIInitPKCS12FileExtension is the file extension for PKCS#12 files.
+	PKIInitPKCS12FileExtension = ".p12"
 
 	// PKIInitValidityRootCA is the validity period for root CA certificates (20 years per
 	// CA/Browser Forum Baseline Requirements).

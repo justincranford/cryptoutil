@@ -1,6 +1,7 @@
 package lint_deployments
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
@@ -300,6 +301,59 @@ services:
 	// New should be added.
 	require.Equal(t, "./secrets/new.secret", compose.Secrets["new.secret"].File)
 	require.Equal(t, "new:latest", compose.Services["new-svc"].Image)
+}
+
+func TestParseComposeWithIncludes_NestedServiceDependencies(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+	serviceDir := filepath.Join(dir, "service")
+	productDir := filepath.Join(dir, "product")
+
+	suiteDir := filepath.Join(dir, "suite")
+	for _, nestedDir := range []string{serviceDir, productDir, suiteDir} {
+		require.NoError(t, os.MkdirAll(nestedDir, dirPermissions))
+	}
+
+	serviceCompose := fmt.Sprintf(`services:
+  app:
+    depends_on:
+      cert-copy:
+        condition: service_completed_successfully
+  cert-copy:
+    depends_on:
+      %s:
+        condition: service_completed_successfully
+  %s:
+    command: initialize
+`, cryptoutilSharedMagic.PSIDPKIInit, cryptoutilSharedMagic.PSIDPKIInit)
+	require.NoError(t, os.WriteFile(filepath.Join(serviceDir, composeFileName), []byte(serviceCompose), filePermissions))
+
+	productCompose := fmt.Sprintf(`include:
+  - path: ../service/%s
+services:
+  app:
+    volumes:
+      - product-certs:/certs:ro
+`, composeFileName)
+	require.NoError(t, os.WriteFile(filepath.Join(productDir, composeFileName), []byte(productCompose), filePermissions))
+
+	suiteCompose := fmt.Sprintf(`include:
+  - path: ../product/%s
+services:
+  app:
+    volumes:
+      - suite-certs:/certs:ro
+`, composeFileName)
+	suiteComposePath := filepath.Join(suiteDir, composeFileName)
+	require.NoError(t, os.WriteFile(suiteComposePath, []byte(suiteCompose), filePermissions))
+
+	compose, err := parseComposeWithIncludes(suiteComposePath)
+	require.NoError(t, err)
+
+	app := compose.Services["app"]
+	require.True(t, dependsOnSuccessfulPKIInit(compose, "app", make(map[string]struct{})))
+	require.Equal(t, []string{"suite-certs:/certs:ro"}, app.Volumes)
 }
 
 func TestValidateComposeFile_ContainerOnlyPort(t *testing.T) {

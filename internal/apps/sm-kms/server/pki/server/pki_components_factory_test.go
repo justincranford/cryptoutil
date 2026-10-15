@@ -151,3 +151,17 @@ func TestNewPKIComponents_UsesStableAuthorityID(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, pkiComponentStableAuthorityID, components.issuer.GetCAConfig().AuthorityID)
 }
+
+func TestNewPKIComponents_UsesDeploymentDistributionURLs(t *testing.T) {
+	t.Parallel()
+
+	factories := pkiComponentFactoriesForTest()
+	factories.authorityID = pkiComponentStableAuthorityID
+	factories.crlURL = "https://pki.example.test/pki/cas/" + pkiComponentStableAuthorityID + "/crl"
+	factories.ocspURL = "https://pki.example.test/pki/ocsp/" + pkiComponentStableAuthorityID
+
+	components, err := newPKIComponents(factories)
+	require.NoError(t, err)
+	require.Equal(t, []string{factories.crlURL}, components.issuer.GetCAConfig().CRLDistributionPoints)
+	require.Equal(t, []string{factories.ocspURL}, components.issuer.GetCAConfig().OCSPServer)
+}

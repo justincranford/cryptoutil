@@ -10,5 +10,7 @@ pki-authority:
   ecdsa-curve: P-384
   validity: 87600h
   max-path-length: 2
+
+pki-distribution:
   crl-url: https://sm-kms-app-postgres-1:8080/pki/cas/sm-kms-pki-development-authority/crl
   ocsp-url: https://sm-kms-app-postgres-1:8080/pki/ocsp/sm-kms-pki-development-authority

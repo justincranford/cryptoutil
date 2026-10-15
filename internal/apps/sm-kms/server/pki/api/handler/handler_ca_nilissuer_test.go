@@ -9,6 +9,7 @@ import (
 	crand "crypto/rand"
 	"crypto/x509"
 	"crypto/x509/pkix"
+	"fmt"
 	http "net/http"
 	"net/http/httptest"
 	"testing"
@@ -68,6 +69,7 @@ func TestListCertificates(t *testing.T) {
 	// Add test certificates to storage.
 	cert1 := &cryptoutilCAStorage.StoredCertificate{
 		ID:             googleUuid.New(),
+		RequestID:      googleUuid.Must(googleUuid.NewV7()),
 		SerialNumber:   testSerialABC123,
 		SubjectDN:      testSubjectDNTest1Org,
 		IssuerDN:       testIssuerDNTestCAOrg,
@@ -82,6 +84,7 @@ func TestListCertificates(t *testing.T) {
 
 	cert2 := &cryptoutilCAStorage.StoredCertificate{
 		ID:             googleUuid.New(),
+		RequestID:      googleUuid.Must(googleUuid.NewV7()),
 		SerialNumber:   "DEF456",
 		SubjectDN:      testSubjectDNTest2Org,
 		IssuerDN:       testIssuerDNTestCAOrg,
@@ -122,6 +125,7 @@ func TestGetCertificate(t *testing.T) {
 
 	testCert := &cryptoutilCAStorage.StoredCertificate{
 		ID:             googleUuid.New(),
+		RequestID:      googleUuid.Must(googleUuid.NewV7()),
 		SerialNumber:   testCertificateSerialNumber,
 		SubjectDN:      testSubjectDNExampleOrg,
 		IssuerDN:       testIssuerDNTestCAOrg,
@@ -181,6 +185,7 @@ func TestGetCertificateChain(t *testing.T) {
 
 	testCert := &cryptoutilCAStorage.StoredCertificate{
 		ID:             googleUuid.New(),
+		RequestID:      googleUuid.Must(googleUuid.NewV7()),
 		SerialNumber:   "CHAIN123",
 		SubjectDN:      testSubjectDNExample,
 		IssuerDN:       testIssuerDNTestCA,
@@ -225,24 +230,29 @@ func TestGetCertificateChain(t *testing.T) {
 func TestRevokeCertificate(t *testing.T) {
 	t.Parallel()
 
+	testIssuer := createTestIssuer(t).Issuer
+	caConfig := testIssuer.GetCAConfig()
 	app := fiber.New()
 	mockStorage := cryptoutilCAStorage.NewMemoryStore()
 
 	testCert := &cryptoutilCAStorage.StoredCertificate{
-		ID:             googleUuid.New(),
-		SerialNumber:   "REVOKE123",
-		SubjectDN:      testSubjectDNExample,
-		IssuerDN:       testIssuerDNTestCA,
-		NotBefore:      time.Now().UTC().Add(-time.Hour),
-		NotAfter:       time.Now().UTC().Add(time.Hour * cryptoutilSharedMagic.HoursPerDay * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year),
-		Status:         cryptoutilCAStorage.StatusActive,
-		ProfileID:      cryptoutilSharedMagic.PKIProfileIDTLSServer,
-		CertificatePEM: testCertificatePEMInvalid,
+		ID:                googleUuid.Must(googleUuid.NewV7()),
+		RequestID:         googleUuid.Must(googleUuid.NewV7()),
+		SerialNumber:      "REVOKE123",
+		SubjectDN:         testSubjectDNExample,
+		IssuerDN:          caConfig.Certificate.Subject.String(),
+		IssuerAuthorityID: caConfig.AuthorityID,
+		AuthorityKeyID:    fmt.Sprintf("%x", caConfig.Certificate.SubjectKeyId),
+		NotBefore:         time.Now().UTC().Add(-time.Hour),
+		NotAfter:          time.Now().UTC().Add(time.Hour * cryptoutilSharedMagic.HoursPerDay * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year),
+		Status:            cryptoutilCAStorage.StatusActive,
+		ProfileID:         cryptoutilSharedMagic.PKIProfileIDTLSServer,
+		CertificatePEM:    testCertificatePEMInvalid,
 	}
 	err := mockStorage.Store(context.Background(), testCert)
 	require.NoError(t, err)
 
-	handler := &Handler{storage: mockStorage}
+	handler := &Handler{issuer: testIssuer, storage: mockStorage}
 
 	app.Post("/certificates/:serialNumber/revoke", func(c *fiber.Ctx) error {
 		return handler.RevokeCertificate(c, c.Params("serialNumber"))

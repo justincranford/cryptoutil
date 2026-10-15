@@ -31,6 +31,8 @@ const (
 	PKICertificateSerialIndex        = "idx_pki_certificates_tenant_serial"
 	PKICertificateRequestLegacyIndex = "idx_pki_certificates_tenant_request"
 	PKICertificateRequestIndex       = "idx_pki_certificates_tenant_request_unique"
+	PKIPrivateKeyEnvelopeVersionV1   = 1
+	PKIErrorRemoveFromCRLUnsupported = "removeFromCRL is unsupported because only complete CRLs are generated"
 )
 
 // PKI CA hierarchy and status labels.

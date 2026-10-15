@@ -281,7 +281,7 @@ func (b *Bootstrapper) persistMaterials(config *RootCAConfig, rootCA *RootCA) er
 	}
 
 	// Write certificate.
-	certPath := filepath.Join(config.OutputDir, config.Name+".crt")
+	certPath := filepath.Join(config.OutputDir, config.Name+cryptoutilSharedMagic.PKIInitPublicCertFileExtension)
 	if err := os.WriteFile(certPath, rootCA.CertificatePEM, cryptoutilSharedMagic.FilePermissions); err != nil {
 		return fmt.Errorf("failed to write certificate: %w", err)
 	}
@@ -297,7 +297,7 @@ func (b *Bootstrapper) persistMaterials(config *RootCAConfig, rootCA *RootCA) er
 		Bytes: keyDER,
 	})
 
-	keyPath := filepath.Join(config.OutputDir, config.Name+".key")
+	keyPath := filepath.Join(config.OutputDir, config.Name+cryptoutilSharedMagic.PKIInitPrivateKeyFileExtension)
 	if err := os.WriteFile(keyPath, keyPEM, cryptoutilSharedMagic.KeyFilePermissions); err != nil {
 		return fmt.Errorf("failed to write private key: %w", err)
 	}

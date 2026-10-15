@@ -325,13 +325,13 @@ func (p *Provisioner) persistMaterials(config *IntermediateCAConfig, intermediat
 	}
 
 	// Write certificate.
-	certPath := filepath.Join(config.OutputDir, config.Name+".crt")
+	certPath := filepath.Join(config.OutputDir, config.Name+cryptoutilSharedMagic.PKIInitPublicCertFileExtension)
 	if err := os.WriteFile(certPath, intermediateCA.CertificatePEM, cryptoutilSharedMagic.FilePermissions); err != nil {
 		return fmt.Errorf("failed to write certificate: %w", err)
 	}
 
 	// Write certificate chain.
-	chainPath := filepath.Join(config.OutputDir, config.Name+"-chain.crt")
+	chainPath := filepath.Join(config.OutputDir, config.Name+"-chain"+cryptoutilSharedMagic.PKIInitPublicCertFileExtension)
 	if err := os.WriteFile(chainPath, intermediateCA.CertificateChainPEM, cryptoutilSharedMagic.FilePermissions); err != nil {
 		return fmt.Errorf("failed to write certificate chain: %w", err)
 	}
@@ -347,7 +347,7 @@ func (p *Provisioner) persistMaterials(config *IntermediateCAConfig, intermediat
 		Bytes: keyDER,
 	})
 
-	keyPath := filepath.Join(config.OutputDir, config.Name+".key")
+	keyPath := filepath.Join(config.OutputDir, config.Name+cryptoutilSharedMagic.PKIInitPrivateKeyFileExtension)
 	if err := os.WriteFile(keyPath, keyPEM, cryptoutilSharedMagic.KeyFilePermissions); err != nil {
 		return fmt.Errorf("failed to write private key: %w", err)
 	}

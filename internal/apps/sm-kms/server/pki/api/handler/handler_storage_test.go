@@ -4,55 +4,90 @@ package handler
 import (
 	"context"
 	"crypto/x509"
-	"crypto/x509/pkix"
-	"math/big"
 	"testing"
 	"time"
 
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
+	cryptoutilCACrypto "cryptoutil/internal/apps/sm-kms/server/pki/crypto"
+	cryptoutilCAProfileSubject "cryptoutil/internal/apps/sm-kms/server/pki/profile/subject"
 	cryptoutilCAServiceIssuer "cryptoutil/internal/apps/sm-kms/server/pki/service/issuer"
 	cryptoutilCAStorage "cryptoutil/internal/apps/sm-kms/server/pki/storage"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
-
-const testStoredCertificateSerialNumber = "1234"
 
 func TestStoreIssuedCertificate_IssuerAuthorityIdentity(t *testing.T) {
 	t.Parallel()
 
 	testSetup := createTestIssuer(t)
 	testSetup.Issuer.GetCAConfig().AuthorityID = "stable-test-authority"
-	serialNumber, ok := new(big.Int).SetString(testStoredCertificateSerialNumber, cryptoutilSharedMagic.HexBase)
-	require.True(t, ok)
+	keyPair, err := testSetup.Provider.GenerateKeyPair(cryptoutilCACrypto.KeySpec{
+		Type:       cryptoutilSharedMagic.ECDSA,
+		ECDSACurve: cryptoutilSharedMagic.P256,
+	})
+	require.NoError(t, err)
 
-	issued := &cryptoutilCAServiceIssuer.IssuedCertificate{
-		Certificate: &x509.Certificate{
-			SerialNumber: serialNumber,
-			Subject:      pkix.Name{CommonName: "stored.example.test"},
-			Issuer:       pkix.Name{CommonName: "test-ca"},
-			NotBefore:    time.Now().UTC(),
-			NotAfter:     time.Now().UTC().Add(time.Hour),
-		},
-		CertificatePEM: []byte("issued certificate"),
-		SerialNumber:   testStoredCertificateSerialNumber,
-	}
+	issued, _, err := testSetup.Issuer.Issue(&cryptoutilCAServiceIssuer.CertificateRequest{
+		SubjectRequest:   &cryptoutilCAProfileSubject.Request{CommonName: "stored.example.test"},
+		PublicKey:        keyPair.PublicKey,
+		ValidityDuration: time.Hour,
+	})
+	require.NoError(t, err)
 
 	tests := []struct {
 		name            string
 		issuer          *cryptoutilCAServiceIssuer.Issuer
+		mutate          func(*cryptoutilCAServiceIssuer.IssuedCertificate)
 		wantAuthorityID string
-		wantErr         bool
+		wantErr         string
 	}{
 		{
 			name:    "missing issuer",
-			wantErr: true,
+			wantErr: "issuing authority identity",
 		},
 		{
 			name:            "configured issuer",
 			issuer:          testSetup.Issuer,
 			wantAuthorityID: testSetup.Issuer.GetCAConfig().AuthorityID,
+		},
+		{
+			name:   "issuer distinguished name mismatch",
+			issuer: testSetup.Issuer,
+			mutate: func(certificate *cryptoutilCAServiceIssuer.IssuedCertificate) {
+				cloned := *certificate.Certificate
+				cloned.RawIssuer = []byte("CN=unexpected")
+				certificate.Certificate = &cloned
+			},
+			wantErr: "issuer does not match",
+		},
+		{
+			name:   "authority key identifier mismatch",
+			issuer: testSetup.Issuer,
+			mutate: func(certificate *cryptoutilCAServiceIssuer.IssuedCertificate) {
+				cloned := *certificate.Certificate
+				cloned.AuthorityKeyId = []byte("unexpected")
+				certificate.Certificate = &cloned
+			},
+			wantErr: "authority key identifier does not match",
+		},
+		{
+			name:   "invalid issuer signature",
+			issuer: testSetup.Issuer,
+			mutate: func(certificate *cryptoutilCAServiceIssuer.IssuedCertificate) {
+				cloned := *certificate.Certificate
+				cloned.Signature = []byte("unexpected")
+				certificate.Certificate = &cloned
+			},
+			wantErr: "signature does not match",
+		},
+		{
+			name:   "serial number mismatch",
+			issuer: testSetup.Issuer,
+			mutate: func(certificate *cryptoutilCAServiceIssuer.IssuedCertificate) {
+				certificate.SerialNumber = "1234"
+			},
+			wantErr: "serial number does not match",
 		},
 	}
 
@@ -65,14 +100,25 @@ func TestStoreIssuedCertificate_IssuerAuthorityIdentity(t *testing.T) {
 				storage: cryptoutilCAStorage.NewMemoryStore(),
 			}
 
+			issuedCertificate := *issued
+
+			issuedCertificate.Certificate = func() *x509.Certificate {
+				cloned := *issued.Certificate
+
+				return &cloned
+			}()
+			if tc.mutate != nil {
+				tc.mutate(&issuedCertificate)
+			}
+
 			stored, err := handler.storeIssuedCertificate(
 				context.Background(),
-				issued,
+				&issuedCertificate,
 				cryptoutilSharedMagic.PKIProfileIDTLSServer,
-				googleUuid.Nil,
+				googleUuid.Must(googleUuid.NewV7()),
 			)
-			if tc.wantErr {
-				require.ErrorContains(t, err, "issuing authority identity")
+			if tc.wantErr != "" {
+				require.ErrorContains(t, err, tc.wantErr)
 				require.Nil(t, stored)
 
 				return

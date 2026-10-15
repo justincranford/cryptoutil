@@ -57,6 +57,7 @@ func TestGetCRLUsesPersistedRevocations(t *testing.T) {
 	require.NoError(t, err)
 	require.NoError(t, storage.Store(context.Background(), &cryptoutilCAStorage.StoredCertificate{
 		ID:               certificateID,
+		RequestID:        googleUuid.Must(googleUuid.NewV7()),
 		SerialNumber:     serialNumber.Text(cryptoutilSharedMagic.HexBase),
 		IssuerDN:         caConfig.Certificate.Subject.String(),
 		AuthorityKeyID:   fmt.Sprintf("%x", caConfig.Certificate.SubjectKeyId),
@@ -200,6 +201,7 @@ func newPersistedOCSPTestHandler(
 
 	storedCert := &cryptoutilCAStorage.StoredCertificate{
 		ID:             certificateID,
+		RequestID:      googleUuid.Must(googleUuid.NewV7()),
 		SerialNumber:   leafCert.SerialNumber.Text(cryptoutilSharedMagic.HexBase),
 		SubjectDN:      leafCert.Subject.String(),
 		IssuerDN:       leafCert.Issuer.String(),

@@ -25,11 +25,7 @@ import (
 )
 
 const (
-	defaultCRLValidity         = cryptoutilSharedMagic.Days7
-	defaultCRLNextUpdateBuffer = cryptoutilSharedMagic.Days1
-	defaultOCSPValidity        = cryptoutilSharedMagic.Days1
-	serialNumberBitSize        = cryptoutilSharedMagic.PKICASerialNumberBits
-	defaultRootCAPathLength    = 2
+	defaultRootCAPathLength = 2
 )
 
 type PKIComponents struct {

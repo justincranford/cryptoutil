@@ -4,11 +4,8 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"regexp"
 	"sort"
 	"strings"
-
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"gopkg.in/yaml.v3"
 )
@@ -32,7 +29,45 @@ type composeFile struct {
 
 // composeInclude represents an include directive.
 type composeInclude struct {
-	Path string `yaml:"path"`
+	Path []string `yaml:"path"`
+}
+
+func (include *composeInclude) UnmarshalYAML(node *yaml.Node) error {
+	if node.Kind != yaml.MappingNode {
+		return fmt.Errorf("include must be a mapping")
+	}
+
+	for index := 0; index+1 < len(node.Content); index += 2 {
+		if node.Content[index].Value != "path" {
+			continue
+		}
+
+		pathNode := node.Content[index+1]
+		switch pathNode.Kind {
+		case yaml.ScalarNode:
+			var path string
+			if err := pathNode.Decode(&path); err != nil {
+				return fmt.Errorf("decode include path: %w", err)
+			}
+
+			include.Path = []string{path}
+		case yaml.SequenceNode:
+			for _, includedPathNode := range pathNode.Content {
+				var path string
+				if err := includedPathNode.Decode(&path); err != nil {
+					return fmt.Errorf("decode include path: %w", err)
+				}
+
+				include.Path = append(include.Path, path)
+			}
+		default:
+			return fmt.Errorf("include path must be a string or sequence of strings")
+		}
+
+		return nil
+	}
+
+	return fmt.Errorf("include mapping is missing a path")
 }
 
 // composeService represents a service in a compose file.
@@ -68,12 +103,6 @@ type composeSecret struct {
 	File     string `yaml:"file"`
 	External bool   `yaml:"external"`
 }
-
-// credentialKeyPatterns matches environment variable keys that indicate credentials.
-var credentialKeyPatterns = regexp.MustCompile(`(?i)^(.*_)?(PASSWORD|PASSWD|SECRET|TOKEN|API_KEY|PRIVATE_KEY)$`)
-
-// fileReferencePattern matches Docker secret file references (safe pattern).
-var fileReferencePattern = regexp.MustCompile(`(?i)_FILE$`)
 
 // ValidateComposeFile validates a single compose file against 7 validation types.
 func ValidateComposeFile(composePath string) (*ComposeValidationResult, error) {
@@ -123,8 +152,12 @@ func parseComposeWithIncludes(composePath string) (*composeFile, error) {
 
 	// Resolve includes to merge secrets and services for reference validation.
 	baseDir := filepath.Dir(composePath)
+	includeStack := make(map[string]struct{})
+
 	for _, inc := range compose.Include {
-		mergeIncludedFile(baseDir, inc.Path, &compose)
+		for _, includePath := range inc.Path {
+			mergeIncludedFileRecursive(baseDir, includePath, &compose, includeStack)
+		}
 	}
 
 	return &compose, nil
@@ -132,11 +165,18 @@ func parseComposeWithIncludes(composePath string) (*composeFile, error) {
 
 // mergeIncludedFile reads an included compose file and merges its secrets/services.
 func mergeIncludedFile(baseDir string, includePath string, compose *composeFile) {
+	mergeIncludedFileRecursive(baseDir, includePath, compose, make(map[string]struct{}))
+}
+
+func mergeIncludedFileRecursive(baseDir string, includePath string, compose *composeFile, includeStack map[string]struct{}) {
 	if includePath == "" {
 		return
 	}
 
-	fullPath := filepath.Join(baseDir, includePath)
+	fullPath := filepath.Clean(filepath.Join(baseDir, includePath))
+	if _, exists := includeStack[fullPath]; exists {
+		return
+	}
 
 	includeData, err := os.ReadFile(fullPath)
 	if err != nil {
@@ -146,6 +186,17 @@ func mergeIncludedFile(baseDir string, includePath string, compose *composeFile)
 	var included composeFile
 	if err := yaml.Unmarshal(includeData, &included); err != nil {
 		return
+	}
+
+	includeStack[fullPath] = struct{}{}
+	defer delete(includeStack, fullPath)
+
+	includedBaseDir := filepath.Dir(fullPath)
+
+	for _, nestedInclude := range included.Include {
+		for _, nestedIncludePath := range nestedInclude.Path {
+			mergeIncludedFileRecursive(includedBaseDir, nestedIncludePath, &included, includeStack)
+		}
 	}
 
 	if compose.Secrets == nil {
@@ -163,10 +214,39 @@ func mergeIncludedFile(baseDir string, includePath string, compose *composeFile)
 	}
 
 	for name, svc := range included.Services {
-		if _, exists := compose.Services[name]; !exists {
+		if existingService, exists := compose.Services[name]; exists {
+			existingService.DependsOn = mergeComposeDependsOn(existingService.DependsOn, svc.DependsOn)
+			compose.Services[name] = existingService
+		} else {
 			compose.Services[name] = svc
 		}
 	}
+}
+
+func mergeComposeDependsOn(existing, included any) any {
+	if existing == nil {
+		return included
+	}
+
+	existingMap, existingIsMap := existing.(map[string]any)
+
+	includedMap, includedIsMap := included.(map[string]any)
+	if !existingIsMap || !includedIsMap {
+		return existing
+	}
+
+	merged := make(map[string]any, len(existingMap)+len(includedMap))
+	for dependency, configuration := range existingMap {
+		merged[dependency] = configuration
+	}
+
+	for dependency, configuration := range includedMap {
+		if _, exists := merged[dependency]; !exists {
+			merged[dependency] = configuration
+		}
+	}
+
+	return merged
 }
 
 // validatePortConflicts checks for duplicate host port bindings across services.
@@ -325,113 +405,6 @@ func validateSecretReferences(compose *composeFile, result *ComposeValidationRes
 					fmt.Sprintf("service '%s' references undefined secret '%s' | See: ENG-HANDBOOK.md Section 12.6",
 						name, secretName))
 				result.Valid = false
-			}
-		}
-	}
-}
-
-// extractSecretName extracts the secret name from a secret reference.
-func extractSecretName(secretRef any) string {
-	switch v := secretRef.(type) {
-	case string:
-		return v
-	case map[string]any:
-		if source, ok := v["source"]; ok {
-			if s, ok := source.(string); ok {
-				return s
-			}
-		}
-	}
-
-	return ""
-}
-
-// infrastructureServices are services excluded from credential checks per ENG-HANDBOOK.md Section 12.6.
-// "Infrastructure deployments excluded" from Docker secrets requirement.
-var infrastructureServices = map[string]bool{
-	cryptoutilSharedMagic.DockerServiceGrafanaOtelLgtm:             true,
-	cryptoutilSharedMagic.IME2EOtelCollectorContainer:              true,
-	cryptoutilSharedMagic.DockerJobHealthcheckOtelCollectorContrib: true,
-}
-
-// validateNoHardcodedCredentials checks for hardcoded credentials in env vars.
-func validateNoHardcodedCredentials(compose *composeFile, result *ComposeValidationResult) {
-	for _, name := range sortedServiceNames(compose) {
-		if infrastructureServices[name] {
-			continue
-		}
-
-		svc := compose.Services[name]
-
-		for key, value := range extractEnvironmentVars(&svc) {
-			if fileReferencePattern.MatchString(key) {
-				continue
-			}
-
-			if credentialKeyPatterns.MatchString(key) && value != "" &&
-				!strings.HasPrefix(value, "$") && !strings.HasPrefix(value, "/run/secrets/") {
-				result.Errors = append(result.Errors,
-					fmt.Sprintf("service '%s': environment variable '%s' appears to contain hardcoded credentials | See: ENG-HANDBOOK.md Section 12.6",
-						name, key))
-				result.Valid = false
-			}
-		}
-	}
-}
-
-// extractEnvironmentVars extracts environment variables from a service.
-func extractEnvironmentVars(svc *composeService) map[string]string {
-	envVars := make(map[string]string)
-
-	if svc.Environment == nil {
-		return envVars
-	}
-
-	switch v := svc.Environment.(type) {
-	case map[string]any:
-		for key, val := range v {
-			if val != nil {
-				envVars[key] = fmt.Sprintf("%v", val)
-			} else {
-				envVars[key] = ""
-			}
-		}
-	case []any:
-		for _, item := range v {
-			if s, ok := item.(string); ok {
-				parts := strings.SplitN(s, "=", 2)
-				if len(parts) == 2 {
-					envVars[parts[0]] = parts[1]
-				} else {
-					envVars[parts[0]] = ""
-				}
-			}
-		}
-	}
-
-	return envVars
-}
-
-// validateBindMountSecurity checks for dangerous bind mounts.
-func validateBindMountSecurity(compose *composeFile, result *ComposeValidationResult) {
-	dangerousMounts := []string{
-		"/var/run/docker.sock",
-		"/run/docker.sock",
-		"/etc/shadow",
-		"/etc/passwd",
-	}
-
-	for _, name := range sortedServiceNames(compose) {
-		svc := compose.Services[name]
-
-		for _, volume := range svc.Volumes {
-			for _, dangerous := range dangerousMounts {
-				if strings.Contains(volume, dangerous) {
-					result.Errors = append(result.Errors,
-						fmt.Sprintf("service '%s': dangerous bind mount detected: %s | See: ENG-HANDBOOK.md Section 12",
-							name, volume))
-					result.Valid = false
-				}
 			}
 		}
 	}

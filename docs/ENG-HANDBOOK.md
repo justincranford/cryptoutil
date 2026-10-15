@@ -1548,6 +1548,10 @@ AllowedScopes []string `gorm:"serializer:json"`
 
 ##### SQLite Configuration
 
+**Minimum Version**: SQLite 3.35.0 is required for `UPDATE ... RETURNING`, which the PKI CRL
+sequence allocator uses for atomic allocation. PKI GORM storage rejects older SQLite versions
+when initialized.
+
 ```go
 sqlDB.Exec("PRAGMA journal_mode=WAL;")       // Concurrent reads + 1 writer
 sqlDB.Exec("PRAGMA busy_timeout = 30000;")   // 30s retry on lock
@@ -1988,6 +1992,13 @@ Non-Deterministic Example: {n2}nonce:aad#{R5}HKDF-HMAC-SHA256:abc123...:def456..
 - **Validity**: Subscriber certs ≤398 days, Intermediate CA 5-10 years, Root CA 20-25 years. **Production end-entity certs use 396 days** (not 397) when NotBefore randomization is active — `CertificateRandomizationNotBeforeMinutes` (120 min) shifts NotBefore backward, extending effective validity by up to 2 hours; 1-day buffer ensures actual validity never exceeds 398 days. Constant: `TLSDefaultValidityEndEntityDaysWithRandomizationBuffer`.
 - **Extensions**: Key Usage (critical), EKU, SAN, AKI, SKI, CRL Distribution Points, OCSP
 - **CRL/OCSP**: Update ≤7 days, OCSP response ≤7-10 days validity
+- **CRL Numbering**: Numbers are durably reserved before CRL signing; generation or publication failures may leave gaps. Never reuse a reserved number. RFC 5280 §5.2.3 requires monotonically increasing numbers for a CRL scope and issuer, not consecutive numbers.
+- **Persisted Authority Keys**: `pki_authorities.private_key_envelope_version` identifies the format of the encrypted private-key bytes. Version 1 stores the framework barrier JWE; its recipient headers carry the key ID and key-encryption/content-encryption algorithms, while the barrier key hierarchy remains in barrier storage. Restore paths MUST reject unsupported envelope versions before decryption. Migration 2015 assigns version 1 to existing authority records.
+- **Issuer-Wide Revocation Scope**: Certificate CRUD remains tenant-scoped, but a published issuer CRL MUST include revoked certificates from every tenant signed by that issuer. CRL enumeration is therefore issuer-key-ID scoped and deliberately bypasses tenant filtering; filtering by tenant would publish incomplete revocation data.
+- **Authority Metadata**: The authority certificate, encrypted key envelope, and stable authority ID are persisted. CRL/OCSP URLs and certificate profile definitions are deployment configuration loaded at startup; changes affect newly issued certificates and do not rewrite existing certificates or persisted authority material.
+- **Distribution URL Configuration**: `pki-authority` defines stable issuer identity and cryptographic settings; `pki-distribution` defines deployment-specific CRL and OCSP URLs. Configuration files are read in command-line order, and later non-empty `pki-distribution` values override earlier values. SQLite instances MUST publish URLs using their own Compose service DNS name; PostgreSQL instances may use their shared issuer endpoint. URLs MUST resolve to the service's TLS name and listener port from the intended client network.
+- **Revocation Lifecycle**: Revocation is terminal in the current service. Ordinary certificate updates MUST preserve revoked status, revocation time, and reason; no un-revoke transition is supported. `removeFromCRL` is rejected because the service publishes complete CRLs, not delta CRLs.
+- **Issuer Identity Checks**: Issuance and revocation MUST verify the persisted authority ID, issuer DN, and authority key ID against the selected issuer before accepting or mutating certificate state.
 - **Audit Logging**: 7-year retention minimum
 
 **CA Architecture Patterns** (highest to lowest preference):

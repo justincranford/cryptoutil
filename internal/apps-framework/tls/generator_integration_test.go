@@ -9,6 +9,7 @@ import (
 	"context"
 	"crypto/x509"
 	"encoding/pem"
+	"io"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -59,16 +60,15 @@ func TestGenerate_Integration_RealCrypto(t *testing.T) {
 			return nil
 		}
 
-		data, readErr := os.ReadFile(p) //nolint:gosec // G122: test-only walk over t.TempDir(); no symlinks, no untrusted input
-		require.NoError(t, readErr, "reading generated file %s", p)
+		data := readTestFileWithinRoot(t, basePath, p)
 		require.NotEmpty(t, data, "generated file must not be empty: %s", p)
 
 		switch filepath.Ext(p) {
-		case ".crt":
+		case cryptoutilSharedMagic.PKIInitPublicCertFileExtension:
 			assertValidCertChain(t, p, data)
 
 			crtCount++
-		case testPrivateKeyExt:
+		case cryptoutilSharedMagic.PKIInitPrivateKeyFileExtension:
 			assertValidPKCS8Key(t, p, data)
 
 			keyCount++
@@ -79,6 +79,29 @@ func TestGenerate_Integration_RealCrypto(t *testing.T) {
 
 	require.Positive(t, crtCount, "expected at least one .crt file to be generated")
 	require.Positive(t, keyCount, "expected at least one .key file to be generated")
+}
+
+func readTestFileWithinRoot(t *testing.T, rootPath, filePath string) []byte {
+	t.Helper()
+
+	root, err := os.OpenRoot(rootPath)
+
+	require.NoError(t, err)
+	defer func() {
+		require.NoError(t, root.Close())
+	}()
+
+	relativePath, err := filepath.Rel(rootPath, filePath)
+	require.NoError(t, err)
+
+	file, err := root.Open(relativePath)
+	require.NoError(t, err)
+
+	data, err := io.ReadAll(file)
+	require.NoError(t, err)
+	require.NoError(t, file.Close())
+
+	return data
 }
 
 // assertValidCertChain verifies that pemData contains at least one valid PEM-encoded

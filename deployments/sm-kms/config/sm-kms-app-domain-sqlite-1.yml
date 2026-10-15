@@ -1,2 +1,6 @@
 # sm-kms Domain SQLite 1 Configuration
 # Domain settings for sm-kms sqlite-1 deployment instance.
+
+pki-distribution:
+  crl-url: https://sm-kms-app-sqlite-1:8080/pki/cas/sm-kms-pki-development-authority/crl
+  ocsp-url: https://sm-kms-app-sqlite-1:8080/pki/ocsp/sm-kms-pki-development-authority

@@ -46,6 +46,7 @@ func TestMemoryStore_Store(t *testing.T) {
 			name: testLiteralValidCertificate,
 			cert: &StoredCertificate{
 				ID:           googleUuid.Must(googleUuid.NewV7()),
+				RequestID:    googleUuid.Must(googleUuid.NewV7()),
 				SerialNumber: "123456",
 				SubjectDN:    testLiteralCNTest,
 				IssuerDN:     testLiteralCNCA,
@@ -84,6 +85,7 @@ func TestMemoryStore_DuplicateSerial(t *testing.T) {
 
 	cert1 := &StoredCertificate{
 		ID:           googleUuid.Must(googleUuid.NewV7()),
+		RequestID:    googleUuid.Must(googleUuid.NewV7()),
 		SerialNumber: testLiteralDuplicateSerial,
 		SubjectDN:    "CN=test1",
 		IssuerDN:     testLiteralCNCA,
@@ -92,6 +94,7 @@ func TestMemoryStore_DuplicateSerial(t *testing.T) {
 
 	cert2 := &StoredCertificate{
 		ID:           googleUuid.Must(googleUuid.NewV7()),
+		RequestID:    googleUuid.Must(googleUuid.NewV7()),
 		SerialNumber: testLiteralDuplicateSerial,
 		SubjectDN:    testLiteralCNTest2,
 		IssuerDN:     testLiteralCNCA,
@@ -114,6 +117,7 @@ func TestMemoryStore_Get(t *testing.T) {
 
 	cert := &StoredCertificate{
 		ID:           googleUuid.Must(googleUuid.NewV7()),
+		RequestID:    googleUuid.Must(googleUuid.NewV7()),
 		SerialNumber: "get-test-123",
 		SubjectDN:    testLiteralCNTest,
 		IssuerDN:     testLiteralCNCA,
@@ -141,6 +145,7 @@ func TestMemoryStore_GetBySerialNumber(t *testing.T) {
 
 	cert := &StoredCertificate{
 		ID:           googleUuid.Must(googleUuid.NewV7()),
+		RequestID:    googleUuid.Must(googleUuid.NewV7()),
 		SerialNumber: "serial-test-456",
 		SubjectDN:    testLiteralCNTest,
 		IssuerDN:     testLiteralCNCA,
@@ -175,6 +180,7 @@ func TestMemoryStore_List(t *testing.T) {
 
 		cert := &StoredCertificate{
 			ID:           googleUuid.Must(googleUuid.NewV7()),
+			RequestID:    googleUuid.Must(googleUuid.NewV7()),
 			SerialNumber: googleUuid.Must(googleUuid.NewV7()).String(),
 			SubjectDN:    testLiteralCNTest,
 			IssuerDN:     testLiteralCNCA,
@@ -213,6 +219,7 @@ func TestMemoryStore_Update(t *testing.T) {
 
 	cert := &StoredCertificate{
 		ID:           googleUuid.Must(googleUuid.NewV7()),
+		RequestID:    googleUuid.Must(googleUuid.NewV7()),
 		SerialNumber: "update-test-789",
 		SubjectDN:    testLiteralCNTest,
 		IssuerDN:     testLiteralCNCA,
@@ -234,6 +241,7 @@ func TestMemoryStore_Update(t *testing.T) {
 	// Update non-existent.
 	nonExistent := &StoredCertificate{
 		ID:           googleUuid.Must(googleUuid.NewV7()),
+		RequestID:    googleUuid.Must(googleUuid.NewV7()),
 		SerialNumber: "non-existent",
 	}
 	err = store.Update(ctx, nonExistent)
@@ -252,6 +260,7 @@ func TestMemoryStore_Delete(t *testing.T) {
 
 	cert := &StoredCertificate{
 		ID:           googleUuid.Must(googleUuid.NewV7()),
+		RequestID:    googleUuid.Must(googleUuid.NewV7()),
 		SerialNumber: "delete-test-abc",
 		SubjectDN:    testLiteralCNTest,
 		IssuerDN:     testLiteralCNCA,
@@ -282,6 +291,7 @@ func TestMemoryStore_Revoke(t *testing.T) {
 
 	cert := &StoredCertificate{
 		ID:           googleUuid.Must(googleUuid.NewV7()),
+		RequestID:    googleUuid.Must(googleUuid.NewV7()),
 		SerialNumber: "revoke-test-def",
 		SubjectDN:    testLiteralCNTest,
 		IssuerDN:     testLiteralCNCA,
@@ -327,6 +337,7 @@ func TestMemoryStore_GetRevoked(t *testing.T) {
 
 		cert := &StoredCertificate{
 			ID:           googleUuid.Must(googleUuid.NewV7()),
+			RequestID:    googleUuid.Must(googleUuid.NewV7()),
 			SerialNumber: googleUuid.Must(googleUuid.NewV7()).String(),
 			SubjectDN:    testLiteralCNTest,
 			IssuerDN:     issuer,
@@ -405,6 +416,7 @@ func TestMemoryStore_CountByStatus(t *testing.T) {
 	for i, status := range statuses {
 		cert := &StoredCertificate{
 			ID:           googleUuid.Must(googleUuid.NewV7()),
+			RequestID:    googleUuid.Must(googleUuid.NewV7()),
 			SerialNumber: googleUuid.Must(googleUuid.NewV7()).String() + string(rune(i)),
 			SubjectDN:    testLiteralCNTest,
 			IssuerDN:     testLiteralCNCA,

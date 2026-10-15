@@ -4,6 +4,7 @@ package handler
 import (
 	"bytes"
 	"context"
+	"fmt"
 	http "net/http"
 	"net/http/httptest"
 	"testing"
@@ -54,6 +55,7 @@ func TestRevokeCertificate_ErrorPaths(t *testing.T) {
 				storage := cryptoutilCAStorage.NewMemoryStore()
 				cert := &cryptoutilCAStorage.StoredCertificate{
 					ID:             googleUuid.New(),
+					RequestID:      googleUuid.Must(googleUuid.NewV7()),
 					SerialNumber:   testSerialAlreadyRevoked,
 					SubjectDN:      testSubjectDNExample,
 					IssuerDN:       testIssuerDNTestCA,
@@ -104,19 +106,23 @@ func TestRevokeCertificate_ErrorPaths(t *testing.T) {
 func TestRevokeCertificate_AllReasons(t *testing.T) {
 	t.Parallel()
 
+	testIssuer := createTestIssuer(t).Issuer
+	caConfig := testIssuer.GetCAConfig()
+
 	reasons := []struct {
-		name   string
-		reason cryptoutilApiCaServer.RevocationReason
+		name           string
+		reason         cryptoutilApiCaServer.RevocationReason
+		expectedStatus int
 	}{
-		{testRevocationCaseKeyCompromise, cryptoutilApiCaServer.KeyCompromise},
-		{testRevocationCaseCACompromise, cryptoutilApiCaServer.CACompromise},
-		{testRevocationCaseAffiliationChanged, cryptoutilApiCaServer.AffiliationChanged},
-		{cryptoutilSharedMagic.RFC5280RevocationReasonNameSuperseded, cryptoutilApiCaServer.Superseded},
-		{testRevocationCaseCessationOfOperation, cryptoutilApiCaServer.CessationOfOperation},
-		{testRevocationCaseCertificateHold, cryptoutilApiCaServer.CertificateHold},
-		{testRevocationCaseRemoveFromCRL, cryptoutilApiCaServer.RemoveFromCRL},
-		{testRevocationCasePrivilegeWithdrawn, cryptoutilApiCaServer.PrivilegeWithdrawn},
-		{testRevocationCaseAACompromise, cryptoutilApiCaServer.AaCompromise},
+		{name: testRevocationCaseKeyCompromise, reason: cryptoutilApiCaServer.KeyCompromise, expectedStatus: fiber.StatusOK},
+		{name: testRevocationCaseCACompromise, reason: cryptoutilApiCaServer.CACompromise, expectedStatus: fiber.StatusOK},
+		{name: testRevocationCaseAffiliationChanged, reason: cryptoutilApiCaServer.AffiliationChanged, expectedStatus: fiber.StatusOK},
+		{name: cryptoutilSharedMagic.RFC5280RevocationReasonNameSuperseded, reason: cryptoutilApiCaServer.Superseded, expectedStatus: fiber.StatusOK},
+		{name: testRevocationCaseCessationOfOperation, reason: cryptoutilApiCaServer.CessationOfOperation, expectedStatus: fiber.StatusOK},
+		{name: testRevocationCaseCertificateHold, reason: cryptoutilApiCaServer.CertificateHold, expectedStatus: fiber.StatusOK},
+		{name: testRevocationCaseRemoveFromCRL, reason: cryptoutilApiCaServer.RemoveFromCRL, expectedStatus: fiber.StatusUnprocessableEntity},
+		{name: testRevocationCasePrivilegeWithdrawn, reason: cryptoutilApiCaServer.PrivilegeWithdrawn, expectedStatus: fiber.StatusOK},
+		{name: testRevocationCaseAACompromise, reason: cryptoutilApiCaServer.AaCompromise, expectedStatus: fiber.StatusOK},
 	}
 
 	for _, tc := range reasons {
@@ -128,20 +134,23 @@ func TestRevokeCertificate_AllReasons(t *testing.T) {
 
 			// Create unique certificate for each test case.
 			cert := &cryptoutilCAStorage.StoredCertificate{
-				ID:             googleUuid.New(),
-				SerialNumber:   googleUuid.NewString(),
-				SubjectDN:      testSubjectDNExample,
-				IssuerDN:       testIssuerDNTestCA,
-				NotBefore:      time.Now().UTC().Add(-time.Hour),
-				NotAfter:       time.Now().UTC().Add(time.Hour * cryptoutilSharedMagic.HoursPerDay * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year),
-				Status:         cryptoutilCAStorage.StatusActive,
-				ProfileID:      cryptoutilSharedMagic.PKIProfileIDTLSServer,
-				CertificatePEM: testCertificatePEMInvalid,
+				ID:                googleUuid.New(),
+				RequestID:         googleUuid.Must(googleUuid.NewV7()),
+				SerialNumber:      googleUuid.NewString(),
+				SubjectDN:         testSubjectDNExample,
+				IssuerDN:          caConfig.Certificate.Subject.String(),
+				IssuerAuthorityID: caConfig.AuthorityID,
+				AuthorityKeyID:    fmt.Sprintf("%x", caConfig.Certificate.SubjectKeyId),
+				NotBefore:         time.Now().UTC().Add(-time.Hour),
+				NotAfter:          time.Now().UTC().Add(time.Hour * cryptoutilSharedMagic.HoursPerDay * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year),
+				Status:            cryptoutilCAStorage.StatusActive,
+				ProfileID:         cryptoutilSharedMagic.PKIProfileIDTLSServer,
+				CertificatePEM:    testCertificatePEMInvalid,
 			}
 			err := storage.Store(context.Background(), cert)
 			require.NoError(t, err)
 
-			handler := &Handler{storage: storage}
+			handler := &Handler{issuer: testIssuer, storage: storage}
 
 			app.Post("/certificates/:serialNumber/revoke", func(c *fiber.Ctx) error {
 				return handler.RevokeCertificate(c, c.Params("serialNumber"))
@@ -153,10 +162,94 @@ func TestRevokeCertificate_AllReasons(t *testing.T) {
 
 			resp, err := app.Test(req, -1)
 			require.NoError(t, err)
-			require.Equal(t, fiber.StatusOK, resp.StatusCode)
+			require.Equal(t, tc.expectedStatus, resp.StatusCode)
 
 			err = resp.Body.Close()
 			require.NoError(t, err)
+
+			stored, err := storage.GetBySerialNumber(context.Background(), cert.SerialNumber)
+			require.NoError(t, err)
+
+			if tc.expectedStatus == fiber.StatusOK {
+				require.Equal(t, cryptoutilCAStorage.StatusRevoked, stored.Status)
+			} else {
+				require.Equal(t, cryptoutilCAStorage.StatusActive, stored.Status)
+			}
+		})
+	}
+}
+
+func TestRevokeCertificate_RejectsIssuerMetadataMismatch(t *testing.T) {
+	t.Parallel()
+
+	testIssuer := createTestIssuer(t).Issuer
+	caConfig := testIssuer.GetCAConfig()
+	tests := []struct {
+		name   string
+		mutate func(*cryptoutilCAStorage.StoredCertificate)
+	}{
+		{
+			name: "authority ID",
+			mutate: func(certificate *cryptoutilCAStorage.StoredCertificate) {
+				certificate.IssuerAuthorityID = "different-authority"
+			},
+		},
+		{
+			name: "issuer DN",
+			mutate: func(certificate *cryptoutilCAStorage.StoredCertificate) {
+				certificate.IssuerDN = "CN=Different Issuer"
+			},
+		},
+		{
+			name: "authority key ID",
+			mutate: func(certificate *cryptoutilCAStorage.StoredCertificate) {
+				certificate.AuthorityKeyID = "00"
+			},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			storage := cryptoutilCAStorage.NewMemoryStore()
+			certificate := &cryptoutilCAStorage.StoredCertificate{
+				ID:                googleUuid.Must(googleUuid.NewV7()),
+				RequestID:         googleUuid.Must(googleUuid.NewV7()),
+				SerialNumber:      googleUuid.NewString(),
+				SubjectDN:         testSubjectDNExample,
+				IssuerDN:          caConfig.Certificate.Subject.String(),
+				IssuerAuthorityID: caConfig.AuthorityID,
+				AuthorityKeyID:    fmt.Sprintf("%x", caConfig.Certificate.SubjectKeyId),
+				NotBefore:         time.Now().UTC().Add(-time.Hour),
+				NotAfter:          time.Now().UTC().Add(time.Hour * cryptoutilSharedMagic.HoursPerDay * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year),
+				Status:            cryptoutilCAStorage.StatusActive,
+				ProfileID:         cryptoutilSharedMagic.PKIProfileIDTLSServer,
+				CertificatePEM:    testCertificatePEMInvalid,
+			}
+			tc.mutate(certificate)
+			require.NoError(t, storage.Store(context.Background(), certificate))
+
+			handler := &Handler{issuer: testIssuer, storage: storage}
+			app := fiber.New()
+			app.Post("/certificates/:serialNumber/revoke", func(c *fiber.Ctx) error {
+				return handler.RevokeCertificate(c, c.Params("serialNumber"))
+			})
+
+			req := httptest.NewRequest(
+				http.MethodPost,
+				"/certificates/"+certificate.SerialNumber+cryptoutilSharedMagic.PathRevoke,
+				bytes.NewBufferString(testRequestBodyKeyCompromise),
+			)
+			req.Header.Set("Content-Type", testContentTypeJSON)
+			resp, err := app.Test(req, -1)
+			require.NoError(t, err)
+			require.Equal(t, fiber.StatusInternalServerError, resp.StatusCode)
+			require.NoError(t, resp.Body.Close())
+
+			stored, err := storage.GetBySerialNumber(context.Background(), certificate.SerialNumber)
+			require.NoError(t, err)
+			require.Equal(t, cryptoutilCAStorage.StatusActive, stored.Status)
 		})
 	}
 }

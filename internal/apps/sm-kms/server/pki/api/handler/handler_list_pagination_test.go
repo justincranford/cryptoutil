@@ -29,6 +29,7 @@ func TestListCertificates_Pagination(t *testing.T) {
 	for i := 1; i <= cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries; i++ {
 		cert := &cryptoutilCAStorage.StoredCertificate{
 			ID:             googleUuid.New(),
+			RequestID:      googleUuid.Must(googleUuid.NewV7()),
 			SerialNumber:   googleUuid.NewString(),
 			SubjectDN:      testSubjectDNExampleOrg,
 			IssuerDN:       testIssuerDNTestCAOrg,
@@ -104,6 +105,7 @@ func TestListCertificates_Filtering(t *testing.T) {
 	// Add test certificates with different profiles and statuses.
 	cert1 := &cryptoutilCAStorage.StoredCertificate{
 		ID:             googleUuid.New(),
+		RequestID:      googleUuid.Must(googleUuid.NewV7()),
 		SerialNumber:   googleUuid.NewString(),
 		SubjectDN:      testSubjectDNTest1Org,
 		IssuerDN:       testIssuerDNTestCAOrg,
@@ -118,6 +120,7 @@ func TestListCertificates_Filtering(t *testing.T) {
 
 	cert2 := &cryptoutilCAStorage.StoredCertificate{
 		ID:             googleUuid.New(),
+		RequestID:      googleUuid.Must(googleUuid.NewV7()),
 		SerialNumber:   googleUuid.NewString(),
 		SubjectDN:      testSubjectDNTest2Org,
 		IssuerDN:       testIssuerDNTestCAOrg,

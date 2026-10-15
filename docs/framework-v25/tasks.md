@@ -1049,38 +1049,43 @@ Recommendation numbers below refer to `review-follow-up-plan.md`, not to the his
 
 | Recommendation | Disposition | Evidence | Remaining work |
 |---|---|---|---|
-| 2 | Partially verified | `test-output/review-followup/pki-persistence-integration.log` covers SQLite persistence. | Review migrations 2012–2014 up/down behavior on SQLite and PostgreSQL. |
-| 3 | Partially verified | Existing deployment checks are recorded in the historical task table and `test-output/review-followup/structural-lints.log`. | Run live Compose startup and health verification. |
+| 2 | Partially verified | SQLite migration tests and `postgres-migrations-2012-2015.log` cover migration behavior; the PostgreSQL migration-runner test is added but not executed. | Run `TestPKIMigrations_PostgreSQLUpgradeAndRollback` in a separate Docker-enabled environment; no further Docker lifecycle operations were run after the recorded volume incident. |
+| 3 | Complete | `durable-sqlite-compose-health.log` records healthy Compose startup; `durable-sqlite-authenticated-readiness.log` records authenticated admin readiness HTTP 200; `final-repository-validators.log` passes deployment validation. | None. |
 | 4 | Complete | The baseline-maintenance procedure is in `docs/ENG-HANDBOOK.md` §10.2.3 and `.github/instructions/03-02.testing.instructions.md`; `coverage-baseline-docs.log`, `coverage-baseline-workflow.log`, and `coverage-baseline-text.log` pass. Both inventories are uploaded by the workflow. | None. |
-| 5 | Partially verified | `gate-cases/edge-cases.log` passes all six synthetic cases; `coverage-gate-validation.log` and `coverage-gate-runner-summary.md` show the profile-driven gate completed parsing and reported 152/320 packages passing and 168/320 below target. `test-output/coverage-analysis/review-followup/coverage-func.txt` records 71.5% total coverage. | Remediate or document justified coverage ceilings for below-target packages and confirm a passing CI runner execution; do not lower thresholds to clear the gate. |
-| 6 | Partially verified | `test-output/review-followup/focused-tests.log` contains focused listener tests. | Run required full race validation. |
-| 7 | Pending | Focused TLS tests exist; whole-set publication and platform permission evidence is not retained here. | Verify atomic publication and platform-specific permission behavior. |
-| 8 | Partially verified | Workflow checks are retained in `test-output/review-followup/structural-lints.log`. | Validate Compose runtime and load-workflow input behavior. |
-| 9 | Pending | No conformance audit evidence recorded. | Review PKI tests for parallelism, fixtures, UUIDs, cleanup, seams, and conventions. |
+| 5 | Partially verified | `test-output/coverage-analysis/review-followup/coverage-gate-runner-summary.md` records 152/320 packages passing and 168/320 below target (71.5% aggregate); failures span 84 `internal/apps-tools`, 54 `internal/apps`, 18 `internal/apps-framework`, and 12 `internal/shared` packages. In-scope PKI package coverage is handler 90.8%, bootstrap 93.2%, server 52.4%, revocation 80.4%, and storage 69.4%. Six synthetic gate cases pass; the complete inventory parses without errors. | Add targeted tests across all below-target packages; for any proposed exception, complete and document the per-package coverage-ceiling analysis and mitigation. Confirm a passing CI runner execution; do not lower thresholds to clear the gate. |
+| 6 | Partially verified | `final-focused-tests.log` passes listener tests; `race-sm-kms-listener.log` records that race validation cannot run because Windows lacks `gcc`. | Run required race validation on a supported CGO-enabled host. |
+| 7 | Complete | `final-focused-tests.log` passes TLS publication and failure-path tests; `docs/tls-structure.md` documents initialization-only behavior and Compose activation gating. | None; rotation/reload remains unsupported. |
+| 8 | Complete | `ci-load.yml` uses authenticated mTLS readiness; `postgres-authenticated-readiness.log` and `durable-sqlite-authenticated-readiness.log` record live readiness responses; `final-repository-validators.log` passes workflow lint. | Full load workload was not run. |
+| 9 | Complete | PKI test conventions were audited; `final-focused-tests.log` passes the relevant shuffled PKI packages and `postgres-continuity-restart.log` passes the PostgreSQL continuity test. | None. |
 | 10 | Complete | `test-output/review-followup/pki-persistence-integration.log`; see historical task row 10. | None. |
-| 11 | Partially verified | `test-output/review-followup/pki-persistence-integration.log` covers focused persistence. | Verify authority behavior in a live PostgreSQL runtime. |
+| 11 | Complete | `postgres-continuity-restart.log` passes the PostgreSQL restart test, reinitializing authority components and verifying restored certificate, encrypted-key envelope, and revocation state. | None. |
 | 12 | Complete | `docs/framework-v25/plan.md` remains the completed historical plan; `test-output/review-followup/docs-validation.log`. | None. |
-| 13 | Pending | Current full normal/tagged build, lint, and shuffled-test evidence is not yet recorded. | Run and retain the required quality gates before any future push. |
-| 14 | Pending | Commit trailer audit is not yet recorded. | Verify the required co-author trailer on every implementation commit. |
+| 13 | Complete | `test-output/reviewfollowup/current-build-normal.log` and `current-build-tagged.log` pass; normal/tagged golangci-lint verification passes; `current-repository-validators.log` passes all 9 applicable validators. `final-go-test-shuffle.log` records the serial full shuffled suite passing. An initial full-suite run concurrent with validators timed out in RP/RS health checks; isolated tests and shuffled package reruns passed before the serial suite rerun. | None. |
+| 14 | Pending | Implementation commits have not yet been created and audited. | Verify the required co-author trailer on each implementation commit. |
 | 15 | Complete | `test-output/review-followup/postgres-existing-volume-upgrade.log` verifies database access for the application role. | None. |
 | 16 | Complete | `test-output/review-followup/postgres-existing-volume-upgrade.log` verifies existing ownership normalization and malformed-publication rejection. | None. |
 | 17 | Complete | `test-output/review-followup/postgres-existing-volume-upgrade.log` exercises the upgrade on PostgreSQL 18; `test-output/review-followup/tracking-deploy-validation.log` records the post-documentation deployment lint. | None. |
-| 18 | Pending | No retained image-level SQLite override test. | Validate durable SQLite overrides against the actual image. |
-| 19 | Pending | Cross-service durable SQLite parity and isolation are not verified. | Verify variant parity and volume isolation across services. |
-| 20 | Pending | No runtime authenticated-readiness evidence. | Align load-workflow readiness with the mTLS readiness contract and verify runtime behavior. |
-| 21 | Pending | Numeric load inputs are not yet validated through a safe environment-variable boundary. | Define source-backed bounds and validate inputs without shell interpolation. |
-| 22 | Pending | TLS outputs are staged, but set-atomic publication is not yet demonstrated. | Make publication atomic as a set or define an activation gate. |
-| 23 | Pending | Deterministic TLS filesystem failure-path evidence is not recorded. | Test failure paths and effective permissions on supported platforms. |
+| 18 | Complete | `durable-sqlite-pki-init.log`, `durable-sqlite-runtime.log`, `durable-sqlite-compose-health.log`, and `durable-sqlite-authenticated-readiness.log` exercise initialization and runtime behavior against the image. | None. |
+| 19 | Partially verified | `durable-sqlite-compose-parity.log` verifies distinct PS-ID/instance data volumes and project scoping for all 14 SQLite instances. | Product/suite runtime stacks were not exercised; run them in a separate Docker-enabled environment. No further Docker lifecycle operations were run after the recorded volume incident. |
+| 20 | Complete | `ci-load.yml` uses certificate-authenticated PostgreSQL readiness; `postgres-authenticated-readiness.log` records a live HTTP 200 response. | Full load workload was not run. |
+| 21 | Complete | `ci-load.yml` passes inputs through environment variables and validates numeric ranges; `final-repository-validators.log` passes workflow lint. | None. |
+| 22 | Complete | `final-focused-tests.log` passes staged publication and rollback tests; `docs/tls-structure.md` documents the Compose activation gate and unsupported rotation behavior. | None. |
+| 23 | Complete | `final-focused-tests.log` passes deterministic filesystem failure-path and platform permission tests. | None. |
 | 24 | Complete | `test-output/review-followup/compose-json-parser.log` records 46 shuffled `e2e_infra` package tests; `compose-json-lint.log` records successful `lint-go`, `lint-go-test`, and `lint-workflow`. `ci-e2e.yml` and `ci-load.yml` both provide the action's required `required-completed-services` input. | None. |
-| 25 | Pending | Minimum SQLite feature support is not enforced or evidenced. | Enforce a compatible version or provide a tested fallback for `UPDATE ... RETURNING`. |
-| 26 | Pending | PostgreSQL retry classification is not yet verified against SQLSTATE behavior. | Classify retryable CRL allocation failures by SQLSTATE and test non-retryable errors. |
-| 27 | Pending | The CRL-number gap contract is not explicit. | Define and test whether failed generation may consume numbers. |
-| 29 | Pending | Request-ID sentinel rejection at the write boundary is not verified. | Enforce and test the sentinel policy at persistence. |
-| 30 | Pending | Authority/issuer consistency checks are not verified. | Validate authority ID, issuer key ID, and issuer DN consistency. |
-| 31 | Pending | Global versus tenant-scoped CRL semantics are unresolved. | Define the scope from source-of-truth requirements and test isolation. |
-| 32 | Pending | Persistence of CRL/OCSP URLs and profile metadata is not verified. | Decide and test which values are durable authority state. |
-| 33 | Pending | Deployment endpoint and TLS-path consistency is not verified. | Check CRL/OCSP hostnames, ports, and TLS paths across deployment tiers. |
-| 34 | Pending | Encrypted authority-key envelope metadata/versioning is not verified. | Version the envelope and persist required decryption metadata. |
-| 35 | Pending | Authority create/encrypt failure and concurrency contracts are not established. | Document and test failure and concurrency behavior. |
-| 36 | Partially verified | `test-output/review-followup/focused-tests.log` and historical task row 6 protect revocation metadata from ordinary updates. | Define and verify revocation lifecycle semantics. |
-| 37 | Pending | PostgreSQL multi-instance continuity is not exercised. | Test CRL allocation and issuance/revocation across instances. |
+| 25 | Complete | `final-focused-tests.log` passes SQLite CRL allocation tests; the implementation rejects SQLite versions without `UPDATE ... RETURNING`. | None. |
+| 26 | Complete | `final-focused-tests.log` passes bounded retry/error-classification tests; PostgreSQL classification uses SQLSTATE and SQLite allocation tests pass. | None. |
+| 27 | Complete | `docs/ENG-HANDBOOK.md` specifies permitted CRL-number gaps and no reuse; focused allocation/failure tests pass. | None. |
+| 29 | Complete | `final-focused-tests.log` passes persistence tests for the zero-UUID sentinel and duplicate request IDs. | None. |
+| 30 | Complete | `final-focused-tests.log` passes authority, issuer-key, and issuer-DN consistency tests across issuance/revocation. | None. |
+| 31 | Complete | `docs/ENG-HANDBOOK.md` and focused PKI tests establish issuer-wide CRLs for the shared authority, not tenant-scoped CRLs. | None. |
+| 32 | Complete | Authority configuration tests verify deployment-time CRL/OCSP URL and profile metadata precedence after restart. | None. |
+| 33 | Complete | `final-repository-validators.log` passes deployment and template checks for endpoint hostnames, ports, and TLS paths across PS-ID configs. | None. |
+| 34 | Complete | `postgres-migrations-2012-2015.log` verifies migration defaults; `postgres-continuity-restart.log` verifies persisted envelope-version restoration after PostgreSQL restart. | None. |
+| 35 | Complete | `final-focused-tests.log` passes authority creation, encryption/persistence failure, and concurrency tests. | None. |
+| 36 | Complete | `final-focused-tests.log` passes storage and handler tests proving stale updates cannot clear revocation metadata. | None. |
+| 37 | Complete | `postgres-continuity-restart.log` passes concurrent CRL allocation and verifies issuance/revocation and authority-key continuity across PostgreSQL restart. | None. |
+
+**Environment incident during live verification:** An accidental `docker compose down --volumes`
+removed the globally named volumes `cryptoutil_postgres_leader_volume`,
+`cryptoutil_postgres_follower_volume`, and `cryptoutil_grafana_volume`. Their former contents
+cannot be determined or restored in this session. No further Docker lifecycle commands were run.

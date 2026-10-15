@@ -184,19 +184,19 @@ func serviceUserCertAndKeyPath(certRootDir, psid, suffix string) (string, string
 	entityName := fmt.Sprintf("public-https-client-entity-%s-%s", psid, suffix)
 	entityDir := filepath.Join(certRootDir, entityName)
 
-	return filepath.Join(entityDir, entityName+".crt"), filepath.Join(entityDir, entityName+".key")
+	return filepath.Join(entityDir, entityName+cryptoutilSharedMagic.PKIInitPublicCertFileExtension), filepath.Join(entityDir, entityName+cryptoutilSharedMagic.PKIInitPrivateKeyFileExtension)
 }
 
 func otelClientCertAndKeyPath(certRootDir, psid string) (string, string) {
 	entityName := fmt.Sprintf("otel-collector-contrib-https-client-entity-%s-sqlite-1", psid)
 	entityDir := filepath.Join(certRootDir, entityName)
 
-	return filepath.Join(entityDir, entityName+".crt"), filepath.Join(entityDir, entityName+".key")
+	return filepath.Join(entityDir, entityName+cryptoutilSharedMagic.PKIInitPublicCertFileExtension), filepath.Join(entityDir, entityName+cryptoutilSharedMagic.PKIInitPrivateKeyFileExtension)
 }
 
 func grafanaInfraCertAndKeyPath(certRootDir string) (string, string) {
 	entityName := "otel-collector-contrib-https-client-entity-infra"
 	entityDir := filepath.Join(certRootDir, entityName)
 
-	return filepath.Join(entityDir, entityName+".crt"), filepath.Join(entityDir, entityName+".key")
+	return filepath.Join(entityDir, entityName+cryptoutilSharedMagic.PKIInitPublicCertFileExtension), filepath.Join(entityDir, entityName+cryptoutilSharedMagic.PKIInitPrivateKeyFileExtension)
 }

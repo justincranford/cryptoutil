@@ -77,12 +77,20 @@ type pkiAuthorityYAML struct {
 	OCSPURL       string   `yaml:"ocsp-url"`
 }
 
-// PKIAuthorityConfigFromConfigFiles loads the optional pki-authority section from the
-// service's YAML configuration files. The default authority is used when no file defines it.
+type pkiDistributionYAML struct {
+	CRLURL  string `yaml:"crl-url"`
+	OCSPURL string `yaml:"ocsp-url"`
+}
+
+// PKIAuthorityConfigFromConfigFiles loads the optional pki-authority and pki-distribution
+// sections from the service's YAML configuration files. Distribution values from later
+// files override earlier values; the default authority is used when no file defines it.
 func PKIAuthorityConfigFromConfigFiles(paths []string) (PKIAuthorityConfig, error) {
 	var (
-		configured bool
-		config     PKIAuthorityConfig
+		configured          bool
+		config              PKIAuthorityConfig
+		distribution        pkiDistributionYAML
+		distributionDefined bool
 	)
 
 	for _, path := range paths {
@@ -96,30 +104,54 @@ func PKIAuthorityConfigFromConfigFiles(paths []string) (PKIAuthorityConfig, erro
 			return PKIAuthorityConfig{}, fmt.Errorf("parse service configuration file %q: %w", path, err)
 		}
 
-		authorityNode, exists := document["pki-authority"]
-		if !exists {
-			continue
+		if authorityNode, exists := document["pki-authority"]; exists {
+			if configured {
+				return PKIAuthorityConfig{}, fmt.Errorf("PKI authority configuration is defined in multiple files")
+			}
+
+			var authorityYAML pkiAuthorityYAML
+			if err := authorityNode.Decode(&authorityYAML); err != nil {
+				return PKIAuthorityConfig{}, fmt.Errorf("parse pki-authority section in %q: %w", path, err)
+			}
+
+			config, err = authorityYAML.toConfig()
+			if err != nil {
+				return PKIAuthorityConfig{}, fmt.Errorf("invalid pki-authority section in %q: %w", path, err)
+			}
+
+			configured = true
 		}
 
-		if configured {
-			return PKIAuthorityConfig{}, fmt.Errorf("PKI authority configuration is defined in multiple files")
-		}
+		if distributionNode, exists := document["pki-distribution"]; exists {
+			var fileDistribution pkiDistributionYAML
+			if err := distributionNode.Decode(&fileDistribution); err != nil {
+				return PKIAuthorityConfig{}, fmt.Errorf("parse pki-distribution section in %q: %w", path, err)
+			}
 
-		var authorityYAML pkiAuthorityYAML
-		if err := authorityNode.Decode(&authorityYAML); err != nil {
-			return PKIAuthorityConfig{}, fmt.Errorf("parse pki-authority section in %q: %w", path, err)
-		}
+			if fileDistribution.CRLURL != "" {
+				distribution.CRLURL = fileDistribution.CRLURL
+				distributionDefined = true
+			}
 
-		config, err = authorityYAML.toConfig()
-		if err != nil {
-			return PKIAuthorityConfig{}, fmt.Errorf("invalid pki-authority section in %q: %w", path, err)
+			if fileDistribution.OCSPURL != "" {
+				distribution.OCSPURL = fileDistribution.OCSPURL
+				distributionDefined = true
+			}
 		}
-
-		configured = true
 	}
 
 	if !configured {
 		config = DefaultPKIAuthorityConfig()
+	}
+
+	if distributionDefined {
+		if distribution.CRLURL != "" {
+			config.CRLURL = distribution.CRLURL
+		}
+
+		if distribution.OCSPURL != "" {
+			config.OCSPURL = distribution.OCSPURL
+		}
 	}
 
 	if err := config.validate(); err != nil {

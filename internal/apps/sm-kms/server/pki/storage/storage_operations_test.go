@@ -19,6 +19,7 @@ import (
 func newTestCert(serialNumber, profileID, requesterID, issuerDN string, notAfter time.Time) *StoredCertificate {
 	return &StoredCertificate{
 		ID:           googleUuid.Must(googleUuid.NewV7()),
+		RequestID:    googleUuid.Must(googleUuid.NewV7()),
 		SerialNumber: serialNumber,
 		SubjectDN:    testLiteralCNTest,
 		IssuerDN:     issuerDN,
@@ -28,6 +29,27 @@ func newTestCert(serialNumber, profileID, requesterID, issuerDN string, notAfter
 		ProfileID:    profileID,
 		RequesterID:  requesterID,
 	}
+}
+
+func TestMemoryStore_StoreRequiresRequestID(t *testing.T) {
+	t.Parallel()
+
+	certificate := newTestCert("missing-request-id", gormTestProfileID, gormTestRequesterA, testLiteralCNCA, newTestExpiration())
+	certificate.RequestID = googleUuid.UUID{}
+
+	err := NewMemoryStore().Store(context.Background(), certificate)
+	require.ErrorIs(t, err, ErrInvalidRequestID)
+}
+
+func TestMemoryStore_UpdateRequiresRequestID(t *testing.T) {
+	t.Parallel()
+
+	store := NewMemoryStore()
+	certificate := newTestCert("update-missing-request-id", gormTestProfileID, gormTestRequesterA, testLiteralCNCA, newTestExpiration())
+	require.NoError(t, store.Store(context.Background(), certificate))
+
+	certificate.RequestID = googleUuid.UUID{}
+	require.ErrorIs(t, store.Update(context.Background(), certificate), ErrInvalidRequestID)
 }
 
 // TestMemoryStore_Store_DuplicateSerialNumber tests that storing a certificate with
@@ -191,6 +213,7 @@ func TestMemoryStore_Store_DuplicateID(t *testing.T) {
 	// Create cert2 with the SAME ID but different serial.
 	cert2 := &StoredCertificate{
 		ID:           cert1.ID,
+		RequestID:    googleUuid.Must(googleUuid.NewV7()),
 		SerialNumber: "serial-dup-id-002",
 		SubjectDN:    testLiteralCNTest2,
 		IssuerDN:     testLiteralCNCA,

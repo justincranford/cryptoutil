@@ -331,6 +331,10 @@ go run ./cmd/cicd-workflow -workflows=load -inputs="load_profile=stress"
 * Comprehensive artifact collection (Gatling reports, metrics, logs)
 * Three load profiles: quick (10 clients/30s), standard (50 clients/120s), stress (200 clients/300s)
 
+For `workflow_dispatch`, virtual-client overrides must be between 1 and 200 and duration
+overrides between 1 and 300 seconds. Use `0` for either override to keep that profile's
+default; the workflow validates values before starting load tests.
+
 **GitHub Actions Integration:**
 
 Add to your CI/CD pipeline:

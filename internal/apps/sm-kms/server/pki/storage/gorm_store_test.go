@@ -140,9 +140,10 @@ func TestGORMAuthorityStore_RoundTrip(t *testing.T) {
 	require.ErrorIs(t, err, ErrAuthorityNotFound)
 
 	authority := &StoredAuthority{
-		ID:                  googleUuid.Must(googleUuid.NewV7()).String(),
-		CertificateDER:      []byte("certificate"),
-		PrivateKeyEncrypted: []byte("encrypted-key"),
+		ID:                        googleUuid.Must(googleUuid.NewV7()).String(),
+		CertificateDER:            []byte("certificate"),
+		PrivateKeyEncrypted:       []byte("encrypted-key"),
+		PrivateKeyEnvelopeVersion: cryptoutilSharedMagic.PKIPrivateKeyEnvelopeVersionV1,
 	}
 	require.NoError(t, store.Create(context.Background(), authority))
 
@@ -150,6 +151,7 @@ func TestGORMAuthorityStore_RoundTrip(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, authority.CertificateDER, got.CertificateDER)
 	require.Equal(t, authority.PrivateKeyEncrypted, got.PrivateKeyEncrypted)
+	require.Equal(t, authority.PrivateKeyEnvelopeVersion, got.PrivateKeyEnvelopeVersion)
 
 	gotAny, err := store.GetAny(context.Background())
 	require.NoError(t, err)
@@ -161,9 +163,10 @@ func TestGORMAuthorityStore_RoundTrip(t *testing.T) {
 	require.Equal(t, authority.ID, listed[0].ID)
 
 	secondAuthority := &StoredAuthority{
-		ID:                  googleUuid.Must(googleUuid.NewV7()).String(),
-		CertificateDER:      []byte("second-certificate"),
-		PrivateKeyEncrypted: []byte("second-encrypted-key"),
+		ID:                        googleUuid.Must(googleUuid.NewV7()).String(),
+		CertificateDER:            []byte("second-certificate"),
+		PrivateKeyEncrypted:       []byte("second-encrypted-key"),
+		PrivateKeyEnvelopeVersion: cryptoutilSharedMagic.PKIPrivateKeyEnvelopeVersionV1,
 	}
 	require.NoError(t, store.Create(context.Background(), secondAuthority))
 	_, err = store.GetAny(context.Background())
@@ -179,7 +182,7 @@ func TestGORMAuthorityStore_RoundTrip(t *testing.T) {
 	require.ErrorContains(t, err, "context is required")
 }
 
-func TestGORMStore_RequestIDUniquenessIsTenantScopedAndAllowsNil(t *testing.T) {
+func TestGORMStore_RequestIDUniquenessIsTenantScopedAndRequiresRequestID(t *testing.T) {
 	t.Parallel()
 
 	db := cryptoutilAppsFrameworkTestDB.NewInMemorySQLiteDB(t)
@@ -198,6 +201,9 @@ func TestGORMStore_RequestIDUniquenessIsTenantScopedAndAllowsNil(t *testing.T) {
 	first.RequestID = requestID
 	require.NoError(t, store.Store(ctxA, first))
 
+	first.RequestID = googleUuid.UUID{}
+	require.ErrorIs(t, store.Update(ctxA, first), ErrInvalidRequestID)
+
 	duplicate := newTestCert("request-id-serial-b", gormTestProfileID, gormTestRequesterA, testLiteralCNCA, newTestExpiration())
 	duplicate.RequestID = requestID
 	require.ErrorIs(t, store.Store(ctxA, duplicate), ErrCertificateExists)
@@ -207,10 +213,12 @@ func TestGORMStore_RequestIDUniquenessIsTenantScopedAndAllowsNil(t *testing.T) {
 	require.NoError(t, store.Store(ctxB, otherTenant))
 
 	nilRequestOne := newTestCert("nil-request-serial-a", gormTestProfileID, gormTestRequesterA, testLiteralCNCA, newTestExpiration())
+	nilRequestOne.RequestID = googleUuid.UUID{}
 	nilRequestTwo := newTestCert("nil-request-serial-b", gormTestProfileID, gormTestRequesterA, testLiteralCNCA, newTestExpiration())
+	nilRequestTwo.RequestID = googleUuid.UUID{}
 
-	require.NoError(t, store.Store(ctxA, nilRequestOne))
-	require.NoError(t, store.Store(ctxA, nilRequestTwo))
+	require.ErrorIs(t, store.Store(ctxA, nilRequestOne), ErrInvalidRequestID)
+	require.ErrorIs(t, store.Store(ctxA, nilRequestTwo), ErrInvalidRequestID)
 }
 
 func TestGORMStore_UpdateCannotUndoRevocation(t *testing.T) {

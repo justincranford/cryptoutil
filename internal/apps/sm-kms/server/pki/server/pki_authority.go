@@ -85,9 +85,10 @@ func getOrCreateCAWithConfig(
 	}
 
 	authority = &cryptoutilCAStorage.StoredAuthority{
-		ID:                  authorityConfig.ID,
-		CertificateDER:      certificate.Raw,
-		PrivateKeyEncrypted: encryptedPrivateKey,
+		ID:                        authorityConfig.ID,
+		CertificateDER:            certificate.Raw,
+		PrivateKeyEncrypted:       encryptedPrivateKey,
+		PrivateKeyEnvelopeVersion: cryptoutilSharedMagic.PKIPrivateKeyEnvelopeVersionV1,
 	}
 	if err := authorityStore.Create(ctx, authority); err != nil {
 		persistedAuthority, getErr := authorityStore.Get(ctx, authorityConfig.ID)
@@ -112,6 +113,10 @@ func restoreHistoricalCA(
 
 	if authority == nil || authority.ID == "" || authority.ID != strings.TrimSpace(authority.ID) {
 		return nil, nil, fmt.Errorf("historical PKI authority with a non-empty ID is required")
+	}
+
+	if err := validateAuthorityPrivateKeyEnvelopeVersion(authority); err != nil {
+		return nil, nil, err
 	}
 
 	if decryptFn == nil {
@@ -192,6 +197,10 @@ func restoreCAWithConfig(
 		return nil, nil, fmt.Errorf("persisted PKI authority ID %q does not match configured ID %q", authority.ID, authorityConfig.ID)
 	}
 
+	if err := validateAuthorityPrivateKeyEnvelopeVersion(authority); err != nil {
+		return nil, nil, err
+	}
+
 	certificate, err := x509.ParseCertificate(authority.CertificateDER)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to parse persisted PKI authority certificate: %w", err)
@@ -218,4 +227,12 @@ func restoreCAWithConfig(
 	}
 
 	return certificate, privateKey, nil
+}
+
+func validateAuthorityPrivateKeyEnvelopeVersion(authority *cryptoutilCAStorage.StoredAuthority) error {
+	if authority.PrivateKeyEnvelopeVersion != cryptoutilSharedMagic.PKIPrivateKeyEnvelopeVersionV1 {
+		return fmt.Errorf("unsupported PKI authority private key envelope version %d", authority.PrivateKeyEnvelopeVersion)
+	}
+
+	return nil
 }

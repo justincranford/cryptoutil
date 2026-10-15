@@ -253,6 +253,7 @@ func TestLookupCertificateBySerial_InvalidStoredPEM(t *testing.T) {
 			if tc.storeRecord {
 				certificate := &cryptoutilCAStorage.StoredCertificate{
 					ID:             uuidForStoredCertificate(t),
+					RequestID:      uuidForStoredCertificate(t),
 					SerialNumber:   serialNumber.Text(cryptoutilSharedMagic.HexBase),
 					CertificatePEM: tc.certificatePEM,
 				}

@@ -278,6 +278,7 @@ func TestGetCertificateChain_Success(t *testing.T) {
 	serialNumber := googleUuid.NewString()
 	cert := &cryptoutilCAStorage.StoredCertificate{
 		ID:             googleUuid.New(),
+		RequestID:      googleUuid.Must(googleUuid.NewV7()),
 		SerialNumber:   serialNumber,
 		SubjectDN:      "CN=test.example.com,O=Test Org,C=US",
 		IssuerDN:       "CN=Test CA,O=Test Org,C=US",

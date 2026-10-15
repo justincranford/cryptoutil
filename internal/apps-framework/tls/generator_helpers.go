@@ -153,7 +153,7 @@ func (g *Generator) writeKeystore(basePath, dirName string, subject *cryptoutilS
 		return fmt.Errorf("pkcs12 encode %s: %w", dirName, err)
 	}
 
-	if err := g.writeFileFn(filepath.Join(dir, dirName+".p12"), p12Data, cryptoutilSharedMagic.PKIInitPrivateKeyFileMode); err != nil {
+	if err := g.writeFileFn(filepath.Join(dir, dirName+cryptoutilSharedMagic.PKIInitPKCS12FileExtension), p12Data, cryptoutilSharedMagic.PKIInitPrivateKeyFileMode); err != nil {
 		return fmt.Errorf("write .p12 %s: %w", dirName, err)
 	}
 
@@ -162,7 +162,7 @@ func (g *Generator) writeKeystore(basePath, dirName string, subject *cryptoutilS
 		return fmt.Errorf("pem encode cert %s: %w", dirName, err)
 	}
 
-	if err := g.writeFileFn(filepath.Join(dir, dirName+".crt"), certPEM, cryptoutilSharedMagic.PKIInitPublicCertFileMode); err != nil {
+	if err := g.writeFileFn(filepath.Join(dir, dirName+cryptoutilSharedMagic.PKIInitPublicCertFileExtension), certPEM, cryptoutilSharedMagic.PKIInitPublicCertFileMode); err != nil {
 		return fmt.Errorf("write .crt %s: %w", dirName, err)
 	}
 
@@ -171,7 +171,7 @@ func (g *Generator) writeKeystore(basePath, dirName string, subject *cryptoutilS
 		return fmt.Errorf("pem encode key %s: %w", dirName, err)
 	}
 
-	if err := g.writeFileFn(filepath.Join(dir, dirName+".key"), keyPEM, cryptoutilSharedMagic.PKIInitPrivateKeyFileMode); err != nil {
+	if err := g.writeFileFn(filepath.Join(dir, dirName+cryptoutilSharedMagic.PKIInitPrivateKeyFileExtension), keyPEM, cryptoutilSharedMagic.PKIInitPrivateKeyFileMode); err != nil {
 		return fmt.Errorf("write .key %s: %w", dirName, err)
 	}
 
@@ -198,7 +198,7 @@ func (g *Generator) writeTruststore(basePath, dirName string, subject *cryptouti
 		return fmt.Errorf("pkcs12 trust encode %s: %w", dirName, err)
 	}
 
-	if err := g.writeFileFn(filepath.Join(dir, dirName+".p12"), p12Data, cryptoutilSharedMagic.PKIInitPublicCertFileMode); err != nil {
+	if err := g.writeFileFn(filepath.Join(dir, dirName+cryptoutilSharedMagic.PKIInitPKCS12FileExtension), p12Data, cryptoutilSharedMagic.PKIInitPublicCertFileMode); err != nil {
 		return fmt.Errorf("write .p12 %s: %w", dirName, err)
 	}
 
@@ -207,7 +207,7 @@ func (g *Generator) writeTruststore(basePath, dirName string, subject *cryptouti
 		return fmt.Errorf("pem encode cert %s: %w", dirName, err)
 	}
 
-	if err := g.writeFileFn(filepath.Join(dir, dirName+".crt"), certPEM, cryptoutilSharedMagic.PKIInitPublicCertFileMode); err != nil {
+	if err := g.writeFileFn(filepath.Join(dir, dirName+cryptoutilSharedMagic.PKIInitPublicCertFileExtension), certPEM, cryptoutilSharedMagic.PKIInitPublicCertFileMode); err != nil {
 		return fmt.Errorf("write .crt %s: %w", dirName, err)
 	}
 

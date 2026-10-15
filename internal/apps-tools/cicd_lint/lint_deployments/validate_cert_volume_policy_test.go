@@ -10,6 +10,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const testCertVolumeMissingActivationBarrier = "without depending on"
+
 func TestValidateCertVolumePolicy(t *testing.T) {
 	t.Parallel()
 
@@ -23,13 +25,34 @@ func TestValidateCertVolumePolicy(t *testing.T) {
 		{
 			name:           "valid ps-id named volume",
 			deploymentName: cryptoutilSharedMagic.OTLPServiceSMKMS,
-			composeContent: "services:\n  pki-init:\n    volumes:\n      - sm-kms-certs:/certs\n  sm-kms-app:\n    volumes:\n      - sm-kms-certs:/certs:ro\nvolumes:\n  sm-kms-certs:\n",
+			composeContent: "services:\n  pki-init:\n    volumes:\n      - sm-kms-certs:/certs\n  sm-kms-app:\n    depends_on:\n      pki-init:\n        condition: service_completed_successfully\n    volumes:\n      - sm-kms-certs:/certs:ro\nvolumes:\n  sm-kms-certs:\n",
 			wantValid:      true,
+		},
+		{
+			name:           "cert consumer does not depend on initialization",
+			deploymentName: cryptoutilSharedMagic.OTLPServiceSMKMS,
+			composeContent: "services:\n  pki-init:\n    volumes:\n      - sm-kms-certs:/certs\n  sm-kms-app:\n    volumes:\n      - sm-kms-certs:/certs:ro\nvolumes:\n  sm-kms-certs:\n",
+			wantValid:      false,
+			wantErrText:    testCertVolumeMissingActivationBarrier,
+		},
+		{
+			name:           "cert consumer only waits for initialization to start",
+			deploymentName: cryptoutilSharedMagic.OTLPServiceSMKMS,
+			composeContent: "services:\n  pki-init:\n    volumes:\n      - sm-kms-certs:/certs\n  sm-kms-app:\n    depends_on:\n      pki-init:\n        condition: service_started\n    volumes:\n      - sm-kms-certs:/certs:ro\nvolumes:\n  sm-kms-certs:\n",
+			wantValid:      false,
+			wantErrText:    testCertVolumeMissingActivationBarrier,
+		},
+		{
+			name:           "cert consumer uses shorthand dependency",
+			deploymentName: cryptoutilSharedMagic.OTLPServiceSMKMS,
+			composeContent: "services:\n  pki-init:\n    volumes:\n      - sm-kms-certs:/certs\n  sm-kms-app:\n    depends_on:\n      - pki-init\n    volumes:\n      - sm-kms-certs:/certs:ro\nvolumes:\n  sm-kms-certs:\n",
+			wantValid:      false,
+			wantErrText:    testCertVolumeMissingActivationBarrier,
 		},
 		{
 			name:           testForbiddenCertBindMount,
 			deploymentName: cryptoutilSharedMagic.OTLPServiceSMKMS,
-			composeContent: "services:\n  pki-init:\n    volumes:\n      - ./certs:/certs:rw\n  sm-kms-app:\n    volumes:\n      - sm-kms-certs:/certs:ro\nvolumes:\n  sm-kms-certs:\n",
+			composeContent: "services:\n  pki-init:\n    volumes:\n      - ./certs:/certs:rw\n  sm-kms-app:\n    depends_on:\n      pki-init:\n        condition: service_completed_successfully\n    volumes:\n      - sm-kms-certs:/certs:ro\nvolumes:\n  sm-kms-certs:\n",
 			wantValid:      false,
 			wantErrText:    testForbiddenCertBindMount,
 		},
@@ -43,13 +66,13 @@ func TestValidateCertVolumePolicy(t *testing.T) {
 		{
 			name:           "valid template placeholder volume",
 			deploymentName: cryptoutilSharedMagic.SkeletonTemplateServiceName,
-			composeContent: "services:\n  pki-init:\n    volumes:\n      - __PS_ID__-certs:/certs\n  app:\n    volumes:\n      - __PS_ID__-certs:/certs:ro\nvolumes:\n  __PS_ID__-certs:\n",
+			composeContent: "services:\n  pki-init:\n    volumes:\n      - __PS_ID__-certs:/certs\n  app:\n    depends_on:\n      pki-init:\n        condition: service_completed_successfully\n    volumes:\n      - __PS_ID__-certs:/certs:ro\nvolumes:\n  __PS_ID__-certs:\n",
 			wantValid:      true,
 		},
 		{
 			name:           "valid infrastructure mount path",
 			deploymentName: cryptoutilSharedMagic.OTLPServiceSMKMS,
-			composeContent: "services:\n  pki-init:\n    volumes:\n      - sm-kms-certs:/mnt/ps-certs-src\n  grafana-otel-lgtm:\n    volumes:\n      - sm-kms-certs:/mnt/ps-certs-src:ro\nvolumes:\n  sm-kms-certs:\n",
+			composeContent: "services:\n  pki-init:\n    volumes:\n      - sm-kms-certs:/mnt/ps-certs-src\n  grafana-otel-lgtm:\n    depends_on:\n      pki-init:\n        condition: service_completed_successfully\n    volumes:\n      - sm-kms-certs:/mnt/ps-certs-src:ro\nvolumes:\n  sm-kms-certs:\n",
 			wantValid:      true,
 		},
 	}
@@ -69,6 +92,35 @@ func TestValidateCertVolumePolicy(t *testing.T) {
 			if tc.wantErrText != "" {
 				require.Contains(t, FormatCertVolumePolicyResult(result), tc.wantErrText)
 			}
+		})
+	}
+}
+
+func TestValidateCertVolumePolicyDeploymentTiers(t *testing.T) {
+	t.Parallel()
+
+	deployments := []string{
+		cryptoutilSharedMagic.DefaultOTLPServiceDefault,
+		cryptoutilSharedMagic.IdentityProductName,
+		cryptoutilSharedMagic.SMProductName,
+		cryptoutilSharedMagic.SkeletonProductName,
+		cryptoutilSharedMagic.OTLPServiceSMKMS,
+		cryptoutilSharedMagic.OTLPServiceIdentityAuthz,
+		cryptoutilSharedMagic.OTLPServiceIdentityIDP,
+		cryptoutilSharedMagic.OTLPServiceIdentityRP,
+		cryptoutilSharedMagic.OTLPServiceIdentityRS,
+		cryptoutilSharedMagic.OTLPServiceIdentitySPA,
+		cryptoutilSharedMagic.OTLPServiceSkeletonTemplate,
+	}
+
+	for _, deploymentName := range deployments {
+		t.Run(deploymentName, func(t *testing.T) {
+			t.Parallel()
+
+			deploymentPath := filepath.Join("..", "..", "..", "..", "deployments", deploymentName)
+			result, err := ValidateCertVolumePolicy(deploymentPath, deploymentName)
+			require.NoError(t, err)
+			require.True(t, result.Valid, "%s", result.Errors)
 		})
 	}
 }

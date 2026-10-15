@@ -154,20 +154,21 @@ func TestRunSecretsValidation_ErrorPath(t *testing.T) {
 func TestRunCertVolumePolicyValidation(t *testing.T) {
 	t.Parallel()
 
-	t.Run("runs for product-service and template only", func(t *testing.T) {
+	t.Run("runs for service deployment levels", func(t *testing.T) {
 		t.Parallel()
 
 		deployments := []deploymentEntry{
 			{path: "/nonexistent/path/service", name: cryptoutilSharedMagic.OTLPServiceSMKMS, level: DeploymentTypeProductService},
 			{path: "/nonexistent/path/template", name: cryptoutilSharedMagic.SkeletonTemplateServiceName, level: DeploymentTypeTemplate},
 			{path: "/nonexistent/path/product", name: cryptoutilSharedMagic.SMProductName, level: DeploymentTypeProduct},
+			{path: "/nonexistent/path/suite", name: cryptoutilSharedMagic.DefaultOTLPServiceDefault, level: DeploymentTypeSuite},
 			{path: "/nonexistent/path/infra", name: postgresSharedDirName, level: DeploymentTypeInfrastructure},
 		}
 
 		result := &AllValidationResult{}
 		runCertVolumePolicyValidation(deployments, result)
 
-		require.Len(t, result.Results, 2)
+		require.Len(t, result.Results, 4)
 
 		for _, vr := range result.Results {
 			require.Equal(t, validatorNameCertVolumes, vr.Name)

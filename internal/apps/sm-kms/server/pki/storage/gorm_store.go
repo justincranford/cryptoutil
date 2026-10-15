@@ -30,12 +30,23 @@ func NewGORMStore(db *gorm.DB) (*GORMStore, error) {
 		return nil, fmt.Errorf("database is required")
 	}
 
+	if db.Name() == cryptoutilSharedMagic.TestDatabaseSQLite {
+		var sqliteVersion string
+		if err := db.Raw("SELECT sqlite_version()").Scan(&sqliteVersion).Error; err != nil {
+			return nil, fmt.Errorf("failed to determine SQLite version: %w", err)
+		}
+
+		if err := validateSQLiteUpdateReturningVersion(sqliteVersion); err != nil {
+			return nil, err
+		}
+	}
+
 	return &GORMStore{db: db}, nil
 }
 
 func (s *GORMStore) Store(ctx context.Context, cert *StoredCertificate) error {
-	if cert == nil {
-		return ErrInvalidCertificate
+	if err := validateCertificateWrite(cert); err != nil {
+		return err
 	}
 
 	tenantID, err := requireTenantID(ctx)
@@ -278,8 +289,8 @@ func applyGORMListFilter(query *gorm.DB, filter *ListFilter) *gorm.DB {
 }
 
 func (s *GORMStore) Update(ctx context.Context, cert *StoredCertificate) error {
-	if cert == nil {
-		return ErrInvalidCertificate
+	if err := validateCertificateWrite(cert); err != nil {
+		return err
 	}
 
 	tenantID, err := requireTenantID(ctx)

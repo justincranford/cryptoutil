@@ -20,6 +20,7 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	fiber "github.com/gofiber/fiber/v2"
+	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
 	cryptoutilCAServiceIssuer "cryptoutil/internal/apps/sm-kms/server/pki/service/issuer"
@@ -205,6 +206,8 @@ func TestLookupCertificateBySerialWithCert(t *testing.T) {
 
 	// Store the certificate.
 	storedCert := &cryptoutilCAStorage.StoredCertificate{
+		ID:             googleUuid.Must(googleUuid.NewV7()),
+		RequestID:      googleUuid.Must(googleUuid.NewV7()),
 		SerialNumber:   serialNumber.Text(cryptoutilSharedMagic.RealmMinTokenLengthBytes),
 		CertificatePEM: string(certPEM),
 	}
@@ -234,6 +237,8 @@ func TestLookupCertificateBySerialInvalidPEM(t *testing.T) {
 
 	// Store certificate with invalid PEM.
 	storedCert := &cryptoutilCAStorage.StoredCertificate{
+		ID:             googleUuid.Must(googleUuid.NewV7()),
+		RequestID:      googleUuid.Must(googleUuid.NewV7()),
 		SerialNumber:   serialNumber.Text(cryptoutilSharedMagic.RealmMinTokenLengthBytes),
 		CertificatePEM: "not-valid-pem-data",
 	}

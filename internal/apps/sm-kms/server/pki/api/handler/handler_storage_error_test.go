@@ -272,6 +272,7 @@ func TestRevokeCertificate_RevokeStorageError(t *testing.T) {
 	inner := cryptoutilCAStorage.NewMemoryStore()
 	cert := &cryptoutilCAStorage.StoredCertificate{
 		ID:             googleUuid.New(),
+		RequestID:      googleUuid.Must(googleUuid.NewV7()),
 		SerialNumber:   "REVOKE_ERR_SN",
 		SubjectDN:      testSubjectDNExample,
 		IssuerDN:       testIssuerDNTestCA,

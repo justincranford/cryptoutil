@@ -3,6 +3,7 @@ package revocation
 
 import (
 	"context"
+	"crypto"
 	"crypto/x509"
 	"encoding/hex"
 	"errors"
@@ -117,6 +118,52 @@ func TestCRLService_DurableNumberAllocationFailureIsReturned(t *testing.T) {
 
 	_, err = service.GenerateCRLContext(context.Background())
 	require.ErrorContains(t, err, "sequence store unavailable")
+}
+
+func TestCRLService_ConsumesNumberWhenGenerationFails(t *testing.T) {
+	t.Parallel()
+
+	caCert, caKey := createTestCA(t)
+
+	var allocatedNumber int64
+
+	service, err := NewCRLService(&CRLConfig{
+		Issuer:     caCert,
+		PrivateKey: caKey,
+		Provider:   &failFirstSignatureAlgorithmProvider{Provider: cryptoutilCACrypto.NewSoftwareProvider()},
+		Validity:   time.Hour,
+		AllocateCRLNumber: func(context.Context, string) (*big.Int, error) {
+			allocatedNumber++
+
+			return big.NewInt(allocatedNumber), nil
+		},
+	})
+	require.NoError(t, err)
+
+	_, err = service.GenerateCRLContext(context.Background())
+	require.ErrorContains(t, err, "injected signature algorithm failure")
+
+	crlDER, err := service.GenerateCRLContext(context.Background())
+	require.NoError(t, err)
+
+	crl, err := x509.ParseRevocationList(crlDER)
+	require.NoError(t, err)
+	require.Equal(t, big.NewInt(2), crl.Number)
+	require.Equal(t, int64(2), allocatedNumber)
+}
+
+type failFirstSignatureAlgorithmProvider struct {
+	cryptoutilCACrypto.Provider
+	calls int
+}
+
+func (p *failFirstSignatureAlgorithmProvider) GetSignatureAlgorithm(publicKey crypto.PublicKey) (x509.SignatureAlgorithm, error) {
+	p.calls++
+	if p.calls == 1 {
+		return 0, errors.New("injected signature algorithm failure")
+	}
+
+	return p.Provider.GetSignatureAlgorithm(publicKey)
 }
 
 type testContextKey struct{}

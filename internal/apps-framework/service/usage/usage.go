@@ -128,11 +128,13 @@ Description:
 Options:
   --url URL      Admin URL (default: https://127.0.0.1:9090)
   --cacert FILE  CA certificate file for TLS validation
+  --cert FILE    Client certificate file for mTLS
+  --key FILE     Client private key file for mTLS
   --help, -h     Show this help message
 
 Examples:
   %s %s livez
-  %s %s livez --url https://localhost:9090`,
+  %s %s livez --url https://localhost:9090 --cacert /path/to/ca.pem --cert /path/to/client.crt --key /path/to/client.key`,
 		productName, serviceName,
 		productName, serviceName,
 		productName, serviceName)
@@ -150,11 +152,13 @@ Description:
 Options:
   --url URL      Admin URL (default: https://127.0.0.1:9090)
   --cacert FILE  CA certificate file for TLS validation
+  --cert FILE    Client certificate file for mTLS
+  --key FILE     Client private key file for mTLS
   --help, -h     Show this help message
 
 Examples:
   %s %s readyz
-  %s %s readyz --url https://localhost:9090`,
+  %s %s readyz --url https://localhost:9090 --cacert /path/to/ca.pem --cert /path/to/client.crt --key /path/to/client.key`,
 		productName, serviceName,
 		productName, serviceName,
 		productName, serviceName)

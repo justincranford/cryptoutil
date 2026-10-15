@@ -239,6 +239,8 @@ func TestBuildUsageLivez(t *testing.T) {
 				"Usage: sm kms livez [options]",
 				testHTTPS1270019090,
 				testAdminAPIV1Livez,
+				testUsageCertFilePlaceholder,
+				testUsageKeyFilePlaceholder,
 			},
 		},
 		{
@@ -249,6 +251,8 @@ func TestBuildUsageLivez(t *testing.T) {
 				"Usage: skeleton template livez [options]",
 				testHTTPS1270019090,
 				testAdminAPIV1Livez,
+				testUsageCertFilePlaceholder,
+				testUsageKeyFilePlaceholder,
 			},
 		},
 	}
@@ -283,6 +287,8 @@ func TestBuildUsageReadyz(t *testing.T) {
 				"Usage: sm kms readyz [options]",
 				testHTTPS1270019090,
 				testAdminAPIV1Readyz,
+				testUsageCertFilePlaceholder,
+				testUsageKeyFilePlaceholder,
 			},
 		},
 		{
@@ -293,6 +299,8 @@ func TestBuildUsageReadyz(t *testing.T) {
 				"Usage: skeleton template readyz [options]",
 				testHTTPS1270019090,
 				testAdminAPIV1Readyz,
+				testUsageCertFilePlaceholder,
+				testUsageKeyFilePlaceholder,
 			},
 		},
 	}

@@ -36,6 +36,8 @@ const (
 	// transactions nest barrier operations. GORM services need separate connections for
 	// nested transactions (e.g., ORM ReadOnly + barrier DecryptContentWithContext).
 	SQLiteMaxOpenConnectionsForGORM = 5
+	// SQLiteMinimumVersionUpdateReturning - Minimum SQLite version for atomic CRL sequence allocation.
+	SQLiteMinimumVersionUpdateReturning = "3.35.0"
 
 	// PostgreSQLMaxOpenConns - Maximum open connections for PostgreSQL.
 	PostgreSQLMaxOpenConns = 25
@@ -86,6 +88,10 @@ const (
 	PGCodeCheckViolation = "23514"
 	// PGCodeStringDataTruncation - PostgreSQL string data truncation error code.
 	PGCodeStringDataTruncation = "22001"
+	// PGCodeDeadlockDetected - PostgreSQL deadlock detected error code.
+	PGCodeDeadlockDetected = "40P01"
+	// PGCodeSerializationFailure - PostgreSQL serialization failure error code.
+	PGCodeSerializationFailure = "40001"
 )
 
 const (

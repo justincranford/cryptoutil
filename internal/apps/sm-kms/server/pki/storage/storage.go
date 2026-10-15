@@ -4,8 +4,6 @@ package storage
 
 import (
 	"context"
-	"crypto/x509"
-	"encoding/pem"
 	"errors"
 	"fmt"
 	"math/big"
@@ -25,6 +23,7 @@ var (
 	ErrCertificateAmbiguous = errors.New("certificate lookup is ambiguous")
 	ErrCertificateRevoked   = errors.New("certificate already revoked")
 	ErrInvalidCertificate   = errors.New("invalid certificate")
+	ErrInvalidRequestID     = errors.New("certificate request ID is required")
 	ErrStorageFull          = errors.New("storage capacity exceeded")
 	ErrAuthorityNotFound    = errors.New("PKI authority not found")
 	ErrMultipleAuthorities  = errors.New("multiple PKI authorities are persisted")
@@ -90,11 +89,12 @@ func (StoredCertificate) TableName() string {
 }
 
 type StoredAuthority struct {
-	ID                  string    `gorm:"type:text;primaryKey"`
-	CertificateDER      []byte    `gorm:"not null"`
-	PrivateKeyEncrypted []byte    `gorm:"not null"`
-	CreatedAt           time.Time `gorm:"not null;autoCreateTime"`
-	UpdatedAt           time.Time `gorm:"not null;autoUpdateTime"`
+	ID                        string    `gorm:"type:text;primaryKey"`
+	CertificateDER            []byte    `gorm:"not null"`
+	PrivateKeyEncrypted       []byte    `gorm:"not null"`
+	PrivateKeyEnvelopeVersion int       `gorm:"not null;default:1"`
+	CreatedAt                 time.Time `gorm:"not null;autoCreateTime"`
+	UpdatedAt                 time.Time `gorm:"not null;autoUpdateTime"`
 }
 
 // StoredCRLSequence stores the last allocated issuer-scoped CRL number.
@@ -198,8 +198,8 @@ func NewMemoryStore() *MemoryStore {
 
 // Store stores a new certificate.
 func (s *MemoryStore) Store(_ context.Context, cert *StoredCertificate) error {
-	if cert == nil {
-		return ErrInvalidCertificate
+	if err := validateCertificateWrite(cert); err != nil {
+		return err
 	}
 
 	s.mu.Lock()
@@ -228,6 +228,18 @@ func (s *MemoryStore) Store(_ context.Context, cert *StoredCertificate) error {
 	s.bySerial[cert.SerialNumber] = cert.ID
 	if cert.RequestID != googleUuid.Nil {
 		s.byRequestID[cert.RequestID] = cert.ID
+	}
+
+	return nil
+}
+
+func validateCertificateWrite(cert *StoredCertificate) error {
+	if cert == nil {
+		return ErrInvalidCertificate
+	}
+
+	if cert.RequestID == googleUuid.Nil {
+		return ErrInvalidRequestID
 	}
 
 	return nil
@@ -378,8 +390,8 @@ func (s *MemoryStore) matchesFilter(cert *StoredCertificate, filter *ListFilter)
 
 // Update updates an existing certificate.
 func (s *MemoryStore) Update(_ context.Context, cert *StoredCertificate) error {
-	if cert == nil {
-		return ErrInvalidCertificate
+	if err := validateCertificateWrite(cert); err != nil {
+		return err
 	}
 
 	s.mu.Lock()
@@ -463,33 +475,4 @@ func (s *MemoryStore) CountByStatus(_ context.Context) (map[CertificateStatus]in
 // Close closes the storage connection.
 func (s *MemoryStore) Close() error {
 	return nil
-}
-
-// NewStoredCertificateFromX509 creates a StoredCertificate from an x509.Certificate.
-func NewStoredCertificateFromX509(cert *x509.Certificate, profileID, requesterID string) (*StoredCertificate, error) {
-	if cert == nil {
-		return nil, ErrInvalidCertificate
-	}
-
-	id, err := googleUuid.NewV7()
-	if err != nil {
-		return nil, fmt.Errorf("failed to generate ID: %w", err)
-	}
-
-	return &StoredCertificate{
-		ID:             id,
-		SerialNumber:   cert.SerialNumber.Text(cryptoutilSharedMagic.HexBase),
-		SubjectDN:      cert.Subject.String(),
-		IssuerDN:       cert.Issuer.String(),
-		NotBefore:      cert.NotBefore,
-		NotAfter:       cert.NotAfter,
-		Status:         StatusActive,
-		ProfileID:      profileID,
-		RequesterID:    requesterID,
-		CertificatePEM: string(pem.EncodeToMemory(&pem.Block{Type: cryptoutilSharedMagic.StringPEMTypeCertificate, Bytes: cert.Raw})),
-		CertificateDER: cert.Raw,
-		SubjectKeyID:   fmt.Sprintf("%x", cert.SubjectKeyId),
-		AuthorityKeyID: fmt.Sprintf("%x", cert.AuthorityKeyId),
-		Metadata:       make(map[string]string),
-	}, nil
 }

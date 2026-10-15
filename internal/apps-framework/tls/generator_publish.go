@@ -11,8 +11,10 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
@@ -109,7 +111,16 @@ func validateGeneratedMaterial(stagingRoot, tierID string) error {
 			return fmt.Errorf("staged path %q is not a regular file", path)
 		}
 
-		data, err := os.ReadFile(path) //nolint:gosec // staged files are created privately by this process.
+		if err := validateStagedFileMode(path, info.Mode()); err != nil {
+			return err
+		}
+
+		relativePath, err := filepath.Rel(basePath, path)
+		if err != nil {
+			return fmt.Errorf("resolve staged file %q: %w", path, err)
+		}
+
+		data, err := readStagedFile(basePath, relativePath)
 		if err != nil {
 			return fmt.Errorf("read staged file %q: %w", path, err)
 		}
@@ -119,7 +130,7 @@ func validateGeneratedMaterial(stagingRoot, tierID string) error {
 		}
 
 		switch filepath.Ext(path) {
-		case ".crt":
+		case cryptoutilSharedMagic.PKIInitPublicCertFileExtension:
 			certificates, err := parseCertificatePEM(path, data)
 			if err != nil {
 				return err
@@ -130,15 +141,16 @@ func validateGeneratedMaterial(stagingRoot, tierID string) error {
 			}
 
 			certCount++
-		case ".key":
-			certificatePath := strings.TrimSuffix(path, filepath.Ext(path)) + ".crt"
+		case cryptoutilSharedMagic.PKIInitPrivateKeyFileExtension:
+			certificateRelativePath := strings.TrimSuffix(relativePath, filepath.Ext(relativePath)) +
+				cryptoutilSharedMagic.PKIInitPublicCertFileExtension
 
-			certificatePEM, err := os.ReadFile(certificatePath) //nolint:gosec // path is paired with the staged key path.
+			certificatePEM, err := readStagedFile(basePath, certificateRelativePath)
 			if err != nil {
-				return fmt.Errorf("read certificate paired with staged key %q: %w", path, err)
+				return fmt.Errorf("read certificate paired with staged key %q: %w", relativePath, err)
 			}
 
-			certificates, err := parseCertificatePEM(certificatePath, certificatePEM)
+			certificates, err := parseCertificatePEM(certificateRelativePath, certificatePEM)
 			if err != nil {
 				return err
 			}
@@ -148,7 +160,7 @@ func validateGeneratedMaterial(stagingRoot, tierID string) error {
 			}
 
 			keyCount++
-		case ".p12":
+		case cryptoutilSharedMagic.PKIInitPKCS12FileExtension:
 			pkcs12Count++
 		}
 
@@ -169,6 +181,66 @@ func validateGeneratedMaterial(stagingRoot, tierID string) error {
 
 	if err := validateAdminCABundle(filepath.Join(stagingRoot, cryptoutilSharedMagic.PKIInitAdminCABundleFilename)); err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func readStagedFile(rootPath, relativePath string) ([]byte, error) {
+	root, err := os.OpenRoot(rootPath)
+	if err != nil {
+		return nil, fmt.Errorf("open staged root %q: %w", rootPath, err)
+	}
+
+	file, err := root.Open(relativePath)
+	if err != nil {
+		return nil, errors.Join(
+			fmt.Errorf("open staged file %q: %w", relativePath, err),
+			root.Close(),
+		)
+	}
+
+	data, readErr := io.ReadAll(file)
+	fileCloseErr := file.Close()
+
+	rootCloseErr := root.Close()
+	if err := errors.Join(readErr, fileCloseErr, rootCloseErr); err != nil {
+		return nil, fmt.Errorf("read staged file %q: %w", relativePath, err)
+	}
+
+	return data, nil
+}
+
+func validateStagedFileMode(path string, mode os.FileMode) error {
+	expectedMode := cryptoutilSharedMagic.PKIInitPublicCertFileMode
+
+	switch filepath.Ext(path) {
+	case cryptoutilSharedMagic.PKIInitPrivateKeyFileExtension:
+		expectedMode = cryptoutilSharedMagic.PKIInitPrivateKeyFileMode
+	case cryptoutilSharedMagic.PKIInitPKCS12FileExtension:
+		if filepath.Base(filepath.Dir(path)) != "truststore" {
+			expectedMode = cryptoutilSharedMagic.PKIInitPrivateKeyFileMode
+		}
+	case ".yml":
+		expectedMode = cryptoutilSharedMagic.PKIInitPrivateKeyFileMode
+	}
+
+	permissions := mode.Perm()
+	if runtime.GOOS == "windows" {
+		if permissions&0o222 != 0 {
+			return fmt.Errorf("staged file %q has writable permissions on Windows", path)
+		}
+
+		return nil
+	}
+
+	if permissions&0o400 == 0 || permissions&^expectedMode.Perm() != 0 {
+		return fmt.Errorf(
+			"staged file %q has permissions %04o, expected no broader than %04o and owner-readable",
+			path,
+			permissions,
+			expectedMode.Perm(),
+		)
 	}
 
 	return nil
@@ -249,7 +321,7 @@ func validatePrivateKeyMatchesCertificate(path string, keyPEM []byte, certificat
 }
 
 func validateTLSConfig(path string) error {
-	data, err := os.ReadFile(path) //nolint:gosec // fixed generated file beneath the private staging directory.
+	data, err := readStagedFile(filepath.Dir(path), filepath.Base(path))
 	if err != nil {
 		return fmt.Errorf("read staged tls-config.yml: %w", err)
 	}
@@ -302,7 +374,7 @@ func readBase64ConfigValue(data []byte, prefix string) ([]byte, error) {
 }
 
 func validateAdminCABundle(path string) error {
-	data, err := os.ReadFile(path) //nolint:gosec // fixed generated file beneath the private staging directory.
+	data, err := readStagedFile(filepath.Dir(path), filepath.Base(path))
 	if err != nil {
 		return fmt.Errorf("read staged admin CA bundle: %w", err)
 	}

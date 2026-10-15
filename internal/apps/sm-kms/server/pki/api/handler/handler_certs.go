@@ -397,7 +397,12 @@ func (h *Handler) ESTSimpleEnroll(c *fiber.Ctx) error {
 		return h.errorResponse(c, fiber.StatusInternalServerError, "issuance_error", err.Error())
 	}
 
-	if _, err := h.storeIssuedCertificate(c.UserContext(), issued, profile.ID, googleUuid.Nil); err != nil {
+	requestID, err := googleUuid.NewV7()
+	if err != nil {
+		return h.errorResponse(c, fiber.StatusInternalServerError, "request_id_error", "failed to generate request ID")
+	}
+
+	if _, err := h.storeIssuedCertificate(c.UserContext(), issued, profile.ID, requestID); err != nil {
 		return h.errorResponse(c, fiber.StatusInternalServerError, "storage_error", err.Error())
 	}
 

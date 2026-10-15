@@ -204,6 +204,8 @@ func (s *CRLService) generateCRL(ctx context.Context, revokedCerts []RevokedCert
 			return nil, fmt.Errorf("issuer subject key identifier is required for durable CRL numbering")
 		}
 
+		// A reserved CRL number is never reused if later generation or publication fails.
+		// RFC 5280 Section 5.2.3 requires a monotonically increasing sequence, not consecutive numbers.
 		allocatedNumber, err := s.config.AllocateCRLNumber(ctx, fmt.Sprintf("%x", s.config.Issuer.SubjectKeyId))
 		if err != nil {
 			return nil, fmt.Errorf("failed to allocate durable CRL number: %w", err)

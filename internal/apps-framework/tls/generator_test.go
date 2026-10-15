@@ -124,7 +124,7 @@ func TestGenerate_FailedGenerationDoesNotPublishMaterial(t *testing.T) {
 		{
 			name: "invalid generated key",
 			writeFileFn: func(path string, data []byte, mode os.FileMode) error {
-				if filepath.Ext(path) == testPrivateKeyExt {
+				if filepath.Ext(path) == cryptoutilSharedMagic.PKIInitPrivateKeyFileExtension {
 					data = []byte("not a private key")
 				}
 
@@ -138,8 +138,6 @@ func TestGenerate_FailedGenerationDoesNotPublishMaterial(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			const tierID = cryptoutilSharedMagic.OTLPServiceSkeletonTemplate
-
 			outputDir := t.TempDir()
 
 			gen := cryptoutilAppsFrameworkTls.ExportedNewTestGenerator(
@@ -147,9 +145,9 @@ func TestGenerate_FailedGenerationDoesNotPublishMaterial(t *testing.T) {
 				stubEncodePKCS12, stubEncodeTrustPKCS12, stubGetRealmsForPSID,
 			)
 
-			err := gen.Generate(tierID, outputDir)
+			err := gen.Generate(cryptoutilSharedMagic.OTLPServiceSkeletonTemplate, outputDir)
 			require.ErrorContains(t, err, tc.wantErr)
-			require.NoDirExists(t, filepath.Join(outputDir, tierID))
+			require.NoDirExists(t, filepath.Join(outputDir, cryptoutilSharedMagic.OTLPServiceSkeletonTemplate))
 			require.NoFileExists(t, filepath.Join(outputDir, "tls-config.yml"))
 			require.NoFileExists(t, filepath.Join(outputDir, cryptoutilSharedMagic.PKIInitAdminCABundleFilename))
 
@@ -163,10 +161,8 @@ func TestGenerate_FailedGenerationDoesNotPublishMaterial(t *testing.T) {
 func TestGenerate_ExistingMaterialIsNotRotated(t *testing.T) {
 	t.Parallel()
 
-	const tierID = cryptoutilSharedMagic.OTLPServiceSkeletonTemplate
-
 	outputDir := t.TempDir()
-	basePath := filepath.Join(outputDir, tierID)
+	basePath := filepath.Join(outputDir, cryptoutilSharedMagic.OTLPServiceSkeletonTemplate)
 	require.NoError(t, os.MkdirAll(basePath, cryptoutilSharedMagic.PKIInitCertsDirMode))
 	require.NoError(t, os.WriteFile(filepath.Join(basePath, "previous-generation"), []byte("preserve"), cryptoutilSharedMagic.PKIInitPublicCertFileMode))
 	require.NoError(t, os.WriteFile(filepath.Join(outputDir, "tls-config.yml"), []byte("previous config"), cryptoutilSharedMagic.PKIInitPrivateKeyFileMode))
@@ -176,7 +172,7 @@ func TestGenerate_ExistingMaterialIsNotRotated(t *testing.T) {
 		stubMkdirAll, stubWriteFile, stubCreateCA, stubCreateLeaf, stubGetKeyPair,
 		stubEncodePKCS12, stubEncodeTrustPKCS12, stubGetRealmsForPSID,
 	)
-	err := gen.Generate(tierID, outputDir)
+	err := gen.Generate(cryptoutilSharedMagic.OTLPServiceSkeletonTemplate, outputDir)
 	require.ErrorContains(t, err, "does not support certificate rotation")
 	require.FileExists(t, filepath.Join(basePath, "previous-generation"))
 
@@ -191,8 +187,6 @@ func TestGenerate_ExistingMaterialIsNotRotated(t *testing.T) {
 
 func TestGenerate_PublicationFailureRollsBackPartialMaterial(t *testing.T) {
 	t.Parallel()
-
-	const tierID = cryptoutilSharedMagic.OTLPServiceSkeletonTemplate
 
 	outputDir := t.TempDir()
 
@@ -210,9 +204,9 @@ func TestGenerate_PublicationFailureRollsBackPartialMaterial(t *testing.T) {
 		return os.Rename(oldPath, newPath)
 	})
 
-	err := gen.Generate(tierID, outputDir)
+	err := gen.Generate(cryptoutilSharedMagic.OTLPServiceSkeletonTemplate, outputDir)
 	require.ErrorContains(t, err, "injected publication rename failure")
-	require.NoDirExists(t, filepath.Join(outputDir, tierID))
+	require.NoDirExists(t, filepath.Join(outputDir, cryptoutilSharedMagic.OTLPServiceSkeletonTemplate))
 	require.NoFileExists(t, filepath.Join(outputDir, "tls-config.yml"))
 	require.NoFileExists(t, filepath.Join(outputDir, cryptoutilSharedMagic.PKIInitAdminCABundleFilename))
 

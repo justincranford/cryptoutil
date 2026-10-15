@@ -1,6 +1,8 @@
 package usage_test
 
 const (
+	testUsageCertFilePlaceholder      = "--cert FILE"
+	testUsageKeyFilePlaceholder       = "--key FILE"
 	testForce                         = "--force"
 	testAdminAPIV1Livez               = "/admin/api/v1/livez"
 	testAdminAPIV1Readyz              = "/admin/api/v1/readyz"

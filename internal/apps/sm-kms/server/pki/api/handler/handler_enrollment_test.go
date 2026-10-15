@@ -224,6 +224,8 @@ func TestHandleOCSP_ValidRequest(t *testing.T) {
 	serialHex := leafCert.SerialNumber.Text(cryptoutilSharedMagic.RealmMinTokenLengthBytes)
 
 	stored := &cryptoutilCAStorage.StoredCertificate{
+		ID:             googleUuid.Must(googleUuid.NewV7()),
+		RequestID:      googleUuid.Must(googleUuid.NewV7()),
 		SerialNumber:   serialHex,
 		SubjectDN:      leafCert.Subject.String(),
 		IssuerDN:       leafCert.Issuer.String(),

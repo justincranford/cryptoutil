@@ -21,17 +21,13 @@ import (
 
 // Test-specific timing constants.
 const (
-	testShutdownTimeout           = cryptoutilSharedMagic.TestDefaultServerShutdownTimeout
-	testServerStartupTimeout      = cryptoutilSharedMagic.TestTimeoutCryptoutilReady
-	testServerStartupPollInterval = cryptoutilSharedMagic.TestTimeoutHTTPRetryInterval
-	testServerStartupProbeTimeout = cryptoutilSharedMagic.TestTimeoutHTTPRetryInterval
-	testPortReleaseWait           = 500 * time.Millisecond
+	testPortReleaseWait = 500 * time.Millisecond
 )
 
 func waitForServerExit(t *testing.T, startErr <-chan error) error {
 	t.Helper()
 
-	timer := time.NewTimer(testShutdownTimeout)
+	timer := time.NewTimer(cryptoutilSharedMagic.TestDefaultServerShutdownTimeout)
 	defer timer.Stop()
 
 	select {
@@ -60,7 +56,7 @@ func waitForServerStart(t *testing.T, server HTTPServer) {
 			return false
 		}
 
-		dialer := net.Dialer{Timeout: testServerStartupProbeTimeout}
+		dialer := net.Dialer{Timeout: cryptoutilSharedMagic.TestTimeoutHTTPRetryInterval}
 
 		conn, err := dialer.DialContext(context.Background(), "tcp", net.JoinHostPort(cryptoutilSharedMagic.IPv4Loopback, strconv.Itoa(port)))
 		if err != nil {
@@ -68,7 +64,7 @@ func waitForServerStart(t *testing.T, server HTTPServer) {
 		}
 
 		return conn.Close() == nil
-	}, testServerStartupTimeout, testServerStartupPollInterval, "server did not accept a TCP connection")
+	}, cryptoutilSharedMagic.TestTimeoutCryptoutilReady, cryptoutilSharedMagic.TestTimeoutHTTPRetryInterval, "server did not accept a TCP connection")
 }
 
 // TestShutdownGraceful verifies that server shuts down gracefully.
@@ -90,7 +86,7 @@ func TestShutdownGraceful(t *testing.T, createServer func(t *testing.T) HTTPServ
 	waitForServerStart(t, server)
 
 	// Shutdown server.
-	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), testShutdownTimeout)
+	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.TestDefaultServerShutdownTimeout)
 	defer shutdownCancel()
 
 	err := server.Shutdown(shutdownCtx)
@@ -152,14 +148,14 @@ func TestShutdownDoubleCall(t *testing.T, createServer func(t *testing.T) HTTPSe
 	waitForServerStart(t, server)
 
 	// First shutdown - should succeed.
-	shutdownCtx1, shutdownCancel1 := context.WithTimeout(context.Background(), testShutdownTimeout)
+	shutdownCtx1, shutdownCancel1 := context.WithTimeout(context.Background(), cryptoutilSharedMagic.TestDefaultServerShutdownTimeout)
 	defer shutdownCancel1()
 
 	err := server.Shutdown(shutdownCtx1)
 	require.NoError(t, err, "First shutdown should succeed")
 
 	// Second shutdown - should return error.
-	shutdownCtx2, shutdownCancel2 := context.WithTimeout(context.Background(), testShutdownTimeout)
+	shutdownCtx2, shutdownCancel2 := context.WithTimeout(context.Background(), cryptoutilSharedMagic.TestDefaultServerShutdownTimeout)
 	defer shutdownCancel2()
 
 	err = server.Shutdown(shutdownCtx2)

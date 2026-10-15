@@ -279,11 +279,11 @@ func runSecretsValidation(deployments []deploymentEntry, result *AllValidationRe
 	}
 }
 
-// runCertVolumePolicyValidation runs cert volume policy checks for PS-ID and template deployments.
+// runCertVolumePolicyValidation runs cert volume policy checks for all service deployments.
 func runCertVolumePolicyValidation(deployments []deploymentEntry, result *AllValidationResult) {
 	for _, d := range deployments {
 		switch d.level {
-		case DeploymentTypeProductService, DeploymentTypeTemplate:
+		case DeploymentTypeProductService, DeploymentTypeTemplate, DeploymentTypeProduct, DeploymentTypeSuite:
 			start := time.Now().UTC()
 			cv, _ := ValidateCertVolumePolicy(d.path, d.name)
 			dur := time.Since(start)

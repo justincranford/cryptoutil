@@ -70,6 +70,8 @@ func ValidateCertVolumePolicy(deploymentPath, deploymentName string) (*CertVolum
 		result.Valid = false
 	}
 
+	validateCertVolumeActivationBarrier(compose, expectedVolumeName, result)
+
 	return result, nil
 }
 
@@ -109,6 +111,71 @@ func hasTopLevelCertVolumeDeclaration(compose *composeFile, expectedVolumeName s
 	_, ok := compose.Volumes[expectedVolumeName]
 
 	return ok
+}
+
+func validateCertVolumeActivationBarrier(compose *composeFile, expectedVolumeName string, result *CertVolumePolicyResult) {
+	for _, serviceName := range sortedServiceNames(compose) {
+		if serviceName == cryptoutilSharedMagic.PSIDPKIInit {
+			continue
+		}
+
+		svc := compose.Services[serviceName]
+		if !usesNamedCertVolume(&svc, expectedVolumeName) {
+			continue
+		}
+
+		if !dependsOnSuccessfulPKIInit(compose, serviceName, make(map[string]struct{})) {
+			result.Errors = append(result.Errors,
+				fmt.Sprintf("[ValidateCertVolumePolicy] service '%s' mounts cert volume '%s' without depending on '%s' with condition 'service_completed_successfully' | See: %s",
+					serviceName, expectedVolumeName, cryptoutilSharedMagic.PSIDPKIInit, certVolumePolicyHandbookSection))
+			result.Valid = false
+		}
+	}
+}
+
+func usesNamedCertVolume(svc *composeService, expectedVolumeName string) bool {
+	for _, volume := range svc.Volumes {
+		source, _, _ := strings.Cut(volume, ":")
+		if source == expectedVolumeName {
+			return true
+		}
+	}
+
+	return false
+}
+
+func dependsOnSuccessfulPKIInit(compose *composeFile, serviceName string, visited map[string]struct{}) bool {
+	if serviceName == cryptoutilSharedMagic.PSIDPKIInit {
+		return true
+	}
+
+	if _, exists := visited[serviceName]; exists {
+		return false
+	}
+
+	visited[serviceName] = struct{}{}
+
+	svc := compose.Services[serviceName]
+
+	dependencies, ok := svc.DependsOn.(map[string]any)
+	if !ok {
+		return false
+	}
+
+	for dependencyName, dependencyConfig := range dependencies {
+		dependency, ok := dependencyConfig.(map[string]any)
+		if !ok {
+			continue
+		}
+
+		condition, ok := dependency["condition"].(string)
+		if ok && condition == "service_completed_successfully" &&
+			dependsOnSuccessfulPKIInit(compose, dependencyName, visited) {
+			return true
+		}
+	}
+
+	return false
 }
 
 // FormatCertVolumePolicyResult renders cert volume policy validation output.
