@@ -20,6 +20,7 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	fiber "github.com/gofiber/fiber/v2"
+	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
 	cryptoutilApiCaServer "cryptoutil/api/sm-kms/pki/server"
@@ -324,9 +325,11 @@ func TestBuildEnrollmentResponse(t *testing.T) {
 		Fingerprint:    "abc123",
 	}
 
-	result := handler.buildEnrollmentResponse(issued)
+	requestID := googleUuid.Must(googleUuid.NewV7())
+	result := handler.buildEnrollmentResponse(issued, requestID)
 	require.NotNil(t, result)
 	require.Equal(t, cryptoutilApiCaServer.Issued, result.Status)
+	require.Equal(t, requestID, result.RequestID)
 	require.Equal(t, "01", result.Certificate.SerialNumber)
 	require.NotNil(t, result.Certificate.FingerprintSha256)
 	require.Equal(t, "abc123", *result.Certificate.FingerprintSha256)

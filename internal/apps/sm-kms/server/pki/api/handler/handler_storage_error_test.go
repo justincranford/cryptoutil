@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"math/big"
 	http "net/http"
 	"net/http/httptest"
 	"testing"
@@ -52,6 +53,18 @@ func (s *errorStore) GetBySerialNumber(ctx context.Context, serialNumber string)
 	return s.inner.GetBySerialNumber(ctx, serialNumber)
 }
 
+func (s *errorStore) GetBySerialNumberForIssuer(
+	ctx context.Context,
+	serialNumber string,
+	issuerKeyID string,
+) (*cryptoutilCAStorage.StoredCertificate, error) {
+	if s.getErr != nil {
+		return nil, s.getErr
+	}
+
+	return s.inner.GetBySerialNumberForIssuer(ctx, serialNumber, issuerKeyID)
+}
+
 func (s *errorStore) GetByRequestID(ctx context.Context, requestID googleUuid.UUID) (*cryptoutilCAStorage.StoredCertificate, error) {
 	if s.getErr != nil {
 		return nil, s.getErr
@@ -86,6 +99,14 @@ func (s *errorStore) Revoke(ctx context.Context, id googleUuid.UUID, reason cryp
 
 func (s *errorStore) GetRevoked(ctx context.Context, issuerDN string) ([]*cryptoutilCAStorage.StoredCertificate, error) {
 	return s.inner.GetRevoked(ctx, issuerDN)
+}
+
+func (s *errorStore) GetRevokedByIssuerKeyID(ctx context.Context, issuerKeyID string) ([]*cryptoutilCAStorage.StoredCertificate, error) {
+	return s.inner.GetRevokedByIssuerKeyID(ctx, issuerKeyID)
+}
+
+func (s *errorStore) AllocateCRLNumber(ctx context.Context, issuerKeyID string) (*big.Int, error) {
+	return s.inner.AllocateCRLNumber(ctx, issuerKeyID)
 }
 
 func (s *errorStore) CountByStatus(ctx context.Context) (map[cryptoutilCAStorage.CertificateStatus]int64, error) {

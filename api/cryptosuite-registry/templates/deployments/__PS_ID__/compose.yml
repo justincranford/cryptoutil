@@ -317,9 +317,11 @@ services:
       timeout: __HEALTHCHECK_TIMEOUT__
       retries: __HEALTHCHECK_RETRIES__
     networks:
-      - __PS_ID__-network
-      - telemetry-network
-      - postgres-network
+      __PS_ID__-network: {}
+      telemetry-network:
+        aliases:
+          - __PS_ID__-app-postgres-1
+      postgres-network: {}
     deploy:
       resources:
         limits:

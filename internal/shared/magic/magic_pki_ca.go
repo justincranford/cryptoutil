@@ -23,12 +23,14 @@ const BitsPerByte = 8
 const CA_ITEMS = "ca_items"
 
 const (
-	PKICertificatesTable       = "pki_certificates"
-	PKIAuthoritiesTable        = "pki_authorities"
-	PKIDefaultAuthorityID      = "sm-kms-pki-development-authority"
-	PKICertificateStatusIndex  = "idx_pki_certificates_tenant_status"
-	PKICertificateSerialIndex  = "idx_pki_certificates_tenant_serial"
-	PKICertificateRequestIndex = "idx_pki_certificates_tenant_request"
+	PKICertificatesTable             = "pki_certificates"
+	PKIAuthoritiesTable              = "pki_authorities"
+	PKICRLSequencesTable             = "pki_crl_sequences"
+	PKIDefaultAuthorityID            = "sm-kms-pki-development-authority"
+	PKICertificateStatusIndex        = "idx_pki_certificates_tenant_status"
+	PKICertificateSerialIndex        = "idx_pki_certificates_tenant_serial"
+	PKICertificateRequestLegacyIndex = "idx_pki_certificates_tenant_request"
+	PKICertificateRequestIndex       = "idx_pki_certificates_tenant_request_unique"
 )
 
 // PKI CA hierarchy and status labels.

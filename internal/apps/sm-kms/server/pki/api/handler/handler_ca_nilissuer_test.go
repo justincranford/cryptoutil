@@ -301,13 +301,13 @@ func TestGetEnrollmentStatusHandler(t *testing.T) {
 		return handler.GetEnrollmentStatus(c, id)
 	})
 
-	t.Run("Found", func(t *testing.T) {
+	t.Run("TrackerOnly", func(t *testing.T) {
 		t.Parallel()
 
 		req := httptest.NewRequest(http.MethodGet, "/enroll/"+requestID.String(), nil)
 		resp, testErr := app.Test(req, -1)
 		require.NoError(t, testErr)
-		require.Equal(t, fiber.StatusOK, resp.StatusCode)
+		require.Equal(t, fiber.StatusNotFound, resp.StatusCode)
 
 		require.NoError(t, resp.Body.Close())
 	})

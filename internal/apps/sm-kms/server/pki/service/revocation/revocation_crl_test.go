@@ -2,6 +2,10 @@
 package revocation
 
 import (
+	"context"
+	"crypto/x509"
+	"encoding/hex"
+	"errors"
 	"math/big"
 	"testing"
 	"time"
@@ -54,3 +58,65 @@ func TestCRLService_GetRevokedCertificates(t *testing.T) {
 	revoked = svc.GetRevokedCertificates()
 	require.Len(t, revoked, 2)
 }
+
+func TestCRLService_UsesDurableIssuerScopedNumbers(t *testing.T) {
+	t.Parallel()
+
+	caCert, caKey := createTestCA(t)
+
+	var (
+		allocatedIssuerKeyID string
+		allocationCount      int64
+	)
+
+	service, err := NewCRLService(&CRLConfig{
+		Issuer:     caCert,
+		PrivateKey: caKey,
+		Provider:   cryptoutilCACrypto.NewSoftwareProvider(),
+		Validity:   time.Hour,
+		AllocateCRLNumber: func(ctx context.Context, issuerKeyID string) (*big.Int, error) {
+			require.Equal(t, "allocator-context", ctx.Value(testContextKey{}))
+
+			allocatedIssuerKeyID = issuerKeyID
+			allocationCount++
+
+			return big.NewInt(40 + allocationCount), nil
+		},
+	})
+	require.NoError(t, err)
+
+	ctx := context.WithValue(context.Background(), testContextKey{}, "allocator-context")
+
+	for expected := int64(41); expected <= 42; expected++ {
+		crlDER, generateErr := service.GenerateCRLWithRevokedCertificatesContext(ctx, nil)
+		require.NoError(t, generateErr)
+
+		crl, parseErr := x509.ParseRevocationList(crlDER)
+		require.NoError(t, parseErr)
+		require.Equal(t, big.NewInt(expected), crl.Number)
+	}
+
+	require.Equal(t, hex.EncodeToString(caCert.SubjectKeyId), allocatedIssuerKeyID)
+	require.Equal(t, int64(2), allocationCount)
+}
+
+func TestCRLService_DurableNumberAllocationFailureIsReturned(t *testing.T) {
+	t.Parallel()
+
+	caCert, caKey := createTestCA(t)
+	service, err := NewCRLService(&CRLConfig{
+		Issuer:     caCert,
+		PrivateKey: caKey,
+		Provider:   cryptoutilCACrypto.NewSoftwareProvider(),
+		Validity:   time.Hour,
+		AllocateCRLNumber: func(context.Context, string) (*big.Int, error) {
+			return nil, errors.New("sequence store unavailable")
+		},
+	})
+	require.NoError(t, err)
+
+	_, err = service.GenerateCRLContext(context.Background())
+	require.ErrorContains(t, err, "sequence store unavailable")
+}
+
+type testContextKey struct{}

@@ -55,12 +55,17 @@ func (h *Handler) lookupCertificateBySerial(ctx context.Context, serialNumber *b
 func (h *Handler) lookupCertificateStatusBySerial(
 	ctx context.Context,
 	serialNumber *big.Int,
+	issuerKeyID string,
 ) (*x509.Certificate, *cryptoutilCAServiceRevocation.RevokedCertificate, error) {
 	if serialNumber == nil {
 		return nil, nil, fmt.Errorf("serial number is required")
 	}
 
-	storedCert, err := h.storage.GetBySerialNumber(ctx, serialNumber.Text(cryptoutilSharedMagic.HexBase))
+	storedCert, err := h.storage.GetBySerialNumberForIssuer(
+		ctx,
+		serialNumber.Text(cryptoutilSharedMagic.HexBase),
+		issuerKeyID,
+	)
 	if errors.Is(err, cryptoutilCAStorage.ErrCertificateNotFound) {
 		return nil, nil, nil
 	}
@@ -244,7 +249,7 @@ func (h *Handler) urisToStrings(uris []*url.URL) []string {
 }
 
 // buildEnrollmentResponse constructs the enrollment response.
-func (h *Handler) buildEnrollmentResponse(issued *cryptoutilCAServiceIssuer.IssuedCertificate) *cryptoutilApiCaServer.EnrollmentResponse {
+func (h *Handler) buildEnrollmentResponse(issued *cryptoutilCAServiceIssuer.IssuedCertificate, requestID googleUuid.UUID) *cryptoutilApiCaServer.EnrollmentResponse {
 	certPEM := string(issued.CertificatePEM)
 	chainPEM := string(issued.ChainPEM)
 
@@ -255,7 +260,7 @@ func (h *Handler) buildEnrollmentResponse(issued *cryptoutilCAServiceIssuer.Issu
 	subject := h.certSubjectToAPI(issued.Certificate)
 
 	return &cryptoutilApiCaServer.EnrollmentResponse{
-		RequestID: googleUuid.New(),
+		RequestID: requestID,
 		Status:    cryptoutilApiCaServer.Issued,
 		Certificate: cryptoutilApiCaServer.IssuedCertificate{
 			SerialNumber:      serialNumber,

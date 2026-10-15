@@ -153,9 +153,11 @@ func TestIssuer_Issue_TLSServer(t *testing.T) {
 	issuingCA := createTestIssuingCA(t, provider)
 
 	caConfig := &IssuingCAConfig{
-		Name:        testIssuerDisplayName,
-		Certificate: issuingCA.Certificate,
-		PrivateKey:  issuingCA.PrivateKey,
+		Name:                  testIssuerDisplayName,
+		Certificate:           issuingCA.Certificate,
+		PrivateKey:            issuingCA.PrivateKey,
+		CRLDistributionPoints: []string{"https://pki.example.test/pki/cas/test-authority/crl"},
+		OCSPServer:            []string{"https://pki.example.test/pki/ocsp/test-authority"},
 	}
 
 	issuer, err := NewIssuer(provider, caConfig)
@@ -194,6 +196,8 @@ func TestIssuer_Issue_TLSServer(t *testing.T) {
 	require.Contains(t, cert.DNSNames, testWebServerHostname)
 	require.Contains(t, cert.DNSNames, "example.com")
 	require.False(t, cert.IsCA)
+	require.Equal(t, caConfig.CRLDistributionPoints, cert.CRLDistributionPoints)
+	require.Equal(t, caConfig.OCSPServer, cert.OCSPServer)
 
 	// Verify audit entry.
 	require.Equal(t, "certificate_issuance", audit.Operation)

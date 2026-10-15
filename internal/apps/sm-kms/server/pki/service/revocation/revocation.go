@@ -3,6 +3,7 @@
 package revocation
 
 import (
+	"context"
 	"crypto"
 	crand "crypto/rand"
 	"crypto/x509"
@@ -11,8 +12,6 @@ import (
 	"math/big"
 	"sync"
 	"time"
-
-	"golang.org/x/crypto/ocsp"
 
 	cryptoutilCACrypto "cryptoutil/internal/apps/sm-kms/server/pki/crypto"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
@@ -83,6 +82,10 @@ type CRLConfig struct {
 
 	// CRLNumber tracks the CRL sequence.
 	CRLNumber *big.Int
+
+	// AllocateCRLNumber durably allocates the next number for the issuer key ID.
+	// Production deployments use this to coordinate CRL generation across instances.
+	AllocateCRLNumber func(context.Context, string) (*big.Int, error)
 }
 
 // CRLService generates Certificate Revocation Lists.
@@ -119,7 +122,7 @@ func NewCRLService(config *CRLConfig) (*CRLService, error) {
 	return &CRLService{
 		config:           config,
 		revokedCerts:     make([]RevokedCertificate, 0),
-		currentCRLNumber: crlNumber,
+		currentCRLNumber: new(big.Int).Set(crlNumber),
 	}, nil
 }
 
@@ -164,21 +167,55 @@ func (s *CRLService) IsRevoked(serialNumber *big.Int) (bool, *RevokedCertificate
 
 // GenerateCRL creates a new CRL.
 func (s *CRLService) GenerateCRL() ([]byte, error) {
+	return s.GenerateCRLContext(context.Background())
+}
+
+// GenerateCRLContext creates a CRL and allocates its number using ctx when a durable
+// allocator is configured.
+func (s *CRLService) GenerateCRLContext(ctx context.Context) ([]byte, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	return s.generateCRL(s.revokedCerts)
+	return s.generateCRL(ctx, s.revokedCerts)
 }
 
 // GenerateCRLWithRevokedCertificates creates a CRL from persisted revocation records.
 func (s *CRLService) GenerateCRLWithRevokedCertificates(revokedCerts []RevokedCertificate) ([]byte, error) {
+	return s.GenerateCRLWithRevokedCertificatesContext(context.Background(), revokedCerts)
+}
+
+// GenerateCRLWithRevokedCertificatesContext creates a CRL from persisted revocation
+// records, allocating its number from the configured durable issuer sequence when present.
+func (s *CRLService) GenerateCRLWithRevokedCertificatesContext(ctx context.Context, revokedCerts []RevokedCertificate) ([]byte, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	return s.generateCRL(revokedCerts)
+	return s.generateCRL(ctx, revokedCerts)
 }
 
-func (s *CRLService) generateCRL(revokedCerts []RevokedCertificate) ([]byte, error) {
+func (s *CRLService) generateCRL(ctx context.Context, revokedCerts []RevokedCertificate) ([]byte, error) {
+	if ctx == nil {
+		return nil, fmt.Errorf("context is required")
+	}
+
+	crlNumber := new(big.Int).Set(s.currentCRLNumber)
+	if s.config.AllocateCRLNumber != nil {
+		if len(s.config.Issuer.SubjectKeyId) == 0 {
+			return nil, fmt.Errorf("issuer subject key identifier is required for durable CRL numbering")
+		}
+
+		allocatedNumber, err := s.config.AllocateCRLNumber(ctx, fmt.Sprintf("%x", s.config.Issuer.SubjectKeyId))
+		if err != nil {
+			return nil, fmt.Errorf("failed to allocate durable CRL number: %w", err)
+		}
+
+		if allocatedNumber == nil || allocatedNumber.Sign() <= 0 {
+			return nil, fmt.Errorf("durable CRL allocator returned an invalid sequence number")
+		}
+
+		crlNumber = new(big.Int).Set(allocatedNumber)
+	}
+
 	now := time.Now().UTC()
 	nextUpdate := now.Add(s.config.Validity)
 
@@ -204,7 +241,7 @@ func (s *CRLService) generateCRL(revokedCerts []RevokedCertificate) ([]byte, err
 
 	// Build CRL template.
 	template := &x509.RevocationList{
-		Number:                    s.currentCRLNumber,
+		Number:                    crlNumber,
 		ThisUpdate:                now,
 		NextUpdate:                nextUpdate,
 		RevokedCertificateEntries: revokedList,
@@ -217,8 +254,9 @@ func (s *CRLService) generateCRL(revokedCerts []RevokedCertificate) ([]byte, err
 		return nil, fmt.Errorf("failed to create CRL: %w", err)
 	}
 
-	// Increment CRL number for next generation.
-	s.currentCRLNumber = new(big.Int).Add(s.currentCRLNumber, big.NewInt(1))
+	if s.config.AllocateCRLNumber == nil {
+		s.currentCRLNumber = new(big.Int).Add(crlNumber, big.NewInt(1))
+	}
 
 	return crlDER, nil
 }
@@ -233,9 +271,33 @@ func (s *CRLService) GenerateCRLPEM() ([]byte, error) {
 	return encodeCRLPEM(crlDER), nil
 }
 
+// GenerateCRLPEMContext creates a PEM CRL using the context-aware durable allocator.
+func (s *CRLService) GenerateCRLPEMContext(ctx context.Context) ([]byte, error) {
+	crlDER, err := s.GenerateCRLContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return encodeCRLPEM(crlDER), nil
+}
+
 // GenerateCRLPEMWithRevokedCertificates creates a PEM CRL from persisted revocation records.
 func (s *CRLService) GenerateCRLPEMWithRevokedCertificates(revokedCerts []RevokedCertificate) ([]byte, error) {
 	crlDER, err := s.GenerateCRLWithRevokedCertificates(revokedCerts)
+	if err != nil {
+		return nil, err
+	}
+
+	return encodeCRLPEM(crlDER), nil
+}
+
+// GenerateCRLPEMWithRevokedCertificatesContext creates a PEM CRL from persisted
+// revocation records using a context-aware durable allocator.
+func (s *CRLService) GenerateCRLPEMWithRevokedCertificatesContext(
+	ctx context.Context,
+	revokedCerts []RevokedCertificate,
+) ([]byte, error) {
+	crlDER, err := s.GenerateCRLWithRevokedCertificatesContext(ctx, revokedCerts)
 	if err != nil {
 		return nil, err
 	}
@@ -259,210 +321,6 @@ func (s *CRLService) GetRevokedCertificates() []RevokedCertificate {
 	copy(result, s.revokedCerts)
 
 	return result
-}
-
-// OCSPConfig configures OCSP response generation.
-type OCSPConfig struct {
-	// Issuer is the CA certificate.
-	Issuer *x509.Certificate
-
-	// Responder is the OCSP responder certificate.
-	Responder *x509.Certificate
-
-	// ResponderKey is the OCSP responder's private key.
-	ResponderKey crypto.Signer
-
-	// Provider handles cryptographic operations.
-	Provider cryptoutilCACrypto.Provider
-
-	// Validity is how long the OCSP response is valid.
-	Validity time.Duration
-}
-
-// OCSPService generates OCSP responses.
-type OCSPService struct {
-	config     *OCSPConfig
-	crlService *CRLService
-	mu         sync.RWMutex
-}
-
-// NewOCSPService creates a new OCSP service.
-func NewOCSPService(config *OCSPConfig, crlService *CRLService) (*OCSPService, error) {
-	if config == nil {
-		return nil, fmt.Errorf(cryptoutilSharedMagic.PKIErrorConfigRequired)
-	}
-
-	if config.Issuer == nil {
-		return nil, fmt.Errorf(cryptoutilSharedMagic.PKIErrorIssuerCertificateRequired)
-	}
-
-	if config.Responder == nil {
-		return nil, fmt.Errorf("responder certificate is required")
-	}
-
-	if config.ResponderKey == nil {
-		return nil, fmt.Errorf("responder private key is required")
-	}
-
-	if config.Provider == nil {
-		return nil, fmt.Errorf(cryptoutilSharedMagic.PKIErrorCryptoProviderRequired)
-	}
-
-	if crlService == nil {
-		return nil, fmt.Errorf("CRL service is required")
-	}
-
-	return &OCSPService{
-		config:     config,
-		crlService: crlService,
-	}, nil
-}
-
-// CreateResponse generates an OCSP response for a certificate.
-func (s *OCSPService) CreateResponse(cert *x509.Certificate) ([]byte, error) {
-	if cert == nil {
-		return nil, fmt.Errorf("certificate is required")
-	}
-
-	revoked, revokedCert := s.crlService.IsRevoked(cert.SerialNumber)
-	if !revoked {
-		revokedCert = nil
-	}
-
-	return s.CreateResponseWithRevocation(cert, revokedCert)
-}
-
-// CreateResponseWithRevocation generates an OCSP response using the supplied persisted status.
-func (s *OCSPService) CreateResponseWithRevocation(cert *x509.Certificate, revokedCert *RevokedCertificate) ([]byte, error) {
-	if cert == nil {
-		return nil, fmt.Errorf("certificate is required")
-	}
-
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-
-	now := time.Now().UTC()
-	nextUpdate := now.Add(s.config.Validity)
-
-	// Check revocation status.
-	status := ocsp.Good
-
-	var (
-		revokedAt        time.Time
-		revocationReason int
-	)
-
-	if revokedCert != nil {
-		status = ocsp.Revoked
-		revokedAt = revokedCert.RevocationTime
-		revocationReason = int(revokedCert.Reason)
-	}
-
-	// Build OCSP response template.
-	template := ocsp.Response{
-		Status:           status,
-		SerialNumber:     cert.SerialNumber,
-		Certificate:      s.config.Responder,
-		ThisUpdate:       now,
-		NextUpdate:       nextUpdate,
-		RevokedAt:        revokedAt,
-		RevocationReason: revocationReason,
-	}
-
-	// Sign the response.
-	responseBytes, err := ocsp.CreateResponse(
-		s.config.Issuer,
-		s.config.Responder,
-		template,
-		s.config.ResponderKey,
-	)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create OCSP response: %w", err)
-	}
-
-	return responseBytes, nil
-}
-
-// ParseRequest parses an OCSP request.
-func (s *OCSPService) ParseRequest(requestBytes []byte) (*ocsp.Request, error) {
-	if len(requestBytes) == 0 {
-		return nil, fmt.Errorf("empty OCSP request")
-	}
-
-	request, err := ocsp.ParseRequest(requestBytes)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse OCSP request: %w", err)
-	}
-
-	return request, nil
-}
-
-// RespondToRequest processes an OCSP request and returns a response.
-func (s *OCSPService) RespondToRequest(requestBytes []byte, certLookup func(serialNumber *big.Int) *x509.Certificate) ([]byte, error) {
-	request, err := s.ParseRequest(requestBytes)
-	if err != nil {
-		return nil, err
-	}
-
-	// Look up the certificate.
-	cert := certLookup(request.SerialNumber)
-	if cert == nil {
-		// Return unknown status for certificate not found.
-		return s.createUnknownResponse(request.SerialNumber)
-	}
-
-	return s.CreateResponse(cert)
-}
-
-// RespondToRequestWithStatus processes an OCSP request using persisted certificate status.
-func (s *OCSPService) RespondToRequestWithStatus(
-	requestBytes []byte,
-	certificateLookup func(serialNumber *big.Int) (*x509.Certificate, *RevokedCertificate, error),
-) ([]byte, error) {
-	if certificateLookup == nil {
-		return nil, fmt.Errorf("certificate status lookup is required")
-	}
-
-	request, err := s.ParseRequest(requestBytes)
-	if err != nil {
-		return nil, err
-	}
-
-	certificate, revokedCert, err := certificateLookup(request.SerialNumber)
-	if err != nil {
-		return nil, fmt.Errorf("failed to look up certificate status: %w", err)
-	}
-
-	if certificate == nil {
-		return s.createUnknownResponse(request.SerialNumber)
-	}
-
-	return s.CreateResponseWithRevocation(certificate, revokedCert)
-}
-
-// createUnknownResponse creates an OCSP response for an unknown certificate.
-func (s *OCSPService) createUnknownResponse(serialNumber *big.Int) ([]byte, error) {
-	now := time.Now().UTC()
-
-	template := ocsp.Response{
-		Status:       ocsp.Unknown,
-		SerialNumber: serialNumber,
-		Certificate:  s.config.Responder,
-		ThisUpdate:   now,
-		NextUpdate:   now.Add(s.config.Validity),
-	}
-
-	responseBytes, err := ocsp.CreateResponse(
-		s.config.Issuer,
-		s.config.Responder,
-		template,
-		s.config.ResponderKey,
-	)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create unknown OCSP response: %w", err)
-	}
-
-	return responseBytes, nil
 }
 
 // RevocationEntry represents a revocation record for storage.

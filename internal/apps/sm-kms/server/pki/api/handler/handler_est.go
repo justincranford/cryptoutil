@@ -277,10 +277,19 @@ func (h *Handler) HandleOCSP(c *fiber.Ctx) error {
 		return h.ocspErrorResponse(c, fiber.StatusBadRequest)
 	}
 
+	if h.issuer == nil || h.issuer.GetCAConfig() == nil || h.issuer.GetCAConfig().Certificate == nil {
+		return h.ocspErrorResponse(c, fiber.StatusServiceUnavailable)
+	}
+
+	issuerKeyID := fmt.Sprintf("%x", h.issuer.GetCAConfig().Certificate.SubjectKeyId)
+	if issuerKeyID == "" {
+		return h.ocspErrorResponse(c, fiber.StatusServiceUnavailable)
+	}
+
 	// Create a certificate status lookup function that captures the context.
 	ctx := c.UserContext()
 	lookupFunc := func(serialNumber *big.Int) (*x509.Certificate, *cryptoutilCAServiceRevocation.RevokedCertificate, error) {
-		return h.lookupCertificateStatusBySerial(ctx, serialNumber)
+		return h.lookupCertificateStatusBySerial(ctx, serialNumber, issuerKeyID)
 	}
 
 	// Process the OCSP request using the persisted certificate status.

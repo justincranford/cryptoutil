@@ -317,9 +317,11 @@ services:
       timeout: 10s
       retries: 3
     networks:
-      - skeleton-template-network
-      - telemetry-network
-      - postgres-network
+      skeleton-template-network: {}
+      telemetry-network:
+        aliases:
+          - skeleton-template-app-postgres-1
+      postgres-network: {}
     deploy:
       resources:
         limits:

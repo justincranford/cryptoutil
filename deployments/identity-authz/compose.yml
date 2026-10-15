@@ -317,9 +317,11 @@ services:
       timeout: 10s
       retries: 3
     networks:
-      - identity-authz-network
-      - telemetry-network
-      - postgres-network
+      identity-authz-network: {}
+      telemetry-network:
+        aliases:
+          - identity-authz-app-postgres-1
+      postgres-network: {}
     deploy:
       resources:
         limits:

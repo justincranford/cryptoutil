@@ -11,6 +11,7 @@ import (
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/pem"
+	"fmt"
 	"io"
 	"math/big"
 	http "net/http"
@@ -58,6 +59,7 @@ func TestGetCRLUsesPersistedRevocations(t *testing.T) {
 		ID:               certificateID,
 		SerialNumber:     serialNumber.Text(cryptoutilSharedMagic.HexBase),
 		IssuerDN:         caConfig.Certificate.Subject.String(),
+		AuthorityKeyID:   fmt.Sprintf("%x", caConfig.Certificate.SubjectKeyId),
 		Status:           cryptoutilCAStorage.StatusRevoked,
 		RevocationTime:   &revokedAt,
 		RevocationReason: &reason,
@@ -201,6 +203,7 @@ func newPersistedOCSPTestHandler(
 		SerialNumber:   leafCert.SerialNumber.Text(cryptoutilSharedMagic.HexBase),
 		SubjectDN:      leafCert.Subject.String(),
 		IssuerDN:       leafCert.Issuer.String(),
+		AuthorityKeyID: fmt.Sprintf("%x", leafCert.AuthorityKeyId),
 		NotBefore:      leafCert.NotBefore,
 		NotAfter:       leafCert.NotAfter,
 		Status:         status,

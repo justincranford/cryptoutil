@@ -8,6 +8,8 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
+	"math/big"
+	"strings"
 	"sync"
 	"time"
 
@@ -18,12 +20,15 @@ import (
 
 // Common errors.
 var (
-	ErrCertificateNotFound = errors.New("certificate not found")
-	ErrCertificateExists   = errors.New("certificate already exists")
-	ErrCertificateRevoked  = errors.New("certificate already revoked")
-	ErrInvalidCertificate  = errors.New("invalid certificate")
-	ErrStorageFull         = errors.New("storage capacity exceeded")
-	ErrAuthorityNotFound   = errors.New("PKI authority not found")
+	ErrCertificateNotFound  = errors.New("certificate not found")
+	ErrCertificateExists    = errors.New("certificate already exists")
+	ErrCertificateAmbiguous = errors.New("certificate lookup is ambiguous")
+	ErrCertificateRevoked   = errors.New("certificate already revoked")
+	ErrInvalidCertificate   = errors.New("invalid certificate")
+	ErrStorageFull          = errors.New("storage capacity exceeded")
+	ErrAuthorityNotFound    = errors.New("PKI authority not found")
+	ErrMultipleAuthorities  = errors.New("multiple PKI authorities are persisted")
+	ErrInvalidIssuerKeyID   = errors.New("issuer key identifier is required")
 )
 
 // CertificateStatus represents the status of a stored certificate.
@@ -56,27 +61,28 @@ const (
 
 // StoredCertificate represents a certificate in storage.
 type StoredCertificate struct {
-	ID               googleUuid.UUID   `json:"id" gorm:"type:text;primaryKey"`
-	TenantID         googleUuid.UUID   `json:"tenant_id" gorm:"type:text;not null;index:idx_pki_certificates_tenant_status,priority:1;uniqueIndex:idx_pki_certificates_tenant_serial,priority:1;index:idx_pki_certificates_tenant_request,priority:1"`
-	RequestID        googleUuid.UUID   `json:"request_id" gorm:"type:text;not null;index:idx_pki_certificates_tenant_request,priority:2"`
-	SerialNumber     string            `json:"serial_number" gorm:"not null;uniqueIndex:idx_pki_certificates_tenant_serial,priority:2"`
-	SubjectDN        string            `json:"subject_dn" gorm:"not null"`
-	IssuerDN         string            `json:"issuer_dn" gorm:"not null"`
-	NotBefore        time.Time         `json:"not_before" gorm:"not null"`
-	NotAfter         time.Time         `json:"not_after" gorm:"not null"`
-	Status           CertificateStatus `json:"status" gorm:"not null;index:idx_pki_certificates_tenant_status,priority:2"`
-	ProfileID        string            `json:"profile_id" gorm:"not null"`
-	RequesterID      string            `json:"requester_id" gorm:"not null"`
-	CertificatePEM   string            `json:"certificate_pem" gorm:"not null"`
-	CertificateDER   []byte            `json:"certificate_der"`
-	PublicKeyHash    string            `json:"public_key_hash" gorm:"not null"`
-	SubjectKeyID     string            `json:"subject_key_id" gorm:"not null"`
-	AuthorityKeyID   string            `json:"authority_key_id" gorm:"not null"`
-	RevocationTime   *time.Time        `json:"revocation_time,omitempty"`
-	RevocationReason *RevocationReason `json:"revocation_reason,omitempty"`
-	Metadata         map[string]string `json:"metadata" gorm:"serializer:json;not null"`
-	CreatedAt        time.Time         `json:"created_at" gorm:"not null;autoCreateTime"`
-	UpdatedAt        time.Time         `json:"updated_at" gorm:"not null;autoUpdateTime"`
+	ID                googleUuid.UUID   `json:"id" gorm:"type:text;primaryKey"`
+	TenantID          googleUuid.UUID   `json:"tenant_id" gorm:"type:text;not null;index:idx_pki_certificates_tenant_status,priority:1;uniqueIndex:idx_pki_certificates_tenant_serial,priority:1;uniqueIndex:idx_pki_certificates_tenant_request_unique,priority:1,where:request_id <> '00000000-0000-0000-0000-000000000000'"`
+	RequestID         googleUuid.UUID   `json:"request_id" gorm:"type:text;not null;uniqueIndex:idx_pki_certificates_tenant_request_unique,priority:2,where:request_id <> '00000000-0000-0000-0000-000000000000'"`
+	SerialNumber      string            `json:"serial_number" gorm:"not null;uniqueIndex:idx_pki_certificates_tenant_serial,priority:2"`
+	SubjectDN         string            `json:"subject_dn" gorm:"not null"`
+	IssuerDN          string            `json:"issuer_dn" gorm:"not null"`
+	IssuerAuthorityID string            `json:"issuer_authority_id" gorm:"not null;default:''"`
+	NotBefore         time.Time         `json:"not_before" gorm:"not null"`
+	NotAfter          time.Time         `json:"not_after" gorm:"not null"`
+	Status            CertificateStatus `json:"status" gorm:"not null;index:idx_pki_certificates_tenant_status,priority:2"`
+	ProfileID         string            `json:"profile_id" gorm:"not null"`
+	RequesterID       string            `json:"requester_id" gorm:"not null"`
+	CertificatePEM    string            `json:"certificate_pem" gorm:"not null"`
+	CertificateDER    []byte            `json:"certificate_der"`
+	PublicKeyHash     string            `json:"public_key_hash" gorm:"not null"`
+	SubjectKeyID      string            `json:"subject_key_id" gorm:"not null"`
+	AuthorityKeyID    string            `json:"authority_key_id" gorm:"not null"`
+	RevocationTime    *time.Time        `json:"revocation_time,omitempty"`
+	RevocationReason  *RevocationReason `json:"revocation_reason,omitempty"`
+	Metadata          map[string]string `json:"metadata" gorm:"serializer:json;not null"`
+	CreatedAt         time.Time         `json:"created_at" gorm:"not null;autoCreateTime"`
+	UpdatedAt         time.Time         `json:"updated_at" gorm:"not null;autoUpdateTime"`
 }
 
 func (StoredCertificate) TableName() string {
@@ -91,12 +97,26 @@ type StoredAuthority struct {
 	UpdatedAt           time.Time `gorm:"not null;autoUpdateTime"`
 }
 
+// StoredCRLSequence stores the last allocated issuer-scoped CRL number.
+type StoredCRLSequence struct {
+	IssuerKeyID string    `gorm:"type:text;primaryKey"`
+	Number      int64     `gorm:"type:bigint;not null"`
+	CreatedAt   time.Time `gorm:"not null;autoCreateTime"`
+	UpdatedAt   time.Time `gorm:"not null;autoUpdateTime"`
+}
+
+func (StoredCRLSequence) TableName() string {
+	return cryptoutilSharedMagic.PKICRLSequencesTable
+}
+
 func (StoredAuthority) TableName() string {
 	return cryptoutilSharedMagic.PKIAuthoritiesTable
 }
 
 type AuthorityStore interface {
 	Get(ctx context.Context, id string) (*StoredAuthority, error)
+	GetAny(ctx context.Context) (*StoredAuthority, error)
+	List(ctx context.Context) ([]*StoredAuthority, error)
 	Create(ctx context.Context, authority *StoredAuthority) error
 }
 
@@ -123,6 +143,9 @@ type Store interface {
 	// GetBySerialNumber retrieves a certificate by serial number.
 	GetBySerialNumber(ctx context.Context, serialNumber string) (*StoredCertificate, error)
 
+	// GetBySerialNumberForIssuer retrieves issuer-scoped status without tenant context.
+	GetBySerialNumberForIssuer(ctx context.Context, serialNumber, issuerKeyID string) (*StoredCertificate, error)
+
 	// GetByRequestID retrieves a certificate by enrollment request ID.
 	GetByRequestID(ctx context.Context, requestID googleUuid.UUID) (*StoredCertificate, error)
 
@@ -141,6 +164,12 @@ type Store interface {
 	// GetRevoked returns all revoked certificates for CRL generation.
 	GetRevoked(ctx context.Context, issuerDN string) ([]*StoredCertificate, error)
 
+	// GetRevokedByIssuerKeyID returns all tenant revocations for a single certificate issuer.
+	GetRevokedByIssuerKeyID(ctx context.Context, issuerKeyID string) ([]*StoredCertificate, error)
+
+	// AllocateCRLNumber atomically and durably allocates the next issuer-scoped CRL number.
+	AllocateCRLNumber(ctx context.Context, issuerKeyID string) (*big.Int, error)
+
 	// CountByStatus returns certificate counts by status.
 	CountByStatus(ctx context.Context) (map[CertificateStatus]int64, error)
 
@@ -153,6 +182,7 @@ type MemoryStore struct {
 	certificates map[googleUuid.UUID]*StoredCertificate
 	bySerial     map[string]googleUuid.UUID
 	byRequestID  map[googleUuid.UUID]googleUuid.UUID
+	crlSequences map[string]*big.Int
 	mu           sync.RWMutex
 }
 
@@ -162,6 +192,7 @@ func NewMemoryStore() *MemoryStore {
 		certificates: make(map[googleUuid.UUID]*StoredCertificate),
 		bySerial:     make(map[string]googleUuid.UUID),
 		byRequestID:  make(map[googleUuid.UUID]googleUuid.UUID),
+		crlSequences: make(map[string]*big.Int),
 	}
 }
 
@@ -184,7 +215,7 @@ func (s *MemoryStore) Store(_ context.Context, cert *StoredCertificate) error {
 
 	if cert.RequestID != googleUuid.Nil {
 		if _, exists := s.byRequestID[cert.RequestID]; exists {
-			return fmt.Errorf("request ID already exists: %s", cert.RequestID)
+			return ErrCertificateExists
 		}
 	}
 
@@ -231,6 +262,37 @@ func (s *MemoryStore) GetBySerialNumber(_ context.Context, serialNumber string) 
 	}
 
 	return cert, nil
+}
+
+func (s *MemoryStore) GetBySerialNumberForIssuer(_ context.Context, serialNumber, issuerKeyID string) (*StoredCertificate, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	issuerKeyID = strings.ToLower(strings.TrimSpace(issuerKeyID))
+	if issuerKeyID == "" {
+		return nil, ErrInvalidIssuerKeyID
+	}
+
+	var found *StoredCertificate
+
+	for _, certificate := range s.certificates {
+		if !strings.EqualFold(certificate.SerialNumber, serialNumber) ||
+			!strings.EqualFold(certificate.AuthorityKeyID, issuerKeyID) {
+			continue
+		}
+
+		if found != nil {
+			return nil, ErrCertificateAmbiguous
+		}
+
+		found = certificate
+	}
+
+	if found == nil {
+		return nil, ErrCertificateNotFound
+	}
+
+	return found, nil
 }
 
 func (s *MemoryStore) GetByRequestID(_ context.Context, requestID googleUuid.UUID) (*StoredCertificate, error) {
@@ -323,8 +385,15 @@ func (s *MemoryStore) Update(_ context.Context, cert *StoredCertificate) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	if _, exists := s.certificates[cert.ID]; !exists {
+	existing, exists := s.certificates[cert.ID]
+	if !exists {
 		return ErrCertificateNotFound
+	}
+
+	if existing.Status == StatusRevoked {
+		cert.Status = existing.Status
+		cert.RevocationTime = existing.RevocationTime
+		cert.RevocationReason = existing.RevocationReason
 	}
 
 	cert.UpdatedAt = time.Now().UTC()
@@ -375,22 +444,6 @@ func (s *MemoryStore) Revoke(_ context.Context, id googleUuid.UUID, reason Revoc
 	cert.UpdatedAt = now
 
 	return nil
-}
-
-// GetRevoked returns all revoked certificates for CRL generation.
-func (s *MemoryStore) GetRevoked(_ context.Context, issuerDN string) ([]*StoredCertificate, error) {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-
-	var results []*StoredCertificate
-
-	for _, cert := range s.certificates {
-		if cert.Status == StatusRevoked && (issuerDN == "" || cert.IssuerDN == issuerDN) {
-			results = append(results, cert)
-		}
-	}
-
-	return results, nil
 }
 
 // CountByStatus returns certificate counts by status.

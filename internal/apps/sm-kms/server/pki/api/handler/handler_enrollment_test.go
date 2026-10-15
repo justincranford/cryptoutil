@@ -21,6 +21,7 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	fiber "github.com/gofiber/fiber/v2"
+	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/crypto/ocsp"
 
@@ -110,12 +111,29 @@ func TestSubmitEnrollment_WithOverrides(t *testing.T) {
 
 	var enrollmentResponse cryptoutilApiCaServer.EnrollmentResponse
 	require.NoError(t, json.NewDecoder(resp.Body).Decode(&enrollmentResponse))
+	require.NotEqual(t, googleUuid.UUID{}, enrollmentResponse.RequestID)
 	storedCertificate, err := mockStorage.GetByRequestID(context.Background(), enrollmentResponse.RequestID)
 	require.NoError(t, err)
 	require.Equal(t, enrollmentResponse.Certificate.SerialNumber, storedCertificate.SerialNumber)
 	require.Equal(t, enrollmentResponse.Certificate.CertificatePEM, storedCertificate.CertificatePEM)
 
 	require.NoError(t, resp.Body.Close())
+
+	secondRequest, err := http.NewRequestWithContext(t.Context(), http.MethodPost, "/enrollments", bytes.NewReader(bodyBytes))
+	require.NoError(t, err)
+
+	secondRequest.Host = cryptoutilSharedMagic.HostnameLocalhost
+	secondRequest.Header.Set("Content-Type", testContentTypeJSON)
+
+	secondResponse, err := app.Test(secondRequest, -1)
+	require.NoError(t, err)
+	require.Equal(t, fiber.StatusCreated, secondResponse.StatusCode)
+
+	var secondEnrollmentResponse cryptoutilApiCaServer.EnrollmentResponse
+	require.NoError(t, json.NewDecoder(secondResponse.Body).Decode(&secondEnrollmentResponse))
+	require.NotEqual(t, googleUuid.UUID{}, secondEnrollmentResponse.RequestID)
+	require.NotEqual(t, enrollmentResponse.RequestID, secondEnrollmentResponse.RequestID)
+	require.NoError(t, secondResponse.Body.Close())
 }
 
 // TestRevokeCertificate_EmptySerial tests RevokeCertificate with empty serial number.

@@ -154,7 +154,13 @@ func (h *Handler) GetCRL(c *fiber.Ctx, caID string, params cryptoutilApiCaServer
 		return h.errorResponse(c, fiber.StatusNotFound, "not_found", "CA not found")
 	}
 
-	storedRevocations, err := h.storage.GetRevoked(c.UserContext(), caConfig.Certificate.Subject.String())
+	if len(caConfig.Certificate.SubjectKeyId) == 0 {
+		return h.errorResponse(c, fiber.StatusInternalServerError, "ca_config_error", "CA subject key identifier is not available")
+	}
+
+	issuerKeyID := fmt.Sprintf("%x", caConfig.Certificate.SubjectKeyId)
+
+	storedRevocations, err := h.storage.GetRevokedByIssuerKeyID(c.UserContext(), issuerKeyID)
 	if err != nil {
 		return h.errorResponse(c, fiber.StatusInternalServerError, "storage_error", err.Error())
 	}
@@ -186,7 +192,7 @@ func (h *Handler) GetCRL(c *fiber.Ctx, caID string, params cryptoutilApiCaServer
 	// Generate the CRL based on format.
 	switch format {
 	case "pem":
-		crlPEM, err := crlService.GenerateCRLPEMWithRevokedCertificates(revokedCertificates)
+		crlPEM, err := crlService.GenerateCRLPEMWithRevokedCertificatesContext(c.UserContext(), revokedCertificates)
 		if err != nil {
 			return h.errorResponse(c, fiber.StatusInternalServerError, "crl_error", err.Error())
 		}
@@ -201,7 +207,7 @@ func (h *Handler) GetCRL(c *fiber.Ctx, caID string, params cryptoutilApiCaServer
 		return nil
 	default:
 		// DER format.
-		crlDER, err := crlService.GenerateCRLWithRevokedCertificates(revokedCertificates)
+		crlDER, err := crlService.GenerateCRLWithRevokedCertificatesContext(c.UserContext(), revokedCertificates)
 		if err != nil {
 			return h.errorResponse(c, fiber.StatusInternalServerError, "crl_error", err.Error())
 		}

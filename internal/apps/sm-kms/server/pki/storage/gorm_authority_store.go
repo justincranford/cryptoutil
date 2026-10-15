@@ -40,6 +40,39 @@ func (s *GORMAuthorityStore) Get(ctx context.Context, id string) (*StoredAuthori
 	return &authority, nil
 }
 
+func (s *GORMAuthorityStore) GetAny(ctx context.Context) (*StoredAuthority, error) {
+	if ctx == nil {
+		return nil, fmt.Errorf("context is required")
+	}
+
+	var authorities []StoredAuthority
+	if err := s.db.WithContext(ctx).Order("id ASC").Limit(2).Find(&authorities).Error; err != nil {
+		return nil, fmt.Errorf("failed to list persisted PKI authorities: %w", err)
+	}
+
+	switch len(authorities) {
+	case 0:
+		return nil, ErrAuthorityNotFound
+	case 1:
+		return &authorities[0], nil
+	default:
+		return nil, ErrMultipleAuthorities
+	}
+}
+
+func (s *GORMAuthorityStore) List(ctx context.Context) ([]*StoredAuthority, error) {
+	if ctx == nil {
+		return nil, fmt.Errorf("context is required")
+	}
+
+	var authorities []*StoredAuthority
+	if err := s.db.WithContext(ctx).Order("id ASC").Find(&authorities).Error; err != nil {
+		return nil, fmt.Errorf("failed to list persisted PKI authorities: %w", err)
+	}
+
+	return authorities, nil
+}
+
 func (s *GORMAuthorityStore) Create(ctx context.Context, authority *StoredAuthority) error {
 	if ctx == nil {
 		return fmt.Errorf("context is required")

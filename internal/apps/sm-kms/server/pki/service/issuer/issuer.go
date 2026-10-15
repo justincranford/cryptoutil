@@ -29,6 +29,9 @@ type IssuingCAConfig struct {
 	// Name is the unique identifier for this issuing CA.
 	Name string
 
+	// AuthorityID is the stable persistence identity for this issuing authority.
+	AuthorityID string
+
 	// Certificate is the issuing CA's certificate.
 	Certificate *x509.Certificate
 
@@ -40,6 +43,10 @@ type IssuingCAConfig struct {
 
 	// CertProfile defines certificate policy for issued certificates.
 	CertProfile *cryptoutilCAProfileCertificate.Profile
+
+	// CRLDistributionPoints and OCSPServer advertise issuer-scoped revocation endpoints.
+	CRLDistributionPoints []string
+	OCSPServer            []string
 }
 
 // CertificateRequest represents a request for certificate issuance.
@@ -162,16 +169,18 @@ func (i *Issuer) Issue(req *CertificateRequest) (*IssuedCertificate, *AuditEntry
 
 	// Build certificate template.
 	template := &x509.Certificate{
-		SerialNumber:   serialNumber,
-		Subject:        resolved.DN,
-		NotBefore:      notBefore,
-		NotAfter:       notAfter,
-		KeyUsage:       keyUsage,
-		ExtKeyUsage:    extKeyUsage,
-		DNSNames:       resolved.DNSNames,
-		IPAddresses:    resolved.IPAddresses,
-		EmailAddresses: resolved.EmailAddresses,
-		URIs:           resolved.URIs,
+		SerialNumber:          serialNumber,
+		Subject:               resolved.DN,
+		NotBefore:             notBefore,
+		NotAfter:              notAfter,
+		KeyUsage:              keyUsage,
+		ExtKeyUsage:           extKeyUsage,
+		DNSNames:              resolved.DNSNames,
+		IPAddresses:           resolved.IPAddresses,
+		EmailAddresses:        resolved.EmailAddresses,
+		URIs:                  resolved.URIs,
+		CRLDistributionPoints: append([]string(nil), i.caConfig.CRLDistributionPoints...),
+		OCSPServer:            append([]string(nil), i.caConfig.OCSPServer...),
 	}
 
 	// Determine signature algorithm based on issuer key.

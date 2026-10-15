@@ -1,2 +1,14 @@
 # Secrets Manager Key Management Domain Configuration
 # Local development domain config for sm-kms.
+
+pki-authority:
+  id: sm-kms-pki-development-authority
+  common-name: sm-kms PKI Development CA
+  organization: [cryptoutil]
+  country: [US]
+  key-algorithm: ECDSA
+  ecdsa-curve: P-384
+  validity: 87600h
+  max-path-length: 2
+  crl-url: https://localhost:8000/pki/cas/sm-kms-pki-development-authority/crl
+  ocsp-url: https://localhost:8000/pki/ocsp/sm-kms-pki-development-authority

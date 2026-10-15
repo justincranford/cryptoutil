@@ -317,9 +317,11 @@ services:
       timeout: 10s
       retries: 3
     networks:
-      - identity-rp-network
-      - telemetry-network
-      - postgres-network
+      identity-rp-network: {}
+      telemetry-network:
+        aliases:
+          - identity-rp-app-postgres-1
+      postgres-network: {}
     deploy:
       resources:
         limits:

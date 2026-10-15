@@ -4,6 +4,7 @@ package handler
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	googleUuid "github.com/google/uuid"
 
@@ -32,7 +33,17 @@ func (h *Handler) storeIssuedCertificate(
 		return nil, fmt.Errorf("failed to prepare issued certificate for storage: %w", err)
 	}
 
+	if h.issuer == nil || h.issuer.GetCAConfig() == nil {
+		return nil, fmt.Errorf("issuing authority identity is not configured")
+	}
+
+	issuerAuthorityID := strings.TrimSpace(h.issuer.GetCAConfig().AuthorityID)
+	if issuerAuthorityID == "" {
+		return nil, fmt.Errorf("issuing authority identity is not configured")
+	}
+
 	certificate.SerialNumber = issued.SerialNumber
+	certificate.IssuerAuthorityID = issuerAuthorityID
 	certificate.CertificatePEM = string(issued.CertificatePEM)
 	certificate.PublicKeyHash = issued.Fingerprint
 	certificate.RequestID = requestID

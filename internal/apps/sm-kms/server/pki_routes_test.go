@@ -14,6 +14,11 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const (
+	testPKICRLRoutePath  = "/pki/cas/:caID/crl"
+	testPKIOCSPRoutePath = "/pki/ocsp"
+)
+
 func TestRegisterKMSRoutes_PKIEndpoints(t *testing.T) {
 	t.Parallel()
 
@@ -34,7 +39,7 @@ func TestRegisterKMSRoutes_PKIEndpoints(t *testing.T) {
 	}{
 		{method: fiber.MethodGet, path: "/pki/cas"},
 		{method: fiber.MethodGet, path: "/pki/cas/:caID"},
-		{method: fiber.MethodGet, path: "/pki/cas/:caID/crl"},
+		{method: fiber.MethodGet, path: testPKICRLRoutePath},
 		{method: fiber.MethodPost, path: "/pki/enrollments"},
 		{method: fiber.MethodGet, path: "/pki/enrollments/:requestID"},
 		{method: fiber.MethodGet, path: "/pki/certificates"},
@@ -43,7 +48,7 @@ func TestRegisterKMSRoutes_PKIEndpoints(t *testing.T) {
 		{method: fiber.MethodPost, path: "/pki/certificates/:serialNumber/revoke"},
 		{method: fiber.MethodGet, path: "/pki/profiles"},
 		{method: fiber.MethodGet, path: "/pki/profiles/:profileID"},
-		{method: fiber.MethodPost, path: "/pki/ocsp"},
+		{method: fiber.MethodPost, path: testPKIOCSPRoutePath},
 		{method: fiber.MethodGet, path: "/pki/est/cacerts"},
 		{method: fiber.MethodPost, path: "/pki/est/simpleenroll"},
 		{method: fiber.MethodPost, path: "/pki/est/simplereenroll"},
@@ -75,6 +80,26 @@ func TestRegisterKMSRoutes_PKIEndpoints(t *testing.T) {
 		}
 	}
 
+	for _, tc := range []struct {
+		method string
+		path   string
+	}{
+		{method: fiber.MethodGet, path: testPKICRLRoutePath},
+		{method: fiber.MethodPost, path: testPKIOCSPRoutePath},
+	} {
+		found := false
+
+		for _, route := range app.GetRoutes() {
+			if route.Method == tc.method && route.Path == tc.path {
+				found = true
+
+				break
+			}
+		}
+
+		require.True(t, found, "unauthenticated revocation route %s %s was not registered", tc.method, tc.path)
+	}
+
 	for _, prefix := range []string{
 		cryptoutilSharedMagic.DefaultPublicServiceAPIContextPath,
 		cryptoutilSharedMagic.DefaultPublicBrowserAPIContextPath,
@@ -89,4 +114,9 @@ func TestRegisterKMSRoutes_PKIEndpoints(t *testing.T) {
 			require.Equal(t, http.StatusOK, response.StatusCode)
 		})
 	}
+
+	response, err := app.Test(httptest.NewRequest(http.MethodGet, "/pki/cas/sm-kms/crl", nil), -1)
+	require.NoError(t, err)
+	t.Cleanup(func() { require.NoError(t, response.Body.Close()) })
+	require.Equal(t, http.StatusOK, response.StatusCode)
 }

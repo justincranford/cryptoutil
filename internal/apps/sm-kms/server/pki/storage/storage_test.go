@@ -5,6 +5,7 @@ import (
 	"context"
 	"crypto/x509"
 	"crypto/x509/pkix"
+	"math/big"
 	"testing"
 	"time"
 
@@ -351,6 +352,45 @@ func TestMemoryStore_GetRevoked(t *testing.T) {
 	revoked, err = store.GetRevoked(ctx, "CN=CA1")
 	require.NoError(t, err)
 	require.Len(t, revoked, 2)
+}
+
+func TestMemoryStore_IssuerScopedRevocationsAndCRLNumbers(t *testing.T) {
+	t.Parallel()
+
+	store := NewMemoryStore()
+	ctx := context.Background()
+
+	for i, issuerKeyID := range []string{"aabb", "AABB", "ccdd"} {
+		certificate := newTestCert(
+			"issuer-scope-memory-"+string(rune('a'+i)),
+			gormTestProfileID,
+			gormTestRequesterA,
+			"CN=shared",
+			newTestExpiration(),
+		)
+		certificate.AuthorityKeyID = issuerKeyID
+		certificate.Status = StatusRevoked
+		require.NoError(t, store.Store(ctx, certificate))
+	}
+
+	revoked, err := store.GetRevokedByIssuerKeyID(ctx, "aabb")
+	require.NoError(t, err)
+	require.Len(t, revoked, 2)
+
+	_, err = store.AllocateCRLNumber(ctx, " ")
+	require.ErrorIs(t, err, ErrInvalidIssuerKeyID)
+
+	first, err := store.AllocateCRLNumber(ctx, "aabb")
+	require.NoError(t, err)
+	require.Equal(t, big.NewInt(1), first)
+
+	second, err := store.AllocateCRLNumber(ctx, "AABB")
+	require.NoError(t, err)
+	require.Equal(t, big.NewInt(2), second)
+
+	otherIssuer, err := store.AllocateCRLNumber(ctx, "ccdd")
+	require.NoError(t, err)
+	require.Equal(t, big.NewInt(1), otherIssuer)
 }
 
 func TestMemoryStore_CountByStatus(t *testing.T) {

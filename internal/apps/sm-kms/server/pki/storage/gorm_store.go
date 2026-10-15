@@ -3,8 +3,10 @@ package storage
 
 import (
 	"context"
+	json "encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	googleUuid "github.com/google/uuid"
@@ -17,6 +19,11 @@ import (
 type GORMStore struct {
 	db *gorm.DB
 }
+
+const (
+	certificateRevocationTimeColumn   = "revocation_time"
+	certificateRevocationReasonColumn = "revocation_reason"
+)
 
 func NewGORMStore(db *gorm.DB) (*GORMStore, error) {
 	if db == nil {
@@ -36,6 +43,8 @@ func (s *GORMStore) Store(ctx context.Context, cert *StoredCertificate) error {
 		return err
 	}
 
+	cert.TenantID = tenantID
+
 	if cert.ID == googleUuid.Nil {
 		cert.ID, err = googleUuid.NewV7()
 		if err != nil {
@@ -43,19 +52,48 @@ func (s *GORMStore) Store(ctx context.Context, cert *StoredCertificate) error {
 		}
 	}
 
-	var existing StoredCertificate
+	if cert.RequestID != googleUuid.Nil {
+		exists, err := s.certificateExists(ctx, "request_id = ?", tenantID, cert.RequestID)
+		if err != nil {
+			return fmt.Errorf("failed to check certificate request ID: %w", err)
+		}
 
-	err = s.db.WithContext(ctx).Where("tenant_id = ? AND serial_number = ?", tenantID, cert.SerialNumber).Take(&existing).Error
-	switch {
-	case err == nil:
-		return ErrCertificateExists
-	case !errors.Is(err, gorm.ErrRecordNotFound):
+		if exists {
+			return ErrCertificateExists
+		}
+	}
+
+	exists, err := s.certificateExists(ctx, "serial_number = ?", tenantID, cert.SerialNumber)
+	if err != nil {
 		return fmt.Errorf("failed to check certificate serial number: %w", err)
 	}
 
-	cert.TenantID = tenantID
+	if exists {
+		return ErrCertificateExists
+	}
+
 	if err := s.db.WithContext(ctx).Create(cert).Error; err != nil {
 		if errors.Is(err, gorm.ErrDuplicatedKey) {
+			return ErrCertificateExists
+		}
+
+		if cert.RequestID != googleUuid.Nil {
+			exists, duplicateErr := s.certificateExists(ctx, "request_id = ?", tenantID, cert.RequestID)
+			if duplicateErr != nil {
+				return fmt.Errorf("failed to check duplicate certificate request ID after insert: %w", errors.Join(err, duplicateErr))
+			}
+
+			if exists {
+				return ErrCertificateExists
+			}
+		}
+
+		exists, duplicateErr := s.certificateExists(ctx, "serial_number = ?", tenantID, cert.SerialNumber)
+		if duplicateErr != nil {
+			return fmt.Errorf("failed to check duplicate certificate serial after insert: %w", errors.Join(err, duplicateErr))
+		}
+
+		if exists {
 			return ErrCertificateExists
 		}
 
@@ -63,6 +101,21 @@ func (s *GORMStore) Store(ctx context.Context, cert *StoredCertificate) error {
 	}
 
 	return nil
+}
+
+func (s *GORMStore) certificateExists(ctx context.Context, predicate string, tenantID googleUuid.UUID, value any) (bool, error) {
+	var existing StoredCertificate
+
+	err := s.db.WithContext(ctx).Where("tenant_id = ? AND "+predicate, tenantID, value).Take(&existing).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return false, nil
+	}
+
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
 }
 
 func (s *GORMStore) Get(ctx context.Context, id googleUuid.UUID) (*StoredCertificate, error) {
@@ -103,6 +156,40 @@ func (s *GORMStore) GetBySerialNumber(ctx context.Context, serialNumber string) 
 	}
 
 	return &cert, nil
+}
+
+func (s *GORMStore) GetBySerialNumberForIssuer(
+	ctx context.Context,
+	serialNumber string,
+	issuerKeyID string,
+) (*StoredCertificate, error) {
+	if ctx == nil {
+		return nil, fmt.Errorf("context is required")
+	}
+
+	issuerKeyID = strings.ToLower(strings.TrimSpace(issuerKeyID))
+	if issuerKeyID == "" {
+		return nil, ErrInvalidIssuerKeyID
+	}
+
+	var certificates []*StoredCertificate
+
+	err := s.db.WithContext(ctx).
+		Where("serial_number = ? AND authority_key_id = ?", strings.ToLower(serialNumber), issuerKeyID).
+		Limit(2).
+		Find(&certificates).Error
+	if err != nil {
+		return nil, fmt.Errorf("failed to get certificate by serial number and issuer key ID: %w", err)
+	}
+
+	switch len(certificates) {
+	case 0:
+		return nil, ErrCertificateNotFound
+	case 1:
+		return certificates[0], nil
+	default:
+		return nil, ErrCertificateAmbiguous
+	}
 }
 
 func (s *GORMStore) GetByRequestID(ctx context.Context, requestID googleUuid.UUID) (*StoredCertificate, error) {
@@ -203,9 +290,48 @@ func (s *GORMStore) Update(ctx context.Context, cert *StoredCertificate) error {
 	cert.TenantID = tenantID
 	cert.UpdatedAt = time.Now().UTC()
 
+	metadata := cert.Metadata
+	if metadata == nil {
+		metadata = make(map[string]string)
+	}
+
+	metadataJSON, err := json.Marshal(metadata)
+	if err != nil {
+		return fmt.Errorf("failed to encode certificate metadata: %w", err)
+	}
+
+	updates := map[string]any{
+		"request_id":                       cert.RequestID,
+		"serial_number":                    cert.SerialNumber,
+		"subject_dn":                       cert.SubjectDN,
+		"issuer_dn":                        cert.IssuerDN,
+		"not_before":                       cert.NotBefore,
+		"not_after":                        cert.NotAfter,
+		cryptoutilSharedMagic.StringStatus: gorm.Expr("CASE WHEN status = ? THEN ? ELSE ? END", StatusRevoked, StatusRevoked, cert.Status),
+		"profile_id":                       cert.ProfileID,
+		"requester_id":                     cert.RequesterID,
+		"certificate_pem":                  cert.CertificatePEM,
+		"certificate_der":                  cert.CertificateDER,
+		"public_key_hash":                  cert.PublicKeyHash,
+		"subject_key_id":                   cert.SubjectKeyID,
+		"authority_key_id":                 cert.AuthorityKeyID,
+		certificateRevocationTimeColumn: gorm.Expr(
+			"CASE WHEN status = ? THEN "+certificateRevocationTimeColumn+" ELSE ? END",
+			StatusRevoked,
+			cert.RevocationTime,
+		),
+		certificateRevocationReasonColumn: gorm.Expr(
+			"CASE WHEN status = ? THEN "+certificateRevocationReasonColumn+" ELSE ? END",
+			StatusRevoked,
+			cert.RevocationReason,
+		),
+		"metadata":                           string(metadataJSON),
+		cryptoutilSharedMagic.ClaimUpdatedAt: cert.UpdatedAt,
+	}
+
 	result := s.db.WithContext(ctx).Model(&StoredCertificate{}).
 		Where("tenant_id = ? AND id = ?", tenantID, cert.ID).
-		Select("*").Updates(cert)
+		Updates(updates)
 	if result.Error != nil {
 		return fmt.Errorf("failed to update certificate: %w", result.Error)
 	}

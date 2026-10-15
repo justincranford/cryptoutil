@@ -73,7 +73,8 @@ func createTestIssuer(t *testing.T) *testIssuerSetup {
 
 	// Create issuer.
 	caConfig := &cryptoutilCAServiceIssuer.IssuingCAConfig{
-		Name:        "test-ca",
+		Name:        cryptoutilSharedMagic.TEST_CA_NAME,
+		AuthorityID: cryptoutilSharedMagic.TEST_CA_NAME,
 		Certificate: issuingCA.Certificate,
 		PrivateKey:  issuingCA.PrivateKey,
 	}

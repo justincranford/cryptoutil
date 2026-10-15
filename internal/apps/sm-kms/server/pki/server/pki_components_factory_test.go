@@ -18,7 +18,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-const pkiComponentInjectedFailure = "injected factory failure"
+const (
+	pkiComponentInjectedFailure   = "injected factory failure"
+	pkiComponentStableAuthorityID = "stable-test-authority"
+)
 
 func pkiComponentFactoriesForTest() pkiComponentFactories {
 	provider := cryptoutilCACrypto.NewSoftwareProvider()
@@ -136,4 +139,15 @@ func TestNewPKIComponents_FactoryFailures(t *testing.T) {
 			require.NotNil(t, components.handler)
 		})
 	}
+}
+
+func TestNewPKIComponents_UsesStableAuthorityID(t *testing.T) {
+	t.Parallel()
+
+	factories := pkiComponentFactoriesForTest()
+	factories.authorityID = pkiComponentStableAuthorityID
+
+	components, err := newPKIComponents(factories)
+	require.NoError(t, err)
+	require.Equal(t, pkiComponentStableAuthorityID, components.issuer.GetCAConfig().AuthorityID)
 }

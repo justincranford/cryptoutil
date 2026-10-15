@@ -2,6 +2,7 @@
 package revocation
 
 import (
+	"crypto"
 	ecdsa "crypto/ecdsa"
 	"crypto/elliptic"
 	crand "crypto/rand"
@@ -257,6 +258,41 @@ func TestOCSPService_ParseRequest(t *testing.T) {
 	_, err = ocspSvc.ParseRequest([]byte(cryptoutilSharedMagic.DevSetupTestInvalidName))
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to parse")
+}
+
+func TestOCSPService_RespondToRequestWithStatus_RejectsDifferentIssuer(t *testing.T) {
+	t.Parallel()
+
+	issuerCert, issuerKey := createTestCA(t)
+	otherIssuerCert, otherIssuerKey := createTestCA(t)
+	provider := cryptoutilCACrypto.NewSoftwareProvider()
+	crlService, err := NewCRLService(&CRLConfig{
+		Issuer:     issuerCert,
+		PrivateKey: issuerKey,
+		Provider:   provider,
+		Validity:   time.Hour,
+	})
+	require.NoError(t, err)
+
+	ocspService, err := NewOCSPService(&OCSPConfig{
+		Issuer:       issuerCert,
+		Responder:    issuerCert,
+		ResponderKey: issuerKey,
+		Provider:     provider,
+		Validity:     time.Hour,
+	}, crlService)
+	require.NoError(t, err)
+
+	certificate := createTestCertificate(t, otherIssuerCert, otherIssuerKey)
+	requestDER, err := ocsp.CreateRequest(certificate, otherIssuerCert, &ocsp.RequestOptions{Hash: crypto.SHA256})
+	require.NoError(t, err)
+
+	_, err = ocspService.RespondToRequestWithStatus(requestDER, func(*big.Int) (*x509.Certificate, *RevokedCertificate, error) {
+		t.Fatal("certificate lookup must not run for a mismatched issuer")
+
+		return nil, nil, nil
+	})
+	require.ErrorContains(t, err, "OCSP request issuer does not match the selected authority")
 }
 
 func TestRevokedCertificate_ToEntry(t *testing.T) {

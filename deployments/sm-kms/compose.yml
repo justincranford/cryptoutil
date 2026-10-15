@@ -317,9 +317,11 @@ services:
       timeout: 10s
       retries: 3
     networks:
-      - sm-kms-network
-      - telemetry-network
-      - postgres-network
+      sm-kms-network: {}
+      telemetry-network:
+        aliases:
+          - sm-kms-app-postgres-1
+      postgres-network: {}
     deploy:
       resources:
         limits:

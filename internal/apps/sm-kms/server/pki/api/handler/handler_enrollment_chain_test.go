@@ -16,7 +16,9 @@ import (
 	"github.com/stretchr/testify/require"
 
 	cryptoutilApiCaServer "cryptoutil/api/sm-kms/pki/server"
+	cryptoutilAppsFrameworkTestDB "cryptoutil/internal/apps-framework/service/test_help_db"
 	cryptoutilCAStorage "cryptoutil/internal/apps/sm-kms/server/pki/storage"
+	cryptoutilSharedDatabase "cryptoutil/internal/shared/database"
 )
 
 // TestGetEnrollmentStatus_WithCertificate tests enrollment status when certificate is issued and found.
@@ -26,15 +28,17 @@ func TestGetEnrollmentStatus_WithCertificate(t *testing.T) {
 	app := fiber.New()
 	storage := cryptoutilCAStorage.NewMemoryStore()
 
-	// Create tracker and track an issued enrollment.
+	// Persist the enrollment and seed conflicting in-memory state to verify the database wins.
 	tracker := newEnrollmentTracker(cryptoutilSharedMagic.JoseJAMaxMaterials)
 	requestID := googleUuid.New()
 	serialNumber := googleUuid.NewString()
-	tracker.track(requestID, cryptoutilApiCaServer.EnrollmentStatusResponseStatusIssued, serialNumber)
+
+	tracker.track(requestID, cryptoutilApiCaServer.EnrollmentStatusResponseStatusPending, "")
 
 	// Store the issued certificate in storage.
 	cert := &cryptoutilCAStorage.StoredCertificate{
 		ID:             googleUuid.New(),
+		RequestID:      requestID,
 		SerialNumber:   serialNumber,
 		SubjectDN:      testSubjectDNExample,
 		IssuerDN:       testIssuerDNTestCA,
@@ -72,7 +76,7 @@ func TestGetEnrollmentStatus_WithCertificate(t *testing.T) {
 	require.NoError(t, err)
 }
 
-// TestGetEnrollmentStatus_IssuedNoCertificate tests enrollment status when issued but certificate not found in storage.
+// TestGetEnrollmentStatus_IssuedNoCertificate tests that tracker-only requests are not authoritative.
 func TestGetEnrollmentStatus_IssuedNoCertificate(t *testing.T) {
 	t.Parallel()
 
@@ -103,8 +107,7 @@ func TestGetEnrollmentStatus_IssuedNoCertificate(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/enroll/"+requestID.String(), nil)
 	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
-	// Should still return 200 OK, just without certificate details.
-	require.Equal(t, fiber.StatusOK, resp.StatusCode)
+	require.Equal(t, fiber.StatusNotFound, resp.StatusCode)
 
 	err = resp.Body.Close()
 	require.NoError(t, err)
@@ -158,7 +161,76 @@ func TestGetEnrollmentStatus_PersistedAfterTrackerRestart(t *testing.T) {
 	require.NoError(t, response.Body.Close())
 }
 
-// TestGetEnrollmentStatus_Pending tests enrollment status for pending request.
+func TestGetEnrollmentStatus_IsTenantScopedByDatabase(t *testing.T) {
+	t.Parallel()
+
+	db := cryptoutilAppsFrameworkTestDB.NewInMemorySQLiteDB(t)
+	require.NoError(t, db.AutoMigrate(&cryptoutilCAStorage.StoredCertificate{}))
+
+	storage, err := cryptoutilCAStorage.NewGORMStore(db)
+	require.NoError(t, err)
+
+	tenantA := googleUuid.Must(googleUuid.NewV7())
+	tenantB := googleUuid.Must(googleUuid.NewV7())
+	requestID := googleUuid.Must(googleUuid.NewV7())
+	tenantContextA := cryptoutilSharedDatabase.WithTenantContext(
+		context.Background(),
+		&cryptoutilSharedDatabase.TenantContext{TenantID: tenantA},
+	)
+	certificate := &cryptoutilCAStorage.StoredCertificate{
+		ID:             googleUuid.Must(googleUuid.NewV7()),
+		RequestID:      requestID,
+		SerialNumber:   googleUuid.Must(googleUuid.NewV7()).String(),
+		SubjectDN:      testSubjectDNExample,
+		IssuerDN:       testIssuerDNTestCA,
+		NotBefore:      time.Now().UTC().Add(-time.Hour),
+		NotAfter:       time.Now().UTC().Add(time.Hour),
+		Status:         cryptoutilCAStorage.StatusActive,
+		ProfileID:      cryptoutilSharedMagic.PKIProfileIDTLSServer,
+		CertificatePEM: testCertificatePEMInvalid,
+	}
+	require.NoError(t, storage.Store(tenantContextA, certificate))
+
+	handler := &Handler{storage: storage}
+	app := fiber.New()
+	app.Use(func(c *fiber.Ctx) error {
+		tenantID, parseErr := googleUuid.Parse(c.Get("X-Tenant-ID"))
+		if parseErr != nil {
+			return c.SendStatus(fiber.StatusBadRequest)
+		}
+
+		c.SetUserContext(cryptoutilSharedDatabase.WithTenantContext(
+			c.UserContext(),
+			&cryptoutilSharedDatabase.TenantContext{TenantID: tenantID},
+		))
+
+		return c.Next()
+	})
+	app.Get("/enroll/:requestId", func(c *fiber.Ctx) error {
+		id, parseErr := googleUuid.Parse(c.Params("requestId"))
+		if parseErr != nil {
+			return c.SendStatus(fiber.StatusBadRequest)
+		}
+
+		return handler.GetEnrollmentStatus(c, id)
+	})
+
+	request := httptest.NewRequest(http.MethodGet, "/enroll/"+requestID.String(), nil)
+	request.Header.Set("X-Tenant-ID", tenantA.String())
+	response, err := app.Test(request, -1)
+	require.NoError(t, err)
+	require.Equal(t, fiber.StatusOK, response.StatusCode)
+	require.NoError(t, response.Body.Close())
+
+	request = httptest.NewRequest(http.MethodGet, "/enroll/"+requestID.String(), nil)
+	request.Header.Set("X-Tenant-ID", tenantB.String())
+	response, err = app.Test(request, -1)
+	require.NoError(t, err)
+	require.Equal(t, fiber.StatusNotFound, response.StatusCode)
+	require.NoError(t, response.Body.Close())
+}
+
+// TestGetEnrollmentStatus_Pending tests that tracker-only pending requests are not authoritative.
 func TestGetEnrollmentStatus_Pending(t *testing.T) {
 	t.Parallel()
 
@@ -189,7 +261,7 @@ func TestGetEnrollmentStatus_Pending(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/enroll/"+requestID.String(), nil)
 	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
-	require.Equal(t, fiber.StatusOK, resp.StatusCode)
+	require.Equal(t, fiber.StatusNotFound, resp.StatusCode)
 
 	err = resp.Body.Close()
 	require.NoError(t, err)

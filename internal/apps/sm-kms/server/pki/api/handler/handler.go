@@ -124,10 +124,9 @@ func NewHandler(issuer *cryptoutilCAServiceIssuer.Issuer, storage cryptoutilCASt
 	}
 
 	return &Handler{
-		issuer:            issuer,
-		storage:           storage,
-		profiles:          profiles,
-		enrollmentTracker: newEnrollmentTracker(cryptoutilSharedMagic.PKIMaxTrackedEnrollments),
+		issuer:   issuer,
+		storage:  storage,
+		profiles: profiles,
 	}, nil
 }
 
@@ -389,6 +388,11 @@ func (h *Handler) SubmitEnrollment(c *fiber.Ctx) error {
 		return h.errorResponse(c, fiber.StatusUnprocessableEntity, "validation_error", err.Error())
 	}
 
+	requestID, err := googleUuid.NewV7()
+	if err != nil {
+		return h.errorResponse(c, fiber.StatusInternalServerError, "request_id_error", "failed to generate enrollment request ID")
+	}
+
 	// Issue the certificate.
 	issued, _, err := h.issuer.Issue(issueReq)
 	if err != nil {
@@ -396,14 +400,10 @@ func (h *Handler) SubmitEnrollment(c *fiber.Ctx) error {
 	}
 
 	// Build the response.
-	resp := h.buildEnrollmentResponse(issued)
+	resp := h.buildEnrollmentResponse(issued, requestID)
 	if _, err := h.storeIssuedCertificate(c.UserContext(), issued, req.Profile, resp.RequestID); err != nil {
 		return h.errorResponse(c, fiber.StatusInternalServerError, "storage_error", err.Error())
 	}
-
-	// Track the enrollment - convert status type.
-	statusForTracking := cryptoutilApiCaServer.EnrollmentStatusResponseStatus(resp.Status)
-	h.enrollmentTracker.track(resp.RequestID, statusForTracking, issued.SerialNumber)
 
 	if err := c.Status(fiber.StatusCreated).JSON(resp); err != nil {
 		return fmt.Errorf("failed to send enrollment response: %w", err)
@@ -414,56 +414,33 @@ func (h *Handler) SubmitEnrollment(c *fiber.Ctx) error {
 
 // GetEnrollmentStatus handles GET /enroll/{requestId}.
 func (h *Handler) GetEnrollmentStatus(c *fiber.Ctx, requestID googleUuid.UUID) error {
-	// Look up the enrollment in the tracker.
-	entry, found := h.enrollmentTracker.get(requestID)
-	if !found {
-		cert, err := h.storage.GetByRequestID(c.UserContext(), requestID)
-		if errors.Is(err, cryptoutilCAStorage.ErrCertificateNotFound) {
-			return h.errorResponse(c, fiber.StatusNotFound, "not_found", "enrollment request not found")
-		}
-
-		if err != nil {
-			return h.errorResponse(c, fiber.StatusInternalServerError, "storage_error", err.Error())
-		}
-
-		entry = &enrollmentEntry{
-			RequestID:    requestID,
-			Status:       cryptoutilApiCaServer.EnrollmentStatusResponseStatusIssued,
-			SerialNumber: cert.SerialNumber,
-			CreatedAt:    cert.CreatedAt,
-			CompletedAt:  cert.UpdatedAt,
-		}
+	// Persisted tenant-scoped storage is authoritative; process-local state is not.
+	cert, err := h.storage.GetByRequestID(c.UserContext(), requestID)
+	if errors.Is(err, cryptoutilCAStorage.ErrCertificateNotFound) {
+		return h.errorResponse(c, fiber.StatusNotFound, "not_found", "enrollment request not found")
 	}
 
-	// Build response based on tracked status.
-	submittedAt := entry.CreatedAt
-	updatedAt := entry.CompletedAt
+	if err != nil {
+		return h.errorResponse(c, fiber.StatusInternalServerError, "storage_error", err.Error())
+	}
+
+	submittedAt := cert.CreatedAt
+	updatedAt := cert.UpdatedAt
 
 	resp := cryptoutilApiCaServer.EnrollmentStatusResponse{
-		RequestID:   entry.RequestID,
-		Status:      entry.Status,
+		RequestID:   requestID,
+		Status:      cryptoutilApiCaServer.EnrollmentStatusResponseStatusIssued,
 		SubmittedAt: &submittedAt,
 		UpdatedAt:   &updatedAt,
 	}
 
-	// If issued, try to get the certificate from storage.
-	if entry.Status == cryptoutilApiCaServer.EnrollmentStatusResponseStatusIssued && entry.SerialNumber != "" {
-		cert, err := h.storage.GetBySerialNumber(c.UserContext(), entry.SerialNumber)
-		if err != nil && !errors.Is(err, cryptoutilCAStorage.ErrCertificateNotFound) {
-			return h.errorResponse(c, fiber.StatusInternalServerError, "storage_error", err.Error())
-		}
-
-		if cert != nil {
-			notBefore := cert.NotBefore
-			notAfter := cert.NotAfter
-
-			resp.Certificate = &cryptoutilApiCaServer.IssuedCertificate{
-				SerialNumber:   cert.SerialNumber,
-				CertificatePEM: cert.CertificatePEM,
-				NotBefore:      notBefore,
-				NotAfter:       notAfter,
-			}
-		}
+	notBefore := cert.NotBefore
+	notAfter := cert.NotAfter
+	resp.Certificate = &cryptoutilApiCaServer.IssuedCertificate{
+		SerialNumber:   cert.SerialNumber,
+		CertificatePEM: cert.CertificatePEM,
+		NotBefore:      notBefore,
+		NotAfter:       notAfter,
 	}
 
 	if err := c.JSON(resp); err != nil {

@@ -53,6 +53,11 @@ func NewKMSServerFromConfig(
 		return nil, fmt.Errorf("settings cannot be nil")
 	}
 
+	authorityConfig, err := cryptoutilAppsSmKmsPKIServer.PKIAuthorityConfigFromConfigFiles(settings.ConfigFile)
+	if err != nil {
+		return nil, fmt.Errorf("failed to load PKI authority configuration: %w", err)
+	}
+
 	resources, err := cryptoutilAppsFrameworkServiceServerBuilder.Build(ctx, settings, &cryptoutilAppsFrameworkServiceServerBuilder.DomainConfig{
 		MigrationsFS:   cryptoutilAppsSmKmsRepository.MigrationsFS,
 		MigrationsPath: "migrations",
@@ -67,7 +72,7 @@ func NewKMSServerFromConfig(
 				return fmt.Errorf("failed to create business logic service: %w", err)
 			}
 
-			return registerKMSRoutes(ctx, publicServerBase.App(), bizLogicService, settings, res)
+			return registerKMSRoutes(ctx, publicServerBase.App(), bizLogicService, settings, res, authorityConfig)
 		},
 	})
 	if err != nil {
@@ -114,6 +119,7 @@ func registerKMSRoutes(
 	bizLogicService *cryptoutilKmsServerBusinesslogic.BusinessLogicService,
 	settings *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings,
 	res *cryptoutilAppsFrameworkServiceServerBuilder.ServiceResources,
+	authorityConfig cryptoutilAppsSmKmsPKIServer.PKIAuthorityConfig,
 ) error {
 	if ctx == nil {
 		return fmt.Errorf("context is required")
@@ -123,7 +129,12 @@ func registerKMSRoutes(
 		return fmt.Errorf("database and barrier service resources are required")
 	}
 
-	components, err := cryptoutilAppsSmKmsPKIServer.NewPKIComponents(ctx, res.DB, res.BarrierService)
+	components, err := cryptoutilAppsSmKmsPKIServer.NewPKIComponentsWithAuthorityConfig(
+		ctx,
+		res.DB,
+		res.BarrierService,
+		authorityConfig,
+	)
 	if err != nil {
 		return fmt.Errorf("failed to initialize PKI components: %w", err)
 	}
@@ -138,6 +149,10 @@ func registerKMSRoutesWithPKIComponents(
 	res *cryptoutilAppsFrameworkServiceServerBuilder.ServiceResources,
 	components *cryptoutilAppsSmKmsPKIServer.PKIComponents,
 ) error {
+	if err := components.RegisterPublicRevocationEndpoints(app); err != nil {
+		return fmt.Errorf("failed to register public PKI revocation endpoints: %w", err)
+	}
+
 	// Create the OpenAPI strict server handler.
 	openapiStrictServer := cryptoutilAppsSmKmsServerHandler.NewOpenapiStrictServer(bizLogicService)
 	openapiStrictHandler := cryptoutilKmsServer.NewStrictHandler(openapiStrictServer, nil)
