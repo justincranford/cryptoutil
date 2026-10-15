@@ -47,6 +47,15 @@ func ValidateCertVolumePolicy(deploymentPath, deploymentName string) (*CertVolum
 	for _, serviceName := range sortedServiceNames(compose) {
 		svc := compose.Services[serviceName]
 		for _, volume := range svc.Volumes {
+			if volume.TargetHasInterpolation {
+				result.Errors = append(result.Errors,
+					fmt.Sprintf("[ValidateCertVolumePolicy] service '%s' uses unresolved variable interpolation in volume target '%s' | See: %s",
+						serviceName, volume.Raw, certVolumePolicyHandbookSection))
+				result.Valid = false
+
+				continue
+			}
+
 			expectedCertMount := volume.Type == cryptoutilSharedMagic.DockerComposeVolumeMountTypeVolume &&
 				volume.Source == expectedVolumeName &&
 				isCertVolumeTarget(volume.Target)

@@ -2286,7 +2286,7 @@ The `pki-init` CLI generates the full `/certs` directory tree for each deploymen
 - PRODUCT scope (sm = 1 PS-ID): 90 directories (30 global shared + 60 per PS-ID x 1)
 - SUITE scope (7 PS-IDs): 450 directories (30 global shared + 60 per PS-ID × 7)
 
-**Docker volume delivery**: certs are written to a named Docker volume `{ps-id}-certs` by the `pki-init` service, then mounted read-only (`/certs:ro`) by all other services in the compose. NEVER use bind mounts for certs. See [docs/deployment-templates.md](deployment-templates.md) rules CO-21/CO-22.
+**Docker volume delivery**: certs are written to a named Docker volume `{ps-id}-certs` by the `pki-init` service, then mounted read-only (`/certs:ro`) by all other services in the compose. NEVER use bind mounts for certs. Compose volume targets containing unresolved variable interpolation are rejected because the validator cannot prove their resolved paths. POSIX-normalized trailing-slash aliases are accepted only for the expected named volume at an exact certificate root; bind mounts and other overlapping targets remain forbidden. See [docs/deployment-templates.md](deployment-templates.md) rules CO-21/CO-22.
 
 **PostgreSQL PKI naming convention** (`postgres` vs. `postgres-1`/`postgres-2`):
 
@@ -5495,7 +5495,7 @@ healthcheck-otel-collector:
 | CO-18 | PostgreSQL instance 2 MUST depend on instance 1 `service_healthy` | Schema init ordering |
 | CO-19 | Healthcheck timing MUST use parameterized values from A.3 (`start_period`, `interval`, `timeout`, `retries`) | Configurable health probes |
 | CO-20 | All `image:` references MUST use `{SUITE}-{PS-ID}:{IMAGE_TAG}` (NOT hardcoded suite name or tag) | Parameterized naming |
-| CO-21 | Services MUST use named volume `{PS-ID}-certs` at exact `/certs` (or `/mnt/ps-certs-src` for infrastructure); POSIX-normalized mount targets overlapping either root MUST be rejected unless they are that exact named-volume mount. Validate source and target as a mount pair in short or long Compose syntax. | Portable cert storage (works in Docker Desktop, Swarm, Kubernetes) |
+| CO-21 | Use named volume `{PS-ID}-certs` at `/certs` (infra: `/mnt/ps-certs-src`); reject unresolved target interpolation and normalized overlaps except the exact named-volume mount. Validate source/target pairs in short and long syntax. | Portable certificate storage |
 | CO-22 | Top-level `volumes:` section MUST declare `{PS-ID}-certs:` (no `driver:` override) | Named volume declaration |
 
 **Product compose.yml Template Rules** (PC-01 through PC-06):

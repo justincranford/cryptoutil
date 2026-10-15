@@ -208,7 +208,7 @@ then compare byte-for-byte against `deployments/{PS-ID}/compose.yml`.
 | CO-18 | PostgreSQL instance 2 MUST depend on instance 1 `service_healthy` | Schema init ordering |
 | CO-19 | Healthcheck timing MUST use parameterized values: `start-period: {HEALTHCHECK_START_PERIOD}`, `interval: {HEALTHCHECK_INTERVAL}`, `timeout: {HEALTHCHECK_TIMEOUT}`, `retries: {HEALTHCHECK_RETRIES}` | Configurable health probes |
 | CO-20 | All `image:` references MUST use `{SUITE}-{PS-ID}:{IMAGE_TAG}` (NOT hardcoded suite name or tag) | Parameterized naming |
-| CO-21 | Services MUST use named volume `{PS-ID}-certs` at exact `/certs` (or `/mnt/ps-certs-src` for infrastructure); reject POSIX-normalized mount targets overlapping either root unless they are that exact named-volume mount | Portable certificate storage without host path dependencies |
+| CO-21 | Use named volume `{PS-ID}-certs` at `/certs` (infra: `/mnt/ps-certs-src`); reject unresolved target interpolation and normalized overlaps except the exact named-volume mount | Portable certificate storage without host path dependencies |
 | CO-22 | Top-level `volumes:` section MUST declare `{PS-ID}-certs:` (no `driver:` override — defaults to local) | Named volume declaration required |
 
 The base SQLite services are disposable in-memory instances: their database contents are lost when

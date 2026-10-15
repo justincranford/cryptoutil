@@ -10,10 +10,11 @@ import (
 )
 
 type composeVolume struct {
-	Raw    string
-	Type   string
-	Source string
-	Target string
+	Raw                    string
+	Type                   string
+	Source                 string
+	Target                 string
+	TargetHasInterpolation bool
 }
 
 func (volume *composeVolume) UnmarshalYAML(node *yaml.Node) error {
@@ -24,6 +25,8 @@ func (volume *composeVolume) UnmarshalYAML(node *yaml.Node) error {
 		}
 
 		volume.Source, volume.Target = splitShortVolumeMount(volume.Raw)
+		volume.TargetHasInterpolation = hasUnresolvedComposeInterpolation(volume.Target) ||
+			(volume.Target == "" && hasUnresolvedComposeInterpolation(volume.Raw))
 		volume.Type = inferVolumeMountType(volume.Source)
 	case yaml.MappingNode:
 		var mount struct {
@@ -38,6 +41,7 @@ func (volume *composeVolume) UnmarshalYAML(node *yaml.Node) error {
 		volume.Type = mount.Type
 		volume.Source = mount.Source
 		volume.Target = mount.Target
+		volume.TargetHasInterpolation = hasUnresolvedComposeInterpolation(volume.Target)
 
 		volume.Raw = fmt.Sprintf("type=%s source=%s target=%s", mount.Type, mount.Source, mount.Target)
 		if volume.Type == "" {
@@ -59,6 +63,32 @@ func splitShortVolumeMount(raw string) (string, string) {
 	}
 
 	return "", ""
+}
+
+func hasUnresolvedComposeInterpolation(value string) bool {
+	for index := 0; index < len(value); index++ {
+		if value[index] != '$' {
+			continue
+		}
+
+		if index+1 < len(value) && value[index+1] == '$' {
+			index++
+
+			continue
+		}
+
+		if index+1 < len(value) && (value[index+1] == '{' || isComposeVariableStart(value[index+1])) {
+			return true
+		}
+	}
+
+	return false
+}
+
+func isComposeVariableStart(character byte) bool {
+	return character == '_' ||
+		(character >= 'a' && character <= 'z') ||
+		(character >= 'A' && character <= 'Z')
 }
 
 func inferVolumeMountType(source string) string {

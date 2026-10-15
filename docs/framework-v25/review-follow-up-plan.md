@@ -38,9 +38,10 @@ and are independent of the numbered rows in the task evidence table.
   packages meeting thresholds and 168/320 below threshold (71.5% aggregate statement coverage).
   Failures span 84 `internal/apps-tools`, 54 `internal/apps`, 18 `internal/apps-framework`, and
   12 `internal/shared` packages. In-scope PKI packages remain below 95%: handler 90.8%, bootstrap
-  93.2%, server 52.4%, revocation 80.4%, and storage 69.4%. No package ceiling exception is
-  justified by the current evidence; targeted coverage remediation and a passing CI runner remain
-  outstanding. Do not lower thresholds to clear the gate.
+  93.2%, server 52.4%, revocation 80.4%, and storage 69.4%. The deployment-linter package reports
+  96.3%, below the 98% infrastructure target. No package ceiling exception is justified by the
+  current evidence; targeted coverage remediation and a passing CI runner remain outstanding. Do
+  not lower thresholds to clear the gate.
 - **6 — Partially verified.** Focused listener tests cover shutdown paths; full race validation
   remains outstanding because this Windows host has no GCC compiler. Run it on a supported
   CGO-enabled host.
@@ -166,10 +167,20 @@ in `tasks.md`.
   `e2e,integration` builds, focused normal/tagged golangci-lint, and Go, Go-test, fitness, docs, and
   text validators pass. Evidence is recorded in `test-output/reviewfollowup/post-review-windows-staging-*.log`.
 - **F-7 — Complete.** Certificate volume targets are now normalized with POSIX path semantics.
-  Only the expected named volume mounted at an exact certificate root is accepted; mounts at
-  trailing-slash equivalents and overlapping ancestor/descendant paths are rejected. Table-driven
-  tests cover short and long Compose syntax, valid trailing-slash named mounts, forbidden bind
-  mounts, root/ancestor/descendant overlaps, and a non-overlapping sibling path. The shuffled
+  Only the expected named volume mounted at an exact certificate root is accepted after
+  normalization; trailing-slash aliases of that named-volume target are accepted, while bind
+  mounts and overlapping ancestor/descendant paths are rejected. Table-driven tests cover short
+  and long Compose syntax, valid trailing-slash named mounts, forbidden bind mounts,
+  root/ancestor/descendant overlaps, and a non-overlapping sibling path. The shuffled
   deployment-linter tests, `lint-deployments`, normal and tagged builds/lint, and Go, Go-test,
   fitness, docs, and text validators pass. Evidence is recorded in
   `test-output/reviewfollowup/post-review-cert-volume-*.log`.
+- **F-8 — Complete.** Compose volume targets with unresolved variable interpolation are rejected
+  in both short and long syntax because their resolved paths cannot be established safely.
+  Regression tests cover variable-only and defaulted short targets, long-syntax targets, and
+  source interpolation with a known non-certificate target. CO-21 now documents this fail-closed
+  policy. F-4/F-7 evidence and the F-7 disposition are updated to match the tests: trailing-slash
+  aliases are normalized and accepted for the expected named volume, while overlapping bind
+  mounts remain rejected. Focused and shuffled deployment-linter tests, normal/tagged builds and
+  lint, and repository validators pass; evidence is recorded in
+  `test-output/reviewfollowup/post-review-compose-target-interpolation-*.log`.

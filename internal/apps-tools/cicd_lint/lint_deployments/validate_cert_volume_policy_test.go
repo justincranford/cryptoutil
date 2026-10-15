@@ -10,7 +10,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-const testCertVolumeMissingActivationBarrier = "without depending on"
+const (
+	testCertVolumeMissingActivationBarrier = "without depending on"
+	testUnresolvedCertVolumeTarget         = "unresolved variable interpolation in volume target"
+)
 
 func TestValidateCertVolumePolicy(t *testing.T) {
 	t.Parallel()
@@ -62,6 +65,49 @@ func TestValidateCertVolumePolicy(t *testing.T) {
 			composeContent: "services:\n  pki-init:\n    volumes:\n      - ./certs:/certs/:rw\n  sm-kms-app:\n    depends_on:\n      pki-init:\n        condition: service_completed_successfully\n    volumes:\n      - sm-kms-certs:/certs:ro\nvolumes:\n  sm-kms-certs:\n",
 			wantValid:      false,
 			wantErrText:    testForbiddenCertBindMount,
+		},
+		{
+			name:           "short syntax interpolated certificate target rejected",
+			deploymentName: cryptoutilSharedMagic.OTLPServiceSMKMS,
+			composeContent: "services:\n  pki-init:\n    volumes:\n      - sm-kms-certs:${CERT_TARGET}\n  sm-kms-app:\n    depends_on:\n      pki-init:\n        condition: service_completed_successfully\n    volumes:\n      - sm-kms-certs:/certs:ro\nvolumes:\n  sm-kms-certs:\n",
+			wantValid:      false,
+			wantErrText:    testUnresolvedCertVolumeTarget,
+		},
+		{
+			name:           "short syntax interpolated default certificate target rejected",
+			deploymentName: cryptoutilSharedMagic.OTLPServiceSMKMS,
+			composeContent: "services:\n  pki-init:\n    volumes:\n      - sm-kms-certs:${CERT_TARGET:-/certs}\n  sm-kms-app:\n    depends_on:\n      pki-init:\n        condition: service_completed_successfully\n    volumes:\n      - sm-kms-certs:/certs:ro\nvolumes:\n  sm-kms-certs:\n",
+			wantValid:      false,
+			wantErrText:    testUnresolvedCertVolumeTarget,
+		},
+		{
+			name:           "long syntax interpolated certificate target rejected",
+			deploymentName: cryptoutilSharedMagic.OTLPServiceSMKMS,
+			composeContent: `services:
+  pki-init:
+    volumes:
+      - type: volume
+        source: sm-kms-certs
+        target: ${CERT_TARGET}
+  sm-kms-app:
+    depends_on:
+      pki-init:
+        condition: service_completed_successfully
+    volumes:
+      - type: volume
+        source: sm-kms-certs
+        target: /certs
+volumes:
+  sm-kms-certs:
+`,
+			wantValid:   false,
+			wantErrText: testUnresolvedCertVolumeTarget,
+		},
+		{
+			name:           "source interpolation with known non-certificate target allowed",
+			deploymentName: cryptoutilSharedMagic.OTLPServiceSMKMS,
+			composeContent: "services:\n  pki-init:\n    volumes:\n      - sm-kms-certs:/certs\n  sm-kms-app:\n    depends_on:\n      pki-init:\n        condition: service_completed_successfully\n    volumes:\n      - sm-kms-certs:/certs:ro\n      - ${DATA_VOLUME}:/data:ro\nvolumes:\n  sm-kms-certs:\n",
+			wantValid:      true,
 		},
 		{
 			name:           "bind target nested under certificate root rejected",
