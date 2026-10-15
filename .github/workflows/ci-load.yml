@@ -132,6 +132,8 @@ jobs:
       uses: ./.github/actions/docker-compose-up
       with:
         compose-file: './deployments/sm-kms/compose.yml'
+        required-completed-services: >-
+          ["healthcheck-secrets", "builder-sm-kms", "validate-secrets-sm-kms", "pki-init", "otel-certs-init", "healthcheck-opentelemetry-collector-contrib"]
         profiles: 'postgres'
 
     - name: Verify services are ready

@@ -94,24 +94,70 @@ jobs:
       uses: ./.github/actions/docker-compose-build
 
     - name: Deploy SM services
-      run: |
-        echo "🚀 Deploying SM services..."
-        START_TIME=$(date +%s)
-        echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-        (cd ./deployments/sm && docker compose -f compose.yml up -d)
-        echo "⏱️ Waiting for SM services to be healthy..."
-        sleep 35
-        echo "✅ SM services deployed"
-        END_TIME=$(date +%s)
-        DURATION=$((END_TIME - START_TIME))
-        echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-        echo "⏱️ SM deployment completed in: ${DURATION}s"
+      uses: ./.github/actions/docker-compose-up
+      with:
+        compose-file: './deployments/sm/compose.yml'
+        required-completed-services: >-
+          ["healthcheck-secrets", "builder-sm-kms", "validate-secrets-sm-kms", "pki-init", "otel-certs-init", "healthcheck-opentelemetry-collector-contrib"]
 
-    - name: Verify SM services
+    - name: Verify SM services with admin and public mTLS
+      working-directory: ./deployments/sm
       run: |
-        echo "🔍 Verifying SM services..."
-        curl -k https://localhost:9090/admin/api/v1/livez || echo "SM server not ready"
-        (cd ./deployments/sm && docker compose -f compose.yml ps)
+        set -euo pipefail
+
+        wait_for_admin_ready() {
+          local service="$1"
+          local identity="$2"
+          local cert="/certs/sm-kms/private-https-mutual-entity-${identity}/private-https-mutual-entity-${identity}.crt"
+          local key="/certs/sm-kms/private-https-mutual-entity-${identity}/private-https-mutual-entity-${identity}.key"
+
+          echo "Waiting for authenticated admin readiness: ${service}"
+          timeout 180s bash -euo pipefail -c '
+            service="$1"
+            cert="$2"
+            key="$3"
+            until docker compose --file compose.yml exec -T "$service" \
+              /app/sm-kms readyz --cacert /certs/issuing-ca.pem --cert "$cert" --key "$key" \
+              >/dev/null 2>&1; do
+              sleep 2
+            done
+          ' _ "$service" "$cert" "$key"
+          echo "${service} admin mTLS ready."
+        }
+
+        wait_for_public_ready() {
+          local service="$1"
+          local suffix="$2"
+          local identity="public-https-client-entity-sm-kms-${suffix}"
+          local cert="/certs/sm-kms/${identity}/${identity}.crt"
+          local key="/certs/sm-kms/${identity}/${identity}.key"
+          local ca="/certs/sm-kms/public-https-server-issuing-ca/truststore/public-https-server-issuing-ca.crt"
+
+          echo "Waiting for verified public mTLS readiness: ${service}"
+          timeout 180s bash -euo pipefail -c '
+            service="$1"
+            cert="$2"
+            key="$3"
+            ca="$4"
+            until docker compose --file compose.yml exec -T "$service" \
+              /app/sm-kms health --url https://127.0.0.1:8080/service/api/v1/health \
+              --cacert "$ca" --cert "$cert" --key "$key" \
+              >/dev/null 2>&1; do
+              sleep 2
+            done
+          ' _ "$service" "$cert" "$key" "$ca"
+          echo "${service} public mTLS health verified."
+        }
+
+        wait_for_admin_ready sm-kms-app-sqlite-1 sm-kms-sqlite-1
+        wait_for_admin_ready sm-kms-app-sqlite-2 sm-kms-sqlite-2
+        wait_for_admin_ready sm-kms-app-postgresql-1 sm-kms-postgres-1
+        wait_for_admin_ready sm-kms-app-postgresql-2 sm-kms-postgres-2
+
+        wait_for_public_ready sm-kms-app-sqlite-1 sqlite-1-serviceuser-db
+        wait_for_public_ready sm-kms-app-sqlite-2 sqlite-2-serviceuser-db
+        wait_for_public_ready sm-kms-app-postgresql-1 postgres-serviceuser-db
+        wait_for_public_ready sm-kms-app-postgresql-2 postgres-serviceuser-db
 
     - name: Run E2E tests
       run: |
@@ -121,8 +167,7 @@ jobs:
 
         # Stop SM services to free ports for E2E tests
         echo "🛑 Stopping CA and SM services to free ports..."
-        (cd ./deployments/sm && docker compose -f compose.yml down -v) || true
-        sleep 5
+        (cd ./deployments/sm && docker compose -f compose.yml down -v)
 
         # Set environment variable to help with debugging
         export E2E_DEBUG=1

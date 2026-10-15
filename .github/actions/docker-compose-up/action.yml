@@ -12,6 +12,9 @@ inputs:
     description: 'Comma-separated list of Docker Compose profiles to activate (e.g., "postgres")'
     required: false
     default: ''
+  required-completed-services:
+    description: 'JSON array of one-shot services that must exit successfully'
+    required: true
 runs:
   using: 'composite'
   steps:
@@ -20,7 +23,9 @@ runs:
       env:
         COMPOSE_INPUT_PATH: ${{ inputs.compose-file }}
         COMPOSE_PROFILES: ${{ inputs.profiles }}
+        REQUIRED_COMPLETED_SERVICES_JSON: ${{ inputs.required-completed-services }}
       run: |
+        set -euo pipefail
         echo "🚀 Starting Docker Compose services..."
         START_TIME=$(date +%s)
         echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
@@ -40,19 +45,69 @@ runs:
           done
         fi
 
-        # Start services
-        docker compose "${COMPOSE_ARGS[@]}" up -d
+        # Compose waits for every selected long-running service; verify one-shot jobs separately.
+        docker compose "${COMPOSE_ARGS[@]}" up -d --wait --wait-timeout 120
 
-        echo "⏳ Waiting for services to be healthy..."
-        timeout 120s bash -c '
-          until docker compose "$@" ps | grep -q "healthy"; do
-            echo "Waiting for healthy services..."
-            sleep 5
-          done
-        ' _ "${COMPOSE_ARGS[@]}"
+        echo "Service status:"
+        docker compose "${COMPOSE_ARGS[@]}" ps --all
+        export COMPOSE_STATE_JSON="$(docker compose "${COMPOSE_ARGS[@]}" ps --all --format json)"
+        python3 - <<'PY'
+        import json
+        import os
+        import sys
 
-        echo "📋 Service status:"
-        docker compose "${COMPOSE_ARGS[@]}" ps
+        try:
+            required = json.loads(os.environ["REQUIRED_COMPLETED_SERVICES_JSON"])
+        except (KeyError, json.JSONDecodeError) as error:
+            print(f"ERROR: invalid required-completed-services JSON: {error}")
+            sys.exit(1)
+
+        if not isinstance(required, list) or not required or any(not isinstance(service, str) or not service.strip() for service in required):
+            print("ERROR: required-completed-services must be a non-empty JSON array of service names")
+            sys.exit(1)
+        if len(set(required)) != len(required):
+            print("ERROR: required-completed-services contains duplicate names")
+            sys.exit(1)
+
+        raw = os.environ.get("COMPOSE_STATE_JSON", "").strip()
+        try:
+            parsed = json.loads(raw) if raw else []
+        except json.JSONDecodeError:
+            try:
+                parsed = [json.loads(line) for line in raw.splitlines() if line.strip()]
+            except json.JSONDecodeError as error:
+                print(f"ERROR: docker compose ps returned malformed JSON: {error}")
+                sys.exit(1)
+
+        if isinstance(parsed, dict):
+            containers = [parsed]
+        elif isinstance(parsed, list):
+            containers = parsed
+        else:
+            print("ERROR: docker compose ps JSON must contain a container array")
+            sys.exit(1)
+        if any(not isinstance(container, dict) for container in containers):
+            print("ERROR: docker compose ps JSON contains a malformed container entry")
+            sys.exit(1)
+
+        failures = []
+        for service in required:
+            matches = [container for container in containers if container.get("Service") == service]
+            if len(matches) != 1:
+                failures.append(f"{service}: found {len(matches)} containers (expected exactly one)")
+                continue
+            container = matches[0]
+            if container.get("State") != "exited" or str(container.get("ExitCode")) != "0":
+                failures.append(f"{service}: state={container.get('State')}, exitCode={container.get('ExitCode')}")
+
+        if failures:
+            print("ERROR: required one-shot Compose services did not each exit successfully:")
+            for failure in failures:
+                print(f"  {failure}")
+            sys.exit(1)
+
+        print("All required one-shot Compose services exited with code 0.")
+        PY
         END_TIME=$(date +%s)
         DURATION=$((END_TIME - START_TIME))
         echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
