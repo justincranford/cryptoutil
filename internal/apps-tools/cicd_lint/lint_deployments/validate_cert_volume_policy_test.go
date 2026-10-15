@@ -74,6 +74,13 @@ func TestValidateCertVolumePolicy(t *testing.T) {
 			wantErrText:    testUnresolvedCertVolumeTarget,
 		},
 		{
+			name:           "short syntax unbraced interpolated certificate target rejected",
+			deploymentName: cryptoutilSharedMagic.OTLPServiceSMKMS,
+			composeContent: "services:\n  pki-init:\n    volumes:\n      - sm-kms-certs:$CERT_TARGET\n  sm-kms-app:\n    depends_on:\n      pki-init:\n        condition: service_completed_successfully\n    volumes:\n      - sm-kms-certs:/certs:ro\nvolumes:\n  sm-kms-certs:\n",
+			wantValid:      false,
+			wantErrText:    testUnresolvedCertVolumeTarget,
+		},
+		{
 			name:           "short syntax interpolated default certificate target rejected",
 			deploymentName: cryptoutilSharedMagic.OTLPServiceSMKMS,
 			composeContent: "services:\n  pki-init:\n    volumes:\n      - sm-kms-certs:${CERT_TARGET:-/certs}\n  sm-kms-app:\n    depends_on:\n      pki-init:\n        condition: service_completed_successfully\n    volumes:\n      - sm-kms-certs:/certs:ro\nvolumes:\n  sm-kms-certs:\n",
@@ -104,9 +111,9 @@ volumes:
 			wantErrText: testUnresolvedCertVolumeTarget,
 		},
 		{
-			name:           "source interpolation with known non-certificate target allowed",
+			name:           "source interpolation and escaped target dollar allowed",
 			deploymentName: cryptoutilSharedMagic.OTLPServiceSMKMS,
-			composeContent: "services:\n  pki-init:\n    volumes:\n      - sm-kms-certs:/certs\n  sm-kms-app:\n    depends_on:\n      pki-init:\n        condition: service_completed_successfully\n    volumes:\n      - sm-kms-certs:/certs:ro\n      - ${DATA_VOLUME}:/data:ro\nvolumes:\n  sm-kms-certs:\n",
+			composeContent: "services:\n  pki-init:\n    volumes:\n      - sm-kms-certs:/certs\n  sm-kms-app:\n    depends_on:\n      pki-init:\n        condition: service_completed_successfully\n    volumes:\n      - sm-kms-certs:/certs:ro\n      - ${DATA_VOLUME}:/data:ro\n      - data-volume:/data/$$DATA_SEGMENT:ro\nvolumes:\n  sm-kms-certs:\n",
 			wantValid:      true,
 		},
 		{

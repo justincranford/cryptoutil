@@ -177,8 +177,8 @@ in `tasks.md`.
   `test-output/reviewfollowup/post-review-cert-volume-*.log`.
 - **F-8 — Complete.** Compose volume targets with unresolved variable interpolation are rejected
   in both short and long syntax because their resolved paths cannot be established safely.
-  Regression tests cover variable-only and defaulted short targets, long-syntax targets, and
-  source interpolation with a known non-certificate target. CO-21 now documents this fail-closed
+  Regression tests cover braced, unbraced, and defaulted short targets, long-syntax targets,
+  escaped dollar literals, and source interpolation with a known non-certificate target. CO-21 now documents this fail-closed
   policy. F-4/F-7 evidence and the F-7 disposition are updated to match the tests: trailing-slash
   aliases are normalized and accepted for the expected named volume, while overlapping bind
   mounts remain rejected. Focused and shuffled deployment-linter tests, normal/tagged builds and
