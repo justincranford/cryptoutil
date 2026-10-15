@@ -103,12 +103,12 @@ func TestWriteTLSConfigYAML_Generate_WritesConfigFile(t *testing.T) {
 
 	var tlsConfigPath string
 
-	captureWriteFile := func(path string, _ []byte, _ os.FileMode) error {
+	captureWriteFile := func(path string, data []byte, mode os.FileMode) error {
 		if strings.HasSuffix(path, "tls-config.yml") {
 			tlsConfigPath = path
 		}
 
-		return nil
+		return stubWriteFile(path, data, mode)
 	}
 
 	gen := cryptoutilAppsFrameworkTls.ExportedNewTestGenerator(
@@ -119,7 +119,9 @@ func TestWriteTLSConfigYAML_Generate_WritesConfigFile(t *testing.T) {
 	tmpDir := t.TempDir()
 	require.NoError(t, gen.Generate(cryptoutilSharedMagic.OTLPServiceSkeletonTemplate, tmpDir))
 
-	// tls-config.yml must be at targetDir/tls-config.yml, not inside the tier subdir.
-	require.Equal(t, filepath.Join(tmpDir, "tls-config.yml"), tlsConfigPath,
-		"tls-config.yml must be written at targetDir root, not inside tier subdir")
+	// Generation writes the config in private staging, then publishes it at targetDir root.
+	require.NotEqual(t, filepath.Join(tmpDir, "tls-config.yml"), tlsConfigPath,
+		"the write callback must receive the private staging path")
+	require.FileExists(t, filepath.Join(tmpDir, "tls-config.yml"),
+		"tls-config.yml must be published at targetDir root, not inside the tier subdirectory")
 }

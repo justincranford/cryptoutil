@@ -8,6 +8,7 @@ import (
 	"context"
 	"crypto/elliptic"
 	"crypto/x509"
+	"errors"
 	"fmt"
 	"net"
 	"os"
@@ -31,6 +32,7 @@ type Generator struct {
 	getKeyPairFn        func() *cryptoutilSharedCryptoKeygen.KeyPair
 	mkdirAllFn          func(string, os.FileMode) error
 	writeFileFn         func(string, []byte, os.FileMode) error
+	renameFn            func(string, string) error
 	createCAFn          func(issuer *cryptoutilSharedCryptoCertificate.Subject, issuerKey any, name string, kp *cryptoutilSharedCryptoKeygen.KeyPair, dur time.Duration, maxPath int) (*cryptoutilSharedCryptoCertificate.Subject, error)
 	createLeafFn        func(issuer *cryptoutilSharedCryptoCertificate.Subject, kp *cryptoutilSharedCryptoKeygen.KeyPair, name string, dur time.Duration, dns []string, ips []net.IP, emails []string, keyUsage x509.KeyUsage, extKeyUsage []x509.ExtKeyUsage) (*cryptoutilSharedCryptoCertificate.Subject, error)
 	encodePKCS12Fn      func(priv any, cert *x509.Certificate, chain []*x509.Certificate) ([]byte, error)
@@ -65,6 +67,7 @@ func NewGenerator(ctx context.Context, telemetryService *cryptoutilSharedTelemet
 		getKeyPairFn: pool.Get,
 		mkdirAllFn:   os.MkdirAll,
 		writeFileFn:  os.WriteFile,
+		renameFn:     os.Rename,
 		createCAFn: func(issuer *cryptoutilSharedCryptoCertificate.Subject, issuerKey any, name string, kp *cryptoutilSharedCryptoKeygen.KeyPair, dur time.Duration, maxPath int) (*cryptoutilSharedCryptoCertificate.Subject, error) {
 			return cryptoutilSharedCryptoCertificate.CreateCASubject(issuer, issuerKey, name, kp, dur, maxPath)
 		},
@@ -91,17 +94,64 @@ func (g *Generator) Shutdown() {
 // Generate creates the full /certs directory structure for the given tier ID
 // per the specification in docs/tls-structure.md. All output is written under
 // filepath.Join(targetDir, tierID)/.
-func (g *Generator) Generate(tierID, targetDir string) error {
+func (g *Generator) Generate(tierID, targetDir string) (resultErr error) {
 	_, psIDs, err := ResolveTier(tierID)
 	if err != nil {
 		return fmt.Errorf("failed to resolve tier %q: %w", tierID, err)
 	}
 
-	basePath := filepath.Join(targetDir, tierID)
-
-	if err := g.validateTargetDir(basePath); err != nil {
-		return fmt.Errorf("failed to validate target directory %q: %w", basePath, err)
+	if err := os.MkdirAll(targetDir, cryptoutilSharedMagic.PKIInitCertsDirMode); err != nil {
+		return fmt.Errorf("failed to create output directory %q: %w", targetDir, err)
 	}
+
+	outputPaths := []publishPath{
+		{source: filepath.Join(targetDir, tierID), destination: filepath.Join(targetDir, tierID), directory: true},
+		{source: filepath.Join(targetDir, "tls-config.yml"), destination: filepath.Join(targetDir, "tls-config.yml")},
+		{source: filepath.Join(targetDir, cryptoutilSharedMagic.PKIInitAdminCABundleFilename), destination: filepath.Join(targetDir, cryptoutilSharedMagic.PKIInitAdminCABundleFilename)},
+	}
+
+	if err := g.validateTargetDir(outputPaths[0].destination); err != nil {
+		return fmt.Errorf("failed to validate target directory %q: %w", outputPaths[0].destination, err)
+	}
+
+	for _, outputPath := range outputPaths[1:] {
+		if err := validatePublishDestination(outputPath.destination, false); err != nil {
+			return fmt.Errorf("failed to validate output file %q: %w", outputPath.destination, err)
+		}
+	}
+
+	if err := ensureUninitializedOutputs(outputPaths); err != nil {
+		return err
+	}
+
+	stagingRoot, err := os.MkdirTemp(targetDir, ".pki-init-staging-")
+	if err != nil {
+		return fmt.Errorf("failed to create private staging directory in %q: %w", targetDir, err)
+	}
+
+	defer func() {
+		if err := os.RemoveAll(stagingRoot); err != nil {
+			resultErr = errors.Join(resultErr, fmt.Errorf("failed to remove private staging directory %q: %w", stagingRoot, err))
+		}
+	}()
+
+	if err := g.generateInto(tierID, stagingRoot, psIDs); err != nil {
+		return err
+	}
+
+	if err := validateGeneratedMaterial(stagingRoot, tierID); err != nil {
+		return fmt.Errorf("generated certificate material failed validation: %w", err)
+	}
+
+	for i := range outputPaths {
+		outputPaths[i].source = filepath.Join(stagingRoot, filepath.Base(outputPaths[i].destination))
+	}
+
+	return publishGeneratedMaterial(g.renameFn, outputPaths)
+}
+
+func (g *Generator) generateInto(tierID, targetDir string, psIDs []string) error {
+	basePath := filepath.Join(targetDir, tierID)
 
 	shared, err := g.generateSharedCAs(basePath)
 	if err != nil {

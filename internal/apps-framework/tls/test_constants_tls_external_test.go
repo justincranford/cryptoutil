@@ -7,4 +7,5 @@ const (
 	testWriteCrtFails = "write .crt fails"
 	testWriteP12      = "write .p12"
 	testWriteP12Fails = "write .p12 fails"
+	testPrivateKeyExt = ".key"
 )

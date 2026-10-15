@@ -27,7 +27,7 @@ Canonical tier IDs:
 1. **PKI-INIT-DOMAIN** (`<tier-id>`) — canonical tier ID; one of the 11 valid domains below
 2. **TARGET-DIRECTORY** (`<target-dir>`) — target directory root; e.g. `/certs`, `/tmp`
 
-All output files are created under `TARGET-DIRECTORY/PKI-INIT-DOMAIN/`. If that subdirectory exists and is not empty, `pki-init` refuses to generate any files. If the subdirectory does not exist, or exists but is empty, `pki-init` creates the full directory tree and generates all required files.
+All output files are created under `TARGET-DIRECTORY/PKI-INIT-DOMAIN/`. `pki-init` is initialization-only and MUST refuse to overwrite any existing output. It generates into a private staging directory, validates the complete certificate and key set, then publishes the new tree; consumers MUST wait for successful initialization before starting. Certificate rotation is not implemented by `pki-init` and MUST NOT be attempted by rerunning it against a live consumer volume. A future rotation operation requires staged publication, complete validation, rollback-safe activation, and coordinated service reload.
 
 ### Valid PKI-INIT-DOMAIN Values (11 total)
 

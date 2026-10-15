@@ -68,7 +68,7 @@ func TestGenerate_Integration_RealCrypto(t *testing.T) {
 			assertValidCertChain(t, p, data)
 
 			crtCount++
-		case ".key":
+		case testPrivateKeyExt:
 			assertValidPKCS8Key(t, p, data)
 
 			keyCount++

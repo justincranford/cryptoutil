@@ -7,6 +7,7 @@ package tls
 import (
 	"crypto/x509"
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"net"
 	"os"
@@ -17,33 +18,21 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
-// validateTargetDir ensures the base path is ready for cert generation.
-// If the directory exists and is non-empty, it is removed so generation can
-// proceed cleanly, guaranteeing that every pki-init run produces fresh certs.
-// It uses os.Stat first to distinguish "not found" from "exists but is a file".
+// validateTargetDir ensures the base path is a directory when it already exists.
+// Existing material is preserved until a complete staged generation is validated
+// and published.
 func (g *Generator) validateTargetDir(basePath string) error {
-	fi, err := os.Stat(basePath)
+	fi, err := os.Lstat(basePath)
 	if err != nil {
-		if os.IsNotExist(err) {
+		if errors.Is(err, os.ErrNotExist) {
 			return nil
 		}
 
 		return fmt.Errorf("failed to stat target directory %q: %w", basePath, err)
 	}
 
-	if !fi.IsDir() {
+	if fi.Mode()&os.ModeSymlink != 0 || !fi.IsDir() {
 		return fmt.Errorf("target directory %q exists but is not a directory", basePath)
-	}
-
-	entries, err := os.ReadDir(basePath)
-	if err != nil {
-		return fmt.Errorf("failed to read target directory %q: %w", basePath, err)
-	}
-
-	if len(entries) > 0 {
-		if err := os.RemoveAll(basePath); err != nil {
-			return fmt.Errorf("failed to remove existing target directory %q: %w", basePath, err)
-		}
 	}
 
 	return nil

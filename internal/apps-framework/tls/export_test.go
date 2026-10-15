@@ -42,12 +42,18 @@ func ExportedNewTestGenerator(
 		getKeyPairFn:        getKeyPairFn,
 		mkdirAllFn:          mkdirAllFn,
 		writeFileFn:         writeFileFn,
+		renameFn:            os.Rename,
 		createCAFn:          createCAFn,
 		createLeafFn:        createLeafFn,
 		encodePKCS12Fn:      encodePKCS12Fn,
 		encodeTrustPKCS12Fn: encodeTrustPKCS12Fn,
 		getRealmsForPSIDFn:  getRealmsForPSIDFn,
 	}
+}
+
+// ExportedSetRenameFn replaces the publication rename operation for failure-path tests.
+func (g *Generator) ExportedSetRenameFn(renameFn func(string, string) error) {
+	g.renameFn = renameFn
 }
 
 // ExportedDefaultIPs exposes defaultIPs for testing.

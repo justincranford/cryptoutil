@@ -143,11 +143,12 @@ func TestInit_SeamInjection(t *testing.T) {
 
 		var stdout, stderr bytes.Buffer
 
-		// Non-empty target dir is cleaned and regenerated — pki-init is idempotent.
+		// pki-init refuses to rotate existing material so running consumers are not disrupted.
 		code := cryptoutilAppsFrameworkTls.ExportedInitRun([]string{"--domain=" + cryptoutilSharedMagic.OTLPServiceSMKMS, "--output-dir=" + outputDir}, nil, &stdout, &stderr, telemetryFn, generatorFn)
-		require.Equal(t, 0, code, "stderr=%s", stderr.String())
-		require.Contains(t, stdout.String(), "certificates written")
-		require.Empty(t, stderr.String())
+		require.Equal(t, 1, code)
+		require.Contains(t, stderr.String(), "does not support certificate rotation")
+		require.Empty(t, stdout.String())
+		require.FileExists(t, filepath.Join(subDir, "existing-file.txt"))
 	})
 
 	t.Run("happy path suite", func(t *testing.T) {
@@ -254,12 +255,12 @@ func buildStubSeams(
 
 // stubEncodePKCS12 is a no-op PKCS#12 keystore encoder for testing.
 func stubEncodePKCS12(_ any, _ *x509.Certificate, _ []*x509.Certificate) ([]byte, error) {
-	return []byte{}, nil
+	return []byte("stub-pkcs12"), nil
 }
 
 // stubEncodeTrustPKCS12 is a no-op PKCS#12 truststore encoder for testing.
 func stubEncodeTrustPKCS12(_ []*x509.Certificate) ([]byte, error) {
-	return []byte{}, nil
+	return []byte("stub-pkcs12"), nil
 }
 
 // stubGetRealmsForPSID returns the default realms for testing.
@@ -270,8 +271,14 @@ func stubGetRealmsForPSID(_ string) ([]string, error) {
 // stubMkdirAll is a no-op mkdir for testing.
 func stubMkdirAll(_ string, _ os.FileMode) error { return nil }
 
-// stubWriteFile is a no-op file write for testing.
-func stubWriteFile(_ string, _ []byte, _ os.FileMode) error { return nil }
+// stubWriteFile creates staged files for testing publication and validation.
+func stubWriteFile(path string, data []byte, mode os.FileMode) error {
+	if err := os.MkdirAll(filepath.Dir(path), cryptoutilSharedMagic.PKIInitCertsDirMode); err != nil {
+		return err
+	}
+
+	return os.WriteFile(path, data, mode)
+}
 
 // stubGetKeyPair returns a test ECDSA P-256 key pair (fast, not production P-384).
 func stubGetKeyPair() *cryptoutilSharedCryptoKeygen.KeyPair {
@@ -296,6 +303,9 @@ func stubCreateCA(
 		SerialNumber:          big.NewInt(1),
 		IsCA:                  true,
 		BasicConstraintsValid: true,
+		KeyUsage:              x509.KeyUsageCertSign | x509.KeyUsageCRLSign | x509.KeyUsageDigitalSignature,
+		NotBefore:             time.Now().UTC().Add(-time.Minute),
+		NotAfter:              time.Now().UTC().Add(time.Hour),
 	}
 
 	certDER, err := x509.CreateCertificate(crand.Reader, template, template, kp.Public, kp.Private)

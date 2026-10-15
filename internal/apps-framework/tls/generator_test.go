@@ -106,6 +106,121 @@ func TestGenerate_BasepathIsFile(t *testing.T) {
 	require.ErrorContains(t, err, "not a directory")
 }
 
+func TestGenerate_FailedGenerationDoesNotPublishMaterial(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name        string
+		writeFileFn func(string, []byte, os.FileMode) error
+		wantErr     string
+	}{
+		{
+			name: "write failure",
+			writeFileFn: failWriteFileAtCall(4, func(path string, _ []byte, _ os.FileMode) error {
+				return fmt.Errorf("injected staged write failure for %s", filepath.Base(path))
+			}),
+			wantErr: "injected staged write failure",
+		},
+		{
+			name: "invalid generated key",
+			writeFileFn: func(path string, data []byte, mode os.FileMode) error {
+				if filepath.Ext(path) == testPrivateKeyExt {
+					data = []byte("not a private key")
+				}
+
+				return stubWriteFile(path, data, mode)
+			},
+			wantErr: "not a single PKCS#8 PEM block",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			const tierID = cryptoutilSharedMagic.OTLPServiceSkeletonTemplate
+
+			outputDir := t.TempDir()
+
+			gen := cryptoutilAppsFrameworkTls.ExportedNewTestGenerator(
+				stubMkdirAll, tc.writeFileFn, stubCreateCA, stubCreateLeaf, stubGetKeyPair,
+				stubEncodePKCS12, stubEncodeTrustPKCS12, stubGetRealmsForPSID,
+			)
+
+			err := gen.Generate(tierID, outputDir)
+			require.ErrorContains(t, err, tc.wantErr)
+			require.NoDirExists(t, filepath.Join(outputDir, tierID))
+			require.NoFileExists(t, filepath.Join(outputDir, "tls-config.yml"))
+			require.NoFileExists(t, filepath.Join(outputDir, cryptoutilSharedMagic.PKIInitAdminCABundleFilename))
+
+			stagingDirs, globErr := filepath.Glob(filepath.Join(outputDir, ".pki-init-staging-*"))
+			require.NoError(t, globErr)
+			require.Empty(t, stagingDirs)
+		})
+	}
+}
+
+func TestGenerate_ExistingMaterialIsNotRotated(t *testing.T) {
+	t.Parallel()
+
+	const tierID = cryptoutilSharedMagic.OTLPServiceSkeletonTemplate
+
+	outputDir := t.TempDir()
+	basePath := filepath.Join(outputDir, tierID)
+	require.NoError(t, os.MkdirAll(basePath, cryptoutilSharedMagic.PKIInitCertsDirMode))
+	require.NoError(t, os.WriteFile(filepath.Join(basePath, "previous-generation"), []byte("preserve"), cryptoutilSharedMagic.PKIInitPublicCertFileMode))
+	require.NoError(t, os.WriteFile(filepath.Join(outputDir, "tls-config.yml"), []byte("previous config"), cryptoutilSharedMagic.PKIInitPrivateKeyFileMode))
+	require.NoError(t, os.WriteFile(filepath.Join(outputDir, cryptoutilSharedMagic.PKIInitAdminCABundleFilename), []byte("previous bundle"), cryptoutilSharedMagic.PKIInitPublicCertFileMode))
+
+	gen := cryptoutilAppsFrameworkTls.ExportedNewTestGenerator(
+		stubMkdirAll, stubWriteFile, stubCreateCA, stubCreateLeaf, stubGetKeyPair,
+		stubEncodePKCS12, stubEncodeTrustPKCS12, stubGetRealmsForPSID,
+	)
+	err := gen.Generate(tierID, outputDir)
+	require.ErrorContains(t, err, "does not support certificate rotation")
+	require.FileExists(t, filepath.Join(basePath, "previous-generation"))
+
+	config, readErr := os.ReadFile(filepath.Join(outputDir, "tls-config.yml"))
+	require.NoError(t, readErr)
+	require.Equal(t, "previous config", string(config))
+
+	bundle, readErr := os.ReadFile(filepath.Join(outputDir, cryptoutilSharedMagic.PKIInitAdminCABundleFilename))
+	require.NoError(t, readErr)
+	require.Equal(t, "previous bundle", string(bundle))
+}
+
+func TestGenerate_PublicationFailureRollsBackPartialMaterial(t *testing.T) {
+	t.Parallel()
+
+	const tierID = cryptoutilSharedMagic.OTLPServiceSkeletonTemplate
+
+	outputDir := t.TempDir()
+
+	var renameCalls atomic.Int32
+
+	gen := cryptoutilAppsFrameworkTls.ExportedNewTestGenerator(
+		stubMkdirAll, stubWriteFile, stubCreateCA, stubCreateLeaf, stubGetKeyPair,
+		stubEncodePKCS12, stubEncodeTrustPKCS12, stubGetRealmsForPSID,
+	)
+	gen.ExportedSetRenameFn(func(oldPath, newPath string) error {
+		if renameCalls.Add(1) == 2 {
+			return fmt.Errorf("injected publication rename failure")
+		}
+
+		return os.Rename(oldPath, newPath)
+	})
+
+	err := gen.Generate(tierID, outputDir)
+	require.ErrorContains(t, err, "injected publication rename failure")
+	require.NoDirExists(t, filepath.Join(outputDir, tierID))
+	require.NoFileExists(t, filepath.Join(outputDir, "tls-config.yml"))
+	require.NoFileExists(t, filepath.Join(outputDir, cryptoutilSharedMagic.PKIInitAdminCABundleFilename))
+
+	stagingDirs, globErr := filepath.Glob(filepath.Join(outputDir, ".pki-init-staging-*"))
+	require.NoError(t, globErr)
+	require.Empty(t, stagingDirs)
+}
+
 // TestGenerateCAChain_Errors verifies error propagation from generateCAChain for
 // root CA creation failure and issuing CA creation failure.
 func TestGenerateCAChain_Errors(t *testing.T) {
@@ -496,9 +611,9 @@ func TestInit_WrapperStatements(t *testing.T) {
 	require.Equal(t, 1, cryptoutilAppsFrameworkTls.InitForService(cryptoutilSharedMagic.OTLPServiceSkeletonTemplate, missingOutputDir, io.Discard, io.Discard))
 }
 
-// TestGenerate_EmptyBasePath_Succeeds covers the validateTargetDir path where basePath
-// already exists as an empty directory (should be treated as valid).
-func TestGenerate_EmptyBasePath_Succeeds(t *testing.T) {
+// TestGenerate_EmptyBasePathRejectsRotation verifies that even an existing empty tier
+// directory is not silently replaced by the initialization-only command.
+func TestGenerate_EmptyBasePathRejectsRotation(t *testing.T) {
 	t.Parallel()
 
 	gen := cryptoutilAppsFrameworkTls.ExportedNewTestGenerator(
@@ -510,7 +625,7 @@ func TestGenerate_EmptyBasePath_Succeeds(t *testing.T) {
 	// Pre-create an empty basePath directory.
 	require.NoError(t, os.MkdirAll(filepath.Join(tmpDir, cryptoutilSharedMagic.OTLPServiceSMKMS), cryptoutilSharedMagic.CICDTempDirPermissions))
 
-	require.NoError(t, gen.Generate(cryptoutilSharedMagic.OTLPServiceSMKMS, tmpDir))
+	require.ErrorContains(t, gen.Generate(cryptoutilSharedMagic.OTLPServiceSMKMS, tmpDir), "does not support certificate rotation")
 }
 
 // TestGenerateCAChain_WriteErrors covers writeTruststore and issuing-CA write error paths
