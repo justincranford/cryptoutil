@@ -28,10 +28,13 @@ and are independent of the numbered rows in the task evidence table.
   duplicate-row remediation is intentionally excluded under item 28.
 - **3 — Partially verified.** Deployment lint evidence exists; live Compose startup and health
   verification remain outstanding.
-- **4 — Pending.** Decide how the coverage inventory baseline will be maintained and document its
-  update procedure.
-- **5 — Partially verified.** The coverage gate was made fail-closed; package-result edge cases and
-  runner execution still need explicit evidence.
+- **4 — Complete.** The inventory maintenance procedure is documented in ENG-HANDBOOK §10.2.3
+  and propagated to testing instructions. The workflow uploads both inventories; docs, workflow,
+  and text validators pass.
+- **5 — Partially verified.** Six synthetic result/profile edge cases pass and the actual
+  profile-driven gate runs without parser or inventory errors. The run reports 152/320 packages
+  meeting thresholds and 168/320 below threshold (71.5% total statement coverage); the CI runner
+  has not passed the gate, so threshold remediation and runner confirmation remain outstanding.
 - **6 — Partially verified.** Focused listener tests cover shutdown paths; full race validation is
   outstanding.
 - **7 — Pending.** Focused TLS tests exist, but whole-set publication atomicity and platform

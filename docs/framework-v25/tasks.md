@@ -1051,8 +1051,8 @@ Recommendation numbers below refer to `review-follow-up-plan.md`, not to the his
 |---|---|---|---|
 | 2 | Partially verified | `test-output/review-followup/pki-persistence-integration.log` covers SQLite persistence. | Review migrations 2012–2014 up/down behavior on SQLite and PostgreSQL. |
 | 3 | Partially verified | Existing deployment checks are recorded in the historical task table and `test-output/review-followup/structural-lints.log`. | Run live Compose startup and health verification. |
-| 4 | Pending | No retained baseline-maintenance procedure. | Document the coverage inventory update procedure. |
-| 5 | Partially verified | Existing coverage-gate implementation is in `.github/workflows/ci-coverage.yml`. | Verify package-result edge cases and baseline update/review procedure. |
+| 4 | Complete | The baseline-maintenance procedure is in `docs/ENG-HANDBOOK.md` §10.2.3 and `.github/instructions/03-02.testing.instructions.md`; `coverage-baseline-docs.log`, `coverage-baseline-workflow.log`, and `coverage-baseline-text.log` pass. Both inventories are uploaded by the workflow. | None. |
+| 5 | Partially verified | `gate-cases/edge-cases.log` passes all six synthetic cases; `coverage-gate-validation.log` and `coverage-gate-runner-summary.md` show the profile-driven gate completed parsing and reported 152/320 packages passing and 168/320 below target. `test-output/coverage-analysis/review-followup/coverage-func.txt` records 71.5% total coverage. | Remediate or document justified coverage ceilings for below-target packages and confirm a passing CI runner execution; do not lower thresholds to clear the gate. |
 | 6 | Partially verified | `test-output/review-followup/focused-tests.log` contains focused listener tests. | Run required full race validation. |
 | 7 | Pending | Focused TLS tests exist; whole-set publication and platform permission evidence is not retained here. | Verify atomic publication and platform-specific permission behavior. |
 | 8 | Partially verified | Workflow checks are retained in `test-output/review-followup/structural-lints.log`. | Validate Compose runtime and load-workflow input behavior. |

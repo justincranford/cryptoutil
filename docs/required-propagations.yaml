@@ -291,6 +291,11 @@ required_propagations:
     required_targets:
       - .github/instructions/03-02.testing.instructions.md
 
+  - chunk_id: coverage-inventory-baseline
+    source_file: docs/ENG-HANDBOOK.md
+    required_targets:
+      - .github/instructions/03-02.testing.instructions.md
+
   - chunk_id: validator-error-aggregation
     source_file: docs/ENG-HANDBOOK.md
     required_targets:

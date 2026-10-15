@@ -129,6 +129,10 @@ jobs:
           echo "Coverage package inventory is empty"
           exit 1
         fi
+        if ! NO_TEST_PACKAGE_INVENTORY=$(go list -f '{{if and (not .TestGoFiles) (not .XTestGoFiles)}}{{.ImportPath}}{{end}}' ./...); then
+          echo "Failed to generate the coverage no-test package inventory"
+          exit 1
+        fi
         PACKAGES=()
         while IFS= read -r PKG; do
           if [[ -z "$PKG" ]]; then
@@ -140,10 +144,26 @@ jobs:
           esac
           PACKAGES+=("$PKG")
         done <<< "$PACKAGE_INVENTORY"
+        NO_TEST_PACKAGES=()
+        while IFS= read -r PKG; do
+          if [[ -z "$PKG" ]]; then
+            continue
+          fi
+          case "$PKG" in
+            "$MODULE_PATH"/cmd|"$MODULE_PATH"/cmd/*) continue ;;
+          esac
+          NO_TEST_PACKAGES+=("$PKG")
+        done <<< "$NO_TEST_PACKAGE_INVENTORY"
         if ((${#PACKAGES[@]} == 0)); then
           echo "Coverage package inventory is empty after exclusions"
           exit 1
         fi
+        if ((${#NO_TEST_PACKAGES[@]} > 0)); then
+          printf '%s\n' "${NO_TEST_PACKAGES[@]}" > workflow-reports/coverage/no-test-package-inventory.txt
+        else
+          : > workflow-reports/coverage/no-test-package-inventory.txt
+        fi
+        # Follow the inventory-baseline update procedure in ENG-HANDBOOK.md Section 10.2.3.
         printf '%s\n' "${PACKAGES[@]}" > workflow-reports/coverage/package-inventory.txt
         go test -count=1 -p=2 -coverprofile=workflow-reports/coverage/coverage.out -covermode=atomic \
           "${PACKAGES[@]}" 2>&1 | tee workflow-reports/coverage/coverage-per-pkg.txt
@@ -185,8 +205,13 @@ jobs:
             category_expected[3] = 44
             expected_total_count = 352
             expected_root_pkg_count = 0
-            expected_no_statement_count = 1
-            no_statement_package = module "/internal/apps/identity-authz/e2e"
+            expected_no_test_count = 30
+            expected_no_statement_count = 2
+            no_statement_package[1] = module "/internal/apps/identity-authz/e2e"
+            no_statement_package[2] = module "/internal/apps/sm-kms/server/pki/domain"
+            custom_coverage_output[1] = module "/internal/apps-tools/cicd_lint"
+            custom_coverage_output[2] = module "/internal/apps-tools/cicd_lint/lint_fitness"
+            custom_coverage_output[3] = module "/internal/apps-tools/cicd_lint/lint_fitness/cicd_coverage"
             root_pkg_prefix = module "/pkg"
           }
           FILENAME == ARGV[1] {
@@ -200,13 +225,31 @@ jobs:
             }
             expected[$1] = 1
             expected_count++
+            expected_order[expected_count] = $1
             for (i = 1; i <= category_count; i++) {
               if ($1 ~ ("/" category_name[i] "(/|$)")) category_inventory[i]++
             }
             if ($1 == root_pkg_prefix || index($1, root_pkg_prefix "/") == 1) root_pkg_inventory++
             next
           }
-          ($1 == "ok" || $1 == "?") {
+          FILENAME == ARGV[2] {
+            if (NF != 1) {
+              fail("Malformed no-test package inventory at line " FNR)
+              next
+            }
+            if (!($1 in expected)) {
+              fail("No-test package is absent from coverage inventory: " $1)
+              next
+            }
+            if ($1 in expected_no_test) {
+              fail("Duplicate no-test package inventory entry: " $1)
+              next
+            }
+            expected_no_test[$1] = 1
+            no_test_inventory_count++
+            next
+          }
+          FILENAME == ARGV[3] && ($1 == "ok" || $1 == "?") {
             pkg = $2
             if (!(pkg in expected)) {
               fail("Test output contains package absent from inventory: " pkg)
@@ -217,40 +260,98 @@ jobs:
               next
             }
             seen[pkg] = 1
-            if ($4 == "coverage:" && $5 == "[no" && $6 == "statements]") {
-              if (pkg != no_statement_package) {
+            if ($1 == "?") {
+              if (NF != 5 || $3 != "[no" || $4 != "test" || $5 != "files]") {
+                fail("Malformed no-test-files result for package: " pkg)
+              } else if (!(pkg in expected_no_test)) {
+                fail("No-test-files result is absent from no-test inventory: " pkg)
+              } else {
+                no_test_count++
+              }
+              next
+            }
+            if (pkg in expected_no_test) {
+              fail("Package with no test files returned a successful test result: " pkg)
+              next
+            }
+            if (NF < 4 || $4 != "coverage:") {
+              fail("Malformed package test result for: " pkg)
+              next
+            }
+            if ($5 == "[no" && $6 == "statements]") {
+              is_expected_no_statement = 0
+              for (i = 1; i <= expected_no_statement_count; i++) {
+                if (pkg == no_statement_package[i]) is_expected_no_statement = 1
+              }
+              if (!is_expected_no_statement) {
                 fail("Unexpected package with no statements: " pkg)
               } else {
                 no_statement_count++
               }
               next
             }
-            if ($1 == "?") {
-              if ($3 != "[no" || $4 != "test" || $5 != "files]") {
-                fail("Malformed no-test-files result for package: " pkg)
-              } else {
-                no_test_count++
-              }
+            if ($5 ~ /^[0-9]+([.][0-9]+)?%$/ && $6 == "of" && $7 == "statements") {
               next
             }
-            if ($4 != "coverage:" || $5 !~ /^[0-9]+([.][0-9]+)?%$/ || $6 != "of" || $7 != "statements") {
+            is_custom_coverage_output = 0
+            for (i = 1; i <= 3; i++) {
+              if (pkg == custom_coverage_output[i]) is_custom_coverage_output = 1
+            }
+            if (!is_custom_coverage_output) {
               fail("Malformed coverage result for package: " pkg)
+            }
+            next
+          }
+          FILENAME == ARGV[3] && $1 in expected {
+            pkg = $1
+            if ($2 != "coverage:" || $3 !~ /^[0-9]+([.][0-9]+)?%$/ || $4 != "of" || $5 != "statements") {
+              fail("Malformed no-test coverage result for package: " pkg)
               next
             }
-            pct = $5
-            sub(/%$/, "", pct)
-            threshold = 95.0
-            for (i = 1; i <= category_count; i++) {
-              if (pkg ~ ("/" category_name[i] "(/|$)")) threshold = 98.0
+            if (!(pkg in expected_no_test)) {
+              fail("No-test coverage result is absent from no-test inventory: " pkg)
+              next
             }
-            if (pkg == root_pkg_prefix || index(pkg, root_pkg_prefix "/") == 1) threshold = 98.0
-            status = "PASS"
-            if ((pct + 0) < threshold) {
-              status = "FAIL"
-              failed = 1
+            if ($3 + 0 != 0) {
+              fail("No-test package unexpectedly reports nonzero coverage: " pkg)
+              next
             }
-            printf "| `%s` | %s%% | %s (min %.1f%%) |\n", pkg, pct, status, threshold >> summary
-            coverage_count++
+            if (pkg in seen) {
+              fail("Duplicate test result for package: " pkg)
+              next
+            }
+            seen[pkg] = 1
+            no_test_count++
+            next
+          }
+          FILENAME == ARGV[4] {
+            if ($1 == "mode:") {
+              if (NF != 2) fail("Malformed coverage profile mode")
+              next
+            }
+            if (NF != 3 || $2 !~ /^[0-9]+$/ || $3 !~ /^[0-9]+$/) {
+              fail("Malformed coverage profile record at line " FNR)
+              next
+            }
+            file = $1
+            if (sub(/:[0-9]+[.][0-9]+,[0-9]+[.][0-9]+$/, "", file) != 1) {
+              fail("Malformed coverage profile file location at line " FNR)
+              next
+            }
+            path_count = split(file, path_parts, "/")
+            if (path_count < 2) {
+              fail("Malformed coverage profile package path at line " FNR)
+              next
+            }
+            pkg = path_parts[1]
+            for (i = 2; i < path_count; i++) pkg = pkg "/" path_parts[i]
+            if (!(pkg in expected)) {
+              fail("Coverage profile package is absent from inventory: " pkg)
+              next
+            }
+            profile_statements[pkg] += $2
+            if ($3 + 0 > 0) profile_covered[pkg] += $2
+            next
           }
           END {
             if (expected_count == 0) fail("Coverage package inventory is empty")
@@ -265,11 +366,57 @@ jobs:
             if (root_pkg_inventory != expected_root_pkg_count) {
               fail("Top-level pkg namespace count changed: expected " expected_root_pkg_count ", got " root_pkg_inventory "; update the explicit inventory baseline")
             }
+            if (no_test_inventory_count != expected_no_test_count) {
+              fail("No-test package inventory count changed: expected " expected_no_test_count ", got " no_test_inventory_count)
+            }
+            if (no_test_count != expected_no_test_count) {
+              fail("Packages without test files changed: expected " expected_no_test_count ", got " no_test_count "; review the package inventory baseline")
+            }
             if (no_statement_count != expected_no_statement_count) {
               fail("No-statement package count changed: expected " expected_no_statement_count ", got " no_statement_count)
             }
             for (pkg in expected) {
               if (!(pkg in seen)) fail("Missing test result for inventoried package: " pkg)
+            }
+            for (i = 1; i <= expected_count; i++) {
+              pkg = expected_order[i]
+              if (pkg in expected_no_test) {
+                if (profile_covered[pkg] > 0) {
+                  fail("Package without test files has covered statements: " pkg)
+                }
+                continue
+              }
+              is_expected_no_statement = 0
+              for (j = 1; j <= expected_no_statement_count; j++) {
+                if (pkg == no_statement_package[j]) is_expected_no_statement = 1
+              }
+              if (profile_statements[pkg] == 0) {
+                if (!is_expected_no_statement) {
+                  fail("Coverage profile has no statements for inventoried package: " pkg)
+                }
+                continue
+              }
+              if (is_expected_no_statement) {
+                fail("Package expected to have no statements has coverage profile entries: " pkg)
+                continue
+              }
+              if (profile_covered[pkg] > profile_statements[pkg]) {
+                fail("Coverage profile covered statement count exceeds total: " pkg)
+                continue
+              }
+              pct = 100.0 * profile_covered[pkg] / profile_statements[pkg]
+              threshold = 95.0
+              for (j = 1; j <= category_count; j++) {
+                if (pkg ~ ("/" category_name[j] "(/|$)")) threshold = 98.0
+              }
+              if (pkg == root_pkg_prefix || index(pkg, root_pkg_prefix "/") == 1) threshold = 98.0
+              status = "PASS"
+              if (pct < threshold) {
+                status = "FAIL"
+                failed = 1
+              }
+              printf "| `%s` | %.1f%% | %s (min %.1f%%) |\n", pkg, pct, status, threshold >> summary
+              coverage_count++
             }
             if (coverage_count == 0) fail("No package coverage rows were parsed")
             if (failed) {
@@ -278,7 +425,7 @@ jobs:
             }
             print "All packages meet per-package coverage thresholds (" no_test_count " packages have no test files)"
           }
-        ' workflow-reports/coverage/package-inventory.txt workflow-reports/coverage/coverage-per-pkg.txt; then
+        ' workflow-reports/coverage/package-inventory.txt workflow-reports/coverage/no-test-package-inventory.txt workflow-reports/coverage/coverage-per-pkg.txt workflow-reports/coverage/coverage.out; then
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "Per-package coverage gate failed; see step logs for details." >> "$GITHUB_STEP_SUMMARY"
           exit 1
@@ -422,6 +569,8 @@ jobs:
           workflow-reports/coverage/coverage.html
           workflow-reports/coverage/coverage-func.txt
           workflow-reports/coverage/coverage-per-pkg.txt
+          workflow-reports/coverage/package-inventory.txt
+          workflow-reports/coverage/no-test-package-inventory.txt
           coverage-upload-artifacts-trivy.sarif
         retention-days: 1
 
