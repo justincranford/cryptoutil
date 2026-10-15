@@ -1095,7 +1095,7 @@ Finding identifiers F-1 and F-2 are distinct from review recommendation numbers.
 | F-2 | Complete | `post-review-focused-tests.log` passes valid legacy-certificate revocation and rejects invalid PEM and serial mismatches; `docs/ENG-HANDBOOK.md` §6.5 documents the issuer-verification rule. | None. |
 | F-3 | Complete | `post-review-env-file-tests.log` passes the shuffled deployment-linter package; `post-review-env-file-validation.log` passes all 51 deployment validators, `lint-docs`, and `lint-text`. | None. |
 | F-4 | Complete | `post-review-cert-volume-tests.log` passes the shuffled deployment-linter package; `post-review-cert-volume-validation.log` passes Go, Go-test, all 51 deployment validators, lint-fitness, docs, and text validators. | None. |
-| F-5 | Pending | — | Apply and verify restrictive Windows ACLs to private key files, PKCS#12 keys, and `tls-config.yml` before publication. |
+| F-5 | Complete | `post-review-windows-acl-tests.log` passes the shuffled TLS package suite on Windows, including broad-ACL replacement and published ACL checks for private keys, keystore PKCS#12 files, and `tls-config.yml`; normal and `e2e,integration` builds and golangci-lint pass; `post-review-windows-acl-repository-validation.log` passes lint-go, lint-go-test, lint-fitness, lint-docs, and lint-text; `post-review-windows-acl-docs-text.log` confirms the final documentation and text checks. | None. |
 
 **Environment incident during live verification:** An accidental `docker compose down --volumes`
 removed the globally named volumes `cryptoutil_postgres_leader_volume`,

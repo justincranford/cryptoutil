@@ -153,6 +153,9 @@ in `tasks.md`.
   Focused tests and all deployment, fitness, docs, text, Go, and Go-test validators pass; evidence is
   recorded in `test-output/reviewfollowup/post-review-cert-volume-tests.log` and
   `test-output/reviewfollowup/post-review-cert-volume-validation.log`.
-- **F-5 — Pending.** Windows mode-bit checks do not enforce confidentiality against inherited
-  filesystem ACLs. Apply and verify restrictive ACLs for private key material before publication,
-  with Windows-specific regression tests.
+- **F-5 — Complete.** Windows mode-bit checks do not enforce confidentiality against inherited
+  filesystem ACLs. `pki-init` now applies and verifies a protected DACL granting access only to
+  the current user and LocalSystem for staged private key files, keystore PKCS#12 files, and
+  `tls-config.yml` before publication. Windows-specific tests reject a broad ACL and verify the
+  published private files; TLS tests, normal/tagged builds and lint, and repository validators
+  pass. Evidence is recorded in `test-output/reviewfollowup/post-review-windows-acl-*.log`.

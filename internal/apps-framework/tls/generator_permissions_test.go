@@ -105,6 +105,10 @@ func assertPublishedPermissions(t *testing.T, path string, expected os.FileMode)
 	if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
 		require.Zero(t, permissions&0o222, "published file %q must be read-only on Windows", path)
 
+		if expected == cryptoutilSharedMagic.PKIInitPrivateKeyFileMode {
+			require.NoError(t, cryptoutilAppsFrameworkTls.ExportedValidatePrivateFileACL(path))
+		}
+
 		return
 	}
 

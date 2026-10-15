@@ -116,6 +116,11 @@ func (g *Generator) ExportedWriteAdminCABundle(targetDir string, adminCACerts []
 	return g.writeAdminCABundle(targetDir, adminCACerts)
 }
 
+// ExportedValidatePrivateFileACL verifies the platform-specific private-file access policy.
+func ExportedValidatePrivateFileACL(path string) error {
+	return validatePrivateFileACL(path)
+}
+
 // ExportedProductionNewTelemetryService exposes productionNewTelemetryService for production wiring tests.
 func ExportedProductionNewTelemetryService(ctx context.Context) (*cryptoutilSharedTelemetry.TelemetryService, error) {
 	return productionNewTelemetryService(ctx)

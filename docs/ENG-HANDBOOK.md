@@ -2279,6 +2279,8 @@ The `pki-init` CLI generates the full `/certs` directory tree for each deploymen
 
 **PKCS#12 format**: `pkcs12.Modern.Encode` / `pkcs12.Modern.EncodeTrustStore` from `software.sslmate.com/src/go-pkcs12`. Modern format uses SHA-256 + AES-256-CBC (not legacy 3DES). CGO-free. Always use `pkcs12.Modern`, never `pkcs12.Legacy`.
 
+**Private material permissions**: Private key PEM files, keystore PKCS#12 files (not truststore files), and `tls-config.yml` MUST be confidential before publication. On POSIX, `pki-init` enforces mode `0440` (`r--r-----`). On Windows, mode bits alone do not protect against inherited ACLs, so `pki-init` applies and verifies a protected DACL granting access only to the current user and LocalSystem before publishing generated files.
+
 **Directory counts** (with 2 realms per PS-ID):
 - PS-ID scope: 90 directories
 - PRODUCT scope (sm = 1 PS-ID): 90 directories (30 global shared + 60 per PS-ID x 1)

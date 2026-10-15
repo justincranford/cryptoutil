@@ -175,7 +175,18 @@ func validateGeneratedMaterial(stagingRoot, tierID string) error {
 			certCount, keyCount, pkcs12Count)
 	}
 
-	if err := validateTLSConfig(filepath.Join(stagingRoot, "tls-config.yml")); err != nil {
+	tlsConfigPath := filepath.Join(stagingRoot, "tls-config.yml")
+
+	tlsConfigInfo, err := os.Stat(tlsConfigPath)
+	if err != nil {
+		return fmt.Errorf("inspect staged tls-config.yml: %w", err)
+	}
+
+	if err := validateStagedFileMode(tlsConfigPath, tlsConfigInfo.Mode()); err != nil {
+		return fmt.Errorf("validate staged tls-config.yml permissions: %w", err)
+	}
+
+	if err := validateTLSConfig(tlsConfigPath); err != nil {
 		return err
 	}
 
@@ -213,22 +224,32 @@ func readStagedFile(rootPath, relativePath string) ([]byte, error) {
 
 func validateStagedFileMode(path string, mode os.FileMode) error {
 	expectedMode := cryptoutilSharedMagic.PKIInitPublicCertFileMode
+	privateMaterial := false
 
 	switch filepath.Ext(path) {
 	case cryptoutilSharedMagic.PKIInitPrivateKeyFileExtension:
 		expectedMode = cryptoutilSharedMagic.PKIInitPrivateKeyFileMode
+		privateMaterial = true
 	case cryptoutilSharedMagic.PKIInitPKCS12FileExtension:
 		if filepath.Base(filepath.Dir(path)) != "truststore" {
 			expectedMode = cryptoutilSharedMagic.PKIInitPrivateKeyFileMode
+			privateMaterial = true
 		}
 	case ".yml":
 		expectedMode = cryptoutilSharedMagic.PKIInitPrivateKeyFileMode
+		privateMaterial = true
 	}
 
 	permissions := mode.Perm()
 	if runtime.GOOS == "windows" {
 		if permissions&0o222 != 0 {
 			return fmt.Errorf("staged file %q has writable permissions on Windows", path)
+		}
+
+		if privateMaterial {
+			if err := securePrivateFileACL(path); err != nil {
+				return fmt.Errorf("secure staged private file %q ACL: %w", path, err)
+			}
 		}
 
 		return nil
