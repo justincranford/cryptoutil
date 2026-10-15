@@ -130,7 +130,7 @@ func pythonDependenciesGroup() *Group {
 			{
 				Name:             "yamllint",
 				Type:             cryptoutilSharedMagic.DevSetupToolTypePythonModule,
-				MinVersion:       "1.26.0",
+				MinVersion:       cryptoutilSharedMagic.DevSetupTestVersionGoRequired,
 				CheckCmd:         cryptoutilSharedMagic.DevSetupYamllintCheckCmd,
 				Description:      "YAML linter for consistent YAML formatting",
 				DetectVersionCmd: cryptoutilSharedMagic.DevSetupYamllintCheckCmd,

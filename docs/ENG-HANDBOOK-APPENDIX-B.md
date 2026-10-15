@@ -9,17 +9,17 @@
 **CRITICAL: ALWAYS use the same version everywhere** (dev, CI/CD, Docker, workflows, docs)
 
 - Go: 1.27.2+
-- Python: 3.14+
+- Python: 3.14+ (3.15.0 latest stable; Python has no LTS)
 - golangci-lint: v2.14.0+
-- Node: v24.11.1+ LTS
-- Java: 21 LTS (Gatling load tests)
-- Maven: 3.9+
+- Node: v24.22.0+ LTS
+- Java: 21 LTS (Gatling load tests; project pin, Java 25 is newer LTS)
+- Maven: 3.10.0+
 - pre-commit: 2.20.0+
-- Docker: 27+
-- Docker Compose: v5+
+- Docker: 29.9.1+ Engine (Docker Desktop 4.95.0)
+- Docker Compose: v5.6.0+
 <!-- @/to-appendix -->
 
-**Languages**: Go 1.27.2 (services), Python 3.14+ (utilities), Node v24.11.1+ (CLI tools)
+**Languages**: Go 1.27.2 (services), Python 3.14+ (utilities), Node v24.22.0+ (CLI tools)
 **Databases**: PostgreSQL 18, SQLite (modernc.org/sqlite, CGO-free)
 **Frameworks**: Fiber (HTTP), GORM (ORM), oapi-codegen (OpenAPI)
 **Container Base**: Alpine Linux latest (all Dockerfiles, unpinned for security patches)

@@ -2,8 +2,8 @@
 # https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax
 
 # WORKFLOW: Load Testing
-# PURPOSE: Performance validation using Gatling load testing framework (Java 21 + Maven 3.9)
-# DEPENDENCIES: Docker Compose stack (cryptoutil services + PostgreSQL), Java 21, Maven 3.9
+# PURPOSE: Performance validation using Gatling load testing framework (Java 21 + Maven 3.10)
+# DEPENDENCIES: Docker Compose stack (cryptoutil services + PostgreSQL), Java 21, Maven 3.10
 # EXPECTED DURATION: 10-20min (Docker Compose startup + Gatling simulation execution)
 # TIMEOUT: 45min (allows Docker builds + stack startup + Gatling load simulation + report generation)
 # CRITICAL PATH: Docker Compose stack startup (60-150s) + Gatling simulation (5-15min depending on load profile)

@@ -53,4 +53,4 @@ run.precision = 2
 run.source = [ "." ]
 
 [tool.node]
-dependencies = [ "nvm-windows>=1.2.2", "node>=24.11.1", "cspell>=9.0.0" ]
+dependencies = [ "nvm-windows>=1.2.2", "node>=24.22.0", "cspell>=9.0.0" ]

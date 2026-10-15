@@ -215,8 +215,8 @@
                     <message>Java 21+ required</message>
                   </requireJavaVersion>
                   <requireMavenVersion>
-                    <version>[3.9,)</version>
-                    <message>Maven 3.9+ required</message>
+                    <version>[3.10,)</version>
+                    <message>Maven 3.10+ required</message>
                   </requireMavenVersion>
                 </rules>
               </configuration>

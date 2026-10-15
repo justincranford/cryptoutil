@@ -22,16 +22,20 @@ This guide covers setting up a complete development environment for the cryptout
 
 ### Minimum Version Requirements
 
-| Tool | Version | Purpose | Required For |
-|------|---------|---------|--------------|
-| **Go** | 1.27.2+ | Primary language | All development |
-| **Docker** | 27+ | Containerization | PostgreSQL, E2E tests, deployments |
-| **Docker Compose** | v5+ | Container orchestration | Multi-service deployments, recursive includes |
-| **Python** | 3.14+ | Pre-commit hooks, utilities | Code quality automation |
-| **Node.js** | 24.11.1+ LTS | Spell checking, markdown linting | Pre-commit hooks |
-| **Java** | 21 LTS | Gatling load tests | Performance testing (optional) |
-| **Maven** | 3.9+ | Java build tool | Gatling tests (optional) |
-| **Git** | 2.40+ | Version control | All development |
+Current releases below are checked as of 2026-10-15. Docker, Python, and Maven do not publish LTS
+tracks. Python 3.14 remains the supported project floor; 3.15 is the latest stable release, not a
+new support claim.
+
+| Tool | Minimum / Project Pin | Current recommendation | Purpose | Required For |
+|------|-----------------------|------------------------|---------|--------------|
+| **Go** | 1.27.2+ | 1.27.2 (project pin) | Primary language | All development |
+| **Docker** | 29.9.1+ Engine | 29.9.1 Engine / Desktop 4.95.0 | Containerization | PostgreSQL, E2E tests, deployments |
+| **Docker Compose** | v5.6.0+ | v5.6.0 | Container orchestration | Multi-service deployments, recursive includes |
+| **Python** | 3.14+ | 3.15.0 (latest stable; no LTS) | Pre-commit hooks, utilities | Code quality automation |
+| **Node.js** | 24.22.0+ LTS | v24.22.0 (Node 24 LTS) | Spell checking, markdown linting | Pre-commit hooks |
+| **Java** | 21 LTS | 21 (project pin; Java 25 is newer LTS) | Gatling load tests | Performance testing (optional) |
+| **Maven** | 3.10.0+ | 3.10.0 (latest stable; no LTS) | Java build tool | Gatling tests (optional) |
+| **Git** | 2.40+ | Current stable | Version control | All development |
 
 See [ENG-HANDBOOK.md Section 2.2 Architecture Strategy](ENG-HANDBOOK.md#22-architecture-strategy) for version consistency requirements — all tools MUST use the same version across development, CI/CD, Docker, and documentation.
 
@@ -102,15 +106,15 @@ github.com/testcontainers/testcontainers-go  # Integration testing
 
 See [ENG-HANDBOOK.md Section 12 Deployment Architecture](ENG-HANDBOOK.md#12-deployment-architecture) for Docker Compose conventions and [Section 9.4.2](ENG-HANDBOOK.md#942-docker-desktop-and-testcontainers-api-compatibility) for testcontainers API compatibility requirements.
 
-### Python 3.14+
+### Python 3.14+ (3.15.0 latest stable)
 
 **Why required?**
 
 - **pre-commit hooks**: Framework for automated code quality checks
 - **Custom CICD tools**: Some utility scripts use Python
-- **Type hints**: Python 3.14+ required for `pyproject.toml` configuration
+- **Type hints**: Python 3.14+ is the supported project floor; Python 3.15.0 is the latest stable release
 
-### Node.js 24.11.1+ LTS
+### Node.js 24.22.0+ LTS
 
 **Why required?**
 
@@ -190,16 +194,15 @@ docker --version
 docker compose version
 ```
 
-**Python 3.14+**
+**Python 3.15.0 (3.14+ remains the project minimum)**
 
 ```powershell
-# Download and install from https://python.org/downloads/
-# Or use winget:
-winget install --id Python.Python.3.14 --source winget
+# Download and install the latest stable release from https://python.org/downloads/
+# Python 3.14+ is the supported minimum; 3.15.0 is current stable.
 
 # Verify installation (may need to restart terminal)
 python --version
-# Expected: Python 3.14.x
+# Expected: Python 3.15.x (3.14+ satisfies the project minimum)
 
 # Install uv (Python package runner)
 # Option 1: winget
@@ -209,7 +212,7 @@ powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | ie
 uv --version
 ```
 
-**Node.js 24.11.1+ LTS**
+**Node.js 24.22.0+ LTS**
 
 ```powershell
 # Option 1: Download from https://nodejs.org/
@@ -218,8 +221,8 @@ winget install --id OpenJS.NodeJS.LTS --source winget
 
 # Option 3: Use nvm-windows for version management
 # Download nvm-windows from: https://github.com/coreybutler/nvm-windows/releases
-nvm install 24.11.1
-nvm use 24.11.1
+nvm install 24.22.0
+nvm use 24.22.0
 
 # Verify installation
 node --version
@@ -241,7 +244,7 @@ java -version
 # Expected: openjdk version "21.0.x"
 ```
 
-**Maven 3.9+ (Optional - For Gatling Load Tests)**
+**Maven 3.10.0+ (Optional - For Gatling Load Tests)**
 
 ```powershell
 # Download from https://maven.apache.org/download.cgi
@@ -386,8 +389,8 @@ source ~/.bashrc
 # Verify
 go version
 
-# Install Docker
-sudo apt install -y docker.io docker-compose-plugin
+# Install Docker Engine 29.9.1+ and Compose v5.6.0+ using Docker's official repository:
+# https://docs.docker.com/engine/install/ubuntu/
 sudo systemctl start docker
 sudo systemctl enable docker
 sudo usermod -aG docker $USER
@@ -396,7 +399,7 @@ sudo usermod -aG docker $USER
 docker --version
 docker compose version
 
-# Install Python 3.14+
+# Install distribution Python (3.14+ minimum; 3.15.0 latest stable)
 sudo apt install -y python3 python3-venv
 
 # Install uv (Python package runner)
@@ -447,13 +450,13 @@ sudo rm -rf /usr/local/go && sudo tar -C /usr/local -xzf go1.27.2.linux-amd64.ta
 echo 'export PATH=$PATH:/usr/local/go/bin:$(go env GOPATH)/bin' >> ~/.bashrc
 source ~/.bashrc
 
-# Install Docker
-sudo dnf install -y docker docker-compose-plugin
+# Install Docker Engine 29.9.1+ and Compose v5.6.0+ using Docker's official repository:
+# https://docs.docker.com/engine/install/fedora/
 sudo systemctl start docker
 sudo systemctl enable docker
 sudo usermod -aG docker $USER
 
-# Install Python
+# Install distribution Python (3.14+ minimum; 3.15.0 latest stable)
 sudo dnf install -y python3
 
 # Install uv (Python package runner)
@@ -532,8 +535,8 @@ brew install go
 # Install Docker Desktop
 brew install --cask docker
 
-# Install Python 3.14+
-brew install python@3.14
+# Install the latest stable Python (3.14+ remains the supported project floor)
+brew install python
 
 # Install uv (Python package runner)
 brew install uv
@@ -692,8 +695,10 @@ pre-commit run --all-files
 
 To keep Go build-cache and temporary files in dedicated locations, add these entries to your
 VS Code **User** `settings.json`. The example uses `R:`; replace it with a drive and paths
-available on your machine. The drive can be a RAM drive or a regular disk. Create the directories
-before starting VS Code.
+available on your machine. The drive can be a RAM drive or a regular disk. Go creates its build
+and module caches on demand, but custom `GOTMPDIR`, `TMP`, and `TEMP` directories must already
+exist. For a RAM drive that resets on reboot, a VS Code workspace task can recreate them when the
+folder opens.
 
 ```jsonc
 {
@@ -732,10 +737,43 @@ before starting VS Code.
 }
 ```
 
+For example, add this task to `.vscode/tasks.json`, using the same paths configured above:
+
+```json
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Create Go RAM-disk directories",
+            "type": "process",
+            "command": "powershell.exe",
+            "args": [
+                "-NoProfile",
+                "-NonInteractive",
+                "-Command",
+                "New-Item -ItemType Directory -Force -Path 'R:\\Go\\GOCACHE','R:\\Go\\GOTMP','R:\\Go\\OSTMP' | Out-Null"
+            ],
+            "runOptions": {
+                "runOn": "folderOpen"
+            },
+            "problemMatcher": []
+        }
+    ]
+}
+```
+
+VS Code may require workspace trust before running a folder-open task. Keep RAM-disk-specific
+`tasks.json` files local rather than committing personal drive paths to the repository.
+
 `go.toolsEnvVars` applies to Go tools launched by the Go extension, `go.testEnvVars` applies to
 tests launched through the extension, and `terminal.integrated.env.windows` applies to processes
 started in VS Code's integrated terminals. `TMP` and `TEMP` affect general temporary-file handling
-for those processes, so both point to the same directory.
+for those processes, so both point to the same directory. These settings do not remove Windows
+User or Machine environment variables: a `GOMODCACHE` inherited from Windows remains active even
+when its VS Code setting is commented out. Check the effective value with `go env GOMODCACHE`.
+To remove a stale User-level override, run
+`[Environment]::SetEnvironmentVariable("GOMODCACHE", $null, "User")` in PowerShell, then fully
+restart VS Code. Apply the same approach to other stale Go variables as needed.
 
 `GOCACHE` stores Go build-cache data and `GOTMPDIR` holds temporary Go build files. These settings
 do not automatically place every executable produced by `go build` in these directories; use

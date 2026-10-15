@@ -51,7 +51,7 @@ cryptoutil exposes three distinct API contexts with different security and perfo
 ## Prerequisites
 
 * Java 21 or higher
-* Maven (or use the included Maven Wrapper)
+* Maven 3.10 or higher (or use the included Maven Wrapper, pinned to 3.10.0)
 
 ## JDK Configuration
 
