@@ -10,10 +10,9 @@ import (
 )
 
 // credentialKeyPatterns matches environment variable keys that indicate credentials.
-var credentialKeyPatterns = regexp.MustCompile(`(?i)^(.*_)?(PASSWORD|PASSWD|SECRET|TOKEN|API_KEY|PRIVATE_KEY)$`)
+var credentialKeyPatterns = regexp.MustCompile(`(?i)^(.*_)?(PASSWORD|PASS|PASSWD|SECRET|TOKEN|API_KEY|PRIVATE_KEY)$`)
 
-// fileReferencePattern matches Docker secret file references (safe pattern).
-var fileReferencePattern = regexp.MustCompile(`(?i)_FILE$`)
+var envVariableNamePattern = regexp.MustCompile(`^[A-Za-z_][A-Za-z0-9_]*$`)
 
 // infrastructureServices are services excluded from credential checks per ENG-HANDBOOK.md Section 12.6.
 // "Infrastructure deployments excluded" from Docker secrets requirement.
@@ -49,19 +48,72 @@ func validateNoHardcodedCredentials(compose *composeFile, result *ComposeValidat
 		svc := compose.Services[name]
 
 		for key, value := range extractEnvironmentVars(&svc) {
-			if fileReferencePattern.MatchString(key) {
+			upperKey := strings.ToUpper(key)
+			fileReference := strings.HasSuffix(upperKey, "_FILE")
+
+			credentialKey := key
+			if fileReference {
+				credentialKey = strings.TrimSuffix(upperKey, "_FILE")
+			}
+
+			if !credentialKeyPatterns.MatchString(credentialKey) {
 				continue
 			}
 
-			if credentialKeyPatterns.MatchString(key) && value != "" &&
-				!strings.HasPrefix(value, "$") && !strings.HasPrefix(value, "/run/secrets/") {
-				result.Errors = append(result.Errors,
-					fmt.Sprintf("service '%s': environment variable '%s' appears to contain hardcoded credentials | See: ENG-HANDBOOK.md Section 12.6",
-						name, key))
-				result.Valid = false
+			if fileReference && isDockerSecretFileReference(value) {
+				continue
 			}
+
+			if !fileReference && (value == "" || isSafeEnvironmentVariableReference(value) || isDockerSecretFileReference(value)) {
+				continue
+			}
+
+			result.Errors = append(result.Errors,
+				fmt.Sprintf("service '%s': environment variable '%s' appears to contain hardcoded credentials | See: ENG-HANDBOOK.md Section 12.6",
+					name, key))
+			result.Valid = false
 		}
 	}
+}
+
+func isDockerSecretFileReference(value string) bool {
+	prefix := cryptoutilSharedMagic.DockerSecretsDir + "/"
+	if !strings.HasPrefix(value, prefix) {
+		return false
+	}
+
+	secretName := strings.TrimPrefix(value, prefix)
+
+	return secretName != "" && secretName != "." && secretName != ".." && !strings.ContainsAny(secretName, "/\\")
+}
+
+func isSafeEnvironmentVariableReference(value string) bool {
+	if strings.HasPrefix(value, "${") && strings.HasSuffix(value, "}") {
+		expression := value[2 : len(value)-1]
+
+		nameEnd := strings.IndexAny(expression, ":-+?")
+		if nameEnd < 0 {
+			nameEnd = len(expression)
+		}
+
+		if !envVariableNamePattern.MatchString(expression[:nameEnd]) {
+			return false
+		}
+
+		operator := expression[nameEnd:]
+		switch {
+		case operator == "":
+			return true
+		case strings.HasPrefix(operator, "?") || strings.HasPrefix(operator, ":?"):
+			return true
+		case operator == "-", operator == ":-", operator == "+", operator == ":+":
+			return true
+		default:
+			return false
+		}
+	}
+
+	return strings.HasPrefix(value, "$") && envVariableNamePattern.MatchString(strings.TrimPrefix(value, "$"))
 }
 
 // extractEnvironmentVars extracts environment variables from a service.

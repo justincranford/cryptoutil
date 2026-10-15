@@ -165,6 +165,70 @@ secrets:
 			wantValid: true,
 		},
 		{
+			name: "credentials via variable reference with nonempty fallback detected",
+			content: `services:
+  mydb:
+    image: postgres:latest
+    environment:
+      DB_PASS: ${DB_PASS:-hardcoded}
+    healthcheck:
+      test: ["CMD", "pg_isready"]
+`,
+			wantValid:  false,
+			wantErrors: []string{testHardcodedCredentials},
+		},
+		{
+			name: "credentials via variable reference with empty fallback safe",
+			content: `services:
+  mydb:
+    image: postgres:latest
+    environment:
+      DB_PASS: ${DB_PASS:-}
+    healthcheck:
+      test: ["CMD", "pg_isready"]
+`,
+			wantValid: true,
+		},
+		{
+			name: "hardcoded credential file value detected",
+			content: `services:
+  mydb:
+    image: postgres:latest
+    environment:
+      POSTGRES_PASSWORD_FILE: hardcoded
+    healthcheck:
+      test: ["CMD", "pg_isready"]
+`,
+			wantValid:  false,
+			wantErrors: []string{testHardcodedCredentials},
+		},
+		{
+			name: "empty credential file value detected",
+			content: `services:
+  mydb:
+    image: postgres:latest
+    environment:
+      POSTGRES_PASSWORD_FILE: ""
+    healthcheck:
+      test: ["CMD", "pg_isready"]
+`,
+			wantValid:  false,
+			wantErrors: []string{testHardcodedCredentials},
+		},
+		{
+			name: "credential file variable reference detected",
+			content: `services:
+  mydb:
+    image: postgres:latest
+    environment:
+      POSTGRES_PASSWORD_FILE: ${PASSWORD_FILE}
+    healthcheck:
+      test: ["CMD", "pg_isready"]
+`,
+			wantValid:  false,
+			wantErrors: []string{testHardcodedCredentials},
+		},
+		{
 			name: "credentials via run secrets path safe",
 			content: `services:
   mydb:
