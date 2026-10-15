@@ -5,5 +5,6 @@ const (
 	valueExitCode = "ExitCode"
 	valueHealth   = "Health"
 	valueName     = "Name"
+	valueService  = "Service"
 	valueState    = "State"
 )

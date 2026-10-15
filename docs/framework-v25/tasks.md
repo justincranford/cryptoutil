@@ -1071,7 +1071,7 @@ Recommendation numbers below refer to `review-follow-up-plan.md`, not to the his
 | 21 | Pending | Numeric load inputs are not yet validated through a safe environment-variable boundary. | Define source-backed bounds and validate inputs without shell interpolation. |
 | 22 | Pending | TLS outputs are staged, but set-atomic publication is not yet demonstrated. | Make publication atomic as a set or define an activation gate. |
 | 23 | Pending | Deterministic TLS filesystem failure-path evidence is not recorded. | Test failure paths and effective permissions on supported platforms. |
-| 24 | Pending | Compose parser and caller contract audit is not yet complete. | Test supported JSON forms and verify required action inputs at callers. |
+| 24 | Complete | `test-output/review-followup/compose-json-parser.log` records 46 shuffled `e2e_infra` package tests; `compose-json-lint.log` records successful `lint-go`, `lint-go-test`, and `lint-workflow`. `ci-e2e.yml` and `ci-load.yml` both provide the action's required `required-completed-services` input. | None. |
 | 25 | Pending | Minimum SQLite feature support is not enforced or evidenced. | Enforce a compatible version or provide a tested fallback for `UPDATE ... RETURNING`. |
 | 26 | Pending | PostgreSQL retry classification is not yet verified against SQLSTATE behavior. | Classify retryable CRL allocation failures by SQLSTATE and test non-retryable errors. |
 | 27 | Pending | The CRL-number gap contract is not explicit. | Define and test whether failed generation may consume numbers. |

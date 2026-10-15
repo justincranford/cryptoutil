@@ -71,8 +71,9 @@ and are independent of the numbered rows in the task evidence table.
   marker that prevents consumers observing partial publication.
 - **23 — Pending.** Add deterministic TLS filesystem failure-path checks and verify the effective
   platform-specific permissions on staged/published material.
-- **24 — Pending.** Test supported Compose JSON output forms and audit callers for the
-  `required-completed-services` action input contract.
+- **24 — Complete.** Tests cover Compose JSON arrays, a single object, and newline-delimited
+  objects, including malformed and empty input. Both workflow callers provide the action's
+  required `required-completed-services` input.
 - **25 — Pending.** Enforce a minimum SQLite version supporting `UPDATE ... RETURNING`, or add a
   tested dialect-specific fallback for CRL number allocation.
 - **26 — Pending.** Classify PostgreSQL CRL allocation retries using SQLSTATE codes as well as

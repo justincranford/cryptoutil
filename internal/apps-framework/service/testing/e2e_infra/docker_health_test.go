@@ -9,54 +9,88 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestParseDockerComposePsOutput_ValidJSON(t *testing.T) {
+const testNoServicesFound = "no services found"
+
+func TestParseDockerComposePsOutput(t *testing.T) {
 	t.Parallel()
 
-	input := `{"Name":"compose-cryptoutil-sqlite-1","State":"running","Health":""}
+	tests := []struct {
+		name           string
+		input          string
+		wantServices   []string
+		wantErrContain string
+	}{
+		{
+			name: "newline-delimited JSON with name fallback",
+			input: `{"Name":"compose-cryptoutil-sqlite-1","State":"running","Health":""}
 {"Name":"compose-postgres-1","State":"running","Health":"healthy"}
-{"Name":"compose-healthcheck-secrets-1","State":"exited","ExitCode":0}`
+{"Name":"compose-healthcheck-secrets-1","State":"exited","ExitCode":0}`,
+			wantServices: []string{
+				cryptoutilSharedMagic.DockerServiceCryptoutilSqlite,
+				cryptoutilSharedMagic.DockerServicePostgres,
+				cryptoutilSharedMagic.DockerJobHealthcheckSecrets,
+			},
+		},
+		{
+			name:  "JSON array with service names",
+			input: `[{"Service":"cryptoutil-sqlite","State":"running"},{"Service":"postgres","State":"running","Health":"healthy"}]`,
+			wantServices: []string{
+				cryptoutilSharedMagic.DockerServiceCryptoutilSqlite,
+				cryptoutilSharedMagic.DockerServicePostgres,
+			},
+		},
+		{
+			name:         "single JSON object with service name",
+			input:        `{"Service":"healthcheck-secrets","State":"exited","ExitCode":0}`,
+			wantServices: []string{cryptoutilSharedMagic.DockerJobHealthcheckSecrets},
+		},
+		{
+			name:           "empty input",
+			input:          "",
+			wantErrContain: testNoServicesFound,
+		},
+		{
+			name: "malformed newline-delimited JSON",
+			input: `{"Name":"compose-cryptoutil-sqlite-1","State":"running"
+invalid json line`,
+			wantErrContain: "failed to parse Docker service JSON",
+		},
+		{
+			name:           "malformed array entry",
+			input:          `[null]`,
+			wantErrContain: "malformed container entry",
+		},
+		{
+			name:           "unsupported top-level JSON value",
+			input:          `true`,
+			wantErrContain: "must contain a container object or array",
+		},
+		{
+			name:           "object without a recognizable service",
+			input:          `{"State":"running"}`,
+			wantErrContain: testNoServicesFound,
+		},
+	}
 
-	serviceMap, err := parseDockerComposePsOutput([]byte(input))
-	require.NoError(t, err)
-	require.Len(t, serviceMap, 3)
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-	// Check cryptoutil-sqlite
-	sqliteService, exists := serviceMap[cryptoutilSharedMagic.DockerServiceCryptoutilSqlite]
-	require.True(t, exists)
-	require.Equal(t, testComposeCryptoutilSqlite1, sqliteService[valueName])
-	require.Equal(t, cryptoutilSharedMagic.DockerServiceStateRunning, sqliteService[valueState])
+			serviceMap, err := parseDockerComposePsOutput([]byte(tc.input))
+			if tc.wantErrContain != "" {
+				require.ErrorContains(t, err, tc.wantErrContain)
 
-	// Check postgres
-	postgresService, exists := serviceMap[cryptoutilSharedMagic.DockerServicePostgres]
-	require.True(t, exists)
-	require.Equal(t, "compose-postgres-1", postgresService[valueName])
-	require.Equal(t, cryptoutilSharedMagic.DockerServiceHealthHealthy, postgresService[valueHealth])
+				return
+			}
 
-	// Check healthcheck job
-	healthcheckJob, exists := serviceMap[cryptoutilSharedMagic.DockerJobHealthcheckSecrets]
-	require.True(t, exists)
-	require.Equal(t, cryptoutilSharedMagic.DockerServiceStateExited, healthcheckJob[valueState])
-}
+			require.NoError(t, err)
+			require.Len(t, serviceMap, len(tc.wantServices))
 
-func TestParseDockerComposePsOutput_EmptyInput(t *testing.T) {
-	t.Parallel()
-
-	input := ""
-
-	_, err := parseDockerComposePsOutput([]byte(input))
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "no services found")
-}
-
-func TestParseDockerComposePsOutput_InvalidJSON(t *testing.T) {
-	t.Parallel()
-
-	input := `{"Name":"compose-cryptoutil-sqlite-1","State":"running"
-invalid json line`
-
-	_, err := parseDockerComposePsOutput([]byte(input))
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "failed to parse Docker service JSON")
+			for _, serviceName := range tc.wantServices {
+				require.Contains(t, serviceMap, serviceName)
+			}
+		})
+	}
 }
 
 func TestDetermineServiceHealthStatus_JobOnly(t *testing.T) {

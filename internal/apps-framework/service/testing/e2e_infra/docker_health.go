@@ -27,20 +27,49 @@ type ServiceAndJob struct {
 
 // parseDockerComposePsOutput parses docker compose ps --format json output into a service name to service data map.
 func parseDockerComposePsOutput(output []byte) (map[string]map[string]any, error) {
-	lines := strings.Split(strings.TrimSpace(string(output)), "\n")
-	serviceList := make([]map[string]any, 0, len(lines))
+	trimmedOutput := strings.TrimSpace(string(output))
+	if trimmedOutput == "" {
+		return nil, fmt.Errorf("no services found in Docker compose output")
+	}
 
-	for _, line := range lines {
-		if strings.TrimSpace(line) == "" {
-			continue
+	var (
+		parsed      any
+		serviceList []map[string]any
+	)
+
+	if err := json.Unmarshal([]byte(trimmedOutput), &parsed); err == nil {
+		switch containers := parsed.(type) {
+		case []any:
+			for _, container := range containers {
+				service, ok := container.(map[string]any)
+				if !ok {
+					return nil, fmt.Errorf("docker compose JSON contains a malformed container entry")
+				}
+
+				serviceList = append(serviceList, service)
+			}
+		case map[string]any:
+			serviceList = append(serviceList, containers)
+		default:
+			return nil, fmt.Errorf("docker compose JSON must contain a container object or array")
 		}
+	} else {
+		for _, line := range strings.Split(trimmedOutput, "\n") {
+			if strings.TrimSpace(line) == "" {
+				continue
+			}
 
-		var service map[string]any
-		if err := json.Unmarshal([]byte(line), &service); err != nil {
-			return nil, fmt.Errorf("failed to parse Docker service JSON: %w", err)
+			var service map[string]any
+			if err := json.Unmarshal([]byte(line), &service); err != nil {
+				return nil, fmt.Errorf("failed to parse Docker service JSON: %w", err)
+			}
+
+			if service == nil {
+				return nil, fmt.Errorf("docker compose JSON contains a malformed container entry")
+			}
+
+			serviceList = append(serviceList, service)
 		}
-
-		serviceList = append(serviceList, service)
 	}
 
 	if len(serviceList) == 0 {
@@ -50,15 +79,23 @@ func parseDockerComposePsOutput(output []byte) (map[string]map[string]any, error
 	serviceMap := make(map[string]map[string]any)
 
 	for _, service := range serviceList {
-		if name, ok := service[valueName].(string); ok {
-			if strings.Contains(name, "compose-") { // Example: compose-cryptoutil-sqlite-1
-				parts := strings.Split(name, "-")
-				if len(parts) >= cryptoutilSharedMagic.DockerServiceNamePartsMin {
-					serviceName := strings.Join(parts[1:len(parts)-1], "-") // Example: cryptoutil-sqlite
-					serviceMap[serviceName] = service
-				}
+		if serviceName, ok := service[valueService].(string); ok && serviceName != "" {
+			serviceMap[serviceName] = service
+
+			continue
+		}
+
+		if name, ok := service[valueName].(string); ok && strings.HasPrefix(name, "compose-") {
+			parts := strings.Split(name, "-")
+			if len(parts) >= cryptoutilSharedMagic.DockerServiceNamePartsMin {
+				serviceName := strings.Join(parts[1:len(parts)-1], "-")
+				serviceMap[serviceName] = service
 			}
 		}
+	}
+
+	if len(serviceMap) == 0 {
+		return nil, fmt.Errorf("no services found in Docker compose output")
 	}
 
 	return serviceMap, nil
