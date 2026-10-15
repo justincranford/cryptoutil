@@ -4,6 +4,8 @@ package handler
 import (
 	"bytes"
 	"context"
+	"crypto/x509"
+	"encoding/pem"
 	"fmt"
 	"strings"
 
@@ -95,7 +97,12 @@ func validateStoredCertificateIssuer(
 	caConfig := issuer.GetCAConfig()
 
 	authorityID := strings.TrimSpace(caConfig.AuthorityID)
-	if authorityID == "" || authorityID != caConfig.AuthorityID || certificate.IssuerAuthorityID != authorityID {
+	if authorityID == "" || authorityID != caConfig.AuthorityID {
+		return fmt.Errorf("stored certificate authority ID does not match configured issuer")
+	}
+
+	legacyAuthorityID := certificate.IssuerAuthorityID == ""
+	if !legacyAuthorityID && certificate.IssuerAuthorityID != authorityID {
 		return fmt.Errorf("stored certificate authority ID does not match configured issuer")
 	}
 
@@ -110,6 +117,47 @@ func validateStoredCertificateIssuer(
 	expectedAuthorityKeyID := fmt.Sprintf("%x", caConfig.Certificate.SubjectKeyId)
 	if !strings.EqualFold(certificate.AuthorityKeyID, expectedAuthorityKeyID) {
 		return fmt.Errorf("stored certificate authority key ID does not match configured issuer")
+	}
+
+	if legacyAuthorityID {
+		// Pre-migration records lack the stable authority ID; verify their certificate against this issuer.
+		if err := validateLegacyStoredCertificateIssuer(certificate, caConfig.Certificate); err != nil {
+			return fmt.Errorf("legacy stored certificate cannot be verified against configured issuer: %w", err)
+		}
+	}
+
+	return nil
+}
+
+func validateLegacyStoredCertificateIssuer(
+	certificate *cryptoutilCAStorage.StoredCertificate,
+	issuerCertificate *x509.Certificate,
+) error {
+	block, _ := pem.Decode([]byte(certificate.CertificatePEM))
+	if block == nil || block.Type != cryptoutilSharedMagic.StringPEMTypeCertificate {
+		return fmt.Errorf("stored certificate PEM is invalid")
+	}
+
+	parsedCertificate, err := x509.ParseCertificate(block.Bytes)
+	if err != nil {
+		return fmt.Errorf("failed to parse stored certificate: %w", err)
+	}
+
+	if parsedCertificate.SerialNumber.Text(cryptoutilSharedMagic.HexBase) != certificate.SerialNumber {
+		return fmt.Errorf("stored certificate serial number does not match its PEM")
+	}
+
+	if !bytes.Equal(parsedCertificate.RawIssuer, issuerCertificate.RawSubject) {
+		return fmt.Errorf("stored certificate issuer does not match configured issuer")
+	}
+
+	if len(parsedCertificate.AuthorityKeyId) == 0 ||
+		!bytes.Equal(parsedCertificate.AuthorityKeyId, issuerCertificate.SubjectKeyId) {
+		return fmt.Errorf("stored certificate authority key ID does not match configured issuer")
+	}
+
+	if err := parsedCertificate.CheckSignatureFrom(issuerCertificate); err != nil {
+		return fmt.Errorf("stored certificate signature does not match configured issuer: %w", err)
 	}
 
 	return nil

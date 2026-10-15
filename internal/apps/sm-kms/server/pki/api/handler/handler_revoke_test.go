@@ -4,7 +4,15 @@ package handler
 import (
 	"bytes"
 	"context"
+	"crypto"
+	ecdsa "crypto/ecdsa"
+	"crypto/elliptic"
+	crand "crypto/rand"
+	"crypto/x509"
+	"crypto/x509/pkix"
+	"encoding/pem"
 	"fmt"
+	"math/big"
 	http "net/http"
 	"net/http/httptest"
 	"testing"
@@ -17,6 +25,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	cryptoutilApiCaServer "cryptoutil/api/sm-kms/pki/server"
+	cryptoutilCAServiceIssuer "cryptoutil/internal/apps/sm-kms/server/pki/service/issuer"
 	cryptoutilCAStorage "cryptoutil/internal/apps/sm-kms/server/pki/storage"
 )
 
@@ -251,5 +260,122 @@ func TestRevokeCertificate_RejectsIssuerMetadataMismatch(t *testing.T) {
 			require.NoError(t, err)
 			require.Equal(t, cryptoutilCAStorage.StatusActive, stored.Status)
 		})
+	}
+}
+
+func TestRevokeCertificate_LegacyIssuerAuthorityID(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name           string
+		mutate         func(*cryptoutilCAStorage.StoredCertificate)
+		expectedStatus int
+		expectedState  cryptoutilCAStorage.CertificateStatus
+	}{
+		{
+			name:           "legacy signed certificate can be revoked",
+			expectedStatus: fiber.StatusOK,
+			expectedState:  cryptoutilCAStorage.StatusRevoked,
+		},
+		{
+			name: "legacy invalid certificate is rejected",
+			mutate: func(certificate *cryptoutilCAStorage.StoredCertificate) {
+				certificate.CertificatePEM = testCertificatePEMInvalid
+			},
+			expectedStatus: fiber.StatusInternalServerError,
+			expectedState:  cryptoutilCAStorage.StatusActive,
+		},
+		{
+			name: "legacy serial mismatch is rejected",
+			mutate: func(certificate *cryptoutilCAStorage.StoredCertificate) {
+				certificate.SerialNumber = "1"
+			},
+			expectedStatus: fiber.StatusInternalServerError,
+			expectedState:  cryptoutilCAStorage.StatusActive,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			issuer := createTestIssuer(t).Issuer
+
+			certificate := newLegacyStoredCertificate(t, issuer)
+			if tc.mutate != nil {
+				tc.mutate(certificate)
+			}
+
+			storage := cryptoutilCAStorage.NewMemoryStore()
+			require.NoError(t, storage.Store(context.Background(), certificate))
+
+			handler := &Handler{issuer: issuer, storage: storage}
+			app := fiber.New()
+			app.Post("/certificates/:serialNumber/revoke", func(c *fiber.Ctx) error {
+				return handler.RevokeCertificate(c, c.Params("serialNumber"))
+			})
+
+			req := httptest.NewRequest(
+				http.MethodPost,
+				"/certificates/"+certificate.SerialNumber+cryptoutilSharedMagic.PathRevoke,
+				bytes.NewBufferString(testRequestBodyKeyCompromise),
+			)
+			req.Header.Set("Content-Type", testContentTypeJSON)
+
+			resp, err := app.Test(req, -1)
+			require.NoError(t, err)
+			require.Equal(t, tc.expectedStatus, resp.StatusCode)
+			require.NoError(t, resp.Body.Close())
+
+			stored, err := storage.GetBySerialNumber(context.Background(), certificate.SerialNumber)
+			require.NoError(t, err)
+			require.Equal(t, tc.expectedState, stored.Status)
+		})
+	}
+}
+
+func newLegacyStoredCertificate(t *testing.T, issuer *cryptoutilCAServiceIssuer.Issuer) *cryptoutilCAStorage.StoredCertificate {
+	t.Helper()
+
+	caConfig := issuer.GetCAConfig()
+	issuerSigner, ok := caConfig.PrivateKey.(crypto.Signer)
+	require.True(t, ok)
+
+	leafKey, err := ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
+	require.NoError(t, err)
+
+	serialUUID, err := googleUuid.NewV7()
+	require.NoError(t, err)
+
+	now := time.Now().UTC()
+	leafTemplate := &x509.Certificate{
+		SerialNumber: new(big.Int).SetBytes(serialUUID[:]),
+		Subject:      pkix.Name{CommonName: "legacy-revocation.example.com"},
+		NotBefore:    now.Add(-time.Hour),
+		NotAfter:     now.Add(cryptoutilSharedMagic.HoursPerDay * time.Hour),
+	}
+
+	leafDER, err := x509.CreateCertificate(crand.Reader, leafTemplate, caConfig.Certificate, &leafKey.PublicKey, issuerSigner)
+	require.NoError(t, err)
+	leafCertificate, err := x509.ParseCertificate(leafDER)
+	require.NoError(t, err)
+
+	certificateID, err := googleUuid.NewV7()
+	require.NoError(t, err)
+
+	return &cryptoutilCAStorage.StoredCertificate{
+		ID:             certificateID,
+		RequestID:      googleUuid.Must(googleUuid.NewV7()),
+		SerialNumber:   leafCertificate.SerialNumber.Text(cryptoutilSharedMagic.HexBase),
+		SubjectDN:      leafCertificate.Subject.String(),
+		IssuerDN:       leafCertificate.Issuer.String(),
+		AuthorityKeyID: fmt.Sprintf("%x", leafCertificate.AuthorityKeyId),
+		NotBefore:      leafCertificate.NotBefore,
+		NotAfter:       leafCertificate.NotAfter,
+		Status:         cryptoutilCAStorage.StatusActive,
+		ProfileID:      cryptoutilSharedMagic.PKIProfileIDTLSServer,
+		CertificatePEM: string(pem.EncodeToMemory(&pem.Block{
+			Type: cryptoutilSharedMagic.StringPEMTypeCertificate, Bytes: leafDER,
+		})),
 	}
 }
