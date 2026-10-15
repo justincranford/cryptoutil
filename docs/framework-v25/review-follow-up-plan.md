@@ -23,11 +23,11 @@ and are independent of the numbered rows in the task evidence table.
 
 ## Prior Review Recommendations
 
-- **2 — Partially verified.** SQLite migration tests and PostgreSQL up/down SQL checks cover
-  migrations 2012–2015; the PostgreSQL migration-runner test is present but was not run. Running
-  it requires a separate Docker-enabled environment; no further Docker lifecycle operations were
-  run after the recorded volume incident. Legacy duplicate-row remediation is intentionally
-  excluded under item 28.
+- **2 — Complete.** SQLite migration tests and PostgreSQL up/down SQL checks cover migrations
+  2012–2015, and the PostgreSQL migration-runner test passed against an isolated testcontainers
+  PostgreSQL container; its log records successful termination of that container. No Compose
+  lifecycle operations were run after the recorded volume incident. Legacy duplicate-row
+  remediation is intentionally excluded under item 28.
 - **3 — Complete.** The durable SQLite Compose instance started healthy and authenticated admin
   readiness returned HTTP 200; deployment validators pass.
 - **4 — Complete.** The inventory maintenance procedure is documented in ENG-HANDBOOK §10.2.3
