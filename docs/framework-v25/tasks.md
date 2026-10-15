@@ -1060,7 +1060,7 @@ Recommendation numbers below refer to `review-follow-up-plan.md`, not to the his
 | 10 | Complete | `test-output/review-followup/pki-persistence-integration.log`; see historical task row 10. | None. |
 | 11 | Complete | `postgres-continuity-restart.log` passes the PostgreSQL restart test, reinitializing authority components and verifying restored certificate, encrypted-key envelope, and revocation state. | None. |
 | 12 | Complete | `docs/framework-v25/plan.md` remains the completed historical plan; `test-output/review-followup/docs-validation.log`. | None. |
-| 13 | Complete | `test-output/reviewfollowup/final-builds.log` records passing normal and `e2e,integration` builds; `final-golangci-normal-verify.log` and `final-golangci-tagged-verify.log` report no issues; `final-repository-validators.log` passes all 9 applicable validators. `final-go-test-shuffle.log` records the serial full shuffled suite passing. An initial full-suite run concurrent with validators timed out in RP/RS health checks; isolated tests and shuffled package reruns passed before the serial suite rerun. | None. |
+| 13 | Complete | `test-output/reviewfollowup/final-builds.log` records passing normal and `e2e,integration` builds; `final-golangci-normal-verify.log` and `final-golangci-tagged-verify.log` report no issues; `final-repository-validators.log` passes all 9 applicable validators. `final-go-test-shuffle.log` and `post-review-full-go-test-shuffle-rerun.log` record successful full shuffled suite runs. An initial full-suite run concurrent with validators timed out in RP/RS health checks. A later run hit one transient admin-listener shutdown assertion (`post-review-full-go-test-shuffle.log`); the isolated test and full listener package passed, followed by the successful full-suite rerun. | None. |
 | 14 | Complete | `test-output/reviewfollowup/commit-trailer-audit.log` verifies the required co-author trailer on every task commit from the recorded baseline through the implementation, disposition, and post-review fix commits. | None. |
 | 15 | Complete | `test-output/review-followup/postgres-existing-volume-upgrade.log` verifies database access for the application role. | None. |
 | 16 | Complete | `test-output/review-followup/postgres-existing-volume-upgrade.log` verifies existing ownership normalization and malformed-publication rejection. | None. |
@@ -1091,7 +1091,7 @@ Finding identifiers F-1 and F-2 are distinct from review recommendation numbers.
 
 | Finding | Disposition | Evidence | Remaining work |
 |---|---|---|---|
-| F-1 | Complete | `post-review-focused-tests.log` passes the Compose credential validation cases; `post-review-deployment-validation.log` passes all 51 deployment validators; `post-review-golangci.log` reports no issues. | None. |
+| F-1 | Complete | `post-review-focused-tests.log` covers inline/interpolated credential rejection, matching declared and mounted `_FILE` secrets, custom targets, and `_KEY` detection; `post-review-deployment-validation.log` passes all 51 deployment validators; `post-review-golangci.log` reports no issues. | None. |
 | F-2 | Complete | `post-review-focused-tests.log` passes valid legacy-certificate revocation and rejects invalid PEM and serial mismatches; `docs/ENG-HANDBOOK.md` §6.5 documents the issuer-verification rule. | None. |
 
 **Environment incident during live verification:** An accidental `docker compose down --volumes`

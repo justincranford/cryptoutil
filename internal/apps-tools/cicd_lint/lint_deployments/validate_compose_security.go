@@ -10,11 +10,9 @@ import (
 )
 
 // credentialKeyPatterns matches environment variable keys that indicate credentials.
-var credentialKeyPatterns = regexp.MustCompile(`(?i)^(.*_)?(PASSWORD|PASS|PASSWD|SECRET|TOKEN|API_KEY|PRIVATE_KEY)$`)
+var credentialKeyPatterns = regexp.MustCompile(`(?i)^(.*_)?(PASSWORD|PASS|PASSWD|SECRET|TOKEN|KEY)$`)
 
-var envVariableNamePattern = regexp.MustCompile(`^[A-Za-z_][A-Za-z0-9_]*$`)
-
-// infrastructureServices are services excluded from credential checks per ENG-HANDBOOK.md Section 12.6.
+// infrastructureServices are services excluded from credential checks per ENG-HANDBOOK.md Section 13.3.
 // "Infrastructure deployments excluded" from Docker secrets requirement.
 var infrastructureServices = map[string]bool{
 	cryptoutilSharedMagic.DockerServiceGrafanaOtelLgtm:             true,
@@ -38,7 +36,7 @@ func extractSecretName(secretRef any) string {
 	return ""
 }
 
-// validateNoHardcodedCredentials checks for hardcoded credentials in env vars.
+// validateNoHardcodedCredentials ensures credential environment variables use mounted Docker secrets.
 func validateNoHardcodedCredentials(compose *composeFile, result *ComposeValidationResult) {
 	for _, name := range sortedServiceNames(compose) {
 		if infrastructureServices[name] {
@@ -60,60 +58,67 @@ func validateNoHardcodedCredentials(compose *composeFile, result *ComposeValidat
 				continue
 			}
 
-			if fileReference && isDockerSecretFileReference(value) {
-				continue
-			}
-
-			if !fileReference && (value == "" || isSafeEnvironmentVariableReference(value) || isDockerSecretFileReference(value)) {
+			if fileReference && isDockerSecretFileReference(value, &svc, compose) {
 				continue
 			}
 
 			result.Errors = append(result.Errors,
-				fmt.Sprintf("service '%s': environment variable '%s' appears to contain hardcoded credentials | See: ENG-HANDBOOK.md Section 12.6",
+				fmt.Sprintf("service '%s': environment variable '%s' appears to contain hardcoded credentials or is not backed by a declared, mounted Docker secret through its _FILE variant | See: ENG-HANDBOOK.md Section 13.3",
 					name, key))
 			result.Valid = false
 		}
 	}
 }
 
-func isDockerSecretFileReference(value string) bool {
+func isDockerSecretFileReference(value string, service *composeService, compose *composeFile) bool {
 	prefix := cryptoutilSharedMagic.DockerSecretsDir + "/"
 	if !strings.HasPrefix(value, prefix) {
 		return false
 	}
 
 	secretName := strings.TrimPrefix(value, prefix)
+	if !isDockerSecretName(secretName) {
+		return false
+	}
 
-	return secretName != "" && secretName != "." && secretName != ".." && !strings.ContainsAny(secretName, "/\\")
-}
+	for _, secretRef := range service.Secrets {
+		sourceName := extractSecretName(secretRef)
 
-func isSafeEnvironmentVariableReference(value string) bool {
-	if strings.HasPrefix(value, "${") && strings.HasSuffix(value, "}") {
-		expression := value[2 : len(value)-1]
-
-		nameEnd := strings.IndexAny(expression, ":-+?")
-		if nameEnd < 0 {
-			nameEnd = len(expression)
+		secret, defined := compose.Secrets[sourceName]
+		if sourceName == "" || !defined || (!secret.External && strings.TrimSpace(secret.File) == "") {
+			continue
 		}
 
-		if !envVariableNamePattern.MatchString(expression[:nameEnd]) {
-			return false
-		}
-
-		operator := expression[nameEnd:]
-		switch {
-		case operator == "":
+		if dockerSecretTargetName(secretRef) == secretName {
 			return true
-		case strings.HasPrefix(operator, "?") || strings.HasPrefix(operator, ":?"):
-			return true
-		case operator == "-", operator == ":-", operator == "+", operator == ":+":
-			return true
-		default:
-			return false
 		}
 	}
 
-	return strings.HasPrefix(value, "$") && envVariableNamePattern.MatchString(strings.TrimPrefix(value, "$"))
+	return false
+}
+
+func dockerSecretTargetName(secretRef any) string {
+	targetName := extractSecretName(secretRef)
+	if secretMapping, ok := secretRef.(map[string]any); ok {
+		if configuredTarget, ok := secretMapping["target"].(string); ok && configuredTarget != "" {
+			targetName = configuredTarget
+		}
+	}
+
+	prefix := cryptoutilSharedMagic.DockerSecretsDir + "/"
+	if trimmedTarget, found := strings.CutPrefix(targetName, prefix); found {
+		targetName = trimmedTarget
+	}
+
+	if !isDockerSecretName(targetName) {
+		return ""
+	}
+
+	return targetName
+}
+
+func isDockerSecretName(name string) bool {
+	return name != "" && name != "." && name != ".." && !strings.ContainsAny(name, "/\\")
 }
 
 // extractEnvironmentVars extracts environment variables from a service.

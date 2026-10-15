@@ -60,8 +60,9 @@ and are independent of the numbered rows in the task evidence table.
 - **13 — Complete.** Normal/tagged builds, normal/tagged golangci-lint, the full shuffled suite,
   and applicable repository validators pass. `tasks.md` records the final logs. An initial
   full-suite run concurrent with repository validators timed out in two RP/RS health tests; the
-  isolated tests, shuffled packages, and serial full-suite rerun passed. No push is authorized by
-  this plan.
+  isolated tests, shuffled packages, and serial full-suite rerun passed. A later full shuffled run
+  had one transient admin-listener shutdown assertion; the isolated test and listener package
+  passed, followed by another successful full shuffled run. No push is authorized by this plan.
 - **14 — Complete.** `test-output/reviewfollowup/commit-trailer-audit.log` verifies the required
   co-author trailer on every task commit from the recorded baseline through the implementation,
   disposition, and post-review fix commits.
@@ -130,9 +131,10 @@ These findings were raised by the requested deep review of the implementation co
 identifiers are separate from the numbered recommendations above; disposition evidence is recorded
 in `tasks.md`.
 
-- **F-1 — Complete.** Compose credential validation rejects hard-coded or empty interpolation
-  fallbacks and invalid `_FILE` values, including empty paths, and recognizes `_PASS` credential
-  names. Focused tests and all deployment validators pass.
+- **F-1 — Complete.** Compose credential validation requires `_FILE` values to resolve to declared,
+  service-mounted Docker secrets; rejects inline values and all host-environment interpolation for
+  credential variables; and recognizes generic `_KEY` names without treating `MONKEY` as a
+  credential. Focused tests and all deployment validators pass.
 - **F-2 — Complete.** Revocation remains available for pre-migration certificates without a stable
   authority ID only after the embedded certificate identity, serial, issuer, authority key ID, and
   signature are verified against the configured issuer. Focused regression tests pass, and the

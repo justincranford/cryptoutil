@@ -12,7 +12,7 @@ const (
 	postgresEnvFileName                    = ".env.postgres"
 	postgresSecretsDirKey                  = "POSTGRES_SECRETS_DIR"
 	postgresSecretsTemplateReferencePrefix = "${POSTGRES_SECRETS_DIR:-./secrets}/"
-	postgresComposePathSection             = "ENG-HANDBOOK.md Section 12.6"
+	postgresComposePathSection             = "ENG-HANDBOOK.md Section 13.3"
 )
 
 // PostgresSecretsDirSyncResult contains sync validation output.

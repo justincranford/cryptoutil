@@ -147,13 +147,18 @@ secrets:
     image: postgres:latest
     environment:
       POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password.secret
+    secrets:
+      - postgres_password.secret
     healthcheck:
       test: ["CMD", "pg_isready"]
+secrets:
+  postgres_password.secret:
+    file: ./secrets/postgres_password.secret
 `,
 			wantValid: true,
 		},
 		{
-			name: "credentials via variable reference safe",
+			name: "credentials via variable reference rejected",
 			content: `services:
   mydb:
     image: postgres:latest
@@ -161,6 +166,76 @@ secrets:
       POSTGRES_PASSWORD: ${DB_PASS}
     healthcheck:
       test: ["CMD", "pg_isready"]
+`,
+			wantValid:  false,
+			wantErrors: []string{testHardcodedCredentials},
+		},
+		{
+			name: "credential via undeclared Docker secret rejected",
+			content: `services:
+  mydb:
+    image: postgres:latest
+    environment:
+      POSTGRES_PASSWORD_FILE: /run/secrets/missing.secret
+    secrets:
+      - missing.secret
+    healthcheck:
+      test: ["CMD", "pg_isready"]
+secrets:
+  other.secret:
+    file: ./secrets/other.secret
+`,
+			wantValid:  false,
+			wantErrors: []string{testHardcodedCredentials},
+		},
+		{
+			name: "credential via unmounted Docker secret rejected",
+			content: `services:
+  mydb:
+    image: postgres:latest
+    environment:
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password.secret
+    healthcheck:
+      test: ["CMD", "pg_isready"]
+secrets:
+  postgres_password.secret:
+    file: ./secrets/postgres_password.secret
+`,
+			wantValid:  false,
+			wantErrors: []string{testHardcodedCredentials},
+		},
+		{
+			name: "credential via undefined-source Docker secret rejected",
+			content: `services:
+  mydb:
+    image: postgres:latest
+    environment:
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password.secret
+    secrets:
+      - postgres_password.secret
+    healthcheck:
+      test: ["CMD", "pg_isready"]
+secrets:
+  postgres_password.secret: {}
+`,
+			wantValid:  false,
+			wantErrors: []string{testHardcodedCredentials},
+		},
+		{
+			name: "credential via explicitly targeted Docker secret safe",
+			content: `services:
+  mydb:
+    image: postgres:latest
+    environment:
+      POSTGRES_PASSWORD_FILE: /run/secrets/database-password
+    secrets:
+      - source: postgres_password.secret
+        target: database-password
+    healthcheck:
+      test: ["CMD", "pg_isready"]
+secrets:
+  postgres_password.secret:
+    file: ./secrets/postgres_password.secret
 `,
 			wantValid: true,
 		},
@@ -178,7 +253,7 @@ secrets:
 			wantErrors: []string{testHardcodedCredentials},
 		},
 		{
-			name: "credentials via variable reference with empty fallback safe",
+			name: "credentials via variable reference with empty fallback rejected",
 			content: `services:
   mydb:
     image: postgres:latest
@@ -187,7 +262,8 @@ secrets:
     healthcheck:
       test: ["CMD", "pg_isready"]
 `,
-			wantValid: true,
+			wantValid:  false,
+			wantErrors: []string{testHardcodedCredentials},
 		},
 		{
 			name: "hardcoded credential file value detected",
@@ -229,7 +305,7 @@ secrets:
 			wantErrors: []string{testHardcodedCredentials},
 		},
 		{
-			name: "credentials via run secrets path safe",
+			name: "credential path without file suffix rejected",
 			content: `services:
   mydb:
     image: postgres:latest
@@ -237,6 +313,45 @@ secrets:
       POSTGRES_PASSWORD: /run/secrets/postgres-password.secret
     healthcheck:
       test: ["CMD", "pg_isready"]
+`,
+			wantValid:  false,
+			wantErrors: []string{testHardcodedCredentials},
+		},
+		{
+			name: "JWT signing key is a credential",
+			content: `services:
+  myapp:
+    image: myapp:latest
+    environment:
+      JWT_SIGNING_KEY: hardcoded-signing-key
+    healthcheck:
+      test: ["CMD", "true"]
+`,
+			wantValid:  false,
+			wantErrors: []string{testHardcodedCredentials},
+		},
+		{
+			name: "secret key is a credential",
+			content: `services:
+  myapp:
+    image: myapp:latest
+    environment:
+      SECRET_KEY: hardcoded-secret-key
+    healthcheck:
+      test: ["CMD", "true"]
+`,
+			wantValid:  false,
+			wantErrors: []string{testHardcodedCredentials},
+		},
+		{
+			name: "monkey is not a credential key",
+			content: `services:
+  myapp:
+    image: myapp:latest
+    environment:
+      MONKEY: harmless-value
+    healthcheck:
+      test: ["CMD", "true"]
 `,
 			wantValid: true,
 		},

@@ -6229,7 +6229,7 @@ configs/
 
 **Purpose**: Enforce Docker secrets usage for all credentials in compose files, preventing inline secret exposure in version-controlled YAML.
 
-**Docker Secrets Pattern**: All secret-bearing environment variables (PASSWORD, SECRET, TOKEN, KEY, API_KEY) MUST reference Docker secrets via `/run/secrets/<name>` or `file:///run/secrets/<name>`. Inline values are violations.
+**Docker Secrets Pattern**: Credential environment variables (keys containing PASSWORD, PASS, PASSWD, SECRET, TOKEN, or ending in `_KEY`) MUST use a corresponding `_FILE` variable whose value names a Docker secret under `/run/secrets/`. That secret MUST be declared at the Compose top level and mounted on the service at the matching target. Direct credential values, host-environment interpolation for credential variables, and `/run/secrets/` paths without the `_FILE` suffix are violations.
 
 **File Permissions**: All `.secret` files MUST have 440 (r--r-----) permissions. Never commit actual secret values to version control.
 

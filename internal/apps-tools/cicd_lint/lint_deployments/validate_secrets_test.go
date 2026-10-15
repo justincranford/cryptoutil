@@ -68,7 +68,7 @@ func TestValidateSecrets_SecretFiles(t *testing.T) {
 		wantWarnContains []string
 	}{
 		{name: "valid long secret", filename: testMyPasswordSecret, content: "this-is-a-very-long-secret-value-with-enough-entropy-for-security", wantValid: true},
-		{name: "empty secret file", filename: testMyPasswordSecret, content: "", wantErrContains: []string{testValidateSecrets, "is empty", "ENG-HANDBOOK.md Section 12.6"}},
+		{name: "empty secret file", filename: testMyPasswordSecret, content: "", wantErrContains: []string{testValidateSecrets, "is empty", "ENG-HANDBOOK.md Section 13.3"}},
 		{name: "short secret warns", filename: testHashPepperSecret, content: testShort, wantValid: true, wantWarnContains: []string{"has 5 bytes", "minimum recommended: 32"}},
 		{name: "base64 value meets threshold", filename: testHashPepperSecret, content: "4b0beuNCVMFMjA4y2/WvULfaCZiE6TLnPctdiSdtVrI=", wantValid: true},
 		{name: "non-secret file ignored", filename: testReadmeMd, content: testShort, wantValid: true},

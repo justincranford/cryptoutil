@@ -393,7 +393,7 @@ func validateSecretReferences(compose *composeFile, result *ComposeValidationRes
 
 			if compose.Secrets == nil {
 				result.Errors = append(result.Errors,
-					fmt.Sprintf("service '%s' references secret '%s' but no secrets section defined | See: ENG-HANDBOOK.md Section 12.6",
+					fmt.Sprintf("service '%s' references secret '%s' but no secrets section defined | See: ENG-HANDBOOK.md Section 13.3",
 						name, secretName))
 				result.Valid = false
 
@@ -402,7 +402,7 @@ func validateSecretReferences(compose *composeFile, result *ComposeValidationRes
 
 			if _, defined := compose.Secrets[secretName]; !defined {
 				result.Errors = append(result.Errors,
-					fmt.Sprintf("service '%s' references undefined secret '%s' | See: ENG-HANDBOOK.md Section 12.6",
+					fmt.Sprintf("service '%s' references undefined secret '%s' | See: ENG-HANDBOOK.md Section 13.3",
 						name, secretName))
 				result.Valid = false
 			}
