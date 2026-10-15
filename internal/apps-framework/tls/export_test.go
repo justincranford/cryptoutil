@@ -121,6 +121,11 @@ func ExportedValidatePrivateFileACL(path string) error {
 	return validatePrivateFileACL(path)
 }
 
+// ExportedValidatePrivateStagingDirectoryACL verifies the private staging-directory access policy.
+func ExportedValidatePrivateStagingDirectoryACL(path string) error {
+	return validatePrivateStagingDirectoryACL(path)
+}
+
 // ExportedProductionNewTelemetryService exposes productionNewTelemetryService for production wiring tests.
 func ExportedProductionNewTelemetryService(ctx context.Context) (*cryptoutilSharedTelemetry.TelemetryService, error) {
 	return productionNewTelemetryService(ctx)

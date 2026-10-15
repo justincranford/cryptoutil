@@ -2,9 +2,12 @@
 package tls_test
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
+	"sync/atomic"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -12,6 +15,37 @@ import (
 	cryptoutilAppsFrameworkTls "cryptoutil/internal/apps-framework/tls"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
+
+func TestGenerate_ProtectsStagingDirectoryBeforeFirstWrite(t *testing.T) {
+	t.Parallel()
+
+	outputDir := t.TempDir()
+
+	var writeCount atomic.Int32
+
+	writeFileFn := func(path string, data []byte, mode os.FileMode) error {
+		relativePath, err := filepath.Rel(outputDir, path)
+		if err != nil {
+			return fmt.Errorf("resolve staged output path: %w", err)
+		}
+
+		stagingRoot := filepath.Join(outputDir, strings.Split(relativePath, string(filepath.Separator))[0])
+		if err := cryptoutilAppsFrameworkTls.ExportedValidatePrivateStagingDirectoryACL(stagingRoot); err != nil {
+			return fmt.Errorf("staging directory is not protected before writing %q: %w", filepath.Base(path), err)
+		}
+
+		writeCount.Add(1)
+
+		return stubWriteFile(path, data, mode)
+	}
+	gen := cryptoutilAppsFrameworkTls.ExportedNewTestGenerator(
+		os.MkdirAll, writeFileFn, stubCreateCA, stubCreateLeaf, stubGetKeyPair,
+		stubEncodePKCS12, stubEncodeTrustPKCS12, stubGetRealmsForPSID,
+	)
+
+	require.NoError(t, gen.Generate(cryptoutilSharedMagic.OTLPServiceSkeletonTemplate, outputDir))
+	require.Positive(t, writeCount.Load(), "generation must write staged files")
+}
 
 func TestGenerate_PublishedFilePermissions(t *testing.T) {
 	t.Parallel()

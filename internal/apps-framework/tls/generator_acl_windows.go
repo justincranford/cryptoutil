@@ -11,6 +11,14 @@ import (
 )
 
 func securePrivateFileACL(path string) error {
+	return securePrivateACL(path, 0)
+}
+
+func securePrivateStagingDirectory(path string) error {
+	return securePrivateACL(path, windows.OBJECT_INHERIT_ACE|windows.CONTAINER_INHERIT_ACE)
+}
+
+func securePrivateACL(path string, inheritance uint32) error {
 	tokenUser, err := windows.GetCurrentProcessToken().GetTokenUser()
 	if err != nil {
 		return fmt.Errorf("get current user SID: %w", err)
@@ -32,6 +40,7 @@ func securePrivateFileACL(path string) error {
 	entries := []windows.EXPLICIT_ACCESS{{
 		AccessPermissions: windows.GENERIC_ALL,
 		AccessMode:        windows.GRANT_ACCESS,
+		Inheritance:       inheritance,
 		Trustee: windows.TRUSTEE{
 			TrusteeForm:  windows.TRUSTEE_IS_SID,
 			TrusteeType:  windows.TRUSTEE_IS_USER,
@@ -42,6 +51,7 @@ func securePrivateFileACL(path string) error {
 		entries = append(entries, windows.EXPLICIT_ACCESS{
 			AccessPermissions: windows.GENERIC_ALL,
 			AccessMode:        windows.GRANT_ACCESS,
+			Inheritance:       inheritance,
 			Trustee: windows.TRUSTEE{
 				TrusteeForm:  windows.TRUSTEE_IS_SID,
 				TrusteeType:  windows.TRUSTEE_IS_WELL_KNOWN_GROUP,
@@ -52,7 +62,7 @@ func securePrivateFileACL(path string) error {
 
 	acl, err := windows.ACLFromEntries(entries, nil)
 	if err != nil {
-		return fmt.Errorf("build private file DACL: %w", err)
+		return fmt.Errorf("build private material DACL: %w", err)
 	}
 
 	if err := windows.SetNamedSecurityInfo(
@@ -64,13 +74,21 @@ func securePrivateFileACL(path string) error {
 		acl,
 		nil,
 	); err != nil {
-		return fmt.Errorf("set protected private file DACL: %w", err)
+		return fmt.Errorf("set protected private material DACL: %w", err)
 	}
 
-	return validatePrivateFileACL(path)
+	return validatePrivateACL(path, inheritance)
 }
 
 func validatePrivateFileACL(path string) error {
+	return validatePrivateACL(path, 0)
+}
+
+func validatePrivateStagingDirectoryACL(path string) error {
+	return validatePrivateACL(path, windows.OBJECT_INHERIT_ACE|windows.CONTAINER_INHERIT_ACE)
+}
+
+func validatePrivateACL(path string, inheritance uint32) error {
 	tokenUser, err := windows.GetCurrentProcessToken().GetTokenUser()
 	if err != nil {
 		return fmt.Errorf("get current user SID: %w", err)
@@ -83,17 +101,17 @@ func validatePrivateFileACL(path string) error {
 
 	descriptor, err := windows.GetNamedSecurityInfo(path, windows.SE_FILE_OBJECT, windows.DACL_SECURITY_INFORMATION)
 	if err != nil {
-		return fmt.Errorf("read private file security descriptor: %w", err)
+		return fmt.Errorf("read private material security descriptor: %w", err)
 	}
 
 	dacl, _, err := descriptor.DACL()
 	if err != nil {
-		return fmt.Errorf("read private file DACL: %w", err)
+		return fmt.Errorf("read private material DACL: %w", err)
 	}
 
 	control, _, err := descriptor.Control()
 	if err != nil {
-		return fmt.Errorf("read private file DACL control flags: %w", err)
+		return fmt.Errorf("read private material DACL control flags: %w", err)
 	}
 
 	expectedSIDs := []*windows.SID{tokenUser.User.Sid}
@@ -101,21 +119,36 @@ func validatePrivateFileACL(path string) error {
 		expectedSIDs = append(expectedSIDs, systemSID)
 	}
 
-	if dacl == nil || int(dacl.AceCount) != len(expectedSIDs) || control&windows.SE_DACL_PROTECTED == 0 {
-		return fmt.Errorf("private file DACL is not restricted and protected")
+	aceCount := 0
+	if dacl != nil {
+		aceCount = int(dacl.AceCount)
+	}
+
+	expectedACECount := len(expectedSIDs)
+	if inheritance != 0 {
+		expectedACECount *= 2
+	}
+
+	protected := control&windows.SE_DACL_PROTECTED != 0
+	if dacl == nil || aceCount != expectedACECount || !protected {
+		return fmt.Errorf("private material DACL is not restricted and protected: ACEs=%d, want=%d, protected=%t",
+			aceCount, expectedACECount, protected)
 	}
 
 	descriptorText := descriptor.String()
+	for _, sid := range expectedSIDs {
+		sidText := sid.String()
+		if sid.Equals(systemSID) {
+			sidText = "SY"
+		}
 
-	userACE := "(A;;FA;;;" + tokenUser.User.Sid.String() + ")"
-	if tokenUser.User.Sid.Equals(systemSID) {
-		userACE = "(A;;FA;;;SY)"
-	} else if !strings.Contains(descriptorText, "(A;;FA;;;SY)") {
-		return fmt.Errorf("private file DACL does not grant access to LocalSystem")
-	}
+		if !strings.Contains(descriptorText, "(A;;FA;;;"+sidText+")") {
+			return fmt.Errorf("private material DACL does not grant full access to an authorized principal")
+		}
 
-	if !strings.Contains(descriptorText, userACE) {
-		return fmt.Errorf("private file DACL does not grant full access to the current user")
+		if inheritance != 0 && !strings.Contains(descriptorText, "(A;OICIIO;GA;;;"+sidText+")") {
+			return fmt.Errorf("private staging DACL does not propagate access to child files and directories")
+		}
 	}
 
 	runtime.KeepAlive(descriptor)

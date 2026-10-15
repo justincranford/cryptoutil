@@ -159,3 +159,13 @@ in `tasks.md`.
   `tls-config.yml` before publication. Windows-specific tests reject a broad ACL and verify the
   published private files; TLS tests, normal/tagged builds and lint, and repository validators
   pass. Evidence is recorded in `test-output/reviewfollowup/post-review-windows-acl-*.log`.
+- **F-6 — Complete.** The staging directory now receives a protected, inheritable DACL for the
+  current user and LocalSystem before generation starts. Windows regression tests verify that
+  broad ACLs are replaced, child private files inherit only authorized principals, and `Generate`
+  validates the staging ACL before its first write. The shuffled TLS package tests, normal and
+  `e2e,integration` builds, focused normal/tagged golangci-lint, and Go, Go-test, fitness, docs, and
+  text validators pass. Evidence is recorded in `test-output/reviewfollowup/post-review-windows-staging-*.log`.
+- **F-7 — In progress.** Certificate volume target matching is literal, so equivalent trailing
+  slash and overlapping ancestor/descendant targets can evade the forbidden-mount check. Normalize
+  container paths and reject mount targets that overlap certificate roots unless they are the
+  expected named-volume mounts at the exact roots.

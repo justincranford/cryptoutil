@@ -135,6 +135,10 @@ func (g *Generator) Generate(tierID, targetDir string) (resultErr error) {
 		}
 	}()
 
+	if err := securePrivateStagingDirectory(stagingRoot); err != nil {
+		return fmt.Errorf("failed to secure private staging directory: %w", err)
+	}
+
 	if err := g.generateInto(tierID, stagingRoot, psIDs); err != nil {
 		return err
 	}
