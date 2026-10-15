@@ -1,8 +1,8 @@
 # Implementation Plan â€” Framework v25: 8-to-7 PS-ID Consolidation
 
-**Status**: Complete for the original consolidation scope; review recommendations are listed below and execution evidence remains tracked in `tasks.md`.
+**Status**: Complete for the original consolidation scope; October 2026 review follow-up is tracked in `tasks.md`.
 **Created**: 2026-05-25
-**Last Updated**: 2026-10-15
+**Last Updated**: 2026-10-14
 **Purpose**: Consolidate from 8 PS-IDs (4 products) to 7 PS-IDs (3 products) by merging
 pki-ca APIs into sm-kms under a `/pki/` path prefix, then deleting pki-ca, the pki product,
 and all associated deployment artifacts.
@@ -546,53 +546,3 @@ sm-kms already has its own pki-init via `sm init pki-init`. No new routing is ne
 | Version Control | [Section 14.2](../../docs/ENG-HANDBOOK.md#142-version-control) | ALL phases (commit strategy) |
 | Plan Lifecycle | [Section 14.6](../../docs/ENG-HANDBOOK.md#146-plan-lifecycle-management) | ALL phases |
 | Post-Mortem & Knowledge Propagation | [Section 14.8](../../docs/ENG-HANDBOOK.md#148-phase-post-mortem--knowledge-propagation) | Every phase + Phase 6 |
-
-## October 2026 Review Recommendations
-
-This list preserves the numbering of the prior review. Follow-up status and evidence belong in
-[`tasks.md`](./tasks.md). These recommendations do not authorize a push.
-
-**2. Verify the PKI migrations separately.** Confirm migration 2013 cannot fail on existing
-   duplicate certificate requests; review all 2012–2014 down migrations for safe SQLite and
-   PostgreSQL behavior. Verify the `UPDATE … RETURNING` CRL sequence increment is supported by
-   the pinned SQLite driver and remains atomic with concurrent connections.
-**3. Validate compose and template changes end-to-end.** Run `lint-deployments` and `lint-fitness`
-   for PS-ID template compliance, then exercise `docker compose up --wait` and health checks for
-   the changed stack. Preserve command output under `test-output/`.
-**4. Make the coverage inventory baseline maintainable.** Consider moving hardcoded package counts
-   and exceptions from the workflow's awk block into a checked-in baseline or Go validator with
-   tests. At minimum, document how to update the baseline and ensure failures identify the needed
-   action.
-**5. Close coverage-gate edge cases.** Confirm failure output is retained when `go test` fails,
-   failed package rows cannot be mistaken for missing results, packages with no test files have an
-   explicit policy, and package-category matching cannot classify unrelated paths. Keep thresholds
-   consistent with the handbook.
-**6. Exercise concurrent listener shutdown.** Check that completion channels close on all return
-   paths, state reads and writes are synchronized, and pre-start shutdown cannot block. Add
-   deterministic concurrent-shutdown assertions and run race coverage before considering this
-   behavior fully verified.
-**7. Verify staged TLS publication semantics.** Check atomic replacement behavior on Windows and
-   Linux, rollback/cleanup after partial publication, restrictive key and secret permissions, and
-   that staging paths cannot become runtime certificate paths. Reconcile `tls-structure.md` with
-   the documented initialization-only behavior.
-**8. Validate authenticated CI readiness on the actual runner.** Confirm readiness uses the
-   admin `livez` client certificate and that load workflows apply the same gate. Run workflow
-   validation and a live Compose job; local syntax or dry-run checks alone do not prove runner
-   behavior.
-**9. Review new PKI tests against repository conventions.** Check table-driven cases and parallel
-   safety, UUIDv7 test data, shared SQLite TestMain usage, no shared-table cleanup, injected
-   dependencies, and semantic filenames.
-**10. Retain package-level PKI coverage evidence.** Verify changed PKI packages meet their
-   production coverage target; add focused tests for meaningful uncovered config and persistence
-   error paths, and document any structural ceiling rather than relying on aggregate coverage.
-**11. Verify PKI configuration and cold-start behavior.** Ensure added keys are represented in the
-   hardcoded schema, remain kebab-case and template-compliant, and cover startup without existing
-   authority state as well as persistence and non-disclosure of issuer private keys.
-**12. Keep plan, task, and evidence records consistent.** Reconcile phase status, titles, and
-   completion claims with retained evidence; distinguish focused validation from full-suite or
-   live-deployment validation.
-**13. Run the complete pre-push gates before any future push.** Include normal and tagged builds,
-   normal and tagged lint, shuffled tests, and the relevant `lint-fitness`, `lint-docs`, and
-   `lint-deployments` checks. Preserve the earlier no-push constraint unless the user changes it.
-**14. Confirm commit metadata.** Verify every reviewed commit includes the required
-   `Co-authored-by` trailer.

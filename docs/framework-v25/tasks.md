@@ -1,7 +1,7 @@
 # Tasks â€” Framework v25: 8-to-7 PS-ID Consolidation
 
 **Status**: Complete for the original consolidation scope; review follow-up status is recorded below.
-**Last Updated**: 2026-10-14
+**Last Updated**: 2026-10-15
 **Created**: 2026-05-25
 
 ---
@@ -1015,6 +1015,10 @@ current source for their disposition and evidence.
 - `test-output/coverage-analysis/` - Retained historical aggregate and package-specific coverage baselines.
 
 ## Review Follow-Up: Findings, Disposition, and Evidence
+
+The separate recommendation plan and per-recommendation statuses are in
+[`review-follow-up-plan.md`](./review-follow-up-plan.md). This table remains the source for
+implementation dispositions, retained evidence, and outstanding verification.
 
 The following table supersedes earlier follow-up completion claims. Build, focused test,
 integration, lint, and workflow evidence is under `test-output/review-followup/`. Focused
