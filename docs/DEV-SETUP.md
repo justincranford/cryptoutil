@@ -360,19 +360,10 @@ Get-ExecutionPolicy -Scope CurrentUser
 # Expected: RemoteSigned
 ```
 
-#### 7. Configure Go Environment Variables (Performance Optimization)
+#### 7. Configure Go Build and Temporary Directories (Optional)
 
-```powershell
-# Set Go temp directory (avoids antivirus scanning delays)
-setx GOTMPDIR "C:\Temp\go-tmp"
-
-# Set Go cache directory
-setx GOCACHE "C:\Temp\go-tmp"
-
-# Verify (restart terminal required)
-go env GOTMPDIR
-go env GOCACHE
-```
+For VS Code, configure per-user Go environment overrides in User `settings.json` instead of
+setting global Windows environment variables. See [VS Code Setup](#vs-code-setup) for an example.
 
 ---
 
@@ -696,6 +687,64 @@ pre-commit run --all-files
   }
 }
 ```
+
+#### Optional: Windows Go Build and Temporary Directories
+
+To keep Go build-cache and temporary files in dedicated locations, add these entries to your
+VS Code **User** `settings.json`. The example uses `R:`; replace it with a drive and paths
+available on your machine. The drive can be a RAM drive or a regular disk. Create the directories
+before starting VS Code.
+
+```jsonc
+{
+    // "go.toolsGopath": "R:/Go",
+    // "go.alternateTools": { "gopls": "R:/Go/BIN/gopls.exe" },
+    "go.toolsEnvVars": {
+        // "GOPATH": "R:/Go",
+        // "GOBIN": "R:/Go/BIN",
+        // "GOMODCACHE": "R:/Go/MOD_CACHE",
+        // "GOENV": "R:/Go/CONFIG/go.env",
+        "GOCACHE": "R:/Go/GOCACHE",
+        "GOTMPDIR": "R:/Go/GOTMP",
+        "TMP": "R:/Go/OSTMP",
+        "TEMP": "R:/Go/OSTMP"
+    },
+    "go.testEnvVars": {
+        // "GOPATH": "R:/Go",
+        // "GOBIN": "R:/Go/BIN",
+        // "GOMODCACHE": "R:/Go/MOD_CACHE",
+        // "GOENV": "R:/Go/CONFIG/go.env",
+        "GOCACHE": "R:/Go/GOCACHE",
+        "GOTMPDIR": "R:/Go/GOTMP",
+        "TMP": "R:/Go/OSTMP",
+        "TEMP": "R:/Go/OSTMP"
+    },
+    "terminal.integrated.env.windows": {
+        // "GOPATH": "R:/Go",
+        // "GOBIN": "R:/Go/BIN",
+        // "GOMODCACHE": "R:/Go/MOD_CACHE",
+        // "GOENV": "R:/Go/CONFIG/go.env",
+        "GOCACHE": "R:/Go/GOCACHE",
+        "GOTMPDIR": "R:/Go/GOTMP",
+        "TMP": "R:/Go/OSTMP",
+        "TEMP": "R:/Go/OSTMP"
+    }
+}
+```
+
+`go.toolsEnvVars` applies to Go tools launched by the Go extension, `go.testEnvVars` applies to
+tests launched through the extension, and `terminal.integrated.env.windows` applies to processes
+started in VS Code's integrated terminals. `TMP` and `TEMP` affect general temporary-file handling
+for those processes, so both point to the same directory.
+
+`GOCACHE` stores Go build-cache data and `GOTMPDIR` holds temporary Go build files. These settings
+do not automatically place every executable produced by `go build` in these directories; use
+`go build -o <path>` to choose the final executable's location.
+
+On another machine, use a drive and paths that exist there, or remove the overrides to use Go and
+Windows defaults. A RAM drive loses its contents when reset, so Go may need to recreate temporary
+files and rebuild cached artifacts. Antivirus exclusions, if used, should be limited to the
+specific directories and follow your organization's security policy.
 
 ### Troubleshooting VS Code
 
