@@ -61,3 +61,11 @@ const (
 	// DockerComposeRelativeFilePathLinux - Docker Compose relative file path for Linux/Mac from project root (archived).
 	DockerComposeRelativeFilePathLinux = "./deployments/archived/compose-legacy/compose.yml"
 )
+
+// Docker Compose volume mount types.
+const (
+	// DockerComposeVolumeMountTypeBind is a host filesystem bind mount.
+	DockerComposeVolumeMountTypeBind = "bind"
+	// DockerComposeVolumeMountTypeVolume is a named or anonymous Docker volume mount.
+	DockerComposeVolumeMountTypeVolume = "volume"
+)

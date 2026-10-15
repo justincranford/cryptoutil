@@ -146,9 +146,13 @@ in `tasks.md`.
   references. The deployment, docs, and text validators pass; evidence is recorded in
   `test-output/reviewfollowup/post-review-env-file-tests.log` and
   `test-output/reviewfollowup/post-review-env-file-validation.log`.
-- **F-4 — Pending.** Certificate-volume substring checks can mistake a host bind source for the
-  expected named volume. Parse mount sources and targets, reject bind mounts to certificate paths,
-  and require the activation barrier for each named-volume consumer.
+- **F-4 — Complete.** Certificate mounts are parsed as exact source/target pairs in both short and
+  long Compose syntax. Host bind mounts or unexpected sources targeting certificate paths are
+  rejected, and the activation barrier is checked for each consumer of the expected named volume.
+  Regression tests cover the expected-name bind-source bypass and long-syntax named/bind mounts.
+  Focused tests and all deployment, fitness, docs, text, Go, and Go-test validators pass; evidence is
+  recorded in `test-output/reviewfollowup/post-review-cert-volume-tests.log` and
+  `test-output/reviewfollowup/post-review-cert-volume-validation.log`.
 - **F-5 — Pending.** Windows mode-bit checks do not enforce confidentiality against inherited
   filesystem ACLs. Apply and verify restrictive ACLs for private key material before publication,
   with Windows-specific regression tests.

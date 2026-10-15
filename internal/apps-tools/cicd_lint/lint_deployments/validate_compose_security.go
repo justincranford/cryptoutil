@@ -272,7 +272,10 @@ func dockerSecretTargetName(secretRef any) string {
 }
 
 func isDockerSecretName(name string) bool {
-	return name != "" && name != "." && name != ".." && !strings.ContainsAny(name, "/\\")
+	return name != "" &&
+		name != cryptoutilSharedMagic.CurrentDirectory &&
+		name != ".." &&
+		!strings.ContainsAny(name, "/\\")
 }
 
 // extractEnvironmentVars extracts environment variables from a service.
@@ -322,10 +325,10 @@ func validateBindMountSecurity(compose *composeFile, result *ComposeValidationRe
 
 		for _, volume := range svc.Volumes {
 			for _, dangerous := range dangerousMounts {
-				if strings.Contains(volume, dangerous) {
+				if strings.Contains(volume.Raw, dangerous) {
 					result.Errors = append(result.Errors,
 						fmt.Sprintf("service '%s': dangerous bind mount detected: %s | See: ENG-HANDBOOK.md Section 12",
-							name, volume))
+							name, volume.Raw))
 					result.Valid = false
 				}
 			}

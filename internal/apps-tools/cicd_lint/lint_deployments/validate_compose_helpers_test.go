@@ -353,7 +353,12 @@ services:
 
 	app := compose.Services["app"]
 	require.True(t, dependsOnSuccessfulPKIInit(compose, "app", make(map[string]struct{})))
-	require.Equal(t, []string{"suite-certs:/certs:ro"}, app.Volumes)
+	require.Equal(t, []composeVolume{{
+		Raw:    "suite-certs:/certs:ro",
+		Type:   cryptoutilSharedMagic.DockerComposeVolumeMountTypeVolume,
+		Source: "suite-certs",
+		Target: "/certs",
+	}}, app.Volumes)
 }
 
 func TestValidateComposeFile_ContainerOnlyPort(t *testing.T) {

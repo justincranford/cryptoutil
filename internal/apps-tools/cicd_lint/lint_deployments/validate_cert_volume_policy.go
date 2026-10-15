@@ -10,10 +10,9 @@ import (
 
 const (
 	composeFileName                 = "compose.yml"
-	certBindMountPattern            = "./certs:/certs"
 	templateCertVolumeName          = "__PS_ID__-certs"
-	certVolumeMountPathPrefix       = ":/certs"
-	certVolumeInfraMountPathPrefix  = ":/mnt/ps-certs-src"
+	certVolumeMountTarget           = "/certs"
+	certVolumeInfraMountTarget      = "/mnt/ps-certs-src"
 	certVolumePolicyHandbookSection = "ENG-HANDBOOK.md Section 12.1"
 )
 
@@ -47,10 +46,11 @@ func ValidateCertVolumePolicy(deploymentPath, deploymentName string) (*CertVolum
 	for _, serviceName := range sortedServiceNames(compose) {
 		svc := compose.Services[serviceName]
 		for _, volume := range svc.Volumes {
-			if strings.Contains(volume, certBindMountPattern) {
+			if isCertVolumeTarget(volume.Target) &&
+				(volume.Type == cryptoutilSharedMagic.DockerComposeVolumeMountTypeBind || volume.Source != expectedVolumeName) {
 				result.Errors = append(result.Errors,
-					fmt.Sprintf("[ValidateCertVolumePolicy] service '%s' uses forbidden cert bind mount '%s' | See: %s",
-						serviceName, volume, certVolumePolicyHandbookSection))
+					fmt.Sprintf("[ValidateCertVolumePolicy] service '%s' uses forbidden cert bind mount or unexpected cert volume '%s' | See: %s",
+						serviceName, volume.Raw, certVolumePolicyHandbookSection))
 				result.Valid = false
 			}
 		}
@@ -59,7 +59,7 @@ func ValidateCertVolumePolicy(deploymentPath, deploymentName string) (*CertVolum
 	if !hasCertVolumeMountReference(compose, expectedVolumeName) {
 		result.Errors = append(result.Errors,
 			fmt.Sprintf("[ValidateCertVolumePolicy] missing named cert volume mount reference '%s%s' | See: %s",
-				expectedVolumeName, certVolumeMountPathPrefix, certVolumePolicyHandbookSection))
+				expectedVolumeName, ":"+certVolumeMountTarget, certVolumePolicyHandbookSection))
 		result.Valid = false
 	}
 
@@ -84,23 +84,22 @@ func expectedCertVolumeName(deploymentName string) string {
 }
 
 func hasCertVolumeMountReference(compose *composeFile, expectedVolumeName string) bool {
-	expectedPrefixes := []string{
-		expectedVolumeName + certVolumeMountPathPrefix,
-		expectedVolumeName + certVolumeInfraMountPathPrefix,
-	}
-
 	for _, serviceName := range sortedServiceNames(compose) {
 		svc := compose.Services[serviceName]
 		for _, volume := range svc.Volumes {
-			for _, expectedPrefix := range expectedPrefixes {
-				if strings.Contains(volume, expectedPrefix) {
-					return true
-				}
+			if volume.Source == expectedVolumeName &&
+				volume.Type == cryptoutilSharedMagic.DockerComposeVolumeMountTypeVolume &&
+				isCertVolumeTarget(volume.Target) {
+				return true
 			}
 		}
 	}
 
 	return false
+}
+
+func isCertVolumeTarget(target string) bool {
+	return target == certVolumeMountTarget || target == certVolumeInfraMountTarget
 }
 
 func hasTopLevelCertVolumeDeclaration(compose *composeFile, expectedVolumeName string) bool {
@@ -135,8 +134,7 @@ func validateCertVolumeActivationBarrier(compose *composeFile, expectedVolumeNam
 
 func usesNamedCertVolume(svc *composeService, expectedVolumeName string) bool {
 	for _, volume := range svc.Volumes {
-		source, _, _ := strings.Cut(volume, ":")
-		if source == expectedVolumeName {
+		if volume.Source == expectedVolumeName && volume.Type == cryptoutilSharedMagic.DockerComposeVolumeMountTypeVolume {
 			return true
 		}
 	}

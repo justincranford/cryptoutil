@@ -57,6 +57,59 @@ func TestValidateCertVolumePolicy(t *testing.T) {
 			wantErrText:    testForbiddenCertBindMount,
 		},
 		{
+			name:           "bind source containing expected volume name rejected",
+			deploymentName: cryptoutilSharedMagic.OTLPServiceSMKMS,
+			composeContent: "services:\n  pki-init:\n    volumes:\n      - ./sm-kms-certs:/certs:rw\n  sm-kms-app:\n    depends_on:\n      pki-init:\n        condition: service_completed_successfully\n    volumes:\n      - ./sm-kms-certs:/certs:ro\nvolumes:\n  sm-kms-certs:\n",
+			wantValid:      false,
+			wantErrText:    testForbiddenCertBindMount,
+		},
+		{
+			name:           "valid long syntax named volume",
+			deploymentName: cryptoutilSharedMagic.OTLPServiceSMKMS,
+			composeContent: `services:
+  pki-init:
+    volumes:
+      - type: volume
+        source: sm-kms-certs
+        target: /certs
+  sm-kms-app:
+    depends_on:
+      pki-init:
+        condition: service_completed_successfully
+    volumes:
+      - type: volume
+        source: sm-kms-certs
+        target: /certs
+        read_only: true
+volumes:
+  sm-kms-certs:
+`,
+			wantValid: true,
+		},
+		{
+			name:           "long syntax bind mount to cert target rejected",
+			deploymentName: cryptoutilSharedMagic.OTLPServiceSMKMS,
+			composeContent: `services:
+  pki-init:
+    volumes:
+      - type: bind
+        source: ./sm-kms-certs
+        target: /certs
+  sm-kms-app:
+    depends_on:
+      pki-init:
+        condition: service_completed_successfully
+    volumes:
+      - type: volume
+        source: sm-kms-certs
+        target: /certs
+volumes:
+  sm-kms-certs:
+`,
+			wantValid:   false,
+			wantErrText: testForbiddenCertBindMount,
+		},
+		{
 			name:           "missing top-level volume declaration",
 			deploymentName: cryptoutilSharedMagic.OTLPServiceIdentityAuthz,
 			composeContent: "services:\n  pki-init:\n    volumes:\n      - identity-authz-certs:/certs\n",
