@@ -58,11 +58,13 @@ and are independent of the numbered rows in the task evidence table.
 - **12 — Complete.** Plan 25 is restored as the completed consolidation plan; this separate plan
   carries review dispositions and links to the evidence tracker.
 - **13 — Complete.** Normal/tagged builds, normal/tagged golangci-lint, the full shuffled suite,
-  and applicable repository validators pass; current logs are recorded in `tasks.md`. An initial
+  and applicable repository validators pass. `tasks.md` records the final logs. An initial
   full-suite run concurrent with repository validators timed out in two RP/RS health tests; the
   isolated tests, shuffled packages, and serial full-suite rerun passed. No push is authorized by
   this plan.
-- **14 — Pending.** Verify the required co-author trailer on every implementation commit.
+- **14 — Complete.** The implementation commit and final disposition-documentation commit both
+  contain the required co-author trailer; `test-output/reviewfollowup/commit-trailer-audit.log`
+  records the post-commit audit.
 
 ## Additional Recommendations
 
