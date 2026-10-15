@@ -1042,3 +1042,45 @@ validation is not a claim that the full repository suite or Docker/PostgreSQL de
 | 14 | Listener shutdown completion waits are bounded and report timeout errors. | Focused listener tests include shutdown/startup paths. | Full race suite not run. |
 | 15 | Authority configuration, active validity checks, historical issuer restoration, and a persisted stable authority ID on new certificate records are covered. | Focused PKI tests and `pki-persistence-integration.log`. | Renewal/rollover operations remain initialization-only; no live PostgreSQL test. |
 | 16 | Historical claims are separated from current evidence; this table records both verified work and unrun runtime checks. | `lint-docs` and `lint-text` logs. | Full-suite and Docker/PostgreSQL evidence remains outstanding. |
+
+## Review Follow-Up Recommendation Disposition and Evidence
+
+Recommendation numbers below refer to `review-follow-up-plan.md`, not to the historical task rows above. Recommendations 1 and 28 are intentionally excluded from this implementation scope.
+
+| Recommendation | Disposition | Evidence | Remaining work |
+|---|---|---|---|
+| 2 | Partially verified | `test-output/review-followup/pki-persistence-integration.log` covers SQLite persistence. | Review migrations 2012–2014 up/down behavior on SQLite and PostgreSQL. |
+| 3 | Partially verified | Existing deployment checks are recorded in the historical task table and `test-output/review-followup/structural-lints.log`. | Run live Compose startup and health verification. |
+| 4 | Pending | No retained baseline-maintenance procedure. | Document the coverage inventory update procedure. |
+| 5 | Partially verified | Existing coverage-gate implementation is in `.github/workflows/ci-coverage.yml`. | Verify package-result edge cases and baseline update/review procedure. |
+| 6 | Partially verified | `test-output/review-followup/focused-tests.log` contains focused listener tests. | Run required full race validation. |
+| 7 | Pending | Focused TLS tests exist; whole-set publication and platform permission evidence is not retained here. | Verify atomic publication and platform-specific permission behavior. |
+| 8 | Partially verified | Workflow checks are retained in `test-output/review-followup/structural-lints.log`. | Validate Compose runtime and load-workflow input behavior. |
+| 9 | Pending | No conformance audit evidence recorded. | Review PKI tests for parallelism, fixtures, UUIDs, cleanup, seams, and conventions. |
+| 10 | Complete | `test-output/review-followup/pki-persistence-integration.log`; see historical task row 10. | None. |
+| 11 | Partially verified | `test-output/review-followup/pki-persistence-integration.log` covers focused persistence. | Verify authority behavior in a live PostgreSQL runtime. |
+| 12 | Complete | `docs/framework-v25/plan.md` remains the completed historical plan; `test-output/review-followup/docs-validation.log`. | None. |
+| 13 | Pending | Current full normal/tagged build, lint, and shuffled-test evidence is not yet recorded. | Run and retain the required quality gates before any future push. |
+| 14 | Pending | Commit trailer audit is not yet recorded. | Verify the required co-author trailer on every implementation commit. |
+| 15 | Complete | `test-output/review-followup/postgres-existing-volume-upgrade.log` verifies database access for the application role. | None. |
+| 16 | Complete | `test-output/review-followup/postgres-existing-volume-upgrade.log` verifies existing ownership normalization and malformed-publication rejection. | None. |
+| 17 | Complete | `test-output/review-followup/postgres-existing-volume-upgrade.log` exercises the upgrade on PostgreSQL 18; `test-output/review-followup/tracking-deploy-validation.log` records the post-documentation deployment lint. | None. |
+| 18 | Pending | No retained image-level SQLite override test. | Validate durable SQLite overrides against the actual image. |
+| 19 | Pending | Cross-service durable SQLite parity and isolation are not verified. | Verify variant parity and volume isolation across services. |
+| 20 | Pending | No runtime authenticated-readiness evidence. | Align load-workflow readiness with the mTLS readiness contract and verify runtime behavior. |
+| 21 | Pending | Numeric load inputs are not yet validated through a safe environment-variable boundary. | Define source-backed bounds and validate inputs without shell interpolation. |
+| 22 | Pending | TLS outputs are staged, but set-atomic publication is not yet demonstrated. | Make publication atomic as a set or define an activation gate. |
+| 23 | Pending | Deterministic TLS filesystem failure-path evidence is not recorded. | Test failure paths and effective permissions on supported platforms. |
+| 24 | Pending | Compose parser and caller contract audit is not yet complete. | Test supported JSON forms and verify required action inputs at callers. |
+| 25 | Pending | Minimum SQLite feature support is not enforced or evidenced. | Enforce a compatible version or provide a tested fallback for `UPDATE ... RETURNING`. |
+| 26 | Pending | PostgreSQL retry classification is not yet verified against SQLSTATE behavior. | Classify retryable CRL allocation failures by SQLSTATE and test non-retryable errors. |
+| 27 | Pending | The CRL-number gap contract is not explicit. | Define and test whether failed generation may consume numbers. |
+| 29 | Pending | Request-ID sentinel rejection at the write boundary is not verified. | Enforce and test the sentinel policy at persistence. |
+| 30 | Pending | Authority/issuer consistency checks are not verified. | Validate authority ID, issuer key ID, and issuer DN consistency. |
+| 31 | Pending | Global versus tenant-scoped CRL semantics are unresolved. | Define the scope from source-of-truth requirements and test isolation. |
+| 32 | Pending | Persistence of CRL/OCSP URLs and profile metadata is not verified. | Decide and test which values are durable authority state. |
+| 33 | Pending | Deployment endpoint and TLS-path consistency is not verified. | Check CRL/OCSP hostnames, ports, and TLS paths across deployment tiers. |
+| 34 | Pending | Encrypted authority-key envelope metadata/versioning is not verified. | Version the envelope and persist required decryption metadata. |
+| 35 | Pending | Authority create/encrypt failure and concurrency contracts are not established. | Document and test failure and concurrency behavior. |
+| 36 | Partially verified | `test-output/review-followup/focused-tests.log` and historical task row 6 protect revocation metadata from ordinary updates. | Define and verify revocation lifecycle semantics. |
+| 37 | Pending | PostgreSQL multi-instance continuity is not exercised. | Test CRL allocation and issuance/revocation across instances. |

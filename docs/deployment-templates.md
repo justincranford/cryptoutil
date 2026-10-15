@@ -514,8 +514,13 @@ when PostgreSQL initializes an empty data directory. Do not rerun it against an 
 its plain `CREATE DATABASE` statements are bootstrap-only. Instead, use the canonical
 [`upgrade-existing-volume.sql`](../deployments/shared-postgres/upgrade-existing-volume.sql), which
 creates only missing PRODUCT/SUITE PS-ID databases and publications. Re-running it is safe: it
-does not drop or alter existing databases, publications, or rows, and it never changes the legacy
-`*_database` sources.
+does not drop databases, change rows, or change existing publication definitions. It normalizes
+database ownership and grants for the 14 target databases, sets each target publication's owner to
+the active PostgreSQL role, and fails if an existing publication does not match the required
+all-tables/DML configuration. It never modifies the legacy `*_database` sources. Run it as the
+tier role from `postgres-username.secret` (the same role used by that tier's application URLs),
+which must have the administrative privileges needed to create databases and alter
+database/publication ownership.
 
 Run the following from a tier deployment directory (for example, `deployments/identity`) so
 Compose resolves the shared PostgreSQL include and its environment files correctly:
@@ -541,18 +546,29 @@ Compose resolves the shared PostgreSQL include and its environment files correct
      < ../shared-postgres/upgrade-existing-volume.sql
    ```
 
-3. Verify that PostgreSQL reports 14 PRODUCT/SUITE target databases:
+3. Verify that PostgreSQL reports 14 PRODUCT/SUITE target databases owned by the active role:
 
    ```sql
    SELECT count(*)
    FROM pg_database
-   WHERE datname LIKE 'productdeployment-%'
-      OR datname LIKE 'suitedeployment-%';
+   WHERE (datname LIKE 'productdeployment-%'
+       OR datname LIKE 'suitedeployment-%')
+     AND pg_get_userbyid(datdba) = current_user
+     AND has_database_privilege(current_user, datname, 'CREATE');
    ```
 
-   In each target database, also verify that its matching publication exists. The names are
+   In each target database, verify the matching publication owner and definition. The names are
    `product_{PS-ID-with-underscores}_pub` and `suite_{PS-ID-with-underscores}_pub`; for example,
    `product_identity_authz_pub` in `productdeployment-identity-authz`.
+
+   ```sql
+   SELECT pubname, pg_get_userbyid(pubowner), puballtables, pubinsert, pubupdate, pubdelete,
+          pubtruncate, pubviaroot
+   FROM pg_publication;
+   ```
+
+   Each result must show the active role as owner, `puballtables` and all four DML flags as true,
+   and `pubviaroot` as false.
 
 4. Migrate application data from the legacy shared databases before starting the new app URLs.
    The database/publication script deliberately does not copy data: these sources can contain

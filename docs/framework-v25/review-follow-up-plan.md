@@ -53,11 +53,11 @@ and are independent of the numbered rows in the task evidence table.
 
 ## Additional Recommendations
 
-- **15 — Pending.** Grant application roles access to databases created by
+- **15 — Complete.** Grant application roles access to databases created by
   `deployments/shared-postgres/upgrade-existing-volume.sql`.
-- **16 — Pending.** Make the PostgreSQL upgrade validate or repair existing database ownership,
+- **16 — Complete.** Make the PostgreSQL upgrade validate or repair existing database ownership,
   grants, and publication properties rather than skipping by name alone.
-- **17 — Pending.** Exercise the existing-volume upgrade with the supported PostgreSQL image,
+- **17 — Complete.** Exercise the existing-volume upgrade with the supported PostgreSQL image,
   psql invocation, and required role privileges.
 - **18 — Pending.** Validate durable SQLite overrides against the actual image, including shell
   availability, CLI URL precedence, runtime identity, file creation, and permissions.
