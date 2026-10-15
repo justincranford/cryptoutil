@@ -309,9 +309,24 @@ against `configs/{PS-ID}/{PS-ID}-framework.yml`.
 | `service-username.secret` | `{PS-ID}-service-user` | Service auth user |
 | `service-password.secret` | `{PS-ID}-service-pass-{base64-random-32-bytes}` | Service auth password |
 
-Product and suite deployments use `{PRODUCT}_database` and `{SUITE}_database` respectively. The
-shared PostgreSQL leader bootstrap creates these four tier runtime databases in addition to the
-seven PS-ID runtime databases and 21 deployment databases.
+Service-level PostgreSQL instances use the PS-ID runtime database (`{PS_ID}_database`). Product
+and suite Compose files recursively include the PS-ID Compose files and override their unique
+`postgres-url-{PS-ID}.secret` resources with tier-scoped URL files, preserving the in-container
+filename `/run/secrets/postgres-url.secret`. Each app therefore connects to its own existing
+`productdeployment-{PS-ID}` or `suitedeployment-{PS-ID}` database and owns an independent schema
+and migration cursor. The generic tier `postgres-url.secret` remains for shared validation and
+bootstrap checks; it is not the PostgreSQL application URL for included PS-ID app containers.
+Product and suite aliases are stored under `deployments/{PRODUCT|SUITE}/secrets/postgres-url/` so
+the required flat secret inventory remains unchanged. For recursive Compose includes, run commands
+from the deployment directory (for example, `cd deployments/identity` before
+`docker compose -f compose.yml ...`); included PostgreSQL `env_file` paths are resolved relative to
+that working directory.
+
+The `sm-kms` database is intentionally shared by KMS, PKI, Secrets, and JOSE within each deployment
+tier; these capabilities are one PS-ID and must not be split into separate databases. The older
+`{PRODUCT}_database` and `{SUITE}_database` databases remain intact as migration sources. The
+shared PostgreSQL bootstrap creates those legacy databases alongside the seven PS-ID runtime
+databases and 21 product/suite/service deployment databases.
 
 ---
 

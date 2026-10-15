@@ -1,6 +1,9 @@
 -- PostgreSQL Leader Initialization Script
 -- Creates 21 deployment databases plus 11 runtime databases (7 PS-IDs + 3 products + 1 suite).
 -- OLTP Read-Write databases for microservice isolation
+-- PRODUCT/SUITE PostgreSQL app URLs select one deployment database per PS-ID,
+-- giving each service an independent schema and migration cursor. The sm-kms
+-- PS-ID database intentionally remains shared by KMS, PKI, Secrets, and JOSE.
 
 -- Suite-level deployment databases (7)
 CREATE DATABASE "suitedeployment-sm-kms";

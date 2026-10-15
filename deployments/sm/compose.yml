@@ -101,6 +101,20 @@ secrets:
     file: ./secrets/hash-pepper-v3.secret
   postgres-url.secret:
     file: ./secrets/postgres-url.secret
+  postgres-url-sm-kms.secret:
+    file: ./secrets/postgres-url/sm-kms.secret
+  postgres-url-identity-authz.secret:
+    file: ./secrets/postgres-url/identity-authz.secret
+  postgres-url-identity-idp.secret:
+    file: ./secrets/postgres-url/identity-idp.secret
+  postgres-url-identity-rs.secret:
+    file: ./secrets/postgres-url/identity-rs.secret
+  postgres-url-identity-rp.secret:
+    file: ./secrets/postgres-url/identity-rp.secret
+  postgres-url-identity-spa.secret:
+    file: ./secrets/postgres-url/identity-spa.secret
+  postgres-url-skeleton-template.secret:
+    file: ./secrets/postgres-url/skeleton-template.secret
   postgres-username.secret:
     file: ./secrets/postgres-username.secret
   postgres-password.secret:

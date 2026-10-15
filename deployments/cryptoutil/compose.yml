@@ -9,8 +9,9 @@
 # Port formula: SUITE_PORT = SERVICE_BASE + 20000
 #
 # Usage:
-#   docker compose -f deployments/cryptoutil/compose.yml up -d
-#   docker compose -f deployments/cryptoutil/compose.yml down -v
+#   cd deployments/cryptoutil
+#   docker compose -f compose.yml up -d
+#   docker compose -f compose.yml down
 #
 # Architecture: Recursive includes + Approach C (!override) port substitution.
 #   Product composes include PS-ID composes (which include shared-postgres, shared-telemetry).
@@ -111,6 +112,13 @@ secrets:
   unseal-5of5.secret: {file: ./secrets/unseal-5of5.secret}
   hash-pepper-v3.secret: {file: ./secrets/hash-pepper-v3.secret}
   postgres-url.secret: {file: ./secrets/postgres-url.secret}
+  postgres-url-sm-kms.secret: {file: ./secrets/postgres-url/sm-kms.secret}
+  postgres-url-identity-authz.secret: {file: ./secrets/postgres-url/identity-authz.secret}
+  postgres-url-identity-idp.secret: {file: ./secrets/postgres-url/identity-idp.secret}
+  postgres-url-identity-rs.secret: {file: ./secrets/postgres-url/identity-rs.secret}
+  postgres-url-identity-rp.secret: {file: ./secrets/postgres-url/identity-rp.secret}
+  postgres-url-identity-spa.secret: {file: ./secrets/postgres-url/identity-spa.secret}
+  postgres-url-skeleton-template.secret: {file: ./secrets/postgres-url/skeleton-template.secret}
   postgres-username.secret: {file: ./secrets/postgres-username.secret}
   postgres-password.secret: {file: ./secrets/postgres-password.secret}
   postgres-database.secret: {file: ./secrets/postgres-database.secret}

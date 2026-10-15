@@ -287,7 +287,8 @@ services:
       - unseal-3of5.secret
       - unseal-4of5.secret
       - unseal-5of5.secret
-      - postgres-url.secret
+      - source: postgres-url-sm-kms.secret
+        target: postgres-url.secret
     depends_on:
       healthcheck-secrets:
         condition: service_completed_successfully
@@ -345,7 +346,8 @@ services:
       - unseal-3of5.secret
       - unseal-4of5.secret
       - unseal-5of5.secret
-      - postgres-url.secret
+      - source: postgres-url-sm-kms.secret
+        target: postgres-url.secret
     depends_on:
       healthcheck-secrets:
         condition: service_completed_successfully
@@ -431,6 +433,8 @@ secrets:
   hash-pepper-v3.secret:
     file: ./secrets/hash-pepper-v3.secret
   postgres-url.secret:
+    file: ./secrets/postgres-url.secret
+  postgres-url-sm-kms.secret:
     file: ./secrets/postgres-url.secret
   postgres-username.secret:
     file: ./secrets/postgres-username.secret
