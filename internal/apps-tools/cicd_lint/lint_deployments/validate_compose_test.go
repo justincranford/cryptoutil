@@ -11,12 +11,15 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
+const testComposeEnvFile = ".env"
+
 func TestValidateComposeFile(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
 		name       string
 		content    string
+		files      map[string]string
 		wantValid  bool
 		wantErrors []string
 		wantWarns  []string
@@ -158,6 +161,73 @@ secrets:
 			wantValid: true,
 		},
 		{
+			name: "hardcoded credential in env_file rejected",
+			content: `services:
+  mydb:
+    image: postgres:latest
+    env_file: .env
+    healthcheck:
+      test: ["CMD", "pg_isready"]
+`,
+			files:      map[string]string{testComposeEnvFile: "POSTGRES_PASSWORD=hardcoded-password\n"},
+			wantValid:  false,
+			wantErrors: []string{testHardcodedCredentials},
+		},
+		{
+			name: "mounted Docker secret in env_file accepted",
+			content: `services:
+  mydb:
+    image: postgres:latest
+    env_file: .env
+    secrets:
+      - postgres_password.secret
+    healthcheck:
+      test: ["CMD", "pg_isready"]
+secrets:
+  postgres_password.secret:
+    file: ./secrets/postgres_password.secret
+`,
+			files:     map[string]string{testComposeEnvFile: "POSTGRES_PASSWORD_FILE=/run/secrets/postgres_password.secret\n"},
+			wantValid: true,
+		},
+		{
+			name: "required env_file missing rejected",
+			content: `services:
+  mydb:
+    image: postgres:latest
+    env_file: missing.env
+    healthcheck:
+      test: ["CMD", "pg_isready"]
+`,
+			wantValid:  false,
+			wantErrors: []string{"failed to read env_file"},
+		},
+		{
+			name: "optional env_file missing accepted",
+			content: `services:
+  mydb:
+    image: postgres:latest
+    env_file:
+      - path: optional.env
+        required: false
+    healthcheck:
+      test: ["CMD", "pg_isready"]
+`,
+			wantValid: true,
+		},
+		{
+			name: "env_file path interpolation rejected",
+			content: `services:
+  mydb:
+    image: postgres:latest
+    env_file: ${ENV_FILE}
+    healthcheck:
+      test: ["CMD", "pg_isready"]
+`,
+			wantValid:  false,
+			wantErrors: []string{"unresolved variable interpolation"},
+		},
+		{
 			name: "credentials via variable reference rejected",
 			content: `services:
   mydb:
@@ -238,6 +308,24 @@ secrets:
     file: ./secrets/postgres_password.secret
 `,
 			wantValid: true,
+		},
+		{
+			name: "included compose env_file resolved relative to include",
+			content: `include:
+  - path: shared/compose.yml
+`,
+			files: map[string]string{
+				filepath.Join("shared", cryptoutilSharedMagic.COMPOSE_YML): `services:
+  included-db:
+    image: postgres:latest
+    env_file: .env
+    healthcheck:
+      test: ["CMD", "pg_isready"]
+`,
+				filepath.Join("shared", testComposeEnvFile): "POSTGRES_PASSWORD=included-hardcoded-password\n",
+			},
+			wantValid:  false,
+			wantErrors: []string{testHardcodedCredentials},
 		},
 		{
 			name: "credentials via variable reference with nonempty fallback detected",
@@ -448,6 +536,12 @@ secrets:
 			t.Parallel()
 
 			dir := t.TempDir()
+			for relativePath, contents := range tc.files {
+				path := filepath.Join(dir, relativePath)
+				require.NoError(t, os.MkdirAll(filepath.Dir(path), cryptoutilSharedMagic.PKIInitCertsDirMode))
+				require.NoError(t, os.WriteFile(path, []byte(contents), filePermissions))
+			}
+
 			composePath := filepath.Join(dir, cryptoutilSharedMagic.COMPOSE_YML)
 			require.NoError(t, os.WriteFile(composePath, []byte(tc.content), filePermissions))
 

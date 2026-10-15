@@ -2,7 +2,10 @@
 package lint_deployments
 
 import (
+	"errors"
 	"fmt"
+	"os"
+	"path/filepath"
 	"regexp"
 	"strings"
 
@@ -46,28 +49,179 @@ func validateNoHardcodedCredentials(compose *composeFile, result *ComposeValidat
 		svc := compose.Services[name]
 
 		for key, value := range extractEnvironmentVars(&svc) {
-			upperKey := strings.ToUpper(key)
-			fileReference := strings.HasSuffix(upperKey, "_FILE")
+			validateCredentialEnvironmentVariable(name, key, value, &svc, compose, result)
+		}
 
-			credentialKey := key
-			if fileReference {
-				credentialKey = strings.TrimSuffix(upperKey, "_FILE")
-			}
+		envFiles, err := extractComposeEnvFiles(svc.EnvFile)
+		if err != nil {
+			appendCredentialValidationError(result,
+				fmt.Sprintf("service '%s': invalid env_file declaration: %v", name, err))
 
-			if !credentialKeyPatterns.MatchString(credentialKey) {
+			continue
+		}
+
+		for _, envFile := range envFiles {
+			envFilePath, err := resolveComposeEnvFilePath(svc.composeDir, envFile.path)
+			if err != nil {
+				appendCredentialValidationError(result,
+					fmt.Sprintf("service '%s': cannot validate env_file %q: %v", name, envFile.path, err))
+
 				continue
 			}
 
-			if fileReference && isDockerSecretFileReference(value, &svc, compose) {
+			envFileContents, err := os.ReadFile(envFilePath)
+			if err != nil {
+				if !envFile.required && errors.Is(err, os.ErrNotExist) {
+					continue
+				}
+
+				appendCredentialValidationError(result,
+					fmt.Sprintf("service '%s': failed to read env_file %q: %v", name, envFile.path, err))
+
 				continue
 			}
 
-			result.Errors = append(result.Errors,
-				fmt.Sprintf("service '%s': environment variable '%s' appears to contain hardcoded credentials or is not backed by a declared, mounted Docker secret through its _FILE variant | See: ENG-HANDBOOK.md Section 13.3",
-					name, key))
-			result.Valid = false
+			for _, variable := range parseComposeEnvFile(string(envFileContents)) {
+				validateCredentialEnvironmentVariable(name, variable.key, variable.value, &svc, compose, result)
+			}
 		}
 	}
+}
+
+type composeEnvFile struct {
+	path     string
+	required bool
+}
+
+type composeEnvironmentVariable struct {
+	key   string
+	value string
+}
+
+func extractComposeEnvFiles(value any) ([]composeEnvFile, error) {
+	var envFiles []composeEnvFile
+
+	appendEnvFile := func(value any) error {
+		switch envFile := value.(type) {
+		case string:
+			if envFile == "" {
+				return fmt.Errorf("env_file path must not be empty")
+			}
+
+			envFiles = append(envFiles, composeEnvFile{path: envFile, required: true})
+		case map[string]any:
+			path, ok := envFile["path"].(string)
+			if !ok || path == "" {
+				return fmt.Errorf("env_file mapping must have a non-empty string path")
+			}
+
+			required := true
+
+			if configuredRequired, exists := envFile["required"]; exists {
+				var ok bool
+
+				required, ok = configuredRequired.(bool)
+				if !ok {
+					return fmt.Errorf("env_file required value must be a boolean")
+				}
+			}
+
+			envFiles = append(envFiles, composeEnvFile{path: path, required: required})
+		default:
+			return fmt.Errorf("env_file entry must be a string or mapping")
+		}
+
+		return nil
+	}
+
+	switch envFilesValue := value.(type) {
+	case nil:
+		return nil, nil
+	case string:
+		if err := appendEnvFile(envFilesValue); err != nil {
+			return nil, err
+		}
+	case []any:
+		for _, envFile := range envFilesValue {
+			if err := appendEnvFile(envFile); err != nil {
+				return nil, err
+			}
+		}
+	default:
+		return nil, fmt.Errorf("env_file must be a string or sequence")
+	}
+
+	return envFiles, nil
+}
+
+func resolveComposeEnvFilePath(composeDir, envFilePath string) (string, error) {
+	if strings.Contains(envFilePath, "$") {
+		return "", fmt.Errorf("path contains unresolved variable interpolation")
+	}
+
+	if filepath.IsAbs(envFilePath) {
+		return envFilePath, nil
+	}
+
+	return filepath.Join(composeDir, envFilePath), nil
+}
+
+func parseComposeEnvFile(contents string) []composeEnvironmentVariable {
+	var variables []composeEnvironmentVariable
+
+	for _, line := range strings.Split(contents, "\n") {
+		line = strings.TrimSpace(strings.TrimSuffix(line, "\r"))
+		if line == "" || strings.HasPrefix(line, "#") {
+			continue
+		}
+
+		line = strings.TrimPrefix(line, "export ")
+
+		separator := strings.IndexAny(line, "=:")
+		if separator < 0 {
+			variables = append(variables, composeEnvironmentVariable{key: strings.Trim(line, `"'`)})
+
+			continue
+		}
+
+		key := strings.Trim(strings.TrimSpace(line[:separator]), `"'`)
+
+		value := strings.TrimSpace(line[separator+1:])
+		if len(value) >= 2 && (value[0] == '"' || value[0] == '\'') && value[len(value)-1] == value[0] {
+			value = value[1 : len(value)-1]
+		}
+
+		variables = append(variables, composeEnvironmentVariable{key: key, value: value})
+	}
+
+	return variables
+}
+
+func validateCredentialEnvironmentVariable(name, key, value string, svc *composeService, compose *composeFile, result *ComposeValidationResult) {
+	upperKey := strings.ToUpper(key)
+	fileReference := strings.HasSuffix(upperKey, "_FILE")
+
+	credentialKey := key
+	if fileReference {
+		credentialKey = strings.TrimSuffix(upperKey, "_FILE")
+	}
+
+	if !credentialKeyPatterns.MatchString(credentialKey) {
+		return
+	}
+
+	if fileReference && isDockerSecretFileReference(value, svc, compose) {
+		return
+	}
+
+	appendCredentialValidationError(result,
+		fmt.Sprintf("service '%s': environment variable '%s' appears to contain hardcoded credentials or is not backed by a declared, mounted Docker secret through its _FILE variant",
+			name, key))
+}
+
+func appendCredentialValidationError(result *ComposeValidationResult, message string) {
+	result.Errors = append(result.Errors, message+" | See: ENG-HANDBOOK.md Section 13.3")
+	result.Valid = false
 }
 
 func isDockerSecretFileReference(value string, service *composeService, compose *composeFile) bool {

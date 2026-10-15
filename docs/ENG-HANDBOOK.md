@@ -6231,6 +6231,8 @@ configs/
 
 **Docker Secrets Pattern**: Credential environment variables (keys containing PASSWORD, PASS, PASSWD, SECRET, TOKEN, or ending in `_KEY`) MUST use a corresponding `_FILE` variable whose value names a Docker secret under `/run/secrets/`. That secret MUST be declared at the Compose top level and mounted on the service at the matching target. Direct credential values, host-environment interpolation for credential variables, and `/run/secrets/` paths without the `_FILE` suffix are violations.
 
+This requirement also applies to credential variables in service `env_file` files. The validator reads each file relative to the Compose file that declares it; unresolved variable interpolation in an `env_file` path is rejected because its contents cannot be verified safely.
+
 **File Permissions**: All `.secret` files MUST have 440 (r--r-----) permissions. Never commit actual secret values to version control.
 
 **Detection Strategy**: Length-based threshold (≥32 bytes / ≥43 base64 chars) identifies high-entropy inline values. Safe references (`/run/secrets/`, Docker secret names, short dev defaults) are excluded. No entropy calculation (too many false positives). Infrastructure deployments (Grafana, OTLP collector) are excluded from secrets validation since they use intentional inline dev credentials.

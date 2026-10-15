@@ -139,3 +139,16 @@ in `tasks.md`.
   authority ID only after the embedded certificate identity, serial, issuer, authority key ID, and
   signature are verified against the configured issuer. Focused regression tests pass, and the
   compatibility rule is documented in ENG-HANDBOOK §6.5.
+- **F-3 — Complete.** Compose `env_file` contents are scanned for credential variables, with paths
+  resolved relative to the declaring Compose file (including included files), and `_FILE`
+  references validated against mounted Docker secrets. Regression tests cover both Compose forms,
+  optional/missing files, unresolved path interpolation, credential values, and valid secret
+  references. The deployment, docs, and text validators pass; evidence is recorded in
+  `test-output/reviewfollowup/post-review-env-file-tests.log` and
+  `test-output/reviewfollowup/post-review-env-file-validation.log`.
+- **F-4 — Pending.** Certificate-volume substring checks can mistake a host bind source for the
+  expected named volume. Parse mount sources and targets, reject bind mounts to certificate paths,
+  and require the activation barrier for each named-volume consumer.
+- **F-5 — Pending.** Windows mode-bit checks do not enforce confidentiality against inherited
+  filesystem ACLs. Apply and verify restrictive ACLs for private key material before publication,
+  with Windows-specific regression tests.

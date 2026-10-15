@@ -77,6 +77,7 @@ type composeService struct {
 	Ports       []string            `yaml:"ports"`
 	Volumes     []string            `yaml:"volumes"`
 	Environment any                 `yaml:"environment"`
+	EnvFile     any                 `yaml:"env_file"`
 	Secrets     []any               `yaml:"secrets"`
 	DependsOn   any                 `yaml:"depends_on"`
 	Healthcheck *composeHealthcheck `yaml:"healthcheck"`
@@ -87,6 +88,7 @@ type composeService struct {
 	WorkingDir  string              `yaml:"working_dir"`
 	Entrypoint  any                 `yaml:"entrypoint"`
 	ShmSize     string              `yaml:"shm_size"`
+	composeDir  string
 }
 
 // composeHealthcheck represents a healthcheck configuration.
@@ -152,6 +154,8 @@ func parseComposeWithIncludes(composePath string) (*composeFile, error) {
 
 	// Resolve includes to merge secrets and services for reference validation.
 	baseDir := filepath.Dir(composePath)
+	setComposeServiceDir(&compose, baseDir)
+
 	includeStack := make(map[string]struct{})
 
 	for _, inc := range compose.Include {
@@ -188,6 +192,8 @@ func mergeIncludedFileRecursive(baseDir string, includePath string, compose *com
 		return
 	}
 
+	setComposeServiceDir(&included, filepath.Dir(fullPath))
+
 	includeStack[fullPath] = struct{}{}
 	defer delete(includeStack, fullPath)
 
@@ -220,6 +226,13 @@ func mergeIncludedFileRecursive(baseDir string, includePath string, compose *com
 		} else {
 			compose.Services[name] = svc
 		}
+	}
+}
+
+func setComposeServiceDir(compose *composeFile, dir string) {
+	for name, service := range compose.Services {
+		service.composeDir = dir
+		compose.Services[name] = service
 	}
 }
 

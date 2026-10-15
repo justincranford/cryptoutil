@@ -1093,6 +1093,9 @@ Finding identifiers F-1 and F-2 are distinct from review recommendation numbers.
 |---|---|---|---|
 | F-1 | Complete | `post-review-focused-tests.log` covers inline/interpolated credential rejection, matching declared and mounted `_FILE` secrets, custom targets, and `_KEY` detection; `post-review-deployment-validation.log` passes all 51 deployment validators; `post-review-golangci.log` reports no issues. | None. |
 | F-2 | Complete | `post-review-focused-tests.log` passes valid legacy-certificate revocation and rejects invalid PEM and serial mismatches; `docs/ENG-HANDBOOK.md` §6.5 documents the issuer-verification rule. | None. |
+| F-3 | Complete | `post-review-env-file-tests.log` passes the shuffled deployment-linter package; `post-review-env-file-validation.log` passes all 51 deployment validators, `lint-docs`, and `lint-text`. | None. |
+| F-4 | Pending | — | Parse certificate volume source/target pairs; reject bind mounts and enforce the `pki-init` completion dependency for all named-volume consumers. |
+| F-5 | Pending | — | Apply and verify restrictive Windows ACLs to private key files, PKCS#12 keys, and `tls-config.yml` before publication. |
 
 **Environment incident during live verification:** An accidental `docker compose down --volumes`
 removed the globally named volumes `cryptoutil_postgres_leader_volume`,
