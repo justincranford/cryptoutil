@@ -19,7 +19,7 @@ after each phase's quality gates pass.
 
 ## Actions
 
-1. PKI persistence follow-up resolved: certificates, revocations, and CA authority state use the shared sm-kms SQLite/PostgreSQL database; the CA private key is barrier-encrypted, and CRL/OCSP responses read tenant-scoped durable status.
+1. The earlier PKI persistence follow-up was marked resolved prematurely: implementation claims did not establish issuer/tenant CRL consistency or production persistence-chain continuity. See the October 2026 follow-up status and evidence in `tasks.md`.
 2. Keep the retired PKI port 8300, PostgreSQL host port 54323, and migration range 5001-5999 unassigned until an explicit canonical registry change authorizes reuse.
 3. For future migrations, create and update each phase's evidence directory and task statuses as its quality gates complete instead of reconstructing status from the final tree.
 
@@ -156,3 +156,11 @@ Tracker and evidence updates had not been part of the phase completion workflow.
 ### Patterns for Future Phases
 
 Reconcile phase status from current implementation and executable evidence; do not interpret stale task labels as proof that work was not done. Preserve missing historical evidence as an explicit limitation instead of fabricating it.
+
+## Review Follow-Up
+
+The October 2026 review corrected premature persistence-completion claims. Focused validation
+now exercises the real migration, barrier, file-backed SQLite restart, CRL/OCSP continuity,
+and historical issuer publication chain. It does not establish PostgreSQL multi-instance or
+Docker deployment behavior; the evidence and those remaining checks are enumerated in
+`tasks.md`.

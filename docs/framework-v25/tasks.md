@@ -1,12 +1,12 @@
 # Tasks â€” Framework v25: 8-to-7 PS-ID Consolidation
 
-**Status**: Complete - implementation, quality gates, documentation, and tracker reconciliation are verified.
+**Status**: Complete for the original consolidation scope; review follow-up status is recorded below.
 **Last Updated**: 2026-10-14
 **Created**: 2026-05-25
 
 ---
 
-**Reconciliation note**: The original task-level labels and acceptance checkboxes in Phases 1–4 were not maintained during migration execution and are not evidence that the work was never started. The current tree contains the ported PKI packages and API, and final builds, tests, lint, OpenAPI, deployment, and fitness validation passed; no separate Phase 1–4 evidence logs were retained. Phase 5 evidence is archived below. Phase-level status and current-state validation supersede the stale task-level entries in Phases 1–4.
+**Archived task status note**: Phase 1–4 task labels and acceptance checkboxes were not maintained during execution and are archived planning metadata, not current implementation status. Original consolidation verification is recorded in the historical Phase 5 artifacts; those artifacts do not substantiate the October 2026 review findings. Current follow-up resolutions, evidence, and gaps are tracked in the final section.
 
 ## Quality Mandate - MANDATORY
 
@@ -39,7 +39,7 @@
 with updated package names and import paths. Add DB migration 2009 for ca_items. Move
 certificate profile configs to sm-kms. Verify ported packages compile and tests pass.
 
-**Status**: Complete - the ported packages, migration, and profiles are present; current full build and test evidence is in `test-output/phase5/`.
+**Archived status**: The ported packages, migration, and profiles are present. Historical build and test evidence is in `test-output/phase5/`; it does not validate the October 2026 follow-up changes.
 
 **Prerequisite**: framework-v24 must be fully executed before starting this phase.
 
@@ -799,10 +799,10 @@ lint_fitness entity registry, and lint_ports to reflect the new 3-product / 7-PS
 ## Phase 5: Quality Gates
 
 **Phase Objective**: Comprehensive end-to-end quality verification. Full build, lint, test,
-coverage analysis, race detector, and cicd-lint suite. This phase confirms the consolidation
-is complete and production-ready.
+coverage analysis, race detector, and cicd-lint suite for the original consolidation. This
+historical evidence does not validate the October 2026 review follow-up findings.
 
-**Status**: Complete - all recorded quality gates passed; see `test-output/phase5/`.
+**Archived status**: The originally recorded quality gates passed; see `test-output/phase5/`.
 
 ---
 
@@ -997,6 +997,10 @@ Verify propagation integrity.
 
 ## Follow-up Resolution and Registry Decisions
 
+**Status note**: The checked PKI persistence items below are prior implementation claims, not
+independent validation. The October 2026 follow-up section at the end of this document is the
+current source for their disposition and evidence.
+
 - [x] PKI certificate and authority data use sm-kms GORM persistence on the shared SQLite/PostgreSQL database, via migrations 2010 and 2011.
 - [x] The CA private key is barrier-encrypted before persistence.
 - [x] CRL and OCSP responses use tenant-scoped persisted revocation status, including after process restart.
@@ -1009,3 +1013,28 @@ Verify propagation integrity.
 - Phase 1-4 evidence directories were not retained; final-state verification is recorded in the Phase 5 logs and registry/deployment validators.
 - `test-output/phase5/` - Full quality-gate logs, coverage profiles, coverage reports, and `docs-final.log`.
 - `test-output/coverage-analysis/` - Retained historical aggregate and package-specific coverage baselines.
+
+## Review Follow-Up: Findings, Disposition, and Evidence
+
+The following table supersedes earlier follow-up completion claims. Build, focused test,
+integration, lint, and workflow evidence is under `test-output/review-followup/`. Focused
+validation is not a claim that the full repository suite or Docker/PostgreSQL deployment ran.
+
+| # | Disposition | Evidence | Remaining verification |
+|---|---|---|---|
+| 1 | Coverage gate fails closed on inventory/parser/result errors and enforces infrastructure thresholds; committed as `414688e8b`. | Workflow lint and normal/tagged builds. | CI runner execution not repeated locally. |
+| 2 | Product/suite databases are isolated by PS-ID; KMS capabilities remain together in `sm-kms`; committed as `dd5520c`. | Deployment lint. | No live product/suite stack run. |
+| 3 | Durable SQLite variants use file-backed databases and persistent volumes; memory variants are disposable; committed as `e3a8a67`. | Deployment lint. | No live container restart test. |
+| 4 | CRL/OCSP publication and lookup are issuer-wide and do not require a tenant session. | Focused PKI tests and persistence integration log. | PostgreSQL multi-instance runtime not exercised. |
+| 5 | CRL numbers allocate atomically in storage, scoped by issuer key ID. | Persistence integration log verifies the sequence continues after reopen. | PostgreSQL multi-instance runtime not exercised. |
+| 6 | Ordinary certificate updates cannot restore revoked records or erase revocation metadata. | Focused PKI tests. | Full repository suite not run. |
+| 7 | Shutdown-request state is separate from shutdown execution; HTTP shutdown performs the drain and listener close. | Focused listener tests. | No separate live-listener end-to-end test. |
+| 8 | `pki-init` stages and validates material before publication, rolls back partial publication, and refuses rotation of existing material. | Focused TLS tests; `docs/tls-structure.md` describes initialization-only behavior. | No live consumer reload/rotation test; rotation is unsupported. |
+| 9 | Compose readiness requires completed initialization jobs and authenticated readiness instead of matching `"healthy"` or ignoring host-check failures; committed as `3d2cc7b04`. | Workflow lint. | No live Compose stack run. |
+| 10 | Production migrations, barrier encryption, file-backed SQLite reopen, revocation, CRL/OCSP continuity, and historical issuer publication are exercised together. | `pki-persistence-integration.log`. | PostgreSQL cross-instance issuance/revocation remains unverified. |
+| 11 | Existing PostgreSQL volumes have a data-preserving, idempotent database upgrade path; committed as `0132019`. | Deployment lint. | Upgrade procedure not executed against an existing PostgreSQL volume. |
+| 12 | Enrollment status uses tenant-scoped persistence as authority; the process-local tracker no longer leaks status across tenants. | Focused PKI tests. | Full repository suite not run. |
+| 13 | Tenant-scoped request IDs have a unique database constraint, with duplicate errors mapped consistently. | Persistence integration and focused storage tests. | Legacy duplicate-row remediation is not automated. |
+| 14 | Listener shutdown completion waits are bounded and report timeout errors. | Focused listener tests include shutdown/startup paths. | Full race suite not run. |
+| 15 | Authority configuration, active validity checks, historical issuer restoration, and a persisted stable authority ID on new certificate records are covered. | Focused PKI tests and `pki-persistence-integration.log`. | Renewal/rollover operations remain initialization-only; no live PostgreSQL test. |
+| 16 | Historical claims are separated from current evidence; this table records both verified work and unrun runtime checks. | `lint-docs` and `lint-text` logs. | Full-suite and Docker/PostgreSQL evidence remains outstanding. |

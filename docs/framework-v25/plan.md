@@ -1,6 +1,6 @@
 # Implementation Plan â€” Framework v25: 8-to-7 PS-ID Consolidation
 
-**Status**: Complete — migration, quality gates, documentation, and tracker reconciliation are verified.
+**Status**: Complete for the original consolidation scope; October 2026 review follow-up is tracked in `tasks.md`.
 **Created**: 2026-05-25
 **Last Updated**: 2026-10-14
 **Purpose**: Consolidate from 8 PS-IDs (4 products) to 7 PS-IDs (3 products) by merging
