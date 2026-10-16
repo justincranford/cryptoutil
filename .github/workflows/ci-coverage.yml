@@ -163,6 +163,10 @@ jobs:
         else
           : > workflow-reports/coverage/no-test-package-inventory.txt
         fi
+        if ! diff -u .github/workflows/ci-coverage-no-test-packages.txt workflow-reports/coverage/no-test-package-inventory.txt; then
+          echo "No-test package identities differ from the pinned coverage baseline."
+          exit 1
+        fi
         # Follow the inventory-baseline update procedure in ENG-HANDBOOK.md Section 10.2.3.
         printf '%s\n' "${PACKAGES[@]}" > workflow-reports/coverage/package-inventory.txt
         go test -count=1 -p=2 -coverprofile=workflow-reports/coverage/coverage.out -covermode=atomic \
