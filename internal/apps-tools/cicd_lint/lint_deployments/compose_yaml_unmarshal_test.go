@@ -52,16 +52,25 @@ func TestComposeVolumeUnmarshalYAML(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name       string
-		input      string
-		wantType   string
-		wantSource string
-		wantTarget string
-		wantErr    string
+		name         string
+		input        string
+		wantType     string
+		wantSource   string
+		wantTarget   string
+		wantReadOnly bool
+		wantErr      string
 	}{
 		{
-			name:       "short bind mount",
-			input:      testCertVolumeMountSource + ":" + certVolumeMountTarget + ":ro",
+			name:         "short bind mount",
+			input:        testCertVolumeMountSource + ":" + certVolumeMountTarget + ":ro,z",
+			wantType:     cryptoutilSharedMagic.DockerComposeVolumeMountTypeBind,
+			wantSource:   testCertVolumeMountSource,
+			wantTarget:   certVolumeMountTarget,
+			wantReadOnly: true,
+		},
+		{
+			name:       "short mount with conflicting read-write option is writable",
+			input:      testCertVolumeMountSource + ":" + certVolumeMountTarget + ":ro,rw",
 			wantType:   cryptoutilSharedMagic.DockerComposeVolumeMountTypeBind,
 			wantSource: testCertVolumeMountSource,
 			wantTarget: certVolumeMountTarget,
@@ -75,11 +84,12 @@ func TestComposeVolumeUnmarshalYAML(t *testing.T) {
 		},
 		{name: "short mount without absolute target", input: "data:relative", wantType: cryptoutilSharedMagic.DockerComposeVolumeMountTypeVolume},
 		{
-			name:       "long mount",
-			input:      "type: volume\n" + testComposeSourceField + ": cert-data\n" + testComposeTargetField + ": " + certVolumeMountTarget,
-			wantType:   cryptoutilSharedMagic.DockerComposeVolumeMountTypeVolume,
-			wantSource: "cert-data",
-			wantTarget: certVolumeMountTarget,
+			name:         "long mount",
+			input:        "type: volume\n" + testComposeSourceField + ": cert-data\n" + testComposeTargetField + ": " + certVolumeMountTarget + "\nread_only: true",
+			wantType:     cryptoutilSharedMagic.DockerComposeVolumeMountTypeVolume,
+			wantSource:   "cert-data",
+			wantTarget:   certVolumeMountTarget,
+			wantReadOnly: true,
 		},
 		{name: "unsupported node rejected", input: "[source, target]", wantErr: testStringOrMapping},
 		{name: "invalid binary scalar rejected", input: "!!binary '***'", wantErr: "decode volume mount"},
@@ -104,6 +114,7 @@ func TestComposeVolumeUnmarshalYAML(t *testing.T) {
 			require.Equal(t, tc.wantType, got.Type)
 			require.Equal(t, tc.wantSource, got.Source)
 			require.Equal(t, tc.wantTarget, got.Target)
+			require.Equal(t, tc.wantReadOnly, got.ReadOnly)
 		})
 	}
 }

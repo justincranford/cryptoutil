@@ -13,6 +13,7 @@ import (
 const (
 	testCertVolumeMissingActivationBarrier = "without depending on"
 	testUnresolvedCertVolumeTarget         = "unresolved variable interpolation in volume target"
+	testWritableCertVolumeMount            = "certificate volume mount must be read-only"
 )
 
 func TestValidateCertVolumePolicy(t *testing.T) {
@@ -30,6 +31,49 @@ func TestValidateCertVolumePolicy(t *testing.T) {
 			deploymentName: cryptoutilSharedMagic.OTLPServiceSMKMS,
 			composeContent: "services:\n  pki-init:\n    volumes:\n      - sm-kms-certs:/certs\n  sm-kms-app:\n    depends_on:\n      pki-init:\n        condition: service_completed_successfully\n    volumes:\n      - sm-kms-certs:/certs:ro\nvolumes:\n  sm-kms-certs:\n",
 			wantValid:      true,
+		},
+		{
+			name:           "cert consumer volume without mode is writable",
+			deploymentName: cryptoutilSharedMagic.OTLPServiceSMKMS,
+			composeContent: "services:\n  pki-init:\n    volumes:\n      - sm-kms-certs:/certs\n  sm-kms-app:\n    depends_on:\n      pki-init:\n        condition: service_completed_successfully\n    volumes:\n      - sm-kms-certs:/certs\nvolumes:\n  sm-kms-certs:\n",
+			wantValid:      false,
+			wantErrText:    testWritableCertVolumeMount,
+		},
+		{
+			name:           "cert consumer volume explicitly read-write",
+			deploymentName: cryptoutilSharedMagic.OTLPServiceSMKMS,
+			composeContent: "services:\n  pki-init:\n    volumes:\n      - sm-kms-certs:/certs\n  sm-kms-app:\n    depends_on:\n      pki-init:\n        condition: service_completed_successfully\n    volumes:\n      - sm-kms-certs:/certs:rw\nvolumes:\n  sm-kms-certs:\n",
+			wantValid:      false,
+			wantErrText:    testWritableCertVolumeMount,
+		},
+		{
+			name:           "cert consumer long syntax writable mount",
+			deploymentName: cryptoutilSharedMagic.OTLPServiceSMKMS,
+			composeContent: `services:
+  pki-init:
+    volumes:
+      - sm-kms-certs:/certs
+  sm-kms-app:
+    depends_on:
+      pki-init:
+        condition: service_completed_successfully
+    volumes:
+      - type: volume
+        source: sm-kms-certs
+        target: /certs
+        read_only: false
+volumes:
+  sm-kms-certs:
+`,
+			wantValid:   false,
+			wantErrText: testWritableCertVolumeMount,
+		},
+		{
+			name:           "cert consumer cannot remount named volume writable elsewhere",
+			deploymentName: cryptoutilSharedMagic.OTLPServiceSMKMS,
+			composeContent: "services:\n  pki-init:\n    volumes:\n      - sm-kms-certs:/certs\n  sm-kms-app:\n    depends_on:\n      pki-init:\n        condition: service_completed_successfully\n    volumes:\n      - sm-kms-certs:/certs:ro\n      - sm-kms-certs:/data:rw\nvolumes:\n  sm-kms-certs:\n",
+			wantValid:      false,
+			wantErrText:    testWritableCertVolumeMount,
 		},
 		{
 			name:           "cert consumer does not depend on initialization",
@@ -242,6 +286,7 @@ volumes:
       - type: volume
         source: sm-kms-certs
         target: /certs/
+        read_only: true
 volumes:
   sm-kms-certs:
 `,

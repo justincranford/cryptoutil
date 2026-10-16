@@ -59,6 +59,16 @@ func ValidateCertVolumePolicy(deploymentPath, deploymentName string) (*CertVolum
 			expectedCertMount := volume.Type == cryptoutilSharedMagic.DockerComposeVolumeMountTypeVolume &&
 				volume.Source == expectedVolumeName &&
 				isCertVolumeTarget(volume.Target)
+
+			expectedCertVolume := volume.Type == cryptoutilSharedMagic.DockerComposeVolumeMountTypeVolume &&
+				volume.Source == expectedVolumeName
+			if expectedCertVolume && serviceName != cryptoutilSharedMagic.PSIDPKIInit && !volume.ReadOnly {
+				result.Errors = append(result.Errors,
+					fmt.Sprintf("[ValidateCertVolumePolicy] service '%s' certificate volume mount must be read-only: '%s' | See: %s",
+						serviceName, volume.Raw, certVolumePolicyHandbookSection))
+				result.Valid = false
+			}
+
 			if overlapsCertVolumeTarget(volume.Target) && !expectedCertMount {
 				result.Errors = append(result.Errors,
 					fmt.Sprintf("[ValidateCertVolumePolicy] service '%s' uses forbidden cert bind mount or unexpected cert volume '%s' | See: %s",

@@ -354,10 +354,11 @@ services:
 	app := compose.Services["app"]
 	require.True(t, dependsOnSuccessfulPKIInit(compose, "app", make(map[string]struct{})))
 	require.Equal(t, []composeVolume{{
-		Raw:    "suite-certs:/certs:ro",
-		Type:   cryptoutilSharedMagic.DockerComposeVolumeMountTypeVolume,
-		Source: "suite-certs",
-		Target: certVolumeMountTarget,
+		Raw:      "suite-certs:/certs:ro",
+		Type:     cryptoutilSharedMagic.DockerComposeVolumeMountTypeVolume,
+		Source:   "suite-certs",
+		Target:   certVolumeMountTarget,
+		ReadOnly: true,
 	}}, app.Volumes)
 }
 

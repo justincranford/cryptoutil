@@ -15,6 +15,7 @@ type composeVolume struct {
 	Source                 string
 	Target                 string
 	TargetHasInterpolation bool
+	ReadOnly               bool
 }
 
 func (volume *composeVolume) UnmarshalYAML(node *yaml.Node) error {
@@ -27,12 +28,14 @@ func (volume *composeVolume) UnmarshalYAML(node *yaml.Node) error {
 		volume.Source, volume.Target = splitShortVolumeMount(volume.Raw)
 		volume.TargetHasInterpolation = hasUnresolvedComposeInterpolation(volume.Target) ||
 			(volume.Target == "" && hasUnresolvedComposeInterpolation(volume.Raw))
+		volume.ReadOnly = shortVolumeMountReadOnly(volume.Raw)
 		volume.Type = inferVolumeMountType(volume.Source)
 	case yaml.MappingNode:
 		var mount struct {
-			Type   string `yaml:"type"`
-			Source string `yaml:"source"`
-			Target string `yaml:"target"`
+			Type     string `yaml:"type"`
+			Source   string `yaml:"source"`
+			Target   string `yaml:"target"`
+			ReadOnly bool   `yaml:"read_only"`
 		}
 		if err := node.Decode(&mount); err != nil {
 			return fmt.Errorf("decode long volume mount: %w", err)
@@ -41,6 +44,7 @@ func (volume *composeVolume) UnmarshalYAML(node *yaml.Node) error {
 		volume.Type = mount.Type
 		volume.Source = mount.Source
 		volume.Target = mount.Target
+		volume.ReadOnly = mount.ReadOnly
 		volume.TargetHasInterpolation = hasUnresolvedComposeInterpolation(volume.Target)
 
 		volume.Raw = fmt.Sprintf("type=%s source=%s target=%s", mount.Type, mount.Source, mount.Target)
@@ -52,6 +56,30 @@ func (volume *composeVolume) UnmarshalYAML(node *yaml.Node) error {
 	}
 
 	return nil
+}
+
+func shortVolumeMountReadOnly(raw string) bool {
+	parts := strings.Split(raw, ":")
+	for targetIndex := 1; targetIndex+1 < len(parts); targetIndex++ {
+		if !strings.HasPrefix(parts[targetIndex], "/") {
+			continue
+		}
+
+		readOnly := false
+
+		for _, option := range strings.Split(parts[targetIndex+1], ",") {
+			switch strings.TrimSpace(option) {
+			case "ro":
+				readOnly = true
+			case "rw":
+				return false
+			}
+		}
+
+		return readOnly
+	}
+
+	return false
 }
 
 func splitShortVolumeMount(raw string) (string, string) {
