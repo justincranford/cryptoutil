@@ -142,7 +142,7 @@ public class ServiceApiSimulation extends Simulation {
                       session -> {
                         String decrypted = session.getString("decrypted");
                         if (!CLEARTEXT.equals(decrypted)) {
-                          throw new RuntimeException("Quick validation failed");
+                          throw new IllegalStateException("Quick validation failed");
                         }
                         return session;
                       })

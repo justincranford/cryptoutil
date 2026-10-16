@@ -442,7 +442,7 @@ public class CryptoutiApi {
                 String original = cleartext;
                 String decrypted = session.getString("decrypted");
                 if (!original.equals(decrypted)) {
-                    throw new RuntimeException("Decryption validation failed: expected '" + original + "', got '" + decrypted + "'");
+                    throw new IllegalStateException("Decryption validation failed: expected '" + original + "', got '" + decrypted + "'");
                 }
                 return session;
             });
@@ -521,7 +521,7 @@ public class CryptoutiApi {
                     // Validate JWK structure (basic validation)
                     String jwk = session.getString(decryptedVar);
                     if (!jwk.contains("kty") || !jwk.contains("kid")) {
-                        throw new RuntimeException("Invalid JWK structure: missing required fields");
+                        throw new IllegalStateException("Invalid JWK structure: missing required fields");
                     }
                     return session;
                 })
@@ -572,7 +572,7 @@ public class CryptoutiApi {
                 String original = cleartext;
                 String decrypted = session.getString("decrypted");
                 if (!original.equals(decrypted)) {
-                    throw new RuntimeException("Decryption validation failed");
+                    throw new IllegalStateException("Decryption validation failed");
                 }
                 return session;
             })

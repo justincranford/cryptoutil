@@ -32,7 +32,7 @@ import java.util.UUID;
  * browser-based flow - Session Management: Cookie-based authentication - CSRF Protection:
  * X-CSRF-Token header validation
  */
-public class BrowserApiSimulation extends Simulation {
+public final class BrowserApiSimulation extends Simulation {
   // Configuration from system properties
   private static final String PROFILE = System.getProperty("profile", "quick");
   private static final int VIRTUAL_CLIENTS =
@@ -73,7 +73,7 @@ public class BrowserApiSimulation extends Simulation {
       byte[] hash = digest.digest(codeVerifier.getBytes(StandardCharsets.US_ASCII));
       return BASE64_URL_ENCODER.encodeToString(hash);
     } catch (Exception e) {
-      throw new RuntimeException("Failed to generate code challenge", e);
+      throw new IllegalStateException("Failed to generate code challenge", e);
     }
   }
 
