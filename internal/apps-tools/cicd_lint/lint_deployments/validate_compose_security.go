@@ -13,7 +13,7 @@ import (
 )
 
 // credentialKeyPatterns matches environment variable keys that indicate credentials.
-var credentialKeyPatterns = regexp.MustCompile(`(?i)^(.*_)?(PASSWORD|PASS|PASSWD|SECRET|TOKEN|KEY)$`)
+var credentialKeyPatterns = regexp.MustCompile(`(?i)^(PGPASSWORD|(.*_)?(PASSWORD|PASS|PASSWD|SECRET|TOKEN|KEY))$`)
 
 // infrastructureServices are services excluded from credential checks per ENG-HANDBOOK.md Section 13.3.
 // "Infrastructure deployments excluded" from Docker secrets requirement.

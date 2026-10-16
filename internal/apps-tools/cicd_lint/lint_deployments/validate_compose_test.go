@@ -11,7 +11,28 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
-const testComposeEnvFile = ".env"
+const (
+	testComposeEnvFile                    = ".env"
+	testEnvFileHardcodedCredentialCompose = `services:
+  mydb:
+    image: postgres:latest
+    env_file: .env
+    healthcheck:
+      test: ["CMD", "pg_isready"]
+`
+	testEnvFileDockerSecretCompose = `services:
+  mydb:
+    image: postgres:latest
+    env_file: .env
+    secrets:
+      - postgres_password.secret
+    healthcheck:
+      test: ["CMD", "pg_isready"]
+secrets:
+  postgres_password.secret:
+    file: ./secrets/postgres_password.secret
+`
+)
 
 func TestValidateComposeFile(t *testing.T) {
 	t.Parallel()
@@ -161,33 +182,29 @@ secrets:
 			wantValid: true,
 		},
 		{
-			name: "hardcoded credential in env_file rejected",
-			content: `services:
-  mydb:
-    image: postgres:latest
-    env_file: .env
-    healthcheck:
-      test: ["CMD", "pg_isready"]
-`,
+			name:       "hardcoded credential in env_file rejected",
+			content:    testEnvFileHardcodedCredentialCompose,
 			files:      map[string]string{testComposeEnvFile: "POSTGRES_PASSWORD=hardcoded-password\n"},
 			wantValid:  false,
 			wantErrors: []string{testHardcodedCredentials},
 		},
 		{
-			name: "mounted Docker secret in env_file accepted",
-			content: `services:
-  mydb:
-    image: postgres:latest
-    env_file: .env
-    secrets:
-      - postgres_password.secret
-    healthcheck:
-      test: ["CMD", "pg_isready"]
-secrets:
-  postgres_password.secret:
-    file: ./secrets/postgres_password.secret
-`,
+			name:       "PGPASSWORD credential in env_file rejected",
+			content:    testEnvFileHardcodedCredentialCompose,
+			files:      map[string]string{testComposeEnvFile: "PGPASSWORD=plaintext-password\n"},
+			wantValid:  false,
+			wantErrors: []string{testHardcodedCredentials},
+		},
+		{
+			name:      "mounted Docker secret in env_file accepted",
+			content:   testEnvFileDockerSecretCompose,
 			files:     map[string]string{testComposeEnvFile: "POSTGRES_PASSWORD_FILE=/run/secrets/postgres_password.secret\n"},
+			wantValid: true,
+		},
+		{
+			name:      "PGPASSWORD_FILE mounted Docker secret in env_file accepted",
+			content:   testEnvFileDockerSecretCompose,
+			files:     map[string]string{testComposeEnvFile: "PGPASSWORD_FILE=/run/secrets/postgres_password.secret\n"},
 			wantValid: true,
 		},
 		{
