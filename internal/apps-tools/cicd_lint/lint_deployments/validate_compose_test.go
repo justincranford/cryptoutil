@@ -225,7 +225,7 @@ secrets:
       test: ["CMD", "pg_isready"]
 `,
 			wantValid:  false,
-			wantErrors: []string{"unresolved variable interpolation"},
+			wantErrors: []string{testUnresolvedVariableInterpolation},
 		},
 		{
 			name: "credentials via variable reference rejected",

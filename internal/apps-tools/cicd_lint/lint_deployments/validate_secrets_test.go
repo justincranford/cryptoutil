@@ -155,7 +155,7 @@ func TestValidateSecrets_UnreadablePaths(t *testing.T) {
 
 				return dir
 			},
-			wantWarnContains: "cannot read secrets directory",
+			wantWarnContains: testCannotReadSecretsDirectory,
 		},
 		{
 			name: "unreadable config file",
@@ -171,7 +171,7 @@ func TestValidateSecrets_UnreadablePaths(t *testing.T) {
 
 				return dir
 			},
-			wantWarnContains: "cannot read config file",
+			wantWarnContains: testCannotReadConfigFile,
 		},
 		{
 			name: "unreadable configs directory",
@@ -187,7 +187,7 @@ func TestValidateSecrets_UnreadablePaths(t *testing.T) {
 
 				return dir
 			},
-			wantWarnContains: "cannot read configs directory",
+			wantWarnContains: testCannotReadConfigsDirectory,
 		},
 		{
 			name: testUnreadableComposeFile,
@@ -201,7 +201,7 @@ func TestValidateSecrets_UnreadablePaths(t *testing.T) {
 
 				return dir
 			},
-			wantWarnContains: "cannot read compose file",
+			wantWarnContains: testCannotReadComposeFile,
 		},
 	}
 	for _, tc := range tests {
@@ -211,6 +211,61 @@ func TestValidateSecrets_UnreadablePaths(t *testing.T) {
 			require.NoError(t, err)
 			require.NotEmpty(t, result.Warnings)
 			require.Contains(t, result.Warnings[0], tc.wantWarnContains)
+		})
+	}
+}
+
+func TestValidateSecretHelpers_ReadFailures(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name        string
+		run         func(*testing.T, *SecretValidationResult)
+		wantWarning string
+	}{
+		{
+			name: "missing secrets directory",
+			run: func(t *testing.T, result *SecretValidationResult) {
+				t.Helper()
+				validateSecretFileLengths(filepath.Join(t.TempDir(), "missing"), result)
+			},
+			wantWarning: testCannotReadSecretsDirectory,
+		},
+		{
+			name: "missing configs directory",
+			run: func(t *testing.T, result *SecretValidationResult) {
+				t.Helper()
+				validateConfigInlineSecrets(filepath.Join(t.TempDir(), "missing"), result)
+			},
+			wantWarning: testCannotReadConfigsDirectory,
+		},
+		{
+			name: testMissingConfigFile,
+			run: func(t *testing.T, result *SecretValidationResult) {
+				t.Helper()
+				checkConfigFileForInlineSecrets(filepath.Join(t.TempDir(), "missing.yml"), "missing.yml", result)
+			},
+			wantWarning: testCannotReadConfigFile,
+		},
+		{
+			name: "missing compose file",
+			run: func(t *testing.T, result *SecretValidationResult) {
+				t.Helper()
+				validateComposeInlineSecrets(filepath.Join(t.TempDir(), "missing.yml"), result)
+			},
+			wantWarning: "cannot read compose file",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			result := &SecretValidationResult{}
+			tc.run(t, result)
+
+			require.Len(t, result.Warnings, 1)
+			require.Contains(t, result.Warnings[0], tc.wantWarning)
 		})
 	}
 }

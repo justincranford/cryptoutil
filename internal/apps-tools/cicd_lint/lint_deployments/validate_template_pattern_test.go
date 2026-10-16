@@ -152,7 +152,7 @@ func TestValidateTemplatePattern_Violations(t *testing.T) {
 			wantContains: []string{"config/ directory"},
 		},
 		{
-			name: "missing config file",
+			name: testMissingConfigFile,
 			setupFn: func(t *testing.T) string {
 				t.Helper()
 

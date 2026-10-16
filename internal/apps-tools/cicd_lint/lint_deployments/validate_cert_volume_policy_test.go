@@ -315,3 +315,38 @@ func TestValidateCertVolumePolicyDeploymentTiers(t *testing.T) {
 		})
 	}
 }
+
+func TestFormatCertVolumePolicyResult(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name   string
+		result *CertVolumePolicyResult
+		want   string
+	}{
+		{name: testNilResult, want: "[ValidateCertVolumePolicy] nil result"},
+		{
+			name:   testValidResult,
+			result: &CertVolumePolicyResult{Path: composeFileName, Valid: true},
+			want:   "[ValidateCertVolumePolicy] PASS: compose.yml",
+		},
+		{
+			name:   testInvalidResultWithoutErrors,
+			result: &CertVolumePolicyResult{Path: composeFileName},
+			want:   "[ValidateCertVolumePolicy] FAIL: compose.yml",
+		},
+		{
+			name:   testInvalidResultWithErrors,
+			result: &CertVolumePolicyResult{Errors: []string{"missing cert volume", "invalid mount"}},
+			want:   "missing cert volume\ninvalid mount",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			require.Equal(t, tc.want, FormatCertVolumePolicyResult(tc.result))
+		})
+	}
+}

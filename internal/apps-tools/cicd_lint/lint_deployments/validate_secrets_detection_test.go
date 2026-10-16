@@ -210,7 +210,7 @@ func TestIsSecretFieldName(t *testing.T) {
 		input  string
 		expect bool
 	}{
-		{valuePassword, "database-password", true},
+		{valuePassword, testDatabasePassword, true},
 		{"PASSWD", "POSTGRES_PASSWD", true},
 		{"secret", "my-secret", true},
 		{"TOKEN", "ACCESS_TOKEN", true},

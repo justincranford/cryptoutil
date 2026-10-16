@@ -301,9 +301,16 @@ func TestValidateAll_RealDeployments(t *testing.T) {
 	require.NotNil(t, result)
 	require.Greater(t, len(result.Results), 0)
 
-	// Performance target: <5s (Decision 5:C).
-	maxDuration := cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Second
-	require.Less(t, elapsed, maxDuration, "validate-all should complete in <5s, took %s", elapsed)
+	if validateAllRealDeploymentsCheckPerformance {
+		require.Less(
+			t,
+			elapsed,
+			cryptoutilSharedMagic.CICDLintValidateAllMaxDuration,
+			"validate-all should complete within %s, took %s",
+			cryptoutilSharedMagic.CICDLintValidateAllMaxDuration,
+			elapsed,
+		)
+	}
 
 	// Log results for debugging.
 	t.Logf("Total validators: %d, Duration: %s", len(result.Results), elapsed)

@@ -75,8 +75,8 @@ func TestExtractSecretName(t *testing.T) {
 		expected string
 	}{
 		{name: testString, input: testMySecretSecret, expected: testMySecretSecret},
-		{name: "map with source", input: map[string]any{"source": testMySecretSecret}, expected: testMySecretSecret},
-		{name: "map without source", input: map[string]any{"target": "/run/secrets/foo"}, expected: ""},
+		{name: "map with source", input: map[string]any{testComposeSourceField: testMySecretSecret}, expected: testMySecretSecret},
+		{name: "map without source", input: map[string]any{testComposeTargetField: "/run/secrets/foo"}, expected: ""},
 		{name: testNil, input: nil, expected: ""},
 		{name: "integer", input: cryptoutilSharedMagic.AnswerToLifeUniverseEverything, expected: ""},
 	}
@@ -357,7 +357,7 @@ services:
 		Raw:    "suite-certs:/certs:ro",
 		Type:   cryptoutilSharedMagic.DockerComposeVolumeMountTypeVolume,
 		Source: "suite-certs",
-		Target: "/certs",
+		Target: certVolumeMountTarget,
 	}}, app.Volumes)
 }
 

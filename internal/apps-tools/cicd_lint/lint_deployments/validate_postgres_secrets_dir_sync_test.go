@@ -82,3 +82,38 @@ func TestValidatePostgresSecretsDirSync(t *testing.T) {
 		})
 	}
 }
+
+func TestFormatPostgresSecretsDirSyncResult(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name   string
+		result *PostgresSecretsDirSyncResult
+		want   string
+	}{
+		{name: testNilResult, want: "[ValidatePostgresSecretsDirSync] nil result"},
+		{
+			name:   testValidResult,
+			result: &PostgresSecretsDirSyncResult{Path: defaultDeploymentsDir, Valid: true},
+			want:   "[ValidatePostgresSecretsDirSync] PASS: deployments",
+		},
+		{
+			name:   testInvalidResultWithoutErrors,
+			result: &PostgresSecretsDirSyncResult{Path: defaultDeploymentsDir},
+			want:   "[ValidatePostgresSecretsDirSync] FAIL: deployments",
+		},
+		{
+			name:   testInvalidResultWithErrors,
+			result: &PostgresSecretsDirSyncResult{Errors: []string{"missing secrets reference", "invalid env file"}},
+			want:   "missing secrets reference\ninvalid env file",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			require.Equal(t, tc.want, FormatPostgresSecretsDirSyncResult(tc.result))
+		})
+	}
+}

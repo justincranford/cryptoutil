@@ -354,6 +354,9 @@ const (
 	// DepCacheFileName is the dependency cache file name.
 	DepCacheFileName = ".cicd-lint/dep-cache.json"
 
+	// CICDLintValidateAllMaxDuration is the normal-mode performance limit for deployment validation.
+	CICDLintValidateAllMaxDuration = 5 * time.Second
+
 	// CircularDepCacheFileName is the circular dependency cache file name.
 	CircularDepCacheFileName = ".cicd-lint/circular-dep-cache.json"
 

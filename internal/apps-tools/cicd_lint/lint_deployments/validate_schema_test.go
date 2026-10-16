@@ -104,7 +104,7 @@ func TestValidateSchema_InvalidTypes(t *testing.T) {
 		{
 			name:    "otlp as string",
 			content: "bind-public-protocol: \"https\"\nbind-public-address: \"0.0.0.0\"\nbind-public-port: 8080\nbind-private-protocol: \"https\"\nbind-private-address: \"127.0.0.1\"\nbind-private-port: 9090\ntls-public-provision-mode: \"auto\"\ntls-private-provision-mode: \"auto\"\notlp: \"yes\"\n",
-			wantErr: "must be a boolean",
+			wantErr: testMustBeABoolean,
 		},
 		{
 			name:    "port as bool",
