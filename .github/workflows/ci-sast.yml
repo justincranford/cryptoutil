@@ -135,7 +135,7 @@ jobs:
             EXTRA_ARGS="-DnvdApiKey=${NVD_API_KEY} -Dnvd.apiKey=${NVD_API_KEY}"
           fi
           # Pass explicit H2 connectionString so the plugin uses project-local DB and doesn't default to ~/.m2
-          ./mvnw org.owasp:dependency-check-maven:update-only $EXTRA_ARGS -Ddependency-check.dataDirectory=${{ github.workspace }}/test/load/target/dependency-check/data -Ddependency-check.connectionString=jdbc:h2:file:${{ github.workspace }}/test/load/target/dependency-check/data/dependency-check-db;DB_CLOSE_ON_EXIT=FALSE
+          ./mvnw org.owasp:dependency-check-maven:update-only $EXTRA_ARGS -Ddependency-check.dataDirectory=${{ github.workspace }}/test/load/target/dependency-check/data "-Ddependency-check.connectionString=jdbc:h2:file:${{ github.workspace }}/test/load/target/dependency-check/data/dependency-check-db;DB_CLOSE_ON_EXIT=FALSE"
           END_TIME=$(date +%s)
           DURATION=$((END_TIME - START_TIME))
           echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
