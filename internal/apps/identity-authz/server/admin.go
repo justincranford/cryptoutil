@@ -176,19 +176,20 @@ func (s *AdminServer) Start(ctx context.Context) error {
 	// Create TLS listener on admin bind address and port.
 	bindAddr := net.JoinHostPort(s.config.AuthZ.AdminBindAddress, strconv.Itoa(s.config.AuthZ.AdminPort))
 
-	s.listener, err = tls.Listen("tcp", bindAddr, tlsConfig)
+	listener, err := tls.Listen("tcp", bindAddr, tlsConfig)
 	if err != nil {
 		return fmt.Errorf("failed to create TLS listener on %s: %w", bindAddr, err)
 	}
 
 	// Mark server as ready and store TLS certs for test pool access.
 	s.mu.Lock()
+	s.listener = listener
 	s.tlsCerts = tlsConfig.Certificates
 	s.ready = true
 	s.mu.Unlock()
 
 	// Start Fiber server with TLS listener.
-	if err := s.app.Listener(s.listener); err != nil {
+	if err := s.app.Listener(listener); err != nil {
 		return fmt.Errorf("admin server failed: %w", err)
 	}
 
