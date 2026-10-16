@@ -237,7 +237,9 @@ func TestCheckOutdatedDeps_WithOutdatedDeps(t *testing.T) {
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	err = CheckInDir(logger, tmpDir)
+	err = checkInDir(logger, tmpDir, func(_ context.Context, _ string) ([]byte, error) {
+		return []byte("github.com/pkg/errors v0.8.0 [v0.9.1]\n"), nil
+	})
 	// This should fail because pkg/errors v0.8.0 has updates available.
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "outdated dependencies found")
