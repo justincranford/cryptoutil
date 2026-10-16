@@ -38,13 +38,14 @@ and are independent of the numbered rows in the task evidence table.
   packages meeting thresholds and 168/320 below threshold (71.5% aggregate statement coverage).
   Failures span 84 `internal/apps-tools`, 54 `internal/apps`, 18 `internal/apps-framework`, and
   12 `internal/shared` packages. In-scope PKI packages remain below 95%: handler 90.8%, bootstrap
-  93.2%, server 52.4%, revocation 80.4%, and storage 69.4%. The deployment-linter package reports
-  96.3%, below the 98% infrastructure target. No package ceiling exception is justified by the
-  current evidence; targeted coverage remediation and a passing CI runner remain outstanding. Do
-  not lower thresholds to clear the gate.
-- **6 — Partially verified.** Focused listener tests cover shutdown paths; full race validation
-  remains outstanding because this Windows host has no GCC compiler. Run it on a supported
-  CGO-enabled host.
+  93.2%, server 52.4%, revocation 80.4%, and storage 69.4%. Deployment-linter coverage now passes
+  its 98% infrastructure target at 98.1% (`test-output/reviewfollowup/lint-deployments-coverage-98.log`).
+  No package ceiling exception is justified by the current evidence; broader targeted coverage
+  remediation and a passing CI runner remain outstanding. Do not lower thresholds to clear the gate.
+- **6 — Partially verified.** A focused shuffled Linux race run passes for Authz, IDP, RS, and
+  framework listener packages after fixing unsynchronized admin-listener publication in Authz and
+  IDP (`test-output/reviewfollowup/race-go-linux-admin-listener-fixed.log`). Full-repository race
+  validation remains outstanding.
 - **7 — Complete.** TLS outputs are staged and validated, publication failures roll back, and
   Compose consumers are gated on successful `pki-init`; platform permission and failure-path
   tests pass. Rotation/reload remains unsupported and is documented.
@@ -79,9 +80,11 @@ and are independent of the numbered rows in the task evidence table.
 - **18 — Complete.** Durable SQLite overrides were exercised against the application image,
   including initialization, runtime identity, file creation, and authenticated readiness.
 - **19 — Partially verified.** All 14 SQLite instances have distinct PS-ID/instance data volumes
-  and distinct service/product/suite project scoping; product/suite runtime stacks were not run.
-  Runtime verification requires a separate Docker-enabled environment; no further Docker
-  lifecycle operations were run after the recorded volume incident.
+  and distinct service/product/suite project scoping. Product and suite Compose configurations
+  parse successfully (`product-compose-config-services.log` and `suite-compose-config-services.log`),
+  but their runtime stacks were not run. Active globally named stacks and the recorded volume
+  incident make unisolated Docker lifecycle operations unsafe; runtime verification remains
+  outstanding in an isolated environment.
 - **20 — Complete.** Load-workflow PostgreSQL readiness uses authenticated mTLS; the matching
   readiness command was exercised against a live PostgreSQL-backed service.
 - **21 — Complete.** Workflow inputs are passed through environment variables and validated
