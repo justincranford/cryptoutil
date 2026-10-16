@@ -331,7 +331,7 @@ repos:
 
   # Specialized file linting: Dockerfile linting
   - repo: https://github.com/hadolint/hadolint
-    rev: v2.14.0
+    rev: v2.15.1
     hooks:
       - id: hadolint-docker
         files: 'Dockerfile.*|Dockerfile$'
@@ -375,7 +375,7 @@ repos:
 
   # Python linting and formatting with ruff (replaces black, isort, flake8)
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.15.15
+    rev: v0.17.1
     hooks:
       - id: ruff
         name: Ruff Python linter (auto-fix)
@@ -389,7 +389,7 @@ repos:
 
   # Markdown linting with auto-fix
   - repo: https://github.com/DavidAnson/markdownlint-cli2
-    rev: v0.22.1
+    rev: v0.23.3
     hooks:
       - id: markdownlint-cli2
         name: Lint and fix markdown files
@@ -401,7 +401,7 @@ repos:
 
   # Conventional commit validation
   - repo: https://github.com/commitizen-tools/commitizen
-    rev: v4.16.3
+    rev: v4.19.2
     hooks:
       - id: commitizen
         name: Check conventional commit message
@@ -410,7 +410,7 @@ repos:
 
   # IaC / Container security scanning (Dockerfiles, Docker Compose, Kubernetes)
   - repo: https://github.com/bridgecrewio/checkov
-    rev: 3.2.532
+    rev: 3.3.29
     hooks:
       - id: checkov
         name: Checkov IaC security scan
@@ -429,7 +429,7 @@ repos:
 
   # SQL migration linting (PostgreSQL dialect)
   - repo: https://github.com/sqlfluff/sqlfluff
-    rev: 4.2.1
+    rev: 4.4.0
     hooks:
       - id: sqlfluff-fix
         name: SQLFluff fix SQL migrations
@@ -453,7 +453,7 @@ repos:
 
   # pyproject.toml normalization (consistent key ordering, whitespace)
   - repo: https://github.com/tox-dev/pyproject-fmt
-    rev: v2.23.0
+    rev: v2.30.3
     hooks:
       - id: pyproject-fmt
         name: Normalize pyproject.toml
@@ -462,7 +462,7 @@ repos:
 
   # pyproject.toml schema validation (PEP 517/518/621 compliance)
   - repo: https://github.com/abravalheri/validate-pyproject
-    rev: v0.25
+    rev: '0.26'
     hooks:
       - id: validate-pyproject
         name: Validate pyproject.toml schema
@@ -471,7 +471,7 @@ repos:
 
   # EditorConfig compliance checker
   - repo: https://github.com/editorconfig-checker/editorconfig-checker.python
-    rev: 3.6.1
+    rev: 3.11.1
     hooks:
       - id: editorconfig-checker
         name: Check EditorConfig compliance
