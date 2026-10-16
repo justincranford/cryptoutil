@@ -145,12 +145,12 @@ func newValueGenPoolInternal[T any](cfg *ValueGenPoolConfig[T], err error, newFl
 		generateDurationHistogram:   generateHistogramMetric,
 	}
 
-	var waitForWorkers sync.WaitGroup                 // closeChannelsThread uses this to wait for N worker to finish, so it is safe to close permissionChannel and valueChannel
-	go valuePool.closeChannelsThread(&waitForWorkers) // close channels when it is safe; after all workers are done
+	var waitForWorkers sync.WaitGroup // closeChannelsThread waits for all workers before closing their channels.
+
+	waitForWorkers.Add(int(valuePool.cfg.numWorkers))
+	go valuePool.closeChannelsThread(&waitForWorkers)
 
 	for workerNum := uint32(1); workerNum <= valuePool.cfg.numWorkers; workerNum++ {
-		waitForWorkers.Add(1)
-
 		go func() {
 			defer waitForWorkers.Done()
 
