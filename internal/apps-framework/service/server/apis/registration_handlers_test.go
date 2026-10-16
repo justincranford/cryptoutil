@@ -8,6 +8,7 @@ package apis
 import (
 	"bytes"
 	json "encoding/json"
+	"fmt"
 	"net/http/httptest"
 	"testing"
 
@@ -227,6 +228,8 @@ func TestRegisterUserRequest_JSON(t *testing.T) {
 // TestHandleRegisterUser_TableDriven uses table-driven tests for comprehensive coverage.
 // Sequential: shares the package-level testGormDB fixture.
 func TestHandleRegisterUser_TableDriven(t *testing.T) {
+	registrationID := googleUuid.Must(googleUuid.NewV7()).String()
+
 	tests := []struct {
 		name           string
 		requestBody    string
@@ -247,25 +250,25 @@ func TestHandleRegisterUser_TableDriven(t *testing.T) {
 		},
 		{
 			name: "Valid request with create tenant",
-			requestBody: `{
-				"username": "newuser",
-				"email": "newuser@example.com",
+			requestBody: fmt.Sprintf(`{
+				"username": "newuser-%s",
+				"email": "newuser-%s@example.com",
 				"password": "SecurePassword123!",
-				"tenant_name": "New Tenant",
+				"tenant_name": "New Tenant %s",
 				"create_tenant": true
-			}`,
+			}`, registrationID, registrationID, registrationID),
 			expectedStatus: 201,
 			expectedError:  false,
 		},
 		{
 			name: "Valid request create tenant (different username)",
-			requestBody: `{
-				"username": "anotheruser",
-				"email": "anotheruser@example.com",
+			requestBody: fmt.Sprintf(`{
+				"username": "anotheruser-%s",
+				"email": "anotheruser-%s@example.com",
 				"password": "SecurePassword456!",
-				"tenant_name": "Another Tenant",
+				"tenant_name": "Another Tenant %s",
 				"create_tenant": true
-			}`,
+			}`, registrationID, registrationID, registrationID),
 			expectedStatus: 201,
 			expectedError:  false,
 		},

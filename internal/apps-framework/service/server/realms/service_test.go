@@ -6,6 +6,7 @@ package realms
 import (
 	"context"
 	"fmt"
+	"sync"
 	"testing"
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
@@ -16,6 +17,7 @@ import (
 
 // mockUserRepository implements UserRepository for testing.
 type mockUserRepository struct {
+	mu                sync.RWMutex
 	users             map[string]UserModel
 	createErr         error
 	findByUsernameErr error
@@ -33,6 +35,9 @@ func (m *mockUserRepository) Create(_ context.Context, user UserModel) error {
 		return m.createErr
 	}
 
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
 	if _, exists := m.users[user.GetUsername()]; exists {
 		return fmt.Errorf("duplicate username")
 	}
@@ -47,6 +52,9 @@ func (m *mockUserRepository) FindByUsername(_ context.Context, username string) 
 		return nil, m.findByUsernameErr
 	}
 
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
 	user, exists := m.users[username]
 	if !exists {
 		return nil, fmt.Errorf("user not found")
@@ -59,6 +67,9 @@ func (m *mockUserRepository) FindByID(_ context.Context, id googleUuid.UUID) (Us
 	if m.findByIDErr != nil {
 		return nil, m.findByIDErr
 	}
+
+	m.mu.RLock()
+	defer m.mu.RUnlock()
 
 	for _, user := range m.users {
 		if user.GetID() == id {

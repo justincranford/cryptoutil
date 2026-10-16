@@ -60,6 +60,15 @@ func startAdminServerWithClient(t *testing.T) (*cryptoutilAppsFrameworkServiceSe
 	return server, client, port, cancel, startErr
 }
 
+func requireAdminServerStoppedOnShutdown(t *testing.T, startErr <-chan error) {
+	t.Helper()
+
+	// The shutdown endpoint may win Start's select before context cancellation.
+	if err := waitForListenerServerExit(t, startErr); err != nil {
+		require.ErrorIs(t, err, context.Canceled)
+	}
+}
+
 // TestAdminServer_Livez_DuringHTTPShutdown covers handleLivez's "return nil" after
 // the shutdown JSON response while the listener is draining.
 // Sequential: starts a real HTTPS server (port reuse issues).
@@ -69,7 +78,7 @@ func TestAdminServer_Livez_DuringHTTPShutdown(t *testing.T) {
 
 	defer func() {
 		cancel()
-		require.ErrorIs(t, waitForListenerServerExit(t, startErr), context.Canceled)
+		requireAdminServerStoppedOnShutdown(t, startErr)
 	}()
 
 	// POST to /admin/api/v1/shutdown and probe liveness during the drain delay.
@@ -105,7 +114,7 @@ func TestAdminServer_Readyz_DuringHTTPShutdown(t *testing.T) {
 
 	defer func() {
 		cancel()
-		require.ErrorIs(t, waitForListenerServerExit(t, startErr), context.Canceled)
+		requireAdminServerStoppedOnShutdown(t, startErr)
 	}()
 
 	// Mark server ready before testing shutdown response.
