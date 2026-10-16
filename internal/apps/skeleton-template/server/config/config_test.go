@@ -80,6 +80,13 @@ func TestValidateSettings_NilBase(t *testing.T) {
 // TestParse_Delegates verifies Parse delegates to ParseWithFlagSet with global CommandLine.
 // Sequential: uses pflag.CommandLine global state via Parse().
 func TestParse_Delegates(t *testing.T) {
+	previousCommandLine := pflag.CommandLine
+	pflag.CommandLine = pflag.NewFlagSet("test-parse-delegates", pflag.ExitOnError)
+
+	t.Cleanup(func() {
+		pflag.CommandLine = previousCommandLine
+	})
+
 	// Parse with valid args to verify delegation works (pflag.CommandLine
 	// uses ExitOnError mode, so we cannot test invalid flags here).
 	cfg, err := Parse([]string{testStart, testProfileTest}, false)
