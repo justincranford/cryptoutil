@@ -8,6 +8,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
@@ -16,13 +17,18 @@ import (
 )
 
 const (
-	currentDirectory = "."
-	nestedDirectory  = "nested"
+	currentDirectory    = "."
+	nestedDirectory     = "nested"
+	testGOOSLinux       = cryptoutilSharedMagic.MockRuntimeGoOS
+	testGOOSWindows     = cryptoutilSharedMagic.OSNameWindows
+	testErrChmodFile    = "chmod file"
+	testReadOnlyPEMFile = "readonly.pem"
 )
 
 type testWritableRoot struct {
 	chmodErr   error
 	chmodCalls *[]string
+	chmodModes *[]fs.FileMode
 }
 
 type testDirEntryInfoError struct {
@@ -50,9 +56,13 @@ func (entry testDirEntryInfoError) Info() (fs.FileInfo, error) {
 	return nil, entry.infoErr
 }
 
-func (root testWritableRoot) Chmod(name string, _ fs.FileMode) error {
+func (root testWritableRoot) Chmod(name string, mode fs.FileMode) error {
 	if root.chmodCalls != nil {
 		*root.chmodCalls = append(*root.chmodCalls, name)
+	}
+
+	if root.chmodModes != nil {
+		*root.chmodModes = append(*root.chmodModes, mode)
 	}
 
 	return root.chmodErr
@@ -199,6 +209,7 @@ func TestMakeWritableRecursiveWithOpsSkipsMatchingDirectoryPermissions(t *testin
 		func(_, _ string) (string, error) {
 			return nestedDirectory, nil
 		},
+		runtime.GOOS,
 	)
 
 	require.NoError(t, err)
@@ -235,10 +246,95 @@ func TestMakeWritableRecursiveWithOpsSkipsOwnerWritableFiles(t *testing.T) {
 		func(string, string) (string, error) {
 			return "writable.pem", nil
 		},
+		runtime.GOOS,
 	)
 
 	require.NoError(t, err)
 	require.Empty(t, chmodCalls)
+}
+
+func TestMakeWritableRecursiveWithOpsFilePermissionsByOS(t *testing.T) {
+	t.Parallel()
+
+	rootPath := t.TempDir()
+	filePath := filepath.Join(rootPath, testReadOnlyPEMFile)
+	require.NoError(t, os.WriteFile(filePath, []byte("certificate"), cryptoutilSharedMagic.CacheFilePermissions))
+
+	fileInfo, err := os.Stat(filePath)
+	require.NoError(t, err)
+
+	fileEntry := fs.FileInfoToDirEntry(testFileInfoMode{
+		FileInfo: fileInfo,
+		mode:     fileInfo.Mode() &^ cryptoutilSharedMagic.CICDFileOwnerWritePermission,
+	})
+	injectedErr := errors.New("injected chmod error")
+
+	tests := []struct {
+		name          string
+		goos          string
+		chmodErr      error
+		wantChmodCall bool
+		wantErr       string
+	}{
+		{
+			name:     "unix skips read-only file chmod",
+			goos:     testGOOSLinux,
+			chmodErr: injectedErr,
+		},
+		{
+			name:          "windows clears read-only file permission",
+			goos:          testGOOSWindows,
+			wantChmodCall: true,
+		},
+		{
+			name:          "windows reports chmod error",
+			goos:          testGOOSWindows,
+			chmodErr:      injectedErr,
+			wantChmodCall: true,
+			wantErr:       testErrChmodFile,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			chmodCalls := []string{}
+			chmodModes := []fs.FileMode{}
+			root := testWritableRoot{
+				chmodErr:   tc.chmodErr,
+				chmodCalls: &chmodCalls,
+				chmodModes: &chmodModes,
+			}
+			err := makeWritableRecursiveWithOps(
+				rootPath,
+				func(string) (writableRoot, error) {
+					return root, nil
+				},
+				func(_ string, walkFn fs.WalkDirFunc) error {
+					return walkFn(filePath, fileEntry, nil)
+				},
+				func(string, string) (string, error) {
+					return testReadOnlyPEMFile, nil
+				},
+				tc.goos,
+			)
+
+			if tc.wantErr != "" {
+				require.ErrorContains(t, err, tc.wantErr)
+			} else {
+				require.NoError(t, err)
+			}
+
+			if tc.wantChmodCall {
+				require.Equal(t, []string{testReadOnlyPEMFile}, chmodCalls)
+				require.Equal(t, []fs.FileMode{cryptoutilSharedMagic.CacheFilePermissions}, chmodModes)
+			} else {
+				require.Empty(t, chmodCalls)
+				require.Empty(t, chmodModes)
+			}
+		})
+	}
 }
 
 func TestMakeWritableRecursiveWithOpsErrors(t *testing.T) {
@@ -270,6 +366,7 @@ func TestMakeWritableRecursiveWithOpsErrors(t *testing.T) {
 		walkErr  error
 		relErr   error
 		chmodErr error
+		goos     string
 		wantErr  string
 	}{
 		{
@@ -302,6 +399,7 @@ func TestMakeWritableRecursiveWithOpsErrors(t *testing.T) {
 			name:     "file info error",
 			walkPath: filePath,
 			entry:    testDirEntryInfoError{infoErr: injectedErr},
+			goos:     testGOOSWindows,
 			wantErr:  "stat file",
 		},
 		{
@@ -309,7 +407,8 @@ func TestMakeWritableRecursiveWithOpsErrors(t *testing.T) {
 			walkPath: filePath,
 			entry:    fileEntry,
 			chmodErr: injectedErr,
-			wantErr:  "chmod file",
+			goos:     testGOOSWindows,
+			wantErr:  testErrChmodFile,
 		},
 	}
 
@@ -333,6 +432,13 @@ func TestMakeWritableRecursiveWithOpsErrors(t *testing.T) {
 
 					return currentDirectory, nil
 				},
+				func() string {
+					if tc.goos != "" {
+						return tc.goos
+					}
+
+					return runtime.GOOS
+				}(),
 			)
 			require.ErrorContains(t, err, tc.wantErr)
 		})

@@ -15,6 +15,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"time"
 
 	cryptoutilSharedCryptoTls "cryptoutil/internal/shared/crypto/tls"
@@ -242,8 +243,8 @@ func (cm *ComposeManager) resetCertOutputDir() error {
 	return nil
 }
 
-// makeWritableRecursive clears read-only attributes recursively so pki-init can
-// rewrite cert output on Windows and Unix.
+// makeWritableRecursive normalizes directory permissions and clears read-only
+// file permissions on Windows so pki-init can rewrite cert output.
 func makeWritableRecursive(path string) error {
 	return makeWritableRecursiveWithOps(
 		path,
@@ -252,6 +253,7 @@ func makeWritableRecursive(path string) error {
 		},
 		filepath.WalkDir,
 		filepath.Rel,
+		runtime.GOOS,
 	)
 }
 
@@ -265,6 +267,7 @@ func makeWritableRecursiveWithOps(
 	openRootFn func(path string) (writableRoot, error),
 	walkDirFn func(root string, fn fs.WalkDirFunc) error,
 	relFn func(basepath, targpath string) (string, error),
+	goos string,
 ) error {
 	root, err := openRootFn(path)
 	if err != nil {
@@ -299,6 +302,10 @@ func makeWritableRecursiveWithOps(
 				return fmt.Errorf("chmod dir %s: %w", walkPath, err)
 			}
 
+			return nil
+		}
+
+		if goos != "windows" {
 			return nil
 		}
 
