@@ -54,6 +54,7 @@ services:
   otel-certs-init:
     volumes:
       - skeleton-certs:/certs-source:ro
+      - skeleton-otel-certs:/etc/pki-init/certs
 
 secrets:
   # PRODUCT-level secrets override PS-ID secrets (paths resolve from the first included app compose file).
@@ -97,3 +98,4 @@ secrets:
 
 volumes:
   skeleton-certs:
+  skeleton-otel-certs:

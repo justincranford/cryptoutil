@@ -1,8 +1,29 @@
 # PRODUCT-level overrides for imported shared telemetry resources.
 services:
+  healthcheck-opentelemetry-collector-contrib:
+    depends_on:
+      pki-init:
+        condition: service_completed_successfully
+        restart: true
+
+  opentelemetry-collector-contrib:
+    depends_on:
+      pki-init:
+        condition: service_completed_successfully
+        restart: true
+      otel-certs-init:
+        condition: service_completed_successfully
+        restart: true
+    volumes:
+      - identity-otel-certs:/etc/pki-init/certs:ro
+
   grafana-otel-lgtm:
     depends_on:
       pki-init:
         condition: service_completed_successfully
     volumes:
       - identity-certs:/mnt/ps-certs-src:ro
+    environment:
+      GF_SERVER_CERT_FILE: /mnt/ps-certs-src/identity/public-https-server-entity-grafana-otel-lgtm/public-https-server-entity-grafana-otel-lgtm.crt
+      GF_SERVER_CERT_KEY: /mnt/ps-certs-src/identity/public-https-server-entity-grafana-otel-lgtm/public-https-server-entity-grafana-otel-lgtm.key
+      OTELCOL_CLIENT_CA_FILE: /mnt/ps-certs-src/identity/grafana-otel-lgtm-https-client-issuing-ca/truststore/grafana-otel-lgtm-https-client-issuing-ca.crt

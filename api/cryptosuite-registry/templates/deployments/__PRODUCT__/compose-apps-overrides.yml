@@ -32,6 +32,7 @@ __PRODUCT_SERVICE_OVERRIDES__
   otel-certs-init:
     volumes:
       - __PRODUCT__-certs:/certs-source:ro
+      - __PRODUCT__-otel-certs:/etc/pki-init/certs
 
 secrets:
   # PRODUCT-level secrets override PS-ID secrets (paths resolve from the first included app compose file).
@@ -75,3 +76,4 @@ secrets:
 
 volumes:
   __PRODUCT__-certs:
+  __PRODUCT__-otel-certs:

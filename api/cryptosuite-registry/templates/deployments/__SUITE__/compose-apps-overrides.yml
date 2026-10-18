@@ -32,6 +32,7 @@ __SUITE_SERVICE_OVERRIDES__
   otel-certs-init:
     volumes:
       - __SUITE__-certs:/certs-source:ro
+      - __SUITE__-otel-certs:/etc/pki-init/certs
 
 secrets:
   unseal-1of5.secret: {file: ./secrets/unseal-1of5.secret}
@@ -54,3 +55,4 @@ secrets:
 
 volumes:
   __SUITE__-certs:
+  __SUITE__-otel-certs:
