@@ -12,6 +12,7 @@ requires-python = ">=3.14"
 classifiers = [
   "Programming Language :: Python :: 3 :: Only",
   "Programming Language :: Python :: 3.14",
+  "Programming Language :: Python :: 3.15",
 ]
 optional-dependencies.dependencies = [
   "codecov>=2.1.13",
@@ -48,9 +49,9 @@ ini_options.testpaths = [ "tests" ]
 ini_options.addopts = "-ra -q -strict-markers --cov=. --cov-report=term-missing --cov-report=xml --cov-fail-under=96"
 
 [tool.coverage]
+run.source = [ "." ]
 run.omit = [ "*/__pycache__/*", "*/test_*.py", "*/tests/*", "*/venv/*" ]
 run.precision = 2
-run.source = [ "." ]
 
 [tool.node]
 dependencies = [ "nvm-windows>=1.2.2", "node>=24.22.0", "cspell>=9.0.0" ]

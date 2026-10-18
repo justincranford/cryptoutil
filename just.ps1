@@ -22,12 +22,12 @@ foreach ($line in $lines) {
         $inRecipe = $true
         continue
     }
-    
+
     # Check if we've hit a new recipe (starts with @)
     if ($inRecipe -and $line -match "^@" -and $line -ne "") {
         break
     }
-    
+
     # If we're in the recipe, collect the command (remove leading whitespace)
     if ($inRecipe) {
         if ($line -match "^\s+(.+)$") {
