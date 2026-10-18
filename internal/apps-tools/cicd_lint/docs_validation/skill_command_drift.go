@@ -102,7 +102,7 @@ func CheckSkillCommandDrift(rootDir string, readFileFn func(string) ([]byte, err
 			// Directory exists but SKILL.md is missing — flag it.
 			result.Violations = append(result.Violations, SkillCommandDriftViolation{
 				SkillFile: skillFilePath,
-				Field:     "missing-skill-file",
+				Field:     valueMissingSkillFile,
 				Detail:    fmt.Sprintf("skill directory %q exists but %s is missing", skillName, cryptoutilSharedMagic.CICDSkillFileName),
 			})
 
@@ -121,7 +121,15 @@ func CheckSkillCommandDrift(rootDir string, readFileFn func(string) ([]byte, err
 
 		skillContent, skillReadErr := readFileFn(skillFilePath)
 		if skillReadErr != nil {
-			continue // Missing skill file already flagged in Step 1.
+			result.Violations = append(result.Violations, SkillCommandDriftViolation{
+				SkillFile: skillFilePath,
+				Field:     valueMissingSkillFile,
+				Detail:    fmt.Sprintf("skill file for %q could not be read during validation: %v", skillName, skillReadErr),
+			})
+
+			result.Checked++
+
+			continue
 		}
 
 		skillStr := string(skillContent)

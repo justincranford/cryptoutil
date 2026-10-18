@@ -15,11 +15,14 @@ import (
 )
 
 const (
-	testCatalogRootUnavailable   = "root unavailable"
-	testCatalogReadFailure       = "failed to read"
-	testCatalogRootLookupFailure = "root lookup failure"
-	testViolationSummary         = "violation(s) found"
-	testViolationsHeading        = "VIOLATIONS"
+	testCatalogFilesCaseName           = "catalog files"
+	testCatalogPropagationCaseName     = "catalog propagation"
+	testCatalogPropagationCheckedCount = 3
+	testCatalogRootUnavailable         = "root unavailable"
+	testCatalogReadFailure             = "failed to read"
+	testCatalogRootLookupFailure       = "root lookup failure"
+	testViolationSummary               = "violation(s) found"
+	testViolationsHeading              = "VIOLATIONS"
 )
 
 func TestCatalogFilesCommand(t *testing.T) {
@@ -173,8 +176,8 @@ func TestCatalogCommandWrappers(t *testing.T) {
 		name    string
 		command func(io.Writer, io.Writer) int
 	}{
-		{name: "catalog files", command: CatalogFilesCommand},
-		{name: "catalog propagation", command: CatalogPropagationCommand},
+		{name: testCatalogFilesCaseName, command: CatalogFilesCommand},
+		{name: testCatalogPropagationCaseName, command: CatalogPropagationCommand},
 	}
 
 	for _, tc := range tests {

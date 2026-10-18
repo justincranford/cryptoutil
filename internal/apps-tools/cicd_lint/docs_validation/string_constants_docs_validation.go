@@ -14,4 +14,5 @@ const (
 	valueFrontmatter                                    = "frontmatter"
 	valueMissing                                        = "missing"
 	valueMissingKeyRules                                = "missing-key-rules"
+	valueMissingSkillFile                               = "missing-skill-file"
 )

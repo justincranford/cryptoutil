@@ -121,7 +121,7 @@ func TestCheckSkillCommandDrift(t *testing.T) {
 				require.NoError(t, os.MkdirAll(ghSkills(root, "no-skill-file"), 0o700))
 				require.NoError(t, os.MkdirAll(clSkills(root, ""), 0o700))
 			},
-			wantFields: []string{"missing-skill-file"},
+			wantFields: []string{valueMissingSkillFile},
 		},
 		{
 			name: "empty dirs no violations",
