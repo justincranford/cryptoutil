@@ -49,7 +49,7 @@ See [ENG-HANDBOOK.md Section 2.2 Architecture Strategy](ENG-HANDBOOK.md#22-archi
 | **gopls** | `go install golang.org/x/tools/gopls@latest` | Go language server for VS Code |
 | **staticcheck** | `go install honnef.co/go/tools/cmd/staticcheck@latest` | Advanced static analysis |
 | **govulncheck** | `go install golang.org/x/vuln/cmd/govulncheck@v1.9.0` | Go vulnerability scanning |
-| **gremlins** | `go install github.com/go-gremlins/gremlins/cmd/gremlins@latest` | Mutation testing |
+| **gremlins** | `go install github.com/go-gremlins/gremlins/cmd/gremlins@v0.6.0` | Mutation testing |
 | **oapi-codegen** | `go install github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@latest` | OpenAPI code generation |
 | **air** | `go install github.com/air-verse/air@latest` | Live reload for development (hot-rebuild on Save) |
 
@@ -288,7 +288,7 @@ go install honnef.co/go/tools/cmd/staticcheck@latest
 go install golang.org/x/vuln/cmd/govulncheck@v1.9.0
 
 # Install gremlins (mutation testing)
-go install github.com/go-gremlins/gremlins/cmd/gremlins@latest
+go install github.com/go-gremlins/gremlins/cmd/gremlins@v0.6.0
 
 # Install oapi-codegen (OpenAPI code generation)
 go install github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@latest
@@ -483,7 +483,7 @@ go install golang.org/x/tools/cmd/goimports@latest
 go install golang.org/x/tools/gopls@latest
 go install honnef.co/go/tools/cmd/staticcheck@latest
 go install golang.org/x/vuln/cmd/govulncheck@v1.9.0
-go install github.com/go-gremlins/gremlins/cmd/gremlins@latest
+go install github.com/go-gremlins/gremlins/cmd/gremlins@v0.6.0
 go install github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@latest
 
 # Verify
@@ -569,7 +569,7 @@ go install golang.org/x/tools/cmd/goimports@latest
 go install golang.org/x/tools/gopls@latest
 go install honnef.co/go/tools/cmd/staticcheck@latest
 go install golang.org/x/vuln/cmd/govulncheck@v1.9.0
-go install github.com/go-gremlins/gremlins/cmd/gremlins@latest
+go install github.com/go-gremlins/gremlins/cmd/gremlins@v0.6.0
 go install github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@latest
 ```
 

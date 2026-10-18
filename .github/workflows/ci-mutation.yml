@@ -109,12 +109,11 @@ jobs:
       - name: Install gremlins
         run: |
           echo "🔄 Installing gremlins mutation testing tool..."
-          go install github.com/go-gremlins/gremlins/cmd/gremlins@latest
+          go install github.com/go-gremlins/gremlins/cmd/gremlins@v0.6.0
 
-      - name: Run mutation tests (informational)
-        continue-on-error: true
+      - name: Run mutation tests
         working-directory: .
-        timeout-minutes: 45
+        timeout-minutes: 180
         run: |
           echo "🔄 Running mutation tests..."
           echo "⚠️ Note: Server-startup tests (pki/ca/server, sm/im/server) may timeout during gremlins coverage gathering in CI"
@@ -134,16 +133,49 @@ jobs:
           name: mutation-test-results
           path: |
             .gremlins/**
-            mutation-report.json
+            gremlins-report.json
           retention-days: 7
-          if-no-files-found: warn
+          if-no-files-found: error
 
       - name: Mutation testing summary
+        if: always()
+        env:
+          REPORT_PATH: gremlins-report.json
         run: |
-          echo "## 🔄 Mutation Testing Results" >> $GITHUB_STEP_SUMMARY
-          echo "Mutation tests completed." >> $GITHUB_STEP_SUMMARY
-          echo "- Tool: gremlins" >> $GITHUB_STEP_SUMMARY
-          echo "- Excluded tags: integration, bench, fuzz, e2e, pbt, \
-            properties" >> $GITHUB_STEP_SUMMARY
-          echo "- Target score: ≥80%" >> $GITHUB_STEP_SUMMARY
-          echo "- Duration: \${DURATION}s" >> $GITHUB_STEP_SUMMARY
+          {
+            echo "## Mutation Testing Results"
+            echo "- Tool: Gremlins v0.6.0"
+            echo "- Excluded tags: integration, bench, fuzz, e2e, pbt, properties"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          if [[ ! -s "$REPORT_PATH" ]]; then
+            echo "::error::Gremlins report is missing or empty: $REPORT_PATH"
+            echo "- Result: **Failed**: report missing or empty." >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+
+          if ! jq -e '
+            . as $report
+            | ["test_efficacy", "mutations_coverage", "mutants_total",
+              "mutants_killed", "mutants_lived", "mutants_not_viable",
+              "mutants_not_covered"] as $required
+            | if all($required[]; ($report[.] | type) == "number") then
+                [
+                  "",
+                  "| Metric | Result | Target |",
+                  "|---|---:|---:|",
+                  "| Test efficacy | \($report.test_efficacy)% | >=95% |",
+                  "| Mutation coverage | \($report.mutations_coverage)% | >=95% |",
+                  "| Mutants total | \($report.mutants_total) | - |",
+                  "| Killed | \($report.mutants_killed) | - |",
+                  "| Lived | \($report.mutants_lived) | - |",
+                  "| Not viable | \($report.mutants_not_viable) | - |",
+                  "| Not covered | \($report.mutants_not_covered) | - |"
+                ] | .[]
+              else
+                error("Gremlins report is missing required numeric fields")
+              end
+          ' "$REPORT_PATH" >> "$GITHUB_STEP_SUMMARY"; then
+            echo "::error::Gremlins report is invalid or missing required score fields"
+            exit 1
+          fi

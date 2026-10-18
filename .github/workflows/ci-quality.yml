@@ -447,7 +447,7 @@ jobs:
           echo "🧬 Installing Gremlins mutation testing tool..."
           START_TIME=$(date +%s)
           echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-          go install github.com/go-gremlins/gremlins/cmd/gremlins@latest
+          go install github.com/go-gremlins/gremlins/cmd/gremlins@v0.6.0
           END_TIME=$(date +%s)
           DURATION=$((END_TIME - START_TIME))
           echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
