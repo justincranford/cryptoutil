@@ -37,6 +37,12 @@ func TestBoolInt_Value(t *testing.T) {
 	}
 }
 
+func TestBoolInt_GormDataType(t *testing.T) {
+	t.Parallel()
+
+	require.Equal(t, "integer", BoolInt(false).GormDataType())
+}
+
 func TestBoolInt_Scan(t *testing.T) {
 	t.Parallel()
 
