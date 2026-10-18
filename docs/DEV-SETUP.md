@@ -2,19 +2,90 @@
 
 This guide covers setting up a complete development environment for the cryptoutil project on Windows, Linux, and macOS systems.
 
+## Document Map
+
+| Section | Purpose |
+|---------|---------|
+| [Prerequisites Overview](#prerequisites-overview) | Supported tool versions and the tools required for development. |
+| [Why Each Tool is Required](#why-each-tool-is-required) | Rationale for the Go, container, testing, and security toolchain. |
+| [Platform-Specific Setup](#platform-specific-setup) | Installation and configuration steps for Windows, Linux, and macOS. |
+| [Common Setup Steps](#common-setup-steps) | Repository setup, module initialization, code generation, builds, and hooks. |
+| [IDE Configuration](#ide-configuration) | VS Code configuration, optional Windows Go cache/temp paths, and editor troubleshooting. |
+| [Project Setup](#project-setup) | Running the services with SQLite or PostgreSQL and using live reload. |
+| [Verification](#verification) | Version checks and project-wide verification commands. |
+| [Troubleshooting](#troubleshooting) | Common development environment problems and help resources. |
+| [Gatling Load Tests (Optional)](#gatling-load-tests-optional) | Prerequisites and commands for load testing. |
+| [Security Testing (Optional)](#security-testing-optional) | Manual DAST and container image scanning. |
+| [Architecture References](#architecture-references) | Links to the canonical engineering handbook sections. |
+
 ## Table of Contents
 
+- [Document Map](#document-map)
 - [Prerequisites Overview](#prerequisites-overview)
+  - [Minimum Version Requirements](#minimum-version-requirements)
+  - [Go Development Tools](#go-development-tools)
+  - [Security & Testing Tools](#security--testing-tools)
+  - [Node.js Tools](#nodejs-tools)
+  - [Python Tools](#python-tools)
 - [Why Each Tool is Required](#why-each-tool-is-required)
+  - [Core Development (Go 1.27.2+)](#core-development-go-1272)
+  - [Docker & Docker Compose](#docker--docker-compose)
+  - [Python 3.14+ (3.15.0 latest stable)](#python-314-3150-latest-stable)
+  - [Node.js 24.22.0+ LTS](#nodejs-24220-lts)
+  - [Java 21 LTS (Optional - Load Testing Only)](#java-21-lts-optional---load-testing-only)
+  - [golangci-lint v2.14.0+](#golangci-lint-v2140)
+  - [Gremlins (Mutation Testing)](#gremlins-mutation-testing)
+  - [Security Tools (Trivy, Nuclei)](#security-tools-trivy-nuclei)
 - [Platform-Specific Setup](#platform-specific-setup)
   - [Windows](#windows)
+    - [1. Install Core Prerequisites](#1-install-core-prerequisites)
+    - [2. Install Go Development Tools](#2-install-go-development-tools)
+    - [3. Install Node.js Tools](#3-install-nodejs-tools)
+    - [4. Install Python Tools](#4-install-python-tools)
+    - [5. Install Security & Testing Tools](#5-install-security--testing-tools)
+    - [6. Configure PowerShell Execution Policy](#6-configure-powershell-execution-policy)
+    - [7. Configure Go Build and Temporary Directories (Optional)](#7-configure-go-build-and-temporary-directories-optional)
   - [Linux](#linux)
+    - [1. Install Core Prerequisites](#1-install-core-prerequisites-1)
+    - [2. Install Go Development Tools](#2-install-go-development-tools-1)
+    - [3. Install Node.js Tools](#3-install-nodejs-tools-1)
+    - [4. Install Python Tools](#4-install-python-tools-1)
+    - [5. Install Security & Testing Tools](#5-install-security--testing-tools-1)
   - [macOS](#macos)
+    - [1. Install Core Prerequisites](#1-install-core-prerequisites-2)
+    - [2. Install Go Development Tools](#2-install-go-development-tools-2)
+    - [3. Install Node.js & Python Tools](#3-install-nodejs--python-tools)
+    - [4. Install Security & Testing Tools](#4-install-security--testing-tools)
 - [Common Setup Steps](#common-setup-steps)
+  - [1. Clone the Repository](#1-clone-the-repository)
+  - [2. Configure Git Line Endings (not required for this repo)](#2-configure-git-line-endings-not-required-for-this-repo)
+  - [3. Initialize Go Modules](#3-initialize-go-modules)
+  - [4. Install Pre-commit Hooks](#4-install-pre-commit-hooks)
+  - [5. Generate OpenAPI Code](#5-generate-openapi-code)
+  - [6. Build and Test](#6-build-and-test)
+  - [7. Verify Pre-commit Hooks](#7-verify-pre-commit-hooks)
 - [IDE Configuration](#ide-configuration)
+  - [VS Code Setup](#vs-code-setup)
+    - [Optional: Windows Go Build and Temporary Directories](#optional-windows-go-build-and-temporary-directories)
+  - [Troubleshooting VS Code](#troubleshooting-vs-code)
 - [Project Setup](#project-setup)
+  - [Development with SQLite (Recommended)](#development-with-sqlite-recommended)
+  - [Development with PostgreSQL](#development-with-postgresql)
+  - [Live Reload with air (Recommended for Active Development)](#live-reload-with-air-recommended-for-active-development)
+  - [Access the Application](#access-the-application)
 - [Verification](#verification)
+  - [Run Full Verification](#run-full-verification)
 - [Troubleshooting](#troubleshooting)
+  - [Common Issues](#common-issues)
+  - [Getting Help](#getting-help)
+- [Gatling Load Tests (Optional)](#gatling-load-tests-optional)
+  - [Prerequisites](#prerequisites)
+  - [Running Load Tests](#running-load-tests)
+  - [JDK Configuration for Gatling](#jdk-configuration-for-gatling)
+- [Security Testing (Optional)](#security-testing-optional)
+  - [Manual Nuclei Scanning](#manual-nuclei-scanning)
+  - [Container Vulnerability Scanning](#container-vulnerability-scanning)
+- [Architecture References](#architecture-references)
 
 ---
 
@@ -693,12 +764,23 @@ pre-commit run --all-files
 
 #### Optional: Windows Go Build and Temporary Directories
 
-To keep Go build-cache and temporary files in dedicated locations, add these entries to your
-VS Code **User** `settings.json`. The example uses `R:`; replace it with a drive and paths
-available on your machine. The drive can be a RAM drive or a regular disk. Go creates its build
-and module caches on demand, but custom `GOTMPDIR`, `TMP`, and `TEMP` directories must already
-exist. For a RAM drive that resets on reboot, a VS Code workspace task can recreate them when the
-folder opens.
+To use stable OS defaults for Go builds outside VS Code, set the following persistent Windows
+**User** environment variables from **Edit environment variables for your account**:
+
+| Variable | Value |
+|----------|-------|
+| `GOCACHE` | `R:\Go\GOCACHE` |
+| `GOTMPDIR` | `R:\Go\GOTMP` |
+
+Do not change the Windows `TMP` or `TEMP` defaults at User or System scope for this setup. The
+VS Code-specific `TMP` and `TEMP` values below may point to a different directory. The example
+uses `R:`; replace it with a drive and paths available on your machine. The drive can be a RAM
+drive or a regular disk. Go creates the build cache on demand, but custom `GOTMPDIR`, `TMP`, and
+`TEMP` directories must already exist. For a RAM drive that resets on reboot, a VS Code workspace
+task can recreate them when the folder opens.
+
+After changing persistent Windows User variables, fully restart VS Code and any existing shells or
+tool processes so they inherit the new values.
 
 ```jsonc
 {
